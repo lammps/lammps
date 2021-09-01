@@ -715,11 +715,6 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
   //numtyp4 xi__;
 
   if (ii<inum) {
-    int itype,igroup;
-    numtyp bn[4],bcn[3];
-    numtyp fid[3],fip[3];
-    numtyp ci,uix,uiy,uiz,uixp,uiyp,uizp;
-
     int numj, nbor, nbor_end;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
@@ -728,6 +723,11 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
     //numtyp qtmp; fetch(qtmp,i,q_tex);
     //int itype=ix.w;
 
+    int itype,igroup;
+    numtyp bn[4],bcn[3];
+    numtyp fid[3],fip[3];
+    numtyp ci,uix,uiy,uiz,uixp,uiyp,uizp;
+    
     ci  = polar1[i].x;    // rpole[i][0];
     dix = polar1[i].y;    // rpole[i][1];
     diy = polar1[i].z;    // rpole[i][2];
@@ -748,9 +748,9 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
     numtyp pti = damping[itype].y;
     numtyp ddi = damping[itype].z;
 
-    numtyp alsq2 = (numtyp)2.0 * aewald*aewald;
-    numtyp alsq2n = (numtyp)0.0;
-    if (aewald > (numtyp)0.0) alsq2n = (numtyp)1.0 / (MY_PIS*aewald);
+    numtyp aesq2 = (numtyp)2.0 * aewald*aewald;
+    numtyp aesq2n = (numtyp)0.0;
+    if (aewald > (numtyp)0.0) aesq2n = (numtyp)1.0 / (MY_PIS*aewald);
 
     for ( ; nbor<nbor_end; nbor+=n_stride) {
 
@@ -841,7 +841,7 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
         if (pgamma != (numtyp)0.0) {
           damp = pgamma * ucl_powr(r/damp,(numtyp)1.5);
           if (damp < (numtyp)50.0) {
-            expdamp = ucl_exp(-damp) ;
+            numtyp expdamp = ucl_exp(-damp) ;
             scale3 = (numtyp)1.0 - expdamp ;
             scale5 = (numtyp)1.0 - expdamp*((numtyp)1.0+(numtyp)0.5*damp);
             scale7 = (numtyp)1.0 - expdamp*((numtyp)1.0+(numtyp)0.65*damp + (numtyp)0.15*damp*damp);
@@ -850,7 +850,7 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
           pgamma = MIN(pti,damping[jtype].y); // thole[jtype]
           damp = pgamma * ucl_powr(r/damp,3.0);
           if (damp < (numtyp)50.0) {
-            expdamp = ucl_exp(-damp);
+            numtyp expdamp = ucl_exp(-damp);
             scale3 = (numtyp)1.0 - expdamp;
             scale5 = (numtyp)1.0 - expdamp*((numtyp)1.0+damp);
             scale7 = (numtyp)1.0 - expdamp*((numtyp)1.0+damp + (numtyp)0.6*damp*damp);

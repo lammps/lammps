@@ -78,9 +78,10 @@ class Amoeba : public BaseAmoeba<numtyp, acctyp> {
   numtyp _aewald, _felec, _off2, _polar_dscale, _polar_uscale;
   numtyp _qqrd2e;
 
- private:
+ protected:
   bool _allocated;
-  int loop(const int eflag, const int vflag);
+  int polar_real(const int eflag, const int vflag);
+  int udirect2b(const int eflag, const int vflag);
 };
 
 }

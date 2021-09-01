@@ -105,7 +105,7 @@ void amoeba_gpu_clear() {
   AMOEBAMF.clear();
 }
 
-int** amoeba_gpu_compute_n(const int ago, const int inum_full,
+int** amoeba_gpu_compute_polar_real(const int ago, const int inum_full,
                            const int nall, double **host_x, int *host_type,
                            int *host_amtype, int *host_amgroup,
                            double **host_rpole, double **host_uind, double **host_uinp,
@@ -116,7 +116,7 @@ int** amoeba_gpu_compute_n(const int ago, const int inum_full,
                            int **ilist, int **jnum, const double cpu_time,
                            bool &success, double *host_q, double *boxlo,
                            double *prd, void **tep_ptr) {
-  return AMOEBAMF.compute(ago, inum_full, nall, host_x, host_type,
+  return AMOEBAMF.compute_polar_real(ago, inum_full, nall, host_x, host_type,
                           host_amtype, host_amgroup, host_rpole, host_uind, host_uinp,
                           sublo, subhi, tag, nspecial, special, nspecial15, special15,
                           eflag, vflag, eatom,
@@ -124,18 +124,21 @@ int** amoeba_gpu_compute_n(const int ago, const int inum_full,
                           host_q, boxlo, prd, tep_ptr);
 }
 
-void amoeba_gpu_compute(const int ago, const int inum_full, const int nall,
-                        double **host_x, int *host_type, int *host_amtype, int *host_amgroup,
-                        double **host_rpole, double **host_uind, double **host_uinp,
-                        int *ilist, int *numj, int **firstneigh,
-                        const bool eflag, const bool vflag,
-                        const bool eatom, const bool vatom, int &host_start,
-                        const double cpu_time, bool &success, double *host_q,
-                        const int nlocal, double *boxlo, double *prd, void **tep_ptr) {
-  AMOEBAMF.compute(ago,inum_full, nall, host_x, host_type,
-                   host_amtype, host_amgroup, host_rpole, host_uind, host_uinp,
-                   ilist, numj, firstneigh, eflag, vflag, eatom, vatom,
-                   host_start, cpu_time, success, host_q, nlocal, boxlo, prd, tep_ptr);
+int** amoeba_gpu_compute_udirect2b(const int ago, const int inum_full,
+                           const int nall, double **host_x, int *host_type,
+                           int *host_amtype, int *host_amgroup, double **host_rpole,
+                           double *sublo, double *subhi, tagint *tag, int **nspecial,
+                           tagint **special, int *nspecial15, tagint** special15,
+                           const bool eflag, const bool vflag,
+                           const bool eatom, const bool vatom, int &host_start,
+                           int **ilist, int **jnum, const double cpu_time,
+                           bool &success, double *host_q, double *boxlo,
+                           double *prd, void **fieldp_ptr) {
+  return AMOEBAMF.compute_udirect2b(ago, inum_full, nall, host_x, host_type,
+                          host_amtype, host_amgroup, host_rpole, sublo, subhi,
+                          tag, nspecial, special, nspecial15, special15,
+                          eflag, vflag, eatom, vatom, host_start, ilist, jnum,
+                          cpu_time, success, host_q, boxlo, prd, fieldp_ptr);
 }
 
 double amoeba_gpu_bytes() {

@@ -24,19 +24,24 @@
 #include "error.h"
 #include "force.h"
 #include "gpu_extra.h"
+#include "math_const.h"
+#include "my_page.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "suffix.h"
-
 #include <cmath>
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
+
+enum{MUTUAL,OPT,TCG,DIRECT};
 
 // External functions from cuda library for atom decomposition
 
 int amoeba_gpu_init(const int ntypes, const int max_amtype,
                     const double *host_pdamp, const double *host_thole,
+                    const double *host_dirdamp,
                     const double *host_special_polar_wscale,
                     const double *host_special_polar_piscale,
                     const double *host_special_polar_pscale,
@@ -48,7 +53,17 @@ int amoeba_gpu_init(const int ntypes, const int max_amtype,
                     const double polar_uscale, int& tep_size);
 void amoeba_gpu_clear();
 
-int ** amoeba_gpu_compute_n(const int ago, const int inum, const int nall,
+int ** amoeba_gpu_compute_udirect2b(const int ago, const int inum, const int nall,
+                            double **host_x, int *host_type, int *host_amtype, int *host_amgroup,
+                            double **host_rpole, double *sublo, double *subhi, tagint *tag, int **nspecial,
+                            tagint **special, int* nspecial15, tagint** special15,
+                            const bool eflag, const bool vflag,
+                            const bool eatom, const bool vatom, int &host_start,
+                            int **ilist, int **jnum, const double cpu_time,
+                            bool &success, double *host_q, double *boxlo, double *prd,
+                            void **fieldp_ptr);
+
+int ** amoeba_gpu_compute_polar_real(const int ago, const int inum, const int nall,
                             double **host_x, int *host_type, int *host_amtype, int *host_amgroup,
                             double **host_rpole, double **host_uind, double **host_uinp,
                             double *sublo, double *subhi, tagint *tag, int **nspecial,
@@ -58,15 +73,6 @@ int ** amoeba_gpu_compute_n(const int ago, const int inum, const int nall,
                             int **ilist, int **jnum, const double cpu_time,
                             bool &success, double *host_q, double *boxlo, double *prd,
                             void **tep_ptr);
-void amoeba_gpu_compute(const int ago, const int inum,
-                        const int nall, double **host_x, int *host_type,
-                        int *host_amtype, int *host_amgroup,
-                        double **host_rpole, double **host_uind, double **host_uinp,
-                        int *ilist, int *numj, int **firstneigh,
-                        const bool eflag, const bool vflag, const bool eatom,
-                        const bool vatom, int &host_start, const double cpu_time,
-                        bool &success, double *host_q, const int nlocal,
-                        double *boxlo, double *prd, void **tep_ptr);
 
 double amoeba_gpu_bytes();
 
@@ -80,6 +86,8 @@ PairAmoebaGPU::PairAmoebaGPU(LAMMPS *lmp) : PairAmoeba(lmp), gpu_mode(GPU_FORCE)
   reinitflag = 0;
   cpu_time = 0.0;
   suffix_flag |= Suffix::GPU;
+  fieldp_pinned = nullptr;
+  tep_pinned = nullptr;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 
@@ -102,42 +110,31 @@ void PairAmoebaGPU::polar_real()
 
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
-  if (gpu_mode != GPU_FORCE) {
-    double sublo[3],subhi[3];
-    if (domain->triclinic == 0) {
-      sublo[0] = domain->sublo[0];
-      sublo[1] = domain->sublo[1];
-      sublo[2] = domain->sublo[2];
-      subhi[0] = domain->subhi[0];
-      subhi[1] = domain->subhi[1];
-      subhi[2] = domain->subhi[2];
-    } else {
-      domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
-    }
-    inum = atom->nlocal;
-
-    firstneigh = amoeba_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
-                                      atom->type, amtype, amgroup,
-                                      rpole, uind, uinp, sublo, subhi,
-                                      atom->tag, atom->nspecial, atom->special,
-                                      atom->nspecial15, atom->special15,
-                                      eflag, vflag, eflag_atom, vflag_atom,
-                                      host_start, &ilist, &numneigh, cpu_time,
-                                      success, atom->q, domain->boxlo,
-                                      domain->prd, &tep_pinned);
-
+  
+  double sublo[3],subhi[3];
+  if (domain->triclinic == 0) {
+    sublo[0] = domain->sublo[0];
+    sublo[1] = domain->sublo[1];
+    sublo[2] = domain->sublo[2];
+    subhi[0] = domain->subhi[0];
+    subhi[1] = domain->subhi[1];
+    subhi[2] = domain->subhi[2];
   } else {
-    inum = list->inum;
-    ilist = list->ilist;
-    numneigh = list->numneigh;
-    firstneigh = list->firstneigh;
-    
-    amoeba_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
-                       amtype, amgroup, rpole, uind, uinp,
-                       ilist, numneigh, firstneigh, eflag, vflag, eflag_atom,
-                       vflag_atom, host_start, cpu_time, success, atom->q,
-                       atom->nlocal, domain->boxlo, domain->prd, &tep_pinned);
+    domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
   }
+  inum = atom->nlocal;
+
+  firstneigh = amoeba_gpu_compute_polar_real(neighbor->ago, inum, nall, atom->x,
+                                        atom->type, amtype, amgroup,
+                                        rpole, uind, uinp, sublo, subhi,
+                                        atom->tag, atom->nspecial, atom->special,
+                                        atom->nspecial15, atom->special15,
+                                        eflag, vflag, eflag_atom, vflag_atom,
+                                        host_start, &ilist, &numneigh, cpu_time,
+                                        success, atom->q, domain->boxlo,
+                                        domain->prd, &tep_pinned);
+
+  
   if (!success)
     error->one(FLERR,"Insufficient memory on accelerator");
 
@@ -248,6 +245,7 @@ void PairAmoebaGPU::init_style()
   }
 
   // select the cutoff (off2) for neighbor list builds (the polar term for now)
+  // NOTE: induce and polar terms are using the same flags here
 
   if (use_ewald) choose(POLAR_LONG);
   else choose(POLAR);
@@ -268,7 +266,7 @@ void PairAmoebaGPU::init_style()
 
   double felec = 0.5 * electric / am_dielectric;
   
-  int success = amoeba_gpu_init(atom->ntypes+1, max_amtype, pdamp, thole,
+  int success = amoeba_gpu_init(atom->ntypes+1, max_amtype, pdamp, thole, dirdamp,
                                 special_polar_wscale, special_polar_piscale,
                                 special_polar_pscale, atom->nlocal,
                                 atom->nlocal+atom->nghost, mnf, maxspecial,
@@ -284,6 +282,199 @@ void PairAmoebaGPU::init_style()
     tep_single = false;
   else
     tep_single = true;
+}
+
+/* ----------------------------------------------------------------------
+   udirect2b = Ewald real direct field via list
+   udirect2b computes the real space contribution of the permanent
+   atomic multipole moments to the field via a neighbor list
+------------------------------------------------------------------------- */
+
+void PairAmoebaGPU::udirect2b(double **field, double **fieldp)
+{
+  int eflag=1, vflag=1;
+  int nall = atom->nlocal + atom->nghost;
+  int inum, host_start;
+
+  bool success = true;
+  int *ilist, *numneigh, **firstneigh;
+  
+  double sublo[3],subhi[3];
+  if (domain->triclinic == 0) {
+    sublo[0] = domain->sublo[0];
+    sublo[1] = domain->sublo[1];
+    sublo[2] = domain->sublo[2];
+    subhi[0] = domain->subhi[0];
+    subhi[1] = domain->subhi[1];
+    subhi[2] = domain->subhi[2];
+  } else {
+    domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
+  }
+  inum = atom->nlocal;
+
+  firstneigh = amoeba_gpu_compute_udirect2b(neighbor->ago, inum, nall, atom->x,
+                                        atom->type, amtype, amgroup, rpole, sublo,
+                                        subhi, atom->tag, atom->nspecial, atom->special,
+                                        atom->nspecial15, atom->special15,
+                                        eflag, vflag, eflag_atom, vflag_atom,
+                                        host_start, &ilist, &numneigh, cpu_time,
+                                        success, atom->q, domain->boxlo,
+                                        domain->prd, &fieldp_pinned);
+  if (!success)
+    error->one(FLERR,"Insufficient memory on accelerator");
+  
+  // rebuild dipole-dipole pair list and store pairwise dipole matrices
+  // done one atom at a time in real-space double loop over atoms & neighs
+
+  udirect2b_cpu();
+}
+
+/* ----------------------------------------------------------------------
+   udirect2b = Ewald real direct field via list
+   udirect2b computes the real space contribution of the permanent
+     atomic multipole moments to the field via a neighbor list
+------------------------------------------------------------------------- */
+
+void PairAmoebaGPU::udirect2b_cpu()
+{
+  int i,j,k,m,n,ii,jj,kk,kkk,jextra,ndip,itype,jtype,igroup,jgroup;
+  double xr,yr,zr,r,r2;
+  double rr1,rr2,rr3,rr5;
+  double bfac,exp2a;
+  double ralpha,aefac;
+  double aesq2,aesq2n;
+  double pdi,pti,ddi;
+  double pgamma;
+  double damp,expdamp;
+  double scale3,scale5;
+  double scale7,scalek;
+  double bn[4],bcn[3];
+  double factor_dscale,factor_pscale,factor_uscale,factor_wscale;
+
+  int inum,jnum;
+  int *ilist,*jlist,*numneigh,**firstneigh;
+
+  // launching the kernel to compute field and fieldp
+
+  // amoeba_gpu_compute_field(...);
+
+  double **x = atom->x;
+
+  // neigh list
+
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+
+  // NOTE: doesn't this have a problem if aewald is tiny ??
+  
+  aesq2 = 2.0 * aewald * aewald;
+  aesq2n = 0.0;
+  if (aewald > 0.0) aesq2n = 1.0 / (MY_PIS*aewald);
+
+  // rebuild dipole-dipole pair list and store pairwise dipole matrices
+  // done one atom at a time in real-space double loop over atoms & neighs
+
+  int *neighptr;
+  double *tdipdip;
+
+  // compute the real space portion of the Ewald summation
+
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    itype = amtype[i];
+    igroup = amgroup[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+
+    n = ndip = 0;
+    neighptr = ipage_dipole->vget();
+    tdipdip = dpage_dipdip->vget();
+
+    pdi = pdamp[itype];
+    pti = thole[itype];
+    ddi = dirdamp[itype];
+    
+    // evaluate all sites within the cutoff distance
+
+    for (jj = 0; jj < jnum; jj++) {
+      jextra = jlist[jj];
+      j = jextra & NEIGHMASK15;
+      
+      xr = x[j][0] - x[i][0];
+      yr = x[j][1] - x[i][1];
+      zr = x[j][2] - x[i][2];
+      r2 = xr*xr + yr* yr + zr*zr;
+      if (r2 > off2) continue;
+
+      jtype = amtype[j];
+      jgroup = amgroup[j];
+      
+      factor_wscale = special_polar_wscale[sbmask15(jextra)];
+      if (igroup == jgroup) {
+        factor_pscale = special_polar_piscale[sbmask15(jextra)];
+        factor_dscale = polar_dscale;
+        factor_uscale = polar_uscale;
+      } else {
+        factor_pscale = special_polar_pscale[sbmask15(jextra)];
+        factor_dscale = factor_uscale = 1.0;
+      }
+
+      r = sqrt(r2);
+      rr1 = 1.0 / r;
+      rr2 = rr1 * rr1;
+      rr3 = rr2 * rr1;
+      rr5 = 3.0 * rr2 * rr3;
+
+      // calculate the real space Ewald error function terms
+
+      ralpha = aewald * r;
+      bn[0] = erfc(ralpha) * rr1;
+      exp2a = exp(-ralpha*ralpha);
+      aefac = aesq2n;
+      for (m = 1; m <= 3; m++) {
+        bfac = m+m-1;
+        aefac = aesq2 * aefac;
+        bn[m] = (bfac*bn[m-1]+aefac*exp2a) * rr2;
+      }
+      
+      // find terms needed later to compute mutual polarization
+
+      if (poltyp != DIRECT) {
+        scale3 = 1.0;
+        scale5 = 1.0;
+        damp = pdi * pdamp[jtype];
+        if (damp != 0.0) {
+          pgamma = MIN(pti,thole[jtype]);
+          damp = pgamma * pow(r/damp,3.0);
+          if (damp < 50.0) {
+            expdamp = exp(-damp);
+            scale3 = 1.0 - expdamp;
+            scale5 = 1.0 - expdamp*(1.0+damp);
+          }
+        }
+        scalek = factor_uscale;
+        bcn[0] = bn[1] - (1.0-scalek*scale3)*rr3;
+        bcn[1] = bn[2] - (1.0-scalek*scale5)*rr5;
+        
+        neighptr[n++] = j;
+        tdipdip[ndip++] = -bcn[0] + bcn[1]*xr*xr;
+        tdipdip[ndip++] = bcn[1]*xr*yr;
+        tdipdip[ndip++] = bcn[1]*xr*zr;
+        tdipdip[ndip++] = -bcn[0] + bcn[1]*yr*yr;
+        tdipdip[ndip++] = bcn[1]*yr*zr;
+        tdipdip[ndip++] = -bcn[0] + bcn[1]*zr*zr;
+      }
+      
+    } // jj
+
+    firstneigh_dipole[i] = neighptr;
+    firstneigh_dipdip[i] = tdipdip;
+    numneigh_dipole[i] = n;
+    ipage_dipole->vgot(n);
+    dpage_dipdip->vgot(ndip);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

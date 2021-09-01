@@ -128,7 +128,7 @@ class BaseAmoeba {
                        tagint **special, int *nspecial15, tagint **special15,
                        bool &success);
 
-  /// Pair loop with host neighboring
+  /// Compute polar real-space with host neighboring (not active for now)
   void compute(const int f_ago, const int inum_full, const int nall,
                double **host_x, int *host_type, int *host_amtype,
                int *host_amgroup, double **host_rpole, double **host_uind,
@@ -138,8 +138,8 @@ class BaseAmoeba {
                const double cpu_time, bool &success, double *charge,
                const int nlocal, double *boxlo, double *prd, void **tep_ptr);
 
-  /// Pair loop with device neighboring
-  int** compute(const int ago, const int inum_full, const int nall,
+  /// Compute polar real-space with device neighboring
+  int** compute_polar_real(const int ago, const int inum_full, const int nall,
                 double **host_x, int *host_type, int *host_amtype,
                 int *host_amgroup, double **host_rpole, double **host_uind,
                 double **host_uinp, double *sublo, double *subhi,
@@ -149,6 +149,17 @@ class BaseAmoeba {
                 const bool eatom, const bool vatom, int &host_start,
                 int **ilist, int **numj, const double cpu_time, bool &success,
                 double *charge, double *boxlo, double *prd, void **tep_ptr);
+
+  /// Compute the direct real space part of the permanent field (udirect2b) with device neighboring
+  int** compute_udirect2b(const int ago, const int inum_full, const int nall,
+                double **host_x, int *host_type, int *host_amtype,
+                int *host_amgroup, double **host_rpole, double *sublo, double *subhi,
+                tagint *tag, int **nspecial, tagint **special,
+                int *nspecial15, tagint **special15,
+                const bool eflag, const bool vflag,
+                const bool eatom, const bool vatom, int &host_start,
+                int **ilist, int **numj, const double cpu_time, bool &success,
+                double *charge, double *boxlo, double *prd, void **fieldp_ptr);                
 
   // -------------------------- DEVICE DATA -------------------------
 
@@ -179,8 +190,8 @@ class BaseAmoeba {
     double** uind, double** uinp);
 
   /// Per-atom arrays
-  UCL_Vector<numtyp,numtyp> _tep;
-  int _max_tep_size;
+  UCL_Vector<numtyp,numtyp> _tep,_fieldp;
+  int _max_alloc_size;
 
   // ------------------------ FORCE/ENERGY DATA -----------------------
 
@@ -217,7 +228,8 @@ class BaseAmoeba {
 
   void compile_kernels(UCL_Device &dev, const void *pair_string, const char *k);
 
-  virtual int loop(const int eflag, const int vflag) = 0;
+  virtual int polar_real(const int eflag, const int vflag) = 0;
+  virtual int udirect2b(const int eflag, const int vflag) = 0;
 };
 
 }

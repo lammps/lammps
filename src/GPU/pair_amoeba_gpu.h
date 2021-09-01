@@ -34,12 +34,16 @@ class PairAmoebaGPU : public PairAmoeba {
   enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
   virtual void polar_real();
+  virtual void udirect2b(double **, double **);
 
  private:
   int gpu_mode;
   double cpu_time;
   void *tep_pinned;
+  void *fieldp_pinned;
   bool tep_single;
+
+  void udirect2b_cpu();
 
   template<class numtyp>
   void compute_force_from_tep(const numtyp*);

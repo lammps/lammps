@@ -369,7 +369,7 @@ class PairAmoeba : public Pair {
   void umutual1(double **, double **);
   void umutual2b(double **, double **);
   void udirect1(double **);
-  void udirect2b(double **, double **);
+  virtual void udirect2b(double **, double **);
   void dampmut(double, double, double, double *);
   void dampdir(double, double, double, double *, double *);
   void cholesky(int, double *, double *);

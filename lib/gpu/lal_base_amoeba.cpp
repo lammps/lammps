@@ -118,8 +118,9 @@ int BaseAmoebaT::init_atomic(const int nlocal, const int nall,
   if (ef_nall==0)
     ef_nall=2000;
 
-  _max_tep_size=static_cast<int>(static_cast<double>(ef_nall)*1.10);
-  _tep.alloc(_max_tep_size*4,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
+  _max_alloc_size=static_cast<int>(static_cast<double>(ef_nall)*1.10);
+  _fieldp.alloc(_max_alloc_size*6,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
+  _tep.alloc(_max_alloc_size*4,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
   dev_nspecial15.alloc(nall,*(this->ucl_device),UCL_READ_ONLY);
   dev_special15.alloc(_maxspecial15*nall,*(this->ucl_device),UCL_READ_ONLY);
   dev_special15_t.alloc(nall*_maxspecial15,*(this->ucl_device),UCL_READ_ONLY);
@@ -149,6 +150,7 @@ void BaseAmoebaT::clear_atomic() {
   ans->clear();
 
   _tep.clear();
+  _fieldp.clear();
   dev_nspecial15.clear();
   dev_special15.clear();
   dev_special15_t.clear();
@@ -250,9 +252,9 @@ void BaseAmoebaT::compute(const int f_ago, const int inum_full, const int nall,
 
   // ------------------- Resize _tep array ------------------------
 
-  if (nall>_max_tep_size) {
-    _max_tep_size=static_cast<int>(static_cast<double>(nall)*1.10);
-    _tep.resize(_max_tep_size*4);
+  if (nall>_max_alloc_size) {
+    _max_alloc_size=static_cast<int>(static_cast<double>(nall)*1.10);
+    _tep.resize(_max_alloc_size*4);
 
     dev_nspecial15.clear();
     dev_special15.clear();
@@ -296,17 +298,17 @@ void BaseAmoebaT::compute(const int f_ago, const int inum_full, const int nall,
   device->precompute(f_ago,nlocal,nall,host_x,host_type,success,host_q,
                      boxlo, prd);
 
-  const int red_blocks=loop(eflag,vflag);
+  const int red_blocks=polar_real(eflag,vflag);
   ans->copy_answers(eflag_in,vflag_in,eatom,vatom,ilist,red_blocks);
   device->add_ans_object(ans);
   hd_balancer.stop_timer();
 }
 
 // ---------------------------------------------------------------------------
-// Reneighbor on GPU if necessary and then compute forces, virials, energies
+// Reneighbor on GPU if necessary, and then compute polar real-space
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int** BaseAmoebaT::compute(const int ago, const int inum_full, const int nall,
+int** BaseAmoebaT::compute_polar_real(const int ago, const int inum_full, const int nall,
                            double **host_x, int *host_type, int *host_amtype,
                            int *host_amgroup, double **host_rpole,
                            double **host_uind, double **host_uinp,
@@ -336,9 +338,9 @@ int** BaseAmoebaT::compute(const int ago, const int inum_full, const int nall,
 
   // ------------------- Resize _tep array ------------------------
 
-  if (nall>_max_tep_size) {
-    _max_tep_size=static_cast<int>(static_cast<double>(nall)*1.10);
-    _tep.resize(_max_tep_size*4);
+  if (nall>_max_alloc_size) {
+    _max_alloc_size=static_cast<int>(static_cast<double>(nall)*1.10);
+    _tep.resize(_max_alloc_size*4);
 
     dev_nspecial15.clear();
     dev_special15.clear();
@@ -388,21 +390,116 @@ int** BaseAmoebaT::compute(const int ago, const int inum_full, const int nall,
   device->precompute(ago,inum_full,nall,host_x,host_type,success,host_q,
                      boxlo, prd);
 
-  const int red_blocks=loop(eflag,vflag);
+  const int red_blocks=polar_real(eflag,vflag);
   ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
   device->add_ans_object(ans);
   hd_balancer.stop_timer();
 
   // copy tep from device to host
 
-  _tep.update_host(_max_tep_size*4,false);
+  _tep.update_host(_max_alloc_size*4,false);
 /*  
-  printf("GPU lib: tep size = %d: max tep size = %d\n", this->_tep.cols(), _max_tep_size);
+  printf("GPU lib: tep size = %d: max tep size = %d\n", this->_tep.cols(), _max_alloc_size);
   for (int i = 0; i < 10; i++) {
     numtyp4* p = (numtyp4*)(&this->_tep[4*i]);
     printf("i = %d; tep = %f %f %f\n", i, p->x, p->y, p->z);
   }
 */  
+  return nbor->host_jlist.begin()-host_start;
+}
+
+// ---------------------------------------------------------------------------
+// Reneighbor on GPU if necessary, and then compute the direct real space part
+//    of the permanent field
+// ---------------------------------------------------------------------------
+template <class numtyp, class acctyp>
+int** BaseAmoebaT::compute_udirect2b(const int ago, const int inum_full, const int nall,
+                           double **host_x, int *host_type, int *host_amtype,
+                           int *host_amgroup, double **host_rpole,
+                           double *sublo, double *subhi, tagint *tag,
+                           int **nspecial, tagint **special,
+                           int *nspecial15, tagint **special15,
+                           const bool eflag_in, const bool vflag_in,
+                           const bool eatom, const bool vatom, int &host_start,
+                           int **ilist, int **jnum, const double cpu_time,
+                           bool &success, double *host_q, double *boxlo,
+                           double *prd, void** fieldp_ptr) {
+  acc_timers();
+  int eflag, vflag;
+  if (eatom) eflag=2;
+  else if (eflag_in) eflag=1;
+  else eflag=0;
+  if (vatom) vflag=2;
+  else if (vflag_in) vflag=1;
+  else vflag=0;
+
+  #ifdef LAL_NO_BLOCK_REDUCE
+  if (eflag) eflag=2;
+  if (vflag) vflag=2;
+  #endif
+
+  set_kernel(eflag,vflag);
+
+  // ------------------- Resize _fieldp array ------------------------
+
+  if (nall>_max_alloc_size) {
+    _max_alloc_size=static_cast<int>(static_cast<double>(nall)*1.10);
+    _fieldp.resize(_max_alloc_size*8);
+
+    dev_nspecial15.clear();
+    dev_special15.clear();
+    dev_special15_t.clear();
+    dev_nspecial15.alloc(nall,*(this->ucl_device),UCL_READ_ONLY);
+    dev_special15.alloc(_maxspecial15*nall,*(this->ucl_device),UCL_READ_ONLY);
+    dev_special15_t.alloc(nall*_maxspecial15,*(this->ucl_device),UCL_READ_ONLY);   
+  }
+  *fieldp_ptr=_fieldp.host.begin();
+
+  if (inum_full==0) {
+    host_start=0;
+    // Make sure textures are correct if realloc by a different hybrid style
+    resize_atom(0,nall,success);
+    zero_timers();
+    return nullptr;
+  }
+
+  hd_balancer.balance(cpu_time);
+  int inum=hd_balancer.get_gpu_count(ago,inum_full);
+  ans->inum(inum);
+  host_start=inum;
+
+  // Build neighbor list on GPU if necessary
+  if (ago==0) {
+    build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
+                    sublo, subhi, tag, nspecial, special, nspecial15, special15,
+                    success);
+    if (!success)
+      return nullptr;
+    atom->cast_q_data(host_q);
+    cast_extra_data(host_amtype, host_amgroup, host_rpole, nullptr, nullptr);
+    hd_balancer.start_timer();
+  } else {
+    atom->cast_x_data(host_x,host_type);
+    atom->cast_q_data(host_q);
+    cast_extra_data(host_amtype, host_amgroup, host_rpole, nullptr, nullptr);
+    hd_balancer.start_timer();
+    atom->add_x_data(host_x,host_type);
+  }
+  atom->add_q_data();
+  atom->add_extra_data();
+
+  *ilist=nbor->host_ilist.begin();
+  *jnum=nbor->host_acc.begin();
+
+  const int red_blocks=udirect2b(eflag,vflag);
+  //ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
+  //device->add_ans_object(ans);
+  hd_balancer.stop_timer();
+
+  // copy field and fieldp from device to host
+
+  //_fieldp.update_host(_max_field_size*8,false);
+
   return nbor->host_jlist.begin()-host_start;
 }
 
@@ -446,20 +543,24 @@ void BaseAmoebaT::cast_extra_data(int* amtype, int* amgroup, double** rpole,
     pextra[idx+3] = (numtyp)amgroup[i];
   }
 
-  n += nstride*_nall;
-  for (int i = 0; i < _nall; i++) {
-    int idx = n+i*nstride;
-    pextra[idx]   = uind[i][0];
-    pextra[idx+1] = uind[i][1];
-    pextra[idx+2] = uind[i][2];
+  if (uind) {
+    n += nstride*_nall;
+    for (int i = 0; i < _nall; i++) {
+      int idx = n+i*nstride;
+      pextra[idx]   = uind[i][0];
+      pextra[idx+1] = uind[i][1];
+      pextra[idx+2] = uind[i][2];
+    }
   }
-
-  n += nstride*_nall;
-  for (int i = 0; i < _nall; i++) {
-    int idx = n+i*nstride;
-    pextra[idx]   = uinp[i][0];
-    pextra[idx+1] = uinp[i][1];
-    pextra[idx+2] = uinp[i][2];    
+  
+  if (uinp) {
+    n += nstride*_nall;
+    for (int i = 0; i < _nall; i++) {
+      int idx = n+i*nstride;
+      pextra[idx]   = uinp[i][0];
+      pextra[idx+1] = uinp[i][1];
+      pextra[idx+2] = uinp[i][2];    
+    }
   }
 }
 

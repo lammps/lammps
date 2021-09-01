@@ -45,7 +45,8 @@ int AmoebaT::bytes_per_atom(const int max_nbors) const {
 
 template <class numtyp, class acctyp>
 int AmoebaT::init(const int ntypes, const int max_amtype, const double *host_pdamp,
-                  const double *host_thole, const double *host_special_polar_wscale,
+                  const double *host_thole, const double *host_dirdamp, 
+                  const double *host_special_polar_wscale,
                   const double *host_special_polar_piscale,
                   const double *host_special_polar_pscale,
                   const int nlocal, const int nall, const int max_nbors,
@@ -76,7 +77,7 @@ int AmoebaT::init(const int ntypes, const int max_amtype, const double *host_pda
   for (int i = 0; i < max_amtype; i++) {
     host_write[i].x = host_pdamp[i];
     host_write[i].y = host_thole[i];
-    host_write[i].z = (numtyp)0;
+    host_write[i].z = host_dirdamp[i];
     host_write[i].w = (numtyp)0;
   }
 

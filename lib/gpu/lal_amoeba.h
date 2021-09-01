@@ -38,7 +38,8 @@ class Amoeba : public BaseAmoeba<numtyp, acctyp> {
     * - -4 if the GPU library was not compiled for GPU
     * - -5 Double precision is not supported on card **/
   int init(const int ntypes, const int max_amtype, const double *host_pdamp,
-           const double *host_thole, const double *host_special_polar_wscale,
+           const double *host_thole, const double *host_dirdamp, 
+           const double *host_special_polar_wscale,
            const double *host_special_polar_piscale,
            const double *host_special_polar_pscale,
            const int nlocal, const int nall, const int max_nbors,

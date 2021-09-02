@@ -277,6 +277,14 @@ how can be adapted to these conventions you may compare the REAXFF
 package with the what it looked like when it was called USER-REAXC.  If
 you are uncertain, please ask.
 
+- system headers or from installed libraries are include with angular
+  brackets (example: ``#include <vector>``), while local include file
+  use double quotes (example: ``#include "atom.h"``).
+
+- when including system header files from the C library use the
+    C++-style names (``<cstdlib>`` or ``<cstring>``) instead of the
+    C-style names (``<stdlib.h>`` or ``<string.h>``)
+
 - the order of ``#include`` statements in a file ``some_name.cpp`` that
   implements a class ``SomeName`` defined in a header file
   ``some_name.h`` should be as follows:
@@ -291,10 +299,6 @@ you are uncertain, please ask.
 
   - ``using namespace LAMMPS_NS`` or other namespace imports.
 
-- when including system header files from the C library use the
-    C++-style names (``<cstdlib>`` or ``<cstring>``) instead of the
-    C-style names (``<stdlib.h>`` or ``<string.h>``)
-
 - I/O is done via the C-style stdio library and **not** iostreams
   (and mixing of stdio and iostreams is generally discouraged
 
@@ -305,7 +309,14 @@ you are uncertain, please ask.
 - header files should only include the absolute minimum number of
   include files and **must not** contain any ``using`` statements;
   rather the include statements should be put into the corresponding
-  implementation files
+  implementation files. For implementation files, the
+  "include-what-you-use" principle should be employed.  However, when
+  including the ``pointers.h`` header (or one of the base classes
+  derived from it) certain headers will be included and thus need to be
+  specified. These are: `mpi.h`, `cstddef`, `cstdio`, `cstdlib`,
+  `string`, `utils.h`, `fmt/format.h`, `climits`, `cinttypes`. This also
+  means any header can assume that `FILE`, `NULL`, and `INT_MAX` are
+  defined.
 
 - header files that define a new LAMMPS style (i.e. that have a
   ``SomeStyle(some/name,SomeName);`` macro in them) should only use the
@@ -422,5 +433,5 @@ When adding a new LAMMPS style computing forces or selected fixes,
 a ``.yaml`` file with a test configuration and reference data should be
 added for the styles where a suitable tester program already exists
 (e.g. pair styles, bond styles, etc.). Please see
-:ref:`this section in the manual <testing>`_ for more information on
+:ref:`this section in the manual <testing>` for more information on
 how to enable, run, and expand testing.

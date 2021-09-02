@@ -88,18 +88,18 @@ and bond partners B2 of B1 a is performed.  For each pair of A1-A2 and
 B1-B2 bonds to be eligible for swapping, the following 4 criteria must
 be met:
 
-(1) All 4 monomers must be in the fix group.
+1. All 4 monomers must be in the fix group.
 
-(2) All 4 monomers must be owned by the processor (not ghost atoms).
-This insures that another processor does not attempt to swap bonds
-involving the same atoms on the same timestep.  Note that this also
-means that bond pairs which straddle processor boundaries are not
-eligible for swapping on this step.
+2. All 4 monomers must be owned by the processor (not ghost atoms).
+   This insures that another processor does not attempt to swap bonds
+   involving the same atoms on the same timestep.  Note that this also
+   means that bond pairs which straddle processor boundaries are not
+   eligible for swapping on this step.
 
-(3) The distances between 4 pairs of atoms -- (A1,A2), (B1,B2),
-(A1,B2), (B1,A2) -- must all be less than the specified *cutoff*\ .
+3. The distances between 4 pairs of atoms -- (A1,A2), (B1,B2), (A1,B2),
+   (B1,A2) -- must all be less than the specified *cutoff*.
 
-(4) The molecule IDs of A1 and B1 must be the same (see below).
+4. The molecule IDs of A1 and B1 must be the same (see below).
 
 If an eligible B1 partner is found, the energy change due to swapping
 the 2 bonds is computed.  This includes changes in pairwise, bond, and

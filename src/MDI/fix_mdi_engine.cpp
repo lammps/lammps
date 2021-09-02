@@ -378,6 +378,9 @@ char *FixMDIEngine::engine_mode(const char *node)
     fprintf(logfile,"MDI ENGINE MODE: %i\n",node);
   */
 
+  printf("ENG NODE ENTRY eng/driver %s %s %d %d\n",
+         node,target_node,strlen(node),strlen(target_node));
+
   // do not process commands if engine and driver are not at same node
   // target_node = node that driver has set via a @ command
   // current_node = node that engine (LAMMPS) has set
@@ -402,9 +405,13 @@ char *FixMDIEngine::engine_mode(const char *node)
 
     // execute the command
 
+    printf("RECV CMD %s\n",command);
     this->execute_command(command, driver_socket);
 
     // check if the target node is something other than the current node
+
+    printf("ENG NODES eng/driver %s %s %d %d\n",
+           node,target_node,strlen(node),strlen(target_node));
 
     if (strcmp(target_node, "\0") != 0 && strcmp(target_node, current_node) != 0)
       local_exit_flag = true;

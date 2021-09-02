@@ -13,11 +13,13 @@
 
 // ----------------------------------------------------------------------
 // MolSSI Driver Interface functions
+// these are added to LAMMPS library interface when MDI package is included
 // ----------------------------------------------------------------------
 
 #include "library_mdi.h"
 
 // needed to enable MPI support
+
 #define LAMMPS_LIB_MPI 1
 #include "library.h"
 
@@ -26,6 +28,8 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
+
+/* ---------------------------------------------------------------------- */
 
 /** Initialize an instance of LAMMPS as an MDI plugin
  *
@@ -51,6 +55,7 @@ command-line argument, which must be provided by the MDI driver.
 int MDI_Plugin_init_lammps()
 {
   // initialize MDI
+
   int mdi_argc;
   char **mdi_argv;
   if (MDI_Plugin_get_argc(&mdi_argc)) MPI_Abort(MPI_COMM_WORLD, 1);
@@ -58,30 +63,36 @@ int MDI_Plugin_init_lammps()
   if (MDI_Init(&mdi_argc, &mdi_argv)) MPI_Abort(MPI_COMM_WORLD, 1);
 
   // get the MPI intra-communicator for this code
+
   MPI_Comm mpi_world_comm = MPI_COMM_WORLD;
   if (MDI_MPI_get_world_comm(&mpi_world_comm)) MPI_Abort(MPI_COMM_WORLD, 1);
 
   // find the -in argument
+
   int iarg = 0;
   char *filename;
   bool found_filename = false;
   while (iarg < mdi_argc && !found_filename) {
 
-    if ((strcmp(mdi_argv[iarg], "-in") == 0) || (strcmp(mdi_argv[iarg], "-i") == 0)) {
+    if ((strcmp(mdi_argv[iarg], "-in") == 0) || 
+        (strcmp(mdi_argv[iarg], "-i") == 0)) {
 
       if (iarg + 2 > mdi_argc) MPI_Abort(MPI_COMM_WORLD, 1);
       filename = mdi_argv[iarg + 1];
       found_filename = true;
 
       // remove -in argument from the command list
+
       mdi_argc -= 2;
-      for (int jarg = iarg; jarg < mdi_argc; jarg++) mdi_argv[jarg] = mdi_argv[jarg + 2];
+      for (int jarg = iarg; jarg < mdi_argc; jarg++) 
+        mdi_argv[jarg] = mdi_argv[jarg + 2];
     }
     iarg++;
   }
   if (!found_filename) MPI_Abort(MPI_COMM_WORLD, 1);
 
   // create and run a LAMMPS instance
+
   void *lmp = nullptr;
   if (lammps_config_has_mpi_support() > 0)
     lmp = lammps_open(mdi_argc, mdi_argv, mpi_world_comm, nullptr);
@@ -92,6 +103,8 @@ int MDI_Plugin_init_lammps()
 
   return 0;
 }
+
+/* ---------------------------------------------------------------------- */
 
 /** Execute an MDI command
  *

@@ -1785,12 +1785,13 @@ inline bool divisible_by_power_of_5(uint64_t x, int exp) FMT_NOEXCEPT {
 // Precondition: n <= 2 * pow(5, N + 1).
 template <int N>
 bool check_divisibility_and_divide_by_pow5(uint32_t& n) FMT_NOEXCEPT {
-  static constexpr struct {
+  struct infos1 {
     uint32_t magic_number;
     int bits_for_comparison;
     uint32_t threshold;
     int shift_amount;
-  } infos[] = {{0xcccd, 16, 0x3333, 18}, {0xa429, 8, 0x0a, 20}};
+  };
+  static constexpr infos1 infos[] = {{0xcccd, 16, 0x3333, 18}, {0xa429, 8, 0x0a, 20}};
   constexpr auto info = infos[N - 1];
   n *= info.magic_number;
   const uint32_t comparison_mask = (1u << info.bits_for_comparison) - 1;
@@ -1802,11 +1803,12 @@ bool check_divisibility_and_divide_by_pow5(uint32_t& n) FMT_NOEXCEPT {
 // Computes floor(n / pow(10, N)) for small n and N.
 // Precondition: n <= pow(10, N + 1).
 template <int N> uint32_t small_division_by_pow10(uint32_t n) FMT_NOEXCEPT {
-  static constexpr struct {
+  struct infos2 {
     uint32_t magic_number;
     int shift_amount;
     uint32_t divisor_times_10;
-  } infos[] = {{0xcccd, 19, 100}, {0xa3d8, 22, 1000}};
+  };
+  static constexpr infos2 infos[] = {{0xcccd, 19, 100}, {0xa3d8, 22, 1000}};
   constexpr auto info = infos[N - 1];
   FMT_ASSERT(n <= info.divisor_times_10, "n is too large");
   return n * info.magic_number >> info.shift_amount;

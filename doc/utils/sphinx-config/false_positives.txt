@@ -1384,6 +1384,7 @@ inhomogeneities
 inhomogeneous
 init
 initialdelay
+initialisms
 initializations
 InitiatorIDs
 initio
@@ -1690,6 +1691,7 @@ Lett
 Leuven
 Leven
 Lewy
+LF
 LGPL
 lgvdw
 Liang

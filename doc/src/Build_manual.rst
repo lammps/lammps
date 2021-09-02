@@ -75,7 +75,7 @@ folder.  The following ``make`` commands are available:
 .. code-block:: bash
 
    make html          # generate HTML in html dir using Sphinx
-   make pdf           # generate PDF  as Manual.pdf using Sphinx and pdflatex
+   make pdf           # generate PDF  as Manual.pdf using Sphinx and PDFLaTeX
    make fetch         # fetch HTML pages and PDF files from LAMMPS website
                       #  and unpack into the html_www folder and Manual_www.pdf
    make epub          # generate LAMMPS.epub in ePUB format using Sphinx

@@ -68,7 +68,7 @@ static const char cite_neb_spin[] =
 
 /* ---------------------------------------------------------------------- */
 
-NEBSpin::NEBSpin(LAMMPS *lmp) : Command(lmp) {
+NEBSpin::NEBSpin(LAMMPS *lmp) : Command(lmp), fp(nullptr) {
   if (lmp->citeme) lmp->citeme->add(cite_neb_spin);
 }
 

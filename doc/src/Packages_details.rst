@@ -2248,16 +2248,16 @@ PYTHON package
 
 A :doc:`python <python>` command which allow you to execute Python code
 from a LAMMPS input script.  The code can be in a separate file or
-embedded in the input script itself.  See the :doc:`Python call <Python_call>` page for an overview of using Python from
-LAMMPS in this manner and all the :doc:`Python <Python_head>` manual pages
-for other ways to use LAMMPS and Python together.
+embedded in the input script itself.  See the :doc:`Python call
+<Python_call>` page for an overview of using Python from LAMMPS in this
+manner and all the :doc:`Python <Python_head>` manual pages for other
+ways to use LAMMPS and Python together.
 
 .. note::
 
-   Building with the PYTHON package assumes you have a Python
-   shared library available on your system, which needs to be a Python 2
-   version, 2.6 or later.  Python 3 is not yet supported.  See the
-   lib/python/README for more details.
+   Building with the PYTHON package assumes you have a Python development
+   environment (headers and libraries) available on your system, which needs
+   to be either Python version 2.7 or Python 3.5 and later.
 
 **Install:**
 

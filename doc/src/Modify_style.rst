@@ -410,3 +410,17 @@ That latter kind of citation should just be included in the
 documentation page you provide describing your contribution.  If you are
 not sure what the best option would be, please contact the LAMMPS
 developers for advice.
+
+
+Testing (optional)
+------------------
+
+If your contribution contains new utility functions or a supporting class
+(i.e. anything that does not depend on a LAMMPS object), new unit tests
+should be added to a suitable folder in the ``unittest`` tree.
+When adding a new LAMMPS style computing forces or selected fixes,
+a ``.yaml`` file with a test configuration and reference data should be
+added for the styles where a suitable tester program already exists
+(e.g. pair styles, bond styles, etc.). Please see
+:ref:`this section in the manual <testing>`_ for more information on
+how to enable, run, and expand testing.

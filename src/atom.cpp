@@ -2079,19 +2079,17 @@ int Atom::add_label_map(const std::string &mapID)
 
 int Atom::find_label(const std::string &label, int mode)
 {
-  int ilmap = 0;
-
   // check for auxiliary map prefix
 
-  int pos = label.find("::");
+  std::string::size_type pos = label.find("::");
   if (pos != std::string::npos) {
-    ilmap = find_labelmap(label.substr(0,pos));
+    int ilmap = find_labelmap(label.substr(0,pos));
     if (ilmap == -1) return -1;
     auto slabel = label.substr(pos+2);
     return lmaps[ilmap]->find(slabel,mode);
   }
 
-  return lmaps[ilmap]->find(label,mode);
+  return lmaps[0]->find(label,mode);
 }
 
 /* ----------------------------------------------------------------------

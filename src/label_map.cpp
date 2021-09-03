@@ -97,8 +97,10 @@ void LabelMap::modify_lmap(int narg, char **arg)
   while (iarg < narg) {
     itype = utils::inumeric(FLERR,arg[iarg++],false,lmp);
     charlabel = arg[iarg++];
-    if (itype > ntypes) error->all(FLERR,"Topology type exceeds system topology type");
-    if (isdigit(charlabel[0])) error->all(FLERR,"Type labels cannot start with a number");
+    if (itype > ntypes)
+      error->all(FLERR,"Topology type exceeds system topology type");
+    if (isdigit(charlabel[0]))
+      error->all(FLERR,"Type labels cannot start with a number");
     (*labels)[itype-1] = charlabel;
   }
 }
@@ -170,7 +172,8 @@ void LabelMap::create_lmap2lmap(LabelMap *lmap2, int mode)
    return numeric type
 ------------------------------------------------------------------------- */
 
-int LabelMap::find_or_create(std::string mylabel, std::vector<std::string> &labels, int ntypes)
+int LabelMap::find_or_create(std::string mylabel,
+                             std::vector<std::string> &labels, int ntypes)
 {
   for (int i = 0; i < ntypes; i++)
     if (labels[i] == mylabel) return i+1;
@@ -221,7 +224,8 @@ int LabelMap::find(std::string mylabel, int mode)
    return -1 if type not yet defined
 ------------------------------------------------------------------------- */
 
-int LabelMap::search(std::string mylabel, std::vector<std::string> labels, int ntypes)
+int LabelMap::search(std::string mylabel,
+                     std::vector<std::string> labels, int ntypes)
 {
   for (int i = 0; i < ntypes; i++)
     if (labels[i] == mylabel) return i+1;
@@ -366,7 +370,8 @@ char *LabelMap::read_string(FILE *fp)
   int n = read_int(fp);
   if (n < 0) error->all(FLERR,"Illegal size string or corrupt restart");
   char *value = new char[n];
-  if (comm->me == 0) utils::sfread(FLERR,value,sizeof(char),n,fp,nullptr,error);
+  if (comm->me == 0)
+    utils::sfread(FLERR,value,sizeof(char),n,fp,nullptr,error);
   MPI_Bcast(value,n,MPI_CHAR,0,world);
   return value;
 }

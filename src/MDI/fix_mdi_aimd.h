@@ -39,10 +39,33 @@ class FixMDIAimd : public Fix {
   double compute_scalar();
 
  private:
+  int nprocs;
   int eflag_caller;
   double engine_energy;
+  int lmpunits;
 
-  MDI_Comm engine;
+  // MDI communicator
+
+  MDI_Comm mdicomm;
+
+  // unit conversion factors
+
+  double lmp2mdi_length,mdi2lmp_length;
+  double lmp2mdi_energy,mdi2lmp_energy;
+  double lmp2mdi_force,mdi2lmp_force;
+  double lmp2mdi_pressure,mdi2lmp_pressure;
+  double lmp2mdi_virial,mdi2lmp_virial;
+
+  // buffers for MDI comm
+
+  int maxbuf;
+  double *buf3,*buf3all;
+
+  // methods
+
+  void reallocate();
+  void unit_conversions();
+
 };
 
 }

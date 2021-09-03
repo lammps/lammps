@@ -57,7 +57,7 @@ class MDIEngine2 : public Command {
 
   int length_param;         // LENGTH command value used by other commands
 
-  // unit conversion factors;
+  // unit conversion factors
 
   double lmp2mdi_length,mdi2lmp_length;
   double lmp2mdi_energy,mdi2lmp_energy;
@@ -87,12 +87,12 @@ class MDIEngine2 : public Command {
   void send_double1(int);
   void send_int1(int);
   void send_double3(int);
-
   void send_labels();
 
-  void send_energy();
+  void send_total_energy();
   void send_pe();
   void send_ke();
+
   void send_cell();
   void receive_cell();
   void send_celldispl();

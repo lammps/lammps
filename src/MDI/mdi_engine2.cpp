@@ -29,7 +29,7 @@
 #include "force.h"
 #include "group.h"
 #include "input.h"
-#include "irregular.h"
+//#include "irregular.h"
 #include "library.h"
 #include "memory.h"
 #include "min.h"
@@ -45,20 +45,24 @@
 
 using namespace LAMMPS_NS;
 
-enum{NATIVE,REAL,METAL};   // LAMMPS units which MDI supports
-enum{DEFAULT,MD,OPT};      // top-level MDI engine mode
-enum{TYPE,CHARGE,MASS,COORD,VELOCITY,FORCE};
+enum{NATIVE,REAL,METAL};       // LAMMPS units which MDI supports
+enum{DEFAULT,MD,OPT};          // top-level MDI engine mode
+
+// per-atom data which engine commands access
+
+enum{TYPE,CHARGE,MASS,COORD,VELOCITY,FORCE};  
 
 /* ----------------------------------------------------------------------
-   mdi command: quit or engine
+   mdi command: engine
+   NOTE: may later have other MDI command variants?
 ---------------------------------------------------------------------- */
 
 void MDIEngine2::command(int narg, char **arg)
 {
-  if (narg < 1) error->all(FLERR, "Illegal mdi command");
+  if (narg < 1) error->all(FLERR,"Illegal mdi command");
 
   if (strcmp(arg[0],"engine") == 0) mdi_engine(narg-1,&arg[1]);
-  else error->all(FLERR, "Illegal mdi command");
+  else error->all(FLERR,"Illegal mdi command");
 }
 
 /* ----------------------------------------------------------------------
@@ -72,34 +76,27 @@ void MDIEngine2::command(int narg, char **arg)
 
 void MDIEngine2::mdi_engine(int narg, char **arg)
 {
-  // args to choose what MDI nodes LAMMPS will interact with
-  // also whether a fix mdi/engine is needed
-  // NOTE: add args
-
-  if (narg > 0) error->all(FLERR, "Illegal mdi engine command");
+  if (narg > 0) error->all(FLERR,"Illegal mdi engine command");
 
   // check requirements for LAMMPS to work with MDI as an engine
 
   if (atom->tag_enable == 0) 
-    error->all(FLERR, "Cannot use mdi engined without atom IDs");
+    error->all(FLERR,"Cannot use MDI engine without atom IDs");
 
   if (atom->natoms && atom->tag_consecutive() == 0) 
-    error->all(FLERR, "mdi engine requires consecutive atom IDs");
-
-  if (strcmp(update->unit_style, "real") == 0) lmpunits = REAL;
-  else if (strcmp(update->unit_style, "metal") == 0) lmpunits = METAL;
-  else lmpunits = NATIVE;
+    error->all(FLERR,"MDI engine requires consecutive atom IDs");
 
   // confirm LAMMPS is being run as an engine
   
   int role;
   MDI_Get_role(&role);
   if (role != MDI_ENGINE) 
-    error->all(FLERR,
-               "Must invoke LAMMPS as an MDI engine to use mdi/engine command");
+    error->all(FLERR,"Must invoke LAMMPS as an MDI engine to use mdi engine");
 
-  // if the mdi/engine fix is not already present, add it now
-  // NOTE: make this optional above
+  // NOTE: create this fix only when @INIT_MD is triggered?
+  //       if not needed, I dont think it should be defined,
+  //       otherwise it will be be invoked in other use cases
+  //       and switch engine out of DEFAULT node ?
 
   //int ifix = modify->find_fix_by_style("mdi/engine");
   //bool added_mdi_engine_fix = false;
@@ -141,12 +138,6 @@ void MDIEngine2::mdi_engine(int narg, char **arg)
   id_press = utils::strdup(std::string("MDI_ENGINE") + "_press");
   modify->add_compute(fmt::format("{} all pressure thermo_temp", id_press));
 
-  // set unit conversion factors
-
-  unit_conversions();
-
-  // store pointers to the new computes
-
   int icompute_ke = modify->find_compute(id_ke);
   int icompute_pe = modify->find_compute(id_pe);
   int icompute_press = modify->find_compute(id_press);
@@ -155,13 +146,22 @@ void MDIEngine2::mdi_engine(int narg, char **arg)
   pe = modify->compute[icompute_pe];
   press = modify->compute[icompute_press];
 
+  // set unit conversion factors
+
+  if (strcmp(update->unit_style, "real") == 0) lmpunits = REAL;
+  else if (strcmp(update->unit_style, "metal") == 0) lmpunits = METAL;
+  else lmpunits = NATIVE;
+
+  unit_conversions();
+
   // irregular class and data structs used by MDI
+  // NOTE: not clear if irregular comm is ever needed
 
-  irregular = new Irregular(lmp);
+  //irregular = new Irregular(lmp);
 
-  buf1 = nullptr;
-  buf3 = nullptr;
-  ibuf1 = nullptr;
+  buf1 = buf1all = nullptr;
+  buf3 = buf3all = nullptr;
+  ibuf1 = ibuf1all = nullptr;
   maxbuf = 0;
 
   // define MDI commands that LAMMPS engine recognizes
@@ -171,7 +171,7 @@ void MDIEngine2::mdi_engine(int narg, char **arg)
   // one-time operation to establish a connection with the driver
   
   MDI_Accept_communicator(&mdicomm);
-  if (mdicomm <= 0) error->all(FLERR, "Unable to connect to MDI driver");
+  if (mdicomm <= 0) error->all(FLERR,"Unable to connect to MDI driver");
 
   // endless engine loop, responding to driver commands
 
@@ -196,8 +196,8 @@ void MDIEngine2::mdi_engine(int narg, char **arg)
       break;
 
     } else
-      error->all(FLERR,fmt::format("MDI node exited with invalid command: {}"
-                                   ,mdicmd));
+      error->all(FLERR,
+                 fmt::format("MDI node exited with invalid command: {}",mdicmd));
   }
 
   // clean up
@@ -206,22 +206,35 @@ void MDIEngine2::mdi_engine(int narg, char **arg)
   delete [] node_engine;
   delete [] node_driver;
 
-  modify->delete_compute(id_pe);
   modify->delete_compute(id_ke);
+  modify->delete_compute(id_pe);
   modify->delete_compute(id_press);
-  delete irregular;
 
-  memory->destroy(buf3);
-  memory->destroy(buf1);
+  delete [] id_ke;
+  delete [] id_pe;
+  delete [] id_press;
+
+  //delete irregular;
+
   memory->destroy(ibuf1);
+  memory->destroy(buf1);
+  memory->destroy(buf3);
 
-  // remove mdi/engine fix that mdi/engine instantiated
-  // NOTE: make this optional
+  memory->destroy(ibuf1all);
+  memory->destroy(buf1all);
+  memory->destroy(buf3all);
+
+  // remove mdi/engine fix that mdi engine instantiated
+  // NOTE: decide whether to make this optional, see above
 
   //if (added_mdi_engine_fix) modify->delete_fix("MDI_ENGINE_INTERNAL");
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   engine is now at this MDI node
+   loop over received commands so long as driver also at this node
+   return when not the case or EXIT command received
+---------------------------------------------------------------------- */
 
 void MDIEngine2::engine_node(const char *node)
 {
@@ -251,7 +264,7 @@ void MDIEngine2::engine_node(const char *node)
 
     execute_command(mdicmd,mdicomm);
 
-    // check if driver node is now something other than engine node
+    // check if driver node is now somewhere other than engine node
 
     if (strcmp(node_driver,"\0") != 0 && strcmp(node_driver,node_engine) != 0)
       node_match = false;
@@ -274,6 +287,7 @@ int MDIEngine2::execute_command(const char *command, MDI_Comm mdicomm)
   int ierr;
 
   // confirm this command is supported at this node
+  // otherwise is an error
 
   int command_exists = 1;
   if (root) {
@@ -286,37 +300,43 @@ int MDIEngine2::execute_command(const char *command, MDI_Comm mdicomm)
 
   MPI_Bcast(&command_exists,1,MPI_INT,0,world);
   if (!command_exists)
-    error->all(FLERR, "MDI: Received a command unsupported by engine node");
+    error->all(FLERR,"MDI: Received a command unsupported by engine node");
 
+  // ---------------------------------------
   // respond to each possible driver command
+  // ---------------------------------------
 
-  if (strcmp(command, ">NATOMS") == 0) {
-    // NOTE: needs to be 64-bit value or copied into 64-bit value
-    ierr = MDI_Recv((char *) &atom->natoms,1,MDI_INT,mdicomm);
-    if (ierr) 
-      error->all(FLERR, "MDI: Unable to receive number of atoms from driver");
-    MPI_Bcast(&atom->natoms, 1, MPI_INT, 0, world);
+  if (strcmp(command,">NATOMS") == 0) {
 
-  } else if (strcmp(command, "<NATOMS") == 0) {
-    // NOTE: does MDI expect 32-bit value?
-    int64_t mdi_natoms = atom->natoms;
-    ierr = MDI_Send((char *) &mdi_natoms, 1, MDI_INT64_T, mdicomm);
-    if (ierr != 0) 
-      error->all(FLERR, "MDI: Unable to send number of atoms to driver");
+    // natoms cannot exceed 32-bit int for use with MDI
+
+    int natoms;
+    ierr = MDI_Recv(&natoms,1,MDI_INT,mdicomm);
+    if (ierr) error->all(FLERR,"MDI: >NATOMS data");
+    MPI_Bcast(&natoms,1,MPI_INT,0,world);
+    if (natoms < 0) error->all(FLERR,"MDI received natoms < 0");
+    atom->natoms = natoms;
+
+  } else if (strcmp(command,"<NATOMS") == 0) {
+
+    // natoms cannot exceed 32-bit int for use with MDI
+
+    int natoms = static_cast<int> (atom->natoms);
+    ierr = MDI_Send(&natoms,1,MDI_INT,mdicomm);
+    if (ierr != 0) error->all(FLERR,"MDI: <NATOMS data");
 
   } else if (strcmp(command, "<NTYPES") == 0) {
-    ierr = MDI_Send((char *) &atom->ntypes, 1, MDI_INT, mdicomm);
-    if (ierr != 0) 
-      error->all(FLERR, "MDI: Unable to send number of atom types to driver");
+    ierr = MDI_Send(&atom->ntypes,1,MDI_INT,mdicomm);
+    if (ierr != 0) error->all(FLERR, "MDI: <NTYPES data");
 
   } else if (strcmp(command, "<TYPES") == 0) {
     send_int1(TYPE);
 
-  } else if (strcmp(command, "<LABELS") == 0) {
-    send_labels();
-
   } else if (strcmp(command, "<MASSES") == 0) {
     send_double1(MASS);
+
+  } else if (strcmp(command, "<LABELS") == 0) {
+    send_labels();
 
   } else if (strcmp(command, "<CELL") == 0) {
     send_cell();
@@ -339,9 +359,6 @@ int MDIEngine2::execute_command(const char *command, MDI_Comm mdicomm)
   } else if (strcmp(command, "<CHARGES") == 0) {
     send_double1(CHARGE);
 
-  } else if (strcmp(command, "<ENERGY") == 0) {
-    send_energy();
-
   } else if (strcmp(command, "<FORCES") == 0) {
     send_double3(FORCE);
 
@@ -351,23 +368,26 @@ int MDIEngine2::execute_command(const char *command, MDI_Comm mdicomm)
   } else if (strcmp(command, ">+FORCES") == 0) {
     receive_double3(FORCE,1);
 
-  } else if (strcmp(command, "<KE") == 0) {
-    send_ke();
+  } else if (strcmp(command, "<ENERGY") == 0) {
+    send_total_energy();
 
   } else if (strcmp(command, "<PE") == 0) {
     send_pe();
 
-  // node commands
+  } else if (strcmp(command, "<KE") == 0) {
+    send_ke();
+
+  // MDI node commands
 
   } else if (strcmp(command,"@INIT_MD") == 0) {
     if (mode != DEFAULT) 
-      error->all(FLERR, "MDI: MDI engine is already performing a simulation");
+      error->all(FLERR,"MDI: MDI engine is already performing a simulation");
     mode = MD;
     node_match = false;
 
   } else if (strcmp(command,"@INIT_OPTG") == 0) {
     if (mode != DEFAULT) 
-      error->all(FLERR, "MDI: MDI engine is already performing a simulation");
+      error->all(FLERR,"MDI: MDI engine is already performing a simulation");
     mode = OPT;
     node_match = false;
 
@@ -377,7 +397,7 @@ int MDIEngine2::execute_command(const char *command, MDI_Comm mdicomm)
 
   } else if (strcmp(command,"<@") == 0) {
     ierr = MDI_Send(node_engine,MDI_NAME_LENGTH,MDI_CHAR,mdicomm);
-    if (ierr) error->all(FLERR,"MDI: Unable to send node to driver");
+    if (ierr) error->all(FLERR,"MDI: <@ data");
 
   } else if (strcmp(command,"@DEFAULT") == 0) {
     mode = DEFAULT;
@@ -446,7 +466,7 @@ int MDIEngine2::execute_command(const char *command, MDI_Comm mdicomm)
   // -------------------------------------------------------
 
   } else {
-    error->all(FLERR, "MDI: Unknown command from driver");
+    error->all(FLERR,"MDI: Unknown command received from driver");
   }
 
   return 0;
@@ -461,6 +481,7 @@ void MDIEngine2::mdi_commands()
 {
   // ------------------------------------
   // commands and nodes that an MDI-compliant MD code supports
+  // NOTE: is all of this correct?
   // ------------------------------------
 
   // default node and its commands
@@ -593,7 +614,7 @@ void MDIEngine2::mdi_commands()
   MDI_Register_command("@COORDS", "EXIT");
 
   // ------------------------------------
-  // custom commands and nodes which LAMMPS adds support for
+  // custom commands and nodes which LAMMPS supports
   // max length for a command is current 11 chars in MDI
   // ------------------------------------
 
@@ -617,7 +638,7 @@ void MDIEngine2::mdi_commands()
 
 void MDIEngine2::mdi_md()
 {
-  // initialize an MD simulation
+  // initialize a new MD simulation
 
   update->whichflag = 1;
   timer->init_timeout();
@@ -638,6 +659,7 @@ void MDIEngine2::mdi_md()
   // setup the MD simulation
 
   update->integrate->setup(1);
+
   engine_node("@FORCES");
   if (strcmp(mdicmd,"@DEFAULT") == 0 || strcmp(mdicmd,"EXIT") == 0) return;
 
@@ -720,6 +742,7 @@ void MDIEngine2::mdi_optg()
 // ----------------------------------------------------------------------
 
 /* ----------------------------------------------------------------------
+   >CHARGES command
    receive vector of 1 double for all atoms
    atoms are ordered by atomID, 1 to Natoms
    assumes all atoms already exist
@@ -729,8 +752,8 @@ void MDIEngine2::receive_double1(int which)
 {
   reallocate();
 
-  int ierr = MDI_Recv((char *) buf1,atom->natoms,MDI_DOUBLE,mdicomm);
-  if (ierr) error->all(FLERR,"MDI: Unable to receive double1 data from driver");
+  int ierr = MDI_Recv(buf1,atom->natoms,MDI_DOUBLE,mdicomm);
+  if (ierr) error->all(FLERR,"MDI: >double1 data");
   MPI_Bcast(buf1,atom->natoms,MPI_DOUBLE,0,world);
 
   // extract onwed atom value
@@ -751,6 +774,7 @@ void MDIEngine2::receive_double1(int which)
 }
 
 /* ----------------------------------------------------------------------
+   >TYPES command
    receive vector of 1 int for all atoms
    atoms are ordered by atomID, 1 to Natoms
    assumes all atoms already exist
@@ -760,8 +784,8 @@ void MDIEngine2::receive_int1(int which)
 {
   reallocate();
 
-  int ierr = MDI_Recv((char *) ibuf1,atom->natoms,MDI_INT,mdicomm);
-  if (ierr) error->all(FLERR,"MDI: Unable to receive double1 data from driver");
+  int ierr = MDI_Recv(ibuf1,atom->natoms,MDI_INT,mdicomm);
+  if (ierr) error->all(FLERR,"MDI: >int1 data");
   MPI_Bcast(ibuf1,atom->natoms,MPI_INT,0,world);
 
   // extract onwed atom value
@@ -782,6 +806,7 @@ void MDIEngine2::receive_int1(int which)
 }
 
 /* ----------------------------------------------------------------------
+   >COORDS, >FORCES commands
    receive vector of 3 doubles for all atoms
    atoms are ordered by atomID, 1 to Natoms
    assumes all atoms already exist
@@ -792,8 +817,8 @@ void MDIEngine2::receive_double3(int which, int addflag)
 {
   reallocate();
 
-  int ierr = MDI_Recv((char *) buf3,3*atom->natoms,MDI_DOUBLE,mdicomm);
-  if (ierr) error->all(FLERR,"MDI: Unable to receive double3 data from driver");
+  int ierr = MDI_Recv(buf3,3*atom->natoms,MDI_DOUBLE,mdicomm);
+  if (ierr) error->all(FLERR,"MDI: >double3 data");
   MPI_Bcast(buf3,3*atom->natoms,MPI_DOUBLE,0,world);
 
   // extract owned atom values
@@ -830,15 +855,10 @@ void MDIEngine2::receive_double3(int which, int addflag)
         f[i][2] += buf3[3*ilocal+2] * mdi2lmp_force;
       }
     }
-  } else if (which == VELOCITY) {
-    double **v = atom->v;
-    for (int i = 0; i < nlocal; i++) {
-      ilocal = static_cast<int> (tag[i]) - 1;
-      v[i][0] = buf3[3*ilocal+0] * mdi2lmp_velocity;
-      v[i][1] = buf3[3*ilocal+1] * mdi2lmp_velocity;
-      v[i][2] = buf3[3*ilocal+2] * mdi2lmp_velocity;
-    }
   }
+
+  // NOTE: these operations cannot be done in the middle
+  //       of an arbitrary timestep, only when reneighboring is done
 
   /*
   // ensure atoms are in current box & update box via shrink-wrap
@@ -860,6 +880,7 @@ void MDIEngine2::receive_double3(int which, int addflag)
 }
 
 /* ----------------------------------------------------------------------
+   <CHARGE, <MASSES commands
    send vector of 1 double for all atoms
    atoms are ordered by atomID, 1 to Natoms
 ---------------------------------------------------------------------- */
@@ -901,11 +922,12 @@ void MDIEngine2::send_double1(int which)
 
   MPI_Reduce(buf1,buf1all,atom->natoms,MPI_DOUBLE,MPI_SUM,0,world);
 
-  int ierr = MDI_Send((char *) buf1all,atom->natoms,MDI_DOUBLE,mdicomm);
-  if (ierr) error->all(FLERR, "MDI: Unable to send double1 data to driver");
+  int ierr = MDI_Send(buf1all,atom->natoms,MDI_DOUBLE,mdicomm);
+  if (ierr) error->all(FLERR,"MDI: <double1 data");
 }
 
 /* ----------------------------------------------------------------------
+   <TYPES command
    send vector of 1 int for all atoms
    atoms are ordered by atomID, 1 to Natoms
 ---------------------------------------------------------------------- */
@@ -932,11 +954,12 @@ void MDIEngine2::send_int1(int which)
 
   MPI_Reduce(ibuf1,ibuf1all,atom->natoms,MPI_INT,MPI_SUM,0,world);
 
-  int ierr = MDI_Send((char *) ibuf1all,atom->natoms,MDI_INT,mdicomm);
-  if (ierr) error->all(FLERR, "MDI: Unable to send int1 data to driver");
+  int ierr = MDI_Send(ibuf1all,atom->natoms,MDI_INT,mdicomm);
+  if (ierr) error->all(FLERR,"MDI: <int1 data");
 }
 
 /* ----------------------------------------------------------------------
+   <COORDS, <FORCES commands
    send vector of 3 doubles for all atoms
    atoms are ordered by atomID, 1 to Natoms
 ---------------------------------------------------------------------- */
@@ -969,28 +992,26 @@ void MDIEngine2::send_double3(int which)
       buf3[3*ilocal+1] = f[i][1] * lmp2mdi_force;
       buf3[3*ilocal+2] = f[i][2] * lmp2mdi_force;
     }
-  } else if (which == VELOCITY) {
-    double **f = atom->f;
-    for (int i = 0; i < nlocal; i++) {
-      ilocal = static_cast<int> (tag[i]) - 1;
-      buf3[3*ilocal+0] = f[i][0] * lmp2mdi_velocity;
-      buf3[3*ilocal+1] = f[i][1] * lmp2mdi_velocity;
-      buf3[3*ilocal+2] = f[i][2] * lmp2mdi_velocity;
-    }
   }
 
   MPI_Reduce(buf3,buf3all,3*atom->natoms,MPI_DOUBLE,MPI_SUM,0,world);
 
-  int ierr = MDI_Send((char *) buf3all,3*atom->natoms,MDI_DOUBLE,mdicomm);
-  if (ierr) error->all(FLERR, "MDI: Unable to send double3 data to driver");
+  int ierr = MDI_Send(buf3all,3*atom->natoms,MDI_DOUBLE,mdicomm);
+  if (ierr) error->all(FLERR,"MDI: <double3 data");
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   <LABELS command
+   convert atom type to string for each atom
+   atoms are ordered by atomID, 1 to Natoms
+---------------------------------------------------------------------- */
 
 void MDIEngine2::send_labels()
 {
   char *labels = new char[atom->natoms * MDI_LABEL_LENGTH];
-  memset(labels, ' ', atom->natoms * MDI_LABEL_LENGTH);
+  memset(labels,' ',atom->natoms * MDI_LABEL_LENGTH);
+
+  // NOTE: this loop will not work in parallel
 
   for (int iatom = 0; iatom < atom->natoms; iatom++) {
     std::string label = std::to_string(atom->type[iatom]);
@@ -998,15 +1019,18 @@ void MDIEngine2::send_labels()
     strncpy(&labels[iatom * MDI_LABEL_LENGTH], label.c_str(), label_len);
   }
 
-  int ierr = MDI_Send(labels, atom->natoms * MDI_LABEL_LENGTH, MDI_CHAR, mdicomm);
-  if (ierr) error->all(FLERR, "MDI: Unable to send atom labels to driver");
+  int ierr = MDI_Send(labels,atom->natoms*MDI_LABEL_LENGTH,MDI_CHAR,mdicomm);
+  if (ierr) error->all(FLERR,"MDI: <LABELS data");
 
-  delete[] labels;
+  delete [] labels;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   <ENERGY command
+   send total energy = PE + KE
+---------------------------------------------------------------------- */
 
-void MDIEngine2::send_energy()
+void MDIEngine2::send_total_energy()
 {
   double convert = 1.0;
 
@@ -1015,33 +1039,42 @@ void MDIEngine2::send_energy()
   double total_energy = potential_energy + kinetic_energy;
   total_energy *= lmp2mdi_energy;
 
-  int ierr = MDI_Send((char *) &total_energy,1,MDI_DOUBLE,mdicomm);
-  if (ierr) error->all(FLERR, "MDI: Unable to send total energy to driver");
+  int ierr = MDI_Send(&total_energy,1,MDI_DOUBLE,mdicomm);
+  if (ierr) error->all(FLERR,"MDI: <ENERGY data");
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   <PE command
+   send potential energy
+---------------------------------------------------------------------- */
 
 void MDIEngine2::send_pe()
 {
   double potential_energy = pe->compute_scalar();
   potential_energy *= lmp2mdi_energy;
 
-  int ierr = MDI_Send((char *) &potential_energy,1,MDI_DOUBLE,mdicomm);
-  if (ierr) error->all(FLERR, "MDI: Unable to send potential energy to driver");
+  int ierr = MDI_Send(&potential_energy,1,MDI_DOUBLE,mdicomm);
+  if (ierr) error->all(FLERR,"MDI: <PE data");
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   <KE command
+   send kinetic energy
+---------------------------------------------------------------------- */
 
 void MDIEngine2::send_ke()
 {
   double kinetic_energy = ke->compute_scalar();
   kinetic_energy *= lmp2mdi_energy;
 
-  int ierr = MDI_Send((char *) &kinetic_energy,1,MDI_DOUBLE,mdicomm);
-  if (ierr) error->all(FLERR,"MDI: Unable to send kinetic energy to driver");
+  int ierr = MDI_Send(&kinetic_energy,1,MDI_DOUBLE,mdicomm);
+  if (ierr) error->all(FLERR,"MDI: <KE data");
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   <CELL command
+   send simulation box edge vectors
+---------------------------------------------------------------------- */
 
 void MDIEngine2::send_cell()
 {
@@ -1060,44 +1093,58 @@ void MDIEngine2::send_cell()
   for (int icell = 0; icell < 9; icell++) 
     celldata[icell] *= lmp2mdi_length;
 
-  int ierr = MDI_Send((char *) celldata,9,MDI_DOUBLE,mdicomm);
-  if (ierr) error->all(FLERR, "MDI: Unable to send cell dimensions to driver");
+  int ierr = MDI_Send(celldata,9,MDI_DOUBLE,mdicomm);
+  if (ierr) error->all(FLERR,"MDI: <CELL data");
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   >CELL command
+   reset the simulation box edge vectors
+   in conjunction with >CELL_DISPL this can adjust box arbitrarily
+---------------------------------------------------------------------- */
 
 void MDIEngine2::receive_cell()
 {
   double celldata[9];
 
-  int ierr = MDI_Recv((char *) celldata,9,MDI_DOUBLE,mdicomm);
-  if (ierr) error->all(FLERR, "MDI: Unable to send cell dimensions to driver");
-  MPI_Bcast(&celldata[0],9,MPI_DOUBLE,0,world);
+  int ierr = MDI_Recv(celldata,9,MDI_DOUBLE,mdicomm);
+  if (ierr) error->all(FLERR, "MDI: >CELL data");
+  MPI_Bcast(celldata,9,MPI_DOUBLE,0,world);
 
   for (int icell = 0; icell < 9; icell++) 
-    celldata[icell] /= mdi2lmp_length;
+    celldata[icell] *= mdi2lmp_length;
 
-  // require the new cell vector be orthogonal (for now)
+  // error check that edge vectors match LAMMPS triclinic requirement
 
-  double small = std::numeric_limits<double>::min();
-  if (abs(celldata[1]) > small or abs(celldata[2]) > small or 
-      abs(celldata[3]) > small or
-      abs(celldata[5]) > small or abs(celldata[6]) > small or 
-      abs(celldata[7]) > small) {
-    error->all(FLERR,
-               "MDI: LAMMPS currently only supports the >CELL command "
-               "for orthogonal cell vectors");
-  }
+  if (celldata[1] != 0.0 || celldata[2] != 0.0 || celldata[5] != 0.0)
+    error->all(FLERR,"MDI: Received cell edges are not LAMMPS compatible");
+
+  // convert atoms to lamda coords before changing box
+
+  domain->x2lamda(atom->nlocal);
+
+  // convert celldata to new boxlo, boxhi, and tilt factors
 
   domain->boxhi[0] = celldata[0] + domain->boxlo[0];
   domain->boxhi[1] = celldata[4] + domain->boxlo[1];
   domain->boxhi[2] = celldata[8] + domain->boxlo[2];
-  domain->xy = 0.0;
-  domain->xz = 0.0;
-  domain->yz = 0.0;
+
+  domain->xy = celldata[3];
+  domain->xz = celldata[6];
+  domain->yz = celldata[7];
+
+  // reset all Domain variables that depend on box size/shape
+  // convert atoms coords back to new box coords
+
+  domain->set_global_box();
+  domain->set_local_box();
+  domain->lamda2x(atom->nlocal);
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   <CELL_DISPL command
+   send simulation box origin = lower-left corner
+---------------------------------------------------------------------- */
 
 void MDIEngine2::send_celldispl()
 {
@@ -1110,36 +1157,51 @@ void MDIEngine2::send_celldispl()
   for (int icell = 0; icell < 3; icell++)
     celldata[icell] *= lmp2mdi_length;
 
-  int ierr = MDI_Send((char *) celldata,3,MDI_DOUBLE,mdicomm);
-  if (ierr) error->all(FLERR, "MDI: Unable to send cell displacement to driver");
+  int ierr = MDI_Send(celldata,3,MDI_DOUBLE,mdicomm);
+  if (ierr) error->all(FLERR,"MDI: <CELL_DISPLS data");
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   >CELL_DISPL command
+   reset simulation box origin = lower-left corner
+---------------------------------------------------------------------- */
 
 void MDIEngine2::receive_celldispl()
 {
   double celldata[3];
-  int ierr = MDI_Recv((char *) celldata,3,MDI_DOUBLE,mdicomm);
+  int ierr = MDI_Recv(celldata,3,MDI_DOUBLE,mdicomm);
   if (ierr) 
-    error->all(FLERR, "MDI: Unable to receive cell displacement from driver");
-  MPI_Bcast(&celldata[0],3,MPI_DOUBLE,0,world);
+    error->all(FLERR,"MDI: >CELL_DISPLS data");
+  MPI_Bcast(celldata,3,MPI_DOUBLE,0,world);
 
   for (int icell = 0; icell < 3; icell++)
     celldata[icell] *= mdi2lmp_length;
 
+  // convert atoms to lamda coords before changing box
+
+  domain->x2lamda(atom->nlocal);
+
+  // convert celldata to new boxlo and boxhi
+  
   double old_boxlo[3];
   old_boxlo[0] = domain->boxlo[0];
   old_boxlo[1] = domain->boxlo[1];
   old_boxlo[2] = domain->boxlo[2];
 
-  // adjust the values of boxlo and boxhi for the new cell displacement vector
-
   domain->boxlo[0] = celldata[0];
   domain->boxlo[1] = celldata[1];
   domain->boxlo[2] = celldata[2];
+
   domain->boxhi[0] += domain->boxlo[0] - old_boxlo[0];
   domain->boxhi[1] += domain->boxlo[1] - old_boxlo[1];
   domain->boxhi[2] += domain->boxlo[2] - old_boxlo[2];
+
+  // reset all Domain variables that depend on box origin
+  // convert atoms coords back to new box coords
+
+  domain->set_global_box();
+  domain->set_local_box();
+  domain->lamda2x(atom->nlocal);
 }
 
 // ----------------------------------------------------------------------
@@ -1151,13 +1213,13 @@ void MDIEngine2::receive_celldispl()
 /* ----------------------------------------------------------------------
    LENGTH command
    store received value in length_param
-   for use by other commands, e.g. that send strings
+   for use by a subsequent command, e.g. ones that send strings
 ---------------------------------------------------------------------- */
 
 void MDIEngine2::length_command()
 {
   int ierr = MDI_Recv(&length_param,1,MDI_INT,mdicomm);
-  if (ierr) error->all(FLERR, "MDI LENGTH error");
+  if (ierr) error->all(FLERR,"MDI: LENGTH data");
   MPI_Bcast(&length_param,1,MPI_INT,0,world);
 }
 
@@ -1171,7 +1233,7 @@ void MDIEngine2::single_command()
 {
   char *cmd = new char[length_param+1];
   int ierr = MDI_Recv(cmd,length_param+1,MDI_CHAR,mdicomm);
-  if (ierr) error->all(FLERR,"MDI COMMAND error");
+  if (ierr) error->all(FLERR,"MDI: COMMAND data");
   MPI_Bcast(cmd,length_param+1,MPI_CHAR,0,world);
   cmd[length_param+1] = '\0';
 
@@ -1190,7 +1252,7 @@ void MDIEngine2::many_commands()
 {
   char *cmds = new char[length_param+1];
   int ierr = MDI_Recv(cmds, length_param+1, MDI_CHAR, mdicomm);
-  if (ierr) error->all(FLERR, "MDI COMMANDS error");
+  if (ierr) error->all(FLERR,"MDI: COMMANDS data");
   MPI_Bcast(cmds,length_param+1,MPI_CHAR,0,world);
   cmds[length_param+1] = '\0';
   
@@ -1209,7 +1271,7 @@ void MDIEngine2::infile()
 {
   char *infile = new char[length_param+1];
   int ierr = MDI_Recv(infile,length_param+1,MDI_CHAR,mdicomm);
-  if (ierr) error->all(FLERR, "MDI INFILE error");
+  if (ierr) error->all(FLERR,"MDI: INFILE data");
   MPI_Bcast(infile,length_param+1,MPI_CHAR,0,world);
   infile[length_param+1] = '\0';
 
@@ -1218,7 +1280,15 @@ void MDIEngine2::infile()
   delete [] infile;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   EVAL command
+   compute forces, energy, pressure of current system
+   can be called multiple times by driver
+     for a system that is continuously evolving
+   distinguishes between first-time call vs
+     system needs reneighboring vs system does not need reneighboring
+   does not increment timestep
+---------------------------------------------------------------------- */
 
 void MDIEngine2::evaluate()
 {
@@ -1228,6 +1298,9 @@ void MDIEngine2::evaluate()
     update->integrate->setup(0);
 
   } else {
+
+    // insure potential energy and virial are tallied on this step
+
     pe->addstep(update->ntimestep);
     press->addstep(update->ntimestep);
 
@@ -1241,7 +1314,14 @@ void MDIEngine2::evaluate()
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   RESET_BOX command
+   wrapper on library reset_box() method
+   requires no atoms exist
+   allows caller to define a new simulation box
+   NOTE: this will not work in plugin mode, b/c of 3 MDI_Recv() calls
+         how to effectively do this?
+---------------------------------------------------------------------- */
 
 void MDIEngine2::reset_box()
 {
@@ -1258,7 +1338,16 @@ void MDIEngine2::reset_box()
   lammps_reset_box(lmp,boxlo,boxhi,tilts[0],tilts[1],tilts[2]);
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   CREATE_ATOM command
+   wrapper on library create_atoms() method
+   requires simulation box be defined
+   allows caller to define a new set of atoms
+     with their IDs, types, coords, velocities, image flags
+   NOTE: this will not work in plugin mode, b/c of multiple MDI_Recv() calls
+         how to effectively do this?
+   NOTE: also the memory here is not yet allocated correctly
+---------------------------------------------------------------------- */
 
 void MDIEngine2::create_atoms()
 {
@@ -1305,15 +1394,18 @@ void MDIEngine2::create_atoms()
   }
 
   if (!x || !type) 
-    error->all(FLERR,"MDI create_atoms: did not receive atom coords or types");
+    error->all(FLERR,"MDI: CREATE_ATOM did not receive atom coords or types");
 
   int ncreate = lammps_create_atoms(lmp,natoms,id,type,x,v,image,1);
 
   if (ncreate != natoms) 
-    error->all(FLERR, "MDI create_atoms: created atoms != sent atoms");
+    error->all(FLERR, "MDI: CREATE ATOM created atoms != sent atoms");
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   <PRESSURE command
+   send scalar pressure value
+---------------------------------------------------------------------- */
 
 void MDIEngine2::send_pressure()
 {
@@ -1321,34 +1413,41 @@ void MDIEngine2::send_pressure()
   pressure *= lmp2mdi_pressure;
 
   int ierr = MDI_Send(&pressure, 1, MDI_DOUBLE, mdicomm);
-  if (ierr) error->all(FLERR, "MDI: Unable to send pressure to driver");
+  if (ierr) error->all(FLERR,"MDI: <PRESSURE data");
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   <PTENSOR command
+   send 6-component pressure tensor
+---------------------------------------------------------------------- */
 
 void MDIEngine2::send_ptensor()
 {
-  double pvector[6];
+  double ptensor[6];
   press->compute_vector();
   for (int i = 0; i < 6; i++)
-    pvector[i] = press->vector[i] * lmp2mdi_pressure;
+    ptensor[i] = press->vector[i] * lmp2mdi_pressure;
 
-  int ierr = MDI_Send(pvector,6,MDI_DOUBLE,mdicomm);
-  if (ierr) error->all(FLERR, "MDI: Unable to send ptensor to driver");
+  int ierr = MDI_Send(ptensor,6,MDI_DOUBLE,mdicomm);
+  if (ierr) error->all(FLERR,"MDI: <PTENSOR data");
 }
 
 // ----------------------------------------------------------------------
 // ----------------------------------------------------------------------
-// utility methods
+// additional methods
 // ----------------------------------------------------------------------
 // ----------------------------------------------------------------------
+
+/* ----------------------------------------------------------------------
+   reallocate storage for all atoms if necessary
+------------------------------------------------------------------------- */
 
 void MDIEngine2::reallocate()
 {
-  if (maxbuf > atom->natoms) return;
+  if (atom->natoms <= maxbuf) return;
 
   if (3*atom->natoms > MAXSMALLINT)
-    error->all(FLERR,"Natoms is too large to use with mdi engine");
+    error->all(FLERR,"Natoms too large to use with mdi engine");
 
   maxbuf = atom->natoms;
 
@@ -1369,6 +1468,9 @@ void MDIEngine2::reallocate()
   memory->create(buf3all,3*maxbuf,"mdi:buf3all");
 }
 
+/* ----------------------------------------------------------------------
+   MDI to/from LAMMPS conversion factors
+------------------------------------------------------------------------- */
 
 void MDIEngine2::unit_conversions()
 {

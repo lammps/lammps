@@ -17,6 +17,17 @@
 #include "fft3d.h"
 #include "pointers.h"
 
+#ifdef HEFFTE
+#include "heffte.h"
+#ifdef FFT_FFTW3
+using heffte_backend = heffte::backend::fftw;
+#else
+#ifdef FFT_MKL
+using heffte_backend = heffte::backend::mkl;
+#endif
+#endif
+#endif
+
 namespace LAMMPS_NS {
 
 class FFT3d : protected Pointers {
@@ -31,6 +42,12 @@ class FFT3d : protected Pointers {
 
  private:
   struct fft_plan_3d *plan;
+
+  #ifdef HEFFTE
+  std::unique_ptr<heffte::fft3d<heffte_backend>> heffte_plan;
+  std::vector<std::complex<FFT_SCALAR>> heffte_workspace;
+  #endif
+
 };
 
 }    // namespace LAMMPS_NS

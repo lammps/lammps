@@ -1,11 +1,12 @@
 .. index:: fix ttm
+.. index:: fix ttm/grid
 .. index:: fix ttm/mod
 
 fix ttm command
 ===============
 
 fix ttm/grid command
-===============
+====================
 
 fix ttm/mod command
 ===================
@@ -45,7 +46,7 @@ Syntax
        Nz = number of thermal solve grid points in the z-direction (positive integer)
 
 * zero or more keyword/value(s) pairs may be appended
-* keyword = *set* or *infile" or *outfile"
+* keyword = *set* or *infile* or *outfile*
 
   .. parsed-literal::
 
@@ -85,20 +86,20 @@ Matter papers: :ref:`(Duffy) <Duffy>` and :ref:`(Rutherford)
 a primary knock-on atom (PKA) was initialized with a high velocity to
 simulate a radiation event.
 
-The description in this sub-section applies to all 3 of the fixes: fix
-ttm, fix ttm/grid, and fix ttm/mod.
+The description in this sub-section applies to all 3 fix styles:
+*ttm*, *ttm/grid*, and *ttm/mod*.
 
-Fix ttm/grid distributes the regular grid across processors consistent
-with the subdomains of atoms owned by each processor, but is otherwise
-identical to fix ttm.  Note that fix ttm stores a copy of the grid on
-each processor, which is fine when the overall grid is reasonably
-small.  For very large grids you should use fix ttt/grid instead.
+Fix *ttm/grid* distributes the regular grid across processors consistent
+with the sub-domains of atoms owned by each processor, but is otherwise
+identical to fix ttm.  Note that fix *ttm* stores a copy of the grid on
+each processor, which is acceptable when the overall grid is reasonably
+small.  For larger grids you should use fix *ttm/grid* instead.
 
-Fix ttm/mod adds options to account for external heat sources (e.g. at
+Fix *ttm/mod* adds options to account for external heat sources (e.g. at
 a surface) and for specifying parameters that allow the electronic
 heat capacity to depend strongly on electronic temperature.  It is
-more expensive computationally than fix ttm because it treats the
-thermal diffusion equation as non-linear.  More details on fix ttm/mod
+more expensive computationally than fix *ttm* because it treats the
+thermal diffusion equation as non-linear.  More details on fix *ttm/mod*
 are given below.
 
 Heat transfer between the electronic and atomic subsystems is carried
@@ -169,11 +170,11 @@ ttm/mod.
   periodic boundary conditions in all dimensions.  They also require
   that the size and shape of the simulation box do not vary
   dynamically, e.g. due to use of the :doc:`fix npt <fix_nh>` command.
-  Likewise, the size/shape of processor subdomains cannot vary due to
+  Likewise, the size/shape of processor sub-domains cannot vary due to
   dynamic load-balancing via use of the :doc:`fix balance
   <fix_balance>` command.  It is possible however to load balance
   before the simulation starts using the :doc:`balance <balance>`
-  command, so that each processor has a different size subdomain.
+  command, so that each processor has a different size sub-domain.
 
 Periodic boundary conditions are also used in the heat equation solve
 for the electronic subsystem.  This varies from the approach of
@@ -238,7 +239,7 @@ by this fix.
 
 **Additional details for fix ttm/mod**
 
-Fix ttm/mod uses the heat diffusion equation with possible external
+Fix *ttm/mod* uses the heat diffusion equation with possible external
 heat sources (e.g. laser heating in ablation simulations):
 
 .. math::

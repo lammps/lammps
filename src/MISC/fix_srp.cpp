@@ -106,7 +106,7 @@ void FixSRP::init()
 
   int has_rigid = 0;
   for (int i = 0; i < modify->nfix; i++)
-    if (strncmp(modify->fix[i]->style,"rigid",5) == 0) ++has_rigid;
+    if (utils::strmatch(modify->fix[i]->style,"^rigid")) ++has_rigid;
 
   if (has_rigid > 0)
     error->all(FLERR,"Pair srp is not compatible with rigid fixes.");
@@ -242,7 +242,6 @@ void FixSRP::setup_pre_force(int /*zz*/)
   memory->destroy(xold);
   memory->destroy(tagold);
 
-  char str[128];
   int nadd_all = 0, ndel_all = 0;
   MPI_Allreduce(&ndel,&ndel_all,1,MPI_INT,MPI_SUM,world);
   MPI_Allreduce(&nadd,&nadd_all,1,MPI_INT,MPI_SUM,world);

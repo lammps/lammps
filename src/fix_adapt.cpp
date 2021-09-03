@@ -612,23 +612,13 @@ void FixAdapt::change_settings()
   // ditto for bond styles if any BOND settings were changed
   // this resets other coeffs that may depend on changed values,
   //   and also offset and tail corrections
+  // we must call force->pair->reinit() instead of the individual
+  // adapted pair styles so that also the top-level
+  // tail correction values are updated for hybrid pair styles.
+  //  same for bond styles
 
-  if (anypair) {
-    for (int m = 0; m < nadapt; m++) {
-      Adapt *ad = &adapt[m];
-      if (ad->which == PAIR) {
-        ad->pair->reinit();
-      }
-    }
-  }
-  if (anybond) {
-    for (int m = 0; m < nadapt; ++m) {
-      Adapt *ad = &adapt[m];
-      if (ad->which == BOND) {
-        ad->bond->reinit();
-      }
-    }
-  }
+  if (anypair) force->pair->reinit();
+  if (anybond) force->bond->reinit();
 
   // reset KSpace charges if charges have changed
 

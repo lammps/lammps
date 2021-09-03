@@ -2,18 +2,19 @@
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
-   
+
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
    certain rights in this software.  This software is distributed under
    the GNU General Public License.
-   
+
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
 #include "label_map.h"
 
 #include "atom.h"
+#include "comm.h"
 #include "force.h"
 #include "memory.h"
 #include "error.h"
@@ -26,7 +27,6 @@ using namespace LAMMPS_NS;
 
 LabelMap::LabelMap(LAMMPS *lmp) : Pointers(lmp)
 {
-  MPI_Comm_rank(world,&me);
   natomtypes = nbondtypes = nangletypes = 0;
   ndihedraltypes = nimpropertypes = 0;
 }
@@ -366,7 +366,7 @@ char *LabelMap::read_string(FILE *fp)
   int n = read_int(fp);
   if (n < 0) error->all(FLERR,"Illegal size string or corrupt restart");
   char *value = new char[n];
-  if (me == 0) utils::sfread(FLERR,value,sizeof(char),n,fp,nullptr,error);
+  if (comm->me == 0) utils::sfread(FLERR,value,sizeof(char),n,fp,nullptr,error);
   MPI_Bcast(value,n,MPI_CHAR,0,world);
   return value;
 }
@@ -391,8 +391,7 @@ void LabelMap::write_string(std::string str, FILE *fp)
 int LabelMap::read_int(FILE *fp)
 {
   int value;
-  if ((me == 0) && (fread(&value,sizeof(int),1,fp) < 1))
-    value = -1;
+  if ((comm->me == 0) && (fread(&value,sizeof(int),1,fp) < 1)) value = -1;
   MPI_Bcast(&value,1,MPI_INT,0,world);
   return value;
 }

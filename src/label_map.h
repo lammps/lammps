@@ -57,8 +57,6 @@ class LabelMap : protected Pointers {
    void write_restart(FILE *);
 
  private:
-   int me;
-
    char *read_string(FILE *);
    void write_string(std::string, FILE *);
    int read_int(FILE *);

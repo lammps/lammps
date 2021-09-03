@@ -18,13 +18,16 @@
 
 #include "pair_amoeba_gpu.h"
 
+#include "amoeba_convolution.h"
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
+#include "fix_store.h"
 #include "force.h"
 #include "gpu_extra.h"
 #include "math_const.h"
+#include "memory.h"
 #include "my_page.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -35,7 +38,15 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
+enum{INDUCE,RSD,SETUP_AMOEBA,SETUP_HIPPO,KMPOLE,AMGROUP};   // forward comm
+enum{FIELD,ZRSD,TORQUE,UFLD};                               // reverse comm
+enum{VDWL,REPULSE,QFER,DISP,MPOLE,POLAR,USOLV,DISP_LONG,MPOLE_LONG,POLAR_LONG};
 enum{MUTUAL,OPT,TCG,DIRECT};
+enum{GEAR,ASPC,LSQR};
+enum{BUILD,APPLY};
+enum{GORDON1,GORDON2};
+
+#define DEBYE 4.80321    // conversion factor from q-Angs (real units) to Debye
 
 // External functions from cuda library for atom decomposition
 
@@ -54,29 +65,27 @@ int amoeba_gpu_init(const int ntypes, const int max_amtype,
 void amoeba_gpu_clear();
 
 int ** amoeba_gpu_compute_udirect2b(const int ago, const int inum, const int nall,
-                            double **host_x, int *host_type, int *host_amtype, int *host_amgroup,
-                            double **host_rpole, double *sublo, double *subhi, tagint *tag, int **nspecial,
-                            tagint **special, int* nspecial15, tagint** special15,
-                            const bool eflag, const bool vflag,
-                            const bool eatom, const bool vatom, int &host_start,
-                            int **ilist, int **jnum, const double cpu_time,
-                            bool &success, double *host_q, double *boxlo, double *prd,
-                            void **fieldp_ptr);
+              double **host_x, int *host_type, int *host_amtype, int *host_amgroup,
+              double **host_rpole, double *sublo, double *subhi, tagint *tag, int **nspecial,
+              tagint **special, int* nspecial15, tagint** special15,
+              const bool eflag, const bool vflag,
+              const bool eatom, const bool vatom, int &host_start,
+              int **ilist, int **jnum, const double cpu_time,
+              bool &success, double *host_q, double *boxlo, double *prd,
+              void **fieldp_ptr);
 
 int ** amoeba_gpu_compute_polar_real(const int ago, const int inum, const int nall,
-                            double **host_x, int *host_type, int *host_amtype, int *host_amgroup,
-                            double **host_rpole, double **host_uind, double **host_uinp,
-                            double *sublo, double *subhi, tagint *tag, int **nspecial,
-                            tagint **special, int* nspecial15, tagint** special15,
-                            const bool eflag, const bool vflag,
-                            const bool eatom, const bool vatom, int &host_start,
-                            int **ilist, int **jnum, const double cpu_time,
-                            bool &success, double *host_q, double *boxlo, double *prd,
-                            void **tep_ptr);
+              double **host_x, int *host_type, int *host_amtype, int *host_amgroup,
+              double **host_rpole, double **host_uind, double **host_uinp,
+              double *sublo, double *subhi, tagint *tag, int **nspecial,
+              tagint **special, int* nspecial15, tagint** special15,
+              const bool eflag, const bool vflag,
+              const bool eatom, const bool vatom, int &host_start,
+              int **ilist, int **jnum, const double cpu_time,
+              bool &success, double *host_q, double *boxlo, double *prd,
+              void **tep_ptr);
 
 double amoeba_gpu_bytes();
-
-enum{VDWL,REPULSE,QFER,DISP,MPOLE,POLAR,USOLV,DISP_LONG,MPOLE_LONG,POLAR_LONG};
 
 /* ---------------------------------------------------------------------- */
 
@@ -291,6 +300,486 @@ void PairAmoebaGPU::init_style()
 }
 
 /* ----------------------------------------------------------------------
+   induce = induced dipole moments via pre-conditioned CG solver
+   adapted from Tinker induce0a() routine
+------------------------------------------------------------------------- */
+
+void PairAmoebaGPU::induce()
+{
+  bool done;
+  int i,j,m,ii,itype;
+  int iter,maxiter;
+  double polmin;
+  double eps,epsold;
+  double epsd,epsp;
+  double udsum,upsum;
+  double a,ap,b,bp;
+  double sum,sump,term;
+  double reduce[4],allreduce[4];
+
+  double *poli;
+  double **conj,**conjp;
+  double **vec,**vecp;
+  double **udir,**usum,**usump;
+
+  int debug = 1;
+
+  // set cutoffs, taper coeffs, and PME params
+  // create qfac here, free at end of polar()
+  
+  if (use_ewald) {
+    choose(POLAR_LONG);
+    int nmine = p_kspace->nfft_owned;
+    memory->create(qfac,nmine,"ameoba/induce:qfac");
+  } else choose(POLAR);
+
+  // owned atoms
+
+  double **x = atom->x;
+  double **f = atom->f;
+  int nlocal = atom->nlocal;
+
+  // zero out the induced dipoles at each site
+
+  for (i = 0; i < nlocal; i++) {
+    for (j = 0; j < 3; j++) {
+      uind[i][j] = 0.0;
+      uinp[i][j] = 0.0;
+    }
+  }
+
+  // allocation of arrays
+  // NOTE: not all are used by all methods
+  // NOTE: could be re-allocated dynamically
+
+  memory->create(poli,nlocal,"ameoba/induce:poli");
+  memory->create(conj,nlocal,3,"ameoba/induce:conj");
+  memory->create(conjp,nlocal,3,"ameoba/induce:conjp");
+  memory->create(vec,nlocal,3,"ameoba/induce:vec");
+  memory->create(vecp,nlocal,3,"ameoba/induce:vecp");
+  memory->create(udir,nlocal,3,"ameoba/induce:udir");
+  memory->create(usum,nlocal,3,"ameoba/induce:usum");
+  memory->create(usump,nlocal,3,"ameoba/induce:usump");
+
+  // get the electrostatic field due to permanent multipoles
+  
+  dfield0c(field,fieldp);
+
+  // reverse comm to sum field,fieldp from ghost atoms to owned atoms
+
+  crstyle = FIELD;
+  comm->reverse_comm_pair(this);
+
+  // DEBUG statements
+
+  /*
+  for (i = 0; i < nlocal; i++)
+    if (atom->tag[i] == 1)
+      printf("AAA FIELD atom %d: field %g %g %g: fieldp %g %g %g\n",
+	     atom->tag[i],
+	     field[i][0],field[i][1],field[i][2],
+	     fieldp[i][0],fieldp[i][1],fieldp[i][2]);
+  */
+  
+  // set induced dipoles to polarizability times direct field
+
+  for (i = 0; i < nlocal; i++) {
+    itype = amtype[i];
+    for (j = 0; j < 3; j++) {
+      udir[i][j] = polarity[itype] * field[i][j];
+      udirp[i][j] = polarity[itype] * fieldp[i][j];
+      if (pcgguess) {
+        uind[i][j] = udir[i][j];
+        uinp[i][j] = udirp[i][j];
+      }
+    }
+  }
+
+  // get induced dipoles via the OPT extrapolation method
+  // NOTE: any way to rewrite these loops to avoid allocating
+  //       uopt,uoptp with a optorder+1 dimension, just optorder ??
+  //       since no need to store optorder+1 values after these loops
+
+  if (poltyp == OPT) { 
+    for (i = 0; i < nlocal; i++) {
+      for (j = 0; j < 3; j++) {
+        uopt[i][0][j] = udir[i][j];
+        uoptp[i][0][j] = udirp[i][j];
+      }
+    }
+
+    for (m = 1; m <= optorder; m++) {
+      optlevel = m - 1;     // used in umutual1() for fopt,foptp
+
+      cfstyle = INDUCE;
+      comm->forward_comm_pair(this);
+
+      ufield0c(field,fieldp);
+
+      crstyle = FIELD;
+      comm->reverse_comm_pair(this);
+
+      for (i = 0; i < nlocal; i++) {
+	      itype = amtype[i];
+        for (j = 0; j < 3; j++) {
+          uopt[i][m][j] = polarity[itype] * field[i][j];
+          uoptp[i][m][j] = polarity[itype] * fieldp[i][j];
+          uind[i][j] = uopt[i][m][j];
+          uinp[i][j] = uoptp[i][m][j];
+        }
+      }
+    }
+
+    for (i = 0; i < nlocal; i++) {
+      for (j = 0; j < 3; j++) {
+        uind[i][j] = 0.0;
+        uinp[i][j] = 0.0;
+        usum[i][j] = 0.0;
+        usump[i][j] = 0.0;
+        for (m = 0; m <= optorder; m++) {
+          usum[i][j] += uopt[i][m][j];
+          usump[i][j] += uoptp[i][m][j];
+          uind[i][j] += copt[m]*usum[i][j];
+          uinp[i][j] += copt[m]*usump[i][j];
+        }
+      }
+    }
+  }
+
+  // set tolerances for computation of mutual induced dipoles
+
+  if (poltyp == MUTUAL) {
+    done = false;
+    maxiter = 100;
+    iter = 0;
+    polmin = 0.00000001;
+    eps = 100.0;
+
+    // estimate induced dipoles using a polynomial predictor
+
+    if (use_pred && nualt == maxualt) {
+      ulspred();
+
+      double ***udalt = fixudalt->tstore;
+      double ***upalt = fixupalt->tstore;
+
+      for (i = 0; i < nlocal; i++) {
+        for (j = 0; j < 3; j++) {
+          udsum = 0.0;
+          upsum = 0.0;
+          for (m = 0; m < nualt; m++) {
+            udsum += bpred[m]*udalt[i][m][j];
+            upsum += bpredp[m]*upalt[i][m][j];
+          }
+          uind[i][j] = udsum;
+          uinp[i][j] = upsum;
+        }
+      }
+    }
+
+    // estimate induced dipoles via inertial extended Lagrangian
+    // not supported for now
+    // requires uaux,upaux to persist with each atom
+    // also requires a velocity vector(s) to persist
+    // also requires updating uaux,upaux in the Verlet integration
+
+    /*
+    if (use_ielscf) {
+      for (i = 0; i < nlocal; i++) {
+        for (j = 0; j < 3; j++) {
+          uind[i][j] = uaux[i][j];
+          uinp[i][j] = upaux[i][j];
+        }
+      }
+    }
+    */
+
+    // get the electrostatic field due to induced dipoles
+
+    cfstyle = INDUCE;
+    comm->forward_comm_pair(this);
+
+    ufield0c(field,fieldp);
+
+    crstyle = FIELD;
+    comm->reverse_comm_pair(this);
+
+    
+    // set initial conjugate gradient residual and conjugate vector
+
+    for (i = 0; i < nlocal; i++) {
+      itype = amtype[i];
+
+      poli[i] = MAX(polmin,polarity[itype]);
+      for (j = 0; j < 3; j++) {
+        if (pcgguess) {
+          rsd[i][j] = (udir[i][j]-uind[i][j])/poli[i] + field[i][j];
+          rsdp[i][j] = (udirp[i][j]-uinp[i][j])/poli[i] + fieldp[i][j];
+        } else {
+          rsd[i][j] = udir[i][j] / poli[i];
+          rsdp[i][j] = udirp[i][j] / poli[i];
+        }
+        zrsd[i][j] = rsd[i][j];
+        zrsdp[i][j] = rsdp[i][j];
+      }
+    }
+
+    if (pcgprec) {
+      cfstyle = RSD;
+      comm->forward_comm_pair(this);
+      uscale0b(BUILD,rsd,rsdp,zrsd,zrsdp);
+      uscale0b(APPLY,rsd,rsdp,zrsd,zrsdp); 
+      crstyle = ZRSD;
+      comm->reverse_comm_pair(this);
+   }
+
+    for (i = 0; i < nlocal; i++) {
+      for (j = 0; j < 3; j++) {
+        conj[i][j] = zrsd[i][j];
+        conjp[i][j] = zrsdp[i][j];
+      }
+    }
+
+    // conjugate gradient iteration of the mutual induced dipoles
+
+    while (!done) {
+      iter++;
+
+      for (i = 0; i < nlocal; i++) {
+        for (j = 0; j < 3; j++) {
+          vec[i][j] = uind[i][j];
+          vecp[i][j] = uinp[i][j];
+          uind[i][j] = conj[i][j];
+          uinp[i][j] = conjp[i][j];
+        }
+      }
+
+      cfstyle = INDUCE;
+      comm->forward_comm_pair(this);
+
+      ufield0c(field,fieldp);
+
+      //error->all(FLERR,"STOP");
+
+      crstyle = FIELD;
+      comm->reverse_comm_pair(this);
+     
+      for (i = 0; i < nlocal; i++) {
+        for (j = 0; j < 3; j++) {
+          uind[i][j] = vec[i][j];
+          uinp[i][j] = vecp[i][j];
+          vec[i][j] = conj[i][j]/poli[i] - field[i][j];
+          vecp[i][j] = conjp[i][j]/poli[i] - fieldp[i][j];
+        }
+      }
+
+      a = 0.0;
+      ap = 0.0;
+      sum = 0.0;
+      sump = 0.0;
+
+      for (i = 0; i < nlocal; i++) {
+        for (j = 0; j < 3; j++) {
+          a += conj[i][j]*vec[i][j];
+          ap += conjp[i][j]*vecp[i][j];
+          sum += rsd[i][j]*zrsd[i][j];
+          sump += rsdp[i][j]*zrsdp[i][j];
+        }
+      }
+
+      reduce[0] = a;
+      reduce[1] = ap;
+      reduce[2] = sum;
+      reduce[3] = sump;
+      MPI_Allreduce(reduce,allreduce,4,MPI_DOUBLE,MPI_SUM,world);
+      a = allreduce[0];
+      ap = allreduce[1];
+      sum = allreduce[2];
+      sump = allreduce[3];
+
+      if (a != 0.0) a = sum / a;
+      if (ap != 0.0) ap = sump / ap;
+
+      for (i = 0; i < nlocal; i++) {
+        for (j = 0; j < 3; j++) {
+          uind[i][j] = uind[i][j] + a*conj[i][j];
+          uinp[i][j] = uinp[i][j] + ap*conjp[i][j];
+          rsd[i][j] = rsd[i][j] - a*vec[i][j];
+          rsdp[i][j] = rsdp[i][j] - ap*vecp[i][j];
+          zrsd[i][j] = rsd[i][j];
+          zrsdp[i][j] = rsdp[i][j];
+        }
+      }
+
+      if (pcgprec) {
+        cfstyle = RSD;
+        comm->forward_comm_pair(this);
+        uscale0b(APPLY,rsd,rsdp,zrsd,zrsdp); 
+        crstyle = ZRSD;
+        comm->reverse_comm_pair(this);
+      }
+
+      b = 0.0;
+      bp = 0.0;
+
+      for (i = 0; i < nlocal; i++) {
+        for (j = 0; j < 3; j++) {
+          b += rsd[i][j]*zrsd[i][j];
+          bp += rsdp[i][j]*zrsdp[i][j];
+        }
+      }
+
+      // NOTE: comp of b,bp and allreduce only needed if pcgprec ?
+
+      reduce[0] = b;
+      reduce[1] = bp;
+      MPI_Allreduce(reduce,allreduce,4,MPI_DOUBLE,MPI_SUM,world);
+      b = allreduce[0];
+      bp = allreduce[1];
+
+      if (sum != 0.0) b /= sum;
+      if (sump != 0.0) bp /= sump;
+
+      epsd = 0.0;
+      epsp = 0.0;
+
+      for (i = 0; i < nlocal; i++) {
+        for (j = 0; j < 3; j++) {
+          conj[i][j] = zrsd[i][j] + b*conj[i][j];
+          conjp[i][j] = zrsdp[i][j] + bp*conjp[i][j];
+          epsd += rsd[i][j]*rsd[i][j];
+          epsp += rsdp[i][j]*rsdp[i][j];
+        }
+      }
+
+      reduce[0] = epsd;
+      reduce[1] = epsp;
+      MPI_Allreduce(reduce,allreduce,4,MPI_DOUBLE,MPI_SUM,world);
+      epsd = allreduce[0];
+      epsp = allreduce[1];
+
+      // check the convergence of the mutual induced dipoles
+
+      epsold = eps;
+      eps = MAX(epsd,epsp);
+      eps = DEBYE * sqrt(eps/atom->natoms);
+
+      if (eps < poleps) done = true;
+      if (eps > epsold) done = true;
+      if (iter >= politer) done = true;
+
+      //  apply a "peek" iteration to the mutual induced dipoles
+     
+      if (done) {
+        for (i = 0; i < nlocal; i++) {
+          term = pcgpeek * poli[i];
+          for (j = 0; j < 3; j++) {
+            uind[i][j] += term*rsd[i][j];
+            uinp[i][j] += term*rsdp[i][j];
+          }
+        }
+      }
+
+    }
+
+    // terminate the calculation if dipoles failed to converge
+    // NOTE: could make this an error
+    
+    if (iter >= maxiter || eps > epsold)
+      if (me == 0)
+	      error->warning(FLERR,"AMOEBA induced dipoles did not converge");
+  }
+
+  // DEBUG output to dump file
+
+  if (uind_flag) 
+    dump6(fp_uind,"id uindx uindy uindz uinpx uinpy uinpz",DEBYE,uind,uinp);
+
+  // deallocation of arrays
+
+  memory->destroy(poli);
+  memory->destroy(conj);
+  memory->destroy(conjp);
+  memory->destroy(vec);
+  memory->destroy(vecp);
+  memory->destroy(udir);
+  memory->destroy(usum);
+  memory->destroy(usump);
+
+  // update the lists of previous induced dipole values
+  // shift previous m values up to m+1, add new values at m = 0
+  // only when preconditioner is used
+
+  if (use_pred) {
+    double ***udalt = fixudalt->tstore;
+    double ***upalt = fixupalt->tstore;
+
+    nualt = MIN(nualt+1,maxualt);
+    for (i = 0; i < nlocal; i++) {
+      for (j = 0; j < 3; j++) {
+        for (m = nualt-1; m > 0; m--) {
+          udalt[i][m][j] = udalt[i][m-1][j];
+          upalt[i][m][j] = upalt[i][m-1][j];
+        }
+        udalt[i][0][j] = uind[i][j];
+        upalt[i][0][j] = uinp[i][j];
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   dfield0c =  direct induction via Ewald sum
+   dfield0c computes the mutual electrostatic field due to
+   permanent multipole moments via Ewald summation
+------------------------------------------------------------------------- */
+
+void PairAmoebaGPU::dfield0c(double **field, double **fieldp)
+{
+  int i,j,ii;
+  double term;
+
+  int inum;
+  int *ilist;
+
+  // zero out field,fieldp for owned and ghost atoms
+
+  int nlocal = atom->nlocal;
+  int nall = nlocal + atom->nghost;
+
+  for (i = 0; i < nall; i++) {
+    for (j = 0; j < 3; j++) {
+      field[i][j] = 0.0;
+      fieldp[i][j] = 0.0;
+    }
+  }
+
+  // get the reciprocal space part of the permanent field
+
+  if (kspace_flag) udirect1(field);
+
+  for (i = 0; i < nlocal; i++) {
+    for (j = 0; j < 3; j++) {
+      fieldp[i][j] = field[i][j];
+    }
+  }
+
+  // get the real space portion of the permanent field
+
+  if (rspace_flag) udirect2b(field,fieldp);
+
+  // get the self-energy portion of the permanent field
+
+  term = (4.0/3.0) * aewald*aewald*aewald / MY_PIS;
+  for (i = 0; i < nlocal; i++) {
+    for (j = 0; j < 3; j++) {
+      field[i][j] += term*rpole[i][j+1];
+      fieldp[i][j] += term*rpole[i][j+1];
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
    udirect2b = Ewald real direct field via list
    udirect2b computes the real space contribution of the permanent
    atomic multipole moments to the field via a neighbor list
@@ -298,7 +787,7 @@ void PairAmoebaGPU::init_style()
 
 void PairAmoebaGPU::udirect2b(double **field, double **fieldp)
 {
-  bool gpu_udirect2b_ready = true;
+  bool gpu_udirect2b_ready = false;
   if (!gpu_udirect2b_ready) {
     PairAmoeba::udirect2b(field, fieldp);
     return;

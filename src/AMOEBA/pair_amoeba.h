@@ -361,11 +361,11 @@ class PairAmoeba : public Pair {
   void polar_kspace();
   void damppole(double, int, double, double, double *, double *, double *);
 
-  void induce();
+  virtual void induce();
   void ulspred();
   void ufield0c(double **, double **);
   void uscale0b(int, double **, double **, double **, double **);
-  void dfield0c(double **, double **);
+  virtual void dfield0c(double **, double **);
   void umutual1(double **, double **);
   void umutual2b(double **, double **);
   void udirect1(double **);

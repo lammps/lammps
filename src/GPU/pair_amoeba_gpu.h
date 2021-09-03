@@ -34,6 +34,8 @@ class PairAmoebaGPU : public PairAmoeba {
   enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
   virtual void polar_real();
+  virtual void induce();
+  virtual void dfield0c(double **, double **);
   virtual void udirect2b(double **, double **);
 
  private:

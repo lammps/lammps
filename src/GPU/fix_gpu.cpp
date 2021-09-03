@@ -386,6 +386,8 @@ double FixGPU::memory_usage()
   return bytes;
 }
 
+/* ---------------------------------------------------------------------- */
+
 double FixGPU::binsize(const double subx, const double suby,
                        const double subz, const int nlocal,
                        const double cut) {

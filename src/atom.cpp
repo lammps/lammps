@@ -2274,6 +2274,7 @@ void Atom::setup_sort_bins()
 #ifdef LMP_GPU
   if (userbinsize == 0.0) {
     int ifix = modify->find_fix("package_gpu");
+/*
     if (ifix >= 0) {
       const double subx = domain->subhi[0] - domain->sublo[0];
       const double suby = domain->subhi[1] - domain->sublo[1];
@@ -2297,6 +2298,7 @@ void Atom::setup_sort_bins()
       bininvy = bininv;
       bininvz = bininv;
     }
+*/    
   }
 #endif
 

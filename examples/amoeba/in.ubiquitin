@@ -4,7 +4,7 @@ units           real
 boundary        p p p
 
 atom_style amoeba
-
+#atom_modify sort 1000 7.0
 bond_style      class2
 angle_style     amoeba
 dihedral_style  none

@@ -91,8 +91,8 @@ _texture( q_tex,int2);
     tep[i]=t;                                                               \
   }
 
-#define store_answers_fieldp(_fieldp, ii, inum,tid, t_per_atom, offset,     \
-                          i, field, fieldp)                                 \
+#define store_answers_fieldp(_fieldp, ii, inum,tid, t_per_atom, offset, i,  \
+                              fieldp)                                       \
   if (t_per_atom>1) {                                                       \
     red_acc[0][tid]=_fieldp[0];                                             \
     red_acc[1][tid]=_fieldp[1];                                             \
@@ -118,8 +118,8 @@ _texture( q_tex,int2);
     numtyp4 f, fp;                                                          \
     f.x  = _fieldp[0]; f.y  = _fieldp[0]; f.z  = _fieldp[2];                \
     fp.x = _fieldp[3]; fp.y = _fieldp[4]; fp.z = _fieldp[5];                \
-    field[i] = f;                                                           \
-    fieldp[i] = fp;                                                         \
+    fieldp[ii] = f;                                                         \
+    fieldp[ii+inum] = fp;                                                   \
   }
 
 #else
@@ -152,8 +152,8 @@ _texture( q_tex,int2);
     tep[i]=t;                                                               \
   }
 
-#define store_answers_fieldp(_fieldp, ii, inum,tid, t_per_atom, offset,     \
-                          i, field, fieldp)                                 \
+#define store_answers_fieldp(_fieldp, ii, inum,tid, t_per_atom, offset, i,  \
+                             fieldp)                                        \
   if (t_per_atom>1) {                                                       \
     for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
       _fieldp[0] += shfl_down(_fieldp[0], s, t_per_atom);                   \
@@ -168,14 +168,19 @@ _texture( q_tex,int2);
     numtyp4 f, fp;                                                          \
     f.x  = _fieldp[0]; f.y  = _fieldp[0]; f.z  = _fieldp[2];                \
     fp.x = _fieldp[3]; fp.y = _fieldp[4]; fp.z = _fieldp[5];                \
-    field[i] = f;                                                           \
-    fieldp[i] = fp;                                                         \
+    fieldp[ii] = f;                                                         \
+    fieldp[ii+inum] = fp;                                                   \
   }
 
 #endif
 
 #define MIN(A,B) ((A) < (B) ? (A) : (B))
 #define MY_PIS (acctyp)1.77245385090551602729
+
+/* ----------------------------------------------------------------------
+   polar_real = real-space portion of induced dipole polarization
+   adapted from Tinker epreal1d() routine
+------------------------------------------------------------------------- */
 
 __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
                             const __global numtyp *restrict extra,
@@ -468,7 +473,7 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
       term6 = (bn[4]-dsc7*rr9)*xr*xr - bn[3] - rr7*xr*drc7[0];
       term7 = rr5*drc5[0] - (numtyp)2.0*bn[3]*xr + (dsc5+(numtyp)1.5*dsc7)*rr7*xr;
       numtyp tixx = ci*term3 + dix*term4 + dir*term5 +
-        (numtyp)2.0*dsr5*qixx + (qiy*yr+qiz*zr)*dsc7*rr7 + (numtyp)2.0*qix*term7 +qir*term6;
+        (numtyp)2.0*dsr5*qixx + (qiy*yr+qiz*zr)*dsc7*rr7 + (numtyp)2.0*qix*term7 + qir*term6;
       numtyp tkxx = ck*term3 - dkx*term4 - dkr*term5 +
         (numtyp)2.0*dsr5*qkxx + (qky*yr+qkz*zr)*dsc7*rr7 + (numtyp)2.0*qkx*term7 + qkr*term6;
 
@@ -684,19 +689,23 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
      offset,eflag,vflag,ans,engv);
 }
 
+/* ----------------------------------------------------------------------
+  udirect2b = Ewald real direct field via list
+  udirect2b computes the real space contribution of the permanent
+   atomic multipole moments to the field via a neighbor list
+------------------------------------------------------------------------- */
+
 __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
-                            const __global numtyp *restrict extra,
-                            const __global numtyp4 *restrict damping,
-                            const __global numtyp4 *restrict sp_polar,
-                            const __global int *dev_nbor,
-                            const __global int *dev_packed,
-                            __global numtyp4 *restrict field,
-                            __global numtyp4 *restrict fieldp,
-                            const int eflag, const int vflag, const int inum,
-                            const int nall, const int nbor_pitch, const int t_per_atom,
-                            const numtyp aewald, const numtyp felec,
-                            const numtyp off2, const numtyp polar_dscale,
-                            const numtyp polar_uscale)
+                                 const __global numtyp *restrict extra,
+                                 const __global numtyp4 *restrict damping,
+                                 const __global numtyp4 *restrict sp_polar,
+                                 const __global int *dev_nbor,
+                                 const __global int *dev_packed,
+                                 __global numtyp4 *restrict fieldp,
+                                 const int inum,  const int nall,
+                                 const int nbor_pitch, const int t_per_atom,
+                                 const numtyp aewald, const numtyp off2,
+                                 const numtyp polar_dscale, const numtyp polar_uscale)
 {
   int tid, ii, offset, i;
   atom_info(t_per_atom,ii,tid,offset);
@@ -771,7 +780,7 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
       numtyp r = ucl_sqrt(r2);
       numtyp rinv = ucl_recip(r);
       numtyp r2inv = rinv*rinv;
-      numtyp rr1 = felec * rinv;
+      numtyp rr1 = rinv;
       numtyp rr3 = rr1 * r2inv;
       numtyp rr5 = (numtyp)3.0 * rr3 * r2inv;
       numtyp rr7 = (numtyp)5.0 * rr5 * r2inv;
@@ -888,7 +897,7 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
 
   // accumulate field and fieldp
   
-  store_answers_fieldp(_fieldp,ii,inum,tid,t_per_atom,offset,i,field,fieldp);
+  store_answers_fieldp(_fieldp,ii,inum,tid,t_per_atom,offset,i,fieldp);
 }
 
 /* ----------------------------------------------------------------------

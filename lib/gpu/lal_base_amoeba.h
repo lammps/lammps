@@ -53,8 +53,8 @@ class BaseAmoeba {
     * - -5 Double precision is not supported on card **/
   int init_atomic(const int nlocal, const int nall, const int max_nbors,
                   const int maxspecial, const int maxspecial15, const double cell_size,
-                  const double gpu_split, FILE *screen,
-                  const void *pair_program, const char *k_name);
+                  const double gpu_split, FILE *screen, const void *pair_program,
+                  const char *kname_polar, const char *kname_udirect2b);
 
   /// Estimate the overhead for GPU context changes and CPU driver
   void estimate_gpu_overhead(const int add_kernels=0);
@@ -129,7 +129,7 @@ class BaseAmoeba {
                        bool &success);
 
   /// Compute polar real-space with host neighboring (not active for now)
-  void compute(const int f_ago, const int inum_full, const int nall,
+  void compute_polar_real(const int f_ago, const int inum_full, const int nall,
                double **host_x, int *host_type, int *host_amtype,
                int *host_amgroup, double **host_rpole, double **host_uind,
                double **host_uinp, int *ilist, int *numj,
@@ -190,8 +190,8 @@ class BaseAmoeba {
     double** uind, double** uinp);
 
   /// Per-atom arrays
-  UCL_Vector<numtyp,numtyp> _tep,_fieldp;
-  int _max_alloc_size;
+  UCL_Vector<numtyp,numtyp> _tep, _fieldp;
+  int _max_tep_size, _max_fieldp_size;
 
   // ------------------------ FORCE/ENERGY DATA -----------------------
 
@@ -210,7 +210,7 @@ class BaseAmoeba {
 
   // ------------------------- DEVICE KERNELS -------------------------
   UCL_Program *pair_program;
-  UCL_Kernel k_polar,k_special15;
+  UCL_Kernel k_polar, k_udirect2b, k_special15;
   inline int block_size() { return _block_size; }
   inline void set_kernel(const int eflag, const int vflag) {}
 
@@ -226,7 +226,8 @@ class BaseAmoeba {
   double _gpu_overhead, _driver_overhead;
   UCL_D_Vec<int> *_nbor_data;
 
-  void compile_kernels(UCL_Device &dev, const void *pair_string, const char *k);
+  void compile_kernels(UCL_Device &dev, const void *pair_string,
+     const char *kname_polar, const char *kname_udirect2b);
 
   virtual int polar_real(const int eflag, const int vflag) = 0;
   virtual int udirect2b(const int eflag, const int vflag) = 0;

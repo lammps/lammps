@@ -37,6 +37,7 @@ BaseAmoebaT::~BaseAmoeba() {
   delete ans;
   delete nbor;
   k_polar.clear();
+  k_udirect2b.clear();
   k_special15.clear();
   if (pair_program) delete pair_program;
 }
@@ -53,7 +54,8 @@ int BaseAmoebaT::init_atomic(const int nlocal, const int nall,
                              const int maxspecial15,
                              const double cell_size, const double gpu_split,
                              FILE *_screen, const void *pair_program,
-                             const char *k_name) {
+                             const char *k_name_polar,
+                             const char *k_name_udirect2b) {
   screen=_screen;
 
   int gpu_nbor=0;
@@ -85,7 +87,7 @@ int BaseAmoebaT::init_atomic(const int nlocal, const int nall,
 
   _block_size=device->pair_block_size();
   _block_bio_size=device->block_bio_pair();
-  compile_kernels(*ucl_device,pair_program,k_name);
+  compile_kernels(*ucl_device,pair_program,k_name_polar,k_name_udirect2b);
 
   if (_threads_per_atom>1 && gpu_nbor==0) {
     nbor->packing(true);
@@ -118,9 +120,10 @@ int BaseAmoebaT::init_atomic(const int nlocal, const int nall,
   if (ef_nall==0)
     ef_nall=2000;
 
-  _max_alloc_size=static_cast<int>(static_cast<double>(ef_nall)*1.10);
-  _fieldp.alloc(_max_alloc_size*6,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
-  _tep.alloc(_max_alloc_size*4,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
+  _max_tep_size=static_cast<int>(static_cast<double>(ef_nall)*1.10);
+  _max_fieldp_size = _max_tep_size;
+  _fieldp.alloc(_max_fieldp_size*8,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
+  _tep.alloc(_max_tep_size*4,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
   dev_nspecial15.alloc(nall,*(this->ucl_device),UCL_READ_ONLY);
   dev_special15.alloc(_maxspecial15*nall,*(this->ucl_device),UCL_READ_ONLY);
   dev_special15_t.alloc(nall*_maxspecial15,*(this->ucl_device),UCL_READ_ONLY);
@@ -224,7 +227,7 @@ inline void BaseAmoebaT::build_nbor_list(const int inum, const int host_inum,
 // Copy nbor list from host if necessary and then calculate forces, virials,..
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void BaseAmoebaT::compute(const int f_ago, const int inum_full, const int nall,
+void BaseAmoebaT::compute_polar_real(const int f_ago, const int inum_full, const int nall,
                           double **host_x, int *host_type, int *host_amtype,
                           int *host_amgroup, double **host_rpole,
                           double **host_uind, double **host_uinp,
@@ -252,9 +255,9 @@ void BaseAmoebaT::compute(const int f_ago, const int inum_full, const int nall,
 
   // ------------------- Resize _tep array ------------------------
 
-  if (nall>_max_alloc_size) {
-    _max_alloc_size=static_cast<int>(static_cast<double>(nall)*1.10);
-    _tep.resize(_max_alloc_size*4);
+  if (nall>_max_tep_size) {
+    _max_tep_size=static_cast<int>(static_cast<double>(nall)*1.10);
+    _tep.resize(_max_tep_size*4);
 
     dev_nspecial15.clear();
     dev_special15.clear();
@@ -302,6 +305,10 @@ void BaseAmoebaT::compute(const int f_ago, const int inum_full, const int nall,
   ans->copy_answers(eflag_in,vflag_in,eatom,vatom,ilist,red_blocks);
   device->add_ans_object(ans);
   hd_balancer.stop_timer();
+
+  // copy tep from device to host
+
+  _tep.update_host(_max_tep_size*4,false);
 }
 
 // ---------------------------------------------------------------------------
@@ -338,9 +345,9 @@ int** BaseAmoebaT::compute_polar_real(const int ago, const int inum_full, const 
 
   // ------------------- Resize _tep array ------------------------
 
-  if (nall>_max_alloc_size) {
-    _max_alloc_size=static_cast<int>(static_cast<double>(nall)*1.10);
-    _tep.resize(_max_alloc_size*4);
+  if (nall>_max_tep_size) {
+    _max_tep_size=static_cast<int>(static_cast<double>(nall)*1.10);
+    _tep.resize(_max_tep_size*4);
 
     dev_nspecial15.clear();
     dev_special15.clear();
@@ -397,9 +404,9 @@ int** BaseAmoebaT::compute_polar_real(const int ago, const int inum_full, const 
 
   // copy tep from device to host
 
-  _tep.update_host(_max_alloc_size*4,false);
+  _tep.update_host(_max_tep_size*4,false);
 /*  
-  printf("GPU lib: tep size = %d: max tep size = %d\n", this->_tep.cols(), _max_alloc_size);
+  printf("GPU lib: tep size = %d: max tep size = %d\n", this->_tep.cols(), _max_tep_size);
   for (int i = 0; i < 10; i++) {
     numtyp4* p = (numtyp4*)(&this->_tep[4*i]);
     printf("i = %d; tep = %f %f %f\n", i, p->x, p->y, p->z);
@@ -442,9 +449,9 @@ int** BaseAmoebaT::compute_udirect2b(const int ago, const int inum_full, const i
 
   // ------------------- Resize _fieldp array ------------------------
 
-  if (nall>_max_alloc_size) {
-    _max_alloc_size=static_cast<int>(static_cast<double>(nall)*1.10);
-    _fieldp.resize(_max_alloc_size*8);
+  if (nall>_max_fieldp_size) {
+    _max_fieldp_size=static_cast<int>(static_cast<double>(nall)*1.10);
+    _fieldp.resize(_max_fieldp_size*8);
 
     dev_nspecial15.clear();
     dev_special15.clear();
@@ -492,13 +499,18 @@ int** BaseAmoebaT::compute_udirect2b(const int ago, const int inum_full, const i
   *jnum=nbor->host_acc.begin();
 
   const int red_blocks=udirect2b(eflag,vflag);
-  //ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
-  //device->add_ans_object(ans);
   hd_balancer.stop_timer();
 
-  // copy field and fieldp from device to host
+  // copy field and fieldp from device to host (_fieldp store both arrays, one after another)
 
-  //_fieldp.update_host(_max_field_size*8,false);
+  _fieldp.update_host(_max_fieldp_size*8,false);
+/*  
+  printf("GPU lib: _fieldp size = %d: max fieldp size = %d\n", this->_field.cols(), _max_fieldp_size);
+  for (int i = 0; i < 10; i++) {
+    numtyp4* p = (numtyp4*)(&this->_fieldp[4*i]);
+    printf("i = %d; field = %f %f %f\n", i, p->x, p->y, p->z);
+  }
+*/  
 
   return nbor->host_jlist.begin()-host_start;
 }
@@ -566,7 +578,8 @@ void BaseAmoebaT::cast_extra_data(int* amtype, int* amgroup, double** rpole,
 
 template <class numtyp, class acctyp>
 void BaseAmoebaT::compile_kernels(UCL_Device &dev, const void *pair_str,
-                                  const char *kname) {
+                                  const char *kname_polar,
+                                  const char *kname_udirect2b) {
   if (_compiled)
     return;
 
@@ -575,7 +588,8 @@ void BaseAmoebaT::compile_kernels(UCL_Device &dev, const void *pair_str,
   std::string oclstring = device->compile_string()+" -DEVFLAG=1";
   pair_program->load_string(pair_str,oclstring.c_str(),nullptr,screen);
   
-  k_polar.set_function(*pair_program,kname);
+  k_polar.set_function(*pair_program,kname_polar);
+  k_udirect2b.set_function(*pair_program,kname_udirect2b);
   k_special15.set_function(*pair_program,"k_special15");
   pos_tex.get_texture(*pair_program,"pos_tex");
   q_tex.get_texture(*pair_program,"q_tex");
@@ -592,6 +606,10 @@ void BaseAmoebaT::compile_kernels(UCL_Device &dev, const void *pair_str,
   #endif
 
 }
+
+// ---------------------------------------------------------------------------
+//  Specify 1-5 neighbors from the current neighbor list
+// ---------------------------------------------------------------------------
 
 template <class numtyp, class acctyp>
 int BaseAmoebaT::add_onefive_neighbors() {

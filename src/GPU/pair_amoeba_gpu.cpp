@@ -298,7 +298,7 @@ void PairAmoebaGPU::init_style()
 
 void PairAmoebaGPU::udirect2b(double **field, double **fieldp)
 {
-  bool gpu_udirect2b_ready = false;
+  bool gpu_udirect2b_ready = true;
   if (!gpu_udirect2b_ready) {
     PairAmoeba::udirect2b(field, fieldp);
     return;
@@ -334,7 +334,28 @@ void PairAmoebaGPU::udirect2b(double **field, double **fieldp)
                                         domain->prd, &fieldp_pinned);
   if (!success)
     error->one(FLERR,"Insufficient memory on accelerator");
-  
+
+  // get field and fieldp values from the GPU lib
+
+  int nlocal = atom->nlocal;
+  double *field_ptr = (double *)fieldp_pinned;
+
+  for (int i = 0; i < nlocal; i++) {
+    int idx = 4*i;
+    field[i][0] = field_ptr[idx];
+    field[i][1] = field_ptr[idx+1];
+    field[i][2] = field_ptr[idx+2]; 
+  }
+
+  double* fieldp_ptr = (double *)fieldp_pinned;
+  fieldp_ptr += 4*inum;
+  for (int i = 0; i < nlocal; i++) {
+    int idx = 4*i;
+    fieldp[i][0] = fieldp_ptr[idx];
+    fieldp[i][1] = fieldp_ptr[idx+1];
+    fieldp[i][2] = fieldp_ptr[idx+2];
+  }
+
   // rebuild dipole-dipole pair list and store pairwise dipole matrices
   // done one atom at a time in real-space double loop over atoms & neighs
 

@@ -46,6 +46,22 @@ else()
   target_compile_definitions(lammps PRIVATE -DFFT_KISS)
 endif()
 
+option(FFT_HEFFTE  "Use heFFTe as the distributed FFT engine."  OFF)
+if(FFT_HEFFTE)
+  # if FFT_HEFFTE is enabled, switch the builtin FFT engine with Heffte
+  if(FFT STREQUAL "FFTW3") # respect the backend choice, FFTW or MKL
+    set(HEFFTE_COMPONENTS "FFTW")
+  elseif(FFT STREQUAL "MKL")
+    set(HEFFTE_COMPONENTS "MKL")
+  else()
+    message(FATAL_ERROR "Using -DFFT_HEFFTE=ON, requires FFT either FFTW or MKL")
+  endif()
+
+  find_package(Heffte 2.1.0 REQUIRED ${HEFFTE_COMPONENTS})
+  target_compile_definitions(lammps PRIVATE -DHEFFTE)
+  target_link_libraries(lammps PRIVATE Heffte::Heffte)
+endif()
+
 set(FFT_PACK "array" CACHE STRING "Optimization for FFT")
 set(FFT_PACK_VALUES array pointer memcpy)
 set_property(CACHE FFT_PACK PROPERTY STRINGS ${FFT_PACK_VALUES})

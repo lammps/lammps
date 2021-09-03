@@ -126,7 +126,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   cslib = nullptr;
   cscomm = 0;
 
-  skipflag = 0;
+  skiprunflag = 0;
 
   screen = nullptr;
   logfile = nullptr;
@@ -395,7 +395,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
 
     } else if (strcmp(arg[iarg],"-skiprun") == 0 ||
                strcmp(arg[iarg],"-sr") == 0) {
-      skipflag = 1;
+      skiprunflag = 1;
       ++iarg;
 
     } else if (strcmp(arg[iarg],"-suffix") == 0 ||
@@ -832,7 +832,7 @@ void LAMMPS::create()
 
 void LAMMPS::post_create()
 {
-  if (skipflag) input->one("timer timeout 0 every 1");
+  if (skiprunflag) input->one("timer timeout 0 every 1");
 
   // default package command triggered by "-k on"
 

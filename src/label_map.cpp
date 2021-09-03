@@ -190,9 +190,11 @@ int LabelMap::find_or_create(const std::string &mylabel,
   }
 
   // if label cannot be found or created, need more space reserved
+
   error->all(FLERR,"Topology type exceeds system topology type");
 
   // never reaches here, just to prevent compiler warning
+
   return -1;
 }
 

@@ -172,7 +172,7 @@ void LabelMap::create_lmap2lmap(LabelMap *lmap2, int mode)
    return numeric type
 ------------------------------------------------------------------------- */
 
-int LabelMap::find_or_create(std::string mylabel,
+int LabelMap::find_or_create(const std::string &mylabel,
                              std::vector<std::string> &labels, int ntypes)
 {
   for (int i = 0; i < ntypes; i++)
@@ -190,8 +190,10 @@ int LabelMap::find_or_create(std::string mylabel,
   }
 
   // if label cannot be found or created, need more space reserved
-
   error->all(FLERR,"Topology type exceeds system topology type");
+
+  // never reaches here, just to prevent compiler warning
+  return -1;
 }
 
 /* ----------------------------------------------------------------------
@@ -199,7 +201,7 @@ int LabelMap::find_or_create(std::string mylabel,
    return -1 if type not yet defined
 ------------------------------------------------------------------------- */
 
-int LabelMap::find(std::string mylabel, int mode)
+int LabelMap::find(const std::string &mylabel, int mode)
 {
   if (mode == Atom::ATOM)
     return search(mylabel,typelabel,natomtypes);
@@ -224,8 +226,8 @@ int LabelMap::find(std::string mylabel, int mode)
    return -1 if type not yet defined
 ------------------------------------------------------------------------- */
 
-int LabelMap::search(std::string mylabel,
-                     std::vector<std::string> labels, int ntypes)
+int LabelMap::search(const std::string &mylabel,
+                     const std::vector<std::string> &labels, int ntypes)
 {
   for (int i = 0; i < ntypes; i++)
     if (labels[i] == mylabel) return i+1;
@@ -381,7 +383,7 @@ char *LabelMap::read_string(FILE *fp)
    byte) into the restart file
 ------------------------------------------------------------------------- */
 
-void LabelMap::write_string(std::string str, FILE *fp)
+void LabelMap::write_string(const std::string &str, FILE *fp)
 {
   const char *cstr = str.c_str();
   int n = strlen(cstr) + 1;

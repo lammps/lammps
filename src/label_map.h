@@ -43,12 +43,12 @@ class LabelMap : protected Pointers {
 
    void allocate_type_labels();
    void modify_lmap(int, char **);
-   void merge_lmap(class LabelMap *, int);                           // copy another lmap into this one
-   void create_lmap2lmap(class LabelMap *, int);                     // index mapping between two lmaps
-   int find_or_create(std::string, std::vector<std::string> &, int); // look up type or create new type
-   int find(std::string, int);                                       // find numeric type of type label
-   int search(std::string, std::vector<std::string>, int);           // look up type index
-   int is_complete(int);                                             // check if all types are assigned
+   void merge_lmap(class LabelMap *, int);                                   // copy another lmap into this one
+   void create_lmap2lmap(class LabelMap *, int);                             // index mapping between two lmaps
+   int find_or_create(const std::string &, std::vector<std::string> &, int); // look up type or create new type
+   int find(const std::string &, int);                                       // find numeric type of type label
+   int search(const std::string &, const std::vector<std::string> &, int);   // look up type index
+   int is_complete(int);                                                     // check if all types are assigned
 
    // input/output for atom class label map
 
@@ -58,7 +58,7 @@ class LabelMap : protected Pointers {
 
  private:
    char *read_string(FILE *);
-   void write_string(std::string, FILE *);
+   void write_string(const std::string &, FILE *);
    int read_int(FILE *);
 };
 

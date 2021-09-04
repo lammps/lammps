@@ -40,8 +40,6 @@ using namespace LAMMPS_NS;
 
 enum{NONE,INT,DOUBLE,STRING,PTR};
 
-#define VALUELENGTH 64               // also in variable.cpp
-
 
 /* ---------------------------------------------------------------------- */
 
@@ -369,7 +367,7 @@ void PythonImpl::invoke_function(int ifunc, char *result)
       const char *pystr = PY_STRING_AS_STRING(pValue);
       if (pfuncs[ifunc].longstr)
         strncpy(pfuncs[ifunc].longstr,pystr,pfuncs[ifunc].length_longstr);
-      else strncpy(result,pystr,VALUELENGTH-1);
+      else strncpy(result,pystr,Variable::VALUELENGTH-1);
     }
   }
   Py_CLEAR(pValue);

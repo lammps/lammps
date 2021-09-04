@@ -72,6 +72,7 @@ class Variable : protected Pointers {
     PYTHON,
     INTERNAL
   };
+  static constexpr int VALUELENGTH = 64;
 
  private:
   int me;

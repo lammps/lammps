@@ -33,6 +33,7 @@ class PythonImpl : protected Pointers, public PythonInterface {
   int execute_string(char *);
   int execute_file(char *);
   bool has_minimum_version(int major, int minor);
+  void finalize();
 
  private:
   void *pyMain;
@@ -53,6 +54,7 @@ class PythonImpl : protected Pointers, public PythonInterface {
 
   PyFunc *pfuncs;
   int nfunc;
+  bool need_finalize;
 
   int create_entry(char *, int, int, int, char **, char *, char *);
   void deallocate(int);

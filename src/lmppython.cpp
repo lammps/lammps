@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -51,6 +50,15 @@ void Python::init()
   if (!impl) impl = new PythonImpl(lmp);
 #else
   error->all(FLERR,"Python support missing! Compile with PYTHON package installed!");
+#endif
+}
+
+/* ---------------------------------------------------------------------- */
+
+void Python::finalize()
+{
+#if defined(LMP_PYTHON)
+  if (impl) impl->finalize();
 #endif
 }
 

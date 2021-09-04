@@ -69,6 +69,10 @@ PythonImpl::PythonImpl(LAMMPS *lmp) : Pointers(lmp)
   // pyMain stores pointer to main module
   external_interpreter = Py_IsInitialized();
 
+  // only call Py_Finalize() if fully destroying the LAMMPS instance
+  // which will call finalize() before deleting the PythonImpl instance.
+  need_finalize = false;
+
 #ifdef MLIAP_PYTHON
   // Inform python intialization scheme of the mliappy module.
   // This -must- happen before python is initialized.
@@ -113,7 +117,7 @@ PythonImpl::~PythonImpl()
   // shutdown Python interpreter
   if (!external_interpreter) {
     PyGILState_Ensure();
-    Py_Finalize();
+    if (need_finalize) Py_Finalize();
   }
 
   memory->sfree(pfuncs);
@@ -546,4 +550,11 @@ void PythonImpl::deallocate(int i)
 bool PythonImpl::has_minimum_version(int major, int minor)
 {
     return (PY_MAJOR_VERSION == major && PY_MINOR_VERSION >= minor) || (PY_MAJOR_VERSION > major);
+}
+
+/* ------------------------------------------------------------------ */
+
+void PythonImpl::finalize()
+{
+   need_finalize = true;
 }

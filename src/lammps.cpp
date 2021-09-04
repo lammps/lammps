@@ -711,6 +711,7 @@ LAMMPS::~LAMMPS()
   const int me = comm->me;
 
   delete citeme;
+  python->finalize();
   destroy();
 
   if (num_package) {

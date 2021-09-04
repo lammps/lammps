@@ -29,6 +29,7 @@ class PythonInterface {
   virtual int execute_string(char *) = 0;
   virtual int execute_file(char *) = 0;
   virtual bool has_minimum_version(int major, int minor) = 0;
+  virtual void finalize() = 0;
 };
 
 class Python : protected Pointers {
@@ -47,6 +48,7 @@ class Python : protected Pointers {
 
   bool is_enabled() const;
   void init();
+  void finalize();
 
  private:
   PythonInterface *impl;

@@ -357,7 +357,7 @@ void PythonImpl::invoke_function(int ifunc, char *result)
       if (pfuncs[ifunc].longstr)
         strncpy(pfuncs[ifunc].longstr, pystr, pfuncs[ifunc].length_longstr);
       else
-        strncpy(result, pystr, VALUELENGTH - 1);
+        strncpy(result, pystr, Variable::VALUELENGTH - 1);
     }
   }
   Py_CLEAR(pValue);

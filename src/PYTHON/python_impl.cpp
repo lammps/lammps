@@ -40,8 +40,6 @@ using namespace LAMMPS_NS;
 
 enum{NONE,INT,DOUBLE,STRING,PTR};
 
-#define VALUELENGTH 64               // also in variable.cpp
-
 
 /* ---------------------------------------------------------------------- */
 

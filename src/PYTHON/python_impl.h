@@ -20,9 +20,8 @@
 namespace LAMMPS_NS {
 
 class PythonImpl : protected Pointers, public PythonInterface {
- public:
-  bool external_interpreter;
 
+ public:
   PythonImpl(class LAMMPS *);
   ~PythonImpl();
   void command(int, char **);
@@ -33,6 +32,7 @@ class PythonImpl : protected Pointers, public PythonInterface {
   int execute_string(char *);
   int execute_file(char *);
   bool has_minimum_version(int major, int minor);
+  static void finalize();
 
  private:
   void *pyMain;

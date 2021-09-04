@@ -126,3 +126,12 @@ bool Python::has_minimum_version(int major, int minor)
   init();
   return impl->has_minimum_version(major, minor);
 }
+
+/* ------------------------------------------------------------------ */
+
+void Python::finalize()
+{
+#if defined(LMP_PYTHON)
+  PythonImpl::finalize();
+#endif
+}

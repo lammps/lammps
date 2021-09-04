@@ -38,9 +38,7 @@ Python::~Python()
 
 /* ---------------------------------------------------------------------- */
 
-PythonInterface::~PythonInterface()
-{
-}
+PythonInterface::~PythonInterface() {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -49,7 +47,7 @@ void Python::init()
 #if defined(LMP_PYTHON)
   if (!impl) impl = new PythonImpl(lmp);
 #else
-  error->all(FLERR,"Python support missing! Compile with PYTHON package installed!");
+  error->all(FLERR, "Python support missing! Compile with PYTHON package installed!");
 #endif
 }
 
@@ -63,7 +61,8 @@ void Python::finalize()
 }
 
 /* ---------------------------------------------------------------------- */
-bool Python::is_enabled() const {
+bool Python::is_enabled() const
+{
 #if defined(LMP_PYTHON)
   return true;
 #else
@@ -105,7 +104,7 @@ int Python::variable_match(const char *name, const char *varname, int numeric)
 
 /* ------------------------------------------------------------------ */
 
-char * Python::long_string(int ifunc)
+char *Python::long_string(int ifunc)
 {
   init();
   return impl->long_string(ifunc);

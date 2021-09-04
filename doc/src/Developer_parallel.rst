@@ -9,7 +9,6 @@ computational cost of enlarging the system is linear with the system
 size).  Additional parallelization using GPUs or OpenMP can then be
 applied within the sub-domain assigned to an MPI process.
 
-
 Partitioning
 ^^^^^^^^^^^^
 
@@ -23,12 +22,12 @@ and can be either "brick" (a regular grid) or "tiled".
    LAMMPS domain decomposition
 
    This figure shows the different kinds of domain decomposition used
-   for MPI parallelization: "brick" on the left with an orthogonal (top)
-   and a triclinic (bottom) simulation domain, and "tiled" on the right.
-   The black lines show the division into sub-domains and the contained
-   atoms are "owned" by the corresponding MPI process. The green dashed
-   lines indicate how sub-domains are extended with "ghost" atoms up
-   to the communication cutoff distance.
+   for MPI parallelization: "brick" on the left with an orthogonal
+   (left) and a triclinic (middle) simulation domain, and a "tiled"
+   decomposition (right).  The black lines show the division into
+   sub-domains and the contained atoms are "owned" by the corresponding
+   MPI process. The green dashed lines indicate how sub-domains are
+   extended with "ghost" atoms up to the communication cutoff distance.
 
 The LAMMPS simulation box is a 3d or 2d volume, which can be orthogonal
 or triclinic in shape, as illustrated in the :ref:`domain-decomposition`
@@ -70,7 +69,7 @@ the load imbalance:
   communication style can produce a partitioning with equal numbers of
   particles in each sub-domain.
 
- 
+
 .. |decomp1| image:: img/decomp-regular.png
    :width: 24%
 
@@ -103,4 +102,3 @@ Neighbor lists
 
 Long-range interactions
 ^^^^^^^^^^^^^^^^^^^^^^^
-

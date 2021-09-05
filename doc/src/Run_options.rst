@@ -2,7 +2,7 @@ Command-line options
 ====================
 
 At run time, LAMMPS recognizes several optional command-line switches
-which may be used in any order.  Either the full word or a one-or-two
+which may be used in any order.  Either the full word or a one or two
 letter abbreviation can be used:
 
 * :ref:`-e or -echo <echo>`
@@ -22,6 +22,7 @@ letter abbreviation can be used:
 * :ref:`-r2data or -restart2data <restart2data>`
 * :ref:`-r2dump or -restart2dump <restart2dump>`
 * :ref:`-sc or -screen <screen>`
+* :ref:`-sr or skiprun <skiprun>`
 * :ref:`-sf or -suffix <suffix>`
 * :ref:`-v or -var <var>`
 
@@ -529,6 +530,20 @@ writes screen information to a file.N.  For both one-partition and
 multi-partition mode, if the specified file is "none", then no screen
 output is performed. Option -pscreen will override the name of the
 partition screen files file.N.
+
+----------
+
+.. _skiprun:
+
+**-skiprun**
+
+Insert the command :doc:`timer timerout 0 every 1 <timer>` at the
+beginning of an input file or after a :doc:`clear <clear>` command.
+This has the effect that the entire LAMMPS input script is processed
+without executing actual runs or minimizations (their main loops are
+skipped).  This can be helpful and convenient to test input scripts for
+long running calculations to avoid having them crash after a long time
+due to a typo or syntax error.
 
 ----------
 

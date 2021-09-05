@@ -126,6 +126,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   cslib = nullptr;
   cscomm = 0;
 
+  skiprunflag = 0;
+
   screen = nullptr;
   logfile = nullptr;
   infile = nullptr;
@@ -391,6 +393,11 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
       screenflag = iarg + 1;
       iarg += 2;
 
+    } else if (strcmp(arg[iarg],"-skiprun") == 0 ||
+               strcmp(arg[iarg],"-sr") == 0) {
+      skiprunflag = 1;
+      ++iarg;
+
     } else if (strcmp(arg[iarg],"-suffix") == 0 ||
                strcmp(arg[iarg],"-sf") == 0) {
       if (iarg+2 > narg)
@@ -462,9 +469,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     else {
       universe->uscreen = fopen(arg[screenflag],"w");
       if (universe->uscreen == nullptr)
-        error->universe_one(FLERR,fmt::format("Cannot open universe screen "
-                                              "file {}: {}",arg[screenflag],
-                                              utils::getsyserror()));
+        error->universe_one(FLERR,fmt::format("Cannot open universe screen file {}: {}",
+                                              arg[screenflag],utils::getsyserror()));
     }
     if (logflag == 0) {
       if (helpflag == 0) {
@@ -478,9 +484,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     else {
       universe->ulogfile = fopen(arg[logflag],"w");
       if (universe->ulogfile == nullptr)
-        error->universe_one(FLERR,fmt::format("Cannot open universe log "
-                                              "file {}: {}",arg[logflag],
-                                              utils::getsyserror()));
+        error->universe_one(FLERR,fmt::format("Cannot open universe log file {}: {}",
+                                              arg[logflag],utils::getsyserror()));
     }
   }
 
@@ -505,8 +510,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
       else if (strcmp(arg[inflag], "none") == 0) infile = stdin;
       else infile = fopen(arg[inflag],"r");
       if (infile == nullptr)
-        error->one(FLERR,"Cannot open input script {}: {}",
-                                     arg[inflag], utils::getsyserror());
+        error->one(FLERR,"Cannot open input script {}: {}",arg[inflag], utils::getsyserror());
     }
 
     if ((universe->me == 0) && !helpflag)
@@ -530,16 +534,14 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
           str = fmt::format("screen.{}",universe->iworld);
           screen = fopen(str.c_str(),"w");
           if (screen == nullptr)
-            error->one(FLERR,"Cannot open screen file {}: {}",
-                                         str,utils::getsyserror());
+            error->one(FLERR,"Cannot open screen file {}: {}",str,utils::getsyserror());
         } else if (strcmp(arg[screenflag],"none") == 0) {
           screen = nullptr;
         } else {
           str = fmt::format("{}.{}",arg[screenflag],universe->iworld);
           screen = fopen(str.c_str(),"w");
           if (screen == nullptr)
-            error->one(FLERR,"Cannot open screen file {}: {}",
-                                         arg[screenflag],utils::getsyserror());
+            error->one(FLERR,"Cannot open screen file {}: {}",arg[screenflag],utils::getsyserror());
         }
       } else if (strcmp(arg[partscreenflag],"none") == 0) {
         screen = nullptr;
@@ -547,8 +549,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
         str = fmt::format("{}.{}",arg[partscreenflag],universe->iworld);
         screen = fopen(str.c_str(),"w");
         if (screen == nullptr)
-          error->one(FLERR,"Cannot open screen file {}: {}",
-                                       str,utils::getsyserror());
+          error->one(FLERR,"Cannot open screen file {}: {}",str,utils::getsyserror());
       }
 
       if (partlogflag == 0) {
@@ -556,16 +557,14 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
           str = fmt::format("log.lammps.{}",universe->iworld);
           logfile = fopen(str.c_str(),"w");
           if (logfile == nullptr)
-            error->one(FLERR,"Cannot open logfile {}: {}",
-                                         str, utils::getsyserror());
+            error->one(FLERR,"Cannot open logfile {}: {}",str, utils::getsyserror());
         } else if (strcmp(arg[logflag],"none") == 0) {
           logfile = nullptr;
         } else {
           str = fmt::format("{}.{}",arg[logflag],universe->iworld);
           logfile = fopen(str.c_str(),"w");
           if (logfile == nullptr)
-            error->one(FLERR,"Cannot open logfile {}: {}",
-                                         str, utils::getsyserror());
+            error->one(FLERR,"Cannot open logfile {}: {}",str, utils::getsyserror());
         }
       } else if (strcmp(arg[partlogflag],"none") == 0) {
         logfile = nullptr;
@@ -573,15 +572,13 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
         str = fmt::format("{}.{}",arg[partlogflag],universe->iworld);
         logfile = fopen(str.c_str(),"w");
         if (logfile == nullptr)
-          error->one(FLERR,"Cannot open logfile {}: {}",
-                                       str, utils::getsyserror());
+          error->one(FLERR,"Cannot open logfile {}: {}",str, utils::getsyserror());
       }
 
       if (strcmp(arg[inflag], "none") != 0) {
         infile = fopen(arg[inflag],"r");
         if (infile == nullptr)
-          error->one(FLERR,"Cannot open input script {}: {}",
-                                       arg[inflag], utils::getsyserror());
+          error->one(FLERR,"Cannot open input script {}: {}",arg[inflag], utils::getsyserror());
       }
     }
 
@@ -615,12 +612,10 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   int mpisize;
   MPI_Type_size(MPI_LMP_TAGINT,&mpisize);
   if (mpisize != sizeof(tagint))
-      error->all(FLERR,"MPI_LMP_TAGINT and tagint in "
-                 "lmptype.h are not compatible");
+      error->all(FLERR,"MPI_LMP_TAGINT and tagint in lmptype.h are not compatible");
   MPI_Type_size(MPI_LMP_BIGINT,&mpisize);
   if (mpisize != sizeof(bigint))
-      error->all(FLERR,"MPI_LMP_BIGINT and bigint in "
-                 "lmptype.h are not compatible");
+      error->all(FLERR,"MPI_LMP_BIGINT and bigint in lmptype.h are not compatible");
 
 #ifdef LAMMPS_SMALLBIG
   if (sizeof(smallint) != 4 || sizeof(imageint) != 4 ||
@@ -837,6 +832,8 @@ void LAMMPS::create()
 
 void LAMMPS::post_create()
 {
+  if (skiprunflag) input->one("timer timeout 0 every 1");
+
   // default package command triggered by "-k on"
 
   if (kokkos && kokkos->kokkos_exists) input->one("package kokkos");

@@ -22,52 +22,52 @@ namespace LAMMPS_NS {
 class LAMMPS {
  public:
   // ptrs to fundamental LAMMPS classes
-  class Memory *memory;        // memory allocation functions
-  class Error *error;          // error handling
-  class Universe *universe;    // universe of processors
-  class Input *input;          // input script processing
-                               // ptrs to top-level LAMMPS-specific classes
-  class Atom *atom;            // atom-based quantities
-  class Update *update;        // integrators/minimizers
-  class Neighbor *neighbor;    // neighbor lists
-  class Comm *comm;            // inter-processor communication
-  class Domain *domain;        // simulation box
-  class Force *force;          // inter-particle forces
-  class Modify *modify;        // fixes and computes
-  class Group *group;          // groups of atoms
-  class Output *output;        // thermo/dump/restart
-  class Timer *timer;          // CPU timing info
+  class Memory *memory;            // memory allocation functions
+  class Error *error;              // error handling
+  class Universe *universe;        // universe of processors
+  class Input *input;              // input script processing
+                                   // ptrs to top-level LAMMPS-specific classes
+  class Atom *atom;                // atom-based quantities
+  class Update *update;            // integrators/minimizers
+  class Neighbor *neighbor;        // neighbor lists
+  class Comm *comm;                // inter-processor communication
+  class Domain *domain;            // simulation box
+  class Force *force;              // inter-particle forces
+  class Modify *modify;            // fixes and computes
+  class Group *group;              // groups of atoms
+  class Output *output;            // thermo/dump/restart
+  class Timer *timer;              // CPU timing info
+                                   //
+  class KokkosLMP *kokkos;         // KOKKOS accelerator class
+  class AtomKokkos *atomKK;        // KOKKOS version of Atom class
+  class MemoryKokkos *memoryKK;    // KOKKOS version of Memory class
+  class Python *python;            // Python interface
+  class CiteMe *citeme;            // handle citation info
 
   const char *version;    // LAMMPS version string = date
   int num_ver;            // numeric version id derived from *version*
                           // that is constructed so that will be greater
                           // for newer versions in numeric or string
                           // value comparisons
-
-  MPI_Comm world;    // MPI communicator
-  FILE *infile;      // infile
-  FILE *screen;      // screen output
-  FILE *logfile;     // logfile
-
-  double initclock;    // wall clock at instantiation
+                          //
+  MPI_Comm world;         // MPI communicator
+  FILE *infile;           // infile
+  FILE *screen;           // screen output
+  FILE *logfile;          // logfile
+                          //
+  double initclock;       // wall clock at instantiation
+  int skiprunflag;        // 1 inserts timer command to skip run and minimize loops
 
   char *suffix, *suffix2, *suffixp;    // suffixes to add to input script style names
   int suffix_enable;                   // 1 if suffixes are enabled, 0 if disabled
   char *exename;                       // pointer to argv[0]
+                                       //
   char ***packargs;                    // arguments for cmdline package commands
   int num_package;                     // number of cmdline package commands
-
-  int clientserver;    // 0 = neither, 1 = client, 2 = server
-  void *cslib;         // client/server messaging via CSlib
-  MPI_Comm cscomm;     // MPI comm for client+server in mpi/one mode
-
-  class KokkosLMP *kokkos;         // KOKKOS accelerator class
-  class AtomKokkos *atomKK;        // KOKKOS version of Atom class
-  class MemoryKokkos *memoryKK;    // KOKKOS version of Memory class
-
-  class Python *python;    // Python interface
-
-  class CiteMe *citeme;    // handle citation info
+                                       //
+  int clientserver;                    // 0 = neither, 1 = client, 2 = server
+  void *cslib;                         // client/server messaging via CSlib
+  MPI_Comm cscomm;                     // MPI comm for client+server in mpi/one mode
 
   const char *match_style(const char *style, const char *name);
   static const char *installed_packages[];

@@ -85,14 +85,18 @@ the load imbalance:
 
 |decomp1|  |decomp2|  |decomp3|  |decomp4|
 
-The pictures above demonstrate the differences for a 2d system with 12 MPI ranks.
-Due to the vacuum in the system, the default decomposition is unbalanced
-with several MPI ranks without atoms (left). By forcing a 1x12x1 processor
-grid, every MPI rank does computations now, but the amount of communication
-between sub-domains is increased (center left). With a 2x6x1 processor grid and
-shifting the sub-domain divisions, the load imbalance is also reduced and
-the amount of communication required between sub-domains is less (center right).
-And using the recursive bisectioning leads to further improved decomposition (right).
+The pictures above demonstrate different decompositions for a 2d system
+with 12 MPI ranks.  The atom colors indicate the load imbalance with
+green being optimal and red the least optimal.  Due to the vacuum in the system, the default
+decomposition is unbalanced with several MPI ranks without atoms
+(left). By forcing a 1x12x1 processor grid, every MPI rank does
+computations now, but number of atoms per sub-domain is still uneven and
+the thin slice shape increases the amount of communication between sub-domains
+(center left). With a 2x6x1 processor grid and shifting the
+sub-domain divisions, the load imbalance is further reduced and the amount
+of communication required between sub-domains is less (center right).
+And using the recursive bisectioning leads to further improved
+decomposition (right).
 
 
 Communication

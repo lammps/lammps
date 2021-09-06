@@ -72,7 +72,8 @@ Alexey
 ali
 aliceblue
 Allinger
-allocaters
+allocator
+allocators
 allosws
 AlO
 Alonso
@@ -2097,6 +2098,7 @@ Murdick
 Murtola
 Murty
 Muser
+mutexes
 Muto
 muVT
 mux

@@ -153,7 +153,7 @@ supports:
   For the newton pair *on* setting the atom *j* is only added to the
   list if its *z* coordinate is larger, or if equal the *y* coordinate
   is larger, and that is equal, too, the *x* coordinate is larger.  For
-  a homogenously dense system that will result in picking neighbors from
+  homogeneously dense systems that will result in picking neighbors from
   a same size sector in always the same direction relative to the
-  "owned" atom and thus it should lead to equal length neighbor lists
+  "owned" atom and thus it should lead to similar length neighbor lists
   and thus reduce the chance of a load imbalance.

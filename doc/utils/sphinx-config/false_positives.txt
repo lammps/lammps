@@ -1009,6 +1009,7 @@ FFmpeg
 ffplay
 fft
 fftbench
+fftMPI
 fftw
 fgets
 fhg

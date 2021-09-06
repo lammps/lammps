@@ -875,6 +875,24 @@ TEST(Utils, date2num)
     ASSERT_EQ(utils::date2num("31December100"), 1001231);
 }
 
+TEST(Utils, binary_search)
+{
+    double data[] = {-2.0, -1.8, -1.0, -1.0, -1.0, -0.5, -0.2, 0.0, 0.1, 0.1,
+                     0.2,  0.3,  0.5,  0.5,  0.6,  0.7,  1.0,  1.2, 1.5, 2.0};
+    const int n   = sizeof(data) / sizeof(double);
+    ASSERT_EQ(utils::binary_search(-5.0, n, data), 0);
+    ASSERT_EQ(utils::binary_search(-2.0, n, data), 0);
+    ASSERT_EQ(utils::binary_search(-1.9, n, data), 0);
+    ASSERT_EQ(utils::binary_search(-1.0, n, data), 4);
+    ASSERT_EQ(utils::binary_search(0.0, n, data), 7);
+    ASSERT_EQ(utils::binary_search(0.1, n, data), 9);
+    ASSERT_EQ(utils::binary_search(0.4, n, data), 11);
+    ASSERT_EQ(utils::binary_search(1.1, n, data), 16);
+    ASSERT_EQ(utils::binary_search(1.5, n, data), 18);
+    ASSERT_EQ(utils::binary_search(2.0, n, data), 19);
+    ASSERT_EQ(utils::binary_search(2.5, n, data), 19);
+}
+
 static int compare(int a, int b, void *)
 {
     if (a < b)

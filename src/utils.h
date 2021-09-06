@@ -541,6 +541,23 @@ namespace utils {
 
   int date2num(const std::string &date);
 
+  /*! Binary search in a vector of ascending doubles of length N
+   *
+   * If the value is smaller than the smallest value in the vector, 0 is returned.
+   * If the value is larger or equal than the largest value in the vector, N-1 is returned.
+   * Otherwise the index that satisfies the condition
+   *
+   * haystack[index] <= value < haystack[index+1]
+   *
+   * is returned, i.e. a value from 1 to N-2. Note that if there are tied values in the
+   * haystack, always the larger index is returned as only that satisfied the condition.
+   *
+   * \param  needle    search value for which are are looking for the closest index
+   * \param  n         size of the haystack array
+   * \param  haystack  array with data in ascending order.
+   * \return           index of value in the haystack array smaller or equal to needle */
+  int binary_search(const double needle, const int n, const double *haystack);
+
   /*! Custom merge sort implementation
    *
    * This function provides a custom upward hybrid merge sort

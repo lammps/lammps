@@ -1284,6 +1284,28 @@ int utils::date2num(const std::string &date)
   return num;
 }
 
+/* binary search in vector of ascending doubles */
+int utils::binary_search(const double needle, const int n, const double *haystack)
+{
+  int lo = 0;
+  int hi = n-1;
+
+  if (needle < haystack[lo]) return lo;
+  if (needle >= haystack[hi]) return hi;
+
+  // insure haystack[lo] <= needle < haystack[hi] at every iteration
+  // done when lo,hi are adjacent
+
+  int index = (lo+hi)/2;
+  while (lo < hi-1) {
+    if (needle < haystack[index]) hi = index;
+    else if (needle >= haystack[index]) lo = index;
+    index = (lo+hi)/2;
+  }
+
+  return index;
+}
+
 /* ----------------------------------------------------------------------
  * Merge sort part 1: Loop over sublists doubling in size with each iteration.
  * Pre-sort small sublists with insertion sort for better overall performance.

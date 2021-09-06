@@ -84,7 +84,6 @@ class Balance : public Command {
   void shift_setup_static(char *);
   void tally(int, int, double *);
   int adjust(int, double *);
-  int binary(double, int, double *);
 #ifdef BALANCE_DEBUG
   void debug_shift_output(int, int, int, double *);
 #endif

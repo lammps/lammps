@@ -11,12 +11,12 @@ using neighbor lists.  The long-range portion is computed in reciprocal
 space using a kspace style.  For the PPPM implementation the simulation
 cell is overlaid with a regular FFT grid in 3d. It proceeds in several stages:
 
-(a) each atom's point charge is interpolated to nearby FFT grid points,
-(b) a forward 3d FFT is performed,
-(c) a convolution operation is performed in reciprocal space,
-(d) one or more inverse 3d FFTs are performed, and
-(e) electric field values from grid points near each atom are interpolated to compute
-    its forces.
+a) each atom's point charge is interpolated to nearby FFT grid points,
+b) a forward 3d FFT is performed,
+c) a convolution operation is performed in reciprocal space,
+d) one or more inverse 3d FFTs are performed, and
+e) electric field values from grid points near each atom are interpolated to compute
+   its forces.
 
 For any of the spatial-decomposition partitioning schemes each processor
 owns the brick-shaped portion of FFT grid points contained within its
@@ -38,16 +38,6 @@ operations are unchanged.  However the FFT grid size required for a
 given accuracy is larger for triclinic domains than it is for
 orthogonal boxes.
 
-Parallel 3d FFTs require substantial communication relative to their
-computational cost.  A 3d FFT is implemented by a series of 1d FFTs
-along the *x-*, *y-*, and *z-*\ direction of the FFT grid.  Thus the FFT
-grid cannot be decomposed like atoms into 3 dimensions for parallel
-processing of the FFTs but only in 1 (as planes) or 2 (as pencils)
-dimensions and in between the steps the grid needs to be transposed to
-have the FFT grid portion "owned" by each MPI process complete in the
-direction of the 1d FFTs it has to perform. LAMMPS uses the
-pencil-decomposition algorithm as shown in the :ref:`fft-parallel` figure.
-
 .. _fft-parallel:
 .. figure:: img/fft-decomp-parallel.png
    :align: center
@@ -62,6 +52,16 @@ pencil-decomposition algorithm as shown in the :ref:`fft-parallel` figure.
    illustrate brick-to-pencil communication.  The two images on the
    right illustrate pencil-to-pencil communication, which in this
    case transposes the *y* and *z* dimensions of the grid.
+
+Parallel 3d FFTs require substantial communication relative to their
+computational cost.  A 3d FFT is implemented by a series of 1d FFTs
+along the *x-*, *y-*, and *z-*\ direction of the FFT grid.  Thus the FFT
+grid cannot be decomposed like atoms into 3 dimensions for parallel
+processing of the FFTs but only in 1 (as planes) or 2 (as pencils)
+dimensions and in between the steps the grid needs to be transposed to
+have the FFT grid portion "owned" by each MPI process complete in the
+direction of the 1d FFTs it has to perform. LAMMPS uses the
+pencil-decomposition algorithm as shown in the :ref:`fft-parallel` figure.
 
 Initially (far left), each processor owns a brick of same-color grid
 cells (actually grid points) contained within in its sub-domain.  A

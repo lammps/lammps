@@ -14,38 +14,36 @@
 
 
 #include "fix_rigid_kokkos.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
-#include "math_extra.h"
+
 #include "atom.h"
+#include "atom_kokkos.h"
+#include "atom_masks.h"
 #include "atom_masks.h"
 #include "atom_vec_ellipsoid.h"
 #include "atom_vec_line.h"
 #include "atom_vec_tri.h"
-#include "domain.h"
-#include "update.h"
-#include "respa.h"
-#include "modify.h"
-#include "group.h"
 #include "comm.h"
-#include "random_mars.h"
-#include "force.h"
-#include "input.h"
-#include "variable.h"
-#include "math_const.h"
-#include "memory.h"
-#include "error.h"
-#include "rigid_const.h"
-
-#include "atom_masks.h"
-#include "atom_kokkos.h"
+#include "domain.h"
 #include "domain_kokkos.h"
-#include "memory_kokkos.h"
+#include "error.h"
+#include "force.h"
+#include "group.h"
+#include "input.h"
 #include "kokkos_few.h"
 #include "kokkos_type.h"
+#include "math_const.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "memory_kokkos.h"
+#include "modify.h"
+#include "random_mars.h"
+#include "respa.h"
+#include "rigid_const.h"
+#include "update.h"
+#include "variable.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -462,7 +460,7 @@ Few<double,3> remap(Few<double,3> prd,
     x_out[1] = h[1]*coord[1] + h[3]*coord[2] + boxlo[1];
     x_out[2] = h[2]*coord[2] + boxlo[2];
   } else {
-	  x_out[0] = coord[0];
+    x_out[0] = coord[0];
     x_out[1] = coord[1];
     x_out[2] = coord[2];
   }

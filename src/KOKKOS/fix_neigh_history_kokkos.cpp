@@ -87,6 +87,9 @@ void FixNeighHistoryKokkos<DeviceType>::pre_exchange()
 {
   copymode = 1;
 
+  k_firstflag.sync<DeviceType>();
+  k_firstvalue.sync<DeviceType>();
+
   h_resize() = 1;
   while (h_resize() > 0) {
     FixNeighHistoryKokkosZeroPartnerCountFunctor<DeviceType> zero(this);
@@ -168,6 +171,9 @@ void FixNeighHistoryKokkos<DeviceType>::post_neighbor()
 {
   tag = atomKK->k_tag.view<DeviceType>();
 
+  k_firstflag.sync<DeviceType>();
+  k_firstvalue.sync<DeviceType>();
+
   int inum = pair->list->inum;
   NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(pair->list);
   d_numneigh = k_list->d_numneigh;
@@ -185,14 +191,19 @@ void FixNeighHistoryKokkos<DeviceType>::post_neighbor()
 
   if (maxatom < nlocal || k_list->maxneighs > (int)d_firstflag.extent(1)) {
     maxatom = nall;
-    d_firstflag = Kokkos::View<int**>("neighbor_history:firstflag",maxatom,k_list->maxneighs);
-    d_firstvalue = Kokkos::View<LMP_FLOAT**>("neighbor_history:firstvalue",maxatom,k_list->maxneighs*dnum);
+    k_firstflag = DAT::tdual_int_2d("neighbor_history:firstflag",maxatom,k_list->maxneighs);
+    k_firstvalue = DAT::tdual_float_2d("neighbor_history:firstvalue",maxatom,k_list->maxneighs*dnum);
+    d_firstflag = k_firstflag.view<DeviceType>();
+    d_firstvalue = k_firstvalue.view<DeviceType>();
   }
 
   copymode = 1;
 
   FixNeighHistoryKokkosPostNeighborFunctor<DeviceType> f(this);
   Kokkos::parallel_for(inum,f);
+
+  k_firstflag.modify<DeviceType>();
+  k_firstvalue.modify<DeviceType>();
 
   copymode = 0;
 }

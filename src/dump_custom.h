@@ -38,61 +38,62 @@ class DumpCustom : public Dump {
   int iregion;       // -1 if no region, else which region
   char *idregion;    // region ID
 
-  int nthresh;        // # of defined thresholds
-  int nthreshlast;    // # of defined thresholds with value = LAST
-
-  int *thresh_array;       // array to threshold on for each nthresh
-  int *thresh_op;          // threshold operation for each nthresh
-  double *thresh_value;    // threshold value for each nthresh
-  int *thresh_last;        // for threshold value = LAST,
-                           // index into thresh_fix
-                           // -1 if not LAST, value is numeric
-
+  int nthresh;                    // # of defined thresholds
+  int nthreshlast;                // # of defined thresholds with value = LAST
+                                  //
+  int *thresh_array;              // array to threshold on for each nthresh
+  int *thresh_op;                 // threshold operation for each nthresh
+  double *thresh_value;           // threshold value for each nthresh
+  int *thresh_last;               // for threshold value = LAST,
+                                  // index into thresh_fix
+                                  // -1 if not LAST, value is numeric
+                                  //
   class FixStore **thresh_fix;    // stores values for each threshold LAST
   char **thresh_fixID;            // IDs of thresh_fixes
   int *thresh_first;              // 1 the first time a FixStore values accessed
 
-  int expand;     // flag for whether field args were expanded
-  char **earg;    // field names with wildcard expansion
-  int nargnew;    // size of earg
-
-  int *vtype;        // type of each vector (INT, DOUBLE)
-  char **vformat;    // format string for each vector element
-
-  char *columns;    // column labels
-
+  int expand;         // flag for whether field args were expanded
+  char **earg;        // field names with wildcard expansion
+  int nargnew;        // size of earg
+                      //
+  int *vtype;         // type of each vector (INT, DOUBLE)
+  char **vformat;     // format string for each vector element
+                      //
+  char *columns;      // column labels
+                      //
   int nchoose;        // # of selected atoms
   int maxlocal;       // size of atom selection and variable arrays
   int *choose;        // local indices of selected atoms
   double *dchoose;    // value for each atom to threshold against
   int *clist;         // compressed list of indices of selected atoms
 
-  int nfield;       // # of keywords listed by user
-  int ioptional;    // index of start of optional args
-
-  int *field2index;    // which compute,fix,variable calcs this field
-  int *argindex;       // index into compute,fix scalar_atom,vector_atom
-                       // 0 for scalar_atom, 1-N for vector_atom values
-
-  int ncompute;               // # of Compute objects used by dump
+  int nfield;                 // # of keywords listed by user
+  int ioptional;              // index of start of optional args
+                              //
+  int *field2index;           // which compute,fix,variable,custom calcs this field
+  int *argindex;              // index into compute,fix,custom per-atom data
+                              // 0 for per-atom vector, 1-N for cols of per-atom array
+                              //
+  int ncompute;               // # of Computes accessed by dump
   char **id_compute;          // their IDs
-  class Compute **compute;    // list of ptrs to the Compute objects
-
-  int nfix;           // # of Fix objects used by dump
-  char **id_fix;      // their IDs
-  class Fix **fix;    // list of ptrs to the Fix objects
-
-  int nvariable;         // # of Variables used by dump
-  char **id_variable;    // their names
-  int *variable;         // list of indices for the Variables
-  double **vbuf;         // local storage for variable evaluation
-
-  int ncustom;         // # of custom atom properties
-  char **id_custom;    // their names
-  int *flag_custom;    // their data type
-
-  int ntypes;          // # of atom types
-  char **typenames;    // array of element names for each type
+  class Compute **compute;    // list of ptrs to the Computes
+                              //
+  int nfix;                   // # of Fixes used by dump
+  char **id_fix;              // their IDs
+  class Fix **fix;            // list of ptrs to the Fixes
+                              //
+  int nvariable;              // # of Variables used by dump
+  char **id_variable;         // their names
+  int *variable;              // list of Variable indices in Variable class
+  double **vbuf;              // local storage for variable evaluation
+                              //
+  int ncustom;                // # of Custom atom properties used by dump
+  char **id_custom;           // their names
+  int *custom;                // list of Custom indices in Atom class
+  int *custom_flag;           // list of IVEC,DVEC,IARRAY,DARRAY styles
+                              //
+  int ntypes;                 // # of atom types
+  char **typenames;           // array of element names for each type
 
   // private methods
 

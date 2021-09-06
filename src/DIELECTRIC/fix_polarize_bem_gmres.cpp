@@ -431,7 +431,7 @@ void FixPolarizeBEMGMRES::gmres_solve(double *x, double *r)
 
     // fill up h with zero
 
-    memset(h, 0, (size_t)(mr + 1) * mr * sizeof(double));
+    memset(h, 0, (size_t) (mr + 1) * mr * sizeof(double));
 
     // the inner loop k = 1..(n-1)
     // build up the k-th Krylov space,
@@ -523,13 +523,9 @@ void FixPolarizeBEMGMRES::gmres_solve(double *x, double *r)
       rho = fabs(g[k]);
 
 #ifdef _POLARIZE_DEBUG
-      if (comm->me == 0) {
-        char message[256];
-        sprintf(message, "itr = %d: k = %d, norm(r) = %g norm(b) = %g", itr, k, rho, normb);
-        error->warning(FLERR, message);
-      }
+      if (comm->me == 0)
+        error->warning(FLERR, "itr = {}: k = {}, norm(r) = {} norm(b) = {}", itr, k, rho, normb);
 #endif
-
       if (rho <= rho_tol && rho <= tol_abs) break;
     }
 
@@ -560,11 +556,8 @@ void FixPolarizeBEMGMRES::gmres_solve(double *x, double *r)
     rho = sqrt(vec_dot(r, r, n));
 
 #ifdef _POLARIZE_DEBUG
-    if (comm->me == 0) {
-      char message[256];
-      sprintf(message, "itr = %d: norm(r) = %g norm(b) = %g", itr, rho, normb);
-      error->warning(FLERR, message);
-    }
+    if (comm->me == 0)
+      error->warning(FLERR, "itr = {}: norm(r) = {} norm(b) = {}", itr, rho, normb);
 #endif
 
     // Barros et al. suggested the condition: norm(r) < EPSILON norm(b)
@@ -749,17 +742,17 @@ double FixPolarizeBEMGMRES::vec_dot(const double *a1, const double *a2, int n)
 double FixPolarizeBEMGMRES::memory_usage()
 {
   double bytes = 0;
-  bytes += mat_dim * sizeof(double);          // induced_charges
-  bytes += mat_dim * sizeof(double);          // buffer
-  bytes += mat_dim * sizeof(double);          // rhs
-  bytes += atom->nmax * sizeof(double);       // induced_charge_idx
-  bytes += atom->nmax * sizeof(double);       // q_backup
-  bytes += mr * sizeof(double);               // c
-  bytes += (mr + 1) * sizeof(double);         // g
+  bytes += mat_dim * sizeof(double);                   // induced_charges
+  bytes += mat_dim * sizeof(double);                   // buffer
+  bytes += mat_dim * sizeof(double);                   // rhs
+  bytes += atom->nmax * sizeof(double);                // induced_charge_idx
+  bytes += atom->nmax * sizeof(double);                // q_backup
+  bytes += mr * sizeof(double);                        // c
+  bytes += (mr + 1) * sizeof(double);                  // g
   bytes += (double) (mr + 1) * mr * sizeof(double);    // h
-  bytes += mat_dim * sizeof(double);          // r
+  bytes += mat_dim * sizeof(double);                   // r
   bytes += (double) mr * (mr + 1) * sizeof(double);    // s
-  bytes += mat_dim * sizeof(double);          // v
+  bytes += mat_dim * sizeof(double);                   // v
   bytes += (double) (mr + 1) * mr * sizeof(double);    // y
   return bytes;
 }
@@ -875,7 +868,8 @@ void FixPolarizeBEMGMRES::set_arrays(int i)
 
 /* ---------------------------------------------------------------------- */
 
-int FixPolarizeBEMGMRES::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
+int FixPolarizeBEMGMRES::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/,
+                                           int * /*pbc*/)
 {
   int m;
   for (m = 0; m < n; m++) buf[m] = atom->q[list[m]];

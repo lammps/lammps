@@ -531,6 +531,7 @@ covalently
 covariance
 cpp
 cpu
+cradius
 createatoms
 createAtoms
 CreateIDs
@@ -1173,6 +1174,7 @@ googletest
 Gordan
 Goudeau
 GPa
+GPL
 gpu
 gpuID
 gpus
@@ -1598,6 +1600,7 @@ Kosovan
 Koster
 Kosztin
 Kp
+kradius
 Kraker
 Kraus
 Kremer
@@ -1687,6 +1690,7 @@ Lett
 Leuven
 Leven
 Lewy
+LGPL
 lgvdw
 Liang
 libatc
@@ -1887,7 +1891,6 @@ maxX
 Mayergoyz
 Mayoral
 mbt
-Mbytes
 MBytes
 mc
 McLachlan
@@ -1993,6 +1996,7 @@ Mj
 mK
 mkdir
 mkv
+mlength
 mliap
 mliappy
 mlparks
@@ -2049,6 +2053,7 @@ mpiio
 mpirun
 mplayer
 mps
+mradius
 Mrovec
 Mryglod
 mscg
@@ -2107,6 +2112,7 @@ myIndex
 mylammps
 MyPool
 mysocket
+mySpin
 myTemp
 myVec
 na
@@ -2275,6 +2281,7 @@ normals
 Noskov
 noslip
 noticable
+Nout
 noutcol
 Noutput
 noutrow
@@ -2317,6 +2324,7 @@ nsub
 Nswap
 Nt
 Ntable
+nt
 ntheta
 nthreads
 ntimestep

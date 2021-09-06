@@ -471,6 +471,7 @@ template <class flt_t>
 void PairLJCutIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
                                                    Memory *memory,
                                                    const int cop) {
+  if (memory != nullptr) _memory = memory;
   if (ntypes != _ntypes) {
     if (_ntypes > 0) {
       _memory->destroy(ljc12o);
@@ -478,10 +479,9 @@ void PairLJCutIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
     }
     if (ntypes > 0) {
       _cop = cop;
-      memory->create(ljc12o,ntypes,ntypes,"fc.c12o");
-      memory->create(lj34,ntypes,ntypes,"fc.lj34");
+      _memory->create(ljc12o,ntypes,ntypes,"fc.c12o");
+      _memory->create(lj34,ntypes,ntypes,"fc.lj34");
     }
   }
   _ntypes = ntypes;
-  _memory = memory;
 }

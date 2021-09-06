@@ -25,14 +25,14 @@ namespace ATC {
    *  @class  NodalAtomVolume
    *  @brief  Computes the nodal volumes which coarse grain the volume per atom
    */
-  
+
   class NodalAtomVolume : public DenseMatrixTransfer<double> {
 
   public:
-    
+
     // constructor
     NodalAtomVolume(ATC_Method * atc, SPAR_MAN * shapeFunction);
-    
+
     // destructor
     virtual ~NodalAtomVolume() {shapeFunction_->remove_dependence(this);};
 
@@ -81,14 +81,14 @@ namespace ATC {
    *  @class  NodalVolume
    *  @brief  Computes the nodal volumes associated with the support of each nodal shape function
    */
-  
+
   class NodalVolume : public NodalAtomVolume {
 
   public:
-    
+
     // constructor
     NodalVolume(ATC_Method * atc, SPAR_MAN * shapeFunction) : NodalAtomVolume(atc,shapeFunction) {};
-    
+
     // destructor
     virtual ~NodalVolume() {};
 
@@ -108,15 +108,15 @@ namespace ATC {
    *  @class  NodalAtomVolumeElement
    *  @brief  Computes the nodal volumes which coarse grain the volume per atom based on element volumes
    */
-  
+
   class NodalAtomVolumeElement : public DenseMatrixTransfer<double> {
 
   public:
-    
+
     // constructor
     NodalAtomVolumeElement(ATC_Method * atc, SPAR_MAN * shapeFunction,
                            PerAtomQuantity<int> * atomElement=nullptr);
-    
+
     // destructor
     virtual ~NodalAtomVolumeElement() {
       shapeFunction_->remove_dependence(this);
@@ -170,11 +170,11 @@ namespace ATC {
   class AtomTypeElement : public DenseMatrixTransfer<int> {
 
   public:
-    
+
     // constructor
     AtomTypeElement(ATC_Coupling * atc,
                     PerAtomQuantity<int> * atomElement = nullptr);
-    
+
     // destructor
     virtual ~AtomTypeElement() {
       atomElement_->remove_dependence(this);
@@ -208,12 +208,12 @@ namespace ATC {
   class ElementMask : public DenseMatrixTransfer<bool> {
 
   public:
-    
+
     // constructor
     ElementMask(ATC_Coupling * atc,
                 MatrixDependencyManager<DenseMatrix, int> * hasInternal = nullptr,
                 MatrixDependencyManager<DenseMatrix, int> * hasGhost = nullptr);
-    
+
     // destructor
     virtual ~ElementMask() {
       hasInternal_->remove_dependence(this);
@@ -248,11 +248,11 @@ namespace ATC {
   class AtomElementMask : public DenseMatrixTransfer<bool> {
 
   public:
-    
+
     // constructor
     AtomElementMask(ATC_Coupling * atc,
                     MatrixDependencyManager<DenseMatrix, int> * hasAtoms = nullptr);
-    
+
     // destructor
     virtual ~AtomElementMask() {
       hasAtoms_->remove_dependence(this);
@@ -280,16 +280,16 @@ namespace ATC {
    *  @class  NodalGeometryType
    *  @brief  Computes the computational geometry associated with each node with respect to the FE and MD regions
    */
-  
+
   class NodalGeometryType : public DenseMatrixTransfer<int> {
 
   public:
-    
+
     // constructor
     NodalGeometryType(ATC_Coupling * atc,
                       MatrixDependencyManager<DenseMatrix, int> * hasInternal = nullptr,
                       MatrixDependencyManager<DenseMatrix, int> * hasGhost = nullptr);
-    
+
     // destructor
     virtual ~NodalGeometryType() {
       hasInternal_->remove_dependence(this);
@@ -331,15 +331,15 @@ namespace ATC {
    *  @class  NodalGeometryTypeElementSet
    *  @brief  Divdes nodes into MD, FE, and boundary based on if they are connected to nodes in internal and not internal
    */
-  
+
   class NodalGeometryTypeElementSet : public DenseMatrixTransfer<int> {
 
   public:
-    
+
     // constructor
     NodalGeometryTypeElementSet(ATC_Coupling * atc,
                                 MatrixDependencyManager<DenseMatrix, int> * hasInternal = nullptr);
-    
+
     // destructor
     virtual ~NodalGeometryTypeElementSet() {
       hasInternal_->remove_dependence(this);
@@ -381,10 +381,10 @@ namespace ATC {
   class LargeToSmallMap : public DenseMatrixTransfer<int> {
 
   public:
-    
+
     // constructor
     LargeToSmallMap() : size_(0) {};
-    
+
     // destructor
     virtual ~LargeToSmallMap() {};
 
@@ -400,17 +400,17 @@ namespace ATC {
 
   /**
    *  @class  NodeToSubset
-   *  @brief  mapping from all nodes to a subset 
+   *  @brief  mapping from all nodes to a subset
    */
 
   class NodeToSubset : public LargeToSmallMap {
 
   public:
-    
+
     // constructor
     NodeToSubset(ATC_Method * atc,
                  SetDependencyManager<int> * subsetNodes);
-    
+
     // destructor
     virtual ~NodeToSubset() {
       subsetNodes_->remove_dependence(this);
@@ -420,7 +420,7 @@ namespace ATC {
     virtual void reset_quantity() const;
 
   protected:
-    
+
     /** pointer to atc to get the number of nodes */
     const ATC_Method * atc_;
 
@@ -436,16 +436,16 @@ namespace ATC {
 
   /**
    *  @class  SubsetToNode
-   *  @brief  mapping from a subset of nodes to all nodes 
+   *  @brief  mapping from a subset of nodes to all nodes
    */
 
   class SubsetToNode : public DenseMatrixTransfer<int> {
 
   public:
-    
+
     // constructor
     SubsetToNode(NodeToSubset * nodeToSubset);
-    
+
     // destructor
     virtual ~SubsetToNode() {
       nodeToSubset_->remove_dependence(this);
@@ -470,16 +470,16 @@ namespace ATC {
    *  @class  ReducedSparseMatrix
    *  @brief  reduction of a sparse matrix to only those columns consistent with the map
    */
-  
+
   class ReducedSparseMatrix : public SparseMatrixTransfer<double> {
 
   public:
-    
+
     // constructor
     ReducedSparseMatrix(ATC_Method * atc,
                           SPAR_MAN * source,
                           LargeToSmallAtomMap * map);
-    
+
     // destructor
     virtual ~ReducedSparseMatrix();
 
@@ -509,17 +509,17 @@ namespace ATC {
    *  @class  RowMappedSparseMatrix
    *  @brief  mapping of rows from a sparse matrix to a new sparse matrix
    */
-  
+
   class RowMappedSparseMatrix : public ReducedSparseMatrix {
 
   public:
-    
+
     // constructor
     RowMappedSparseMatrix(ATC_Method * atc,
                           SPAR_MAN * source,
                           LargeToSmallAtomMap * map) :
                ReducedSparseMatrix(atc,source,map) {};
-    
+
     // destructor
     virtual ~RowMappedSparseMatrix() {};
 
@@ -539,16 +539,16 @@ namespace ATC {
    *  @class  RowMappedSparseMatrixVector
    *  @brief  mapping of rows from a vector sparse matrices to a new vector of sparse matrices
    */
-  
+
   class RowMappedSparseMatrixVector : public VectorTransfer<SPAR_MAT * > {
 
   public:
-    
+
     // constructor
     RowMappedSparseMatrixVector(ATC_Method * atc,
                                 VectorDependencyManager<SPAR_MAT * > * source,
                                 LargeToSmallAtomMap * map);
-    
+
     // destructor
     virtual ~RowMappedSparseMatrixVector();
 
@@ -578,16 +578,16 @@ namespace ATC {
    *  @class  MappedDiagonalMatrix
    *  @brief  mapping of a diagonal matrix to a new diagronal matrix
    */
-  
+
   class MappedDiagonalMatrix : public DiagonalMatrixTransfer<double> {
 
   public:
-    
+
     // constructor
     MappedDiagonalMatrix(ATC_Method * atc,
                          DIAG_MAN * source,
                          LargeToSmallAtomMap * map);
-    
+
     // destructor
     virtual ~MappedDiagonalMatrix();
 
@@ -613,16 +613,16 @@ namespace ATC {
    *  @class  MappedQuantity
    *  @brief  generic reduced mapping
    */
-  
+
   class MappedQuantity : public DenseMatrixTransfer<double> {
 
   public:
-    
+
     // constructor
     MappedQuantity(ATC_Method * atc,
                    DENS_MAN * source,
                    LargeToSmallMap * map);
-    
+
     // destructor
     virtual ~MappedQuantity() {
       source_->remove_dependence(this);
@@ -655,12 +655,12 @@ namespace ATC {
   class RegulatedNodes : public SetTransfer<int> {
 
   public:
-    
+
     // constructor
     RegulatedNodes(ATC_Coupling * atc,
                    FieldName fieldName = NUM_TOTAL_FIELDS,
                    MatrixDependencyManager<DenseMatrix, int> * nodalGeometryType = nullptr);
-    
+
     // destructor
     virtual ~RegulatedNodes() {
       nodalGeometryType_->remove_dependence(this);
@@ -717,13 +717,13 @@ namespace ATC {
   class FluxNodes : public RegulatedNodes {
 
   public:
-    
+
     // constructor
     FluxNodes(ATC_Coupling * atc,
               FieldName fieldName = NUM_TOTAL_FIELDS,
               MatrixDependencyManager<DenseMatrix, int> * nodalGeometryType = nullptr) :
                 RegulatedNodes(atc,fieldName,nodalGeometryType) {};
-    
+
     // destructor
     virtual ~FluxNodes() {};
 
@@ -747,13 +747,13 @@ namespace ATC {
   class BoundaryNodes : public RegulatedNodes {
 
   public:
-    
+
     // constructor
     BoundaryNodes(ATC_Coupling * atc,
                   FieldName fieldName = NUM_TOTAL_FIELDS,
                   MatrixDependencyManager<DenseMatrix, int> * nodalGeometryType = nullptr) :
                     RegulatedNodes(atc,fieldName,nodalGeometryType) {};
-    
+
     // destructor
     virtual ~BoundaryNodes() {};
 
@@ -777,13 +777,13 @@ namespace ATC {
   class FluxBoundaryNodes : public FluxNodes {
 
   public:
-    
+
     // constructor
     FluxBoundaryNodes(ATC_Coupling * atc,
                       FieldName fieldName = NUM_TOTAL_FIELDS,
                       MatrixDependencyManager<DenseMatrix, int> * nodalGeometryType = nullptr) :
                        FluxNodes(atc,fieldName,nodalGeometryType) {};
-    
+
     // destructor
     virtual ~FluxBoundaryNodes() {};
 
@@ -807,13 +807,13 @@ namespace ATC {
   class AllRegulatedNodes : public FluxBoundaryNodes {
 
   public:
-    
+
     // constructor
     AllRegulatedNodes(ATC_Coupling * atc,
                       FieldName fieldName = NUM_TOTAL_FIELDS,
                       MatrixDependencyManager<DenseMatrix, int> * nodalGeometryType = nullptr) :
                         FluxBoundaryNodes(atc,fieldName,nodalGeometryType) {};
-    
+
     // destructor
     virtual ~AllRegulatedNodes() {};
 
@@ -837,13 +837,13 @@ namespace ATC {
   class FixedNodes : public RegulatedNodes {
 
   public:
-    
+
     // constructor
     FixedNodes(ATC_Coupling * atc,
                FieldName fieldName = NUM_TOTAL_FIELDS,
                MatrixDependencyManager<DenseMatrix, int> * nodalGeometryType = nullptr) :
                  RegulatedNodes(atc,fieldName,nodalGeometryType) {};
-    
+
     // destructor
     virtual ~FixedNodes() {};
 
@@ -867,13 +867,13 @@ namespace ATC {
   class FixedBoundaryNodes : public FixedNodes {
 
   public:
-    
+
     // constructor
     FixedBoundaryNodes(ATC_Coupling * atc,
                        FieldName fieldName = NUM_TOTAL_FIELDS,
                        MatrixDependencyManager<DenseMatrix, int> * nodalGeometryType = nullptr) :
                          FixedNodes(atc,fieldName,nodalGeometryType) {};
-    
+
     // destructor
     virtual ~FixedBoundaryNodes() {};
 
@@ -896,7 +896,7 @@ namespace ATC {
   class ElementMaskNodeSet : public DenseMatrixTransfer<bool> {
 
   public:
-    
+
     // constructor
     ElementMaskNodeSet(ATC_Coupling * atc,
                        SetDependencyManager<int> * nodeSet);
@@ -962,7 +962,7 @@ namespace ATC {
    *  @class  Interpolant
    *  @brief  constructs the spatial values of the shape functions
    */
-  
+
   class Interpolant : public SparseMatrixTransfer<double> {
 
   public:
@@ -970,8 +970,8 @@ namespace ATC {
     // constructor
     Interpolant(ATC_Method * atc,
                 MatrixDependencyManager<DenseMatrix, int>* pointToElementMap,
-                DENS_MAN* pointPositions); 
-    
+                DENS_MAN* pointPositions);
+
     // destructor
     virtual ~Interpolant() {
       pointToElementMap_->remove_dependence(this);
@@ -1005,7 +1005,7 @@ namespace ATC {
    *  @class  InterpolantGradient
    *  @brief  constructs the spatial derivatives of the shape functions
    */
-  
+
   class InterpolantGradient : public VectorTransfer<SPAR_MAT * > {
 
   public:
@@ -1013,8 +1013,8 @@ namespace ATC {
     // constructor
     InterpolantGradient(ATC_Method * atc,
                         MatrixDependencyManager<DenseMatrix, int>* pointToElementMap,
-                        DENS_MAN* pointPositions); 
-    
+                        DENS_MAN* pointPositions);
+
     // destructor
     virtual ~InterpolantGradient();
 
@@ -1045,7 +1045,7 @@ namespace ATC {
    *  @class  PerAtomShapeFunctionGradient
    *  @brief  constructs the spatial derivatives of the shape functions at each atom
    */
-  
+
   class PerAtomShapeFunctionGradient : public VectorTransfer<SPAR_MAT * > {
 
   public:
@@ -1055,8 +1055,8 @@ namespace ATC {
                                  MatrixDependencyManager<DenseMatrix, int>* atomToElementMap = nullptr,
                                  DENS_MAN* atomPositions = nullptr,
                                  const std::string & tag = "AtomicShapeFunctionGradient",
-                                 AtomType atomType = INTERNAL); 
-    
+                                 AtomType atomType = INTERNAL);
+
     // destructor
     virtual ~PerAtomShapeFunctionGradient();
 
@@ -1090,7 +1090,7 @@ namespace ATC {
    *  @class  InterpolantSmallMolecule
    *  @brief  constructs the spatial values of the shape functions for small molecules
    */
-  
+
   class InterpolantSmallMolecule : public Interpolant {
 
   public:
@@ -1099,8 +1099,8 @@ namespace ATC {
     InterpolantSmallMolecule(ATC_Method * atc,
                              MatrixDependencyManager<DenseMatrix, int>* moleculeToElementMap,
                              DENS_MAN* moleculePositions,
-                             MoleculeSet * moleculeSet); 
-    
+                             MoleculeSet * moleculeSet);
+
     // destructor
     virtual ~InterpolantSmallMolecule();
 
@@ -1134,10 +1134,10 @@ namespace ATC {
   class DenseMatrixQuotient : public DenseMatrixTransfer<double> {
 
   public:
-    
+
     // constructor
     DenseMatrixQuotient(DENS_MAN * matrixNumerator, DENS_MAN * matrixDenominator);
-    
+
     // destructor
     virtual ~DenseMatrixQuotient() {
       matrixNumerator_->remove_dependence(this);
@@ -1151,8 +1151,8 @@ namespace ATC {
     virtual int nCols() const {return matrixNumerator_->nCols();};
 
   protected:
-  
-    DENS_MAN* matrixNumerator_; 
+
+    DENS_MAN* matrixNumerator_;
     DENS_MAN* matrixDenominator_;
 
   private:
@@ -1170,10 +1170,10 @@ namespace ATC {
   class DenseMatrixSum : public DenseMatrixTransfer<double> {
 
   public:
-    
+
     // constructor
     DenseMatrixSum(DENS_MAN * matrixOne, DENS_MAN * matrixTwo);
-    
+
     // destructor
     virtual ~DenseMatrixSum() {
       matrixOne_->remove_dependence(this);
@@ -1187,8 +1187,8 @@ namespace ATC {
     virtual int nCols() const {return matrixOne_->nCols();};
 
   protected:
-  
-    DENS_MAN* matrixOne_; 
+
+    DENS_MAN* matrixOne_;
     DENS_MAN* matrixTwo_;
 
   private:
@@ -1206,10 +1206,10 @@ namespace ATC {
   class DenseMatrixDelta : public DenseMatrixTransfer<double> {
 
   public:
-    
+
     // constructor
     DenseMatrixDelta(DENS_MAN * current, DENS_MAT * reference);
-    
+
     // destructor
     virtual ~DenseMatrixDelta() {
       matrix_->remove_dependence(this);
@@ -1219,8 +1219,8 @@ namespace ATC {
     virtual void reset_quantity() const;
 
   protected:
-  
-    DENS_MAN* matrix_; 
+
+    DENS_MAN* matrix_;
     DENS_MAT* reference_;
 
   private:
@@ -1234,7 +1234,7 @@ namespace ATC {
    *  @class  OnTheFlyKernelAccumulation
    *  @brief  implements the accumulant on the fly
    */
-  
+
   class OnTheFlyKernelAccumulation : public DenseMatrixTransfer<double> {
 
   public:
@@ -1243,8 +1243,8 @@ namespace ATC {
     OnTheFlyKernelAccumulation(ATC_Method * atc,
                                PerAtomQuantity<double> * source,
                                KernelFunction* kernelFunction,
-                               DENS_MAN* atomCoarseGrainingPositions); 
-    
+                               DENS_MAN* atomCoarseGrainingPositions);
+
     // destructor
     virtual ~OnTheFlyKernelAccumulation() {
       source_->remove_dependence(this);
@@ -1285,7 +1285,7 @@ namespace ATC {
    *  @class  OnTheFlyKernelAccumulationNormalized
    *  @brief  implements a normalized accumulant on the fly
    */
-  
+
   class OnTheFlyKernelAccumulationNormalized : public OnTheFlyKernelAccumulation {
 
   public:
@@ -1296,7 +1296,7 @@ namespace ATC {
                                KernelFunction* kernelFunction,
                                DENS_MAN* atomCoarseGrainingPositions,
                                DIAG_MAN* weights);
-    
+
     // destructor
     virtual ~OnTheFlyKernelAccumulationNormalized() {
       weights_->remove_dependence(this);
@@ -1320,7 +1320,7 @@ namespace ATC {
    *  @class  OnTheFlyKernelAccumulationNormalizedReferenced
    *  @brief  implements a normalized referenced accumulant on the fly
    */
-  
+
   class OnTheFlyKernelAccumulationNormalizedReferenced : public OnTheFlyKernelAccumulationNormalized {
 
   public:
@@ -1332,7 +1332,7 @@ namespace ATC {
                                DENS_MAN* atomCoarseGrainingPositions,
                                DIAG_MAN* weights,
                                DENS_MAN * reference);
-    
+
     // destructor
     virtual ~OnTheFlyKernelAccumulationNormalizedReferenced() {
       reference_->remove_dependence(this);
@@ -1357,7 +1357,7 @@ namespace ATC {
    *  @class  OnTheFlyKernelNormalizedAccumulationScaled
    *  @brief  implements a scaled accumulant on the fly
    */
-  
+
   class OnTheFlyKernelAccumulationNormalizedScaled : public OnTheFlyKernelAccumulationNormalized {
 
   public:
@@ -1369,7 +1369,7 @@ namespace ATC {
                                DENS_MAN* atomCoarseGrainingPositions,
                                DIAG_MAN* weights,
                                const double scale);
-    
+
     // destructor
     virtual ~OnTheFlyKernelAccumulationNormalizedScaled() {
       atomCoarseGrainingPositions_->remove_dependence(this);
@@ -1397,10 +1397,10 @@ namespace ATC {
   class AccumulantWeights : public DiagonalMatrixTransfer<double> {
 
   public:
-    
+
     // constructor
     AccumulantWeights(SPAR_MAN * accumulant);
-    
+
     // destructor
     virtual ~AccumulantWeights() {
       accumulant_->remove_dependence(this);
@@ -1410,7 +1410,7 @@ namespace ATC {
     virtual void reset_quantity() const;
 
   protected:
-  
+
     SPAR_MAN* accumulant_;
 
     // workspace
@@ -1432,10 +1432,10 @@ namespace ATC {
   class OnTheFlyKernelWeights : public DiagonalMatrixTransfer<double> {
 
   public:
-    
+
     // constructor
     OnTheFlyKernelWeights(DENS_MAN * weights);
-    
+
     // destructor
     virtual ~OnTheFlyKernelWeights() {
       weights_->remove_dependence(this);
@@ -1445,7 +1445,7 @@ namespace ATC {
     virtual void reset_quantity() const;
 
   protected:
-  
+
     DENS_MAN* weights_;
 
   private:
@@ -1463,11 +1463,11 @@ namespace ATC {
   class KernelInverseVolumes : public DiagonalMatrixTransfer<double> {
 
   public:
-    
+
     // constructor
     KernelInverseVolumes(ATC_Method * atc,
                          KernelFunction* kernelFunction);
-    
+
     // destructor
     virtual ~KernelInverseVolumes() {};
 
@@ -1475,7 +1475,7 @@ namespace ATC {
     virtual void reset_quantity() const;
 
   protected:
-  
+
     /** kernel function being used */
     KernelFunction* kernelFunction_;
 
@@ -1493,7 +1493,7 @@ namespace ATC {
    *  @class  OnTheFlyMeshAccumulation
    *  @brief  implements the mesh-based accumulant on the fly
    */
-  
+
   class OnTheFlyMeshAccumulation : public DenseMatrixTransfer<double> {
 
   public:
@@ -1501,8 +1501,8 @@ namespace ATC {
     // constructor
     OnTheFlyMeshAccumulation(ATC_Method * atc,
                              PerAtomQuantity<double> * source,
-                             DENS_MAN* atomCoarseGrainingPositions); 
-    
+                             DENS_MAN* atomCoarseGrainingPositions);
+
     // destructor
     virtual ~OnTheFlyMeshAccumulation() {
       source_->remove_dependence(this);
@@ -1513,7 +1513,7 @@ namespace ATC {
     virtual void reset_quantity() const;
 
     /** access nCols_ */
-    virtual int nCols() const { return source_->nCols(); } 
+    virtual int nCols() const { return source_->nCols(); }
 
   protected:
 
@@ -1543,7 +1543,7 @@ namespace ATC {
    *  @class  OnTheFlyMeshAccumulationNormalized
    *  @brief  implements a normalized mesh-based accumulant on the fly
    */
-  
+
   class OnTheFlyMeshAccumulationNormalized : public OnTheFlyMeshAccumulation {
 
   public:
@@ -1553,7 +1553,7 @@ namespace ATC {
                                PerAtomQuantity<double> * source,
                                DENS_MAN* atomCoarseGrainingPositions,
                                DIAG_MAN* weights);
-    
+
     // destructor
     virtual ~OnTheFlyMeshAccumulationNormalized() {
       weights_->remove_dependence(this);
@@ -1577,7 +1577,7 @@ namespace ATC {
    *  @class  OnTheFlyMeshAccumulationNormalizedReferenced
    *  @brief  implements a normalized referenced mesh-based accumulant on the fly
    */
-  
+
   class OnTheFlyMeshAccumulationNormalizedReferenced : public OnTheFlyMeshAccumulationNormalized {
 
   public:
@@ -1588,7 +1588,7 @@ namespace ATC {
                                DENS_MAN* atomCoarseGrainingPositions,
                                DIAG_MAN* weights,
                                DENS_MAN * reference);
-    
+
     // destructor
     virtual ~OnTheFlyMeshAccumulationNormalizedReferenced() {
       reference_->remove_dependence(this);
@@ -1613,7 +1613,7 @@ namespace ATC {
    *  @class  OnTheFlyMeshAccumulationNormalizedScaled
    *  @brief  implements a scaled mesh-based accumulant on the fly
    */
-  
+
   class OnTheFlyMeshAccumulationNormalizedScaled : public OnTheFlyMeshAccumulationNormalized {
 
   public:
@@ -1624,7 +1624,7 @@ namespace ATC {
                                DENS_MAN* atomCoarseGrainingPositions,
                                DIAG_MAN* weights,
                                const double scale);
-    
+
     // destructor
     virtual ~OnTheFlyMeshAccumulationNormalizedScaled() {
       atomCoarseGrainingPositions_->remove_dependence(this);
@@ -1648,14 +1648,14 @@ namespace ATC {
    *  @class  NativeShapeFunctionGradient
    *  @brief  constructs the spatial derivatives of the shape functions
    */
-  
+
   class NativeShapeFunctionGradient : public VectorTransfer<SPAR_MAT * > {
 
   public:
 
     // constructor
     NativeShapeFunctionGradient(ATC_Method * atc);
-    
+
     // destructor
     virtual ~NativeShapeFunctionGradient();
 
@@ -1680,7 +1680,7 @@ namespace ATC {
    *  @class  OnTheFlyShapeFunctionProlongation
    *  @brief  implements the interpolant on the fly
    */
-  
+
   class OnTheFlyShapeFunctionProlongation : public FeToAtomTransfer {
 
   public:
@@ -1688,8 +1688,8 @@ namespace ATC {
     // constructor
     OnTheFlyShapeFunctionProlongation(ATC_Method * atc,
                                       DENS_MAN * source,
-                                      DENS_MAN * atomCoarseGrainingPositions); 
-    
+                                      DENS_MAN * atomCoarseGrainingPositions);
+
     // destructor
     virtual ~OnTheFlyShapeFunctionProlongation();
 

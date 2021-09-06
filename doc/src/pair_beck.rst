@@ -84,7 +84,10 @@ This pair style can only be used via the *pair* keyword of the
 
 Restrictions
 """"""""""""
-none
+
+This pair style is part of the EXTRA-PAIR package.  It is only enabled if
+LAMMPS was built with that package.  See the
+:doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

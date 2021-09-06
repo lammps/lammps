@@ -272,7 +272,6 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
 
   double f1,f4t5,f4t6,f4t9,f4t10,f5c1,f5c2;
   double df1,df4t5,df4t6,df4t9,df4t10,df5c1,df5c2;
-  double tptofp;
 
   evdwl = 0.0;
   ev_init(eflag,vflag);

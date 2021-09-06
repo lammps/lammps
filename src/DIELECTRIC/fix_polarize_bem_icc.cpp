@@ -396,7 +396,8 @@ int FixPolarizeBEMICC::modify_param(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-int FixPolarizeBEMICC::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
+int FixPolarizeBEMICC::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/,
+                                         int * /*pbc*/)
 {
   int m;
   for (m = 0; m < n; m++) buf[m] = atom->q[list[m]];

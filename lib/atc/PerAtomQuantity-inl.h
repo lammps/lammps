@@ -49,17 +49,17 @@ namespace ATC {
     const DenseMatrix<T> & myQuantity(this->quantity_); // necessary to access quantity_ this way because of templating
     if (myQuantity.nRows()>0) {
       // full matrix copy
-      
+
       if (atomType_ == ALL || atomType_ == PROC_GHOST) {
         if (nCols_==1) { // scalar
           T * lammpsQuantity = this->lammps_scalar();
-          
+
           for (int i = 0; i < atc_.nlocal_total(); i++)
             lammpsQuantity[i] = myQuantity(i,0);
         }
         else{ // vector
           T ** lammpsQuantity = this->lammps_vector();
-          
+
           for (int i = 0; i < atc_.nlocal_total(); i++)
             for (int j = 0; j < nCols_; j++)
               lammpsQuantity[i][j] = myQuantity(i,j);
@@ -119,7 +119,7 @@ namespace ATC {
       else {
         const Array<int> & quantityToLammps = atc_.atc_to_lammps_map();
         int atomIndex;
-        
+
         if (nCols_==1) { // scalar
           const T * lammpsQuantity = this->lammps_scalar();
           for (int i = 0; i < myQuantity.nRows(); i++) {
@@ -141,7 +141,7 @@ namespace ATC {
   }
 
   //-----------------------------------------------------------------
-  // pack values in local atom-based arrays for exchange with another proc 
+  // pack values in local atom-based arrays for exchange with another proc
   //-----------------------------------------------------------------
   template <typename T>
   int PerAtomQuantity<T>::pack_exchange(int i, double *buffer)
@@ -157,7 +157,7 @@ namespace ATC {
   }
 
   //-----------------------------------------------------------------
-  // unpack values in local atom-based arrays from exchange with another proc 
+  // unpack values in local atom-based arrays from exchange with another proc
   //-----------------------------------------------------------------
   template <typename T>
   int PerAtomQuantity<T>::unpack_exchange(int i, double *buffer)
@@ -173,10 +173,10 @@ namespace ATC {
   }
 
   //-----------------------------------------------------------------
-  // pack values in local atom-based arrays for passing to ghosts on another proc 
+  // pack values in local atom-based arrays for passing to ghosts on another proc
   //-----------------------------------------------------------------
   template <typename T>
-  int PerAtomQuantity<T>::pack_comm(int index, double *buf, 
+  int PerAtomQuantity<T>::pack_comm(int index, double *buf,
                                     int /* pbc_flag */, int * /* pbc */)
   {
     if (this->need_reset()) this->reset();
@@ -202,12 +202,12 @@ namespace ATC {
   }
 
   //-----------------------------------------------------------------
-  // allocate local atom-based arrays 
+  // allocate local atom-based arrays
   //-----------------------------------------------------------------
   template <typename T>
   void PerAtomQuantity<T>::grow_lammps_array(int nmax, const std::string & tag)
   {
-    
+
     if (nCols_ == 1)
       this->lammpsScalar_ = lammpsInterface_->grow_array(this->lammpsScalar_,nmax,tag.c_str());
     else
@@ -215,7 +215,7 @@ namespace ATC {
   }
 
   //-----------------------------------------------------------------
-  // copy values within local atom-based arrays 
+  // copy values within local atom-based arrays
   //-----------------------------------------------------------------
   template <typename T>
   void PerAtomQuantity<T>::copy_lammps_array(int i, int j)
@@ -252,10 +252,10 @@ namespace ATC {
   }
 
   //-----------------------------------------------------------------
-  // pack values in local atom-based arrays for passing to ghosts on another proc 
+  // pack values in local atom-based arrays for passing to ghosts on another proc
   //-----------------------------------------------------------------
   template <typename T>
-  int LammpsAtomQuantity<T>::pack_comm(int index, double *buf, 
+  int LammpsAtomQuantity<T>::pack_comm(int index, double *buf,
                                        int /* pbc_flag */, int * /* pbc */)
   {
     if (this->need_reset()) this->reset();
@@ -294,7 +294,7 @@ namespace ATC {
         lammpsQuantity[index][k] = myQuantity(index,k);
       }
     }
-    
+
     this->propagate_reset();
     return bufIdx;
   }
@@ -317,11 +317,11 @@ namespace ATC {
     const INT_ARRAY & atomMap(atomMap_->quantity());
     if (myQuantity.nRows()>0) {
       // full matrix copy
-      
+
       if (PerAtomQuantity<T>::atomType_ == ALL || PerAtomQuantity<T>::atomType_ == PROC_GHOST) {
         if (nCols==1) { // scalar
           T * lammpsQuantity = ProtectedAtomQuantity<T>::lammps_scalar();
-          
+
           for (int i = 0; i < PerAtomQuantity<T>::atc_.nlocal_total(); i++) {
             int idx = atomMap(i,0);
             if (idx > -1) {
@@ -331,7 +331,7 @@ namespace ATC {
         }
         else{ // vector
           T ** lammpsQuantity = ProtectedAtomQuantity<T>::lammps_vector();
-          
+
           for (int i = 0; i < PerAtomQuantity<T>::atc_.nlocal_total(); i++) {
             int idx = atomMap(i,0);
             if (idx > -1) {
@@ -475,10 +475,10 @@ namespace ATC {
     const DiagonalMatrix<T> & myQuantity(this->quantity_); // necessary to access quantity_ this way because of templating
     if (myQuantity.size()>0) {
       // full matrix copy
-      
+
       if (atomType_ == ALL || atomType_ == PROC_GHOST) {
         T * lammpsQuantity = this->lammps_scalar();
-        
+
         for (int i = 0; i < atc_.nlocal_total(); i++) {
           lammpsQuantity[i] = myQuantity(i,i);
         }
@@ -526,7 +526,7 @@ namespace ATC {
   }
 
   //-----------------------------------------------------------------
-  // pack values in local atom-based arrays for exchange with another proc 
+  // pack values in local atom-based arrays for exchange with another proc
   //-----------------------------------------------------------------
   template <typename T>
   int PerAtomDiagonalMatrix<T>::pack_exchange(int i, double *buffer)
@@ -536,7 +536,7 @@ namespace ATC {
   }
 
   //-----------------------------------------------------------------
-  // unpack values in local atom-based arrays from exchange with another proc 
+  // unpack values in local atom-based arrays from exchange with another proc
   //-----------------------------------------------------------------
   template <typename T>
   int PerAtomDiagonalMatrix<T>::unpack_exchange(int i, double *buffer)
@@ -546,10 +546,10 @@ namespace ATC {
   }
 
   //-----------------------------------------------------------------
-  // pack values in local atom-based arrays for passing to ghosts on another proc 
+  // pack values in local atom-based arrays for passing to ghosts on another proc
   //-----------------------------------------------------------------
   template <typename T>
-  int PerAtomDiagonalMatrix<T>::pack_comm(int index, double *buf, 
+  int PerAtomDiagonalMatrix<T>::pack_comm(int index, double *buf,
                                           int /* pbc_flag */, int * /* pbc */)
   {
     if (this->need_reset()) this->reset();
@@ -571,7 +571,7 @@ namespace ATC {
   }
 
   //-----------------------------------------------------------------
-  // allocate local atom-based arrays 
+  // allocate local atom-based arrays
   //-----------------------------------------------------------------
   template <typename T>
   void PerAtomDiagonalMatrix<T>::grow_lammps_array(int nmax, const std::string & tag)
@@ -580,7 +580,7 @@ namespace ATC {
   }
 
   //-----------------------------------------------------------------
-  // copy values within local atom-based arrays 
+  // copy values within local atom-based arrays
   //-----------------------------------------------------------------
   template <typename T>
   void PerAtomDiagonalMatrix<T>::copy_lammps_array(int i, int j)
@@ -636,10 +636,10 @@ namespace ATC {
     if (myQuantity.nRows()>0) {
       // full matrix copy
       if (atomType_ == ALL || atomType_ == PROC_GHOST) {
-        
+
         T ** lammpsQuantity = this->lammps_vector();
         int ** lammpsColIndices = this->lammps_column_indices();
-        
+
         for (int i = 0; i < atc_.nlocal_total(); i++) {
           myQuantity.row(i,_values_,_colIndices_);
           for (int j = 0; j < _values_.size(); j++) {
@@ -717,7 +717,7 @@ namespace ATC {
   }
 
   //-----------------------------------------------------------------
-  // pack values in local atom-based arrays for exchange with another proc 
+  // pack values in local atom-based arrays for exchange with another proc
   //-----------------------------------------------------------------
   template <typename T>
   int PerAtomSparseMatrix<T>::pack_exchange(int i, double *buffer)
@@ -735,7 +735,7 @@ namespace ATC {
   }
 
   //-----------------------------------------------------------------
-  // unpack values in local atom-based arrays from exchange with another proc 
+  // unpack values in local atom-based arrays from exchange with another proc
   //-----------------------------------------------------------------
   template <typename T>
   int PerAtomSparseMatrix<T>::unpack_exchange(int i, double *buffer)
@@ -753,10 +753,10 @@ namespace ATC {
   }
 
   //-----------------------------------------------------------------
-  // pack values in local atom-based arrays for passing to ghosts on another proc 
+  // pack values in local atom-based arrays for passing to ghosts on another proc
   //-----------------------------------------------------------------
   template <typename T>
-    int PerAtomSparseMatrix<T>::pack_comm(int /* index */, double * /* buf */, 
+    int PerAtomSparseMatrix<T>::pack_comm(int /* index */, double * /* buf */,
                                           int /* pbc_flag */, int */* pbc */)
   {
     return 0;
@@ -772,19 +772,19 @@ namespace ATC {
   }
 
   //-----------------------------------------------------------------
-  // allocate local atom-based arrays 
+  // allocate local atom-based arrays
   //-----------------------------------------------------------------
   template <typename T>
   void PerAtomSparseMatrix<T>::grow_lammps_array(int nmax, const std::string & tag)
   {
-    
+
     this->lammpsVector_ = lammpsInterface_->grow_array(this->lammpsVector_,nmax,maxEntriesPerRow_,tag.c_str());
     std::string myString(tag+std::string("Columns"));
     this->lammpsColIndices_ = lammpsInterface_->grow_array(this->lammpsColIndices_,nmax,maxEntriesPerRow_,myString.c_str());
   }
 
   //-----------------------------------------------------------------
-  // copy values within local atom-based arrays 
+  // copy values within local atom-based arrays
   //-----------------------------------------------------------------
   template <typename T>
   void PerAtomSparseMatrix<T>::copy_lammps_array(int i, int j)

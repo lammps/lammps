@@ -53,9 +53,7 @@ public:
   const char *what() const noexcept { return message.c_str(); }
 };
 
-#define EV_TO_KCAL_PER_MOL 14.4
-#define SQR(x) ((x)*(x))
-#define CUBE(x) ((x)*(x)*(x))
+static constexpr double EV_TO_KCAL_PER_MOL = 14.4;
 
 static const char cite_fix_qeq_reaxff[] =
   "fix qeq/reaxff command:\n\n"
@@ -165,7 +163,7 @@ FixQEqReaxFF::~FixQEqReaxFF()
   memory->destroy(s_hist);
   memory->destroy(t_hist);
 
-  deallocate_storage();
+  FixQEqReaxFF::deallocate_storage();
   deallocate_matrix();
 
   memory->destroy(shld);
@@ -689,7 +687,7 @@ double FixQEqReaxFF::calculate_H(double r, double gamma)
   Taper = Taper * r + Tap[0];
 
   denom = r * r * r + gamma;
-  denom = pow(denom,0.3333333333333);
+  denom = pow(denom,1.0/3.0);
 
   return Taper * EV_TO_KCAL_PER_MOL / denom;
 }

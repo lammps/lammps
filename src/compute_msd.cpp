@@ -14,16 +14,15 @@
 
 #include "compute_msd.h"
 
-#include <cstring>
-
 #include "atom.h"
-#include "update.h"
-#include "group.h"
 #include "domain.h"
-#include "modify.h"
-#include "fix_store.h"
 #include "error.h"
+#include "fix_store.h"
+#include "group.h"
+#include "modify.h"
+#include "update.h"
 
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -66,13 +65,9 @@ ComputeMSD::ComputeMSD(LAMMPS *lmp, int narg, char **arg) :
   // create a new fix STORE style for reference positions
   // id = compute-ID + COMPUTE_STORE, fix group = compute group
 
-  std::string fixcmd = id + std::string("_COMPUTE_STORE");
-  id_fix = new char[fixcmd.size()+1];
-  strcpy(id_fix,fixcmd.c_str());
-
-  fixcmd += fmt::format(" {} STORE peratom 1 3",group->names[igroup]);
-  modify->add_fix(fixcmd);
-  fix = (FixStore *) modify->fix[modify->nfix-1];
+  id_fix = utils::strdup(id + std::string("_COMPUTE_STORE"));
+  fix = (FixStore *) modify->add_fix(fmt::format("{} {} STORE peratom 1 3",
+                                                 id_fix, group->names[igroup]));
 
   // calculate xu,yu,zu for fix store array
   // skip if reset from restart file

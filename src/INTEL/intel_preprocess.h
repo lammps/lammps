@@ -20,10 +20,6 @@
 #define USE_OMP_SIMD
 #define __INTEL_COMPILER __INTEL_LLVM_COMPILER
 #define __INTEL_COMPILER_BUILD_DATE __INTEL_LLVM_COMPILER
-#define _MM_SCALE_1 1
-#define _MM_SCALE_2 2
-#define _MM_SCALE_4 4
-#define _MM_SCALE_8 8
 #endif
 
 #ifdef __INTEL_COMPILER
@@ -50,7 +46,7 @@
 #ifndef LMP_INTEL_PREPROCESS_H
 #define LMP_INTEL_PREPROCESS_H
 
-// LAMMPS_MEMALIGN is set to 64 by default for -DLMP_USER_INTEL
+// LAMMPS_MEMALIGN is set to 64 by default for -DLMP_INTEL
 // so we only need to error out in case of a different alignment
 #if LAMMPS_MEMALIGN && (LAMMPS_MEMALIGN != 64)
 #error Please set -DLAMMPS_MEMALIGN=64 in CCFLAGS of your LAMMPS makefile for INTEL package

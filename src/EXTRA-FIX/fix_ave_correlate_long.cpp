@@ -145,11 +145,9 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS * lmp, int narg, char **arg):
         error->all(FLERR,"Illegal fix ave/correlate/long command");
       if (me == 0) {
         fp = fopen(arg[iarg+1],"w");
-        if (fp == nullptr) {
-          char str[128];
-          snprintf(str,128,"Cannot open fix ave/correlate/long file %s",arg[iarg+1]);
-          error->one(FLERR,str);
-        }
+        if (fp == nullptr)
+          error->one(FLERR,"Cannot open fix ave/correlate/long file {}: {}",
+                     arg[iarg+1],utils::getsyserror());
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"overwrite") == 0) {

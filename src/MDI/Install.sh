@@ -40,7 +40,7 @@ if (test $1 = 1) then
     sed -i -e 's/[^ \t]*mdi[^ \t]* //g' ../Makefile.package
     sed -i -e 's|^PKG_INC =[ \t]*|&-I../../lib/mdi/includelink |' ../Makefile.package
     sed -i -e 's/[^ \t]*MDI[^ \t]* //' ../Makefile.package
-    sed -i -e 's|^PKG_INC =[ \t]*|&-DLMP_USER_MDI |' ../Makefile.package
+    sed -i -e 's|^PKG_INC =[ \t]*|&-DLMP_MDI |' ../Makefile.package
     sed -i -e 's|^PKG_PATH =[ \t]*|&-L../../lib/mdi/liblink |' ../Makefile.package
     sed -i -e 's|^PKG_LIB =[ \t]*|&-lmdi |' ../Makefile.package
     sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(mdi_SYSINC) |' ../Makefile.package

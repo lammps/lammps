@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -19,30 +18,17 @@
 
 using namespace LAMMPS_NS;
 
-/* ---------------------------------------------------------------------- */
-
-BondOxrna2Fene::BondOxrna2Fene(LAMMPS *lmp) : BondOxdnaFene(lmp)
-{
-
-}
-
-/* ---------------------------------------------------------------------- */
-
-BondOxrna2Fene::~BondOxrna2Fene()
-{
-
-}
-
 /* ----------------------------------------------------------------------
     compute vector COM-sugar-phosphate backbone interaction site in oxRNA2
 ------------------------------------------------------------------------- */
-void BondOxrna2Fene::compute_interaction_sites(double e1[3], double /*e2*/[3],
-  double e3[3], double r[3])
+
+void BondOxrna2Fene::compute_interaction_sites(double e1[3], double /*e2*/[3], double e3[3],
+                                               double r[3]) const
 {
-  double d_cs_x=-0.4, d_cs_z=+0.2;
+  constexpr double d_cs_x = -0.4;
+  constexpr double d_cs_z = +0.2;
 
-  r[0] = d_cs_x*e1[0] + d_cs_z*e3[0];
-  r[1] = d_cs_x*e1[1] + d_cs_z*e3[1];
-  r[2] = d_cs_x*e1[2] + d_cs_z*e3[2];
-
+  r[0] = d_cs_x * e1[0] + d_cs_z * e3[0];
+  r[1] = d_cs_x * e1[1] + d_cs_z * e3[1];
+  r[2] = d_cs_x * e1[2] + d_cs_z * e3[2];
 }

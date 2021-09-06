@@ -45,7 +45,7 @@ namespace utils {
    *
    *  \param text the text to be matched against the pattern
    *  \param pattern the search pattern, which may contain regexp markers
-   *  \return the string that matches the patters or an empty one */
+   *  \return the string that matches the pattern or an empty one */
 
   std::string strfind(const std::string &text, const std::string &pattern);
 

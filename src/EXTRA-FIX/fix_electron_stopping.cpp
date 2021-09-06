@@ -243,11 +243,8 @@ void FixElectronStopping::read_table(const char *file)
   char line[MAXLINE];
 
   FILE *fp = utils::open_potential(file,lmp,nullptr);
-  if (fp == nullptr) {
-    char str[128];
-    snprintf(str, 128, "Cannot open stopping range table %s", file);
-    error->one(FLERR, str);
-  }
+  if (fp == nullptr)
+    error->one(FLERR,"Cannot open stopping range table {}: {}", file, utils::getsyserror());
 
   const int ncol = atom->ntypes + 1;
 

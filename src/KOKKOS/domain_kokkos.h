@@ -30,7 +30,6 @@ class DomainKokkos : public Domain {
  public:
   DomainKokkos(class LAMMPS *);
   ~DomainKokkos() {}
-  void init();
   void reset_box();
   void pbc();
   void remap_all();

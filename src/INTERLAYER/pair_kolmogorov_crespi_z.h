@@ -32,11 +32,12 @@ class PairKolmogorovCrespiZ : public Pair {
   virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
+  void init_style();
   double init_one(int, int);
 
- protected:
-  int me;
+  static constexpr int NPARAMS_PER_LINE = 11;
 
+ protected:
   struct Param {
     double z0, C0, C2, C4, C, delta, lambda, A, S;
     double delta2inv, z06;
@@ -45,7 +46,6 @@ class PairKolmogorovCrespiZ : public Pair {
   Param *params;    // parameter set for I-J interactions
 
   double cut_global;
-  double **cut;
   double **offset;
   void read_file(char *);
   void allocate();

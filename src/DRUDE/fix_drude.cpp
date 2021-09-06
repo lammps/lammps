@@ -14,16 +14,16 @@
 
 #include "fix_drude.h"
 
-#include <cstring>
-#include <map>
 #include "atom.h"
+#include "atom_vec.h"
 #include "comm.h"
-#include "modify.h"
 #include "error.h"
 #include "memory.h"
+#include "modify.h"
 #include "molecule.h"
-#include "atom_vec.h"
 
+#include <cstring>
+#include <map>
 #include <set>
 #include <vector>
 
@@ -311,20 +311,17 @@ void FixDrude::rebuild_special() {
   //build_drudeid();
 
   // Log info
-  if (comm->me == 0) {
-    if (screen) fprintf(screen, "Rebuild special list taking Drude particles into account\n");
-    if (logfile) fprintf(logfile, "Rebuild special list taking Drude particles into account\n");
-  }
+  if (comm->me == 0)
+    utils::logmesg(lmp, "Rebuild special list taking Drude particles into account\n");
+
   int nspecmax, nspecmax_old, nspecmax_loc;
   nspecmax_loc = 0;
   for (int i=0; i<nlocal; i++) {
     if (nspecmax_loc < nspecial[i][2]) nspecmax_loc = nspecial[i][2];
   }
   MPI_Allreduce(&nspecmax_loc, &nspecmax_old, 1, MPI_INT, MPI_MAX, world);
-  if (comm->me == 0) {
-    if (screen) fprintf(screen, "Old max number of 1-2 to 1-4 neighbors: %d\n", nspecmax_old);
-    if (logfile) fprintf(logfile, "Old max number of 1-2 to 1-4 neighbors: %d\n", nspecmax_old);
-  }
+  if (comm->me == 0)
+    utils::logmesg(lmp, "Old max number of 1-2 to 1-4 neighbors: {}\n", nspecmax_old);
 
   // Build lists of drude and core-drude pairs
   std::vector<tagint> drude_vec, core_drude_vec, core_special_vec;
@@ -351,15 +348,11 @@ void FixDrude::rebuild_special() {
     if (nspecmax_loc < nspecial[i][2]) nspecmax_loc = nspecial[i][2];
   }
   MPI_Allreduce(&nspecmax_loc, &nspecmax, 1, MPI_INT, MPI_MAX, world);
-  if (comm->me == 0) {
-    if (screen) fprintf(screen, "New max number of 1-2 to 1-4 neighbors: %d (+%d)\n", nspecmax, nspecmax - nspecmax_old);
-    if (logfile) fprintf(logfile, "New max number of 1-2 to 1-4 neighbors: %d (+%d)\n", nspecmax, nspecmax - nspecmax_old);
-  }
-  if (atom->maxspecial < nspecmax) {
-    char str[1024];
-    sprintf(str, "Not enough space in special: extra/special/per/atom should be at least %d", nspecmax - nspecmax_old);
-    error->all(FLERR, str);
-  }
+  if (comm->me == 0)
+    utils::logmesg(lmp, "New max number of 1-2 to 1-4 neighbors: {} (+{})\n", nspecmax, nspecmax - nspecmax_old);
+
+  if (atom->maxspecial < nspecmax)
+    error->all(FLERR, "Not enough space in special: extra/special/per/atom should be at least {}", nspecmax - nspecmax_old);
 
   // Build list of cores' special lists to communicate to ghost drude particles
   for (int i=0; i<nlocal; i++) {

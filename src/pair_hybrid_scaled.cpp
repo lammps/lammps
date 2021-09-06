@@ -340,8 +340,7 @@ void PairHybridScaled::settings(int narg, char **arg)
     special_lj[nstyles] = special_coul[nstyles] = nullptr;
     compute_tally[nstyles] = 1;
 
-    if ((((PairHybridScaled *)styles[nstyles])->suffix_flag
-         & (Suffix::INTEL|Suffix::GPU|Suffix::OMP)) != 0)
+    if ((styles[nstyles]->suffix_flag & (Suffix::INTEL|Suffix::GPU|Suffix::OMP)) != 0)
       error->all(FLERR,"Pair style hybrid/scaled does not support "
                  "accelerator styles");
 

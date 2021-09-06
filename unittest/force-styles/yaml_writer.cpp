@@ -12,8 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include "yaml_writer.h"
-#include "yaml.h"
 #include "fmt/format.h"
+#include "yaml.h"
 
 #include <cstdio>
 #include <string>
@@ -52,17 +52,17 @@ YamlWriter::~YamlWriter()
 
 void YamlWriter::emit(const std::string &key, const double value)
 {
-    emit(key,fmt::format("{}",value));
+    emit(key, fmt::format("{}", value));
 }
 
 void YamlWriter::emit(const std::string &key, const long value)
 {
-    emit(key,fmt::format("{}",value));
+    emit(key, fmt::format("{}", value));
 }
 
 void YamlWriter::emit(const std::string &key, const int value)
 {
-    emit(key,fmt::format("{}",value));
+    emit(key, fmt::format("{}", value));
 }
 
 void YamlWriter::emit(const std::string &key, const std::string &value)

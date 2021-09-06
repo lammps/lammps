@@ -13,6 +13,7 @@
 
 #include "utils.h"
 
+#include "atom.h"
 #include "comm.h"
 #include "compute.h"
 #include "error.h"
@@ -176,20 +177,23 @@ char *utils::fgets_trunc(char *buf, int size, FILE *fp)
   char dummy[MAXDUMMY];
   char *ptr = fgets(buf, size, fp);
 
-  // EOF
+  // EOF?
   if (!ptr) return nullptr;
 
   int n = strlen(buf);
 
-  // line is shorter than buffer, append newline if needed,
-  if (n < size - 2) {
+  // check the string being read in:
+  // - if string is shorter than the buffer make sure it has a final newline and return
+  // - if string is exactly the size of the buffer and has a final newline return
+  // - otherwise truncate with final newline and read into dummy buffer until EOF or newline is found
+  if (n < size - 1) {
     if (buf[n - 1] != '\n') {
       buf[n] = '\n';
       buf[n + 1] = '\0';
     }
     return buf;
-
-    // line fits exactly. overwrite last but one character.
+  } else if (buf[n - 1] == '\n') {
+    return buf;
   } else
     buf[size - 2] = '\n';
 
@@ -202,15 +206,15 @@ char *utils::fgets_trunc(char *buf, int size, FILE *fp)
       n = 0;
   } while (n == MAXDUMMY - 1 && ptr[MAXDUMMY - 1] != '\n');
 
-  // return first chunk
+  // return truncated chunk
   return buf;
 }
 
-#define MAXPATHLENBUF 1024
 /* like fgets() but aborts with an error or EOF is encountered */
 void utils::sfgets(const char *srcname, int srcline, char *s, int size, FILE *fp,
                    const char *filename, Error *error)
 {
+  constexpr int MAXPATHLENBUF = 1024;
   char *rv = fgets(s, size, fp);
   if (rv == nullptr) {    // something went wrong
     char buf[MAXPATHLENBUF];
@@ -239,6 +243,7 @@ void utils::sfgets(const char *srcname, int srcline, char *s, int size, FILE *fp
 void utils::sfread(const char *srcname, int srcline, void *s, size_t size, size_t num, FILE *fp,
                    const char *filename, Error *error)
 {
+  constexpr int MAXPATHLENBUF = 1024;
   size_t rv = fread(s, size, num, fp);
   if (rv != num) {    // something went wrong
     char buf[MAXPATHLENBUF];
@@ -538,17 +543,25 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
     std::string word(arg[iarg]);
     expandflag = 0;
 
-    // only match compute/fix reference with a '*' wildcard
+    // match compute, fix, or custom property array reference with a '*' wildcard
     // number range in the first pair of square brackets
 
-    if (strmatch(word, "^[cf]_\\w+\\[\\d*\\*\\d*\\]")) {
+    if (strmatch(word, "^[cf]_\\w+\\[\\d*\\*\\d*\\]") ||
+        strmatch(word, "^[id]2_\\w+\\[\\d*\\*\\d*\\]")) {
 
-      // split off the compute/fix ID, the wildcard and trailing text
+      // split off the compute/fix/property ID, the wildcard and trailing text
+
       size_t first = word.find("[");
       size_t second = word.find("]", first + 1);
-      id = word.substr(2, first - 2);
+      if (word[1] == '2')
+        id = word.substr(3, first - 3);
+      else
+        id = word.substr(2, first - 2);
+
       wc = word.substr(first + 1, second - first - 1);
       tail = word.substr(second + 1);
+
+      // compute
 
       if (word[0] == 'c') {
         int icompute = lmp->modify->find_compute(id);
@@ -571,6 +584,9 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
             expandflag = 1;
           }
         }
+
+        // fix
+
       } else if (word[0] == 'f') {
         int ifix = lmp->modify->find_fix(id);
 
@@ -593,8 +609,27 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
             expandflag = 1;
           }
         }
+
+        // only match custom array reference with a '*' wildcard
+        // number range in the first pair of square brackets
+
+      } else if ((word[0] == 'i') || (word[0] == 'd')) {
+        int flag, cols;
+        int icustom = lmp->atom->find_custom(id.c_str(), flag, cols);
+
+        if ((icustom >= 0) && (mode == 1) && (cols > 0)) {
+
+          // check for custom per-atom array
+
+          if (((word[0] == 'i') && (flag == 0)) || ((word[0] == 'd') && (flag == 1))) {
+            nmax = cols;
+            expandflag = 1;
+          }
+        }
       }
     }
+
+    // expansion will take place
 
     if (expandflag) {
 
@@ -607,11 +642,9 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
       }
 
       for (int index = nlo; index <= nhi; index++) {
-        // assemble and duplicate expanded string
-        earg[newarg] = utils::strdup(fmt::format("{}_{}[{}]{}", word[0], id, index, tail));
+        earg[newarg] = utils::strdup(fmt::format("{}2_{}[{}]{}", word[0], id, index, tail));
         newarg++;
       }
-
     } else {
       // no expansion: duplicate original string
       if (newarg == maxarg) {
@@ -855,6 +888,13 @@ std::vector<std::string> utils::split_words(const std::string &text)
       if (c != '\'') ++len;
       c = *++buf;
 
+      // handle triple double quotation marks
+    } else if ((c == '"') && (buf[1] == '"') && (buf[2] == '"') && (buf[3] != '"')) {
+      len = 3;
+      add = 1;
+      buf += 3;
+      c = *buf;
+
       // handle double quote
     } else if (c == '"') {
       ++beg;
@@ -1019,11 +1059,6 @@ bool utils::file_is_readable(const std::string &path)
    search current directory and the LAMMPS_POTENTIALS directory if
    specified
 ------------------------------------------------------------------------- */
-#if defined(_WIN32)
-#define OS_PATH_VAR_SEP ";"
-#else
-#define OS_PATH_VAR_SEP ":"
-#endif
 
 std::string utils::get_potential_file_path(const std::string &path)
 {
@@ -1037,8 +1072,11 @@ std::string utils::get_potential_file_path(const std::string &path)
     const char *var = getenv("LAMMPS_POTENTIALS");
 
     if (var != nullptr) {
-      Tokenizer dirs(var, OS_PATH_VAR_SEP);
-
+#if defined(_WIN32)
+      Tokenizer dirs(var, ";");
+#else
+      Tokenizer dirs(var, ":");
+#endif
       while (dirs.has_next()) {
         auto pot = utils::path_basename(filepath);
         auto dir = dirs.next();
@@ -1050,7 +1088,6 @@ std::string utils::get_potential_file_path(const std::string &path)
   }
   return "";
 }
-#undef OS_PATH_VAR_SEP
 
 /* ----------------------------------------------------------------------
    read first line of potential file

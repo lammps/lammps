@@ -51,7 +51,7 @@ NEB::NEB(LAMMPS *lmp) : Command(lmp), all(nullptr), rdist(nullptr) {}
 
 NEB::NEB(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
          int n2steps_in, int nevery_in, double *buf_init, double *buf_final)
-  : Command(lmp), all(nullptr), rdist(nullptr)
+  : Command(lmp), fp(nullptr), all(nullptr), rdist(nullptr)
 {
   double delx,dely,delz;
 
@@ -94,7 +94,8 @@ NEB::~NEB()
 {
   MPI_Comm_free(&roots);
   memory->destroy(all);
-  delete [] rdist;
+  delete[] rdist;
+  if (fp) fclose(fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -379,8 +380,8 @@ void NEB::readfile(char *file, int flag)
   char line[MAXLINE];
   double xx,yy,zz,delx,dely,delz;
 
-  if (me_universe == 0 && screen)
-    fprintf(screen,"Reading NEB coordinate file(s) ...\n");
+  if (me_universe == 0 && universe->uscreen)
+    fprintf(universe->uscreen,"Reading NEB coordinate file(s) ...\n");
 
   // flag = 0, universe root reads header of file, bcast to universe
   // flag = 1, each replica's root reads header of file, bcast to world
@@ -534,6 +535,7 @@ void NEB::readfile(char *file, int flag)
       else fclose(fp);
     }
   }
+  fp = nullptr;
 }
 
 /* ----------------------------------------------------------------------

@@ -615,7 +615,8 @@ void PairBuckCoulLongIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
                                                            const int ntable,
                                                            Memory *memory,
                                                            const int cop) {
-  if ((ntypes != _ntypes || ntable != _ntable)) {
+  if (memory != nullptr) _memory = memory;
+  if ((ntypes != _ntypes) || (ntable != _ntable)) {
     if (_ntypes > 0) {
       #ifdef _LMP_INTEL_OFFLOAD
       flt_t * ospecial_lj = special_lj;
@@ -652,14 +653,14 @@ void PairBuckCoulLongIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
     }
     if (ntypes > 0) {
       _cop = cop;
-      memory->create(c_force,ntypes,ntypes,"fc.c_force");
-      memory->create(c_energy,ntypes,ntypes,"fc.c_energy");
-      memory->create(rho_inv,ntypes,ntypes,"fc.rho_inv");
-      memory->create(table,ntable,"pair:fc.table");
-      memory->create(etable,ntable,"pair:fc.etable");
-      memory->create(detable,ntable,"pair:fc.detable");
-      memory->create(ctable,ntable,"pair:fc.ctable");
-      memory->create(dctable,ntable,"pair:fc.dctable");
+      _memory->create(c_force,ntypes,ntypes,"fc.c_force");
+      _memory->create(c_energy,ntypes,ntypes,"fc.c_energy");
+      _memory->create(rho_inv,ntypes,ntypes,"fc.rho_inv");
+      _memory->create(table,ntable,"pair:fc.table");
+      _memory->create(etable,ntable,"pair:fc.etable");
+      _memory->create(detable,ntable,"pair:fc.detable");
+      _memory->create(ctable,ntable,"pair:fc.ctable");
+      _memory->create(dctable,ntable,"pair:fc.dctable");
 
       #ifdef _LMP_INTEL_OFFLOAD
       flt_t * ospecial_lj = special_lj;
@@ -692,7 +693,6 @@ void PairBuckCoulLongIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
   }
   _ntypes=ntypes;
   _ntable=ntable;
-  _memory=memory;
 }
 
 

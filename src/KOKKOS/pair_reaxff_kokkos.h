@@ -1,6 +1,4 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
-
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -24,6 +22,7 @@ PairStyle(reax/c/kk/host,PairReaxFFKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_REAXC_KOKKOS_H
 #define LMP_PAIR_REAXC_KOKKOS_H
 
@@ -36,8 +35,6 @@ PairStyle(reax/c/kk/host,PairReaxFFKokkos<LMPHostType>);
 #define KCALpMOL_to_EV 23.02
 #define HB_THRESHOLD   1e-2  // 0.01
 #define MAX_BONDS      30
-
-#define SQR(x)        ((x)*(x))
 
 #include "reaxff_inline.h"
 

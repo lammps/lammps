@@ -162,7 +162,7 @@ class UCL_Kernel {
     const auto aligned_size = (old_size+alignof(dtype)-1) & ~(alignof(dtype)-1);
     const auto arg_size = sizeof(dtype);
     _hip_kernel_args.resize(aligned_size + arg_size);
-    *((dtype*)(&_hip_kernel_args[aligned_size])) = *arg; 
+    *((dtype*)(&_hip_kernel_args[aligned_size])) = *arg;
     _num_args++;
     if (_num_args>UCL_MAX_KERNEL_ARGS) assert(0==1);
   }
@@ -195,7 +195,7 @@ class UCL_Kernel {
     _num_blocks[0]=num_blocks;
     _num_blocks[1]=1;
     _num_blocks[2]=1;
-    
+
     _block_size[0]=block_size;
     _block_size[1]=1;
     _block_size[2]=1;

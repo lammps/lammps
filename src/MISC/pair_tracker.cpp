@@ -283,15 +283,8 @@ void PairTracker::init_style()
   // this is so its order in the fix list is preserved
 
   if (fix_history == nullptr) {
-    char dnumstr[16];
-    sprintf(dnumstr, "%d", size_history);
-    char **fixarg = new char *[4];
-    fixarg[0] = (char *) "NEIGH_HISTORY_TRACK";
-    fixarg[1] = (char *) "all";
-    fixarg[2] = (char *) "NEIGH_HISTORY";
-    fixarg[3] = dnumstr;
-    modify->replace_fix("NEIGH_HISTORY_TRACK_DUMMY", 4, fixarg, 1);
-    delete[] fixarg;
+    modify->replace_fix("NEIGH_HISTORY_TRACK_DUMMY",
+                        fmt::format("NEIGH_HISTORY_TRACK all NEIGH_HISTORY {}", size_history), 1);
     int ifix = modify->find_fix("NEIGH_HISTORY_TRACK");
     fix_history = (FixNeighHistory *) modify->fix[ifix];
     fix_history->pair = this;
@@ -442,7 +435,7 @@ void PairTracker::read_restart_settings(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double PairTracker::single(int /*i*/, int /*j*/, int /*itype*/, int /*jtype*/, double /*rsq*/,
-                           double /*factor_coul*/, double /*factor_lj*/, double &/*fforce*/)
+                           double /*factor_coul*/, double /*factor_lj*/, double & /*fforce*/)
 {
   return 0.0;
 }

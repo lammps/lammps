@@ -18,13 +18,13 @@ namespace ATC {
 
   enum OutputType     { ENSIGHT=0, GNUPLOT, FULL_GNUPLOT, VTK };
   enum OutputDataType { POINT=0, MESH };
-  enum OutputDataCardinality { SCALAR_OUTPUT=0, VECTOR_OUTPUT, TENSOR_OUTPUT, 
+  enum OutputDataCardinality { SCALAR_OUTPUT=0, VECTOR_OUTPUT, TENSOR_OUTPUT,
     SYM_TENSOR_OUTPUT, LIST_OUTPUT };
   enum OutputOption   { OUTPUT_VECTOR_COMPONENTS=0, OUTPUT_TENSOR_COMPONENTS};
 
   /**
-   *  @class  OutputManager 
-   *  @brief  Base class for handling output desired from an AtC computation 
+   *  @class  OutputManager
+   *  @brief  Base class for handling output desired from an AtC computation
    */
 
   class OutputManager{
@@ -38,7 +38,7 @@ namespace ATC {
     void initialize(std::string outputPrefix, std::set<int> &otypes);
 
     /** set output options */
-    void set_option(OutputOption option, bool value); 
+    void set_option(OutputOption option, bool value);
 
     // Dump text-based field info to disk for later restart
     void write_restart_file(std::string fileName, RESTART_LIST *data);
@@ -47,9 +47,9 @@ namespace ATC {
     void read_restart_file(std::string fileName, RESTART_LIST *data);
 
     /** write initial/reference geometry
-        default is to write point data, 
-        if connectivities are given then mesh data will be output 
-        coordinates : num _total_ points/nodes X num spatial dim 
+        default is to write point data,
+        if connectivities are given then mesh data will be output
+        coordinates : num _total_ points/nodes X num spatial dim
         connectivities : num elements X num nodes per element*/
     void write_geometry(const MATRIX *coordinates,
                         const Array2D<int> *connectivity=nullptr);
@@ -57,7 +57,7 @@ namespace ATC {
     /** write data from a time step
         specify node_map to handle periodic soln & data */
     void write_data(double time, OUTPUT_LIST *data, const int *node_map=nullptr);
-    void write_data(double time, FIELDS *soln, OUTPUT_LIST *data, 
+    void write_data(double time, FIELDS *soln, OUTPUT_LIST *data,
       const int *node_map=nullptr);
 
     /** add custom names for any field */
@@ -85,11 +85,11 @@ namespace ATC {
       else                return LIST_OUTPUT;
     }
     bool use_component_names(int type) const {
-      if ( (type==LIST_OUTPUT) ||     
+      if ( (type==LIST_OUTPUT) ||
        ((type==SYM_TENSOR_OUTPUT || type==TENSOR_OUTPUT) && tensorToComponents_)
-      || (type==VECTOR_OUTPUT && vectorToComponents_) ) 
+      || (type==VECTOR_OUTPUT && vectorToComponents_) )
         return true;
-      else 
+      else
         return false;
     }
     bool custom_name(const std::string field, const int index, std::string & name) const {
@@ -99,7 +99,7 @@ namespace ATC {
       name = names[index];
       return true;
     }
-    void print_custom_names(); 
+    void print_custom_names();
 
   private:
 
@@ -124,8 +124,8 @@ namespace ATC {
     const Array2D<int> * connectivities_;
     /** number of columns of data */
     int nDataCols_;
-    /** number of nodes */ 
-    int number_of_nodes_; 
+    /** number of nodes */
+    int number_of_nodes_;
     /** data type */
     int dataType_;
     /** base name for output files */

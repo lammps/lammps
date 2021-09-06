@@ -75,8 +75,7 @@ nfileevery(0), fp(nullptr), xf(nullptr), xold(nullptr)
     if (me == 0) {
       fp = fopen(arg[6],"w");
       if (fp == nullptr)
-        error->one(FLERR,"Cannot open fix tmd file {}: {}",
-                                     arg[6], utils::getsyserror());
+        error->one(FLERR,"Cannot open fix tmd file {}: {}", arg[6], utils::getsyserror());
       fprintf(fp,"%s %s\n","# Step rho_target rho_old gamma_back",
               "gamma_forward lambda work_lambda work_analytical");
     }
@@ -381,7 +380,7 @@ int FixTMD::unpack_exchange(int nlocal, double *buf)
 void FixTMD::readfile(char *file)
 {
   if (me == 0) {
-    if (screen) fprintf(screen,"Reading TMD target file %s ...\n",file);
+    utils::logmesg(lmp,"Reading TMD target file {} ...\n",file);
     open(file);
   }
 
@@ -541,8 +540,7 @@ void FixTMD::open(char *file)
   }
 
   if (fp == nullptr)
-    error->one(FLERR,"Cannot open file {}: {}",
-                                 file, utils::getsyserror());
+    error->one(FLERR,"Cannot open file {}: {}",file, utils::getsyserror());
 }
 
 /* ---------------------------------------------------------------------- */

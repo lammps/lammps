@@ -49,7 +49,8 @@ AtomVecOxdna::AtomVecOxdna(LAMMPS *lmp) : AtomVec(lmp)
 
   setup_fields();
 
-  if(!force->newton_bond) error->warning(FLERR,"Write_data command requires newton on to preserve 3'->5' bond polarity");
+  if (!force->newton_bond)
+    error->warning(FLERR, "Write_data command requires newton on to preserve 3'->5' bond polarity");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -80,7 +81,7 @@ void AtomVecOxdna::data_atom_post(int ilocal)
    store 5' partner to inform 3'->5' bond directionality
 ------------------------------------------------------------------------- */
 
-void AtomVecOxdna::data_bonds_post(int m, int num_bond, tagint atom1, tagint atom2,
+void AtomVecOxdna::data_bonds_post(int /*m*/, int /*num_bond*/, tagint atom1, tagint atom2,
                                    tagint id_offset)
 {
   int n;

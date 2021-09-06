@@ -152,7 +152,7 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`temp/chunk <compute_temp_chunk>`
    * :doc:`temp/com <compute_temp_com>`
    * :doc:`temp/cs <compute_temp_cs>`
-   * :doc:`temp/deform <compute_temp_deform>`
+   * :doc:`temp/deform (k) <compute_temp_deform>`
    * :doc:`temp/deform/eff <compute_temp_deform_eff>`
    * :doc:`temp/drude <compute_temp_drude>`
    * :doc:`temp/eff <compute_temp_eff>`

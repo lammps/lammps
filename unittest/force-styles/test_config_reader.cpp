@@ -13,9 +13,9 @@
 
 #include "test_config_reader.h"
 #include "test_config.h"
+#include "utils.h"
 #include "yaml.h"
 #include "yaml_reader.h"
-#include "utils.h"
 
 #include <cstdlib>
 #include <cstring>

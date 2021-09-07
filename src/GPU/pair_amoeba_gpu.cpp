@@ -66,7 +66,8 @@ void amoeba_gpu_clear();
 
 int ** amoeba_gpu_compute_udirect2b(const int ago, const int inum, const int nall,
               double **host_x, int *host_type, int *host_amtype, int *host_amgroup,
-              double **host_rpole, double *sublo, double *subhi, tagint *tag, int **nspecial,
+              double **host_rpole, double **host_uind, double **host_uinp, 
+              double *sublo, double *subhi, tagint *tag, int **nspecial,
               tagint **special, int* nspecial15, tagint** special15,
               const bool eflag, const bool vflag,
               const bool eatom, const bool vatom, int &host_start,
@@ -370,17 +371,7 @@ void PairAmoebaGPU::induce()
   crstyle = FIELD;
   comm->reverse_comm_pair(this);
 
-  // DEBUG statements
 
-  /*
-  for (i = 0; i < nlocal; i++)
-    if (atom->tag[i] == 1)
-      printf("AAA FIELD atom %d: field %g %g %g: fieldp %g %g %g\n",
-	     atom->tag[i],
-	     field[i][0],field[i][1],field[i][2],
-	     fieldp[i][0],fieldp[i][1],fieldp[i][2]);
-  */
-  
   // set induced dipoles to polarizability times direct field
 
   for (i = 0; i < nlocal; i++) {
@@ -799,7 +790,7 @@ void PairAmoebaGPU::udirect2b(double **field, double **fieldp)
 
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
-  
+
   double sublo[3],subhi[3];
   if (domain->triclinic == 0) {
     sublo[0] = domain->sublo[0];
@@ -814,8 +805,8 @@ void PairAmoebaGPU::udirect2b(double **field, double **fieldp)
   inum = atom->nlocal;
 
   firstneigh = amoeba_gpu_compute_udirect2b(neighbor->ago, inum, nall, atom->x,
-                                        atom->type, amtype, amgroup, rpole, sublo,
-                                        subhi, atom->tag, atom->nspecial, atom->special,
+                                        atom->type, amtype, amgroup, rpole, uind, uinp,
+                                        sublo, subhi, atom->tag, atom->nspecial, atom->special,
                                         atom->nspecial15, atom->special15,
                                         eflag, vflag, eflag_atom, vflag_atom,
                                         host_start, &ilist, &numneigh, cpu_time,

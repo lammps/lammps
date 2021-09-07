@@ -128,6 +128,18 @@ class BaseAmoeba {
                        tagint **special, int *nspecial15, tagint **special15,
                        bool &success);
 
+  /// Reallocate per-atom arrays if needed, and build neighbor lists once, if needed
+  int** precompute(const int ago, const int inum_full, const int nall,
+                double **host_x, int *host_type, int *host_amtype,
+                int *host_amgroup, double **host_rpole, double **host_uind,
+                double **host_uinp, double *sublo, double *subhi,
+                tagint *tag, int **nspecial, tagint **special,
+                int *nspecial15, tagint **special15,
+                const bool eflag, const bool vflag,
+                const bool eatom, const bool vatom, int &host_start,
+                int **&ilist, int **&numj, const double cpu_time, bool &success,
+                double *charge, double *boxlo, double *prd);
+
   /// Compute polar real-space with host neighboring (not active for now)
   void compute_polar_real(const int f_ago, const int inum_full, const int nall,
                double **host_x, int *host_type, int *host_amtype,
@@ -153,7 +165,9 @@ class BaseAmoeba {
   /// Compute the direct real space part of the permanent field (udirect2b) with device neighboring
   int** compute_udirect2b(const int ago, const int inum_full, const int nall,
                 double **host_x, int *host_type, int *host_amtype,
-                int *host_amgroup, double **host_rpole, double *sublo, double *subhi,
+                int *host_amgroup, double **host_rpole,
+                double **host_uind, double **host_uinp,
+                double *sublo, double *subhi,
                 tagint *tag, int **nspecial, tagint **special,
                 int *nspecial15, tagint **special15,
                 const bool eflag, const bool vflag,
@@ -191,7 +205,7 @@ class BaseAmoeba {
 
   /// Per-atom arrays
   UCL_Vector<numtyp,numtyp> _tep, _fieldp;
-  int _max_tep_size, _max_fieldp_size;
+  int _nmax, _max_tep_size, _max_fieldp_size;
 
   // ------------------------ FORCE/ENERGY DATA -----------------------
 
@@ -222,7 +236,7 @@ class BaseAmoeba {
   bool _compiled;
   int _block_size, _block_bio_size, _threads_per_atom;
   int _extra_fields;
-  double  _max_bytes, _max_an_bytes, _maxspecial, _maxspecial15;
+  double _max_bytes, _max_an_bytes, _maxspecial, _maxspecial15;
   double _gpu_overhead, _driver_overhead;
   UCL_D_Vec<int> *_nbor_data;
 

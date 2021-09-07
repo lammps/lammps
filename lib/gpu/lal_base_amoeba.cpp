@@ -121,9 +121,12 @@ int BaseAmoebaT::init_atomic(const int nlocal, const int nall,
     ef_nall=2000;
 
   _max_tep_size=static_cast<int>(static_cast<double>(ef_nall)*1.10);
+  _tep.alloc(_max_tep_size*4,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
+
   _max_fieldp_size = _max_tep_size;
   _fieldp.alloc(_max_fieldp_size*8,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
-  _tep.alloc(_max_tep_size*4,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
+
+  _nmax = nall;
   dev_nspecial15.alloc(nall,*(this->ucl_device),UCL_READ_ONLY);
   dev_special15.alloc(_maxspecial15*nall,*(this->ucl_device),UCL_READ_ONLY);
   dev_special15_t.alloc(nall*_maxspecial15,*(this->ucl_device),UCL_READ_ONLY);
@@ -312,10 +315,12 @@ void BaseAmoebaT::compute_polar_real(const int f_ago, const int inum_full, const
 }
 
 // ---------------------------------------------------------------------------
-// Reneighbor on GPU if necessary, and then compute polar real-space
+// Prepare for multiple kernel calls in a time step:
+//   - reallocate per-atom arrays, if needed
+//   - build the full neighbor lists for use by different kernels
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int** BaseAmoebaT::compute_polar_real(const int ago, const int inum_full, const int nall,
+int** BaseAmoebaT::precompute(const int ago, const int inum_full, const int nall,
                            double **host_x, int *host_type, int *host_amtype,
                            int *host_amgroup, double **host_rpole,
                            double **host_uind, double **host_uinp,
@@ -324,9 +329,9 @@ int** BaseAmoebaT::compute_polar_real(const int ago, const int inum_full, const 
                            int *nspecial15, tagint **special15,
                            const bool eflag_in, const bool vflag_in,
                            const bool eatom, const bool vatom, int &host_start,
-                           int **ilist, int **jnum, const double cpu_time,
+                           int **&ilist, int **&jnum, const double cpu_time,
                            bool &success, double *host_q, double *boxlo,
-                           double *prd, void **tep_ptr) {
+                           double *prd) {
   acc_timers();
   int eflag, vflag;
   if (eatom) eflag=2;
@@ -343,12 +348,10 @@ int** BaseAmoebaT::compute_polar_real(const int ago, const int inum_full, const 
 
   set_kernel(eflag,vflag);
 
-  // ------------------- Resize _tep array ------------------------
+  // ------------------- Resize 1-5 neighbor arrays ------------------------
 
-  if (nall>_max_tep_size) {
-    _max_tep_size=static_cast<int>(static_cast<double>(nall)*1.10);
-    _tep.resize(_max_tep_size*4);
-
+  if (nall>_nmax) {
+    _nmax = nall;
     dev_nspecial15.clear();
     dev_special15.clear();
     dev_special15_t.clear();
@@ -356,7 +359,6 @@ int** BaseAmoebaT::compute_polar_real(const int ago, const int inum_full, const 
     dev_special15.alloc(_maxspecial15*nall,*(this->ucl_device),UCL_READ_ONLY);
     dev_special15_t.alloc(nall*_maxspecial15,*(this->ucl_device),UCL_READ_ONLY);   
   }
-  *tep_ptr=_tep.host.begin();
 
   if (inum_full==0) {
     host_start=0;
@@ -397,6 +399,60 @@ int** BaseAmoebaT::compute_polar_real(const int ago, const int inum_full, const 
   device->precompute(ago,inum_full,nall,host_x,host_type,success,host_q,
                      boxlo, prd);
 
+  return nbor->host_jlist.begin()-host_start;
+}
+
+// ---------------------------------------------------------------------------
+// Reneighbor on GPU if necessary, and then compute polar real-space
+// ---------------------------------------------------------------------------
+template <class numtyp, class acctyp>
+int** BaseAmoebaT::compute_polar_real(const int ago, const int inum_full, const int nall,
+                           double **host_x, int *host_type, int *host_amtype,
+                           int *host_amgroup, double **host_rpole,
+                           double **host_uind, double **host_uinp,
+                           double *sublo, double *subhi, tagint *tag,
+                           int **nspecial, tagint **special,
+                           int *nspecial15, tagint **special15,
+                           const bool eflag_in, const bool vflag_in,
+                           const bool eatom, const bool vatom, int &host_start,
+                           int **ilist, int **jnum, const double cpu_time,
+                           bool &success, double *host_q, double *boxlo,
+                           double *prd, void **tep_ptr) {
+  acc_timers();
+  int eflag, vflag;
+  if (eatom) eflag=2;
+  else if (eflag_in) eflag=1;
+  else eflag=0;
+  if (vatom) vflag=2;
+  else if (vflag_in) vflag=1;
+  else vflag=0;
+
+  #ifdef LAL_NO_BLOCK_REDUCE
+  if (eflag) eflag=2;
+  if (vflag) vflag=2;
+  #endif
+
+  set_kernel(eflag,vflag);
+
+  // reallocate per-atom arrays and build the neighbor lists if needed
+
+  int** firstneigh = nullptr;
+  firstneigh = precompute(ago, inum_full, nall, host_x, host_type,
+                          host_amtype, host_amgroup, host_rpole,
+                          host_uind, host_uinp, sublo, subhi, tag,
+                          nspecial, special, nspecial15, special15,
+                          eflag_in, vflag_in, eatom, vatom,
+                          host_start, ilist, jnum, cpu_time,
+                          success, host_q, boxlo, prd);
+
+  // ------------------- Resize _tep array ------------------------
+
+  if (nall>_max_tep_size) {
+    _max_tep_size=static_cast<int>(static_cast<double>(nall)*1.10);
+    _tep.resize(_max_tep_size*4);
+  }
+  *tep_ptr=_tep.host.begin();
+
   const int red_blocks=polar_real(eflag,vflag);
   ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
   device->add_ans_object(ans);
@@ -412,7 +468,7 @@ int** BaseAmoebaT::compute_polar_real(const int ago, const int inum_full, const 
     printf("i = %d; tep = %f %f %f\n", i, p->x, p->y, p->z);
   }
 */  
-  return nbor->host_jlist.begin()-host_start;
+  return firstneigh; // nbor->host_jlist.begin()-host_start;
 }
 
 // ---------------------------------------------------------------------------
@@ -423,6 +479,7 @@ template <class numtyp, class acctyp>
 int** BaseAmoebaT::compute_udirect2b(const int ago, const int inum_full, const int nall,
                            double **host_x, int *host_type, int *host_amtype,
                            int *host_amgroup, double **host_rpole,
+                           double **host_uind, double **host_uinp,
                            double *sublo, double *subhi, tagint *tag,
                            int **nspecial, tagint **special,
                            int *nspecial15, tagint **special15,
@@ -447,59 +504,26 @@ int** BaseAmoebaT::compute_udirect2b(const int ago, const int inum_full, const i
 
   set_kernel(eflag,vflag);
 
+  // reallocate per-atom arrays and build the neighbor lists if needed
+
+  int** firstneigh = nullptr;
+  firstneigh = precompute(ago, inum_full, nall, host_x, host_type,
+                          host_amtype, host_amgroup, host_rpole,
+                          host_uind, host_uinp, sublo, subhi, tag,
+                          nspecial, special, nspecial15, special15,
+                          eflag_in, vflag_in, eatom, vatom,
+                          host_start, ilist, jnum, cpu_time,
+                          success, host_q, boxlo, prd);
+
   // ------------------- Resize _fieldp array ------------------------
 
   if (nall>_max_fieldp_size) {
     _max_fieldp_size=static_cast<int>(static_cast<double>(nall)*1.10);
     _fieldp.resize(_max_fieldp_size*8);
-
-    dev_nspecial15.clear();
-    dev_special15.clear();
-    dev_special15_t.clear();
-    dev_nspecial15.alloc(nall,*(this->ucl_device),UCL_READ_ONLY);
-    dev_special15.alloc(_maxspecial15*nall,*(this->ucl_device),UCL_READ_ONLY);
-    dev_special15_t.alloc(nall*_maxspecial15,*(this->ucl_device),UCL_READ_ONLY);   
   }
   *fieldp_ptr=_fieldp.host.begin();
 
-  if (inum_full==0) {
-    host_start=0;
-    // Make sure textures are correct if realloc by a different hybrid style
-    resize_atom(0,nall,success);
-    zero_timers();
-    return nullptr;
-  }
-
-  hd_balancer.balance(cpu_time);
-  int inum=hd_balancer.get_gpu_count(ago,inum_full);
-  ans->inum(inum);
-  host_start=inum;
-
-  // Build neighbor list on GPU if necessary
-  if (ago==0) {
-    build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
-                    sublo, subhi, tag, nspecial, special, nspecial15, special15,
-                    success);
-    if (!success)
-      return nullptr;
-    atom->cast_q_data(host_q);
-    cast_extra_data(host_amtype, host_amgroup, host_rpole, nullptr, nullptr);
-    hd_balancer.start_timer();
-  } else {
-    atom->cast_x_data(host_x,host_type);
-    atom->cast_q_data(host_q);
-    cast_extra_data(host_amtype, host_amgroup, host_rpole, nullptr, nullptr);
-    hd_balancer.start_timer();
-    atom->add_x_data(host_x,host_type);
-  }
-  atom->add_q_data();
-  atom->add_extra_data();
-
-  *ilist=nbor->host_ilist.begin();
-  *jnum=nbor->host_acc.begin();
-
   const int red_blocks=udirect2b(eflag,vflag);
-  hd_balancer.stop_timer();
 
   // copy field and fieldp from device to host (_fieldp store both arrays, one after another)
 
@@ -510,9 +534,8 @@ int** BaseAmoebaT::compute_udirect2b(const int ago, const int inum_full, const i
     numtyp4* p = (numtyp4*)(&this->_fieldp[4*i]);
     printf("i = %d; field = %f %f %f\n", i, p->x, p->y, p->z);
   }
-*/  
-
-  return nbor->host_jlist.begin()-host_start;
+*/
+  return firstneigh; //nbor->host_jlist.begin()-host_start;
 }
 
 template <class numtyp, class acctyp>

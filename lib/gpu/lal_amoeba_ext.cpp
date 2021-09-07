@@ -127,6 +127,7 @@ int** amoeba_gpu_compute_polar_real(const int ago, const int inum_full,
 int** amoeba_gpu_compute_udirect2b(const int ago, const int inum_full,
                            const int nall, double **host_x, int *host_type,
                            int *host_amtype, int *host_amgroup, double **host_rpole,
+                           double **host_uind, double **host_uinp,
                            double *sublo, double *subhi, tagint *tag, int **nspecial,
                            tagint **special, int *nspecial15, tagint** special15,
                            const bool eflag, const bool vflag,
@@ -135,8 +136,8 @@ int** amoeba_gpu_compute_udirect2b(const int ago, const int inum_full,
                            bool &success, double *host_q, double *boxlo,
                            double *prd, void **fieldp_ptr) {
   return AMOEBAMF.compute_udirect2b(ago, inum_full, nall, host_x, host_type,
-                          host_amtype, host_amgroup, host_rpole, sublo, subhi,
-                          tag, nspecial, special, nspecial15, special15,
+                          host_amtype, host_amgroup, host_rpole, host_uind, host_uinp,
+                          sublo, subhi, tag, nspecial, special, nspecial15, special15,
                           eflag, vflag, eatom, vatom, host_start, ilist, jnum,
                           cpu_time, success, host_q, boxlo, prd, fieldp_ptr);
 }

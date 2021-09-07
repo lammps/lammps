@@ -714,7 +714,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Cannot create/grow a vector/array of pointers for %s*
    LAMMPS code is making an illegal call to the templated memory
-   allocaters, to create a vector or array of pointers.
+   allocators, to create a vector or array of pointers.
 
 *Cannot create_atoms after reading restart file with per-atom info*
    The per-atom info was stored to be used when by a fix that you may

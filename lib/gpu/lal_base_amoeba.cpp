@@ -528,13 +528,14 @@ int** BaseAmoebaT::compute_udirect2b(const int ago, const int inum_full, const i
   // copy field and fieldp from device to host (_fieldp store both arrays, one after another)
 
   _fieldp.update_host(_max_fieldp_size*8,false);
-/*  
-  printf("GPU lib: _fieldp size = %d: max fieldp size = %d\n", this->_field.cols(), _max_fieldp_size);
+
+  printf("GPU lib: _fieldp size = %d: max fieldp size = %d\n",
+    this->_fieldp.cols(), _max_fieldp_size);
   for (int i = 0; i < 10; i++) {
     numtyp4* p = (numtyp4*)(&this->_fieldp[4*i]);
     printf("i = %d; field = %f %f %f\n", i, p->x, p->y, p->z);
   }
-*/
+
   return firstneigh; //nbor->host_jlist.begin()-host_start;
 }
 

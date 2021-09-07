@@ -116,9 +116,13 @@ _texture( q_tex,int2);
   }                                                                         \
   if (offset==0 && ii<inum) {                                               \
     numtyp4 f, fp;                                                          \
-    f.x  = _fieldp[0]; f.y  = _fieldp[0]; f.z  = _fieldp[2];                \
-    fp.x = _fieldp[3]; fp.y = _fieldp[4]; fp.z = _fieldp[5];                \
+    f.x = _fieldp[0];                                                       \
+    f.y = _fieldp[1];                                                       \
+    f.z = _fieldp[2];                                                       \
     fieldp[ii] = f;                                                         \
+    fp.x = _fieldp[3];                                                      \
+    fp.y = _fieldp[4];                                                      \
+    fp.z = _fieldp[5];                                                      \
     fieldp[ii+inum] = fp;                                                   \
   }
 
@@ -152,7 +156,7 @@ _texture( q_tex,int2);
     tep[i]=t;                                                               \
   }
 
-#define store_answers_fieldp(_fieldp, ii, inum,tid, t_per_atom, offset, i,  \
+#define store_answers_fieldp(_fieldp, ii, inum, tid, t_per_atom, offset, i, \
                              fieldp)                                        \
   if (t_per_atom>1) {                                                       \
     for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
@@ -166,9 +170,13 @@ _texture( q_tex,int2);
   }                                                                         \
   if (offset==0 && ii<inum) {                                               \
     numtyp4 f, fp;                                                          \
-    f.x  = _fieldp[0]; f.y  = _fieldp[0]; f.z  = _fieldp[2];                \
-    fp.x = _fieldp[3]; fp.y = _fieldp[4]; fp.z = _fieldp[5];                \
+    f.x = _fieldp[0];                                                       \
+    f.y = _fieldp[1];                                                       \
+    f.z = _fieldp[2];                                                       \
     fieldp[ii] = f;                                                         \
+    fp.x = _fieldp[3];                                                      \
+    fp.y = _fieldp[4];                                                      \
+    fp.z = _fieldp[5];                                                      \
     fieldp[ii+inum] = fp;                                                   \
   }
 
@@ -890,8 +898,7 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
       _fieldp[3] += fip[0];
       _fieldp[4] += fip[1];
       _fieldp[5] += fip[2];
-
-    } // nbor
+    }  // nbor
 
   } // ii<inum
 
@@ -948,4 +955,3 @@ __kernel void k_special15(__global int * dev_nbor,
 
   } // if ii
 }
-

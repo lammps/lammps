@@ -299,8 +299,7 @@ you are uncertain, please ask.
 
   - ``using namespace LAMMPS_NS`` or other namespace imports.
 
-- I/O is done via the C-style stdio library and **not** iostreams
-  (and mixing of stdio and iostreams is generally discouraged
+- I/O is done via the C-style stdio library and **not** iostreams.
 
 - Output to the screen and the logfile should be using the corresponding
   FILE pointers and only be done on MPI rank 0.  Use the :cpp:func:`utils::logmesg`

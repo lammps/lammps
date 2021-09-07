@@ -10,6 +10,7 @@ This section documents the following functions:
 - :cpp:func:`lammps_mpi_init`
 - :cpp:func:`lammps_mpi_finalize`
 - :cpp:func:`lammps_kokkos_finalize`
+- :cpp:func:`lammps_python_finalize`
 
 --------------------
 
@@ -103,4 +104,14 @@ calling program.
 -----------------------
 
 .. doxygenfunction:: lammps_mpi_finalize
+   :project: progguide
+
+-----------------------
+
+.. doxygenfunction:: lammps_kokkos_finalize
+   :project: progguide
+
+-----------------------
+
+.. doxygenfunction:: lammps_python_finalize
    :project: progguide

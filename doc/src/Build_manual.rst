@@ -22,7 +22,6 @@ files. Here is a list with descriptions:
    .gitignore       # list of files and folders to be ignored by git
    doxygen-warn.log # logfile with warnings from running doxygen
    github-development-workflow.md   # notes on the LAMMPS development workflow
-   include-file-conventions.md      # notes on LAMMPS' include file conventions
 
 If you downloaded LAMMPS as a tarball from `the LAMMPS website <lws_>`_,
 the html folder and the PDF files should be included.

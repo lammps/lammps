@@ -9,13 +9,15 @@ this.
 If you add a new feature to LAMMPS and think it will be of interest to
 general users, we encourage you to submit it for inclusion in LAMMPS
 as a pull request on our `GitHub site <https://github.com/lammps/lammps>`_,
-after reading :doc:`this page <Modify_contribute>`.
+after reading about :doc:`how to prepare your code for submission <Modify_contribute>`
+and :doc:`the style requirements and recommendations <Modify_style>`.
 
 .. toctree::
    :maxdepth: 1
 
    Modify_overview
    Modify_contribute
+   Modify_style
 
 .. toctree::
    :maxdepth: 1

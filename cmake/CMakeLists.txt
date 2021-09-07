@@ -90,6 +90,10 @@ endif()
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "Use compiler extensions")
+# ugly hack for MSVC which by default always reports an old C++ standard in the __cplusplus macro
+if(MSVC)
+  add_compile_options(/Zc:__cplusplus)
+endif()
 
 # export all symbols when building a .dll file on windows
 if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND BUILD_SHARED_LIBS)

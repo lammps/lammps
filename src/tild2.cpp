@@ -948,53 +948,6 @@ void TILD::set_grid_global()
 }
 
 /* ----------------------------------------------------------------------
-   allocate per-atom memory that depends on # of K-vectors and order
-------------------------------------------------------------------------- */
-
-void TILD::allocate_peratom()
-{
-
-  int (*procneigh)[2] = comm->procneigh;
-
-  peratom_allocate_flag = 1;
-
-  // int Dim = domain->dimension;
-  // memory->create5d_offset(gradWtype,group->ngroup, 0, Dim,
-  //                         nzlo_out,nzhi_out,nylo_out,nyhi_out,
-  //                         nxlo_out,nxhi_out,"tild:gradWtype");
-  // memory->create(gradWtype, group->ngroup, Dim,, "tild:gradWtype");
-
-  // create ghost grid object for rho and electric field communication
-
-  // if (differentiation_flag == 1)
-  //   cg_peratom =
-  //     new GridComm(lmp,world,6,1,
-  //                  nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-  //                  nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out,
-  //                  procneigh[0][0],procneigh[0][1],procneigh[1][0],
-  //                  procneigh[1][1],procneigh[2][0],procneigh[2][1]);
-  // else
-  //   cg_peratom =
-  //     new GridComm(lmp,world,7,1,
-  //                  nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-  //                  nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out,
-  //                  procneigh[0][0],procneigh[0][1],procneigh[1][0],
-  //                  procneigh[1][1],procneigh[2][0],procneigh[2][1]);
-}
-
-/* ----------------------------------------------------------------------
-   deallocate per-atom memory that depends on # of K-vectors and order
-------------------------------------------------------------------------- */
-
-void TILD::deallocate_peratom()
-{
-  peratom_allocate_flag = 0;
-
-  // delete cg_peratom;
-  // cg_peratom = nullptr;
-}
-
-/* ----------------------------------------------------------------------
    Initialize in real space the cross-potentials
 ------------------------------------------------------------------------- */
 

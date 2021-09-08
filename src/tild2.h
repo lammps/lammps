@@ -153,8 +153,6 @@ class TILD : public KSpace{
   virtual void set_grid_global();
   void set_grid_local();
 
-  virtual void allocate_peratom();
-  virtual void deallocate_peratom();
 
   virtual void particle_map();
   virtual void make_rho();

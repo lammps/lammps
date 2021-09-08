@@ -587,7 +587,7 @@ void TILD::compute(int eflag, int vflag){
 
   // cg->reverse_comm(this, REVERSE_RHO_NONE);
   int ntypes = atom->ntypes;
-  gc->reverse_comm_kspace(this,(ntypes+1)*3,sizeof(FFT_SCALAR),REVERSE_RHO_NONE,
+  gc->reverse_comm(GridComm::KSPACE,this,(ntypes+1)*3,sizeof(FFT_SCALAR),REVERSE_RHO_NONE,
                           gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   brick2fft();
 
@@ -600,7 +600,7 @@ void TILD::compute(int eflag, int vflag){
   // all procs communicate gradient potential values
   // to fill ghost cells surrounding their 3d bricks
   
-  gc->forward_comm_kspace(this,(ntypes+1)*3,sizeof(FFT_SCALAR),FORWARD_NONE,
+  gc->forward_comm(GridComm::KSPACE,this,(ntypes+1)*3,sizeof(FFT_SCALAR),FORWARD_NONE,
                           gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
 

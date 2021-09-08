@@ -543,7 +543,7 @@ int FixACKS2ReaxFF::BiCGStab(double *b, double *x)
     if (i > 1) {
       beta = (rho / rho_old) * (alpha / omega);
       vector_sum(q , 1., p, -omega, z, nn);
-      vector_sum(p , 1., r, beta, q, nn);     
+      vector_sum(p , 1., r, beta, q, nn);
     } else {
       vector_copy(p, r, nn);
     }

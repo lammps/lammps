@@ -289,7 +289,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::pre_force(int vflag)
     if (neighflag == FULL) {
       FixACKS2ReaxFFKokkosComputeXFunctor<DeviceType, FULL> computeX_functor(this);
       Kokkos::parallel_scan(nn,computeX_functor);
-    } else if (neighflag == HALFTHREAD) { 
+    } else if (neighflag == HALFTHREAD) {
       FixACKS2ReaxFFKokkosComputeXFunctor<DeviceType, HALFTHREAD> computeX_functor(this);
       Kokkos::parallel_scan(nn,computeX_functor);
     } else {
@@ -478,7 +478,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::allocate_array()
 
 template<class DeviceType>
 void FixACKS2ReaxFFKokkos<DeviceType>::deallocate_array()
-{ 
+{
   memoryKK->destroy_kokkos(k_s,s);
   memoryKK->destroy_kokkos(k_chi_field,chi_field);
   memoryKK->destroy_kokkos(X_diag);
@@ -1268,7 +1268,7 @@ int FixACKS2ReaxFFKokkos<DeviceType>::bicgstab_solve()
     pack_flag = 3;
     k_y.template modify<DeviceType>();
     k_y.template sync<LMPHostType>();
-    if (neighflag != FULL) 
+    if (neighflag != FULL)
       comm->reverse_comm_fix(this); //Coll_vector( y );
     more_reverse_comm(k_y.h_view.data());
     k_y.template modify<LMPHostType>();
@@ -1683,13 +1683,13 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Dot4, const int &ii, 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Dot5, const int &ii, double &lsum) const
-{ 
+{
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
     lsum += d_y[i] * d_y[i];
     lsum += d_y[NN+i] * d_y[NN+i];
   }
-  
+
   // last two rows
   if (comm_me_0_flag && ii == 0) {
     lsum += d_y[2*NN] * d_y[2*NN];
@@ -1732,7 +1732,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Precon2, const int &i
   if (comm_me_0_flag && ii == 0) {
     d_q_hat[2*NN] = d_q[2*NN];
     d_q_hat[2*NN + 1] = d_q[2*NN + 1];
-  } 
+  }
 }
 
 /* ---------------------------------------------------------------------- */

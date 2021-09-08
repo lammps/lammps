@@ -77,7 +77,7 @@ struct single_body_parameters {
   double b_o_131;
   double b_o_132;
   double b_o_133;
-  double bcut_acks2; // ACKS2 bond cutoff 
+  double bcut_acks2; // ACKS2 bond cutoff
 
   /* Line four in the field file */
   double p_ovun2;
@@ -213,7 +213,7 @@ struct reax_system {
   LR_lookup_table **LR;
 
   int omp_active;
-  int acks2_flag; 
+  int acks2_flag;
 };
 
 /* system control parameters */

@@ -33,8 +33,8 @@
 #endif
 
 #if defined(__APPLE__)
+#include <fcntl.h>    // for fcntl
 #include <sys/syslimits.h>
-#include <fcntl.h>     // for fcntl
 #endif
 
 /*! \file utils.cpp */
@@ -170,7 +170,7 @@ const char *utils::guesspath(char *buf, int len, FILE *fp)
 #elif defined(__APPLE__)
   int fd = fileno(fp);
   char filepath[PATH_MAX];
-  if (fcntl(fd,F_GETPATH,filepath) != -1)
+  if (fcntl(fd, F_GETPATH, filepath) != -1)
     strncpy(buf, filepath, len - 1);
   else
     strncpy(buf, "(unknown)", len - 1);

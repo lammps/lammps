@@ -54,14 +54,23 @@ Syntax
          *nozforce* turns off kspace forces in the z direction
        *splittol* value = tol
          tol = relative size of two eigenvalues (see discussion below)
-       *tild/shape* 
+       *tild/shape* itype itype SHAPE parameters
+         SHAPE = *Gaussian* or *Erfc*
+         parameters = parameters for each function (see discussion below)
        *tild/prefactor* itype jtype prefactor
+         prefactor = amplitude of the function 
        *tild/cross-interaction* itype jtype interaction_shape parameters* 
-       *tild/set_rho0*
-       *tild/subtract_rho0*
-       *tild/normalize_by_rho0*
-       *tild/write_grid_data*
-       *tild/ave/grid*
+         interaction_shape = *Gaussian* or *Gaussian-erfc* or *erfc*
+         parameters = parameters for each function (see discussion below)
+       *tild/set_rho0* = *yes* or *no*
+       *tild/subtract_rho0* = *yes* or *no*
+       *tild/normalize_by_rho0* = *yes* or *no*
+       *tild/write_grid_data* = freq filename
+        freq = frequency of output. 0 or less disables output
+       *tild/ave/grid* = Nevery Nrepeat peratom_freq filename 
+        Nevery = use input values every this many timesteps
+        Nrepeat = # of times to use input values for calculating averages
+
        
 
 Examples

@@ -42,7 +42,7 @@ enum{NONE,CONSTANT,EQUAL,ATOM};
 
 FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), xstr(nullptr), ystr(nullptr), zstr(nullptr),
-  estr(nullptr), idregion(nullptr), efield(nullptr)
+  estr(nullptr), idregion(nullptr), efield(nullptr), energy(nullptr)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix efield command");
 
@@ -111,6 +111,8 @@ FixEfield::FixEfield(LAMMPS *lmp, int narg, char **arg) :
 
   maxatom = atom->nmax;
   memory->create(efield,maxatom,4,"efield:efield");
+
+  maxatom_energy = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -123,6 +125,7 @@ FixEfield::~FixEfield()
   delete [] estr;
   delete [] idregion;
   memory->destroy(efield);
+  memory->destroy(energy);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -448,4 +451,72 @@ double FixEfield::compute_vector(int n)
     force_flag = 1;
   }
   return fsum_all[n+1];
+}
+
+/* ----------------------------------------------------------------------
+   get E
+------------------------------------------------------------------------- */
+
+double* FixEfield::get_energy()
+{
+  double **x = atom->x;
+  double *q = atom->q;
+  int *mask = atom->mask;
+  imageint *image = atom->image;
+
+  int nlocal = atom->nlocal;
+
+  // reallocate energy array if necessary
+
+  if (atom->nmax > maxatom_energy) {
+    maxatom_energy = atom->nmax;
+    memory->destroy(energy);
+    memory->create(energy,maxatom_energy,"efield:energy");
+  }
+  memset(&energy[0],0.0,maxatom_energy*sizeof(double));
+
+  // update region if necessary
+
+  Region *region = NULL;
+  if (iregion >= 0) {
+    region = domain->regions[iregion];
+    region->prematch();
+  }
+
+  int warn_flag_local = 0;
+
+  // constant efield
+
+  if (varflag == CONSTANT) {
+    double unwrap[3];
+
+    // charge interactions
+    // force = qE, potential energy = F dot x in unwrapped coords
+
+    if (qflag) {
+      for (int i = 0; i < nlocal; i++) {
+        if (mask[i] & groupbit) {
+          if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
+          const double fx = ex;
+          const double fy = ey;
+          const double fz = ez;
+
+          domain->unmap(x[i],image[i],unwrap);
+          energy[i] -= fx*unwrap[0] + fy*unwrap[1] + fz*unwrap[2];
+          if (fabs(fx*(x[i][0]-unwrap[0])) + fabs(fy*(x[i][1]-unwrap[1])) + 
+              fabs(fz*(x[i][2]-unwrap[2])) > 0.0)
+            warn_flag_local = 1;
+        }
+      }
+    }
+  } else {
+    error->all(FLERR,"Cannot yet use fix qeq/reaxff with variable efield");
+  }
+
+  int warn_flag;
+  MPI_Allreduce(&warn_flag_local,&warn_flag,1,MPI_INT,MPI_SUM,world);
+  if (warn_flag && comm->me == 0)
+    error->warning(FLERR,"Using non-zero image flags in field direction with fix qeq/reaxff");
+
+  return energy;
 }

@@ -613,6 +613,8 @@
 /fft3d_wrap.h
 /fix_accelerate_cos.cpp
 /fix_accelerate_cos.h
+/fix_acks2_reaxff.cpp
+/fix_acks2_reaxff.h
 /fix_adapt_fep.cpp
 /fix_adapt_fep.h
 /fix_addtorque.cpp

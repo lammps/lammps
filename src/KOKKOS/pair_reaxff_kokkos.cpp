@@ -23,6 +23,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "fix_acks2_reaxff_kokkos.h"
 #include "kokkos.h"
 #include "math_const.h"
 #include "math_special.h"
@@ -141,6 +142,25 @@ void PairReaxFFKokkos<DeviceType>::init_style()
   if (fix_reaxff) modify->delete_fix(fix_id); // not needed in the Kokkos version
   fix_reaxff = nullptr;
 
+  acks2_flag = api->system->acks2_flag;
+  if (acks2_flag) {
+    int ifix = modify->find_fix_by_style("^acks2/reax");
+    Fix* fix = modify->fix[ifix];
+    if (!fix->kokkosable)
+      error->all(FLERR,"Must use Kokkos version of acks2/reax with pair reaxc/kk");
+    if (fix->execution_space == Host) {
+      FixACKS2ReaxFFKokkos<LMPHostType>* acks2_fix = (FixACKS2ReaxFFKokkos<LMPHostType>*) modify->fix[ifix];
+      auto k_s = acks2_fix->get_s();
+      k_s.sync<DeviceType>();
+      d_s = k_s.view<DeviceType>();
+    } else {
+      FixACKS2ReaxFFKokkos<LMPDeviceType>* acks2_fix = (FixACKS2ReaxFFKokkos<LMPDeviceType>*) modify->fix[ifix];
+      auto k_s = acks2_fix->get_s();
+      k_s.sync<DeviceType>();
+      d_s = k_s.view<DeviceType>();
+    }
+  }
+
   // irequest = neigh request made by parent class
 
   neighflag = lmp->kokkos->neighflag;
@@ -229,6 +249,9 @@ void PairReaxFFKokkos<DeviceType>::setup()
 
     // hydrogen bond
     k_params_sing.h_view(i).p_hbond = api->system->reax_param.sbp[map[i]].p_hbond;
+
+    // acks2
+    k_params_sing.h_view(i).bcut_acks2 = api->system->reax_param.sbp[map[i]].bcut_acks2;
 
     for (j = 1; j <= n; j++) {
       if (map[j] == -1) continue;
@@ -690,8 +713,10 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   tag = atomKK->k_tag.view<DeviceType>();
   type = atomKK->k_type.view<DeviceType>();
   nlocal = atomKK->nlocal;
-  nall = atom->nlocal + atom->nghost;
   newton_pair = force->newton_pair;
+
+  nn = list->inum;
+  NN = list->inum + list->gnum;
 
   const int inum = list->inum;
   const int ignum = inum + list->gnum;
@@ -699,6 +724,22 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   d_numneigh = k_list->d_numneigh;
   d_neighbors = k_list->d_neighbors;
   d_ilist = k_list->d_ilist;
+
+  if (acks2_flag) {
+    int ifix = modify->find_fix_by_style("^acks2/reax");
+    Fix* fix = modify->fix[ifix];
+    if (fix->execution_space == Host) {
+      FixACKS2ReaxFFKokkos<LMPHostType>* acks2_fix = (FixACKS2ReaxFFKokkos<LMPHostType>*) modify->fix[ifix];
+      auto k_s = acks2_fix->get_s();
+      k_s.sync<DeviceType>();
+      d_s = k_s.view<DeviceType>();
+    } else {
+      FixACKS2ReaxFFKokkos<LMPDeviceType>* acks2_fix = (FixACKS2ReaxFFKokkos<LMPDeviceType>*) modify->fix[ifix];
+      auto k_s = acks2_fix->get_s();
+      k_s.sync<DeviceType>();
+      d_s = k_s.view<DeviceType>();
+    }
+  }
 
   need_dup = lmp->kokkos->need_dup<DeviceType>();
 
@@ -1057,7 +1098,12 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFComputePolar<NEIGHFLAG,E
   const F_FLOAT chi = paramssing(itype).chi;
   const F_FLOAT eta = paramssing(itype).eta;
 
-  const F_FLOAT epol = KCALpMOL_to_EV*(chi*qi+(eta/2.0)*qi*qi);
+  F_FLOAT epol = KCALpMOL_to_EV*(chi*qi+(eta/2.0)*qi*qi);
+
+  /* energy due to coupling with kinetic energy potential */
+  if (acks2_flag)
+    epol += KCALpMOL_to_EV*qi*d_s[NN + i];
+
   if (eflag) ev.ecoul += epol;
   //if (eflag_atom) this->template ev_tally<NEIGHFLAG>(ev,i,i,epol,0.0,0.0,0.0,0.0);
   if (eflag_atom) this->template e_tally_single<NEIGHFLAG>(ev,i,epol);
@@ -1195,8 +1241,47 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFComputeLJCoulomb<NEIGHFL
     const F_FLOAT shld = paramstwbp(itype,jtype).gamma;
     const F_FLOAT denom1 = rij * rij * rij + shld;
     const F_FLOAT denom3 = pow(denom1,0.3333333333333);
-    const F_FLOAT ecoul = C_ele * qi*qj*Tap/denom3;
-    const F_FLOAT fcoul = C_ele * qi*qj*(dTap-Tap*rij/denom1)/denom3;
+    F_FLOAT ecoul = C_ele * qi*qj*Tap/denom3;
+    F_FLOAT fcoul = C_ele * qi*qj*(dTap-Tap*rij/denom1)/denom3;
+
+    /* contribution to energy and gradients (atoms and cell)
+     * due to geometry-dependent terms in the ACKS2
+     * kinetic energy */
+    if (acks2_flag) {
+
+      /* kinetic energy terms */
+      double xcut = 0.5 * (paramssing(itype).bcut_acks2
+                          + paramssing(jtype).bcut_acks2);
+
+      if (rij <= xcut) {
+        const F_FLOAT d = rij / xcut;
+        const F_FLOAT bond_softness = gp[34] * pow( d, 3.0 )
+                                    * pow( 1.0 - d, 6.0 );
+
+        if (bond_softness > 0.0) {
+          /* Coulombic energy contribution */
+          const F_FLOAT effpot_diff = d_s[NN + i]
+                                    - d_s[NN + j];
+          const F_FLOAT e_ele = -0.5 * KCALpMOL_to_EV * bond_softness
+                                     * SQR( effpot_diff );
+
+          ecoul += e_ele;
+
+          /* forces contribution */
+          F_FLOAT d_bond_softness;
+          d_bond_softness = gp[34]
+                          * 3.0 / xcut * pow( d, 2.0 )
+                          * pow( 1.0 - d, 5.0 ) * (1.0 - 3.0 * d);
+          d_bond_softness = -0.5 * d_bond_softness
+                          * SQR( effpot_diff );
+          d_bond_softness = KCALpMOL_to_EV * d_bond_softness
+                          / rij;
+
+          fcoul += d_bond_softness;
+        }
+      }
+    }
+
 
     const F_FLOAT ftotal = fvdwl + fcoul;
     fxtmp += delx*ftotal;
@@ -1296,14 +1381,52 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFComputeTabulatedLJCoulom
     const F_FLOAT evdwl = ((vdW.d*dif + vdW.c)*dif + vdW.b)*dif +
       vdW.a;
 
-    const F_FLOAT ecoul = (((ele.d*dif + ele.c)*dif + ele.b)*dif +
+    F_FLOAT ecoul = (((ele.d*dif + ele.c)*dif + ele.b)*dif +
       ele.a)*qi*qj;
 
     const F_FLOAT fvdwl = ((CEvd.d*dif + CEvd.c)*dif + CEvd.b)*dif +
       CEvd.a;
 
-    const F_FLOAT fcoul = (((CEclmb.d*dif+CEclmb.c)*dif+CEclmb.b)*dif +
+    F_FLOAT fcoul = (((CEclmb.d*dif+CEclmb.c)*dif+CEclmb.b)*dif +
       CEclmb.a)*qi*qj;
+
+    /* contribution to energy and gradients (atoms and cell)
+     * due to geometry-dependent terms in the ACKS2
+     * kinetic energy */
+    if (acks2_flag) {
+
+      /* kinetic energy terms */
+      double xcut = 0.5 * (paramssing(itype).bcut_acks2
+                          + paramssing(jtype).bcut_acks2);
+
+      if (rij <= xcut) {
+        const F_FLOAT d = rij / xcut;
+        const F_FLOAT bond_softness = gp[34] * pow( d, 3.0 )
+                                    * pow( 1.0 - d, 6.0 );
+
+        if (bond_softness > 0.0) {
+          /* Coulombic energy contribution */
+          const F_FLOAT effpot_diff = d_s[NN + i]
+                                    - d_s[NN + j];
+          const F_FLOAT e_ele = -0.5 * KCALpMOL_to_EV * bond_softness
+                                     * SQR( effpot_diff );
+
+          ecoul += e_ele;
+
+          /* forces contribution */
+          F_FLOAT d_bond_softness;
+          d_bond_softness = gp[34]
+                          * 3.0 / xcut * pow( d, 2.0 )
+                          * pow( 1.0 - d, 5.0 ) * (1.0 - 3.0 * d);
+          d_bond_softness = -0.5 * d_bond_softness
+                          * SQR( effpot_diff );
+          d_bond_softness = KCALpMOL_to_EV * d_bond_softness
+                          / rij;
+
+          fcoul += d_bond_softness;
+        }
+      }
+    }
 
     const F_FLOAT ftotal = fvdwl + fcoul;
     fxtmp += delx*ftotal;

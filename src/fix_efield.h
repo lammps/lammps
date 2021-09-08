@@ -38,6 +38,7 @@ class FixEfield : public Fix {
   double memory_usage();
   double compute_scalar();
   double compute_vector(int);
+  double* get_energy();
 
  private:
   double ex, ey, ez;
@@ -49,8 +50,8 @@ class FixEfield : public Fix {
   double qe2f;
   int qflag, muflag;
 
-  int maxatom;
-  double **efield;
+  int maxatom,maxatom_energy;
+  double **efield,*energy;
 
   int force_flag;
   double fsum[4], fsum_all[4];

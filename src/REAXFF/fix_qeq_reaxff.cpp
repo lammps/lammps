@@ -25,6 +25,7 @@
 #include "citeme.h"
 #include "comm.h"
 #include "error.h"
+#include "fix_efield.h"
 #include "force.h"
 #include "group.h"
 #include "memory.h"
@@ -97,10 +98,10 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
     else if (strcmp(arg[iarg],"nowarn") == 0) maxwarn = 0;
     else if (strcmp(arg[iarg],"maxiter") == 0) {
       if (iarg+1 > narg-1)
-        error->all(FLERR,"Illegal fix qeq/reaxff command");
+        error->all(FLERR,fmt::format("Illegal fix {} command", style));
       imax = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg++;
-    } else error->all(FLERR,"Illegal fix qeq/reaxff command");
+    } else error->all(FLERR,fmt::format("Illegal fix {} command", style));
     iarg++;
   }
   shld = nullptr;
@@ -115,6 +116,7 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
 
   Hdia_inv = nullptr;
   b_s = nullptr;
+  chi_field = nullptr;
   b_t = nullptr;
   b_prc = nullptr;
   b_prm = nullptr;
@@ -271,6 +273,7 @@ void FixQEqReaxFF::allocate_storage()
 
   memory->create(Hdia_inv,nmax,"qeq:Hdia_inv");
   memory->create(b_s,nmax,"qeq:b_s");
+  memory->create(chi_field,nmax,"qeq:chi_field");
   memory->create(b_t,nmax,"qeq:b_t");
   memory->create(b_prc,nmax,"qeq:b_prc");
   memory->create(b_prm,nmax,"qeq:b_prm");
@@ -297,6 +300,7 @@ void FixQEqReaxFF::deallocate_storage()
   memory->destroy(b_t);
   memory->destroy(b_prc);
   memory->destroy(b_prm);
+  memory->destroy(chi_field);
 
   memory->destroy(p);
   memory->destroy(q);
@@ -377,6 +381,11 @@ void FixQEqReaxFF::init()
 
   if (group->count(igroup) == 0)
     error->all(FLERR,"Fix qeq/reaxff group has no atoms");
+
+  field_flag = 0;
+  for (int n = 0; n < modify->nfix; n++)
+    if (utils::strmatch(modify->fix[n]->style,"^efield"))
+      field_flag = 1;
 
   // need a half neighbor list w/ Newton off and ghost neighbors
   // built whenever re-neighboring occurs
@@ -502,22 +511,16 @@ void FixQEqReaxFF::min_setup_pre_force(int vflag)
 
 void FixQEqReaxFF::init_storage()
 {
-  int NN;
-  int *ilist;
-
-  if (reaxff) {
-    NN = reaxff->list->inum + reaxff->list->gnum;
-    ilist = reaxff->list->ilist;
-  } else {
-    NN = list->inum + list->gnum;
-    ilist = list->ilist;
-  }
+  if (field_flag)
+    get_chi_field();
 
   for (int ii = 0; ii < NN; ii++) {
     int i = ilist[ii];
     if (atom->mask[i] & groupbit) {
       Hdia_inv[i] = 1. / eta[atom->type[i]];
       b_s[i] = -chi[atom->type[i]];
+      if (field_flag)
+        b_s[i] -= chi_field[i];
       b_t[i] = -1.0;
       b_prc[i] = 0;
       b_prm[i] = 0;
@@ -554,6 +557,9 @@ void FixQEqReaxFF::pre_force(int /*vflag*/)
   if (atom->nmax > nmax) reallocate_storage();
   if (n > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE)
     reallocate_matrix();
+
+  if (field_flag)
+    get_chi_field();
 
   init_matvec();
 
@@ -594,6 +600,8 @@ void FixQEqReaxFF::init_matvec()
       /* init pre-conditioner for H and init solution vectors */
       Hdia_inv[i] = 1. / eta[atom->type[i]];
       b_s[i]      = -chi[atom->type[i]];
+      if (field_flag)
+        b_s[i] -= chi_field[i];
       b_t[i]      = -1.0;
 
       /* quadratic extrapolation for s & t from previous solutions */
@@ -1060,3 +1068,29 @@ void FixQEqReaxFF::vector_add(double* dest, double c, double* v, int k)
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
+void FixQEqReaxFF::get_chi_field()
+{
+  int nlocal = atom->nlocal;
+
+  memset(&chi_field[0],0.0,atom->nmax*sizeof(double));
+
+  if (!(strcmp(update->unit_style,"real") == 0))
+    error->all(FLERR,"Must use unit_style real with fix qeq/reax and external fields");
+
+  double factor = 1.0/force->qe2f;
+
+  // loop over all fixes, find fix efield
+
+  for (int n = 0; n < modify->nfix; n++) {
+    if (utils::strmatch(modify->fix[n]->style,"^efield")) {
+
+      FixEfield* fix_efield = (FixEfield*) modify->fix[n];
+      double* field_energy = fix_efield->get_energy(); // Real units of kcal/mol/angstrom, need to convert to eV
+
+      for (int i = 0; i < nlocal; i++)
+        chi_field[i] += field_energy[i]*factor;
+    }
+  }
+}

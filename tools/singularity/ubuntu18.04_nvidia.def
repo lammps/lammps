@@ -105,7 +105,7 @@ From: nvidia/cuda:11.4.1-devel-ubuntu18.04
     # Plumed
     ###########################################################################
 
-    export PLUMED_PKG_VERSION=2.6.1
+    export PLUMED_PKG_VERSION=2.7.2
 
     mkdir plumed
     cd plumed

@@ -162,7 +162,7 @@ From: ubuntu:20.04
     # Plumed
     ###########################################################################
 
-    export PLUMED_PKG_VERSION=2.6.1
+    export PLUMED_PKG_VERSION=2.7.2
 
     mkdir plumed
     cd plumed

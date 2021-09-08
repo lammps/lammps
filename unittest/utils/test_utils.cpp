@@ -722,7 +722,7 @@ TEST(Utils, guesspath)
 {
     char buf[256];
     FILE *fp = fopen("test_guesspath.txt", "w");
-#if defined(__linux__) || (__APPLE__)
+#if defined(__linux__) || defined(__APPLE__) || defined(_WIN32)
     const char *path = utils::guesspath(buf, sizeof(buf), fp);
     ASSERT_THAT(path, EndsWith("test_guesspath.txt"));
 #else

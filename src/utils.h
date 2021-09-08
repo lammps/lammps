@@ -408,7 +408,7 @@ namespace utils {
 
   /*! Try to detect pathname from FILE pointer.
    *
-   * Currently only supported on Linux and macOS, otherwise will report "(unknown)".
+   * Currently supported on Linux, macOS, and Windows, otherwise will report "(unknown)".
    *
    *  \param buf  storage buffer for pathname. output will be truncated if not large enough
    *  \param len  size of storage buffer. output will be truncated to this length - 1

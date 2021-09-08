@@ -37,6 +37,15 @@
 #include <sys/syslimits.h>
 #endif
 
+// target Windows version is Windows 7 and later
+#if defined(_WIN32_WINNT)
+#undef _WIN32_WINNT
+#endif
+#define _WIN32_WINNT _WIN32_WINNT_WIN7
+#include <io.h>
+#include <windows.h>
+#endif
+
 /*! \file utils.cpp */
 
 /*
@@ -154,6 +163,9 @@ std::string utils::getsyserror()
 
 /** On Linux the folder /proc/self/fd holds symbolic links to the actual
  * pathnames associated with each open file descriptor of the current process.
+ * On macOS the same kind of information can be obtained using ``fcntl(fd,F_GETPATH,buf)``.
+ * On Windows we use ``GetFinalPathNameByHandleA()`` which is available with
+ * Windows Vista and later.
  *
  * This function is used to provide a filename with error messages in functions
  * where the filename is not passed as an argument, but the FILE * pointer.
@@ -171,6 +183,13 @@ const char *utils::guesspath(char *buf, int len, FILE *fp)
   int fd = fileno(fp);
   char filepath[PATH_MAX];
   if (fcntl(fd, F_GETPATH, filepath) != -1)
+    strncpy(buf, filepath, len - 1);
+  else
+    strncpy(buf, "(unknown)", len - 1);
+#elif defined(_WIN32)
+  char filepath[MAX_PATH];
+  HANDLE h = (HANDLE) _get_osfhandle(_fileno(fp));
+  if (GetFinalPathNameByHandleA(h, filepath, PATH_MAX, FILE_NAME_NORMALIZED) > 0)
     strncpy(buf, filepath, len - 1);
   else
     strncpy(buf, "(unknown)", len - 1);

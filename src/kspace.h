@@ -79,6 +79,7 @@ class KSpace : protected Pointers {
   int nx_pppm, ny_pppm, nz_pppm;          // global FFT grid for Coulombics
   int nx_pppm_6, ny_pppm_6, nz_pppm_6;    // global FFT grid for dispersion
   int nx_msm_max, ny_msm_max, nz_msm_max;
+  int nx_tild, ny_tild, nz_tild;          // global FFT grid for TILD
 
   int group_group_enable;    // 1 if style supports group/group calculation
 

@@ -1458,8 +1458,13 @@ int TILD::modify_param(int narg, char** arg)
 
   } else if (strcmp(arg[0], "tild/write_grid_data") == 0) {
       if (narg != 3) error->all(FLERR, "Illegal kspace_modify tild command");
-      write_grid_flag = 1;
+      if (strcmp(arg[1], "yes") == 0) write_grid_flag = 1;
+      else if (strcmp(arg[1], "no") == 0) write_grid_flag = 0;
+      else 
+        error->all(FLERR, "Illegal kspace_modify tild/write_grid_data argument");
       grid_data_output_freq = utils::inumeric(FLERR,arg[1],false,lmp);
+      if (grid_data_output_freq <= 0 ) write_grid_flag = 0;
+      else write_grid_flag = 1;
       strcpy(grid_data_filename,arg[2]);
 
   } else if (strcmp(arg[0], "tild/ave/grid") == 0) {

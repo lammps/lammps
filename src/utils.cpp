@@ -32,6 +32,11 @@
 #include <unistd.h>    // for readlink
 #endif
 
+#if defined(__APPLE__)
+#include <sys/syslimits.h>
+#include <fcntl.h>     // for fcntl
+#endif
+
 /*! \file utils.cpp */
 
 /*
@@ -161,6 +166,13 @@ const char *utils::guesspath(char *buf, int len, FILE *fp)
   int fd = fileno(fp);
   // get pathname from /proc or copy (unknown)
   if (readlink(fmt::format("/proc/self/fd/{}", fd).c_str(), buf, len - 1) <= 0)
+    strncpy(buf, "(unknown)", len - 1);
+#elif defined(__APPLE__)
+  int fd = fileno(fp);
+  char filepath[PATH_MAX];
+  if (fcntl(fd,F_GETPATH,filepath) != -1)
+    strncpy(buf, filepath, len - 1);
+  else
     strncpy(buf, "(unknown)", len - 1);
 #else
   strncpy(buf, "(unknown)", len - 1);

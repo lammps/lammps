@@ -91,7 +91,7 @@ From: ubuntu:20.04
     ###########################################################################
 
     export PATH=$PATH:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64
-    git clone -b develop https://github.com/ROCmSoftwarePlatform/hipCUB.git
+    git clone -b release/rocm-rel-4.3 https://github.com/ROCmSoftwarePlatform/hipCUB.git
     mkdir hipCUB/build
     cd hipCUB/build
     CXX=hipcc cmake -D BUILD_TEST=off ..

@@ -5,7 +5,7 @@ From: ubuntu:18.04
     export PATH=/usr/lib/ccache:/usr/local/cuda-11.0/bin:${PATH}:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64
     export CUDADIR=/usr/local/cuda-11.0
     export CUDA_PATH=/usr/local/cuda-11.0
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-11.0/lib64
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-11.0/lib64:/opt/rocm/lib:/opt/rocm-4.3.0/llvm/lib
     export LIBRARY_PATH=/usr/local/cuda-11.0/lib64/stubs
 %post
     export DEBIAN_FRONTEND=noninteractive
@@ -134,7 +134,7 @@ From: ubuntu:18.04
     ###########################################################################
 
     export PATH=$PATH:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64
-    git clone -b rocm-3.7.x https://github.com/ROCmSoftwarePlatform/hipCUB.git
+    git clone -b release/rocm-rel-4.3 https://github.com/ROCmSoftwarePlatform/hipCUB.git
     mkdir hipCUB/build
     cd hipCUB/build
     CXX=hipcc cmake -D BUILD_TEST=off ..

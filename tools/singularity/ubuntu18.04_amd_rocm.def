@@ -3,7 +3,7 @@ From: ubuntu:18.04
 
 %environment
     export PATH=/usr/lib/ccache:${PATH}:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64
-
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/rocm/lib:/opt/rocm-4.3.0/llvm/lib
 %post
     export DEBIAN_FRONTEND=noninteractive
     apt-get update
@@ -94,7 +94,7 @@ From: ubuntu:18.04
     ###########################################################################
 
     export PATH=$PATH:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64
-    git clone -b rocm-4.1.x https://github.com/ROCmSoftwarePlatform/hipCUB.git
+    git clone -b release/rocm-rel-4.3 https://github.com/ROCmSoftwarePlatform/hipCUB.git
     mkdir hipCUB/build
     cd hipCUB/build
     CXX=hipcc cmake -D BUILD_TEST=off ..

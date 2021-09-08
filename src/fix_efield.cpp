@@ -503,7 +503,7 @@ double* FixEfield::get_energy()
 
           domain->unmap(x[i],image[i],unwrap);
           energy[i] -= fx*unwrap[0] + fy*unwrap[1] + fz*unwrap[2];
-          if (fabs(fx*(x[i][0]-unwrap[0])) + fabs(fy*(x[i][1]-unwrap[1])) + 
+          if (fabs(fx*(x[i][0]-unwrap[0])) + fabs(fy*(x[i][1]-unwrap[1])) +
               fabs(fz*(x[i][2]-unwrap[2])) > 0.0)
             warn_flag_local = 1;
         }

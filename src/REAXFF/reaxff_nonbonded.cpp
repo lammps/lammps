@@ -225,68 +225,68 @@ namespace ReaxFF {
       orig_i  = system->my_atoms[i].orig_id;
 
       for( pj = start_i; pj < end_i; ++pj ) {
-	nbr_pj = &(far_nbrs->select.far_nbr_list[pj]);
-	j = nbr_pj->nbr;
-	if (system->my_atoms[j].type < 0) continue;
-	orig_j  = system->my_atoms[j].orig_id;
+        nbr_pj = &(far_nbrs->select.far_nbr_list[pj]);
+        j = nbr_pj->nbr;
+        if (system->my_atoms[j].type < 0) continue;
+        orig_j  = system->my_atoms[j].orig_id;
 
-	flag = 0;
+        flag = 0;
 
-	/* kinetic energy terms */
-	double xcut = 0.5 * ( system->reax_param.sbp[ system->my_atoms[i].type ].bcut_acks2
-			    + system->reax_param.sbp[ system->my_atoms[j].type ].bcut_acks2 );
+        /* kinetic energy terms */
+        double xcut = 0.5 * ( system->reax_param.sbp[ system->my_atoms[i].type ].bcut_acks2
+                            + system->reax_param.sbp[ system->my_atoms[j].type ].bcut_acks2 );
 
-	if(nbr_pj->d <= xcut) {
-	  if (j < natoms) flag = 1;
-	  else if (orig_i < orig_j) flag = 1;
-	  else if (orig_i == orig_j) {
-	    if (nbr_pj->dvec[2] > SMALL) flag = 1;
-	    else if (fabs(nbr_pj->dvec[2]) < SMALL) {
-	      if (nbr_pj->dvec[1] > SMALL) flag = 1;
-	      else if (fabs(nbr_pj->dvec[1]) < SMALL && nbr_pj->dvec[0] > SMALL)
-		flag = 1;
-	    }
-	  }
-	}
+        if(nbr_pj->d <= xcut) {
+          if (j < natoms) flag = 1;
+          else if (orig_i < orig_j) flag = 1;
+          else if (orig_i == orig_j) {
+            if (nbr_pj->dvec[2] > SMALL) flag = 1;
+            else if (fabs(nbr_pj->dvec[2]) < SMALL) {
+              if (nbr_pj->dvec[1] > SMALL) flag = 1;
+              else if (fabs(nbr_pj->dvec[1]) < SMALL && nbr_pj->dvec[0] > SMALL)
+                flag = 1;
+            }
+          }
+        }
 
-	if (flag) {
+        if (flag) {
 
-	  d = nbr_pj->d / xcut;
-	  bond_softness = system->reax_param.gp.l[34] * pow( d, 3.0 )
-			* pow( 1.0 - d, 6.0 );
+          d = nbr_pj->d / xcut;
+          bond_softness = system->reax_param.gp.l[34] * pow( d, 3.0 )
+                        * pow( 1.0 - d, 6.0 );
 
-	  if ( bond_softness > 0.0 )
-	  {
-	    /* Coulombic energy contribution */
-	    effpot_diff = workspace->s[system->N + i]
-			- workspace->s[system->N + j];
-	    e_ele = -0.5 * KCALpMOL_to_EV * bond_softness
-			 * SQR( effpot_diff );
+          if ( bond_softness > 0.0 )
+          {
+            /* Coulombic energy contribution */
+            effpot_diff = workspace->s[system->N + i]
+                        - workspace->s[system->N + j];
+            e_ele = -0.5 * KCALpMOL_to_EV * bond_softness
+                         * SQR( effpot_diff );
 
-	    data->my_en.e_ele += e_ele;
+            data->my_en.e_ele += e_ele;
 
-	    /* forces contribution */
-	    d_bond_softness = system->reax_param.gp.l[34]
-			    * 3.0 / xcut * pow( d, 2.0 )
-			    * pow( 1.0 - d, 5.0 ) * (1.0 - 3.0 * d);
-	    d_bond_softness = -0.5 * d_bond_softness
-			    * SQR( effpot_diff );
-	    d_bond_softness = KCALpMOL_to_EV * d_bond_softness
-			    / nbr_pj->d;
+            /* forces contribution */
+            d_bond_softness = system->reax_param.gp.l[34]
+                            * 3.0 / xcut * pow( d, 2.0 )
+                            * pow( 1.0 - d, 5.0 ) * (1.0 - 3.0 * d);
+            d_bond_softness = -0.5 * d_bond_softness
+                            * SQR( effpot_diff );
+            d_bond_softness = KCALpMOL_to_EV * d_bond_softness
+                            / nbr_pj->d;
 
-	    /* tally into per-atom energy */
-	    if (system->pair_ptr->evflag || system->pair_ptr->vflag_atom) {
-	      rvec_ScaledSum( delij, 1., system->my_atoms[i].x,
-				    -1., system->my_atoms[j].x );
-	      f_tmp = -d_bond_softness;
-	      system->pair_ptr->ev_tally(i,j,natoms,1,0.0,e_ele,
-				f_tmp,delij[0],delij[1],delij[2]);
-	    }
+            /* tally into per-atom energy */
+            if (system->pair_ptr->evflag || system->pair_ptr->vflag_atom) {
+              rvec_ScaledSum( delij, 1., system->my_atoms[i].x,
+                                    -1., system->my_atoms[j].x );
+              f_tmp = -d_bond_softness;
+              system->pair_ptr->ev_tally(i,j,natoms,1,0.0,e_ele,
+                                f_tmp,delij[0],delij[1],delij[2]);
+            }
 
-	    rvec_ScaledAdd( workspace->f[i], -d_bond_softness, nbr_pj->dvec );
-	    rvec_ScaledAdd( workspace->f[j], d_bond_softness, nbr_pj->dvec );
-	  }
-	}
+            rvec_ScaledAdd( workspace->f[i], -d_bond_softness, nbr_pj->dvec );
+            rvec_ScaledAdd( workspace->f[j], d_bond_softness, nbr_pj->dvec );
+          }
+        }
       }
     }
 
@@ -401,68 +401,68 @@ namespace ReaxFF {
       orig_i  = system->my_atoms[i].orig_id;
 
       for( pj = start_i; pj < end_i; ++pj ) {
-	nbr_pj = &(far_nbrs->select.far_nbr_list[pj]);
-	j = nbr_pj->nbr;
-	if (system->my_atoms[j].type < 0) continue;
-	orig_j  = system->my_atoms[j].orig_id;
+        nbr_pj = &(far_nbrs->select.far_nbr_list[pj]);
+        j = nbr_pj->nbr;
+        if (system->my_atoms[j].type < 0) continue;
+        orig_j  = system->my_atoms[j].orig_id;
 
-	flag = 0;
+        flag = 0;
 
-	/* kinetic energy terms */
-	xcut = 0.5 * ( system->reax_param.sbp[ system->my_atoms[i].type ].bcut_acks2
-		     + system->reax_param.sbp[ system->my_atoms[j].type ].bcut_acks2 );
+        /* kinetic energy terms */
+        xcut = 0.5 * ( system->reax_param.sbp[ system->my_atoms[i].type ].bcut_acks2
+                     + system->reax_param.sbp[ system->my_atoms[j].type ].bcut_acks2 );
 
-	if(nbr_pj->d <= xcut) {
-	  if (j < natoms) flag = 1;
-	  else if (orig_i < orig_j) flag = 1;
-	  else if (orig_i == orig_j) {
-	    if (nbr_pj->dvec[2] > SMALL) flag = 1;
-	    else if (fabs(nbr_pj->dvec[2]) < SMALL) {
-	      if (nbr_pj->dvec[1] > SMALL) flag = 1;
-	      else if (fabs(nbr_pj->dvec[1]) < SMALL && nbr_pj->dvec[0] > SMALL)
-		flag = 1;
-	    }
-	  }
-	}
+        if(nbr_pj->d <= xcut) {
+          if (j < natoms) flag = 1;
+          else if (orig_i < orig_j) flag = 1;
+          else if (orig_i == orig_j) {
+            if (nbr_pj->dvec[2] > SMALL) flag = 1;
+            else if (fabs(nbr_pj->dvec[2]) < SMALL) {
+              if (nbr_pj->dvec[1] > SMALL) flag = 1;
+              else if (fabs(nbr_pj->dvec[1]) < SMALL && nbr_pj->dvec[0] > SMALL)
+                flag = 1;
+            }
+          }
+        }
 
-	if (flag) {
+        if (flag) {
 
-	  d = nbr_pj->d / xcut;
-	  bond_softness = system->reax_param.gp.l[34] * pow( d, 3.0 )
-			* pow( 1.0 - d, 6.0 );
+          d = nbr_pj->d / xcut;
+          bond_softness = system->reax_param.gp.l[34] * pow( d, 3.0 )
+                        * pow( 1.0 - d, 6.0 );
 
-	  if ( bond_softness > 0.0 )
-	  {
-	    /* Coulombic energy contribution */
-	    effpot_diff = workspace->s[system->N + i]
-			- workspace->s[system->N + j];
-	    e_ele = -0.5 * KCALpMOL_to_EV * bond_softness
-			 * SQR( effpot_diff );
+          if ( bond_softness > 0.0 )
+          {
+            /* Coulombic energy contribution */
+            effpot_diff = workspace->s[system->N + i]
+                        - workspace->s[system->N + j];
+            e_ele = -0.5 * KCALpMOL_to_EV * bond_softness
+                         * SQR( effpot_diff );
 
-	    data->my_en.e_ele += e_ele;
+            data->my_en.e_ele += e_ele;
 
-	    /* forces contribution */
-	    d_bond_softness = system->reax_param.gp.l[34]
-			    * 3.0 / xcut * pow( d, 2.0 )
-			    * pow( 1.0 - d, 5.0 ) * (1.0 - 3.0 * d);
-	    d_bond_softness = -0.5 * d_bond_softness
-			    * SQR( effpot_diff );
-	    d_bond_softness = KCALpMOL_to_EV * d_bond_softness
-			    / nbr_pj->d;
+            /* forces contribution */
+            d_bond_softness = system->reax_param.gp.l[34]
+                            * 3.0 / xcut * pow( d, 2.0 )
+                            * pow( 1.0 - d, 5.0 ) * (1.0 - 3.0 * d);
+            d_bond_softness = -0.5 * d_bond_softness
+                            * SQR( effpot_diff );
+            d_bond_softness = KCALpMOL_to_EV * d_bond_softness
+                            / nbr_pj->d;
 
-	    /* tally into per-atom energy */
-	    if (system->pair_ptr->evflag || system->pair_ptr->vflag_atom) {
-	      rvec_ScaledSum( delij, 1., system->my_atoms[i].x,
-				    -1., system->my_atoms[j].x );
-	      f_tmp = -d_bond_softness;
-	      system->pair_ptr->ev_tally(i,j,natoms,1,0.0,e_ele,
-				f_tmp,delij[0],delij[1],delij[2]);
-	    }
+            /* tally into per-atom energy */
+            if (system->pair_ptr->evflag || system->pair_ptr->vflag_atom) {
+              rvec_ScaledSum( delij, 1., system->my_atoms[i].x,
+                                    -1., system->my_atoms[j].x );
+              f_tmp = -d_bond_softness;
+              system->pair_ptr->ev_tally(i,j,natoms,1,0.0,e_ele,
+                                f_tmp,delij[0],delij[1],delij[2]);
+            }
 
-	    rvec_ScaledAdd( workspace->f[i], -d_bond_softness, nbr_pj->dvec );
-	    rvec_ScaledAdd( workspace->f[j], d_bond_softness, nbr_pj->dvec );
-	  }
-	}
+            rvec_ScaledAdd( workspace->f[i], -d_bond_softness, nbr_pj->dvec );
+            rvec_ScaledAdd( workspace->f[j], d_bond_softness, nbr_pj->dvec );
+          }
+        }
       }
     }
 

@@ -85,12 +85,6 @@ class TILD : public KSpace{
   int ***potent_type_map;
   double rho0, set_rho0;
 
-  //double unitk[3];
-  //int *kxvecs,*kyvecs,*kzvecs;
-  //int kxmax_orig,kymax_orig,kzmax_orig;
-  //int dim;
-  //double *sfacrl,*sfacim,*sfacrl_all,*sfacim_all;
-  //double ***cs,***sn;
   int factorable(int);
   double **chi;
   double **a2;

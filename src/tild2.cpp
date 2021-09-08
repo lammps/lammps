@@ -63,10 +63,8 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   fft1(nullptr), fft2(nullptr), remap(nullptr), gc(nullptr), 
   gc_buf1(nullptr), gc_buf2(nullptr),
   part2grid(nullptr), boxlo(nullptr)
-  //gradWtype(nullptr)
  {
   peratom_allocate_flag = 0;
-
   group_allocate_flag = 0;
   
   nstyles = 2;
@@ -186,7 +184,6 @@ TILD::~TILD(){
 
   delete [] factors;
   deallocate();
-  deallocate_peratom();
   memory->destroy(part2grid);
   part2grid = nullptr;
 
@@ -244,7 +241,6 @@ void TILD::init()
 
   // free all arrays previously allocated
   deallocate();
-  if (peratom_allocate_flag) deallocate_peratom();
 
   // setup FFT grid resolution and g_ewald
   // normally one iteration thru while loop is all that is required
@@ -468,7 +464,7 @@ void TILD::vir_func_init() {
             vg[loc][3][n] = k[1] * -grad_potent[loc][0][n];
             vg[loc][4][n] = k[2] * -grad_potent[loc][0][n];
             vg[loc][5][n] = k[2] * -grad_potent[loc][1][n];
-            //fprintf(screen,"virial %d %f %f %f %f %f %f\n", n, k[0], k[1], k[2], grad_potent[loc][0][n], grad_potent[loc][1][n], grad_potent[loc][2][n]);
+
             n++;
 
             }
@@ -490,16 +486,9 @@ void TILD::vir_func_init() {
         }
 
       }
-/*
-      std::string fname = "vg_lammps_"+std::to_string(comm->me)+"_"+std::to_string(itype)+"-"+std::to_string(jtype)+".txt";
-      std::ofstream file(fname);
-      n = 0;
-      for (int j = 0; j <  nfft; j++) {
-        file << j <<'\t'<< vg[loc][0][j]  <<'\t'<< vg[loc][1][j]  <<'\t'<< vg[loc][2][j]  <<'\t'<< vg[loc][3][j]  <<'\t'<< vg[loc][4][j] <<'\t'<< vg[loc][5][j] <<'\t'<< vg_hat[loc][0][n]  <<'\t'<< vg_hat[loc][1][n]  <<'\t'<< vg_hat[loc][2][n]  <<'\t'<< vg_hat[loc][3][n]  <<'\t'<< vg_hat[loc][4][n] <<'\t'<< vg_hat[loc][5][n] <<'\t'<< vg_hat[loc][0][n+1]  <<'\t'<< vg_hat[loc][1][n+1]  <<'\t'<< vg_hat[loc][2][n+1]  <<'\t'<< vg_hat[loc][3][n+1]  <<'\t'<< vg_hat[loc][4][n+1] <<'\t'<< vg_hat[loc][5][n+1] << endl;
-        n += 2;
-      }
-*/
+
       loc++;
+
     }
   }
 }
@@ -514,7 +503,6 @@ void TILD::setup_grid()
   // free all arrays previously allocated
 
   deallocate();
-  deallocate_peratom();
 
   // reset portion of global grid that each proc owns
 
@@ -561,16 +549,6 @@ void TILD::precompute_density_hat_fft() {
       work1[k] *= scale_inv;
       density_hat_fft_types[ktype][k] = work1[k];
     }
-
-/*
-    std::string fname = "rho_"+std::to_string(comm->me)+"_"+std::to_string(ktype)+".txt";
-    std::ofstream rhof(fname);
-    n = 0;
-    for (int k = 0; k < nfft; k++){
-      rhof << k << '\t' << density_fft_types[ktype][k] << '\t' << density_hat_fft_types[ktype][n] << '\t' << density_hat_fft_types[ktype][n+1] << endl;
-      n += 2;
-    }
-*/
   }
 }
 
@@ -589,16 +567,6 @@ void TILD::compute(int eflag, int vflag){
   // convert atoms from box to lamda coords
   
   ev_init(eflag,vflag);
-
-  if (evflag_atom && !peratom_allocate_flag) {
-    allocate_peratom();
-  }
-  // if (evflag_atom && !peratom_allocate_flag) {
-  //   allocate_peratom();
-  //   cg_peratom->ghost_notify();
-  //   cg_peratom->setup();
-  //   peratom_allocate_flag = 1;
-  // }
 
   // extend size of per-atom arrays if necessary
 
@@ -683,8 +651,6 @@ void TILD::compute(int eflag, int vflag){
   if (triclinic) domain->lamda2x(atom->nlocal);
 }
 
-
-
 /* ----------------------------------------------------------------------
    memory usage of local arrays
 ------------------------------------------------------------------------- */
@@ -709,7 +675,6 @@ double TILD::memory_usage()
 }
 
 
-
 /* ----------------------------------------------------------------------
    allocate memory that depends on # of K-vectors and order
 ------------------------------------------------------------------------- */
@@ -729,7 +694,6 @@ void TILD::allocate()
     for (int j = i; j <= ntypes; j++)
       setflag[i][j] = 0;
 
-  //memory->create(potential_type_list,ntypes,ntypes+1,"pppm:potential_type_list"); // lets you know if a type has a potential
 
   memory->create4d_offset(density_brick_types,ntypes+1,
                           nzlo_out,nzhi_out,nylo_out,nyhi_out,
@@ -737,11 +701,6 @@ void TILD::allocate()
   memory->create4d_offset(avg_density_brick_types,ntypes+1,
                           nzlo_out,nzhi_out,nylo_out,nyhi_out,
                           nxlo_out,nxhi_out,"tild:avg_density_brick_types");
-/*
-  memory->create5d_offset(gradWtype,ntypes+1, 0, Dim-1,
-                          nzlo_out,nzhi_out,nylo_out,nyhi_out,
-                          nxlo_out,nxhi_out,"tild:gradWtype");
-*/
   memory->create4d_offset(gradWtypex,ntypes+1, 
                           nzlo_out,nzhi_out,nylo_out,nyhi_out,
                           nxlo_out,nxhi_out,"tild:gradWtypex");
@@ -844,8 +803,6 @@ void TILD::deallocate()
   memory->destroy(setflag);
   setflag = nullptr;
 
-  //memory->destroy(potent_type_map);
-
   memory->destroy4d_offset(density_brick_types,nzlo_out,nylo_out,nxlo_out);
   memory->destroy4d_offset(avg_density_brick_types,nzlo_out,nylo_out,nxlo_out);
   memory->destroy(density_fft_types);
@@ -872,12 +829,10 @@ void TILD::deallocate()
   potent_hat = potent = nullptr;
   grad_potent_hat = grad_potent = nullptr;
 
-  //memory->destroy5d_offset(gradWtype, 0, nzlo_out,nylo_out, nxlo_out);
   memory->destroy4d_offset(gradWtypex, nzlo_out,nylo_out, nxlo_out);
   memory->destroy4d_offset(gradWtypey, nzlo_out,nylo_out, nxlo_out);
   memory->destroy4d_offset(gradWtypez, nzlo_out,nylo_out, nxlo_out);
 
-  //gradWtype = nullptr;
   gradWtypex = nullptr;
   gradWtypey = nullptr;
   gradWtypez = nullptr;
@@ -933,20 +888,8 @@ void TILD::set_grid_global()
   double zprd = domain->zprd;
   double zprd_slab = zprd*slab_volfactor;
 
-  // make initial g_ewald estimate
-  // based on desired accuracy and real space cutoff
-  // fluid-occupied volume used to estimate real-space error
-  // zprd used rather than zprd_slab
 
   double h, h_x,h_y,h_z;
-  //bigint natoms = atom->natoms;
-
-  // if (!gewaldflag) {
-  //   g_ewald = accuracy*sqrt(natoms*cutoff*xprd*yprd*zprd) / (2.0*q2);
-  //   if (g_ewald >= 1.0)
-  //     error->all(FLERR,"KSpace accuracy too large to estimate G vector");
-  //   g_ewald = sqrt(-log(g_ewald)) / cutoff;
-  // }
 
   // set optimal nx_pppm,ny_pppm,nz_pppm based on order and accuracy
   // nz_pppm uses extended zprd_slab instead of zprd
@@ -1138,12 +1081,9 @@ void TILD::init_cross_potentials(){
           ktmp2[i] *= scale_inv;
           potent_hat[loc][i] = ktmp2[i];
         }
-        //init_potential_ft(potent_hat[loc], 1, p);
       } 
       // Computational Convolution
       else {
-        // calculate 1st and 2nd potentials to convolv
-        //fprintf(screen,"i j %d %d %d\n", itype, jtype, mix_flag);
         if (mix_flag == 1) {
           calc_work(work1, itype, itype);
           if ( itype == jtype) {
@@ -1188,30 +1128,6 @@ void TILD::init_cross_potentials(){
         }
       } 
 
-      // output
-/*
-      std::string fnameU = "U_lammps_"+std::to_string(comm->me)+"_"+std::to_string(itype)+"-"+std::to_string(jtype)+".txt";
-      std::string fnamegradU = "gradU_lammps_"+std::to_string(comm->me)+"_"+std::to_string(itype)+"-"+std::to_string(jtype)+".txt";
-      std::string fnamegradUhat = "gradUhat_lammps_"+std::to_string(comm->me)+"_"+std::to_string(itype)+"-"+std::to_string(jtype)+".txt";
-      std::string fnamegradUhatI = "gradUhatimag_lammps_"+std::to_string(comm->me)+"_"+std::to_string(itype)+"-"+std::to_string(jtype)+".txt";
-      ofstream fileU(fnameU);
-      ofstream filegradU(fnamegradU);
-      ofstream filegradUhat(fnamegradUhat);
-      ofstream filegradUhatI(fnamegradUhatI);
-      n=0;
-      for (int j = 0; j < nfft; j++) {
-          fileU << j << '\t' << potent[loc][j] << '\t' << potent_hat[loc][n] << '\t' << potent_hat[loc][n+1] << std::endl;
-          filegradU << j << '\t' << grad_potent[loc][0][j] << '\t' << grad_potent[loc][1][j] << '\t' << grad_potent[loc][2][j] << std::endl;
-          filegradUhat << j << '\t' << grad_potent_hat[loc][0][n] << '\t' << grad_potent_hat[loc][1][n] << '\t' << grad_potent_hat[loc][2][n] << std::endl;
-          filegradUhatI << j << '\t' << grad_potent_hat[loc][0][n+1] << '\t' << grad_potent_hat[loc][1][n+1] << '\t' << grad_potent_hat[loc][2][n+1] << std::endl;
-          n += 2;
-      }
-
-      fileU.close();
-      filegradU.close();
-      filegradUhat.close();
-      filegradUhatI.close();
-*/
       loc++;
     }
   }
@@ -1263,7 +1179,6 @@ void TILD::calc_work(FFT_SCALAR *wk, const int itype, const int jtype){
     }
   }
 }
-
 
 /* ----------------------------------------------------------------------
    Initialize potentials in fourier space when possible
@@ -1373,7 +1288,6 @@ void TILD::init_potential(FFT_SCALAR *wk1, const int type, const double* paramet
           if (xper >= xprd / 2.0) {
             xper = xprd - xper;
           }
-
           mdr2 = xper * xper + yper * yper + zper * zper;
           wk1[n++] = rho0 * 0.5 * (1.0 - erf((sqrt(mdr2) - parameters[0])/parameters[1])) * vole;
         }
@@ -1428,8 +1342,6 @@ void TILD::get_k_alias(FFT_SCALAR* wk1, FFT_SCALAR **out){
      has_nyquist = 1;
   }
 
-  // id2 = unstack_stack( id ) ;
-  // unstack(id2, n);
   for (z = nzlo_fft; z <= nzhi_fft; z++) {
     if (nz_pppm % 2 == 0 && z == nz_pppm / 2)
       k[2] = 0.0;
@@ -1439,36 +1351,19 @@ void TILD::get_k_alias(FFT_SCALAR* wk1, FFT_SCALAR **out){
       k[2] = 2 * MY_PI * double(z - nz_pppm) / zprd;
 
     for (y = nylo_fft; y <= nyhi_fft; y++) {
-      // skip to kill off Nyquist modes
-      
-      //if (k[2] == 0.0 || (ny_pppm % 2 == 0 && y == ny_pppm / 2)) {
-      //  k[2] = 0.0;
       if (ny_pppm % 2 == 0 && y == ny_pppm / 2) {
         k[1] = 0.0;
       } else if (double(y) < double(ny_pppm) / 2.0)
         k[1] = 2 * MY_PI * double(y) / yprd;
       else
         k[1] = 2 * MY_PI * double(y - ny_pppm) / yprd;
-
       for (x = nxlo_fft; x <= nxhi_fft; x++) {
-        //if (k[2] == 0.0 || k[1] == 0.0 || (nx_pppm % 2 == 0 && x == nx_pppm / 2)) {
-        //  k[2] = 0.0;
-        //  k[1] = 0.0;
         if (nx_pppm % 2 == 0 && x == nx_pppm / 2) {
           k[0] = 0.0;
         } else if (double(x) < double(nx_pppm) / 2.0)
           k[0] = 2 * MY_PI * double(x) / xprd;
         else
           k[0] = 2 * MY_PI * double(x - nx_pppm) / xprd;
-/*
-        if (has_nyquist && n>0) {
-          if (k[2] == 0.0 || k[1] == 0.0 || k[0] == 0.0) {
-            k[2] = 0.0;
-            k[1] = 0.0;
-            k[0] = 0.0;
-          }
-        }
-*/
         out[0][n] = wk1[n + 1] * k[0];
         out[0][n + 1] = -wk1[n] * k[0];
         out[1][n] = wk1[n + 1] * k[1];
@@ -1476,11 +1371,9 @@ void TILD::get_k_alias(FFT_SCALAR* wk1, FFT_SCALAR **out){
         out[2][n] = wk1[n + 1] * k[2];
         out[2][n + 1] = -wk1[n] * k[2];
         n += 2;
-          
       }
     }
   }
-
 }
 
 /* ----------------------------------------------------------------------
@@ -1568,9 +1461,7 @@ int TILD::modify_param(int narg, char** arg)
             potent_type_map[0][i][j] = 0;
             a2[i][j] = a2_one;
           }
-        //nstyles++;
         }
-
       } else if (strcmp(arg[3], "erfc") == 0) {
         if (narg < 5) error->all(FLERR, "Illegal kspace_modify tild command");
         double rp_one = utils::numeric(FLERR,arg[4],false,lmp);
@@ -1582,7 +1473,6 @@ int TILD::modify_param(int narg, char** arg)
             rp[i][j] = rp_one;
             xi[i][j] = xi_one;
           }
-        //nstyles++; // eventually will be part of kspace_style hybrid
         }
       } else if (strcmp(arg[3], "none") == 0) {
         for (int i = ilo; i <= ihi; i++) {
@@ -1646,9 +1536,7 @@ int TILD::modify_param(int narg, char** arg)
 void TILD::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
   FFT_SCALAR *buf = (FFT_SCALAR *) vbuf;
-  
   int n = 0;
-
 
   if (flag == FORWARD_NONE){
     for (int ktype = 1; ktype <= atom->ntypes; ktype++) {
@@ -1674,23 +1562,6 @@ void TILD::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
         buf[n++] = srcy[list[i]];
         buf[n++] = srcz[list[i]];
       }
-    // int ntypes = atom->ntypes;
-    // double fx = domain->xprd/nx_pppm;
-    // double fy = domain->yprd/ny_pppm;
-    // double fz = domain->zprd/nz_pppm;
-    // for (int iz = nzlo_in; iz <= nzhi_in; iz++) {
-    //   for (int iy = nylo_in; iy <= nyhi_in; iy++) {
-    //     for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
-    //       buf[n][0] = ix * fx;
-    //       buf[n][1] = iy * fy;
-    //       buf[n][2] = iz * fz;
-    //       for (int itype = 1; itype <= ntypes; itype++) {
-    //         buf[n][2+itype] = density_brick_types[itype][iz][iy][ix];
-    //       }
-    //       n++;
-    //     }
-    //   }
-    // }  
     }
   } else if (flag == FORWARD_AVG_GRID_DEN){
     for (int ktype = 1; ktype <= atom->ntypes; ktype++) {
@@ -1702,25 +1573,6 @@ void TILD::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
         buf[n++] = srcy[list[i]];
         buf[n++] = srcz[list[i]];
       }
-    // int ntypes = atom->ntypes;
-    // double fx = domain->xprd/nx_pppm;
-    // double fy = domain->yprd/ny_pppm;
-    // double fz = domain->zprd/nz_pppm;
-    // int n = 0;
-    // //int n = nzlo_in + nylo_in + nxlo_in;
-    // for (int iz = nzlo_in; iz <= nzhi_in; iz++) {
-    //   for (int iy = nylo_in; iy <= nyhi_in; iy++) {
-    //     for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
-    //       buf[n][0] = ix * fx;
-    //       buf[n][1] = iy * fy;
-    //       buf[n][2] = iz * fz;
-    //       for (int itype = 1; itype <= ntypes; itype++) {
-    //         buf[n][2+itype] = avg_density_brick_types[itype][iz][iy][ix];
-    //       }
-    //       n++;
-    //     }
-    //   }
-    // }  
     }
   }
 }
@@ -2058,10 +1910,11 @@ void TILD::make_rho()
     nx = part2grid[i][0];
     ny = part2grid[i][1];
     nz = part2grid[i][2];
-    //std::cout << "part2grid\t" << i << '\t' << x[i][0] << '\t' << x[i][1]  << '\t' << x[i][2] << '\t' << nz << '\t' << ny  << '\t' << nz << endl ;
+
     dx = nx+shiftone - (x[i][0]-boxlo[0])*delxinv;
     dy = ny+shiftone - (x[i][1]-boxlo[1])*delyinv;
     dz = nz+shiftone - (x[i][2]-boxlo[2])*delzinv;
+
     compute_rho1d(dx,dy,dz, order, rho_coeff, rho1d);
     z0 = delvolinv;
     // loop over the stencil
@@ -2077,8 +1930,6 @@ void TILD::make_rho()
 
           density_brick_types[type[i]][mz][my][mx] += w;
           density_brick_types[0][mz][my][mx] += w;
-          //std::cout << "weights\t" << i << '\t' << mz << '\t' << my  << '\t' << mz << '\t' << w << endl ;
-          //std::cout << "weights\t" << i << '\t' << x[i][0] << '\t' << x[i][1]  << '\t' << x[i][2] << '\t' << w << endl ;
         }
       }
     }
@@ -2109,15 +1960,6 @@ void TILD::brick2fft()
           //rhof<<n-1<<'\t'<<density_fft_types[k][n-1] <<std::endl;
         }
   }
-/*
-    std::string fname = "rho_"+std::to_string(comm->me)+"_"+std::to_string(1)+".txt";
-    std::ofstream rhof(fname);
-    for (iz = nzlo_in; iz <= nzhi_in; iz++)
-      for (iy = nylo_in; iy <= nyhi_in; iy++)
-        for (ix = nxlo_in; ix <= nxhi_in; ix++)
-          rhof<< density_brick_types[1][iz][iy][ix] << '\t' << density_brick_types[2][iz][iy][ix] <<std::endl;
-    rhof.close();
-*/
 
   for (int k = 1; k <= ntypes; k++) {
     remap->perform(density_fft_types[k],density_fft_types[k],work1); 
@@ -2176,7 +2018,6 @@ void TILD::accumulate_gradient() {
   }
 
   // This part is for the specified chi interactions.
-  // Kappa (incompressibility) is later
 
   FFT_SCALAR tmp_sub = 0.0;
   if (subtract_rho0 == 1)
@@ -2207,7 +2048,6 @@ void TILD::accumulate_gradient() {
         n = 0;
         for (int k = 0; k < nfft; k++) {
           complex_multiply(grad_potent_hat[loc][i], density_hat_fft_types[itype], ktmp2i, n);
-          //fprintf(screen,"%d %d %d %d %f %f %f %f %f %f\n", itype, jtype, k, i, grad_potent_hat[loc][i][n], grad_potent_hat[loc][i][n+1], density_hat_fft_types[itype][n], density_hat_fft_types[itype][n+1], ktmp2i[n], ktmp2i[n+1]);
           if (diff_type) complex_multiply(grad_potent_hat[loc][i], density_hat_fft_types[jtype], ktmp2j, n);
           n += 2;
         }
@@ -2220,10 +2060,6 @@ void TILD::accumulate_gradient() {
         for (int k = nzlo_in; k <= nzhi_in; k++)  {
           for (int m = nylo_in; m <= nyhi_in; m++) {
             for (int o = nxlo_in; o <= nxhi_in; o++) {
-/*
-              gradWtype[jtype][i][k][m][o] += ktmpi[n] * tmp_chi;
-              if (diff_type) gradWtype[itype][i][k][m][o] += ktmpj[n] * tmp_chi;
-*/
               if ( i == 0 ) {
                 gradWtypex[jtype][k][m][o] += ktmpi[n] * tmp_chi;
                 if (diff_type) gradWtypex[itype][k][m][o] += ktmpj[n] * tmp_chi;
@@ -2243,18 +2079,6 @@ void TILD::accumulate_gradient() {
       loc++;
     }
   }
-/*
-  for (int itype = 1; itype <= ntypes; itype++) {
-    std::string fname = "gradw_lammps_"+std::to_string(comm->me)+"_"+std::to_string(itype)+".txt";
-    std::ofstream gradtype(fname);
-    n = 0;
-    for (int k = nzlo_in; k <= nzhi_in; k++)
-      for (int m = nylo_in; m <= nyhi_in; m++)
-        for (int o = nxlo_in; o <= nxhi_in; o++)
-          gradtype << n++ <<'\t'<< gradWtypex[itype][k][m][o] <<'\t'<< gradWtypey[itype][k][m][o] <<'\t'<<  gradWtypez[itype][k][m][o]<< endl;
-          //gradtype << n++ <<'\t'<< gradWtype[itype][0][k][m][o] <<'\t'<< gradWtype[itype][1][k][m][o] <<'\t'<<  gradWtype[itype][2][k][m][o]<< endl;
-  }
-*/
 }
 
 /* ----------------------------------------------------------------------
@@ -2278,14 +2102,7 @@ void TILD::fieldforce_param(){
   int nlocal = atom->nlocal;
 
   // Convert field to force per particle
-/*
-  std::string fname = "forces_lammps_"+std::to_string(comm->me)+".txt";
-  ofstream delvolinv_forces(fname);
-  std::string fname2 = "posgrid_"+std::to_string(comm->me)+".txt";
-  ofstream posgrid(fname2);
-*/
-  // ofstream grid_vol_forces("gridvol_forces_lammps.txt");
-  // ofstream both_forces("delv_gridvol_forces_lammps.txt");
+
   int *type = atom->type;
 
   for (int i = 0; i < nlocal; i++) {
@@ -2311,12 +2128,6 @@ void TILD::fieldforce_param(){
         for (int l = nlower; l <= nupper; l++) {
           mx = l+nx;
           x0 = y0*rho1d[0][l];
-          // gradWpotential 0 to 1 ?????
-/*
-          ekx += x0 * gradWtype[temp_type][0][mz][my][mx];
-          eky += x0 * gradWtype[temp_type][1][mz][my][mx];
-          ekz += x0 * gradWtype[temp_type][2][mz][my][mx];
-*/
           ekx += x0 * gradWtypex[temp_type][mz][my][mx];
           eky += x0 * gradWtypey[temp_type][mz][my][mx];
           ekz += x0 * gradWtypez[temp_type][mz][my][mx];
@@ -2329,23 +2140,7 @@ void TILD::fieldforce_param(){
     f[i][0] += ekx;
     f[i][1] += eky;
     f[i][2] += ekz;
-    // f[i][0] += grid_vol * ekx;
-    // f[i][1] += grid_vol * eky;
-    // f[i][2] += grid_vol * ekz;
-    //delvolinv_forces << i <<'\t'<<  f[i][0] <<'\t'<< f[i][1] <<'\t'<<  f[i][2] << endl;
-    //delvolinv_forces << i <<'\t'<<  ekx <<'\t'<< eky <<'\t'<<  ekz << endl;
-    //posgrid << x[i][0] <<'\t'<< x[i][1] <<'\t'<<  x[i][2] << '\t'<< rho1d[0][0] << '\t'<< rho1d[1][0] << '\t'<< rho1d[2][0] << endl;
-    // grid_vol_forces<<i<<'\t'<< "0 " <<'\t'<<  grid_vol*ekx << endl;
-    // grid_vol_forces<<i<<'\t'<< "1 " <<'\t'<<  grid_vol*eky << endl;
-    // grid_vol_forces<<i<<'\t'<< "2 " <<'\t'<<  grid_vol*ekz << endl;
-    // both_forces<<i<<'\t'<< "0 " <<'\t'<<  delvolinv*grid_vol*ekx << endl;
-    // both_forces<<i<<'\t'<< "1 " <<'\t'<<  delvolinv*grid_vol*eky << endl;
-    // both_forces<<i<<'\t'<< "2 " <<'\t'<<  delvolinv*grid_vol*ekz << endl;
-    // forces<< "Y " <<'\t'<< delvolinv*eky << "\t";
-    // forces<< "Z " <<'\t'<< delvolinv*ekz << std::endl;
   }
-//delvolinv_forces.close();
-//posgrid.close();
 }
 
 /* ----------------------------------------------------------------------
@@ -2428,8 +2223,6 @@ void TILD::ev_calculation(const int loc, const int itype, const int jtype) {
   double vtmp, vtmpk;
   double scale_inv = 1.0/(nx_pppm *ny_pppm * nz_pppm);
   double V = domain->xprd * domain->yprd * domain->zprd;
-  //int ntypes = atom->ntypes;
-  //int loc = (jtype - itype) + ((itype-1)*ntypes) - (0.5*(itype-2)*(itype-1));
 
   double tmp_rho_div = 1.0;
   if (normalize_by_rho0 == 1) tmp_rho_div = rho0;
@@ -2475,14 +2268,11 @@ void TILD::ev_calculation(const int loc, const int itype, const int jtype) {
       vtmpk = 0.0;
       for (int k = 0; k < nfft; k++) {
         vtmp += ktmp2i[n] * density_fft_types[jtype][k];
-        //fprintf(screen,"virial %d %f\n", k,  ktmp2i[n] * density_fft_types[jtype][k]);
         n += 2;
       }
       virial[i] += vtmp * factor;
       // diagonal IGEOS/chain-ruled on-diagonal part is called by including the kinetic energy term
     }
-    //fprintf(screen,"virial coeff %f", chi[itype][jtype] * vfactor);
-    //fprintf(screen,"virial %d %d %f %f %f %f %f %f\n", itype, jtype, virial[0], virial[1], virial[2], virial[3], virial[4], virial[5]);
   }
   
 }

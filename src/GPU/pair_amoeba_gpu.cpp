@@ -260,7 +260,7 @@ void PairAmoebaGPU::init_style()
     }
   }
 
-  // select the cutoff (off2) for neighbor list builds (the polar term for now)
+  // select the squared cutoff (off2) for neighbor list builds (the polar term for now)
   // NOTE: induce and polar terms are using the same flags here
 
   if (use_ewald) choose(POLAR_LONG);
@@ -365,13 +365,10 @@ void PairAmoebaGPU::induce()
   // get the electrostatic field due to permanent multipoles
   
   dfield0c(field,fieldp);
-
-  // reverse comm to sum field,fieldp from ghost atoms to owned atoms
 /*
   crstyle = FIELD;
   comm->reverse_comm_pair(this);
 */
-
   // set induced dipoles to polarizability times direct field
 
   for (i = 0; i < nlocal; i++) {
@@ -385,7 +382,14 @@ void PairAmoebaGPU::induce()
       }
     }
   }
-
+/*
+  printf("GPU: cutghost = %f\n", comm->cutghost[0]);
+  for (i = 0; i < 10; i++) {
+    printf("i = %d: udir = %f %f %f; udirp = %f %f %f\n",
+      i, udir[i][0], udir[i][1], udir[i][2],
+      udirp[i][0], udirp[i][1], udirp[i][2]); 
+  }
+*/
   // get induced dipoles via the OPT extrapolation method
   // NOTE: any way to rewrite these loops to avoid allocating
   //       uopt,uoptp with a optorder+1 dimension, just optorder ??
@@ -489,13 +493,30 @@ void PairAmoebaGPU::induce()
 
     cfstyle = INDUCE;
     comm->forward_comm_pair(this);
-
+/*
+    if (comm->me == 0) {
+      printf("GPU: cutghost = %f\n", comm->cutghost[0]);
+      for (i = 0; i < 20; i++) {
+        printf("i = %d: uind = %f %f %f; udirp = %f %f %f\n",
+          i, uind[i][0], uind[i][1], uind[i][2],
+          uinp[i][0], uinp[i][1], uinp[i][2]); 
+      }
+    }
+*/
     ufield0c(field,fieldp);
 
     crstyle = FIELD;
     comm->reverse_comm_pair(this);
-
-    
+/*
+    if (comm->me == 0) {
+      printf("GPU: cutghost = %f\n", comm->cutghost[0]);
+      for (i = 0; i < nlocal; i++) {
+        printf("i = %d: field = %f %f %f; fieldp = %f %f %f\n",
+          i, field[i][0], field[i][1], field[i][2],
+          fieldp[i][0], fieldp[i][1], fieldp[i][2]); 
+      }    
+    }
+*/      
     // set initial conjugate gradient residual and conjugate vector
 
     for (i = 0; i < nlocal; i++) {
@@ -554,7 +575,16 @@ void PairAmoebaGPU::induce()
 
       crstyle = FIELD;
       comm->reverse_comm_pair(this);
-     
+/*     
+     if (comm->me == 0) {
+       printf("GPU: iter = %d\n", iter);
+       for (i = 0; i < 10; i++) {
+          printf("i = %d: field = %f %f %f; fieldp = %f %f %f\n",
+            i, field[i][0], field[i][1], field[i][2],
+            fieldp[i][0], fieldp[i][1], fieldp[i][2]); 
+        }    
+      }
+*/
       for (i = 0; i < nlocal; i++) {
         for (j = 0; j < 3; j++) {
           uind[i][j] = vec[i][j];
@@ -697,6 +727,15 @@ void PairAmoebaGPU::induce()
   memory->destroy(usum);
   memory->destroy(usump);
 
+  if (comm->me == 0) {
+    printf("GPU: iter = %d\n", iter);
+    for (i = 0; i < 20; i++) {
+      printf("i = %d: uind = %f %f %f; uinp = %f %f %f\n",
+        i, uind[i][0], uind[i][1], uind[i][2],
+        uinp[i][0], uinp[i][1], uinp[i][2]); 
+    }    
+  }
+
   // update the lists of previous induced dipole values
   // shift previous m values up to m+1, add new values at m = 0
   // only when preconditioner is used
@@ -758,7 +797,7 @@ void PairAmoebaGPU::dfield0c(double **field, double **fieldp)
   // get the real space portion of the permanent field
 
   if (rspace_flag) udirect2b(field,fieldp);
-
+  
   // get the self-energy portion of the permanent field
 
   term = (4.0/3.0) * aewald*aewald*aewald / MY_PIS;
@@ -768,6 +807,14 @@ void PairAmoebaGPU::dfield0c(double **field, double **fieldp)
       fieldp[i][j] += term*rpole[i][j+1];
     }
   }
+/*
+  printf("GPU: cutghost = %f\n", comm->cutghost[0]);
+  for (i = 0; i < nlocal; i++) {
+    printf("i = %d: field = %f %f %f; fieldp = %f %f %f\n",
+      i, field[i][0], field[i][1], field[i][2],
+      fieldp[i][0], fieldp[i][1], fieldp[i][2]); 
+  }
+*/  
 }
 
 /* ----------------------------------------------------------------------

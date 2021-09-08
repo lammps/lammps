@@ -25,6 +25,7 @@
 #include "my_page.h"
 #include "math_const.h"
 #include "memory.h"
+#include "neighbor.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -103,14 +104,21 @@ void PairAmoeba::induce()
   memory->create(usump,nlocal,3,"ameoba/induce:usump");
 
   // get the electrostatic field due to permanent multipoles
-  
+
   dfield0c(field,fieldp);
 
   // reverse comm to sum field,fieldp from ghost atoms to owned atoms
 
   crstyle = FIELD;
   comm->reverse_comm_pair(this);
-
+/*  
+  printf("CPU: cutghost = %f\n", comm->cutghost[0]);
+  for (i = 0; i < nlocal; i++) {
+    printf("i = %d: field = %f %f %f; fieldp = %f %f %f\n",
+      i, field[i][0], field[i][1], field[i][2],
+      fieldp[i][0], fieldp[i][1], fieldp[i][2]); 
+  }
+*/  
   // DEBUG statements
 
   /*
@@ -135,7 +143,14 @@ void PairAmoeba::induce()
       }
     }
   }
-
+/*
+  printf("CPU: cutghost = %f\n", comm->cutghost[0]);
+  for (i = 0; i < 10; i++) {
+    printf("i = %d: udir = %f %f %f; udirp = %f %f %f\n",
+      i, udir[i][0], udir[i][1], udir[i][2],
+      udirp[i][0], udirp[i][1], udirp[i][2]); 
+  }
+*/
   // DEBUG statements
 
   /*
@@ -250,12 +265,30 @@ void PairAmoeba::induce()
 
     cfstyle = INDUCE;
     comm->forward_comm_pair(this);
-
+/*
+    if (comm->me == 0) {
+      printf("CPU: cutghost = %f\n", comm->cutghost[0]);
+      for (i = 0; i < 20; i++) {
+        printf("i = %d: uind = %f %f %f; udirp = %f %f %f\n",
+          i, uind[i][0], uind[i][1], uind[i][2],
+          uinp[i][0], uinp[i][1], uinp[i][2]); 
+      }
+    }
+*/
     ufield0c(field,fieldp);
 
     crstyle = FIELD;
     comm->reverse_comm_pair(this);
-
+/*
+    if (comm->me == 0) {
+      printf("CPU: cutghost = %f\n", comm->cutghost[0]);
+      for (i = 0; i < nlocal; i++) {
+        printf("i = %d: field = %f %f %f; fieldp = %f %f %f\n",
+          i, field[i][0], field[i][1], field[i][2],
+          fieldp[i][0], fieldp[i][1], fieldp[i][2]); 
+      }    
+    }
+*/
     // DEBUG statements
 
     /*
@@ -342,6 +375,16 @@ void PairAmoeba::induce()
 
       crstyle = FIELD;
       comm->reverse_comm_pair(this);
+/*
+      if (comm->me == 0) {
+        printf("CPU: iter = %d\n", iter);
+        for (i = 0; i < 10; i++) {
+          printf("i = %d: field = %f %f %f; fieldp = %f %f %f\n",
+            i, field[i][0], field[i][1], field[i][2],
+            fieldp[i][0], fieldp[i][1], fieldp[i][2]); 
+        }    
+      }
+*/
 
       // DEBUG statements
 
@@ -537,6 +580,7 @@ void PairAmoeba::induce()
 	error->warning(FLERR,"AMOEBA induced dipoles did not converge");
   }
 
+
   // DEBUG output to dump file
 
   if (uind_flag) 
@@ -552,6 +596,15 @@ void PairAmoeba::induce()
   memory->destroy(udir);
   memory->destroy(usum);
   memory->destroy(usump);
+
+  if (comm->me == 0) {
+    printf("CPU: iter = %d\n", iter);
+    for (i = 0; i < 20; i++) {
+      printf("i = %d: uind = %f %f %f; uinp = %f %f %f\n",
+        i, uind[i][0], uind[i][1], uind[i][2],
+        uinp[i][0], uinp[i][1], uinp[i][2]); 
+    }    
+  }
 
   // update the lists of previous induced dipole values
   // shift previous m values up to m+1, add new values at m = 0

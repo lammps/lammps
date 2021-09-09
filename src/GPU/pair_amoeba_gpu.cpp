@@ -431,8 +431,10 @@ void PairAmoebaGPU::induce()
 
       ufield0c(field,fieldp);
 
-      crstyle = FIELD;
-      comm->reverse_comm_pair(this);
+      if (!gpu_umutual2b_ready) {
+        crstyle = FIELD;
+        comm->reverse_comm_pair(this);
+      }
 
       for (i = 0; i < nlocal; i++) {
 	      itype = amtype[i];
@@ -525,8 +527,11 @@ void PairAmoebaGPU::induce()
 */
     ufield0c(field,fieldp);
 
-    crstyle = FIELD;
-    comm->reverse_comm_pair(this);
+    if (!gpu_umutual2b_ready) {
+      crstyle = FIELD;
+      comm->reverse_comm_pair(this);
+    }
+
 /*
     if (comm->me == 0) {
       printf("GPU: cutghost = %f\n", comm->cutghost[0]);
@@ -593,8 +598,10 @@ void PairAmoebaGPU::induce()
 
       //error->all(FLERR,"STOP");
 
-      crstyle = FIELD;
-      comm->reverse_comm_pair(this);
+      if (!gpu_umutual2b_ready) {
+        crstyle = FIELD;
+        comm->reverse_comm_pair(this);
+      }
 /*     
      if (comm->me == 0) {
        printf("GPU: iter = %d\n", iter);

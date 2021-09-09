@@ -74,7 +74,18 @@ int ** amoeba_gpu_compute_udirect2b(const int ago, const int inum, const int nal
               int **ilist, int **jnum, const double cpu_time,
               bool &success, double *host_q, double *boxlo, double *prd,
               void **fieldp_ptr);
-
+/*
+int ** amoeba_gpu_compute_umutual2b(const int ago, const int inum, const int nall,
+              double **host_x, int *host_type, int *host_amtype, int *host_amgroup,
+              double **host_rpole, double **host_uind, double **host_uinp, 
+              double *sublo, double *subhi, tagint *tag, int **nspecial,
+              tagint **special, int* nspecial15, tagint** special15,
+              const bool eflag, const bool vflag,
+              const bool eatom, const bool vatom, int &host_start,
+              int **ilist, int **jnum, const double cpu_time,
+              bool &success, double *host_q, double *boxlo, double *prd,
+              void **fieldp_ptr);
+*/
 int ** amoeba_gpu_compute_polar_real(const int ago, const int inum, const int nall,
               double **host_x, int *host_type, int *host_amtype, int *host_amgroup,
               double **host_rpole, double **host_uind, double **host_uinp,
@@ -100,6 +111,7 @@ PairAmoebaGPU::PairAmoebaGPU(LAMMPS *lmp) : PairAmoeba(lmp), gpu_mode(GPU_FORCE)
   tep_pinned = nullptr;
 
   gpu_udirect2b_ready = true;
+  gpu_umutual2b_ready = false;
   gpu_polar_real_ready = true;
 
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
@@ -142,16 +154,7 @@ void PairAmoebaGPU::polar_real()
     domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
   }
   inum = atom->nlocal;
-/*
-  if (comm->me == 0) {
-    printf("GPU: polar real\n");
-    for (int i = 0; i < 20; i++) {
-      printf("i = %d: uind = %f %f %f; uinp = %f %f %f\n",
-        i, uind[i][0], uind[i][1], uind[i][2],
-        uinp[i][0], uinp[i][1], uinp[i][2]); 
-    }    
-  }
-*/
+
   firstneigh = amoeba_gpu_compute_polar_real(neighbor->ago, inum, nall, atom->x,
                                         atom->type, amtype, amgroup,
                                         rpole, uind, uinp, sublo, subhi,
@@ -991,6 +994,74 @@ void PairAmoebaGPU::udirect2b_cpu()
     ipage_dipole->vgot(n);
     dpage_dipdip->vgot(ndip);
   }
+}
+
+/* ----------------------------------------------------------------------
+   umutual2b = Ewald real mutual field via list
+   umutual2b computes the real space contribution of the induced
+   atomic dipole moments to the field via a neighbor list
+------------------------------------------------------------------------- */
+
+void PairAmoebaGPU::umutual2b(double **field, double **fieldp)
+{
+  if (!gpu_umutual2b_ready) {
+    PairAmoeba::umutual2b(field, fieldp);
+    return;
+  }
+/*   
+  int eflag=1, vflag=1;
+  int nall = atom->nlocal + atom->nghost;
+  int inum, host_start;
+
+  bool success = true;
+  int *ilist, *numneigh, **firstneigh;
+
+  double sublo[3],subhi[3];
+  if (domain->triclinic == 0) {
+    sublo[0] = domain->sublo[0];
+    sublo[1] = domain->sublo[1];
+    sublo[2] = domain->sublo[2];
+    subhi[0] = domain->subhi[0];
+    subhi[1] = domain->subhi[1];
+    subhi[2] = domain->subhi[2];
+  } else {
+    domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
+  }
+  inum = atom->nlocal;
+
+  firstneigh = amoeba_gpu_compute_umutual2b(neighbor->ago, inum, nall, atom->x,
+                                        atom->type, amtype, amgroup, rpole, uind, uinp,
+                                        sublo, subhi, atom->tag, atom->nspecial, atom->special,
+                                        atom->nspecial15, atom->special15,
+                                        eflag, vflag, eflag_atom, vflag_atom,
+                                        host_start, &ilist, &numneigh, cpu_time,
+                                        success, atom->q, domain->boxlo,
+                                        domain->prd, &fieldp_pinned);
+  if (!success)
+    error->one(FLERR,"Insufficient memory on accelerator");
+
+  // accumulate the field and fieldp values from the GPU lib
+  //   field and fieldp may already have some nonzero values from kspace (udirect1)
+
+  int nlocal = atom->nlocal;
+  double *field_ptr = (double *)fieldp_pinned;
+
+  for (int i = 0; i < nlocal; i++) {
+    int idx = 4*i;
+    field[i][0] += field_ptr[idx];
+    field[i][1] += field_ptr[idx+1];
+    field[i][2] += field_ptr[idx+2]; 
+  }
+
+  double* fieldp_ptr = (double *)fieldp_pinned;
+  fieldp_ptr += 4*inum;
+  for (int i = 0; i < nlocal; i++) {
+    int idx = 4*i;
+    fieldp[i][0] += fieldp_ptr[idx];
+    fieldp[i][1] += fieldp_ptr[idx+1];
+    fieldp[i][2] += fieldp_ptr[idx+2];
+  }
+*/  
 }
 
 /* ---------------------------------------------------------------------- */

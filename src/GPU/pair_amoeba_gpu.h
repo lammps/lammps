@@ -37,6 +37,7 @@ class PairAmoebaGPU : public PairAmoeba {
 
   virtual void polar_real();
   virtual void udirect2b(double **, double **);
+  virtual void umutual2b(double **, double **);
 
  private:
   int gpu_mode;
@@ -45,8 +46,9 @@ class PairAmoebaGPU : public PairAmoeba {
   void *fieldp_pinned;
   bool tep_single;
 
-  bool gpu_polar_real_ready;
   bool gpu_udirect2b_ready;
+  bool gpu_umutual2b_ready;
+  bool gpu_polar_real_ready;
 
   void udirect2b_cpu();
 

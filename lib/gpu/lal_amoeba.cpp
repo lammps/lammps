@@ -58,7 +58,8 @@ int AmoebaT::init(const int ntypes, const int max_amtype, const double *host_pda
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,maxspecial15,
                             cell_size,gpu_split,_screen,amoeba,
-                            "k_amoeba_polar", "k_amoeba_udirect2b");
+                            "k_amoeba_polar", "k_amoeba_udirect2b",
+                            "k_amoeba_umutual2b");
   if (success!=0)
     return success;
 
@@ -152,7 +153,7 @@ int AmoebaT::polar_real(const int eflag, const int vflag) {
 }
 
 // ---------------------------------------------------------------------------
-// Calculate the polar real-space term, returning tep
+// Calculate the real-space permanent field, returning field and fieldp
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 int AmoebaT::udirect2b(const int eflag, const int vflag) {
@@ -168,6 +169,32 @@ int AmoebaT::udirect2b(const int eflag, const int vflag) {
 
   this->k_udirect2b.set_size(GX,BX);
   this->k_udirect2b.run(&this->atom->x, &this->atom->extra, &damping, &sp_polar,
+                        &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+                        &this->_fieldp, &ainum, &_nall, &nbor_pitch,
+                        &this->_threads_per_atom, &_aewald, &_off2,
+                        &_polar_dscale, &_polar_uscale);
+
+  this->time_pair.stop();
+  return GX;
+}
+
+// ---------------------------------------------------------------------------
+// Calculate the real-space induced field, returning field and fieldp
+// ---------------------------------------------------------------------------
+template <class numtyp, class acctyp>
+int AmoebaT::umutual2b(const int eflag, const int vflag) {
+  // Compute the block size and grid size to keep all cores busy
+  const int BX=this->block_size();
+  int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
+                               (BX/this->_threads_per_atom)));
+
+  int _nall=this->atom->nall();
+  int ainum=this->ans->inum();
+  int nbor_pitch=this->nbor->nbor_pitch();
+  this->time_pair.start();
+
+  this->k_umutual2b.set_size(GX,BX);
+  this->k_umutual2b.run(&this->atom->x, &this->atom->extra, &damping, &sp_polar,
                         &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                         &this->_fieldp, &ainum, &_nall, &nbor_pitch,
                         &this->_threads_per_atom, &_aewald, &_off2,

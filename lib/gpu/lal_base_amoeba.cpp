@@ -38,6 +38,7 @@ BaseAmoebaT::~BaseAmoeba() {
   delete nbor;
   k_polar.clear();
   k_udirect2b.clear();
+  k_umutual2b.clear();
   k_special15.clear();
   if (pair_program) delete pair_program;
 }
@@ -55,7 +56,8 @@ int BaseAmoebaT::init_atomic(const int nlocal, const int nall,
                              const double cell_size, const double gpu_split,
                              FILE *_screen, const void *pair_program,
                              const char *k_name_polar,
-                             const char *k_name_udirect2b) {
+                             const char *k_name_udirect2b,
+                             const char *k_name_umutual2b) {
   screen=_screen;
 
   int gpu_nbor=0;
@@ -87,7 +89,7 @@ int BaseAmoebaT::init_atomic(const int nlocal, const int nall,
 
   _block_size=device->pair_block_size();
   _block_bio_size=device->block_bio_pair();
-  compile_kernels(*ucl_device,pair_program,k_name_polar,k_name_udirect2b);
+  compile_kernels(*ucl_device,pair_program,k_name_polar,k_name_udirect2b,k_name_umutual2b);
 
   if (_threads_per_atom>1 && gpu_nbor==0) {
     nbor->packing(true);
@@ -230,7 +232,7 @@ inline void BaseAmoebaT::build_nbor_list(const int inum, const int host_inum,
 // Copy nbor list from host if necessary and then calculate forces, virials,..
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void BaseAmoebaT::compute_polar_real(const int f_ago, const int inum_full, const int nall,
+void BaseAmoebaT::compute_polar_real_host_nbor(const int f_ago, const int inum_full, const int nall,
                           double **host_x, int *host_type, int *host_amtype,
                           int *host_amgroup, double **host_rpole,
                           double **host_uind, double **host_uinp,
@@ -474,6 +476,75 @@ int** BaseAmoebaT::compute_udirect2b(const int ago, const int inum_full, const i
 }
 
 // ---------------------------------------------------------------------------
+// Reneighbor on GPU if necessary, and then compute the direct real space part
+//    of the induced field
+// ---------------------------------------------------------------------------
+template <class numtyp, class acctyp>
+int** BaseAmoebaT::compute_umutual2b(const int ago, const int inum_full, const int nall,
+                           double **host_x, int *host_type, int *host_amtype,
+                           int *host_amgroup, double **host_rpole,
+                           double **host_uind, double **host_uinp,
+                           double *sublo, double *subhi, tagint *tag,
+                           int **nspecial, tagint **special,
+                           int *nspecial15, tagint **special15,
+                           const bool eflag_in, const bool vflag_in,
+                           const bool eatom, const bool vatom, int &host_start,
+                           int **ilist, int **jnum, const double cpu_time,
+                           bool &success, double *host_q, double *boxlo,
+                           double *prd, void** fieldp_ptr) {
+  acc_timers();
+  int eflag, vflag;
+  if (eatom) eflag=2;
+  else if (eflag_in) eflag=1;
+  else eflag=0;
+  if (vatom) vflag=2;
+  else if (vflag_in) vflag=1;
+  else vflag=0;
+
+  #ifdef LAL_NO_BLOCK_REDUCE
+  if (eflag) eflag=2;
+  if (vflag) vflag=2;
+  #endif
+
+  set_kernel(eflag,vflag);
+
+  // reallocate per-atom arrays, transfer extra data from the host
+  //   and build the neighbor lists if needed
+
+  int** firstneigh = nullptr;
+  firstneigh = precompute(ago, inum_full, nall, host_x, host_type,
+                          host_amtype, host_amgroup, host_rpole,
+                          host_uind, host_uinp, sublo, subhi, tag,
+                          nspecial, special, nspecial15, special15,
+                          eflag_in, vflag_in, eatom, vatom,
+                          host_start, ilist, jnum, cpu_time,
+                          success, host_q, boxlo, prd);
+
+  // ------------------- Resize _fieldp array ------------------------
+
+  if (nall>_max_fieldp_size) {
+    _max_fieldp_size=static_cast<int>(static_cast<double>(nall)*1.10);
+    _fieldp.resize(_max_fieldp_size*8);
+  }
+  *fieldp_ptr=_fieldp.host.begin();
+
+  const int red_blocks=umutual2b(eflag,vflag);
+
+  // copy field and fieldp from device to host (_fieldp store both arrays, one after another)
+
+  _fieldp.update_host(_max_fieldp_size*8,false);
+/*
+  printf("GPU lib: _fieldp size = %d: max fieldp size = %d\n",
+    this->_fieldp.cols(), _max_fieldp_size);
+  for (int i = 0; i < 10; i++) {
+    numtyp4* p = (numtyp4*)(&this->_fieldp[4*i]);
+    printf("i = %d; field = %f %f %f\n", i, p->x, p->y, p->z);
+  }
+*/
+  return firstneigh; //nbor->host_jlist.begin()-host_start;
+}
+
+// ---------------------------------------------------------------------------
 // Reneighbor on GPU if necessary, and then compute polar real-space
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
@@ -551,7 +622,6 @@ int** BaseAmoebaT::compute_polar_real(const int ago, const int inum_full, const 
   return firstneigh; // nbor->host_jlist.begin()-host_start;
 }
 
-
 template <class numtyp, class acctyp>
 double BaseAmoebaT::host_memory_usage_atomic() const {
   return device->atom.host_memory_usage()+nbor->host_memory_usage()+
@@ -621,7 +691,8 @@ void BaseAmoebaT::cast_extra_data(int* amtype, int* amgroup, double** rpole,
 template <class numtyp, class acctyp>
 void BaseAmoebaT::compile_kernels(UCL_Device &dev, const void *pair_str,
                                   const char *kname_polar,
-                                  const char *kname_udirect2b) {
+                                  const char *kname_udirect2b,
+                                  const char *kname_umutual2b) {
   if (_compiled)
     return;
 
@@ -632,6 +703,7 @@ void BaseAmoebaT::compile_kernels(UCL_Device &dev, const void *pair_str,
   
   k_polar.set_function(*pair_program,kname_polar);
   k_udirect2b.set_function(*pair_program,kname_udirect2b);
+  k_umutual2b.set_function(*pair_program,kname_umutual2b);
   k_special15.set_function(*pair_program,"k_special15");
   pos_tex.get_texture(*pair_program,"pos_tex");
   q_tex.get_texture(*pair_program,"q_tex");

@@ -908,6 +908,216 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
 }
 
 /* ----------------------------------------------------------------------
+  umutual2b = Ewald real mutual field via list
+   umutual2b computes the real space contribution of the induced
+   atomic dipole moments to the field via a neighbor list
+------------------------------------------------------------------------- */
+
+__kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
+                                 const __global numtyp *restrict extra,
+                                 const __global numtyp4 *restrict damping,
+                                 const __global numtyp4 *restrict sp_polar,
+                                 const __global int *dev_nbor,
+                                 const __global int *dev_packed,
+                                 __global numtyp4 *restrict fieldp,
+                                 const int inum,  const int nall,
+                                 const int nbor_pitch, const int t_per_atom,
+                                 const numtyp aewald, const numtyp off2,
+                                 const numtyp polar_dscale, const numtyp polar_uscale)
+{
+  int tid, ii, offset, i;
+  atom_info(t_per_atom,ii,tid,offset);
+
+  int n_stride;
+  local_allocate_store_charge();
+
+  acctyp _fieldp[6];
+  for (int l=0; l<6; l++) _fieldp[l]=(acctyp)0;
+
+  numtyp dix,diy,diz,qixx,qixy,qixz,qiyy,qiyz,qizz;
+  numtyp4* polar1 = (numtyp4*)(&extra[0]);
+  numtyp4* polar2 = (numtyp4*)(&extra[4*nall]);
+  numtyp4* polar3 = (numtyp4*)(&extra[8*nall]);
+
+  //numtyp4 xi__;
+
+  if (ii<inum) {
+    int numj, nbor, nbor_end;
+    nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
+              n_stride,nbor_end,nbor);
+
+    numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
+    //numtyp qtmp; fetch(qtmp,i,q_tex);
+    //int itype=ix.w;
+
+    int itype,igroup;
+    numtyp bn[4],bcn[3];
+    numtyp fid[3],fip[3];
+    numtyp ci,uix,uiy,uiz,uixp,uiyp,uizp;
+    
+    ci  = polar1[i].x;    // rpole[i][0];
+    dix = polar1[i].y;    // rpole[i][1];
+    diy = polar1[i].z;    // rpole[i][2];
+    diz = polar1[i].w;    // rpole[i][3];
+    qixx = polar2[i].x;   // rpole[i][4];
+    qixy = polar2[i].y;   // rpole[i][5];
+    qixz = polar2[i].z;   // rpole[i][6];
+    qiyy = polar2[i].w;   // rpole[i][8];
+    qiyz   = polar3[i].x; // rpole[i][9];
+    qizz   = polar3[i].y; // rpole[i][12];
+    itype  = polar3[i].z; // amtype[i];
+    igroup = polar3[i].w; // amgroup[i];
+    
+    // debug:
+    // xi__ = ix; xi__.w = itype;
+
+    numtyp pdi = damping[itype].x;
+    numtyp pti = damping[itype].y;
+    numtyp ddi = damping[itype].z;
+
+    numtyp aesq2 = (numtyp)2.0 * aewald*aewald;
+    numtyp aesq2n = (numtyp)0.0;
+    if (aewald > (numtyp)0.0) aesq2n = (numtyp)1.0 / (MY_PIS*aewald);
+
+    for ( ; nbor<nbor_end; nbor+=n_stride) {
+
+      int jextra=dev_packed[nbor];
+      int j = jextra & NEIGHMASK15;
+
+      numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
+      //int jtype=jx.w;
+ 
+      // Compute r12
+      numtyp xr = jx.x - ix.x;
+      numtyp yr = jx.y - ix.y;
+      numtyp zr = jx.z - ix.z;
+      numtyp r2 = xr*xr + yr*yr + zr*zr;
+
+      if (r2>off2) continue;
+  
+      numtyp r = ucl_sqrt(r2);
+      numtyp rinv = ucl_recip(r);
+      numtyp r2inv = rinv*rinv;
+      numtyp rr1 = rinv;
+      numtyp rr3 = rr1 * r2inv;
+      numtyp rr5 = (numtyp)3.0 * rr3 * r2inv;
+      numtyp rr7 = (numtyp)5.0 * rr5 * r2inv;
+
+      numtyp ck = polar1[j].x;   // rpole[j][0];
+      numtyp dkx = polar1[j].y;  // rpole[j][1];
+      numtyp dky = polar1[j].z;  // rpole[j][2];
+      numtyp dkz = polar1[j].w;  // rpole[j][3];
+      numtyp qkxx = polar2[j].x; // rpole[j][4];
+      numtyp qkxy = polar2[j].y; // rpole[j][5];
+      numtyp qkxz = polar2[j].z; // rpole[j][6];
+      numtyp qkyy = polar2[j].w; // rpole[j][8];
+      numtyp qkyz = polar3[j].x; // rpole[j][9];
+      numtyp qkzz = polar3[j].y; // rpole[j][12];
+      int jtype =   polar3[j].z; // amtype[j];
+      int jgroup =  polar3[j].w; // amgroup[j];
+
+      numtyp factor_wscale, factor_dscale, factor_pscale, factor_uscale;
+      const numtyp4 sp_pol = sp_polar[sbmask15(jextra)];
+      factor_wscale = sp_pol.x; // sp_polar_wscale[sbmask15(jextra)];
+      if (igroup == jgroup) {
+        factor_pscale = sp_pol.y; // sp_polar_piscale[sbmask15(jextra)];
+        factor_dscale = polar_dscale;
+        factor_uscale = polar_uscale;
+      } else {
+        factor_pscale = sp_pol.z; // sp_polar_pscale[sbmask15(jextra)];
+        factor_dscale = factor_uscale = (numtyp)1.0;
+      }
+
+      // intermediates involving moments and separation distance
+
+      numtyp dir = dix*xr + diy*yr + diz*zr;
+      numtyp qix = qixx*xr + qixy*yr + qixz*zr;
+      numtyp qiy = qixy*xr + qiyy*yr + qiyz*zr;
+      numtyp qiz = qixz*xr + qiyz*yr + qizz*zr;
+      numtyp qir = qix*xr + qiy*yr + qiz*zr;
+      numtyp dkr = dkx*xr + dky*yr + dkz*zr;
+      numtyp qkx = qkxx*xr + qkxy*yr + qkxz*zr;
+      numtyp qky = qkxy*xr + qkyy*yr + qkyz*zr;
+      numtyp qkz = qkxz*xr + qkyz*yr + qkzz*zr;
+      numtyp qkr = qkx*xr + qky*yr + qkz*zr;
+
+      // calculate the real space Ewald error function terms
+
+      numtyp ralpha = aewald * r;
+      numtyp exp2a = ucl_exp(-ralpha*ralpha);
+      numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*ralpha);
+      numtyp _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * exp2a;
+      //bn[0] = erfc(ralpha) / r;
+      bn[0] = _erfc * rinv;
+
+      numtyp aefac = aesq2n;
+      for (int m = 1; m <= 3; m++) {
+        numtyp bfac = (numtyp) (m+m-1);
+        aefac = aesq2 * aefac;
+        bn[m] = (bfac*bn[m-1]+aefac*exp2a) * r2inv;
+      }
+
+      // find the field components for Thole polarization damping
+
+      numtyp scale3 = (numtyp)1.0;
+      numtyp scale5 = (numtyp)1.0;
+      numtyp scale7 = (numtyp)1.0;
+      numtyp damp = pdi * damping[jtype].x; // pdamp[jtype]
+      if (damp != (numtyp)0.0) {
+        numtyp pgamma = MIN(ddi,damping[jtype].z); // dirdamp[jtype]
+        if (pgamma != (numtyp)0.0) {
+          damp = pgamma * ucl_powr(r/damp,(numtyp)1.5);
+          if (damp < (numtyp)50.0) {
+            numtyp expdamp = ucl_exp(-damp) ;
+            scale3 = (numtyp)1.0 - expdamp ;
+            scale5 = (numtyp)1.0 - expdamp*((numtyp)1.0+(numtyp)0.5*damp);
+            scale7 = (numtyp)1.0 - expdamp*((numtyp)1.0+(numtyp)0.65*damp + (numtyp)0.15*damp*damp);
+          }
+        } else {
+          pgamma = MIN(pti,damping[jtype].y); // thole[jtype]
+          damp = pgamma * ucl_powr(r/damp,3.0);
+          if (damp < (numtyp)50.0) {
+            numtyp expdamp = ucl_exp(-damp);
+            scale3 = (numtyp)1.0 - expdamp;
+            scale5 = (numtyp)1.0 - expdamp*((numtyp)1.0+damp);
+            scale7 = (numtyp)1.0 - expdamp*((numtyp)1.0+damp + (numtyp)0.6*damp*damp);
+          }
+        }
+      } else { // damp == 0: ???
+      }
+
+      numtyp scalek = factor_dscale;
+      bcn[0] = bn[1] - ((numtyp)1.0-scalek*scale3)*rr3;
+      bcn[1] = bn[2] - ((numtyp)1.0-scalek*scale5)*rr5;
+      bcn[2] = bn[3] - ((numtyp)1.0-scalek*scale7)*rr7;
+      fid[0] = -xr*(bcn[0]*ck-bcn[1]*dkr+bcn[2]*qkr) - bcn[0]*dkx + (numtyp)2.0*bcn[1]*qkx;
+      fid[1] = -yr*(bcn[0]*ck-bcn[1]*dkr+bcn[2]*qkr) - bcn[0]*dky + (numtyp)2.0*bcn[1]*qky;
+      fid[2] = -zr*(bcn[0]*ck-bcn[1]*dkr+bcn[2]*qkr) - bcn[0]*dkz + (numtyp)2.0*bcn[1]*qkz;
+        
+      scalek = factor_pscale;
+      bcn[0] = bn[1] - ((numtyp)1.0-scalek*scale3)*rr3;
+      bcn[1] = bn[2] - ((numtyp)1.0-scalek*scale5)*rr5;
+      bcn[2] = bn[3] - ((numtyp)1.0-scalek*scale7)*rr7;
+      fip[0] = -xr*(bcn[0]*ck-bcn[1]*dkr+bcn[2]*qkr) - bcn[0]*dkx + (numtyp)2.0*bcn[1]*qkx;
+      fip[1] = -yr*(bcn[0]*ck-bcn[1]*dkr+bcn[2]*qkr) - bcn[0]*dky + (numtyp)2.0*bcn[1]*qky;
+      fip[2] = -zr*(bcn[0]*ck-bcn[1]*dkr+bcn[2]*qkr) - bcn[0]*dkz + (numtyp)2.0*bcn[1]*qkz;
+
+      _fieldp[0] += fid[0];
+      _fieldp[1] += fid[1];
+      _fieldp[2] += fid[2];
+      _fieldp[3] += fip[0];
+      _fieldp[4] += fip[1];
+      _fieldp[5] += fip[2];
+    }  // nbor
+
+  } // ii<inum
+
+  // accumulate field and fieldp
+  
+  store_answers_fieldp(_fieldp,ii,inum,tid,t_per_atom,offset,i,fieldp);
+}
+
+/* ----------------------------------------------------------------------
    scan standard neighbor list and make it compatible with 1-5 neighbors
    if IJ entry is a 1-2,1-3,1-4 neighbor then adjust offset to SBBITS15
    else scan special15 to see if a 1-5 neighbor and adjust offset to SBBITS15

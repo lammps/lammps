@@ -1304,11 +1304,11 @@ int FixACKS2ReaxFFKokkos<DeviceType>::bicgstab_solve()
   if (comm->me == 0) {
     if (omega == 0 || rho == 0) {
       char str[128];
-      sprintf(str,"Fix acks2/reax/kk BiCGStab numerical breakdown, omega = %g, rho = %g",omega,rho);
+      sprintf(str,"Fix acks2/reaxff/kk BiCGStab numerical breakdown, omega = %g, rho = %g",omega,rho);
       error->warning(FLERR,str);
     } else if (i >= imax) {
       char str[128];
-      sprintf(str,"Fix acks2/reax/kk BiCGStab convergence failed after %d iterations "
+      sprintf(str,"Fix acks2/reaxff/kk BiCGStab convergence failed after %d iterations "
               "at " BIGINT_FORMAT " step",i,update->ntimestep);
       error->warning(FLERR,str);
     }
@@ -1316,7 +1316,6 @@ int FixACKS2ReaxFFKokkos<DeviceType>::bicgstab_solve()
 
   return i;
 }
-
 
 /* ---------------------------------------------------------------------- */
 

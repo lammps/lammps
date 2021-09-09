@@ -16,6 +16,9 @@
 FixStyle(acks2/reaxff/kk,FixACKS2ReaxFFKokkos<LMPDeviceType>)
 FixStyle(acks2/reaxff/kk/device,FixACKS2ReaxFFKokkos<LMPDeviceType>)
 FixStyle(acks2/reaxff/kk/host,FixACKS2ReaxFFKokkos<LMPHostType>)
+FixStyle(acks2/reax/kk,FixACKS2ReaxFFKokkos<LMPDeviceType>)
+FixStyle(acks2/reax/kk/device,FixACKS2ReaxFFKokkos<LMPDeviceType>)
+FixStyle(acks2/reax/kk/host,FixACKS2ReaxFFKokkos<LMPHostType>)
 
 #else
 

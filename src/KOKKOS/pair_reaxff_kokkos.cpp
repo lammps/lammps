@@ -147,7 +147,7 @@ void PairReaxFFKokkos<DeviceType>::init_style()
     int ifix = modify->find_fix_by_style("^acks2/reax");
     Fix* fix = modify->fix[ifix];
     if (!fix->kokkosable)
-      error->all(FLERR,"Must use Kokkos version of acks2/reax with pair reaxc/kk");
+      error->all(FLERR,"Must use Kokkos version of acks2/reaxff with pair reaxff/kk");
     if (fix->execution_space == Host) {
       FixACKS2ReaxFFKokkos<LMPHostType>* acks2_fix = (FixACKS2ReaxFFKokkos<LMPHostType>*) modify->fix[ifix];
       auto k_s = acks2_fix->get_s();

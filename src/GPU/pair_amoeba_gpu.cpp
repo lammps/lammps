@@ -74,7 +74,7 @@ int ** amoeba_gpu_compute_udirect2b(const int ago, const int inum, const int nal
               int **ilist, int **jnum, const double cpu_time,
               bool &success, double *host_q, double *boxlo, double *prd,
               void **fieldp_ptr);
-/*
+
 int ** amoeba_gpu_compute_umutual2b(const int ago, const int inum, const int nall,
               double **host_x, int *host_type, int *host_amtype, int *host_amgroup,
               double **host_rpole, double **host_uind, double **host_uinp, 
@@ -85,7 +85,7 @@ int ** amoeba_gpu_compute_umutual2b(const int ago, const int inum, const int nal
               int **ilist, int **jnum, const double cpu_time,
               bool &success, double *host_q, double *boxlo, double *prd,
               void **fieldp_ptr);
-*/
+
 int ** amoeba_gpu_compute_polar_real(const int ago, const int inum, const int nall,
               double **host_x, int *host_type, int *host_amtype, int *host_amgroup,
               double **host_rpole, double **host_uind, double **host_uinp,
@@ -1015,7 +1015,7 @@ void PairAmoebaGPU::umutual2b(double **field, double **fieldp)
     PairAmoeba::umutual2b(field, fieldp);
     return;
   }
-/*   
+
   int eflag=1, vflag=1;
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
@@ -1068,7 +1068,7 @@ void PairAmoebaGPU::umutual2b(double **field, double **fieldp)
     fieldp[i][1] += fieldp_ptr[idx+1];
     fieldp[i][2] += fieldp_ptr[idx+2];
   }
-*/  
+
 }
 
 /* ---------------------------------------------------------------------- */

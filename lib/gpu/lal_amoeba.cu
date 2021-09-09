@@ -1012,7 +1012,7 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
       numtyp scalek = factor_uscale;
       bcn[0] = bn[1] - ((numtyp)1.0-scalek*scale3)*rr3;
       bcn[1] = bn[2] - ((numtyp)1.0-scalek*scale5)*rr5;
-      numtyp tdipdip[6];
+      numtyp tdipdip[6]; // the following tdipdip is incorrect!! needs work to store tdipdip
       tdipdip[0] = -bcn[0] + bcn[1]*xr*xr;
       tdipdip[1] = bcn[1]*xr*yr;
       tdipdip[2] = bcn[1]*xr*zr;

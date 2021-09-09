@@ -668,8 +668,8 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_h_team(
             const X_FLOAT ytmp = x(i, 1);
             const X_FLOAT ztmp = x(i, 2);
             const int itype = type(i);
-            const tagint itag = tag(i);
-            const int jnum = s_numnbrs[idx];
+            tagint itag = tag(i);
+            int jnum = s_numnbrs[idx];
 
             // calculate the write-offset for atom-i's first neighbor
             int atomi_firstnbr_idx = team_firstnbr_idx + s_firstnbr[idx];
@@ -974,8 +974,8 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_x_team(
             const X_FLOAT ytmp = x(i, 1);
             const X_FLOAT ztmp = x(i, 2);
             const int itype = type(i);
-            const tagint itag = tag(i);
-            const int jnum = s_numnbrs[idx];
+            tagint itag = tag(i);
+            int jnum = s_numnbrs[idx];
 
             // calculate the write-offset for atom-i's first neighbor
             int atomi_firstnbr_idx = team_firstnbr_idx + s_firstnbr[idx];
@@ -1461,7 +1461,7 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2SparseMatvec3_Full, const membertype &team) const
 {
-  const int i = d_ilist[team.league_rank()];
+  int i = d_ilist[team.league_rank()];
   if (mask[i] & groupbit) {
     F_FLOAT sum;
     F_FLOAT sum2;

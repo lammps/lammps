@@ -113,25 +113,29 @@ void LabelMap::modify_lmap(int narg, char **arg)
 
 void LabelMap::merge_lmap(LabelMap *lmap2, int mode)
 {
-  if (mode == Atom::ATOM)
+  switch (mode)
+  {
+  case Atom::ATOM:
     for (int i = 0; i < lmap2->natomtypes; i++)
       find_or_create(lmap2->typelabel[i],typelabel,natomtypes);
-
-  if (mode == Atom::BOND)
+    break;
+  case Atom::BOND:
     for (int i = 0; i < lmap2->nbondtypes; i++)
       find_or_create(lmap2->btypelabel[i],btypelabel,nbondtypes);
-
-  if (mode == Atom::ANGLE)
+    break;
+  case Atom::ANGLE:
     for (int i = 0; i < lmap2->nangletypes; i++)
       find_or_create(lmap2->atypelabel[i],atypelabel,nangletypes);
-
-  if (mode == Atom::DIHEDRAL)
+    break;
+  case Atom::DIHEDRAL:
     for (int i = 0; i < lmap2->ndihedraltypes; i++)
       find_or_create(lmap2->dtypelabel[i],dtypelabel,ndihedraltypes);
-
-  if (mode == Atom::IMPROPER)
+    break;
+  case Atom::IMPROPER:
     for (int i = 0; i < lmap2->nimpropertypes; i++)
       find_or_create(lmap2->itypelabel[i],itypelabel,nimpropertypes);
+    break;
+  }
 }
 
 /* ----------------------------------------------------------------------

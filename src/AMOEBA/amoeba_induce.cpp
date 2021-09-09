@@ -597,15 +597,6 @@ void PairAmoeba::induce()
   memory->destroy(usum);
   memory->destroy(usump);
 
-  if (comm->me == 0) {
-    printf("CPU: iter = %d\n", iter);
-    for (i = 0; i < 20; i++) {
-      printf("i = %d: uind = %f %f %f; uinp = %f %f %f\n",
-        i, uind[i][0], uind[i][1], uind[i][2],
-        uinp[i][0], uinp[i][1], uinp[i][2]); 
-    }    
-  }
-
   // update the lists of previous induced dipole values
   // shift previous m values up to m+1, add new values at m = 0
   // only when preconditioner is used

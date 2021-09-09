@@ -45,6 +45,9 @@ class PairAmoebaGPU : public PairAmoeba {
   void *fieldp_pinned;
   bool tep_single;
 
+  bool gpu_polar_real_ready;
+  bool gpu_udirect2b_ready;
+
   void udirect2b_cpu();
 
   template<class numtyp>

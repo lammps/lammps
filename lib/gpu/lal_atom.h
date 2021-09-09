@@ -284,7 +284,11 @@ class Atom {
 
   /// Signal that we need to transfer atom data for next timestep
   inline void data_unavail()
-    { _x_avail=false; _q_avail=false; _quat_avail=false; _v_avail=false; _resized=false; }
+    { _x_avail=false; _q_avail=false; _quat_avail=false; _v_avail=false; _extra_avail=false; _resized=false; }
+  
+  /// Signal that we need to transfer atom extra data for next kernel call
+  inline void extra_data_unavail()
+    { _extra_avail=false; }
 
   typedef struct { double x,y,z; } vec3d;
   typedef struct { numtyp x,y,z,w; } vec4d_t;

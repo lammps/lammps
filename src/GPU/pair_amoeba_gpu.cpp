@@ -98,6 +98,10 @@ PairAmoebaGPU::PairAmoebaGPU(LAMMPS *lmp) : PairAmoeba(lmp), gpu_mode(GPU_FORCE)
   suffix_flag |= Suffix::GPU;
   fieldp_pinned = nullptr;
   tep_pinned = nullptr;
+
+  gpu_udirect2b_ready = true;
+  gpu_polar_real_ready = true; 
+
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 
@@ -114,7 +118,6 @@ PairAmoebaGPU::~PairAmoebaGPU()
 
 void PairAmoebaGPU::polar_real()
 {
-  bool gpu_polar_real_ready = true;
   if (!gpu_polar_real_ready) {
     PairAmoeba::polar_real();
     return;
@@ -139,7 +142,16 @@ void PairAmoebaGPU::polar_real()
     domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
   }
   inum = atom->nlocal;
-
+/*
+  if (comm->me == 0) {
+    printf("GPU: polar real\n");
+    for (int i = 0; i < 20; i++) {
+      printf("i = %d: uind = %f %f %f; uinp = %f %f %f\n",
+        i, uind[i][0], uind[i][1], uind[i][2],
+        uinp[i][0], uinp[i][1], uinp[i][2]); 
+    }    
+  }
+*/
   firstneigh = amoeba_gpu_compute_polar_real(neighbor->ago, inum, nall, atom->x,
                                         atom->type, amtype, amgroup,
                                         rpole, uind, uinp, sublo, subhi,
@@ -200,6 +212,7 @@ void PairAmoebaGPU::compute_force_from_tep(const numtyp* tep_ptr)
     tep[0] = tep_ptr[4*i];
     tep[1] = tep_ptr[4*i+1];
     tep[2] = tep_ptr[4*i+2];
+
     torque2force(i,tep,fix,fiy,fiz,fpolar);
 
     iz = zaxis2local[i];
@@ -365,10 +378,14 @@ void PairAmoebaGPU::induce()
   // get the electrostatic field due to permanent multipoles
   
   dfield0c(field,fieldp);
-/*
-  crstyle = FIELD;
-  comm->reverse_comm_pair(this);
-*/
+
+  // need reverse_comm_pair if dfield0c (i.e. udirect2b) is CPU-only
+
+  if (!gpu_udirect2b_ready) {
+    crstyle = FIELD;
+    comm->reverse_comm_pair(this);
+  }
+
   // set induced dipoles to polarizability times direct field
 
   for (i = 0; i < nlocal; i++) {
@@ -726,7 +743,7 @@ void PairAmoebaGPU::induce()
   memory->destroy(udir);
   memory->destroy(usum);
   memory->destroy(usump);
-
+/*
   if (comm->me == 0) {
     printf("GPU: iter = %d\n", iter);
     for (i = 0; i < 20; i++) {
@@ -735,7 +752,7 @@ void PairAmoebaGPU::induce()
         uinp[i][0], uinp[i][1], uinp[i][2]); 
     }    
   }
-
+*/
   // update the lists of previous induced dipole values
   // shift previous m values up to m+1, add new values at m = 0
   // only when preconditioner is used
@@ -825,7 +842,6 @@ void PairAmoebaGPU::dfield0c(double **field, double **fieldp)
 
 void PairAmoebaGPU::udirect2b(double **field, double **fieldp)
 {
-  bool gpu_udirect2b_ready = true;
   if (!gpu_udirect2b_ready) {
     PairAmoeba::udirect2b(field, fieldp);
     return;

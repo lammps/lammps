@@ -348,6 +348,8 @@ void FixQEqReaxFFOMP::init_matvec()
         /* init pre-conditioner for H and init solution vectors */
         Hdia_inv[i] = 1. / eta[atom->type[i]];
         b_s[i]      = -chi[atom->type[i]];
+        if (field_flag)
+          b_s[i] -= chi_field[i];
         b_t[i]      = -1.0;
 
         /* linear extrapolation for s & t from previous solutions */

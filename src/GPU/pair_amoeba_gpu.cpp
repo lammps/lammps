@@ -100,7 +100,7 @@ PairAmoebaGPU::PairAmoebaGPU(LAMMPS *lmp) : PairAmoeba(lmp), gpu_mode(GPU_FORCE)
   tep_pinned = nullptr;
 
   gpu_udirect2b_ready = true;
-  gpu_polar_real_ready = true; 
+  gpu_polar_real_ready = true;
 
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
@@ -775,64 +775,6 @@ void PairAmoebaGPU::induce()
   }
 }
 
-/* ----------------------------------------------------------------------
-   dfield0c =  direct induction via Ewald sum
-   dfield0c computes the mutual electrostatic field due to
-   permanent multipole moments via Ewald summation
-------------------------------------------------------------------------- */
-
-void PairAmoebaGPU::dfield0c(double **field, double **fieldp)
-{
-  int i,j,ii;
-  double term;
-
-  int inum;
-  int *ilist;
-
-  // zero out field,fieldp for owned and ghost atoms
-
-  int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
-
-  for (i = 0; i < nall; i++) {
-    for (j = 0; j < 3; j++) {
-      field[i][j] = 0.0;
-      fieldp[i][j] = 0.0;
-    }
-  }
-
-  // get the reciprocal space part of the permanent field
-
-  if (kspace_flag) udirect1(field);
-
-  for (i = 0; i < nlocal; i++) {
-    for (j = 0; j < 3; j++) {
-      fieldp[i][j] = field[i][j];
-    }
-  }
-
-  // get the real space portion of the permanent field
-
-  if (rspace_flag) udirect2b(field,fieldp);
-  
-  // get the self-energy portion of the permanent field
-
-  term = (4.0/3.0) * aewald*aewald*aewald / MY_PIS;
-  for (i = 0; i < nlocal; i++) {
-    for (j = 0; j < 3; j++) {
-      field[i][j] += term*rpole[i][j+1];
-      fieldp[i][j] += term*rpole[i][j+1];
-    }
-  }
-/*
-  printf("GPU: cutghost = %f\n", comm->cutghost[0]);
-  for (i = 0; i < nlocal; i++) {
-    printf("i = %d: field = %f %f %f; fieldp = %f %f %f\n",
-      i, field[i][0], field[i][1], field[i][2],
-      fieldp[i][0], fieldp[i][1], fieldp[i][2]); 
-  }
-*/  
-}
 
 /* ----------------------------------------------------------------------
    udirect2b = Ewald real direct field via list

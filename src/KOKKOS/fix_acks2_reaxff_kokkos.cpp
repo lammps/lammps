@@ -797,7 +797,7 @@ double FixACKS2ReaxFFKokkos<DeviceType>::calculate_H_k(const F_FLOAT &r, const F
   taper = taper * r + d_tap[0];
 
   denom = r * r * r + shld;
-  denom = pow(denom,0.3333333333333);
+  denom = pow(denom,1.0/3.0);
 
   return taper * EV_TO_KCAL_PER_MOL / denom;
 }

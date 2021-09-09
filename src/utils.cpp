@@ -37,6 +37,7 @@
 #include <sys/syslimits.h>
 #endif
 
+#if defined(_WIN32)
 // target Windows version is Windows 7 and later
 #if defined(_WIN32_WINNT)
 #undef _WIN32_WINNT

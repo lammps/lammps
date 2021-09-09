@@ -52,6 +52,10 @@ enum{DEFAULT,MD,OPT};          // top-level MDI engine mode
 
 enum{TYPE,CHARGE,MASS,COORD,VELOCITY,FORCE};  
 
+// stages of CREATE_ATOM commands
+
+enum{CREATE_ATOM,CREATE_ID,CREATE_TYPE,CREATE_X,CREATE_V,CREATE_IMAGE,CREATE_GO};
+
 /* ----------------------------------------------------------------------
    mdi command: engine
    NOTE: may later have other MDI command variants?
@@ -163,6 +167,9 @@ void MDIEngine2::mdi_engine(int narg, char **arg)
   buf3 = buf3all = nullptr;
   ibuf1 = ibuf1all = nullptr;
   maxbuf = 0;
+
+  nbytes = -1;
+  create_atoms_flag = 0;
 
   // define MDI commands that LAMMPS engine recognizes
 
@@ -442,8 +449,8 @@ int MDIEngine2::execute_command(const char *command, MDI_Comm mdicomm)
   // custom LAMMPS commands
   // -------------------------------------------------------
 
-  } else if (strcmp(command, "LENGTH") == 0) {
-    length_command();
+  } else if (strcmp(command, "NBYTES") == 0) {
+    nbytes_command();
   } else if (strcmp(command, "COMMAND") == 0) {
     single_command();
   } else if (strcmp(command, "COMMANDS") == 0) {
@@ -455,7 +462,19 @@ int MDIEngine2::execute_command(const char *command, MDI_Comm mdicomm)
   } else if (strcmp(command, "RESET_BOX") == 0) {
     reset_box();
   } else if (strcmp(command, "CREATE_ATOM") == 0) {
-    create_atoms();
+    create_atoms(CREATE_ATOM);
+  } else if (strcmp(command, "CREATE_ID") == 0) {
+    create_atoms(CREATE_ID);
+  } else if (strcmp(command, "CREATE_TYPE") == 0) {
+    create_atoms(CREATE_TYPE);
+  } else if (strcmp(command, "CREATE_X") == 0) {
+    create_atoms(CREATE_X);
+  } else if (strcmp(command, "CREATE_V") == 0) {
+    create_atoms(CREATE_V);
+  } else if (strcmp(command, "CREATE_IMG") == 0) {
+    create_atoms(CREATE_IMAGE);
+  } else if (strcmp(command, "CREATE_GO") == 0) {
+    create_atoms(CREATE_GO);
   } else if (strcmp(command, "<PRESSURE") == 0) {
     send_pressure();
   } else if (strcmp(command, "<PTENSOR") == 0) {
@@ -618,13 +637,19 @@ void MDIEngine2::mdi_commands()
   // max length for a command is current 11 chars in MDI
   // ------------------------------------
 
-  MDI_Register_command("@DEFAULT", "LENGTH");
+  MDI_Register_command("@DEFAULT", "NBYTES");
   MDI_Register_command("@DEFAULT", "COMMAND");
   MDI_Register_command("@DEFAULT", "COMMANDS");
   MDI_Register_command("@DEFAULT", "INFILE");
   MDI_Register_command("@DEFAULT", "EVAL");
   MDI_Register_command("@DEFAULT", "RESET_BOX");
   MDI_Register_command("@DEFAULT", "CREATE_ATOM");
+  MDI_Register_command("@DEFAULT", "CREATE_ID");
+  MDI_Register_command("@DEFAULT", "CREATE_TYPE");
+  MDI_Register_command("@DEFAULT", "CREATE_X");
+  MDI_Register_command("@DEFAULT", "CREATE_V");
+  MDI_Register_command("@DEFAULT", "CREATE_IMG");
+  MDI_Register_command("@DEFAULT", "CREATE_GO");
   MDI_Register_command("@DEFAULT", "<KE");
   MDI_Register_command("@DEFAULT", "<PE");
   MDI_Register_command("@DEFAULT", "<PRESSURE");
@@ -1211,31 +1236,33 @@ void MDIEngine2::receive_celldispl()
 // ----------------------------------------------------------------------
 
 /* ----------------------------------------------------------------------
-   LENGTH command
-   store received value in length_param
+   NBYTES command
+   store received value in nbytes
    for use by a subsequent command, e.g. ones that send strings
 ---------------------------------------------------------------------- */
 
-void MDIEngine2::length_command()
+void MDIEngine2::nbytes_command()
 {
-  int ierr = MDI_Recv(&length_param,1,MDI_INT,mdicomm);
-  if (ierr) error->all(FLERR,"MDI: LENGTH data");
-  MPI_Bcast(&length_param,1,MPI_INT,0,world);
+  int ierr = MDI_Recv(&nbytes,1,MDI_INT,mdicomm);
+  if (ierr) error->all(FLERR,"MDI: NBYTES data");
+  MPI_Bcast(&nbytes,1,MPI_INT,0,world);
 }
 
 /* ----------------------------------------------------------------------
    COMMAND command
-   store received value as string of length length_param
+   store received value as string of length nbytes
    invoke as a LAMMPS command
 ---------------------------------------------------------------------- */
 
 void MDIEngine2::single_command()
 {
-  char *cmd = new char[length_param+1];
-  int ierr = MDI_Recv(cmd,length_param+1,MDI_CHAR,mdicomm);
+  if (nbytes < 0) error->all(FLERR,"MDI: COMMAND nbytes has not been set");
+
+  char *cmd = new char[nbytes+1];
+  int ierr = MDI_Recv(cmd,nbytes+1,MDI_CHAR,mdicomm);
   if (ierr) error->all(FLERR,"MDI: COMMAND data");
-  MPI_Bcast(cmd,length_param+1,MPI_CHAR,0,world);
-  cmd[length_param+1] = '\0';
+  MPI_Bcast(cmd,nbytes+1,MPI_CHAR,0,world);
+  cmd[nbytes+1] = '\0';
 
   lammps_command(lmp,cmd);
 
@@ -1244,17 +1271,19 @@ void MDIEngine2::single_command()
 
 /* ----------------------------------------------------------------------
    COMMANDS command
-   store received value as multi-line string of length length_param
+   store received value as multi-line string of length nbytes
    invoke as multiple LAMMPS commands
 ---------------------------------------------------------------------- */
 
 void MDIEngine2::many_commands()
 {
-  char *cmds = new char[length_param+1];
-  int ierr = MDI_Recv(cmds, length_param+1, MDI_CHAR, mdicomm);
+  if (nbytes < 0) error->all(FLERR,"MDI: COMMANDS nbytes has not been set");
+
+  char *cmds = new char[nbytes+1];
+  int ierr = MDI_Recv(cmds, nbytes+1, MDI_CHAR, mdicomm);
   if (ierr) error->all(FLERR,"MDI: COMMANDS data");
-  MPI_Bcast(cmds,length_param+1,MPI_CHAR,0,world);
-  cmds[length_param+1] = '\0';
+  MPI_Bcast(cmds,nbytes+1,MPI_CHAR,0,world);
+  cmds[nbytes+1] = '\0';
   
   lammps_commands_string(lmp,cmds);
   
@@ -1269,11 +1298,13 @@ void MDIEngine2::many_commands()
 
 void MDIEngine2::infile()
 {
-  char *infile = new char[length_param+1];
-  int ierr = MDI_Recv(infile,length_param+1,MDI_CHAR,mdicomm);
+  if (nbytes < 0) error->all(FLERR,"MDI: INFILE nbytes has not been set");
+
+  char *infile = new char[nbytes+1];
+  int ierr = MDI_Recv(infile,nbytes+1,MDI_CHAR,mdicomm);
   if (ierr) error->all(FLERR,"MDI: INFILE data");
-  MPI_Bcast(infile,length_param+1,MPI_CHAR,0,world);
-  infile[length_param+1] = '\0';
+  MPI_Bcast(infile,nbytes+1,MPI_CHAR,0,world);
+  infile[nbytes+1] = '\0';
 
   lammps_file(lmp,infile);
 
@@ -1316,26 +1347,24 @@ void MDIEngine2::evaluate()
 
 /* ----------------------------------------------------------------------
    RESET_BOX command
+   9 values = boxlo, boxhi, xy, yz, xz
    wrapper on library reset_box() method
    requires no atoms exist
    allows caller to define a new simulation box
-   NOTE: this will not work in plugin mode, b/c of 3 MDI_Recv() calls
-         how to effectively do this?
 ---------------------------------------------------------------------- */
 
 void MDIEngine2::reset_box()
 {
   int ierr;
-  double boxlo[3],boxhi[3],tilts[3];
-  ierr = MDI_Recv(boxlo, 3, MDI_DOUBLE, mdicomm);
-  ierr = MDI_Recv(boxhi, 3, MDI_DOUBLE, mdicomm);
-  ierr = MDI_Recv(tilts, 3, MDI_DOUBLE, mdicomm);
-  // ierr check?
-  MPI_Bcast(boxlo, 3, MPI_DOUBLE, 0, world);
-  MPI_Bcast(boxhi, 3, MPI_DOUBLE, 0, world);
-  MPI_Bcast(tilts, 3, MPI_DOUBLE, 0, world);
+  double values[9];
 
-  lammps_reset_box(lmp,boxlo,boxhi,tilts[0],tilts[1],tilts[2]);
+  if (atom->natoms > 0) 
+    error->all(FLERR,"MDI RESET_BOX cannot be used when atoms exist");
+
+  ierr = MDI_Recv(values,9,MDI_DOUBLE,mdicomm);
+  MPI_Bcast(values,9,MPI_DOUBLE,0,world);
+
+  lammps_reset_box(lmp,&values[0],&values[3],values[6],values[7],values[8]);
 }
 
 /* ----------------------------------------------------------------------
@@ -1344,62 +1373,105 @@ void MDIEngine2::reset_box()
    requires simulation box be defined
    allows caller to define a new set of atoms
      with their IDs, types, coords, velocities, image flags
-   NOTE: this will not work in plugin mode, b/c of multiple MDI_Recv() calls
-         how to effectively do this?
-   NOTE: also the memory here is not yet allocated correctly
+   called in stages via flag
+     since MDI plugin mode only allows 1 MDI Send/Recv per MDI command
+   assumes current atom->natoms set by >NATOMS command is correct
 ---------------------------------------------------------------------- */
 
-void MDIEngine2::create_atoms()
+void MDIEngine2::create_atoms(int flag)
 {
   int ierr;
-  int natoms;
-  ierr = MDI_Recv(&natoms, 1, MDI_INT, mdicomm);
-  // ierr checks everywhere?
-  MPI_Bcast(&natoms, 1, MPI_INT, 0, world);
 
-  tagint *id = nullptr;
-  int *type = nullptr;
-  double *x = nullptr;
-  double *v = nullptr;
-  imageint *image = nullptr;
+  // NOTE: error check on imageint = INT
 
-  while (1) {
-    char label;
-    ierr = MDI_Recv(&label, 1, MDI_CHAR, mdicomm);
-    MPI_Bcast(&label, 1, MPI_CHAR, 0, world);
+  if (flag == CREATE_ATOM) {
 
-    if (label == '0') break;
+    if (create_atoms_flag) 
+      error->all(FLERR,"MDI CREATE_ATOM already in progress");
 
-    if (label == 'i') {
-      id = new tagint[natoms];
-      ierr = MDI_Recv(id, natoms, MDI_INT, mdicomm);
-      MPI_Bcast(id, natoms, MPI_INT, 0, world);
-    } else if (label == 't') {
-      type = new int[natoms];
-      ierr = MDI_Recv(type, natoms, MDI_INT, mdicomm);
-      MPI_Bcast(type, natoms, MPI_INT, 0, world);
-    } else if (label == 'x') {
-      x = new double[3*natoms];
-      ierr = MDI_Recv(x, 3*natoms, MDI_DOUBLE, mdicomm);
-      MPI_Bcast(x, 3*natoms, MPI_DOUBLE, 0, world);
-    } else if (label == 'v') {
-      v = new double[3*natoms];
-      ierr = MDI_Recv(v, 3*natoms, MDI_DOUBLE, mdicomm);
-      MPI_Bcast(v, 3*natoms, MPI_DOUBLE, 0, world);
-    } else if (label == 'i') { 
-      image = new imageint[natoms];
-      ierr = MDI_Recv(image, natoms, MDI_INT, mdicomm);
-      MPI_Bcast(image, natoms, MPI_INT, 0, world);
-    }
+    create_atoms_flag = 1;
+    create_id = nullptr;
+    create_type = nullptr;
+    create_x = nullptr;
+    create_v = nullptr;
+    create_image = nullptr;
+
+  } else if (flag == CREATE_ID) {
+
+    if (!create_atoms_flag) error->all(FLERR,"MDI CREATE_ATOM not in progress");
+    if (create_id) error->all(FLERR,"MDI CREATE_ATOM already in progress");
+    
+    int natoms = atom->natoms;
+    memory->create(create_id,natoms,"mdi:create_id");
+    ierr = MDI_Recv(create_id,natoms,MDI_INT,mdicomm);
+    MPI_Bcast(create_id,natoms,MPI_INT,0,world);
+
+  } else if (flag == CREATE_TYPE) {
+
+    if (!create_atoms_flag) error->all(FLERR,"MDI CREATE_ATOM not in progress");
+    if (create_type) error->all(FLERR,"MDI CREATE_ATOM already in progress");
+
+    int natoms = atom->natoms;
+    if (create_type) error->all(FLERR,"MDI CREATE_ATOM already in progress");
+    memory->create(create_type,natoms,"mdi:create_type");
+    ierr = MDI_Recv(create_type,natoms,MDI_INT,mdicomm);
+    MPI_Bcast(create_type,natoms,MPI_INT,0,world);
+
+  } else if (flag == CREATE_X) {
+
+    if (!create_atoms_flag) error->all(FLERR,"MDI CREATE_ATOM not in progress");
+    if (create_x) error->all(FLERR,"MDI CREATE_ATOM already in progress");
+
+    int natoms = atom->natoms;
+    if (create_x) error->all(FLERR,"MDI CREATE_ATOM already in progress");
+    memory->create(create_x,3*natoms,"mdi:create_x");
+    ierr = MDI_Recv(create_x,3*natoms,MDI_DOUBLE,mdicomm);
+    MPI_Bcast(create_x,3*natoms,MPI_DOUBLE,0,world);
+
+  } else if (flag == CREATE_V) {
+
+    if (!create_atoms_flag) error->all(FLERR,"MDI CREATE_ATOM not in progress");
+    if (create_v) error->all(FLERR,"MDI CREATE_ATOM already in progress");
+
+    int natoms = atom->natoms;
+    if (create_v) error->all(FLERR,"MDI CREATE_ATOM already in progress");
+    memory->create(create_v,3*natoms,"mdi:create_x");
+    ierr = MDI_Recv(create_v,3*natoms,MDI_DOUBLE,mdicomm);
+    MPI_Bcast(create_v,3*natoms,MPI_DOUBLE,0,world);
+
+  } else if (flag == CREATE_IMAGE) {
+
+    if (!create_atoms_flag) error->all(FLERR,"MDI CREATE_ATOM not in progress");
+    if (create_image) error->all(FLERR,"MDI CREATE_ATOM already in progress");
+
+    int natoms = atom->natoms;
+    if (create_image) error->all(FLERR,"MDI CREATE_ATOM already in progress");
+    memory->create(create_image,natoms,"mdi:create_image");
+    ierr = MDI_Recv(create_image,natoms,MDI_INT,mdicomm);
+    MPI_Bcast(create_image,natoms,MPI_INT,0,world);
+
+  } else if (flag == CREATE_GO) {
+
+    if (!create_atoms_flag) error->all(FLERR,"MDI CREATE_ATOM not in progress");
+    if (!create_type || !create_x)
+      error->all(FLERR,"MDI: CREATE_ATOM requires types and coords");
+    
+    int natom = atom->natoms;
+    int ncreate = lammps_create_atoms(lmp,natom,create_id,create_type,
+                                      create_x,create_v,create_image,1);
+
+    if (ncreate != natom) 
+      error->all(FLERR, "MDI: CREATE ATOM created atoms != sent atoms");
+
+    // clean up create_atoms state
+
+    create_atoms_flag = 0;
+    memory->destroy(create_id);
+    memory->destroy(create_type);
+    memory->destroy(create_x);
+    memory->destroy(create_v);
+    memory->destroy(create_image);
   }
-
-  if (!x || !type) 
-    error->all(FLERR,"MDI: CREATE_ATOM did not receive atom coords or types");
-
-  int ncreate = lammps_create_atoms(lmp,natoms,id,type,x,v,image,1);
-
-  if (ncreate != natoms) 
-    error->all(FLERR, "MDI: CREATE ATOM created atoms != sent atoms");
 }
 
 /* ----------------------------------------------------------------------

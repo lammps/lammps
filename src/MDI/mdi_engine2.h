@@ -55,7 +55,15 @@ class MDIEngine2 : public Command {
   class Minimize *minimizer;
   class Compute *ke,*pe,*press;
 
-  int length_param;         // LENGTH command value used by other commands
+  int nbytes;         // NBYTES command value used by other commands
+
+  // create_atoms state
+
+  int create_atoms_flag;
+  tagint *create_id;
+  int *create_type;
+  double *create_x,*create_v;
+  imageint *create_image;
 
   // unit conversion factors
 
@@ -98,13 +106,13 @@ class MDIEngine2 : public Command {
   void send_celldispl();
   void receive_celldispl();
 
-  void length_command();
+  void nbytes_command();
   void single_command();
   void many_commands();
   void infile();
   void evaluate();
   void reset_box();
-  void create_atoms();
+  void create_atoms(int);
   void send_pressure();
   void send_ptensor();
 

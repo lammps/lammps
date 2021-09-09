@@ -39,7 +39,8 @@ class BondBPM : public Bond {
   char *id_fix_store_local, *id_fix_prop_atom;
   class FixStoreLocal *fix_store_local;
   class FixUpdateSpecialBonds *fix_update_special_bonds;
-  
+  class FixBondHistory *fix_bond_history;
+
   void process_broken(int, int);  
   typedef void (BondBPM::*FnPtrPack)(int,int,int);
   FnPtrPack *pack_choice;              // ptrs to pack functions

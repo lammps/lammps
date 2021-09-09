@@ -23,8 +23,8 @@ neighbor        1.0 bin
 pair_style      gran/hooke/history 1.0 NULL 0.5 NULL 0.1 1
 bond_style      bpm/rotational store/local 2 time id1 id2
 pair_coeff      1 1
-bond_coeff      1 1.0 0.2 0.02 0.02 0.05 0.01 0.005 0.005 0.1 0.02 0.002 0.002
-bond_coeff      2 1.0 0.2 0.02 0.02 0.20 0.04 0.020 0.020 0.1 0.02 0.002 0.002
+bond_coeff      1 1.0 0.2 0.02 0.02 0.05 0.01 0.01 0.01 0.1 0.02 0.002 0.002
+bond_coeff      2 1.0 0.2 0.02 0.02 0.20 0.04 0.04 0.04 0.1 0.02 0.002 0.002
 
 fix             1 all nve/sphere/bpm
 fix             2 all store/local 100 3
@@ -49,4 +49,4 @@ thermo          100
 dump            2 all local 100 brokenDump f_2[1] f_2[2] f_2[3]
 dump_modify     2 header no
 
-run             6000
+run             10000

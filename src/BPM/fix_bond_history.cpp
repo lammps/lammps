@@ -292,3 +292,15 @@ void FixBondHistory::set_arrays(int i)
     for (int idata = 0; idata < ndata; idata++)
       stored[i][m*ndata+idata] = 0.0;
 }
+
+/* ----------------------------------------------------------------------
+   Remove all data for row by compressing data
+------------------------------------------------------------------------- */
+
+void FixBondHistory::delete_bond(int i, int m)
+{
+  double **stored = atom->darray[index];
+  int n = atom->num_bond[i];
+  for (int idata = 0; idata < ndata; idata ++)
+    stored[i][m*ndata+idata] = stored[i][(n-1)*ndata+idata];
+}

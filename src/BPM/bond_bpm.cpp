@@ -17,6 +17,7 @@
 #include "atom.h"
 #include "domain.h"
 #include "error.h"
+#include "fix_bond_history.h"
 #include "fix_store_local.h"
 #include "fix_update_special_bonds.h"
 #include "force.h"
@@ -34,12 +35,13 @@ BondBPM::BondBPM(LAMMPS *lmp) : Bond(lmp)
   id_fix_prop_atom = nullptr;
   fix_store_local = nullptr;
   fix_update_special_bonds = nullptr;
-  
-  prop_atom_flag = 0;  
+  fix_bond_history = nullptr;
+
+  prop_atom_flag = 0;
   nvalues = 0;
-  output_data = nullptr;  
+  output_data = nullptr;
   pack_choice = nullptr;
-  
+
   r0_max_estimate = 0.0;
   max_stretch = 1.0;
 }
@@ -63,15 +65,15 @@ void BondBPM::init_style()
     ifix = modify->find_fix(id_fix_store_local);
     if (ifix < 0) error->all(FLERR, "Cannot find fix store/local");
     if (strcmp(modify->fix[ifix]->style, "store/local") != 0)
-      error->all(FLERR, "Incorrect fix style matched, not store/local");    
+      error->all(FLERR, "Incorrect fix style matched, not store/local");
     fix_store_local = (FixStoreLocal *) modify->fix[ifix];
     fix_store_local->nvalues = nvalues;
-  } 
-  
+  }
+
   ifix = modify->find_fix_by_style("update/special/bonds");
   if (ifix >= 0)
     fix_update_special_bonds = (FixUpdateSpecialBonds *) modify->fix[ifix];
-  else 
+  else
     fix_update_special_bonds = nullptr;
 
 
@@ -81,11 +83,11 @@ void BondBPM::init_style()
   if (atom->molecular == 2)
     error->all(FLERR,
                "Bond style bpm cannot be used with atom style template");
-               
+
   // special 1-3 and 1-4 weights must be 1 to prevent building 1-3 and 1-4 special bond lists
   if (force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0 ||
     force->special_coul[2] != 1.0 || force->special_coul[3] != 1.0)
-    error->all(FLERR,"Bond style bpm requires 1-3 and 1-4 special weights of 1.0");    
+    error->all(FLERR,"Bond style bpm requires 1-3 and 1-4 special weights of 1.0");
 }
 
 /* ----------------------------------------------------------------------
@@ -97,7 +99,7 @@ void BondBPM::init_style()
 ------------------------------------------------------------------------- */
 
 void BondBPM::settings(int narg, char **arg)
-{ 
+{
   int iarg = 0;
   while (iarg < narg) {
     if (id_fix_store_local) {
@@ -115,10 +117,10 @@ void BondBPM::settings(int narg, char **arg)
         pack_choice[nvalues++] = &BondBPM::pack_z;
       } else if (strcmp(arg[iarg], "x/ref") == 0) {
         pack_choice[nvalues++] = &BondBPM::pack_x_ref;
-        prop_atom_flag = 1;      
+        prop_atom_flag = 1;
       } else if (strcmp(arg[iarg], "y/ref") == 0) {
         pack_choice[nvalues++] = &BondBPM::pack_y_ref;
-        prop_atom_flag = 1;      
+        prop_atom_flag = 1;
       } else if (strcmp(arg[iarg], "z/ref") == 0) {
         pack_choice[nvalues++] = &BondBPM::pack_z_ref;
         prop_atom_flag = 1;
@@ -128,20 +130,20 @@ void BondBPM::settings(int narg, char **arg)
     } else if (strcmp(arg[iarg], "store/local") == 0) {
       id_fix_store_local = utils::strdup(arg[iarg+1]);
       iarg ++;
-      nvalues = 0;      
+      nvalues = 0;
       pack_choice = new FnPtrPack[narg - iarg - 1];
     }
     iarg ++;
   }
-  
+
   if (id_fix_store_local) {
-    if (nvalues == 0) error->all(FLERR, 
-        "Bond style bpm/rotational must include at least one value to output");  
+    if (nvalues == 0) error->all(FLERR,
+        "Bond style bpm/rotational must include at least one value to output");
     memory->create(output_data, nvalues, "bond/bpm:output_data");
-    
+
     // Use store property to save reference positions as it can transfer to ghost atoms
     if (prop_atom_flag == 1) {
-      
+
       id_fix_prop_atom = utils::strdup("BPM_PROPERTY_ATOM");
       int ifix = modify->find_fix(id_fix_prop_atom);
       if (ifix < 0) {
@@ -149,20 +151,20 @@ void BondBPM::settings(int narg, char **arg)
             "d_BPM_X_REF d_BPM_Y_REF d_BPM_Z_REF ghost yes", id_fix_prop_atom));
         ifix = modify->find_fix(id_fix_prop_atom);
       }
-      
+
       int type_flag;
       int col_flag;
       index_x_ref = atom->find_custom("BPM_X_REF", type_flag, col_flag);
       index_y_ref = atom->find_custom("BPM_Y_REF", type_flag, col_flag);
       index_z_ref = atom->find_custom("BPM_Z_REF", type_flag, col_flag);
-    
+
       if (modify->fix[ifix]->restart_reset) {
           modify->fix[ifix]->restart_reset = 0;
       } else {
         double *x_ref = atom->dvector[index_x_ref];
         double *y_ref = atom->dvector[index_y_ref];
         double *z_ref = atom->dvector[index_z_ref];
-    
+
         double **x = atom->x;
         for (int i = 0; i < atom->nlocal; i++) {
           x_ref[i] = x[i][0];
@@ -197,7 +199,7 @@ double BondBPM::equilibrium_distance(int i)
         dely = x[i][1] - x[j][1];
         delz = x[i][2] - x[j][2];
         domain->minimum_image(delx, dely, delz);
-        
+
         r = sqrt(delx*delx + dely*dely + delz*delz);
         if(r > r0_max_estimate) r0_max_estimate = r;
       }
@@ -225,15 +227,15 @@ void BondBPM::process_broken(int i, int j)
 
     fix_store_local->add_data(output_data, i, j);
   }
-  
-  if (fix_update_special_bonds) 
+
+  if (fix_update_special_bonds)
     fix_update_special_bonds->add_broken_bond(i, j);
 
   // Manually search and remove from atom arrays
   // need to remove in case special bonds arrays rebuilt
   int m, n;
   int nlocal = atom->nlocal;
-  
+
   tagint *tag = atom->tag;
   tagint **bond_atom = atom->bond_atom;
   int **bond_type = atom->bond_type;
@@ -241,36 +243,31 @@ void BondBPM::process_broken(int i, int j)
 
   if (i < nlocal) {
     for (m = 0; m < num_bond[i]; m++) {
-   //   if(tag[i] == 25 or tag[j] == 25) printf("\t 1 ATOM LOOP %d-%d, %d/%d \n", tag[i], bond_atom[i][m], m, num_bond[i]);
       if (bond_atom[i][m] == tag[j]) {
-  //      if(tag[i] == 25 or tag[j] == 25) printf("\t DELETED\n");
         bond_type[i][m] = 0;
         n = num_bond[i];
         bond_type[i][m] = bond_type[i][n-1];
         bond_atom[i][m] = bond_atom[i][n-1];
+        fix_bond_history->delete_bond(i, m);
         num_bond[i]--;
         break;
       }
     }
   }
-  
+
   if (j < nlocal) {
-    for (m = 0; m < num_bond[j]; m++) {        
-    //  if(tag[i] == 25 or tag[j] == 25) printf("\t 2 ATOM LOOP %d-%d, %d/%d \n", tag[j], bond_atom[j][m], m, num_bond[j]);    
+    for (m = 0; m < num_bond[j]; m++) {
       if (bond_atom[j][m] == tag[i]) {
-   //     if(tag[j] == 25 or tag[j] == 25) printf("\t DELETED\n");
         bond_type[j][m] = 0;
         n = num_bond[j];
         bond_type[j][m] = bond_type[j][n-1];
         bond_atom[j][m] = bond_atom[j][n-1];
+        fix_bond_history->delete_bond(j, m);
         num_bond[j]--;
         break;
-      }      
+      }
     }
   }
-  
- // if((tag[i] == 10 and tag[j] == 23)or (tag[i] == 23 and tag[j] == 10)) printf("Broken bond %d-%d (%d %d/%d)\n", tag[i], tag[j], i, j, nlocal);
-  
 }
 
 /* ----------------------------------------------------------------------

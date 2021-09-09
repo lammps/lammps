@@ -68,16 +68,14 @@ Bonds will break under sufficient stress. A breaking criteria is calculated
 
 .. math::
 
-   B = \alpha(r, r_0) \frac{f_r}{f_{r,c}} + \frac{|f_s|}{f_{s,c}} + 
-       \frac{|\tau_b|}{\tau_{b,c}} + \frac{|\tau_t|}{\tau_{t,c}}
+   B = \mathrm{max}\{0, \frac{f_r}{f_{r,c}} + \frac{|f_s|}{f_{s,c}} +
+       \frac{|\tau_b|}{\tau_{b,c}} + \frac{|\tau_t|}{\tau_{t,c}} \}
    
 where :math:`|f_s|` is the magnitude of the shear force and 
 :math:`|\tau_b|` and :math:`|\tau_t|` are the magnitudes of the bending and
 twisting forces, respectively. The corresponding variables :math:`f_{r,c}`
 :math:`f_{s,c}`, :math:`\tau_{b,c}`, and :math:`\tau_{t,c}` are critical
-limits to each force or torque. The term :math:`\alpha` is simply one in
-extension and zero in compression such that the normal force component 
-does not contribute to the breaking criteria in compression.
+limits to each force or torque.
 If :math:`B` is ever equal to or exceeds one, the bond will break. 
 This is done by setting by setting its type to 0 such that forces and 
 torques are no longer computed.

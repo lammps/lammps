@@ -44,7 +44,6 @@ class BondBPMRotational : public BondBPM {
   void allocate();
   void store_data();
   double store_bond(int, int, int);
-  class FixBondHistory *fix_bond_history;
 };
 
 }    // namespace LAMMPS_NS

@@ -41,14 +41,13 @@ using namespace MathExtra;
 BondBPMRotational::BondBPMRotational(LAMMPS *lmp) : BondBPM(lmp)
 {
   partial_flag = 1;
-  fix_bond_history = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
 BondBPMRotational::~BondBPMRotational()
 {
-  if(fix_bond_history) modify->delete_fix("BOND_HISTORY_BPM_ROTATIONAL");
+  if (fix_bond_history) modify->delete_fix("BOND_HISTORY_BPM_ROTATIONAL");
 
   if (allocated) {
     memory->destroy(setflag);
@@ -165,10 +164,10 @@ void BondBPMRotational::store_data()
         dely = x[j][1] - x[i][1];
         delz = x[j][2] - x[i][2];
       }
-      
+
       // Get closest image in case bonded with ghost
       domain->minimum_image(delx, dely, delz);
-      
+
       r = sqrt(delx*delx + dely*dely + delz*delz);
       rinv = 1.0/r;
       fix_bond_history->update_atom_value(i, m, 0, r);
@@ -192,15 +191,13 @@ void BondBPMRotational::compute(int eflag, int vflag)
   }
 
   int i1,i2,itmp,m,n,type,itype,jtype;
-  double evdwl,fpair,rsq,ebond;
   double q1[4], q2[4], r[3], r0[3];
-  double r0_mag, r_mag, r_mag_inv, Fr, Fs_mag;
-  double Tt_mag, Tb_mag;
+  double rsq, r0_mag, r_mag, r_mag_inv, Fr, Fs_mag;
+  double Tt_mag, Tb_mag, breaking, smooth;
   double force1on2[3], torque1on2[3], torque2on1[3];
-  double breaking, smooth;
   double rhat[3], wn1[3], wn2[3], wxn1[3], wxn2[3], vroll[3];
   double w1dotr, w2dotr, v1dotr, v2dotr;
-  double vn1[3], vn2[3], vt1[3], vt2[3], tmp[3], s1[3], s2[3], tdamp[3]; 
+  double vn1[3], vn2[3], vt1[3], vt2[3], tmp[3], s1[3], s2[3], tdamp[3];
   double tor1, tor2, tor3, fs1, fs2, fs3;
 
   double q2inv[4], rb[3], rb_x_r0[3], s[3], t[3], Fs[3];
@@ -240,7 +237,7 @@ void BondBPMRotational::compute(int eflag, int vflag)
     i2 = bondlist[n][1];
     type = bondlist[n][2];
     r0_mag = bondstore[n][0];
-    
+
     // Ensure pair is always ordered such that r0 points in
     // a consistent direction and to ensure numerical operations
     // are identical to minimize the possibility that a bond straddling
@@ -248,7 +245,7 @@ void BondBPMRotational::compute(int eflag, int vflag)
     if (tag[i2] < tag[i1]) {
       itmp = i1;
       i1 = i2;
-      i2 = itmp;      
+      i2 = itmp;
     }
 
     // If bond hasn't been set - should be initialized to zero
@@ -277,43 +274,43 @@ void BondBPMRotational::compute(int eflag, int vflag)
     r_mag = sqrt(rsq);
     r_mag_inv = 1.0/r_mag;
     MathExtra::scale3(r_mag_inv, r, rhat);
-    
+
     // ------------------------------------------------------//
     //  Calculate forces using formulation in:
     //    1) Y. Wang Acta Geotechnica 2009
     //    2) P. Mora & Y. Wang Advances in Geomcomputing 2009
     // ------------------------------------------------------//
-    
+
     // Calculate normal forces, rb = bond vector in particle 1's frame
     MathExtra::qconjugate(q2, q2inv);
-    MathExtra::quatrotvec(q2inv, r, rb);    
+    MathExtra::quatrotvec(q2inv, r, rb);
     Fr = Kr[type]*(r_mag - r0_mag);
-    
+
     MathExtra::scale3(Fr*r_mag_inv, rb, F_rot);
-    
+
     // Calculate forces due to tangential displacements (no rotation)
     r0_dot_rb = dot3(r0, rb);
     c = r0_dot_rb*r_mag_inv/r0_mag;
     gamma = acos_limit(c);
-    
+
     MathExtra::cross3(rb, r0, rb_x_r0);
     MathExtra::cross3(rb, rb_x_r0, s);
     MathExtra::norm3(s);
-    
+
     MathExtra::scale3(Ks[type]*r_mag*gamma, s, Fs);
-    
+
     // Calculate torque due to tangential displacements
     MathExtra::cross3(r0, rb, t);
     MathExtra::norm3(t);
-    
+
     MathExtra::scale3(0.5*r_mag*Ks[type]*r_mag*gamma, t, Ts);
-    
+
     // Relative rotation force/torque
     // Use representation of X'Y'Z' rotations from Wang, Mora 2009
     temp = r_mag + rb[2];
     if (temp < 0.0) temp = 0.0;
     mq[0] = sqrt(2)*0.5*sqrt(temp*r_mag_inv);
-    
+
     temp = sqrt(rb[0]*rb[0]+rb[1]*rb[1]);
     if (temp != 0.0) {
       mq[1] = -sqrt(2)*0.5/temp;
@@ -329,14 +326,14 @@ void BondBPMRotational::compute(int eflag, int vflag)
       mq[2] = 0.0;
     }
     mq[3] = 0.0;
-    
+
     // qp21 = opposite of r^\circ_21 in Wang
     // q21 = opposite of r_21 in Wang
     MathExtra::quatquat(q2inv, q1, qp21);
     MathExtra::qconjugate(mq, mqinv);
     MathExtra::quatquat(mqinv,qp21,qtmp);
     MathExtra::quatquat(qtmp,mq,q21);
-    
+
     temp = sqrt(q21[0]*q21[0] + q21[3]*q21[3]);
     if (temp != 0.0) {
       c = q21[0]/temp;
@@ -345,22 +342,22 @@ void BondBPMRotational::compute(int eflag, int vflag)
       c = 0.0;
       psi = 0.0;
     }
-    
+
     // Map negative rotations
     if (q21[3] < 0.0) // sin = q21[3]/temp
       psi = -psi;
-    
+
     if (q21[3] == 0.0)
       psi = 0.0;
-    
+
     c = q21[0]*q21[0] - q21[1]*q21[1] - q21[2]*q21[2] + q21[3]*q21[3];
     theta = acos_limit(c);
-    
+
     // Separately calculte magnitude of quaternion in x-y and out of x-y planes
     // to avoid dividing by zero
     mag_out_plane = (q21[0]*q21[0] + q21[3]*q21[3]);
     mag_in_plane = (q21[1]*q21[1] + q21[2]*q21[2]);
-    
+
     if (mag_in_plane == 0.0) {
       // No rotation => no bending/shear torque or extra shear force
       // achieve by setting cos/sin = 0
@@ -374,55 +371,55 @@ void BondBPMRotational::compute(int eflag, int vflag)
       // Default equations in Mora, Wang 2009
       cos_phi = q21[1]*q21[3] + q21[0]*q21[2];
       sin_phi = q21[2]*q21[3] - q21[0]*q21[1];
-    
+
       cos_phi /= sqrt(mag_out_plane*mag_in_plane);
       sin_phi /= sqrt(mag_out_plane*mag_in_plane);
     }
-    
+
     Tbp[0] = -Kb[type]*theta*sin_phi;
     Tbp[1] = Kb[type]*theta*cos_phi;
     Tbp[2] = 0.0;
-    
+
     Ttp[0] = 0.0;
     Ttp[1] = 0.0;
     Ttp[2] = Kt[type]*psi;
-    
+
     Fsp[0] = -0.5*Ks[type]*r_mag*theta*cos_phi;
     Fsp[1] = -0.5*Ks[type]*r_mag*theta*sin_phi;
     Fsp[2] = 0.0;
-    
+
     Tsp[0] = 0.25*Ks[type]*r_mag*r_mag*theta*sin_phi;
     Tsp[1] = -0.25*Ks[type]*r_mag*r_mag*theta*cos_phi;
     Tsp[2] = 0.0;
-    
+
     // Rotate forces/torques back to 1st particle's frame
-    
+
     MathExtra::quatrotvec(mq, Fsp, Ftmp);
     MathExtra::quatrotvec(mq, Tsp, Ttmp);
     for (m = 0; m < 3; m++) {
       Fs[m] += Ftmp[m];
       Ts[m] += Ttmp[m];
     }
-    
+
     MathExtra::quatrotvec(mq, Tbp, Tb);
     MathExtra::quatrotvec(mq, Ttp, Tt);
-    
+
     // Sum forces and calculate magnitudes
     F_rot[0] += Fs[0];
     F_rot[1] += Fs[1];
     F_rot[2] += Fs[2];
     MathExtra::quatrotvec(q2, F_rot, force1on2);
-    
+
     T_rot[0] = Ts[0] + Tt[0] + Tb[0];
     T_rot[1] = Ts[1] + Tt[1] + Tb[1];
     T_rot[2] = Ts[2] + Tt[2] + Tb[2];
     MathExtra::quatrotvec(q2, T_rot, torque1on2);
-    
+
     T_rot[0] = Ts[0] - Tt[0] - Tb[0];
     T_rot[1] = Ts[1] - Tt[1] - Tb[1];
     T_rot[2] = Ts[2] - Tt[2] - Tb[2];
     MathExtra::quatrotvec(q2, T_rot, torque2on1);
-    
+
     Fs_mag = MathExtra::len3(Fs);
     Tt_mag = MathExtra::len3(Tt);
     Tb_mag = MathExtra::len3(Tb);
@@ -430,11 +427,11 @@ void BondBPMRotational::compute(int eflag, int vflag)
     // ------------------------------------------------------//
     //  Check if bond breaks
     // ------------------------------------------------------//
-    
-    breaking = Fs_mag/Fcs[type] + Tb_mag/Tcb[type] + Tt_mag/Tct[type];
-    if (Fr > 0.0) breaking += Fr/Fcr[type];
 
-    if (breaking >= 1.0) {        
+    breaking = Fr/Fcr[type] + Fs_mag/Fcs[type] + Tb_mag/Tcb[type] + Tt_mag/Tct[type];
+    if (breaking < 0.0) breaking = 0.0;
+
+    if (breaking >= 1.0) {
       bondlist[n][2] = 0;
       process_broken(i1, i2);
       continue;
@@ -443,11 +440,8 @@ void BondBPMRotational::compute(int eflag, int vflag)
     smooth = breaking*breaking;
     smooth = 1.0 - smooth*smooth;
 
-    // Not actual energy, just a handy metric
-    if (eflag) ebond = -smooth;
-
     // ------------------------------------------------------//
-    //  Calculate damping using formulation in 
+    //  Calculate damping using formulation in
     //    Y. Wang, F. Alonso-Marroquin, W. Guo 2015
     // ------------------------------------------------------//
     // Note: n points towards 1 vs pointing towards 2
@@ -458,18 +452,18 @@ void BondBPMRotational::compute(int eflag, int vflag)
 
     MathExtra::scale3(v1dotr, rhat, vn1);
     MathExtra::scale3(v2dotr, rhat, vn2);
-    
+
     MathExtra::sub3(vn1, vn2, tmp);
     MathExtra::scale3(gnorm[type], tmp);
-    MathExtra::add3(force1on2, tmp, force1on2);    
-    
-    // Damp tangential objective velocities    
+    MathExtra::add3(force1on2, tmp, force1on2);
+
+    // Damp tangential objective velocities
     MathExtra::sub3(v[i1], vn1, vt1);
     MathExtra::sub3(v[i2], vn2, vt2);
-    
+
     MathExtra::sub3(vt2, vt1, tmp);
     MathExtra::scale3(-0.5, tmp);
-    
+
     MathExtra::cross3(omega[i1], r, s1);
     MathExtra::scale3(0.5, s1);
     MathExtra::sub3(s1, tmp, s1); // Eq 12
@@ -482,7 +476,7 @@ void BondBPMRotational::compute(int eflag, int vflag)
     MathExtra::sub3(s1, s2, tmp);
     MathExtra::scale3(gslide[type], tmp);
     MathExtra::add3(force1on2, tmp, force1on2);
-    
+
     // Apply corresponding torque
     MathExtra::cross3(r,tmp,tdamp);
     MathExtra::scale3(-0.5, tdamp); // 0.5*r points from particle 2 to midpoint
@@ -493,7 +487,7 @@ void BondBPMRotational::compute(int eflag, int vflag)
     MathExtra::cross3(omega[i1], rhat, wxn1);
     MathExtra::cross3(omega[i2], rhat, wxn2);
     MathExtra::sub3(wxn1, wxn2, vroll); // Eq. 31
-    MathExtra::cross3(r, vroll, tdamp); 
+    MathExtra::cross3(r, vroll, tdamp);
 
     MathExtra::scale3(0.5*groll[type], tdamp);
     MathExtra::add3(torque1on2, tdamp, torque1on2);
@@ -537,7 +531,7 @@ void BondBPMRotational::compute(int eflag, int vflag)
       torque[i2][2] += torque1on2[2]*smooth;
     }
 
-    if (evflag) ev_tally(i1,i2,nlocal,newton_bond,ebond,Fr*smooth,r[0],r[1],r[2]);
+    if (evflag) ev_tally(i1,i2,nlocal,newton_bond,0.0,Fr*smooth,r[0],r[1],r[2]);
   }
 }
 
@@ -606,7 +600,7 @@ void BondBPMRotational::coeff(int narg, char **arg)
     gtwist[i] = gtwist_one;
     setflag[i] = 1;
     count++;
-    
+
     if (Fcr[i]/Kr[i] > max_stretch) max_stretch = Fcr[i]/Kr[i];
   }
 
@@ -620,7 +614,7 @@ void BondBPMRotational::coeff(int narg, char **arg)
 void BondBPMRotational::init_style()
 {
   BondBPM::init_style();
-  
+
   if (!atom->quat_flag || !atom->sphere_flag)
     error->all(FLERR,"Bond bpm/rotational requires atom style sphere/bpm");
   if (comm->ghost_velocity == 0)
@@ -700,7 +694,7 @@ void BondBPMRotational::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->nbondtypes; i++)
      fprintf(fp,"%d %g %g %g %g %g %g %g %g %g %g %g %g\n",
-             i,Kr[i],Ks[i],Kt[i],Kb[i],Fcr[i], Fcs[i], Tct[i], 
+             i,Kr[i],Ks[i],Kt[i],Kb[i],Fcr[i], Fcs[i], Tct[i],
              Tcb[i], gnorm[i], gslide[i], groll[i], gtwist[i]);
 }
 

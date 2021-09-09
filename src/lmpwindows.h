@@ -11,17 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <ciso646>
-#if !defined(__MINGW32__)
-#include "erf.h"
-#endif
 #include <cmath>
-#include <cstring>
 #include <direct.h>
-// LAMMPS uses usleep with 100 ms arguments, no microsecond precision needed
-#if !defined(__MINGW32__)
-#include "sleep.h"
-#endif
 
 // some symbols have different names in Windows
 

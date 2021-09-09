@@ -3,7 +3,7 @@ From: centos:8
 
 %post
         dnf -y install epel-release dnf-utils
-        dnf config-manager --set-enabled PowerTools
+        dnf config-manager --set-enabled powertools
         dnf -y update
         dnf -y install vim-enhanced git file make cmake patch which file ninja-build \
                ccache gcc-c++ gcc-gfortran clang libomp-devel gdb valgrind libubsan libasan libtsan \

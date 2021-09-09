@@ -415,14 +415,14 @@ bigint Thermo::lost_check()
     error->all(FLERR,"Too many total atoms");
 
   // print notification, if future warnings will be ignored
-  int maxwarn = error->get_maxwarn();
+  bigint maxwarn = error->get_maxwarn();
   if ((maxwarn > 0) && (warnbefore == 0) && (ntotal[1] > maxwarn)) {
     warnbefore = 1;
     if (comm->me == 0)
       error->message(FLERR,"WARNING: Too many warnings: {} vs {}. All "
                      "future warnings will be suppressed",ntotal[1],maxwarn);
   }
-  error->set_allwarn(ntotal[1]);
+  error->set_allwarn(MIN(MAXSMALLINT,ntotal[1]));
 
   // no lost atoms, nothing else to do.
   if (ntotal[0] == atom->natoms) return ntotal[0];

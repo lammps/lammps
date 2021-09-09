@@ -206,6 +206,9 @@ Convenience functions
 Customized standard functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+.. doxygenfunction:: binary_search
+   :project: progguide
+
 .. doxygenfunction:: merge_sort
    :project: progguide
 

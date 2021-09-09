@@ -65,7 +65,7 @@ TEST_F(LibraryProperties, memory_usage)
 #if defined(__linux__) || defined(_WIN32)
     EXPECT_GE(meminfo[1], 0.0);
 #endif
-#if !defined(__INTEL_LLVM_COMPILER)
+#if (defined(__linux__) || defined(__APPLE__) || defined(_WIN32)) && !defined(__INTEL_LLVM_COMPILER)
     EXPECT_GT(meminfo[2], 0.0);
 #endif
 };

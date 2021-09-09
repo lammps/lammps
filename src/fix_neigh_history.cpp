@@ -633,7 +633,7 @@ void FixNeighHistory::post_neighbor()
       } else {
         rflag = 1;
       }
-      
+
       // Remove special bond bits
       j &= NEIGHMASK;
 

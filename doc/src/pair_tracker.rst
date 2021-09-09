@@ -63,8 +63,8 @@ It does not calculate any forces on atoms.
 :doc:`Pair hybrid/overlay <pair_hybrid>` can be used to combine this pair
 style with another pair style. Style *tracker*  must be used in conjunction
 with :doc:`fix store/local <fix_store_local>` which contains
-information on outputting data. Whenever two neighboring atoms move beyond 
-the interaction cutoffPairwise data is processed and transferred to the associated 
+information on outputting data. Whenever two neighboring atoms move beyond
+the interaction cutoffPairwise data is processed and transferred to the associated
 instance of :doc:`fix store/local <fix_store_local>`. Additional filters can
 be applied using the *time/min* or *type/include* keywords described below.
 

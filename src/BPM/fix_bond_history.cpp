@@ -110,7 +110,7 @@ void FixBondHistory::post_constructor()
   index = atom->find_custom(&array_id[3],tmp1,tmp2);
 
   delete [] newarg;
-} 
+}
 
 /* ---------------------------------------------------------------------- */
 

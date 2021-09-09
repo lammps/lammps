@@ -19,11 +19,11 @@ Examples
 .. code-block:: LAMMPS
 
    fix 1 all update/special/bonds
-   
+
 Description
 """""""""""
 
-This fix is used to update the 1-2 special bond list for BPM bond styles. 
+This fix is used to update the 1-2 special bond list for BPM bond styles.
 This feature is used to censor pair forces between bonded particles.
 See the :doc:`BPM how to <Howto_bpm>` for more information.
 
@@ -41,7 +41,7 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 Restrictions
 """"""""""""
 
-This fix requires :doc:`newton <newton>` bond off. 
+This fix requires :doc:`newton <newton>` bond off.
 
 Related commands
 """"""""""""""""

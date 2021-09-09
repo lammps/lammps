@@ -8,7 +8,7 @@ Syntax
 
 .. parsed-literal::
 
-   compute ID group-ID nbonds/atom 
+   compute ID group-ID nbonds/atom
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * nbonds/atom = style name of this compute command
@@ -26,7 +26,7 @@ Description
 Define a computation that computes the number of bonds per-atom.
 Bonds which are broken are not counted in the tally.
 See :doc:`bond_style quartic <bond_quartic>` or the
-:doc:`Howto bpm <Howto_bpm>` page. The number of bonds will be zero 
+:doc:`Howto bpm <Howto_bpm>` page. The number of bonds will be zero
 for atoms not in the specified compute group.
 
 Output info

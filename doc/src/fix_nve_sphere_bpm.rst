@@ -26,7 +26,7 @@ Examples
 
    fix 1 all nve/sphere/bpm
    fix 1 all nve/sphere/bpm disc
-   
+
 Description
 """""""""""
 
@@ -62,7 +62,7 @@ Restrictions
 
 This fix requires that atoms store torque, angular velocity (omega),
 a radius, and a quaternion as defined by the :doc:`atom_style sphere/bpm <atom_style>`
-command.  
+command.
 
 All particles in the group must be finite-size spheres with quaternions.  They cannot
 be point particles.

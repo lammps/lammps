@@ -566,7 +566,7 @@ void FixPropertyAtom::copy_arrays(int i, int j, int /*delflag*/)
       ncol = cols[nv];
       for (k = 0; k < ncol; k++) {
         atom->darray[index[nv]][j][k] = atom->darray[index[nv]][i][k];
-        atom->darray[index[nv]][i][k] = 0.0;        
+        atom->darray[index[nv]][i][k] = 0.0;
       }
     }
   }

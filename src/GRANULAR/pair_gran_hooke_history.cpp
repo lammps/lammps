@@ -311,7 +311,7 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
         fz = delz * ccel + fs3;
         fx *= factor_lj;
         fy *= factor_lj;
-        fz *= factor_lj;        
+        fz *= factor_lj;
         f[i][0] += fx;
         f[i][1] += fy;
         f[i][2] += fz;
@@ -321,7 +321,7 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
         tor3 = rinv * (delx * fs2 - dely * fs1);
         tor1 *= factor_lj;
         tor2 *= factor_lj;
-        tor3 *= factor_lj;        
+        tor3 *= factor_lj;
         torque[i][0] -= radi * tor1;
         torque[i][1] -= radi * tor2;
         torque[i][2] -= radi * tor3;

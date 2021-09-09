@@ -117,6 +117,9 @@ endforeach()
 
 # tester for timestepping fixes
 add_executable(test_fix_timestep test_fix_timestep.cpp)
+if(NOT BUILD_SHARED_LIBS)
+  target_compile_definitions(test_fix_timestep -DUSING_STATIC_LIBS=1)
+endif()
 target_link_libraries(test_fix_timestep PRIVATE lammps style_tests)
 
 # tests for timestep related fixes (time integration, thermostat, force manipulation, constraints/restraints)

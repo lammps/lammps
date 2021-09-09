@@ -50,17 +50,17 @@ has a magnitude of
 
 .. math::
 
-   F_r = K_r (r - r_0)
+   f_r = k_r (r - r_0)
    
-where :math:`K_r` is a stiffness and :math:`r` is the current distance and 
+where :math:`k_r` is a stiffness and :math:`r` is the current distance and 
 :math:`r_0` is the initial distance between the two particles.
 
 A tangential force is applied perpendicular to the normal direction
 which is proportional to the tangential shear displacement with a stiffness
-of :math:`K_s`. This tangential force also induces a torque.
+of :math:`k_s`. This tangential force also induces a torque.
 In addition, bending and twisting torques are also applied to particles
 which are proportional to angular bending and twisting displacements with 
-stiffnesses of :math`K_b` and :math:`K_t', respectively.
+stiffnesses of :math`k_b` and :math:`k_t', respectively.
 Details on the calculations of shear displacements and angular displacements 
 can be found in :ref:`(Wang) <Wang2009>` and :ref:`(Wang and Mora) <WangMora2009b>`.
 
@@ -68,13 +68,13 @@ Bonds will break under sufficient stress. A breaking criteria is calculated
 
 .. math::
 
-   B = \alpha(r, r_0) \frac{F_r}{F_{r,c}} + \frac{F_s}{F_{s,c}} + 
-       \frac{\tau_b}{\tau_{b,c}} + \frac{\tau_t}{\tau_{t,c}}
+   B = \alpha(r, r_0) \frac{f_r}{f_{r,c}} + \frac{|f_s|}{f_{s,c}} + 
+       \frac{|\tau_b|}{\tau_{b,c}} + \frac{|\tau_t|}{\tau_{t,c}}
    
-where :math:`F_s` is the magnitude of the shear force and 
-:math:`\tau_b` and :math:`\tau_t` are the magnitudes of the bending and
-twisting forces, respectively. The corresponding variables :math:`F_{r,c}`
-:math:`F_{s,c}`, :math:`\tau_{b,c}`, and :math:`\tau_{t,c}` are critical
+where :math:`|f_s|` is the magnitude of the shear force and 
+:math:`|\tau_b|` and :math:`|\tau_t|` are the magnitudes of the bending and
+twisting forces, respectively. The corresponding variables :math:`f_{r,c}`
+:math:`f_{s,c}`, :math:`\tau_{b,c}`, and :math:`\tau_{t,c}` are critical
 limits to each force or torque. The term :math:`\alpha` is simply one in
 extension and zero in compression such that the normal force component 
 does not contribute to the breaking criteria in compression.
@@ -85,7 +85,7 @@ torques are no longer computed.
 After computing the base magnitudes of the forces and torques, they are 
 all multiplied by an extra factor :math:`w` to smoothly interpolate 
 forces and torques to zero as the bond breaks. This term is calculated 
-as :math:`w = (1.0 - B)^2`.
+as :math:`w = (1.0 - B^4)`.
 
 Finally, additional damping forces and torques are applied to the two
 particles. A force is applied proportional to the difference in the
@@ -110,12 +110,12 @@ The following coefficients must be defined for each bond type via the
 the data file or restart files read by the :doc:`read_data <read_data>`
 or :doc:`read_restart <read_restart>` commands:
 
-* :math:`K_r`           (force/distance units)
-* :math:`K_s`           (force/distance units)
-* :math:`K_t`           (force units)
-* :math:`K_b`           (force units)
-* :math:`F_{r,c}`       (force units)
-* :math:`F_{s,c}`       (force units)
+* :math:`k_r`           (force/distance units)
+* :math:`k_s`           (force/distance units)
+* :math:`k_t`           (force units)
+* :math:`k_b`           (force units)
+* :math:`f_{r,c}`       (force units)
+* :math:`f_{s,c}`       (force units)
 * :math:`\tau_{b,c}`    (force*distance units)
 * :math:`\tau_{t,c}`    (force*distance units)
 * :math:`\gamma_n`      (force/velocity units)

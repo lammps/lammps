@@ -62,6 +62,7 @@ namespace LAMMPS_NS {
 #define SBBITS 30
 #define HISTBITS 29
 #define NEIGHMASK 0x1FFFFFFF
+#define HISTMASK 0xDFFFFFFF
 
 // default to 32-bit smallint and other ints, 64-bit bigint
 

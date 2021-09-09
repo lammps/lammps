@@ -82,6 +82,7 @@ void PairGranHooke::compute(int eflag, int vflag)
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
+  double *special_lj = force->special_lj;
 
   inum = list->inum;
   ilist = list->ilist;

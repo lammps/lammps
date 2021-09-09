@@ -222,6 +222,7 @@ void PairGranular::compute(int eflag, int vflag)
   double *rmass = atom->rmass;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  double *special_lj = force->special_lj;
 
   inum = list->inum;
   ilist = list->ilist;

@@ -53,7 +53,7 @@ PACKAGE = \
 	awpmd \
 	bocs \
 	body \
-    bpm \
+        bpm \
 	brownian \
 	cg-dna \
 	cg-sdk \
@@ -148,8 +148,8 @@ PACKMOST = \
 	asphere \
 	bocs \
 	body \
-	bpm
-    brownian \
+	bpm \
+        brownian \
 	cg-dna \
 	cg-sdk \
 	class2 \

@@ -36,11 +36,6 @@
 using namespace LAMMPS_NS;
 using namespace MathExtra;
 
-
-
-
-
-#include "update.h"
 /* ---------------------------------------------------------------------- */
 
 BondBPMRotational::BondBPMRotational(LAMMPS *lmp) : BondBPM(lmp)
@@ -199,10 +194,10 @@ void BondBPMRotational::compute(int eflag, int vflag)
   int i1,i2,itmp,m,n,type,itype,jtype;
   double evdwl,fpair,rsq,ebond;
   double q1[4], q2[4], r[3], r0[3];
-  double r0_mag, r_mag, r_mag_inv, Fr_mag, Fs_mag;
+  double r0_mag, r_mag, r_mag_inv, Fr, Fs_mag;
   double Tt_mag, Tb_mag;
   double force1on2[3], torque1on2[3], torque2on1[3];
-  double breaking, smooth, smooth_sq;
+  double breaking, smooth;
   double rhat[3], wn1[3], wn2[3], wxn1[3], wxn2[3], vroll[3];
   double w1dotr, w2dotr, v1dotr, v2dotr;
   double vn1[3], vn2[3], vt1[3], vt2[3], tmp[3], s1[3], s2[3], tdamp[3]; 
@@ -212,7 +207,8 @@ void BondBPMRotational::compute(int eflag, int vflag)
   double q21[4], qp21[4], Tbp[3], Ttp[3];
   double Tsp[3], Fsp[3], Tt[3], Tb[3], Ts[3], F_rot[3], T_rot[3];
   double mq[4], mqinv[4], Ttmp[3], Ftmp[3], qtmp[4];
-  double r0_dot_rb, gamma, c, psi, theta, sin_phi, cos_phi, temp, mag_in_plane, mag_out_plane;
+  double r0_dot_rb, gamma, c, psi, theta, sin_phi, cos_phi, temp;
+  double mag_in_plane, mag_out_plane;
 
   ev_init(eflag,vflag);
 
@@ -291,9 +287,9 @@ void BondBPMRotational::compute(int eflag, int vflag)
     // Calculate normal forces, rb = bond vector in particle 1's frame
     MathExtra::qconjugate(q2, q2inv);
     MathExtra::quatrotvec(q2inv, r, rb);    
-    Fr_mag = Kr[type]*(r_mag - r0_mag);
+    Fr = Kr[type]*(r_mag - r0_mag);
     
-    MathExtra::scale3(Fr_mag*r_mag_inv, rb, F_rot);
+    MathExtra::scale3(Fr*r_mag_inv, rb, F_rot);
     
     // Calculate forces due to tangential displacements (no rotation)
     r0_dot_rb = dot3(r0, rb);
@@ -435,10 +431,8 @@ void BondBPMRotational::compute(int eflag, int vflag)
     //  Check if bond breaks
     // ------------------------------------------------------//
     
-    if (r_mag < r0_mag)
-      breaking = Fs_mag/Fcs[type] + Tb_mag/Tcb[type] + Tt_mag/Tct[type];
-    else
-      breaking = Fr_mag/Fcr[type] + Fs_mag/Fcs[type] + Tb_mag/Tcb[type] + Tt_mag/Tct[type];
+    breaking = Fs_mag/Fcs[type] + Tb_mag/Tcb[type] + Tt_mag/Tct[type];
+    if (Fr > 0.0) breaking += Fr/Fcr[type];
 
     if (breaking >= 1.0) {        
       bondlist[n][2] = 0;
@@ -446,11 +440,11 @@ void BondBPMRotational::compute(int eflag, int vflag)
       continue;
     }
 
-    smooth = 1.0 - breaking;
-    smooth_sq = smooth*smooth;
+    smooth = breaking*breaking;
+    smooth = 1.0 - smooth*smooth;
 
     // Not actual energy, just a handy metric
-    if (eflag) ebond = -smooth_sq;
+    if (eflag) ebond = -smooth;
 
     // ------------------------------------------------------//
     //  Calculate damping using formulation in 
@@ -524,26 +518,26 @@ void BondBPMRotational::compute(int eflag, int vflag)
     // ------------------------------------------------------//
 
     if (newton_bond || i1 < nlocal) {
-      f[i1][0] -= force1on2[0]*smooth_sq;
-      f[i1][1] -= force1on2[1]*smooth_sq;
-      f[i1][2] -= force1on2[2]*smooth_sq;
+      f[i1][0] -= force1on2[0]*smooth;
+      f[i1][1] -= force1on2[1]*smooth;
+      f[i1][2] -= force1on2[2]*smooth;
 
-      torque[i1][0] += torque2on1[0]*smooth_sq;
-      torque[i1][1] += torque2on1[1]*smooth_sq;
-      torque[i1][2] += torque2on1[2]*smooth_sq;
+      torque[i1][0] += torque2on1[0]*smooth;
+      torque[i1][1] += torque2on1[1]*smooth;
+      torque[i1][2] += torque2on1[2]*smooth;
     }
 
     if (newton_bond || i2 < nlocal) {
-      f[i2][0] += force1on2[0]*smooth_sq;
-      f[i2][1] += force1on2[1]*smooth_sq;
-      f[i2][2] += force1on2[2]*smooth_sq;
+      f[i2][0] += force1on2[0]*smooth;
+      f[i2][1] += force1on2[1]*smooth;
+      f[i2][2] += force1on2[2]*smooth;
 
-      torque[i2][0] += torque1on2[0]*smooth_sq;
-      torque[i2][1] += torque1on2[1]*smooth_sq;
-      torque[i2][2] += torque1on2[2]*smooth_sq;
+      torque[i2][0] += torque1on2[0]*smooth;
+      torque[i2][1] += torque1on2[1]*smooth;
+      torque[i2][2] += torque1on2[2]*smooth;
     }
 
-    if (evflag) ev_tally(i1,i2,nlocal,newton_bond,ebond,Fr_mag,r[0],r[1],r[2]);
+    if (evflag) ev_tally(i1,i2,nlocal,newton_bond,ebond,Fr*smooth,r[0],r[1],r[2]);
   }
 }
 

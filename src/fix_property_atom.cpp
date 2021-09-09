@@ -553,7 +553,7 @@ void FixPropertyAtom::copy_arrays(int i, int j, int /*delflag*/)
     else if (styles[nv] == IVEC) {
       atom->ivector[index[nv]][j] = atom->ivector[index[nv]][i];
       atom->ivector[index[nv]][i] = 0;
-    } else if (styles[nv] == DVEC)
+    } else if (styles[nv] == DVEC) {
       atom->dvector[index[nv]][j] = atom->dvector[index[nv]][i];
       atom->dvector[index[nv]][i] = 0.0;
     } else if (styles[nv] == IARRAY) {

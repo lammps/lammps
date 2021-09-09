@@ -628,12 +628,14 @@ void FixNeighHistory::post_neighbor()
 
       if (use_bit_flag) {
         rflag = histmask(j) | pair->beyond_contact;
-        j &= NEIGHMASK;
+        j &= HISTMASK;
         jlist[jj] = j;
       } else {
         rflag = 1;
-        j &= NEIGHMASK;
       }
+      
+      // Remove special bond bits
+      j &= NEIGHMASK;
 
       // rflag = 1 if r < radsum in npair_size() method or if pair interactions extend further
       // preserve neigh history info if tag[j] is in old-neigh partner list

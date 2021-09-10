@@ -118,7 +118,6 @@ class PythonPyLammps(unittest.TestCase):
         self.assertEqual(self.pylmp.fixes[0]['group'], 'all')
         self.pylmp.group('none','empty')
         self.assertEqual(len(self.pylmp.groups),2)
-        
 
 if __name__ == "__main__":
     unittest.main()

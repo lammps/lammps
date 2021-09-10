@@ -643,7 +643,7 @@ class PyLammps(object):
     return [x.strip() for x in value.split('=')]
 
   def _parse_info_system(self, output):
-    lines = output[6:-2]
+    lines = output[5:-2]
     system = {}
 
     for line in lines:
@@ -704,7 +704,7 @@ class PyLammps(object):
     return system
 
   def _parse_info_communication(self, output):
-    lines = output[6:-3]
+    lines = output[5:-3]
     comm = {}
 
     for line in lines:
@@ -725,7 +725,7 @@ class PyLammps(object):
     return comm
 
   def _parse_element_list(self, output):
-    lines = output[6:-3]
+    lines = output[5:-3]
     elements = []
 
     for line in lines:
@@ -737,7 +737,7 @@ class PyLammps(object):
     return elements
 
   def _parse_groups(self, output):
-    lines = output[6:-3]
+    lines = output[5:-3]
     groups = []
     group_pattern = re.compile(r"(?P<name>.+) \((?P<type>.+)\)")
 

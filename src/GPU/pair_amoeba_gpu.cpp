@@ -112,7 +112,7 @@ PairAmoebaGPU::PairAmoebaGPU(LAMMPS *lmp) : PairAmoeba(lmp), gpu_mode(GPU_FORCE)
 
   gpu_udirect2b_ready = true;
   gpu_umutual2b_ready = false;
-  gpu_polar_real_ready = true;
+  gpu_polar_real_ready = false;
 
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
@@ -297,7 +297,7 @@ void PairAmoebaGPU::init_style()
   // set the energy unit conversion factor for polar real-space calculation
 
   double felec = 0.5 * electric / am_dielectric;
-  
+
   int success = amoeba_gpu_init(atom->ntypes+1, max_amtype, pdamp, thole, dirdamp,
                                 special_polar_wscale, special_polar_piscale,
                                 special_polar_pscale, atom->nlocal,

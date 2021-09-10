@@ -59,7 +59,7 @@ int AmoebaT::init(const int ntypes, const int max_amtype, const double *host_pda
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,maxspecial15,
                             cell_size,gpu_split,_screen,amoeba,
                             "k_amoeba_polar", "k_amoeba_udirect2b",
-                            "k_amoeba_umutual2b");
+                            "k_amoeba_umutual2b", "k_amoeba_short_nbor");
   if (success!=0)
     return success;
 
@@ -157,16 +157,23 @@ int AmoebaT::polar_real(const int eflag, const int vflag) {
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 int AmoebaT::udirect2b(const int eflag, const int vflag) {
+  int _nall=this->atom->nall();
+  int nbor_pitch=this->nbor->nbor_pitch();
+  int ainum=this->ans->inum(); 
+
   // Compute the block size and grid size to keep all cores busy
   const int BX=this->block_size();
-  int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
-                               (BX/this->_threads_per_atom)));
-
-  int _nall=this->atom->nall();
-  int ainum=this->ans->inum();
-  int nbor_pitch=this->nbor->nbor_pitch();
-  this->time_pair.start();
-
+  int GX;
+  
+  GX=static_cast<int>(ceil(static_cast<double>(ainum)/BX));
+  this->k_short_nbor.set_size(GX,BX);
+  // NOTE: this->nbor->dev_packed is not allocated!!
+/*  
+  this->k_short_nbor.run(&this->atom->x, &_off2,
+                         &this->nbor->dev_nbor,  &this->nbor->dev_packed,
+                         &ainum, &nbor_pitch, &this->_threads_per_atom);
+*/
+  GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/(BX/this->_threads_per_atom)));
   this->k_udirect2b.set_size(GX,BX);
   this->k_udirect2b.run(&this->atom->x, &this->atom->extra, &damping, &sp_polar,
                         &this->nbor->dev_nbor, &this->_nbor_data->begin(),

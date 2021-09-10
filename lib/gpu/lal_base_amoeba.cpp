@@ -40,6 +40,7 @@ BaseAmoebaT::~BaseAmoeba() {
   k_udirect2b.clear();
   k_umutual2b.clear();
   k_special15.clear();
+  k_short_nbor.clear();
   if (pair_program) delete pair_program;
 }
 
@@ -57,7 +58,8 @@ int BaseAmoebaT::init_atomic(const int nlocal, const int nall,
                              FILE *_screen, const void *pair_program,
                              const char *k_name_polar,
                              const char *k_name_udirect2b,
-                             const char *k_name_umutual2b) {
+                             const char *k_name_umutual2b,
+                             const char *k_name_short_nbor) {
   screen=_screen;
 
   int gpu_nbor=0;
@@ -89,19 +91,21 @@ int BaseAmoebaT::init_atomic(const int nlocal, const int nall,
 
   _block_size=device->pair_block_size();
   _block_bio_size=device->block_bio_pair();
-  compile_kernels(*ucl_device,pair_program,k_name_polar,k_name_udirect2b,k_name_umutual2b);
+  compile_kernels(*ucl_device,pair_program,k_name_polar,k_name_udirect2b,
+                  k_name_umutual2b,k_name_short_nbor);
 
   if (_threads_per_atom>1 && gpu_nbor==0) {
     nbor->packing(true);
     _nbor_data=&(nbor->dev_packed);
-  } else
+  } else {
     _nbor_data=&(nbor->dev_nbor);
-
-  success = device->init_nbor(nbor,nlocal,host_nlocal,nall,maxspecial,_gpu_host,
-                  max_nbors,cell_size,false,_threads_per_atom);
+  }
+    
+  success = device->init_nbor(nbor,nlocal,host_nlocal,nall,maxspecial,
+                              _gpu_host,max_nbors,cell_size,false,_threads_per_atom);
   if (success!=0)
     return success;
-
+                              
   // Initialize host-device load balancer
   hd_balancer.init(device,gpu_nbor,gpu_split);
 
@@ -222,6 +226,8 @@ inline void BaseAmoebaT::build_nbor_list(const int inum, const int host_inum,
 
     add_onefive_neighbors();
   }
+
+  //nbor->copy_unpacked(inum,mn);
 
   double bytes=ans->gpu_bytes()+nbor->gpu_bytes();
   if (bytes>_max_an_bytes)
@@ -450,7 +456,7 @@ int** BaseAmoebaT::compute_udirect2b(const int ago, const int inum_full, const i
                           eflag_in, vflag_in, eatom, vatom,
                           host_start, ilist, jnum, cpu_time,
                           success, host_q, boxlo, prd);
-
+                         
   // ------------------- Resize _fieldp array ------------------------
 
   if (nall>_max_fieldp_size) {
@@ -692,7 +698,8 @@ template <class numtyp, class acctyp>
 void BaseAmoebaT::compile_kernels(UCL_Device &dev, const void *pair_str,
                                   const char *kname_polar,
                                   const char *kname_udirect2b,
-                                  const char *kname_umutual2b) {
+                                  const char *kname_umutual2b,
+                                  const char *kname_short_nbor) {
   if (_compiled)
     return;
 
@@ -704,6 +711,7 @@ void BaseAmoebaT::compile_kernels(UCL_Device &dev, const void *pair_str,
   k_polar.set_function(*pair_program,kname_polar);
   k_udirect2b.set_function(*pair_program,kname_udirect2b);
   k_umutual2b.set_function(*pair_program,kname_umutual2b);
+  k_short_nbor.set_function(*pair_program,kname_short_nbor);
   k_special15.set_function(*pair_program,"k_special15");
   pos_tex.get_texture(*pair_program,"pos_tex");
   q_tex.get_texture(*pair_program,"q_tex");

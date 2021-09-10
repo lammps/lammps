@@ -781,8 +781,10 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
       numtyp zr = jx.z - ix.z;
       numtyp r2 = xr*xr + yr*yr + zr*zr;
 
-      if (r2>off2) continue;
-  
+      if (r2>off2) {
+        if (i == 0) printf("i = 0: j = %d: r2 = %f; numj = %d\n", j, r2, numj);
+        continue;
+      }
       numtyp r = ucl_sqrt(r2);
       numtyp rinv = ucl_recip(r);
       numtyp r2inv = rinv*rinv;
@@ -1089,5 +1091,114 @@ __kernel void k_special15(__global int * dev_nbor,
       if (which) dev_nbor[nbor] = j ^ (which << SBBITS15);
     } // for nbor
 
+  } // if ii
+}
+
+/*
+__kernel void k_amoeba_short_nbor(const __global numtyp4 *restrict x_,
+                                   const numtyp off2, __global int * dev_nbor,
+                                   const __global int * dev_packed,
+                                   const int inum, const int nbor_pitch,
+                                   const int t_per_atom) {
+  int tid, ii, offset, n_stride, i;
+  atom_info(t_per_atom,ii,tid,offset);
+
+  int new_numj=0;
+
+  if (ii<inum) {
+    int numj, nbor, nbor_end;
+    nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
+              n_stride,nbor_end,nbor);
+
+    numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
+    if (i == 0) printf("i = 0: numj before = %d\n", numj);
+    __global int *out_list=dev_nbor+nbor;
+    const int out_stride=n_stride;
+    
+    for ( ; nbor<nbor_end; nbor+=n_stride) {
+    
+      int sj=dev_packed[nbor];
+      int j = sj & NEIGHMASK15;
+      numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
+
+      // Compute r12
+      numtyp delx = ix.x-jx.x;
+      numtyp dely = ix.y-jx.y;
+      numtyp delz = ix.z-jx.z;
+      numtyp rsq = delx*delx+dely*dely+delz*delz;
+
+      if (rsq<=off2) {
+        *out_list=sj;
+        out_list+=out_stride;
+
+        new_numj++;
+        if (i == 0 && offset == 0) printf("neighbor of i = 0 within  off2: j = %d; rsq = %f; new_numj = %d\n", j, rsq, new_numj);
+      } else {
+        if (i == 0 && offset == 0) printf("neighbor of i = 0 outside off2: j = %d; rsq = %f; new_numj = %d\n", j, rsq, new_numj);
+      }
+    } // for nbor
+  } // if ii
+
+  if (t_per_atom>1) {
+    for (unsigned int s=t_per_atom/2; s>0; s>>=1)
+      new_numj += shfl_down(new_numj, s, t_per_atom);
+  }
+  if (offset==0 && ii<inum) {
+    dev_nbor[ii+nbor_pitch]=new_numj;
+    if (i == 0) printf("i = 0: numj after = %d\n", new_numj);
+  }
+}
+*/
+#ifdef LAL_SIMD_IP_SYNC
+#define t_per_atom t_per_atom_in
+#else
+#define t_per_atom 1
+#endif
+
+__kernel void k_amoeba_short_nbor(const __global numtyp4 *restrict x_,
+                                   const numtyp off2,
+                                   __global int * dev_nbor,
+                                   const __global int * dev_packed,
+                                   const int inum, const int nbor_pitch,
+                                   const int t_per_atom_in) {
+  const int ii=GLOBAL_ID_X;
+
+  if (ii<inum) {
+/*    
+    const int i=dev_packed[ii];
+    
+    int nbor=ii+nbor_pitch;
+    const int numj=dev_packed[nbor];
+    nbor+=nbor_pitch;
+    const int nbor_end=nbor+fast_mul(numj,nbor_pitch);
+
+    numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
+    int newj=0;
+
+    __global int *out_list=dev_nbor+2*nbor_pitch+ii*t_per_atom;
+    const int out_stride=nbor_pitch*t_per_atom-t_per_atom;
+
+    for ( ; nbor<nbor_end; nbor+=nbor_pitch) {
+      int sj=dev_packed[nbor];
+      int j = sj & NEIGHMASK15;
+      numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
+
+      // Compute r12
+      numtyp delx = ix.x-jx.x;
+      numtyp dely = ix.y-jx.y;
+      numtyp delz = ix.z-jx.z;
+      numtyp rsq = delx*delx+dely*dely+delz*delz;
+
+      if (rsq<off2) {
+        //*out_list=sj;
+        out_list++;
+        newj++;
+        if ((newj & (t_per_atom-1))==0)
+          out_list+=out_stride;
+      }
+
+    } // for nbor
+    //dev_nbor[ii+nbor_pitch]=newj;
+*/
   } // if ii
 }

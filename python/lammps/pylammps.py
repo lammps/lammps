@@ -134,6 +134,12 @@ class Atom(object):
   def __dir__(self):
     return [k for k in super().__dir__() if not k.startswith('_')]
 
+  def get(self, name, index):
+    prop = self._pylmp.lmp.numpy.extract_atom(name)
+    if prop is not None:
+      return prop[index]
+    return None
+
   @property
   def id(self):
     """
@@ -141,7 +147,7 @@ class Atom(object):
 
     :type: int
     """
-    return int(self._pylmp.eval("id[%d]" % self.index))
+    return self.get("id", self.index)
 
   @property
   def type(self):
@@ -150,7 +156,7 @@ class Atom(object):
 
     :type: int
     """
-    return int(self._pylmp.eval("type[%d]" % self.index))
+    return self.get("type", self.index)
 
   @property
   def mol(self):
@@ -159,7 +165,7 @@ class Atom(object):
 
     :type: int
     """
-    return self._pylmp.eval("mol[%d]" % self.index)
+    return self.get("mol", self.index)
 
   @property
   def mass(self):
@@ -168,52 +174,114 @@ class Atom(object):
 
     :type: float
     """
-    return self._pylmp.eval("mass[%d]" % self.index)
+    return self.get("mass", self.index)
+
+  @property
+  def radius(self):
+    """
+    Return the particle radius
+
+    :type: float
+    """
+    return self.get("radius", self.index)
 
   @property
   def position(self):
     """
     :getter: Return position of atom
     :setter: Set position of atom
-    :type: tuple (float, float, float)
+    :type: numpy.array (float, float, float)
     """
-    return (self._pylmp.eval("x[%d]" % self.index),
-            self._pylmp.eval("y[%d]" % self.index),
-            self._pylmp.eval("z[%d]" % self.index))
+    return self.get("x", self.index)
 
   @position.setter
   def position(self, value):
-    """
-    :getter: Return velocity of atom
-    :setter: Set velocity of atom
-    :type: tuple (float, float, float)
-    """
-    self._pylmp.set("atom", self.index, "x", value[0])
-    self._pylmp.set("atom", self.index, "y", value[1])
-    self._pylmp.set("atom", self.index, "z", value[2])
+    current = self.position
+    current[:] = value
 
   @property
   def velocity(self):
-    return (self._pylmp.eval("vx[%d]" % self.index),
-            self._pylmp.eval("vy[%d]" % self.index),
-            self._pylmp.eval("vz[%d]" % self.index))
+    """
+    :getter: Return velocity of atom
+    :setter: Set velocity of atom
+    :type: numpy.array (float, float, float)
+    """
+    return self.get("v", self.index)
 
   @velocity.setter
   def velocity(self, value):
-     self._pylmp.set("atom", self.index, "vx", value[0])
-     self._pylmp.set("atom", self.index, "vy", value[1])
-     self._pylmp.set("atom", self.index, "vz", value[2])
+    current = self.velocity
+    current[:] = value
 
   @property
   def force(self):
     """
     Return the total force acting on the atom
 
-    :type: tuple (float, float, float)
+    :type: numpy.array (float, float, float)
     """
-    return (self._pylmp.eval("fx[%d]" % self.index),
-            self._pylmp.eval("fy[%d]" % self.index),
-            self._pylmp.eval("fz[%d]" % self.index))
+    return self.get("f", self.index)
+
+  @force.setter
+  def force(self, value):
+    current = self.force
+    current[:] = value
+
+  @property
+  def torque(self):
+    """
+    Return the total torque acting on the atom
+
+    :type: numpy.array (float, float, float)
+    """
+    return self.get("torque", self.index)
+
+  @force.setter
+  def torque(self, value):
+    current = self.torque
+    current[:] = value
+
+  @property
+  def omega(self):
+    """
+    Return the rotational velocity of the particle
+
+    :type: numpy.array (float, float, float)
+    """
+    return self.get("torque", self.index)
+
+  @omega.setter
+  def omega(self, value):
+    current = self.torque
+    current[:] = value
+
+  @property
+  def torque(self):
+    """
+    Return the total torque acting on the particle
+
+    :type: numpy.array (float, float, float)
+    """
+    return self.get("torque", self.index)
+
+  @torque.setter
+  def torque(self, value):
+    current = self.torque
+    current[:] = value
+
+  @property
+  def angular_momentum(self):
+    """
+    Return the angular momentum of the particle
+
+    :type: numpy.array (float, float, float)
+    """
+    return self.get("angmom", self.index)
+
+  @angular_momentum.setter
+  def angular_momentum(self, value):
+    current = self.angular_momentum
+    current[:] = value
 
   @property
   def charge(self):
@@ -222,7 +290,7 @@ class Atom(object):
 
     :type: float
     """
-    return self._pylmp.eval("q[%d]" % self.index)
+    return self.get("q", self.index)
 
 # -------------------------------------------------------------------------
 
@@ -244,39 +312,42 @@ class Atom2D(Atom):
 
     :getter: Return position of atom
     :setter: Set position of atom
-    :type: tuple (float, float)
+    :type: numpy.array (float, float)
     """
-    return (self._pylmp.eval("x[%d]" % self.index),
-            self._pylmp.eval("y[%d]" % self.index))
+    return super(Atom2D, self).position[0:2]
 
   @position.setter
   def position(self, value):
-     self._pylmp.set("atom", self.index, "x", value[0])
-     self._pylmp.set("atom", self.index, "y", value[1])
+    current = self.position
+    current[:] = value
 
   @property
   def velocity(self):
     """Access to velocity of an atom
     :getter: Return velocity of atom
     :setter: Set velocity of atom
-    :type: tuple (float, float)
+    :type: numpy.array (float, float)
     """
-    return (self._pylmp.eval("vx[%d]" % self.index),
-            self._pylmp.eval("vy[%d]" % self.index))
+    return super(Atom2D, self).velocity[0:2]
 
   @velocity.setter
   def velocity(self, value):
-     self._pylmp.set("atom", self.index, "vx", value[0])
-     self._pylmp.set("atom", self.index, "vy", value[1])
+    current = self.velocity
+    current[:] = value
 
   @property
   def force(self):
     """Access to force of an atom
-
-    :type: tuple (float, float)
+    :getter: Return force of atom
+    :setter: Set force of atom
+    :type: numpy.array (float, float)
     """
-    return (self._pylmp.eval("fx[%d]" % self.index),
-            self._pylmp.eval("fy[%d]" % self.index))
+    return super(Atom2D, self).force[0:2]
+
+  @force.setter
+  def force(self, value):
+    current = self.force
+    current[:] = value
 
 # -------------------------------------------------------------------------
 

@@ -27,7 +27,7 @@ be quickly post-processed into a movie using commands described on the
 :doc:`dump image <dump_image>` doc page.
 
 Animations of many of the examples can be viewed on the Movies section
-of the `LAMMPS web site <https://www.lammps.org/movies.html>`_.
+of the `LAMMPS website <https://www.lammps.org/movies.html>`_.
 
 There are two kinds of sub-directories in the examples folder.  Lower
 case named directories contain one or a few simple, quick-to-run
@@ -169,7 +169,7 @@ Running the simulation produces the files *dump.indent* and
 *log.lammps*\ .  You can visualize the dump file of snapshots with a
 variety of third-party tools highlighted on the
 `Visualization <https://www.lammps.org/viz.html>`_ page of the LAMMPS
-web site.
+website.
 
 If you uncomment the :doc:`dump image <dump_image>` line(s) in the input
 script a series of JPG images will be produced by the run (assuming

@@ -386,6 +386,9 @@ class numpy_wrapper:
   # -------------------------------------------------------------------------
 
   def iarray(self, c_int_type, raw_ptr, nelem, dim=1):
+    if raw_ptr is None:
+      return None
+
     import numpy as np
     np_int_type = self._ctype_to_numpy_int(c_int_type)
 
@@ -405,7 +408,11 @@ class numpy_wrapper:
   # -------------------------------------------------------------------------
 
   def darray(self, raw_ptr, nelem, dim=1):
+    if raw_ptr is None:
+      return None
+
     import numpy as np
+
     if dim == 1:
       ptr = cast(raw_ptr, POINTER(c_double * nelem))
     else:

@@ -97,24 +97,6 @@ void MDIEngine2::mdi_engine(int narg, char **arg)
   if (role != MDI_ENGINE) 
     error->all(FLERR,"Must invoke LAMMPS as an MDI engine to use mdi engine");
 
-  // NOTE: create this fix only when @INIT_MD is triggered?
-  //       if not needed, I dont think it should be defined,
-  //       otherwise it will be be invoked in other use cases
-  //       and switch engine out of DEFAULT node ?
-
-  //int ifix = modify->find_fix_by_style("mdi/engine");
-  //bool added_mdi_engine_fix = false;
-  //if (ifix < 0) {
-  //  modify->add_fix("MDI_ENGINE_INTERNAL all mdi/engine");
-  //  added_mdi_engine_fix = true;
-  // }
-
-  // identify the mdi_engine fix
-
-  //ifix = modify->find_fix_by_style("mdi/engine");
-  //mdi_fix = static_cast<FixMDIEngine2 *>(modify->fix[ifix]);
-  //mdi_fix->mdi_engine = this;
-
   // root = 1 for proc 0, otherwise 0
 
   root = (comm->me == 0) ? 1 : 0;
@@ -230,11 +212,6 @@ void MDIEngine2::mdi_engine(int narg, char **arg)
   memory->destroy(ibuf1all);
   memory->destroy(buf1all);
   memory->destroy(buf3all);
-
-  // remove mdi/engine fix that mdi engine instantiated
-  // NOTE: decide whether to make this optional, see above
-
-  //if (added_mdi_engine_fix) modify->delete_fix("MDI_ENGINE_INTERNAL");
 }
 
 /* ----------------------------------------------------------------------
@@ -250,6 +227,7 @@ void MDIEngine2::engine_node(const char *node)
   // do not process commands if engine and driver are not at same node
 
   strncpy(node_engine,node,MDI_COMMAND_LENGTH);
+
   if (strcmp(node_driver,"\0") != 0 && strcmp(node_driver,node_engine) != 0)
     node_match = false;
 
@@ -511,6 +489,8 @@ void MDIEngine2::mdi_commands()
   MDI_Register_command("@DEFAULT", "<CELL_DISPL");
   MDI_Register_command("@DEFAULT", "<CHARGES");
   MDI_Register_command("@DEFAULT", "<COORDS");
+  MDI_Register_command("@DEFAULT", "<ENERGY");
+  MDI_Register_command("@DEFAULT", "<FORCES");
   MDI_Register_command("@DEFAULT", "<LABELS");
   MDI_Register_command("@DEFAULT", "<MASSES");
   MDI_Register_command("@DEFAULT", "<NATOMS");
@@ -654,7 +634,6 @@ void MDIEngine2::mdi_commands()
   MDI_Register_command("@DEFAULT", "<PE");
   MDI_Register_command("@DEFAULT", "<PRESSURE");
   MDI_Register_command("@DEFAULT", "<PTENSOR");
-  MDI_Register_command("@DEFAULT", "<FORCES");
 }
 
 /* ----------------------------------------------------------------------
@@ -663,6 +642,20 @@ void MDIEngine2::mdi_commands()
 
 void MDIEngine2::mdi_md()
 {
+  // NOTE: create this fix only when @INIT_MD is triggered?
+  //       if not needed, I dont think it should be defined,
+  //       otherwise it will be be invoked in other use cases
+  //       and switch engine out of DEFAULT node ?
+
+  //int ifix = modify->find_fix_by_style("mdi/engine2");
+  //bool added_mdi_engine_fix = false;
+  //if (ifix < 0) {
+
+  modify->add_fix("MDI_ENGINE_INTERNAL all mdi/engine2");
+  int ifix = modify->find_fix_by_style("mdi/engine2");
+  mdi_fix = static_cast<FixMDIEngine2 *>(modify->fix[ifix]);
+  mdi_fix->mdi_engine = this;
+
   // initialize a new MD simulation
 
   update->whichflag = 1;
@@ -706,6 +699,10 @@ void MDIEngine2::mdi_md()
 
     if (strcmp(mdicmd,"@DEFAULT") == 0 || strcmp(mdicmd,"EXIT") == 0) return;
   }
+
+  // remove mdi/engine fix this method instantiated
+
+  modify->delete_fix("MDI_ENGINE_INTERNAL");
 }
 
 /* ----------------------------------------------------------------------
@@ -1316,14 +1313,17 @@ void MDIEngine2::infile()
    compute forces, energy, pressure of current system
    can be called multiple times by driver
      for a system that is continuously evolving
-   distinguishes between first-time call vs
-     system needs reneighboring vs system does not need reneighboring
-   does not increment timestep
+   distinguishes between:
+     (1) first-time call
+     (2) system needs reneighboring
+     (3) system does not need reneighboring
+   this method does NOT increment timestep
 ---------------------------------------------------------------------- */
 
 void MDIEngine2::evaluate()
 {
   if (neighbor->ago < 0) {
+
     update->whichflag = 1;
     lmp->init();
     update->integrate->setup(0);

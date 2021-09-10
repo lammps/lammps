@@ -173,7 +173,7 @@ void TextFileReader::next_dvector(double *list, int n)
     }
 
     ValueTokenizer values(line);
-    while (values.has_next()) { list[i++] = values.next_double(); }
+    while (values.has_next() && i < n) { list[i++] = values.next_double(); }
   }
 }
 

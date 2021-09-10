@@ -365,10 +365,10 @@ void Neighbor::init()
     int icollection, jcollection;
 
     // If collections not yet defined, create default map using types
-    if (not custom_collection_flag) {
+    if (!custom_collection_flag) {
       ncollections = n;
       interval_collection_flag = 0;
-      if (not type2collection)
+      if (!type2collection)
         memory->create(type2collection,n+1,"neigh:type2collection");
       for (i = 1; i <= n; i++)
         type2collection[i] = i-1;
@@ -390,7 +390,7 @@ void Neighbor::init()
       for (j = 0; j < ncollections; j++)
         cutcollectionsq[i][j] = 0.0;
 
-    if (not interval_collection_flag) {
+    if (!interval_collection_flag) {
       finite_cut_flag = 0;
       for (i = 1; i <= n; i++){
         icollection = type2collection[i];
@@ -419,7 +419,7 @@ void Neighbor::init()
         finite_cut_flag = 0;
 
         // Map types to collections
-        if (not type2collection)
+        if (!type2collection)
           memory->create(type2collection,n+1,"neigh:type2collection");
 
         for (i = 1; i <= n; i++)
@@ -2557,7 +2557,7 @@ void Neighbor::modify_params(int narg, char **arg)
       comm->ncollections_cutoff = 0;
       interval_collection_flag = 0;
       custom_collection_flag = 1;
-      if (not type2collection)
+      if (!type2collection)
         memory->create(type2collection,ntypes+1,"neigh:type2collection");
 
       // Erase previous mapping

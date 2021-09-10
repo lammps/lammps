@@ -51,6 +51,7 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix bond/create command");
 
+  dynamic_group_allow = 1;
   force_reneighbor = 1;
   next_reneighbor = -1;
   vector_flag = 1;

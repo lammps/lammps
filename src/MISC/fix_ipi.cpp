@@ -47,13 +47,18 @@ using namespace FixConst;
 
 // socket interface
 #ifndef _WIN32
-
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/un.h>
 #include <netdb.h>
+#else
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <io.h>
+#include <windows.h>
 #endif
 
 #define MSGLEN 12

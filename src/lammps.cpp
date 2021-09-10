@@ -55,7 +55,9 @@
 #include <cstring>
 #include <map>
 
-#if !defined(_WIN32)
+#if defined(_WIN32)
+#include <io.h>
+#else
 #include <unistd.h>             // for isatty()
 #endif
 

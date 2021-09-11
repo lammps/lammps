@@ -991,6 +991,9 @@ void PairAmoebaGPU::udirect2b_cpu()
         tdipdip[ndip++] = -bcn[0] + bcn[1]*yr*yr;
         tdipdip[ndip++] = bcn[1]*yr*zr;
         tdipdip[ndip++] = -bcn[0] + bcn[1]*zr*zr;
+        //printf("i = %d: j = %d: poltyp != DIRECT\n", i, j);
+      } else {
+        printf("i = %d: j = %d: poltyp == DIRECT\n", i, j);
       }
       
     } // jj

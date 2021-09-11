@@ -103,7 +103,8 @@ int BaseAmoebaT::init_atomic(const int nlocal, const int nall,
 
   bool alloc_packed=false;
   success = device->init_nbor(nbor,nlocal,host_nlocal,nall,maxspecial,
-                              _gpu_host,max_nbors,cell_size,alloc_packed,_threads_per_atom);
+                              _gpu_host,max_nbors,cell_size,alloc_packed,
+                              _threads_per_atom);
   if (success!=0)
     return success;
                               
@@ -123,7 +124,7 @@ int BaseAmoebaT::init_atomic(const int nlocal, const int nall,
 
   // allocate per-atom array tep 
 
-  int ef_nall=nall;
+  int ef_nall=nlocal; //nall;
   if (ef_nall==0)
     ef_nall=2000;
 
@@ -413,8 +414,8 @@ int** BaseAmoebaT::precompute(const int ago, const int inum_full, const int nall
                      boxlo, prd);
 
   // re-allocate dev_short_nbor if necessary
-  if (nall*(2+_max_nbors) > dev_short_nbor.cols()) {
-    int _nmax=static_cast<int>(static_cast<double>(nall)*1.10);
+  if (inum_full*(2+_max_nbors) > dev_short_nbor.cols()) {
+    int _nmax=static_cast<int>(static_cast<double>(inum_full)*1.10);
     dev_short_nbor.resize((2+_max_nbors)*_nmax);
   }
 
@@ -468,8 +469,8 @@ int** BaseAmoebaT::compute_udirect2b(const int ago, const int inum_full, const i
                          
   // ------------------- Resize _fieldp array ------------------------
 
-  if (nall>_max_fieldp_size) {
-    _max_fieldp_size=static_cast<int>(static_cast<double>(nall)*1.10);
+  if (inum_full>_max_fieldp_size) {
+    _max_fieldp_size=static_cast<int>(static_cast<double>(inum_full)*1.10);
     _fieldp.resize(_max_fieldp_size*8);
   }
   *fieldp_ptr=_fieldp.host.begin();
@@ -537,8 +538,8 @@ int** BaseAmoebaT::compute_umutual2b(const int ago, const int inum_full, const i
 
   // ------------------- Resize _fieldp array ------------------------
 
-  if (nall>_max_fieldp_size) {
-    _max_fieldp_size=static_cast<int>(static_cast<double>(nall)*1.10);
+  if (inum_full>_max_fieldp_size) {
+    _max_fieldp_size=static_cast<int>(static_cast<double>(inum_full)*1.10);
     _fieldp.resize(_max_fieldp_size*8);
   }
   *fieldp_ptr=_fieldp.host.begin();

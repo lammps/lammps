@@ -1,34 +1,31 @@
 
 # build LAMMPS plugins, but not on Windows
 if((NOT (CMAKE_SYSTEM_NAME STREQUAL "Windows")) AND PKG_PLUGIN)
-  include(ExternalProject)
-  ExternalProject_Add(plugins
-                      SOURCE_DIR      "${LAMMPS_DIR}/examples/plugins"
-                      BINARY_DIR      ${CMAKE_BINARY_DIR}/build-plugins
-                      INSTALL_DIR     ${CMAKE_BINARY_DIR}
-                      CMAKE_ARGS      ${CMAKE_REQUEST_PIC}
-                                      -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
-                                      -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
-                                      -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-                                      -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
-                                      -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
-                     BUILD_BYPRODUCTS <BINARY_DIR>/morse2plugin${CMAKE_SHARED_MODULE_SUFFIX}
-                                      <BINARY_DIR>/nve2plugin${CMAKE_SHARED_MODULE_SUFFIX}
-                                      <BINARY_DIR>/helloplugin${CMAKE_SHARED_MODULE_SUFFIX}
-                     INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                                      <BINARY_DIR>/morse2plugin${CMAKE_SHARED_MODULE_SUFFIX}
-                                      <BINARY_DIR>/nve2plugin${CMAKE_SHARED_MODULE_SUFFIX}
-                                      <BINARY_DIR>/helloplugin${CMAKE_SHARED_MODULE_SUFFIX}
-                                      ${CMAKE_CURRENT_BINARY_DIR}
-                     TEST_COMMAND    "")
+  add_subdirectory(${LAMMPS_DIR}/examples/plugins ${CMAKE_BINARY_DIR}/build-plugins)
 endif()
 
 add_executable(test_simple_commands test_simple_commands.cpp)
+
 if(PKG_PLUGIN)
+  add_custom_target(installplugins
+    ${CMAKE_COMMAND} -E copy_if_different
+    ${CMAKE_BINARY_DIR}/build-plugins/$<CONFIG>/morse2plugin${CMAKE_SHARED_MODULE_SUFFIX}
+    ${CMAKE_BINARY_DIR}/build-plugins/$<CONFIG>/nve2plugin${CMAKE_SHARED_MODULE_SUFFIX}
+    ${CMAKE_BINARY_DIR}/build-plugins/$<CONFIG>/helloplugin${CMAKE_SHARED_MODULE_SUFFIX}
+    ${CMAKE_BINARY_DIR}
+    DEPENDS plugins)
   add_dependencies(test_simple_commands plugins)
+  target_compile_definitions(test_simple_commands PRIVATE LMP_PLUGIN)
 endif()
 target_link_libraries(test_simple_commands PRIVATE lammps gmock)
 add_test(NAME SimpleCommands COMMAND test_simple_commands WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+if(APPLE)
+  set_tests_properties(SimpleCommands PROPERTIES
+    ENVIRONMENT "DYLD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/build-plugins/$<CONFIG>/:${DYLD_LIBRARY_PATH}")
+else()
+  set_tests_properties(SimpleCommands PROPERTIES
+    ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/build-plugins/$<CONFIG>/:${LD_LIBRARY_PATH}")
+endif()
 
 add_executable(test_lattice_region test_lattice_region.cpp)
 target_link_libraries(test_lattice_region PRIVATE lammps gmock)

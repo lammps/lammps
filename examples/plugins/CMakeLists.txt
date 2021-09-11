@@ -14,17 +14,21 @@ endif()
 
 project(plugins VERSION 1.0 LANGUAGES CXX)
 
-# NOTE: the next line should be commented out when used outside of the LAMMPS package
-get_filename_component(LAMMPS_SOURCE_DIR ${PROJECT_SOURCE_DIR}/../../src ABSOLUTE)
-set(LAMMPS_HEADER_DIR ${LAMMPS_SOURCE_DIR} CACHE PATH "Location of LAMMPS headers")
-if(NOT LAMMPS_HEADER_DIR)
-  message(FATAL_ERROR "Must set LAMMPS_HEADER_DIR")
-endif()
-
-# by default, install into $HOME/.local (not /usr/local),
-# so that no root access (and sudo) is needed
-if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/.local" CACHE PATH "Default install path" FORCE)
+# when this file is included as subdirectory in the LAMMPS build, many settings are directly imported
+if(LAMMPS_DIR)
+  set(LAMMPS_HEADER_DIR ${LAMMPS_SOURCE_DIR})
+else()
+  # NOTE: the next line should be commented out when used outside of the LAMMPS package
+  get_filename_component(LAMMPS_SOURCE_DIR ${PROJECT_SOURCE_DIR}/../../src ABSOLUTE)
+  set(LAMMPS_HEADER_DIR ${LAMMPS_SOURCE_DIR} CACHE PATH "Location of LAMMPS headers")
+  if(NOT LAMMPS_HEADER_DIR)
+    message(FATAL_ERROR "Must set LAMMPS_HEADER_DIR")
+  endif()
+  # by default, install into $HOME/.local (not /usr/local),
+  # so that no root access (and sudo) is needed
+  if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+    set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/.local" CACHE PATH "Default install path" FORCE)
+  endif()
 endif()
 
 # C++11 is required
@@ -41,9 +45,11 @@ if(CMAKE_SYSTEM_NAME STREQUAL Windows)
   message(FATAL_ERROR "LAMMPS plugins are currently not supported on Windows")
 endif()
 
-set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR})
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 include(CheckIncludeFileCXX)
-include(LAMMPSInterfaceCXX)
+if(NOT LAMMPS_DIR)
+  include(LAMMPSInterfaceCXX)
+endif()
 
 ##########################
 # building the plugins
@@ -71,3 +77,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
   set_target_properties(morse2plugin nve2plugin helloplugin zero2plugin PROPERTIES
                         LINK_FLAGS "-Wl,-undefined,dynamic_lookup")
 endif()
+
+add_custom_target(plugins ALL ${CMAKE_COMMAND} -E echo "Building Plugins"
+  DEPENDS morse2plugin nve2plugin helloplugin zero2plugin morse2plugin)

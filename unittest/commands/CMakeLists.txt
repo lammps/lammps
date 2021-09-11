@@ -1,30 +1,26 @@
 
-# build LAMMPS plugins, but not on Windows
-if((NOT (CMAKE_SYSTEM_NAME STREQUAL "Windows")) AND PKG_PLUGIN)
-  add_subdirectory(${LAMMPS_DIR}/examples/plugins ${CMAKE_BINARY_DIR}/build-plugins)
-endif()
-
 add_executable(test_simple_commands test_simple_commands.cpp)
 
-if(PKG_PLUGIN)
-  add_custom_target(installplugins
-    ${CMAKE_COMMAND} -E copy_if_different
-    ${CMAKE_BINARY_DIR}/build-plugins/$<CONFIG>/morse2plugin${CMAKE_SHARED_MODULE_SUFFIX}
-    ${CMAKE_BINARY_DIR}/build-plugins/$<CONFIG>/nve2plugin${CMAKE_SHARED_MODULE_SUFFIX}
-    ${CMAKE_BINARY_DIR}/build-plugins/$<CONFIG>/helloplugin${CMAKE_SHARED_MODULE_SUFFIX}
-    ${CMAKE_BINARY_DIR}
-    DEPENDS plugins)
+# tests for the plugin command require the PLUGIN package and won't work on windows
+if((NOT (CMAKE_SYSTEM_NAME STREQUAL "Windows")) AND PKG_PLUGIN)
+  add_subdirectory(${LAMMPS_DIR}/examples/plugins ${CMAKE_BINARY_DIR}/build-plugins)
   add_dependencies(test_simple_commands plugins)
-  target_compile_definitions(test_simple_commands PRIVATE LMP_PLUGIN)
+  target_compile_definitions(test_simple_commands PRIVATE -DLMP_PLUGIN)
 endif()
+
 target_link_libraries(test_simple_commands PRIVATE lammps gmock)
 add_test(NAME SimpleCommands COMMAND test_simple_commands WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+if(BUILD_IS_MULTI_CONFIG)
+  set(LAMMPS_PLUGIN_BIN_DIR ${CMAKE_BINARY_DIR}/build-plugins/$<CONFIG>)
+else()
+  set(LAMMPS_PLUGIN_BIN_DIR ${CMAKE_BINARY_DIR}/build-plugins)
+endif()
 if(APPLE)
   set_tests_properties(SimpleCommands PROPERTIES
-    ENVIRONMENT "DYLD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/build-plugins/$<CONFIG>/:${DYLD_LIBRARY_PATH}")
+    ENVIRONMENT "DYLD_LIBRARY_PATH=${LAMMPS_PLUGIN_BIN_DIR}/:${DYLD_LIBRARY_PATH}")
 else()
   set_tests_properties(SimpleCommands PROPERTIES
-    ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}/build-plugins/$<CONFIG>/:${LD_LIBRARY_PATH}")
+    ENVIRONMENT "LD_LIBRARY_PATH=${LAMMPS_PLUGIN_BIN_DIR}/:${LD_LIBRARY_PATH}")
 endif()
 
 add_executable(test_lattice_region test_lattice_region.cpp)

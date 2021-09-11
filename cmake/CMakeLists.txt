@@ -786,11 +786,17 @@ if(ClangFormat_FOUND)
 endif()
 
 get_target_property(DEFINES lammps COMPILE_DEFINITIONS)
+get_property(BUILD_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if(BUILD_IS_MULTI_CONFIG)
+  set(LAMMPS_BUILD_TYPE "Multi-Config")
+else()
+  set(LAMMPS_BUILD_TYPE ${CMAKE_BUILD_TYPE})
+endif()
 include(FeatureSummary)
 feature_summary(DESCRIPTION "The following tools and libraries have been found and configured:" WHAT PACKAGES_FOUND)
 message(STATUS "<<< Build configuration >>>
    Operating System: ${CMAKE_SYSTEM_NAME} ${CMAKE_LINUX_DISTRO} ${CMAKE_DISTRO_VERSION}
-   Build type:       ${CMAKE_BUILD_TYPE}
+   Build type:       ${LAMMPS_BUILD_TYPE}
    Install path:     ${CMAKE_INSTALL_PREFIX}
    Generator:        ${CMAKE_GENERATOR} using ${CMAKE_MAKE_PROGRAM}")
 ###############################################################################

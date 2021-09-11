@@ -101,9 +101,9 @@ int BaseAmoebaT::init_atomic(const int nlocal, const int nall,
     _nbor_data=&(nbor->dev_nbor);
   }
 
-  bool allocate_packed = false;
+  bool alloc_packed=false;
   success = device->init_nbor(nbor,nlocal,host_nlocal,nall,maxspecial,
-                              _gpu_host,max_nbors,cell_size,allocate_packed,_threads_per_atom);
+                              _gpu_host,max_nbors,cell_size,alloc_packed,_threads_per_atom);
   if (success!=0)
     return success;
                               
@@ -231,8 +231,6 @@ inline int BaseAmoebaT::build_nbor_list(const int inum, const int host_inum,
     add_onefive_neighbors();
   }
 
-  //nbor->copy_unpacked(inum,mn);
-
   double bytes=ans->gpu_bytes()+nbor->gpu_bytes();
   if (bytes>_max_an_bytes)
     _max_an_bytes=bytes;
@@ -336,17 +334,17 @@ void BaseAmoebaT::compute_polar_real_host_nbor(const int f_ago, const int inum_f
 
 template <class numtyp, class acctyp>
 int** BaseAmoebaT::precompute(const int ago, const int inum_full, const int nall,
-                           double **host_x, int *host_type, int *host_amtype,
-                           int *host_amgroup, double **host_rpole,
-                           double **host_uind, double **host_uinp,
-                           double *sublo, double *subhi, tagint *tag,
-                           int **nspecial, tagint **special,
-                           int *nspecial15, tagint **special15,
-                           const bool eflag_in, const bool vflag_in,
-                           const bool eatom, const bool vatom, int &host_start,
-                           int **&ilist, int **&jnum, const double cpu_time,
-                           bool &success, double *host_q, double *boxlo,
-                           double *prd) {
+                              double **host_x, int *host_type, int *host_amtype,
+                              int *host_amgroup, double **host_rpole,
+                              double **host_uind, double **host_uinp,
+                              double *sublo, double *subhi, tagint *tag,
+                              int **nspecial, tagint **special,
+                              int *nspecial15, tagint **special15,
+                              const bool eflag_in, const bool vflag_in,
+                              const bool eatom, const bool vatom, int &host_start,
+                              int **&ilist, int **&jnum, const double cpu_time,
+                              bool &success, double *host_q, double *boxlo,
+                              double *prd) {
   acc_timers();
   int eflag, vflag;
   if (eatom) eflag=2;

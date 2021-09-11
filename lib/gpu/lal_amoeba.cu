@@ -196,6 +196,7 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
                             const __global numtyp4 *restrict sp_polar,
                             const __global int *dev_nbor,
                             const __global int *dev_packed,
+                            const __global int *dev_short_nbor,
                             __global acctyp4 *restrict ans,
                             __global acctyp *restrict engv,
                             __global numtyp4 *restrict tep,
@@ -255,12 +256,21 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
     numtyp ci,uix,uiy,uiz,uixp,uiyp,uizp;
 
     int numj, nbor, nbor_end;
+    const __global int* nbor_mem=dev_packed;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     //numtyp qtmp; fetch(qtmp,i,q_tex);
     //int itype=ix.w;
+
+    // recalculate numj and nbor_end for use of the short nbor list
+    if (dev_packed==dev_nbor) {
+      numj = dev_short_nbor[nbor];
+      nbor += n_stride;
+      nbor_end = nbor+fast_mul(numj,n_stride);
+      nbor_mem = dev_short_nbor;
+    }
 
     ci  = polar1[i].x;    // rpole[i][0];
     dix = polar1[i].y;    // rpole[i][1];
@@ -289,7 +299,7 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
 
     for ( ; nbor<nbor_end; nbor+=n_stride) {
 
-      int jextra=dev_packed[nbor];
+      int jextra=nbor_mem[nbor];
       int j = jextra & NEIGHMASK15;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -709,6 +719,7 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
                                  const __global numtyp4 *restrict sp_polar,
                                  const __global int *dev_nbor,
                                  const __global int *dev_packed,
+                                 const __global int *dev_short_nbor,
                                  __global numtyp4 *restrict fieldp,
                                  const int inum,  const int nall,
                                  const int nbor_pitch, const int t_per_atom,
@@ -733,12 +744,21 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
 
   if (ii<inum) {
     int numj, nbor, nbor_end;
+    const __global int* nbor_mem=dev_packed;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     //numtyp qtmp; fetch(qtmp,i,q_tex);
     //int itype=ix.w;
+
+    // recalculate numj and nbor_end for use of the short nbor list
+    if (dev_packed==dev_nbor) {
+      numj = dev_short_nbor[nbor];
+      nbor += n_stride;
+      nbor_end = nbor+fast_mul(numj,n_stride);
+      nbor_mem = dev_short_nbor;
+    }
 
     int itype,igroup;
     numtyp bn[4],bcn[3];
@@ -769,7 +789,7 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
 
     for ( ; nbor<nbor_end; nbor+=n_stride) {
 
-      int jextra=dev_packed[nbor];
+      int jextra=nbor_mem[nbor];
       int j = jextra & NEIGHMASK15;
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
@@ -1093,7 +1113,6 @@ __kernel void k_special15(__global int * dev_nbor,
 
   } // if ii
 }
-
 /*
 __kernel void k_amoeba_short_nbor(const __global numtyp4 *restrict x_,
                                    const numtyp off2, __global int * dev_nbor,
@@ -1149,38 +1168,36 @@ __kernel void k_amoeba_short_nbor(const __global numtyp4 *restrict x_,
   }
 }
 */
-#ifdef LAL_SIMD_IP_SYNC
-#define t_per_atom t_per_atom_in
-#else
-#define t_per_atom 1
-#endif
-
 __kernel void k_amoeba_short_nbor(const __global numtyp4 *restrict x_,
-                                   const numtyp off2,
-                                   __global int * dev_nbor,
+                                   const __global int * dev_nbor,
                                    const __global int * dev_packed,
+                                   __global int * dev_short_nbor,
+                                   const numtyp off2,
                                    const int inum, const int nbor_pitch,
-                                   const int t_per_atom_in) {
-  const int ii=GLOBAL_ID_X;
+                                   const int t_per_atom) {
+  __local int n_stride;
+  int tid, ii, offset;
+  atom_info(t_per_atom,ii,tid,offset);
 
   if (ii<inum) {
-/*    
-    const int i=dev_packed[ii];
-    
-    int nbor=ii+nbor_pitch;
-    const int numj=dev_packed[nbor];
-    nbor+=nbor_pitch;
-    const int nbor_end=nbor+fast_mul(numj,nbor_pitch);
+    int nbor, nbor_end;
+    int i, numj;
+    nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
+              n_stride,nbor_end,nbor);
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
-    int newj=0;
 
-    __global int *out_list=dev_nbor+2*nbor_pitch+ii*t_per_atom;
-    const int out_stride=nbor_pitch*t_per_atom-t_per_atom;
+    int ncount = 0;
+    int m = nbor;
+    dev_short_nbor[m] = 0;
+    int nbor_short = nbor+n_stride;
 
-    for ( ; nbor<nbor_end; nbor+=nbor_pitch) {
-      int sj=dev_packed[nbor];
-      int j = sj & NEIGHMASK15;
+    for ( ; nbor<nbor_end; nbor+=n_stride) {
+
+      int j=dev_packed[nbor];
+      int nj = j;
+      j &= NEIGHMASK15;
+
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
 
       // Compute r12
@@ -1190,15 +1207,14 @@ __kernel void k_amoeba_short_nbor(const __global numtyp4 *restrict x_,
       numtyp rsq = delx*delx+dely*dely+delz*delz;
 
       if (rsq<off2) {
-        //*out_list=sj;
-        out_list++;
-        newj++;
-        if ((newj & (t_per_atom-1))==0)
-          out_list+=out_stride;
+        dev_short_nbor[nbor_short] = nj;
+        nbor_short += n_stride;
+        ncount++;
       }
-
     } // for nbor
-    //dev_nbor[ii+nbor_pitch]=newj;
-*/
+
+    // store the number of neighbors for each thread
+    dev_short_nbor[m] = ncount;
+
   } // if ii
 }

@@ -21,7 +21,7 @@ namespace LAMMPS_AL {
 extern Device<PRECISION,ACC_PRECISION> global_device;
 
 template <class numtyp, class acctyp>
-BaseAmoebaT::BaseAmoeba() : _compiled(false), _max_bytes(0) {
+BaseAmoebaT::BaseAmoeba() : _compiled(false), _max_bytes(0), short_nbor_avail(false) {
   device=&global_device;
   ans=new Answer<numtyp,acctyp>();
   nbor=new Neighbor();
@@ -100,9 +100,10 @@ int BaseAmoebaT::init_atomic(const int nlocal, const int nall,
   } else {
     _nbor_data=&(nbor->dev_nbor);
   }
-    
+
+  bool allocate_packed = false;
   success = device->init_nbor(nbor,nlocal,host_nlocal,nall,maxspecial,
-                              _gpu_host,max_nbors,cell_size,false,_threads_per_atom);
+                              _gpu_host,max_nbors,cell_size,allocate_packed,_threads_per_atom);
   if (success!=0)
     return success;
                               
@@ -125,6 +126,8 @@ int BaseAmoebaT::init_atomic(const int nlocal, const int nall,
   int ef_nall=nall;
   if (ef_nall==0)
     ef_nall=2000;
+
+  dev_short_nbor.alloc(ef_nall*(2+max_nbors),*(this->ucl_device),UCL_READ_WRITE);
 
   _max_tep_size=static_cast<int>(static_cast<double>(ef_nall)*1.10);
   _tep.alloc(_max_tep_size*4,*(this->ucl_device),UCL_READ_WRITE,UCL_READ_WRITE);
@@ -158,6 +161,7 @@ void BaseAmoebaT::clear_atomic() {
   time_pair.clear();
   hd_balancer.clear();
 
+  dev_short_nbor.clear();
   nbor->clear();
   ans->clear();
 
@@ -195,7 +199,7 @@ int * BaseAmoebaT::reset_nbors(const int nall, const int inum, int *ilist,
 // Build neighbor list on device
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-inline void BaseAmoebaT::build_nbor_list(const int inum, const int host_inum,
+inline int BaseAmoebaT::build_nbor_list(const int inum, const int host_inum,
                                          const int nall, double **host_x,
                                          int *host_type, double *sublo,
                                          double *subhi, tagint *tag,
@@ -206,7 +210,7 @@ inline void BaseAmoebaT::build_nbor_list(const int inum, const int host_inum,
   resize_atom(inum,nall,success);
   resize_local(inum,host_inum,nbor->max_nbors(),success);
   if (!success)
-    return;
+    return 0;
   atom->cast_copy_x(host_x,host_type);
 
   int mn;
@@ -232,6 +236,7 @@ inline void BaseAmoebaT::build_nbor_list(const int inum, const int host_inum,
   double bytes=ans->gpu_bytes()+nbor->gpu_bytes();
   if (bytes>_max_an_bytes)
     _max_an_bytes=bytes;
+  return mn;
 }
 
 // ---------------------------------------------------------------------------
@@ -385,7 +390,7 @@ int** BaseAmoebaT::precompute(const int ago, const int inum_full, const int nall
 
   // Build neighbor list on GPU if necessary
   if (ago==0) {
-    build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
+    _max_nbors = build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
                     sublo, subhi, tag, nspecial, special, nspecial15, special15,
                     success);
     if (!success)
@@ -408,6 +413,12 @@ int** BaseAmoebaT::precompute(const int ago, const int inum_full, const int nall
 
   device->precompute(ago,inum_full,nall,host_x,host_type,success,host_q,
                      boxlo, prd);
+
+  // re-allocate dev_short_nbor if necessary
+  if (nall*(2+_max_nbors) > dev_short_nbor.cols()) {
+    int _nmax=static_cast<int>(static_cast<double>(nall)*1.10);
+    dev_short_nbor.resize((2+_max_nbors)*_nmax);
+  }
 
   return nbor->host_jlist.begin()-host_start;
 }

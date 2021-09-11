@@ -123,7 +123,7 @@ class BaseAmoeba {
                     int **firstneigh, bool &success);
 
   /// Build neighbor list on device
-  void build_nbor_list(const int inum, const int host_inum,
+  int build_nbor_list(const int inum, const int host_inum,
                        const int nall, double **host_x, int *host_type,
                        double *sublo, double *subhi, tagint *tag, int **nspecial,
                        tagint **special, int *nspecial15, tagint **special15,
@@ -236,6 +236,8 @@ class BaseAmoeba {
 
   int add_onefive_neighbors();
 
+  UCL_D_Vec<int> dev_short_nbor;
+
   // ------------------------- DEVICE KERNELS -------------------------
   UCL_Program *pair_program;
   UCL_Kernel k_polar, k_udirect2b, k_umutual2b, k_special15;
@@ -251,8 +253,9 @@ class BaseAmoeba {
   bool _compiled;
   int _block_size, _block_bio_size, _threads_per_atom;
   int _extra_fields;
-  double _max_bytes, _max_an_bytes, _maxspecial, _maxspecial15;
+  double _max_bytes, _max_an_bytes, _maxspecial, _maxspecial15, _max_nbors;
   double _gpu_overhead, _driver_overhead;
+  bool short_nbor_avail;
   UCL_D_Vec<int> *_nbor_data;
 
   void compile_kernels(UCL_Device &dev, const void *pair_string,

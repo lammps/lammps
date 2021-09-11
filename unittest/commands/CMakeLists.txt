@@ -51,9 +51,7 @@ target_compile_definitions(test_reset_ids PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CU
 target_link_libraries(test_reset_ids PRIVATE lammps gmock)
 add_test(NAME ResetIDs COMMAND test_reset_ids WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-if(BUILD_MPI)
-  add_executable(test_mpi_load_balancing test_mpi_load_balancing.cpp)
-  target_link_libraries(test_mpi_load_balancing PRIVATE lammps gmock)
-  target_compile_definitions(test_mpi_load_balancing PRIVATE ${TEST_CONFIG_DEFS})
-  add_mpi_test(NAME MPILoadBalancing NUM_PROCS 4 COMMAND $<TARGET_FILE:test_mpi_load_balancing>)
-endif()
+add_executable(test_mpi_load_balancing test_mpi_load_balancing.cpp)
+target_link_libraries(test_mpi_load_balancing PRIVATE lammps gmock)
+target_compile_definitions(test_mpi_load_balancing PRIVATE ${TEST_CONFIG_DEFS})
+add_mpi_test(NAME MPILoadBalancing NUM_PROCS 4 COMMAND $<TARGET_FILE:test_mpi_load_balancing>)

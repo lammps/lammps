@@ -901,22 +901,6 @@ void TILD::set_grid_global()
       if (ny_tild <= 1) ny_tild = 2;
       if (nz_tild <= 1) nz_tild = 2;
 
-      //set local grid dimension
-      int npey_fft,npez_fft;
-      if (nz_tild >= nprocs) {
-        npey_fft = 1;
-        npez_fft = nprocs;
-      } else procs2grid2d(nprocs,ny_tild,nz_tild,&npey_fft,&npez_fft);
-
-      int me_y = me % npey_fft;
-      int me_z = me / npey_fft;
-
-      nxlo_fft = 0;
-      nxhi_fft = nx_tild - 1;
-      nylo_fft = me_y*ny_tild/npey_fft;
-      nyhi_fft = (me_y+1)*ny_tild/npey_fft - 1;
-      nzlo_fft = me_z*nz_tild/npez_fft;
-      nzhi_fft = (me_z+1)*nz_tild/npez_fft - 1;
 
     }
 
@@ -948,48 +932,7 @@ void TILD::set_grid_global()
 void TILD::init_cross_potentials(){
   
 
-  // decomposition of FFT mesh
-  // global indices range from 0 to N-1
-  // proc owns entire x-dimension, clumps of columns in y,z dimensions
-  // npey_fft,npez_fft = # of procs in y,z dims
-  // if nprocs is small enough, proc can own 1 or more entire xy planes,
-  //   else proc owns 2d sub-blocks of yz plane
-  // me_y,me_z = which proc (0-npe_fft-1) I am in y,z dimensions
-  // nlo_fft,nhi_fft = lower/upper limit of the section
-  //   of the global FFT mesh that I own
-
-// Should this be here APS?
   int Dim = domain->dimension;
-  int npey_fft,npez_fft;
-  if (nz_tild >= nprocs) {
-    npey_fft = 1;
-    npez_fft = nprocs;
-  } else procs2grid2d(nprocs,ny_tild,nz_tild,&npey_fft,&npez_fft);
-
-  int me_y = me % npey_fft;
-  int me_z = me / npey_fft;
-
-// Should this be here APS?
-  nxlo_fft = 0;
-  nxhi_fft = nx_tild - 1;
-  nylo_fft = me_y*ny_tild/npey_fft;
-  nyhi_fft = (me_y+1)*ny_tild/npey_fft - 1;
-  nzlo_fft = me_z*nz_tild/npez_fft;
-  nzhi_fft = (me_z+1)*nz_tild/npez_fft - 1;
-
-  // TILD grid pts owned by this proc, including ghosts
-
-  ngrid = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
-    (nzhi_out-nzlo_out+1);
-
-  // FFT grids owned by this proc, without ghosts
-  // nfft = FFT points in FFT decomposition on this proc
-  // nfft_brick = FFT points in 3d brick-decomposition on this proc
-  // nfft_both = greater of 2 values
-
-  nfft = (nxhi_fft-nxlo_fft+1) * (nyhi_fft-nylo_fft+1) *
-    (nzhi_fft-nzlo_fft+1);
-
   int ntypes = atom->ntypes;
   double scale_inv = 1.0/ nx_tild/ ny_tild/ nz_tild;
   int n = 0;

@@ -296,7 +296,6 @@ void TILD::init()
   }
 
   // allocate k-space dependent memory
-  // don't invoke allocate peratom() or group(), will be allocated when needed (which is when?)
 
   allocate();
   rho0 = calculate_rho0();
@@ -484,7 +483,6 @@ void TILD::vir_func_init() {
         }
 
       }
-
       loc++;
 
     }
@@ -508,7 +506,6 @@ void TILD::setup_grid()
 
   // reallocate K-space dependent memory
   // check if grid communication is now overlapping if not allowed
-  // don't invoke allocate_peratom(), compute() will allocate when needed
 
   allocate();
 
@@ -1272,6 +1269,7 @@ int TILD::factorable(int n)
 
 /* ----------------------------------------------------------------------
    Get the kspace version of the inputted function/potential
+   return the grid point in k-space
 ------------------------------------------------------------------------- */
 
 void TILD::get_k_alias(FFT_SCALAR* wk1, FFT_SCALAR **out){
@@ -1497,12 +1495,10 @@ void TILD::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
   if (flag == FORWARD_NONE){
     for (int ktype = 1; ktype <= atom->ntypes; ktype++) {
       //for (int j = 0; j < Dim; j++) {
-        //FFT_SCALAR *src = &gradWtype[ktype][j][nzlo_out][nylo_out][nxlo_out];
         FFT_SCALAR *xsrc = &gradWtypex[ktype][nzlo_out][nylo_out][nxlo_out];
         FFT_SCALAR *ysrc = &gradWtypey[ktype][nzlo_out][nylo_out][nxlo_out];
         FFT_SCALAR *zsrc = &gradWtypez[ktype][nzlo_out][nylo_out][nxlo_out];
         for (int i = 0; i < nlist; i++) {
-          //buf[n++] = src[list[i]];
           buf[n++] = xsrc[list[i]];
           buf[n++] = ysrc[list[i]];
           buf[n++] = zsrc[list[i]];
@@ -1907,13 +1903,11 @@ void TILD::brick2fft()
 
 
   for (int k = 1; k <= ntypes; k++) {
-    //std::string fname = "rho_"+std::to_string(comm->me)+"_"+std::to_string(k)+".txt";
     int n = 0;
     for (iz = nzlo_in; iz <= nzhi_in; iz++)
       for (iy = nylo_in; iy <= nyhi_in; iy++)
         for (ix = nxlo_in; ix <= nxhi_in; ix++){
           density_fft_types[k][n++] = density_brick_types[k][iz][iy][ix];
-          //rhof<<n-1<<'\t'<<density_fft_types[k][n-1] <<std::endl;
         }
   }
 
@@ -2462,7 +2456,7 @@ bigint TILD::nextvalid()
 }
 
 /* ----------------------------------------------------------------------
-   write out the average gridded density if it is cime to do so
+   write out the average gridded density if it is time to do so
 ------------------------------------------------------------------------- */
 
 void TILD::ave_grid()

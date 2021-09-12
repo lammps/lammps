@@ -138,6 +138,7 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   nevery = 0;
   irepeat = 0;
   nrepeat = 0;
+  peratom_freq = 0;
   write_grid_flag  = 0;
   set_rho0 = 1.0;
   subtract_rho0 = 0;

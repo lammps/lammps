@@ -111,7 +111,7 @@ PairAmoebaGPU::PairAmoebaGPU(LAMMPS *lmp) : PairAmoeba(lmp), gpu_mode(GPU_FORCE)
   tep_pinned = nullptr;
 
   gpu_udirect2b_ready = true;
-  gpu_umutual2b_ready = false;
+  gpu_umutual2b_ready = true;
   gpu_polar_real_ready = true;
 
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
@@ -532,6 +532,14 @@ void PairAmoebaGPU::induce()
       comm->reverse_comm_pair(this);
     }
 
+    if (comm->me == 0) {
+      for (int i = 0; i < 10; i++) {
+        printf("i = %d; fieldp = %f %f %f\n", i, fieldp[i][0], fieldp[i][1], fieldp[i][2]);
+      }
+    }
+    
+    //error->all(FLERR,"STOP GPU");
+
 /*
     if (comm->me == 0) {
       printf("GPU: cutghost = %f\n", comm->cutghost[0]);
@@ -596,12 +604,12 @@ void PairAmoebaGPU::induce()
 
       ufield0c(field,fieldp);
 
-      //error->all(FLERR,"STOP");
-
       if (!gpu_umutual2b_ready) {
         crstyle = FIELD;
         comm->reverse_comm_pair(this);
       }
+
+      //error->all(FLERR,"STOP");
 /*     
      if (comm->me == 0) {
        printf("GPU: iter = %d\n", iter);
@@ -1051,7 +1059,7 @@ void PairAmoebaGPU::umutual2b(double **field, double **fieldp)
     error->one(FLERR,"Insufficient memory on accelerator");
 
   // accumulate the field and fieldp values from the GPU lib
-  //   field and fieldp may already have some nonzero values from kspace (udirect1)
+  //   field and fieldp may already have some nonzero values from kspace (umutual1)
 
   int nlocal = atom->nlocal;
   double *field_ptr = (double *)fieldp_pinned;
@@ -1071,7 +1079,6 @@ void PairAmoebaGPU::umutual2b(double **field, double **fieldp)
     fieldp[i][1] += fieldp_ptr[idx+1];
     fieldp[i][2] += fieldp_ptr[idx+2];
   }
-
 }
 
 /* ---------------------------------------------------------------------- */

@@ -614,8 +614,8 @@ int** BaseAmoebaT::compute_polar_real(const int ago, const int inum_full, const 
 
   // ------------------- Resize _tep array ------------------------
 
-  if (nall>_max_tep_size) {
-    _max_tep_size=static_cast<int>(static_cast<double>(nall)*1.10);
+  if (inum_full>_max_tep_size) {
+    _max_tep_size=static_cast<int>(static_cast<double>(inum_full)*1.10);
     _tep.resize(_max_tep_size*4);
   }
   *tep_ptr=_tep.host.begin();

@@ -465,6 +465,10 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
     numtyp pdi = damping[itype].x;
     numtyp ddi = damping[itype].z;
 
+    numtyp aesq2 = (numtyp)2.0 * aewald*aewald;
+    numtyp aesq2n = (numtyp)0.0;
+    if (aewald > (numtyp)0.0) aesq2n = (numtyp)1.0 / (MY_PIS*aewald);
+
     for ( ; nbor<nbor_end; nbor+=n_stride) {
 
       int jextra=nbor_mem[nbor];
@@ -498,6 +502,32 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
       numtyp ukzp = polar5[j].z; // uinp[j][2];
 
       numtyp factor_uscale;
+      //const numtyp4 sp_pol = sp_polar[sbmask15(jextra)];
+      //factor_wscale = sp_pol.x; // sp_polar_wscale[sbmask15(jextra)];
+      if (igroup == jgroup) {
+        //factor_pscale = sp_pol.y; // sp_polar_piscale[sbmask15(jextra)];
+        //factor_dscale = polar_dscale;
+        factor_uscale = polar_uscale;
+      } else {
+        //factor_pscale = sp_pol.z; // sp_polar_pscale[sbmask15(jextra)];
+        factor_uscale = (numtyp)1.0;
+      }
+
+      // calculate the real space Ewald error function terms
+
+      numtyp ralpha = aewald * r;
+      numtyp exp2a = ucl_exp(-ralpha*ralpha);
+      numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*ralpha);
+      numtyp _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * exp2a;
+      //bn[0] = erfc(ralpha) / r;
+      bn[0] = _erfc * rinv;
+
+      numtyp aefac = aesq2n;
+      for (int m = 1; m <= 3; m++) {
+        numtyp bfac = (numtyp) (m+m-1);
+        aefac = aesq2 * aefac;
+        bn[m] = (bfac*bn[m-1]+aefac*exp2a) * r2inv;
+      }
 
       // find terms needed later to compute mutual polarization
       // if (poltyp != DIRECT) 
@@ -520,6 +550,7 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
       numtyp scalek = factor_uscale;
       bcn[0] = bn[1] - ((numtyp)1.0-scalek*scale3)*rr3;
       bcn[1] = bn[2] - ((numtyp)1.0-scalek*scale5)*rr5;
+
       numtyp tdipdip[6]; // the following tdipdip is incorrect!! needs work to store tdipdip
       tdipdip[0] = -bcn[0] + bcn[1]*xr*xr;
       tdipdip[1] = bcn[1]*xr*yr;
@@ -527,7 +558,9 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
       tdipdip[3] = -bcn[0] + bcn[1]*yr*yr;
       tdipdip[4] = bcn[1]*yr*zr;
       tdipdip[5] = -bcn[0] + bcn[1]*zr*zr;
-
+      //if (i==0 && j == 10) 
+      //  printf("i = %d: j = %d: tdipdip %f %f %f %f %f %f\n",
+      //    i, j,tdipdip[0],tdipdip[1],tdipdip[2],tdipdip[3],tdipdip[4],tdipdip[5]);
       fid[0] = tdipdip[0]*ukx + tdipdip[1]*uky + tdipdip[2]*ukz;
       fid[1] = tdipdip[1]*ukx + tdipdip[3]*uky + tdipdip[4]*ukz;
       fid[2] = tdipdip[2]*ukx + tdipdip[4]*uky + tdipdip[5]*ukz;

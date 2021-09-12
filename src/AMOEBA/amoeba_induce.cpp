@@ -279,6 +279,10 @@ void PairAmoeba::induce()
 
     crstyle = FIELD;
     comm->reverse_comm_pair(this);
+    for (int i = 0; i < 10; i++) {
+        printf("i = %d; fieldp = %f %f %f\n", i, fieldp[i][0], fieldp[i][1], fieldp[i][2]);
+      }
+    //error->all(FLERR,"STOP CPU");
 /*
     if (comm->me == 0) {
       printf("CPU: cutghost = %f\n", comm->cutghost[0]);
@@ -369,12 +373,13 @@ void PairAmoeba::induce()
       cfstyle = INDUCE;
       comm->forward_comm_pair(this);
 
-      ufield0c(field,fieldp);
-
-      //error->all(FLERR,"STOP");
+      ufield0c(field,fieldp);    
 
       crstyle = FIELD;
       comm->reverse_comm_pair(this);
+      
+
+      //error->all(FLERR,"STOP");
 /*
       if (comm->me == 0) {
         printf("CPU: iter = %d\n", iter);
@@ -1243,7 +1248,9 @@ void PairAmoeba::umutual2b(double **field, double **fieldp)
       j = jlist[jj];
       uindj = uind[j];
       uinpj = uinp[j];
-
+      //if (i==0 && j == 10) 
+      //  printf("i = %d: j = %d: tdipdip %f %f %f %f %f %f\n",
+      //    i, j,tdipdip[0],tdipdip[1],tdipdip[2],tdipdip[3],tdipdip[4],tdipdip[5]);
       fid[0] = tdipdip[0]*uindj[0] + tdipdip[1]*uindj[1] + tdipdip[2]*uindj[2];
       fid[1] = tdipdip[1]*uindj[0] + tdipdip[3]*uindj[1] + tdipdip[4]*uindj[2];
       fid[2] = tdipdip[2]*uindj[0] + tdipdip[4]*uindj[1] + tdipdip[5]*uindj[2];

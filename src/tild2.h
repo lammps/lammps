@@ -56,7 +56,6 @@ class TILD : public KSpace{
   FFT_SCALAR **rho1d,**rho_coeff,**drho_coeff;
   FFT_SCALAR ***grad_potent, ***grad_potent_hat, **potent, **potent_hat;
   FFT_SCALAR ****gradWtypex, ****gradWtypey, ****gradWtypez;
-  //FFT_SCALAR *****gradWtype;
 
   FFT_SCALAR ****density_brick_types;
   FFT_SCALAR ****avg_density_brick_types;
@@ -72,10 +71,7 @@ class TILD : public KSpace{
   FFT_SCALAR *tmp;
 
   int **potent_map;
-  //int kxmax,kymax,kzmax;
-  //int kcount,kmax,kmax3d,kmax_created;
   double volume;
-  //double gsqmx,volume;
   int nmax;
 
   void precompute_density_hat_fft();
@@ -151,7 +147,6 @@ class TILD : public KSpace{
 
   virtual void set_grid_global();
   void set_grid_local();
-
 
   virtual void particle_map();
   virtual void make_rho();

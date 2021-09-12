@@ -1024,12 +1024,12 @@ void TILD::init_cross_potentials(){
   }
 
   // Implementing the manually specified interactions
-  int ntypes = atom->ntypes;
-  double scale_inv = 1.0/ nx_tild/ ny_tild/ nz_tild;
-  int n = 0;
 
   for (auto& potential: cross_iter){
-    loc = potential.j*(2*ntypes - potential.i - 1)/2 + potential.j;
+    int i_index = min(potential.i,potential.j);
+    int j_index = max(potential.i,potential.j);
+    loc = (i_index*(2*ntypes - i_index - 1))/2 + j_index;
+
     calc_cross_work(potential);
 
     if (potential.type != NONE){
@@ -1142,7 +1142,6 @@ void TILD::calc_cross_work(const Interaction& intrxn){
   double scale_inv = 1.0/(nx_tild *ny_tild * nz_tild);
 
   double vole = domain->xprd * domain->yprd * domain->zprd; // Note: the factor of V comes from the FFT
-  int Dim = domain->dimension;
 
   double pref;
 

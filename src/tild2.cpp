@@ -680,7 +680,7 @@ void TILD::allocate()
   int (*procneigh)[2] = comm->procneigh;
   
   int ntypes = atom->ntypes;
-  int ntypecross = ((ntypes-1)*ntypes) - int(0.5*(ntypes-2)*(ntypes-1));
+  int ntypecross = ((ntypes+1)*ntypes);
 
   // style coeffs
   memory->create(setflag,ntypes+1,ntypes+1,"pair:setflag");
@@ -1022,6 +1022,31 @@ void TILD::init_cross_potentials(){
     }
   }
 
+  // Implementing the manually specified interactions
+  int ntypes = atom->ntypes;
+  double scale_inv = 1.0/ nx_tild/ ny_tild/ nz_tild;
+  int n = 0;
+
+  for (auto& potential: cross_iter){
+    loc = potential.j*(2*ntypes - potential.i - 1)/2 + potential.j;
+    calc_cross_work(potential);
+
+    if (potential.type != NONE){
+      get_k_alias(potent_hat[loc], grad_potent_hat[loc]);
+      for (int i = 0; i < Dim; i++) {
+        for (int j = 0; j < 2 * nfft; j++) { 
+          work1[j] = grad_potent_hat[loc][i][j]; 
+  }
+
+        fft1->compute(work1, work2, FFT3d::BACKWARD);
+        n = 0;
+        for (int j = 0; j < nfft; j++) {
+          grad_potent[loc][i][j] = -work2[n];
+          n += 2;
+        }
+      }
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1068,6 +1093,142 @@ void TILD::calc_work(FFT_SCALAR *wk, const int itype, const int jtype){
       wk[i] *= scale_inv;
     }
   }
+}
+
+void TILD::calc_cross_work(const Interaction& intrxn){
+  int ntypes = atom->ntypes;
+  int Dim = domain->dimension;
+  int n = 0;
+
+  int i_index = min(intrxn.i,intrxn.j);
+  int j_index = max(intrxn.i,intrxn.j);
+
+  const int loc = (i_index*(2*ntypes - i_index - 1))/2 + j_index;
+  if (intrxn.type == DELETE) error->all(FLERR, "DELETE for calc_cross_work is invalid and shouldn't exist.");
+
+
+  if (intrxn.type == NONE){
+    
+    
+    for (int i = 0; i < Dim; i++) {
+      n = 0;
+      for (int j = 0; j < nfft; j++) {
+        grad_potent[loc][i][j] = 0.0f;
+        grad_potent_hat[loc][i][n] = 0.0f;
+        grad_potent_hat[loc][i][n+1] = 0.0f;
+        n += 2;
+      }
+    }
+
+    n = 0;
+
+    for (int j = 0; j < nfft; j++) {
+      potent[loc][j] = 0.0f;
+      potent_hat[loc][n] = 0.0f;
+      potent_hat[loc][n+1] = 0.0f;
+      n += 2;
+    }
+    return;
+  }
+
+
+  int m,l,k;
+  double xprd=domain->xprd;
+  double yprd=domain->yprd;
+  double zprd=domain->zprd;
+  double zper,yper,xper;
+  double mdr2;
+  double scale_inv = 1.0/(nx_tild *ny_tild * nz_tild);
+
+  double vole = domain->xprd * domain->yprd * domain->zprd; // Note: the factor of V comes from the FFT
+  int Dim = domain->dimension;
+
+  double pref;
+
+  for (m = nzlo_fft; m <= nzhi_fft; m++) {
+    zper = zprd * (static_cast<double>(m) / nz_pppm);
+    if (zper >= zprd / 2.0) {
+      zper = zprd - zper;
+    }
+
+    for (l = nylo_fft; l <= nyhi_fft; l++) {
+      yper = yprd * (static_cast<double>(l) / ny_pppm);
+      if (yper >= yprd / 2.0) {
+        yper = yprd - yper;
+      }
+
+      for (k = nxlo_fft; k <= nxhi_fft; k++) {
+        xper = xprd * (static_cast<double>(k) / nx_pppm);
+        if (xper >= xprd / 2.0) {
+          xper = xprd - xper;
+        }
+
+        mdr2 = xper * xper + yper * yper + zper * zper;
+
+        if (intrxn.type == GAUSSIAN){
+          pref = vole / (pow( sqrt(2.0 * MY_PI * (intrxn.parameters[0]) ), Dim));
+          work1[n++] = exp(-mdr2 * 0.5 / intrxn.parameters[0]) * pref;
+          work1[n++] = ZEROF;
+        } else if (intrxn.type == ERFC){
+          work1[n++] = rho0 * 0.5 * (1.0 - erf((sqrt(mdr2) - intrxn.parameters[0])/intrxn.parameters[1])) * vole;
+          work1[n++] = ZEROF;
+        } else if (intrxn.type == GAUSSIAN_ERFC){
+          // We define both work1 and work2 at the same time so only one has to update at a given time. 
+          pref = vole / (pow( sqrt(2.0 * MY_PI * (intrxn.parameters[0]) ), Dim));
+          work1[n] = exp(-mdr2 * 0.5 / intrxn.parameters[0]) * pref; 
+          work1[n+1] = ZEROF;
+          work2[n] = rho0 * 0.5 * (1.0 - erf((sqrt(mdr2) - intrxn.parameters[1])/intrxn.parameters[2])) * vole;
+          work2[n+1] = ZEROF;
+          n+=2;
+        }
+
+      }
+    }
+  }
+
+  if (intrxn.type == GAUSSIAN){
+    fft1->compute(work1, work1, FFT3d::FORWARD);
+  } else if (intrxn.type == ERFC){
+    fft1->compute(work1, work1, FFT3d::FORWARD);
+  } else if (intrxn.type == GAUSSIAN_ERFC){
+    fft1->compute(work1, work1, FFT3d::FORWARD);
+    fft1->compute(work2, work2, FFT3d::FORWARD);
+  }
+
+  FFT_SCALAR temp;
+  if (intrxn.type == GAUSSIAN){
+    for (int nn = 0; nn < 2*nfft; nn += 2) {
+      temp          = -work1[nn + 1] * work1[nn + 1] + work1[nn] * work1[nn];
+      work1[nn + 1] = work1[nn+1] * work1[nn] + work1[nn] * work1[nn+1]; 
+      work1[nn]     = temp * scale_inv;
+      potent_hat[loc][nn] = work1[nn];
+      potent_hat[loc][nn+1] = work1[nn];
+    }
+  } else if (intrxn.type == ERFC){
+    for (int nn = 0; nn < 2*nfft; nn += 2) {
+      temp          = -work1[nn + 1] * work1[nn + 1] + work1[nn] * work1[nn];
+      work1[nn + 1] = (work1[nn+1] * work1[nn] + work1[nn] * work1[nn+1]) * scale_inv;
+      work1[nn]     = temp * scale_inv;
+      potent_hat[loc][nn] = work1[nn];
+      potent_hat[loc][nn+1] = work1[nn];
+    }
+  } else if (intrxn.type == GAUSSIAN_ERFC){
+    for (int nn = 0; nn < 2*nfft; nn += 2) {
+      temp          =  work1[nn]   * work1[nn] - work1[nn + 1] * work2[nn + 1] ;
+      work1[nn + 1] = (work1[nn+1] * work2[nn] + work1[nn]     * work2[nn+1]) * scale_inv;
+      work1[nn]     = temp * scale_inv;
+      potent_hat[loc][nn] = work1[nn];
+      potent_hat[loc][nn+1] = work1[nn];
+    }
+  }
+
+  fft1->compute(work1, work1, FFT3d::BACKWARD);
+  n = 0;
+  for (int j = 0; j < nfft; j++){
+    potent[loc][j] = ktmp[n];
+    n += 2;
+  }
+
 }
 
 /* ----------------------------------------------------------------------
@@ -1320,7 +1481,7 @@ void TILD::particle_map()
 int TILD::modify_param(int narg, char** arg)
 {
   int ntypes = atom->ntypes;
-  if (strcmp(arg[0], "tild/chi") == 0) {
+  if (strcmp(arg[0], "tild/prefactor") == 0) {
     if (domain->box_exist == 0)
       error->all(FLERR, "TILD command before simulation box is defined");
 
@@ -1329,14 +1490,14 @@ int TILD::modify_param(int narg, char** arg)
       int ilo,ihi,jlo,jhi;
       utils::bounds(FLERR,arg[1],1,ntypes,ilo,ihi,error);
       utils::bounds(FLERR,arg[2],1,ntypes,jlo,jhi,error);
-      double chi_one = utils::numeric(FLERR,arg[3],false,lmp);
+      double lprefactor = utils::numeric(FLERR,arg[3],false,lmp);
       for (int i = ilo; i <= ihi; i++) {
         for (int j = MAX(jlo,i); j <= jhi; j++) {
-          chi[i][j] = chi_one;
+          chi[i][j] = lprefactor;
         }
       }
  
-  } else if (strcmp(arg[0], "tild/coeff") == 0) {
+  } else if (strcmp(arg[0], "tild/shape") == 0) {
       if (narg < 3) error->all(FLERR, "Illegal kspace_modify tild command");
 
       int ilo,ihi,jlo,jhi;
@@ -1373,7 +1534,60 @@ int TILD::modify_param(int narg, char** arg)
               potent_type_map[istyle][i][j] = 0;
           }
         }
-      } else error->all(FLERR, "Illegal kspace_modify tild/coeff density function argument");
+      } else error->all(FLERR, "Illegal kspace_modify tild/shape density function argument");
+
+  } else if (strcmp(arg[0], "tild/cross-interaction") == 0) {
+      if (narg < 5) error->all(FLERR, "Illegal kspace_modify tild command");
+      int ilo,ihi,jlo,jhi;
+      utils::bounds(FLERR,arg[1],1,ntypes,ilo,ihi,error);
+      utils::bounds(FLERR,arg[2],1,ntypes,jlo,jhi,error);
+
+      cross_type tmp_type;
+      if (strcmp(arg[3], "gaussian") == 0){
+        tmp_type=GAUSSIAN;
+      } else if (strcmp(arg[3], "erfc") == 0){
+        tmp_type=ERFC;
+      } else if (strcmp(arg[3], "gaussian_erfc") == 0){
+        tmp_type=GAUSSIAN_ERFC;
+      } else if (strcmp(arg[3], "none") == 0){
+        tmp_type=NONE;
+      } else if (strcmp(arg[3], "delete") == 0){
+        tmp_type=DELETE;
+      } else {
+        error->all(FLERR, "Illegal tild/cross-interaction specified.");
+      }
+
+      if (tmp_type != DELETE ){
+        for (int i = ilo; i <= ihi; i++) {
+          for (int j = jlo; j <= jhi; j++) {
+            Interaction temp;
+            temp.i = i; 
+            temp.j = j;
+            temp.type = tmp_type;
+            auto it = cross_iter.begin();
+            int idx = 0;
+            while (it != cross_iter.end()){
+              if ((it->i == i) && (it->j == j))
+                cross_iter[idx] = temp; 
+            }
+            if (it == cross_iter.end()) 
+            cross_iter.emplace_back(temp);
+            potent_type_map[0][i][i] = potent_type_map[0][j][j] = 0;
+            // Turning off the skip flag if the interactions are now valid.
+            potent_type_map[0][j][i] = potent_type_map[0][i][j] = 0;
+          }
+        }
+      } else {
+        for (int ii = ilo; ii <= ihi; ii++) {
+          for (int jj = jlo,ii; jj <= jhi; jj++) {
+            auto it = cross_iter.begin();
+            while (it != cross_iter.end()){
+              if ((it->i == ii) && (it->j == jj))
+                cross_iter.erase(it--);
+            }
+          }
+        }
+      }
 
   } else if (strcmp(arg[0], "tild/mix") == 0) {
       if (narg != 2) error->all(FLERR, "Illegal kspace_modify tild command");

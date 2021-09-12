@@ -47,6 +47,8 @@ typedef double FFT_SCALAR;
 
 namespace LAMMPS_NS {
 
+class Interaction;
+
 class TILD : public KSpace{
  public:
   TILD (class LAMMPS *);
@@ -124,8 +126,7 @@ class TILD : public KSpace{
   void init_potential(FFT_SCALAR*, const int, const double*);
   void init_potential_ft(FFT_SCALAR*, const int, const double*);
   void calc_work(FFT_SCALAR*, const int, const int);
-  //void calc_work(double*, const int, const int);
-  //void init_potential(FFT_SCALAR*, std::tuple<int,int,std::vector<double>> &tup);
+  void calc_cross_work(const Interaction&);
   void init_cross_potentials();
   double get_k_alias(int, double*);
   void get_k_alias(FFT_SCALAR *, FFT_SCALAR **);
@@ -144,6 +145,8 @@ class TILD : public KSpace{
   int nlower,nupper;
   int ngrid,nfft,nfft_both;
   int subtract_rho0, normalize_by_rho0, mix_flag, sub_flag, norm_flag;
+
+  std::vector<Interaction> cross_iter;
 
   int write_grid_flag, grid_data_output_freq;
   int ave_grid_flag, nvalid_last, nvalid, nevery, irepeat, nrepeat, peratom_freq;
@@ -204,6 +207,17 @@ class TILD : public KSpace{
   bigint nextvalid();
   void ave_grid();
 
+
+};
+
+enum cross_type {GAUSSIAN, ERFC, GAUSSIAN_ERFC, NONE, DELETE};
+
+class Interaction{
+   public:
+     int i= -1, j= -1;
+     int loc= -1;
+     cross_type type = NONE;
+     std::vector<double> parameters;
 };
 
 }

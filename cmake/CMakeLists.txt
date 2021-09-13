@@ -134,9 +134,9 @@ file(GLOB MAIN_SOURCES ${LAMMPS_SOURCE_DIR}/main.cpp)
 list(REMOVE_ITEM ALL_SOURCES ${MAIN_SOURCES})
 add_library(lammps ${ALL_SOURCES})
 
-# tell CMake to export all symbols from the LAMMPS shared library on Windows
-if(BUILD_SHARED_LIBS)
-  set_target_properties(lammps PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS YES)
+# tell CMake to export all symbols to a .dll on Windows with MinGW cross-compilers
+if(BUILD_SHARED_LIBS AND (CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING)
+  set_target_properties(lammps PROPERTIES LINK_FLAGS "-Wl,--export-all-symbols")
 endif()
 
 add_executable(lmp ${MAIN_SOURCES})

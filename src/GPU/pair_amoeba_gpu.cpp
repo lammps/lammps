@@ -515,51 +515,16 @@ void PairAmoebaGPU::induce()
 
     cfstyle = INDUCE;
     comm->forward_comm_pair(this);
-/*
-    if (comm->me == 0) {
-      printf("GPU: cutghost = %f\n", comm->cutghost[0]);
-      for (i = 0; i < 20; i++) {
-        printf("i = %d: uind = %f %f %f; udirp = %f %f %f\n",
-          i, uind[i][0], uind[i][1], uind[i][2],
-          uinp[i][0], uinp[i][1], uinp[i][2]); 
-      }
-    }
-*/
-/*
-    if (comm->me == 0) {
-      printf("GPU before\n");
-      for (int i = 0; i < 10; i++) {
-        printf("i = %d; fieldp = %f %f %f\n", i, fieldp[i][0], fieldp[i][1], fieldp[i][2]);
-      }
-    }
-*/
+
     ufield0c(field,fieldp);
 
     if (!gpu_umutual2b_ready) {
       crstyle = FIELD;
       comm->reverse_comm_pair(this);
     }
-/*
-    if (comm->me == 0) {
-      printf("GPU after \n");
-      for (int i = 0; i < 10; i++) {
-        printf("i = %d; fieldp = %f %f %f\n", i, fieldp[i][0], fieldp[i][1], fieldp[i][2]);
-      }
-    }
-*/  
     
     //error->all(FLERR,"STOP GPU");
 
-/*
-    if (comm->me == 0) {
-      printf("GPU: cutghost = %f\n", comm->cutghost[0]);
-      for (i = 0; i < nlocal; i++) {
-        printf("i = %d: field = %f %f %f; fieldp = %f %f %f\n",
-          i, field[i][0], field[i][1], field[i][2],
-          fieldp[i][0], fieldp[i][1], fieldp[i][2]); 
-      }    
-    }
-*/      
     // set initial conjugate gradient residual and conjugate vector
 
     for (i = 0; i < nlocal; i++) {
@@ -620,16 +585,7 @@ void PairAmoebaGPU::induce()
       }
 
       //error->all(FLERR,"STOP");
-/*     
-     if (comm->me == 0) {
-       printf("GPU: iter = %d\n", iter);
-       for (i = 0; i < 10; i++) {
-          printf("i = %d: field = %f %f %f; fieldp = %f %f %f\n",
-            i, field[i][0], field[i][1], field[i][2],
-            fieldp[i][0], fieldp[i][1], fieldp[i][2]); 
-        }    
-      }
-*/
+
       for (i = 0; i < nlocal; i++) {
         for (j = 0; j < 3; j++) {
           uind[i][j] = vec[i][j];
@@ -771,16 +727,7 @@ void PairAmoebaGPU::induce()
   memory->destroy(udir);
   memory->destroy(usum);
   memory->destroy(usump);
-/*
-  if (comm->me == 0) {
-    printf("GPU: iter = %d\n", iter);
-    for (i = 0; i < 20; i++) {
-      printf("i = %d: uind = %f %f %f; uinp = %f %f %f\n",
-        i, uind[i][0], uind[i][1], uind[i][2],
-        uinp[i][0], uinp[i][1], uinp[i][2]); 
-    }    
-  }
-*/
+
   // update the lists of previous induced dipole values
   // shift previous m values up to m+1, add new values at m = 0
   // only when preconditioner is used
@@ -851,7 +798,7 @@ void PairAmoebaGPU::udirect2b(double **field, double **fieldp)
   // rebuild dipole-dipole pair list and store pairwise dipole matrices
   // done one atom at a time in real-space double loop over atoms & neighs
 
-  //udirect2b_cpu();
+  // udirect2b_cpu();
 
   // accumulate the field and fieldp values from the GPU lib
   //   field and fieldp may already have some nonzero values from kspace (udirect1)
@@ -1009,9 +956,8 @@ void PairAmoebaGPU::udirect2b_cpu()
         tdipdip[ndip++] = -bcn[0] + bcn[1]*yr*yr;
         tdipdip[ndip++] = bcn[1]*yr*zr;
         tdipdip[ndip++] = -bcn[0] + bcn[1]*zr*zr;
-        //printf("i = %d: j = %d: poltyp != DIRECT\n", i, j);
       } else {
-        printf("i = %d: j = %d: poltyp == DIRECT\n", i, j);
+        if (comm->me == 0) printf("i = %d: j = %d: poltyp == DIRECT\n", i, j);
       }
       
     } // jj

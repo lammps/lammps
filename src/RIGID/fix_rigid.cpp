@@ -59,8 +59,11 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 {
   int i,ibody;
 
+  vector_flag = 1;
   scalar_flag = 1;
+  size_vector = 3;
   extscalar = 0;
+  extvector = 0;
   time_integrate = 1;
   rigid_flag = 1;
   virial_global_flag = virial_peratom_flag = 1;
@@ -766,14 +769,19 @@ void FixRigid::init()
 
   // temperature scale factor
 
-  double ndof = 0.0;
+  ndof = ndof_t = ndof_r = 0.0;
   for (ibody = 0; ibody < nbody; ibody++) {
-    ndof += fflag[ibody][0] + fflag[ibody][1] + fflag[ibody][2];
-    ndof += tflag[ibody][0] + tflag[ibody][1] + tflag[ibody][2];
+    ndof_t += fflag[ibody][0] + fflag[ibody][1] + fflag[ibody][2];
+    ndof_r += tflag[ibody][0] + tflag[ibody][1] + tflag[ibody][2];
   }
-  ndof -= nlinear;
+  ndof_t -= nlinear;
+  ndof = ndof_t + ndof_r;
   if (ndof > 0.0) tfactor = force->mvv2e / (ndof * force->boltz);
   else tfactor = 0.0;
+  if (ndof_t > 0.0) tfactor_t = force->mvv2e / (ndof_t * force->boltz);
+  else tfactor_t = 0.0;
+  if (ndof_r > 0.0) tfactor_r = force->mvv2e / (ndof_r * force->boltz);
+  else tfactor_r = 0.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -2691,6 +2699,44 @@ double FixRigid::compute_scalar()
 
   t *= tfactor;
   return t;
+}
+
+/* ----------------------------------------------------------------------
+   return temperature
+------------------------------------------------------------------------- */
+
+double FixRigid::compute_vector(int n)
+{
+  double wbody[3],rot[3][3];
+
+  double ke_t = 0.0;
+  double ke_r = 0.0;
+  for (int i = 0; i < nbody; i++) {
+    ke_t += masstotal[i] * (fflag[i][0]*vcm[i][0]*vcm[i][0] +
+                         fflag[i][1]*vcm[i][1]*vcm[i][1] +
+                         fflag[i][2]*vcm[i][2]*vcm[i][2]);
+
+    // wbody = angular velocity in body frame
+
+    MathExtra::quat_to_mat(quat[i],rot);
+    MathExtra::transpose_matvec(rot,angmom[i],wbody);
+    if (inertia[i][0] == 0.0) wbody[0] = 0.0;
+    else wbody[0] /= inertia[i][0];
+    if (inertia[i][1] == 0.0) wbody[1] = 0.0;
+    else wbody[1] /= inertia[i][1];
+    if (inertia[i][2] == 0.0) wbody[2] = 0.0;
+    else wbody[2] /= inertia[i][2];
+
+    ke_r += tflag[i][0]*inertia[i][0]*wbody[0]*wbody[0] +
+      tflag[i][1]*inertia[i][1]*wbody[1]*wbody[1] +
+      tflag[i][2]*inertia[i][2]*wbody[2]*wbody[2];
+  }
+
+  double ke = ke_t + ke_r; 
+  if (n == 0) return ke*tfactor;
+  else if (n == 1) return ke_t*tfactor_t;
+  else if (n == 2) return ke_r*tfactor_r;
+  else return 0;
 }
 
 /* ---------------------------------------------------------------------- */

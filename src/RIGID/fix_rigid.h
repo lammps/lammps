@@ -38,6 +38,7 @@ class FixRigid : public Fix {
   void final_integrate_respa(int, int);
   void write_restart_file(const char *);
   virtual double compute_scalar();
+  virtual double compute_vector(int);
 
   double memory_usage();
   void grow_arrays(int);
@@ -79,7 +80,9 @@ class FixRigid : public Fix {
   int *mol2body;    // convert mol-ID to rigid body index
   int *body2mol;    // convert rigid body index to mol-ID
   int maxmol;       // size of mol2body = max mol-ID
-
+  double ndof;      // total degrees of freedom of the bodies
+  double ndof_t;    // total translational degrees of freedom of the bodies
+  double ndof_r;    // total rotational degrees of freedom of the bodies
   int *body;            // which body each atom is part of (-1 if none)
   double **displace;    // displacement of each atom in body coords
 
@@ -114,6 +117,8 @@ class FixRigid : public Fix {
   double **dorient;      // orientation of dipole mu wrt rigid body
 
   double tfactor;    // scale factor on temperature of rigid bodies
+  double tfactor_t;  // scale factor on translational temperature of rigid bodies
+  double tfactor_r;  // scale factor on rotational temperature of rigid bodies
   int langflag;      // 0/1 = no/yes Langevin thermostat
 
   int tstat_flag;    // NVT settings

@@ -137,7 +137,8 @@ int AmoebaT::udirect2b(const int eflag, const int vflag) {
 
   // Compute the block size and grid size to keep all cores busy
   const int BX=this->block_size();
-  int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/(BX/this->_threads_per_atom)));
+  int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
+                               (BX/this->_threads_per_atom)));
 
   // Build the short neighbor list if not done yet
   if (!this->short_nbor_avail) {

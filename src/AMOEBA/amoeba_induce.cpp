@@ -279,9 +279,7 @@ void PairAmoeba::induce()
 
     crstyle = FIELD;
     comm->reverse_comm_pair(this);
-    for (int i = 0; i < 10; i++) {
-        printf("i = %d; fieldp = %f %f %f\n", i, fieldp[i][0], fieldp[i][1], fieldp[i][2]);
-      }
+
     //error->all(FLERR,"STOP CPU");
 /*
     if (comm->me == 0) {

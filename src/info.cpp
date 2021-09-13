@@ -1348,8 +1348,8 @@ std::string Info::get_compiler_info()
   buf = fmt::format("MinGW-w64 64bit {}.{} / GNU C++ {}", __MINGW64_VERSION_MAJOR,
                     __MINGW64_VERSION_MINOR, __VERSION__);
 #elif defined(__MINGW32__)
-  buf = fmt::format("MinGW-w64 32bit {}.{} / GNU C++ {}", __MINGW32_VERSION_MAJOR,
-                    __MINGW32_VERSION_MINOR, __VERSION__);
+  buf = fmt::format("MinGW-w64 32bit {}.{} / GNU C++ {}", __MINGW32_MAJOR_VERSION,
+                    __MINGW32_MINOR_VERSION, __VERSION__);
 #elif defined(__GNUC__)
   buf = fmt::format("GNU C++ {}",   __VERSION__);
 #elif defined(_MSC_VER) && (_MSC_VER > 1920) && (_MSC_VER < 2000)

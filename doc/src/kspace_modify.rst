@@ -55,21 +55,24 @@ Syntax
        *splittol* value = tol
          tol = relative size of two eigenvalues (see discussion below)
        *tild/shape* itype itype SHAPE parameters
-         SHAPE = *Gaussian* or *Erfc*
+         SHAPE = *gaussian* or *erfc* or *none*
          parameters = parameters for each function (see discussion below)
        *tild/prefactor* itype jtype prefactor
          prefactor = amplitude of the function 
-       *tild/cross-interaction* itype jtype interaction_shape parameters* 
-         interaction_shape = *Gaussian* or *Gaussian-erfc* or *erfc*
+       *tild/cross-interaction* itype jtype interaction_shape parameters
+         interaction_shape = *gaussian* or *gaussian-erfc* or *erfc*
          parameters = parameters for each function (see discussion below)
-       *tild/set_rho0* = *yes* or *no*
+       *tild/set_rho0* = rho0
        *tild/subtract_rho0* = *yes* or *no*
        *tild/normalize_by_rho0* = *yes* or *no*
        *tild/write_grid_data* = freq filename
-        freq = frequency of output. 0 or less disables output
-       *tild/ave/grid* = Nevery Nrepeat peratom_freq filename 
-        Nevery = use input values every this many timesteps
-        Nrepeat = # of times to use input values for calculating averages
+         freq = frequency of output. 0 or less disables output
+         filename = name of file to output time averages to
+       *tild/ave/grid* = Nevery Nrepeat Nfreq filename 
+         Nevery = use input values every this many timesteps
+         Nrepeat = # of times to use input values for calculating averages
+         Nfreq = calculate averages every this many timesteps
+         filename = name of file to output time averages to
 
        
 
@@ -82,11 +85,14 @@ Examples
    kspace_modify slab 3.0
    kspace_modify scafacos tolerance energy
    kspace_modify tild/coeff 1 1 gaussian ${a}
+   kspace_modify tild/coeff 1 1 gaussian 0.5
    kspace_modify tild/coeff 2 2 erfc ${RP} ${xi}
+   kspace_modify tild/coeff 2 2 erfc 3 1.0
    kspace_modify tild/coeff 3 3 none
    kspace_modify tild/chi * * kappa
-   kspace_modify tild/set_rho0 *rho*
+   kspace_modify tild/set_rho0 4.25
    kspace_modify tild/cross-interaction * * gaussian ${a}
+   kspace_modify tild/cross-interaction * * gaussian 0.5
 
 Description
 """""""""""
@@ -436,6 +442,78 @@ slab correction has also been extended to point dipole interactions
 
 ----------
 
+The *tild/shape* keywords specifies the shape potential of a given molecule
+type. This is used to automatically generate interaction potentials between
+particles of different types. There are two currently supported types:
+`gaussian` and `tild`. A `none` type is supported particles that do not have a
+corresponding shape function. For interactions between two Gaussian particles,
+we analytically convolve the two shape potentials together; for all other
+interactions, we do a numerical convolution to get the proper convolved
+interactions. 
+
+.. math::
+
+   U_{g} = & \frac{A}{\rho_0 (2\pi \sigma^2)^{D/2}} \exp(-r^2/2\sigma^2) \\
+         = & \frac{A}{\rho_0} u_G (r) \\
+   U_{erfc} = & - \frac{A}{\rho_0} \text{erfc} \left(\frac{\vert r \vert -
+   R_p}{\sigma}\right) \\
+
+----------
+
+The *tild/prefactor* keyword sets the prefactor in front of a given shape. For
+typical polymer represented by Gaussian monomers, the prefactors represents the
+Flory-Higgins prefactor :math:`\chi` \ . See the :math:`A` prefactors in the
+*tild/shape* potentials.
+
+----------
+
+The *tild/set_rho0* keyword is used when particles with a `tild/shape` of `erfc`
+exist within the simulation box and are used to ensure that the overall TILD
+density of the box is the same as the user's input. Please note if the box
+contains only `gaussian` shapes, this has no effect on the simulation. 
+
+----------
+
+The *tild/normalize_by_rho0* keyword will divide the interactions by the
+calcualted TILD :math:`\rho_0`\ . Please note this division will divide the
+prefactors specified in `tild/prefactor`\ .
+
+----------
+
+The *tild/cross-interaction* this is used to override any specified interaction
+from `tild/shape`. At this time, we currently only support three non-zero
+interaction styles (`gaussian`, `erfc`, `gaussian-erfc`), which model the
+interactions between two gaussian potentials, two erfc potentials, or the
+interaction between a gaussian particle and an erfc particle. There is also a
+`none` style to force no-interactions between certain particle types and also a
+`delete` command to remove any previously entered `tild/cross-interaction`\ .
+
+.. math::
+
+   U_{g} = & \frac{A}{\rho_0 (2\pi \sigma^2)^{D/2}} \exp(-r^2/2\sigma^2) \\
+         = & \frac{A}{\rho_0} u_G (r) \\
+   U_{erfc} = & - \frac{A}{\rho_0} \text{erfc} \left(\frac{\vert r \vert -
+   R_p}{\sigma}\right) \\ U_{g-erfc} = & \frac{A}{\rho_0} u_G (r) * \text{erfc}
+   \left(\frac{\vert r \vert - R_p}{\sigma}\right)
+
+----------
+
+The *tild/write_grid_data* writes the instantaneous density grids. 
+
+----------
+
+The *tild/ave/grid* keywords determines how freuently the density grids are
+outputted. The *Nevery*, *Nrepeat*, and *Nfreq* arguments specify on what
+timesteps the input values will be used in order to contribute to the average.
+The final averaged quantities are generated on timesteps that are a multiple of
+*Nfreq*. The average is over *Nrepeat* quantities, computed in the preceding
+portion of the simulation every *Nevery* timesteps. *Nfreq* must be a multiple
+of *Nevery* and *Nevery* must be non-zero even if *Nrepeat* is 1. Also, the
+timesteps contributing to the average value cannot overlap, i.e. Nrepeat*Nevery
+can not exceed Nfreq.
+
+----------
+
 The *force/disp/real* and *force/disp/kspace* keywords set the force
 accuracy for the real and reciprocal space computations for the dispersion
 part of pppm/disp. As shown in :ref:`(Isele-Holder) <Isele-Holder1>`,
@@ -532,4 +610,6 @@ a dynamic mean field approach" Soft Matter, 13(1) 239-249.
 
 .. _Grzetic:
 
-**(Grzetic)** Grzetic, D. J., Wickman, R. A., and Shi, A.-C., "Statistical dynamics of classical systems: A self-consistent field approach", The Journal of Chemical Physics 140, 244907 (2014) https://doi.org/10.1063/1.4884825
+**(Grzetic)** Grzetic, D. J., Wickman, R. A., and Shi, A.-C., "Statistical
+dynamics of classical systems: A self-consistent field approach", The Journal of
+Chemical Physics 140, 244907 (2014) https://doi.org/10.1063/1.4884825

@@ -370,16 +370,31 @@ hard sphere nanoparticle.
 
 .. note::
 
-   Unlike other KSpace solvers in LAMMPS, the kspace TILD accounts for non-bonded interactions, both short-range and long-range interactions through a "short-ranged" potentital. Therefore, there is no accompanying short range pair-style required. 
+   Unlike other KSpace solvers in LAMMPS, the kspace TILD accounts for
+   non-bonded interactions, both short-range and long-range interactions through
+   a "short-ranged" potentital. Therefore, there is no accompanying short range
+   pair-style required. We do, however, recommend using :doc:`fix
+   langevin<fix_langevin>` with *tild* to fully implement the TILD model. 
 
-The specified *grid resolution* is different from the accuracy setting for other LAMMPS KSpace styles in that there is no Green's function being solved. 
-Instead, the grid resolution should be smaller than the shortest interaction range for the Gaussian interaction or the width of the erfc function. If a `mesh` is not specified, the grid points are chosen to be less than the specified grid resolution (box length/grid points) while using the least factorable number. 
+The specified *grid resolution* is different from the accuracy setting for other
+LAMMPS KSpace styles in that there is no Green's function being solved. Instead,
+the grid resolution should be smaller than the shortest interaction range for
+the Gaussian interaction or the width of the erfc function. If a `mesh` is not
+specified, the grid points are chosen to be less than the specified grid
+resolution (box length/grid points) while using the least factorable number. 
 
-Because the implementation of TILD does not have a single Green's function to rely on, the amount of grid points are set by the user, either directly using `kspace_modify mesh` or by setting accuracy via `kspace_style tild accuracy`.
-The accuracy specified by the user should be at the largest the smallest length scale parameters of the system. If the system has a smallest Gaussian interaction width :math:`a=0.5`, then the smallest the resolution should be in any direction is 0.5. Please see :doc:`kspace_modify tild <kspace_modify>` for more information. 
+Because the implementation of TILD does not have a single Green's function to
+rely on, the amount of grid points are set by the user, either directly using
+`kspace_modify mesh` or by setting accuracy via `kspace_style tild accuracy`.
+The accuracy specified by the user should be at the largest the smallest length
+scale parameters of the system. If the system has a smallest Gaussian
+interaction width :math:`a=0.5`, then the smallest the resolution should be in
+any direction is 0.5. Please see :doc:`kspace_modify tild <kspace_modify>` for
+more information. 
 
 
-The :doc:`kspace_modify tild <kspace_modify>` command explains further the options and requirements for setting up the TILD framework. 
+The :doc:`kspace_modify tild <kspace_modify>` command explains further the
+options and requirements for setting up the TILD framework. 
 
 ----------
 

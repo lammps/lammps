@@ -463,7 +463,7 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
     igroup = polar3[i].w; // amgroup[i];
     
     numtyp pdi = damping[itype].x;
-    numtyp ddi = damping[itype].z;
+    numtyp pti = damping[itype].y;
 
     numtyp aesq2 = (numtyp)2.0 * aewald*aewald;
     numtyp aesq2n = (numtyp)0.0;
@@ -502,16 +502,8 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
       numtyp ukzp = polar5[j].z; // uinp[j][2];
 
       numtyp factor_uscale;
-      //const numtyp4 sp_pol = sp_polar[sbmask15(jextra)];
-      //factor_wscale = sp_pol.x; // sp_polar_wscale[sbmask15(jextra)];
-      if (igroup == jgroup) {
-        //factor_pscale = sp_pol.y; // sp_polar_piscale[sbmask15(jextra)];
-        //factor_dscale = polar_dscale;
-        factor_uscale = polar_uscale;
-      } else {
-        //factor_pscale = sp_pol.z; // sp_polar_pscale[sbmask15(jextra)];
-        factor_uscale = (numtyp)1.0;
-      }
+      if (igroup == jgroup) factor_uscale = polar_uscale;
+      else factor_uscale = (numtyp)1.0;
 
       // calculate the real space Ewald error function terms
 
@@ -535,15 +527,14 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
       numtyp scale5 = (numtyp)1.0;
       numtyp damp = pdi * damping[jtype].x; // pdamp[jtype]
       if (damp != (numtyp)0.0) {
-        numtyp pgamma = MIN(ddi,damping[jtype].z); // dirdamp[jtype]
-        if (pgamma != (numtyp)0.0) {
-          damp = pgamma * ucl_powr(r/damp,(numtyp)3.0);
-          if (damp < (numtyp)50.0) {
-            numtyp expdamp = ucl_exp(-damp);
-            scale3 = (numtyp)1.0 - expdamp;
-            scale5 = (numtyp)1.0 - expdamp*((numtyp)1.0+damp);
-          }
+        numtyp pgamma = MIN(pti,damping[jtype].y); // thole[jtype]
+        damp = pgamma * ucl_powr(r/damp,(numtyp)3.0);
+        if (damp < (numtyp)50.0) {
+          numtyp expdamp = ucl_exp(-damp);
+          scale3 = (numtyp)1.0 - expdamp;
+          scale5 = (numtyp)1.0 - expdamp*((numtyp)1.0+damp);
         }
+        
       } else { // damp == 0: ???
       }
 

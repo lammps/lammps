@@ -525,18 +525,28 @@ void PairAmoebaGPU::induce()
       }
     }
 */
+/*
+    if (comm->me == 0) {
+      printf("GPU before\n");
+      for (int i = 0; i < 10; i++) {
+        printf("i = %d; fieldp = %f %f %f\n", i, fieldp[i][0], fieldp[i][1], fieldp[i][2]);
+      }
+    }
+*/
     ufield0c(field,fieldp);
 
     if (!gpu_umutual2b_ready) {
       crstyle = FIELD;
       comm->reverse_comm_pair(this);
     }
-
+/*
     if (comm->me == 0) {
+      printf("GPU after \n");
       for (int i = 0; i < 10; i++) {
         printf("i = %d; fieldp = %f %f %f\n", i, fieldp[i][0], fieldp[i][1], fieldp[i][2]);
       }
     }
+*/  
     
     //error->all(FLERR,"STOP GPU");
 
@@ -841,7 +851,7 @@ void PairAmoebaGPU::udirect2b(double **field, double **fieldp)
   // rebuild dipole-dipole pair list and store pairwise dipole matrices
   // done one atom at a time in real-space double loop over atoms & neighs
 
-  udirect2b_cpu();
+  //udirect2b_cpu();
 
   // accumulate the field and fieldp values from the GPU lib
   //   field and fieldp may already have some nonzero values from kspace (udirect1)

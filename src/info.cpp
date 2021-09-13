@@ -1331,18 +1331,31 @@ std::string Info::get_compiler_info()
 {
   std::string buf;
 #if defined(__INTEL_LLVM_COMPILER)
-  double version = static_cast<double>(__INTEL_LLVM_COMPILER)*0.01;
+  constexpr double version = static_cast<double>(__INTEL_LLVM_COMPILER)*0.01;
   buf = fmt::format("Intel LLVM C++ {:.1f} / {}", version, __VERSION__);
+#elif defined(__ibmxl__)
+  buf = fmt::format("IBM XL C/C++ (Clang) {}.{}.{}",
+                    __ibmxl_version__, __ibmxl_release__, __ibmxl_modification__);
 #elif defined(__clang__)
   buf = fmt::format("Clang C++ {}", __VERSION__);
 #elif defined(__PGI)
-  buf = fmt::format("PGI C++ {}.{}",__PGIC__,__PGIC_MINOR__);
+  buf = fmt::format("PGI C++ {}.{}",__PGIC__, __PGIC_MINOR__);
 #elif defined(__INTEL_COMPILER)
   double version = static_cast<double>(__INTEL_COMPILER)*0.01;
   buf = fmt::format("Intel Classic C++ {:.2f}.{} / {}", version,
                     __INTEL_COMPILER_UPDATE, __VERSION__);
+#elif defined(__MINGW64__)
+  buf = fmt::format("MinGW-w64 64bit {}.{} / GNU C++ {}", __MINGW64_VERSION_MAJOR,
+                    __MINGW64_VERSION_MINOR, __VERSION__);
+#elif defined(__MINGW32__)
+  buf = fmt::format("MinGW-w64 32bit {}.{} / GNU C++ {}", __MINGW32_VERSION_MAJOR,
+                    __MINGW32_VERSION_MINOR, __VERSION__);
 #elif defined(__GNUC__)
   buf = fmt::format("GNU C++ {}",   __VERSION__);
+#elif defined(_MSC_VER) && (_MSC_VER > 1920) && (_MSC_VER < 2000)
+  constexpr int major = _MSC_VER / 100;
+  constexpr int minor = _MSC_VER - major *100;
+  buf = fmt::format("Microsoft Visual Studio 20{}, C/C++ {}.{}", major, major-5, minor);
 #else
   buf = "(Unknown)";
 #endif

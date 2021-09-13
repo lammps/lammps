@@ -41,6 +41,8 @@ fix	1	rods	rigid molecule
 fix	2	tethers	nve
 fix	3	all	langevin 1.4 1.4 1.0 437624
 
+thermo_style custom step temp pe etotal press enthalpy lx ly lz pxx pyy pzz f_1[1] f_1[2] f_1[3]
+
 run	5000
 
 # Replace fix rigid and fix langevin with new ones
@@ -54,11 +56,23 @@ fix	3	tethers langevin 1.4 1.4 1.0 198450
 
 fix	1 rods	rigid/nve molecule
 print 	"rigid/nve"
+
+run	1000
+unfix	1
+
+fix	1 rods	rigid/nve/small molecule
+print 	"rigid/nve/small"
+
 run	1000
 unfix	1
 
 fix	1 rods	rigid/nvt molecule temp 1.4 1.4 1.0
 print 	"rigid/nvt"
+run	1000
+unfix	1
+
+fix	1 rods	rigid/nvt/small molecule temp 1.4 1.4 1.0
+print 	"rigid/nvt/small"
 run	1000
 unfix	1
 

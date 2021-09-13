@@ -65,6 +65,7 @@ class FixRigidSmall : public Fix {
   double extract_ke();
   double extract_erotational();
   double compute_scalar();
+  virtual double compute_vector(int);
   double memory_usage();
 
  protected:

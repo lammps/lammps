@@ -774,7 +774,7 @@ void FixRigid::init()
     ndof_t += fflag[ibody][0] + fflag[ibody][1] + fflag[ibody][2];
     ndof_r += tflag[ibody][0] + tflag[ibody][1] + tflag[ibody][2];
   }
-  ndof_t -= nlinear;
+  ndof_r -= nlinear;
   ndof = ndof_t + ndof_r;
   if (ndof > 0.0) tfactor = force->mvv2e / (ndof * force->boltz);
   else tfactor = 0.0;

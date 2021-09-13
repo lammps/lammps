@@ -219,7 +219,7 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   // require newton pair off if _particle_split < 1
 
   if (force->newton_pair == 1 && _particle_split < 1)
-    error->all(FLERR,"Cannot use newton pair on for split less than 1");
+    error->all(FLERR,"Cannot use newton pair on for split less than 1 for now");
 
   if (pair_only_flag) {
     lmp->suffixp = lmp->suffix;

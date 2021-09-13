@@ -2448,6 +2448,7 @@ void TILD::write_grid_data( char *filename, const int avg ) {
       fprintf( otp, " rho_%d", itype) ;
     fprintf( otp, "\n") ;
   }
+
   // communication buffer for all my Atom info
   // max_size = largest buffer needed by any proc
 
@@ -2465,8 +2466,6 @@ void TILD::write_grid_data( char *filename, const int avg ) {
 
   if (avg == 1) pack_avg_grid_data(buf);
   else pack_grid_data(buf);
-  // if (avg == 1) pack_forward_grid(FORWARD_AVG_GRID_DEN);
-  // else pack_forward_grid(FORWARD_GRID_DEN);
 
   // write one chunk of atoms per proc to file
   // proc 0 pings each proc, receives its chunk, writes to file

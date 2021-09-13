@@ -3509,45 +3509,13 @@ double FixRigidSmall::extract_erotational()
 }
 
 /* ----------------------------------------------------------------------
-   return temperature of collection of rigid bodies
-   non-active DOF are removed by fflag/tflag and in tfactor
+   return energy imposed by the fix
+   TODO: add Langevin thermostat energy if applied    
 ------------------------------------------------------------------------- */
 
 double FixRigidSmall::compute_scalar()
 {
-  double wbody[3],rot[3][3];
-
-  double *vcm,*inertia;
-
-  double t = 0.0;
-
-  for (int i = 0; i < nlocal_body; i++) {
-    vcm = body[i].vcm;
-    t += body[i].mass * (vcm[0]*vcm[0] + vcm[1]*vcm[1] + vcm[2]*vcm[2]);
-
-    // for Iw^2 rotational term, need wbody = angular velocity in body frame
-    // not omega = angular velocity in space frame
-
-    inertia = body[i].inertia;
-    MathExtra::quat_to_mat(body[i].quat,rot);
-    MathExtra::transpose_matvec(rot,body[i].angmom,wbody);
-    if (inertia[0] == 0.0) wbody[0] = 0.0;
-    else wbody[0] /= inertia[0];
-    if (inertia[1] == 0.0) wbody[1] = 0.0;
-    else wbody[1] /= inertia[1];
-    if (inertia[2] == 0.0) wbody[2] = 0.0;
-    else wbody[2] /= inertia[2];
-
-    t += inertia[0]*wbody[0]*wbody[0] + inertia[1]*wbody[1]*wbody[1] +
-      inertia[2]*wbody[2]*wbody[2];
-  }
-
-  double tall;
-  MPI_Allreduce(&t,&tall,1,MPI_DOUBLE,MPI_SUM,world);
-
-  double tfactor = force->mvv2e / ((6.0*nbody - nlinear) * force->boltz);
-  tall *= tfactor;
-  return tall;
+  return 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -3561,12 +3529,12 @@ double FixRigidSmall::compute_vector(int n)
 
   double *vcm,*inertia;
 
-  double ke[2];
-  ke[0] = ke[1] = 0.0;
+  double ke_local[2];
+  ke_local[0] = ke_local[1] = 0.0;
 
   for (int i = 0; i < nlocal_body; i++) {
     vcm = body[i].vcm;
-    ke[0] += body[i].mass * (vcm[0]*vcm[0] + vcm[1]*vcm[1] + vcm[2]*vcm[2]);
+    ke_local[0] += body[i].mass * (vcm[0]*vcm[0] + vcm[1]*vcm[1] + vcm[2]*vcm[2]);
 
     // for Iw^2 rotational term, need wbody = angular velocity in body frame
     // not omega = angular velocity in space frame
@@ -3581,12 +3549,12 @@ double FixRigidSmall::compute_vector(int n)
     if (inertia[2] == 0.0) wbody[2] = 0.0;
     else wbody[2] /= inertia[2];
 
-    ke[1] += inertia[0]*wbody[0]*wbody[0] + inertia[1]*wbody[1]*wbody[1] +
+    ke_local[1] += inertia[0]*wbody[0]*wbody[0] + inertia[1]*wbody[1]*wbody[1] +
       inertia[2]*wbody[2]*wbody[2];
   }
 
   double ke_all[2];
-  MPI_Allreduce(&ke[0],&ke_all[0],2,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(&ke_local[0],&ke_all[0],2,MPI_DOUBLE,MPI_SUM,world);
 
   double ke_t = ke_all[0];
   double ke_r = ke_all[1];

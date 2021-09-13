@@ -2667,42 +2667,21 @@ int FixRigid::modify_param(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   return temperature of collection of rigid bodies
-   non-active DOF are removed by fflag/tflag and in tfactor
+   return energy added by the fix
+   TODO: add Langevin thermostat energy if applied
 ------------------------------------------------------------------------- */
 
 double FixRigid::compute_scalar()
 {
-  double wbody[3],rot[3][3];
-
-  double t = 0.0;
-  for (int i = 0; i < nbody; i++) {
-    t += masstotal[i] * (fflag[i][0]*vcm[i][0]*vcm[i][0] +
-                         fflag[i][1]*vcm[i][1]*vcm[i][1] +
-                         fflag[i][2]*vcm[i][2]*vcm[i][2]);
-
-    // wbody = angular velocity in body frame
-
-    MathExtra::quat_to_mat(quat[i],rot);
-    MathExtra::transpose_matvec(rot,angmom[i],wbody);
-    if (inertia[i][0] == 0.0) wbody[0] = 0.0;
-    else wbody[0] /= inertia[i][0];
-    if (inertia[i][1] == 0.0) wbody[1] = 0.0;
-    else wbody[1] /= inertia[i][1];
-    if (inertia[i][2] == 0.0) wbody[2] = 0.0;
-    else wbody[2] /= inertia[i][2];
-
-    t += tflag[i][0]*inertia[i][0]*wbody[0]*wbody[0] +
-      tflag[i][1]*inertia[i][1]*wbody[1]*wbody[1] +
-      tflag[i][2]*inertia[i][2]*wbody[2]*wbody[2];
-  }
-
-  t *= tfactor;
-  return t;
+  return 0;
 }
 
 /* ----------------------------------------------------------------------
-   return temperature
+   return temperature of collection of rigid bodies
+   non-active DOF are removed by fflag/tflag and in tfactor
+   n = 0: temperature
+   n = 1: temperature associated with the translational dofs
+   n = 2: temperature associated with the translational dofs
 ------------------------------------------------------------------------- */
 
 double FixRigid::compute_vector(int n)

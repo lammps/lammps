@@ -889,8 +889,8 @@ void FixRigidNH::nhc_press_integrate()
 }
 
 /* ----------------------------------------------------------------------
-   compute kinetic energy in the extended Hamiltonian
-   conserved quantity = sum of returned energy and potential energy
+   compute the energy added by the fix
+     the extended Hamiltonian = this energy + potential energy
 -----------------------------------------------------------------------*/
 
 double FixRigidNH::compute_scalar()

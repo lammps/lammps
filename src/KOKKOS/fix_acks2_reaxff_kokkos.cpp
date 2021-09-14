@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -16,23 +17,25 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_acks2_reaxff_kokkos.h"
-#include <cmath>
-#include "kokkos.h"
+
 #include "atom.h"
-#include "atom_masks.h"
 #include "atom_kokkos.h"
+#include "atom_masks.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
-#include "neighbor.h"
+#include "integrate.h"
+#include "kokkos.h"
+#include "memory_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "neigh_request.h"
-#include "update.h"
-#include "integrate.h"
-#include "memory_kokkos.h"
-#include "error.h"
+#include "neighbor.h"
 #include "pair_reaxff_kokkos.h"
+#include "update.h"
 
-using namespace LAMMPS_NS;
+#include <cmath>
+
+sing namespace LAMMPS_NS;
 using namespace FixConst;
 
 #define SMALL 0.0001

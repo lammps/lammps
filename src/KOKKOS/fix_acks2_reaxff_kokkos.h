@@ -12,16 +12,16 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(acks2/reaxff/kk,FixACKS2ReaxFFKokkos<LMPDeviceType>)
-FixStyle(acks2/reaxff/kk/device,FixACKS2ReaxFFKokkos<LMPDeviceType>)
-FixStyle(acks2/reaxff/kk/host,FixACKS2ReaxFFKokkos<LMPHostType>)
-FixStyle(acks2/reax/kk,FixACKS2ReaxFFKokkos<LMPDeviceType>)
-FixStyle(acks2/reax/kk/device,FixACKS2ReaxFFKokkos<LMPDeviceType>)
-FixStyle(acks2/reax/kk/host,FixACKS2ReaxFFKokkos<LMPHostType>)
-
+// clang-format off
+FixStyle(acks2/reaxff/kk,FixACKS2ReaxFFKokkos<LMPDeviceType>);
+FixStyle(acks2/reaxff/kk/device,FixACKS2ReaxFFKokkos<LMPDeviceType>);
+FixStyle(acks2/reaxff/kk/host,FixACKS2ReaxFFKokkos<LMPHostType>);
+FixStyle(acks2/reax/kk,FixACKS2ReaxFFKokkos<LMPDeviceType>);
+FixStyle(acks2/reax/kk/device,FixACKS2ReaxFFKokkos<LMPDeviceType>);
+FixStyle(acks2/reax/kk/host,FixACKS2ReaxFFKokkos<LMPHostType>);
+// clang-format on
 #else
-
+// clang-format off
 #ifndef LMP_FIX_ACKS2_REAXFF_KOKKOS_H
 #define LMP_FIX_ACKS2_REAXFF_KOKKOS_H
 

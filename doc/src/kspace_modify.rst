@@ -84,15 +84,6 @@ Examples
    kspace_modify mesh 24 24 30 order 6
    kspace_modify slab 3.0
    kspace_modify scafacos tolerance energy
-   kspace_modify tild/coeff 1 1 gaussian ${a}
-   kspace_modify tild/coeff 1 1 gaussian 0.5
-   kspace_modify tild/coeff 2 2 erfc ${RP} ${xi}
-   kspace_modify tild/coeff 2 2 erfc 3 1.0
-   kspace_modify tild/coeff 3 3 none
-   kspace_modify tild/chi * * kappa
-   kspace_modify tild/set_rho0 4.25
-   kspace_modify tild/cross-interaction * * gaussian ${a}
-   kspace_modify tild/cross-interaction * * gaussian 0.5
 
 Description
 """""""""""

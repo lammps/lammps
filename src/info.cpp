@@ -51,6 +51,9 @@
 #include <map>
 
 #ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
 #define PSAPI_VERSION 1
 #include <windows.h>
 #include <cstdint>

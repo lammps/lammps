@@ -26,7 +26,7 @@ target_compile_definitions(test_python_package PRIVATE -DTEST_INPUT_FOLDER=${TES
 # this requires CMake 3.12. don't care to add backward compatibility for this.
 if(Python3_Development_FOUND)
   target_compile_definitions(test_python_package PRIVATE -DTEST_HAVE_PYTHON_DEVELOPMENT=1)
-  target_link_libraries(test_python_package PRIVATE Python::Python)
+  target_link_libraries(test_python_package PRIVATE Python3::Python)
 endif()
 add_test(NAME PythonPackage COMMAND test_python_package WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set_tests_properties(PythonPackage PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:${LAMMPS_PYTHON_DIR}:$ENV{PYTHONPATH};PYTHONUNBUFFERED=1")

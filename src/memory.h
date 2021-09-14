@@ -738,6 +738,6 @@ smaller simulation or on more processors.
 E: Cannot create/grow a vector/array of pointers for %s
 
 LAMMPS code is making an illegal call to the templated memory
-allocaters, to create a vector or array of pointers.
+allocators, to create a vector or array of pointers.
 
 */

@@ -72,7 +72,8 @@ Alexey
 ali
 aliceblue
 Allinger
-allocaters
+allocator
+allocators
 allosws
 AlO
 Alonso
@@ -1008,6 +1009,7 @@ FFmpeg
 ffplay
 fft
 fftbench
+fftMPI
 fftw
 fgets
 fhg
@@ -1384,6 +1386,7 @@ inhomogeneities
 inhomogeneous
 init
 initialdelay
+initialisms
 initializations
 InitiatorIDs
 initio
@@ -1690,6 +1693,7 @@ Lett
 Leuven
 Leven
 Lewy
+LF
 LGPL
 lgvdw
 Liang
@@ -2095,6 +2099,7 @@ Murdick
 Murtola
 Murty
 Muser
+mutexes
 Muto
 muVT
 mux

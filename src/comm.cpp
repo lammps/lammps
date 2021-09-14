@@ -782,13 +782,13 @@ int Comm::coord2proc(double *x, int &igx, int &igy, int &igz)
 
   } else if (layout == Comm::LAYOUT_NONUNIFORM) {
     if (triclinic == 0) {
-      igx = binary((x[0]-boxlo[0])/prd[0],procgrid[0],xsplit);
-      igy = binary((x[1]-boxlo[1])/prd[1],procgrid[1],ysplit);
-      igz = binary((x[2]-boxlo[2])/prd[2],procgrid[2],zsplit);
+      igx = utils::binary_search((x[0]-boxlo[0])/prd[0],procgrid[0],xsplit);
+      igy = utils::binary_search((x[1]-boxlo[1])/prd[1],procgrid[1],ysplit);
+      igz = utils::binary_search((x[2]-boxlo[2])/prd[2],procgrid[2],zsplit);
     } else {
-      igx = binary(x[0],procgrid[0],xsplit);
-      igy = binary(x[1],procgrid[1],ysplit);
-      igz = binary(x[2],procgrid[2],zsplit);
+      igx = utils::binary_search(x[0],procgrid[0],xsplit);
+      igy = utils::binary_search(x[1],procgrid[1],ysplit);
+      igz = utils::binary_search(x[2],procgrid[2],zsplit);
     }
   }
 
@@ -800,36 +800,6 @@ int Comm::coord2proc(double *x, int &igx, int &igy, int &igz)
   if (igz >= procgrid[2]) igz = procgrid[2] - 1;
 
   return grid2proc[igx][igy][igz];
-}
-
-/* ----------------------------------------------------------------------
-   binary search for value in N-length ascending vec
-   value may be outside range of vec limits
-   always return index from 0 to N-1 inclusive
-   return 0 if value < vec[0]
-   reutrn N-1 if value >= vec[N-1]
-   return index = 1 to N-2 if vec[index] <= value < vec[index+1]
-------------------------------------------------------------------------- */
-
-int Comm::binary(double value, int n, double *vec)
-{
-  int lo = 0;
-  int hi = n-1;
-
-  if (value < vec[lo]) return lo;
-  if (value >= vec[hi]) return hi;
-
-  // insure vec[lo] <= value < vec[hi] at every iteration
-  // done when lo,hi are adjacent
-
-  int index = (lo+hi)/2;
-  while (lo < hi-1) {
-    if (value < vec[index]) hi = index;
-    else if (value >= vec[index]) lo = index;
-    index = (lo+hi)/2;
-  }
-
-  return index;
 }
 
 /* ----------------------------------------------------------------------

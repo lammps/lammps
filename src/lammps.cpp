@@ -55,7 +55,9 @@
 #include <cstring>
 #include <map>
 
-#if !defined(_WIN32)
+#if defined(_WIN32)
+#include <io.h>
+#else
 #include <unistd.h>             // for isatty()
 #endif
 
@@ -1178,6 +1180,7 @@ void _noopt LAMMPS::help()
           "                            : convert restart to dump file (-r2dump)\n"
           "-reorder topology-specs     : processor reordering (-r)\n"
           "-screen none/filename       : where to send screen output (-sc)\n"
+          "-skiprun                    : skip loops in run and minimize (-sr)\n"
           "-suffix gpu/intel/opt/omp   : style suffix to apply (-sf)\n"
           "-var varname value          : set index style variable (-v)\n\n",
           exename);

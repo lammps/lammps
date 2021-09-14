@@ -12,7 +12,7 @@ Note that each installer package has a date in its name, which
 corresponds to the LAMMPS version of the same date.  Installers for
 current and older versions of LAMMPS are available.  32-bit and 64-bit
 installers are available, and each installer contains both a serial
-and parallel executable.  The installer web site also explains how to
+and parallel executable.  The installer website also explains how to
 install the Windows MPI package (MPICH2 from Argonne National Labs),
 needed to run in parallel with MPI.
 

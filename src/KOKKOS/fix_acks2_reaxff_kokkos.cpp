@@ -62,10 +62,10 @@ FixACKS2ReaxFFKokkos(LAMMPS *lmp, int narg, char **arg) :
   grow_arrays(atom->nmax);
   memoryKK->create_kokkos(k_s_hist_last,s_hist_last,2,nprev,"acks2/reax:s_hist_last");
   d_s_hist_last = k_s_hist_last.template view<DeviceType>();
+  buf = new double[2*nprev];
+  prev_last_rows_rank = 0;
 
   d_mfill_offset = typename AT::t_int_scalar("acks2/kk:mfill_offset");
-
-  comm_me_0_flag = (comm->me == 0);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -78,6 +78,7 @@ FixACKS2ReaxFFKokkos<DeviceType>::~FixACKS2ReaxFFKokkos()
   memoryKK->destroy_kokkos(k_s_hist,s_hist);
   memoryKK->destroy_kokkos(k_s_hist_X,s_hist_X);
   memoryKK->destroy_kokkos(k_s_hist_last,s_hist_last);
+  delete [] buf;
 
   deallocate_array();
 }
@@ -236,10 +237,61 @@ void FixACKS2ReaxFFKokkos<DeviceType>::pre_force(int vflag)
 
   allocate_array();
 
-  // get max number of neighbor
-
   if (!allocated_flag || last_allocate < neighbor->lastcall) {
+
+    // get max number of neighbor
+
     allocate_matrix();
+
+    // last_rows_rank proc must not own zero atoms (unless no atoms total)
+    //  otherwise some loops are no-ops and last rows contribution won't
+    //  be computed correctly
+
+    int flag = comm->me;
+    if (nn == 0) flag = MPI_MAX;
+    MPI_Allreduce(&flag, &last_rows_rank, 1, MPI_INT, MPI_MIN, world);
+    last_rows_flag = (comm->me == last_rows_rank);
+
+    // pass along "s" array history if necessary
+
+    if (prev_last_rows_rank != last_rows_rank) {
+
+      MPI_Request request;
+      if (comm->me == last_rows_rank)
+	MPI_Irecv(buf,2*nprev,MPI_DOUBLE,
+		  prev_last_rows_rank,0,world,&request);
+
+      if (comm->me == prev_last_rows_rank) {
+
+	// pack buffer
+	k_s_hist_last.template sync<LMPHostType>();
+	auto h_s_hist_last = k_s_hist_last.h_view;
+	int n = 0;
+	for (int k = 0; k < nprev; k++) {
+	  buf[n++] = h_s_hist_last(0,k);
+	  buf[n++] = h_s_hist_last(1,k);
+	}
+
+	MPI_Send(buf,2*nprev,MPI_DOUBLE,last_rows_rank,0,world);
+      }
+
+      if (comm->me == last_rows_rank) {
+	MPI_Wait(&request,MPI_STATUS_IGNORE);
+
+	// unpack buffer
+	k_s_hist_last.template sync<LMPHostType>();
+	auto h_s_hist_last = k_s_hist_last.h_view;
+	int n = 0;
+	for (int k = 0; k < nprev; k++) {
+	  h_s_hist_last(0,k) = buf[n++];
+	  h_s_hist_last(1,k) = buf[n++];
+	}
+	k_s_hist_last.template modify<LMPHostType>();
+      }
+    }
+
+    prev_last_rows_rank = last_rows_rank;
+
     last_allocate = update->ntimestep;
   }
 
@@ -1135,9 +1187,9 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2InitMatvec, const int
   }
 
   // last two rows
-  if (comm_me_0_flag && ii == 0) {
+  if (last_rows_flag && ii == 0) {
     for (int k = 0; k < 2; k++) {
-      d_b_s[2*NN+i] = 0.0;
+      d_b_s[2*NN+k] = 0.0;
       d_s[2*NN+k] = 4*(d_s_hist_last(k,0)+d_s_hist_last(k,2))-(6*d_s_hist_last(k,1)+d_s_hist_last(k,3));
     }
   }
@@ -1350,10 +1402,8 @@ void FixACKS2ReaxFFKokkos<DeviceType>::sparse_matvec_acks2(typename AT::t_ffloat
   else
     ndup_bb = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated> (d_bb);
 
+  Kokkos::deep_copy(d_bb,0.0); // can make more efficient?
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagACKS2SparseMatvec1>(0,nn),*this);
-
-  if (neighflag != FULL)
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagACKS2SparseMatvec2>(nn,NN),*this);
 
   if (neighflag == FULL) {
     int teamsize;
@@ -1386,12 +1436,6 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2SparseMatvec1, const 
   if (mask[i] & groupbit) {
     d_bb[i] = params(itype).eta * d_xx[i];
     d_bb[NN + i] = d_X_diag[i] * d_xx[NN + i];
-  }
-
-  // last two rows
-  if (ii == 0) {
-    d_bb[2*NN] = 0.0;
-    d_bb[2*NN + 1] = 0.0;
   }
 }
 
@@ -1511,7 +1555,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Norm1, const int &ii,
   }
 
   // last two rows
-  if (comm_me_0_flag && ii == 0) {
+  if (last_rows_flag && ii == 0) {
     d_r[2*NN] = d_b_s[2*NN] - d_d[2*NN];
     d_r[2*NN + 1] = d_b_s[2*NN + 1] - d_d[2*NN + 1];
 
@@ -1533,7 +1577,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Norm2, const int &ii,
   }
 
   // last two rows
-  if (comm_me_0_flag && ii == 0) {
+  if (last_rows_flag && ii == 0) {
     lsum += d_r[2*NN] * d_r[2*NN];
     lsum += d_r[2*NN + 1] * d_r[2*NN + 1];
   }
@@ -1552,7 +1596,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Dot1, const int &ii, 
   }
 
   // last two rows
-  if (comm_me_0_flag && ii == 0) {
+  if (last_rows_flag && ii == 0) {
     lsum += d_r_hat[2*NN] * d_r[2*NN];
     lsum += d_r_hat[2*NN + 1] * d_r[2*NN + 1];
   }
@@ -1577,7 +1621,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Precon1A, const int &
   }
 
   // last two rows
-  if (comm_me_0_flag && ii == 0) {
+  if (last_rows_flag && ii == 0) {
     d_q[2*NN] = d_p[2*NN] - omega*d_z[2*NN];
     d_q[2*NN + 1] = d_p[2*NN + 1] - omega*d_z[2*NN + 1];
 
@@ -1605,7 +1649,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Precon1B, const int &
   }
 
   // last two rows
-  if (comm_me_0_flag && ii == 0) {
+  if (last_rows_flag && ii == 0) {
     d_p[2*NN] = d_r[2*NN];
     d_p[2*NN + 1] = d_r[2*NN + 1];
 
@@ -1627,7 +1671,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Dot2, const int &ii, 
   }
 
   // last two rows
-  if (comm_me_0_flag && ii == 0) {
+  if (last_rows_flag && ii == 0) {
     lsum += d_r_hat[2*NN] * d_z[2*NN];
     lsum += d_r_hat[2*NN + 1] * d_z[2*NN + 1];
   }
@@ -1649,7 +1693,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Dot3, const int &ii, 
   }
 
   // last two rows
-  if (comm_me_0_flag && ii == 0) {
+  if (last_rows_flag && ii == 0) {
     d_q[2*NN] = d_r[2*NN] - alpha*d_z[2*NN];
     d_q[2*NN + 1] = d_r[2*NN + 1] - alpha*d_z[2*NN + 1];
 
@@ -1671,7 +1715,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Dot4, const int &ii, 
   }
 
   // last two rows
-  if (comm_me_0_flag && ii == 0) {
+  if (last_rows_flag && ii == 0) {
     lsum += d_y[2*NN] * d_q[2*NN];
     lsum += d_y[2*NN + 1] * d_q[2*NN + 1];
   }
@@ -1690,7 +1734,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Dot5, const int &ii, 
   }
 
   // last two rows
-  if (comm_me_0_flag && ii == 0) {
+  if (last_rows_flag && ii == 0) {
     lsum += d_y[2*NN] * d_y[2*NN];
     lsum += d_y[2*NN + 1] * d_y[2*NN + 1];
   }
@@ -1709,7 +1753,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Add, const int &ii) c
   }
 
   // last two rows
-  if (comm_me_0_flag && ii == 0) {
+  if (last_rows_flag && ii == 0) {
     d_s[2*NN] += alpha*d_d[2*NN];
     d_s[2*NN + 1] += alpha*d_d[2*NN + 1];
   }
@@ -1728,7 +1772,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Precon2, const int &i
   }
 
   // last two rows
-  if (comm_me_0_flag && ii == 0) {
+  if (last_rows_flag && ii == 0) {
     d_q_hat[2*NN] = d_q[2*NN];
     d_q_hat[2*NN + 1] = d_q[2*NN + 1];
   }
@@ -1756,7 +1800,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Norm3, const int &ii,
   }
 
   // last two rows
-  if (comm_me_0_flag && ii == 0) {
+  if (last_rows_flag && ii == 0) {
     d_g[2*NN] = alpha*d_d[2*NN] + omega*d_q_hat[2*NN];
     d_g[2*NN + 1] = alpha*d_d[2*NN + 1] + omega*d_q_hat[2*NN + 1];
 
@@ -1790,7 +1834,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2CalculateQ1, const in
   }
 
   // last two rows
-  if (comm_me_0_flag && ii == 0) {
+  if (last_rows_flag && ii == 0) {
     for (int i = 0; i < 2; ++i) {
       for (int k = nprev-1; k > 0; --k)
         d_s_hist_last(i,k) = d_s_hist_last(i,k-1);

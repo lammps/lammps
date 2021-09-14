@@ -38,6 +38,8 @@ class FixACKS2ReaxFF : public FixQEqReaxFF {
   double* get_s() {return s;}
 
  protected:
+  int last_rows_rank,last_rows_flag;
+
   double **s_hist_X,**s_hist_last;
 
   double *bcut_acks2,bond_softness,**bcut; // acks2 parameters

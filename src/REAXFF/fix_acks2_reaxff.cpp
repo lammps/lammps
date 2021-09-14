@@ -88,6 +88,9 @@ FixACKS2ReaxFF::FixACKS2ReaxFF(LAMMPS *lmp, int narg, char **arg) :
   comm_forward = comm_reverse = 2;
 
   s_hist_X = s_hist_last = NULL;
+
+  last_rows_rank = 0;
+  last_rows_flag = (comm->me == last_rows_rank);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -413,7 +416,7 @@ void FixACKS2ReaxFF::init_matvec()
   }
 
   // last two rows
-  if (comm->me == 0) {
+  if (last_rows_flag) {
     for (i = 0; i < 2; i++) {
       b_s[2*NN+i] = 0.0;
       s[2*NN+i] = 4*(s_hist_last[i][0]+s_hist_last[i][2])-(6*s_hist_last[i][1]+s_hist_last[i][3]);
@@ -558,7 +561,7 @@ int FixACKS2ReaxFF::BiCGStab(double *b, double *x)
       }
     }
     // last two rows
-    if (comm->me == 0) {
+    if (last_rows_flag) {
       d[2*NN] = p[2*NN];
       d[2*NN + 1] = p[2*NN + 1];
     }
@@ -593,7 +596,7 @@ int FixACKS2ReaxFF::BiCGStab(double *b, double *x)
       }
     }
     // last two rows
-    if (comm->me == 0) {
+    if (last_rows_flag) {
       q_hat[2*NN] = q[2*NN];
       q_hat[2*NN + 1] = q[2*NN + 1];
     }
@@ -713,7 +716,7 @@ void FixACKS2ReaxFF::calculate_Q()
     }
   }
   // last two rows
-  if (comm->me == 0) {
+  if (last_rows_flag) {
     for (int i = 0; i < 2; ++i) {
       for (k = nprev-1; k > 0; --k)
         s_hist_last[i][k] = s_hist_last[i][k-1];
@@ -851,24 +854,24 @@ void FixACKS2ReaxFF::unpack_reverse_comm(int n, int *list, double *buf)
 }
 
 /* ----------------------------------------------------------------------
-   proc 0 broadcasts last two rows of vector to everyone else
+   one proc broadcasts last two rows of vector to everyone else
 ------------------------------------------------------------------------- */
 
 void FixACKS2ReaxFF::more_forward_comm(double *vec)
 {
-  MPI_Bcast(&vec[2*NN],2,MPI_DOUBLE,0,world);
+  MPI_Bcast(&vec[2*NN],2,MPI_DOUBLE,last_rows_rank,world);
 }
 
 /* ----------------------------------------------------------------------
-   reduce last two rows of vector and give to proc 0
+   reduce last two rows of vector and give to one proc
 ------------------------------------------------------------------------- */
 
 void FixACKS2ReaxFF::more_reverse_comm(double *vec)
 {
-  if (comm->me == 0)
-    MPI_Reduce(MPI_IN_PLACE,&vec[2*NN],2,MPI_DOUBLE,MPI_SUM,0,world);
+  if (last_rows_flag)
+    MPI_Reduce(MPI_IN_PLACE,&vec[2*NN],2,MPI_DOUBLE,MPI_SUM,last_rows_rank,world);
   else
-    MPI_Reduce(&vec[2*NN],NULL,2,MPI_DOUBLE,MPI_SUM,0,world);
+    MPI_Reduce(&vec[2*NN],NULL,2,MPI_DOUBLE,MPI_SUM,last_rows_rank,world);
 }
 
 /* ----------------------------------------------------------------------
@@ -955,7 +958,7 @@ double FixACKS2ReaxFF::parallel_norm(double *v, int n)
   }
 
   // last two rows
-  if (comm->me == 0) {
+  if (last_rows_flag) {
     my_sum += SQR(v[2*NN]);
     my_sum += SQR(v[2*NN + 1]);
   }
@@ -985,7 +988,7 @@ double FixACKS2ReaxFF::parallel_dot(double *v1, double *v2, int n)
   }
 
   // last two rows
-  if (comm->me == 0) {
+  if (last_rows_flag) {
     my_dot += v1[2*NN] * v2[2*NN];
     my_dot += v1[2*NN + 1] * v2[2*NN + 1];
   }
@@ -1015,7 +1018,7 @@ double FixACKS2ReaxFF::parallel_vector_acc(double *v, int n)
   }
 
   // last two rows
-  if (comm->me == 0) {
+  if (last_rows_flag) {
     my_acc += v[2*NN];
     my_acc += v[2*NN + 1];
   }
@@ -1041,7 +1044,7 @@ void FixACKS2ReaxFF::vector_sum(double* dest, double c, double* v,
   }
 
   // last two rows
-  if (comm->me == 0) {
+  if (last_rows_flag) {
     dest[2*NN] = c * v[2*NN] + d * y[2*NN];
     dest[2*NN + 1] = c * v[2*NN + 1] + d * y[2*NN + 1];
   }
@@ -1062,7 +1065,7 @@ void FixACKS2ReaxFF::vector_add(double* dest, double c, double* v, int k)
   }
 
   // last two rows
-  if (comm->me == 0) {
+  if (last_rows_flag) {
     dest[2*NN] += c * v[2*NN];
     dest[2*NN + 1] += c * v[2*NN + 1];
   }
@@ -1084,7 +1087,7 @@ void FixACKS2ReaxFF::vector_copy(double* dest, double* v, int k)
   }
 
   // last two rows
-  if (comm->me == 0) {
+  if (last_rows_flag) {
     dest[2*NN] = v[2*NN];
     dest[2*NN + 1] = v[2*NN + 1];
   }

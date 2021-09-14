@@ -58,11 +58,12 @@ Syntax
          SHAPE = *gaussian* or *erfc* or *none*
          parameters = parameters for each function (see discussion below)
        *tild/prefactor* itype jtype prefactor
-         prefactor = amplitude of the function 
+         prefactor = magnitude of the function 
        *tild/cross-interaction* itype jtype interaction_shape parameters
          interaction_shape = *gaussian* or *gaussian-erfc* or *erfc*
          parameters = parameters for each function (see discussion below)
-       *tild/set_rho0* = rho0
+       *tild/set_rho0* rho0
+         rho0 = total density of TILD particles
        *tild/subtract_rho0* = *yes* or *no*
        *tild/normalize_by_rho0* = *yes* or *no*
        *tild/write_grid_data* = freq filename
@@ -542,7 +543,7 @@ The option defaults are mesh = mesh/disp = 0 0 0, order = order/disp =
 gewald = gewald/disp = 0.0, slab = 1.0, compute = yes, cutoff/adjust =
 yes (MSM), pressure/scalar = yes (MSM), fftbench = no (PPPM), diff =
 ik (PPPM), mix/disp = pair, force/disp/real = -1.0, force/disp/kspace
-= -1.0, split = 0, tol = 1.0e-6, and disp/auto = no. For pppm/intel,
+= -1.0, split = 0, tol = 1.0e-6, tild/subtract_rho0 = yes, tild/normalize_by_rho0 = yes and disp/auto = no. For pppm/intel,
 order = order/disp = 7.  For scafacos settings, the scafacos tolerance
 option depends on the method chosen, as documented above.  The
 scafacos fmm_tuning default = 0.

@@ -1441,8 +1441,10 @@ std::string Info::get_mpi_info(int &major, int &minor)
 
 std::string Info::get_cxx_info()
 {
-#if __cplusplus > 201703L
-  return "newer than C++17";
+#if __cplusplus > 202002L
+  return "newer than C++20";
+#elif __cplusplus == 202002L
+  return "C++20";
 #elif __cplusplus == 201703L
   return "C++17";
 #elif __cplusplus == 201402L

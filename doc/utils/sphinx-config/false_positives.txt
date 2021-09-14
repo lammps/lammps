@@ -19,6 +19,7 @@ accuracies
 ach
 ackland
 Ackland
+acks
 acolor
 acos
 Acta
@@ -77,6 +78,7 @@ allocators
 allosws
 AlO
 Alonso
+Alperen
 alphak
 alphashrink
 amap
@@ -1252,6 +1254,7 @@ hbond
 hcp
 hdnnp
 HDNNP
+Hearn
 heatconduction
 Hebbeker
 Hebenstreit
@@ -3074,6 +3077,7 @@ Spearot
 specular
 spellcheck
 Spellmeyer
+Speybroeck
 sph
 SPH
 Spickermann
@@ -3486,6 +3490,7 @@ Verlag
 verlet
 Verlet
 versa
+Verstraelen
 ves
 vflag
 vhi
@@ -3552,6 +3557,7 @@ vzcm
 vzi
 Waals
 Wadley
+Waroquier
 wallstyle
 walltime
 Waltham

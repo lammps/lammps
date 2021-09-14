@@ -20,7 +20,7 @@ Syntax
   .. parsed-literal::
 
      keyword = *checkqeq* or *lgvdw* or *safezone* or *mincap* or *minhbonds*
-       *checkqeq* value = *yes* or *no* = whether or not to require qeq/reaxff or acks2/reax fix
+       *checkqeq* value = *yes* or *no* = whether or not to require qeq/reaxff or acks2/reaxff fix
        *enobonds* value = *yes* or *no* = whether or not to tally energy of atoms with no bonds
        *lgvdw* value = *yes* or *no* = whether or not to use a low gradient vdW correction
        *safezone* = factor used for array allocation
@@ -119,7 +119,7 @@ The ReaxFF parameter files provided were created using a charge
 equilibration (QEq) model for handling the electrostatic interactions.
 Therefore, by default, LAMMPS requires that either the
 :doc:`fix qeq/reaxff <fix_qeq_reaxff>` or the
-:doc:`fix qeq/shielded <fix_qeq>` or :doc:`fix acks2/reaxff <fix_acks2>`
+:doc:`fix qeq/shielded <fix_qeq>` or :doc:`fix acks2/reaxff <fix_acks2_reaxff>`
 command be used with
 *pair_style reaxff* when simulating a ReaxFF model, to equilibrate
 the charges each timestep.
@@ -129,7 +129,7 @@ for the QEq fixes, allowing a simulation to be run without charge
 equilibration. In this case, the static charges you assign to each
 atom will be used for computing the electrostatic interactions in
 the system. See the :doc:`fix qeq/reaxff <fix_qeq_reaxff>` or
-:doc:`fix qeq/shielded <fix_qeq>` or :doc:`fix acks2/reaxff <fix_acks2>`
+:doc:`fix qeq/shielded <fix_qeq>` or :doc:`fix acks2/reaxff <fix_acks2_reaxff>`
 command documentation for more details.
 
 Using the optional keyword *lgvdw* with the value *yes* turns on the
@@ -354,7 +354,7 @@ Related commands
 """"""""""""""""
 
 :doc:`pair_coeff <pair_coeff>`, :doc:`fix qeq/reaxff <fix_qeq_reaxff>`,
-:doc:`fix acks2/reax <fix_acks2_reax>`, :doc:`fix reaxff/bonds <fix_reaxff_bonds>`,
+:doc:`fix acks2/reaxff <fix_acks2_reaxff>`, :doc:`fix reaxff/bonds <fix_reaxff_bonds>`,
 :doc:`fix reaxff/species <fix_reaxff_species>`
 
 Default

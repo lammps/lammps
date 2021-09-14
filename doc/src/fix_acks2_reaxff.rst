@@ -1,7 +1,11 @@
 .. index:: fix acks2/reaxff
+.. index:: fix acks2/reaxff/kk
+
 
 fix acks2/reaxff command
 ====================
+
+Accelerator Variants: *acks2/reaxff/kk*
 
 Syntax
 """"""
@@ -12,7 +16,7 @@ Syntax
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * acks2/reaxff = style name of this fix command
-* Nevery = perform QEq every this many steps
+* Nevery = perform ACKS2 every this many steps
 * cutlo,cuthi = lo and hi cutoff for Taper radius
 * tolerance = precision to which charges will be equilibrated
 * params = reaxff or a filename
@@ -28,24 +32,28 @@ Examples
 Description
 """""""""""
 
-Perform the charge equilibration (QEq) method as described in :ref:`(Verstraelen) <Verstraelen>`.  It is
-typically used in conjunction with the ReaxFF force field model as
+Perform the atom-condensed Kohn-Sham DFT to second order (ACKS2) charge
+equilibration method as described in :ref:`(Verstraelen) <Verstraelen>`.
+ACKS2 impedes unphysical long-range charge transfer sometimes seen with
+QEq (e.g. for dissociation of molecules), at increased computational cost.
+It is typically used in conjunction with the ReaxFF force field model as
 implemented in the :doc:`pair_style reaxff <pair_reaxff>` command, but
 it can be used with any potential in LAMMPS, so long as it defines and
 uses charges on each atom.  For more technical details about the
 charge equilibration performed by fix acks2/reaxff, see the
-:ref:`(O'Hearn) <O'Hearn>` paper.
+:ref:`(O'Hearn) <O'Hearn>` paper. 
 
-The QEq method minimizes the electrostatic energy of the system by
+The ACKS2 method minimizes the electrostatic energy of the system by
 adjusting the partial charge on individual atoms based on interactions
-with their neighbors.  It requires some parameters for each atom type.
+with their neighbors. It requires some parameters 
+for each atom type.
 If the *params* setting above is the word "reaxff", then these are
 extracted from the :doc:`pair_style reaxff <pair_reaxff>` command and
 the ReaxFF force field file it reads in.  If a file name is specified
 for *params*\ , then the parameters are taken from the specified file
 and the file must contain one line for each atom type.  The latter
 form must be used when performing QeQ with a non-ReaxFF potential.
-Each line should be formatted as follows:
+The lines should be formatted as follows:
 
 .. parsed-literal::
 
@@ -69,6 +77,12 @@ with the *start/stop* keywords of the :doc:`run <run>` command.
 
 This fix is invoked during :doc:`energy minimization <minimize>`.
 
+----------
+
+.. include:: accel_styles.rst
+
+----------
+
 Restrictions
 """"""""""""
 
@@ -82,7 +96,7 @@ be used for periodic cell dimensions less than 10 angstroms.
 Related commands
 """"""""""""""""
 
-:doc:`pair_style reaxff <pair_reaxff>`
+:doc:`pair_style reaxff <pair_reaxff>`, :doc:`fix qeq/reaxff <fix_qeq_reaxff>`
 
 **Default:** none
 

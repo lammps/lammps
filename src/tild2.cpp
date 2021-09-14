@@ -1096,6 +1096,10 @@ void TILD::calc_work(FFT_SCALAR *wk, const int itype, const int jtype){
   }
 }
 
+/* ----------------------------------------------------------------------
+   Calculate the cross_work for the manually specified interactions
+------------------------------------------------------------------------- */
+
 void TILD::calc_cross_work(const Interaction& intrxn){
   int ntypes = atom->ntypes;
   int Dim = domain->dimension;

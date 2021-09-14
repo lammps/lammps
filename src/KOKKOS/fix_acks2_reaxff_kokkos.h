@@ -174,7 +174,7 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF {
  private:
   int inum;
   int allocated_flag, last_allocate;
-  int need_dup,comm_me_0_flag,prev_last_rows_rank;
+  int need_dup,prev_last_rows_rank;
   double* buf;
 
   typename AT::t_int_scalar d_mfill_offset;

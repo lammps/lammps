@@ -248,7 +248,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::pre_force(int vflag)
     //  be computed correctly
 
     int flag = comm->me;
-    if (nn == 0) flag = MPI_MAX;
+    if (nn == 0) flag = MAXSMALLINT;
     MPI_Allreduce(&flag, &last_rows_rank, 1, MPI_INT, MPI_MIN, world);
     last_rows_flag = (comm->me == last_rows_rank);
 

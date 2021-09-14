@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -13,10 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(acks2/reax,FixACKS2ReaxFF)
-FixStyle(acks2/reaxff,FixACKS2ReaxFF)
-
+// clang-format off
+FixStyle(acks2/reax,FixACKS2ReaxFF);
+FixStyle(acks2/reaxff,FixACKS2ReaxFF);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_ACKS2_REAXFF_H
@@ -35,14 +34,14 @@ class FixACKS2ReaxFF : public FixQEqReaxFF {
   void init_storage();
   virtual void pre_force(int);
 
-  double* get_s() {return s;}
+  double *get_s() { return s; }
 
  protected:
-  int last_rows_rank,last_rows_flag;
+  int last_rows_rank, last_rows_flag;
 
-  double **s_hist_X,**s_hist_last;
+  double **s_hist_X, **s_hist_last;
 
-  double *bcut_acks2,bond_softness,**bcut; // acks2 parameters
+  double *bcut_acks2, bond_softness, **bcut;    // acks2 parameters
 
   sparse_matrix X;
   double *Xdia_inv;
@@ -51,7 +50,7 @@ class FixACKS2ReaxFF : public FixQEqReaxFF {
   //BiCGStab storage
   double *g, *q_hat, *r_hat, *y, *z;
 
-  void pertype_parameters(char*);
+  void pertype_parameters(char *);
   void init_bondcut();
   void allocate_storage();
   void deallocate_storage();
@@ -60,11 +59,11 @@ class FixACKS2ReaxFF : public FixQEqReaxFF {
 
   void init_matvec();
   void compute_X();
-  double calculate_X(double,double);
+  double calculate_X(double, double);
   void calculate_Q();
 
-  int BiCGStab(double*,double*);
-  void sparse_matvec_acks2(sparse_matrix*,sparse_matrix*,double*,double*);
+  int BiCGStab(double *, double *);
+  void sparse_matvec_acks2(sparse_matrix *, sparse_matrix *, double *, double *);
 
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);
@@ -78,16 +77,16 @@ class FixACKS2ReaxFF : public FixQEqReaxFF {
   virtual int pack_exchange(int, double *);
   virtual int unpack_exchange(int, double *);
 
-  double parallel_norm( double*, int );
-  double parallel_dot( double*, double*, int );
-  double parallel_vector_acc( double*, int );
+  double parallel_norm(double *, int);
+  double parallel_dot(double *, double *, int);
+  double parallel_vector_acc(double *, int);
 
-  void vector_sum(double*,double,double*,double,double*,int);
-  void vector_add(double*, double, double*,int);
-  void vector_copy(double*, double*,int);
+  void vector_sum(double *, double, double *, double, double *, int);
+  void vector_add(double *, double, double *, int);
+  void vector_copy(double *, double *, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -41,11 +41,11 @@ implemented in the :doc:`pair_style reaxff <pair_reaxff>` command, but
 it can be used with any potential in LAMMPS, so long as it defines and
 uses charges on each atom.  For more technical details about the
 charge equilibration performed by fix acks2/reaxff, see the
-:ref:`(O'Hearn) <O'Hearn>` paper. 
+:ref:`(O'Hearn) <O'Hearn>` paper.
 
 The ACKS2 method minimizes the electrostatic energy of the system by
 adjusting the partial charge on individual atoms based on interactions
-with their neighbors. It requires some parameters 
+with their neighbors. It requires some parameters
 for each atom type.
 If the *params* setting above is the word "reaxff", then these are
 extracted from the :doc:`pair_style reaxff <pair_reaxff>` command and

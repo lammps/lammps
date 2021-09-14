@@ -164,7 +164,7 @@ std::string utils::getsyserror()
 
 /** On Linux the folder /proc/self/fd holds symbolic links to the actual
  * pathnames associated with each open file descriptor of the current process.
- * On macOS the same kind of information can be obtained using ``fcntl(fd,F_GETPATH,buf)``.
+ * On MacOS the same kind of information can be obtained using ``fcntl(fd,F_GETPATH,buf)``.
  * On Windows we use ``GetFinalPathNameByHandleA()`` which is available with
  * Windows Vista and later.
  *

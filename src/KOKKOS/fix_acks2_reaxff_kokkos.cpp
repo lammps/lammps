@@ -258,35 +258,35 @@ void FixACKS2ReaxFFKokkos<DeviceType>::pre_force(int vflag)
 
       MPI_Request request;
       if (comm->me == last_rows_rank)
-	MPI_Irecv(buf,2*nprev,MPI_DOUBLE,
-		  prev_last_rows_rank,0,world,&request);
+        MPI_Irecv(buf,2*nprev,MPI_DOUBLE,
+                  prev_last_rows_rank,0,world,&request);
 
       if (comm->me == prev_last_rows_rank) {
 
-	// pack buffer
-	k_s_hist_last.template sync<LMPHostType>();
-	auto h_s_hist_last = k_s_hist_last.h_view;
-	int n = 0;
-	for (int k = 0; k < nprev; k++) {
-	  buf[n++] = h_s_hist_last(0,k);
-	  buf[n++] = h_s_hist_last(1,k);
-	}
+        // pack buffer
+        k_s_hist_last.template sync<LMPHostType>();
+        auto h_s_hist_last = k_s_hist_last.h_view;
+        int n = 0;
+        for (int k = 0; k < nprev; k++) {
+          buf[n++] = h_s_hist_last(0,k);
+          buf[n++] = h_s_hist_last(1,k);
+        }
 
-	MPI_Send(buf,2*nprev,MPI_DOUBLE,last_rows_rank,0,world);
+        MPI_Send(buf,2*nprev,MPI_DOUBLE,last_rows_rank,0,world);
       }
 
       if (comm->me == last_rows_rank) {
-	MPI_Wait(&request,MPI_STATUS_IGNORE);
+        MPI_Wait(&request,MPI_STATUS_IGNORE);
 
-	// unpack buffer
-	k_s_hist_last.template sync<LMPHostType>();
-	auto h_s_hist_last = k_s_hist_last.h_view;
-	int n = 0;
-	for (int k = 0; k < nprev; k++) {
-	  h_s_hist_last(0,k) = buf[n++];
-	  h_s_hist_last(1,k) = buf[n++];
-	}
-	k_s_hist_last.template modify<LMPHostType>();
+        // unpack buffer
+        k_s_hist_last.template sync<LMPHostType>();
+        auto h_s_hist_last = k_s_hist_last.h_view;
+        int n = 0;
+        for (int k = 0; k < nprev; k++) {
+          h_s_hist_last(0,k) = buf[n++];
+          h_s_hist_last(1,k) = buf[n++];
+        }
+        k_s_hist_last.template modify<LMPHostType>();
       }
     }
 

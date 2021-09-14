@@ -362,7 +362,7 @@ other ScaFaCoS options currently exposed to LAMMPS.
 
 ----------
 
-The *tild* style is an implementation of 'Theoretically-Inspired Langevin Dynamics' method (previously known as `Dynamical Mean Field Theory`) :ref:`Chao <Chao>`: :ref:`Fredrickson<Fredrickson>`: :ref:`Grzetic<Grzetic>`. This potential uses a particle-mesh scheme to calculate non-bonded pairwise forces indirerctly through a gridded density representation.  This potential does NOT calculate any Coulombic interactions. 
+The *tild* style is an implementation of 'theoretically informed Langevin Dynamics' method (previously known as `Dynamical Mean Field Theory`) :ref:`Chao <Chao>`: :ref:`Fredrickson<Fredrickson>`: :ref:`Grzetic<Grzetic>`. This potential uses a particle-mesh scheme to calculate non-bonded pairwise forces indirerctly through a gridded density representation.  This potential does NOT calculate any Coulombic interactions. 
 
 As of right now, *tild* contains two potentials for a simulation particle: a Gaussian potential and the complementary
 error function (erfc). Traditionally, the Gaussian potential is used for monomers and the erfc function models a

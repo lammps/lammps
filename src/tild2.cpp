@@ -652,21 +652,38 @@ void TILD::compute(int eflag, int vflag){
 
 double TILD::memory_usage()
 {
-  // double bytes = nmax *3 * sizeof(double); // positions
-  // int nbrick = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
-  //   (nzhi_out-nzlo_out+1);
-  // bytes += 4 * nbrick * sizeof(FFT_SCALAR); // work1 ?
+  int ntypes = atom->ntypes;
+  int ntypecross = ((ntypes+1)*ntypes);
+  int Dim = domain->dimension;
+  double bytes = (ntypes+1) * (ntypes+1) * (nstyles + 1) * sizeof(int); // potent_type_map
+
+  bytes += (double) (ntypes + 1) * (ntypes + 1) * 4 * sizeof(double); // parameters and chis of the sim
+  bytes += (double) (ntypes + 1) * (ntypes + 1) * sizeof(int); // setflag
+
+  int nbrick = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
+    (nzhi_out-nzlo_out+1); // brick size
+
+  bytes += (double) (ntypes + 1) * 5 * nbrick * sizeof(FFT_SCALAR); // density brick types
+
+  bytes += (double) (ntypecross + 1) * 6 * (2+1) * nfft_both * sizeof(FFT_SCALAR); // vg vg_hat
+  bytes += (double) (ntypes + 1) * (2+1)* nfft_both * sizeof(FFT_SCALAR); // density_fft_types
+  bytes += (double) 2 * Dim * (ntypecross+1) * (2+1) * sizeof(FFT_SCALAR); // grad potent and hat
   
+  // fkx, fky, fkz, fkx2, fky2, fkz2 
+  bytes += (double) 6 * npergrid * sizeof(FFT_SCALAR);
+  // rho1d, rho_coeff, drho_coeff
+  bytes += (double) 3 * (order+1) * sizeof(FFT_SCALAR);
+
   // if (triclinic) bytes += 3 * nfft_both * sizeof(double);
-  // bytes += atom->ntypes * 6 * nfft_both * sizeof(double); 
-  // bytes += atom->ntypes * nfft_both * sizeof(double); 
-  // bytes += atom->ntypes * nfft_both*5 * sizeof(FFT_SCALAR);
+  bytes += (double) atom->ntypes * 6 * nfft_both * sizeof(double); 
+  bytes += (double) nfft_both * sizeof(double); 
+  bytes += (double) nfft_both * 8 * sizeof(FFT_SCALAR); // work, ktmp
+  bytes += (double) atom->ntypes * nfft_both * 8 * sizeof(FFT_SCALAR); // work, ktmp
 
-  // // two GridComm bufs 
-  // bytes += (double)(ngc_buf1 + ngc_buf2) * npergrid * sizeof(FFT_SCALAR);
+  // two GridComm bufs 
+  bytes += (double)(ngc_buf1 + ngc_buf2) * (ntypes + 1) * npergrid * sizeof(FFT_SCALAR);
 
-  // return bytes;
-  return 0;
+  return bytes;
 }
 
 

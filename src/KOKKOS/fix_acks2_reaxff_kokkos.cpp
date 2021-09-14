@@ -35,7 +35,7 @@
 
 #include <cmath>
 
-sing namespace LAMMPS_NS;
+using namespace LAMMPS_NS;
 using namespace FixConst;
 
 #define SMALL 0.0001

@@ -362,19 +362,15 @@ other ScaFaCoS options currently exposed to LAMMPS.
 
 ----------
 
-The *tild* style is an implementation of 'theoretically informed Langevin Dynamics' method (previously known as `Dynamical Mean Field Theory`) :ref:`Chao <Chao>`: :ref:`Fredrickson<Fredrickson>`: :ref:`Grzetic<Grzetic>`. This potential uses a particle-mesh scheme to calculate non-bonded pairwise forces indirerctly through a gridded density representation.  This potential does NOT calculate any Coulombic interactions. 
-
-As of right now, *tild* contains two potentials for a simulation particle: a Gaussian potential and the complementary
-error function (erfc). Traditionally, the Gaussian potential is used for monomers and the erfc function models a
-hard sphere nanoparticle. 
+The *tild* style is an implementation of 'theoretically informed Langevin Dynamics' method (previously known as `Dynamical Mean Field Theory`) :ref:`Chao <Chao>`: :ref:`Fredrickson<Fredrickson>`: :ref:`Grzetic<Grzetic>`. This interaction potential uses a particle-mesh scheme to calculate non-bonded pairwise forces indirerctly through a gridded density representation. *tild* assigns a potentials for each simulation particle type, defined with :doc:`kspace_modify tild <kspace_modify>`. This potential does NOT calculate any Coulombic interactions. 
 
 .. note::
 
    Unlike other KSpace solvers in LAMMPS, the kspace TILD accounts for
    non-bonded interactions, both short-range and long-range interactions through
    a "short-ranged" potentital. Therefore, there is no accompanying short range
-   pair-style required. We do, however, recommend using :doc:`fix
-   langevin<fix_langevin>` with *tild* to fully implement the TILD model. 
+   pair-style required. To fully implement the TILD methodology, use :doc:`fix
+   langevin<fix_langevin>` with *tild*. 
 
 The specified *grid resolution* is different from the accuracy setting for other
 LAMMPS KSpace styles in that there is no Green's function being solved. Instead,
@@ -391,7 +387,6 @@ scale parameters of the system. If the system has a smallest Gaussian
 interaction width :math:`a=0.5`, then the smallest the resolution should be in
 any direction is 0.5. Please see :doc:`kspace_modify tild <kspace_modify>` for
 more information. 
-
 
 The :doc:`kspace_modify tild <kspace_modify>` command explains further the
 options and requirements for setting up the TILD framework. 

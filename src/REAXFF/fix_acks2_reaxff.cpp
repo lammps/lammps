@@ -341,8 +341,6 @@ void FixACKS2ReaxFF::init_storage()
 
 void FixACKS2ReaxFF::pre_force(int /*vflag*/)
 {
-  double t_start, t_end;
-
   if (update->ntimestep % nevery) return;
   if (comm->me == 0) t_start = MPI_Wtime();
 

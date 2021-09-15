@@ -460,7 +460,6 @@ double FixEfield::compute_vector(int n)
 double* FixEfield::get_energy()
 {
   double **x = atom->x;
-  double *q = atom->q;
   int *mask = atom->mask;
   imageint *image = atom->image;
 

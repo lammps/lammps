@@ -305,7 +305,7 @@ namespace ReaxFF {
     double e_vdW, e_ele;
     double CEvd, CEclmb, SMALL = 0.0001;
     double f_tmp, delij[3];
-    double xcut, bond_softness, d_bond_softness, d, effpot_diff;
+    double bond_softness, d_bond_softness, d, effpot_diff;
 
     far_neighbor_data *nbr_pj;
     reax_list *far_nbrs;

@@ -1,17 +1,22 @@
 # polymers and grafted nanoparticles
+# needs packages: RIGID, MOLECULE, KSPACE and TILD
 units           lj
 atom_style      molecular
 boundary        p p p
-read_data       output.data
+read_data       pnc.data
 
-comm_modify     cutoff 6 # take care with cut offs
-#neighbor        15 bin
-neigh_modify    every 1 delay 0 check yes exclude molecule/intra all #one 120000 page 1200000
+comm_modify     cutoff 6 
+neigh_modify    every 1 delay 0 check yes exclude molecule/intra all 
 
 velocity        all zero linear
 
-# group NPs, blocks, homopolymers, w/e
-group           A type 1
+## groups
+# A: monomer A
+# B: monomer B
+# NP: NP center and the graft sites
+# GNP: grafted-NP
+# poly: all monomer siges
+group           A type 1 
 group           B type 2
 group           P type 3
 group           NP type 3 4
@@ -27,37 +32,40 @@ bond_style      harmonic
 bond_coeff      * 1.5 0
 
 # Mesh parameters
-kspace_style    tild 1.0e-4
+kspace_style    tild 0.715
 kspace_modify   mesh 7 7 11
 kspace_modify   order 2 
-kspace_modify   order/disp 2
 
+# kappa: model compressibility
+# chi: Flory-Huggins interaction parameter
+variable        kappa equal 2.0 
+variable        chi equal 1.5 
+variable        chikappa equal ${kappa}+${chi}
 # TILD interaction parameters
-kspace_modify   tild/kappa 2.
-kspace_modify   tild/coeff 1 1 gaussian 0.5 
-kspace_modify   tild/coeff 2 2 gaussian 0.5 
-kspace_modify   tild/coeff 3 3 erfc 3.5 0.25 
-kspace_modify   tild/coeff 4 4 none
+# monomers have a gaussian width, sigma, 0.5
+# NP radius is 3.5 and the transistion/width, xi, is 0.25
+# graft sites are non-interacting
+kspace_modify   tild/shape 1 1 gaussian 0.5 
+kspace_modify   tild/shape 2 2 gaussian 0.5 
+kspace_modify   tild/shape 3 3 erfc 3.5 0.25 
+kspace_modify   tild/shape 4 4 none
 kspace_modify   tild/mix convolution
-kspace_modify   tild/chi * * 0.0
-kspace_modify   tild/chi 1 2 1.5
-kspace_modify   tild/chi 2 3 1.5
+kspace_modify   tild/prefactor * * ${kappa}
+kspace_modify   tild/prefactor 1 2 ${chikappa} 
+kspace_modify   tild/prefactor 2 3 ${chikappa} 
 kspace_modify   tild/set_rho0 1.5
-kspace_modify   tild/subtract_rho0 no #yes
+kspace_modify   tild/subtract_rho0 no 
 kspace_modify   tild/normalize_by_rho0 yes
-kspace_modify   tild/write_grid_data 100 rho.grid
-kspace_modify   tild/ave/grid 2 6 100 avg_rho.grid
 
 # integrators
 fix             1 nonRigid nve 
+# Each graft point must be bonded to the NP center in the datafile
 fix             2 NP rigid molecule
-fix             3 all langevin 1.0 1.0 1.0 12345 gjf yes zero yes
-
-# Output
-dump            trj all custom 100 diblock-mpi.lammpstrj id type mol x y z
+# Thermostat the melt
+fix             3 nonRigid langevin 1.0 1.0 1.0 12345 gjf vhalf zero yes
 
 thermo          100
-thermo_style    custom step ebond epair ecoul pe temp press pxx pyy pzz pxy pxz pyz 
+thermo_style    custom step ebond epair pe temp press 
 thermo_modify   norm no
 
 timestep        0.02

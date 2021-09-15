@@ -198,7 +198,7 @@ same:
 
 Coefficients must be defined for each pair of atoms types via the
 :doc:`pair_coeff <pair_coeff>` command as described above, or in the
-PairCoeffs or PairIJCoeffs section of the data file read by the
+"Pair Coeffs" or "PairIJ Coeffs" section of the data file read by the
 :doc:`read_data <read_data>` command, or by mixing as described below.
 
 For all of the *hybrid*, *hybrid/overlay*, and *hybrid/scaled* styles,

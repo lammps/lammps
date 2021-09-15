@@ -283,7 +283,7 @@ void FixAdaptFEP::init()
       Pair *pair = nullptr;
 
       if (lmp->suffix_enable)
-        pair = force->pair_match(std::string(pstyle)+"/"+lmp->suffix,1);
+        pair = force->pair_match(std::string(ad->pstyle)+"/"+lmp->suffix,1);
 
       if (pair == nullptr) pair = force->pair_match(ad->pstyle,1);
       if (pair == nullptr)

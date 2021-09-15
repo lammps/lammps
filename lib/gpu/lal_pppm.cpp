@@ -342,12 +342,14 @@ void PPPMT::interp(const grdtyp qqrd2e_scale) {
   vd_brick.update_device(true);
   time_in.stop();
 
+  int ainum=this->ans->inum();
+  if (ainum==0)
+    return;
+
   time_interp.start();
   // Compute the block size and grid size to keep all cores busy
   int BX=this->block_size();
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/BX));
-
-  int ainum=this->ans->inum();
 
   k_interp.set_size(GX,BX);
   k_interp.run(&atom->x, &atom->q, &ainum, &vd_brick, &d_rho_coeff,

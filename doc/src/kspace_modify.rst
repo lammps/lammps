@@ -437,18 +437,29 @@ slab correction has also been extended to point dipole interactions
 The *tild/shape* keywords specifies the shape potential of a given molecule
 type. This is used to automatically generate interaction potentials between
 particles of different types. There are two currently supported types:
-`gaussian` and `tild`. A `none` type is supported particles that do not have a
+`gaussian` and `erfc`. A `none` type is supported particles that do not have a
 corresponding shape function. For interactions between two Gaussian particles,
 we analytically convolve the two shape potentials together; for all other
 interactions, we do a numerical convolution to get the proper convolved
 interactions. 
 
+The current shpae function styles used in *tild/shape* are
 .. math::
 
-   U_{g} = & \frac{A}{\rho_0 (2\pi \sigma^2)^{D/2}} \exp(-r^2/2\sigma^2) \\
+   U_{g} = & \frac{A}{\rho_0 (2\pi \sigma^2)^{3/2}} \exp(-r^2/2\sigma^2) \\
          = & \frac{A}{\rho_0} u_G (r) \\
-   U_{erfc} = & - \frac{A}{\rho_0} \text{erfc} \left(\frac{\vert r \vert -
-   R_p}{\sigma}\right) \\
+   U_{erfc} = & - \frac{A}{\rho_0} \text{erfc} \left(\frac{\vert r \vert - R_p}{\xi}\right) \\ 
+   U_{g-erfc} = & \frac{A}{\rho_0} u_G (r) * \text{erfc}
+   \left(\frac{\vert r \vert - R_p}{\xi}\right)
+
+where :math:`A` is the value set by `tild/prefactor`\, :math:`\rho_0` is the total density of the TILD particles, :math:`\sigma`\ is the gaussian width, :math:`R_p` is the erfc particle radius and :math:`xi` is the erfc width.
+
+The first required keyword for the *tild/shape* option is the model. 
+Currently supported options for shape function models
+and their required arguments are:
+
+1. *gaussian* : :math:`\sigma` (distance units)
+2. *erfc* : :math:`R_p`, :math:`\xi` (both in distance units)
 
 ----------
 
@@ -467,12 +478,12 @@ contains only `gaussian` shapes, this has no effect on the simulation.
 ----------
 
 The *tild/normalize_by_rho0* keyword will divide the interactions by the
-calcualted TILD :math:`\rho_0`\ . Please note this division will divide the
+calcualted TILD :math:`\rho_0`\, the total density of the TILD particles. Please note this division will divide the
 prefactors specified in `tild/prefactor`\ .
 
 ----------
 
-The *tild/cross-interaction* this is used to override any specified interaction
+The *tild/cross-interaction* keyword is used to override any specified interaction
 from `tild/shape`. At this time, we currently only support three non-zero
 interaction styles (`gaussian`, `erfc`, `gaussian-erfc`), which model the
 interactions between two gaussian potentials, two erfc potentials, or the
@@ -480,22 +491,33 @@ interaction between a gaussian particle and an erfc particle. There is also a
 `none` style to force no-interactions between certain particle types and also a
 `delete` command to remove any previously entered `tild/cross-interaction`\ .
 
+The current interaction styles used in *tild/cross-interaction* are
 .. math::
 
-   U_{g} = & \frac{A}{\rho_0 (2\pi \sigma^2)^{D/2}} \exp(-r^2/2\sigma^2) \\
+   U_{g} = & \frac{A}{\rho_0 (2\pi \sigma^2)^{3/2}} \exp(-r^2/2\sigma^2) \\
          = & \frac{A}{\rho_0} u_G (r) \\
-   U_{erfc} = & - \frac{A}{\rho_0} \text{erfc} \left(\frac{\vert r \vert -
-   R_p}{\sigma}\right) \\ U_{g-erfc} = & \frac{A}{\rho_0} u_G (r) * \text{erfc}
-   \left(\frac{\vert r \vert - R_p}{\sigma}\right)
+   U_{erfc} = & - \frac{A}{\rho_0} \text{erfc} \left(\frac{\vert r \vert - R_p}{\xi}\right) \\ 
+   U_{g-erfc} = & \frac{A}{\rho_0} u_G (r) * \text{erfc}
+   \left(\frac{\vert r \vert - R_p}{\xi}\right)
+
+where :math:`\A`\ is the value set by `tild/prefactor`\, :math:`\rho_0`\ is the total density of the TILD particles, :math:`\sigma`\ is the gaussian width, :math:`\R_p`\ is the erfc particle radius and :math:`\xi`\ is the erfc width.
+
+The first required keyword for the *tild/cross-interaction* option is the interaction model. 
+Currently supported options for interaction models
+and their required arguments are:
+
+1. *gaussian* : :math:`\sigma` (distance units)
+2. *gaussian-erfc* : :math:`\sigma`, :math:`R_p`, :math:`\xi` (all in distance units)
+2. *erfc* : :math:`R_p`, :math:`\xi` (both in distance units)
 
 ----------
 
-The *tild/write_grid_data* writes the instantaneous density grids. 
+The *tild/write_grid_data* writes the instantaneous gridded density to *filename*. Every $freq$ timesteps, the density is overwritte. 
 
 ----------
 
-The *tild/ave/grid* keywords determines how freuently the density grids are
-outputted. The *Nevery*, *Nrepeat*, and *Nfreq* arguments specify on what
+The *tild/ave/grid* keywords determines how freuently the density grids are averaged and 
+output. The *Nevery*, *Nrepeat*, and *Nfreq* arguments specify on what
 timesteps the input values will be used in order to contribute to the average.
 The final averaged quantities are generated on timesteps that are a multiple of
 *Nfreq*. The average is over *Nrepeat* quantities, computed in the preceding

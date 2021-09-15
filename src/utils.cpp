@@ -583,8 +583,8 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
 
       // split off the compute/fix/property ID, the wildcard and trailing text
 
-      size_t first = word.find("[");
-      size_t second = word.find("]", first + 1);
+      size_t first = word.find('[');
+      size_t second = word.find(']', first + 1);
       if (word[1] == '2')
         id = word.substr(3, first - 3);
       else

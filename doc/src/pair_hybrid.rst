@@ -246,7 +246,7 @@ styles with different requirements.
 ----------
 
 Different force fields (e.g. CHARMM vs. AMBER) may have different rules
-for applying exclusions or wheights that change the strength of pairwise
+for applying exclusions or weights that change the strength of pairwise
 non-bonded interactions between pairs of atoms that are also 1-2, 1-3,
 and 1-4 neighbors in the molecular bond topology. This is normally a
 global setting defined the :doc:`special_bonds <special_bonds>` command.

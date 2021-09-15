@@ -2460,30 +2460,17 @@ double FixNPTCauchy::memory_usage()
 void FixNPTCauchy::CauchyStat_init()
 {
   if (comm->me == 0) {
-    if (screen) {
-      fprintf(screen,"Using fix npt/cauchy with alpha=%f\n",alpha);
-      if (restartPK==1) {
-        fprintf(screen,"   (this is a continuation run)\n");
-      } else {
-        fprintf(screen,"   (this is NOT a continuation run)\n");
-      }
+    std::string mesg = fmt::format("Using fix npt/cauchy with alpha={:f.8}\n",alpha);
+    if (restartPK==1) {
+      mesg += "   (this is a continuation run)\n";
+    } else {
+      mesg += "   (this is NOT a continuation run)\n";
     }
-    if (logfile) {
-      fprintf(logfile,"Using fix npt/cauchy with alpha=%f\n",alpha);
-      if (restartPK==1) {
-        fprintf(logfile,"   this is a continuation run\n");
-      } else {
-        fprintf(logfile,"   this is NOT a continuation run\n");
-      }
-    }
+    utils::logmesg(lmp, mesg);
   }
 
-  if (!id_store) {
-    int n = strlen(id) + 14;
-    id_store = new char[n];
-    strcpy(id_store,id);
-    strcat(id_store,"_FIX_NH_STORE");
-  }
+  if (!id_store)
+    id_store = utils::strdup(std::string(id) + "_FIX_NH_STORE");
   restart_stored = modify->find_fix(id_store);
 
   if (restartPK==1 && restart_stored < 0)
@@ -2491,19 +2478,10 @@ void FixNPTCauchy::CauchyStat_init()
                " must follow a previously equilibrated npt/cauchy run");
 
   if (alpha<=0.0)
-    error->all(FLERR,"Illegal fix npt/cauchy command: "
-               " Alpha cannot be zero or negative.");
+    error->all(FLERR,"Illegal fix npt/cauchy command: Alpha cannot be zero or negative.");
 
   if (restart_stored < 0) {
-    char **newarg = new char *[6];
-    newarg[0] = id_store;
-    newarg[1] = (char *) "all";
-    newarg[2] = (char *) "STORE";
-    newarg[3] = (char *) "global";
-    newarg[4] = (char *) "1";
-    newarg[5] = (char *) "6";
-    modify->add_fix(6,newarg);
-    delete[] newarg;
+    modify->add_fix(std::string(id_store) + "all STORE global 1 6");
     restart_stored = modify->find_fix(id_store);
   }
   init_store = (FixStore *)modify->fix[restart_stored];

@@ -614,8 +614,7 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
       }
 
       if (value == nullptr)
-        error->one(FLERR,"Substitution for illegal "
-                                     "variable {}",var);
+        error->one(FLERR,"Substitution for illegal variable {}",var);
 
       // check if storage in str2 needs to be expanded
       // re-initialize ptr and ptr2 to the point beyond the variable.

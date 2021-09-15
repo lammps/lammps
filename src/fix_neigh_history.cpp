@@ -14,7 +14,6 @@
 
 #include "fix_neigh_history.h"
 
-#include <cstring>
 #include "my_page.h"
 #include "atom.h"
 #include "comm.h"
@@ -25,6 +24,8 @@
 #include "pair.h"
 #include "memory.h"
 #include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

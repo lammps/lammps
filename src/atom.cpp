@@ -351,7 +351,7 @@ Atom::~Atom()
 
   // delete mapping data structures
 
-  map_delete();
+  Atom::map_delete();
 
   delete unique_tags;
 }

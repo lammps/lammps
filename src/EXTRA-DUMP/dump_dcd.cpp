@@ -78,7 +78,7 @@ DumpDCD::DumpDCD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
   yf = &coords[1*natoms];
   zf = &coords[2*natoms];
 
-  openfile();
+  DumpDCD::openfile();
   headerflag = 0;
   nevery_save = 0;
   ntotal = 0;

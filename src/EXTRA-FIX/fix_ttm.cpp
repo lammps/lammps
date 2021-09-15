@@ -142,7 +142,7 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   // allocate per-atom flangevin and zero it
 
   flangevin = nullptr;
-  grow_arrays(atom->nmax);
+  FixTTM::grow_arrays(atom->nmax);
 
   for (int i = 0; i < atom->nmax; i++) {
     flangevin[i][0] = 0.0;
@@ -173,7 +173,7 @@ FixTTM::~FixTTM()
 
   memory->destroy(flangevin);
 
-  if (!deallocate_flag) deallocate_grid();
+  if (!deallocate_flag) FixTTM::deallocate_grid();
 }
 
 /* ---------------------------------------------------------------------- */

@@ -84,7 +84,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   ftmp = nullptr;
   vtmp = nullptr;
 
-  grow_arrays(atom->nmax);
+  FixShake::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
 
   // set comm size needed by this fix

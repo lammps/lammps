@@ -245,8 +245,8 @@ PPPMDisp::~PPPMDisp()
   cii = nullptr;
   delete [] csumi;
   csumi = nullptr;
-  deallocate();
-  deallocate_peratom();
+  PPPMDisp::deallocate();
+  PPPMDisp::deallocate_peratom();
   memory->destroy(part2grid);
   memory->destroy(part2grid_6);
   part2grid = part2grid_6 = nullptr;

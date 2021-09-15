@@ -89,7 +89,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   eflags = nullptr;
   orient = nullptr;
   dorient = nullptr;
-  grow_arrays(atom->nmax);
+  FixRigidSmall::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
 
   // parse args for rigid body specification

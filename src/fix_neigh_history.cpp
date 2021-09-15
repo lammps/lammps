@@ -66,7 +66,7 @@ FixNeighHistory::FixNeighHistory(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based arrays
   // register with atom class
 
-  grow_arrays(atom->nmax);
+  FixNeighHistory::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
   atom->add_callback(Atom::RESTART);
 

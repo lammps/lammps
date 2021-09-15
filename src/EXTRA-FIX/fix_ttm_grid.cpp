@@ -55,7 +55,7 @@ FixTTMGrid::FixTTMGrid(LAMMPS *lmp, int narg, char **arg) :
 
 FixTTMGrid::~FixTTMGrid()
 {
-  deallocate_grid();
+  FixTTMGrid::deallocate_grid();
   deallocate_flag = 1;
 }
 

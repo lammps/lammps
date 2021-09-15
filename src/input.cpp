@@ -1257,7 +1257,7 @@ void Input::shell()
 #else
       if (arg[i]) {
         std::string vardef(arg[i]);
-        auto found = vardef.find_first_of("=");
+        auto found = vardef.find_first_of('=');
         if (found == std::string::npos) {
           rv = setenv(vardef.c_str(),"",1);
         } else {

@@ -101,7 +101,7 @@ void CiteMe::add(const std::string &reference)
     if (logfile_flag == VERBOSE) logbuffer += "\n";
   }
 
-  std::size_t found = reference.find_first_of("\n");
+  std::size_t found = reference.find_first_of('\n');
   std::string header = reference.substr(0,found+1);
   if (screen_flag == VERBOSE) scrbuffer += "- " + reference;
   if (screen_flag == TERSE) scrbuffer += "- " + header;

@@ -502,7 +502,7 @@ void utils::bounds(const char *file, int line, const std::string &str,
     return;
   }
 
-  found = str.find_first_of("*");
+  found = str.find_first_of('*');
   if (found == std::string::npos) {    // contains no '*'
     nlo = nhi = strtol(str.c_str(), nullptr, 10);
   } else if (str.size() == 1) {    // is only '*'
@@ -727,7 +727,7 @@ std::string utils::trim(const std::string &line)
 
 std::string utils::trim_comment(const std::string &line)
 {
-  auto end = line.find_first_of("#");
+  auto end = line.find_first_of('#');
   if (end != std::string::npos) { return line.substr(0, end); }
   return std::string(line);
 }
@@ -1030,7 +1030,7 @@ std::string utils::path_basename(const std::string &path)
 #if defined(_WIN32)
   size_t start = path.find_last_of("/\\");
 #else
-  size_t start = path.find_last_of("/");
+  size_t start = path.find_last_of('/');
 #endif
 
   if (start == std::string::npos) {
@@ -1051,7 +1051,7 @@ std::string utils::path_dirname(const std::string &path)
 #if defined(_WIN32)
   size_t start = path.find_last_of("/\\");
 #else
-  size_t start = path.find_last_of("/");
+  size_t start = path.find_last_of('/');
 #endif
 
   if (start == std::string::npos) return ".";

@@ -2533,27 +2533,27 @@ void Atom::remove_custom(int index, int flag, int cols)
 {
   if (flag == 0 && cols == 0) {
     memory->destroy(ivector[index]);
-    ivector[index] = NULL;
+    ivector[index] = nullptr;
     delete [] ivname[index];
-    ivname[index] = NULL;
+    ivname[index] = nullptr;
 
   } else if (flag == 1 && cols == 0) {
     memory->destroy(dvector[index]);
-    dvector[index] = NULL;
+    dvector[index] = nullptr;
     delete [] dvname[index];
-    dvname[index] = NULL;
+    dvname[index] = nullptr;
 
   } else if (flag == 0 && cols) {
     memory->destroy(iarray[index]);
-    iarray[index] = NULL;
+    iarray[index] = nullptr;
     delete [] ianame[index];
-    ianame[index] = NULL;
+    ianame[index] = nullptr;
 
   } else if (flag == 1 && cols) {
     memory->destroy(darray[index]);
-    darray[index] = NULL;
+    darray[index] = nullptr;
     delete [] daname[index];
-    daname[index] = NULL;
+    daname[index] = nullptr;
   }
 }
 
@@ -2786,9 +2786,9 @@ void *Atom::extract(const char *name)
     if (!array) index = find_custom(&name[2],flag,cols);
     else index = find_custom(&name[3],flag,cols);
 
-    if (index < 0) return NULL;
-    if (which != flag) return NULL;
-    if ((!array && cols) || (array && !cols)) return NULL;
+    if (index < 0) return nullptr;
+    if (which != flag) return nullptr;
+    if ((!array && cols) || (array && !cols)) return nullptr;
 
     if (!which && !array) return (void *) ivector[index];
     if (which && !array) return (void *) dvector[index];

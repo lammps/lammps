@@ -15,9 +15,9 @@
 
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "error.h"
 
 #include <cstring>
 
@@ -74,34 +74,34 @@ void LabelMap::modify_lmap(int narg, char **arg)
 
   int ntypes;
   std::vector<std::string> *labels;
-  if (!strcmp(arg[0],"atom")) {
+  const std::string tlabel(arg[0]);
+  if (tlabel == "atom") {
     ntypes = natomtypes;
     labels = &typelabel;
-  } else if (!strcmp(arg[0],"bond")) {
+  } else if (tlabel == "bond") {
     ntypes = nbondtypes;
     labels = &btypelabel;
-  } else if (!strcmp(arg[0],"angle")) {
+  } else if (tlabel == "angle") {
     ntypes = nangletypes;
     labels = &atypelabel;
-  } else if (!strcmp(arg[0],"dihedral")) {
+  } else if (tlabel == "dihedral") {
     ntypes = ndihedraltypes;
     labels = &dtypelabel;
-  } else if (!strcmp(arg[0],"improper")) {
+  } else if (tlabel == "improper") {
     ntypes = nimpropertypes;
     labels = &itypelabel;
   } else error->all(FLERR,"Illegal labelmap command");
 
   int itype;
   int iarg = 1;
-  char *charlabel;
   while (iarg < narg) {
     itype = utils::inumeric(FLERR,arg[iarg++],false,lmp);
-    charlabel = arg[iarg++];
     if (itype > ntypes)
       error->all(FLERR,"Topology type exceeds system topology type");
-    if (isdigit(charlabel[0]))
+    std::string slabel(arg[iarg++]);
+    if (isdigit(slabel[0]))
       error->all(FLERR,"Type labels cannot start with a number");
-    (*labels)[itype-1] = charlabel;
+    (*labels)[itype-1] = slabel;
   }
 }
 

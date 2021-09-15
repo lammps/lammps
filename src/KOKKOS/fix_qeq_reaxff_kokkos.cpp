@@ -378,7 +378,7 @@ void FixQEqReaxFFKokkos<DeviceType>::allocate_array()
     d_d = k_d.template view<DeviceType>();
     h_d = k_d.h_view;
 
-    memoryKK->create_kokkos(k_chi_field,chi_field,nmax,"acks2/kk:chi_field");
+    memoryKK->create_kokkos(k_chi_field,chi_field,nmax,"qeq/kk:chi_field");
     d_chi_field = k_chi_field.template view<DeviceType>();
   }
 
@@ -1588,6 +1588,7 @@ int FixQEqReaxFFKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
 template<class DeviceType>
 void FixQEqReaxFFKokkos<DeviceType>::get_chi_field()
 {
+  atomKK->sync(Host,X_MASK|MASK_MASK|IMAGE_MASK);
   FixQEqReaxFF::get_chi_field();
   k_chi_field.modify_host();
   k_chi_field.sync_device();

@@ -1961,6 +1961,7 @@ int FixACKS2ReaxFFKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
 template<class DeviceType>
 void FixACKS2ReaxFFKokkos<DeviceType>::get_chi_field()
 {
+  atomKK->sync(Host,X_MASK|MASK_MASK|IMAGE_MASK);
   FixQEqReaxFF::get_chi_field();
   k_chi_field.modify_host();
   k_chi_field.sync_device();

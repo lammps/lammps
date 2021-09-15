@@ -73,7 +73,7 @@ namespace ReaxFF {
     double dr3gamij_1, dr3gamij_3;
     double e_ele, e_vdW, e_core, SMALL = 0.0001;
     double e_lg, de_lg, r_ij5, r_ij6, re6;
-    double xcut, bond_softness, d_bond_softness, d, effpot_diff;
+    double bond_softness, d_bond_softness, d, effpot_diff;
     two_body_parameters *twbp;
     far_neighbor_data *nbr_pj;
     reax_list *far_nbrs;
@@ -409,8 +409,8 @@ namespace ReaxFF {
         flag = 0;
 
         /* kinetic energy terms */
-        xcut = 0.5 * ( system->reax_param.sbp[ system->my_atoms[i].type ].bcut_acks2
-                     + system->reax_param.sbp[ system->my_atoms[j].type ].bcut_acks2 );
+        double xcut = 0.5 * ( system->reax_param.sbp[ system->my_atoms[i].type ].bcut_acks2
+                            + system->reax_param.sbp[ system->my_atoms[j].type ].bcut_acks2 );
 
         if(nbr_pj->d <= xcut) {
           if (j < natoms) flag = 1;

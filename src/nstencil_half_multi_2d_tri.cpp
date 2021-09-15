@@ -18,7 +18,7 @@
 #include "nbin.h"
 #include "memory.h"
 #include "atom.h"
-#include <math.h>
+#include <cmath>
 
 using namespace LAMMPS_NS;
 

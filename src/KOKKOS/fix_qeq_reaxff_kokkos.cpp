@@ -2031,8 +2031,18 @@ int FixQEqReaxFFKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *
   int m;
 
   if (pack_flag == 1) {
+  #ifndef HIP_OPT_CG_SOLVE_FUSED
     k_d.sync_host();
     for (m = 0; m < n; m++) buf[m] = h_d[list[m]];
+  #else
+    k_d_fused.sync_host();
+    for (m = 0; m < n; m++) {
+      if (!(converged & 1))
+        buf[m*2] = h_d_fused(list[m],0);
+      if (!(converged & 2))
+        buf[m*2+1] = h_d_fused(list[m],1);
+    }
+  #endif
   } else if (pack_flag == 2) {
     k_s.sync_host();
     for (m = 0; m < n; m++) buf[m] = h_s[list[m]];
@@ -2044,7 +2054,16 @@ int FixQEqReaxFFKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *
     for (m = 0; m < n; m++) buf[m] = atom->q[list[m]];
   }
 
+  #ifdef HIP_OPT_CG_SOLVE_FUSED
+  if (pack_flag == 1) {
+    // sending 2x the data
+    return 2*n;
+  } else {
+    return n;
+  }
+  #else
   return n;
+  #endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2055,9 +2074,20 @@ void FixQEqReaxFFKokkos<DeviceType>::unpack_forward_comm(int n, int first, doubl
   int i, m;
 
   if (pack_flag == 1) {
-    k_d.sync_host();
-    for (m = 0, i = first; m < n; m++, i++) h_d[i] = buf[m];
-    k_d.modify_host();
+    #ifndef HIP_OPT_CG_SOLVE_FUSED
+      k_d.sync_host();
+      for (m = 0, i = first; m < n; m++, i++) h_d[i] = buf[m];
+      k_d.modify_host();
+    #else
+      k_d_fused.sync_host();
+      for (m = 0, i = first; m < n; m++, i++) {
+        if (!(converged & 1))
+          h_d_fused(i,0) = buf[m*2];
+        if (!(converged & 2))
+          h_d_fused(i,1) = buf[m*2+1];
+      }
+      k_d_fused.modify_host();
+    #endif
   } else if (pack_flag == 2) {
     k_s.sync_host();
     for (m = 0, i = first; m < n; m++, i++) h_s[i] = buf[m];

@@ -54,22 +54,22 @@ Syntax
          *nozforce* turns off kspace forces in the z direction
        *splittol* value = tol
          tol = relative size of two eigenvalues (see discussion below)
-       *tild/shape* itype itype SHAPE parameters
+       *tild/shape* values = itype itype SHAPE parameters
          SHAPE = *gaussian* or *erfc* or *none*
          parameters = parameters for each function (see discussion below)
-       *tild/prefactor* itype jtype prefactor
+       *tild/prefactor* values = itype jtype prefactor
          prefactor = magnitude of the function 
-       *tild/cross-interaction* itype jtype interaction_shape parameters
+       *tild/cross-interaction* values = itype jtype interaction_shape parameters
          interaction_shape = *gaussian* or *gaussian-erfc* or *erfc*
          parameters = parameters for each function (see discussion below)
-       *tild/set_rho0* rho0
+       *tild/set_rho0* value = rho0
          rho0 = total density of TILD particles
-       *tild/subtract_rho0* = *yes* or *no*
-       *tild/normalize_by_rho0* = *yes* or *no*
-       *tild/write_grid_data* = freq filename
+       *tild/subtract_rho0* value = *yes* or *no*
+       *tild/normalize_by_rho0* value = *yes* or *no*
+       *tild/write_grid_data* values = freq filename
          freq = frequency of output. 0 or less disables output
          filename = name of file to output time averages to
-       *tild/ave/grid* = Nevery Nrepeat Nfreq filename 
+       *tild/ave/grid* values = Nevery Nrepeat Nfreq filename 
          Nevery = use input values every this many timesteps
          Nrepeat = # of times to use input values for calculating averages
          Nfreq = calculate averages every this many timesteps

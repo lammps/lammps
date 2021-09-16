@@ -94,24 +94,12 @@ FixPairTracker::FixPairTracker(LAMMPS *lmp, int narg, char **arg) :
         }
       }
 
-      in = strlen(arg[iarg + 1]) + 1;
-      istr = new char[in];
-      strcpy(istr, arg[iarg + 1]);
-      std::vector<std::string> iwords = Tokenizer(istr, ",").as_vector();
-      infield = iwords.size();
+      auto iwords = Tokenizer(arg[iarg + 1], ",").as_vector();
+      auto jwords = Tokenizer(arg[iarg + 2], ",").as_vector();
 
-      jn = strlen(arg[iarg + 2]) + 1;
-      jstr = new char[jn];
-      strcpy(jstr, arg[iarg + 2]);
-      std::vector<std::string> jwords = Tokenizer(jstr, ",").as_vector();
-      jnfield = jwords.size();
-
-      for (i = 0; i < infield; i++) {
-        const char *ifield = iwords[i].c_str();
+      for (const auto &ifield : iwords) {
         utils::bounds(FLERR, ifield, 1, ntypes, inlo, inhi, error);
-
-        for (j = 0; j < jnfield; j++) {
-          const char *jfield = jwords[j].c_str();
+        for (const auto &jfield : jwords) {
           utils::bounds(FLERR, jfield, 1, ntypes, jnlo, jnhi, error);
 
           for (itype = inlo; itype <= inhi; itype++) {
@@ -122,10 +110,6 @@ FixPairTracker::FixPairTracker(LAMMPS *lmp, int narg, char **arg) :
           }
         }
       }
-
-      delete[] istr;
-      delete[] jstr;
-
       iarg += 2;
 
     } else

@@ -51,7 +51,7 @@ NEB::NEB(LAMMPS *lmp) : Command(lmp), all(nullptr), rdist(nullptr) {}
 
 NEB::NEB(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
          int n2steps_in, int nevery_in, double *buf_init, double *buf_final)
-  : Command(lmp), all(nullptr), rdist(nullptr)
+  : Command(lmp), fp(nullptr), all(nullptr), rdist(nullptr)
 {
   double delx,dely,delz;
 

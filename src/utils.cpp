@@ -32,6 +32,21 @@
 #include <unistd.h>    // for readlink
 #endif
 
+#if defined(__APPLE__)
+#include <fcntl.h>    // for fcntl
+#include <sys/syslimits.h>
+#endif
+
+#if defined(_WIN32)
+// target Windows version is Windows 7 and later
+#if defined(_WIN32_WINNT)
+#undef _WIN32_WINNT
+#endif
+#define _WIN32_WINNT _WIN32_WINNT_WIN7
+#include <io.h>
+#include <windows.h>
+#endif
+
 /*! \file utils.cpp */
 
 /*
@@ -149,6 +164,9 @@ std::string utils::getsyserror()
 
 /** On Linux the folder /proc/self/fd holds symbolic links to the actual
  * pathnames associated with each open file descriptor of the current process.
+ * On macOS the same kind of information can be obtained using ``fcntl(fd,F_GETPATH,buf)``.
+ * On Windows we use ``GetFinalPathNameByHandleA()`` which is available with
+ * Windows Vista and later.
  *
  * This function is used to provide a filename with error messages in functions
  * where the filename is not passed as an argument, but the FILE * pointer.
@@ -161,6 +179,20 @@ const char *utils::guesspath(char *buf, int len, FILE *fp)
   int fd = fileno(fp);
   // get pathname from /proc or copy (unknown)
   if (readlink(fmt::format("/proc/self/fd/{}", fd).c_str(), buf, len - 1) <= 0)
+    strncpy(buf, "(unknown)", len - 1);
+#elif defined(__APPLE__)
+  int fd = fileno(fp);
+  char filepath[PATH_MAX];
+  if (fcntl(fd, F_GETPATH, filepath) != -1)
+    strncpy(buf, filepath, len - 1);
+  else
+    strncpy(buf, "(unknown)", len - 1);
+#elif defined(_WIN32)
+  char filepath[MAX_PATH];
+  HANDLE h = (HANDLE) _get_osfhandle(_fileno(fp));
+  if (GetFinalPathNameByHandleA(h, filepath, PATH_MAX, FILE_NAME_NORMALIZED) > 0)
+    strncpy(buf, filepath, len - 1);
+  else
     strncpy(buf, "(unknown)", len - 1);
 #else
   strncpy(buf, "(unknown)", len - 1);
@@ -1284,6 +1316,30 @@ int utils::date2num(const std::string &date)
   return num;
 }
 
+/* binary search in vector of ascending doubles */
+int utils::binary_search(const double needle, const int n, const double *haystack)
+{
+  int lo = 0;
+  int hi = n - 1;
+
+  if (needle < haystack[lo]) return lo;
+  if (needle >= haystack[hi]) return hi;
+
+  // insure haystack[lo] <= needle < haystack[hi] at every iteration
+  // done when lo,hi are adjacent
+
+  int index = (lo + hi) / 2;
+  while (lo < hi - 1) {
+    if (needle < haystack[index])
+      hi = index;
+    else if (needle >= haystack[index])
+      lo = index;
+    index = (lo + hi) / 2;
+  }
+
+  return index;
+}
+
 /* ----------------------------------------------------------------------
  * Merge sort part 1: Loop over sublists doubling in size with each iteration.
  * Pre-sort small sublists with insertion sort for better overall performance.
@@ -1412,26 +1468,26 @@ static int re_matchp(const char *text, re_t pattern, int *matchlen);
 #define MAX_CHAR_CLASS_LEN 40 /* Max length of character-class buffer in.   */
 
 enum {
-  UNUSED,
-  DOT,
-  BEGIN,
-  END,
-  QUESTIONMARK,
-  STAR,
-  PLUS,
-  CHAR,
-  CHAR_CLASS,
-  INV_CHAR_CLASS,
-  DIGIT,
-  NOT_DIGIT,
-  INTEGER,
-  NOT_INTEGER,
-  FLOAT,
-  NOT_FLOAT,
-  ALPHA,
-  NOT_ALPHA,
-  WHITESPACE,
-  NOT_WHITESPACE /*, BRANCH */
+  RX_UNUSED,
+  RX_DOT,
+  RX_BEGIN,
+  RX_END,
+  RX_QUESTIONMARK,
+  RX_STAR,
+  RX_PLUS,
+  RX_CHAR,
+  RX_CHAR_CLASS,
+  RX_INV_CHAR_CLASS,
+  RX_DIGIT,
+  RX_NOT_DIGIT,
+  RX_INTEGER,
+  RX_NOT_INTEGER,
+  RX_FLOAT,
+  RX_NOT_FLOAT,
+  RX_ALPHA,
+  RX_NOT_ALPHA,
+  RX_WHITESPACE,
+  RX_NOT_WHITESPACE /*, BRANCH */
 };
 
 typedef struct regex_t {
@@ -1483,7 +1539,7 @@ int re_matchp(const char *text, re_t pattern, int *matchlen)
 {
   *matchlen = 0;
   if (pattern != 0) {
-    if (pattern[0].type == BEGIN) {
+    if (pattern[0].type == RX_BEGIN) {
       return ((matchpattern(&pattern[1], text, matchlen)) ? 0 : -1);
     } else {
       int idx = -1;
@@ -1518,22 +1574,22 @@ re_t re_compile(re_ctx_t context, const char *pattern)
     switch (c) {
         /* Meta-characters: */
       case '^': {
-        re_compiled[j].type = BEGIN;
+        re_compiled[j].type = RX_BEGIN;
       } break;
       case '$': {
-        re_compiled[j].type = END;
+        re_compiled[j].type = RX_END;
       } break;
       case '.': {
-        re_compiled[j].type = DOT;
+        re_compiled[j].type = RX_DOT;
       } break;
       case '*': {
-        re_compiled[j].type = STAR;
+        re_compiled[j].type = RX_STAR;
       } break;
       case '+': {
-        re_compiled[j].type = PLUS;
+        re_compiled[j].type = RX_PLUS;
       } break;
       case '?': {
-        re_compiled[j].type = QUESTIONMARK;
+        re_compiled[j].type = RX_QUESTIONMARK;
       } break;
 
         /* Escaped character-classes (\s \w ...): */
@@ -1545,39 +1601,39 @@ re_t re_compile(re_ctx_t context, const char *pattern)
           switch (pattern[i]) {
               /* Meta-character: */
             case 'd': {
-              re_compiled[j].type = DIGIT;
+              re_compiled[j].type = RX_DIGIT;
             } break;
             case 'D': {
-              re_compiled[j].type = NOT_DIGIT;
+              re_compiled[j].type = RX_NOT_DIGIT;
             } break;
             case 'i': {
-              re_compiled[j].type = INTEGER;
+              re_compiled[j].type = RX_INTEGER;
             } break;
             case 'I': {
-              re_compiled[j].type = NOT_INTEGER;
+              re_compiled[j].type = RX_NOT_INTEGER;
             } break;
             case 'f': {
-              re_compiled[j].type = FLOAT;
+              re_compiled[j].type = RX_FLOAT;
             } break;
             case 'F': {
-              re_compiled[j].type = NOT_FLOAT;
+              re_compiled[j].type = RX_NOT_FLOAT;
             } break;
             case 'w': {
-              re_compiled[j].type = ALPHA;
+              re_compiled[j].type = RX_ALPHA;
             } break;
             case 'W': {
-              re_compiled[j].type = NOT_ALPHA;
+              re_compiled[j].type = RX_NOT_ALPHA;
             } break;
             case 's': {
-              re_compiled[j].type = WHITESPACE;
+              re_compiled[j].type = RX_WHITESPACE;
             } break;
             case 'S': {
-              re_compiled[j].type = NOT_WHITESPACE;
+              re_compiled[j].type = RX_NOT_WHITESPACE;
             } break;
 
               /* Escaped character, e.g. '.' or '$' */
             default: {
-              re_compiled[j].type = CHAR;
+              re_compiled[j].type = RX_CHAR;
               re_compiled[j].u.ch = pattern[i];
             } break;
           }
@@ -1592,14 +1648,14 @@ re_t re_compile(re_ctx_t context, const char *pattern)
 
         /* Look-ahead to determine if negated */
         if (pattern[i + 1] == '^') {
-          re_compiled[j].type = INV_CHAR_CLASS;
+          re_compiled[j].type = RX_INV_CHAR_CLASS;
           i += 1;                  /* Increment i to avoid including '^' in the char-buffer */
           if (pattern[i + 1] == 0) /* incomplete pattern, missing non-zero char after '^' */
           {
             return 0;
           }
         } else {
-          re_compiled[j].type = CHAR_CLASS;
+          re_compiled[j].type = RX_CHAR_CLASS;
         }
 
         /* Copy characters inside [..] to buffer */
@@ -1628,7 +1684,7 @@ re_t re_compile(re_ctx_t context, const char *pattern)
 
         /* Other characters: */
       default: {
-        re_compiled[j].type = CHAR;
+        re_compiled[j].type = RX_CHAR;
         re_compiled[j].u.ch = c;
       } break;
     }
@@ -1639,8 +1695,8 @@ re_t re_compile(re_ctx_t context, const char *pattern)
     i += 1;
     j += 1;
   }
-  /* 'UNUSED' is a sentinel used to indicate end-of-pattern */
-  re_compiled[j].type = UNUSED;
+  /* 'RX_UNUSED' is a sentinel used to indicate end-of-pattern */
+  re_compiled[j].type = RX_UNUSED;
 
   return (re_t) re_compiled;
 }
@@ -1753,31 +1809,31 @@ static int matchcharclass(char c, const char *str)
 static int matchone(regex_t p, char c)
 {
   switch (p.type) {
-    case DOT:
+    case RX_DOT:
       return matchdot(c);
-    case CHAR_CLASS:
+    case RX_CHAR_CLASS:
       return matchcharclass(c, (const char *) p.u.ccl);
-    case INV_CHAR_CLASS:
+    case RX_INV_CHAR_CLASS:
       return !matchcharclass(c, (const char *) p.u.ccl);
-    case DIGIT:
+    case RX_DIGIT:
       return matchdigit(c);
-    case NOT_DIGIT:
+    case RX_NOT_DIGIT:
       return !matchdigit(c);
-    case INTEGER:
+    case RX_INTEGER:
       return matchint(c);
-    case NOT_INTEGER:
+    case RX_NOT_INTEGER:
       return !matchint(c);
-    case FLOAT:
+    case RX_FLOAT:
       return matchfloat(c);
-    case NOT_FLOAT:
+    case RX_NOT_FLOAT:
       return !matchfloat(c);
-    case ALPHA:
+    case RX_ALPHA:
       return matchalphanum(c);
-    case NOT_ALPHA:
+    case RX_NOT_ALPHA:
       return !matchalphanum(c);
-    case WHITESPACE:
+    case RX_WHITESPACE:
       return matchwhitespace(c);
-    case NOT_WHITESPACE:
+    case RX_NOT_WHITESPACE:
       return !matchwhitespace(c);
     default:
       return (p.u.ch == c);
@@ -1817,7 +1873,7 @@ static int matchplus(regex_t p, regex_t *pattern, const char *text, int *matchle
 
 static int matchquestion(regex_t p, regex_t *pattern, const char *text, int *matchlen)
 {
-  if (p.type == UNUSED) return 1;
+  if (p.type == RX_UNUSED) return 1;
   if (matchpattern(pattern, text, matchlen)) return 1;
   if (*text && matchone(p, *text++)) {
     if (matchpattern(pattern, text, matchlen)) {
@@ -1833,13 +1889,13 @@ static int matchpattern(regex_t *pattern, const char *text, int *matchlen)
 {
   int pre = *matchlen;
   do {
-    if ((pattern[0].type == UNUSED) || (pattern[1].type == QUESTIONMARK)) {
+    if ((pattern[0].type == RX_UNUSED) || (pattern[1].type == RX_QUESTIONMARK)) {
       return matchquestion(pattern[0], &pattern[2], text, matchlen);
-    } else if (pattern[1].type == STAR) {
+    } else if (pattern[1].type == RX_STAR) {
       return matchstar(pattern[0], &pattern[2], text, matchlen);
-    } else if (pattern[1].type == PLUS) {
+    } else if (pattern[1].type == RX_PLUS) {
       return matchplus(pattern[0], &pattern[2], text, matchlen);
-    } else if ((pattern[0].type == END) && pattern[1].type == UNUSED) {
+    } else if ((pattern[0].type == RX_END) && pattern[1].type == RX_UNUSED) {
       return (text[0] == '\0');
     }
     (*matchlen)++;

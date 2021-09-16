@@ -64,7 +64,7 @@ vstore(nullptr), astore(nullptr), rbuf(nullptr)
   if (flavor == PERATOM) {
     restart_peratom = utils::inumeric(FLERR,arg[4],false,lmp);
     nvalues = utils::inumeric(FLERR,arg[5],false,lmp);
-    if (restart_peratom < 0 or restart_peratom > 1 || nvalues <= 0)
+    if ((restart_peratom < 0) || (restart_peratom > 1) || (nvalues <= 0))
       error->all(FLERR,"Illegal fix store command");
     vecflag = 0;
     if (nvalues == 1) vecflag = 1;

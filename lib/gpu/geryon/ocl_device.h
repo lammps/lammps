@@ -462,7 +462,6 @@ int UCL_Device::set_platform(int pid) {
   _num_devices = 0;
   for (int i=0; i<num_unpart; i++) {
     cl_uint num_subdevices = 1;
-    cl_device_id *subdevice_list = device_list + i;
 
     #ifdef CL_VERSION_1_2
     cl_device_affinity_domain adomain;
@@ -479,19 +478,21 @@ int UCL_Device::set_platform(int pid) {
       CL_SAFE_CALL(clCreateSubDevices(device_list[i], props, 0, NULL,
                                       &num_subdevices));
     if (num_subdevices > 1) {
-      subdevice_list = new cl_device_id[num_subdevices];
+      cl_device_id *subdevice_list = new cl_device_id[num_subdevices];
       CL_SAFE_CALL(clCreateSubDevices(device_list[i], props, num_subdevices,
                                       subdevice_list, &num_subdevices));
+      for (int j=0; j<num_subdevices; j++) {
+        _cl_devices.push_back(device_list[i]);
+        add_properties(device_list[i]);
+        _num_devices++;
+      }
+      delete[] subdevice_list;
+    } else {
+      _cl_devices.push_back(device_list[i]);
+      add_properties(device_list[i]);
+      _num_devices++;
     }
     #endif
-
-    for (int j=0; j<num_subdevices; j++) {
-      _num_devices++;
-      _cl_devices.push_back(subdevice_list[j]);
-      add_properties(subdevice_list[j]);
-    }
-
-    if (num_subdevices > 1) delete[] subdevice_list;
   } // for i
   #endif
 

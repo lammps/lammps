@@ -984,18 +984,16 @@ int DeviceT::compile_kernels() {
   _max_bio_shared_types=gpu_lib_data[17];
   _pppm_max_spline=gpu_lib_data[18];
 
-  if (static_cast<size_t>(_block_pair)>gpu->group_size_dim(0) ||
-      static_cast<size_t>(_block_bio_pair)>gpu->group_size_dim(0) ||
-      static_cast<size_t>(_block_ellipse)>gpu->group_size_dim(0) ||
-      static_cast<size_t>(_pppm_block)>gpu->group_size_dim(0) ||
-      static_cast<size_t>(_block_nbor_build)>gpu->group_size_dim(0) ||
-      static_cast<size_t>(_block_cell_2d)>gpu->group_size_dim(0) ||
-      static_cast<size_t>(_block_cell_2d)>gpu->group_size_dim(1) ||
-      static_cast<size_t>(_block_cell_id)>gpu->group_size_dim(0) ||
-      static_cast<size_t>(_max_shared_types*_max_shared_types*
-                          sizeof(numtyp)*17 > gpu->slm_size()) ||
-      static_cast<size_t>(_max_bio_shared_types*2*sizeof(numtyp) >
-                          gpu->slm_size()))
+  if (static_cast<size_t>(_block_pair) > gpu->group_size_dim(0) ||
+      static_cast<size_t>(_block_bio_pair) > gpu->group_size_dim(0) ||
+      static_cast<size_t>(_block_ellipse) > gpu->group_size_dim(0) ||
+      static_cast<size_t>(_pppm_block) > gpu->group_size_dim(0) ||
+      static_cast<size_t>(_block_nbor_build) > gpu->group_size_dim(0) ||
+      static_cast<size_t>(_block_cell_2d) > gpu->group_size_dim(0) ||
+      static_cast<size_t>(_block_cell_2d) > gpu->group_size_dim(1) ||
+      static_cast<size_t>(_block_cell_id) > gpu->group_size_dim(0) ||
+      static_cast<size_t>(_max_shared_types*_max_shared_types*sizeof(numtyp)*17 > gpu->slm_size()) ||
+      static_cast<size_t>(_max_bio_shared_types*2*sizeof(numtyp) > gpu->slm_size()))
     return -13;
 
   if (_block_pair % _simd_size != 0 || _block_bio_pair % _simd_size != 0 ||
@@ -1071,9 +1069,8 @@ void lmp_clear_device() {
   global_device.clear_device();
 }
 
-double lmp_gpu_forces(double **f, double **tor, double *eatom,
-                      double **vatom, double *virial, double &ecoul,
-                      int &error_flag) {
+double lmp_gpu_forces(double **f, double **tor, double *eatom, double **vatom,
+                      double *virial, double &ecoul, int &error_flag) {
   return global_device.fix_gpu(f,tor,eatom,vatom,virial,ecoul,error_flag);
 }
 

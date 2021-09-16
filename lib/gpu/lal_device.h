@@ -163,17 +163,15 @@ class Device {
     { ans_queue.push(ans); }
 
   /// Add "answers" (force,energies,etc.) into LAMMPS structures
-  inline double fix_gpu(double **f, double **tor, double *eatom,
-                        double **vatom, double *virial, double &ecoul,
-                        int &error_flag) {
+  inline double fix_gpu(double **f, double **tor, double *eatom, double **vatom,
+                        double *virial, double &ecoul, int &error_flag) {
     error_flag=0;
     atom.data_unavail();
     if (ans_queue.empty()==false) {
       stop_host_timer();
       double evdw=0.0;
       while (ans_queue.empty()==false) {
-        evdw+=ans_queue.front()->get_answers(f,tor,eatom,vatom,virial,ecoul,
-                                             error_flag);
+        evdw += ans_queue.front()->get_answers(f,tor,eatom,vatom,virial,ecoul,error_flag);
         ans_queue.pop();
       }
       return evdw;

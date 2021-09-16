@@ -3775,7 +3775,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree,
 
   // match word to group function
 
-  double value;
+  double value = 0.0;
 
   if (strcmp(word,"count") == 0) {
     if (narg == 1) value = group->count(igroup);

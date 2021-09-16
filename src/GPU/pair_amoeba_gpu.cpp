@@ -59,8 +59,7 @@ int amoeba_gpu_init(const int ntypes, const int max_amtype,
                     const int nlocal, const int nall, const int max_nbors,
                     const int maxspecial, const int maxspecial15,
                     const double cell_size, int &gpu_mode, FILE *screen,
-                    const double aewald, const double felec,
-                    const double off2, const double polar_dscale,
+                    const double aewald, const double polar_dscale,
                     const double polar_uscale, int& tep_size);
 void amoeba_gpu_clear();
 
@@ -69,33 +68,30 @@ int ** amoeba_gpu_compute_udirect2b(const int ago, const int inum, const int nal
               double **host_rpole, double **host_uind, double **host_uinp, 
               double *sublo, double *subhi, tagint *tag, int **nspecial,
               tagint **special, int* nspecial15, tagint** special15,
-              const bool eflag, const bool vflag,
-              const bool eatom, const bool vatom, int &host_start,
-              int **ilist, int **jnum, const double cpu_time,
-              bool &success, double *host_q, double *boxlo, double *prd,
-              void **fieldp_ptr);
+              const bool eflag, const bool vflag, const bool eatom, const bool vatom,
+              int &host_start, int **ilist, int **jnum, const double cpu_time,
+              bool &success, const double off2, double *host_q,
+              double *boxlo, double *prd, void **fieldp_ptr);
 
 int ** amoeba_gpu_compute_umutual2b(const int ago, const int inum, const int nall,
               double **host_x, int *host_type, int *host_amtype, int *host_amgroup,
               double **host_rpole, double **host_uind, double **host_uinp, 
               double *sublo, double *subhi, tagint *tag, int **nspecial,
               tagint **special, int* nspecial15, tagint** special15,
-              const bool eflag, const bool vflag,
-              const bool eatom, const bool vatom, int &host_start,
-              int **ilist, int **jnum, const double cpu_time,
-              bool &success, double *host_q, double *boxlo, double *prd,
-              void **fieldp_ptr);
+              const bool eflag, const bool vflag, const bool eatom, const bool vatom,
+              int &host_start, int **ilist, int **jnum, const double cpu_time,
+              bool &success, const double off2, double *host_q,
+              double *boxlo, double *prd, void **fieldp_ptr);
 
 int ** amoeba_gpu_compute_polar_real(const int ago, const int inum, const int nall,
               double **host_x, int *host_type, int *host_amtype, int *host_amgroup,
               double **host_rpole, double **host_uind, double **host_uinp,
               double *sublo, double *subhi, tagint *tag, int **nspecial,
               tagint **special, int* nspecial15, tagint** special15,
-              const bool eflag, const bool vflag,
-              const bool eatom, const bool vatom, int &host_start,
-              int **ilist, int **jnum, const double cpu_time,
-              bool &success, double *host_q, double *boxlo, double *prd,
-              void **tep_ptr);
+              const bool eflag, const bool vflag, const bool eatom, const bool vatom,
+              int &host_start, int **ilist, int **jnum, const double cpu_time,
+              bool &success, const double off2, const double felec, double *host_q,
+              double *boxlo, double *prd, void **tep_ptr);
 
 double amoeba_gpu_bytes();
 
@@ -155,6 +151,15 @@ void PairAmoebaGPU::polar_real()
   }
   inum = atom->nlocal;
 
+  // select the correct cutoff for the term
+
+  if (use_ewald) choose(POLAR_LONG);
+  else choose(POLAR);
+
+  // set the energy unit conversion factor for polar real-space calculation
+
+  double felec = 0.5 * electric / am_dielectric;
+
   firstneigh = amoeba_gpu_compute_polar_real(neighbor->ago, inum, nall, atom->x,
                                         atom->type, amtype, amgroup,
                                         rpole, uind, uinp, sublo, subhi,
@@ -162,7 +167,7 @@ void PairAmoebaGPU::polar_real()
                                         atom->nspecial15, atom->special15,
                                         eflag, vflag, eflag_atom, vflag_atom,
                                         host_start, &ilist, &numneigh, cpu_time,
-                                        success, atom->q, domain->boxlo,
+                                        success, felec, off2, atom->q, domain->boxlo,
                                         domain->prd, &tep_pinned);
 
   
@@ -278,11 +283,11 @@ void PairAmoebaGPU::init_style()
 
   // select the squared cutoff (off2) for neighbor list builds (the polar term for now)
   // NOTE: induce and polar terms are using the same flags here
-
+/*
   if (use_ewald) choose(POLAR_LONG);
   else choose(POLAR);
-
-  double cell_size = sqrt(off2) + neighbor->skin;
+*/
+  double cell_size = sqrt(maxcut) + neighbor->skin;
 
   int maxspecial=0;
   int maxspecial15=0;
@@ -303,8 +308,7 @@ void PairAmoebaGPU::init_style()
                                 special_polar_pscale, atom->nlocal,
                                 atom->nlocal+atom->nghost, mnf, maxspecial,
                                 maxspecial15, cell_size, gpu_mode, screen,
-                                aewald, felec, off2, polar_dscale, polar_uscale,
-                                tep_size);
+                                aewald, polar_dscale, polar_uscale, tep_size);
   GPU_EXTRA::check_flag(success,error,world);
 
   if (gpu_mode == GPU_FORCE)
@@ -784,13 +788,18 @@ void PairAmoebaGPU::udirect2b(double **field, double **fieldp)
   }
   inum = atom->nlocal;
 
+  // select the correct cutoff (off2) for the term
+
+  if (use_ewald) choose(POLAR_LONG);
+  else choose(POLAR);
+
   firstneigh = amoeba_gpu_compute_udirect2b(neighbor->ago, inum, nall, atom->x,
                                         atom->type, amtype, amgroup, rpole, uind, uinp,
                                         sublo, subhi, atom->tag, atom->nspecial, atom->special,
                                         atom->nspecial15, atom->special15,
                                         eflag, vflag, eflag_atom, vflag_atom,
                                         host_start, &ilist, &numneigh, cpu_time,
-                                        success, atom->q, domain->boxlo,
+                                        success, off2, atom->q, domain->boxlo,
                                         domain->prd, &fieldp_pinned);
   if (!success)
     error->one(FLERR,"Insufficient memory on accelerator");
@@ -1003,13 +1012,18 @@ void PairAmoebaGPU::umutual2b(double **field, double **fieldp)
   }
   inum = atom->nlocal;
 
+  // select the correct cutoff (off2) for the term
+
+  if (use_ewald) choose(POLAR_LONG);
+  else choose(POLAR);
+
   firstneigh = amoeba_gpu_compute_umutual2b(neighbor->ago, inum, nall, atom->x,
                                         atom->type, amtype, amgroup, rpole, uind, uinp,
                                         sublo, subhi, atom->tag, atom->nspecial, atom->special,
                                         atom->nspecial15, atom->special15,
                                         eflag, vflag, eflag_atom, vflag_atom,
                                         host_start, &ilist, &numneigh, cpu_time,
-                                        success, atom->q, domain->boxlo,
+                                        success, off2, atom->q, domain->boxlo,
                                         domain->prd, &fieldp_pinned);
   if (!success)
     error->one(FLERR,"Insufficient memory on accelerator");

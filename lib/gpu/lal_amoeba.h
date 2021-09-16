@@ -45,8 +45,7 @@ class Amoeba : public BaseAmoeba<numtyp, acctyp> {
            const int nlocal, const int nall, const int max_nbors,
            const int maxspecial, const int maxspecial15, const double cell_size,
            const double gpu_split, FILE *_screen,
-           const double aewald, const double felec,
-           const double off2, const double polar_dscale,
+           const double aewald, const double polar_dscale,
            const double polar_uscale);
 
   /// Clear all host and device data
@@ -75,7 +74,7 @@ class Amoeba : public BaseAmoeba<numtyp, acctyp> {
   /// Number of atom types
   int _lj_types;
 
-  numtyp _aewald, _felec, _off2, _polar_dscale, _polar_uscale;
+  numtyp _aewald, _polar_dscale, _polar_uscale;
   numtyp _qqrd2e;
 
  protected:

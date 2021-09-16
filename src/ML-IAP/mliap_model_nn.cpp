@@ -39,7 +39,7 @@ MLIAPModelNN::MLIAPModelNN(LAMMPS* lmp, char* coefffilename) :
   nnodes = nullptr;
   activation = nullptr;
   scale = nullptr;
-  if (coefffilename) read_coeffs(coefffilename);
+  if (coefffilename) MLIAPModelNN::read_coeffs(coefffilename);
   nonlinearflag = 1;
 }
 

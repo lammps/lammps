@@ -128,14 +128,18 @@ double AmoebaT::host_memory_usage() const {
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 int AmoebaT::udirect2b(const int eflag, const int vflag) {
+  int ainum=this->ans->inum(); 
+  if (ainum == 0)
+    return 0;
+
   int _nall=this->atom->nall();
   int nbor_pitch=this->nbor->nbor_pitch();
-  int ainum=this->ans->inum(); 
 
   // Compute the block size and grid size to keep all cores busy
   const int BX=this->block_size();
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                                (BX/this->_threads_per_atom)));
+  this->time_pair.start();
 
   // Build the short neighbor list if not done yet
   if (!this->short_nbor_avail) {
@@ -164,14 +168,17 @@ int AmoebaT::udirect2b(const int eflag, const int vflag) {
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 int AmoebaT::umutual2b(const int eflag, const int vflag) {
+  int ainum=this->ans->inum();
+  if (ainum == 0)
+    return 0;
+
+  int _nall=this->atom->nall();
+  int nbor_pitch=this->nbor->nbor_pitch();
+
   // Compute the block size and grid size to keep all cores busy
   const int BX=this->block_size();
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                                (BX/this->_threads_per_atom)));
-
-  int _nall=this->atom->nall();
-  int ainum=this->ans->inum();
-  int nbor_pitch=this->nbor->nbor_pitch();
   this->time_pair.start();
 
   // Build the short neighbor list if not done yet
@@ -200,14 +207,17 @@ int AmoebaT::umutual2b(const int eflag, const int vflag) {
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 int AmoebaT::polar_real(const int eflag, const int vflag) {
+  int ainum=this->ans->inum();
+  if (ainum == 0)
+    return 0;
+
+  int _nall=this->atom->nall();
+  int nbor_pitch=this->nbor->nbor_pitch();
+
   // Compute the block size and grid size to keep all cores busy
   const int BX=this->block_size();
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                                (BX/this->_threads_per_atom)));
-
-  int _nall=this->atom->nall();
-  int ainum=this->ans->inum();
-  int nbor_pitch=this->nbor->nbor_pitch();
   this->time_pair.start();
 
   // Build the short neighbor list if not done yet

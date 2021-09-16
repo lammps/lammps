@@ -22,8 +22,7 @@
 
 using namespace LAMMPS_NS;
 
-void
-MEAM::meam_setup_done(double* cutmax)
+void MEAM::meam_setup_done(double* cutmax)
 {
   int nv2, nv3, m, n, p;
 
@@ -99,8 +98,7 @@ MEAM::meam_setup_done(double* cutmax)
 
 // ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 // Fill off-diagonal alloy parameters
-void
-MEAM::alloyparams(void)
+void MEAM::alloyparams()
 {
 
   int i, j, k;
@@ -175,8 +173,7 @@ MEAM::alloyparams(void)
 // compute MEAM pair potential for each pair of element types
 //
 
-void
-MEAM::compute_pair_meam(void)
+void MEAM::compute_pair_meam()
 {
   double r;
   int j, a, b, nv2;
@@ -320,8 +317,7 @@ MEAM::compute_pair_meam(void)
 //----------------------------------------------------------------------c
 // Compute MEAM pair potential for distance r, element types a and b
 //
-double
-MEAM::phi_meam(double r, int a, int b)
+double MEAM::phi_meam(double r, int a, int b)
 {
   /*unused:double a1,a2,a12;*/
   double t11av, t21av, t31av, t12av, t22av, t32av;
@@ -533,8 +529,8 @@ MEAM::phi_meam(double r, int a, int b)
 //   To avoid nan values of phir due to rapid decrease of b2nn^n or/and
 //   argument of phi_meam, i.e. r*arat^n, in some cases (3NN dia with low Cmin value)
 //
-double
-MEAM::phi_meam_series(const double scrn, const int Z1, const int Z2, const int a, const int b, const double r, const double arat)
+double MEAM::phi_meam_series(const double scrn, const int Z1, const int Z2, const int a, const int b,
+                             const double r, const double arat)
 {
   double phi_sum = 0.0;
   double b2nn, phi_val;
@@ -555,8 +551,7 @@ MEAM::phi_meam_series(const double scrn, const int Z1, const int Z2, const int a
 
 //----------------------------------------------------------------------c
 // Compute background density for reference structure of each element
-void
-MEAM::compute_reference_density(void)
+void MEAM::compute_reference_density()
 {
   int a, Z, Z2, errorflag;
   double gam, Gbar, shp[3];
@@ -594,10 +589,9 @@ MEAM::compute_reference_density(void)
 
 //------------------------------------------------------------------------------c
 // Average weighting factors for the reference structure
-void
-MEAM::get_tavref(double* t11av, double* t21av, double* t31av, double* t12av, double* t22av, double* t32av,
-                 double t11, double t21, double t31, double t12, double t22, double t32, double r, int a,
-                 int b, lattice_t latt)
+void MEAM::get_tavref(double* t11av, double* t21av, double* t31av, double* t12av, double* t22av, double* t32av,
+                      double t11, double t21, double t31, double t12, double t22, double t32, double r, int a,
+                      int b, lattice_t latt)
 {
   double rhoa01, rhoa02, a1, a2, rho01 /*,rho02*/;
 
@@ -650,8 +644,7 @@ MEAM::get_tavref(double* t11av, double* t21av, double* t31av, double* t12av, dou
 }
 
 //------------------------------------------------------------------------------c
-void
-MEAM::get_sijk(double C, int i, int j, int k, double* sijk)
+void MEAM::get_sijk(double C, int i, int j, int k, double* sijk)
 {
   double x;
   x = (C - this->Cmin_meam[i][j][k]) / (this->Cmax_meam[i][j][k] - this->Cmin_meam[i][j][k]);
@@ -660,9 +653,8 @@ MEAM::get_sijk(double C, int i, int j, int k, double* sijk)
 
 //------------------------------------------------------------------------------c
 // Calculate density functions, assuming reference configuration
-void
-MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, double* rho21, double* rho31,
-                  double* rho02, double* rho12, double* rho22, double* rho32)
+void MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, double* rho21, double* rho31,
+                       double* rho02, double* rho12, double* rho22, double* rho32)
 {
   double a1, a2;
   double s[3];
@@ -858,8 +850,7 @@ MEAM::get_densref(double r, int a, int b, double* rho01, double* rho11, double* 
 }
 
 
-void
-MEAM::interpolate_meam(int ind)
+void MEAM::interpolate_meam(int ind)
 {
   int j;
   double drar;

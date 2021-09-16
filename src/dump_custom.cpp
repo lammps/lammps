@@ -281,7 +281,7 @@ void DumpCustom::init_style()
     error->all(FLERR,"Dump_modify format line is too short");
 
   int i=0;
-  for (auto word : words) {
+  for (const auto &word : words) {
     delete[] vformat[i];
 
     if (format_column_user[i])

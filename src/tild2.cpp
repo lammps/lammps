@@ -1221,34 +1221,34 @@ void TILD::calc_cross_work(const Interaction& intrxn){
   FFT_SCALAR temp;
   if (intrxn.type == GAUSSIAN){
     for (int nn = 0; nn < 2*nfft; nn += 2) {
-      temp          = -work1[nn + 1] * work1[nn + 1] + work1[nn] * work1[nn];
-      work1[nn + 1] = work1[nn+1] * work1[nn] + work1[nn] * work1[nn+1]; 
+      temp          = -work1[nn+1] * work1[nn+1] + work1[nn] * work1[nn];
+      work1[nn+1] = work1[nn+1] * work1[nn] + work1[nn] * work1[nn+1]; 
       work1[nn]     = temp * scale_inv;
       potent_hat[loc][nn] = work1[nn];
-      potent_hat[loc][nn+1] = work1[nn];
+      potent_hat[loc][nn+1] = work1[nn+1];
     }
   } else if (intrxn.type == ERFC){
     for (int nn = 0; nn < 2*nfft; nn += 2) {
-      temp          = -work1[nn + 1] * work1[nn + 1] + work1[nn] * work1[nn];
-      work1[nn + 1] = (work1[nn+1] * work1[nn] + work1[nn] * work1[nn+1]) * scale_inv;
+      temp          = -work1[nn+1] * work1[nn+1] + work1[nn] * work1[nn];
+      work1[nn+1] = (work1[nn+1] * work1[nn] + work1[nn] * work1[nn+1]) * scale_inv;
       work1[nn]     = temp * scale_inv;
       potent_hat[loc][nn] = work1[nn];
-      potent_hat[loc][nn+1] = work1[nn];
+      potent_hat[loc][nn+1] = work1[nn+1];
     }
   } else if (intrxn.type == GAUSSIAN_ERFC){
     for (int nn = 0; nn < 2*nfft; nn += 2) {
-      temp          =  work1[nn]   * work1[nn] - work1[nn + 1] * work2[nn + 1] ;
-      work1[nn + 1] = (work1[nn+1] * work2[nn] + work1[nn]     * work2[nn+1]) * scale_inv;
+      temp          =  work1[nn]   * work1[nn] - work1[nn+1] * work2[nn+1] ;
+      work1[nn+1] = (work1[nn+1] * work2[nn] + work1[nn]     * work2[nn+1]) * scale_inv;
       work1[nn]     = temp * scale_inv;
       potent_hat[loc][nn] = work1[nn];
-      potent_hat[loc][nn+1] = work1[nn];
+      potent_hat[loc][nn+1] = work1[nn+1];
     }
   }
 
   fft1->compute(work1, work1, FFT3d::BACKWARD);
   n = 0;
   for (int j = 0; j < nfft; j++){
-    potent[loc][j] = ktmp[n];
+    potent[loc][j] = work1[n];
     n += 2;
   }
 
@@ -1594,7 +1594,7 @@ int TILD::modify_param(int narg, char** arg)
                 cross_iter[idx] = temp; 
             }
             if (it == cross_iter.end()) 
-            cross_iter.emplace_back(temp);
+              cross_iter.emplace_back(temp);
             potent_type_map[0][i][i] = potent_type_map[0][j][j] = 0;
             // Turning off the skip flag if the interactions are now valid.
             potent_type_map[0][j][i] = potent_type_map[0][i][j] = 0;

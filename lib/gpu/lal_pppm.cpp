@@ -168,7 +168,7 @@ grdtyp *PPPMT::init(const int nlocal, const int nall, FILE *_screen,
                                        UCL_READ_WRITE)==UCL_SUCCESS);
   if (!success) {
     flag=-3;
-    return 0;
+    return nullptr;
   }
 
   error_flag.device.zero();

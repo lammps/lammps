@@ -653,21 +653,23 @@ void TILD::compute(int eflag, int vflag){
 double TILD::memory_usage()
 {
   int ntypes = atom->ntypes;
-  int ntypecross = ((ntypes+1)*ntypes);
+  int ntypecross = ((ntypes + 1)*ntypes);
   int Dim = domain->dimension;
-  double bytes = (ntypes+1) * (ntypes+1) * (nstyles + 1) * sizeof(int); // potent_type_map
+  double bytes = (ntypes + 1) * (ntypes + 1) * (nstyles + 1) * sizeof(int); // potent_type_map
 
-  bytes += (double) (ntypes + 1) * (ntypes + 1) * 4 * sizeof(double); // parameters and chis of the sim
+  // parameters and chis of the sim, may need to be changed if new potential are added
+  bytes += (double) (ntypes + 1) * (ntypes + 1) * 4 * sizeof(double); 
   bytes += (double) (ntypes + 1) * (ntypes + 1) * sizeof(int); // setflag
 
-  int nbrick = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
-    (nzhi_out-nzlo_out+1); // brick size
+  int nbrick = (nxhi_out - nxlo_out + 1) * (nyhi_out - nylo_out + 1) *
+    (nzhi_out - nzlo_out + 1); // brick size
 
   bytes += (double) (ntypes + 1) * 5 * nbrick * sizeof(FFT_SCALAR); // density brick types
 
   bytes += (double) (ntypecross + 1) * 6 * (2+1) * nfft_both * sizeof(FFT_SCALAR); // vg vg_hat
-  bytes += (double) (ntypes + 1) * (2+1)* nfft_both * sizeof(FFT_SCALAR); // density_fft_types
-  bytes += (double) 2 * Dim * (ntypecross+1) * (2+1) * sizeof(FFT_SCALAR); // grad potent and hat
+  bytes += (double) (ntypes + 1) * (2+1) * nfft_both * sizeof(FFT_SCALAR); // density_fft_types
+  bytes += (double) (ntypecross+1) * (2+1) * sizeof(FFT_SCALAR); // potent and hat
+  bytes += (double) Dim * (ntypecross+1) * (2+1) * sizeof(FFT_SCALAR); // grad potent and hat
   
   // fkx, fky, fkz, fkx2, fky2, fkz2 
   bytes += (double) 6 * npergrid * sizeof(FFT_SCALAR);
@@ -728,18 +730,18 @@ void TILD::allocate()
   memory->create(ktmp,2*nfft_both,"tild:ktmp");
   memory->create(ktmpi,2*nfft_both,"tild:ktmpi");
   memory->create(ktmpj,2*nfft_both,"tild:ktmpj");
-  memory->create(ktmp2,2*nfft_both, "tild:ktmp2");
-  memory->create(ktmp2i,2*nfft_both, "tild:ktmp2i");
-  memory->create(ktmp2j,2*nfft_both, "tild:ktmp2j");
-  memory->create(tmp, nfft, "tild:tmp");
+  memory->create(ktmp2,2*nfft_both,"tild:ktmp2");
+  memory->create(ktmp2i,2*nfft_both,"tild:ktmp2i");
+  memory->create(ktmp2j,2*nfft_both,"tild:ktmp2j");
+  memory->create(tmp,nfft,"tild:tmp");
   memory->create(vg,ntypecross+1,6,nfft_both,"tild:vg");
   memory->create(vg_hat,ntypecross+1,6,2*nfft_both,"tild:vg_hat");
-  memory->create(density_fft_types,ntypes+1, nfft_both, "tild:density_fft_types");
-  memory->create(density_hat_fft_types,ntypes+1, 2*nfft_both, "tild:density_hat_fft_types");
+  memory->create(density_fft_types,ntypes+1,nfft_both,"tild:density_fft_types");
+  memory->create(density_hat_fft_types,ntypes+1,2*nfft_both,"tild:density_hat_fft_types");
   memory->create(potent,ntypecross+1,nfft_both,"tild:potent"); // Voignot 
   memory->create(potent_hat,ntypecross+1,2*nfft_both,"tild:potent_hat");
   memory->create(grad_potent,ntypecross+1,domain->dimension,nfft_both,"tild:grad_potent");
-  memory->create(grad_potent_hat,ntypecross+1, domain->dimension,2*nfft_both,"tild:grad_potent_hat");
+  memory->create(grad_potent_hat,ntypecross+1,domain->dimension,2*nfft_both,"tild:grad_potent_hat");
 
   // determine if a type has a density function description
 

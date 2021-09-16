@@ -169,7 +169,6 @@ void PairAmoebaGPU::polar_real()
                                         host_start, &ilist, &numneigh, cpu_time,
                                         success, felec, off2, atom->q, domain->boxlo,
                                         domain->prd, &tep_pinned);
-
   
   if (!success)
     error->one(FLERR,"Insufficient memory on accelerator");
@@ -281,12 +280,6 @@ void PairAmoebaGPU::init_style()
     }
   }
 
-  // select the squared cutoff (off2) for neighbor list builds (the polar term for now)
-  // NOTE: induce and polar terms are using the same flags here
-/*
-  if (use_ewald) choose(POLAR_LONG);
-  else choose(POLAR);
-*/
   double cell_size = sqrt(maxcut) + neighbor->skin;
 
   int maxspecial=0;
@@ -298,11 +291,6 @@ void PairAmoebaGPU::init_style()
     
   int tep_size;
   int mnf = 5e-2 * neighbor->oneatom;
-
-  // set the energy unit conversion factor for polar real-space calculation
-
-  double felec = 0.5 * electric / am_dielectric;
-
   int success = amoeba_gpu_init(atom->ntypes+1, max_amtype, pdamp, thole, dirdamp,
                                 special_polar_wscale, special_polar_piscale,
                                 special_polar_pscale, atom->nlocal,

@@ -665,7 +665,7 @@ void Atom::set_atomflag_defaults()
 
 void Atom::create_avec(const std::string &style, int narg, char **arg, int trysuffix)
 {
-  delete [] atom_style;
+  delete[] atom_style;
   if (avec) delete avec;
   atom_style = nullptr;
   avec = nullptr;
@@ -689,11 +689,9 @@ void Atom::create_avec(const std::string &style, int narg, char **arg, int trysu
     std::string estyle = style + "/";
     if (sflag == 1) estyle += lmp->suffix;
     else estyle += lmp->suffix2;
-    atom_style = new char[estyle.size()+1];
-    strcpy(atom_style,estyle.c_str());
+    atom_style = utils::strdup(estyle);
   } else {
-    atom_style = new char[style.size()+1];
-    strcpy(atom_style,style.c_str());
+    atom_style = utils::strdup(style);
   }
 
   // if molecular system:

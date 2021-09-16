@@ -217,7 +217,7 @@ int ComputeDihedralLocal::compute_dihedrals(int flag)
 
   // loop over all atoms and their dihedrals
 
-  m = n = 0;
+  m = 0;
   for (atom2 = 0; atom2 < nlocal; atom2++) {
     if (!(mask[atom2] & groupbit)) continue;
 
@@ -306,7 +306,7 @@ int ComputeDihedralLocal::compute_dihedrals(int flag)
         if (pstr) input->variable->internal_set(pvar,phi);
       }
 
-      for (n = 0; n < nvalues; n++) {
+      for (int n = 0; n < nvalues; n++) {
         switch (bstyle[n]) {
         case PHI:
           ptr[n] = 180.0*phi/MY_PI;

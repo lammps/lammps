@@ -237,18 +237,16 @@ double ComputePressure::compute_scalar()
 
   // invoke temperature if it hasn't been already
 
-  double t;
   if (keflag) {
     if (temperature->invoked_scalar != update->ntimestep)
-      t = temperature->compute_scalar();
-    else t = temperature->scalar;
+      temperature->compute_scalar();
   }
 
   if (dimension == 3) {
     inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
     virial_compute(3,3);
     if (keflag)
-      scalar = (temperature->dof * boltz * t +
+      scalar = (temperature->dof * boltz * temperature->scalar +
                 virial[0] + virial[1] + virial[2]) / 3.0 * inv_volume * nktv2p;
     else
       scalar = (virial[0] + virial[1] + virial[2]) / 3.0 * inv_volume * nktv2p;
@@ -256,7 +254,7 @@ double ComputePressure::compute_scalar()
     inv_volume = 1.0 / (domain->xprd * domain->yprd);
     virial_compute(2,2);
     if (keflag)
-      scalar = (temperature->dof * boltz * t +
+      scalar = (temperature->dof * boltz * temperature->scalar +
                 virial[0] + virial[1]) / 2.0 * inv_volume * nktv2p;
     else
       scalar = (virial[0] + virial[1]) / 2.0 * inv_volume * nktv2p;

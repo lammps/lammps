@@ -197,7 +197,7 @@ void Balance::command(int narg, char **arg)
       if (iarg+4 > narg) error->all(FLERR,"Illegal balance command");
       style = SHIFT;
       if (strlen(arg[iarg+1]) > BSTR_SIZE) error->all(FLERR,"Illegal balance command");
-      strncpy(bstr,arg[iarg+1],BSTR_SIZE);
+      strncpy(bstr,arg[iarg+1],BSTR_SIZE+1);
       nitermax = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
       if (nitermax <= 0) error->all(FLERR,"Illegal balance command");
       stopthresh = utils::numeric(FLERR,arg[iarg+3],false,lmp);

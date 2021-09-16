@@ -24,6 +24,7 @@
 #include "tokenizer.h"
 #include "update.h"
 
+#include <algorithm>
 #include <cctype>
 #include <cerrno>
 #include <cstring>
@@ -343,6 +344,48 @@ std::string utils::check_packages_for_style(const std::string &style, const std:
       errmsg += " which is not enabled in this LAMMPS binary.";
   }
   return errmsg;
+}
+
+/* ----------------------------------------------------------------------
+   read a boolean value from a string
+   transform to lower case before checking
+   generate an error if is not a legitimate boolean
+   called by various commands to check validity of their arguments
+------------------------------------------------------------------------- */
+
+bool utils::logical(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+{
+  int n = 0;
+
+  if (str) n = strlen(str);
+  if (n == 0) {
+    const char msg[] = "Expected boolean parameter instead of NULL or empty string "
+                       "in input script or data file";
+    if (do_abort)
+      lmp->error->one(file, line, msg);
+    else
+      lmp->error->all(file, line, msg);
+  }
+
+  // convert to ascii and lowercase
+  std::string buf(str);
+  if (has_utf8(buf)) buf = utf8_subst(buf);
+  std::transform(buf.begin(), buf.end(), buf.begin(), tolower);
+
+  bool rv = false;
+  if ((buf == "yes") || (buf == "on") || (buf == "true") || (buf == "1")) {
+    rv = true;
+  } else if ((buf == "no") || (buf == "off") || (buf == "false") || (buf == "0")) {
+    rv = false;
+  } else {
+    std::string msg("Expected boolean parameter instead of '");
+    msg += buf + "' in input script or data file";
+    if (do_abort)
+      lmp->error->one(file, line, msg);
+    else
+      lmp->error->all(file, line, msg);
+  }
+  return rv;
 }
 
 /* ----------------------------------------------------------------------

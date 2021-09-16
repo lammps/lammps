@@ -324,7 +324,7 @@ void FixGPU::post_force(int /* vflag */)
   timer->stamp();
   double lvirial[6];
   for (int i = 0; i < 6; i++) lvirial[i] = 0.0;
-  int err_flag;
+  int err_flag = 0;
   double my_eng = lmp_gpu_forces(atom->f, atom->torque, force->pair->eatom, force->pair->vatom,
                                  lvirial, force->pair->eng_coul, err_flag);
   if (err_flag) {

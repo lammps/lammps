@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_pair_tracker.h"
+
 #include "atom.h"
 #include "atom_vec.h"
 #include "error.h"
@@ -21,7 +22,7 @@
 #include "tokenizer.h"
 #include "update.h"
 
-#include <string.h>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -31,7 +32,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixPairTracker::FixPairTracker(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), nvalues(0), vector(NULL), array(NULL), pack_choice(NULL)
+    Fix(lmp, narg, arg), nvalues(0), vector(nullptr), array(nullptr), pack_choice(nullptr)
 {
   if (narg < 3) error->all(FLERR, "Illegal fix pair/tracker command");
   local_flag = 1;
@@ -140,8 +141,8 @@ FixPairTracker::FixPairTracker(LAMMPS *lmp, int narg, char **arg) :
 
   nmax = 0;
   ncount = 0;
-  vector = NULL;
-  array = NULL;
+  vector = nullptr;
+  array = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

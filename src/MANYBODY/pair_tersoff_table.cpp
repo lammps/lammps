@@ -506,7 +506,7 @@ void PairTersoffTable::compute(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void PairTersoffTable::deallocatePreLoops(void)
+void PairTersoffTable::deallocatePreLoops()
 {
     memory->destroy(preGtetaFunction);
     memory->destroy(preGtetaFunctionDerived);
@@ -514,7 +514,7 @@ void PairTersoffTable::deallocatePreLoops(void)
     memory->destroy(preCutoffFunctionDerived);
 }
 
-void PairTersoffTable::allocatePreLoops(void)
+void PairTersoffTable::allocatePreLoops()
 {
   deallocatePreLoops();
   memory->create(preGtetaFunction,leadingDimensionInteractionList,
@@ -538,7 +538,7 @@ void PairTersoffTable::deallocateGrids()
   memory->destroy(betaZetaPowerDerived);
 }
 
-void PairTersoffTable::allocateGrids(void)
+void PairTersoffTable::allocateGrids()
 {
   int   i, j, k, l;
 

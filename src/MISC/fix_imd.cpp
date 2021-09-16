@@ -75,7 +75,7 @@ negotiate an appropriate license for such distribution."
 #include <sys/file.h>
 #endif
 
-#include <errno.h>
+#include <cerrno>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

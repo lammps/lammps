@@ -46,7 +46,7 @@
 #include "variable.h"
 
 #include <cstring>
-#include <errno.h>
+#include <cerrno>
 #include <cctype>
 #include <sys/stat.h>
 #include <unistd.h>

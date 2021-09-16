@@ -327,10 +327,9 @@ void FixGPU::post_force(int /* vflag */)
   int err_flag = 0;
   double my_eng = lmp_gpu_forces(atom->f, atom->torque, force->pair->eatom, force->pair->vatom,
                                  lvirial, force->pair->eng_coul, err_flag);
-  if (err_flag) {
-    if (err_flag==1)
-      error->one(FLERR,"Too many neighbors on GPU. Use neigh_modify one to increase limit.");
-  }
+  if (err_flag==1)
+    error->one(FLERR,"Neighbor list problem on the GPU. Try increasing the value of 'neigh_modify one' "
+               "or the GPU neighbor list 'binsize'.");
 
   force->pair->eng_vdwl += my_eng;
   force->pair->virial[0] += lvirial[0];

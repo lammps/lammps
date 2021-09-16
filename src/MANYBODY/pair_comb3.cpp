@@ -398,30 +398,30 @@ void PairComb3::read_lib()
               }
             }
 
+      k = 0;
+      for (i=0; i<4; i++)
+        for (j=0; j<4; j++) {
+          iin2[k][0] = i;
+          iin2[k][1] = j;
+          k++;
+        }
+
+      l = 0;
+      for (i=0; i<4; i++)
+        for (j=0; j<4; j++)
+          for (k=0; k<4; k++) {
+            iin3[l][0] = i;
+            iin3[l][1] = j;
+            iin3[l][2] = k;
+            l++;
+          }
+
     } catch (FileReaderException &fre) {
       error->one(FLERR, fre.what());
     } catch (TokenizerException &e) {
       error->one(FLERR, e.what());
     }
   }
-
-  k = 0;
-  for (i=0; i<4; i++)
-    for (j=0; j<4; j++) {
-      iin2[k][0] = i;
-      iin2[k][1] = j;
-      k ++;
-    }
-
-  l = 0;
-  for (i=0; i<4; i++)
-    for (j=0; j<4; j++)
-      for (k=0; k<4; k++) {
-        iin3[l][0] = i;
-        iin3[l][1] = j;
-        iin3[l][2] = k;
-        l ++;
-      }
 
   MPI_Bcast(&ccutoff[0],6,MPI_DOUBLE,0,world);
   MPI_Bcast(&ch_a[0],7,MPI_DOUBLE,0,world);
@@ -459,8 +459,8 @@ void PairComb3::read_lib()
   MPI_Bcast(&tor_gridz[0][0][0][0],275,MPI_DOUBLE,0,world);
   MPI_Bcast(&tor_spl[0][0][0][0][0],10240,MPI_DOUBLE,0,world);
 
-  MPI_Bcast(&iin2[0][0],32,MPI_INT,0,world);
-  MPI_Bcast(&iin3[0][0],192,MPI_INT,0,world);
+  MPI_Bcast(&iin2[0][0],32,MPI_DOUBLE,0,world);
+  MPI_Bcast(&iin3[0][0],192,MPI_DOUBLE,0,world);
 }
 
 /* ---------------------------------------------------------------------- */

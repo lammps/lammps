@@ -340,7 +340,7 @@ void AngleCosineBuck6d::read_restart(FILE *fp)
 
   MPI_Bcast(&k[1],atom->nangletypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&multiplicity[1],atom->nangletypes,MPI_INT,0,world);
-  MPI_Bcast(&th0[1],atom->nangletypes,MPI_INT,0,world);
+  MPI_Bcast(&th0[1],atom->nangletypes,MPI_DOUBLE,0,world);
   for (int i = 1; i <= atom->nangletypes; i++) setflag[i] = 1;
 }
 

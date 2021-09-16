@@ -694,7 +694,6 @@ double TILD::memory_usage()
 void TILD::allocate()
 {
 
-  //int Dim = domain->dimension;
   int (*procneigh)[2] = comm->procneigh;
   
   int ntypes = atom->ntypes;

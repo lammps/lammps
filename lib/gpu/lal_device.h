@@ -348,7 +348,7 @@ class Device {
   int _data_in_estimate, _data_out_estimate;
 
   std::string _ocl_config_name, _ocl_config_string, _ocl_compile_string;
-  int set_ocl_params(std::string, std::string);
+  int set_ocl_params(std::string, const std::string &);
 };
 
 }

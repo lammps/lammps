@@ -348,7 +348,7 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
 }
 
 template <class numtyp, class acctyp>
-int DeviceT::set_ocl_params(std::string s_config, std::string extra_args) {
+int DeviceT::set_ocl_params(std::string s_config, const std::string &extra_args) {
   #ifdef USE_OPENCL
 
   #include "lal_pre_ocl_config.h"
@@ -368,7 +368,7 @@ int DeviceT::set_ocl_params(std::string s_config, std::string extra_args) {
   int token_count=0;
   std::string params[18];
   char ocl_config[2048];
-  strcpy(ocl_config,s_config.c_str());
+  strncpy(ocl_config,s_config.c_str(),2047);
   char *pch = strtok(ocl_config,",");
   _ocl_config_name=pch;
   pch = strtok(nullptr,",");

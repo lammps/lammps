@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,8 +16,6 @@
 
 #include "atom.h"
 #include "error.h"
-
-#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -36,10 +35,7 @@ ImbalanceStore::~ImbalanceStore()
 int ImbalanceStore::options(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal balance weight command");
-
-  int len = strlen(arg[0]) + 1;
-  name = new char[len];
-  memcpy(name,arg[0],len);
+  name = utils::strdup(arg[0]);
 
   return 1;
 }
@@ -48,18 +44,17 @@ int ImbalanceStore::options(int narg, char **arg)
 
 void ImbalanceStore::compute(double *weight)
 {
-  int dflag = 0;
-  int idx = atom->find_custom(name,dflag);
+  int flag,cols;
+  int index = atom->find_custom(name,flag,cols);
 
   // property does not exist
 
-  if (idx < 0 || dflag != 1) return;
+  if (index < 0 || flag != 1 || cols)
+    error->all(FLERR,"Balance weight store vector does not exist");
 
-  double *prop = atom->dvector[idx];
+  double *prop = atom->dvector[index];
   const int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; ++i)
-    prop[i] = weight[i];
+  for (int i = 0; i < nlocal; ++i) prop[i] = weight[i];
 }
 
 /* -------------------------------------------------------------------- */

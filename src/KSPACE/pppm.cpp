@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -216,7 +217,7 @@ void PPPM::init()
   }
 
   if (order < 2 || order > MAXORDER)
-    error->all(FLERR,fmt::format("PPPM order cannot be < 2 or > {}",MAXORDER));
+    error->all(FLERR,"PPPM order cannot be < 2 or > {}",MAXORDER);
 
   // compute two charge force
 
@@ -637,8 +638,8 @@ void PPPM::compute(int eflag, int vflag)
   //   to fully sum contribution in their 3d bricks
   // remap from 3d decomposition to FFT decomposition
 
-  gc->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO,
-                          gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+  gc->reverse_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
+                   REVERSE_RHO,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   brick2fft();
 
   // compute potential gradient on my FFT grid and
@@ -652,21 +653,21 @@ void PPPM::compute(int eflag, int vflag)
   // to fill ghost cells surrounding their 3d bricks
 
   if (differentiation_flag == 1)
-    gc->forward_comm_kspace(this,1,sizeof(FFT_SCALAR),FORWARD_AD,
-                            gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+    gc->forward_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
+                     FORWARD_AD,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   else
-    gc->forward_comm_kspace(this,3,sizeof(FFT_SCALAR),FORWARD_IK,
-                            gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+    gc->forward_comm(GridComm::KSPACE,this,3,sizeof(FFT_SCALAR),
+                     FORWARD_IK,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   // extra per-atom energy/virial communication
 
   if (evflag_atom) {
     if (differentiation_flag == 1 && vflag_atom)
-      gc->forward_comm_kspace(this,6,sizeof(FFT_SCALAR),FORWARD_AD_PERATOM,
-                              gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+      gc->forward_comm(GridComm::KSPACE,this,6,sizeof(FFT_SCALAR),
+                       FORWARD_AD_PERATOM,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
     else if (differentiation_flag == 0)
-      gc->forward_comm_kspace(this,7,sizeof(FFT_SCALAR),FORWARD_IK_PERATOM,
-                              gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+      gc->forward_comm(GridComm::KSPACE,this,7,sizeof(FFT_SCALAR),
+                       FORWARD_IK_PERATOM,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   }
 
   // calculate the force on my particles
@@ -1319,34 +1320,12 @@ double PPPM::final_accuracy()
 
 void PPPM::set_grid_local()
 {
-  // global indices of PPPM grid range from 0 to N-1
-  // nlo_in,nhi_in = lower/upper limits of the 3d sub-brick of
-  //   global PPPM grid that I own without ghost cells
-  // for slab PPPM, assign z grid as if it were not extended
-  // both non-tiled and tiled proc layouts use 0-1 fractional sumdomain info
+  // partition global grid across procs
+  // n xyz lo/hi in = lower/upper bounds of global grid this proc owns
+  // indices range from 0 to N-1 inclusive in each dim
 
-  if (comm->layout != Comm::LAYOUT_TILED) {
-    nxlo_in = static_cast<int> (comm->xsplit[comm->myloc[0]] * nx_pppm);
-    nxhi_in = static_cast<int> (comm->xsplit[comm->myloc[0]+1] * nx_pppm) - 1;
-
-    nylo_in = static_cast<int> (comm->ysplit[comm->myloc[1]] * ny_pppm);
-    nyhi_in = static_cast<int> (comm->ysplit[comm->myloc[1]+1] * ny_pppm) - 1;
-
-    nzlo_in = static_cast<int>
-      (comm->zsplit[comm->myloc[2]] * nz_pppm/slab_volfactor);
-    nzhi_in = static_cast<int>
-      (comm->zsplit[comm->myloc[2]+1] * nz_pppm/slab_volfactor) - 1;
-
-  } else {
-    nxlo_in = static_cast<int> (comm->mysplit[0][0] * nx_pppm);
-    nxhi_in = static_cast<int> (comm->mysplit[0][1] * nx_pppm) - 1;
-
-    nylo_in = static_cast<int> (comm->mysplit[1][0] * ny_pppm);
-    nyhi_in = static_cast<int> (comm->mysplit[1][1] * ny_pppm) - 1;
-
-    nzlo_in = static_cast<int> (comm->mysplit[2][0] * nz_pppm/slab_volfactor);
-    nzhi_in = static_cast<int> (comm->mysplit[2][1] * nz_pppm/slab_volfactor) - 1;
-  }
+  comm->partition_grid(nx_pppm,ny_pppm,nz_pppm,slab_volfactor,
+                       nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in);
 
   // nlower,nupper = stencil size for mapping particles to PPPM grid
 
@@ -1366,7 +1345,7 @@ void PPPM::set_grid_local()
   // effectively nlo_in,nhi_in + ghost cells
   // nlo,nhi = index of global grid pt to "lower left" of smallest/largest
   //           position a particle in my box can be at
-  // dist[3] = particle position bound = subbox + skin/2.0 + qdist
+  // dist[3] = max particle position outside subbox = skin/2.0 + qdist
   //   qdist = offset due to TIP4P fictitious charge
   //   convert to triclinic if necessary
   // nlo_out,nhi_out = nlo,nhi + stencil size for particle mapping
@@ -3057,32 +3036,32 @@ int PPPM::timing_3d(int n, double &time3d)
 
 double PPPM::memory_usage()
 {
-  double bytes = nmax*3 * sizeof(double);
+  double bytes = (double)nmax*3 * sizeof(double);
 
   int nbrick = (nxhi_out-nxlo_out+1) * (nyhi_out-nylo_out+1) *
     (nzhi_out-nzlo_out+1);
   if (differentiation_flag == 1) {
-    bytes += 2 * nbrick * sizeof(FFT_SCALAR);
+    bytes += (double)2 * nbrick * sizeof(FFT_SCALAR);
   } else {
-    bytes += 4 * nbrick * sizeof(FFT_SCALAR);
+    bytes += (double)4 * nbrick * sizeof(FFT_SCALAR);
   }
 
-  if (triclinic) bytes += 3 * nfft_both * sizeof(double);
-  bytes += 6 * nfft_both * sizeof(double);
-  bytes += nfft_both * sizeof(double);
-  bytes += nfft_both*5 * sizeof(FFT_SCALAR);
+  if (triclinic) bytes += (double)3 * nfft_both * sizeof(double);
+  bytes += (double)6 * nfft_both * sizeof(double);
+  bytes += (double)nfft_both * sizeof(double);
+  bytes += (double)nfft_both*5 * sizeof(FFT_SCALAR);
 
   if (peratom_allocate_flag)
-    bytes += 6 * nbrick * sizeof(FFT_SCALAR);
+    bytes += (double)6 * nbrick * sizeof(FFT_SCALAR);
 
   if (group_allocate_flag) {
-    bytes += 2 * nbrick * sizeof(FFT_SCALAR);
-    bytes += 2 * nfft_both * sizeof(FFT_SCALAR);;
+    bytes += (double)2 * nbrick * sizeof(FFT_SCALAR);
+    bytes += (double)2 * nfft_both * sizeof(FFT_SCALAR);;
   }
 
   // two GridComm bufs
 
-  bytes += (ngc_buf1 + ngc_buf2) * npergrid * sizeof(FFT_SCALAR);
+  bytes += (double)(ngc_buf1 + ngc_buf2) * npergrid * sizeof(FFT_SCALAR);
 
   return bytes;
 }
@@ -3140,8 +3119,8 @@ void PPPM::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
   density_brick = density_A_brick;
   density_fft = density_A_fft;
 
-  gc->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO,
-                          gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+  gc->reverse_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
+                   REVERSE_RHO,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   brick2fft();
 
   // group B
@@ -3149,8 +3128,8 @@ void PPPM::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
   density_brick = density_B_brick;
   density_fft = density_B_fft;
 
-  gc->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO,
-                          gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+  gc->reverse_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
+                   REVERSE_RHO,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   brick2fft();
 
   // switch back pointers

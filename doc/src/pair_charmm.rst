@@ -1,4 +1,5 @@
 .. index:: pair_style lj/charmm/coul/charmm
+.. index:: pair_style lj/charmm/coul/charmm/gpu
 .. index:: pair_style lj/charmm/coul/charmm/intel
 .. index:: pair_style lj/charmm/coul/charmm/kk
 .. index:: pair_style lj/charmm/coul/charmm/omp
@@ -19,7 +20,7 @@
 pair_style lj/charmm/coul/charmm command
 ========================================
 
-Accelerator Variants: *lj/charmm/coul/charmm/intel*, *lj/charmm/coul/charmm/kk*, *lj/charmm/coul/charmm/omp*
+Accelerator Variants: *lj/charmm/coul/charmm/gpu*, *lj/charmm/coul/charmm/intel*, *lj/charmm/coul/charmm/kk*, *lj/charmm/coul/charmm/omp*
 
 pair_style lj/charmm/coul/charmm/implicit command
 =================================================
@@ -168,7 +169,7 @@ where S(r) is the energy switching function mentioned above for the
 functional forms of the force switching and force shifting functions
 used in the *charmmfsw* and *charmmfsh* styles.
 
-When using the *lj/charmm/coul/charmm styles*\ , both the LJ and
+When using the *lj/charmm/coul/charmm styles*, both the LJ and
 Coulombic terms require an inner and outer cutoff. They can be the
 same for both formulas or different depending on whether 2 or 4
 arguments are used in the pair_style command.  For the
@@ -192,7 +193,7 @@ biomolecule (no explicit water molecules).
 Styles *lj/charmm/coul/long* and *lj/charmm/coul/msm* compute the same
 formulas as style *lj/charmm/coul/charmm* and style
 *lj/charmmfsw/coul/long* computes the same formulas as style
-*lj/charmmfsw/coul/charmmfsh*\ , except that an additional damping
+*lj/charmmfsw/coul/charmmfsh*, except that an additional damping
 factor is applied to the Coulombic term, so it can be used in
 conjunction with the :doc:`kspace_style <kspace_style>` command and its
 *ewald* or *pppm* or *msm* option.  Only one Coulombic cutoff is
@@ -259,7 +260,7 @@ pair_coeff commands do not need to be specified in an input script
 that reads a restart file.
 
 The *lj/charmm/coul/long* and *lj/charmmfsw/coul/long* pair styles
-support the use of the *inner*\ , *middle*\ , and *outer* keywords of the
+support the use of the *inner*, *middle*, and *outer* keywords of the
 :doc:`run_style respa <run_style>` command, meaning the pairwise forces
 can be partitioned by distance at different levels of the rRESPA
 hierarchy.  The other styles only support the *pair* keyword of

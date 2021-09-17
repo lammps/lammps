@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,23 +18,24 @@
 
 #include "pair_lj_long_dipole_long.h"
 
-#include <cmath>
-#include <cstring>
-#include "math_const.h"
-#include "math_vector.h"
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
+#include "error.h"
 #include "force.h"
 #include "kspace.h"
-#include "update.h"
+#include "math_const.h"
+#include "math_extra.h"
 #include "memory.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "update.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace MathExtra;
 
 #define EWALD_F   1.12837917
 #define EWALD_P   0.3275911
@@ -65,7 +67,7 @@ void PairLJLongDipoleLong::options(char **arg, int order)
   for (i=0; option[i]&&strcmp(arg[0], option[i]); ++i);
   switch (i) {
     case 0: ewald_order |= 1<<order; break;             // set kspace r^-order
-    case 2: ewald_off |= 1<<order;                      // turn r^-order off
+    case 2: ewald_off |= 1<<order; break;               // turn r^-order off
     case 1: break;
     default: error->all(FLERR,"Illegal pair_style lj/long/dipole/long command");
   }
@@ -75,23 +77,25 @@ void PairLJLongDipoleLong::settings(int narg, char **arg)
 {
   if (narg != 3 && narg != 4) error->all(FLERR,"Illegal pair_style command");
 
-  ewald_off = 0;
   ewald_order = 0;
+  ewald_off = 0;
+
   options(arg, 6);
   options(++arg, 3);
   options(arg, 1);
+
   if (!comm->me && ewald_order&(1<<6))
     error->warning(FLERR,"Geometric mixing assumed for 1/r^6 coefficients");
   if (!comm->me && ewald_order==((1<<3)|(1<<6)))
-    error->warning(FLERR,
-                   "Using largest cut-off for lj/long/dipole/long long long");
+    error->warning(FLERR,"Using largest cut-off for lj/long/dipole/long long long");
   if (!*(++arg))
-    error->all(FLERR,"Cut-offs missing in pair_style lj/long/dipole/long");
+    error->all(FLERR,"Cutoffs missing in pair_style lj/long/dipole/long");
+  if (!((ewald_order^ewald_off) & (1<<6)))
+    dispersionflag = 0;
   if (!((ewald_order^ewald_off)&(1<<3)))
-    error->all(FLERR,
-               "Coulombic cut not supported in pair_style lj/long/dipole/long");
+    error->all(FLERR,"Coulombic cut not supported in pair_style lj/long/dipole/long");
   cut_lj_global = utils::numeric(FLERR,*(arg++),false,lmp);
-  if (narg == 4 && (ewald_order==74))
+  if (narg == 4 && (ewald_order==0x4a))
     error->all(FLERR,"Only one cut-off allowed when requesting all long");
   if (narg == 4) cut_coul = utils::numeric(FLERR,*(arg++),false,lmp);
   else cut_coul = cut_lj_global;
@@ -220,10 +224,6 @@ void PairLJLongDipoleLong::coeff(int narg, char **arg)
 
 void PairLJLongDipoleLong::init_style()
 {
-  const char *style3[] = {"ewald/disp", nullptr};
-  const char *style6[] = {"ewald/disp", nullptr};
-  int i;
-
   if (strcmp(update->unit_style,"electron") == 0)
     error->all(FLERR,"Cannot (yet) use 'electron' units with dipoles");
 
@@ -231,7 +231,7 @@ void PairLJLongDipoleLong::init_style()
 
   if (!atom->q_flag && (ewald_order&(1<<1)))
     error->all(FLERR,
-        "Invoking coulombic in pair style lj/long/dipole/long requires atom attribute q");
+               "Invoking coulombic in pair style lj/long/dipole/long requires atom attribute q");
   if (!atom->mu_flag || !atom->torque_flag)
     error->all(FLERR,"Pair lj/long/dipole/long requires atom attributes mu, torque");
 
@@ -244,16 +244,14 @@ void PairLJLongDipoleLong::init_style()
   if (ewald_order&(1<<3)) {                             // r^-1 kspace
     if (force->kspace == nullptr)
       error->all(FLERR,"Pair style requires a KSpace style");
-    for (i=0; style3[i]&&strcmp(force->kspace_style, style3[i]); ++i);
-    if (!style3[i])
-      error->all(FLERR,"Pair style requires use of kspace_style ewald/disp");
+    if (!force->kspace->dipoleflag)
+      error->all(FLERR,"Pair style requires use of kspace_style with dipole support");
   }
   if (ewald_order&(1<<6)) {                             // r^-6 kspace
     if (force->kspace == nullptr)
       error->all(FLERR,"Pair style requires a KSpace style");
-    for (i=0; style6[i]&&strcmp(force->kspace_style, style6[i]); ++i);
-    if (!style6[i])
-      error->all(FLERR,"Pair style requires use of kspace_style ewald/disp");
+    if (!force->kspace->dispersionflag)
+      error->all(FLERR,"Pair style requires use of kspace_style with dispersion support");
   }
   if (force->kspace) g_ewald = force->kspace->g_ewald;
 }
@@ -369,6 +367,8 @@ void PairLJLongDipoleLong::write_restart_settings(FILE *fp)
   fwrite(&offset_flag,sizeof(int),1,fp);
   fwrite(&mix_flag,sizeof(int),1,fp);
   fwrite(&ewald_order,sizeof(int),1,fp);
+  fwrite(&ewald_off,sizeof(int),1,fp);
+  fwrite(&dispersionflag,sizeof(int),1,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -383,12 +383,16 @@ void PairLJLongDipoleLong::read_restart_settings(FILE *fp)
     utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
     utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
     utils::sfread(FLERR,&ewald_order,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&ewald_off,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&dispersionflag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_lj_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&cut_coul,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
   MPI_Bcast(&ewald_order,1,MPI_INT,0,world);
+  MPI_Bcast(&ewald_off,1,MPI_INT,0,world);
+  MPI_Bcast(&dispersionflag,1,MPI_INT,0,world);
 }
 
 /* ----------------------------------------------------------------------
@@ -421,8 +425,8 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
   double rsq, r2inv, force_coul, force_lj;
   double g2 = g_ewald*g_ewald, g6 = g2*g2*g2, g8 = g6*g2;
   double B0, B1, B2, B3, G0, G1, G2, mudi, mudj, muij;
-  vector force_d = VECTOR_NULL, ti = VECTOR_NULL, tj = VECTOR_NULL;
-  vector mui, muj, xi, d;
+  double force_d[3] = {0.0,0.0,0.0}, ti[3] = {0.0,0.0,0.0}, tj[3] = {0.0,0.0,0.0};
+  double mui[3], muj[3], xi[3], d[3];
 
   double C1 = 2.0 * g_ewald / MY_PIS;
   double C2 = 2.0 * g2 * C1;
@@ -436,8 +440,8 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
     offseti = offset[typei = type[i]];
     lj1i = lj1[typei]; lj2i = lj2[typei]; lj3i = lj3[typei]; lj4i = lj4[typei];
     cutsqi = cutsq[typei]; cut_ljsqi = cut_ljsq[typei];
-    memcpy(xi, x0+(i+(i<<1)), sizeof(vector));
-    memcpy(mui, imu = mu0+(i<<2), sizeof(vector));
+    memcpy(xi, x0+(i+(i<<1)), 3*sizeof(double));
+    memcpy(mui, imu = mu0+(i<<2), 3*sizeof(double));
 
     jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
 
@@ -451,11 +455,11 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
         d[1] = xi[1] - xj[1];
         d[2] = xi[2] - xj[2]; }
 
-      if ((rsq = vec_dot(d, d)) >= cutsqi[typej = type[j]]) continue;
+      if ((rsq = dot3(d, d)) >= cutsqi[typej = type[j]]) continue;
       r2inv = 1.0/rsq;
 
       if (order3 && (rsq < cut_coulsq)) {               // dipole
-        memcpy(muj, jmu = mu0+(j<<2), sizeof(vector));
+        memcpy(muj, jmu = mu0+(j<<2), 3*sizeof(double));
         {                                               // series real space
           double r = sqrt(rsq);
           double x = g_ewald*r;

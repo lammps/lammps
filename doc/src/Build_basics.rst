@@ -1,7 +1,7 @@
 Basic build options
 ===================
 
-The following topics are covered on this page, for building both with
+The following topics are covered on this page, for building with both
 CMake and make:
 
 * :ref:`Serial vs parallel build <serial>`
@@ -90,12 +90,12 @@ standard. A more detailed discussion of that is below.
       directory, or ``make`` from the ``src/STUBS`` dir.  If the build
       fails, you may need to edit the ``STUBS/Makefile`` for your
       platform.  The stubs library does not provide MPI/IO functions
-      required by some LAMMPS packages, e.g. ``MPIIO`` or ``USER-LB``,
+      required by some LAMMPS packages, e.g. ``MPIIO`` or ``LATBOLTZ``,
       and thus is not compatible with those packages.
 
       .. note::
 
-         The file ``src/STUBS/mpi.c`` provides a CPU timer function
+         The file ``src/STUBS/mpi.cpp`` provides a CPU timer function
          called ``MPI_Wtime()`` that calls ``gettimeofday()``.  If your
          operating system does not support ``gettimeofday()``, you will
          need to insert code to call another timer.  Note that the
@@ -120,19 +120,19 @@ self-installed MPICH or OpenMPI, so you should study the provided
 documentation to find out how to build and link with it.
 
 The majority of OpenMP (threading) support in LAMMPS is provided by the
-``USER-OMP`` package; see the :doc:`Speed_omp`
-page for details. The ``USER-INTEL`` package also includes OpenMP
-threading (it is compatible with ``USER-OMP`` and will usually fall
-back on styles from that package, if a ``USER-INTEL`` does not exist)
+``OPENMP`` package; see the :doc:`Speed_omp`
+page for details. The ``INTEL`` package also includes OpenMP
+threading (it is compatible with ``OPENMP`` and will usually fall
+back on styles from that package, if a ``INTEL`` does not exist)
 and adds vectorization support when compiled with compatible compilers,
 in particular the Intel compilers on top of OpenMP. Also, the ``KOKKOS``
 package can be compiled to include OpenMP threading.
 
 In addition, there are a few commands in LAMMPS that have native OpenMP
 support included as well.  These are commands in the ``MPIIO``,
-``SNAP``, ``USER-DIFFRACTION``, and ``USER-DPD`` packages.  In addition
+``ML-SNAP``, ``DIFFRACTION``, and ``DPD-REACT`` packages.  In addition
 some packages support OpenMP threading indirectly through the libraries
-they interface to: e.g. ``LATTE``, ``KSPACE``, and ``USER-COLVARS``.
+they interface to: e.g. ``LATTE``, ``KSPACE``, and ``COLVARS``.
 See the :doc:`Packages details <Packages_details>` page for more
 info on these packages and the pages for their respective commands
 for OpenMP threading info.
@@ -176,7 +176,7 @@ performance.  Vendor provided compilers for a specific hardware can
 produce faster code than open-source compilers like the GNU compilers.
 On the most common x86 hardware most popular C++ compilers are quite
 similar in performance of C/C++ code at high optimization levels.  When
-using the ``USER-INTEL`` package, there is a distinct advantage in using
+using the ``INTEL`` package, there is a distinct advantage in using
 the `Intel C++ compiler <intel_>`_ due to much improved vectorization
 through SSE and AVX instructions on compatible hardware as the source
 code includes changes and Intel compiler specific directives to enable
@@ -234,6 +234,8 @@ LAMMPS.
          cmake ../cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_Fortran_COMPILER=gfortran
          # Building with Intel Compilers:
          cmake ../cmake -DCMAKE_C_COMPILER=icc -DCMAKE_CXX_COMPILER=icpc -DCMAKE_Fortran_COMPILER=ifort
+         # Building with Intel oneAPI Compilers:
+         cmake ../cmake -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx -DCMAKE_Fortran_COMPILER=ifx
          # Building with LLVM/Clang Compilers:
          cmake ../cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_Fortran_COMPILER=flang
          # Building with PGI/Nvidia Compilers:
@@ -243,8 +245,10 @@ LAMMPS.
       provided that can be loaded with
       `-C ../cmake/presets/clang.cmake`.  Similarly,
       `-C ../cmake/presets/intel.cmake` should switch the compiler
-      toolchain to the Intel compilers and `-C ../cmake/presets/pgi.cmake`
-      should switch the compiler to the PGI compilers.
+      toolchain to the legacy Intel compilers, `-C ../cmake/presets/oneapi.cmake`
+      will switch to the LLVM based oneAPI Intel compilers,
+      and `-C ../cmake/presets/pgi.cmake`
+      will switch the compiler to the PGI compilers.
 
       In addition you can set ``CMAKE_TUNE_FLAGS`` to specifically add
       compiler flags to tune for optimal performance on given hosts. By
@@ -321,9 +325,9 @@ LAMMPS.
          .. code-block:: bash
 
             Makefile.opt                   # OPT package
-            Makefile.omp                   # USER-OMP package
-            Makefile.intel_cpu             # USER-INTEL package for CPUs
-            Makefile.intel_coprocessor     # USER-INTEL package for KNLs
+            Makefile.omp                   # OPENMP package
+            Makefile.intel_cpu             # INTEL package for CPUs
+            Makefile.intel_coprocessor     # INTEL package for KNLs
             Makefile.gpu                   # GPU package
             Makefile.kokkos_cuda_mpi       # KOKKOS package for GPUs
             Makefile.kokkos_omp            # KOKKOS package for CPUs (OpenMP)
@@ -525,6 +529,20 @@ you want to copy files to is protected.
          cmake -D CMAKE_INSTALL_PREFIX=path [options ...] ../cmake
          make                        # perform make after CMake command
          make install                # perform the installation into prefix
+
+      During the installation process CMake will by default remove any runtime
+      path settings for loading shared libraries.  Because of this you may
+      have to set or modify the ``LD_LIBRARY_PATH`` (or ``DYLD_LIBRARY_PATH``)
+      environment variable, if you are installing LAMMPS into a non-system
+      location and/or are linking to libraries in a non-system location that
+      depend on such runtime path settings.
+      As an alternative you may set the CMake variable ``LAMMPS_INSTALL_RPATH``
+      to ``on`` and then the runtime paths for any linked shared libraries
+      and the library installation folder for the LAMMPS library will be
+      embedded and thus the requirement to set environment variables is avoided.
+      The ``off`` setting is usually preferred for packaged binaries or when
+      setting up environment modules, the ``on`` setting is more convenient
+      for installing software into a non-system or personal folder.
 
    .. tab:: Traditional make
 

@@ -20,9 +20,15 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   pair_style tersoff/mod
+   pair_style style keywords values
 
-   pair_style tersoff/mod/c
+* style = *tersoff/mod* or *tersoff/mod/c*
+* keyword = *shift*
+
+  .. parsed-literal::
+
+       *shift* value = delta
+         delta = negative shift in equilibrium bond length
 
 Examples
 """"""""
@@ -47,7 +53,7 @@ E of a system of atoms as
 .. math::
 
    E & = \frac{1}{2} \sum_i \sum_{j \neq i} V_{ij} \\
-   V_{ij} & = f_C(r_{ij}) \left[ f_R(r_{ij}) + b_{ij} f_A(r_{ij}) \right] \\
+   V_{ij} & = f_C(r_{ij} + \delta) \left[ f_R(r_{ij} + \delta) + b_{ij} f_A(r_{ij} + \delta) \right] \\
    f_C(r) & = \left\{ \begin{array} {r@{\quad:\quad}l}
      1 & r < R - D \\
      \frac{1}{2} - \frac{9}{16} \sin \left( \frac{\pi}{2} \frac{r-R}{D} \right) - \frac{1}{16} \sin \left( \frac{3\pi}{2} \frac{r-R}{D} \right) &
@@ -57,13 +63,16 @@ E of a system of atoms as
    f_R(r) & = A \exp (-\lambda_1 r) \\
    f_A(r) & = -B \exp (-\lambda_2 r) \\
    b_{ij} & = \left( 1 + {\zeta_{ij}}^\eta \right)^{-\frac{1}{2n}} \\
-   \zeta_{ij} & = \sum_{k \neq i,j} f_C(r_{ik}) g(\theta_{ijk})
+   \zeta_{ij} & = \sum_{k \neq i,j} f_C(r_{ik} + \delta) g(\theta_{ijk})
                     \exp \left[ \alpha (r_{ij} - r_{ik})^\beta \right] \\
    g(\theta) & = c_1 + g_o(\theta) g_a(\theta) \\
    g_o(\theta) & = \frac{c_2 (h - \cos \theta)^2}{c_3 + (h - \cos \theta)^2} \\
    g_a(\theta) & = 1 + c_4 \exp \left[ -c_5 (h - \cos \theta)^2 \right] \\
 
 where :math:`f_R` is a two-body term and :math:`f_A` includes three-body interactions.
+:math:`\delta` is an optional negative shift of the
+equilibrium bond length, as described below.
+
 The summations in the formula are over all neighbors J and K of atom I
 within a cutoff distance = R + D.
 The *tersoff/mod/c* style differs from *tersoff/mod* only in the
@@ -71,7 +80,7 @@ formulation of the V_ij term, where it contains an additional c0 term.
 
 .. math::
 
-   V_{ij}  = f_C(r_{ij}) \left[ f_R(r_{ij}) + b_{ij} f_A(r_{ij}) + c_0 \right]
+   V_{ij} = f_C(r_{ij} + \delta) \left[ f_R(r_{ij} + \delta) + b_{ij} f_A(r_{ij} + \delta) + c_0 \right] \\
 
 The modified cutoff function :math:`f_C` proposed by :ref:`(Murty) <Murty>` and
 having a continuous second-order differential is employed. The
@@ -156,6 +165,12 @@ the center atom in a three-body interaction and it is bonded to the
 second atom and the bond is influenced by the third atom.  Thus an entry
 for SiSiSi means Si bonded to a Si with another Si atom influencing the bond.
 
+The *shift* keyword computes the energy E of a system of atoms, whose formula
+is the same as the Tersoff potential. The only modification is that the original
+equilibrium bond length ( :math:`r_0`) of the system is shifted to :math:`r_0-\delta`.
+The minus sign arises because each radial distance :math:`r` is replaced by :math:`r+\delta`.
+More information on this option is given on the main :doc:`pair_tersoff <pair_tersoff>` page.
+
 ----------
 
 .. include:: accel_styles.rst
@@ -174,7 +189,7 @@ script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -182,14 +197,18 @@ Restrictions
 """"""""""""
 
 This pair style is part of the MANYBODY package.  It is only enabled
-if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 This pair style requires the :doc:`newton <newton>` setting to be "on"
 for pair interactions.
 
-The Tersoff/MOD potential files provided with LAMMPS (see the potentials
+The *shift* keyword is not supported by the *tersoff/gpu*,
+*tersoff/intel*, *tersoff/kk*, *tersoff/table* or *tersoff/table/omp*
+variants.
+
+The *tersoff/mod* potential files provided with LAMMPS (see the potentials
 directory) are parameterized for metal :doc:`units <units>`.  You can
-use the Tersoff/MOD potential with any LAMMPS units, but you would need to
+use the *tersoff/mod* pair style with any LAMMPS units, but you would need to
 create your own Tersoff/MOD potential file with coefficients listed in the
 appropriate units if your simulation does not use "metal" units.
 

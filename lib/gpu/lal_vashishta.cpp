@@ -50,7 +50,7 @@ int VashishtaT::init(const int ntypes, const int nlocal, const int nall, const i
            const double* gamma, const double* eta,
            const double* lam1inv, const double* lam4inv,
            const double* zizj, const double* mbigd,
-           const double* dvrc, const double* big6w, 
+           const double* dvrc, const double* big6w,
            const double* heta, const double* bigh,
            const double* bigw, const double* c0,
            const double* costheta, const double* bigb,
@@ -138,8 +138,6 @@ int VashishtaT::init(const int ntypes, const int nlocal, const int nall, const i
     dview[i].w=static_cast<numtyp>(r0[i]);
   }
 
-  _cutshortsq = static_cast<numtyp>(r0sqmax);
-
   ucl_copy(param4,dview,false);
   param4_tex.get_texture(*(this->pair_program),"param4_tex");
   param4_tex.bind_float(param4,4);
@@ -212,60 +210,33 @@ double VashishtaT::host_memory_usage() const {
 // Calculate energies, forces, and torques
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void VashishtaT::loop(const bool _eflag, const bool _vflag, const int evatom) {
-  // Compute the block size and grid size to keep all cores busy
-  int BX=this->block_pair();
-  int eflag, vflag;
-  if (_eflag)
-    eflag=1;
-  else
-    eflag=0;
-
-  if (_vflag)
-    vflag=1;
-  else
-    vflag=0;
+int VashishtaT::loop(const int eflag, const int vflag, const int evatom,
+                     bool &success) {
+  const int nbor_pitch=this->nbor->nbor_pitch();
 
   // build the short neighbor list
   int ainum=this->_ainum;
-  int nbor_pitch=this->nbor->nbor_pitch();
-  int GX=static_cast<int>(ceil(static_cast<double>(ainum)/
-                               (BX/this->_threads_per_atom)));
-
-  this->k_short_nbor.set_size(GX,BX);
-  this->k_short_nbor.run(&this->atom->x, &this->nbor->dev_nbor,
-                         &this->_nbor_data->begin(),
-                         &this->dev_short_nbor, &_cutshortsq, &ainum,
-                         &nbor_pitch, &this->_threads_per_atom);
-
-  // this->_nbor_data == nbor->dev_packed for gpu_nbor == 0 and tpa > 1
-  // this->_nbor_data == nbor->dev_nbor for gpu_nbor == 1 or tpa == 1
-  ainum=this->ans->inum();
-  nbor_pitch=this->nbor->nbor_pitch();
-  GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
-                               (BX/this->_threads_per_atom)));
   this->time_pair.start();
 
-  // note that k_pair does not run with the short neighbor list
-  this->k_pair.set_size(GX,BX);
-  this->k_pair.run(&this->atom->x, &param1, &param2, &param3, &param4, &param5,
-                   &map, &elem2param, &_nelements,
-                   &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                   &this->ans->force, &this->ans->engv,
-                   &eflag, &vflag, &ainum, &nbor_pitch,
-                   &this->_threads_per_atom);
+  int BX=this->block_pair();
+  int GX=static_cast<int>(ceil(static_cast<double>(ainum)/BX));
+  this->k_short_nbor.set_size(GX,BX);
+  this->k_short_nbor.run(&this->atom->x, &param4, &map, &elem2param,
+                         &_nelements, &_nparams, &this->nbor->dev_nbor,
+                         &this->nbor->dev_packed, &ainum, &nbor_pitch,
+                         &this->_threads_per_atom);
 
+  ainum=this->ans->inum();
   BX=this->block_size();
   GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                            (BX/(KTHREADS*JTHREADS))));
-  
-  this->k_three_center.set_size(GX,BX);
-  this->k_three_center.run(&this->atom->x, &param1, &param2, &param3, &param4, &param5,
-                           &map, &elem2param, &_nelements,
-                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                           &this->dev_short_nbor,
-                           &this->ans->force, &this->ans->engv, &eflag, &vflag, &ainum,
+  this->k_3center_sel->set_size(GX,BX);
+  this->k_3center_sel->run(&this->atom->x, &param1, &param2, &param3, &param4,
+                           &param5, &map, &elem2param, &_nelements,
+                           &this->nbor->dev_nbor, &this->ans->force,
+                           &this->ans->engv, &eflag, &vflag, &ainum,
                            &nbor_pitch, &this->_threads_per_atom, &evatom);
+
   Answer<numtyp,acctyp> *end_ans;
   #ifdef THREE_CONCURRENT
   end_ans=this->ans2;
@@ -274,23 +245,34 @@ void VashishtaT::loop(const bool _eflag, const bool _vflag, const int evatom) {
   #endif
   if (evatom!=0) {
     this->k_three_end_vatom.set_size(GX,BX);
-    this->k_three_end_vatom.run(&this->atom->x, &param1, &param2, &param3, &param4, &param5,
-                          &map, &elem2param, &_nelements,
-                          &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                          &this->nbor->dev_ilist, &this->dev_short_nbor,
-                          &end_ans->force, &end_ans->engv, &eflag, &vflag, &ainum,
-                          &nbor_pitch, &this->_threads_per_atom, &this->_gpu_nbor);
+    this->k_three_end_vatom.run(&this->atom->x, &param1, &param2, &param3,
+                          &param4, &param5, &map, &elem2param, &_nelements,
+                          &this->nbor->dev_nbor, &this->nbor->three_ilist,
+                          &end_ans->force, &end_ans->engv, &eflag, &vflag,
+                          &ainum, &nbor_pitch, &this->_threads_per_atom,
+                          &this->_gpu_nbor);
   } else {
-    this->k_three_end.set_size(GX,BX);
-    this->k_three_end.run(&this->atom->x, &param1, &param2, &param3, &param4, &param5,
-                          &map, &elem2param, &_nelements,
-                          &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                          &this->nbor->dev_ilist, &this->dev_short_nbor,
-                          &end_ans->force, &end_ans->engv, &eflag, &vflag, &ainum,
-                          &nbor_pitch, &this->_threads_per_atom, &this->_gpu_nbor);
+    this->k_3end_sel->set_size(GX,BX);
+    this->k_3end_sel->run(&this->atom->x, &param1, &param2, &param3, &param4,
+                          &param5, &map, &elem2param, &_nelements,
+                          &this->nbor->dev_nbor, &this->nbor->three_ilist,
+                          &end_ans->force, &end_ans->engv, &eflag, &vflag,
+                          &ainum, &nbor_pitch, &this->_threads_per_atom,
+                          &this->_gpu_nbor);
   }
 
+  BX=this->block_pair();
+  int GXT=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
+                           (BX/this->_threads_per_atom)));
+  // note that k_pair does not run with the short neighbor list
+  this->k_sel->set_size(GXT,BX);
+  this->k_sel->run(&this->atom->x, &param1, &param2, &param3, &param4, &param5,
+                   &map, &elem2param, &_nelements, &this->nbor->dev_packed,
+                   &this->ans->force, &this->ans->engv,  &eflag, &vflag,
+                   &ainum, &nbor_pitch, &GX);
+
   this->time_pair.stop();
+  return GX;
 }
 
 template class Vashishta<PRECISION,ACC_PRECISION>;

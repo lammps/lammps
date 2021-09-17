@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,21 +17,19 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_eam_gpu.h"
-#include <cmath>
-#include <cstdio>
 
-#include <cstring>
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
 #include "domain.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
 #include "error.h"
-#include "neigh_request.h"
+#include "force.h"
 #include "gpu_extra.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 #include "suffix.h"
+
+#include <cmath>
 
 #define MAXLINE 1024
 
@@ -42,7 +41,7 @@ int eam_gpu_init(const int ntypes, double host_cutforcesq,
                  int **host_type2rhor, int **host_type2z2r,
                  int *host_type2frho, double ***host_rhor_spline,
                  double ***host_z2r_spline, double ***host_frho_spline,
-                 double rdr, double rdrho, double rhomax,
+                 double** host_cutsq, double rdr, double rdrho, double rhomax,
                  int nrhor, int nrho, int nz2r, int nfrho, int nr,
                  const int nlocal, const int nall, const int max_nbors,
                  const int maxspecial, const double cell_size, int &gpu_mode,
@@ -50,11 +49,11 @@ int eam_gpu_init(const int ntypes, double host_cutforcesq,
 void eam_gpu_clear();
 int** eam_gpu_compute_n(const int ago, const int inum_full, const int nall,
                         double **host_x, int *host_type, double *sublo,
-                        double *subhi, tagint *tag, int **nspecial, tagint **special,
-                        const bool eflag, const bool vflag, const bool eatom,
-                        const bool vatom, int &host_start, int **ilist,
-                        int **jnum,  const double cpu_time, bool &success,
-                        int &inum, void **fp_ptr);
+                        double *subhi, tagint *tag, int **nspecial,
+                        tagint **special, const bool eflag, const bool vflag,
+                        const bool eatom, const bool vatom, int &host_start,
+                        int **ilist, int **jnum,  const double cpu_time,
+                        bool &success, int &inum, void **fp_ptr);
 void eam_gpu_compute(const int ago, const int inum_full, const int nlocal,
                      const int nall,double **host_x, int *host_type,
                      int *ilist, int *numj, int **firstneigh,
@@ -157,7 +156,7 @@ void PairEAMGPU::compute(int eflag, int vflag)
 void PairEAMGPU::init_style()
 {
   if (force->newton_pair)
-    error->all(FLERR,"Cannot use newton pair with eam/gpu pair style");
+    error->all(FLERR,"Pair style eam/gpu requires newton pair off");
 
   // convert read-in file(s) to arrays and spline them
 
@@ -182,13 +181,14 @@ void PairEAMGPU::init_style()
   double cell_size = sqrt(maxcut) + neighbor->skin;
 
   int maxspecial=0;
-  if (atom->molecular)
+  if (atom->molecular != Atom::ATOMIC)
     maxspecial=atom->maxspecial;
   int fp_size;
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = eam_gpu_init(atom->ntypes+1, cutforcesq, type2rhor, type2z2r,
                              type2frho, rhor_spline, z2r_spline, frho_spline,
-                             rdr, rdrho, rhomax, nrhor, nrho, nz2r, nfrho, nr,
-                             atom->nlocal, atom->nlocal+atom->nghost, 300,
+                             cutsq, rdr, rdrho, rhomax, nrhor, nrho, nz2r, nfrho, nr,
+                             atom->nlocal, atom->nlocal+atom->nghost, mnf,
                              maxspecial, cell_size, gpu_mode, screen, fp_size);
   GPU_EXTRA::check_flag(success,error,world);
 
@@ -197,7 +197,6 @@ void PairEAMGPU::init_style()
     neighbor->requests[irequest]->half = 0;
     neighbor->requests[irequest]->full = 1;
   }
-
   if (fp_size == sizeof(double))
     fp_single = false;
   else

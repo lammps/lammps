@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,30 +14,21 @@
 
 #include "compute_reduce.h"
 
-#include <cstring>
-
+#include "arg_info.h"
 #include "atom.h"
-#include "update.h"
 #include "domain.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "group.h"
 #include "input.h"
-#include "variable.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
 
+#include <cstring>
 
 using namespace LAMMPS_NS;
-
-enum{SUM,SUMSQ,MINN,MAXX,AVE,AVESQ};             // also in ComputeReduceRegion
-enum{UNKNOWN=-1,X,V,F,COMPUTE,FIX,VARIABLE};
-enum{PERATOM,LOCAL};
-
-#define INVOKED_VECTOR 2
-#define INVOKED_ARRAY 4
-#define INVOKED_PERATOM 8
-#define INVOKED_LOCAL 16
 
 #define BIG 1.0e20
 
@@ -58,9 +50,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
     iregion = domain->find_region(arg[3]);
     if (iregion == -1)
       error->all(FLERR,"Region ID for compute reduce/region does not exist");
-    int n = strlen(arg[3]) + 1;
-    idregion = new char[n];
-    strcpy(idregion,arg[3]);
+    idregion = utils::strdup(arg[3]);
     iarg = 4;
   }
 
@@ -92,7 +82,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
   ids = new char*[nargnew];
   value2index = new int[nargnew];
   for (int i=0; i < nargnew; ++i) {
-    which[i] = argindex[i] = flavor[i] = value2index[i] = UNKNOWN;
+    which[i] = argindex[i] = flavor[i] = value2index[i] = ArgInfo::UNKNOWN;
     ids[i] = nullptr;
   }
   nvalues = 0;
@@ -102,61 +92,49 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
     ids[nvalues] = nullptr;
 
     if (strcmp(arg[iarg],"x") == 0) {
-      which[nvalues] = X;
+      which[nvalues] = ArgInfo::X;
       argindex[nvalues++] = 0;
     } else if (strcmp(arg[iarg],"y") == 0) {
-      which[nvalues] = X;
+      which[nvalues] = ArgInfo::X;
       argindex[nvalues++] = 1;
     } else if (strcmp(arg[iarg],"z") == 0) {
-      which[nvalues] = X;
+      which[nvalues] = ArgInfo::X;
       argindex[nvalues++] = 2;
 
     } else if (strcmp(arg[iarg],"vx") == 0) {
-      which[nvalues] = V;
+      which[nvalues] = ArgInfo::V;
       argindex[nvalues++] = 0;
     } else if (strcmp(arg[iarg],"vy") == 0) {
-      which[nvalues] = V;
+      which[nvalues] = ArgInfo::V;
       argindex[nvalues++] = 1;
     } else if (strcmp(arg[iarg],"vz") == 0) {
-      which[nvalues] = V;
+      which[nvalues] = ArgInfo::V;
       argindex[nvalues++] = 2;
 
     } else if (strcmp(arg[iarg],"fx") == 0) {
-      which[nvalues] = F;
+      which[nvalues] = ArgInfo::F;
       argindex[nvalues++] = 0;
     } else if (strcmp(arg[iarg],"fy") == 0) {
-      which[nvalues] = F;
+      which[nvalues] = ArgInfo::F;
       argindex[nvalues++] = 1;
     } else if (strcmp(arg[iarg],"fz") == 0) {
-      which[nvalues] = F;
+      which[nvalues] = ArgInfo::F;
       argindex[nvalues++] = 2;
 
-    } else if (strncmp(arg[iarg],"c_",2) == 0 ||
-               strncmp(arg[iarg],"f_",2) == 0 ||
-               strncmp(arg[iarg],"v_",2) == 0) {
-      if (arg[iarg][0] == 'c') which[nvalues] = COMPUTE;
-      else if (arg[iarg][0] == 'f') which[nvalues] = FIX;
-      else if (arg[iarg][0] == 'v') which[nvalues] = VARIABLE;
+    } else {
 
-      int n = strlen(arg[iarg]);
-      char *suffix = new char[n];
-      strcpy(suffix,&arg[iarg][2]);
+      ArgInfo argi(arg[iarg]);
 
-      char *ptr = strchr(suffix,'[');
-      if (ptr) {
-        if (suffix[strlen(suffix)-1] != ']')
-          error->all(FLERR,"Illegal compute reduce command");
-        argindex[nvalues] = atoi(ptr+1);
-        *ptr = '\0';
-      } else argindex[nvalues] = 0;
+      which[nvalues] = argi.get_type();
+      argindex[nvalues] = argi.get_index1();
+      ids[nvalues] = argi.copy_name();
 
-      n = strlen(suffix) + 1;
-      ids[nvalues] = new char[n];
-      strcpy(ids[nvalues],suffix);
+      if ((which[nvalues] == ArgInfo::UNKNOWN) || (argi.get_dim() > 1))
+        error->all(FLERR,"Illegal compute reduce command");
+
+      if (which[nvalues] == ArgInfo::NONE) break;
       nvalues++;
-      delete [] suffix;
-
-    } else break;
+    }
 
     iarg++;
   }
@@ -171,8 +149,8 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+3 > narg) error->all(FLERR,"Illegal compute reduce command");
       if (mode != MINN && mode != MAXX)
         error->all(FLERR,"Compute reduce replace requires min or max mode");
-      int col1 = atoi(arg[iarg+1]) - 1;
-      int col2 = atoi(arg[iarg+2]) - 1;
+      int col1 = utils::inumeric(FLERR,arg[iarg+1],false,lmp) - 1;
+      int col2 = utils::inumeric(FLERR,arg[iarg+2],false,lmp) - 1;
       if (col1 < 0 || col1 >= nvalues || col2 < 0 || col2 >= nvalues)
         error->all(FLERR,"Illegal compute reduce command");
       if (col1 == col2) error->all(FLERR,"Illegal compute reduce command");
@@ -203,10 +181,10 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
   // setup and error check
 
   for (int i = 0; i < nvalues; i++) {
-    if (which[i] == X || which[i] == V || which[i] == F)
+    if (which[i] == ArgInfo::X || which[i] == ArgInfo::V || which[i] == ArgInfo::F)
       flavor[i] = PERATOM;
 
-    else if (which[i] == COMPUTE) {
+    else if (which[i] == ArgInfo::COMPUTE) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
         error->all(FLERR,"Compute ID for compute reduce does not exist");
@@ -239,7 +217,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
       } else error->all(FLERR,
                         "Compute reduce compute calculates global values");
 
-    } else if (which[i] == FIX) {
+    } else if (which[i] == ArgInfo::FIX) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
         error->all(FLERR,"Fix ID for compute reduce does not exist");
@@ -269,7 +247,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
           error->all(FLERR,"Compute reduce fix array is accessed out-of-range");
       } else error->all(FLERR,"Compute reduce fix calculates global values");
 
-    } else if (which[i] == VARIABLE) {
+    } else if (which[i] == ArgInfo::VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
         error->all(FLERR,"Variable name for compute reduce does not exist");
@@ -330,25 +308,25 @@ void ComputeReduce::init()
   // set indices of all computes,fixes,variables
 
   for (int m = 0; m < nvalues; m++) {
-    if (which[m] == COMPUTE) {
+    if (which[m] == ArgInfo::COMPUTE) {
       int icompute = modify->find_compute(ids[m]);
       if (icompute < 0)
         error->all(FLERR,"Compute ID for compute reduce does not exist");
       value2index[m] = icompute;
 
-    } else if (which[m] == FIX) {
+    } else if (which[m] == ArgInfo::FIX) {
       int ifix = modify->find_fix(ids[m]);
       if (ifix < 0)
         error->all(FLERR,"Fix ID for compute reduce does not exist");
       value2index[m] = ifix;
 
-    } else if (which[m] == VARIABLE) {
+    } else if (which[m] == ArgInfo::VARIABLE) {
       int ivariable = input->variable->find(ids[m]);
       if (ivariable < 0)
         error->all(FLERR,"Variable name for compute reduce does not exist");
       value2index[m] = ivariable;
 
-    } else value2index[m] = UNKNOWN;
+    } else value2index[m] = ArgInfo::UNKNOWN;
   }
 
   // set index and check validity of region
@@ -475,7 +453,7 @@ double ComputeReduce::compute_one(int m, int flag)
   // initialization in case it has not yet been run, e.g. when
   // the compute was invoked right after it has been created
 
-  if (vidx == UNKNOWN) {
+  if (vidx == ArgInfo::UNKNOWN) {
     init();
     vidx = value2index[m];
   }
@@ -488,19 +466,19 @@ double ComputeReduce::compute_one(int m, int flag)
   if (mode == MINN) one = BIG;
   if (mode == MAXX) one = -BIG;
 
-  if (which[m] == X) {
+  if (which[m] == ArgInfo::X) {
     double **x = atom->x;
     if (flag < 0) {
       for (i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) combine(one,x[i][aidx],i);
     } else one = x[flag][aidx];
-  } else if (which[m] == V) {
+  } else if (which[m] == ArgInfo::V) {
     double **v = atom->v;
     if (flag < 0) {
       for (i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) combine(one,v[i][aidx],i);
     } else one = v[flag][aidx];
-  } else if (which[m] == F) {
+  } else if (which[m] == ArgInfo::F) {
     double **f = atom->f;
     if (flag < 0) {
       for (i = 0; i < nlocal; i++)
@@ -509,13 +487,13 @@ double ComputeReduce::compute_one(int m, int flag)
 
   // invoke compute if not previously invoked
 
-  } else if (which[m] == COMPUTE) {
+  } else if (which[m] == ArgInfo::COMPUTE) {
     Compute *compute = modify->compute[vidx];
 
     if (flavor[m] == PERATOM) {
-      if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+      if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
         compute->compute_peratom();
-        compute->invoked_flag |= INVOKED_PERATOM;
+        compute->invoked_flag |= Compute::INVOKED_PERATOM;
       }
 
       if (aidx == 0) {
@@ -536,9 +514,9 @@ double ComputeReduce::compute_one(int m, int flag)
       }
 
     } else if (flavor[m] == LOCAL) {
-      if (!(compute->invoked_flag & INVOKED_LOCAL)) {
+      if (!(compute->invoked_flag & Compute::INVOKED_LOCAL)) {
         compute->compute_local();
-        compute->invoked_flag |= INVOKED_LOCAL;
+        compute->invoked_flag |= Compute::INVOKED_LOCAL;
       }
 
       if (aidx == 0) {
@@ -561,7 +539,7 @@ double ComputeReduce::compute_one(int m, int flag)
 
   // access fix fields, check if fix frequency is a match
 
-  } else if (which[m] == FIX) {
+  } else if (which[m] == ArgInfo::FIX) {
     if (update->ntimestep % modify->fix[vidx]->peratom_freq)
       error->all(FLERR,"Fix used in compute reduce not "
                  "computed at compatible time");
@@ -605,7 +583,7 @@ double ComputeReduce::compute_one(int m, int flag)
 
   // evaluate atom-style variable
 
-  } else if (which[m] == VARIABLE) {
+  } else if (which[m] == ArgInfo::VARIABLE) {
     if (atom->nmax > maxatom) {
       maxatom = atom->nmax;
       memory->destroy(varatom);
@@ -628,9 +606,9 @@ bigint ComputeReduce::count(int m)
 {
   int vidx = value2index[m];
 
-  if (which[m] == X || which[m] == V || which[m] == F)
+  if (which[m] == ArgInfo::X || which[m] == ArgInfo::V || which[m] == ArgInfo::F)
     return group->count(igroup);
-  else if (which[m] == COMPUTE) {
+  else if (which[m] == ArgInfo::COMPUTE) {
     Compute *compute = modify->compute[vidx];
     if (flavor[m] == PERATOM) {
       return group->count(igroup);
@@ -640,7 +618,7 @@ bigint ComputeReduce::count(int m)
       MPI_Allreduce(&ncount,&ncountall,1,MPI_LMP_BIGINT,MPI_SUM,world);
       return ncountall;
     }
-  } else if (which[m] == FIX) {
+  } else if (which[m] == ArgInfo::FIX) {
     Fix *fix = modify->fix[vidx];
     if (flavor[m] == PERATOM) {
       return group->count(igroup);
@@ -650,7 +628,7 @@ bigint ComputeReduce::count(int m)
       MPI_Allreduce(&ncount,&ncountall,1,MPI_LMP_BIGINT,MPI_SUM,world);
       return ncountall;
     }
-  } else if (which[m] == VARIABLE)
+  } else if (which[m] == ArgInfo::VARIABLE)
     return group->count(igroup);
 
   bigint dummy = 0;
@@ -685,6 +663,6 @@ void ComputeReduce::combine(double &one, double two, int i)
 
 double ComputeReduce::memory_usage()
 {
-  double bytes = maxatom * sizeof(double);
+  double bytes = (double)maxatom * sizeof(double);
   return bytes;
 }

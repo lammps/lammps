@@ -154,13 +154,13 @@ MACRO(kokkos_export_imported_tpl NAME)
         KOKKOS_APPEND_CONFIG_LINE("SET_TARGET_PROPERTIES(${NAME} PROPERTIES")
         GET_TARGET_PROPERTY(TPL_LIBRARY ${NAME} IMPORTED_LOCATION)
         IF(TPL_LIBRARY)
-          KOKKOS_APPEND_CONFIG_LINE("IMPORTED_LOCATION ${TPL_LIBRARY}")
+          KOKKOS_APPEND_CONFIG_LINE("IMPORTED_LOCATION \"${TPL_LIBRARY}\"")
         ENDIF()
       ENDIF()
 
       GET_TARGET_PROPERTY(TPL_INCLUDES ${NAME} INTERFACE_INCLUDE_DIRECTORIES)
       IF(TPL_INCLUDES)
-        KOKKOS_APPEND_CONFIG_LINE("INTERFACE_INCLUDE_DIRECTORIES ${TPL_INCLUDES}")
+        KOKKOS_APPEND_CONFIG_LINE("INTERFACE_INCLUDE_DIRECTORIES \"${TPL_INCLUDES}\"")
       ENDIF()
 
       GET_TARGET_PROPERTY(TPL_COMPILE_OPTIONS ${NAME} INTERFACE_COMPILE_OPTIONS)
@@ -169,16 +169,14 @@ MACRO(kokkos_export_imported_tpl NAME)
       ENDIF()
 
       SET(TPL_LINK_OPTIONS)
-      IF(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.13.0")
-        GET_TARGET_PROPERTY(TPL_LINK_OPTIONS ${NAME} INTERFACE_LINK_OPTIONS)
-      ENDIF()
+      GET_TARGET_PROPERTY(TPL_LINK_OPTIONS ${NAME} INTERFACE_LINK_OPTIONS)
       IF(TPL_LINK_OPTIONS)
         KOKKOS_APPEND_CONFIG_LINE("INTERFACE_LINK_OPTIONS ${TPL_LINK_OPTIONS}")
       ENDIF()
 
       GET_TARGET_PROPERTY(TPL_LINK_LIBRARIES  ${NAME} INTERFACE_LINK_LIBRARIES)
       IF(TPL_LINK_LIBRARIES)
-        KOKKOS_APPEND_CONFIG_LINE("INTERFACE_LINK_LIBRARIES ${TPL_LINK_LIBRARIES}")
+        KOKKOS_APPEND_CONFIG_LINE("INTERFACE_LINK_LIBRARIES \"${TPL_LINK_LIBRARIES}\"")
       ENDIF()
       KOKKOS_APPEND_CONFIG_LINE(")")
       KOKKOS_APPEND_CONFIG_LINE("ENDIF()")
@@ -230,9 +228,7 @@ MACRO(kokkos_import_tpl NAME)
   # I have still been getting errors about ROOT variables being ignored
   # I'm not sure if this is a scope issue - but make sure
   # the policy is set before we do any find_package calls
-  IF(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.12.0")
-    CMAKE_POLICY(SET CMP0074 NEW)
-  ENDIF()
+  CMAKE_POLICY(SET CMP0074 NEW)
 
   IF (KOKKOS_ENABLE_${NAME})
     #Tack on a TPL here to make sure we avoid using anyone else's find
@@ -314,7 +310,7 @@ MACRO(kokkos_create_imported_tpl NAME)
   CMAKE_PARSE_ARGUMENTS(TPL
    "INTERFACE"
    "LIBRARY"
-   "LINK_LIBRARIES;INCLUDES;COMPILE_OPTIONS;LINK_OPTIONS"
+   "LINK_LIBRARIES;INCLUDES;COMPILE_DEFINITIONS;COMPILE_OPTIONS;LINK_OPTIONS"
    ${ARGN})
 
 
@@ -333,6 +329,9 @@ MACRO(kokkos_create_imported_tpl NAME)
     ENDIF()
     IF(TPL_INCLUDES)
       TARGET_INCLUDE_DIRECTORIES(${NAME} INTERFACE ${TPL_INCLUDES})
+    ENDIF()
+    IF(TPL_COMPILE_DEFINITIONS)
+      TARGET_COMPILE_DEFINITIONS(${NAME} INTERFACE ${TPL_COMPILE_DEFINITIONS})
     ENDIF()
     IF(TPL_COMPILE_OPTIONS)
       TARGET_COMPILE_OPTIONS(${NAME} INTERFACE ${TPL_COMPILE_OPTIONS})
@@ -354,6 +353,10 @@ MACRO(kokkos_create_imported_tpl NAME)
     IF(TPL_INCLUDES)
       SET_TARGET_PROPERTIES(${NAME} PROPERTIES
         INTERFACE_INCLUDE_DIRECTORIES "${TPL_INCLUDES}")
+    ENDIF()
+    IF(TPL_COMPILE_DEFINITIONS)
+      SET_TARGET_PROPERTIES(${NAME} PROPERTIES
+        INTERFACE_COMPILE_DEFINITIONS "${TPL_COMPILE_DEFINITIONS}")
     ENDIF()
     IF(TPL_COMPILE_OPTIONS)
       SET_TARGET_PROPERTIES(${NAME} PROPERTIES
@@ -770,7 +773,7 @@ FUNCTION(kokkos_link_tpl TARGET)
 ENDFUNCTION()
 
 FUNCTION(COMPILER_SPECIFIC_OPTIONS_HELPER)
-  SET(COMPILERS NVIDIA PGI XL DEFAULT Cray Intel Clang AppleClang IntelClang GNU HIP)
+  SET(COMPILERS NVIDIA PGI XL DEFAULT Cray Intel Clang AppleClang IntelLLVM GNU HIPCC Fujitsu)
   CMAKE_PARSE_ARGUMENTS(
     PARSE
     "LINK_OPTIONS;COMPILE_OPTIONS;COMPILE_DEFINITIONS;LINK_LIBRARIES"
@@ -844,7 +847,6 @@ ENDFUNCTION(COMPILER_SPECIFIC_DEFS)
 FUNCTION(COMPILER_SPECIFIC_LIBS)
   COMPILER_SPECIFIC_OPTIONS_HELPER(${ARGN} LINK_LIBRARIES)
 ENDFUNCTION(COMPILER_SPECIFIC_LIBS)
-
 # Given a list of the form
 #  key1;value1;key2;value2,...
 # Create a list of all keys in a variable named ${KEY_LIST_NAME}
@@ -876,4 +878,129 @@ FUNCTION(KOKKOS_CHECK_DEPRECATED_OPTIONS)
       MESSAGE(SEND_ERROR "Removed option ${OPTION_NAME} has been given with value ${${OPTION_NAME}}. ${OPT_MESSAGE}")
     ENDIF()
   ENDFOREACH()
+ENDFUNCTION()
+
+# this function checks whether the current CXX compiler supports building CUDA
+FUNCTION(kokkos_cxx_compiler_cuda_test _VAR)
+    # don't run this test every time
+    IF(DEFINED ${_VAR})
+        RETURN()
+    ENDIF()
+
+    FILE(WRITE ${PROJECT_BINARY_DIR}/compile_tests/compiles_cuda.cpp
+"
+#include <cuda.h>
+#include <cstdlib>
+
+__global__
+void kernel(int sz, double* data)
+{
+    auto _beg = blockIdx.x * blockDim.x + threadIdx.x;
+    for(int i = _beg; i < sz; ++i)
+        data[i] += static_cast<double>(i);
+}
+
+int main()
+{
+    double* data = nullptr;
+    int blocks = 64;
+    int grids = 64;
+    auto ret = cudaMalloc(&data, blocks * grids * sizeof(double));
+    if(ret != cudaSuccess)
+        return EXIT_FAILURE;
+    kernel<<<grids, blocks>>>(blocks * grids, data);
+    cudaDeviceSynchronize();
+    return EXIT_SUCCESS;
+}
+")
+
+    TRY_COMPILE(_RET
+        ${PROJECT_BINARY_DIR}/compile_tests
+        SOURCES ${PROJECT_BINARY_DIR}/compile_tests/compiles_cuda.cpp)
+
+    SET(${_VAR} ${_RET} CACHE STRING "CXX compiler supports building CUDA")
+ENDFUNCTION()
+
+# this function is provided to easily select which files use nvcc_wrapper:
+#
+#       GLOBAL      --> all files
+#       TARGET      --> all files in a target
+#       SOURCE      --> specific source files
+#       DIRECTORY   --> all files in directory
+#       PROJECT     --> all files/targets in a project/subproject
+#
+# NOTE: this is VERY DIFFERENT than the version in KokkosConfigCommon.cmake.in.
+# This version explicitly uses nvcc_wrapper.
+#
+FUNCTION(kokkos_compilation)
+    # check whether the compiler already supports building CUDA
+    KOKKOS_CXX_COMPILER_CUDA_TEST(Kokkos_CXX_COMPILER_COMPILES_CUDA)
+    # if CUDA compile test has already been performed, just return
+    IF(Kokkos_CXX_COMPILER_COMPILES_CUDA)
+        RETURN()
+    ENDIF()
+
+    CMAKE_PARSE_ARGUMENTS(COMP "GLOBAL;PROJECT" "" "DIRECTORY;TARGET;SOURCE" ${ARGN})
+
+    # find kokkos_launch_compiler
+    FIND_PROGRAM(Kokkos_COMPILE_LAUNCHER
+        NAMES           kokkos_launch_compiler
+        HINTS           ${PROJECT_SOURCE_DIR}
+        PATHS           ${PROJECT_SOURCE_DIR}
+        PATH_SUFFIXES   bin)
+
+    IF(NOT Kokkos_COMPILE_LAUNCHER)
+        MESSAGE(FATAL_ERROR "Kokkos could not find 'kokkos_launch_compiler'. Please set '-DKokkos_COMPILE_LAUNCHER=/path/to/launcher'")
+    ENDIF()
+
+    # find nvcc_wrapper
+    FIND_PROGRAM(Kokkos_NVCC_WRAPPER
+        NAMES           nvcc_wrapper
+        HINTS           ${PROJECT_SOURCE_DIR}
+        PATHS           ${PROJECT_SOURCE_DIR}
+        PATH_SUFFIXES   bin)
+
+    IF(NOT Kokkos_COMPILE_LAUNCHER)
+        MESSAGE(FATAL_ERROR "Kokkos could not find 'nvcc_wrapper'. Please set '-DKokkos_COMPILE_LAUNCHER=/path/to/nvcc_wrapper'")
+    ENDIF()
+
+    IF(COMP_GLOBAL)
+        # if global, don't bother setting others
+        SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${Kokkos_COMPILE_LAUNCHER} ${Kokkos_NVCC_WRAPPER} ${CMAKE_CXX_COMPILER}")
+        SET_PROPERTY(GLOBAL PROPERTY RULE_LAUNCH_LINK "${Kokkos_COMPILE_LAUNCHER} ${Kokkos_NVCC_WRAPPER} ${CMAKE_CXX_COMPILER}")
+    ELSE()
+        FOREACH(_TYPE PROJECT DIRECTORY TARGET SOURCE)
+            # make project/subproject scoping easy, e.g. KokkosCompilation(PROJECT) after project(...)
+            IF("${_TYPE}" STREQUAL "PROJECT" AND COMP_${_TYPE})
+                LIST(APPEND COMP_DIRECTORY ${PROJECT_SOURCE_DIR})
+                UNSET(COMP_${_TYPE})
+            ENDIF()
+            # set the properties if defined
+            IF(COMP_${_TYPE})
+                # MESSAGE(STATUS "Using nvcc_wrapper :: ${_TYPE} :: ${COMP_${_TYPE}}")
+                SET_PROPERTY(${_TYPE} ${COMP_${_TYPE}} PROPERTY RULE_LAUNCH_COMPILE "${Kokkos_COMPILE_LAUNCHER} ${Kokkos_NVCC_WRAPPER} ${CMAKE_CXX_COMPILER}")
+                SET_PROPERTY(${_TYPE} ${COMP_${_TYPE}} PROPERTY RULE_LAUNCH_LINK "${Kokkos_COMPILE_LAUNCHER} ${Kokkos_NVCC_WRAPPER} ${CMAKE_CXX_COMPILER}")
+            ENDIF()
+        ENDFOREACH()
+    ENDIF()
+ENDFUNCTION()
+## KOKKOS_CONFIG_HEADER - parse the data list which is a list of backend names
+##                        and create output config header file...used for
+##                        creating dynamic include files based on enabled backends
+##
+##                        SRC_FILE is input file
+##                        TARGET_FILE output file
+##                        HEADER_GUARD TEXT used with include header guard
+##                        HEADER_PREFIX prefix used with include (i.e. fwd, decl, setup)
+##                        DATA_LIST list of backends to include in generated file
+FUNCTION(KOKKOS_CONFIG_HEADER SRC_FILE TARGET_FILE HEADER_GUARD HEADER_PREFIX DATA_LIST)
+   SET(HEADER_GUARD_TAG "${HEADER_GUARD}_HPP_")
+   CONFIGURE_FILE(cmake/${SRC_FILE} ${PROJECT_BINARY_DIR}/temp/${TARGET_FILE}.work COPYONLY)
+   FOREACH( BACKEND_NAME ${DATA_LIST} )
+   SET(INCLUDE_NEXT_FILE "#include <${HEADER_PREFIX}_${BACKEND_NAME}.hpp>
+\@INCLUDE_NEXT_FILE\@")
+   CONFIGURE_FILE(${PROJECT_BINARY_DIR}/temp/${TARGET_FILE}.work ${PROJECT_BINARY_DIR}/temp/${TARGET_FILE}.work @ONLY)
+   ENDFOREACH()
+   SET(INCLUDE_NEXT_FILE "" )
+   CONFIGURE_FILE(${PROJECT_BINARY_DIR}/temp/${TARGET_FILE}.work ${TARGET_FILE} @ONLY)
 ENDFUNCTION()

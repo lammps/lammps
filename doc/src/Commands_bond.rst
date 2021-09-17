@@ -18,7 +18,7 @@ Bond_style potentials
 
 All LAMMPS :doc:`bond_style <bond_style>` commands.  Some styles have
 accelerated versions.  This is indicated by additional letters in
-parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t =
+parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t =
 OPT.
 
 .. table_from_list::
@@ -57,7 +57,7 @@ Angle_style potentials
 
 All LAMMPS :doc:`angle_style <angle_style>` commands.  Some styles have
 accelerated versions.  This is indicated by additional letters in
-parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t =
+parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t =
 OPT.
 
 .. table_from_list::
@@ -99,7 +99,7 @@ Dihedral_style potentials
 
 All LAMMPS :doc:`dihedral_style <dihedral_style>` commands.  Some styles
 have accelerated versions.  This is indicated by additional letters in
-parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t =
+parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t =
 OPT.
 
 .. table_from_list::
@@ -126,7 +126,7 @@ OPT.
    * :doc:`quadratic (o) <dihedral_quadratic>`
    * :doc:`spherical <dihedral_spherical>`
    * :doc:`table (o) <dihedral_table>`
-   * :doc:`table/cut <dihedral_table_cut>`
+   * :doc:`table/cut <dihedral_table>`
 
 .. _improper:
 
@@ -135,7 +135,7 @@ Improper_style potentials
 
 All LAMMPS :doc:`improper_style <improper_style>` commands.  Some styles
 have accelerated versions.  This is indicated by additional letters in
-parenthesis: g = GPU, i = USER-INTEL, k = KOKKOS, o = USER-OMP, t =
+parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t =
 OPT.
 
 .. table_from_list::

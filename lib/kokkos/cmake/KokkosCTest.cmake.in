@@ -1,0 +1,261 @@
+cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
+
+if(EXISTS "${CMAKE_CURRENT_LIST_DIR}/CTestConfig.cmake")
+    include("${CMAKE_CURRENT_LIST_DIR}/CTestConfig.cmake")
+endif()
+
+include(ProcessorCount)
+ProcessorCount(CTEST_PROCESSOR_COUNT)
+
+cmake_policy(SET CMP0009 NEW)
+cmake_policy(SET CMP0011 NEW)
+
+# ---------------------------------------------------------------------------- #
+# -- Commands
+# ---------------------------------------------------------------------------- #
+find_program(CTEST_CMAKE_COMMAND    NAMES cmake)
+find_program(CTEST_UNAME_COMMAND    NAMES uname)
+
+find_program(CTEST_BZR_COMMAND      NAMES bzr)
+find_program(CTEST_CVS_COMMAND      NAMES cvs)
+find_program(CTEST_GIT_COMMAND      NAMES git)
+find_program(CTEST_HG_COMMAND       NAMES hg)
+find_program(CTEST_P4_COMMAND       NAMES p4)
+find_program(CTEST_SVN_COMMAND      NAMES svn)
+
+find_program(VALGRIND_COMMAND       NAMES valgrind)
+find_program(GCOV_COMMAND           NAMES gcov)
+find_program(LCOV_COMMAND           NAMES llvm-cov)
+find_program(MEMORYCHECK_COMMAND    NAMES valgrind )
+
+set(MEMORYCHECK_TYPE Valgrind)
+# set(MEMORYCHECK_TYPE Purify)
+# set(MEMORYCHECK_TYPE BoundsChecker)
+# set(MEMORYCHECK_TYPE ThreadSanitizer)
+# set(MEMORYCHECK_TYPE AddressSanitizer)
+# set(MEMORYCHECK_TYPE LeakSanitizer)
+# set(MEMORYCHECK_TYPE MemorySanitizer)
+# set(MEMORYCHECK_TYPE UndefinedBehaviorSanitizer)
+set(MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full")
+
+# ---------------------------------------------------------------------------- #
+# -- Settings
+# ---------------------------------------------------------------------------- #
+## -- Process timeout in seconds
+set(CTEST_TIMEOUT           "7200")
+## -- Set output to English
+set(ENV{LC_MESSAGES}        "en_EN" )
+
+
+# ---------------------------------------------------------------------------- #
+# -- Copy ctest configuration file
+# ---------------------------------------------------------------------------- #
+macro(COPY_CTEST_CONFIG_FILES)
+
+    foreach(_FILE CTestConfig.cmake CTestCustom.cmake)
+
+        # if current directory is not binary or source directory
+        if(NOT "${CMAKE_CURRENT_LIST_DIR}" STREQUAL "${CTEST_BINARY_DIRECTORY}" AND
+           NOT "${CTEST_SOURCE_DIRECTORY}" STREQUAL "${CTEST_BINARY_DIRECTORY}")
+
+            # if file exists in current directory
+            if(EXISTS ${CMAKE_CURRENT_LIST_DIR}/${_FILE})
+                configure_file(${CMAKE_CURRENT_LIST_DIR}/${_FILE}
+                    ${CTEST_BINARY_DIRECTORY}/${_FILE} COPYONLY)
+            endif()
+
+        # if source and binary differ
+        elseif(NOT "${CTEST_SOURCE_DIRECTORY}" STREQUAL "${CTEST_BINARY_DIRECTORY}")
+
+            # if file exists in source directory but not in binary directory
+            if(EXISTS ${CTEST_SOURCE_DIRECTORY}/${_FILE} AND
+               NOT EXISTS ${CTEST_BINARY_DIRECTORY}/${_FILE})
+                configure_file(${CTEST_SOURCE_DIRECTORY}/${_FILE}
+                    ${CTEST_BINARY_DIRECTORY}/${_FILE} COPYONLY)
+            endif()
+
+        endif()
+    endforeach()
+
+endmacro()
+
+ctest_read_custom_files("${CMAKE_CURRENT_LIST_DIR}")
+
+message(STATUS "CTEST_MODEL: ${CTEST_MODEL}")
+
+#-------------------------------------------------------------------------#
+# Start
+#
+message(STATUS "")
+message(STATUS "[${CTEST_BUILD_NAME}] Running START_CTEST stage...")
+message(STATUS "")
+
+ctest_start(${CTEST_MODEL} TRACK ${CTEST_MODEL} ${APPEND_CTEST}
+    ${CTEST_SOURCE_DIRECTORY} ${CTEST_BINARY_DIRECTORY})
+
+
+#-------------------------------------------------------------------------#
+# Config
+#
+copy_ctest_config_files()
+ctest_read_custom_files("${CTEST_BINARY_DIRECTORY}")
+
+
+#-------------------------------------------------------------------------#
+# Update
+#
+message(STATUS "")
+message(STATUS "[${CTEST_BUILD_NAME}] Running CTEST_UPDATE stage...")
+message(STATUS "")
+
+ctest_update(SOURCE "${CTEST_SOURCE_DIRECTORY}"
+    RETURN_VALUE up_ret)
+
+
+#-------------------------------------------------------------------------#
+# Configure
+#
+message(STATUS "")
+message(STATUS "[${CTEST_BUILD_NAME}] Running CTEST_CONFIGURE stage...")
+message(STATUS "")
+
+ctest_configure(BUILD "${CTEST_BINARY_DIRECTORY}"
+    SOURCE ${CTEST_SOURCE_DIRECTORY}
+    ${APPEND_CTEST}
+    OPTIONS "${CTEST_CONFIGURE_OPTIONS}"
+    RETURN_VALUE config_ret)
+
+
+#-------------------------------------------------------------------------#
+# Echo configure log bc Damien wants to delay merging this PR for eternity
+#
+file(GLOB _configure_log "${CTEST_BINARY_DIRECTORY}/Testing/Temporary/LastConfigure*.log")
+# should only have one but loop just for safety
+foreach(_LOG ${_configure_log})
+    file(READ ${_LOG} _LOG_MESSAGE)
+    message(STATUS "Configure Log: ${_LOG}")
+    message(STATUS "\n${_LOG_MESSAGE}\n")
+endforeach()
+
+
+#-------------------------------------------------------------------------#
+# Build
+#
+message(STATUS "")
+message(STATUS "[${CTEST_BUILD_NAME}] Running CTEST_BUILD stage...")
+message(STATUS "")
+
+ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}"
+    ${APPEND_CTEST}
+    RETURN_VALUE build_ret)
+
+
+#-------------------------------------------------------------------------#
+# Echo build log bc Damien wants to delay merging this PR for eternity
+#
+file(GLOB _build_log "${CTEST_BINARY_DIRECTORY}/Testing/Temporary/LastBuild*.log")
+# should only have one but loop just for safety
+foreach(_LOG ${_build_log})
+    file(READ ${_LOG} _LOG_MESSAGE)
+    message(STATUS "Build Log: ${_LOG}")
+    message(STATUS "\n${_LOG_MESSAGE}\n")
+endforeach()
+
+
+#-------------------------------------------------------------------------#
+# Test
+#
+message(STATUS "")
+message(STATUS "[${CTEST_BUILD_NAME}] Running CTEST_TEST stage...")
+message(STATUS "")
+
+ctest_test(RETURN_VALUE test_ret
+    ${APPEND_CTEST}
+    ${START_CTEST}
+    ${END_CTEST}
+    ${STRIDE_CTEST}
+    ${INCLUDE_CTEST}
+    ${EXCLUDE_CTEST}
+    ${INCLUDE_LABEL_CTEST}
+    ${EXCLUDE_LABEL_CTEST}
+    ${PARALLEL_LEVEL_CTEST}
+    ${STOP_TIME_CTEST}
+    SCHEDULE_RANDOM OFF)
+
+
+#-------------------------------------------------------------------------#
+# Coverage
+#
+message(STATUS "")
+message(STATUS "[${CTEST_BUILD_NAME}] Running CTEST_COVERAGE stage...")
+message(STATUS "")
+
+execute_process(COMMAND ${CTEST_COVERAGE_COMMAND} ${CTEST_COVERAGE_EXTRA_FLAGS}
+    WORKING_DIRECTORY ${CTEST_BINARY_DIRECTORY}
+    ERROR_QUIET)
+
+ctest_coverage(${APPEND_CTEST}
+    ${CTEST_COVERAGE_LABELS}
+    RETURN_VALUE cov_ret)
+
+
+#-------------------------------------------------------------------------#
+# MemCheck
+#
+message(STATUS "")
+message(STATUS "[${CTEST_BUILD_NAME}] Running CTEST_MEMCHECK stage...")
+message(STATUS "")
+
+ctest_memcheck(RETURN_VALUE mem_ret
+    ${APPEND_CTEST}
+    ${START_CTEST}
+    ${END_CTEST}
+    ${STRIDE_CTEST}
+    ${INCLUDE_CTEST}
+    ${EXCLUDE_CTEST}
+    ${INCLUDE_LABEL_CTEST}
+    ${EXCLUDE_LABEL_CTEST}
+    ${PARALLEL_LEVEL_CTEST})
+
+
+#-------------------------------------------------------------------------#
+# Submit
+#
+message(STATUS "")
+message(STATUS "[${CTEST_BUILD_NAME}] Running CTEST_SUBMIT stage...")
+message(STATUS "")
+
+file(GLOB_RECURSE NOTE_FILES "${CTEST_BINARY_DIRECTORY}/*CTestNotes.cmake")
+foreach(_FILE ${NOTE_FILES})
+    message(STATUS "Including CTest notes files: \"${_FILE}\"...")
+    include("${_FILE}")
+endforeach()
+
+# capture submit error so it doesn't fail because of a submission error
+ctest_submit(RETURN_VALUE submit_ret
+    RETRY_COUNT 2
+    RETRY_DELAY 10
+    CAPTURE_CMAKE_ERROR submit_err)
+
+#-------------------------------------------------------------------------#
+# Submit
+#
+message(STATUS "")
+message(STATUS "[${CTEST_BUILD_NAME}] Finished ${CTEST_MODEL} Stages (${STAGES})")
+message(STATUS "")
+
+
+#-------------------------------------------------------------------------#
+# Non-zero exit codes for important errors
+#
+if(NOT config_ret EQUAL 0)
+    message(FATAL_ERROR "Error during configuration! Exit code: ${config_ret}")
+endif()
+
+if(NOT build_ret EQUAL 0)
+    message(FATAL_ERROR "Error during build! Exit code: ${build_ret}")
+endif()
+
+if(NOT test_ret EQUAL 0)
+    message(FATAL_ERROR "Error during testing! Exit code: ${test_ret}")
+endif()

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -63,7 +64,7 @@ vstore(nullptr), astore(nullptr), rbuf(nullptr)
   if (flavor == PERATOM) {
     restart_peratom = utils::inumeric(FLERR,arg[4],false,lmp);
     nvalues = utils::inumeric(FLERR,arg[5],false,lmp);
-    if (restart_peratom < 0 or restart_peratom > 1 || nvalues <= 0)
+    if ((restart_peratom < 0) || (restart_peratom > 1) || (nvalues <= 0))
       error->all(FLERR,"Illegal fix store command");
     vecflag = 0;
     if (nvalues == 1) vecflag = 1;
@@ -167,8 +168,8 @@ void FixStore::write_restart(FILE *fp)
 
   rbuf[0] = nrow;
   rbuf[1] = ncol;
-  if (vecflag) memcpy(&rbuf[2],vstore,nrow*sizeof(double));
-  else memcpy(&rbuf[2],&astore[0][0],nrow*ncol*sizeof(double));
+  if (vecflag) memcpy(&rbuf[2],vstore,sizeof(double)*nrow);
+  else memcpy(&rbuf[2],&astore[0][0],sizeof(double)*nrow*ncol);
 
   int n = nrow*ncol + 2;
   if (comm->me == 0) {
@@ -340,7 +341,7 @@ int FixStore::size_restart(int /*nlocal*/)
 double FixStore::memory_usage()
 {
   double bytes = 0.0;
-  if (flavor == GLOBAL) bytes += nrow*ncol * sizeof(double);
-  if (flavor == PERATOM) bytes += atom->nmax*nvalues * sizeof(double);
+  if (flavor == GLOBAL) bytes += (double)nrow*ncol * sizeof(double);
+  if (flavor == PERATOM) bytes += (double)atom->nmax*nvalues * sizeof(double);
   return bytes;
 }

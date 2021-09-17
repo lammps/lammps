@@ -1,7 +1,8 @@
 ---
-lammps_version: 24 Aug 2020
-date_generated: Tue Sep 15 09:44:16 202
+lammps_version: 10 Feb 2021
+date_generated: Fri Feb 26 23:08:49 2021
 epsilon: 1e-13
+skip_tests: gpu
 prerequisites: ! |
   atom full
   pair lj/cut/coul/msm
@@ -13,7 +14,7 @@ post_commands: ! |
   kspace_style msm 1.0e-4
   kspace_modify compute no
   kspace_modify cutoff/adjust no
-  kspace_modify pressure/scalar no # required for USER-OMP with msm
+  kspace_modify pressure/scalar no # required for OPENMP with msm
 input_file: in.fourmol
 pair_style: lj/cut/coul/msm 12.0
 pair_coeff: ! |

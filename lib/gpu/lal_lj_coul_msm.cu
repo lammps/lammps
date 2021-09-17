@@ -28,6 +28,11 @@ _texture( gcons_tex,int2);
 _texture( dgcons_tex,int2);
 #endif
 
+#if (__CUDACC_VER_MAJOR__ >= 11)
+#define gcons_tex gcons
+#define dgcons_tex dgcons
+#endif
+
 #else
 #define pos_tex x_
 #define q_tex q_
@@ -100,6 +105,9 @@ __kernel void k_lj_coul_msm(const __global numtyp4 *restrict x_,
   atom_info(t_per_atom,ii,tid,offset);
 
   __local numtyp sp_lj[8];
+  int n_stride;
+  local_allocate_store_charge();
+
   sp_lj[0]=sp_lj_in[0];
   sp_lj[1]=sp_lj_in[1];
   sp_lj[2]=sp_lj_in[2];
@@ -109,18 +117,18 @@ __kernel void k_lj_coul_msm(const __global numtyp4 *restrict x_,
   sp_lj[6]=sp_lj_in[6];
   sp_lj[7]=sp_lj_in[7];
 
-  acctyp energy=(acctyp)0;
-  acctyp e_coul=(acctyp)0;
   acctyp4 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
-  acctyp virial[6];
-  for (int i=0; i<6; i++)
-    virial[i]=(acctyp)0;
+  acctyp energy, e_coul, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    e_coul=(acctyp)0;
+    for (int i=0; i<6; i++) virial[i]=(acctyp)0;
+  }
 
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
-    __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
 
@@ -175,7 +183,7 @@ __kernel void k_lj_coul_msm(const __global numtyp4 *restrict x_,
         f.y+=dely*force;
         f.z+=delz*force;
 
-        if (eflag>0) {
+        if (EVFLAG && eflag) {
           if (rsq < cut_coulsq)
             e_coul += prefactor*(egamma-factor_coul);
           if (rsq < lj1[mtype].w) {
@@ -183,7 +191,7 @@ __kernel void k_lj_coul_msm(const __global numtyp4 *restrict x_,
             energy+=factor_lj*(e-lj3[mtype].z);
           }
         }
-        if (vflag>0) {
+        if (EVFLAG && vflag) {
           virial[0] += delx*delx*force;
           virial[1] += dely*dely*force;
           virial[2] += delz*delz*force;
@@ -194,9 +202,9 @@ __kernel void k_lj_coul_msm(const __global numtyp4 *restrict x_,
       }
 
     } // for nbor
-    store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,
-                    vflag,ans,engv);
   } // if ii
+  store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,
+                  vflag,ans,engv);
 }
 
 __kernel void k_lj_coul_msm_fast(const __global numtyp4 *restrict x_,
@@ -220,28 +228,31 @@ __kernel void k_lj_coul_msm_fast(const __global numtyp4 *restrict x_,
   __local numtyp4 lj1[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp4 lj3[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
   __local numtyp sp_lj[8];
+  int n_stride;
+  local_allocate_store_charge();
+
   if (tid<8)
     sp_lj[tid]=sp_lj_in[tid];
   if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
     lj1[tid]=lj1_in[tid];
-    if (eflag>0)
+    if (EVFLAG && eflag)
       lj3[tid]=lj3_in[tid];
   }
 
-  acctyp energy=(acctyp)0;
-  acctyp e_coul=(acctyp)0;
   acctyp4 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
-  acctyp virial[6];
-  for (int i=0; i<6; i++)
-    virial[i]=(acctyp)0;
+  acctyp energy, e_coul, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    e_coul=(acctyp)0;
+    for (int i=0; i<6; i++) virial[i]=(acctyp)0;
+  }
 
   __syncthreads();
 
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
-    __local int n_stride;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);
 
@@ -296,7 +307,7 @@ __kernel void k_lj_coul_msm_fast(const __global numtyp4 *restrict x_,
         f.y+=dely*force;
         f.z+=delz*force;
 
-        if (eflag>0) {
+        if (EVFLAG && eflag) {
           if (rsq < cut_coulsq)
             e_coul += prefactor*(egamma-factor_coul);
           if (rsq < lj1[mtype].w) {
@@ -304,7 +315,7 @@ __kernel void k_lj_coul_msm_fast(const __global numtyp4 *restrict x_,
             energy+=factor_lj*(e-lj3[mtype].z);
           }
         }
-        if (vflag>0) {
+        if (EVFLAG && vflag) {
           virial[0] += delx*delx*force;
           virial[1] += dely*dely*force;
           virial[2] += delz*delz*force;
@@ -315,8 +326,8 @@ __kernel void k_lj_coul_msm_fast(const __global numtyp4 *restrict x_,
       }
 
     } // for nbor
-    store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,
-                    vflag,ans,engv);
   } // if ii
+  store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,
+                  vflag,ans,engv);
 }
 

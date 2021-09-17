@@ -1495,10 +1495,21 @@ class TestViewAPI {
       // quickly.
       if (msg.find("is not a valid size") != std::string::npos) {
         ASSERT_PRED_FORMAT2(::testing::IsSubstring, "is not a valid size", msg);
-      } else {
-        // Otherwise, there has to be some sort of "insufficient memory" error
+      } else
+#ifdef KOKKOS_ENABLE_SYCL
+          if (msg.find("insufficient memory") != std::string::npos)
+#endif
+      {
         ASSERT_PRED_FORMAT2(::testing::IsSubstring, "insufficient memory", msg);
       }
+      // SYCL cannot tell the reason why a memory allocation failed
+#ifdef KOKKOS_ENABLE_SYCL
+      else {
+        // Otherwise, there has to be some sort of "unknown error" error
+        ASSERT_PRED_FORMAT2(::testing::IsSubstring,
+                            "because of an unknown error.", msg);
+      }
+#endif
     }
   }
 };

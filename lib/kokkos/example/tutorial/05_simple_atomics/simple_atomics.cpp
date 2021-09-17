@@ -122,7 +122,7 @@ int main() {
     // Fill the 'data' array on the host with random numbers.  We assume
     // that they come from some process which is only implemented on the
     // host, via some library.  (That's true in this case.)
-    for (size_type i = 0; i < data.extent(0); ++i) {
+    for (size_type i = 0; i < static_cast<size_type>(data.extent(0)); ++i) {
       h_data(i) = rand() % nnumbers;
     }
     Kokkos::deep_copy(data, h_data);  // copy from host to device

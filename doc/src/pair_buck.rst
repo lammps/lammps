@@ -100,7 +100,7 @@ where :math:`\rho` is an ionic-pair dependent length parameter, and
 
 The styles with *coul/cut* or *coul/long* or *coul/msm* add a
 Coulombic term as described for the :doc:`lj/cut <pair_lj>` pair styles.
-For *buck/coul/long* and *buc/coul/msm*\ , an additional damping factor
+For *buck/coul/long* and *buc/coul/msm*, an additional damping factor
 is applied to the Coulombic term so it can be used in conjunction with
 the :doc:`kspace_style <kspace_style>` command and its *ewald* or *pppm*
 or *msm* option.  The Coulombic cutoff specified for this style means
@@ -145,7 +145,7 @@ A,C and Coulombic cutoffs are used.  If only one cutoff is specified,
 it is used as the cutoff for both A,C and Coulombic interactions for
 this type pair.  If both coefficients are specified, they are used as
 the A,C and Coulombic cutoffs for this type pair.  You cannot specify
-2 cutoffs for style *buck*\ , since it has no Coulombic terms.
+2 cutoffs for style *buck*, since it has no Coulombic terms.
 For *buck/coul/long* only the LJ cutoff can be specified since a
 Coulombic cutoff cannot be specified for an individual I,J type pair.
 All type pairs use the same global Coulombic cutoff specified in the
@@ -177,14 +177,14 @@ pair interaction.
 These styles write their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
-These styles can only be used via the *pair* keyword of the :doc:`run_style respa <run_style>` command.  They do not support the *inner*\ ,
-*middle*\ , *outer* keywords.
+These styles can only be used via the *pair* keyword of the :doc:`run_style respa <run_style>` command.  They do not support the *inner*,
+*middle*, *outer* keywords.
 
 Restrictions
 """"""""""""
 
 The *buck/coul/long* style is part of the KSPACE package.  They are
-only enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+only enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -152,8 +153,8 @@ void ComputePEAtom::compute_peratom()
   // add in per-atom contributions from relevant fixes
   // always only for owned atoms, not ghost
 
-  if (fixflag && modify->n_thermo_energy_atom)
-    modify->thermo_energy_atom(nlocal,energy);
+  if (fixflag && modify->n_energy_atom)
+    modify->energy_atom(nlocal,energy);
 
   // communicate ghost energy between neighbor procs
 
@@ -200,6 +201,6 @@ void ComputePEAtom::unpack_reverse_comm(int n, int *list, double *buf)
 
 double ComputePEAtom::memory_usage()
 {
-  double bytes = nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(double);
   return bytes;
 }

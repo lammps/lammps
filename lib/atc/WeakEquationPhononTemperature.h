@@ -10,21 +10,21 @@ namespace ATC{
 
  /**
    *  @class  WeakEquationPhononTemperature
-   *  @brief  Phonon temperature 
+   *  @brief  Phonon temperature
    *   c T_p,t = div q_p  -->
-   *   int M c T_p,t = int B q_p 
+   *   int M c T_p,t = int B q_p
    */
 
 class WeakEquationPhononTemperature : public WeakEquation {
 
   public:
-  
-  // constructor 
+
+  // constructor
   WeakEquationPhononTemperature();
 
   // destructor
   virtual ~WeakEquationPhononTemperature();
-  
+
   /** integrand  that used to form the energy */
   virtual bool has_E_integrand(void) const {return true;}
   virtual void E_integrand(const FIELD_MATS &fields,
@@ -63,17 +63,17 @@ class WeakEquationPhononTemperature : public WeakEquation {
    *   int M c T_p,t = int B q_p + int N g
    */
 
-class WeakEquationPhononTemperatureExchange : 
+class WeakEquationPhononTemperatureExchange :
   public WeakEquationPhononTemperature {
 
   public:
-  
-  // constructor 
+
+  // constructor
   WeakEquationPhononTemperatureExchange();
 
   // destructor
   virtual ~WeakEquationPhononTemperatureExchange();
-  
+
   /** integrand  that used to form the energy */
   virtual bool has_E_integrand(void) const {return true;}
   virtual void E_integrand(const FIELD_MATS &fields,

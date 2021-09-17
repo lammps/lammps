@@ -20,12 +20,12 @@ namespace ATC {
       /** computes flux */
       virtual void electron_flux(const FIELD_MATS &fields,
                                  const GRAD_FIELD_MATS & /* gradFields */,
-                                       DENS_MAT_VEC &flux) 
+                                       DENS_MAT_VEC &flux)
       {
-         
-        
-        
-        
+
+
+
+
         FIELD_MATS::const_iterator etField = fields.find(ELECTRON_TEMPERATURE);
         const DENS_MAT & etMat = etField->second;
         zeroWorkspace_.reset(etMat.nRows(),etMat.nCols());
@@ -75,12 +75,12 @@ namespace ATC {
       DENS_MAT zeroWorkspace_;
   };
   //-----------------------------------------------------------------------
-  
+
   /**
    *  @class  ElectronFluxLinear
    *  @brief  Class for drift-diffusion electron flux with linear dependency on the electron density gradient
-   */  
-  
+   */
+
   class ElectronFluxLinear : public ElectronFlux
   {
     public:
@@ -98,7 +98,7 @@ namespace ATC {
         const DENS_MAT & n = edField->second;
         const DENS_MAT_VEC & dn   = dEdField->second;
         const DENS_MAT_VEC & dphi = dPhiField->second;
-        
+
         //n.print("DENSITY");
         //for (int i = 0; i < 3; i++) {
         //  dn[i].print("GRAD N");
@@ -131,17 +131,17 @@ namespace ATC {
           flux[2] += -electronDiffusivity_* dn[2];
         }
 
-      }; 
+      };
     protected:
       double electronMobility_, electronDiffusivity_;
   };
   //-----------------------------------------------------------------------
-  
+
   /**
    *  @class  ElectronFluxThermopower
    *  @brief  Class for defining the electron flux (i.e., current) to include the elctron velocity or have a electron temperature-dependent mobility
-   */  
-  
+   */
+
   class ElectronFluxThermopower : public ElectronFlux
   {
     public:
@@ -165,13 +165,13 @@ namespace ATC {
           GRAD_FIELD_MATS::const_iterator dPhiField = gradFields.find(ELECTRIC_POTENTIAL);
           GRAD_FIELD_MATS::const_iterator dEtField = gradFields.find(ELECTRON_TEMPERATURE);
 
-          // J_n = - \mu n grad \phi  - \mu kB/e T_e grad n 
+          // J_n = - \mu n grad \phi  - \mu kB/e T_e grad n
           //       - \mu S n grad T_e - \mu kB/e n grad T_e
           const DENS_MAT & n   = edField->second;
           const DENS_MAT_VEC & dn   = dEdField->second;
           const DENS_MAT_VEC & dphi = dPhiField->second;
           const DENS_MAT_VEC & dT = dEtField->second;
-          
+
           flux[0] = -electronMobility_*dphi[0];
           flux[1] = -electronMobility_*dphi[1];
           flux[2] = -electronMobility_*dphi[2];
@@ -179,7 +179,7 @@ namespace ATC {
           flux[0] += coef* dT[0];
           flux[1] += coef* dT[1];
           flux[2] += coef* dT[2];
-          flux[0] *= n; // scale by n 
+          flux[0] *= n; // scale by n
           flux[1] *= n;
           flux[2] *= n;
 
@@ -188,23 +188,23 @@ namespace ATC {
           //tmp[0] *= Te;
           //tmp[1] *= Te;
           //tmp[2] *= Te;
-          coef = -electronMobility_*kBeV_; 
+          coef = -electronMobility_*kBeV_;
           //flux[0] += tmp[0];
           flux[0] += dn[0].mult_by_element(Te);
           flux[1] += dn[1].mult_by_element(Te);
           flux[2] += dn[2].mult_by_element(Te);
         }
-      }; 
+      };
   protected:
       double electronMobility_, seebeckCoef_;
   };
   //-----------------------------------------------------------------------
-  
+
   /**
    *  @class  ElectronFluxConvection
    *  @brief  Class for electron flux based on the standard convection term
-   */  
-  
+   */
+
   class ElectronFluxConvection : public ElectronFlux
   {
     public:
@@ -220,6 +220,6 @@ namespace ATC {
   };
 }
 
-#endif 
+#endif
 
 

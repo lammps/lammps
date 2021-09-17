@@ -11,75 +11,75 @@ namespace ATC
 {
 
   /**
-   *  @class  CbEam 
-   *  @brief  Class for computing Cauchy-Born quantities for an Embeded-Atom Method material 
-   *          (A factor of one-half is already included to split the 
+   *  @class  CbEam
+   *  @brief  Class for computing Cauchy-Born quantities for an Embeded-Atom Method material
+   *          (A factor of one-half is already included to split the
    *           bond energy between atoms)
    */
 
   class CbEam : public CbPotential
   {
   public:
-    //! Constructor 
-    CbEam(void) : CbPotential(Interactions(PAIRWISE,EAM)) { 
+    //! Constructor
+    CbEam(void) : CbPotential(Interactions(PAIRWISE,EAM)) {
       // get pointer to lammps' pair_eam object
-      lammps_eam = ATC::LammpsInterface::instance()->pair_eam(); 
-      nrho  = &lammps_eam->nrho; 
-      nr    = &lammps_eam->nr; 
-      nfrho = &lammps_eam->nfrho; 
-      nrhor = &lammps_eam->nrhor; 
-      nz2r  = &lammps_eam->nz2r; 
+      lammps_eam = ATC::LammpsInterface::instance()->pair_eam();
+      nrho  = &lammps_eam->nrho;
+      nr    = &lammps_eam->nr;
+      nfrho = &lammps_eam->nfrho;
+      nrhor = &lammps_eam->nrhor;
+      nz2r  = &lammps_eam->nz2r;
       type2frho = lammps_eam->type2frho;
       type2rhor = lammps_eam->type2rhor;
       type2z2r  = lammps_eam->type2z2r;
-      dr    = &lammps_eam->dr; 
-      rdr   = &lammps_eam->rdr; 
-      drho  = &lammps_eam->drho; 
-      rdrho = &lammps_eam->rdrho; 
+      dr    = &lammps_eam->dr;
+      rdr   = &lammps_eam->rdr;
+      drho  = &lammps_eam->drho;
+      rdrho = &lammps_eam->rdrho;
       rhor_spline = &lammps_eam->rhor_spline;
       frho_spline = &lammps_eam->frho_spline;
       z2r_spline  = &lammps_eam->z2r_spline;
       cutmax = &lammps_eam->cutmax;
     }
-    
+
     //! Returns the cutoff readius of the EAM potential functions rho and z2r.
     double cutoff_radius() const { return *cutmax; }
-    //! Returns the EAM pair energy 
-    double phi(const double &r) const 
+    //! Returns the EAM pair energy
+    double phi(const double &r) const
     {
       double p = r*(*rdr) + 1.0;
       int m = static_cast<int> (p);
       m = MIN(m,(*nr)-1);
       p -= m;
       p = MIN(p,1.0);
-      // for now, assume itype = jtype = 1 
+      // for now, assume itype = jtype = 1
       double *coeff = (*z2r_spline)[type2z2r[1][1]][m];
       double z2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
       return z2/r;
     }
     //! Returns the first derivative of the pair energy.
-    double phi_r(const double &r) const 
+    double phi_r(const double &r) const
     {
       double p = r*(*rdr) + 1.0;
       int m = static_cast<int> (p);
       m = MIN(m,(*nr)-1);
       p -= m;
       p = MIN(p,1.0);
-      // for now, assume itype = jtype = 1 
+      // for now, assume itype = jtype = 1
       double *coeff = (*z2r_spline)[type2z2r[1][1]][m];
       double z2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
       double z2p = (coeff[0]*p + coeff[1])*p + coeff[2];
       return (1.0/r)*(z2p-z2/r);
     }
     //! Returns the second derivative of the pair energy.
-    double phi_rr(const double &r) const 
+    double phi_rr(const double &r) const
     {
       double p = r*(*rdr) + 1.0;
       int m = static_cast<int> (p);
       m = MIN(m,(*nr)-1);
       p -= m;
       p = MIN(p,1.0);
-      // for now, assume itype = jtype = 1 
+      // for now, assume itype = jtype = 1
       double *coeff = (*z2r_spline)[type2z2r[1][1]][m];
       double z2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
       double z2p = (coeff[0]*p + coeff[1])*p + coeff[2];
@@ -94,7 +94,7 @@ namespace ATC
       m = MIN(m,(*nr)-1);
       p -= m;
       p = MIN(p,1.0);
-      // for now, assume itype = jtype = 1 
+      // for now, assume itype = jtype = 1
       double *coeff = (*z2r_spline)[type2z2r[1][1]][m];
       double z2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
       double z2p = (coeff[0]*p + coeff[1])*p + coeff[2];
@@ -102,7 +102,7 @@ namespace ATC
       double z2ppp = (*rdr)*(*rdr)*2.0*coeff[0];
       return (1.0/r)*(z2ppp-3.0*z2pp/r+6.0*z2p/(r*r)-6.0*z2/(r*r*r));
     }
-    //! Returns the EAM atomic charge density. 
+    //! Returns the EAM atomic charge density.
     double rho(const double &r) const
     {
       double p = r*(*rdr) + 1.0;
@@ -150,7 +150,7 @@ namespace ATC
       double *coeff = (*rhor_spline)[type2rhor[1][1]][m];
       return ((*rdr)*(*rdr)*2.0*coeff[0]);
     }
-    //! Returns the EAM embedding energy. 
+    //! Returns the EAM embedding energy.
     double F(const double &p) const
     {
       double q = p*(*rdrho) + 1.0;
@@ -202,7 +202,7 @@ namespace ATC
     int *type2frho,**type2rhor,**type2z2r;
     double *cutmax;
     double *dr,*rdr,*drho,*rdrho;
-    double ****rhor_spline,****frho_spline,****z2r_spline; 
+    double ****rhor_spline,****frho_spline,****z2r_spline;
     LAMMPS_NS::PairEAM* lammps_eam;
   };
 }

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,17 +12,18 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(snap/kk,PairSNAPKokkosDevice<LMPDeviceType>)
-PairStyle(snap/kk/device,PairSNAPKokkosDevice<LMPDeviceType>)
+// clang-format off
+PairStyle(snap/kk,PairSNAPKokkosDevice<LMPDeviceType>);
+PairStyle(snap/kk/device,PairSNAPKokkosDevice<LMPDeviceType>);
 #ifdef LMP_KOKKOS_GPU
-PairStyle(snap/kk/host,PairSNAPKokkosHost<LMPHostType>)
+PairStyle(snap/kk/host,PairSNAPKokkosHost<LMPHostType>);
 #else
-PairStyle(snap/kk/host,PairSNAPKokkosDevice<LMPHostType>)
+PairStyle(snap/kk/host,PairSNAPKokkosDevice<LMPHostType>);
 #endif
-
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_SNAP_KOKKOS_H
 #define LMP_PAIR_SNAP_KOKKOS_H
 
@@ -43,14 +44,19 @@ struct TagPairSNAPComputeForce{};
 struct TagPairSNAPComputeNeigh{};
 struct TagPairSNAPComputeCayleyKlein{};
 struct TagPairSNAPPreUi{};
-struct TagPairSNAPComputeUi{};
+struct TagPairSNAPComputeUiSmall{}; // more parallelism, more divergence
+struct TagPairSNAPComputeUiLarge{}; // less parallelism, no divergence
 struct TagPairSNAPTransformUi{}; // re-order ulisttot from SoA to AoSoA, zero ylist
 struct TagPairSNAPComputeZi{};
 struct TagPairSNAPBeta{};
 struct TagPairSNAPComputeBi{};
 struct TagPairSNAPTransformBi{}; // re-order blist from AoSoA to AoS
 struct TagPairSNAPComputeYi{};
-struct TagPairSNAPComputeFusedDeidrj{};
+struct TagPairSNAPComputeYiWithZlist{};
+template<int dir>
+struct TagPairSNAPComputeFusedDeidrjSmall{}; // more parallelism, more divergence
+template<int dir>
+struct TagPairSNAPComputeFusedDeidrjLarge{}; // less parallelism, no divergence
 
 // CPU backend only
 struct TagPairSNAPComputeNeighCPU{};
@@ -78,9 +84,30 @@ public:
   using real_type = real_type_;
   using complex = SNAComplex<real_type>;
 
-  // type-dependent team sizes
+  // Static team/tile sizes for device offload
+  static constexpr int team_size_compute_neigh = 4;
+  static constexpr int tile_size_compute_ck = 4;
+  static constexpr int tile_size_pre_ui = 4;
   static constexpr int team_size_compute_ui = sizeof(real_type) == 4 ? 8 : 4;
+  static constexpr int tile_size_transform_ui = 4;
+  static constexpr int tile_size_compute_zi = 8;
+  static constexpr int tile_size_compute_bi = 4;
+  static constexpr int tile_size_transform_bi = 4;
+  static constexpr int tile_size_compute_yi = 8;
   static constexpr int team_size_compute_fused_deidrj = sizeof(real_type) == 4 ? 4 : 2;
+
+  // Custom MDRangePolicy, Rank3, to reduce verbosity of kernel launches
+  // This hides the Kokkos::IndexType<int> and Kokkos::Rank<3...>
+  // and reduces the verbosity of the LaunchBound by hiding the explicit
+  // multiplication by vector_length
+  template <class Device, int num_tiles, class TagPairSNAP>
+  using Snap3DRangePolicy = typename Kokkos::MDRangePolicy<Device, Kokkos::IndexType<int>, Kokkos::Rank<3, Kokkos::Iterate::Left, Kokkos::Iterate::Left>, Kokkos::LaunchBounds<vector_length * num_tiles>, TagPairSNAP>;
+
+  // Custom SnapAoSoATeamPolicy to reduce the verbosity of kernel launches
+  // This hides the LaunchBounds abstraction by hiding the explicit
+  // multiplication by vector length
+  template <class Device, int num_teams, class TagPairSNAP>
+  using SnapAoSoATeamPolicy = typename Kokkos::TeamPolicy<Device, Kokkos::LaunchBounds<vector_length * num_teams>, TagPairSNAP>;
 
   PairSNAPKokkos(class LAMMPS *);
   ~PairSNAPKokkos();
@@ -99,11 +126,11 @@ public:
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator() (TagPairSNAPComputeForce<NEIGHFLAG,EVFLAG>,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeForce<NEIGHFLAG,EVFLAG> >::member_type& team) const;
+  void operator() (TagPairSNAPComputeForce<NEIGHFLAG,EVFLAG>,const int& ii) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator() (TagPairSNAPComputeForce<NEIGHFLAG,EVFLAG>,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeForce<NEIGHFLAG,EVFLAG> >::member_type& team, EV_FLOAT&) const;
+  void operator() (TagPairSNAPComputeForce<NEIGHFLAG,EVFLAG>,const int& ii, EV_FLOAT&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPBetaCPU,const int& ii) const;
@@ -119,7 +146,10 @@ public:
   void operator() (TagPairSNAPPreUi,const int iatom_mod, const int j, const int iatom_div) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator() (TagPairSNAPComputeUi,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeUi>::member_type& team) const;
+  void operator() (TagPairSNAPComputeUiSmall,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeUiSmall>::member_type& team) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairSNAPComputeUiLarge,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeUiLarge>::member_type& team) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPTransformUi,const int iatom_mod, const int j, const int iatom_div) const;
@@ -140,7 +170,15 @@ public:
   void operator() (TagPairSNAPComputeYi,const int iatom_mod, const int idxz, const int iatom_div) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator() (TagPairSNAPComputeFusedDeidrj,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeFusedDeidrj>::member_type& team) const;
+  void operator() (TagPairSNAPComputeYiWithZlist,const int iatom_mod, const int idxz, const int iatom_div) const;
+
+  template<int dir>
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairSNAPComputeFusedDeidrjSmall<dir>,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeFusedDeidrjSmall<dir> >::member_type& team) const;
+
+  template<int dir>
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairSNAPComputeFusedDeidrjLarge<dir>,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeFusedDeidrjLarge<dir> >::member_type& team) const;
 
   // CPU backend only
   KOKKOS_INLINE_FUNCTION
@@ -251,6 +289,11 @@ inline double dist2(double* x,double* y);
   Kokkos::Experimental::ScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,typename Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_vatom;
 
   friend void pair_virial_fdotr_compute<PairSNAPKokkos>(PairSNAPKokkos*);
+
+  // Utility routine which wraps computing per-team scratch size requirements for
+  // ComputeNeigh, ComputeUi, and ComputeFusedDeidrj
+  template <typename scratch_type>
+  int scratch_size_helper(int values_per_team);
 
 };
 

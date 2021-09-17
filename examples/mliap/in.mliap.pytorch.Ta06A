@@ -24,7 +24,7 @@ mass 1 180.88
 
 # choose potential
 
-include Ta06A.mliap.pytorch
+include Ta06A.pytorch.mliap
 
 # Setup output
 

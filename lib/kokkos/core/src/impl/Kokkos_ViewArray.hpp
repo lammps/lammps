@@ -123,7 +123,7 @@ class ViewMapping<Traits, Kokkos::Array<>> {
 
   handle_type m_impl_handle;
   offset_type m_impl_offset;
-  size_t m_stride;
+  size_t m_stride = 0;
 
   using scalar_type = typename Traits::value_type::value_type;
 
@@ -335,30 +335,7 @@ class ViewMapping<Traits, Kokkos::Array<>> {
 
   //----------------------------------------
 
-  KOKKOS_DEFAULTED_FUNCTION ~ViewMapping() = default;
-  KOKKOS_INLINE_FUNCTION ViewMapping()
-      : m_impl_handle(), m_impl_offset(), m_stride(0) {}
-  KOKKOS_INLINE_FUNCTION ViewMapping(const ViewMapping &rhs)
-      : m_impl_handle(rhs.m_impl_handle),
-        m_impl_offset(rhs.m_impl_offset),
-        m_stride(rhs.m_stride) {}
-  KOKKOS_INLINE_FUNCTION ViewMapping &operator=(const ViewMapping &rhs) {
-    m_impl_handle = rhs.m_impl_handle;
-    m_impl_offset = rhs.m_impl_offset;
-    m_stride      = rhs.m_stride;
-    return *this;
-  }
-
-  KOKKOS_INLINE_FUNCTION ViewMapping(ViewMapping &&rhs)
-      : m_impl_handle(rhs.m_impl_handle),
-        m_impl_offset(rhs.m_impl_offset),
-        m_stride(rhs.m_stride) {}
-  KOKKOS_INLINE_FUNCTION ViewMapping &operator=(ViewMapping &&rhs) {
-    m_impl_handle = rhs.m_impl_handle;
-    m_impl_offset = rhs.m_impl_offset;
-    m_stride      = rhs.m_stride;
-    return *this;
-  }
+  KOKKOS_DEFAULTED_FUNCTION ViewMapping() = default;
 
   //----------------------------------------
 
@@ -527,7 +504,7 @@ class ViewMapping<
 //----------------------------------------------------------------------------
 
 template <class SrcTraits, class... Args>
-struct ViewMapping<
+class ViewMapping<
     typename std::enable_if<(
         std::is_same<typename SrcTraits::specialize, Kokkos::Array<>>::value &&
         (std::is_same<typename SrcTraits::array_layout,

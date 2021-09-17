@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -76,8 +77,8 @@ int FixReadRestart::setmask()
 
 double FixReadRestart::memory_usage()
 {
-  double bytes = atom->nmax*nextra * sizeof(double);
-  bytes += atom->nmax * sizeof(int);
+  double bytes = (double)atom->nmax*nextra * sizeof(double);
+  bytes += (double)atom->nmax * sizeof(int);
   return bytes;
 }
 

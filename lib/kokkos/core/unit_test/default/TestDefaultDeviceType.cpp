@@ -45,7 +45,9 @@
 #include <gtest/gtest.h>
 
 #include <Kokkos_Core.hpp>
-#include <default/TestDefaultDeviceType_Category.hpp>
+#include <TestDefaultDeviceType_Category.hpp>
+#include <TestHalfConversion.hpp>
+#include <TestHalfOperators.hpp>
 
 #if !defined(KOKKOS_ENABLE_CUDA) || defined(__CUDACC__)
 

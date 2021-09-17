@@ -35,6 +35,7 @@ KOKKOS_ARCH_OPTION(ARMV80          HOST "ARMv8.0 Compatible CPU")
 KOKKOS_ARCH_OPTION(ARMV81          HOST "ARMv8.1 Compatible CPU")
 KOKKOS_ARCH_OPTION(ARMV8_THUNDERX  HOST "ARMv8 Cavium ThunderX CPU")
 KOKKOS_ARCH_OPTION(ARMV8_THUNDERX2 HOST "ARMv8 Cavium ThunderX2 CPU")
+KOKKOS_ARCH_OPTION(A64FX           HOST "ARMv8.2 with SVE Support")
 KOKKOS_ARCH_OPTION(WSM             HOST "Intel Westmere CPU")
 KOKKOS_ARCH_OPTION(SNB             HOST "Intel Sandy/Ivy Bridge CPUs")
 KOKKOS_ARCH_OPTION(HSW             HOST "Intel Haswell CPUs")
@@ -59,10 +60,13 @@ KOKKOS_ARCH_OPTION(VOLTA70         GPU  "NVIDIA Volta generation CC 7.0")
 KOKKOS_ARCH_OPTION(VOLTA72         GPU  "NVIDIA Volta generation CC 7.2")
 KOKKOS_ARCH_OPTION(TURING75        GPU  "NVIDIA Turing generation CC 7.5")
 KOKKOS_ARCH_OPTION(AMPERE80        GPU  "NVIDIA Ampere generation CC 8.0")
+KOKKOS_ARCH_OPTION(AMPERE86        GPU  "NVIDIA Ampere generation CC 8.6")
 KOKKOS_ARCH_OPTION(ZEN             HOST "AMD Zen architecture")
 KOKKOS_ARCH_OPTION(ZEN2            HOST "AMD Zen2 architecture")
+KOKKOS_ARCH_OPTION(ZEN3            HOST "AMD Zen3 architecture")
 KOKKOS_ARCH_OPTION(VEGA900         GPU  "AMD GPU MI25 GFX900")
 KOKKOS_ARCH_OPTION(VEGA906         GPU  "AMD GPU MI50/MI60 GFX906")
+KOKKOS_ARCH_OPTION(VEGA908         GPU  "AMD GPU MI100 GFX908")
 KOKKOS_ARCH_OPTION(INTEL_GEN       GPU  "Intel GPUs Gen9+")
 
 
@@ -71,6 +75,11 @@ IF(KOKKOS_ENABLE_COMPILER_WARNINGS)
   SET(COMMON_WARNINGS
     "-Wall" "-Wunused-parameter" "-Wshadow" "-pedantic"
     "-Wsign-compare" "-Wtype-limits" "-Wuninitialized")
+
+  # OpenMPTarget compilers give erroneous warnings about sign comparison in loops
+  IF(KOKKOS_ENABLE_OPENMPTARGET)
+    LIST(REMOVE_ITEM COMMON_WARNINGS "-Wsign-compare")
+  ENDIF()
 
   SET(GNU_WARNINGS "-Wempty-body" "-Wclobbered" "-Wignored-qualifiers"
     ${COMMON_WARNINGS})
@@ -106,6 +115,12 @@ ENDIF()
 IF (KOKKOS_CXX_COMPILER_ID STREQUAL Clang)
   SET(CUDA_ARCH_FLAG "--cuda-gpu-arch")
   GLOBAL_APPEND(KOKKOS_CUDA_OPTIONS -x cuda)
+  # Kokkos_CUDA_DIR has priority over CUDAToolkit_BIN_DIR
+  IF (Kokkos_CUDA_DIR)
+    GLOBAL_APPEND(KOKKOS_CUDA_OPTIONS --cuda-path=${Kokkos_CUDA_DIR})
+  ELSEIF(CUDAToolkit_BIN_DIR)
+    GLOBAL_APPEND(KOKKOS_CUDA_OPTIONS --cuda-path=${CUDAToolkit_BIN_DIR}/..)
+  ENDIF()
   IF (KOKKOS_ENABLE_CUDA)
      SET(KOKKOS_IMPL_CUDA_CLANG_WORKAROUND ON CACHE BOOL "enable CUDA Clang workarounds" FORCE)
   ENDIF()
@@ -128,8 +143,16 @@ ENDIF()
 #------------------------------- KOKKOS_HIP_OPTIONS ---------------------------
 #clear anything that might be in the cache
 GLOBAL_SET(KOKKOS_AMDGPU_OPTIONS)
-IF(KOKKOS_CXX_COMPILER_ID STREQUAL HIP)
-  SET(AMDGPU_ARCH_FLAG "--amdgpu-target")
+IF(KOKKOS_ENABLE_HIP)
+  IF(KOKKOS_CXX_COMPILER_ID STREQUAL HIPCC)
+    SET(AMDGPU_ARCH_FLAG "--amdgpu-target")
+  ELSE()
+    SET(AMDGPU_ARCH_FLAG "--offload-arch")
+    GLOBAL_APPEND(KOKKOS_AMDGPU_OPTIONS -x hip)
+    IF(DEFINED ENV{ROCM_PATH})
+      GLOBAL_APPEND(KOKKOS_AMDGPU_OPTIONS --rocm-path=$ENV{ROCM_PATH})
+    ENDIF()
+  ENDIF()
 ENDIF()
 
 
@@ -167,6 +190,14 @@ IF (KOKKOS_ARCH_ARMV8_THUNDERX2)
   )
 ENDIF()
 
+IF (KOKKOS_ARCH_A64FX)
+  COMPILER_SPECIFIC_FLAGS(
+    DEFAULT -march=armv8.2-a+sve
+    Clang -march=armv8.2-a+sve -msve-vector-bits=512
+    GCC -march=armv8.2-a+sve -msve-vector-bits=512
+  )
+ENDIF()
+
 IF (KOKKOS_ARCH_ZEN)
   COMPILER_SPECIFIC_FLAGS(
     Intel   -mavx2
@@ -182,6 +213,15 @@ IF (KOKKOS_ARCH_ZEN2)
     DEFAULT -march=znver2 -mtune=znver2
   )
   SET(KOKKOS_ARCH_AMD_ZEN2 ON)
+  SET(KOKKOS_ARCH_AMD_AVX2 ON)
+ENDIF()
+
+IF (KOKKOS_ARCH_ZEN3)
+  COMPILER_SPECIFIC_FLAGS(
+    Intel   -mavx2
+    DEFAULT -march=znver3 -mtune=znver3
+  )
+  SET(KOKKOS_ARCH_AMD_ZEN3 ON)
   SET(KOKKOS_ARCH_AMD_AVX2 ON)
 ENDIF()
 
@@ -254,7 +294,7 @@ IF (KOKKOS_ARCH_SKX)
   )
 ENDIF()
 
-IF (KOKKOS_ARCH_WSM OR KOKKOS_ARCH_SNB OR KOKKOS_ARCH_HSW OR KOKKOS_ARCH_BDW OR KOKKOS_ARCH_KNL OR KOKKOS_ARCH_SKX OR KOKKOS_ARCH_ZEN OR KOKKOS_ARCH_ZEN2)
+IF (KOKKOS_ARCH_WSM OR KOKKOS_ARCH_SNB OR KOKKOS_ARCH_HSW OR KOKKOS_ARCH_BDW OR KOKKOS_ARCH_KNL OR KOKKOS_ARCH_SKX OR KOKKOS_ARCH_ZEN OR KOKKOS_ARCH_ZEN2 OR KOKKOS_ARCH_ZEN3)
   SET(KOKKOS_USE_ISA_X86_64 ON)
 ENDIF()
 
@@ -290,7 +330,7 @@ IF (KOKKOS_ARCH_POWER8 OR KOKKOS_ARCH_POWER9)
   SET(KOKKOS_USE_ISA_POWERPCLE ON)
 ENDIF()
 
-IF (Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE)
+IF (KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE)
   COMPILER_SPECIFIC_FLAGS(
     Clang  -fcuda-rdc
     NVIDIA --relocatable-device-code=true
@@ -314,8 +354,8 @@ ENDIF()
 
 #Right now we cannot get the compiler ID when cross-compiling, so just check
 #that HIP is enabled
-IF (Kokkos_ENABLE_HIP)
-  IF (Kokkos_ENABLE_HIP_RELOCATABLE_DEVICE_CODE)
+IF (KOKKOS_ENABLE_HIP)
+  IF (KOKKOS_ENABLE_HIP_RELOCATABLE_DEVICE_CODE)
     COMPILER_SPECIFIC_FLAGS(
       DEFAULT -fgpu-rdc
     )
@@ -326,6 +366,15 @@ IF (Kokkos_ENABLE_HIP)
   ENDIF()
 ENDIF()
 
+IF (KOKKOS_ENABLE_SYCL)
+  COMPILER_SPECIFIC_FLAGS(
+    DEFAULT -fsycl
+  )
+  COMPILER_SPECIFIC_OPTIONS(
+    DEFAULT -fsycl-unnamed-lambda
+  )
+ENDIF()
+
 
 SET(CUDA_ARCH_ALREADY_SPECIFIED "")
 FUNCTION(CHECK_CUDA_ARCH ARCH FLAG)
@@ -334,7 +383,7 @@ FUNCTION(CHECK_CUDA_ARCH ARCH FLAG)
       MESSAGE(FATAL_ERROR "Multiple GPU architectures given! Already have ${CUDA_ARCH_ALREADY_SPECIFIED}, but trying to add ${ARCH}. If you are re-running CMake, try clearing the cache and running again.")
     ENDIF()
     SET(CUDA_ARCH_ALREADY_SPECIFIED ${ARCH} PARENT_SCOPE)
-    IF (NOT KOKKOS_ENABLE_CUDA AND NOT KOKKOS_ENABLE_OPENMPTARGET)
+    IF (NOT KOKKOS_ENABLE_CUDA AND NOT KOKKOS_ENABLE_OPENMPTARGET AND NOT KOKKOS_ENABLE_SYCL)
       MESSAGE(WARNING "Given CUDA arch ${ARCH}, but Kokkos_ENABLE_CUDA and Kokkos_ENABLE_OPENMPTARGET are OFF. Option will be ignored.")
       UNSET(KOKKOS_ARCH_${ARCH} PARENT_SCOPE)
     ELSE()
@@ -367,6 +416,7 @@ CHECK_CUDA_ARCH(VOLTA70   sm_70)
 CHECK_CUDA_ARCH(VOLTA72   sm_72)
 CHECK_CUDA_ARCH(TURING75  sm_75)
 CHECK_CUDA_ARCH(AMPERE80  sm_80)
+CHECK_CUDA_ARCH(AMPERE86  sm_86)
 
 SET(AMDGPU_ARCH_ALREADY_SPECIFIED "")
 FUNCTION(CHECK_AMDGPU_ARCH ARCH FLAG)
@@ -376,12 +426,12 @@ FUNCTION(CHECK_AMDGPU_ARCH ARCH FLAG)
     ENDIF()
     SET(AMDGPU_ARCH_ALREADY_SPECIFIED ${ARCH} PARENT_SCOPE)
     IF (NOT KOKKOS_ENABLE_HIP AND NOT KOKKOS_ENABLE_OPENMPTARGET)
-      MESSAGE(WARNING "Given HIP arch ${ARCH}, but Kokkos_ENABLE_AMDGPU and Kokkos_ENABLE_OPENMPTARGET are OFF. Option will be ignored.")
+      MESSAGE(WARNING "Given AMD GPU architecture ${ARCH}, but Kokkos_ENABLE_HIP and Kokkos_ENABLE_OPENMPTARGET are OFF. Option will be ignored.")
       UNSET(KOKKOS_ARCH_${ARCH} PARENT_SCOPE)
     ELSE()
       SET(KOKKOS_AMDGPU_ARCH_FLAG ${FLAG} PARENT_SCOPE)
       GLOBAL_APPEND(KOKKOS_AMDGPU_OPTIONS "${AMDGPU_ARCH_FLAG}=${FLAG}")
-      IF(KOKKOS_ENABLE_HIP)
+      IF(KOKKOS_ENABLE_HIP_RELOCATABLE_DEVICE_CODE)
         GLOBAL_APPEND(KOKKOS_LINK_OPTIONS "${AMDGPU_ARCH_FLAG}=${FLAG}")
       ENDIF()
     ENDIF()
@@ -392,6 +442,7 @@ ENDFUNCTION()
 #to the corresponding flag name if ON
 CHECK_AMDGPU_ARCH(VEGA900 gfx900) # Radeon Instinct MI25
 CHECK_AMDGPU_ARCH(VEGA906 gfx906) # Radeon Instinct MI50 and MI60
+CHECK_AMDGPU_ARCH(VEGA908 gfx908)
 
 IF(KOKKOS_ENABLE_HIP AND NOT AMDGPU_ARCH_ALREADY_SPECIFIED)
   MESSAGE(SEND_ERROR "HIP enabled but no AMD GPU architecture currently enabled. "
@@ -416,7 +467,25 @@ IF (KOKKOS_ENABLE_OPENMPTARGET)
   ENDIF()
   IF (KOKKOS_ARCH_INTEL_GEN)
     COMPILER_SPECIFIC_FLAGS(
-      IntelClang -fopenmp-targets=spir64 -D__STRICT_ANSI__
+      IntelLLVM -fopenmp-targets=spir64 -D__STRICT_ANSI__
+    )
+  ENDIF()
+ENDIF()
+
+IF (KOKKOS_ENABLE_SYCL)
+  IF(CUDA_ARCH_ALREADY_SPECIFIED)
+    IF(KOKKOS_ENABLE_UNSUPPORTED_ARCHS)
+      COMPILER_SPECIFIC_FLAGS(
+        DEFAULT -fsycl-targets=nvptx64-nvidia-cuda-sycldevice
+      )
+      # FIXME_SYCL The CUDA backend doesn't support printf yet.
+      GLOBAL_SET(KOKKOS_IMPL_DISABLE_SYCL_DEVICE_PRINTF ON)
+    ELSE()
+      MESSAGE(SEND_ERROR "Setting a CUDA architecture for SYCL is only allowed with Kokkos_ENABLE_UNSUPPORTED_ARCHS=ON!")
+    ENDIF()
+  ELSEIF(KOKKOS_ARCH_INTEL_GEN)
+    COMPILER_SPECIFIC_FLAGS(
+      DEFAULT -fsycl-targets=spir64_gen-unknown-unknown-sycldevice -Xsycl-target-backend "-device skl"
     )
   ENDIF()
 ENDIF()
@@ -434,6 +503,43 @@ IF(KOKKOS_ENABLE_CUDA AND NOT CUDA_ARCH_ALREADY_SPECIFIED)
     ${CMAKE_CURRENT_SOURCE_DIR}/cmake/compile_tests/cuda_compute_capability.cc
     COMPILE_DEFINITIONS -DSM_ONLY
     RUN_OUTPUT_VARIABLE _CUDA_COMPUTE_CAPABILITY)
+
+  # if user is using kokkos_compiler_launcher, above will fail.
+  IF(NOT _COMPILE_RESULT OR NOT _RESULT EQUAL 0)
+    # check to see if CUDA is not already enabled (may happen when Kokkos is subproject)
+    GET_PROPERTY(_ENABLED_LANGUAGES GLOBAL PROPERTY ENABLED_LANGUAGES)
+    # language has to be fully enabled, just checking for CMAKE_CUDA_COMPILER isn't enough
+    IF(NOT "CUDA" IN_LIST _ENABLED_LANGUAGES)
+      # make sure the user knows that we aren't using CUDA compiler for anything else
+      MESSAGE(STATUS "CUDA auto-detection of architecture failed with ${CMAKE_CXX_COMPILER}. Enabling CUDA language ONLY to auto-detect architecture...")
+      INCLUDE(CheckLanguage)
+      CHECK_LANGUAGE(CUDA)
+      IF(CMAKE_CUDA_COMPILER)
+        ENABLE_LANGUAGE(CUDA)
+      ELSE()
+        MESSAGE(STATUS "CUDA language could not be enabled")
+      ENDIF()
+    ENDIF()
+
+    # if CUDA was enabled, this will be defined
+    IF(CMAKE_CUDA_COMPILER)
+      # copy our test to .cu so cmake compiles as CUDA
+      CONFIGURE_FILE(
+        ${PROJECT_SOURCE_DIR}/cmake/compile_tests/cuda_compute_capability.cc
+        ${PROJECT_BINARY_DIR}/compile_tests/cuda_compute_capability.cu
+        COPYONLY
+      )
+      # run test again
+      TRY_RUN(
+        _RESULT
+        _COMPILE_RESULT
+        ${_BINARY_TEST_DIR}
+        ${PROJECT_BINARY_DIR}/compile_tests/cuda_compute_capability.cu
+        COMPILE_DEFINITIONS -DSM_ONLY
+        RUN_OUTPUT_VARIABLE _CUDA_COMPUTE_CAPABILITY)
+    ENDIF()
+  ENDIF()
+
   LIST(FIND KOKKOS_CUDA_ARCH_FLAGS sm_${_CUDA_COMPUTE_CAPABILITY} FLAG_INDEX)
   IF(_COMPILE_RESULT AND _RESULT EQUAL 0 AND NOT FLAG_INDEX EQUAL -1)
     MESSAGE(STATUS "Detected CUDA Compute Capability ${_CUDA_COMPUTE_CAPABILITY}")
@@ -470,42 +576,60 @@ IF (KOKKOS_ENABLE_CUDA)
     SET(KOKKOS_ARCH_VOLTA ON)
   ENDIF()
 
-  IF (KOKKOS_ARCH_AMPERE80)
+  IF (KOKKOS_ARCH_AMPERE80 OR KOKKOS_ARCH_AMPERE86)
     SET(KOKKOS_ARCH_AMPERE ON)
   ENDIF()
 ENDIF()
 
 #CMake verbose is kind of pointless
 #Let's just always print things
-MESSAGE(STATUS "Execution Spaces:")
+MESSAGE(STATUS "Built-in Execution Spaces:")
 
-FOREACH (_BACKEND CUDA OPENMPTARGET HIP)
-  IF(KOKKOS_ENABLE_${_BACKEND})
+FOREACH (_BACKEND Cuda OpenMPTarget HIP SYCL)
+  STRING(TOUPPER ${_BACKEND} UC_BACKEND)
+  IF(KOKKOS_ENABLE_${UC_BACKEND})
     IF(_DEVICE_PARALLEL)
       MESSAGE(FATAL_ERROR "Multiple device parallel execution spaces are not allowed! "
                           "Trying to enable execution space ${_BACKEND}, "
                           "but execution space ${_DEVICE_PARALLEL} is already enabled. "
                           "Remove the CMakeCache.txt file and re-configure.")
     ENDIF()
-    SET(_DEVICE_PARALLEL ${_BACKEND})
+    IF (${_BACKEND} STREQUAL "Cuda")
+       IF(KOKKOS_ENABLE_CUDA_UVM)
+          SET(_DEFAULT_DEVICE_MEMSPACE "Kokkos::${_BACKEND}UVMSpace")
+       ELSE()
+          SET(_DEFAULT_DEVICE_MEMSPACE "Kokkos::${_BACKEND}Space")
+       ENDIF()
+       SET(_DEVICE_PARALLEL "Kokkos::${_BACKEND}")
+    ELSE()
+       SET(_DEFAULT_DEVICE_MEMSPACE "Kokkos::Experimental::${_BACKEND}Space")
+       SET(_DEVICE_PARALLEL "Kokkos::Experimental::${_BACKEND}")
+    ENDIF()
   ENDIF()
 ENDFOREACH()
 IF(NOT _DEVICE_PARALLEL)
-  SET(_DEVICE_PARALLEL "NONE")
+  SET(_DEVICE_PARALLEL "NoTypeDefined")
+  SET(_DEFAULT_DEVICE_MEMSPACE "NoTypeDefined")
 ENDIF()
 MESSAGE(STATUS "    Device Parallel: ${_DEVICE_PARALLEL}")
-UNSET(_DEVICE_PARALLEL)
+IF(KOKKOS_ENABLE_PTHREAD)
+  SET(KOKKOS_ENABLE_THREADS ON)
+ENDIF()
 
-
-FOREACH (_BACKEND OPENMP PTHREAD HPX)
-  IF(KOKKOS_ENABLE_${_BACKEND})
+FOREACH (_BACKEND OpenMP Threads HPX)
+  STRING(TOUPPER ${_BACKEND} UC_BACKEND)
+  IF(KOKKOS_ENABLE_${UC_BACKEND})
     IF(_HOST_PARALLEL)
       MESSAGE(FATAL_ERROR "Multiple host parallel execution spaces are not allowed! "
                           "Trying to enable execution space ${_BACKEND}, "
                           "but execution space ${_HOST_PARALLEL} is already enabled. "
                           "Remove the CMakeCache.txt file and re-configure.")
     ENDIF()
-    SET(_HOST_PARALLEL ${_BACKEND})
+    IF (${_BACKEND} STREQUAL "HPX")
+       SET(_HOST_PARALLEL "Kokkos::Experimental::${_BACKEND}")
+    ELSE()
+       SET(_HOST_PARALLEL "Kokkos::${_BACKEND}")
+    ENDIF()
   ENDIF()
 ENDFOREACH()
 
@@ -515,14 +639,11 @@ IF(NOT _HOST_PARALLEL AND NOT KOKKOS_ENABLE_SERIAL)
                       "and Kokkos_ENABLE_SERIAL=OFF.")
 ENDIF()
 
-IF(NOT _HOST_PARALLEL)
-  SET(_HOST_PARALLEL "NONE")
-ENDIF()
+IF(_HOST_PARALLEL)
 MESSAGE(STATUS "    Host Parallel: ${_HOST_PARALLEL}")
-UNSET(_HOST_PARALLEL)
-
-IF(KOKKOS_ENABLE_PTHREAD)
-  SET(KOKKOS_ENABLE_THREADS ON)
+ELSE()
+  SET(_HOST_PARALLEL "NoTypeDefined")
+  MESSAGE(STATUS "    Host Parallel: NoTypeDefined")
 ENDIF()
 
 IF(KOKKOS_ENABLE_SERIAL)

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
-   LAMMPS - Large-scale AtomicKokkos/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,15 +13,15 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_dpd_kokkos.h"
+
 #include "atom_kokkos.h"
+#include "atom_masks.h"
 #include "comm_kokkos.h"
 #include "domain.h"
-#include "modify.h"
-#include "fix.h"
-#include "atom_masks.h"
-#include "memory_kokkos.h"
 #include "error.h"
-
+#include "fix.h"
+#include "memory_kokkos.h"
+#include "modify.h"
 
 using namespace LAMMPS_NS;
 
@@ -784,7 +785,7 @@ struct AtomVecDPDKokkos_PackBorder {
       _uCond(uCond),
       _uMech(uMech),
       _uChem(uChem),
-      _uCG(uCGnew),
+      _uCG(uCG),
       _uCGnew(uCGnew),
       _dx(dx),_dy(dy),_dz(dz) {}
 
@@ -1101,7 +1102,7 @@ struct AtomVecDPDKokkos_UnpackBorder {
       _uCond(uCond),
       _uMech(uMech),
       _uChem(uChem),
-      _uCG(uCGnew),
+      _uCG(uCG),
       _uCGnew(uCGnew),
       _first(first) {};
 
@@ -1157,9 +1158,9 @@ void AtomVecDPDKokkos::unpack_border(int n, int first, double *buf)
 
   m = 0;
   last = first + n;
-  for (i = first; i < last; i++) {
-    if (i == nmax) grow(0);
+  while (last > nmax) grow(0);
 
+  for (i = first; i < last; i++) {
     h_x(i,0) = buf[m++];
     h_x(i,1) = buf[m++];
     h_x(i,2) = buf[m++];
@@ -1192,9 +1193,9 @@ void AtomVecDPDKokkos::unpack_border_vel(int n, int first, double *buf)
 
   m = 0;
   last = first + n;
-  for (i = first; i < last; i++) {
-    if (i == nmax) grow(0);
+  while (last > nmax) grow(0);
 
+  for (i = first; i < last; i++) {
     h_x(i,0) = buf[m++];
     h_x(i,1) = buf[m++];
     h_x(i,2) = buf[m++];

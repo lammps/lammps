@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2020) Sandia Corporation.  Under the terms of Contract
@@ -29,7 +30,9 @@
 // autodetect OpenMP compatibility if not explicitly set
 
 #ifndef LAMMPS_OMP_COMPAT
-#  if defined(__INTEL_COMPILER)
+#  if defined(__INTEL_LLVM_COMPILER)
+#      define LAMMPS_OMP_COMPAT 4
+#  elif defined(__INTEL_COMPILER)
 #    if __INTEL_COMPILER > 18
 #      define LAMMPS_OMP_COMPAT 4
 #    endif

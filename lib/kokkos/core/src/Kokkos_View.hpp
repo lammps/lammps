@@ -74,8 +74,8 @@ struct ViewDataAnalysis;
 template <class, class...>
 class ViewMapping {
  public:
-  enum { is_assignable_data_type = false };
-  enum { is_assignable = false };
+  enum : bool { is_assignable_data_type = false };
+  enum : bool { is_assignable = false };
 };
 
 template <typename IntType>
@@ -789,36 +789,22 @@ class View : public ViewTraits<DataType, Properties...> {
       std::is_same<typename traits::specialize, void>::value &&
       (is_layout_left || is_layout_right || is_layout_stride);
 
-  template <class Space, bool = Kokkos::Impl::MemorySpaceAccess<
-                             Space, typename traits::memory_space>::accessible>
-  struct verify_space {
-    KOKKOS_FORCEINLINE_FUNCTION static void check() {}
-  };
-
-  template <class Space>
-  struct verify_space<Space, false> {
-    KOKKOS_FORCEINLINE_FUNCTION static void check() {
-      Kokkos::abort(
-          "Kokkos::View ERROR: attempt to access inaccessible memory space");
-    };
-  };
-
 #if defined(KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK)
 
 #define KOKKOS_IMPL_SINK(ARG) ARG
 
-#define KOKKOS_IMPL_VIEW_OPERATOR_VERIFY(ARG)             \
-  View::template verify_space<                            \
-      Kokkos::Impl::ActiveExecutionMemorySpace>::check(); \
+#define KOKKOS_IMPL_VIEW_OPERATOR_VERIFY(ARG)                          \
+  Kokkos::Impl::verify_space<Kokkos::Impl::ActiveExecutionMemorySpace, \
+                             typename traits::memory_space>::check();  \
   Kokkos::Impl::view_verify_operator_bounds<typename traits::memory_space> ARG;
 
 #else
 
 #define KOKKOS_IMPL_SINK(ARG)
 
-#define KOKKOS_IMPL_VIEW_OPERATOR_VERIFY(ARG) \
-  View::template verify_space<                \
-      Kokkos::Impl::ActiveExecutionMemorySpace>::check();
+#define KOKKOS_IMPL_VIEW_OPERATOR_VERIFY(ARG)                          \
+  Kokkos::Impl::verify_space<Kokkos::Impl::ActiveExecutionMemorySpace, \
+                             typename traits::memory_space>::check();
 
 #endif
 
@@ -1618,7 +1604,17 @@ class View : public ViewTraits<DataType, Properties...> {
       : View(arg_prop,
              typename traits::array_layout(arg_N0, arg_N1, arg_N2, arg_N3,
                                            arg_N4, arg_N5, arg_N6, arg_N7)) {
-#ifdef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
+#ifdef KOKKOS_ENABLE_OPENMPTARGET
+    KOKKOS_IMPL_IF_ON_HOST
+    Impl::runtime_check_rank_host(
+        traits::rank_dynamic,
+        std::is_same<typename traits::specialize, void>::value, arg_N0, arg_N1,
+        arg_N2, arg_N3, arg_N4, arg_N5, arg_N6, arg_N7, label());
+    else Impl::runtime_check_rank_device(
+        traits::rank_dynamic,
+        std::is_same<typename traits::specialize, void>::value, arg_N0, arg_N1,
+        arg_N2, arg_N3, arg_N4, arg_N5, arg_N6, arg_N7);
+#elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
     Impl::runtime_check_rank_host(
         traits::rank_dynamic,
         std::is_same<typename traits::specialize, void>::value, arg_N0, arg_N1,
@@ -1648,7 +1644,17 @@ class View : public ViewTraits<DataType, Properties...> {
       : View(arg_prop,
              typename traits::array_layout(arg_N0, arg_N1, arg_N2, arg_N3,
                                            arg_N4, arg_N5, arg_N6, arg_N7)) {
-#ifdef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
+#ifdef KOKKOS_ENABLE_OPENMPTARGET
+    KOKKOS_IMPL_IF_ON_HOST
+    Impl::runtime_check_rank_host(
+        traits::rank_dynamic,
+        std::is_same<typename traits::specialize, void>::value, arg_N0, arg_N1,
+        arg_N2, arg_N3, arg_N4, arg_N5, arg_N6, arg_N7, label());
+    else Impl::runtime_check_rank_device(
+        traits::rank_dynamic,
+        std::is_same<typename traits::specialize, void>::value, arg_N0, arg_N1,
+        arg_N2, arg_N3, arg_N4, arg_N5, arg_N6, arg_N7);
+#elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
     Impl::runtime_check_rank_host(
         traits::rank_dynamic,
         std::is_same<typename traits::specialize, void>::value, arg_N0, arg_N1,
@@ -1692,7 +1698,17 @@ class View : public ViewTraits<DataType, Properties...> {
                   "Layout is not extent constructible. A layout object should "
                   "be passed too.\n");
 
-#ifdef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
+#ifdef KOKKOS_ENABLE_OPENMPTARGET
+    KOKKOS_IMPL_IF_ON_HOST
+    Impl::runtime_check_rank_host(
+        traits::rank_dynamic,
+        std::is_same<typename traits::specialize, void>::value, arg_N0, arg_N1,
+        arg_N2, arg_N3, arg_N4, arg_N5, arg_N6, arg_N7, label());
+    else Impl::runtime_check_rank_device(
+        traits::rank_dynamic,
+        std::is_same<typename traits::specialize, void>::value, arg_N0, arg_N1,
+        arg_N2, arg_N3, arg_N4, arg_N5, arg_N6, arg_N7);
+#elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
     Impl::runtime_check_rank_host(
         traits::rank_dynamic,
         std::is_same<typename traits::specialize, void>::value, arg_N0, arg_N1,
@@ -1706,41 +1722,6 @@ class View : public ViewTraits<DataType, Properties...> {
 #endif
   }
 
-  // For backward compatibility
-  explicit inline View(const ViewAllocateWithoutInitializing& arg_prop,
-                       const typename traits::array_layout& arg_layout)
-      : View(Impl::ViewCtorProp<std::string,
-                                Kokkos::Impl::WithoutInitializing_t>(
-                 arg_prop.label, Kokkos::WithoutInitializing),
-             arg_layout) {}
-
-  explicit inline View(const ViewAllocateWithoutInitializing& arg_prop,
-                       const size_t arg_N0 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-                       const size_t arg_N1 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-                       const size_t arg_N2 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-                       const size_t arg_N3 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-                       const size_t arg_N4 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-                       const size_t arg_N5 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-                       const size_t arg_N6 = KOKKOS_IMPL_CTOR_DEFAULT_ARG,
-                       const size_t arg_N7 = KOKKOS_IMPL_CTOR_DEFAULT_ARG)
-      : View(Impl::ViewCtorProp<std::string,
-                                Kokkos::Impl::WithoutInitializing_t>(
-                 arg_prop.label, Kokkos::WithoutInitializing),
-             typename traits::array_layout(arg_N0, arg_N1, arg_N2, arg_N3,
-                                           arg_N4, arg_N5, arg_N6, arg_N7)) {
-#ifdef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
-    Impl::runtime_check_rank_host(
-        traits::rank_dynamic,
-        std::is_same<typename traits::specialize, void>::value, arg_N0, arg_N1,
-        arg_N2, arg_N3, arg_N4, arg_N5, arg_N6, arg_N7, label());
-#else
-    Impl::runtime_check_rank_device(
-        traits::rank_dynamic,
-        std::is_same<typename traits::specialize, void>::value, arg_N0, arg_N1,
-        arg_N2, arg_N3, arg_N4, arg_N5, arg_N6, arg_N7);
-
-#endif
-  }
   // Construct view from ViewTracker and map
   // This should be the preferred method because future extensions may need to
   // use the ViewTracker class.
@@ -1793,7 +1774,17 @@ class View : public ViewTraits<DataType, Properties...> {
       : View(Impl::ViewCtorProp<pointer_type>(arg_ptr),
              typename traits::array_layout(arg_N0, arg_N1, arg_N2, arg_N3,
                                            arg_N4, arg_N5, arg_N6, arg_N7)) {
-#ifdef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
+#ifdef KOKKOS_ENABLE_OPENMPTARGET
+    KOKKOS_IMPL_IF_ON_HOST
+    Impl::runtime_check_rank_host(
+        traits::rank_dynamic,
+        std::is_same<typename traits::specialize, void>::value, arg_N0, arg_N1,
+        arg_N2, arg_N3, arg_N4, arg_N5, arg_N6, arg_N7, label());
+    else Impl::runtime_check_rank_device(
+        traits::rank_dynamic,
+        std::is_same<typename traits::specialize, void>::value, arg_N0, arg_N1,
+        arg_N2, arg_N3, arg_N4, arg_N5, arg_N6, arg_N7);
+#elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
     Impl::runtime_check_rank_host(
         traits::rank_dynamic,
         std::is_same<typename traits::specialize, void>::value, arg_N0, arg_N1,
@@ -1873,7 +1864,17 @@ class View : public ViewTraits<DataType, Properties...> {
                      sizeof(typename traits::value_type)))),
              typename traits::array_layout(arg_N0, arg_N1, arg_N2, arg_N3,
                                            arg_N4, arg_N5, arg_N6, arg_N7)) {
-#ifdef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
+#ifdef KOKKOS_ENABLE_OPENMPTARGET
+    KOKKOS_IMPL_IF_ON_HOST
+    Impl::runtime_check_rank_host(
+        traits::rank_dynamic,
+        std::is_same<typename traits::specialize, void>::value, arg_N0, arg_N1,
+        arg_N2, arg_N3, arg_N4, arg_N5, arg_N6, arg_N7, label());
+    else Impl::runtime_check_rank_device(
+        traits::rank_dynamic,
+        std::is_same<typename traits::specialize, void>::value, arg_N0, arg_N1,
+        arg_N2, arg_N3, arg_N4, arg_N5, arg_N6, arg_N7);
+#elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
     Impl::runtime_check_rank_host(
         traits::rank_dynamic,
         std::is_same<typename traits::specialize, void>::value, arg_N0, arg_N1,

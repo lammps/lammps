@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,29 +17,30 @@
 ------------------------------------------------------------------------- */
 
 #include "pppm_gpu.h"
-#include <mpi.h>
-#include <cstring>
-#include <cstdio>
-#include <cstdlib>
-#include <cmath>
-#include "atom.h"
-#include "comm.h"
-#include "gridcomm.h"
-#include "neighbor.h"
-#include "force.h"
-#include "pair.h"
-#include "bond.h"
+
 #include "angle.h"
+#include "atom.h"
+#include "bond.h"
+#include "comm.h"
 #include "domain.h"
+#include "error.h"
 #include "fft3d_wrap.h"
-#include "remap_wrap.h"
+#include "fix.h"
+#include "force.h"
 #include "gpu_extra.h"
+#include "gridcomm.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
-#include "update.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "remap_wrap.h"
 #include "universe.h"
-#include "fix.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -80,9 +82,9 @@ FFT_SCALAR* PPPM_GPU_API(init)(const int nlocal, const int nall, FILE *screen,
                                const bool respa, int &success);
 void PPPM_GPU_API(clear)(const double poisson_time);
 int PPPM_GPU_API(spread)(const int ago, const int nlocal, const int nall,
-                      double **host_x, int *host_type, bool &success,
-                      double *host_q, double *boxlo, const double delxinv,
-                      const double delyinv, const double delzinv);
+                         double **host_x, int *host_type, bool &success,
+                         double *host_q, double *boxlo, const double delxinv,
+                         const double delyinv, const double delzinv);
 void PPPM_GPU_API(interp)(const FFT_SCALAR qqrd2e_scale);
 double PPPM_GPU_API(bytes)();
 void PPPM_GPU_API(forces)(double **f);
@@ -105,6 +107,8 @@ PPPMGPU::PPPMGPU(LAMMPS *lmp) : PPPM(lmp)
 PPPMGPU::~PPPMGPU()
 {
   PPPM_GPU_API(clear)(poisson_time);
+  destroy_3d_offset(density_brick_gpu,nzlo_out,nylo_out);
+  destroy_3d_offset(vd_brick,nzlo_out,nylo_out);
 }
 
 /* ----------------------------------------------------------------------
@@ -149,7 +153,7 @@ void PPPMGPU::init()
   // GPU precision specific init
 
   bool respa_value=false;
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     respa_value=true;
 
   if (order>8)
@@ -208,9 +212,9 @@ void PPPMGPU::compute(int eflag, int vflag)
   if (triclinic == 0) {
     bool success = true;
     int flag=PPPM_GPU_API(spread)(nago, atom->nlocal, atom->nlocal +
-                              atom->nghost, atom->x, atom->type, success,
-                              atom->q, domain->boxlo, delxinv, delyinv,
-                              delzinv);
+                                  atom->nghost, atom->x, atom->type, success,
+                                  atom->q, domain->boxlo, delxinv, delyinv,
+                                  delzinv);
     if (!success)
       error->one(FLERR,"Insufficient memory on accelerator");
     if (flag != 0)
@@ -254,12 +258,12 @@ void PPPMGPU::compute(int eflag, int vflag)
   // remap from 3d decomposition to FFT decomposition
 
   if (triclinic == 0) {
-    gc->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO_GPU,
-                            gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+    gc->reverse_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
+                     REVERSE_RHO_GPU,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
     brick2fft_gpu();
   } else {
-    gc->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO,
-                            gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+    gc->reverse_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
+                     REVERSE_RHO,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
     PPPM::brick2fft();
   }
 
@@ -273,21 +277,21 @@ void PPPMGPU::compute(int eflag, int vflag)
   // to fill ghost cells surrounding their 3d bricks
 
   if (differentiation_flag == 1)
-    gc->forward_comm_kspace(this,1,sizeof(FFT_SCALAR),FORWARD_AD,
-                            gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+    gc->forward_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
+                     FORWARD_AD,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   else
-    gc->forward_comm_kspace(this,3,sizeof(FFT_SCALAR),FORWARD_IK,
-                            gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+    gc->forward_comm(GridComm::KSPACE,this,3,sizeof(FFT_SCALAR),
+                     FORWARD_IK,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   // extra per-atom energy/virial communication
 
   if (evflag_atom) {
     if (differentiation_flag == 1 && vflag_atom)
-      gc->forward_comm_kspace(this,6,sizeof(FFT_SCALAR),FORWARD_AD_PERATOM,
-                              gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+      gc->forward_comm(GridComm::KSPACE,this,6,sizeof(FFT_SCALAR),
+                       FORWARD_AD_PERATOM,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
     else if (differentiation_flag == 0)
-      gc->forward_comm_kspace(this,7,sizeof(FFT_SCALAR),FORWARD_IK_PERATOM,
-                              gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+      gc->forward_comm(GridComm::KSPACE,this,7,sizeof(FFT_SCALAR),
+                       FORWARD_IK_PERATOM,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   }
 
   poisson_time += MPI_Wtime()-t3;
@@ -402,7 +406,7 @@ void PPPMGPU::poisson_ik()
     work1[n++] = ZEROF;
   }
 
-  fft1->compute(work1,work1,1);
+  fft1->compute(work1,work1,FFT3d::FORWARD);
 
   // if requested, compute energy and virial contribution
 
@@ -441,7 +445,7 @@ void PPPMGPU::poisson_ik()
 
   if (evflag_atom) poisson_peratom();
 
-  // compute gradients of V(r) in each of 3 dims by transformimg -ik*V(k)
+  // compute gradients of V(r) in each of 3 dims by transformimg ik*V(k)
   // FFT leaves data in 3d brick decomposition
   // copy it into inner portion of vdx,vdy,vdz arrays
 
@@ -451,12 +455,12 @@ void PPPMGPU::poisson_ik()
   for (k = nzlo_fft; k <= nzhi_fft; k++)
     for (j = nylo_fft; j <= nyhi_fft; j++)
       for (i = nxlo_fft; i <= nxhi_fft; i++) {
-        work2[n] = fkx[i]*work1[n+1];
-        work2[n+1] = -fkx[i]*work1[n];
+        work2[n] = -fkx[i]*work1[n+1];
+        work2[n+1] = fkx[i]*work1[n];
         n += 2;
       }
 
-  fft2->compute(work2,work2,-1);
+  fft2->compute(work2,work2,FFT3d::BACKWARD);
 
   n = 0;
   int x_hi = nxhi_in * 4 + 3;
@@ -473,12 +477,12 @@ void PPPMGPU::poisson_ik()
   for (k = nzlo_fft; k <= nzhi_fft; k++)
     for (j = nylo_fft; j <= nyhi_fft; j++)
       for (i = nxlo_fft; i <= nxhi_fft; i++) {
-        work2[n] = fky[j]*work1[n+1];
-        work2[n+1] = -fky[j]*work1[n];
+        work2[n] = -fky[j]*work1[n+1];
+        work2[n+1] = fky[j]*work1[n];
         n += 2;
       }
 
-  fft2->compute(work2,work2,-1);
+  fft2->compute(work2,work2,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -494,12 +498,12 @@ void PPPMGPU::poisson_ik()
   for (k = nzlo_fft; k <= nzhi_fft; k++)
     for (j = nylo_fft; j <= nyhi_fft; j++)
       for (i = nxlo_fft; i <= nxhi_fft; i++) {
-        work2[n] = fkz[k]*work1[n+1];
-        work2[n+1] = -fkz[k]*work1[n];
+        work2[n] = -fkz[k]*work1[n+1];
+        work2[n+1] = fkz[k]*work1[n];
         n += 2;
       }
 
-  fft2->compute(work2,work2,-1);
+  fft2->compute(work2,work2,FFT3d::BACKWARD);
 
   n = 0;
   for (k = nzlo_in; k <= nzhi_in; k++)
@@ -830,8 +834,8 @@ void PPPMGPU::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
   density_brick = density_A_brick;
   density_fft = density_A_fft;
 
-  gc->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO,
-                          gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+  gc->reverse_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
+                   REVERSE_RHO,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   brick2fft();
 
   // group B
@@ -839,8 +843,8 @@ void PPPMGPU::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
   density_brick = density_B_brick;
   density_fft = density_B_fft;
 
-  gc->reverse_comm_kspace(this,1,sizeof(FFT_SCALAR),REVERSE_RHO,
-                          gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+  gc->reverse_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
+                   REVERSE_RHO,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   brick2fft();
 
   // switch back pointers

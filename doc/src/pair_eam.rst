@@ -18,6 +18,7 @@
 .. index:: pair_style eam/fs/kk
 .. index:: pair_style eam/fs/omp
 .. index:: pair_style eam/fs/opt
+.. index:: pair_style eam/he
 
 pair_style eam command
 ======================
@@ -38,6 +39,9 @@ pair_style eam/cd/old command
 pair_style eam/fs command
 =========================
 
+pair_style eam/he command
+=========================
+
 Accelerator Variants: *eam/fs/gpu*, *eam/fs/intel*, *eam/fs/kk*, *eam/fs/omp*, *eam/fs/opt*
 
 Syntax
@@ -47,7 +51,7 @@ Syntax
 
    pair_style style
 
-* style = *eam* or *eam/alloy* or *eam/cd* or *eam/cd/old* or *eam/fs*
+* style = *eam* or *eam/alloy* or *eam/cd* or *eam/cd/old* or *eam/fs* or *eam/he*
 
 Examples
 """"""""
@@ -66,6 +70,9 @@ Examples
 
    pair_style eam/fs
    pair_coeff * * NiAlH_jea.eam.fs Ni Al Ni Ni
+
+   pair_style eam/he
+   pair_coeff * * PdHHe.eam.he Pd H He
 
 Description
 """""""""""
@@ -104,8 +111,8 @@ are parameterized in terms of LAMMPS :doc:`metal units <units>`.
    potentials, the same way that DYNAMO does.  Alternatively, a single
    DYNAMO *setfl* file or Finnis/Sinclair EAM file can be used by LAMMPS
    to model alloy systems by invoking the *eam/alloy* or *eam/cd* or
-   *eam/fs* styles as described below.  These files require no mixing
-   since they specify alloy interactions explicitly.
+   *eam/fs* or *eam/he* styles as described below.  These files require no
+   mixing since they specify alloy interactions explicitly.
 
 .. note::
 
@@ -134,18 +141,14 @@ interatomic potentials and file formats.
 The OpenKIM Project at
 `https://openkim.org/browse/models/by-type <https://openkim.org/browse/models/by-type>`_
 provides EAM potentials that can be used directly in LAMMPS with the
-:doc:`kim_commands <kim_commands>` interface.
+:doc:`kim command <kim_commands>` interface.
 
 ----------
 
-For style *eam*\ , potential values are read from a file that is in the
+For style *eam*, potential values are read from a file that is in the
 DYNAMO single-element *funcfl* format.  If the DYNAMO file was created
 by a Fortran program, it cannot have "D" values in it for exponents.
 C only recognizes "e" or "E" for scientific notation.
-
-Note that unlike for other potentials, cutoffs for EAM potentials are
-not set in the pair_style or pair_coeff command; they are specified in
-the EAM potential files themselves.
 
 For style *eam* a potential file must be assigned to each I,I pair of
 atom types by using one or more pair_coeff commands, each with a
@@ -222,7 +225,7 @@ above, *setfl* files contain explicit tabulated values for alloy
 interactions.  Thus they allow more generality than *funcfl* files for
 modeling alloys.
 
-For style *eam/alloy*\ , potential values are read from a file that is
+For style *eam/alloy*, potential values are read from a file that is
 in the DYNAMO multi-element *setfl* format, except that element names
 (Ni, Cu, etc) are added to one of the lines in the file.  If the
 DYNAMO file was created by a Fortran program, it cannot have "D"
@@ -336,8 +339,11 @@ distribution have a ".cdeam" suffix.
 
 Style *eam/fs* computes pairwise interactions for metals and metal
 alloys using a generalized form of EAM potentials due to Finnis and
-Sinclair :ref:`(Finnis) <Finnis1>`.  The total energy Ei of an atom I is
-given by
+Sinclair :ref:`(Finnis) <Finnis1>`.  Style *eam/he* is similar to
+*eam/fs* except that it allows for negative electron density in
+order to capture the behavior of helium in metals :ref:`(Zhou6) <Zhou6>`.
+
+The total energy Ei of an atom I is given by
 
 .. math::
 
@@ -355,36 +361,36 @@ electron density at an atomic site depending on the identity of the
 element at that atomic site.
 
 The associated :doc:`pair_coeff <pair_coeff>` command for style *eam/fs*
-reads a DYNAMO *setfl* file that has been extended to include
-additional rho_alpha_beta arrays of tabulated values.  A discussion of
-how FS EAM differs from conventional EAM alloy potentials is given in
-:ref:`(Ackland1) <Ackland1>`.  An example of such a potential is the same
-author's Fe-P FS potential :ref:`(Ackland2) <Ackland2>`.  Note that while FS
-potentials always specify the embedding energy with a square root
+or *eam/he* reads a DYNAMO *setfl* file that has been extended to include
+additional :math:`\rho_{\alpha\beta}` arrays of tabulated values.  A
+discussion of how FS EAM differs from conventional EAM alloy potentials is
+given in :ref:`(Ackland1) <Ackland1>`.  An example of such a potential is the
+same author's Fe-P FS potential :ref:`(Ackland2) <Ackland2>`.  Note that while
+FS potentials always specify the embedding energy with a square root
 dependence on the total density, the implementation in LAMMPS does not
 require that; the user can tabulate any functional form desired in the
 FS potential files.
 
-For style *eam/fs*\ , the form of the pair_coeff command is exactly the
-same as for style *eam/alloy*\ , e.g.
+For style *eam/fs* and *eam/he* the form of the pair_coeff command is exactly
+the same as for style *eam/alloy*, e.g.
 
 .. code-block:: LAMMPS
 
    pair_coeff * * NiAlH_jea.eam.fs Ni Ni Ni Al
 
-where there are N additional arguments after the filename, where N is
+with N additional arguments after the filename, where N is
 the number of LAMMPS atom types.  See the :doc:`pair_coeff <pair_coeff>`
 doc page for alternate ways to specify the path for the potential
 file.  The N values determine the mapping of LAMMPS atom types to EAM
 elements in the file, as described above for style *eam/alloy*\ .  As
-with *eam/alloy*\ , if a mapping value is NULL, the mapping is not
-performed.  This can be used when an *eam/fs* potential is used as
-part of the *hybrid* pair style.  The NULL values are used as
+with *eam/alloy*, if a mapping value is NULL, the mapping is not
+performed.  This can be used when an *eam/fs* or *eam/he* potential is
+used as part of a *hybrid* pair style.  The NULL values are used as
 placeholders for atom types that will be used with other potentials.
 
-FS EAM files include more information than the DYNAMO *setfl* format
-files read by *eam/alloy*\ , in that i,j density functionals for all
-pairs of elements are included as needed by the Finnis/Sinclair
+FS EAM and HE EAM files include more information than the DYNAMO *setfl*
+format files read by *eam/alloy*, in that i,j density functionals for
+all pairs of elements are included as needed by the Finnis/Sinclair
 formulation of the EAM.
 
 FS EAM files in the *potentials* directory of the LAMMPS distribution
@@ -417,6 +423,25 @@ eV-Angstroms) as in EAM *setfl* files.  Note that in Finnis/Sinclair,
 the phi(r) arrays are still symmetric, so only phi arrays for i >= j
 are listed.
 
+HE EAM files in the *potentials* directory of the LAMMPS distribution
+have an ".eam.he" suffix.  They are formatted as follows:
+
+* lines 1,2,3 = comments (ignored)
+* line 4: Nelements Element1 Element2 ... ElementN
+* line 5: Nrho, drho, Nr, dr, cutoff, rhomax
+
+The 5-line header section is identical to an FS EAM file
+except that line 5 lists an additional value, rhomax. Unlike in FS EAM
+files where embedding energies F(rho) are always defined between rho = 0
+and rho = (Nrho -1)drho, F(rho) in HE EAM files are defined between
+rho = rhomin and rho = rhomax.  Since drho = (rhomax - rhomin)/(Nrho - 1),
+rhomin = rhomax - (Nrho - 1)drho.  The embedding energies F(rho) are
+listed for rho = rhomin, rhomin + drho, rhomin + 2drho, ..., rhomax.
+This gives users additional flexibility to define a negative rhomin and
+therefore an embedding energy function that works for both positive and
+negative electron densities.  The format and units of these sections are
+identical to the FS EAM files (see above).
+
 ----------
 
 .. include:: accel_styles.rst
@@ -440,7 +465,7 @@ an input script that reads a restart file.
 
 The eam pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -448,7 +473,7 @@ Restrictions
 """"""""""""
 
 All of these styles are part of the MANYBODY package.  They are only
-enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
@@ -479,6 +504,10 @@ Daw, Baskes, Phys Rev B, 29, 6443 (1984).
 .. _Finnis1:
 
 **(Finnis)** Finnis, Sinclair, Philosophical Magazine A, 50, 45 (1984).
+
+.. _Zhou6:
+
+**(Zhou6)** Zhou, Bartelt, Sills, Physical Review B, 103, 014108 (2021).
 
 .. _Stukowski:
 

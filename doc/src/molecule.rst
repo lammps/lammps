@@ -79,7 +79,7 @@ make it easy to use the same molecule file in different molecule
 templates or in different simulations.  You can specify the same file
 multiple times with different optional keywords.
 
-The *offset*\ , *toff*\ , *boff*\ , *aoff*\ , *doff*\ , *ioff* keywords
+The *offset*, *toff*, *boff*, *aoff*, *doff*, *ioff* keywords
 add the specified offset values to the atom types, bond types, angle
 types, dihedral types, and/or improper types as they are read from the
 molecule file.  E.g. if *toff* = 2, and the file uses atom types
@@ -150,7 +150,7 @@ appear if the value(s) are different than the default.
 * Xc Yc Zc *com* = coordinates of center-of-mass of molecule
 * Ixx Iyy Izz Ixy Ixz Iyz *inertia* = 6 components of inertia tensor of molecule
 
-For *mass*\ , *com*\ , and *inertia*\ , the default is for LAMMPS to
+For *mass*, *com*, and *inertia*, the default is for LAMMPS to
 calculate this quantity itself if needed, assuming the molecules
 consists of a set of point particles or finite-size particles (with a
 non-zero diameter) that do not overlap.  If finite-size particles in
@@ -349,7 +349,7 @@ the doc pages for individual styles for details.
 
 N1, N2, N3 are the number of 1-2, 1-3, 1-4 neighbors respectively of
 this atom within the topology of the molecule.  See the
-:doc:`special_bonds <special_bonds>` doc page for more discussion of
+:doc:`special_bonds <special_bonds>` page for more discussion of
 1-2, 1-3, 1-4 neighbors.  If this section appears, the Special Bonds
 section must also appear.
 
@@ -390,7 +390,7 @@ This section is only needed when molecules created using the template
 will be constrained by SHAKE via the "fix shake" command.  The other
 two Shake sections must also appear in the file, following this one.
 
-The meaning of the flag for each atom is as follows.  See the :doc:`fix shake <fix_shake>` doc page for a further description of SHAKE
+The meaning of the flag for each atom is as follows.  See the :doc:`fix shake <fix_shake>` page for a further description of SHAKE
 clusters.
 
 * 0 = not part of a SHAKE cluster
@@ -432,7 +432,7 @@ and b,c = IDs of other two atoms bonded to the central atom.
 If flag = 4, a,b,c,d are listed, where a = ID of central atom,
 and b,c,d = IDs of other three atoms bonded to the central atom.
 
-See the :doc:`fix shake <fix_shake>` doc page for a further description
+See the :doc:`fix shake <fix_shake>` page for a further description
 of SHAKE clusters.
 
 ----------
@@ -477,7 +477,7 @@ the second non-central atom (value c in the Shake Atoms section), and c =
 bondtype of the bond between the central atom and the third non-central
 atom (value d in the Shake Atoms section).
 
-See the :doc:`fix shake <fix_shake>` doc page for a further description
+See the :doc:`fix shake <fix_shake>` page for a further description
 of SHAKE clusters.
 
 ----------

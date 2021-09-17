@@ -70,7 +70,9 @@ struct TestViewMappingSubview {
 
   enum { CN0 = 10, CN1 = 11, CN2 = 12 };
   using CT = Kokkos::View<int** * [13][14], ExecSpace>;
-  using CS = Kokkos::Subview<CT, range, range, range, int, int>;
+  // changing CS to CTS here because when compiling with nvshmem, there is a
+  // define for CS that makes this fail...
+  using CTS = Kokkos::Subview<CT, range, range, range, int, int>;
 
   enum { DN0 = 10, DN1 = 11, DN2 = 12, DN3 = 13, DN4 = 14 };
   using DT = Kokkos::View<int** * [DN3][DN4], ExecSpace>;
@@ -104,7 +106,7 @@ struct TestViewMappingSubview {
   BT Ba;
   BS Bb;
   CT Ca;
-  CS Cb;
+  CTS Cb;
   DT Da;
   DS Db;
 

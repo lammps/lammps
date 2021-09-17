@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -1228,10 +1229,10 @@ void Ewald::slabcorr()
 double Ewald::memory_usage()
 {
   double bytes = 3 * kmax3d * sizeof(int);
-  bytes += (1 + 3 + 6) * kmax3d * sizeof(double);
-  bytes += 4 * kmax3d * sizeof(double);
-  bytes += nmax*3 * sizeof(double);
-  bytes += 2 * (2*kmax+1)*3*nmax * sizeof(double);
+  bytes += (double)(1 + 3 + 6) * kmax3d * sizeof(double);
+  bytes += (double)4 * kmax3d * sizeof(double);
+  bytes += (double)nmax*3 * sizeof(double);
+  bytes += (double)2 * (2*kmax+1)*3*nmax * sizeof(double);
   return bytes;
 }
 

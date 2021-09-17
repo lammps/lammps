@@ -20,16 +20,8 @@ the suffix ``.so.0`` (or some other number).
 .. note::
 
    Care should be taken to use the same MPI library for the calling code
-   and the LAMMPS library.  The ``library.h`` file includes ``mpi.h``
-   and uses definitions from it so those need to be available and
-   consistent.  When LAMMPS is compiled with the included STUBS MPI
-   library, then its ``mpi.h`` file needs to be included.  While it is
-   technically possible to use a full MPI library in the calling code
-   and link to a serial LAMMPS library compiled with MPI STUBS, it is
-   recommended to use the *same* MPI library for both, and then use
-   ``MPI_Comm_split()`` in the calling code to pass a suitable
-   communicator with a subset of MPI ranks to the function creating the
-   LAMMPS instance.
+   and the LAMMPS library unless LAMMPS is to be compiled without (real)
+   MPI support using the include STUBS MPI library.
 
 Link with LAMMPS as a static library
 ------------------------------------
@@ -110,7 +102,7 @@ executable, that are also required to link the LAMMPS executable.
 
       .. code-block:: bash
 
-         gcc -c -O -I${HOME}/lammps/src/STUBS -I${HOME}/lammps/src -caller.c
+         gcc -c -O -I${HOME}/lammps/src -caller.c
          g++ -o caller caller.o -L${HOME}/lammps/lib/poems \
                       -L${HOME}/lammps/src/STUBS -L${HOME}/lammps/src \
                       -llammps_serial -lpoems -lmpi_stubs
@@ -174,7 +166,7 @@ the POEMS package installed becomes:
 
       .. code-block:: bash
 
-         gcc -c -O -I${HOME}/lammps/src/STUBS -I${HOME}/lammps/src -caller.c
+         gcc -c -O -I${HOME}/lammps/src -caller.c
          g++ -o caller caller.o -L${HOME}/lammps/src -llammps_serial
 
 Locating liblammps.so at runtime

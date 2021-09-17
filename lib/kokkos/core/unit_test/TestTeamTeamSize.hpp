@@ -121,12 +121,21 @@ void test_team_policy_max_recommended_static_size(int scratch_size) {
                            .set_scratch_size(0, Kokkos::PerTeam(scratch_size)),
                        FunctorFor<T, N, PolicyType, S>());
   MyArray<T, N> val;
+  double n_leagues = 10000;
+  // FIXME_HIP
+#ifdef KOKKOS_ENABLE_HIP
+  if (N == 2)
+    n_leagues = 1000;
+  else
+    n_leagues = 500;
+#endif
+
   Kokkos::parallel_reduce(
-      PolicyType(10000, team_size_max_reduce, 4)
+      PolicyType(n_leagues, team_size_max_reduce, 4)
           .set_scratch_size(0, Kokkos::PerTeam(scratch_size)),
       FunctorReduce<T, N, PolicyType, S>(), val);
   Kokkos::parallel_reduce(
-      PolicyType(10000, team_size_rec_reduce, 4)
+      PolicyType(n_leagues, team_size_rec_reduce, 4)
           .set_scratch_size(0, Kokkos::PerTeam(scratch_size)),
       FunctorReduce<T, N, PolicyType, S>(), val);
   Kokkos::fence();
@@ -136,8 +145,14 @@ template <class T, int N, class PolicyType>
 void test_team_policy_max_recommended(int scratch_size) {
   test_team_policy_max_recommended_static_size<T, N, PolicyType, 1>(
       scratch_size);
+  // FIXME_SYCL prevent running out of total kernel argument size limit
+#ifdef KOKKOS_ENABLE_SYCL
+  test_team_policy_max_recommended_static_size<T, N, PolicyType, 100>(
+      scratch_size);
+#else
   test_team_policy_max_recommended_static_size<T, N, PolicyType, 1000>(
       scratch_size);
+#endif
 }
 
 TEST(TEST_CATEGORY, team_policy_max_recommended) {
@@ -177,7 +192,8 @@ template <typename TeamHandleType, typename ReducerValueType>
 struct PrintFunctor1 {
   KOKKOS_INLINE_FUNCTION void operator()(const TeamHandleType& team,
                                          ReducerValueType&) const {
-    printf("Test %i %i\n", int(team.league_rank()), int(team.team_rank()));
+    KOKKOS_IMPL_DO_NOT_USE_PRINTF("Test %i %i\n", int(team.league_rank()),
+                                  int(team.team_rank()));
   }
 };
 
@@ -185,7 +201,8 @@ template <typename TeamHandleType, typename ReducerValueType>
 struct PrintFunctor2 {
   KOKKOS_INLINE_FUNCTION void operator()(const TeamHandleType& team,
                                          ReducerValueType& teamVal) const {
-    printf("Test %i %i\n", int(team.league_rank()), int(team.team_rank()));
+    KOKKOS_IMPL_DO_NOT_USE_PRINTF("Test %i %i\n", int(team.league_rank()),
+                                  int(team.team_rank()));
     teamVal += 1;
   }
 };

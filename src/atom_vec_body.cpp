@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -104,16 +105,18 @@ void AtomVecBody::process_args(int narg, char **arg)
 
   if (narg < 1) error->all(FLERR,"Invalid atom_style body command");
 
-  if (0) bptr = nullptr;
+  if (0) {
+    bptr = nullptr;
 
 #define BODY_CLASS
 #define BodyStyle(key,Class) \
-  else if (strcmp(arg[0],#key) == 0) bptr = new Class(lmp,narg,arg);
+  } else if (strcmp(arg[0],#key) == 0) { \
+    bptr = new Class(lmp,narg,arg);
 #include "style_body.h"
 #undef BodyStyle
 #undef BODY_CLASS
 
-  else error->all(FLERR,utils::
+  } else error->all(FLERR,utils::
                   check_packages_for_style("body",arg[0],lmp).c_str());
 
   bptr->avec = this;
@@ -554,14 +557,14 @@ void AtomVecBody::data_body(int m, int ninteger, int ndouble,
 double AtomVecBody::memory_usage_bonus()
 {
   double bytes = 0;
-  bytes += nmax_bonus*sizeof(Bonus);
+  bytes += (double)nmax_bonus*sizeof(Bonus);
   bytes += icp->size() + dcp->size();
 
   int nall = nlocal_bonus + nghost_bonus;
   for (int i = 0; i < nall; i++) {
     if (body[i] >= 0) {
-      bytes += bonus[body[i]].ninteger * sizeof(int);
-      bytes += bonus[body[i]].ndouble * sizeof(double);
+      bytes += (double)bonus[body[i]].ninteger * sizeof(int);
+      bytes += (double)bonus[body[i]].ndouble * sizeof(double);
     }
   }
 

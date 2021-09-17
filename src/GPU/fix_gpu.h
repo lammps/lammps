@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(GPU,FixGPU)
-
+// clang-format off
+FixStyle(GPU,FixGPU);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_GPU_H
@@ -37,13 +37,17 @@ class FixGPU : public Fix {
   void post_force_respa(int, int, int);
   double memory_usage();
 
+  double binsize(const double subx, const double suby, const double subz, const int nlocal,
+                 const double cut);
+
  private:
   int _gpu_mode;
   int _nlevels_respa;
   double _particle_split;
+  double _binsize;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
@@ -77,5 +81,12 @@ E: Cannot use neigh_modify exclude with GPU neighbor builds
 
 This is a current limitation of the GPU implementation
 in LAMMPS.
+
+E: Too many neighbors on GPU. Use neigh_modify one to increase limit.
+
+The expected maximum number of neighbors is determined in the GPU package
+automatically. This error means the actual number of neighbors is exceeding
+the expected value. Use neigh_modify one command to increase GPU allocations
+(e.g. doubling this value doubles the GPU allocation).
 
 */

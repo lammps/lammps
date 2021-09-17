@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -51,7 +52,8 @@ enum{ISO,ANISO,TRICLINIC};
 
 FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  rfix(nullptr), id_dilate(nullptr), irregular(nullptr), id_temp(nullptr), id_press(nullptr),
+  rfix(nullptr), id_dilate(nullptr), irregular(nullptr),
+  id_temp(nullptr), id_press(nullptr),
   eta(nullptr), eta_dot(nullptr), eta_dotdot(nullptr),
   eta_mass(nullptr), etap(nullptr), etap_dot(nullptr), etap_dotdot(nullptr),
   etap_mass(nullptr)
@@ -66,6 +68,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extscalar = 1;
   extvector = 0;
+  ecouple_flag = 1;
 
   // default values
 
@@ -273,9 +276,7 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
       else {
         allremap = 0;
         delete [] id_dilate;
-        int n = strlen(arg[iarg+1]) + 1;
-        id_dilate = new char[n];
-        strcpy(id_dilate,arg[iarg+1]);
+        id_dilate = utils::strdup(arg[iarg+1]);
         int idilate = group->find(id_dilate);
         if (idilate == -1)
           error->all(FLERR,"Fix nvt/npt/nph dilate group ID does not exist");
@@ -632,9 +633,9 @@ int FixNH::setmask()
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
   mask |= FINAL_INTEGRATE;
-  mask |= THERMO_ENERGY;
   mask |= INITIAL_INTEGRATE_RESPA;
   mask |= FINAL_INTEGRATE_RESPA;
+  mask |= PRE_FORCE_RESPA;
   if (pre_exchange_flag) mask |= PRE_EXCHANGE;
   return mask;
 }
@@ -729,7 +730,7 @@ void FixNH::init()
   if (force->kspace) kspace_flag = 1;
   else kspace_flag = 0;
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
     step_respa = ((Respa *) update->integrate)->step;
     dto = 0.5*step_respa[0];
@@ -784,7 +785,8 @@ void FixNH::setup(int /*vflag*/)
       } else {
         t0 = temperature->compute_scalar();
         if (t0 < EPSILON)
-          error->all(FLERR, "Current temperature too close to zero, consider using ptemp setting");
+          error->all(FLERR,"Current temperature too close to zero, "
+                     "consider using ptemp setting");
       }
     }
     t_target = t0;
@@ -1005,7 +1007,12 @@ void FixNH::initial_integrate_respa(int /*vflag*/, int ilevel, int /*iloop*/)
     nve_x();
     if (pstat_flag) remap();
   }
+}
 
+/* ---------------------------------------------------------------------- */
+
+void FixNH::pre_force_respa(int /*vflag*/, int ilevel, int /*iloop*/)
+{
   // if barostat, redo KSpace coeffs at outermost level,
   // since volume has changed
 
@@ -1061,7 +1068,7 @@ void FixNH::couple()
   if (!std::isfinite(p_current[0]) || !std::isfinite(p_current[1]) || !std::isfinite(p_current[2]))
     error->all(FLERR,"Non-numeric pressure - simulation unstable");
 
-  // switch order from xy-xz-yz to Voigt
+  // switch order from xy-xz-yz to Voigt ordering
 
   if (pstyle == TRICLINIC) {
     p_current[3] = tensor[5];
@@ -1092,7 +1099,7 @@ void FixNH::remap()
 
   // omega is not used, except for book-keeping
 
-  for (int i = 0; i < 6; i++) omega[i] += dto*omega_dot[i];
+  for (i = 0; i < 6; i++) omega[i] += dto*omega_dot[i];
 
   // convert pertinent atoms and rigid bodies to lamda coords
 
@@ -1116,7 +1123,7 @@ void FixNH::remap()
   // h_dot = omega_dot * h
   //
   // where h_dot, omega_dot and h are all upper-triangular
-  // 3x3 tensors. In Voigt notation, the elements of the
+  // 3x3 tensors. In Voigt ordering, the elements of the
   // RHS product tensor are:
   // h_dot = [0*0, 1*1, 2*2, 1*3+3*2, 0*4+5*3+4*2, 0*5+5*1]
   //
@@ -1412,9 +1419,7 @@ int FixNH::modify_param(int narg, char **arg)
       tcomputeflag = 0;
     }
     delete [] id_temp;
-    int n = strlen(arg[1]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[1]);
+    id_temp = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
     if (icompute < 0)
@@ -1446,9 +1451,7 @@ int FixNH::modify_param(int narg, char **arg)
       pcomputeflag = 0;
     }
     delete [] id_press;
-    int n = strlen(arg[1]) + 1;
-    id_press = new char[n];
-    strcpy(id_press,arg[1]);
+    id_press = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
     if (icompute < 0) error->all(FLERR,"Could not find fix_modify pressure ID");
@@ -1726,7 +1729,7 @@ void FixNH::reset_dt()
 
   // If using respa, then remap is performed in innermost level
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     dto = 0.5*step_respa[0];
 
   if (pstat_flag)
@@ -1752,13 +1755,13 @@ void *FixNH::extract(const char *str, int &dim)
   } else if (tstat_flag && strcmp(str,"mtchain") == 0) {
     return &mtchain;
   } else if (pstat_flag && strcmp(str,"mpchain") == 0) {
-    return &mtchain;
+    return &mpchain;
   }
   dim=1;
   if (tstat_flag && strcmp(str,"eta") == 0) {
     return &eta;
   } else if (pstat_flag && strcmp(str,"etap") == 0) {
-    return &eta;
+    return &etap;
   } else if (pstat_flag && strcmp(str,"p_flag") == 0) {
     return &p_flag;
   } else if (pstat_flag && strcmp(str,"p_start") == 0) {
@@ -1785,7 +1788,7 @@ void FixNH::nhc_temp_integrate()
 
   if (eta_mass_flag) {
     eta_mass[0] = tdof * boltz * t_target / (t_freq*t_freq);
-    for (int ich = 1; ich < mtchain; ich++)
+    for (ich = 1; ich < mtchain; ich++)
       eta_mass[ich] = boltz * t_target / (t_freq*t_freq);
   }
 
@@ -1857,12 +1860,12 @@ void FixNH::nhc_press_integrate()
 
   if (omega_mass_flag) {
     double nkt = (atom->natoms + 1) * kt;
-    for (int i = 0; i < 3; i++)
+    for (i = 0; i < 3; i++)
       if (p_flag[i])
         omega_mass[i] = nkt/(p_freq[i]*p_freq[i]);
 
     if (pstyle == TRICLINIC) {
-      for (int i = 3; i < 6; i++)
+      for (i = 3; i < 6; i++)
         if (p_flag[i]) omega_mass[i] = nkt/(p_freq[i]*p_freq[i]);
     }
   }
@@ -1870,9 +1873,9 @@ void FixNH::nhc_press_integrate()
   if (etap_mass_flag) {
     if (mpchain) {
       etap_mass[0] = boltz * t_target / (p_freq_max*p_freq_max);
-      for (int ich = 1; ich < mpchain; ich++)
+      for (ich = 1; ich < mpchain; ich++)
         etap_mass[ich] = boltz * t_target / (p_freq_max*p_freq_max);
-      for (int ich = 1; ich < mpchain; ich++)
+      for (ich = 1; ich < mpchain; ich++)
         etap_dotdot[ich] =
           (etap_mass[ich-1]*etap_dot[ich-1]*etap_dot[ich-1] -
            boltz * t_target) / etap_mass[ich];

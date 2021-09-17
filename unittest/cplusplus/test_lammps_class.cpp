@@ -1,13 +1,17 @@
 // unit tests for the LAMMPS base class
 
+#include "comm.h"
+#include "info.h"
 #include "lammps.h"
-#include <cstdio> // for stdin, stdout
+#include <cstdio>  // for stdin, stdout
+#include <cstdlib> // for setenv
 #include <mpi.h>
 #include <string>
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+using ::testing::MatchesRegex;
 using ::testing::StartsWith;
 
 namespace LAMMPS_NS {
@@ -129,21 +133,21 @@ TEST_F(LAMMPS_plain, TestStyles)
     found = lmp->match_style("atom", "spin");
     EXPECT_STREQ(found, "SPIN");
     found = lmp->match_style("atom", "wavepacket");
-    EXPECT_STREQ(found, "USER-AWPMD");
+    EXPECT_STREQ(found, "AWPMD");
     found = lmp->match_style("atom", "dpd");
-    EXPECT_STREQ(found, "USER-DPD");
+    EXPECT_STREQ(found, "DPD-REACT");
     found = lmp->match_style("atom", "edpd");
-    EXPECT_STREQ(found, "USER-MESODPD");
+    EXPECT_STREQ(found, "DPD-MESO");
     found = lmp->match_style("atom", "mdpd");
-    EXPECT_STREQ(found, "USER-MESODPD");
+    EXPECT_STREQ(found, "DPD-MESO");
     found = lmp->match_style("atom", "tdpd");
-    EXPECT_STREQ(found, "USER-MESODPD");
+    EXPECT_STREQ(found, "DPD-MESO");
     found = lmp->match_style("atom", "spin");
     EXPECT_STREQ(found, "SPIN");
     found = lmp->match_style("atom", "smd");
-    EXPECT_STREQ(found, "USER-SMD");
+    EXPECT_STREQ(found, "MACHDYN");
     found = lmp->match_style("atom", "sph");
-    EXPECT_STREQ(found, "USER-SPH");
+    EXPECT_STREQ(found, "SPH");
     found = lmp->match_style("atom", "i_don't_exist");
     EXPECT_STREQ(found, NULL);
 }
@@ -172,9 +176,9 @@ protected:
         char **argv        = (char **)args;
         int argc           = sizeof(args) / sizeof(char *);
 
-        // only run this test fixture with omp suffix if USER-OMP package is installed
+        // only run this test fixture with omp suffix if OPENMP package is installed
 
-        if (LAMMPS::is_installed_pkg("USER-OMP"))
+        if (LAMMPS::is_installed_pkg("OPENMP"))
             lmp = new LAMMPS(argc, argv, MPI_COMM_WORLD);
         else
             GTEST_SKIP();
@@ -318,10 +322,53 @@ TEST_F(LAMMPS_kokkos, InitMembers)
     }
 }
 
-// check help message printing
-TEST(LAMMPS_help, HelpMessage)
+TEST(LAMMPS_init, OpenMP)
 {
-    const char *args[] = {"LAMMPS_test", "-h"};
+    if (!LAMMPS::is_installed_pkg("OPENMP")) GTEST_SKIP();
+    if (Info::get_openmp_info() == "OpenMP not enabled") GTEST_SKIP();
+
+    FILE *fp = fopen("in.lammps_empty", "w");
+    fputs("\n", fp);
+    fclose(fp);
+
+    const char *args[] = {"LAMMPS_init", "-in", "in.lammps_empty", "-log", "none", "-nocite"};
+    char **argv        = (char **)args;
+    int argc           = sizeof(args) / sizeof(char *);
+
+    ::testing::internal::CaptureStdout();
+    LAMMPS *lmp        = new LAMMPS(argc, argv, MPI_COMM_WORLD);
+    std::string output = ::testing::internal::GetCapturedStdout();
+    EXPECT_THAT(output, MatchesRegex(".*using 2 OpenMP thread.*per MPI task.*"));
+
+    if (LAMMPS_NS::Info::has_accelerator_feature("OPENMP", "api", "openmp"))
+        EXPECT_EQ(lmp->comm->nthreads, 2);
+    else
+        EXPECT_EQ(lmp->comm->nthreads, 1);
+    ::testing::internal::CaptureStdout();
+    delete lmp;
+    ::testing::internal::GetCapturedStdout();
+
+    remove("in.lammps_empty");
+}
+
+// check no OMP_NUM_THREADS warning message printing. this must be the
+// last OpenMP related test as threads will be locked to 1 from here on.
+
+TEST(LAMMPS_init, NoOpenMP)
+{
+    if (!LAMMPS_NS::Info::has_accelerator_feature("OPENMP", "api", "openmp"))
+        GTEST_SKIP() << "No threading enabled";
+
+    FILE *fp = fopen("in.lammps_class_noomp", "w");
+    fputs("\n", fp);
+    fclose(fp);
+#if defined(__WIN32)
+    _putenv("OMP_NUM_THREADS");
+#else
+    unsetenv("OMP_NUM_THREADS");
+#endif
+
+    const char *args[] = {"LAMMPS_init", "-in", "in.lammps_class_noomp", "-log", "none", "-nocite"};
     char **argv        = (char **)args;
     int argc           = sizeof(args) / sizeof(char *);
 
@@ -329,7 +376,11 @@ TEST(LAMMPS_help, HelpMessage)
     LAMMPS *lmp        = new LAMMPS(argc, argv, MPI_COMM_WORLD);
     std::string output = ::testing::internal::GetCapturedStdout();
     EXPECT_THAT(output,
-                StartsWith("\nLarge-scale Atomic/Molecular Massively Parallel Simulator -"));
+                MatchesRegex(".*OMP_NUM_THREADS environment is not set.*Defaulting to 1 thread.*"));
+    EXPECT_EQ(lmp->comm->nthreads, 1);
+    ::testing::internal::CaptureStdout();
     delete lmp;
+    ::testing::internal::GetCapturedStdout();
 }
+
 } // namespace LAMMPS_NS

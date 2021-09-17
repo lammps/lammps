@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -25,7 +25,7 @@ class CommTiled : public Comm {
   virtual ~CommTiled();
 
   void init();
-  void setup();                        // setup comm pattern
+  void setup();                                // setup comm pattern
   virtual void forward_comm(int dummy = 0);    // forward comm of atom coords
   virtual void reverse_comm();                 // reverse comm of forces
   virtual void exchange();                     // move atoms to new procs
@@ -33,19 +33,19 @@ class CommTiled : public Comm {
 
   virtual void forward_comm_pair(class Pair *);    // forward comm from a Pair
   virtual void reverse_comm_pair(class Pair *);    // reverse comm from a Pair
-  virtual void forward_comm_fix(class Fix *, int size=0);
-                                                   // forward comm from a Fix
-  virtual void reverse_comm_fix(class Fix *, int size=0);
-                                                   // reverse comm from a Fix
+  virtual void forward_comm_fix(class Fix *, int size = 0);
+  // forward comm from a Fix
+  virtual void reverse_comm_fix(class Fix *, int size = 0);
+  // reverse comm from a Fix
   virtual void reverse_comm_fix_variable(class Fix *);
-                                     // variable size reverse comm from a Fix
-  virtual void forward_comm_compute(class Compute *);  // forward from a Compute
-  virtual void reverse_comm_compute(class Compute *);  // reverse from a Compute
-  virtual void forward_comm_dump(class Dump *);    // forward comm from a Dump
-  virtual void reverse_comm_dump(class Dump *);    // reverse comm from a Dump
+  // variable size reverse comm from a Fix
+  virtual void forward_comm_compute(class Compute *);    // forward from a Compute
+  virtual void reverse_comm_compute(class Compute *);    // reverse from a Compute
+  virtual void forward_comm_dump(class Dump *);          // forward comm from a Dump
+  virtual void reverse_comm_dump(class Dump *);          // reverse comm from a Dump
 
-  virtual void forward_comm_array(int, double **);          // forward comm of array
-  virtual int exchange_variable(int, double *, double *&);  // exchange on neigh stencil
+  virtual void forward_comm_array(int, double **);            // forward comm of array
+  virtual int exchange_variable(int, double *, double *&);    // exchange on neigh stencil
 
   void coord2proc_setup();
   int coord2proc(double *, int &, int &, int &);
@@ -53,66 +53,69 @@ class CommTiled : public Comm {
   double memory_usage();
 
  private:
-  int nswap;                    // # of swaps to perform = 2*dim
-  int maxswap;                  // largest nswap can be = 6
+  int nswap;      // # of swaps to perform = 2*dim
+  int maxswap;    // largest nswap can be = 6
 
   // forward/reverse comm info, proc lists include self
 
-  int *nsendproc,*nrecvproc;    // # of procs to send/recv to/from per swap
-  int *sendother,*recvother;    // 1 if send/recv to/from other proc per swap
-  int *sendself;                // 1 if send to self per swap
-  int *nprocmax;                // current max # of send procs per swap
-  int **sendproc,**recvproc;    // procs to send/recv to/from per swap
-  int **sendnum,**recvnum;      // # of atoms to send/recv per swap/proc
-  int **size_forward_recv;      // # of values to recv in each forward swap/proc
-  int **firstrecv;              // where to put 1st recv atom per swap/proc
-  int **size_reverse_send;      // # of values to send in each reverse swap/proc
-  int **size_reverse_recv;      // # of values to recv in each reverse swap/proc
-  int **forward_recv_offset;  // forward comm offsets in buf_recv per swap/proc
-  int **reverse_recv_offset;  // reverse comm offsets in buf_recv per swap/proc
-  int ***sendlist;              // list of atoms to send per swap/proc
-  int **maxsendlist;            // max size of send list per swap/proc
-  int **pbc_flag;               // general flag for sending atoms thru PBC
-  int ***pbc;                   // dimension flags for PBC adjustments
+  int *nsendproc, *nrecvproc;    // # of procs to send/recv to/from per swap
+  int *sendother, *recvother;    // 1 if send/recv to/from other proc per swap
+  int *sendself;                 // 1 if send to self per swap
+  int *nprocmax;                 // current max # of send procs per swap
+  int **sendproc, **recvproc;    // procs to send/recv to/from per swap
+  int **sendnum, **recvnum;      // # of atoms to send/recv per swap/proc
+  int **size_forward_recv;       // # of values to recv in each forward swap/proc
+  int **firstrecv;               // where to put 1st recv atom per swap/proc
+  int **size_reverse_send;       // # of values to send in each reverse swap/proc
+  int **size_reverse_recv;       // # of values to recv in each reverse swap/proc
+  int **forward_recv_offset;     // forward comm offsets in buf_recv per swap/proc
+  int **reverse_recv_offset;     // reverse comm offsets in buf_recv per swap/proc
+  int ***sendlist;               // list of atoms to send per swap/proc
+  int **maxsendlist;             // max size of send list per swap/proc
+  int **pbc_flag;                // general flag for sending atoms thru PBC
+  int ***pbc;                    // dimension flags for PBC adjustments
 
-  double ***sendbox;            // bounding box of atoms to send per swap/proc
+  double ***sendbox;    // bounding box of atoms to send per swap/proc
 
-  double **cutghostmulti;       // cutghost on a per-type basis
-  double ****sendbox_multi;     // bounding box of atoms to send
-                                //   per swap/proc for multi comm
+  double **cutghostmulti;         // cutghost on a per-collection basis
+  double **cutghostmultiold;      // cutghost on a per-type basis
+  double ****sendbox_multi;       // bounding box of atoms to send
+                                  //   per swap/proc for multi comm
+  double ****sendbox_multiold;    // bounding box of atoms to send
+                                  //   per swap/proc for multi/old comm
 
   // exchange comm info, proc lists do not include self
 
-  int *nexchproc;               // # of procs to send/recv to/from in each dim
-  int *nexchprocmax;            // current max # of exch procs for each dim
-  int **exchproc;               // procs to exchange with per dim
-  int **exchnum;                // # of values received per dim/proc
+  int *nexchproc;       // # of procs to send/recv to/from in each dim
+  int *nexchprocmax;    // current max # of exch procs for each dim
+  int **exchproc;       // procs to exchange with per dim
+  int **exchnum;        // # of values received per dim/proc
 
-  double *buf_send;             // send buffer for all comm
-  double *buf_recv;             // recv buffer for all comm
-  int maxsend,maxrecv;          // current size of send/recv buffer
-  int smaxone,rmaxone;          // max size in atoms of single borders send/recv
-  int smaxall,rmaxall;          // max size in atoms of any borders send/recv
-                                //   for comm to all procs in one swap
+  double *buf_send;        // send buffer for all comm
+  double *buf_recv;        // recv buffer for all comm
+  int maxsend, maxrecv;    // current size of send/recv buffer
+  int smaxone, rmaxone;    // max size in atoms of single borders send/recv
+  int smaxall, rmaxall;    // max size in atoms of any borders send/recv
+                           //   for comm to all procs in one swap
 
-  int maxrequest;               // max size of Request vector
+  int maxrequest;    // max size of Request vector
   MPI_Request *requests;
 
   struct RCBinfo {
-    double mysplit[3][2];      // fractional RCB bounding box for one proc
-    double cutfrac;            // fractional position of cut this proc owns
-    int dim;                   // dimension = 0/1/2 of cut
+    double mysplit[3][2];    // fractional RCB bounding box for one proc
+    double cutfrac;          // fractional position of cut this proc owns
+    int dim;                 // dimension = 0/1/2 of cut
   };
 
-  RCBinfo *rcbinfo;            // list of RCB info for all procs
+  RCBinfo *rcbinfo;    // list of RCB info for all procs
 
-  int noverlap;                // # of overlapping procs
-  int maxoverlap;              // current max length of overlap
-  int *overlap;                // list of overlapping procs
+  int noverlap;      // # of overlapping procs
+  int maxoverlap;    // current max length of overlap
+  int *overlap;      // list of overlapping procs
 
-  double *prd;                 // local ptrs to Domain attributes
-  double *boxlo,*boxhi;
-  double *sublo,*subhi;
+  double *prd;    // local ptrs to Domain attributes
+  double *boxlo, *boxhi;
+  double *sublo, *subhi;
   int dimension;
 
   // NOTE: init_buffers is called from a constructor and must not be made virtual
@@ -143,27 +146,23 @@ class CommTiled : public Comm {
   int point_drop_tiled_recurse(double *, int, int);
   int closer_subbox_edge(int, double *);
 
-  void grow_send(int, int);            // reallocate send buffer
-  void grow_recv(int);                 // free/allocate recv buffer
-  void grow_list(int, int, int);       // reallocate sendlist for one swap/proc
-  void allocate_swap(int);             // allocate swap arrays
-  void grow_swap_send(int, int, int);  // grow swap arrays for send and recv
+  void grow_send(int, int);               // reallocate send buffer
+  void grow_recv(int);                    // free/allocate recv buffer
+  void grow_list(int, int, int);          // reallocate sendlist for one swap/proc
+  void allocate_swap(int);                // allocate swap arrays
+  void grow_swap_send(int, int, int);     // grow swap arrays for send and recv
+  void grow_swap_send_multi(int, int);    // grow multi swap arrays for send and recv
   void grow_swap_recv(int, int);
-  void deallocate_swap(int);           // deallocate swap arrays
-
+  void deallocate_swap(int);    // deallocate swap arrays
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 
 /* ERROR/WARNING messages:
 
 E: Cannot yet use comm_style tiled with triclinic box
-
-Self-explanatory.
-
-E: Cannot yet use comm_style tiled with multi-mode comm
 
 Self-explanatory.
 

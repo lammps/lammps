@@ -1,5 +1,5 @@
-LAMMPS (30 Nov 2020)
-  using 48 OpenMP thread(s) per MPI task
+LAMMPS (10 Feb 2021)
+  using 1 OpenMP thread(s) per MPI task
 # Demonstrate MLIAP/PyTorch interface to linear SNAP potential
 
 # Initialize simulation
@@ -32,13 +32,13 @@ Created orthogonal box = (0.0000000 0.0000000 0.0000000) to (13.264000 13.264000
   1 by 1 by 1 MPI processor grid
 create_atoms    1 box
 Created 128 atoms
-  create_atoms CPU = 0.002 seconds
+  create_atoms CPU = 0.000 seconds
 
 mass 1 180.88
 
 # choose potential
 
-include Ta06A.mliap.pytorch
+include Ta06A.pytorch.mliap
 # DATE: 2014-09-05 UNITS: metal CONTRIBUTOR: Aidan Thompson athomps@sandia.gov CITATION: Thompson, Swiler, Trott, Foiles and Tucker, arxiv.org, 1409.3880 (2014)
 
 # Definition of SNAP potential Ta_Cand06A
@@ -50,9 +50,9 @@ variable zblz equal 73
 
 # Specify hybrid with SNAP, ZBL
 
-pair_style hybrid/overlay zbl ${zblcutinner} ${zblcutouter} mliap model mliappy Ta06A.mliap.pytorch.model.pkl descriptor sna Ta06A.mliap.descriptor
-pair_style hybrid/overlay zbl 4 ${zblcutouter} mliap model mliappy Ta06A.mliap.pytorch.model.pkl descriptor sna Ta06A.mliap.descriptor
-pair_style hybrid/overlay zbl 4 4.8 mliap model mliappy Ta06A.mliap.pytorch.model.pkl descriptor sna Ta06A.mliap.descriptor
+pair_style hybrid/overlay zbl ${zblcutinner} ${zblcutouter} mliap model mliappy Ta06A.mliap.pytorch.model.pt descriptor sna Ta06A.mliap.descriptor
+pair_style hybrid/overlay zbl 4 ${zblcutouter} mliap model mliappy Ta06A.mliap.pytorch.model.pt descriptor sna Ta06A.mliap.descriptor
+pair_style hybrid/overlay zbl 4 4.8 mliap model mliappy Ta06A.mliap.pytorch.model.pt descriptor sna Ta06A.mliap.descriptor
 Loading python model complete.
 Reading potential file Ta06A.mliap.descriptor with DATE: 2014-09-05
 SNAP keyword rcutfac 4.67637 
@@ -112,7 +112,7 @@ Neighbor list info ...
       pair build: full/bin/atomonly
       stencil: full/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 159.8 | 159.8 | 159.8 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 18.15 | 18.15 | 18.15 Mbytes
 Step Temp E_pair c_energy TotEng Press v_press 
        0          300    -11.85157    -11.85157   -11.813095    2717.1661   -2717.1661 
       10    296.01467   -11.851059   -11.851059   -11.813095    2697.4796   -2697.4796 
@@ -125,20 +125,20 @@ Step Temp E_pair c_energy TotEng Press v_press
       80    124.79303   -11.829099   -11.829099   -11.813094    1947.0715   -1947.0715 
       90    97.448054   -11.825592   -11.825592   -11.813094    2231.9563   -2231.9563 
      100    74.035418   -11.822589   -11.822589   -11.813094    2515.8526   -2515.8526 
-Loop time of 2.00236 on 48 procs for 100 steps with 128 atoms
+Loop time of 2.0472 on 1 procs for 100 steps with 128 atoms
 
-Performance: 2.157 ns/day, 11.124 hours/ns, 49.941 timesteps/s
-288.8% CPU use with 1 MPI tasks x 48 OpenMP threads
+Performance: 2.110 ns/day, 11.373 hours/ns, 48.847 timesteps/s
+100.2% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 1.9998     | 1.9998     | 1.9998     |   0.0 | 99.87
+Pair    | 2.0443     | 2.0443     | 2.0443     |   0.0 | 99.86
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.0011814  | 0.0011814  | 0.0011814  |   0.0 |  0.06
-Output  | 0.00059724 | 0.00059724 | 0.00059724 |   0.0 |  0.03
-Modify  | 0.00047352 | 0.00047352 | 0.00047352 |   0.0 |  0.02
-Other   |            | 0.0003468  |            |       |  0.02
+Comm    | 0.001157   | 0.001157   | 0.001157   |   0.0 |  0.06
+Output  | 0.00080857 | 0.00080857 | 0.00080857 |   0.0 |  0.04
+Modify  | 0.00053188 | 0.00053188 | 0.00053188 |   0.0 |  0.03
+Other   |            | 0.0004304  |            |       |  0.02
 
 Nlocal:        128.000 ave         128 max         128 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

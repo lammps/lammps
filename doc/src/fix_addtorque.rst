@@ -37,8 +37,8 @@ the group such that:
 This command can be used to drive a group of atoms into rotation.
 
 Any of the 3 quantities defining the torque components can be specified
-as an equal-style :doc:`variable <variable>`, namely *Tx*\ ,
-*Ty*\ , *Tz*\ .  If the value is a variable, it should be specified as
+as an equal-style :doc:`variable <variable>`, namely *Tx*,
+*Ty*, *Tz*\ .  If the value is a variable, it should be specified as
 v_name, where name is the variable name.  In this case, the variable
 will be evaluated each timestep, and its value used to determine the
 torque component.
@@ -55,13 +55,15 @@ Restart, fix_modify, output, run start/stop, minimize info
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
-fix to add the potential "energy" inferred by the added forces to the
-system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.  This is a fictitious quantity but is
-needed so that the :doc:`minimize <minimize>` command can include the
-forces added by this fix in a consistent manner.  I.e. there is a
-decrease in potential energy when atoms move in the direction of the
-added forces.
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by
+this fix to add the potential "energy" inferred by the added torques
+to the global potential energy of the system as part of
+:doc:`thermodynamic output <thermo_style>`.  The default setting for
+this fix is :doc:`fix_modify energy no <fix_modify>`.  Note that this
+is a fictitious quantity but is needed so that the :doc:`minimize
+<minimize>` command can include the forces added by this fix in a
+consistent manner.  I.e. there is a decrease in potential energy when
+atoms move in the direction of the added forces.
 
 The :doc:`fix_modify <fix_modify>` *respa* option is supported by
 this fix. This allows to set at which level of the :doc:`r-RESPA <run_style>`
@@ -78,16 +80,28 @@ No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.
 
 The forces due to this fix are imposed during an energy minimization,
-invoked by the :doc:`minimize <minimize>` command.  You should not
-specify force components with a variable that has time-dependence for
-use with a minimizer, since the minimizer increments the timestep as
-the iteration count during the minimization.
+invoked by the :doc:`minimize <minimize>` command.
+
+.. note::
+
+   If you want the fictitious potential energy associated with the
+   added forces to be included in the total potential energy of the
+   system (the quantity being minimized), you MUST enable the
+   :doc:`fix_modify <fix_modify>` *energy* option for this fix.
+
+.. note::
+
+   You should not specify force components with a variable that has
+   time-dependence for use with a minimizer, since the minimizer
+   increments the timestep as the iteration count during the
+   minimization.
 
 Restrictions
 """"""""""""
 
-This fix is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This fix is part of the MISC package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

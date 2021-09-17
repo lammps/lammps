@@ -394,20 +394,29 @@ struct TestReduceCombinatoricalInstantiation {
   }
 
   template <class... Args>
-  static void AddReturnArgument(Args... args) {
-    Kokkos::View<double, Kokkos::HostSpace> result_view("ResultView");
-    double expected_result = 1000.0 * 999.0 / 2.0;
+  static void AddReturnArgument(int N, Args... args) {
+    Kokkos::View<double, Kokkos::HostSpace> result_view("ResultViewHost");
+    Kokkos::View<double, ExecSpace> result_view_device("ResultViewDevice");
+    double expected_result = (1.0 * N) * (1.0 * N - 1.0) / 2.0;
 
-    double value = 0;
+    double value = 99;
     Kokkos::parallel_reduce(args..., value);
     ASSERT_EQ(expected_result, value);
 
-    result_view() = 0;
+    result_view() = 99;
     CallParallelReduce(args..., result_view);
     Kokkos::fence();
     ASSERT_EQ(expected_result, result_view());
 
-    value = 0;
+#ifndef KOKKOS_ENABLE_OPENMPTARGET
+    result_view() = 99;
+    CallParallelReduce(args..., result_view_device);
+    Kokkos::fence();
+    Kokkos::deep_copy(result_view, result_view_device);
+    ASSERT_EQ(expected_result, result_view());
+#endif
+
+    value = 99;
     CallParallelReduce(
         args...,
         Kokkos::View<double, Kokkos::HostSpace,
@@ -415,7 +424,7 @@ struct TestReduceCombinatoricalInstantiation {
     Kokkos::fence();
     ASSERT_EQ(expected_result, value);
 
-    result_view() = 0;
+    result_view() = 99;
     const Kokkos::View<double, Kokkos::HostSpace,
                        Kokkos::MemoryTraits<Kokkos::Unmanaged> >
         result_view_const_um = result_view;
@@ -423,29 +432,31 @@ struct TestReduceCombinatoricalInstantiation {
     Kokkos::fence();
     ASSERT_EQ(expected_result, result_view_const_um());
 
-    value = 0;
+    value = 99;
 // WORKAROUND OPENMPTARGET Custom Reducers not implemented
 #ifndef KOKKOS_ENABLE_OPENMPTARGET
     CallParallelReduce(args...,
                        Test::ReduceCombinatorical::AddPlus<double>(value));
     if ((Kokkos::DefaultExecutionSpace::concurrency() > 1) &&
-        (ExecSpace::concurrency() > 1)) {
+        (ExecSpace::concurrency() > 1) && (expected_result > 0)) {
       ASSERT_TRUE(expected_result < value);
-    } else if ((Kokkos::DefaultExecutionSpace::concurrency() > 1) ||
-               (ExecSpace::concurrency() > 1)) {
+    } else if (((Kokkos::DefaultExecutionSpace::concurrency() > 1) ||
+                (ExecSpace::concurrency() > 1)) &&
+               (expected_result > 0)) {
       ASSERT_TRUE(expected_result <= value);
     } else {
       ASSERT_EQ(expected_result, value);
     }
 
-    value = 0;
+    value = 99;
     Test::ReduceCombinatorical::AddPlus<double> add(value);
     CallParallelReduce(args..., add);
     if ((Kokkos::DefaultExecutionSpace::concurrency() > 1) &&
-        (ExecSpace::concurrency() > 1)) {
+        (ExecSpace::concurrency() > 1) && (expected_result > 0)) {
       ASSERT_TRUE(expected_result < value);
-    } else if ((Kokkos::DefaultExecutionSpace::concurrency() > 1) ||
-               (ExecSpace::concurrency() > 1)) {
+    } else if (((Kokkos::DefaultExecutionSpace::concurrency() > 1) ||
+                (ExecSpace::concurrency() > 1)) &&
+               (expected_result > 0)) {
       ASSERT_TRUE(expected_result <= value);
     } else {
       ASSERT_EQ(expected_result, value);
@@ -454,49 +465,50 @@ struct TestReduceCombinatoricalInstantiation {
   }
 
   template <class... Args>
-  static void AddLambdaRange(void*, Args... args) {
+  static void AddLambdaRange(int N, void*, Args... args) {
     AddReturnArgument(
-        args..., KOKKOS_LAMBDA(const int& i, double& lsum) { lsum += i; });
+        N, args..., KOKKOS_LAMBDA(const int& i, double& lsum) { lsum += i; });
   }
 
   template <class... Args>
-  static void AddLambdaTeam(void*, Args... args) {
+  static void AddLambdaTeam(int N, void*, Args... args) {
     AddReturnArgument(
-        args..., KOKKOS_LAMBDA(const Kokkos::TeamPolicy<>::member_type& team,
-                               double& update) {
+        N, args...,
+        KOKKOS_LAMBDA(const Kokkos::TeamPolicy<>::member_type& team,
+                      double& update) {
           update += 1.0 / team.team_size() * team.league_rank();
         });
   }
 
   template <class... Args>
-  static void AddLambdaRange(Kokkos::InvalidType, Args... /*args*/) {}
+  static void AddLambdaRange(int, Kokkos::InvalidType, Args... /*args*/) {}
 
   template <class... Args>
-  static void AddLambdaTeam(Kokkos::InvalidType, Args... /*args*/) {}
+  static void AddLambdaTeam(int, Kokkos::InvalidType, Args... /*args*/) {}
 
   template <int ISTEAM, class... Args>
-  static void AddFunctor(Args... args) {
-    Kokkos::View<double> result_view("FunctorView");
+  static void AddFunctor(int N, Args... args) {
+    Kokkos::View<double, ExecSpace> result_view("FunctorView");
     auto h_r = Kokkos::create_mirror_view(result_view);
     Test::ReduceCombinatorical::FunctorScalar<ISTEAM> functor(result_view);
-    double expected_result = 1000.0 * 999.0 / 2.0;
 
-    AddReturnArgument(args..., functor);
+    AddReturnArgument(N, args..., functor);
     AddReturnArgument(
-        args...,
+        N, args...,
         Test::ReduceCombinatorical::FunctorScalar<ISTEAM>(result_view));
-// WORKAROUND OPENMPTARGET: reductions with functor join/init/final not
-// implemented
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
+// WORKAROUND OPENMPTARGET: reductions with functor join/init/final
+// not implemented
+#if !defined(KOKKOS_ENABLE_OPENMPTARGET)
     AddReturnArgument(
-        args...,
+        N, args...,
         Test::ReduceCombinatorical::FunctorScalarInit<ISTEAM>(result_view));
     AddReturnArgument(
-        args...,
+        N, args...,
         Test::ReduceCombinatorical::FunctorScalarJoin<ISTEAM>(result_view));
     AddReturnArgument(
-        args...,
+        N, args...,
         Test::ReduceCombinatorical::FunctorScalarJoinInit<ISTEAM>(result_view));
+    double expected_result = (1.0 * N) * (1.0 * N - 1.0) / 2.0;
 
     h_r() = 0;
     Kokkos::deep_copy(result_view, h_r);
@@ -528,10 +540,11 @@ struct TestReduceCombinatoricalInstantiation {
   }
 
   template <class... Args>
-  static void AddFunctorLambdaRange(Args... args) {
-    AddFunctor<0, Args...>(args...);
+  static void AddFunctorLambdaRange(int N, Args... args) {
+    AddFunctor<0, Args...>(N, args...);
 #ifdef KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA
     AddLambdaRange(
+        N,
         typename std::conditional<
             std::is_same<ExecSpace, Kokkos::DefaultExecutionSpace>::value,
             void*, Kokkos::InvalidType>::type(),
@@ -540,10 +553,11 @@ struct TestReduceCombinatoricalInstantiation {
   }
 
   template <class... Args>
-  static void AddFunctorLambdaTeam(Args... args) {
-    AddFunctor<1, Args...>(args...);
+  static void AddFunctorLambdaTeam(int N, Args... args) {
+    AddFunctor<1, Args...>(N, args...);
 #ifdef KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA
     AddLambdaTeam(
+        N,
         typename std::conditional<
             std::is_same<ExecSpace, Kokkos::DefaultExecutionSpace>::value,
             void*, Kokkos::InvalidType>::type(),
@@ -552,95 +566,103 @@ struct TestReduceCombinatoricalInstantiation {
   }
 
   template <class... Args>
-  static void AddPolicy_1(Args... args) {
-    int N = 1000;
+  static void AddPolicy_1(int N, Args... args) {
     Kokkos::RangePolicy<ExecSpace> policy(0, N);
 
-    AddFunctorLambdaRange(args..., 1000);
-    AddFunctorLambdaRange(args..., N);
-    AddFunctorLambdaRange(args..., policy);
+    AddFunctorLambdaRange(1000, args..., 1000);
+    AddFunctorLambdaRange(N, args..., N);
+    AddFunctorLambdaRange(N, args..., policy);
   }
 
   template <class... Args>
-  static void AddPolicy_2(Args... args) {
-    int N = 1000;
-    Kokkos::RangePolicy<ExecSpace> policy(0, N);
-
-    AddFunctorLambdaRange(args..., Kokkos::RangePolicy<ExecSpace>(0, N));
+  static void AddPolicy_2(int N, Args... args) {
+    AddFunctorLambdaRange(N, args..., Kokkos::RangePolicy<ExecSpace>(0, N));
     AddFunctorLambdaRange(
-        args...,
+        N, args...,
         Kokkos::RangePolicy<ExecSpace, Kokkos::Schedule<Kokkos::Dynamic> >(0,
                                                                            N));
     AddFunctorLambdaRange(
-        args...,
+        N, args...,
         Kokkos::RangePolicy<ExecSpace, Kokkos::Schedule<Kokkos::Static> >(0, N)
-            .set_chunk_size(10));
+            .set_chunk_size(16));
     AddFunctorLambdaRange(
-        args...,
+        N, args...,
         Kokkos::RangePolicy<ExecSpace, Kokkos::Schedule<Kokkos::Dynamic> >(0, N)
-            .set_chunk_size(10));
+            .set_chunk_size(16));
   }
 
   template <class... Args>
-  static void AddPolicy_3(Args... args) {
-    int N = 1000;
-    Kokkos::RangePolicy<ExecSpace> policy(0, N);
-
-    AddFunctorLambdaTeam(args...,
+  static void AddPolicy_3(int N, Args... args) {
+    AddFunctorLambdaTeam(N, args...,
                          Kokkos::TeamPolicy<ExecSpace>(N, Kokkos::AUTO));
     AddFunctorLambdaTeam(
-        args...,
+        N, args...,
         Kokkos::TeamPolicy<ExecSpace, Kokkos::Schedule<Kokkos::Dynamic> >(
             N, Kokkos::AUTO));
     AddFunctorLambdaTeam(
-        args...,
+        N, args...,
         Kokkos::TeamPolicy<ExecSpace, Kokkos::Schedule<Kokkos::Static> >(
             N, Kokkos::AUTO)
-            .set_chunk_size(10));
+            .set_chunk_size(16));
     AddFunctorLambdaTeam(
-        args...,
+        N, args...,
         Kokkos::TeamPolicy<ExecSpace, Kokkos::Schedule<Kokkos::Dynamic> >(
             N, Kokkos::AUTO)
-            .set_chunk_size(10));
+            .set_chunk_size(16));
   }
 
-  static void execute_a1() { AddPolicy_1(); }
+  static void execute_a1() { AddPolicy_1(1000); }
 
   static void execute_b1() {
     std::string s("Std::String");
-    AddPolicy_1(s.c_str());
-    AddPolicy_1("Char Constant");
+    AddPolicy_1(1000, s.c_str());
+    AddPolicy_1(1000, "Char Constant");
+#ifndef KOKKOS_ENABLE_OPENMPTARGET
+    AddPolicy_1(0, "Char Constant");
+#endif
   }
 
   static void execute_c1() {
     std::string s("Std::String");
-    AddPolicy_1(s);
+    AddPolicy_1(1000, s);
   }
 
-  static void execute_a2() { AddPolicy_2(); }
+  static void execute_a2() { AddPolicy_2(1000); }
 
   static void execute_b2() {
     std::string s("Std::String");
-    AddPolicy_2(s.c_str());
-    AddPolicy_2("Char Constant");
+    AddPolicy_2(1000, s.c_str());
+    AddPolicy_2(1000, "Char Constant");
+#ifndef KOKKOS_ENABLE_OPENMPTARGET
+    AddPolicy_2(0, "Char Constant");
+#endif
   }
 
   static void execute_c2() {
     std::string s("Std::String");
-    AddPolicy_2(s);
+    AddPolicy_2(1000, s);
   }
 
-  static void execute_a3() { AddPolicy_1(); }
+  static void execute_a3() {
+#ifndef KOKKOS_ENABLE_OPENMPTARGET
+    AddPolicy_3(1000);
+#endif
+  }
 
   static void execute_b3() {
+#ifndef KOKKOS_ENABLE_OPENMPTARGET
     std::string s("Std::String");
-    AddPolicy_1(s.c_str());
-    AddPolicy_1("Char Constant");
+    AddPolicy_3(1000, s.c_str());
+    AddPolicy_3(1000, "Char Constant");
+    AddPolicy_3(0, "Char Constant");
+#endif
   }
 
   static void execute_c3() {
+#ifndef KOKKOS_ENABLE_OPENMPTARGET
     std::string s("Std::String");
-    AddPolicy_1(s);
+    AddPolicy_3(1000, s);
+#endif
   }
 };
 

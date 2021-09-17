@@ -48,6 +48,7 @@
 #include <stdexcept>
 #include <sstream>
 #include <iostream>
+#include <type_traits>
 
 namespace Test {
 struct SomeTag {};
@@ -62,11 +63,6 @@ class TestRangePolicyConstruction {
 
  private:
   void test_compile_time_parameters() {
-    {
-      Kokkos::Impl::expand_variadic();
-      Kokkos::Impl::expand_variadic(1, 2, 3);
-    }
-
     {
       using policy_t        = Kokkos::RangePolicy<>;
       using execution_space = typename policy_t::execution_space;
@@ -571,6 +567,11 @@ class TestTeamPolicyConstruction {
 #ifdef KOKKOS_ENABLE_HPX
     team_size = 1;
 #endif
+#ifdef KOKKOS_ENABLE_OPENMPTARGET
+    if (std::is_same<typename policy_t::execution_space,
+                     Kokkos::Experimental::OpenMPTarget>::value)
+      team_size = 32;
+#endif
     int chunk_size         = 4;
     int per_team_scratch   = 1024;
     int per_thread_scratch = 16;
@@ -579,7 +580,10 @@ class TestTeamPolicyConstruction {
     policy_t p1(league_size, team_size);
     ASSERT_EQ(p1.league_size(), league_size);
     ASSERT_EQ(p1.team_size(), team_size);
+// FIXME_SYCL implement chunk_size
+#ifndef KOKKOS_ENABLE_SYCL
     ASSERT_TRUE(p1.chunk_size() > 0);
+#endif
     ASSERT_EQ(p1.scratch_size(0), 0);
 
     policy_t p2 = p1.set_chunk_size(chunk_size);
@@ -689,9 +693,224 @@ void check_semiregular() {
 TEST(TEST_CATEGORY, policy_construction) {
   check_semiregular<Kokkos::RangePolicy<TEST_EXECSPACE>>();
   check_semiregular<Kokkos::TeamPolicy<TEST_EXECSPACE>>();
+  check_semiregular<Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<2>>>();
 
   TestRangePolicyConstruction<TEST_EXECSPACE>();
   TestTeamPolicyConstruction<TEST_EXECSPACE>();
 }
 
+template <template <class...> class Policy, class... Args>
+void check_converting_constructor_add_work_tag(Policy<Args...> const& policy) {
+  // Not the greatest but at least checking it compiles
+  struct WorkTag {};
+  Policy<Args..., WorkTag> policy_with_tag = policy;
+  (void)policy_with_tag;
+}
+
+TEST(TEST_CATEGORY, policy_converting_constructor_from_other_policy) {
+  check_converting_constructor_add_work_tag(
+      Kokkos::RangePolicy<TEST_EXECSPACE>{});
+  check_converting_constructor_add_work_tag(
+      Kokkos::TeamPolicy<TEST_EXECSPACE>{});
+  check_converting_constructor_add_work_tag(
+      Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<2>>{});
+}
+
+#ifndef KOKKOS_ENABLE_OPENMPTARGET  // FIXME_OPENMPTARGET
+TEST(TEST_CATEGORY_DEATH, policy_bounds_unsafe_narrowing_conversions) {
+  using Policy = Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<2>,
+                                       Kokkos::IndexType<unsigned>>;
+
+  ::testing::FLAGS_gtest_death_test_style = "threadsafe";
+  ASSERT_DEATH(
+      {
+        (void)Policy({-1, 0}, {2, 3});
+      },
+      "unsafe narrowing conversion");
+}
+#endif
+
+template <class Policy>
+void test_prefer_desired_occupancy(Policy const& policy) {
+  static_assert(!Policy::experimental_contains_desired_occupancy, "");
+
+  // MaximizeOccupancy -> MaximizeOccupancy
+  auto const policy_still_no_occ = Kokkos::Experimental::prefer(
+      policy, Kokkos::Experimental::MaximizeOccupancy{});
+  static_assert(
+      !decltype(policy_still_no_occ)::experimental_contains_desired_occupancy,
+      "");
+
+  // MaximizeOccupancy -> DesiredOccupancy
+  auto const policy_with_occ = Kokkos::Experimental::prefer(
+      policy, Kokkos::Experimental::DesiredOccupancy{33});
+  static_assert(
+      decltype(policy_with_occ)::experimental_contains_desired_occupancy, "");
+  EXPECT_EQ(policy_with_occ.impl_get_desired_occupancy().value(), 33);
+
+  // DesiredOccupancy -> DesiredOccupancy
+  auto const policy_change_occ = Kokkos::Experimental::prefer(
+      policy_with_occ, Kokkos::Experimental::DesiredOccupancy{24});
+  static_assert(
+      decltype(policy_change_occ)::experimental_contains_desired_occupancy, "");
+  EXPECT_EQ(policy_change_occ.impl_get_desired_occupancy().value(), 24);
+
+  // DesiredOccupancy -> MaximizeOccupancy
+  auto const policy_drop_occ = Kokkos::Experimental::prefer(
+      policy_with_occ, Kokkos::Experimental::MaximizeOccupancy{});
+  static_assert(
+      !decltype(policy_drop_occ)::experimental_contains_desired_occupancy, "");
+}
+
+template <class... Args>
+struct DummyPolicy : Kokkos::Impl::PolicyTraits<Args...> {
+  using execution_policy = DummyPolicy;
+
+  using base_t = Kokkos::Impl::PolicyTraits<Args...>;
+  using base_t::base_t;
+};
+
+TEST(TEST_CATEGORY, desired_occupancy_prefer) {
+  test_prefer_desired_occupancy(DummyPolicy<TEST_EXECSPACE>{});
+  test_prefer_desired_occupancy(Kokkos::RangePolicy<TEST_EXECSPACE>{});
+  test_prefer_desired_occupancy(
+      Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<2>>{});
+  test_prefer_desired_occupancy(Kokkos::TeamPolicy<TEST_EXECSPACE>{});
+}
+
+// For a more informative static assertion:
+template <size_t>
+struct static_assert_dummy_policy_must_be_size_one;
+template <>
+struct static_assert_dummy_policy_must_be_size_one<1> {};
+template <size_t, size_t>
+struct static_assert_dummy_policy_must_be_size_of_desired_occupancy;
+template <>
+struct static_assert_dummy_policy_must_be_size_of_desired_occupancy<
+    sizeof(Kokkos::Experimental::DesiredOccupancy),
+    sizeof(Kokkos::Experimental::DesiredOccupancy)> {};
+
+TEST(TEST_CATEGORY, desired_occupancy_empty_base_optimization) {
+  DummyPolicy<TEST_EXECSPACE> const policy{};
+  static_assert(sizeof(decltype(policy)) == 1, "");
+  static_assert_dummy_policy_must_be_size_one<sizeof(decltype(policy))>
+      _assert1{};
+  (void)_assert1;  // avoid unused variable warning
+
+  using Kokkos::Experimental::DesiredOccupancy;
+  auto policy_with_occ =
+      Kokkos::Experimental::prefer(policy, DesiredOccupancy{50});
+  static_assert(sizeof(decltype(policy_with_occ)) == sizeof(DesiredOccupancy),
+                "");
+  static_assert_dummy_policy_must_be_size_of_desired_occupancy<
+      sizeof(decltype(policy_with_occ)), sizeof(DesiredOccupancy)>
+      _assert2{};
+  (void)_assert2;  // avoid unused variable warning
+}
+
+template <typename Policy>
+void test_desired_occupancy_converting_constructors(Policy const& policy) {
+  auto policy_with_occ = Kokkos::Experimental::prefer(
+      policy, Kokkos::Experimental::DesiredOccupancy{50});
+  EXPECT_EQ(policy_with_occ.impl_get_desired_occupancy().value(), 50);
+
+  auto policy_with_hint = Kokkos::Experimental::require(
+      policy_with_occ, Kokkos::Experimental::WorkItemProperty::HintLightWeight);
+  EXPECT_EQ(policy_with_hint.impl_get_desired_occupancy().value(), 50);
+}
+
+TEST(TEST_CATEGORY, desired_occupancy_converting_constructors) {
+  test_desired_occupancy_converting_constructors(
+      Kokkos::RangePolicy<TEST_EXECSPACE>{});
+  test_desired_occupancy_converting_constructors(
+      Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<2>>{});
+  test_desired_occupancy_converting_constructors(
+      Kokkos::TeamPolicy<TEST_EXECSPACE>{});
+}
+
+template <class T>
+void more_md_range_policy_construction_test() {
+  (void)Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<2>>{
+      Kokkos::Array<T, 2>{}, Kokkos::Array<T, 2>{}};
+
+  (void)Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<2>>{{{T(0), T(0)}},
+                                                               {{T(2), T(2)}}};
+
+  (void)Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<2>>{{T(0), T(0)},
+                                                               {T(2), T(2)}};
+}
+
+TEST(TEST_CATEGORY, md_range_policy_construction_from_arrays) {
+  {
+    // Check that construction from Kokkos::Array of long compiles for backwards
+    // compability.  This was broken in
+    // https://github.com/kokkos/kokkos/pull/3527/commits/88ea8eec6567c84739d77bdd25fdbc647fae28bb#r512323639
+    Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<2>> p1(
+        Kokkos::Array<long, 2>{{0, 1}}, Kokkos::Array<long, 2>{{2, 3}});
+    Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<2>> p2(
+        Kokkos::Array<long, 2>{{0, 1}}, Kokkos::Array<long, 2>{{2, 3}});
+    Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<2>> p3(
+        Kokkos::Array<long, 2>{{0, 1}}, Kokkos::Array<long, 2>{{2, 3}},
+        Kokkos::Array<long, 1>{{4}});
+  }
+  {
+    // Check that construction from Kokkos::Array of the specified index type
+    // works.
+    using index_type = unsigned long long;
+    Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<2>,
+                          Kokkos::IndexType<index_type>>
+        p1(Kokkos::Array<index_type, 2>{{0, 1}},
+           Kokkos::Array<index_type, 2>{{2, 3}});
+    Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<2>,
+                          Kokkos::IndexType<index_type>>
+        p2(Kokkos::Array<index_type, 2>{{0, 1}},
+           Kokkos::Array<index_type, 2>{{2, 3}});
+    Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<2>,
+                          Kokkos::IndexType<index_type>>
+        p3(Kokkos::Array<index_type, 2>{{0, 1}},
+           Kokkos::Array<index_type, 2>{{2, 3}},
+           Kokkos::Array<index_type, 1>{{4}});
+  }
+  {
+    // Check that construction from double-braced initliazer list
+    // works.
+    using index_type = unsigned long long;
+    Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<2>> p1({{0, 1}},
+                                                              {{2, 3}});
+    Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<2>,
+                          Kokkos::IndexType<index_type>>
+        p2({{0, 1}}, {{2, 3}});
+  }
+
+  more_md_range_policy_construction_test<char>();
+  more_md_range_policy_construction_test<int>();
+  more_md_range_policy_construction_test<unsigned long>();
+  more_md_range_policy_construction_test<std::int64_t>();
+}
+
+template <class WorkTag, class Policy>
+constexpr auto set_worktag(Policy const& policy) {
+  static_assert(Kokkos::is_execution_policy<Policy>::value, "");
+  using PolicyWithWorkTag =
+      Kokkos::Impl::WorkTagTrait::policy_with_trait<Policy, WorkTag>;
+  return PolicyWithWorkTag{policy};
+}
+
+TEST(TEST_CATEGORY, policy_set_worktag) {
+  struct SomeWorkTag {};
+  struct OtherWorkTag {};
+
+  Kokkos::RangePolicy<> p1;
+  static_assert(std::is_void<decltype(p1)::work_tag>::value, "");
+
+  auto p2 = set_worktag<SomeWorkTag>(p1);
+  static_assert(std::is_same<decltype(p2)::work_tag, SomeWorkTag>::value, "");
+
+  auto p3 = set_worktag<OtherWorkTag>(p2);
+  static_assert(std::is_same<decltype(p3)::work_tag, OtherWorkTag>::value, "");
+
+  // NOTE this does not currently compile
+  // auto p4 = set_worktag<void>(p3);
+  // static_assert(std::is_void<decltype(p4)::work_tag>::value, "");
+}
 }  // namespace Test

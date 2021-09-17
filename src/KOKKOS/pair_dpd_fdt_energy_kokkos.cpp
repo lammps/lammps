@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -113,7 +114,7 @@ void PairDPDfdtEnergyKokkos<DeviceType>::init_style()
 #endif
 }
 
-#if (defined(KOKKOS_ENABLE_CUDA) && defined(__CUDACC__)) || defined(KOKKOS_ENABLE_HIP)
+#if (defined(KOKKOS_ENABLE_CUDA) && defined(__CUDACC__)) || defined(KOKKOS_ENABLE_HIP) || defined(KOKKOS_ENABLE_SYCL)
 // CUDA specialization of init_style to properly call rand_pool.init()
 template<>
 void PairDPDfdtEnergyKokkos<LMPDeviceSpace>::init_style()

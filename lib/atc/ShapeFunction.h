@@ -25,34 +25,34 @@ namespace ATC {
    *  @class FeEngineInterface
    *  @class Base class for defining interfaces to the finite element engine to handle different shape functions
    */
-  
+
   class FeEngineInterface {
-    
+
   public:
-    
+
     // constructor
     FeEngineInterface(FE_Engine * feEngine, DENS_MAN * coordinates) : feEngine_(feEngine), coordinates_(coordinates) {};
 
     // destructor
     virtual ~FeEngineInterface() {};
-    
+
     /** evaluate shape function at a set of coordinates */
     virtual void evaluate_shape_function(int index,
                                          POINT_VAL & data) = 0;
-    
+
   protected:
-    
+
     /** pointer to the engine */
     FE_Engine * feEngine_;
-    
+
     /** quantity defining locations */
     DENS_MAN * coordinates_;
-    
+
   private:
-    
+
     // do not define
     FeEngineInterface();
-    
+
   };
 
   /**
@@ -63,7 +63,7 @@ namespace ATC {
   class FeEngineInterfacePu : public FeEngineInterface {
 
   public:
-    
+
     // constructor
     FeEngineInterfacePu(FE_Engine * feEngine) : FeEngineInterface(feEngine) {};
 
@@ -94,7 +94,7 @@ namespace ATC {
   class FeEngineInterfaceMls : public FeEngineInterface {
 
   public:
-    
+
     // constructor
     FeEngineInterfaceMls(FE_Engine * feEngine) : FeEngineInterface(feEngine) {};
 
@@ -130,7 +130,7 @@ namespace ATC {
     ShapeFunctionBase(FE_Engine * feEngine,
                       DENS_MAN * coordinates) : DependencyManager(), feEngineInterface_(feEngine), coordinates_(coordinates)
       {coordinates_->register_dependence(this)};
-    
+
     // destructor
     virtual ~ShapeFunctionBase() {coordinates_->remove_dependence(this)};
 
@@ -184,7 +184,7 @@ namespace ATC {
    *  @class ShapeFunction
    *  @class Defines general shape functions for restriction and interpolation
    */
-  
+
   class ShapeFunction : public ShapeFunctionBase {
 
   public:
@@ -229,7 +229,7 @@ namespace ATC {
 
     /** apply a reset if needed */
     virtual void reset();
-    
+
     /** storage for shape function values, indexed by rows of coordinates */
     vector<POINT_VAL> values;
 
@@ -239,7 +239,7 @@ namespace ATC {
     ShapeFunction();
 
   };
-    
+
   /**
    *  @class ShapeFunctionAtomic
    *  @class Defines shape functions for restriction and interpolation for atomic data
@@ -329,7 +329,7 @@ namespace ATC {
     // destructor
       virtual ~ShapeFunctionAtomicMask() {mask_->remove_dependence(this);};
 
-    
+
 
   protected:
 
@@ -350,7 +350,7 @@ namespace ATC {
    *  @class ShapeFunctionGrad
    *  @class Defines general shape gradients functions for restriction and interpolation
    */
-  
+
   class ShapeFunctionGrad : public ShapeFunctionBase {
 
   public:
@@ -395,7 +395,7 @@ namespace ATC {
 
     /** apply a reset if needed */
     virtual void reset();
-    
+
     /** storage for shape function gradients, indexed by rows of coordinates */
     vector<POINT_GRAD> values;
 
@@ -405,7 +405,7 @@ namespace ATC {
     ShapeFunctionGrad();
 
   };
-    
+
   /**
    *  @class ShapeFunctionGradAtomic
    *  @class Defines shape functions gradients for restriction and interpolation for atomic data
@@ -495,7 +495,7 @@ namespace ATC {
     // destructor
       virtual ~ShapeFunctionGradAtomicMask() {mask_->remove_dependence(this);};
 
-    
+
 
   protected:
 

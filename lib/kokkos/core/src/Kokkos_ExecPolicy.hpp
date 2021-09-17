@@ -123,13 +123,19 @@ class RangePolicy : public Impl::PolicyTraits<Properties...> {
 
   template <class... OtherProperties>
   RangePolicy(const RangePolicy<OtherProperties...>& p)
-      : m_space(p.m_space),
+      : traits(p),  // base class may contain data such as desired occupancy
+        m_space(p.m_space),
         m_begin(p.m_begin),
         m_end(p.m_end),
         m_granularity(p.m_granularity),
         m_granularity_mask(p.m_granularity_mask) {}
 
-  inline RangePolicy() : m_space(), m_begin(0), m_end(0) {}
+  inline RangePolicy()
+      : m_space(),
+        m_begin(0),
+        m_end(0),
+        m_granularity(0),
+        m_granularity_mask(0) {}
 
   /** \brief  Total range */
   inline RangePolicy(const typename traits::execution_space& work_space,
@@ -358,6 +364,17 @@ class TeamPolicyInternal : public Impl::PolicyTraits<Properties...> {
    */
   KOKKOS_INLINE_FUNCTION int team_size() const;
 
+  /** \brief Whether the policy has an automatically determined team size
+   */
+  inline bool impl_auto_team_size() const;
+  /** \brief Whether the policy has an automatically determined vector length
+   */
+  inline bool impl_auto_vector_length() const;
+
+  static int vector_length_max();
+
+  KOKKOS_INLINE_FUNCTION int impl_vector_length() const;
+
   inline typename traits::index_type chunk_size() const;
 
   inline TeamPolicyInternal& set_chunk_size(int chunk_size);
@@ -554,6 +571,16 @@ class TeamPolicy
       : internal_policy(space_, league_size_request, Kokkos::AUTO(),
                         vector_length_request) {}
 
+  TeamPolicy(const typename traits::execution_space& space_,
+             int league_size_request, const Kokkos::AUTO_t&,
+             const Kokkos::AUTO_t&)
+      : internal_policy(space_, league_size_request, Kokkos::AUTO(),
+                        Kokkos::AUTO()) {}
+  TeamPolicy(const typename traits::execution_space& space_,
+             int league_size_request, const int team_size_request,
+             const Kokkos::AUTO_t&)
+      : internal_policy(space_, league_size_request, team_size_request,
+                        Kokkos::AUTO()) {}
   /** \brief  Construct policy with the default instance of the execution space
    */
   TeamPolicy(int league_size_request, int team_size_request,
@@ -566,8 +593,20 @@ class TeamPolicy
       : internal_policy(league_size_request, Kokkos::AUTO(),
                         vector_length_request) {}
 
+  TeamPolicy(int league_size_request, const Kokkos::AUTO_t&,
+             const Kokkos::AUTO_t&)
+      : internal_policy(league_size_request, Kokkos::AUTO(), Kokkos::AUTO()) {}
+  TeamPolicy(int league_size_request, const int team_size_request,
+             const Kokkos::AUTO_t&)
+      : internal_policy(league_size_request, team_size_request,
+                        Kokkos::AUTO()) {}
+
   template <class... OtherProperties>
-  TeamPolicy(const TeamPolicy<OtherProperties...> p) : internal_policy(p) {}
+  TeamPolicy(const TeamPolicy<OtherProperties...> p) : internal_policy(p) {
+    // Cannot call converting constructor in the member initializer list because
+    // it is not a direct base.
+    internal_policy::traits::operator=(p);
+  }
 
  private:
   TeamPolicy(const internal_policy& p) : internal_policy(p) {}
@@ -817,11 +856,12 @@ KOKKOS_INLINE_FUNCTION_DELETED
     Impl::ThreadVectorRangeBoundariesStruct<iType, TeamMemberType>
     ThreadVectorRange(const TeamMemberType&, const iType& count) = delete;
 
-template <typename iType, class TeamMemberType, class _never_use_this_overload>
-KOKKOS_INLINE_FUNCTION_DELETED
-    Impl::ThreadVectorRangeBoundariesStruct<iType, TeamMemberType>
-    ThreadVectorRange(const TeamMemberType&, const iType& arg_begin,
-                      const iType& arg_end) = delete;
+template <typename iType1, typename iType2, class TeamMemberType,
+          class _never_use_this_overload>
+KOKKOS_INLINE_FUNCTION_DELETED Impl::ThreadVectorRangeBoundariesStruct<
+    typename std::common_type<iType1, iType2>::type, TeamMemberType>
+ThreadVectorRange(const TeamMemberType&, const iType1& arg_begin,
+                  const iType2& arg_end) = delete;
 
 namespace Impl {
 
@@ -863,48 +903,40 @@ struct ParallelConstructName<FunctorType, TagType, false> {
 }  // namespace Kokkos
 
 namespace Kokkos {
-namespace Experimental {
 
 namespace Impl {
-template <class Property, class Policy>
-struct PolicyPropertyAdaptor;
 
-template <unsigned long P, class... Properties>
-struct PolicyPropertyAdaptor<WorkItemProperty::ImplWorkItemProperty<P>,
-                             RangePolicy<Properties...>> {
-  using policy_in_t = RangePolicy<Properties...>;
-  using policy_out_t =
-      RangePolicy<typename policy_in_t::traits::execution_space,
-                  typename policy_in_t::traits::schedule_type,
-                  typename policy_in_t::traits::work_tag,
-                  typename policy_in_t::traits::index_type,
-                  typename policy_in_t::traits::iteration_pattern,
-                  typename policy_in_t::traits::launch_bounds,
-                  WorkItemProperty::ImplWorkItemProperty<P>>;
-};
+template <class PatternTag, class... Args>
+struct PatternImplSpecializationFromTag;
 
-template <unsigned long P, class... Properties>
-struct PolicyPropertyAdaptor<WorkItemProperty::ImplWorkItemProperty<P>,
-                             TeamPolicy<Properties...>> {
-  using policy_in_t = TeamPolicy<Properties...>;
-  using policy_out_t =
-      TeamPolicy<typename policy_in_t::traits::execution_space,
-                 typename policy_in_t::traits::schedule_type,
-                 typename policy_in_t::traits::work_tag,
-                 typename policy_in_t::traits::index_type,
-                 typename policy_in_t::traits::iteration_pattern,
-                 typename policy_in_t::traits::launch_bounds,
-                 WorkItemProperty::ImplWorkItemProperty<P>>;
-};
-}  // namespace Impl
+template <class... Args>
+struct PatternImplSpecializationFromTag<Kokkos::ParallelForTag, Args...>
+    : identity<ParallelFor<Args...>> {};
 
-template <class PolicyType, unsigned long P>
-constexpr typename Impl::PolicyPropertyAdaptor<
-    WorkItemProperty::ImplWorkItemProperty<P>, PolicyType>::policy_out_t
-require(const PolicyType p, WorkItemProperty::ImplWorkItemProperty<P>) {
-  return typename Impl::PolicyPropertyAdaptor<
-      WorkItemProperty::ImplWorkItemProperty<P>, PolicyType>::policy_out_t(p);
-}
-}  // namespace Experimental
+template <class... Args>
+struct PatternImplSpecializationFromTag<Kokkos::ParallelReduceTag, Args...>
+    : identity<ParallelReduce<Args...>> {};
+
+template <class... Args>
+struct PatternImplSpecializationFromTag<Kokkos::ParallelScanTag, Args...>
+    : identity<ParallelScan<Args...>> {};
+
+template <class PatternImpl>
+struct PatternTagFromImplSpecialization;
+
+template <class... Args>
+struct PatternTagFromImplSpecialization<ParallelFor<Args...>>
+    : identity<ParallelForTag> {};
+
+template <class... Args>
+struct PatternTagFromImplSpecialization<ParallelReduce<Args...>>
+    : identity<ParallelReduceTag> {};
+
+template <class... Args>
+struct PatternTagFromImplSpecialization<ParallelScan<Args...>>
+    : identity<ParallelScanTag> {};
+
+}  // end namespace Impl
+
 }  // namespace Kokkos
 #endif /* #define KOKKOS_EXECPOLICY_HPP */

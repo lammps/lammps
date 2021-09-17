@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -73,7 +74,7 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
 
   time_integrate = 1;
   rigid_flag = 1;
-  virial_flag = 1;
+  virial_global_flag = virial_peratom_flag = 1;
   centroidstressflag = CENTROID_NOTAVAIL;
   thermo_virial = 1;
   dof_flag = 1;
@@ -277,8 +278,8 @@ FixPOEMS::FixPOEMS(LAMMPS *lmp, int narg, char **arg) :
   nsum -= njoint;
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("{} clusters, {} bodies, {} joints, {} atoms\n",
-                                   ncluster,nbody,njoint,nsum));
+    utils::logmesg(lmp,"{} clusters, {} bodies, {} joints, {} atoms\n",
+                   ncluster,nbody,njoint,nsum);
 }
 
 /* ----------------------------------------------------------------------
@@ -389,7 +390,7 @@ void FixPOEMS::init()
 
   // rRESPA info
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     step_respa = ((Respa *) update->integrate)->step;
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
   }
@@ -684,8 +685,7 @@ void FixPOEMS::setup(int vflag)
 
   // virial setup before call to set_v
 
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  v_init(vflag);
 
   // set velocities from angmom & omega
 
@@ -732,8 +732,7 @@ void FixPOEMS::initial_integrate(int vflag)
 
   // virial setup before call to set_xv
 
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  v_init(vflag);
 
   // set coords and velocities of atoms in rigid bodies
 
@@ -943,11 +942,9 @@ void FixPOEMS::readfile(char *file)
 
   if (me == 0) {
     fp = fopen(file,"r");
-    if (fp == nullptr) {
-      char str[128];
-      snprintf(str,128,"Cannot open fix poems file %s",file);
-      error->one(FLERR,str);
-    }
+    if (fp == nullptr)
+      error->one(FLERR,"Cannot open fix poems file {}: {}",
+                 file, utils::getsyserror());
   }
 
   nbody = 0;
@@ -1525,9 +1522,9 @@ void FixPOEMS::copy_arrays(int i, int j, int /* delflag */)
 double FixPOEMS::memory_usage()
 {
   int nmax = atom->nmax;
-  double bytes = nmax * sizeof(int);
-  bytes += nmax*MAXBODY * sizeof(int);
-  bytes += nmax*3 * sizeof(double);
+  double bytes = (double)nmax * sizeof(int);
+  bytes += (double)nmax*MAXBODY * sizeof(int);
+  bytes += (double)nmax*3 * sizeof(double);
   return bytes;
 }
 

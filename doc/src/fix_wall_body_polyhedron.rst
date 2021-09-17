@@ -50,7 +50,7 @@ All particles in the group interact with the wall when they are close
 enough to touch it.  The nature of the interaction between the wall
 and the polygon particles is the same as that between the polygon
 particles themselves, which is similar to a Hookean potential.  See
-the :doc:`Howto body <Howto_body>` doc page for more details on using
+the :doc:`Howto body <Howto_body>` page for more details on using
 body particles.
 
 The parameters *k_n*, *c_n*, *c_t* have the same meaning and units as
@@ -79,7 +79,7 @@ is set according to this equation:
    position = coord + A - A cos (omega \* delta)
 
 where *coord* is the specified initial position of the wall, *A* is
-the *amplitude*\ , *omega* is 2 PI / *period*\ , and *delta* is the time
+the *amplitude*, *omega* is 2 PI / *period*, and *delta* is the time
 elapsed since the fix was specified.  The velocity of the wall is set
 to the derivative of this expression.
 
@@ -96,7 +96,7 @@ Restrictions
 """"""""""""
 
 This fix is part of the BODY package.  It is only enabled if LAMMPS
-was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Any dimension (xyz) that has a wall must be non-periodic.
 

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,20 +18,20 @@
 
 #include "fix_qeq_dynamic.h"
 
-#include <cmath>
-
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "update.h"
+#include "error.h"
 #include "force.h"
 #include "group.h"
 #include "kspace.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 #include "respa.h"
-#include "error.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -52,6 +53,12 @@ FixQEqDynamic::FixQEqDynamic(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"qstep") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qeq/dynamic command");
       qstep = atof(arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"warn") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix qeq/dynamic command");
+      if (strcmp(arg[iarg+1],"no") == 0) maxwarn = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) maxwarn = 1;
+      else error->all(FLERR,"Illegal fix qeq/dynamic command");
       iarg += 2;
     } else error->all(FLERR,"Illegal fix qeq/dynamic command");
   }
@@ -78,7 +85,7 @@ void FixQEqDynamic::init()
       error->warning(FLERR,"Fix qeq/dynamic tolerance may be too small"
                     " for damped dynamics");
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
 }
@@ -145,7 +152,7 @@ void FixQEqDynamic::pre_force(int /*vflag*/)
     MPI_Allreduce(&enegmax,&enegmaxall,1,MPI_DOUBLE,MPI_MAX,world);
     enegmax = enegmaxall;
 
-    if (enegchk <= tolerance && enegmax <= 100.0*tolerance) break;
+    if ((enegchk <= tolerance) && (enegmax <= 100.0*tolerance)) break;
 
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
@@ -153,15 +160,11 @@ void FixQEqDynamic::pre_force(int /*vflag*/)
         q1[i] += qf[i]*dtq2 - qdamp*q1[i];
     }
   }
+  matvecs = iloop;
 
-  if (comm->me == 0) {
-    if (iloop == maxiter) {
-      char str[128];
-      sprintf(str,"Charges did not converge at step " BIGINT_FORMAT
-                  ": %lg",update->ntimestep,enegchk);
-      error->warning(FLERR,str);
-    }
-  }
+  if ((comm->me == 0) && maxwarn && (iloop >= maxiter))
+      error->warning(FLERR,"Charges did not converge at step {}: {}",
+                     update->ntimestep,enegchk);
 
   if (force->kspace) force->kspace->qsum_qsq();
 }
@@ -264,7 +267,7 @@ void FixQEqDynamic::unpack_forward_comm(int n, int first, double *buf)
 
   if (pack_flag == 1)
     for (m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
-  else if ( pack_flag == 2)
+  else if (pack_flag == 2)
     for (m = 0, i = first; m < n; m++, i++) qf[i] = buf[m];
 }
 

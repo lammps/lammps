@@ -10,7 +10,7 @@ build target in the conventional and CMake based build systems
 # copy LAMMPS shared library and lammps package to system dirs
 
 from __future__ import print_function
-import sys,os,shutil
+import sys,os,shutil,time
 from argparse import ArgumentParser
 
 parser = ArgumentParser(prog='install.py',
@@ -80,13 +80,15 @@ if args.dir:
 
   sys.exit()
 
-# extract version string from header
+# extract LAMMPS version string from header
+# and convert to python packaging compatible version
 def get_lammps_version(header):
     with open(header, 'r') as f:
         line = f.readline()
         start_pos = line.find('"')+1
         end_pos = line.find('"', start_pos)
-        return "".join(line[start_pos:end_pos].split())
+        t = time.strptime("".join(line[start_pos:end_pos].split()), "%d%b%Y")
+        return "{}.{}.{}".format(t.tm_year,t.tm_mon,t.tm_mday)
 
 verstr = get_lammps_version(args.version)
 
@@ -98,16 +100,22 @@ os.chdir(os.path.dirname(args.package))
 from distutils.core import setup
 from distutils.sysconfig import get_python_lib
 import site
+from sys import version_info
+
+if version_info.major >= 3:
+    pkgs = ['lammps', 'lammps.mliap']
+else:
+    pkgs = ['lammps']
 
 #Arguments common to global or user install -- everything but data_files
 setup_kwargs= dict(name="lammps",
         version=verstr,
         author="Steve Plimpton",
         author_email="sjplimp@sandia.gov",
-        url="https://lammps.sandia.gov",
+        url="https://www.lammps.org",
         description="LAMMPS Molecular Dynamics Python package",
         license="GPL",
-        packages=["lammps","lammps.mliap"],
+        packages=pkgs,
         )
 
 tryuser=False
@@ -115,7 +123,7 @@ try:
   sys.argv = ["setup.py","install"]    # as if had run "python setup.py install"
   setup_kwargs['data_files']=[(os.path.join(get_python_lib(), 'lammps'), [args.lib])]
   setup(**setup_kwargs)
-except:
+except:                                # lgtm [py/catch-base-exception]
   tryuser=True
   print ("Installation into global site-packages folder failed.\nTrying user folder %s now." % site.USER_SITE)
 
@@ -124,5 +132,5 @@ if tryuser:
     sys.argv = ["setup.py","install","--user"]    # as if had run "python setup.py install --user"
     setup_kwargs['data_files']=[(os.path.join(site.USER_SITE, 'lammps'), [args.lib])]
     setup(**setup_kwargs)
-  except:
+  except:                              # lgtm [py/catch-base-exception]
     print("Installation into user site package folder failed.")

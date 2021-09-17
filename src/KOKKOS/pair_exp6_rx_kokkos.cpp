@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -1787,7 +1788,7 @@ void PairExp6rxKokkos<DeviceType>::read_file(char *file)
     while ((words[nwords++] = strtok(nullptr," \t\n\r\f"))) continue;
 
     for (ispecies = 0; ispecies < nspecies; ispecies++)
-      if (strcmp(words[0],&atom->dname[ispecies][0]) == 0) break;
+      if (strcmp(words[0],&atom->dvname[ispecies][0]) == 0) break;
     if (ispecies == nspecies) continue;
 
     // load up parameter settings and error check their values
@@ -1800,14 +1801,9 @@ void PairExp6rxKokkos<DeviceType>::read_file(char *file)
     }
 
     params[nparams].ispecies = ispecies;
+    params[nparams].name = utils::strdup(&atom->dvname[ispecies][0]);
+    params[nparams].potential = utils::strdup(words[1]);
 
-    n = strlen(&atom->dname[ispecies][0]) + 1;
-    params[nparams].name = new char[n];
-    strcpy(params[nparams].name,&atom->dname[ispecies][0]);
-
-    n = strlen(words[1]) + 1;
-    params[nparams].potential = new char[n];
-    strcpy(params[nparams].potential,words[1]);
     if (strcmp(params[nparams].potential,"exp6") == 0) {
       params[nparams].alpha = atof(words[2]);
       params[nparams].epsilon = atof(words[3]);

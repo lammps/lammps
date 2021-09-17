@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -393,7 +394,7 @@ void PairSpinExchangeBiquadratic::compute_exchange(int i, int j, double rsq,
   jtype = type[j];
 
   r2j = rsq/J3[itype][jtype]/J3[itype][jtype];
-  r2k = rsq/J3[itype][jtype]/J3[itype][jtype];
+  r2k = rsq/K3[itype][jtype]/K3[itype][jtype];
 
   Jex = 4.0*J1_mag[itype][jtype]*r2j;
   Jex *= (1.0-J2[itype][jtype]*r2j);
@@ -473,19 +474,14 @@ double PairSpinExchangeBiquadratic::compute_energy(int i, int j, double rsq,
 {
   int *type = atom->type;
   int itype,jtype;
-  double Jex,Kex,ra,sdots;
-  double rj,rk,r2j,r2k,ir3j,ir3k;
+  double Jex,Kex,sdots;
+  double r2j,r2k;
   double energy = 0.0;
   itype = type[i];
   jtype = type[j];
 
-  ra = sqrt(rsq);
-  rj = ra/J3[itype][jtype];
   r2j = rsq/J3[itype][jtype]/J3[itype][jtype];
-  ir3j = 1.0/(rj*rj*rj);
-  rk = ra/K3[itype][jtype];
   r2k = rsq/K3[itype][jtype]/K3[itype][jtype];
-  ir3k = 1.0/(rk*rk*rk);
 
   Jex = 4.0*J1_mech[itype][jtype]*r2j;
   Jex *= (1.0-J2[itype][jtype]*r2j);

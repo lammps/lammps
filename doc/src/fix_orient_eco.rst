@@ -26,22 +26,24 @@ Examples
 Description
 """""""""""
 
-The fix applies a synthetic driving force to a grain boundary which can
-be used for the investigation of grain boundary motion. The affiliation
-of atoms to either of the two grains forming the grain boundary is
-determined from an orientation-dependent order parameter as described
-in :ref:`(Ulomek) <Ulomek>`. The potential energy of atoms is either increased by an amount
-of 0.5*\ *u0* or -0.5*\ *u0* according to the orientation of the surrounding
-crystal. This creates a potential energy gradient which pushes atoms near
-the grain boundary to orient according to the energetically favorable
-grain orientation. This fix is designed for applications in bicrystal system
-with one grain boundary and open ends, or two opposite grain boundaries in
-a periodic system. In either case, the entire system can experience a
-displacement during the simulation which needs to be accounted for in the
-evaluation of the grain boundary velocity. While the basic method is
-described in :ref:`(Ulomek) <Ulomek>`, the implementation follows the efficient
-implementation from :ref:`(Schratt & Mohles) <Schratt>`. The synthetic potential energy added to an
-atom j is given by the following formulas
+The fix applies a synthetic driving force to a grain boundary which
+can be used for the investigation of grain boundary motion. The
+affiliation of atoms to either of the two grains forming the grain
+boundary is determined from an orientation-dependent order parameter
+as described in :ref:`(Ulomek) <Ulomek>`. The potential energy of
+atoms is either increased by an amount of 0.5*\ *u0* or -0.5*\ *u0*
+according to the orientation of the surrounding crystal. This creates
+a potential energy gradient which pushes atoms near the grain boundary
+to orient according to the energetically favorable grain
+orientation. This fix is designed for applications in bicrystal system
+with one grain boundary and open ends, or two opposite grain
+boundaries in a periodic system. In either case, the entire system can
+experience a displacement during the simulation which needs to be
+accounted for in the evaluation of the grain boundary velocity. While
+the basic method is described in :ref:`(Ulomek) <Ulomek>`, the
+implementation follows the efficient implementation from
+:ref:`(Schratt & Mohles) <Schratt>`. The synthetic potential energy
+added to an atom j is given by the following formulas
 
 .. math::
 
@@ -60,60 +62,69 @@ atom j is given by the following formulas
 which are fully explained in :ref:`(Ulomek) <Ulomek>`
 and :ref:`(Schratt & Mohles) <Schratt>`.
 
-The force on each atom is the negative gradient of the synthetic potential energy. It
-depends on the surrounding of this atom. An atom far from the grain boundary does not
-experience a synthetic force as its surrounding is that of an oriented single crystal
-and thermal fluctuations are masked by the parameter *eta*\ . Near the grain boundary
-however, the gradient is nonzero and synthetic force terms are computed.
-The orientationsFile specifies the perfect oriented crystal basis vectors for the
-two adjoining crystals. The first three lines (line=row vector) for the energetically penalized and the
-last three lines for the energetically favored grain assuming *u0* is positive. For
-negative *u0*, this is reversed. With the *cutoff* parameter, the size of the region around
-each atom which is used in the order parameter computation is defined. The cutoff must be
-smaller than the interaction range of the MD potential. It should at
-least include the nearest neighbor shell. For high temperatures or low angle
-grain boundaries, it might be beneficial to increase the cutoff in order to get a more
-precise identification of the atoms surrounding. However, computation time will
-increase as more atoms are considered in the order parameter and force computation.
-It is also worth noting that the cutoff radius must not exceed the communication
-distance for ghost atoms in LAMMPS. With orientationsFile, the
-6 oriented crystal basis vectors is specified. Each line of the input file
-contains the three components of a primitive lattice vector oriented according to
-the grain orientation in the simulation box. The first (last) three lines correspond
-to the primitive lattice vectors of the first (second) grain. An example for
-a :math:`\Sigma\langle001\rangle` mis-orientation is given at the end.
+The force on each atom is the negative gradient of the synthetic
+potential energy. It depends on the surrounding of this atom. An atom
+far from the grain boundary does not experience a synthetic force as
+its surrounding is that of an oriented single crystal and thermal
+fluctuations are masked by the parameter *eta*\ . Near the grain
+boundary however, the gradient is nonzero and synthetic force terms
+are computed.  The orientationsFile specifies the perfect oriented
+crystal basis vectors for the two adjoining crystals. The first three
+lines (line=row vector) for the energetically penalized and the last
+three lines for the energetically favored grain assuming *u0* is
+positive. For negative *u0*, this is reversed. With the *cutoff*
+parameter, the size of the region around each atom which is used in
+the order parameter computation is defined. The cutoff must be smaller
+than the interaction range of the MD potential. It should at least
+include the nearest neighbor shell. For high temperatures or low angle
+grain boundaries, it might be beneficial to increase the cutoff in
+order to get a more precise identification of the atoms
+surrounding. However, computation time will increase as more atoms are
+considered in the order parameter and force computation.  It is also
+worth noting that the cutoff radius must not exceed the communication
+distance for ghost atoms in LAMMPS. With orientationsFile, the 6
+oriented crystal basis vectors is specified. Each line of the input
+file contains the three components of a primitive lattice vector
+oriented according to the grain orientation in the simulation box. The
+first (last) three lines correspond to the primitive lattice vectors
+of the first (second) grain. An example for a
+:math:`\Sigma\langle001\rangle` mis-orientation is given at the end.
 
-If no synthetic energy difference between the grains is created, :math:`u0=0`, the
-force computation is omitted. In this case, still, the order parameter of the
-driving force is computed and can be used to track the grain boundary motion throughout the
-simulation.
-
-
+If no synthetic energy difference between the grains is created,
+:math:`u0=0`, the force computation is omitted. In this case, still,
+the order parameter of the driving force is computed and can be used
+to track the grain boundary motion throughout the simulation.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc: `binary restart files <restart>`.
+No information about this fix is written to :doc: `binary restart
+files <restart>`.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by this fix to
-add the potential energy of atom interactions with the grain boundary
-driving force to the system's potential energy as part of thermodynamic output.
-The total sum of added synthetic potential energy is computed and can be accessed
-by various output options. The order parameter as well as the thermally masked
-output parameter are stored in per-atom arrays and can also be accessed by various
-:doc:`output commands <Howto_output>`.
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by
+this fix to add the potential energy of atom interactions with the
+grain boundary driving force to the global potential energy of the
+system as part of :doc:`thermodynamic output <thermo_style>`.  The
+default setting for this fix is :doc:`fix_modify energy no
+<fix_modify>`.
 
-No parameter of this fix can be used with the start/stop keywords of the run command. This fix is
-not invoked during energy minimization.
+This fix calculates a per-atom array with 2 columns, which can be
+accessed by indices 1-1 by any command that uses per-atom values from
+a fix as input.  See the :doc:`Howto output <Howto_output>` doc page
+for an overview of LAMMPS output options.
 
+The first column is the order parameter for each atom; the second is
+the thermal masking value for each atom.  Both are described above.
 
+No parameter of this fix can be used with the start/stop keywords of
+the run command. This fix is not invoked during energy minimization.
 
 Restrictions
 """"""""""""
 
-This fix is part of the USER-MISC package. It is only enabled if LAMMPS was
-built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
-
+This fix is part of the ORIENT package. It is only enabled if
+LAMMPS was built with that package. See the :doc:`Build package
+<Build_package>` page for more info.
 
 
 Related commands

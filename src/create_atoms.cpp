@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -52,7 +53,7 @@ enum{NONE,RATIO,SUBSET};
 
 /* ---------------------------------------------------------------------- */
 
-CreateAtoms::CreateAtoms(LAMMPS *lmp) : Pointers(lmp) {}
+CreateAtoms::CreateAtoms(LAMMPS *lmp) : Command(lmp), basistype(nullptr) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -573,7 +574,7 @@ void CreateAtoms::command(int narg, char **arg)
   delete ranmol;
   delete ranlatt;
 
-  if (domain->lattice) delete [] basistype;
+  delete [] basistype;
   delete [] vstr;
   delete [] xstr;
   delete [] ystr;
@@ -595,11 +596,13 @@ void CreateAtoms::command(int narg, char **arg)
   // print status
 
   MPI_Barrier(world);
-  if (me == 0)
-    utils::logmesg(lmp, fmt::format("Created {} atoms\n"
-                        "  create_atoms CPU = {:.3f} seconds\n",
-                        atom->natoms - natoms_previous,
-                        MPI_Wtime() - time1));
+  if (me == 0) {
+    utils::logmesg(lmp,"Created {} atoms\n", atom->natoms - natoms_previous);
+    if (scaleflag) domain->print_box("  using lattice units in ");
+    else domain->print_box("  using box units in ");
+    utils::logmesg(lmp,"  create_atoms CPU = {:.3f} seconds\n",
+                   MPI_Wtime() - time1);
+  }
 }
 
 /* ----------------------------------------------------------------------

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,21 +18,21 @@
 
 #include "fix_qeq_comb.h"
 
-#include <cmath>
-#include <cstring>
-#include "pair_comb.h"
-#include "pair_comb3.h"
-#include "neigh_list.h"
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "group.h"
+#include "memory.h"
+#include "neigh_list.h"
 #include "respa.h"
 #include "update.h"
-#include "memory.h"
-#include "error.h"
 
+#include <cmath>
+#include <cstring>
 
+#include "pair_comb.h"
+#include "pair_comb3.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -85,9 +86,6 @@ FixQEQComb::FixQEQComb(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
   int nlocal = atom->nlocal;
   for (int i = 0; i < nlocal; i++) qf[i] = 0.0;
 
-  comb = nullptr;
-  comb3 = nullptr;
-
   comm_forward = 1;
 }
 
@@ -119,8 +117,9 @@ void FixQEQComb::init()
   if (!atom->q_flag)
     error->all(FLERR,"Fix qeq/comb requires atom attribute q");
 
-  comb = (PairComb *) force->pair_match("^comb",0);
   comb3 = (PairComb3 *) force->pair_match("^comb3",0);
+  if (!comb3) comb = (PairComb *) force->pair_match("^comb",0);
+
   if (comb == nullptr && comb3 == nullptr)
     error->all(FLERR,"Must use pair_style comb or comb3 with fix qeq/comb");
 
@@ -138,7 +137,7 @@ void FixQEQComb::init()
 void FixQEQComb::setup(int vflag)
 {
   firstflag = 1;
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
@@ -204,14 +203,17 @@ void FixQEQComb::post_force(int /*vflag*/)
   double *q = atom->q;
   int *mask = atom->mask;
 
- if (comb) {
+  if (comb) {
     inum = comb->list->inum;
     ilist = comb->list->ilist;
-  }
-  if (comb3) {
+  } else if (comb3) {
     inum = comb3->list->inum;
     ilist = comb3->list->ilist;
+  } else {
+    inum = 0;
+    ilist = nullptr;
   }
+
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     q1[i] = q2[i] = qf[i] = 0.0;
@@ -227,8 +229,9 @@ void FixQEQComb::post_force(int /*vflag*/)
     }
 
     comm->forward_comm_fix(this);
+    enegtot = 0.0;
     if (comb) enegtot = comb->yasu_char(qf,igroup);
-    if (comb3) enegtot = comb3->combqeq(qf,igroup);
+    else if (comb3) enegtot = comb3->combqeq(qf,igroup);
 
     enegtot /= ngroup;
     enegchk = enegmax = 0.0;
@@ -284,7 +287,7 @@ void FixQEQComb::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 
 double FixQEQComb::memory_usage()
 {
-  double bytes = atom->nmax*3 * sizeof(double);
+  double bytes = (double)atom->nmax*3 * sizeof(double);
   return bytes;
 }
 /* ---------------------------------------------------------------------- */

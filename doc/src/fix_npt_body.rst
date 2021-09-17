@@ -45,8 +45,9 @@ can also have a bias velocity removed from them before thermostatting
 takes place; see the description below.
 
 Additional parameters affecting the thermostat and barostat are
-specified by keywords and values documented with the :doc:`fix npt <fix_nh>` command.  See, for example, discussion of the *temp*\ ,
-*iso*\ , *aniso*\ , and *dilate* keywords.
+specified by keywords and values documented with the :doc:`fix npt
+<fix_nh>` command.  See, for example, discussion of the *temp*,
+*iso*, *aniso*, and *dilate* keywords.
 
 The particles in the fix group are the only ones whose velocities and
 positions are updated by the velocity/position update portion of the
@@ -55,7 +56,7 @@ NPT integration.
 Regardless of what particles are in the fix group, a global pressure is
 computed for all particles.  Similarly, when the size of the simulation
 box is changed, all particles are re-scaled to new positions, unless the
-keyword *dilate* is specified with a value of *partial*\ , in which case
+keyword *dilate* is specified with a value of *partial*, in which case
 only the particles in the fix group are re-scaled.  The latter can be
 useful for leaving the coordinates of particles in a solid substrate
 unchanged and controlling the pressure of a surrounding fluid.
@@ -121,10 +122,10 @@ consistent with the virial term computed using all atoms for the
 pressure.  LAMMPS will warn you if you choose to compute temperature
 on a subset of atoms.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
-fix to add the energy change induced by Nose/Hoover thermostatting and
-barostatting to the system's potential energy as part of
-:doc:`thermodynamic output <thermo_style>`.
+The cumulative energy change in the system imposed by this fix is
+included in the :doc:`thermodynamic output <thermo_style>` keywords
+*ecouple* and *econserve*.  See the :doc:`thermo_style <thermo_style>`
+doc page for details.
 
 This fix computes the same global scalar and global vector of
 quantities as does the :doc:`fix npt <fix_nh>` command.
@@ -140,7 +141,7 @@ Restrictions
 """"""""""""
 
 This fix is part of the BODY package.  It is only enabled if LAMMPS
-was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 This fix requires that atoms store torque and angular momentum and a
 quaternion as defined by the :doc:`atom_style body <atom_style>`

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -44,6 +45,7 @@ FixNeighHistory::FixNeighHistory(LAMMPS *lmp, int narg, char **arg) :
 
   create_attribute = 1;
   maxexchange_dynamic = 1;
+  use_bit_flag = 1;
 
   newton_pair = force->newton_pair;
 
@@ -623,13 +625,21 @@ void FixNeighHistory::post_neighbor()
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      rflag = sbmask(j) | pair->beyond_contact;
-      j &= NEIGHMASK;
-      jlist[jj] = j;
 
-      // rflag = 1 if r < radsum in npair_size() method
+      if (use_bit_flag) {
+        rflag = sbmask(j) | pair->beyond_contact;
+        j &= NEIGHMASK;
+        jlist[jj] = j;
+      } else {
+        rflag = 1;
+        j &= NEIGHMASK;
+      }
+
+      // rflag = 1 if r < radsum in npair_size() method or if pair interactions extend further
       // preserve neigh history info if tag[j] is in old-neigh partner list
       // this test could be more geometrically precise for two sphere/line/tri
+      // if use_bit_flag is turned off, always record data since not all npair classes
+      // apply a mask for history (and they could use the bits for special bonds)
 
       if (rflag) {
         jtag = tag[j];
@@ -672,11 +682,11 @@ void FixNeighHistory::post_run()
 double FixNeighHistory::memory_usage()
 {
   int nmax = atom->nmax;
-  double bytes = nmax * sizeof(int);    // npartner
-  bytes += nmax * sizeof(tagint *);     // partner
-  bytes += nmax * sizeof(double *);     // valuepartner
-  bytes += maxatom * sizeof(int *);     // firstflag
-  bytes += maxatom * sizeof(double *);  // firstvalue
+  double bytes = (double)nmax * sizeof(int);    // npartner
+  bytes += (double)nmax * sizeof(tagint *);     // partner
+  bytes += (double)nmax * sizeof(double *);     // valuepartner
+  bytes += (double)maxatom * sizeof(int *);     // firstflag
+  bytes += (double)maxatom * sizeof(double *);  // firstvalue
 
   int nmypage = comm->nthreads;
   for (int i = 0; i < nmypage; i++) {

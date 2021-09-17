@@ -296,6 +296,8 @@ Some common CMake variables
      - Description
    * - ``CMAKE_INSTALL_PREFIX``
      - root directory of install location for ``make install``  (default: ``$HOME/.local``)
+   * - ``LAMMPS_INSTALL_RPATH``
+     - set or remove runtime path setting from binaries for ``make install`` (default: ``off``)
    * - ``CMAKE_BUILD_TYPE``
      - controls compilation options:
        one of ``RelWithDebInfo`` (default), ``Release``, ``Debug``, ``MinSizeRel``
@@ -360,7 +362,7 @@ have to be enabled to be included into a LAMMPS executable.  Packages
 are enabled through setting variables of the kind ``PKG_<NAME>`` to
 ``on`` and disabled by setting them to ``off`` (or using ``yes``,
 ``no``, ``1``, ``0`` correspondingly).  ``<NAME>`` has to be replaced by
-the name of the package, e.g. ``MOLECULE`` or ``USER-MISC``.
+the name of the package, e.g. ``MOLECULE`` or ``EXTRA-PAIR``.
 
 
 Using presets
@@ -380,9 +382,9 @@ change some variables later with additional *-D* flags.  A few examples:
 
 .. code-block:: bash
 
-   cmake -C ../cmake/presets/minimal.cmake -D PKG_MISC=on ../cmake
+   cmake -C ../cmake/presets/basic.cmake -D PKG_MISC=on ../cmake
    cmake -C ../cmake/presets/clang.cmake -C ../cmake/presets/most.cmake ../cmake
-   cmake -C ../cmake/presets/minimal.cmake -D BUILD_MPI=off ../cmake
+   cmake -C ../cmake/presets/basic.cmake -D BUILD_MPI=off ../cmake
 
 The first command will install the packages ``KSPACE``, ``MANYBODY``,
 ``MOLECULE``, ``RIGID`` and ``MISC``; the first four from the preset
@@ -398,7 +400,7 @@ It is also possible to do this incrementally.
 
 .. code-block:: bash
 
-   cmake -C ../cmake/presets/minimal.cmake ../cmake
+   cmake -C ../cmake/presets/basic.cmake ../cmake
    cmake -D PKG_MISC=on .
 
 will achieve the same final configuration as in the first example above.
@@ -409,10 +411,10 @@ interface (``ccmake`` or ``cmake-gui``).
 .. note::
 
    Using a preset to select a compiler package (``clang.cmake``,
-   ``gcc.cmake``, or ``intel.cmake``) are an exception to the option
-   of updating the configuration incrementally, as they will trigger
-   a reset of cached internal CMake settings and thus reset them to
-   their default values.
+   ``gcc.cmake``, ``intel.cmake``, ``oneapi.cmake``, or ``pgi.cmake``)
+   are an exception to the mechanism of updating the configuration incrementally,
+   as they will trigger a reset of cached internal CMake settings and thus
+   reset settings to their default values.
 
 Compilation and build targets
 -----------------------------

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,12 +13,14 @@
 ------------------------------------------------------------------------- */
 
 #include "integrate.h"
-#include "update.h"
+
+#include "citeme.h"
+#include "compute.h"
 #include "force.h"
-#include "pair.h"
 #include "kspace.h"
 #include "modify.h"
-#include "compute.h"
+#include "pair.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 
@@ -45,6 +48,7 @@ Integrate::~Integrate()
 
 void Integrate::init()
 {
+  if (lmp->citeme) lmp->citeme->flush();
   update->atimestep = update->ntimestep;
 
   // allow pair and Kspace compute() to be turned off via modify flags

@@ -46,15 +46,29 @@ template <class numtyp, class acctyp>
 int EAMT::init(const int ntypes, double host_cutforcesq, int **host_type2rhor,
                int **host_type2z2r, int *host_type2frho,
                double ***host_rhor_spline, double ***host_z2r_spline,
-               double ***host_frho_spline, double rdr, double rdrho,
+               double ***host_frho_spline, double** host_cutsq, double rdr, double rdrho,
                double rhomax, int nrhor, int nrho, int nz2r, int nfrho, int nr,
                const int nlocal, const int nall, const int max_nbors,
                const int maxspecial, const double cell_size,
                const double gpu_split, FILE *_screen)
 {
+  int max_shared_types=this->device->max_shared_types();
+
+  int onetype=0;
+  #ifdef USE_OPENCL
+  for (int i=1; i<ntypes; i++)
+    if (host_type2frho[i]>=0 && host_type2frho[i]<=nfrho-1) {
+      if (onetype>0)
+        onetype=-1;
+      else if (onetype==0)
+        onetype=i*max_shared_types+i;
+    }
+  if (onetype<0) onetype=0;
+  #endif
+
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,
-                            gpu_split,_screen,eam,"k_eam");
+                            gpu_split,_screen,eam,"k_eam",onetype);
 
   if (success!=0)
     return success;
@@ -72,6 +86,13 @@ int EAMT::init(const int ntypes, double host_cutforcesq, int **host_type2rhor,
   k_energy_fast.set_function(*(this->pair_program),"k_energy_fast");
   fp_tex.get_texture(*(this->pair_program),"fp_tex");
   fp_tex.bind_float(_fp,1);
+
+  #if defined(LAL_OCL_EV_JIT)
+  k_energy_fast_noev.set_function(*(this->pair_program_noev),"k_energy_fast");
+  #else
+  k_energy_sel = &k_energy_fast;
+  #endif
+
   _compiled_energy = true;
 
   // Initialize timers for selected GPU
@@ -88,7 +109,6 @@ int EAMT::init(const int ntypes, double host_cutforcesq, int **host_type2rhor,
   int lj_types=ntypes;
   shared_types=false;
 
-  int max_shared_types=this->device->max_shared_types();
   if (lj_types<=max_shared_types && this->_block_size>=max_shared_types) {
     lj_types=max_shared_types;
     shared_types=true;
@@ -223,6 +243,12 @@ int EAMT::init(const int ntypes, double host_cutforcesq, int **host_type2rhor,
   z2r_spline2_tex.get_texture(*(this->pair_program),"z2r_sp2_tex");
   z2r_spline2_tex.bind_float(z2r_spline2,4);
 
+  UCL_H_Vec<numtyp> host_write(lj_types*lj_types,*(this->ucl_device),
+                               UCL_WRITE_ONLY);
+  host_write.zero();
+  cutsq.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
+  this->atom->type_pack1(ntypes,lj_types,cutsq,host_write,host_cutsq);
+
   _allocated=true;
   this->_max_bytes=type2rhor_z2r.row_bytes()
         + type2frho.row_bytes()
@@ -232,6 +258,7 @@ int EAMT::init(const int ntypes, double host_cutforcesq, int **host_type2rhor,
         + frho_spline2.row_bytes()
         + z2r_spline1.row_bytes()
         + z2r_spline2.row_bytes()
+        + cutsq.row_bytes()
         + _fp.device.row_bytes();
   return 0;
 }
@@ -250,6 +277,7 @@ void EAMT::clear() {
   frho_spline2.clear();
   z2r_spline1.clear();
   z2r_spline2.clear();
+  cutsq.clear();
 
   _fp.clear();
 
@@ -260,6 +288,9 @@ void EAMT::clear() {
   if (_compiled_energy) {
     k_energy_fast.clear();
     k_energy.clear();
+    #if defined(LAL_OCL_EV_JIT)
+    k_energy_fast_noev.clear();
+    #endif
     _compiled_energy=false;
   }
 
@@ -278,11 +309,18 @@ template <class numtyp, class acctyp>
 void EAMT::compute(const int f_ago, const int inum_full, const int nlocal,
                    const int nall, double **host_x, int *host_type,
                    int *ilist, int *numj, int **firstneigh,
-                   const bool eflag, const bool vflag,
+                   const bool eflag_in, const bool vflag_in,
                    const bool eatom, const bool vatom,
                    int &host_start, const double cpu_time,
                    bool &success, void **fp_ptr) {
   this->acc_timers();
+  int eflag, vflag;
+  if (eflag_in) eflag=2;
+  else eflag=0;
+  if (vflag_in) vflag=2;
+  else vflag=0;
+
+  this->set_kernel(eflag,vflag);
 
   if (this->device->time_device()) {
     // Put time from the second part to the total time_pair
@@ -346,12 +384,20 @@ void EAMT::compute(const int f_ago, const int inum_full, const int nlocal,
 template <class numtyp, class acctyp>
 int** EAMT::compute(const int ago, const int inum_full, const int nall,
                     double **host_x, int *host_type, double *sublo,
-                    double *subhi, tagint *tag, int **nspecial, tagint **special,
-                    const bool eflag, const bool vflag, const bool eatom,
+                    double *subhi, tagint *tag, int **nspecial,
+                    tagint **special, const bool eflag_in,
+                    const bool vflag_in, const bool eatom,
                     const bool vatom, int &host_start, int **ilist, int **jnum,
                     const double cpu_time, bool &success, int &inum,
                     void **fp_ptr) {
   this->acc_timers();
+  int eflag, vflag;
+  if (eflag_in) eflag=2;
+  else eflag=0;
+  if (vflag_in) vflag=2;
+  else vflag=0;
+
+  this->set_kernel(eflag,vflag);
 
   if (this->device->time_device()) {
     // Put time from the second part to the total time_pair
@@ -430,32 +476,21 @@ void EAMT::compute2(int *ilist, const bool eflag, const bool vflag,
 
   loop2(eflag,vflag);
   if (ilist == nullptr)
-    this->ans->copy_answers(eflag,vflag,eatom,vatom);
+    this->ans->copy_answers(eflag,vflag,eatom,vatom, this->ans->inum());
   else
-    this->ans->copy_answers(eflag,vflag,eatom,vatom, ilist);
+    this->ans->copy_answers(eflag,vflag,eatom,vatom, ilist, this->ans->inum());
 
   this->device->add_ans_object(this->ans);
   this->hd_balancer.stop_timer();
 }
 
 // ---------------------------------------------------------------------------
-// Calculate per-atom energies and forces
+// Calculate per-atom fp
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void EAMT::loop(const bool _eflag, const bool _vflag) {
+int EAMT::loop(const int eflag, const int vflag) {
   // Compute the block size and grid size to keep all cores busy
   const int BX=this->block_size();
-  int eflag, vflag;
-  if (_eflag)
-    eflag=1;
-  else
-    eflag=0;
-
-  if (_vflag)
-    vflag=1;
-  else
-    vflag=0;
-
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                                (BX/this->_threads_per_atom)));
 
@@ -464,17 +499,22 @@ void EAMT::loop(const bool _eflag, const bool _vflag) {
   this->time_pair.start();
 
   if (shared_types) {
-    this->k_energy_fast.set_size(GX,BX);
-    this->k_energy_fast.run(&this->atom->x, &type2rhor_z2r, &type2frho,
-                            &rhor_spline2, &frho_spline1,&frho_spline2,
-                            &this->nbor->dev_nbor,  &this->_nbor_data->begin(),
-                            &_fp, &this->ans->engv, &eflag, &ainum,
-                            &nbor_pitch, &_ntypes, &_cutforcesq, &_rdr, &_rdrho,
-                            &_rhomax, &_nrho, &_nr, &this->_threads_per_atom);
+    #if defined(LAL_OCL_EV_JIT)
+    if (eflag || vflag) k_energy_sel = &k_energy_fast;
+    else k_energy_sel = &k_energy_fast_noev;
+    #endif
+
+    k_energy_sel->set_size(GX,BX);
+    k_energy_sel->run(&this->atom->x, &type2rhor_z2r, &type2frho,
+                      &rhor_spline2, &frho_spline1, &frho_spline2, &cutsq,
+                      &this->nbor->dev_nbor,  &this->_nbor_data->begin(),
+                      &_fp, &this->ans->engv, &eflag, &ainum,
+                      &nbor_pitch, &_ntypes, &_cutforcesq, &_rdr, &_rdrho,
+                      &_rhomax, &_nrho, &_nr, &this->_threads_per_atom);
   } else {
     this->k_energy.set_size(GX,BX);
     this->k_energy.run(&this->atom->x, &type2rhor_z2r, &type2frho,
-                       &rhor_spline2, &frho_spline1, &frho_spline2,
+                       &rhor_spline2, &frho_spline1, &frho_spline2, &cutsq,
                        &this->nbor->dev_nbor, &this->_nbor_data->begin(), &_fp,
                        &this->ans->engv,&eflag, &ainum, &nbor_pitch,
                        &_ntypes, &_cutforcesq, &_rdr, &_rdrho, &_rhomax, &_nrho,
@@ -482,6 +522,7 @@ void EAMT::loop(const bool _eflag, const bool _vflag) {
   }
 
   this->time_pair.stop();
+  return ainum;
 }
 
 // ---------------------------------------------------------------------------
@@ -510,9 +551,9 @@ void EAMT::loop2(const bool _eflag, const bool _vflag) {
   this->time_pair2.start();
 
   if (shared_types) {
-    this->k_pair_fast.set_size(GX,BX);
-    this->k_pair_fast.run(&this->atom->x, &_fp, &type2rhor_z2r,
-                          &rhor_spline1, &z2r_spline1, &z2r_spline2,
+    this->k_pair_sel->set_size(GX,BX);
+    this->k_pair_sel->run(&this->atom->x, &_fp, &type2rhor_z2r,
+                          &rhor_spline1, &z2r_spline1, &z2r_spline2, &cutsq,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                           &this->ans->force, &this->ans->engv, &eflag,
                           &vflag, &ainum, &nbor_pitch, &_cutforcesq, &_rdr,
@@ -520,7 +561,7 @@ void EAMT::loop2(const bool _eflag, const bool _vflag) {
   } else {
     this->k_pair.set_size(GX,BX);
     this->k_pair.run(&this->atom->x, &_fp, &type2rhor_z2r, &rhor_spline1,
-                     &z2r_spline1, &z2r_spline2, &this->nbor->dev_nbor,
+                     &z2r_spline1, &z2r_spline2, &cutsq, &this->nbor->dev_nbor,
                      &this->_nbor_data->begin(), &this->ans->force,
                      &this->ans->engv, &eflag, &vflag, &ainum, &nbor_pitch,
                      &_ntypes, &_cutforcesq, &_rdr, &_nr,

@@ -193,7 +193,7 @@ Output info
 
 This compute calculates a per-atom vector or array, which can be
 accessed by any command that uses per-atom values from a compute as
-input.  See the :doc:`Howto output <Howto_output>` doc page for an
+input.  See the :doc:`Howto output <Howto_output>` page for an
 overview of LAMMPS output options.
 
 The output is a per-atom vector if a single input value is specified,

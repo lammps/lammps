@@ -20,9 +20,10 @@ Syntax
        *custom* args = list of keywords
          possible keywords = step, elapsed, elaplong, dt, time,
                              cpu, tpcpu, spcpu, cpuremain, part, timeremain,
-                             atoms, temp, press, pe, ke, etotal, enthalpy,
+                             atoms, temp, press, pe, ke, etotal,
                              evdwl, ecoul, epair, ebond, eangle, edihed, eimp,
                              emol, elong, etail,
+                             enthalpy, ecouple, econserve,
                              vol, density, lx, ly, lz, xlo, xhi, ylo, yhi, zlo, zhi,
                              xy, xz, yz, xlat, ylat, zlat,
                              bonds, angles, dihedrals, impropers,
@@ -49,7 +50,6 @@ Syntax
            pe = total potential energy
            ke = kinetic energy
            etotal = total energy (pe + ke)
-           enthalpy = enthalpy (etotal + press\*vol)
            evdwl = van der Waals pairwise energy (includes etail)
            ecoul = Coulombic pairwise energy
            epair = pairwise energy (evdwl + ecoul + elong)
@@ -60,6 +60,9 @@ Syntax
            emol = molecular energy (ebond + eangle + edihed + eimp)
            elong = long-range kspace energy
            etail = van der Waals energy long-range tail correction
+           enthalpy = enthalpy (etotal + press\*vol)
+           ecouple = cumulative energy change due to thermo/baro statting fixes
+           econserve = pe + ke + ecouple = etotal + ecouple
            vol = volume
            density = mass density of system
            lx,ly,lz = box lengths in x,y,z
@@ -114,7 +117,7 @@ thermodynamic timestep.  Note that the keywords c_ID, f_ID, v_name are
 references to :doc:`computes <compute>`, :doc:`fixes <fix>`, and
 equal-style :doc:`variables <variable>` that have been defined elsewhere
 in the input script or can even be new styles which users have added
-to LAMMPS.  See the :doc:`Modify <Modify>` doc page for details on the
+to LAMMPS.  See the :doc:`Modify <Modify>` page for details on the
 latter.  Thus the *custom* style provides a flexible means of
 outputting essentially any desired quantity as a simulation proceeds.
 
@@ -197,28 +200,34 @@ change the attributes of this potential energy via the
 
 The kinetic energy of the system *ke* is inferred from the temperature
 of the system with :math:`\frac{1}{2} k_B T` of energy for each degree
-of freedom.  Thus, using different :doc:`compute commands <compute>` for
-calculating temperature, via the :doc:`thermo_modify temp
+of freedom.  Thus, using different :doc:`compute commands <compute>`
+for calculating temperature, via the :doc:`thermo_modify temp
 <thermo_modify>` command, may yield different kinetic energies, since
-different computes that calculate temperature can subtract out different
-non-thermal components of velocity and/or include different degrees of
-freedom (translational, rotational, etc).
+different computes that calculate temperature can subtract out
+different non-thermal components of velocity and/or include different
+degrees of freedom (translational, rotational, etc).
 
 The potential energy of the system *pe* will include contributions
-from fixes if the :doc:`fix_modify thermo <fix_modify>` option is set
-for a fix that calculates such a contribution.  For example, the :doc:`fix wall/lj93 <fix_wall>` fix calculates the energy of atoms
+from fixes if the :doc:`fix_modify energy yes <fix_modify>` option is
+set for a fix that calculates such a contribution.  For example, the
+:doc:`fix wall/lj93 <fix_wall>` fix calculates the energy of atoms
 interacting with the wall.  See the doc pages for "individual fixes"
-to see which ones contribute.
+to see which ones contribute and whether their default
+:doc:`fix_modify energy <fix_modify>` setting is *yes* or *no*\ .
 
 A long-range tail correction *etail* for the van der Waals pairwise
-energy will be non-zero only if the :doc:`pair_modify tail <pair_modify>` option is turned on.  The *etail* contribution
-is included in *evdwl*\ , *epair*\ , *pe*\ , and *etotal*\ , and the
+energy will be non-zero only if the :doc:`pair_modify tail
+<pair_modify>` option is turned on.  The *etail* contribution is
+included in *evdwl*, *epair*, *pe*, and *etotal*, and the
 corresponding tail correction to the pressure is included in *press*
-and *pxx*\ , *pyy*\ , etc.
+and *pxx*, *pyy*, etc.
 
 ----------
 
-The *step*\ , *elapsed*\ , and *elaplong* keywords refer to timestep
+Here is more information on other keywords whose meaning may not be
+clear:
+
+The *step*, *elapsed*, and *elaplong* keywords refer to timestep
 count.  *Step* is the current timestep, or iteration count when a
 :doc:`minimization <minimize>` is being performed.  *Elapsed* is the
 number of timesteps elapsed since the beginning of this run.
@@ -228,13 +237,14 @@ keywords for the :doc:`run <run>` for info on how to invoke a series of
 runs that keep track of an initial starting time.  If these keywords
 are not used, then *elapsed* and *elaplong* are the same value.
 
-The *dt* keyword is the current timestep size in time
-:doc:`units <units>`.  The *time* keyword is the current elapsed
-simulation time, also in time :doc:`units <units>`, which is simply
-(step\*dt) if the timestep size has not changed and the timestep has
-not been reset.  If the timestep has changed (e.g. via :doc:`fix dt/reset <fix_dt_reset>`) or the timestep has been reset (e.g. via
-the "reset_timestep" command), then the simulation time is effectively
-a cumulative value up to the current point.
+The *dt* keyword is the current timestep size in time :doc:`units
+<units>`.  The *time* keyword is the current elapsed simulation time,
+also in time :doc:`units <units>`, which is simply (step\*dt) if the
+timestep size has not changed and the timestep has not been reset.  If
+the timestep has changed (e.g. via :doc:`fix dt/reset <fix_dt_reset>`)
+or the timestep has been reset (e.g. via the "reset_timestep"
+command), then the simulation time is effectively a cumulative value
+up to the current point.
 
 The *cpu* keyword is elapsed CPU seconds since the beginning of this
 run.  The *tpcpu* and *spcpu* keywords are measures of how fast your
@@ -266,15 +276,28 @@ a filename for output specific to this partition.  See discussion of
 the :doc:`-partition command-line switch <Run_options>` for details on
 running in multi-partition mode.
 
-The *timeremain* keyword returns the remaining seconds when a
-timeout has been configured via the :doc:`timer timeout <timer>` command.
-If the timeout timer is inactive, the value of this keyword is 0.0 and
-if the timer is expired, it is negative. This allows for example to exit
+The *timeremain* keyword is the seconds remaining when a timeout has
+been configured via the :doc:`timer timeout <timer>` command.  If the
+timeout timer is inactive, the value of this keyword is 0.0 and if the
+timer is expired, it is negative. This allows for example to exit
 loops cleanly, if the timeout is expired with:
 
 .. code-block:: LAMMPS
 
    if "$(timeremain) < 0.0" then "quit 0"
+
+The *ecouple* keyword is cumulative energy change in the system due to
+any thermostatting or barostatting fixes that are being used.  A
+positive value means that energy has been subtracted from the system
+(added to the coupling reservoir).  See the *econserve* keyword for an
+explanation of why this sign choice makes sense.
+
+The *econserve* keyword is the sum of the potential and kinetic energy
+of the system as well as the energy that has been transferred by
+thermostatting or barostatting to their coupling reservoirs.  I.e. it
+is *pe* + *ke* + *econserve*\ .  Ideally, for a simulation in the NVE,
+NPH, or NPT ensembles, the *econserve* quantity should remain constant
+over time.
 
 The *fmax* and *fnorm* keywords are useful for monitoring the progress
 of an :doc:`energy minimization <minimize>`.  The *fmax* keyword
@@ -295,12 +318,13 @@ to reduce the delay factor to insure no force interactions are missed
 by atoms moving beyond the neighbor skin distance before a rebuild
 takes place.
 
-The keywords *cella*\ , *cellb*\ , *cellc*\ , *cellalpha*\ , *cellbeta*\ ,
-*cellgamma*\ , correspond to the usual crystallographic quantities that
-define the periodic unit cell of a crystal.  See the :doc:`Howto triclinic <Howto_triclinic>` doc page for a geometric description
-of triclinic periodic cells, including a precise definition of these
-quantities in terms of the internal LAMMPS cell dimensions *lx*\ , *ly*\ ,
-*lz*\ , *yz*\ , *xz*\ , *xy*\ .
+The keywords *cella*, *cellb*, *cellc*, *cellalpha*,
+*cellbeta*, *cellgamma*, correspond to the usual crystallographic
+quantities that define the periodic unit cell of a crystal.  See the
+:doc:`Howto triclinic <Howto_triclinic>` page for a geometric
+description of triclinic periodic cells, including a precise
+definition of these quantities in terms of the internal LAMMPS cell
+dimensions *lx*, *ly*, *lz*, *yz*, *xz*, *xy*\ .
 
 ----------
 
@@ -330,8 +354,8 @@ creates a global vector with 6 values.
 
 ----------
 
-The *c_ID* and *c_ID[I]* and *c_ID[I][J]* keywords allow global
-values calculated by a compute to be output.  As discussed on the
+The *c_ID* and *c_ID[I]* and *c_ID[I][J]* keywords allow global values
+calculated by a compute to be output.  As discussed on the
 :doc:`compute <compute>` doc page, computes can calculate global,
 per-atom, or local values.  Only global values can be referenced by
 this command.  However, per-atom compute values for an individual atom
@@ -353,12 +377,13 @@ kinetic energy that are summed over all atoms in the compute group.
 Intensive quantities are printed directly without normalization by
 thermo_style custom.  Extensive quantities may be normalized by the
 total number of atoms in the simulation (NOT the number of atoms in
-the compute group) when output, depending on the :doc:`thermo_modify norm <thermo_modify>` option being used.
+the compute group) when output, depending on the :doc:`thermo_modify
+norm <thermo_modify>` option being used.
 
-The *f_ID* and *f_ID[I]* and *f_ID[I][J]* keywords allow global
-values calculated by a fix to be output.  As discussed on the
-:doc:`fix <fix>` doc page, fixes can calculate global, per-atom, or
-local values.  Only global values can be referenced by this command.
+The *f_ID* and *f_ID[I]* and *f_ID[I][J]* keywords allow global values
+calculated by a fix to be output.  As discussed on the :doc:`fix
+<fix>` doc page, fixes can calculate global, per-atom, or local
+values.  Only global values can be referenced by this command.
 However, per-atom fix values can be referenced for an individual atom
 in a :doc:`variable <variable>` and the variable referenced by
 thermo_style custom, as discussed below.  See the discussion above for
@@ -377,8 +402,8 @@ energy that are summed over all atoms in the fix group.  Intensive
 quantities are printed directly without normalization by thermo_style
 custom.  Extensive quantities may be normalized by the total number of
 atoms in the simulation (NOT the number of atoms in the fix group)
-when output, depending on the :doc:`thermo_modify norm <thermo_modify>`
-option being used.
+when output, depending on the :doc:`thermo_modify norm
+<thermo_modify>` option being used.
 
 The *v_name* keyword allow the current value of a variable to be
 output.  The name in the keyword should be replaced by the variable

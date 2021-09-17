@@ -29,11 +29,12 @@ Description
 This command enables CMAP cross-terms to be added to simulations which
 use the CHARMM force field.  These are relevant for any CHARMM model
 of a peptide or protein sequences that is 3 or more amino-acid
-residues long; see :ref:`(Buck) <Buck>` and :ref:`(Brooks) <Brooks2>` for details,
-including the analytic energy expressions for CMAP interactions.  The
-CMAP cross-terms add additional potential energy contributions to pairs
-of overlapping phi-psi dihedrals of amino-acids, which are important
-to properly represent their conformational behavior.
+residues long; see :ref:`(Buck) <Buck>` and :ref:`(Brooks) <Brooks2>`
+for details, including the analytic energy expressions for CMAP
+interactions.  The CMAP cross-terms add additional potential energy
+contributions to pairs of overlapping phi-psi dihedrals of
+amino-acids, which are important to properly represent their
+conformational behavior.
 
 The examples/cmap directory has a sample input script and data file
 for a small peptide, that illustrates use of the fix cmap command.
@@ -72,7 +73,7 @@ remaining 5 columns are the atom IDs of the atoms in the two 4-atom
 dihedrals that overlap to create the CMAP 5-body interaction.  Note
 that the "crossterm" and "CMAP" keywords for the header and body
 sections match those specified in the read_data command following the
-data file name; see the :doc:`read_data <read_data>` doc page for
+data file name; see the :doc:`read_data <read_data>` page for
 more details.
 
 A data file containing CMAP cross-terms can be generated from a PDB
@@ -93,19 +94,27 @@ the note below about how to include the CMAP energy when performing an
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-This fix writes the list of CMAP cross-terms to :doc:`binary restart files <restart>`.  See the :doc:`read_restart <read_restart>` command
+This fix writes the list of CMAP cross-terms to :doc:`binary restart
+files <restart>`.  See the :doc:`read_restart <read_restart>` command
 for info on how to re-specify a fix in an input script that reads a
 restart file, so that the operation of the fix continues in an
 uninterrupted fashion.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
-fix to add the potential "energy" of the CMAP interactions system's
-potential energy as part of :doc:`thermodynamic output <thermo_style>`.
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by
+this fix to add the potential energy of the CMAP interactions to both
+the global potential energy and peratom potential energies of the
+system as part of :doc:`thermodynamic output <thermo_style>` or
+output by the :doc:`compute pe/atom <compute_pe_atom>` command.  The
+default setting for this fix is :doc:`fix_modify energy yes
+<fix_modify>`.
 
-The :doc:`fix_modify <fix_modify>` *virial* option is supported by this
-fix to add the contribution due to the interaction between atoms to
-the system's virial as part of :doc:`thermodynamic output <thermo_style>`.
-The default is *virial yes*
+The :doc:`fix_modify <fix_modify>` *virial* option is supported by
+this fix to add the contribution due to the CMAP interactions to both
+the global pressure and per-atom stress of the system via the
+:doc:`compute pressure <compute_pressure>` and :doc:`compute
+stress/atom <compute_stress_atom>` commands.  The former can be
+accessed by :doc:`thermodynamic output <thermo_style>`.  The default
+setting for this fix is :doc:`fix_modify virial yes <fix_modify>`.
 
 This fix computes a global scalar which can be accessed by various
 :doc:`output commands <Howto_output>`.  The scalar is the potential
@@ -118,11 +127,16 @@ the :doc:`run <run>` command.
 The forces due to this fix are imposed during an energy minimization,
 invoked by the :doc:`minimize <minimize>` command.
 
+The :doc:`fix_modify <fix_modify>` *respa* option is supported by this
+fix. This allows to set at which level of the :doc:`r-RESPA
+<run_style>` integrator the fix is adding its forces. Default is the
+outermost level.
+
 .. note::
 
    If you want the potential energy associated with the CMAP terms
-   forces to be included in the total potential energy of the system (the
-   quantity being minimized), you MUST enable the
+   forces to be included in the total potential energy of the system
+   (the quantity being minimized), you MUST not disable the
    :doc:`fix_modify <fix_modify>` *energy* option for this fix.
 
 Restrictions
@@ -133,7 +147,7 @@ To function as expected this fix command must be issued *before* a
 :doc:`read_restart <read_restart>` command.
 
 This fix can only be used if LAMMPS was built with the MOLECULE
-package.  See the :doc:`Build package <Build_package>` doc page for more
+package.  See the :doc:`Build package <Build_package>` page for more
 info.
 
 Related commands

@@ -3,20 +3,20 @@
 // -------------------------------------------------------------
 // $Revision: 3572$
 // $Date: 2007-11-19 13:58:06 +0000 (Mon, 19 Nov 2007) $
-// ------------------------------------------------------------- 
+// -------------------------------------------------------------
 // This source code is distributed under the terms of license.txt
 // in the root directory of this source distribution.
-// ------------------------------------------------------------- 
+// -------------------------------------------------------------
 #include "cudpp.h"
 #include "cudpp_plan.h"
 #include "cudpp_plan_manager.h"
 #include "cudpp_maximal_launch.h"
- 
+
 typedef void* KernelPointer;
 
 extern "C" size_t getNumCTAs(KernelPointer kernel)
 {
-    return CUDPPPlanManager::numCTAs(kernel);    
+    return CUDPPPlanManager::numCTAs(kernel);
 }
 extern "C" void compNumCTAs(KernelPointer kernel, size_t bytesDynamicSharedMem, size_t threadsPerBlock)
 {
@@ -24,23 +24,23 @@ extern "C" void compNumCTAs(KernelPointer kernel, size_t bytesDynamicSharedMem, 
 }
 
 //! @internal Instantiate the plan manager singleton object
-void CUDPPPlanManager::Instantiate() 
-{ 
-    if (nullptr == m_instance) 
-        m_instance = new CUDPPPlanManager; 
+void CUDPPPlanManager::Instantiate()
+{
+    if (nullptr == m_instance)
+        m_instance = new CUDPPPlanManager;
 }
 
 //! @internal Destroy the plan manager singleton object
-void CUDPPPlanManager::Destroy()     
-{ 
-    if (nullptr != m_instance) 
-    { 
-        delete m_instance; 
-        m_instance = nullptr; 
-    } 
+void CUDPPPlanManager::Destroy()
+{
+    if (nullptr != m_instance)
+    {
+        delete m_instance;
+        m_instance = nullptr;
+    }
 }
 
-/** @brief Plan Manager destructor 
+/** @brief Plan Manager destructor
 * Destroys all plans as well as the plan manager.
 */
 CUDPPPlanManager::~CUDPPPlanManager()
@@ -59,8 +59,8 @@ CUDPPPlanManager::~CUDPPPlanManager()
 }
 
 /** @brief Add a plan to the plan manager
-* 
-* @returns a valid CUDPPHandle if the plan was successfully added, or 
+*
+* @returns a valid CUDPPHandle if the plan was successfully added, or
 * CUDPP_INVALID_HANDLE otherwise
 * @param[in] plan The plan to add
 */
@@ -75,11 +75,11 @@ CUDPPHandle CUDPPPlanManager::AddPlan(CUDPPPlan* plan)
     if (ret.second == true)
         return handle;
     else
-        return CUDPP_INVALID_HANDLE;   
+        return CUDPP_INVALID_HANDLE;
 }
 
 /** @brief Remove a plan from the plan manager
-* 
+*
 * @returns true if the plan was successfully removed, false otherwise
 * @param[in] handle The handle to the plan to remove
 */
@@ -106,15 +106,15 @@ bool CUDPPPlanManager::RemovePlan(CUDPPHandle handle)
         }
 
         return true;
-    }   
+    }
     else
     {
         return false;
-    }   
+    }
 }
 
 /** @brief Get a plan from the plan manager by handle
-* 
+*
 * @returns A pointer to the plan if found, or nullptr otherwise
 * @param handle The handle to the requested plan
 */

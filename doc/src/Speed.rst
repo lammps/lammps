@@ -12,8 +12,8 @@ accelerator packages provided with LAMMPS that contain code optimized
 for certain kinds of hardware, including multi-core CPUs, GPUs, and
 Intel Xeon Phi co-processors.
 
-The `Benchmark page <https://lammps.sandia.gov/bench.html>`_ of the LAMMPS
-web site gives performance results for the various accelerator
+The `Benchmark page <https://www.lammps.org/bench.html>`_ of the LAMMPS
+website gives performance results for the various accelerator
 packages discussed on the :doc:`Speed packages <Speed_packages>` doc
 page, for several of the standard LAMMPS benchmark problems, as a
 function of problem size and number of compute nodes, on different

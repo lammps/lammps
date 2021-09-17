@@ -129,6 +129,7 @@ PACKAGE = \
 	spin \
 	srd \
 	tally \
+	tild \
 	uef \
 	voronoi \
 	vtk \

@@ -226,6 +226,7 @@ set(STANDARD_PACKAGES
   SPIN
   SRD
   TALLY
+  TILD
   UEF
   VORONOI
   VTK
@@ -323,6 +324,7 @@ pkg_depends(DIELECTRIC KSPACE)
 pkg_depends(DIELECTRIC EXTRA-PAIR)
 pkg_depends(CG-DNA MOLECULE)
 pkg_depends(CG-DNA ASPHERE)
+pkg_depends(TILD KSPACE)
 
 # detect if we may enable OpenMP support by default
 set(BUILD_OMP_DEFAULT OFF)

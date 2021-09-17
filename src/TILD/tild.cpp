@@ -13,7 +13,7 @@
 #include <cstdio>
 #include <cstring>
 #include <cmath>
-#include "tild2.h"
+#include "tild.h"
 #include "atom.h"
 #include "comm.h"
 #include "gridcomm.h"

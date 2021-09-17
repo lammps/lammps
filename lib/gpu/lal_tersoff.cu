@@ -106,6 +106,7 @@ _texture_2d( pos_tex,int4);
     }                                                                       \
   }
 
+// (SHUFFLE_AVAIL == 1)
 #else
 
 #define local_allocate_acc_zeta()
@@ -202,6 +203,7 @@ _texture_2d( pos_tex,int4);
     }                                                                       \
   }
 
+// EVFLAG == 0
 #else
 
 #define store_answers_p(f, energy, virial, ii, inum, tid, t_per_atom,       \
@@ -216,8 +218,8 @@ _texture_2d( pos_tex,int4);
     ans[ii]=old;                                                            \
   }
 
-#endif
-#endif
+#endif // EVFLAG
+#endif // SHUFFLE_AVAIL
 
 #ifdef LAL_SIMD_IP_SYNC
 #define t_per_atom t_per_atom_in

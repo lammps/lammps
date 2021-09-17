@@ -118,7 +118,7 @@ PairAmoebaGPU::PairAmoebaGPU(LAMMPS *lmp) : PairAmoeba(lmp), gpu_mode(GPU_FORCE)
   gpu_multipole_real_ready = true;
   gpu_udirect2b_ready = true;
   gpu_umutual2b_ready = true;
-  gpu_polar_real_ready = false;
+  gpu_polar_real_ready = true;
 
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }

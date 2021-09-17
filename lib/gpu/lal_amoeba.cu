@@ -147,6 +147,70 @@ _texture( q_tex,int2);
     fieldp[ii+inum] = fp;                                                   \
   }
 
+#define store_answers_p(f, energy, e_coul, virial, ii, inum, tid, t_per_atom,       \
+                        offset, eflag, vflag, ans, engv, ev_stride)         \
+  if (t_per_atom>1) {                                                       \
+    simd_reduce_add3(t_per_atom, red_acc, offset, tid, f.x, f.y, f.z);      \
+    if (EVFLAG && (vflag==2 || eflag==2)) {                                 \
+      if (eflag) {                                                          \
+        simdsync();                                                         \
+        simd_reduce_add2(t_per_atom, red_acc, offset, tid, energy, e_coul);         \
+      }                                                                     \
+      if (vflag) {                                                          \
+        simdsync();                                                         \
+        simd_reduce_arr(6, t_per_atom, red_acc, offset, tid, virial);       \
+      }                                                                     \
+    }                                                                       \
+  }                                                                         \
+  if (offset==0 && ii<inum) {                                               \
+    acctyp4 old=ans[ii];                                                    \
+    old.x+=f.x;                                                             \
+    old.y+=f.y;                                                             \
+    old.z+=f.z;                                                             \
+    ans[ii]=old;                                                            \
+  }                                                                         \
+  if (EVFLAG && (eflag || vflag)) {                                         \
+    int ei=BLOCK_ID_X;                                                      \
+    if (eflag!=2 && vflag!=2) {                                             \
+      if (eflag) {                                                          \
+        simdsync();                                                         \
+        block_reduce_add2(simd_size(), red_acc, tid, energy, e_coul);               \
+        if (vflag) __syncthreads();                                         \
+        if (tid==0) {                                                       \
+          engv[ei]+=energy*(acctyp)0.5;                                     \
+          ei+=ev_stride;                                                    \
+          engv[ei]+=e_coul*(acctyp)0.5;                                     \
+          ei+=ev_stride;                                                    \
+        }                                                                   \
+      }                                                                     \
+      if (vflag) {                                                          \
+        simdsync();                                                         \
+        block_reduce_arr(6, simd_size(), red_acc, tid, virial);             \
+        if (tid==0) {                                                       \
+          for (int r=0; r<6; r++) {                                         \
+            engv[ei]+=virial[r]*(acctyp)0.5;                                \
+            ei+=ev_stride;                                                  \
+          }                                                                 \
+        }                                                                   \
+      }                                                                     \
+    } else if (offset==0 && ii<inum) {                                      \
+      int ei=ii;                                                            \
+      if (EVFLAG && eflag) {                                                \
+        engv[ei]+=energy*(acctyp)0.5;                                       \
+        ei+=inum;                                                           \
+        engv[ei]+=e_coul*(acctyp)0.5;                                       \
+        ei+=inum;                                                           \
+      }                                                                     \
+      if (EVFLAG && vflag) {                                                \
+        for (int i=0; i<6; i++) {                                           \
+          engv[ei]+=virial[i]*(acctyp)0.5;                                  \
+          ei+=inum;                                                         \
+        }                                                                   \
+      }                                                                     \
+    }                                                                       \
+  }
+
+// SHUFFLE_AVAIL == 1
 #else
 
 #define local_allocate_store_ufld()
@@ -214,7 +278,120 @@ _texture( q_tex,int2);
     fieldp[ii+inum] = fp;                                                   \
   }
 
-#endif
+#if (EVFLAG == 1)
+
+#define store_answers_p(f, energy, e_coul, virial, ii, inum, tid, t_per_atom,       \
+                        offset, eflag, vflag, ans, engv, ev_stride)         \
+  if (t_per_atom>1) {                                                       \
+    simd_reduce_add3(t_per_atom, f.x, f.y, f.z);                            \
+    if (vflag==2 || eflag==2) {                                             \
+      if (eflag)                                                            \
+        simd_reduce_add2(t_per_atom,energy,e_coul);                                \
+      if (vflag)                                                            \
+        simd_reduce_arr(6, t_per_atom,virial);                              \
+    }                                                                       \
+  }                                                                         \
+  if (offset==0 && ii<inum) {                                               \
+    acctyp4 old=ans[ii];                                                    \
+    if (ii == 0) printf("old = %f %f %f\n", old.x, old.y, old.z);           \
+    old.x+=f.x;                                                             \
+    old.y+=f.y;                                                             \
+    old.z+=f.z;                                                             \
+    ans[ii]=old;                                                            \
+    if (ii == 0) printf("new = %f %f %f\n", old.x, old.y, old.z);           \
+  }                                                                         \
+  if (eflag || vflag) {                                                     \
+    if (eflag!=2 && vflag!=2) {                                             \
+      const int vwidth = simd_size();                                       \
+      const int voffset = tid & (simd_size() - 1);                          \
+      const int bnum = tid/simd_size();                                     \
+      int active_subgs = BLOCK_SIZE_X/simd_size();                          \
+      for ( ; active_subgs > 1; active_subgs /= vwidth) {                   \
+        if (active_subgs < BLOCK_SIZE_X/simd_size()) __syncthreads();       \
+        if (bnum < active_subgs) {                                          \
+          if (eflag) {                                                      \
+            simd_reduce_add2(vwidth, energy, e_coul);                       \
+            if (voffset==0) {                                               \
+              red_acc[6][bnum] = energy;                                    \
+              red_acc[7][bnum] = e_coul;                                    \
+            }                                                               \
+          }                                                                 \
+          if (vflag) {                                                      \
+            simd_reduce_arr(6, vwidth, virial);                             \
+            if (voffset==0)                                                 \
+              for (int r=0; r<6; r++) red_acc[r][bnum]=virial[r];           \
+          }                                                                 \
+        }                                                                   \
+                                                                            \
+        __syncthreads();                                                    \
+        if (tid < active_subgs) {                                           \
+          if (eflag) {                                                      \
+            energy = red_acc[6][tid];                                       \
+            e_coul = red_acc[7][tid];                                       \
+          }                                                                 \
+          if (vflag)                                                        \
+            for (int r = 0; r < 6; r++) virial[r] = red_acc[r][tid];        \
+        } else {                                                            \
+          if (eflag) energy = e_coul = (acctyp)0;                           \
+          if (vflag) for (int r = 0; r < 6; r++) virial[r] = (acctyp)0;     \
+        }                                                                   \
+      }                                                                     \
+                                                                            \
+      if (bnum == 0) {                                                      \
+        int ei=BLOCK_ID_X;                                                  \
+        if (eflag) {                                                        \
+          simd_reduce_add2(vwidth, energy, e_coul);                         \
+          if (tid==0) {                                                     \
+            engv[ei]+=energy*(acctyp)0.5;                                   \
+            ei+=ev_stride;                                                  \
+            engv[ei]+=e_coul*(acctyp)0.5;                                   \
+            ei+=ev_stride;                                                  \
+          }                                                                 \
+        }                                                                   \
+        if (vflag) {                                                        \
+          simd_reduce_arr(6, vwidth, virial);                               \
+          if (tid==0) {                                                     \
+            for (int r=0; r<6; r++) {                                       \
+              engv[ei]+=virial[r]*(acctyp)0.5;                              \
+              ei+=ev_stride;                                                \
+            }                                                               \
+          }                                                                 \
+        }                                                                   \
+      }                                                                     \
+    } else if (offset==0 && ii<inum) {                                      \
+      int ei=ii;                                                            \
+      if (eflag) {                                                          \
+        engv[ei]+=energy*(acctyp)0.5;                                       \
+        ei+=inum;                                                           \
+        engv[ei]+=e_coul*(acctyp)0.5;                                       \
+        ei+=inum;                                                           \
+      }                                                                     \
+      if (vflag) {                                                          \
+        for (int i=0; i<6; i++) {                                           \
+          engv[ei]+=virial[i]*(acctyp)0.5;                                  \
+          ei+=inum;                                                         \
+        }                                                                   \
+      }                                                                     \
+    }                                                                       \
+  }
+
+// EVFLAG == 0
+#else
+
+#define store_answers_p(f, energy, e_coul, virial, ii, inum, tid, t_per_atom,       \
+                        offset, eflag, vflag, ans, engv, ev_stride)         \
+  if (t_per_atom>1)                                                         \
+    simd_reduce_add3(t_per_atom, f.x, f.y, f.z);                            \
+  if (offset==0 && ii<inum) {                                               \
+    acctyp4 old=ans[ii];                                                    \
+    old.x+=f.x;                                                             \
+    old.y+=f.y;                                                             \
+    old.z+=f.z;                                                             \
+    ans[ii]=old;                                                            \
+  }
+
+#endif // EVFLAG
+#endif // SHUFFLE_AVAIL
 
 #define MIN(A,B) ((A) < (B) ? (A) : (B))
 #define MY_PIS (acctyp)1.77245385090551602729
@@ -244,7 +421,6 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
   atom_info(t_per_atom,ii,tid,offset);
 
   int n_stride;
-  local_allocate_store_ufld();
   local_allocate_store_charge();
 
   acctyp4 f;
@@ -259,7 +435,6 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
   acctyp4 tq;
   tq.x=(acctyp)0; tq.y=(acctyp)0; tq.z=(acctyp)0;
 
-  numtyp dix,diy,diz,qixx,qixy,qixz,qiyy,qiyz,qizz;
   numtyp4* polar1 = (numtyp4*)(&extra[0]);
   numtyp4* polar2 = (numtyp4*)(&extra[4*nall]);
   numtyp4* polar3 = (numtyp4*)(&extra[8*nall]);
@@ -271,9 +446,9 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
     numtyp bfac;
     numtyp term1,term2,term3;
     numtyp term4,term5;
-    numtyp term6,term7;
+    numtyp term6;
     numtyp bn[6];
-    numtyp ci,uix,uiy,uiz,uixp,uiyp,uizp;
+    numtyp ci,dix,diy,diz,qixx,qixy,qixz,qiyy,qiyz,qizz;
 
     int numj, nbor, nbor_end;
     const __global int* nbor_mem=dev_packed;
@@ -639,16 +814,14 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
       int jtype =   polar3[j].z; // amtype[j];
       int jgroup =  polar3[j].w; // amgroup[j];
 
-      numtyp factor_wscale, factor_dscale, factor_pscale, factor_uscale;
+      numtyp factor_dscale, factor_pscale;
       const numtyp4 sp_pol = sp_polar[sbmask15(jextra)];
-      factor_wscale = sp_pol.x; // sp_polar_wscale[sbmask15(jextra)];
       if (igroup == jgroup) {
         factor_pscale = sp_pol.y; // sp_polar_piscale[sbmask15(jextra)];
         factor_dscale = polar_dscale;
-        factor_uscale = polar_uscale;
       } else {
         factor_pscale = sp_pol.z; // sp_polar_pscale[sbmask15(jextra)];
-        factor_dscale = factor_uscale = (numtyp)1.0;
+        factor_dscale = (numtyp)1.0;
       }
 
       // intermediates involving moments and separation distance
@@ -1479,8 +1652,10 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
   store_answers_tep(ufld,dufld,ii,inum,tid,t_per_atom,offset,i,tep);
 
   // accumate force, energy and virial
-  store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
-     offset,eflag,vflag,ans,engv);
+  //store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
+//     offset,eflag,vflag,ans,engv);
+  store_answers_p(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
+     offset,eflag,vflag,ans,engv,NUM_BLOCKS_X);
 }
 
 __kernel void k_amoeba_short_nbor(const __global numtyp4 *restrict x_,

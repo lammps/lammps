@@ -322,6 +322,7 @@ void BaseAmoebaT::compute_polar_real_host_nbor(const int f_ago, const int inum_f
   _off2_polar = off2_polar;
   _felec = felec;
   const int red_blocks=polar_real(eflag,vflag);
+  
   ans->copy_answers(eflag_in,vflag_in,eatom,vatom,ilist,red_blocks);
   device->add_ans_object(ans);
   hd_balancer.stop_timer();
@@ -490,8 +491,11 @@ int** BaseAmoebaT::compute_multipole_real(const int ago, const int inum_full, co
   _felec = felec;
   _aewald = aewald;
   const int red_blocks=multipole_real(eflag,vflag);
-  ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
-  device->add_ans_object(ans);
+
+  // leave the answers (forces, energies and virial) on the device, only copy them back in the last kernel (polar_real)
+  //ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
+  //device->add_ans_object(ans);
+
   hd_balancer.stop_timer();
 
   // copy tep from device to host
@@ -714,8 +718,11 @@ int** BaseAmoebaT::compute_polar_real(const int ago, const int inum_full, const 
   _felec = felec;
   _aewald = aewald;
   const int red_blocks=polar_real(eflag,vflag);
+
+  // only copy answers (forces, energies and virial) back from the device in the last kernel (which is polar_real here)
   ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
   device->add_ans_object(ans);
+
   hd_balancer.stop_timer();
 
   // copy tep from device to host

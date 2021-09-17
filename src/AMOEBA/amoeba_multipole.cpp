@@ -523,10 +523,7 @@ void PairAmoeba::multipole_real()
       tq[i][0] += ttmi[0];
       tq[i][1] += ttmi[1];
       tq[i][2] += ttmi[2];
-      //if (i == 0  && j < 10) {
-      //  printf("j = %d: erfc = %f; f: %f %f %f; tq =  %f %f %f\n", j, erfc(ralpha), frcx, frcy, frcz, ttmi[0], ttmi[1], ttmi[2]);
-        //printf("j = %d: terms: %f %f %f; tq =  %f %f %f\n", j, term1, term2, term3, qikrx, qikry, qikrz);
-      //}
+
       // increment force-based gradient and torque on second site
       // commenting out j parts for DEBUGGING
       
@@ -568,11 +565,10 @@ void PairAmoeba::multipole_real()
   comm->reverse_comm_pair(this);
 
   // resolve site torques then increment forces and virial
-  printf("compute multipole real\n");
+
   for (i = 0; i < nlocal; i++) {
-    if (i == 0) printf("before fmpole = %f %f %f\n", fmpole[i][0], fmpole[i][1], fmpole[i][2]);
     torque2force(i,tq[i],fix,fiy,fiz,fmpole);
-    if (i == 0) printf("after fmpole = %f %f %f\n", fmpole[i][0], fmpole[i][1], fmpole[i][2]);
+
     iz = zaxis2local[i];
     ix = xaxis2local[i];
     iy = yaxis2local[i];
@@ -597,7 +593,6 @@ void PairAmoeba::multipole_real()
     vyz = 0.5 * (zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] + 
                  yix*fix[2] + yiy*fiy[2] + yiz*fiz[2]);
 
-    //if (i < 10) printf("fix = %f %f %f; v %f %f %f %f %f %f\n", fix[0], fix[1], fix[2], vxx, vyy, vzz, vxy, vxz,vyz);
     virmpole[0] += vxx;
     virmpole[1] += vyy;
     virmpole[2] += vzz;

@@ -886,8 +886,7 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
         FixCreator &fix_creator = (*fix_map)[estyle];
         fix[ifix] = fix_creator(lmp,narg,arg);
         delete[] fix[ifix]->style;
-        fix[ifix]->style = new char[estyle.size()+1];
-        strcpy(fix[ifix]->style,estyle.c_str());
+        fix[ifix]->style = utils::strdup(estyle);
       }
     }
     if (fix[ifix] == nullptr && lmp->suffix2) {
@@ -896,8 +895,7 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
         FixCreator &fix_creator = (*fix_map)[estyle];
         fix[ifix] = fix_creator(lmp,narg,arg);
         delete[] fix[ifix]->style;
-        fix[ifix]->style = new char[estyle.size()+1];
-        strcpy(fix[ifix]->style,estyle.c_str());
+        fix[ifix]->style = utils::strdup(estyle);
       }
     }
   }
@@ -1244,8 +1242,7 @@ Compute *Modify::add_compute(int narg, char **arg, int trysuffix)
         ComputeCreator &compute_creator = (*compute_map)[estyle];
         compute[ncompute] = compute_creator(lmp,narg,arg);
         delete[] compute[ncompute]->style;
-        compute[ncompute]->style = new char[estyle.size()+1];
-        strcpy(compute[ncompute]->style,estyle.c_str());
+        compute[ncompute]->style = utils::strdup(estyle);
       }
     }
     if (compute[ncompute] == nullptr && lmp->suffix2) {
@@ -1254,8 +1251,7 @@ Compute *Modify::add_compute(int narg, char **arg, int trysuffix)
         ComputeCreator &compute_creator = (*compute_map)[estyle];
         compute[ncompute] = compute_creator(lmp,narg,arg);
         delete[] compute[ncompute]->style;
-        compute[ncompute]->style = new char[estyle.size()+1];
-        strcpy(compute[ncompute]->style,estyle.c_str());
+        compute[ncompute]->style = utils::strdup(estyle);
       }
     }
   }

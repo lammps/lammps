@@ -39,6 +39,7 @@ class Amoeba : public BaseAmoeba<numtyp, acctyp> {
     * - -5 Double precision is not supported on card **/
   int init(const int ntypes, const int max_amtype, const double *host_pdamp,
            const double *host_thole, const double *host_dirdamp, 
+           const double *host_special_mpole,
            const double *host_special_polar_wscale,
            const double *host_special_polar_piscale,
            const double *host_special_polar_pscale,
@@ -79,6 +80,7 @@ class Amoeba : public BaseAmoeba<numtyp, acctyp> {
 
  protected:
   bool _allocated;
+  int multipole_real(const int eflag, const int vflag);
   int udirect2b(const int eflag, const int vflag);
   int umutual2b(const int eflag, const int vflag);
   int polar_real(const int eflag, const int vflag);

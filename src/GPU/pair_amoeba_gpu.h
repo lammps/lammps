@@ -35,9 +35,10 @@ class PairAmoebaGPU : public PairAmoeba {
 
   virtual void induce();
 
-  virtual void polar_real();
+  virtual void multipole_real();
   virtual void udirect2b(double **, double **);
   virtual void umutual2b(double **, double **);
+  virtual void polar_real();
 
  private:
   int gpu_mode;
@@ -46,6 +47,7 @@ class PairAmoebaGPU : public PairAmoeba {
   void *fieldp_pinned;
   bool tep_single;
 
+  bool gpu_multipole_real_ready;
   bool gpu_udirect2b_ready;
   bool gpu_umutual2b_ready;
   bool gpu_polar_real_ready;
@@ -53,7 +55,7 @@ class PairAmoebaGPU : public PairAmoeba {
   void udirect2b_cpu();
 
   template<class numtyp>
-  void compute_force_from_tep(const numtyp*);
+  void compute_force_from_tep(const numtyp*, double**, double*);
 };
 
 }    // namespace LAMMPS_NS

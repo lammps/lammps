@@ -30,6 +30,7 @@ static Amoeba<PRECISION,ACC_PRECISION> AMOEBAMF;
 int amoeba_gpu_init(const int ntypes, const int max_amtype,
                     const double *host_pdamp, const double *host_thole,
                     const double *host_dirdamp,
+                    const double *host_special_mpole,
                     const double *host_special_polar_wscale,
                     const double *host_special_polar_piscale,
                     const double *host_special_polar_pscale,
@@ -63,10 +64,10 @@ int amoeba_gpu_init(const int ntypes, const int max_amtype,
   int init_ok=0;
   if (world_me==0)
     init_ok=AMOEBAMF.init(ntypes, max_amtype, host_pdamp, host_thole, host_dirdamp,
-                          host_special_polar_wscale, host_special_polar_piscale,
-                          host_special_polar_pscale, nlocal, nall, max_nbors,
-                          maxspecial, maxspecial15, cell_size, gpu_split, screen,
-                          aewald, polar_dscale, polar_uscale);
+                          host_special_mpole, host_special_polar_wscale,
+                          host_special_polar_piscale, host_special_polar_pscale,
+                          nlocal, nall, max_nbors, maxspecial, maxspecial15,
+                          cell_size, gpu_split, screen, aewald, polar_dscale, polar_uscale);
 
   AMOEBAMF.device->world_barrier();
   if (message)
@@ -83,10 +84,10 @@ int amoeba_gpu_init(const int ntypes, const int max_amtype,
     }
     if (gpu_rank==i && world_me!=0)
       init_ok=AMOEBAMF.init(ntypes, max_amtype, host_pdamp, host_thole, host_dirdamp,
-                            host_special_polar_wscale, host_special_polar_piscale,
-                            host_special_polar_pscale, nlocal, nall, max_nbors,
-                            maxspecial, maxspecial15, cell_size, gpu_split, screen,
-                            aewald, polar_dscale, polar_uscale);
+                            host_special_mpole, host_special_polar_wscale,
+                            host_special_polar_piscale, host_special_polar_pscale,
+                            nlocal, nall, max_nbors, maxspecial, maxspecial15,
+                            cell_size, gpu_split, screen, aewald, polar_dscale, polar_uscale);
 
     AMOEBAMF.device->gpu_barrier();
     if (message)
@@ -102,6 +103,23 @@ int amoeba_gpu_init(const int ntypes, const int max_amtype,
 
 void amoeba_gpu_clear() {
   AMOEBAMF.clear();
+}
+
+int** amoeba_gpu_compute_multipole_real(const int ago, const int inum_full,
+                           const int nall, double **host_x, int *host_type,
+                           int *host_amtype, int *host_amgroup, double **host_rpole,
+                           double *sublo, double *subhi, tagint *tag, int **nspecial,
+                           tagint **special, int *nspecial15, tagint** special15,
+                           const bool eflag, const bool vflag, const bool eatom,
+                           const bool vatom, int &host_start,
+                           int **ilist, int **jnum, const double cpu_time,
+                           bool &success, const double felec, const double off2,
+                           double *host_q, double *boxlo, double *prd, void **tep_ptr) {
+  return AMOEBAMF.compute_multipole_real(ago, inum_full, nall, host_x, host_type,
+                          host_amtype, host_amgroup, host_rpole, sublo, subhi,
+                          tag, nspecial, special, nspecial15, special15,
+                          eflag, vflag, eatom, vatom, host_start, ilist, jnum,
+                          cpu_time, success, felec, off2, host_q, boxlo, prd, tep_ptr);
 }
 
 int** amoeba_gpu_compute_udirect2b(const int ago, const int inum_full,

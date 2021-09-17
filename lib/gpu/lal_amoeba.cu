@@ -44,6 +44,27 @@ _texture( q_tex,int2);
 #define local_allocate_store_ufld()                                         \
     __local acctyp red_acc[6][BLOCK_PAIR];
 
+#define store_answers_amoeba_tq(tq, ii, inum,tid, t_per_atom, offset, i,    \
+                                tep)                                        \
+  if (t_per_atom>1) {                                                       \
+    red_acc[0][tid]=tq.x;                                                   \
+    red_acc[1][tid]=tq.y;                                                   \
+    red_acc[2][tid]=tq.z;                                                   \
+    for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
+      simdsync();                                                           \
+      if (offset < s) {                                                     \
+        for (int r=0; r<3; r++)                                             \
+          red_acc[r][tid] += red_acc[r][tid+s];                             \
+      }                                                                     \
+    }                                                                       \
+    tq.x=red_acc[0][tid];                                                   \
+    tq.y=red_acc[1][tid];                                                   \
+    tq.z=red_acc[2][tid];                                                   \
+  }                                                                         \
+  if (offset==0 && ii<inum) {                                               \
+    tep[i]=tq;                                                               \
+  }
+
 #define store_answers_tep(ufld, dufld, ii, inum,tid, t_per_atom, offset,    \
                           i, tep)                                           \
   if (t_per_atom>1) {                                                       \
@@ -130,6 +151,19 @@ _texture( q_tex,int2);
 
 #define local_allocate_store_ufld()
 
+#define store_answers_amoeba_tq(tq, ii, inum,tid, t_per_atom, offset, i,    \
+                          tep)                                              \
+  if (t_per_atom>1) {                                                       \
+    for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
+      tq.x += shfl_down(tq.x, s, t_per_atom);                               \
+      tq.y += shfl_down(tq.y, s, t_per_atom);                               \
+      tq.z += shfl_down(tq.z, s, t_per_atom);                               \
+    }                                                                       \
+  }                                                                         \
+  if (offset==0 && ii<inum) {                                               \
+    tep[i]=tq;                                                               \
+  }
+
 #define store_answers_tep(ufld, dufld, ii, inum,tid, t_per_atom, offset,    \
                           i, tep)                                           \
   if (t_per_atom>1) {                                                       \
@@ -184,6 +218,315 @@ _texture( q_tex,int2);
 
 #define MIN(A,B) ((A) < (B) ? (A) : (B))
 #define MY_PIS (acctyp)1.77245385090551602729
+
+/* ----------------------------------------------------------------------
+   multipole_real = real-space portion of multipole
+   adapted from Tinker emreal1d() routine
+------------------------------------------------------------------------- */
+
+__kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
+                            const __global numtyp *restrict extra,
+                            const __global numtyp4 *restrict damping,
+                            const __global numtyp4 *restrict sp_polar,
+                            const __global int *dev_nbor,
+                            const __global int *dev_packed,
+                            const __global int *dev_short_nbor,
+                            __global acctyp4 *restrict ans,
+                            __global acctyp *restrict engv,
+                            __global numtyp4 *restrict tep,
+                            const int eflag, const int vflag, const int inum,
+                            const int nall, const int nbor_pitch, const int t_per_atom,
+                            const numtyp aewald, const numtyp felec,
+                            const numtyp off2, const numtyp polar_dscale,
+                            const numtyp polar_uscale)
+{
+  int tid, ii, offset, i;
+  atom_info(t_per_atom,ii,tid,offset);
+
+  int n_stride;
+  local_allocate_store_ufld();
+  local_allocate_store_charge();
+
+  acctyp4 f;
+  f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
+  acctyp energy, e_coul, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    e_coul=(acctyp)0;
+    for (int l=0; l<6; l++) virial[l]=(acctyp)0;
+  }
+
+  acctyp4 tq;
+  tq.x=(acctyp)0; tq.y=(acctyp)0; tq.z=(acctyp)0; tq.w=(acctyp)0; 
+
+  numtyp dix,diy,diz,qixx,qixy,qixz,qiyy,qiyz,qizz;
+  numtyp4* polar1 = (numtyp4*)(&extra[0]);
+  numtyp4* polar2 = (numtyp4*)(&extra[4*nall]);
+  numtyp4* polar3 = (numtyp4*)(&extra[8*nall]);
+
+  //numtyp4 xi__;
+
+  if (ii<inum) {
+    int k,m,itype,igroup;
+    numtyp bfac;
+    numtyp term1,term2,term3;
+    numtyp term4,term5;
+    numtyp term6,term7;
+    numtyp rc3[3],rc5[3],rc7[3];
+    numtyp bn[6];
+    numtyp ci,uix,uiy,uiz,uixp,uiyp,uizp;
+
+    int numj, nbor, nbor_end;
+    const __global int* nbor_mem=dev_packed;
+    nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
+              n_stride,nbor_end,nbor);
+
+    numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
+    //numtyp qtmp; fetch(qtmp,i,q_tex);
+    //int itype=ix.w;
+
+    // recalculate numj and nbor_end for use of the short nbor list
+    if (dev_packed==dev_nbor) {
+      numj = dev_short_nbor[nbor];
+      nbor += n_stride;
+      nbor_end = nbor+fast_mul(numj,n_stride);
+      nbor_mem = dev_short_nbor;
+    }
+
+    ci  = polar1[i].x;    // rpole[i][0];
+    dix = polar1[i].y;    // rpole[i][1];
+    diy = polar1[i].z;    // rpole[i][2];
+    diz = polar1[i].w;    // rpole[i][3];
+    qixx = polar2[i].x;   // rpole[i][4];
+    qixy = polar2[i].y;   // rpole[i][5];
+    qixz = polar2[i].z;   // rpole[i][6];
+    qiyy = polar2[i].w;   // rpole[i][8];
+    qiyz   = polar3[i].x; // rpole[i][9];
+    qizz   = polar3[i].y; // rpole[i][12];
+    itype  = polar3[i].z; // amtype[i];
+    igroup = polar3[i].w; // amgroup[i];
+
+    // debug:
+    // xi__ = ix; xi__.w = itype;
+
+    numtyp pdi = damping[itype].x;
+    numtyp pti = damping[itype].y;
+
+    for ( ; nbor<nbor_end; nbor+=n_stride) {
+
+      int jextra=nbor_mem[nbor];
+      int j = jextra & NEIGHMASK15;
+
+      numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
+      //int jtype=jx.w;
+ 
+      // Compute r12
+      numtyp xr = jx.x - ix.x;
+      numtyp yr = jx.y - ix.y;
+      numtyp zr = jx.z - ix.z;
+      numtyp r2 = xr*xr + yr*yr + zr*zr;
+
+      //if (r2>off2) continue;
+  
+      numtyp r = ucl_sqrt(r2);
+      
+      numtyp ck = polar1[j].x;   // rpole[j][0];
+      numtyp dkx = polar1[j].y;  // rpole[j][1];
+      numtyp dky = polar1[j].z;  // rpole[j][2];
+      numtyp dkz = polar1[j].w;  // rpole[j][3];
+      numtyp qkxx = polar2[j].x; // rpole[j][4];
+      numtyp qkxy = polar2[j].y; // rpole[j][5];
+      numtyp qkxz = polar2[j].z; // rpole[j][6];
+      numtyp qkyy = polar2[j].w; // rpole[j][8];
+      numtyp qkyz = polar3[j].x; // rpole[j][9];
+      numtyp qkzz = polar3[j].y; // rpole[j][12];
+      int jtype =   polar3[j].z; // amtype[j];
+      int jgroup =  polar3[j].w; // amgroup[j];
+
+      const numtyp4 sp_pol = sp_polar[sbmask15(jextra)];
+      numtyp factor_mpole = sp_pol.w; // sp_mpole[sbmask15(jextra)];
+
+      // intermediates involving moments and separation distance
+
+      numtyp dir = dix*xr + diy*yr + diz*zr;
+      numtyp qix = qixx*xr + qixy*yr + qixz*zr;
+      numtyp qiy = qixy*xr + qiyy*yr + qiyz*zr;
+      numtyp qiz = qixz*xr + qiyz*yr + qizz*zr;
+      numtyp qir = qix*xr + qiy*yr + qiz*zr;
+      numtyp dkr = dkx*xr + dky*yr + dkz*zr;
+      numtyp qkx = qkxx*xr + qkxy*yr + qkxz*zr;
+      numtyp qky = qkxy*xr + qkyy*yr + qkyz*zr;
+      numtyp qkz = qkxz*xr + qkyz*yr + qkzz*zr;
+      numtyp qkr = qkx*xr + qky*yr + qkz*zr;
+      
+      numtyp dik = dix*dkx + diy*dky + diz*dkz;
+      numtyp qik = qix*qkx + qiy*qky + qiz*qkz;
+      numtyp diqk = dix*qkx + diy*qky + diz*qkz;
+      numtyp dkqi = dkx*qix + dky*qiy + dkz*qiz;
+      numtyp qiqk = (numtyp )2.0*(qixy*qkxy+qixz*qkxz+qiyz*qkyz) + 
+        qixx*qkxx + qiyy*qkyy + qizz*qkzz;
+
+      // additional intermediates involving moments and distance
+
+      numtyp dirx = diy*zr - diz*yr;
+      numtyp diry = diz*xr - dix*zr;
+      numtyp dirz = dix*yr - diy*xr;
+      numtyp dkrx = dky*zr - dkz*yr;
+      numtyp dkry = dkz*xr - dkx*zr;
+      numtyp dkrz = dkx*yr - dky*xr;
+      numtyp dikx = diy*dkz - diz*dky;
+      numtyp diky = diz*dkx - dix*dkz;
+      numtyp dikz = dix*dky - diy*dkx;
+      numtyp qirx = qiz*yr - qiy*zr;
+      numtyp qiry = qix*zr - qiz*xr;
+      numtyp qirz = qiy*xr - qix*yr;
+      numtyp qkrx = qkz*yr - qky*zr;
+      numtyp qkry = qkx*zr - qkz*xr;
+      numtyp qkrz = qky*xr - qkx*yr;
+      numtyp qikx = qky*qiz - qkz*qiy;
+      numtyp qiky = qkz*qix - qkx*qiz;
+      numtyp qikz = qkx*qiy - qky*qix;
+      numtyp qixk = qixx*qkx + qixy*qky + qixz*qkz;
+      numtyp qiyk = qixy*qkx + qiyy*qky + qiyz*qkz;
+      numtyp qizk = qixz*qkx + qiyz*qky + qizz*qkz;
+      numtyp qkxi = qkxx*qix + qkxy*qiy + qkxz*qiz;
+      numtyp qkyi = qkxy*qix + qkyy*qiy + qkyz*qiz;
+      numtyp qkzi = qkxz*qix + qkyz*qiy + qkzz*qiz;
+      numtyp qikrx = qizk*yr - qiyk*zr;
+      numtyp qikry = qixk*zr - qizk*xr;
+      numtyp qikrz = qiyk*xr - qixk*yr;
+      numtyp qkirx = qkzi*yr - qkyi*zr;
+      numtyp qkiry = qkxi*zr - qkzi*xr;
+      numtyp qkirz = qkyi*xr - qkxi*yr;
+      numtyp diqkx = dix*qkxx + diy*qkxy + diz*qkxz;
+      numtyp diqky = dix*qkxy + diy*qkyy + diz*qkyz;
+      numtyp diqkz = dix*qkxz + diy*qkyz + diz*qkzz;
+      numtyp dkqix = dkx*qixx + dky*qixy + dkz*qixz;
+      numtyp dkqiy = dkx*qixy + dky*qiyy + dkz*qiyz;
+      numtyp dkqiz = dkx*qixz + dky*qiyz + dkz*qizz;
+      numtyp diqkrx = diqkz*yr - diqky*zr;
+      numtyp diqkry = diqkx*zr - diqkz*xr;
+      numtyp diqkrz = diqky*xr - diqkx*yr;
+      numtyp dkqirx = dkqiz*yr - dkqiy*zr;
+      numtyp dkqiry = dkqix*zr - dkqiz*xr;
+      numtyp dkqirz = dkqiy*xr - dkqix*yr;
+      numtyp dqikx = diy*qkz - diz*qky + dky*qiz - dkz*qiy - 
+        (numtyp)2.0*(qixy*qkxz+qiyy*qkyz+qiyz*qkzz - qixz*qkxy-qiyz*qkyy-qizz*qkyz);
+      numtyp dqiky = diz*qkx - dix*qkz + dkz*qix - dkx*qiz - 
+        (numtyp)2.0*(qixz*qkxx+qiyz*qkxy+qizz*qkxz - qixx*qkxz-qixy*qkyz-qixz*qkzz);
+      numtyp dqikz = dix*qky - diy*qkx + dkx*qiy - dky*qix - 
+        (numtyp)2.0*(qixx*qkxy+qixy*qkyy+qixz*qkyz - qixy*qkxx-qiyy*qkxy-qiyz*qkxz);
+
+      // get reciprocal distance terms for this interaction
+
+      numtyp rinv = ucl_recip(r);
+      numtyp r2inv = rinv*rinv;
+      numtyp rr1 = felec * rinv;
+      numtyp rr3 = rr1 * r2inv;
+      numtyp rr5 = (numtyp)3.0 * rr3 * r2inv;
+      numtyp rr7 = (numtyp)5.0 * rr5 * r2inv;
+      numtyp rr9 = (numtyp)7.0 * rr7 * r2inv;
+      numtyp rr11 = (numtyp)9.0 * rr9 * r2inv;
+
+      // calculate the real space Ewald error function terms
+
+      numtyp ralpha = aewald * r;
+      numtyp exp2a = ucl_exp(-ralpha*ralpha);
+      numtyp t = ucl_recip((numtyp)1.0 + EWALD_P*ralpha);
+      numtyp _erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * exp2a;
+      //bn[0] = erfc(ralpha) / r;
+      bn[0] = _erfc * rinv;
+      numtyp alsq2 = (numtyp)2.0 * aewald*aewald;
+      numtyp alsq2n = (numtyp)0.0;
+      if (aewald > (numtyp)0.0) alsq2n = (numtyp)1.0 / (MY_PIS*aewald);
+
+      for (m = 1; m < 6; m++) {
+        bfac = (numtyp) (m+m-1);
+        alsq2n = alsq2 * alsq2n;
+        bn[m] = (bfac*bn[m-1]+alsq2n*exp2a) / r2;
+      }
+      for (m = 0; m < 6; m++) bn[m] *= felec;
+
+      term1 = ci*ck;
+      term2 = ck*dir - ci*dkr + dik;
+      term3 = ci*qkr + ck*qir - dir*dkr + 2.0*(dkqi-diqk+qiqk);
+      term4 = dir*qkr - dkr*qir - 4.0*qik;
+      term5 = qir*qkr;
+
+      numtyp scalek = 1.0 - factor_mpole;
+      rr1 = bn[0] - scalek*rr1;
+      rr3 = bn[1] - scalek*rr3;
+      rr5 = bn[2] - scalek*rr5;
+      rr7 = bn[3] - scalek*rr7;
+      rr9 = bn[4] - scalek*rr9;
+      rr11 = bn[5] - scalek*rr11;
+      numtyp e = term1*rr1 + term2*rr3 + term3*rr5 + term4*rr7 + term5*rr9;
+
+      // find standard multipole intermediates for force and torque
+
+      numtyp de = term1*rr3 + term2*rr5 + term3*rr7 + term4*rr9 + term5*rr11;
+      term1 = -ck*rr3 + dkr*rr5 - qkr*rr7;
+      term2 = ci*rr3 + dir*rr5 + qir*rr7;
+      term3 = (numtyp)2.0 * rr5;
+      term4 = (numtyp)2.0 * (-ck*rr5+dkr*rr7-qkr*rr9);
+      term5 = (numtyp)2.0 * (-ci*rr5-dir*rr7-qir*rr9);
+      term6 = (numtyp)4.0 * rr7;
+
+      energy += e;
+
+      // compute the force components for this interaction
+
+      numtyp frcx = de*xr + term1*dix + term2*dkx + term3*(diqkx-dkqix) + 
+        term4*qix + term5*qkx + term6*(qixk+qkxi);
+      numtyp frcy = de*yr + term1*diy + term2*dky + term3*(diqky-dkqiy) + 
+        term4*qiy + term5*qky + term6*(qiyk+qkyi);
+      numtyp frcz = de*zr + term1*diz + term2*dkz + term3*(diqkz-dkqiz) + 
+        term4*qiz + term5*qkz + term6*(qizk+qkzi);
+
+      // compute the torque components for this interaction
+
+      numtyp tix = -rr3*dikx + term1*dirx + term3*(dqikx+dkqirx) - 
+        term4*qirx - term6*(qikrx+qikx);
+      numtyp tiy = -rr3*diky + term1*diry + term3*(dqiky+dkqiry) - 
+        term4*qiry - term6*(qikry+qiky);
+      numtyp tiz = -rr3*dikz + term1*dirz + term3*(dqikz+dkqirz) - 
+        term4*qirz - term6*(qikrz+qikz);
+
+      // increment force-based gradient and torque on first site
+
+      f.x += frcx;
+      f.y += frcy;
+      f.z += frcz;
+      tq.x += tix;
+      tq.y += tiy;
+      tq.z += tiz;
+
+      if (EVFLAG && vflag) {
+        numtyp vxx = -xr * frcx;
+        numtyp vxy = (numtyp )-0.5 * (yr*frcx+xr*frcy);
+        numtyp vxz = (numtyp )-0.5 * (zr*frcx+xr*frcz);
+        numtyp vyy = -yr * frcy;
+        numtyp vyz = (numtyp )-0.5 * (zr*frcy+yr*frcz);
+        numtyp vzz = -zr * frcz;
+
+        virial[0] += vxx;
+        virial[1] += vyy;
+        virial[2] += vzz;
+        virial[3] += vxy;
+        virial[4] += vxz;
+        virial[5] += vyz;
+      }
+    } // nbor
+    
+  } // ii<inum
+
+  // accumulate ufld and dufld to compute tep
+  store_answers_amoeba_tq(tq,ii,inum,tid,t_per_atom,offset,i,tep);
+  
+  // accumate force, energy and virial
+  store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
+     offset,eflag,vflag,ans,engv);
+}
 
 /* ----------------------------------------------------------------------
   udirect2b = Ewald real direct field via list

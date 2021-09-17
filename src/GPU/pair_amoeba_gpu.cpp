@@ -53,6 +53,7 @@ enum{GORDON1,GORDON2};
 int amoeba_gpu_init(const int ntypes, const int max_amtype,
                     const double *host_pdamp, const double *host_thole,
                     const double *host_dirdamp,
+                    const double *host_special_mpole,
                     const double *host_special_polar_wscale,
                     const double *host_special_polar_piscale,
                     const double *host_special_polar_pscale,
@@ -62,6 +63,15 @@ int amoeba_gpu_init(const int ntypes, const int max_amtype,
                     const double aewald, const double polar_dscale,
                     const double polar_uscale, int& tep_size);
 void amoeba_gpu_clear();
+
+int ** amoeba_gpu_compute_multipole_real(const int ago, const int inum, const int nall,
+              double **host_x, int *host_type, int *host_amtype, int *host_amgroup,
+              double **host_rpole, double *sublo, double *subhi, tagint *tag,
+              int **nspecial, tagint **special, int* nspecial15, tagint** special15,
+              const bool eflag, const bool vflag, const bool eatom, const bool vatom,
+              int &host_start, int **ilist, int **jnum, const double cpu_time,
+              bool &success, const double felec, const double off2, double *host_q,
+              double *boxlo, double *prd, void **tep_ptr);
 
 int ** amoeba_gpu_compute_udirect2b(const int ago, const int inum, const int nall,
               double **host_x, int *host_type, int *host_amtype, int *host_amgroup,
@@ -90,7 +100,7 @@ int ** amoeba_gpu_compute_polar_real(const int ago, const int inum, const int na
               tagint **special, int* nspecial15, tagint** special15,
               const bool eflag, const bool vflag, const bool eatom, const bool vatom,
               int &host_start, int **ilist, int **jnum, const double cpu_time,
-              bool &success, const double off2, const double felec, double *host_q,
+              bool &success, const double felec, const double off2, double *host_q,
               double *boxlo, double *prd, void **tep_ptr);
 
 double amoeba_gpu_bytes();
@@ -106,6 +116,7 @@ PairAmoebaGPU::PairAmoebaGPU(LAMMPS *lmp) : PairAmoeba(lmp), gpu_mode(GPU_FORCE)
   fieldp_pinned = nullptr;
   tep_pinned = nullptr;
 
+  gpu_multipole_real_ready = false;
   gpu_udirect2b_ready = true;
   gpu_umutual2b_ready = true;
   gpu_polar_real_ready = true;
@@ -120,139 +131,6 @@ PairAmoebaGPU::PairAmoebaGPU(LAMMPS *lmp) : PairAmoeba(lmp), gpu_mode(GPU_FORCE)
 PairAmoebaGPU::~PairAmoebaGPU()
 {
   amoeba_gpu_clear();
-}
-
-/* ---------------------------------------------------------------------- */
-
-void PairAmoebaGPU::polar_real()
-{
-  if (!gpu_polar_real_ready) {
-    PairAmoeba::polar_real();
-    return;
-  }
-
-  int eflag=1, vflag=1;
-  int nall = atom->nlocal + atom->nghost;
-  int inum, host_start;
-
-  bool success = true;
-  int *ilist, *numneigh, **firstneigh;
-  
-  double sublo[3],subhi[3];
-  if (domain->triclinic == 0) {
-    sublo[0] = domain->sublo[0];
-    sublo[1] = domain->sublo[1];
-    sublo[2] = domain->sublo[2];
-    subhi[0] = domain->subhi[0];
-    subhi[1] = domain->subhi[1];
-    subhi[2] = domain->subhi[2];
-  } else {
-    domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
-  }
-  inum = atom->nlocal;
-
-  // select the correct cutoff for the term
-
-  if (use_ewald) choose(POLAR_LONG);
-  else choose(POLAR);
-
-  // set the energy unit conversion factor for polar real-space calculation
-
-  double felec = 0.5 * electric / am_dielectric;
-
-  firstneigh = amoeba_gpu_compute_polar_real(neighbor->ago, inum, nall, atom->x,
-                                        atom->type, amtype, amgroup,
-                                        rpole, uind, uinp, sublo, subhi,
-                                        atom->tag, atom->nspecial, atom->special,
-                                        atom->nspecial15, atom->special15,
-                                        eflag, vflag, eflag_atom, vflag_atom,
-                                        host_start, &ilist, &numneigh, cpu_time,
-                                        success, felec, off2, atom->q, domain->boxlo,
-                                        domain->prd, &tep_pinned);
-  
-  if (!success)
-    error->one(FLERR,"Insufficient memory on accelerator");
-
-  // reference to the tep array from GPU lib
-
-  if (tep_single) {
-    float *tep_ptr = (float *)tep_pinned;
-    compute_force_from_tep<float>(tep_ptr);
-  } else {
-    double *tep_ptr = (double *)tep_pinned;
-    compute_force_from_tep<double>(tep_ptr);
-  }
-}
-
-/* ----------------------------------------------------------------------
-   init specific to this pair style
-------------------------------------------------------------------------- */
-
-template <class numtyp>
-void PairAmoebaGPU::compute_force_from_tep(const numtyp* tep_ptr)
-{
-  int i,ix,iy,iz;
-  double ci,dix,diy,diz;
-  double qixx,qixy,qixz;
-  double qiyy,qiyz,qizz;
-  double xix,yix,zix;
-  double xiy,yiy,ziy;
-  double xiz,yiz,ziz;
-  double vxx,vyy,vzz;
-  double vxy,vxz,vyz;
-  double fix[3],fiy[3],fiz[3],tep[4];
-
-  double** x = atom->x;
-  int nlocal = atom->nlocal;
-
-  for (i = 0; i < nlocal; i++) {
-    dix = rpole[i][1];
-    diy = rpole[i][2];
-    diz = rpole[i][3];
-    qixx = rpole[i][4];
-    qixy = rpole[i][5];
-    qixz = rpole[i][6];
-    qiyy = rpole[i][8];
-    qiyz = rpole[i][9];
-    qizz = rpole[i][12];
-    
-    tep[0] = tep_ptr[4*i];
-    tep[1] = tep_ptr[4*i+1];
-    tep[2] = tep_ptr[4*i+2];
-
-    torque2force(i,tep,fix,fiy,fiz,fpolar);
-
-    iz = zaxis2local[i];
-    ix = xaxis2local[i];
-    iy = yaxis2local[i];
-
-    xiz = x[iz][0] - x[i][0];
-    yiz = x[iz][1] - x[i][1];
-    ziz = x[iz][2] - x[i][2];
-    xix = x[ix][0] - x[i][0];
-    yix = x[ix][1] - x[i][1];
-    zix = x[ix][2] - x[i][2];
-    xiy = x[iy][0] - x[i][0];
-    yiy = x[iy][1] - x[i][1];
-    ziy = x[iy][2] - x[i][2];
-
-    vxx = xix*fix[0] + xiy*fiy[0] + xiz*fiz[0];
-    vyy = yix*fix[1] + yiy*fiy[1] + yiz*fiz[1];
-    vzz = zix*fix[2] + ziy*fiy[2] + ziz*fiz[2];
-    vxy = 0.5 * (yix*fix[0] + yiy*fiy[0] + yiz*fiz[0] + 
-                xix*fix[1] + xiy*fiy[1] + xiz*fiz[1]);
-    vxz = 0.5 * (zix*fix[0] + ziy*fiy[0] + ziz*fiz[0] + 
-                xix*fix[2] + xiy*fiy[2] + xiz*fiz[2]);
-    vyz = 0.5 * (zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] + 
-                yix*fix[2] + yiy*fiy[2] + yiz*fiz[2]);
-
-    virpolar[0] += vxx;
-    virpolar[1] += vyy;
-    virpolar[2] += vzz;
-    virpolar[3] += vxy;
-    virpolar[4] += vxz;
-    virpolar[5] += vyz;
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -292,7 +170,7 @@ void PairAmoebaGPU::init_style()
   int tep_size;
   int mnf = 5e-2 * neighbor->oneatom;
   int success = amoeba_gpu_init(atom->ntypes+1, max_amtype, pdamp, thole, dirdamp,
-                                special_polar_wscale, special_polar_piscale,
+                                special_mpole, special_polar_wscale, special_polar_piscale,
                                 special_polar_pscale, atom->nlocal,
                                 atom->nlocal+atom->nghost, mnf, maxspecial,
                                 maxspecial15, cell_size, gpu_mode, screen,
@@ -306,6 +184,68 @@ void PairAmoebaGPU::init_style()
     tep_single = false;
   else
     tep_single = true;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairAmoebaGPU::multipole_real()
+{
+  if (!gpu_multipole_real_ready) {
+    PairAmoeba::multipole_real();
+    return;
+  }
+
+  int eflag=1, vflag=1;
+  int nall = atom->nlocal + atom->nghost;
+  int inum, host_start;
+
+  bool success = true;
+  int *ilist, *numneigh, **firstneigh;
+  
+  double sublo[3],subhi[3];
+  if (domain->triclinic == 0) {
+    sublo[0] = domain->sublo[0];
+    sublo[1] = domain->sublo[1];
+    sublo[2] = domain->sublo[2];
+    subhi[0] = domain->subhi[0];
+    subhi[1] = domain->subhi[1];
+    subhi[2] = domain->subhi[2];
+  } else {
+    domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
+  }
+  inum = atom->nlocal;
+
+  // select the correct cutoff for the term
+
+  if (use_ewald) choose(MPOLE_LONG);
+  else choose(MPOLE);
+
+  // set the energy unit conversion factor for multipolar real-space calculation
+
+  double felec = electric / am_dielectric;
+
+  firstneigh = amoeba_gpu_compute_multipole_real(neighbor->ago, inum, nall, atom->x,
+                                                 atom->type, amtype, amgroup, rpole,
+                                                 sublo, subhi, atom->tag,
+                                                 atom->nspecial, atom->special,
+                                                 atom->nspecial15, atom->special15,
+                                                 eflag, vflag, eflag_atom, vflag_atom,
+                                                 host_start, &ilist, &numneigh, cpu_time,
+                                                 success, felec, off2, atom->q, domain->boxlo,
+                                                 domain->prd, &tep_pinned);
+  
+  if (!success)
+    error->one(FLERR,"Insufficient memory on accelerator");
+
+  // reference to the tep array from GPU lib
+
+  if (tep_single) {
+    float *tep_ptr = (float *)tep_pinned;
+    compute_force_from_tep<float>(tep_ptr, fmpole, virmpole);
+  } else {
+    double *tep_ptr = (double *)tep_pinned;
+    compute_force_from_tep<double>(tep_ptr, fmpole, virmpole);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1036,6 +976,128 @@ void PairAmoebaGPU::umutual2b(double **field, double **fieldp)
     fieldp[i][0] += fieldp_ptr[idx];
     fieldp[i][1] += fieldp_ptr[idx+1];
     fieldp[i][2] += fieldp_ptr[idx+2];
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairAmoebaGPU::polar_real()
+{
+  if (!gpu_polar_real_ready) {
+    PairAmoeba::polar_real();
+    return;
+  }
+
+  int eflag=1, vflag=1;
+  int nall = atom->nlocal + atom->nghost;
+  int inum, host_start;
+
+  bool success = true;
+  int *ilist, *numneigh, **firstneigh;
+  
+  double sublo[3],subhi[3];
+  if (domain->triclinic == 0) {
+    sublo[0] = domain->sublo[0];
+    sublo[1] = domain->sublo[1];
+    sublo[2] = domain->sublo[2];
+    subhi[0] = domain->subhi[0];
+    subhi[1] = domain->subhi[1];
+    subhi[2] = domain->subhi[2];
+  } else {
+    domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
+  }
+  inum = atom->nlocal;
+
+  // select the correct cutoff for the term
+
+  if (use_ewald) choose(POLAR_LONG);
+  else choose(POLAR);
+
+  // set the energy unit conversion factor for polar real-space calculation
+
+  double felec = 0.5 * electric / am_dielectric;
+
+  firstneigh = amoeba_gpu_compute_polar_real(neighbor->ago, inum, nall, atom->x,
+                                        atom->type, amtype, amgroup,
+                                        rpole, uind, uinp, sublo, subhi,
+                                        atom->tag, atom->nspecial, atom->special,
+                                        atom->nspecial15, atom->special15,
+                                        eflag, vflag, eflag_atom, vflag_atom,
+                                        host_start, &ilist, &numneigh, cpu_time,
+                                        success, felec, off2, atom->q, domain->boxlo,
+                                        domain->prd, &tep_pinned);
+  
+  if (!success)
+    error->one(FLERR,"Insufficient memory on accelerator");
+
+  // reference to the tep array from GPU lib
+
+  if (tep_single) {
+    float *tep_ptr = (float *)tep_pinned;
+    compute_force_from_tep<float>(tep_ptr, fpolar, virpolar);
+  } else {
+    double *tep_ptr = (double *)tep_pinned;
+    compute_force_from_tep<double>(tep_ptr, fpolar, virpolar);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   init specific to this pair style
+------------------------------------------------------------------------- */
+
+template <class numtyp>
+void PairAmoebaGPU::compute_force_from_tep(const numtyp* tep_ptr,
+                                           double** force_comp,
+                                           double* virial_comp)
+{
+  int i,ix,iy,iz;
+  double xix,yix,zix;
+  double xiy,yiy,ziy;
+  double xiz,yiz,ziz;
+  double vxx,vyy,vzz;
+  double vxy,vxz,vyz;
+  double fix[3],fiy[3],fiz[3],tep[4];
+
+  double** x = atom->x;
+  int nlocal = atom->nlocal;
+
+  for (i = 0; i < nlocal; i++) {
+    tep[0] = tep_ptr[4*i];
+    tep[1] = tep_ptr[4*i+1];
+    tep[2] = tep_ptr[4*i+2];
+
+    torque2force(i,tep,fix,fiy,fiz,force_comp);
+
+    iz = zaxis2local[i];
+    ix = xaxis2local[i];
+    iy = yaxis2local[i];
+
+    xiz = x[iz][0] - x[i][0];
+    yiz = x[iz][1] - x[i][1];
+    ziz = x[iz][2] - x[i][2];
+    xix = x[ix][0] - x[i][0];
+    yix = x[ix][1] - x[i][1];
+    zix = x[ix][2] - x[i][2];
+    xiy = x[iy][0] - x[i][0];
+    yiy = x[iy][1] - x[i][1];
+    ziy = x[iy][2] - x[i][2];
+
+    vxx = xix*fix[0] + xiy*fiy[0] + xiz*fiz[0];
+    vyy = yix*fix[1] + yiy*fiy[1] + yiz*fiz[1];
+    vzz = zix*fix[2] + ziy*fiy[2] + ziz*fiz[2];
+    vxy = 0.5 * (yix*fix[0] + yiy*fiy[0] + yiz*fiz[0] + 
+                xix*fix[1] + xiy*fiy[1] + xiz*fiz[1]);
+    vxz = 0.5 * (zix*fix[0] + ziy*fiy[0] + ziz*fiz[0] + 
+                xix*fix[2] + xiy*fiy[2] + xiz*fiz[2]);
+    vyz = 0.5 * (zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] + 
+                yix*fix[2] + yiy*fiy[2] + yiz*fiz[2]);
+
+    virial_comp[0] += vxx;
+    virial_comp[1] += vyy;
+    virial_comp[2] += vzz;
+    virial_comp[3] += vxy;
+    virial_comp[4] += vxz;
+    virial_comp[5] += vyz;
   }
 }
 

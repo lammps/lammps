@@ -45,7 +45,8 @@ int AmoebaT::bytes_per_atom(const int max_nbors) const {
 
 template <class numtyp, class acctyp>
 int AmoebaT::init(const int ntypes, const int max_amtype, const double *host_pdamp,
-                  const double *host_thole, const double *host_dirdamp, 
+                  const double *host_thole, const double *host_dirdamp,
+                  const double *host_special_mpole,
                   const double *host_special_polar_wscale,
                   const double *host_special_polar_piscale,
                   const double *host_special_polar_pscale,
@@ -57,8 +58,9 @@ int AmoebaT::init(const int ntypes, const int max_amtype, const double *host_pda
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,maxspecial15,
                             cell_size,gpu_split,_screen,amoeba,
-                            "k_amoeba_polar", "k_amoeba_udirect2b",
-                            "k_amoeba_umutual2b", "k_amoeba_short_nbor");
+                            "k_amoeba_multipole", "k_amoeba_udirect2b",
+                            "k_amoeba_umutual2b", "k_amoeba_polar",
+                            "k_amoeba_short_nbor");
   if (success!=0)
     return success;
 
@@ -91,7 +93,7 @@ int AmoebaT::init(const int ntypes, const int max_amtype, const double *host_pda
     dview[i].x=host_special_polar_wscale[i];
     dview[i].y=host_special_polar_piscale[i];
     dview[i].z=host_special_polar_pscale[i];
-    dview[i].w=(numtyp)0;
+    dview[i].w=host_special_mpole[i];
   }
   ucl_copy(sp_polar,dview,5,false);
 
@@ -121,6 +123,47 @@ void AmoebaT::clear() {
 template <class numtyp, class acctyp>
 double AmoebaT::host_memory_usage() const {
   return this->host_memory_usage_atomic()+sizeof(Amoeba<numtyp,acctyp>);
+}
+
+// ---------------------------------------------------------------------------
+// Calculate the polar real-space term, returning tep
+// ---------------------------------------------------------------------------
+template <class numtyp, class acctyp>
+int AmoebaT::multipole_real(const int eflag, const int vflag) {
+  int ainum=this->ans->inum();
+  if (ainum == 0)
+    return 0;
+
+  int _nall=this->atom->nall();
+  int nbor_pitch=this->nbor->nbor_pitch();
+
+  // Compute the block size and grid size to keep all cores busy
+  const int BX=this->block_size();
+  int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
+                               (BX/this->_threads_per_atom)));
+  this->time_pair.start();
+
+  // Build the short neighbor list if not done yet
+  if (!this->short_nbor_avail) {
+    this->k_short_nbor.set_size(GX,BX);
+    this->k_short_nbor.run(&this->atom->x, &this->nbor->dev_nbor,
+                          &this->_nbor_data->begin(),
+                          &this->dev_short_nbor, &this->_off2_polar, &ainum,
+                          &nbor_pitch, &this->_threads_per_atom);
+    this->short_nbor_avail = true;
+  }
+
+  this->k_multipole.set_size(GX,BX);
+  this->k_multipole.run(&this->atom->x, &this->atom->extra, &damping, &sp_polar,
+                    &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+                    &this->dev_short_nbor,
+                    &this->ans->force, &this->ans->engv, &this->_tep,
+                    &eflag, &vflag, &ainum, &_nall, &nbor_pitch,
+                    &this->_threads_per_atom,  &_aewald, &this->_felec,
+                    &this->_off2_mpole, &_polar_dscale, &_polar_uscale);
+  this->time_pair.stop();
+
+  return GX;
 }
 
 // ---------------------------------------------------------------------------

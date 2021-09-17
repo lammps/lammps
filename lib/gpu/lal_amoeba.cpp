@@ -143,15 +143,14 @@ int AmoebaT::multipole_real(const int eflag, const int vflag) {
                                (BX/this->_threads_per_atom)));
   this->time_pair.start();
 
-  // Build the short neighbor list if not done yet
-  if (!this->short_nbor_avail) {
-    this->k_short_nbor.set_size(GX,BX);
-    this->k_short_nbor.run(&this->atom->x, &this->nbor->dev_nbor,
-                          &this->_nbor_data->begin(),
-                          &this->dev_short_nbor, &this->_off2_polar, &ainum,
-                          &nbor_pitch, &this->_threads_per_atom);
-    this->short_nbor_avail = true;
-  }
+  // Build the short neighbor list for the cutoff off2_mpole,
+  //   at this point mpole is the first kernel in a time step
+  
+  this->k_short_nbor.set_size(GX,BX);
+  this->k_short_nbor.run(&this->atom->x, &this->nbor->dev_nbor,
+                         &this->_nbor_data->begin(),
+                         &this->dev_short_nbor, &this->_off2_mpole, &ainum,
+                         &nbor_pitch, &this->_threads_per_atom);
 
   this->k_multipole.set_size(GX,BX);
   this->k_multipole.run(&this->atom->x, &this->atom->extra, &damping, &sp_polar,

@@ -826,7 +826,7 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
       numtyp zr = jx.z - ix.z;
       numtyp r2 = xr*xr + yr*yr + zr*zr;
 
-      if (r2>off2) continue;
+      //if (r2>off2) continue;
   
       numtyp r = ucl_sqrt(r2);
       numtyp rinv = ucl_recip(r);

@@ -116,7 +116,7 @@ PairAmoebaGPU::PairAmoebaGPU(LAMMPS *lmp) : PairAmoeba(lmp), gpu_mode(GPU_FORCE)
   fieldp_pinned = nullptr;
   tep_pinned = nullptr;
 
-  gpu_multipole_real_ready = false;
+  gpu_multipole_real_ready = true;
   gpu_udirect2b_ready = true;
   gpu_umutual2b_ready = true;
   gpu_polar_real_ready = true;

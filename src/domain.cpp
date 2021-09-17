@@ -1884,9 +1884,9 @@ void Domain::set_boundary(int narg, char **arg, int flag)
       }
     }
 
-  for (auto &bdim : boundary)
-    if ((bdim[0] == 0 && bdim[1]) ||
-        (bdim[0] && bdim[1] == 0))
+  for (int idim = 0; idim < 3; idim++)
+    if ((boundary[idim][0] == 0 && boundary[idim][1]) ||
+        (boundary[idim][0] && boundary[idim][1] == 0))
       error->all(FLERR,"Both sides of boundary must be periodic");
 
   if (boundary[0][0] == 0) xperiodic = 1;
@@ -1988,12 +1988,12 @@ void Domain::print_box(const std::string &prefix)
 void Domain::boundary_string(char *str)
 {
   int m = 0;
-  for (auto &bdim : boundary) {
-    for (auto &bside : bdim) {
-      if (bside == 0) str[m++] = 'p';
-      else if (bside == 1) str[m++] = 'f';
-      else if (bside == 2) str[m++] = 's';
-      else if (bside == 3) str[m++] = 'm';
+  for (int idim = 0; idim < 3; idim++) {
+    for (int iside = 0; iside < 2; iside++) {
+      if (boundary[idim][iside] == 0) str[m++] = 'p';
+      else if (boundary[idim][iside] == 1) str[m++] = 'f';
+      else if (boundary[idim][iside] == 2) str[m++] = 's';
+      else if (boundary[idim][iside] == 3) str[m++] = 'm';
     }
     str[m++] = ' ';
   }

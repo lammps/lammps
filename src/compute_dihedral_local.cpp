@@ -192,7 +192,7 @@ void ComputeDihedralLocal::compute_local()
 
 int ComputeDihedralLocal::compute_dihedrals(int flag)
 {
-  int i,m,n,nd,atom1,atom2,atom3,atom4,imol,iatom,ivar;
+  int i,m,nd,atom1,atom2,atom3,atom4,imol,iatom,ivar;
   tagint tagprev;
   double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,vb2xm,vb2ym,vb2zm;
   double ax,ay,az,bx,by,bz,rasq,rbsq,rgsq,rg,ra2inv,rb2inv,rabinv;

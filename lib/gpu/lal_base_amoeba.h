@@ -151,7 +151,7 @@ class BaseAmoeba {
                 const bool eflag, const bool vflag,
                 const bool eatom, const bool vatom, int &host_start,
                 int **ilist, int **numj, const double cpu_time, bool &success,
-                const double felec, const double off2_mpole, double *charge,
+                const double aewald, const double felec, const double off2_mpole, double *charge,
                 double *boxlo, double *prd, void **tep_ptr);
 
   /// Compute the real space part of the permanent field (udirect2b) with device neighboring
@@ -165,7 +165,8 @@ class BaseAmoeba {
                 const bool eflag, const bool vflag,
                 const bool eatom, const bool vatom, int &host_start,
                 int **ilist, int **numj, const double cpu_time, bool &success,
-                const double off2_polar, double *charge, double *boxlo, double *prd, void **fieldp_ptr);
+                const double aewald, const double off2_polar, double *charge,
+                double *boxlo, double *prd, void **fieldp_ptr);
 
   /// Compute the real space part of the induced field (umutual2b) with device neighboring
   int** compute_umutual2b(const int ago, const int inum_full, const int nall,
@@ -178,7 +179,8 @@ class BaseAmoeba {
                 const bool eflag, const bool vflag,
                 const bool eatom, const bool vatom, int &host_start,
                 int **ilist, int **numj, const double cpu_time, bool &success,
-                const double off2_polar, double *charge, double *boxlo, double *prd, void **fieldp_ptr);
+                const double aewald, const double off2_polar, double *charge,
+                double *boxlo, double *prd, void **fieldp_ptr);
 
   /// Compute polar real-space with device neighboring
   int** compute_polar_real(const int ago, const int inum_full, const int nall,
@@ -190,7 +192,7 @@ class BaseAmoeba {
                 const bool eflag, const bool vflag,
                 const bool eatom, const bool vatom, int &host_start,
                 int **ilist, int **numj, const double cpu_time, bool &success,
-                const double felec, const double off2_polar, double *charge,
+                const double aewald, const double felec, const double off2_polar, double *charge,
                 double *boxlo, double *prd, void **tep_ptr);
 
   /// Compute polar real-space with host neighboring (not active for now)
@@ -200,7 +202,7 @@ class BaseAmoeba {
                double **host_uinp, int *ilist, int *numj,
                int **firstneigh, const bool eflag, const bool vflag,
                const bool eatom, const bool vatom, int &host_start,
-               const double cpu_time, bool &success, const double felec, const double off2_polar,
+               const double cpu_time, bool &success, const double aewald, const double felec, const double off2_polar,
                double *charge, const int nlocal, double *boxlo, double *prd, void **tep_ptr);
 
   // -------------------------- DEVICE DATA -------------------------
@@ -272,7 +274,8 @@ class BaseAmoeba {
   bool short_nbor_avail;
   UCL_D_Vec<int> *_nbor_data;
 
-  numtyp _felec,_off2_hal,_off2_repulse,_off2_dispersion,_off2_mpole,_off2_polar;
+  numtyp _aewald,_felec;
+  numtyp _off2_hal,_off2_repulse,_off2_dispersion,_off2_mpole,_off2_polar;
 
   void compile_kernels(UCL_Device &dev, const void *pair_string,
      const char *kname_multipole, const char *kname_udirect2b,

@@ -60,8 +60,7 @@ int amoeba_gpu_init(const int ntypes, const int max_amtype,
                     const int nlocal, const int nall, const int max_nbors,
                     const int maxspecial, const int maxspecial15,
                     const double cell_size, int &gpu_mode, FILE *screen,
-                    const double aewald, const double polar_dscale,
-                    const double polar_uscale, int& tep_size);
+                    const double polar_dscale, const double polar_uscale, int& tep_size);
 void amoeba_gpu_clear();
 
 int ** amoeba_gpu_compute_multipole_real(const int ago, const int inum, const int nall,
@@ -70,8 +69,8 @@ int ** amoeba_gpu_compute_multipole_real(const int ago, const int inum, const in
               int **nspecial, tagint **special, int* nspecial15, tagint** special15,
               const bool eflag, const bool vflag, const bool eatom, const bool vatom,
               int &host_start, int **ilist, int **jnum, const double cpu_time,
-              bool &success, const double felec, const double off2, double *host_q,
-              double *boxlo, double *prd, void **tep_ptr);
+              bool &success, const double aewald, const double felec, const double off2,
+              double *host_q, double *boxlo, double *prd, void **tep_ptr);
 
 int ** amoeba_gpu_compute_udirect2b(const int ago, const int inum, const int nall,
               double **host_x, int *host_type, int *host_amtype, int *host_amgroup,
@@ -80,7 +79,7 @@ int ** amoeba_gpu_compute_udirect2b(const int ago, const int inum, const int nal
               tagint **special, int* nspecial15, tagint** special15,
               const bool eflag, const bool vflag, const bool eatom, const bool vatom,
               int &host_start, int **ilist, int **jnum, const double cpu_time,
-              bool &success, const double off2, double *host_q,
+              bool &success, const double aewald, const double off2, double *host_q,
               double *boxlo, double *prd, void **fieldp_ptr);
 
 int ** amoeba_gpu_compute_umutual2b(const int ago, const int inum, const int nall,
@@ -90,7 +89,7 @@ int ** amoeba_gpu_compute_umutual2b(const int ago, const int inum, const int nal
               tagint **special, int* nspecial15, tagint** special15,
               const bool eflag, const bool vflag, const bool eatom, const bool vatom,
               int &host_start, int **ilist, int **jnum, const double cpu_time,
-              bool &success, const double off2, double *host_q,
+              bool &success, const double aewald, const double off2, double *host_q,
               double *boxlo, double *prd, void **fieldp_ptr);
 
 int ** amoeba_gpu_compute_polar_real(const int ago, const int inum, const int nall,
@@ -100,8 +99,8 @@ int ** amoeba_gpu_compute_polar_real(const int ago, const int inum, const int na
               tagint **special, int* nspecial15, tagint** special15,
               const bool eflag, const bool vflag, const bool eatom, const bool vatom,
               int &host_start, int **ilist, int **jnum, const double cpu_time,
-              bool &success, const double felec, const double off2, double *host_q,
-              double *boxlo, double *prd, void **tep_ptr);
+              bool &success, const double aewald, const double felec, const double off2,
+              double *host_q, double *boxlo, double *prd, void **tep_ptr);
 
 double amoeba_gpu_bytes();
 
@@ -119,7 +118,7 @@ PairAmoebaGPU::PairAmoebaGPU(LAMMPS *lmp) : PairAmoeba(lmp), gpu_mode(GPU_FORCE)
   gpu_multipole_real_ready = true;
   gpu_udirect2b_ready = true;
   gpu_umutual2b_ready = true;
-  gpu_polar_real_ready = true;
+  gpu_polar_real_ready = false;
 
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
@@ -174,7 +173,7 @@ void PairAmoebaGPU::init_style()
                                 special_polar_pscale, atom->nlocal,
                                 atom->nlocal+atom->nghost, mnf, maxspecial,
                                 maxspecial15, cell_size, gpu_mode, screen,
-                                aewald, polar_dscale, polar_uscale, tep_size);
+                                polar_dscale, polar_uscale, tep_size);
   GPU_EXTRA::check_flag(success,error,world);
 
   if (gpu_mode == GPU_FORCE)
@@ -231,14 +230,14 @@ void PairAmoebaGPU::multipole_real()
                                                  atom->nspecial15, atom->special15,
                                                  eflag, vflag, eflag_atom, vflag_atom,
                                                  host_start, &ilist, &numneigh, cpu_time,
-                                                 success, felec, off2, atom->q, domain->boxlo,
-                                                 domain->prd, &tep_pinned);
+                                                 success, aewald, felec, off2, atom->q,
+                                                 domain->boxlo, domain->prd, &tep_pinned);
   
   if (!success)
     error->one(FLERR,"Insufficient memory on accelerator");
 
   // reference to the tep array from GPU lib
-
+  printf("compute multipole real\n");
   if (tep_single) {
     float *tep_ptr = (float *)tep_pinned;
     compute_force_from_tep<float>(tep_ptr, fmpole, virmpole);
@@ -727,7 +726,7 @@ void PairAmoebaGPU::udirect2b(double **field, double **fieldp)
                                         atom->nspecial15, atom->special15,
                                         eflag, vflag, eflag_atom, vflag_atom,
                                         host_start, &ilist, &numneigh, cpu_time,
-                                        success, off2, atom->q, domain->boxlo,
+                                        success, aewald, off2, atom->q, domain->boxlo,
                                         domain->prd, &fieldp_pinned);
   if (!success)
     error->one(FLERR,"Insufficient memory on accelerator");
@@ -951,7 +950,7 @@ void PairAmoebaGPU::umutual2b(double **field, double **fieldp)
                                         atom->nspecial15, atom->special15,
                                         eflag, vflag, eflag_atom, vflag_atom,
                                         host_start, &ilist, &numneigh, cpu_time,
-                                        success, off2, atom->q, domain->boxlo,
+                                        success,aewald, off2, atom->q, domain->boxlo,
                                         domain->prd, &fieldp_pinned);
   if (!success)
     error->one(FLERR,"Insufficient memory on accelerator");
@@ -1008,7 +1007,7 @@ void PairAmoebaGPU::polar_real()
   }
   inum = atom->nlocal;
 
-  // select the correct cutoff for the term
+  // select the correct cutoff and aewald for the term
 
   if (use_ewald) choose(POLAR_LONG);
   else choose(POLAR);
@@ -1024,14 +1023,14 @@ void PairAmoebaGPU::polar_real()
                                         atom->nspecial15, atom->special15,
                                         eflag, vflag, eflag_atom, vflag_atom,
                                         host_start, &ilist, &numneigh, cpu_time,
-                                        success, felec, off2, atom->q, domain->boxlo,
+                                        success, aewald, felec, off2, atom->q, domain->boxlo,
                                         domain->prd, &tep_pinned);
   
   if (!success)
     error->one(FLERR,"Insufficient memory on accelerator");
 
   // reference to the tep array from GPU lib
-
+  printf("compute polar real\n");
   if (tep_single) {
     float *tep_ptr = (float *)tep_pinned;
     compute_force_from_tep<float>(tep_ptr, fpolar, virpolar);
@@ -1066,7 +1065,9 @@ void PairAmoebaGPU::compute_force_from_tep(const numtyp* tep_ptr,
     tep[1] = tep_ptr[4*i+1];
     tep[2] = tep_ptr[4*i+2];
 
+    if (i == 0) printf("before fcomp = %f %f %f\n", force_comp[i][0], force_comp[i][1], force_comp[i][2]);
     torque2force(i,tep,fix,fiy,fiz,force_comp);
+    if (i == 0) printf("before fcomp = %f %f %f\n", force_comp[i][0], force_comp[i][1], force_comp[i][2]);
 
     iz = zaxis2local[i];
     ix = xaxis2local[i];
@@ -1086,12 +1087,12 @@ void PairAmoebaGPU::compute_force_from_tep(const numtyp* tep_ptr,
     vyy = yix*fix[1] + yiy*fiy[1] + yiz*fiz[1];
     vzz = zix*fix[2] + ziy*fiy[2] + ziz*fiz[2];
     vxy = 0.5 * (yix*fix[0] + yiy*fiy[0] + yiz*fiz[0] + 
-                xix*fix[1] + xiy*fiy[1] + xiz*fiz[1]);
+                 xix*fix[1] + xiy*fiy[1] + xiz*fiz[1]);
     vxz = 0.5 * (zix*fix[0] + ziy*fiy[0] + ziz*fiz[0] + 
-                xix*fix[2] + xiy*fiy[2] + xiz*fiz[2]);
+                 xix*fix[2] + xiy*fiy[2] + xiz*fiz[2]);
     vyz = 0.5 * (zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] + 
-                yix*fix[2] + yiy*fiy[2] + yiz*fiz[2]);
-
+                 yix*fix[2] + yiy*fiy[2] + yiz*fiz[2]);
+    //if (i < 10) printf("fix = %f %f %f; v %f %f %f %f %f %f\n", fix[0], fix[1], fix[2], vxx, vyy, vzz, vxy, vxz,vyz);
     virial_comp[0] += vxx;
     virial_comp[1] += vyy;
     virial_comp[2] += vzz;

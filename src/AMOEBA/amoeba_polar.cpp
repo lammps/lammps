@@ -1176,7 +1176,7 @@ void PairAmoeba::polar_real()
   comm->reverse_comm_pair(this);
 
   // torque is induced field and gradient cross permanent moments
-  
+  printf("compute polar real\n");
   for (i = 0; i < nlocal; i++) {
     dix = rpole[i][1];
     diy = rpole[i][2];
@@ -1197,8 +1197,10 @@ void PairAmoeba::polar_real()
       qiyz*dufld[i][3] - qixz*dufld[i][4] + 
       2.0*qixy*(dufld[i][0]-dufld[i][2]) + (qiyy-qixx)*dufld[i][1];
 
+    if (i == 0) printf("before fpolar = %f %f %f\n", fpolar[i][0], fpolar[i][1], fpolar[i][2]);
     torque2force(i,tep,fix,fiy,fiz,fpolar);
-    
+    if (i == 0) printf("after fpolar = %f %f %f\n", fpolar[i][0], fpolar[i][1], fpolar[i][2]);
+
     iz = zaxis2local[i];
     ix = xaxis2local[i];
     iy = yaxis2local[i];
@@ -1222,7 +1224,7 @@ void PairAmoeba::polar_real()
                  xix*fix[2] + xiy*fiy[2] + xiz*fiz[2]);
     vyz = 0.5 * (zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] + 
                  yix*fix[2] + yiy*fiy[2] + yiz*fiz[2]);
-
+    //if (i < 10) printf("fix = %f %f %f; v %f %f %f %f %f %f\n", fix[0], fix[1], fix[2], vxx, vyy, vzz, vxy, vxz,vyz);
     virpolar[0] += vxx;
     virpolar[1] += vyy;
     virpolar[2] += vzz;

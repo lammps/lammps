@@ -972,6 +972,9 @@ void PairAmoeba::init_style()
   // request neighbor lists
 
   int irequest = neighbor->request(this,instance_me);
+  // for DEBUGGING with GPU
+  //neighbor->requests[irequest]->half = 0;
+  //neighbor->requests[irequest]->full = 1;
 
   // open debug output files
   // names are hard-coded

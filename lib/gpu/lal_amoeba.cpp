@@ -53,8 +53,7 @@ int AmoebaT::init(const int ntypes, const int max_amtype, const double *host_pda
                   const int nlocal, const int nall, const int max_nbors,
                   const int maxspecial, const int maxspecial15,
                   const double cell_size, const double gpu_split, FILE *_screen,
-                  const double aewald, const double polar_dscale,
-                  const double polar_uscale) {
+                  const double polar_dscale, const double polar_uscale) {
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,maxspecial15,
                             cell_size,gpu_split,_screen,amoeba,
@@ -97,7 +96,6 @@ int AmoebaT::init(const int ntypes, const int max_amtype, const double *host_pda
   }
   ucl_copy(sp_polar,dview,5,false);
 
-  _aewald = aewald;
   _polar_dscale = polar_dscale;
   _polar_uscale = polar_uscale;
 
@@ -158,7 +156,7 @@ int AmoebaT::multipole_real(const int eflag, const int vflag) {
                     &this->dev_short_nbor,
                     &this->ans->force, &this->ans->engv, &this->_tep,
                     &eflag, &vflag, &ainum, &_nall, &nbor_pitch,
-                    &this->_threads_per_atom,  &_aewald, &this->_felec,
+                    &this->_threads_per_atom,  &this->_aewald, &this->_felec,
                     &this->_off2_mpole, &_polar_dscale, &_polar_uscale);
   this->time_pair.stop();
 
@@ -198,7 +196,7 @@ int AmoebaT::udirect2b(const int eflag, const int vflag) {
                         &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                         &this->dev_short_nbor,
                         &this->_fieldp, &ainum, &_nall, &nbor_pitch,
-                        &this->_threads_per_atom, &_aewald, &this->_off2_polar,
+                        &this->_threads_per_atom, &this->_aewald, &this->_off2_polar,
                         &_polar_dscale, &_polar_uscale);
 
   this->time_pair.stop();
@@ -237,7 +235,7 @@ int AmoebaT::umutual2b(const int eflag, const int vflag) {
   this->k_umutual2b.run(&this->atom->x, &this->atom->extra, &damping, &sp_polar,
                         &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                         &this->dev_short_nbor, &this->_fieldp, &ainum, &_nall,
-                        &nbor_pitch, &this->_threads_per_atom, &_aewald,
+                        &nbor_pitch, &this->_threads_per_atom, &this->_aewald,
                         &this->_off2_polar, &_polar_dscale, &_polar_uscale);
 
   this->time_pair.stop();
@@ -278,7 +276,7 @@ int AmoebaT::polar_real(const int eflag, const int vflag) {
                     &this->dev_short_nbor,
                     &this->ans->force, &this->ans->engv, &this->_tep,
                     &eflag, &vflag, &ainum, &_nall, &nbor_pitch,
-                    &this->_threads_per_atom,  &_aewald, &this->_felec,
+                    &this->_threads_per_atom,  &this->_aewald, &this->_felec,
                     &this->_off2_polar, &_polar_dscale, &_polar_uscale);
   this->time_pair.stop();
 

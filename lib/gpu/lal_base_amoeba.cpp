@@ -252,8 +252,8 @@ void BaseAmoebaT::compute_polar_real_host_nbor(const int f_ago, const int inum_f
                           const bool eflag_in, const bool vflag_in,
                           const bool eatom, const bool vatom,
                           int &host_start, const double cpu_time,
-                          bool &success, const double off2_polar, const double felec,
-                          double *host_q, const int nlocal,
+                          bool &success, const double aewald, const double felec, 
+                          const double off2_polar, double *host_q, const int nlocal,
                           double *boxlo, double *prd, void **tep_ptr) {
   acc_timers();
   int eflag, vflag;
@@ -440,7 +440,7 @@ int** BaseAmoebaT::compute_multipole_real(const int ago, const int inum_full, co
                            const bool eflag_in, const bool vflag_in,
                            const bool eatom, const bool vatom, int &host_start,
                            int **ilist, int **jnum, const double cpu_time,
-                           bool &success, const double felec, const double off2_mpole,
+                           bool &success, const double aewald, const double felec, const double off2_mpole,
                            double *host_q, double *boxlo, double *prd, void **tep_ptr) {
   acc_timers();
   int eflag, vflag;
@@ -488,6 +488,7 @@ int** BaseAmoebaT::compute_multipole_real(const int ago, const int inum_full, co
 
   _off2_mpole = off2_mpole;
   _felec = felec;
+  _aewald = aewald;
   const int red_blocks=multipole_real(eflag,vflag);
   ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
   device->add_ans_object(ans);
@@ -521,8 +522,8 @@ int** BaseAmoebaT::compute_udirect2b(const int ago, const int inum_full, const i
                            const bool eflag_in, const bool vflag_in,
                            const bool eatom, const bool vatom, int &host_start,
                            int **ilist, int **jnum, const double cpu_time,
-                           bool &success, const double off2_polar, double *host_q,
-                           double *boxlo, double *prd, void** fieldp_ptr) {
+                           bool &success, const double aewald, const double off2_polar,
+                           double *host_q, double *boxlo, double *prd, void** fieldp_ptr) {
   acc_timers();
   int eflag, vflag;
   if (eatom) eflag=2;
@@ -560,6 +561,7 @@ int** BaseAmoebaT::compute_udirect2b(const int ago, const int inum_full, const i
   *fieldp_ptr=_fieldp.host.begin();
 
   _off2_polar = off2_polar;
+  _aewald = aewald;
   const int red_blocks=udirect2b(eflag,vflag);
 
   // copy field and fieldp from device to host (_fieldp store both arrays, one after another)
@@ -591,8 +593,8 @@ int** BaseAmoebaT::compute_umutual2b(const int ago, const int inum_full, const i
                            const bool eflag_in, const bool vflag_in,
                            const bool eatom, const bool vatom, int &host_start,
                            int **ilist, int **jnum, const double cpu_time,
-                           bool &success, const double off2_polar, double *host_q,
-                           double *boxlo, double *prd, void** fieldp_ptr) {
+                           bool &success, const double aewald, const double off2_polar,
+                           double *host_q, double *boxlo, double *prd, void** fieldp_ptr) {
   acc_timers();
   int eflag, vflag;
   if (eatom) eflag=2;
@@ -630,6 +632,7 @@ int** BaseAmoebaT::compute_umutual2b(const int ago, const int inum_full, const i
   *fieldp_ptr=_fieldp.host.begin();
 
   _off2_polar = off2_polar;
+  _aewald = aewald;
   const int red_blocks=umutual2b(eflag,vflag);
 
   // copy field and fieldp from device to host (_fieldp store both arrays, one after another)
@@ -660,8 +663,9 @@ int** BaseAmoebaT::compute_polar_real(const int ago, const int inum_full, const 
                            const bool eflag_in, const bool vflag_in,
                            const bool eatom, const bool vatom, int &host_start,
                            int **ilist, int **jnum, const double cpu_time,
-                           bool &success, const double felec, const double off2_polar,
-                           double *host_q, double *boxlo, double *prd, void **tep_ptr) {
+                           bool &success, const double aewald, const double felec,
+                           const double off2_polar, double *host_q, double *boxlo,
+                           double *prd, void **tep_ptr) {
   acc_timers();
   int eflag, vflag;
   if (eatom) eflag=2;
@@ -708,6 +712,7 @@ int** BaseAmoebaT::compute_polar_real(const int ago, const int inum_full, const 
 
   _off2_polar = off2_polar;
   _felec = felec;
+  _aewald = aewald;
   const int red_blocks=polar_real(eflag,vflag);
   ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
   device->add_ans_object(ans);

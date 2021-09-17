@@ -225,20 +225,20 @@ _texture( q_tex,int2);
 ------------------------------------------------------------------------- */
 
 __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
-                            const __global numtyp *restrict extra,
-                            const __global numtyp4 *restrict damping,
-                            const __global numtyp4 *restrict sp_polar,
-                            const __global int *dev_nbor,
-                            const __global int *dev_packed,
-                            const __global int *dev_short_nbor,
-                            __global acctyp4 *restrict ans,
-                            __global acctyp *restrict engv,
-                            __global numtyp4 *restrict tep,
-                            const int eflag, const int vflag, const int inum,
-                            const int nall, const int nbor_pitch, const int t_per_atom,
-                            const numtyp aewald, const numtyp felec,
-                            const numtyp off2, const numtyp polar_dscale,
-                            const numtyp polar_uscale)
+                                const __global numtyp *restrict extra,
+                                const __global numtyp4 *restrict damping,
+                                const __global numtyp4 *restrict sp_polar,
+                                const __global int *dev_nbor,
+                                const __global int *dev_packed,
+                                const __global int *dev_short_nbor,
+                                __global acctyp4 *restrict ans,
+                                __global acctyp *restrict engv,
+                                __global numtyp4 *restrict tep,
+                                const int eflag, const int vflag, const int inum,
+                                const int nall, const int nbor_pitch, const int t_per_atom,
+                                const numtyp aewald, const numtyp felec,
+                                const numtyp off2, const numtyp polar_dscale,
+                                const numtyp polar_uscale)
 {
   int tid, ii, offset, i;
   atom_info(t_per_atom,ii,tid,offset);
@@ -257,7 +257,7 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
   }
 
   acctyp4 tq;
-  tq.x=(acctyp)0; tq.y=(acctyp)0; tq.z=(acctyp)0; tq.w=(acctyp)0; 
+  tq.x=(acctyp)0; tq.y=(acctyp)0; tq.z=(acctyp)0;
 
   numtyp dix,diy,diz,qixx,qixy,qixz,qiyy,qiyz,qizz;
   numtyp4* polar1 = (numtyp4*)(&extra[0]);
@@ -272,7 +272,6 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
     numtyp term1,term2,term3;
     numtyp term4,term5;
     numtyp term6,term7;
-    numtyp rc3[3],rc5[3],rc7[3];
     numtyp bn[6];
     numtyp ci,uix,uiy,uiz,uixp,uiyp,uizp;
 
@@ -309,9 +308,6 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
     // debug:
     // xi__ = ix; xi__.w = itype;
 
-    numtyp pdi = damping[itype].x;
-    numtyp pti = damping[itype].y;
-
     for ( ; nbor<nbor_end; nbor+=n_stride) {
 
       int jextra=nbor_mem[nbor];
@@ -326,10 +322,9 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
       numtyp zr = jx.z - ix.z;
       numtyp r2 = xr*xr + yr*yr + zr*zr;
 
-      //if (r2>off2) continue;
+      if (r2>off2) continue;
   
       numtyp r = ucl_sqrt(r2);
-      
       numtyp ck = polar1[j].x;   // rpole[j][0];
       numtyp dkx = polar1[j].y;  // rpole[j][1];
       numtyp dky = polar1[j].z;  // rpole[j][2];
@@ -363,7 +358,7 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
       numtyp qik = qix*qkx + qiy*qky + qiz*qkz;
       numtyp diqk = dix*qkx + diy*qky + diz*qkz;
       numtyp dkqi = dkx*qix + dky*qiy + dkz*qiz;
-      numtyp qiqk = (numtyp )2.0*(qixy*qkxy+qixz*qkxz+qiyz*qkyz) + 
+      numtyp qiqk = (numtyp)2.0*(qixy*qkxy+qixz*qkxz+qiyz*qkyz) + 
         qixx*qkxx + qiyy*qkyy + qizz*qkzz;
 
       // additional intermediates involving moments and distance
@@ -452,8 +447,7 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
       term3 = ci*qkr + ck*qir - dir*dkr + 2.0*(dkqi-diqk+qiqk);
       term4 = dir*qkr - dkr*qir - 4.0*qik;
       term5 = qir*qkr;
-
-      numtyp scalek = 1.0 - factor_mpole;
+      numtyp scalek = (numtyp)1.0 - factor_mpole;
       rr1 = bn[0] - scalek*rr1;
       rr3 = bn[1] - scalek*rr3;
       rr5 = bn[2] - scalek*rr5;
@@ -485,11 +479,11 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
 
       // compute the torque components for this interaction
 
-      numtyp tix = -rr3*dikx + term1*dirx + term3*(dqikx+dkqirx) - 
+      numtyp ttmix = -rr3*dikx + term1*dirx + term3*(dqikx+dkqirx) - 
         term4*qirx - term6*(qikrx+qikx);
-      numtyp tiy = -rr3*diky + term1*diry + term3*(dqiky+dkqiry) - 
+      numtyp ttmiy = -rr3*diky + term1*diry + term3*(dqiky+dkqiry) - 
         term4*qiry - term6*(qikry+qiky);
-      numtyp tiz = -rr3*dikz + term1*dirz + term3*(dqikz+dkqirz) - 
+      numtyp ttmiz = -rr3*dikz + term1*dirz + term3*(dqikz+dkqirz) - 
         term4*qirz - term6*(qikrz+qikz);
 
       // increment force-based gradient and torque on first site
@@ -497,16 +491,16 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
       f.x += frcx;
       f.y += frcy;
       f.z += frcz;
-      tq.x += tix;
-      tq.y += tiy;
-      tq.z += tiz;
+      tq.x += ttmix;
+      tq.y += ttmiy;
+      tq.z += ttmiz;
 
       if (EVFLAG && vflag) {
         numtyp vxx = -xr * frcx;
-        numtyp vxy = (numtyp )-0.5 * (yr*frcx+xr*frcy);
-        numtyp vxz = (numtyp )-0.5 * (zr*frcx+xr*frcz);
+        numtyp vxy = (numtyp)-0.5 * (yr*frcx+xr*frcy);
+        numtyp vxz = (numtyp)-0.5 * (zr*frcx+xr*frcz);
         numtyp vyy = -yr * frcy;
-        numtyp vyz = (numtyp )-0.5 * (zr*frcy+yr*frcz);
+        numtyp vyz = (numtyp)-0.5 * (zr*frcy+yr*frcz);
         numtyp vzz = -zr * frcz;
 
         virial[0] += vxx;
@@ -520,7 +514,7 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
     
   } // ii<inum
 
-  // accumulate ufld and dufld to compute tep
+  // accumulate tq
   store_answers_amoeba_tq(tq,ii,inum,tid,t_per_atom,offset,i,tep);
   
   // accumate force, energy and virial

@@ -50,13 +50,14 @@ enum{GORDON1,GORDON2};
 
 // External functions from cuda library for atom decomposition
 
-int amoeba_gpu_init(const int ntypes, const int max_amtype,
+int amoeba_gpu_init(const int ntypes, const int max_amtype, const int max_amclass,
                     const double *host_pdamp, const double *host_thole,
-                    const double *host_dirdamp,
+                    const double *host_dirdamp, const int* host_amtype2class,
                     const double *host_special_mpole,
                     const double *host_special_polar_wscale,
                     const double *host_special_polar_piscale,
                     const double *host_special_polar_pscale,
+                    const double *host_csix, const double *host_adisp,
                     const int nlocal, const int nall, const int max_nbors,
                     const int maxspecial, const int maxspecial15,
                     const double cell_size, int &gpu_mode, FILE *screen,
@@ -168,9 +169,10 @@ void PairAmoebaGPU::init_style()
     
   int tq_size;
   int mnf = 5e-2 * neighbor->oneatom;
-  int success = amoeba_gpu_init(atom->ntypes+1, max_amtype, pdamp, thole, dirdamp,
-                                special_mpole, special_polar_wscale, special_polar_piscale,
-                                special_polar_pscale, atom->nlocal,
+  int success = amoeba_gpu_init(atom->ntypes+1, max_amtype, max_amclass,
+                                pdamp, thole, dirdamp, amtype2class, special_mpole,
+                                special_polar_wscale, special_polar_piscale,
+                                special_polar_pscale, csix, adisp, atom->nlocal,
                                 atom->nlocal+atom->nghost, mnf, maxspecial,
                                 maxspecial15, cell_size, gpu_mode, screen,
                                 polar_dscale, polar_uscale, tq_size);

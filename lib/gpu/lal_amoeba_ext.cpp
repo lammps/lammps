@@ -27,13 +27,14 @@ static Amoeba<PRECISION,ACC_PRECISION> AMOEBAMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
-int amoeba_gpu_init(const int ntypes, const int max_amtype,
+int amoeba_gpu_init(const int ntypes, const int max_amtype, const int max_amclass,
                     const double *host_pdamp, const double *host_thole,
-                    const double *host_dirdamp,
+                    const double *host_dirdamp, const int *host_amtype2class,
                     const double *host_special_mpole,
                     const double *host_special_polar_wscale,
                     const double *host_special_polar_piscale,
                     const double *host_special_polar_pscale,
+                    const double *host_csix, const double *host_adisp,
                     const int nlocal, const int nall, const int max_nbors,
                     const int maxspecial, const int maxspecial15,
                     const double cell_size, int &gpu_mode, FILE *screen,
@@ -63,11 +64,13 @@ int amoeba_gpu_init(const int ntypes, const int max_amtype,
 
   int init_ok=0;
   if (world_me==0)
-    init_ok=AMOEBAMF.init(ntypes, max_amtype, host_pdamp, host_thole, host_dirdamp,
-                          host_special_mpole, host_special_polar_wscale,
+    init_ok=AMOEBAMF.init(ntypes, max_amtype, max_amclass,
+                          host_pdamp, host_thole, host_dirdamp,
+                          host_amtype2class, host_special_mpole, host_special_polar_wscale,
                           host_special_polar_piscale, host_special_polar_pscale,
-                          nlocal, nall, max_nbors, maxspecial, maxspecial15,
-                          cell_size, gpu_split, screen, polar_dscale, polar_uscale);
+                          host_csix, host_adisp, nlocal, nall, max_nbors,
+                          maxspecial, maxspecial15, cell_size, gpu_split,
+                          screen, polar_dscale, polar_uscale);
 
   AMOEBAMF.device->world_barrier();
   if (message)
@@ -83,11 +86,12 @@ int amoeba_gpu_init(const int ntypes, const int max_amtype,
       fflush(screen);
     }
     if (gpu_rank==i && world_me!=0)
-      init_ok=AMOEBAMF.init(ntypes, max_amtype, host_pdamp, host_thole, host_dirdamp,
-                            host_special_mpole, host_special_polar_wscale,
+      init_ok=AMOEBAMF.init(ntypes, max_amtype, max_amclass, host_pdamp, host_thole, host_dirdamp,
+                            host_amtype2class, host_special_mpole, host_special_polar_wscale,
                             host_special_polar_piscale, host_special_polar_pscale,
-                            nlocal, nall, max_nbors, maxspecial, maxspecial15,
-                            cell_size, gpu_split, screen, polar_dscale, polar_uscale);
+                            host_csix, host_adisp, nlocal, nall, max_nbors,
+                            maxspecial, maxspecial15, cell_size, gpu_split,
+                            screen, polar_dscale, polar_uscale);
 
     AMOEBAMF.device->gpu_barrier();
     if (message)

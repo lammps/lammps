@@ -37,12 +37,13 @@ class Amoeba : public BaseAmoeba<numtyp, acctyp> {
     * - -3 if there is an out of memory error
     * - -4 if the GPU library was not compiled for GPU
     * - -5 Double precision is not supported on card **/
-  int init(const int ntypes, const int max_amtype, const double *host_pdamp,
-           const double *host_thole, const double *host_dirdamp, 
-           const double *host_special_mpole,
+  int init(const int ntypes, const int max_amtype, const int max_amclass,
+           const double *host_pdamp, const double *host_thole, const double *host_dirdamp,
+           const int *host_amtype2class, const double *host_special_mpole,
            const double *host_special_polar_wscale,
            const double *host_special_polar_piscale,
            const double *host_special_polar_pscale,
+           const double *host_csix, const double *host_adisp,
            const int nlocal, const int nall, const int max_nbors,
            const int maxspecial, const int maxspecial15, const double cell_size,
            const double gpu_split, FILE *_screen,
@@ -60,8 +61,11 @@ class Amoeba : public BaseAmoeba<numtyp, acctyp> {
 
   // --------------------------- TYPE DATA --------------------------
 
-  /// pdamp = damping.x; thole = damping.y
-  UCL_D_Vec<numtyp4> damping;
+  /// pdamp = coeff_amtype.x; thole = coeff_amtype.y;
+  /// dirdamp = coeff_amtype.z; amtype2class = coeff_amtype.w
+  UCL_D_Vec<numtyp4> coeff_amtype;
+  /// csix = coeff_amclass.x; adisp = coeff_amclass.y;
+  UCL_D_Vec<numtyp4> coeff_amclass;
   /// Special polar values [0-4]: 
   ///   sp_polar.x = special_polar_wscale
   ///   sp_polar.y special_polar_pscale,

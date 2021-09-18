@@ -147,7 +147,7 @@ _texture( q_tex,int2);
     fieldp[ii+inum] = fp;                                                   \
   }
 
-#define store_answers_p(f,energy,e_coul, virial, ii, inum, tid, t_per_atom  \
+#define store_answers_acc(f,energy,e_coul, virial, ii, inum, tid, t_per_atom  \
                         offset, eflag, vflag, ans, engv, ev_stride)         \
   if (t_per_atom>1) {                                                       \
     simd_reduce_add3(t_per_atom, red_acc, offset, tid, f.x, f.y, f.z);      \
@@ -210,8 +210,7 @@ _texture( q_tex,int2);
     }                                                                       \
   }
 
-// SHUFFLE_AVAIL == 1
-#else
+#else // SHUFFLE_AVAIL == 1
 
 #define local_allocate_store_ufld()
 
@@ -280,7 +279,7 @@ _texture( q_tex,int2);
 
 #if (EVFLAG == 1)
 
-#define store_answers_p(f,energy,e_coul, virial, ii, inum, tid, t_per_atom, \
+#define store_answers_acc(f,energy,e_coul, virial, ii, inum, tid, t_per_atom, \
                         offset, eflag, vflag, ans, engv, ev_stride)         \
   if (t_per_atom>1) {                                                       \
     simd_reduce_add3(t_per_atom, f.x, f.y, f.z);                            \
@@ -376,7 +375,7 @@ _texture( q_tex,int2);
 // EVFLAG == 0
 #else
 
-#define store_answers_p(f,energy,e_coul, virial, ii, inum, tid, t_per_atom, \
+#define store_answers_acc(f,energy,e_coul, virial, ii, inum, tid, t_per_atom, \
                         offset, eflag, vflag, ans, engv, ev_stride)         \
   if (t_per_atom>1)                                                         \
     simd_reduce_add3(t_per_atom, f.x, f.y, f.z);                            \
@@ -395,13 +394,132 @@ _texture( q_tex,int2);
 #define MY_PIS (acctyp)1.77245385090551602729
 
 /* ----------------------------------------------------------------------
+   dispersion = real-space portion of Ewald dispersion
+   adapted from Tinker edreal1d() routine
+------------------------------------------------------------------------- */
+
+__kernel void k_amoeba_dispersion(const __global numtyp4 *restrict x_,
+                                 const __global numtyp *restrict extra,
+                                 const __global numtyp4 *restrict coeff,
+                                 const __global numtyp4 *restrict sp_polar,
+                                 const __global int *dev_nbor,
+                                 const __global int *dev_packed,
+                                 const __global int *dev_short_nbor,
+                                 __global acctyp4 *restrict ans,
+                                 __global acctyp *restrict engv,
+                                 const int eflag, const int vflag, const int inum,
+                                 const int nall, const int nbor_pitch,
+                                 const int t_per_atom, const numtyp aewald,
+                                 const numtyp felec, const numtyp off2,
+                                 const numtyp polar_dscale, const numtyp polar_uscale)
+{
+  int tid, ii, offset, i;
+  atom_info(t_per_atom,ii,tid,offset);
+
+  int n_stride;
+  local_allocate_store_charge();
+
+  acctyp4 f;
+  f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
+  acctyp energy, e_coul, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    e_coul=(acctyp)0;
+    for (int l=0; l<6; l++) virial[l]=(acctyp)0;
+  }
+
+  acctyp4 tq;
+  tq.x=(acctyp)0; tq.y=(acctyp)0; tq.z=(acctyp)0;
+
+  numtyp4* polar1 = (numtyp4*)(&extra[0]);
+  numtyp4* polar2 = (numtyp4*)(&extra[4*nall]);
+  numtyp4* polar3 = (numtyp4*)(&extra[8*nall]);
+
+  if (ii<inum) {
+    int m,itype,igroup;
+    numtyp bfac;
+    numtyp term1,term2,term3;
+    numtyp term4,term5,term6;
+    numtyp bn[6];
+    numtyp ci,dix,diy,diz,qixx,qixy,qixz,qiyy,qiyz,qizz;
+
+    int numj, nbor, nbor_end;
+    const __global int* nbor_mem=dev_packed;
+    nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
+              n_stride,nbor_end,nbor);
+
+    numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
+    //numtyp qtmp; fetch(qtmp,i,q_tex);
+    //int itype=ix.w;
+
+    // recalculate numj and nbor_end for use of the short nbor list
+    if (dev_packed==dev_nbor) {
+      numj = dev_short_nbor[nbor];
+      nbor += n_stride;
+      nbor_end = nbor+fast_mul(numj,n_stride);
+      nbor_mem = dev_short_nbor;
+    }
+
+    ci  = polar1[i].x;    // rpole[i][0];
+    dix = polar1[i].y;    // rpole[i][1];
+    diy = polar1[i].z;    // rpole[i][2];
+    diz = polar1[i].w;    // rpole[i][3];
+    qixx = polar2[i].x;   // rpole[i][4];
+    qixy = polar2[i].y;   // rpole[i][5];
+    qixz = polar2[i].z;   // rpole[i][6];
+    qiyy = polar2[i].w;   // rpole[i][8];
+    qiyz   = polar3[i].x; // rpole[i][9];
+    qizz   = polar3[i].y; // rpole[i][12];
+    itype  = polar3[i].z; // amtype[i];
+    igroup = polar3[i].w; // amgroup[i];
+
+    for ( ; nbor<nbor_end; nbor+=n_stride) {
+
+      int jextra=nbor_mem[nbor];
+      int j = jextra & NEIGHMASK15;
+
+      numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
+      //int jtype=jx.w;
+ 
+      // Compute r12
+      numtyp xr = jx.x - ix.x;
+      numtyp yr = jx.y - ix.y;
+      numtyp zr = jx.z - ix.z;
+      numtyp r2 = xr*xr + yr*yr + zr*zr;
+
+      //if (r2>off2) continue;
+  
+      numtyp r = ucl_sqrt(r2);
+      numtyp ck = polar1[j].x;   // rpole[j][0];
+      numtyp dkx = polar1[j].y;  // rpole[j][1];
+      numtyp dky = polar1[j].z;  // rpole[j][2];
+      numtyp dkz = polar1[j].w;  // rpole[j][3];
+      numtyp qkxx = polar2[j].x; // rpole[j][4];
+      numtyp qkxy = polar2[j].y; // rpole[j][5];
+      numtyp qkxz = polar2[j].z; // rpole[j][6];
+      numtyp qkyy = polar2[j].w; // rpole[j][8];
+      numtyp qkyz = polar3[j].x; // rpole[j][9];
+      numtyp qkzz = polar3[j].y; // rpole[j][12];
+      int jtype =   polar3[j].z; // amtype[j];
+      int jgroup =  polar3[j].w; // amgroup[j];
+
+    } // nbor
+    
+  } // ii<inum
+
+  // accumate force, energy and virial
+  //store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
+  //   offset,eflag,vflag,ans,engv);
+}
+
+/* ----------------------------------------------------------------------
    multipole_real = real-space portion of multipole
    adapted from Tinker emreal1d() routine
 ------------------------------------------------------------------------- */
 
 __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
                                  const __global numtyp *restrict extra,
-                                 const __global numtyp4 *restrict damping,
+                                 const __global numtyp4 *restrict coeff,
                                  const __global numtyp4 *restrict sp_polar,
                                  const __global int *dev_nbor,
                                  const __global int *dev_packed,
@@ -697,7 +815,7 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
 
 __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
                                  const __global numtyp *restrict extra,
-                                 const __global numtyp4 *restrict damping,
+                                 const __global numtyp4 *restrict coeff,
                                  const __global numtyp4 *restrict sp_polar,
                                  const __global int *dev_nbor,
                                  const __global int *dev_packed,
@@ -759,9 +877,9 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
     // debug:
     // xi__ = ix; xi__.w = itype;
 
-    numtyp pdi = damping[itype].x;
-    numtyp pti = damping[itype].y;
-    numtyp ddi = damping[itype].z;
+    numtyp pdi = coeff[itype].x;
+    numtyp pti = coeff[itype].y;
+    numtyp ddi = coeff[itype].z;
 
     numtyp aesq2 = (numtyp)2.0 * aewald*aewald;
     numtyp aesq2n = (numtyp)0.0;
@@ -848,9 +966,9 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
       numtyp scale3 = (numtyp)1.0;
       numtyp scale5 = (numtyp)1.0;
       numtyp scale7 = (numtyp)1.0;
-      numtyp damp = pdi * damping[jtype].x; // pdamp[jtype]
+      numtyp damp = pdi * coeff[jtype].x; // pdamp[jtype]
       if (damp != (numtyp)0.0) {
-        numtyp pgamma = MIN(ddi,damping[jtype].z); // dirdamp[jtype]
+        numtyp pgamma = MIN(ddi,coeff[jtype].z); // dirdamp[jtype]
         if (pgamma != (numtyp)0.0) {
           damp = pgamma * ucl_powr(r/damp,(numtyp)1.5);
           if (damp < (numtyp)50.0) {
@@ -860,7 +978,7 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
             scale7 = (numtyp)1.0 - expdamp*((numtyp)1.0+(numtyp)0.65*damp + (numtyp)0.15*damp*damp);
           }
         } else {
-          pgamma = MIN(pti,damping[jtype].y); // thole[jtype]
+          pgamma = MIN(pti,coeff[jtype].y); // thole[jtype]
           damp = pgamma * ucl_powr(r/damp,3.0);
           if (damp < (numtyp)50.0) {
             numtyp expdamp = ucl_exp(-damp);
@@ -911,7 +1029,7 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
 
 __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
                                  const __global numtyp *restrict extra,
-                                 const __global numtyp4 *restrict damping,
+                                 const __global numtyp4 *restrict coeff,
                                  const __global numtyp4 *restrict sp_polar,
                                  const __global int *dev_nbor,
                                  const __global int *dev_packed,
@@ -962,8 +1080,8 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
     itype  = polar3[i].z; // amtype[i];
     igroup = polar3[i].w; // amgroup[i];
     
-    numtyp pdi = damping[itype].x;
-    numtyp pti = damping[itype].y;
+    numtyp pdi = coeff[itype].x;
+    numtyp pti = coeff[itype].y;
 
     numtyp aesq2 = (numtyp)2.0 * aewald*aewald;
     numtyp aesq2n = (numtyp)0.0;
@@ -1025,9 +1143,9 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
       // if (poltyp != DIRECT) 
       numtyp scale3 = (numtyp)1.0;
       numtyp scale5 = (numtyp)1.0;
-      numtyp damp = pdi * damping[jtype].x; // pdamp[jtype]
+      numtyp damp = pdi * coeff[jtype].x; // pdamp[jtype]
       if (damp != (numtyp)0.0) {
-        numtyp pgamma = MIN(pti,damping[jtype].y); // thole[jtype]
+        numtyp pgamma = MIN(pti,coeff[jtype].y); // thole[jtype]
         damp = pgamma * ucl_powr(r/damp,(numtyp)3.0);
         if (damp < (numtyp)50.0) {
           numtyp expdamp = ucl_exp(-damp);
@@ -1131,7 +1249,7 @@ __kernel void k_special15(__global int * dev_nbor,
 
 __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
                             const __global numtyp *restrict extra,
-                            const __global numtyp4 *restrict damping,
+                            const __global numtyp4 *restrict coeff,
                             const __global numtyp4 *restrict sp_polar,
                             const __global int *dev_nbor,
                             const __global int *dev_packed,
@@ -1233,8 +1351,8 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
     // debug:
     // xi__ = ix; xi__.w = itype;
 
-    numtyp pdi = damping[itype].x;
-    numtyp pti = damping[itype].y;
+    numtyp pdi = coeff[itype].x;
+    numtyp pti = coeff[itype].y;
 
     for ( ; nbor<nbor_end; nbor+=n_stride) {
 
@@ -1344,9 +1462,9 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
 
       // apply Thole polarization damping to scale factors
 
-      numtyp damp = pdi * damping[jtype].x; // pdamp[jtype]
+      numtyp damp = pdi * coeff[jtype].x; // pdamp[jtype]
       if (damp != (numtyp)0.0) {
-        numtyp pgamma = MIN(pti,damping[jtype].y); // thole[jtype]
+        numtyp pgamma = MIN(pti,coeff[jtype].y); // thole[jtype]
         damp = pgamma * ucl_powr(r/damp,(numtyp)3.0);
         if (damp < (numtyp)50.0) {
           numtyp expdamp = ucl_exp(-damp);
@@ -1644,7 +1762,7 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
   // accumate force, energy and virial
   //store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
 //     offset,eflag,vflag,ans,engv);
-  store_answers_p(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
+  store_answers_acc(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
      offset,eflag,vflag,ans,engv,NUM_BLOCKS_X);
 }
 

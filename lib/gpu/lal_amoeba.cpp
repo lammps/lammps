@@ -44,12 +44,14 @@ int AmoebaT::bytes_per_atom(const int max_nbors) const {
 }
 
 template <class numtyp, class acctyp>
-int AmoebaT::init(const int ntypes, const int max_amtype, const double *host_pdamp,
-                  const double *host_thole, const double *host_dirdamp,
+int AmoebaT::init(const int ntypes, const int max_amtype, const int max_amclass,
+                  const double *host_pdamp, const double *host_thole,
+                  const double *host_dirdamp, const int *host_amtype2class,
                   const double *host_special_mpole,
                   const double *host_special_polar_wscale,
                   const double *host_special_polar_piscale,
                   const double *host_special_polar_pscale,
+                  const double *host_csix, const double *host_adisp,
                   const int nlocal, const int nall, const int max_nbors,
                   const int maxspecial, const int maxspecial15,
                   const double cell_size, const double gpu_split, FILE *_screen,
@@ -80,11 +82,22 @@ int AmoebaT::init(const int ntypes, const int max_amtype, const double *host_pda
     host_write[i].x = host_pdamp[i];
     host_write[i].y = host_thole[i];
     host_write[i].z = host_dirdamp[i];
-    host_write[i].w = (numtyp)0;
+    host_write[i].w = host_amtype2class[i];
   }
 
-  damping.alloc(max_amtype,*(this->ucl_device), UCL_READ_ONLY);
-  ucl_copy(damping,host_write,false);
+  coeff_amtype.alloc(max_amtype,*(this->ucl_device), UCL_READ_ONLY);
+  ucl_copy(coeff_amtype,host_write,false);
+
+  UCL_H_Vec<numtyp4> host_write2(max_amclass, *(this->ucl_device), UCL_WRITE_ONLY);
+  for (int i = 0; i < max_amclass; i++) {
+    host_write2[i].x = host_csix[i];
+    host_write2[i].y = host_adisp[i];
+    host_write2[i].z = (numtyp)0;
+    host_write2[i].w = (numtyp)0;
+  }
+
+  coeff_amclass.alloc(max_amclass,*(this->ucl_device), UCL_READ_ONLY);
+  ucl_copy(coeff_amclass,host_write2,false);
 
   UCL_H_Vec<numtyp4> dview(5, *(this->ucl_device), UCL_WRITE_ONLY);
   sp_polar.alloc(5,*(this->ucl_device),UCL_READ_ONLY);
@@ -100,9 +113,8 @@ int AmoebaT::init(const int ntypes, const int max_amtype, const double *host_pda
   _polar_uscale = polar_uscale;
 
   _allocated=true;
-  this->_max_bytes=damping.row_bytes()
-    + sp_polar.row_bytes()
-    + this->_tep.row_bytes();
+  this->_max_bytes=coeff_amtype.row_bytes() + coeff_amclass.row_bytes()
+    + sp_polar.row_bytes() + this->_tep.row_bytes();
   return 0;
 }
 
@@ -112,7 +124,7 @@ void AmoebaT::clear() {
     return;
   _allocated=false;
 
-  damping.clear();
+  coeff_amtype.clear();
   sp_polar.clear();
   
   this->clear_atomic();
@@ -151,7 +163,7 @@ int AmoebaT::multipole_real(const int eflag, const int vflag) {
                          &nbor_pitch, &this->_threads_per_atom);
 
   this->k_multipole.set_size(GX,BX);
-  this->k_multipole.run(&this->atom->x, &this->atom->extra, &damping, &sp_polar,
+  this->k_multipole.run(&this->atom->x, &this->atom->extra, &coeff_amtype, &sp_polar,
                     &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                     &this->dev_short_nbor,
                     &this->ans->force, &this->ans->engv, &this->_tep,
@@ -192,7 +204,7 @@ int AmoebaT::udirect2b(const int eflag, const int vflag) {
   }
   
   this->k_udirect2b.set_size(GX,BX);
-  this->k_udirect2b.run(&this->atom->x, &this->atom->extra, &damping, &sp_polar,
+  this->k_udirect2b.run(&this->atom->x, &this->atom->extra, &coeff_amtype, &sp_polar,
                         &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                         &this->dev_short_nbor,
                         &this->_fieldp, &ainum, &_nall, &nbor_pitch,
@@ -232,7 +244,7 @@ int AmoebaT::umutual2b(const int eflag, const int vflag) {
   }
 
   this->k_umutual2b.set_size(GX,BX);
-  this->k_umutual2b.run(&this->atom->x, &this->atom->extra, &damping, &sp_polar,
+  this->k_umutual2b.run(&this->atom->x, &this->atom->extra, &coeff_amtype, &sp_polar,
                         &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                         &this->dev_short_nbor, &this->_fieldp, &ainum, &_nall,
                         &nbor_pitch, &this->_threads_per_atom, &this->_aewald,
@@ -271,7 +283,7 @@ int AmoebaT::polar_real(const int eflag, const int vflag) {
   }
 
   this->k_polar.set_size(GX,BX);
-  this->k_polar.run(&this->atom->x, &this->atom->extra, &damping, &sp_polar,
+  this->k_polar.run(&this->atom->x, &this->atom->extra, &coeff_amtype, &sp_polar,
                     &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                     &this->dev_short_nbor,
                     &this->ans->force, &this->ans->engv, &this->_tep,

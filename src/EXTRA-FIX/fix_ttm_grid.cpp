@@ -366,7 +366,7 @@ void FixTTMGrid::write_electron_temperatures(const std::string &filename)
                update->unit_style, nxgrid, nygrid, nzgrid, update->ntimestep, style);
   }
 
-  gc->gather(GridComm::FIX, this, 1, sizeof(double), 1, NULL, MPI_DOUBLE);
+  gc->gather(GridComm::FIX, this, 1, sizeof(double), 1, nullptr, MPI_DOUBLE);
 
   if (comm->me == 0) fclose(FPout);
 }

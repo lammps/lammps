@@ -346,7 +346,7 @@ void NStencil::create_setup()
     // Skip all stencils by default, initialize smax
     for (i = 0; i < n; i++) {
       for (j = 0; j < n; j++) {
-        flag_skip_multi[i][j] = 1;
+        flag_skip_multi[i][j] = true;
       }
     }
 

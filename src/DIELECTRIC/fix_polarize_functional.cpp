@@ -131,7 +131,7 @@ FixPolarizeFunctional::FixPolarizeFunctional(LAMMPS *lmp, int narg, char **arg) 
   cg_r = cg_p = cg_Ap = nullptr;
   cg_A = nullptr;
 
-  grow_arrays(atom->nmax);
+  FixPolarizeFunctional::grow_arrays(atom->nmax);
   atom->add_callback(0);    // to ensure to work with atom->sort()
 }
 

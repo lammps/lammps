@@ -106,7 +106,7 @@ void ReadRestart::command(int narg, char **arg)
     utils::logmesg(lmp,"Reading restart file ...\n");
     std::string hfile = file;
     if (multiproc) {
-      hfile.replace(hfile.find("%"),1,"base");
+      hfile.replace(hfile.find('%'),1,"base");
     }
     fp = fopen(hfile.c_str(),"rb");
     if (fp == nullptr)
@@ -268,7 +268,7 @@ void ReadRestart::command(int narg, char **arg)
 
     for (int iproc = me; iproc < multiproc_file; iproc += nprocs) {
       std::string procfile = file;
-      procfile.replace(procfile.find("%"),1,fmt::format("{}",iproc));
+      procfile.replace(procfile.find('%'),1,fmt::format("{}",iproc));
       fp = fopen(procfile.c_str(),"rb");
       if (fp == nullptr)
         error->one(FLERR,"Cannot open restart file {}: {}",
@@ -332,7 +332,7 @@ void ReadRestart::command(int narg, char **arg)
 
     if (filereader) {
       std::string procfile = file;
-      procfile.replace(procfile.find("%"),1,fmt::format("{}",icluster));
+      procfile.replace(procfile.find('%'),1,fmt::format("{}",icluster));
       fp = fopen(procfile.c_str(),"rb");
       if (fp == nullptr)
         error->one(FLERR,"Cannot open restart file {}: {}", procfile, utils::getsyserror());

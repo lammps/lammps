@@ -40,8 +40,8 @@ using namespace MathConst;
 
 PairLJCutCoulDebyeDielectric::PairLJCutCoulDebyeDielectric(LAMMPS *lmp) : PairLJCutCoulDebye(lmp)
 {
-  efield = NULL;
-  epot = NULL;
+  efield = nullptr;
+  epot = nullptr;
   nmax = 0;
 }
 

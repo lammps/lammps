@@ -329,13 +329,12 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
   // pass id_temp as 4th arg to pressure constructor
 
   id_press = utils::strdup(std::string(id) + "_press");
-  modify->add_compute(fmt::format("{} all pressure {} virial",
-                                  id_press, id_temp));
+  modify->add_compute(fmt::format("{} all pressure {} virial",id_press, id_temp));
   pflag = 1;
 
   dimension = domain->dimension;
   nrigid = 0;
-  rfix = 0;
+  rfix = nullptr;
 
   current_lifo = 0;
 }

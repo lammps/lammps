@@ -37,8 +37,8 @@ void NStencilFullMulti2d::set_stencil_properties()
 
   for (i = 0; i < n; i++) {
     for (j = 0; j < n; j++) {
-      flag_half_multi[i][j] = 0;
-      flag_skip_multi[i][j] = 0;
+      flag_half_multi[i][j] = false;
+      flag_skip_multi[i][j] = false;
       bin_collection_multi[i][j] = j;
     }
   }

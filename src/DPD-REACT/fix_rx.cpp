@@ -59,7 +59,7 @@ namespace /* anonymous */
 {
 
 typedef double TimerType;
-TimerType getTimeStamp(void) { return MPI_Wtime(); }
+TimerType getTimeStamp() { return MPI_Wtime(); }
 double getElapsedTime( const TimerType &t0, const TimerType &t1) { return t1-t0; }
 
 } // end namespace
@@ -1246,7 +1246,7 @@ int FixRX::rkf45_h0 (const int neq, const double t, const double /*t_stop*/,
    return (iter + 1);
 }
 
-void FixRX::odeDiagnostics(void)
+void FixRX::odeDiagnostics()
 {
   TimerType timer_start = getTimeStamp();
 

@@ -32,8 +32,8 @@
 #include "update.h"
 #include "verlet.h"
 
+#include <cstring>
 #include <limits>
-#include <string.h>
 
 enum { NONE, REAL, METAL };    // LAMMPS units which MDI supports
 

@@ -43,13 +43,13 @@ void NStencilHalfMulti3d::set_stencil_properties()
     for (j = 0; j < n; j++) {
       if(cutcollectionsq[i][i] > cutcollectionsq[j][j]) continue;
 
-      flag_skip_multi[i][j] = 0;
+      flag_skip_multi[i][j] = false;
 
       if(cutcollectionsq[i][i] == cutcollectionsq[j][j]){
-        flag_half_multi[i][j] = 1;
+        flag_half_multi[i][j] = true;
         bin_collection_multi[i][j] = i;
       } else {
-        flag_half_multi[i][j] = 0;
+        flag_half_multi[i][j] = false;
         bin_collection_multi[i][j] = j;
       }
     }

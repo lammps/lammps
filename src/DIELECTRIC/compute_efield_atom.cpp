@@ -38,7 +38,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeEfieldAtom::ComputeEfieldAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), efield(NULL)
+  Compute(lmp, narg, arg), efield(nullptr)
 {
   if (narg < 3) error->all(FLERR,"Illegal compute efield/atom command");
 

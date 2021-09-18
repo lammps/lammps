@@ -16,7 +16,6 @@
 #include "pair_born_coul_wolf_cs.h"
 
 #include "atom.h"
-#include "comm.h"
 #include "force.h"
 #include "math_const.h"
 #include "neigh_list.h"

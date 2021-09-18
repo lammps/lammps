@@ -9,7 +9,6 @@
 #include "utils.h"
 
 #include <cstring>
-#include <fstream>
 #include <iostream>
 
 #if !defined(_WIN32)

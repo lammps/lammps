@@ -1782,7 +1782,7 @@ void Input::pair_coeff()
   if ((narg < 2) || (force->pair->one_coeff && ((strcmp(arg[0],"*") != 0)
                                              || (strcmp(arg[1],"*") != 0))))
     error->all(FLERR,"Incorrect args for pair coefficients");
-  
+
   int newflag0 = readtype(arg[0],Atom::ATOM);
   int newflag1 = readtype(arg[1],Atom::ATOM);
 

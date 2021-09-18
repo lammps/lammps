@@ -2043,7 +2043,7 @@ void ReadData::impropercoeffs(int which)
 
 void ReadData::typelabels(std::vector<std::string> &mytypelabel, int myntypes, int mode)
 {
-  if (settypeflag) 
+  if (settypeflag)
     error->all(FLERR,"Must read Type Labels before any section involving types");
   char *next;
   char *buf = new char[myntypes*MAXLINE];
@@ -2060,7 +2060,7 @@ void ReadData::typelabels(std::vector<std::string> &mytypelabel, int myntypes, i
     *next = '\0';
     int rv = sscanf(buf,"%*d %s",typelabel);
     if (rv != 1) error->all(FLERR,"Invalid data file section: Type Labels");
-    if (isdigit(typelabel[0])) 
+    if (isdigit(typelabel[0]))
       error->all(FLERR,"Type labels cannot start with a number");
     mytypelabel[i] = typelabel;
     buf = next + 1;

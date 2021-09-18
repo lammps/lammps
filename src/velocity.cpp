@@ -17,7 +17,6 @@
 #include "atom.h"
 #include "comm.h"
 #include "compute.h"
-#include "compute_temp.h"
 #include "domain.h"
 #include "error.h"
 #include "fix.h"

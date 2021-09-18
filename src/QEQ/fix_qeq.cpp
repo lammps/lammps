@@ -28,6 +28,7 @@
 #include "pair.h"
 #include "suffix.h"
 #include "text_file_reader.h"
+#include "tokenizer.h"
 #include "update.h"
 
 #include <cmath>

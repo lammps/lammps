@@ -8,13 +8,9 @@
 #include "library.h"
 #include "utils.h"
 
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
 #include <fstream>
 #include <iostream>
-#include <string>
-#include <vector>
 
 #if !defined(_WIN32)
 #include <unistd.h>

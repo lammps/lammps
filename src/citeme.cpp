@@ -16,7 +16,7 @@
 #include "comm.h"
 #include "universe.h"
 
-#include <functional>
+#include <functional>           // IWYU pragma: keep
 
 using namespace LAMMPS_NS;
 

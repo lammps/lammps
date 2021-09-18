@@ -33,9 +33,7 @@ DISTRIBUTION A. Approved for public release; distribution unlimited. OPSEC#4918
 
 #include "atom.h"
 #include "citeme.h"
-#include "comm.h"
 #include "error.h"
-#include "force.h"
 #include "math_special.h"
 #include "memory.h"
 #include "neighbor.h"
@@ -46,6 +44,8 @@ DISTRIBUTION A. Approved for public release; distribution unlimited. OPSEC#4918
 
 #include <cmath>
 #include <cstring>
+#include <string>
+#include <vector>
 
 #include "rann_activation_linear.h"
 #include "rann_activation_sig_i.h"

@@ -305,19 +305,22 @@ you are uncertain, please ask.
   FILE pointers and only be done on MPI rank 0.  Use the :cpp:func:`utils::logmesg`
   convenience function where possible.
 
-- header files should only include the absolute minimum number of
-  include files and **must not** contain any ``using`` statements;
-  rather the include statements should be put into the corresponding
-  implementation files. For implementation files, the
-  "include-what-you-use" principle should be employed.  However, when
-  including the ``pointers.h`` header (or one of the base classes
-  derived from it) certain headers will be included and thus need to be
-  specified. These are: `mpi.h`, `cstddef`, `cstdio`, `cstdlib`,
-  `string`, `utils.h`, `fmt/format.h`, `climits`, `cinttypes`. This also
-  means any header can assume that `FILE`, `NULL`, and `INT_MAX` are
-  defined.
+- Header files, especially those defining a "style", should only use
+  the absolute minimum number of include files and **must not** contain
+  any ``using`` statements. Typically that would be only the header for
+  the base class. Instead any include statements should be put into the
+  corresponding implementation files and forward declarations be used.
+  For implementation files, the "include what you use" principle should
+  be employed.  However, there is the notable exception that when the
+  ``pointers.h`` header is included (or one of the base classes derived
+  from it) certain headers will always be included and thus do not need
+  to be explicitly specified.
+  These are: `mpi.h`, `cstddef`, `cstdio`, `cstdlib`, `string`, `utils.h`,
+  `vector`, `fmt/format.h`, `climits`, `cinttypes`.
+  This also means any such file can assume that `FILE`, `NULL`, and
+  `INT_MAX` are defined.
 
-- header files that define a new LAMMPS style (i.e. that have a
+- Header files that define a new LAMMPS style (i.e. that have a
   ``SomeStyle(some/name,SomeName);`` macro in them) should only use the
   include file for the base class and otherwise use forward declarations
   and pointers; when interfacing to a library use the PIMPL (pointer
@@ -325,7 +328,7 @@ you are uncertain, please ask.
   that contains all library specific data (and thus requires the library
   header) but use a forward declaration and define the struct only in
   the implementation file. This is a **strict** requirement since this
-  is where type clashes between packages and hard to fine bugs have
+  is where type clashes between packages and hard to find bugs have
   regularly manifested in the past.
 
 - Please use clang-format only to reformat files that you have

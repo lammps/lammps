@@ -32,7 +32,6 @@
 #include "mpiio.h"
 #include "pair.h"
 #include "special.h"
-#include "universe.h"
 #include "update.h"
 
 #include <cstring>

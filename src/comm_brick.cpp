@@ -31,7 +31,6 @@
 
 #include <cmath>
 #include <cstring>
-#include <vector>
 
 using namespace LAMMPS_NS;
 

@@ -44,7 +44,6 @@
 #include <cstring>
 #include <iostream>
 #include <memory>
-#include <vector>
 
 static const char colvars_pub[] =
   "fix colvars command:\n\n"

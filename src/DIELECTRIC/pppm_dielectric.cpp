@@ -23,15 +23,11 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "fft3d_wrap.h"
 #include "force.h"
 #include "gridcomm.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
-#include "neighbor.h"
-#include "pair.h"
-#include "remap_wrap.h"
 
 #include <cmath>
 

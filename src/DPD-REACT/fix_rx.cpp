@@ -34,7 +34,6 @@
 #include <cfloat> // DBL_EPSILON
 #include <cmath>
 #include <cstring>
-#include <vector> // std::vector<>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

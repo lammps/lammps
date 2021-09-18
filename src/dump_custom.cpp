@@ -28,8 +28,8 @@
 #include "region.h"
 #include "update.h"
 #include "variable.h"
-#include "fmt/format.h"
-#include "utils.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

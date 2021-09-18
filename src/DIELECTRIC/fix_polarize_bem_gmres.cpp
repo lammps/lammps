@@ -41,11 +41,9 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
-#include "group.h"
 #include "kspace.h"
 #include "math_const.h"
 #include "memory.h"
-#include "modify.h"
 #include "msm_dielectric.h"
 #include "pair_coul_cut_dielectric.h"
 #include "pair_coul_long_dielectric.h"
@@ -54,7 +52,6 @@
 #include "pair_lj_cut_coul_msm_dielectric.h"
 #include "pppm_dielectric.h"
 #include "random_park.h"
-#include "timer.h"
 #include "update.h"
 
 #include <cmath>

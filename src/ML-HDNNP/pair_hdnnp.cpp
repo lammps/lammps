@@ -30,6 +30,8 @@
 #include "neighbor.h"
 #include "update.h"
 
+#include <cstring>
+
 #include "InterfaceLammps.h"    // n2p2 interface header
 
 using namespace LAMMPS_NS;

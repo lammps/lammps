@@ -21,7 +21,7 @@ FixStyle(mdi/engine, FixMDIEngine);
 #define LMP_FIX_MDI_ENGINE_H
 
 #include "fix.h"
-#include "mdi.h"
+#include "mdi.h"                // IWYU pragma: export
 
 namespace LAMMPS_NS {
 

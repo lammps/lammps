@@ -18,17 +18,19 @@
 ------------------------------------------------------------------------- */
 
 #include "dump_dcd.h"
-#include <cmath>
-#include <ctime>
-#include <cstring>
-#include "domain.h"
+
 #include "atom.h"
-#include "update.h"
-#include "output.h"
-#include "group.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
 #include "fmt/chrono.h"
+#include "group.h"
+#include "memory.h"
+#include "output.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
+#include <ctime>
 
 using namespace LAMMPS_NS;
 

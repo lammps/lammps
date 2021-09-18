@@ -21,6 +21,8 @@
 #include "domain.h"
 #include "memory.h"
 
+#include <cmath>
+
 using namespace LAMMPS_NS;
 
 /* ----------------------------------------------------------------------

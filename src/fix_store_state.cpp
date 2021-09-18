@@ -19,16 +19,15 @@
 #include "compute.h"
 #include "update.h"
 #include "domain.h"
-#include "force.h"
 #include "modify.h"
 #include "fix.h"
 #include "group.h"
 #include "input.h"
 #include "variable.h"
-#include "variable.h"
-#include "utils.h"
 #include "memory.h"
 #include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

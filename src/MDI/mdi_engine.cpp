@@ -20,16 +20,14 @@
 
 #include "atom.h"
 #include "error.h"
+#include "integrate.h"
 #include "fix_mdi_engine.h"
-#include "force.h"
 #include "mdi.h"
 #include "min.h"
-#include "minimize.h"
 #include "modify.h"
 #include "output.h"
 #include "timer.h"
 #include "update.h"
-#include "verlet.h"
 
 #include <cstring>
 #include <limits>

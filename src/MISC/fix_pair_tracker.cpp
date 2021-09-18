@@ -14,14 +14,12 @@
 #include "fix_pair_tracker.h"
 
 #include "atom.h"
-#include "atom_vec.h"
 #include "error.h"
-#include "group.h"
 #include "memory.h"
-#include "modify.h"
 #include "tokenizer.h"
 #include "update.h"
 
+#include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;

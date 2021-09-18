@@ -13,8 +13,8 @@
 ------------------------------------------------------------------------- */
 
 #include "modify.h"
-#include "style_compute.h"
-#include "style_fix.h"
+#include "style_compute.h"  // IWYU pragma: keep
+#include "style_fix.h"  // IWYU pragma: keep
 
 #include "atom.h"
 #include "comm.h"
@@ -95,7 +95,7 @@ void _noopt Modify::create_factories()
 #define FIX_CLASS
 #define FixStyle(key,Class) \
   (*fix_map)[#key] = &fix_creator<Class>;
-#include "style_fix.h"
+#include "style_fix.h"  // IWYU pragma: keep
 #undef FixStyle
 #undef FIX_CLASS
 
@@ -106,7 +106,7 @@ void _noopt Modify::create_factories()
 #define COMPUTE_CLASS
 #define ComputeStyle(key,Class) \
   (*compute_map)[#key] = &compute_creator<Class>;
-#include "style_compute.h"
+#include "style_compute.h"  // IWYU pragma: keep
 #undef ComputeStyle
 #undef COMPUTE_CLASS
 }

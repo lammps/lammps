@@ -35,7 +35,6 @@
 #include "library.h"
 
 #include <algorithm>
-#include <cmath>
 #include <cstring>
 
 #ifdef LMP_INTEL
@@ -269,7 +268,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 #define ATOM_CLASS
 #define AtomStyle(key,Class) \
   (*avec_map)[#key] = &avec_creator<Class>;
-#include "style_atom.h"
+#include "style_atom.h"  // IWYU pragma: keep
 #undef AtomStyle
 #undef ATOM_CLASS
 }

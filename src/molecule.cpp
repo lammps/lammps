@@ -26,7 +26,6 @@
 #include "memory.h"
 #include "tokenizer.h"
 
-#include <cctype>
 #include <cmath>
 #include <cstring>
 

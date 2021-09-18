@@ -16,17 +16,17 @@
    Contributing author:  Axel Kohlmeyer (ICTP)
 ------------------------------------------------------------------------- */
 
-
-#include <cstring>
 #include "fix_qmmm.h"
+
 #include "atom.h"
-#include "domain.h"
 #include "comm.h"
-#include "update.h"
-#include "force.h"
+#include "domain.h"
 #include "error.h"
 #include "group.h"
 #include "memory.h"
+#include "update.h"
+
+#include <cstring>
 
 #include "libqmmm.h"
 

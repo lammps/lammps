@@ -1185,7 +1185,7 @@ void _noopt LAMMPS::help()
   fprintf(fp,"* Atom styles:\n");
 #define ATOM_CLASS
 #define AtomStyle(key,Class) print_style(fp,#key,pos);
-#include "style_atom.h"
+#include "style_atom.h"  // IWYU pragma: keep
 #undef ATOM_CLASS
   fprintf(fp,"\n\n");
 
@@ -1193,7 +1193,7 @@ void _noopt LAMMPS::help()
   fprintf(fp,"* Integrate styles:\n");
 #define INTEGRATE_CLASS
 #define IntegrateStyle(key,Class) print_style(fp,#key,pos);
-#include "style_integrate.h"
+#include "style_integrate.h"  // IWYU pragma: keep
 #undef INTEGRATE_CLASS
   fprintf(fp,"\n\n");
 
@@ -1201,7 +1201,7 @@ void _noopt LAMMPS::help()
   fprintf(fp,"* Minimize styles:\n");
 #define MINIMIZE_CLASS
 #define MinimizeStyle(key,Class) print_style(fp,#key,pos);
-#include "style_minimize.h"
+#include "style_minimize.h"  // IWYU pragma: keep
 #undef MINIMIZE_CLASS
   fprintf(fp,"\n\n");
 
@@ -1209,7 +1209,7 @@ void _noopt LAMMPS::help()
   fprintf(fp,"* Pair styles:\n");
 #define PAIR_CLASS
 #define PairStyle(key,Class) print_style(fp,#key,pos);
-#include "style_pair.h"
+#include "style_pair.h"  // IWYU pragma: keep
 #undef PAIR_CLASS
   fprintf(fp,"\n\n");
 
@@ -1217,7 +1217,7 @@ void _noopt LAMMPS::help()
   fprintf(fp,"* Bond styles:\n");
 #define BOND_CLASS
 #define BondStyle(key,Class) print_style(fp,#key,pos);
-#include "style_bond.h"
+#include "style_bond.h"  // IWYU pragma: keep
 #undef BOND_CLASS
   fprintf(fp,"\n\n");
 
@@ -1225,7 +1225,7 @@ void _noopt LAMMPS::help()
   fprintf(fp,"* Angle styles:\n");
 #define ANGLE_CLASS
 #define AngleStyle(key,Class) print_style(fp,#key,pos);
-#include "style_angle.h"
+#include "style_angle.h"  // IWYU pragma: keep
 #undef ANGLE_CLASS
   fprintf(fp,"\n\n");
 
@@ -1233,7 +1233,7 @@ void _noopt LAMMPS::help()
   fprintf(fp,"* Dihedral styles:\n");
 #define DIHEDRAL_CLASS
 #define DihedralStyle(key,Class) print_style(fp,#key,pos);
-#include "style_dihedral.h"
+#include "style_dihedral.h"  // IWYU pragma: keep
 #undef DIHEDRAL_CLASS
   fprintf(fp,"\n\n");
 
@@ -1241,7 +1241,7 @@ void _noopt LAMMPS::help()
   fprintf(fp,"* Improper styles:\n");
 #define IMPROPER_CLASS
 #define ImproperStyle(key,Class) print_style(fp,#key,pos);
-#include "style_improper.h"
+#include "style_improper.h"  // IWYU pragma: keep
 #undef IMPROPER_CLASS
   fprintf(fp,"\n\n");
 
@@ -1249,7 +1249,7 @@ void _noopt LAMMPS::help()
   fprintf(fp,"* KSpace styles:\n");
 #define KSPACE_CLASS
 #define KSpaceStyle(key,Class) print_style(fp,#key,pos);
-#include "style_kspace.h"
+#include "style_kspace.h"  // IWYU pragma: keep
 #undef KSPACE_CLASS
   fprintf(fp,"\n\n");
 
@@ -1257,7 +1257,7 @@ void _noopt LAMMPS::help()
   fprintf(fp,"* Fix styles\n");
 #define FIX_CLASS
 #define FixStyle(key,Class) print_style(fp,#key,pos);
-#include "style_fix.h"
+#include "style_fix.h"  // IWYU pragma: keep
 #undef FIX_CLASS
   fprintf(fp,"\n\n");
 
@@ -1265,7 +1265,7 @@ void _noopt LAMMPS::help()
   fprintf(fp,"* Compute styles:\n");
 #define COMPUTE_CLASS
 #define ComputeStyle(key,Class) print_style(fp,#key,pos);
-#include "style_compute.h"
+#include "style_compute.h"  // IWYU pragma: keep
 #undef COMPUTE_CLASS
   fprintf(fp,"\n\n");
 
@@ -1273,7 +1273,7 @@ void _noopt LAMMPS::help()
   fprintf(fp,"* Region styles:\n");
 #define REGION_CLASS
 #define RegionStyle(key,Class) print_style(fp,#key,pos);
-#include "style_region.h"
+#include "style_region.h"  // IWYU pragma: keep
 #undef REGION_CLASS
   fprintf(fp,"\n\n");
 
@@ -1281,7 +1281,7 @@ void _noopt LAMMPS::help()
   fprintf(fp,"* Dump styles:\n");
 #define DUMP_CLASS
 #define DumpStyle(key,Class) print_style(fp,#key,pos);
-#include "style_dump.h"
+#include "style_dump.h"  // IWYU pragma: keep
 #undef DUMP_CLASS
   fprintf(fp,"\n\n");
 
@@ -1289,7 +1289,7 @@ void _noopt LAMMPS::help()
   fprintf(fp,"* Command styles\n");
 #define COMMAND_CLASS
 #define CommandStyle(key,Class) print_style(fp,#key,pos);
-#include "style_command.h"
+#include "style_command.h"  // IWYU pragma: keep
 #undef COMMAND_CLASS
   fprintf(fp,"\n\n");
 

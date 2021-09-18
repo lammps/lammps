@@ -25,13 +25,13 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
+#include "integrate.h"
 #include "irregular.h"
-#include "library.h"
 #include "memory.h"
 #include "modify.h"
 #include "update.h"
-#include "verlet.h"
 
+#include <cmath>
 #include <cstring>
 #include <limits>
 

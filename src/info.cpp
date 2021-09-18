@@ -48,6 +48,8 @@
 #include <cctype>
 #include <cmath>
 #include <cstring>
+#include <ctime>
+#include <exception>
 #include <map>
 
 #ifdef _WIN32

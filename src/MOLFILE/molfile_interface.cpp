@@ -19,7 +19,6 @@
 #include "molfile_interface.h"
 #include "molfile_plugin.h"
 
-#include <sys/types.h>
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>

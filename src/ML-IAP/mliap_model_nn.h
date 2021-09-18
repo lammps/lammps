@@ -16,6 +16,8 @@
 
 #include "mliap_model.h"
 
+#include <cmath>
+
 namespace LAMMPS_NS {
 
 class MLIAPModelNN : public MLIAPModel {

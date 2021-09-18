@@ -38,7 +38,7 @@
 #include "output.h"
 #include "pair.h"
 #include "special.h"
-#include "style_command.h"
+#include "style_command.h"      // IWYU pragma: keep
 #include "thermo.h"
 #include "timer.h"
 #include "universe.h"
@@ -126,7 +126,7 @@ Input::Input(LAMMPS *lmp, int argc, char **argv) : Pointers(lmp)
 #define COMMAND_CLASS
 #define CommandStyle(key,Class) \
   (*command_map)[#key] = &command_creator<Class>;
-#include "style_command.h"
+#include "style_command.h"      // IWYU pragma: keep
 #undef CommandStyle
 #undef COMMAND_CLASS
 

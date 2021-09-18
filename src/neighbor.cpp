@@ -41,10 +41,10 @@
 #include "pair.h"
 #include "pair_hybrid.h"
 #include "respa.h"
-#include "style_nbin.h"
-#include "style_npair.h"
-#include "style_nstencil.h"
-#include "style_ntopo.h"
+#include "style_nbin.h"  // IWYU pragma: keep
+#include "style_npair.h"  // IWYU pragma: keep
+#include "style_nstencil.h"  // IWYU pragma: keep
+#include "style_ntopo.h"  // IWYU pragma: keep
 #include "tokenizer.h"
 #include "update.h"
 
@@ -681,7 +681,7 @@ void Neighbor::init_styles()
 
 #define NBIN_CLASS
 #define NBinStyle(key,Class,bitmasks) nbclass++;
-#include "style_nbin.h"
+#include "style_nbin.h"  // IWYU pragma: keep
 #undef NBinStyle
 #undef NBIN_CLASS
 
@@ -695,7 +695,7 @@ void Neighbor::init_styles()
   binnames[nbclass] = (char *) #key; \
   binclass[nbclass] = &bin_creator<Class>; \
   binmasks[nbclass++] = bitmasks;
-#include "style_nbin.h"
+#include "style_nbin.h"  // IWYU pragma: keep
 #undef NBinStyle
 #undef NBIN_CLASS
 
@@ -705,7 +705,7 @@ void Neighbor::init_styles()
 
 #define NSTENCIL_CLASS
 #define NStencilStyle(key,Class,bitmasks) nsclass++;
-#include "style_nstencil.h"
+#include "style_nstencil.h"  // IWYU pragma: keep
 #undef NStencilStyle
 #undef NSTENCIL_CLASS
 
@@ -719,7 +719,7 @@ void Neighbor::init_styles()
   stencilnames[nsclass] = (char *) #key; \
   stencilclass[nsclass] = &stencil_creator<Class>; \
   stencilmasks[nsclass++] = bitmasks;
-#include "style_nstencil.h"
+#include "style_nstencil.h"  // IWYU pragma: keep
 #undef NStencilStyle
 #undef NSTENCIL_CLASS
 
@@ -729,7 +729,7 @@ void Neighbor::init_styles()
 
 #define NPAIR_CLASS
 #define NPairStyle(key,Class,bitmasks) npclass++;
-#include "style_npair.h"
+#include "style_npair.h"  // IWYU pragma: keep
 #undef NPairStyle
 #undef NPAIR_CLASS
 
@@ -743,7 +743,7 @@ void Neighbor::init_styles()
   pairnames[npclass] = (char *) #key; \
   pairclass[npclass] = &pair_creator<Class>; \
   pairmasks[npclass++] = bitmasks;
-#include "style_npair.h"
+#include "style_npair.h"  // IWYU pragma: keep
 #undef NPairStyle
 #undef NPAIR_CLASS
 }

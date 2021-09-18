@@ -32,9 +32,11 @@ DISTRIBUTION A. Approved for public release; distribution unlimited. OPSEC#4918
 #ifndef LMP_RANN_FINGERPRINT_H
 #define LMP_RANN_FINGERPRINT_H
 
-#include "pair_rann.h"
+#include <string>
+#include <vector>
 
 namespace LAMMPS_NS {
+class PairRANN;
 namespace RANN {
   class Fingerprint {
    public:

@@ -13,12 +13,8 @@
 ------------------------------------------------------------------------- */
 
 #include "nstencil_half_multi_2d_tri.h"
-#include "neighbor.h"
+
 #include "neigh_list.h"
-#include "nbin.h"
-#include "memory.h"
-#include "atom.h"
-#include <cmath>
 
 using namespace LAMMPS_NS;
 

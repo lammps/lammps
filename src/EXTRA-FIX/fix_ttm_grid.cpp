@@ -23,18 +23,15 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "force.h"
 #include "gridcomm.h"
 #include "memory.h"
 #include "neighbor.h"
 #include "random_mars.h"
 #include "tokenizer.h"
 #include "update.h"
-#include "fmt/chrono.h"
 
 #include <cmath>
 #include <cstring>
-#include <ctime>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -355,14 +352,11 @@ void FixTTMGrid::read_electron_temperatures(const std::string &filename)
 void FixTTMGrid::write_electron_temperatures(const std::string &filename)
 {
   if (comm->me == 0) {
-    time_t tv = time(nullptr);
-    std::tm current_date = fmt::localtime(tv);
-
     FPout = fopen(filename.c_str(), "w");
     if (!FPout) error->one(FLERR, "Fix ttm/grid could not open output file");
 
-    fmt::print(FPout,"# DATE: {:%Y-%m-%d} UNITS: {} COMMENT: Electron temperature "
-               "{}x{}x{} grid at step {}. Created by fix {}\n", current_date,
+    fmt::print(FPout,"# DATE: {} UNITS: {} COMMENT: Electron temperature "
+               "{}x{}x{} grid at step {}. Created by fix {}\n", utils::current_date(),
                update->unit_style, nxgrid, nygrid, nzgrid, update->ntimestep, style);
   }
 

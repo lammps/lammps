@@ -18,6 +18,7 @@
 #include "compute.h"
 #include "error.h"
 #include "fix.h"
+#include "fmt/chrono.h"
 #include "memory.h"
 #include "modify.h"
 #include "text_file_reader.h"
@@ -27,6 +28,7 @@
 #include <cctype>
 #include <cerrno>
 #include <cstring>
+#include <ctime>
 
 #if defined(__linux__)
 #include <unistd.h>    // for readlink
@@ -1316,7 +1318,21 @@ int utils::date2num(const std::string &date)
   return num;
 }
 
-/* binary search in vector of ascending doubles */
+/* ----------------------------------------------------------------------
+   get formatted string of current date from fmtlib
+------------------------------------------------------------------------- */
+
+std::string utils::current_date()
+{
+  time_t tv = time(nullptr);
+  std::tm today = fmt::localtime(tv);
+  return fmt::format("{:%Y-%m-%d}", today);
+}
+
+/* ----------------------------------------------------------------------
+   binary search in vector of ascending doubles
+------------------------------------------------------------------------- */
+
 int utils::binary_search(const double needle, const int n, const double *haystack)
 {
   int lo = 0;

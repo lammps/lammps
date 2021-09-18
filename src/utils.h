@@ -541,6 +541,14 @@ namespace utils {
 
   int date2num(const std::string &date);
 
+  /*! Return current date as string
+   *
+   * This will generate a string containing the current date in YYYY-MM-DD format.
+   *
+   * \return       string with current date */
+
+  std::string current_date();
+
   /*! Binary search in a vector of ascending doubles of length N
    *
    * If the value is smaller than the smallest value in the vector, 0 is returned.

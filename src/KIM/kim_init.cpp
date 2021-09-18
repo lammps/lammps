@@ -168,6 +168,56 @@ void get_kim_unit_names(
 }
 }  // namespace
 
+void KimInit::print_dirs(struct KIM_Collections * const collections) const
+{
+  int kim_error = 0;
+  int dirListExtent=0;
+  input->write_echo("#=== KIM is looking for 'Portable Models' in these directories ===\n");
+  std::vector<struct KIM_Collection> collection_list;
+  collection_list.push_back(KIM_COLLECTION_currentWorkingDirectory);
+  collection_list.push_back(KIM_COLLECTION_environmentVariable);
+  collection_list.push_back(KIM_COLLECTION_user);
+  collection_list.push_back(KIM_COLLECTION_system);
+
+  for (auto col=collection_list.begin(); col != collection_list.end(); ++col)
+  {
+    kim_error = KIM_Collections_CacheListOfDirectoryNames(
+        collections, *col, KIM_COLLECTION_ITEM_TYPE_portableModel, &dirListExtent);
+    if (! kim_error)
+    {
+      for (int i=0; i < dirListExtent; ++i)
+      {
+        char const *name;
+        kim_error = KIM_Collections_GetDirectoryName(collections, i, &name);
+        if (! kim_error)
+        {
+          input->write_echo(fmt::format("#  {}\n", name));
+        }
+      }
+    }
+  }
+  input->write_echo("#\n");
+  input->write_echo("#=== KIM is looking for 'Simulator Models' in these directories ===\n");
+  for (auto col=collection_list.begin(); col != collection_list.end(); ++col)
+  {
+    kim_error = KIM_Collections_CacheListOfDirectoryNames(
+        collections, *col, KIM_COLLECTION_ITEM_TYPE_simulatorModel, &dirListExtent);
+    if (! kim_error)
+    {
+      for (int i=0; i < dirListExtent; ++i)
+      {
+        char const *name;
+        kim_error = KIM_Collections_GetDirectoryName(collections, i, &name);
+        if (! kim_error)
+        {
+          input->write_echo(fmt::format("#  {}\n", name));
+        }
+      }
+    }
+  }
+  input->write_echo("#\n");
+}
+
 void KimInit::determine_model_type_and_units(char * model_name,
                                              char * user_units,
                                              char ** model_units,
@@ -188,6 +238,8 @@ void KimInit::determine_model_type_and_units(char * model_name,
 
   auto logID = fmt::format("{}_Collections", comm->me);
   KIM_Collections_SetLogID(collections, logID.c_str());
+
+  print_dirs(collections);
 
   kim_error = KIM_Collections_GetItemType(collections, model_name, &itemType);
   if (kim_error) error->all(FLERR, "KIM Model name not found");

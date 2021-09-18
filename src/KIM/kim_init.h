@@ -63,6 +63,7 @@
 
 // Forward declaration.
 typedef struct KIM_Model KIM_Model;
+typedef struct KIM_Collections KIM_Collections;
 
 namespace LAMMPS_NS {
 
@@ -80,6 +81,8 @@ class KimInit : protected Pointers {
   void determine_model_type_and_units(char *, char *, char **, KIM_Model *&);
   void do_init(char *, char *, char *, KIM_Model *&);
   void do_variables(const std::string &, const std::string &);
+
+  void print_dirs(struct KIM_Collections * const collections) const;
 };
 
 }    // namespace LAMMPS_NS

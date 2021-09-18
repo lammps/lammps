@@ -689,15 +689,14 @@ int Input::readtype(char *&str, int mode)
   if (!atom->labelmapflag) error->all(FLERR,fmt::format("Invalid type {}",str));
 
   int type,max,max2;
-  std::string labelstr;
   char typechar[256];
+  std::string labelstr(str);
 
-  labelstr = str;
   type = atom->find_label(labelstr,mode);
   if (type == -1) error->all(FLERR,fmt::format("Invalid type {}",str));
   sprintf(typechar,"%d",type);
 
-  max = strlen(str) + 1;
+  max = n + 1;
   max2 = strlen(typechar) + 1;
   if (max2 > max) {
     str = new char[max2];
@@ -1360,7 +1359,7 @@ void Input::angle_coeff()
     error->all(FLERR,"Angle_coeff command when no angles allowed");
   int newflag = readtype(arg[0],Atom::ANGLE);
   force->angle->coeff(narg,arg);
-  if (newflag) delete [] arg[0];
+  if (newflag) delete[] arg[0];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1403,7 +1402,7 @@ void Input::bond_coeff()
     error->all(FLERR,"Bond_coeff command when no bonds allowed");
   int newflag = readtype(arg[0],Atom::BOND);
   force->bond->coeff(narg,arg);
-  if (newflag) delete [] arg[0];
+  if (newflag) delete[] arg[0];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1508,7 +1507,7 @@ void Input::dihedral_coeff()
     error->all(FLERR,"Dihedral_coeff command when no dihedrals allowed");
   int newflag = readtype(arg[0],Atom::DIHEDRAL);
   force->dihedral->coeff(narg,arg);
-  if (newflag) delete [] arg[0];
+  if (newflag) delete[] arg[0];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1587,7 +1586,7 @@ void Input::improper_coeff()
     error->all(FLERR,"Improper_coeff command when no impropers allowed");
   int newflag = readtype(arg[0],Atom::IMPROPER);
   force->improper->coeff(narg,arg);
-  if (newflag) delete [] arg[0];
+  if (newflag) delete[] arg[0];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1805,8 +1804,8 @@ void Input::pair_coeff()
   }
 
   force->pair->coeff(narg,arg);
-  if (newflag0) delete [] arg[0];
-  if (newflag1) delete [] arg[1];
+  if (newflag0) delete[] arg[0];
+  if (newflag1) delete[] arg[1];
 }
 
 /* ---------------------------------------------------------------------- */

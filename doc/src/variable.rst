@@ -911,7 +911,7 @@ operates.
 ----------
 
 Labelmap Functions
------------------
+------------------
 
 Labelmap functions convert type labels into numeric types, using label
 maps created by the :doc:`labelmap <labelmap>` or :doc:`read_data <read_data>`

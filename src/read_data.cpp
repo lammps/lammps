@@ -93,15 +93,15 @@ ReadData::ReadData(LAMMPS *lmp) : Command(lmp)
 
 ReadData::~ReadData()
 {
-  delete [] line;
-  delete [] keyword;
-  delete [] style;
-  delete [] buffer;
+  delete[] line;
+  delete[] keyword;
+  delete[] style;
+  delete[] buffer;
   memory->sfree(coeffarg);
 
   for (int i = 0; i < nfix; i++) {
-    delete [] fix_header[i];
-    delete [] fix_section[i];
+    delete[] fix_header[i];
+    delete[] fix_section[i];
   }
   memory->destroy(fix_index);
   memory->sfree(fix_header);
@@ -1843,7 +1843,7 @@ void ReadData::mass()
     atom->set_mass(FLERR,buf,toffset,tlabelflag,lmap->lmap2lmap.atom);
     buf = next + 1;
   }
-  delete [] original;
+  delete[] original;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1871,7 +1871,7 @@ void ReadData::paircoeffs()
     force->pair->coeff(ncoeffarg,coeffarg);
     buf = next + 1;
   }
-  delete [] original;
+  delete[] original;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1903,7 +1903,7 @@ void ReadData::pairIJcoeffs()
       force->pair->coeff(ncoeffarg,coeffarg);
       buf = next + 1;
     }
-  delete [] original;
+  delete[] original;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1932,7 +1932,7 @@ void ReadData::bondcoeffs()
     force->bond->coeff(ncoeffarg,coeffarg);
     buf = next + 1;
   }
-  delete [] original;
+  delete[] original;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1965,7 +1965,7 @@ void ReadData::anglecoeffs(int which)
     force->angle->coeff(ncoeffarg,coeffarg);
     buf = next + 1;
   }
-  delete [] original;
+  delete[] original;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2005,7 +2005,7 @@ void ReadData::dihedralcoeffs(int which)
     force->dihedral->coeff(ncoeffarg,coeffarg);
     buf = next + 1;
   }
-  delete [] original;
+  delete[] original;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2036,14 +2036,15 @@ void ReadData::impropercoeffs(int which)
     force->improper->coeff(ncoeffarg,coeffarg);
     buf = next + 1;
   }
-  delete [] original;
+  delete[] original;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void ReadData::typelabels(std::vector<std::string> &mytypelabel, int myntypes, int mode)
 {
-  if (settypeflag) error->all(FLERR,"Must read Type Labels before any section involving types");
+  if (settypeflag) 
+    error->all(FLERR,"Must read Type Labels before any section involving types");
   char *next;
   char *buf = new char[myntypes*MAXLINE];
 
@@ -2059,12 +2060,13 @@ void ReadData::typelabels(std::vector<std::string> &mytypelabel, int myntypes, i
     *next = '\0';
     int rv = sscanf(buf,"%*d %s",typelabel);
     if (rv != 1) error->all(FLERR,"Invalid data file section: Type Labels");
-    if (isdigit(typelabel[0])) error->all(FLERR,"Type labels cannot start with a number");
+    if (isdigit(typelabel[0])) 
+      error->all(FLERR,"Type labels cannot start with a number");
     mytypelabel[i] = typelabel;
     buf = next + 1;
   }
-  delete [] original;
-  delete [] typelabel;
+  delete[] original;
+  delete[] typelabel;
 
   // merge this read_data label map to atom class
   // determine mapping to let labels override numeric types

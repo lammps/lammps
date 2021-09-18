@@ -2,21 +2,22 @@
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
-   
+
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
    certain rights in this software.  This software is distributed under
    the GNU General Public License.
-   
+
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
 #include "label_map.h"
 
 #include "atom.h"
+#include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "error.h"
 
 #include <cstring>
 
@@ -26,7 +27,6 @@ using namespace LAMMPS_NS;
 
 LabelMap::LabelMap(LAMMPS *lmp) : Pointers(lmp)
 {
-  MPI_Comm_rank(world,&me);
   natomtypes = nbondtypes = nangletypes = 0;
   ndihedraltypes = nimpropertypes = 0;
 }
@@ -35,19 +35,11 @@ LabelMap::LabelMap(LAMMPS *lmp) : Pointers(lmp)
 
 LabelMap::~LabelMap()
 {
-  // delete type labels
-
-  typelabel.clear();
-  btypelabel.clear();
-  atypelabel.clear();
-  dtypelabel.clear();
-  itypelabel.clear();
-
-  delete [] lmap2lmap.atom;
-  delete [] lmap2lmap.bond;
-  delete [] lmap2lmap.angle;
-  delete [] lmap2lmap.dihedral;
-  delete [] lmap2lmap.improper;
+  delete[] lmap2lmap.atom;
+  delete[] lmap2lmap.bond;
+  delete[] lmap2lmap.angle;
+  delete[] lmap2lmap.dihedral;
+  delete[] lmap2lmap.improper;
 }
 
 /* ----------------------------------------------------------------------
@@ -82,32 +74,34 @@ void LabelMap::modify_lmap(int narg, char **arg)
 
   int ntypes;
   std::vector<std::string> *labels;
-  if (!strcmp(arg[0],"atom")) {
+  const std::string tlabel(arg[0]);
+  if (tlabel == "atom") {
     ntypes = natomtypes;
     labels = &typelabel;
-  } else if (!strcmp(arg[0],"bond")) {
+  } else if (tlabel == "bond") {
     ntypes = nbondtypes;
     labels = &btypelabel;
-  } else if (!strcmp(arg[0],"angle")) {
+  } else if (tlabel == "angle") {
     ntypes = nangletypes;
     labels = &atypelabel;
-  } else if (!strcmp(arg[0],"dihedral")) {
+  } else if (tlabel == "dihedral") {
     ntypes = ndihedraltypes;
     labels = &dtypelabel;
-  } else if (!strcmp(arg[0],"improper")) {
+  } else if (tlabel == "improper") {
     ntypes = nimpropertypes;
     labels = &itypelabel;
   } else error->all(FLERR,"Illegal labelmap command");
 
   int itype;
   int iarg = 1;
-  char *charlabel;
   while (iarg < narg) {
     itype = utils::inumeric(FLERR,arg[iarg++],false,lmp);
-    charlabel = arg[iarg++];
-    if (itype > ntypes) error->all(FLERR,"Topology type exceeds system topology type");
-    if (isdigit(charlabel[0])) error->all(FLERR,"Type labels cannot start with a number");
-    (*labels)[itype-1] = charlabel;
+    if (itype > ntypes)
+      error->all(FLERR,"Topology type exceeds system topology type");
+    std::string slabel(arg[iarg++]);
+    if (isdigit(slabel[0]))
+      error->all(FLERR,"Type labels cannot start with a number");
+    (*labels)[itype-1] = slabel;
   }
 }
 
@@ -119,25 +113,29 @@ void LabelMap::modify_lmap(int narg, char **arg)
 
 void LabelMap::merge_lmap(LabelMap *lmap2, int mode)
 {
-  if (mode == Atom::ATOM)
+  switch (mode)
+  {
+  case Atom::ATOM:
     for (int i = 0; i < lmap2->natomtypes; i++)
       find_or_create(lmap2->typelabel[i],typelabel,natomtypes);
-
-  if (mode == Atom::BOND)
+    break;
+  case Atom::BOND:
     for (int i = 0; i < lmap2->nbondtypes; i++)
       find_or_create(lmap2->btypelabel[i],btypelabel,nbondtypes);
-
-  if (mode == Atom::ANGLE)
+    break;
+  case Atom::ANGLE:
     for (int i = 0; i < lmap2->nangletypes; i++)
       find_or_create(lmap2->atypelabel[i],atypelabel,nangletypes);
-
-  if (mode == Atom::DIHEDRAL)
+    break;
+  case Atom::DIHEDRAL:
     for (int i = 0; i < lmap2->ndihedraltypes; i++)
       find_or_create(lmap2->dtypelabel[i],dtypelabel,ndihedraltypes);
-
-  if (mode == Atom::IMPROPER)
+    break;
+  case Atom::IMPROPER:
     for (int i = 0; i < lmap2->nimpropertypes; i++)
       find_or_create(lmap2->itypelabel[i],itypelabel,nimpropertypes);
+    break;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -178,7 +176,8 @@ void LabelMap::create_lmap2lmap(LabelMap *lmap2, int mode)
    return numeric type
 ------------------------------------------------------------------------- */
 
-int LabelMap::find_or_create(std::string mylabel, std::vector<std::string> &labels, int ntypes)
+int LabelMap::find_or_create(const std::string &mylabel,
+                             std::vector<std::string> &labels, int ntypes)
 {
   for (int i = 0; i < ntypes; i++)
     if (labels[i] == mylabel) return i+1;
@@ -197,6 +196,10 @@ int LabelMap::find_or_create(std::string mylabel, std::vector<std::string> &labe
   // if label cannot be found or created, need more space reserved
 
   error->all(FLERR,"Topology type exceeds system topology type");
+
+  // never reaches here, just to prevent compiler warning
+
+  return -1;
 }
 
 /* ----------------------------------------------------------------------
@@ -204,7 +207,7 @@ int LabelMap::find_or_create(std::string mylabel, std::vector<std::string> &labe
    return -1 if type not yet defined
 ------------------------------------------------------------------------- */
 
-int LabelMap::find(std::string mylabel, int mode)
+int LabelMap::find(const std::string &mylabel, int mode)
 {
   if (mode == Atom::ATOM)
     return search(mylabel,typelabel,natomtypes);
@@ -229,7 +232,8 @@ int LabelMap::find(std::string mylabel, int mode)
    return -1 if type not yet defined
 ------------------------------------------------------------------------- */
 
-int LabelMap::search(std::string mylabel, std::vector<std::string> labels, int ntypes)
+int LabelMap::search(const std::string &mylabel,
+                     const std::vector<std::string> &labels, int ntypes)
 {
   for (int i = 0; i < ntypes; i++)
     if (labels[i] == mylabel) return i+1;
@@ -314,31 +318,31 @@ void LabelMap::read_restart(FILE *fp)
   for (int i = 0; i < natomtypes; i++) {
     charlabel = read_string(fp);
     typelabel[i] = charlabel;
-    delete [] charlabel;
+    delete[] charlabel;
   }
 
   for (int i = 0; i < nbondtypes; i++) {
     charlabel = read_string(fp);
     btypelabel[i] = charlabel;
-    delete [] charlabel;
+    delete[] charlabel;
   }
 
   for (int i = 0; i < nangletypes; i++) {
     charlabel = read_string(fp);
     atypelabel[i] = charlabel;
-    delete [] charlabel;
+    delete[] charlabel;
   }
 
   for (int i = 0; i < ndihedraltypes; i++) {
     charlabel = read_string(fp);
     dtypelabel[i] = charlabel;
-    delete [] charlabel;
+    delete[] charlabel;
   }
 
   for (int i = 0; i < nimpropertypes; i++) {
     charlabel = read_string(fp);
     itypelabel[i] = charlabel;
-    delete [] charlabel;
+    delete[] charlabel;
   }
 }
 
@@ -374,7 +378,8 @@ char *LabelMap::read_string(FILE *fp)
   int n = read_int(fp);
   if (n < 0) error->all(FLERR,"Illegal size string or corrupt restart");
   char *value = new char[n];
-  if (me == 0) utils::sfread(FLERR,value,sizeof(char),n,fp,nullptr,error);
+  if (comm->me == 0)
+    utils::sfread(FLERR,value,sizeof(char),n,fp,nullptr,error);
   MPI_Bcast(value,n,MPI_CHAR,0,world);
   return value;
 }
@@ -384,7 +389,7 @@ char *LabelMap::read_string(FILE *fp)
    byte) into the restart file
 ------------------------------------------------------------------------- */
 
-void LabelMap::write_string(std::string str, FILE *fp)
+void LabelMap::write_string(const std::string &str, FILE *fp)
 {
   const char *cstr = str.c_str();
   int n = strlen(cstr) + 1;
@@ -399,8 +404,7 @@ void LabelMap::write_string(std::string str, FILE *fp)
 int LabelMap::read_int(FILE *fp)
 {
   int value;
-  if ((me == 0) && (fread(&value,sizeof(int),1,fp) < 1))
-    value = -1;
+  if ((comm->me == 0) && (fread(&value,sizeof(int),1,fp) < 1)) value = -1;
   MPI_Bcast(&value,1,MPI_INT,0,world);
   return value;
 }

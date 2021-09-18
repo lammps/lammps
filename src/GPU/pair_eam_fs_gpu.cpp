@@ -70,6 +70,7 @@ double eam_fs_gpu_bytes();
 
 PairEAMFSGPU::PairEAMFSGPU(LAMMPS *lmp) : PairEAM(lmp), gpu_mode(GPU_FORCE)
 {
+  one_coeff = 1;
   respa_enable = 0;
   reinitflag = 0;
   cpu_time = 0.0;
@@ -315,7 +316,7 @@ void PairEAMFSGPU::coeff(int narg, char **arg)
   if (fs) {
     for (i = 0; i < fs->nelements; i++) delete [] fs->elements[i];
     delete [] fs->elements;
-    delete [] fs->mass;
+    memory->destroy(fs->mass);
     memory->destroy(fs->frho);
     memory->destroy(fs->rhor);
     memory->destroy(fs->z2r);
@@ -356,6 +357,7 @@ void PairEAMFSGPU::coeff(int narg, char **arg)
         if (i == j) atom->set_mass(FLERR,i,fs->mass[map[i]]);
         count++;
       }
+      scale[i][j] = 1.0;
     }
   }
 
@@ -454,6 +456,7 @@ void PairEAMFSGPU::read_file(char *filename)
   MPI_Bcast(&file->nr, 1, MPI_INT, 0, world);
   MPI_Bcast(&file->dr, 1, MPI_DOUBLE, 0, world);
   MPI_Bcast(&file->cut, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&rhomax, 1, MPI_DOUBLE, 0, world);
 
   // allocate memory on other procs
   if (comm->me != 0) {

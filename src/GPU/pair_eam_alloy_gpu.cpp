@@ -71,6 +71,7 @@ double eam_alloy_gpu_bytes();
 
 PairEAMAlloyGPU::PairEAMAlloyGPU(LAMMPS *lmp) : PairEAM(lmp), gpu_mode(GPU_FORCE)
 {
+  one_coeff = 1;
   respa_enable = 0;
   reinitflag = 0;
   cpu_time = 0.0;
@@ -316,7 +317,7 @@ void PairEAMAlloyGPU::coeff(int narg, char **arg)
   if (setfl) {
     for (i = 0; i < setfl->nelements; i++) delete [] setfl->elements[i];
     delete [] setfl->elements;
-    delete [] setfl->mass;
+    memory->destroy(setfl->mass);
     memory->destroy(setfl->frho);
     memory->destroy(setfl->rhor);
     memory->destroy(setfl->z2r);
@@ -357,6 +358,7 @@ void PairEAMAlloyGPU::coeff(int narg, char **arg)
         if (i == j) atom->set_mass(FLERR,i,setfl->mass[map[i]]);
         count++;
       }
+      scale[i][j] = 1.0;
     }
   }
 
@@ -373,8 +375,7 @@ void PairEAMAlloyGPU::read_file(char *filename)
 
   // read potential file
   if (comm->me == 0) {
-    PotentialFileReader reader(PairEAM::lmp, filename,
-                               "eam/alloy", unit_convert_flag);
+    PotentialFileReader reader(PairEAM::lmp, filename, "eam/alloy", unit_convert_flag);
 
     // transparently convert units for supported conversions
 

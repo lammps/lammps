@@ -299,8 +299,7 @@ int ComputeBondLocal::compute_bonds(int flag)
       rsq = dx*dx + dy*dy + dz*dz;
 
       if (btype == 0) {
-        engpot = fbond = 0.0;
-        engvib = engrot = engtrans = omegasq = vvib = 0.0;
+        fbond = 0.0;
       } else {
 
         if (singleflag) engpot = bond->single(btype,rsq,atom1,atom2,fbond);

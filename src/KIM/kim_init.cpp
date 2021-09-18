@@ -84,9 +84,7 @@ void KimInit::command(int narg, char **arg)
   if ((narg < 2) || (narg > 3)) error->all(FLERR, "Illegal 'kim init' command");
 
   if (domain->box_exist)
-    error->all(FLERR,
-               "Must use 'kim init' command before "
-               "simulation box is defined");
+    error->all(FLERR, "Must use 'kim init' command before simulation box is defined");
 
   char *model_name = utils::strdup(arg[0]);
   char *user_units = utils::strdup(arg[1]);
@@ -96,10 +94,9 @@ void KimInit::command(int narg, char **arg)
       unit_conversion_mode = true;
     else {
       error->all(FLERR,
-                 "Illegal 'kim init' command.\nThe argument "
-                 "followed by unit_style {} is an optional "
-                 "argument and when is used must "
-                 "be unit_conversion_mode",
+                 "Illegal 'kim init' command.\n"
+                 "The argument followed by unit_style {} is an optional argument and when "
+                 "is used must be unit_conversion_mode",
                  user_units);
     }
   } else
@@ -157,10 +154,7 @@ void get_kim_unit_names(char const *const system, KIM_LengthUnit &lengthUnit,
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_fs;
   } else if ((system_str == "lj") || (system_str == "micro") || (system_str == "nano")) {
-    error->all(FLERR,
-               "LAMMPS unit_style {} not supported "
-               "by KIM models",
-               system_str);
+    error->all(FLERR, "LAMMPS unit_style {} not supported by KIM models", system_str);
   } else {
     error->all(FLERR, "Unknown unit_style");
   }
@@ -296,9 +290,7 @@ void KimInit::determine_model_type_and_units(char *model_name, char *user_units,
     const std::string model_units_str(*model_units);
     const std::string user_units_str(user_units);
     if ((!unit_conversion_mode) && (model_units_str != user_units_str)) {
-      error->all(FLERR,
-                 "Incompatible units for KIM Simulator Model"
-                 ", required units = {}",
+      error->all(FLERR, "Incompatible units for KIM Simulator Model, required units = {}",
                  model_units_str);
     }
   }
@@ -321,8 +313,7 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM
   fix_store->setptr("model_units", (void *) model_units);
 
   // Begin output to log file
-  input->write_echo("#=== BEGIN kim init ==================================="
-                    "=======\n");
+  input->write_echo("#=== BEGIN kim init ==========================================\n");
 
   KIM_SimulatorModel *simulatorModel;
   if (model_type == SM) {
@@ -436,8 +427,7 @@ void KimInit::do_init(char *model_name, char *user_units, char *model_units, KIM
   }
 
   // End output to log file
-  input->write_echo("#=== END kim init ====================================="
-                    "=======\n\n");
+  input->write_echo("#=== END kim init ============================================\n\n");
 }
 
 /* ---------------------------------------------------------------------- */

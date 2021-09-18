@@ -62,7 +62,7 @@ _texture( q_tex,int2);
     tq.z=red_acc[2][tid];                                                   \
   }                                                                         \
   if (offset==0 && ii<inum) {                                               \
-    tep[i]=tq;                                                               \
+    tep[i]=tq;                                                              \
   }
 
 #define store_answers_tep(ufld, dufld, ii, inum,tid, t_per_atom, offset,    \
@@ -147,14 +147,14 @@ _texture( q_tex,int2);
     fieldp[ii+inum] = fp;                                                   \
   }
 
-#define store_answers_p(f, energy, e_coul, virial, ii, inum, tid, t_per_atom,       \
+#define store_answers_p(f,energy,e_coul, virial, ii, inum, tid, t_per_atom  \
                         offset, eflag, vflag, ans, engv, ev_stride)         \
   if (t_per_atom>1) {                                                       \
     simd_reduce_add3(t_per_atom, red_acc, offset, tid, f.x, f.y, f.z);      \
     if (EVFLAG && (vflag==2 || eflag==2)) {                                 \
       if (eflag) {                                                          \
         simdsync();                                                         \
-        simd_reduce_add2(t_per_atom, red_acc, offset, tid, energy, e_coul);         \
+        simd_reduce_add2(t_per_atom, red_acc, offset, tid, energy, e_coul); \
       }                                                                     \
       if (vflag) {                                                          \
         simdsync();                                                         \
@@ -174,7 +174,7 @@ _texture( q_tex,int2);
     if (eflag!=2 && vflag!=2) {                                             \
       if (eflag) {                                                          \
         simdsync();                                                         \
-        block_reduce_add2(simd_size(), red_acc, tid, energy, e_coul);               \
+        block_reduce_add2(simd_size(), red_acc, tid, energy, e_coul);       \
         if (vflag) __syncthreads();                                         \
         if (tid==0) {                                                       \
           engv[ei]+=energy*(acctyp)0.5;                                     \
@@ -225,7 +225,7 @@ _texture( q_tex,int2);
     }                                                                       \
   }                                                                         \
   if (offset==0 && ii<inum) {                                               \
-    tep[i]=tq;                                                               \
+    tep[i]=tq;                                                              \
   }
 
 #define store_answers_tep(ufld, dufld, ii, inum,tid, t_per_atom, offset,    \
@@ -280,25 +280,23 @@ _texture( q_tex,int2);
 
 #if (EVFLAG == 1)
 
-#define store_answers_p(f, energy, e_coul, virial, ii, inum, tid, t_per_atom,       \
+#define store_answers_p(f,energy,e_coul, virial, ii, inum, tid, t_per_atom, \
                         offset, eflag, vflag, ans, engv, ev_stride)         \
   if (t_per_atom>1) {                                                       \
     simd_reduce_add3(t_per_atom, f.x, f.y, f.z);                            \
     if (vflag==2 || eflag==2) {                                             \
       if (eflag)                                                            \
-        simd_reduce_add2(t_per_atom,energy,e_coul);                                \
+        simd_reduce_add2(t_per_atom,energy,e_coul);                         \
       if (vflag)                                                            \
         simd_reduce_arr(6, t_per_atom,virial);                              \
     }                                                                       \
   }                                                                         \
   if (offset==0 && ii<inum) {                                               \
     acctyp4 old=ans[ii];                                                    \
-    if (ii == 0) printf("old = %f %f %f\n", old.x, old.y, old.z);           \
     old.x+=f.x;                                                             \
     old.y+=f.y;                                                             \
     old.z+=f.z;                                                             \
     ans[ii]=old;                                                            \
-    if (ii == 0) printf("new = %f %f %f\n", old.x, old.y, old.z);           \
   }                                                                         \
   if (eflag || vflag) {                                                     \
     if (eflag!=2 && vflag!=2) {                                             \
@@ -378,7 +376,7 @@ _texture( q_tex,int2);
 // EVFLAG == 0
 #else
 
-#define store_answers_p(f, energy, e_coul, virial, ii, inum, tid, t_per_atom,       \
+#define store_answers_p(f,energy,e_coul, virial, ii, inum, tid, t_per_atom, \
                         offset, eflag, vflag, ans, engv, ev_stride)         \
   if (t_per_atom>1)                                                         \
     simd_reduce_add3(t_per_atom, f.x, f.y, f.z);                            \
@@ -402,20 +400,20 @@ _texture( q_tex,int2);
 ------------------------------------------------------------------------- */
 
 __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
-                                const __global numtyp *restrict extra,
-                                const __global numtyp4 *restrict damping,
-                                const __global numtyp4 *restrict sp_polar,
-                                const __global int *dev_nbor,
-                                const __global int *dev_packed,
-                                const __global int *dev_short_nbor,
-                                __global acctyp4 *restrict ans,
-                                __global acctyp *restrict engv,
-                                __global numtyp4 *restrict tep,
-                                const int eflag, const int vflag, const int inum,
-                                const int nall, const int nbor_pitch, const int t_per_atom,
-                                const numtyp aewald, const numtyp felec,
-                                const numtyp off2, const numtyp polar_dscale,
-                                const numtyp polar_uscale)
+                                 const __global numtyp *restrict extra,
+                                 const __global numtyp4 *restrict damping,
+                                 const __global numtyp4 *restrict sp_polar,
+                                 const __global int *dev_nbor,
+                                 const __global int *dev_packed,
+                                 const __global int *dev_short_nbor,
+                                 __global acctyp4 *restrict ans,
+                                 __global acctyp *restrict engv,
+                                 __global numtyp4 *restrict tep,
+                                 const int eflag, const int vflag, const int inum,
+                                 const int nall, const int nbor_pitch,
+                                 const int t_per_atom, const numtyp aewald,
+                                 const numtyp felec, const numtyp off2,
+                                 const numtyp polar_dscale, const numtyp polar_uscale)
 {
   int tid, ii, offset, i;
   atom_info(t_per_atom,ii,tid,offset);
@@ -439,14 +437,11 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
   numtyp4* polar2 = (numtyp4*)(&extra[4*nall]);
   numtyp4* polar3 = (numtyp4*)(&extra[8*nall]);
 
-  //numtyp4 xi__;
-
   if (ii<inum) {
-    int k,m,itype,igroup;
+    int m,itype,igroup;
     numtyp bfac;
     numtyp term1,term2,term3;
-    numtyp term4,term5;
-    numtyp term6;
+    numtyp term4,term5,term6;
     numtyp bn[6];
     numtyp ci,dix,diy,diz,qixx,qixy,qixz,qiyy,qiyz,qizz;
 
@@ -480,9 +475,6 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
     itype  = polar3[i].z; // amtype[i];
     igroup = polar3[i].w; // amgroup[i];
 
-    // debug:
-    // xi__ = ix; xi__.w = itype;
-
     for ( ; nbor<nbor_end; nbor+=n_stride) {
 
       int jextra=nbor_mem[nbor];
@@ -497,7 +489,7 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
       numtyp zr = jx.z - ix.z;
       numtyp r2 = xr*xr + yr*yr + zr*zr;
 
-      if (r2>off2) continue;
+      //if (r2>off2) continue;
   
       numtyp r = ucl_sqrt(r2);
       numtyp ck = polar1[j].x;   // rpole[j][0];
@@ -613,14 +605,14 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
       for (m = 1; m < 6; m++) {
         bfac = (numtyp) (m+m-1);
         alsq2n = alsq2 * alsq2n;
-        bn[m] = (bfac*bn[m-1]+alsq2n*exp2a) / r2;
+        bn[m] = (bfac*bn[m-1]+alsq2n*exp2a) * r2inv;
       }
       for (m = 0; m < 6; m++) bn[m] *= felec;
 
       term1 = ci*ck;
       term2 = ck*dir - ci*dkr + dik;
-      term3 = ci*qkr + ck*qir - dir*dkr + 2.0*(dkqi-diqk+qiqk);
-      term4 = dir*qkr - dkr*qir - 4.0*qik;
+      term3 = ci*qkr + ck*qir - dir*dkr + (numtyp)2.0*(dkqi-diqk+qiqk);
+      term4 = dir*qkr - dkr*qir - (numtyp)4.0*qik;
       term5 = qir*qkr;
       numtyp scalek = (numtyp)1.0 - factor_mpole;
       rr1 = bn[0] - scalek*rr1;
@@ -729,8 +721,6 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
   numtyp4* polar1 = (numtyp4*)(&extra[0]);
   numtyp4* polar2 = (numtyp4*)(&extra[4*nall]);
   numtyp4* polar3 = (numtyp4*)(&extra[8*nall]);
-
-  //numtyp4 xi__;
 
   if (ii<inum) {
     int numj, nbor, nbor_end;
@@ -1337,7 +1327,7 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
       for (m = 1; m <= 4; m++) {
         bfac = (numtyp) (m+m-1);
         alsq2n = alsq2 * alsq2n;
-        bn[m] = (bfac*bn[m-1]+alsq2n*exp2a) / r2;
+        bn[m] = (bfac*bn[m-1]+alsq2n*exp2a) * r2inv;
       }
       for (m = 0; m < 5; m++) bn[m] *= felec;
 

@@ -43,9 +43,9 @@ class PairAmoebaGPU : public PairAmoeba {
  private:
   int gpu_mode;
   double cpu_time;
-  void *tep_pinned;
+  void *tq_pinned;
   void *fieldp_pinned;
-  bool tep_single;
+  bool tq_single;
 
   bool gpu_multipole_real_ready;
   bool gpu_udirect2b_ready;
@@ -55,7 +55,7 @@ class PairAmoebaGPU : public PairAmoeba {
   void udirect2b_cpu();
 
   template<class numtyp>
-  void compute_force_from_tep(const numtyp*, double**, double*);
+  void compute_force_from_torque(const numtyp*, double**, double*);
 };
 
 }    // namespace LAMMPS_NS

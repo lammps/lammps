@@ -178,9 +178,9 @@ void KimInit::print_dirs(struct KIM_Collections *const collections) const
   collection_list.push_back(KIM_COLLECTION_user);
   collection_list.push_back(KIM_COLLECTION_system);
 
-  for (auto col = collection_list.begin(); col != collection_list.end(); ++col) {
+  for (auto col : collection_list) {
     kim_error = KIM_Collections_CacheListOfDirectoryNames(
-        collections, *col, KIM_COLLECTION_ITEM_TYPE_portableModel, &dirListExtent);
+        collections, col, KIM_COLLECTION_ITEM_TYPE_portableModel, &dirListExtent);
     if (!kim_error) {
       for (int i = 0; i < dirListExtent; ++i) {
         char const *name;
@@ -191,9 +191,9 @@ void KimInit::print_dirs(struct KIM_Collections *const collections) const
   }
   input->write_echo("#\n");
   input->write_echo("#=== KIM is looking for 'Simulator Models' in these directories ===\n");
-  for (auto col = collection_list.begin(); col != collection_list.end(); ++col) {
+  for (auto col : collection_list) {
     kim_error = KIM_Collections_CacheListOfDirectoryNames(
-        collections, *col, KIM_COLLECTION_ITEM_TYPE_simulatorModel, &dirListExtent);
+        collections, col, KIM_COLLECTION_ITEM_TYPE_simulatorModel, &dirListExtent);
     if (!kim_error) {
       for (int i = 0; i < dirListExtent; ++i) {
         char const *name;

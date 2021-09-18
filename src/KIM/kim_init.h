@@ -62,8 +62,8 @@
 #include "pointers.h"
 
 // Forward declaration.
-typedef struct KIM_Model KIM_Model;
-typedef struct KIM_Collections KIM_Collections;
+struct KIM_Model;
+struct KIM_Collections;
 
 namespace LAMMPS_NS {
 

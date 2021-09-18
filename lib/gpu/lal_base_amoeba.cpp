@@ -21,7 +21,7 @@ namespace LAMMPS_AL {
 extern Device<PRECISION,ACC_PRECISION> global_device;
 
 template <class numtyp, class acctyp>
-BaseAmoebaT::BaseAmoeba() : _compiled(false), _max_bytes(0), short_nbor_avail(false) {
+BaseAmoebaT::BaseAmoeba() : _compiled(false), _max_bytes(0), short_nbor_polar_avail(false) {
   device=&global_device;
   ans=new Answer<numtyp,acctyp>();
   nbor=new Neighbor();
@@ -241,11 +241,12 @@ inline int BaseAmoebaT::build_nbor_list(const int inum, const int host_inum,
 }
 
 // ---------------------------------------------------------------------------
-// Copy nbor list from host if necessary and then calculate forces, virials,..
+// Copy nbor list from host if necessary and then calculate forces, virials
+// for the polar real-space term
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void BaseAmoebaT::compute_polar_real_host_nbor(const int f_ago, const int inum_full, const int nall,
-                          double **host_x, int *host_type, int *host_amtype,
+void BaseAmoebaT::compute_polar_real_host_nbor(const int f_ago, const int inum_full,
+                          const int nall, double **host_x, int *host_type, int *host_amtype,
                           int *host_amgroup, double **host_rpole,
                           double **host_uind, double **host_uinp,
                           int *ilist, int *numj, int **firstneigh,
@@ -432,17 +433,20 @@ int** BaseAmoebaT::precompute(const int ago, const int inum_full, const int nall
 // Reneighbor on GPU if necessary, and then compute polar real-space
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int** BaseAmoebaT::compute_multipole_real(const int ago, const int inum_full, const int nall,
-                           double **host_x, int *host_type, int *host_amtype,
-                           int *host_amgroup, double **host_rpole,
-                           double *sublo, double *subhi, tagint *tag,
-                           int **nspecial, tagint **special,
-                           int *nspecial15, tagint **special15,
-                           const bool eflag_in, const bool vflag_in,
-                           const bool eatom, const bool vatom, int &host_start,
-                           int **ilist, int **jnum, const double cpu_time,
-                           bool &success, const double aewald, const double felec, const double off2_mpole,
-                           double *host_q, double *boxlo, double *prd, void **tep_ptr) {
+int** BaseAmoebaT::compute_multipole_real(const int ago, const int inum_full,
+                                          const int nall, double **host_x,
+                                          int *host_type, int *host_amtype,
+                                          int *host_amgroup, double **host_rpole,
+                                          double *sublo, double *subhi, tagint *tag,
+                                          int **nspecial, tagint **special,
+                                          int *nspecial15, tagint **special15,
+                                          const bool eflag_in, const bool vflag_in,
+                                          const bool eatom, const bool vatom,
+                                          int &host_start, int **ilist, int **jnum,
+                                          const double cpu_time, bool &success,
+                                          const double aewald, const double felec,
+                                          const double off2_mpole, double *host_q,
+                                          double *boxlo, double *prd, void **tep_ptr) {
   acc_timers();
   int eflag, vflag;
   if (eatom) eflag=2;
@@ -492,7 +496,8 @@ int** BaseAmoebaT::compute_multipole_real(const int ago, const int inum_full, co
   _aewald = aewald;
   const int red_blocks=multipole_real(eflag,vflag);
 
-  // leave the answers (forces, energies and virial) on the device, only copy them back in the last kernel (polar_real)
+  // leave the answers (forces, energies and virial) on the device,
+  //   only copy them back in the last kernel (polar_real)
   //ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
   //device->add_ans_object(ans);
 
@@ -516,18 +521,21 @@ int** BaseAmoebaT::compute_multipole_real(const int ago, const int inum_full, co
 //    of the permanent field
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int** BaseAmoebaT::compute_udirect2b(const int ago, const int inum_full, const int nall,
-                           double **host_x, int *host_type, int *host_amtype,
-                           int *host_amgroup, double **host_rpole,
-                           double **host_uind, double **host_uinp,
-                           double *sublo, double *subhi, tagint *tag,
-                           int **nspecial, tagint **special,
-                           int *nspecial15, tagint **special15,
-                           const bool eflag_in, const bool vflag_in,
-                           const bool eatom, const bool vatom, int &host_start,
-                           int **ilist, int **jnum, const double cpu_time,
-                           bool &success, const double aewald, const double off2_polar,
-                           double *host_q, double *boxlo, double *prd, void** fieldp_ptr) {
+int** BaseAmoebaT::compute_udirect2b(const int ago, const int inum_full,
+                                     const int nall, double **host_x,
+                                     int *host_type, int *host_amtype,
+                                     int *host_amgroup, double **host_rpole,
+                                     double **host_uind, double **host_uinp,
+                                     double *sublo, double *subhi, tagint *tag,
+                                     int **nspecial, tagint **special,
+                                     int *nspecial15, tagint **special15,
+                                     const bool eflag_in, const bool vflag_in,
+                                     const bool eatom, const bool vatom,
+                                     int &host_start, int **ilist, int **jnum,
+                                     const double cpu_time, bool &success,
+                                     const double aewald, const double off2_polar,
+                                     double *host_q, double *boxlo, double *prd,
+                                     void** fieldp_ptr) {
   acc_timers();
   int eflag, vflag;
   if (eatom) eflag=2;
@@ -587,18 +595,21 @@ int** BaseAmoebaT::compute_udirect2b(const int ago, const int inum_full, const i
 //    of the induced field
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int** BaseAmoebaT::compute_umutual2b(const int ago, const int inum_full, const int nall,
-                           double **host_x, int *host_type, int *host_amtype,
-                           int *host_amgroup, double **host_rpole,
-                           double **host_uind, double **host_uinp,
-                           double *sublo, double *subhi, tagint *tag,
-                           int **nspecial, tagint **special,
-                           int *nspecial15, tagint **special15,
-                           const bool eflag_in, const bool vflag_in,
-                           const bool eatom, const bool vatom, int &host_start,
-                           int **ilist, int **jnum, const double cpu_time,
-                           bool &success, const double aewald, const double off2_polar,
-                           double *host_q, double *boxlo, double *prd, void** fieldp_ptr) {
+int** BaseAmoebaT::compute_umutual2b(const int ago, const int inum_full,
+                                     const int nall, double **host_x,
+                                     int *host_type, int *host_amtype,
+                                     int *host_amgroup, double **host_rpole,
+                                     double **host_uind, double **host_uinp,
+                                     double *sublo, double *subhi, tagint *tag,
+                                     int **nspecial, tagint **special,
+                                     int *nspecial15, tagint **special15,
+                                     const bool eflag_in, const bool vflag_in,
+                                     const bool eatom, const bool vatom,
+                                     int &host_start, int **ilist, int **jnum,
+                                     const double cpu_time, bool &success,
+                                     const double aewald, const double off2_polar,
+                                     double *host_q, double *boxlo, double *prd,
+                                     void** fieldp_ptr) {
   acc_timers();
   int eflag, vflag;
   if (eatom) eflag=2;
@@ -657,19 +668,21 @@ int** BaseAmoebaT::compute_umutual2b(const int ago, const int inum_full, const i
 // Reneighbor on GPU if necessary, and then compute polar real-space
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int** BaseAmoebaT::compute_polar_real(const int ago, const int inum_full, const int nall,
-                           double **host_x, int *host_type, int *host_amtype,
-                           int *host_amgroup, double **host_rpole,
-                           double **host_uind, double **host_uinp,
-                           double *sublo, double *subhi, tagint *tag,
-                           int **nspecial, tagint **special,
-                           int *nspecial15, tagint **special15,
-                           const bool eflag_in, const bool vflag_in,
-                           const bool eatom, const bool vatom, int &host_start,
-                           int **ilist, int **jnum, const double cpu_time,
-                           bool &success, const double aewald, const double felec,
-                           const double off2_polar, double *host_q, double *boxlo,
-                           double *prd, void **tep_ptr) {
+int** BaseAmoebaT::compute_polar_real(const int ago, const int inum_full,
+                                      const int nall, double **host_x,
+                                      int *host_type, int *host_amtype,
+                                      int *host_amgroup, double **host_rpole,
+                                      double **host_uind, double **host_uinp,
+                                      double *sublo, double *subhi, tagint *tag,
+                                      int **nspecial, tagint **special,
+                                      int *nspecial15, tagint **special15,
+                                      const bool eflag_in, const bool vflag_in,
+                                      const bool eatom, const bool vatom,
+                                      int &host_start, int **ilist, int **jnum,
+                                      const double cpu_time, bool &success,
+                                      const double aewald, const double felec,
+                                      const double off2_polar, double *host_q,
+                                      double *boxlo, double *prd, void **tep_ptr) {
   acc_timers();
   int eflag, vflag;
   if (eatom) eflag=2;
@@ -719,7 +732,8 @@ int** BaseAmoebaT::compute_polar_real(const int ago, const int inum_full, const 
   _aewald = aewald;
   const int red_blocks=polar_real(eflag,vflag);
 
-  // only copy answers (forces, energies and virial) back from the device in the last kernel (which is polar_real here)
+  // only copy answers (forces, energies and virial) back from the device
+  //   in the last kernel (which is polar_real here)
   ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
   device->add_ans_object(ans);
 
@@ -746,8 +760,7 @@ double BaseAmoebaT::host_memory_usage_atomic() const {
 
 template <class numtyp, class acctyp>
 void BaseAmoebaT::cast_extra_data(int* amtype, int* amgroup, double** rpole,
-    double** uind, double** uinp) {
-
+                                  double** uind, double** uinp) {
   // signal that we need to transfer extra data from the host
 
   atom->extra_data_unavail();

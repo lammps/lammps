@@ -192,8 +192,8 @@ class BaseAmoeba {
                 const bool eflag, const bool vflag,
                 const bool eatom, const bool vatom, int &host_start,
                 int **ilist, int **numj, const double cpu_time, bool &success,
-                const double aewald, const double felec, const double off2_polar, double *charge,
-                double *boxlo, double *prd, void **tep_ptr);
+                const double aewald, const double felec, const double off2_polar,
+                double *charge, double *boxlo, double *prd, void **tep_ptr);
 
   /// Compute polar real-space with host neighboring (not active for now)
   void compute_polar_real_host_nbor(const int f_ago, const int inum_full, const int nall,
@@ -202,8 +202,9 @@ class BaseAmoeba {
                double **host_uinp, int *ilist, int *numj,
                int **firstneigh, const bool eflag, const bool vflag,
                const bool eatom, const bool vatom, int &host_start,
-               const double cpu_time, bool &success, const double aewald, const double felec, const double off2_polar,
-               double *charge, const int nlocal, double *boxlo, double *prd, void **tep_ptr);
+               const double cpu_time, bool &success, const double aewald, const double felec,
+               const double off2_polar, double *charge, const int nlocal, double *boxlo,
+               double *prd, void **tep_ptr);
 
   // -------------------------- DEVICE DATA -------------------------
 
@@ -271,7 +272,7 @@ class BaseAmoeba {
   int _extra_fields;
   double _max_bytes, _max_an_bytes, _maxspecial, _maxspecial15, _max_nbors;
   double _gpu_overhead, _driver_overhead;
-  bool short_nbor_avail;
+  bool short_nbor_polar_avail;
   UCL_D_Vec<int> *_nbor_data;
 
   numtyp _aewald,_felec;

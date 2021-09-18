@@ -182,13 +182,13 @@ int AmoebaT::udirect2b(const int eflag, const int vflag) {
   this->time_pair.start();
 
   // Build the short neighbor list if not done yet
-  if (!this->short_nbor_avail) {
+  if (!this->short_nbor_polar_avail) {
     this->k_short_nbor.set_size(GX,BX);
     this->k_short_nbor.run(&this->atom->x, &this->nbor->dev_nbor,
                            &this->_nbor_data->begin(),
                            &this->dev_short_nbor, &this->_off2_polar, &ainum,
                            &nbor_pitch, &this->_threads_per_atom);
-    this->short_nbor_avail = true;
+    this->short_nbor_polar_avail = true;
   }
   
   this->k_udirect2b.set_size(GX,BX);
@@ -222,13 +222,13 @@ int AmoebaT::umutual2b(const int eflag, const int vflag) {
   this->time_pair.start();
 
   // Build the short neighbor list if not done yet
-  if (!this->short_nbor_avail) {
+  if (!this->short_nbor_polar_avail) {
     this->k_short_nbor.set_size(GX,BX);
     this->k_short_nbor.run(&this->atom->x, &this->nbor->dev_nbor,
                            &this->_nbor_data->begin(), &this->dev_short_nbor,
                            &this->_off2_polar, &ainum, &nbor_pitch,
                            &this->_threads_per_atom);
-    this->short_nbor_avail = true;
+    this->short_nbor_polar_avail = true;
   }
 
   this->k_umutual2b.set_size(GX,BX);
@@ -261,13 +261,13 @@ int AmoebaT::polar_real(const int eflag, const int vflag) {
   this->time_pair.start();
 
   // Build the short neighbor list if not done yet
-  if (!this->short_nbor_avail) {
+  if (!this->short_nbor_polar_avail) {
     this->k_short_nbor.set_size(GX,BX);
     this->k_short_nbor.run(&this->atom->x, &this->nbor->dev_nbor,
                           &this->_nbor_data->begin(),
                           &this->dev_short_nbor, &this->_off2_polar, &ainum,
                           &nbor_pitch, &this->_threads_per_atom);
-    this->short_nbor_avail = true;
+    this->short_nbor_polar_avail = true;
   }
 
   this->k_polar.set_size(GX,BX);
@@ -283,7 +283,7 @@ int AmoebaT::polar_real(const int eflag, const int vflag) {
   // Signal that short nbor list is not avail for the next time step
   //   do it here because polar_real() is the last kernel in a time step at this point
 
-  this->short_nbor_avail = false;
+  this->short_nbor_polar_avail = false;
 
   return GX;
 }

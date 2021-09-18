@@ -412,17 +412,11 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
       if (strcmp(arg[iarg+1],"hybrid") == 0) {
         if (iarg+4 > narg)
           error->universe_all(FLERR,"Invalid command-line argument");
-        int n = strlen(arg[iarg+2]) + 1;
-        suffix = new char[n];
-        strcpy(suffix,arg[iarg+2]);
-        n = strlen(arg[iarg+3]) + 1;
-        suffix2 = new char[n];
-        strcpy(suffix2,arg[iarg+3]);
+        suffix = utils::strdup(arg[iarg+2]);
+        suffix2 = utils::strdup(arg[iarg+3]);
         iarg += 4;
       } else {
-        int n = strlen(arg[iarg+1]) + 1;
-        suffix = new char[n];
-        strcpy(suffix,arg[iarg+1]);
+        suffix = utils::strdup(arg[iarg+1]);
         iarg += 2;
       }
 
@@ -870,14 +864,12 @@ void LAMMPS::post_create()
   // invoke any command-line package commands
 
   if (num_package) {
-    char str[256];
+    std::string str;
     for (int i = 0; i < num_package; i++) {
-      strcpy(str,"package");
+      str = "package";
       for (char **ptr = packargs[i]; *ptr != nullptr; ++ptr) {
-        if (strlen(str) + strlen(*ptr) + 2 > 256)
-          error->all(FLERR,"Too many -pk arguments in command line");
-        strcat(str," ");
-        strcat(str,*ptr);
+        str += " ";
+        str += *ptr;
       }
       input->one(str);
     }

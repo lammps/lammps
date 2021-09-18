@@ -737,9 +737,7 @@ void Force::store_style(char *&str, const std::string &style, int sflag)
   if (sflag == 1) estyle += std::string("/") + lmp->suffix;
   else if (sflag == 2) estyle += std::string("/") + lmp->suffix2;
   else if (sflag == 3) estyle += std::string("/") + lmp->suffixp;
-
-  str = new char[estyle.size()+1];
-  strcpy(str,estyle.c_str());
+  str = utils::strdup(estyle);
 }
 
 /* ----------------------------------------------------------------------

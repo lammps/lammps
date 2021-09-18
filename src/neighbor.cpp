@@ -1887,11 +1887,12 @@ int Neighbor::choose_pair(NeighRequest *rq)
 
   // convert newton request to newtflag = on or off
 
-  int newtflag;
-  if (rq->newton == 0 && newton_pair) newtflag = 1;
-  else if (rq->newton == 0 && !newton_pair) newtflag = 0;
-  else if (rq->newton == 1) newtflag = 1;
-  else if (rq->newton == 2) newtflag = 0;
+  bool newtflag;
+  if (rq->newton == 0 && newton_pair) newtflag = true;
+  else if (rq->newton == 0 && !newton_pair) newtflag = false;
+  else if (rq->newton == 1) newtflag = true;
+  else if (rq->newton == 2) newtflag = false;
+  else error->all(FLERR,"Illegal 'newton' flag in neighbor list request");
 
   int molecular = atom->molecular;
 
@@ -2565,27 +2566,16 @@ void Neighbor::modify_params(int narg, char **arg)
         type2collection[i] = -1;
 
       // For each custom range, define mapping for types in interval
-      int nfield;
-      char *str;
       for (i = 0; i < ncollections; i++){
-        n = strlen(arg[iarg+2+i]) + 1;
-        str = new char[n];
-        strcpy(str,arg[iarg+2+i]);
-        std::vector<std::string> words = Tokenizer(str, ",").as_vector();
-        nfield = words.size();
-
-        for (j = 0; j < nfield; j++) {
-          const char * field = words[j].c_str();
-          utils::bounds(FLERR,field,1,ntypes,nlo,nhi,error);
-
+        std::vector<std::string> words = Tokenizer(arg[iarg+2+i], ",").as_vector();
+        for (const auto &word : words) {
+          utils::bounds(FLERR,word,1,ntypes,nlo,nhi,error);
           for (k = nlo; k <= nhi; k++) {
             if (type2collection[k] != -1)
               error->all(FLERR,"Type specified more than once in collection/type commnd");
             type2collection[k] = i;
           }
         }
-
-        delete [] str;
       }
 
       // Check for undefined atom type

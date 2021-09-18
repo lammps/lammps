@@ -395,9 +395,7 @@ void PairEAMFSGPU::read_file(char *filename)
       file->elements = new char*[file->nelements];
       for (int i = 0; i < file->nelements; i++) {
         const std::string word = values.next_string();
-        const int n = word.length() + 1;
-        file->elements[i] = new char[n];
-        strcpy(file->elements[i], word.c_str());
+        file->elements[i] = utils::strdup(word);
       }
 
       //
@@ -408,6 +406,7 @@ void PairEAMFSGPU::read_file(char *filename)
       file->nr   = values.next_int();
       file->dr   = values.next_double();
       file->cut  = values.next_double();
+      rhomax = 0.0;
 
       if ((file->nrho <= 0) || (file->nr <= 0) || (file->dr <= 0.0))
         error->one(FLERR,"Invalid EAM potential file");

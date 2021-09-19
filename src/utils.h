@@ -161,7 +161,7 @@ namespace utils {
                                        LAMMPS *lmp);
 
   /*! Convert a string to a boolean while checking whether it is a valid boolean term.
-   *  Valid terms are 'yes', 'no', 'true', 'false', 'on', 'off', '1', '0'. Capilatization
+   *  Valid terms are 'yes', 'no', 'true', 'false', 'on', 'off', '1', '0'. Capitalization
    *  will be ignored (thus 'yEs' or 'nO' are valid, 'yeah' or 'nope' are not).
    *
    *  \param file     name of source file for error message

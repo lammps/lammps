@@ -2262,6 +2262,7 @@ Nmols
 nn
 nnodes
 Nocedal
+nO
 nocite
 nocoeff
 nodeless
@@ -3656,6 +3657,7 @@ Yc
 ycm
 Yeh
 yellowgreen
+yEs
 Yethiraj
 yflag
 yhi

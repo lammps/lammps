@@ -21,18 +21,16 @@
 #include "style_kspace.h"      // IWYU pragma: keep
 #include "style_pair.h"        // IWYU pragma: keep
 
-#include "angle.h"
-#include "atom.h"
-#include "bond.h"
+#include "angle_hybrid.h"
 #include "bond_hybrid.h"
-#include "comm.h"
-#include "dihedral.h"
-#include "error.h"
-#include "improper.h"
-#include "kspace.h"
-#include "pair.h"
+#include "dihedral_hybrid.h"
+#include "improper_hybrid.h"
 #include "pair_hybrid.h"
-#include "pair_hybrid_overlay.h"
+#include "kspace.h"
+
+#include "atom.h"
+#include "comm.h"
+#include "error.h"
 
 #include <cstring>
 

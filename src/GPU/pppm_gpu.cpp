@@ -28,6 +28,7 @@
 #include "gridcomm.h"
 #include "math_const.h"
 #include "memory.h"
+#include "modify.h"
 #include "neighbor.h"
 #include "remap_wrap.h"
 #include "universe.h"

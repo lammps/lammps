@@ -18,10 +18,7 @@
 
 #include "pppm_gpu.h"
 
-#include "angle.h"
 #include "atom.h"
-#include "bond.h"
-#include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "fft3d_wrap.h"
@@ -32,14 +29,10 @@
 #include "math_const.h"
 #include "memory.h"
 #include "neighbor.h"
-#include "pair.h"
 #include "remap_wrap.h"
 #include "universe.h"
 #include "update.h"
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
 
 using namespace LAMMPS_NS;

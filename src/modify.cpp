@@ -13,15 +13,15 @@
 ------------------------------------------------------------------------- */
 
 #include "modify.h"
-#include "style_compute.h"  // IWYU pragma: keep
-#include "style_fix.h"  // IWYU pragma: keep
+#include "style_compute.h"      // IWYU pragma: keep
+#include "style_fix.h"          // IWYU pragma: keep
 
 #include "atom.h"
 #include "comm.h"
-#include "compute.h"
+#include "compute.h"            // IWYU pragma: keep
 #include "domain.h"
 #include "error.h"
-#include "fix.h"
+#include "fix.h"                // IWYU pragma: keep
 #include "group.h"
 #include "input.h"
 #include "memory.h"
@@ -30,7 +30,6 @@
 #include "variable.h"
 
 #include <cstring>
-#include <vector>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

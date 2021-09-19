@@ -19,22 +19,20 @@
 
 #include "pair_mesocnt.h"
 
-#include <cmath>
-#include <cstdio>
-
-#include <cstring>
-
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "memory.h"
 #include "error.h"
-#include "update.h"
+#include "force.h"
 #include "math_const.h"
 #include "math_extra.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

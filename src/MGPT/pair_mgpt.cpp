@@ -35,7 +35,6 @@
 
 #include <cassert>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 
 using namespace LAMMPS_NS;

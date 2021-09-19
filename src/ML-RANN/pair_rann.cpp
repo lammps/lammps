@@ -44,8 +44,6 @@ DISTRIBUTION A. Approved for public release; distribution unlimited. OPSEC#4918
 
 #include <cmath>
 #include <cstring>
-#include <string>
-#include <vector>
 
 #include "rann_activation_linear.h"
 #include "rann_activation_sig_i.h"

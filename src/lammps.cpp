@@ -28,27 +28,28 @@
 #include "style_minimize.h"  // IWYU pragma: keep
 #include "style_pair.h"      // IWYU pragma: keep
 #include "style_region.h"    // IWYU pragma: keep
-#include "universe.h"
-#include "input.h"
-#include "info.h"
-#include "atom.h"            // IWYU pragma: keep
-#include "update.h"
-#include "neighbor.h"        // IWYU pragma: keep
+
+#include "accelerator_kokkos.h"
+#include "accelerator_omp.h"
+#include "atom.h"
+#include "citeme.h"
 #include "comm.h"
 #include "comm_brick.h"
-#include "domain.h"          // IWYU pragma: keep
-#include "force.h"
-#include "modify.h"
-#include "group.h"
-#include "output.h"
-#include "citeme.h"
-#include "accelerator_kokkos.h"
-#include "accelerator_omp.h"    // IWYU pragma: keep
-#include "timer.h"
-#include "lmppython.h"
-#include "version.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
+#include "force.h"
+#include "group.h"
+#include "info.h"
+#include "input.h"
+#include "lmppython.h"
+#include "memory.h"
+#include "modify.h"
+#include "neighbor.h"
+#include "output.h"
+#include "timer.h"
+#include "universe.h"
+#include "update.h"
+#include "version.h"
 
 #include <cctype>
 #include <cmath>

@@ -10,6 +10,9 @@
 
 #include <cstring>
 #include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
 
 #if !defined(_WIN32)
 #include <unistd.h>

@@ -43,6 +43,7 @@
 
 #ifdef LMP_GPU
 #include "fix_gpu.h"
+#include <cmath>
 #endif
 
 using namespace LAMMPS_NS;

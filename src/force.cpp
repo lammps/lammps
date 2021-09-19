@@ -13,6 +13,7 @@
 ------------------------------------------------------------------------- */
 
 #include "force.h"
+
 #include "style_angle.h"       // IWYU pragma: keep
 #include "style_bond.h"        // IWYU pragma: keep
 #include "style_dihedral.h"    // IWYU pragma: keep

@@ -27,6 +27,7 @@
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
 #include "modify.h"
@@ -34,6 +35,8 @@
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "suffix.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

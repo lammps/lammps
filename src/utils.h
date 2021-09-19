@@ -162,16 +162,16 @@ namespace utils {
 
   /*! Convert a string to a boolean while checking whether it is a valid boolean term.
    *  Valid terms are 'yes', 'no', 'true', 'false', 'on', 'off', '1', '0'. Capilatization
-   *  will be ignored (thus 'yEs' or 'nO' are valid, 'yay' or 'nay' are not).
+   *  will be ignored (thus 'yEs' or 'nO' are valid, 'yeah' or 'nope' are not).
    *
    *  \param file     name of source file for error message
    *  \param line     line number in source file for error message
    *  \param str      string to be converted to logical
    *  \param do_abort determines whether to call Error::one() or Error::all()
    *  \param lmp      pointer to top-level LAMMPS class instance
-   *  \return         boolean */
+   *  \return         1 if string resolves to "true", otherwise 0 */
 
-  bool logical(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp);
+  int logical(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp);
 
   /*! Convert a string to a floating point number while checking
    *  if it is a valid floating point or integer number

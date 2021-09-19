@@ -353,7 +353,7 @@ std::string utils::check_packages_for_style(const std::string &style, const std:
    called by various commands to check validity of their arguments
 ------------------------------------------------------------------------- */
 
-bool utils::logical(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+int utils::logical(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
 {
   int n = 0;
 
@@ -372,11 +372,11 @@ bool utils::logical(const char *file, int line, const char *str, bool do_abort, 
   if (has_utf8(buf)) buf = utf8_subst(buf);
   std::transform(buf.begin(), buf.end(), buf.begin(), tolower);
 
-  bool rv = false;
+  int rv = 0;
   if ((buf == "yes") || (buf == "on") || (buf == "true") || (buf == "1")) {
-    rv = true;
+    rv = 1;
   } else if ((buf == "no") || (buf == "off") || (buf == "false") || (buf == "0")) {
-    rv = false;
+    rv = 0;
   } else {
     std::string msg("Expected boolean parameter instead of '");
     msg += buf + "' in input script or data file";

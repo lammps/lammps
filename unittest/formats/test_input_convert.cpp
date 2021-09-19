@@ -40,26 +40,26 @@ protected:
 
 TEST_F(InputConvertTest, logical)
 {
-    EXPECT_TRUE(utils::logical(FLERR, "yes", false, lmp));
-    EXPECT_TRUE(utils::logical(FLERR, "Yes", false, lmp));
-    EXPECT_TRUE(utils::logical(FLERR, "YES", false, lmp));
-    EXPECT_TRUE(utils::logical(FLERR, "yEs", false, lmp));
-    EXPECT_TRUE(utils::logical(FLERR, "true", false, lmp));
-    EXPECT_TRUE(utils::logical(FLERR, "True", false, lmp));
-    EXPECT_TRUE(utils::logical(FLERR, "TRUE", false, lmp));
-    EXPECT_TRUE(utils::logical(FLERR, "on", false, lmp));
-    EXPECT_TRUE(utils::logical(FLERR, "On", false, lmp));
-    EXPECT_TRUE(utils::logical(FLERR, "ON", false, lmp));
-    EXPECT_TRUE(utils::logical(FLERR, "1", false, lmp));
-    EXPECT_FALSE(utils::logical(FLERR, "no", false, lmp));
-    EXPECT_FALSE(utils::logical(FLERR, "No", false, lmp));
-    EXPECT_FALSE(utils::logical(FLERR, "NO", false, lmp));
-    EXPECT_FALSE(utils::logical(FLERR, "nO", false, lmp));
-    EXPECT_FALSE(utils::logical(FLERR, "off", false, lmp));
-    EXPECT_FALSE(utils::logical(FLERR, "Off", false, lmp));
-    EXPECT_FALSE(utils::logical(FLERR, "OFF", false, lmp));
-    EXPECT_FALSE(utils::logical(FLERR, "OfF", false, lmp));
-    EXPECT_FALSE(utils::logical(FLERR, "0", false, lmp));
+    EXPECT_EQ(utils::logical(FLERR, "yes", false, lmp), 1);
+    EXPECT_EQ(utils::logical(FLERR, "Yes", false, lmp), 1);
+    EXPECT_EQ(utils::logical(FLERR, "YES", false, lmp), 1);
+    EXPECT_EQ(utils::logical(FLERR, "yEs", false, lmp), 1);
+    EXPECT_EQ(utils::logical(FLERR, "true", false, lmp), 1);
+    EXPECT_EQ(utils::logical(FLERR, "True", false, lmp), 1);
+    EXPECT_EQ(utils::logical(FLERR, "TRUE", false, lmp), 1);
+    EXPECT_EQ(utils::logical(FLERR, "on", false, lmp), 1);
+    EXPECT_EQ(utils::logical(FLERR, "On", false, lmp), 1);
+    EXPECT_EQ(utils::logical(FLERR, "ON", false, lmp), 1);
+    EXPECT_EQ(utils::logical(FLERR, "1", false, lmp), 1);
+    EXPECT_EQ(utils::logical(FLERR, "no", false, lmp), 0);
+    EXPECT_EQ(utils::logical(FLERR, "No", false, lmp), 0);
+    EXPECT_EQ(utils::logical(FLERR, "NO", false, lmp), 0);
+    EXPECT_EQ(utils::logical(FLERR, "nO", false, lmp), 0);
+    EXPECT_EQ(utils::logical(FLERR, "off", false, lmp), 0);
+    EXPECT_EQ(utils::logical(FLERR, "Off", false, lmp), 0);
+    EXPECT_EQ(utils::logical(FLERR, "OFF", false, lmp), 0);
+    EXPECT_EQ(utils::logical(FLERR, "OfF", false, lmp), 0);
+    EXPECT_EQ(utils::logical(FLERR, "0", false, lmp), 0);
 
     TEST_FAILURE(".*ERROR: Expected boolean parameter instead of.*",
                  utils::logical(FLERR, "yay", false, lmp););
@@ -84,8 +84,7 @@ TEST_F(InputConvertTest, numeric)
 
     TEST_FAILURE(".*ERROR: Expected floating point.*", utils::numeric(FLERR, "yay", false, lmp););
     TEST_FAILURE(".*ERROR: Expected floating point.*", utils::numeric(FLERR, "", false, lmp););
-    TEST_FAILURE(".*ERROR: Expected floating point.*",
-                 utils::numeric(FLERR, nullptr, false, lmp););
+    TEST_FAILURE(".*ERROR: Expected floating point.*", utils::numeric(FLERR, nullptr, false, lmp););
     TEST_FAILURE(".*ERROR: Expected floating point.*",
                  utils::numeric(FLERR, "2.56D+3", false, lmp););
 }

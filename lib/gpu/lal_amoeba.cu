@@ -37,7 +37,18 @@ _texture( q_tex,int2);
 #else
 #define pos_tex x_
 #define q_tex q_
+#ifdef LAMMPS_SMALLBIG
+#define tagint int
 #endif
+#ifdef LAMMPS_BIGBIG
+#define tagint long
+#endif
+#ifdef LAMMPS_SMALLSMALL
+#define tagint int
+#endif
+
+#endif // defined(NV_KERNEL) || defined(USE_HIP)
+
 
 #if (SHUFFLE_AVAIL == 0)
 
@@ -1042,7 +1053,7 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
           }
         } else {
           pgamma = MIN(pti,coeff[jtype].y); // thole[jtype]
-          damp = pgamma * ucl_powr(r/damp,3.0);
+          damp = pgamma * ucl_powr(r/damp,(numtyp)3.0);
           if (damp < (numtyp)50.0) {
             numtyp expdamp = ucl_exp(-damp);
             scale3 = (numtyp)1.0 - expdamp;

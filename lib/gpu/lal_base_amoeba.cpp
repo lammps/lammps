@@ -27,9 +27,6 @@ BaseAmoebaT::BaseAmoeba() : _compiled(false), _max_bytes(0), short_nbor_polar_av
   nbor=new Neighbor();
   pair_program=nullptr;
   ucl_device=nullptr;
-  #if defined(LAL_OCL_EV_JIT)
-  pair_program_noev=nullptr;
-  #endif
 }
 
 template <class numtyp, class acctyp>

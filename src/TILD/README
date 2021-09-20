@@ -1,0 +1,10 @@
+This package provides a kspace style (TILD) to calculate 
+non-bonded pairwise forces indirectly via a particle-mesh scheme 
+through a gridded density representation. This potential does NOT 
+calculate any Coulombic interactions.
+
+Include the TILD and KSPACE packages when building LAMMPS.
+No additional libraries are required to use TILD.
+
+For questions about TILD, please contact:
+cat159@scarletmail.rutgers.edu or a.p.santos11@gmail.com

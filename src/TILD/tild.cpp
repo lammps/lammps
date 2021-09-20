@@ -1171,12 +1171,13 @@ void TILD::calc_cross_work(const Interaction& intrxn){
   double zprd=domain->zprd;
   double zper,yper,xper;
   double mdr2;
-  double scale_inv = 1.0/(nx_tild *ny_tild * nz_tild);
+  double scale_inv = 1.0/(nx_tild * ny_tild * nz_tild);
 
   double vole = domain->xprd * domain->yprd * domain->zprd; // Note: the factor of V comes from the FFT
 
   double pref;
 
+  n = 0;
   for (m = nzlo_fft; m <= nzhi_fft; m++) {
     zper = zprd * (static_cast<double>(m) / nz_tild);
     if (zper >= zprd / 2.0) {
@@ -1569,7 +1570,7 @@ int TILD::modify_param(int narg, char** arg)
     } else error->all(FLERR, "Illegal kspace_modify tild/shape density function argument");
 
   } else if (strcmp(arg[0], "tild/cross-interaction") == 0) {
-    if (narg < 5) error->all(FLERR, "Illegal kspace_modify tild command");
+    if (narg < 4) error->all(FLERR, "Illegal kspace_modify tild command");
     int ilo,ihi,jlo,jhi;
     utils::bounds(FLERR,arg[1],1,ntypes,ilo,ihi,error);
     utils::bounds(FLERR,arg[2],1,ntypes,jlo,jhi,error);
@@ -1596,11 +1597,17 @@ int TILD::modify_param(int narg, char** arg)
           temp.i = i; 
           temp.j = j;
           temp.type = tmp_type;
+
+          int nparams = narg-4;
+          for (int p = 0; p < nparams; p++) {
+            temp.parameters.push_back( utils::numeric(FLERR,arg[p+4],false,lmp) );
+          }
           auto it = cross_iter.begin();
           int idx = 0;
           while (it != cross_iter.end()){
             if ((it->i == i) && (it->j == j))
               cross_iter[idx] = temp; 
+            it++;
           }
           if (it == cross_iter.end()) 
             cross_iter.emplace_back(temp);
@@ -1616,6 +1623,7 @@ int TILD::modify_param(int narg, char** arg)
           while (it != cross_iter.end()){
             if ((it->i == ii) && (it->j == jj))
               cross_iter.erase(it--);
+            it++;
           }
         }
       }

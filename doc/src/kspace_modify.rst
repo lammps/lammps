@@ -565,9 +565,10 @@ The option defaults are mesh = mesh/disp = 0 0 0, order = order/disp =
 gewald = gewald/disp = 0.0, slab = 1.0, compute = yes, cutoff/adjust =
 yes (MSM), pressure/scalar = yes (MSM), fftbench = no (PPPM), diff =
 ik (PPPM), mix/disp = pair, force/disp/real = -1.0, force/disp/kspace
-= -1.0, split = 0, tol = 1.0e-6, tild/subtract_rho0 = yes, tild/normalize_by_rho0 = yes and disp/auto = no. For pppm/intel,
-order = order/disp = 7.  For scafacos settings, the scafacos tolerance
-option depends on the method chosen, as documented above.  The
+= -1.0, split = 0, tol = 1.0e-6, tild/mix = convolution,
+tild/subtract_rho0 = yes, tild/normalize_by_rho0 = yes and disp/auto = no. 
+For pppm/intel, order = order/disp = 7.  For scafacos settings, the scafacos 
+tolerance option depends on the method chosen, as documented above.  The
 scafacos fmm_tuning default = 0.
 
 ----------

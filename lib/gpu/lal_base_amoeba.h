@@ -235,7 +235,7 @@ class BaseAmoeba {
     double** uind, double** uinp);
 
   /// Per-atom arrays
-  UCL_Vector<numtyp,numtyp> _tep, _fieldp;
+  UCL_Vector<acctyp,acctyp> _tep, _fieldp;
   int _nmax, _max_tep_size, _max_fieldp_size;
 
   // ------------------------ FORCE/ENERGY DATA -----------------------

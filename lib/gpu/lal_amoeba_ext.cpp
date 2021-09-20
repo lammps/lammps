@@ -52,7 +52,7 @@ int amoeba_gpu_init(const int ntypes, const int max_amtype, const int max_amclas
   int gpu_rank=AMOEBAMF.device->gpu_rank();
   int procs_per_gpu=AMOEBAMF.device->procs_per_gpu();
 
-  tep_size=sizeof(PRECISION);
+  tep_size=sizeof(ACC_PRECISION); // tep_size=sizeof(PRECISION);
 
   AMOEBAMF.device->init_message(screen,"amoeba",first_gpu,last_gpu);
 

@@ -102,7 +102,7 @@ _texture( q_tex,int2);
     dufld[5]=red_acc[5][tid];                                               \
   }                                                                         \
   if (offset==0 && ii<inum) {                                               \
-    numtyp4 t;                                                              \
+    acctyp4 t;                                                              \
     t.x = diz*ufld[1] - diy*ufld[2] + qixz*dufld[1] - qixy*dufld[3] +       \
       (numtyp)2.0*qiyz*(dufld[2]-dufld[5]) + (qizz-qiyy)*dufld[4];          \
     t.y = dix*ufld[2] - diz*ufld[0] - qiyz*dufld[1] + qixy*dufld[4] +       \
@@ -136,7 +136,7 @@ _texture( q_tex,int2);
     _fieldp[5]=red_acc[5][tid];                                             \
   }                                                                         \
   if (offset==0 && ii<inum) {                                               \
-    numtyp4 f, fp;                                                          \
+    acctyp4 f, fp;                                                          \
     f.x = _fieldp[0];                                                       \
     f.y = _fieldp[1];                                                       \
     f.z = _fieldp[2];                                                       \
@@ -243,7 +243,7 @@ _texture( q_tex,int2);
     }                                                                       \
   }                                                                         \
   if (offset==0 && ii<inum) {                                               \
-    numtyp4 t;                                                              \
+    acctyp4 t;                                                              \
     t.x = diz*ufld[1] - diy*ufld[2] + qixz*dufld[1] - qixy*dufld[3] +       \
       (numtyp)2.0*qiyz*(dufld[2]-dufld[5]) + (qizz-qiyy)*dufld[4];          \
     t.y = dix*ufld[2] - diz*ufld[0] - qiyz*dufld[1] + qixy*dufld[4] +       \
@@ -266,7 +266,7 @@ _texture( q_tex,int2);
     }                                                                       \
   }                                                                         \
   if (offset==0 && ii<inum) {                                               \
-    numtyp4 f, fp;                                                          \
+    acctyp4 f, fp;                                                          \
     f.x = _fieldp[0];                                                       \
     f.y = _fieldp[1];                                                       \
     f.z = _fieldp[2];                                                       \
@@ -591,7 +591,7 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
                                  const __global int *dev_short_nbor,
                                  __global acctyp4 *restrict ans,
                                  __global acctyp *restrict engv,
-                                 __global numtyp4 *restrict tep,
+                                 __global acctyp4 *restrict tep,
                                  const int eflag, const int vflag, const int inum,
                                  const int nall, const int nbor_pitch,
                                  const int t_per_atom, const numtyp aewald,
@@ -883,7 +883,7 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
                                  const __global int *dev_nbor,
                                  const __global int *dev_packed,
                                  const __global int *dev_short_nbor,
-                                 __global numtyp4 *restrict fieldp,
+                                 __global acctyp4 *restrict fieldp,
                                  const int inum,  const int nall,
                                  const int nbor_pitch, const int t_per_atom,
                                  const numtyp aewald, const numtyp off2,
@@ -1097,7 +1097,7 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
                                  const __global int *dev_nbor,
                                  const __global int *dev_packed,
                                  const __global int *dev_short_nbor,
-                                 __global numtyp4 *restrict fieldp,
+                                 __global acctyp4 *restrict fieldp,
                                  const int inum,  const int nall,
                                  const int nbor_pitch, const int t_per_atom,
                                  const numtyp aewald, const numtyp off2,
@@ -1257,74 +1257,25 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
 }
 
 /* ----------------------------------------------------------------------
-   scan standard neighbor list and make it compatible with 1-5 neighbors
-   if IJ entry is a 1-2,1-3,1-4 neighbor then adjust offset to SBBITS15
-   else scan special15 to see if a 1-5 neighbor and adjust offset to SBBITS15
-   else do nothing to IJ entry
-------------------------------------------------------------------------- */
-
-__kernel void k_special15(__global int * dev_nbor,
-                          const __global int * dev_packed,
-                          const __global tagint *restrict tag,
-                          const __global int *restrict nspecial15,
-                          const __global tagint *restrict special15,
-                          const int inum, const int nall, const int nbor_pitch,
-                          const int t_per_atom) {
-  int tid, ii, offset, n_stride, i;
-  atom_info(t_per_atom,ii,tid,offset);
-
-  if (ii<inum) {
-  
-    int numj, nbor, nbor_end;
-    nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
-              n_stride,nbor_end,nbor);
-
-    int n15 = nspecial15[ii];
-
-    for ( ; nbor<nbor_end; nbor+=n_stride) {
-
-      int sj=dev_packed[nbor];
-      int which = sj >> SBBITS & 3;
-      int j = sj & NEIGHMASK;
-      tagint jtag = tag[j];
-
-      if (!which) {
-        int offset=ii;
-        for (int k=0; k<n15; k++) {
-          if (special15[offset] == jtag) {
-            which = 4;
-            break;
-          }
-          offset += nall;
-        }
-      }
-
-      if (which) dev_nbor[nbor] = j ^ (which << SBBITS15);
-    } // for nbor
-
-  } // if ii
-}
-
-/* ----------------------------------------------------------------------
    polar_real = real-space portion of induced dipole polarization
    adapted from Tinker epreal1d() routine
 ------------------------------------------------------------------------- */
 
 __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
-                            const __global numtyp *restrict extra,
-                            const __global numtyp4 *restrict coeff,
-                            const __global numtyp4 *restrict sp_polar,
-                            const __global int *dev_nbor,
-                            const __global int *dev_packed,
-                            const __global int *dev_short_nbor,
-                            __global acctyp4 *restrict ans,
-                            __global acctyp *restrict engv,
-                            __global numtyp4 *restrict tep,
-                            const int eflag, const int vflag, const int inum,
-                            const int nall, const int nbor_pitch, const int t_per_atom,
-                            const numtyp aewald, const numtyp felec,
-                            const numtyp off2, const numtyp polar_dscale,
-                            const numtyp polar_uscale)
+                             const __global numtyp *restrict extra,
+                             const __global numtyp4 *restrict coeff,
+                             const __global numtyp4 *restrict sp_polar,
+                             const __global int *dev_nbor,
+                             const __global int *dev_packed,
+                             const __global int *dev_short_nbor,
+                             __global acctyp4 *restrict ans,
+                             __global acctyp *restrict engv,
+                             __global acctyp4 *restrict tep,
+                             const int eflag, const int vflag, const int inum,
+                             const int nall, const int nbor_pitch, const int t_per_atom,
+                             const numtyp aewald, const numtyp felec,
+                             const numtyp off2, const numtyp polar_dscale,
+                             const numtyp polar_uscale)
 {
   int tid, ii, offset, i;
   atom_info(t_per_atom,ii,tid,offset);
@@ -1826,6 +1777,55 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
 //     offset,eflag,vflag,ans,engv);
   store_answers_acc(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
      offset,eflag,vflag,ans,engv,NUM_BLOCKS_X);
+}
+
+/* ----------------------------------------------------------------------
+   scan standard neighbor list and make it compatible with 1-5 neighbors
+   if IJ entry is a 1-2,1-3,1-4 neighbor then adjust offset to SBBITS15
+   else scan special15 to see if a 1-5 neighbor and adjust offset to SBBITS15
+   else do nothing to IJ entry
+------------------------------------------------------------------------- */
+
+__kernel void k_special15(__global int * dev_nbor,
+                          const __global int * dev_packed,
+                          const __global tagint *restrict tag,
+                          const __global int *restrict nspecial15,
+                          const __global tagint *restrict special15,
+                          const int inum, const int nall, const int nbor_pitch,
+                          const int t_per_atom) {
+  int tid, ii, offset, n_stride, i;
+  atom_info(t_per_atom,ii,tid,offset);
+
+  if (ii<inum) {
+  
+    int numj, nbor, nbor_end;
+    nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
+              n_stride,nbor_end,nbor);
+
+    int n15 = nspecial15[ii];
+
+    for ( ; nbor<nbor_end; nbor+=n_stride) {
+
+      int sj=dev_packed[nbor];
+      int which = sj >> SBBITS & 3;
+      int j = sj & NEIGHMASK;
+      tagint jtag = tag[j];
+
+      if (!which) {
+        int offset=ii;
+        for (int k=0; k<n15; k++) {
+          if (special15[offset] == jtag) {
+            which = 4;
+            break;
+          }
+          offset += nall;
+        }
+      }
+
+      if (which) dev_nbor[nbor] = j ^ (which << SBBITS15);
+    } // for nbor
+
+  } // if ii
 }
 
 __kernel void k_amoeba_short_nbor(const __global numtyp4 *restrict x_,

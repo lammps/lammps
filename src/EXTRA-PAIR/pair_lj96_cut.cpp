@@ -376,8 +376,7 @@ void PairLJ96Cut::compute_outer(int eflag, int vflag)
           r2inv = 1.0/rsq;
           r6inv = r2inv*r2inv*r2inv;
           r3inv = sqrt(r6inv);
-          evdwl = r6inv*(lj3[itype][jtype]*r3inv-lj4[itype][jtype]) -
-            offset[itype][jtype];
+          evdwl = r6inv*(lj3[itype][jtype]*r3inv-lj4[itype][jtype]) - offset[itype][jtype];
           evdwl *= factor_lj;
         }
 
@@ -392,8 +391,7 @@ void PairLJ96Cut::compute_outer(int eflag, int vflag)
             fpair = factor_lj*forcelj*r2inv;
         }
 
-        if (evflag) ev_tally(i,j,nlocal,newton_pair,
-                             evdwl,0.0,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }

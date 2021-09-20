@@ -29,7 +29,7 @@ class WriteRestart : public Command {
   WriteRestart(class LAMMPS *);
   void command(int, char **);
   void multiproc_options(int, int, int, char **);
-  void write(std::string);
+  void write(const std::string &);
 
  private:
   int me, nprocs;

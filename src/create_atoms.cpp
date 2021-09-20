@@ -176,28 +176,20 @@ void CreateAtoms::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"var") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal create_atoms command");
       delete [] vstr;
-      int n = strlen(arg[iarg+1]) + 1;
-      vstr = new char[n];
-      strcpy(vstr,arg[iarg+1]);
+      vstr = utils::strdup(arg[iarg+1]);
       varflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"set") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal create_atoms command");
       if (strcmp(arg[iarg+1],"x") == 0) {
         delete [] xstr;
-        int n = strlen(arg[iarg+2]) + 1;
-        xstr = new char[n];
-        strcpy(xstr,arg[iarg+2]);
+        xstr = utils::strdup(arg[iarg+2]);
       } else if (strcmp(arg[iarg+1],"y") == 0) {
         delete [] ystr;
-        int n = strlen(arg[iarg+2]) + 1;
-        ystr = new char[n];
-        strcpy(ystr,arg[iarg+2]);
+        ystr = utils::strdup(arg[iarg+2]);
       } else if (strcmp(arg[iarg+1],"z") == 0) {
         delete [] zstr;
-        int n = strlen(arg[iarg+2]) + 1;
-        zstr = new char[n];
-        strcpy(zstr,arg[iarg+2]);
+        zstr = utils::strdup(arg[iarg+2]);
       } else error->all(FLERR,"Illegal create_atoms command");
       iarg += 3;
     } else if (strcmp(arg[iarg],"rotate") == 0) {

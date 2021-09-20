@@ -38,7 +38,7 @@ if(DOWNLOAD_QUIP)
   set(temp "${temp}HAVE_LOCAL_E_MIX=0\nHAVE_QC=0\nHAVE_GAP=1\nHAVE_DESCRIPTORS_NONCOMMERCIAL=1\n")
   set(temp "${temp}HAVE_TURBOGAP=0\nHAVE_QR=1\nHAVE_THIRDPARTY=0\nHAVE_FX=0\nHAVE_SCME=0\nHAVE_MTP=0\n")
   set(temp "${temp}HAVE_MBD=0\nHAVE_TTM_NF=0\nHAVE_CH4=0\nHAVE_NETCDF4=0\nHAVE_MDCORE=0\nHAVE_ASAP=0\n")
-  set(temp "${temp}HAVE_CGAL=0\nHAVE_METIS=0\nHAVE_LMTO_TBE=0\n")
+  set(temp "${temp}HAVE_CGAL=0\nHAVE_METIS=0\nHAVE_LMTO_TBE=0\nHAVE_SCALAPACK=0\n")
   file(WRITE ${CMAKE_BINARY_DIR}/quip.config "${temp}")
 
   message(STATUS "QUIP download via git requested - we will build our own")

@@ -39,7 +39,7 @@ bool Neighbor::init(NeighborShared *shared, const int inum,
                     const int block_cell_2d, const int block_cell_id,
                     const int block_nbor_build, const int threads_per_atom,
                     const int simd_size, const bool time_device,
-                    const std::string compile_flags, const bool ilist_map) {
+                    const std::string &compile_flags, const bool ilist_map) {
   clear();
   _ilist_map = ilist_map;
 
@@ -743,7 +743,7 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
     mn = _max_nbors;
     const numtyp i_cell_size=static_cast<numtyp>(1.0/_cell_size);
     const int neigh_block=_block_cell_id;
-    const int GX=(int)ceil((float)nall/neigh_block);
+    const int GX=(int)ceil((double)nall/neigh_block);
     const numtyp sublo0=static_cast<numtyp>(sublo[0]);
     const numtyp sublo1=static_cast<numtyp>(sublo[1]);
     const numtyp sublo2=static_cast<numtyp>(sublo[2]);

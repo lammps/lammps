@@ -285,7 +285,7 @@ bigint ReadDump::seek(bigint nrequest, int exact)
       ntimestep = -1;
       if (multiproc) {
         std::string multiname = files[ifile];
-        multiname.replace(multiname.find("%"),1,"0");
+        multiname.replace(multiname.find('%'),1,"0");
         readers[0]->open_file(multiname.c_str());
       } else readers[0]->open_file(files[ifile]);
 
@@ -329,7 +329,7 @@ bigint ReadDump::seek(bigint nrequest, int exact)
     for (int i = 0; i < nreader; i++) {
       if (me == 0 && i == 0) continue;    // proc 0, reader 0 already found it
       std::string multiname = files[currentfile];
-      multiname.replace(multiname.find("%"),1,fmt::format("{}",firstfile+i));
+      multiname.replace(multiname.find('%'),1,fmt::format("{}",firstfile+i));
       readers[i]->open_file(multiname.c_str());
 
       bigint step;
@@ -377,7 +377,7 @@ bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
       if (ifile != currentfile) {
         if (multiproc) {
           std::string multiname = files[ifile];
-          multiname.replace(multiname.find("%"),1,"0");
+          multiname.replace(multiname.find('%'),1,"0");
           readers[0]->open_file(multiname.c_str());
         } else readers[0]->open_file(files[ifile]);
       }
@@ -431,7 +431,7 @@ bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
     for (int i = 0; i < nreader; i++) {
       if (me == 0 && i == 0) continue;
       std::string multiname = files[currentfile];
-      multiname.replace(multiname.find("%"),1,fmt::format("{}",firstfile+i));
+      multiname.replace(multiname.find('%'),1,fmt::format("{}",firstfile+i));
       readers[i]->open_file(multiname.c_str());
 
       bigint step;

@@ -15,7 +15,6 @@
 #include "neb.h"
 
 #include "atom.h"
-#include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "finish.h"

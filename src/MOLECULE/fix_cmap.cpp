@@ -112,7 +112,7 @@ FixCMAP::FixCMAP(LAMMPS *lmp, int narg, char **arg) :
   crossterm_atom5 = nullptr;
 
   nmax_previous = 0;
-  grow_arrays(atom->nmax);
+  FixCMAP::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
   atom->add_callback(Atom::RESTART);
 

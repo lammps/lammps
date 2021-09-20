@@ -17,18 +17,19 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_dilatation_atom.h"
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
 #include "comm.h"
-#include "fix.h"
+#include "error.h"
 #include "force.h"
+#include "memory.h"
+#include "modify.h"
+#include "pair_peri_eps.h"
 #include "pair_peri_lps.h"
 #include "pair_peri_ves.h"
-#include "pair_peri_eps.h"
-#include "memory.h"
-#include "error.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

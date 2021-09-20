@@ -20,8 +20,6 @@
 
 #include "memory.h"
 
-#include <cstddef>
-
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */

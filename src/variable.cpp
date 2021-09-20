@@ -49,7 +49,6 @@ using namespace MathConst;
 #define MAXLEVEL 4
 #define MAXLINE 256
 #define CHUNK 1024
-#define VALUELENGTH 64               // also in python.cpp
 #define MAXFUNCARG 6
 
 #define MYROUND(a) (( a-floor(a) ) >= .5) ? ceil(a) : floor(a)
@@ -4720,7 +4719,7 @@ int Variable::parse_args(char *str, char **args)
   while (ptr && narg < MAXFUNCARG) {
     ptrnext = find_next_comma(ptr);
     if (ptrnext) *ptrnext = '\0';
-    args[narg] = utils::strdup(ptr);
+    args[narg] = utils::strdup(utils::trim(ptr));
     narg++;
     ptr = ptrnext;
     if (ptr) ptr++;

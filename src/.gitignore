@@ -1330,6 +1330,8 @@
 /third_order.h
 /thr_data.cpp
 /thr_data.h
+/tild.cpp
+/tild.h
 /verlet_split.cpp
 /verlet_split.h
 /write_dump.cpp

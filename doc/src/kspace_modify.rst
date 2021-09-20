@@ -500,15 +500,15 @@ The current interaction styles used in *tild/cross-interaction* are
    U_{g-erfc} = & \frac{A}{\rho_0} u_G (r) * \text{erfc}
    \left(\frac{\vert r \vert - R_p}{\xi}\right)
 
-where :math:`\A`\ is the value set by `tild/prefactor`\, :math:`\rho_0`\ is the total density of the TILD particles, :math:`\sigma`\ is the gaussian width, :math:`\R_p`\ is the erfc particle radius and :math:`\xi`\ is the erfc width.
+where :math:`A` is the value set by `tild/prefactor`\ , :math:`\rho_0` is the total density of the TILD particles, :math:`\sigma` is the gaussian width, :math:`R_p` is the erfc particle radius and :math:`\xi` is the erfc width.
 
 The first required keyword for the *tild/cross-interaction* option is the interaction model. 
 Currently supported options for interaction models
 and their required arguments are:
 
 1. *gaussian* : :math:`\sigma` (distance units)
-2. *gaussian-erfc* : :math:`\sigma`, :math:`R_p`, :math:`\xi` (all in distance units)
-2. *erfc* : :math:`R_p`, :math:`\xi` (both in distance units)
+2. *gaussian-erfc* : :math:`\sigma`\ , :math:`R_p`, :math:`\xi` (all in distance units)
+3. *erfc* : :math:`R_p`\ , :math:`\xi` (both in distance units)
 
 ----------
 

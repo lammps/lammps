@@ -8,9 +8,9 @@
 -------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
+// clang-format off
 KSpaceStyle(tild,TILD)
-
+// clang-format on
 #else
 
 #ifndef LMP_TILD_H

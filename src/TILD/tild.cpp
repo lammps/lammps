@@ -13,7 +13,7 @@
 #include <cstdio>
 #include <cstring>
 #include <cmath>
-#include "tild2.h"
+#include "tild.h"
 #include "atom.h"
 #include "comm.h"
 #include "gridcomm.h"
@@ -677,10 +677,8 @@ double TILD::memory_usage()
   bytes += (double) 3 * (order+1) * sizeof(FFT_SCALAR);
 
   // if (triclinic) bytes += 3 * nfft_both * sizeof(double);
-  bytes += (double) atom->ntypes * 6 * nfft_both * sizeof(double); 
-  bytes += (double) nfft_both * sizeof(double); 
-  bytes += (double) nfft_both * 8 * sizeof(FFT_SCALAR); // work, ktmp
-  bytes += (double) atom->ntypes * nfft_both * 8 * sizeof(FFT_SCALAR); // work, ktmp
+  bytes += (double) nfft_both * 2 * 8 * sizeof(FFT_SCALAR); // all works, ktmps
+  bytes += (double) nfft * sizeof(FFT_SCALAR); // just the tmp
 
   // two GridComm bufs 
   bytes += (double)(ngc_buf1 + ngc_buf2) * (ntypes + 1) * npergrid * sizeof(FFT_SCALAR);
@@ -696,7 +694,6 @@ double TILD::memory_usage()
 void TILD::allocate()
 {
 
-  //int Dim = domain->dimension;
   int (*procneigh)[2] = comm->procneigh;
   
   int ntypes = atom->ntypes;

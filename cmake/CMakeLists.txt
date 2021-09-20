@@ -36,7 +36,11 @@ find_package(Git)
 
 # by default, install into $HOME/.local (not /usr/local), so that no root access (and sudo!!) is needed
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/.local" CACHE PATH "Default install path" FORCE)
+  if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND (NOT CMAKE_CROSSCOMPILING))
+    set(CMAKE_INSTALL_PREFIX "$ENV{USERPROFILE}/LAMMPS" CACHE PATH "Default install path" FORCE)
+  else()
+    set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/.local" CACHE PATH "Default install path" FORCE)
+  endif()
 endif()
 
 # If enabled, no need to use LD_LIBRARY_PATH / DYLD_LIBRARY_PATH when installed
@@ -90,6 +94,10 @@ endif()
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "Use compiler extensions")
+# ugly hack for MSVC which by default always reports an old C++ standard in the __cplusplus macro
+if(MSVC)
+  add_compile_options(/Zc:__cplusplus)
+endif()
 
 # export all symbols when building a .dll file on windows
 if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND BUILD_SHARED_LIBS)
@@ -218,6 +226,7 @@ set(STANDARD_PACKAGES
   SPIN
   SRD
   TALLY
+  TILD
   UEF
   VORONOI
   VTK
@@ -315,6 +324,7 @@ pkg_depends(DIELECTRIC KSPACE)
 pkg_depends(DIELECTRIC EXTRA-PAIR)
 pkg_depends(CG-DNA MOLECULE)
 pkg_depends(CG-DNA ASPHERE)
+pkg_depends(TILD KSPACE)
 
 # detect if we may enable OpenMP support by default
 set(BUILD_OMP_DEFAULT OFF)

@@ -4,7 +4,9 @@ through a gridded density representation. This potential does NOT
 calculate any Coulombic interactions.
 
 Include the TILD and KSPACE packages when building LAMMPS.
-No additional libraries are required to use TILD.
+The only library required to use TILD is FFT. 
+By default, LAMMPS uses the KISS library with other options available.
+More information can be found at https://docs.lammps.org/Build_settings.html#fft-library
 
 For questions about TILD, please contact:
 cat159@scarletmail.rutgers.edu or a.p.santos11@gmail.com

@@ -908,28 +908,30 @@ void TILD::set_grid_global()
   if (!gridflag) {
     h = h_x = h_y = h_z = grid_res;
 
-      // set grid dimension
-      nx_tild = static_cast<int> (xprd/h_x);
-      ny_tild = static_cast<int> (yprd/h_y);
-      nz_tild = static_cast<int> (zprd_slab/h_z);
+    // set grid dimension
+    nx_tild = static_cast<int> (xprd/h_x);
+    ny_tild = static_cast<int> (yprd/h_y);
+    nz_tild = static_cast<int> (zprd_slab/h_z);
 
-      if (nx_tild <= 1) nx_tild = 2;
-      if (ny_tild <= 1) ny_tild = 2;
-      if (nz_tild <= 1) nz_tild = 2;
+    if (nx_tild <= 1) nx_tild = 2;
+    if (ny_tild <= 1) ny_tild = 2;
+    if (nz_tild <= 1) nz_tild = 2;
+  } else {
+    nx_tild = nx_pppm;
+    ny_tild = ny_pppm;
+    nz_tild = nz_pppm;
+  }
 
-
-    }
-
-    if (triclinic) {
-      double tmp[3];
-      tmp[0] = nx_tild / xprd;
-      tmp[1] = ny_tild / yprd;
-      tmp[2] = nz_tild / zprd;
-      lamda2xT(&tmp[0], &tmp[0]);
-      nx_tild = static_cast<int>(tmp[0]) + 1;
-      ny_tild = static_cast<int>(tmp[1]) + 1;
-      nz_tild = static_cast<int>(tmp[2]) + 1;
-    }
+  if (triclinic) {
+    double tmp[3];
+    tmp[0] = nx_tild / xprd;
+    tmp[1] = ny_tild / yprd;
+    tmp[2] = nz_tild / zprd;
+    lamda2xT(&tmp[0], &tmp[0]);
+    nx_tild = static_cast<int>(tmp[0]) + 1;
+    ny_tild = static_cast<int>(tmp[1]) + 1;
+    nz_tild = static_cast<int>(tmp[2]) + 1;
+  }
 
   // boost grid size until it is factorable
 

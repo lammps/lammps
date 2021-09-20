@@ -302,7 +302,6 @@ void TILD::init()
 
   // // change number density to tild density 
   double volume = domain->xprd * domain->yprd * domain->zprd;
-  force->nktv2p *= rho0 * volume / atom->natoms;
 
   compute_rho_coeff();
 }

@@ -148,9 +148,7 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"newton") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
-      if (strcmp(arg[iarg+1],"off") == 0) newtonflag = 0;
-      else if (strcmp(arg[iarg+1],"on") == 0) newtonflag = 1;
-      else error->all(FLERR,"Illegal package gpu command");
+      newtonflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"binsize") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
@@ -190,9 +188,7 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"pair/only") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
-      if (strcmp(arg[iarg+1],"off") == 0) pair_only_flag = 0;
-      else if (strcmp(arg[iarg+1],"on") == 0) pair_only_flag = 1;
-      else error->all(FLERR,"Illegal package gpu command");
+      pair_only_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"ocl_args") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
@@ -203,7 +199,7 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
 
   #if (LAL_USE_OMP == 0)
   if (nthreads > 1)
-    error->all(FLERR,"No OpenMP support compiled in");
+    error->all(FLERR,"No OpenMP support compiled into the GPU package");
   #else
   if (nthreads > 0) {
     omp_set_num_threads(nthreads);

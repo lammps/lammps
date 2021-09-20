@@ -1232,7 +1232,7 @@ void TILD::calc_cross_work(const Interaction& intrxn){
   if (intrxn.type == GAUSSIAN){
     for (int nn = 0; nn < 2*nfft; nn += 2) {
       temp = -work1[nn+1] * work1[nn+1] + work1[nn] * work1[nn];
-      work1[nn+1] = work1[nn+1] * work1[nn] + work1[nn] * work1[nn+1]; 
+      work1[nn+1] = (work1[nn+1] * work1[nn] + work1[nn] * work1[nn+1]) * scale_inv;
       work1[nn] = temp * scale_inv;
       potent_hat[loc][nn] = work1[nn];
       potent_hat[loc][nn+1] = work1[nn+1];
@@ -1247,7 +1247,7 @@ void TILD::calc_cross_work(const Interaction& intrxn){
     }
   } else if (intrxn.type == GAUSSIAN_ERFC){
     for (int nn = 0; nn < 2*nfft; nn += 2) {
-      temp = work1[nn] * work1[nn] - work1[nn+1] * work2[nn+1] ;
+      temp = work2[nn] * work1[nn] - work1[nn+1] * work2[nn+1] ;
       work1[nn+1] = (work1[nn+1] * work2[nn] + work1[nn] * work2[nn+1]) * scale_inv;
       work1[nn] = temp * scale_inv;
       potent_hat[loc][nn] = work1[nn];
@@ -1261,7 +1261,7 @@ void TILD::calc_cross_work(const Interaction& intrxn){
     potent[loc][j] = work1[n];
     n += 2;
   }
-
+ 
 }
 
 /* ----------------------------------------------------------------------
@@ -1611,8 +1611,10 @@ int TILD::modify_param(int narg, char** arg)
           }
           if (it == cross_iter.end()) 
             cross_iter.emplace_back(temp);
-          potent_type_map[0][i][i] = potent_type_map[0][j][j] = 0;
+          // Turn on type for volume calculation
+          potent_type_map[1][i][i] = potent_type_map[1][j][j] = 1;
           // Turning off the skip flag if the interactions are now valid.
+          potent_type_map[0][i][i] = potent_type_map[0][j][j] = 0;
           potent_type_map[0][j][i] = potent_type_map[0][i][j] = 0;
         }
       }
@@ -1621,8 +1623,12 @@ int TILD::modify_param(int narg, char** arg)
         for (int jj = jlo,ii; jj <= jhi; jj++) {
           auto it = cross_iter.begin();
           while (it != cross_iter.end()){
-            if ((it->i == ii) && (it->j == jj))
+            if ((it->i == ii) && (it->j == jj)) {
+              // turn on skip flag
+              potent_type_map[0][ii][jj] = potent_type_map[0][jj][ii] = 1;
+              potent_type_map[it->type][ii][jj] = potent_type_map[it->type][jj][ii] = 0;
               cross_iter.erase(it--);
+            }
             it++;
           }
         }

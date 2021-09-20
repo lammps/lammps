@@ -1,0 +1,76 @@
+LAMMPS (31 Aug 2021)
+Reading data file ...
+  orthogonal box = (0.0000000 0.0000000 0.0000000) to (31.043046 31.043046 31.043046)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  3000 atoms
+  read_data CPU = 0.010 seconds
+Replicating atoms ...
+  orthogonal box = (0.0000000 0.0000000 0.0000000) to (31.043046 31.043046 31.043046)
+  1 by 1 by 1 MPI processor grid
+  3000 atoms
+  replicate CPU = 0.001 seconds
+WARNING: Changed valency_val to valency_boc for X (../reaxff_ffield.cpp:295)
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+- pair reaxff command:
+- fix qeq/reaxff command:
+The log file lists these citations in BibTeX format.
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 10.5
+  ghost atom cutoff = 10.5
+  binsize = 5.25, bins = 6 6 6
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair reaxff, perpetual
+      attributes: half, newton off, ghost
+      pair build: half/bin/newtoff/ghost
+      stencil: full/ghost/bin/3d
+      bin: standard
+  (2) fix qeq/reaxff, perpetual, copy from (1)
+      attributes: half, newton off, ghost
+      pair build: copy
+      stencil: none
+      bin: none
+Setting up Verlet run ...
+  Unit style    : real
+  Current step  : 0
+  Time step     : 0.5
+Per MPI rank memory allocation (min/avg/max) = 539.2 | 539.2 | 539.2 Mbytes
+Step Temp Press Density Volume 
+       0          300    780.33989            1    29915.273 
+      10    301.29205    5433.7415            1    29915.273 
+      20    297.90652    1572.6111            1    29915.273 
+Loop time of 17.1814 on 1 procs for 20 steps with 3000 atoms
+
+Performance: 0.050 ns/day, 477.262 hours/ns, 1.164 timesteps/s
+100.0% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 13.501     | 13.501     | 13.501     |   0.0 | 78.58
+Neigh   | 0.33379    | 0.33379    | 0.33379    |   0.0 |  1.94
+Comm    | 0.0026753  | 0.0026753  | 0.0026753  |   0.0 |  0.02
+Output  | 0.00013304 | 0.00013304 | 0.00013304 |   0.0 |  0.00
+Modify  | 3.3425     | 3.3425     | 3.3425     |   0.0 | 19.45
+Other   |            | 0.0009654  |            |       |  0.01
+
+Nlocal:        3000.00 ave        3000 max        3000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:        11077.0 ave       11077 max       11077 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:        971826.0 ave      971826 max      971826 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 971826
+Ave neighs/atom = 323.94200
+Neighbor list builds = 2
+Dangerous builds = 0
+Total wall time: 0:00:18

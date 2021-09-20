@@ -2,9 +2,13 @@
 
 boundary        p p p
 units           real
-atom_style      full
+atom_style      charge
 
 read_data       data.water
+
+variable        x index 1
+variable        y index 1
+variable        z index 1
 
 replicate       $x $y $z
 
@@ -19,7 +23,7 @@ fix             1 all acks2/reaxff 1 0.0 10.0 1.0e-6 reaxff maxiter 400
 fix             2 all nvt temp 300 300 50.0
 
 timestep        0.5
-thermo          100
+thermo          10
 thermo_style    custom step temp press density vol 
 
-run ${t}
+run 20

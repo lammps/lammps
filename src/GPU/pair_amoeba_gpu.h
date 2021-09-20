@@ -47,6 +47,9 @@ class PairAmoebaGPU : public PairAmoeba {
   void *fieldp_pinned;
   bool tq_single;
 
+  bool gpu_hal_ready;
+  bool gpu_repulsion_ready;
+  bool gpu_dispersion_real_ready;
   bool gpu_multipole_real_ready;
   bool gpu_udirect2b_ready;
   bool gpu_umutual2b_ready;

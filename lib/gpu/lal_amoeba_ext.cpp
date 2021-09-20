@@ -30,6 +30,9 @@ static Amoeba<PRECISION,ACC_PRECISION> AMOEBAMF;
 int amoeba_gpu_init(const int ntypes, const int max_amtype, const int max_amclass,
                     const double *host_pdamp, const double *host_thole,
                     const double *host_dirdamp, const int *host_amtype2class,
+                    const double *host_special_hal,
+                    const double *host_special_repel,
+                    const double *host_special_disp,
                     const double *host_special_mpole,
                     const double *host_special_polar_wscale,
                     const double *host_special_polar_piscale,
@@ -66,7 +69,9 @@ int amoeba_gpu_init(const int ntypes, const int max_amtype, const int max_amclas
   if (world_me==0)
     init_ok=AMOEBAMF.init(ntypes, max_amtype, max_amclass,
                           host_pdamp, host_thole, host_dirdamp,
-                          host_amtype2class, host_special_mpole, host_special_polar_wscale,
+                          host_amtype2class, host_special_hal,
+                          host_special_repel, host_special_disp,
+                          host_special_mpole, host_special_polar_wscale,
                           host_special_polar_piscale, host_special_polar_pscale,
                           host_csix, host_adisp, nlocal, nall, max_nbors,
                           maxspecial, maxspecial15, cell_size, gpu_split,
@@ -86,8 +91,11 @@ int amoeba_gpu_init(const int ntypes, const int max_amtype, const int max_amclas
       fflush(screen);
     }
     if (gpu_rank==i && world_me!=0)
-      init_ok=AMOEBAMF.init(ntypes, max_amtype, max_amclass, host_pdamp, host_thole, host_dirdamp,
-                            host_amtype2class, host_special_mpole, host_special_polar_wscale,
+      init_ok=AMOEBAMF.init(ntypes, max_amtype, max_amclass,
+                            host_pdamp, host_thole, host_dirdamp,
+                            host_amtype2class, host_special_hal,
+                            host_special_repel, host_special_disp,
+                            host_special_mpole, host_special_polar_wscale,
                             host_special_polar_piscale, host_special_polar_pscale,
                             host_csix, host_adisp, nlocal, nall, max_nbors,
                             maxspecial, maxspecial15, cell_size, gpu_split,

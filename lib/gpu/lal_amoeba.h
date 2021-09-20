@@ -40,6 +40,8 @@ class Amoeba : public BaseAmoeba<numtyp, acctyp> {
   int init(const int ntypes, const int max_amtype, const int max_amclass,
            const double *host_pdamp, const double *host_thole, const double *host_dirdamp,
            const int *host_amtype2class, const double *host_special_mpole,
+           const double *host_special_hal, const double *host_special_repel,
+           const double *host_special_disp,
            const double *host_special_polar_wscale,
            const double *host_special_polar_piscale,
            const double *host_special_polar_pscale,
@@ -70,7 +72,13 @@ class Amoeba : public BaseAmoeba<numtyp, acctyp> {
   ///   sp_polar.x = special_polar_wscale
   ///   sp_polar.y special_polar_pscale,
   ///   sp_polar.z = special_polar_piscale
+  ///   sp_polar.w = special_mpole
   UCL_D_Vec<numtyp4> sp_polar;
+  /// Special nonpolar values [0-4]: 
+  ///   sp_nonpolar.x = special_hal
+  ///   sp_nonpolar.y special_repel
+  ///   sp_nonpolar.z = special_disp
+  UCL_D_Vec<numtyp4> sp_nonpolar;
 
   /// If atom type constants fit in shared memory, use fast kernels
   bool shared_types;

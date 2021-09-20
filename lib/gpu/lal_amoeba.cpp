@@ -47,6 +47,9 @@ template <class numtyp, class acctyp>
 int AmoebaT::init(const int ntypes, const int max_amtype, const int max_amclass,
                   const double *host_pdamp, const double *host_thole,
                   const double *host_dirdamp, const int *host_amtype2class,
+                  const double *host_special_hal,
+                  const double *host_special_repel,
+                  const double *host_special_disp,
                   const double *host_special_mpole,
                   const double *host_special_polar_wscale,
                   const double *host_special_polar_piscale,
@@ -109,12 +112,21 @@ int AmoebaT::init(const int ntypes, const int max_amtype, const int max_amclass,
   }
   ucl_copy(sp_polar,dview,5,false);
 
+  sp_nonpolar.alloc(5,*(this->ucl_device),UCL_READ_ONLY);
+  for (int i=0; i<5; i++) {
+    dview[i].x=host_special_hal[i];
+    dview[i].y=host_special_repel[i];
+    dview[i].z=host_special_disp[i];
+    dview[i].w=(numtyp)0;
+  }
+  ucl_copy(sp_nonpolar,dview,5,false);
+
   _polar_dscale = polar_dscale;
   _polar_uscale = polar_uscale;
 
   _allocated=true;
   this->_max_bytes=coeff_amtype.row_bytes() + coeff_amclass.row_bytes()
-    + sp_polar.row_bytes() + this->_tep.row_bytes();
+    + sp_polar.row_bytes() + sp_nonpolar.row_bytes() + this->_tep.row_bytes();
   return 0;
 }
 
@@ -125,7 +137,9 @@ void AmoebaT::clear() {
   _allocated=false;
 
   coeff_amtype.clear();
+  coeff_amclass.clear();
   sp_polar.clear();
+  sp_nonpolar.clear();
   
   this->clear_atomic();
 }

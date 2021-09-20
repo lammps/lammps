@@ -532,7 +532,6 @@ void TILD::precompute_density_hat_fft() {
   for ( int ktype = 1; ktype <= ntypes; ktype++) {
     n = 0;
     for (int k = 0; k < nfft; k++) {
-      //fprintf(screen,"rho %d %d %f\n", ktype, k,density_fft_types[ktype][k]);
       work1[n++] = density_fft_types[ktype][k];
       work1[n++] = ZEROF;
     }
@@ -1166,19 +1165,19 @@ void TILD::calc_cross_work(const Interaction& intrxn){
   double pref;
 
   for (m = nzlo_fft; m <= nzhi_fft; m++) {
-    zper = zprd * (static_cast<double>(m) / nz_pppm);
+    zper = zprd * (static_cast<double>(m) / nz_tild);
     if (zper >= zprd / 2.0) {
       zper = zprd - zper;
     }
 
     for (l = nylo_fft; l <= nyhi_fft; l++) {
-      yper = yprd * (static_cast<double>(l) / ny_pppm);
+      yper = yprd * (static_cast<double>(l) / ny_tild);
       if (yper >= yprd / 2.0) {
         yper = yprd - yper;
       }
 
       for (k = nxlo_fft; k <= nxhi_fft; k++) {
-        xper = xprd * (static_cast<double>(k) / nx_pppm);
+        xper = xprd * (static_cast<double>(k) / nx_tild);
         if (xper >= xprd / 2.0) {
           xper = xprd - xper;
         }
@@ -2153,7 +2152,6 @@ void TILD::accumulate_gradient() {
   for (int itype = 1; itype <= ntypes; itype++) {
     for (int jtype = itype; jtype <= ntypes; jtype++) {
       if ( potent_type_map[0][itype][jtype] == 1) continue;
-      //fprintf(screen,"i j %d %d\n", itype,jtype);
 
       double tmp_chi = chi[itype][jtype];
       if (normalize_by_rho0 == 1) tmp_chi /= rho0;

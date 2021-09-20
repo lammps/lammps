@@ -29,8 +29,8 @@ kspace_modify   tild/mix convolution
 kspace_modify   tild/prefactor 1 1 25.0
 
 # Integrate and apply Langevin thermostat
-fix             1 all nve
-fix             2 all langevin 1.0 1.0 100.0 12345 gjf vhalf
+fix             1 all langevin 1.0 1.0 100.0 12345 gjf vhalf
+fix             2 all nve
 
 thermo          100
 thermo_style    custom step ebond epair pe temp press

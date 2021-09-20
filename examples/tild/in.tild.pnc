@@ -58,11 +58,11 @@ kspace_modify   tild/subtract_rho0 no
 kspace_modify   tild/normalize_by_rho0 yes
 
 # integrators
-fix             1 nonRigid nve 
-# Each graft point must be bonded to the NP center in the datafile
-fix             2 NP rigid molecule
 # Thermostat the melt
-fix             3 nonRigid langevin 1.0 1.0 1.0 12345 gjf vhalf zero yes
+fix             1 nonRigid langevin 1.0 1.0 1.0 12345 gjf vhalf zero yes
+fix             2 nonRigid nve 
+# Each graft point must be bonded to the NP center in the datafile
+fix             3 NP rigid molecule
 
 thermo          100
 thermo_style    custom step ebond epair pe temp press 

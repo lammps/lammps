@@ -198,7 +198,7 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
 
   #if (LAL_USE_OMP == 0)
   if (nthreads > 1)
-    error->all(FLERR,"No OpenMP support compiled in");
+    error->all(FLERR,"No OpenMP support compiled into the GPU package");
   #else
   if (nthreads > 0) {
     omp_set_num_threads(nthreads);

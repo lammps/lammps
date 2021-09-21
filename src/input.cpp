@@ -1622,16 +1622,10 @@ void Input::newton()
   int newton_pair=1,newton_bond=1;
 
   if (narg == 1) {
-    if (strcmp(arg[0],"off") == 0) newton_pair = newton_bond = 0;
-    else if (strcmp(arg[0],"on") == 0) newton_pair = newton_bond = 1;
-    else error->all(FLERR,"Illegal newton command");
+    newton_pair = newton_bond = utils::logical(FLERR,arg[0],false,lmp);
   } else if (narg == 2) {
-    if (strcmp(arg[0],"off") == 0) newton_pair = 0;
-    else if (strcmp(arg[0],"on") == 0) newton_pair= 1;
-    else error->all(FLERR,"Illegal newton command");
-    if (strcmp(arg[1],"off") == 0) newton_bond = 0;
-    else if (strcmp(arg[1],"on") == 0) newton_bond = 1;
-    else error->all(FLERR,"Illegal newton command");
+    newton_pair = utils::logical(FLERR,arg[0],false,lmp);
+    newton_bond = utils::logical(FLERR,arg[1],false,lmp);
   } else error->all(FLERR,"Illegal newton command");
 
   force->newton_pair = newton_pair;

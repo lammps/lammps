@@ -16,22 +16,23 @@
    Contributing author: Pierre de Buyl (KU Leuven)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-
-#include <cstring>
-#include <climits>
-#include "ch5md.h"
 #include "dump_h5md.h"
-#include "domain.h"
+
 #include "atom.h"
-#include "update.h"
-#include "group.h"
-#include "output.h"
+#include "domain.h"
 #include "error.h"
 #include "force.h"
+#include "group.h"
 #include "memory.h"
+#include "output.h"
+#include "update.h"
 #include "version.h"
+
+#include <climits>
+#include <cmath>
+#include <cstring>
+
+#include "ch5md.h"
 
 using namespace LAMMPS_NS;
 
@@ -152,25 +153,14 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
         error->all(FLERR, "Invalid number of arguments in dump h5md");
       }
       box_is_set = true;
-      if (strcmp(arg[iarg+1], "yes")==0)
-        do_box=true;
-      else if (strcmp(arg[iarg+1], "no")==0)
-        do_box=false;
-      else
-        error->all(FLERR, "Illegal dump h5md command");
+      do_box = utils::logical(FLERR,arg[iarg+1],false,lmp) == 1;
       iarg+=2;
     } else  if (strcmp(arg[iarg], "create_group")==0) {
       if (iarg+1>=narg) {
         error->all(FLERR, "Invalid number of arguments in dump h5md");
       }
       create_group_is_set = true;
-      if (strcmp(arg[iarg+1], "yes")==0)
-        create_group=true;
-      else if (strcmp(arg[iarg+1], "no")==0) {
-        create_group=false;
-      }
-      else
-        error->all(FLERR, "Illegal dump h5md command");
+      create_group = utils::logical(FLERR,arg[iarg+1],false,lmp) == 1;
       iarg+=2;
     } else if (strcmp(arg[iarg], "author")==0) {
       if (iarg+1>=narg) {

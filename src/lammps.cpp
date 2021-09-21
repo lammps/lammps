@@ -270,8 +270,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
       else if (strcmp(arg[iarg+1],"off") == 0) kokkosflag = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) kokkosflag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) kokkosflag = 0;
-      else if (strcmp(arg[iarg+1],"1") == 0) kokkosflag = 1;
-      else if (strcmp(arg[iarg+1],"0") == 0) kokkosflag = 0;
+      else if (strcmp(arg[iarg+1],"true") == 0) kokkosflag = 1;
+      else if (strcmp(arg[iarg+1],"false") == 0) kokkosflag = 0;
       else error->universe_all(FLERR,"Invalid command-line argument");
       iarg += 2;
       // delimit any extra args for the Kokkos instantiation

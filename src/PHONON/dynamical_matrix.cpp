@@ -181,30 +181,29 @@ void DynamicalMatrix::command(int narg, char **arg)
 
 void DynamicalMatrix::options(int narg, char **arg)
 {
-    if (narg < 0) error->all(FLERR,"Illegal dynamical_matrix command");
-    int iarg = 0;
-    const char* filename = "dynmat.dyn";
-    while (iarg < narg) {
-        if (strcmp(arg[iarg],"binary") == 0) {
-            if (iarg + 2 > narg) error->all(FLERR, "Illegal dynamical_matrix command");
-            if (strcmp(arg[iarg+1],"gzip") == 0) {
-                compressed = 1;
-            }
-            else if (strcmp(arg[iarg+1],"yes") == 0) {
-                binaryflag = 1;
-            }
-            iarg += 2;
-        }
-        else if (strcmp(arg[iarg],"file") == 0) {
-            if (iarg+2 > narg) error->all(FLERR, "Illegal dynamical_matrix command");
-            filename = arg[iarg + 1];
-            file_flag = 1;
-            iarg += 2;
-        } else error->all(FLERR,"Illegal dynamical_matrix command");
+  if (narg < 0) error->all(FLERR,"Illegal dynamical_matrix command");
+  int iarg = 0;
+  const char* filename = "dynmat.dyn";
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"binary") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal dynamical_matrix command");
+      if (strcmp(arg[iarg+1],"gzip") == 0) {
+        compressed = 1;
+      } else if (strcmp(arg[iarg+1],"yes") == 0) {
+        binaryflag = 1;
+      }
+      iarg += 2;
     }
-    if (file_flag == 1) {
-        openfile(filename);
-    }
+    else if (strcmp(arg[iarg],"file") == 0) {
+      if (iarg+2 > narg) error->all(FLERR, "Illegal dynamical_matrix command");
+      filename = arg[iarg + 1];
+      file_flag = 1;
+      iarg += 2;
+    } else error->all(FLERR,"Illegal dynamical_matrix command");
+  }
+  if (file_flag == 1) {
+    openfile(filename);
+  }
 }
 
 /* ----------------------------------------------------------------------

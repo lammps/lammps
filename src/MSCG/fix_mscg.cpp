@@ -18,9 +18,6 @@
 
 #include "fix_mscg.h"
 
-#include <cstring>
-
-#include "mscg.h"
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
@@ -34,6 +31,10 @@
 #include "region.h"
 #include "update.h"
 #include "variable.h"
+
+#include <cstring>
+
+#include "mscg.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -49,8 +50,7 @@ FixMSCG::FixMSCG(LAMMPS *lmp, int narg, char **arg) :
 
   me = comm->me;
   nprocs = comm->nprocs;
-  if (nprocs > 1) error->all(FLERR,"Fix mscg does not yet support "
-                             "parallel use via MPI");
+  if (nprocs > 1) error->all(FLERR,"Fix mscg does not yet support parallel use via MPI");
 
   if (sizeof(tagint) != sizeof(smallint))
     error->all(FLERR,"Fix mscg must be used with 32-bit atom IDs");
@@ -77,11 +77,7 @@ FixMSCG::FixMSCG(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"range") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix mscg command");
-      if (strcmp(arg[iarg+1],"on") == 0)
-        range_flag = 1;
-      else if (strcmp(arg[iarg+1],"off") == 0)
-        range_flag = 0;
-      else error->all(FLERR,"Illegal fix mscg command");
+      range_flag = utils::logical(FLERR, arg[iarg+1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"name") == 0) {
       if (iarg+ntypes+1 > narg)
@@ -89,23 +85,23 @@ FixMSCG::FixMSCG(LAMMPS *lmp, int narg, char **arg) :
       name_flag = 1;
       for (int i = 0; i < ntypes; i++) {
         iarg += 1;
-        std::string str = arg[iarg];
-        type_names[i] = strcat(strdup(str.c_str()),"\0");
+        delete[] type_names[i];
+        type_names[i] = utils::strdup(arg[iarg]);
       }
       iarg += 1;
     } else if (strcmp(arg[iarg],"max") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix mscg command");
-      max_partners_bond = atoi(arg[iarg+1]);
-      max_partners_angle = atoi(arg[iarg+2]);
-      max_partners_dihedral = atoi(arg[iarg+3]);
+      max_partners_bond = utils::inumeric(FLERR,arg[iarg+1],false, lmp);
+      max_partners_angle = utils::inumeric(FLERR,arg[iarg+2],false, lmp);
+      max_partners_dihedral = utils::inumeric(FLERR,arg[iarg+3],false, lmp);
       iarg += 4;
     } else error->all(FLERR,"Illegal fix mscg command");
   }
 
   if (name_flag == 0) {
     for (int i = 0; i < natoms; i++) {
-      std::string str = std::to_string(i+1);
-      type_names[i] = strcat(strdup(str.c_str()),"\0");
+      delete[] type_names[i];
+      type_names[i] = utils::strdup(std::to_string(i+1));
     }
   }
 }
@@ -114,6 +110,9 @@ FixMSCG::FixMSCG(LAMMPS *lmp, int narg, char **arg) :
 
 FixMSCG::~FixMSCG()
 {
+  int natoms = atom->natoms;
+  for (int i = 0; i < natoms; i++) delete[] type_names[i];
+  delete[] type_names;
   memory->destroy(f);
 }
 
@@ -321,8 +320,7 @@ void FixMSCG::post_run()
   if (nframes != n_frames)
     error->warning(FLERR,"Fix mscg n_frames is inconsistent with control.in");
   if (nframes % block_size != 0)
-    error->warning(FLERR,"Fix mscg n_frames is not divisible by "
-                   "block_size in control.in");
+    error->warning(FLERR,"Fix mscg n_frames is not divisible by block_size in control.in");
 
   if (range_flag)
     rangefinder_solve_and_output(mscg_struct);

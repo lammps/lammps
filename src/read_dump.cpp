@@ -1235,6 +1235,8 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
       if (strcmp(arg[iarg+1],"yes") == 0) addflag = YESADD;
       else if (strcmp(arg[iarg+1],"no") == 0) addflag = NOADD;
+      else if (strcmp(arg[iarg+1],"true") == 0) addflag = YESADD;
+      else if (strcmp(arg[iarg+1],"false") == 0) addflag = NOADD;
       else if (strcmp(arg[iarg+1],"keep") == 0) addflag = KEEPADD;
       else error->all(FLERR,"Illegal read_dump command");
       iarg += 2;

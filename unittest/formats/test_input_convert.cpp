@@ -41,26 +41,38 @@ protected:
 TEST_F(InputConvertTest, logical)
 {
     EXPECT_EQ(utils::logical(FLERR, "yes", false, lmp), 1);
-    EXPECT_EQ(utils::logical(FLERR, "Yes", false, lmp), 1);
-    EXPECT_EQ(utils::logical(FLERR, "YES", false, lmp), 1);
-    EXPECT_EQ(utils::logical(FLERR, "yEs", false, lmp), 1);
     EXPECT_EQ(utils::logical(FLERR, "true", false, lmp), 1);
-    EXPECT_EQ(utils::logical(FLERR, "True", false, lmp), 1);
-    EXPECT_EQ(utils::logical(FLERR, "TRUE", false, lmp), 1);
     EXPECT_EQ(utils::logical(FLERR, "on", false, lmp), 1);
-    EXPECT_EQ(utils::logical(FLERR, "On", false, lmp), 1);
-    EXPECT_EQ(utils::logical(FLERR, "ON", false, lmp), 1);
     EXPECT_EQ(utils::logical(FLERR, "1", false, lmp), 1);
     EXPECT_EQ(utils::logical(FLERR, "no", false, lmp), 0);
-    EXPECT_EQ(utils::logical(FLERR, "No", false, lmp), 0);
-    EXPECT_EQ(utils::logical(FLERR, "NO", false, lmp), 0);
-    EXPECT_EQ(utils::logical(FLERR, "nO", false, lmp), 0);
+    EXPECT_EQ(utils::logical(FLERR, "false", false, lmp), 0);
     EXPECT_EQ(utils::logical(FLERR, "off", false, lmp), 0);
-    EXPECT_EQ(utils::logical(FLERR, "Off", false, lmp), 0);
-    EXPECT_EQ(utils::logical(FLERR, "OFF", false, lmp), 0);
-    EXPECT_EQ(utils::logical(FLERR, "OfF", false, lmp), 0);
     EXPECT_EQ(utils::logical(FLERR, "0", false, lmp), 0);
 
+    TEST_FAILURE(".*ERROR: Expected boolean parameter instead of.*",
+                 utils::logical(FLERR, "YES", false, lmp););
+    TEST_FAILURE(".*ERROR: Expected boolean parameter instead of.*",
+                 utils::logical(FLERR, "Yes", false, lmp););
+    TEST_FAILURE(".*ERROR: Expected boolean parameter instead of.*",
+                 utils::logical(FLERR, "On", false, lmp););
+    TEST_FAILURE(".*ERROR: Expected boolean parameter instead of.*",
+                 utils::logical(FLERR, "ON", false, lmp););
+    TEST_FAILURE(".*ERROR: Expected boolean parameter instead of.*",
+                 utils::logical(FLERR, "TRUE", false, lmp););
+    TEST_FAILURE(".*ERROR: Expected boolean parameter instead of.*",
+                 utils::logical(FLERR, "True", false, lmp););
+    TEST_FAILURE(".*ERROR: Expected boolean parameter instead of.*",
+                 utils::logical(FLERR, "NO", false, lmp););
+    TEST_FAILURE(".*ERROR: Expected boolean parameter instead of.*",
+                 utils::logical(FLERR, "No", false, lmp););
+    TEST_FAILURE(".*ERROR: Expected boolean parameter instead of.*",
+                 utils::logical(FLERR, "Off", false, lmp););
+    TEST_FAILURE(".*ERROR: Expected boolean parameter instead of.*",
+                 utils::logical(FLERR, "OFF", false, lmp););
+    TEST_FAILURE(".*ERROR: Expected boolean parameter instead of.*",
+                 utils::logical(FLERR, "FALSE", false, lmp););
+    TEST_FAILURE(".*ERROR: Expected boolean parameter instead of.*",
+                 utils::logical(FLERR, "False", false, lmp););
     TEST_FAILURE(".*ERROR: Expected boolean parameter instead of.*",
                  utils::logical(FLERR, "yay", false, lmp););
     TEST_FAILURE(".*ERROR: Expected boolean parameter instead of.*",

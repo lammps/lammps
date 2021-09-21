@@ -24,7 +24,6 @@
 #include "modify.h"
 #include "my_page.h"
 #include "neigh_list.h"
-#include "neighbor.h"
 
 using namespace LAMMPS_NS;
 

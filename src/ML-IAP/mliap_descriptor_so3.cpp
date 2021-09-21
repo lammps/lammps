@@ -25,7 +25,6 @@
 #include "pair_mliap.h"
 #include "tokenizer.h"
 
-#include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;

@@ -31,13 +31,11 @@
 #include "neighbor.h"
 #include "suffix.h"
 #include "update.h"
-#include "fmt/chrono.h"
 
 #include <cfloat>    // IWYU pragma: keep
 #include <climits>   // IWYU pragma: keep
 #include <cmath>
 #include <cstring>
-#include <ctime>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -758,8 +756,7 @@ void Pair::add_tally_callback(Compute *ptr)
   if (found < 0) {
     found = num_tally_compute;
     ++num_tally_compute;
-    void *p = memory->srealloc((void *)list_tally_compute,
-                               sizeof(Compute *) * num_tally_compute,
+    void *p = memory->srealloc((void *)list_tally_compute, sizeof(Compute *) * num_tally_compute,
                                "pair:list_tally_compute");
     list_tally_compute = (Compute **) p;
     list_tally_compute[num_tally_compute-1] = ptr;
@@ -1816,21 +1813,17 @@ void Pair::write_file(int narg, char **arg)
                                      units, update->unit_style);
       }
       std::string date = utils::get_potential_date(table_file,"table");
-      utils::logmesg(lmp,"Appending to table file {} with DATE: {}\n",
-                     table_file, date);
+      utils::logmesg(lmp,"Appending to table file {} with DATE: {}\n", table_file, date);
       fp = fopen(table_file.c_str(),"a");
     } else {
-      time_t tv = time(nullptr);
-      std::tm current_date = fmt::localtime(tv);
-      utils::logmesg(lmp,"Creating table file {} with DATE: {:%Y-%m-%d}\n",
-                     table_file, current_date);
+      utils::logmesg(lmp,"Creating table file {} with DATE: {}\n",
+                     table_file, utils::current_date());
       fp = fopen(table_file.c_str(),"w");
-      if (fp) fmt::print(fp,"# DATE: {:%Y-%m-%d} UNITS: {} Created by pair_write\n",
-                         current_date, update->unit_style);
+      if (fp) fmt::print(fp,"# DATE: {} UNITS: {} Created by pair_write\n",
+                         utils::current_date(), update->unit_style);
     }
     if (fp == nullptr)
-      error->one(FLERR,"Cannot open pair_write file {}: {}",
-                                   table_file, utils::getsyserror());
+      error->one(FLERR,"Cannot open pair_write file {}: {}",table_file, utils::getsyserror());
     fprintf(fp,"# Pair potential %s for atom types %d %d: i,r,energy,force\n",
             force->pair_style,itype,jtype);
     if (style == RLINEAR)

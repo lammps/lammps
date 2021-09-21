@@ -282,13 +282,9 @@ void FixAdaptFEP::init()
       anypair = 1;
       Pair *pair = nullptr;
 
-      if (lmp->suffix_enable) {
-        char psuffix[128];
-        strcpy(psuffix,ad->pstyle);
-        strcat(psuffix,"/");
-        strcat(psuffix,lmp->suffix);
-        pair = force->pair_match(psuffix,1);
-      }
+      if (lmp->suffix_enable)
+        pair = force->pair_match(std::string(ad->pstyle)+"/"+lmp->suffix,1);
+
       if (pair == nullptr) pair = force->pair_match(ad->pstyle,1);
       if (pair == nullptr)
         error->all(FLERR, "Fix adapt/fep pair style does not exist");

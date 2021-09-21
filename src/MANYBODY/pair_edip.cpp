@@ -527,7 +527,7 @@ void PairEDIP::allocateGrids(void)
    pre-calculated structures
 ------------------------------------------------------------------------- */
 
-void PairEDIP::allocatePreLoops(void)
+void PairEDIP::allocatePreLoops()
 {
   int nthreads = comm->nthreads;
 
@@ -545,7 +545,7 @@ void PairEDIP::allocatePreLoops(void)
    deallocate grids
 ------------------------------------------------------------------------- */
 
-void PairEDIP::deallocateGrids(void)
+void PairEDIP::deallocateGrids()
 {
   memory->destroy(cutoffFunction);
   memory->destroy(cutoffFunctionDerived);
@@ -562,7 +562,7 @@ void PairEDIP::deallocateGrids(void)
    deallocate preLoops
 ------------------------------------------------------------------------- */
 
-void PairEDIP::deallocatePreLoops(void)
+void PairEDIP::deallocatePreLoops()
 {
   memory->destroy(preInvR_ij);
   memory->destroy(preExp3B_ij);
@@ -597,7 +597,7 @@ void PairEDIP::settings(int narg, char ** /*arg*/)
 
 /* ---------------------------------------------------------------------- */
 
-void PairEDIP::initGrids(void)
+void PairEDIP::initGrids()
 {
   int l;
   int numGridPointsOneCutoffFunction;

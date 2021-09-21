@@ -42,7 +42,7 @@ void PairHybridOverlay::coeff(int narg, char **arg)
   // 4th arg = pair sub-style index if name used multiple times
   // allow for "none" as valid sub-style name
 
-  int multflag;
+  int multflag = 0;
   int m;
 
   for (m = 0; m < nstyles; m++) {
@@ -128,7 +128,7 @@ void PairHybridOverlay::init_svector()
 void PairHybridOverlay::copy_svector(int itype, int jtype)
 {
   int n=0;
-  Pair *this_style;
+  Pair *this_style = nullptr;
 
   // fill svector array.
   // copy data from active styles and use 0.0 for inactive ones

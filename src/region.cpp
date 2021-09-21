@@ -42,7 +42,7 @@ Region::Region(LAMMPS *lmp, int /*narg*/, char **arg) :
   dx = dy = dz = 0.0;
 
   size_restart = 5;
-  reset_vel();
+  Region::reset_vel();
   copymode = 0;
   list = nullptr;
   nregion = 1;

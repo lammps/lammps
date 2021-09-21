@@ -39,9 +39,6 @@ PairStyle(rann,PairRANN);
 
 #include "pair.h"
 
-#include <string>
-#include <vector>
-
 namespace LAMMPS_NS {
 
 namespace RANN {

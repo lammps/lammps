@@ -58,7 +58,6 @@
 #include <cstring>
 
 #include <algorithm>
-#include <vector>
 #include <fstream>
 #include <iomanip>
 

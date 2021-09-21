@@ -75,7 +75,7 @@ void MLIAPModel::set_ndescriptors(int ndescriptors_in)
 MLIAPModelSimple::MLIAPModelSimple(LAMMPS *lmp, char *coefffilename) :
     MLIAPModel(lmp, coefffilename)
 {
-  if (coefffilename) read_coeffs(coefffilename);
+  if (coefffilename) MLIAPModelSimple::read_coeffs(coefffilename);
 }
 
 /* ---------------------------------------------------------------------- */

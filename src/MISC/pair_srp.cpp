@@ -359,11 +359,11 @@ void PairSRP::settings(int narg, char **arg)
   }
 
   // settings
-  midpoint = 0;
-  min = 0;
+  midpoint = false;
+  min = false;
 
-  if (strcmp(arg[2],"min") == 0) min = 1;
-  else if (strcmp(arg[2],"mid") == 0) midpoint = 1;
+  if (strcmp(arg[2],"min") == 0) min = true;
+  else if (strcmp(arg[2],"mid") == 0) midpoint = true;
   else
     error->all(FLERR,"Illegal pair_style command");
 

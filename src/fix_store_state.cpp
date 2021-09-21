@@ -19,16 +19,15 @@
 #include "compute.h"
 #include "update.h"
 #include "domain.h"
-#include "force.h"
 #include "modify.h"
 #include "fix.h"
 #include "group.h"
 #include "input.h"
 #include "variable.h"
-#include "variable.h"
-#include "utils.h"
 #include "memory.h"
 #include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -338,7 +337,7 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
   // register with Atom class
 
   values = nullptr;
-  grow_arrays(atom->nmax);
+  FixStoreState::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
   atom->add_callback(Atom::RESTART);
 
@@ -354,7 +353,7 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
 
   kflag = 1;
   cfv_flag = 0;
-  end_of_step();
+  FixStoreState::end_of_step();
   firstflag = 1;
 }
 

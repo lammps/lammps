@@ -15,7 +15,6 @@
 #define LMP_FIX_TGNH_DRUDE_H
 
 #include "fix.h"
-#include "fix_drude.h"
 
 namespace LAMMPS_NS {
 

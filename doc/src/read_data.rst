@@ -619,7 +619,7 @@ of analysis.
    * - bond
      - atom-ID molecule-ID atom-type x y z
    * - charge
-     - atom-type q x y z
+     - atom-ID atom-type q x y z
    * - dipole
      - atom-ID atom-type q x y z mux muy muz
    * - dpd

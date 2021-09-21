@@ -28,7 +28,7 @@
 #include "python_utils.h"
 #include "update.h"
 
-#include <string>
+#include <cstring>
 #include <Python.h>  // IWYU pragma: export
 
 using namespace LAMMPS_NS;

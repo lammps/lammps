@@ -13,7 +13,7 @@ like below.
 
 mpicc -c -O -Wall -g -I$HOME/lammps/src liblammpsplugin.c
 mpicc -c -O -Wall -g simple.c
-mpicc simple.o liblammsplugin.o -ldl -o simpleC
+mpicc simple.o liblammpsplugin.o -ldl -o simpleC
 
 You also need to build LAMMPS as a shared library
 (see examples/COUPLE/README), e.g. 

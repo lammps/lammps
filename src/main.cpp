@@ -28,10 +28,6 @@
 #include <fenv.h>
 #endif
 
-#if defined(LAMMPS_EXCEPTIONS)
-#include "exceptions.h"
-#endif
-
 // import MolSSI Driver Interface library
 #if defined(LMP_MDI)
 #include <mdi.h>

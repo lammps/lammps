@@ -91,7 +91,7 @@ FixGLD::FixGLD(LAMMPS *lmp, int narg, char **arg) :
   memory->create(prony_tau, prony_terms, "gld:prony_tau");
   // allocate memory for Prony series extended variables
   s_gld = nullptr;
-  grow_arrays(atom->nmax);
+  FixGLD::grow_arrays(atom->nmax);
   // add callbacks to enable restarts
   atom->add_callback(Atom::GROW);
   atom->add_callback(Atom::RESTART);

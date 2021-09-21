@@ -92,7 +92,7 @@ DumpXTC::DumpXTC(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
                      "format conventions possible for units lj");
   }
 
-  openfile();
+  DumpXTC::openfile();
   nevery_save = 0;
   ntotal = 0;
 }

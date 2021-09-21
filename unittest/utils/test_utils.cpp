@@ -14,8 +14,11 @@
 #include "lmptype.h"
 #include "pointers.h"
 #include "utils.h"
+#include "tokenizer.h"
+
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+
 #include <cerrno>
 #include <cstdio>
 #include <string>
@@ -873,6 +876,19 @@ TEST(Utils, date2num)
     ASSERT_EQ(utils::date2num("10October22 "), 20221010);
     ASSERT_EQ(utils::date2num("30November 02"), 20021130);
     ASSERT_EQ(utils::date2num("31December100"), 1001231);
+}
+
+TEST(Utils, current_date)
+{
+    auto vals = ValueTokenizer(utils::current_date(),"-");
+    int year = vals.next_int();
+    int month = vals.next_int();
+    int day = vals.next_int();
+    ASSERT_GT(year,2020);
+    ASSERT_GE(month,1);
+    ASSERT_GE(day,1);
+    ASSERT_LE(month,12);
+    ASSERT_LE(day,31);
 }
 
 TEST(Utils, binary_search)

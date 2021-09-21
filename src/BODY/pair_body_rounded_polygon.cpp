@@ -207,8 +207,7 @@ void PairBodyRoundedPolygon::compute(int eflag, int vflag)
       if (r > radi + radj + cut_inner) continue;
 
       if (npi == 1 && npj == 1) {
-        sphere_against_sphere(i, j, delx, dely, delz, rsq,
-                            k_nij, k_naij, x, v, f, evflag);
+        sphere_against_sphere(i, j, delx, dely, delz, rsq, k_nij, k_naij, x, v, f, evflag);
         continue;
       }
 

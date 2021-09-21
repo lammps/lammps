@@ -17,16 +17,13 @@
 #include "atom.h"
 #include "citeme.h"
 #include "comm.h"
-#include "domain.h"
 #include "error.h"
 #include "force.h"
 #include "gpu_extra.h"
-#include "input.h"
 #include "modify.h"
 #include "neighbor.h"
 #include "pair.h"
 #include "pair_hybrid.h"
-#include "pair_hybrid_overlay.h"
 #include "respa.h"
 #include "timer.h"
 #include "universe.h"
@@ -50,12 +47,10 @@ extern int lmp_init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
                            const int ocl_platform, char *device_type_flags,
                            const int block_pair);
 extern void lmp_clear_device();
-extern double lmp_gpu_forces(double **f, double **tor, double *eatom,
-                             double **vatom, double *virial, double &ecoul,
-                             int &err_flag);
-extern double lmp_gpu_update_bin_size(const double subx, const double suby,
-                                      const double subz, const int nlocal,
-                                      const double cut);
+extern double lmp_gpu_forces(double **f, double **tor, double *eatom, double **vatom,
+                             double *virial, double &ecoul, int &err_flag);
+extern double lmp_gpu_update_bin_size(const double subx, const double suby, const double subz,
+                                      const int nlocal, const double cut);
 
 static const char cite_gpu_package[] =
   "GPU package (short-range, long-range and three-body potentials):\n\n"
@@ -322,15 +317,12 @@ void FixGPU::post_force(int /* vflag */)
   timer->stamp();
   double lvirial[6];
   for (int i = 0; i < 6; i++) lvirial[i] = 0.0;
-  int err_flag;
-  double my_eng = lmp_gpu_forces(atom->f, atom->torque, force->pair->eatom,
-                                 force->pair->vatom, lvirial,
-                                 force->pair->eng_coul, err_flag);
-  if (err_flag) {
-    if (err_flag==1)
-      error->one(FLERR,
-        "Too many neighbors on GPU. Use neigh_modify one to increase limit.");
-  }
+  int err_flag = 0;
+  double my_eng = lmp_gpu_forces(atom->f, atom->torque, force->pair->eatom, force->pair->vatom,
+                                 lvirial, force->pair->eng_coul, err_flag);
+  if (err_flag==1)
+    error->one(FLERR,"Neighbor list problem on the GPU. Try increasing the value of 'neigh_modify one' "
+               "or the GPU neighbor list 'binsize'.");
 
   force->pair->eng_vdwl += my_eng;
   force->pair->virial[0] += lvirial[0];

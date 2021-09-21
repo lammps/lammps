@@ -331,15 +331,9 @@ void FixAdapt::init()
         nsub = utils::inumeric(FLERR,cptr+1,false,lmp);
       }
 
-      if (lmp->suffix_enable) {
-        int len = 2 + strlen(pstyle) + strlen(lmp->suffix);
-        char *psuffix = new char[len];
-        strcpy(psuffix,pstyle);
-        strcat(psuffix,"/");
-        strcat(psuffix,lmp->suffix);
-        ad->pair = force->pair_match(psuffix,1,nsub);
-        delete[] psuffix;
-      }
+      if (lmp->suffix_enable)
+        ad->pair = force->pair_match(fmt::format("{}/{}",pstyle,lmp->suffix),1,nsub);
+
       if (ad->pair == nullptr) ad->pair = force->pair_match(pstyle,1,nsub);
       if (ad->pair == nullptr)
         error->all(FLERR,"Fix adapt pair style does not exist");
@@ -374,15 +368,9 @@ void FixAdapt::init()
       anybond = 1;
 
       char *bstyle = utils::strdup(ad->bstyle);
-      if (lmp->suffix_enable) {
-        int len = 2 + strlen(bstyle) + strlen(lmp->suffix);
-        char *bsuffix = new char[len];
-        strcpy(bsuffix,bstyle);
-        strcat(bsuffix,"/");
-        strcat(bsuffix,lmp->suffix);
-        ad->bond = force->bond_match(bsuffix);
-        delete [] bsuffix;
-      }
+      if (lmp->suffix_enable)
+        ad->bond = force->bond_match(fmt::format("{}/{}",bstyle,lmp->suffix));
+
       if (ad->bond == nullptr) ad->bond = force->bond_match(bstyle);
       if (ad->bond == nullptr )
         error->all(FLERR,"Fix adapt bond style does not exist");

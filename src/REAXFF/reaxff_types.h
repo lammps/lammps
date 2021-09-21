@@ -23,8 +23,8 @@
 
 #include "lmptype.h"
 
-#include "reaxff_defs.h"
-#include "reaxff_inline.h"
+#include "reaxff_defs.h"        // IWYU pragma: export
+#include "reaxff_inline.h"      // IWYU pragma: export
 
 // forward declarations
 namespace LAMMPS_NS {

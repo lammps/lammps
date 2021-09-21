@@ -19,9 +19,9 @@
 #include "error.h"
 #include "input.h"
 #include "force.h"
-#include "lammps.h"
 #include "modify.h"
 
+#include <cstring>
 #include <map>
 #include <list>
 

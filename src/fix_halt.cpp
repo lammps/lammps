@@ -54,8 +54,7 @@ FixHalt::FixHalt(LAMMPS *lmp, int narg, char **arg) :
     attribute = TLIMIT;
   } else if (strcmp(arg[iarg],"diskfree") == 0) {
     attribute = DISKFREE;
-    dlimit_path = new char[2];
-    strcpy(dlimit_path,".");
+    dlimit_path = utils::strdup(".");
   } else if (strcmp(arg[iarg],"bondmax") == 0) {
     attribute = BONDMAX;
   } else {

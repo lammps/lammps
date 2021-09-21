@@ -59,9 +59,8 @@ enum{EXCHATOM,EXCHMOL}; // exchmode
 
 FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  idregion(nullptr), full_flag(0),
-  local_gas_list(nullptr), molcoords(nullptr), molq(nullptr), molimage(nullptr),
-  random_equal(nullptr)
+  idregion(nullptr), full_flag(false), local_gas_list(nullptr), molcoords(nullptr),
+  molq(nullptr), molimage(nullptr), random_equal(nullptr)
 {
   if (narg < 8) error->all(FLERR,"Illegal fix widom command");
 

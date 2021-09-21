@@ -198,8 +198,8 @@ same:
 
 Coefficients must be defined for each pair of atoms types via the
 :doc:`pair_coeff <pair_coeff>` command as described above, or in the
-data file read by the :doc:`read_data <read_data>` commands, or by
-mixing as described below.
+"Pair Coeffs" or "PairIJ Coeffs" section of the data file read by the
+:doc:`read_data <read_data>` command, or by mixing as described below.
 
 For all of the *hybrid*, *hybrid/overlay*, and *hybrid/scaled* styles,
 every atom type pair I,J (where I <= J) must be assigned to at least one
@@ -208,14 +208,21 @@ examples above, or in the data file read by the :doc:`read_data
 <read_data>`, or by mixing as described below.  Also all sub-styles
 must be used at least once in a :doc:`pair_coeff <pair_coeff>` command.
 
+.. note::
+
+   LAMMPS never performs mixing of parameters from different sub-styles,
+   **even** if they use the same type of coefficients, e.g. contain
+   a Lennard-Jones potential variant.  Those parameters must be provided
+   explicitly.
+
 If you want there to be no interactions between a particular pair of
-atom types, you have 3 choices.  You can assign the type pair to some
-sub-style and use the :doc:`neigh_modify exclude type <neigh_modify>`
+atom types, you have 3 choices.  You can assign the pair of atom types
+to some sub-style and use the :doc:`neigh_modify exclude type <neigh_modify>`
 command.  You can assign it to some sub-style and set the coefficients
 so that there is effectively no interaction (e.g. epsilon = 0.0 in a LJ
 potential).  Or, for *hybrid*, *hybrid/overlay*, or *hybrid/scaled*
 simulations, you can use this form of the pair_coeff command in your
-input script:
+input script or the "PairIJ Coeffs" section of your data file:
 
 .. code-block:: LAMMPS
 
@@ -238,19 +245,20 @@ styles with different requirements.
 
 ----------
 
-Different force fields (e.g. CHARMM vs AMBER) may have different rules
-for applying weightings that change the strength of pairwise
-interactions between pairs of atoms that are also 1-2, 1-3, and 1-4
-neighbors in the molecular bond topology, as normally set by the
-:doc:`special_bonds <special_bonds>` command.  Different weights can be
-assigned to different pair hybrid sub-styles via the :doc:`pair_modify
-special <pair_modify>` command. This allows multiple force fields to be
-used in a model of a hybrid system, however, there is no consistent
-approach to determine parameters automatically for the interactions
-between the two force fields, this is only recommended when particles
+Different force fields (e.g. CHARMM vs. AMBER) may have different rules
+for applying exclusions or weights that change the strength of pairwise
+non-bonded interactions between pairs of atoms that are also 1-2, 1-3,
+and 1-4 neighbors in the molecular bond topology. This is normally a
+global setting defined the :doc:`special_bonds <special_bonds>` command.
+However, different weights can be assigned to different hybrid
+sub-styles via the :doc:`pair_modify special <pair_modify>` command.
+This allows multiple force fields to be used in a model of a hybrid
+system, however, there is no consistent approach to determine parameters
+automatically for the interactions **between** atoms of the two force
+fields, thus this approach this is only recommended when particles
 described by the different force fields do not mix.
 
-Here is an example for mixing CHARMM and AMBER: The global *amber*
+Here is an example for combining CHARMM and AMBER: The global *amber*
 setting sets the 1-4 interactions to non-zero scaling factors and
 then overrides them with 0.0 only for CHARMM:
 
@@ -260,7 +268,7 @@ then overrides them with 0.0 only for CHARMM:
    pair_style hybrid lj/charmm/coul/long 8.0 10.0 lj/cut/coul/long 10.0
    pair_modify pair lj/charmm/coul/long special lj/coul 0.0 0.0 0.0
 
-The this input achieves the same effect:
+This input achieves the same effect:
 
 .. code-block:: LAMMPS
 
@@ -270,9 +278,9 @@ The this input achieves the same effect:
    pair_modify pair lj/cut/coul/long special coul 0.0 0.0 0.83333333
    pair_modify pair lj/charmm/coul/long special lj/coul 0.0 0.0 0.0
 
-Here is an example for mixing Tersoff with OPLS/AA based on
-a data file that defines bonds for all atoms where for the
-Tersoff part of the system the force constants for the bonded
+Here is an example for combining Tersoff with OPLS/AA based on
+a data file that defines bonds for all atoms where - for the
+Tersoff part of the system - the force constants for the bonded
 interactions have been set to 0. Note the global settings are
 effectively *lj/coul 0.0 0.0 0.5* as required for OPLS/AA:
 

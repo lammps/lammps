@@ -21,9 +21,7 @@
 
 #include <mpi.h>
 
-#include <cstdio>
-#include <string>
-#include <vector>
+#include <vector> // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
@@ -421,7 +419,7 @@ namespace utils {
 
   /*! Try to detect pathname from FILE pointer.
    *
-   * Currently supported on Linux, macOS, and Windows, otherwise will report "(unknown)".
+   * Currently supported on Linux, MacOS, and Windows, otherwise will report "(unknown)".
    *
    *  \param buf  storage buffer for pathname. output will be truncated if not large enough
    *  \param len  size of storage buffer. output will be truncated to this length - 1
@@ -553,6 +551,14 @@ namespace utils {
    * \return       date code */
 
   int date2num(const std::string &date);
+
+  /*! Return current date as string
+   *
+   * This will generate a string containing the current date in YYYY-MM-DD format.
+   *
+   * \return       string with current date */
+
+  std::string current_date();
 
   /*! Binary search in a vector of ascending doubles of length N
    *

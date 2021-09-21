@@ -85,7 +85,7 @@ void ResetMolIDs::command(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"offset") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal reset_mol_ids command");
-      offset = utils::tnumeric(FLERR,arg[iarg+1],1,lmp);
+      offset = utils::tnumeric(FLERR,arg[iarg+1],true,lmp);
       if (offset < -1) error->all(FLERR,"Illegal reset_mol_ids command");
       iarg += 2;
     } else error->all(FLERR,"Illegal reset_mol_ids command");

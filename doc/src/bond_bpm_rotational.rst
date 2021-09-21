@@ -28,7 +28,7 @@ Examples
 .. code-block:: LAMMPS
 
    bond_style bpm/rotational
-   bond_coeff 1
+   bond_coeff 1 1.0 0.2 0.02 0.02 0.20 0.04 0.04 0.04 0.1 0.02 0.002 0.002
 
    bond_style bpm/rotational myfix time id1 id2
    fix myfix all store/local 1000 3

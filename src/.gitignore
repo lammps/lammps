@@ -257,8 +257,8 @@
 /bond_bpm.h
 /bond_bpm_rotational.cpp
 /bond_bpm_rotational.h
-/bond_bpm_simple.cpp
-/bond_bpm_simple.h
+/bond_bpm_spring.cpp
+/bond_bpm_spring.h
 /compute_nbond_atom.cpp
 /compute_nbond_atom.h
 /fix_bond_history.cpp

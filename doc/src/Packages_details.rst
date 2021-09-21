@@ -304,6 +304,7 @@ models for mesoscale simulations of solids and fracture.  See the
 * :doc:`Howto_bpm <Howto_bpm>`
 * :doc:`atom_style sphere/bpm <atom_style>`
 * :doc:`bond_style bpm/rotational <bond_bpm_rotational>`
+* :doc:`bond_style bpm/spring <bond_bpm_spring>`
 * :doc:`compute nbonds/atom <compute_nbonds_atom>`
 * :doc:`fix nve/sphere/bpm <fix_nve_sphere_bpm>`
 * :doc:`fix update/special/bonds <fix_update_special_bonds>`

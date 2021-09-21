@@ -59,7 +59,7 @@ neighbors are included in the neighbor list. All bonded neighbors must be includ
 in neighbor lists as they could become unbonded at any timestep.
 
 Currently there are two types of bonds included in this package. The first
-bond style, :doc:`bond bpm/simple <bond_bpm_simple>`, only applies pairwise,
+bond style, :doc:`bond bpm/spring <bond_bpm_spring>`, only applies pairwise,
 central body forces. Point particles must have :doc:`bond atom style <atom_style>`
 and may be thought of as nodes in a spring network. Alternatively,
 the second bond style, :doc:`bond bpm/rotational <bond_bpm_rotational>`,

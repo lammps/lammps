@@ -16,7 +16,7 @@
    Contributing author: Trung Nguyen (Northwestern)
 ------------------------------------------------------------------------- */
 
-#include "pair_amoeba_gpu.h"
+#include "pair_hippo_gpu.h"
 
 #include "amoeba_convolution.h"
 #include "atom.h"
@@ -38,7 +38,7 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-enum{INDUCE,RSD,SETUP_AMOEBA,SETUP_HIPPO,KMPOLE,AMGROUP};   // forward comm
+enum{INDUCE,RSD,SETUP_hippo,SETUP_HIPPO,KMPOLE,AMGROUP};   // forward comm
 enum{FIELD,ZRSD,TORQUE,UFLD};                               // reverse comm
 enum{VDWL,REPULSE,QFER,DISP,MPOLE,POLAR,USOLV,DISP_LONG,MPOLE_LONG,POLAR_LONG};
 enum{MUTUAL,OPT,TCG,DIRECT};
@@ -50,7 +50,7 @@ enum{GORDON1,GORDON2};
 
 // External functions from cuda library for atom decomposition
 
-int amoeba_gpu_init(const int ntypes, const int max_amtype, const int max_amclass,
+int hippo_gpu_init(const int ntypes, const int max_amtype, const int max_amclass,
                     const double *host_pdamp, const double *host_thole,
                     const double *host_dirdamp, const int* host_amtype2class,
                     const double *host_special_hal, const double *host_special_repel,
@@ -63,9 +63,20 @@ int amoeba_gpu_init(const int ntypes, const int max_amtype, const int max_amclas
                     const int maxspecial, const int maxspecial15,
                     const double cell_size, int &gpu_mode, FILE *screen,
                     const double polar_dscale, const double polar_uscale, int& tq_size);
-void amoeba_gpu_clear();
+void hippo_gpu_clear();
 
-int ** amoeba_gpu_compute_multipole_real(const int ago, const int inum, const int nall,
+int** hippo_gpu_compute_dispersion_real(const int ago, const int inum_full,
+                           const int nall, double **host_x, int *host_type,
+                           int *host_amtype, int *host_amgroup, double **host_rpole,
+                           double *sublo, double *subhi, tagint *tag, int **nspecial,
+                           tagint **special, int *nspecial15, tagint** special15,
+                           const bool eflag, const bool vflag, const bool eatom,
+                           const bool vatom, int &host_start,
+                           int **ilist, int **jnum, const double cpu_time,
+                           bool &success, const double aewald, const double off2,
+                           double *host_q, double *boxlo, double *prd);
+
+int ** hippo_gpu_compute_multipole_real(const int ago, const int inum, const int nall,
               double **host_x, int *host_type, int *host_amtype, int *host_amgroup,
               double **host_rpole, double *sublo, double *subhi, tagint *tag,
               int **nspecial, tagint **special, int* nspecial15, tagint** special15,
@@ -74,7 +85,7 @@ int ** amoeba_gpu_compute_multipole_real(const int ago, const int inum, const in
               bool &success, const double aewald, const double felec, const double off2,
               double *host_q, double *boxlo, double *prd, void **tq_ptr);
 
-int ** amoeba_gpu_compute_udirect2b(const int ago, const int inum, const int nall,
+int ** hippo_gpu_compute_udirect2b(const int ago, const int inum, const int nall,
               double **host_x, int *host_type, int *host_amtype, int *host_amgroup,
               double **host_rpole, double **host_uind, double **host_uinp, 
               double *sublo, double *subhi, tagint *tag, int **nspecial,
@@ -84,7 +95,7 @@ int ** amoeba_gpu_compute_udirect2b(const int ago, const int inum, const int nal
               bool &success, const double aewald, const double off2, double *host_q,
               double *boxlo, double *prd, void **fieldp_ptr);
 
-int ** amoeba_gpu_compute_umutual2b(const int ago, const int inum, const int nall,
+int ** hippo_gpu_compute_umutual2b(const int ago, const int inum, const int nall,
               double **host_x, int *host_type, int *host_amtype, int *host_amgroup,
               double **host_rpole, double **host_uind, double **host_uinp, 
               double *sublo, double *subhi, tagint *tag, int **nspecial,
@@ -94,7 +105,7 @@ int ** amoeba_gpu_compute_umutual2b(const int ago, const int inum, const int nal
               bool &success, const double aewald, const double off2, double *host_q,
               double *boxlo, double *prd, void **fieldp_ptr);
 
-int ** amoeba_gpu_compute_polar_real(const int ago, const int inum, const int nall,
+int ** hippo_gpu_compute_polar_real(const int ago, const int inum, const int nall,
               double **host_x, int *host_type, int *host_amtype, int *host_amgroup,
               double **host_rpole, double **host_uind, double **host_uinp,
               double *sublo, double *subhi, tagint *tag, int **nspecial,
@@ -104,11 +115,11 @@ int ** amoeba_gpu_compute_polar_real(const int ago, const int inum, const int na
               bool &success, const double aewald, const double felec, const double off2,
               double *host_q, double *boxlo, double *prd, void **tq_ptr);
 
-double amoeba_gpu_bytes();
+double hippo_gpu_bytes();
 
 /* ---------------------------------------------------------------------- */
 
-PairAmoebaGPU::PairAmoebaGPU(LAMMPS *lmp) : PairAmoeba(lmp), gpu_mode(GPU_FORCE)
+PairHippoGPU::PairHippoGPU(LAMMPS *lmp) : PairAmoeba(lmp), gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
   reinitflag = 0;
@@ -117,9 +128,9 @@ PairAmoebaGPU::PairAmoebaGPU(LAMMPS *lmp) : PairAmoeba(lmp), gpu_mode(GPU_FORCE)
   fieldp_pinned = nullptr;
   tq_pinned = nullptr;
 
-  gpu_hal_ready = false;               // true for AMOEBA when ready
-  gpu_repulsion_ready = false;         // always false for AMOEBA
-  gpu_dispersion_real_ready = false;   // always false for AMOEBA
+  gpu_hal_ready = false;               // always false for HIPPO
+  gpu_repulsion_ready = false;         // true for HIPPO when ready
+  gpu_dispersion_real_ready = false;   // true for HIPPO when ready
   gpu_multipole_real_ready = true;
   gpu_udirect2b_ready = true;
   gpu_umutual2b_ready = true;
@@ -132,16 +143,16 @@ PairAmoebaGPU::PairAmoebaGPU(LAMMPS *lmp) : PairAmoeba(lmp), gpu_mode(GPU_FORCE)
    free all arrays
 ------------------------------------------------------------------------- */
 
-PairAmoebaGPU::~PairAmoebaGPU()
+PairHippoGPU::~PairHippoGPU()
 {
-  amoeba_gpu_clear();
+  hippo_gpu_clear();
 }
 
 /* ----------------------------------------------------------------------
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
-void PairAmoebaGPU::init_style()
+void PairHippoGPU::init_style()
 {
   PairAmoeba::init_style();
 
@@ -173,7 +184,7 @@ void PairAmoebaGPU::init_style()
     
   int tq_size;
   int mnf = 5e-2 * neighbor->oneatom;
-  int success = amoeba_gpu_init(atom->ntypes+1, max_amtype, max_amclass,
+  int success = hippo_gpu_init(atom->ntypes+1, max_amtype, max_amclass,
                                 pdamp, thole, dirdamp, amtype2class, special_hal,
                                 special_repel, special_disp, special_mpole,
                                 special_polar_wscale, special_polar_piscale,
@@ -184,7 +195,7 @@ void PairAmoebaGPU::init_style()
   GPU_EXTRA::check_flag(success,error,world);
 
   if (gpu_mode == GPU_FORCE)
-    error->all(FLERR,"Pair style amoeba/gpu does not support neigh no for now");
+    error->all(FLERR,"Pair style hippo/gpu does not support neigh no for now");
 
   if (tq_size == sizeof(double))
     tq_single = false;
@@ -194,7 +205,55 @@ void PairAmoebaGPU::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-void PairAmoebaGPU::multipole_real()
+void PairHippoGPU::dispersion_real()
+{
+  if (!gpu_dispersion_real_ready) {
+    PairAmoeba::dispersion_real();
+    return;
+  }
+
+  int eflag=1, vflag=1;
+  int nall = atom->nlocal + atom->nghost;
+  int inum, host_start;
+
+  bool success = true;
+  int *ilist, *numneigh, **firstneigh;
+  
+  double sublo[3],subhi[3];
+  if (domain->triclinic == 0) {
+    sublo[0] = domain->sublo[0];
+    sublo[1] = domain->sublo[1];
+    sublo[2] = domain->sublo[2];
+    subhi[0] = domain->subhi[0];
+    subhi[1] = domain->subhi[1];
+    subhi[2] = domain->subhi[2];
+  } else {
+    domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
+  }
+  inum = atom->nlocal;
+
+  // select the correct cutoff for the term
+
+  if (use_dewald) choose(DISP_LONG);
+  else choose(DISP);
+
+  firstneigh = hippo_gpu_compute_dispersion_real(neighbor->ago, inum, nall, atom->x,
+                                                 atom->type, amtype, amgroup, rpole,
+                                                 sublo, subhi, atom->tag,
+                                                 atom->nspecial, atom->special,
+                                                 atom->nspecial15, atom->special15,
+                                                 eflag, vflag, eflag_atom, vflag_atom,
+                                                 host_start, &ilist, &numneigh, cpu_time,
+                                                 success, aewald, off2, atom->q,
+                                                 domain->boxlo, domain->prd);
+  
+  if (!success)
+    error->one(FLERR,"Insufficient memory on accelerator");
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairHippoGPU::multipole_real()
 {
   if (!gpu_multipole_real_ready) {
     PairAmoeba::multipole_real();
@@ -230,7 +289,7 @@ void PairAmoebaGPU::multipole_real()
 
   double felec = electric / am_dielectric;
 
-  firstneigh = amoeba_gpu_compute_multipole_real(neighbor->ago, inum, nall, atom->x,
+  firstneigh = hippo_gpu_compute_multipole_real(neighbor->ago, inum, nall, atom->x,
                                                  atom->type, amtype, amgroup, rpole,
                                                  sublo, subhi, atom->tag,
                                                  atom->nspecial, atom->special,
@@ -259,7 +318,7 @@ void PairAmoebaGPU::multipole_real()
    adapted from Tinker induce0a() routine
 ------------------------------------------------------------------------- */
 
-void PairAmoebaGPU::induce()
+void PairHippoGPU::induce()
 {
   bool done;
   int i,j,m,ii,itype;
@@ -647,7 +706,7 @@ void PairAmoebaGPU::induce()
     
     if (iter >= maxiter || eps > epsold)
       if (me == 0)
-	      error->warning(FLERR,"AMOEBA induced dipoles did not converge");
+	      error->warning(FLERR,"hippo induced dipoles did not converge");
   }
 
   // DEBUG output to dump file
@@ -694,7 +753,7 @@ void PairAmoebaGPU::induce()
    atomic multipole moments to the field via a neighbor list
 ------------------------------------------------------------------------- */
 
-void PairAmoebaGPU::udirect2b(double **field, double **fieldp)
+void PairHippoGPU::udirect2b(double **field, double **fieldp)
 {
   if (!gpu_udirect2b_ready) {
     PairAmoeba::udirect2b(field, fieldp);
@@ -726,7 +785,7 @@ void PairAmoebaGPU::udirect2b(double **field, double **fieldp)
   if (use_ewald) choose(POLAR_LONG);
   else choose(POLAR);
 
-  firstneigh = amoeba_gpu_compute_udirect2b(neighbor->ago, inum, nall, atom->x,
+  firstneigh = hippo_gpu_compute_udirect2b(neighbor->ago, inum, nall, atom->x,
                                             atom->type, amtype, amgroup, rpole,
                                             uind, uinp, sublo, subhi, atom->tag,
                                             atom->nspecial, atom->special,
@@ -773,7 +832,7 @@ void PairAmoebaGPU::udirect2b(double **field, double **fieldp)
      atomic multipole moments to the field via a neighbor list
 ------------------------------------------------------------------------- */
 
-void PairAmoebaGPU::udirect2b_cpu()
+void PairHippoGPU::udirect2b_cpu()
 {
   int i,j,k,m,n,ii,jj,kk,kkk,jextra,ndip,itype,jtype,igroup,jgroup;
   double xr,yr,zr,r,r2;
@@ -919,7 +978,7 @@ void PairAmoebaGPU::udirect2b_cpu()
    atomic dipole moments to the field via a neighbor list
 ------------------------------------------------------------------------- */
 
-void PairAmoebaGPU::umutual2b(double **field, double **fieldp)
+void PairHippoGPU::umutual2b(double **field, double **fieldp)
 {
   if (!gpu_umutual2b_ready) {
     PairAmoeba::umutual2b(field, fieldp);
@@ -951,7 +1010,7 @@ void PairAmoebaGPU::umutual2b(double **field, double **fieldp)
   if (use_ewald) choose(POLAR_LONG);
   else choose(POLAR);
 
-  firstneigh = amoeba_gpu_compute_umutual2b(neighbor->ago, inum, nall, atom->x,
+  firstneigh = hippo_gpu_compute_umutual2b(neighbor->ago, inum, nall, atom->x,
                                             atom->type, amtype, amgroup, rpole,
                                             uind, uinp, sublo, subhi, atom->tag,
                                             atom->nspecial, atom->special,
@@ -988,7 +1047,7 @@ void PairAmoebaGPU::umutual2b(double **field, double **fieldp)
 
 /* ---------------------------------------------------------------------- */
 
-void PairAmoebaGPU::polar_real()
+void PairHippoGPU::polar_real()
 {
   if (!gpu_polar_real_ready) {
     PairAmoeba::polar_real();
@@ -1024,7 +1083,7 @@ void PairAmoebaGPU::polar_real()
 
   double felec = 0.5 * electric / am_dielectric;
 
-  firstneigh = amoeba_gpu_compute_polar_real(neighbor->ago, inum, nall, atom->x,
+  firstneigh = hippo_gpu_compute_polar_real(neighbor->ago, inum, nall, atom->x,
                                              atom->type, amtype, amgroup,
                                              rpole, uind, uinp, sublo, subhi,
                                              atom->tag, atom->nspecial, atom->special,
@@ -1053,7 +1112,7 @@ void PairAmoebaGPU::polar_real()
 ------------------------------------------------------------------------- */
 
 template <class numtyp>
-void PairAmoebaGPU::compute_force_from_torque(const numtyp* tq_ptr,
+void PairHippoGPU::compute_force_from_torque(const numtyp* tq_ptr,
                                               double** force_comp,
                                               double* virial_comp)
 {
@@ -1109,8 +1168,8 @@ void PairAmoebaGPU::compute_force_from_torque(const numtyp* tq_ptr,
 
 /* ---------------------------------------------------------------------- */
 
-double PairAmoebaGPU::memory_usage()
+double PairHippoGPU::memory_usage()
 {
   double bytes = Pair::memory_usage();
-  return bytes + amoeba_gpu_bytes();
+  return bytes + hippo_gpu_bytes();
 }

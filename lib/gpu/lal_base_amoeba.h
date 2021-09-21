@@ -54,7 +54,7 @@ class BaseAmoeba {
   int init_atomic(const int nlocal, const int nall, const int max_nbors,
                   const int maxspecial, const int maxspecial15, const double cell_size,
                   const double gpu_split, FILE *screen, const void *pair_program,
-                  const char *kname_dispersion, const char *kname_multipole,
+                  const char *kname_multipole,
                   const char *kname_udirect2b, const char *kname_umutual2b,
                   const char *kname_polar, const char *kname_short_nbor);
 
@@ -141,18 +141,6 @@ class BaseAmoeba {
                 const bool eatom, const bool vatom, int &host_start,
                 int **&ilist, int **&numj, const double cpu_time, bool &success,
                 double *charge, double *boxlo, double *prd);
-
-  /// Compute dispersion real-space with device neighboring
-  int** compute_dispersion_real(const int ago, const int inum_full, const int nall,
-                double **host_x, int *host_type, int *host_amtype,
-                int *host_amgroup, double **host_rpole, double *sublo, double *subhi,
-                tagint *tag, int **nspecial, tagint **special,
-                int *nspecial15, tagint **special15,
-                const bool eflag, const bool vflag,
-                const bool eatom, const bool vatom, int &host_start,
-                int **ilist, int **numj, const double cpu_time, bool &success,
-                const double aewald, const double off2_disp, double *charge,
-                double *boxlo, double *prd);
 
   /// Compute multipole real-space with device neighboring
   int** compute_multipole_real(const int ago, const int inum_full, const int nall,
@@ -269,7 +257,7 @@ class BaseAmoeba {
 
   // ------------------------- DEVICE KERNELS -------------------------
   UCL_Program *pair_program;
-  UCL_Kernel k_dispersion, k_multipole, k_udirect2b, k_umutual2b, k_polar;
+  UCL_Kernel k_multipole, k_udirect2b, k_umutual2b, k_polar;
   UCL_Kernel k_special15, k_short_nbor;
   inline int block_size() { return _block_size; }
   inline void set_kernel(const int eflag, const int vflag) {}
@@ -291,11 +279,10 @@ class BaseAmoeba {
   numtyp _off2_hal,_off2_repulse,_off2_disp,_off2_mpole,_off2_polar;
 
   void compile_kernels(UCL_Device &dev, const void *pair_string,
-     const char *kname_dispersion, const char *kname_multipole,
+     const char *kname_multipole,
      const char *kname_udirect2b, const char *kname_umutual2b,
      const char *kname_polar, const char *kname_short_nbor);
 
-  virtual int dispersion_real(const int eflag, const int vflag) = 0;
   virtual int multipole_real(const int eflag, const int vflag) = 0;
   virtual int udirect2b(const int eflag, const int vflag) = 0;
   virtual int umutual2b(const int eflag, const int vflag) = 0;

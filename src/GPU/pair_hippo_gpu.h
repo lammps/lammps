@@ -13,21 +13,21 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(amoeba/gpu,PairAmoebaGPU);
+PairStyle(hippo/gpu,PairHippoGPU);
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_AMOEBA_GPU_H
-#define LMP_PAIR_AMOEBA_GPU_H
+#ifndef LMP_PAIR_HIPPO_GPU_H
+#define LMP_PAIR_HIPPO_GPU_H
 
 #include "pair_amoeba.h"
 
 namespace LAMMPS_NS {
 
-class PairAmoebaGPU : public PairAmoeba {
+class PairHippoGPU : public PairAmoeba {
  public:
-  PairAmoebaGPU(LAMMPS *lmp);
-  ~PairAmoebaGPU();
+  PairHippoGPU(LAMMPS *lmp);
+  ~PairHippoGPU();
   void init_style();
   double memory_usage();
 
@@ -35,7 +35,7 @@ class PairAmoebaGPU : public PairAmoeba {
 
   virtual void induce();
 
-  //virtual void dispersion_real();
+  virtual void dispersion_real();
   virtual void multipole_real();
   virtual void udirect2b(double **, double **);
   virtual void umutual2b(double **, double **);
@@ -73,7 +73,7 @@ E: Insufficient memory on accelerator
 There is insufficient memory on one of the devices specified for the gpu
 package
 
-E: Pair style amoeba/gpu requires atom attribute q
+E: Pair style hippo/gpu requires atom attribute q
 
 The atom style defined does not have this attribute.
 

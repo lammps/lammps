@@ -1,9 +1,9 @@
 /***************************************************************************
-                                  amoeba.h
+                                  hippo.h
                              -------------------
                           Trung Dac Nguyen (Northwestern)
 
-  Class for acceleration of the amoeba pair style.
+  Class for acceleration of the hippo pair style.
 
  __________________________________________________________________________
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
@@ -13,18 +13,18 @@
     email                : trung.nguyen@northwestern.edu
  ***************************************************************************/
 
-#ifndef LAL_AMOEBA_H
-#define LAL_AMOEBA_H
+#ifndef LAL_HIPPO_H
+#define LAL_HIPPO_H
 
 #include "lal_base_amoeba.h"
 
 namespace LAMMPS_AL {
 
 template <class numtyp, class acctyp>
-class Amoeba : public BaseAmoeba<numtyp, acctyp> {
+class Hippo : public BaseAmoeba<numtyp, acctyp> {
  public:
-  Amoeba();
-  ~Amoeba();
+  Hippo();
+  ~Hippo();
 
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param max_nbors initial number of rows in the neighbor matrix
@@ -52,6 +52,18 @@ class Amoeba : public BaseAmoeba<numtyp, acctyp> {
            const int maxspecial, const int maxspecial15, const double cell_size,
            const double gpu_split, FILE *_screen,
            const double polar_dscale, const double polar_uscale);
+
+  /// Compute dispersion real-space with device neighboring
+  int** compute_dispersion_real(const int ago, const int inum_full, const int nall,
+                double **host_x, int *host_type, int *host_amtype,
+                int *host_amgroup, double **host_rpole, double *sublo, double *subhi,
+                tagint *tag, int **nspecial, tagint **special,
+                int *nspecial15, tagint **special15,
+                const bool eflag, const bool vflag,
+                const bool eatom, const bool vatom, int &host_start,
+                int **ilist, int **numj, const double cpu_time, bool &success,
+                const double aewald, const double off2_disp, double *charge,
+                double *boxlo, double *prd);
 
   /// Clear all host and device data
   /** \note This is called at the beginning of the init() routine **/
@@ -91,8 +103,11 @@ class Amoeba : public BaseAmoeba<numtyp, acctyp> {
   numtyp _polar_dscale, _polar_uscale;
   numtyp _qqrd2e;
 
+  UCL_Kernel k_dispersion;
+
  protected:
   bool _allocated;
+  int dispersion_real(const int eflag, const int vflag);
   int multipole_real(const int eflag, const int vflag);
   int udirect2b(const int eflag, const int vflag);
   int umutual2b(const int eflag, const int vflag);

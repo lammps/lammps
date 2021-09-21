@@ -1,9 +1,9 @@
 /***************************************************************************
-                                 amoeba.cpp
+                                 hippo.cpp
                              -------------------
                           Trung Dac Nguyen (Northwestern)
 
-  Class for acceleration of the amoeba pair style.
+  Class for acceleration of the hippo pair style.
 
  __________________________________________________________________________
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
@@ -14,37 +14,38 @@
  ***************************************************************************/
 
 #if defined(USE_OPENCL)
-#include "amoeba_cl.h"
+#include "hippo_cl.h"
 #elif defined(USE_CUDART)
-const char *amoeba=0;
+const char *hippo=0;
 #else
-#include "amoeba_cubin.h"
+#include "hippo_cubin.h"
 #endif
 
-#include "lal_amoeba.h"
+#include "lal_hippo.h"
 #include <cassert>
 namespace LAMMPS_AL {
-#define AmoebaT Amoeba<numtyp, acctyp>
+#define HippoT Hippo<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
 
 template <class numtyp, class acctyp>
-AmoebaT::Amoeba() : BaseAmoeba<numtyp,acctyp>(),
+HippoT::Hippo() : BaseAmoeba<numtyp,acctyp>(),
   _allocated(false) {
 }
 
 template <class numtyp, class acctyp>
-AmoebaT::~Amoeba() {
+HippoT::~Hippo() {
   clear();
+  k_dispersion.clear();
 }
 
 template <class numtyp, class acctyp>
-int AmoebaT::bytes_per_atom(const int max_nbors) const {
+int HippoT::bytes_per_atom(const int max_nbors) const {
   return this->bytes_per_atom_atomic(max_nbors);
 }
 
 template <class numtyp, class acctyp>
-int AmoebaT::init(const int ntypes, const int max_amtype, const int max_amclass,
+int HippoT::init(const int ntypes, const int max_amtype, const int max_amclass,
                   const double *host_pdamp, const double *host_thole,
                   const double *host_dirdamp, const int *host_amtype2class,
                   const double *host_special_hal,
@@ -61,12 +62,14 @@ int AmoebaT::init(const int ntypes, const int max_amtype, const int max_amclass,
                   const double polar_dscale, const double polar_uscale) {
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,maxspecial15,
-                            cell_size,gpu_split,_screen,amoeba,
-                            "k_amoeba_multipole",
-                            "k_amoeba_udirect2b", "k_amoeba_umutual2b",
-                            "k_amoeba_polar", "k_amoeba_short_nbor");
+                            cell_size,gpu_split,_screen,hippo,
+                            "k_hippo_multipole",
+                            "k_hippo_udirect2b", "k_hippo_umutual2b",
+                            "k_hippo_polar", "k_hippo_short_nbor");
   if (success!=0)
     return success;
+
+  k_dispersion.set_function(*(this->pair_program),"k_hippo_dispersion");
 
   // If atom type constants fit in shared memory use fast kernel
   int lj_types=ntypes;
@@ -131,7 +134,7 @@ int AmoebaT::init(const int ntypes, const int max_amtype, const int max_amclass,
 }
 
 template <class numtyp, class acctyp>
-void AmoebaT::clear() {
+void HippoT::clear() {
   if (!_allocated)
     return;
   _allocated=false;
@@ -145,15 +148,124 @@ void AmoebaT::clear() {
 }
 
 template <class numtyp, class acctyp>
-double AmoebaT::host_memory_usage() const {
-  return this->host_memory_usage_atomic()+sizeof(Amoeba<numtyp,acctyp>);
+double HippoT::host_memory_usage() const {
+  return this->host_memory_usage_atomic()+sizeof(Hippo<numtyp,acctyp>);
+}
+
+// ---------------------------------------------------------------------------
+// Reneighbor on GPU if necessary, and then compute dispersion real-space
+// ---------------------------------------------------------------------------
+
+template <class numtyp, class acctyp>
+int** HippoT::compute_dispersion_real(const int ago, const int inum_full,
+                                           const int nall, double **host_x,
+                                           int *host_type, int *host_amtype,
+                                           int *host_amgroup, double **host_rpole,
+                                           double *sublo, double *subhi, tagint *tag,
+                                           int **nspecial, tagint **special,
+                                           int *nspecial15, tagint **special15,
+                                           const bool eflag_in, const bool vflag_in,
+                                           const bool eatom, const bool vatom,
+                                           int &host_start, int **ilist, int **jnum,
+                                           const double cpu_time, bool &success,
+                                           const double aewald, const double off2_disp,
+                                           double *host_q, double *boxlo, double *prd) {
+  this->acc_timers();
+  int eflag, vflag;
+  if (eatom) eflag=2;
+  else if (eflag_in) eflag=1;
+  else eflag=0;
+  if (vatom) vflag=2;
+  else if (vflag_in) vflag=1;
+  else vflag=0;
+
+  #ifdef LAL_NO_BLOCK_REDUCE
+  if (eflag) eflag=2;
+  if (vflag) vflag=2;
+  #endif
+
+  this->set_kernel(eflag,vflag);
+
+  // reallocate per-atom arrays, transfer data from the host
+  //   and build the neighbor lists if needed
+  // NOTE: 
+  //   For now we invoke precompute() again here,
+  //     to be able to turn on/off the udirect2b kernel (which comes before this)
+  //   Once all the kernels are ready, precompute() is needed only once
+  //     in the first kernel in a time step.
+  //   We only need to cast uind and uinp from host to device here
+  //     if the neighbor lists are rebuilt and other per-atom arrays
+  //     (x, type, amtype, amgroup, rpole) are ready on the device.
+
+  int** firstneigh = nullptr;
+  firstneigh = this->precompute(ago, inum_full, nall, host_x, host_type,
+                          host_amtype, host_amgroup, host_rpole,
+                          nullptr, nullptr, sublo, subhi, tag,
+                          nspecial, special, nspecial15, special15,
+                          eflag_in, vflag_in, eatom, vatom,
+                          host_start, ilist, jnum, cpu_time,
+                          success, host_q, boxlo, prd);
+
+  this->_off2_disp = off2_disp;
+  this->_aewald = aewald;
+  const int red_blocks=dispersion_real(eflag,vflag);
+
+  // leave the answers (forces, energies and virial) on the device,
+  //   only copy them back in the last kernel (polar_real)
+  //ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
+  //device->add_ans_object(ans);
+
+  this->hd_balancer.stop_timer();
+
+  return firstneigh; // nbor->host_jlist.begin()-host_start;
+}
+
+// ---------------------------------------------------------------------------
+// Calculate the dispersion real-space term, returning tep
+// ---------------------------------------------------------------------------
+template <class numtyp, class acctyp>
+int HippoT::dispersion_real(const int eflag, const int vflag) {
+  int ainum=this->ans->inum();
+  if (ainum == 0)
+    return 0;
+
+  int _nall=this->atom->nall();
+  int nbor_pitch=this->nbor->nbor_pitch();
+
+  // Compute the block size and grid size to keep all cores busy
+  const int BX=this->block_size();
+  int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
+                               (BX/this->_threads_per_atom)));
+  this->time_pair.start();
+
+  // Build the short neighbor list for the cutoff off2_mpole,
+  //   at this point mpole is the first kernel in a time step
+  
+  this->k_short_nbor.set_size(GX,BX);
+  this->k_short_nbor.run(&this->atom->x, &this->nbor->dev_nbor,
+                         &this->_nbor_data->begin(),
+                         &this->dev_short_nbor, &this->_off2_disp, &ainum,
+                         &nbor_pitch, &this->_threads_per_atom);
+
+  k_dispersion.set_size(GX,BX);
+  k_dispersion.run(&this->atom->x, &this->atom->extra,
+                         &coeff_amtype, &coeff_amclass, &sp_nonpolar,
+                         &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+                         &this->dev_short_nbor,
+                         &this->ans->force, &this->ans->engv,
+                         &eflag, &vflag, &ainum, &_nall, &nbor_pitch,
+                         &this->_threads_per_atom,  &this->_aewald,
+                         &this->_off2_disp);
+  this->time_pair.stop();
+
+  return GX;
 }
 
 // ---------------------------------------------------------------------------
 // Calculate the multipole real-space term, returning tep
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int AmoebaT::multipole_real(const int eflag, const int vflag) {
+int HippoT::multipole_real(const int eflag, const int vflag) {
   int ainum=this->ans->inum();
   if (ainum == 0)
     return 0;
@@ -193,7 +305,7 @@ int AmoebaT::multipole_real(const int eflag, const int vflag) {
 // Calculate the real-space permanent field, returning field and fieldp
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int AmoebaT::udirect2b(const int eflag, const int vflag) {
+int HippoT::udirect2b(const int eflag, const int vflag) {
   int ainum=this->ans->inum(); 
   if (ainum == 0)
     return 0;
@@ -233,7 +345,7 @@ int AmoebaT::udirect2b(const int eflag, const int vflag) {
 // Calculate the real-space induced field, returning field and fieldp
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int AmoebaT::umutual2b(const int eflag, const int vflag) {
+int HippoT::umutual2b(const int eflag, const int vflag) {
   int ainum=this->ans->inum();
   if (ainum == 0)
     return 0;
@@ -272,7 +384,7 @@ int AmoebaT::umutual2b(const int eflag, const int vflag) {
 // Calculate the polar real-space term, returning tep
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int AmoebaT::polar_real(const int eflag, const int vflag) {
+int HippoT::polar_real(const int eflag, const int vflag) {
   int ainum=this->ans->inum();
   if (ainum == 0)
     return 0;
@@ -314,5 +426,5 @@ int AmoebaT::polar_real(const int eflag, const int vflag) {
   return GX;
 }
 
-template class Amoeba<PRECISION,ACC_PRECISION>;
+template class Hippo<PRECISION,ACC_PRECISION>;
 }

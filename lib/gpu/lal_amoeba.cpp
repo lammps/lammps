@@ -62,9 +62,9 @@ int AmoebaT::init(const int ntypes, const int max_amtype, const int max_amclass,
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,maxspecial15,
                             cell_size,gpu_split,_screen,amoeba,
-                            "k_amoeba_multipole", "k_amoeba_udirect2b",
-                            "k_amoeba_umutual2b", "k_amoeba_polar",
-                            "k_amoeba_short_nbor");
+                            "k_amoeba_dispersion", "k_amoeba_multipole",
+                            "k_amoeba_udirect2b", "k_amoeba_umutual2b",
+                            "k_amoeba_polar", "k_amoeba_short_nbor");
   if (success!=0)
     return success;
 
@@ -150,7 +150,48 @@ double AmoebaT::host_memory_usage() const {
 }
 
 // ---------------------------------------------------------------------------
-// Calculate the polar real-space term, returning tep
+// Calculate the dispersion real-space term, returning tep
+// ---------------------------------------------------------------------------
+template <class numtyp, class acctyp>
+int AmoebaT::dispersion_real(const int eflag, const int vflag) {
+  int ainum=this->ans->inum();
+  if (ainum == 0)
+    return 0;
+
+  int _nall=this->atom->nall();
+  int nbor_pitch=this->nbor->nbor_pitch();
+
+  // Compute the block size and grid size to keep all cores busy
+  const int BX=this->block_size();
+  int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
+                               (BX/this->_threads_per_atom)));
+  this->time_pair.start();
+
+  // Build the short neighbor list for the cutoff off2_mpole,
+  //   at this point mpole is the first kernel in a time step
+  
+  this->k_short_nbor.set_size(GX,BX);
+  this->k_short_nbor.run(&this->atom->x, &this->nbor->dev_nbor,
+                         &this->_nbor_data->begin(),
+                         &this->dev_short_nbor, &this->_off2_disp, &ainum,
+                         &nbor_pitch, &this->_threads_per_atom);
+  printf("launching dispersion\n");
+  this->k_dispersion.set_size(GX,BX);
+  this->k_dispersion.run(&this->atom->x, &this->atom->extra,
+                         &coeff_amtype, &coeff_amclass, &sp_nonpolar,
+                         &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+                         &this->dev_short_nbor,
+                         &this->ans->force, &this->ans->engv,
+                         &eflag, &vflag, &ainum, &_nall, &nbor_pitch,
+                         &this->_threads_per_atom,  &this->_aewald,
+                         &this->_off2_disp);
+  this->time_pair.stop();
+
+  return GX;
+}
+
+// ---------------------------------------------------------------------------
+// Calculate the multipole real-space term, returning tep
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 int AmoebaT::multipole_real(const int eflag, const int vflag) {

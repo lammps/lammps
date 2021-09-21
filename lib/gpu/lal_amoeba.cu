@@ -413,7 +413,7 @@ __kernel void k_amoeba_dispersion(const __global numtyp4 *restrict x_,
                                  const __global numtyp *restrict extra,
                                  const __global numtyp4 *restrict coeff_amtype,
                                  const __global numtyp4 *restrict coeff_amclass,
-                                 const __global numtyp4 *restrict sp_disp,
+                                 const __global numtyp4 *restrict sp_nonpolar,
                                  const __global int *dev_nbor,
                                  const __global int *dev_packed,
                                  const __global int *dev_short_nbor,
@@ -422,8 +422,7 @@ __kernel void k_amoeba_dispersion(const __global numtyp4 *restrict x_,
                                  const int eflag, const int vflag, const int inum,
                                  const int nall, const int nbor_pitch,
                                  const int t_per_atom, const numtyp aewald,
-                                 const numtyp felec, const numtyp off2,
-                                 const numtyp polar_dscale, const numtyp polar_uscale)
+                                 const numtyp off2)
 {
   int tid, ii, offset, i;
   atom_info(t_per_atom,ii,tid,offset);
@@ -876,9 +875,11 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
   // accumulate tq
   store_answers_amoeba_tq(tq,ii,inum,tid,t_per_atom,offset,i,tep);
   
-  // accumate force, energy and virial
+  // accumate force, energy and virial: use _acc if not the first kernel
   store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
      offset,eflag,vflag,ans,engv);
+  //store_answers_acc(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
+  //   offset,eflag,vflag,ans,engv,NUM_BLOCKS_X);
 }
 
 /* ----------------------------------------------------------------------
@@ -1785,7 +1786,7 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
 
   // accumate force, energy and virial
   //store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
-//     offset,eflag,vflag,ans,engv);
+  //     offset,eflag,vflag,ans,engv);
   store_answers_acc(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
      offset,eflag,vflag,ans,engv,NUM_BLOCKS_X);
 }

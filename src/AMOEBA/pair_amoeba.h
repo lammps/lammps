@@ -348,7 +348,7 @@ class PairAmoeba : public Pair {
                int, double, double, double *);
 
   void dispersion();
-  void dispersion_real();
+  virtual void dispersion_real();
   void dispersion_kspace();
 
   void multipole();

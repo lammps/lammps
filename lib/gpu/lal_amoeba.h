@@ -38,9 +38,11 @@ class Amoeba : public BaseAmoeba<numtyp, acctyp> {
     * - -4 if the GPU library was not compiled for GPU
     * - -5 Double precision is not supported on card **/
   int init(const int ntypes, const int max_amtype, const int max_amclass,
-           const double *host_pdamp, const double *host_thole, const double *host_dirdamp,
-           const int *host_amtype2class, const double *host_special_mpole,
-           const double *host_special_hal, const double *host_special_repel,
+           const double *host_pdamp, const double *host_thole,
+           const double *host_dirdamp, const int *host_amtype2class,
+           const double *host_special_mpole,
+           const double *host_special_hal,
+           const double *host_special_repel,
            const double *host_special_disp,
            const double *host_special_polar_wscale,
            const double *host_special_polar_piscale,
@@ -91,6 +93,7 @@ class Amoeba : public BaseAmoeba<numtyp, acctyp> {
 
  protected:
   bool _allocated;
+  int dispersion_real(const int eflag, const int vflag);
   int multipole_real(const int eflag, const int vflag);
   int udirect2b(const int eflag, const int vflag);
   int umutual2b(const int eflag, const int vflag);

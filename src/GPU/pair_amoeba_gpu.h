@@ -35,6 +35,7 @@ class PairAmoebaGPU : public PairAmoeba {
 
   virtual void induce();
 
+  virtual void dispersion_real();
   virtual void multipole_real();
   virtual void udirect2b(double **, double **);
   virtual void umutual2b(double **, double **);

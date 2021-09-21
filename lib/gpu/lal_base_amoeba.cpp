@@ -33,6 +33,7 @@ template <class numtyp, class acctyp>
 BaseAmoebaT::~BaseAmoeba() {
   delete ans;
   delete nbor;
+  k_dispersion.clear();
   k_multipole.clear();
   k_udirect2b.clear();
   k_umutual2b.clear();
@@ -54,6 +55,7 @@ int BaseAmoebaT::init_atomic(const int nlocal, const int nall,
                              const int maxspecial15,
                              const double cell_size, const double gpu_split,
                              FILE *_screen, const void *pair_program,
+                             const char *k_name_dispersion,
                              const char *k_name_multipole,
                              const char *k_name_udirect2b,
                              const char *k_name_umutual2b,
@@ -90,8 +92,8 @@ int BaseAmoebaT::init_atomic(const int nlocal, const int nall,
 
   _block_size=device->pair_block_size();
   _block_bio_size=device->block_bio_pair();
-  compile_kernels(*ucl_device,pair_program,k_name_multipole,k_name_udirect2b,
-                  k_name_umutual2b,k_name_polar,k_name_short_nbor);
+  compile_kernels(*ucl_device,pair_program,k_name_dispersion,k_name_multipole,
+                  k_name_udirect2b, k_name_umutual2b,k_name_polar,k_name_short_nbor);
 
   if (_threads_per_atom>1 && gpu_nbor==0) {
     nbor->packing(true);
@@ -427,7 +429,74 @@ int** BaseAmoebaT::precompute(const int ago, const int inum_full, const int nall
 }
 
 // ---------------------------------------------------------------------------
-// Reneighbor on GPU if necessary, and then compute polar real-space
+// Reneighbor on GPU if necessary, and then compute dispersion real-space
+// ---------------------------------------------------------------------------
+template <class numtyp, class acctyp>
+int** BaseAmoebaT::compute_dispersion_real(const int ago, const int inum_full,
+                                           const int nall, double **host_x,
+                                           int *host_type, int *host_amtype,
+                                           int *host_amgroup, double **host_rpole,
+                                           double *sublo, double *subhi, tagint *tag,
+                                           int **nspecial, tagint **special,
+                                           int *nspecial15, tagint **special15,
+                                           const bool eflag_in, const bool vflag_in,
+                                           const bool eatom, const bool vatom,
+                                           int &host_start, int **ilist, int **jnum,
+                                           const double cpu_time, bool &success,
+                                           const double aewald, const double off2_disp,
+                                           double *host_q, double *boxlo, double *prd) {
+  acc_timers();
+  int eflag, vflag;
+  if (eatom) eflag=2;
+  else if (eflag_in) eflag=1;
+  else eflag=0;
+  if (vatom) vflag=2;
+  else if (vflag_in) vflag=1;
+  else vflag=0;
+
+  #ifdef LAL_NO_BLOCK_REDUCE
+  if (eflag) eflag=2;
+  if (vflag) vflag=2;
+  #endif
+
+  set_kernel(eflag,vflag);
+
+  // reallocate per-atom arrays, transfer data from the host
+  //   and build the neighbor lists if needed
+  // NOTE: 
+  //   For now we invoke precompute() again here,
+  //     to be able to turn on/off the udirect2b kernel (which comes before this)
+  //   Once all the kernels are ready, precompute() is needed only once
+  //     in the first kernel in a time step.
+  //   We only need to cast uind and uinp from host to device here
+  //     if the neighbor lists are rebuilt and other per-atom arrays
+  //     (x, type, amtype, amgroup, rpole) are ready on the device.
+
+  int** firstneigh = nullptr;
+  firstneigh = precompute(ago, inum_full, nall, host_x, host_type,
+                          host_amtype, host_amgroup, host_rpole,
+                          nullptr, nullptr, sublo, subhi, tag,
+                          nspecial, special, nspecial15, special15,
+                          eflag_in, vflag_in, eatom, vatom,
+                          host_start, ilist, jnum, cpu_time,
+                          success, host_q, boxlo, prd);
+
+  _off2_disp = off2_disp;
+  _aewald = aewald;
+  const int red_blocks=dispersion_real(eflag,vflag);
+
+  // leave the answers (forces, energies and virial) on the device,
+  //   only copy them back in the last kernel (polar_real)
+  //ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
+  //device->add_ans_object(ans);
+
+  hd_balancer.stop_timer();
+
+  return firstneigh; // nbor->host_jlist.begin()-host_start;
+}
+
+// ---------------------------------------------------------------------------
+// Reneighbor on GPU if necessary, and then compute multipole real-space
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 int** BaseAmoebaT::compute_multipole_real(const int ago, const int inum_full,
@@ -816,6 +885,7 @@ void BaseAmoebaT::cast_extra_data(int* amtype, int* amgroup, double** rpole,
 
 template <class numtyp, class acctyp>
 void BaseAmoebaT::compile_kernels(UCL_Device &dev, const void *pair_str,
+                                  const char *kname_dispersion,
                                   const char *kname_multipole,
                                   const char *kname_udirect2b,
                                   const char *kname_umutual2b,
@@ -828,7 +898,8 @@ void BaseAmoebaT::compile_kernels(UCL_Device &dev, const void *pair_str,
   pair_program=new UCL_Program(dev);
   std::string oclstring = device->compile_string()+" -DEVFLAG=1";
   pair_program->load_string(pair_str,oclstring.c_str(),nullptr,screen);
-  
+
+  k_dispersion.set_function(*pair_program,kname_dispersion);
   k_multipole.set_function(*pair_program,kname_multipole);
   k_udirect2b.set_function(*pair_program,kname_udirect2b);
   k_umutual2b.set_function(*pair_program,kname_umutual2b);

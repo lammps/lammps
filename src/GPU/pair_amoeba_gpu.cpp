@@ -65,6 +65,17 @@ int amoeba_gpu_init(const int ntypes, const int max_amtype, const int max_amclas
                     const double polar_dscale, const double polar_uscale, int& tq_size);
 void amoeba_gpu_clear();
 
+int** amoeba_gpu_compute_dispersion_real(const int ago, const int inum_full,
+                           const int nall, double **host_x, int *host_type,
+                           int *host_amtype, int *host_amgroup, double **host_rpole,
+                           double *sublo, double *subhi, tagint *tag, int **nspecial,
+                           tagint **special, int *nspecial15, tagint** special15,
+                           const bool eflag, const bool vflag, const bool eatom,
+                           const bool vatom, int &host_start,
+                           int **ilist, int **jnum, const double cpu_time,
+                           bool &success, const double aewald, const double off2,
+                           double *host_q, double *boxlo, double *prd);
+
 int ** amoeba_gpu_compute_multipole_real(const int ago, const int inum, const int nall,
               double **host_x, int *host_type, int *host_amtype, int *host_amgroup,
               double **host_rpole, double *sublo, double *subhi, tagint *tag,
@@ -118,8 +129,8 @@ PairAmoebaGPU::PairAmoebaGPU(LAMMPS *lmp) : PairAmoeba(lmp), gpu_mode(GPU_FORCE)
   tq_pinned = nullptr;
 
   gpu_hal_ready = false;
-  gpu_repulsion_ready = false;
-  gpu_dispersion_real_ready = false;
+  gpu_repulsion_ready = false;         // true for HIPPO
+  gpu_dispersion_real_ready = false;   // true for HIPPO
   gpu_multipole_real_ready = true;
   gpu_udirect2b_ready = true;
   gpu_umutual2b_ready = true;
@@ -190,6 +201,54 @@ void PairAmoebaGPU::init_style()
     tq_single = false;
   else
     tq_single = true;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairAmoebaGPU::dispersion_real()
+{
+  if (!gpu_dispersion_real_ready) {
+    PairAmoeba::dispersion_real();
+    return;
+  }
+
+  int eflag=1, vflag=1;
+  int nall = atom->nlocal + atom->nghost;
+  int inum, host_start;
+
+  bool success = true;
+  int *ilist, *numneigh, **firstneigh;
+  
+  double sublo[3],subhi[3];
+  if (domain->triclinic == 0) {
+    sublo[0] = domain->sublo[0];
+    sublo[1] = domain->sublo[1];
+    sublo[2] = domain->sublo[2];
+    subhi[0] = domain->subhi[0];
+    subhi[1] = domain->subhi[1];
+    subhi[2] = domain->subhi[2];
+  } else {
+    domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
+  }
+  inum = atom->nlocal;
+
+  // select the correct cutoff for the term
+
+  if (use_dewald) choose(DISP_LONG);
+  else choose(DISP);
+
+  firstneigh = amoeba_gpu_compute_dispersion_real(neighbor->ago, inum, nall, atom->x,
+                                                 atom->type, amtype, amgroup, rpole,
+                                                 sublo, subhi, atom->tag,
+                                                 atom->nspecial, atom->special,
+                                                 atom->nspecial15, atom->special15,
+                                                 eflag, vflag, eflag_atom, vflag_atom,
+                                                 host_start, &ilist, &numneigh, cpu_time,
+                                                 success, aewald, off2, atom->q,
+                                                 domain->boxlo, domain->prd);
+  
+  if (!success)
+    error->one(FLERR,"Insufficient memory on accelerator");
 }
 
 /* ---------------------------------------------------------------------- */

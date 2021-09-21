@@ -1068,19 +1068,14 @@ void Input::partition()
 {
   if (narg < 3) error->all(FLERR,"Illegal partition command");
 
-  int yesflag = 0;
-  if (strcmp(arg[0],"yes") == 0) yesflag = 1;
-  else if (strcmp(arg[0],"no") == 0) yesflag = 0;
-  else error->all(FLERR,"Illegal partition command");
-
   int ilo,ihi;
+  int yesflag = utils::logical(FLERR,arg[0],false,lmp);
   utils::bounds(FLERR,arg[1],1,universe->nworlds,ilo,ihi,error);
 
   // new command starts at the 3rd argument,
   // which must not be another partition command
 
-  if (strcmp(arg[2],"partition") == 0)
-    error->all(FLERR,"Illegal partition command");
+  if (strcmp(arg[2],"partition") == 0) error->all(FLERR,"Illegal partition command");
 
   char *cmd = strstr(line,arg[2]);
 
@@ -1123,21 +1118,16 @@ void Input::print()
         if (strcmp(arg[iarg],"file") == 0) fp = fopen(arg[iarg+1],"w");
         else fp = fopen(arg[iarg+1],"a");
         if (fp == nullptr)
-          error->one(FLERR,"Cannot open print file {}: {}",
-                                       arg[iarg+1], utils::getsyserror());
+          error->one(FLERR,"Cannot open print file {}: {}", arg[iarg+1], utils::getsyserror());
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"screen") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal print command");
-      if (strcmp(arg[iarg+1],"yes") == 0) screenflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) screenflag = 0;
-      else error->all(FLERR,"Illegal print command");
+      screenflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"universe") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal print command");
-      if (strcmp(arg[iarg+1],"yes") == 0) universeflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) universeflag = 0;
-      else error->all(FLERR,"Illegal print command");
+      universeflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal print command");
   }

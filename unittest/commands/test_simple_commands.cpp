@@ -160,7 +160,8 @@ TEST_F(SimpleCommandsTest, Partition)
     BEGIN_HIDE_OUTPUT();
     command("echo none");
     END_HIDE_OUTPUT();
-    TEST_FAILURE(".*ERROR: Illegal partition command .*", command("partition xxx 1 echo none"););
+    TEST_FAILURE(".*ERROR: Expected boolean parameter instead of 'xxx'.*",
+                 command("partition xxx 1 echo none"););
     TEST_FAILURE(".*ERROR: Numeric index 2 is out of bounds.*",
                  command("partition yes 2 echo none"););
 

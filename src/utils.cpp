@@ -372,7 +372,6 @@ int utils::logical(const char *file, int line, const char *str, bool do_abort, L
   // convert to ascii and lowercase
   std::string buf(str);
   if (has_utf8(buf)) buf = utf8_subst(buf);
-  std::transform(buf.begin(), buf.end(), buf.begin(), tolower);
 
   int rv = 0;
   if ((buf == "yes") || (buf == "on") || (buf == "true") || (buf == "1")) {

@@ -78,8 +78,8 @@
 namespace random_external_state {
 typedef uint64_t es_RNG_t;
 
-constexpr uint32_t MAX_URAND = 0xffffffffU;
-constexpr uint64_t MAX_URAND64 = 0xffffffffffffffffULL - 1;
+enum { MAX_URAND = 0xffffffffU };
+enum { MAX_URAND64 = 0xffffffffffffffffULL - 1 };
 
 LAMMPS_INLINE
 uint32_t es_urand(es_RNG_t &state_)

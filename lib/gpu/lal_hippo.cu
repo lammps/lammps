@@ -55,7 +55,7 @@ _texture( q_tex,int2);
 #define local_allocate_store_ufld()                                         \
     __local acctyp red_acc[6][BLOCK_PAIR];
 
-#define store_answers_amoeba_tq(tq, ii, inum,tid, t_per_atom, offset, i,    \
+#define store_answers_hippo_tq(tq, ii, inum,tid, t_per_atom, offset, i,    \
                                 tep)                                        \
   if (t_per_atom>1) {                                                       \
     red_acc[0][tid]=tq.x;                                                   \
@@ -225,7 +225,7 @@ _texture( q_tex,int2);
 
 #define local_allocate_store_ufld()
 
-#define store_answers_amoeba_tq(tq, ii, inum,tid, t_per_atom, offset, i,    \
+#define store_answers_hippo_tq(tq, ii, inum,tid, t_per_atom, offset, i,    \
                           tep)                                              \
   if (t_per_atom>1) {                                                       \
     for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
@@ -636,7 +636,6 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
     numtyp term1,term2,term3;
     numtyp term4,term5,term6;
     numtyp bn[6];
-    numtyp ci,dix,diy,diz,qixx,qixy,qixz,qiyy,qiyz,qizz;
 
     int numj, nbor, nbor_end;
     const __global int* nbor_mem=dev_packed;
@@ -655,16 +654,19 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
       nbor_mem = dev_short_nbor;
     }
 
-    ci  = polar1[i].x;    // rpole[i][0];
-    dix = polar1[i].y;    // rpole[i][1];
-    diy = polar1[i].z;    // rpole[i][2];
-    diz = polar1[i].w;    // rpole[i][3];
-    qixx = polar2[i].x;   // rpole[i][4];
-    qixy = polar2[i].y;   // rpole[i][5];
-    qixz = polar2[i].z;   // rpole[i][6];
-    qiyy = polar2[i].w;   // rpole[i][8];
-    qiyz   = polar3[i].x; // rpole[i][9];
-    qizz   = polar3[i].y; // rpole[i][12];
+    const numtyp4 pol1i = polar1[i];
+    numtyp ci  = pol1i.x;    // rpole[i][0];
+    numtyp dix = pol1i.y;    // rpole[i][1];
+    numtyp diy = pol1i.z;    // rpole[i][2];
+    numtyp diz = pol1i.w;    // rpole[i][3];
+    const numtyp4 pol2i = polar2[i];
+    numtyp qixx = pol2i.x;   // rpole[i][4];
+    numtyp qixy = pol2i.y;   // rpole[i][5];
+    numtyp qixz = pol2i.z;   // rpole[i][6];
+    numtyp qiyy = pol2i.w;   // rpole[i][8];
+    const numtyp4 pol3i = polar3[i];
+    numtyp qiyz = pol3i.x;   // rpole[i][9];
+    numtyp qizz = pol3i.y;   // rpole[i][12];
 
     for ( ; nbor<nbor_end; nbor+=n_stride) {
 
@@ -683,18 +685,21 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
       //if (r2>off2) continue;
   
       numtyp r = ucl_sqrt(r2);
-      numtyp ck = polar1[j].x;   // rpole[j][0];
-      numtyp dkx = polar1[j].y;  // rpole[j][1];
-      numtyp dky = polar1[j].z;  // rpole[j][2];
-      numtyp dkz = polar1[j].w;  // rpole[j][3];
-      numtyp qkxx = polar2[j].x; // rpole[j][4];
-      numtyp qkxy = polar2[j].y; // rpole[j][5];
-      numtyp qkxz = polar2[j].z; // rpole[j][6];
-      numtyp qkyy = polar2[j].w; // rpole[j][8];
-      numtyp qkyz = polar3[j].x; // rpole[j][9];
-      numtyp qkzz = polar3[j].y; // rpole[j][12];
-      int jtype =   polar3[j].z; // amtype[j];
-      int jgroup =  polar3[j].w; // amgroup[j];
+      const numtyp4 pol1j = polar1[j];
+      numtyp ck  = pol1j.x;  // rpole[j][0];
+      numtyp dkx = pol1j.y;  // rpole[j][1];
+      numtyp dky = pol1j.z;  // rpole[j][2];
+      numtyp dkz = pol1j.w;  // rpole[j][3];
+      const numtyp4 pol2j = polar2[j];
+      numtyp qkxx = pol2j.x; // rpole[j][4];
+      numtyp qkxy = pol2j.y; // rpole[j][5];
+      numtyp qkxz = pol2j.z; // rpole[j][6];
+      numtyp qkyy = pol2j.w; // rpole[j][8];
+      const numtyp4 pol3j = polar3[j];
+      numtyp qkyz = pol3j.x; // rpole[j][9];
+      numtyp qkzz = pol3j.y; // rpole[j][12];
+      int jtype = pol3j.z; // amtype[j];
+      int jgroup =  pol3j.w; // amgroup[j];
 
       const numtyp4 sp_pol = sp_polar[sbmask15(jextra)];
       numtyp factor_mpole = sp_pol.w; // sp_mpole[sbmask15(jextra)];
@@ -873,7 +878,7 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
   } // ii<inum
 
   // accumulate tq
-  store_answers_amoeba_tq(tq,ii,inum,tid,t_per_atom,offset,i,tep);
+  store_answers_hippo_tq(tq,ii,inum,tid,t_per_atom,offset,i,tep);
   
   // accumate force, energy and virial: use _acc if not the first kernel
   store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
@@ -910,7 +915,6 @@ __kernel void k_hippo_udirect2b(const __global numtyp4 *restrict x_,
   acctyp _fieldp[6];
   for (int l=0; l<6; l++) _fieldp[l]=(acctyp)0;
 
-  numtyp dix,diy,diz,qixx,qixy,qixz,qiyy,qiyz,qizz;
   numtyp4* polar1 = (numtyp4*)(&extra[0]);
   numtyp4* polar2 = (numtyp4*)(&extra[4*nall]);
   numtyp4* polar3 = (numtyp4*)(&extra[8*nall]);
@@ -933,21 +937,23 @@ __kernel void k_hippo_udirect2b(const __global numtyp4 *restrict x_,
       nbor_mem = dev_short_nbor;
     }
 
-    int itype,igroup;
     numtyp bn[4],bcn[3];
     numtyp fid[3],fip[3];
-    
-    dix = polar1[i].y;    // rpole[i][1];
-    diy = polar1[i].z;    // rpole[i][2];
-    diz = polar1[i].w;    // rpole[i][3];
-    qixx = polar2[i].x;   // rpole[i][4];
-    qixy = polar2[i].y;   // rpole[i][5];
-    qixz = polar2[i].z;   // rpole[i][6];
-    qiyy = polar2[i].w;   // rpole[i][8];
-    qiyz   = polar3[i].x; // rpole[i][9];
-    qizz   = polar3[i].y; // rpole[i][12];
-    itype  = polar3[i].z; // amtype[i];
-    igroup = polar3[i].w; // amgroup[i];
+
+    const numtyp4 pol1i = polar1[i];
+    numtyp dix = pol1i.y;    // rpole[i][1];
+    numtyp diy = pol1i.z;    // rpole[i][2];
+    numtyp diz = pol1i.w;    // rpole[i][3];
+    const numtyp4 pol2i = polar2[i];
+    numtyp qixx = pol2i.x;   // rpole[i][4];
+    numtyp qixy = pol2i.y;   // rpole[i][5];
+    numtyp qixz = pol2i.z;   // rpole[i][6];
+    numtyp qiyy = pol2i.w;   // rpole[i][8];
+    const numtyp4 pol3i = polar3[i];
+    numtyp qiyz = pol3i.x;   // rpole[i][9];
+    numtyp qizz = pol3i.y;   // rpole[i][12];
+    int itype  = pol3i.z;    // amtype[i];
+    int igroup = pol3i.w;    // amgroup[i];
     
     // debug:
     // xi__ = ix; xi__.w = itype;
@@ -984,18 +990,21 @@ __kernel void k_hippo_udirect2b(const __global numtyp4 *restrict x_,
       numtyp rr5 = (numtyp)3.0 * rr3 * r2inv;
       numtyp rr7 = (numtyp)5.0 * rr5 * r2inv;
 
-      numtyp ck = polar1[j].x;   // rpole[j][0];
-      numtyp dkx = polar1[j].y;  // rpole[j][1];
-      numtyp dky = polar1[j].z;  // rpole[j][2];
-      numtyp dkz = polar1[j].w;  // rpole[j][3];
-      numtyp qkxx = polar2[j].x; // rpole[j][4];
-      numtyp qkxy = polar2[j].y; // rpole[j][5];
-      numtyp qkxz = polar2[j].z; // rpole[j][6];
-      numtyp qkyy = polar2[j].w; // rpole[j][8];
-      numtyp qkyz = polar3[j].x; // rpole[j][9];
-      numtyp qkzz = polar3[j].y; // rpole[j][12];
-      int jtype =   polar3[j].z; // amtype[j];
-      int jgroup =  polar3[j].w; // amgroup[j];
+      const numtyp4 pol1j = polar1[j];
+      numtyp ck  = pol1j.x;  // rpole[j][0];
+      numtyp dkx = pol1j.y;  // rpole[j][1];
+      numtyp dky = pol1j.z;  // rpole[j][2];
+      numtyp dkz = pol1j.w;  // rpole[j][3];
+      const numtyp4 pol2j = polar2[j];
+      numtyp qkxx = pol2j.x; // rpole[j][4];
+      numtyp qkxy = pol2j.y; // rpole[j][5];
+      numtyp qkxz = pol2j.z; // rpole[j][6];
+      numtyp qkyy = pol2j.w; // rpole[j][8];
+      const numtyp4 pol3j = polar3[j];
+      numtyp qkyz = pol3j.x; // rpole[j][9];
+      numtyp qkzz = pol3j.y; // rpole[j][12];
+      int jtype = pol3j.z; // amtype[j];
+      int jgroup =  pol3j.w; // amgroup[j];
 
       numtyp factor_dscale, factor_pscale;
       const numtyp4 sp_pol = sp_polar[sbmask15(jextra)];
@@ -1185,14 +1194,17 @@ __kernel void k_hippo_umutual2b(const __global numtyp4 *restrict x_,
       numtyp rr3 = rr1 * r2inv;
       numtyp rr5 = (numtyp)3.0 * rr3 * r2inv;
 
-      int jtype =   polar3[j].z; // amtype[j];
-      int jgroup =  polar3[j].w; // amgroup[j];
-      numtyp ukx = polar4[j].x;  // uind[j][0];
-      numtyp uky = polar4[j].y;  // uind[j][1];
-      numtyp ukz = polar4[j].z;  // uind[j][2];
-      numtyp ukxp = polar5[j].x; // uinp[j][0];
-      numtyp ukyp = polar5[j].y; // uinp[j][1];
-      numtyp ukzp = polar5[j].z; // uinp[j][2];
+      const numtyp4 pol3j = polar3[j];
+      int jtype = pol3j.z; // amtype[j];
+      int jgroup =  pol3j.w; // amgroup[j];
+      const numtyp4 pol4j = polar4[j];
+      numtyp ukx = pol4j.x;  // uind[j][0];
+      numtyp uky = pol4j.y;  // uind[j][1];
+      numtyp ukz = pol4j.z;  // uind[j][2];
+      const numtyp4 pol5j = polar5[j];
+      numtyp ukxp = pol5j.x; // uinp[j][0];
+      numtyp ukyp = pol5j.y; // uinp[j][1];
+      numtyp ukzp = pol5j.z; // uinp[j][2];
 
       numtyp factor_uscale;
       if (igroup == jgroup) factor_uscale = polar_uscale;
@@ -1355,24 +1367,29 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
       nbor_mem = dev_short_nbor;
     }
 
-    ci  = polar1[i].x;    // rpole[i][0];
-    dix = polar1[i].y;    // rpole[i][1];
-    diy = polar1[i].z;    // rpole[i][2];
-    diz = polar1[i].w;    // rpole[i][3];
-    qixx = polar2[i].x;   // rpole[i][4];
-    qixy = polar2[i].y;   // rpole[i][5];
-    qixz = polar2[i].z;   // rpole[i][6];
-    qiyy = polar2[i].w;   // rpole[i][8];
-    qiyz   = polar3[i].x; // rpole[i][9];
-    qizz   = polar3[i].y; // rpole[i][12];
-    itype  = polar3[i].z; // amtype[i];
-    igroup = polar3[i].w; // amgroup[i];
-    uix = polar4[i].x;    // uind[i][0];
-    uiy = polar4[i].y;    // uind[i][1];
-    uiz = polar4[i].z;    // uind[i][2];
-    uixp = polar5[i].x;   // uinp[i][0];
-    uiyp = polar5[i].y;   // uinp[i][1];
-    uizp = polar5[i].z;   // uinp[i][2];
+    const numtyp4 pol1i = polar1[i];
+    ci  = pol1i.x;    // rpole[i][0];
+    dix = pol1i.y;    // rpole[i][1];
+    diy = pol1i.z;    // rpole[i][2];
+    diz = pol1i.w;    // rpole[i][3];
+    const numtyp4 pol2i = polar2[i];
+    qixx = pol2i.x;   // rpole[i][4];
+    qixy = pol2i.y;   // rpole[i][5];
+    qixz = pol2i.z;   // rpole[i][6];
+    qiyy = pol2i.w;   // rpole[i][8];
+    const numtyp4 pol3i = polar3[i];
+    qiyz = pol3i.x;   // rpole[i][9];
+    qizz = pol3i.y;   // rpole[i][12];
+    itype  = pol3i.z;    // amtype[i];
+    igroup = pol3i.w;    // amgroup[i];
+    const numtyp4 pol4i = polar4[i];
+    uix = pol4i.x;    // uind[i][0];
+    uiy = pol4i.y;    // uind[i][1];
+    uiz = pol4i.z;    // uind[i][2];
+    const numtyp4 pol5i = polar5[i];
+    uixp = pol5i.x;   // uinp[i][0];
+    uiyp = pol5i.y;   // uinp[i][1];
+    uizp = pol5i.z;   // uinp[i][2];
 
     // debug:
     // xi__ = ix; xi__.w = itype;
@@ -1398,24 +1415,29 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
   
       numtyp r = ucl_sqrt(r2);
       
+      const numtyp4 pol1j = polar1[j];
       numtyp ck = polar1[j].x;   // rpole[j][0];
       numtyp dkx = polar1[j].y;  // rpole[j][1];
       numtyp dky = polar1[j].z;  // rpole[j][2];
       numtyp dkz = polar1[j].w;  // rpole[j][3];
-      numtyp qkxx = polar2[j].x; // rpole[j][4];
-      numtyp qkxy = polar2[j].y; // rpole[j][5];
-      numtyp qkxz = polar2[j].z; // rpole[j][6];
-      numtyp qkyy = polar2[j].w; // rpole[j][8];
-      numtyp qkyz = polar3[j].x; // rpole[j][9];
-      numtyp qkzz = polar3[j].y; // rpole[j][12];
-      int jtype =   polar3[j].z; // amtype[j];
-      int jgroup =  polar3[j].w; // amgroup[j];
-      numtyp ukx = polar4[j].x;  // uind[j][0];
-      numtyp uky = polar4[j].y;  // uind[j][1];
-      numtyp ukz = polar4[j].z;  // uind[j][2];
-      numtyp ukxp = polar5[j].x; // uinp[j][0];
-      numtyp ukyp = polar5[j].y; // uinp[j][1];
-      numtyp ukzp = polar5[j].z; // uinp[j][2];
+      const numtyp4 pol2j = polar2[j];
+      numtyp qkxx = pol2j.x; // rpole[j][4];
+      numtyp qkxy = pol2j.y; // rpole[j][5];
+      numtyp qkxz = pol2j.z; // rpole[j][6];
+      numtyp qkyy = pol2j.w; // rpole[j][8];
+      const numtyp4 pol3j = polar3[j];
+      numtyp qkyz = pol3j.x; // rpole[j][9];
+      numtyp qkzz = pol3j.y; // rpole[j][12];
+      int jtype =   pol3j.z; // amtype[j];
+      int jgroup =  pol3j.w; // amgroup[j];
+      const numtyp4 pol4j = polar4[j];
+      numtyp ukx = pol4j.x;  // uind[j][0];
+      numtyp uky = pol4j.y;  // uind[j][1];
+      numtyp ukz = pol4j.z;  // uind[j][2];
+      const numtyp4 pol5j = polar5[j];
+      numtyp ukxp = pol5j.x; // uinp[j][0];
+      numtyp ukyp = pol5j.y; // uinp[j][1];
+      numtyp ukzp = pol5j.z; // uinp[j][2];
 
       numtyp factor_dscale, factor_pscale, factor_uscale;
       const numtyp4 sp_pol = sp_polar[sbmask15(jextra)];
@@ -1710,7 +1732,7 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
       frcz = frcz + depz;
 
       // get the dtau/dr terms used for mutual polarization force
-      // poltyp == MUTUAL  && amoeba
+      // poltyp == MUTUAL  && hippo
           
       term1 = bn[2] - usc3*rr5;
       term2 = bn[3] - usc5*rr7;

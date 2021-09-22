@@ -56,16 +56,18 @@ Report missing and unneeded '#include' statements (CMake only)
 --------------------------------------------------------------
 
 The conventions for how and when to use and order include statements in
-LAMMPS are `documented in a separate file <https://github.com/lammps/lammps/blob/master/doc/include-file-conventions.md>`_
-(also included in the source code distribution).  To assist with following
+LAMMPS are documented in :doc:`Modify_style`.  To assist with following
 these conventions one can use the `Include What You Use tool <https://include-what-you-use.org/>`_.
-This is still under development and for large and complex projects like LAMMPS
+This tool is still under development and for large and complex projects like LAMMPS
 there are some false positives, so suggested changes need to be verified manually.
-It is recommended to use at least version 0.14, which has much fewer incorrect
-reports than earlier versions.
+It is recommended to use at least version 0.16, which has much fewer incorrect
+reports than earlier versions.  To install the IWYU toolkit, you need to have
+the clang compiler **and** its development package installed.  Download the IWYU
+version that matches the version of the clang compiler, configure, build, and
+install it.
 
-The necessary steps to generate the report can be enabled via a
-CMake variable:
+The necessary steps to generate the report can be enabled via a CMake variable
+during CMake configuration.
 
 .. code-block:: bash
 

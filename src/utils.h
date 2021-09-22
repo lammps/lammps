@@ -21,9 +21,7 @@
 
 #include <mpi.h>
 
-#include <cstdio>
-#include <string>
-#include <vector>
+#include <vector> // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
@@ -408,7 +406,7 @@ namespace utils {
 
   /*! Try to detect pathname from FILE pointer.
    *
-   * Currently only supported on Linux, otherwise will report "(unknown)".
+   * Currently supported on Linux, MacOS, and Windows, otherwise will report "(unknown)".
    *
    *  \param buf  storage buffer for pathname. output will be truncated if not large enough
    *  \param len  size of storage buffer. output will be truncated to this length - 1
@@ -540,6 +538,31 @@ namespace utils {
    * \return       date code */
 
   int date2num(const std::string &date);
+
+  /*! Return current date as string
+   *
+   * This will generate a string containing the current date in YYYY-MM-DD format.
+   *
+   * \return       string with current date */
+
+  std::string current_date();
+
+  /*! Binary search in a vector of ascending doubles of length N
+   *
+   * If the value is smaller than the smallest value in the vector, 0 is returned.
+   * If the value is larger or equal than the largest value in the vector, N-1 is returned.
+   * Otherwise the index that satisfies the condition
+   *
+   * haystack[index] <= value < haystack[index+1]
+   *
+   * is returned, i.e. a value from 1 to N-2. Note that if there are tied values in the
+   * haystack, always the larger index is returned as only that satisfied the condition.
+   *
+   * \param  needle    search value for which are are looking for the closest index
+   * \param  n         size of the haystack array
+   * \param  haystack  array with data in ascending order.
+   * \return           index of value in the haystack array smaller or equal to needle */
+  int binary_search(const double needle, const int n, const double *haystack);
 
   /*! Custom merge sort implementation
    *

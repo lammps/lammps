@@ -17,7 +17,6 @@
 #include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "modify.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
@@ -37,7 +36,7 @@ enum { CN, BR, FN, FT };
 /* ---------------------------------------------------------------------- */
 
 ComputeFabric::ComputeFabric(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), tensor_style(NULL)
+    Compute(lmp, narg, arg), tensor_style(nullptr)
 {
   if (narg < 3) error->all(FLERR, "Illegal compute fabric command");
 
@@ -80,9 +79,8 @@ ComputeFabric::ComputeFabric(LAMMPS *lmp, int narg, char **arg) :
       if (iarg + 1 >= narg) error->all(FLERR, "Invalid keyword in compute fabric command");
       int ntypes = atom->ntypes;
 
-      int i, j, itype, jtype, in, jn, infield, jnfield;
+      int i, j, itype, jtype;
       int inlo, inhi, jnlo, jnhi;
-      char *istr, *jstr;
       if (!type_filter) {
         memory->create(type_filter, ntypes + 1, ntypes + 1, "compute/fabric:type_filter");
 
@@ -91,24 +89,12 @@ ComputeFabric::ComputeFabric(LAMMPS *lmp, int narg, char **arg) :
         }
       }
 
-      in = strlen(arg[iarg + 1]) + 1;
-      istr = new char[in];
-      strcpy(istr, arg[iarg + 1]);
-      std::vector<std::string> iwords = Tokenizer(istr, ",").as_vector();
-      infield = iwords.size();
-
-      jn = strlen(arg[iarg + 2]) + 1;
-      jstr = new char[jn];
-      strcpy(jstr, arg[iarg + 2]);
-      std::vector<std::string> jwords = Tokenizer(jstr, ",").as_vector();
-      jnfield = jwords.size();
-
-      for (i = 0; i < infield; i++) {
-        const char *ifield = iwords[i].c_str();
+      std::vector<std::string> iwords = Tokenizer(arg[iarg+1], ",").as_vector();
+      std::vector<std::string> jwords = Tokenizer(arg[iarg+2], ",").as_vector();
+      for (const auto &ifield : iwords) {
         utils::bounds(FLERR, ifield, 1, ntypes, inlo, inhi, error);
 
-        for (j = 0; j < jnfield; j++) {
-          const char *jfield = jwords[j].c_str();
+        for (const auto &jfield : jwords) {
           utils::bounds(FLERR, jfield, 1, ntypes, jnlo, jnhi, error);
 
           for (itype = inlo; itype <= inhi; itype++) {
@@ -119,10 +105,6 @@ ComputeFabric::ComputeFabric(LAMMPS *lmp, int narg, char **arg) :
           }
         }
       }
-
-      delete[] istr;
-      delete[] jstr;
-
       iarg += 2;
     } else
       error->all(FLERR, "Illegal compute fabric command");
@@ -152,7 +134,7 @@ ComputeFabric::~ComputeFabric()
 
 void ComputeFabric::init()
 {
-  if (force->pair == NULL) error->all(FLERR, "No pair style is defined for compute fabric");
+  if (force->pair == nullptr) error->all(FLERR, "No pair style is defined for compute fabric");
   if (force->pair->single_enable == 0 && (fn_flag || ft_flag))
     error->all(FLERR, "Pair style does not support compute fabric normal or tangential force");
 

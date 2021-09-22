@@ -20,10 +20,12 @@
 
 #include "atom.h"
 #include "comm.h"
+#include "domain.h"
 #include "error.h"
-#include "molecule.h"
 #include "neigh_list.h"
 #include "neighbor.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 

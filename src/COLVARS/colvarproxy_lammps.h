@@ -12,11 +12,6 @@
 
 #include "colvarproxy_lammps_version.h"    // IWYU pragma: export
 
-#include <cstddef>
-#include <mpi.h>
-#include <string>
-#include <vector>
-
 #include "colvarmodule.h"
 #include "colvarproxy.h"
 #include "colvartypes.h"

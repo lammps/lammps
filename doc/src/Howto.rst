@@ -54,6 +54,7 @@ Analysis howto
    Howto_kappa
    Howto_viscosity
    Howto_diffusion
+   Howto_structured_data
 
 Force fields howto
 ==================

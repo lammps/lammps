@@ -203,8 +203,14 @@ Convenience functions
 .. doxygenfunction:: date2num
    :project: progguide
 
+.. doxygenfunction:: current_date
+   :project: progguide
+
 Customized standard functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doxygenfunction:: binary_search
+   :project: progguide
 
 .. doxygenfunction:: merge_sort
    :project: progguide

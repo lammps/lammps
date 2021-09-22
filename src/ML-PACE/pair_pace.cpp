@@ -23,7 +23,6 @@ Copyright 2021 Yury Lysogorskiy^1, Cas van der Oord^2, Anton Bochkarev^1,
 ^4: University of British Columbia, Vancouver, BC, Canada
 */
 
-
 //
 // Created by Lysogorskiy Yury on 27.02.20.
 //
@@ -42,6 +41,7 @@ Copyright 2021 Yury Lysogorskiy^1, Cas van der Oord^2, Anton Bochkarev^1,
 #include "update.h"
 
 #include <cstring>
+#include <exception>
 
 #include "ace_evaluator.h"
 #include "ace_recursive.h"

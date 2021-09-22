@@ -28,34 +28,37 @@
 #include "style_minimize.h"  // IWYU pragma: keep
 #include "style_pair.h"      // IWYU pragma: keep
 #include "style_region.h"    // IWYU pragma: keep
-#include "universe.h"
-#include "input.h"
-#include "info.h"
-#include "atom.h"            // IWYU pragma: keep
-#include "update.h"
-#include "neighbor.h"        // IWYU pragma: keep
+
+#include "accelerator_kokkos.h"
+#include "accelerator_omp.h"
+#include "atom.h"
+#include "citeme.h"
 #include "comm.h"
 #include "comm_brick.h"
-#include "domain.h"          // IWYU pragma: keep
-#include "force.h"
-#include "modify.h"
-#include "group.h"
-#include "output.h"
-#include "citeme.h"
-#include "accelerator_kokkos.h"
-#include "accelerator_omp.h"    // IWYU pragma: keep
-#include "timer.h"
-#include "lmppython.h"
-#include "version.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
+#include "force.h"
+#include "group.h"
+#include "info.h"
+#include "input.h"
+#include "lmppython.h"
+#include "memory.h"
+#include "modify.h"
+#include "neighbor.h"
+#include "output.h"
+#include "timer.h"
+#include "universe.h"
+#include "update.h"
+#include "version.h"
 
 #include <cctype>
 #include <cmath>
 #include <cstring>
 #include <map>
 
-#if !defined(_WIN32)
+#if defined(_WIN32)
+#include <io.h>
+#else
 #include <unistd.h>             // for isatty()
 #endif
 
@@ -125,6 +128,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   clientserver = 0;
   cslib = nullptr;
   cscomm = 0;
+
+  skiprunflag = 0;
 
   screen = nullptr;
   logfile = nullptr;
@@ -391,6 +396,11 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
       screenflag = iarg + 1;
       iarg += 2;
 
+    } else if (strcmp(arg[iarg],"-skiprun") == 0 ||
+               strcmp(arg[iarg],"-sr") == 0) {
+      skiprunflag = 1;
+      ++iarg;
+
     } else if (strcmp(arg[iarg],"-suffix") == 0 ||
                strcmp(arg[iarg],"-sf") == 0) {
       if (iarg+2 > narg)
@@ -403,17 +413,11 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
       if (strcmp(arg[iarg+1],"hybrid") == 0) {
         if (iarg+4 > narg)
           error->universe_all(FLERR,"Invalid command-line argument");
-        int n = strlen(arg[iarg+2]) + 1;
-        suffix = new char[n];
-        strcpy(suffix,arg[iarg+2]);
-        n = strlen(arg[iarg+3]) + 1;
-        suffix2 = new char[n];
-        strcpy(suffix2,arg[iarg+3]);
+        suffix = utils::strdup(arg[iarg+2]);
+        suffix2 = utils::strdup(arg[iarg+3]);
         iarg += 4;
       } else {
-        int n = strlen(arg[iarg+1]) + 1;
-        suffix = new char[n];
-        strcpy(suffix,arg[iarg+1]);
+        suffix = utils::strdup(arg[iarg+1]);
         iarg += 2;
       }
 
@@ -462,9 +466,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     else {
       universe->uscreen = fopen(arg[screenflag],"w");
       if (universe->uscreen == nullptr)
-        error->universe_one(FLERR,fmt::format("Cannot open universe screen "
-                                              "file {}: {}",arg[screenflag],
-                                              utils::getsyserror()));
+        error->universe_one(FLERR,fmt::format("Cannot open universe screen file {}: {}",
+                                              arg[screenflag],utils::getsyserror()));
     }
     if (logflag == 0) {
       if (helpflag == 0) {
@@ -478,9 +481,8 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     else {
       universe->ulogfile = fopen(arg[logflag],"w");
       if (universe->ulogfile == nullptr)
-        error->universe_one(FLERR,fmt::format("Cannot open universe log "
-                                              "file {}: {}",arg[logflag],
-                                              utils::getsyserror()));
+        error->universe_one(FLERR,fmt::format("Cannot open universe log file {}: {}",
+                                              arg[logflag],utils::getsyserror()));
     }
   }
 
@@ -505,8 +507,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
       else if (strcmp(arg[inflag], "none") == 0) infile = stdin;
       else infile = fopen(arg[inflag],"r");
       if (infile == nullptr)
-        error->one(FLERR,"Cannot open input script {}: {}",
-                                     arg[inflag], utils::getsyserror());
+        error->one(FLERR,"Cannot open input script {}: {}", arg[inflag], utils::getsyserror());
     }
 
     if ((universe->me == 0) && !helpflag)
@@ -530,16 +531,14 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
           str = fmt::format("screen.{}",universe->iworld);
           screen = fopen(str.c_str(),"w");
           if (screen == nullptr)
-            error->one(FLERR,"Cannot open screen file {}: {}",
-                                         str,utils::getsyserror());
+            error->one(FLERR,"Cannot open screen file {}: {}",str,utils::getsyserror());
         } else if (strcmp(arg[screenflag],"none") == 0) {
           screen = nullptr;
         } else {
           str = fmt::format("{}.{}",arg[screenflag],universe->iworld);
           screen = fopen(str.c_str(),"w");
           if (screen == nullptr)
-            error->one(FLERR,"Cannot open screen file {}: {}",
-                                         arg[screenflag],utils::getsyserror());
+            error->one(FLERR,"Cannot open screen file {}: {}",arg[screenflag],utils::getsyserror());
         }
       } else if (strcmp(arg[partscreenflag],"none") == 0) {
         screen = nullptr;
@@ -547,8 +546,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
         str = fmt::format("{}.{}",arg[partscreenflag],universe->iworld);
         screen = fopen(str.c_str(),"w");
         if (screen == nullptr)
-          error->one(FLERR,"Cannot open screen file {}: {}",
-                                       str,utils::getsyserror());
+          error->one(FLERR,"Cannot open screen file {}: {}",str,utils::getsyserror());
       }
 
       if (partlogflag == 0) {
@@ -556,16 +554,14 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
           str = fmt::format("log.lammps.{}",universe->iworld);
           logfile = fopen(str.c_str(),"w");
           if (logfile == nullptr)
-            error->one(FLERR,"Cannot open logfile {}: {}",
-                                         str, utils::getsyserror());
+            error->one(FLERR,"Cannot open logfile {}: {}",str, utils::getsyserror());
         } else if (strcmp(arg[logflag],"none") == 0) {
           logfile = nullptr;
         } else {
           str = fmt::format("{}.{}",arg[logflag],universe->iworld);
           logfile = fopen(str.c_str(),"w");
           if (logfile == nullptr)
-            error->one(FLERR,"Cannot open logfile {}: {}",
-                                         str, utils::getsyserror());
+            error->one(FLERR,"Cannot open logfile {}: {}",str, utils::getsyserror());
         }
       } else if (strcmp(arg[partlogflag],"none") == 0) {
         logfile = nullptr;
@@ -573,15 +569,13 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
         str = fmt::format("{}.{}",arg[partlogflag],universe->iworld);
         logfile = fopen(str.c_str(),"w");
         if (logfile == nullptr)
-          error->one(FLERR,"Cannot open logfile {}: {}",
-                                       str, utils::getsyserror());
+          error->one(FLERR,"Cannot open logfile {}: {}",str, utils::getsyserror());
       }
 
       if (strcmp(arg[inflag], "none") != 0) {
         infile = fopen(arg[inflag],"r");
         if (infile == nullptr)
-          error->one(FLERR,"Cannot open input script {}: {}",
-                                       arg[inflag], utils::getsyserror());
+          error->one(FLERR,"Cannot open input script {}: {}",arg[inflag], utils::getsyserror());
       }
     }
 
@@ -615,12 +609,10 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   int mpisize;
   MPI_Type_size(MPI_LMP_TAGINT,&mpisize);
   if (mpisize != sizeof(tagint))
-      error->all(FLERR,"MPI_LMP_TAGINT and tagint in "
-                 "lmptype.h are not compatible");
+      error->all(FLERR,"MPI_LMP_TAGINT and tagint in lmptype.h are not compatible");
   MPI_Type_size(MPI_LMP_BIGINT,&mpisize);
   if (mpisize != sizeof(bigint))
-      error->all(FLERR,"MPI_LMP_BIGINT and bigint in "
-                 "lmptype.h are not compatible");
+      error->all(FLERR,"MPI_LMP_BIGINT and bigint in lmptype.h are not compatible");
 
 #ifdef LAMMPS_SMALLBIG
   if (sizeof(smallint) != 4 || sizeof(imageint) != 4 ||
@@ -837,6 +829,8 @@ void LAMMPS::create()
 
 void LAMMPS::post_create()
 {
+  if (skiprunflag) input->one("timer timeout 0 every 1");
+
   // default package command triggered by "-k on"
 
   if (kokkos && kokkos->kokkos_exists) input->one("package kokkos");
@@ -871,14 +865,12 @@ void LAMMPS::post_create()
   // invoke any command-line package commands
 
   if (num_package) {
-    char str[256];
+    std::string str;
     for (int i = 0; i < num_package; i++) {
-      strcpy(str,"package");
+      str = "package";
       for (char **ptr = packargs[i]; *ptr != nullptr; ++ptr) {
-        if (strlen(str) + strlen(*ptr) + 2 > 256)
-          error->all(FLERR,"Too many -pk arguments in command line");
-        strcat(str," ");
-        strcat(str,*ptr);
+        str += " ";
+        str += *ptr;
       }
       input->one(str);
     }
@@ -1181,6 +1173,7 @@ void _noopt LAMMPS::help()
           "                            : convert restart to dump file (-r2dump)\n"
           "-reorder topology-specs     : processor reordering (-r)\n"
           "-screen none/filename       : where to send screen output (-sc)\n"
+          "-skiprun                    : skip loops in run and minimize (-sr)\n"
           "-suffix gpu/intel/opt/omp   : style suffix to apply (-sf)\n"
           "-var varname value          : set index style variable (-v)\n\n",
           exename);
@@ -1193,7 +1186,7 @@ void _noopt LAMMPS::help()
   fprintf(fp,"* Atom styles:\n");
 #define ATOM_CLASS
 #define AtomStyle(key,Class) print_style(fp,#key,pos);
-#include "style_atom.h"
+#include "style_atom.h"  // IWYU pragma: keep
 #undef ATOM_CLASS
   fprintf(fp,"\n\n");
 
@@ -1201,7 +1194,7 @@ void _noopt LAMMPS::help()
   fprintf(fp,"* Integrate styles:\n");
 #define INTEGRATE_CLASS
 #define IntegrateStyle(key,Class) print_style(fp,#key,pos);
-#include "style_integrate.h"
+#include "style_integrate.h"  // IWYU pragma: keep
 #undef INTEGRATE_CLASS
   fprintf(fp,"\n\n");
 
@@ -1209,7 +1202,7 @@ void _noopt LAMMPS::help()
   fprintf(fp,"* Minimize styles:\n");
 #define MINIMIZE_CLASS
 #define MinimizeStyle(key,Class) print_style(fp,#key,pos);
-#include "style_minimize.h"
+#include "style_minimize.h"  // IWYU pragma: keep
 #undef MINIMIZE_CLASS
   fprintf(fp,"\n\n");
 
@@ -1217,7 +1210,7 @@ void _noopt LAMMPS::help()
   fprintf(fp,"* Pair styles:\n");
 #define PAIR_CLASS
 #define PairStyle(key,Class) print_style(fp,#key,pos);
-#include "style_pair.h"
+#include "style_pair.h"  // IWYU pragma: keep
 #undef PAIR_CLASS
   fprintf(fp,"\n\n");
 
@@ -1225,7 +1218,7 @@ void _noopt LAMMPS::help()
   fprintf(fp,"* Bond styles:\n");
 #define BOND_CLASS
 #define BondStyle(key,Class) print_style(fp,#key,pos);
-#include "style_bond.h"
+#include "style_bond.h"  // IWYU pragma: keep
 #undef BOND_CLASS
   fprintf(fp,"\n\n");
 
@@ -1233,7 +1226,7 @@ void _noopt LAMMPS::help()
   fprintf(fp,"* Angle styles:\n");
 #define ANGLE_CLASS
 #define AngleStyle(key,Class) print_style(fp,#key,pos);
-#include "style_angle.h"
+#include "style_angle.h"  // IWYU pragma: keep
 #undef ANGLE_CLASS
   fprintf(fp,"\n\n");
 
@@ -1241,7 +1234,7 @@ void _noopt LAMMPS::help()
   fprintf(fp,"* Dihedral styles:\n");
 #define DIHEDRAL_CLASS
 #define DihedralStyle(key,Class) print_style(fp,#key,pos);
-#include "style_dihedral.h"
+#include "style_dihedral.h"  // IWYU pragma: keep
 #undef DIHEDRAL_CLASS
   fprintf(fp,"\n\n");
 
@@ -1249,7 +1242,7 @@ void _noopt LAMMPS::help()
   fprintf(fp,"* Improper styles:\n");
 #define IMPROPER_CLASS
 #define ImproperStyle(key,Class) print_style(fp,#key,pos);
-#include "style_improper.h"
+#include "style_improper.h"  // IWYU pragma: keep
 #undef IMPROPER_CLASS
   fprintf(fp,"\n\n");
 
@@ -1257,7 +1250,7 @@ void _noopt LAMMPS::help()
   fprintf(fp,"* KSpace styles:\n");
 #define KSPACE_CLASS
 #define KSpaceStyle(key,Class) print_style(fp,#key,pos);
-#include "style_kspace.h"
+#include "style_kspace.h"  // IWYU pragma: keep
 #undef KSPACE_CLASS
   fprintf(fp,"\n\n");
 
@@ -1265,7 +1258,7 @@ void _noopt LAMMPS::help()
   fprintf(fp,"* Fix styles\n");
 #define FIX_CLASS
 #define FixStyle(key,Class) print_style(fp,#key,pos);
-#include "style_fix.h"
+#include "style_fix.h"  // IWYU pragma: keep
 #undef FIX_CLASS
   fprintf(fp,"\n\n");
 
@@ -1273,7 +1266,7 @@ void _noopt LAMMPS::help()
   fprintf(fp,"* Compute styles:\n");
 #define COMPUTE_CLASS
 #define ComputeStyle(key,Class) print_style(fp,#key,pos);
-#include "style_compute.h"
+#include "style_compute.h"  // IWYU pragma: keep
 #undef COMPUTE_CLASS
   fprintf(fp,"\n\n");
 
@@ -1281,7 +1274,7 @@ void _noopt LAMMPS::help()
   fprintf(fp,"* Region styles:\n");
 #define REGION_CLASS
 #define RegionStyle(key,Class) print_style(fp,#key,pos);
-#include "style_region.h"
+#include "style_region.h"  // IWYU pragma: keep
 #undef REGION_CLASS
   fprintf(fp,"\n\n");
 
@@ -1289,7 +1282,7 @@ void _noopt LAMMPS::help()
   fprintf(fp,"* Dump styles:\n");
 #define DUMP_CLASS
 #define DumpStyle(key,Class) print_style(fp,#key,pos);
-#include "style_dump.h"
+#include "style_dump.h"  // IWYU pragma: keep
 #undef DUMP_CLASS
   fprintf(fp,"\n\n");
 
@@ -1297,7 +1290,7 @@ void _noopt LAMMPS::help()
   fprintf(fp,"* Command styles\n");
 #define COMMAND_CLASS
 #define CommandStyle(key,Class) print_style(fp,#key,pos);
-#include "style_command.h"
+#include "style_command.h"  // IWYU pragma: keep
 #undef COMMAND_CLASS
   fprintf(fp,"\n\n");
 

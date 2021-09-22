@@ -41,10 +41,10 @@
 #include "pair.h"
 #include "pair_hybrid.h"
 #include "respa.h"
-#include "style_nbin.h"
-#include "style_npair.h"
-#include "style_nstencil.h"
-#include "style_ntopo.h"
+#include "style_nbin.h"  // IWYU pragma: keep
+#include "style_npair.h"  // IWYU pragma: keep
+#include "style_nstencil.h"  // IWYU pragma: keep
+#include "style_ntopo.h"  // IWYU pragma: keep
 #include "tokenizer.h"
 #include "update.h"
 
@@ -365,10 +365,10 @@ void Neighbor::init()
     int icollection, jcollection;
 
     // If collections not yet defined, create default map using types
-    if (not custom_collection_flag) {
+    if (!custom_collection_flag) {
       ncollections = n;
       interval_collection_flag = 0;
-      if (not type2collection)
+      if (!type2collection)
         memory->create(type2collection,n+1,"neigh:type2collection");
       for (i = 1; i <= n; i++)
         type2collection[i] = i-1;
@@ -390,7 +390,7 @@ void Neighbor::init()
       for (j = 0; j < ncollections; j++)
         cutcollectionsq[i][j] = 0.0;
 
-    if (not interval_collection_flag) {
+    if (!interval_collection_flag) {
       finite_cut_flag = 0;
       for (i = 1; i <= n; i++){
         icollection = type2collection[i];
@@ -419,7 +419,7 @@ void Neighbor::init()
         finite_cut_flag = 0;
 
         // Map types to collections
-        if (not type2collection)
+        if (!type2collection)
           memory->create(type2collection,n+1,"neigh:type2collection");
 
         for (i = 1; i <= n; i++)
@@ -681,7 +681,7 @@ void Neighbor::init_styles()
 
 #define NBIN_CLASS
 #define NBinStyle(key,Class,bitmasks) nbclass++;
-#include "style_nbin.h"
+#include "style_nbin.h"  // IWYU pragma: keep
 #undef NBinStyle
 #undef NBIN_CLASS
 
@@ -695,7 +695,7 @@ void Neighbor::init_styles()
   binnames[nbclass] = (char *) #key; \
   binclass[nbclass] = &bin_creator<Class>; \
   binmasks[nbclass++] = bitmasks;
-#include "style_nbin.h"
+#include "style_nbin.h"  // IWYU pragma: keep
 #undef NBinStyle
 #undef NBIN_CLASS
 
@@ -705,7 +705,7 @@ void Neighbor::init_styles()
 
 #define NSTENCIL_CLASS
 #define NStencilStyle(key,Class,bitmasks) nsclass++;
-#include "style_nstencil.h"
+#include "style_nstencil.h"  // IWYU pragma: keep
 #undef NStencilStyle
 #undef NSTENCIL_CLASS
 
@@ -719,7 +719,7 @@ void Neighbor::init_styles()
   stencilnames[nsclass] = (char *) #key; \
   stencilclass[nsclass] = &stencil_creator<Class>; \
   stencilmasks[nsclass++] = bitmasks;
-#include "style_nstencil.h"
+#include "style_nstencil.h"  // IWYU pragma: keep
 #undef NStencilStyle
 #undef NSTENCIL_CLASS
 
@@ -729,7 +729,7 @@ void Neighbor::init_styles()
 
 #define NPAIR_CLASS
 #define NPairStyle(key,Class,bitmasks) npclass++;
-#include "style_npair.h"
+#include "style_npair.h"  // IWYU pragma: keep
 #undef NPairStyle
 #undef NPAIR_CLASS
 
@@ -743,7 +743,7 @@ void Neighbor::init_styles()
   pairnames[npclass] = (char *) #key; \
   pairclass[npclass] = &pair_creator<Class>; \
   pairmasks[npclass++] = bitmasks;
-#include "style_npair.h"
+#include "style_npair.h"  // IWYU pragma: keep
 #undef NPairStyle
 #undef NPAIR_CLASS
 }
@@ -1887,11 +1887,12 @@ int Neighbor::choose_pair(NeighRequest *rq)
 
   // convert newton request to newtflag = on or off
 
-  int newtflag;
-  if (rq->newton == 0 && newton_pair) newtflag = 1;
-  else if (rq->newton == 0 && !newton_pair) newtflag = 0;
-  else if (rq->newton == 1) newtflag = 1;
-  else if (rq->newton == 2) newtflag = 0;
+  bool newtflag;
+  if (rq->newton == 0 && newton_pair) newtflag = true;
+  else if (rq->newton == 0 && !newton_pair) newtflag = false;
+  else if (rq->newton == 1) newtflag = true;
+  else if (rq->newton == 2) newtflag = false;
+  else error->all(FLERR,"Illegal 'newton' flag in neighbor list request");
 
   int molecular = atom->molecular;
 
@@ -2557,7 +2558,7 @@ void Neighbor::modify_params(int narg, char **arg)
       comm->ncollections_cutoff = 0;
       interval_collection_flag = 0;
       custom_collection_flag = 1;
-      if (not type2collection)
+      if (!type2collection)
         memory->create(type2collection,ntypes+1,"neigh:type2collection");
 
       // Erase previous mapping
@@ -2565,27 +2566,16 @@ void Neighbor::modify_params(int narg, char **arg)
         type2collection[i] = -1;
 
       // For each custom range, define mapping for types in interval
-      int nfield;
-      char *str;
       for (i = 0; i < ncollections; i++){
-        n = strlen(arg[iarg+2+i]) + 1;
-        str = new char[n];
-        strcpy(str,arg[iarg+2+i]);
-        std::vector<std::string> words = Tokenizer(str, ",").as_vector();
-        nfield = words.size();
-
-        for (j = 0; j < nfield; j++) {
-          const char * field = words[j].c_str();
-          utils::bounds(FLERR,field,1,ntypes,nlo,nhi,error);
-
+        std::vector<std::string> words = Tokenizer(arg[iarg+2+i], ",").as_vector();
+        for (const auto &word : words) {
+          utils::bounds(FLERR,word,1,ntypes,nlo,nhi,error);
           for (k = nlo; k <= nhi; k++) {
             if (type2collection[k] != -1)
               error->all(FLERR,"Type specified more than once in collection/type commnd");
             type2collection[k] = i;
           }
         }
-
-        delete [] str;
       }
 
       // Check for undefined atom type

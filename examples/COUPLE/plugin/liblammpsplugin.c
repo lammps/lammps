@@ -31,51 +31,105 @@ liblammpsplugin_t *liblammpsplugin_load(const char *lib)
   if (lib == NULL) return NULL;
   handle = dlopen(lib,RTLD_NOW|RTLD_GLOBAL);
   if (handle == NULL) return NULL;
-  
+
   lmp = (liblammpsplugin_t *) malloc(sizeof(liblammpsplugin_t));
   lmp->handle = handle;
 
 #define ADDSYM(symbol) lmp->symbol = dlsym(handle,"lammps_" #symbol)
   ADDSYM(open);
   ADDSYM(open_no_mpi);
+  ADDSYM(open_fortran);
   ADDSYM(close);
-  ADDSYM(version);
+
+  ADDSYM(mpi_init);
+  ADDSYM(mpi_finalize);
+  ADDSYM(kokkos_finalize);
+  ADDSYM(python_finalize);
+
   ADDSYM(file);
   ADDSYM(command);
   ADDSYM(commands_list);
   ADDSYM(commands_string);
-  ADDSYM(free);
-  ADDSYM(extract_setting);
-  ADDSYM(extract_global);
+
+  ADDSYM(get_natoms);
+  ADDSYM(get_thermo);
+
   ADDSYM(extract_box);
+  ADDSYM(reset_box);
+
+  ADDSYM(memory_usage);
+  ADDSYM(get_mpi_comm);
+
+  ADDSYM(extract_setting);
+  ADDSYM(extract_global_datatype);
+  ADDSYM(extract_global);
+
+  ADDSYM(extract_atom_datatype);
   ADDSYM(extract_atom);
+
   ADDSYM(extract_compute);
   ADDSYM(extract_fix);
   ADDSYM(extract_variable);
-
-  ADDSYM(get_thermo);
-  ADDSYM(get_natoms);
-
   ADDSYM(set_variable);
-  ADDSYM(reset_box);
 
   ADDSYM(gather_atoms);
   ADDSYM(gather_atoms_concat);
   ADDSYM(gather_atoms_subset);
   ADDSYM(scatter_atoms);
   ADDSYM(scatter_atoms_subset);
+  ADDSYM(gather_bonds);
 
-  ADDSYM(set_fix_external_callback);
+  ADDSYM(create_atoms);
 
-  ADDSYM(config_has_package);
-  ADDSYM(config_package_count);
-  ADDSYM(config_package_name);
+  ADDSYM(find_pair_neighlist);
+  ADDSYM(find_fix_neighlist);
+  ADDSYM(find_compute_neighlist);
+  ADDSYM(neighlist_num_elements);
+  ADDSYM(neighlist_element_neighbors);
+
+  ADDSYM(version);
+  ADDSYM(get_os_info);
+
+  ADDSYM(config_has_mpi_support);
   ADDSYM(config_has_gzip_support);
   ADDSYM(config_has_png_support);
   ADDSYM(config_has_jpeg_support);
   ADDSYM(config_has_ffmpeg_support);
   ADDSYM(config_has_exceptions);
-  ADDSYM(create_atoms);
+
+  ADDSYM(config_has_package);
+  ADDSYM(config_package_count);
+  ADDSYM(config_package_name);
+
+  ADDSYM(config_accelerator);
+  ADDSYM(has_gpu_device);
+  ADDSYM(get_gpu_device_info);
+
+  ADDSYM(has_style);
+  ADDSYM(style_count);
+  ADDSYM(style_name);
+
+  ADDSYM(has_id);
+  ADDSYM(id_count);
+  ADDSYM(id_name);
+
+  ADDSYM(plugin_count);
+  ADDSYM(plugin_name);
+
+  ADDSYM(set_fix_external_callback);
+  ADDSYM(fix_external_get_force);
+  ADDSYM(fix_external_set_energy_global);
+  ADDSYM(fix_external_set_energy_peratom);
+  ADDSYM(fix_external_set_virial_global);
+  ADDSYM(fix_external_set_virial_peratom);
+  ADDSYM(fix_external_set_vector_length);
+  ADDSYM(fix_external_set_vector);
+
+  ADDSYM(free);
+
+  ADDSYM(is_running);
+  ADDSYM(force_timeout);
+
 #ifdef LAMMPS_EXCEPTIONS
   lmp->has_exceptions = 1;
   ADDSYM(has_error);

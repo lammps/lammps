@@ -21,21 +21,14 @@
 #include "angle.h"
 #include "atom.h"
 #include "atom_vec_dielectric.h"
-#include "bond.h"
-#include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "fft3d_wrap.h"
 #include "force.h"
 #include "gridcomm.h"
 #include "math_const.h"
 #include "memory.h"
-#include "neighbor.h"
-#include "pair.h"
-#include "remap_wrap.h"
 
 #include <cmath>
-#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

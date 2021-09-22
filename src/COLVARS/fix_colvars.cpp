@@ -44,7 +44,6 @@
 #include <cstring>
 #include <iostream>
 #include <memory>
-#include <vector>
 
 static const char colvars_pub[] =
   "fix colvars command:\n\n"
@@ -1000,7 +999,7 @@ double FixColvars::compute_scalar()
 
 /* ---------------------------------------------------------------------- */
 /* local memory usage. approximately. */
-double FixColvars::memory_usage(void)
+double FixColvars::memory_usage()
 {
   double bytes = (double) (num_coords * (2*sizeof(int)+3*sizeof(double)));
   bytes += (double)(double) (nmax*size_one) + sizeof(this);

@@ -56,7 +56,7 @@ nfileevery(0), fp(nullptr), xf(nullptr), xold(nullptr)
   // perform initial allocation of atom-based arrays
   // register with Atom class
 
-  grow_arrays(atom->nmax);
+  FixTMD::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
 
   // make sure an atom map exists before reading in target coordinates

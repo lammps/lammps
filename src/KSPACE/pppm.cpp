@@ -174,9 +174,9 @@ PPPM::~PPPM()
   if (copymode) return;
 
   delete [] factors;
-  deallocate();
-  if (peratom_allocate_flag) deallocate_peratom();
-  if (group_allocate_flag) deallocate_groups();
+  PPPM::deallocate();
+  if (peratom_allocate_flag) PPPM::deallocate_peratom();
+  if (group_allocate_flag) PPPM::deallocate_groups();
   memory->destroy(part2grid);
   memory->destroy(acons);
 }

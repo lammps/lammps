@@ -38,7 +38,7 @@
 #include "output.h"
 #include "pair.h"
 #include "special.h"
-#include "style_command.h"
+#include "style_command.h"      // IWYU pragma: keep
 #include "thermo.h"
 #include "timer.h"
 #include "universe.h"
@@ -46,7 +46,7 @@
 #include "variable.h"
 
 #include <cstring>
-#include <errno.h>
+#include <cerrno>
 #include <cctype>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -126,7 +126,7 @@ Input::Input(LAMMPS *lmp, int argc, char **argv) : Pointers(lmp)
 #define COMMAND_CLASS
 #define CommandStyle(key,Class) \
   (*command_map)[#key] = &command_creator<Class>;
-#include "style_command.h"
+#include "style_command.h"      // IWYU pragma: keep
 #undef CommandStyle
 #undef COMMAND_CLASS
 
@@ -614,8 +614,7 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
       }
 
       if (value == nullptr)
-        error->one(FLERR,"Substitution for illegal "
-                                     "variable {}",var);
+        error->one(FLERR,"Substitution for illegal variable {}",var);
 
       // check if storage in str2 needs to be expanded
       // re-initialize ptr and ptr2 to the point beyond the variable.
@@ -1257,7 +1256,7 @@ void Input::shell()
 #else
       if (arg[i]) {
         std::string vardef(arg[i]);
-        auto found = vardef.find_first_of("=");
+        auto found = vardef.find_first_of('=');
         if (found == std::string::npos) {
           rv = setenv(vardef.c_str(),"",1);
         } else {

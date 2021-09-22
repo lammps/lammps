@@ -61,7 +61,7 @@ void WriteData::command(int narg, char **arg)
   // if filename contains a "*", replace with current timestep
 
   std::string file = arg[0];
-  std::size_t found = file.find("*");
+  std::size_t found = file.find('*');
   if (found != std::string::npos)
     file.replace(found,1,fmt::format("{}",update->ntimestep));
 

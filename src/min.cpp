@@ -959,20 +959,19 @@ double Min::fnorm_max()
 
 double Min::total_torque()
 {
-  double fmsq,ftotsqone,ftotsqall;
+  double ftotsqone,ftotsqall;
   int nlocal = atom->nlocal;
   double hbar = force->hplanck/MY_2PI;
   double tx,ty,tz;
   double **sp = atom->sp;
   double **fm = atom->fm;
 
-  fmsq = ftotsqone = ftotsqall = 0.0;
+  ftotsqone = ftotsqall = 0.0;
   for (int i = 0; i < nlocal; i++) {
     tx = fm[i][1]*sp[i][2] - fm[i][2]*sp[i][1];
     ty = fm[i][2]*sp[i][0] - fm[i][0]*sp[i][2];
     tz = fm[i][0]*sp[i][1] - fm[i][1]*sp[i][0];
-    fmsq = tx*tx + ty*ty + tz*tz;
-    ftotsqone += fmsq;
+    ftotsqone += tx*tx + ty*ty + tz*tz;
   }
 
   // summing all fmsqtot on this replica
@@ -1030,7 +1029,7 @@ double Min::max_torque()
   double **sp = atom->sp;
   double **fm = atom->fm;
 
-  fmsq = fmaxsqone = fmaxsqall = 0.0;
+  fmaxsqone = fmaxsqall = 0.0;
   for (int i = 0; i < nlocal; i++) {
     tx = fm[i][1]*sp[i][2] - fm[i][2]*sp[i][1];
     ty = fm[i][2]*sp[i][0] - fm[i][0]*sp[i][2];

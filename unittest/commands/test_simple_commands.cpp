@@ -249,6 +249,8 @@ TEST_F(SimpleCommandsTest, Suffix)
     ASSERT_EQ(lmp->suffix2, nullptr);
 
     TEST_FAILURE(".*ERROR: May only enable suffixes after defining one.*", command("suffix on"););
+    TEST_FAILURE(".*ERROR: May only enable suffixes after defining one.*", command("suffix yes"););
+    TEST_FAILURE(".*ERROR: May only enable suffixes after defining one.*", command("suffix true"););
 
     BEGIN_HIDE_OUTPUT();
     command("suffix one");
@@ -269,6 +271,26 @@ TEST_F(SimpleCommandsTest, Suffix)
 
     BEGIN_HIDE_OUTPUT();
     command("suffix off");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->suffix_enable, 0);
+
+    BEGIN_HIDE_OUTPUT();
+    command("suffix yes");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->suffix_enable, 1);
+
+    BEGIN_HIDE_OUTPUT();
+    command("suffix no");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->suffix_enable, 0);
+
+    BEGIN_HIDE_OUTPUT();
+    command("suffix true");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->suffix_enable, 1);
+
+    BEGIN_HIDE_OUTPUT();
+    command("suffix false");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->suffix_enable, 0);
 

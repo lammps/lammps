@@ -169,9 +169,9 @@ the :doc:`run_style respa <run_style>` command.  They do not support the
 
 Restrictions
 """"""""""""
-
-These pair styles are part of the MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+These pair styles are part of the EXTRA-PAIR package.  They are only enabled if
+LAMMPS was built with that package.  See the
+:doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

@@ -40,14 +40,8 @@ int FixMDIEngine2::setmask()
   mask |= POST_FORCE;
   mask |= MIN_PRE_FORCE;
   mask |= MIN_POST_FORCE;
+  mask |= END_OF_STEP;
   return mask;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixMDIEngine2::min_setup(int vflag)
-{
-  mdi_engine->engine_node("@FORCES");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -66,6 +60,13 @@ void FixMDIEngine2::min_pre_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
+void FixMDIEngine2::post_force(int vflag)
+{
+  mdi_engine->engine_node("@FORCES");
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixMDIEngine2::min_post_force(int vflag)
 {
   mdi_engine->engine_node("@FORCES");
@@ -73,7 +74,7 @@ void FixMDIEngine2::min_post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine2::post_force(int vflag)
+void FixMDIEngine2::end_of_step()
 {
-  mdi_engine->engine_node("@FORCES");
+  mdi_engine->engine_node("@ENDSTEP");
 }

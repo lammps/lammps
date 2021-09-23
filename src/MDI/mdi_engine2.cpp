@@ -37,6 +37,7 @@
 #include "modify.h"
 #include "neighbor.h"
 #include "output.h"
+#include "thermo.h"
 #include "timer.h"
 #include "update.h"
 #include "verlet.h"
@@ -408,6 +409,10 @@ int MDIEngine2::execute_command(const char *command, MDI_Comm mdicomm)
     strncpy(node_driver,"@FORCES",MDI_COMMAND_LENGTH);
     node_match = false;
 
+  } else if (strcmp(command,"@ENDSTEP") == 0) {
+    strncpy(node_driver,"@ENDSTEP",MDI_COMMAND_LENGTH);
+    node_match = false;
+
   // exit command
 
   } else if (strcmp(command, "EXIT") == 0) {
@@ -427,35 +432,35 @@ int MDIEngine2::execute_command(const char *command, MDI_Comm mdicomm)
   // custom LAMMPS commands
   // -------------------------------------------------------
 
-  } else if (strcmp(command, "NBYTES") == 0) {
+  } else if (strcmp(command,"NBYTES") == 0) {
     nbytes_command();
-  } else if (strcmp(command, "COMMAND") == 0) {
+  } else if (strcmp(command,"COMMAND") == 0) {
     single_command();
-  } else if (strcmp(command, "COMMANDS") == 0) {
+  } else if (strcmp(command,"COMMANDS") == 0) {
     many_commands();
-  } else if (strcmp(command, "INFILE") == 0) {
+  } else if (strcmp(command,"INFILE") == 0) {
     infile();
-  } else if (strcmp(command, "EVAL") == 0) {
+  } else if (strcmp(command,"EVAL") == 0) {
     evaluate();
-  } else if (strcmp(command, "RESET_BOX") == 0) {
+  } else if (strcmp(command,"RESET_BOX") == 0) {
     reset_box();
-  } else if (strcmp(command, "CREATE_ATOM") == 0) {
+  } else if (strcmp(command,"CREATE_ATOM") == 0) {
     create_atoms(CREATE_ATOM);
-  } else if (strcmp(command, "CREATE_ID") == 0) {
+  } else if (strcmp(command,"CREATE_ID") == 0) {
     create_atoms(CREATE_ID);
-  } else if (strcmp(command, "CREATE_TYPE") == 0) {
+  } else if (strcmp(command,"CREATE_TYPE") == 0) {
     create_atoms(CREATE_TYPE);
-  } else if (strcmp(command, "CREATE_X") == 0) {
+  } else if (strcmp(command,"CREATE_X") == 0) {
     create_atoms(CREATE_X);
-  } else if (strcmp(command, "CREATE_V") == 0) {
+  } else if (strcmp(command,"CREATE_V") == 0) {
     create_atoms(CREATE_V);
-  } else if (strcmp(command, "CREATE_IMG") == 0) {
+  } else if (strcmp(command,"CREATE_IMG") == 0) {
     create_atoms(CREATE_IMAGE);
-  } else if (strcmp(command, "CREATE_GO") == 0) {
+  } else if (strcmp(command,"CREATE_GO") == 0) {
     create_atoms(CREATE_GO);
-  } else if (strcmp(command, "<PRESSURE") == 0) {
+  } else if (strcmp(command,"<PRESSURE") == 0) {
     send_pressure();
-  } else if (strcmp(command, "<PTENSOR") == 0) {
+  } else if (strcmp(command,"<PTENSOR") == 0) {
     send_ptensor();
 
   // -------------------------------------------------------
@@ -524,9 +529,10 @@ void MDIEngine2::mdi_commands()
   MDI_Register_command("@INIT_MD", ">FORCES");
   MDI_Register_command("@INIT_MD", ">+FORCES");
   MDI_Register_command("@INIT_MD", "@");
-  MDI_Register_command("@INIT_MD", "@COORDS");
   MDI_Register_command("@INIT_MD", "@DEFAULT");
+  MDI_Register_command("@INIT_MD", "@COORDS");
   MDI_Register_command("@INIT_MD", "@FORCES");
+  MDI_Register_command("@INIT_MD", "@ENDSTEP");
   MDI_Register_command("@INIT_MD", "EXIT");
 
   // node for setting up and running a minimization
@@ -551,10 +557,39 @@ void MDIEngine2::mdi_commands()
   MDI_Register_command("@INIT_OPTG", ">FORCES");
   MDI_Register_command("@INIT_OPTG", ">+FORCES");
   MDI_Register_command("@INIT_OPTG", "@");
-  MDI_Register_command("@INIT_OPTG", "@COORDS");
   MDI_Register_command("@INIT_OPTG", "@DEFAULT");
+  MDI_Register_command("@INIT_OPTG", "@COORDS");
   MDI_Register_command("@INIT_OPTG", "@FORCES");
+  MDI_Register_command("@INIT_OPTG", "@ENDSTEP");
   MDI_Register_command("@INIT_OPTG", "EXIT");
+
+  // node at POST_INTEGRATE location in timestep
+
+  MDI_Register_node("@COORDS");
+  MDI_Register_command("@COORDS", "<@");
+  MDI_Register_command("@COORDS", "<CELL");
+  MDI_Register_command("@COORDS", "<CELL_DISPL");
+  MDI_Register_command("@COORDS", "<CHARGES");
+  MDI_Register_command("@COORDS", "<COORDS");
+  MDI_Register_command("@COORDS", "<ENERGY");
+  MDI_Register_command("@COORDS", "<FORCES");
+  MDI_Register_command("@COORDS", "<KE");
+  MDI_Register_command("@COORDS", "<LABELS");
+  MDI_Register_command("@COORDS", "<MASSES");
+  MDI_Register_command("@COORDS", "<NATOMS");
+  MDI_Register_command("@COORDS", "<PE");
+  MDI_Register_command("@COORDS", "<TYPES");
+  MDI_Register_command("@COORDS", ">CELL");
+  MDI_Register_command("@COORDS", ">CELL_DISPL");
+  MDI_Register_command("@COORDS", ">COORDS");
+  MDI_Register_command("@COORDS", ">FORCES");
+  MDI_Register_command("@COORDS", ">+FORCES");
+  MDI_Register_command("@COORDS", "@");
+  MDI_Register_command("@COORDS", "@DEFAULT");
+  MDI_Register_command("@COORDS", "@COORDS");
+  MDI_Register_command("@COORDS", "@FORCES");
+  MDI_Register_command("@COORDS", "@ENDSTEP");
+  MDI_Register_command("@COORDS", "EXIT");
 
   // node at POST_FORCE location in timestep
 
@@ -580,37 +615,23 @@ void MDIEngine2::mdi_commands()
   MDI_Register_command("@FORCES", ">FORCES");
   MDI_Register_command("@FORCES", ">+FORCES");
   MDI_Register_command("@FORCES", "@");
-  MDI_Register_command("@FORCES", "@COORDS");
   MDI_Register_command("@FORCES", "@DEFAULT");
+  MDI_Register_command("@FORCES", "@COORDS");
   MDI_Register_command("@FORCES", "@FORCES");
+  MDI_Register_command("@FORCES", "@ENDSTEP");
   MDI_Register_command("@FORCES", "EXIT");
 
-  // node at POST_INTEGRATE location in timestep
+  // node at END_OF_STEP location in timestep
 
-  MDI_Register_node("@COORDS");
-  MDI_Register_command("@COORDS", "<@");
-  MDI_Register_command("@COORDS", "<CELL");
-  MDI_Register_command("@COORDS", "<CELL_DISPL");
-  MDI_Register_command("@COORDS", "<CHARGES");
-  MDI_Register_command("@COORDS", "<COORDS");
-  MDI_Register_command("@COORDS", "<ENERGY");
-  MDI_Register_command("@COORDS", "<FORCES");
-  MDI_Register_command("@COORDS", "<KE");
-  MDI_Register_command("@COORDS", "<LABELS");
-  MDI_Register_command("@COORDS", "<MASSES");
-  MDI_Register_command("@COORDS", "<NATOMS");
-  MDI_Register_command("@COORDS", "<PE");
-  MDI_Register_command("@COORDS", "<TYPES");
-  MDI_Register_command("@COORDS", ">CELL");
-  MDI_Register_command("@COORDS", ">CELL_DISPL");
-  MDI_Register_command("@COORDS", ">COORDS");
-  MDI_Register_command("@COORDS", ">FORCES");
-  MDI_Register_command("@COORDS", ">+FORCES");
-  MDI_Register_command("@COORDS", "@");
-  MDI_Register_command("@COORDS", "@COORDS");
-  MDI_Register_command("@COORDS", "@DEFAULT");
-  MDI_Register_command("@COORDS", "@FORCES");
-  MDI_Register_command("@COORDS", "EXIT");
+  MDI_Register_node("@ENDSTEP");
+  MDI_Register_command("@ENDSTEP", "<@");
+  MDI_Register_command("@ENDSTEP", "<ENERGY");
+  MDI_Register_command("@ENDSTEP", "@");
+  MDI_Register_command("@ENDSTEP", "@DEFAULT");
+  MDI_Register_command("@ENDSTEP", "@COORDS");
+  MDI_Register_command("@ENDSTEP", "@FORCES");
+  MDI_Register_command("@ENDSTEP", "@ENDSTEP");
+  MDI_Register_command("@ENDSTEP", "EXIT");
 
   // ------------------------------------
   // custom commands and nodes which LAMMPS supports
@@ -637,19 +658,19 @@ void MDIEngine2::mdi_commands()
 }
 
 /* ----------------------------------------------------------------------
-   run an MD simulation under control of driver
+   run  MD simulation under control of driver one step at a time
 ---------------------------------------------------------------------- */
 
 void MDIEngine2::mdi_md()
 {
-  // NOTE: create this fix only when @INIT_MD is triggered?
-  //       if not needed, I dont think it should be defined,
-  //       otherwise it will be be invoked in other use cases
-  //       and switch engine out of DEFAULT node ?
-
   //int ifix = modify->find_fix_by_style("mdi/engine2");
   //bool added_mdi_engine_fix = false;
   //if (ifix < 0) {
+
+  // NOTE: delete fix if already defined ?
+  // also delete in destructor if defined
+  // remove mdi/engine fix this method instantiated
+  //modify->delete_fix("MDI_ENGINE_INTERNAL");
 
   modify->add_fix("MDI_ENGINE_INTERNAL all mdi/engine2");
   int ifix = modify->find_fix_by_style("mdi/engine2");
@@ -670,6 +691,7 @@ void MDIEngine2::mdi_md()
   lmp->init();
 
   // engine is now at @INIT_MD node
+  // receive any commands driver may wish to send
 
   engine_node("@INIT_MD");
   if (strcmp(mdicmd,"@DEFAULT") == 0 || strcmp(mdicmd,"EXIT") == 0) return;
@@ -678,10 +700,9 @@ void MDIEngine2::mdi_md()
 
   update->integrate->setup(1);
 
-  engine_node("@FORCES");
-  if (strcmp(mdicmd,"@DEFAULT") == 0 || strcmp(mdicmd,"EXIT") == 0) return;
-
-  // run MD one step at a time
+  // run MD one step at a time until driver sends @DEFAULT or EXIT
+  // driver can communicate with LAMMPS within each timestep 
+  // by sending a node command which matches a method in FixMDIEngine
 
   while (1) {
     update->whichflag = 1;
@@ -695,14 +716,10 @@ void MDIEngine2::mdi_md()
 
     update->integrate->run(1);
 
-    // done with MD if driver sends @DEFAULT or EXIT
+    // driver triggers end of MD loop by senging @DEFAULT or EXIT
 
     if (strcmp(mdicmd,"@DEFAULT") == 0 || strcmp(mdicmd,"EXIT") == 0) return;
   }
-
-  // remove mdi/engine fix this method instantiated
-
-  modify->delete_fix("MDI_ENGINE_INTERNAL");
 }
 
 /* ----------------------------------------------------------------------
@@ -1054,8 +1071,6 @@ void MDIEngine2::send_labels()
 
 void MDIEngine2::send_total_energy()
 {
-  double convert = 1.0;
-
   double potential_energy = pe->compute_scalar();
   double kinetic_energy = ke->compute_scalar();
   double total_energy = potential_energy + kinetic_energy;
@@ -1326,12 +1341,13 @@ void MDIEngine2::evaluate()
 
     update->whichflag = 1;
     lmp->init();
-    update->integrate->setup(0);
+    update->integrate->setup(1);
 
   } else {
 
     // insure potential energy and virial are tallied on this step
 
+    update->ntimestep++;
     pe->addstep(update->ntimestep);
     press->addstep(update->ntimestep);
 
@@ -1339,8 +1355,10 @@ void MDIEngine2::evaluate()
     if (nflag == 0) {
       comm->forward_comm();
       update->integrate->setup_minimal(0);
+      output->thermo->compute(1);
     } else {
       update->integrate->setup_minimal(1);
+      output->thermo->compute(1);
     }
   }
 }

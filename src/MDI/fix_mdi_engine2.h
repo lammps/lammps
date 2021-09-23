@@ -32,12 +32,11 @@ class FixMDIEngine2 : public Fix {
   ~FixMDIEngine2() {}
   int setmask();
   void init() {}
-
-  void min_setup(int);
   void post_integrate();
-  void post_force(int);
   void min_pre_force(int);
+  void post_force(int);
   void min_post_force(int);
+  void end_of_step();
 };
 
 }    // namespace LAMMPS_NS

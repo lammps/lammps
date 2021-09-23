@@ -1,4 +1,5 @@
 .. index:: pair_style nm/cut
+.. index:: pair_style nm/cut/split
 .. index:: pair_style nm/cut/coul/cut
 .. index:: pair_style nm/cut/coul/long
 .. index:: pair_style nm/cut/omp
@@ -9,6 +10,11 @@ pair_style nm/cut command
 =========================
 
 Accelerator Variants: *nm/cut/omp*
+
+pair_style nm/cut/split command
+===============================
+
+Accelerator Variants:*nm/cut/split/omp*
 
 pair_style nm/cut/coul/cut command
 ==================================
@@ -27,13 +33,15 @@ Syntax
 
    pair_style style args
 
-* style = *nm/cut* or *nm/cut/coul/cut* or *nm/cut/coul/long*
+* style = *nm/cut* or *nm/cut/split* or *nm/cut/coul/cut* or *nm/cut/coul/long*
 * args = list of arguments for a particular style
 
   .. parsed-literal::
 
        *nm/cut* args = cutoff
          cutoff = global cutoff for Pair interactions (distance units)
+       *nm/cut/split* args = cutoff
+	 cutoff = global cutoff for Pair interactions (distance units)
        *nm/cut/coul/cut* args = cutoff (cutoff2)
          cutoff = global cutoff for Pair (and Coulombic if only 1 arg) (distance units)
          cutoff2 = global cutoff for Coulombic (optional) (distance units)
@@ -49,6 +57,10 @@ Examples
    pair_style nm/cut 12.0
    pair_coeff * * 0.01 5.4 8.0 7.0
    pair_coeff 1 1 0.01 4.4 7.0 6.0
+
+   pair_style nm/cut/split 1.12246
+   pair_coeff 1 1 1.0 1.1246 12 6
+   pair_coeff * * 1.0 1.1246 11 6
 
    pair_style nm/cut/coul/cut 12.0 15.0
    pair_coeff * * 0.01 5.4 8.0 7.0
@@ -73,6 +85,8 @@ interaction has the following form:
 
 where :math:`r_c` is the cutoff.
 
+Style *nm/cut/split* applies the standard LJ (6-12) potential abouve :math:`2^\frac{1}{6} \sigma`.
+ 
 Style *nm/cut/coul/cut* adds a Coulombic pairwise interaction given by
 
 .. math::
@@ -114,7 +128,7 @@ N-M and Coulombic cutoffs specified in the pair_style command are used.
 If only one cutoff is specified, it is used as the cutoff for both N-M
 and Coulombic interactions for this type pair.  If both coefficients
 are specified, they are used as the N-M and Coulombic cutoffs for this
-type pair.  You cannot specify 2 cutoffs for style *nm*, since it
+type pair.  You cannot specify 2 cutoffs for style *nm*\ , since it
 has no Coulombic terms.
 
 For *nm/cut/coul/long* only the N-M cutoff can be specified since a
@@ -147,7 +161,7 @@ to be specified in an input script that reads a restart file.
 
 All of the *nm* pair styles can only be used via the *pair* keyword of
 the :doc:`run_style respa <run_style>` command.  They do not support the
-*inner*, *middle*, *outer* keywords.
+*inner*\ , *middle*\ , *outer* keywords.
 
 ----------
 
@@ -156,9 +170,8 @@ the :doc:`run_style respa <run_style>` command.  They do not support the
 Restrictions
 """"""""""""
 
-These pair styles are part of the EXTRA-PAIR package.  They are only enabled if
-LAMMPS was built with that package.  See the
-:doc:`Build package <Build_package>` page for more info.
+These pair styles are part of the MISC package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands
 """"""""""""""""

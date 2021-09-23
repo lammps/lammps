@@ -1,4 +1,5 @@
 .. index:: bond_style fene
+.. index:: bond_style fene/nm/cut
 .. index:: bond_style fene/intel
 .. index:: bond_style fene/kk
 .. index:: bond_style fene/omp
@@ -8,13 +9,18 @@ bond_style fene command
 
 Accelerator Variants: *fene/intel*, *fene/kk*, *fene/omp*
 
+bond_style fene/nm/cut command
+==============================
+
+
 Syntax
 """"""
 
 .. code-block:: LAMMPS
 
    bond_style fene
-
+   bond_style fene/nm/cut
+   
 Examples
 """"""""
 
@@ -22,6 +28,9 @@ Examples
 
    bond_style fene
    bond_coeff 1 30.0 1.5 1.0 1.0
+
+   bond_style fene/nm/cut
+   bond_coeff 1 2.25344 1.5 1.0 1.12246 2 6
 
 Description
 """""""""""
@@ -34,10 +43,15 @@ The *fene* bond style uses the potential
 
 to define a finite extensible nonlinear elastic (FENE) potential
 :ref:`(Kremer) <fene-Kremer>`, used for bead-spring polymer models.  The first
-term is attractive, the second Lennard-Jones term is repulsive.  The
+term is attractive, the second Lennard-Jones (LJ)  term is repulsive.  The
 first term extends to :math:`R_0`, the maximum extent of the bond.  The second
 term is cutoff at :math:`2^\frac{1}{6} \sigma`, the minimum of the LJ potential.
 
+The *fene/nm/cut* bond style substitutes the standard LJ potential with the generalized LJ potential. The bond energy is then given by 
+.. math:: 
+
+  E = -0.5 K R_0^2  \ln \left[ 1 - \left(\frac{r}{R_0}\right)^2\right] + \frac{\epsilon}{(n-m)} \left[ m \left(\frac{r_0}{r}\right)^n - n \left(\frac{r_0}{r}\right)^m \right]
+ 
 The following coefficients must be defined for each bond type via the
 :doc:`bond_coeff <bond_coeff>` command as in the example above, or in
 the data file or restart files read by the :doc:`read_data <read_data>`
@@ -47,6 +61,11 @@ or :doc:`read_restart <read_restart>` commands:
 * :math:`R_0` (distance)
 * :math:`\epsilon` (energy)
 * :math:`\sigma` (distance)
+
+For the *fene/nm/cut* style, the following additional coefficients are needed. Note, the standard LJ potential is recovered for (n=12 m=6). 
+
+* :math:`\n` (unitless)
+* :math:`\m` (unitless)
 
 ----------
 
@@ -58,7 +77,7 @@ Restrictions
 """"""""""""
 
 This bond style can only be used if LAMMPS was built with the MOLECULE
-package.  See the :doc:`Build package <Build_package>` page for more
+package.  See the :doc:`Build package <Build_package>` doc page for more
 info.
 
 You typically should specify :doc:`special_bonds fene <special_bonds>`

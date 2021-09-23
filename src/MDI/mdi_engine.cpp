@@ -1337,6 +1337,8 @@ void MDIEngine::infile()
 
 void MDIEngine::evaluate()
 {
+  // NOTE: ago is not a good test
+
   if (neighbor->ago < 0) {
 
     update->whichflag = 1;
@@ -1355,10 +1357,14 @@ void MDIEngine::evaluate()
     if (nflag == 0) {
       comm->forward_comm();
       update->integrate->setup_minimal(0);
+      modify->clearstep_compute();
       output->thermo->compute(1);
+      modify->addstep_compute(update->ntimestep+1);
     } else {
       update->integrate->setup_minimal(1);
+      modify->clearstep_compute();
       output->thermo->compute(1);
+      modify->addstep_compute(update->ntimestep+1);
     }
   }
 }

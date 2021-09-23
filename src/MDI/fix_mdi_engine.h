@@ -32,6 +32,7 @@ class FixMDIEngine : public Fix {
   ~FixMDIEngine() {}
   int setmask();
   void init() {}
+  void setup(int);
   void post_integrate();
   void min_pre_force(int);
   void post_force(int);

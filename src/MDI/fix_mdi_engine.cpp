@@ -20,6 +20,8 @@
 #include "fix_mdi_engine.h"
 #include "mdi_engine.h"
 
+#include "update.h"
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
@@ -42,6 +44,13 @@ int FixMDIEngine::setmask()
   mask |= MIN_POST_FORCE;
   mask |= END_OF_STEP;
   return mask;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixMDIEngine::setup(int vflag)
+{
+  mdi_engine->engine_node("@FORCES");
 }
 
 /* ---------------------------------------------------------------------- */

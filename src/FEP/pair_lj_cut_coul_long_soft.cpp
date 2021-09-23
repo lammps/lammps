@@ -178,8 +178,7 @@ void PairLJCutCoulLongSoft::compute(int eflag, int vflag)
           } else evdwl = 0.0;
         }
 
-        if (evflag) ev_tally(i,j,nlocal,newton_pair,
-                             evdwl,ecoul,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,ecoul,fpair,delx,dely,delz);
       }
     }
   }

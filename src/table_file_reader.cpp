@@ -19,7 +19,6 @@
 #include "table_file_reader.h"
 
 #include "text_file_reader.h"
-#include "tokenizer.h"
 
 using namespace LAMMPS_NS;
 

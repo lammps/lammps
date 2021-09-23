@@ -397,8 +397,7 @@ void PairLJClass2::compute_outer(int eflag, int vflag)
             fpair = factor_lj*forcelj*r2inv;
         }
 
-        if (evflag) ev_tally(i,j,nlocal,newton_pair,
-                             evdwl,0.0,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }

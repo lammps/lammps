@@ -34,7 +34,6 @@
 #include "pair.h"
 #include "respa.h"
 #include "text_file_reader.h"
-#include "tokenizer.h"
 #include "update.h"
 
 #include "pair_reaxff.h"
@@ -42,6 +41,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <exception>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

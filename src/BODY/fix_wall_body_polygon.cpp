@@ -337,8 +337,7 @@ void FixWallBodyPolygon::post_force(int /*vflag*/)
 
       num_contacts = 0;
       facc[0] = facc[1] = facc[2] = 0;
-      vertex_against_wall(i, wall_pos, x, f, torque, side,
-                          contact_list, num_contacts, facc);
+      vertex_against_wall(i, wall_pos, x, f, torque, side, contact_list, num_contacts, facc);
 
       if (num_contacts >= 2) {
 

@@ -39,7 +39,6 @@
 #include <cstring>
 #include <map>
 #include <utility>
-#include <vector>
 
 using namespace LAMMPS_NS;
 

@@ -14,7 +14,6 @@
 #include "atom_vec_oxdna.h"
 
 #include "atom.h"
-#include "comm.h"
 #include "error.h"
 #include "force.h"
 

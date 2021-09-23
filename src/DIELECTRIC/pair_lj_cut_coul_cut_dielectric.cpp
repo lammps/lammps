@@ -19,7 +19,6 @@
 
 #include "atom.h"
 #include "atom_vec_dielectric.h"
-#include "comm.h"
 #include "error.h"
 #include "force.h"
 #include "math_const.h"

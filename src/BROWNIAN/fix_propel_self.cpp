@@ -23,14 +23,11 @@
 
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
-#include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "force.h"
 #include "math_extra.h"
-#include "memory.h"
-#include "update.h"
 
+#include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;

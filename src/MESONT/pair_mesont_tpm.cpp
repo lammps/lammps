@@ -27,12 +27,10 @@
 #include "neigh_request.h"
 
 #include <cstring>
-#include <vector>
 #include <cmath>
 #include <array>
 
 #include <fstream>
-#include <sstream>
 #include <algorithm>
 
 using namespace LAMMPS_NS;
@@ -354,14 +352,11 @@ void PairMESONTTPM::compute(int eflag, int vflag) {
     int i = list->ilist[ii];
     if (Lmax < l[i]) Lmax = l[i];
   }
-  double Rcut_min = std::max(2.0*Lmax, std::sqrt(0.5*Lmax*Lmax +
-   std::pow((2.0*RT + TPBRcutoff),2)));
+  double Rcut_min = std::max(2.0*Lmax, std::sqrt(0.5*Lmax*Lmax + std::pow((2.0*RT + TPBRcutoff),2)));
   if (cut_global < Rcut_min) {
-    std::stringstream err;
-    err << "The selected cutoff is too small for the current system : " <<
-     "L_max = " << Lmax << ", R_max = " << RT << ", Rc = " << cut_global <<
-     ", Rcut_min = " << Rcut_min;
-    error->all(FLERR, err.str().c_str());
+    error->all(FLERR, "The selected cutoff is too small for the current system : "
+               "L_max = {:.8}, R_max = {:.8}, Rc = {:.8}, Rcut_min = {:.8}",
+               Lmax, RT, cut_global, Rcut_min);
   }
 
   //generate bonds and chain nblist
@@ -494,14 +489,11 @@ void PairMESONTTPM::compute(int eflag, int vflag) {
   }
 
   //check if cutoff is chosen correctly
-  Rcut_min = std::max(2.0*Lmax, std::sqrt(0.5*Lmax*Lmax +
-   std::pow((2.0*Rmax + TPBRcutoff),2)));
+  Rcut_min = std::max(2.0*Lmax, std::sqrt(0.5*Lmax*Lmax + std::pow((2.0*Rmax + TPBRcutoff),2)));
   if (cut_global < Rcut_min) {
-    std::stringstream err;
-    err << "The selected cutoff is too small for the current system : " <<
-     "L_max = " << Lmax << ", R_max = " << RT << ", Rc = " << cut_global <<
-     ", Rcut_min = " << Rcut_min;
-    error->all(FLERR, err.str().c_str());
+    error->all(FLERR, "The selected cutoff is too small for the current system : "
+               "L_max = {:.8}, R_max = {:.8}, Rc = {:.8}, Rcut_min = {:.8}",
+               Lmax, RT, cut_global, Rcut_min);
   }
 
   //convert from sorted representation

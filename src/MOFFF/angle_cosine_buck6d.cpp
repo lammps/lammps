@@ -68,7 +68,7 @@ void AngleCosineBuck6d::compute(int eflag, int vflag)
   double term1,term2,term3,term4,term5,ebuck6d,evdwl;
   double rcu,rqu,sme,smf;
 
-  eangle = evdwl = 0.0;
+  eangle = 0.0;
   ev_init(eflag,vflag);
 
   // insure pair->ev_tally() will use 1-3 virial contribution
@@ -340,7 +340,7 @@ void AngleCosineBuck6d::read_restart(FILE *fp)
 
   MPI_Bcast(&k[1],atom->nangletypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&multiplicity[1],atom->nangletypes,MPI_INT,0,world);
-  MPI_Bcast(&th0[1],atom->nangletypes,MPI_INT,0,world);
+  MPI_Bcast(&th0[1],atom->nangletypes,MPI_DOUBLE,0,world);
   for (int i = 1; i <= atom->nangletypes; i++) setflag[i] = 1;
 }
 

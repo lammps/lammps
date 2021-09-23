@@ -8,9 +8,8 @@ fix brownian command
 fix brownian/sphere command
 ===========================
 
-fix brownian/sphere command
-===========================
-
+fix brownian/asphere command
+============================
 
 Syntax
 """"""

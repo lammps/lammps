@@ -33,7 +33,6 @@
 #include "group.h"
 #include "kspace.h"
 #include "math_const.h"
-#include "memory.h"
 #include "msm_dielectric.h"
 #include "pair_coul_cut_dielectric.h"
 #include "pair_coul_long_dielectric.h"

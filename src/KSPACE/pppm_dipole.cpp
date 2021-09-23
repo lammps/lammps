@@ -88,8 +88,8 @@ PPPMDipole::~PPPMDipole()
 {
   if (copymode) return;
 
-  deallocate();
-  if (peratom_allocate_flag) deallocate_peratom();
+  PPPMDipole::deallocate();
+  if (peratom_allocate_flag) PPPMDipole::deallocate_peratom();
 }
 
 /* ----------------------------------------------------------------------

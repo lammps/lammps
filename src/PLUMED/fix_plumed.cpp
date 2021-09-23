@@ -176,11 +176,7 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
       if (universe->existflag == 1) {
         // Each replica writes an independent log file
         //  with suffix equal to the replica id
-        char str_num[32], logFile[1024];
-        sprintf(str_num,".%d",universe->iworld);
-        strncpy(logFile,arg[i],1024-32);
-        strcat(logFile,str_num);
-        p->cmd("setLogFile",logFile);
+        p->cmd("setLogFile",fmt::format("{}.{}",arg[i],universe->iworld).c_str());
         next=0;
       } else {
         // partition option not used

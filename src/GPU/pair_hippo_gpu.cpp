@@ -121,6 +121,9 @@ double hippo_gpu_bytes();
 
 PairHippoGPU::PairHippoGPU(LAMMPS *lmp) : PairAmoeba(lmp), gpu_mode(GPU_FORCE)
 {
+  amoeba = 0;
+  hippo = 1;
+
   respa_enable = 0;
   reinitflag = 0;
   cpu_time = 0.0;
@@ -131,9 +134,9 @@ PairHippoGPU::PairHippoGPU(LAMMPS *lmp) : PairAmoeba(lmp), gpu_mode(GPU_FORCE)
   gpu_hal_ready = false;               // always false for HIPPO
   gpu_repulsion_ready = false;         // true for HIPPO when ready
   gpu_dispersion_real_ready = false;   // true for HIPPO when ready
-  gpu_multipole_real_ready = true;
-  gpu_udirect2b_ready = true;
-  gpu_umutual2b_ready = true;
+  gpu_multipole_real_ready = false;
+  gpu_udirect2b_ready = false;
+  gpu_umutual2b_ready = false;
   gpu_polar_real_ready = true;
 
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);

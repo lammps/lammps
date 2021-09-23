@@ -13,25 +13,25 @@
 
 #ifdef COMMAND_CLASS
 // clang-format off
-CommandStyle(mdi/engine, MDIEngine);
+CommandStyle(mdi/engine, MDIEngineOld);
 // clang-format on
 #else
 
-#ifndef LMP_MDI_ENGINE_H
-#define LMP_MDI_ENGINE_H
+#ifndef LMP_MDI_ENGINE_OLD_H
+#define LMP_MDI_ENGINE_OLD_H
 
 #include "command.h"
 
 namespace LAMMPS_NS {
 
-class MDIEngine : public Command {
+class MDIEngineOld : public Command {
  public:
-  MDIEngine(LAMMPS *lmp) : Command(lmp) {}
-  virtual ~MDIEngine() {}
+  MDIEngineOld(LAMMPS *lmp) : Command(lmp) {}
+  virtual ~MDIEngineOld() {}
   void command(int, char **);
 
  private:
-  class FixMDIEngine *mdi_fix;
+  class FixMDIEngineOld *mdi_fix;
 
   char *mdi_md();
   char *mdi_optg();

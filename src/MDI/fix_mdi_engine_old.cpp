@@ -16,7 +16,7 @@
    MolSSI Driver Interface (MDI) support for LAMMPS
 ------------------------------------------------------------------------- */
 
-#include "fix_mdi_engine.h"
+#include "fix_mdi_engine_old.h"
 #include "library_mdi.h"
 
 #include "atom.h"
@@ -42,7 +42,7 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixMDIEngine::FixMDIEngine(LAMMPS *lmp, int narg, char **arg) :
+FixMDIEngineOld::FixMDIEngineOld(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), id_pe(nullptr), id_ke(nullptr), pe(nullptr), ke(nullptr)
 {
   if (narg != 3) error->all(FLERR, "Illegal fix mdi command");
@@ -96,7 +96,7 @@ FixMDIEngine::FixMDIEngine(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-FixMDIEngine::~FixMDIEngine()
+FixMDIEngineOld::~FixMDIEngineOld()
 {
   delete[] target_command;
   delete[] command;
@@ -111,7 +111,7 @@ FixMDIEngine::~FixMDIEngine()
 
 /* ---------------------------------------------------------------------- */
 
-int FixMDIEngine::setmask()
+int FixMDIEngineOld::setmask()
 {
   int mask = 0;
 
@@ -125,7 +125,7 @@ int FixMDIEngine::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::exchange_forces()
+void FixMDIEngineOld::exchange_forces()
 {
   double **f = atom->f;
   const int *const mask = atom->mask;
@@ -144,7 +144,7 @@ void FixMDIEngine::exchange_forces()
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::init()
+void FixMDIEngineOld::init()
 {
   // confirm that two required computes are still available
 
@@ -167,35 +167,35 @@ void FixMDIEngine::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::min_setup(int /* vflag */)
+void FixMDIEngineOld::min_setup(int /* vflag */)
 {
   engine_mode("@FORCES");
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::post_integrate()
+void FixMDIEngineOld::post_integrate()
 {
   engine_mode("@COORDS");
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::min_pre_force(int /* vflag */)
+void FixMDIEngineOld::min_pre_force(int /* vflag */)
 {
   engine_mode("@COORDS");
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::min_post_force(int /* vflag */)
+void FixMDIEngineOld::min_post_force(int /* vflag */)
 {
   engine_mode("@FORCES");
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::post_force(int /* vflag */)
+void FixMDIEngineOld::post_force(int /* vflag */)
 {
   if (most_recent_init == 1)
     engine_mode("@FORCES");
@@ -213,7 +213,7 @@ void FixMDIEngine::post_force(int /* vflag */)
    process a single command from driver
 ---------------------------------------------------------------------- */
 
-int FixMDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
+int FixMDIEngineOld::execute_command(const char *command, MDI_Comm mdicomm)
 {
   // confirm this command is supported at this node
 
@@ -369,7 +369,7 @@ int FixMDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
 
 /* ---------------------------------------------------------------------- */
 
-char *FixMDIEngine::engine_mode(const char *node)
+char *FixMDIEngineOld::engine_mode(const char *node)
 {
   /*
   if (screen)
@@ -426,7 +426,7 @@ char *FixMDIEngine::engine_mode(const char *node)
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::receive_coordinates(Error *error)
+void FixMDIEngineOld::receive_coordinates(Error *error)
 {
   // get conversion factor to atomic units
   double posconv;
@@ -484,7 +484,7 @@ void FixMDIEngine::receive_coordinates(Error *error)
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::send_coordinates(Error *error)
+void FixMDIEngineOld::send_coordinates(Error *error)
 {
   // get conversion factor to atomic units
   double posconv;
@@ -529,7 +529,7 @@ void FixMDIEngine::send_coordinates(Error *error)
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::send_charges(Error *error)
+void FixMDIEngineOld::send_charges(Error *error)
 {
   double *charges;
   double *charges_reduced;
@@ -558,7 +558,7 @@ void FixMDIEngine::send_charges(Error *error)
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::send_energy(Error *error)
+void FixMDIEngineOld::send_energy(Error *error)
 {
   // get conversion factor to atomic units
   double energy_conv = 1.0;
@@ -591,7 +591,7 @@ void FixMDIEngine::send_energy(Error *error)
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::send_pe(Error *error)
+void FixMDIEngineOld::send_pe(Error *error)
 {
   // get conversion factor to atomic units
   double energy_conv;
@@ -617,7 +617,7 @@ void FixMDIEngine::send_pe(Error *error)
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::send_ke(Error *error)
+void FixMDIEngineOld::send_ke(Error *error)
 {
   // get conversion factor to atomic units
   double energy_conv;
@@ -643,7 +643,7 @@ void FixMDIEngine::send_ke(Error *error)
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::send_types(Error *error)
+void FixMDIEngineOld::send_types(Error *error)
 {
   int *const type = atom->type;
 
@@ -653,7 +653,7 @@ void FixMDIEngine::send_types(Error *error)
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::send_labels(Error *error)
+void FixMDIEngineOld::send_labels(Error *error)
 {
   char *labels = new char[atom->natoms * MDI_LABEL_LENGTH];
   memset(labels, ' ', atom->natoms * MDI_LABEL_LENGTH);
@@ -672,7 +672,7 @@ void FixMDIEngine::send_labels(Error *error)
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::send_masses(Error *error)
+void FixMDIEngineOld::send_masses(Error *error)
 {
   double *const rmass = atom->rmass;
   double *const mass = atom->mass;
@@ -710,7 +710,7 @@ void FixMDIEngine::send_masses(Error *error)
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::send_forces(Error *error)
+void FixMDIEngineOld::send_forces(Error *error)
 {
   // get conversion factor to atomic units
   double force_conv;
@@ -798,7 +798,7 @@ void FixMDIEngine::send_forces(Error *error)
 //    mode = 0: replace current forces with forces from driver
 //    mode = 1: add forces from driver to current forces
 
-void FixMDIEngine::receive_forces(Error *error, int mode)
+void FixMDIEngineOld::receive_forces(Error *error, int mode)
 {
   // get conversion factor to atomic units
   double force_conv;
@@ -847,7 +847,7 @@ void FixMDIEngine::receive_forces(Error *error, int mode)
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::send_cell(Error *error)
+void FixMDIEngineOld::send_cell(Error *error)
 {
   double angstrom_to_bohr;
   MDI_Conversion_factor("angstrom", "bohr", &angstrom_to_bohr);
@@ -875,7 +875,7 @@ void FixMDIEngine::send_cell(Error *error)
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::receive_cell(Error *error)
+void FixMDIEngineOld::receive_cell(Error *error)
 {
   double celldata[9];
 
@@ -911,7 +911,7 @@ void FixMDIEngine::receive_cell(Error *error)
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::send_celldispl(Error *error)
+void FixMDIEngineOld::send_celldispl(Error *error)
 {
   double angstrom_to_bohr;
   MDI_Conversion_factor("angstrom", "bohr", &angstrom_to_bohr);
@@ -933,7 +933,7 @@ void FixMDIEngine::send_celldispl(Error *error)
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine::receive_celldispl(Error *error)
+void FixMDIEngineOld::receive_celldispl(Error *error)
 {
   // receive the cell displacement from the driver
   double celldata[3];

@@ -16,11 +16,11 @@
    MolSSI Driver Interface (MDI) support for LAMMPS
 ------------------------------------------------------------------------- */
 
-#include "mdi_engine.h"
+#include "mdi_engine_old.h"
 
 #include "atom.h"
 #include "error.h"
-#include "fix_mdi_engine.h"
+#include "fix_mdi_engine_old.h"
 #include "force.h"
 #include "mdi.h"
 #include "min.h"
@@ -43,7 +43,7 @@ using namespace LAMMPS_NS;
    when EXIT command is received, mdi/engine command exits
 ---------------------------------------------------------------------- */
 
-void MDIEngine::command(int narg, char ** /*arg*/)
+void MDIEngineOld::command(int narg, char ** /*arg*/)
 {
   // list of nodes and commands that a MDI-compliant MD code should support
 
@@ -178,17 +178,17 @@ void MDIEngine::command(int narg, char ** /*arg*/)
 
   // if the mdi/engine fix is not already present, add it now
 
-  int ifix = modify->find_fix_by_style("mdi/engine");
+  int ifix = modify->find_fix_by_style("mdi/engine/old");
   bool added_mdi_engine_fix = false;
   if (ifix < 0) {
-    modify->add_fix("MDI_ENGINE_INTERNAL all mdi/engine");
+    modify->add_fix("MDI_ENGINE_INTERNAL all mdi/engine/old");
     added_mdi_engine_fix = true;
   }
 
   // identify the mdi_engine fix
 
-  ifix = modify->find_fix_by_style("mdi/engine");
-  mdi_fix = static_cast<FixMDIEngine *>(modify->fix[ifix]);
+  ifix = modify->find_fix_by_style("mdi/engine/old");
+  mdi_fix = static_cast<FixMDIEngineOld *>(modify->fix[ifix]);
 
   // check that LAMMPS is setup as a compatible MDI engine
 
@@ -235,7 +235,7 @@ void MDIEngine::command(int narg, char ** /*arg*/)
    run an MD simulation under control of driver
 ---------------------------------------------------------------------- */
 
-char *MDIEngine::mdi_md()
+char *MDIEngineOld::mdi_md()
 {
   // initialize an MD simulation
 
@@ -293,7 +293,7 @@ char *MDIEngine::mdi_md()
    perform minimization under control of driver
 ---------------------------------------------------------------------- */
 
-char *MDIEngine::mdi_optg()
+char *MDIEngineOld::mdi_optg()
 {
 
   // setup the minimizer in a way that ensures optimization

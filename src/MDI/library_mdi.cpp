@@ -23,7 +23,7 @@
 #define LAMMPS_LIB_MPI 1
 #include "library.h"
 
-#include "fix_mdi_engine.h"
+#include "fix_mdi_engine_old.h"
 
 #include <cstring>
 
@@ -122,9 +122,9 @@ The function executes a single command from an external MDI driver.
 
 int lammps_execute_mdi_command(const char *command, MDI_Comm comm, void *class_obj)
 {
-  FixMDIEngine *mdi_fix = (FixMDIEngine *) class_obj;
+  FixMDIEngineOld *mdi_fix = (FixMDIEngineOld *) class_obj;
   return mdi_fix->execute_command(command, comm);
 
-  // MDIEngine2 *mdi_engine = (MDIEngine2 *) class_obj;
-  // return mdi_engine->execute_command(command, comm);
+  //MDIEngine2 *mdi_engine = (MDIEngine2 *) class_obj;
+  //return mdi_engine->execute_command(command, comm);
 }

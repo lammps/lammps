@@ -4,27 +4,27 @@ Citing LAMMPS
 Core Algorithms
 ^^^^^^^^^^^^^^^
 
-Since LAMMPS is a community project there is not one single publication
-or reference that describes **all** of LAMMPS.  There are publications
-describing the core of LAMMPS, but then also publications describing the
-algorithms and methods it implements or the software that it has
-interfaces to.  Please see below for how to cite contributions to
-LAMMPS.
+The paper mentioned below is the best overview of LAMMPS, but there are
+also publications describing particular models or algorithms implemented
+in LAMMPS or complementary software that is has interfaces to.  Please
+see below for how to cite contributions to LAMMPS.
 
 .. _lammps_paper:
 
-The canonical publication that describes the basic features, the source
-code design, the program structure, the spatial decomposition approach,
-the neighbor finding, basic communications algorithms, and how users and
-developers have contributed to LAMMPS is:
+The latest canonical publication that describes the basic features, the
+source code design, the program structure, the spatial decomposition
+approach, the neighbor finding, basic communications algorithms, and how
+users and developers have contributed to LAMMPS is:
 
   `LAMMPS - A flexible simulation tool for particle-based materials modeling at the atomic, meso, and continuum scales, Comp. Phys. Comm. (accepted 09/2021), DOI:10.1016/j.cpc.2021.108171 <https://doi.org/10.1016/j.cpc.2021.108171>`_
 
-So any project using LAMMPS or a derivative application that uses LAMMPS
+So a project using LAMMPS or a derivative application that uses LAMMPS
 as a simulation engine should cite this paper.  The paper is expected to
-be published in its final form under the same DOI in the first half of 2022.
+be published in its final form under the same DOI in the first half
+of 2022.
 
-The original publication describing LAMMPS in its early implementations is:
+The original publication describing the parallel algorithms used in the
+initial versions of LAMMPS is:
 
   `S. Plimpton, Fast Parallel Algorithms for Short-Range Molecular Dynamics, J Comp Phys, 117, 1-19 (1995). <http://www.sandia.gov/~sjplimp/papers/jcompphys95.pdf>`_
 

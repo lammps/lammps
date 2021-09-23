@@ -17,15 +17,15 @@
 ------------------------------------------------------------------------- */
 
 #include "error.h"
-#include "fix_mdi_engine2.h"
-#include "mdi_engine2.h"
+#include "fix_mdi_engine.h"
+#include "mdi_engine.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixMDIEngine2::FixMDIEngine2(LAMMPS *lmp, int narg, char **arg) :
+FixMDIEngine::FixMDIEngine(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg)
 {
   if (narg != 3) error->all(FLERR, "Illegal fix mdi/engine command");
@@ -33,7 +33,7 @@ FixMDIEngine2::FixMDIEngine2(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-int FixMDIEngine2::setmask()
+int FixMDIEngine::setmask()
 {
   int mask = 0;
   mask |= POST_INTEGRATE;
@@ -46,35 +46,35 @@ int FixMDIEngine2::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine2::post_integrate()
+void FixMDIEngine::post_integrate()
 {
   mdi_engine->engine_node("@COORDS");
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine2::min_pre_force(int vflag)
+void FixMDIEngine::min_pre_force(int vflag)
 {
   mdi_engine->engine_node("@COORDS");
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine2::post_force(int vflag)
+void FixMDIEngine::post_force(int vflag)
 {
   mdi_engine->engine_node("@FORCES");
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine2::min_post_force(int vflag)
+void FixMDIEngine::min_post_force(int vflag)
 {
   mdi_engine->engine_node("@FORCES");
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixMDIEngine2::end_of_step()
+void FixMDIEngine::end_of_step()
 {
   mdi_engine->engine_node("@ENDSTEP");
 }

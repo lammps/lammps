@@ -13,22 +13,22 @@
 
 #ifdef COMMAND_CLASS
 // clang-format off
-CommandStyle(mdi,MDIEngine2);
+CommandStyle(mdi,MDIEngine);
 // clang-format on
 #else
 
-#ifndef LMP_MDI_ENGINE2_H
-#define LMP_MDI_ENGINE2_H
+#ifndef LMP_MDI_ENGINE_H
+#define LMP_MDI_ENGINE_H
 
 #include "command.h"
 #include "mdi.h"
 
 namespace LAMMPS_NS {
 
-class MDIEngine2 : public Command {
+class MDIEngine : public Command {
  public:
-  MDIEngine2(LAMMPS *lmp) : Command(lmp) {}
-  virtual ~MDIEngine2() {}
+  MDIEngine(LAMMPS *lmp) : Command(lmp) {}
+  virtual ~MDIEngine() {}
   void command(int, char **);
 
   int execute_command(const char *command, MDI_Comm mdicomm);
@@ -48,7 +48,7 @@ class MDIEngine2 : public Command {
   bool exit_command;     // true if EXIT command received from driver
 
   MDI_Comm mdicomm;
-  class FixMDIEngine2 *mdi_fix;
+  class FixMDIEngine *mdi_fix;
 
   char *id_ke,*id_pe,*id_press;
   class Irregular *irregular;

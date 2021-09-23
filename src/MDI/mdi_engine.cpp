@@ -16,7 +16,7 @@
    MolSSI Driver Interface (MDI) support for LAMMPS
 ------------------------------------------------------------------------- */
 
-#include "mdi_engine2.h"
+#include "mdi_engine.h"
 
 #include <limits>
 #include <cstring>
@@ -25,7 +25,7 @@
 #include "compute.h"
 #include "domain.h"
 #include "error.h"
-#include "fix_mdi_engine2.h"
+#include "fix_mdi_engine.h"
 #include "force.h"
 #include "group.h"
 #include "input.h"
@@ -62,7 +62,7 @@ enum{CREATE_ATOM,CREATE_ID,CREATE_TYPE,CREATE_X,CREATE_V,CREATE_IMAGE,CREATE_GO}
    NOTE: may later have other MDI command variants?
 ---------------------------------------------------------------------- */
 
-void MDIEngine2::command(int narg, char **arg)
+void MDIEngine::command(int narg, char **arg)
 {
   if (narg < 1) error->all(FLERR,"Illegal mdi command");
 
@@ -79,7 +79,7 @@ void MDIEngine2::command(int narg, char **arg)
    when EXIT command is received, mdi engine command exits
 ---------------------------------------------------------------------- */
 
-void MDIEngine2::mdi_engine(int narg, char **arg)
+void MDIEngine::mdi_engine(int narg, char **arg)
 {
   if (narg > 0) error->all(FLERR,"Illegal mdi engine command");
 
@@ -221,7 +221,7 @@ void MDIEngine2::mdi_engine(int narg, char **arg)
    return when not the case or EXIT command received
 ---------------------------------------------------------------------- */
 
-void MDIEngine2::engine_node(const char *node)
+void MDIEngine::engine_node(const char *node)
 {
   int ierr;
 
@@ -268,7 +268,7 @@ void MDIEngine2::engine_node(const char *node)
      when LAMMPS is running as a plugin
 ---------------------------------------------------------------------- */
 
-int MDIEngine2::execute_command(const char *command, MDI_Comm mdicomm)
+int MDIEngine::execute_command(const char *command, MDI_Comm mdicomm)
 {
   int ierr;
 
@@ -479,7 +479,7 @@ int MDIEngine2::execute_command(const char *command, MDI_Comm mdicomm)
    standard MDI commands and custom LAMMPS commands
 ---------------------------------------------------------------------- */
 
-void MDIEngine2::mdi_commands()
+void MDIEngine::mdi_commands()
 {
   // ------------------------------------
   // commands and nodes that an MDI-compliant MD code supports
@@ -661,7 +661,7 @@ void MDIEngine2::mdi_commands()
    run  MD simulation under control of driver one step at a time
 ---------------------------------------------------------------------- */
 
-void MDIEngine2::mdi_md()
+void MDIEngine::mdi_md()
 {
   //int ifix = modify->find_fix_by_style("mdi/engine2");
   //bool added_mdi_engine_fix = false;
@@ -672,9 +672,9 @@ void MDIEngine2::mdi_md()
   // remove mdi/engine fix this method instantiated
   //modify->delete_fix("MDI_ENGINE_INTERNAL");
 
-  modify->add_fix("MDI_ENGINE_INTERNAL all mdi/engine2");
-  int ifix = modify->find_fix_by_style("mdi/engine2");
-  mdi_fix = static_cast<FixMDIEngine2 *>(modify->fix[ifix]);
+  modify->add_fix("MDI_ENGINE_INTERNAL all mdi/engine");
+  int ifix = modify->find_fix_by_style("mdi/engine");
+  mdi_fix = static_cast<FixMDIEngine *>(modify->fix[ifix]);
   mdi_fix->mdi_engine = this;
 
   // initialize a new MD simulation
@@ -726,7 +726,7 @@ void MDIEngine2::mdi_md()
    perform minimization under control of driver
 ---------------------------------------------------------------------- */
 
-void MDIEngine2::mdi_optg()
+void MDIEngine::mdi_optg()
 {
   // initialize an energy minization
 
@@ -787,7 +787,7 @@ void MDIEngine2::mdi_optg()
    assumes all atoms already exist
 ---------------------------------------------------------------------- */
 
-void MDIEngine2::receive_double1(int which)
+void MDIEngine::receive_double1(int which)
 {
   reallocate();
 
@@ -819,7 +819,7 @@ void MDIEngine2::receive_double1(int which)
    assumes all atoms already exist
 ---------------------------------------------------------------------- */
 
-void MDIEngine2::receive_int1(int which)
+void MDIEngine::receive_int1(int which)
 {
   reallocate();
 
@@ -852,7 +852,7 @@ void MDIEngine2::receive_int1(int which)
    for which = COORD, assumes atom displacement is small
 ---------------------------------------------------------------------- */
 
-void MDIEngine2::receive_double3(int which, int addflag)
+void MDIEngine::receive_double3(int which, int addflag)
 {
   reallocate();
 
@@ -924,7 +924,7 @@ void MDIEngine2::receive_double3(int which, int addflag)
    atoms are ordered by atomID, 1 to Natoms
 ---------------------------------------------------------------------- */
 
-void MDIEngine2::send_double1(int which)
+void MDIEngine::send_double1(int which)
 {
   reallocate();
   memset(buf1,0,atom->natoms*sizeof(double));
@@ -971,7 +971,7 @@ void MDIEngine2::send_double1(int which)
    atoms are ordered by atomID, 1 to Natoms
 ---------------------------------------------------------------------- */
 
-void MDIEngine2::send_int1(int which)
+void MDIEngine::send_int1(int which)
 {
   reallocate();
   memset(ibuf1,0,atom->natoms*sizeof(int));
@@ -1003,7 +1003,7 @@ void MDIEngine2::send_int1(int which)
    atoms are ordered by atomID, 1 to Natoms
 ---------------------------------------------------------------------- */
 
-void MDIEngine2::send_double3(int which)
+void MDIEngine::send_double3(int which)
 {
   reallocate();
   memset(buf3,0,3*atom->natoms*sizeof(double));
@@ -1045,7 +1045,7 @@ void MDIEngine2::send_double3(int which)
    atoms are ordered by atomID, 1 to Natoms
 ---------------------------------------------------------------------- */
 
-void MDIEngine2::send_labels()
+void MDIEngine::send_labels()
 {
   char *labels = new char[atom->natoms * MDI_LABEL_LENGTH];
   memset(labels,' ',atom->natoms * MDI_LABEL_LENGTH);
@@ -1069,7 +1069,7 @@ void MDIEngine2::send_labels()
    send total energy = PE + KE
 ---------------------------------------------------------------------- */
 
-void MDIEngine2::send_total_energy()
+void MDIEngine::send_total_energy()
 {
   double potential_energy = pe->compute_scalar();
   double kinetic_energy = ke->compute_scalar();
@@ -1085,7 +1085,7 @@ void MDIEngine2::send_total_energy()
    send potential energy
 ---------------------------------------------------------------------- */
 
-void MDIEngine2::send_pe()
+void MDIEngine::send_pe()
 {
   double potential_energy = pe->compute_scalar();
   potential_energy *= lmp2mdi_energy;
@@ -1099,7 +1099,7 @@ void MDIEngine2::send_pe()
    send kinetic energy
 ---------------------------------------------------------------------- */
 
-void MDIEngine2::send_ke()
+void MDIEngine::send_ke()
 {
   double kinetic_energy = ke->compute_scalar();
   kinetic_energy *= lmp2mdi_energy;
@@ -1113,7 +1113,7 @@ void MDIEngine2::send_ke()
    send simulation box edge vectors
 ---------------------------------------------------------------------- */
 
-void MDIEngine2::send_cell()
+void MDIEngine::send_cell()
 {
   double celldata[9];
 
@@ -1140,7 +1140,7 @@ void MDIEngine2::send_cell()
    in conjunction with >CELL_DISPL this can adjust box arbitrarily
 ---------------------------------------------------------------------- */
 
-void MDIEngine2::receive_cell()
+void MDIEngine::receive_cell()
 {
   double celldata[9];
 
@@ -1183,7 +1183,7 @@ void MDIEngine2::receive_cell()
    send simulation box origin = lower-left corner
 ---------------------------------------------------------------------- */
 
-void MDIEngine2::send_celldispl()
+void MDIEngine::send_celldispl()
 {
   double celldata[3];
 
@@ -1203,7 +1203,7 @@ void MDIEngine2::send_celldispl()
    reset simulation box origin = lower-left corner
 ---------------------------------------------------------------------- */
 
-void MDIEngine2::receive_celldispl()
+void MDIEngine::receive_celldispl()
 {
   double celldata[3];
   int ierr = MDI_Recv(celldata,3,MDI_DOUBLE,mdicomm);
@@ -1253,7 +1253,7 @@ void MDIEngine2::receive_celldispl()
    for use by a subsequent command, e.g. ones that send strings
 ---------------------------------------------------------------------- */
 
-void MDIEngine2::nbytes_command()
+void MDIEngine::nbytes_command()
 {
   int ierr = MDI_Recv(&nbytes,1,MDI_INT,mdicomm);
   if (ierr) error->all(FLERR,"MDI: NBYTES data");
@@ -1266,7 +1266,7 @@ void MDIEngine2::nbytes_command()
    invoke as a LAMMPS command
 ---------------------------------------------------------------------- */
 
-void MDIEngine2::single_command()
+void MDIEngine::single_command()
 {
   if (nbytes < 0) error->all(FLERR,"MDI: COMMAND nbytes has not been set");
 
@@ -1287,7 +1287,7 @@ void MDIEngine2::single_command()
    invoke as multiple LAMMPS commands
 ---------------------------------------------------------------------- */
 
-void MDIEngine2::many_commands()
+void MDIEngine::many_commands()
 {
   if (nbytes < 0) error->all(FLERR,"MDI: COMMANDS nbytes has not been set");
 
@@ -1308,7 +1308,7 @@ void MDIEngine2::many_commands()
    invoke as a LAMMPS input script
 ---------------------------------------------------------------------- */
 
-void MDIEngine2::infile()
+void MDIEngine::infile()
 {
   if (nbytes < 0) error->all(FLERR,"MDI: INFILE nbytes has not been set");
 
@@ -1335,7 +1335,7 @@ void MDIEngine2::infile()
    this method does NOT increment timestep
 ---------------------------------------------------------------------- */
 
-void MDIEngine2::evaluate()
+void MDIEngine::evaluate()
 {
   if (neighbor->ago < 0) {
 
@@ -1371,7 +1371,7 @@ void MDIEngine2::evaluate()
    allows caller to define a new simulation box
 ---------------------------------------------------------------------- */
 
-void MDIEngine2::reset_box()
+void MDIEngine::reset_box()
 {
   int ierr;
   double values[9];
@@ -1396,7 +1396,7 @@ void MDIEngine2::reset_box()
    assumes current atom->natoms set by >NATOMS command is correct
 ---------------------------------------------------------------------- */
 
-void MDIEngine2::create_atoms(int flag)
+void MDIEngine::create_atoms(int flag)
 {
   int ierr;
 
@@ -1497,7 +1497,7 @@ void MDIEngine2::create_atoms(int flag)
    send scalar pressure value
 ---------------------------------------------------------------------- */
 
-void MDIEngine2::send_pressure()
+void MDIEngine::send_pressure()
 {
   double pressure = press->compute_scalar();
   pressure *= lmp2mdi_pressure;
@@ -1511,7 +1511,7 @@ void MDIEngine2::send_pressure()
    send 6-component pressure tensor
 ---------------------------------------------------------------------- */
 
-void MDIEngine2::send_ptensor()
+void MDIEngine::send_ptensor()
 {
   double ptensor[6];
   press->compute_vector();
@@ -1532,7 +1532,7 @@ void MDIEngine2::send_ptensor()
    reallocate storage for all atoms if necessary
 ------------------------------------------------------------------------- */
 
-void MDIEngine2::reallocate()
+void MDIEngine::reallocate()
 {
   if (atom->natoms <= maxbuf) return;
 
@@ -1562,7 +1562,7 @@ void MDIEngine2::reallocate()
    MDI to/from LAMMPS conversion factors
 ------------------------------------------------------------------------- */
 
-void MDIEngine2::unit_conversions()
+void MDIEngine::unit_conversions()
 {
   double angstrom_to_bohr,kelvin_to_hartree,ev_to_hartree;
 

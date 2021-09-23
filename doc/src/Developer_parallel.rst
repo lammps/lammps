@@ -12,6 +12,12 @@ most of the following illustrations show the 2d simulation case. The
 underlying algorithms in those cases, however, apply to both 2d and 3d
 cases equally well.
 
+.. note::
+
+   The text and most of the figures in this chapter were adapted
+   for the manual from the section on parallel algorithms in the
+   :ref:`new LAMMPS paper <lammps_paper>`.
+
 .. toctree::
    :maxdepth: 1
 

@@ -546,14 +546,9 @@ int DeviceT::init_nbor(Neighbor *nbor, const int nlocal,
     return -3;
 
   if (_user_cell_size<0.0) {
-    #ifndef LAL_USE_OLD_NEIGHBOR
-    _neighbor_shared.setup_auto_cell_size(true,cutoff,nbor->simd_size());
-    #else
     _neighbor_shared.setup_auto_cell_size(false,cutoff,nbor->simd_size());
-    #endif
   } else
-    _neighbor_shared.setup_auto_cell_size(false,_user_cell_size,
-                                          nbor->simd_size());
+    _neighbor_shared.setup_auto_cell_size(false,_user_cell_size,nbor->simd_size());
   nbor->set_cutoff(cutoff);
 
   return 0;

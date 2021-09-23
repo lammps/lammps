@@ -1822,11 +1822,13 @@ void Input::suffix()
 {
   if (narg < 1) error->all(FLERR,"Illegal suffix command");
 
-  if (strcmp(arg[0],"off") == 0) lmp->suffix_enable = 0;
-  else if (strcmp(arg[0],"on") == 0) {
-    if (!lmp->suffix)
-      error->all(FLERR,"May only enable suffixes after defining one");
+  const std::string firstarg = arg[0];
+
+  if ((firstarg == "off") || (firstarg == "no") || (firstarg == "false")) {
+    lmp->suffix_enable = 0;
+  } else if ((firstarg == "on") || (firstarg == "yes") || (firstarg == "true")) {
     lmp->suffix_enable = 1;
+    if (!lmp->suffix) error->all(FLERR,"May only enable suffixes after defining one");
   } else {
     lmp->suffix_enable = 1;
 
@@ -1834,7 +1836,7 @@ void Input::suffix()
     delete[] lmp->suffix2;
     lmp->suffix = lmp->suffix2 = nullptr;
 
-    if (strcmp(arg[0],"hybrid") == 0) {
+    if (firstarg == "hybrid") {
       if (narg != 3) error->all(FLERR,"Illegal suffix command");
       lmp->suffix = utils::strdup(arg[1]);
       lmp->suffix2 = utils::strdup(arg[2]);

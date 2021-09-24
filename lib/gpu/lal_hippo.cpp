@@ -56,6 +56,7 @@ int HippoT::init(const int ntypes, const int max_amtype, const int max_amclass,
                   const double *host_special_polar_piscale,
                   const double *host_special_polar_pscale,
                   const double *host_csix, const double *host_adisp,
+                  const double *host_pcore, const double *host_palpha,
                   const int nlocal, const int nall, const int max_nbors,
                   const int maxspecial, const int maxspecial15,
                   const double cell_size, const double gpu_split, FILE *_screen,
@@ -69,7 +70,9 @@ int HippoT::init(const int ntypes, const int max_amtype, const int max_amclass,
   if (success!=0)
     return success;
 
+  // specific to HIPPO
   k_dispersion.set_function(*(this->pair_program),"k_hippo_dispersion");
+  _pval.alloc(this->_max_tep_size,*(this->ucl_device),UCL_READ_ONLY,UCL_READ_ONLY);
 
   // If atom type constants fit in shared memory use fast kernel
   int lj_types=ntypes;
@@ -98,8 +101,8 @@ int HippoT::init(const int ntypes, const int max_amtype, const int max_amclass,
   for (int i = 0; i < max_amclass; i++) {
     host_write2[i].x = host_csix[i];
     host_write2[i].y = host_adisp[i];
-    host_write2[i].z = (numtyp)0;
-    host_write2[i].w = (numtyp)0;
+    host_write2[i].z = host_pcore[i];
+    host_write2[i].w = host_palpha[i];
   }
 
   coeff_amclass.alloc(max_amclass,*(this->ucl_device), UCL_READ_ONLY);
@@ -263,6 +266,93 @@ int HippoT::dispersion_real(const int eflag, const int vflag) {
 }
 
 // ---------------------------------------------------------------------------
+// Reneighbor on GPU if necessary, and then compute multipole real-space
+// ---------------------------------------------------------------------------
+template <class numtyp, class acctyp>
+int** HippoT::compute_multipole_real(const int ago, const int inum_full,
+                                          const int nall, double **host_x,
+                                          int *host_type, int *host_amtype,
+                                          int *host_amgroup, double **host_rpole,
+                                          double *sublo, double *subhi, tagint *tag,
+                                          int **nspecial, tagint **special,
+                                          int *nspecial15, tagint **special15,
+                                          const bool eflag_in, const bool vflag_in,
+                                          const bool eatom, const bool vatom,
+                                          int &host_start, int **ilist, int **jnum,
+                                          const double cpu_time, bool &success,
+                                          const double aewald, const double felec,
+                                          const double off2_mpole, double *host_q,
+                                          double *boxlo, double *prd, void **tep_ptr) {
+  this->acc_timers();
+  int eflag, vflag;
+  if (eatom) eflag=2;
+  else if (eflag_in) eflag=1;
+  else eflag=0;
+  if (vatom) vflag=2;
+  else if (vflag_in) vflag=1;
+  else vflag=0;
+
+  #ifdef LAL_NO_BLOCK_REDUCE
+  if (eflag) eflag=2;
+  if (vflag) vflag=2;
+  #endif
+
+  this->set_kernel(eflag,vflag);
+
+  // reallocate per-atom arrays, transfer data from the host
+  //   and build the neighbor lists if needed
+  // NOTE: 
+  //   For now we invoke precompute() again here,
+  //     to be able to turn on/off the udirect2b kernel (which comes before this)
+  //   Once all the kernels are ready, precompute() is needed only once
+  //     in the first kernel in a time step.
+  //   We only need to cast uind and uinp from host to device here
+  //     if the neighbor lists are rebuilt and other per-atom arrays
+  //     (x, type, amtype, amgroup, rpole) are ready on the device.
+
+  int** firstneigh = nullptr;
+  firstneigh = this->precompute(ago, inum_full, nall, host_x, host_type,
+                          host_amtype, host_amgroup, host_rpole,
+                          nullptr, nullptr, sublo, subhi, tag,
+                          nspecial, special, nspecial15, special15,
+                          eflag_in, vflag_in, eatom, vatom,
+                          host_start, ilist, jnum, cpu_time,
+                          success, host_q, boxlo, prd);
+
+  // ------------------- Resize _tep array ------------------------
+
+  if (inum_full>this->_max_tep_size) {
+    this->_max_tep_size=static_cast<int>(static_cast<double>(inum_full)*1.10);
+    this->_tep.resize(this->_max_tep_size*4);
+  }
+  *tep_ptr=this->_tep.host.begin();
+
+  this->_off2_mpole = off2_mpole;
+  this->_felec = felec;
+  this->_aewald = aewald;
+  const int red_blocks=multipole_real(eflag,vflag);
+
+  // leave the answers (forces, energies and virial) on the device,
+  //   only copy them back in the last kernel (polar_real)
+  //ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
+  //device->add_ans_object(ans);
+
+  this->hd_balancer.stop_timer();
+
+  // copy tep from device to host
+
+  this->_tep.update_host(this->_max_tep_size*4,false);
+/*
+  printf("GPU lib: tep size = %d: max tep size = %d\n", this->_tep.cols(), _max_tep_size);
+  for (int i = 0; i < 10; i++) {
+    numtyp4* p = (numtyp4*)(&this->_tep[4*i]);
+    printf("i = %d; tep = %f %f %f\n", i, p->x, p->y, p->z);
+  }
+*/  
+  return firstneigh; // nbor->host_jlist.begin()-host_start;
+}
+
+// ---------------------------------------------------------------------------
 // Calculate the multipole real-space term, returning tep
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
@@ -290,13 +380,14 @@ int HippoT::multipole_real(const int eflag, const int vflag) {
                          &nbor_pitch, &this->_threads_per_atom);
 
   this->k_multipole.set_size(GX,BX);
-  this->k_multipole.run(&this->atom->x, &this->atom->extra, &coeff_amtype, &sp_polar,
-                    &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                    &this->dev_short_nbor,
-                    &this->ans->force, &this->ans->engv, &this->_tep,
-                    &eflag, &vflag, &ainum, &_nall, &nbor_pitch,
-                    &this->_threads_per_atom,  &this->_aewald, &this->_felec,
-                    &this->_off2_mpole, &_polar_dscale, &_polar_uscale);
+  this->k_multipole.run(&this->atom->x, &this->atom->extra, &_pval,
+                        &coeff_amtype, &coeff_amclass, &sp_polar,
+                        &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+                        &this->dev_short_nbor,
+                        &this->ans->force, &this->ans->engv, &this->_tep,
+                        &eflag, &vflag, &ainum, &_nall, &nbor_pitch,
+                        &this->_threads_per_atom,  &this->_aewald, &this->_felec,
+                        &this->_off2_mpole, &_polar_dscale, &_polar_uscale);
   this->time_pair.stop();
 
   return GX;

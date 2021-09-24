@@ -48,6 +48,7 @@ class Hippo : public BaseAmoeba<numtyp, acctyp> {
            const double *host_special_polar_piscale,
            const double *host_special_polar_pscale,
            const double *host_csix, const double *host_adisp,
+           const double *host_pcore, const double *host_palpha,
            const int nlocal, const int nall, const int max_nbors,
            const int maxspecial, const int maxspecial15, const double cell_size,
            const double gpu_split, FILE *_screen,
@@ -64,6 +65,18 @@ class Hippo : public BaseAmoeba<numtyp, acctyp> {
                 int **ilist, int **numj, const double cpu_time, bool &success,
                 const double aewald, const double off2_disp, double *charge,
                 double *boxlo, double *prd);
+
+  /// Compute multipole real-space with device neighboring
+  virtual int** compute_multipole_real(const int ago, const int inum_full, const int nall,
+                double **host_x, int *host_type, int *host_amtype,
+                int *host_amgroup, double **host_rpole, double *sublo, double *subhi,
+                tagint *tag, int **nspecial, tagint **special,
+                int *nspecial15, tagint **special15,
+                const bool eflag, const bool vflag,
+                const bool eatom, const bool vatom, int &host_start,
+                int **ilist, int **numj, const double cpu_time, bool &success,
+                const double aewald, const double felec, const double off2_mpole, double *charge,
+                double *boxlo, double *prd, void **tep_ptr);
 
   /// Clear all host and device data
   /** \note This is called at the beginning of the init() routine **/
@@ -104,6 +117,8 @@ class Hippo : public BaseAmoeba<numtyp, acctyp> {
   numtyp _qqrd2e;
 
   UCL_Kernel k_dispersion;
+
+  UCL_Vector<acctyp,acctyp> _pval;
 
  protected:
   bool _allocated;

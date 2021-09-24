@@ -15,7 +15,8 @@
 
 #if defined(NV_KERNEL) || defined(USE_HIP)
 #include <stdio.h>
-#include "lal_aux_fun1.h"
+#include "lal_hippo_extra.h"
+//#include "lal_aux_fun1.h"
 #ifdef LAMMPS_SMALLBIG
 #define tagint int
 #endif
@@ -405,6 +406,318 @@ _texture( q_tex,int2);
 #define MY_PIS (acctyp)1.77245385090551602729
 
 /* ----------------------------------------------------------------------
+   repulsion = Pauli repulsion interactions
+   adapted from Tinker erepel1b() routine
+------------------------------------------------------------------------- */
+
+__kernel void k_hippo_repulsion(const __global numtyp4 *restrict x_,
+                                 const __global numtyp *restrict extra,
+                                 const __global numtyp4 *restrict coeff,
+                                 const __global numtyp4 *restrict sp_nonpolar,
+                                 const __global int *dev_nbor,
+                                 const __global int *dev_packed,
+                                 const __global int *dev_short_nbor,
+                                 __global acctyp4 *restrict ans,
+                                 __global acctyp *restrict engv,
+                                 __global acctyp4 *restrict tep,
+                                 const int eflag, const int vflag, const int inum,
+                                 const int nall, const int nbor_pitch,
+                                 const int t_per_atom, const numtyp aewald,
+                                 const numtyp off2, const numtyp cut2,
+                                 const numtyp c0, const numtyp c1, const numtyp c2,
+                                 const numtyp c3, const numtyp c4, const numtyp c5)
+{
+  int tid, ii, offset, i;
+  atom_info(t_per_atom,ii,tid,offset);
+
+  int n_stride;
+  local_allocate_store_charge();
+
+  acctyp4 f;
+  f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
+  acctyp energy, e_coul, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    e_coul=(acctyp)0;
+    for (int l=0; l<6; l++) virial[l]=(acctyp)0;
+  }
+
+  acctyp4 tq;
+  tq.x=(acctyp)0; tq.y=(acctyp)0; tq.z=(acctyp)0;
+
+  numtyp4* polar1 = (numtyp4*)(&extra[0]);
+  numtyp4* polar2 = (numtyp4*)(&extra[4*nall]);
+  numtyp4* polar3 = (numtyp4*)(&extra[8*nall]);
+
+  if (ii<inum) {
+    int numj, nbor, nbor_end;
+    const __global int* nbor_mem=dev_packed;
+    nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
+              n_stride,nbor_end,nbor);
+
+    numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
+    //numtyp qtmp; fetch(qtmp,i,q_tex);
+    //int itype=ix.w;
+
+    // recalculate numj and nbor_end for use of the short nbor list
+    if (dev_packed==dev_nbor) {
+      numj = dev_short_nbor[nbor];
+      nbor += n_stride;
+      nbor_end = nbor+fast_mul(numj,n_stride);
+      nbor_mem = dev_short_nbor;
+    }
+
+    const numtyp4 pol1i = polar1[i];
+    numtyp ci  = pol1i.x;    // rpole[i][0];
+    numtyp dix = pol1i.y;    // rpole[i][1];
+    numtyp diy = pol1i.z;    // rpole[i][2];
+    numtyp diz = pol1i.w;    // rpole[i][3];
+    const numtyp4 pol2i = polar2[i];
+    numtyp qixx = pol2i.x;   // rpole[i][4];
+    numtyp qixy = pol2i.y;   // rpole[i][5];
+    numtyp qixz = pol2i.z;   // rpole[i][6];
+    numtyp qiyy = pol2i.w;   // rpole[i][8];
+    const numtyp4 pol3i = polar3[i];
+    numtyp qiyz = pol3i.x;   // rpole[i][9];
+    numtyp qizz = pol3i.y;   // rpole[i][12];
+    int itype = pol3i.z; // amtype[i];
+    numtyp sizi = coeff[itype].x; // sizpr[itype];
+    numtyp dmpi = coeff[itype].y; // dmppr[itype];
+    numtyp vali = coeff[itype].z; // elepr[itype];
+
+    for ( ; nbor<nbor_end; nbor+=n_stride) {
+
+      int jextra=nbor_mem[nbor];
+      int j = jextra & NEIGHMASK15;
+
+      numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
+      //int jtype=jx.w;
+ 
+      // Compute r12
+      numtyp xr = ix.x - jx.x;
+      numtyp yr = ix.y - jx.y;
+      numtyp zr = ix.z - jx.z;
+      numtyp r2 = xr*xr + yr*yr + zr*zr;
+
+      if (r2>off2) continue;
+  
+      const numtyp4 pol1j = polar1[j];
+      numtyp ck  = pol1j.x;  // rpole[j][0];
+      numtyp dkx = pol1j.y;  // rpole[j][1];
+      numtyp dky = pol1j.z;  // rpole[j][2];
+      numtyp dkz = pol1j.w;  // rpole[j][3];
+      const numtyp4 pol2j = polar2[j];
+      numtyp qkxx = pol2j.x; // rpole[j][4];
+      numtyp qkxy = pol2j.y; // rpole[j][5];
+      numtyp qkxz = pol2j.z; // rpole[j][6];
+      numtyp qkyy = pol2j.w; // rpole[j][8];
+      const numtyp4 pol3j = polar3[j];
+      numtyp qkyz = pol3j.x; // rpole[j][9];
+      numtyp qkzz = pol3j.y; // rpole[j][12];
+      int jtype = pol3j.z; // amtype[j];
+      
+      numtyp sizk = coeff[jtype].x; // sizpr[jtype];
+      numtyp dmpk = coeff[jtype].y; // dmppr[jtype];
+      numtyp valk = coeff[jtype].z; // elepr[jtype];
+
+      const numtyp4 sp_nonpol = sp_nonpolar[sbmask15(jextra)];
+      numtyp factor_repel = sp_nonpol.y; // factor_repel = special_repel[sbmask15(j)];
+
+      // intermediates involving moments and separation distance
+
+      numtyp dir = dix*xr + diy*yr + diz*zr;
+      numtyp qix = qixx*xr + qixy*yr + qixz*zr;
+      numtyp qiy = qixy*xr + qiyy*yr + qiyz*zr;
+      numtyp qiz = qixz*xr + qiyz*yr + qizz*zr;
+      numtyp qir = qix*xr + qiy*yr + qiz*zr;
+      numtyp dkr = dkx*xr + dky*yr + dkz*zr;
+      numtyp qkx = qkxx*xr + qkxy*yr + qkxz*zr;
+      numtyp qky = qkxy*xr + qkyy*yr + qkyz*zr;
+      numtyp qkz = qkxz*xr + qkyz*yr + qkzz*zr;
+      numtyp qkr = qkx*xr + qky*yr + qkz*zr;
+      
+      numtyp dik = dix*dkx + diy*dky + diz*dkz;
+      numtyp qik = qix*qkx + qiy*qky + qiz*qkz;
+      numtyp diqk = dix*qkx + diy*qky + diz*qkz;
+      numtyp dkqi = dkx*qix + dky*qiy + dkz*qiz;
+      numtyp qiqk = (numtyp)2.0*(qixy*qkxy+qixz*qkxz+qiyz*qkyz) + 
+        qixx*qkxx + qiyy*qkyy + qizz*qkzz;
+
+      // additional intermediates involving moments and distance
+
+      numtyp dirx = diy*zr - diz*yr;
+      numtyp diry = diz*xr - dix*zr;
+      numtyp dirz = dix*yr - diy*xr;
+      numtyp dkrx = dky*zr - dkz*yr;
+      numtyp dkry = dkz*xr - dkx*zr;
+      numtyp dkrz = dkx*yr - dky*xr;
+      numtyp dikx = diy*dkz - diz*dky;
+      numtyp diky = diz*dkx - dix*dkz;
+      numtyp dikz = dix*dky - diy*dkx;
+      numtyp qirx = qiz*yr - qiy*zr;
+      numtyp qiry = qix*zr - qiz*xr;
+      numtyp qirz = qiy*xr - qix*yr;
+      numtyp qkrx = qkz*yr - qky*zr;
+      numtyp qkry = qkx*zr - qkz*xr;
+      numtyp qkrz = qky*xr - qkx*yr;
+      numtyp qikx = qky*qiz - qkz*qiy;
+      numtyp qiky = qkz*qix - qkx*qiz;
+      numtyp qikz = qkx*qiy - qky*qix;
+      numtyp qixk = qixx*qkx + qixy*qky + qixz*qkz;
+      numtyp qiyk = qixy*qkx + qiyy*qky + qiyz*qkz;
+      numtyp qizk = qixz*qkx + qiyz*qky + qizz*qkz;
+      numtyp qkxi = qkxx*qix + qkxy*qiy + qkxz*qiz;
+      numtyp qkyi = qkxy*qix + qkyy*qiy + qkyz*qiz;
+      numtyp qkzi = qkxz*qix + qkyz*qiy + qkzz*qiz;
+      numtyp qikrx = qizk*yr - qiyk*zr;
+      numtyp qikry = qixk*zr - qizk*xr;
+      numtyp qikrz = qiyk*xr - qixk*yr;
+      numtyp qkirx = qkzi*yr - qkyi*zr;
+      numtyp qkiry = qkxi*zr - qkzi*xr;
+      numtyp qkirz = qkyi*xr - qkxi*yr;
+      numtyp diqkx = dix*qkxx + diy*qkxy + diz*qkxz;
+      numtyp diqky = dix*qkxy + diy*qkyy + diz*qkyz;
+      numtyp diqkz = dix*qkxz + diy*qkyz + diz*qkzz;
+      numtyp dkqix = dkx*qixx + dky*qixy + dkz*qixz;
+      numtyp dkqiy = dkx*qixy + dky*qiyy + dkz*qiyz;
+      numtyp dkqiz = dkx*qixz + dky*qiyz + dkz*qizz;
+      numtyp diqkrx = diqkz*yr - diqky*zr;
+      numtyp diqkry = diqkx*zr - diqkz*xr;
+      numtyp diqkrz = diqky*xr - diqkx*yr;
+      numtyp dkqirx = dkqiz*yr - dkqiy*zr;
+      numtyp dkqiry = dkqix*zr - dkqiz*xr;
+      numtyp dkqirz = dkqiy*xr - dkqix*yr;
+      numtyp dqikx = diy*qkz - diz*qky + dky*qiz - dkz*qiy - 
+        (numtyp)2.0*(qixy*qkxz+qiyy*qkyz+qiyz*qkzz - qixz*qkxy-qiyz*qkyy-qizz*qkyz);
+      numtyp dqiky = diz*qkx - dix*qkz + dkz*qix - dkx*qiz - 
+        (numtyp)2.0*(qixz*qkxx+qiyz*qkxy+qizz*qkxz - qixx*qkxz-qixy*qkyz-qixz*qkzz);
+      numtyp dqikz = dix*qky - diy*qkx + dkx*qiy - dky*qix - 
+        (numtyp)2.0*(qixx*qkxy+qixy*qkyy+qixz*qkyz - qixy*qkxx-qiyy*qkxy-qiyz*qkxz);
+
+      // get reciprocal distance terms for this interaction
+
+      numtyp r = ucl_sqrt(r2);
+      numtyp rinv = ucl_recip(r);
+      numtyp r2inv = rinv*rinv;
+      numtyp rr1 = rinv;
+      numtyp rr3 = rr1 * r2inv;
+      numtyp rr5 = (numtyp)3.0 * rr3 * r2inv;
+      numtyp rr7 = (numtyp)5.0 * rr5 * r2inv;
+      numtyp rr9 = (numtyp)7.0 * rr7 * r2inv;
+      numtyp rr11 = (numtyp)9.0 * rr9 * r2inv;
+
+      // get damping coefficients for the Pauli repulsion energy
+      numtyp dmpik[11];
+      damprep(r,r2,rr1,rr3,rr5,rr7,rr9,rr11,11,dmpi,dmpk,dmpik);
+
+      // calculate intermediate terms needed for the energy
+
+      numtyp term1 = vali*valk;
+      numtyp term2 = valk*dir - vali*dkr + dik;
+      numtyp term3 = vali*qkr + valk*qir - dir*dkr + (numtyp)2.0*(dkqi-diqk+qiqk);
+      numtyp term4 = dir*qkr - dkr*qir - 4.0*qik;
+      numtyp term5 = qir*qkr;
+      numtyp eterm = term1*dmpik[0] + term2*dmpik[2] + 
+        term3*dmpik[4] + term4*dmpik[6] + term5*dmpik[8];
+
+      // compute the Pauli repulsion energy for this interaction
+
+      numtyp sizik = sizi * sizk * factor_repel;
+      numtyp e = sizik * eterm * rr1;
+
+      // calculate intermediate terms for force and torque
+
+      numtyp de = term1*dmpik[2] + term2*dmpik[4] + term3*dmpik[6] + 
+        term4*dmpik[8] + term5*dmpik[10];
+      term1 = -valk*dmpik[2] + dkr*dmpik[4] - qkr*dmpik[6];
+      term2 = vali*dmpik[2] + dir*dmpik[4] + qir*dmpik[6];
+      term3 = (numtyp)2.0 * dmpik[4];
+      term4 = (numtyp)2.0 * (-valk*dmpik[4] + dkr*dmpik[6] - qkr*dmpik[8]);
+      term5 = (numtyp)2.0 * (-vali*dmpik[4] - dir*dmpik[6] - qir*dmpik[8]);
+      numtyp term6 = (numtyp)4.0 * dmpik[6];
+
+      // compute the force components for this interaction
+
+      numtyp frcx = de*xr + term1*dix + term2*dkx + term3*(diqkx-dkqix) + 
+        term4*qix + term5*qkx + term6*(qixk+qkxi);
+      numtyp frcy = de*yr + term1*diy + term2*dky + term3*(diqky-dkqiy) + 
+        term4*qiy + term5*qky + term6*(qiyk+qkyi);
+      numtyp frcz = de*zr + term1*diz + term2*dkz + term3*(diqkz-dkqiz) + 
+        term4*qiz + term5*qkz + term6*(qizk+qkzi);
+      frcx = frcx*rr1 + eterm*rr3*xr;
+      frcy = frcy*rr1 + eterm*rr3*yr;
+      frcz = frcz*rr1 + eterm*rr3*zr;
+
+      // compute the torque components for this interaction
+      
+      numtyp ttmix = -dmpik[2]*dikx + term1*dirx + term3*(dqikx+dkqirx) - 
+        term4*qirx - term6*(qikrx+qikx);
+      numtyp ttmiy = -dmpik[2]*diky + term1*diry + term3*(dqiky+dkqiry) - 
+        term4*qiry - term6*(qikry+qiky);
+      numtyp ttmiz = -dmpik[2]*dikz + term1*dirz + term3*(dqikz+dkqirz) - 
+        term4*qirz - term6*(qikrz+qikz);
+      ttmix = sizik * ttmix * rr1;
+      ttmiy = sizik * ttmiy * rr1;
+      ttmiz = sizik * ttmiz * rr1;
+
+      // use energy switching if near the cutoff distance
+
+      if (r2 > cut2) {
+        numtyp r3 = r2 * r;
+        numtyp r4 = r2 * r2;
+        numtyp r5 = r2 * r3;
+        numtyp taper = c5*r5 + c4*r4 + c3*r3 + c2*r2 + c1*r + c0;
+        numtyp dtaper = (numtyp)5.0*c5*r4 + (numtyp).0*c4*r3 +
+          (numtyp)3.0*c3*r2 + (numtyp)2.0*c2*r + c1;
+        dtaper *= e * rr1;
+        e *= taper;
+        frcx = frcx*taper - dtaper*xr;
+        frcy = frcy*taper - dtaper*yr;
+        frcz = frcz*taper - dtaper*zr;
+        ttmix *= taper;
+        ttmiy *= taper;
+        ttmiz *= taper;
+      }
+
+      energy += e;
+
+      // increment force-based gradient and torque on atom I
+
+      f.x += frcx;
+      f.y += frcy;
+      f.z += frcz;
+      tq.x += ttmix;
+      tq.y += ttmiy;
+      tq.z += ttmiz;
+
+      // increment the internal virial tensor components
+      if (EVFLAG && vflag) {
+        numtyp vxx = -xr * frcx;
+        numtyp vxy = (numtyp)-0.5 * (yr*frcx+xr*frcy);
+        numtyp vxz = (numtyp)-0.5 * (zr*frcx+xr*frcz);
+        numtyp vyy = -yr * frcy;
+        numtyp vyz = (numtyp)-0.5 * (zr*frcy+yr*frcz);
+        numtyp vzz = -zr * frcz;
+
+        virial[0] += vxx;
+        virial[1] += vyy;
+        virial[2] += vzz;
+        virial[3] += vxy;
+        virial[4] += vxz;
+        virial[5] += vyz;
+      }
+    } // nbor
+    
+  } // ii<inum
+
+  // accumulate tq
+  store_answers_hippo_tq(tq,ii,inum,tid,t_per_atom,offset,i,tep);
+  // accumate force, energy and virial
+  store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
+     offset,eflag,vflag,ans,engv);
+}
+
+/* ----------------------------------------------------------------------
    dispersion = real-space portion of Ewald dispersion
    adapted from Tinker edreal1d() routine
 ------------------------------------------------------------------------- */
@@ -594,20 +907,22 @@ __kernel void k_hippo_dispersion(const __global numtyp4 *restrict x_,
 ------------------------------------------------------------------------- */
 
 __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
-                                 const __global numtyp *restrict extra,
-                                 const __global numtyp4 *restrict coeff,
-                                 const __global numtyp4 *restrict sp_polar,
-                                 const __global int *dev_nbor,
-                                 const __global int *dev_packed,
-                                 const __global int *dev_short_nbor,
-                                 __global acctyp4 *restrict ans,
-                                 __global acctyp *restrict engv,
-                                 __global acctyp4 *restrict tep,
-                                 const int eflag, const int vflag, const int inum,
-                                 const int nall, const int nbor_pitch,
-                                 const int t_per_atom, const numtyp aewald,
-                                 const numtyp felec, const numtyp off2,
-                                 const numtyp polar_dscale, const numtyp polar_uscale)
+                                const __global numtyp *restrict extra,
+                                const __global numtyp *restrict pval,
+                                const __global numtyp4 *restrict coeff_amtype,
+                                const __global numtyp4 *restrict coeff_amclass,
+                                const __global numtyp4 *restrict sp_polar,
+                                const __global int *dev_nbor,
+                                const __global int *dev_packed,
+                                const __global int *dev_short_nbor,
+                                __global acctyp4 *restrict ans,
+                                __global acctyp *restrict engv,
+                                __global acctyp4 *restrict tep,
+                                const int eflag, const int vflag, const int inum,
+                                const int nall, const int nbor_pitch,
+                                const int t_per_atom, const numtyp aewald,
+                                const numtyp felec, const numtyp off2,
+                                const numtyp polar_dscale, const numtyp polar_uscale)
 {
   int tid, ii, offset, i;
   atom_info(t_per_atom,ii,tid,offset);
@@ -633,6 +948,7 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
 
   if (ii<inum) {
     int m;
+    int itype,iclass;
     numtyp bfac;
     numtyp term1,term2,term3;
     numtyp term4,term5,term6;
@@ -668,6 +984,12 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
     const numtyp4 pol3i = polar3[i];
     numtyp qiyz = pol3i.x;   // rpole[i][9];
     numtyp qizz = pol3i.y;   // rpole[i][12];
+    itype  = pol3i.z;        // amtype[i];
+    iclass = coeff_amtype[itype].w;  // amtype2class[itype];
+
+    numtyp corei = coeff_amclass[itype].z;  // pcore[iclass];
+    numtyp alphai = coeff_amclass[itype].w; // palpha[iclass];
+    numtyp vali = pval[i];
 
     for ( ; nbor<nbor_end; nbor+=n_stride) {
 
@@ -701,9 +1023,14 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
       numtyp qkzz = pol3j.y; // rpole[j][12];
       int jtype = pol3j.z; // amtype[j];
       int jgroup =  pol3j.w; // amgroup[j];
+      int jclass = coeff_amtype[jtype].w;  // amtype2class[jtype];
 
       const numtyp4 sp_pol = sp_polar[sbmask15(jextra)];
       numtyp factor_mpole = sp_pol.w; // sp_mpole[sbmask15(jextra)];
+
+      numtyp corek = coeff_amclass[jtype].z;  // pcore[jclass];
+      numtyp alphak = coeff_amclass[jtype].w; // palpha[jclass];
+      numtyp valk = pval[j];
 
       // intermediates involving moments and separation distance
 

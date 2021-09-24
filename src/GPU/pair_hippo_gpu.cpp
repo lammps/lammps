@@ -59,6 +59,7 @@ int hippo_gpu_init(const int ntypes, const int max_amtype, const int max_amclass
                     const double *host_special_polar_piscale,
                     const double *host_special_polar_pscale,
                     const double *host_csix, const double *host_adisp,
+                    const double *host_pcore, const double *host_palpha,
                     const int nlocal, const int nall, const int max_nbors,
                     const int maxspecial, const int maxspecial15,
                     const double cell_size, int &gpu_mode, FILE *screen,
@@ -191,10 +192,10 @@ void PairHippoGPU::init_style()
                                 pdamp, thole, dirdamp, amtype2class, special_hal,
                                 special_repel, special_disp, special_mpole,
                                 special_polar_wscale, special_polar_piscale,
-                                special_polar_pscale, csix, adisp, atom->nlocal,
-                                atom->nlocal+atom->nghost, mnf, maxspecial,
-                                maxspecial15, cell_size, gpu_mode, screen,
-                                polar_dscale, polar_uscale, tq_size);
+                                special_polar_pscale, csix, adisp, pcore, palpha,
+                                atom->nlocal, atom->nlocal+atom->nghost, mnf,
+                                maxspecial, maxspecial15, cell_size, gpu_mode,
+                                screen, polar_dscale, polar_uscale, tq_size);
   GPU_EXTRA::check_flag(success,error,world);
 
   if (gpu_mode == GPU_FORCE)

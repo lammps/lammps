@@ -38,6 +38,7 @@ int hippo_gpu_init(const int ntypes, const int max_amtype, const int max_amclass
                     const double *host_special_polar_piscale,
                     const double *host_special_polar_pscale,
                     const double *host_csix, const double *host_adisp,
+                    const double *host_pcore, const double *host_palpha,
                     const int nlocal, const int nall, const int max_nbors,
                     const int maxspecial, const int maxspecial15,
                     const double cell_size, int &gpu_mode, FILE *screen,
@@ -73,7 +74,8 @@ int hippo_gpu_init(const int ntypes, const int max_amtype, const int max_amclass
                           host_special_repel, host_special_disp,
                           host_special_mpole, host_special_polar_wscale,
                           host_special_polar_piscale, host_special_polar_pscale,
-                          host_csix, host_adisp, nlocal, nall, max_nbors,
+                          host_csix, host_adisp, host_pcore, host_palpha,
+                          nlocal, nall, max_nbors,
                           maxspecial, maxspecial15, cell_size, gpu_split,
                           screen, polar_dscale, polar_uscale);
 
@@ -97,7 +99,8 @@ int hippo_gpu_init(const int ntypes, const int max_amtype, const int max_amclass
                             host_special_repel, host_special_disp,
                             host_special_mpole, host_special_polar_wscale,
                             host_special_polar_piscale, host_special_polar_pscale,
-                            host_csix, host_adisp, nlocal, nall, max_nbors,
+                            host_csix, host_adisp, host_pcore, host_palpha,
+                            nlocal, nall, max_nbors,
                             maxspecial, maxspecial15, cell_size, gpu_split,
                             screen, polar_dscale, polar_uscale);
 

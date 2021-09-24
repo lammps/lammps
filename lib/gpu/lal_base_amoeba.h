@@ -143,7 +143,7 @@ class BaseAmoeba {
                 double *charge, double *boxlo, double *prd);
 
   /// Compute multipole real-space with device neighboring
-  int** compute_multipole_real(const int ago, const int inum_full, const int nall,
+  virtual int** compute_multipole_real(const int ago, const int inum_full, const int nall,
                 double **host_x, int *host_type, int *host_amtype,
                 int *host_amgroup, double **host_rpole, double *sublo, double *subhi,
                 tagint *tag, int **nspecial, tagint **special,
@@ -155,7 +155,7 @@ class BaseAmoeba {
                 double *boxlo, double *prd, void **tep_ptr);
 
   /// Compute the real space part of the permanent field (udirect2b) with device neighboring
-  int** compute_udirect2b(const int ago, const int inum_full, const int nall,
+  virtual int** compute_udirect2b(const int ago, const int inum_full, const int nall,
                 double **host_x, int *host_type, int *host_amtype,
                 int *host_amgroup, double **host_rpole,
                 double **host_uind, double **host_uinp,
@@ -169,7 +169,7 @@ class BaseAmoeba {
                 double *boxlo, double *prd, void **fieldp_ptr);
 
   /// Compute the real space part of the induced field (umutual2b) with device neighboring
-  int** compute_umutual2b(const int ago, const int inum_full, const int nall,
+  virtual int** compute_umutual2b(const int ago, const int inum_full, const int nall,
                 double **host_x, int *host_type, int *host_amtype,
                 int *host_amgroup, double **host_rpole,
                 double **host_uind, double **host_uinp,
@@ -183,7 +183,7 @@ class BaseAmoeba {
                 double *boxlo, double *prd, void **fieldp_ptr);
 
   /// Compute polar real-space with device neighboring
-  int** compute_polar_real(const int ago, const int inum_full, const int nall,
+  virtual int** compute_polar_real(const int ago, const int inum_full, const int nall,
                 double **host_x, int *host_type, int *host_amtype,
                 int *host_amgroup, double **host_rpole, double **host_uind,
                 double **host_uinp, double *sublo, double *subhi,

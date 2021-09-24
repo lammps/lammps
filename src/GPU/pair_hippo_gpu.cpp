@@ -133,11 +133,11 @@ PairHippoGPU::PairHippoGPU(LAMMPS *lmp) : PairAmoeba(lmp), gpu_mode(GPU_FORCE)
 
   gpu_hal_ready = false;               // always false for HIPPO
   gpu_repulsion_ready = false;         // true for HIPPO when ready
-  gpu_dispersion_real_ready = false;   // true for HIPPO when ready
+  gpu_dispersion_real_ready = true;   // true for HIPPO when ready
   gpu_multipole_real_ready = false;
   gpu_udirect2b_ready = false;
   gpu_umutual2b_ready = false;
-  gpu_polar_real_ready = true;
+  gpu_polar_real_ready = false;
 
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }

@@ -512,7 +512,8 @@ __kernel void k_hippo_dispersion(const __global numtyp4 *restrict x_,
       numtyp tk,tk2;
       numtyp damp3,damp5;
       numtyp ddamp;
-      numtyp factor_disp = (numtyp)1.0; // factor_disp = special_disp[sbmask15(j)];
+      const numtyp4 sp_nonpol = sp_nonpolar[sbmask15(jextra)];
+      numtyp factor_disp = sp_nonpol.z; // factor_disp = special_disp[sbmask15(j)];
 
       if (ai != ak) {
         ai2 = ai * ai;
@@ -547,7 +548,7 @@ __kernel void k_hippo_dispersion(const __global numtyp4 *restrict x_,
       // apply damping and scaling factors for this interaction
 
       numtyp scale = factor_disp * damp*damp;
-      scale = scale - (numtyp )1.0;
+      scale = scale - (numtyp)1.0;
       numtyp e = -ci * ck * (expa+scale) / r6;
       numtyp rterm = -ucl_powr(ralpha2,(numtyp)3.0) * expterm / r;
       numtyp de = (numtyp)-6.0*e/r2 - ci*ck*rterm/r7 - (numtyp)2.0*ci*ck*factor_disp*damp*ddamp/r7;
@@ -562,7 +563,7 @@ __kernel void k_hippo_dispersion(const __global numtyp4 *restrict x_,
       f.x += dedx;
       f.y += dedy;
       f.z += dedz;
-      
+
       // increment the internal virial tensor components
 
       numtyp vxx = xr * dedx;

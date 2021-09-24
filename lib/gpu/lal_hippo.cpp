@@ -210,10 +210,11 @@ int** HippoT::compute_dispersion_real(const int ago, const int inum_full,
   this->_aewald = aewald;
   const int red_blocks=dispersion_real(eflag,vflag);
 
-  // leave the answers (forces, energies and virial) on the device,
-  //   only copy them back in the last kernel (polar_real)
-  //ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
-  //device->add_ans_object(ans);
+  // only copy them back if this is the last kernel
+  //   otherwise, commenting out these two lines to leave the answers
+  //   (forces, energies and virial) on the device until the last kernel
+  this->ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
+  this->device->add_ans_object(this->ans);
 
   this->hd_balancer.stop_timer();
 
@@ -238,7 +239,7 @@ int HippoT::dispersion_real(const int eflag, const int vflag) {
                                (BX/this->_threads_per_atom)));
   this->time_pair.start();
 
-  // Build the short neighbor list for the cutoff off2_mpole,
+  // Build the short neighbor list for the cutoff off2_disp,
   //   at this point mpole is the first kernel in a time step
   
   this->k_short_nbor.set_size(GX,BX);

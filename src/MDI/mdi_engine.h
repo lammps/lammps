@@ -60,6 +60,7 @@ class MDIEngine : public Command {
   // create_atoms state
 
   int create_atoms_flag;
+  int create_natoms;
   tagint *create_id;
   int *create_type;
   double *create_x,*create_v;

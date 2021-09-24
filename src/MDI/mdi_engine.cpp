@@ -651,6 +651,7 @@ void MDIEngine::mdi_commands()
   MDI_Register_command("@DEFAULT", "CREATE_V");
   MDI_Register_command("@DEFAULT", "CREATE_IMG");
   MDI_Register_command("@DEFAULT", "CREATE_GO");
+  MDI_Register_command("@DEFAULT", ">NATOMS");
   MDI_Register_command("@DEFAULT", "<KE");
   MDI_Register_command("@DEFAULT", "<PE");
   MDI_Register_command("@DEFAULT", "<PRESSURE");
@@ -1274,7 +1275,7 @@ void MDIEngine::single_command()
   int ierr = MDI_Recv(cmd,nbytes+1,MDI_CHAR,mdicomm);
   if (ierr) error->all(FLERR,"MDI: COMMAND data");
   MPI_Bcast(cmd,nbytes+1,MPI_CHAR,0,world);
-  cmd[nbytes+1] = '\0';
+  cmd[nbytes] = '\0';
 
   lammps_command(lmp,cmd);
 
@@ -1295,7 +1296,7 @@ void MDIEngine::many_commands()
   int ierr = MDI_Recv(cmds, nbytes+1, MDI_CHAR, mdicomm);
   if (ierr) error->all(FLERR,"MDI: COMMANDS data");
   MPI_Bcast(cmds,nbytes+1,MPI_CHAR,0,world);
-  cmds[nbytes+1] = '\0';
+  cmds[nbytes] = '\0';
   
   lammps_commands_string(lmp,cmds);
   
@@ -1316,7 +1317,7 @@ void MDIEngine::infile()
   int ierr = MDI_Recv(infile,nbytes+1,MDI_CHAR,mdicomm);
   if (ierr) error->all(FLERR,"MDI: INFILE data");
   MPI_Bcast(infile,nbytes+1,MPI_CHAR,0,world);
-  infile[nbytes+1] = '\0';
+  infile[nbytes] = '\0';
 
   lammps_file(lmp,infile);
 
@@ -1338,12 +1339,17 @@ void MDIEngine::infile()
 void MDIEngine::evaluate()
 {
   // NOTE: ago is not a good test
+  //       caller needs to distinguish
+  // currently cannot call it interspersed with "delete atoms" calls
+  //   b/c whichflag stays set
+  // separate issue, need to unset whichflag when done
 
   if (neighbor->ago < 0) {
 
     update->whichflag = 1;
-    lmp->init();
+    lmp->init(); 
     update->integrate->setup(1);
+    update->whichflag = 0;
 
   } else {
 
@@ -1413,6 +1419,9 @@ void MDIEngine::create_atoms(int flag)
     if (create_atoms_flag) 
       error->all(FLERR,"MDI CREATE_ATOM already in progress");
 
+    ierr = MDI_Recv(&create_natoms,1,MDI_INT,mdicomm);
+    MPI_Bcast(&create_natoms,1,MPI_INT,0,world);
+
     create_atoms_flag = 1;
     create_id = nullptr;
     create_type = nullptr;
@@ -1425,66 +1434,65 @@ void MDIEngine::create_atoms(int flag)
     if (!create_atoms_flag) error->all(FLERR,"MDI CREATE_ATOM not in progress");
     if (create_id) error->all(FLERR,"MDI CREATE_ATOM already in progress");
     
-    int natoms = atom->natoms;
-    memory->create(create_id,natoms,"mdi:create_id");
-    ierr = MDI_Recv(create_id,natoms,MDI_INT,mdicomm);
-    MPI_Bcast(create_id,natoms,MPI_INT,0,world);
+    int natom = create_natoms;
+    memory->create(create_id,natom,"mdi:create_id");
+    ierr = MDI_Recv(create_id,natom,MDI_INT,mdicomm);
+    MPI_Bcast(create_id,natom,MPI_INT,0,world);
 
   } else if (flag == CREATE_TYPE) {
 
     if (!create_atoms_flag) error->all(FLERR,"MDI CREATE_ATOM not in progress");
     if (create_type) error->all(FLERR,"MDI CREATE_ATOM already in progress");
 
-    int natoms = atom->natoms;
+    int natom = create_natoms;
     if (create_type) error->all(FLERR,"MDI CREATE_ATOM already in progress");
-    memory->create(create_type,natoms,"mdi:create_type");
-    ierr = MDI_Recv(create_type,natoms,MDI_INT,mdicomm);
-    MPI_Bcast(create_type,natoms,MPI_INT,0,world);
+    memory->create(create_type,natom,"mdi:create_type");
+    ierr = MDI_Recv(create_type,natom,MDI_INT,mdicomm);
+    MPI_Bcast(create_type,natom,MPI_INT,0,world);
 
   } else if (flag == CREATE_X) {
 
     if (!create_atoms_flag) error->all(FLERR,"MDI CREATE_ATOM not in progress");
     if (create_x) error->all(FLERR,"MDI CREATE_ATOM already in progress");
 
-    int natoms = atom->natoms;
+    int natom = create_natoms;
     if (create_x) error->all(FLERR,"MDI CREATE_ATOM already in progress");
-    memory->create(create_x,3*natoms,"mdi:create_x");
-    ierr = MDI_Recv(create_x,3*natoms,MDI_DOUBLE,mdicomm);
-    MPI_Bcast(create_x,3*natoms,MPI_DOUBLE,0,world);
+    memory->create(create_x,3*natom,"mdi:create_x");
+    ierr = MDI_Recv(create_x,3*natom,MDI_DOUBLE,mdicomm);
+    MPI_Bcast(create_x,3*natom,MPI_DOUBLE,0,world);
 
   } else if (flag == CREATE_V) {
 
     if (!create_atoms_flag) error->all(FLERR,"MDI CREATE_ATOM not in progress");
     if (create_v) error->all(FLERR,"MDI CREATE_ATOM already in progress");
 
-    int natoms = atom->natoms;
+    int natom = create_natoms;
     if (create_v) error->all(FLERR,"MDI CREATE_ATOM already in progress");
-    memory->create(create_v,3*natoms,"mdi:create_x");
-    ierr = MDI_Recv(create_v,3*natoms,MDI_DOUBLE,mdicomm);
-    MPI_Bcast(create_v,3*natoms,MPI_DOUBLE,0,world);
+    memory->create(create_v,3*natom,"mdi:create_x");
+    ierr = MDI_Recv(create_v,3*natom,MDI_DOUBLE,mdicomm);
+    MPI_Bcast(create_v,3*natom,MPI_DOUBLE,0,world);
 
   } else if (flag == CREATE_IMAGE) {
 
     if (!create_atoms_flag) error->all(FLERR,"MDI CREATE_ATOM not in progress");
     if (create_image) error->all(FLERR,"MDI CREATE_ATOM already in progress");
 
-    int natoms = atom->natoms;
+    int natom = create_natoms;
     if (create_image) error->all(FLERR,"MDI CREATE_ATOM already in progress");
-    memory->create(create_image,natoms,"mdi:create_image");
-    ierr = MDI_Recv(create_image,natoms,MDI_INT,mdicomm);
-    MPI_Bcast(create_image,natoms,MPI_INT,0,world);
+    memory->create(create_image,natom,"mdi:create_image");
+    ierr = MDI_Recv(create_image,natom,MDI_INT,mdicomm);
+    MPI_Bcast(create_image,natom,MPI_INT,0,world);
 
   } else if (flag == CREATE_GO) {
 
     if (!create_atoms_flag) error->all(FLERR,"MDI CREATE_ATOM not in progress");
     if (!create_type || !create_x)
       error->all(FLERR,"MDI: CREATE_ATOM requires types and coords");
-    
-    int natom = atom->natoms;
-    int ncreate = lammps_create_atoms(lmp,natom,create_id,create_type,
+ 
+    int ncreate = lammps_create_atoms(lmp,create_natoms,create_id,create_type,
                                       create_x,create_v,create_image,1);
-
-    if (ncreate != natom) 
+    
+    if (ncreate != create_natoms) 
       error->all(FLERR, "MDI: CREATE ATOM created atoms != sent atoms");
 
     // clean up create_atoms state

@@ -8,7 +8,7 @@ bond_style      harmonic
 bond_coeff      1 100 1.122462 # K R0
 velocity        all create 1.0 8008 loop geom
 
-pair_style      lj/cut/coul/long 1.122462 20
+pair_style      lj/cut/coul/long/soft 2 0.5 10.0  1.122462 20
 pair_coeff      * *  1.0 1.0 1.122462 # charges
 kspace_style    pppm 1.0e-3
 pair_modify     shift yes

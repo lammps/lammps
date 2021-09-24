@@ -22,9 +22,9 @@ displace_atoms  all random 0.1 0.1 0.1 134598738
 mass            1 1.0
 
 neighbor        1.0 bin
-pair_style      lj/cut 1.0
+pair_style      bpm/spring
 bond_style      bpm/spring store/local 2 time id1 id2
-pair_coeff      1 1 $(1/(18*PI)) $(2^(-1/6)) 1.0
+pair_coeff      1 1 1.0 1.0 1.0
 bond_coeff      1 1.0 0.04 1.0
 bond_coeff      2 1.0 0.20 1.0
 

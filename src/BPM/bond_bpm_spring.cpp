@@ -111,12 +111,12 @@ void BondBPMSpring::store_data()
       type = bond_type[i][m];
 
       //Skip if bond was turned off
-      if(type < 0)
+      if (type < 0)
           continue;
 
       // map to find index n
       j = atom->map(atom->bond_atom[i][m]);
-      if(j == -1) error->one(FLERR, "Atom missing in BPM bond");
+      if (j == -1) error->one(FLERR, "Atom missing in BPM bond");
 
       delx = x[i][0] - x[j][0];
       dely = x[i][1] - x[j][1];
@@ -144,12 +144,9 @@ void BondBPMSpring::compute(int eflag, int vflag)
 
   int i1,i2,itmp,m,n,type,itype,jtype;
   double delx, dely, delz, delvx, delvy, delvz;
-  double e, rsq, r, r0, rinv, smooth, fbond, dot;
+  double e, rsq, r, r0, rinv, smooth, fbond, ebond, dot;
 
   ev_init(eflag,vflag);
-
-  if (vflag_global == 2)
-    force->pair->vflag_either = force->pair->vflag_global = 1;
 
   double **cutsq = force->pair->cutsq;
   double **x = atom->x;
@@ -188,7 +185,8 @@ void BondBPMSpring::compute(int eflag, int vflag)
     }
 
     rinv = 1.0/r;
-    fbond = -k[type]*(r-r0);
+    fbond = k[type]*(r0-r);
+    if (eflag) ebond = -0.5*fbond*(r0-r);
 
     delvx = v[i1][0] - v[i2][0];
     delvy = v[i1][1] - v[i2][1];
@@ -215,7 +213,7 @@ void BondBPMSpring::compute(int eflag, int vflag)
       f[i2][2] -= delz*fbond;
     }
 
-    if (evflag) ev_tally(i1,i2,nlocal,newton_bond,0.0,fbond,delx,dely,delz);
+    if (evflag) ev_tally(i1,i2,nlocal,newton_bond,ebond,fbond,delx,dely,delz);
   }
 }
 
@@ -318,7 +316,7 @@ void BondBPMSpring::read_restart(FILE *fp)
 void BondBPMSpring::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->nbondtypes; i++)
-     fprintf(fp,"%d %g %g %g\n", i,k[i],ecrit[i],gamma[i]);
+    fprintf(fp,"%d %g %g %g\n", i,k[i],ecrit[i],gamma[i]);
 }
 
 /* ---------------------------------------------------------------------- */

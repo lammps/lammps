@@ -209,9 +209,6 @@ void BondBPMRotational::compute(int eflag, int vflag)
 
   ev_init(eflag,vflag);
 
-  if (vflag_global == 2)
-    force->pair->vflag_either = force->pair->vflag_global = 1;
-
   double **cutsq = force->pair->cutsq;
   double **x = atom->x;
   double **v = atom->v;

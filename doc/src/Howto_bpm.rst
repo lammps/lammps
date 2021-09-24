@@ -75,3 +75,7 @@ To monitor the fracture of bonds in the system, all BPM bond styles
 can be associated with an instance of :doc:`fix store/local <fix_store_local>`
 to record all instances of bond breakage for output. Additionally, one can use
 :doc:`compute nbond/atom <compute_nbond_atom>` to tally the current number of bonds per atom.
+
+In addition to bond styles, a new pair style :doc:`pair bpm/spring <pair_bpm_spring>` was added
+to accompany the bpm/spring bond style. This pair style is simply a hookean repulsion with
+similar velocity damping as its sister bond style.

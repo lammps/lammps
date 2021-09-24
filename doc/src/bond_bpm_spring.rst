@@ -51,7 +51,7 @@ has a magnitude of
 
 .. math::
 
-   f = k (r - r_0) w
+   F = k (r - r_0) w
 
 where :math:`k_r` is a stiffness, :math:`r` is the current distance and
 :math:`r_0` is the initial distance between the two particles, and :math:`w`
@@ -66,16 +66,16 @@ go to zero, avoiding discontinuities, as bonds approach the critical strain
 
    w = 1.0 - \left( \frac{r - r_0}{r_0 \epsilon_c} \right^4 .
 
-Finally, additional damping forces and torques are applied to the two
-particles. A force is applied proportional to the difference in the
+Finally, an additional damping force is applied to the bonded particles.
+This forces is proportional to the difference in the
 normal velocity of particles using a similar construction as
 dissipative particle dynamics (:ref:`(Groot) <Groot1>`):
 
 .. math::
 
-   F_D = - \gamma_n w (\hat{r} \bullet \vec{v})
+   F_D = - \gamma w (\hat{r} \bullet \vec{v})
 
-where :math:`\gamma_n` is the damping strength, :math:`\hat{r}` is the
+where :math:`\gamma` is the damping strength, :math:`\hat{r}` is the
 radial normal vector, and :math:`\vec{v}` is the velocity difference
 between the two particles.
 
@@ -130,7 +130,8 @@ be turned off using the :doc:`special_bonds <special_bonds>` command.
 Related commands
 """"""""""""""""
 
-:doc:`bond_coeff <bond_coeff>`, :doc:`fix store/local <fix_store_local>`
+:doc:`bond_coeff <bond_coeff>`, :doc:`fix store/local <fix_store_local>`,
+:doc:`pair bpm/spring <pair_bpm_spring>`
 
 Default
 """""""

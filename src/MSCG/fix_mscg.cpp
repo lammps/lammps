@@ -144,14 +144,14 @@ void FixMSCG::post_constructor()
   tagint *tag = atom->tag;
   int *type = atom->type;
   int *num_bond = atom->num_bond;
-  int **bond_atom = atom->bond_atom;
+  tagint **bond_atom = atom->bond_atom;
   int *num_angle = atom->num_angle;
-  int **angle_atom1 = atom->angle_atom1;
-  int **angle_atom3 = atom->angle_atom3;
+  tagint **angle_atom1 = atom->angle_atom1;
+  tagint **angle_atom3 = atom->angle_atom3;
   int *num_dihedral = atom->num_dihedral;
-  int **dihedral_atom1 = atom->dihedral_atom1;
-  int **dihedral_atom3 = atom->dihedral_atom3;
-  int **dihedral_atom4 = atom->dihedral_atom4;
+  tagint **dihedral_atom1 = atom->dihedral_atom1;
+  tagint **dihedral_atom3 = atom->dihedral_atom3;
+  tagint **dihedral_atom4 = atom->dihedral_atom4;
   double *prd_half = domain->prd_half;
   int i,ii,j,jj,jnum,k,l;
 

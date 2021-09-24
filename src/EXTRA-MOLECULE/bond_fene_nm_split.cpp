@@ -268,14 +268,14 @@ double BondFENEnm::single(int type, double rsq, int /*i*/, int /*j*/,
     // issue a warning and reset rlogarg = epsilon
     // if r > 2*r0 something serious is wrong, abort
 
-  // change cutuff from .1 to .02 so only bond lengths > 1.485 give the warning
-  // // and crash the run if rlogarg < -.21 rather than < 3
-  // Don't print out warnings, only errors
+    // change cutuff from .1 to .02 so only bond lengths > 1.485 give the warning
+    // and crash the run if rlogarg < -.21 rather than < 3
+    // Don't print out warnings, only errors
     if (rlogarg < 0.02) {
       char str[128];
       sprintf(str,"FENE bond too long: " BIGINT_FORMAT " %g",
               update->ntimestep,sqrt(rsq));
-  //    error->warning(FLERR,str,0);
+        
       if (rlogarg <= -.21) error->one(FLERR,"Bad FENE bond");
       rlogarg = 0.02;;
   }

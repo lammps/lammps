@@ -333,6 +333,12 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
     gpu_barrier();
   }
 
+  // check if double precision support is available
+  #if defined(_SINGLE_DOUBLE) || defined(_DOUBLE_DOUBLE)
+  if (!gpu->double_precision())
+    return -16;
+  #endif
+
   // Setup auto bin size calculation for calls from atom::sort
   // - This is repeated in neighbor init with additional info
   if (_user_cell_size<0.0) {

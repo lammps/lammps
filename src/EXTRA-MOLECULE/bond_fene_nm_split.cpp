@@ -29,12 +29,6 @@
 using namespace LAMMPS_NS;
 using MathConst::MY_CUBEROOT2;
 
-/* ---------------------------------------------------------------------- */
-
-BondFENEnm::BondFENEnm(LAMMPS *lmp) : BondFENE(lmp)
-{
-//  MY_CUBEROOT2 = pow(2.0,(1.0/3.0));
-}
 
 /* ---------------------------------------------------------------------- */
 
@@ -85,13 +79,13 @@ void BondFENEnm::compute(int eflag, int vflag)
     r0sq = r0[type] * r0[type];
     rlogarg = 1.0 - rsq/r0sq;
 
-    // if r -> r0, then rlogarg < 0.0 which is an error
-    // issue a warning and reset rlogarg = epsilon
-    // if r > 2*r0 something serious is wrong, abort
+      // if r -> r0, then rlogarg < 0.0 which is an error
+      // issue a warning and reset rlogarg = epsilon
+      // if r > 2*r0 something serious is wrong, abort
 
-// change cutuff from .1 to .02 so only bond lengths > 1.485 give the warning
-// and crash the run if rlogarg < -.21 rather than < 3
-// Don't print out warnings, only errors
+      // change cutuff from .1 to .02 so only bond lengths > 1.485 give the warning
+      // and crash the run if rlogarg < -.21 rather than < 3
+      // Don't print out warnings, only errors
     if (rlogarg < .02) {
       char str[128];
       sprintf(str,"FENE bond too long: " BIGINT_FORMAT " "
@@ -103,8 +97,8 @@ void BondFENEnm::compute(int eflag, int vflag)
 
     fbond = -k[type]/rlogarg;
 
-// force from n-m term
-// MY_CUBEROOT2 cutoff assumes sigma = 2^{1/6}
+      // force from n-m term
+      // MY_CUBEROOT2 cutoff assumes sigma = 2^{1/6}
     if (rsq < MY_CUBEROOT2) {
         r = sqrt(rsq);
         fbond += epsilon[type]*(nn[type]*mm[type]/(nn[type]-mm[type]))*(pow(sigma[type]/r,nn[type])-pow(sigma[type]/r,mm[type]))/rsq;
@@ -269,7 +263,7 @@ double BondFENEnm::single(int type, double rsq, int /*i*/, int /*j*/,
 {
   double r0sq = r0[type] * r0[type];
   double rlogarg = 1.0 - rsq/r0sq;
-    double r;
+  double r;
     // if r -> r0, then rlogarg < 0.0 which is an error
     // issue a warning and reset rlogarg = epsilon
     // if r > 2*r0 something serious is wrong, abort

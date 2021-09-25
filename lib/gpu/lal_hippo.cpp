@@ -156,6 +156,102 @@ double HippoT::host_memory_usage() const {
 }
 
 // ---------------------------------------------------------------------------
+// Prepare for multiple kernel calls in a time step:
+//   - reallocate per-atom arrays, if needed
+//   - transfer extra data from host to device
+//   - build the full neighbor lists for use by different kernels
+// ---------------------------------------------------------------------------
+
+template <class numtyp, class acctyp>
+int** HippoT::precompute(const int ago, const int inum_full, const int nall,
+                              double **host_x, int *host_type, int *host_amtype,
+                              int *host_amgroup, double **host_rpole,
+                              double **host_uind, double **host_uinp, double *host_pval,
+                              double *sublo, double *subhi, tagint *tag,
+                              int **nspecial, tagint **special,
+                              int *nspecial15, tagint **special15,
+                              const bool eflag_in, const bool vflag_in,
+                              const bool eatom, const bool vatom, int &host_start,
+                              int **&ilist, int **&jnum, const double cpu_time,
+                              bool &success, double *host_q, double *boxlo,
+                              double *prd) {
+  this->acc_timers();
+  int eflag, vflag;
+  if (eatom) eflag=2;
+  else if (eflag_in) eflag=1;
+  else eflag=0;
+  if (vatom) vflag=2;
+  else if (vflag_in) vflag=1;
+  else vflag=0;
+
+  #ifdef LAL_NO_BLOCK_REDUCE
+  if (eflag) eflag=2;
+  if (vflag) vflag=2;
+  #endif
+
+  this->set_kernel(eflag,vflag);
+
+  // ------------------- Resize 1-5 neighbor arrays ------------------------
+
+  if (nall>this->_nmax) {
+    this->_nmax = nall;
+    this->dev_nspecial15.clear();
+    this->dev_special15.clear();
+    this->dev_special15_t.clear();
+    this->dev_nspecial15.alloc(nall,*(this->ucl_device),UCL_READ_ONLY);
+    this->dev_special15.alloc(this->_maxspecial15*nall,*(this->ucl_device),UCL_READ_ONLY);
+    this->dev_special15_t.alloc(nall*this->_maxspecial15,*(this->ucl_device),UCL_READ_ONLY);   
+  }
+
+  if (inum_full==0) {
+    host_start=0;
+    // Make sure textures are correct if realloc by a different hybrid style
+    this->resize_atom(0,nall,success);
+    this->zero_timers();
+    return nullptr;
+  }
+
+  this->hd_balancer.balance(cpu_time);
+  int inum=this->hd_balancer.get_gpu_count(ago,inum_full);
+  this->ans->inum(inum);
+  host_start=inum;
+
+  // Build neighbor list on GPU if necessary
+  if (ago==0) {
+    this->_max_nbors = this->build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
+                    sublo, subhi, tag, nspecial, special, nspecial15, special15,
+                    success);
+    if (!success)
+      return nullptr;
+    this->atom->cast_q_data(host_q);
+    this->cast_extra_data(host_amtype, host_amgroup, host_rpole, host_uind, host_uinp, host_pval);
+    this->hd_balancer.start_timer();
+  } else {
+    this->atom->cast_x_data(host_x,host_type);
+    this->atom->cast_q_data(host_q);
+    this->cast_extra_data(host_amtype, host_amgroup, host_rpole, host_uind, host_uinp, host_pval);
+    this->hd_balancer.start_timer();
+    this->atom->add_x_data(host_x,host_type);
+  }
+  this->atom->add_q_data();
+  this->atom->add_extra_data();
+
+  *ilist=this->nbor->host_ilist.begin();
+  *jnum=this->nbor->host_acc.begin();
+
+  this->device->precompute(ago,inum_full,nall,host_x,host_type,success,host_q,
+                     boxlo, prd);
+
+  // re-allocate dev_short_nbor if necessary
+  if (inum_full*(2+this->_max_nbors) > this->dev_short_nbor.cols()) {
+    int _nmax=static_cast<int>(static_cast<double>(inum_full)*1.10);
+    this->dev_short_nbor.resize((2+this->_max_nbors)*this->_nmax);
+  }
+
+  return this->nbor->host_jlist.begin()-host_start;
+}
+
+// ---------------------------------------------------------------------------
 // Reneighbor on GPU if necessary, and then compute dispersion real-space
 // ---------------------------------------------------------------------------
 
@@ -201,9 +297,9 @@ int** HippoT::compute_dispersion_real(const int ago, const int inum_full,
   //     (x, type, amtype, amgroup, rpole) are ready on the device.
 
   int** firstneigh = nullptr;
-  firstneigh = this->precompute(ago, inum_full, nall, host_x, host_type,
+  firstneigh = precompute(ago, inum_full, nall, host_x, host_type,
                           host_amtype, host_amgroup, host_rpole,
-                          nullptr, nullptr, sublo, subhi, tag,
+                          nullptr, nullptr, nullptr, sublo, subhi, tag,
                           nspecial, special, nspecial15, special15,
                           eflag_in, vflag_in, eatom, vatom,
                           host_start, ilist, jnum, cpu_time,
@@ -270,19 +366,20 @@ int HippoT::dispersion_real(const int eflag, const int vflag) {
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 int** HippoT::compute_multipole_real(const int ago, const int inum_full,
-                                          const int nall, double **host_x,
-                                          int *host_type, int *host_amtype,
-                                          int *host_amgroup, double **host_rpole,
-                                          double *sublo, double *subhi, tagint *tag,
-                                          int **nspecial, tagint **special,
-                                          int *nspecial15, tagint **special15,
-                                          const bool eflag_in, const bool vflag_in,
-                                          const bool eatom, const bool vatom,
-                                          int &host_start, int **ilist, int **jnum,
-                                          const double cpu_time, bool &success,
-                                          const double aewald, const double felec,
-                                          const double off2_mpole, double *host_q,
-                                          double *boxlo, double *prd, void **tep_ptr) {
+                                     const int nall, double **host_x,
+                                     int *host_type, int *host_amtype,
+                                     int *host_amgroup, double **host_rpole,
+                                     double* host_pval, double *sublo,
+                                     double *subhi, tagint *tag,
+                                     int **nspecial, tagint **special,
+                                     int *nspecial15, tagint **special15,
+                                     const bool eflag_in, const bool vflag_in,
+                                     const bool eatom, const bool vatom,
+                                     int &host_start, int **ilist, int **jnum,
+                                     const double cpu_time, bool &success,
+                                     const double aewald, const double felec,
+                                     const double off2_mpole, double *host_q,
+                                     double *boxlo, double *prd, void **tep_ptr) {
   this->acc_timers();
   int eflag, vflag;
   if (eatom) eflag=2;
@@ -311,9 +408,9 @@ int** HippoT::compute_multipole_real(const int ago, const int inum_full,
   //     (x, type, amtype, amgroup, rpole) are ready on the device.
 
   int** firstneigh = nullptr;
-  firstneigh = this->precompute(ago, inum_full, nall, host_x, host_type,
+  firstneigh = precompute(ago, inum_full, nall, host_x, host_type,
                           host_amtype, host_amgroup, host_rpole,
-                          nullptr, nullptr, sublo, subhi, tag,
+                          nullptr, nullptr, host_pval, sublo, subhi, tag,
                           nspecial, special, nspecial15, special15,
                           eflag_in, vflag_in, eatom, vatom,
                           host_start, ilist, jnum, cpu_time,
@@ -380,7 +477,7 @@ int HippoT::multipole_real(const int eflag, const int vflag) {
                          &nbor_pitch, &this->_threads_per_atom);
 
   this->k_multipole.set_size(GX,BX);
-  this->k_multipole.run(&this->atom->x, &this->atom->extra, &_pval,
+  this->k_multipole.run(&this->atom->x, &this->atom->extra,
                         &coeff_amtype, &coeff_amclass, &sp_polar,
                         &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                         &this->dev_short_nbor,

@@ -131,7 +131,7 @@ class BaseAmoeba {
                        bool &success);
 
   /// Reallocate per-atom arrays if needed, and build neighbor lists once, if needed
-  int** precompute(const int ago, const int inum_full, const int nall,
+  virtual int** precompute(const int ago, const int inum_full, const int nall,
                 double **host_x, int *host_type, int *host_amtype,
                 int *host_amgroup, double **host_rpole, double **host_uind,
                 double **host_uinp, double *sublo, double *subhi,
@@ -232,7 +232,7 @@ class BaseAmoeba {
 
   /// cast host arrays into a single array for atom->extra
   void cast_extra_data(int* amtype, int* amgroup, double** rpole,
-    double** uind, double** uinp);
+    double** uind, double** uinp, double* pval=nullptr);
 
   /// Per-atom arrays
   UCL_Vector<acctyp,acctyp> _tep, _fieldp;

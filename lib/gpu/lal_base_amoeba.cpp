@@ -757,7 +757,7 @@ double BaseAmoebaT::host_memory_usage_atomic() const {
 
 template <class numtyp, class acctyp>
 void BaseAmoebaT::cast_extra_data(int* amtype, int* amgroup, double** rpole,
-                                  double** uind, double** uinp) {
+                                  double** uind, double** uinp, double* pval) {
   // signal that we need to transfer extra data from the host
 
   atom->extra_data_unavail();
@@ -810,6 +810,14 @@ void BaseAmoebaT::cast_extra_data(int* amtype, int* amgroup, double** rpole,
       pextra[idx]   = uinp[i][0];
       pextra[idx+1] = uinp[i][1];
       pextra[idx+2] = uinp[i][2];    
+    }
+  }
+
+  if (pval) {
+    n += nstride*_nall;
+    for (int i = 0; i < _nall; i++) {
+      int idx = n+i*nstride;
+      pextra[idx]   = pval[i]; 
     }
   }
 }

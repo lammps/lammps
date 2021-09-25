@@ -54,6 +54,18 @@ class Hippo : public BaseAmoeba<numtyp, acctyp> {
            const double gpu_split, FILE *_screen,
            const double polar_dscale, const double polar_uscale);
 
+  /// Reallocate per-atom arrays if needed, and build neighbor lists once, if needed
+  int** precompute(const int ago, const int inum_full, const int nall,
+                double **host_x, int *host_type, int *host_amtype,
+                int *host_amgroup, double **host_rpole, double **host_uind,
+                double **host_uinp, double* host_pval, double *sublo, double *subhi,
+                tagint *tag, int **nspecial, tagint **special,
+                int *nspecial15, tagint **special15,
+                const bool eflag, const bool vflag,
+                const bool eatom, const bool vatom, int &host_start,
+                int **&ilist, int **&numj, const double cpu_time, bool &success,
+                double *charge, double *boxlo, double *prd);
+
   /// Compute dispersion real-space with device neighboring
   int** compute_dispersion_real(const int ago, const int inum_full, const int nall,
                 double **host_x, int *host_type, int *host_amtype,
@@ -69,8 +81,8 @@ class Hippo : public BaseAmoeba<numtyp, acctyp> {
   /// Compute multipole real-space with device neighboring
   virtual int** compute_multipole_real(const int ago, const int inum_full, const int nall,
                 double **host_x, int *host_type, int *host_amtype,
-                int *host_amgroup, double **host_rpole, double *sublo, double *subhi,
-                tagint *tag, int **nspecial, tagint **special,
+                int *host_amgroup, double **host_rpole, double *host_pval,
+                double *sublo, double *subhi, tagint *tag, int **nspecial, tagint **special,
                 int *nspecial15, tagint **special15,
                 const bool eflag, const bool vflag,
                 const bool eatom, const bool vatom, int &host_start,

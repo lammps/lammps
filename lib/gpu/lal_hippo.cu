@@ -908,7 +908,6 @@ __kernel void k_hippo_dispersion(const __global numtyp4 *restrict x_,
 
 __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
                                 const __global numtyp *restrict extra,
-                                const __global numtyp *restrict pval,
                                 const __global numtyp4 *restrict coeff_amtype,
                                 const __global numtyp4 *restrict coeff_amclass,
                                 const __global numtyp4 *restrict sp_polar,
@@ -945,6 +944,7 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
   numtyp4* polar1 = (numtyp4*)(&extra[0]);
   numtyp4* polar2 = (numtyp4*)(&extra[4*nall]);
   numtyp4* polar3 = (numtyp4*)(&extra[8*nall]);
+  numtyp4* polar6 = (numtyp4*)(&extra[20*nall]);
 
   if (ii<inum) {
     int m;
@@ -989,7 +989,7 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
 
     numtyp corei = coeff_amclass[itype].z;  // pcore[iclass];
     numtyp alphai = coeff_amclass[itype].w; // palpha[iclass];
-    numtyp vali = pval[i];
+    numtyp vali = polar6[i].x;
 
     for ( ; nbor<nbor_end; nbor+=n_stride) {
 
@@ -1030,7 +1030,7 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
 
       numtyp corek = coeff_amclass[jtype].z;  // pcore[jclass];
       numtyp alphak = coeff_amclass[jtype].w; // palpha[jclass];
-      numtyp valk = pval[j];
+      numtyp valk = polar6[j].x;
 
       // intermediates involving moments and separation distance
 
@@ -1133,29 +1133,56 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
       }
       for (m = 0; m < 6; m++) bn[m] *= felec;
 
-      term1 = ci*ck;
-      term2 = ck*dir - ci*dkr + dik;
-      term3 = ci*qkr + ck*qir - dir*dkr + (numtyp)2.0*(dkqi-diqk+qiqk);
-      term4 = dir*qkr - dkr*qir - (numtyp)4.0*qik;
-      term5 = qir*qkr;
-      numtyp scalek = (numtyp)1.0 - factor_mpole;
-      rr1 = bn[0] - scalek*rr1;
-      rr3 = bn[1] - scalek*rr3;
-      rr5 = bn[2] - scalek*rr5;
-      rr7 = bn[3] - scalek*rr7;
-      rr9 = bn[4] - scalek*rr9;
-      rr11 = bn[5] - scalek*rr11;
-      numtyp e = term1*rr1 + term2*rr3 + term3*rr5 + term4*rr7 + term5*rr9;
+      term1 = corei*corek;
+      numtyp term1i = corek*vali;
+      numtyp term2i = corek*dir;
+      numtyp term3i = corek*qir;
+      numtyp term1k = corei*valk;
+      numtyp term2k = -corei*dkr;
+      numtyp term3k = corei*qkr;
+      numtyp term1ik = vali*valk;
+      numtyp term2ik = valk*dir - vali*dkr + dik;
+      numtyp term3ik = vali*qkr + valk*qir - dir*dkr + 2.0*(dkqi-diqk+qiqk);
+      numtyp term4ik = dir*qkr - dkr*qir - 4.0*qik;
+      numtyp term5ik = qir*qkr;
+      numtyp dmpi[9],dmpj[9];
+      numtyp dmpij[11];
+      damppole(r,11,alphai,alphak,dmpi,dmpj,dmpij);
+      numtyp scalek = factor_mpole;
+      numtyp rr1i = bn[0] - (1.0-scalek*dmpi[0])*rr1;
+      numtyp rr3i = bn[1] - (1.0-scalek*dmpi[2])*rr3;
+      numtyp rr5i = bn[2] - (1.0-scalek*dmpi[4])*rr5;
+      numtyp rr7i = bn[3] - (1.0-scalek*dmpi[6])*rr7;
+      numtyp rr1k = bn[0] - (1.0-scalek*dmpj[0])*rr1;
+      numtyp rr3k = bn[1] - (1.0-scalek*dmpj[2])*rr3;
+      numtyp rr5k = bn[2] - (1.0-scalek*dmpj[4])*rr5;
+      numtyp rr7k = bn[3] - (1.0-scalek*dmpj[6])*rr7;
+      numtyp rr1ik = bn[0] - (1.0-scalek*dmpij[0])*rr1;
+      numtyp rr3ik = bn[1] - (1.0-scalek*dmpij[2])*rr3;
+      numtyp rr5ik = bn[2] - (1.0-scalek*dmpij[4])*rr5;
+      numtyp rr7ik = bn[3] - (1.0-scalek*dmpij[6])*rr7;
+      numtyp rr9ik = bn[4] - (1.0-scalek*dmpij[8])*rr9;
+      numtyp rr11ik = bn[5] - (1.0-scalek*dmpij[10])*rr11;
+      rr1 = bn[0] - (1.0-scalek)*rr1;
+      rr3 = bn[1] - (1.0-scalek)*rr3;
+      numtyp e = term1*rr1 + term4ik*rr7ik + term5ik*rr9ik + 
+        term1i*rr1i + term1k*rr1k + term1ik*rr1ik + 
+        term2i*rr3i + term2k*rr3k + term2ik*rr3ik + 
+        term3i*rr5i + term3k*rr5k + term3ik*rr5ik;
 
-      // find standard multipole intermediates for force and torque
+      // find damped multipole intermediates for force and torque
 
-      numtyp de = term1*rr3 + term2*rr5 + term3*rr7 + term4*rr9 + term5*rr11;
-      term1 = -ck*rr3 + dkr*rr5 - qkr*rr7;
-      term2 = ci*rr3 + dir*rr5 + qir*rr7;
-      term3 = (numtyp)2.0 * rr5;
-      term4 = (numtyp)2.0 * (-ck*rr5+dkr*rr7-qkr*rr9);
-      term5 = (numtyp)2.0 * (-ci*rr5-dir*rr7-qir*rr9);
-      term6 = (numtyp)4.0 * rr7;
+      numtyp de = term1*rr3 + term4ik*rr9ik + term5ik*rr11ik + 
+        term1i*rr3i + term1k*rr3k + term1ik*rr3ik + 
+        term2i*rr5i + term2k*rr5k + term2ik*rr5ik + 
+        term3i*rr7i + term3k*rr7k + term3ik*rr7ik;
+      term1 = -corek*rr3i - valk*rr3ik + dkr*rr5ik - qkr*rr7ik;
+      term2 = corei*rr3k + vali*rr3ik + dir*rr5ik + qir*rr7ik;
+      term3 = 2.0 * rr5ik;
+      term4 = -2.0 * (corek*rr5i+valk*rr5ik - dkr*rr7ik+qkr*rr9ik);
+      term5 = -2.0 * (corei*rr5k+vali*rr5ik + dir*rr7ik+qir*rr9ik);
+      term6 = 4.0 * rr7ik;
+      rr3 = rr3ik;
 
       energy += e;
 
@@ -1209,10 +1236,10 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
   store_answers_hippo_tq(tq,ii,inum,tid,t_per_atom,offset,i,tep);
   
   // accumate force, energy and virial: use _acc if not the first kernel
-  store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
-     offset,eflag,vflag,ans,engv);
-  //store_answers_acc(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
-  //   offset,eflag,vflag,ans,engv,NUM_BLOCKS_X);
+  //store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
+     //offset,eflag,vflag,ans,engv);
+  store_answers_acc(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
+     offset,eflag,vflag,ans,engv,NUM_BLOCKS_X);
 }
 
 /* ----------------------------------------------------------------------

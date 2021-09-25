@@ -292,7 +292,7 @@ void PairHippoGPU::multipole_real()
   // set the energy unit conversion factor for multipolar real-space calculation
 
   double felec = electric / am_dielectric;
-
+  printf("hippo gpu multipole\n");
   firstneigh = hippo_gpu_compute_multipole_real(neighbor->ago, inum, nall, atom->x,
                                                 atom->type, amtype, amgroup, rpole, pval,
                                                 sublo, subhi, atom->tag,

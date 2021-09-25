@@ -379,7 +379,8 @@ void PairAmoeba::multipole_real()
         corek = pcore[jclass];
         alphak = palpha[jclass];
         valk = pval[j];
-
+        if (i==0 && j < 10) printf("j = %d: corei = %f; corek = %f; alphai = %f; alphak = %f; vali = %f; valk = %f\n",
+          j, corei, corek, alphai, alphak, vali, valk);
 	/*
 	printf("HIPPO MPOLE ij %d %d: pcore/alpha/val I %g %g %g: J %g %g %g\n",
 	       atom->tag[i],atom->tag[j],corei,alphai,vali,corek,alphak,valk);

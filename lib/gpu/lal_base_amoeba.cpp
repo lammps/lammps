@@ -793,8 +793,8 @@ void BaseAmoebaT::cast_extra_data(int* amtype, int* amgroup, double** rpole,
     pextra[idx+3] = (numtyp)amgroup[i];
   }
 
+  n += nstride*_nall;
   if (uind) {
-    n += nstride*_nall;
     for (int i = 0; i < _nall; i++) {
       int idx = n+i*nstride;
       pextra[idx]   = uind[i][0];
@@ -802,9 +802,9 @@ void BaseAmoebaT::cast_extra_data(int* amtype, int* amgroup, double** rpole,
       pextra[idx+2] = uind[i][2];
     }
   }
-  
+
+  n += nstride*_nall;
   if (uinp) {
-    n += nstride*_nall;
     for (int i = 0; i < _nall; i++) {
       int idx = n+i*nstride;
       pextra[idx]   = uinp[i][0];
@@ -813,8 +813,9 @@ void BaseAmoebaT::cast_extra_data(int* amtype, int* amgroup, double** rpole,
     }
   }
 
+  n += nstride*_nall;
   if (pval) {
-    n += nstride*_nall;
+
     for (int i = 0; i < _nall; i++) {
       int idx = n+i*nstride;
       pextra[idx]   = pval[i]; 

@@ -13,11 +13,13 @@
 ------------------------------------------------------------------------- */
 
 #include "dump_xyz.h"
-#include <cstring>
+
 #include "atom.h"
 #include "error.h"
 #include "memory.h"
 #include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

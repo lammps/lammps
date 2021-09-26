@@ -579,7 +579,7 @@ void PairAmoeba::polar_real()
         tkz5 = 2.0 * (psr5*uiz+dsr5*uizp);
         tuir = -psr7*ukr - dsr7*ukrp;
         tukr = -psr7*uir - dsr7*uirp;
-
+      // reached here...
       } else if (hippo) {
         tix5 = 4.0 * (rr5i*ukx);
         tiy5 = 4.0 * (rr5i*uky);

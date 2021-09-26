@@ -597,7 +597,8 @@ int HippoT::polar_real(const int eflag, const int vflag) {
   }
 
   this->k_polar.set_size(GX,BX);
-  this->k_polar.run(&this->atom->x, &this->atom->extra, &coeff_amtype, &sp_polar,
+  this->k_polar.run(&this->atom->x, &this->atom->extra,
+                    &coeff_amtype, &coeff_amclass, &sp_polar,
                     &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                     &this->dev_short_nbor,
                     &this->ans->force, &this->ans->engv, &this->_tep,

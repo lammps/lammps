@@ -108,7 +108,7 @@ int ** hippo_gpu_compute_umutual2b(const int ago, const int inum, const int nall
 
 int ** hippo_gpu_compute_polar_real(const int ago, const int inum, const int nall,
               double **host_x, int *host_type, int *host_amtype, int *host_amgroup,
-              double **host_rpole, double **host_uind, double **host_uinp,
+              double **host_rpole, double **host_uind, double **host_uinp, double *host_pval,
               double *sublo, double *subhi, tagint *tag, int **nspecial,
               tagint **special, int* nspecial15, tagint** special15,
               const bool eflag, const bool vflag, const bool eatom, const bool vatom,
@@ -138,7 +138,7 @@ PairHippoGPU::PairHippoGPU(LAMMPS *lmp) : PairAmoeba(lmp), gpu_mode(GPU_FORCE)
   gpu_multipole_real_ready = true;
   gpu_udirect2b_ready = false;
   gpu_umutual2b_ready = false;
-  gpu_polar_real_ready = false;
+  gpu_polar_real_ready = true;
 
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
@@ -1089,7 +1089,7 @@ void PairHippoGPU::polar_real()
 
   firstneigh = hippo_gpu_compute_polar_real(neighbor->ago, inum, nall, atom->x,
                                              atom->type, amtype, amgroup,
-                                             rpole, uind, uinp, sublo, subhi,
+                                             rpole, uind, uinp, pval, sublo, subhi,
                                              atom->tag, atom->nspecial, atom->special,
                                              atom->nspecial15, atom->special15,
                                              eflag, vflag, eflag_atom, vflag_atom,

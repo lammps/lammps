@@ -430,8 +430,8 @@ int** HippoT::compute_multipole_real(const int ago, const int inum_full,
 
   // leave the answers (forces, energies and virial) on the device,
   //   only copy them back in the last kernel (this one, or polar_real once done)
-  this->ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
-  this->device->add_ans_object(this->ans);
+  //this->ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
+  //this->device->add_ans_object(this->ans);
 
   this->hd_balancer.stop_timer();
 
@@ -566,6 +566,94 @@ int HippoT::umutual2b(const int eflag, const int vflag) {
 
   this->time_pair.stop();
   return GX;
+}
+
+// ---------------------------------------------------------------------------
+// Reneighbor on GPU if necessary, and then compute polar real-space
+// ---------------------------------------------------------------------------
+template <class numtyp, class acctyp>
+int** HippoT::compute_polar_real(const int ago, const int inum_full,
+                                 const int nall, double **host_x,
+                                 int *host_type, int *host_amtype,
+                                 int *host_amgroup, double **host_rpole,
+                                 double **host_uind, double **host_uinp,
+                                 double *host_pval, double *sublo, double *subhi,
+                                 tagint *tag, int **nspecial, tagint **special,
+                                 int *nspecial15, tagint **special15,
+                                 const bool eflag_in, const bool vflag_in,
+                                 const bool eatom, const bool vatom,
+                                 int &host_start, int **ilist, int **jnum,
+                                 const double cpu_time, bool &success,
+                                 const double aewald, const double felec,
+                                 const double off2_polar, double *host_q,
+                                 double *boxlo, double *prd, void **tep_ptr) {
+  this->acc_timers();
+  int eflag, vflag;
+  if (eatom) eflag=2;
+  else if (eflag_in) eflag=1;
+  else eflag=0;
+  if (vatom) vflag=2;
+  else if (vflag_in) vflag=1;
+  else vflag=0;
+
+  #ifdef LAL_NO_BLOCK_REDUCE
+  if (eflag) eflag=2;
+  if (vflag) vflag=2;
+  #endif
+
+  this->set_kernel(eflag,vflag);
+
+  // reallocate per-atom arrays, transfer data from the host
+  //   and build the neighbor lists if needed
+  // NOTE: 
+  //   For now we invoke precompute() again here,
+  //     to be able to turn on/off the udirect2b kernel (which comes before this)
+  //   Once all the kernels are ready, precompute() is needed only once
+  //     in the first kernel in a time step.
+  //   We only need to cast uind and uinp from host to device here
+  //     if the neighbor lists are rebuilt and other per-atom arrays
+  //     (x, type, amtype, amgroup, rpole) are ready on the device.
+
+  int** firstneigh = nullptr;
+  firstneigh = precompute(ago, inum_full, nall, host_x, host_type,
+                          host_amtype, host_amgroup, host_rpole,
+                          host_uind, host_uinp, host_pval, sublo, subhi, tag,
+                          nspecial, special, nspecial15, special15,
+                          eflag_in, vflag_in, eatom, vatom,
+                          host_start, ilist, jnum, cpu_time,
+                          success, host_q, boxlo, prd);
+
+  // ------------------- Resize _tep array ------------------------
+
+  if (inum_full>this->_max_tep_size) {
+    this->_max_tep_size=static_cast<int>(static_cast<double>(inum_full)*1.10);
+    this->_tep.resize(this->_max_tep_size*4);
+  }
+  *tep_ptr=this->_tep.host.begin();
+
+  this->_off2_polar = off2_polar;
+  this->_felec = felec;
+  this->_aewald = aewald;
+  const int red_blocks=polar_real(eflag,vflag);
+
+  // only copy answers (forces, energies and virial) back from the device
+  //   in the last kernel (which is polar_real here)
+  this->ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
+  this->device->add_ans_object(this->ans);
+
+  this->hd_balancer.stop_timer();
+
+  // copy tep from device to host
+
+  this->_tep.update_host(this->_max_tep_size*4,false);
+/*
+  printf("GPU lib: tep size = %d: max tep size = %d\n", this->_tep.cols(), _max_tep_size);
+  for (int i = 0; i < 10; i++) {
+    numtyp4* p = (numtyp4*)(&this->_tep[4*i]);
+    printf("i = %d; tep = %f %f %f\n", i, p->x, p->y, p->z);
+  }
+*/  
+  return firstneigh; // nbor->host_jlist.begin()-host_start;
 }
 
 // ---------------------------------------------------------------------------

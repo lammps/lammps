@@ -1753,7 +1753,7 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
 
     numtyp corei = coeff_amclass[itype].z;  // pcore[iclass];
     numtyp alphai = coeff_amclass[itype].w; // palpha[iclass];
-     numtyp vali = polar6[i].x;
+    numtyp vali = polar6[i].x;
 
     for ( ; nbor<nbor_end; nbor+=n_stride) {
 
@@ -1873,25 +1873,25 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
       numtyp dmpi[9],dmpk[9];
       numtyp dmpik[9];
       damppole(r,9,alphai,alphak,dmpi,dmpk,dmpik);
-      numtyp rr3core = bn[1] - (1.0-factor_dscale)*rr3;
-      numtyp rr5core = bn[2] - (1.0-factor_dscale)*rr5;
-      numtyp rr3i = bn[1] - (1.0-factor_dscale*dmpi[2])*rr3;
-      numtyp rr5i = bn[2] - (1.0-factor_dscale*dmpi[4])*rr5;
-      numtyp rr7i = bn[3] - (1.0-factor_dscale*dmpi[6])*rr7;
-      numtyp rr9i = bn[4] - (1.0-factor_dscale*dmpi[8])*rr9;
-      numtyp rr3k = bn[1] - (1.0-factor_dscale*dmpk[2])*rr3;
-      numtyp rr5k = bn[2] - (1.0-factor_dscale*dmpk[4])*rr5;
-      numtyp rr7k = bn[3] - (1.0-factor_dscale*dmpk[6])*rr7;
-      numtyp rr9k = bn[4] - (1.0-factor_dscale*dmpk[8])*rr9;
-      numtyp rr5ik = bn[2] - (1.0-factor_wscale*dmpik[4])*rr5;
-      numtyp rr7ik = bn[3] - (1.0-factor_wscale*dmpik[6])*rr7;
+      numtyp rr3core = bn[1] - ((numtyp)1.0-factor_dscale)*rr3;
+      numtyp rr5core = bn[2] - ((numtyp)1.0-factor_dscale)*rr5;
+      numtyp rr3i = bn[1] - ((numtyp)1.0-factor_dscale*dmpi[2])*rr3;
+      numtyp rr5i = bn[2] - ((numtyp)1.0-factor_dscale*dmpi[4])*rr5;
+      numtyp rr7i = bn[3] - ((numtyp)1.0-factor_dscale*dmpi[6])*rr7;
+      numtyp rr9i = bn[4] - ((numtyp)1.0-factor_dscale*dmpi[8])*rr9;
+      numtyp rr3k = bn[1] - ((numtyp)1.0-factor_dscale*dmpk[2])*rr3;
+      numtyp rr5k = bn[2] - ((numtyp)1.0-factor_dscale*dmpk[4])*rr5;
+      numtyp rr7k = bn[3] - ((numtyp)1.0-factor_dscale*dmpk[6])*rr7;
+      numtyp rr9k = bn[4] - ((numtyp)1.0-factor_dscale*dmpk[8])*rr9;
+      numtyp rr5ik = bn[2] - ((numtyp)1.0-factor_wscale*dmpik[4])*rr5;
+      numtyp rr7ik = bn[3] - ((numtyp)1.0-factor_wscale*dmpik[6])*rr7;
 
       // get the induced dipole field used for dipole torques
 
-      numtyp tix3 = 2.0*rr3i*ukx;
-      numtyp tiy3 = 2.0*rr3i*uky;
-      numtyp tiz3 = 2.0*rr3i*ukz;
-      numtyp tuir = -2.0*rr5i*ukr;
+      numtyp tix3 = (numtyp)2.0*rr3i*ukx;
+      numtyp tiy3 = (numtyp)2.0*rr3i*uky;
+      numtyp tiz3 = (numtyp)2.0*rr3i*ukz;
+      numtyp tuir = (numtyp)-2.0*rr5i*ukr;
 
       ufld[0] += tix3 + xr*tuir;
       ufld[1] += tiy3 + yr*tuir;
@@ -1899,10 +1899,10 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
 
       // get induced dipole field gradient used for quadrupole torques
 
-      numtyp tix5 = 4.0 * (rr5i*ukx);
-      numtyp tiy5 = 4.0 * (rr5i*uky);
-      numtyp tiz5 = 4.0 * (rr5i*ukz);
-      tuir = -2.0*rr7i*ukr;
+      numtyp tix5 = (numtyp)4.0 * (rr5i*ukx);
+      numtyp tiy5 = (numtyp)4.0 * (rr5i*uky);
+      numtyp tiz5 = (numtyp)4.0 * (rr5i*ukz);
+      tuir = (numtyp)-2.0*rr7i*ukr;
 
       dufld[0] += xr*tix5 + xr*xr*tuir;
       dufld[1] += xr*tiy5 + yr*tix5 + (numtyp)2.0*xr*yr*tuir;
@@ -1911,7 +1911,7 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
       dufld[4] += yr*tiz5 + zr*tiy5 + (numtyp)2.0*yr*zr*tuir;
       dufld[5] += zr*tiz5 + zr*zr*tuir;
       
-      // get the dEd/dR terms used for direct polarization force
+      // get the field gradient for direct polarization force
       
       numtyp term1i,term2i,term3i,term4i,term5i,term6i,term7i,term8i;
       numtyp term1k,term2k,term3k,term4k,term5k,term6k,term7k,term8k;
@@ -1921,16 +1921,16 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
 
       term1i = rr3i - rr5i*xr*xr;
       term1core = rr3core - rr5core*xr*xr;
-      term2i = 2.0*rr5i*xr ;
+      term2i = (numtyp)2.0*rr5i*xr ;
       term3i = rr7i*xr*xr - rr5i;
-      term4i = 2.0*rr5i;
-      term5i = 5.0*rr7i*xr;
+      term4i = (numtyp)2.0*rr5i;
+      term5i = (numtyp)5.0*rr7i*xr;
       term6i = rr9i*xr*xr;
       term1k = rr3k - rr5k*xr*xr;
-      term2k = 2.0*rr5k*xr;
+      term2k = (numtyp)2.0*rr5k*xr;
       term3k = rr7k*xr*xr - rr5k;
       term4k = 2.0*rr5k;
-      term5k = 5.0*rr7k*xr;
+      term5k = (numtyp)5.0*rr7k*xr;
       term6k = rr9k*xr*xr;
       tixx = vali*term1i + corei*term1core + dix*term2i - dir*term3i -
         qixx*term4i + qix*term5i - qir*term6i + (qiy*yr+qiz*zr)*rr7i;
@@ -1939,16 +1939,16 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
 
       term1i = rr3i - rr5i*yr*yr;
       term1core = rr3core - rr5core*yr*yr;
-      term2i = 2.0*rr5i*yr;
+      term2i = (numtyp)2.0*rr5i*yr;
       term3i = rr7i*yr*yr - rr5i;
-      term4i = 2.0*rr5i;
-      term5i = 5.0*rr7i*yr;
+      term4i = (numtyp)2.0*rr5i;
+      term5i = (numtyp)5.0*rr7i*yr;
       term6i = rr9i*yr*yr;
       term1k = rr3k - rr5k*yr*yr;
-      term2k = 2.0*rr5k*yr;
+      term2k = (numtyp)2.0*rr5k*yr;
       term3k = rr7k*yr*yr - rr5k;
-      term4k = 2.0*rr5k;
-      term5k = 5.0*rr7k*yr;
+      term4k = (numtyp)2.0*rr5k;
+      term5k = (numtyp)5.0*rr7k*yr;
       term6k = rr9k*yr*yr;
       tiyy = vali*term1i + corei*term1core + diy*term2i - dir*term3i -
         qiyy*term4i + qiy*term5i - qir*term6i + (qix*xr+qiz*zr)*rr7i;
@@ -1957,16 +1957,16 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
 
       term1i = rr3i - rr5i*zr*zr;
       term1core = rr3core - rr5core*zr*zr;
-      term2i = 2.0*rr5i*zr;
+      term2i = (numtyp)2.0*rr5i*zr;
       term3i = rr7i*zr*zr - rr5i;
-      term4i = 2.0*rr5i;
-      term5i = 5.0*rr7i*zr;
+      term4i = (numtyp)2.0*rr5i;
+      term5i = (numtyp)5.0*rr7i*zr;
       term6i = rr9i*zr*zr;
       term1k = rr3k - rr5k*zr*zr;
-      term2k = 2.0*rr5k*zr;
+      term2k = (numtyp)2.0*rr5k*zr;
       term3k = rr7k*zr*zr - rr5k;
-      term4k = 2.0*rr5k;
-      term5k = 5.0*rr7k*zr;
+      term4k = (numtyp)2.0*rr5k;
+      term5k = (numtyp)5.0*rr7k*zr;
       term6k = rr9k*zr*zr;
       tizz = vali*term1i + corei*term1core + diz*term2i - dir*term3i -
         qizz*term4i + qiz*term5i - qir*term6i + (qix*xr+qiy*yr)*rr7i;
@@ -1978,17 +1978,17 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
       term1core = rr5core*xr*yr;
       term3i = rr5i*yr;
       term4i = yr * (rr7i*xr);
-      term5i = 2.0*rr5i;
-      term6i = 2.0*rr7i*xr;
-      term7i = 2.0*rr7i*yr;
+      term5i = (numtyp)2.0*rr5i;
+      term6i = (numtyp)2.0*rr7i*xr;
+      term7i = (numtyp)2.0*rr7i*yr;
       term8i = yr*rr9i*xr;
       term2k = rr5k*xr;
       term1k = yr * term2k;
       term3k = rr5k*yr;
       term4k = yr * (rr7k*xr);
-      term5k = 2.0*rr5k;
-      term6k = 2.0*rr7k*xr;
-      term7k = 2.0*rr7k*yr;
+      term5k = (numtyp)2.0*rr5k;
+      term6k = (numtyp)2.0*rr7k*xr;
+      term7k = (numtyp)2.0*rr7k*yr;
       term8k = yr*rr9k*xr;
       tixy = -vali*term1i - corei*term1core + diy*term2i + dix*term3i -
         dir*term4i - qixy*term5i + qiy*term6i + qix*term7i - qir*term8i;
@@ -2000,17 +2000,17 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
       term1core = rr5core*xr*zr;
       term3i = rr5i*zr;
       term4i = zr * (rr7i*xr);
-      term5i = 2.0*rr5i;
-      term6i = 2.0*rr7i*xr;
-      term7i = 2.0*rr7i*zr;
+      term5i = (numtyp)2.0*rr5i;
+      term6i = (numtyp)2.0*rr7i*xr;
+      term7i = (numtyp)2.0*rr7i*zr;
       term8i = zr*rr9i*xr;
       term2k = rr5k*xr;
       term1k = zr * term2k;
       term3k = rr5k*zr;
       term4k = zr * (rr7k*xr);
-      term5k = 2.0*rr5k;
-      term6k = 2.0*rr7k*xr;
-      term7k = 2.0*rr7k*zr;
+      term5k = (numtyp)2.0*rr5k;
+      term6k = (numtyp)2.0*rr7k*xr;
+      term7k = (numtyp)2.0*rr7k*zr;
       term8k = zr*rr9k*xr;
       tixz = -vali*term1i - corei*term1core + diz*term2i + dix*term3i -
         dir*term4i - qixz*term5i + qiz*term6i + qix*term7i - qir*term8i;
@@ -2022,17 +2022,17 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
       term1core = rr5core*yr*zr;
       term3i = rr5i*zr;
       term4i = zr * (rr7i*yr);
-      term5i = 2.0*rr5i;
-      term6i = 2.0*rr7i*yr;
-      term7i = 2.0*rr7i*zr;
+      term5i = (numtyp)2.0*rr5i;
+      term6i = (numtyp)2.0*rr7i*yr;
+      term7i = (numtyp)2.0*rr7i*zr;
       term8i = zr*rr9i*yr;
       term2k = rr5k*yr;
       term1k = zr * term2k;
       term3k = rr5k*zr;
       term4k = zr * (rr7k*yr);
-      term5k = 2.0*rr5k;
-      term6k = 2.0*rr7k*yr;
-      term7k = 2.0*rr7k*zr;
+      term5k = (numtyp)2.0*rr5k;
+      term6k = (numtyp)2.0*rr7k*yr;
+      term7k = (numtyp)2.0*rr7k*zr;
       term8k = zr*rr9k*yr;
       tiyz = -vali*term1i - corei*term1core + diz*term2i + diy*term3i -
         dir*term4i - qiyz*term5i + qiz*term6i + qiy*term7i - qir*term8i;
@@ -2043,14 +2043,14 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
       numtyp depy = tixy*ukx + tiyy*uky + tiyz*ukz - tkxy*uix - tkyy*uiy - tkyz*uiz;
       numtyp depz = tixz*ukx + tiyz*uky + tizz*ukz - tkxz*uix - tkyz*uiy - tkzz*uiz;
 
-      numtyp frcx = -2.0 * depx;
-      numtyp frcy = -2.0 * depy;
-      numtyp frcz = -2.0 * depz;
+      numtyp frcx = (numtyp)-2.0 * depx;
+      numtyp frcy = (numtyp)-2.0 * depy;
+      numtyp frcz = (numtyp)-2.0 * depz;
 
       // get the dEp/dR terms used for direct polarization force
       // poltyp == MUTUAL && hippo
       // tixx and tkxx
-      term1 = 2.0 * rr5ik;
+      term1 = (numtyp)2.0 * rr5ik;
       term2 = term1*xr;
       term3 = rr5ik - rr7ik*xr*xr;
       tixx = uix*term2 + uir*term3;
@@ -2094,55 +2094,6 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
       frcx = frcx - depx;
       frcy = frcy - depy;
       frcz = frcz - depz;
-
-      // get the dtau/dr terms used for mutual polarization force
-      // poltyp == MUTUAL  && hippo
-          
-      term1 = bn[2] - usc3*rr5;
-      term2 = bn[3] - usc5*rr7;
-      term3 = usr5 + term1;
-      term4 = rr3 * factor_uscale;
-      term5 = -xr*term3 + rc3[0]*term4;
-      term6 = -usr5 + xr*xr*term2 - rr5*xr*urc5[0];
-      tixx = uix*term5 + uir*term6;
-      tkxx = ukx*term5 + ukr*term6;
-
-      term5 = -yr*term3 + rc3[1]*term4;
-      term6 = -usr5 + yr*yr*term2 - rr5*yr*urc5[1];
-      tiyy = uiy*term5 + uir*term6;
-      tkyy = uky*term5 + ukr*term6;
-
-      term5 = -zr*term3 + rc3[2]*term4;
-      term6 = -usr5 + zr*zr*term2 - rr5*zr*urc5[2];
-      tizz = uiz*term5 + uir*term6;
-      tkzz = ukz*term5 + ukr*term6;
-
-      term4 = -usr5 * yr;
-      term5 = -xr*term1 + rr3*urc3[0];
-      term6 = xr*yr*term2 - rr5*yr*urc5[0];
-      tixy = uix*term4 + uiy*term5 + uir*term6;
-      tkxy = ukx*term4 + uky*term5 + ukr*term6;
-
-      term4 = -usr5 * zr;
-      term6 = xr*zr*term2 - rr5*zr*urc5[0];
-      tixz = uix*term4 + uiz*term5 + uir*term6;
-      tkxz = ukx*term4 + ukz*term5 + ukr*term6;
-
-      term5 = -yr*term1 + rr3*urc3[1];
-      term6 = yr*zr*term2 - rr5*zr*urc5[1];
-      tiyz = uiy*term4 + uiz*term5 + uir*term6;
-      tkyz = uky*term4 + ukz*term5 + ukr*term6;
-
-      depx = tixx*ukxp + tixy*ukyp + tixz*ukzp
-        + tkxx*uixp + tkxy*uiyp + tkxz*uizp;
-      depy = tixy*ukxp + tiyy*ukyp + tiyz*ukzp
-        + tkxy*uixp + tkyy*uiyp + tkyz*uizp;
-      depz = tixz*ukxp + tiyz*ukyp + tizz*ukzp
-        + tkxz*uixp + tkyz*uiyp + tkzz*uizp;
-
-      frcx = frcx + depx;
-      frcy = frcy + depy;
-      frcz = frcz + depz;
 
       f.x -= frcx;
       f.y -= frcy;

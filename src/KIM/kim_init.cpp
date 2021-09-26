@@ -165,7 +165,9 @@ void KimInit::print_dirs(struct KIM_Collections *const collections) const
 {
   int kim_error = 0;
   int dirListExtent = 0;
-  input->write_echo("#=== KIM is looking for 'Portable Models' in these directories ===\n");
+  int dirCounter = 0;
+
+  std::string mesg = "#=== KIM is looking for 'Portable Models' in these directories ===\n";
   std::vector<struct KIM_Collection> collection_list;
   collection_list.push_back(KIM_COLLECTION_currentWorkingDirectory);
   collection_list.push_back(KIM_COLLECTION_environmentVariable);
@@ -178,27 +180,34 @@ void KimInit::print_dirs(struct KIM_Collections *const collections) const
     if (!kim_error) {
       for (int i = 0; i < dirListExtent; ++i) {
         char const *name;
-        // Don't check for error due to bug in kim-api-2.2.1 and below.  Fix after >=2.2.2 release
-        /* kim_error = */ KIM_Collections_GetDirectoryName(collections, i, &name);
-        /*if (!kim_error) { */ input->write_echo(fmt::format("#  {}\n", name)); /* } */
+        kim_error = KIM_Collections_GetDirectoryName(collections, i, &name);
+        // Don't check for error due to bug in kim-api-2.2.1 and below.
+#if ((KIM_VERSION_MAJOR * 1000 + KIM_VERSION_MINOR) * 1000 + KIM_VERSION_PATCH) <= 2002001
+        kim_error = 0;
+#endif
+        if (!kim_error) mesg += fmt::format("# {:2}: {}\n", ++dirCounter, name);
       }
     }
   }
-  input->write_echo("#\n");
-  input->write_echo("#=== KIM is looking for 'Simulator Models' in these directories ===\n");
+
+  dirCounter = 0;
+  mesg += "#=== KIM is looking for 'Simulator Models' in these directories ===\n";
   for (auto col : collection_list) {
     kim_error = KIM_Collections_CacheListOfDirectoryNames(
         collections, col, KIM_COLLECTION_ITEM_TYPE_simulatorModel, &dirListExtent);
     if (!kim_error) {
       for (int i = 0; i < dirListExtent; ++i) {
         char const *name;
-        // Don't check for error due to bug in kim-api-2.2.1 and below.  Fix after >=2.2.2 release
-        /* kim_error = */ KIM_Collections_GetDirectoryName(collections, i, &name);
-        /* if (!kim_error) { */ input->write_echo(fmt::format("#  {}\n", name)); /* } */
+        kim_error = KIM_Collections_GetDirectoryName(collections, i, &name);
+        // Don't check for error due to bug in kim-api-2.2.1 and below.
+#if ((KIM_VERSION_MAJOR * 1000 + KIM_VERSION_MINOR) * 1000 + KIM_VERSION_PATCH) <= 2002001
+        kim_error = 0;
+#endif
+        if (!kim_error) mesg += fmt::format("# {:2}: {}\n", ++dirCounter, name);
       }
     }
   }
-  input->write_echo("#\n");
+  input->write_echo(mesg);
 }
 
 void KimInit::determine_model_type_and_units(char *model_name, char *user_units, char **model_units,

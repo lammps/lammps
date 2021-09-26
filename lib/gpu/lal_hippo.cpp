@@ -72,7 +72,6 @@ int HippoT::init(const int ntypes, const int max_amtype, const int max_amclass,
 
   // specific to HIPPO
   k_dispersion.set_function(*(this->pair_program),"k_hippo_dispersion");
-  _pval.alloc(this->_max_tep_size,*(this->ucl_device),UCL_READ_ONLY,UCL_READ_ONLY);
 
   // If atom type constants fit in shared memory use fast kernel
   int lj_types=ntypes;
@@ -312,8 +311,8 @@ int** HippoT::compute_dispersion_real(const int ago, const int inum_full,
   // only copy them back if this is the last kernel
   //   otherwise, commenting out these two lines to leave the answers
   //   (forces, energies and virial) on the device until the last kernel
-  this->ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
-  this->device->add_ans_object(this->ans);
+  //this->ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
+  //this->device->add_ans_object(this->ans);
 
   this->hd_balancer.stop_timer();
 
@@ -430,9 +429,9 @@ int** HippoT::compute_multipole_real(const int ago, const int inum_full,
   const int red_blocks=multipole_real(eflag,vflag);
 
   // leave the answers (forces, energies and virial) on the device,
-  //   only copy them back in the last kernel (polar_real)
-  //ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
-  //device->add_ans_object(ans);
+  //   only copy them back in the last kernel (this one, or polar_real once done)
+  this->ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
+  this->device->add_ans_object(this->ans);
 
   this->hd_balancer.stop_timer();
 

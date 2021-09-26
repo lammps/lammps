@@ -379,8 +379,7 @@ void PairAmoeba::multipole_real()
         corek = pcore[jclass];
         alphak = palpha[jclass];
         valk = pval[j];
-        if (i==0 && j < 10) printf("j = %d: corei = %f; corek = %f; alphai = %f; alphak = %f; vali = %f; valk = %f\n",
-          j, corei, corek, alphai, alphak, vali, valk);
+
 	/*
 	printf("HIPPO MPOLE ij %d %d: pcore/alpha/val I %g %g %g: J %g %g %g\n",
 	       atom->tag[i],atom->tag[j],corei,alphai,vali,corek,alphak,valk);
@@ -420,6 +419,8 @@ void PairAmoeba::multipole_real()
           term1i*rr1i + term1k*rr1k + term1ik*rr1ik + 
           term2i*rr3i + term2k*rr3k + term2ik*rr3ik + 
           term3i*rr5i + term3k*rr5k + term3ik*rr5ik;
+
+        
 
         // find damped multipole intermediates for force and torque
 
@@ -527,14 +528,14 @@ void PairAmoeba::multipole_real()
 
       // increment force-based gradient and torque on second site
       // commenting out j parts for DEBUGGING
-      
+
       fmpole[j][0] -= frcx;
       fmpole[j][1] -= frcy;
       fmpole[j][2] -= frcz;
       tq[j][0] += ttmk[0];
       tq[j][1] += ttmk[1];
       tq[j][2] += ttmk[2];
-      
+
       // increment the virial due to pairwise Cartesian forces
 
       vxx = -xr * frcx;

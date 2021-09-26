@@ -1032,9 +1032,6 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
       numtyp alphak = coeff_amclass[jtype].w; // palpha[jclass];
       numtyp valk = polar6[j].x;
 
-      if (i==0 && j < 10) printf("j = %d: corei = %f; corek = %f; alphai = %f; alphak = %f; vali = %f; valk = %f\n",
-        j, corei, corek, alphai, alphak, vali, valk);
-
       // intermediates involving moments and separation distance
 
       numtyp dir = dix*xr + diy*yr + diz*zr;

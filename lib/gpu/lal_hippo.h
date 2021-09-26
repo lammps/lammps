@@ -130,8 +130,6 @@ class Hippo : public BaseAmoeba<numtyp, acctyp> {
 
   UCL_Kernel k_dispersion;
 
-  UCL_Vector<acctyp,acctyp> _pval;
-
  protected:
   bool _allocated;
   int dispersion_real(const int eflag, const int vflag);

@@ -17,7 +17,6 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_cut_coul_dsf_gpu.h"
-#include <cmath>
 
 #include "atom.h"
 #include "domain.h"

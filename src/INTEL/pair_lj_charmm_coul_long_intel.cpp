@@ -17,10 +17,9 @@
 
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
-#include "group.h"
 #include "kspace.h"
-#include "memory.h"
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
@@ -29,6 +28,7 @@
 #include "suffix.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

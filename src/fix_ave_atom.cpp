@@ -177,7 +177,7 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based array
   // register with Atom class
 
-  grow_arrays(atom->nmax);
+  FixAveAtom::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
 
   // zero the array since dump may access it on timestep 0

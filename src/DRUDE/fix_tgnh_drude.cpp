@@ -24,6 +24,7 @@
 #include "domain.h"
 #include "error.h"
 #include "fix_deform.h"
+#include "fix_drude.h"
 #include "force.h"
 #include "irregular.h"
 #include "kspace.h"

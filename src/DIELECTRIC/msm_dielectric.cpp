@@ -23,15 +23,9 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "force.h"
 #include "gridcomm.h"
 #include "math_const.h"
 #include "memory.h"
-#include "neighbor.h"
-#include "pair.h"
-
-#include <cstring>
-#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

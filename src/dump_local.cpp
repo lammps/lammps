@@ -87,15 +87,13 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
   // setup format strings
 
   vformat = new char*[size_one];
-
-  format_default = new char[3*size_one+1];
-  format_default[0] = '\0';
-
+  std::string fdefault;
   for (int i = 0; i < size_one; i++) {
-    if (vtype[i] == Dump::INT) strcat(format_default,"%d ");
-    else if (vtype[i] == Dump::DOUBLE) strcat(format_default,"%g ");
+    if (vtype[i] == Dump::INT) fdefault += "%d ";
+    else if (vtype[i] == Dump::DOUBLE) fdefault += "%g ";
     vformat[i] = nullptr;
   }
+  format_default = utils::strdup(fdefault);
 
   format_column_user = new char*[size_one];
   for (int i = 0; i < size_one; i++) format_column_user[i] = nullptr;
@@ -116,7 +114,7 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
   // if wildcard expansion occurred, free earg memory from expand_args()
 
   if (expand) {
-    for (int i = 0; i < nfield; i++) delete [] earg[i];
+    for (int i = 0; i < nfield; i++) delete[] earg[i];
     memory->sfree(earg);
   }
 }
@@ -125,27 +123,27 @@ DumpLocal::DumpLocal(LAMMPS *lmp, int narg, char **arg) :
 
 DumpLocal::~DumpLocal()
 {
-  delete [] pack_choice;
-  delete [] vtype;
-  delete [] field2index;
-  delete [] argindex;
+  delete[] pack_choice;
+  delete[] vtype;
+  delete[] field2index;
+  delete[] argindex;
 
-  for (int i = 0; i < ncompute; i++) delete [] id_compute[i];
+  for (int i = 0; i < ncompute; i++) delete[] id_compute[i];
   memory->sfree(id_compute);
-  delete [] compute;
+  delete[] compute;
 
-  for (int i = 0; i < nfix; i++) delete [] id_fix[i];
+  for (int i = 0; i < nfix; i++) delete[] id_fix[i];
   memory->sfree(id_fix);
-  delete [] fix;
+  delete[] fix;
 
-  for (int i = 0; i < size_one; i++) delete [] vformat[i];
-  delete [] vformat;
+  for (int i = 0; i < size_one; i++) delete[] vformat[i];
+  delete[] vformat;
 
-  for (int i = 0; i < size_one; i++) delete [] format_column_user[i];
-  delete [] format_column_user;
+  for (int i = 0; i < size_one; i++) delete[] format_column_user[i];
+  delete[] format_column_user;
 
-  delete [] columns;
-  delete [] label;
+  delete[] columns;
+  delete[] label;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -157,7 +155,7 @@ void DumpLocal::init_style()
 
   // format = copy of default or user-specified line format
 
-  delete [] format;
+  delete[] format;
   if (format_line_user) format = utils::strdup(format_line_user);
   else format = utils::strdup(format_default);
 
@@ -171,8 +169,8 @@ void DumpLocal::init_style()
     error->all(FLERR,"Dump_modify format line is too short");
 
   int i=0;
-  for (auto word : words) {
-    delete [] vformat[i];
+  for (const auto &word : words) {
+    delete[] vformat[i];
 
     if (format_column_user[i])
       vformat[i] = utils::strdup(std::string(format_column_user[i]) + " ");
@@ -223,7 +221,7 @@ int DumpLocal::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"label") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-    delete [] label;
+    delete[] label;
     label = utils::strdup(arg[1]);
     return 2;
   } else if (strcmp(arg[0],"format") == 0) {
@@ -232,14 +230,14 @@ int DumpLocal::modify_param(int narg, char **arg)
     if (strcmp(arg[1],"none") == 0) {
       // just clear format_column_user allocated by this dump child class
       for (int i = 0; i < nfield; i++) {
-        delete [] format_column_user[i];
+        delete[] format_column_user[i];
         format_column_user[i] = nullptr;
       }
       return 2;
     } else if (strcmp(arg[1],"int") == 0) {
-      delete [] format_int_user;
+      delete[] format_int_user;
       format_int_user = utils::strdup(arg[2]);
-      delete [] format_bigint_user;
+      delete[] format_bigint_user;
       int n = strlen(format_int_user) + 8;
       format_bigint_user = new char[n];
       // replace "d" in format_int_user with bigint format specifier
@@ -255,14 +253,14 @@ int DumpLocal::modify_param(int narg, char **arg)
       *ptr = 'd';
 
     } else if (strcmp(arg[1],"float") == 0) {
-      delete [] format_float_user;
+      delete[] format_float_user;
       format_float_user = utils::strdup(arg[2]);
 
     } else {
       int i = utils::inumeric(FLERR,arg[1],false,lmp) - 1;
       if (i < 0 || i >= nfield)
         error->all(FLERR,"Illegal dump_modify command");
-      if (format_column_user[i]) delete [] format_column_user[i];
+      if (format_column_user[i]) delete[] format_column_user[i];
       format_column_user[i] = utils::strdup(arg[2]);
     }
     return 3;
@@ -516,7 +514,7 @@ int DumpLocal::add_compute(const char *id)
 
   id_compute = (char **)
     memory->srealloc(id_compute,(ncompute+1)*sizeof(char *),"dump:id_compute");
-  delete [] compute;
+  delete[] compute;
   compute = new Compute*[ncompute+1];
 
   id_compute[ncompute] = utils::strdup(id);
@@ -539,7 +537,7 @@ int DumpLocal::add_fix(const char *id)
 
   id_fix = (char **)
     memory->srealloc(id_fix,(nfix+1)*sizeof(char *),"dump:id_fix");
-  delete [] fix;
+  delete[] fix;
   fix = new Fix*[nfix+1];
 
   id_fix[nfix] = utils::strdup(id);

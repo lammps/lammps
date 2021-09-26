@@ -75,7 +75,7 @@ negotiate an appropriate license for such distribution."
 #include <sys/file.h>
 #endif
 
-#include <errno.h>
+#include <cerrno>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -413,8 +413,8 @@ typedef struct {
   int sd;                  /* socket file descriptor */
 } imdsocket;
 
-static int   imdsock_init(void);
-static void *imdsock_create(void);
+static int   imdsock_init();
+static void *imdsock_create();
 static int   imdsock_bind(void *, int);
 static int   imdsock_listen(void *);
 static void *imdsock_accept(void *);  /* return new socket */
@@ -1160,7 +1160,7 @@ void FixIMD::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 
 /* ---------------------------------------------------------------------- */
 /* local memory usage. approximately. */
-double FixIMD::memory_usage(void)
+double FixIMD::memory_usage()
 {
   return static_cast<double>(num_coords+maxbuf+imd_forces)*size_one;
 }
@@ -1178,7 +1178,7 @@ double FixIMD::memory_usage(void)
  *   Socket interface, abstracts machine dependent APIs/routines.
  ***************************************************************************/
 
-int imdsock_init(void) {
+int imdsock_init() {
 #if defined(_MSC_VER) || defined(__MINGW32__)
   int rc = 0;
   static int initialized=0;
@@ -1197,7 +1197,7 @@ int imdsock_init(void) {
 }
 
 
-void * imdsock_create(void) {
+void * imdsock_create() {
   imdsocket * s;
 
   s = (imdsocket *) malloc(sizeof(imdsocket));

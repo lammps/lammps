@@ -13,15 +13,15 @@
 ------------------------------------------------------------------------- */
 
 #include "modify.h"
-#include "style_compute.h"
-#include "style_fix.h"
+#include "style_compute.h"      // IWYU pragma: keep
+#include "style_fix.h"          // IWYU pragma: keep
 
 #include "atom.h"
 #include "comm.h"
-#include "compute.h"
+#include "compute.h"            // IWYU pragma: keep
 #include "domain.h"
 #include "error.h"
-#include "fix.h"
+#include "fix.h"                // IWYU pragma: keep
 #include "group.h"
 #include "input.h"
 #include "memory.h"
@@ -30,7 +30,6 @@
 #include "variable.h"
 
 #include <cstring>
-#include <vector>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -95,7 +94,7 @@ void _noopt Modify::create_factories()
 #define FIX_CLASS
 #define FixStyle(key,Class) \
   (*fix_map)[#key] = &fix_creator<Class>;
-#include "style_fix.h"
+#include "style_fix.h"  // IWYU pragma: keep
 #undef FixStyle
 #undef FIX_CLASS
 
@@ -106,7 +105,7 @@ void _noopt Modify::create_factories()
 #define COMPUTE_CLASS
 #define ComputeStyle(key,Class) \
   (*compute_map)[#key] = &compute_creator<Class>;
-#include "style_compute.h"
+#include "style_compute.h"  // IWYU pragma: keep
 #undef ComputeStyle
 #undef COMPUTE_CLASS
 }
@@ -886,8 +885,7 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
         FixCreator &fix_creator = (*fix_map)[estyle];
         fix[ifix] = fix_creator(lmp,narg,arg);
         delete[] fix[ifix]->style;
-        fix[ifix]->style = new char[estyle.size()+1];
-        strcpy(fix[ifix]->style,estyle.c_str());
+        fix[ifix]->style = utils::strdup(estyle);
       }
     }
     if (fix[ifix] == nullptr && lmp->suffix2) {
@@ -896,8 +894,7 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
         FixCreator &fix_creator = (*fix_map)[estyle];
         fix[ifix] = fix_creator(lmp,narg,arg);
         delete[] fix[ifix]->style;
-        fix[ifix]->style = new char[estyle.size()+1];
-        strcpy(fix[ifix]->style,estyle.c_str());
+        fix[ifix]->style = utils::strdup(estyle);
       }
     }
   }
@@ -1244,8 +1241,7 @@ Compute *Modify::add_compute(int narg, char **arg, int trysuffix)
         ComputeCreator &compute_creator = (*compute_map)[estyle];
         compute[ncompute] = compute_creator(lmp,narg,arg);
         delete[] compute[ncompute]->style;
-        compute[ncompute]->style = new char[estyle.size()+1];
-        strcpy(compute[ncompute]->style,estyle.c_str());
+        compute[ncompute]->style = utils::strdup(estyle);
       }
     }
     if (compute[ncompute] == nullptr && lmp->suffix2) {
@@ -1254,8 +1250,7 @@ Compute *Modify::add_compute(int narg, char **arg, int trysuffix)
         ComputeCreator &compute_creator = (*compute_map)[estyle];
         compute[ncompute] = compute_creator(lmp,narg,arg);
         delete[] compute[ncompute]->style;
-        compute[ncompute]->style = new char[estyle.size()+1];
-        strcpy(compute[ncompute]->style,estyle.c_str());
+        compute[ncompute]->style = utils::strdup(estyle);
       }
     }
   }

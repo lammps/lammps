@@ -136,8 +136,7 @@ void PairLJSmooth::compute(int eflag, int vflag)
 
         if (eflag) {
           if (rsq < cut_inner_sq[itype][jtype])
-            evdwl = r6inv * (lj3[itype][jtype]*r6inv -
-                             lj4[itype][jtype]) - offset[itype][jtype];
+            evdwl = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]) - offset[itype][jtype];
           else
             evdwl = ljsw0[itype][jtype] - ljsw1[itype][jtype]*t -
               ljsw2[itype][jtype]*tsq/2.0 - ljsw3[itype][jtype]*tsq*t/3.0 -
@@ -145,8 +144,7 @@ void PairLJSmooth::compute(int eflag, int vflag)
           evdwl *= factor_lj;
         }
 
-        if (evflag) ev_tally(i,j,nlocal,newton_pair,
-                             evdwl,0.0,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }
@@ -446,8 +444,7 @@ double PairLJSmooth::single(int /*i*/, int /*j*/, int itype, int jtype, double r
   fforce = factor_lj*forcelj*r2inv;
 
   if (rsq < cut_inner_sq[itype][jtype])
-    philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]) -
-      offset[itype][jtype];
+    philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]) - offset[itype][jtype];
   else
     philj = ljsw0[itype][jtype] - ljsw1[itype][jtype]*t -
       ljsw2[itype][jtype]*tsq/2.0 - ljsw3[itype][jtype]*tsq*t/3.0 -

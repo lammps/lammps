@@ -18,8 +18,10 @@
 
 #ifdef LAMMPS_ZSTD
 
-#include "domain.h"
 #include "dump_custom_zstd.h"
+
+#include "file_writer.h"
+#include "domain.h"
 #include "error.h"
 #include "update.h"
 

@@ -178,8 +178,9 @@ void KimInit::print_dirs(struct KIM_Collections *const collections) const
     if (!kim_error) {
       for (int i = 0; i < dirListExtent; ++i) {
         char const *name;
-        kim_error = KIM_Collections_GetDirectoryName(collections, i, &name);
-        if (!kim_error) { input->write_echo(fmt::format("#  {}\n", name)); }
+        // Don't check for error due to bug in kim-api-2.2.1 and below.  Fix after >=2.2.2 release
+        /* kim_error = */ KIM_Collections_GetDirectoryName(collections, i, &name);
+        /*if (!kim_error) { */ input->write_echo(fmt::format("#  {}\n", name)); /* } */
       }
     }
   }
@@ -191,8 +192,9 @@ void KimInit::print_dirs(struct KIM_Collections *const collections) const
     if (!kim_error) {
       for (int i = 0; i < dirListExtent; ++i) {
         char const *name;
-        kim_error = KIM_Collections_GetDirectoryName(collections, i, &name);
-        if (!kim_error) { input->write_echo(fmt::format("#  {}\n", name)); }
+        // Don't check for error due to bug in kim-api-2.2.1 and below.  Fix after >=2.2.2 release
+        /* kim_error = */ KIM_Collections_GetDirectoryName(collections, i, &name);
+        /* if (!kim_error) { */ input->write_echo(fmt::format("#  {}\n", name)); /* } */
       }
     }
   }

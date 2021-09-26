@@ -568,7 +568,7 @@ void UCL_Device::add_properties(cl_device_id device_list) {
   cl_device_fp_config double_avail;
   CL_SAFE_CALL(clGetDeviceInfo(device_list,CL_DEVICE_DOUBLE_FP_CONFIG,
                                sizeof(double_avail),&double_avail,nullptr));
-  if (((double_avail & double_mask) ^ double_mask) == 0)
+  if ((double_avail & double_mask) == double_mask)
     op.double_precision=true;
   else
     op.double_precision=false;

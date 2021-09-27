@@ -85,7 +85,7 @@ interaction has the following form:
 
 where :math:`r_c` is the cutoff.
 
-Style *nm/cut/split* applies the standard LJ (6-12) potential abouve :math:`2^\frac{1}{6} \sigma`.
+Style *nm/cut/split* applies the standard LJ (6-12) potential above :math:`2^\frac{1}{6} \sigma`.
  
 Style *nm/cut/coul/cut* adds a Coulombic pairwise interaction given by
 

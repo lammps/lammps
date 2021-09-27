@@ -64,8 +64,8 @@ or :doc:`read_restart <read_restart>` commands:
 
 For the *fene/nm/cut* style, the following additional coefficients are needed. Note, the standard LJ potential is recovered for (n=12 m=6). 
 
-* :math:`\n` (unitless)
-* :math:`\m` (unitless)
+* :math:`n` (unitless)
+* :math:`m` (unitless)
 
 ----------
 

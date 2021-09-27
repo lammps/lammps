@@ -161,7 +161,7 @@ to be specified in an input script that reads a restart file.
 
 All of the *nm* pair styles can only be used via the *pair* keyword of
 the :doc:`run_style respa <run_style>` command.  They do not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner* , *middle* , *outer* keywords.
 
 ----------
 

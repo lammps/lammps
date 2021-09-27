@@ -2,15 +2,22 @@ Basics of running LAMMPS
 ========================
 
 LAMMPS is run from the command line, reading commands from a file via
-the -in command line flag, or from standard input.
-Using the "-in in.file" variant is recommended:
+the -in command line flag, or from standard input.  Using the "-in
+in.file" variant is recommended.  The name of the LAMMPS executable is
+either ``lmp`` or ``lmp_<machine>`` with `<machine>` being the machine
+string used when compiling LAMMPS.  This is required when compiling
+LAMMPS with the traditional build system (e.g. with ``make mpi``),
+but optional when using CMake to configure and build LAMMPS:
 
 .. code-block:: bash
 
    $ lmp_serial -in in.file
    $ lmp_serial < in.file
+   $ lmp -in in.file
+   $ lmp < in.file
    $ /path/to/lammps/src/lmp_serial -i in.file
    $ mpirun -np 4 lmp_mpi -in in.file
+   $ mpirun -np 4 lmp -in in.file
    $ mpirun -np 8 /path/to/lammps/src/lmp_mpi -in in.file
    $ mpirun -np 6 /usr/local/bin/lmp -in in.file
 

@@ -19,6 +19,7 @@
 #include "atom.h"
 #include "neighbor.h"
 #include "neigh_list.h"
+#include "neigh_request.h"
 #include "comm.h"
 #include "force.h"
 #include "memory.h"
@@ -90,6 +91,8 @@ void PairLJCutDipoleCut::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
+  int maxsize = 10;
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -101,6 +104,13 @@ void PairLJCutDipoleCut::compute(int eflag, int vflag)
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
+
+    double scale_dipole = 1.0;
+    if (jnum > maxsize) {
+      scale_dipole = maxsize; //1.0/(double)maxsize;
+    } else {
+      scale_dipole = jnum; //1.0/(double)jnum;
+    }
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -207,7 +217,7 @@ void PairLJCutDipoleCut::compute(int eflag, int vflag)
 
         // total force
 
-        fq = factor_coul*qqrd2e;
+        fq = scale_dipole*factor_coul*qqrd2e;
         fx = fq*forcecoulx + delx*forcelj;
         fy = fq*forcecouly + dely*forcelj;
         fz = fq*forcecoulz + delz*forcelj;
@@ -221,7 +231,7 @@ void PairLJCutDipoleCut::compute(int eflag, int vflag)
         torque[i][1] += fq*tiycoul;
         torque[i][2] += fq*tizcoul;
 
-        if (newton_pair || j < nlocal) {
+        if (newton_pair) {
           f[j][0] -= fx;
           f[j][1] -= fy;
           f[j][2] -= fz;
@@ -362,7 +372,9 @@ void PairLJCutDipoleCut::init_style()
   if (!atom->q_flag || !atom->mu_flag || !atom->torque_flag)
     error->all(FLERR,"Pair dipole/cut requires atom attributes q, mu, torque");
 
-  neighbor->request(this,instance_me);
+  int irequest = neighbor->request(this,instance_me);
+  neighbor->requests[irequest]->half = 0;
+  neighbor->requests[irequest]->full = 1;
 }
 
 /* ----------------------------------------------------------------------

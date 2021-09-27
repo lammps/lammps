@@ -274,9 +274,9 @@ void PairAmoeba::compute(int eflag, int vflag)
       double yr = x[j][1] - yi;
       double zr = x[j][2] - zi;
       double r2 = xr*xr + yr*yr + zr*zr;
-      if (r2 > off2) continue;
+      //if (r2 > off2) continue;
       double r = sqrt(r2);
-      if (i == 0 && j < 10) printf("j = %d: r = %f; factor_mpole = %f\n", j, r, factor_mpole);
+      if (i == 0) printf("j = %d: tag = %d; r = %f; factor_mpole = %f\n", j, r, atom->tag[j], factor_mpole);
     }
   }
   

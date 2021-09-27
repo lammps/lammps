@@ -24,6 +24,8 @@ read_data       data.water_box.amoeba fix amtype NULL "Tinker Types"
 pair_style      amoeba
 pair_coeff      * * amoeba_water.prm amoeba_water.key
 
+special_bonds   lj/coul 0.5 0.5 0.5 one/five yes
+
 # thermo output
 
 compute         virial all pressure NULL virial

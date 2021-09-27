@@ -24,6 +24,8 @@ read_data       data.water_box.hippo fix amtype NULL "Tinker Types"
 pair_style      hippo
 pair_coeff      * * hippo_water.prm hippo_water.key
 
+special_bonds   lj/coul 0.5 0.5 0.5 one/five yes
+
 # thermo output
 
 compute         virial all pressure NULL virial

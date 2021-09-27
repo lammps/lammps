@@ -13,12 +13,14 @@
 ------------------------------------------------------------------------- */
 
 #include "dump_atom.h"
-#include <cstring>
-#include "domain.h"
+
 #include "atom.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
+#include "memory.h"
 #include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -562,7 +564,8 @@ void DumpAtom::write_binary(int n, double *mybuf)
 
 void DumpAtom::write_string(int n, double *mybuf)
 {
-  fwrite(mybuf,sizeof(char),n,fp);
+  if (mybuf)
+    fwrite(mybuf,sizeof(char),n,fp);
 }
 
 /* ---------------------------------------------------------------------- */

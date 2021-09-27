@@ -16,22 +16,23 @@
    Contributing author: Pierre de Buyl (KU Leuven)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-
-#include <cstring>
-#include <climits>
-#include "ch5md.h"
 #include "dump_h5md.h"
-#include "domain.h"
+
 #include "atom.h"
-#include "update.h"
-#include "group.h"
-#include "output.h"
+#include "domain.h"
 #include "error.h"
 #include "force.h"
+#include "group.h"
 #include "memory.h"
+#include "output.h"
+#include "update.h"
 #include "version.h"
+
+#include "ch5md.h"
+
+#include <climits>
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

@@ -1032,6 +1032,7 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
       numtyp alphak = coeff_amclass[jtype].w; // palpha[jclass];
       numtyp valk = polar6[j].x;
 
+      if (i == 0 && j < 10) printf("j = %d: r = %f; factor_mpole = %f\n", j, r, factor_mpole);
       // intermediates involving moments and separation distance
 
       numtyp dir = dix*xr + diy*yr + diz*zr;
@@ -1772,7 +1773,7 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
       //if (r2>off2) continue;
   
       numtyp r = ucl_sqrt(r2);
-      
+
       const numtyp4 pol1j = polar1[j];
       numtyp ck = polar1[j].x;   // rpole[j][0];
       numtyp dkx = polar1[j].y;  // rpole[j][1];
@@ -1800,6 +1801,11 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
       numtyp factor_wscale, factor_dscale, factor_pscale, factor_uscale;
       const numtyp4 sp_pol = sp_polar[sbmask15(jextra)];
       factor_wscale = sp_pol.x; // special_polar_wscale[sbmask15(jextra)];
+      // NOTE: for in.water_box/water_hexamer.hippo: there exist wscale = 0.2
+      //if (factor_wscale < (numtyp)1.0) continue; //factor_wscale = (numtyp)0;
+
+      //if (i == 12 && j < 20) printf("j = %d: r = %f; factor_wscale = %f\n", j, r, factor_wscale);
+
       if (igroup == jgroup) {
         factor_dscale = factor_pscale = sp_pol.y; // special_polar_piscale[sbmask15(jextra)];
         factor_uscale = polar_uscale;
@@ -1910,7 +1916,8 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
       dufld[3] += xr*tiz5 + zr*tix5 + (numtyp)2.0*xr*zr*tuir;
       dufld[4] += yr*tiz5 + zr*tiy5 + (numtyp)2.0*yr*zr*tuir;
       dufld[5] += zr*tiz5 + zr*zr*tuir;
-      
+
+
       // get the field gradient for direct polarization force
       
       numtyp term1i,term2i,term3i,term4i,term5i,term6i,term7i,term8i;
@@ -1929,7 +1936,7 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
       term1k = rr3k - rr5k*xr*xr;
       term2k = (numtyp)2.0*rr5k*xr;
       term3k = rr7k*xr*xr - rr5k;
-      term4k = 2.0*rr5k;
+      term4k = (numtyp)2.0*rr5k;
       term5k = (numtyp)5.0*rr7k*xr;
       term6k = rr9k*xr*xr;
       tixx = vali*term1i + corei*term1core + dix*term2i - dir*term3i -
@@ -2046,7 +2053,7 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
       numtyp frcx = (numtyp)-2.0 * depx;
       numtyp frcy = (numtyp)-2.0 * depy;
       numtyp frcz = (numtyp)-2.0 * depz;
-
+       
       // get the dEp/dR terms used for direct polarization force
       // poltyp == MUTUAL && hippo
       // tixx and tkxx
@@ -2159,7 +2166,7 @@ __kernel void k_special15(__global int * dev_nbor,
       int which = sj >> SBBITS & 3;
       int j = sj & NEIGHMASK;
       tagint jtag = tag[j];
-
+      if (i == 0 && j < 20) printf("GPU: j = %d; jtag = %d\n", j, jtag);
       if (!which) {
         int offset=ii;
         for (int k=0; k<n15; k++) {

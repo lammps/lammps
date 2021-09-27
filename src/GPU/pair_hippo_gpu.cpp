@@ -138,7 +138,7 @@ PairHippoGPU::PairHippoGPU(LAMMPS *lmp) : PairAmoeba(lmp), gpu_mode(GPU_FORCE)
   gpu_multipole_real_ready = true;
   gpu_udirect2b_ready = false;
   gpu_umutual2b_ready = false;
-  gpu_polar_real_ready = true;
+  gpu_polar_real_ready = false;
 
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
@@ -1136,6 +1136,8 @@ void PairHippoGPU::compute_force_from_torque(const numtyp* tq_ptr,
     _tq[1] = tq_ptr[4*i+1];
     _tq[2] = tq_ptr[4*i+2];
     torque2force(i,_tq,fix,fiy,fiz,force_comp);
+
+    //if (i < 10) printf("i = %d: tep = %f %f %f\n", i, _tq[0], _tq[1], _tq[2]);
 
     iz = zaxis2local[i];
     ix = xaxis2local[i];

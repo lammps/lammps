@@ -366,6 +366,7 @@ void PairAmoeba::polar_real()
       yr = x[j][1] - yi;
       zr = x[j][2] - zi;
       r2 = xr*xr + yr*yr + zr*zr;
+
       if (r2 > off2) continue; 
 
       jtype = amtype[j];
@@ -393,7 +394,7 @@ void PairAmoeba::polar_real()
 	  factor_uscale = 1.0;
 	}
       }
-
+      //if (i == 12 && j < 20) printf("j = %d: r = %f; factor_wscale = %f\n", j, sqrt(r2), factor_wscale);
       r = sqrt(r2);
       ck = rpole[j][0];
       dkx = rpole[j][1];
@@ -567,7 +568,7 @@ void PairAmoeba::polar_real()
       ufld[j][0] += tkx3 + xr*tukr;
       ufld[j][1] += tky3 + yr*tukr;
       ufld[j][2] += tkz3 + zr*tukr;
-      
+
       // get induced dipole field gradient used for quadrupole torques
       
       if (amoeba) {
@@ -579,7 +580,6 @@ void PairAmoeba::polar_real()
         tkz5 = 2.0 * (psr5*uiz+dsr5*uizp);
         tuir = -psr7*ukr - dsr7*ukrp;
         tukr = -psr7*uir - dsr7*uirp;
-      // reached here...
       } else if (hippo) {
         tix5 = 4.0 * (rr5i*ukx);
         tiy5 = 4.0 * (rr5i*uky);
@@ -597,7 +597,6 @@ void PairAmoeba::polar_real()
       dufld[i][3] += xr*tiz5 + zr*tix5 + 2.0*xr*zr*tuir;
       dufld[i][4] += yr*tiz5 + zr*tiy5 + 2.0*yr*zr*tuir;
       dufld[i][5] += zr*tiz5 + zr*zr*tuir;
-
       dufld[j][0] -= xr*tkx5 + xr*xr*tukr;
       dufld[j][1] -= xr*tky5 + yr*tkx5 + 2.0*xr*yr*tukr;
       dufld[j][2] -= yr*tky5 + yr*yr*tukr;
@@ -668,7 +667,7 @@ void PairAmoeba::polar_real()
         frcx = depx;
         frcy = depy;
         frcz = depz;
-        
+
         // get the dEp/dR terms used for direct polarization force
         
         term1 = bn[2] - psc3*rr5;
@@ -855,6 +854,7 @@ void PairAmoeba::polar_real()
         frcx = -2.0 * depx;
         frcy = -2.0 * depy;
         frcz = -2.0 * depz;
+
       }
 
       // get the dtau/dr terms used for mutual polarization force
@@ -1198,6 +1198,8 @@ void PairAmoeba::polar_real()
       2.0*qixy*(dufld[i][0]-dufld[i][2]) + (qiyy-qixx)*dufld[i][1];
 
     torque2force(i,tep,fix,fiy,fiz,fpolar);
+
+    //if (i < 10) printf("i = %d: tep = %f %f %f\n", i, tep[0], tep[1], tep[2]);
 
     iz = zaxis2local[i];
     ix = xaxis2local[i];

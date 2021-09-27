@@ -242,6 +242,47 @@ void PairAmoeba::compute(int eflag, int vflag)
     time_induce = time_polar = time_qxfer = 0.0;
   }
 
+  { // DEBUGGING
+  double **x = atom->x;
+  int inum,jnum;
+  int *ilist,*jlist,*numneigh,**firstneigh;
+
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+
+  if (use_ewald) choose(MPOLE_LONG);
+  else choose(MPOLE);
+
+  int i,ii,j,jj;
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    double xi = x[i][0];
+    double yi = x[i][1];
+    double zi = x[i][2];
+
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      double factor_mpole = special_mpole[sbmask15(j)];
+      j &= NEIGHMASK15;
+
+      double xr = x[j][0] - xi;
+      double yr = x[j][1] - yi;
+      double zr = x[j][2] - zi;
+      double r2 = xr*xr + yr*yr + zr*zr;
+      if (r2 > off2) continue;
+      double r = sqrt(r2);
+      if (i == 0 && j < 10) printf("j = %d: r = %f; factor_mpole = %f\n", j, r, factor_mpole);
+    }
+  }
+  
+
+  } // DEBUGGING
+
   double evdwl;
 
   evdwl = 0.0;
@@ -973,8 +1014,8 @@ void PairAmoeba::init_style()
 
   int irequest = neighbor->request(this,instance_me);
   // for DEBUGGING with GPU
-  //neighbor->requests[irequest]->half = 0;
-  //neighbor->requests[irequest]->full = 1;
+  neighbor->requests[irequest]->half = 0;
+  neighbor->requests[irequest]->full = 1;
 
   // open debug output files
   // names are hard-coded

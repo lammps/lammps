@@ -21,7 +21,8 @@ users and developers have contributed to LAMMPS is:
 So a project using LAMMPS or a derivative application that uses LAMMPS
 as a simulation engine should cite this paper.  The paper is expected to
 be published in its final form under the same DOI in the first half
-of 2022.
+of 2022.  Please also give the URL of the LAMMPS website in your paper,
+namely https://www.lammps.org.
 
 The original publication describing the parallel algorithms used in the
 initial versions of LAMMPS is:

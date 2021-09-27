@@ -32,6 +32,13 @@ using MathConst::MY_CUBEROOT2;
 
 /* ---------------------------------------------------------------------- */
 
+BondFENEnm::BondFENEnm(LAMMPS *lmp) : BondFENE(lmp)
+{
+
+}
+
+/* ---------------------------------------------------------------------- */
+
 BondFENEnm::~BondFENEnm()
 {
 if (allocated && !copymode) {

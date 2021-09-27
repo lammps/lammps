@@ -3,11 +3,12 @@ Basics of running LAMMPS
 
 LAMMPS is run from the command line, reading commands from a file via
 the -in command line flag, or from standard input.  Using the "-in
-in.file" variant is recommended.  The name of the LAMMPS executable is
-either ``lmp`` or ``lmp_<machine>`` with `<machine>` being the machine
-string used when compiling LAMMPS.  This is required when compiling
-LAMMPS with the traditional build system (e.g. with ``make mpi``),
-but optional when using CMake to configure and build LAMMPS:
+in.file" variant is recommended (see note below).  The name of the
+LAMMPS executable is either ``lmp`` or ``lmp_<machine>`` with
+`<machine>` being the machine string used when compiling LAMMPS.  This
+is required when compiling LAMMPS with the traditional build system
+(e.g. with ``make mpi``), but optional when using CMake to configure and
+build LAMMPS:
 
 .. code-block:: bash
 
@@ -17,9 +18,9 @@ but optional when using CMake to configure and build LAMMPS:
    $ lmp < in.file
    $ /path/to/lammps/src/lmp_serial -i in.file
    $ mpirun -np 4 lmp_mpi -in in.file
-   $ mpirun -np 4 lmp -in in.file
+   $ mpiexec -np 4 lmp -in in.file
    $ mpirun -np 8 /path/to/lammps/src/lmp_mpi -in in.file
-   $ mpirun -np 6 /usr/local/bin/lmp -in in.file
+   $ mpiexec -n 6 /usr/local/bin/lmp -in in.file
 
 You normally run the LAMMPS command in the directory where your input
 script is located.  That is also where output files are produced by
@@ -30,7 +31,7 @@ executable itself can be placed elsewhere.
 .. note::
 
    The redirection operator "<" will not always work when running
-   in parallel with mpirun; for those systems the -in form is required.
+   in parallel with mpirun or mpiexec; for those systems the -in form is required.
 
 As LAMMPS runs it prints info to the screen and a logfile named
 *log.lammps*\ .  More info about output is given on the

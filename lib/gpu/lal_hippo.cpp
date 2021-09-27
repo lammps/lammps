@@ -430,8 +430,8 @@ int** HippoT::compute_multipole_real(const int ago, const int inum_full,
 
   // leave the answers (forces, energies and virial) on the device,
   //   only copy them back in the last kernel (this one, or polar_real once done)
-  this->ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
-  this->device->add_ans_object(this->ans);
+  //this->ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
+  //this->device->add_ans_object(this->ans);
 
   this->hd_balancer.stop_timer();
 

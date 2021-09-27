@@ -89,7 +89,9 @@ void PairNMCutSplit::compute(int eflag, int vflag)
         rninv = pow(r2inv,nn[itype][jtype]/2.0);
           // r < 2^1/6, use generlaized LJ
           if (rsq < 1.25992105) {
-             forcenm = e0nm[itype][jtype]*nm[itype][jtype]*(r0n[itype][jtype]/pow(r,nn[itype][jtype])-r0m[itype][jtype]/pow(r,mm[itype][jtype]));
+             forcenm = e0nm[itype][jtype]*nm[itype][jtype]*
+              (r0n[itype][jtype]/pow(r,nn[itype][jtype])
+             -r0m[itype][jtype]/pow(r,mm[itype][jtype]));
           }
           // r > 2^1/6 --> use standard LJ (m = 6 n = 12)
           else{forcenm =(e0[itype][jtype]/6)*72*(4/pow(r,12)-2/pow(r,6));}
@@ -107,7 +109,8 @@ void PairNMCutSplit::compute(int eflag, int vflag)
 
         if (eflag) {
           if (rsq < 1.25992105) {
-             evdwl = e0nm[itype][jtype]*(mm[itype][jtype]*r0n[itype][jtype]*rninv - nn[itype][jtype]*r0m[itype][jtype]*rminv) - offset[itype][jtype];
+             evdwl = e0nm[itype][jtype]*(mm[itype][jtype]*r0n[itype][jtype]*rninv -
+            nn[itype][jtype]*r0m[itype][jtype]*rminv) - offset[itype][jtype];
           }
           else evdwl = (e0[itype][jtype]/6)*(6*4*pow(r2inv,6) - 12*2*pow(r2inv,3));
           evdwl *= factor_lj;
@@ -133,8 +136,10 @@ double PairNMCutSplit::single(int /*i*/, int /*j*/, int itype, int jtype, double
   rninv = pow(r2inv,nn[itype][jtype]/2.0);
   // r < 2^1/6, use generlaized LJ
   if (rsq < 1.25992105) {
-     forcenm = e0nm[itype][jtype]*nm[itype][jtype]*(r0n[itype][jtype]/pow(r,nn[itype][jtype])-r0m[itype][jtype]/pow(r,mm[itype][jtype]));
-      phinm = e0nm[itype][jtype]*(mm[itype][jtype]*r0n[itype][jtype]*rninv-nn[itype][jtype]*r0m[itype][jtype]*rminv)-offset[itype][jtype];
+     forcenm = e0nm[itype][jtype]*nm[itype][jtype]*
+      (r0n[itype][jtype]/pow(r,nn[itype][jtype])-r0m[itype][jtype]/pow(r,mm[itype][jtype]));
+      phinm = e0nm[itype][jtype]*(mm[itype][jtype]*r0n[itype][jtype]*rninv
+      -nn[itype][jtype]*r0m[itype][jtype]*rminv)-offset[itype][jtype];
 
   }
   // r > 2^1/6 --> use standard LJ (m = 6 n = 12)

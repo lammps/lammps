@@ -32,10 +32,7 @@ using MathConst::MY_CUBEROOT2;
 
 /* ---------------------------------------------------------------------- */
 
-BondFENEnm::BondFENEnm(LAMMPS *lmp) : BondFENE(lmp)
-{
-
-}
+BondFENEnm::BondFENEnm(LAMMPS *lmp) : BondFENE(lmp){}
 
 /* ---------------------------------------------------------------------- */
 
@@ -89,7 +86,6 @@ void BondFENEnm::compute(int eflag, int vflag)
       // if r -> r0, then rlogarg < 0.0 which is an error
       // issue a warning and reset rlogarg = epsilon
       // if r > 2*r0 something serious is wrong, abort
-
       // change cutuff from .1 to .02 so only bond lengths > 1.485 give the warning
       // and crash the run if rlogarg < -.21 rather than < 3
       // Don't print out warnings, only errors
@@ -103,29 +99,29 @@ void BondFENEnm::compute(int eflag, int vflag)
     }
 
     fbond = -k[type]/rlogarg;
-
       // force from n-m term
       // MY_CUBEROOT2 cutoff assumes sigma = 2^{1/6}
     if (rsq < MY_CUBEROOT2) {
         r = sqrt(rsq);
-        fbond += epsilon[type]*(nn[type]*mm[type]/(nn[type]-mm[type]))*(pow(sigma[type]/r,nn[type])-pow(sigma[type]/r,mm[type]))/rsq;
+        fbond += epsilon[type]*(nn[type]*mm[type]/(nn[type]-mm[type]))*
+        (pow(sigma[type]/r,nn[type])-pow(sigma[type]/r,mm[type]))/rsq;
     }
 
     // energy
 
     if (eflag) {
       ebond = -0.5 * k[type]*r0sq*log(rlogarg);
-      if (rsq < MY_CUBEROOT2) ebond += (epsilon[type]/(nn[type]-mm[type]))*(mm[type]*pow(sigma[type]/r,nn[type])-nn[type]*pow(sigma[type]/r,mm[type]));
+      if (rsq < MY_CUBEROOT2) ebond += (epsilon[type]/(nn[type]-mm[type]))*
+          (mm[type]*pow(sigma[type]/r,nn[type])
+          - nn[type]*pow(sigma[type]/r,mm[type]));
     }
-
     // apply force to each of 2 atoms
-
     if (newton_bond || i1 < nlocal) {
       f[i1][0] += delx*fbond;
       f[i1][1] += dely*fbond;
       f[i1][2] += delz*fbond;
     }
-
+      
     if (newton_bond || i2 < nlocal) {
       f[i2][0] -= delx*fbond;
       f[i2][1] -= dely*fbond;
@@ -180,7 +176,6 @@ void BondFENEnm::coeff(int narg, char **arg)
     sigma[i] = sigma_one;
       nn[i] = nn_one;
       mm[i] = mm_one;
-
     setflag[i] = 1;
     count++;
   }
@@ -249,7 +244,6 @@ void BondFENEnm::read_restart(FILE *fp)
     MPI_Bcast(&nn[1],atom->nbondtypes,MPI_DOUBLE,0,world);
     MPI_Bcast(&mm[1],atom->nbondtypes,MPI_DOUBLE,0,world);
 
-
   for (int i = 1; i <= atom->nbondtypes; i++) setflag[i] = 1;
 }
 
@@ -293,8 +287,10 @@ double BondFENEnm::single(int type, double rsq, int /*i*/, int /*j*/,
     // MY_CUBEROOT2 cutoff assumes sigma = 2^1/6
     if (rsq < sigma[type]*sigma[type]) {
        r = sqrt(rsq);
-       fforce += epsilon[type]*(nn[type]*mm[type]/(nn[type]-mm[type]))*(pow(sigma[type]/r,nn[type])-pow(sigma[type]/r,mm[type]))/rsq;
-       eng += (epsilon[type]/(nn[type]-mm[type]))*(mm[type]*pow(sigma[type]/r,nn[type])-nn[type]*pow(sigma[type]/r,mm[type]));
+       fforce += epsilon[type]*(nn[type]*mm[type]/(nn[type]-mm[type]))
+        *(pow(sigma[type]/r,nn[type])-pow(sigma[type]/r,mm[type]))/rsq;
+       eng += (epsilon[type]/(nn[type]-mm[type]))*(mm[type]*pow(sigma[type]/r,nn[type])
+        -nn[type]*pow(sigma[type]/r,mm[type]));
     }
 
   return eng;

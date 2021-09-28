@@ -474,6 +474,12 @@ void PairHybridScaled::coeff(int narg, char **arg)
   arg[2 + multflag] = arg[1];
   arg[1 + multflag] = arg[0];
 
+  // ensure that one_coeff flag is honored
+
+  if (!none && styles[m]->one_coeff)
+    if ((strcmp(arg[0],"*") != 0) || (strcmp(arg[1],"*") != 0))
+      error->all(FLERR,"Incorrect args for pair coefficients");
+
   // invoke sub-style coeff() starting with 1st remaining arg
 
   if (!none) styles[m]->coeff(narg - 1 - multflag, &arg[1 + multflag]);

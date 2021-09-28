@@ -1692,19 +1692,10 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
   if (ii<inum) {
     int k,m,itype,igroup;
     numtyp bfac;
-    numtyp psc3,psc5,psc7;
-    numtyp dsc3,dsc5,dsc7;
-    numtyp usc3,usc5;
-    numtyp psr3,psr5,psr7;
-    numtyp dsr3,dsr5,dsr7;
-    numtyp usr5;
     numtyp term1,term2,term3;
     numtyp term4,term5;
     numtyp term6,term7;
     numtyp rc3[3],rc5[3],rc7[3];
-    numtyp prc3[3],prc5[3],prc7[3];
-    numtyp drc3[3],drc5[3],drc7[3];
-    numtyp urc3[3],urc5[3];
     numtyp bn[5];
     numtyp ci,uix,uiy,uiz,uixp,uiyp,uizp;
 
@@ -1801,11 +1792,6 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
       numtyp factor_wscale, factor_dscale, factor_pscale, factor_uscale;
       const numtyp4 sp_pol = sp_polar[sbmask15(jextra)];
       factor_wscale = sp_pol.x; // special_polar_wscale[sbmask15(jextra)];
-      // NOTE: for in.water_box/water_hexamer.hippo: there exist wscale = 0.2
-      //if (factor_wscale < (numtyp)1.0) continue; //factor_wscale = (numtyp)0;
-
-      //if (i == 12 && j < 20) printf("j = %d: r = %f; factor_wscale = %f\n", j, r, factor_wscale);
-
       if (igroup == jgroup) {
         factor_dscale = factor_pscale = sp_pol.y; // special_polar_piscale[sbmask15(jextra)];
         factor_uscale = polar_uscale;

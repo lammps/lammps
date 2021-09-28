@@ -404,10 +404,10 @@ ucl_inline void dampmut(numtyp r, numtyp alphai, numtyp alphak, numtyp dmpik[5])
   if (diff < eps) {
     dampi4 = dampi2 * dampi2;
     dampi5 = dampi2 * dampi3;
-    dmpik[2] = 1.0 - (1.0 + dampi + 0.5*dampi2 + 
-                      7.0*dampi3/48.0 + dampi4/48.0)*expi;
-    dmpik[4] = 1.0 - (1.0 + dampi + 0.5*dampi2 + dampi3/6.0 + 
-                      dampi4/24.0 + dampi5/144.0)*expi;
+    dmpik[2] = (numtyp)1.0 - ((numtyp)1.0 + dampi + (numtyp)0.5*dampi2 + 
+                      7.0*dampi3/(numtyp)48.0 + dampi4/48.0)*expi;
+    dmpik[4] = (numtyp)1.0 - ((numtyp)1.0 + dampi + (numtyp)0.5*dampi2 + dampi3/(numtyp)6.0 + 
+                      dampi4/(numtyp)24.0 + dampi5/(numtyp)144.0)*expi;
   } else {
     dampk2 = dampk * dampk;
     dampk3 = dampk * dampk2;
@@ -417,13 +417,13 @@ ucl_inline void dampmut(numtyp r, numtyp alphai, numtyp alphak, numtyp dmpik[5])
     termk = alphai2 / (alphai2-alphak2);
     termi2 = termi * termi;
     termk2 = termk * termk;
-    dmpik[2] = 1.0 - termi2*(1.0+dampi+0.5*dampi2)*expi - 
-      termk2*(1.0+dampk+0.5*dampk2)*expk - 
-      2.0*termi2*termk*(1.0+dampi)*expi - 2.0*termk2*termi*(1.0+dampk)*expk;
-    dmpik[4] = 1.0 - termi2*(1.0+dampi+0.5*dampi2 + dampi3/6.0)*expi - 
-      termk2*(1.0+dampk+0.5*dampk2 + dampk3/6.00)*expk - 
-      2.0*termi2*termk *(1.0+dampi+dampi2/3.0)*expi - 
-      2.0*termk2*termi *(1.0+dampk+dampk2/3.0)*expk;
+    dmpik[2] = (numtyp)1.0 - termi2*((numtyp)1.0+dampi+(numtyp)0.5*dampi2)*expi - 
+      termk2*((numtyp)1.0+dampk+(numtyp)0.5*dampk2)*expk - 
+      (numtyp)2.0*termi2*termk*((numtyp)1.0+dampi)*expi - (numtyp)2.0*termk2*termi*((numtyp)1.0+dampk)*expk;
+    dmpik[4] = (numtyp)1.0 - termi2*((numtyp)1.0+dampi+(numtyp)0.5*dampi2 + dampi3/(numtyp)6.0)*expi - 
+      termk2*((numtyp)1.0+dampk+(numtyp)0.5*dampk2 + dampk3/(numtyp)6.00)*expk - 
+      (numtyp)2.0*termi2*termk *((numtyp)1.0+dampi+dampi2/(numtyp)3.0)*expi - 
+      (numtyp)2.0*termk2*termi *((numtyp)1.0+dampk+dampk2/(numtyp)3.0)*expk;
   }
 }
 

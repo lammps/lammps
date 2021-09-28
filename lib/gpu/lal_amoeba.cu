@@ -492,7 +492,7 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       //int jtype=jx.w;
- 
+
       // Compute r12
       numtyp xr = jx.x - ix.x;
       numtyp yr = jx.y - ix.y;
@@ -500,7 +500,7 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
       numtyp r2 = xr*xr + yr*yr + zr*zr;
 
       //if (r2>off2) continue;
-  
+
       numtyp r = ucl_sqrt(r2);
       const numtyp4 pol1j = polar1[j];
       numtyp ck  = pol1j.x;  // rpole[j][0];
@@ -533,12 +533,12 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
       numtyp qky = qkxy*xr + qkyy*yr + qkyz*zr;
       numtyp qkz = qkxz*xr + qkyz*yr + qkzz*zr;
       numtyp qkr = qkx*xr + qky*yr + qkz*zr;
-      
+
       numtyp dik = dix*dkx + diy*dky + diz*dkz;
       numtyp qik = qix*qkx + qiy*qky + qiz*qkz;
       numtyp diqk = dix*qkx + diy*qky + diz*qkz;
       numtyp dkqi = dkx*qix + dky*qiy + dkz*qiz;
-      numtyp qiqk = (numtyp)2.0*(qixy*qkxy+qixz*qkxz+qiyz*qkyz) + 
+      numtyp qiqk = (numtyp)2.0*(qixy*qkxy+qixz*qkxz+qiyz*qkyz) +
         qixx*qkxx + qiyy*qkyy + qizz*qkzz;
 
       // additional intermediates involving moments and distance
@@ -585,11 +585,11 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
       numtyp dkqirx = dkqiz*yr - dkqiy*zr;
       numtyp dkqiry = dkqix*zr - dkqiz*xr;
       numtyp dkqirz = dkqiy*xr - dkqix*yr;
-      numtyp dqikx = diy*qkz - diz*qky + dky*qiz - dkz*qiy - 
+      numtyp dqikx = diy*qkz - diz*qky + dky*qiz - dkz*qiy -
         (numtyp)2.0*(qixy*qkxz+qiyy*qkyz+qiyz*qkzz - qixz*qkxy-qiyz*qkyy-qizz*qkyz);
-      numtyp dqiky = diz*qkx - dix*qkz + dkz*qix - dkx*qiz - 
+      numtyp dqiky = diz*qkx - dix*qkz + dkz*qix - dkx*qiz -
         (numtyp)2.0*(qixz*qkxx+qiyz*qkxy+qizz*qkxz - qixx*qkxz-qixy*qkyz-qixz*qkzz);
-      numtyp dqikz = dix*qky - diy*qkx + dkx*qiy - dky*qix - 
+      numtyp dqikz = dix*qky - diy*qkx + dkx*qiy - dky*qix -
         (numtyp)2.0*(qixx*qkxy+qixy*qkyy+qixz*qkyz - qixy*qkxx-qiyy*qkxy-qiyz*qkxz);
 
       // get reciprocal distance terms for this interaction
@@ -650,20 +650,20 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
 
       // compute the force components for this interaction
 
-      numtyp frcx = de*xr + term1*dix + term2*dkx + term3*(diqkx-dkqix) + 
+      numtyp frcx = de*xr + term1*dix + term2*dkx + term3*(diqkx-dkqix) +
         term4*qix + term5*qkx + term6*(qixk+qkxi);
-      numtyp frcy = de*yr + term1*diy + term2*dky + term3*(diqky-dkqiy) + 
+      numtyp frcy = de*yr + term1*diy + term2*dky + term3*(diqky-dkqiy) +
         term4*qiy + term5*qky + term6*(qiyk+qkyi);
-      numtyp frcz = de*zr + term1*diz + term2*dkz + term3*(diqkz-dkqiz) + 
+      numtyp frcz = de*zr + term1*diz + term2*dkz + term3*(diqkz-dkqiz) +
         term4*qiz + term5*qkz + term6*(qizk+qkzi);
 
       // compute the torque components for this interaction
 
-      numtyp ttmix = -rr3*dikx + term1*dirx + term3*(dqikx+dkqirx) - 
+      numtyp ttmix = -rr3*dikx + term1*dirx + term3*(dqikx+dkqirx) -
         term4*qirx - term6*(qikrx+qikx);
-      numtyp ttmiy = -rr3*diky + term1*diry + term3*(dqiky+dkqiry) - 
+      numtyp ttmiy = -rr3*diky + term1*diry + term3*(dqiky+dkqiry) -
         term4*qiry - term6*(qikry+qiky);
-      numtyp ttmiz = -rr3*dikz + term1*dirz + term3*(dqikz+dkqirz) - 
+      numtyp ttmiz = -rr3*dikz + term1*dirz + term3*(dqikz+dkqirz) -
         term4*qirz - term6*(qikrz+qikz);
 
       // increment force-based gradient and torque on first site
@@ -691,12 +691,12 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
         virial[5] += vyz;
       }
     } // nbor
-    
+
   } // ii<inum
 
   // accumulate tq
   store_answers_amoeba_tq(tq,ii,inum,tid,t_per_atom,offset,i,tep);
-  
+
   // accumate force, energy and virial: use _acc if not the first kernel
   store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
      offset,eflag,vflag,ans,engv);
@@ -771,7 +771,7 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
     numtyp qizz = pol3i.y;   // rpole[i][12];
     int itype  = pol3i.z;    // amtype[i];
     int igroup = pol3i.w;    // amgroup[i];
-    
+
     // debug:
     // xi__ = ix; xi__.w = itype;
 
@@ -790,7 +790,7 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       //int jtype=jx.w;
- 
+
       // Compute r12
       numtyp xr = jx.x - ix.x;
       numtyp yr = jx.y - ix.y;
@@ -798,7 +798,7 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
       numtyp r2 = xr*xr + yr*yr + zr*zr;
 
       //if (r2>off2) continue;
-      
+
       numtyp r = ucl_sqrt(r2);
       numtyp rinv = ucl_recip(r);
       numtyp r2inv = rinv*rinv;
@@ -898,7 +898,7 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
       fid[0] = -xr*(bcn[0]*ck-bcn[1]*dkr+bcn[2]*qkr) - bcn[0]*dkx + (numtyp)2.0*bcn[1]*qkx;
       fid[1] = -yr*(bcn[0]*ck-bcn[1]*dkr+bcn[2]*qkr) - bcn[0]*dky + (numtyp)2.0*bcn[1]*qky;
       fid[2] = -zr*(bcn[0]*ck-bcn[1]*dkr+bcn[2]*qkr) - bcn[0]*dkz + (numtyp)2.0*bcn[1]*qkz;
-        
+
       scalek = factor_pscale;
       bcn[0] = bn[1] - ((numtyp)1.0-scalek*scale3)*rr3;
       bcn[1] = bn[2] - ((numtyp)1.0-scalek*scale5)*rr5;
@@ -918,7 +918,7 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
   } // ii<inum
 
   // accumulate field and fieldp
-  
+
   store_answers_fieldp(_fieldp,ii,inum,tid,t_per_atom,offset,i,fieldp);
 }
 
@@ -977,10 +977,10 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
     int itype,igroup;
     numtyp bn[4],bcn[3];
     numtyp fid[3],fip[3];
-    
+
     itype  = polar3[i].z; // amtype[i];
     igroup = polar3[i].w; // amgroup[i];
-    
+
     numtyp pdi = coeff[itype].x;
     numtyp pti = coeff[itype].y;
 
@@ -995,7 +995,7 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       //int jtype=jx.w;
- 
+
       // Compute r12
       numtyp xr = jx.x - ix.x;
       numtyp yr = jx.y - ix.y;
@@ -1003,7 +1003,7 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
       numtyp r2 = xr*xr + yr*yr + zr*zr;
 
       //if (r2>off2) continue;
-  
+
       numtyp r = ucl_sqrt(r2);
       numtyp rinv = ucl_recip(r);
       numtyp r2inv = rinv*rinv;
@@ -1044,7 +1044,7 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
       }
 
       // find terms needed later to compute mutual polarization
-      // if (poltyp != DIRECT) 
+      // if (poltyp != DIRECT)
       numtyp scale3 = (numtyp)1.0;
       numtyp scale5 = (numtyp)1.0;
       numtyp damp = pdi * coeff[jtype].x; // pdamp[jtype]
@@ -1056,7 +1056,7 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
           scale3 = (numtyp)1.0 - expdamp;
           scale5 = (numtyp)1.0 - expdamp*((numtyp)1.0+damp);
         }
-        
+
       } else { // damp == 0: ???
       }
 
@@ -1071,17 +1071,17 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
       tdipdip[3] = -bcn[0] + bcn[1]*yr*yr;
       tdipdip[4] = bcn[1]*yr*zr;
       tdipdip[5] = -bcn[0] + bcn[1]*zr*zr;
-      //if (i==0 && j == 10) 
+      //if (i==0 && j == 10)
       //  printf("i = %d: j = %d: tdipdip %f %f %f %f %f %f\n",
       //    i, j,tdipdip[0],tdipdip[1],tdipdip[2],tdipdip[3],tdipdip[4],tdipdip[5]);
       fid[0] = tdipdip[0]*ukx + tdipdip[1]*uky + tdipdip[2]*ukz;
       fid[1] = tdipdip[1]*ukx + tdipdip[3]*uky + tdipdip[4]*ukz;
       fid[2] = tdipdip[2]*ukx + tdipdip[4]*uky + tdipdip[5]*ukz;
-      
+
       fip[0] = tdipdip[0]*ukxp + tdipdip[1]*ukyp + tdipdip[2]*ukzp;
       fip[1] = tdipdip[1]*ukxp + tdipdip[3]*ukyp + tdipdip[4]*ukzp;
       fip[2] = tdipdip[2]*ukxp + tdipdip[4]*ukyp + tdipdip[5]*ukzp;
-      
+
       _fieldp[0] += fid[0];
       _fieldp[1] += fid[1];
       _fieldp[2] += fid[2];
@@ -1093,7 +1093,7 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
   } // ii<inum
 
   // accumulate field and fieldp
-  
+
   store_answers_fieldp(_fieldp,ii,inum,tid,t_per_atom,offset,i,fieldp);
 }
 
@@ -1221,7 +1221,7 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       //int jtype=jx.w;
- 
+
       // Compute r12
       numtyp xr = jx.x - ix.x;
       numtyp yr = jx.y - ix.y;
@@ -1229,9 +1229,9 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
       numtyp r2 = xr*xr + yr*yr + zr*zr;
 
       //if (r2>off2) continue;
-  
+
       numtyp r = ucl_sqrt(r2);
-      
+
       const numtyp4 pol1j = polar1[j];
       numtyp ck = pol1j.x;   // rpole[j][0];
       numtyp dkx = pol1j.y;  // rpole[j][1];
@@ -1383,7 +1383,7 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
       numtyp tiy3 = psr3*uky + dsr3*ukyp;
       numtyp tiz3 = psr3*ukz + dsr3*ukzp;
       numtyp tuir = -psr5*ukr - dsr5*ukrp;
-      
+
       ufld[0] += tix3 + xr*tuir;
       ufld[1] += tiy3 + yr*tuir;
       ufld[2] += tiz3 + zr*tuir;
@@ -1394,14 +1394,14 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
       numtyp tiy5 = (numtyp)2.0 * (psr5*uky+dsr5*ukyp);
       numtyp tiz5 = (numtyp)2.0 * (psr5*ukz+dsr5*ukzp);
       tuir = -psr7*ukr - dsr7*ukrp;
-      
+
       dufld[0] += xr*tix5 + xr*xr*tuir;
       dufld[1] += xr*tiy5 + yr*tix5 + (numtyp)2.0*xr*yr*tuir;
       dufld[2] += yr*tiy5 + yr*yr*tuir;
       dufld[3] += xr*tiz5 + zr*tix5 + (numtyp)2.0*xr*zr*tuir;
       dufld[4] += yr*tiz5 + zr*tiy5 + (numtyp)2.0*yr*zr*tuir;
       dufld[5] += zr*tiz5 + zr*zr*tuir;
-      
+
       // get the dEd/dR terms used for direct polarization force
 
       term1 = bn[2] - dsc3*rr5;
@@ -1473,7 +1473,7 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
       numtyp frcz = depz;
 
       // get the dEp/dR terms used for direct polarization force
-      
+
       // tixx and tkxx
       term1 = bn[2] - psc3*rr5;
       term2 = bn[3] - psc5*rr7;
@@ -1550,7 +1550,7 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
 
       // get the dtau/dr terms used for mutual polarization force
       // poltyp == MUTUAL  && amoeba
-          
+
       term1 = bn[2] - usc3*rr5;
       term2 = bn[3] - usc5*rr7;
       term3 = usr5 + term1;
@@ -1617,7 +1617,7 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
         virial[5] += vyz;
       }
     } // nbor
-    
+
   } // ii<inum
 
   // accumulate ufld and dufld to compute tep
@@ -1648,7 +1648,7 @@ __kernel void k_special15(__global int * dev_nbor,
   atom_info(t_per_atom,ii,tid,offset);
 
   if (ii<inum) {
-  
+
     int numj, nbor, nbor_end;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);

@@ -154,13 +154,13 @@ class Hippo : public BaseAmoeba<numtyp, acctyp> {
   UCL_D_Vec<numtyp4> coeff_amtype;
   /// csix = coeff_amclass.x; adisp = coeff_amclass.y;
   UCL_D_Vec<numtyp4> coeff_amclass;
-  /// Special polar values [0-4]: 
+  /// Special polar values [0-4]:
   ///   sp_polar.x = special_polar_wscale
   ///   sp_polar.y special_polar_pscale,
   ///   sp_polar.z = special_polar_piscale
   ///   sp_polar.w = special_mpole
   UCL_D_Vec<numtyp4> sp_polar;
-  /// Special nonpolar values [0-4]: 
+  /// Special nonpolar values [0-4]:
   ///   sp_nonpolar.x = special_hal
   ///   sp_nonpolar.y special_repel
   ///   sp_nonpolar.z = special_disp
@@ -184,7 +184,7 @@ class Hippo : public BaseAmoeba<numtyp, acctyp> {
   int udirect2b(const int eflag, const int vflag);
   int umutual2b(const int eflag, const int vflag);
   int polar_real(const int eflag, const int vflag);
-  
+
 };
 
 }

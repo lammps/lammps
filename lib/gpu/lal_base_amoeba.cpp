@@ -106,7 +106,7 @@ int BaseAmoebaT::init_atomic(const int nlocal, const int nall,
                               _threads_per_atom);
   if (success!=0)
     return success;
-                              
+
   // Initialize host-device load balancer
   hd_balancer.init(device,gpu_nbor,gpu_split);
 
@@ -121,7 +121,7 @@ int BaseAmoebaT::init_atomic(const int nlocal, const int nall,
   _maxspecial=maxspecial;
   _maxspecial15=maxspecial15;
 
-  // allocate per-atom array tep 
+  // allocate per-atom array tep
 
   int ef_nall=nlocal; //nall;
   if (ef_nall==0)
@@ -250,7 +250,7 @@ void BaseAmoebaT::compute_polar_real_host_nbor(const int f_ago, const int inum_f
                           const bool eflag_in, const bool vflag_in,
                           const bool eatom, const bool vatom,
                           int &host_start, const double cpu_time,
-                          bool &success, const double aewald, const double felec, 
+                          bool &success, const double aewald, const double felec,
                           const double off2_polar, double *host_q, const int nlocal,
                           double *boxlo, double *prd, void **tep_ptr) {
   acc_timers();
@@ -280,7 +280,7 @@ void BaseAmoebaT::compute_polar_real_host_nbor(const int f_ago, const int inum_f
     dev_special15_t.clear();
     dev_nspecial15.alloc(nall,*(this->ucl_device),UCL_READ_ONLY);
     dev_special15.alloc(_maxspecial15*nall,*(this->ucl_device),UCL_READ_ONLY);
-    dev_special15_t.alloc(nall*_maxspecial15,*(this->ucl_device),UCL_READ_ONLY);   
+    dev_special15_t.alloc(nall*_maxspecial15,*(this->ucl_device),UCL_READ_ONLY);
   }
 
   *tep_ptr=_tep.host.begin();
@@ -320,7 +320,7 @@ void BaseAmoebaT::compute_polar_real_host_nbor(const int f_ago, const int inum_f
   _off2_polar = off2_polar;
   _felec = felec;
   const int red_blocks=polar_real(eflag,vflag);
-  
+
   ans->copy_answers(eflag_in,vflag_in,eatom,vatom,ilist,red_blocks);
   device->add_ans_object(ans);
   hd_balancer.stop_timer();
@@ -375,7 +375,7 @@ int** BaseAmoebaT::precompute(const int ago, const int inum_full, const int nall
     dev_special15_t.clear();
     dev_nspecial15.alloc(nall,*(this->ucl_device),UCL_READ_ONLY);
     dev_special15.alloc(_maxspecial15*nall,*(this->ucl_device),UCL_READ_ONLY);
-    dev_special15_t.alloc(nall*_maxspecial15,*(this->ucl_device),UCL_READ_ONLY);   
+    dev_special15_t.alloc(nall*_maxspecial15,*(this->ucl_device),UCL_READ_ONLY);
   }
 
   if (inum_full==0) {
@@ -462,7 +462,7 @@ int** BaseAmoebaT::compute_multipole_real(const int ago, const int inum_full,
 
   // reallocate per-atom arrays, transfer data from the host
   //   and build the neighbor lists if needed
-  // NOTE: 
+  // NOTE:
   //   For now we invoke precompute() again here,
   //     to be able to turn on/off the udirect2b kernel (which comes before this)
   //   Once all the kernels are ready, precompute() is needed only once
@@ -509,7 +509,7 @@ int** BaseAmoebaT::compute_multipole_real(const int ago, const int inum_full,
     numtyp4* p = (numtyp4*)(&this->_tep[4*i]);
     printf("i = %d; tep = %f %f %f\n", i, p->x, p->y, p->z);
   }
-*/  
+*/
   return firstneigh; // nbor->host_jlist.begin()-host_start;
 }
 
@@ -560,7 +560,7 @@ int** BaseAmoebaT::compute_udirect2b(const int ago, const int inum_full,
                           eflag_in, vflag_in, eatom, vatom,
                           host_start, ilist, jnum, cpu_time,
                           success, host_q, boxlo, prd);
-                         
+
   // ------------------- Resize _fieldp array ------------------------
 
   if (inum_full>_max_fieldp_size) {
@@ -698,7 +698,7 @@ int** BaseAmoebaT::compute_polar_real(const int ago, const int inum_full,
 
   // reallocate per-atom arrays, transfer data from the host
   //   and build the neighbor lists if needed
-  // NOTE: 
+  // NOTE:
   //   For now we invoke precompute() again here,
   //     to be able to turn on/off the udirect2b kernel (which comes before this)
   //   Once all the kernels are ready, precompute() is needed only once
@@ -745,7 +745,7 @@ int** BaseAmoebaT::compute_polar_real(const int ago, const int inum_full,
     numtyp4* p = (numtyp4*)(&this->_tep[4*i]);
     printf("i = %d; tep = %f %f %f\n", i, p->x, p->y, p->z);
   }
-*/  
+*/
   return firstneigh; // nbor->host_jlist.begin()-host_start;
 }
 
@@ -809,7 +809,7 @@ void BaseAmoebaT::cast_extra_data(int* amtype, int* amgroup, double** rpole,
       int idx = n+i*nstride;
       pextra[idx]   = uinp[i][0];
       pextra[idx+1] = uinp[i][1];
-      pextra[idx+2] = uinp[i][2];    
+      pextra[idx+2] = uinp[i][2];
     }
   }
 
@@ -818,7 +818,7 @@ void BaseAmoebaT::cast_extra_data(int* amtype, int* amgroup, double** rpole,
 
     for (int i = 0; i < _nall; i++) {
       int idx = n+i*nstride;
-      pextra[idx]   = pval[i]; 
+      pextra[idx]   = pval[i];
     }
   }
 }
@@ -846,7 +846,7 @@ void BaseAmoebaT::compile_kernels(UCL_Device &dev, const void *pair_str,
   k_special15.set_function(*pair_program,"k_special15");
   pos_tex.get_texture(*pair_program,"pos_tex");
   q_tex.get_texture(*pair_program,"q_tex");
-  
+
   _compiled=true;
 
   #if defined(USE_OPENCL) && (defined(CL_VERSION_2_1) || defined(CL_VERSION_3_0))
@@ -874,13 +874,13 @@ int BaseAmoebaT::add_onefive_neighbors() {
   int _nall=atom->nall();
   int ainum=ans->inum();
   int nbor_pitch=nbor->nbor_pitch();
-  
+
   k_special15.set_size(GX,BX);
   k_special15.run(&nbor->dev_nbor, &_nbor_data->begin(),
                     &atom->dev_tag, &dev_nspecial15, &dev_special15,
                     &ainum, &_nall, &nbor_pitch,
                     &_threads_per_atom);
-  
+
   return GX;
 }
 

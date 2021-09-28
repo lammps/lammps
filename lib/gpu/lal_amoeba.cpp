@@ -140,7 +140,7 @@ void AmoebaT::clear() {
   coeff_amclass.clear();
   sp_polar.clear();
   sp_nonpolar.clear();
-  
+
   this->clear_atomic();
 }
 
@@ -169,7 +169,7 @@ int AmoebaT::multipole_real(const int eflag, const int vflag) {
 
   // Build the short neighbor list for the cutoff off2_mpole,
   //   at this point mpole is the first kernel in a time step
-  
+
   this->k_short_nbor.set_size(GX,BX);
   this->k_short_nbor.run(&this->atom->x, &this->nbor->dev_nbor,
                          &this->_nbor_data->begin(),
@@ -194,7 +194,7 @@ int AmoebaT::multipole_real(const int eflag, const int vflag) {
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 int AmoebaT::udirect2b(const int eflag, const int vflag) {
-  int ainum=this->ans->inum(); 
+  int ainum=this->ans->inum();
   if (ainum == 0)
     return 0;
 
@@ -216,7 +216,7 @@ int AmoebaT::udirect2b(const int eflag, const int vflag) {
                            &nbor_pitch, &this->_threads_per_atom);
     this->short_nbor_polar_avail = true;
   }
-  
+
   this->k_udirect2b.set_size(GX,BX);
   this->k_udirect2b.run(&this->atom->x, &this->atom->extra, &coeff_amtype, &sp_polar,
                         &this->nbor->dev_nbor, &this->_nbor_data->begin(),

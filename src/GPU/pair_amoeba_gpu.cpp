@@ -76,7 +76,7 @@ int ** amoeba_gpu_compute_multipole_real(const int ago, const int inum, const in
 
 int ** amoeba_gpu_compute_udirect2b(const int ago, const int inum, const int nall,
               double **host_x, int *host_type, int *host_amtype, int *host_amgroup,
-              double **host_rpole, double **host_uind, double **host_uinp, 
+              double **host_rpole, double **host_uind, double **host_uinp,
               double *sublo, double *subhi, tagint *tag, int **nspecial,
               tagint **special, int* nspecial15, tagint** special15,
               const bool eflag, const bool vflag, const bool eatom, const bool vatom,
@@ -86,7 +86,7 @@ int ** amoeba_gpu_compute_udirect2b(const int ago, const int inum, const int nal
 
 int ** amoeba_gpu_compute_umutual2b(const int ago, const int inum, const int nall,
               double **host_x, int *host_type, int *host_amtype, int *host_amgroup,
-              double **host_rpole, double **host_uind, double **host_uinp, 
+              double **host_rpole, double **host_uind, double **host_uinp,
               double *sublo, double *subhi, tagint *tag, int **nspecial,
               tagint **special, int* nspecial15, tagint** special15,
               const bool eflag, const bool vflag, const bool eatom, const bool vatom,
@@ -170,7 +170,7 @@ void PairAmoebaGPU::init_style()
     maxspecial=atom->maxspecial;
     maxspecial15=atom->maxspecial15;
   }
-    
+
   int tq_size;
   int mnf = 5e-2 * neighbor->oneatom;
   int success = amoeba_gpu_init(atom->ntypes+1, max_amtype, max_amclass,
@@ -207,7 +207,7 @@ void PairAmoebaGPU::multipole_real()
 
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
-  
+
   double sublo[3],subhi[3];
   if (domain->triclinic == 0) {
     sublo[0] = domain->sublo[0];
@@ -239,7 +239,7 @@ void PairAmoebaGPU::multipole_real()
                                                  host_start, &ilist, &numneigh, cpu_time,
                                                  success, aewald, felec, off2, atom->q,
                                                  domain->boxlo, domain->prd, &tq_pinned);
-  
+
   if (!success)
     error->one(FLERR,"Insufficient memory on accelerator");
 
@@ -281,7 +281,7 @@ void PairAmoebaGPU::induce()
 
   // set cutoffs, taper coeffs, and PME params
   // create qfac here, free at end of polar()
-  
+
   if (use_ewald) {
     choose(POLAR_LONG);
     int nmine = p_kspace->nfft_owned;
@@ -317,7 +317,7 @@ void PairAmoebaGPU::induce()
   memory->create(usump,nlocal,3,"ameoba/induce:usump");
 
   // get the electrostatic field due to permanent multipoles
-  
+
   dfield0c(field,fieldp);
 
   // need reverse_comm_pair if dfield0c (i.e. udirect2b) is CPU-only
@@ -345,7 +345,7 @@ void PairAmoebaGPU::induce()
   for (i = 0; i < 10; i++) {
     printf("i = %d: udir = %f %f %f; udirp = %f %f %f\n",
       i, udir[i][0], udir[i][1], udir[i][2],
-      udirp[i][0], udirp[i][1], udirp[i][2]); 
+      udirp[i][0], udirp[i][1], udirp[i][2]);
   }
 */
   // get induced dipoles via the OPT extrapolation method
@@ -353,7 +353,7 @@ void PairAmoebaGPU::induce()
   //       uopt,uoptp with a optorder+1 dimension, just optorder ??
   //       since no need to store optorder+1 values after these loops
 
-  if (poltyp == OPT) { 
+  if (poltyp == OPT) {
     for (i = 0; i < nlocal; i++) {
       for (j = 0; j < 3; j++) {
         uopt[i][0][j] = udir[i][j];
@@ -460,7 +460,7 @@ void PairAmoebaGPU::induce()
       crstyle = FIELD;
       comm->reverse_comm_pair(this);
     }
-    
+
     //error->all(FLERR,"STOP GPU");
 
     // set initial conjugate gradient residual and conjugate vector
@@ -486,7 +486,7 @@ void PairAmoebaGPU::induce()
       cfstyle = RSD;
       comm->forward_comm_pair(this);
       uscale0b(BUILD,rsd,rsdp,zrsd,zrsdp);
-      uscale0b(APPLY,rsd,rsdp,zrsd,zrsdp); 
+      uscale0b(APPLY,rsd,rsdp,zrsd,zrsdp);
       crstyle = ZRSD;
       comm->reverse_comm_pair(this);
    }
@@ -574,7 +574,7 @@ void PairAmoebaGPU::induce()
       if (pcgprec) {
         cfstyle = RSD;
         comm->forward_comm_pair(this);
-        uscale0b(APPLY,rsd,rsdp,zrsd,zrsdp); 
+        uscale0b(APPLY,rsd,rsdp,zrsd,zrsdp);
         crstyle = ZRSD;
         comm->reverse_comm_pair(this);
       }
@@ -629,7 +629,7 @@ void PairAmoebaGPU::induce()
       if (iter >= politer) done = true;
 
       //  apply a "peek" iteration to the mutual induced dipoles
-     
+
       if (done) {
         for (i = 0; i < nlocal; i++) {
           term = pcgpeek * poli[i];
@@ -644,7 +644,7 @@ void PairAmoebaGPU::induce()
 
     // terminate the calculation if dipoles failed to converge
     // NOTE: could make this an error
-    
+
     if (iter >= maxiter || eps > epsold)
       if (me == 0)
 	      error->warning(FLERR,"AMOEBA induced dipoles did not converge");
@@ -652,7 +652,7 @@ void PairAmoebaGPU::induce()
 
   // DEBUG output to dump file
 
-  if (uind_flag) 
+  if (uind_flag)
     dump6(fp_uind,"id uindx uindy uindz uinpx uinpy uinpz",DEBYE,uind,uinp);
 
   // deallocation of arrays
@@ -700,7 +700,7 @@ void PairAmoebaGPU::udirect2b(double **field, double **fieldp)
     PairAmoeba::udirect2b(field, fieldp);
     return;
   }
-   
+
   int eflag=1, vflag=1;
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
@@ -753,7 +753,7 @@ void PairAmoebaGPU::udirect2b(double **field, double **fieldp)
     int idx = 4*i;
     field[i][0] += field_ptr[idx];
     field[i][1] += field_ptr[idx+1];
-    field[i][2] += field_ptr[idx+2]; 
+    field[i][2] += field_ptr[idx+2];
   }
 
   double* fieldp_ptr = (double *)fieldp_pinned;
@@ -764,7 +764,7 @@ void PairAmoebaGPU::udirect2b(double **field, double **fieldp)
     fieldp[i][1] += fieldp_ptr[idx+1];
     fieldp[i][2] += fieldp_ptr[idx+2];
   }
-  
+
 }
 
 /* ----------------------------------------------------------------------
@@ -802,7 +802,7 @@ void PairAmoebaGPU::udirect2b_cpu()
   firstneigh = list->firstneigh;
 
   // NOTE: doesn't this have a problem if aewald is tiny ??
-  
+
   aesq2 = 2.0 * aewald * aewald;
   aesq2n = 0.0;
   if (aewald > 0.0) aesq2n = 1.0 / (MY_PIS*aewald);
@@ -829,13 +829,13 @@ void PairAmoebaGPU::udirect2b_cpu()
     pdi = pdamp[itype];
     pti = thole[itype];
     ddi = dirdamp[itype];
-    
+
     // evaluate all sites within the cutoff distance
 
     for (jj = 0; jj < jnum; jj++) {
       jextra = jlist[jj];
       j = jextra & NEIGHMASK15;
-      
+
       xr = x[j][0] - x[i][0];
       yr = x[j][1] - x[i][1];
       zr = x[j][2] - x[i][2];
@@ -844,7 +844,7 @@ void PairAmoebaGPU::udirect2b_cpu()
 
       jtype = amtype[j];
       jgroup = amgroup[j];
-      
+
       factor_wscale = special_polar_wscale[sbmask15(jextra)];
       if (igroup == jgroup) {
         factor_pscale = special_polar_piscale[sbmask15(jextra)];
@@ -872,7 +872,7 @@ void PairAmoebaGPU::udirect2b_cpu()
         aefac = aesq2 * aefac;
         bn[m] = (bfac*bn[m-1]+aefac*exp2a) * rr2;
       }
-      
+
       // find terms needed later to compute mutual polarization
 
       if (poltyp != DIRECT) {
@@ -891,7 +891,7 @@ void PairAmoebaGPU::udirect2b_cpu()
         scalek = factor_uscale;
         bcn[0] = bn[1] - (1.0-scalek*scale3)*rr3;
         bcn[1] = bn[2] - (1.0-scalek*scale5)*rr5;
-        
+
         neighptr[n++] = j;
         tdipdip[ndip++] = -bcn[0] + bcn[1]*xr*xr;
         tdipdip[ndip++] = bcn[1]*xr*yr;
@@ -902,7 +902,7 @@ void PairAmoebaGPU::udirect2b_cpu()
       } else {
         if (comm->me == 0) printf("i = %d: j = %d: poltyp == DIRECT\n", i, j);
       }
-      
+
     } // jj
 
     firstneigh_dipole[i] = neighptr;
@@ -973,7 +973,7 @@ void PairAmoebaGPU::umutual2b(double **field, double **fieldp)
     int idx = 4*i;
     field[i][0] += field_ptr[idx];
     field[i][1] += field_ptr[idx+1];
-    field[i][2] += field_ptr[idx+2]; 
+    field[i][2] += field_ptr[idx+2];
   }
 
   double* fieldp_ptr = (double *)fieldp_pinned;
@@ -1001,7 +1001,7 @@ void PairAmoebaGPU::polar_real()
 
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
-  
+
   double sublo[3],subhi[3];
   if (domain->triclinic == 0) {
     sublo[0] = domain->sublo[0];
@@ -1033,7 +1033,7 @@ void PairAmoebaGPU::polar_real()
                                              host_start, &ilist, &numneigh, cpu_time,
                                              success, aewald, felec, off2, atom->q,
                                              domain->boxlo, domain->prd, &tq_pinned);
-  
+
   if (!success)
     error->one(FLERR,"Insufficient memory on accelerator");
 
@@ -1091,11 +1091,11 @@ void PairAmoebaGPU::compute_force_from_torque(const numtyp* tq_ptr,
     vxx = xix*fix[0] + xiy*fiy[0] + xiz*fiz[0];
     vyy = yix*fix[1] + yiy*fiy[1] + yiz*fiz[1];
     vzz = zix*fix[2] + ziy*fiy[2] + ziz*fiz[2];
-    vxy = 0.5 * (yix*fix[0] + yiy*fiy[0] + yiz*fiz[0] + 
+    vxy = 0.5 * (yix*fix[0] + yiy*fiy[0] + yiz*fiz[0] +
                  xix*fix[1] + xiy*fiy[1] + xiz*fiz[1]);
-    vxz = 0.5 * (zix*fix[0] + ziy*fiy[0] + ziz*fiz[0] + 
+    vxz = 0.5 * (zix*fix[0] + ziy*fiy[0] + ziz*fiz[0] +
                  xix*fix[2] + xiy*fiy[2] + xiz*fiz[2]);
-    vyz = 0.5 * (zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] + 
+    vyz = 0.5 * (zix*fix[1] + ziy*fiy[1] + ziz*fiz[1] +
                  yix*fix[2] + yiy*fiy[2] + yiz*fiz[2]);
 
     virial_comp[0] += vxx;

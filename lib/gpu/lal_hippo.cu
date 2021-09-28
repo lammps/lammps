@@ -491,7 +491,7 @@ __kernel void k_hippo_repulsion(const __global numtyp4 *restrict x_,
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       //int jtype=jx.w;
- 
+
       // Compute r12
       numtyp xr = ix.x - jx.x;
       numtyp yr = ix.y - jx.y;
@@ -499,7 +499,7 @@ __kernel void k_hippo_repulsion(const __global numtyp4 *restrict x_,
       numtyp r2 = xr*xr + yr*yr + zr*zr;
 
       if (r2>off2) continue;
-  
+
       const numtyp4 pol1j = polar1[j];
       numtyp ck  = pol1j.x;  // rpole[j][0];
       numtyp dkx = pol1j.y;  // rpole[j][1];
@@ -514,7 +514,7 @@ __kernel void k_hippo_repulsion(const __global numtyp4 *restrict x_,
       numtyp qkyz = pol3j.x; // rpole[j][9];
       numtyp qkzz = pol3j.y; // rpole[j][12];
       int jtype = pol3j.z; // amtype[j];
-      
+
       numtyp sizk = coeff[jtype].x; // sizpr[jtype];
       numtyp dmpk = coeff[jtype].y; // dmppr[jtype];
       numtyp valk = coeff[jtype].z; // elepr[jtype];
@@ -534,12 +534,12 @@ __kernel void k_hippo_repulsion(const __global numtyp4 *restrict x_,
       numtyp qky = qkxy*xr + qkyy*yr + qkyz*zr;
       numtyp qkz = qkxz*xr + qkyz*yr + qkzz*zr;
       numtyp qkr = qkx*xr + qky*yr + qkz*zr;
-      
+
       numtyp dik = dix*dkx + diy*dky + diz*dkz;
       numtyp qik = qix*qkx + qiy*qky + qiz*qkz;
       numtyp diqk = dix*qkx + diy*qky + diz*qkz;
       numtyp dkqi = dkx*qix + dky*qiy + dkz*qiz;
-      numtyp qiqk = (numtyp)2.0*(qixy*qkxy+qixz*qkxz+qiyz*qkyz) + 
+      numtyp qiqk = (numtyp)2.0*(qixy*qkxy+qixz*qkxz+qiyz*qkyz) +
         qixx*qkxx + qiyy*qkyy + qizz*qkzz;
 
       // additional intermediates involving moments and distance
@@ -586,11 +586,11 @@ __kernel void k_hippo_repulsion(const __global numtyp4 *restrict x_,
       numtyp dkqirx = dkqiz*yr - dkqiy*zr;
       numtyp dkqiry = dkqix*zr - dkqiz*xr;
       numtyp dkqirz = dkqiy*xr - dkqix*yr;
-      numtyp dqikx = diy*qkz - diz*qky + dky*qiz - dkz*qiy - 
+      numtyp dqikx = diy*qkz - diz*qky + dky*qiz - dkz*qiy -
         (numtyp)2.0*(qixy*qkxz+qiyy*qkyz+qiyz*qkzz - qixz*qkxy-qiyz*qkyy-qizz*qkyz);
-      numtyp dqiky = diz*qkx - dix*qkz + dkz*qix - dkx*qiz - 
+      numtyp dqiky = diz*qkx - dix*qkz + dkz*qix - dkx*qiz -
         (numtyp)2.0*(qixz*qkxx+qiyz*qkxy+qizz*qkxz - qixx*qkxz-qixy*qkyz-qixz*qkzz);
-      numtyp dqikz = dix*qky - diy*qkx + dkx*qiy - dky*qix - 
+      numtyp dqikz = dix*qky - diy*qkx + dkx*qiy - dky*qix -
         (numtyp)2.0*(qixx*qkxy+qixy*qkyy+qixz*qkyz - qixy*qkxx-qiyy*qkxy-qiyz*qkxz);
 
       // get reciprocal distance terms for this interaction
@@ -616,7 +616,7 @@ __kernel void k_hippo_repulsion(const __global numtyp4 *restrict x_,
       numtyp term3 = vali*qkr + valk*qir - dir*dkr + (numtyp)2.0*(dkqi-diqk+qiqk);
       numtyp term4 = dir*qkr - dkr*qir - 4.0*qik;
       numtyp term5 = qir*qkr;
-      numtyp eterm = term1*dmpik[0] + term2*dmpik[2] + 
+      numtyp eterm = term1*dmpik[0] + term2*dmpik[2] +
         term3*dmpik[4] + term4*dmpik[6] + term5*dmpik[8];
 
       // compute the Pauli repulsion energy for this interaction
@@ -626,7 +626,7 @@ __kernel void k_hippo_repulsion(const __global numtyp4 *restrict x_,
 
       // calculate intermediate terms for force and torque
 
-      numtyp de = term1*dmpik[2] + term2*dmpik[4] + term3*dmpik[6] + 
+      numtyp de = term1*dmpik[2] + term2*dmpik[4] + term3*dmpik[6] +
         term4*dmpik[8] + term5*dmpik[10];
       term1 = -valk*dmpik[2] + dkr*dmpik[4] - qkr*dmpik[6];
       term2 = vali*dmpik[2] + dir*dmpik[4] + qir*dmpik[6];
@@ -637,23 +637,23 @@ __kernel void k_hippo_repulsion(const __global numtyp4 *restrict x_,
 
       // compute the force components for this interaction
 
-      numtyp frcx = de*xr + term1*dix + term2*dkx + term3*(diqkx-dkqix) + 
+      numtyp frcx = de*xr + term1*dix + term2*dkx + term3*(diqkx-dkqix) +
         term4*qix + term5*qkx + term6*(qixk+qkxi);
-      numtyp frcy = de*yr + term1*diy + term2*dky + term3*(diqky-dkqiy) + 
+      numtyp frcy = de*yr + term1*diy + term2*dky + term3*(diqky-dkqiy) +
         term4*qiy + term5*qky + term6*(qiyk+qkyi);
-      numtyp frcz = de*zr + term1*diz + term2*dkz + term3*(diqkz-dkqiz) + 
+      numtyp frcz = de*zr + term1*diz + term2*dkz + term3*(diqkz-dkqiz) +
         term4*qiz + term5*qkz + term6*(qizk+qkzi);
       frcx = frcx*rr1 + eterm*rr3*xr;
       frcy = frcy*rr1 + eterm*rr3*yr;
       frcz = frcz*rr1 + eterm*rr3*zr;
 
       // compute the torque components for this interaction
-      
-      numtyp ttmix = -dmpik[2]*dikx + term1*dirx + term3*(dqikx+dkqirx) - 
+
+      numtyp ttmix = -dmpik[2]*dikx + term1*dirx + term3*(dqikx+dkqirx) -
         term4*qirx - term6*(qikrx+qikx);
-      numtyp ttmiy = -dmpik[2]*diky + term1*diry + term3*(dqiky+dkqiry) - 
+      numtyp ttmiy = -dmpik[2]*diky + term1*diry + term3*(dqiky+dkqiry) -
         term4*qiry - term6*(qikry+qiky);
-      numtyp ttmiz = -dmpik[2]*dikz + term1*dirz + term3*(dqikz+dkqirz) - 
+      numtyp ttmiz = -dmpik[2]*dikz + term1*dirz + term3*(dqikz+dkqirz) -
         term4*qirz - term6*(qikrz+qikz);
       ttmix = sizik * ttmix * rr1;
       ttmiy = sizik * ttmiy * rr1;
@@ -706,7 +706,7 @@ __kernel void k_hippo_repulsion(const __global numtyp4 *restrict x_,
         virial[5] += vyz;
       }
     } // nbor
-    
+
   } // ii<inum
 
   // accumulate tq
@@ -786,7 +786,7 @@ __kernel void k_hippo_dispersion(const __global numtyp4 *restrict x_,
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       //int jtype=jx.w;
- 
+
       // Compute r12
       numtyp xr = ix.x - jx.x;
       numtyp yr = ix.y - jx.y;
@@ -794,7 +794,7 @@ __kernel void k_hippo_dispersion(const __global numtyp4 *restrict x_,
       numtyp r2 = xr*xr + yr*yr + zr*zr;
 
       //if (r2>off2) continue;
-  
+
       int jtype =   polar3[j].z; // amtype[j];
       int jclass = coeff_amtype[jtype].w;  // amtype2class[jtype];
       numtyp ck = coeff_amclass[jclass].x;    // csix[jclass];
@@ -816,7 +816,7 @@ __kernel void k_hippo_dispersion(const __global numtyp4 *restrict x_,
       numtyp dk = ak * r;
       numtyp expi = ucl_exp(-di);
       numtyp expk = ucl_exp(-dk);
-     
+
       numtyp ai2,ak2;
       numtyp di4,di5;
       numtyp dk2,dk3;
@@ -844,7 +844,7 @@ __kernel void k_hippo_dispersion(const __global numtyp4 *restrict x_,
           - tk2*((numtyp)1.0 + dk + (numtyp)0.5*dk2 + dk3/(numtyp)6.0) * expk
           - (numtyp)2.0*ti2*tk*((numtyp)1.0 + di + di2/(numtyp)3.0) * expi
           - (numtyp)2.0*tk2*ti*((numtyp)1.0 + dk + dk2/(numtyp)3.0) * expk;
-        ddamp = (numtyp)0.25 * di2 * ti2 * ai * expi * (r*ai+(numtyp)4.0*tk - (numtyp)1.0) + 
+        ddamp = (numtyp)0.25 * di2 * ti2 * ai * expi * (r*ai+(numtyp)4.0*tk - (numtyp)1.0) +
           (numtyp)0.25 * dk2 * tk2 * ak * expk * (r*ak+(numtyp)4.0*ti-(numtyp)1.0);
 
       } else {
@@ -856,7 +856,7 @@ __kernel void k_hippo_dispersion(const __global numtyp4 *restrict x_,
       }
 
       numtyp damp = (numtyp)1.5*damp5 - (numtyp)0.5*damp3;
-      
+
       // apply damping and scaling factors for this interaction
 
       numtyp scale = factor_disp * damp*damp;
@@ -892,7 +892,7 @@ __kernel void k_hippo_dispersion(const __global numtyp4 *restrict x_,
       virial[4] += vzx;
       virial[5] += vzy;
     } // nbor
-    
+
   } // ii<inum
 
   // accumate force, energy and virial
@@ -997,7 +997,7 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       //int jtype=jx.w;
- 
+
       // Compute r12
       numtyp xr = jx.x - ix.x;
       numtyp yr = jx.y - ix.y;
@@ -1005,7 +1005,7 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
       numtyp r2 = xr*xr + yr*yr + zr*zr;
 
       //if (r2>off2) continue;
-  
+
       numtyp r = ucl_sqrt(r2);
       const numtyp4 pol1j = polar1[j];
       numtyp ck  = pol1j.x;  // rpole[j][0];
@@ -1043,12 +1043,12 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
       numtyp qky = qkxy*xr + qkyy*yr + qkyz*zr;
       numtyp qkz = qkxz*xr + qkyz*yr + qkzz*zr;
       numtyp qkr = qkx*xr + qky*yr + qkz*zr;
-      
+
       numtyp dik = dix*dkx + diy*dky + diz*dkz;
       numtyp qik = qix*qkx + qiy*qky + qiz*qkz;
       numtyp diqk = dix*qkx + diy*qky + diz*qkz;
       numtyp dkqi = dkx*qix + dky*qiy + dkz*qiz;
-      numtyp qiqk = (numtyp)2.0*(qixy*qkxy+qixz*qkxz+qiyz*qkyz) + 
+      numtyp qiqk = (numtyp)2.0*(qixy*qkxy+qixz*qkxz+qiyz*qkyz) +
         qixx*qkxx + qiyy*qkyy + qizz*qkzz;
 
       // additional intermediates involving moments and distance
@@ -1095,11 +1095,11 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
       numtyp dkqirx = dkqiz*yr - dkqiy*zr;
       numtyp dkqiry = dkqix*zr - dkqiz*xr;
       numtyp dkqirz = dkqiy*xr - dkqix*yr;
-      numtyp dqikx = diy*qkz - diz*qky + dky*qiz - dkz*qiy - 
+      numtyp dqikx = diy*qkz - diz*qky + dky*qiz - dkz*qiy -
         (numtyp)2.0*(qixy*qkxz+qiyy*qkyz+qiyz*qkzz - qixz*qkxy-qiyz*qkyy-qizz*qkyz);
-      numtyp dqiky = diz*qkx - dix*qkz + dkz*qix - dkx*qiz - 
+      numtyp dqiky = diz*qkx - dix*qkz + dkz*qix - dkx*qiz -
         (numtyp)2.0*(qixz*qkxx+qiyz*qkxy+qizz*qkxz - qixx*qkxz-qixy*qkyz-qixz*qkzz);
-      numtyp dqikz = dix*qky - diy*qkx + dkx*qiy - dky*qix - 
+      numtyp dqikz = dix*qky - diy*qkx + dkx*qiy - dky*qix -
         (numtyp)2.0*(qixx*qkxy+qixy*qkyy+qixz*qkyz - qixy*qkxx-qiyy*qkxy-qiyz*qkxz);
 
       // get reciprocal distance terms for this interaction
@@ -1164,16 +1164,16 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
       numtyp rr11ik = bn[5] - ((numtyp)1.0-scalek*dmpij[10])*rr11;
       rr1 = bn[0] - ((numtyp)1.0-scalek)*rr1;
       rr3 = bn[1] - ((numtyp)1.0-scalek)*rr3;
-      numtyp e = term1*rr1 + term4ik*rr7ik + term5ik*rr9ik + 
-        term1i*rr1i + term1k*rr1k + term1ik*rr1ik + 
-        term2i*rr3i + term2k*rr3k + term2ik*rr3ik + 
+      numtyp e = term1*rr1 + term4ik*rr7ik + term5ik*rr9ik +
+        term1i*rr1i + term1k*rr1k + term1ik*rr1ik +
+        term2i*rr3i + term2k*rr3k + term2ik*rr3ik +
         term3i*rr5i + term3k*rr5k + term3ik*rr5ik;
 
       // find damped multipole intermediates for force and torque
 
-      numtyp de = term1*rr3 + term4ik*rr9ik + term5ik*rr11ik + 
-        term1i*rr3i + term1k*rr3k + term1ik*rr3ik + 
-        term2i*rr5i + term2k*rr5k + term2ik*rr5ik + 
+      numtyp de = term1*rr3 + term4ik*rr9ik + term5ik*rr11ik +
+        term1i*rr3i + term1k*rr3k + term1ik*rr3ik +
+        term2i*rr5i + term2k*rr5k + term2ik*rr5ik +
         term3i*rr7i + term3k*rr7k + term3ik*rr7ik;
       term1 = -corek*rr3i - valk*rr3ik + dkr*rr5ik - qkr*rr7ik;
       term2 = corei*rr3k + vali*rr3ik + dir*rr5ik + qir*rr7ik;
@@ -1187,20 +1187,20 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
 
       // compute the force components for this interaction
 
-      numtyp frcx = de*xr + term1*dix + term2*dkx + term3*(diqkx-dkqix) + 
+      numtyp frcx = de*xr + term1*dix + term2*dkx + term3*(diqkx-dkqix) +
         term4*qix + term5*qkx + term6*(qixk+qkxi);
-      numtyp frcy = de*yr + term1*diy + term2*dky + term3*(diqky-dkqiy) + 
+      numtyp frcy = de*yr + term1*diy + term2*dky + term3*(diqky-dkqiy) +
         term4*qiy + term5*qky + term6*(qiyk+qkyi);
-      numtyp frcz = de*zr + term1*diz + term2*dkz + term3*(diqkz-dkqiz) + 
+      numtyp frcz = de*zr + term1*diz + term2*dkz + term3*(diqkz-dkqiz) +
         term4*qiz + term5*qkz + term6*(qizk+qkzi);
 
       // compute the torque components for this interaction
 
-      numtyp ttmix = -rr3*dikx + term1*dirx + term3*(dqikx+dkqirx) - 
+      numtyp ttmix = -rr3*dikx + term1*dirx + term3*(dqikx+dkqirx) -
         term4*qirx - term6*(qikrx+qikx);
-      numtyp ttmiy = -rr3*diky + term1*diry + term3*(dqiky+dkqiry) - 
+      numtyp ttmiy = -rr3*diky + term1*diry + term3*(dqiky+dkqiry) -
         term4*qiry - term6*(qikry+qiky);
-      numtyp ttmiz = -rr3*dikz + term1*dirz + term3*(dqikz+dkqirz) - 
+      numtyp ttmiz = -rr3*dikz + term1*dirz + term3*(dqikz+dkqirz) -
         term4*qirz - term6*(qikrz+qikz);
 
       // increment force-based gradient and torque on first site
@@ -1228,12 +1228,12 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
         virial[5] += vyz;
       }
     } // nbor
-    
+
   } // ii<inum
 
   // accumulate tq
   store_answers_hippo_tq(tq,ii,inum,tid,t_per_atom,offset,i,tep);
-  
+
   // accumate force, energy and virial: use _acc if not the first kernel
   //store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
      //offset,eflag,vflag,ans,engv);
@@ -1327,7 +1327,7 @@ __kernel void k_hippo_udirect2b(const __global numtyp4 *restrict x_,
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       //int jtype=jx.w;
- 
+
       // Compute r12
       numtyp xr = jx.x - ix.x;
       numtyp yr = jx.y - ix.y;
@@ -1335,7 +1335,7 @@ __kernel void k_hippo_udirect2b(const __global numtyp4 *restrict x_,
       numtyp r2 = xr*xr + yr*yr + zr*zr;
 
       //if (r2>off2) continue;
-      
+
       numtyp r = ucl_sqrt(r2);
       numtyp rinv = ucl_recip(r);
       numtyp r2inv = rinv*rinv;
@@ -1408,7 +1408,7 @@ __kernel void k_hippo_udirect2b(const __global numtyp4 *restrict x_,
       // find the field components for charge penetration damping
       numtyp dmpi[7],dmpk[7];
       dampdir(r,alphai,alphak,dmpi,dmpk);
-          
+
       numtyp scalek = factor_dscale;
       numtyp rr3i = bn[1] - ((numtyp)1.0-scalek*dmpi[2])*rr3;
       numtyp rr5i = bn[2] - ((numtyp)1.0-scalek*dmpi[4])*rr5;
@@ -1439,7 +1439,7 @@ __kernel void k_hippo_udirect2b(const __global numtyp4 *restrict x_,
         rr3k*dky + (numtyp)2.0*rr5k*qky;
       fip[2] = -zr*(rr3*corek + rr3k*valk - rr5k*dkr + rr7k*qkr) -
         rr3k*dkz + (numtyp)2.0*rr5k*qkz;
-          
+
       // find terms needed later to compute mutual polarization
 
       _fieldp[0] += fid[0];
@@ -1453,7 +1453,7 @@ __kernel void k_hippo_udirect2b(const __global numtyp4 *restrict x_,
   } // ii<inum
 
   // accumulate field and fieldp
-  
+
   store_answers_fieldp(_fieldp,ii,inum,tid,t_per_atom,offset,i,fieldp);
 }
 
@@ -1514,7 +1514,7 @@ __kernel void k_hippo_umutual2b(const __global numtyp4 *restrict x_,
     int itype,igroup;
     numtyp bn[4],bcn[3];
     numtyp fid[3],fip[3];
-    
+
     itype  = polar3[i].z; // amtype[i];
     igroup = polar3[i].w; // amgroup[i];
 
@@ -1534,7 +1534,7 @@ __kernel void k_hippo_umutual2b(const __global numtyp4 *restrict x_,
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       //int jtype=jx.w;
- 
+
       // Compute r12
       numtyp xr = jx.x - ix.x;
       numtyp yr = jx.y - ix.y;
@@ -1542,7 +1542,7 @@ __kernel void k_hippo_umutual2b(const __global numtyp4 *restrict x_,
       numtyp r2 = xr*xr + yr*yr + zr*zr;
 
       //if (r2>off2) continue;
-  
+
       numtyp r = ucl_sqrt(r2);
       numtyp rinv = ucl_recip(r);
       numtyp r2inv = rinv*rinv;
@@ -1595,7 +1595,7 @@ __kernel void k_hippo_umutual2b(const __global numtyp4 *restrict x_,
       }
 
       // find terms needed later to compute mutual polarization
-      // if (poltyp != DIRECT) 
+      // if (poltyp != DIRECT)
       numtyp dmpik[5];
       dampmut(r,alphai,alphak,dmpik);
       numtyp scalek = factor_wscale;
@@ -1610,17 +1610,17 @@ __kernel void k_hippo_umutual2b(const __global numtyp4 *restrict x_,
       tdipdip[3] = -rr3ik + rr5ik*yr*yr;
       tdipdip[4] = rr5ik*yr*zr;
       tdipdip[5] = -rr3ik + rr5ik*zr*zr;
-      //if (i==0 && j == 10) 
+      //if (i==0 && j == 10)
       //  printf("i = %d: j = %d: tdipdip %f %f %f %f %f %f\n",
       //    i, j,tdipdip[0],tdipdip[1],tdipdip[2],tdipdip[3],tdipdip[4],tdipdip[5]);
       fid[0] = tdipdip[0]*ukx + tdipdip[1]*uky + tdipdip[2]*ukz;
       fid[1] = tdipdip[1]*ukx + tdipdip[3]*uky + tdipdip[4]*ukz;
       fid[2] = tdipdip[2]*ukx + tdipdip[4]*uky + tdipdip[5]*ukz;
-      
+
       fip[0] = tdipdip[0]*ukxp + tdipdip[1]*ukyp + tdipdip[2]*ukzp;
       fip[1] = tdipdip[1]*ukxp + tdipdip[3]*ukyp + tdipdip[4]*ukzp;
       fip[2] = tdipdip[2]*ukxp + tdipdip[4]*ukyp + tdipdip[5]*ukzp;
-      
+
       _fieldp[0] += fid[0];
       _fieldp[1] += fid[1];
       _fieldp[2] += fid[2];
@@ -1632,7 +1632,7 @@ __kernel void k_hippo_umutual2b(const __global numtyp4 *restrict x_,
   } // ii<inum
 
   // accumulate field and fieldp
-  
+
   store_answers_fieldp(_fieldp,ii,inum,tid,t_per_atom,offset,i,fieldp);
 }
 
@@ -1754,7 +1754,7 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
 
       numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
       //int jtype=jx.w;
- 
+
       // Compute r12
       numtyp xr = jx.x - ix.x;
       numtyp yr = jx.y - ix.y;
@@ -1762,7 +1762,7 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
       numtyp r2 = xr*xr + yr*yr + zr*zr;
 
       //if (r2>off2) continue;
-  
+
       numtyp r = ucl_sqrt(r2);
 
       const numtyp4 pol1j = polar1[j];
@@ -1905,7 +1905,7 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
 
 
       // get the field gradient for direct polarization force
-      
+
       numtyp term1i,term2i,term3i,term4i,term5i,term6i,term7i,term8i;
       numtyp term1k,term2k,term3k,term4k,term5k,term6k,term7k,term8k;
       numtyp term1core;
@@ -1987,7 +1987,7 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
         dir*term4i - qixy*term5i + qiy*term6i + qix*term7i - qir*term8i;
       tkxy = -valk*term1k - corek*term1core - dky*term2k - dkx*term3k +
         dkr*term4k - qkxy*term5k + qky*term6k + qkx*term7k - qkr*term8k;
-      
+
       term2i = rr5i*xr;
       term1i = zr * term2i;
       term1core = rr5core*xr*zr;
@@ -2039,7 +2039,7 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
       numtyp frcx = (numtyp)-2.0 * depx;
       numtyp frcy = (numtyp)-2.0 * depy;
       numtyp frcz = (numtyp)-2.0 * depz;
-       
+
       // get the dEp/dR terms used for direct polarization force
       // poltyp == MUTUAL && hippo
       // tixx and tkxx
@@ -2108,7 +2108,7 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
         virial[5] += vyz;
       }
     } // nbor
-    
+
   } // ii<inum
 
   // accumulate ufld and dufld to compute tep
@@ -2139,7 +2139,7 @@ __kernel void k_special15(__global int * dev_nbor,
   atom_info(t_per_atom,ii,tid,offset);
 
   if (ii<inum) {
-  
+
     int numj, nbor, nbor_end;
     nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
               n_stride,nbor_end,nbor);

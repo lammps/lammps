@@ -91,6 +91,8 @@ action pair_gauss_gpu.cpp pair_gauss.cpp
 action pair_gauss_gpu.h pair_gauss.h
 action pair_gayberne_gpu.cpp pair_gayberne.cpp
 action pair_gayberne_gpu.h pair_gayberne.cpp
+action pair_hippo_gpu.cpp pair_hippo.cpp
+action pair_hippo_gpu.h pair_hippo.cpp
 action pair_lj96_cut_gpu.cpp pair_lj96_cut.cpp
 action pair_lj96_cut_gpu.h pair_lj96_cut.h
 action pair_lj_charmm_coul_long_gpu.cpp pair_lj_charmm_coul_long.cpp

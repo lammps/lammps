@@ -145,7 +145,7 @@ void HippoT::clear() {
   coeff_amclass.clear();
   sp_polar.clear();
   sp_nonpolar.clear();
-  
+
   this->clear_atomic();
 }
 
@@ -199,7 +199,7 @@ int** HippoT::precompute(const int ago, const int inum_full, const int nall,
     this->dev_special15_t.clear();
     this->dev_nspecial15.alloc(nall,*(this->ucl_device),UCL_READ_ONLY);
     this->dev_special15.alloc(this->_maxspecial15*nall,*(this->ucl_device),UCL_READ_ONLY);
-    this->dev_special15_t.alloc(nall*this->_maxspecial15,*(this->ucl_device),UCL_READ_ONLY);   
+    this->dev_special15_t.alloc(nall*this->_maxspecial15,*(this->ucl_device),UCL_READ_ONLY);
   }
 
   if (inum_full==0) {
@@ -286,7 +286,7 @@ int** HippoT::compute_dispersion_real(const int ago, const int inum_full,
 
   // reallocate per-atom arrays, transfer data from the host
   //   and build the neighbor lists if needed
-  // NOTE: 
+  // NOTE:
   //   For now we invoke precompute() again here,
   //     to be able to turn on/off the udirect2b kernel (which comes before this)
   //   Once all the kernels are ready, precompute() is needed only once
@@ -339,7 +339,7 @@ int HippoT::dispersion_real(const int eflag, const int vflag) {
 
   // Build the short neighbor list for the cutoff off2_disp,
   //   at this point mpole is the first kernel in a time step
-  
+
   this->k_short_nbor.set_size(GX,BX);
   this->k_short_nbor.run(&this->atom->x, &this->nbor->dev_nbor,
                          &this->_nbor_data->begin(),
@@ -397,7 +397,7 @@ int** HippoT::compute_multipole_real(const int ago, const int inum_full,
 
   // reallocate per-atom arrays, transfer data from the host
   //   and build the neighbor lists if needed
-  // NOTE: 
+  // NOTE:
   //   For now we invoke precompute() again here,
   //     to be able to turn on/off the udirect2b kernel (which comes before this)
   //   Once all the kernels are ready, precompute() is needed only once
@@ -468,7 +468,7 @@ int HippoT::multipole_real(const int eflag, const int vflag) {
 
   // Build the short neighbor list for the cutoff off2_mpole,
   //   at this point mpole is the first kernel in a time step
-  
+
   this->k_short_nbor.set_size(GX,BX);
   this->k_short_nbor.run(&this->atom->x, &this->nbor->dev_nbor,
                          &this->_nbor_data->begin(),
@@ -537,7 +537,7 @@ int** HippoT::compute_udirect2b(const int ago, const int inum_full,
                           eflag_in, vflag_in, eatom, vatom,
                           host_start, ilist, jnum, cpu_time,
                           success, host_q, boxlo, prd);
-                         
+
   // ------------------- Resize _fieldp array ------------------------
 
   if (inum_full>this->_max_fieldp_size) {
@@ -569,7 +569,7 @@ int** HippoT::compute_udirect2b(const int ago, const int inum_full,
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 int HippoT::udirect2b(const int eflag, const int vflag) {
-  int ainum=this->ans->inum(); 
+  int ainum=this->ans->inum();
   if (ainum == 0)
     return 0;
 
@@ -591,7 +591,7 @@ int HippoT::udirect2b(const int eflag, const int vflag) {
                            &nbor_pitch, &this->_threads_per_atom);
     this->short_nbor_polar_avail = true;
   }
-  
+
   this->k_udirect2b.set_size(GX,BX);
   this->k_udirect2b.run(&this->atom->x, &this->atom->extra,
                         &coeff_amtype, &coeff_amclass, &sp_polar,
@@ -756,7 +756,7 @@ int** HippoT::compute_polar_real(const int ago, const int inum_full,
 
   // reallocate per-atom arrays, transfer data from the host
   //   and build the neighbor lists if needed
-  // NOTE: 
+  // NOTE:
   //   For now we invoke precompute() again here,
   //     to be able to turn on/off the udirect2b kernel (which comes before this)
   //   Once all the kernels are ready, precompute() is needed only once
@@ -803,7 +803,7 @@ int** HippoT::compute_polar_real(const int ago, const int inum_full,
     numtyp4* p = (numtyp4*)(&this->_tep[4*i]);
     printf("i = %d; tep = %f %f %f\n", i, p->x, p->y, p->z);
   }
-*/  
+*/
   return firstneigh; // nbor->host_jlist.begin()-host_start;
 }
 

@@ -287,7 +287,7 @@ class BaseAmoeba {
   virtual int udirect2b(const int eflag, const int vflag) = 0;
   virtual int umutual2b(const int eflag, const int vflag) = 0;
   virtual int polar_real(const int eflag, const int vflag) = 0;
-  
+
 };
 
 }

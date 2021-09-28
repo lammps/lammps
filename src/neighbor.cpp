@@ -915,11 +915,14 @@ int Neighbor::init_pair()
     requests[i]->index_bin = -1;
     flag = lists[i]->bin_method;
     if (flag == 0) continue;
-    for (j = 0; j < nbin; j++)
-      if (neigh_bin[j]->istyle == flag) break;
-    if (j < nbin && !requests[i]->unique) {
-      requests[i]->index_bin = j;
-      continue;
+    if (!requests[i]->unique) {
+      for (j = 0; j < nbin; j++)
+        if (neigh_bin[j]->istyle == flag &&
+            neigh_bin[j]->cutoff_custom == 0.0) break;
+      if (j < nbin) {
+        requests[i]->index_bin = j;
+        continue;
+      }
     }
 
     BinCreator &bin_creator = binclass[flag-1];
@@ -936,11 +939,14 @@ int Neighbor::init_pair()
     requests[i]->index_stencil = -1;
     flag = lists[i]->stencil_method;
     if (flag == 0) continue;
-    for (j = 0; j < nstencil; j++)
-      if (neigh_stencil[j]->istyle == flag) break;
-    if (j < nstencil && !requests[i]->unique) {
-      requests[i]->index_stencil = j;
-      continue;
+    if (!requests[i]->unique) {
+      for (j = 0; j < nstencil; j++)
+        if (neigh_stencil[j]->istyle == flag &&
+            neigh_stencil[j]->cutoff_custom == 0.0) break;
+      if (j < nstencil) {
+        requests[i]->index_stencil = j;
+        continue;
+      }
     }
 
     StencilCreator &stencil_creator = stencilclass[flag-1];

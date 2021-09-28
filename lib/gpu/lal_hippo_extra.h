@@ -132,15 +132,15 @@ ucl_inline void damprep(const numtyp r, const numtyp r2, const numtyp rr1,
        ((numtyp)4.0/(numtyp)15.0)*dmpi24*dmpk2*r3/term + ((numtyp)8.0/(numtyp)5.0)*dmpi23*dmpk2*r2/term + 
        (numtyp)4.0*dmpi22*dmpk2*r/term + (numtyp)4.0/term*dmpi2*dmpk2) * expi;
     d4s = (dmpi2*dmpk24*r5/(numtyp)105.0 + ((numtyp)2.0/(numtyp)35.0)*dmpi2*dmpk23*r4 + 
-           dmpi2*dmpk22*r3/7.0 + dmpi2*dmpk2*r2/(numtyp)7.0 - 
+           dmpi2*dmpk22*r3/(numtyp)7.0 + dmpi2*dmpk2*r2/(numtyp)7.0 - 
            ((numtyp)4.0/(numtyp)105.0)*dmpi2*dmpk25*r4/term - ((numtyp)8.0/21.0)*dmpi2*dmpk24*r3/term - 
-           ((numtyp)12.0/7.0)*dmpi2*dmpk23*r2/term - 4.0*dmpi2*dmpk22*r/term - 
+           ((numtyp)12.0/(numtyp)7.0)*dmpi2*dmpk23*r2/term - (numtyp)4.0*dmpi2*dmpk22*r/term - 
            (numtyp)4.0*dmpi2*dmpk2/term) * expk + 
       (dmpi24*dmpk2*r5/(numtyp)105.0 + (2.0/(numtyp)35.0)*dmpi23*dmpk2*r4 + 
        dmpi22*dmpk2*r3/(numtyp)7.0 + dmpi2*dmpk2*r2/(numtyp)7.0 + 
-       (4.0/105.0)*dmpi25*dmpk2*r4/term + ((numtyp)8.0/21.0)*dmpi24*dmpk2*r3/term + 
-       (12.0/7.0)*dmpi23*dmpk2*r2/term + (numtyp)4.0*dmpi22*dmpk2*r/term + 
-       4.0*dmpi2*dmpk2/term) * expi;
+       ((numtyp)4.0/(numtyp)105.0)*dmpi25*dmpk2*r4/term + ((numtyp)8.0/(numtyp)21.0)*dmpi24*dmpk2*r3/term + 
+       ((numtyp)12.0/(numtyp)7.0)*dmpi23*dmpk2*r2/term + (numtyp)4.0*dmpi22*dmpk2*r/term + 
+       (numtyp)4.0*dmpi2*dmpk2/term) * expi;
     
     if (rorder >= 11) {
       r6 = r5 * r;
@@ -168,12 +168,12 @@ ucl_inline void damprep(const numtyp r, const numtyp r2, const numtyp rr1,
   d3s = d3s * rr7;
   d4s = d4s * rr9;
   d5s = d5s * rr11;
-  dmpik[0] = 0.5 * pre * s * s;
+  dmpik[0] = (numtyp)0.5 * pre * s * s;
   dmpik[2] = pre * s * ds;
   dmpik[4] = pre * (s*d2s + ds*ds);
-  dmpik[6] = pre * (s*d3s + 3.0*ds*d2s);
-  dmpik[8] = pre * (s*d4s + 4.0*ds*d3s + 3.0*d2s*d2s);
-  if (rorder >= 11) dmpik[10] = pre * (s*d5s + 5.0*ds*d4s + 10.0*d2s*d3s);
+  dmpik[6] = pre * (s*d3s + (numtyp)3.0*ds*d2s);
+  dmpik[8] = pre * (s*d4s + (numtyp)4.0*ds*d3s + (numtyp)3.0*d2s*d2s);
+  if (rorder >= 11) dmpik[10] = pre * (s*d5s + (numtyp)5.0*ds*d4s + (numtyp)10.0*d2s*d3s);
 }
 
 /* ----------------------------------------------------------------------
@@ -213,8 +213,9 @@ ucl_inline void damppole(const numtyp r, const int rorder,
 
   // compute tolerance and exponential damping factors
 
-  eps = 0.001;
-  diff = fabs(alphai-alphak);
+  eps = (numtyp)0.001;
+  diff = alphai-alphak; 
+  if (diff < (numtyp)0) diff = -diff;
   dampi = alphai * r;
   dampk = alphak * r;
   expi = ucl_exp(-dampi);
@@ -226,12 +227,12 @@ ucl_inline void damppole(const numtyp r, const int rorder,
   dampi3 = dampi * dampi2;
   dampi4 = dampi2 * dampi2;
   dampi5 = dampi2 * dampi3;
-  dmpi[0] = 1.0 - (1.0 + 0.5*dampi)*expi;
-  dmpi[2] = 1.0 - (1.0 + dampi + 0.5*dampi2)*expi;
-  dmpi[4] = 1.0 - (1.0 + dampi + 0.5*dampi2 + dampi3/6.0)*expi;
-  dmpi[6] = 1.0 - (1.0 + dampi + 0.5*dampi2 + dampi3/6.0 + dampi4/30.0)*expi;
-  dmpi[8] = 1.0 - (1.0 + dampi + 0.5*dampi2 + dampi3/6.0 + 
-                   4.0*dampi4/105.0 + dampi5/210.0)*expi;
+  dmpi[0] = (numtyp)1.0 - ((numtyp)1.0 + (numtyp)0.5*dampi)*expi;
+  dmpi[2] = (numtyp)1.0 - ((numtyp)1.0 + dampi + (numtyp)0.5*dampi2)*expi;
+  dmpi[4] = (numtyp)1.0 - ((numtyp)1.0 + dampi + (numtyp)0.5*dampi2 + dampi3/(numtyp)6.0)*expi;
+  dmpi[6] = (numtyp)1.0 - ((numtyp)1.0 + dampi + (numtyp)0.5*dampi2 + dampi3/(numtyp)6.0 + dampi4/(numtyp)30.0)*expi;
+  dmpi[8] = (numtyp)1.0 - ((numtyp)1.0 + dampi + (numtyp)0.5*dampi2 + dampi3/(numtyp)6.0 + 
+                   (numtyp)4.0*dampi4/(numtyp)105.0 + dampi5/(numtyp)210.0)*expi;
   if (diff < eps) {
     dmpk[0] = dmpi[0];
     dmpk[2] = dmpi[2];
@@ -243,12 +244,12 @@ ucl_inline void damppole(const numtyp r, const int rorder,
     dampk3 = dampk * dampk2;
     dampk4 = dampk2 * dampk2;
     dampk5 = dampk2 * dampk3;
-    dmpk[0] = 1.0 - (1.0 + 0.5*dampk)*expk;
-    dmpk[2] = 1.0 - (1.0 + dampk + 0.5*dampk2)*expk;
-    dmpk[4] = 1.0 - (1.0 + dampk + 0.5*dampk2 + dampk3/6.0)*expk;
-    dmpk[6] = 1.0 - (1.0 + dampk + 0.5*dampk2 + dampk3/6.0 + dampk4/30.0)*expk;
-    dmpk[8] = 1.0 - (1.0 + dampk + 0.5*dampk2 + dampk3/6.0 + 
-                     4.0*dampk4/105.0 + dampk5/210.0)*expk;
+    dmpk[0] = (numtyp)1.0 - ((numtyp)1.0 + (numtyp)0.5*dampk)*expk;
+    dmpk[2] = (numtyp)1.0 - ((numtyp)1.0 + dampk + (numtyp)0.5*dampk2)*expk;
+    dmpk[4] = (numtyp)1.0 - ((numtyp)1.0 + dampk + (numtyp)0.5*dampk2 + dampk3/(numtyp)6.0)*expk;
+    dmpk[6] = (numtyp)1.0 - ((numtyp)1.0 + dampk + (numtyp)0.5*dampk2 + dampk3/(numtyp)6.0 + dampk4/(numtyp)30.0)*expk;
+    dmpk[8] = (numtyp)1.0 - ((numtyp)1.0 + dampk + (numtyp)0.5*dampk2 + dampk3/(numtyp)6.0 + 
+                     (numtyp)4.0*dampk4/(numtyp)105.0 + dampk5/(numtyp)210.0)*expk;
   }
 
   // valence-valence charge penetration damping for Gordon f1
@@ -256,22 +257,22 @@ ucl_inline void damppole(const numtyp r, const int rorder,
   if (diff < eps) {
     dampi6 = dampi3 * dampi3;
     dampi7 = dampi3 * dampi4;
-    dmpik[0] = 1.0 - (1.0 + 11.0*dampi/16.0 + 3.0*dampi2/16.0 + 
-                      dampi3/48.0)*expi;
-    dmpik[2] = 1.0 - (1.0 + dampi + 0.5*dampi2 + 
-                      7.0*dampi3/48.0 + dampi4/48.0)*expi;
-    dmpik[4] = 1.0 - (1.0 + dampi + 0.5*dampi2 + dampi3/6.0 + 
-                      dampi4/24.0 + dampi5/144.0)*expi;
-    dmpik[6] = 1.0 - (1.0 + dampi + 0.5*dampi2 + dampi3/6.0 + 
-                      dampi4/24.0 + dampi5/120.0 + dampi6/720.0)*expi;
-    dmpik[8] = 1.0 - (1.0 + dampi + 0.5*dampi2 + dampi3/6.0 + 
-                      dampi4/24.0 + dampi5/120.0 + dampi6/720.0 + 
-                      dampi7/5040.0)*expi;
+    dmpik[0] = (numtyp)1.0 - ((numtyp)1.0 + (numtyp)11.0*dampi/(numtyp)16.0 + (numtyp)3.0*dampi2/(numtyp)16.0 + 
+                      dampi3/(numtyp)48.0)*expi;
+    dmpik[2] = (numtyp)1.0 - ((numtyp)1.0 + dampi + (numtyp)0.5*dampi2 + 
+                      (numtyp)7.0*dampi3/(numtyp)48.0 + dampi4/(numtyp)48.0)*expi;
+    dmpik[4] = (numtyp)1.0 - ((numtyp)1.0 + dampi + (numtyp)0.5*dampi2 + dampi3/(numtyp)6.0 + 
+                      dampi4/(numtyp)24.0 + dampi5/(numtyp)144.0)*expi;
+    dmpik[6] = (numtyp)1.0 - ((numtyp)1.0 + dampi + (numtyp)0.5*dampi2 + dampi3/(numtyp)6.0 + 
+                      dampi4/(numtyp)24.0 + dampi5/(numtyp)120.0 + dampi6/(numtyp)720.0)*expi;
+    dmpik[8] = (numtyp)1.0 - ((numtyp)1.0 + dampi + (numtyp)0.5*dampi2 + dampi3/(numtyp)6.0 + 
+                      dampi4/(numtyp)24.0 + dampi5/(numtyp)120.0 + dampi6/(numtyp)720.0 + 
+                      dampi7/(numtyp)5040.0)*expi;
     if (rorder >= 11) {
       dampi8 = dampi4 * dampi4;
-      dmpik[10] = 1.0 - (1.0 + dampi + 0.5*dampi2 + dampi3/6.0 + 
-                         dampi4/24.0 + dampi5/120.0 + dampi6/720.0 + 
-                         dampi7/5040.0 + dampi8/45360.0)*expi;
+      dmpik[10] = (numtyp)1.0 - ((numtyp)1.0 + dampi + (numtyp)0.5*dampi2 + dampi3/(numtyp)6.0 +
+                         dampi4/(numtyp)24.0 + dampi5/(numtyp)120.0 + dampi6/(numtyp)720.0 + 
+                         dampi7/(numtyp)5040.0 + dampi8/(numtyp)45360.0)*expi;
     }
 
   } else {
@@ -281,29 +282,29 @@ ucl_inline void damppole(const numtyp r, const int rorder,
     termk = alphai2 / (alphai2-alphak2);
     termi2 = termi * termi;
     termk2 = termk * termk;
-    dmpik[0] = 1.0 - termi2*(1.0 + 2.0*termk + 0.5*dampi)*expi - 
-      termk2*(1.0 + 2.0*termi + 0.5*dampk)*expk;
-    dmpik[2] = 1.0 - termi2*(1.0+dampi+0.5*dampi2)*expi -
-      termk2*(1.0+dampk+0.5*dampk2)*expk -
-      2.0*termi2*termk*(1.0+dampi)*expi -
-      2.0*termk2*termi*(1.0+dampk)*expk;
-    dmpik[4] = 1.0 - termi2*(1.0 + dampi + 0.5*dampi2 + dampi3/6.0)*expi - 
-      termk2*(1.0 + dampk + 0.5*dampk2 + dampk3/6.0)*expk - 
-      2.0*termi2*termk*(1.0 + dampi + dampi2/3.0)*expi - 
-      2.0*termk2*termi*(1.0 + dampk + dampk2/3.0)*expk;
-    dmpik[6] = 1.0 - termi2*(1.0 + dampi + 0.5*dampi2 + 
-                             dampi3/6.0 + dampi4/30.0)*expi - 
-      termk2*(1.0 + dampk + 0.5*dampk2 + dampk3/6.0 + dampk4/30.0)*expk - 
-      2.0*termi2*termk*(1.0 + dampi + 2.0*dampi2/5.0 + dampi3/15.0)*expi - 
-      2.0*termk2*termi*(1.0 + dampk + 2.0*dampk2/5.0 + dampk3/15.0)*expk;
-    dmpik[8] = 1.0 - termi2*(1.0 + dampi + 0.5*dampi2 + dampi3/6.0 + 
-                             4.0*dampi4/105.0 + dampi5/210.0)*expi - 
-      termk2*(1.0 + dampk + 0.5*dampk2 + dampk3/6.0 + 
-              4.0*dampk4/105.0 + dampk5/210.0)*expk - 
-      2.0*termi2*termk*(1.0 + dampi + 3.0*dampi2/7.0 + 
-                        2.0*dampi3/21.0 + dampi4/105.0)*expi - 
-      2.0*termk2*termi*(1.0 + dampk + 3.0*dampk2/7.0 + 
-                        2.0*dampk3/21.0 + dampk4/105.0)*expk;
+    dmpik[0] = (numtyp)1.0 - termi2*(1.0 + (numtyp)2.0*termk + (numtyp)0.5*dampi)*expi - 
+      termk2*((numtyp)1.0 + (numtyp)2.0*termi + (numtyp)0.5*dampk)*expk;
+    dmpik[2] = (numtyp)1.0 - termi2*((numtyp)1.0+dampi+(numtyp)0.5*dampi2)*expi -
+      termk2*((numtyp)1.0+dampk+(numtyp)0.5*dampk2)*expk -
+      (numtyp)2.0*termi2*termk*((numtyp)1.0+dampi)*expi -
+      (numtyp)2.0*termk2*termi*((numtyp)1.0+dampk)*expk;
+    dmpik[4] = (numtyp)1.0 - termi2*((numtyp)1.0 + dampi + (numtyp)0.5*dampi2 + dampi3/(numtyp)6.0)*expi - 
+      termk2*(1.0 + dampk + (numtyp)0.5*dampk2 + dampk3/(numtyp)6.0)*expk - 
+      (numtyp)2.0*termi2*termk*((numtyp)1.0 + dampi + dampi2/(numtyp)3.0)*expi - 
+      (numtyp)2.0*termk2*termi*((numtyp)1.0 + dampk + dampk2/(numtyp)3.0)*expk;
+    dmpik[6] = (numtyp)1.0 - termi2*((numtyp)1.0 + dampi + (numtyp)0.5*dampi2 + 
+                             dampi3/(numtyp)6.0 + dampi4/(numtyp)30.0)*expi - 
+      termk2*((numtyp)1.0 + dampk + 0.5*dampk2 + dampk3/(numtyp)6.0 + dampk4/(numtyp)30.0)*expk - 
+      (numtyp)2.0*termi2*termk*((numtyp)1.0 + dampi + (numtyp)2.0*dampi2/(numtyp)5.0 + dampi3/(numtyp)15.0)*expi - 
+      (numtyp)2.0*termk2*termi*((numtyp)1.0 + dampk + (numtyp)2.0*dampk2/(numtyp)5.0 + dampk3/(numtyp)15.0)*expk;
+    dmpik[8] = (numtyp)1.0 - termi2*((numtyp)1.0 + dampi + (numtyp)0.5*dampi2 + dampi3/(numtyp)6.0 + 
+                             (numtyp)4.0*dampi4/(numtyp)105.0 + dampi5/(numtyp)210.0)*expi - 
+      termk2*((numtyp)1.0 + dampk + (numtyp)0.5*dampk2 + dampk3/(numtyp)6.0 + 
+              (numtyp)4.0*dampk4/105.0 + dampk5/(numtyp)210.0)*expk - 
+      (numtyp)2.0*termi2*termk*((numtyp)1.0 + dampi + (numtyp)3.0*dampi2/(numtyp)7.0 + 
+                        (numtyp)2.0*dampi3/(numtyp)21.0 + dampi4/(numtyp)105.0)*expi - 
+      (numtyp)2.0*termk2*termi*((numtyp)1.0 + dampk + (numtyp)3.0*dampk2/(numtyp)7.0 + 
+                        (numtyp)2.0*dampk3/(numtyp)21.0 + dampk4/(numtyp)105.0)*expk;
     
     if (rorder >= 11) {
       dampi6 = dampi3 * dampi3;
@@ -311,12 +312,12 @@ ucl_inline void damppole(const numtyp r, const int rorder,
       dmpik[10] = (numtyp)1.0 - termi2*((numtyp)1.0 + dampi + (numtyp)0.5*dampi2 + dampi3/(numtyp)6.0 + 
                                 (numtyp)5.0*dampi4/(numtyp)126.0 + (numtyp)2.0*dampi5/(numtyp)315.0 + 
                                 dampi6/(numtyp)1890.0)*expi - 
-        termk2*((numtyp)1.0 + dampk + 0.5*dampk2 + dampk3/(numtyp)6.0 + 5.0*dampk4/(numtyp)126.0 + 
+        termk2*((numtyp)1.0 + dampk + (numtyp)0.5*dampk2 + dampk3/(numtyp)6.0 + (numtyp)5.0*dampk4/(numtyp)126.0 + 
                 (numtyp)2.0*dampk5/(numtyp)315.0 + dampk6/(numtyp)1890.0)*expk - 
         (numtyp)2.0*termi2*termk*((numtyp)1.0 + dampi + (numtyp)4.0*dampi2/(numtyp)9.0 + dampi3/(numtyp)9.0 + 
-                          dampi4/63.0 + dampi5/(numtyp)945.0)*expi - 
-        (numtyp)2.0*termk2*termi*(1.0 + dampk + 4.0*dampk2/(numtyp)9.0 + dampk3/(numtyp)9.0 + 
-                          dampk4/63.0 + dampk5/(numtyp)945.0)*expk;
+                          dampi4/(numtyp)63.0 + dampi5/(numtyp)945.0)*expi - 
+        (numtyp)2.0*termk2*termi*((numtyp)1.0 + dampk + 4.0*dampk2/(numtyp)9.0 + dampk3/(numtyp)9.0 + 
+                          dampk4/(numtyp)63.0 + dampk5/(numtyp)945.0)*expk;
     }
   }
 }

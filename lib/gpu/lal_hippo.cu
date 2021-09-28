@@ -1032,7 +1032,6 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
       numtyp alphak = coeff_amclass[jtype].w; // palpha[jclass];
       numtyp valk = polar6[j].x;
 
-      if (i == 0 && j < 10) printf("j = %d: r = %f; factor_mpole = %f\n", j, r, factor_mpole);
       // intermediates involving moments and separation distance
 
       numtyp dir = dix*xr + diy*yr + diz*zr;
@@ -2166,7 +2165,6 @@ __kernel void k_special15(__global int * dev_nbor,
       int which = sj >> SBBITS & 3;
       int j = sj & NEIGHMASK;
       tagint jtag = tag[j];
-      if (i == 0 && j < 20) printf("GPU: j = %d; jtag = %d\n", j, jtag);
       if (!which) {
         int offset=ii;
         for (int k=0; k<n15; k++) {

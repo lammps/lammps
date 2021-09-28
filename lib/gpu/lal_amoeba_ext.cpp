@@ -116,24 +116,7 @@ int amoeba_gpu_init(const int ntypes, const int max_amtype, const int max_amclas
 void amoeba_gpu_clear() {
   AMOEBAMF.clear();
 }
-/*
-int** amoeba_gpu_compute_dispersion_real(const int ago, const int inum_full,
-                           const int nall, double **host_x, int *host_type,
-                           int *host_amtype, int *host_amgroup, double **host_rpole,
-                           double *sublo, double *subhi, tagint *tag, int **nspecial,
-                           tagint **special, int *nspecial15, tagint** special15,
-                           const bool eflag, const bool vflag, const bool eatom,
-                           const bool vatom, int &host_start,
-                           int **ilist, int **jnum, const double cpu_time,
-                           bool &success, const double aewald, const double off2,
-                           double *host_q, double *boxlo, double *prd) {
-  return AMOEBAMF.compute_dispersion_real(ago, inum_full, nall, host_x, host_type,
-                          host_amtype, host_amgroup, host_rpole, sublo, subhi,
-                          tag, nspecial, special, nspecial15, special15,
-                          eflag, vflag, eatom, vatom, host_start, ilist, jnum,
-                          cpu_time, success, aewald, off2, host_q, boxlo, prd);
-}
-*/
+
 int** amoeba_gpu_compute_multipole_real(const int ago, const int inum_full,
                            const int nall, double **host_x, int *host_type,
                            int *host_amtype, int *host_amgroup, double **host_rpole,
@@ -145,7 +128,7 @@ int** amoeba_gpu_compute_multipole_real(const int ago, const int inum_full,
                            bool &success, const double aewald, const double felec, const double off2,
                            double *host_q, double *boxlo, double *prd, void **tep_ptr) {
   return AMOEBAMF.compute_multipole_real(ago, inum_full, nall, host_x, host_type,
-                          host_amtype, host_amgroup, host_rpole, sublo, subhi,
+                          host_amtype, host_amgroup, host_rpole, nullptr, sublo, subhi,
                           tag, nspecial, special, nspecial15, special15,
                           eflag, vflag, eatom, vatom, host_start, ilist, jnum,
                           cpu_time, success, aewald, felec, off2, host_q, boxlo, prd, tep_ptr);
@@ -163,7 +146,7 @@ int** amoeba_gpu_compute_udirect2b(const int ago, const int inum_full,
                            bool &success,  const double aewald, const double off2, double *host_q,
                            double *boxlo, double *prd, void **fieldp_ptr) {
   return AMOEBAMF.compute_udirect2b(ago, inum_full, nall, host_x, host_type,
-                          host_amtype, host_amgroup, host_rpole, host_uind, host_uinp,
+                          host_amtype, host_amgroup, host_rpole, host_uind, host_uinp, nullptr,
                           sublo, subhi, tag, nspecial, special, nspecial15, special15,
                           eflag, vflag, eatom, vatom, host_start, ilist, jnum,
                           cpu_time, success, aewald, off2, host_q, boxlo, prd, fieldp_ptr);
@@ -181,7 +164,7 @@ int** amoeba_gpu_compute_umutual2b(const int ago, const int inum_full,
                            bool &success, const double aewald, const double off2, double *host_q,
                            double *boxlo, double *prd, void **fieldp_ptr) {
   return AMOEBAMF.compute_umutual2b(ago, inum_full, nall, host_x, host_type,
-                          host_amtype, host_amgroup, host_rpole, host_uind, host_uinp,
+                          host_amtype, host_amgroup, host_rpole, host_uind, host_uinp, nullptr,
                           sublo, subhi, tag, nspecial, special, nspecial15, special15,
                           eflag, vflag, eatom, vatom, host_start, ilist, jnum,
                           cpu_time, success, aewald, off2, host_q, boxlo, prd, fieldp_ptr);
@@ -199,7 +182,7 @@ int** amoeba_gpu_compute_polar_real(const int ago, const int inum_full,
                            bool &success, const double aewald, const double felec, const double off2,
                            double *host_q, double *boxlo, double *prd, void **tep_ptr) {
   return AMOEBAMF.compute_polar_real(ago, inum_full, nall, host_x, host_type,
-                          host_amtype, host_amgroup, host_rpole, host_uind, host_uinp,
+                          host_amtype, host_amgroup, host_rpole, host_uind, host_uinp, nullptr,
                           sublo, subhi, tag, nspecial, special, nspecial15, special15,
                           eflag, vflag, eatom, vatom, host_start, ilist, jnum,
                           cpu_time, success, aewald, felec, off2, host_q, boxlo, prd, tep_ptr);

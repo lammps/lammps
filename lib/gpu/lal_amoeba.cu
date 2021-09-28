@@ -1064,7 +1064,7 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
       bcn[0] = bn[1] - ((numtyp)1.0-scalek*scale3)*rr3;
       bcn[1] = bn[2] - ((numtyp)1.0-scalek*scale5)*rr5;
 
-      numtyp tdipdip[6]; // the following tdipdip is incorrect!! needs work to store tdipdip
+      numtyp tdipdip[6];
       tdipdip[0] = -bcn[0] + bcn[1]*xr*xr;
       tdipdip[1] = bcn[1]*xr*yr;
       tdipdip[2] = bcn[1]*xr*zr;
@@ -1233,10 +1233,10 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
       numtyp r = ucl_sqrt(r2);
       
       const numtyp4 pol1j = polar1[j];
-      numtyp ck = polar1[j].x;   // rpole[j][0];
-      numtyp dkx = polar1[j].y;  // rpole[j][1];
-      numtyp dky = polar1[j].z;  // rpole[j][2];
-      numtyp dkz = polar1[j].w;  // rpole[j][3];
+      numtyp ck = pol1j.x;   // rpole[j][0];
+      numtyp dkx = pol1j.y;  // rpole[j][1];
+      numtyp dky = pol1j.z;  // rpole[j][2];
+      numtyp dkz = pol1j.w;  // rpole[j][3];
       const numtyp4 pol2j = polar2[j];
       numtyp qkxx = pol2j.x; // rpole[j][4];
       numtyp qkxy = pol2j.y; // rpole[j][5];

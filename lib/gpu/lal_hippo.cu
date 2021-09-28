@@ -16,7 +16,6 @@
 #if defined(NV_KERNEL) || defined(USE_HIP)
 #include <stdio.h>
 #include "lal_hippo_extra.h"
-//#include "lal_aux_fun1.h"
 #ifdef LAMMPS_SMALLBIG
 #define tagint int
 #endif
@@ -985,10 +984,10 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
     numtyp qiyz = pol3i.x;   // rpole[i][9];
     numtyp qizz = pol3i.y;   // rpole[i][12];
     itype  = pol3i.z;        // amtype[i];
-    iclass = coeff_amtype[itype].w;  // amtype2class[itype];
 
-    numtyp corei = coeff_amclass[itype].z;  // pcore[iclass];
-    numtyp alphai = coeff_amclass[itype].w; // palpha[iclass];
+    iclass = coeff_amtype[itype].w;  // amtype2class[itype];
+    numtyp corei = coeff_amclass[iclass].z;  // pcore[iclass];
+    numtyp alphai = coeff_amclass[iclass].w; // palpha[iclass];
     numtyp vali = polar6[i].x;
 
     for ( ; nbor<nbor_end; nbor+=n_stride) {
@@ -1028,8 +1027,8 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
       const numtyp4 sp_pol = sp_polar[sbmask15(jextra)];
       numtyp factor_mpole = sp_pol.w; // sp_mpole[sbmask15(jextra)];
 
-      numtyp corek = coeff_amclass[jtype].z;  // pcore[jclass];
-      numtyp alphak = coeff_amclass[jtype].w; // palpha[jclass];
+      numtyp corek = coeff_amclass[jclass].z;  // pcore[jclass];
+      numtyp alphak = coeff_amclass[jclass].w; // palpha[jclass];
       numtyp valk = polar6[j].x;
 
       // intermediates involving moments and separation distance
@@ -1249,10 +1248,11 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
 ------------------------------------------------------------------------- */
 
 __kernel void k_hippo_udirect2b(const __global numtyp4 *restrict x_,
-                                 const __global numtyp *restrict extra,
-                                 const __global numtyp4 *restrict coeff,
-                                 const __global numtyp4 *restrict sp_polar,
-                                 const __global int *dev_nbor,
+                                const __global numtyp *restrict extra,
+                                const __global numtyp4 *restrict coeff_amtype,
+                                const __global numtyp4 *restrict coeff_amclass,
+                                const __global numtyp4 *restrict sp_polar,
+                                const __global int *dev_nbor,
                                  const __global int *dev_packed,
                                  const __global int *dev_short_nbor,
                                  __global acctyp4 *restrict fieldp,
@@ -1273,6 +1273,7 @@ __kernel void k_hippo_udirect2b(const __global numtyp4 *restrict x_,
   numtyp4* polar1 = (numtyp4*)(&extra[0]);
   numtyp4* polar2 = (numtyp4*)(&extra[4*nall]);
   numtyp4* polar3 = (numtyp4*)(&extra[8*nall]);
+  numtyp4* polar6 = (numtyp4*)(&extra[20*nall]);
 
   if (ii<inum) {
     int numj, nbor, nbor_end;
@@ -1309,13 +1310,11 @@ __kernel void k_hippo_udirect2b(const __global numtyp4 *restrict x_,
     numtyp qizz = pol3i.y;   // rpole[i][12];
     int itype  = pol3i.z;    // amtype[i];
     int igroup = pol3i.w;    // amgroup[i];
-    
-    // debug:
-    // xi__ = ix; xi__.w = itype;
+    int iclass = coeff_amtype[itype].w;  // amtype2class[itype];
 
-    numtyp pdi = coeff[itype].x;
-    numtyp pti = coeff[itype].y;
-    numtyp ddi = coeff[itype].z;
+    numtyp corei = coeff_amclass[iclass].z;  // pcore[iclass];
+    numtyp alphai = coeff_amclass[iclass].w; // palpha[iclass];
+    numtyp vali = polar6[i].x;
 
     numtyp aesq2 = (numtyp)2.0 * aewald*aewald;
     numtyp aesq2n = (numtyp)0.0;
@@ -1360,15 +1359,21 @@ __kernel void k_hippo_udirect2b(const __global numtyp4 *restrict x_,
       numtyp qkzz = pol3j.y; // rpole[j][12];
       int jtype = pol3j.z; // amtype[j];
       int jgroup =  pol3j.w; // amgroup[j];
+      int jclass = coeff_amtype[jtype].w;  // amtype2class[jtype];
 
-      numtyp factor_dscale, factor_pscale;
+      numtyp corek = coeff_amclass[jclass].z;  // pcore[jclass];
+      numtyp alphak = coeff_amclass[jclass].w; // palpha[jclass];
+      numtyp valk = polar6[j].x;
+
+      numtyp factor_wscale, factor_dscale, factor_pscale, factor_uscale;
       const numtyp4 sp_pol = sp_polar[sbmask15(jextra)];
+      factor_wscale = sp_pol.x; // special_polar_wscale[sbmask15(jextra)];
       if (igroup == jgroup) {
-        factor_pscale = sp_pol.y; // sp_polar_piscale[sbmask15(jextra)];
-        factor_dscale = polar_dscale;
+        factor_dscale = factor_pscale = sp_pol.y; // special_polar_piscale[sbmask15(jextra)];
+        factor_uscale = polar_uscale;
       } else {
-        factor_pscale = sp_pol.z; // sp_polar_pscale[sbmask15(jextra)];
-        factor_dscale = (numtyp)1.0;
+        factor_dscale = factor_pscale = sp_pol.z; // special_polar_pscale[sbmask15(jextra)];
+        factor_uscale = (numtyp)1.0;
       }
 
       // intermediates involving moments and separation distance
@@ -1400,50 +1405,42 @@ __kernel void k_hippo_udirect2b(const __global numtyp4 *restrict x_,
         bn[m] = (bfac*bn[m-1]+aefac*exp2a) * r2inv;
       }
 
-      // find the field components for Thole polarization damping
-
-      numtyp scale3 = (numtyp)1.0;
-      numtyp scale5 = (numtyp)1.0;
-      numtyp scale7 = (numtyp)1.0;
-      numtyp damp = pdi * coeff[jtype].x; // pdamp[jtype]
-      if (damp != (numtyp)0.0) {
-        numtyp pgamma = MIN(ddi,coeff[jtype].z); // dirdamp[jtype]
-        if (pgamma != (numtyp)0.0) {
-          damp = pgamma * ucl_powr(r/damp,(numtyp)1.5);
-          if (damp < (numtyp)50.0) {
-            numtyp expdamp = ucl_exp(-damp) ;
-            scale3 = (numtyp)1.0 - expdamp ;
-            scale5 = (numtyp)1.0 - expdamp*((numtyp)1.0+(numtyp)0.5*damp);
-            scale7 = (numtyp)1.0 - expdamp*((numtyp)1.0+(numtyp)0.65*damp + (numtyp)0.15*damp*damp);
-          }
-        } else {
-          pgamma = MIN(pti,coeff[jtype].y); // thole[jtype]
-          damp = pgamma * ucl_powr(r/damp,(numtyp)3.0);
-          if (damp < (numtyp)50.0) {
-            numtyp expdamp = ucl_exp(-damp);
-            scale3 = (numtyp)1.0 - expdamp;
-            scale5 = (numtyp)1.0 - expdamp*((numtyp)1.0+damp);
-            scale7 = (numtyp)1.0 - expdamp*((numtyp)1.0+damp + (numtyp)0.6*damp*damp);
-          }
-        }
-      } else { // damp == 0: ???
-      }
-
+      // find the field components for charge penetration damping
+      numtyp dmpi[7],dmpk[7];
+      dampdir(r,alphai,alphak,dmpi,dmpk);
+          
       numtyp scalek = factor_dscale;
-      bcn[0] = bn[1] - ((numtyp)1.0-scalek*scale3)*rr3;
-      bcn[1] = bn[2] - ((numtyp)1.0-scalek*scale5)*rr5;
-      bcn[2] = bn[3] - ((numtyp)1.0-scalek*scale7)*rr7;
-      fid[0] = -xr*(bcn[0]*ck-bcn[1]*dkr+bcn[2]*qkr) - bcn[0]*dkx + (numtyp)2.0*bcn[1]*qkx;
-      fid[1] = -yr*(bcn[0]*ck-bcn[1]*dkr+bcn[2]*qkr) - bcn[0]*dky + (numtyp)2.0*bcn[1]*qky;
-      fid[2] = -zr*(bcn[0]*ck-bcn[1]*dkr+bcn[2]*qkr) - bcn[0]*dkz + (numtyp)2.0*bcn[1]*qkz;
-        
+      numtyp rr3i = bn[1] - ((numtyp)1.0-scalek*dmpi[2])*rr3;
+      numtyp rr5i = bn[2] - ((numtyp)1.0-scalek*dmpi[4])*rr5;
+      numtyp rr7i = bn[3] - ((numtyp)1.0-scalek*dmpi[6])*rr7;
+      numtyp rr3k = bn[1] - ((numtyp)1.0-scalek*dmpk[2])*rr3;
+      numtyp rr5k = bn[2] - ((numtyp)1.0-scalek*dmpk[4])*rr5;
+      numtyp rr7k = bn[3] - ((numtyp)1.0-scalek*dmpk[6])*rr7;
+      rr3 = bn[1] - ((numtyp)1.0-scalek)*rr3;
+      fid[0] = -xr*(rr3*corek + rr3k*valk - rr5k*dkr + rr7k*qkr) -
+        rr3k*dkx + (numtyp)2.0*rr5k*qkx;
+      fid[1] = -yr*(rr3*corek + rr3k*valk - rr5k*dkr + rr7k*qkr) -
+        rr3k*dky + (numtyp)2.0*rr5k*qky;
+      fid[2] = -zr*(rr3*corek + rr3k*valk - rr5k*dkr + rr7k*qkr) -
+        rr3k*dkz + (numtyp)2.0*rr5k*qkz;
+
       scalek = factor_pscale;
-      bcn[0] = bn[1] - ((numtyp)1.0-scalek*scale3)*rr3;
-      bcn[1] = bn[2] - ((numtyp)1.0-scalek*scale5)*rr5;
-      bcn[2] = bn[3] - ((numtyp)1.0-scalek*scale7)*rr7;
-      fip[0] = -xr*(bcn[0]*ck-bcn[1]*dkr+bcn[2]*qkr) - bcn[0]*dkx + (numtyp)2.0*bcn[1]*qkx;
-      fip[1] = -yr*(bcn[0]*ck-bcn[1]*dkr+bcn[2]*qkr) - bcn[0]*dky + (numtyp)2.0*bcn[1]*qky;
-      fip[2] = -zr*(bcn[0]*ck-bcn[1]*dkr+bcn[2]*qkr) - bcn[0]*dkz + (numtyp)2.0*bcn[1]*qkz;
+      rr3 = r2inv * rr1;
+      rr3i = bn[1] - ((numtyp)1.0-scalek*dmpi[2])*rr3;
+      rr5i = bn[2] - ((numtyp)1.0-scalek*dmpi[4])*rr5;
+      rr7i = bn[3] - ((numtyp)1.0-scalek*dmpi[6])*rr7;
+      rr3k = bn[1] - ((numtyp)1.0-scalek*dmpk[2])*rr3;
+      rr5k = bn[2] - ((numtyp)1.0-scalek*dmpk[4])*rr5;
+      rr7k = bn[3] - ((numtyp)1.0-scalek*dmpk[6])*rr7;
+      rr3 = bn[1] - ((numtyp)1.0-scalek)*rr3;
+      fip[0] = -xr*(rr3*corek + rr3k*valk - rr5k*dkr + rr7k*qkr) -
+        rr3k*dkx + (numtyp)2.0*rr5k*qkx;
+      fip[1] = -yr*(rr3*corek + rr3k*valk - rr5k*dkr + rr7k*qkr) -
+        rr3k*dky + (numtyp)2.0*rr5k*qky;
+      fip[2] = -zr*(rr3*corek + rr3k*valk - rr5k*dkr + rr7k*qkr) -
+        rr3k*dkz + (numtyp)2.0*rr5k*qkz;
+          
+      // find terms needed later to compute mutual polarization
 
       _fieldp[0] += fid[0];
       _fieldp[1] += fid[1];
@@ -1467,17 +1464,18 @@ __kernel void k_hippo_udirect2b(const __global numtyp4 *restrict x_,
 ------------------------------------------------------------------------- */
 
 __kernel void k_hippo_umutual2b(const __global numtyp4 *restrict x_,
-                                 const __global numtyp *restrict extra,
-                                 const __global numtyp4 *restrict coeff,
-                                 const __global numtyp4 *restrict sp_polar,
-                                 const __global int *dev_nbor,
-                                 const __global int *dev_packed,
-                                 const __global int *dev_short_nbor,
-                                 __global acctyp4 *restrict fieldp,
-                                 const int inum,  const int nall,
-                                 const int nbor_pitch, const int t_per_atom,
-                                 const numtyp aewald, const numtyp off2,
-                                 const numtyp polar_dscale, const numtyp polar_uscale)
+                                const __global numtyp *restrict extra,
+                                const __global numtyp4 *restrict coeff_amtype,
+                                const __global numtyp4 *restrict coeff_amclass,
+                                const __global numtyp4 *restrict sp_polar,
+                                const __global int *dev_nbor,
+                                const __global int *dev_packed,
+                                const __global int *dev_short_nbor,
+                                __global acctyp4 *restrict fieldp,
+                                const int inum,  const int nall,
+                                const int nbor_pitch, const int t_per_atom,
+                                const numtyp aewald, const numtyp off2,
+                                const numtyp polar_dscale, const numtyp polar_uscale)
 {
   int tid, ii, offset, i;
   atom_info(t_per_atom,ii,tid,offset);
@@ -1491,6 +1489,7 @@ __kernel void k_hippo_umutual2b(const __global numtyp4 *restrict x_,
   numtyp4* polar3 = (numtyp4*)(&extra[8*nall]);
   numtyp4* polar4 = (numtyp4*)(&extra[12*nall]);
   numtyp4* polar5 = (numtyp4*)(&extra[16*nall]);
+  numtyp4* polar6 = (numtyp4*)(&extra[20*nall]);
 
   //numtyp4 xi__;
 
@@ -1518,9 +1517,11 @@ __kernel void k_hippo_umutual2b(const __global numtyp4 *restrict x_,
     
     itype  = polar3[i].z; // amtype[i];
     igroup = polar3[i].w; // amgroup[i];
-    
-    numtyp pdi = coeff[itype].x;
-    numtyp pti = coeff[itype].y;
+
+    int iclass = coeff_amtype[itype].w;  // amtype2class[itype];
+    numtyp corei = coeff_amclass[iclass].z;  // pcore[iclass];
+    numtyp alphai = coeff_amclass[iclass].w; // palpha[iclass];
+    numtyp vali = polar6[i].x;
 
     numtyp aesq2 = (numtyp)2.0 * aewald*aewald;
     numtyp aesq2n = (numtyp)0.0;
@@ -1561,9 +1562,21 @@ __kernel void k_hippo_umutual2b(const __global numtyp4 *restrict x_,
       numtyp ukyp = pol5j.y; // uinp[j][1];
       numtyp ukzp = pol5j.z; // uinp[j][2];
 
-      numtyp factor_uscale;
-      if (igroup == jgroup) factor_uscale = polar_uscale;
-      else factor_uscale = (numtyp)1.0;
+      int jclass = coeff_amtype[jtype].w;  // amtype2class[jtype];
+      numtyp corek = coeff_amclass[jclass].z;  // pcore[jclass];
+      numtyp alphak = coeff_amclass[jclass].w; // palpha[jclass];
+      numtyp valk = polar6[j].x;
+
+      numtyp factor_wscale, factor_dscale, factor_pscale, factor_uscale;
+      const numtyp4 sp_pol = sp_polar[sbmask15(jextra)];
+      factor_wscale = sp_pol.x; // special_polar_wscale[sbmask15(jextra)];
+      if (igroup == jgroup) {
+        factor_dscale = factor_pscale = sp_pol.y; // special_polar_piscale[sbmask15(jextra)];
+        factor_uscale = polar_uscale;
+      } else {
+        factor_dscale = factor_pscale = sp_pol.z; // special_polar_pscale[sbmask15(jextra)];
+        factor_uscale = (numtyp)1.0;
+      }
 
       // calculate the real space Ewald error function terms
 
@@ -1583,32 +1596,20 @@ __kernel void k_hippo_umutual2b(const __global numtyp4 *restrict x_,
 
       // find terms needed later to compute mutual polarization
       // if (poltyp != DIRECT) 
-      numtyp scale3 = (numtyp)1.0;
-      numtyp scale5 = (numtyp)1.0;
-      numtyp damp = pdi * coeff[jtype].x; // pdamp[jtype]
-      if (damp != (numtyp)0.0) {
-        numtyp pgamma = MIN(pti,coeff[jtype].y); // thole[jtype]
-        damp = pgamma * ucl_powr(r/damp,(numtyp)3.0);
-        if (damp < (numtyp)50.0) {
-          numtyp expdamp = ucl_exp(-damp);
-          scale3 = (numtyp)1.0 - expdamp;
-          scale5 = (numtyp)1.0 - expdamp*((numtyp)1.0+damp);
-        }
-        
-      } else { // damp == 0: ???
-      }
+      numtyp dmpik[5];
+      dampmut(r,alphai,alphak,dmpik);
+      numtyp scalek = factor_wscale;
+      rr3 = r2inv * rr1;
+      numtyp rr3ik = bn[1] - ((numtyp)1.0-scalek*dmpik[2])*rr3;
+      numtyp rr5ik = bn[2] - ((numtyp)1.0-scalek*dmpik[4])*rr5;
 
-      numtyp scalek = factor_uscale;
-      bcn[0] = bn[1] - ((numtyp)1.0-scalek*scale3)*rr3;
-      bcn[1] = bn[2] - ((numtyp)1.0-scalek*scale5)*rr5;
-
-      numtyp tdipdip[6]; // the following tdipdip is incorrect!! needs work to store tdipdip
-      tdipdip[0] = -bcn[0] + bcn[1]*xr*xr;
-      tdipdip[1] = bcn[1]*xr*yr;
-      tdipdip[2] = bcn[1]*xr*zr;
-      tdipdip[3] = -bcn[0] + bcn[1]*yr*yr;
-      tdipdip[4] = bcn[1]*yr*zr;
-      tdipdip[5] = -bcn[0] + bcn[1]*zr*zr;
+      numtyp tdipdip[6];
+      tdipdip[0] = -rr3ik + rr5ik*xr*xr;
+      tdipdip[1] = rr5ik*xr*yr;
+      tdipdip[2] = rr5ik*xr*zr;
+      tdipdip[3] = -rr3ik + rr5ik*yr*yr;
+      tdipdip[4] = rr5ik*yr*zr;
+      tdipdip[5] = -rr3ik + rr5ik*zr*zr;
       //if (i==0 && j == 10) 
       //  printf("i = %d: j = %d: tdipdip %f %f %f %f %f %f\n",
       //    i, j,tdipdip[0],tdipdip[1],tdipdip[2],tdipdip[3],tdipdip[4],tdipdip[5]);

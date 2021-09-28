@@ -59,7 +59,7 @@ ucl_inline void damprep(const numtyp r, const numtyp r2, const numtyp rr1,
   // compute tolerance value for damping exponents
 
   eps = (numtyp)0.001;
-  diff = dmpi-dmpk; 
+  diff = dmpi-dmpk; // fabs(dmpi-dmpk)
   if (diff < (numtyp)0) diff = -diff;
 
   // treat the case where alpha damping exponents are equal
@@ -322,6 +322,109 @@ ucl_inline void damppole(const numtyp r, const int rorder,
   }
 }
 
+/* ----------------------------------------------------------------------
+   dampdir = direct field damping coefficents
+   dampdir generates coefficients for the direct field damping
+   function for powers of the interatomic distance
+------------------------------------------------------------------------- */
 
+ucl_inline void dampdir(numtyp r, numtyp alphai, numtyp alphak, numtyp *dmpi, numtyp *dmpk)
+{
+  numtyp eps,diff;
+  numtyp expi,expk;
+  numtyp dampi,dampk;
+  numtyp dampi2,dampk2;
+  numtyp dampi3,dampk3;
+  numtyp dampi4,dampk4;
+
+  // compute tolerance and exponential damping factors
+
+  eps = (numtyp)0.001;
+  diff = alphai-alphak; // fabs(alphai-alphak);
+  if (diff < (numtyp)0) diff = -diff;
+  dampi = alphai * r;
+  dampk = alphak * r;
+  expi = ucl_exp(-dampi);
+  expk = ucl_exp(-dampk);
+
+  // core-valence charge penetration damping for Gordon f1 (HIPPO)
+
+  dampi2 = dampi * dampi;
+  dampi3 = dampi * dampi2;
+  dampi4 = dampi2 * dampi2;
+  dmpi[2] = (numtyp)1.0 - ((numtyp)1.0 + dampi + (numtyp)0.5*dampi2)*expi;
+  dmpi[4] = (numtyp)1.0 - ((numtyp)1.0 + dampi + (numtyp)0.5*dampi2 + dampi3/(numtyp)6.0)*expi;
+  dmpi[6] = (numtyp)1.0 - ((numtyp)1.0 + dampi + (numtyp)0.5*dampi2 + dampi3/(numtyp)6.0 + dampi4/(numtyp)30.0)*expi;
+  if (diff < eps) {
+    dmpk[2] = dmpi[2];
+    dmpk[4] = dmpi[4];
+    dmpk[6] = dmpi[6];
+  } else {
+    dampk2 = dampk * dampk;
+    dampk3 = dampk * dampk2;
+    dampk4 = dampk2 * dampk2;
+    dmpk[2] = (numtyp)1.0 - ((numtyp)1.0 + dampk + (numtyp)0.5*dampk2)*expk;
+    dmpk[4] = (numtyp)1.0 - ((numtyp)1.0 + dampk + (numtyp)0.5*dampk2 + dampk3/(numtyp)6.0)*expk;
+    dmpk[6] = (numtyp)1.0 - ((numtyp)1.0 + dampk + (numtyp)0.5*dampk2 + dampk3/(numtyp)6.0 + dampk4/30.0)*expk;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   dampmut = mutual field damping coefficents
+   dampmut generates coefficients for the mutual field damping
+   function for powers of the interatomic distance
+------------------------------------------------------------------------- */
+
+ucl_inline void dampmut(numtyp r, numtyp alphai, numtyp alphak, numtyp dmpik[5])
+{
+  numtyp termi,termk;
+  numtyp termi2,termk2;
+  numtyp alphai2,alphak2;
+  numtyp eps,diff;
+  numtyp expi,expk;
+  numtyp dampi,dampk;
+  numtyp dampi2,dampi3;
+  numtyp dampi4,dampi5;
+  numtyp dampk2,dampk3;
+
+  // compute tolerance and exponential damping factors
+
+  eps = (numtyp)0.001;
+  diff = alphai-alphak; // fabs(alphai-alphak);
+  if (diff < (numtyp)0) diff = -diff;
+  dampi = alphai * r;
+  dampk = alphak * r;
+  expi = ucl_exp(-dampi);
+  expk = ucl_exp(-dampk);
+
+  // valence-valence charge penetration damping for Gordon f1 (HIPPO)
+
+  dampi2 = dampi * dampi;
+  dampi3 = dampi * dampi2;
+  if (diff < eps) {
+    dampi4 = dampi2 * dampi2;
+    dampi5 = dampi2 * dampi3;
+    dmpik[2] = 1.0 - (1.0 + dampi + 0.5*dampi2 + 
+                      7.0*dampi3/48.0 + dampi4/48.0)*expi;
+    dmpik[4] = 1.0 - (1.0 + dampi + 0.5*dampi2 + dampi3/6.0 + 
+                      dampi4/24.0 + dampi5/144.0)*expi;
+  } else {
+    dampk2 = dampk * dampk;
+    dampk3 = dampk * dampk2;
+    alphai2 = alphai * alphai;
+    alphak2 = alphak * alphak;
+    termi = alphak2 / (alphak2-alphai2);
+    termk = alphai2 / (alphai2-alphak2);
+    termi2 = termi * termi;
+    termk2 = termk * termk;
+    dmpik[2] = 1.0 - termi2*(1.0+dampi+0.5*dampi2)*expi - 
+      termk2*(1.0+dampk+0.5*dampk2)*expk - 
+      2.0*termi2*termk*(1.0+dampi)*expi - 2.0*termk2*termi*(1.0+dampk)*expk;
+    dmpik[4] = 1.0 - termi2*(1.0+dampi+0.5*dampi2 + dampi3/6.0)*expi - 
+      termk2*(1.0+dampk+0.5*dampk2 + dampk3/6.00)*expk - 
+      2.0*termi2*termk *(1.0+dampi+dampi2/3.0)*expi - 
+      2.0*termk2*termi *(1.0+dampk+dampk2/3.0)*expk;
+  }
+}
 
 #endif

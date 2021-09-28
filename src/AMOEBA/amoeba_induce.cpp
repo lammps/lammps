@@ -1900,7 +1900,7 @@ void PairAmoeba::dampmut(double r, double alphai, double alphak, double *dmpik)
 ------------------------------------------------------------------------- */
 
 void PairAmoeba::dampdir(double r, double alphai, double alphak, 
-                         double *dmpi, double *dmpk)
+                         double dmpi[7], double dmpk[7])
 {
   double eps,diff;
   double expi,expk;

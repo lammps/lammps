@@ -172,6 +172,7 @@ elseif(GPU_API STREQUAL "OPENCL")
     ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_tersoff.cu
     ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_tersoff_zbl.cu
     ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_tersoff_mod.cu
+    ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_hippo.cu
   )
 
   foreach(GPU_KERNEL ${GPU_LIB_CU})
@@ -188,6 +189,7 @@ elseif(GPU_API STREQUAL "OPENCL")
   GenerateOpenCLHeader(tersoff ${CMAKE_CURRENT_BINARY_DIR}/gpu/tersoff_cl.h ${OCL_COMMON_HEADERS} ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_tersoff_extra.h ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_tersoff.cu)
   GenerateOpenCLHeader(tersoff_zbl ${CMAKE_CURRENT_BINARY_DIR}/gpu/tersoff_zbl_cl.h ${OCL_COMMON_HEADERS} ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_tersoff_zbl_extra.h ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_tersoff_zbl.cu)
   GenerateOpenCLHeader(tersoff_mod ${CMAKE_CURRENT_BINARY_DIR}/gpu/tersoff_mod_cl.h ${OCL_COMMON_HEADERS} ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_tersoff_mod_extra.h ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_tersoff_mod.cu)
+  GenerateOpenCLHeader(hippo ${CMAKE_CURRENT_BINARY_DIR}/gpu/hippo_cl.h ${OCL_COMMON_HEADERS} ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_hippo_extra.h ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_hippo.cu)
 
   list(APPEND GPU_LIB_SOURCES
     ${CMAKE_CURRENT_BINARY_DIR}/gpu/gayberne_cl.h
@@ -197,6 +199,7 @@ elseif(GPU_API STREQUAL "OPENCL")
     ${CMAKE_CURRENT_BINARY_DIR}/gpu/tersoff_cl.h
     ${CMAKE_CURRENT_BINARY_DIR}/gpu/tersoff_zbl_cl.h
     ${CMAKE_CURRENT_BINARY_DIR}/gpu/tersoff_mod_cl.h
+    ${CMAKE_CURRENT_BINARY_DIR}/gpu/hippo_cl.h
   )
 
   add_library(gpu STATIC ${GPU_LIB_SOURCES})

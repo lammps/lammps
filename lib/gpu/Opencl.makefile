@@ -74,6 +74,9 @@ $(OBJ_DIR)/tersoff_mod_cl.h: lal_tersoff_mod.cu $(PRE1_H) lal_tersoff_mod_extra.
 $(OBJ_DIR)/tersoff_zbl_cl.h: lal_tersoff_zbl.cu $(PRE1_H) lal_tersoff_zbl_extra.h
 	$(BSH) ./geryon/file_to_cstr.sh tersoff_zbl $(PRE1_H) lal_tersoff_zbl_extra.h lal_tersoff_zbl.cu $(OBJ_DIR)/tersoff_zbl_cl.h;
 
+$(OBJ_DIR)/hippo_cl.h: lal_hippo.cu $(PRE1_H) lal_hippo_extra.h
+	$(BSH) ./geryon/file_to_cstr.sh hippo $(PRE1_H) lal_hippo_extra.h lal_hippo.cu $(OBJ_DIR)/hippo_cl.h;
+
 $(OBJ_DIR)/%_cl.h: lal_%.cu $(PRE1_H)
 	$(BSH) ./geryon/file_to_cstr.sh $* $(PRE1_H) $< $@;
 

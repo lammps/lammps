@@ -89,7 +89,7 @@ int ** hippo_gpu_compute_multipole_real(const int ago, const int inum, const int
 int ** hippo_gpu_compute_udirect2b(const int ago, const int inum, const int nall,
               double **host_x, int *host_type, int *host_amtype, int *host_amgroup,
               double **host_rpole, double **host_uind, double **host_uinp, 
-              double *sublo, double *subhi, tagint *tag, int **nspecial,
+              double *host_pval, double *sublo, double *subhi, tagint *tag, int **nspecial,
               tagint **special, int* nspecial15, tagint** special15,
               const bool eflag, const bool vflag, const bool eatom, const bool vatom,
               int &host_start, int **ilist, int **jnum, const double cpu_time,
@@ -98,7 +98,7 @@ int ** hippo_gpu_compute_udirect2b(const int ago, const int inum, const int nall
 
 int ** hippo_gpu_compute_umutual2b(const int ago, const int inum, const int nall,
               double **host_x, int *host_type, int *host_amtype, int *host_amgroup,
-              double **host_rpole, double **host_uind, double **host_uinp, 
+              double **host_rpole, double **host_uind, double **host_uinp, double *host_pval,
               double *sublo, double *subhi, tagint *tag, int **nspecial,
               tagint **special, int* nspecial15, tagint** special15,
               const bool eflag, const bool vflag, const bool eatom, const bool vatom,
@@ -136,8 +136,8 @@ PairHippoGPU::PairHippoGPU(LAMMPS *lmp) : PairAmoeba(lmp), gpu_mode(GPU_FORCE)
   gpu_repulsion_ready = false;         // true for HIPPO when ready
   gpu_dispersion_real_ready = true;   // true for HIPPO when ready
   gpu_multipole_real_ready = true;
-  gpu_udirect2b_ready = false;
-  gpu_umutual2b_ready = false;
+  gpu_udirect2b_ready = true;
+  gpu_umutual2b_ready = true;
   gpu_polar_real_ready = true;
 
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
@@ -791,7 +791,7 @@ void PairHippoGPU::udirect2b(double **field, double **fieldp)
 
   firstneigh = hippo_gpu_compute_udirect2b(neighbor->ago, inum, nall, atom->x,
                                             atom->type, amtype, amgroup, rpole,
-                                            uind, uinp, sublo, subhi, atom->tag,
+                                            uind, uinp, pval, sublo, subhi, atom->tag,
                                             atom->nspecial, atom->special,
                                             atom->nspecial15, atom->special15,
                                             eflag, vflag, eflag_atom, vflag_atom,
@@ -1015,14 +1015,14 @@ void PairHippoGPU::umutual2b(double **field, double **fieldp)
   else choose(POLAR);
 
   firstneigh = hippo_gpu_compute_umutual2b(neighbor->ago, inum, nall, atom->x,
-                                            atom->type, amtype, amgroup, rpole,
-                                            uind, uinp, sublo, subhi, atom->tag,
-                                            atom->nspecial, atom->special,
-                                            atom->nspecial15, atom->special15,
-                                            eflag, vflag, eflag_atom, vflag_atom,
-                                            host_start, &ilist, &numneigh, cpu_time,
-                                            success,aewald, off2, atom->q,
-                                            domain->boxlo, domain->prd, &fieldp_pinned);
+                                           atom->type, amtype, amgroup, rpole,
+                                           uind, uinp, pval, sublo, subhi, atom->tag,
+                                           atom->nspecial, atom->special,
+                                           atom->nspecial15, atom->special15,
+                                           eflag, vflag, eflag_atom, vflag_atom,
+                                           host_start, &ilist, &numneigh, cpu_time,
+                                           success,aewald, off2, atom->q,
+                                           domain->boxlo, domain->prd, &fieldp_pinned);
   if (!success)
     error->one(FLERR,"Insufficient memory on accelerator");
 

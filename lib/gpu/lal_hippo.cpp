@@ -490,6 +490,81 @@ int HippoT::multipole_real(const int eflag, const int vflag) {
 }
 
 // ---------------------------------------------------------------------------
+// Reneighbor on GPU if necessary, and then compute the direct real space part
+//    of the permanent field
+// ---------------------------------------------------------------------------
+template <class numtyp, class acctyp>
+int** HippoT::compute_udirect2b(const int ago, const int inum_full,
+                                const int nall, double **host_x,
+                                int *host_type, int *host_amtype,
+                                int *host_amgroup, double **host_rpole,
+                                double **host_uind, double **host_uinp,
+                                double* host_pval,
+                                double *sublo, double *subhi, tagint *tag,
+                                int **nspecial, tagint **special,
+                                int *nspecial15, tagint **special15,
+                                const bool eflag_in, const bool vflag_in,
+                                const bool eatom, const bool vatom,
+                                int &host_start, int **ilist, int **jnum,
+                                const double cpu_time, bool &success,
+                                const double aewald, const double off2_polar,
+                                double *host_q, double *boxlo, double *prd,
+                                void** fieldp_ptr) {
+  this->acc_timers();
+  int eflag, vflag;
+  if (eatom) eflag=2;
+  else if (eflag_in) eflag=1;
+  else eflag=0;
+  if (vatom) vflag=2;
+  else if (vflag_in) vflag=1;
+  else vflag=0;
+
+  #ifdef LAL_NO_BLOCK_REDUCE
+  if (eflag) eflag=2;
+  if (vflag) vflag=2;
+  #endif
+
+  this->set_kernel(eflag,vflag);
+
+  // reallocate per-atom arrays, transfer data from the host
+  //   and build the neighbor lists if needed
+
+  int** firstneigh = nullptr;
+  firstneigh = precompute(ago, inum_full, nall, host_x, host_type,
+                          host_amtype, host_amgroup, host_rpole,
+                          host_uind, host_uinp, host_pval, sublo, subhi, tag,
+                          nspecial, special, nspecial15, special15,
+                          eflag_in, vflag_in, eatom, vatom,
+                          host_start, ilist, jnum, cpu_time,
+                          success, host_q, boxlo, prd);
+                         
+  // ------------------- Resize _fieldp array ------------------------
+
+  if (inum_full>this->_max_fieldp_size) {
+    this->_max_fieldp_size=static_cast<int>(static_cast<double>(inum_full)*1.10);
+    this->_fieldp.resize(this->_max_fieldp_size*8);
+  }
+  *fieldp_ptr=this->_fieldp.host.begin();
+
+  this->_off2_polar = off2_polar;
+  this->_aewald = aewald;
+  const int red_blocks=udirect2b(eflag,vflag);
+
+  // copy field and fieldp from device to host (_fieldp store both arrays, one after another)
+
+  this->_fieldp.update_host(this->_max_fieldp_size*8,false);
+/*
+  printf("GPU lib: _fieldp size = %d: max fieldp size = %d\n",
+    this->_fieldp.cols(), _max_fieldp_size);
+  for (int i = 0; i < 10; i++) {
+    numtyp4* p = (numtyp4*)(&this->_fieldp[4*i]);
+    printf("i = %d; field = %f %f %f\n", i, p->x, p->y, p->z);
+  }
+*/
+  return firstneigh; //nbor->host_jlist.begin()-host_start;
+}
+
+// ---------------------------------------------------------------------------
 // Calculate the real-space permanent field, returning field and fieldp
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
@@ -518,7 +593,8 @@ int HippoT::udirect2b(const int eflag, const int vflag) {
   }
   
   this->k_udirect2b.set_size(GX,BX);
-  this->k_udirect2b.run(&this->atom->x, &this->atom->extra, &coeff_amtype, &sp_polar,
+  this->k_udirect2b.run(&this->atom->x, &this->atom->extra,
+                        &coeff_amtype, &coeff_amclass, &sp_polar,
                         &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                         &this->dev_short_nbor,
                         &this->_fieldp, &ainum, &_nall, &nbor_pitch,
@@ -527,6 +603,80 @@ int HippoT::udirect2b(const int eflag, const int vflag) {
 
   this->time_pair.stop();
   return GX;
+}
+
+// ---------------------------------------------------------------------------
+// Reneighbor on GPU if necessary, and then compute the direct real space part
+//    of the induced field
+// ---------------------------------------------------------------------------
+template <class numtyp, class acctyp>
+int** HippoT::compute_umutual2b(const int ago, const int inum_full,
+                                     const int nall, double **host_x,
+                                     int *host_type, int *host_amtype,
+                                     int *host_amgroup, double **host_rpole,
+                                     double **host_uind, double **host_uinp, double *host_pval,
+                                     double *sublo, double *subhi, tagint *tag,
+                                     int **nspecial, tagint **special,
+                                     int *nspecial15, tagint **special15,
+                                     const bool eflag_in, const bool vflag_in,
+                                     const bool eatom, const bool vatom,
+                                     int &host_start, int **ilist, int **jnum,
+                                     const double cpu_time, bool &success,
+                                     const double aewald, const double off2_polar,
+                                     double *host_q, double *boxlo, double *prd,
+                                     void** fieldp_ptr) {
+  this->acc_timers();
+  int eflag, vflag;
+  if (eatom) eflag=2;
+  else if (eflag_in) eflag=1;
+  else eflag=0;
+  if (vatom) vflag=2;
+  else if (vflag_in) vflag=1;
+  else vflag=0;
+
+  #ifdef LAL_NO_BLOCK_REDUCE
+  if (eflag) eflag=2;
+  if (vflag) vflag=2;
+  #endif
+
+  this->set_kernel(eflag,vflag);
+
+  // reallocate per-atom arrays, transfer extra data from the host
+  //   and build the neighbor lists if needed
+
+  int** firstneigh = nullptr;
+  firstneigh = precompute(ago, inum_full, nall, host_x, host_type,
+                          host_amtype, host_amgroup, host_rpole,
+                          host_uind, host_uinp, host_pval, sublo, subhi, tag,
+                          nspecial, special, nspecial15, special15,
+                          eflag_in, vflag_in, eatom, vatom,
+                          host_start, ilist, jnum, cpu_time,
+                          success, host_q, boxlo, prd);
+
+  // ------------------- Resize _fieldp array ------------------------
+
+  if (inum_full>this->_max_fieldp_size) {
+    this->_max_fieldp_size=static_cast<int>(static_cast<double>(inum_full)*1.10);
+    this->_fieldp.resize(this->_max_fieldp_size*8);
+  }
+  *fieldp_ptr=this->_fieldp.host.begin();
+
+  this->_off2_polar = off2_polar;
+  this->_aewald = aewald;
+  const int red_blocks=umutual2b(eflag,vflag);
+
+  // copy field and fieldp from device to host (_fieldp store both arrays, one after another)
+
+  this->_fieldp.update_host(this->_max_fieldp_size*8,false);
+/*
+  printf("GPU lib: _fieldp size = %d: max fieldp size = %d\n",
+    this->_fieldp.cols(), _max_fieldp_size);
+  for (int i = 0; i < 10; i++) {
+    numtyp4* p = (numtyp4*)(&this->_fieldp[4*i]);
+    printf("i = %d; field = %f %f %f\n", i, p->x, p->y, p->z);
+  }
+*/
+  return firstneigh; //nbor->host_jlist.begin()-host_start;
 }
 
 // ---------------------------------------------------------------------------
@@ -558,7 +708,8 @@ int HippoT::umutual2b(const int eflag, const int vflag) {
   }
 
   this->k_umutual2b.set_size(GX,BX);
-  this->k_umutual2b.run(&this->atom->x, &this->atom->extra, &coeff_amtype, &sp_polar,
+  this->k_umutual2b.run(&this->atom->x, &this->atom->extra,
+                        &coeff_amtype, &coeff_amclass, &sp_polar,
                         &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                         &this->dev_short_nbor, &this->_fieldp, &ainum, &_nall,
                         &nbor_pitch, &this->_threads_per_atom, &this->_aewald,

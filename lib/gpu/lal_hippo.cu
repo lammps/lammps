@@ -411,7 +411,7 @@ _texture( q_tex,int2);
 
 __kernel void k_hippo_repulsion(const __global numtyp4 *restrict x_,
                                 const __global numtyp *restrict extra,
-                                const __global numtyp4 *restrict coeff,
+                                const __global numtyp4 *restrict coeff_rep,
                                 const __global numtyp4 *restrict sp_nonpolar,
                                 const __global int *dev_nbor,
                                 const __global int *dev_packed,
@@ -480,9 +480,9 @@ __kernel void k_hippo_repulsion(const __global numtyp4 *restrict x_,
     numtyp qiyz = pol3i.x;   // rpole[i][9];
     numtyp qizz = pol3i.y;   // rpole[i][12];
     int itype = pol3i.z; // amtype[i];
-    numtyp sizi = coeff[itype].x; // sizpr[itype];
-    numtyp dmpi = coeff[itype].y; // dmppr[itype];
-    numtyp vali = coeff[itype].z; // elepr[itype];
+    numtyp sizi = coeff_rep[itype].x; // sizpr[itype];
+    numtyp dmpi = coeff_rep[itype].y; // dmppr[itype];
+    numtyp vali = coeff_rep[itype].z; // elepr[itype];
 
     for ( ; nbor<nbor_end; nbor+=n_stride) {
 
@@ -515,9 +515,9 @@ __kernel void k_hippo_repulsion(const __global numtyp4 *restrict x_,
       numtyp qkzz = pol3j.y; // rpole[j][12];
       int jtype = pol3j.z; // amtype[j];
 
-      numtyp sizk = coeff[jtype].x; // sizpr[jtype];
-      numtyp dmpk = coeff[jtype].y; // dmppr[jtype];
-      numtyp valk = coeff[jtype].z; // elepr[jtype];
+      numtyp sizk = coeff_rep[jtype].x; // sizpr[jtype];
+      numtyp dmpk = coeff_rep[jtype].y; // dmppr[jtype];
+      numtyp valk = coeff_rep[jtype].z; // elepr[jtype];
 
       const numtyp4 sp_nonpol = sp_nonpolar[sbmask15(jextra)];
       numtyp factor_repel = sp_nonpol.y; // factor_repel = special_repel[sbmask15(j)];

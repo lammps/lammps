@@ -58,6 +58,7 @@ int hippo_gpu_init(const int ntypes, const int max_amtype, const int max_amclass
                     const double *host_special_polar_wscale,
                     const double *host_special_polar_piscale,
                     const double *host_special_polar_pscale,
+                    const double *host_sizpr, const double *host_dmppr, const double *host_elepr,
                     const double *host_csix, const double *host_adisp,
                     const double *host_pcore, const double *host_palpha,
                     const int nlocal, const int nall, const int max_nbors,
@@ -75,7 +76,9 @@ int** hippo_gpu_compute_repulsion(const int ago, const int inum_full,
                            const bool vatom, int &host_start,
                            int **ilist, int **jnum, const double cpu_time,
                            bool &success, const double aewald, const double off2,
-                           double *host_q, double *boxlo, double *prd, void **tep_ptr);
+                           double *host_q, double *boxlo, double *prd,
+                           double cut2, double c0, double c1, double c2,
+                           double c3, double c4, double c5, void **tep_ptr);
 
 int** hippo_gpu_compute_dispersion_real(const int ago, const int inum_full,
                            const int nall, double **host_x, int *host_type,
@@ -203,7 +206,8 @@ void PairHippoGPU::init_style()
                                 pdamp, thole, dirdamp, amtype2class, special_hal,
                                 special_repel, special_disp, special_mpole,
                                 special_polar_wscale, special_polar_piscale,
-                                special_polar_pscale, csix, adisp, pcore, palpha,
+                                special_polar_pscale, sizpr, dmppr, elepr,
+                                csix, adisp, pcore, palpha,
                                 atom->nlocal, atom->nlocal+atom->nghost, mnf,
                                 maxspecial, maxspecial15, cell_size, gpu_mode,
                                 screen, polar_dscale, polar_uscale, tq_size);
@@ -261,7 +265,8 @@ void PairHippoGPU::repulsion()
                                             eflag, vflag, eflag_atom, vflag_atom,
                                             host_start, &ilist, &numneigh, cpu_time,
                                             success, aewald, off2, atom->q,
-                                            domain->boxlo, domain->prd, &tq_pinned);
+                                            domain->boxlo, domain->prd, cut2,
+                                            c0, c1, c2, c3, c4, c5, &tq_pinned);
 
   if (!success)
     error->one(FLERR,"Insufficient memory on accelerator");

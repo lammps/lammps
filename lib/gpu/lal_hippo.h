@@ -47,6 +47,7 @@ class Hippo : public BaseAmoeba<numtyp, acctyp> {
            const double *host_special_polar_wscale,
            const double *host_special_polar_piscale,
            const double *host_special_polar_pscale,
+           const double *host_sizpr, const double *host_dmppr, const double *host_elepr,
            const double *host_csix, const double *host_adisp,
            const double *host_pcore, const double *host_palpha,
            const int nlocal, const int nall, const int max_nbors,
@@ -56,18 +57,20 @@ class Hippo : public BaseAmoeba<numtyp, acctyp> {
 
   /// Compute repulsion with device neighboring
   int** compute_repulsion(const int ago, const int inum_full,
-                                      const int nall, double **host_x,
-                                      int *host_type, int *host_amtype,
-                                      int *host_amgroup, double **host_rpole,
-                                      double *sublo, double *subhi, tagint *tag,
-                                      int **nspecial, tagint **special,
-                                      int *nspecial15, tagint **special15,
-                                      const bool eflag_in, const bool vflag_in,
-                                      const bool eatom, const bool vatom,
-                                      int &host_start, int **ilist, int **jnum,
-                                      const double cpu_time, bool &success,
-                                      const double aewald, const double off2_repulse,
-                                      double *host_q, double *boxlo, double *prd, void** tep_ptr);
+                          const int nall, double **host_x,
+                          int *host_type, int *host_amtype,
+                          int *host_amgroup, double **host_rpole,
+                          double *sublo, double *subhi, tagint *tag,
+                          int **nspecial, tagint **special,
+                          int *nspecial15, tagint **special15,
+                          const bool eflag_in, const bool vflag_in,
+                          const bool eatom, const bool vatom,
+                          int &host_start, int **ilist, int **jnum,
+                          const double cpu_time, bool &success,
+                          const double aewald, const double off2_repulse,
+                          double *host_q, double *boxlo, double *prd,
+                          double cut2, double c0, double c1, double c2,
+                          double c3, double c4, double c5,void** tep_ptr);
 
   /// Compute dispersion real-space with device neighboring
   int** compute_dispersion_real(const int ago, const int inum_full, const int nall,
@@ -157,6 +160,8 @@ class Hippo : public BaseAmoeba<numtyp, acctyp> {
   UCL_D_Vec<numtyp4> coeff_amtype;
   /// csix = coeff_amclass.x; adisp = coeff_amclass.y;
   UCL_D_Vec<numtyp4> coeff_amclass;
+  /// sizpr = coeff_rep.x; dmppr = coeff_rep.y; elepr = coeff_rep.z; 
+  UCL_D_Vec<numtyp4> coeff_rep;
   /// Special polar values [0-4]:
   ///   sp_polar.x = special_polar_wscale
   ///   sp_polar.y special_polar_pscale,
@@ -175,6 +180,7 @@ class Hippo : public BaseAmoeba<numtyp, acctyp> {
   /// Number of atom types
   int _lj_types;
 
+  numtyp _cut2,_c0,_c1,_c2,_c3,_c4,_c5;
   numtyp _polar_dscale, _polar_uscale;
   numtyp _qqrd2e;
 

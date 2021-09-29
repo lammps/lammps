@@ -57,6 +57,7 @@ int HippoT::init(const int ntypes, const int max_amtype, const int max_amclass,
                   const double *host_special_polar_wscale,
                   const double *host_special_polar_piscale,
                   const double *host_special_polar_pscale,
+                  const double *host_sizpr, const double *host_dmppr, const double *host_elepr,
                   const double *host_csix, const double *host_adisp,
                   const double *host_pcore, const double *host_palpha,
                   const int nlocal, const int nall, const int max_nbors,
@@ -99,6 +100,16 @@ int HippoT::init(const int ntypes, const int max_amtype, const int max_amclass,
   coeff_amtype.alloc(max_amtype,*(this->ucl_device), UCL_READ_ONLY);
   ucl_copy(coeff_amtype,host_write,false);
 
+  for (int i = 0; i < max_amtype; i++) {
+    host_write[i].x = host_sizpr[i];
+    host_write[i].y = host_dmppr[i];
+    host_write[i].z = host_elepr[i];
+    host_write[i].w = (numtyp)0;
+  }
+
+  coeff_rep.alloc(max_amtype,*(this->ucl_device), UCL_READ_ONLY);
+  ucl_copy(coeff_rep,host_write,false);
+
   UCL_H_Vec<numtyp4> host_write2(max_amclass, *(this->ucl_device), UCL_WRITE_ONLY);
   for (int i = 0; i < max_amclass; i++) {
     host_write2[i].x = host_csix[i];
@@ -133,7 +144,7 @@ int HippoT::init(const int ntypes, const int max_amtype, const int max_amclass,
   _polar_uscale = polar_uscale;
 
   _allocated=true;
-  this->_max_bytes=coeff_amtype.row_bytes() + coeff_amclass.row_bytes()
+  this->_max_bytes=coeff_amtype.row_bytes() + coeff_rep.row_bytes() + coeff_amclass.row_bytes() +
     + sp_polar.row_bytes() + sp_nonpolar.row_bytes() + this->_tep.row_bytes();
   return 0;
 }
@@ -145,6 +156,7 @@ void HippoT::clear() {
   _allocated=false;
 
   coeff_amtype.clear();
+  coeff_rep.clear();
   coeff_amclass.clear();
   sp_polar.clear();
   sp_nonpolar.clear();
@@ -173,7 +185,9 @@ int** HippoT::compute_repulsion(const int ago, const int inum_full,
                                 int &host_start, int **ilist, int **jnum,
                                 const double cpu_time, bool &success,
                                 const double aewald, const double off2_repulse,
-                                double *host_q, double *boxlo, double *prd, void **tep_ptr) {
+                                double *host_q, double *boxlo, double *prd,
+                                double cut2, double c0, double c1, double c2,
+                                double c3, double c4, double c5, void **tep_ptr) {
   this->acc_timers();
   int eflag, vflag;
   if (eatom) eflag=2;
@@ -219,7 +233,13 @@ int** HippoT::compute_repulsion(const int ago, const int inum_full,
   *tep_ptr=this->_tep.host.begin();
 
   this->_off2_repulse = off2_repulse;
-  this->_aewald = aewald;
+  _cut2 = cut2;
+  _c0 = c0;
+  _c1 = c1;
+  _c2 = c2;
+  _c3 = c3;
+  _c4 = c4;
+  _c5 = c5;
   const int red_blocks=repulsion(eflag,vflag);
 
   // only copy them back if this is the last kernel
@@ -266,13 +286,13 @@ int HippoT::repulsion(const int eflag, const int vflag) {
 
   k_repulsion.set_size(GX,BX);
   k_repulsion.run(&this->atom->x, &this->atom->extra,
-                  &coeff_amtype, &coeff_amclass, &sp_nonpolar,
+                  &coeff_rep, &sp_nonpolar,
                   &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                   &this->dev_short_nbor,
                   &this->ans->force, &this->ans->engv, &this->_tep,
                   &eflag, &vflag, &ainum, &_nall, &nbor_pitch,
                   &this->_threads_per_atom,  &this->_aewald,
-                  &this->_off2_repulse);
+                  &this->_off2_repulse, &_cut2, &_c0, &_c1, &_c2, &_c3, &_c4, &_c5);
   this->time_pair.stop();
 
   return GX;

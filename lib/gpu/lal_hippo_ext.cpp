@@ -37,6 +37,7 @@ int hippo_gpu_init(const int ntypes, const int max_amtype, const int max_amclass
                     const double *host_special_polar_wscale,
                     const double *host_special_polar_piscale,
                     const double *host_special_polar_pscale,
+                    const double *host_sizpr, const double *host_dmppr, const double *host_elepr,
                     const double *host_csix, const double *host_adisp,
                     const double *host_pcore, const double *host_palpha,
                     const int nlocal, const int nall, const int max_nbors,
@@ -74,6 +75,7 @@ int hippo_gpu_init(const int ntypes, const int max_amtype, const int max_amclass
                           host_special_repel, host_special_disp,
                           host_special_mpole, host_special_polar_wscale,
                           host_special_polar_piscale, host_special_polar_pscale,
+                          host_sizpr, host_dmppr, host_elepr,
                           host_csix, host_adisp, host_pcore, host_palpha,
                           nlocal, nall, max_nbors,
                           maxspecial, maxspecial15, cell_size, gpu_split,
@@ -99,6 +101,7 @@ int hippo_gpu_init(const int ntypes, const int max_amtype, const int max_amclass
                             host_special_repel, host_special_disp,
                             host_special_mpole, host_special_polar_wscale,
                             host_special_polar_piscale, host_special_polar_pscale,
+                            host_sizpr, host_dmppr, host_elepr,
                             host_csix, host_adisp, host_pcore, host_palpha,
                             nlocal, nall, max_nbors,
                             maxspecial, maxspecial15, cell_size, gpu_split,
@@ -129,12 +132,15 @@ int** hippo_gpu_compute_repulsion(const int ago, const int inum_full,
                            const bool vatom, int &host_start,
                            int **ilist, int **jnum, const double cpu_time,
                            bool &success, const double aewald, const double off2,
-                           double *host_q, double *boxlo, double *prd, void **tep_ptr) {
+                           double *host_q, double *boxlo, double *prd,
+                           double cut2, double c0, double c1, double c2,
+                           double c3, double c4, double c5, void **tep_ptr) {
   return HIPPOMF.compute_repulsion(ago, inum_full, nall, host_x, host_type,
                           host_amtype, host_amgroup, host_rpole, sublo, subhi,
                           tag, nspecial, special, nspecial15, special15,
                           eflag, vflag, eatom, vatom, host_start, ilist, jnum,
-                          cpu_time, success, aewald, off2, host_q, boxlo, prd, tep_ptr);
+                          cpu_time, success, aewald, off2, host_q, boxlo, prd,
+                          cut2, c0, c1, c2, c3, c4, c5, tep_ptr);
 }
 
 int** hippo_gpu_compute_dispersion_real(const int ago, const int inum_full,

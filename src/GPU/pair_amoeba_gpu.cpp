@@ -192,7 +192,10 @@ void PairAmoebaGPU::init_style()
     tq_single = true;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   multipole_real = real-space portion of mulipole interactions
+   adapted from Tinker emreal1d() routine
+------------------------------------------------------------------------- */
 
 void PairAmoebaGPU::multipole_real()
 {
@@ -257,6 +260,8 @@ void PairAmoebaGPU::multipole_real()
 /* ----------------------------------------------------------------------
    induce = induced dipole moments via pre-conditioned CG solver
    adapted from Tinker induce0a() routine
+   NOTE: Almost the same in the CPU version, except that there is no need
+      to call reverse_comm() for crstyle = FIELD;
 ------------------------------------------------------------------------- */
 
 void PairAmoebaGPU::induce()
@@ -986,7 +991,10 @@ void PairAmoebaGPU::umutual2b(double **field, double **fieldp)
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   polar_real = real-space portion of induced dipole polarization
+   adapted from Tinker epreal1d() routine
+------------------------------------------------------------------------- */
 
 void PairAmoebaGPU::polar_real()
 {

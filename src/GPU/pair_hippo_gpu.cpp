@@ -146,9 +146,9 @@ PairHippoGPU::PairHippoGPU(LAMMPS *lmp) : PairAmoeba(lmp), gpu_mode(GPU_FORCE)
   fieldp_pinned = nullptr;
   tq_pinned = nullptr;
 
-  gpu_hal_ready = false;               // always false for HIPPO
-  gpu_repulsion_ready = true;         // true for HIPPO when ready
-  gpu_dispersion_real_ready = true;   // true for HIPPO when ready
+  gpu_hal_ready = false;              // always false for HIPPO
+  gpu_repulsion_ready = true;
+  gpu_dispersion_real_ready = true;
   gpu_multipole_real_ready = true;
   gpu_udirect2b_ready = true;
   gpu_umutual2b_ready = true;
@@ -222,7 +222,10 @@ void PairHippoGPU::init_style()
     tq_single = true;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   repulsion = Pauli repulsion interactions
+   adapted from Tinker erepel1b() routine
+------------------------------------------------------------------------- */
 
 void PairHippoGPU::repulsion()
 {
@@ -258,15 +261,15 @@ void PairHippoGPU::repulsion()
   // set the energy unit conversion factor for multipolar real-space calculation
 
   firstneigh = hippo_gpu_compute_repulsion(neighbor->ago, inum, nall, atom->x,
-                                            atom->type, amtype, amgroup, rpole,
-                                            sublo, subhi, atom->tag,
-                                            atom->nspecial, atom->special,
-                                            atom->nspecial15, atom->special15,
-                                            eflag, vflag, eflag_atom, vflag_atom,
-                                            host_start, &ilist, &numneigh, cpu_time,
-                                            success, aewald, off2, atom->q,
-                                            domain->boxlo, domain->prd, cut2,
-                                            c0, c1, c2, c3, c4, c5, &tq_pinned);
+                                           atom->type, amtype, amgroup, rpole,
+                                           sublo, subhi, atom->tag,
+                                           atom->nspecial, atom->special,
+                                           atom->nspecial15, atom->special15,
+                                           eflag, vflag, eflag_atom, vflag_atom,
+                                           host_start, &ilist, &numneigh, cpu_time,
+                                           success, aewald, off2, atom->q,
+                                           domain->boxlo, domain->prd, cut2,
+                                           c0, c1, c2, c3, c4, c5, &tq_pinned);
 
   if (!success)
     error->one(FLERR,"Insufficient memory on accelerator");
@@ -282,7 +285,10 @@ void PairHippoGPU::repulsion()
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   dispersion_real = real-space portion of Ewald dispersion
+   adapted from Tinker edreal1d() routine
+------------------------------------------------------------------------- */
 
 void PairHippoGPU::dispersion_real()
 {
@@ -330,7 +336,10 @@ void PairHippoGPU::dispersion_real()
     error->one(FLERR,"Insufficient memory on accelerator");
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   multipole_real = real-space portion of mulipole interactions
+   adapted from Tinker emreal1d() routine
+------------------------------------------------------------------------- */
 
 void PairHippoGPU::multipole_real()
 {
@@ -395,6 +404,8 @@ void PairHippoGPU::multipole_real()
 /* ----------------------------------------------------------------------
    induce = induced dipole moments via pre-conditioned CG solver
    adapted from Tinker induce0a() routine
+   NOTE: Almost the same in the CPU version, except that there is no need
+      to call reverse_comm() for crstyle = FIELD;
 ------------------------------------------------------------------------- */
 
 void PairHippoGPU::induce()
@@ -879,6 +890,7 @@ void PairHippoGPU::udirect2b(double **field, double **fieldp)
   // rebuild dipole-dipole pair list and store pairwise dipole matrices
   // done one atom at a time in real-space double loop over atoms & neighs
   // NOTE: for the moment the tdipdip values are computed just in time in umutual2b()
+  //   so no need to call ubdirect2b_cpu().
   // udirect2b_cpu();
 
   // accumulate the field and fieldp values from the GPU lib
@@ -1124,7 +1136,10 @@ void PairHippoGPU::umutual2b(double **field, double **fieldp)
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   polar_real = real-space portion of induced dipole polarization
+   adapted from Tinker epreal1d() routine
+------------------------------------------------------------------------- */
 
 void PairHippoGPU::polar_real()
 {
@@ -1187,7 +1202,7 @@ void PairHippoGPU::polar_real()
 }
 
 /* ----------------------------------------------------------------------
-   compute atom forces from torques
+   compute atom forces from torques used by various terms
 ------------------------------------------------------------------------- */
 
 template <class numtyp>
@@ -1211,8 +1226,6 @@ void PairHippoGPU::compute_force_from_torque(const numtyp* tq_ptr,
     _tq[1] = tq_ptr[4*i+1];
     _tq[2] = tq_ptr[4*i+2];
     torque2force(i,_tq,fix,fiy,fiz,force_comp);
-
-    //if (i < 10) printf("i = %d: tep = %f %f %f\n", i, _tq[0], _tq[1], _tq[2]);
 
     iz = zaxis2local[i];
     ix = xaxis2local[i];

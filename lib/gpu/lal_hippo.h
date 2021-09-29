@@ -54,6 +54,21 @@ class Hippo : public BaseAmoeba<numtyp, acctyp> {
            const double gpu_split, FILE *_screen,
            const double polar_dscale, const double polar_uscale);
 
+  /// Compute repulsion with device neighboring
+  int** compute_repulsion(const int ago, const int inum_full,
+                                      const int nall, double **host_x,
+                                      int *host_type, int *host_amtype,
+                                      int *host_amgroup, double **host_rpole,
+                                      double *sublo, double *subhi, tagint *tag,
+                                      int **nspecial, tagint **special,
+                                      int *nspecial15, tagint **special15,
+                                      const bool eflag_in, const bool vflag_in,
+                                      const bool eatom, const bool vatom,
+                                      int &host_start, int **ilist, int **jnum,
+                                      const double cpu_time, bool &success,
+                                      const double aewald, const double off2_repulse,
+                                      double *host_q, double *boxlo, double *prd);
+
   /// Compute dispersion real-space with device neighboring
   int** compute_dispersion_real(const int ago, const int inum_full, const int nall,
                 double **host_x, int *host_type, int *host_amtype,
@@ -163,10 +178,11 @@ class Hippo : public BaseAmoeba<numtyp, acctyp> {
   numtyp _polar_dscale, _polar_uscale;
   numtyp _qqrd2e;
 
-  UCL_Kernel k_dispersion;
+  UCL_Kernel k_repulsion, k_dispersion;
 
  protected:
   bool _allocated;
+  int repulsion(const int eflag, const int vflag);
   int dispersion_real(const int eflag, const int vflag);
   int multipole_real(const int eflag, const int vflag);
   int udirect2b(const int eflag, const int vflag);

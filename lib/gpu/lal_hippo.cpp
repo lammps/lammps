@@ -36,7 +36,9 @@ HippoT::Hippo() : BaseAmoeba<numtyp,acctyp>(),
 template <class numtyp, class acctyp>
 HippoT::~Hippo() {
   clear();
+  k_repulsion.clear();
   k_dispersion.clear();
+
 }
 
 template <class numtyp, class acctyp>
@@ -71,6 +73,7 @@ int HippoT::init(const int ntypes, const int max_amtype, const int max_amclass,
     return success;
 
   // specific to HIPPO
+  k_repulsion.set_function(*(this->pair_program),"k_hippo_repulsion");
   k_dispersion.set_function(*(this->pair_program),"k_hippo_dispersion");
 
   // If atom type constants fit in shared memory use fast kernel
@@ -155,9 +158,117 @@ double HippoT::host_memory_usage() const {
 }
 
 // ---------------------------------------------------------------------------
+// Reneighbor on GPU if necessary, and then compute repulsion
+// ---------------------------------------------------------------------------
+template <class numtyp, class acctyp>
+int** HippoT::compute_repulsion(const int ago, const int inum_full,
+                                const int nall, double **host_x,
+                                int *host_type, int *host_amtype,
+                                int *host_amgroup, double **host_rpole,
+                                double *sublo, double *subhi, tagint *tag,
+                                int **nspecial, tagint **special,
+                                int *nspecial15, tagint **special15,
+                                const bool eflag_in, const bool vflag_in,
+                                const bool eatom, const bool vatom,
+                                int &host_start, int **ilist, int **jnum,
+                                const double cpu_time, bool &success,
+                                const double aewald, const double off2_repulse,
+                                double *host_q, double *boxlo, double *prd) {
+  this->acc_timers();
+  int eflag, vflag;
+  if (eatom) eflag=2;
+  else if (eflag_in) eflag=1;
+  else eflag=0;
+  if (vatom) vflag=2;
+  else if (vflag_in) vflag=1;
+  else vflag=0;
+
+  #ifdef LAL_NO_BLOCK_REDUCE
+  if (eflag) eflag=2;
+  if (vflag) vflag=2;
+  #endif
+
+  this->set_kernel(eflag,vflag);
+
+  // reallocate per-atom arrays, transfer data from the host
+  //   and build the neighbor lists if needed
+  // NOTE:
+  //   For now we invoke precompute() again here,
+  //     to be able to turn on/off the udirect2b kernel (which comes before this)
+  //   Once all the kernels are ready, precompute() is needed only once
+  //     in the first kernel in a time step.
+  //   We only need to cast uind and uinp from host to device here
+  //     if the neighbor lists are rebuilt and other per-atom arrays
+  //     (x, type, amtype, amgroup, rpole) are ready on the device.
+
+  int** firstneigh = nullptr;
+  firstneigh = this->precompute(ago, inum_full, nall, host_x, host_type,
+                                host_amtype, host_amgroup, host_rpole,
+                                nullptr, nullptr, nullptr, sublo, subhi, tag,
+                                nspecial, special, nspecial15, special15,
+                                eflag_in, vflag_in, eatom, vatom,
+                                host_start, ilist, jnum, cpu_time,
+                                success, host_q, boxlo, prd);
+
+  this->_off2_repulse = off2_repulse;
+  this->_aewald = aewald;
+  const int red_blocks=repulsion(eflag,vflag);
+
+  // only copy them back if this is the last kernel
+  //   otherwise, commenting out these two lines to leave the answers
+  //   (forces, energies and virial) on the device until the last kernel
+  //this->ans->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
+  //this->device->add_ans_object(this->ans);
+
+  this->hd_balancer.stop_timer();
+
+  return firstneigh; // nbor->host_jlist.begin()-host_start;
+}
+
+// ---------------------------------------------------------------------------
+// Calculate the repulsion term, returning tep
+// ---------------------------------------------------------------------------
+template <class numtyp, class acctyp>
+int HippoT::repulsion(const int eflag, const int vflag) {
+  int ainum=this->ans->inum();
+  if (ainum == 0)
+    return 0;
+
+  int _nall=this->atom->nall();
+  int nbor_pitch=this->nbor->nbor_pitch();
+
+  // Compute the block size and grid size to keep all cores busy
+  const int BX=this->block_size();
+  int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
+                               (BX/this->_threads_per_atom)));
+  this->time_pair.start();
+
+  // Build the short neighbor list for the cutoff off2_disp,
+  //   at this point mpole is the first kernel in a time step
+
+  this->k_short_nbor.set_size(GX,BX);
+  this->k_short_nbor.run(&this->atom->x, &this->nbor->dev_nbor,
+                         &this->_nbor_data->begin(),
+                         &this->dev_short_nbor, &this->_off2_repulse, &ainum,
+                         &nbor_pitch, &this->_threads_per_atom);
+
+  k_repulsion.set_size(GX,BX);
+  k_repulsion.run(&this->atom->x, &this->atom->extra,
+                  &coeff_amtype, &coeff_amclass, &sp_nonpolar,
+                  &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+                  &this->dev_short_nbor,
+                  &this->ans->force, &this->ans->engv,
+                  &eflag, &vflag, &ainum, &_nall, &nbor_pitch,
+                  &this->_threads_per_atom,  &this->_aewald,
+                  &this->_off2_repulse);
+  this->time_pair.stop();
+
+  return GX;
+}
+
+// ---------------------------------------------------------------------------
 // Reneighbor on GPU if necessary, and then compute dispersion real-space
 // ---------------------------------------------------------------------------
-
 template <class numtyp, class acctyp>
 int** HippoT::compute_dispersion_real(const int ago, const int inum_full,
                                       const int nall, double **host_x,

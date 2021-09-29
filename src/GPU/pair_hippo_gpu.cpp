@@ -66,6 +66,17 @@ int hippo_gpu_init(const int ntypes, const int max_amtype, const int max_amclass
                     const double polar_dscale, const double polar_uscale, int& tq_size);
 void hippo_gpu_clear();
 
+int** hippo_gpu_compute_repulsion(const int ago, const int inum_full,
+                           const int nall, double **host_x, int *host_type,
+                           int *host_amtype, int *host_amgroup, double **host_rpole,
+                           double *sublo, double *subhi, tagint *tag, int **nspecial,
+                           tagint **special, int *nspecial15, tagint** special15,
+                           const bool eflag, const bool vflag, const bool eatom,
+                           const bool vatom, int &host_start,
+                           int **ilist, int **jnum, const double cpu_time,
+                           bool &success, const double aewald, const double off2,
+                           double *host_q, double *boxlo, double *prd, void **tep_ptr);
+
 int** hippo_gpu_compute_dispersion_real(const int ago, const int inum_full,
                            const int nall, double **host_x, int *host_type,
                            int *host_amtype, int *host_amgroup, double **host_rpole,
@@ -205,6 +216,65 @@ void PairHippoGPU::init_style()
     tq_single = false;
   else
     tq_single = true;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairHippoGPU::repulsion()
+{
+  if (!gpu_repulsion_ready) {
+    PairAmoeba::repulsion();
+    return;
+  }
+
+  int eflag=1, vflag=1;
+  int nall = atom->nlocal + atom->nghost;
+  int inum, host_start;
+
+  bool success = true;
+  int *ilist, *numneigh, **firstneigh;
+
+  double sublo[3],subhi[3];
+  if (domain->triclinic == 0) {
+    sublo[0] = domain->sublo[0];
+    sublo[1] = domain->sublo[1];
+    sublo[2] = domain->sublo[2];
+    subhi[0] = domain->subhi[0];
+    subhi[1] = domain->subhi[1];
+    subhi[2] = domain->subhi[2];
+  } else {
+    domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
+  }
+  inum = atom->nlocal;
+
+  // select the correct cutoff for the term
+
+  choose(REPULSE);
+
+  // set the energy unit conversion factor for multipolar real-space calculation
+
+  firstneigh = hippo_gpu_compute_repulsion(neighbor->ago, inum, nall, atom->x,
+                                            atom->type, amtype, amgroup, rpole,
+                                            sublo, subhi, atom->tag,
+                                            atom->nspecial, atom->special,
+                                            atom->nspecial15, atom->special15,
+                                            eflag, vflag, eflag_atom, vflag_atom,
+                                            host_start, &ilist, &numneigh, cpu_time,
+                                            success, aewald, off2, atom->q,
+                                            domain->boxlo, domain->prd, &tq_pinned);
+
+  if (!success)
+    error->one(FLERR,"Insufficient memory on accelerator");
+
+  // reference to the tep array from GPU lib
+
+  if (tq_single) {
+    float *tq_ptr = (float *)tq_pinned;
+    compute_force_from_torque<float>(tq_ptr, frepulse, virrepulse);
+  } else {
+    double *tq_ptr = (double *)tq_pinned;
+    compute_force_from_torque<double>(tq_ptr, frepulse, virrepulse);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

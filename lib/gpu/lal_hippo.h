@@ -67,7 +67,7 @@ class Hippo : public BaseAmoeba<numtyp, acctyp> {
                                       int &host_start, int **ilist, int **jnum,
                                       const double cpu_time, bool &success,
                                       const double aewald, const double off2_repulse,
-                                      double *host_q, double *boxlo, double *prd);
+                                      double *host_q, double *boxlo, double *prd, void** tep_ptr);
 
   /// Compute dispersion real-space with device neighboring
   int** compute_dispersion_real(const int ago, const int inum_full, const int nall,

@@ -173,7 +173,7 @@ int** HippoT::compute_repulsion(const int ago, const int inum_full,
                                 int &host_start, int **ilist, int **jnum,
                                 const double cpu_time, bool &success,
                                 const double aewald, const double off2_repulse,
-                                double *host_q, double *boxlo, double *prd) {
+                                double *host_q, double *boxlo, double *prd, void **tep_ptr) {
   this->acc_timers();
   int eflag, vflag;
   if (eatom) eflag=2;
@@ -210,6 +210,14 @@ int** HippoT::compute_repulsion(const int ago, const int inum_full,
                                 host_start, ilist, jnum, cpu_time,
                                 success, host_q, boxlo, prd);
 
+  // ------------------- Resize _tep array ------------------------
+
+  if (inum_full>this->_max_tep_size) {
+    this->_max_tep_size=static_cast<int>(static_cast<double>(inum_full)*1.10);
+    this->_tep.resize(this->_max_tep_size*4);
+  }
+  *tep_ptr=this->_tep.host.begin();
+
   this->_off2_repulse = off2_repulse;
   this->_aewald = aewald;
   const int red_blocks=repulsion(eflag,vflag);
@@ -221,6 +229,10 @@ int** HippoT::compute_repulsion(const int ago, const int inum_full,
   //this->device->add_ans_object(this->ans);
 
   this->hd_balancer.stop_timer();
+
+  // copy tep from device to host
+
+  this->_tep.update_host(this->_max_tep_size*4,false);
 
   return firstneigh; // nbor->host_jlist.begin()-host_start;
 }
@@ -257,7 +269,7 @@ int HippoT::repulsion(const int eflag, const int vflag) {
                   &coeff_amtype, &coeff_amclass, &sp_nonpolar,
                   &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                   &this->dev_short_nbor,
-                  &this->ans->force, &this->ans->engv,
+                  &this->ans->force, &this->ans->engv, &this->_tep,
                   &eflag, &vflag, &ainum, &_nall, &nbor_pitch,
                   &this->_threads_per_atom,  &this->_aewald,
                   &this->_off2_repulse);

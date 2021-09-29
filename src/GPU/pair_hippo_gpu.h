@@ -35,6 +35,7 @@ class PairHippoGPU : public PairAmoeba {
 
   virtual void induce();
 
+  virtual void repulsion();
   virtual void dispersion_real();
   virtual void multipole_real();
   virtual void udirect2b(double **, double **);

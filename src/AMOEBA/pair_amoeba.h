@@ -343,7 +343,7 @@ class PairAmoeba : public Pair {
 
   void hal();
 
-  void repulsion();
+  virtual void repulsion();
   void damprep(double, double, double, double, double, double, double, double,
                int, double, double, double *);
 

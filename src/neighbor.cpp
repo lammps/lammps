@@ -2527,6 +2527,7 @@ void Neighbor::modify_params(int narg, char **arg)
       int i;
 
       // Invalidate old user cutoffs
+
       comm->ncollections_cutoff = 0;
       interval_collection_flag = 1;
       custom_collection_flag = 1;
@@ -2558,9 +2559,10 @@ void Neighbor::modify_params(int narg, char **arg)
         error->all(FLERR,"Invalid collection/type command");
 
       int ntypes = atom->ntypes;
-      int n, nlo, nhi, i, j, k;
+      int nlo, nhi, i, k;
 
       // Invalidate old user cutoffs
+
       comm->ncollections_cutoff = 0;
       interval_collection_flag = 0;
       custom_collection_flag = 1;
@@ -2568,10 +2570,12 @@ void Neighbor::modify_params(int narg, char **arg)
         memory->create(type2collection,ntypes+1,"neigh:type2collection");
 
       // Erase previous mapping
+
       for (i = 1; i <= ntypes; i++)
         type2collection[i] = -1;
 
       // For each custom range, define mapping for types in interval
+
       for (i = 0; i < ncollections; i++){
         std::vector<std::string> words = Tokenizer(arg[iarg+2+i], ",").as_vector();
         for (const auto &word : words) {
@@ -2585,6 +2589,7 @@ void Neighbor::modify_params(int narg, char **arg)
       }
 
       // Check for undefined atom type
+
       for (i = 1; i <= ntypes; i++){
         if (type2collection[i] == -1) {
           error->all(FLERR,"Type missing in collection/type commnd");

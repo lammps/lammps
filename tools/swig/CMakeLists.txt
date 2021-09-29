@@ -90,7 +90,10 @@ if(BUILD_SWIG_TCL)
   # build loadable Tcl module
   set_property(SOURCE lammps.i PROPERTY SWIG_MODULE_NAME tcllammps)
   swig_add_library(tcllammps TYPE MODULE LANGUAGE tcl SOURCES lammps.i)
-  find_package(TCL REQUIRED)
+  find_package(TCL)
+  if(NOT TCL_FOUND)
+    message(FATAL_ERROR "Tcl development headers and libraries are required")
+  endif()
   target_include_directories(tcllammps PRIVATE ${TCL_INCLUDE_PATH})
   swig_link_libraries(tcllammps PRIVATE lammps ${TCL_LIBRARY})
   # build extended Tcl shell binary

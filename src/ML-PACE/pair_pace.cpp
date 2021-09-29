@@ -296,10 +296,9 @@ void PairPACE::coeff(int narg, char **arg) {
 
   //load potential file
   delete aceimpl->basis_set;
-  aceimpl->basis_set = new ACECTildeBasisSet();
-  if (comm->me == 0)
-    utils::logmesg(lmp,"Loading {}\n", potential_file_name);
-  aceimpl->basis_set->load(potential_file_name);
+    if (comm->me == 0)
+        utils::logmesg(lmp,"Loading {}\n", potential_file_name);
+  aceimpl->basis_set = new ACECTildeBasisSet(potential_file_name);
 
   if (comm->me == 0) {
     utils::logmesg(lmp,"Total number of basis functions\n");

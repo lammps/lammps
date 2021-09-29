@@ -69,6 +69,12 @@ if(DOWNLOAD_N2P2)
   # echo final flag for debugging
   message(STATUS "N2P2 BUILD OPTIONS: ${N2P2_BUILD_OPTIONS}")
 
+  # must have "sed" command to compile n2p2 library (for now)
+  find_program(HAVE_SED sed)
+  if(NOT HAVE_SED)
+    message(FATAL_ERROR "Must have 'sed' program installed to compile 'n2p2' library for ML-HDNNP package")
+  endif()
+
   # download compile n2p2 library. much patch MPI calls in LAMMPS interface to accommodate MPI-2 (e.g. for cross-compiling)
   include(ExternalProject)
   ExternalProject_Add(n2p2_build

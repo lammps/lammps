@@ -292,7 +292,8 @@ int HippoT::repulsion(const int eflag, const int vflag) {
                   &this->ans->force, &this->ans->engv, &this->_tep,
                   &eflag, &vflag, &ainum, &_nall, &nbor_pitch,
                   &this->_threads_per_atom,  &this->_aewald,
-                  &this->_off2_repulse, &_cut2, &_c0, &_c1, &_c2, &_c3, &_c4, &_c5);
+                  &this->_off2_repulse, &_cut2,
+                  &_c0, &_c1, &_c2, &_c3, &_c4, &_c5);
   this->time_pair.stop();
 
   return GX;

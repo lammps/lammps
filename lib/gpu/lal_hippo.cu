@@ -644,13 +644,14 @@ __kernel void k_hippo_repulsion(const __global numtyp4 *restrict x_,
         term4*qiy + term5*qky + term6*(qiyk+qkyi);
       numtyp frcz = de*zr + term1*diz + term2*dkz + term3*(diqkz-dkqiz) +
         term4*qiz + term5*qkz + term6*(qizk+qkzi);
+
       frcx = frcx*rr1 + eterm*rr3*xr;
       frcy = frcy*rr1 + eterm*rr3*yr;
       frcz = frcz*rr1 + eterm*rr3*zr;
       frcx = sizik * frcx;
       frcy = sizik * frcy;
       frcz = sizik * frcz;
-
+      
       // compute the torque components for this interaction
 
       numtyp ttmix = -dmpik[2]*dikx + term1*dirx + term3*(dqikx+dkqirx) -
@@ -903,7 +904,7 @@ __kernel void k_hippo_dispersion(const __global numtyp4 *restrict x_,
   //store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
   //   offset,eflag,vflag,ans,engv);
   store_answers_acc(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
-     offset,eflag,vflag,ans,engv,NUM_BLOCKS_X);     
+     offset,eflag,vflag,ans,engv,NUM_BLOCKS_X);
 }
 
 /* ----------------------------------------------------------------------

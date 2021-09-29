@@ -410,21 +410,21 @@ _texture( q_tex,int2);
 ------------------------------------------------------------------------- */
 
 __kernel void k_hippo_repulsion(const __global numtyp4 *restrict x_,
-                                 const __global numtyp *restrict extra,
-                                 const __global numtyp4 *restrict coeff,
-                                 const __global numtyp4 *restrict sp_nonpolar,
-                                 const __global int *dev_nbor,
-                                 const __global int *dev_packed,
-                                 const __global int *dev_short_nbor,
-                                 __global acctyp4 *restrict ans,
-                                 __global acctyp *restrict engv,
-                                 __global acctyp4 *restrict tep,
-                                 const int eflag, const int vflag, const int inum,
-                                 const int nall, const int nbor_pitch,
-                                 const int t_per_atom, const numtyp aewald,
-                                 const numtyp off2, const numtyp cut2,
-                                 const numtyp c0, const numtyp c1, const numtyp c2,
-                                 const numtyp c3, const numtyp c4, const numtyp c5)
+                                const __global numtyp *restrict extra,
+                                const __global numtyp4 *restrict coeff,
+                                const __global numtyp4 *restrict sp_nonpolar,
+                                const __global int *dev_nbor,
+                                const __global int *dev_packed,
+                                const __global int *dev_short_nbor,
+                                __global acctyp4 *restrict ans,
+                                __global acctyp *restrict engv,
+                                __global acctyp4 *restrict tep,
+                                const int eflag, const int vflag, const int inum,
+                                const int nall, const int nbor_pitch,
+                                const int t_per_atom, const numtyp aewald,
+                                const numtyp off2, const numtyp cut2,
+                                const numtyp c0, const numtyp c1, const numtyp c2,
+                                const numtyp c3, const numtyp c4, const numtyp c5)
 {
   int tid, ii, offset, i;
   atom_info(t_per_atom,ii,tid,offset);
@@ -895,9 +895,11 @@ __kernel void k_hippo_dispersion(const __global numtyp4 *restrict x_,
 
   } // ii<inum
 
-  // accumate force, energy and virial
+  // accumate force, energy and virial: use _acc if not the first kernel
   store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
      offset,eflag,vflag,ans,engv);
+  //store_answers_acc(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
+  //   offset,eflag,vflag,ans,engv,NUM_BLOCKS_X);     
 }
 
 /* ----------------------------------------------------------------------
@@ -1236,7 +1238,7 @@ __kernel void k_hippo_multipole(const __global numtyp4 *restrict x_,
 
   // accumate force, energy and virial: use _acc if not the first kernel
   //store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
-     //offset,eflag,vflag,ans,engv);
+  //   offset,eflag,vflag,ans,engv);
   store_answers_acc(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
      offset,eflag,vflag,ans,engv,NUM_BLOCKS_X);
 }

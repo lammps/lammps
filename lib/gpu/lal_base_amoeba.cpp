@@ -399,12 +399,12 @@ int** BaseAmoebaT::precompute(const int ago, const int inum_full, const int nall
     if (!success)
       return nullptr;
     atom->cast_q_data(host_q);
-    cast_extra_data(host_amtype, host_amgroup, host_rpole, host_uind, host_uinp);
+    cast_extra_data(host_amtype, host_amgroup, host_rpole, host_uind, host_uinp, host_pval);
     hd_balancer.start_timer();
   } else {
     atom->cast_x_data(host_x,host_type);
     atom->cast_q_data(host_q);
-    cast_extra_data(host_amtype, host_amgroup, host_rpole, host_uind, host_uinp);
+    cast_extra_data(host_amtype, host_amgroup, host_rpole, host_uind, host_uinp, host_pval);
     hd_balancer.start_timer();
     atom->add_x_data(host_x,host_type);
   }

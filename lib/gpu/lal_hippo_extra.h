@@ -125,9 +125,9 @@ ucl_inline void damprep(const numtyp r, const numtyp r2, const numtyp rr1,
       (dmpi2*dmpk2*r2/(numtyp)3.0 + dmpi22*dmpk2*r3/(numtyp)3.0 +
        ((numtyp)4.0/(numtyp)3.0)*dmpi23*dmpk2*r2/term + (numtyp)4.0*dmpi22*dmpk2*r/term +
        (numtyp)4.0*dmpi2*dmpk2/term) * expi;
-    d3s = (dmpi2*dmpk23*r4/15.0 + dmpi2*dmpk22*r3/(numtyp)5.0 + dmpi2*dmpk2*r2/(numtyp)5.0 -
-           (4.0/15.0)*dmpi2*dmpk24*r3/term - ((numtyp)8.0/(numtyp)5.0)*dmpi2*dmpk23*r2/term -
-           (numtyp)4.0*dmpi2*dmpk22*r/term - 4.0/term*dmpi2*dmpk2) * expk +
+    d3s = (dmpi2*dmpk23*r4/(numtyp)15.0 + dmpi2*dmpk22*r3/(numtyp)5.0 + dmpi2*dmpk2*r2/(numtyp)5.0 -
+           ((numtyp)4.0/(numtyp)15.0)*dmpi2*dmpk24*r3/term - ((numtyp)8.0/(numtyp)5.0)*dmpi2*dmpk23*r2/term -
+           (numtyp)4.0*dmpi2*dmpk22*r/term - (numtyp)4.0/term*dmpi2*dmpk2) * expk +
       (dmpi23*dmpk2*r4/(numtyp)15.0 + dmpi22*dmpk2*r3/(numtyp)5.0 + dmpi2*dmpk2*r2/(numtyp)5.0 +
        ((numtyp)4.0/(numtyp)15.0)*dmpi24*dmpk2*r3/term + ((numtyp)8.0/(numtyp)5.0)*dmpi23*dmpk2*r2/term +
        (numtyp)4.0*dmpi22*dmpk2*r/term + (numtyp)4.0/term*dmpi2*dmpk2) * expi;
@@ -136,7 +136,7 @@ ucl_inline void damprep(const numtyp r, const numtyp r2, const numtyp rr1,
            ((numtyp)4.0/(numtyp)105.0)*dmpi2*dmpk25*r4/term - ((numtyp)8.0/21.0)*dmpi2*dmpk24*r3/term -
            ((numtyp)12.0/(numtyp)7.0)*dmpi2*dmpk23*r2/term - (numtyp)4.0*dmpi2*dmpk22*r/term -
            (numtyp)4.0*dmpi2*dmpk2/term) * expk +
-      (dmpi24*dmpk2*r5/(numtyp)105.0 + (2.0/(numtyp)35.0)*dmpi23*dmpk2*r4 +
+      (dmpi24*dmpk2*r5/(numtyp)105.0 + ((numtyp)2.0/(numtyp)35.0)*dmpi23*dmpk2*r4 +
        dmpi22*dmpk2*r3/(numtyp)7.0 + dmpi2*dmpk2*r2/(numtyp)7.0 +
        ((numtyp)4.0/(numtyp)105.0)*dmpi25*dmpk2*r4/term + ((numtyp)8.0/(numtyp)21.0)*dmpi24*dmpk2*r3/term +
        ((numtyp)12.0/(numtyp)7.0)*dmpi23*dmpk2*r2/term + (numtyp)4.0*dmpi22*dmpk2*r/term +
@@ -146,17 +146,17 @@ ucl_inline void damprep(const numtyp r, const numtyp r2, const numtyp rr1,
       r6 = r5 * r;
       dmpi26 = dmpi25 * dmpi2;
       dmpk26 = dmpk25 * dmpk2;
-      d5s = (dmpi2*dmpk25*r6/945.0 + (2.0/189.0)*dmpi2*dmpk24*r5 +
-             dmpi2*dmpk23*r4/21.0 + dmpi2*dmpk22*r3/9.0 + dmpi2*dmpk2*r2/9.0 -
-             (4.0/945.0)*dmpi2*dmpk26*r5/term -
-             (4.0/63.0)*dmpi2*dmpk25*r4/term - (4.0/9.0)*dmpi2*dmpk24*r3/term -
-             (16.0/9.0)*dmpi2*dmpk23*r2/term - 4.0*dmpi2*dmpk22*r/term -
-             4.0*dmpi2*dmpk2/term) * expk +
-        (dmpi25*dmpk2*r6/945.0 + (2.0/189.0)*dmpi24*dmpk2*r5 +
-         dmpi23*dmpk2*r4/21.0 + dmpi22*dmpk2*r3/9.0 + dmpi2*dmpk2*r2/9.0 +
-         (4.0/945.0)*dmpi26*dmpk2*r5/term + (4.0/63.0)*dmpi25*dmpk2*r4/term +
-         (4.0/9.0)*dmpi24*dmpk2*r3/term + (16.0/9.0)*dmpi23*dmpk2*r2/term +
-         4.0*dmpi22*dmpk2*r/term + 4.0*dmpi2*dmpk2/term) * expi;
+      d5s = (dmpi2*dmpk25*r6/(numtyp)945.0 + ((numtyp)2.0/(numtyp)189.0)*dmpi2*dmpk24*r5 +
+             dmpi2*dmpk23*r4/(numtyp)21.0 + dmpi2*dmpk22*r3/(numtyp)9.0 + dmpi2*dmpk2*r2/(numtyp)9.0 -
+             ((numtyp)4.0/(numtyp)945.0)*dmpi2*dmpk26*r5/term -
+             ((numtyp)4.0/(numtyp)63.0)*dmpi2*dmpk25*r4/term - ((numtyp)4.0/(numtyp)9.0)*dmpi2*dmpk24*r3/term -
+             ((numtyp)16.0/(numtyp)9.0)*dmpi2*dmpk23*r2/term - (numtyp)4.0*dmpi2*dmpk22*r/term -
+             (numtyp)4.0*dmpi2*dmpk2/term) * expk +
+        (dmpi25*dmpk2*r6/(numtyp)945.0 + ((numtyp)2.0/(numtyp)189.0)*dmpi24*dmpk2*r5 +
+         dmpi23*dmpk2*r4/(numtyp)21.0 + dmpi22*dmpk2*r3/(numtyp)9.0 + dmpi2*dmpk2*r2/(numtyp)9.0 +
+         ((numtyp)4.0/(numtyp)945.0)*dmpi26*dmpk2*r5/term + ((numtyp)4.0/(numtyp)63.0)*dmpi25*dmpk2*r4/term +
+         ((numtyp)4.0/(numtyp)9.0)*dmpi24*dmpk2*r3/term + ((numtyp)16.0/(numtyp)9.0)*dmpi23*dmpk2*r2/term +
+         (numtyp)4.0*dmpi22*dmpk2*r/term + (numtyp)4.0*dmpi2*dmpk2/term) * expi;
     }
   }
 

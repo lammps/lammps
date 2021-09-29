@@ -78,7 +78,7 @@ int BaseAmoebaT::init_atomic(const int nlocal, const int nall,
   bool rot = false;
   bool vel = false;
   _extra_fields = 24; // round up to accomodate quadruples of numtyp values
-                      // rpole 13; uind 3; uinp 3; amtype, amgroup
+                      // rpole 13; uind 3; uinp 3; amtype, amgroup; pval
   int success=device->init(*ans,charge,rot,nlocal,nall,maxspecial,vel,_extra_fields);
   if (success!=0)
     return success;

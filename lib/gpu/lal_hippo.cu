@@ -493,9 +493,9 @@ __kernel void k_hippo_repulsion(const __global numtyp4 *restrict x_,
       //int jtype=jx.w;
 
       // Compute r12
-      numtyp xr = ix.x - jx.x;
-      numtyp yr = ix.y - jx.y;
-      numtyp zr = ix.z - jx.z;
+      numtyp xr = jx.x - ix.x;
+      numtyp yr = jx.y - ix.y;
+      numtyp zr = jx.z - ix.z;
       numtyp r2 = xr*xr + yr*yr + zr*zr;
 
       if (r2>off2) continue;
@@ -521,6 +521,7 @@ __kernel void k_hippo_repulsion(const __global numtyp4 *restrict x_,
 
       const numtyp4 sp_nonpol = sp_nonpolar[sbmask15(jextra)];
       numtyp factor_repel = sp_nonpol.y; // factor_repel = special_repel[sbmask15(j)];
+      if (factor_repel == (numtyp)0) continue;
 
       // intermediates involving moments and separation distance
 
@@ -614,7 +615,7 @@ __kernel void k_hippo_repulsion(const __global numtyp4 *restrict x_,
       numtyp term1 = vali*valk;
       numtyp term2 = valk*dir - vali*dkr + dik;
       numtyp term3 = vali*qkr + valk*qir - dir*dkr + (numtyp)2.0*(dkqi-diqk+qiqk);
-      numtyp term4 = dir*qkr - dkr*qir - 4.0*qik;
+      numtyp term4 = dir*qkr - dkr*qir - (numtyp)4.0*qik;
       numtyp term5 = qir*qkr;
       numtyp eterm = term1*dmpik[0] + term2*dmpik[2] +
         term3*dmpik[4] + term4*dmpik[6] + term5*dmpik[8];
@@ -646,6 +647,9 @@ __kernel void k_hippo_repulsion(const __global numtyp4 *restrict x_,
       frcx = frcx*rr1 + eterm*rr3*xr;
       frcy = frcy*rr1 + eterm*rr3*yr;
       frcz = frcz*rr1 + eterm*rr3*zr;
+      frcx = sizik * frcx;
+      frcy = sizik * frcy;
+      frcz = sizik * frcz;
 
       // compute the torque components for this interaction
 
@@ -666,7 +670,7 @@ __kernel void k_hippo_repulsion(const __global numtyp4 *restrict x_,
         numtyp r4 = r2 * r2;
         numtyp r5 = r2 * r3;
         numtyp taper = c5*r5 + c4*r4 + c3*r3 + c2*r2 + c1*r + c0;
-        numtyp dtaper = (numtyp)5.0*c5*r4 + (numtyp).0*c4*r3 +
+        numtyp dtaper = (numtyp)5.0*c5*r4 + (numtyp)4.0*c4*r3 +
           (numtyp)3.0*c3*r2 + (numtyp)2.0*c2*r + c1;
         dtaper *= e * rr1;
         e *= taper;
@@ -896,10 +900,10 @@ __kernel void k_hippo_dispersion(const __global numtyp4 *restrict x_,
   } // ii<inum
 
   // accumate force, energy and virial: use _acc if not the first kernel
-  store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
-     offset,eflag,vflag,ans,engv);
-  //store_answers_acc(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
-  //   offset,eflag,vflag,ans,engv,NUM_BLOCKS_X);     
+  //store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
+  //   offset,eflag,vflag,ans,engv);
+  store_answers_acc(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,
+     offset,eflag,vflag,ans,engv,NUM_BLOCKS_X);     
 }
 
 /* ----------------------------------------------------------------------

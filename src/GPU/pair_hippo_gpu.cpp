@@ -147,7 +147,7 @@ PairHippoGPU::PairHippoGPU(LAMMPS *lmp) : PairAmoeba(lmp), gpu_mode(GPU_FORCE)
   tq_pinned = nullptr;
 
   gpu_hal_ready = false;               // always false for HIPPO
-  gpu_repulsion_ready = false;         // true for HIPPO when ready
+  gpu_repulsion_ready = true;         // true for HIPPO when ready
   gpu_dispersion_real_ready = true;   // true for HIPPO when ready
   gpu_multipole_real_ready = true;
   gpu_udirect2b_ready = true;

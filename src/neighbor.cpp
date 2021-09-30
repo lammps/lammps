@@ -2410,15 +2410,11 @@ void Neighbor::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"check") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal neigh_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) dist_check = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) dist_check = 0;
-      else error->all(FLERR,"Illegal neigh_modify command");
+      dist_check = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"once") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal neigh_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) build_once = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) build_once = 0;
-      else error->all(FLERR,"Illegal neigh_modify command");
+      build_once = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"page") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal neigh_modify command");
@@ -2438,9 +2434,7 @@ void Neighbor::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"cluster") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal neigh_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) cluster_check = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) cluster_check = 0;
-      else error->all(FLERR,"Illegal neigh_modify command");
+      cluster_check = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"include") == 0) {

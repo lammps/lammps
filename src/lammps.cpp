@@ -266,8 +266,11 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
                strcmp(arg[iarg],"-k") == 0) {
       if (iarg+2 > narg)
         error->universe_all(FLERR,"Invalid command-line argument");
-      if (strcmp(arg[iarg+1],"on") == 0) kokkosflag = 1;
-      else if (strcmp(arg[iarg+1],"off") == 0) kokkosflag = 0;
+      const std::string kokkosarg = arg[iarg+1];
+      if ((kokkosarg == "on") || (kokkosarg == "yes") || (kokkosarg == "true"))
+        kokkosflag = 1;
+      else if ((kokkosarg == "off") || (kokkosarg == "no") || (kokkosarg == "false"))
+        kokkosflag = 0;
       else error->universe_all(FLERR,"Invalid command-line argument");
       iarg += 2;
       // delimit any extra args for the Kokkos instantiation

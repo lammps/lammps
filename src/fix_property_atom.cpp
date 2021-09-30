@@ -151,9 +151,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"ghost") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix property/atom command");
-      if (strcmp(arg[iarg+1],"no") == 0) border = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) border = 1;
-      else error->all(FLERR,"Illegal fix property/atom command");
+      border = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix property/atom command");
   }

@@ -915,11 +915,14 @@ int Neighbor::init_pair()
     requests[i]->index_bin = -1;
     flag = lists[i]->bin_method;
     if (flag == 0) continue;
-    for (j = 0; j < nbin; j++)
-      if (neigh_bin[j]->istyle == flag) break;
-    if (j < nbin && !requests[i]->unique) {
-      requests[i]->index_bin = j;
-      continue;
+    if (!requests[i]->unique) {
+      for (j = 0; j < nbin; j++)
+        if (neigh_bin[j]->istyle == flag &&
+            neigh_bin[j]->cutoff_custom == 0.0) break;
+      if (j < nbin) {
+        requests[i]->index_bin = j;
+        continue;
+      }
     }
 
     BinCreator &bin_creator = binclass[flag-1];
@@ -936,11 +939,14 @@ int Neighbor::init_pair()
     requests[i]->index_stencil = -1;
     flag = lists[i]->stencil_method;
     if (flag == 0) continue;
-    for (j = 0; j < nstencil; j++)
-      if (neigh_stencil[j]->istyle == flag) break;
-    if (j < nstencil && !requests[i]->unique) {
-      requests[i]->index_stencil = j;
-      continue;
+    if (!requests[i]->unique) {
+      for (j = 0; j < nstencil; j++)
+        if (neigh_stencil[j]->istyle == flag &&
+            neigh_stencil[j]->cutoff_custom == 0.0) break;
+      if (j < nstencil) {
+        requests[i]->index_stencil = j;
+        continue;
+      }
     }
 
     StencilCreator &stencil_creator = stencilclass[flag-1];
@@ -2515,6 +2521,7 @@ void Neighbor::modify_params(int narg, char **arg)
       int i;
 
       // Invalidate old user cutoffs
+
       comm->ncollections_cutoff = 0;
       interval_collection_flag = 1;
       custom_collection_flag = 1;
@@ -2546,9 +2553,10 @@ void Neighbor::modify_params(int narg, char **arg)
         error->all(FLERR,"Invalid collection/type command");
 
       int ntypes = atom->ntypes;
-      int n, nlo, nhi, i, j, k;
+      int nlo, nhi, i, k;
 
       // Invalidate old user cutoffs
+
       comm->ncollections_cutoff = 0;
       interval_collection_flag = 0;
       custom_collection_flag = 1;
@@ -2556,10 +2564,12 @@ void Neighbor::modify_params(int narg, char **arg)
         memory->create(type2collection,ntypes+1,"neigh:type2collection");
 
       // Erase previous mapping
+
       for (i = 1; i <= ntypes; i++)
         type2collection[i] = -1;
 
       // For each custom range, define mapping for types in interval
+
       for (i = 0; i < ncollections; i++){
         std::vector<std::string> words = Tokenizer(arg[iarg+2+i], ",").as_vector();
         for (const auto &word : words) {
@@ -2573,6 +2583,7 @@ void Neighbor::modify_params(int narg, char **arg)
       }
 
       // Check for undefined atom type
+
       for (i = 1; i <= ntypes; i++){
         if (type2collection[i] == -1) {
           error->all(FLERR,"Type missing in collection/type commnd");

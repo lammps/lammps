@@ -28,11 +28,11 @@
 #include "update.h"
 #include "version.h"
 
+#include "ch5md.h"
+
 #include <climits>
 #include <cmath>
 #include <cstring>
-
-#include "ch5md.h"
 
 using namespace LAMMPS_NS;
 

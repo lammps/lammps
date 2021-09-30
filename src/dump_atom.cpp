@@ -560,7 +560,8 @@ void DumpAtom::write_binary(int n, double *mybuf)
 
 void DumpAtom::write_string(int n, double *mybuf)
 {
-  fwrite(mybuf,sizeof(char),n,fp);
+  if (mybuf)
+    fwrite(mybuf,sizeof(char),n,fp);
 }
 
 /* ---------------------------------------------------------------------- */

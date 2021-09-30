@@ -2442,7 +2442,7 @@ double FixNPTCauchy::memory_usage()
 void FixNPTCauchy::CauchyStat_init()
 {
   if (comm->me == 0) {
-    std::string mesg = fmt::format("Using fix npt/cauchy with alpha={:f.8}\n",alpha);
+    std::string mesg = fmt::format("Using fix npt/cauchy with alpha={:.8f}\n",alpha);
     if (restartPK==1) {
       mesg += "   (this is a continuation run)\n";
     } else {
@@ -2463,7 +2463,7 @@ void FixNPTCauchy::CauchyStat_init()
     error->all(FLERR,"Illegal fix npt/cauchy command: Alpha cannot be zero or negative.");
 
   if (restart_stored < 0) {
-    modify->add_fix(std::string(id_store) + "all STORE global 1 6");
+    modify->add_fix(std::string(id_store) + " all STORE global 1 6");
     restart_stored = modify->find_fix(id_store);
   }
   init_store = (FixStore *)modify->fix[restart_stored];

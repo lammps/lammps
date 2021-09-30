@@ -910,7 +910,8 @@ void FixBondReact::post_integrate()
 
   int j;
   for (rxnID = 0; rxnID < nreacts; rxnID++) {
-    if (max_rxn[rxnID] <= reaction_count_total[rxnID]) continue;
+    if ((update->ntimestep % nevery[rxnID]) ||
+        (max_rxn[rxnID] <= reaction_count_total[rxnID])) continue;
     for (int ii = 0; ii < nall; ii++) {
       partner[ii] = 0;
       finalpartner[ii] = 0;

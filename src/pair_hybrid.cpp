@@ -512,13 +512,16 @@ void PairHybrid::coeff(int narg, char **arg)
   // then unset setflag/map assigned to that style before setting it below
   // in case pair coeff for this sub-style is being called for 2nd time
 
-  if (!none && styles[m]->one_coeff)
+  if (!none && styles[m]->one_coeff) {
+    if ((strcmp(arg[0],"*") != 0) || (strcmp(arg[1],"*") != 0))
+      error->all(FLERR,"Incorrect args for pair coefficients");
     for (int i = 1; i <= atom->ntypes; i++)
       for (int j = i; j <= atom->ntypes; j++)
         if (nmap[i][j] && map[i][j][0] == m) {
           setflag[i][j] = 0;
           nmap[i][j] = 0;
         }
+  }
 
   // set setflag and which type pairs map to which sub-style
   // if sub-style is none: set hybrid setflag, wipe out map

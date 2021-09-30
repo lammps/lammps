@@ -492,13 +492,8 @@ void FixACKS2ReaxFF::compute_X()
     }
   }
 
-  if (m_fill >= X.m) {
-    char str[128];
-    sprintf(str,"X matrix size has been exceeded: m_fill=%d X.m=%d\n",
-             m_fill, X.m);
-    error->warning(FLERR,str);
-    error->all(FLERR,"Fix acks2/reaxff has insufficient ACKS2 matrix size");
-  }
+  if (m_fill >= X.m)
+    error->all(FLERR,"Fix acks2/reaxff has insufficient ACKS2 X matrix size: m_fill={} X.m={}\n",m_fill,X.m);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -621,14 +616,11 @@ int FixACKS2ReaxFF::BiCGStab(double *b, double *x)
 
   if (comm->me == 0) {
     if (omega == 0 || rho == 0) {
-      char str[128];
-      sprintf(str,"Fix acks2/reaxff BiCGStab numerical breakdown, omega = %g, rho = %g",omega,rho);
-      error->warning(FLERR,str);
+      error->warning(FLERR,"Fix acks2/reaxff BiCGStab numerical breakdown, omega = {:.8}, rho = {:.8}",
+                      omega,rho);
     } else if (i >= imax) {
-      char str[128];
-      sprintf(str,"Fix acks2/reaxff BiCGStab convergence failed after %d iterations "
-              "at " BIGINT_FORMAT " step",i,update->ntimestep);
-      error->warning(FLERR,str);
+      error->warning(FLERR,"Fix acks2/reaxff BiCGStab convergence failed afteri {} iterations "
+                           "at step {}", i, update->ntimestep);
     }
   }
 

@@ -33,35 +33,28 @@ DISTRIBUTION A. Approved for public release; distribution unlimited. OPSEC#4918
 #include "rann_activation.h"
 
 namespace LAMMPS_NS {
-  namespace RANN {
+namespace RANN {
 
-    class Activation_linear : public Activation {
-    public:
-      Activation_linear(class PairRANN *);
-      double activation_function(double);
-      double dactivation_function(double);
-      double ddactivation_function(double);
-    };
+  class Activation_linear : public Activation {
+   public:
+    Activation_linear(class PairRANN *);
+    double activation_function(double);
+    double dactivation_function(double);
+    double ddactivation_function(double);
+  };
 
-    Activation_linear::Activation_linear(PairRANN *_pair) : Activation(_pair) {
-      empty = false;
-      style = "linear";
-    }
-
-    double Activation_linear::activation_function(double A)
-    {
-      return A;
-    }
-
-    double Activation_linear::dactivation_function(double)
-    {
-      return 1.0;
-    }
-
-    double Activation_linear::ddactivation_function(double) {
-      return 0.0;
-    }
+  Activation_linear::Activation_linear(PairRANN *_pair) : Activation(_pair)
+  {
+    empty = false;
+    style = "linear";
   }
-}
+
+  double Activation_linear::activation_function(double A) { return A; }
+
+  double Activation_linear::dactivation_function(double) { return 1.0; }
+
+  double Activation_linear::ddactivation_function(double) { return 0.0; }
+}    // namespace RANN
+}    // namespace LAMMPS_NS
 
 #endif /* ACTIVATION_LINEAR_H_ */

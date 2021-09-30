@@ -78,7 +78,7 @@ class ComputeSpecAtom : public Compute {
   class PairReaxFF *reaxff;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

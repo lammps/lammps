@@ -10,7 +10,7 @@ namespace ATC{
 
  /**
    *  @class  WeakEquationMassDiffusion
-   *  @brief  Mass diffusion 
+   *  @brief  Mass diffusion
    *   c rho,t = div rho  -->
    *   int M c rho,t = int B rho
    */
@@ -18,13 +18,13 @@ namespace ATC{
 class WeakEquationMassDiffusion : public WeakEquation {
 
   public:
-  
-  // constructor 
+
+  // constructor
   WeakEquationMassDiffusion();
 
   // destructor
   virtual ~WeakEquationMassDiffusion();
-  
+
   /** density that used to form the mass matrix */
   virtual bool has_M_integrand(void) const {return true;}
   virtual void M_integrand(const FIELD_MATS &fields,

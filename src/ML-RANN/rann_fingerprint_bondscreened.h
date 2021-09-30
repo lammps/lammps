@@ -34,39 +34,46 @@ DISTRIBUTION A. Approved for public release; distribution unlimited. OPSEC#4918
 #include "rann_fingerprint.h"
 
 namespace LAMMPS_NS {
-  namespace RANN {
+namespace RANN {
 
-    class Fingerprint_bondscreened : public Fingerprint {
-     public:
-      Fingerprint_bondscreened(PairRANN *);
-      ~Fingerprint_bondscreened();
-      bool parse_values(std::string,std::vector<std::string>);
-      void write_values(FILE *);
-      void init(int*,int);
-      void allocate();
-      void compute_fingerprint(double*,double*,double*,double*,double*,double*,double*,double*,double*,double*,double*,bool*,int,int,double*,double*,double*,int*,int,int*);
-      void do3bodyfeatureset_doubleneighborloop(double *,double *,double *,double *,double*,double*,double*,double*,double*,double*,double*,bool*,int,int,double*,double*,double*,int*,int,int*);
-      void do3bodyfeatureset_singleneighborloop(double *,double *,double *,double *,double*,double*,double*,double*,double*,double*,double*,bool*,int,int,double*,double*,double*,int*,int,int*);
-      void generate_exp_cut_table();
-      void generate_coefficients();
-      int get_length();
+  class Fingerprint_bondscreened : public Fingerprint {
+   public:
+    Fingerprint_bondscreened(PairRANN *);
+    ~Fingerprint_bondscreened();
+    bool parse_values(std::string, std::vector<std::string>);
+    void write_values(FILE *);
+    void init(int *, int);
+    void allocate();
+    void compute_fingerprint(double *, double *, double *, double *, double *, double *, double *,
+                             double *, double *, double *, double *, bool *, int, int, double *,
+                             double *, double *, int *, int, int *);
+    void do3bodyfeatureset_doubleneighborloop(double *, double *, double *, double *, double *,
+                                              double *, double *, double *, double *, double *,
+                                              double *, bool *, int, int, double *, double *,
+                                              double *, int *, int, int *);
+    void do3bodyfeatureset_singleneighborloop(double *, double *, double *, double *, double *,
+                                              double *, double *, double *, double *, double *,
+                                              double *, bool *, int, int, double *, double *,
+                                              double *, int *, int, int *);
+    void generate_exp_cut_table();
+    void generate_coefficients();
+    int get_length();
 
-      double *expcuttable;
-      double *dfctable;
-      double dr;
-      double *alpha_k;
-      double re;
-      int **coeff;
-      int **coeffx;
-      int **coeffy;
-      int **coeffz;
-      int kmax;
-      int mlength;
-      int **Mf;
+    double *expcuttable;
+    double *dfctable;
+    double dr;
+    double *alpha_k;
+    double re;
+    int **coeff;
+    int **coeffx;
+    int **coeffy;
+    int **coeffz;
+    int kmax;
+    int mlength;
+    int **Mf;
+  };
+}    // namespace RANN
 
-    };
-  }
-
-}
+}    // namespace LAMMPS_NS
 
 #endif /* FINGERPRINT_BOND_H_ */

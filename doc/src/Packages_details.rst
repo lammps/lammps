@@ -915,7 +915,7 @@ This package has :ref:`specific installation instructions <gpu>` on the :doc:`Bu
 * :doc:`package gpu <package>`
 * :doc:`Commands <Commands_all>` pages (:doc:`pair <Commands_pair>`, :doc:`kspace <Commands_kspace>`)
   for styles followed by (g)
-* `Benchmarks page <https://www.lammps.org/bench.html>`_ of web site
+* `Benchmarks page <https://www.lammps.org/bench.html>`_ of website
 
 ----------
 
@@ -1027,7 +1027,7 @@ This package has :ref:`specific installation instructions <intel>` on the :doc:`
 * Search the :doc:`commands <Commands_all>` pages (:doc:`fix <Commands_fix>`, :doc:`compute <Commands_compute>`,
   :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`, :doc:`kspace <Commands_kspace>`) for styles followed by (i)
 * src/INTEL/TEST
-* `Benchmarks page <https://www.lammps.org/bench.html>`_ of web site
+* `Benchmarks page <https://www.lammps.org/bench.html>`_ of website
 
 ----------
 
@@ -1164,7 +1164,7 @@ This package has :ref:`specific installation instructions <kokkos>` on the :doc:
 * Search the :doc:`commands <Commands_all>` pages (:doc:`fix <Commands_fix>`, :doc:`compute <Commands_compute>`,
   :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`,
   :doc:`kspace <Commands_kspace>`) for styles followed by (k)
-* `Benchmarks page <https://www.lammps.org/bench.html>`_ of web site
+* `Benchmarks page <https://www.lammps.org/bench.html>`_ of website
 
 ----------
 
@@ -1242,7 +1242,7 @@ A fix command which wraps the LATTE DFTB code, so that molecular
 dynamics can be run with LAMMPS using density-functional tight-binding
 quantum forces calculated by LATTE.
 
-More information on LATTE can be found at this web site:
+More information on LATTE can be found at this website:
 `https://github.com/lanl/LATTE <latte-home_>`_.  A brief technical
 description is given with the :doc:`fix latte <fix_latte>` command.
 
@@ -2017,7 +2017,7 @@ the :doc:`Build extras <Build_extras>` page.
 * Search the :doc:`commands <Commands_all>` pages (:doc:`fix <Commands_fix>`, :doc:`compute <Commands_compute>`,
   :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`,
   :doc:`kspace <Commands_kspace>`) for styles followed by (o)
-* `Benchmarks page <https://www.lammps.org/bench.html>`_ of web site
+* `Benchmarks page <https://www.lammps.org/bench.html>`_ of website
 
 ----------
 
@@ -2051,7 +2051,7 @@ This package has :ref:`specific installation instructions <opt>` on the :doc:`Bu
 * :doc:`OPT package <Speed_opt>`
 * :doc:`Section 2.6 -sf opt <Run_options>`
 * Search the :doc:`pair style <Commands_pair>` page for styles followed by (t)
-* `Benchmarks page <https://www.lammps.org/bench.html>`_ of web site
+* `Benchmarks page <https://www.lammps.org/bench.html>`_ of website
 
 .. _PKG-ORIENT:
 
@@ -2248,16 +2248,16 @@ PYTHON package
 
 A :doc:`python <python>` command which allow you to execute Python code
 from a LAMMPS input script.  The code can be in a separate file or
-embedded in the input script itself.  See the :doc:`Python call <Python_call>` page for an overview of using Python from
-LAMMPS in this manner and all the :doc:`Python <Python_head>` manual pages
-for other ways to use LAMMPS and Python together.
+embedded in the input script itself.  See the :doc:`Python call
+<Python_call>` page for an overview of using Python from LAMMPS in this
+manner and all the :doc:`Python <Python_head>` manual pages for other
+ways to use LAMMPS and Python together.
 
 .. note::
 
-   Building with the PYTHON package assumes you have a Python
-   shared library available on your system, which needs to be a Python 2
-   version, 2.6 or later.  Python 3 is not yet supported.  See the
-   lib/python/README for more details.
+   Building with the PYTHON package assumes you have a Python development
+   environment (headers and libraries) available on your system, which needs
+   to be either Python version 2.7 or Python 3.5 and later.
 
 **Install:**
 

@@ -142,12 +142,7 @@ FixSRD::FixSRD(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg], "overlap") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix srd command");
-      if (strcmp(arg[iarg + 1], "yes") == 0)
-        overlap = 1;
-      else if (strcmp(arg[iarg + 1], "no") == 0)
-        overlap = 0;
-      else
-        error->all(FLERR, "Illegal fix srd command");
+      overlap = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "inside") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix srd command");
@@ -162,12 +157,7 @@ FixSRD::FixSRD(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg], "exact") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix srd command");
-      if (strcmp(arg[iarg + 1], "yes") == 0)
-        exactflag = 1;
-      else if (strcmp(arg[iarg + 1], "no") == 0)
-        exactflag = 0;
-      else
-        error->all(FLERR, "Illegal fix srd command");
+      exactflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "radius") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix srd command");
@@ -206,12 +196,7 @@ FixSRD::FixSRD(LAMMPS *lmp, int narg, char **arg) :
       iarg += 3;
     } else if (strcmp(arg[iarg], "tstat") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix srd command");
-      if (strcmp(arg[iarg + 1], "no") == 0)
-        tstat = 0;
-      else if (strcmp(arg[iarg + 1], "yes") == 0)
-        tstat = 1;
-      else
-        error->all(FLERR, "Illegal fix srd command");
+      tstat = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "rescale") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix srd command");
@@ -1340,13 +1325,17 @@ void FixSRD::collisions_single()
               std::string mesg;
               if (type != WALL)
                 mesg = fmt::format("SRD particle {} started inside big particle {} on step {} "
-                                   " bounce {}", tag[i], tag[j], update->ntimestep, ibounce + 1);
+                                   " bounce {}",
+                                   tag[i], tag[j], update->ntimestep, ibounce + 1);
               else
                 mesg = fmt::format("SRD particle {} started inside wall {} on step {} "
-                                   "bounce {}", tag[i], j, update->ntimestep, ibounce + 1);
+                                   "bounce {}",
+                                   tag[i], j, update->ntimestep, ibounce + 1);
 
-              if (insideflag == INSIDE_ERROR) error->one(FLERR, mesg);
-              else error->warning(FLERR, mesg);
+              if (insideflag == INSIDE_ERROR)
+                error->one(FLERR, mesg);
+              else
+                error->warning(FLERR, mesg);
             }
             break;
           }
@@ -1490,10 +1479,12 @@ void FixSRD::collisions_multi()
               std::string mesg;
               if (type != WALL)
                 mesg = fmt::format("SRD particle {} started inside big particle {} on step {} "
-                                   "bounce {}", tag[i], tag[j], update->ntimestep, ibounce + 1);
+                                   "bounce {}",
+                                   tag[i], tag[j], update->ntimestep, ibounce + 1);
               else
                 mesg = fmt::format("SRD particle {} started inside wall {} on step {} "
-                                   "bounce {}", tag[i], j, update->ntimestep, ibounce + 1);
+                                   "bounce {}",
+                                   tag[i], j, update->ntimestep, ibounce + 1);
 
               if (insideflag == INSIDE_ERROR) error->one(FLERR, mesg);
               error->warning(FLERR, mesg);

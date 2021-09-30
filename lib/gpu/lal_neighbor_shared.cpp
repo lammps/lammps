@@ -89,7 +89,7 @@ double NeighborShared::best_cell_size(const double subx, const double suby,
 }
 
 void NeighborShared::compile_kernels(UCL_Device &dev, const int gpu_nbor,
-                                     const std::string flags) {
+                                     const std::string &flags) {
   if (_compiled)
           return;
 

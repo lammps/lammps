@@ -32,6 +32,7 @@ class PairLebedevaZ : public Pair {
   virtual void compute(int, int);
   void settings(int, char **);
   void coeff(int, char **);
+  void init_style();
   double init_one(int, int);
 
   static constexpr int NPARAMS_PER_LINE = 12;

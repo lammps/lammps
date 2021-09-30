@@ -21,7 +21,7 @@ FixStyle(mdi/engine, FixMDIEngine);
 #define LMP_FIX_MDI_ENGINE_H
 
 #include "fix.h"
-#include "mdi.h"
+#include <mdi.h>                // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
@@ -37,7 +37,6 @@ class FixMDIEngine : public Fix {
 
   // receive and update forces
 
-  //void setup(int);
   void min_setup(int);
   void post_integrate();
   void post_force(int);

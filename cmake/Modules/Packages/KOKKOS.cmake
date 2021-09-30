@@ -1,6 +1,8 @@
 ########################################################################
 # As of version 3.3.0 Kokkos requires C++14
-set(CMAKE_CXX_STANDARD 14)
+if(CMAKE_CXX_STANDARD LESS 14)
+  set(CMAKE_CXX_STANDARD 14)
+endif()
 ########################################################################
 # consistency checks and Kokkos options/settings required by LAMMPS
 if(Kokkos_ENABLE_CUDA)

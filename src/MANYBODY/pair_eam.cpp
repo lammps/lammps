@@ -394,9 +394,7 @@ void PairEAM::coeff(int narg, char **arg)
     funcfl = (Funcfl *)
       memory->srealloc(funcfl,nfuncfl*sizeof(Funcfl),"pair:funcfl");
     read_file(arg[2]);
-    int n = strlen(arg[2]) + 1;
-    funcfl[ifuncfl].file = new char[n];
-    strcpy(funcfl[ifuncfl].file,arg[2]);
+    funcfl[ifuncfl].file = utils::strdup(arg[2]);
   }
 
   // set setflag and map only for i,i type pairs

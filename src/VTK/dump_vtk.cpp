@@ -2070,9 +2070,7 @@ int DumpVTK::modify_param(int narg, char **arg)
 
   if (strcmp(arg[0],"binary") == 0) {
      if (narg < 2) error->all(FLERR,"Illegal dump_modify command [binary]");
-     if (strcmp(arg[1],"yes") == 0) binary = 1;
-     else if (strcmp(arg[1],"no") == 0) binary = 0;
-     else error->all(FLERR,"Illegal dump_modify command [binary]");
+     binary = utils::logical(FLERR,arg[1],false,lmp);
      return 2;
   }
 

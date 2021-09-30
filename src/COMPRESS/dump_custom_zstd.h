@@ -28,7 +28,6 @@ DumpStyle(custom/zstd,DumpCustomZstd);
 
 #include "dump_custom.h"
 #include "zstd_file_writer.h"
-#include <stdio.h>
 
 namespace LAMMPS_NS {
 

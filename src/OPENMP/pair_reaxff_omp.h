@@ -22,7 +22,7 @@ PairStyle(reax/c/omp,PairReaxFFOMP);
 #define LMP_PAIR_REAXFF_OMP_H
 
 #include "pair_reaxff.h"
-#include "thr_omp.h"
+#include "thr_omp.h"            // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
@@ -48,31 +48,29 @@ class PairReaxFFOMP : public PairReaxFF, public ThrOMP {
     reduce_thr(styleparm, eflagparm, vflagparm, thrparm);
   }
 
-  inline void ev_tally_thr_proxy(const int iparm, const int jparm,
-                                 const int nlocalparm, const int newton_pairparm,
-                                 const double evdwlparm, const double ecoulparm,
-                                 const double fpairparm, const double delxparm,
-                                 const double delyparm, const double delzparm,
-                                 ThrData *const thrparm)
+  inline void ev_tally_thr_proxy(const int iparm, const int jparm, const int nlocalparm,
+                                 const int newton_pairparm, const double evdwlparm,
+                                 const double ecoulparm, const double fpairparm,
+                                 const double delxparm, const double delyparm,
+                                 const double delzparm, ThrData *const thrparm)
   {
-    ev_tally_thr(this, iparm, jparm, nlocalparm, newton_pairparm, evdwlparm, ecoulparm,
-                 fpairparm, delxparm, delyparm, delzparm, thrparm);
+    ev_tally_thr(this, iparm, jparm, nlocalparm, newton_pairparm, evdwlparm, ecoulparm, fpairparm,
+                 delxparm, delyparm, delzparm, thrparm);
   }
 
-  inline void ev_tally_xyz_thr_proxy(const int iparm, const int jparm,
-                                     const int nlocalparm, const int newton_pairparm,
-                                     const double evdwlparm, const double ecoulparm,
-                                     const double fxparm, const double fyparm, const double fzparm,
+  inline void ev_tally_xyz_thr_proxy(const int iparm, const int jparm, const int nlocalparm,
+                                     const int newton_pairparm, const double evdwlparm,
+                                     const double ecoulparm, const double fxparm,
+                                     const double fyparm, const double fzparm,
                                      const double delxparm, const double delyparm,
                                      const double delzparm, ThrData *const thrparm)
   {
-    ev_tally_xyz_thr(this, iparm, jparm, nlocalparm, newton_pairparm, evdwlparm, ecoulparm,
-                     fxparm, fyparm, fzparm, delxparm, delyparm, delzparm, thrparm);
+    ev_tally_xyz_thr(this, iparm, jparm, nlocalparm, newton_pairparm, evdwlparm, ecoulparm, fxparm,
+                     fyparm, fzparm, delxparm, delyparm, delzparm, thrparm);
   }
 
-  inline void ev_tally3_thr_proxy(int i, int j, int k, double evdwl,
-                                  double ecoul, double *fj, double *fk, double *drji, double *drki,
-                                  ThrData *const thrparm)
+  inline void ev_tally3_thr_proxy(int i, int j, int k, double evdwl, double ecoul, double *fj,
+                                  double *fk, double *drji, double *drki, ThrData *const thrparm)
   {
     ev_tally3_thr(this, i, j, k, evdwl, ecoul, fj, fk, drji, drki, thrparm);
   }

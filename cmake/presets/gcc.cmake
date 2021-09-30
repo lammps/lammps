@@ -1,4 +1,4 @@
-# preset that will restore gcc/g++ with support for MPI and OpenMP (on Linux boxes)
+# preset that will explicitly request gcc/g++ compilers with support for MPI and OpenMP
 
 set(CMAKE_CXX_COMPILER "g++" CACHE STRING "" FORCE)
 set(CMAKE_C_COMPILER "gcc" CACHE STRING "" FORCE)
@@ -15,9 +15,9 @@ set(CMAKE_C_FLAGS_RELWITHDEBINFO "-g -O2 -DNDEBUG" CACHE STRING "" FORCE)
 set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG" CACHE STRING "" FORCE)
 set(MPI_Fortran "gfortran" CACHE STRING "" FORCE)
 set(MPI_Fortran_COMPILER "mpifort" CACHE STRING "" FORCE)
-set(CMAKE_Fortran_FLAGS_DEBUG "-Wall -g" CACHE STRING "" FORCE)
-set(CMAKE_Fortran_FLAGS_RELWITHDEBINFO "-g -O2 -DNDEBUG" CACHE STRING "" FORCE)
-set(CMAKE_Fortran_FLAGS_RELEASE "-O3 -DNDEBUG" CACHE STRING "" FORCE)
+set(CMAKE_Fortran_FLAGS_DEBUG "-Wall -g -std=f2003" CACHE STRING "" FORCE)
+set(CMAKE_Fortran_FLAGS_RELWITHDEBINFO "-g -O2 -DNDEBUG -std=f2003" CACHE STRING "" FORCE)
+set(CMAKE_Fortran_FLAGS_RELEASE "-O3 -DNDEBUG -std=f2003" CACHE STRING "" FORCE)
 unset(HAVE_OMP_H_INCLUDE CACHE)
 
 set(OpenMP_C "gcc" CACHE STRING "" FORCE)

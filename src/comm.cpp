@@ -395,9 +395,7 @@ void Comm::modify_params(int narg, char **arg)
       iarg += 1;
     } else if (strcmp(arg[iarg],"vel") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal comm_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) ghost_velocity = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) ghost_velocity = 0;
-      else error->all(FLERR,"Illegal comm_modify command");
+      ghost_velocity = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal comm_modify command");
   }
@@ -782,13 +780,13 @@ int Comm::coord2proc(double *x, int &igx, int &igy, int &igz)
 
   } else if (layout == Comm::LAYOUT_NONUNIFORM) {
     if (triclinic == 0) {
-      igx = binary((x[0]-boxlo[0])/prd[0],procgrid[0],xsplit);
-      igy = binary((x[1]-boxlo[1])/prd[1],procgrid[1],ysplit);
-      igz = binary((x[2]-boxlo[2])/prd[2],procgrid[2],zsplit);
+      igx = utils::binary_search((x[0]-boxlo[0])/prd[0],procgrid[0],xsplit);
+      igy = utils::binary_search((x[1]-boxlo[1])/prd[1],procgrid[1],ysplit);
+      igz = utils::binary_search((x[2]-boxlo[2])/prd[2],procgrid[2],zsplit);
     } else {
-      igx = binary(x[0],procgrid[0],xsplit);
-      igy = binary(x[1],procgrid[1],ysplit);
-      igz = binary(x[2],procgrid[2],zsplit);
+      igx = utils::binary_search(x[0],procgrid[0],xsplit);
+      igy = utils::binary_search(x[1],procgrid[1],ysplit);
+      igz = utils::binary_search(x[2],procgrid[2],zsplit);
     }
   }
 
@@ -803,33 +801,100 @@ int Comm::coord2proc(double *x, int &igx, int &igy, int &igz)
 }
 
 /* ----------------------------------------------------------------------
-   binary search for value in N-length ascending vec
-   value may be outside range of vec limits
-   always return index from 0 to N-1 inclusive
-   return 0 if value < vec[0]
-   reutrn N-1 if value >= vec[N-1]
-   return index = 1 to N-2 if vec[index] <= value < vec[index+1]
+   partition a global regular grid into one brick-shaped sub-grid per proc
+   if grid point is inside my sub-domain I own it,
+     this includes sub-domain lo boundary but excludes hi boundary
+   nx,ny,nz = extent of global grid
+     indices into the global grid range from 0 to N-1 in each dim
+   zfactor = 0.0 if the grid exactly covers the simulation box
+   zfactor > 1.0 if the grid extends beyond the +z boundary by this factor
+     used by 2d slab-mode PPPM
+     this effectively maps proc sub-grids to a smaller subset of the grid
+   nxyz lo/hi = inclusive lo/hi bounds of global grid sub-brick I own
+   if proc owns no grid cells in a dim, then nlo > nhi
+   special case: 2 procs share boundary which a grid point is exactly on
+     2 equality if tests insure a consistent decision as to which proc owns it
 ------------------------------------------------------------------------- */
 
-int Comm::binary(double value, int n, double *vec)
+void Comm::partition_grid(int nx, int ny, int nz, double zfactor,
+                          int &nxlo, int &nxhi, int &nylo, int &nyhi,
+                          int &nzlo, int &nzhi)
 {
-  int lo = 0;
-  int hi = n-1;
+  double xfraclo,xfrachi,yfraclo,yfrachi,zfraclo,zfrachi;
 
-  if (value < vec[lo]) return lo;
-  if (value >= vec[hi]) return hi;
-
-  // insure vec[lo] <= value < vec[hi] at every iteration
-  // done when lo,hi are adjacent
-
-  int index = (lo+hi)/2;
-  while (lo < hi-1) {
-    if (value < vec[index]) hi = index;
-    else if (value >= vec[index]) lo = index;
-    index = (lo+hi)/2;
+  if (layout != LAYOUT_TILED) {
+    xfraclo = xsplit[myloc[0]];
+    xfrachi = xsplit[myloc[0]+1];
+    yfraclo = ysplit[myloc[1]];
+    yfrachi = ysplit[myloc[1]+1];
+    zfraclo = zsplit[myloc[2]];
+    zfrachi = zsplit[myloc[2]+1];
+  } else {
+    xfraclo = mysplit[0][0];
+    xfrachi = mysplit[0][1];
+    yfraclo = mysplit[1][0];
+    yfrachi = mysplit[1][1];
+    zfraclo = mysplit[2][0];
+    zfrachi = mysplit[2][1];
   }
 
-  return index;
+  nxlo = static_cast<int> (xfraclo * nx);
+  if (1.0*nxlo != xfraclo*nx) nxlo++;
+  nxhi = static_cast<int> (xfrachi * nx);
+  if (1.0*nxhi == xfrachi*nx) nxhi--;
+
+  nylo = static_cast<int> (yfraclo * ny);
+  if (1.0*nylo != yfraclo*ny) nylo++;
+  nyhi = static_cast<int> (yfrachi * ny);
+  if (1.0*nyhi == yfrachi*ny) nyhi--;
+
+  if (zfactor == 0.0) {
+    nzlo = static_cast<int> (zfraclo * nz);
+    if (1.0*nzlo != zfraclo*nz) nzlo++;
+    nzhi = static_cast<int> (zfrachi * nz);
+    if (1.0*nzhi == zfrachi*nz) nzhi--;
+  } else {
+    nzlo = static_cast<int> (zfraclo * nz/zfactor);
+    if (1.0*nzlo != zfraclo*nz) nzlo++;
+    nzhi = static_cast<int> (zfrachi * nz/zfactor);
+    if (1.0*nzhi == zfrachi*nz) nzhi--;
+  }
+
+  // OLD code
+  // could sometimes map grid points slightly outside a proc to the proc
+
+  /*
+  if (layout != LAYOUT_TILED) {
+    nxlo = static_cast<int> (xsplit[myloc[0]] * nx);
+    nxhi = static_cast<int> (xsplit[myloc[0]+1] * nx) - 1;
+
+    nylo = static_cast<int> (ysplit[myloc[1]] * ny);
+    nyhi = static_cast<int> (ysplit[myloc[1]+1] * ny) - 1;
+
+    if (zfactor == 0.0) {
+      nzlo = static_cast<int> (zsplit[myloc[2]] * nz);
+      nzhi = static_cast<int> (zsplit[myloc[2]+1] * nz) - 1;
+    } else {
+      nzlo = static_cast<int> (zsplit[myloc[2]] * nz/zfactor);
+      nzhi = static_cast<int> (zsplit[myloc[2]+1] * nz/zfactor) - 1;
+    }
+
+  } else {
+    nxlo = static_cast<int> (mysplit[0][0] * nx);
+    nxhi = static_cast<int> (mysplit[0][1] * nx) - 1;
+
+    nylo = static_cast<int> (mysplit[1][0] * ny);
+    nyhi = static_cast<int> (mysplit[1][1] * ny) - 1;
+
+    if (zfactor == 0.0) {
+      nzlo = static_cast<int> (mysplit[2][0] * nz);
+      nzhi = static_cast<int> (mysplit[2][1] * nz) - 1;
+    } else {
+      nzlo = static_cast<int> (mysplit[2][0] * nz/zfactor);
+      nzhi = static_cast<int> (mysplit[2][1] * nz/zfactor) - 1;
+    }
+  }
+  */
 }
 
 /* ----------------------------------------------------------------------

@@ -29,7 +29,7 @@ using namespace CSLIB_NS;
 
 /* ---------------------------------------------------------------------- */
 
-MsgMPITwo::MsgMPITwo(int csflag, const void *ptr, MPI_Comm cworld) : 
+MsgMPITwo::MsgMPITwo(int csflag, const void *ptr, MPI_Comm cworld) :
   MsgMPIOne(csflag, ptr, cworld)
 {
   char *filename = (char *) ptr;
@@ -61,14 +61,14 @@ void MsgMPITwo::init(char *filename)
       //printf("Client port: %s\n",port);
       fclose(fp);
     }
-  
+
     MPI_Bcast(port,MPI_MAX_PORT_NAME,MPI_CHAR,0,world);
-    MPI_Comm_connect(port,MPI_INFO_NULL,0,world,&bothcomm); 
+    MPI_Comm_connect(port,MPI_INFO_NULL,0,world,&bothcomm);
     //if (me == 0) printf("CLIENT comm connect\n");
     if (me == 0) unlink(filename);
 
   } else if (server) {
-    MPI_Open_port(MPI_INFO_NULL,port); 
+    MPI_Open_port(MPI_INFO_NULL,port);
 
     if (me == 0) {
       //printf("Server name: %s\n",port);
@@ -76,8 +76,8 @@ void MsgMPITwo::init(char *filename)
       fprintf(fp,"%s",port);
       fclose(fp);
     }
-    
-    MPI_Comm_accept(port,MPI_INFO_NULL,0,world,&bothcomm); 
+
+    MPI_Comm_accept(port,MPI_INFO_NULL,0,world,&bothcomm);
     //if (me == 0) printf("SERVER comm accept\n");
   }
 

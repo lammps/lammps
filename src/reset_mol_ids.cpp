@@ -77,19 +77,15 @@ void ResetMolIDs::command(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"compress") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal reset_mol_ids command");
-      if (strcmp(arg[iarg+1],"yes") == 0) compressflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) compressflag = 0;
-      else error->all(FLERR,"Illegal reset_mol_ids command");
+      compressflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"single") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal reset_mol_ids command");
-      if (strcmp(arg[iarg+1],"yes") == 0) singleflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) singleflag = 0;
-      else error->all(FLERR,"Illegal reset_mol_ids command");
+      singleflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"offset") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal reset_mol_ids command");
-      offset = utils::tnumeric(FLERR,arg[iarg+1],1,lmp);
+      offset = utils::tnumeric(FLERR,arg[iarg+1],true,lmp);
       if (offset < -1) error->all(FLERR,"Illegal reset_mol_ids command");
       iarg += 2;
     } else error->all(FLERR,"Illegal reset_mol_ids command");

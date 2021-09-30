@@ -25,7 +25,6 @@
 #include <cstring>
 #include <map>
 #include <set>
-#include <vector>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -55,7 +54,7 @@ FixDrude::FixDrude(LAMMPS *lmp, int narg, char **arg) :
   }
 
   drudeid = nullptr;
-  grow_arrays(atom->nmax);
+  FixDrude::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
   atom->add_callback(Atom::RESTART);
   atom->add_callback(Atom::BORDER);
@@ -516,7 +515,8 @@ void FixDrude::ring_copy_drude(int size, char *cbuf, void *ptr) {
  * ----------------------------------------------------------------------*/
 void FixDrude::set_arrays(int i) {
     if (drudetype[atom->type[i]] != NOPOL_TYPE) {
-        if (atom->nspecial[i] ==0) error->all(FLERR, "Polarizable atoms cannot be inserted with special lists info from the molecule template");
+        if (atom->nspecial[i] == nullptr)
+          error->all(FLERR, "Polarizable atoms cannot be inserted with special lists info from the molecule template");
         drudeid[i] = atom->special[i][0]; // Drude partner should be at first place in the special list
     } else {
         drudeid[i] = 0;

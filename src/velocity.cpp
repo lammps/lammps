@@ -17,7 +17,6 @@
 #include "atom.h"
 #include "comm.h"
 #include "compute.h"
-#include "compute_temp.h"
 #include "domain.h"
 #include "error.h"
 #include "fix.h"
@@ -36,6 +35,7 @@ using namespace LAMMPS_NS;
 
 enum{CREATE,SET,SCALE,RAMP,ZERO};
 enum{ALL,LOCAL,GEOM};
+enum{UNIFORM,GAUSSIAN};
 enum{NONE,CONSTANT,EQUAL,ATOM};
 
 #define WARMUP 100
@@ -84,7 +84,7 @@ void Velocity::command(int narg, char **arg)
   // set defaults
 
   temperature = nullptr;
-  dist_flag = 0;
+  dist_flag = UNIFORM;
   sum_flag = 0;
   momentum_flag = 1;
   rotation_flag = 0;
@@ -149,11 +149,12 @@ void Velocity::init_external(const char *extgroup)
   groupbit = group->bitmask[igroup];
 
   temperature = nullptr;
-  dist_flag = 0;
+  dist_flag = UNIFORM;
   sum_flag = 0;
   momentum_flag = 1;
   rotation_flag = 0;
   loop_flag = ALL;
+  rfix = -1;
   scale_flag = 1;
   bias_flag = 0;
 }
@@ -275,11 +276,11 @@ void Velocity::create(double t_desired, int seed)
     int natoms = static_cast<int> (atom->natoms);
 
     for (i = 1; i <= natoms; i++) {
-      if (dist_flag == 0) {
+      if (dist_flag == UNIFORM) {
         vx = random->uniform() - 0.5;
         vy = random->uniform() - 0.5;
         vz = random->uniform() - 0.5;
-      } else {
+      } else { // GAUSSIAN
         vx = random->gaussian();
         vy = random->gaussian();
         vz = random->gaussian();
@@ -310,11 +311,11 @@ void Velocity::create(double t_desired, int seed)
 
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
-        if (dist_flag == 0) {
+        if (dist_flag == UNIFORM) {
           vx = random->uniform() - 0.5;
           vy = random->uniform() - 0.5;
           vz = random->uniform() - 0.5;
-        } else {
+        } else { // GAUSSIAN
           vx = random->gaussian();
           vy = random->gaussian();
           vz = random->gaussian();
@@ -335,11 +336,11 @@ void Velocity::create(double t_desired, int seed)
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         random->reset(seed,x[i]);
-        if (dist_flag == 0) {
+        if (dist_flag == UNIFORM) {
           vx = random->uniform() - 0.5;
           vy = random->uniform() - 0.5;
           vz = random->uniform() - 0.5;
-        } else {
+        } else { // GAUSSIAN
           vx = random->gaussian();
           vy = random->gaussian();
           vz = random->gaussian();
@@ -824,27 +825,21 @@ void Velocity::options(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"dist") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal velocity command");
-      if (strcmp(arg[iarg+1],"uniform") == 0) dist_flag = 0;
-      else if (strcmp(arg[iarg+1],"gaussian") == 0) dist_flag = 1;
+      if (strcmp(arg[iarg+1],"uniform") == 0) dist_flag = UNIFORM;
+      else if (strcmp(arg[iarg+1],"gaussian") == 0) dist_flag = GAUSSIAN;
       else error->all(FLERR,"Illegal velocity command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"sum") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal velocity command");
-      if (strcmp(arg[iarg+1],"no") == 0) sum_flag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) sum_flag = 1;
-      else error->all(FLERR,"Illegal velocity command");
+      sum_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"mom") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal velocity command");
-      if (strcmp(arg[iarg+1],"no") == 0) momentum_flag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) momentum_flag = 1;
-      else error->all(FLERR,"Illegal velocity command");
+      momentum_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"rot") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal velocity command");
-      if (strcmp(arg[iarg+1],"no") == 0) rotation_flag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) rotation_flag = 1;
-      else error->all(FLERR,"Illegal velocity command");
+      rotation_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"temp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal velocity command");
@@ -856,9 +851,7 @@ void Velocity::options(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"bias") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal velocity command");
-      if (strcmp(arg[iarg+1],"no") == 0) bias_flag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) bias_flag = 1;
-      else error->all(FLERR,"Illegal velocity command");
+      bias_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"loop") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal velocity command");

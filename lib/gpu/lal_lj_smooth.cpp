@@ -96,11 +96,11 @@ int LJSMOOTHT::init(const int ntypes,
   lj3.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,lj3,host_write,host_lj3,host_lj4,
                          host_offset);
-  
+
   ljsw.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,ljsw,host_write,host_ljsw1,host_ljsw2,
                          host_ljsw3,host_ljsw4);
-  
+
   ljsw0.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack2(ntypes,lj_types,ljsw0,host_write,host_ljsw0,cut_inner);
 

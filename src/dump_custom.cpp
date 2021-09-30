@@ -28,8 +28,8 @@
 #include "region.h"
 #include "update.h"
 #include "variable.h"
-#include "fmt/format.h"
-#include "utils.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -281,7 +281,7 @@ void DumpCustom::init_style()
     error->all(FLERR,"Dump_modify format line is too short");
 
   int i=0;
-  for (auto word : words) {
+  for (const auto &word : words) {
     delete[] vformat[i];
 
     if (format_column_user[i])
@@ -1042,16 +1042,16 @@ int DumpCustom::count()
         nstride = 1;
 
       } else if (thresh_array[ithresh] == DVEC) {
-	i = nfield + ithresh;
+        i = nfield + ithresh;
         int iwhich = custom[field2index[i]];
         ptr = atom->dvector[iwhich];
-	nstride = 1;
+        nstride = 1;
 
       } else if (thresh_array[ithresh] == IARRAY) {
         i = nfield + ithresh;
         int iwhich = custom[field2index[i]];
         int **iarray = atom->iarray[iwhich];
-	int icol = argindex[i] - 1;
+        int icol = argindex[i] - 1;
         for (i = 0; i < nlocal; i++)
           dchoose[i] = iarray[i][icol];
         ptr = dchoose;
@@ -1061,8 +1061,8 @@ int DumpCustom::count()
         i = nfield + ithresh;
         int iwhich = custom[field2index[i]];
         double **darray = atom->darray[iwhich];
-	ptr = &darray[0][argindex[i]-1];
-	nstride = atom->dcols[iwhich];
+        ptr = &darray[0][argindex[i]-1];
+        nstride = atom->dcols[iwhich];
       }
 
       // unselect atoms that don't meet threshold criterion
@@ -1234,7 +1234,8 @@ void DumpCustom::write_binary(int n, double *mybuf)
 
 void DumpCustom::write_string(int n, double *mybuf)
 {
-  fwrite(mybuf,sizeof(char),n,fp);
+  if (mybuf)
+    fwrite(mybuf,sizeof(char),n,fp);
 }
 
 /* ---------------------------------------------------------------------- */

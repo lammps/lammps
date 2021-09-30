@@ -117,7 +117,7 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
 
   if (varshape) {
     variable_check();
-    shape_update();
+    RegCylinder::shape_update();
   }
 
   if (strcmp(arg[6],"INF") == 0 || strcmp(arg[6],"EDGE") == 0) {

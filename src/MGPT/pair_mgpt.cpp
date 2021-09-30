@@ -85,18 +85,18 @@ static double gettime(int /*x*/ = 0) { return 0.0; }
 
 PairMGPT::PairMGPT(LAMMPS *lmp) : Pair(lmp)
 {
-	single_enable = 0;
-	one_coeff = 1;
-	ghostneigh = 1;
+        single_enable = 0;
+        one_coeff = 1;
+        ghostneigh = 1;
 }
 
 PairMGPT::~PairMGPT()
 {
-	if (allocated) {
-		memory->destroy(setflag);
-		memory->destroy(cutsq);
-		memory->destroy(cutghost);
-	}
+        if (allocated) {
+                memory->destroy(setflag);
+                memory->destroy(cutsq);
+                memory->destroy(cutghost);
+        }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -143,12 +143,12 @@ void PairMGPT::make_bond(const double xx[][3],int i,int j,bond_data *bptr) {
     t0 = gettime();
     if (lang == 3) {
       hamltn_5_raw(rrij[0],rrij[1],rrij[2],
-		   bptr->H.m ,bptr->Hx.m,
-		   bptr->Hy.m,bptr->Hz.m,&bptr->fl_deriv_sum);
+                   bptr->H.m ,bptr->Hx.m,
+                   bptr->Hy.m,bptr->Hz.m,&bptr->fl_deriv_sum);
     } else {
       hamltn_7_raw(rrij[0],rrij[1],rrij[2],
-		   bptr->H.m ,bptr->Hx.m,
-		   bptr->Hy.m,bptr->Hz.m,&bptr->fl_deriv_sum);
+                   bptr->H.m ,bptr->Hx.m,
+                   bptr->Hy.m,bptr->Hz.m,&bptr->fl_deriv_sum);
     }
 
     t1 = gettime();
@@ -179,7 +179,7 @@ static inline double mtrace(int n,double A[8][8],double B[8][8]) {
     s = 0.0;
     for (int i = 1; i<=n; i++)
       for (int j = 1; j<=n; j++)
-	s = s + A[i][j]*B[i][j];
+        s = s + A[i][j]*B[i][j];
   }
   t1 = gettime();
   t_trace += t1-t0;
@@ -190,7 +190,7 @@ static inline double mtrace(int n,double A[8][8],double B[8][8]) {
 */
 
 void PairMGPT::make_triplet(bond_data *ij_bond,bond_data *ik_bond,
-			     triplet_data *triptr) {
+                             triplet_data *triptr) {
   if (1) {
     const trmul_fun tr_mul = linalg.tr_mul;
     tr_mul(&(ij_bond->H.m[1][0]), &(ik_bond->H.m[1][0]) ,&(triptr->H1H2.m[1][0]) );
@@ -214,9 +214,9 @@ void PairMGPT::make_triplet(bond_data *ij_bond,bond_data *ik_bond,
 static double t_make_t = 0.0,t_make_b = 0.0,n_make = 0.0;
 
 PairMGPT::triplet_data *PairMGPT::get_triplet(const double xx[][3],int i,int j,int k,
-						Hash<bond_data,Doublet> *bhash,
-						triplet_data *twork,
-						double *dvir_ij_p,double *dvir_ik_p) {
+                                                Hash<bond_data,Doublet> *bhash,
+                                                triplet_data *twork,
+                                                double *dvir_ij_p,double *dvir_ik_p) {
   const int recompute = 0;
   static bond_data bij_work,bik_work;
 
@@ -354,11 +354,11 @@ double PairMGPT::numderiv4(double xx[][3],int i,int j,int k,int m,int p) {
 
 static double dtol = 1e-6;
 void PairMGPT::force_debug_3t(double xx[][3],
-		    int i0,int j0,int k0,
-		    int i ,int j ,int k ,
-		    double dfix,double dfiy,double dfiz,
-		    double dfjx,double dfjy,double dfjz,
-		    double dfkx,double dfky,double dfkz) {
+                    int i0,int j0,int k0,
+                    int i ,int j ,int k ,
+                    double dfix,double dfiy,double dfiz,
+                    double dfjx,double dfjy,double dfjz,
+                    double dfkx,double dfky,double dfkz) {
   double dfi[3],dfj[3],dfk[3];
   dfi[0] = dfix; dfi[1] = dfiy; dfi[2] = dfiz;
   dfj[0] = dfjx; dfj[1] = dfjy; dfj[2] = dfjz;
@@ -372,11 +372,11 @@ void PairMGPT::force_debug_3t(double xx[][3],
     ndfk = -numderiv3t(xx,k,i,j,p);
 
     if ((fabs(dfi[p] - ndfi) > dtol &&
-	fabs(dfi[p] - ndfi) > dtol*fabs(ndfi)) ||
+        fabs(dfi[p] - ndfi) > dtol*fabs(ndfi)) ||
        (fabs(dfj[p] - ndfj) > dtol &&
-	fabs(dfj[p] - ndfj) > dtol*fabs(ndfj)) ||
+        fabs(dfj[p] - ndfj) > dtol*fabs(ndfj)) ||
        (fabs(dfk[p] - ndfk) > dtol &&
-	fabs(dfk[p] - ndfk) > dtol*fabs(ndfk))) {
+        fabs(dfk[p] - ndfk) > dtol*fabs(ndfk))) {
       printf("Force error in T12 & T23 & T31 :: i,j,k = %d,%d,%d\n",i0,j0,k0);
       printf("    dE/d%c[i] = %20.10e    %20.10e\n", 'x'+p,ndfi, dfi[p]);
       printf("    dE/d%c[j] = %20.10e    %20.10e\n", 'x'+p,ndfj, dfj[p]);
@@ -387,11 +387,11 @@ void PairMGPT::force_debug_3t(double xx[][3],
 }
 
 void PairMGPT::force_debug_3v(double xx[][3],
-		    int i0,int j0,int k0,
-		    int i ,int j ,int k ,
-		    double dfix,double dfiy,double dfiz,
-		    double dfjx,double dfjy,double dfjz,
-		    double dfkx,double dfky,double dfkz) {
+                    int i0,int j0,int k0,
+                    int i ,int j ,int k ,
+                    double dfix,double dfiy,double dfiz,
+                    double dfjx,double dfjy,double dfjz,
+                    double dfkx,double dfky,double dfkz) {
   double dfi[3],dfj[3],dfk[3];
   dfi[0] = dfix; dfi[1] = dfiy; dfi[2] = dfiz;
   dfj[0] = dfjx; dfj[1] = dfjy; dfj[2] = dfjz;
@@ -405,11 +405,11 @@ void PairMGPT::force_debug_3v(double xx[][3],
     ndfk = -numderiv3v(xx,i,j,k,p,k0);
 
     if ((fabs(dfi[p] - ndfi) > dtol &&
-	fabs(dfi[p] - ndfi) > dtol*fabs(ndfi)) ||
+        fabs(dfi[p] - ndfi) > dtol*fabs(ndfi)) ||
        (fabs(dfj[p] - ndfj) > dtol &&
-	fabs(dfj[p] - ndfj) > dtol*fabs(ndfj)) ||
+        fabs(dfj[p] - ndfj) > dtol*fabs(ndfj)) ||
        (fabs(dfk[p] - ndfk) > dtol &&
-	fabs(dfk[p] - ndfk) > dtol*fabs(ndfk))) {
+        fabs(dfk[p] - ndfk) > dtol*fabs(ndfk))) {
       printf("Force error in T12 :: i,j,k = %d,%d,%d\n",i0,j0,k0);
       printf("    dE/d%c[i] = %20.10e    %20.10e\n", 'x'+p,ndfi, dfi[p]);
       printf("    dE/d%c[j] = %20.10e    %20.10e\n", 'x'+p,ndfj, dfj[p]);
@@ -420,12 +420,12 @@ void PairMGPT::force_debug_3v(double xx[][3],
 }
 
 void PairMGPT::force_debug_4(double xx[][3],
-		   int i0,int j0,int k0,int m0,
-		   int i ,int j ,int k ,int m ,
-		   double dfix,double dfiy,double dfiz,
-		   double dfjx,double dfjy,double dfjz,
-		   double dfkx,double dfky,double dfkz,
-		   double dfmx,double dfmy,double dfmz) {
+                   int i0,int j0,int k0,int m0,
+                   int i ,int j ,int k ,int m ,
+                   double dfix,double dfiy,double dfiz,
+                   double dfjx,double dfjy,double dfjz,
+                   double dfkx,double dfky,double dfkz,
+                   double dfmx,double dfmy,double dfmz) {
 
   double dfi[3],dfj[3],dfk[3],dfm[3];
   dfi[0] = dfix; dfi[1] = dfiy; dfi[2] = dfiz;
@@ -441,9 +441,9 @@ void PairMGPT::force_debug_4(double xx[][3],
     if (1) {
       double ndf[] = {0.0,0.0,0.0,0.0};
       for (int s = 0; s<4; s++)
-	for (int t = 0; t<4; t++)
-	  if (ii[s] == ii0[t])
-	    ndf[t] = -numderiv4(xx,ii[s],ii[s+1],ii[s+2],ii[s+3],p);
+        for (int t = 0; t<4; t++)
+          if (ii[s] == ii0[t])
+            ndf[t] = -numderiv4(xx,ii[s],ii[s+1],ii[s+2],ii[s+3],p);
       ndfi = ndf[0]; ndfj = ndf[1];
       ndfk = ndf[2]; ndfm = ndf[3];
     } else {
@@ -454,13 +454,13 @@ void PairMGPT::force_debug_4(double xx[][3],
     }
 
     if ((fabs(dfi[p] - ndfi) > dtol &&
-	fabs(dfi[p] - ndfi) > dtol*fabs(ndfi)) ||
+        fabs(dfi[p] - ndfi) > dtol*fabs(ndfi)) ||
        (fabs(dfj[p] - ndfj) > dtol &&
-	fabs(dfj[p] - ndfj) > dtol*fabs(ndfj)) ||
+        fabs(dfj[p] - ndfj) > dtol*fabs(ndfj)) ||
        (fabs(dfk[p] - ndfk) > dtol &&
-	fabs(dfk[p] - ndfk) > dtol*fabs(ndfk)) ||
+        fabs(dfk[p] - ndfk) > dtol*fabs(ndfk)) ||
        (fabs(dfm[p] - ndfm) > dtol &&
-	fabs(dfm[p] - ndfm) > dtol*fabs(ndfm))) {
+        fabs(dfm[p] - ndfm) > dtol*fabs(ndfm))) {
       printf("Force error in T31 & T64 :: i,j,k,m = %d,%d,%d,%d\n",i0,j0,k0,m0);
       printf("    dE/d%c[i] = %20.10e    %20.10e\n", 'x'+p,ndfi, dfi[p]);
       printf("    dE/d%c[j] = %20.10e    %20.10e\n", 'x'+p,ndfj, dfj[p]);
@@ -485,21 +485,21 @@ void PairMGPT::force_debug_4(double xx[][3],
 #define trd_update_4(T12,T45) \
   do {                                         \
     tr_trace3(&(T45->H1H2.m[1][0]),            \
-	      &(T12->H1xH2.m[1][0]),&utr1x.d,  \
-	      &(T12->H1yH2.m[1][0]),&utr1y.d,  \
-	      &(T12->H1zH2.m[1][0]),&utr1z.d); \
+              &(T12->H1xH2.m[1][0]),&utr1x.d,  \
+              &(T12->H1yH2.m[1][0]),&utr1y.d,  \
+              &(T12->H1zH2.m[1][0]),&utr1z.d); \
     tr_trace3(&(T45->H1H2.m[1][0]),            \
-	      &(T12->H1H2x.m[1][0]),&utr2x.d,  \
-	      &(T12->H1H2y.m[1][0]),&utr2y.d,  \
-	      &(T12->H1H2z.m[1][0]),&utr2z.d); \
+              &(T12->H1H2x.m[1][0]),&utr2x.d,  \
+              &(T12->H1H2y.m[1][0]),&utr2y.d,  \
+              &(T12->H1H2z.m[1][0]),&utr2z.d); \
     tr_trace3(&(T12->H1H2.m[1][0]),            \
-	      &(T45->H1xH2.m[1][0]),&utr3x.d,  \
-	      &(T45->H1yH2.m[1][0]),&utr3y.d,  \
-	      &(T45->H1zH2.m[1][0]),&utr3z.d); \
+              &(T45->H1xH2.m[1][0]),&utr3x.d,  \
+              &(T45->H1yH2.m[1][0]),&utr3y.d,  \
+              &(T45->H1zH2.m[1][0]),&utr3z.d); \
     tr_trace3(&(T12->H1H2.m[1][0]),            \
-	      &(T45->H1H2x.m[1][0]),&utr4x.d,  \
-	      &(T45->H1H2y.m[1][0]),&utr4y.d,  \
-	      &(T45->H1H2z.m[1][0]),&utr4z.d); \
+              &(T45->H1H2x.m[1][0]),&utr4x.d,  \
+              &(T45->H1H2y.m[1][0]),&utr4y.d,  \
+              &(T45->H1H2z.m[1][0]),&utr4z.d); \
     if (linalg.single) {                        \
       trd1x = utr1x.f; trd2x = utr2x.f; trd3x = utr3x.f; trd4x = utr4x.f; \
       trd1y = utr1y.f; trd2y = utr2y.f; trd3y = utr3y.f; trd4y = utr4y.f; \
@@ -572,9 +572,9 @@ void PairMGPT::force_debug_4(double xx[][3],
 static int ntr_calls = 0;
 static trtrace3_fun tr_internal;
 static void tr_count(const double * restrict A,
-		     const double * restrict B1,double * restrict t1,
-		     const double * restrict B2,double * restrict t2,
-		     const double * restrict B3,double * restrict t3) {
+                     const double * restrict B1,double * restrict t1,
+                     const double * restrict B2,double * restrict t2,
+                     const double * restrict B3,double * restrict t3) {
   tr_internal(A,B1,t1,B2,t2,B3,t3);
   ntr_calls++;
 }
@@ -586,8 +586,8 @@ static void tr_count(const double * restrict A,
 
 int PairMGPT::Matrix::sz;
 void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
-			  double *e_s,double *e_p,double *e_t,double *e_q,
-			  int evflag,int newton_pair) {
+                          double *e_s,double *e_p,double *e_t,double *e_q,
+                          int evflag,int newton_pair) {
   Hash<bond_data,Doublet> bond_hash(100000);
   int i,j,k,m,ix,jx,kx,mx,itag,jtag,p;
 
@@ -709,11 +709,11 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
     int cyc[] = {0,1,2,0,1};
 
     ss = (double (*)[3]) memory->smalloc(sizeof(double [3]) * ntot,
-					 "mgpt: local reduced coordinate vector.");
+                                         "mgpt: local reduced coordinate vector.");
 
     for (i = 0; i<3; i++) {
       for (j = 0; j<3; j++)
-	E[i][j] = 0.0;
+        E[i][j] = 0.0;
       E[i][i] = domain->subhi_lamda[i] - domain->sublo_lamda[i];
       domain->lamda2x(E[i],EX[i]);
     }
@@ -721,17 +721,17 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
       int i1 = cyc[i+1],i2 = cyc[i+2];
       double dot = 0.0,ns2 = 0.0;
       for (j = 0; j<3; j++) {
-	int j1 = cyc[j+1],j2 = cyc[j+2];
-	double cj = EX[i1][j1]*EX[i2][j2] - EX[i1][j2]*EX[i2][j1];
-	ns2 = ns2 + cj*cj;
-	dot = dot + EX[i][j]*cj;
+        int j1 = cyc[j+1],j2 = cyc[j+2];
+        double cj = EX[i1][j1]*EX[i2][j2] - EX[i1][j2]*EX[i2][j1];
+        ns2 = ns2 + cj*cj;
+        dot = dot + EX[i][j]*cj;
       }
       alpha[i] = E[i][i] / (dot/sqrt(ns2));
       if (comm->me == 0) {
-	static int count = 0;
-	if (count < 3)
-	  printf("@@@ alpha(%d) = %15.5e\n",i+1,alpha[i]);
-	count++;
+        static int count = 0;
+        if (count < 3)
+          printf("@@@ alpha(%d) = %15.5e\n",i+1,alpha[i]);
+        count++;
       }
       if (alpha[i] < 0.0) alpha[i] = -alpha[i];
     }
@@ -768,14 +768,14 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
   if (0)
     if (domain->triclinic) {
       if (comm->me == 0)
-	printf("Can not handle triclinic box yet\n");
+        printf("Can not handle triclinic box yet\n");
       error->all(__FILE__,__LINE__,"Can not handle triclinic cell with mgpt yet.");
     }
 
   /*
   for (i = 0; i<nloc; i++) {
     printf("Atom %3d:: %10.3f  %10.3f  %10.3f\n",
-	   i,xx[i][0],xx[i][1],xx[i][2]);
+           i,xx[i][0],xx[i][1],xx[i][2]);
   }
   */
 
@@ -795,89 +795,89 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
 
       rij2 = 0.0;
       for (p = 0; p<3; p++) {
-	double t = xx[i][p] - xx[j][p];
-	rij2 = rij2 + t*t;
+        double t = xx[i][p] - xx[j][p];
+        rij2 = rij2 + t*t;
       }
 
       if (c1 == 0 && rij2 < rcut2_pair) {
-	if (j < i) {
-	  w2 = get_weight(triclinic,ss[i],ss[j]);
+        if (j < i) {
+          w2 = get_weight(triclinic,ss[i],ss[j]);
 
-	  if (w2 > 0.0) {
-	    /*
-	      Compute pair energy/force
-	    */
-	    double de_pair,df,rij = sqrt(rij2);
-	    splinepot.eval_pot(rij,&de_pair,&df);
-	    de_pair = de_pair * e_scale * w2;
-	    df = df / rij * w2;
+          if (w2 > 0.0) {
+            /*
+              Compute pair energy/force
+            */
+            double de_pair,df,rij = sqrt(rij2);
+            splinepot.eval_pot(rij,&de_pair,&df);
+            de_pair = de_pair * e_scale * w2;
+            df = df / rij * w2;
 
 
-	    if (pair_energies == 0) de_pair = 0.0;
-	    e_pair = e_pair + de_pair;
-	    c_p++;
+            if (pair_energies == 0) de_pair = 0.0;
+            e_pair = e_pair + de_pair;
+            c_p++;
 
-	    if (pair_forces == 0) df = 0.0;
+            if (pair_forces == 0) df = 0.0;
 
-	    if (volpres_flag && pair_energies) {
-	      double dvir;
-	      splinepot.eval_vir(rij,&dvir);
-	      volvir2 = volvir2 - dvir * w2;
+            if (volpres_flag && pair_energies) {
+              double dvir;
+              splinepot.eval_vir(rij,&dvir);
+              volvir2 = volvir2 - dvir * w2;
 
-	      /* Per-atom virial contribution of volumetric energy term */
-	      if (vflag_atom)
-		for (int pp = 0; pp<3; pp++) {
-		  //virial[i] = virial[i] + rhoinv*e_scale*volvir2;
-		  vatom[i][pp] -= 0.5 * rhoinv*e_scale*dvir*w2;
-		  vatom[j][pp] -= 0.5 * rhoinv*e_scale*dvir*w2;
-		}
-	    }
+              /* Per-atom virial contribution of volumetric energy term */
+              if (vflag_atom)
+                for (int pp = 0; pp<3; pp++) {
+                  //virial[i] = virial[i] + rhoinv*e_scale*volvir2;
+                  vatom[i][pp] -= 0.5 * rhoinv*e_scale*dvir*w2;
+                  vatom[j][pp] -= 0.5 * rhoinv*e_scale*dvir*w2;
+                }
+            }
 
-	    double drijx = xx[j][0] - xx[i][0];
-	    double drijy = xx[j][1] - xx[i][1];
-	    double drijz = xx[j][2] - xx[i][2];
+            double drijx = xx[j][0] - xx[i][0];
+            double drijy = xx[j][1] - xx[i][1];
+            double drijz = xx[j][2] - xx[i][2];
 
-	    fix = fix + df*drijx;
-	    fjx = fjx - df*drijx;
+            fix = fix + df*drijx;
+            fjx = fjx - df*drijx;
 
-	    fiy = fiy + df*drijy;
-	    fjy = fjy - df*drijy;
+            fiy = fiy + df*drijy;
+            fjy = fjy - df*drijy;
 
-	    fiz = fiz + df*drijz;
-	    fjz = fjz - df*drijz;
+            fiz = fiz + df*drijz;
+            fjz = fjz - df*drijz;
 
-	    if (evflag) {
-	      //ev_tally(i,j,nloc,newton_pair,de_pair,0.0,df,-drijx,-drijy,-drijz);
-	      /* To fix stress-per-atom scaling, and sign */
-	      ev_tally(i,j,nloc,newton_pair,de_pair,0.0,-df * e_scale,-drijx,-drijy,-drijz);
-	    }
+            if (evflag) {
+              //ev_tally(i,j,nloc,newton_pair,de_pair,0.0,df,-drijx,-drijy,-drijz);
+              /* To fix stress-per-atom scaling, and sign */
+              ev_tally(i,j,nloc,newton_pair,de_pair,0.0,-df * e_scale,-drijx,-drijy,-drijz);
+            }
 
-	    ff[j][0] += fjx * e_scale;
-	    ff[j][1] += fjy * e_scale;
-	    ff[j][2] += fjz * e_scale;
+            ff[j][0] += fjx * e_scale;
+            ff[j][1] += fjy * e_scale;
+            ff[j][2] += fjz * e_scale;
 
-	  }
-	}
+          }
+        }
       }
 
       if (rij2 < rcut2_bond && c2_outside(ss[i],ss[j],triclinic,alpha) == 0) {
-	/*
-	  Add j to short neighbor list for i.
-	  Insert j to keep list sorted.
-	*/
+        /*
+          Add j to short neighbor list for i.
+          Insert j to keep list sorted.
+        */
 
-	p = first[i+1]-1;
-	while (p >= first[i] && nlist_short[p] > j) {
-	  nlist_short[p+1] = nlist_short[p];
-	  p = p - 1;
-	}
-	nlist_short[p+1] = j;
-	first[i+1] = first[i+1] + 1;
-	if (first[i+1] > nneitot) {
-	  printf("nneitot = %d, short list full. i=%d\n",
-		 nneitot,i);
-	  error->one(__FILE__,__LINE__,"Shit! Short list full\n");
-	}
+        p = first[i+1]-1;
+        while (p >= first[i] && nlist_short[p] > j) {
+          nlist_short[p+1] = nlist_short[p];
+          p = p - 1;
+        }
+        nlist_short[p+1] = j;
+        first[i+1] = first[i+1] + 1;
+        if (first[i+1] > nneitot) {
+          printf("nneitot = %d, short list full. i=%d\n",
+                 nneitot,i);
+          error->one(__FILE__,__LINE__,"Shit! Short list full\n");
+        }
 
       }
     }
@@ -911,592 +911,592 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
     if (three_body_energies || three_body_forces ||
        four_body_energies || four_body_forces)
       for (jx = first[i]; jx<first[i+1]; jx++) {
-	fjx = fjy = fjz = 0.0;
-
-	j = nlist_short[jx];
-
-	for (kx = first[i]; kx<jx; kx++) {
-	  fkx = fky = fkz = 0.0;
-
-	  k = nlist_short[kx];
-
-	  /*
-	    Search lists of j and k, and see if
-	    1) j is in k-list (closed triplet)
-	    2) j and k have a common neighbor (closed quadruplet)
-	  */
-
-	  c_ij = c_ki = 1;
-
-	  const int sij = (i < j) ? 1 : -1;
-	  const int sjk = (j < k) ? 1 : -1;
-	  const int ski = (k < i) ? 1 : -1;
-
-
-	  T12 = T23 = T31 = 0;
-
-	  mj = first[j];
-	  /*
-	    Since i is in the j-list, and i > k and the list
-	    is sorted, the loop below terminates:-)
-	  */
-	  while (mj < first[j+1] && nlist_short[mj] < k) mj = mj + 1;
-	  if (mj < first[j+1] && nlist_short[mj] == k) {
-	    /* Closed triplet */
-	    c_jk = 1;
-
-	    if (j > i) continue; /* Require k<j<i for closed triplets */
-	  } else {
-	    /* Open triplet */
-	    c_jk = 0;
-	  }
-
-	  tx0 = gettime();
-
-	  w3 = get_weight(triclinic,ss[i],ss[j],ss[k]);
-
-	  int triplet_defer;
-	  if (w3 > 0.0) {
-	    triplet_defer = 0;
-
-	    dvir_ij = dvir_jk = dvir_ki = 0.0;
-	    if (c_ij && c_jk)
-	      T12 = get_triplet(xx,j,i,k,&bond_hash,&T12work,&dvir_ij,&dvir_jk);
-	    if (c_ki && c_jk)
-	      T23 = get_triplet(xx,k,i,j,&bond_hash,&T23work,&dvir_ki,&dvir_jk);
-	    if (c_ij && c_ki)
-	      T31 = get_triplet(xx,i,j,k,&bond_hash,&T31work,&dvir_ij,&dvir_ki);
-
-	    if (evflag) {
-	      fsave[0][0] = fix; fsave[0][1] = fiy; fsave[0][2] = fiz;
-	      fsave[1][0] = fjx; fsave[1][1] = fjy; fsave[1][2] = fjz;
-	      fsave[2][0] = fkx; fsave[2][1] = fky; fsave[2][2] = fkz;
-	      fix = fiy = fiz = 0.0;
-	      fjx = fjy = fjz = 0.0;
-	      fkx = fky = fkz = 0.0;
-	    }
-
-	    tr0 = tr1 = tr2 = tr3 = 0.0;
-	    double xvir3t,xvir3v;
-	    xvir3t = xvir3v = 0.0;
-
-	    if (T12 && T23) {
-	      bond_data *bki = bond_hash.Lookup(Doublet(k,i));
-
-	      if (three_body_energies && evflag) {
-		tr0 = transtrace(T12->H1H2,bki->H);
-		double dvir = ((dvir_ij + dvir_jk + bki->fl_deriv_sum)*splinepot.vc +
-				 splinepot.dvc)*tr0*w3/anorm3;
-		vir3t = vir3t + dvir;
-		xvir3t = xvir3t + dvir;
-	      }
-	      mcount2++;
-
-	      {
-		const double vc = splinepot.vc;
-		tr_trace3(&(bki->H.m[1][0]),
-			    &(T12->H1xH2.m[1][0]),&utr1x.d,
-			    &(T12->H1yH2.m[1][0]),&utr1y.d,
-			    &(T12->H1zH2.m[1][0]),&utr1z.d);
-
-		tr_trace3(&(bki->H.m[1][0]),
-			    &(T12->H1H2x.m[1][0]),&utr2x.d,
-			    &(T12->H1H2y.m[1][0]),&utr2y.d,
-			    &(T12->H1H2z.m[1][0]),&utr2z.d);
-
-		tr_trace3(&(T12->H1H2.m[1][0]),
-			  &(bki->Hx.m[1][0]),&utr3x.d,
-			  &(bki->Hy.m[1][0]),&utr3y.d,
-			  &(bki->Hz.m[1][0]),&utr3z.d);
-
-		if (linalg.single) {
-		  trd1x = utr1x.f; trd2x = utr2x.f; trd3x = utr3x.f;
-		  trd1y = utr1y.f; trd2y = utr2y.f; trd3y = utr3y.f;
-		  trd1z = utr1z.f; trd2z = utr2z.f; trd3z = utr3z.f;
-		} else {
-		  trd1x = utr1x.d; trd2x = utr2x.d; trd3x = utr3x.d;
-		  trd1y = utr1y.d; trd2y = utr2y.d; trd3y = utr3y.d;
-		  trd1z = utr1z.d; trd2z = utr2z.d; trd3z = utr3z.d;
-		}
-
-		dfix = ( (-sij)*trd1x + ( ski)*trd3x ) * (vc / anorm3);
-		dfjx = ( ( sij)*trd1x + (-sjk)*trd2x ) * (vc / anorm3);
-		dfkx = ( ( sjk)*trd2x + (-ski)*trd3x ) * (vc / anorm3);
-
-		dfiy = ( (-sij)*trd1y + ( ski)*trd3y ) * (vc / anorm3);
-		dfjy = ( ( sij)*trd1y + (-sjk)*trd2y ) * (vc / anorm3);
-		dfky = ( ( sjk)*trd2y + (-ski)*trd3y ) * (vc / anorm3);
-
-		dfiz = ( (-sij)*trd1z + ( ski)*trd3z ) * (vc / anorm3);
-		dfjz = ( ( sij)*trd1z + (-sjk)*trd2z ) * (vc / anorm3);
-		dfkz = ( ( sjk)*trd2z + (-ski)*trd3z ) * (vc / anorm3);
-	      }
-
-	      if (triplet_debug)
-		force_debug_3t(xx,i,j,k, i,j,k,
-			       dfix,dfiy,dfiz,
-			       dfjx,dfjy,dfjz,
-			       dfkx,dfky,dfkz);
-
-	      if (three_body_forces)
-		accumulate_forces_3(w3);
-	    }
-
-	    if (T12 != 0) {
-	      //printf("T12 i,j,k = %d,%d,%d\n",i,j,k);
-	      mcount++;
-	      if (three_body_energies && evflag) {
-		tr1 = transtrace(T12->H1H2,T12->H1H2);
-		double dvir = (2.0*(dvir_ij + dvir_jk)*splinepot.vd +
-				 splinepot.dvd)*tr1*w3/anorm4;
-		vir3v = vir3v + dvir;
-		xvir3v = xvir3v + dvir;
-	      }
-
-	      {
-		const double vd = splinepot.vd;
-
-		tr_trace3(&(T12->H1H2.m[1][0]),
-			  &(T12->H1xH2.m[1][0]),&utr1x.d,
-			  &(T12->H1yH2.m[1][0]),&utr1y.d,
-			  &(T12->H1zH2.m[1][0]),&utr1z.d);
-		tr_trace3(&(T12->H1H2.m[1][0]),
-			  &(T12->H1H2x.m[1][0]),&utr2x.d,
-			  &(T12->H1H2y.m[1][0]),&utr2y.d,
-			  &(T12->H1H2z.m[1][0]),&utr2z.d);
-		if (linalg.single) {
-		  trd1x = utr1x.f; trd2x = utr2x.f;
-		  trd1y = utr1y.f; trd2y = utr2y.f;
-		  trd1z = utr1z.f; trd2z = utr2z.f;
-		} else {
-		  trd1x = utr1x.d; trd2x = utr2x.d;
-		  trd1y = utr1y.d; trd2y = utr2y.d;
-		  trd1z = utr1z.d; trd2z = utr2z.d;
-		}
-
-		dfix = 2.0*(-sij)*trd1x * (vd / anorm4);
-		dfkx = 2.0*( sjk)*trd2x * (vd / anorm4);
-		dfjx = -(dfix + dfkx);
-
-		dfiy = 2.0*(-sij)*trd1y * (vd / anorm4);
-		dfky = 2.0*( sjk)*trd2y * (vd / anorm4);
-		dfjy = -(dfiy + dfky);
-
-		dfiz = 2.0*(-sij)*trd1z * (vd / anorm4);
-		dfkz = 2.0*( sjk)*trd2z * (vd / anorm4);
-		dfjz = -(dfiz + dfkz);
-	      }
-
-	      if (triplet_debug) /* Compare forces to numerical derivatives */
-		force_debug_3v(xx,i,j,k, j,i,k,
-			       dfix,dfiy,dfiz,
-			       dfjx,dfjy,dfjz,
-			       dfkx,dfky,dfkz);
-
-
-	      if (three_body_forces)
-		accumulate_forces_3(w3);
-	    }
-
-	    if (T23 != 0) {
-	      //printf("T23 i,j,k = %d,%d,%d\n",i,j,k);
-	      mcount++;
-	      if (three_body_energies && evflag) {
-		tr2 = transtrace(T23->H1H2,T23->H1H2);
-		double dvir = (2.0*(dvir_jk + dvir_ki)*splinepot.vd +
-				 splinepot.dvd)*tr2*w3/anorm4;
-		vir3v = vir3v + dvir;
-		xvir3v = xvir3v + dvir;
-	      }
-
-	      {
-		const double vd = splinepot.vd;
-
-		tr_trace3(&(T23->H1H2.m[1][0]),
-			  &(T23->H1xH2.m[1][0]),&utr1x.d,
-			  &(T23->H1yH2.m[1][0]),&utr1y.d,
-			  &(T23->H1zH2.m[1][0]),&utr1z.d);
-		tr_trace3(&(T23->H1H2.m[1][0]),
-			  &(T23->H1H2x.m[1][0]),&utr2x.d,
-			  &(T23->H1H2y.m[1][0]),&utr2y.d,
-			  &(T23->H1H2z.m[1][0]),&utr2z.d);
-		if (linalg.single) {
-		  trd1x = utr1x.f; trd2x = utr2x.f;
-		  trd1y = utr1y.f; trd2y = utr2y.f;
-		  trd1z = utr1z.f; trd2z = utr2z.f;
-		} else {
-		  trd1x = utr1x.d; trd2x = utr2x.d;
-		  trd1y = utr1y.d; trd2y = utr2y.d;
-		  trd1z = utr1z.d; trd2z = utr2z.d;
-		}
-
-		dfix = 2.0*( ski)*trd1x * (vd / anorm4);
-		dfjx = 2.0*(-sjk)*trd2x * (vd / anorm4);
-		dfkx = -(dfix + dfjx);
-
-		dfiy = 2.0*( ski)*trd1y * (vd / anorm4);
-		dfjy = 2.0*(-sjk)*trd2y * (vd / anorm4);
-		dfky = -(dfiy + dfjy);
-
-		dfiz = 2.0*( ski)*trd1z * (vd / anorm4);
-		dfjz = 2.0*(-sjk)*trd2z * (vd / anorm4);
-		dfkz = -(dfiz + dfjz);
-	      }
-
-	      if (triplet_debug) /* Compare forces to numerical derivatives */
-		force_debug_3v(xx,i,j,k, k,i,j,
-			       dfix,dfiy,dfiz,
-			       dfjx,dfjy,dfjz,
-			       dfkx,dfky,dfkz);
-
-	      if (three_body_forces)
-		accumulate_forces_3(w3);
-
-	    }
-
-	    if (T31 != 0) {
-	      //printf("T31 i,j,k = %d,%d,%d\n",i,j,k);
-	      mcount++;
-	      if (three_body_energies && evflag) {
-		tr3 = transtrace(T31->H1H2,T31->H1H2);
-		double dvir = (2.0*(dvir_ki + dvir_ij)*splinepot.vd +
-				 splinepot.dvd)*tr3*w3/anorm4;
-		vir3v = vir3v + dvir;
-		xvir3v = xvir3v + dvir;
-	      }
-
-	      {
-		const double vd = splinepot.vd;
-
-		tr_trace3(&(T31->H1H2.m[1][0]),
-			  &(T31->H1xH2.m[1][0]),&utr1x.d,
-			  &(T31->H1yH2.m[1][0]),&utr1y.d,
-			  &(T31->H1zH2.m[1][0]),&utr1z.d);
-		tr_trace3(&(T31->H1H2.m[1][0]),
-			  &(T31->H1H2x.m[1][0]),&utr2x.d,
-			  &(T31->H1H2y.m[1][0]),&utr2y.d,
-			  &(T31->H1H2z.m[1][0]),&utr2z.d);
-		if (linalg.single) {
-		  trd1x = utr1x.f; trd2x = utr2x.f;
-		  trd1y = utr1y.f; trd2y = utr2y.f;
-		  trd1z = utr1z.f; trd2z = utr2z.f;
-		} else {
-		  trd1x = utr1x.d; trd2x = utr2x.d;
-		  trd1y = utr1y.d; trd2y = utr2y.d;
-		  trd1z = utr1z.d; trd2z = utr2z.d;
-		}
-
-		dfjx = 2.0*( sij)*trd1x * (vd / anorm4);
-		dfkx = 2.0*(-ski)*trd2x * (vd / anorm4);
-		dfix = -(dfjx + dfkx);
-
-		dfjy = 2.0*( sij)*trd1y * (vd / anorm4);
-		dfky = 2.0*(-ski)*trd2y * (vd / anorm4);
-		dfiy = -(dfjy + dfky);
-
-		dfjz = 2.0*( sij)*trd1z * (vd / anorm4);
-		dfkz = 2.0*(-ski)*trd2z * (vd / anorm4);
-		dfiz = -(dfjz + dfkz);
-
-	      }
-
-	      if (triplet_debug) /* Compare forces to numerical derivatives */
-		force_debug_3v(xx,i,j,k, i,j,k,
-			       dfix,dfiy,dfiz,
-			       dfjx,dfjy,dfjz,
-			       dfkx,dfky,dfkz);
-
-	      if (three_body_forces)
-		accumulate_forces_3(w3);
-	    }
-
-	    v33 = tr0 / anorm3;
-	    v43 = (tr1 + tr2 + tr3) / anorm4;
-	    double de_triplet = (splinepot.vc*v33 + splinepot.vd*v43) * e_scale * w3;
-	    e_triplet = e_triplet + de_triplet;
-	    e_triplet_c = e_triplet_c + splinepot.vc*v33 * e_scale * w3;
-	    c_t++;
-
-	    //printf("xxxx %6d %6d %6d :: %20.10e\n",1,2,3,de_triplet);
-
-	    if (evflag) {
-	      double drji[3],drki[3];
-	      double fj[3] = {fjx,fjy,fjz},fk[3] = {fkx,fky,fkz};
-	      for (int p = 0; p<3; p++) {
-		drji[p] = xx[j][p] - xx[i][p];
-		drki[p] = xx[k][p] - xx[i][p];
-		/* To fix stress-per-atom scaling. */
-		fj[p] *= e_scale;
-		fk[p] *= e_scale;
-	      }
-
-	      ev_tally3(i,j,k,de_triplet,0.0,fj,fk,drji,drki);
-
-	      if (volpres_flag && vflag_atom) {
-		//virial[i] = virial[i] - (vir3v + vir3t) * rhoinv*e_scale;
-		double dvir = -(xvir3v + xvir3t) * rhoinv*e_scale * (1.0/3.0);
-		for (int pp = 0; pp<3; pp++) {
-		  vatom[i][pp] += dvir;
-		  vatom[j][pp] += dvir;
-		  vatom[k][pp] += dvir;
-		}
-	      }
-
-	      fix = fix+fsave[0][0]; fiy = fiy+fsave[0][1]; fiz = fiz+fsave[0][2];
-	      fjx = fjx+fsave[1][0]; fjy = fjy+fsave[1][1]; fjz = fjz+fsave[1][2];
-	      fkx = fkx+fsave[2][0]; fky = fky+fsave[2][1]; fkz = fkz+fsave[2][2];
-	    }
-
-	    tx1 = gettime();
-	    ttriplet += tx1 - tx0;
-	    nttriplet++;
-	  } else {
-	    triplet_defer = 1;
-	  }
-
-	  if (four_body_energies || four_body_forces)
-	    if (j < i) { /* Search for quadruplet */
-	      tx0 = gettime();
-
-	      mj = first[j];
-	      mk = first[k];
-	      /*
-		i is in both the j-list and the k-list, and i > k,
-		and lists are sorted, so the loop terminates.
-	      */
-	      while (nlist_short[mj] < i && nlist_short[mk] < i) {
-
-		if (mj >= first[j+1] || mk >= first[k+1]) {
-		  printf("Illegal quad...\n"
-			 "  j=%d  first[j]=%d  first[j+1]=%d  mj=%d\n"
-			 "  k=%d  first[k]=%d  first[k+1]=%d  mk=%d\n",
-			 j,first[j],first[j+1],mj,
-			 k,first[k],first[k+1],mk);
-		  error->one(__FILE__,__LINE__,"Shit, brkoen quad loop");
-		}
-
-		if (nlist_short[mj] == nlist_short[mk]) {
-		  /* Closed quadruplet */
-		  m = nlist_short[mj];
-		  c_jm = c_km = 1;
-
-		  const int sim = (i < m) ? 1 : -1;
-		  const int sjm = (j < m) ? 1 : -1;
-		  const int skm = (k < m) ? 1 : -1;
-
-		  w4 = get_weight(triclinic,ss[i],ss[j],ss[k],ss[m]);
-
-		  if (w4 > 0.0) {
-
-		    /* Alrady know ij,jk,ki,jm,km bonds. Look for im bond. */
-		    mi = first[i];
-		    while (mi < first[i+1] && nlist_short[mi] < m) mi = mi + 1;
-		    if (mi < first[i+1] && nlist_short[mi] == m)
-		      c_im = 1;
-		    else
-		      c_im = 0;
-
-		    if (c_im == 0 || c_jk == 0 || (c_jk && c_im && m < k)) {
-
-		      if (triplet_defer) {
-			dvir_ij = dvir_jk = dvir_ki = 0.0;
-			if (c_ij && c_jk)
-			  T12 = get_triplet(xx,j,i,k,&bond_hash,&T12work,&dvir_ij,&dvir_jk);
-			if (c_ki && c_jk)
-			  T23 = get_triplet(xx,k,i,j,&bond_hash,&T23work,&dvir_ki,&dvir_jk);
-			if (c_ij && c_ki)
-			  T31 = get_triplet(xx,i,j,k,&bond_hash,&T31work,&dvir_ij,&dvir_ki);
-			triplet_defer = 0;
-		      }
-
-
-		      fmx = fmy = fmz = 0.0;
-		      double xvir4 = 0.0;
-
-		      if (evflag) {
-			fsave[0][0] = fix; fsave[0][1] = fiy; fsave[0][2] = fiz;
-			fsave[1][0] = fjx; fsave[1][1] = fjy; fsave[1][2] = fjz;
-			fsave[2][0] = fkx; fsave[2][1] = fky; fsave[2][2] = fkz;
-			fsave[3][0] = fmx; fsave[3][1] = fmy; fsave[3][2] = fmz;
-			fix = fiy = fiz = 0.0;
-			fjx = fjy = fjz = 0.0;
-			fkx = fky = fkz = 0.0;
-			fmx = fmy = fmz = 0.0;
-		      }
-
-		      tr1 = tr2 = tr3 = 0.0;
-
-		      dvir_im = dvir_jm = dvir_km = 0.0;
-		      T45 = T56 = T64 = 0;
-		      if (T12 != 0 && c_km && c_im)
-			T45 = get_triplet(xx,m,i,k,&bond_hash,&T45work,&dvir_im,&dvir_km);
-		      if (T23 != 0 && c_im && c_jm)
-			T56 = get_triplet(xx,m,i,j,&bond_hash,&T56work,&dvir_im,&dvir_jm);
-		      if (T31 != 0 && c_jm && c_km)
-			T64 = get_triplet(xx,m,j,k,&bond_hash,&T64work,&dvir_jm,&dvir_km);
-
-		      if (T12 != 0 && T45 != 0) {
-			if (four_body_energies && evflag) {
-			  tr1 = transtrace(T12->H1H2,T45->H1H2);
-			  double dvir = ( (dvir_ij + dvir_jk + dvir_im + dvir_km)*splinepot.ve +
-					  splinepot.dve )*tr1*w4/anorm4;
-			  vir4 = vir4 + dvir;
-			  xvir4 = xvir4 + dvir;
-			}
-			qcount++;
-
-			{
-			  const double ve = splinepot.ve;
-
-			  trd_update_4(T12,T45);
-
-			  dfix_update_4a(x);
-			  dfix_update_4a(y);
-			  dfix_update_4a(z);
-			}
-
-			if (quad_debug) /* Compare forces to numerical derivatives */
-			  force_debug_4(xx,i,j,k,m, i,j,k,m,
-					dfix,dfiy,dfiz , dfjx,dfjy,dfjz,
-					dfkx,dfky,dfkz , dfmx,dfmy,dfmz);
-
-			if (four_body_forces)
-			  accumulate_forces_4(w4);
-		      }
-
-		      if (T23 != 0 && T56 != 0) {
-			if (four_body_energies && evflag) {
-			  tr2 = transtrace(T23->H1H2,T56->H1H2);
-			  double dvir = ( (dvir_ki + dvir_jk + dvir_im + dvir_jm)*splinepot.ve +
-					  splinepot.dve )*tr2*w4/anorm4;
-			  vir4 = vir4 + dvir;
-			  xvir4 = xvir4 + dvir;
-			}
-			qcount++;
-
-			{
-			  const double ve = splinepot.ve;
-
-			  trd_update_4(T23,T56);
-
-			  dfix_update_4b(x);
-			  dfix_update_4b(y);
-			  dfix_update_4b(z);
-			}
-
-			if (quad_debug) /* Compare forces to numerical derivatives */
-			  force_debug_4(xx,i,j,k,m, i,m,j,k,
-					dfix,dfiy,dfiz , dfjx,dfjy,dfjz,
-					dfkx,dfky,dfkz , dfmx,dfmy,dfmz);
-
-			if (four_body_forces)
-			  accumulate_forces_4(w4);
-
-		      }
-
-		      if (T31 != 0 && T64 != 0) {
-			if (four_body_energies && evflag) {
-			  tr3 = transtrace(T31->H1H2,T64->H1H2);
-			  double dvir = ( (dvir_ki + dvir_ij + dvir_jm + dvir_km)*splinepot.ve +
-					  splinepot.dve )*tr3*w4/anorm4;
-			  vir4 = vir4 + dvir;
-			  xvir4 = xvir4 + dvir;
-			}
-			qcount++;
-
-			{
-			  const double ve = splinepot.ve;
-
-			  /* X */
-			  trd_update_4(T31,T64);
-
-			  dfix_update_4c(x);
-			  dfix_update_4c(y);
-			  dfix_update_4c(z);
-			}
-
-			if (quad_debug) /* Compare forces to numerical derivatives */
-			  force_debug_4(xx,i,j,k,m, i,j,m,k,
-					dfix,dfiy,dfiz , dfjx,dfjy,dfjz,
-					dfkx,dfky,dfkz , dfmx,dfmy,dfmz);
-
-			if (four_body_forces)
-			  accumulate_forces_4(w4);
-		      }
-
-		      double de_quad = splinepot.ve*(tr1 + tr2 + tr3)/anorm4 * e_scale * w4;
-		      e_quad = e_quad + de_quad;
-		      if ((T12 && T45) ||
-			 (T23 && T56) ||
-			 (T31 && T64)) {
-			c_q++;
-		      }
-
-		      if (evflag) {
-			double drim[3],drjm[3],drkm[3];
-			double fi[3] = {fix,fiy,fiz};
-			double fj[3] = {fjx,fjy,fjz};
-			double fk[3] = {fkx,fky,fkz};
-			for (int p = 0; p<3; p++) {
-			  drim[p] = xx[i][p] - xx[m][p];
-			  drjm[p] = xx[j][p] - xx[m][p];
-			  drkm[p] = xx[k][p] - xx[m][p];
-			  fi[p] *= e_scale;
-			  fj[p] *= e_scale;
-			  fk[p] *= e_scale;
-			}
-
-			ev_tally4(i,j,k,m,de_quad,fi,fj,fk,drim,drjm,drkm);
-
-			if (volpres_flag && vflag_atom) {
-			  //virial[i] = virial[i] - vir4 * rhoinv*e_scale;
-			  double dvir = -xvir4 * rhoinv*e_scale * (1.0/4.0);
-			  for (int pp = 0; pp<3; pp++) {
-			    vatom[i][pp] += dvir;
-			    vatom[j][pp] += dvir;
-			    vatom[k][pp] += dvir;
-			    vatom[m][pp] += dvir;
-			  }
-			}
-
-			fix = fix+fsave[0][0]; fiy = fiy+fsave[0][1]; fiz = fiz+fsave[0][2];
-			fjx = fjx+fsave[1][0]; fjy = fjy+fsave[1][1]; fjz = fjz+fsave[1][2];
-			fkx = fkx+fsave[2][0]; fky = fky+fsave[2][1]; fkz = fkz+fsave[2][2];
-			fmx = fmx+fsave[3][0]; fmy = fmy+fsave[3][1]; fmz = fmz+fsave[3][2];
-		      }
-
-		      ff[m][0] += fmx * e_scale;
-		      ff[m][1] += fmy * e_scale;
-		      ff[m][2] += fmz * e_scale;
-
-		    }
-		  }
-		  mj = mj + 1;
-		  mk = mk + 1;
-		} else if (nlist_short[mj] < nlist_short[mk]) {
-		  mj = mj + 1;
-		} else {
-		  mk = mk + 1;
-		}
-
-	      }
-	      tx1 = gettime();
-	      tquad += tx1 - tx0;
-	      ntquad++;
-	      ntquaditer++;
-	    }
-
-
-	  ff[k][0] += fkx * e_scale;
-	  ff[k][1] += fky * e_scale;
-	  ff[k][2] += fkz * e_scale;
-
-	}
+        fjx = fjy = fjz = 0.0;
+
+        j = nlist_short[jx];
+
+        for (kx = first[i]; kx<jx; kx++) {
+          fkx = fky = fkz = 0.0;
+
+          k = nlist_short[kx];
+
+          /*
+            Search lists of j and k, and see if
+            1) j is in k-list (closed triplet)
+            2) j and k have a common neighbor (closed quadruplet)
+          */
+
+          c_ij = c_ki = 1;
+
+          const int sij = (i < j) ? 1 : -1;
+          const int sjk = (j < k) ? 1 : -1;
+          const int ski = (k < i) ? 1 : -1;
+
+
+          T12 = T23 = T31 = 0;
+
+          mj = first[j];
+          /*
+            Since i is in the j-list, and i > k and the list
+            is sorted, the loop below terminates:-)
+          */
+          while (mj < first[j+1] && nlist_short[mj] < k) mj = mj + 1;
+          if (mj < first[j+1] && nlist_short[mj] == k) {
+            /* Closed triplet */
+            c_jk = 1;
+
+            if (j > i) continue; /* Require k<j<i for closed triplets */
+          } else {
+            /* Open triplet */
+            c_jk = 0;
+          }
+
+          tx0 = gettime();
+
+          w3 = get_weight(triclinic,ss[i],ss[j],ss[k]);
+
+          int triplet_defer;
+          if (w3 > 0.0) {
+            triplet_defer = 0;
+
+            dvir_ij = dvir_jk = dvir_ki = 0.0;
+            if (c_ij && c_jk)
+              T12 = get_triplet(xx,j,i,k,&bond_hash,&T12work,&dvir_ij,&dvir_jk);
+            if (c_ki && c_jk)
+              T23 = get_triplet(xx,k,i,j,&bond_hash,&T23work,&dvir_ki,&dvir_jk);
+            if (c_ij && c_ki)
+              T31 = get_triplet(xx,i,j,k,&bond_hash,&T31work,&dvir_ij,&dvir_ki);
+
+            if (evflag) {
+              fsave[0][0] = fix; fsave[0][1] = fiy; fsave[0][2] = fiz;
+              fsave[1][0] = fjx; fsave[1][1] = fjy; fsave[1][2] = fjz;
+              fsave[2][0] = fkx; fsave[2][1] = fky; fsave[2][2] = fkz;
+              fix = fiy = fiz = 0.0;
+              fjx = fjy = fjz = 0.0;
+              fkx = fky = fkz = 0.0;
+            }
+
+            tr0 = tr1 = tr2 = tr3 = 0.0;
+            double xvir3t,xvir3v;
+            xvir3t = xvir3v = 0.0;
+
+            if (T12 && T23) {
+              bond_data *bki = bond_hash.Lookup(Doublet(k,i));
+
+              if (three_body_energies && evflag) {
+                tr0 = transtrace(T12->H1H2,bki->H);
+                double dvir = ((dvir_ij + dvir_jk + bki->fl_deriv_sum)*splinepot.vc +
+                                 splinepot.dvc)*tr0*w3/anorm3;
+                vir3t = vir3t + dvir;
+                xvir3t = xvir3t + dvir;
+              }
+              mcount2++;
+
+              {
+                const double vc = splinepot.vc;
+                tr_trace3(&(bki->H.m[1][0]),
+                            &(T12->H1xH2.m[1][0]),&utr1x.d,
+                            &(T12->H1yH2.m[1][0]),&utr1y.d,
+                            &(T12->H1zH2.m[1][0]),&utr1z.d);
+
+                tr_trace3(&(bki->H.m[1][0]),
+                            &(T12->H1H2x.m[1][0]),&utr2x.d,
+                            &(T12->H1H2y.m[1][0]),&utr2y.d,
+                            &(T12->H1H2z.m[1][0]),&utr2z.d);
+
+                tr_trace3(&(T12->H1H2.m[1][0]),
+                          &(bki->Hx.m[1][0]),&utr3x.d,
+                          &(bki->Hy.m[1][0]),&utr3y.d,
+                          &(bki->Hz.m[1][0]),&utr3z.d);
+
+                if (linalg.single) {
+                  trd1x = utr1x.f; trd2x = utr2x.f; trd3x = utr3x.f;
+                  trd1y = utr1y.f; trd2y = utr2y.f; trd3y = utr3y.f;
+                  trd1z = utr1z.f; trd2z = utr2z.f; trd3z = utr3z.f;
+                } else {
+                  trd1x = utr1x.d; trd2x = utr2x.d; trd3x = utr3x.d;
+                  trd1y = utr1y.d; trd2y = utr2y.d; trd3y = utr3y.d;
+                  trd1z = utr1z.d; trd2z = utr2z.d; trd3z = utr3z.d;
+                }
+
+                dfix = ( (-sij)*trd1x + ( ski)*trd3x ) * (vc / anorm3);
+                dfjx = ( ( sij)*trd1x + (-sjk)*trd2x ) * (vc / anorm3);
+                dfkx = ( ( sjk)*trd2x + (-ski)*trd3x ) * (vc / anorm3);
+
+                dfiy = ( (-sij)*trd1y + ( ski)*trd3y ) * (vc / anorm3);
+                dfjy = ( ( sij)*trd1y + (-sjk)*trd2y ) * (vc / anorm3);
+                dfky = ( ( sjk)*trd2y + (-ski)*trd3y ) * (vc / anorm3);
+
+                dfiz = ( (-sij)*trd1z + ( ski)*trd3z ) * (vc / anorm3);
+                dfjz = ( ( sij)*trd1z + (-sjk)*trd2z ) * (vc / anorm3);
+                dfkz = ( ( sjk)*trd2z + (-ski)*trd3z ) * (vc / anorm3);
+              }
+
+              if (triplet_debug)
+                force_debug_3t(xx,i,j,k, i,j,k,
+                               dfix,dfiy,dfiz,
+                               dfjx,dfjy,dfjz,
+                               dfkx,dfky,dfkz);
+
+              if (three_body_forces)
+                accumulate_forces_3(w3);
+            }
+
+            if (T12 != 0) {
+              //printf("T12 i,j,k = %d,%d,%d\n",i,j,k);
+              mcount++;
+              if (three_body_energies && evflag) {
+                tr1 = transtrace(T12->H1H2,T12->H1H2);
+                double dvir = (2.0*(dvir_ij + dvir_jk)*splinepot.vd +
+                                 splinepot.dvd)*tr1*w3/anorm4;
+                vir3v = vir3v + dvir;
+                xvir3v = xvir3v + dvir;
+              }
+
+              {
+                const double vd = splinepot.vd;
+
+                tr_trace3(&(T12->H1H2.m[1][0]),
+                          &(T12->H1xH2.m[1][0]),&utr1x.d,
+                          &(T12->H1yH2.m[1][0]),&utr1y.d,
+                          &(T12->H1zH2.m[1][0]),&utr1z.d);
+                tr_trace3(&(T12->H1H2.m[1][0]),
+                          &(T12->H1H2x.m[1][0]),&utr2x.d,
+                          &(T12->H1H2y.m[1][0]),&utr2y.d,
+                          &(T12->H1H2z.m[1][0]),&utr2z.d);
+                if (linalg.single) {
+                  trd1x = utr1x.f; trd2x = utr2x.f;
+                  trd1y = utr1y.f; trd2y = utr2y.f;
+                  trd1z = utr1z.f; trd2z = utr2z.f;
+                } else {
+                  trd1x = utr1x.d; trd2x = utr2x.d;
+                  trd1y = utr1y.d; trd2y = utr2y.d;
+                  trd1z = utr1z.d; trd2z = utr2z.d;
+                }
+
+                dfix = 2.0*(-sij)*trd1x * (vd / anorm4);
+                dfkx = 2.0*( sjk)*trd2x * (vd / anorm4);
+                dfjx = -(dfix + dfkx);
+
+                dfiy = 2.0*(-sij)*trd1y * (vd / anorm4);
+                dfky = 2.0*( sjk)*trd2y * (vd / anorm4);
+                dfjy = -(dfiy + dfky);
+
+                dfiz = 2.0*(-sij)*trd1z * (vd / anorm4);
+                dfkz = 2.0*( sjk)*trd2z * (vd / anorm4);
+                dfjz = -(dfiz + dfkz);
+              }
+
+              if (triplet_debug) /* Compare forces to numerical derivatives */
+                force_debug_3v(xx,i,j,k, j,i,k,
+                               dfix,dfiy,dfiz,
+                               dfjx,dfjy,dfjz,
+                               dfkx,dfky,dfkz);
+
+
+              if (three_body_forces)
+                accumulate_forces_3(w3);
+            }
+
+            if (T23 != 0) {
+              //printf("T23 i,j,k = %d,%d,%d\n",i,j,k);
+              mcount++;
+              if (three_body_energies && evflag) {
+                tr2 = transtrace(T23->H1H2,T23->H1H2);
+                double dvir = (2.0*(dvir_jk + dvir_ki)*splinepot.vd +
+                                 splinepot.dvd)*tr2*w3/anorm4;
+                vir3v = vir3v + dvir;
+                xvir3v = xvir3v + dvir;
+              }
+
+              {
+                const double vd = splinepot.vd;
+
+                tr_trace3(&(T23->H1H2.m[1][0]),
+                          &(T23->H1xH2.m[1][0]),&utr1x.d,
+                          &(T23->H1yH2.m[1][0]),&utr1y.d,
+                          &(T23->H1zH2.m[1][0]),&utr1z.d);
+                tr_trace3(&(T23->H1H2.m[1][0]),
+                          &(T23->H1H2x.m[1][0]),&utr2x.d,
+                          &(T23->H1H2y.m[1][0]),&utr2y.d,
+                          &(T23->H1H2z.m[1][0]),&utr2z.d);
+                if (linalg.single) {
+                  trd1x = utr1x.f; trd2x = utr2x.f;
+                  trd1y = utr1y.f; trd2y = utr2y.f;
+                  trd1z = utr1z.f; trd2z = utr2z.f;
+                } else {
+                  trd1x = utr1x.d; trd2x = utr2x.d;
+                  trd1y = utr1y.d; trd2y = utr2y.d;
+                  trd1z = utr1z.d; trd2z = utr2z.d;
+                }
+
+                dfix = 2.0*( ski)*trd1x * (vd / anorm4);
+                dfjx = 2.0*(-sjk)*trd2x * (vd / anorm4);
+                dfkx = -(dfix + dfjx);
+
+                dfiy = 2.0*( ski)*trd1y * (vd / anorm4);
+                dfjy = 2.0*(-sjk)*trd2y * (vd / anorm4);
+                dfky = -(dfiy + dfjy);
+
+                dfiz = 2.0*( ski)*trd1z * (vd / anorm4);
+                dfjz = 2.0*(-sjk)*trd2z * (vd / anorm4);
+                dfkz = -(dfiz + dfjz);
+              }
+
+              if (triplet_debug) /* Compare forces to numerical derivatives */
+                force_debug_3v(xx,i,j,k, k,i,j,
+                               dfix,dfiy,dfiz,
+                               dfjx,dfjy,dfjz,
+                               dfkx,dfky,dfkz);
+
+              if (three_body_forces)
+                accumulate_forces_3(w3);
+
+            }
+
+            if (T31 != 0) {
+              //printf("T31 i,j,k = %d,%d,%d\n",i,j,k);
+              mcount++;
+              if (three_body_energies && evflag) {
+                tr3 = transtrace(T31->H1H2,T31->H1H2);
+                double dvir = (2.0*(dvir_ki + dvir_ij)*splinepot.vd +
+                                 splinepot.dvd)*tr3*w3/anorm4;
+                vir3v = vir3v + dvir;
+                xvir3v = xvir3v + dvir;
+              }
+
+              {
+                const double vd = splinepot.vd;
+
+                tr_trace3(&(T31->H1H2.m[1][0]),
+                          &(T31->H1xH2.m[1][0]),&utr1x.d,
+                          &(T31->H1yH2.m[1][0]),&utr1y.d,
+                          &(T31->H1zH2.m[1][0]),&utr1z.d);
+                tr_trace3(&(T31->H1H2.m[1][0]),
+                          &(T31->H1H2x.m[1][0]),&utr2x.d,
+                          &(T31->H1H2y.m[1][0]),&utr2y.d,
+                          &(T31->H1H2z.m[1][0]),&utr2z.d);
+                if (linalg.single) {
+                  trd1x = utr1x.f; trd2x = utr2x.f;
+                  trd1y = utr1y.f; trd2y = utr2y.f;
+                  trd1z = utr1z.f; trd2z = utr2z.f;
+                } else {
+                  trd1x = utr1x.d; trd2x = utr2x.d;
+                  trd1y = utr1y.d; trd2y = utr2y.d;
+                  trd1z = utr1z.d; trd2z = utr2z.d;
+                }
+
+                dfjx = 2.0*( sij)*trd1x * (vd / anorm4);
+                dfkx = 2.0*(-ski)*trd2x * (vd / anorm4);
+                dfix = -(dfjx + dfkx);
+
+                dfjy = 2.0*( sij)*trd1y * (vd / anorm4);
+                dfky = 2.0*(-ski)*trd2y * (vd / anorm4);
+                dfiy = -(dfjy + dfky);
+
+                dfjz = 2.0*( sij)*trd1z * (vd / anorm4);
+                dfkz = 2.0*(-ski)*trd2z * (vd / anorm4);
+                dfiz = -(dfjz + dfkz);
+
+              }
+
+              if (triplet_debug) /* Compare forces to numerical derivatives */
+                force_debug_3v(xx,i,j,k, i,j,k,
+                               dfix,dfiy,dfiz,
+                               dfjx,dfjy,dfjz,
+                               dfkx,dfky,dfkz);
+
+              if (three_body_forces)
+                accumulate_forces_3(w3);
+            }
+
+            v33 = tr0 / anorm3;
+            v43 = (tr1 + tr2 + tr3) / anorm4;
+            double de_triplet = (splinepot.vc*v33 + splinepot.vd*v43) * e_scale * w3;
+            e_triplet = e_triplet + de_triplet;
+            e_triplet_c = e_triplet_c + splinepot.vc*v33 * e_scale * w3;
+            c_t++;
+
+            //printf("xxxx %6d %6d %6d :: %20.10e\n",1,2,3,de_triplet);
+
+            if (evflag) {
+              double drji[3],drki[3];
+              double fj[3] = {fjx,fjy,fjz},fk[3] = {fkx,fky,fkz};
+              for (int p = 0; p<3; p++) {
+                drji[p] = xx[j][p] - xx[i][p];
+                drki[p] = xx[k][p] - xx[i][p];
+                /* To fix stress-per-atom scaling. */
+                fj[p] *= e_scale;
+                fk[p] *= e_scale;
+              }
+
+              ev_tally3(i,j,k,de_triplet,0.0,fj,fk,drji,drki);
+
+              if (volpres_flag && vflag_atom) {
+                //virial[i] = virial[i] - (vir3v + vir3t) * rhoinv*e_scale;
+                double dvir = -(xvir3v + xvir3t) * rhoinv*e_scale * (1.0/3.0);
+                for (int pp = 0; pp<3; pp++) {
+                  vatom[i][pp] += dvir;
+                  vatom[j][pp] += dvir;
+                  vatom[k][pp] += dvir;
+                }
+              }
+
+              fix = fix+fsave[0][0]; fiy = fiy+fsave[0][1]; fiz = fiz+fsave[0][2];
+              fjx = fjx+fsave[1][0]; fjy = fjy+fsave[1][1]; fjz = fjz+fsave[1][2];
+              fkx = fkx+fsave[2][0]; fky = fky+fsave[2][1]; fkz = fkz+fsave[2][2];
+            }
+
+            tx1 = gettime();
+            ttriplet += tx1 - tx0;
+            nttriplet++;
+          } else {
+            triplet_defer = 1;
+          }
+
+          if (four_body_energies || four_body_forces)
+            if (j < i) { /* Search for quadruplet */
+              tx0 = gettime();
+
+              mj = first[j];
+              mk = first[k];
+              /*
+                i is in both the j-list and the k-list, and i > k,
+                and lists are sorted, so the loop terminates.
+              */
+              while (nlist_short[mj] < i && nlist_short[mk] < i) {
+
+                if (mj >= first[j+1] || mk >= first[k+1]) {
+                  printf("Illegal quad...\n"
+                         "  j=%d  first[j]=%d  first[j+1]=%d  mj=%d\n"
+                         "  k=%d  first[k]=%d  first[k+1]=%d  mk=%d\n",
+                         j,first[j],first[j+1],mj,
+                         k,first[k],first[k+1],mk);
+                  error->one(__FILE__,__LINE__,"Shit, brkoen quad loop");
+                }
+
+                if (nlist_short[mj] == nlist_short[mk]) {
+                  /* Closed quadruplet */
+                  m = nlist_short[mj];
+                  c_jm = c_km = 1;
+
+                  const int sim = (i < m) ? 1 : -1;
+                  const int sjm = (j < m) ? 1 : -1;
+                  const int skm = (k < m) ? 1 : -1;
+
+                  w4 = get_weight(triclinic,ss[i],ss[j],ss[k],ss[m]);
+
+                  if (w4 > 0.0) {
+
+                    /* Alrady know ij,jk,ki,jm,km bonds. Look for im bond. */
+                    mi = first[i];
+                    while (mi < first[i+1] && nlist_short[mi] < m) mi = mi + 1;
+                    if (mi < first[i+1] && nlist_short[mi] == m)
+                      c_im = 1;
+                    else
+                      c_im = 0;
+
+                    if (c_im == 0 || c_jk == 0 || (c_jk && c_im && m < k)) {
+
+                      if (triplet_defer) {
+                        dvir_ij = dvir_jk = dvir_ki = 0.0;
+                        if (c_ij && c_jk)
+                          T12 = get_triplet(xx,j,i,k,&bond_hash,&T12work,&dvir_ij,&dvir_jk);
+                        if (c_ki && c_jk)
+                          T23 = get_triplet(xx,k,i,j,&bond_hash,&T23work,&dvir_ki,&dvir_jk);
+                        if (c_ij && c_ki)
+                          T31 = get_triplet(xx,i,j,k,&bond_hash,&T31work,&dvir_ij,&dvir_ki);
+                        triplet_defer = 0;
+                      }
+
+
+                      fmx = fmy = fmz = 0.0;
+                      double xvir4 = 0.0;
+
+                      if (evflag) {
+                        fsave[0][0] = fix; fsave[0][1] = fiy; fsave[0][2] = fiz;
+                        fsave[1][0] = fjx; fsave[1][1] = fjy; fsave[1][2] = fjz;
+                        fsave[2][0] = fkx; fsave[2][1] = fky; fsave[2][2] = fkz;
+                        fsave[3][0] = fmx; fsave[3][1] = fmy; fsave[3][2] = fmz;
+                        fix = fiy = fiz = 0.0;
+                        fjx = fjy = fjz = 0.0;
+                        fkx = fky = fkz = 0.0;
+                        fmx = fmy = fmz = 0.0;
+                      }
+
+                      tr1 = tr2 = tr3 = 0.0;
+
+                      dvir_im = dvir_jm = dvir_km = 0.0;
+                      T45 = T56 = T64 = 0;
+                      if (T12 != 0 && c_km && c_im)
+                        T45 = get_triplet(xx,m,i,k,&bond_hash,&T45work,&dvir_im,&dvir_km);
+                      if (T23 != 0 && c_im && c_jm)
+                        T56 = get_triplet(xx,m,i,j,&bond_hash,&T56work,&dvir_im,&dvir_jm);
+                      if (T31 != 0 && c_jm && c_km)
+                        T64 = get_triplet(xx,m,j,k,&bond_hash,&T64work,&dvir_jm,&dvir_km);
+
+                      if (T12 != 0 && T45 != 0) {
+                        if (four_body_energies && evflag) {
+                          tr1 = transtrace(T12->H1H2,T45->H1H2);
+                          double dvir = ( (dvir_ij + dvir_jk + dvir_im + dvir_km)*splinepot.ve +
+                                          splinepot.dve )*tr1*w4/anorm4;
+                          vir4 = vir4 + dvir;
+                          xvir4 = xvir4 + dvir;
+                        }
+                        qcount++;
+
+                        {
+                          const double ve = splinepot.ve;
+
+                          trd_update_4(T12,T45);
+
+                          dfix_update_4a(x);
+                          dfix_update_4a(y);
+                          dfix_update_4a(z);
+                        }
+
+                        if (quad_debug) /* Compare forces to numerical derivatives */
+                          force_debug_4(xx,i,j,k,m, i,j,k,m,
+                                        dfix,dfiy,dfiz , dfjx,dfjy,dfjz,
+                                        dfkx,dfky,dfkz , dfmx,dfmy,dfmz);
+
+                        if (four_body_forces)
+                          accumulate_forces_4(w4);
+                      }
+
+                      if (T23 != 0 && T56 != 0) {
+                        if (four_body_energies && evflag) {
+                          tr2 = transtrace(T23->H1H2,T56->H1H2);
+                          double dvir = ( (dvir_ki + dvir_jk + dvir_im + dvir_jm)*splinepot.ve +
+                                          splinepot.dve )*tr2*w4/anorm4;
+                          vir4 = vir4 + dvir;
+                          xvir4 = xvir4 + dvir;
+                        }
+                        qcount++;
+
+                        {
+                          const double ve = splinepot.ve;
+
+                          trd_update_4(T23,T56);
+
+                          dfix_update_4b(x);
+                          dfix_update_4b(y);
+                          dfix_update_4b(z);
+                        }
+
+                        if (quad_debug) /* Compare forces to numerical derivatives */
+                          force_debug_4(xx,i,j,k,m, i,m,j,k,
+                                        dfix,dfiy,dfiz , dfjx,dfjy,dfjz,
+                                        dfkx,dfky,dfkz , dfmx,dfmy,dfmz);
+
+                        if (four_body_forces)
+                          accumulate_forces_4(w4);
+
+                      }
+
+                      if (T31 != 0 && T64 != 0) {
+                        if (four_body_energies && evflag) {
+                          tr3 = transtrace(T31->H1H2,T64->H1H2);
+                          double dvir = ( (dvir_ki + dvir_ij + dvir_jm + dvir_km)*splinepot.ve +
+                                          splinepot.dve )*tr3*w4/anorm4;
+                          vir4 = vir4 + dvir;
+                          xvir4 = xvir4 + dvir;
+                        }
+                        qcount++;
+
+                        {
+                          const double ve = splinepot.ve;
+
+                          /* X */
+                          trd_update_4(T31,T64);
+
+                          dfix_update_4c(x);
+                          dfix_update_4c(y);
+                          dfix_update_4c(z);
+                        }
+
+                        if (quad_debug) /* Compare forces to numerical derivatives */
+                          force_debug_4(xx,i,j,k,m, i,j,m,k,
+                                        dfix,dfiy,dfiz , dfjx,dfjy,dfjz,
+                                        dfkx,dfky,dfkz , dfmx,dfmy,dfmz);
+
+                        if (four_body_forces)
+                          accumulate_forces_4(w4);
+                      }
+
+                      double de_quad = splinepot.ve*(tr1 + tr2 + tr3)/anorm4 * e_scale * w4;
+                      e_quad = e_quad + de_quad;
+                      if ((T12 && T45) ||
+                         (T23 && T56) ||
+                         (T31 && T64)) {
+                        c_q++;
+                      }
+
+                      if (evflag) {
+                        double drim[3],drjm[3],drkm[3];
+                        double fi[3] = {fix,fiy,fiz};
+                        double fj[3] = {fjx,fjy,fjz};
+                        double fk[3] = {fkx,fky,fkz};
+                        for (int p = 0; p<3; p++) {
+                          drim[p] = xx[i][p] - xx[m][p];
+                          drjm[p] = xx[j][p] - xx[m][p];
+                          drkm[p] = xx[k][p] - xx[m][p];
+                          fi[p] *= e_scale;
+                          fj[p] *= e_scale;
+                          fk[p] *= e_scale;
+                        }
+
+                        ev_tally4(i,j,k,m,de_quad,fi,fj,fk,drim,drjm,drkm);
+
+                        if (volpres_flag && vflag_atom) {
+                          //virial[i] = virial[i] - vir4 * rhoinv*e_scale;
+                          double dvir = -xvir4 * rhoinv*e_scale * (1.0/4.0);
+                          for (int pp = 0; pp<3; pp++) {
+                            vatom[i][pp] += dvir;
+                            vatom[j][pp] += dvir;
+                            vatom[k][pp] += dvir;
+                            vatom[m][pp] += dvir;
+                          }
+                        }
+
+                        fix = fix+fsave[0][0]; fiy = fiy+fsave[0][1]; fiz = fiz+fsave[0][2];
+                        fjx = fjx+fsave[1][0]; fjy = fjy+fsave[1][1]; fjz = fjz+fsave[1][2];
+                        fkx = fkx+fsave[2][0]; fky = fky+fsave[2][1]; fkz = fkz+fsave[2][2];
+                        fmx = fmx+fsave[3][0]; fmy = fmy+fsave[3][1]; fmz = fmz+fsave[3][2];
+                      }
+
+                      ff[m][0] += fmx * e_scale;
+                      ff[m][1] += fmy * e_scale;
+                      ff[m][2] += fmz * e_scale;
+
+                    }
+                  }
+                  mj = mj + 1;
+                  mk = mk + 1;
+                } else if (nlist_short[mj] < nlist_short[mk]) {
+                  mj = mj + 1;
+                } else {
+                  mk = mk + 1;
+                }
+
+              }
+              tx1 = gettime();
+              tquad += tx1 - tx0;
+              ntquad++;
+              ntquaditer++;
+            }
+
+
+          ff[k][0] += fkx * e_scale;
+          ff[k][1] += fky * e_scale;
+          ff[k][2] += fkz * e_scale;
+
+        }
 #undef transtrace
 
-	ff[j][0] += fjx * e_scale;
-	ff[j][1] += fjy * e_scale;
-	ff[j][2] += fjz * e_scale;
+        ff[j][0] += fjx * e_scale;
+        ff[j][1] += fjy * e_scale;
+        ff[j][2] += fjz * e_scale;
 
       }
 
@@ -1507,13 +1507,13 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
     if (single_energies == 1 && i < nloc) {
       const double evol0 = splinepot.evol0;
       if (eflag_global) {
-	e_single = e_single + evol0 * e_scale;
-	eng_vdwl = eng_vdwl + evol0 * e_scale;
+        e_single = e_single + evol0 * e_scale;
+        eng_vdwl = eng_vdwl + evol0 * e_scale;
       }
       if (eflag_atom) eatom[i] = eatom[i] + evol0 * e_scale;
       if (volpres_flag && vflag_atom) {
-	for (int pp = 0; pp<3; pp++)
-	  vatom[i][pp] = vatom[i][pp] - rhoinv*splinepot.devol0*e_scale;
+        for (int pp = 0; pp<3; pp++)
+          vatom[i][pp] = vatom[i][pp] - rhoinv*splinepot.devol0*e_scale;
       }
 
     }
@@ -1566,34 +1566,34 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
 
     printf("mgpt engy = %10.3fms\n",(t1-t0)*1e3);
     printf("       mem = %10.3fms  n = %8.0f  adj = %10.3fms  one = %10.3fns\n",
-	   tmem*1e3,ntmem,memadj*1e3,memadj/ntmem*1e9);
+           tmem*1e3,ntmem,memadj*1e3,memadj/ntmem*1e9);
     printf("      sort = %10.3fms  n = %8.0f  adj = %10.3fms  one = %10.3fns\n",
-	   tsort*1e3,ntsort,sortadj*1e3,sortadj/ntsort*1e9);
+           tsort*1e3,ntsort,sortadj*1e3,sortadj/ntsort*1e9);
     printf("      pair = %10.3fms  n = %8.0f  adj = %10.3fms  one = %10.3fns\n",
-	   tpair*1e3,ntpair,pairadj*1e3,pairadj/ntpair*1e9);
+           tpair*1e3,ntpair,pairadj*1e3,pairadj/ntpair*1e9);
     printf("    lookup = %10.3fms  n = %8.0f  adj = %10.3fms  one = %10.3fns\n",
-	   tlookup*1e3,ntlookup,lookupadj*1e3,lookupadj/ntlookup*1e9);
+           tlookup*1e3,ntlookup,lookupadj*1e3,lookupadj/ntlookup*1e9);
     printf("   triplet = %10.3fms  n = %8.0f  adj = %10.3fms  one = %10.3fns\n",
-	   ttriplet*1e3,nttriplet,tripletadj*1e3,tripletadj/nttriplet*1e9);
+           ttriplet*1e3,nttriplet,tripletadj*1e3,tripletadj/nttriplet*1e9);
     printf("      quad = %10.3fms  n = %8.0f  adj = %10.3fms  one = %10.3fns\n",
-	   tquad*1e3,ntquaditer,quadadj*1e3,quadadj/ntquaditer*1e9);
+           tquad*1e3,ntquaditer,quadadj*1e3,quadadj/ntquaditer*1e9);
     printf("       sum = %10.3fms                adj = %10.3fms\n",
-	   tsum*1e3,(tsum - adj*nsum)*1e3);
+           tsum*1e3,(tsum - adj*nsum)*1e3);
     printf("\n    make_b = %10.3fms  n = %8.0f  adj = %10.3fms  one = %10.3fns\n",
-	   t_make_b*1e3,n_make,make_b_adj*1e3,make_b_adj/n_make*1e9);
+           t_make_b*1e3,n_make,make_b_adj*1e3,make_b_adj/n_make*1e9);
     printf("   make_b2 = %10.3fms  n = %8.0f  adj = %10.3fms  one = %10.3fns\n",
-	   t_make_b2*1e3,n_make_b2,make_b2_adj*1e3,make_b2_adj/n_make_b2*1e9);
+           t_make_b2*1e3,n_make_b2,make_b2_adj*1e3,make_b2_adj/n_make_b2*1e9);
     printf("    make_t = %10.3fms  n = %8.0f  adj = %10.3fms  one = %10.3fns\n\n",
-	   t_make_t*1e3,n_make,make_t_adj*1e3,make_t_adj/n_make*1e9);
+           t_make_t*1e3,n_make,make_t_adj*1e3,make_t_adj/n_make*1e9);
     printf("     trace = %10.3fms  n = %8.0f  adj = %10.3fms  one = %10.3fns\n\n",
-	   t_trace*1e3,n_trace,trace_adj*1e3,trace_adj/n_trace*1e9);
+           t_trace*1e3,n_trace,trace_adj*1e3,trace_adj/n_trace*1e9);
 
     printf("mcount (transpose + trace for triplet) = %.0f , %.0f  qcount = %.0f  lmax = %d\n",
-	   mcount,mcount2,qcount,lmax);
+           mcount,mcount2,qcount,lmax);
 
     printf("nbc=%.0f  tbl=%.3fms  tbm=%.3fms  one tbl=%.3fns  one tbm=%.3fns\n",
-	   nbc,(tbl-adj*nbc)*1e3,(tbm-adj*nbc)*1e3,(tbl/nbc-adj)*1e9,
-	   (tbm/nbc-adj)*1e9);
+           nbc,(tbl-adj*nbc)*1e3,(tbm-adj*nbc)*1e3,(tbl/nbc-adj)*1e9,
+           (tbm/nbc-adj)*1e9);
     printf("\n\nForces:\n");
     printf("fix = %.3f  fiy=%.3f  fiz=%.3f\n",fix,fiy,fiz);
     printf("fjx = %.3f  fjy=%.3f  fjz=%.3f\n",fjx,fjy,fjz);
@@ -1601,24 +1601,24 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
     printf("\n");
 
     printf("Bonds   : nsearch=%d maxlen=%d avg.len=%.3f\n",
-	   bond_hash.NSearch(),bond_hash.MaxLength(),
-	   bond_hash.NStep()/(double) bond_hash.NSearch());
+           bond_hash.NSearch(),bond_hash.MaxLength(),
+           bond_hash.NStep()/(double) bond_hash.NSearch());
 
     printf("compute_x: c_p = %d    c_t = %d    c_q = %d\n",c_p,c_t,c_q);
 
     printf("@@ Total number of trace3 calls is %d, total number of make_triplet is %.1f\n",
-	   ntr_calls,n_make);
+           ntr_calls,n_make);
 
     {
       Hash<bond_data,Doublet>::Iterator iter = bond_hash.begin();
       int nitem = 0,nhit = 0;
       while (iter != bond_hash.end()) {
-	nitem++;
-	nhit += iter.link()->hits;
-	iter.next();
+        nitem++;
+        nhit += iter.link()->hits;
+        iter.next();
       }
       printf("bond_hash    hits: nitems=%d   nhits=%d  hits/item = %.3f\n",
-	     nitem,nhit,nhit/(double) nitem);
+             nitem,nhit,nhit/(double) nitem);
     }
   }
 #endif
@@ -1641,24 +1641,24 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
 
     if (single_energies) // Virial correction for self energy
       for (i = 0; i<3; i++) {
-	//virial[i] = virial[i] + nloc*pot_input_vol*pvol0*e_scale;
-	virial[i] = virial[i] - nloc*rhoinv*splinepot.devol0*e_scale;
+        //virial[i] = virial[i] + nloc*pot_input_vol*pvol0*e_scale;
+        virial[i] = virial[i] - nloc*rhoinv*splinepot.devol0*e_scale;
       }
 
     if (pair_energies) // Virial correction for pair energy
       for (i = 0; i<3; i++)
-	virial[i] = virial[i] + rhoinv*e_scale*volvir2;
+        virial[i] = virial[i] + rhoinv*e_scale*volvir2;
 
     if (three_body_energies) // Virial correction for three body enegries
       for (i = 0; i<3; i++) {
-	//virial[i] = virial[i] - pot_input_vol*(e_triplet_c*pc + (e_triplet-e_triplet_c)*pd);
-	virial[i] = virial[i] - (vir3v + vir3t) * rhoinv*e_scale;
+        //virial[i] = virial[i] - pot_input_vol*(e_triplet_c*pc + (e_triplet-e_triplet_c)*pd);
+        virial[i] = virial[i] - (vir3v + vir3t) * rhoinv*e_scale;
       }
 
     if (four_body_energies) // Virial correction for four body enegries
       for (i = 0; i<3; i++) {
-	//virial[i] = virial[i] - pot_input_vol*e_quad*pe;
-	virial[i] = virial[i] - vir4 * rhoinv*e_scale;
+        //virial[i] = virial[i] - pot_input_vol*e_quad*pe;
+        virial[i] = virial[i] - vir4 * rhoinv*e_scale;
       }
 
   }
@@ -1711,10 +1711,10 @@ void PairMGPT::compute(int eflag, int vflag)
       ffloc2[3*ii+2] = 0.0;
       int i = listfull->ilist[ii];
       for (int jj = 0; jj<listfull->inum+listfull->gnum; jj++) {
-	int j = listfull->ilist[jj];
-	if (atom->tag[i] == atom->tag[j])
-	  for (int p = 0; p<3; p++)
-	    ffloc2[3*ii+p] += atom->f[j][p];
+        int j = listfull->ilist[jj];
+        if (atom->tag[i] == atom->tag[j])
+          for (int p = 0; p<3; p++)
+            ffloc2[3*ii+p] += atom->f[j][p];
       }
     }
 
@@ -1726,38 +1726,38 @@ void PairMGPT::compute(int eflag, int vflag)
       atom->f = ffptr;
 
       for (int p = 0; p<3; p++) {
-	double xsave = atom->x[i][p];
-	const double delta = 1e-3;
+        double xsave = atom->x[i][p];
+        const double delta = 1e-3;
 
-	atom->x[i][p] = xsave + delta;
-	for (int jj = 0; jj<3*nmax; jj++) ffwork[jj] = 0.0;
-	compute_x(listfull->numneigh,
-		  listfull->firstneigh,
-		  &e_s,&e_p,&e_t,&e_q,evflag,newton_pair);
-	double e1 = e_s + e_p + e_t + e_q;
+        atom->x[i][p] = xsave + delta;
+        for (int jj = 0; jj<3*nmax; jj++) ffwork[jj] = 0.0;
+        compute_x(listfull->numneigh,
+                  listfull->firstneigh,
+                  &e_s,&e_p,&e_t,&e_q,evflag,newton_pair);
+        double e1 = e_s + e_p + e_t + e_q;
 
-	atom->x[i][p] = xsave - delta;
-	for (int jj = 0; jj<3*nmax; jj++) ffwork[jj] = 0.0;
-	compute_x(listfull->numneigh,
-		  listfull->firstneigh,
-		  &e_s,&e_p,&e_t,&e_q,evflag,newton_pair);
-	double e2 = e_s + e_p + e_t + e_q;
+        atom->x[i][p] = xsave - delta;
+        for (int jj = 0; jj<3*nmax; jj++) ffwork[jj] = 0.0;
+        compute_x(listfull->numneigh,
+                  listfull->firstneigh,
+                  &e_s,&e_p,&e_t,&e_q,evflag,newton_pair);
+        double e2 = e_s + e_p + e_t + e_q;
 
-	ffloc[3*ii+p] = -(e1-e2)/(2*delta);
+        ffloc[3*ii+p] = -(e1-e2)/(2*delta);
 
-	atom->x[i][p] = xsave;
+        atom->x[i][p] = xsave;
       }
 
       atom->f = atom_f_save;
       printf("Force on i=%4d:\n",i);
       printf("  Position   %20.10e  %20.10e  %20.10e\n",
-	     atom->x[i][0],atom->x[i][1],atom->x[i][2]);
+             atom->x[i][0],atom->x[i][1],atom->x[i][2]);
       printf("  Exact      %20.10e  %20.10e  %20.10e\n",
-	     atom->f[i][0],atom->f[i][1],atom->f[i][2]);
+             atom->f[i][0],atom->f[i][1],atom->f[i][2]);
       printf("  Numerical  %20.10e  %20.10e  %20.10e\n",
-	     ffloc[3*ii+0],ffloc[3*ii+1],ffloc[3*ii+2]);
+             ffloc[3*ii+0],ffloc[3*ii+1],ffloc[3*ii+2]);
       printf("  Boundary   %20.10e  %20.10e  %20.10e\n",
-	     ffloc2[3*ii+0],ffloc2[3*ii+1],ffloc2[3*ii+2]);
+             ffloc2[3*ii+0],ffloc2[3*ii+1],ffloc2[3*ii+2]);
     }
 
 
@@ -1787,16 +1787,16 @@ void PairMGPT::compute(int eflag, int vflag)
 
 void PairMGPT::allocate()
 {
-	allocated = 1;
-	int n = atom->ntypes;
+        allocated = 1;
+        int n = atom->ntypes;
 
-	memory->create(setflag,n+1,n+1,"pair:setflag");
-	for (int i = 0; i <= n; i++)
-		for (int j = 0; j <= n; j++)
-			setflag[i][j] = 0;
+        memory->create(setflag,n+1,n+1,"pair:setflag");
+        for (int i = 0; i <= n; i++)
+                for (int j = 0; j <= n; j++)
+                        setflag[i][j] = 0;
 
-	memory->create(cutsq,n+1,n+1,"pair:cutsq");
-	memory->create(cutghost,n+1,n+1,"pair:cutsq");
+        memory->create(cutsq,n+1,n+1,"pair:cutsq");
+        memory->create(cutghost,n+1,n+1,"pair:cutsq");
 }
 
 /* ----------------------------------------------------------------------
@@ -1817,7 +1817,7 @@ void PairMGPT::coeff(int narg, char **arg)
 
   if (narg < 5)
     error->all(__FILE__,__LINE__,
-	       "Not enough arguments for mgpt (MGPT) pair coefficients.");
+               "Not enough arguments for mgpt (MGPT) pair coefficients.");
 
   if (!allocated) allocate();
 
@@ -1840,62 +1840,62 @@ void PairMGPT::coeff(int narg, char **arg)
       if (strcmp(arg[iarg],"volpress") == 0) { /* Volumetric pressure flag */
         if (iarg+2 > narg)
           error->all(FLERR,"Incorrect args for pair coefficients");
-	if (strcmp(arg[iarg+1],"yes") == 0) volpres_flag = 1;
-	else if (strcmp(arg[iarg+1],"no") == 0) volpres_flag = 0;
-	else {
-	  char line[1024];
-	  sprintf(line,"(In %s:%d) Invalid value for volumetric pressure argument.\n"
-		  "It should be \"volpress yes\" or \"volpress no\".\n"
-		  "The value is \"%s\".\n",__FILE__,__LINE__,arg[iarg+1]);
-	  error->all(__FILE__,__LINE__,line);
-	}
-	volpres_tag = 1;
+        if (strcmp(arg[iarg+1],"yes") == 0) volpres_flag = 1;
+        else if (strcmp(arg[iarg+1],"no") == 0) volpres_flag = 0;
+        else {
+          char line[1024];
+          sprintf(line,"(In %s:%d) Invalid value for volumetric pressure argument.\n"
+                  "It should be \"volpress yes\" or \"volpress no\".\n"
+                  "The value is \"%s\".\n",__FILE__,__LINE__,arg[iarg+1]);
+          error->all(__FILE__,__LINE__,line);
+        }
+        volpres_tag = 1;
         iarg += 2;
-	if (comm->me == 0) printf("* volpress: volpres_flag = %d [%s %s]\n",volpres_flag,arg[iarg-2],arg[iarg-1]);
+        if (comm->me == 0) printf("* volpress: volpres_flag = %d [%s %s]\n",volpres_flag,arg[iarg-2],arg[iarg-1]);
       } else if (strcmp(arg[iarg],"nbody") == 0) {
         if (iarg+2 > narg)
           error->all(FLERR,"Incorrect args for pair coefficients");
-	if (strspn(arg[iarg+1],"1234") == strlen(arg[iarg+1])) {
-	  nbody_flag = 0;
-	  for (int i = 0; i<4; i++)
-	    if (strchr(arg[iarg+1],'1'+i) != nullptr) {
-	      nbody_flag = nbody_flag + (1<<i);
-	      if (comm->me == 0) printf("Explicitly adding %d-tuple forces.\n",i+1);
-	    }
-	} else {
-	  char line[1024];
-	  sprintf(line,"(In %s:%d) Invalid value for nbody flag.\n"
-		  "It should be e.g. \"nbody=1234\" (for single, pair, triple, and quad forces/energiers)\n"
-		  "For e.g. only pair and triple forces/energies, use \"nbody=23\".\n"
-		  "The default is \"nbody=1234\".\n"
-		  "The current value is \"%s\".\n",__FILE__,__LINE__,arg[iarg+1]);
-	  error->all(__FILE__,__LINE__,line);
-	}
-	nbody_tag = 1;
+        if (strspn(arg[iarg+1],"1234") == strlen(arg[iarg+1])) {
+          nbody_flag = 0;
+          for (int i = 0; i<4; i++)
+            if (strchr(arg[iarg+1],'1'+i) != nullptr) {
+              nbody_flag = nbody_flag + (1<<i);
+              if (comm->me == 0) printf("Explicitly adding %d-tuple forces.\n",i+1);
+            }
+        } else {
+          char line[1024];
+          sprintf(line,"(In %s:%d) Invalid value for nbody flag.\n"
+                  "It should be e.g. \"nbody=1234\" (for single, pair, triple, and quad forces/energiers)\n"
+                  "For e.g. only pair and triple forces/energies, use \"nbody=23\".\n"
+                  "The default is \"nbody=1234\".\n"
+                  "The current value is \"%s\".\n",__FILE__,__LINE__,arg[iarg+1]);
+          error->all(__FILE__,__LINE__,line);
+        }
+        nbody_tag = 1;
         iarg += 2;
       } else if (strcmp(arg[iarg],"precision") == 0) {
         if (iarg+2 > narg)
           error->all(FLERR,"Incorrect args for pair coefficients");
-	if (strcmp(arg[iarg+1],"single") == 0) single_precision = 1;
-	else if (strcmp(arg[iarg+1],"double") == 0) single_precision = 0;
-	else {
-	  char line[1024];
-	  sprintf(line,"(In %s:%d) Invalid value for precision argument.\n"
-		  "It should be \"precision single\" or \"precision double\".\n"
-		  "The value is \"%s\".\n",__FILE__,__LINE__,arg[iarg+1]);
-	  error->all(__FILE__,__LINE__,line);
-	}
-	precision_tag = 1;
+        if (strcmp(arg[iarg+1],"single") == 0) single_precision = 1;
+        else if (strcmp(arg[iarg+1],"double") == 0) single_precision = 0;
+        else {
+          char line[1024];
+          sprintf(line,"(In %s:%d) Invalid value for precision argument.\n"
+                  "It should be \"precision single\" or \"precision double\".\n"
+                  "The value is \"%s\".\n",__FILE__,__LINE__,arg[iarg+1]);
+          error->all(__FILE__,__LINE__,line);
+        }
+        precision_tag = 1;
         iarg += 2;
-	if (comm->me == 0) printf("* precision: single_flag = %d [%s %s]\n",single_precision,arg[iarg-2],arg[iarg-1]);
+        if (comm->me == 0) printf("* precision: single_flag = %d [%s %s]\n",single_precision,arg[iarg-2],arg[iarg-1]);
       } else {
-	char line[1024];
-	sprintf(line,"(In %s:%d) Invalid argument. Allowed arguments are:\n"
-		"    volpress {yes|no} , default = yes\n"
-		"    precision {single|double} , default = double\n"
-		"    nbody {[1234,]*} , default = whichever terms potential require\n"
-		"The invalid argument is \"%s\".\n",__FILE__,__LINE__,arg[iarg]);
-	error->all(__FILE__,__LINE__,line);
+        char line[1024];
+        sprintf(line,"(In %s:%d) Invalid argument. Allowed arguments are:\n"
+                "    volpress {yes|no} , default = yes\n"
+                "    precision {single|double} , default = double\n"
+                "    nbody {[1234,]*} , default = whichever terms potential require\n"
+                "The invalid argument is \"%s\".\n",__FILE__,__LINE__,arg[iarg]);
+        error->all(__FILE__,__LINE__,line);
       }
     }
 
@@ -1917,19 +1917,19 @@ void PairMGPT::coeff(int narg, char **arg)
       printf("evol0 = %.10e\n",splinepot.evol0);
 
       /* Set up default and requested nbody forces to include */ {
-	int nbody_default = (1<<0) + (1<<1) + (1<<2) + (1<<3);
+        int nbody_default = (1<<0) + (1<<1) + (1<<2) + (1<<3);
 
-	if (splinepot.vd == 0.0 && splinepot.dvd == 0.0)
-	  nbody_default -= (1<<2); // No 3-body contributions
-	if (splinepot.ve == 0.0 && splinepot.dve == 0.0)
-	  nbody_default -= (1<<3); // No 4-body contributions
+        if (splinepot.vd == 0.0 && splinepot.dvd == 0.0)
+          nbody_default -= (1<<2); // No 3-body contributions
+        if (splinepot.ve == 0.0 && splinepot.dve == 0.0)
+          nbody_default -= (1<<3); // No 4-body contributions
 
-	if (nbody_tag == 0) nbody_flag = nbody_default;
+        if (nbody_tag == 0) nbody_flag = nbody_default;
 
-	if (nbody_flag != nbody_default) {
-	  printf("Warning: nbody=%d (suggested=%d) set to disregard multibody-forces in potential.\n",
-		 nbody_flag,nbody_default);
-	}
+        if (nbody_flag != nbody_default) {
+          printf("Warning: nbody=%d (suggested=%d) set to disregard multibody-forces in potential.\n",
+                 nbody_flag,nbody_default);
+        }
       }
     }
   }
@@ -1994,19 +1994,19 @@ void PairMGPT::coeff(int narg, char **arg)
 ------------------------------------------------------------------------- */
 void PairMGPT::init_style()
 {
-	if (force->newton_pair == 0)
-	  error->all(__FILE__,__LINE__,"Pair style mgpt requires newton pair on.");
+        if (force->newton_pair == 0)
+          error->all(__FILE__,__LINE__,"Pair style mgpt requires newton pair on.");
 
-	// Need full neighbor list.
-	int irequest_full = neighbor->request(this);
-	neighbor->requests[irequest_full]->id = 1;
-	neighbor->requests[irequest_full]->half = 0;
-	neighbor->requests[irequest_full]->full = 1;
-	neighbor->requests[irequest_full]->ghost = 1;
+        // Need full neighbor list.
+        int irequest_full = neighbor->request(this);
+        neighbor->requests[irequest_full]->id = 1;
+        neighbor->requests[irequest_full]->half = 0;
+        neighbor->requests[irequest_full]->full = 1;
+        neighbor->requests[irequest_full]->ghost = 1;
 
-	// Also need half neighbor list.
-	int irequest_half = neighbor->request(this);
-	neighbor->requests[irequest_half]->id = 2;
+        // Also need half neighbor list.
+        int irequest_half = neighbor->request(this);
+        neighbor->requests[irequest_half]->id = 2;
 }
 
 /* ----------------------------------------------------------------------
@@ -2015,8 +2015,8 @@ void PairMGPT::init_style()
 ------------------------------------------------------------------------- */
 void PairMGPT::init_list(int id, NeighList *ptr)
 {
-	if (id == 1) listfull = ptr;
-	else if (id == 2) listhalf = ptr;
+        if (id == 1) listfull = ptr;
+        else if (id == 2) listhalf = ptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -2024,7 +2024,7 @@ void PairMGPT::init_list(int id, NeighList *ptr)
 ------------------------------------------------------------------------- */
 double PairMGPT::init_one(int /*i*/, int /*j*/)
 {
-	return cutoff;
+        return cutoff;
 }
 
 /************************************************************************
@@ -2035,8 +2035,8 @@ double PairMGPT::init_one(int /*i*/, int /*j*/)
   derivatives with respect to x,y, and z.
 */
 void PairMGPT::fl_deriv_new(double r,double ri,double xhat,double yhat,double zhat,
-			    double &fl_0,double &fl_x,double &fl_y,double &fl_z,
-			    double &fl_rp,double &fl_p1,double &fl_r0,double &fl_al) {
+                            double &fl_0,double &fl_x,double &fl_y,double &fl_z,
+                            double &fl_rp,double &fl_p1,double &fl_r0,double &fl_al) {
   const double rp = splinepot.rp,p1 = splinepot.p1,r0 = splinepot.r00,al = splinepot.al;
   const int mode = splinepot.mode;
   const double pn = splinepot.pn;
@@ -2176,9 +2176,9 @@ void PairMGPT::fl_deriv_new(double r,double ri,double xhat,double yhat,double zh
   with respect to the coordinates
 */
 void PairMGPT::hamltn_5_raw(const double xin,const double yin,const double zin,
-			     double M [8][8],double Mx[8][8],
-			     double My[8][8],double Mz[8][8],
-			     double *fl_deriv_sum_p) {
+                             double M [8][8],double Mx[8][8],
+                             double My[8][8],double Mz[8][8],
+                             double *fl_deriv_sum_p) {
 
   const double r = sqrt(xin*xin + yin*yin + zin*zin),ri = 1.0/r;
   const double x = xin*ri,y = yin*ri,z = zin*ri;
@@ -2351,9 +2351,9 @@ void PairMGPT::hamltn_5_raw(const double xin,const double yin,const double zin,
 
 
 void PairMGPT::hamltn_7_raw(const double xin,const double yin,const double zin,
-		  double M [8][8],double Mx[8][8],
-		  double My[8][8],double Mz[8][8],
-			     double *fl_deriv_sum_p) {
+                  double M [8][8],double Mx[8][8],
+                  double My[8][8],double Mz[8][8],
+                             double *fl_deriv_sum_p) {
 
   const double r = sqrt(xin*xin + yin*yin + zin*zin),ri = 1.0/r;
   const double x = xin*ri,y = yin*ri,z = zin*ri;

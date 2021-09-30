@@ -26,6 +26,7 @@
 #include "tokenizer.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -628,7 +629,8 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   chemflag = 0;
   bnormflag = 0;
   wselfallflag = 0;
-  chunksize = 4096;
+  chunksize = 32768;
+  parallel_thresh = 8192;
 
   // open SNAP parameter file on proc 0
 
@@ -696,6 +698,8 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
       wselfallflag = utils::inumeric(FLERR,keyval.c_str(),false,lmp);
     else if (keywd == "chunksize")
       chunksize = utils::inumeric(FLERR,keyval.c_str(),false,lmp);
+    else if (keywd == "parallelthresh")
+      parallel_thresh = utils::inumeric(FLERR,keyval.c_str(),false,lmp);
     else
       error->all(FLERR,"Unknown parameter '{}' in SNAP "
                                    "parameter file", keywd);

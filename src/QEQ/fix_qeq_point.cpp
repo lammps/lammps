@@ -32,6 +32,7 @@
 #include "update.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -41,9 +42,7 @@ FixQEqPoint::FixQEqPoint(LAMMPS *lmp, int narg, char **arg) :
   FixQEq(lmp, narg, arg) {
   if (narg == 10) {
     if (strcmp(arg[8],"warn") == 0) {
-      if (strcmp(arg[9],"no") == 0) maxwarn = 0;
-      else if (strcmp(arg[9],"yes") == 0) maxwarn = 1;
-      else error->all(FLERR,"Illegal fix qeq/point command");
+      maxwarn = utils::logical(FLERR,arg[9],false,lmp);
     } else error->all(FLERR,"Illegal fix qeq/point command");
   } else if (narg > 8) error->all(FLERR,"Illegal fix qeq/point command");
 }

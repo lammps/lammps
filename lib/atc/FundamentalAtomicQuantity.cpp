@@ -37,13 +37,13 @@ namespace ATC {
         if (atomType_ == ALL || atomType_ == PROC_GHOST) {
           if (nCols_==1) { // scalar
             double * lammpsQuantity = lammps_scalar();
-            
+
             for (int i = 0; i < atc_.nlocal_total(); i++)
               lammpsQuantity[i] = quantity_(i,0)/unitsConversion_;
           }
           else{ // vector
             double ** lammpsQuantity = lammps_vector();
-            
+
             for (int i = 0; i < atc_.nlocal_total(); i++)
               for (int j = 0; j < nCols_; j++)
                 lammpsQuantity[i][j] = quantity_(i,j)/unitsConversion_;
@@ -52,7 +52,7 @@ namespace ATC {
         // mapped copy
         else {
           int atomIndex;
-          
+
           if (nCols_==1) { // scalar
             double * lammpsQuantity = lammps_scalar();
             for (int i = 0; i < quantity_.nRows(); i++) {
@@ -77,7 +77,7 @@ namespace ATC {
   //--------------------------------------------------------
   //--------------------------------------------------------
   //  Class AtomMass
-  //    Access-only operations when mass is 
+  //    Access-only operations when mass is
   //    defined per type.
   //--------------------------------------------------------
   //--------------------------------------------------------
@@ -98,7 +98,7 @@ namespace ATC {
   {
     const int * type = lammpsInterface_->atom_type();
     const double * mass = lammpsInterface_->atom_mass();
-    
+
     if (atomType_ == ALL || atomType_ == PROC_GHOST) {
       for (int i = 0; i < quantity_.nRows(); i++)
         quantity_(i,0) = mass[type[i]];

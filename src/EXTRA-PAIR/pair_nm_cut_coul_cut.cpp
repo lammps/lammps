@@ -147,17 +147,13 @@ void PairNMCutCoulCut::compute(int eflag, int vflag)
             ecoul = factor_coul * qqrd2e * qtmp*q[j]*sqrt(r2inv);
           else ecoul = 0.0;
           if (rsq < cut_ljsq[itype][jtype]) {
-            evdwl = e0nm[itype][jtype]*(mm[itype][jtype] *
-                                        r0n[itype][jtype]*rninv -
-                                        nn[itype][jtype] *
-                                        r0m[itype][jtype]*rminv) -
-              offset[itype][jtype];
+            evdwl = e0nm[itype][jtype]*(mm[itype][jtype] * r0n[itype][jtype]*rninv -
+                                        nn[itype][jtype] * r0m[itype][jtype]*rminv) - offset[itype][jtype];
             evdwl *= factor_lj;
           } else evdwl = 0.0;
         }
 
-        if (evflag) ev_tally(i,j,nlocal,newton_pair,
-                             evdwl,ecoul,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,ecoul,fpair,delx,dely,delz);
       }
     }
   }
@@ -489,7 +485,7 @@ double PairNMCutCoulCut::single(int i, int j, int itype, int jtype,
 void *PairNMCutCoulCut::extract(const char *str, int &dim)
 {
   dim = 2;
-  if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
+  if (strcmp(str,"cut_coul") == 0) return (void *) cut_coul;
   if (strcmp(str,"e0") == 0) return (void *) e0;
   if (strcmp(str,"r0") == 0) return (void *) r0;
   if (strcmp(str,"nn") == 0) return (void *) nn;

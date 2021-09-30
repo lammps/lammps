@@ -23,7 +23,7 @@ namespace LAMMPS_AL {
 
 template <class numtyp, class acctyp>
 AnswerT::Answer() : _allocated(false),_eflag(false),_vflag(false),
-                            _inum(0),_ilist(nullptr),_newton(false) {
+                    _inum(0),_ilist(nullptr),_newton(false) {
 }
 
 template <class numtyp, class acctyp>

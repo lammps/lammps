@@ -14,7 +14,6 @@
 
 #include "fix_neigh_history.h"
 
-#include <cstring>
 #include "my_page.h"
 #include "atom.h"
 #include "comm.h"
@@ -25,6 +24,8 @@
 #include "pair.h"
 #include "memory.h"
 #include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -66,7 +67,7 @@ FixNeighHistory::FixNeighHistory(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based arrays
   // register with atom class
 
-  grow_arrays(atom->nmax);
+  FixNeighHistory::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
   atom->add_callback(Atom::RESTART);
 

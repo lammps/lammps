@@ -25,10 +25,10 @@ FixStyle(drude/transform/inverse,FixDrudeTransform<true>);
 
 namespace LAMMPS_NS {
 
-template <bool inverse> class FixDrudeTransform : public Fix {
+template <bool inverse> class FixDrudeTransform: public Fix {
  public:
-  FixDrudeTransform<inverse>(class LAMMPS *, int, char **);
-  ~FixDrudeTransform<inverse>();
+  FixDrudeTransform(class LAMMPS *, int, char **);
+  ~FixDrudeTransform();
   int setmask();
   void init();
   void setup(int vflag);

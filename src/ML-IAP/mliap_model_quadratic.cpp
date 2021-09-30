@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "mliap_model_quadratic.h"
-#include "pair_mliap.h"
+
 #include "mliap_data.h"
 #include "error.h"
 #include <cmath>

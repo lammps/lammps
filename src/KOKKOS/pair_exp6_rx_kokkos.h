@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -20,6 +19,7 @@ PairStyle(exp6/rx/kk/host,PairExp6rxKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_EXP6_RX_KOKKOS_H
 #define LMP_PAIR_EXP6_RX_KOKKOS_H
 
@@ -45,7 +45,7 @@ struct PairExp6ParamDataTypeKokkos
           epsilonOld2, alphaOld2, rmOld2, mixWtSite2old;
 
    // Default constructor -- nullify everything.
-   PairExp6ParamDataTypeKokkos<DeviceType>(void)
+   PairExp6ParamDataTypeKokkos()
       : n(0)
    {}
 };
@@ -63,7 +63,7 @@ struct PairExp6ParamDataTypeKokkosVect
                            nTotalold;
 
    // Default constructor -- nullify everything.
-   PairExp6ParamDataTypeKokkosVect<DeviceType>(void)
+   PairExp6ParamDataTypeKokkosVect()
    {}
 };
 

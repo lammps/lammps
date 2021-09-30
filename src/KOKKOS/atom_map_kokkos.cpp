@@ -111,7 +111,7 @@ void AtomKokkos::map_init(int check)
 
       // use "view" template method to avoid unnecessary deep_copy
 
-      auto h_map_hash = k_map_hash.view<LMPHostType>(); // get type
+      auto h_map_hash = k_map_hash.view<LMPHostType>();    // get type
       h_map_hash = decltype(h_map_hash)(map_nhash);
       k_map_hash.view<LMPHostType>() = h_map_hash;
     }
@@ -261,7 +261,7 @@ void AtomKokkos::map_set()
         if (modify->fix[n]->execution_space == Device) device_hash_flag = 1;
 
     if (device_hash_flag) {
-      Kokkos::deep_copy(d_map_hash,h_map_hash);
+      Kokkos::deep_copy(d_map_hash, h_map_hash);
       k_map_hash.view<LMPDeviceType>() = d_map_hash;
     }
   }

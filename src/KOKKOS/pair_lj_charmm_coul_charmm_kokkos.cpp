@@ -69,7 +69,7 @@ PairLJCharmmCoulCharmmKokkos<DeviceType>::~PairLJCharmmCoulCharmmKokkos()
   if (allocated) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    k_cutsq = DAT::tdual_ffloat_2d();
+    memoryKK->destroy_kokkos(k_cutsq,cutsq);
   }
 }
 

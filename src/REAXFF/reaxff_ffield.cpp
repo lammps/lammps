@@ -34,6 +34,8 @@
 
 #include <cctype>
 #include <cmath>
+#include <cstring>
+#include <exception>
 #include <string>
 
 using LAMMPS_NS::utils::open_potential;

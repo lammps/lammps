@@ -57,8 +57,7 @@ FixNumDiff::FixNumDiff(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Illegal fix numdiff command");
 
   std::string cmd = id + std::string("_pe");
-  id_pe = new char[cmd.size()+1];
-  strcpy(id_pe,cmd.c_str());
+  id_pe = utils::strdup(cmd);
 
   cmd += " all pe";
   modify->add_compute(cmd);

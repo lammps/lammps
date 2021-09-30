@@ -72,7 +72,8 @@ Alexey
 ali
 aliceblue
 Allinger
-allocaters
+allocator
+allocators
 allosws
 AlO
 Alonso
@@ -1008,6 +1009,7 @@ FFmpeg
 ffplay
 fft
 fftbench
+fftMPI
 fftw
 fgets
 fhg
@@ -1174,6 +1176,7 @@ googletest
 Gordan
 Goudeau
 GPa
+GPL
 gpu
 gpuID
 gpus
@@ -1383,6 +1386,7 @@ inhomogeneities
 inhomogeneous
 init
 initialdelay
+initialisms
 initializations
 InitiatorIDs
 initio
@@ -1689,6 +1693,8 @@ Lett
 Leuven
 Leven
 Lewy
+LF
+LGPL
 lgvdw
 Liang
 libatc
@@ -1889,7 +1895,6 @@ maxX
 Mayergoyz
 Mayoral
 mbt
-Mbytes
 MBytes
 mc
 McLachlan
@@ -2094,6 +2099,7 @@ Murdick
 Murtola
 Murty
 Muser
+mutexes
 Muto
 muVT
 mux
@@ -2256,6 +2262,7 @@ Nmols
 nn
 nnodes
 Nocedal
+nO
 nocite
 nocoeff
 nodeless
@@ -2280,6 +2287,7 @@ normals
 Noskov
 noslip
 noticable
+Nout
 noutcol
 Noutput
 noutrow
@@ -2433,6 +2441,7 @@ packings
 padua
 Padua
 pafi
+PairIJ
 palegoldenrod
 palegreen
 paleturquoise
@@ -3649,6 +3658,7 @@ Yc
 ycm
 Yeh
 yellowgreen
+yEs
 Yethiraj
 yflag
 yhi

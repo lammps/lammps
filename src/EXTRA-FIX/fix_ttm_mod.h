@@ -21,6 +21,7 @@ FixStyle(ttm/mod,FixTTMMod);
 #define LMP_FIX_TTM_MOD_H
 
 #include "fix.h"
+#include <exception>
 
 namespace LAMMPS_NS {
 
@@ -53,19 +54,24 @@ class FixTTMMod : public Fix {
   double compute_vector(int);
 
  private:
-  int nfileevery;
   int nlevels_respa;
   int seed;
+  int outevery;
+  double shift;
+  char *infile, *outfile;
+
   class RanMars *random;
-  FILE *fp;
-  int nxnodes, nynodes, nznodes;
-  bigint total_nnodes;
+
+  int nxgrid, nygrid, nzgrid;
+  int ngridtotal;
+
   int ***nsum, ***nsum_all;
   double *gfactor1, *gfactor2, *ratio, **flangevin;
   double ***T_electron, ***T_electron_old, ***T_electron_first;
   double ***sum_vsq, ***sum_mass_vsq;
   double ***sum_vsq_all, ***sum_mass_vsq_all;
   double ***net_energy_transfer, ***net_energy_transfer_all;
+
   double gamma_p, gamma_s, v_0, v_0_sq;
   int skin_layer, surface_l, surface_r, t_surface_l, t_surface_r;
   int movsur;
@@ -77,8 +83,18 @@ class FixTTMMod : public Fix {
   double electron_temperature_min;
   el_heat_capacity_thermal_conductivity el_properties(double);
   double el_sp_heat_integral(double);
-  void read_parameters(const char *);
-  void read_initial_electron_temperatures(const char *);
+
+  void read_parameters(const std::string &);
+  void read_electron_temperatures(const std::string &);
+  void write_electron_temperatures(const std::string &);
+
+  class parser_error : public std::exception {
+    std::string message;
+
+   public:
+    parser_error(const std::string &mesg) { message = mesg; }
+    const char *what() const noexcept { return message.c_str(); }
+  };
 };
 
 }    // namespace LAMMPS_NS

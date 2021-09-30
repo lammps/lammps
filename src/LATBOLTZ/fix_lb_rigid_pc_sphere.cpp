@@ -19,19 +19,19 @@
 
 #include "fix_lb_rigid_pc_sphere.h"
 
-#include <cmath>
-
-#include <cstring>
 #include "atom.h"
-#include "domain.h"
-#include "update.h"
-#include "modify.h"
-#include "group.h"
 #include "comm.h"
-#include "force.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
 #include "fix_lb_fluid.h"
+#include "force.h"
+#include "group.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -237,15 +237,9 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
       utils::bounds(FLERR,arg[iarg+1],1,nbody,mlo,mhi,error);
 
       double xflag,yflag,zflag;
-      if (strcmp(arg[iarg+2],"off") == 0) xflag = 0.0;
-      else if (strcmp(arg[iarg+2],"on") == 0) xflag = 1.0;
-      else error->all(FLERR,"Illegal fix lb/rigid/pc/sphere command");
-      if (strcmp(arg[iarg+2],"off") == 0) yflag = 0.0;
-      else if (strcmp(arg[iarg+3],"on") == 0) yflag = 1.0;
-      else error->all(FLERR,"Illegal fix lb/rigid/pc/sphere command");
-      if (strcmp(arg[iarg+4],"off") == 0) zflag = 0.0;
-      else if (strcmp(arg[iarg+4],"on") == 0) zflag = 1.0;
-      else error->all(FLERR,"Illegal fix lb/rigid/pc/sphere command");
+      xflag = (double) utils::logical(FLERR, arg[iarg+2], false, lmp);
+      yflag = (double) utils::logical(FLERR, arg[iarg+3], false, lmp);
+      zflag = (double) utils::logical(FLERR, arg[iarg+4], false, lmp);
 
       int count = 0;
       for (int m = mlo; m <= mhi; m++) {
@@ -263,16 +257,9 @@ FixLbRigidPCSphere::FixLbRigidPCSphere(LAMMPS *lmp, int narg, char **arg) :
       int mlo,mhi;
       utils::bounds(FLERR,arg[iarg+1],1,nbody,mlo,mhi,error);
 
-      double xflag,yflag,zflag;
-      if (strcmp(arg[iarg+2],"off") == 0) xflag = 0.0;
-      else if (strcmp(arg[iarg+2],"on") == 0) xflag = 1.0;
-      else error->all(FLERR,"Illegal fix lb/rigid/pc/sphere command");
-      if (strcmp(arg[iarg+3],"off") == 0) yflag = 0.0;
-      else if (strcmp(arg[iarg+3],"on") == 0) yflag = 1.0;
-      else error->all(FLERR,"Illegal fix lb/rigid/pc/sphere command");
-      if (strcmp(arg[iarg+4],"off") == 0) zflag = 0.0;
-      else if (strcmp(arg[iarg+4],"on") == 0) zflag = 1.0;
-      else error->all(FLERR,"Illegal fix lb/rigid/pc/sphere command");
+      const double xflag = (double) utils::logical(FLERR,arg[iarg+2],false,lmp);
+      const double yflag = (double) utils::logical(FLERR,arg[iarg+3],false,lmp);
+      const double zflag = (double) utils::logical(FLERR,arg[iarg+4],false,lmp);
 
       int count = 0;
       for (int m = mlo; m <= mhi; m++) {

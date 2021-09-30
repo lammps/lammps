@@ -160,15 +160,11 @@ void FixAtomSwap::options(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"ke") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix atom/swap command");
-      if (strcmp(arg[iarg+1],"no") == 0) conserve_ke_flag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) conserve_ke_flag = 1;
-      else error->all(FLERR,"Illegal fix atom/swap command");
+      conserve_ke_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"semi-grand") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix atom/swap command");
-      if (strcmp(arg[iarg+1],"no") == 0) semi_grand_flag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) semi_grand_flag = 1;
-      else error->all(FLERR,"Illegal fix atom/swap command");
+      semi_grand_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"types") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix atom/swap command");
@@ -516,7 +512,6 @@ double FixAtomSwap::energy_full()
   if (force->kspace) force->kspace->compute(eflag,vflag);
 
   if (modify->n_post_force) modify->post_force(vflag);
-  if (modify->n_end_of_step) modify->end_of_step();
 
   update->eflag_global = update->ntimestep;
   double total_energy = c_pe->compute_scalar();

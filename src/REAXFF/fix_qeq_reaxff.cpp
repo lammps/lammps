@@ -98,10 +98,10 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
     else if (strcmp(arg[iarg],"nowarn") == 0) maxwarn = 0;
     else if (strcmp(arg[iarg],"maxiter") == 0) {
       if (iarg+1 > narg-1)
-        error->all(FLERR,fmt::format("Illegal fix {} command", style));
+        error->all(FLERR,"Illegal fix {} command", style);
       imax = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg++;
-    } else error->all(FLERR,fmt::format("Illegal fix {} command", style));
+    } else error->all(FLERR,"Illegal fix {} command", style);
     iarg++;
   }
   shld = nullptr;

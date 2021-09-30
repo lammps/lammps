@@ -173,26 +173,26 @@ void FixACKS2ReaxFF::pertype_parameters(char *arg)
 
       const char *line = reader.next_line();
       if (!line)
-	throw parser_error("Invalid param file for fix acks2/reaxff");
+        throw parser_error("Invalid parameter file for fix acks2/reaxff");
       ValueTokenizer values(line);
 
       if (values.count() != 1)
-	throw parser_error("Fix acks2/reaxff: Incorrect format of param file");
+        throw parser_error("Fix acks2/reaxff: Incorrect format of parameter file");
 
       bond_softness = values.next_double();
 
       for (int i = 1; i <= ntypes; i++) {
         const char *line = reader.next_line();
         if (!line)
-          throw parser_error("Invalid param file for fix acks2/reaxff");
+          throw parser_error("Invalid parameter file for fix acks2/reaxff");
         ValueTokenizer values(line);
 
         if (values.count() != 5)
-          throw parser_error("Fix acks2/reaxff: Incorrect format of param file");
+          throw parser_error("Fix acks2/reaxff: Incorrect format of parameter file");
 
         int itype = values.next_int();
         if ((itype < 1) || (itype > ntypes))
-          throw parser_error("Fix acks2/reaxff: invalid atom type in param file");
+          throw parser_error("Fix acks2/reaxff: invalid atom type in parameter file");
 
         chi[itype] = values.next_double();
         eta[itype] = values.next_double();

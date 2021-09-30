@@ -54,7 +54,7 @@ of the particle's velocities, which are the velocities with the bias
 removed.  The removed bias is then added back to the adjusted
 velocities.  See the doc pages for the individual fixes and for the
 :doc:`fix_modify <fix_modify>` command for instructions on how to
-assign a temperature compute to a thermostatting fix.  
+assign a temperature compute to a thermostatting fix.
 
 For example, you can apply a thermostat only to atoms in a spatial
 region by using it in conjuction with :doc:`compute temp/region

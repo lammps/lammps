@@ -174,7 +174,7 @@ void Universe::add_world(char *str)
     if (part.find_first_not_of("0123456789x") != std::string::npos) valid = false;
 
     if (valid) {
-      std::size_t found = part.find_first_of("x");
+      std::size_t found = part.find_first_of('x');
 
       // 'x' may not be the first or last character
 

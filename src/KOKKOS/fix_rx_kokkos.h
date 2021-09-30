@@ -196,7 +196,7 @@ class FixRxKokkos : public FixRX {
                   double& h0, VectorType& y, VectorType& rwk, UserDataType& userData) const;
 
   //!< ODE Solver diagnostics.
-  void odeDiagnostics(void);
+  void odeDiagnostics();
 
   //!< Special counters per-ode.
   int *diagnosticCounterPerODEnSteps;
@@ -231,7 +231,7 @@ class FixRxKokkos : public FixRX {
 
   bool update_kinetics_data;
 
-  void create_kinetics_data(void);
+  void create_kinetics_data();
 
   // Need a dual-view and device-view for dpdThetaLocal and sumWeights since they're used in several callbacks.
   DAT::tdual_efloat_1d k_dpdThetaLocal, k_sumWeights;

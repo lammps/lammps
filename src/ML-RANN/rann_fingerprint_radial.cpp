@@ -30,8 +30,9 @@ DISTRIBUTION A. Approved for public release; distribution unlimited. OPSEC#4918
  */
 
 #include "rann_fingerprint_radial.h"
+#include "pair_rann.h"
 
-
+#include <cmath>
 
 using namespace LAMMPS_NS::RANN;
 

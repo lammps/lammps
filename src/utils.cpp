@@ -18,15 +18,18 @@
 #include "compute.h"
 #include "error.h"
 #include "fix.h"
+#include "fmt/chrono.h"
 #include "memory.h"
 #include "modify.h"
 #include "text_file_reader.h"
 #include "tokenizer.h"
 #include "update.h"
 
+#include <algorithm>
 #include <cctype>
 #include <cerrno>
 #include <cstring>
+#include <ctime>
 
 #if defined(__linux__)
 #include <unistd.h>    // for readlink
@@ -164,7 +167,7 @@ std::string utils::getsyserror()
 
 /** On Linux the folder /proc/self/fd holds symbolic links to the actual
  * pathnames associated with each open file descriptor of the current process.
- * On macOS the same kind of information can be obtained using ``fcntl(fd,F_GETPATH,buf)``.
+ * On MacOS the same kind of information can be obtained using ``fcntl(fd,F_GETPATH,buf)``.
  * On Windows we use ``GetFinalPathNameByHandleA()`` which is available with
  * Windows Vista and later.
  *
@@ -346,6 +349,47 @@ std::string utils::check_packages_for_style(const std::string &style, const std:
 }
 
 /* ----------------------------------------------------------------------
+   read a boolean value from a string
+   transform to lower case before checking
+   generate an error if is not a legitimate boolean
+   called by various commands to check validity of their arguments
+------------------------------------------------------------------------- */
+
+int utils::logical(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+{
+  int n = 0;
+
+  if (str) n = strlen(str);
+  if (n == 0) {
+    const char msg[] = "Expected boolean parameter instead of NULL or empty string "
+                       "in input script or data file";
+    if (do_abort)
+      lmp->error->one(file, line, msg);
+    else
+      lmp->error->all(file, line, msg);
+  }
+
+  // convert to ascii and lowercase
+  std::string buf(str);
+  if (has_utf8(buf)) buf = utf8_subst(buf);
+
+  int rv = 0;
+  if ((buf == "yes") || (buf == "on") || (buf == "true") || (buf == "1")) {
+    rv = 1;
+  } else if ((buf == "no") || (buf == "off") || (buf == "false") || (buf == "0")) {
+    rv = 0;
+  } else {
+    std::string msg("Expected boolean parameter instead of '");
+    msg += buf + "' in input script or data file";
+    if (do_abort)
+      lmp->error->one(file, line, msg);
+    else
+      lmp->error->all(file, line, msg);
+  }
+  return rv;
+}
+
+/* ----------------------------------------------------------------------
    read a floating point value from a string
    generate an error if not a legitimate floating point value
    called by various commands to check validity of their arguments
@@ -502,7 +546,7 @@ void utils::bounds(const char *file, int line, const std::string &str,
     return;
   }
 
-  found = str.find_first_of("*");
+  found = str.find_first_of('*');
   if (found == std::string::npos) {    // contains no '*'
     nlo = nhi = strtol(str.c_str(), nullptr, 10);
   } else if (str.size() == 1) {    // is only '*'
@@ -583,8 +627,8 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
 
       // split off the compute/fix/property ID, the wildcard and trailing text
 
-      size_t first = word.find("[");
-      size_t second = word.find("]", first + 1);
+      size_t first = word.find('[');
+      size_t second = word.find(']', first + 1);
       if (word[1] == '2')
         id = word.substr(3, first - 3);
       else
@@ -727,7 +771,7 @@ std::string utils::trim(const std::string &line)
 
 std::string utils::trim_comment(const std::string &line)
 {
-  auto end = line.find_first_of("#");
+  auto end = line.find_first_of('#');
   if (end != std::string::npos) { return line.substr(0, end); }
   return std::string(line);
 }
@@ -1030,7 +1074,7 @@ std::string utils::path_basename(const std::string &path)
 #if defined(_WIN32)
   size_t start = path.find_last_of("/\\");
 #else
-  size_t start = path.find_last_of("/");
+  size_t start = path.find_last_of('/');
 #endif
 
   if (start == std::string::npos) {
@@ -1051,7 +1095,7 @@ std::string utils::path_dirname(const std::string &path)
 #if defined(_WIN32)
   size_t start = path.find_last_of("/\\");
 #else
-  size_t start = path.find_last_of("/");
+  size_t start = path.find_last_of('/');
 #endif
 
   if (start == std::string::npos) return ".";
@@ -1316,7 +1360,21 @@ int utils::date2num(const std::string &date)
   return num;
 }
 
-/* binary search in vector of ascending doubles */
+/* ----------------------------------------------------------------------
+   get formatted string of current date from fmtlib
+------------------------------------------------------------------------- */
+
+std::string utils::current_date()
+{
+  time_t tv = time(nullptr);
+  std::tm today = fmt::localtime(tv);
+  return fmt::format("{:%Y-%m-%d}", today);
+}
+
+/* ----------------------------------------------------------------------
+   binary search in vector of ascending doubles
+------------------------------------------------------------------------- */
+
 int utils::binary_search(const double needle, const int n, const double *haystack)
 {
   int lo = 0;

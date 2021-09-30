@@ -350,7 +350,7 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
   // allocates space for temporaries
   gle_tmp1=gle_tmp2=nullptr;
 
-  grow_arrays(atom->nmax);
+  FixGLE::grow_arrays(atom->nmax);
   init_gles();
 
   // add callbacks to enable restarts

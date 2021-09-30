@@ -52,7 +52,6 @@
 #include "variable.h"
 
 #include <cstring>
-#include <vector>
 
 #if defined(LAMMPS_EXCEPTIONS)
 #include "exceptions.h"

@@ -45,6 +45,7 @@ class Balance : public Command {
   int *bisection(int sortflag = 0);
   void dumpout(bigint);
 
+  static constexpr int BSTR_SIZE = 3;
  private:
   int me, nprocs;
 
@@ -56,7 +57,7 @@ class Balance : public Command {
 
   int nitermax;    // params for shift LB
   double stopthresh;
-  char bstr[4];
+  char bstr[BSTR_SIZE+1];
 
   int shift_allocate;       // 1 if SHIFT vectors have been allocated
   int ndim;                 // length of balance string bstr

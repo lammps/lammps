@@ -71,7 +71,8 @@ LAMMPS can use them if they are available on your system.
 
          -D FFTW3_INCLUDE_DIR=path   # path to FFTW3 include files
          -D FFTW3_LIBRARY=path       # path to FFTW3 libraries
-         -D FFT_FFTW_THREADS=on      # enable using threaded FFTW3 libraries
+         -D FFTW3_OMP_LIBRARY=path   # path to FFTW3 OpenMP wrapper libraries
+         -D FFT_FFTW_THREADS=on      # enable using OpenMP threaded FFTW3 libraries
          -D MKL_INCLUDE_DIR=path     # ditto for Intel MKL library
          -D FFT_MKL_THREADS=on       # enable using threaded FFTs with MKL libraries
          -D MKL_LIBRARY=path         # path to MKL libraries

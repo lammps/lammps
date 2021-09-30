@@ -16,20 +16,21 @@
    Contributing author: W. Michael Brown (Intel)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
-
-#include <cmath>
 #include "dihedral_charmm_intel.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "memory.h"
+#include "error.h"
+#include "force.h"
 #include "modify.h"
 #include "neighbor.h"
-#include "domain.h"
-#include "force.h"
 #include "pair.h"
-#include "update.h"
-#include "error.h"
+
+#include <cmath>
+#include <cstring>
+
+#include "omp_compat.h"
 
 #ifdef LMP_USE_AVXCD
 #if (__INTEL_COMPILER_BUILD_DATE > 20160414)

@@ -62,7 +62,7 @@ FixRattle::FixRattle(LAMMPS *lmp, int narg, char **arg) :
   // allocate memory for unconstrained velocity update
 
   vp = nullptr;
-  grow_arrays(atom->nmax);
+  FixRattle::grow_arrays(atom->nmax);
 
   // default communication mode
   // necessary for compatibility with SHAKE

@@ -462,7 +462,6 @@ int UCL_Device::set_platform(int pid) {
   _num_devices = 0;
   for (int i=0; i<num_unpart; i++) {
     cl_uint num_subdevices = 1;
-    cl_device_id *subdevice_list = device_list + i;
 
     #ifdef CL_VERSION_1_2
     cl_device_affinity_domain adomain;
@@ -479,19 +478,21 @@ int UCL_Device::set_platform(int pid) {
       CL_SAFE_CALL(clCreateSubDevices(device_list[i], props, 0, NULL,
                                       &num_subdevices));
     if (num_subdevices > 1) {
-      subdevice_list = new cl_device_id[num_subdevices];
+      cl_device_id *subdevice_list = new cl_device_id[num_subdevices];
       CL_SAFE_CALL(clCreateSubDevices(device_list[i], props, num_subdevices,
                                       subdevice_list, &num_subdevices));
+      for (int j=0; j<num_subdevices; j++) {
+        _cl_devices.push_back(device_list[i]);
+        add_properties(device_list[i]);
+        _num_devices++;
+      }
+      delete[] subdevice_list;
+    } else {
+      _cl_devices.push_back(device_list[i]);
+      add_properties(device_list[i]);
+      _num_devices++;
     }
     #endif
-
-    for (int j=0; j<num_subdevices; j++) {
-      _num_devices++;
-      _cl_devices.push_back(subdevice_list[j]);
-      add_properties(subdevice_list[j]);
-    }
-
-    if (num_subdevices > 1) delete[] subdevice_list;
   } // for i
   #endif
 
@@ -555,16 +556,22 @@ void UCL_Device::add_properties(cl_device_id device_list) {
                                sizeof(float_width),&float_width,nullptr));
   op.preferred_vector_width32=float_width;
 
-  // Determine if double precision is supported
   cl_uint double_width;
   CL_SAFE_CALL(clGetDeviceInfo(device_list,
                                CL_DEVICE_PREFERRED_VECTOR_WIDTH_DOUBLE,
                                sizeof(double_width),&double_width,nullptr));
   op.preferred_vector_width64=double_width;
-  if (double_width==0)
-    op.double_precision=false;
-  else
+
+  // Determine if double precision is supported: All bits in the mask must be set.
+  cl_device_fp_config double_mask = (CL_FP_FMA|CL_FP_ROUND_TO_NEAREST|CL_FP_ROUND_TO_ZERO|
+                                     CL_FP_ROUND_TO_INF|CL_FP_INF_NAN|CL_FP_DENORM);
+  cl_device_fp_config double_avail;
+  CL_SAFE_CALL(clGetDeviceInfo(device_list,CL_DEVICE_DOUBLE_FP_CONFIG,
+                               sizeof(double_avail),&double_avail,nullptr));
+  if ((double_avail & double_mask) == double_mask)
     op.double_precision=true;
+  else
+    op.double_precision=false;
 
   CL_SAFE_CALL(clGetDeviceInfo(device_list,
                                CL_DEVICE_PROFILING_TIMER_RESOLUTION,

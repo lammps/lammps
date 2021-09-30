@@ -60,6 +60,9 @@ silently returning the result of a partial conversion or zero in cases
 where the string is not a valid number.  This behavior allows to more
 easily detect typos or issues when processing input files.
 
+Similarly the :cpp:func:`logical() <LAMMPS_NS::utils::logical>` function
+will convert a string into a boolean and will only accept certain words.
+
 The *do_abort* flag should be set to ``true`` in case  this function
 is called only on a single MPI rank, as that will then trigger the
 a call to ``Error::one()`` for errors instead of ``Error::all()``
@@ -81,6 +84,9 @@ strings for compliance without conversion.
    :project: progguide
 
 .. doxygenfunction:: tnumeric
+   :project: progguide
+
+.. doxygenfunction:: logical
    :project: progguide
 
 
@@ -201,6 +207,9 @@ Convenience functions
    :project: progguide
 
 .. doxygenfunction:: date2num
+   :project: progguide
+
+.. doxygenfunction:: current_date
    :project: progguide
 
 Customized standard functions

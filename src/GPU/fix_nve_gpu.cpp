@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_nve_gpu.h"
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
 #include "force.h"

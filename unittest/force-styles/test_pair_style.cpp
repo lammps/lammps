@@ -1502,7 +1502,7 @@ TEST(PairStyle, extract)
     if (!lmp) {
         std::cerr << "One or more prerequisite styles are not available "
                      "in this LAMMPS configuration:\n";
-        for (auto prerequisite : test_config.prerequisites) {
+        for (const auto &prerequisite : test_config.prerequisites) {
             std::cerr << prerequisite.first << "_style " << prerequisite.second << "\n";
         }
         GTEST_SKIP();

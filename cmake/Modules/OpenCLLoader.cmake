@@ -1,6 +1,6 @@
 message(STATUS "Downloading and building OpenCL loader library")
-set(OPENCL_LOADER_URL "${LAMMPS_THIRDPARTY_URL}/opencl-loader-2021.06.30.tar.gz" CACHE STRING "URL for OpenCL loader tarball")
-set(OPENCL_LOADER_MD5 "f9e55dd550cfbf77f46507adf7cb8fd2" CACHE STRING "MD5 checksum of OpenCL loader tarball")
+set(OPENCL_LOADER_URL "${LAMMPS_THIRDPARTY_URL}/opencl-loader-2021.09.18.tar.gz" CACHE STRING "URL for OpenCL loader tarball")
+set(OPENCL_LOADER_MD5 "3b3882627964bd02e5c3b02065daac3c" CACHE STRING "MD5 checksum of OpenCL loader tarball")
 mark_as_advanced(OPENCL_LOADER_URL)
 mark_as_advanced(OPENCL_LOADER_MD5)
 

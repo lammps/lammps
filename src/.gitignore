@@ -860,8 +860,6 @@
 /fix_ti_rs.h
 /fix_ti_spring.cpp
 /fix_ti_spring.h
-/fix_ttm.cpp
-/fix_ttm.h
 /fix_tune_kspace.cpp
 /fix_tune_kspace.h
 /fix_wall_body_polygon.cpp
@@ -921,6 +919,7 @@
 /improper_ring.h
 /improper_umbrella.cpp
 /improper_umbrella.h
+/interlayer_taper.h
 /kissfft.h
 /lj_sdk_common.h
 /math_complex.h
@@ -935,7 +934,6 @@
 /msm_cg.h
 /neb.cpp
 /neb.h
-
 /pair_adp.cpp
 /pair_adp.h
 /pair_agni.cpp
@@ -996,6 +994,8 @@
 /pair_cosine_squared.h
 /pair_coul_diel.cpp
 /pair_coul_diel.h
+/pair_coul_exclude.cpp
+/pair_coul_exclude.h
 /pair_coul_long.cpp
 /pair_coul_long.h
 /pair_coul_msm.cpp
@@ -1433,6 +1433,10 @@
 /fix_srp.h
 /fix_tfmc.cpp
 /fix_tfmc.h
+/fix_ttm.cpp
+/fix_ttm.h
+/fix_ttm_grid.cpp
+/fix_ttm_grid.h
 /fix_ttm_mod.cpp
 /fix_ttm_mod.h
 /pair_born_coul_long_cs.cpp

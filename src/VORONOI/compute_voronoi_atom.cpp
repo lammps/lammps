@@ -18,9 +18,6 @@
 
 #include "compute_voronoi_atom.h"
 
-#include <cmath>
-#include <cstring>
-#include <voro++.hh>
 #include "atom.h"
 #include "group.h"
 #include "update.h"
@@ -30,9 +27,10 @@
 #include "comm.h"
 #include "variable.h"
 #include "input.h"
-#include "force.h"
 
-#include <vector>
+#include <cmath>
+#include <cstring>
+#include <voro++.hh>
 
 using namespace LAMMPS_NS;
 using namespace voro;
@@ -111,15 +109,11 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg], "neighbors") == 0) {
       if (iarg + 2 > narg) error->all(FLERR,"Illegal compute voronoi/atom command");
-      if (strcmp(arg[iarg+1],"yes") == 0) faces_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) faces_flag = 0;
-      else error->all(FLERR,"Illegal compute voronoi/atom command");
+      faces_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "peratom") == 0) {
       if (iarg + 2 > narg) error->all(FLERR,"Illegal compute voronoi/atom command");
-      if (strcmp(arg[iarg+1],"yes") == 0) peratom_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) peratom_flag = 0;
-      else error->all(FLERR,"Illegal compute voronoi/atom command");
+      peratom_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     }
     else error->all(FLERR,"Illegal compute voronoi/atom command");

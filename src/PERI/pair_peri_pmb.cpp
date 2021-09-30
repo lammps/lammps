@@ -30,8 +30,8 @@
 #include "neigh_list.h"
 #include "neighbor.h"
 
-#include <cmath>
 #include <cfloat>
+#include <cmath>
 
 using namespace LAMMPS_NS;
 

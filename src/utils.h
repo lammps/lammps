@@ -21,9 +21,7 @@
 
 #include <mpi.h>
 
-#include <cstdio>
-#include <string>
-#include <vector>
+#include <vector> // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
@@ -159,6 +157,19 @@ namespace utils {
 
   std::string check_packages_for_style(const std::string &style, const std::string &name,
                                        LAMMPS *lmp);
+
+  /*! Convert a string to a boolean while checking whether it is a valid boolean term.
+   *  Valid terms are 'yes', 'no', 'true', 'false', 'on', 'off', and '1', '0'. Only
+   *  lower case is accepted.
+   *
+   *  \param file     name of source file for error message
+   *  \param line     line number in source file for error message
+   *  \param str      string to be converted to logical
+   *  \param do_abort determines whether to call Error::one() or Error::all()
+   *  \param lmp      pointer to top-level LAMMPS class instance
+   *  \return         1 if string resolves to "true", otherwise 0 */
+
+  int logical(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp);
 
   /*! Convert a string to a floating point number while checking
    *  if it is a valid floating point or integer number
@@ -408,7 +419,7 @@ namespace utils {
 
   /*! Try to detect pathname from FILE pointer.
    *
-   * Currently supported on Linux, macOS, and Windows, otherwise will report "(unknown)".
+   * Currently supported on Linux, MacOS, and Windows, otherwise will report "(unknown)".
    *
    *  \param buf  storage buffer for pathname. output will be truncated if not large enough
    *  \param len  size of storage buffer. output will be truncated to this length - 1
@@ -540,6 +551,14 @@ namespace utils {
    * \return       date code */
 
   int date2num(const std::string &date);
+
+  /*! Return current date as string
+   *
+   * This will generate a string containing the current date in YYYY-MM-DD format.
+   *
+   * \return       string with current date */
+
+  std::string current_date();
 
   /*! Binary search in a vector of ascending doubles of length N
    *

@@ -465,10 +465,6 @@ double AngleClass2P6::single(int type, int i1, int i2, int i3)
   if (c > 1.0) c = 1.0;
   if (c < -1.0) c = -1.0;
 
-  double s = sqrt(1.0 - c*c);
-  if (s < SMALL) s = SMALL;
-  s = 1.0/s;
-
   double dtheta = acos(c) - theta0[type];
   double dtheta2 = dtheta*dtheta;
   double dtheta3 = dtheta2*dtheta;

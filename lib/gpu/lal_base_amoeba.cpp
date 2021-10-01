@@ -353,20 +353,20 @@ int** BaseAmoebaT::precompute(const int ago, const int inum_full, const int nall
                               bool &success, double *host_q, double *boxlo,
                               double *prd) {
   acc_timers();
-  int eflag, vflag;
-  if (eatom) eflag=2;
-  else if (eflag_in) eflag=1;
-  else eflag=0;
-  if (vatom) vflag=2;
-  else if (vflag_in) vflag=1;
-  else vflag=0;
+  //int eflag, vflag;
+  if (eatom) _eflag=2;
+  else if (eflag_in) _eflag=1;
+  else _eflag=0;
+  if (vatom) _vflag=2;
+  else if (vflag_in) _vflag=1;
+  else _vflag=0;
 
   #ifdef LAL_NO_BLOCK_REDUCE
-  if (eflag) eflag=2;
-  if (vflag) vflag=2;
+  if (_eflag) _eflag=2;
+  if (_vflag) _vflag=2;
   #endif
 
-  set_kernel(eflag,vflag);
+  set_kernel(_eflag,_vflag);
 
   // ------------------- Resize 1-5 neighbor arrays ------------------------
 
@@ -444,6 +444,7 @@ int** BaseAmoebaT::compute_multipole_real(const int ago, const int inum_full,
                                           const double aewald, const double felec,
                                           const double off2_mpole, double *host_q,
                                           double *boxlo, double *prd, void **tep_ptr) {
+/*                                            
   acc_timers();
   int eflag, vflag;
   if (eatom) eflag=2;
@@ -459,7 +460,7 @@ int** BaseAmoebaT::compute_multipole_real(const int ago, const int inum_full,
   #endif
 
   set_kernel(eflag,vflag);
-
+*/
   // reallocate per-atom arrays, transfer data from the host
   //   and build the neighbor lists if needed
   // NOTE:
@@ -486,7 +487,7 @@ int** BaseAmoebaT::compute_multipole_real(const int ago, const int inum_full,
   _off2_mpole = off2_mpole;
   _felec = felec;
   _aewald = aewald;
-  const int red_blocks=multipole_real(eflag,vflag);
+  const int red_blocks=multipole_real(_eflag,_vflag);
 
   // leave the answers (forces, energies and virial) on the device,
   //   only copy them back in the last kernel (polar_real)
@@ -528,6 +529,7 @@ int** BaseAmoebaT::compute_udirect2b(const int ago, const int inum_full,
                                      const double aewald, const double off2_polar,
                                      double *host_q, double *boxlo, double *prd,
                                      void** fieldp_ptr) {
+/*                                       
   acc_timers();
   int eflag, vflag;
   if (eatom) eflag=2;
@@ -543,7 +545,7 @@ int** BaseAmoebaT::compute_udirect2b(const int ago, const int inum_full,
   #endif
 
   set_kernel(eflag,vflag);
-
+*/
   // reallocate per-atom arrays, transfer data from the host
   //   and build the neighbor lists if needed
 
@@ -570,7 +572,7 @@ int** BaseAmoebaT::compute_udirect2b(const int ago, const int inum_full,
 
   _off2_polar = off2_polar;
   _aewald = aewald;
-  const int red_blocks=udirect2b(eflag,vflag);
+  const int red_blocks=udirect2b(_eflag,_vflag);
 
   // copy field and fieldp from device to host (_fieldp store both arrays, one after another)
 
@@ -606,6 +608,7 @@ int** BaseAmoebaT::compute_umutual2b(const int ago, const int inum_full,
                                      const double aewald, const double off2_polar,
                                      double *host_q, double *boxlo, double *prd,
                                      void** fieldp_ptr) {
+/*                                       
   acc_timers();
   int eflag, vflag;
   if (eatom) eflag=2;
@@ -621,7 +624,7 @@ int** BaseAmoebaT::compute_umutual2b(const int ago, const int inum_full,
   #endif
 
   set_kernel(eflag,vflag);
-
+*/
   // reallocate per-atom arrays, transfer extra data from the host
   //   and build the neighbor lists if needed
 
@@ -648,7 +651,7 @@ int** BaseAmoebaT::compute_umutual2b(const int ago, const int inum_full,
 
   _off2_polar = off2_polar;
   _aewald = aewald;
-  const int red_blocks=umutual2b(eflag,vflag);
+  const int red_blocks=umutual2b(_eflag,_vflag);
 
   // copy field and fieldp from device to host (_fieldp store both arrays, one after another)
 
@@ -683,6 +686,7 @@ int** BaseAmoebaT::compute_polar_real(const int ago, const int inum_full,
                                       const double aewald, const double felec,
                                       const double off2_polar, double *host_q,
                                       double *boxlo, double *prd, void **tep_ptr) {
+/*                                        
   acc_timers();
   int eflag, vflag;
   if (eatom) eflag=2;
@@ -698,7 +702,7 @@ int** BaseAmoebaT::compute_polar_real(const int ago, const int inum_full,
   #endif
 
   set_kernel(eflag,vflag);
-
+*/
   // reallocate per-atom arrays, transfer data from the host
   //   and build the neighbor lists if needed
   // NOTE:
@@ -734,7 +738,7 @@ int** BaseAmoebaT::compute_polar_real(const int ago, const int inum_full,
   _off2_polar = off2_polar;
   _felec = felec;
   _aewald = aewald;
-  const int red_blocks=polar_real(eflag,vflag);
+  const int red_blocks=polar_real(_eflag,_vflag);
 
   // only copy answers (forces, energies and virial) back from the device
   //   in the last kernel (which is polar_real here)

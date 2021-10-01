@@ -278,6 +278,8 @@ class BaseAmoeba {
   numtyp _aewald,_felec;
   numtyp _off2_hal,_off2_repulse,_off2_disp,_off2_mpole,_off2_polar;
 
+  int _eflag, _vflag;
+
   void compile_kernels(UCL_Device &dev, const void *pair_string,
      const char *kname_multipole, const char *kname_udirect2b,
      const char *kname_umutual2b, const char *kname_polar,

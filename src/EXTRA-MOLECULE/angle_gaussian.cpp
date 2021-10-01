@@ -176,20 +176,20 @@ void AngleGaussian::compute(int eflag, int vflag)
 void AngleGaussian::allocate()
 {
   allocated = 1;
-  int n = atom->nangletypes;
+  int n = atom->nangletypes+1;
 
-  memory->create(nterms,n+1,"angle:nterms");
-  memory->create(angle_temperature,n+1,"angle:angle_temperature");
+  memory->create(nterms,n,"angle:nterms");
+  memory->create(angle_temperature,n,"angle:angle_temperature");
 
-  alpha = new double *[n+1];
-  width = new double *[n+1];
-  theta0 = new double *[n+1];
-  memset(alpha,0,sizeof(double)*(n+1));
-  memset(width,0,sizeof(double)*(n+1));
-  memset(theta0,0,sizeof(double)*(n+1));
+  alpha = new double*[n];
+  width = new double*[n];
+  theta0 = new double*[n];
+  memset(alpha,0,sizeof(double *)*n);
+  memset(width,0,sizeof(double *)*n);
+  memset(theta0,0,sizeof(double *)*n);
 
-  memory->create(setflag,n+1,"angle:setflag");
-  for (int i = 1; i <= n; i++) setflag[i] = 0;
+  memory->create(setflag,n,"angle:setflag");
+  memset(setflag,0,sizeof(int)*n);
 }
 
 /* ----------------------------------------------------------------------

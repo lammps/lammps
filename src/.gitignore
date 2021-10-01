@@ -883,8 +883,6 @@
 /fix_widom.cpp
 /fix_widom.h
 /gpu_extra.h
-/gridcomm.cpp
-/gridcomm.h
 /group_ndx.cpp
 /group_ndx.h
 /gz_file_writer.cpp

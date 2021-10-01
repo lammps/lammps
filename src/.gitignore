@@ -205,7 +205,6 @@
 
 /plugin.cpp
 /plugin.h
-/lammpsplugin.h
 
 /atom_vec_spin.cpp
 /atom_vec_spin.h

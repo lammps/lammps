@@ -14,8 +14,6 @@
 
 #include "bond_gaussian.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "neighbor.h"
 #include "comm.h"
@@ -24,6 +22,8 @@
 #include "memory.h"
 #include "error.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -131,20 +131,20 @@ void BondGaussian::compute(int eflag, int vflag)
 void BondGaussian::allocate()
 {
   allocated = 1;
-  int n = atom->nbondtypes;
+  int n = atom->nbondtypes+1;
 
-  memory->create(nterms,n+1,"bond:nterms");
-  memory->create(bond_temperature,n+1,"bond:bond_temperature");
+  memory->create(nterms,n,"bond:nterms");
+  memory->create(bond_temperature,n,"bond:bond_temperature");
 
-  alpha = new double *[n+1];
-  width = new double *[n+1];
-  r0 = new double *[n+1];
-  memset(alpha,0,sizeof(double)*(n+1));
-  memset(width,0,sizeof(double)*(n+1));
-  memset(r0,0,sizeof(double)*(n+1));
+  alpha = new double *[n];
+  width = new double *[n];
+  r0 = new double *[n];
+  memset(alpha,0,sizeof(double *)*n);
+  memset(width,0,sizeof(double *)*n);
+  memset(r0,0,sizeof(double *)*n);
 
-  memory->create(setflag,n+1,"bond:setflag");
-  for (int i = 1; i <= n; i++) setflag[i] = 0;
+  memory->create(setflag,n,"bond:setflag");
+  memset(setflag,0,sizeof(int)*n);
 }
 
 /* ----------------------------------------------------------------------

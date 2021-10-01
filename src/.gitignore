@@ -27,6 +27,9 @@
 /*_ssa.h
 /*_ssa.cpp
 
+!accelerator_kokkos.h
+!accelerator_omp.h
+
 /fix_mdi_engine.cpp
 /fix_mdi_engine.h
 /library_mdi.cpp

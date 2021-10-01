@@ -1637,12 +1637,13 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
    else do nothing to IJ entry
 ------------------------------------------------------------------------- */
 
-__kernel void k_special15(__global int * dev_nbor,
+__kernel void k_amoeba_special15(__global int * dev_nbor,
                           const __global int * dev_packed,
                           const __global tagint *restrict tag,
                           const __global int *restrict nspecial15,
                           const __global tagint *restrict special15,
-                          const int inum, const int nall, const int nbor_pitch,
+                          const int inum, const int nall,
+                          const int nbor_pitch,
                           const int t_per_atom) {
   int tid, ii, offset, n_stride, i;
   atom_info(t_per_atom,ii,tid,offset);

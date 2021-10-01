@@ -2135,7 +2135,7 @@ __kernel void k_hippo_polar(const __global numtyp4 *restrict x_,
    else do nothing to IJ entry
 ------------------------------------------------------------------------- */
 
-__kernel void k_special15(__global int * dev_nbor,
+__kernel void k_hippo_special15(__global int * dev_nbor,
                           const __global int * dev_packed,
                           const __global tagint *restrict tag,
                           const __global int *restrict nspecial15,

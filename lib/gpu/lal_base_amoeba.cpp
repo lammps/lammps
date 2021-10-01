@@ -58,7 +58,8 @@ int BaseAmoebaT::init_atomic(const int nlocal, const int nall,
                              const char *k_name_udirect2b,
                              const char *k_name_umutual2b,
                              const char *k_name_polar,
-                             const char *k_name_short_nbor) {
+                             const char *k_name_short_nbor,
+                             const char* k_name_special15) {
   screen=_screen;
 
   int gpu_nbor=0;
@@ -91,7 +92,8 @@ int BaseAmoebaT::init_atomic(const int nlocal, const int nall,
   _block_size=device->pair_block_size();
   _block_bio_size=device->block_bio_pair();
   compile_kernels(*ucl_device,pair_program,k_name_multipole,
-                  k_name_udirect2b, k_name_umutual2b,k_name_polar,k_name_short_nbor);
+                  k_name_udirect2b, k_name_umutual2b,k_name_polar,
+                  k_name_short_nbor, k_name_special15);
 
   if (_threads_per_atom>1 && gpu_nbor==0) {
     nbor->packing(true);
@@ -399,23 +401,21 @@ int** BaseAmoebaT::precompute(const int ago, const int inum_full, const int nall
     if (!success)
       return nullptr;
     atom->cast_q_data(host_q);
-    cast_extra_data(host_amtype, host_amgroup, host_rpole, host_uind, host_uinp, host_pval);
+    //cast_extra_data(host_amtype, host_amgroup, host_rpole, host_uind, host_uinp, host_pval);
     hd_balancer.start_timer();
   } else {
     atom->cast_x_data(host_x,host_type);
     atom->cast_q_data(host_q);
-    cast_extra_data(host_amtype, host_amgroup, host_rpole, host_uind, host_uinp, host_pval);
+    //cast_extra_data(host_amtype, host_amgroup, host_rpole, host_uind, host_uinp, host_pval);
     hd_balancer.start_timer();
     atom->add_x_data(host_x,host_type);
   }
   atom->add_q_data();
+  cast_extra_data(host_amtype, host_amgroup, host_rpole, host_uind, host_uinp, host_pval);
   atom->add_extra_data();
 
   *ilist=nbor->host_ilist.begin();
   *jnum=nbor->host_acc.begin();
-
-  device->precompute(ago,inum_full,nall,host_x,host_type,success,host_q,
-                     boxlo, prd);
 
   // re-allocate dev_short_nbor if necessary
   if (inum_full*(2+_max_nbors) > dev_short_nbor.cols()) {
@@ -463,13 +463,8 @@ int** BaseAmoebaT::compute_multipole_real(const int ago, const int inum_full,
   // reallocate per-atom arrays, transfer data from the host
   //   and build the neighbor lists if needed
   // NOTE:
-  //   For now we invoke precompute() again here,
-  //     to be able to turn on/off the udirect2b kernel (which comes before this)
   //   Once all the kernels are ready, precompute() is needed only once
   //     in the first kernel in a time step.
-  //   We only need to cast uind and uinp from host to device here
-  //     if the neighbor lists are rebuilt and other per-atom arrays
-  //     (x, type, amtype, amgroup, rpole) are ready on the device.
 
   int** firstneigh = nullptr;
   firstneigh = precompute(ago, inum_full, nall, host_x, host_type,
@@ -553,6 +548,7 @@ int** BaseAmoebaT::compute_udirect2b(const int ago, const int inum_full,
   //   and build the neighbor lists if needed
 
   int** firstneigh = nullptr;
+/*  
   firstneigh = precompute(ago, inum_full, nall, host_x, host_type,
                           host_amtype, host_amgroup, host_rpole,
                           host_uind, host_uinp, nullptr, sublo, subhi, tag,
@@ -560,6 +556,9 @@ int** BaseAmoebaT::compute_udirect2b(const int ago, const int inum_full,
                           eflag_in, vflag_in, eatom, vatom,
                           host_start, ilist, jnum, cpu_time,
                           success, host_q, boxlo, prd);
+*/
+  cast_extra_data(host_amtype, host_amgroup, host_rpole, host_uind, host_uinp, host_pval);
+  atom->add_extra_data();                          
 
   // ------------------- Resize _fieldp array ------------------------
 
@@ -627,6 +626,7 @@ int** BaseAmoebaT::compute_umutual2b(const int ago, const int inum_full,
   //   and build the neighbor lists if needed
 
   int** firstneigh = nullptr;
+/*  
   firstneigh = precompute(ago, inum_full, nall, host_x, host_type,
                           host_amtype, host_amgroup, host_rpole,
                           host_uind, host_uinp, nullptr, sublo, subhi, tag,
@@ -634,6 +634,9 @@ int** BaseAmoebaT::compute_umutual2b(const int ago, const int inum_full,
                           eflag_in, vflag_in, eatom, vatom,
                           host_start, ilist, jnum, cpu_time,
                           success, host_q, boxlo, prd);
+*/
+  cast_extra_data(host_amtype, host_amgroup, host_rpole, host_uind, host_uinp, host_pval);
+  atom->add_extra_data();                          
 
   // ------------------- Resize _fieldp array ------------------------
 
@@ -708,6 +711,7 @@ int** BaseAmoebaT::compute_polar_real(const int ago, const int inum_full,
   //     (x, type, amtype, amgroup, rpole) are ready on the device.
 
   int** firstneigh = nullptr;
+/*  
   firstneigh = precompute(ago, inum_full, nall, host_x, host_type,
                           host_amtype, host_amgroup, host_rpole,
                           host_uind, host_uinp, nullptr, sublo, subhi, tag,
@@ -715,6 +719,9 @@ int** BaseAmoebaT::compute_polar_real(const int ago, const int inum_full,
                           eflag_in, vflag_in, eatom, vatom,
                           host_start, ilist, jnum, cpu_time,
                           success, host_q, boxlo, prd);
+*/
+  cast_extra_data(host_amtype, host_amgroup, host_rpole, host_uind, host_uinp, host_pval);
+  atom->add_extra_data();                          
 
   // ------------------- Resize _tep array ------------------------
 
@@ -829,7 +836,8 @@ void BaseAmoebaT::compile_kernels(UCL_Device &dev, const void *pair_str,
                                   const char *kname_udirect2b,
                                   const char *kname_umutual2b,
                                   const char *kname_polar,
-                                  const char *kname_short_nbor) {
+                                  const char *kname_short_nbor,
+                                  const char* kname_special15) {
   if (_compiled)
     return;
 
@@ -843,7 +851,7 @@ void BaseAmoebaT::compile_kernels(UCL_Device &dev, const void *pair_str,
   k_umutual2b.set_function(*pair_program,kname_umutual2b);
   k_polar.set_function(*pair_program,kname_polar);
   k_short_nbor.set_function(*pair_program,kname_short_nbor);
-  k_special15.set_function(*pair_program,"k_special15");
+  k_special15.set_function(*pair_program,kname_special15);
   pos_tex.get_texture(*pair_program,"pos_tex");
   q_tex.get_texture(*pair_program,"q_tex");
 

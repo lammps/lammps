@@ -26,7 +26,7 @@ namespace platform {
 
   /*! Return the consumed CPU time for the current process in seconds
    *
-   * This is a wrapper about the POSIX function getrusage() and the Windows equivalent.
+   * This is a wrapper around the POSIX function getrusage() and its Windows equivalent.
    * It is to be used in a similar fashion than MPI_Wtime().
    *
    *  \return used CPU time in second */
@@ -35,7 +35,7 @@ namespace platform {
 
   /*! Return the wall clock state for the current process in seconds
    *
-   * This is a wrapper about XXX and its Windows equivalent.
+   * This is a wrapper around the gettimeofday() function  and its Windows equivalent.
    * It is to be used in a similar fashion than MPI_Wtime().
    *
    *  \return wall clock time in second */

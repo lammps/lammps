@@ -103,30 +103,21 @@ int AmoebaT::init(const int ntypes, const int max_amtype, const int max_amclass,
   ucl_copy(coeff_amclass,host_write2,false);
 
   UCL_H_Vec<numtyp4> dview(5, *(this->ucl_device), UCL_WRITE_ONLY);
-  sp_polar.alloc(5,*(this->ucl_device),UCL_READ_ONLY);
+  sp_amoeba.alloc(5,*(this->ucl_device),UCL_READ_ONLY);
   for (int i=0; i<5; i++) {
-    dview[i].x=host_special_polar_wscale[i];
+    dview[i].x=host_special_hal[i];
     dview[i].y=host_special_polar_piscale[i];
     dview[i].z=host_special_polar_pscale[i];
     dview[i].w=host_special_mpole[i];
   }
-  ucl_copy(sp_polar,dview,5,false);
-
-  sp_nonpolar.alloc(5,*(this->ucl_device),UCL_READ_ONLY);
-  for (int i=0; i<5; i++) {
-    dview[i].x=host_special_hal[i];
-    dview[i].y=host_special_repel[i];
-    dview[i].z=host_special_disp[i];
-    dview[i].w=(numtyp)0;
-  }
-  ucl_copy(sp_nonpolar,dview,5,false);
+  ucl_copy(sp_amoeba,dview,5,false);
 
   _polar_dscale = polar_dscale;
   _polar_uscale = polar_uscale;
 
   _allocated=true;
   this->_max_bytes=coeff_amtype.row_bytes() + coeff_amclass.row_bytes()
-    + sp_polar.row_bytes() + sp_nonpolar.row_bytes() + this->_tep.row_bytes();
+    + sp_amoeba.row_bytes() + this->_tep.row_bytes();
   return 0;
 }
 
@@ -138,8 +129,7 @@ void AmoebaT::clear() {
 
   coeff_amtype.clear();
   coeff_amclass.clear();
-  sp_polar.clear();
-  sp_nonpolar.clear();
+  sp_amoeba.clear();
 
   this->clear_atomic();
 }
@@ -177,13 +167,14 @@ int AmoebaT::multipole_real(const int eflag, const int vflag) {
                          &nbor_pitch, &this->_threads_per_atom);
 
   this->k_multipole.set_size(GX,BX);
-  this->k_multipole.run(&this->atom->x, &this->atom->extra, &coeff_amtype, &sp_polar,
-                    &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                    &this->dev_short_nbor,
-                    &this->ans->force, &this->ans->engv, &this->_tep,
-                    &eflag, &vflag, &ainum, &_nall, &nbor_pitch,
-                    &this->_threads_per_atom,  &this->_aewald, &this->_felec,
-                    &this->_off2_mpole, &_polar_dscale, &_polar_uscale);
+  this->k_multipole.run(&this->atom->x, &this->atom->extra,
+                        &coeff_amtype, &sp_amoeba,
+                        &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+                        &this->dev_short_nbor,
+                        &this->ans->force, &this->ans->engv, &this->_tep,
+                        &eflag, &vflag, &ainum, &_nall, &nbor_pitch,
+                        &this->_threads_per_atom,  &this->_aewald, &this->_felec,
+                        &this->_off2_mpole, &_polar_dscale, &_polar_uscale);
   this->time_pair.stop();
 
   return GX;
@@ -218,7 +209,7 @@ int AmoebaT::udirect2b(const int eflag, const int vflag) {
   }
 
   this->k_udirect2b.set_size(GX,BX);
-  this->k_udirect2b.run(&this->atom->x, &this->atom->extra, &coeff_amtype, &sp_polar,
+  this->k_udirect2b.run(&this->atom->x, &this->atom->extra, &coeff_amtype, &sp_amoeba,
                         &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                         &this->dev_short_nbor,
                         &this->_fieldp, &ainum, &_nall, &nbor_pitch,
@@ -258,7 +249,7 @@ int AmoebaT::umutual2b(const int eflag, const int vflag) {
   }
 
   this->k_umutual2b.set_size(GX,BX);
-  this->k_umutual2b.run(&this->atom->x, &this->atom->extra, &coeff_amtype, &sp_polar,
+  this->k_umutual2b.run(&this->atom->x, &this->atom->extra, &coeff_amtype, &sp_amoeba,
                         &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                         &this->dev_short_nbor, &this->_fieldp, &ainum, &_nall,
                         &nbor_pitch, &this->_threads_per_atom, &this->_aewald,
@@ -297,7 +288,7 @@ int AmoebaT::polar_real(const int eflag, const int vflag) {
   }
 
   this->k_polar.set_size(GX,BX);
-  this->k_polar.run(&this->atom->x, &this->atom->extra, &coeff_amtype, &sp_polar,
+  this->k_polar.run(&this->atom->x, &this->atom->extra, &coeff_amtype, &sp_amoeba,
                     &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                     &this->dev_short_nbor,
                     &this->ans->force, &this->ans->engv, &this->_tep,

@@ -14,7 +14,7 @@
 // ***************************************************************************
 
 #if defined(NV_KERNEL) || defined(USE_HIP)
-#include <stdio.h>
+//#include <stdio.h>
 #include "lal_aux_fun1.h"
 #ifdef LAMMPS_SMALLBIG
 #define tagint int
@@ -412,7 +412,7 @@ _texture( q_tex,int2);
 __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
                                  const __global numtyp *restrict extra,
                                  const __global numtyp4 *restrict coeff,
-                                 const __global numtyp4 *restrict sp_polar,
+                                 const __global numtyp4 *restrict sp_amoeba,
                                  const __global int *dev_nbor,
                                  const __global int *dev_packed,
                                  const __global int *dev_short_nbor,
@@ -518,7 +518,7 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
       int jtype = pol3j.z; // amtype[j];
       int jgroup =  pol3j.w; // amgroup[j];
 
-      const numtyp4 sp_pol = sp_polar[sbmask15(jextra)];
+      const numtyp4 sp_pol = sp_amoeba[sbmask15(jextra)];
       numtyp factor_mpole = sp_pol.w; // sp_mpole[sbmask15(jextra)];
 
       // intermediates involving moments and separation distance
@@ -713,7 +713,7 @@ __kernel void k_amoeba_multipole(const __global numtyp4 *restrict x_,
 __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
                                  const __global numtyp *restrict extra,
                                  const __global numtyp4 *restrict coeff,
-                                 const __global numtyp4 *restrict sp_polar,
+                                 const __global numtyp4 *restrict sp_amoeba,
                                  const __global int *dev_nbor,
                                  const __global int *dev_packed,
                                  const __global int *dev_short_nbor,
@@ -824,12 +824,12 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
       int jgroup =  pol3j.w; // amgroup[j];
 
       numtyp factor_dscale, factor_pscale;
-      const numtyp4 sp_pol = sp_polar[sbmask15(jextra)];
+      const numtyp4 sp_pol = sp_amoeba[sbmask15(jextra)];
       if (igroup == jgroup) {
-        factor_pscale = sp_pol.y; // sp_polar_piscale[sbmask15(jextra)];
+        factor_pscale = sp_pol.y; // sp_amoeba_piscale[sbmask15(jextra)];
         factor_dscale = polar_dscale;
       } else {
-        factor_pscale = sp_pol.z; // sp_polar_pscale[sbmask15(jextra)];
+        factor_pscale = sp_pol.z; // sp_amoeba_pscale[sbmask15(jextra)];
         factor_dscale = (numtyp)1.0;
       }
 
@@ -931,7 +931,7 @@ __kernel void k_amoeba_udirect2b(const __global numtyp4 *restrict x_,
 __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
                                  const __global numtyp *restrict extra,
                                  const __global numtyp4 *restrict coeff,
-                                 const __global numtyp4 *restrict sp_polar,
+                                 const __global numtyp4 *restrict sp_amoeba,
                                  const __global int *dev_nbor,
                                  const __global int *dev_packed,
                                  const __global int *dev_short_nbor,
@@ -1105,7 +1105,7 @@ __kernel void k_amoeba_umutual2b(const __global numtyp4 *restrict x_,
 __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
                              const __global numtyp *restrict extra,
                              const __global numtyp4 *restrict coeff,
-                             const __global numtyp4 *restrict sp_polar,
+                             const __global numtyp4 *restrict sp_amoeba,
                              const __global int *dev_nbor,
                              const __global int *dev_packed,
                              const __global int *dev_short_nbor,
@@ -1257,13 +1257,13 @@ __kernel void k_amoeba_polar(const __global numtyp4 *restrict x_,
       numtyp ukzp = pol5j.z; // uinp[j][2];
 
       numtyp factor_dscale, factor_pscale, factor_uscale;
-      const numtyp4 sp_pol = sp_polar[sbmask15(jextra)];
+      const numtyp4 sp_pol = sp_amoeba[sbmask15(jextra)];
       if (igroup == jgroup) {
-        factor_pscale = sp_pol.y; // sp_polar_piscale[sbmask15(jextra)];
+        factor_pscale = sp_pol.y; // sp_amoeba_piscale[sbmask15(jextra)];
         factor_dscale = polar_dscale;
         factor_uscale = polar_uscale;
       } else {
-        factor_pscale = sp_pol.z; // sp_polar_pscale[sbmask15(jextra)];
+        factor_pscale = sp_pol.z; // sp_amoeba_pscale[sbmask15(jextra)];
         factor_dscale = factor_uscale = (numtyp)1.0;
       }
 

@@ -70,17 +70,12 @@ class Amoeba : public BaseAmoeba<numtyp, acctyp> {
   UCL_D_Vec<numtyp4> coeff_amtype;
   /// csix = coeff_amclass.x; adisp = coeff_amclass.y;
   UCL_D_Vec<numtyp4> coeff_amclass;
-  /// Special polar values [0-4]:
-  ///   sp_polar.x = special_polar_wscale
-  ///   sp_polar.y special_polar_pscale,
-  ///   sp_polar.z = special_polar_piscale
-  ///   sp_polar.w = special_mpole
-  UCL_D_Vec<numtyp4> sp_polar;
-  /// Special nonpolar values [0-4]:
-  ///   sp_nonpolar.x = special_hal
-  ///   sp_nonpolar.y special_repel
-  ///   sp_nonpolar.z = special_disp
-  UCL_D_Vec<numtyp4> sp_nonpolar;
+  /// Special amoeba values [0-4]:
+  ///   sp_amoeba.x = special_hal
+  ///   sp_amoeba.y = special_polar_pscale,
+  ///   sp_amoeba.z = special_polar_piscale
+  ///   sp_amoeba.w = special_mpole
+  UCL_D_Vec<numtyp4> sp_amoeba;
 
   /// If atom type constants fit in shared memory, use fast kernels
   bool shared_types;

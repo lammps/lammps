@@ -42,7 +42,7 @@ namespace platform {
 
   double walltime();
 
-  /*! Return string with the Operating system version and architecture info.
+  /*! Return string with the operating system version and architecture info
    *
    *  \return  string with info about the OS and the platform is is running on */
 
@@ -120,6 +120,7 @@ namespace platform {
   void *dlopen(const std::string &fname);
 
   /*! Close a shared object
+   *
    * This releases the object corresponding to the provided handle.
    * Resolved symbols associated with this handle may not be used
    * after this call
@@ -137,28 +138,30 @@ namespace platform {
 
   void *dlsym(void *handle, const std::string &symbol);
 
-  /*! File path component separators
-   * These are the characters that separate directories and filename in paths on
-   * a platform. If multiple are provided, the first is the preferred one. */
-
-#if defined(_WIN32)
-  constexpr char filepathsep[] = "\\/";
-#else
-  constexpr char filepathsep[] = "/";
-#endif
-
-  /*! Path environment variable component separator
-   * This is the character that separates entries in "PATH" environment variables. */
-
-#if defined(_WIN32)
-  constexpr char pathvarsep = ';';
-#else
-  constexpr char pathvarsep = ':';
-#endif
-
-  /*! Try to detect pathname from FILE pointer.
+  /*! Platform specific file path component separator
    *
-   * Currently only supported on Linux and MacOS, otherwise will report "(unknown)".
+   * This is a string with the character that separates directories and filename in paths on
+   * a platform. If multiple are characters are provided, the first is the preferred one. */
+
+#if !defined(_WIN32)
+  constexpr char filepathsep[] = "/";
+#else
+  constexpr char filepathsep[] = "\\/";
+#endif
+
+  /*! Platform specific path environment variable component separator
+   *
+   * This is the character that separates entries in "PATH"-style environment variables. */
+
+#if !defined(_WIN32)
+  constexpr char pathvarsep = ':';
+#else
+  constexpr char pathvarsep = ';';
+#endif
+
+  /*! Try to detect pathname from FILE pointer
+   *
+   * Currently only supported on Linux, MacOS, and Windows. Otherwise will report "(unknown)".
    *
    *  \param  fp   FILE pointer struct from STDIO library for which we want to detect the name
    *  \param  buf  storage buffer for pathname. output will be truncated if not large enough
@@ -308,7 +311,7 @@ namespace platform {
   /*! Join two pathname segments
    *
    * This uses the forward slash '/' character unless LAMMPS is compiled
-   * for Windows where it used the equivalent backward slash '\\'.
+   * for Windows where it uses the backward slash '\\'
    *
    * \param   a  first path
    * \param   b  second path
@@ -324,21 +327,22 @@ namespace platform {
   bool file_is_readable(const std::string &path);
 
   /*! Check if a file name ends in a known extension for a compressed file format
-   * Currently supported extensions are: .Z, .gz, .bz2, .zstd, .xz, .lzma
+   *
+   * Currently supported file extensions are: .gz, .bz2, .zstd, .xz, .lzma, lz4
    *
    *  \param  file  name of the file to check
    *  \return  true if the file has a known extension, otherwise false  */
 
   bool has_zip_extension(const std::string &file);
 
-  /*! Open pipe to compressed text file for reading.
+  /*! Open pipe to compressed text file for reading
    *
    *  \param  file  name of the file to open
    *  \return  FILE pointer to pipe using for reading the compressed file. */
 
   FILE *zip_read(const std::string &file);
 
-  /*! Open pipe to compressed text file for writing.
+  /*! Open pipe to compressed text file for writing
    *
    *  \param  file  name of the file to open
    *  \return  FILE pointer to pipe using for reading the compressed file. */

@@ -112,6 +112,8 @@ using namespace LAMMPS_NS;
 // clang compilers are optimizing this function too aggressively returning always 0
 #if defined(__clang__)
 [[clang::optnone]]
+#elif defined(_MSC_VER)
+#pragma optimize("",off)
 #endif
 double platform::cputime()
 // clang-format on
@@ -143,6 +145,9 @@ double platform::cputime()
 
   return rv;
 }
+#if defined(_MSC_VER)
+#pragma optimize("",on)
+#endif
 
 /* ----------------------------------------------------------------------
    get wall time

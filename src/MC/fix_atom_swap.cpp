@@ -160,15 +160,11 @@ void FixAtomSwap::options(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"ke") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix atom/swap command");
-      if (strcmp(arg[iarg+1],"no") == 0) conserve_ke_flag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) conserve_ke_flag = 1;
-      else error->all(FLERR,"Illegal fix atom/swap command");
+      conserve_ke_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"semi-grand") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix atom/swap command");
-      if (strcmp(arg[iarg+1],"no") == 0) semi_grand_flag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) semi_grand_flag = 1;
-      else error->all(FLERR,"Illegal fix atom/swap command");
+      semi_grand_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"types") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix atom/swap command");

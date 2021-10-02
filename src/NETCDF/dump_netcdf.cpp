@@ -871,19 +871,13 @@ int DumpNetCDF::modify_param(int narg, char **arg)
   int iarg = 0;
   if (strcmp(arg[iarg],"double") == 0) {
     iarg++;
-    if (iarg >= narg)
-      error->all(FLERR,"expected 'yes' or 'no' after 'double' keyword.");
-    if (strcmp(arg[iarg],"yes") == 0) {
-      double_precision = true;
-    } else if (strcmp(arg[iarg],"no") == 0) {
-      double_precision = false;
-    } else error->all(FLERR,"expected 'yes' or 'no' after 'double' keyword.");
+    if (iarg >= narg) error->all(FLERR,"expected 'yes' or 'no' after 'double' keyword.");
+    double_precision = utils::logical(FLERR,arg[iarg],false,lmp) == 1;
     iarg++;
     return 2;
   } else if (strcmp(arg[iarg],"at") == 0) {
     iarg++;
-    if (iarg >= narg)
-      error->all(FLERR,"expected additional arg after 'at' keyword.");
+    if (iarg >= narg) error->all(FLERR,"expected additional arg after 'at' keyword.");
     framei = utils::inumeric(FLERR,arg[iarg],false,lmp);
     if (framei == 0) error->all(FLERR,"frame 0 not allowed for 'at' keyword.");
     else if (framei < 0) framei--;
@@ -891,13 +885,8 @@ int DumpNetCDF::modify_param(int narg, char **arg)
     return 2;
   } else if (strcmp(arg[iarg],"thermo") == 0) {
     iarg++;
-    if (iarg >= narg)
-      error->all(FLERR,"expected 'yes' or 'no' after 'thermo' keyword.");
-    if (strcmp(arg[iarg],"yes") == 0) {
-      thermo = true;
-    } else if (strcmp(arg[iarg],"no") == 0) {
-      thermo = false;
-    } else error->all(FLERR,"expected 'yes' or 'no' after 'thermo' keyword.");
+    if (iarg >= narg) error->all(FLERR,"expected 'yes' or 'no' after 'thermo' keyword.");
+    thermo = utils::logical(FLERR,arg[iarg],false,lmp) == 1;
     iarg++;
     return 2;
   } else return 0;

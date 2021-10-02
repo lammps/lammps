@@ -1135,6 +1135,7 @@ Germann
 Germano
 gerolf
 Gerolf
+getrusage
 Gershgorin
 getter
 gettimeofday
@@ -1809,6 +1810,7 @@ lyon
 Lysogorskiy
 Lyulin
 lz
+lzma
 Maaravi
 MACHDYN
 machdyn
@@ -2762,6 +2764,7 @@ REAXFF
 ReaxFF
 reaxff
 rebo
+recurse
 recursing
 Ree
 refactored

@@ -125,7 +125,7 @@ namespace platform {
    * after this call
    *
    * \param  handle  handle to an opened shared object
-   * \return 0 if succesful, non-zero of not */
+   * \return 0 if successful, non-zero of not */
 
   int dlclose(void *handle);
 
@@ -158,7 +158,7 @@ namespace platform {
 
   /*! Try to detect pathname from FILE pointer.
    *
-   * Currently only supported on Linux and macOS, otherwise will report "(unknown)".
+   * Currently only supported on Linux and MacOS, otherwise will report "(unknown)".
    *
    *  \param  fp   FILE pointer struct from STDIO library for which we want to detect the name
    *  \param  buf  storage buffer for pathname. output will be truncated if not large enough
@@ -193,7 +193,7 @@ namespace platform {
    * This provides a list of strings of the entries in the directory
    * without the leading path name while also skipping over ".." and ".".
    *
-   * \param   path  path to directory
+   * \param   dir  path to directory
    * \return  vector with strings of all directory entries */
 
   std::vector<std::string> list_directory(const std::string &dir);
@@ -203,7 +203,7 @@ namespace platform {
    * This function will traverse the list of directories in the PATH
    * environment variable and look for the executable *cmd*.  If the
    * file exists and is executable the full path is returned as string,
-   * otherwise and emptry string is returned.
+   * otherwise and empty string is returned.
    *
    * On Windows the *cmd* string must not include and extension as
    * this function will automatically append the extensions ".exe",
@@ -268,7 +268,7 @@ namespace platform {
 
   int fseek(FILE *fp, bigint pos);
 
-  /*! Truncate file to a given length and reposition file pointer
+  /*! Truncate file to a given length and re-position file pointer
    *
    *  \param   fp      FILE pointer of the given file
    *  \param   length  length to which the file is being truncated to

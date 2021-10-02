@@ -6,6 +6,7 @@
 // This software is distributed under the GNU General Public License.
 
 #include "library.h"
+#include "platform.h"
 #include "utils.h"
 
 #include <cstring>
@@ -785,8 +786,8 @@ int main(int argc, char **argv)
     std::string input_file;
     if ((argc > 1) && (argv[1][0] != '-')) {
         --argc;
-        input_file = utils::path_basename(argv[1]);
-        chdir(utils::path_dirname(input_file).c_str());
+        input_file = platform::path_basename(argv[1]);
+        chdir(platform::path_dirname(input_file).c_str());
         for (int i = 1; i < argc; ++i)
             argv[i] = argv[i + 1];
     }

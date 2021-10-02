@@ -308,7 +308,7 @@ void ReadData::command(int narg, char **arg)
 
   // check if data file is available and readable
 
-  if (!utils::file_is_readable(arg[0]))
+  if (!platform::file_is_readable(arg[0]))
     error->all(FLERR,fmt::format("Cannot open file {}: {}",
                                  arg[0], utils::getsyserror()));
 

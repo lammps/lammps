@@ -1340,14 +1340,14 @@ void LAMMPS::print_config(FILE *fp)
   const char *pkg;
   int ncword, ncline = 0;
 
-  fmt::print(fp,"OS: {}\n\n",Info::get_os_info());
+  fmt::print(fp,"OS: {}\n\n",platform::os_info());
 
   fmt::print(fp,"Compiler: {} with {}\nC++ standard: {}\n",
-             Info::get_compiler_info(),Info::get_openmp_info(),
-             Info::get_cxx_info());
+             platform::compiler_info(),platform::openmp_standard(),
+             platform::cxx_standard());
 
   int major,minor;
-  std::string infobuf = Info::get_mpi_info(major,minor);
+  std::string infobuf = platform::mpi_info(major,minor);
   fmt::print(fp,"MPI v{}.{}: {}\n\n",major,minor,infobuf);
 
   fmt::print(fp,"Accelerator configuration:\n\n{}\n",

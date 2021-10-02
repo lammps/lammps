@@ -224,7 +224,7 @@ std::string platform::os_info()
   buf = ut.sysname;
 
 #if 0    // disable until this is integrated into LAMMPS and TextFileReader becomes available
-  if (utils::file_is_readable("/etc/os-release")) {
+  if (platform::file_is_readable("/etc/os-release")) {
     try {
         TextFileReader reader("/etc/os-release","");
         while (1) {
@@ -275,7 +275,6 @@ std::string platform::cxx_standard()
 std::string platform::compiler_info()
 {
   std::string buf = "(Unknown)";
-#if 0    // disable for now untile merged into LAMMPS and fmt:: becomes available
 #if defined(__INTEL_LLVM_COMPILER)
   double version = static_cast<double>(__INTEL_LLVM_COMPILER)*0.01;
   buf = fmt::format("Intel LLVM C++ {:.1f} / {}", version, __VERSION__);
@@ -304,7 +303,6 @@ std::string platform::compiler_info()
   buf = "Microsoft Visual Studio 20" + std::to_string(major) + ", C/C++ " + std::to_string(major-5) + "." + std::to_string(minor);
 #else
   buf = "(Unknown)";
-#endif
 #endif
   return buf;
 }
@@ -543,9 +541,9 @@ void *platform::dlsym(void *handle, const std::string &symbol)
 
 /** On Linux the folder /proc/self/fd holds symbolic links to the actual
  * pathnames associated with each open file descriptor of the current process.
- * On macOS the same kind of information can be obtained using ``fcntl(fd,F_GETPATH,buf)``.
+ * On MacOS the same kind of information can be obtained using ``fcntl(fd,F_GETPATH,buf)``.
  * On Windows we use ``GetFinalPathNameByHandleA()`` which is available with
- * Windows Vista and later. If the buffer is to small (< 16 bytes) a null pointer is returned.
+ * Windows Vista and later. If the buffer is too small (< 16 bytes) a null pointer is returned.
  *
  * This function is used to provide a filename with error messages in functions
  * where the filename is not passed as an argument, but the FILE * pointer.  */

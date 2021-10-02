@@ -540,8 +540,8 @@ std::string ReadRestart::file_search(const std::string &inpfile)
 {
   // separate inpfile into dir + filename
 
-  auto dirname = utils::path_dirname(inpfile);
-  auto filename = utils::path_basename(inpfile);
+  auto dirname = platform::path_dirname(inpfile);
+  auto filename = platform::path_basename(inpfile);
 
   // if filename contains "%" replace "%" with "base"
 
@@ -574,7 +574,7 @@ std::string ReadRestart::file_search(const std::string &inpfile)
     if (maxnum < 0) error->one(FLERR,"Found no restart file matching pattern");
     filename.replace(filename.find('*'),1,std::to_string(maxnum));
   }
-  return utils::path_join(dirname,filename);
+  return platform::path_join(dirname,filename);
 }
 
 /* ----------------------------------------------------------------------

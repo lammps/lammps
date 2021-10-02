@@ -417,49 +417,6 @@ namespace utils {
 
   bool is_id(const std::string &str);
 
-  /*! Try to detect pathname from FILE pointer.
-   *
-   * Currently supported on Linux, MacOS, and Windows, otherwise will report "(unknown)".
-   *
-   *  \param buf  storage buffer for pathname. output will be truncated if not large enough
-   *  \param len  size of storage buffer. output will be truncated to this length - 1
-   *  \param fp   FILE pointer struct from STDIO library for which we want to detect the name
-   *  \return pointer to the storage buffer, i.e. buf */
-
-  const char *guesspath(char *buf, int len, FILE *fp);
-
-  /*! Strip off leading part of path, return just the filename
-   *
-   * \param path file path
-   * \return file name */
-
-  std::string path_basename(const std::string &path);
-
-  /*! Return the directory part of a path. Return "." if empty
-   *
-   * \param path file path
-   * \return directory name */
-
-  std::string path_dirname(const std::string &path);
-
-  /*! Join two pathname segments
-   *
-   * This uses the forward slash '/' character unless LAMMPS is compiled
-   * for Windows where it used the equivalent backward slash '\\'.
-   *
-   * \param   a  first path
-   * \param   b  second path
-   * \return     combined path */
-
-  std::string path_join(const std::string &a, const std::string &b);
-
-  /*! Check if file exists and is readable
-   *
-   * \param path file path
-   * \return true if file exists and is readable */
-
-  bool file_is_readable(const std::string &path);
-
   /*! Determine full path of potential file. If file is not found in current directory,
    *  search directories listed in LAMMPS_POTENTIALS environment variable
    *

@@ -30,7 +30,6 @@ static Hippo<PRECISION,ACC_PRECISION> HIPPOMF;
 int hippo_gpu_init(const int ntypes, const int max_amtype, const int max_amclass,
                     const double *host_pdamp, const double *host_thole,
                     const double *host_dirdamp, const int *host_amtype2class,
-                    const double *host_special_hal,
                     const double *host_special_repel,
                     const double *host_special_disp,
                     const double *host_special_mpole,
@@ -71,8 +70,7 @@ int hippo_gpu_init(const int ntypes, const int max_amtype, const int max_amclass
   if (world_me==0)
     init_ok=HIPPOMF.init(ntypes, max_amtype, max_amclass,
                           host_pdamp, host_thole, host_dirdamp,
-                          host_amtype2class, host_special_hal,
-                          host_special_repel, host_special_disp,
+                          host_amtype2class, host_special_repel, host_special_disp,
                           host_special_mpole, host_special_polar_wscale,
                           host_special_polar_piscale, host_special_polar_pscale,
                           host_sizpr, host_dmppr, host_elepr,
@@ -97,8 +95,7 @@ int hippo_gpu_init(const int ntypes, const int max_amtype, const int max_amclass
     if (gpu_rank==i && world_me!=0)
       init_ok=HIPPOMF.init(ntypes, max_amtype, max_amclass,
                             host_pdamp, host_thole, host_dirdamp,
-                            host_amtype2class, host_special_hal,
-                            host_special_repel, host_special_disp,
+                            host_amtype2class, host_special_repel, host_special_disp,
                             host_special_mpole, host_special_polar_wscale,
                             host_special_polar_piscale, host_special_polar_pscale,
                             host_sizpr, host_dmppr, host_elepr,

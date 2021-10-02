@@ -41,7 +41,6 @@ class Hippo : public BaseAmoeba<numtyp, acctyp> {
            const double *host_pdamp, const double *host_thole,
            const double *host_dirdamp, const int *host_amtype2class,
            const double *host_special_mpole,
-           const double *host_special_hal,
            const double *host_special_repel,
            const double *host_special_disp,
            const double *host_special_polar_wscale,

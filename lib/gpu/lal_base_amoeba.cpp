@@ -245,8 +245,8 @@ inline int BaseAmoebaT::build_nbor_list(const int inum, const int host_inum,
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
 void BaseAmoebaT::compute_polar_real_host_nbor(const int f_ago, const int inum_full,
-                          const int nall, double **host_x, int *host_type, int *host_amtype,
-                          int *host_amgroup, double **host_rpole,
+                          const int nall, double **host_x, int *host_type,
+                          int *host_amtype, int *host_amgroup, double **host_rpole,
                           double **host_uind, double **host_uinp,
                           int *ilist, int *numj, int **firstneigh,
                           const bool eflag_in, const bool vflag_in,
@@ -353,7 +353,6 @@ int** BaseAmoebaT::precompute(const int ago, const int inum_full, const int nall
                               bool &success, double *host_q, double *boxlo,
                               double *prd) {
   acc_timers();
-  //int eflag, vflag;
   if (eatom) _eflag=2;
   else if (eflag_in) _eflag=1;
   else _eflag=0;
@@ -401,12 +400,10 @@ int** BaseAmoebaT::precompute(const int ago, const int inum_full, const int nall
     if (!success)
       return nullptr;
     atom->cast_q_data(host_q);
-    //cast_extra_data(host_amtype, host_amgroup, host_rpole, host_uind, host_uinp, host_pval);
     hd_balancer.start_timer();
   } else {
     atom->cast_x_data(host_x,host_type);
     atom->cast_q_data(host_q);
-    //cast_extra_data(host_amtype, host_amgroup, host_rpole, host_uind, host_uinp, host_pval);
     hd_balancer.start_timer();
     atom->add_x_data(host_x,host_type);
   }
@@ -444,23 +441,6 @@ int** BaseAmoebaT::compute_multipole_real(const int ago, const int inum_full,
                                           const double aewald, const double felec,
                                           const double off2_mpole, double *host_q,
                                           double *boxlo, double *prd, void **tep_ptr) {
-/*                                            
-  acc_timers();
-  int eflag, vflag;
-  if (eatom) eflag=2;
-  else if (eflag_in) eflag=1;
-  else eflag=0;
-  if (vatom) vflag=2;
-  else if (vflag_in) vflag=1;
-  else vflag=0;
-
-  #ifdef LAL_NO_BLOCK_REDUCE
-  if (eflag) eflag=2;
-  if (vflag) vflag=2;
-  #endif
-
-  set_kernel(eflag,vflag);
-*/
   // reallocate per-atom arrays, transfer data from the host
   //   and build the neighbor lists if needed
   // NOTE:
@@ -499,13 +479,7 @@ int** BaseAmoebaT::compute_multipole_real(const int ago, const int inum_full,
   // copy tep from device to host
 
   _tep.update_host(_max_tep_size*4,false);
-/*
-  printf("GPU lib: tep size = %d: max tep size = %d\n", this->_tep.cols(), _max_tep_size);
-  for (int i = 0; i < 10; i++) {
-    numtyp4* p = (numtyp4*)(&this->_tep[4*i]);
-    printf("i = %d; tep = %f %f %f\n", i, p->x, p->y, p->z);
-  }
-*/
+
   return firstneigh; // nbor->host_jlist.begin()-host_start;
 }
 
@@ -529,36 +503,11 @@ int** BaseAmoebaT::compute_udirect2b(const int ago, const int inum_full,
                                      const double aewald, const double off2_polar,
                                      double *host_q, double *boxlo, double *prd,
                                      void** fieldp_ptr) {
-/*                                       
-  acc_timers();
-  int eflag, vflag;
-  if (eatom) eflag=2;
-  else if (eflag_in) eflag=1;
-  else eflag=0;
-  if (vatom) vflag=2;
-  else if (vflag_in) vflag=1;
-  else vflag=0;
-
-  #ifdef LAL_NO_BLOCK_REDUCE
-  if (eflag) eflag=2;
-  if (vflag) vflag=2;
-  #endif
-
-  set_kernel(eflag,vflag);
-*/
   // reallocate per-atom arrays, transfer data from the host
   //   and build the neighbor lists if needed
 
   int** firstneigh = nullptr;
-/*  
-  firstneigh = precompute(ago, inum_full, nall, host_x, host_type,
-                          host_amtype, host_amgroup, host_rpole,
-                          host_uind, host_uinp, nullptr, sublo, subhi, tag,
-                          nspecial, special, nspecial15, special15,
-                          eflag_in, vflag_in, eatom, vatom,
-                          host_start, ilist, jnum, cpu_time,
-                          success, host_q, boxlo, prd);
-*/
+
   cast_extra_data(host_amtype, host_amgroup, host_rpole, host_uind, host_uinp, host_pval);
   atom->add_extra_data();                          
 
@@ -577,14 +526,7 @@ int** BaseAmoebaT::compute_udirect2b(const int ago, const int inum_full,
   // copy field and fieldp from device to host (_fieldp store both arrays, one after another)
 
   _fieldp.update_host(_max_fieldp_size*8,false);
-/*
-  printf("GPU lib: _fieldp size = %d: max fieldp size = %d\n",
-    this->_fieldp.cols(), _max_fieldp_size);
-  for (int i = 0; i < 10; i++) {
-    numtyp4* p = (numtyp4*)(&this->_fieldp[4*i]);
-    printf("i = %d; field = %f %f %f\n", i, p->x, p->y, p->z);
-  }
-*/
+
   return firstneigh; //nbor->host_jlist.begin()-host_start;
 }
 
@@ -608,36 +550,11 @@ int** BaseAmoebaT::compute_umutual2b(const int ago, const int inum_full,
                                      const double aewald, const double off2_polar,
                                      double *host_q, double *boxlo, double *prd,
                                      void** fieldp_ptr) {
-/*                                       
-  acc_timers();
-  int eflag, vflag;
-  if (eatom) eflag=2;
-  else if (eflag_in) eflag=1;
-  else eflag=0;
-  if (vatom) vflag=2;
-  else if (vflag_in) vflag=1;
-  else vflag=0;
-
-  #ifdef LAL_NO_BLOCK_REDUCE
-  if (eflag) eflag=2;
-  if (vflag) vflag=2;
-  #endif
-
-  set_kernel(eflag,vflag);
-*/
   // reallocate per-atom arrays, transfer extra data from the host
   //   and build the neighbor lists if needed
 
   int** firstneigh = nullptr;
-/*  
-  firstneigh = precompute(ago, inum_full, nall, host_x, host_type,
-                          host_amtype, host_amgroup, host_rpole,
-                          host_uind, host_uinp, nullptr, sublo, subhi, tag,
-                          nspecial, special, nspecial15, special15,
-                          eflag_in, vflag_in, eatom, vatom,
-                          host_start, ilist, jnum, cpu_time,
-                          success, host_q, boxlo, prd);
-*/
+
   cast_extra_data(host_amtype, host_amgroup, host_rpole, host_uind, host_uinp, host_pval);
   atom->add_extra_data();                          
 
@@ -656,14 +573,7 @@ int** BaseAmoebaT::compute_umutual2b(const int ago, const int inum_full,
   // copy field and fieldp from device to host (_fieldp store both arrays, one after another)
 
   _fieldp.update_host(_max_fieldp_size*8,false);
-/*
-  printf("GPU lib: _fieldp size = %d: max fieldp size = %d\n",
-    this->_fieldp.cols(), _max_fieldp_size);
-  for (int i = 0; i < 10; i++) {
-    numtyp4* p = (numtyp4*)(&this->_fieldp[4*i]);
-    printf("i = %d; field = %f %f %f\n", i, p->x, p->y, p->z);
-  }
-*/
+
   return firstneigh; //nbor->host_jlist.begin()-host_start;
 }
 
@@ -686,44 +596,9 @@ int** BaseAmoebaT::compute_polar_real(const int ago, const int inum_full,
                                       const double aewald, const double felec,
                                       const double off2_polar, double *host_q,
                                       double *boxlo, double *prd, void **tep_ptr) {
-/*                                        
-  acc_timers();
-  int eflag, vflag;
-  if (eatom) eflag=2;
-  else if (eflag_in) eflag=1;
-  else eflag=0;
-  if (vatom) vflag=2;
-  else if (vflag_in) vflag=1;
-  else vflag=0;
-
-  #ifdef LAL_NO_BLOCK_REDUCE
-  if (eflag) eflag=2;
-  if (vflag) vflag=2;
-  #endif
-
-  set_kernel(eflag,vflag);
-*/
-  // reallocate per-atom arrays, transfer data from the host
-  //   and build the neighbor lists if needed
-  // NOTE:
-  //   For now we invoke precompute() again here,
-  //     to be able to turn on/off the udirect2b kernel (which comes before this)
-  //   Once all the kernels are ready, precompute() is needed only once
-  //     in the first kernel in a time step.
-  //   We only need to cast uind and uinp from host to device here
-  //     if the neighbor lists are rebuilt and other per-atom arrays
-  //     (x, type, amtype, amgroup, rpole) are ready on the device.
 
   int** firstneigh = nullptr;
-/*  
-  firstneigh = precompute(ago, inum_full, nall, host_x, host_type,
-                          host_amtype, host_amgroup, host_rpole,
-                          host_uind, host_uinp, nullptr, sublo, subhi, tag,
-                          nspecial, special, nspecial15, special15,
-                          eflag_in, vflag_in, eatom, vatom,
-                          host_start, ilist, jnum, cpu_time,
-                          success, host_q, boxlo, prd);
-*/
+
   cast_extra_data(host_amtype, host_amgroup, host_rpole, host_uind, host_uinp, host_pval);
   atom->add_extra_data();                          
 
@@ -750,13 +625,7 @@ int** BaseAmoebaT::compute_polar_real(const int ago, const int inum_full,
   // copy tep from device to host
 
   _tep.update_host(_max_tep_size*4,false);
-/*
-  printf("GPU lib: tep size = %d: max tep size = %d\n", this->_tep.cols(), _max_tep_size);
-  for (int i = 0; i < 10; i++) {
-    numtyp4* p = (numtyp4*)(&this->_tep[4*i]);
-    printf("i = %d; tep = %f %f %f\n", i, p->x, p->y, p->z);
-  }
-*/
+
   return firstneigh; // nbor->host_jlist.begin()-host_start;
 }
 
@@ -826,7 +695,6 @@ void BaseAmoebaT::cast_extra_data(int* amtype, int* amgroup, double** rpole,
 
   n += nstride*_nall;
   if (pval) {
-
     for (int i = 0; i < _nall; i++) {
       int idx = n+i*nstride;
       pextra[idx]   = pval[i];
@@ -889,9 +757,9 @@ int BaseAmoebaT::add_onefive_neighbors() {
 
   k_special15.set_size(GX,BX);
   k_special15.run(&nbor->dev_nbor, &_nbor_data->begin(),
-                    &atom->dev_tag, &dev_nspecial15, &dev_special15,
-                    &ainum, &_nall, &nbor_pitch,
-                    &_threads_per_atom);
+                  &atom->dev_tag, &dev_nspecial15, &dev_special15,
+                  &ainum, &_nall, &nbor_pitch,
+                  &_threads_per_atom);
 
   return GX;
 }

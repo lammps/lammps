@@ -53,8 +53,8 @@ enum{GORDON1,GORDON2};
 int hippo_gpu_init(const int ntypes, const int max_amtype, const int max_amclass,
                     const double *host_pdamp, const double *host_thole,
                     const double *host_dirdamp, const int* host_amtype2class,
-                    const double *host_special_hal, const double *host_special_repel,
-                    const double *host_special_disp, const double *host_special_mpole,
+                    const double *host_special_repel, const double *host_special_disp,
+                    const double *host_special_mpole,
                     const double *host_special_polar_wscale,
                     const double *host_special_polar_piscale,
                     const double *host_special_polar_pscale,
@@ -203,7 +203,7 @@ void PairHippoGPU::init_style()
   int tq_size;
   int mnf = 5e-2 * neighbor->oneatom;
   int success = hippo_gpu_init(atom->ntypes+1, max_amtype, max_amclass,
-                                pdamp, thole, dirdamp, amtype2class, special_hal,
+                                pdamp, thole, dirdamp, amtype2class,
                                 special_repel, special_disp, special_mpole,
                                 special_polar_wscale, special_polar_piscale,
                                 special_polar_pscale, sizpr, dmppr, elepr,

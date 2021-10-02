@@ -48,22 +48,20 @@ int HippoT::bytes_per_atom(const int max_nbors) const {
 
 template <class numtyp, class acctyp>
 int HippoT::init(const int ntypes, const int max_amtype, const int max_amclass,
-                  const double *host_pdamp, const double *host_thole,
-                  const double *host_dirdamp, const int *host_amtype2class,
-                  const double *host_special_hal,
-                  const double *host_special_repel,
-                  const double *host_special_disp,
-                  const double *host_special_mpole,
-                  const double *host_special_polar_wscale,
-                  const double *host_special_polar_piscale,
-                  const double *host_special_polar_pscale,
-                  const double *host_sizpr, const double *host_dmppr, const double *host_elepr,
-                  const double *host_csix, const double *host_adisp,
-                  const double *host_pcore, const double *host_palpha,
-                  const int nlocal, const int nall, const int max_nbors,
-                  const int maxspecial, const int maxspecial15,
-                  const double cell_size, const double gpu_split, FILE *_screen,
-                  const double polar_dscale, const double polar_uscale) {
+                 const double *host_pdamp, const double *host_thole,
+                 const double *host_dirdamp, const int *host_amtype2class,
+                 const double *host_special_repel, const double *host_special_disp,
+                 const double *host_special_mpole,
+                 const double *host_special_polar_wscale,
+                 const double *host_special_polar_piscale,
+                 const double *host_special_polar_pscale,
+                 const double *host_sizpr, const double *host_dmppr, const double *host_elepr,
+                 const double *host_csix, const double *host_adisp,
+                 const double *host_pcore, const double *host_palpha,
+                 const int nlocal, const int nall, const int max_nbors,
+                 const int maxspecial, const int maxspecial15,
+                 const double cell_size, const double gpu_split, FILE *_screen,
+                 const double polar_dscale, const double polar_uscale) {
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,maxspecial15,
                             cell_size,gpu_split,_screen,hippo,
@@ -133,9 +131,9 @@ int HippoT::init(const int ntypes, const int max_amtype, const int max_amclass,
 
   sp_nonpolar.alloc(5,*(this->ucl_device),UCL_READ_ONLY);
   for (int i=0; i<5; i++) {
-    dview[i].x=host_special_hal[i];
-    dview[i].y=host_special_repel[i];
-    dview[i].z=host_special_disp[i];
+    dview[i].x=host_special_repel[i];
+    dview[i].y=host_special_disp[i];
+    dview[i].z=(numtyp)0;
     dview[i].w=(numtyp)0;
   }
   ucl_copy(sp_nonpolar,dview,5,false);
@@ -211,7 +209,7 @@ int** HippoT::compute_repulsion(const int ago, const int inum_full,
   //     to be able to turn on/off the udirect2b kernel (which comes before this)
   //   Once all the kernels are ready, precompute() is needed only once
   //     in the first kernel in a time step.
-  //   We only need to cast uind and uinp from host to device here
+  //   We only need to cast the necessary from host to device here
   //     if the neighbor lists are rebuilt and other per-atom arrays
   //     (x, type, amtype, amgroup, rpole) are ready on the device.
 
@@ -240,7 +238,7 @@ int** HippoT::compute_repulsion(const int ago, const int inum_full,
   _c3 = c3;
   _c4 = c4;
   _c5 = c5;
-  const int red_blocks=repulsion(eflag,vflag);
+  const int red_blocks=repulsion(this->_eflag,this->_vflag);
 
   // only copy them back if this is the last kernel
   //   otherwise, commenting out these two lines to leave the answers
@@ -316,32 +314,14 @@ int** HippoT::compute_dispersion_real(const int ago, const int inum_full,
                                       const double cpu_time, bool &success,
                                       const double aewald, const double off2_disp,
                                       double *host_q, double *boxlo, double *prd) {
-  this->acc_timers();
-  int eflag, vflag;
-  if (eatom) eflag=2;
-  else if (eflag_in) eflag=1;
-  else eflag=0;
-  if (vatom) vflag=2;
-  else if (vflag_in) vflag=1;
-  else vflag=0;
-
-  #ifdef LAL_NO_BLOCK_REDUCE
-  if (eflag) eflag=2;
-  if (vflag) vflag=2;
-  #endif
-
-  this->set_kernel(eflag,vflag);
-
   // reallocate per-atom arrays, transfer data from the host
   //   and build the neighbor lists if needed
   // NOTE:
   //   For now we invoke precompute() again here,
   //     to be able to turn on/off the udirect2b kernel (which comes before this)
-  //   Once all the kernels are ready, precompute() is needed only once
-  //     in the first kernel in a time step.
-  //   We only need to cast uind and uinp from host to device here
-  //     if the neighbor lists are rebuilt and other per-atom arrays
-  //     (x, type, amtype, amgroup, rpole) are ready on the device.
+  //   We only need to cast necesary data arrays from host to device here
+  //     because the neighbor lists are rebuilt and other per-atom arrays
+  //     (x, type) are ready on the device.
 
   int** firstneigh = nullptr;
   firstneigh = this->precompute(ago, inum_full, nall, host_x, host_type,
@@ -350,11 +330,11 @@ int** HippoT::compute_dispersion_real(const int ago, const int inum_full,
                           nspecial, special, nspecial15, special15,
                           eflag_in, vflag_in, eatom, vatom,
                           host_start, ilist, jnum, cpu_time,
-                          success, host_q, boxlo, prd);
+                          success, host_q, boxlo, prd);                        
 
   this->_off2_disp = off2_disp;
   this->_aewald = aewald;
-  const int red_blocks=dispersion_real(eflag,vflag);
+  const int red_blocks=dispersion_real(this->_eflag,this->_vflag);
 
   // only copy them back if this is the last kernel
   //   otherwise, commenting out these two lines to leave the answers
@@ -427,22 +407,6 @@ int** HippoT::compute_multipole_real(const int ago, const int inum_full,
                                      const double aewald, const double felec,
                                      const double off2_mpole, double *host_q,
                                      double *boxlo, double *prd, void **tep_ptr) {
-  this->acc_timers();
-  int eflag, vflag;
-  if (eatom) eflag=2;
-  else if (eflag_in) eflag=1;
-  else eflag=0;
-  if (vatom) vflag=2;
-  else if (vflag_in) vflag=1;
-  else vflag=0;
-
-  #ifdef LAL_NO_BLOCK_REDUCE
-  if (eflag) eflag=2;
-  if (vflag) vflag=2;
-  #endif
-
-  this->set_kernel(eflag,vflag);
-
   // reallocate per-atom arrays, transfer data from the host
   //   and build the neighbor lists if needed
   // NOTE:
@@ -474,7 +438,7 @@ int** HippoT::compute_multipole_real(const int ago, const int inum_full,
   this->_off2_mpole = off2_mpole;
   this->_felec = felec;
   this->_aewald = aewald;
-  const int red_blocks=multipole_real(eflag,vflag);
+  const int red_blocks=multipole_real(this->_eflag,this->_vflag);
 
   // leave the answers (forces, energies and virial) on the device,
   //   only copy them back in the last kernel (this one, or polar_real once done)
@@ -486,13 +450,7 @@ int** HippoT::compute_multipole_real(const int ago, const int inum_full,
   // copy tep from device to host
 
   this->_tep.update_host(this->_max_tep_size*4,false);
-/*
-  printf("GPU lib: tep size = %d: max tep size = %d\n", this->_tep.cols(), _max_tep_size);
-  for (int i = 0; i < 10; i++) {
-    numtyp4* p = (numtyp4*)(&this->_tep[4*i]);
-    printf("i = %d; tep = %f %f %f\n", i, p->x, p->y, p->z);
-  }
-*/
+
   return firstneigh; // nbor->host_jlist.begin()-host_start;
 }
 
@@ -558,22 +516,6 @@ int** HippoT::compute_udirect2b(const int ago, const int inum_full,
                                 const double aewald, const double off2_polar,
                                 double *host_q, double *boxlo, double *prd,
                                 void** fieldp_ptr) {
-  this->acc_timers();
-  int eflag, vflag;
-  if (eatom) eflag=2;
-  else if (eflag_in) eflag=1;
-  else eflag=0;
-  if (vatom) vflag=2;
-  else if (vflag_in) vflag=1;
-  else vflag=0;
-
-  #ifdef LAL_NO_BLOCK_REDUCE
-  if (eflag) eflag=2;
-  if (vflag) vflag=2;
-  #endif
-
-  this->set_kernel(eflag,vflag);
-
   // reallocate per-atom arrays, transfer data from the host
   //   and build the neighbor lists if needed
 
@@ -596,19 +538,12 @@ int** HippoT::compute_udirect2b(const int ago, const int inum_full,
 
   this->_off2_polar = off2_polar;
   this->_aewald = aewald;
-  const int red_blocks=udirect2b(eflag,vflag);
+  const int red_blocks=udirect2b(this->_eflag,this->_vflag);
 
   // copy field and fieldp from device to host (_fieldp store both arrays, one after another)
 
   this->_fieldp.update_host(this->_max_fieldp_size*8,false);
-/*
-  printf("GPU lib: _fieldp size = %d: max fieldp size = %d\n",
-    this->_fieldp.cols(), _max_fieldp_size);
-  for (int i = 0; i < 10; i++) {
-    numtyp4* p = (numtyp4*)(&this->_fieldp[4*i]);
-    printf("i = %d; field = %f %f %f\n", i, p->x, p->y, p->z);
-  }
-*/
+
   return firstneigh; //nbor->host_jlist.begin()-host_start;
 }
 
@@ -673,22 +608,6 @@ int** HippoT::compute_umutual2b(const int ago, const int inum_full,
                                      const double aewald, const double off2_polar,
                                      double *host_q, double *boxlo, double *prd,
                                      void** fieldp_ptr) {
-  this->acc_timers();
-  int eflag, vflag;
-  if (eatom) eflag=2;
-  else if (eflag_in) eflag=1;
-  else eflag=0;
-  if (vatom) vflag=2;
-  else if (vflag_in) vflag=1;
-  else vflag=0;
-
-  #ifdef LAL_NO_BLOCK_REDUCE
-  if (eflag) eflag=2;
-  if (vflag) vflag=2;
-  #endif
-
-  this->set_kernel(eflag,vflag);
-
   // reallocate per-atom arrays, transfer extra data from the host
   //   and build the neighbor lists if needed
 
@@ -711,19 +630,12 @@ int** HippoT::compute_umutual2b(const int ago, const int inum_full,
 
   this->_off2_polar = off2_polar;
   this->_aewald = aewald;
-  const int red_blocks=umutual2b(eflag,vflag);
+  const int red_blocks=umutual2b(this->_eflag,this->_vflag);
 
   // copy field and fieldp from device to host (_fieldp store both arrays, one after another)
 
   this->_fieldp.update_host(this->_max_fieldp_size*8,false);
-/*
-  printf("GPU lib: _fieldp size = %d: max fieldp size = %d\n",
-    this->_fieldp.cols(), _max_fieldp_size);
-  for (int i = 0; i < 10; i++) {
-    numtyp4* p = (numtyp4*)(&this->_fieldp[4*i]);
-    printf("i = %d; field = %f %f %f\n", i, p->x, p->y, p->z);
-  }
-*/
+
   return firstneigh; //nbor->host_jlist.begin()-host_start;
 }
 
@@ -786,29 +698,11 @@ int** HippoT::compute_polar_real(const int ago, const int inum_full,
                                  const double aewald, const double felec,
                                  const double off2_polar, double *host_q,
                                  double *boxlo, double *prd, void **tep_ptr) {
-  this->acc_timers();
-  int eflag, vflag;
-  if (eatom) eflag=2;
-  else if (eflag_in) eflag=1;
-  else eflag=0;
-  if (vatom) vflag=2;
-  else if (vflag_in) vflag=1;
-  else vflag=0;
-
-  #ifdef LAL_NO_BLOCK_REDUCE
-  if (eflag) eflag=2;
-  if (vflag) vflag=2;
-  #endif
-
-  this->set_kernel(eflag,vflag);
-
   // reallocate per-atom arrays, transfer data from the host
   //   and build the neighbor lists if needed
   // NOTE:
   //   For now we invoke precompute() again here,
   //     to be able to turn on/off the udirect2b kernel (which comes before this)
-  //   Once all the kernels are ready, precompute() is needed only once
-  //     in the first kernel in a time step.
   //   We only need to cast uind and uinp from host to device here
   //     if the neighbor lists are rebuilt and other per-atom arrays
   //     (x, type, amtype, amgroup, rpole) are ready on the device.
@@ -833,7 +727,7 @@ int** HippoT::compute_polar_real(const int ago, const int inum_full,
   this->_off2_polar = off2_polar;
   this->_felec = felec;
   this->_aewald = aewald;
-  const int red_blocks=polar_real(eflag,vflag);
+  const int red_blocks=polar_real(this->_eflag,this->_vflag);
 
   // only copy answers (forces, energies and virial) back from the device
   //   in the last kernel (which is polar_real here)
@@ -845,13 +739,7 @@ int** HippoT::compute_polar_real(const int ago, const int inum_full,
   // copy tep from device to host
 
   this->_tep.update_host(this->_max_tep_size*4,false);
-/*
-  printf("GPU lib: tep size = %d: max tep size = %d\n", this->_tep.cols(), _max_tep_size);
-  for (int i = 0; i < 10; i++) {
-    numtyp4* p = (numtyp4*)(&this->_tep[4*i]);
-    printf("i = %d; tep = %f %f %f\n", i, p->x, p->y, p->z);
-  }
-*/
+
   return firstneigh; // nbor->host_jlist.begin()-host_start;
 }
 

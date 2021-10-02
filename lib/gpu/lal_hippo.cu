@@ -520,7 +520,7 @@ __kernel void k_hippo_repulsion(const __global numtyp4 *restrict x_,
       numtyp valk = coeff_rep[jtype].z; // elepr[jtype];
 
       const numtyp4 sp_nonpol = sp_nonpolar[sbmask15(jextra)];
-      numtyp factor_repel = sp_nonpol.y; // factor_repel = special_repel[sbmask15(j)];
+      numtyp factor_repel = sp_nonpol.x; // factor_repel = special_repel[sbmask15(j)];
       if (factor_repel == (numtyp)0) continue;
 
       // intermediates involving moments and separation distance
@@ -830,7 +830,7 @@ __kernel void k_hippo_dispersion(const __global numtyp4 *restrict x_,
       numtyp damp3,damp5;
       numtyp ddamp;
       const numtyp4 sp_nonpol = sp_nonpolar[sbmask15(jextra)];
-      numtyp factor_disp = sp_nonpol.z; // factor_disp = special_disp[sbmask15(j)];
+      numtyp factor_disp = sp_nonpol.y; // factor_disp = special_disp[sbmask15(j)];
 
       if (ai != ak) {
         ai2 = ai * ai;

@@ -145,14 +145,14 @@ class BaseAmoeba {
   /// Compute multipole real-space with device neighboring
   virtual int** compute_multipole_real(const int ago, const int inum_full, const int nall,
                 double **host_x, int *host_type, int *host_amtype,
-                int *host_amgroup, double **host_rpole, double *host_pval, double *sublo, double *subhi,
-                tagint *tag, int **nspecial, tagint **special,
-                int *nspecial15, tagint **special15,
-                const bool eflag, const bool vflag,
-                const bool eatom, const bool vatom, int &host_start,
-                int **ilist, int **numj, const double cpu_time, bool &success,
-                const double aewald, const double felec, const double off2_mpole, double *charge,
-                double *boxlo, double *prd, void **tep_ptr);
+                int *host_amgroup, double **host_rpole, double *host_pval,
+                double *sublo, double *subhi, tagint *tag,
+                int **nspecial, tagint **special, int *nspecial15, tagint **special15,
+                const bool eflag, const bool vflag, const bool eatom, const bool vatom,
+                int &host_start, int **ilist, int **numj, const double cpu_time,
+                bool &success, const double aewald, const double felec,
+                const double off2_mpole, double *charge, double *boxlo,
+                double *prd, void **tep_ptr);
 
   /// Compute the real space part of the permanent field (udirect2b) with device neighboring
   virtual int** compute_udirect2b(const int ago, const int inum_full, const int nall,
@@ -165,8 +165,8 @@ class BaseAmoeba {
                 const bool eflag, const bool vflag,
                 const bool eatom, const bool vatom, int &host_start,
                 int **ilist, int **numj, const double cpu_time, bool &success,
-                const double aewald, const double off2_polar, double *charge,
-                double *boxlo, double *prd, void **fieldp_ptr);
+                const double aewald, const double off2_polar,
+                double *charge, double *boxlo, double *prd, void **fieldp_ptr);
 
   /// Compute the real space part of the induced field (umutual2b) with device neighboring
   virtual int** compute_umutual2b(const int ago, const int inum_full, const int nall,

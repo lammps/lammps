@@ -114,7 +114,7 @@ Environment variable functions
 
 .. doxygenfunction:: find_exe_path
    :project: progguide
-             
+
 Dynamically loaded object or library functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

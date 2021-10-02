@@ -242,7 +242,7 @@ namespace platform {
 
   /*! Delete a directory and its contents
    *
-   * Unlike the the ``rmdir()`` or ``_rmdir()`` function of the 
+   * Unlike the the ``rmdir()`` or ``_rmdir()`` function of the
    * C library, this function will check for the contents of the
    * folder and recurse into any sub-folders, if necessary and
    * delete all contained folders and their contents before

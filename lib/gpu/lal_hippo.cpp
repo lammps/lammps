@@ -314,23 +314,12 @@ int** HippoT::compute_dispersion_real(const int ago, const int inum_full,
                                       const double cpu_time, bool &success,
                                       const double aewald, const double off2_disp,
                                       double *host_q, double *boxlo, double *prd) {
-  // reallocate per-atom arrays, transfer data from the host
-  //   and build the neighbor lists if needed
-  // NOTE:
-  //   For now we invoke precompute() again here,
-  //     to be able to turn on/off the udirect2b kernel (which comes before this)
-  //   We only need to cast necesary data arrays from host to device here
-  //     because the neighbor lists are rebuilt and other per-atom arrays
-  //     (x, type) are ready on the device.
 
-  int** firstneigh = nullptr;
-  firstneigh = this->precompute(ago, inum_full, nall, host_x, host_type,
-                          host_amtype, host_amgroup, host_rpole,
-                          nullptr, nullptr, nullptr, sublo, subhi, tag,
-                          nspecial, special, nspecial15, special15,
-                          eflag_in, vflag_in, eatom, vatom,
-                          host_start, ilist, jnum, cpu_time,
-                          success, host_q, boxlo, prd);                        
+  // cast necessary data arrays from host to device
+
+  this->cast_extra_data(host_amtype, host_amgroup, host_rpole,
+                        nullptr, nullptr, nullptr);
+  this->atom->add_extra_data();
 
   this->_off2_disp = off2_disp;
   this->_aewald = aewald;
@@ -344,7 +333,7 @@ int** HippoT::compute_dispersion_real(const int ago, const int inum_full,
 
   this->hd_balancer.stop_timer();
 
-  return firstneigh; // nbor->host_jlist.begin()-host_start;
+  return nullptr; // nbor->host_jlist.begin()-host_start;
 }
 
 // ---------------------------------------------------------------------------
@@ -407,25 +396,11 @@ int** HippoT::compute_multipole_real(const int ago, const int inum_full,
                                      const double aewald, const double felec,
                                      const double off2_mpole, double *host_q,
                                      double *boxlo, double *prd, void **tep_ptr) {
-  // reallocate per-atom arrays, transfer data from the host
-  //   and build the neighbor lists if needed
-  // NOTE:
-  //   For now we invoke precompute() again here,
-  //     to be able to turn on/off the udirect2b kernel (which comes before this)
-  //   Once all the kernels are ready, precompute() is needed only once
-  //     in the first kernel in a time step.
-  //   We only need to cast uind and uinp from host to device here
-  //     if the neighbor lists are rebuilt and other per-atom arrays
-  //     (x, type, amtype, amgroup, rpole) are ready on the device.
 
-  int** firstneigh = nullptr;
-  firstneigh = this->precompute(ago, inum_full, nall, host_x, host_type,
-                          host_amtype, host_amgroup, host_rpole,
-                          nullptr, nullptr, host_pval, sublo, subhi, tag,
-                          nspecial, special, nspecial15, special15,
-                          eflag_in, vflag_in, eatom, vatom,
-                          host_start, ilist, jnum, cpu_time,
-                          success, host_q, boxlo, prd);
+  // cast necessary data arrays from host to device
+
+  this->cast_extra_data(nullptr, nullptr, nullptr, nullptr, nullptr, host_pval);
+  this->atom->add_extra_data();
 
   // ------------------- Resize _tep array ------------------------
 
@@ -451,7 +426,7 @@ int** HippoT::compute_multipole_real(const int ago, const int inum_full,
 
   this->_tep.update_host(this->_max_tep_size*4,false);
 
-  return firstneigh; // nbor->host_jlist.begin()-host_start;
+  return nullptr; // nbor->host_jlist.begin()-host_start;
 }
 
 // ---------------------------------------------------------------------------
@@ -516,17 +491,11 @@ int** HippoT::compute_udirect2b(const int ago, const int inum_full,
                                 const double aewald, const double off2_polar,
                                 double *host_q, double *boxlo, double *prd,
                                 void** fieldp_ptr) {
-  // reallocate per-atom arrays, transfer data from the host
-  //   and build the neighbor lists if needed
 
-  int** firstneigh = nullptr;
-  firstneigh = this->precompute(ago, inum_full, nall, host_x, host_type,
-                          host_amtype, host_amgroup, host_rpole,
-                          host_uind, host_uinp, host_pval, sublo, subhi, tag,
-                          nspecial, special, nspecial15, special15,
-                          eflag_in, vflag_in, eatom, vatom,
-                          host_start, ilist, jnum, cpu_time,
-                          success, host_q, boxlo, prd);
+  // all the necessary data arrays are already copied from host to device
+
+  this->cast_extra_data(nullptr, nullptr, nullptr, host_uind, host_uinp, host_pval);
+  this->atom->add_extra_data();
 
   // ------------------- Resize _fieldp array ------------------------
 
@@ -544,7 +513,7 @@ int** HippoT::compute_udirect2b(const int ago, const int inum_full,
 
   this->_fieldp.update_host(this->_max_fieldp_size*8,false);
 
-  return firstneigh; //nbor->host_jlist.begin()-host_start;
+  return nullptr; //nbor->host_jlist.begin()-host_start;
 }
 
 // ---------------------------------------------------------------------------
@@ -608,17 +577,11 @@ int** HippoT::compute_umutual2b(const int ago, const int inum_full,
                                      const double aewald, const double off2_polar,
                                      double *host_q, double *boxlo, double *prd,
                                      void** fieldp_ptr) {
-  // reallocate per-atom arrays, transfer extra data from the host
-  //   and build the neighbor lists if needed
 
-  int** firstneigh = nullptr;
-  firstneigh = this->precompute(ago, inum_full, nall, host_x, host_type,
-                          host_amtype, host_amgroup, host_rpole,
-                          host_uind, host_uinp, host_pval, sublo, subhi, tag,
-                          nspecial, special, nspecial15, special15,
-                          eflag_in, vflag_in, eatom, vatom,
-                          host_start, ilist, jnum, cpu_time,
-                          success, host_q, boxlo, prd);
+  // cast necessary data arrays from host to device
+
+  this->cast_extra_data(nullptr, nullptr, nullptr, host_uind, host_uinp, nullptr);
+  this->atom->add_extra_data();
 
   // ------------------- Resize _fieldp array ------------------------
 
@@ -636,7 +599,7 @@ int** HippoT::compute_umutual2b(const int ago, const int inum_full,
 
   this->_fieldp.update_host(this->_max_fieldp_size*8,false);
 
-  return firstneigh; //nbor->host_jlist.begin()-host_start;
+  return nullptr; //nbor->host_jlist.begin()-host_start;
 }
 
 // ---------------------------------------------------------------------------
@@ -698,23 +661,12 @@ int** HippoT::compute_polar_real(const int ago, const int inum_full,
                                  const double aewald, const double felec,
                                  const double off2_polar, double *host_q,
                                  double *boxlo, double *prd, void **tep_ptr) {
-  // reallocate per-atom arrays, transfer data from the host
-  //   and build the neighbor lists if needed
-  // NOTE:
-  //   For now we invoke precompute() again here,
-  //     to be able to turn on/off the udirect2b kernel (which comes before this)
-  //   We only need to cast uind and uinp from host to device here
-  //     if the neighbor lists are rebuilt and other per-atom arrays
-  //     (x, type, amtype, amgroup, rpole) are ready on the device.
 
-  int** firstneigh = nullptr;
-  firstneigh = this->precompute(ago, inum_full, nall, host_x, host_type,
-                          host_amtype, host_amgroup, host_rpole,
-                          host_uind, host_uinp, host_pval, sublo, subhi, tag,
-                          nspecial, special, nspecial15, special15,
-                          eflag_in, vflag_in, eatom, vatom,
-                          host_start, ilist, jnum, cpu_time,
-                          success, host_q, boxlo, prd);
+  // cast necessary data arrays from host to device
+
+  //this->cast_extra_data(host_amtype, host_amgroup, host_rpole, host_uind, host_uinp, host_pval);
+  this->cast_extra_data(nullptr, nullptr, nullptr, host_uind, host_uinp, nullptr);
+  this->atom->add_extra_data();
 
   // ------------------- Resize _tep array ------------------------
 
@@ -740,7 +692,7 @@ int** HippoT::compute_polar_real(const int ago, const int inum_full,
 
   this->_tep.update_host(this->_max_tep_size*4,false);
 
-  return firstneigh; // nbor->host_jlist.begin()-host_start;
+  return nullptr;
 }
 
 // ---------------------------------------------------------------------------

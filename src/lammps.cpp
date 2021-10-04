@@ -56,12 +56,6 @@
 #include <cstring>
 #include <map>
 
-#if defined(_WIN32)
-#include <io.h>
-#else
-#include <unistd.h>             // for isatty()
-#endif
-
 #include "lmpinstalledpkgs.h"
 #include "lmpgitversion.h"
 
@@ -1118,11 +1112,7 @@ void _noopt LAMMPS::help()
   // user. scrollback buffers are often not large enough. this is most
   // beneficial to windows users, who are not used to command line.
 
-#if defined(_WIN32)
-  int use_pager = _isatty(fileno(fp));
-#else
-  int use_pager = isatty(fileno(fp));
-#endif
+  int use_pager = platform::is_console(fp);
 
   // cannot use this with OpenMPI since its console is non-functional
 
@@ -1133,11 +1123,7 @@ void _noopt LAMMPS::help()
   if (use_pager) {
     pager = getenv("PAGER");
     if (pager == nullptr) pager = "more";
-#if defined(_WIN32)
-    fp = _popen(pager,"w");
-#else
-    fp = popen(pager,"w");
-#endif
+    fp = platform::popen(pager,"w");
 
     // reset to original state, if pipe command failed
     if (fp == nullptr) {
@@ -1299,7 +1285,7 @@ void _noopt LAMMPS::help()
 
   // close pipe to pager, if active
 
-  if (pager != nullptr) pclose(fp);
+  if (pager != nullptr) platform::pclose(fp);
 }
 
 /* ----------------------------------------------------------------------

@@ -27,6 +27,9 @@
 /*_ssa.h
 /*_ssa.cpp
 
+!accelerator_kokkos.h
+!accelerator_omp.h
+
 /fix_mdi_engine.cpp
 /fix_mdi_engine.h
 /library_mdi.cpp
@@ -202,7 +205,6 @@
 
 /plugin.cpp
 /plugin.h
-/lammpsplugin.h
 
 /atom_vec_spin.cpp
 /atom_vec_spin.h
@@ -265,8 +267,6 @@
 /fix_drag.h
 /fix_numdiff.cpp
 /fix_numdiff.h
-/fix_nve_noforce.cpp
-/fix_nve_noforce.h
 /fix_spring_rg.cpp
 /fix_spring_rg.h
 /fix_temp_csld.cpp
@@ -367,8 +367,6 @@
 /atom_vec_dpd.h
 /atom_vec_electron.cpp
 /atom_vec_electron.h
-/atom_vec_ellipsoid.cpp
-/atom_vec_ellipsoid.h
 /atom_vec_full.cpp
 /atom_vec_full.h
 /atom_vec_full_hars.cpp
@@ -535,8 +533,6 @@
 /dihedral_harmonic.h
 /dihedral_helix.cpp
 /dihedral_helix.h
-/dihedral_hybrid.cpp
-/dihedral_hybrid.h
 /dihedral_multi_harmonic.cpp
 /dihedral_multi_harmonic.h
 /dihedral_nharmonic.cpp
@@ -883,8 +879,6 @@
 /fix_widom.cpp
 /fix_widom.h
 /gpu_extra.h
-/gridcomm.cpp
-/gridcomm.h
 /group_ndx.cpp
 /group_ndx.h
 /gz_file_writer.cpp
@@ -909,8 +903,6 @@
 /improper_fourier.h
 /improper_harmonic.cpp
 /improper_harmonic.h
-/improper_hybrid.cpp
-/improper_hybrid.h
 /improper_inversion_harmonic.cpp
 /improper_inversion_harmonic.h
 /improper_ring.cpp
@@ -1332,8 +1324,6 @@
 /thr_data.h
 /verlet_split.cpp
 /verlet_split.h
-/write_dump.cpp
-/write_dump.h
 /xdr_compat.cpp
 /xdr_compat.h
 /zstd_file_writer.cpp

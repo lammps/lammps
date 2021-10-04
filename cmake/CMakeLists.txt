@@ -90,8 +90,11 @@ if((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") OR (CMAKE_CXX_COMPILER_ID STREQUAL "
   endif()
 endif()
 
-# we require C++11 without extensions
+# we require C++11 without extensions. Kokkos requires at least C++14 (currently)
 set(CMAKE_CXX_STANDARD 11)
+if(PKG_KOKKOS AND (CMAKE_CXX_STANDARD LESS 14))
+  set(CMAKE_CXX_STANDARD 14)
+endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "Use compiler extensions")
 # ugly hack for MSVC which by default always reports an old C++ standard in the __cplusplus macro

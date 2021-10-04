@@ -57,7 +57,7 @@ velocities.  See the doc pages for the individual fixes and for the
 assign a temperature compute to a thermostatting fix.
 
 For example, you can apply a thermostat only to atoms in a spatial
-region by using it in conjuction with :doc:`compute temp/region
+region by using it in conjunction with :doc:`compute temp/region
 <compute_temp_region>`.  Or you can apply a thermostat to only the x
 and z components of velocity by using it with :doc:`compute
 temp/partial <compute_temp_partial>`.  Of you could thermostat only

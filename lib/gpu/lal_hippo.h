@@ -72,16 +72,9 @@ class Hippo : public BaseAmoeba<numtyp, acctyp> {
                           double c3, double c4, double c5,void** tep_ptr);
 
   /// Compute dispersion real-space with device neighboring
-  int** compute_dispersion_real(const int ago, const int inum_full, const int nall,
-                double **host_x, int *host_type, int *host_amtype,
-                int *host_amgroup, double **host_rpole, double *sublo, double *subhi,
-                tagint *tag, int **nspecial, tagint **special,
-                int *nspecial15, tagint **special15,
-                const bool eflag, const bool vflag,
-                const bool eatom, const bool vatom, int &host_start,
-                int **ilist, int **numj, const double cpu_time, bool &success,
-                const double aewald, const double off2_disp, double *charge,
-                double *boxlo, double *prd);
+  int** compute_dispersion_real(int *host_amtype,  int *host_amgroup,
+                                double **host_rpole, const double aewald,
+                                const double off2_disp);
 
   /// Compute multipole real-space with device neighboring
   virtual int** compute_multipole_real(const int ago, const int inum_full, const int nall,
@@ -96,51 +89,23 @@ class Hippo : public BaseAmoeba<numtyp, acctyp> {
                 double *boxlo, double *prd, void **tep_ptr);
 
    /// Compute the real space part of the permanent field (udirect2b) with device neighboring
-   virtual int** compute_udirect2b(const int ago, const int inum_full,
-                  const int nall, double **host_x,
-                  int *host_type, int *host_amtype,
-                  int *host_amgroup, double **host_rpole,
+   virtual void compute_udirect2b(int *host_amtype, int *host_amgroup, double **host_rpole,
                   double **host_uind, double **host_uinp, double* host_pval,
-                  double *sublo, double *subhi, tagint *tag,
-                  int **nspecial, tagint **special,
-                  int *nspecial15, tagint **special15,
-                  const bool eflag_in, const bool vflag_in,
-                  const bool eatom, const bool vatom,
-                  int &host_start, int **ilist, int **jnum,
-                  const double cpu_time, bool &success,
-                  const double aewald, const double off2_polar,
-                  double *host_q, double *boxlo, double *prd,
-                  void** fieldp_ptr);
+                  const double aewald, const double off2_polar, void** fieldp_ptr);
 
    /// Compute the real space part of the induced field (umutual2b) with device neighboring
-   virtual int** compute_umutual2b(const int ago, const int inum_full,
-                                     const int nall, double **host_x,
-                                     int *host_type, int *host_amtype,
-                                     int *host_amgroup, double **host_rpole,
-                                     double **host_uind, double **host_uinp, double *host_pval,
-                                     double *sublo, double *subhi, tagint *tag,
-                                     int **nspecial, tagint **special,
-                                     int *nspecial15, tagint **special15,
-                                     const bool eflag_in, const bool vflag_in,
-                                     const bool eatom, const bool vatom,
-                                     int &host_start, int **ilist, int **jnum,
-                                     const double cpu_time, bool &success,
-                                     const double aewald, const double off2_polar,
-                                     double *host_q, double *boxlo, double *prd,
-                                     void** fieldp_ptr);
+   virtual void compute_umutual2b(int *host_amtype, int *host_amgroup, double **host_rpole,
+                                   double **host_uind, double **host_uinp, double *host_pval,
+                                   const double aewald, const double off2_polar,
+                                   void** fieldp_ptr);
 
   /// Compute polar real-space with device neighboring
-  virtual int** compute_polar_real(const int ago, const int inum_full, const int nall,
-                double **host_x, int *host_type, int *host_amtype,
-                int *host_amgroup, double **host_rpole, double **host_uind,
-                double **host_uinp, double *host_pval, double *sublo, double *subhi,
-                tagint *tag, int **nspecial, tagint **special,
-                int *nspecial15, tagint **special15,
-                const bool eflag, const bool vflag,
-                const bool eatom, const bool vatom, int &host_start,
-                int **ilist, int **numj, const double cpu_time, bool &success,
+  virtual void compute_polar_real(int *host_amtype, int *host_amgroup, double **host_rpole,
+                double **host_uind, double **host_uinp, double *host_pval,
+                const bool eflag_in, const bool vflag_in,
+                const bool eatom, const bool vatom,
                 const double aewald, const double felec, const double off2_polar,
-                double *charge, double *boxlo, double *prd, void **tep_ptr);
+                void **tep_ptr);
 
   /// Clear all host and device data
   /** \note This is called at the beginning of the init() routine **/

@@ -487,35 +487,15 @@ int** BaseAmoebaT::compute_multipole_real(const int ago, const int inum_full,
 //    of the permanent field
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int** BaseAmoebaT::compute_udirect2b(const int ago, const int inum_full,
-                                     const int nall, double **host_x,
-                                     int *host_type, int *host_amtype,
-                                     int *host_amgroup, double **host_rpole,
+void BaseAmoebaT::compute_udirect2b(int *host_amtype, int *host_amgroup, double **host_rpole,
                                      double **host_uind, double **host_uinp, double *host_pval,
-                                     double *sublo, double *subhi, tagint *tag,
-                                     int **nspecial, tagint **special,
-                                     int *nspecial15, tagint **special15,
-                                     const bool eflag_in, const bool vflag_in,
-                                     const bool eatom, const bool vatom,
-                                     int &host_start, int **ilist, int **jnum,
-                                     const double cpu_time, bool &success,
                                      const double aewald, const double off2_polar,
-                                     double *host_q, double *boxlo, double *prd,
                                      void** fieldp_ptr) {
-  // reallocate per-atom arrays, transfer data from the host
-  //   and build the neighbor lists if needed
-
-  int** firstneigh = nullptr;
+  // all the necessary data arrays are already copied from host to device
 
   cast_extra_data(host_amtype, host_amgroup, host_rpole, host_uind, host_uinp, host_pval);
   atom->add_extra_data();
-
-  // ------------------- Resize _fieldp array ------------------------
-
-  if (inum_full>_max_fieldp_size) {
-    _max_fieldp_size=static_cast<int>(static_cast<double>(inum_full)*1.10);
-    _fieldp.resize(_max_fieldp_size*8);
-  }
+ 
   *fieldp_ptr=_fieldp.host.begin();
 
   _off2_polar = off2_polar;
@@ -525,8 +505,6 @@ int** BaseAmoebaT::compute_udirect2b(const int ago, const int inum_full,
   // copy field and fieldp from device to host (_fieldp store both arrays, one after another)
 
   _fieldp.update_host(_max_fieldp_size*8,false);
-
-  return firstneigh; //nbor->host_jlist.begin()-host_start;
 }
 
 // ---------------------------------------------------------------------------
@@ -534,35 +512,15 @@ int** BaseAmoebaT::compute_udirect2b(const int ago, const int inum_full,
 //    of the induced field
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int** BaseAmoebaT::compute_umutual2b(const int ago, const int inum_full,
-                                     const int nall, double **host_x,
-                                     int *host_type, int *host_amtype,
-                                     int *host_amgroup, double **host_rpole,
+void BaseAmoebaT::compute_umutual2b(int *host_amtype, int *host_amgroup, double **host_rpole,
                                      double **host_uind, double **host_uinp, double *host_pval,
-                                     double *sublo, double *subhi, tagint *tag,
-                                     int **nspecial, tagint **special,
-                                     int *nspecial15, tagint **special15,
-                                     const bool eflag_in, const bool vflag_in,
-                                     const bool eatom, const bool vatom,
-                                     int &host_start, int **ilist, int **jnum,
-                                     const double cpu_time, bool &success,
                                      const double aewald, const double off2_polar,
-                                     double *host_q, double *boxlo, double *prd,
                                      void** fieldp_ptr) {
-  // reallocate per-atom arrays, transfer extra data from the host
-  //   and build the neighbor lists if needed
-
-  int** firstneigh = nullptr;
+  // all the necessary data arrays are already copied from host to device
 
   cast_extra_data(host_amtype, host_amgroup, host_rpole, host_uind, host_uinp, host_pval);
   atom->add_extra_data();                          
 
-  // ------------------- Resize _fieldp array ------------------------
-
-  if (inum_full>_max_fieldp_size) {
-    _max_fieldp_size=static_cast<int>(static_cast<double>(inum_full)*1.10);
-    _fieldp.resize(_max_fieldp_size*8);
-  }
   *fieldp_ptr=_fieldp.host.begin();
 
   _off2_polar = off2_polar;
@@ -572,41 +530,25 @@ int** BaseAmoebaT::compute_umutual2b(const int ago, const int inum_full,
   // copy field and fieldp from device to host (_fieldp store both arrays, one after another)
 
   _fieldp.update_host(_max_fieldp_size*8,false);
-
-  return firstneigh; //nbor->host_jlist.begin()-host_start;
 }
 
 // ---------------------------------------------------------------------------
 // Reneighbor on GPU if necessary, and then compute polar real-space
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int** BaseAmoebaT::compute_polar_real(const int ago, const int inum_full,
-                                      const int nall, double **host_x,
-                                      int *host_type, int *host_amtype,
-                                      int *host_amgroup, double **host_rpole,
-                                      double **host_uind, double **host_uinp, double *host_pval,
-                                      double *sublo, double *subhi, tagint *tag,
-                                      int **nspecial, tagint **special,
-                                      int *nspecial15, tagint **special15,
-                                      const bool eflag_in, const bool vflag_in,
-                                      const bool eatom, const bool vatom,
-                                      int &host_start, int **ilist, int **jnum,
-                                      const double cpu_time, bool &success,
-                                      const double aewald, const double felec,
-                                      const double off2_polar, double *host_q,
-                                      double *boxlo, double *prd, void **tep_ptr) {
+void BaseAmoebaT::compute_polar_real(int *host_amtype, int *host_amgroup,
+                                     double **host_rpole, double **host_uind,
+                                     double **host_uinp, double *host_pval,
+                                     const bool eflag_in, const bool vflag_in,
+                                     const bool eatom, const bool vatom,
+                                     const double aewald, const double felec,
+                                     const double off2_polar, void **tep_ptr) {
 
   int** firstneigh = nullptr;
 
   cast_extra_data(host_amtype, host_amgroup, host_rpole, host_uind, host_uinp, host_pval);
   atom->add_extra_data();                          
 
-  // ------------------- Resize _tep array ------------------------
-
-  if (inum_full>_max_tep_size) {
-    _max_tep_size=static_cast<int>(static_cast<double>(inum_full)*1.10);
-    _tep.resize(_max_tep_size*4);
-  }
   *tep_ptr=_tep.host.begin();
 
   _off2_polar = off2_polar;
@@ -624,8 +566,6 @@ int** BaseAmoebaT::compute_polar_real(const int ago, const int inum_full,
   // copy tep from device to host
 
   _tep.update_host(_max_tep_size*4,false);
-
-  return firstneigh; // nbor->host_jlist.begin()-host_start;
 }
 
 template <class numtyp, class acctyp>

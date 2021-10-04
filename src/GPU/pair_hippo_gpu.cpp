@@ -80,16 +80,8 @@ int** hippo_gpu_compute_repulsion(const int ago, const int inum_full,
                            double cut2, double c0, double c1, double c2,
                            double c3, double c4, double c5, void **tep_ptr);
 
-int** hippo_gpu_compute_dispersion_real(const int ago, const int inum_full,
-                           const int nall, double **host_x, int *host_type,
-                           int *host_amtype, int *host_amgroup, double **host_rpole,
-                           double *sublo, double *subhi, tagint *tag, int **nspecial,
-                           tagint **special, int *nspecial15, tagint** special15,
-                           const bool eflag, const bool vflag, const bool eatom,
-                           const bool vatom, int &host_start,
-                           int **ilist, int **jnum, const double cpu_time,
-                           bool &success, const double aewald, const double off2,
-                           double *host_q, double *boxlo, double *prd);
+void hippo_gpu_compute_dispersion_real(int *host_amtype, int *host_amgroup, double **host_rpole,
+                                        const double aewald, const double off2);
 
 int ** hippo_gpu_compute_multipole_real(const int ago, const int inum, const int nall,
               double **host_x, int *host_type, int *host_amtype, int *host_amgroup,
@@ -100,35 +92,19 @@ int ** hippo_gpu_compute_multipole_real(const int ago, const int inum, const int
               bool &success, const double aewald, const double felec, const double off2,
               double *host_q, double *boxlo, double *prd, void **tq_ptr);
 
-int ** hippo_gpu_compute_udirect2b(const int ago, const int inum, const int nall,
-              double **host_x, int *host_type, int *host_amtype, int *host_amgroup,
+void hippo_gpu_compute_udirect2b(int *host_amtype, int *host_amgroup,
               double **host_rpole, double **host_uind, double **host_uinp,
-              double *host_pval, double *sublo, double *subhi, tagint *tag, int **nspecial,
-              tagint **special, int* nspecial15, tagint** special15,
-              const bool eflag, const bool vflag, const bool eatom, const bool vatom,
-              int &host_start, int **ilist, int **jnum, const double cpu_time,
-              bool &success, const double aewald, const double off2, double *host_q,
-              double *boxlo, double *prd, void **fieldp_ptr);
+              double *host_pval, const double aewald, const double off2, void **fieldp_ptr);
 
-int ** hippo_gpu_compute_umutual2b(const int ago, const int inum, const int nall,
-              double **host_x, int *host_type, int *host_amtype, int *host_amgroup,
+void hippo_gpu_compute_umutual2b(int *host_amtype, int *host_amgroup,
               double **host_rpole, double **host_uind, double **host_uinp, double *host_pval,
-              double *sublo, double *subhi, tagint *tag, int **nspecial,
-              tagint **special, int* nspecial15, tagint** special15,
-              const bool eflag, const bool vflag, const bool eatom, const bool vatom,
-              int &host_start, int **ilist, int **jnum, const double cpu_time,
-              bool &success, const double aewald, const double off2, double *host_q,
-              double *boxlo, double *prd, void **fieldp_ptr);
+              const double aewald, const double off2, void **fieldp_ptr);
 
-int ** hippo_gpu_compute_polar_real(const int ago, const int inum, const int nall,
-              double **host_x, int *host_type, int *host_amtype, int *host_amgroup,
+void hippo_gpu_compute_polar_real(int *host_amtype, int *host_amgroup,
               double **host_rpole, double **host_uind, double **host_uinp, double *host_pval,
-              double *sublo, double *subhi, tagint *tag, int **nspecial,
-              tagint **special, int* nspecial15, tagint** special15,
               const bool eflag, const bool vflag, const bool eatom, const bool vatom,
-              int &host_start, int **ilist, int **jnum, const double cpu_time,
-              bool &success, const double aewald, const double felec, const double off2,
-              double *host_q, double *boxlo, double *prd, void **tq_ptr);
+              const double aewald, const double felec, const double off2,
+              void **tq_ptr);
 
 double hippo_gpu_bytes();
 
@@ -301,7 +277,6 @@ void PairHippoGPU::dispersion_real()
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
 
-  bool success = true;
   int *ilist, *numneigh, **firstneigh;
 
   double sublo[3],subhi[3];
@@ -322,18 +297,7 @@ void PairHippoGPU::dispersion_real()
   if (use_dewald) choose(DISP_LONG);
   else choose(DISP);
 
-  firstneigh = hippo_gpu_compute_dispersion_real(neighbor->ago, inum, nall, atom->x,
-                                                 atom->type, amtype, amgroup, rpole,
-                                                 sublo, subhi, atom->tag,
-                                                 atom->nspecial, atom->special,
-                                                 atom->nspecial15, atom->special15,
-                                                 eflag, vflag, eflag_atom, vflag_atom,
-                                                 host_start, &ilist, &numneigh, cpu_time,
-                                                 success, aewald, off2, atom->q,
-                                                 domain->boxlo, domain->prd);
-
-  if (!success)
-    error->one(FLERR,"Insufficient memory on accelerator");
+  hippo_gpu_compute_dispersion_real(amtype, amgroup, rpole, aewald, off2);
 }
 
 /* ----------------------------------------------------------------------
@@ -377,15 +341,15 @@ void PairHippoGPU::multipole_real()
 
   double felec = electric / am_dielectric;
 
-  firstneigh = hippo_gpu_compute_multipole_real(neighbor->ago, inum, nall, atom->x,
-                                                atom->type, amtype, amgroup, rpole, pval,
-                                                sublo, subhi, atom->tag,
-                                                atom->nspecial, atom->special,
-                                                atom->nspecial15, atom->special15,
-                                                eflag, vflag, eflag_atom, vflag_atom,
-                                                host_start, &ilist, &numneigh, cpu_time,
-                                                success, aewald, felec, off2, atom->q,
-                                                domain->boxlo, domain->prd, &tq_pinned);
+  hippo_gpu_compute_multipole_real(neighbor->ago, inum, nall, atom->x,
+                                   atom->type, amtype, amgroup, rpole, pval,
+                                   sublo, subhi, atom->tag,
+                                   atom->nspecial, atom->special,
+                                   atom->nspecial15, atom->special15,
+                                   eflag, vflag, eflag_atom, vflag_atom,
+                                   host_start, &ilist, &numneigh, cpu_time,
+                                   success, aewald, felec, off2, atom->q,
+                                   domain->boxlo, domain->prd, &tq_pinned);
 
   if (!success)
     error->one(FLERR,"Insufficient memory on accelerator");
@@ -854,9 +818,6 @@ void PairHippoGPU::udirect2b(double **field, double **fieldp)
   int nall = atom->nlocal + atom->nghost;
   int inum, host_start;
 
-  bool success = true;
-  int *ilist, *numneigh, **firstneigh;
-
   double sublo[3],subhi[3];
   if (domain->triclinic == 0) {
     sublo[0] = domain->sublo[0];
@@ -875,17 +836,8 @@ void PairHippoGPU::udirect2b(double **field, double **fieldp)
   if (use_ewald) choose(POLAR_LONG);
   else choose(POLAR);
 
-  firstneigh = hippo_gpu_compute_udirect2b(neighbor->ago, inum, nall, atom->x,
-                                            atom->type, amtype, amgroup, rpole,
-                                            uind, uinp, pval, sublo, subhi, atom->tag,
-                                            atom->nspecial, atom->special,
-                                            atom->nspecial15, atom->special15,
-                                            eflag, vflag, eflag_atom, vflag_atom,
-                                            host_start, &ilist, &numneigh, cpu_time,
-                                            success, aewald, off2, atom->q,
-                                            domain->boxlo, domain->prd, &fieldp_pinned);
-  if (!success)
-    error->one(FLERR,"Insufficient memory on accelerator");
+  hippo_gpu_compute_udirect2b(amtype, amgroup, rpole, uind, uinp, pval,
+                              aewald, off2, &fieldp_pinned);
 
   // rebuild dipole-dipole pair list and store pairwise dipole matrices
   // done one atom at a time in real-space double loop over atoms & neighs
@@ -1078,10 +1030,7 @@ void PairHippoGPU::umutual2b(double **field, double **fieldp)
 
   int eflag=1, vflag=1;
   int nall = atom->nlocal + atom->nghost;
-  int inum, host_start;
-
-  bool success = true;
-  int *ilist, *numneigh, **firstneigh;
+  int inum;
 
   double sublo[3],subhi[3];
   if (domain->triclinic == 0) {
@@ -1101,17 +1050,9 @@ void PairHippoGPU::umutual2b(double **field, double **fieldp)
   if (use_ewald) choose(POLAR_LONG);
   else choose(POLAR);
 
-  firstneigh = hippo_gpu_compute_umutual2b(neighbor->ago, inum, nall, atom->x,
-                                           atom->type, amtype, amgroup, rpole,
-                                           uind, uinp, pval, sublo, subhi, atom->tag,
-                                           atom->nspecial, atom->special,
-                                           atom->nspecial15, atom->special15,
-                                           eflag, vflag, eflag_atom, vflag_atom,
-                                           host_start, &ilist, &numneigh, cpu_time,
-                                           success,aewald, off2, atom->q,
-                                           domain->boxlo, domain->prd, &fieldp_pinned);
-  if (!success)
-    error->one(FLERR,"Insufficient memory on accelerator");
+  hippo_gpu_compute_umutual2b(amtype, amgroup, rpole, uind, uinp, pval,
+                              aewald, off2, &fieldp_pinned);
+  
 
   // accumulate the field and fieldp values from the GPU lib
   //   field and fieldp may already have some nonzero values from kspace (umutual1)
@@ -1150,10 +1091,7 @@ void PairHippoGPU::polar_real()
 
   int eflag=1, vflag=1;
   int nall = atom->nlocal + atom->nghost;
-  int inum, host_start;
-
-  bool success = true;
-  int *ilist, *numneigh, **firstneigh;
+  int inum;
 
   double sublo[3],subhi[3];
   if (domain->triclinic == 0) {
@@ -1177,18 +1115,9 @@ void PairHippoGPU::polar_real()
 
   double felec = 0.5 * electric / am_dielectric;
 
-  firstneigh = hippo_gpu_compute_polar_real(neighbor->ago, inum, nall, atom->x,
-                                             atom->type, amtype, amgroup,
-                                             rpole, uind, uinp, pval, sublo, subhi,
-                                             atom->tag, atom->nspecial, atom->special,
-                                             atom->nspecial15, atom->special15,
-                                             eflag, vflag, eflag_atom, vflag_atom,
-                                             host_start, &ilist, &numneigh, cpu_time,
-                                             success, aewald, felec, off2, atom->q,
-                                             domain->boxlo, domain->prd, &tq_pinned);
-
-  if (!success)
-    error->one(FLERR,"Insufficient memory on accelerator");
+  hippo_gpu_compute_polar_real(amtype, amgroup, rpole, uind, uinp, pval,
+                               eflag, vflag, eflag_atom, vflag_atom,
+                               aewald, felec, off2, &tq_pinned);
 
   // reference to the tep array from GPU lib
 

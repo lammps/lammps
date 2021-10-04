@@ -301,19 +301,9 @@ int HippoT::repulsion(const int eflag, const int vflag) {
 // Reneighbor on GPU if necessary, and then compute dispersion real-space
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int** HippoT::compute_dispersion_real(const int ago, const int inum_full,
-                                      const int nall, double **host_x,
-                                      int *host_type, int *host_amtype,
-                                      int *host_amgroup, double **host_rpole,
-                                      double *sublo, double *subhi, tagint *tag,
-                                      int **nspecial, tagint **special,
-                                      int *nspecial15, tagint **special15,
-                                      const bool eflag_in, const bool vflag_in,
-                                      const bool eatom, const bool vatom,
-                                      int &host_start, int **ilist, int **jnum,
-                                      const double cpu_time, bool &success,
-                                      const double aewald, const double off2_disp,
-                                      double *host_q, double *boxlo, double *prd) {
+int** HippoT::compute_dispersion_real(int *host_amtype, int *host_amgroup,
+                                      double **host_rpole, const double aewald,
+                                      const double off2_disp) {
 
   // cast necessary data arrays from host to device
 
@@ -475,21 +465,9 @@ int HippoT::multipole_real(const int eflag, const int vflag) {
 //    of the permanent field
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int** HippoT::compute_udirect2b(const int ago, const int inum_full,
-                                const int nall, double **host_x,
-                                int *host_type, int *host_amtype,
-                                int *host_amgroup, double **host_rpole,
-                                double **host_uind, double **host_uinp,
-                                double* host_pval,
-                                double *sublo, double *subhi, tagint *tag,
-                                int **nspecial, tagint **special,
-                                int *nspecial15, tagint **special15,
-                                const bool eflag_in, const bool vflag_in,
-                                const bool eatom, const bool vatom,
-                                int &host_start, int **ilist, int **jnum,
-                                const double cpu_time, bool &success,
+void HippoT::compute_udirect2b(int *host_amtype, int *host_amgroup, double **host_rpole,
+                                double **host_uind, double **host_uinp, double* host_pval,
                                 const double aewald, const double off2_polar,
-                                double *host_q, double *boxlo, double *prd,
                                 void** fieldp_ptr) {
 
   // all the necessary data arrays are already copied from host to device
@@ -497,12 +475,6 @@ int** HippoT::compute_udirect2b(const int ago, const int inum_full,
   this->cast_extra_data(nullptr, nullptr, nullptr, host_uind, host_uinp, host_pval);
   this->atom->add_extra_data();
 
-  // ------------------- Resize _fieldp array ------------------------
-
-  if (inum_full>this->_max_fieldp_size) {
-    this->_max_fieldp_size=static_cast<int>(static_cast<double>(inum_full)*1.10);
-    this->_fieldp.resize(this->_max_fieldp_size*8);
-  }
   *fieldp_ptr=this->_fieldp.host.begin();
 
   this->_off2_polar = off2_polar;
@@ -512,8 +484,6 @@ int** HippoT::compute_udirect2b(const int ago, const int inum_full,
   // copy field and fieldp from device to host (_fieldp store both arrays, one after another)
 
   this->_fieldp.update_host(this->_max_fieldp_size*8,false);
-
-  return nullptr; //nbor->host_jlist.begin()-host_start;
 }
 
 // ---------------------------------------------------------------------------
@@ -562,33 +532,16 @@ int HippoT::udirect2b(const int eflag, const int vflag) {
 //    of the induced field
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int** HippoT::compute_umutual2b(const int ago, const int inum_full,
-                                     const int nall, double **host_x,
-                                     int *host_type, int *host_amtype,
-                                     int *host_amgroup, double **host_rpole,
-                                     double **host_uind, double **host_uinp, double *host_pval,
-                                     double *sublo, double *subhi, tagint *tag,
-                                     int **nspecial, tagint **special,
-                                     int *nspecial15, tagint **special15,
-                                     const bool eflag_in, const bool vflag_in,
-                                     const bool eatom, const bool vatom,
-                                     int &host_start, int **ilist, int **jnum,
-                                     const double cpu_time, bool &success,
-                                     const double aewald, const double off2_polar,
-                                     double *host_q, double *boxlo, double *prd,
-                                     void** fieldp_ptr) {
+void HippoT::compute_umutual2b(int *host_amtype, int *host_amgroup, double **host_rpole,
+                                double **host_uind, double **host_uinp, double *host_pval,
+                                const double aewald, const double off2_polar,
+                                void** fieldp_ptr) {
 
   // cast necessary data arrays from host to device
 
   this->cast_extra_data(nullptr, nullptr, nullptr, host_uind, host_uinp, nullptr);
   this->atom->add_extra_data();
 
-  // ------------------- Resize _fieldp array ------------------------
-
-  if (inum_full>this->_max_fieldp_size) {
-    this->_max_fieldp_size=static_cast<int>(static_cast<double>(inum_full)*1.10);
-    this->_fieldp.resize(this->_max_fieldp_size*8);
-  }
   *fieldp_ptr=this->_fieldp.host.begin();
 
   this->_off2_polar = off2_polar;
@@ -598,8 +551,6 @@ int** HippoT::compute_umutual2b(const int ago, const int inum_full,
   // copy field and fieldp from device to host (_fieldp store both arrays, one after another)
 
   this->_fieldp.update_host(this->_max_fieldp_size*8,false);
-
-  return nullptr; //nbor->host_jlist.begin()-host_start;
 }
 
 // ---------------------------------------------------------------------------
@@ -646,34 +597,17 @@ int HippoT::umutual2b(const int eflag, const int vflag) {
 // Reneighbor on GPU if necessary, and then compute polar real-space
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-int** HippoT::compute_polar_real(const int ago, const int inum_full,
-                                 const int nall, double **host_x,
-                                 int *host_type, int *host_amtype,
-                                 int *host_amgroup, double **host_rpole,
-                                 double **host_uind, double **host_uinp,
-                                 double *host_pval, double *sublo, double *subhi,
-                                 tagint *tag, int **nspecial, tagint **special,
-                                 int *nspecial15, tagint **special15,
-                                 const bool eflag_in, const bool vflag_in,
-                                 const bool eatom, const bool vatom,
-                                 int &host_start, int **ilist, int **jnum,
-                                 const double cpu_time, bool &success,
-                                 const double aewald, const double felec,
-                                 const double off2_polar, double *host_q,
-                                 double *boxlo, double *prd, void **tep_ptr) {
-
+void HippoT::compute_polar_real(int *host_amtype, int *host_amgroup, double **host_rpole,
+                                double **host_uind, double **host_uinp, double *host_pval,
+                                const bool eflag_in, const bool vflag_in,
+                                const bool eatom, const bool vatom,
+                                const double aewald, const double felec,
+                                const double off2_polar, void **tep_ptr) {
   // cast necessary data arrays from host to device
 
-  //this->cast_extra_data(host_amtype, host_amgroup, host_rpole, host_uind, host_uinp, host_pval);
   this->cast_extra_data(nullptr, nullptr, nullptr, host_uind, host_uinp, nullptr);
   this->atom->add_extra_data();
 
-  // ------------------- Resize _tep array ------------------------
-
-  if (inum_full>this->_max_tep_size) {
-    this->_max_tep_size=static_cast<int>(static_cast<double>(inum_full)*1.10);
-    this->_tep.resize(this->_max_tep_size*4);
-  }
   *tep_ptr=this->_tep.host.begin();
 
   this->_off2_polar = off2_polar;
@@ -691,8 +625,6 @@ int** HippoT::compute_polar_real(const int ago, const int inum_full,
   // copy tep from device to host
 
   this->_tep.update_host(this->_max_tep_size*4,false);
-
-  return nullptr;
 }
 
 // ---------------------------------------------------------------------------

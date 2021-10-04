@@ -54,7 +54,7 @@ class FixAveTime : public Fix {
   int *offlist;
   char *format, *format_user;
   char *title1, *title2, *title3;
-  long filepos;
+  bigint filepos;
 
   int norm, iwindow, window_limit;
   double *vector;

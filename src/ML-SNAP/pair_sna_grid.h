@@ -31,6 +31,7 @@ class PairSNAGrid : public PairGrid {
 
   void init();
   void init_list(int, class NeighList *);
+  void settings(int, char **);
   void compute(int, int);
   double memory_usage();
 

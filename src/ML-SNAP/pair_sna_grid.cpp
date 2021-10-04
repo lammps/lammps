@@ -168,6 +168,126 @@ void PairSNAGrid::compute(int eflag, int vflag)
 
 
 /* ----------------------------------------------------------------------
+   global settings
+------------------------------------------------------------------------- */
+
+void PairSNAGrid::settings(int narg, char ** arg)
+{
+  double rfac0, rmin0;
+  int twojmax, switchflag, bzeroflag, bnormflag, wselfallflag;
+
+  // call base class first
+
+  PairGrid::settings(narg, arg);
+    
+  // skip over arguments used by base class
+  // so that argument positions are identical to
+  // regular per-atom compute
+  
+  arg += nargbase;
+  narg -= nargbase;
+
+  int ntypes = atom->ntypes;
+  int nargmin = 3+2*ntypes;
+
+  if (narg < nargmin) error->all(FLERR,"Illegal pair sna/grid command");
+
+  // default values
+
+  rmin0 = 0.0;
+  switchflag = 1;
+  bzeroflag = 1;
+  quadraticflag = 0;
+  chemflag = 0;
+  bnormflag = 0;
+  wselfallflag = 0;
+  nelements = 1;
+  
+  // process required arguments
+
+  memory->create(radelem,ntypes+1,"sna/grid/local:radelem"); // offset by 1 to match up with types
+  memory->create(wjelem,ntypes+1,"sna/grid/local:wjelem");
+
+  rcutfac = atof(arg[0]);
+  rfac0 = atof(arg[1]);
+  twojmax = atoi(arg[2]);
+
+  for(int i = 0; i < ntypes; i++)
+    radelem[i+1] = atof(arg[3+i]);
+  for(int i = 0; i < ntypes; i++)
+    wjelem[i+1] = atof(arg[3+ntypes+i]);
+
+  // construct cutsq
+
+  double cut;
+  cutmax = 0.0;
+  memory->create(cutsq,ntypes+1,ntypes+1,"sna/grid/local:cutsq");
+  for(int i = 1; i <= ntypes; i++) {
+    cut = 2.0*radelem[i]*rcutfac;
+    if (cut > cutmax) cutmax = cut;
+    cutsq[i][i] = cut*cut;
+    for(int j = i+1; j <= ntypes; j++) {
+      cut = (radelem[i]+radelem[j])*rcutfac;
+      cutsq[i][j] = cutsq[j][i] = cut*cut;
+    }
+  }
+
+  // process optional args
+
+  int iarg = nargmin;
+
+  while (iarg < narg) {
+    printf("%d %d %d %s\n",iarg,narg,nargbase,arg[iarg]);
+    if (strcmp(arg[iarg],"rmin0") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal pair sna/grid command");
+      rmin0 = atof(arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"switchflag") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal pair sna/grid command");
+      switchflag = atoi(arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"bzeroflag") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal pair sna/grid command");
+      bzeroflag = atoi(arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"quadraticflag") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal pair sna/grid command");
+      quadraticflag = atoi(arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"chem") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal pair sna/grid command");
+      chemflag = 1;
+      memory->create(map,ntypes+1,"compute_sna_grid_local:map");
+      nelements = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      for (int i = 0; i < ntypes; i++) {
+        int jelem = utils::inumeric(FLERR,arg[iarg+2+i],false,lmp);
+        if (jelem < 0 || jelem >= nelements)
+          error->all(FLERR,"Illegal pair sna/grid command");
+        map[i+1] = jelem;
+      }
+      iarg += 2+ntypes;
+    } else if (strcmp(arg[iarg],"bnormflag") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal pair sna/grid command");
+      bnormflag = atoi(arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"wselfallflag") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal pair sna/grid command");
+      wselfallflag = atoi(arg[iarg+1]);
+      iarg += 2;
+    } else error->all(FLERR,"Illegal pair sna/grid command");
+
+  }
+
+}
+  
+/* ----------------------------------------------------------------------
    memory usage
 ------------------------------------------------------------------------- */
 

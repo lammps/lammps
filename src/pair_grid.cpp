@@ -275,9 +275,8 @@ void PairGrid::allocate()
 
 void PairGrid::settings(int narg, char ** arg)
 {
-  if (narg < 6) error->all(FLERR,"Illegal pair style command");
-
-  int iarg0 = 3;
+  if (narg < 4) error->all(FLERR,"Illegal pair style command");
+  int iarg0 = 0;
   int iarg = iarg0;
   if (strcmp(arg[iarg],"grid") == 0) {
     if (iarg+4 > narg) error->all(FLERR,"Illegal pair grid command");
@@ -288,9 +287,7 @@ void PairGrid::settings(int narg, char ** arg)
       error->all(FLERR,"All grid/local dimensions must be positive");
     iarg += 4;
   } else error->all(FLERR,"Illegal pair grid command");
-
   nargbase = iarg - iarg0;
-  
 }
 
 /* ----------------------------------------------------------------------

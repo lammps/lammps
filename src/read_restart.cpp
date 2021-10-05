@@ -35,7 +35,6 @@
 #include "update.h"
 
 #include <cstring>
-#include <dirent.h>
 
 #include "lmprestart.h"
 
@@ -117,6 +116,7 @@ void ReadRestart::command(int narg, char **arg)
   magic_string();
   endian();
   format_revision();
+  check_eof_magic();
 
   // read header info which creates simulation box
 
@@ -557,20 +557,16 @@ std::string ReadRestart::file_search(const std::string &inpfile)
   if (loc != std::string::npos) {
     // convert pattern to equivalent regexp
     pattern.replace(loc,1,"\\d+");
-    struct dirent *ep;
-    DIR *dp = opendir(dirname.c_str());
-    if (dp == nullptr)
-      error->one(FLERR,"Cannot open directory {} to search for restart file: {}",
-                 dirname, utils::getsyserror());
 
-    while ((ep = readdir(dp))) {
-      std::string candidate(ep->d_name);
+    if (!platform::path_is_directory(dirname))
+      error->one(FLERR,"Cannot open directory {} to search for restart file: {}",dirname);
+
+    for (const auto &candidate : platform::list_directory(dirname)) {
       if (utils::strmatch(candidate,pattern)) {
         bigint num = ATOBIGINT(utils::strfind(candidate.substr(loc),"\\d+").c_str());
         if (num > maxnum) maxnum = num;
       }
     }
-    closedir(dp);
     if (maxnum < 0) error->one(FLERR,"Found no restart file matching pattern");
     filename.replace(filename.find('*'),1,std::to_string(maxnum));
   }
@@ -1084,11 +1080,11 @@ void ReadRestart::file_layout()
     flag = read_int();
   }
 
-  // if MPI-IO file, broadcast the end of the header offste
+  // if MPI-IO file, broadcast the end of the header offset
   // this allows all ranks to compute offset to their data
 
   if (mpiioflag) {
-    if (me == 0) headerOffset = ftell(fp);
+    if (me == 0) headerOffset = platform::ftell(fp);
     MPI_Bcast(&headerOffset,1,MPI_LMP_BIGINT,0,world);
   }
 }
@@ -1152,10 +1148,12 @@ void ReadRestart::check_eof_magic()
   // read magic string at end of file and restore file pointer
 
   if (me == 0) {
-    long curpos = ftell(fp);
-    fseek(fp,(long)-n,SEEK_END);
+    bigint curpos = platform::ftell(fp);
+    platform::fseek(fp,platform::END_OF_FILE);
+    bigint offset = platform::ftell(fp) - n;
+    platform::fseek(fp,offset);
     utils::sfread(FLERR,str,sizeof(char),n,fp,nullptr,error);
-    fseek(fp,curpos,SEEK_SET);
+    platform::fseek(fp,curpos);
   }
 
   MPI_Bcast(str,n,MPI_CHAR,0,world);

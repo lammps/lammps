@@ -61,7 +61,9 @@
 #endif
 ////////////////////////////////////////////////////////////////////////
 
+#include <chrono>
 #include <cstring>
+#include <thread>
 
 /* ------------------------------------------------------------------ */
 
@@ -170,6 +172,14 @@ double platform::walltime()
 #endif
 
   return wtime;
+}
+
+/* ----------------------------------------------------------------------
+   sleep with microsecond resolution
+------------------------------------------------------------------------ */
+void platform::usleep(int usec)
+{
+  return std::this_thread::sleep_for(std::chrono::microseconds(usec));
 }
 
 /* ----------------------------------------------------------------------

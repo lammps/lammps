@@ -42,6 +42,15 @@ namespace platform {
 
   double walltime();
 
+
+  /*! Suspend execution for a microsecond interval
+   *
+   * This emulates the usleep(3) BSD function call also mentioned in POSIX.1-2001.
+   *
+   * \param  usec  length of delay in microseconds */
+
+  void usleep(int usec);
+
   /*! Return string with the operating system version and architecture info
    *
    *  \return  string with info about the OS and the platform is is running on */

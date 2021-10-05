@@ -45,6 +45,7 @@ add_executable(test_error_stats test_error_stats.cpp)
 target_include_directories(test_error_stats PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${LAMMPS_SOURCE_DIR})
 target_link_libraries(test_error_stats PRIVATE GTest::GTestMain GTest::GTest)
 add_test(NAME ErrorStats COMMAND test_error_stats)
+set_tests_properties(ErrorStats PROPERTIES LABELS "force-style")
 
 # pair style tester
 add_executable(test_pair_style test_pair_style.cpp)
@@ -63,6 +64,7 @@ foreach(TEST ${MOL_PAIR_TESTS})
   string(REGEX REPLACE "^.*mol-pair-(.*)\.yaml" "MolPairStyle:\\1" TNAME ${TEST})
   add_test(NAME ${TNAME} COMMAND test_pair_style ${TEST} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
   set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};PYTHONPATH=${TEST_INPUT_FOLDER}:$ENV{PYTHONPATH}")
+  set_tests_properties(${TNAME} PROPERTIES LABELS "force-style")
 endforeach()
 
 # tests for metal-like atomic systems and related pair styles
@@ -71,6 +73,7 @@ foreach(TEST ${ATOMIC_PAIR_TESTS})
   string(REGEX REPLACE "^.*atomic-pair-(.*)\.yaml" "AtomicPairStyle:\\1" TNAME ${TEST})
   add_test(NAME ${TNAME} COMMAND test_pair_style ${TEST} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
   set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};PYTHONPATH=${TEST_INPUT_FOLDER}:$ENV{PYTHONPATH}")
+  set_tests_properties(${TNAME} PROPERTIES LABELS "force-style")
 endforeach()
 
 # tests for Si-like manybody systems and related pair styles
@@ -79,6 +82,7 @@ foreach(TEST ${MANYBODY_PAIR_TESTS})
   string(REGEX REPLACE "^.*manybody-pair-(.*)\.yaml" "ManybodyPairStyle:\\1" TNAME ${TEST})
   add_test(NAME ${TNAME} COMMAND test_pair_style ${TEST} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
   set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};PYTHONPATH=${TEST_INPUT_FOLDER}:$ENV{PYTHONPATH}")
+  set_tests_properties(${TNAME} PROPERTIES LABELS "force-style")
 endforeach()
 
 # bond style tester
@@ -90,6 +94,7 @@ foreach(TEST ${BOND_TESTS})
   string(REGEX REPLACE "^.*bond-(.*)\.yaml" "BondStyle:\\1" TNAME ${TEST})
   add_test(NAME ${TNAME} COMMAND test_bond_style ${TEST} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
   set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};PYTHONPATH=${TEST_INPUT_FOLDER}:$ENV{PYTHONPATH}")
+  set_tests_properties(${TNAME} PROPERTIES LABELS "force-style")
 endforeach()
 
 # angle style tester
@@ -101,6 +106,7 @@ foreach(TEST ${ANGLE_TESTS})
   string(REGEX REPLACE "^.*angle-(.*)\.yaml" "AngleStyle:\\1" TNAME ${TEST})
   add_test(NAME ${TNAME} COMMAND test_angle_style ${TEST} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
   set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};PYTHONPATH=${TEST_INPUT_FOLDER}:$ENV{PYTHONPATH}")
+  set_tests_properties(${TNAME} PROPERTIES LABELS "force-style")
 endforeach()
 
 # kspace style tester, currently uses the pair style tool
@@ -113,6 +119,7 @@ foreach(TEST ${KSPACE_TESTS})
   string(REGEX REPLACE "^.*kspace-(.*)\.yaml" "KSpaceStyle:\\1" TNAME ${TEST})
   add_test(NAME ${TNAME} COMMAND test_pair_style ${TEST} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
   set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};PYTHONPATH=${TEST_INPUT_FOLDER}:$ENV{PYTHONPATH}")
+  set_tests_properties(${TNAME} PROPERTIES LABELS "force-style")
 endforeach()
 
 # tester for timestepping fixes
@@ -128,6 +135,7 @@ foreach(TEST ${FIX_TIMESTEP_TESTS})
   string(REGEX REPLACE "^.*fix-timestep-(.*)\.yaml" "FixTimestep:\\1" TNAME ${TEST})
   add_test(NAME ${TNAME} COMMAND test_fix_timestep ${TEST} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
   set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};PYTHONPATH=${TEST_INPUT_FOLDER}:${LAMMPS_PYTHON_DIR}:$ENV{PYTHONPATH}")
+  set_tests_properties(${TNAME} PROPERTIES LABELS "force-style")
 endforeach()
 
 # dihedral style tester
@@ -139,6 +147,7 @@ foreach(TEST ${DIHEDRAL_TESTS})
   string(REGEX REPLACE "^.*dihedral-(.*)\.yaml" "DihedralStyle:\\1" TNAME ${TEST})
   add_test(NAME ${TNAME} COMMAND test_dihedral_style ${TEST} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
   set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};PYTHONPATH=${TEST_INPUT_FOLDER}:$ENV{PYTHONPATH}")
+  set_tests_properties(${TNAME} PROPERTIES LABELS "force-style")
 endforeach()
 
 # improper style tester
@@ -150,4 +159,5 @@ foreach(TEST ${IMPROPER_TESTS})
   string(REGEX REPLACE "^.*improper-(.*)\.yaml" "ImproperStyle:\\1" TNAME ${TEST})
   add_test(NAME ${TNAME} COMMAND test_improper_style ${TEST} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
   set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};PYTHONPATH=${TEST_INPUT_FOLDER}:$ENV{PYTHONPATH}")
+  set_tests_properties(${TNAME} PROPERTIES LABELS "force-style")
 endforeach()

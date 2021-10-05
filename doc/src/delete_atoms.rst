@@ -20,8 +20,10 @@ Syntax
          cutoff = delete one atom from pairs of atoms within the cutoff (distance units)
          group1-ID = one atom in pair must be in this group
          group2-ID = other atom in pair must be in this group
-       *porosity* args = region-ID fraction seed
+       *porosity* args = group-ID region-ID fraction seed
+         group-ID = group within which to perform deletions
          region-ID = region within which to perform deletions
+                     or NULL to only impose the group criterion
          fraction = delete this fraction of atoms
          seed = random number seed (positive integer)
 
@@ -43,7 +45,8 @@ Examples
    delete_atoms region sphere compress no
    delete_atoms overlap 0.3 all all
    delete_atoms overlap 0.5 solvent colloid
-   delete_atoms porosity cube 0.1 482793 bond yes
+   delete_atoms porosity all cube 0.1 482793 bond yes
+   delete_atoms porosity polymer cube 0.1 482793 bond yes
 
 Description
 """""""""""
@@ -76,12 +79,17 @@ have occurred that no atom pairs within the cutoff will remain
 minimum number of atoms will be deleted, or that the same atoms will
 be deleted when running on different numbers of processors.
 
-For style *porosity* a specified *fraction* of atoms are deleted
-within the specified region.  For example, if fraction is 0.1, then
-10% of the atoms will be deleted.  The atoms to delete are chosen
-randomly.  There is no guarantee that the exact fraction of atoms will
-be deleted, or that the same atoms will be deleted when running on
-different numbers of processors.
+For style *porosity* a specified *fraction* of atoms are deleted which
+are both in the specified group and within the specified region.  The
+region-ID can be specified as NULL to only impose the group
+criterion.  Likewise, specifying the group-ID as *all* will only impose
+the region criterion.
+
+For example, if fraction is 0.1, then 10% of the eligible atoms will
+be deleted.  The atoms to delete are chosen randomly.  There is no
+guarantee that the exact fraction of atoms will be deleted, or that
+the same atoms will be deleted when running on different numbers of
+processors.
 
 If the *compress* keyword is set to *yes*, then after atoms are
 deleted, then atom IDs are re-assigned so that they run from 1 to the

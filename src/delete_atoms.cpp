@@ -422,15 +422,23 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
 
 void DeleteAtoms::delete_porosity(int narg, char **arg)
 {
-  if (narg < 4) error->all(FLERR,"Illegal delete_atoms command");
+  if (narg < 5) error->all(FLERR,"Illegal delete_atoms command");
 
-  int iregion = domain->find_region(arg[1]);
-  if (iregion == -1) error->all(FLERR,"Could not find delete_atoms region ID");
-  domain->regions[iregion]->prematch();
+  int igroup = group->find(arg[1]);
+  if (igroup == -1) error->all(FLERR,"Could not find delete_atoms group ID");
 
-  double porosity_fraction = utils::numeric(FLERR,arg[2],false,lmp);
-  int seed = utils::inumeric(FLERR,arg[3],false,lmp);
-  options(narg-4,&arg[4]);
+  int iregion,regionflag;
+  if (strcmp(arg[2],"NULL") == 0) regionflag = 0;
+  else {
+    regionflag = 1;
+    int iregion = domain->find_region(arg[2]);
+    if (iregion == -1) error->all(FLERR,"Could not find delete_atoms region ID");
+    domain->regions[iregion]->prematch();
+  }
+
+  double porosity_fraction = utils::numeric(FLERR,arg[3],false,lmp);
+  int seed = utils::inumeric(FLERR,arg[4],false,lmp);
+  options(narg-5,&arg[5]);
 
   RanMars *random = new RanMars(lmp,seed + comm->me);
 
@@ -440,11 +448,18 @@ void DeleteAtoms::delete_porosity(int narg, char **arg)
   memory->create(dlist,nlocal,"delete_atoms:dlist");
   for (int i = 0; i < nlocal; i++) dlist[i] = 0;
 
-  double **x = atom->x;
+  // delete fraction of atoms in both group and region
 
-  for (int i = 0; i < nlocal; i++)
-    if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
+  double **x = atom->x;
+  int *mask = atom->mask;
+
+  int groupbit = group->bitmask[igroup];
+
+  for (int i = 0; i < nlocal; i++) {
+    if (!(mask[i] & groupbit)) continue;
+    if (regionflag && domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
       if (random->uniform() <= porosity_fraction) dlist[i] = 1;
+  }
 
   delete random;
 }

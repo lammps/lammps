@@ -49,11 +49,6 @@
 #include <cerrno>
 #include <cctype>
 #include <sys/stat.h>
-#include <unistd.h>
-
-#ifdef _WIN32
-#include <direct.h>
-#endif
 
 using namespace LAMMPS_NS;
 
@@ -1164,15 +1159,6 @@ void Input::quit()
 
 /* ---------------------------------------------------------------------- */
 
-char *shell_failed_message(const char* cmd, int errnum)
-{
-  std::string errmsg = fmt::format("Shell command '{}' failed with error '{}'",
-                                   cmd, strerror(errnum));
-  char *msg = new char[errmsg.size()+1];
-  strcpy(msg, errmsg.c_str());
-  return msg;
-}
-
 void Input::shell()
 {
   int rv,err;
@@ -1181,62 +1167,47 @@ void Input::shell()
 
   if (strcmp(arg[0],"cd") == 0) {
     if (narg != 2) error->all(FLERR,"Illegal shell cd command");
-    rv = (chdir(arg[1]) < 0) ? errno : 0;
+    rv = (platform::chdir(arg[1]) < 0) ? errno : 0;
     MPI_Reduce(&rv,&err,1,MPI_INT,MPI_MAX,0,world);
+    errno = err;
     if (me == 0 && err != 0) {
-      char *message = shell_failed_message("cd",err);
-      error->warning(FLERR,message);
-      delete[] message;
+      error->warning(FLERR, "Shell command 'cd {}' failed with error '{}'", arg[1], utils::getsyserror());
     }
-
   } else if (strcmp(arg[0],"mkdir") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal shell mkdir command");
-    if (me == 0)
+    if (me == 0) {
       for (int i = 1; i < narg; i++) {
-#if defined(_WIN32)
-        rv = _mkdir(arg[i]);
-#else
-        rv = mkdir(arg[i], S_IRWXU | S_IRGRP | S_IXGRP);
-#endif
-        if (rv < 0) {
-          char *message = shell_failed_message("mkdir",errno);
-          error->warning(FLERR,message);
-          delete[] message;
-        }
+        if (platform::mkdir(arg[i]) < 0)
+          error->warning(FLERR, "Shell command 'mkdir {}' failed with error '{}'",
+                         arg[i],utils::getsyserror());
       }
-
+    }
   } else if (strcmp(arg[0],"mv") == 0) {
     if (narg != 3) error->all(FLERR,"Illegal shell mv command");
-    rv = (rename(arg[1],arg[2]) < 0) ? errno : 0;
-    MPI_Reduce(&rv,&err,1,MPI_INT,MPI_MAX,0,world);
-    if (me == 0 && err != 0) {
-      char *message = shell_failed_message("mv",err);
-      error->warning(FLERR,message);
-      delete[] message;
+    if (me == 0) {
+      if (rename(arg[1],arg[2]) < 0) {
+        error->warning(FLERR, "Shell command 'mv {} {}' failed with error '{}'",
+                       arg[1],arg[2],utils::getsyserror());
+      }
     }
-
   } else if (strcmp(arg[0],"rm") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal shell rm command");
-    if (me == 0)
+    if (me == 0) {
       for (int i = 1; i < narg; i++) {
-        if (unlink(arg[i]) < 0) {
-          char *message = shell_failed_message("rm",errno);
-          error->warning(FLERR,message);
-          delete[] message;
-        }
+        if (platform::unlink(arg[i]) < 0)
+          error->warning(FLERR, "Shell command 'rm {}' failed with error '{}'",
+                         arg[i], utils::getsyserror());
       }
-
+    }
   } else if (strcmp(arg[0],"rmdir") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal shell rmdir command");
-    if (me == 0)
+    if (me == 0) {
       for (int i = 1; i < narg; i++) {
-        if (rmdir(arg[i]) < 0) {
-          char *message = shell_failed_message("rmdir",errno);
-          error->warning(FLERR,message);
-          delete[] message;
-        }
+        if (platform::rmdir(arg[i]) < 0)
+          error->warning(FLERR, "Shell command 'rmdir {}' failed with error '{}'",
+                         arg[i], utils::getsyserror());
       }
-
+    }
   } else if (strcmp(arg[0],"putenv") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal shell putenv command");
     for (int i = 1; i < narg; i++) {
@@ -1244,13 +1215,11 @@ void Input::shell()
       if (arg[i]) rv = platform::putenv(arg[i]);
       rv = (rv < 0) ? errno : 0;
       MPI_Reduce(&rv,&err,1,MPI_INT,MPI_MAX,0,world);
-      if (me == 0 && err != 0) {
-        char *message = shell_failed_message("putenv",err);
-        error->warning(FLERR,message);
-        delete[] message;
-      }
+      errno = err;
+      if (me == 0 && err != 0)
+        error->warning(FLERR, "Shell command 'putenv {}' failed with error '{}'",
+                       arg[i], utils::getsyserror());
     }
-
   // use work string to concat args back into one string separated by spaces
   // invoke string in shell via system()
 

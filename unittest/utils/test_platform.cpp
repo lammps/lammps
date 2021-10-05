@@ -170,7 +170,9 @@ TEST(Platform, fseek_ftell)
     ASSERT_EQ(platform::fseek(fp, 15), 0);
     ASSERT_EQ(fgetc(fp), '6');
     fflush(fp);
-    fseek(fp, -1, SEEK_END);
+    ASSERT_EQ(platform::fseek(fp, platform::END_OF_FILE), 0);
+    ASSERT_EQ(platform::ftell(fp), 21);
+    ASSERT_EQ(platform::fseek(fp, 20), 0);
     ASSERT_EQ(fgetc(fp), 0);
     ASSERT_EQ(platform::ftell(fp), 21);
     fclose(fp);

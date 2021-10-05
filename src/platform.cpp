@@ -767,9 +767,15 @@ bigint platform::ftell(FILE *fp)
 int platform::fseek(FILE *fp, bigint pos)
 {
 #if defined(_WIN32)
-  return ::_fseeki64(fp, (__int64) pos, SEEK_SET);
+  if (pos == platform::END_OF_FILE)
+    return ::_fseeki64(fp, 0, SEEK_END);
+  else
+    return ::_fseeki64(fp, (__int64) pos, SEEK_SET);
 #else
-  return ::fseek(fp, (long) pos, SEEK_SET);
+  if (pos == platform::END_OF_FILE)
+    return ::fseek(fp, 0, SEEK_END);
+  else
+    return ::fseek(fp, (long) pos, SEEK_SET);
 #endif
 }
 

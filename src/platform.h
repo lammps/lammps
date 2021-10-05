@@ -263,7 +263,12 @@ namespace platform {
 
   bigint ftell(FILE *fp);
 
+  /*! constant to seek to the end of the file */
+  constexpr bigint END_OF_FILE = -1;
+
   /*! Set absolute file position
+   *
+   * If the absolute position is END_OF_FILE, then position at the end of the file.
    *
    *  \param   fp      FILE pointer of the given file
    *  \param   pos     new position of the FILE pointer

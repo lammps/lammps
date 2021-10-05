@@ -1241,20 +1241,7 @@ void Input::shell()
     if (narg < 2) error->all(FLERR,"Illegal shell putenv command");
     for (int i = 1; i < narg; i++) {
       rv = 0;
-#ifdef _WIN32
-      if (arg[i]) rv = _putenv(utils::strdup(arg[i]));
-#else
-      if (arg[i]) {
-        std::string vardef(arg[i]);
-        auto found = vardef.find_first_of('=');
-        if (found == std::string::npos) {
-          rv = setenv(vardef.c_str(),"",1);
-        } else {
-          rv = setenv(vardef.substr(0,found).c_str(),
-                      vardef.substr(found+1).c_str(),1);
-        }
-      }
-#endif
+      if (arg[i]) rv = platform::putenv(arg[i]);
       rv = (rv < 0) ? errno : 0;
       MPI_Reduce(&rv,&err,1,MPI_INT,MPI_MAX,0,world);
       if (me == 0 && err != 0) {

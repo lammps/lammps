@@ -527,7 +527,7 @@ void *platform::dlsym(void *handle, const std::string &symbol)
 // open a shared object file
 void *platform::dlopen(const std::string &fname)
 {
-  return ::dlopen(fname.c_str(), RTLD_NOW);
+  return ::dlopen(fname.c_str(), RTLD_NOW | RTLD_GLOBAL);
 }
 
 // close a shared object

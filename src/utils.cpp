@@ -31,25 +31,6 @@
 #include <cstring>
 #include <ctime>
 
-#if defined(__linux__)
-#include <unistd.h>    // for readlink
-#endif
-
-#if defined(__APPLE__)
-#include <fcntl.h>    // for fcntl
-#include <sys/syslimits.h>
-#endif
-
-#if defined(_WIN32)
-// target Windows version is Windows 7 and later
-#if defined(_WIN32_WINNT)
-#undef _WIN32_WINNT
-#endif
-#define _WIN32_WINNT _WIN32_WINNT_WIN7
-#include <io.h>
-#include <windows.h>
-#endif
-
 /*! \file utils.cpp */
 
 /*

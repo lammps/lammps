@@ -879,5 +879,5 @@ int ModifyKokkos::min_reset_ref()
     atomKK->modified(fix[list_min_energy[i]]->execution_space,
                      fix[list_min_energy[i]]->datamask_modify);
   }
-return itmpall;
+  return itmpall;
 }

@@ -16,6 +16,7 @@
  * the "utils" namespace with convenience and utility functions. */
 
 #include "platform.h"
+#include "text_file_reader.h"
 #include "utils.h"
 
 #if HAVE_MPI
@@ -227,14 +228,13 @@ std::string platform::os_info()
   // try to get OS distribution name, if available
   buf = ut.sysname;
 
-#if 0    // disable until this is integrated into LAMMPS and TextFileReader becomes available
   if (platform::file_is_readable("/etc/os-release")) {
     try {
         TextFileReader reader("/etc/os-release","");
         while (1) {
           auto words = reader.next_values(0,"=");
           if ((words.count() > 1) && (words.next_string() == "PRETTY_NAME")) {
-            distro += " " + utils::trim(words.next_string());
+            buf += " " + utils::trim(words.next_string());
             break;
           }
         }
@@ -242,7 +242,6 @@ std::string platform::os_info()
       ; // EOF but keyword not found
     }
   }
-#endif
 
   buf += std::string(" ") + ut.release + " " + ut.machine;
 #endif

@@ -3444,6 +3444,7 @@ usec
 uSemiParallel
 userguide
 username
+usleep
 usr
 util
 utils

@@ -18,6 +18,9 @@ Time functions
 .. doxygenfunction:: walltime
    :project: progguide
 
+.. doxygenfunction:: usleep
+   :project: progguide
+
 Platform information functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -87,6 +90,9 @@ File and path functions and global constants
 
 Standard I/O function wrappers
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doxygenvariable:: END_OF_FILE
+   :project: progguide
 
 .. doxygenfunction:: ftell
    :project: progguide

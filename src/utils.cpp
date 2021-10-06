@@ -1172,7 +1172,7 @@ double utils::timespec2seconds(const std::string &timespec)
       if (!values.has_next()) break;
       vals[i] = values.next_int();
     }
-  } catch (TokenizerException &e) {
+  } catch (TokenizerException &) {
     return -1.0;
   }
 

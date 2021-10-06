@@ -636,23 +636,7 @@ void Info::command(int narg, char **arg)
 
   if (flags & TIME) {
     double wallclock = MPI_Wtime() - lmp->initclock;
-    double cpuclock = 0.0;
-
-#if defined(_WIN32)
-    // from MSD docs.
-    FILETIME ct,et,kt,ut;
-    union { FILETIME ft; uint64_t ui; } cpu;
-    if (GetProcessTimes(GetCurrentProcess(),&ct,&et,&kt,&ut)) {
-      cpu.ft = ut;
-      cpuclock = cpu.ui * 0.0000001;
-    }
-#else /* POSIX */
-    struct rusage ru;
-    if (getrusage(RUSAGE_SELF, &ru) == 0) {
-      cpuclock  = (double) ru.ru_utime.tv_sec;
-      cpuclock += (double) ru.ru_utime.tv_usec * 0.000001;
-    }
-#endif /* ! _WIN32 */
+    double cpuclock = platform::cputime();
 
     int cpuh,cpum,cpus,wallh,wallm,walls;
     cpus = fmod(cpuclock,60.0);

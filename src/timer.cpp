@@ -20,49 +20,7 @@
 
 #include <cstring>
 
-#ifdef _WIN32
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#include <windows.h>
-#include <cstdint>
-#else
-#include <sys/time.h>
-#include <sys/resource.h>
-#endif
-
 using namespace LAMMPS_NS;
-
-
-// Return the CPU time for the current process in seconds very
-// much in the same way as MPI_Wtime() returns the wall time.
-
-static double CPU_Time()
-{
-  double rv = 0.0;
-
-#ifdef _WIN32
-
-  // from MSD docs.
-  FILETIME ct,et,kt,ut;
-  union { FILETIME ft; uint64_t ui; } cpu;
-  if (GetProcessTimes(GetCurrentProcess(),&ct,&et,&kt,&ut)) {
-    cpu.ft = ut;
-    rv = cpu.ui * 0.0000001;
-  }
-
-#else /* ! _WIN32 */
-
-  struct rusage ru;
-  if (getrusage(RUSAGE_SELF, &ru) == 0) {
-    rv = (double) ru.ru_utime.tv_sec;
-    rv += (double) ru.ru_utime.tv_usec * 0.000001;
-  }
-
-#endif /* ! _WIN32 */
-
-  return rv;
-}
 
 /* ---------------------------------------------------------------------- */
 
@@ -93,7 +51,7 @@ void Timer::_stamp(enum ttype which)
 {
   double current_cpu=0.0, current_wall=0.0;
 
-  if (_level > NORMAL) current_cpu = CPU_Time();
+  if (_level > NORMAL) current_cpu = platform::cputime();
   current_wall = MPI_Wtime();
 
   if ((which > TOTAL) && (which < NUM_TIMER)) {
@@ -117,7 +75,7 @@ void Timer::_stamp(enum ttype which)
 
   if (_sync) {
     MPI_Barrier(world);
-    if (_level > NORMAL) current_cpu = CPU_Time();
+    if (_level > NORMAL) current_cpu = platform::cputime();
     current_wall = MPI_Wtime();
 
     cpu_array[SYNC]  += current_cpu - previous_cpu;
@@ -137,7 +95,7 @@ void Timer::barrier_start()
 
   if (_level < LOOP) return;
 
-  current_cpu = CPU_Time();
+  current_cpu = platform::cputime();
   current_wall = MPI_Wtime();
 
   cpu_array[TOTAL]  = current_cpu;
@@ -156,7 +114,7 @@ void Timer::barrier_stop()
 
   if (_level < LOOP) return;
 
-  current_cpu = CPU_Time();
+  current_cpu = platform::cputime();
   current_wall = MPI_Wtime();
 
   cpu_array[TOTAL]  = current_cpu - cpu_array[TOTAL];
@@ -167,7 +125,7 @@ void Timer::barrier_stop()
 
 double Timer::cpu(enum ttype which)
 {
-  double current_cpu = CPU_Time();
+  double current_cpu = platform::cputime();
   return (current_cpu - cpu_array[which]);
 }
 

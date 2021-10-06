@@ -27,25 +27,30 @@ namespace platform {
   /*! Return the consumed CPU time for the current process in seconds
    *
    * This is a wrapper around the POSIX function getrusage() and its Windows equivalent.
-   * It is to be used in a similar fashion than MPI_Wtime().
+   * It is to be used in a similar fashion than MPI_Wtime(). Its resolution may
+   * be rather low so it can only be trusted when observing processes consuming at
+   * seconds or more of CPU time.
    *
-   *  \return used CPU time in second */
+   *  \return used CPU time in seconds */
 
   double cputime();
 
   /*! Return the wall clock state for the current process in seconds
    *
-   * This is a wrapper around the gettimeofday() function  and its Windows equivalent.
-   * It is to be used in a similar fashion than MPI_Wtime().
+   * This this clock is counting continuous time is initialized during
+   * Load of the executable/library. Its absolute value must be considered
+   * arbitrary and thus elapsed wall times are measured in taking differences.
+   * It is therefore to be used in a similar fashion as MPI_Wtime() but
+   * has a different offset, usually leading to better resolution.
    *
-   *  \return wall clock time in second */
+   *  \return wall clock time in seconds */
 
   double walltime();
-
 
   /*! Suspend execution for a microsecond interval
    *
    * This emulates the usleep(3) BSD function call also mentioned in POSIX.1-2001.
+   * This is not a precise delay; it may be longer, but not shorter.
    *
    * \param  usec  length of delay in microseconds */
 

@@ -106,6 +106,10 @@ static const zip_info &find_zip_type(const std::string &file)
 
 /* ------------------------------------------------------------------ */
 
+// set reference time stamp during executable/library init.
+// should provide better resolution than using epoch, if the system clock supports it.
+static auto initial_time = std::chrono::steady_clock::now();
+
 using namespace LAMMPS_NS;
 
 // get CPU time
@@ -156,22 +160,7 @@ double platform::cputime()
 ------------------------------------------------------------------------ */
 double platform::walltime()
 {
-  double wtime;
-
-#if defined(_WIN32)
-
-  wtime = GetTickCount64() * 0.001;
-
-#else
-
-  struct timeval tv;
-
-  gettimeofday(&tv, nullptr);
-  wtime = 1.0 * tv.tv_sec + 1.0e-6 * tv.tv_usec;
-
-#endif
-
-  return wtime;
+  return std::chrono::duration<double>(std::chrono::steady_clock::now() - initial_time).count();
 }
 
 /* ----------------------------------------------------------------------

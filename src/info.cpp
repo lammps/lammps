@@ -635,7 +635,7 @@ void Info::command(int narg, char **arg)
   }
 
   if (flags & TIME) {
-    double wallclock = MPI_Wtime() - lmp->initclock;
+    double wallclock = platform::walltime() - lmp->initclock;
     double cpuclock = platform::cputime();
 
     int cpuh,cpum,cpus,wallh,wallm,walls;

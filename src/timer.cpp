@@ -52,7 +52,7 @@ void Timer::_stamp(enum ttype which)
   double current_cpu=0.0, current_wall=0.0;
 
   if (_level > NORMAL) current_cpu = platform::cputime();
-  current_wall = MPI_Wtime();
+  current_wall = platform::walltime();
 
   if ((which > TOTAL) && (which < NUM_TIMER)) {
     const double delta_cpu = current_cpu - previous_cpu;
@@ -76,7 +76,7 @@ void Timer::_stamp(enum ttype which)
   if (_sync) {
     MPI_Barrier(world);
     if (_level > NORMAL) current_cpu = platform::cputime();
-    current_wall = MPI_Wtime();
+    current_wall = platform::walltime();
 
     cpu_array[SYNC]  += current_cpu - previous_cpu;
     wall_array[SYNC] += current_wall - previous_wall;
@@ -96,7 +96,7 @@ void Timer::barrier_start()
   if (_level < LOOP) return;
 
   current_cpu = platform::cputime();
-  current_wall = MPI_Wtime();
+  current_wall = platform::walltime();
 
   cpu_array[TOTAL]  = current_cpu;
   wall_array[TOTAL] = current_wall;
@@ -115,7 +115,7 @@ void Timer::barrier_stop()
   if (_level < LOOP) return;
 
   current_cpu = platform::cputime();
-  current_wall = MPI_Wtime();
+  current_wall = platform::walltime();
 
   cpu_array[TOTAL]  = current_cpu - cpu_array[TOTAL];
   wall_array[TOTAL] = current_wall - wall_array[TOTAL];
@@ -134,7 +134,7 @@ double Timer::cpu(enum ttype which)
 double Timer::elapsed(enum ttype which)
 {
   if (_level == OFF) return 0.0;
-  double current_wall = MPI_Wtime();
+  double current_wall = platform::walltime();
   return (current_wall - wall_array[which]);
 }
 
@@ -165,7 +165,7 @@ void Timer::print_timeout(FILE *fp)
   // format timeout setting
   if (_timeout > 0) {
     // time since init_timeout()
-    const double d = MPI_Wtime() - timeout_start;
+    const double d = platform::walltime() - timeout_start;
     // remaining timeout in seconds
     int s = _timeout - d;
     // remaining 1/100ths of seconds
@@ -184,7 +184,7 @@ void Timer::print_timeout(FILE *fp)
 
 bool Timer::_check_timeout()
 {
-  double walltime = MPI_Wtime() - timeout_start;
+  double walltime = platform::walltime() - timeout_start;
   // broadcast time to insure all ranks act the same.
   MPI_Bcast(&walltime,1,MPI_DOUBLE,0,world);
 
@@ -202,7 +202,7 @@ bool Timer::_check_timeout()
 /* ---------------------------------------------------------------------- */
 double Timer::get_timeout_remain()
 {
-  return (_timeout < 0.0) ? 0.0 : _timeout + timeout_start - MPI_Wtime();
+  return (_timeout < 0.0) ? 0.0 : _timeout + timeout_start - platform::walltime();
 }
 
 /* ----------------------------------------------------------------------
@@ -243,7 +243,7 @@ void Timer::modify_params(int narg, char **arg)
     ++iarg;
   }
 
-  timeout_start = MPI_Wtime();
+  timeout_start = platform::walltime();
   if (comm->me == 0) {
 
     // format timeout setting

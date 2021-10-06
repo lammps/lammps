@@ -129,7 +129,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   logfile = nullptr;
   infile = nullptr;
 
-  initclock = MPI_Wtime();
+  initclock = platform::walltime();
 
   init_pkg_lists();
 
@@ -719,7 +719,7 @@ LAMMPS::~LAMMPS()
   num_package = 0;
   packargs = nullptr;
 
-  double totalclock = MPI_Wtime() - initclock;
+  double totalclock = platform::walltime() - initclock;
   if ((me == 0) && (screen || logfile)) {
     int seconds = fmod(totalclock,60.0);
     totalclock  = (totalclock - seconds) / 60.0;

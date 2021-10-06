@@ -58,7 +58,7 @@ namespace /* anonymous */
 {
 
 typedef double TimerType;
-TimerType getTimeStamp() { return MPI_Wtime(); }
+TimerType getTimeStamp() { return platform::walltime(); }
 double getElapsedTime( const TimerType &t0, const TimerType &t1) { return t1-t0; }
 
 } // end namespace

@@ -96,7 +96,7 @@ void ResetMolIDs::command(int narg, char **arg)
   // record wall time for resetting molecule IDs
 
   MPI_Barrier(world);
-  double time1 = MPI_Wtime();
+  double time1 = platform::walltime();
 
   // initialize system since comm->borders() will be invoked
 
@@ -132,7 +132,7 @@ void ResetMolIDs::command(int narg, char **arg)
     else
       utils::logmesg(lmp,"  number of new molecule IDs = {}\n",nchunk);
     utils::logmesg(lmp,"  reset_mol_ids CPU = {:.3f} seconds\n",
-                   MPI_Wtime()-time1);
+                   platform::walltime()-time1);
   }
 }
 

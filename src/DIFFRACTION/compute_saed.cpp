@@ -348,7 +348,7 @@ void ComputeSAED::compute_vector()
   if (me == 0 && echo)
     utils::logmesg(lmp,"-----\nComputing SAED intensities");
 
-  double t0 = MPI_Wtime();
+  double t0 = platform::walltime();
   double *Fvec = new double[2*nRows]; // Strct factor (real & imaginary)
   // -- Note, vector entries correspond to different RELP
 
@@ -491,7 +491,7 @@ void ComputeSAED::compute_vector()
     vector[i] = (scratch[2*i] * scratch[2*i] + scratch[2*i+1] * scratch[2*i+1]) / natoms;
   }
 
-  double t2 = MPI_Wtime();
+  double t2 = platform::walltime();
 
   // compute memory usage per processor
   double bytes = memory_usage();

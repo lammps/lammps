@@ -114,7 +114,7 @@ void ReadData::command(int narg, char **arg)
   if (narg < 1) error->all(FLERR,"Illegal read_data command");
 
   MPI_Barrier(world);
-  double time1 = MPI_Wtime();
+  double time1 = platform::walltime();
 
   // optional args
 
@@ -914,7 +914,7 @@ void ReadData::command(int narg, char **arg)
   MPI_Barrier(world);
 
   if (comm->me == 0)
-    utils::logmesg(lmp,"  read_data CPU = {:.3f} seconds\n",MPI_Wtime()-time1);
+    utils::logmesg(lmp,"  read_data CPU = {:.3f} seconds\n",platform::walltime()-time1);
 }
 
 /* ----------------------------------------------------------------------

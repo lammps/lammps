@@ -300,7 +300,7 @@ void ComputeXRD::compute_array()
 
   if (me == 0 && echo) utils::logmesg(lmp, "-----\nComputing XRD intensities");
 
-  double t0 = MPI_Wtime();
+  double t0 = platform::walltime();
 
   double *Fvec = new double[2*size_array_rows]; // Strct factor (real & imaginary)
   // -- Note: array rows correspond to different RELP
@@ -496,7 +496,7 @@ void ComputeXRD::compute_array()
     array[i][1] = (scratch[2*i] * scratch[2*i] + scratch[2*i+1] * scratch[2*i+1]) / natoms;
   }
 
-  double t2 = MPI_Wtime();
+  double t2 = platform::walltime();
 
   // compute memory usage per processor
   double bytes = memory_usage();

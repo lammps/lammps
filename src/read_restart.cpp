@@ -54,7 +54,7 @@ void ReadRestart::command(int narg, char **arg)
     error->all(FLERR,"Cannot read_restart after simulation box is defined");
 
   MPI_Barrier(world);
-  double time1 = MPI_Wtime();
+  double time1 = platform::walltime();
 
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -522,7 +522,7 @@ void ReadRestart::command(int narg, char **arg)
   MPI_Barrier(world);
 
   if (comm->me == 0)
-    utils::logmesg(lmp,"  read_restart CPU = {:.3f} seconds\n",MPI_Wtime()-time1);
+    utils::logmesg(lmp,"  read_restart CPU = {:.3f} seconds\n",platform::walltime()-time1);
 
   delete mpiio;
 }

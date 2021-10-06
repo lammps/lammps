@@ -133,6 +133,16 @@ namespace platform {
 
   void *dlopen(const std::string &fname);
 
+  /*! Obtain error diagnostic info after dynamic linking function calls
+   *
+   * Return a human-readable string describing the most recent error that
+   * occurred when using one of the functions for dynamic loading objects
+   * the last call to this function. The string is empty, if there was no error.
+   *
+   * \return  string with error message or empty */
+
+  std::string dlerror();
+
   /*! Close a shared object
    *
    * This releases the object corresponding to the provided handle.

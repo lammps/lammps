@@ -507,6 +507,13 @@ void *platform::dlopen(const std::string &fname)
   return (void *) LoadLibrary(fname.c_str());
 }
 
+// return dynamic linker error string
+
+std::string platform::dlerror()
+{
+  return "";
+}
+
 // close a shared object
 int platform::dlclose(void *handle)
 {
@@ -526,6 +533,15 @@ void *platform::dlsym(void *handle, const std::string &symbol)
 void *platform::dlopen(const std::string &fname)
 {
   return ::dlopen(fname.c_str(), RTLD_NOW | RTLD_GLOBAL);
+}
+
+// return dynamic linker error string
+
+std::string platform::dlerror()
+{
+  const char *errmesg = ::dlerror();
+  if (errmesg) return std::string(errmesg);
+  else return "";
 }
 
 // close a shared object

@@ -133,6 +133,9 @@ Dynamically loaded object or library functions
 .. doxygenfunction:: dlsym
    :project: progguide
 
+.. doxygenfunction:: dlerror
+   :project: progguide
+
 Compressed file I/O functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

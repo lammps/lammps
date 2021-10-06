@@ -253,7 +253,7 @@ FixReaxFFSpecies::~FixReaxFFSpecies()
     else fclose(fp);
     if (posflag && multipos_opened) fclose(pos);
   }
-  
+
   modify->delete_compute("SPECATOM");
   modify->delete_fix("SPECBOND");
 }

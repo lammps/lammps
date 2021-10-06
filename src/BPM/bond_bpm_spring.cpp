@@ -20,21 +20,13 @@
 #include "error.h"
 #include "fix_bond_history.h"
 #include "force.h"
-#include "math_const.h"
-#include "math_extra.h"
 #include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
-#include "pair.h"
-
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
 
 #define EPSILON 1e-10
 
 using namespace LAMMPS_NS;
-using namespace MathExtra;
 
 /* ---------------------------------------------------------------------- */
 
@@ -111,8 +103,7 @@ void BondBPMSpring::store_data()
       type = bond_type[i][m];
 
       //Skip if bond was turned off
-      if (type < 0)
-          continue;
+      if (type < 0) continue;
 
       // map to find index n
       j = atom->map(atom->bond_atom[i][m]);
@@ -125,6 +116,7 @@ void BondBPMSpring::store_data()
       // Get closest image in case bonded with ghost
       domain->minimum_image(delx, dely, delz);
       r = sqrt(delx*delx + dely*dely + delz*delz);
+
       fix_bond_history->update_atom_value(i, m, 0, r);
     }
   }
@@ -142,17 +134,15 @@ void BondBPMSpring::compute(int eflag, int vflag)
     store_data();
   }
 
-  int i1,i2,itmp,m,n,type,itype,jtype;
+  int i1,i2,m,n,type,itype,jtype;
   double delx, dely, delz, delvx, delvy, delvz;
   double e, rsq, r, r0, rinv, smooth, fbond, ebond, dot;
 
   ev_init(eflag,vflag);
 
-  double **cutsq = force->pair->cutsq;
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
-  tagint *tag = atom->tag;
   int **bondlist = neighbor->bondlist;
   int nbondlist = neighbor->nbondlist;
   int nlocal = atom->nlocal;
@@ -169,6 +159,10 @@ void BondBPMSpring::compute(int eflag, int vflag)
     i2 = bondlist[n][1];
     type = bondlist[n][2];
     r0 = bondstore[n][0];
+
+    // If bond hasn't been set - should be initialized to zero
+    if (r0 < EPSILON || std::isnan(r0))
+      r0 = store_bond(n,i1,i2);
 
     delx = x[i1][0] - x[i2][0];
     dely = x[i1][1] - x[i2][1];
@@ -195,6 +189,7 @@ void BondBPMSpring::compute(int eflag, int vflag)
     fbond -= gamma[type]*dot*rinv;
 
     smooth = (r-r0)/(r0*ecrit[type]);
+    smooth *= smooth;
     smooth *= smooth;
     smooth *= smooth;
     smooth = 1 - smooth;

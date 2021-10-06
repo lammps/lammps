@@ -73,9 +73,12 @@ void BondBPM::init_style()
   ifix = modify->find_fix_by_style("update/special/bonds");
   if (ifix >= 0)
     fix_update_special_bonds = (FixUpdateSpecialBonds *) modify->fix[ifix];
-  else
+  else {
     fix_update_special_bonds = nullptr;
-
+    if (force->special_lj[1] != 1.0)
+      error->all(FLERR, "Without fix update/special/bonds, BPM bond styles "
+                        "require special_bonds weight of 1.0 for first neighbors");
+  }
 
   if (force->angle || force->dihedral || force->improper)
     error->all(FLERR,

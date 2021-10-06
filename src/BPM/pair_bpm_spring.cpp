@@ -14,17 +14,13 @@
 
 #include "pair_bpm_spring.h"
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include "atom.h"
-#include "atom_vec.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
+#include "memory.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 
@@ -116,17 +112,17 @@ void PairBPMSpring::compute(int eflag, int vflag)
 
         rinv = 1.0/r;
         fpair = k[itype][jtype]*(cut[itype][jtype]-r);
-        if (eflag)
-          evdwl = -0.5*k[itype][jtype]*(cut[itype][jtype]-r)*(cut[itype][jtype]-r);
+        if (eflag) evdwl = -0.5 * fpair * (cut[itype][jtype]-r) * factor_lj;
 
         smooth = rsq/cutsq[itype][jtype];
+        smooth *= smooth;
         smooth *= smooth;
         smooth = 1.0 - smooth;
         delvx = vxtmp - v[j][0];
         delvy = vytmp - v[j][1];
         delvz = vztmp - v[j][2];
         dot = delx*delvx + dely*delvy + delz*delvz;
-        fpair -= gamma[itype][jtype]*dot*smooth;
+        fpair -= gamma[itype][jtype]*dot*smooth*rinv;
 
         fpair *= factor_lj*rinv;
 
@@ -190,8 +186,8 @@ void PairBPMSpring::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  utils::bounds(FLERR,arg[0],1,atom->nbondtypes,ilo,ihi,error);
-  utils::bounds(FLERR,arg[1],1,atom->nbondtypes,jlo,jhi,error);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   double k_one = utils::numeric(FLERR,arg[2],false,lmp);
   double cut_one = utils::numeric(FLERR,arg[3],false,lmp);

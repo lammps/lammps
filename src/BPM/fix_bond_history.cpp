@@ -171,7 +171,7 @@ void FixBondHistory::pre_exchange()
       for (m = 0; m < num_bond[i2]; m++) {
         if (bond_atom[i2][m] == tag[i1]) {
           for (idata = 0; idata < ndata; idata++) {
-            stored[i1][m*ndata+idata] = bondstore[n][idata];
+            stored[i2][m*ndata+idata] = bondstore[n][idata];
           }
         }
       }

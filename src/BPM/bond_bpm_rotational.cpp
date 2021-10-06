@@ -25,11 +25,8 @@
 #include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
-#include "pair.h"
 
-#include <mpi.h>
 #include <cmath>
-#include <cstring>
 
 #define EPSILON 1e-10
 
@@ -147,8 +144,7 @@ void BondBPMRotational::store_data()
       type = bond_type[i][m];
 
       //Skip if bond was turned off
-      if(type < 0)
-          continue;
+      if(type < 0) continue;
 
       // map to find index n for tag
       j = atom->map(atom->bond_atom[i][m]);
@@ -167,9 +163,9 @@ void BondBPMRotational::store_data()
 
       // Get closest image in case bonded with ghost
       domain->minimum_image(delx, dely, delz);
-
       r = sqrt(delx*delx + dely*dely + delz*delz);
       rinv = 1.0/r;
+
       fix_bond_history->update_atom_value(i, m, 0, r);
       fix_bond_history->update_atom_value(i, m, 1, delx*rinv);
       fix_bond_history->update_atom_value(i, m, 2, dely*rinv);
@@ -209,7 +205,6 @@ void BondBPMRotational::compute(int eflag, int vflag)
 
   ev_init(eflag,vflag);
 
-  double **cutsq = force->pair->cutsq;
   double **x = atom->x;
   double **v = atom->v;
   double **omega = atom->omega;

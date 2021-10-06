@@ -38,8 +38,15 @@ normal velocity of particles
    F_D = - \gamma w (\hat{r} \bullet \vec{v})
 
 where :math:`\gamma` is the damping strength, :math:`\hat{r}` is the
-radial normal vector, and :math:`\vec{v}` is the velocity difference
-between the two particles.
+radial normal vector, :math:`\vec{v}` is the velocity difference
+between the two particles, and :math:`w` is a smoothing factor.
+This smoothing factor is constructed such that damping forces go to zero
+as particles come out of contact to avoid discontinuities. It is
+given by
+
+.. math::
+
+   w = 1.0 - \left( \frac{r}{r_c} \right)^8 .
 
 This pair style is designed for use in a spring-based bonded particle model.
 It mirrors the construction of the :doc:`bpm/spring <bond_bpm_spring>` bond style.

@@ -64,7 +64,7 @@ go to zero, avoiding discontinuities, as bonds approach the critical strain
 
 .. math::
 
-   w = 1.0 - \left( \frac{r - r_0}{r_0 \epsilon_c} \right^4 .
+   w = 1.0 - \left( \frac{r - r_0}{r_0 \epsilon_c} \right)^8 .
 
 Finally, an additional damping force is applied to the bonded particles.
 This forces is proportional to the difference in the

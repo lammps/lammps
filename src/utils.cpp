@@ -1016,28 +1016,13 @@ bool utils::is_id(const std::string &str)
 
 std::string utils::get_potential_file_path(const std::string &path)
 {
-  std::string filepath = path;
-  std::string filename = platform::path_basename(path);
-
-  if (platform::file_is_readable(filepath)) {
-    return filepath;
+  if (platform::file_is_readable(path)) {
+    return path;
   } else {
-    // try the environment variable directory
-    const char *var = getenv("LAMMPS_POTENTIALS");
-
-    if (var != nullptr) {
-#if defined(_WIN32)
-      Tokenizer dirs(var, ";");
-#else
-      Tokenizer dirs(var, ":");
-#endif
-      while (dirs.has_next()) {
-        auto pot = platform::path_basename(filepath);
-        auto dir = dirs.next();
-        filepath = platform::path_join(dir, pot);
-
-        if (platform::file_is_readable(filepath)) { return filepath; }
-      }
+    for (const auto &dir : platform::list_pathenv("LAMMPS_POTENTIALS")) {
+      auto pot = platform::path_basename(path);
+      auto filepath = platform::path_join(dir, pot);
+      if (platform::file_is_readable(filepath)) return filepath;
     }
   }
   return "";

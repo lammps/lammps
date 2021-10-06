@@ -97,9 +97,11 @@ if(PKG_KOKKOS AND (CMAKE_CXX_STANDARD LESS 14))
 endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "Use compiler extensions")
-# ugly hack for MSVC which by default always reports an old C++ standard in the __cplusplus macro
+# ugly hacks for MSVC which by default always reports an old C++ standard in the __cplusplus macro
+# and prints lots of pointless warnings about "unsafe" functions
 if(MSVC)
   add_compile_options(/Zc:__cplusplus)
+  add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 endif()
 
 # export all symbols when building a .dll file on windows

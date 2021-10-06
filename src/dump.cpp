@@ -196,7 +196,7 @@ Dump::~Dump()
 
   if (multifile == 0 && fp != nullptr) {
     if (compressed) {
-      if (filewriter) pclose(fp);
+      if (filewriter) platform::pclose(fp);
     } else {
       if (filewriter) fclose(fp);
     }
@@ -518,7 +518,7 @@ void Dump::write()
 
   if (multifile) {
     if (compressed) {
-      if (filewriter && fp != nullptr) pclose(fp);
+      if (filewriter && fp != nullptr) platform::pclose(fp);
     } else {
       if (filewriter && fp != nullptr) fclose(fp);
     }

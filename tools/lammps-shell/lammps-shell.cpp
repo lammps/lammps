@@ -1,7 +1,7 @@
 // LAMMPS Shell. An improved interactive LAMMPS session with
 // command line editing, history, TAB expansion and shell escapes
 
-// Copyright (c) 2020 Axel Kohlmeyer <akohlmey@gmail.com>
+// Copyright (c) 2020, 2021 Axel Kohlmeyer <akohlmey@gmail.com>
 
 // This software is distributed under the GNU General Public License.
 
@@ -15,21 +15,12 @@
 #include <string>
 #include <vector>
 
-#if !defined(_WIN32)
-#include <unistd.h>
-#else
+#if defined(_WIN32)
 #if !defined(WIN32_LEAN_AND_MEAN)
 #define WIN32_LEAN_AND_MEAN
 #endif
-#include <direct.h>
-#include <io.h>
 #include <windows.h>
-#define chdir(x) _chdir(x)
-#define getcwd(buf, len) _getcwd(buf, len)
-#define isatty(x) _isatty(x)
-#endif
-
-#if !defined(_WIN32)
+#else
 #include <signal.h>
 #endif
 
@@ -42,10 +33,10 @@
 
 using namespace LAMMPS_NS;
 
-char *omp_threads = nullptr;
-const int buflen  = 512;
-char buf[buflen];
 void *lmp = nullptr;
+char *omp_threads = nullptr;
+constexpr int BUFLEN  = 512;
+char buf[BUFLEN];
 
 enum {
     ATOM_STYLE,
@@ -214,7 +205,7 @@ template <int STYLE> char *style_generator(const char *text, int state)
     }
 
     while (idx < num) {
-        lammps_style_name(lmp, lmp_style[STYLE], idx, buf, buflen);
+        lammps_style_name(lmp, lmp_style[STYLE], idx, buf, BUFLEN);
         ++idx;
         if ((len == 0) || (strncmp(text, buf, len) == 0)) return dupstring(buf);
     }
@@ -231,7 +222,7 @@ template <int ID> char *id_generator(const char *text, int state)
     }
 
     while (idx < num) {
-        lammps_id_name(lmp, lmp_id[ID], idx, buf, buflen);
+        lammps_id_name(lmp, lmp_id[ID], idx, buf, BUFLEN);
         ++idx;
         if ((len == 0) || (strncmp(text, buf, len) == 0)) return dupstring(buf);
     }
@@ -389,8 +380,8 @@ static char *plugin_name_generator(const char *text, int state)
     nmax = lammps_plugin_count();
 
     while (idx < nmax) {
-        char style[buflen], name[buflen];
-        lammps_plugin_name(idx, style, name, buflen);
+        char style[BUFLEN], name[BUFLEN];
+        lammps_plugin_name(idx, style, name, BUFLEN);
         ++idx;
         if (words[2] == style) {
             if (strncmp(name, words[3].c_str(), len) == 0)
@@ -475,7 +466,7 @@ char *group_generator(const char *text, int state)
     }
 
     while (idx < num) {
-        lammps_id_name(lmp, "group", idx, buf, buflen);
+        lammps_id_name(lmp, "group", idx, buf, BUFLEN);
         ++idx;
         if ((len == 0) || (strncmp(text, buf, len) == 0)) return dupstring(buf);
     }
@@ -577,7 +568,7 @@ static void init_commands()
     // store optional commands from command styles
     ncmds = lammps_style_count(lmp, "command");
     for (int i = 0; i < ncmds; ++i) {
-        if (lammps_style_name(lmp, "command", i, buf, buflen)) commands.push_back(buf);
+        if (lammps_style_name(lmp, "command", i, buf, BUFLEN)) commands.push_back(buf);
     }
 
     // store LAMMPS shell specific command names
@@ -599,7 +590,7 @@ static void init_commands()
     // otherwise any tabs in redirected input will cause havoc.
     const char *test_mode = getenv("LAMMPS_SHELL_TESTING");
     if (test_mode) std::cout << "*TESTING* using LAMMPS Shell in test mode *TESTING*\n";
-    if (isatty(fileno(stdin)) || test_mode) {
+    if (platform::is_console(stdin) || test_mode) {
         rl_attempted_completion_function = cmd_completion;
     } else {
         rl_bind_key('\t', rl_insert);
@@ -608,10 +599,11 @@ static void init_commands()
     // read saved history, but not in test mode.
     if (!test_mode) read_history(".lammps_history");
 
-#if !defined(_WIN32)
-    signal(SIGINT, ctrl_c_handler);
-#else
+    // intercept CTRL-C
+#if defined(_WIN32)
     SetConsoleCtrlHandler(ctrl_c_handler, TRUE);
+#else
+    signal(SIGINT, ctrl_c_handler);
 #endif
 }
 
@@ -685,7 +677,7 @@ static int shell_cmd(const std::string &cmd)
         free(text);
         return 0;
     } else if ((words[0] == "pwd") || ((words[0] == "cd") && (words.size() == 1))) {
-        if (getcwd(buf, buflen)) std::cout << buf << "\n";
+        std::cout << platform::current_directory() << "\n";
         free(text);
         return 0;
     } else if (words[0] == "cd") {
@@ -741,28 +733,19 @@ int main(int argc, char **argv)
 #if defined(_WIN32)
     // Special hack for Windows: if the current working directory is
     // the "system folder" (because that is where cmd.exe lives)
-    // switch to the user's documents directory. Avoid buffer overflow
-    // and skip this step if the path is too long for our buffer.
-    if (getcwd(buf, buflen)) {
-        if ((strstr(buf, "System32") || strstr(buf, "system32"))) {
-            char *drive = getenv("HOMEDRIVE");
-            char *path  = getenv("HOMEPATH");
-            buf[0]      = '\0';
-            int len     = strlen("\\Documents");
-            if (drive) len += strlen(drive);
-            if (path) len += strlen(path);
-            if (len < buflen) {
-                if (drive) strcat(buf, drive);
-                if (path) strcat(buf, path);
-                strcat(buf, "\\Documents");
-                chdir(buf);
-            }
-        }
+    // switch to the user's documents directory.
+
+    auto curdir = platform::current_directory();
+    if (utils::strmatch(curdir,"[Ss]ystem32")) {
+        std::string docdir = getenv("HOMEDRIVE");
+        docdir += getenv("HOMEPATH");
+        docdir += "\\Documents";
+        platform::chdir(docdir);
     }
 #endif
 
-    lammps_get_os_info(buf, buflen);
-    std::cout << "LAMMPS Shell version 1.1  OS: " << buf;
+    lammps_get_os_info(buf, BUFLEN);
+    std::cout << "LAMMPS Shell version 1.2  OS: " << buf;
 
     if (!lammps_config_has_exceptions())
         std::cout << "WARNING: LAMMPS was compiled without exceptions\n"
@@ -777,7 +760,7 @@ int main(int argc, char **argv)
     // to use the maximum number of threads available since this is
     // not intended to be run with MPI.
     omp_threads = dupstring(std::string("OMP_NUM_THREADS=" + std::to_string(nthreads)));
-    putenv(omp_threads);
+    platform::putenv(omp_threads);
 
     // handle the special case where the first argument is not a flag but a file
     // this happens for example when using file type associations on Windows.
@@ -787,7 +770,7 @@ int main(int argc, char **argv)
     if ((argc > 1) && (argv[1][0] != '-')) {
         --argc;
         input_file = platform::path_basename(argv[1]);
-        chdir(platform::path_dirname(input_file).c_str());
+        platform::chdir(platform::path_dirname(input_file));
         for (int i = 1; i < argc; ++i)
             argv[i] = argv[i + 1];
     }

@@ -220,7 +220,7 @@ void DynamicalMatrix::openfile(const char *filename)
     // if file already opened, return
     if (file_opened) return;
     fp = nullptr;
-    
+
     if (me == 0) {
       if (compressed) {
         fp = platform::zip_write(std::string(filename)+".gz");
@@ -232,7 +232,7 @@ void DynamicalMatrix::openfile(const char *filename)
       }
       if (!fp) error->one(FLERR,"Cannot open dynmat file: {}", utils::getsyserror());
     }
-    
+
     file_opened = 1;
 }
 

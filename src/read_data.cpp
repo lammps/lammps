@@ -741,7 +741,7 @@ void ReadData::command(int narg, char **arg)
     // close file
 
     if (me == 0) {
-      if (compressed) pclose(fp);
+      if (compressed) platform::pclose(fp);
       else fclose(fp);
       fp = nullptr;
     }
@@ -1954,31 +1954,17 @@ int ReadData::reallocate(int **pcount, int cmax, int amax)
    test if gzipped
 ------------------------------------------------------------------------- */
 
-void ReadData::open(char *file)
+void ReadData::open(const std::string &file)
 {
-  if (utils::strmatch(file,"\\.gz$")) {
+  if (platform::has_zip_extension(file)) {
     compressed = 1;
-
-#ifdef LAMMPS_GZIP
-    auto gunzip = fmt::format("gzip -c -d {}",file);
-
-#ifdef _WIN32
-    fp = _popen(gunzip.c_str(),"rb");
-#else
-    fp = popen(gunzip.c_str(),"r");
-#endif
-
-#else
-    error->one(FLERR,"Cannot open gzipped file without gzip support");
-#endif
+    fp = platform::zip_read(file);
+    if (!fp) error->one(FLERR,"Cannot open compressed file {}", file);
   } else {
     compressed = 0;
-    fp = fopen(file,"r");
+    fp = fopen(file.c_str(),"r");
+    if (!fp) error->one(FLERR,"Cannot open file {}: {}", file, utils::getsyserror());
   }
-
-  if (fp == nullptr)
-    error->one(FLERR,"Cannot open file {}: {}",
-                                 file, utils::getsyserror());
 }
 
 /* ----------------------------------------------------------------------

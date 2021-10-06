@@ -36,7 +36,7 @@ class FixReaxFFBonds : public Fix {
   void end_of_step();
 
  protected:
-  int me, nprocs, nmax, ntypes, maxsize;
+  int me, nprocs, nmax, ntypes, maxsize, compressed;
   int *numneigh;
   tagint **neighid;
   double **abo;

@@ -55,9 +55,12 @@ DynamicalMatrix::DynamicalMatrix(LAMMPS *lmp) : Command(lmp), fp(nullptr)
 
 DynamicalMatrix::~DynamicalMatrix()
 {
-    if (fp && me == 0) fclose(fp);
+  if (fp && me == 0) {
+    if (compressed) platform::pclose(fp);
+    else fclose(fp);
     memory->destroy(groupmap);
     fp = nullptr;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -212,32 +215,24 @@ void DynamicalMatrix::options(int narg, char **arg)
    some derived classes override this function
 ------------------------------------------------------------------------- */
 
-void DynamicalMatrix::openfile(const char* filename)
+void DynamicalMatrix::openfile(const char *filename)
 {
     // if file already opened, return
-    //if (me!=0) return;
     if (file_opened) return;
-
-    if (compressed) {
-#ifdef LAMMPS_GZIP
-        char gzip[128];
-    sprintf(gzip,"gzip -6 > %s",filename);
-#ifdef _WIN32
-    fp = _popen(gzip,"wb");
-#else
-    fp = popen(gzip,"w");
-#endif
-#else
-        error->one(FLERR,"Cannot open gzipped file");
-#endif
-    } else if (binaryflag) {
+    fp = nullptr;
+    
+    if (me == 0) {
+      if (compressed) {
+        fp = platform::zip_write(std::string(filename)+".gz");
+        if (!fp) error->one(FLERR,"Cannot open gzipped file");
+      } else if (binaryflag) {
         fp = fopen(filename,"wb");
-    } else {
+      } else {
         fp = fopen(filename,"w");
+      }
+      if (!fp) error->one(FLERR,"Cannot open dynmat file: {}", utils::getsyserror());
     }
-
-    if (fp == nullptr) error->one(FLERR,"Cannot open dump file");
-
+    
     file_opened = 1;
 }
 

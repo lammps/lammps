@@ -64,6 +64,12 @@ TEST(Utils, trim)
     ASSERT_THAT(trimmed, StrEq(""));
 }
 
+TEST(Utils, lowercase)
+{
+    ASSERT_THAT(utils::lowercase("Gba35%*zAKgRvr"), StrEq("gba35%*zakgrvr"));
+    ASSERT_THAT(utils::lowercase("A BC DEFG"), StrEq("a bc defg"));
+}
+
 TEST(Utils, trim_comment)
 {
     auto trimmed = utils::trim_comment("some text # comment");

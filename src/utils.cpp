@@ -695,6 +695,17 @@ char *utils::strdup(const std::string &text)
 }
 
 /* ----------------------------------------------------------------------
+   Return string converted to lowercase
+------------------------------------------------------------------------- */
+
+std::string utils::lowercase(const std::string &text)
+{
+  std::string converted;
+  for (auto c : text) converted += ::tolower(c);
+  return converted;
+}
+
+/* ----------------------------------------------------------------------
    Return string without leading or trailing whitespace
 ------------------------------------------------------------------------- */
 

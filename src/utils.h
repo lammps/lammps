@@ -282,6 +282,13 @@ namespace utils {
 
   char *strdup(const std::string &text);
 
+  /*! Convert string to lowercase
+   *
+   * \param line  string that should be converted
+   * \return new string with all lowercase characters */
+
+  std::string lowercase(const std::string &line);
+
   /*! Trim leading and trailing whitespace. Like TRIM() in Fortran.
    *
    * \param line  string that should be trimmed

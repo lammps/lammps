@@ -657,7 +657,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
       int n = plast[i] - pfirst[i];
       packargs[i] = new char*[n+1];
       for (int j=0; j < n; ++j)
-        packargs[i][j] = strdup(arg[pfirst[i]+j]);
+        packargs[i][j] = utils::strdup(arg[pfirst[i]+j]);
       packargs[i][n] = nullptr;
     }
     memory->destroy(pfirst);
@@ -711,7 +711,7 @@ LAMMPS::~LAMMPS()
   if (num_package) {
     for (int i = 0; i < num_package; i++) {
       for (char **ptr = packargs[i]; *ptr != nullptr; ++ptr)
-        free(*ptr);
+        delete[] *ptr;
       delete[] packargs[i];
     }
     delete[] packargs;

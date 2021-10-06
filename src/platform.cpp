@@ -619,7 +619,7 @@ bool platform::is_console(FILE *fp)
 {
   if (!fp) return false;
 #if defined(_WIN32)
-  return (_isatty(fileno(fp)) == 1);
+  return (_isatty(_fileno(fp)) == 1);
 #else
   return (isatty(fileno(fp)) == 1);
 #endif

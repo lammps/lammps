@@ -443,10 +443,11 @@ void TILD::vir_func_init() {
   double delz = zprd/nz_tild;
   int ntypes = atom->ntypes;
 
-  int loc = 0;
+  int loc = -1;
   for (int itype = 1; itype <= ntypes; itype++) {
     for (int jtype = itype; jtype <= ntypes; jtype++) {
       // Skip if type cross-interaction does not use density/tild
+      loc++;
       if ( potent_type_map[0][itype][jtype] == 1) continue;
 
       n = 0;
@@ -497,7 +498,7 @@ void TILD::vir_func_init() {
         }
 
       }
-      loc++;
+
 
     }
   }
@@ -967,11 +968,12 @@ void TILD::init_cross_potentials(){
   int n = 0;
 
   // Loop over potental styles
-  int loc = 0;
+  int loc = -1;
   for (int itype = 1; itype <= ntypes; itype++) {
     // Skip if type cross-interaction does not use density/tild
 
     for (int jtype = itype; jtype <= ntypes; jtype++) {
+      loc++;
       // Skip if type cross-interaction does not use density/tild
       if ( potent_type_map[0][itype][jtype] == 1) continue;
 
@@ -1047,7 +1049,6 @@ void TILD::init_cross_potentials(){
         }
       } 
 
-      loc++;
     }
   }
 
@@ -2172,9 +2173,10 @@ void TILD::accumulate_gradient() {
   if (subtract_rho0 == 1)
     tmp_sub = rho0;
 
-  int loc = 0;
+  int loc = -1;
   for (int itype = 1; itype <= ntypes; itype++) {
     for (int jtype = itype; jtype <= ntypes; jtype++) {
+      loc++;
       if ( potent_type_map[0][itype][jtype] == 1) continue;
 
       double tmp_chi = chi[itype][jtype];
@@ -2224,7 +2226,6 @@ void TILD::accumulate_gradient() {
           }
         }
       }
-      loc++;
     }
   }
 }

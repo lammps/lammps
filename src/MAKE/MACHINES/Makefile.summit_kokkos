@@ -9,7 +9,7 @@ SHELL = /bin/sh
 KOKKOS_ABSOLUTE_PATH = $(shell cd $(KOKKOS_PATH); pwd)
 
 CC =		$(KOKKOS_ABSOLUTE_PATH)/bin/nvcc_wrapper
-CCFLAGS =	-g -O3 -DLAMMPS_BIGBIG
+CCFLAGS =	-g -O3
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
@@ -68,9 +68,9 @@ FFT_LIB = -lcufft
 # PATH = path(s) for JPEG library and/or PNG library
 # LIB = name(s) of JPEG library and/or PNG library
 
-JPG_INC = -DLAMMPS_PNG -I~/libpng-1.6.37/include
+JPG_INC =
 JPG_PATH =
-JPG_LIB = -L~/libpng-1.6.37/lib -lpng
+JPG_LIB =
 
 # ---------------------------------------------------------------------
 # build rules and dependencies

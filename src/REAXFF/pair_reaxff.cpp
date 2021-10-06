@@ -39,7 +39,6 @@
 
 #include <cmath>
 #include <cstring>
-#include <strings.h>    // for strcasecmp()
 
 #include "reaxff_api.h"
 
@@ -299,7 +298,7 @@ void PairReaxFF::coeff(int nargs, char **args)
   // pair_coeff element map
   for (int i = 3; i < nargs; i++)
     for (int j = 0; j < nreax_types; j++)
-      if (strcasecmp(args[i],api->system->reax_param.sbp[j].name) == 0) {
+      if (utils::lowercase(args[i]) == utils::lowercase(api->system->reax_param.sbp[j].name)) {
         map[i-2] = j;
         itmp ++;
       }

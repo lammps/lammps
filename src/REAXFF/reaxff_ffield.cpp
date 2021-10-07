@@ -39,6 +39,7 @@
 
 using LAMMPS_NS::utils::open_potential;
 using LAMMPS_NS::utils::getsyserror;
+using LAMMPS_NS::utils::uppercase;
 
 namespace ReaxFF {
 
@@ -161,9 +162,9 @@ namespace ReaxFF {
             THROW_ERROR("Invalid force field file format");
 
           // copy element symbol in uppercase and truncate stored element symbol if necessary
-          auto element = utils::uppercase(values.next_string());
+          auto element = uppercase(values.next_string());
           strncpy(sbp[i].name,element.c_str(),4);
-          sbp[i].name[4] = '\0';
+          sbp[i].name[3] = '\0';
 
           sbp[i].r_s        = values.next_double();
           sbp[i].valency    = values.next_double();

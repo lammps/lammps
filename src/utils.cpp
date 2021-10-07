@@ -700,8 +700,8 @@ char *utils::strdup(const std::string &text)
 
 std::string utils::lowercase(const std::string &text)
 {
-  std::string converted;
-  for (auto c : text) converted += ::tolower(c);
+  std::string converted(text);
+  for (auto &c : converted) c = ::tolower(c);
   return converted;
 }
 
@@ -711,8 +711,8 @@ std::string utils::lowercase(const std::string &text)
 
 std::string utils::uppercase(const std::string &text)
 {
-  std::string converted;
-  for (auto c : text) converted += ::toupper(c);
+  std::string converted(text);
+  for (auto &c : converted) c = ::toupper(c);
   return converted;
 }
 

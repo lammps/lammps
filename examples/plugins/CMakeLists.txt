@@ -14,6 +14,15 @@ endif()
 
 project(plugins VERSION 1.0 LANGUAGES CXX)
 
+# ugly hacks for MSVC which by default always reports an old C++ standard in the __cplusplus macro
+# and prints lots of pointless warnings about "unsafe" functions
+if(MSVC)
+  add_compile_options(/Zc:__cplusplus)
+  add_compile_options(/wd4244)
+  add_compile_options(/wd4267)
+  add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
+endif()
+
 # NOTE: the next line should be commented out when used outside of the LAMMPS package
 get_filename_component(LAMMPS_SOURCE_DIR ${PROJECT_SOURCE_DIR}/../../src ABSOLUTE)
 set(LAMMPS_HEADER_DIR ${LAMMPS_SOURCE_DIR} CACHE PATH "Location of LAMMPS headers")

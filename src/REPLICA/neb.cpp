@@ -528,12 +528,12 @@ void NEB::readfile(char *file, int flag)
 
   if (flag == 0) {
     if (me_universe == 0) {
-      if (compressed) pclose(fp);
+      if (compressed) platform::pclose(fp);
       else fclose(fp);
     }
   } else {
     if (me == 0 && ireplica) {
-      if (compressed) pclose(fp);
+      if (compressed) platform::pclose(fp);
       else fclose(fp);
     }
   }

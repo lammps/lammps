@@ -495,7 +495,7 @@ void FixTMD::readfile(char *file)
   delete [] buffer;
 
   if (me == 0) {
-    if (compressed) pclose(fp);
+    if (compressed) platform::pclose(fp);
     else fclose(fp);
   }
 

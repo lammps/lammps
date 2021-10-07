@@ -356,26 +356,26 @@ TEST(Platform, file_is_readable)
 #endif
 }
 
-TEST(Platform, has_zip_extension)
+TEST(Platform, has_compress_extension)
 {
-    ASSERT_FALSE(platform::has_zip_extension("dummy"));
-    ASSERT_FALSE(platform::has_zip_extension("dum.my"));
-    ASSERT_TRUE(platform::has_zip_extension("dummy.gz"));
-    ASSERT_TRUE(platform::has_zip_extension("dummy.bz2"));
-    ASSERT_TRUE(platform::has_zip_extension("dummy.zst"));
-    ASSERT_TRUE(platform::has_zip_extension("dummy.xz"));
-    ASSERT_TRUE(platform::has_zip_extension("dummy.lzma"));
-    ASSERT_TRUE(platform::has_zip_extension("dummy.lz4"));
+    ASSERT_FALSE(platform::has_compress_extension("dummy"));
+    ASSERT_FALSE(platform::has_compress_extension("dum.my"));
+    ASSERT_TRUE(platform::has_compress_extension("dummy.gz"));
+    ASSERT_TRUE(platform::has_compress_extension("dummy.bz2"));
+    ASSERT_TRUE(platform::has_compress_extension("dummy.zst"));
+    ASSERT_TRUE(platform::has_compress_extension("dummy.xz"));
+    ASSERT_TRUE(platform::has_compress_extension("dummy.lzma"));
+    ASSERT_TRUE(platform::has_compress_extension("dummy.lz4"));
 }
 
-TEST(Platform, zip_read_write)
+TEST(Platform, compress_read_write)
 {
     const std::vector<std::string> test_files = {"zip_test.zip", "zip_test.gz",  "zip_test.bz2",
                                                  "zip_test.zst", "zip_test.xz",  "zip_test.lzma",
                                                  "zip_test.lz4", "zip_test.unk", "zip test.gz"};
     for (const auto &file : test_files) {
         platform::unlink(file);
-        FILE *fp = platform::zip_write(file);
+        FILE *fp = platform::compressed_write(file);
         if (!fp) {
             platform::unlink(file);
             continue;
@@ -388,7 +388,7 @@ TEST(Platform, zip_read_write)
         fflush(fp);
         platform::pclose(fp);
 
-        fp = platform::zip_read(file);
+        fp = platform::compressed_read(file);
         ASSERT_NE(fp, nullptr);
         char buf[128];
         char *ptr = fgets(buf, 128, fp);

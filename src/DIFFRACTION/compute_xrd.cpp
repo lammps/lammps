@@ -32,7 +32,6 @@
 
 #include <cmath>
 #include <cstring>
-#include <strings.h>    // for strcasecmp()
 
 #include "omp_compat.h"
 using namespace LAMMPS_NS;
@@ -87,7 +86,7 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
   }
   for (int i = 0; i < ntypes; i++) {
     for (int j = 0; j < XRDmaxType; j++) {
-      if (strcasecmp(arg[iarg],XRDtypeList[j]) == 0) {
+      if (utils::lowercase(arg[iarg]) == utils::lowercase(XRDtypeList[j])) {
         ztype[i] = j;
        }
      }

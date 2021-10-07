@@ -31,7 +31,6 @@
 
 #include <cmath>
 #include <cstring>
-#include <strings.h>    // for strcasecmp()
 
 #include "omp_compat.h"
 using namespace LAMMPS_NS;
@@ -85,13 +84,13 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
     ztype[i] = SAEDmaxType + 1;
   }
   for (int i=0; i<ntypes; i++) {
-       for (int j = 0; j < SAEDmaxType; j++) {
-         if (strcasecmp(arg[iarg],SAEDtypeList[j]) == 0) {
+     for (int j = 0; j < SAEDmaxType; j++) {
+       if (utils::lowercase(arg[iarg]) == utils::lowercase(SAEDtypeList[j])) {
          ztype[i] = j;
-         }
        }
-       if (ztype[i] == SAEDmaxType + 1)
-          error->all(FLERR,"Compute SAED: Invalid ASF atom type");
+     }
+     if (ztype[i] == SAEDmaxType + 1)
+       error->all(FLERR,"Compute SAED: Invalid ASF atom type");
     iarg++;
   }
 

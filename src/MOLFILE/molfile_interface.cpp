@@ -27,8 +27,6 @@
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>
-#include <cctype>
-#include <strings.h>    // for strcasecmp()
 
 #if vmdplugin_ABIVERSION < 16
 #error "unsupported VMD molfile plugin ABI version"
@@ -249,7 +247,7 @@ int MolfileInterface::find_plugin(const char *pluginpath)
 int MolfileInterface::load_plugin(const char *filename)
 {
   void *dso;
-  int len, retval = E_NONE;
+  int retval = E_NONE;
 
   // access shared object
   dso = platform::dlopen(filename);

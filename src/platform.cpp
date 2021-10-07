@@ -84,7 +84,7 @@ static const std::vector<zip_info> zip_styles = {
     {"",     "",      "",       "",        zip_info::NONE},
     {"gz",   "gzip",  " > ",    " -cdf ",  zip_info::GZIP},
     {"bz2",  "bzip2", " > ",    " -cdf ",  zip_info::BZIP2},
-    {"zstd", "zstd",  " -q > ", " -cdf ",  zip_info::ZSTD},
+    {"zst",  "zstd",  " -q > ", " -cdf ",  zip_info::ZSTD},
     {"xz",   "xz",    " > ",    " -cdf ",  zip_info::XZ},
     {"lzma", "xz", " --format=lzma > ", " --format=lzma -cdf ", zip_info::LZMA},
     {"lz4",  "lz4",   " > ",    " -cdf ",  zip_info::LZ4},

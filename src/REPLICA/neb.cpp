@@ -548,9 +548,9 @@ void NEB::readfile(char *file, int flag)
 void NEB::open(char *file)
 {
   compressed = 0;
-  if (platform::has_zip_extension(file)) {
+  if (platform::has_compress_extension(file)) {
     compressed = 1;
-    fp = platform::zip_read(file);
+    fp = platform::compressed_read(file);
     if (!fp) error->one(FLERR,"Cannot open compressed file");
   } else fp = fopen(file,"r");
 

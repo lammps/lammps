@@ -1951,14 +1951,14 @@ int ReadData::reallocate(int **pcount, int cmax, int amax)
 
 /* ----------------------------------------------------------------------
    proc 0 opens data file
-   test if gzipped
+   test if compressed
 ------------------------------------------------------------------------- */
 
 void ReadData::open(const std::string &file)
 {
-  if (platform::has_zip_extension(file)) {
+  if (platform::has_compress_extension(file)) {
     compressed = 1;
-    fp = platform::zip_read(file);
+    fp = platform::compressed_read(file);
     if (!fp) error->one(FLERR,"Cannot open compressed file {}", file);
   } else {
     compressed = 0;

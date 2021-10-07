@@ -357,26 +357,26 @@ namespace platform {
 
   /*! Check if a file name ends in a known extension for a compressed file format
    *
-   * Currently supported file extensions are: .gz, .bz2, .zstd, .xz, .lzma, lz4
+   * Currently supported file extensions are: .gz, .bz2, .zst, .xz, .lzma, lz4
    *
    *  \param  file  name of the file to check
    *  \return  true if the file has a known extension, otherwise false  */
 
-  bool has_zip_extension(const std::string &file);
+  bool has_compress_extension(const std::string &file);
 
   /*! Open pipe to compressed text file for reading
    *
    *  \param  file  name of the file to open
    *  \return  FILE pointer to pipe using for reading the compressed file. */
 
-  FILE *zip_read(const std::string &file);
+  FILE *compressed_read(const std::string &file);
 
   /*! Open pipe to compressed text file for writing
    *
    *  \param  file  name of the file to open
    *  \return  FILE pointer to pipe using for reading the compressed file. */
 
-  FILE *zip_write(const std::string &file);
+  FILE *compressed_write(const std::string &file);
 
 }    // namespace platform
 }    // namespace LAMMPS_NS

@@ -687,14 +687,14 @@ int NEBSpin::initial_rotation(double *spi, double *sploc, double fraction)
 
 /* ----------------------------------------------------------------------
    universe proc 0 opens NEBSpin data file
-   test if gzipped
+   test if compressed
 ------------------------------------------------------------------------- */
 
 void NEBSpin::open(char *file)
 {
   compressed = 0;
-  if (platform::has_zip_extension(file)) {
-    fp = platform::zip_read(file);
+  if (platform::has_compress_extension(file)) {
+    fp = platform::compressed_read(file);
     if (!fp) error->one(FLERR,"Cannot open compressed file");
   } else fp = fopen(file,"r");
 

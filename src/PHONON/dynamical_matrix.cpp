@@ -211,7 +211,7 @@ void DynamicalMatrix::options(int narg, char **arg)
 
 /* ----------------------------------------------------------------------
    generic opening of a file
-   ASCII or binary or gzipped
+   ASCII or binary or compressed
    some derived classes override this function
 ------------------------------------------------------------------------- */
 
@@ -223,8 +223,8 @@ void DynamicalMatrix::openfile(const char *filename)
 
     if (me == 0) {
       if (compressed) {
-        fp = platform::zip_write(std::string(filename)+".gz");
-        if (!fp) error->one(FLERR,"Cannot open gzipped file");
+        fp = platform::compressed_write(std::string(filename)+".gz");
+        if (!fp) error->one(FLERR,"Cannot open compressed file");
       } else if (binaryflag) {
         fp = fopen(filename,"wb");
       } else {

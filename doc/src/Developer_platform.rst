@@ -139,11 +139,11 @@ Dynamically loaded object or library functions
 Compressed file I/O functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. doxygenfunction:: has_zip_extension
+.. doxygenfunction:: has_compress_extension
    :project: progguide
 
-.. doxygenfunction:: zip_read
+.. doxygenfunction:: compressed_read
    :project: progguide
 
-.. doxygenfunction:: zip_write
+.. doxygenfunction:: compressed_write
    :project: progguide

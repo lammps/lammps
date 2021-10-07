@@ -69,40 +69,40 @@
 /* ------------------------------------------------------------------ */
 
 /// Struct for listing on-the-fly compression/decompression commands
-struct zip_info {
+struct compress_info {
   /// identifier for the different compression algorithms
   enum styles { NONE, GZIP, BZIP2, ZSTD, XZ, LZMA, LZ4 };
   const std::string extension;     ///< filename extension for the current algorithm
   const std::string command;       ///< command to perform compression or decompression
-  const std::string zipflags;      ///< flags to append to compress from stdin to stdout
-  const std::string unzipflags;    ///< flags to decompress file to stdout
+  const std::string compressflags;      ///< flags to append to compress from stdin to stdout
+  const std::string uncompressflags;    ///< flags to decompress file to stdout
   const int style;                 ///< compression style flag
 };
 
 // clang-format off
-static const std::vector<zip_info> zip_styles = {
-    {"",     "",      "",       "",        zip_info::NONE},
-    {"gz",   "gzip",  " > ",    " -cdf ",  zip_info::GZIP},
-    {"bz2",  "bzip2", " > ",    " -cdf ",  zip_info::BZIP2},
-    {"zst",  "zstd",  " -q > ", " -cdf ",  zip_info::ZSTD},
-    {"xz",   "xz",    " > ",    " -cdf ",  zip_info::XZ},
-    {"lzma", "xz", " --format=lzma > ", " --format=lzma -cdf ", zip_info::LZMA},
-    {"lz4",  "lz4",   " > ",    " -cdf ",  zip_info::LZ4},
+static const std::vector<compress_info> compress_styles = {
+    {"",     "",      "",       "",        compress_info::NONE},
+    {"gz",   "gzip",  " > ",    " -cdf ",  compress_info::GZIP},
+    {"bz2",  "bzip2", " > ",    " -cdf ",  compress_info::BZIP2},
+    {"zst",  "zstd",  " -q > ", " -cdf ",  compress_info::ZSTD},
+    {"xz",   "xz",    " > ",    " -cdf ",  compress_info::XZ},
+    {"lzma", "xz", " --format=lzma > ", " --format=lzma -cdf ", compress_info::LZMA},
+    {"lz4",  "lz4",   " > ",    " -cdf ",  compress_info::LZ4},
 };
 // clang-format on
 
 /* ------------------------------------------------------------------ */
 
-static const zip_info &find_zip_type(const std::string &file)
+static const compress_info &find_compress_type(const std::string &file)
 {
   std::size_t dot = file.find_last_of('.');
   if (dot != std::string::npos) {
     const std::string ext = file.substr(dot + 1);
-    for (const auto &i : zip_styles) {
+    for (const auto &i : compress_styles) {
       if (i.extension == ext) return i;
     }
   }
-  return zip_styles[0];
+  return compress_styles[0];
 }
 
 /* ------------------------------------------------------------------ */
@@ -925,26 +925,26 @@ bool platform::file_is_readable(const std::string &path)
    check if filename has a known compression extension
 ------------------------------------------------------------------------- */
 
-bool platform::has_zip_extension(const std::string &file)
+bool platform::has_compress_extension(const std::string &file)
 {
-  return find_zip_type(file).style != zip_info::NONE;
+  return find_compress_type(file).style != compress_info::NONE;
 }
 
 /* ----------------------------------------------------------------------
    open pipe to read a compressed file
 ------------------------------------------------------------------------- */
 
-FILE *platform::zip_read(const std::string &file)
+FILE *platform::compressed_read(const std::string &file)
 {
   FILE *fp = nullptr;
 
 #if defined(LAMMPS_GZIP)
-  auto zip = find_zip_type(file);
-  if (zip.style == zip_info::NONE) return nullptr;
+  auto compress = find_compress_type(file);
+  if (compress.style == compress_info::NONE) return nullptr;
 
-  if (find_exe_path(zip.command).size())
+  if (find_exe_path(compress.command).size())
     // put quotes around file name so that they may contain blanks
-    fp = popen((zip.command + zip.unzipflags + "\"" + file + "\""), "r");
+    fp = popen((compress.command + compress.uncompressflags + "\"" + file + "\""), "r");
 #endif
   return fp;
 }
@@ -953,17 +953,17 @@ FILE *platform::zip_read(const std::string &file)
    open pipe to write a compressed file
 ------------------------------------------------------------------------- */
 
-FILE *platform::zip_write(const std::string &file)
+FILE *platform::compressed_write(const std::string &file)
 {
   FILE *fp = nullptr;
 
 #if defined(LAMMPS_GZIP)
-  auto zip = find_zip_type(file);
-  if (zip.style == zip_info::NONE) return nullptr;
+  auto compress = find_compress_type(file);
+  if (compress.style == compress_info::NONE) return nullptr;
 
-  if (find_exe_path(zip.command).size())
+  if (find_exe_path(compress.command).size())
     // put quotes around file name so that they may contain blanks
-    fp = popen((zip.command + zip.zipflags + "\"" + file + "\""), "w");
+    fp = popen((compress.command + compress.compressflags + "\"" + file + "\""), "w");
 #endif
   return fp;
 }

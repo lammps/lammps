@@ -107,8 +107,8 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
   strcpy(tmparg[2],arg[5]);
 
   if (me == 0) {
-    if (platform::has_zip_extension(arg[6])) {
-      fp = platform::zip_write(arg[6]);
+    if (platform::has_compress_extension(arg[6])) {
+      fp = platform::compressed_write(arg[6]);
       compressed = 1;
       if (!fp) error->one(FLERR,"Cannot open compressed file");
     } else fp = fopen(arg[6],"w");

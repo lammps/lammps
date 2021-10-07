@@ -36,9 +36,9 @@ void Reader::open_file(const std::string &file)
 {
   if (fp != nullptr) close_file();
 
-  if (platform::has_zip_extension(file)) {
+  if (platform::has_compress_extension(file)) {
     compressed = 1;
-    fp = platform::zip_read(file);
+    fp = platform::compressed_read(file);
     if (!fp) error->one(FLERR,"Cannot open compressed file for reading");
   } else {
     compressed = 0;

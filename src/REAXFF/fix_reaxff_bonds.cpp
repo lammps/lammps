@@ -52,9 +52,9 @@ FixReaxFFBonds::FixReaxFFBonds(LAMMPS *lmp, int narg, char **arg) :
   if (nevery <= 0) error->all(FLERR,"Illegal fix reaxff/bonds command");
 
   if (me == 0) {
-    if (platform::has_zip_extension(arg[4])) {
+    if (platform::has_compress_extension(arg[4])) {
       compressed = 1;
-      fp = platform::zip_write(arg[4]);
+      fp = platform::compressed_write(arg[4]);
       if (!fp) error->one(FLERR,"Cannot open compressed file");
     } else fp = fopen(arg[4],"w");
 

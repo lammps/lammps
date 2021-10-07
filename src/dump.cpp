@@ -143,7 +143,7 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
   if (strchr(filename,'*')) multifile = 1;
 
   if (utils::strmatch(filename, "\\.bin$")) binary = 1;
-  if (platform::has_zip_extension(filename)) compressed = 1;
+  if (platform::has_compress_extension(filename)) compressed = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -528,7 +528,7 @@ void Dump::write()
 
 /* ----------------------------------------------------------------------
    generic opening of a dump file
-   ASCII or binary or gzipped
+   ASCII or binary or compressed
    some derived classes override this function
 ------------------------------------------------------------------------- */
 
@@ -578,7 +578,7 @@ void Dump::openfile()
 
   if (filewriter) {
     if (compressed) {
-      fp = platform::zip_write(filecurrent);
+      fp = platform::compressed_write(filecurrent);
     } else if (binary) {
       fp = fopen(filecurrent,"wb");
     } else if (append_flag) {

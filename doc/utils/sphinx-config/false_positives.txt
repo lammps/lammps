@@ -1223,6 +1223,7 @@ Guo
 gw
 gyromagnetic
 gz
+gzip
 gzipped
 Haak
 Hafskjold

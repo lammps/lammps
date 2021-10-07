@@ -64,10 +64,12 @@ TEST(Utils, trim)
     ASSERT_THAT(trimmed, StrEq(""));
 }
 
-TEST(Utils, lowercase)
+TEST(Utils, casemod)
 {
     ASSERT_THAT(utils::lowercase("Gba35%*zAKgRvr"), StrEq("gba35%*zakgrvr"));
     ASSERT_THAT(utils::lowercase("A BC DEFG"), StrEq("a bc defg"));
+    ASSERT_THAT(utils::uppercase("Gba35%*zAKgRvr"), StrEq("GBA35%*ZAKGRVR"));
+    ASSERT_THAT(utils::uppercase("a bc defg"), StrEq("A BC DEFG"));
 }
 
 TEST(Utils, trim_comment)

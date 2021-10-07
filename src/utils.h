@@ -289,6 +289,13 @@ namespace utils {
 
   std::string lowercase(const std::string &line);
 
+  /*! Convert string to uppercase
+   *
+   * \param line  string that should be converted
+   * \return new string with all uppercase characters */
+
+  std::string uppercase(const std::string &line);
+
   /*! Trim leading and trailing whitespace. Like TRIM() in Fortran.
    *
    * \param line  string that should be trimmed

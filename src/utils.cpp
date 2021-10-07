@@ -312,7 +312,7 @@ int utils::logical(const char *file, int line, const char *str, bool do_abort, L
       lmp->error->all(file, line, msg);
   }
 
-  // convert to ascii and lowercase
+  // convert to ascii
   std::string buf(str);
   if (has_utf8(buf)) buf = utf8_subst(buf);
 
@@ -702,6 +702,17 @@ std::string utils::lowercase(const std::string &text)
 {
   std::string converted;
   for (auto c : text) converted += ::tolower(c);
+  return converted;
+}
+
+/* ----------------------------------------------------------------------
+   Return string converted to uppercase
+------------------------------------------------------------------------- */
+
+std::string utils::uppercase(const std::string &text)
+{
+  std::string converted;
+  for (auto c : text) converted += ::toupper(c);
   return converted;
 }
 

@@ -106,6 +106,9 @@ and parsing files or arguments.
 .. doxygenfunction:: lowercase
    :project: progguide
 
+.. doxygenfunction:: uppercase
+   :project: progguide
+
 .. doxygenfunction:: trim
    :project: progguide
 

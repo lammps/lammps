@@ -82,6 +82,7 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   group_allocate_flag = 0;
   
   nstyles = 2;
+  nstyles = 3;
 
   pppmflag = 0;
   group_group_enable = 0;
@@ -178,6 +179,7 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
       a2[i][j] = 0;
       xi[i][j] = 0;
       rp[i][j] = 0;
+      np_rho[i][j] = 0;
     }
   }
 };
@@ -334,6 +336,9 @@ void TILD::setup(){
         domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
       error->all(FLERR,"Incorrect boundaries with slab TILD");
   }
+
+
+  fix_manual_flags();
 
   double *prd;
 
@@ -499,8 +504,67 @@ void TILD::vir_func_init() {
 
       }
 
+    }
+  }
+  
+  for (auto& potential: cross_iter){
+    int i_index = min(potential.i,potential.j);
+    int j_index = max(potential.i,potential.j);
+    loc = (i_index*(2*ntypes - i_index - 1))/2 + j_index;
+
+
+    if (potential.type != NONE){
+      n = 0;
+      for (z = nzlo_fft; z <= nzhi_fft; z++) {
+        // PBC
+        if (double(z) < double(nz_tild) / 2.0)
+          k[2] = double(z) * delz;
+        else
+          k[2] = -double(nz_tild - z) * delz;
+
+        for (y = nylo_fft; y <= nyhi_fft; y++) {
+          if (double(y) < double(ny_tild) / 2.0)
+            k[1] = double(y) * dely;
+          else
+            k[1] = -double(ny_tild - y) * dely;
+
+          for (x = nxlo_fft; x <= nxhi_fft; x++) {
+            if (double(x) < double(nx_tild) / 2.0)
+              k[0] = double(x) * delx;
+            else
+              k[0] = -double(nx_tild - x) * delx;
+
+            vg[loc][0][n] = k[0] * -grad_potent[loc][0][n];
+            vg[loc][1][n] = k[1] * -grad_potent[loc][1][n];
+            vg[loc][2][n] = k[2] * -grad_potent[loc][2][n];
+            vg[loc][3][n] = k[1] * -grad_potent[loc][0][n];
+            vg[loc][4][n] = k[2] * -grad_potent[loc][0][n];
+            vg[loc][5][n] = k[2] * -grad_potent[loc][1][n];
+
+            n++;
 
     }
+  }
+}
+
+      for (int i = 0; i < 6; i++){
+        n = 0;
+        for (int j = 0; j < nfft; j++) {
+          ktmp[n++] = vg[loc][i][j];
+          ktmp[n++] = ZEROF;
+        }
+  
+        fft1->compute(ktmp, ktmp2, FFT3d::FORWARD);
+
+        for (int j = 0; j < 2 * nfft; j++) {
+          ktmp2[j] *= scale_inv;
+          vg_hat[loc][i][j] = ktmp2[j];
+        }
+
+      }
+
+    }
+
   }
 }
 
@@ -1109,6 +1173,8 @@ void TILD::calc_work(FFT_SCALAR *wk, const int itype, const int jtype){
   } else if (style == 2) {
     params[0] = rp[itype][jtype];
     params[1] = xi[itype][jtype];
+    params[2] = np_rho[itype][jtype];
+    if (set_rho0 != 0.0f) params[2] = modified_rho0;
     init_potential(tmp, style, params);
 
     int j = 0;
@@ -1374,7 +1440,7 @@ void TILD::init_potential(FFT_SCALAR *wk1, const int type, const double* paramet
             xper = xprd - xper;
           }
           mdr2 = xper * xper + yper * yper + zper * zper;
-          wk1[n++] = rho0 * 0.5 * (1.0 - erf((sqrt(mdr2) - parameters[0])/parameters[1])) * vole;
+          wk1[n++] = parameters[2]* 0.5 * (1.0 - erf((sqrt(mdr2) - parameters[0])/parameters[1])) * vole;
         }
       }
     }
@@ -1552,12 +1618,14 @@ int TILD::modify_param(int narg, char** arg)
       if (narg < 5) error->all(FLERR, "Illegal kspace_modify tild command");
       double rp_one = utils::numeric(FLERR,arg[4],false,lmp);
       double xi_one = utils::numeric(FLERR,arg[5],false,lmp);
+      double np_rho_one = utils::numeric(FLERR,arg[5],false,lmp);
       for (int i = ilo; i <= ihi; i++) {
         for (int j = MAX(jlo,i); j <= jhi; j++) {
           potent_type_map[2][i][j] = 1;
           potent_type_map[0][i][j] = 0;
           rp[i][j] = rp_one;
           xi[i][j] = xi_one;
+          np_rho[i][j] = np_rho_one;
         }
       }
     } else if (strcmp(arg[3], "none") == 0) {
@@ -1595,28 +1663,30 @@ int TILD::modify_param(int narg, char** arg)
       for (int i = ilo; i <= ihi; i++) {
         for (int j = jlo; j <= jhi; j++) {
           Interaction temp;
-          temp.i = i; 
-          temp.j = j;
+          temp.i = i-1; 
+          temp.j = j-1;
           temp.type = tmp_type;
 
           int nparams = narg-4;
           for (int p = 0; p < nparams; p++) {
             temp.parameters.push_back( utils::numeric(FLERR,arg[p+4],false,lmp) );
           }
+
           auto it = cross_iter.begin();
           int idx = 0;
           while (it != cross_iter.end()){
-            if ((it->i == i) && (it->j == j))
+            if ((it->i == i-1) && (it->j == j-1))
               cross_iter[idx] = temp; 
             it++;
           }
+
           if (it == cross_iter.end()) 
             cross_iter.emplace_back(temp);
           // Turn on type for volume calculation
-          potent_type_map[1][i][i] = potent_type_map[1][j][j] = 1;
+          // potent_type_map[1][i][i] = potent_type_map[1][j][j] = 1;
           // Turning off the skip flag if the interactions are now valid.
-          potent_type_map[0][i][i] = potent_type_map[0][j][j] = 0;
-          potent_type_map[0][j][i] = potent_type_map[0][i][j] = 0;
+          // potent_type_map[0][i][i] = potent_type_map[0][j][j] = 0;
+          // potent_type_map[0][j][i] = potent_type_map[0][i][j] = 0;
         }
       }
     } else {
@@ -1624,10 +1694,10 @@ int TILD::modify_param(int narg, char** arg)
         for (int jj = jlo,ii; jj <= jhi; jj++) {
           auto it = cross_iter.begin();
           while (it != cross_iter.end()){
-            if ((it->i == ii) && (it->j == jj)) {
+            if ((it->i == ii-1) && (it->j == jj-1)) {
               // turn on skip flag
-              potent_type_map[0][ii][jj] = potent_type_map[0][jj][ii] = 1;
-              potent_type_map[it->type][ii][jj] = potent_type_map[it->type][jj][ii] = 0;
+              // potent_type_map[0][ii][jj] = potent_type_map[0][jj][ii] = 1;
+              // potent_type_map[it->type][ii][jj] = potent_type_map[it->type][jj][ii] = 0;
               cross_iter.erase(it--);
             }
             it++;
@@ -2441,6 +2511,16 @@ double TILD::calculate_rho0(){
   vector<int> count_per_type (ntypes+1,0);
   double lmass = 0, lmass_all = 0;
 
+  bool any_defined_shapes=false;
+
+  for (int i=0; i<=nstyles; i++){
+    if (potent_type_map[0][i][i] == 0){
+      any_defined_shapes=true;
+      break;
+    }
+  }
+
+
   for (int i = 0; i < nlocal; i++) {
     if ( potent_type_map[0][type[i]][type[i]] == 1) {
       particles_not_tild++;
@@ -2451,18 +2531,48 @@ double TILD::calculate_rho0(){
 
 
   for ( int itype = 1; itype <= ntypes; itype++) {
+    MPI_Allreduce(&count_per_type[itype], &count_per_type[itype], 1, MPI_DOUBLE, MPI_SUM, world);
+  }
 
+  double vole = domain->xprd * domain->yprd * domain->zprd;
+
+  for ( int itype = 1; itype <= ntypes; itype++) {
     // gaussian potential, has no radius
     if (potent_type_map[1][itype][itype] == 1) {
       lmass += count_per_type[itype];
-    } else if (potent_type_map[2][itype][itype] == 1) {
-      double volume = (4.0 * MY_PI / 3.0) * rp[itype][itype] * rp[itype][itype] * rp[itype][itype] * set_rho0;
-      lmass += count_per_type[itype] * volume;
+    } 
+  }
+
+  MPI_Allreduce(&lmass, &lmass, 1, MPI_DOUBLE, MPI_SUM, world);
+
+  if (set_rho0 != 0.0f){
+
+    for ( int itype = 1; itype <= ntypes; itype++) {
+      if (potent_type_map[2][itype][itype] == 1) {
+        lmass += count_per_type[itype] * (4.0 * MY_PI / 3.0) * rp[itype][itype] * rp[itype][itype] * rp[itype][itype] * np_rho[itype][itype];
+      }
+    }
+
+  } else {
+
+    double total_sphere_vol = 0;
+    for ( int itype = 1; itype <= ntypes; itype++) {
+      if (potent_type_map[2][itype][itype] == 1) {
+        total_sphere_vol += count_per_type[itype] * (4.0 * MY_PI / 3.0) * rp[itype][itype] * rp[itype][itype] * rp[itype][itype];
+      }
+    }
+
+    modified_rho0 = (set_rho0 * vole - lmass) /total_sphere_vol;
+
+    for ( int itype = 1; itype <= ntypes; itype++) {
+      if (potent_type_map[2][itype][itype] == 1) {
+        lmass += count_per_type[itype] * (4.0 * MY_PI / 3.0) * rp[itype][itype] * rp[itype][itype] * rp[itype][itype] * modified_rho0;
+      }
     }
   }
+
   MPI_Allreduce(&lmass, &lmass_all, 1, MPI_DOUBLE, MPI_SUM, world);
 
-  double vole = domain->xprd * domain->yprd * domain->zprd;
 
   rho0 = lmass_all / vole;
   if (comm->me == 0) {
@@ -2472,6 +2582,16 @@ double TILD::calculate_rho0(){
       set_rho0, rho0);
     utils::logmesg(lmp,mesg);
     }
+
+  if (rho0 == 0.f){
+    error->warning(FLERR,"Calculated rho0 is 0; using user specificed rho0");
+    std::string mesg = 
+      fmt::format("  Found {} particles without a TILD potential\n", particles_not_tild);
+    mesg += fmt::format("  User set rho0 = {:.6f}; used rho0 = {:.6f} for TILD potential.\n",
+      set_rho0, set_rho0);
+    utils::logmesg(lmp,mesg);
+  return set_rho0;
+  }
 
   return rho0;
 }
@@ -2699,3 +2819,19 @@ void TILD::ave_grid()
   write_grid_data(ave_grid_filename, 1);
 }
 
+
+void TILD::fix_manual_flags(){
+
+  std::vector<int> manual_flag_check;
+  for (auto& intrxn : cross_iter) {
+    if (intrxn.type != NONE ){
+      potent_type_map[0][intrxn.i+1][intrxn.j+1] = potent_type_map[0][intrxn.j+1][intrxn.i+1] = 0;
+      potent_type_map[nstyles][intrxn.i+1][intrxn.j+1] = potent_type_map[nstyles][intrxn.j+1][intrxn.i+1] = 1;
+      if (std::find(manual_flag_check.begin(), manual_flag_check.end(), intrxn.i+1) != manual_flag_check.end())
+        manual_flag_check.push_back(intrxn.i+1);
+      if (std::find(manual_flag_check.begin(), manual_flag_check.end(), intrxn.j+1) != manual_flag_check.end())
+        manual_flag_check.push_back(intrxn.j+1);
+    }
+  }
+  for (auto part_type: manual_flag_check) potent_type_map[0][part_type][part_type] = 0;
+}

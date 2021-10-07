@@ -102,13 +102,14 @@ class TILD : public KSpace{
   double **potent_param;
   int npot, *pot_map;
   int ***potent_type_map;
-  double rho0, set_rho0;
+  double rho0, set_rho0,modified_rho0;
 
   int factorable(int);
   double **chi;
   double **a2;
   double **rp;
   double **xi;
+  double **np_rho;
   double grid_res;
   virtual int modify_param(int, char**);
   int num_potent;
@@ -130,6 +131,7 @@ class TILD : public KSpace{
   void init_cross_potentials();
   double get_k_alias(int, double*);
   void get_k_alias(FFT_SCALAR *, FFT_SCALAR **);
+  void fix_manual_flags();
 
   int me,nprocs;
   double cutoff;

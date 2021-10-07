@@ -79,15 +79,14 @@ FixPairTracker::FixPairTracker(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg], "type/include") == 0) {
       if (iarg + 1 >= narg) error->all(FLERR, "Invalid keyword in fix pair/tracker command");
       int ntypes = atom->ntypes;
-
-      int i, j, itype, jtype, in, jn, infield, jnfield;
+      int i, j, itype, jtype;
       int inlo, inhi, jnlo, jnhi;
-      char *istr, *jstr;
+      
       if (!type_filter) {
         memory->create(type_filter, ntypes + 1, ntypes + 1, "fix/pair/tracker:type_filter");
 
         for (i = 0; i <= ntypes; i++) {
-          for (j = 0; j <= ntypes; j++) { type_filter[i][j] = 0; }
+          for (j = 0; j <= ntypes; j++) type_filter[i][j] = 0;
         }
       }
 

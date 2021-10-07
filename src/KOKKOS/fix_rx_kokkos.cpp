@@ -2075,7 +2075,7 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
 
   // Local list views. (This isn't working!)
   NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
-  if (not(list->kokkos))
+  if (!list->kokkos)
      error->one(FLERR,"list is not a Kokkos list\n");
 
   //typename ArrayTypes<DeviceType>::t_neighbors_2d d_neighbors = k_list->d_neighbors;

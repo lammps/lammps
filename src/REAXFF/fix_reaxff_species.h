@@ -53,7 +53,6 @@ class FixReaxFFSpecies : public Fix {
 
   double bg_cut;
   double **BOCut;
-  char **tmparg;
 
   FILE *fp, *pos;
   int eleflag, posflag, multipos, padflag, setupflag;

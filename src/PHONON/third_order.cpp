@@ -203,7 +203,7 @@ void ThirdOrder::options(int narg, char **arg)
       iarg += 2;
     } else error->all(FLERR,"Illegal third_order command");
   }
-  if (file_flag == 1 and me == 0) {
+  if (file_flag == 1 && me == 0) {
     openfile(filename);
   }
 }

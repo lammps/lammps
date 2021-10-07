@@ -168,6 +168,7 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   memory->create(a2,ntypes+1,ntypes+1,"tild:a2"); // gaussian parameter
   memory->create(xi,ntypes+1,ntypes+1,"tild:xi"); // erfc parameter
   memory->create(rp,ntypes+1,ntypes+1,"tild:rp"); // erfc parameter
+  memory->create(np_rho,ntypes+1,ntypes+1,"tild:np_rho"); // erfc parameter
 
   for (int i = 0; i <= ntypes; i++) {
     for (int j = 0; j <= ntypes; j++) {

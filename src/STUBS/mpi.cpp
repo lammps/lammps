@@ -173,7 +173,7 @@ int MPI_Finalize()
 
 double MPI_Wtime()
 {
-#if defined(_MSC_VER)
+#if defined(_WIN32)
   double t;
 
   t = GetTickCount();

@@ -278,11 +278,6 @@ private:
   t_sna_1d cglist;
   t_sna_2d rootpqarray;
 
-  static const int nmaxfactorial = 167;
-  static const double nfac_table[];
-  inline
-  double factorial(int);
-
   KOKKOS_INLINE_FUNCTION
   void create_team_scratch_arrays(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team); // SNAKokkos()
   KOKKOS_INLINE_FUNCTION

@@ -215,31 +215,13 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
 
   // Define compute to calculate potential energy
 
-  id_pe = new char[8];
-  strcpy(id_pe,"plmd_pe");
-  char **newarg = new char*[3];
-  newarg[0] = id_pe;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "pe";
-  modify->add_compute(3,newarg);
-  delete [] newarg;
-  int ipe = modify->find_compute(id_pe);
-  c_pe = modify->compute[ipe];
+  id_pe = utils::strdup("plmd_pe");
+  c_pe = modify->add_compute(std::string(id_pe) + " all pe");
 
   // Define compute to calculate pressure tensor
 
-  id_press = new char[11];
-  strcpy(id_press,"plmd_press");
-  newarg = new char*[5];
-  newarg[0] = id_press;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "pressure";
-  newarg[3] = (char *) "NULL";
-  newarg[4] = (char *) "virial";
-  modify->add_compute(5,newarg);
-  delete [] newarg;
-  int ipress = modify->find_compute(id_press);
-  c_press = modify->compute[ipress];
+  id_press = utils::strdup("plmd_press");
+  c_press = modify->add_compute(std::string(id_press) + " all pressure NULL virial");
 
   for (int i = 0; i < modify->nfix; i++) {
     const char * const check_style = modify->fix[i]->style;

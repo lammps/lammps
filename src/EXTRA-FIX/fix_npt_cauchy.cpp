@@ -297,9 +297,7 @@ FixNPTCauchy::FixNPTCauchy(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"mtk") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
-      if (strcmp(arg[iarg+1],"yes") == 0) mtk_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) mtk_flag = 0;
-      else error->all(FLERR,"Illegal fix npt/cauchy command");
+      mtk_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"tloop") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
@@ -318,27 +316,19 @@ FixNPTCauchy::FixNPTCauchy(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"scalexy") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
-      if (strcmp(arg[iarg+1],"yes") == 0) scalexy = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) scalexy = 0;
-      else error->all(FLERR,"Illegal fix npt/cauchy command");
+      scalexy = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"scalexz") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
-      if (strcmp(arg[iarg+1],"yes") == 0) scalexz = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) scalexz = 0;
-      else error->all(FLERR,"Illegal fix npt/cauchy command");
+      scalexz = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"scaleyz") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
-      if (strcmp(arg[iarg+1],"yes") == 0) scaleyz = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) scaleyz = 0;
-      else error->all(FLERR,"Illegal fix npt/cauchy command");
+      scaleyz = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"flip") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
-      if (strcmp(arg[iarg+1],"yes") == 0) flipflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) flipflag = 0;
-      else error->all(FLERR,"Illegal fix npt/cauchy command");
+      flipflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"update") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
@@ -352,10 +342,8 @@ FixNPTCauchy::FixNPTCauchy(LAMMPS *lmp, int narg, char **arg) :
       alpha = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"continue") == 0) {
-      if (strcmp(arg[iarg+1],"yes") != 0 && strcmp(arg[iarg+1],"no") != 0)
-        error->all(FLERR,"Illegal cauchystat continue value.  "
-                   "Must be 'yes' or 'no'");
-      restartPK = !strcmp(arg[iarg+1],"yes");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
+      restartPK = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"fixedpoint") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
@@ -2454,7 +2442,7 @@ double FixNPTCauchy::memory_usage()
 void FixNPTCauchy::CauchyStat_init()
 {
   if (comm->me == 0) {
-    std::string mesg = fmt::format("Using fix npt/cauchy with alpha={:f.8}\n",alpha);
+    std::string mesg = fmt::format("Using fix npt/cauchy with alpha={:.8f}\n",alpha);
     if (restartPK==1) {
       mesg += "   (this is a continuation run)\n";
     } else {
@@ -2475,7 +2463,7 @@ void FixNPTCauchy::CauchyStat_init()
     error->all(FLERR,"Illegal fix npt/cauchy command: Alpha cannot be zero or negative.");
 
   if (restart_stored < 0) {
-    modify->add_fix(std::string(id_store) + "all STORE global 1 6");
+    modify->add_fix(std::string(id_store) + " all STORE global 1 6");
     restart_stored = modify->find_fix(id_store);
   }
   init_store = (FixStore *)modify->fix[restart_stored];

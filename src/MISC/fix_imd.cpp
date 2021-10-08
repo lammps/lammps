@@ -458,28 +458,20 @@ FixIMD::FixIMD(LAMMPS *lmp, int narg, char **arg) :
   imd_trate = 1;
 
   /* parse optional arguments */
-  int argsdone = 4;
-  while (argsdone+1 < narg) {
-    if (0 == strcmp(arg[argsdone], "unwrap")) {
-      if (0 == strcmp(arg[argsdone+1], "on")) {
-        unwrap_flag = 1;
-      } else {
-        unwrap_flag = 0;
-      }
-    } else if (0 == strcmp(arg[argsdone], "nowait")) {
-      if (0 == strcmp(arg[argsdone+1], "on")) {
-        nowait_flag = 1;
-      } else {
-        nowait_flag = 0;
-      }
-    } else if (0 == strcmp(arg[argsdone], "fscale")) {
-      imd_fscale = utils::numeric(FLERR,arg[argsdone+1],false,lmp);
-    } else if (0 == strcmp(arg[argsdone], "trate")) {
-      imd_trate = utils::inumeric(FLERR,arg[argsdone+1],false,lmp);
+  int iarg = 4;
+  while (iarg+1 < narg) {
+    if (0 == strcmp(arg[iarg], "unwrap")) {
+      unwrap_flag = utils::logical(FLERR, arg[iarg+1], false, lmp);
+    } else if (0 == strcmp(arg[iarg], "nowait")) {
+      nowait_flag = utils::logical(FLERR, arg[iarg+1], false, lmp);
+    } else if (0 == strcmp(arg[iarg], "fscale")) {
+      imd_fscale = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+    } else if (0 == strcmp(arg[iarg], "trate")) {
+      imd_trate = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
     } else {
       error->all(FLERR,"Unknown fix imd parameter");
     }
-    ++argsdone; ++argsdone;
+    ++iarg; ++iarg;
   }
 
   /* sanity check on parameters */

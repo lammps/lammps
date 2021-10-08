@@ -378,12 +378,8 @@ void PairSRP::settings(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"exclude") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair srp command");
-      if (strcmp(arg[iarg+1],"yes") == 0)
-        exclude = 1;
-      if (strcmp(arg[iarg+1],"no") == 0) {
-        if (min) error->all(FLERR,"Illegal exclude option in pair srp command");
-        exclude = 0;
-      }
+      exclude = utils::logical(FLERR, arg[iarg+1], false, lmp);
+      if (min && !exclude) error->all(FLERR,"Illegal exclude option in pair srp command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"bptype") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair srp command");

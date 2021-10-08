@@ -189,7 +189,7 @@ void PairCoulExclude::init_style()
    init for one type pair i,j and corresponding j,i
 ------------------------------------------------------------------------- */
 
-double PairCoulExclude::init_one(int i, int j)
+double PairCoulExclude::init_one(int /*i*/, int /*j*/)
 {
   return cut_global;
 }

@@ -151,9 +151,7 @@ void CreateAtoms::command(int narg, char **arg)
       iarg += 3;
     } else if (strcmp(arg[iarg],"remap") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal create_atoms command");
-      if (strcmp(arg[iarg+1],"yes") == 0) remapflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) remapflag = 0;
-      else error->all(FLERR,"Illegal create_atoms command");
+      remapflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"mol") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal create_atoms command");

@@ -25,7 +25,9 @@
 #include <Kokkos_ScatterView.hpp>
 #include <Kokkos_UnorderedMap.hpp>
 
-enum{FULL=1u,HALFTHREAD=2u,HALF=4u};
+constexpr int FULL = 1;
+constexpr int HALFTHREAD = 2;
+constexpr int HALF = 4;
 
 #if defined(KOKKOS_ENABLE_CXX11)
 #undef ISFINITE

@@ -395,9 +395,7 @@ void Comm::modify_params(int narg, char **arg)
       iarg += 1;
     } else if (strcmp(arg[iarg],"vel") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal comm_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) ghost_velocity = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) ghost_velocity = 0;
-      else error->all(FLERR,"Illegal comm_modify command");
+      ghost_velocity = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal comm_modify command");
   }

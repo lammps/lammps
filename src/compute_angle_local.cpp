@@ -194,7 +194,7 @@ void ComputeAngleLocal::compute_local()
 
 int ComputeAngleLocal::compute_angles(int flag)
 {
-  int i,m,n,na,atom1,atom2,atom3,imol,iatom,atype,ivar;
+  int i,m,na,atom1,atom2,atom3,imol,iatom,atype,ivar;
   tagint tagprev;
   double delx1,dely1,delz1,delx2,dely2,delz2;
   double rsq1,rsq2,r1,r2,c,theta;

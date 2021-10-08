@@ -258,9 +258,7 @@ int DumpDCD::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"unwrap") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-    if (strcmp(arg[1],"yes") == 0) unwrap_flag = 1;
-    else if (strcmp(arg[1],"no") == 0) unwrap_flag = 0;
-    else error->all(FLERR,"Illegal dump_modify command");
+    unwrap_flag = utils::logical(FLERR,arg[1],false,lmp);
     return 2;
   }
   return 0;

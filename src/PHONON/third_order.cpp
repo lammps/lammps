@@ -185,18 +185,18 @@ void ThirdOrder::options(int narg, char **arg)
   const char *filename = "third_order.dat";
 
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"file") == 0) {
-      if (iarg+2 > narg) error->all(FLERR, "Illegal third_order command");
-      filename = arg[iarg + 1];
-      file_flag = 1;
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"binary") == 0) {
+    if (strcmp(arg[iarg],"binary") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal third_order command");
       if (strcmp(arg[iarg+1],"gzip") == 0) {
         compressed = 1;
-      } else if (strcmp(arg[iarg+1],"yes") == 0) {
-        binaryflag = 1;
+      } else {
+        binaryflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       }
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"file") == 0) {
+      if (iarg+2 > narg) error->all(FLERR, "Illegal third_order command");
+      filename = arg[iarg + 1];
+      file_flag = 1;
       iarg += 2;
     } else error->all(FLERR,"Illegal third_order command");
   }

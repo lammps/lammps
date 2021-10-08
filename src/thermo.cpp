@@ -556,16 +556,12 @@ void Thermo::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"norm") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal thermo_modify command");
       normuserflag = 1;
-      if (strcmp(arg[iarg+1],"no") == 0) normuser = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) normuser = 1;
-      else error->all(FLERR,"Illegal thermo_modify command");
+      normuser = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"flush") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal thermo_modify command");
-      if (strcmp(arg[iarg+1],"no") == 0) flushflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) flushflag = 1;
-      else error->all(FLERR,"Illegal thermo_modify command");
+      flushflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"line") == 0) {

@@ -210,6 +210,7 @@ OPT.
    * :doc:`nm/cut (o) <pair_nm>`
    * :doc:`nm/cut/coul/cut (o) <pair_nm>`
    * :doc:`nm/cut/coul/long (o) <pair_nm>`
+   * :doc:`nm/cut/split <pair_nm>`
    * :doc:`oxdna/coaxstk <pair_oxdna>`
    * :doc:`oxdna/excv <pair_oxdna>`
    * :doc:`oxdna/hbond <pair_oxdna>`

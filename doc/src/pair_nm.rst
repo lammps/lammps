@@ -14,8 +14,6 @@ Accelerator Variants: *nm/cut/omp*
 pair_style nm/cut/split command
 ===============================
 
-Accelerator Variants:*nm/cut/split/omp*
-
 pair_style nm/cut/coul/cut command
 ==================================
 
@@ -41,7 +39,7 @@ Syntax
        *nm/cut* args = cutoff
          cutoff = global cutoff for Pair interactions (distance units)
        *nm/cut/split* args = cutoff
-	 cutoff = global cutoff for Pair interactions (distance units)
+         cutoff = global cutoff for Pair interactions (distance units)
        *nm/cut/coul/cut* args = cutoff (cutoff2)
          cutoff = global cutoff for Pair (and Coulombic if only 1 arg) (distance units)
          cutoff2 = global cutoff for Coulombic (optional) (distance units)
@@ -128,7 +126,7 @@ N-M and Coulombic cutoffs specified in the pair_style command are used.
 If only one cutoff is specified, it is used as the cutoff for both N-M
 and Coulombic interactions for this type pair.  If both coefficients
 are specified, they are used as the N-M and Coulombic cutoffs for this
-type pair.  You cannot specify 2 cutoffs for style *nm*\ , since it
+type pair.  You cannot specify 2 cutoffs for style *nm*, since it
 has no Coulombic terms.
 
 For *nm/cut/coul/long* only the N-M cutoff can be specified since a
@@ -161,7 +159,7 @@ to be specified in an input script that reads a restart file.
 
 All of the *nm* pair styles can only be used via the *pair* keyword of
 the :doc:`run_style respa <run_style>` command.  They do not support the
-*inner* , *middle* , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 

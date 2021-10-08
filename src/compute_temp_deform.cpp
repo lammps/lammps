@@ -171,7 +171,7 @@ void ComputeTempDeform::compute_vector()
   double *h_ratelo = domain->h_ratelo;
 
   double massone, t[6];
-  for (int i = 0; i < 6; i++) t[i] = 0.0;
+  for (auto &ti : t) ti = 0.0;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {

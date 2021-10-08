@@ -738,30 +738,21 @@ void DeleteAtoms::options(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"compress") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal delete_atoms command");
-      if (strcmp(arg[iarg+1],"yes") == 0) compress_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) compress_flag = 0;
-      else error->all(FLERR,"Illegal delete_atoms command");
+      compress_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"bond") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal delete_atoms command");
       if (atom->molecular == Atom::ATOMIC)
-        error->all(FLERR,"Cannot delete_atoms bond yes for "
-                   "non-molecular systems");
+        error->all(FLERR,"Cannot delete_atoms bond yes for non-molecular systems");
       if (atom->molecular == Atom::TEMPLATE)
-        error->all(FLERR,"Cannot use delete_atoms bond yes with "
-                   "atom_style template");
-      if (strcmp(arg[iarg+1],"yes") == 0) bond_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) bond_flag = 0;
-      else error->all(FLERR,"Illegal delete_atoms command");
+        error->all(FLERR,"Cannot use delete_atoms bond yes with atom_style template");
+      bond_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"mol") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal delete_atoms command");
       if (atom->molecule_flag == 0)
-        error->all(FLERR,"Delete_atoms mol yes requires "
-                   "atom attribute molecule");
-      if (strcmp(arg[iarg+1],"yes") == 0) mol_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) mol_flag = 0;
-      else error->all(FLERR,"Illegal delete_atoms command");
+        error->all(FLERR,"Delete_atoms mol yes requires atom attribute molecule");
+      mol_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal delete_atoms command");
   }

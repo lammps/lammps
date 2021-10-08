@@ -187,26 +187,32 @@ barostatting.
 
 ----------
 
-Like other fixes that perform thermostatting, these fixes can
-be used with :doc:`compute commands <compute>` that calculate a
-temperature after removing a "bias" from the atom velocities.
-This is not done by default, but only if the :doc:`fix_modify <fix_modify>` command
-is used to assign a temperature compute to this fix that includes such
-a bias term.  See the doc pages for individual :doc:`compute commands <compute>` to determine which ones include a bias.  In
-this case, the thermostat works in the following manner: the current
-temperature is calculated taking the bias into account, bias is
-removed from each atom, thermostatting is performed on the remaining
-thermal DOF, and the bias is added back in.
+Like other fixes that perform thermostatting, this fix can be used
+with :doc:`compute commands <compute>` that remove a "bias" from the
+atom velocities.  E.g. to apply the thermostat only to atoms within a
+spatial :doc:`region <region>`, or to remove the center-of-mass
+velocity from a group of atoms, or to remove the x-component of
+velocity from the calculation.
+
+This is not done by default, but only if the :doc:`fix_modify
+<fix_modify>` command is used to assign a temperature compute to this
+fix that includes such a bias term.  See the doc pages for individual
+:doc:`compute temp commands <compute>` to determine which ones include
+a bias.  In this case, the thermostat works in the following manner:
+bias is removed from each atom, thermostatting is performed on the
+remaining thermal degrees of freedom, and the bias is added back in.
 
 .. note::
 
-   However, not all temperature compute commands are valid to be used with these fixes.
-   Precisely, only temperature compute that does not modify the DOF of the group can be used.
-   E.g. :doc:`compute temp/ramp <compute_temp_ramp>` and :doc:`compute viscosity/cos <compute_viscosity_cos>`
-   compute the kinetic energy after remove a velocity gradient without affecting the DOF of the group,
-   then they can be invoked in this way.
-   In contrast, :doc:`compute temp/partial <compute_temp_partial>` may remove the DOF at one or more dimensions,
-   therefore it cannot be used with these fixes.
+   However, not all temperature compute commands are valid to be used
+   with these fixes.  Precisely, only temperature compute that does
+   not modify the DOF of the group can be used.  E.g. :doc:`compute
+   temp/ramp <compute_temp_ramp>` and :doc:`compute viscosity/cos
+   <compute_viscosity_cos>` compute the kinetic energy after remove a
+   velocity gradient without affecting the DOF of the group, then they
+   can be invoked in this way.  In contrast, :doc:`compute
+   temp/partial <compute_temp_partial>` may remove the DOF at one or
+   more dimensions, therefore it cannot be used with these fixes.
 
 ----------
 

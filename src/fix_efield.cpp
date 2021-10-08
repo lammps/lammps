@@ -428,7 +428,7 @@ double FixEfield::memory_usage()
    return energy added by fix
 ------------------------------------------------------------------------- */
 
-double FixEfield::compute_scalar(void)
+double FixEfield::compute_scalar()
 {
   if (force_flag == 0) {
     MPI_Allreduce(fsum,fsum_all,4,MPI_DOUBLE,MPI_SUM,world);

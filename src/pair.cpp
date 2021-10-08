@@ -31,13 +31,11 @@
 #include "neighbor.h"
 #include "suffix.h"
 #include "update.h"
-#include "fmt/chrono.h"
 
 #include <cfloat>    // IWYU pragma: keep
 #include <climits>   // IWYU pragma: keep
 #include <cmath>
 #include <cstring>
-#include <ctime>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -169,9 +167,7 @@ void Pair::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"shift") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) offset_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) offset_flag = 0;
-      else error->all(FLERR,"Illegal pair_modify command");
+      offset_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"table") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
@@ -195,15 +191,11 @@ void Pair::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"tail") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) tail_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) tail_flag = 0;
-      else error->all(FLERR,"Illegal pair_modify command");
+      tail_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"compute") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) compute_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) compute_flag = 0;
-      else error->all(FLERR,"Illegal pair_modify command");
+      compute_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"nofdotr") == 0) {
       no_virial_fdotr_compute = 1;
@@ -758,8 +750,7 @@ void Pair::add_tally_callback(Compute *ptr)
   if (found < 0) {
     found = num_tally_compute;
     ++num_tally_compute;
-    void *p = memory->srealloc((void *)list_tally_compute,
-                               sizeof(Compute *) * num_tally_compute,
+    void *p = memory->srealloc((void *)list_tally_compute, sizeof(Compute *) * num_tally_compute,
                                "pair:list_tally_compute");
     list_tally_compute = (Compute **) p;
     list_tally_compute[num_tally_compute-1] = ptr;
@@ -1816,21 +1807,17 @@ void Pair::write_file(int narg, char **arg)
                                      units, update->unit_style);
       }
       std::string date = utils::get_potential_date(table_file,"table");
-      utils::logmesg(lmp,"Appending to table file {} with DATE: {}\n",
-                     table_file, date);
+      utils::logmesg(lmp,"Appending to table file {} with DATE: {}\n", table_file, date);
       fp = fopen(table_file.c_str(),"a");
     } else {
-      time_t tv = time(nullptr);
-      std::tm current_date = fmt::localtime(tv);
-      utils::logmesg(lmp,"Creating table file {} with DATE: {:%Y-%m-%d}\n",
-                     table_file, current_date);
+      utils::logmesg(lmp,"Creating table file {} with DATE: {}\n",
+                     table_file, utils::current_date());
       fp = fopen(table_file.c_str(),"w");
-      if (fp) fmt::print(fp,"# DATE: {:%Y-%m-%d} UNITS: {} Created by pair_write\n",
-                         current_date, update->unit_style);
+      if (fp) fmt::print(fp,"# DATE: {} UNITS: {} Created by pair_write\n",
+                         utils::current_date(), update->unit_style);
     }
     if (fp == nullptr)
-      error->one(FLERR,"Cannot open pair_write file {}: {}",
-                                   table_file, utils::getsyserror());
+      error->one(FLERR,"Cannot open pair_write file {}: {}",table_file, utils::getsyserror());
     fprintf(fp,"# Pair potential %s for atom types %d %d: i,r,energy,force\n",
             force->pair_style,itype,jtype);
     if (style == RLINEAR)

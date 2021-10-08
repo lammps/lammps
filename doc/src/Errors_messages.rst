@@ -714,7 +714,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Cannot create/grow a vector/array of pointers for %s*
    LAMMPS code is making an illegal call to the templated memory
-   allocaters, to create a vector or array of pointers.
+   allocators, to create a vector or array of pointers.
 
 *Cannot create_atoms after reading restart file with per-atom info*
    The per-atom info was stored to be used when by a fix that you may
@@ -7879,19 +7879,19 @@ keyword to allow for additional bonds to be formed
 *Unexpected end of -reorder file*
    Self-explanatory.
 
-*Unexpected empty line in AngleCoeffs section*
+*Unexpected empty line in Angle Coeffs section*
    Read a blank line where there should be coefficient data.
 
-*Unexpected empty line in BondCoeffs section*
+*Unexpected empty line in Bond Coeffs section*
    Read a blank line where there should be coefficient data.
 
-*Unexpected empty line in DihedralCoeffs section*
+*Unexpected empty line in Dihedral Coeffs section*
    Read a blank line where there should be coefficient data.
 
-*Unexpected empty line in ImproperCoeffs section*
+*Unexpected empty line in Improper Coeffs section*
    Read a blank line where there should be coefficient data.
 
-*Unexpected empty line in PairCoeffs section*
+*Unexpected empty line in Pair Coeffs section*
    Read a blank line where there should be coefficient data.
 
 *Unexpected end of custom file*

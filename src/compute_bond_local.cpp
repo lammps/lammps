@@ -221,7 +221,7 @@ void ComputeBondLocal::compute_local()
 
 int ComputeBondLocal::compute_bonds(int flag)
 {
-  int i,m,n,nb,atom1,atom2,imol,iatom,btype,ivar;
+  int i,m,nb,atom1,atom2,imol,iatom,btype,ivar;
   tagint tagprev;
   double dx,dy,dz,rsq;
   double mass1,mass2,masstotal,invmasstotal;
@@ -261,7 +261,7 @@ int ComputeBondLocal::compute_bonds(int flag)
 
   // loop over all atoms and their bonds
 
-  m = n = 0;
+  m = 0;
   for (atom1 = 0; atom1 < nlocal; atom1++) {
     if (!(mask[atom1] & groupbit)) continue;
 
@@ -299,11 +299,12 @@ int ComputeBondLocal::compute_bonds(int flag)
       rsq = dx*dx + dy*dy + dz*dz;
 
       if (btype == 0) {
-        engpot = fbond = 0.0;
-        engvib = engrot = engtrans = omegasq = vvib = 0.0;
+        fbond = 0.0;
       } else {
 
         if (singleflag) engpot = bond->single(btype,rsq,atom1,atom2,fbond);
+        else fbond = engpot = 0.0;
+        engvib = engrot = engtrans = omegasq = vvib = 0.0;
 
         if (velflag) {
           if (rmass) {
@@ -383,7 +384,7 @@ int ComputeBondLocal::compute_bonds(int flag)
           if (dstr) input->variable->internal_set(dvar,sqrt(rsq));
         }
 
-        for (n = 0; n < nvalues; n++) {
+        for (int n = 0; n < nvalues; n++) {
           switch (bstyle[n]) {
           case DIST:
             ptr[n] = sqrt(rsq);

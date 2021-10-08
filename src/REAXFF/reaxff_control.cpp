@@ -31,7 +31,6 @@
 #include "utils.h"
 #include "text_file_reader.h"
 
-#include <cstring>
 #include <exception>
 #include <string>
 #include <unordered_set>

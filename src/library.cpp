@@ -33,17 +33,18 @@
 #include "group.h"
 #include "info.h"
 #include "input.h"
+#include "lmppython.h"
 #include "memory.h"
 #include "modify.h"
 #include "molecule.h"
 #include "neigh_list.h"
 #include "neighbor.h"
-#include "region.h"
-#include "respa.h"
 #include "output.h"
 #if defined(LMP_PLUGIN)
 #include "plugin.h"
 #endif
+#include "region.h"
+#include "respa.h"
 #include "thermo.h"
 #include "timer.h"
 #include "universe.h"
@@ -51,7 +52,6 @@
 #include "variable.h"
 
 #include <cstring>
-#include <vector>
 
 #if defined(LAMMPS_EXCEPTIONS)
 #include "exceptions.h"
@@ -339,6 +339,8 @@ function no more MPI calls may be made.
 
 .. versionadded:: 18Sep2020
 
+*See also*
+   :cpp:func:`lammps_kokkos_finalize`, :cpp:func:`lammps_python_finalize`
 \endverbatim */
 
 void lammps_mpi_finalize()
@@ -369,11 +371,49 @@ After calling this function no Kokkos functionality may be used.
 
 .. versionadded:: 2Jul2021
 
+*See also*
+   :cpp:func:`lammps_mpi_finalize`, :cpp:func:`lammps_python_finalize`
 \endverbatim */
 
 void lammps_kokkos_finalize()
 {
   KokkosLMP::finalize();
+}
+
+/* ---------------------------------------------------------------------- */
+
+/** Clear the embedded Python environment
+ *
+\verbatim embed:rst
+
+This function resets and clears an embedded Python environment
+by calling the `Py_Finalize() function
+<https://docs.python.org/3/c-api/init.html#c.Py_FinalizeEx>`_
+of the embedded Python library, if enabled.
+This call would free up all allocated resources and release
+loaded shared objects.
+
+However, this is **not** done when a LAMMPS instance is deleted because
+a) LAMMPS may have been used through the Python module and thus
+the Python interpreter is external and not embedded into LAMMPS
+and therefore may not be reset by LAMMPS b) some Python modules
+and extensions, most notably NumPy, are not compatible with being
+initialized multiple times, which would happen if additional
+LAMMPS instances using Python would be created *after*
+after calling Py_Finalize().
+
+This function can be called to explicitly clear the Python
+environment in case it is safe to do so.
+
+.. versionadded:: TBD
+
+*See also*
+   :cpp:func:`lammps_mpi_finalize`, :cpp:func:`lammps_kokkos_finalize`
+\endverbatim */
+
+void lammps_python_finalize()
+{
+  Python::finalize();
 }
 
 // ----------------------------------------------------------------------

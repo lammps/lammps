@@ -29,9 +29,9 @@
 //   g++ -g -DLAMMPS_BIGBIG binarytxt.o -o binary2txt
 //   again -DLAMMPS_SMALLBIG is the default
 
-#include "stdint.h"
+#include <cstdint>
 #define __STDC_FORMAT_MACROS
-#include "inttypes.h"
+#include <cinttypes>
 
 #ifndef PRId64
 #define PRId64 "ld"
@@ -65,7 +65,7 @@ int main(int narg, char **arg)
   char boundstr[9];
 
   int maxbuf = 0;
-  double *buf = NULL;
+  double *buf = nullptr;
 
   if (narg == 1) {
     printf("Syntax: binary2txt file1 file2 ...\n");

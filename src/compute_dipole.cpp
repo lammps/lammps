@@ -16,10 +16,10 @@
 #include "atom.h"
 #include "domain.h"
 #include "error.h"
-#include "group.h"
 #include "update.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

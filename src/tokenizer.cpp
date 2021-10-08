@@ -49,8 +49,8 @@ TokenizerException::TokenizerException(const std::string &msg, const std::string
  * \param str         string to be processed
  * \param separators  string with separator characters (default: " \t\r\n\f") */
 
-Tokenizer::Tokenizer(const std::string &str, const std::string &separators) :
-    text(str), separators(separators), start(0), ntokens(std::string::npos)
+Tokenizer::Tokenizer(const std::string &str, const std::string &_separators) :
+    text(str), separators(_separators), start(0), ntokens(std::string::npos)
 {
     // replace known UTF-8 characters with ASCII equivalents
     if (utils::has_utf8(text)) text = utils::utf8_subst(text);

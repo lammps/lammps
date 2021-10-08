@@ -20,9 +20,9 @@
 
 #include "lmptype.h"
 
-#include <exception>    // IWYU pragma: export
-#include <string>       // IWYU pragma: export
-#include <vector>       // IWYU pragma: export
+#include <exception>
+#include <string>
+#include <vector>
 
 namespace LAMMPS_NS {
 

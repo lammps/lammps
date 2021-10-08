@@ -27,7 +27,7 @@ Syntax
              on = set Newton pairwise flag on (currently not allowed)
            *pair/only* = *off* or *on*
              off = apply "gpu" suffix to all available styles in the GPU package (default)
-             on  - apply "gpu" suffix only pair styles
+             on  = apply "gpu" suffix only pair styles
            *binsize* value = size
              size = bin size for neighbor list construction (distance units)
            *split* = fraction

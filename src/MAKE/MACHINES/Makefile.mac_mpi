@@ -8,12 +8,12 @@ SHELL = /bin/sh
 # unless additional compiler/linker flags or libraries needed for your machine
 
 CC =	 	/opt/local/bin/mpicxx-openmpi-mp
-CCFLAGS =	-O3 
+CCFLAGS =	-O3  -std=c++11
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
 LINK =		/opt/local/bin/mpicxx-openmpi-mp
-LINKFLAGS =	-O3
+LINKFLAGS =	-O3 -std=c++11
 LIB =           
 SIZE =		size
 

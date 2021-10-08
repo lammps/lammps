@@ -59,7 +59,7 @@ ComputeCoordAtomKokkos<DeviceType>::ComputeCoordAtomKokkos(LAMMPS *lmp, int narg
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-ComputeCoordAtomKokkos<DeviceType>::~ComputeCoordAtomKokkos<DeviceType>()
+ComputeCoordAtomKokkos<DeviceType>::~ComputeCoordAtomKokkos()
 {
   if (copymode) return;
 

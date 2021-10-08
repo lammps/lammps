@@ -4,28 +4,41 @@ Citing LAMMPS
 Core Algorithms
 ^^^^^^^^^^^^^^^
 
-Since LAMMPS is a community project, there is not a single one
-publication or reference that describes **all** of LAMMPS.
-The canonical publication that describes the foundation, that is
-the basic spatial decomposition approach, the neighbor finding,
-and basic communications algorithms used in LAMMPS is:
+The paper mentioned below is the best overview of LAMMPS, but there are
+also publications describing particular models or algorithms implemented
+in LAMMPS or complementary software that is has interfaces to.  Please
+see below for how to cite contributions to LAMMPS.
 
- `S. Plimpton, Fast Parallel Algorithms for Short-Range Molecular Dynamics, J Comp Phys, 117, 1-19 (1995). <http://www.sandia.gov/~sjplimp/papers/jcompphys95.pdf>`_
+.. _lammps_paper:
 
-So any project using LAMMPS (or a derivative application using LAMMPS as
-a simulation engine) should cite this paper. A new publication
-describing the developments and improvements of LAMMPS in the 25 years
-since then is currently in preparation.
+The latest canonical publication that describes the basic features, the
+source code design, the program structure, the spatial decomposition
+approach, the neighbor finding, basic communications algorithms, and how
+users and developers have contributed to LAMMPS is:
+
+  `LAMMPS - A flexible simulation tool for particle-based materials modeling at the atomic, meso, and continuum scales, Comp. Phys. Comm. (accepted 09/2021), DOI:10.1016/j.cpc.2021.108171 <https://doi.org/10.1016/j.cpc.2021.108171>`_
+
+So a project using LAMMPS or a derivative application that uses LAMMPS
+as a simulation engine should cite this paper.  The paper is expected to
+be published in its final form under the same DOI in the first half
+of 2022.  Please also give the URL of the LAMMPS website in your paper,
+namely https://www.lammps.org.
+
+The original publication describing the parallel algorithms used in the
+initial versions of LAMMPS is:
+
+  `S. Plimpton, Fast Parallel Algorithms for Short-Range Molecular Dynamics, J Comp Phys, 117, 1-19 (1995). <http://www.sandia.gov/~sjplimp/papers/jcompphys95.pdf>`_
 
 
 DOI for the LAMMPS code
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-LAMMPS developers use the `Zenodo service at CERN
-<https://zenodo.org/>`_ to create digital object identifies (DOI) for
-stable releases of the LAMMPS code. There are two types of DOIs for the
-LAMMPS source code: the canonical DOI for **all** versions of LAMMPS,
-which will always point to the **latest** stable release version is:
+LAMMPS developers use the `Zenodo service at CERN <https://zenodo.org/>`_
+to create digital object identifies (DOI) for stable releases of the
+LAMMPS source code. There are two types of DOIs for the LAMMPS source code.
+
+The canonical DOI for **all** versions of LAMMPS, which will always
+point to the **latest** stable release version is:
 
 - DOI: `10.5281/zenodo.3726416 <https://dx.doi.org/10.5281/zenodo.3726416>`_
 
@@ -45,11 +58,13 @@ about LAMMPS and its features.
 Citing contributions
 ^^^^^^^^^^^^^^^^^^^^
 
-LAMMPS has many features and that use either previously published
-methods and algorithms or novel features.  It also includes potential
-parameter filed for specific models.  Where available, a reminder about
-references for optional features used in a specific run is printed to
-the screen and log file.  Style and output location can be selected with
-the :ref:`-cite command-line switch <cite>`.  Additional references are
+LAMMPS has many features that use either previously published methods
+and algorithms or novel features.  It also includes potential parameter
+files for specific models.  Where available, a reminder about references
+for optional features used in a specific run is printed to the screen
+and log file.  Style and output location can be selected with the
+:ref:`-cite command-line switch <cite>`.  Additional references are
 given in the documentation of the :doc:`corresponding commands
-<Commands_all>` or in the :doc:`Howto tutorials <Howto>`.
+<Commands_all>` or in the :doc:`Howto tutorials <Howto>`.  So please
+make certain, that you provide the proper acknowledgments and citations
+in any published works using LAMMPS.

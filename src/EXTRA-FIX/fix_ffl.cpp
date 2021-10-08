@@ -110,7 +110,7 @@ FixFFL::FixFFL(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   // allocates space for temporaries
   ffl_tmp1=ffl_tmp2=nullptr;
 
-  grow_arrays(atom->nmax);
+  FixFFL::grow_arrays(atom->nmax);
 
   // add callbacks to enable restarts
   atom->add_callback(Atom::GROW);

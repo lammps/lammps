@@ -12,6 +12,13 @@ if(DOWNLOAD_MSCG)
   mark_as_advanced(MSCG_URL)
   mark_as_advanced(MSCG_MD5)
 
+  # CMake cannot pass BLAS or LAPACK library variable to external project if they are a list
+  list(LENGTH BLAS_LIBRARIES} NUM_BLAS)
+  list(LENGTH LAPACK_LIBRARIES NUM_LAPACK)
+  if((NUM_BLAS GREATER 1) OR (NUM_LAPACK GREATER 1))
+    message(FATAL_ERROR "Cannot compile downloaded MSCG library due to a technical limitation")
+  endif()
+
   include(ExternalProject)
   ExternalProject_Add(mscg_build
     URL     ${MSCG_URL}

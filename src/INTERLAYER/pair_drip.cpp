@@ -31,7 +31,6 @@
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "potential_file_reader.h"
-#include "tokenizer.h"
 
 #include <cmath>
 #include <cstring>
@@ -241,16 +240,16 @@ void PairDRIP::read_file(char *filename)
 
       nparams++;
     }
-
-    MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
-    MPI_Bcast(&maxparam, 1, MPI_INT, 0, world);
-
-    if (comm->me != 0) {
-      params = (Param *) memory->srealloc(params, maxparam * sizeof(Param), "pair:params");
-    }
-
-    MPI_Bcast(params, maxparam * sizeof(Param), MPI_BYTE, 0, world);
   }
+
+  MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
+  MPI_Bcast(&maxparam, 1, MPI_INT, 0, world);
+
+  if (comm->me != 0) {
+    params = (Param *) memory->srealloc(params, maxparam * sizeof(Param), "pair:params");
+  }
+
+  MPI_Bcast(params, maxparam * sizeof(Param), MPI_BYTE, 0, world);
 
   memory->destroy(elem2param);
   memory->create(elem2param, nelements, nelements, "pair:elem2param");

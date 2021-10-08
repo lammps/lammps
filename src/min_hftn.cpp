@@ -893,7 +893,7 @@ bool MinHFTN::compute_inner_cg_step_(const double    dTrustRadius,
    Private method calc_xinf_using_mpi_
 ------------------------------------------------------------------------- */
 
-double MinHFTN::calc_xinf_using_mpi_(void) const
+double MinHFTN::calc_xinf_using_mpi_() const
 {
   double dXInfLocal = 0.0;
   for (int  i = 0; i < nvec; i++)
@@ -1162,7 +1162,7 @@ bool MinHFTN::step_exceeds_TR_(const double    dTrustRadius,
                               which calls fix_box_relax->max_alpha
 ------------------------------------------------------------------------- */
 
-bool MinHFTN::step_exceeds_DMAX_(void) const
+bool MinHFTN::step_exceeds_DMAX_() const
 {
   double  dAlpha = dmax * sqrt((double) _nNumUnknowns);
 
@@ -1611,7 +1611,7 @@ void MinHFTN::evaluate_dir_der_(const bool      bUseForwardDiffs,
    Private method open_hftn_print_file_
 ------------------------------------------------------------------------- */
 
-void MinHFTN::open_hftn_print_file_(void)
+void MinHFTN::open_hftn_print_file_()
 {
   int  nMyRank;
   MPI_Comm_rank (world, &nMyRank);
@@ -1700,7 +1700,7 @@ void MinHFTN::hftn_print_line_(const bool    bIsStepAccepted,
    Private method close_hftn_print_file_
 ------------------------------------------------------------------------- */
 
-void MinHFTN::close_hftn_print_file_(void)
+void MinHFTN::close_hftn_print_file_()
 {
   if (_fpPrint != nullptr) fclose (_fpPrint);
   return;

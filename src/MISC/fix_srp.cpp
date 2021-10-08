@@ -57,7 +57,7 @@ FixSRP::FixSRP(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   // initial allocation of atom-based array
   // register with Atom class
   array = nullptr;
-  grow_arrays(atom->nmax);
+  FixSRP::grow_arrays(atom->nmax);
 
   // extends pack_exchange()
   atom->add_callback(Atom::GROW);

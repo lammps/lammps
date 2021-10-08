@@ -14,8 +14,11 @@
 #include "lmptype.h"
 #include "pointers.h"
 #include "utils.h"
+#include "tokenizer.h"
+
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+
 #include <cerrno>
 #include <cstdio>
 #include <string>
@@ -722,7 +725,7 @@ TEST(Utils, guesspath)
 {
     char buf[256];
     FILE *fp = fopen("test_guesspath.txt", "w");
-#if defined(__linux__)
+#if defined(__linux__) || defined(__APPLE__) || defined(_WIN32)
     const char *path = utils::guesspath(buf, sizeof(buf), fp);
     ASSERT_THAT(path, EndsWith("test_guesspath.txt"));
 #else
@@ -873,6 +876,37 @@ TEST(Utils, date2num)
     ASSERT_EQ(utils::date2num("10October22 "), 20221010);
     ASSERT_EQ(utils::date2num("30November 02"), 20021130);
     ASSERT_EQ(utils::date2num("31December100"), 1001231);
+}
+
+TEST(Utils, current_date)
+{
+    auto vals = ValueTokenizer(utils::current_date(),"-");
+    int year = vals.next_int();
+    int month = vals.next_int();
+    int day = vals.next_int();
+    ASSERT_GT(year,2020);
+    ASSERT_GE(month,1);
+    ASSERT_GE(day,1);
+    ASSERT_LE(month,12);
+    ASSERT_LE(day,31);
+}
+
+TEST(Utils, binary_search)
+{
+    double data[] = {-2.0, -1.8, -1.0, -1.0, -1.0, -0.5, -0.2, 0.0, 0.1, 0.1,
+                     0.2,  0.3,  0.5,  0.5,  0.6,  0.7,  1.0,  1.2, 1.5, 2.0};
+    const int n   = sizeof(data) / sizeof(double);
+    ASSERT_EQ(utils::binary_search(-5.0, n, data), 0);
+    ASSERT_EQ(utils::binary_search(-2.0, n, data), 0);
+    ASSERT_EQ(utils::binary_search(-1.9, n, data), 0);
+    ASSERT_EQ(utils::binary_search(-1.0, n, data), 4);
+    ASSERT_EQ(utils::binary_search(0.0, n, data), 7);
+    ASSERT_EQ(utils::binary_search(0.1, n, data), 9);
+    ASSERT_EQ(utils::binary_search(0.4, n, data), 11);
+    ASSERT_EQ(utils::binary_search(1.1, n, data), 16);
+    ASSERT_EQ(utils::binary_search(1.5, n, data), 18);
+    ASSERT_EQ(utils::binary_search(2.0, n, data), 19);
+    ASSERT_EQ(utils::binary_search(2.5, n, data), 19);
 }
 
 static int compare(int a, int b, void *)

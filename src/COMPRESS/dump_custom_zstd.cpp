@@ -18,8 +18,10 @@
 
 #ifdef LAMMPS_ZSTD
 
-#include "domain.h"
 #include "dump_custom_zstd.h"
+
+#include "file_writer.h"
+#include "domain.h"
 #include "error.h"
 #include "update.h"
 
@@ -201,16 +203,13 @@ int DumpCustomZstd::modify_param(int narg, char **arg)
   int consumed = DumpCustom::modify_param(narg, arg);
   if (consumed == 0) {
     try {
-      if (strcmp(arg[0],"checksum") == 0) {
-        if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-        if (strcmp(arg[1],"yes") == 0) writer.setChecksum(true);
-        else if (strcmp(arg[1],"no") == 0) writer.setChecksum(false);
-        else error->all(FLERR,"Illegal dump_modify command");
+      if (strcmp(arg[0], "checksum") == 0) {
+        if (narg < 2) error->all(FLERR, "Illegal dump_modify command");
+        writer.setChecksum(utils::logical(FLERR, arg[1], false, lmp) == 1);
         return 2;
-      } else if (strcmp(arg[0],"compression_level") == 0) {
-        if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-        int compression_level = utils::inumeric(FLERR, arg[1], false, lmp);
-        writer.setCompressionLevel(compression_level);
+      } else if (strcmp(arg[0], "compression_level") == 0) {
+        if (narg < 2) error->all(FLERR, "Illegal dump_modify command");
+        writer.setCompressionLevel(utils::inumeric(FLERR, arg[1], false, lmp));
         return 2;
       }
     } catch (FileWriterException &e) {

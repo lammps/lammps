@@ -196,8 +196,8 @@ void Balance::command(int narg, char **arg)
       if (style != -1) error->all(FLERR,"Illegal balance command");
       if (iarg+4 > narg) error->all(FLERR,"Illegal balance command");
       style = SHIFT;
-      if (strlen(arg[iarg+1]) > 3) error->all(FLERR,"Illegal balance command");
-      strcpy(bstr,arg[iarg+1]);
+      if (strlen(arg[iarg+1]) > BSTR_SIZE) error->all(FLERR,"Illegal balance command");
+      strncpy(bstr,arg[iarg+1],BSTR_SIZE+1);
       nitermax = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
       if (nitermax <= 0) error->all(FLERR,"Illegal balance command");
       stopthresh = utils::numeric(FLERR,arg[iarg+3],false,lmp);
@@ -1029,12 +1029,12 @@ void Balance::tally(int dim, int n, double *split)
   if (wtflag) {
     weight = fixstore->vstore;
     for (int i = 0; i < nlocal; i++) {
-      index = binary(x[i][dim],n,split);
+      index = utils::binary_search(x[i][dim],n,split);
       onecost[index] += weight[i];
     }
   } else {
     for (int i = 0; i < nlocal; i++) {
-      index = binary(x[i][dim],n,split);
+      index = utils::binary_search(x[i][dim],n,split);
       onecost[index] += 1.0;
     }
   }
@@ -1131,16 +1131,16 @@ double Balance::imbalance_splits()
   if (wtflag) {
     weight = fixstore->vstore;
     for (int i = 0; i < nlocal; i++) {
-      ix = binary(x[i][0],nx,xsplit);
-      iy = binary(x[i][1],ny,ysplit);
-      iz = binary(x[i][2],nz,zsplit);
+      ix = utils::binary_search(x[i][0],nx,xsplit);
+      iy = utils::binary_search(x[i][1],ny,ysplit);
+      iz = utils::binary_search(x[i][2],nz,zsplit);
       proccost[iz*nx*ny + iy*nx + ix] += weight[i];
     }
   } else {
     for (int i = 0; i < nlocal; i++) {
-      ix = binary(x[i][0],nx,xsplit);
-      iy = binary(x[i][1],ny,ysplit);
-      iz = binary(x[i][2],nz,zsplit);
+      ix = utils::binary_search(x[i][0],nx,xsplit);
+      iy = utils::binary_search(x[i][1],ny,ysplit);
+      iz = utils::binary_search(x[i][2],nz,zsplit);
       proccost[iz*nx*ny + iy*nx + ix] += 1.0;
     }
   }
@@ -1159,40 +1159,6 @@ double Balance::imbalance_splits()
   double imbalance = 1.0;
   if (maxcost > 0.0) imbalance = maxcost / (totalcost/nprocs);
   return imbalance;
-}
-
-/* ----------------------------------------------------------------------
-   binary search for where value falls in N-length vec
-   note that vec actually has N+1 values, but ignore last one
-   values in vec are monotonically increasing, but adjacent values can be ties
-   value may be outside range of vec limits
-   always return index from 0 to N-1 inclusive
-   return 0 if value < vec[0]
-   reutrn N-1 if value >= vec[N-1]
-   return index = 1 to N-2 inclusive if vec[index] <= value < vec[index+1]
-   note that for adjacent tie values, index of lower tie is not returned
-     since never satisfies 2nd condition that value < vec[index+1]
-------------------------------------------------------------------------- */
-
-int Balance::binary(double value, int n, double *vec)
-{
-  int lo = 0;
-  int hi = n-1;
-
-  if (value < vec[lo]) return lo;
-  if (value >= vec[hi]) return hi;
-
-  // insure vec[lo] <= value < vec[hi] at every iteration
-  // done when lo,hi are adjacent
-
-  int index = (lo+hi)/2;
-  while (lo < hi-1) {
-    if (value < vec[index]) hi = index;
-    else if (value >= vec[index]) lo = index;
-    index = (lo+hi)/2;
-  }
-
-  return index;
 }
 
 /* ----------------------------------------------------------------------

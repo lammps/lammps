@@ -8,11 +8,9 @@
 #include "library.h"
 #include "utils.h"
 
-#include <cstdio>
-#include <cstdlib>
 #include <cstring>
-#include <fstream>
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <vector>
 
@@ -22,6 +20,7 @@
 #if !defined(WIN32_LEAN_AND_MEAN)
 #define WIN32_LEAN_AND_MEAN
 #endif
+#include <direct.h>
 #include <io.h>
 #include <windows.h>
 #define chdir(x) _chdir(x)

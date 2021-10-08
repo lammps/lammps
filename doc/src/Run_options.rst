@@ -242,10 +242,11 @@ links with from the lib/message directory.  See the
 **-cite style** or **file name**
 
 Select how and where to output a reminder about citing contributions
-to the LAMMPS code that were used during the run. Available styles are
-"both", "none", "screen", or "log".  Any flag will be considered a file
-name to write the detailed citation info to.  Default is the "log" style
-where there is a short summary in the screen output and detailed citations
+to the LAMMPS code that were used during the run. Available keywords
+for styles are "both", "none", "screen", or "log".  Any other keyword
+will be considered a file name to write the detailed citation info to
+instead of logfile or screen.  Default is the "log" style where there
+is a short summary in the screen output and detailed citations
 in BibTeX format in the logfile.  The option "both" selects the detailed
 output for both, "none", the short output for both, and "screen" will
 write the detailed info to the screen and the short version to the log
@@ -537,13 +538,14 @@ partition screen files file.N.
 
 **-skiprun**
 
-Insert the command :doc:`timer timerout 0 every 1 <timer>` at the
+Insert the command :doc:`timer timeout 0 every 1 <timer>` at the
 beginning of an input file or after a :doc:`clear <clear>` command.
 This has the effect that the entire LAMMPS input script is processed
-without executing actual runs or minimizations (their main loops are
-skipped).  This can be helpful and convenient to test input scripts for
-long running calculations to avoid having them crash after a long time
-due to a typo or syntax error.
+without executing actual :doc:`run <run>` or :doc:`minimize <minimize>`
+and similar commands (their main loops are skipped).  This can be
+helpful and convenient to test input scripts of long running
+calculations for correctness to avoid having them crash after a
+long time due to a typo or syntax error in the middle or at the end.
 
 ----------
 

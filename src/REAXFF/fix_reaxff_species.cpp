@@ -115,7 +115,7 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
     } else fp = fopen(arg[6],"w");
 
     if (!fp)
-      error->one(FLERR,"Cannot open fix reaxff/species file {}: {}",arg[6],utils::getsyserror()));
+      error->one(FLERR,"Cannot open fix reaxff/species file {}: {}",arg[6],utils::getsyserror());
   }
 
   x0 = nullptr;

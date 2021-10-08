@@ -81,7 +81,7 @@ FixPairTracker::FixPairTracker(LAMMPS *lmp, int narg, char **arg) :
       int ntypes = atom->ntypes;
       int i, j, itype, jtype;
       int inlo, inhi, jnlo, jnhi;
-      
+
       if (!type_filter) {
         memory->create(type_filter, ntypes + 1, ntypes + 1, "fix/pair/tracker:type_filter");
 

@@ -97,7 +97,7 @@ void ReaderMolfile::settings(int narg, char **arg)
 void ReaderMolfile::open_file(const std::string &file)
 {
   int rv;
-  
+
   // close open file, if needed.
   if (mf->is_open()) mf->close();
 

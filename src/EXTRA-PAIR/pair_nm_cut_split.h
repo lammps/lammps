@@ -12,7 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-PairStyle(nm/cut/split,PairNMCutSplit)
+// clang-format off
+PairStyle(nm/cut/split,PairNMCutSplit);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_NM_CUT_SPLIT_H
@@ -22,12 +24,12 @@ PairStyle(nm/cut/split,PairNMCutSplit)
 namespace LAMMPS_NS {
 
 class PairNMCutSplit : public PairNMCut {
-    public :
-    PairNMCutSplit(class LAMMPS *);
-    double single(int, int, int, int, double, double, double, double &);
-    virtual void compute(int, int);
-    };
-}
+ public:
+  PairNMCutSplit(class LAMMPS *);
+  double single(int, int, int, int, double, double, double, double &);
+  virtual void compute(int, int);
+};
+}    // namespace LAMMPS_NS
 #endif
 #endif
 

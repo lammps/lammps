@@ -12,38 +12,38 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
-BondStyle(fene/nm/split,BondFENEnm)
-
+// clang-format off
+BondStyle(fene/nm/split,BondFENEnmSplit);
+// clang-format on
 #else
 
-#ifndef LMP_BOND_FENE_NM_H
-#define LMP_BOND_FENE_NM_H
+#ifndef LMP_BOND_FENE_NM_SPLIT_H
+#define LMP_BOND_FENE_NM_SPLIT_H
 
 #include "bond_fene.h"
 
 namespace LAMMPS_NS {
-class BondFENEnm : public BondFENE {
-    public :
-    BondFENEnm(class LAMMPS *);
-    virtual ~BondFENEnm();
-    virtual void compute(int, int);
-    virtual void coeff(int, char **);
-    void init_style();
-    double equilibrium_distance(int);
-    virtual void write_restart(FILE *);
-    void read_restart(FILE *);
-    void write_data(FILE *);
-    double single(int, double, int, int, double &);
-    virtual void *extract(const char *, int &);
+class BondFENEnmSplit : public BondFENE {
+ public:
+  BondFENEnmSplit(class LAMMPS *);
+  virtual ~BondFENEnmSplit();
+  virtual void compute(int, int);
+  virtual void coeff(int, char **);
+  void init_style();
+  double equilibrium_distance(int);
+  virtual void write_restart(FILE *);
+  void read_restart(FILE *);
+  void write_data(FILE *);
+  double single(int, double, int, int, double &);
+  virtual void *extract(const char *, int &);
 
-    protected:
-     double TWO_1_3;
-     double *k,*r0,*epsilon,*sigma,*nn,*mm;
-    
-     virtual void allocate();
-    };
-}
+ protected:
+  double TWO_1_3;
+  double *k, *r0, *epsilon, *sigma, *nn, *mm;
+
+  virtual void allocate();
+};
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

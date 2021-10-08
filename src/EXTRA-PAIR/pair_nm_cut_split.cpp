@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://lammps.sandia.gov/, Sandia National Laboratories
@@ -16,16 +17,17 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_nm_cut_split.h"
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
-#include "neigh_list.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neigh_list.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -129,7 +131,7 @@ void PairNMCutSplit::compute(int eflag, int vflag)
 double PairNMCutSplit::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq, double /*factor_coul*/, double factor_lj, double &fforce)
 {
   double r2inv,rminv,rninv,r,forcenm,phinm;
-    
+
   r2inv = 1.0/rsq;
   r = sqrt(rsq);
   rminv = pow(r2inv,mm[itype][jtype]/2.0);
@@ -146,7 +148,7 @@ double PairNMCutSplit::single(int /*i*/, int /*j*/, int itype, int jtype, double
   else{forcenm = (e0[itype][jtype]/6)*72*(4/pow(r,12)-2/pow(r,6));
       phinm = (e0[itype][jtype]/6)*(6*4*pow(r2inv,6)-12*2*pow(r2inv,3));
   }
-    
+
   fforce = factor_lj*forcenm*r2inv;
   return factor_lj*phinm;
 }

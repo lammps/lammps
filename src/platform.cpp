@@ -396,6 +396,10 @@ std::string platform::mpi_info(int &major, int &minor)
 #if (defined(MPI_VERSION) && (MPI_VERSION > 2)) || defined(MPI_STUBS)
   static char version[MPI_MAX_LIBRARY_VERSION_STRING];
   MPI_Get_library_version(version, &len);
+  if (len > 80) {
+    char *ptr = strchr(version + 80, '\n');
+    if (ptr) *ptr = '\0';
+  }
 #else
   constexpr int MAX_VERSION_STRING = 32;
   static char version[MAX_VERSION_STRING];
@@ -404,10 +408,6 @@ std::string platform::mpi_info(int &major, int &minor)
 
 #if defined(MPI_VERSION)
   MPI_Get_version(&major, &minor);
-  if (len > 80) {
-    char *ptr = strchr(version + 80, '\n');
-    if (ptr) *ptr = '\0';
-  }
 #else
   major = 1;
   minor = 0;

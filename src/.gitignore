@@ -393,6 +393,8 @@
 /bond_fene.h
 /bond_fene_expand.cpp
 /bond_fene_expand.h
+/bond_fene_nm_cut_split.cpp
+/bond_fene_nm_cut_split.h
 /bond_gaussian.cpp
 /bond_gaussian.h
 /bond_gromos.cpp
@@ -1165,6 +1167,8 @@
 /pair_nm_cut_coul_cut.h
 /pair_nm_cut_coul_long.cpp
 /pair_nm_cut_coul_long.h
+/pait_nm_cut_split.cpp
+/pait_nm_cut_split.h
 /pair_oxdna_*.cpp
 /pair_oxdna_*.h
 /pair_oxdna2_*.cpp

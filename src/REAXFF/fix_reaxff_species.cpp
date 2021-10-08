@@ -95,9 +95,9 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
     rene_flag = 1;
   }
 
-  if (me == 0 && rene_flag) {
-    error->warning(FLERR,"Resetting reneighboring criteria for fix reaxff/species");
-  }
+  if (me == 0 && rene_flag)
+    error->warning(FLERR,"Resetting reneighboring criteria to 'delay {} every {} check no' "
+                   "for fix reaxff/species",neighbor->delay, neighbor->every);
 
   if (me == 0) {
     char *suffix = strrchr(arg[6],'.');
@@ -115,8 +115,7 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
     } else fp = fopen(arg[6],"w");
 
     if (!fp)
-      error->one(FLERR,fmt::format("Cannot open fix reaxff/species file {}: "
-                                   "{}",arg[6],utils::getsyserror()));
+      error->one(FLERR,"Cannot open fix reaxff/species file {}: {}",arg[6],utils::getsyserror()));
   }
 
   x0 = nullptr;

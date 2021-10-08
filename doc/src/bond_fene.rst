@@ -19,7 +19,7 @@ Syntax
 
    bond_style fene
    bond_style fene/nm/split
-   
+
 Examples
 """"""""
 
@@ -46,11 +46,11 @@ term is attractive, the second Lennard-Jones term is repulsive.  The
 first term extends to :math:`R_0`, the maximum extent of the bond.  The second
 term is cutoff at :math:`2^\frac{1}{6} \sigma`, the minimum of the LJ potential.
 
-The *fene/nm/split* bond style substitutes the standard LJ potential with the generalized LJ potential. The bond energy is then given by 
-.. math:: 
+The *fene/nm/split* bond style substitutes the standard LJ potential with the generalized LJ potential. The bond energy is then given by
+.. math::
 
   E = -0.5 K R_0^2  \ln \left[ 1 - \left(\frac{r}{R_0}\right)^2\right] + \frac{\epsilon}{(n-m)} \left[ m \left(\frac{r_0}{r}\right)^n - n \left(\frac{r_0}{r}\right)^m \right]
- 
+
 The following coefficients must be defined for each bond type via the
 :doc:`bond_coeff <bond_coeff>` command as in the example above, or in
 the data file or restart files read by the :doc:`read_data <read_data>`
@@ -61,7 +61,7 @@ or :doc:`read_restart <read_restart>` commands:
 * :math:`\epsilon` (energy)
 * :math:`\sigma` (distance)
 
-For the *fene/nm/split* style, the following additional coefficients are needed. Note, the standard LJ potential is recovered for (n=12 m=6). 
+For the *fene/nm/split* style, the following additional coefficients are needed. Note, the standard LJ potential is recovered for (n=12 m=6).
 
 * :math:`n` (unitless)
 * :math:`m` (unitless)

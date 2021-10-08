@@ -289,6 +289,9 @@ std::string platform::compiler_info()
 #elif defined(__PGI)
   buf = fmt::format("PGI C++ {}.{}", __PGIC__, __PGIC_MINOR__);
 #elif defined(__INTEL_COMPILER)
+#if !defined(__VERSION__)
+#define __VERSION__ __INTEL_COMPILER_BUILD_DATE
+#endif
   double version = static_cast<double>(__INTEL_COMPILER) * 0.01;
   buf = fmt::format("Intel Classic C++ {:.2f}.{} / {}", version, __INTEL_COMPILER_UPDATE,
                     __VERSION__);

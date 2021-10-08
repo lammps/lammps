@@ -22,6 +22,10 @@ namespace LAMMPS_NS {
 
 namespace MathSpecialKokkos {
 
+  // tabulated factorial function
+
+  extern double factorial(const int);
+
   // support function for scaled error function complement
 
   extern double erfcx_y100(const double y100);
@@ -29,12 +33,17 @@ namespace MathSpecialKokkos {
   // fast 2**x function without argument checks for little endian CPUs
   extern double exp2_x86(double x);
 
+  // fast e**x function for little endian CPUs, falls back to libc on other platforms
+  extern double fm_exp(double x);
+
   // scaled error function complement exp(x*x)*erfc(x) for coul/long styles
 
   static inline double my_erfcx(const double x)
   {
-    if (x >= 0.0) return erfcx_y100(400.0/(4.0+x));
-    else return 2.0*exp(x*x) - erfcx_y100(400.0/(4.0-x));
+    if (x >= 0.0)
+      return erfcx_y100(400.0 / (4.0 + x));
+    else
+      return 2.0 * exp(x * x) - erfcx_y100(400.0 / (4.0 - x));
   }
 
   // exp(-x*x) for coul/long styles
@@ -42,8 +51,8 @@ namespace MathSpecialKokkos {
   static inline double expmsq(double x)
   {
     x *= x;
-    x *= 1.4426950408889634074; // log_2(e)
-#if defined(__BYTE_ORDER__) &&  __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+    x *= 1.4426950408889634074;    // log_2(e)
+#if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
     return (x < 1023.0) ? exp2_x86(-x) : 0.0;
 #else
     return (x < 1023.0) ? exp2(-x) : 0.0;
@@ -52,11 +61,11 @@ namespace MathSpecialKokkos {
 
   // x**2, use instead of pow(x,2.0)
   KOKKOS_INLINE_FUNCTION
-  static double square(const double &x) { return x*x; }
+  static double square(const double &x) { return x * x; }
 
   // x**3, use instead of pow(x,3.0)
   KOKKOS_INLINE_FUNCTION
-  static double cube(const double &x) { return x*x*x; }
+  static double cube(const double &x) { return x * x * x; }
 
   // return -1.0 for odd n, 1.0 for even n, like pow(-1.0,n)
   KOKKOS_INLINE_FUNCTION
@@ -66,35 +75,37 @@ namespace MathSpecialKokkos {
   // up to 10x faster than pow(x,y)
 
   KOKKOS_INLINE_FUNCTION
-  static double powint(const double &x, const int n) {
-    double yy,ww;
+  static double powint(const double &x, const int n)
+  {
+    double yy, ww;
 
     if (x == 0.0) return 0.0;
     int nn = (n > 0) ? n : -n;
     ww = x;
 
-    for (yy = 1.0; nn != 0; nn >>= 1, ww *=ww)
+    for (yy = 1.0; nn != 0; nn >>= 1, ww *= ww)
       if (nn & 1) yy *= ww;
 
-    return (n > 0) ? yy : 1.0/yy;
+    return (n > 0) ? yy : 1.0 / yy;
   }
 
   // optimized version of (sin(x)/x)**n with n being a _positive_ integer
 
   KOKKOS_INLINE_FUNCTION
-  static double powsinxx(const double &x, int n) {
-    double yy,ww;
+  static double powsinxx(const double &x, int n)
+  {
+    double yy, ww;
 
     if (x == 0.0) return 1.0;
 
-    ww = sin(x)/x;
+    ww = sin(x) / x;
 
-    for (yy = 1.0; n != 0; n >>= 1, ww *=ww)
+    for (yy = 1.0; n != 0; n >>= 1, ww *= ww)
       if (n & 1) yy *= ww;
 
     return yy;
   }
-}
-}
+}    // namespace MathSpecialKokkos
+}    // namespace LAMMPS_NS
 
 #endif

@@ -239,9 +239,12 @@ void PairTDPD::settings(int narg, char **arg)
   seed = utils::inumeric(FLERR,arg[2],false,lmp);
 
   // initialize Marsaglia RNG with processor-unique seed
+  // create a positive seed based on the system clock, if requested.
 
-  if (seed <= 0)
-    seed = (int) (platform::walltime() * 1073741824.0);
+  if (seed <= 0) {
+    constexpr double LARGE_NUM = 2<<30;
+    seed = int(fmod(platform::walltime() * LARGE_NUM, LARGE_NUM)) + 1;
+  }
 
   delete random;
   random = new RanMars(lmp,(seed + comm->me) % 900000000);

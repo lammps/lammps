@@ -52,7 +52,6 @@ using namespace RigidConst;
 
 constexpr const int debug_level = 1;
 
-
 /* ----------------------------------------------------------------------
    Contributing author: Stefan Paquay (Brandeis U, stefanpaquay@gmail.com)
 ------------------------------------------------------------------------- */

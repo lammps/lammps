@@ -12,8 +12,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-
-
 #ifdef FIX_CLASS
 // clang-format off
 FixStyle(rigid/kk,FixRigidKokkos<LMPDeviceType>)
@@ -48,26 +46,26 @@ class FixRigidKokkos : public FixRigid {
   virtual ~FixRigidKokkos();
 
   // virtual int setmask(); // Masks remain same
-  virtual void init();
-  virtual void setup(int);
-  virtual void initial_integrate(int);
-  virtual void post_force(int);
-  virtual void final_integrate();
+  void init();
+  void setup(int);
+  void initial_integrate(int);
+  void post_force(int);
+  void final_integrate();
 
   // pre_neighbor gets called explicitly during init. At this time, not all
   // kokkos-able arrays and stuff is set. We have to bypass this somehow.
   // No need for explicit setup_pre_neighbor, it only calls this method
   // which is virtual.
-  virtual void pre_neighbor();
-  virtual double compute_scalar();
+  void pre_neighbor();
+  double compute_scalar();
 
 
   // void initial_integrate_respa(int, int, int);
   // void final_integrate_respa(int, int);
   // void write_restart_file(char *);
-  // virtual double compute_scalar();
+  // double compute_scalar();
 
-  virtual int dof(int);
+  int dof(int);
   //void deform(int);
   //void enforce2d();
   //void reset_dt();
@@ -97,7 +95,7 @@ class FixRigidKokkos : public FixRigid {
   DAT::tdual_f_array k_tflag;
   DAT::tdual_f_array k_fflag;
 
-  // Careful. This fix' omega, angmom and torque are defined in fix_rigid.
+  // Careful. This fix omega, angmom and torque are defined in fix_rigid.
   // They are not the same as those in atom_vec and atom_vec_kokkos!
   DAT::tdual_v_array k_omega;
   DAT::tdual_v_array k_angmom;
@@ -128,7 +126,6 @@ class FixRigidKokkos : public FixRigid {
   // Needed if we apply langvin forces:
   Kokkos::Random_XorShift64_Pool<DeviceType> rand_pool;
   typedef typename Kokkos::Random_XorShift64_Pool<DeviceType>::generator_type rand_type;
-
 
   bool bypass_pre_neighbor;
 

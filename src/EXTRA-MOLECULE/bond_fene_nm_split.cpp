@@ -80,7 +80,7 @@ void BondFENEnmSplit::compute(int eflag, int vflag)
     // issue a warning and reset rlogarg = epsilon
     // if r > 2*r0 something serious is wrong, abort
     // change cutuff from .1 to .02 so only bond lengths > 1.485 give the warning
-    // and crash the run if rlogarg < -.21 rather than < 3
+    // and crash the run if rlogarg < -.21 rather than < -3
     // Don't print out warnings, only errors
     if (rlogarg < .02) {
       char str[128];
@@ -250,7 +250,7 @@ double BondFENEnmSplit::single(int type, double rsq, int /*i*/, int /*j*/, doubl
   // if r > 2*r0 something serious is wrong, abort
 
   // change cutuff from .1 to .02 so only bond lengths > 1.485 give the warning
-  // and crash the run if rlogarg < -.21 rather than < 3
+  // and crash the run if rlogarg < -.21 rather than < -3
   // Don't print out warnings, only errors
   if (rlogarg < 0.02) {
     char str[128];

@@ -83,9 +83,8 @@ void BondFENEnmSplit::compute(int eflag, int vflag)
     // and crash the run if rlogarg < -.21 rather than < -3
     // Don't print out warnings, only errors
     if (rlogarg < .02) {
-      char str[128];
-      sprintf(str, "FENE bond too long: " BIGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " %g",
-              update->ntimestep, atom->tag[i1], atom->tag[i2], sqrt(rsq));
+      error->warning(FLERR, "fene/nm/split bond too long: {} {} {} {}", update->ntimestep,
+                     atom->tag[i1], atom->tag[i2], sqrt(rsq));
       if (rlogarg <= -.21) error->one(FLERR, "Bad FENE bond");
       rlogarg = 0.02;
     }
@@ -253,9 +252,7 @@ double BondFENEnmSplit::single(int type, double rsq, int /*i*/, int /*j*/, doubl
   // and crash the run if rlogarg < -.21 rather than < -3
   // Don't print out warnings, only errors
   if (rlogarg < 0.02) {
-    char str[128];
-    sprintf(str, "FENE bond too long: " BIGINT_FORMAT " %g", update->ntimestep, sqrt(rsq));
-
+    error->warning(FLERR, "FENE bond too long: {} {:.8}", update->ntimestep, sqrt(rsq));
     if (rlogarg <= -.21) error->one(FLERR, "Bad FENE bond");
     rlogarg = 0.02;
   }

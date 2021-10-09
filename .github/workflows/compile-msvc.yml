@@ -20,8 +20,14 @@ jobs:
     - name: Building LAMMPS via CMake
       shell: bash
       run: |
-        cmake -C ../cmake/presets/windowws.cmake \
+        cmake -C cmake/presets/windows.cmake \
               -S cmake -B build \
               -D BUILD_SHARED_LIBS=on \
               -D LAMMPS_EXCEPTIONS=on
         cmake --build build --config Release
+
+    - name: Run LAMMPS executable
+      shell: bash
+      run: |
+        ./build/Release/lmp.exe -h
+        ./build/Release/lmp.exe -in bench/in.lj

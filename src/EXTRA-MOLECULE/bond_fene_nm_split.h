@@ -39,7 +39,7 @@ class BondFENEnmSplit : public BondFENE {
 
  protected:
   double TWO_1_3;
-  double *k, *r0, *epsilon, *sigma, *nn, *mm;
+  double *nn, *mm;
 
   virtual void allocate();
 };

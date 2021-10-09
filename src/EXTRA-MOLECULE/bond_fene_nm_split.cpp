@@ -37,11 +37,6 @@ BondFENEnmSplit::BondFENEnmSplit(LAMMPS *lmp) : BondFENE(lmp) {}
 BondFENEnmSplit::~BondFENEnmSplit()
 {
   if (allocated && !copymode) {
-    memory->destroy(setflag);
-    memory->destroy(k);
-    memory->destroy(r0);
-    memory->destroy(epsilon);
-    memory->destroy(sigma);
     memory->destroy(nn);
     memory->destroy(mm);
   }
@@ -133,17 +128,10 @@ void BondFENEnmSplit::compute(int eflag, int vflag)
 
 void BondFENEnmSplit::allocate()
 {
-  allocated = 1;
-  int n = atom->nbondtypes+1;
-
-  memory->create(k, n, "bond:k");
-  memory->create(r0, n, "bond:r0");
-  memory->create(epsilon, n, "bond:epsilon");
-  memory->create(sigma, n, "bond:sigma");
+  BondFENE::allocate();
+  int n = atom->nbondtypes + 1;
   memory->create(nn, n, "bond:nn");
   memory->create(mm, n, "bond:mm");
-  memory->create(setflag, n, "bond:setflag");
-  for (int i = 0; i < n; i++) setflag[i] = 0;
 }
 
 /* ----------------------------------------------------------------------

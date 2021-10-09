@@ -261,7 +261,7 @@ double BondFENEnmSplit::single(int type, double rsq, int /*i*/, int /*j*/, doubl
   fforce = -k[type] / rlogarg;
 
   // MY_CUBEROOT2 cutoff assumes sigma = 2^1/6
-  if (rsq < sigma[type] * sigma[type]) {
+  if (rsq < MY_CUBEROOT2) {
     r = sqrt(rsq);
     fforce += epsilon[type] * (nn[type] * mm[type] / (nn[type] - mm[type])) *
         (pow(sigma[type] / r, nn[type]) - pow(sigma[type] / r, mm[type])) / rsq;

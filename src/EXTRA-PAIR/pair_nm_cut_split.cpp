@@ -23,6 +23,7 @@
 #include "error.h"
 #include "force.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "memory.h"
 #include "neigh_list.h"
 
@@ -31,6 +32,7 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using MathSpecial::powint;
 
 /* ---------------------------------------------------------------------- */
 PairNMCutSplit::PairNMCutSplit(LAMMPS *lmp) : PairNMCut(lmp)
@@ -87,16 +89,14 @@ void PairNMCutSplit::compute(int eflag, int vflag)
         r2inv = 1.0/rsq;
         r = sqrt(rsq);
 
-        rminv = pow(r2inv,mm[itype][jtype]/2.0);
-        rninv = pow(r2inv,nn[itype][jtype]/2.0);
-          // r < 2^1/6, use generlaized LJ
-          if (rsq < 1.25992105) {
-             forcenm = e0nm[itype][jtype]*nm[itype][jtype]*
-              (r0n[itype][jtype]/pow(r,nn[itype][jtype])
+        // r < 2^1/6, use generalized LJ
+        if (rsq < MY_CUBEROOT2) {
+          forcenm = e0nm[itype][jtype]*nm[itype][jtype]*
+            (r0n[itype][jtype]/pow(r,nn[itype][jtype])
              -r0m[itype][jtype]/pow(r,mm[itype][jtype]));
-          }
-          // r > 2^1/6 --> use standard LJ (m = 6 n = 12)
-          else{forcenm =(e0[itype][jtype]/6)*72*(4/pow(r,12)-2/pow(r,6));}
+        }
+        // r > 2^1/6 --> use standard LJ (m = 6 n = 12)
+        else forcenm =(e0[itype][jtype]/6.0)*72.0*(4.0/powint(r,12)-2.0/powint(r,6));
 
         fpair = factor_lj*forcenm*r2inv;
 
@@ -110,15 +110,17 @@ void PairNMCutSplit::compute(int eflag, int vflag)
         }
 
         if (eflag) {
-          if (rsq < 1.25992105) {
-             evdwl = e0nm[itype][jtype]*(mm[itype][jtype]*r0n[itype][jtype]*rninv -
-            nn[itype][jtype]*r0m[itype][jtype]*rminv) - offset[itype][jtype];
-          }
-          else evdwl = (e0[itype][jtype]/6)*(6*4*pow(r2inv,6) - 12*2*pow(r2inv,3));
+          if (rsq < MY_CUBEROOT2) {
+            rminv = pow(r2inv,mm[itype][jtype]/2.0);
+            rninv = pow(r2inv,nn[itype][jtype]/2.0);
+
+            evdwl = e0nm[itype][jtype]*(mm[itype][jtype]*r0n[itype][jtype]*rninv -
+                                        nn[itype][jtype]*r0m[itype][jtype]*rminv) -
+              offset[itype][jtype];
+          } else evdwl = (e0[itype][jtype]/6.0)*(24.0*powint(r2inv,6) - 24.0*pow(r2inv,3));
           evdwl *= factor_lj;
         }
-        if (evflag) ev_tally(i,j,nlocal,newton_pair,
-        evdwl,0.0,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }
@@ -136,8 +138,8 @@ double PairNMCutSplit::single(int /*i*/, int /*j*/, int itype, int jtype, double
   r = sqrt(rsq);
   rminv = pow(r2inv,mm[itype][jtype]/2.0);
   rninv = pow(r2inv,nn[itype][jtype]/2.0);
-  // r < 2^1/6, use generlaized LJ
-  if (rsq < 1.25992105) {
+  // r < 2^1/6, use generalized LJ
+  if (rsq < MY_CUBEROOT2) {
      forcenm = e0nm[itype][jtype]*nm[itype][jtype]*
       (r0n[itype][jtype]/pow(r,nn[itype][jtype])-r0m[itype][jtype]/pow(r,mm[itype][jtype]));
       phinm = e0nm[itype][jtype]*(mm[itype][jtype]*r0n[itype][jtype]*rninv
@@ -145,8 +147,8 @@ double PairNMCutSplit::single(int /*i*/, int /*j*/, int itype, int jtype, double
 
   }
   // r > 2^1/6 --> use standard LJ (m = 6 n = 12)
-  else{forcenm = (e0[itype][jtype]/6)*72*(4/pow(r,12)-2/pow(r,6));
-      phinm = (e0[itype][jtype]/6)*(6*4*pow(r2inv,6)-12*2*pow(r2inv,3));
+  else{forcenm = (e0[itype][jtype]/6.0)*72.0*(4.0/powint(r,12)-2.0/powint(r,6));
+      phinm = (e0[itype][jtype]/6.0)*(24.0*powint(r2inv,6)-24.0*powint(r2inv,3));
   }
 
   fforce = factor_lj*forcenm*r2inv;

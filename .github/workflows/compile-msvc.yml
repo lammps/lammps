@@ -1,0 +1,27 @@
+# GitHub action to build LAMMPS on Windows with Visual C++
+name: "Native Windows Compilation"
+
+on:
+  push:
+    branches: [platform-namespace]
+
+jobs:
+  build:
+    name: Windows Compilation Test
+    if: ${{ github.repository == 'akohlmey/lammps' }}
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 2
+
+    - name: Building LAMMPS via CMake
+      shell: bash
+      run: |
+        cmake -C ../cmake/presets/windowws.cmake \
+              -S cmake -B build \
+              -D BUILD_SHARED_LIBS=on \
+              -D LAMMPS_EXCEPTIONS=on
+        cmake --build build --config Release

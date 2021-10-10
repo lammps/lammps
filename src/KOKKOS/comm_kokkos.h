@@ -51,6 +51,8 @@ class CommKokkos : public CommBrick {
   void forward_comm_dump(class Dump *);    // forward comm from a Dump
   void reverse_comm_dump(class Dump *);    // reverse comm from a Dump
 
+  void forward_comm_array(int, double **);            // forward comm of array
+
   template<class DeviceType> void forward_comm_device(int dummy);
   template<class DeviceType> void reverse_comm_device();
   template<class DeviceType> void forward_comm_pair_device(Pair *pair);

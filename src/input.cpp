@@ -38,7 +38,7 @@
 #include "output.h"
 #include "pair.h"
 #include "special.h"
-#include "style_command.h"
+#include "style_command.h"      // IWYU pragma: keep
 #include "thermo.h"
 #include "timer.h"
 #include "universe.h"
@@ -46,7 +46,7 @@
 #include "variable.h"
 
 #include <cstring>
-#include <errno.h>
+#include <cerrno>
 #include <cctype>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -126,7 +126,7 @@ Input::Input(LAMMPS *lmp, int argc, char **argv) : Pointers(lmp)
 #define COMMAND_CLASS
 #define CommandStyle(key,Class) \
   (*command_map)[#key] = &command_creator<Class>;
-#include "style_command.h"
+#include "style_command.h"      // IWYU pragma: keep
 #undef CommandStyle
 #undef COMMAND_CLASS
 
@@ -163,9 +163,9 @@ Input::~Input()
   memory->sfree(line);
   memory->sfree(copy);
   memory->sfree(work);
-  if (labelstr) delete [] labelstr;
+  if (labelstr) delete[] labelstr;
   memory->sfree(arg);
-  delete [] infiles;
+  delete[] infiles;
   delete variable;
 
   delete command_map;
@@ -614,8 +614,7 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
       }
 
       if (value == nullptr)
-        error->one(FLERR,"Substitution for illegal "
-                                     "variable {}",var);
+        error->one(FLERR,"Substitution for illegal variable {}",var);
 
       // check if storage in str2 needs to be expanded
       // re-initialize ptr and ptr2 to the point beyond the variable.
@@ -897,9 +896,9 @@ void Input::ifthenelse()
 
     for (int i = 0; i < ncommands; i++) {
       one(commands[i]);
-      delete [] commands[i];
+      delete[] commands[i];
     }
-    delete [] commands;
+    delete[] commands;
 
     return;
   }
@@ -952,9 +951,9 @@ void Input::ifthenelse()
 
     for (int i = 0; i < ncommands; i++) {
       one(commands[i]);
-      delete [] commands[i];
+      delete[] commands[i];
     }
-    delete [] commands;
+    delete[] commands;
 
     return;
   }
@@ -1015,7 +1014,7 @@ void Input::jump()
 
   if (narg == 2) {
     label_active = 1;
-    if (labelstr) delete [] labelstr;
+    if (labelstr) delete[] labelstr;
     labelstr = utils::strdup(arg[1]);
   }
 }
@@ -1069,19 +1068,14 @@ void Input::partition()
 {
   if (narg < 3) error->all(FLERR,"Illegal partition command");
 
-  int yesflag = 0;
-  if (strcmp(arg[0],"yes") == 0) yesflag = 1;
-  else if (strcmp(arg[0],"no") == 0) yesflag = 0;
-  else error->all(FLERR,"Illegal partition command");
-
   int ilo,ihi;
+  int yesflag = utils::logical(FLERR,arg[0],false,lmp);
   utils::bounds(FLERR,arg[1],1,universe->nworlds,ilo,ihi,error);
 
   // new command starts at the 3rd argument,
   // which must not be another partition command
 
-  if (strcmp(arg[2],"partition") == 0)
-    error->all(FLERR,"Illegal partition command");
+  if (strcmp(arg[2],"partition") == 0) error->all(FLERR,"Illegal partition command");
 
   char *cmd = strstr(line,arg[2]);
 
@@ -1124,21 +1118,16 @@ void Input::print()
         if (strcmp(arg[iarg],"file") == 0) fp = fopen(arg[iarg+1],"w");
         else fp = fopen(arg[iarg+1],"a");
         if (fp == nullptr)
-          error->one(FLERR,"Cannot open print file {}: {}",
-                                       arg[iarg+1], utils::getsyserror());
+          error->one(FLERR,"Cannot open print file {}: {}", arg[iarg+1], utils::getsyserror());
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"screen") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal print command");
-      if (strcmp(arg[iarg+1],"yes") == 0) screenflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) screenflag = 0;
-      else error->all(FLERR,"Illegal print command");
+      screenflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"universe") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal print command");
-      if (strcmp(arg[iarg+1],"yes") == 0) universeflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) universeflag = 0;
-      else error->all(FLERR,"Illegal print command");
+      universeflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal print command");
   }
@@ -1197,7 +1186,7 @@ void Input::shell()
     if (me == 0 && err != 0) {
       char *message = shell_failed_message("cd",err);
       error->warning(FLERR,message);
-      delete [] message;
+      delete[] message;
     }
 
   } else if (strcmp(arg[0],"mkdir") == 0) {
@@ -1212,7 +1201,7 @@ void Input::shell()
         if (rv < 0) {
           char *message = shell_failed_message("mkdir",errno);
           error->warning(FLERR,message);
-          delete [] message;
+          delete[] message;
         }
       }
 
@@ -1223,7 +1212,7 @@ void Input::shell()
     if (me == 0 && err != 0) {
       char *message = shell_failed_message("mv",err);
       error->warning(FLERR,message);
-      delete [] message;
+      delete[] message;
     }
 
   } else if (strcmp(arg[0],"rm") == 0) {
@@ -1233,7 +1222,7 @@ void Input::shell()
         if (unlink(arg[i]) < 0) {
           char *message = shell_failed_message("rm",errno);
           error->warning(FLERR,message);
-          delete [] message;
+          delete[] message;
         }
       }
 
@@ -1244,7 +1233,7 @@ void Input::shell()
         if (rmdir(arg[i]) < 0) {
           char *message = shell_failed_message("rmdir",errno);
           error->warning(FLERR,message);
-          delete [] message;
+          delete[] message;
         }
       }
 
@@ -1257,7 +1246,7 @@ void Input::shell()
 #else
       if (arg[i]) {
         std::string vardef(arg[i]);
-        auto found = vardef.find_first_of("=");
+        auto found = vardef.find_first_of('=');
         if (found == std::string::npos) {
           rv = setenv(vardef.c_str(),"",1);
         } else {
@@ -1271,7 +1260,7 @@ void Input::shell()
       if (me == 0 && err != 0) {
         char *message = shell_failed_message("putenv",err);
         error->warning(FLERR,message);
-        delete [] message;
+        delete[] message;
       }
     }
 
@@ -1633,16 +1622,10 @@ void Input::newton()
   int newton_pair=1,newton_bond=1;
 
   if (narg == 1) {
-    if (strcmp(arg[0],"off") == 0) newton_pair = newton_bond = 0;
-    else if (strcmp(arg[0],"on") == 0) newton_pair = newton_bond = 1;
-    else error->all(FLERR,"Illegal newton command");
+    newton_pair = newton_bond = utils::logical(FLERR,arg[0],false,lmp);
   } else if (narg == 2) {
-    if (strcmp(arg[0],"off") == 0) newton_pair = 0;
-    else if (strcmp(arg[0],"on") == 0) newton_pair= 1;
-    else error->all(FLERR,"Illegal newton command");
-    if (strcmp(arg[1],"off") == 0) newton_bond = 0;
-    else if (strcmp(arg[1],"on") == 0) newton_bond = 1;
-    else error->all(FLERR,"Illegal newton command");
+    newton_pair = utils::logical(FLERR,arg[0],false,lmp);
+    newton_bond = utils::logical(FLERR,arg[1],false,lmp);
   } else error->all(FLERR,"Illegal newton command");
 
   force->newton_pair = newton_pair;
@@ -1683,7 +1666,7 @@ void Input::package()
   } else if (strcmp(arg[0],"omp") == 0) {
     if (!modify->check_package("OMP"))
       error->all(FLERR,
-                 "Package omp command without USER-OMP package installed");
+                 "Package omp command without OPENMP package installed");
 
     std::string fixcmd = "package_omp all OMP";
     for (int i = 1; i < narg; i++) fixcmd += std::string(" ") + arg[i];
@@ -1692,7 +1675,7 @@ void Input::package()
  } else if (strcmp(arg[0],"intel") == 0) {
     if (!modify->check_package("INTEL"))
       error->all(FLERR,
-                 "Package intel command without USER-INTEL package installed");
+                 "Package intel command without INTEL package installed");
 
     std::string fixcmd = "package_intel all INTEL";
     for (int i = 1; i < narg; i++) fixcmd += std::string(" ") + arg[i];
@@ -1839,19 +1822,21 @@ void Input::suffix()
 {
   if (narg < 1) error->all(FLERR,"Illegal suffix command");
 
-  if (strcmp(arg[0],"off") == 0) lmp->suffix_enable = 0;
-  else if (strcmp(arg[0],"on") == 0) {
-    if (!lmp->suffix)
-      error->all(FLERR,"May only enable suffixes after defining one");
+  const std::string firstarg = arg[0];
+
+  if ((firstarg == "off") || (firstarg == "no") || (firstarg == "false")) {
+    lmp->suffix_enable = 0;
+  } else if ((firstarg == "on") || (firstarg == "yes") || (firstarg == "true")) {
     lmp->suffix_enable = 1;
+    if (!lmp->suffix) error->all(FLERR,"May only enable suffixes after defining one");
   } else {
     lmp->suffix_enable = 1;
 
-    delete [] lmp->suffix;
-    delete [] lmp->suffix2;
+    delete[] lmp->suffix;
+    delete[] lmp->suffix2;
     lmp->suffix = lmp->suffix2 = nullptr;
 
-    if (strcmp(arg[0],"hybrid") == 0) {
+    if (firstarg == "hybrid") {
       if (narg != 3) error->all(FLERR,"Illegal suffix command");
       lmp->suffix = utils::strdup(arg[1]);
       lmp->suffix2 = utils::strdup(arg[2]);

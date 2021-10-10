@@ -23,10 +23,10 @@
 #include "utils.h"
 #include "variable.h"
 
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
 #include "../testing/core.h"
 #include "../testing/utils.h"
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 
 #include <cstdio>
 #include <cstring>
@@ -36,7 +36,6 @@
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
-
 
 using LAMMPS_NS::utils::split_words;
 
@@ -161,7 +160,8 @@ TEST_F(SimpleCommandsTest, Partition)
     BEGIN_HIDE_OUTPUT();
     command("echo none");
     END_HIDE_OUTPUT();
-    TEST_FAILURE(".*ERROR: Illegal partition command .*", command("partition xxx 1 echo none"););
+    TEST_FAILURE(".*ERROR: Expected boolean parameter instead of 'xxx'.*",
+                 command("partition xxx 1 echo none"););
     TEST_FAILURE(".*ERROR: Numeric index 2 is out of bounds.*",
                  command("partition yes 2 echo none"););
 
@@ -205,7 +205,8 @@ TEST_F(SimpleCommandsTest, Processors)
     ASSERT_EQ(lmp->comm->user_procgrid[2], 0);
 
     TEST_FAILURE(".*ERROR: Illegal processors command .*", command("processors -1 0 0"););
-    TEST_FAILURE(".*ERROR: Specified processors != physical processors.*", command("processors 100 100 100"););
+    TEST_FAILURE(".*ERROR: Specified processors != physical processors.*",
+                 command("processors 100 100 100"););
 }
 
 TEST_F(SimpleCommandsTest, Quit)
@@ -248,6 +249,8 @@ TEST_F(SimpleCommandsTest, Suffix)
     ASSERT_EQ(lmp->suffix2, nullptr);
 
     TEST_FAILURE(".*ERROR: May only enable suffixes after defining one.*", command("suffix on"););
+    TEST_FAILURE(".*ERROR: May only enable suffixes after defining one.*", command("suffix yes"););
+    TEST_FAILURE(".*ERROR: May only enable suffixes after defining one.*", command("suffix true"););
 
     BEGIN_HIDE_OUTPUT();
     command("suffix one");
@@ -268,6 +271,26 @@ TEST_F(SimpleCommandsTest, Suffix)
 
     BEGIN_HIDE_OUTPUT();
     command("suffix off");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->suffix_enable, 0);
+
+    BEGIN_HIDE_OUTPUT();
+    command("suffix yes");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->suffix_enable, 1);
+
+    BEGIN_HIDE_OUTPUT();
+    command("suffix no");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->suffix_enable, 0);
+
+    BEGIN_HIDE_OUTPUT();
+    command("suffix true");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->suffix_enable, 1);
+
+    BEGIN_HIDE_OUTPUT();
+    command("suffix false");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->suffix_enable, 0);
 

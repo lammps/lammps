@@ -29,7 +29,7 @@ This fix is needed for SPH simulations to correctly time-integrate
 fixed boundary particles which constrain a fluid to a given region in
 space.  SPH stands for Smoothed Particle Hydrodynamics.
 
-See `this PDF guide <USER/sph/SPH_LAMMPS_userguide.pdf>`_ to using SPH in
+See `this PDF guide <PDF/SPH_LAMMPS_userguide.pdf>`_ to using SPH in
 LAMMPS.
 
 Restart, fix_modify, output, run start/stop, minimize info
@@ -44,8 +44,8 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 Restrictions
 """"""""""""
 
-This fix is part of the USER-SPH package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This fix is part of the SPH package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

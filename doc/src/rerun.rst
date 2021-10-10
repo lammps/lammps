@@ -114,11 +114,11 @@ Note that the dump files specified as part of the *dump* keyword can be
 parallel files, i.e. written as multiple files either per processor
 and/or per snapshot.  If that is the case they will also be read in
 parallel which can make the rerun command operate dramatically faster
-for large systems.  See the doc page for the :doc:`read_dump
+for large systems.  See the page for the :doc:`read_dump
 <read_dump>` and :doc:`dump <dump>` commands which describe how to read
 and write parallel dump files.
 
-The *first*\ , *last*\ , *every*\ , *skip* keywords determine which
+The *first*, *last*, *every*, *skip* keywords determine which
 snapshots are read from the dump file(s).  Snapshots are skipped until
 they have a timestep >= *Nfirst*\ .  When a snapshot with a timestep >
 *Nlast* is encountered, the rerun command finishes.  Note that
@@ -145,7 +145,7 @@ do for the :doc:`run <run>` command.  They only need to be defined if
 (a) you are using a :doc:`fix <fix>` command that changes some value
 over time, and (b) you want the reference point for elapsed time (from
 start to stop) to be different than the *first* and *last* settings.
-See the doc page for individual fixes to see which ones can be used
+See the page for individual fixes to see which ones can be used
 with the *start/stop* keywords.  Note that if you define neither of
 the *start*\ /\ *stop* or *first*\ /\ *last* keywords, then LAMMPS treats the
 pseudo run as going from 0 to a huge value (effectively infinity).
@@ -163,7 +163,7 @@ The *dump* keyword is required and must be the last keyword specified.
 Its arguments are passed internally to the :doc:`read_dump <read_dump>`
 command.  The first argument following the *dump* keyword should be
 the *field1* argument of the :doc:`read_dump <read_dump>` command.  See
-the :doc:`read_dump <read_dump>` doc page for details on the various
+the :doc:`read_dump <read_dump>` page for details on the various
 options it allows for extracting information from the dump file
 snapshots, and for using that information to alter the LAMMPS
 simulation.
@@ -175,31 +175,35 @@ include and perform all the usual operations of an input script that
 uses the :doc:`run <run>` command.  There are a few exceptions and
 points to consider, as discussed here.
 
-Fixes that perform time integration, such as :doc:`fix nve <fix_nve>` or
-:doc:`fix npt <fix_nh>` are not invoked, since no time integration is
-performed.  Fixes that perturb or constrain the forces on atoms will
-be invoked, just as they would during a normal run.  Examples are :doc:`fix indent <fix_indent>` and :doc:`fix langevin <fix_langevin>`.  So you
-should think carefully as to whether that makes sense for the manner
-in which you are reprocessing the dump snapshots.
+Fixes that perform time integration, such as :doc:`fix nve <fix_nve>`
+or :doc:`fix npt <fix_nh>` are not invoked, since no time integration
+is performed.  Fixes that perturb or constrain the forces on atoms
+will be invoked, just as they would during a normal run.  Examples are
+:doc:`fix indent <fix_indent>` and :doc:`fix langevin <fix_langevin>`.
+So you should think carefully as to whether that makes sense for the
+manner in which you are reprocessing the dump snapshots.
 
-If you only want the rerun script to perform an analysis that does
-not involve pair interactions, such as use compute msd to calculated
-displacements over time, you do not need to define a :doc:`pair style <pair_style>`, which may also mean neighbor lists will not
-need to be calculated which saves time.  The :doc:`comm_modify cutoff <comm_modify>` command can also be used to insure ghost
-atoms are acquired from far enough away for operations like bond and
-angle evaluations, if no pair style is being used.
+If you only want the rerun script to perform an analysis that does not
+involve pair interactions, such as use compute msd to calculated
+displacements over time, you do not need to define a :doc:`pair style
+<pair_style>`, which may also mean neighbor lists will not need to be
+calculated which saves time.  The :doc:`comm_modify cutoff
+<comm_modify>` command can also be used to insure ghost atoms are
+acquired from far enough away for operations like bond and angle
+evaluations, if no pair style is being used.
 
 Every time a snapshot is read, the timestep for the simulation is
 reset, as if the :doc:`reset_timestep <reset_timestep>` command were
 used.  This command has some restrictions as to what fixes can be
-defined.  See its doc page for details.  For example, the :doc:`fix deposit <fix_deposit>` and :doc:`fix dt/reset <fix_dt_reset>` fixes
+defined.  See its page for details.  For example, the :doc:`fix
+deposit <fix_deposit>` and :doc:`fix dt/reset <fix_dt_reset>` fixes
 are in this category.  They also make no sense to use with a rerun
 command.
 
 If time-averaging fixes like :doc:`fix ave/time <fix_ave_time>` are
 used, they are invoked on timesteps that are a function of their
-*Nevery*\ , *Nrepeat*\ , and *Nfreq* settings.  As an example, see the
-:doc:`fix ave/time <fix_ave_time>` doc page for details.  You must
+*Nevery*, *Nrepeat*, and *Nfreq* settings.  As an example, see the
+:doc:`fix ave/time <fix_ave_time>` page for details.  You must
 insure those settings are consistent with the snapshot timestamps that
 are read from the dump file(s).  If an averaging fix is not invoked on
 a timestep it expects to be, LAMMPS will flag an error.

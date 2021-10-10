@@ -64,14 +64,12 @@ FixPrint::FixPrint(LAMMPS *lmp, int narg, char **arg) :
         else fp = fopen(arg[iarg+1],"a");
         if (fp == nullptr)
           error->one(FLERR,"Cannot open fix print file {}: {}",
-                                       arg[iarg+1], utils::getsyserror());
+                     arg[iarg+1], utils::getsyserror());
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"screen") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix print command");
-      if (strcmp(arg[iarg+1],"yes") == 0) screenflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) screenflag = 0;
-      else error->all(FLERR,"Illegal fix print command");
+      screenflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix print command");

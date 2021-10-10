@@ -21,21 +21,21 @@
 
 #include "pair_body_rounded_polygon.h"
 
-#include <cmath>
-#include <cstring>
-#include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_body.h"
 #include "body_rounded_polygon.h"
 #include "comm.h"
-#include "force.h"
-#include "fix.h"
-#include "modify.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
 #include "error.h"
+#include "fix.h"
+#include "force.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -207,8 +207,7 @@ void PairBodyRoundedPolygon::compute(int eflag, int vflag)
       if (r > radi + radj + cut_inner) continue;
 
       if (npi == 1 && npj == 1) {
-        sphere_against_sphere(i, j, delx, dely, delz, rsq,
-                            k_nij, k_naij, x, v, f, evflag);
+        sphere_against_sphere(i, j, delx, dely, delz, rsq, k_nij, k_naij, x, v, f, evflag);
         continue;
       }
 

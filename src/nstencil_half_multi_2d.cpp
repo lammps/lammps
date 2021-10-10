@@ -13,12 +13,8 @@
 ------------------------------------------------------------------------- */
 
 #include "nstencil_half_multi_2d.h"
-#include "neighbor.h"
+
 #include "neigh_list.h"
-#include "nbin.h"
-#include "memory.h"
-#include "atom.h"
-#include <math.h>
 
 using namespace LAMMPS_NS;
 
@@ -43,13 +39,13 @@ void NStencilHalfMulti2d::set_stencil_properties()
     for (j = 0; j < n; j++) {
       if(cutcollectionsq[i][i] > cutcollectionsq[j][j]) continue;
 
-      flag_skip_multi[i][j] = 0;
+      flag_skip_multi[i][j] = false;
 
       if(cutcollectionsq[i][i] == cutcollectionsq[j][j]){
-        flag_half_multi[i][j] = 1;
+        flag_half_multi[i][j] = true;
         bin_collection_multi[i][j] = i;
       } else {
-        flag_half_multi[i][j] = 0;
+        flag_half_multi[i][j] = false;
         bin_collection_multi[i][j] = j;
       }
     }
@@ -92,12 +88,12 @@ void NStencilHalfMulti2d::create()
             if (j > 0 || (j == 0 && i > 0)) {
               if (bin_distance_multi(i,j,0,bin_collection) < cutsq)
                   stencil_multi[icollection][jcollection][ns++] = j*mbinx + i;
-	        }
+                }
       } else {
           for (j = -sy; j <= sy; j++)
             for (i = -sx; i <= sx; i++)
               if (bin_distance_multi(i,j,0,bin_collection) < cutsq)
-	            stencil_multi[icollection][jcollection][ns++] = j*mbinx + i;
+                    stencil_multi[icollection][jcollection][ns++] = j*mbinx + i;
       }
 
       nstencil_multi[icollection][jcollection] = ns;

@@ -509,21 +509,6 @@ void ReadData::command(int narg, char **arg)
 
     while (strlen(keyword)) {
 
-      // if special fix matches, it processes section
-
-      if (nfix) {
-        int i;
-        for (i = 0; i < nfix; i++)
-          if (strcmp(keyword,fix_section[i]) == 0) {
-            if (firstpass) fix(fix_index[i],keyword);
-            else skip_lines(modify->fix[fix_index[i]]->
-                            read_data_skip_lines(keyword));
-            parse_keyword(0);
-            break;
-          }
-        if (i < nfix) continue;
-      }
-
       if (strcmp(keyword,"Atoms") == 0) {
         atomflag = 1;
         if (firstpass) {
@@ -728,8 +713,22 @@ void ReadData::command(int narg, char **arg)
         if (firstpass) impropercoeffs(1);
         else skip_lines(nimpropertypes);
 
-      } else error->all(FLERR,"Unknown identifier in data file: {}",
-                                          keyword);
+      // if specified fix matches, it processes section
+
+      } else if (nfix) {
+        int i;
+        for (i = 0; i < nfix; i++)
+          if (strcmp(keyword,fix_section[i]) == 0) {
+            if (firstpass) fix(fix_index[i],keyword);
+            else skip_lines(modify->fix[fix_index[i]]->
+                            read_data_skip_lines(keyword));
+            parse_keyword(0);
+            break;
+          }
+        if (i == nfix)
+          error->all(FLERR,"Unknown identifier in data file: {}",keyword);
+
+      } else error->all(FLERR,"Unknown identifier in data file: {}",keyword);
 
       parse_keyword(0);
     }
@@ -1322,7 +1321,7 @@ void ReadData::bonds(int firstpass)
   int *count = nullptr;
   if (firstpass) {
     memory->create(count,nlocal,"read_data:count");
-    memset(count,0,nlocal*sizeof(int));
+    if (count) memset(count,0,nlocal*sizeof(int));
   }
 
   // read and process bonds
@@ -1396,7 +1395,7 @@ void ReadData::angles(int firstpass)
   int *count = nullptr;
   if (firstpass) {
     memory->create(count,nlocal,"read_data:count");
-    memset(count,0,nlocal*sizeof(int));
+    if (count) memset(count,0,nlocal*sizeof(int));
   }
 
   // read and process angles
@@ -1470,7 +1469,7 @@ void ReadData::dihedrals(int firstpass)
   int *count = nullptr;
   if (firstpass) {
     memory->create(count,nlocal,"read_data:count");
-    memset(count,0,nlocal*sizeof(int));
+    if (count) memset(count,0,nlocal*sizeof(int));
   }
 
   // read and process dihedrals
@@ -1544,7 +1543,7 @@ void ReadData::impropers(int firstpass)
   int *count = nullptr;
   if (firstpass) {
     memory->create(count,nlocal,"read_data:count");
-    memset(count,0,nlocal*sizeof(int));
+    if (count) memset(count,0,nlocal*sizeof(int));
   }
 
   // read and process impropers

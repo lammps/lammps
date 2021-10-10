@@ -7,7 +7,7 @@ steps are often necessary to setup and analyze a simulation.  A list
 of such tools can be found on the `LAMMPS webpage <lws_>`_ at these links:
 
 * `Pre/Post processing <https://www.lammps.org/prepost.html>`_
-* `Offsite LAMMPS packages & tools <https://www.lammps.org/offsite.html>`_
+* `External LAMMPS packages & tools <https://www.lammps.org/external.html>`_
 * `Pizza.py toolkit <pizza_>`_
 
 The last link for `Pizza.py <pizza_>`_ is a Python-based tool developed at
@@ -15,7 +15,7 @@ Sandia which provides tools for doing setup, analysis, plotting, and
 visualization for LAMMPS simulations.
 
 .. _lws: https://www.lammps.org
-.. _pizza: https://pizza.sandia.gov
+.. _pizza: https://lammps.github.io/pizza
 .. _python: https://www.python.org
 
 Additional tools included in the LAMMPS distribution are described on
@@ -67,7 +67,7 @@ Post-processing tools
    * :ref:`amber2lmp <amber>`
    * :ref:`binary2txt <binary>`
    * :ref:`ch2lmp <charmm>`
-   * :ref:`colvars <colvars>`
+   * :ref:`colvars <colvars_tools>`
    * :ref:`eff <eff>`
    * :ref:`fep <fep>`
    * :ref:`lmp2arc <arc>`
@@ -76,7 +76,6 @@ Post-processing tools
    * :ref:`phonon <phonon>`
    * :ref:`pymol_asphere <pymol>`
    * :ref:`python <pythontools>`
-   * :ref:`reax <reax_tool>`
    * :ref:`replica <replica>`
    * :ref:`smd <smd>`
    * :ref:`spin <spin>`
@@ -173,7 +172,7 @@ Chris Lorenz (chris.lorenz at kcl.ac.uk), King's College London.
 chain tool
 ----------------------
 
-The file chain.f creates a LAMMPS data file containing bead-spring
+The file chain.f90 creates a LAMMPS data file containing bead-spring
 polymer chains and/or monomer solvent atoms.  It uses a text file
 containing chain definition parameters as an input.  The created
 chains and solvent atoms can strongly overlap, so LAMMPS needs to run
@@ -214,7 +213,7 @@ tool and the specific name of the program used (e.g. ``ninja-v1.10`` or
 
 ----------
 
-.. _colvars:
+.. _colvars_tools:
 
 colvars tools
 ---------------------------
@@ -341,7 +340,7 @@ fep tool
 
 The tools/fep directory contains Python scripts useful for
 post-processing results from performing free-energy perturbation
-simulations using the USER-FEP package.
+simulations using the FEP package.
 
 The scripts were contributed by Agilio Padua (ENS de Lyon), agilio.padua at ens-lyon.fr.
 
@@ -364,7 +363,7 @@ michele.ceriotti at gmail.com, to interface to a variety of molecular
 dynamics codes.
 
 See the tools/i-pi/manual.pdf file for an overview of i-PI, and the
-:doc:`fix ipi <fix_ipi>` doc page for further details on running PIMD
+:doc:`fix ipi <fix_ipi>` page for further details on running PIMD
 calculations with LAMMPS.
 
 ----------
@@ -861,10 +860,10 @@ phonon tool
 
 The phonon sub-directory contains a post-processing tool useful for
 analyzing the output of the :doc:`fix phonon <fix_phonon>` command in
-the USER-PHONON package.
+the PHONON package.
 
 See the README file for instruction on building the tool and what
-library it needs.  And see the examples/USER/phonon directory
+library it needs.  And see the examples/PACKAGES/phonon directory
 for example problems that can be post-processed with this tool.
 
 This tool was written by Ling-Ti Kong at Shanghai Jiao Tong
@@ -947,20 +946,6 @@ while at the Shell lab at UC Santa Barbara. (tanmoy dot 7989 at gmail.com)
 
 ----------
 
-.. _reax_tool:
-
-reax tool
---------------------------
-
-The reax sub-directory contains stand-alone codes that can
-post-process the output of the :doc:`fix reax/c/bonds <fix_reaxc_bonds>`
-command from a LAMMPS simulation using :doc:`ReaxFF <pair_reaxc>`.  See
-the README.txt file for more info.
-
-These tools were written by Aidan Thompson at Sandia.
-
-----------
-
 .. _smd:
 
 smd tool
@@ -968,13 +953,13 @@ smd tool
 
 The smd sub-directory contains a C++ file dump2vtk_tris.cpp and
 Makefile which can be compiled and used to convert triangle output
-files created by the Smooth-Mach Dynamics (USER-SMD) package into a
+files created by the Smooth-Mach Dynamics (MACHDYN) package into a
 VTK-compatible unstructured grid file.  It could then be read in and
 visualized by VTK.
 
 See the header of dump2vtk.cpp for more details.
 
-This tool was written by the USER-SMD package author, Georg
+This tool was written by the MACHDYN package author, Georg
 Ganzenmuller at the Fraunhofer-Institute for High-Speed Dynamics,
 Ernst Mach Institute in Germany (georg.ganzenmueller at emi.fhg.de).
 

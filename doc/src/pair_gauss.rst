@@ -143,7 +143,7 @@ to be specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 The *gauss* pair style tallies an "occupancy" count of how many Gaussian-well
 sites have an atom within the distance at which the force is a maximum
@@ -163,9 +163,9 @@ heading) the following commands could be included in an input script:
 Restrictions
 """"""""""""
 
-The *gauss/cut* style is part of the USER-MISC package. It is only
-enabled if LAMMPS is build with that package.  See the :doc:`Build
-package <Build_package>` doc page for more info.
+The *gauss* and *gauss/cut* styles are part of the EXTRA-PAIR package.
+They are only enabled if LAMMPS is build with that package.  See the
+:doc:`Build package <Build_package>` page for more info.
 
 The *gauss* style does not apply :doc:`special_bonds <special_bonds>`
 factors. When using this pair style on a system that has bonds, the

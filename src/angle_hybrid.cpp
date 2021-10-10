@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -15,14 +14,14 @@
 #include "angle_hybrid.h"
 
 #include "atom.h"
-#include "neighbor.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "error.h"
+#include "neighbor.h"
 
-#include <cstring>
 #include <cctype>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -45,19 +44,18 @@ AngleHybrid::~AngleHybrid()
 {
   if (nstyles) {
     for (int i = 0; i < nstyles; i++) delete styles[i];
-    delete [] styles;
-    for (int i = 0; i < nstyles; i++) delete [] keywords[i];
-    delete [] keywords;
+    delete[] styles;
+    for (int i = 0; i < nstyles; i++) delete[] keywords[i];
+    delete[] keywords;
   }
 
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(map);
-    delete [] nanglelist;
-    delete [] maxangle;
-    for (int i = 0; i < nstyles; i++)
-      memory->destroy(anglelist[i]);
-    delete [] anglelist;
+    delete[] nanglelist;
+    delete[] maxangle;
+    for (int i = 0; i < nstyles; i++) memory->destroy(anglelist[i]);
+    delete[] anglelist;
   }
 }
 
@@ -65,7 +63,7 @@ AngleHybrid::~AngleHybrid()
 
 void AngleHybrid::compute(int eflag, int vflag)
 {
-  int i,j,m,n;
+  int i, j, m, n;
 
   // save ptrs to original anglelist
 
@@ -87,7 +85,7 @@ void AngleHybrid::compute(int eflag, int vflag)
       if (nanglelist[m] > maxangle[m]) {
         memory->destroy(anglelist[m]);
         maxangle[m] = nanglelist[m] + EXTRA;
-        memory->create(anglelist[m],maxangle[m],4,"angle_hybrid:anglelist");
+        memory->create(anglelist[m], maxangle[m], 4, "angle_hybrid:anglelist");
       }
       nanglelist[m] = 0;
     }
@@ -107,7 +105,7 @@ void AngleHybrid::compute(int eflag, int vflag)
   // set neighbor->anglelist to sub-style anglelist before call
   // accumulate sub-style global/peratom energy/virial in hybrid
 
-  ev_init(eflag,vflag);
+  ev_init(eflag, vflag);
 
   // need to clear per-thread storage here, when using multiple threads
   // with thread-enabled substyles to avoid uninitlialized data access.
@@ -115,17 +113,15 @@ void AngleHybrid::compute(int eflag, int vflag)
   const int nthreads = comm->nthreads;
   if (comm->nthreads > 1) {
     const bigint nall = atom->nlocal + atom->nghost;
-    if (eflag_atom)
-      memset(&eatom[0],0,nall*nthreads*sizeof(double));
-    if (vflag_atom)
-      memset(&vatom[0][0],0,6*nall*nthreads*sizeof(double));
+    if (eflag_atom) memset(&eatom[0], 0, nall * nthreads * sizeof(double));
+    if (vflag_atom) memset(&vatom[0][0], 0, 6 * nall * nthreads * sizeof(double));
   }
 
   for (m = 0; m < nstyles; m++) {
     neighbor->nanglelist = nanglelist[m];
     neighbor->anglelist = anglelist[m];
 
-    styles[m]->compute(eflag,vflag);
+    styles[m]->compute(eflag, vflag);
 
     if (eflag_global) energy += styles[m]->energy;
     if (vflag_global)
@@ -141,16 +137,14 @@ void AngleHybrid::compute(int eflag, int vflag)
       if (force->newton_bond) n += atom->nghost;
       double **vatom_substyle = styles[m]->vatom;
       for (i = 0; i < n; i++)
-        for (j = 0; j < 6; j++)
-          vatom[i][j] += vatom_substyle[i][j];
+        for (j = 0; j < 6; j++) vatom[i][j] += vatom_substyle[i][j];
     }
     if (cvflag_atom) {
       n = atom->nlocal;
       if (force->newton_bond) n += atom->nghost;
       double **cvatom_substyle = styles[m]->cvatom;
       for (i = 0; i < n; i++)
-        for (j = 0; j < 9; j++)
-          cvatom[i][j] += cvatom_substyle[i][j];
+        for (j = 0; j < 9; j++) cvatom[i][j] += cvatom_substyle[i][j];
     }
   }
 
@@ -167,13 +161,13 @@ void AngleHybrid::allocate()
   allocated = 1;
   int n = atom->nangletypes;
 
-  memory->create(map,n+1,"angle:map");
-  memory->create(setflag,n+1,"angle:setflag");
+  memory->create(map, n + 1, "angle:map");
+  memory->create(setflag, n + 1, "angle:setflag");
   for (int i = 1; i <= n; i++) setflag[i] = 0;
 
   nanglelist = new int[nstyles];
   maxangle = new int[nstyles];
-  anglelist = new int**[nstyles];
+  anglelist = new int **[nstyles];
   for (int m = 0; m < nstyles; m++) maxangle[m] = 0;
   for (int m = 0; m < nstyles; m++) anglelist[m] = nullptr;
 }
@@ -184,27 +178,26 @@ void AngleHybrid::allocate()
 
 void AngleHybrid::settings(int narg, char **arg)
 {
-  int i, m,istyle;
+  int i, m, istyle;
 
-  if (narg < 1) error->all(FLERR,"Illegal angle_style command");
+  if (narg < 1) error->all(FLERR, "Illegal angle_style command");
 
   // delete old lists, since cannot just change settings
 
   if (nstyles) {
     for (i = 0; i < nstyles; i++) delete styles[i];
-    delete [] styles;
-    for (i = 0; i < nstyles; i++) delete [] keywords[i];
-    delete [] keywords;
+    delete[] styles;
+    for (i = 0; i < nstyles; i++) delete[] keywords[i];
+    delete[] keywords;
   }
 
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(map);
-    delete [] nanglelist;
-    delete [] maxangle;
-    for (i = 0; i < nstyles; i++)
-      memory->destroy(anglelist[i]);
-    delete [] anglelist;
+    delete[] nanglelist;
+    delete[] maxangle;
+    for (i = 0; i < nstyles; i++) memory->destroy(anglelist[i]);
+    delete[] anglelist;
   }
   allocated = 0;
 
@@ -215,7 +208,7 @@ void AngleHybrid::settings(int narg, char **arg)
   nstyles = 0;
   i = 0;
   while (i < narg) {
-    if (strcmp(arg[i],"table") == 0) i++;
+    if (strcmp(arg[i], "table") == 0) i++;
     i++;
     while (i < narg && !isalpha(arg[i][0])) i++;
     nstyles++;
@@ -223,8 +216,8 @@ void AngleHybrid::settings(int narg, char **arg)
 
   // allocate list of sub-styles
 
-  styles = new Angle*[nstyles];
-  keywords = new char*[nstyles];
+  styles = new Angle *[nstyles];
+  keywords = new char *[nstyles];
 
   // allocate each sub-style and call its settings() with subset of args
   // allocate uses suffix, but don't store suffix version in keywords,
@@ -239,22 +232,21 @@ void AngleHybrid::settings(int narg, char **arg)
 
   while (i < narg) {
     for (m = 0; m < nstyles; m++)
-      if (strcmp(arg[i],keywords[m]) == 0)
-        error->all(FLERR,"Angle style hybrid cannot use "
-                   "same angle style twice");
-    if (strcmp(arg[i],"hybrid") == 0)
-      error->all(FLERR,"Angle style hybrid cannot have hybrid as an argument");
-    if (strcmp(arg[i],"none") == 0)
-      error->all(FLERR,"Angle style hybrid cannot have none as an argument");
+      if (strcmp(arg[i], keywords[m]) == 0)
+        error->all(FLERR, "Angle style hybrid cannot use same angle style twice");
+    if (strcmp(arg[i], "hybrid") == 0)
+      error->all(FLERR, "Angle style hybrid cannot have hybrid as an argument");
+    if (strcmp(arg[i], "none") == 0)
+      error->all(FLERR, "Angle style hybrid cannot have none as an argument");
 
-    styles[nstyles] = force->new_angle(arg[i],1,dummy);
-    force->store_style(keywords[nstyles],arg[i],0);
+    styles[nstyles] = force->new_angle(arg[i], 1, dummy);
+    force->store_style(keywords[nstyles], arg[i], 0);
 
     istyle = i;
-    if (strcmp(arg[i],"table") == 0) i++;
+    if (strcmp(arg[i], "table") == 0) i++;
     i++;
     while (i < narg && !isalpha(arg[i][0])) i++;
-    styles[nstyles]->settings(i-istyle-1,&arg[istyle+1]);
+    styles[nstyles]->settings(i - istyle - 1, &arg[istyle + 1]);
     nstyles++;
   }
 }
@@ -267,26 +259,29 @@ void AngleHybrid::coeff(int narg, char **arg)
 {
   if (!allocated) allocate();
 
-  int ilo,ihi;
-  utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
+  int ilo, ihi;
+  utils::bounds(FLERR, arg[0], 1, atom->nangletypes, ilo, ihi, error);
 
   // 2nd arg = angle sub-style name
   // allow for "none" or "skip" as valid sub-style name
 
   int m;
   for (m = 0; m < nstyles; m++)
-    if (strcmp(arg[1],keywords[m]) == 0) break;
+    if (strcmp(arg[1], keywords[m]) == 0) break;
 
   int none = 0;
   int skip = 0;
   if (m == nstyles) {
-    if (strcmp(arg[1],"none") == 0) none = 1;
-    else if (strcmp(arg[1],"skip") == 0) none = skip = 1;
-    else if (strcmp(arg[1],"ba") == 0)
-      error->all(FLERR,"BondAngle coeff for hybrid angle has invalid format");
-    else if (strcmp(arg[1],"bb") == 0)
-      error->all(FLERR,"BondBond coeff for hybrid angle has invalid format");
-    else error->all(FLERR,"Angle coeff for hybrid has invalid style");
+    if (strcmp(arg[1], "none") == 0)
+      none = 1;
+    else if (strcmp(arg[1], "skip") == 0)
+      none = skip = 1;
+    else if (strcmp(arg[1], "ba") == 0)
+      error->all(FLERR, "BondAngle coeff for hybrid angle has invalid format");
+    else if (strcmp(arg[1], "bb") == 0)
+      error->all(FLERR, "BondBond coeff for hybrid angle has invalid format");
+    else
+      error->all(FLERR, "Angle coeff for hybrid has invalid style");
   }
 
   // move 1st arg to 2nd arg
@@ -296,14 +291,15 @@ void AngleHybrid::coeff(int narg, char **arg)
 
   // invoke sub-style coeff() starting with 1st arg
 
-  if (!none) styles[m]->coeff(narg-1,&arg[1]);
+  if (!none) styles[m]->coeff(narg - 1, &arg[1]);
 
   // set setflag and which type maps to which sub-style
   // if sub-style is skip: auxiliary class2 setting in data file so ignore
   // if sub-style is none: set hybrid setflag, wipe out map
 
   for (int i = ilo; i <= ihi; i++) {
-    if (skip) continue;
+    if (skip)
+      continue;
     else if (none) {
       setflag[i] = 1;
       map[i] = -1;
@@ -330,8 +326,7 @@ void AngleHybrid::init_style()
 
 double AngleHybrid::equilibrium_angle(int i)
 {
-  if (map[i] < 0)
-    error->one(FLERR,"Invoked angle equil angle on angle style none");
+  if (map[i] < 0) error->one(FLERR, "Invoked angle equil angle on angle style none");
   return styles[map[i]]->equilibrium_angle(i);
 }
 
@@ -341,13 +336,13 @@ double AngleHybrid::equilibrium_angle(int i)
 
 void AngleHybrid::write_restart(FILE *fp)
 {
-  fwrite(&nstyles,sizeof(int),1,fp);
+  fwrite(&nstyles, sizeof(int), 1, fp);
 
   int n;
   for (int m = 0; m < nstyles; m++) {
     n = strlen(keywords[m]) + 1;
-    fwrite(&n,sizeof(int),1,fp);
-    fwrite(keywords[m],sizeof(char),n,fp);
+    fwrite(&n, sizeof(int), 1, fp);
+    fwrite(keywords[m], sizeof(char), n, fp);
     styles[m]->write_restart_settings(fp);
   }
 }
@@ -359,21 +354,21 @@ void AngleHybrid::write_restart(FILE *fp)
 void AngleHybrid::read_restart(FILE *fp)
 {
   int me = comm->me;
-  if (me == 0) utils::sfread(FLERR,&nstyles,sizeof(int),1,fp,nullptr,error);
-  MPI_Bcast(&nstyles,1,MPI_INT,0,world);
-  styles = new Angle*[nstyles];
-  keywords = new char*[nstyles];
+  if (me == 0) utils::sfread(FLERR, &nstyles, sizeof(int), 1, fp, nullptr, error);
+  MPI_Bcast(&nstyles, 1, MPI_INT, 0, world);
+  styles = new Angle *[nstyles];
+  keywords = new char *[nstyles];
 
   allocate();
 
-  int n,dummy;
+  int n, dummy;
   for (int m = 0; m < nstyles; m++) {
-    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,nullptr,error);
-    MPI_Bcast(&n,1,MPI_INT,0,world);
+    if (me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
+    MPI_Bcast(&n, 1, MPI_INT, 0, world);
     keywords[m] = new char[n];
-    if (me == 0) utils::sfread(FLERR,keywords[m],sizeof(char),n,fp,nullptr,error);
-    MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
-    styles[m] = force->new_angle(keywords[m],0,dummy);
+    if (me == 0) utils::sfread(FLERR, keywords[m], sizeof(char), n, fp, nullptr, error);
+    MPI_Bcast(keywords[m], n, MPI_CHAR, 0, world);
+    styles[m] = force->new_angle(keywords[m], 0, dummy);
     styles[m]->read_restart_settings(fp);
   }
 }
@@ -382,8 +377,8 @@ void AngleHybrid::read_restart(FILE *fp)
 
 double AngleHybrid::single(int type, int i1, int i2, int i3)
 {
-  if (map[type] < 0) error->one(FLERR,"Invoked angle single on angle style none");
-  return styles[map[type]]->single(type,i1,i2,i3);
+  if (map[type] < 0) error->one(FLERR, "Invoked angle single on angle style none");
+  return styles[map[type]]->single(type, i1, i2, i3);
 }
 
 /* ----------------------------------------------------------------------
@@ -392,10 +387,10 @@ double AngleHybrid::single(int type, int i1, int i2, int i3)
 
 double AngleHybrid::memory_usage()
 {
-  double bytes = (double)maxeatom * sizeof(double);
-  bytes += (double)maxvatom*6 * sizeof(double);
-  bytes += (double)maxcvatom*9 * sizeof(double);
-  for (int m = 0; m < nstyles; m++) bytes += (double)maxangle[m]*4 * sizeof(int);
+  double bytes = (double) maxeatom * sizeof(double);
+  bytes += (double) maxvatom * 6 * sizeof(double);
+  bytes += (double) maxcvatom * 9 * sizeof(double);
+  for (int m = 0; m < nstyles; m++) bytes += (double) maxangle[m] * 4 * sizeof(int);
   for (int m = 0; m < nstyles; m++)
     if (styles[m]) bytes += styles[m]->memory_usage();
   return bytes;

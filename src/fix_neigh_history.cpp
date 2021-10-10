@@ -14,7 +14,6 @@
 
 #include "fix_neigh_history.h"
 
-#include <cstring>
 #include "my_page.h"
 #include "atom.h"
 #include "comm.h"
@@ -25,6 +24,8 @@
 #include "pair.h"
 #include "memory.h"
 #include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -45,6 +46,7 @@ FixNeighHistory::FixNeighHistory(LAMMPS *lmp, int narg, char **arg) :
 
   create_attribute = 1;
   maxexchange_dynamic = 1;
+  use_bit_flag = 1;
 
   newton_pair = force->newton_pair;
 
@@ -65,7 +67,7 @@ FixNeighHistory::FixNeighHistory(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based arrays
   // register with atom class
 
-  grow_arrays(atom->nmax);
+  FixNeighHistory::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
   atom->add_callback(Atom::RESTART);
 
@@ -624,13 +626,21 @@ void FixNeighHistory::post_neighbor()
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
-      rflag = sbmask(j) | pair->beyond_contact;
-      j &= NEIGHMASK;
-      jlist[jj] = j;
 
-      // rflag = 1 if r < radsum in npair_size() method
+      if (use_bit_flag) {
+        rflag = sbmask(j) | pair->beyond_contact;
+        j &= NEIGHMASK;
+        jlist[jj] = j;
+      } else {
+        rflag = 1;
+        j &= NEIGHMASK;
+      }
+
+      // rflag = 1 if r < radsum in npair_size() method or if pair interactions extend further
       // preserve neigh history info if tag[j] is in old-neigh partner list
       // this test could be more geometrically precise for two sphere/line/tri
+      // if use_bit_flag is turned off, always record data since not all npair classes
+      // apply a mask for history (and they could use the bits for special bonds)
 
       if (rflag) {
         jtag = tag[j];

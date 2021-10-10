@@ -28,6 +28,7 @@
 #include "group.h"
 #include "math_const.h"
 #include "math_extra.h"
+#include "math_special.h"
 #include "memory.h"
 #include "my_page.h"
 #include "neigh_list.h"
@@ -42,6 +43,7 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathExtra;
+using namespace MathSpecial;
 
 #define DELTA 4
 #define PGDELTA 1
@@ -394,7 +396,7 @@ void PairComb::compute(int eflag, int vflag)
 
         if (evflag)
           ev_tally(i,j,nlocal,newton_pair,elp_ij,0.0,0.0,0.0,0.0,0.0);
-        if (vflag_atom) v_tally3(i,j,k,fj,fk,delr1,delr2);
+        if (vflag_either) v_tally3(i,j,k,fj,fk,delr1,delr2);
 
       }
     }
@@ -712,7 +714,7 @@ void PairComb::setup_params()
     params[m].Qo1 = (params[m].QU1+params[m].QL1)/2.0; // (A22)
     params[m].dQ1 = (params[m].QU1-params[m].QL1)/2.0; // (A21)
     params[m].aB1 = 1.0 /
-      (1.0-pow(fabs(params[m].Qo1/params[m].dQ1),10.0)); // (A20)
+      (1.0-powint(fabs(params[m].Qo1/params[m].dQ1),10)); // (A20)
     params[m].bB1 = pow(fabs(params[m].aB1),0.1)/params[m].dQ1; // (A19)
     params[m].nD1 = log(params[m].DU1/(params[m].DU1-params[m].DL1))/
                     log(params[m].QU1/(params[m].QU1-params[m].QL1));
@@ -722,7 +724,7 @@ void PairComb::setup_params()
     params[m].Qo2 = (params[m].QU2+params[m].QL2)/2.0; // (A22)
     params[m].dQ2 = (params[m].QU2-params[m].QL2)/2.0; // (A21)
     params[m].aB2 = 1.0 /
-      (1.0-pow(fabs(params[m].Qo2/params[m].dQ2),10.0)); // (A20)
+      (1.0-powint(fabs(params[m].Qo2/params[m].dQ2),10)); // (A20)
     params[m].bB2 = pow(fabs(params[m].aB2),0.1)/params[m].dQ2; // (A19)
     params[m].nD2 = log(params[m].DU2/(params[m].DU2-params[m].DL2))/
                     log(params[m].QU2/(params[m].QU2-params[m].QL2));
@@ -789,7 +791,7 @@ void PairComb::repulsive(Param *param, double rsq, double &fforce,
   vrcs = 0.0; fvrcs = 0.0;
   if (romi > 0.0) {
     if (!cor_flag) {
-      vrcs = romi * pow((1.0-r/rrcs),2.0);
+      vrcs = romi * square(1.0-r/rrcs);
       fvrcs= romi * 2.0 * (r/rrcs-1.0)/rrcs; }
     else if (cor_flag) {
       rslp = ((arr1-r)/(arr1-arr2));
@@ -818,7 +820,7 @@ double PairComb::zeta(Param *param, double rsqij, double rsqik,
   rik = sqrt(rsqik);
   costheta = dot3(delrij,delrik) / (rij*rik);
 
-  if (param->powermint == 3) arg = pow(param->rlm2 * (rij-rik),3.0);
+  if (param->powermint == 3) arg = cube(param->rlm2 * (rij-rik));
   else arg = param->rlm2 * (rij-rik);
 
   if (arg > 69.0776) ex_delr = 1.e30;
@@ -1071,8 +1073,8 @@ double PairComb::self(Param *param, double qi, double selfpot)
 
  self_tmp = qi*(s1+qi*(s2+selfpot+qi*(s3+qi*(s4+qi*qi*s5))));
 
- if (qi < qmin) self_tmp += cmin * pow((qi-qmin),4.0);
- if (qi > qmax) self_tmp += cmax * pow((qi-qmax),4.0);
+ if (qi < qmin) self_tmp += cmin * powint(qi-qmin,4);
+ if (qi > qmax) self_tmp += cmax * powint(qi-qmax,4);
 
  return self_tmp;
 }
@@ -1090,9 +1092,9 @@ double PairComb::comb_fa(double r, Param *param, double iq, double jq)
   Di = param->DU1 + pow(fabs(param->bD1*(param->QU1-qi)),param->nD1);
   Dj = param->DU2 + pow(fabs(param->bD2*(param->QU2-qj)),param->nD2);
   Bsi = param->bigb1 * exp(param->lam21*Di)*
-       (param->aB1-fabs(pow(param->bB1*(qi-param->Qo1),10.0)));
+       (param->aB1-fabs(powint(param->bB1*(qi-param->Qo1),10)));
   Bsj = param->bigb2 * exp(param->lam22*Dj)*
-       (param->aB2-fabs(pow(param->bB2*(qj-param->Qo2),10.0)));
+       (param->aB2-fabs(powint(param->bB2*(qj-param->Qo2),10)));
   if (Bsi > 0.0 && Bsj > 0.0) bigB = sqrt(Bsi*Bsj)*param->romigb;
   else bigB = 0.0;
 
@@ -1112,9 +1114,9 @@ double PairComb::comb_fa_d(double r, Param *param, double iq, double jq)
   Di = param->DU1 + pow(fabs(param->bD1*(param->QU1-qi)),param->nD1);
   Dj = param->DU2 + pow(fabs(param->bD2*(param->QU2-qj)),param->nD2);
   Bsi = param->bigb1 * exp(param->lam21*Di)*
-       (param->aB1-fabs(pow(param->bB1*(qi-param->Qo1),10.0)));
+       (param->aB1-fabs(powint(param->bB1*(qi-param->Qo1),10)));
   Bsj = param->bigb2 * exp(param->lam22*Dj)*
-       (param->aB2-fabs(pow(param->bB2*(qj-param->Qo2),10.0)));
+       (param->aB2-fabs(powint(param->bB2*(qj-param->Qo2),10)));
   if (Bsi > 0.0 && Bsj > 0.0) bigB = sqrt(Bsi*Bsj)*param->romigb;
   else bigB = 0.0;
 
@@ -1188,7 +1190,7 @@ void PairComb::comb_zetaterm_d(double prefactor, double *rij_hat, double rij,
 
   fc = comb_fc(rik,param);
   dfc = comb_fc_d(rik,param);
-  if (param->powermint == 3) tmp = pow(param->rlm2 * (rij-rik),3.0);
+  if (param->powermint == 3) tmp = cube(param->rlm2 * (rij-rik));
   else tmp = param->rlm2 * (rij-rik);
 
   if (tmp > 69.0776) ex_delr = 1.e30;
@@ -1196,7 +1198,7 @@ void PairComb::comb_zetaterm_d(double prefactor, double *rij_hat, double rij,
   else ex_delr = exp(tmp); // ex_delr is Ygexp
 
   if (param->powermint == 3)
-    ex_delr_d = 3.0*pow(param->rlm2,3.0) * pow(rij-rik,2.0)*ex_delr; // com3
+    ex_delr_d = 3.0*cube(param->rlm2) * square(rij-rik)*ex_delr; // com3
   else ex_delr_d = param->rlm2 * ex_delr; // com3
 
   cos_theta = dot3(rij_hat,rik_hat);
@@ -1723,20 +1725,11 @@ double PairComb::qfo_self(Param *param, double qi, double selfpot)
 
  self_d = s1+qi*(2.0*(s2+selfpot)+qi*(3.0*s3+qi*(4.0*s4+qi*qi*6.0*s5)));
 
- if (qi < qmin) {
-   // char str[128];
-   // sprintf(str,"Pair COMB charge %.10f with force %.10f hit min barrier",
-   // qi,self_d);
-   // error->warning(FLERR,str,0);
-   self_d += 4.0 * cmin * pow((qi-qmin),3.0);
- }
- if (qi > qmax) {
-   // char str[128];
-   // sprintf(str,"Pair COMB charge %.10f with force %.10f hit max barrier",
-   //           qi,self_d);
-   // error->warning(FLERR,str,0);
-   self_d += 4.0 * cmax * pow((qi-qmax),3.0);
- }
+ if (qi < qmin)
+   self_d += 4.0 * cmin * cube(qi-qmin);
+
+ if (qi > qmax)
+   self_d += 4.0 * cmax * cube(qi-qmax);
 
  return self_d;
 }
@@ -1820,7 +1813,7 @@ void PairComb::qfo_short(Param *param, int i, int j, double rsq,
 
   vrcs = 0.0;
   if (romi > 0.0) {
-    if (!cor_flag) vrcs = romi * pow((1.0-r/rrcs),2.0);
+    if (!cor_flag) vrcs = romi * cube(1.0-r/rrcs);
     else if (cor_flag) {
       rslp = ((arr1-r)/(arr1-arr2));
       rslp2 = rslp * rslp; rslp4 = rslp2 * rslp2;
@@ -1834,9 +1827,9 @@ void PairComb::qfo_short(Param *param, int i, int j, double rsq,
   Asi = param->biga1 * exp(param->lam11*Di);
   Asj = param->biga2 * exp(param->lam12*Dj);
   Bsi = param->bigb1 * exp(param->lam21*Di)*
-    (param->aB1-fabs(pow(param->bB1*(qi-param->Qo1),10.0)));
+    (param->aB1-fabs(powint(param->bB1*(qi-param->Qo1),10)));
   Bsj = param->bigb2 * exp(param->lam22*Dj)*
-    (param->aB2-fabs(pow(param->bB2*(qj-param->Qo2),10.0)));
+    (param->aB2-fabs(powint(param->bB2*(qj-param->Qo2),10)));
 
   QUchi = (param->QU1-qi)*param->bD1;
   QUchj = (param->QU2-qj)*param->bD2;
@@ -1858,13 +1851,13 @@ void PairComb::qfo_short(Param *param, int i, int j, double rsq,
     YYBsiqp=Bsi*param->lam21*YYDiqp;
   else
     YYBsiqp=Bsi*param->lam21*YYDiqp-param->bigb1*exp(param->lam21*Di)*
-      10.0*QOchi*param->bB1*pow(fabs(QOchi),(10.0-2.0));
+      10.0*QOchi*param->bB1*powint(fabs(QOchi),(10-2));
 
   if (QOchj == 0.0)
     YYBsjqp=Bsj*param->lam22*YYDjqp;
   else
     YYBsjqp=Bsj*param->lam22*YYDjqp-param->bigb2*exp(param->lam22*Dj)*
-      10.0*QOchj*param->bB2*pow(fabs(QOchj),(10.0-2.0));
+      10.0*QOchj*param->bB2*powint(fabs(QOchj),(10-2));
 
   if (Asi > 0.0 && Asj > 0.0) caj = 1.0/(2.0*sqrt(Asi*Asj)) * romie;
   else caj = 0.0;

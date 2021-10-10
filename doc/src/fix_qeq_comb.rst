@@ -41,7 +41,7 @@ Perform charge equilibration (QeQ) in conjunction with the COMB
 equilibration portion of the calculation using the so-called QEq
 method, whereby the charge on each atom is adjusted to minimize the
 energy of the system.  This fix can only be used with the COMB
-potential; see the :doc:`fix qeq/reax <fix_qeq_reax>` command for a QeQ
+potential; see the :doc:`fix qeq/reaxff <fix_qeq_reaxff>` command for a QeQ
 calculation that can be used with any potential.
 
 Only charges on the atoms in the specified group are equilibrated.

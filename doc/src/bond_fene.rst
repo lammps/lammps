@@ -58,7 +58,7 @@ Restrictions
 """"""""""""
 
 This bond style can only be used if LAMMPS was built with the MOLECULE
-package.  See the :doc:`Build package <Build_package>` doc page for more
+package.  See the :doc:`Build package <Build_package>` page for more
 info.
 
 You typically should specify :doc:`special_bonds fene <special_bonds>`

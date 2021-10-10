@@ -89,7 +89,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   eflags = nullptr;
   orient = nullptr;
   dorient = nullptr;
-  grow_arrays(atom->nmax);
+  FixRigidSmall::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
 
   // parse args for rigid body specification
@@ -112,15 +112,14 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       // determine whether atom-style variable or atom property is used
 
       if (utils::strmatch(arg[4],"^i_")) {
-        int is_double=0;
-        int custom_index = atom->find_custom(arg[4]+2,is_double);
+        int is_double,cols;
+        int custom_index = atom->find_custom(arg[4]+2,is_double,cols);
         if (custom_index == -1)
           error->all(FLERR,"Fix rigid/small custom requires "
                      "previously defined property/atom");
-        else if (is_double)
+        else if (is_double || cols)
           error->all(FLERR,"Fix rigid/small custom requires "
-                     "integer-valued property/atom");
-
+                     "integer-valued property/atom vector");
         int minval = INT_MAX;
         int *value = atom->ivector[custom_index];
         for (i = 0; i < nlocal; i++)
@@ -228,17 +227,13 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"reinit") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid/small command");
-      if (strcmp("yes",arg[iarg+1]) == 0) reinitflag = 1;
-      else if  (strcmp("no",arg[iarg+1]) == 0) reinitflag = 0;
-      else error->all(FLERR,"Illegal fix rigid/small command");
+      reinitflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"mol") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid/small command");
       int imol = atom->find_molecule(arg[iarg+1]);
-      if (imol == -1)
-        error->all(FLERR,"Molecule template ID for "
-                   "fix rigid/small does not exist");
+      if (imol == -1) error->all(FLERR,"Molecule template ID for fix rigid/small does not exist");
       onemols = &atom->molecules[imol];
       nmol = onemols[0]->nset;
       restart_file = 1;

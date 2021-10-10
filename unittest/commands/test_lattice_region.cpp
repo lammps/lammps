@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "../testing/core.h"
 #include "atom.h"
 #include "domain.h"
 #include "fmt/format.h"
@@ -22,7 +23,6 @@
 #include "utils.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "../testing/core.h"
 
 #include <cstdio>
 #include <cstring>
@@ -39,7 +39,6 @@ namespace LAMMPS_NS {
 using ::testing::ExitedWithCode;
 using ::testing::MatchesRegex;
 using ::testing::StrEq;
-
 
 class LatticeRegionTest : public LAMMPSTest {
 protected:

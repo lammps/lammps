@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -30,9 +29,9 @@ ImbalanceTime::ImbalanceTime(LAMMPS *lmp) : Imbalance(lmp) {}
 
 int ImbalanceTime::options(int narg, char **arg)
 {
-  if (narg < 1) error->all(FLERR,"Illegal balance weight command");
-  factor = utils::numeric(FLERR,arg[0],false,lmp);
-  if (factor <= 0.0) error->all(FLERR,"Illegal balance weight command");
+  if (narg < 1) error->all(FLERR, "Illegal balance weight command");
+  factor = utils::numeric(FLERR, arg[0], false, lmp);
+  if (factor <= 0.0) error->all(FLERR, "Illegal balance weight command");
   return 1;
 }
 
@@ -71,14 +70,14 @@ void ImbalanceTime::compute(double *weight)
   cost += 0.1;
 
   double maxcost;
-  MPI_Allreduce(&cost,&maxcost,1,MPI_DOUBLE,MPI_MAX,world);
+  MPI_Allreduce(&cost, &maxcost, 1, MPI_DOUBLE, MPI_MAX, world);
   if (maxcost <= 0.1) return;
 
   int nlocal = atom->nlocal;
   double localwt = 0.0;
-  if (nlocal) localwt = cost/nlocal;
+  if (nlocal) localwt = cost / nlocal;
 
-  if (nlocal && localwt <= 0.0) error->one(FLERR,"Balance weight <= 0.0");
+  if (nlocal && localwt <= 0.0) error->one(FLERR, "Balance weight <= 0.0");
 
   // apply factor if specified != 1.0
   // wtlo,wthi = lo/hi values excluding 0.0 due to no atoms on this proc
@@ -87,15 +86,15 @@ void ImbalanceTime::compute(double *weight)
   // expand/contract all localwt values from lo->hi to lo->newhi
 
   if (factor != 1.0) {
-    double wtlo,wthi;
+    double wtlo, wthi;
     if (localwt == 0.0) localwt = BIG;
-    MPI_Allreduce(&localwt,&wtlo,1,MPI_DOUBLE,MPI_MIN,world);
+    MPI_Allreduce(&localwt, &wtlo, 1, MPI_DOUBLE, MPI_MIN, world);
     if (localwt == BIG) localwt = 0.0;
-    MPI_Allreduce(&localwt,&wthi,1,MPI_DOUBLE,MPI_MAX,world);
+    MPI_Allreduce(&localwt, &wthi, 1, MPI_DOUBLE, MPI_MAX, world);
     if (wtlo == wthi) return;
 
-    double newhi = wthi*factor;
-    localwt = wtlo + ((localwt-wtlo)/(wthi-wtlo)) * (newhi-wtlo);
+    double newhi = wthi * factor;
+    localwt = wtlo + ((localwt - wtlo) / (wthi - wtlo)) * (newhi - wtlo);
   }
 
   for (int i = 0; i < nlocal; i++) weight[i] *= localwt;
@@ -109,5 +108,5 @@ void ImbalanceTime::compute(double *weight)
 
 std::string ImbalanceTime::info()
 {
-  return fmt::format("  time weight factor: {}\n",factor);
+  return fmt::format("  time weight factor: {}\n", factor);
 }

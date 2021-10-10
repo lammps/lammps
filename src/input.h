@@ -357,14 +357,14 @@ E: Package kokkos command without KOKKOS package enabled
 The KOKKOS package must be installed via "make yes-kokkos" before
 LAMMPS is built, and the "-k on" must be used to enable the package.
 
-E: Package omp command without USER-OMP package installed
+E: Package omp command without OPENMP package installed
 
-The USER-OMP package must be installed via "make yes-user-omp" before
+The OPENMP package must be installed via "make yes-openmp" before
 LAMMPS is built.
 
-E: Package intel command without USER-INTEL package installed
+E: Package intel command without INTEL package installed
 
-The USER-INTEL package must be installed via "make yes-user-intel"
+The INTEL package must be installed via "make yes-intel"
 before LAMMPS is built.
 
 E: Pair_coeff command before simulation box is defined

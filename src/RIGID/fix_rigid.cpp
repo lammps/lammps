@@ -82,7 +82,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   eflags = nullptr;
   orient = nullptr;
   dorient = nullptr;
-  grow_arrays(atom->nmax);
+  FixRigid::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
 
   // parse args for rigid body specification
@@ -129,14 +129,14 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       // determine whether atom-style variable or atom property is used
 
       if (utils::strmatch(arg[4],"^i_")) {
-        int is_double=0;
-        int custom_index = atom->find_custom(arg[4]+2,is_double);
+        int is_double,cols;
+        int custom_index = atom->find_custom(arg[4]+2,is_double,cols);
         if (custom_index == -1)
           error->all(FLERR,"Fix rigid custom requires "
                      "previously defined property/atom");
         else if (is_double)
           error->all(FLERR,"Fix rigid custom requires "
-                     "integer-valued property/atom");
+                     "integer-valued property/atom vector");
         int minval = INT_MAX;
         int *value = atom->ivector[custom_index];
         for (i = 0; i < nlocal; i++)
@@ -535,9 +535,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"reinit") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid command");
-      if (strcmp("yes",arg[iarg+1]) == 0) reinitflag = 1;
-      else if  (strcmp("no",arg[iarg+1]) == 0) reinitflag = 0;
-      else error->all(FLERR,"Illegal fix rigid command");
+      reinitflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"gravity") == 0) {

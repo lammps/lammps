@@ -136,7 +136,7 @@ with 3 columns, each of length 50:
 
 ----------
 
-The *Nevery*\ , *Nrepeat*\ , and *Nfreq* arguments specify on what
+The *Nevery*, *Nrepeat*, and *Nfreq* arguments specify on what
 timesteps the input values will be used in order to contribute to the
 average.  The final averaged quantities are generated on timesteps
 that are a multiple of *Nfreq*\ .  The average is over *Nrepeat*
@@ -185,7 +185,7 @@ for how I can be specified with a wildcard asterisk to effectively
 specify multiple values.
 
 Note that some fixes only produce their values on certain timesteps,
-which must be compatible with *Nevery*\ , else an error will result.
+which must be compatible with *Nevery*, else an error will result.
 Users can also write code for their own fix styles and :doc:`add them to LAMMPS <Modify>`.
 
 If a value begins with "v\_", a variable name must follow which has
@@ -207,23 +207,23 @@ quantities to time average.
 
 Additional optional keywords also affect the operation of this fix.
 
-If the *mode* keyword is set to *scalar*\ , then all input values must
+If the *mode* keyword is set to *scalar*, then all input values must
 be global scalars, or elements of global vectors.  If the *mode*
-keyword is set to *vector*\ , then all input values must be global
+keyword is set to *vector*, then all input values must be global
 vectors, or columns of global arrays.  They can also be global arrays,
 which are converted into a series of global vectors (one per column),
 as explained above.
 
 The *ave* keyword determines how the values produced every *Nfreq*
 steps are averaged with values produced on previous steps that were
-multiples of *Nfreq*\ , before they are accessed by another output
+multiples of *Nfreq*, before they are accessed by another output
 command or written to a file.
 
-If the *ave* setting is *one*\ , then the values produced on timesteps
+If the *ave* setting is *one*, then the values produced on timesteps
 that are multiples of *Nfreq* are independent of each other; they are
 output as-is without further averaging.
 
-If the *ave* setting is *running*\ , then the values produced on
+If the *ave* setting is *running*, then the values produced on
 timesteps that are multiples of *Nfreq* are summed and averaged in a
 cumulative sense before being output.  Each output value is thus the
 average of the value produced on that timestep with all preceding
@@ -231,7 +231,7 @@ values.  This running average begins when the fix is defined; it can
 only be restarted by deleting the fix via the :doc:`unfix <unfix>`
 command, or by re-defining the fix by re-specifying it.
 
-If the *ave* setting is *window*\ , then the values produced on
+If the *ave* setting is *window*, then the values produced on
 timesteps that are multiples of *Nfreq* are summed and averaged within
 a moving "window" of time, so that the last M values are used to
 produce the output.  E.g. if M = 3 and Nfreq = 1000, then the output
@@ -332,7 +332,7 @@ element are "intensive" or "extensive".  If the fix produces an array,
 then all elements in the array must be the same, either "intensive" or
 "extensive".  If a compute or fix provides the value being time
 averaged, then the compute or fix determines whether the value is
-intensive or extensive; see the doc page for that compute or fix for
+intensive or extensive; see the page for that compute or fix for
 further info.  Values produced by a variable are treated as intensive.
 
 No parameter of this fix can be used with the *start/stop* keywords of

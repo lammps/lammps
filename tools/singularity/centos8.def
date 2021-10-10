@@ -3,7 +3,7 @@ From: centos:8
 
 %post
         dnf -y install epel-release dnf-utils
-        dnf config-manager --set-enabled PowerTools
+        dnf config-manager --set-enabled powertools
         dnf -y update
         dnf -y install vim-enhanced git file make cmake patch which file ninja-build \
                ccache gcc-c++ gcc-gfortran clang libomp-devel gdb valgrind libubsan libasan libtsan \
@@ -42,7 +42,7 @@ From: centos:8
         # manually install Plumed
         mkdir plumed
         cd plumed
-        version=2.6.1
+        version=2.7.2
         curl -L -o plumed.tar.gz https://github.com/plumed/plumed2/releases/download/v${version}/plumed-src-${version}.tgz
         tar -xzf plumed.tar.gz
         cd plumed-${version}

@@ -13,15 +13,15 @@
 ------------------------------------------------------------------------- */
 
 #include "modify.h"
-#include "style_compute.h"
-#include "style_fix.h"
+#include "style_compute.h"      // IWYU pragma: keep
+#include "style_fix.h"          // IWYU pragma: keep
 
 #include "atom.h"
 #include "comm.h"
-#include "compute.h"
+#include "compute.h"            // IWYU pragma: keep
 #include "domain.h"
 #include "error.h"
-#include "fix.h"
+#include "fix.h"                // IWYU pragma: keep
 #include "group.h"
 #include "input.h"
 #include "memory.h"
@@ -30,14 +30,12 @@
 #include "variable.h"
 
 #include <cstring>
-#include <vector>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
 #define DELTA 4
 #define BIG 1.0e20
-#define NEXCEPT 7       // change when add to exceptions in add_fix()
 
 /* ---------------------------------------------------------------------- */
 
@@ -96,7 +94,7 @@ void _noopt Modify::create_factories()
 #define FIX_CLASS
 #define FixStyle(key,Class) \
   (*fix_map)[#key] = &fix_creator<Class>;
-#include "style_fix.h"
+#include "style_fix.h"  // IWYU pragma: keep
 #undef FixStyle
 #undef FIX_CLASS
 
@@ -107,7 +105,7 @@ void _noopt Modify::create_factories()
 #define COMPUTE_CLASS
 #define ComputeStyle(key,Class) \
   (*compute_map)[#key] = &compute_creator<Class>;
-#include "style_compute.h"
+#include "style_compute.h"  // IWYU pragma: keep
 #undef ComputeStyle
 #undef COMPUTE_CLASS
 }
@@ -224,16 +222,11 @@ void Modify::init()
   list_init_energy_global(n_energy_global,list_energy_global);
   list_init_energy_atom(n_energy_atom,list_energy_atom);
 
-  list_init(INITIAL_INTEGRATE_RESPA,
-            n_initial_integrate_respa,list_initial_integrate_respa);
-  list_init(POST_INTEGRATE_RESPA,
-            n_post_integrate_respa,list_post_integrate_respa);
-  list_init(POST_FORCE_RESPA,
-            n_post_force_respa,list_post_force_respa);
-  list_init(PRE_FORCE_RESPA,
-            n_pre_force_respa,list_pre_force_respa);
-  list_init(FINAL_INTEGRATE_RESPA,
-            n_final_integrate_respa,list_final_integrate_respa);
+  list_init(INITIAL_INTEGRATE_RESPA,n_initial_integrate_respa,list_initial_integrate_respa);
+  list_init(POST_INTEGRATE_RESPA,n_post_integrate_respa,list_post_integrate_respa);
+  list_init(POST_FORCE_RESPA,n_post_force_respa,list_post_force_respa);
+  list_init(PRE_FORCE_RESPA,n_pre_force_respa,list_pre_force_respa);
+  list_init(FINAL_INTEGRATE_RESPA,n_final_integrate_respa,list_final_integrate_respa);
 
   list_init(MIN_PRE_EXCHANGE,n_min_pre_exchange,list_min_pre_exchange);
   list_init(MIN_PRE_NEIGHBOR,n_min_pre_neighbor,list_min_pre_neighbor);
@@ -803,7 +796,7 @@ int Modify::min_reset_ref()
    add a new fix or replace one with same ID
 ------------------------------------------------------------------------- */
 
-void Modify::add_fix(int narg, char **arg, int trysuffix)
+Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
 {
   if (narg < 3) error->all(FLERR,"Illegal fix command");
 
@@ -892,8 +885,7 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
         FixCreator &fix_creator = (*fix_map)[estyle];
         fix[ifix] = fix_creator(lmp,narg,arg);
         delete[] fix[ifix]->style;
-        fix[ifix]->style = new char[estyle.size()+1];
-        strcpy(fix[ifix]->style,estyle.c_str());
+        fix[ifix]->style = utils::strdup(estyle);
       }
     }
     if (fix[ifix] == nullptr && lmp->suffix2) {
@@ -902,8 +894,7 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
         FixCreator &fix_creator = (*fix_map)[estyle];
         fix[ifix] = fix_creator(lmp,narg,arg);
         delete[] fix[ifix]->style;
-        fix[ifix]->style = new char[estyle.size()+1];
-        strcpy(fix[ifix]->style,estyle.c_str());
+        fix[ifix]->style = utils::strdup(estyle);
       }
     }
   }
@@ -915,6 +906,18 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
 
   if (fix[ifix] == nullptr)
     error->all(FLERR,utils::check_packages_for_style("fix",arg[2],lmp));
+
+  // increment nfix (if new)
+
+  if (newflag) nfix++;
+
+  // post_constructor() can call virtual methods in parent or child
+  //   which would otherwise not yet be visible in child class
+  // post_constructor() allows new fix to create other fixes
+  // nfix increment must come first so recursive call to add_fix within
+  //   post_constructor() will see updated nfix
+
+  fix[ifix]->post_constructor();
 
   // check if Fix is in restart_global list
   // if yes, pass state info to the Fix so it can reset itself
@@ -947,22 +950,20 @@ void Modify::add_fix(int narg, char **arg, int trysuffix)
                        fix[ifix]->style,fix[ifix]->id);
     }
 
-  // increment nfix (if new)
   // set fix mask values
-  // post_constructor() allows new fix to create other fixes
-  // nfix increment comes first so that recursive call to add_fix within
-  //   post_constructor() will see updated nfix
 
-  if (newflag) nfix++;
   fmask[ifix] = fix[ifix]->setmask();
-  fix[ifix]->post_constructor();
+
+  // return pointer to fix
+
+  return fix[ifix];
 }
 
 /* ----------------------------------------------------------------------
    convenience function to allow adding a fix from a single string
 ------------------------------------------------------------------------- */
 
-void Modify::add_fix(const std::string &fixcmd, int trysuffix)
+Fix *Modify::add_fix(const std::string &fixcmd, int trysuffix)
 {
   auto args = utils::split_words(fixcmd);
   std::vector<char *> newarg(args.size());
@@ -970,9 +971,8 @@ void Modify::add_fix(const std::string &fixcmd, int trysuffix)
   for (const auto &arg : args) {
     newarg[i++] = (char *)arg.c_str();
   }
-  add_fix(args.size(),newarg.data(),trysuffix);
+  return add_fix(args.size(),newarg.data(),trysuffix);
 }
-
 
 /* ----------------------------------------------------------------------
    replace replaceID fix with a new fix
@@ -981,11 +981,10 @@ void Modify::add_fix(const std::string &fixcmd, int trysuffix)
         replace it later with the desired Fix instance
 ------------------------------------------------------------------------- */
 
-void Modify::replace_fix(const char *replaceID,
-                         int narg, char **arg, int trysuffix)
+Fix *Modify::replace_fix(const char *replaceID, int narg, char **arg, int trysuffix)
 {
   int ifix = find_fix(replaceID);
-  if (ifix < 0) error->all(FLERR,"Modify replace_fix ID could not be found");
+  if (ifix < 0) error->all(FLERR,"Modify replace_fix ID {} could not be found", replaceID);
 
   // change ID, igroup, style of fix being replaced to match new fix
   // requires some error checking on arguments for new fix
@@ -1007,24 +1006,22 @@ void Modify::replace_fix(const char *replaceID,
   // invoke add_fix
   // it will find and overwrite the replaceID fix
 
-  add_fix(narg,arg,trysuffix);
+  return add_fix(narg,arg,trysuffix);
 }
 
 /* ----------------------------------------------------------------------
    convenience function to allow replacing a fix from a single string
 ------------------------------------------------------------------------- */
 
-void Modify::replace_fix(const std::string &oldfix,
-                         const std::string &fixcmd, int trysuffix)
+Fix *Modify::replace_fix(const std::string &oldfix, const std::string &fixcmd, int trysuffix)
 {
   auto args = utils::split_words(fixcmd);
-  char **newarg = new char*[args.size()];
-  int i=0;
+  std::vector<char *> newarg(args.size());
+  int i = 0;
   for (const auto &arg : args) {
     newarg[i++] = (char *)arg.c_str();
   }
-  replace_fix(oldfix.c_str(),args.size(),newarg,trysuffix);
-  delete[] newarg;
+  return replace_fix(oldfix.c_str(),args.size(),newarg.data(),trysuffix);
 }
 
 /* ----------------------------------------------------------------------
@@ -1110,7 +1107,7 @@ int Modify::find_fix_by_style(const char *style)
    check for fix associated with package name in compiled list
    return 1 if found else 0
    used to determine whether LAMMPS was built with
-     GPU, USER-INTEL, USER-OMP packages, which have their own fixes
+     GPU, INTEL, OPENMP packages, which have their own fixes
 ------------------------------------------------------------------------- */
 
 int Modify::check_package(const char *package_fix_name)
@@ -1214,7 +1211,7 @@ int Modify::check_rigid_list_overlap(int *select)
    add a new compute
 ------------------------------------------------------------------------- */
 
-void Modify::add_compute(int narg, char **arg, int trysuffix)
+Compute *Modify::add_compute(int narg, char **arg, int trysuffix)
 {
   if (narg < 3) error->all(FLERR,"Illegal compute command");
 
@@ -1244,8 +1241,7 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
         ComputeCreator &compute_creator = (*compute_map)[estyle];
         compute[ncompute] = compute_creator(lmp,narg,arg);
         delete[] compute[ncompute]->style;
-        compute[ncompute]->style = new char[estyle.size()+1];
-        strcpy(compute[ncompute]->style,estyle.c_str());
+        compute[ncompute]->style = utils::strdup(estyle);
       }
     }
     if (compute[ncompute] == nullptr && lmp->suffix2) {
@@ -1254,8 +1250,7 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
         ComputeCreator &compute_creator = (*compute_map)[estyle];
         compute[ncompute] = compute_creator(lmp,narg,arg);
         delete[] compute[ncompute]->style;
-        compute[ncompute]->style = new char[estyle.size()+1];
-        strcpy(compute[ncompute]->style,estyle.c_str());
+        compute[ncompute]->style = utils::strdup(estyle);
       }
     }
   }
@@ -1269,23 +1264,22 @@ void Modify::add_compute(int narg, char **arg, int trysuffix)
   if (compute[ncompute] == nullptr)
     error->all(FLERR,utils::check_packages_for_style("compute",arg[2],lmp));
 
-  ncompute++;
+  return compute[ncompute++];
 }
 
 /* ----------------------------------------------------------------------
    convenience function to allow adding a compute from a single string
 ------------------------------------------------------------------------- */
 
-void Modify::add_compute(const std::string &computecmd, int trysuffix)
+Compute *Modify::add_compute(const std::string &computecmd, int trysuffix)
 {
   auto args = utils::split_words(computecmd);
-  char **newarg = new char*[args.size()];
+  std::vector<char *>newarg(args.size());
   int i=0;
   for (const auto &arg : args) {
     newarg[i++] = (char *)arg.c_str();
   }
-  add_compute(args.size(),newarg,trysuffix);
-  delete[] newarg;
+  return add_compute(args.size(),newarg.data(),trysuffix);
 }
 
 

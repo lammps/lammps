@@ -16,8 +16,6 @@
 
 #include "pointers.h"
 
-#include <vector>
-
 namespace LAMMPS_NS {
 
 class Molecule : protected Pointers {

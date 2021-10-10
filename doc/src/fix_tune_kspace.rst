@@ -81,7 +81,7 @@ Restrictions
 """"""""""""
 
 This fix is part of the KSPACE package.  It is only enabled if LAMMPS
-was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Do not set "neigh_modify once yes" or else this fix will never be
 called.  Reneighboring is required.

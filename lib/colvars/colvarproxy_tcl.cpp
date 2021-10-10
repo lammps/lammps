@@ -11,6 +11,8 @@
 
 #if defined(NAMD_TCL) || defined(VMDTCL)
 #define COLVARS_TCL
+#endif
+#ifdef COLVARS_TCL
 #include <tcl.h>
 #endif
 

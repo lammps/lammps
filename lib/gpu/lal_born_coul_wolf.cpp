@@ -34,7 +34,7 @@ BornCoulWolfT::BornCoulWolf() : BaseCharge<numtyp,acctyp>(),
 }
 
 template <class numtyp, class acctyp>
-BornCoulWolfT::~BornCoulWolfT() {
+BornCoulWolfT::~BornCoulWolf() {
   clear();
 }
 
@@ -57,7 +57,7 @@ int BornCoulWolfT::init(const int ntypes, double **host_cutsq, double **host_rho
                         const double alf, const double e_shift, const double f_shift) {
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
-                            _screen,born_coul_wolf,"k_born_coul_wolf");
+                            _screen,born_coul_wolf,"k_born_coul_wolf",1);
   if (success!=0)
     return success;
 

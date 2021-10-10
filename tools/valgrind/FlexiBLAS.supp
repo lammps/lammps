@@ -1,0 +1,61 @@
+{
+   FL_BLAS_init_part1
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   fun:flexiblas_init
+   ...
+   fun:call_init
+   fun:_dl_init
+   ...
+   obj:*
+}
+{
+   FL_BLAS_init_part2
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   ...
+   fun:dl_open_worker
+   ...
+   fun:dlopen_doit
+   ...
+   fun:flexiblas_init
+}
+{
+   FL_BLAS_init_part3
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   ...
+   fun:flexiblas_init
+   ...
+   fun:call_init
+   ...
+   obj:*
+}
+{
+   FL_BLAS_exception1
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   fun:dl_open_worker
+   ...
+   fun:dlopen_doit
+   ...
+   obj:*
+}
+{
+   FL_BLAS_exception2
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   ...
+   fun:dl_open_worker
+   ...
+   fun:dlopen_doit
+   ...
+   obj:*
+}

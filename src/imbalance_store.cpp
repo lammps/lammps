@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -21,20 +20,20 @@ using namespace LAMMPS_NS;
 
 /* -------------------------------------------------------------------- */
 
-ImbalanceStore::ImbalanceStore(LAMMPS *lmp) : Imbalance(lmp), name(0) {}
+ImbalanceStore::ImbalanceStore(LAMMPS *lmp) : Imbalance(lmp), name(nullptr) {}
 
 /* -------------------------------------------------------------------- */
 
 ImbalanceStore::~ImbalanceStore()
 {
-  delete [] name;
+  delete[] name;
 }
 
 /* -------------------------------------------------------------------- */
 
 int ImbalanceStore::options(int narg, char **arg)
 {
-  if (narg < 1) error->all(FLERR,"Illegal balance weight command");
+  if (narg < 1) error->all(FLERR, "Illegal balance weight command");
   name = utils::strdup(arg[0]);
 
   return 1;
@@ -44,23 +43,22 @@ int ImbalanceStore::options(int narg, char **arg)
 
 void ImbalanceStore::compute(double *weight)
 {
-  int dflag = 0;
-  int idx = atom->find_custom(name,dflag);
+  int flag, cols;
+  int index = atom->find_custom(name, flag, cols);
 
   // property does not exist
 
-  if (idx < 0 || dflag != 1) return;
+  if (index < 0 || flag != 1 || cols)
+    error->all(FLERR, "Balance weight store vector does not exist");
 
-  double *prop = atom->dvector[idx];
+  double *prop = atom->dvector[index];
   const int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; ++i)
-    prop[i] = weight[i];
+  for (int i = 0; i < nlocal; ++i) prop[i] = weight[i];
 }
 
 /* -------------------------------------------------------------------- */
 
 std::string ImbalanceStore::info()
 {
-  return fmt::format("  storing weight in atom property d_{}\n",name);
+  return fmt::format("  storing weight in atom property d_{}\n", name);
 }

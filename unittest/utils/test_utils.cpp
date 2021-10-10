@@ -14,8 +14,11 @@
 #include "lmptype.h"
 #include "pointers.h"
 #include "utils.h"
+#include "tokenizer.h"
+
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+
 #include <cerrno>
 #include <cstdio>
 #include <string>
@@ -118,6 +121,44 @@ TEST(Utils, split_words_simple)
     ASSERT_THAT(list[0], StrEq("one"));
     ASSERT_THAT(list[1], StrEq("two"));
     ASSERT_THAT(list[2], StrEq("three"));
+}
+
+TEST(Utils, split_words_leading_whitespace)
+{
+    auto list = utils::split_words("  one two three");
+    ASSERT_EQ(list.size(), 3);
+    ASSERT_THAT(list[0], StrEq("one"));
+    ASSERT_THAT(list[1], StrEq("two"));
+    ASSERT_THAT(list[2], StrEq("three"));
+}
+
+TEST(Utils, split_words_trailing_whitespace)
+{
+    auto list = utils::split_words("one two three  ");
+    ASSERT_EQ(list.size(), 3);
+    ASSERT_THAT(list[0], StrEq("one"));
+    ASSERT_THAT(list[1], StrEq("two"));
+    ASSERT_THAT(list[2], StrEq("three"));
+}
+
+TEST(Utils, split_words_heredoc)
+{
+    auto list = utils::split_words("one two three \"\"\"");
+    ASSERT_EQ(list.size(), 4);
+    ASSERT_THAT(list[0], StrEq("one"));
+    ASSERT_THAT(list[1], StrEq("two"));
+    ASSERT_THAT(list[2], StrEq("three"));
+    ASSERT_THAT(list[3], StrEq("\"\"\""));
+}
+
+TEST(Utils, split_words_heredoc_whitespace)
+{
+    auto list = utils::split_words("one two three \"\"\"   ");
+    ASSERT_EQ(list.size(), 4);
+    ASSERT_THAT(list[0], StrEq("one"));
+    ASSERT_THAT(list[1], StrEq("two"));
+    ASSERT_THAT(list[2], StrEq("three"));
+    ASSERT_THAT(list[3], StrEq("\"\"\""));
 }
 
 TEST(Utils, split_words_quoted)
@@ -440,6 +481,17 @@ TEST(Utils, strmatch_opt_char)
 {
     ASSERT_TRUE(utils::strmatch("rigid", "^r?igid"));
     ASSERT_TRUE(utils::strmatch("igid", "^r?igid"));
+    ASSERT_TRUE(utils::strmatch("c_name", "^[cfvid]2?_name"));
+    ASSERT_TRUE(utils::strmatch("f_name", "^[cfvid]2?_name"));
+    ASSERT_TRUE(utils::strmatch("v_name", "^[cfvid]2?_name"));
+    ASSERT_TRUE(utils::strmatch("i_name", "^[cfvid]2?_name"));
+    ASSERT_TRUE(utils::strmatch("d_name", "^[cfvid]2?_name"));
+    ASSERT_TRUE(utils::strmatch("i2_name", "^[cfvid]2?_name"));
+    ASSERT_TRUE(utils::strmatch("d2_name", "^[cfvid]2?_name"));
+    ASSERT_FALSE(utils::strmatch("d2name", "^[cfvid]2?_name"));
+    ASSERT_FALSE(utils::strmatch("i1_name", "^[cfvid]2?_name"));
+    ASSERT_FALSE(utils::strmatch("V_name", "^[cfvid]2?_name"));
+    ASSERT_FALSE(utils::strmatch("x_name", "^[cfvid]2?_name"));
 }
 
 TEST(Utils, strmatch_dot)
@@ -673,7 +725,7 @@ TEST(Utils, guesspath)
 {
     char buf[256];
     FILE *fp = fopen("test_guesspath.txt", "w");
-#if defined(__linux__)
+#if defined(__linux__) || defined(__APPLE__) || defined(_WIN32)
     const char *path = utils::guesspath(buf, sizeof(buf), fp);
     ASSERT_THAT(path, EndsWith("test_guesspath.txt"));
 #else
@@ -824,6 +876,37 @@ TEST(Utils, date2num)
     ASSERT_EQ(utils::date2num("10October22 "), 20221010);
     ASSERT_EQ(utils::date2num("30November 02"), 20021130);
     ASSERT_EQ(utils::date2num("31December100"), 1001231);
+}
+
+TEST(Utils, current_date)
+{
+    auto vals = ValueTokenizer(utils::current_date(),"-");
+    int year = vals.next_int();
+    int month = vals.next_int();
+    int day = vals.next_int();
+    ASSERT_GT(year,2020);
+    ASSERT_GE(month,1);
+    ASSERT_GE(day,1);
+    ASSERT_LE(month,12);
+    ASSERT_LE(day,31);
+}
+
+TEST(Utils, binary_search)
+{
+    double data[] = {-2.0, -1.8, -1.0, -1.0, -1.0, -0.5, -0.2, 0.0, 0.1, 0.1,
+                     0.2,  0.3,  0.5,  0.5,  0.6,  0.7,  1.0,  1.2, 1.5, 2.0};
+    const int n   = sizeof(data) / sizeof(double);
+    ASSERT_EQ(utils::binary_search(-5.0, n, data), 0);
+    ASSERT_EQ(utils::binary_search(-2.0, n, data), 0);
+    ASSERT_EQ(utils::binary_search(-1.9, n, data), 0);
+    ASSERT_EQ(utils::binary_search(-1.0, n, data), 4);
+    ASSERT_EQ(utils::binary_search(0.0, n, data), 7);
+    ASSERT_EQ(utils::binary_search(0.1, n, data), 9);
+    ASSERT_EQ(utils::binary_search(0.4, n, data), 11);
+    ASSERT_EQ(utils::binary_search(1.1, n, data), 16);
+    ASSERT_EQ(utils::binary_search(1.5, n, data), 18);
+    ASSERT_EQ(utils::binary_search(2.0, n, data), 19);
+    ASSERT_EQ(utils::binary_search(2.5, n, data), 19);
 }
 
 static int compare(int a, int b, void *)

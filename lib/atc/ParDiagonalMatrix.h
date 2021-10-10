@@ -10,7 +10,7 @@
 namespace ATC_matrix {
 
   /**
-   *  @class  ParDiagonalMatrix 
+   *  @class  ParDiagonalMatrix
    *  @brief  Parallelized version of DiagonalMatrix class.
    */
 

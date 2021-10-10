@@ -29,7 +29,7 @@ Examples
    pair_coeff 1 2  coul/tt 4.0 1.0 4 12.0
    pair_coeff 1 3* coul/tt 4.5 1.0 4
 
-Example input scripts available: examples/USER/drude
+Example input scripts available: examples/PACKAGES/drude
 
 Description
 """""""""""
@@ -70,7 +70,7 @@ interactions between the (non-polarizable part of the) charge of a core,
 The :math:`b_{ij}` and :math:`c_{ij}` are equal  to :math:`b_{ji}` and
 :math:`c_{ji}` in the case of core-core interactions.
 
-For pair_style *coul/tt*\ , the following coefficients must be defined for
+For pair_style *coul/tt*, the following coefficients must be defined for
 each pair of atoms types via the :doc:`pair_coeff <pair_coeff>` command
 as in the example above.
 
@@ -95,9 +95,9 @@ for all I,J pairs must be specified explicitly.
 Restrictions
 """"""""""""
 
-These pair styles are part of the USER-DRUDE package. They are only
+These pair styles are part of the DRUDE package. They are only
 enabled if LAMMPS was built with that package. See the :doc:`Build package
-<Build_package>` doc page for more info.
+<Build_package>` page for more info.
 
 This pair_style should currently not be used with the :doc:`charmm dihedral
 style <dihedral_charmm>` if the latter has non-zero 1-4 weighting

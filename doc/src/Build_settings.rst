@@ -64,14 +64,15 @@ LAMMPS can use them if they are available on your system.
       selected, then CMake will try to detect, if threaded FFTW
       libraries are available and enable them by default.  This setting
       is independent of whether OpenMP threads are enabled and a
-      packages like KOKKOS or USER-OMP is used.  If CMake cannot detect
+      packages like KOKKOS or OPENMP is used.  If CMake cannot detect
       the FFT library, you can set these variables to assist:
 
       .. code-block:: bash
 
          -D FFTW3_INCLUDE_DIR=path   # path to FFTW3 include files
          -D FFTW3_LIBRARY=path       # path to FFTW3 libraries
-         -D FFT_FFTW_THREADS=on      # enable using threaded FFTW3 libraries
+         -D FFTW3_OMP_LIBRARY=path   # path to FFTW3 OpenMP wrapper libraries
+         -D FFT_FFTW_THREADS=on      # enable using OpenMP threaded FFTW3 libraries
          -D MKL_INCLUDE_DIR=path     # ditto for Intel MKL library
          -D FFT_MKL_THREADS=on       # enable using threaded FFTs with MKL libraries
          -D MKL_LIBRARY=path         # path to MKL libraries
@@ -242,8 +243,8 @@ does not support 64-bit integers or incurs performance penalties when
 using them.
 
 These are limits for the core of the LAMMPS code, specific features or
-some styles may impose additional limits.  The :ref:`USER-ATC
-<PKG-USER-ATC>` package cannot be compiled with the "bigbig" setting.
+some styles may impose additional limits.  The :ref:`ATC
+<PKG-ATC>` package cannot be compiled with the "bigbig" setting.
 Also, there are limitations when using the library interface where some
 functions with known issues have been replaced by dummy calls printing a
 corresponding error message rather than crashing randomly or corrupting

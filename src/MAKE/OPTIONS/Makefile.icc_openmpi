@@ -8,12 +8,12 @@ SHELL = /bin/sh
 
 export OMPI_CXX = icc
 CC =		mpicxx
-CCFLAGS =	-g -O3 -restrict
+CCFLAGS =	-g -O3 -restrict -std=c++11
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
 LINK =		mpicxx
-LINKFLAGS =	-g -O
+LINKFLAGS =	-g -O -std=c++11
 LIB = 
 SIZE =		size
 

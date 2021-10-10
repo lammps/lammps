@@ -22,7 +22,6 @@ files. Here is a list with descriptions:
    .gitignore       # list of files and folders to be ignored by git
    doxygen-warn.log # logfile with warnings from running doxygen
    github-development-workflow.md   # notes on the LAMMPS development workflow
-   include-file-conventions.md      # notes on LAMMPS' include file conventions
 
 If you downloaded LAMMPS as a tarball from `the LAMMPS website <lws_>`_,
 the html folder and the PDF files should be included.
@@ -75,8 +74,8 @@ folder.  The following ``make`` commands are available:
 .. code-block:: bash
 
    make html          # generate HTML in html dir using Sphinx
-   make pdf           # generate PDF  as Manual.pdf using Sphinx and pdflatex
-   make fetch         # fetch HTML pages and PDF files from LAMMPS web site
+   make pdf           # generate PDF  as Manual.pdf using Sphinx and PDFLaTeX
+   make fetch         # fetch HTML pages and PDF files from LAMMPS website
                       #  and unpack into the html_www folder and Manual_www.pdf
    make epub          # generate LAMMPS.epub in ePUB format using Sphinx
    make mobi          # generate LAMMPS.mobi in MOBI format using ebook-convert
@@ -204,9 +203,9 @@ be multiple tests run automatically:
 
   .. parsed-literal::
 
-     Found 33 standard and 41 user packages
-     Standard package NEWPACKAGE missing in Packages_standard.rst
-     Standard package NEWPACKAGE missing in Packages_details.rst
+     Found 88 packages
+     Package NEWPACKAGE missing in Packages_list.rst
+     Package NEWPACKAGE missing in Packages_details.rst
 
 - A test that only standard, printable ASCII text characters are used.
   This runs the command ``env LC_ALL=C grep -n '[^ -~]' src/*.rst`` and

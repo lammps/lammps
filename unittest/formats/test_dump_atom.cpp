@@ -120,7 +120,7 @@ TEST_F(DumpAtomTest, format_line_run0)
 TEST_F(DumpAtomTest, no_scale_run0)
 {
     auto dump_file = "dump_no_scale_run0.melt";
-    generate_dump(dump_file, "scale no", 0);
+    generate_dump(dump_file, "scale off", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
@@ -135,7 +135,7 @@ TEST_F(DumpAtomTest, no_scale_run0)
 TEST_F(DumpAtomTest, no_buffer_no_scale_run0)
 {
     auto dump_file = "dump_no_buffer_no_scale_run0.melt";
-    generate_dump(dump_file, "buffer no scale no", 0);
+    generate_dump(dump_file, "buffer false scale false", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
@@ -150,7 +150,7 @@ TEST_F(DumpAtomTest, no_buffer_no_scale_run0)
 TEST_F(DumpAtomTest, no_buffer_with_scale_run0)
 {
     auto dump_file = "dump_no_buffer_with_scale_run0.melt";
-    generate_dump(dump_file, "buffer no scale yes", 0);
+    generate_dump(dump_file, "buffer 0 scale 1", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
@@ -165,7 +165,7 @@ TEST_F(DumpAtomTest, no_buffer_with_scale_run0)
 TEST_F(DumpAtomTest, with_image_run0)
 {
     auto dump_file = "dump_with_image_run0.melt";
-    generate_dump(dump_file, "scale no image yes", 0);
+    generate_dump(dump_file, "scale no image on", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
@@ -178,7 +178,7 @@ TEST_F(DumpAtomTest, with_image_run0)
 TEST_F(DumpAtomTest, with_units_run0)
 {
     auto dump_file = "dump_with_units_run0.melt";
-    generate_dump(dump_file, "scale no units yes", 0);
+    generate_dump(dump_file, "scale false units 1", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
@@ -193,7 +193,7 @@ TEST_F(DumpAtomTest, with_units_run0)
 TEST_F(DumpAtomTest, with_time_run0)
 {
     auto dump_file = "dump_with_time_run0.melt";
-    generate_dump(dump_file, "scale no time yes", 0);
+    generate_dump(dump_file, "scale off time true", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
@@ -207,7 +207,7 @@ TEST_F(DumpAtomTest, with_time_run0)
 TEST_F(DumpAtomTest, with_units_run1)
 {
     auto dump_file = "dump_with_units_run1.melt";
-    generate_dump(dump_file, "scale no units yes", 1);
+    generate_dump(dump_file, "scale 0 units on", 1);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
@@ -222,7 +222,7 @@ TEST_F(DumpAtomTest, with_units_run1)
 TEST_F(DumpAtomTest, no_buffer_with_scale_and_image_run0)
 {
     auto dump_file = "dump_no_buffer_with_scale_and_image_run0.melt";
-    generate_dump(dump_file, "buffer no scale yes image yes", 0);
+    generate_dump(dump_file, "buffer 0 scale 1 image true", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
@@ -253,7 +253,7 @@ TEST_F(DumpAtomTest, triclinic_with_units_run0)
 {
     auto dump_file = "dump_triclinic_with_units_run0.melt";
     enable_triclinic();
-    generate_dump(dump_file, "units yes", 0);
+    generate_dump(dump_file, "units on", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
@@ -271,7 +271,7 @@ TEST_F(DumpAtomTest, triclinic_with_time_run0)
 {
     auto dump_file = "dump_triclinic_with_time_run0.melt";
     enable_triclinic();
-    generate_dump(dump_file, "time yes", 0);
+    generate_dump(dump_file, "time on", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
@@ -548,7 +548,8 @@ TEST_F(DumpAtomTest, dump_modify_scale_invalid)
     command("dump id all atom 1 dump.txt");
     END_HIDE_OUTPUT();
 
-    TEST_FAILURE(".*Illegal dump_modify command.*", command("dump_modify id scale true"););
+    TEST_FAILURE(".*Expected boolean parameter instead of 'xxx'.*",
+                 command("dump_modify id scale xxx"););
 }
 
 TEST_F(DumpAtomTest, dump_modify_image_invalid)
@@ -557,7 +558,8 @@ TEST_F(DumpAtomTest, dump_modify_image_invalid)
     command("dump id all atom 1 dump.txt");
     END_HIDE_OUTPUT();
 
-    TEST_FAILURE(".*Illegal dump_modify command.*", command("dump_modify id image true"););
+    TEST_FAILURE(".*Expected boolean parameter instead of 'xxx'.*",
+                 command("dump_modify id image xxx"););
 }
 
 TEST_F(DumpAtomTest, dump_modify_invalid)

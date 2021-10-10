@@ -65,7 +65,7 @@ void WriteRestart::command(int narg, char **arg)
   // if filename contains a "*", replace with current timestep
 
   std::string file = arg[0];
-  std::size_t found = file.find("*");
+  std::size_t found = file.find('*');
   if (found != std::string::npos)
     file.replace(found,1,fmt::format("{}",update->ntimestep));
 
@@ -205,7 +205,7 @@ void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
    file = final file name to write, except may contain a "%"
 ------------------------------------------------------------------------- */
 
-void WriteRestart::write(std::string file)
+void WriteRestart::write(const std::string &file)
 {
   // special case where reneighboring is not done in integrator
   //   on timestep restart file is written (due to build_once being set)
@@ -228,7 +228,7 @@ void WriteRestart::write(std::string file)
 
   if (me == 0) {
     std::string base = file;
-    if (multiproc) base.replace(base.find("%"),1,"base");
+    if (multiproc) base.replace(base.find('%'),1,"base");
 
     fp = fopen(base.c_str(),"wb");
     if (fp == nullptr)
@@ -290,7 +290,7 @@ void WriteRestart::write(std::string file)
     }
 
     std::string multiname = file;
-    multiname.replace(multiname.find("%"),1,fmt::format("{}",icluster));
+    multiname.replace(multiname.find('%'),1,fmt::format("{}",icluster));
 
     if (filewriter) {
       fp = fopen(multiname.c_str(),"wb");
@@ -610,8 +610,8 @@ void WriteRestart::file_layout(int send_size)
 
 void WriteRestart::magic_string()
 {
-  std::string magic = MAGIC_STRING;
-  fwrite(magic.c_str(),sizeof(char),magic.size()+1,fp);
+  const char magic[] = MAGIC_STRING;
+  fwrite(magic,sizeof(char),strlen(magic)+1,fp);
 }
 
 /* ---------------------------------------------------------------------- */

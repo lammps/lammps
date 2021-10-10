@@ -2,6 +2,7 @@
 .. index:: kspace_style ewald/dipole
 .. index:: kspace_style ewald/dipole/spin
 .. index:: kspace_style ewald/disp
+.. index:: kspace_style ewald/disp/dipole
 .. index:: kspace_style ewald/omp
 .. index:: kspace_style pppm
 .. index:: kspace_style pppm/kk
@@ -9,6 +10,7 @@
 .. index:: kspace_style pppm/gpu
 .. index:: kspace_style pppm/intel
 .. index:: kspace_style pppm/cg
+.. index:: kspace_style pppm/dielectric
 .. index:: kspace_style pppm/dipole
 .. index:: kspace_style pppm/dipole/spin
 .. index:: kspace_style pppm/disp
@@ -16,7 +18,7 @@
 .. index:: kspace_style pppm/disp/tip4p
 .. index:: kspace_style pppm/disp/tip4p/omp
 .. index:: kspace_style pppm/disp/intel
-.. index:: kspace_style pppm/dielectric
+.. index:: kspace_style pppm/disp/dielectric
 .. index:: kspace_style pppm/cg/omp
 .. index:: kspace_style pppm/stagger
 .. index:: kspace_style pppm/tip4p
@@ -38,7 +40,7 @@ Syntax
 
    kspace_style style value
 
-* style = *none* or *ewald* or *ewald/dipole* or *ewald/dipole/spin* or *ewald/disp* or *ewald/omp* or *pppm* or *pppm/cg* or *pppm/disp* or *pppm/tip4p* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/intel* or *pppm/disp/intel* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/disp/tip4p/omp* or *pppm/tip4p/omp* or *pppm/dielectic* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *msm/dielectric* or *scafacos*
+* style = *none* or *ewald* or *ewald/dipole* or *ewald/dipole/spin* or *ewald/disp* or *ewald/disp/dipole* or *ewald/omp* or *pppm* or *pppm/cg* or *pppm/disp* or *pppm/tip4p* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/intel* or *pppm/disp/intel* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/disp/tip4p/omp* or *pppm/tip4p/omp* or *pppm/dielectic* or *pppm/disp/dielectric* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *msm/dielectric* or *scafacos*
 
   .. parsed-literal::
 
@@ -50,6 +52,8 @@ Syntax
        *ewald/dipole/spin* value = accuracy
          accuracy = desired relative error in forces
        *ewald/disp* value = accuracy
+         accuracy = desired relative error in forces
+       *ewald/disp/dipole* value = accuracy
          accuracy = desired relative error in forces
        *ewald/omp* value = accuracy
          accuracy = desired relative error in forces
@@ -91,6 +95,8 @@ Syntax
          accuracy = desired relative error in forces
        *pppm/dielectric* value = accuracy
          accuracy = desired relative error in forces
+       *pppm/disp/dielectric* value = accuracy
+         accuracy = desired relative error in forces
        *msm* value = accuracy
          accuracy = desired relative error in forces
        *msm/cg* value = accuracy (smallq)
@@ -117,6 +123,12 @@ Examples
    kspace style msm 1.0e-4
    kspace style scafacos fmm 1.0e-4
    kspace_style none
+
+Used in input scripts:
+
+   .. parsed-literal::
+
+      examples/peptide/in.peptide
 
 Description
 """""""""""
@@ -147,6 +159,8 @@ matching keyword to the name of the KSpace style, as in this table:
 +----------------------+-----------------------+
 | tip4p/long           | tip4p                 |
 +----------------------+-----------------------+
+| dipole/long          | dipole                |
++----------------------+-----------------------+
 
 ----------
 
@@ -159,7 +173,8 @@ The *ewald/disp* style adds a long-range dispersion sum option for
 but in a more efficient manner than the *ewald* style.  The :math:`1/r^6`
 capability means that Lennard-Jones or Buckingham potentials can be
 used without a cutoff, i.e. they become full long-range potentials.
-The *ewald/disp* style can also be used with point-dipoles, see
+
+The *ewald/disp/dipole* style can also be used with point-dipoles, see
 :ref:`(Toukmaji) <Toukmaji>`.
 
 The *ewald/dipole* style adds long-range standard Ewald summations
@@ -298,9 +313,9 @@ be cloned from the git-repository
 "git://github.com/scafacos/scafacos.git".
 
 In order to use this KSpace style, you must download and build the
-ScaFaCoS library, then build LAMMPS with the USER-SCAFACOS package
+ScaFaCoS library, then build LAMMPS with the SCAFACOS package
 installed package which links LAMMPS to the ScaFaCoS library.
-See details on :ref:`this page <USER-SCAFACOS>`.
+See details on :ref:`this page <SCAFACOS>`.
 
 .. note::
 
@@ -399,7 +414,7 @@ relative RMS error.
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
+Styles with a *gpu*, *intel*, *kk*, *omp*, or *opt* suffix are
 functionally the same as the corresponding style without the suffix.
 They have been optimized to run faster, depending on your available
 hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
@@ -420,11 +435,11 @@ The *pppm/kk* style performs charge assignment and force interpolation
 calculations, along with the FFTs themselves, on the GPU or (optionally) threaded
 on the CPU when using OpenMP and FFTW3.
 
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP, and OPT packages respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
+These accelerated styles are part of the GPU, INTEL, KOKKOS,
+OPENMP, and OPT packages respectively.  They are only enabled if
+LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` page for more info.
 
-See the :doc:`Speed packages <Speed_packages>` doc page for more
+See the :doc:`Speed packages <Speed_packages>` page for more
 instructions on how to use the accelerated styles effectively.
 
 ----------
@@ -436,19 +451,19 @@ Note that the long-range electrostatic solvers in LAMMPS assume conducting
 metal (tinfoil) boundary conditions for both charge and dipole
 interactions. Vacuum boundary conditions are not currently supported.
 
-The *ewald/disp*\ , *ewald*\ , *pppm*\ , and *msm* styles support
+The *ewald/disp*, *ewald*, *pppm*, and *msm* styles support
 non-orthogonal (triclinic symmetry) simulation boxes. However,
 triclinic simulation cells may not yet be supported by all suffix
 versions of these styles.
 
 Most of the base kspace styles are part of the KSPACE package.  They are
 only enabled if LAMMPS was built with that package.  See the :doc:`Build
-package <Build_package>` doc page for more info.
+package <Build_package>` page for more info.
 
 The *msm/dielectric* and *pppm/dielectric* kspace styles are part of the
-USER-DIELECTRIC package. They are only enabled if LAMMPS was built with
+DIELECTRIC package. They are only enabled if LAMMPS was built with
 that package **and** the KSPACE package.  See the :doc:`Build package
-<Build_package>` doc page for more info.
+<Build_package>` page for more info.
 
 For MSM, a simulation must be 3d and one can use any combination of
 periodic, non-periodic, or shrink-wrapped boundaries (specified using
@@ -460,7 +475,7 @@ dimensions.  The only exception is if the slab option is set with
 must be periodic and the z dimension must be non-periodic.
 
 The scafacos KSpace style will only be enabled if LAMMPS is built with
-the USER-SCAFACOS package.  See the :doc:`Build package <Build_package>`
+the SCAFACOS package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
 The use of ScaFaCos in LAMMPS does not yet support molecular charged

@@ -240,7 +240,8 @@ class Atom2D(Atom):
 
   @property
   def position(self):
-    """
+    """Access to coordinates of an atom
+
     :getter: Return position of atom
     :setter: Set position of atom
     :type: tuple (float, float)
@@ -255,7 +256,7 @@ class Atom2D(Atom):
 
   @property
   def velocity(self):
-    """
+    """Access to velocity of an atom
     :getter: Return velocity of atom
     :setter: Set velocity of atom
     :type: tuple (float, float)
@@ -270,8 +271,7 @@ class Atom2D(Atom):
 
   @property
   def force(self):
-    """
-    Return the total force acting on the atom
+    """Access to force of an atom
 
     :type: tuple (float, float)
     """
@@ -508,11 +508,6 @@ class PyLammps(object):
     :py:attr:`PyLammps.last_run`.
     """
     output = self.__getattr__('run')(*args, **kwargs)
-
-    comm = self.lmp.get_mpi_comm()
-    if comm:
-      output = self.lmp.comm.bcast(output, root=0)
-
     self.runs += get_thermo_data(output)
     return output
 
@@ -643,7 +638,7 @@ class PyLammps(object):
     return [x.strip() for x in value.split('=')]
 
   def _parse_info_system(self, output):
-    lines = output[6:-2]
+    lines = output[5:-2]
     system = {}
 
     for line in lines:
@@ -704,7 +699,7 @@ class PyLammps(object):
     return system
 
   def _parse_info_communication(self, output):
-    lines = output[6:-3]
+    lines = output[5:-3]
     comm = {}
 
     for line in lines:
@@ -725,7 +720,7 @@ class PyLammps(object):
     return comm
 
   def _parse_element_list(self, output):
-    lines = output[6:-3]
+    lines = output[5:-3]
     elements = []
 
     for line in lines:
@@ -737,7 +732,7 @@ class PyLammps(object):
     return elements
 
   def _parse_groups(self, output):
-    lines = output[6:-3]
+    lines = output[5:-3]
     groups = []
     group_pattern = re.compile(r"(?P<name>.+) \((?P<type>.+)\)")
 
@@ -783,6 +778,10 @@ class PyLammps(object):
         cmd = ' '.join(cmd_args)
         self.command(cmd)
         output = capture.output
+
+      comm = self.lmp.get_mpi_comm()
+      if comm:
+        output = self.lmp.comm.bcast(output, root=0)
 
       if 'verbose' in kwargs and kwargs['verbose']:
         print(output)

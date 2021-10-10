@@ -158,21 +158,15 @@ nadapt(0), id_fix_diam(nullptr), id_fix_chg(nullptr), adapt(nullptr)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"reset") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix adapt command");
-      if (strcmp(arg[iarg+1],"no") == 0) resetflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) resetflag = 1;
-      else error->all(FLERR,"Illegal fix adapt command");
+      resetflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"scale") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix adapt command");
-      if (strcmp(arg[iarg+1],"no") == 0) scaleflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) scaleflag = 1;
-      else error->all(FLERR,"Illegal fix adapt command");
+      scaleflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"mass") == 0) {
       if (iarg+2 > narg)error->all(FLERR,"Illegal fix adapt command");
-      if (strcmp(arg[iarg+1],"no") == 0) massflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) massflag = 1;
-      else error->all(FLERR,"Illegal fix adapt command");
+      massflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix adapt command");
   }
@@ -252,12 +246,9 @@ void FixAdapt::post_constructor()
   id_fix_chg = nullptr;
 
   if (diamflag && atom->radius_flag) {
-    std::string fixcmd = id + std::string("_FIX_STORE_DIAM");
-    id_fix_diam = utils::strdup(fixcmd);
-    fixcmd += fmt::format(" {} STORE peratom 1 1",group->names[igroup]);
-    modify->add_fix(fixcmd);
-    fix_diam = (FixStore *) modify->fix[modify->nfix-1];
-
+    id_fix_diam = utils::strdup(id + std::string("_FIX_STORE_DIAM"));
+    fix_diam = (FixStore *) modify->add_fix(fmt::format("{} {} STORE peratom 1 1",
+                                                        id_fix_diam,group->names[igroup]));
     if (fix_diam->restart_reset) fix_diam->restart_reset = 0;
     else {
       double *vec = fix_diam->vstore;
@@ -273,12 +264,9 @@ void FixAdapt::post_constructor()
   }
 
   if (chgflag && atom->q_flag) {
-    std::string fixcmd = id + std::string("_FIX_STORE_CHG");
-    id_fix_chg = utils::strdup(fixcmd);
-    fixcmd += fmt::format(" {} STORE peratom 1 1",group->names[igroup]);
-    modify->add_fix(fixcmd);
-    fix_chg = (FixStore *) modify->fix[modify->nfix-1];
-
+    id_fix_chg = utils::strdup(id + std::string("_FIX_STORE_CHG"));
+    fix_chg = (FixStore *) modify->add_fix(fmt::format("{} {} STORE peratom 1 1",
+                                                       id_fix_chg,group->names[igroup]));
     if (fix_chg->restart_reset) fix_chg->restart_reset = 0;
     else {
       double *vec = fix_chg->vstore;
@@ -337,15 +325,9 @@ void FixAdapt::init()
         nsub = utils::inumeric(FLERR,cptr+1,false,lmp);
       }
 
-      if (lmp->suffix_enable) {
-        int len = 2 + strlen(pstyle) + strlen(lmp->suffix);
-        char *psuffix = new char[len];
-        strcpy(psuffix,pstyle);
-        strcat(psuffix,"/");
-        strcat(psuffix,lmp->suffix);
-        ad->pair = force->pair_match(psuffix,1,nsub);
-        delete[] psuffix;
-      }
+      if (lmp->suffix_enable)
+        ad->pair = force->pair_match(fmt::format("{}/{}",pstyle,lmp->suffix),1,nsub);
+
       if (ad->pair == nullptr) ad->pair = force->pair_match(pstyle,1,nsub);
       if (ad->pair == nullptr)
         error->all(FLERR,"Fix adapt pair style does not exist");
@@ -380,15 +362,9 @@ void FixAdapt::init()
       anybond = 1;
 
       char *bstyle = utils::strdup(ad->bstyle);
-      if (lmp->suffix_enable) {
-        int len = 2 + strlen(bstyle) + strlen(lmp->suffix);
-        char *bsuffix = new char[len];
-        strcpy(bsuffix,bstyle);
-        strcat(bsuffix,"/");
-        strcat(bsuffix,lmp->suffix);
-        ad->bond = force->bond_match(bsuffix);
-        delete [] bsuffix;
-      }
+      if (lmp->suffix_enable)
+        ad->bond = force->bond_match(fmt::format("{}/{}",bstyle,lmp->suffix));
+
       if (ad->bond == nullptr) ad->bond = force->bond_match(bstyle);
       if (ad->bond == nullptr )
         error->all(FLERR,"Fix adapt bond style does not exist");
@@ -618,23 +594,13 @@ void FixAdapt::change_settings()
   // ditto for bond styles if any BOND settings were changed
   // this resets other coeffs that may depend on changed values,
   //   and also offset and tail corrections
+  // we must call force->pair->reinit() instead of the individual
+  // adapted pair styles so that also the top-level
+  // tail correction values are updated for hybrid pair styles.
+  //  same for bond styles
 
-  if (anypair) {
-    for (int m = 0; m < nadapt; m++) {
-      Adapt *ad = &adapt[m];
-      if (ad->which == PAIR) {
-        ad->pair->reinit();
-      }
-    }
-  }
-  if (anybond) {
-    for (int m = 0; m < nadapt; ++m) {
-      Adapt *ad = &adapt[m];
-      if (ad->which == BOND) {
-        ad->bond->reinit();
-      }
-    }
-  }
+  if (anypair) force->pair->reinit();
+  if (anybond) force->bond->reinit();
 
   // reset KSpace charges if charges have changed
 

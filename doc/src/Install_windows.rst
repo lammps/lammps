@@ -12,15 +12,15 @@ Note that each installer package has a date in its name, which
 corresponds to the LAMMPS version of the same date.  Installers for
 current and older versions of LAMMPS are available.  32-bit and 64-bit
 installers are available, and each installer contains both a serial
-and parallel executable.  The installer web site also explains how to
+and parallel executable.  The installer website also explains how to
 install the Windows MPI package (MPICH2 from Argonne National Labs),
 needed to run in parallel with MPI.
 
 The LAMMPS binaries contain *all* :doc:`optional packages <Packages>`
 included in the source distribution except: KIM, KOKKOS, MSCG, PYTHON,
-USER-ADIOS, USER-H5MD, USER-NETCDF, USER-QMMM, USER-QUIP, and USER-VTK.
+ADIOS, H5MD, NETCDF, QMMM, ML-QUIP, and VTK.
 The serial version also does not include the MPIIO and
-USER-LB packages.  The GPU package is compiled for OpenCL with
+LATBOLTZ packages.  The GPU package is compiled for OpenCL with
 mixed precision kernels.
 
 The LAMMPS library is compiled as a shared library and the

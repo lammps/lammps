@@ -20,9 +20,9 @@
 #include "MANYBODY/pair_tersoff.h"
 #include "MANYBODY/pair_tersoff_mod.h"
 #include "MANYBODY/pair_tersoff_mod_c.h"
+#include "MANYBODY/pair_tersoff_table.h"
 #include "MANYBODY/pair_tersoff_zbl.h"
 #include "MANYBODY/pair_vashishta.h"
-#include "USER-MISC/pair_tersoff_table.h"
 #include "info.h"
 #include "input.h"
 #include "potential_file_reader.h"
@@ -318,7 +318,7 @@ TEST_F(OpenPotentialTest, No_file)
     command("units metal");
     FILE *fp = utils::open_potential("Unknown.sw", lmp, &convert_flag);
     END_HIDE_OUTPUT();
-    ASSERT_EQ(fp,nullptr);
+    ASSERT_EQ(fp, nullptr);
 }
 
 int main(int argc, char **argv)

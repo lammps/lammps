@@ -1,5 +1,5 @@
 # Settings that the LAMMPS build will import when this package library is used
 
-user-atc_SYSINC =
-user-atc_SYSLIB =
-user-atc_SYSPATH =
+atc_SYSINC =
+atc_SYSLIB =
+atc_SYSPATH =

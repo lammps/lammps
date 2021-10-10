@@ -17,22 +17,22 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_eam_alloy_kokkos.h"
-#include <cmath>
-#include <cstring>
-#include "kokkos.h"
-#include "pair_kokkos.h"
+
 #include "atom_kokkos.h"
-#include "force.h"
+#include "atom_masks.h"
 #include "comm.h"
-#include "neighbor.h"
+#include "error.h"
+#include "force.h"
+#include "kokkos.h"
+#include "memory_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "neigh_request.h"
-#include "memory_kokkos.h"
-#include "error.h"
-#include "atom_masks.h"
-
-#include "tokenizer.h"
+#include "neighbor.h"
+#include "pair_kokkos.h"
 #include "potential_file_reader.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -44,8 +44,8 @@ template<class DeviceType>
 PairEAMAlloyKokkos<DeviceType>::PairEAMAlloyKokkos(LAMMPS *lmp) : PairEAM(lmp)
 {
   respa_enable = 0;
+  single_enable = 0;
   one_coeff = 1;
-  manybody_flag = 1;
 
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
@@ -261,6 +261,8 @@ void PairEAMAlloyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     virial[5] += ev.v[5];
   }
 
+  if (vflag_fdotr) pair_virial_fdotr_compute(this);
+
   if (eflag_atom) {
     if (need_dup)
       Kokkos::Experimental::contribute(d_eatom, dup_eatom);
@@ -274,8 +276,6 @@ void PairEAMAlloyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     k_vatom.template modify<DeviceType>();
     k_vatom.template sync<LMPHostType>();
   }
-
-  if (vflag_fdotr) pair_virial_fdotr_compute(this);
 
   copymode = 0;
 
@@ -321,6 +321,11 @@ void PairEAMAlloyKokkos<DeviceType>::init_style()
   }
 
 }
+
+/* ----------------------------------------------------------------------
+   convert read-in funcfl potential(s) to standard array format
+   interpolate all file values to a single grid and cutoff
+------------------------------------------------------------------------- */
 
 template<class DeviceType>
 void PairEAMAlloyKokkos<DeviceType>::file2array()
@@ -524,7 +529,7 @@ void PairEAMAlloyKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, doubl
     h_rho[j] += buf[m++];
   }
 
-  k_fp.modify_host();
+  k_rho.modify_host();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -581,8 +586,8 @@ void PairEAMAlloyKokkos<DeviceType>::operator()(TagPairEAMAlloyKernelA<NEIGHFLAG
                   d_rhor_spline(d_type2rhor_ji,m,5))*p + d_rhor_spline(d_type2rhor_ji,m,6);
       if (NEWTON_PAIR || j < nlocal) {
         const int d_type2rhor_ij = d_type2rhor(itype,jtype);
-       a_rho[j] += ((d_rhor_spline(d_type2rhor_ij,m,3)*p + d_rhor_spline(d_type2rhor_ij,m,4))*p +
-                    d_rhor_spline(d_type2rhor_ij,m,5))*p + d_rhor_spline(d_type2rhor_ij,m,6);
+        a_rho[j] += ((d_rhor_spline(d_type2rhor_ij,m,3)*p + d_rhor_spline(d_type2rhor_ij,m,4))*p +
+                      d_rhor_spline(d_type2rhor_ij,m,5))*p + d_rhor_spline(d_type2rhor_ij,m,6);
       }
     }
 
@@ -597,7 +602,6 @@ template<class DeviceType>
 template<int EFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairEAMAlloyKokkos<DeviceType>::operator()(TagPairEAMAlloyKernelB<EFLAG>, const int &ii, EV_FLOAT& ev) const {
-
   // fp = derivative of embedding energy at each atom
   // phi = embedding energy at each atom
   // if rho > rhomax (e.g. due to close approach of two atoms),
@@ -620,7 +624,6 @@ void PairEAMAlloyKokkos<DeviceType>::operator()(TagPairEAMAlloyKernelB<EFLAG>, c
     if (eflag_global) ev.evdwl += phi;
     if (eflag_atom) d_eatom[i] += phi;
   }
-
 }
 
 template<class DeviceType>

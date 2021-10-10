@@ -47,6 +47,7 @@ class Python : protected Pointers {
 
   bool is_enabled() const;
   void init();
+  static void finalize();
 
  private:
   PythonInterface *impl;

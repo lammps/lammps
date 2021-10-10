@@ -33,6 +33,54 @@ char const **cvscript_command_names()
 }
 
 
+extern "C"
+char const *cvscript_command_help(char const *c)
+{
+  colvarscript *script = colvarscript_obj();
+  return script->get_command_help(c);
+}
+
+
+extern "C"
+char const *cvscript_command_rethelp(char const *c)
+{
+  colvarscript *script = colvarscript_obj();
+  return script->get_command_rethelp(c);
+}
+
+
+extern "C"
+char const *cvscript_command_arghelp(char const *c, int i)
+{
+  colvarscript *script = colvarscript_obj();
+  return script->get_command_arghelp(c, i);
+}
+
+
+extern "C"
+char const *cvscript_command_full_help(char const *c)
+{
+  colvarscript *script = colvarscript_obj();
+  return script->get_command_full_help(c);
+}
+
+
+extern "C"
+int cvscript_command_n_args_min(char const *c)
+{
+  colvarscript *script = colvarscript_obj();
+  return script->get_command_n_args_min(c);
+}
+
+
+extern "C"
+int cvscript_command_n_args_max(char const *c)
+{
+  colvarscript *script = colvarscript_obj();
+  return script->get_command_n_args_max(c);
+}
+
+
 // Instantiate the body of all script commands
 
 #define CVSCRIPT_COMM_FN(COMM,N_ARGS_MIN,N_ARGS_MAX,ARGS,FN_BODY)       \

@@ -73,7 +73,6 @@ using namespace MathConst;
 #define MULTI "etotal ke temp pe ebond eangle edihed eimp evdwl ecoul elong press"
 
 enum{ONELINE,MULTILINE};
-enum{INT,FLOAT,BIGINT};
 enum{SCALAR,VECTOR,ARRAY};
 
 
@@ -416,14 +415,14 @@ bigint Thermo::lost_check()
     error->all(FLERR,"Too many total atoms");
 
   // print notification, if future warnings will be ignored
-  int maxwarn = error->get_maxwarn();
+  bigint maxwarn = error->get_maxwarn();
   if ((maxwarn > 0) && (warnbefore == 0) && (ntotal[1] > maxwarn)) {
     warnbefore = 1;
     if (comm->me == 0)
       error->message(FLERR,"WARNING: Too many warnings: {} vs {}. All "
                      "future warnings will be suppressed",ntotal[1],maxwarn);
   }
-  error->set_allwarn(ntotal[1]);
+  error->set_allwarn(MIN(MAXSMALLINT,ntotal[1]));
 
   // no lost atoms, nothing else to do.
   if (ntotal[0] == atom->natoms) return ntotal[0];
@@ -557,16 +556,12 @@ void Thermo::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"norm") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal thermo_modify command");
       normuserflag = 1;
-      if (strcmp(arg[iarg+1],"no") == 0) normuser = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) normuser = 1;
-      else error->all(FLERR,"Illegal thermo_modify command");
+      normuser = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"flush") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal thermo_modify command");
-      if (strcmp(arg[iarg+1],"no") == 0) flushflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) flushflag = 1;
-      else error->all(FLERR,"Illegal thermo_modify command");
+      flushflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"line") == 0) {

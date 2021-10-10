@@ -48,9 +48,14 @@
 #include <cctype>
 #include <cmath>
 #include <cstring>
+#include <ctime>
+#include <exception>
 #include <map>
 
 #ifdef _WIN32
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
 #define PSAPI_VERSION 1
 #include <windows.h>
 #include <cstdint>
@@ -1222,8 +1227,8 @@ bool Info::has_accelerator_feature(const std::string &package,
     return lmp_gpu_config(category,setting);
   }
 #endif
-#if defined(LMP_USER_OMP)
-  if (package == "USER-OMP") {
+#if defined(LMP_OPENMP)
+  if (package == "OPENMP") {
     if (category == "precision") {
       if (setting == "double") return true;
       else return false;
@@ -1238,8 +1243,8 @@ bool Info::has_accelerator_feature(const std::string &package,
     }
   }
 #endif
-#if defined(LMP_USER_INTEL)
-  if (package == "USER-INTEL") {
+#if defined(LMP_INTEL)
+  if (package == "INTEL") {
     if (category == "precision") {
       if (setting == "double") return true;
       else if (setting == "mixed") return true;
@@ -1328,18 +1333,31 @@ std::string Info::get_compiler_info()
 {
   std::string buf;
 #if defined(__INTEL_LLVM_COMPILER)
-  double version = static_cast<double>(__INTEL_LLVM_COMPILER)*0.01;
+  constexpr double version = static_cast<double>(__INTEL_LLVM_COMPILER)*0.01;
   buf = fmt::format("Intel LLVM C++ {:.1f} / {}", version, __VERSION__);
+#elif defined(__ibmxl__)
+  buf = fmt::format("IBM XL C/C++ (Clang) {}.{}.{}",
+                    __ibmxl_version__, __ibmxl_release__, __ibmxl_modification__);
 #elif defined(__clang__)
   buf = fmt::format("Clang C++ {}", __VERSION__);
 #elif defined(__PGI)
-  buf = fmt::format("PGI C++ {}.{}",__PGIC__,__PGIC_MINOR__);
+  buf = fmt::format("PGI C++ {}.{}",__PGIC__, __PGIC_MINOR__);
 #elif defined(__INTEL_COMPILER)
   double version = static_cast<double>(__INTEL_COMPILER)*0.01;
   buf = fmt::format("Intel Classic C++ {:.2f}.{} / {}", version,
                     __INTEL_COMPILER_UPDATE, __VERSION__);
+#elif defined(__MINGW64__)
+  buf = fmt::format("MinGW-w64 64bit {}.{} / GNU C++ {}", __MINGW64_VERSION_MAJOR,
+                    __MINGW64_VERSION_MINOR, __VERSION__);
+#elif defined(__MINGW32__)
+  buf = fmt::format("MinGW-w64 32bit {}.{} / GNU C++ {}", __MINGW32_MAJOR_VERSION,
+                    __MINGW32_MINOR_VERSION, __VERSION__);
 #elif defined(__GNUC__)
   buf = fmt::format("GNU C++ {}",   __VERSION__);
+#elif defined(_MSC_VER) && (_MSC_VER > 1920) && (_MSC_VER < 2000)
+  constexpr int major = _MSC_VER / 100;
+  constexpr int minor = _MSC_VER - major *100;
+  buf = fmt::format("Microsoft Visual Studio 20{}, C/C++ {}.{}", major, major-5, minor);
 #else
   buf = "(Unknown)";
 #endif
@@ -1356,8 +1374,10 @@ std::string Info::get_openmp_info()
 // Supported OpenMP version corresponds to the release date of the
 // specifications as posted at https://www.openmp.org/specifications/
 
-#if _OPENMP > 201811
-  return "OpenMP newer than version 5.0";
+#if _OPENMP > 202011
+  return "OpenMP newer than version 5.1";
+#elif _OPENMP == 202011
+  return "OpenMP 5.1";
 #elif _OPENMP == 201811
   return "OpenMP 5.0";
 #elif _OPENMP == 201611
@@ -1423,8 +1443,10 @@ std::string Info::get_mpi_info(int &major, int &minor)
 
 std::string Info::get_cxx_info()
 {
-#if __cplusplus > 201703L
-  return "newer than C++17";
+#if __cplusplus > 202002L
+  return "newer than C++20";
+#elif __cplusplus == 202002L
+  return "C++20";
 #elif __cplusplus == 201703L
   return "C++17";
 #elif __cplusplus == 201402L
@@ -1466,24 +1488,24 @@ std::string Info::get_accelerator_info(const std::string &package)
     if (has_accelerator_feature("KOKKOS","precision","double")) mesg += " double";
     mesg += "\n";
   }
-  if ((package.empty() || (package == "USER-OMP")) && has_package("USER-OMP")) {
-    mesg += "USER-OMP package API:";
-    if (has_accelerator_feature("USER-OMP","api","openmp"))   mesg += " OpenMP";
-    if (has_accelerator_feature("USER-OMP","api","serial"))   mesg += " Serial";
-    mesg +=  "\nUSER-OMP package precision:";
-    if (has_accelerator_feature("USER-OMP","precision","single")) mesg += " single";
-    if (has_accelerator_feature("USER-OMP","precision","mixed"))  mesg += " mixed";
-    if (has_accelerator_feature("USER-OMP","precision","double")) mesg += " double";
+  if ((package.empty() || (package == "OPENMP")) && has_package("OPENMP")) {
+    mesg += "OPENMP package API:";
+    if (has_accelerator_feature("OPENMP","api","openmp"))   mesg += " OpenMP";
+    if (has_accelerator_feature("OPENMP","api","serial"))   mesg += " Serial";
+    mesg +=  "\nOPENMP package precision:";
+    if (has_accelerator_feature("OPENMP","precision","single")) mesg += " single";
+    if (has_accelerator_feature("OPENMP","precision","mixed"))  mesg += " mixed";
+    if (has_accelerator_feature("OPENMP","precision","double")) mesg += " double";
     mesg += "\n";
   }
-  if ((package.empty() || (package == "USER-INTEL")) && has_package("USER-INTEL")) {
-    mesg += "USER-INTEL package API:";
-    if (has_accelerator_feature("USER-INTEL","api","phi"))      mesg += " Phi";
-    if (has_accelerator_feature("USER-INTEL","api","openmp"))   mesg += " OpenMP";
-    mesg +=  "\nUSER-INTEL package precision:";
-    if (has_accelerator_feature("USER-INTEL","precision","single")) mesg += " single";
-    if (has_accelerator_feature("USER-INTEL","precision","mixed"))  mesg += " mixed";
-    if (has_accelerator_feature("USER-INTEL","precision","double")) mesg += " double";
+  if ((package.empty() || (package == "INTEL")) && has_package("INTEL")) {
+    mesg += "INTEL package API:";
+    if (has_accelerator_feature("INTEL","api","phi"))      mesg += " Phi";
+    if (has_accelerator_feature("INTEL","api","openmp"))   mesg += " OpenMP";
+    mesg +=  "\nINTEL package precision:";
+    if (has_accelerator_feature("INTEL","precision","single")) mesg += " single";
+    if (has_accelerator_feature("INTEL","precision","mixed"))  mesg += " mixed";
+    if (has_accelerator_feature("INTEL","precision","double")) mesg += " double";
     mesg += "\n";
   }
   return mesg;

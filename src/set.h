@@ -32,7 +32,7 @@ class Set : public Command {
  private:
   char *id;
   int *select;
-  int style, ivalue, newtype, count, index_custom;
+  int style, ivalue, newtype, count, index_custom, icol_custom;
   int ximage, yimage, zimage, ximageflag, yimageflag, zimageflag;
   int cc_index;
   bigint nsubset;

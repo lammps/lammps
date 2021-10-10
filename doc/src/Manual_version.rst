@@ -7,7 +7,7 @@ correctly and reliably at all times.  You can follow its development
 in a public `git repository on GitHub <https://github.com/lammps/lammps>`_.
 
 Whenever we fix a bug or update or add a feature, it will be merged into
-the `master` branch of the git repository.  When a sufficient number of
+the *develop* branch of the git repository.  When a sufficient number of
 changes have accumulated *and* the software passes a set of automated
 tests, we release it in the next *patch* release, which are made every
 few weeks.  Info on patch releases are on `this website page

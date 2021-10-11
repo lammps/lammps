@@ -502,9 +502,7 @@ void TILD::vir_func_init() {
           ktmp2[j] *= scale_inv;
           vg_hat[loc][i][j] = ktmp2[j];
         }
-
       }
-
     }
   }
   
@@ -512,7 +510,6 @@ void TILD::vir_func_init() {
     int i_index = min(potential.i,potential.j);
     int j_index = max(potential.i,potential.j);
     loc = (i_index*(2*ntypes - i_index - 1))/2 + j_index;
-
 
     if (potential.type != NONE){
       n = 0;
@@ -561,11 +558,8 @@ void TILD::vir_func_init() {
           ktmp2[j] *= scale_inv;
           vg_hat[loc][i][j] = ktmp2[j];
         }
-
       }
-
     }
-
   }
 }
 
@@ -705,7 +699,6 @@ void TILD::compute(int eflag, int vflag){
     MPI_Allreduce(&energy,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);
     //double volume = domain->xprd * domain->yprd * domain->zprd;
     energy = energy_all; // * volume;
-
   }
 
   if (vflag_global) {
@@ -1446,7 +1439,6 @@ void TILD::init_potential(FFT_SCALAR *wk1, const int type, const double* paramet
       }
     }
   }
-
 }
 
 /* ----------------------------------------------------------------------

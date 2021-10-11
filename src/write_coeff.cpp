@@ -26,7 +26,6 @@
 
 #include <cctype>
 #include <cstring>
-#include <unistd.h>
 
 using namespace LAMMPS_NS;
 
@@ -170,8 +169,8 @@ void WriteCoeff::command(int narg, char **arg)
     }
     fclose(one);
     fclose(two);
-    unlink(file);
+    platform::unlink(file);
   }
 
-  delete [] file;
+  delete[] file;
 }

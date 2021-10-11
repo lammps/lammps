@@ -1137,6 +1137,7 @@ Germann
 Germano
 gerolf
 Gerolf
+getrusage
 Gershgorin
 getter
 gettimeofday
@@ -1224,6 +1225,7 @@ Guo
 gw
 gyromagnetic
 gz
+gzip
 gzipped
 Haak
 Hafskjold
@@ -1812,6 +1814,7 @@ lyon
 Lysogorskiy
 Lyulin
 lz
+lzma
 Maaravi
 MACHDYN
 machdyn
@@ -2765,6 +2768,7 @@ REAXFF
 ReaxFF
 reaxff
 rebo
+recurse
 recursing
 Ree
 refactored
@@ -3445,6 +3449,7 @@ usec
 uSemiParallel
 userguide
 username
+usleep
 usr
 util
 utils

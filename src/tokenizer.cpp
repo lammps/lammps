@@ -46,8 +46,8 @@ TokenizerException::TokenizerException(const std::string &msg, const std::string
 
 \endverbatim
  *
- * \param str         string to be processed
- * \param separators  string with separator characters (default: " \t\r\n\f") */
+ * \param  str          string to be processed
+ * \param  _separators  string with separator characters (default: " \t\r\n\f") */
 
 Tokenizer::Tokenizer(const std::string &str, const std::string &_separators) :
     text(str), separators(_separators), start(0), ntokens(std::string::npos)

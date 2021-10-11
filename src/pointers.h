@@ -30,6 +30,7 @@
 #include "lammps.h"     // IWYU pragma: export
 #include "utils.h"      // IWYU pragma: export
 #include "fmt/format.h" // IWYU pragma: export
+#include "platform.h"   // IWYU pragma: export
 
 namespace LAMMPS_NS {
 

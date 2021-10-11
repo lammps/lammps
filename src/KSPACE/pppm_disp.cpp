@@ -8183,7 +8183,7 @@ int PPPMDisp::timing_1d(int n, double &time1d)
     for (int i = 0; i < 2*nfft_both_6; i++) work1_6[i] = ZEROF;
 
   MPI_Barrier(world);
-  time1 = MPI_Wtime();
+  time1 = platform::walltime();
 
   if (function[0]) {
     for (int i = 0; i < n; i++) {
@@ -8197,11 +8197,11 @@ int PPPMDisp::timing_1d(int n, double &time1d)
   }
 
   MPI_Barrier(world);
-  time2 = MPI_Wtime();
+  time2 = platform::walltime();
   time1d = time2 - time1;
 
   MPI_Barrier(world);
-  time1 = MPI_Wtime();
+  time1 = platform::walltime();
 
   if (function[1] + function[2] + function[3]) {
     for (int i = 0; i < n; i++) {
@@ -8215,7 +8215,7 @@ int PPPMDisp::timing_1d(int n, double &time1d)
   }
 
   MPI_Barrier(world);
-  time2 = MPI_Wtime();
+  time2 = platform::walltime();
   time1d += (time2 - time1)*mixing;
 
   if (differentiation_flag) return 2;
@@ -8238,7 +8238,7 @@ int PPPMDisp::timing_3d(int n, double &time3d)
     for (int i = 0; i < 2*nfft_both_6; i++) work1_6[i] = ZEROF;
 
   MPI_Barrier(world);
-  time1 = MPI_Wtime();
+  time1 = platform::walltime();
 
   if (function[0]) {
     for (int i = 0; i < n; i++) {
@@ -8252,11 +8252,11 @@ int PPPMDisp::timing_3d(int n, double &time3d)
   }
 
   MPI_Barrier(world);
-  time2 = MPI_Wtime();
+  time2 = platform::walltime();
   time3d = time2 - time1;
 
   MPI_Barrier(world);
-  time1 = MPI_Wtime();
+  time1 = platform::walltime();
 
   if (function[1] + function[2] + function[3]) {
     for (int i = 0; i < n; i++) {
@@ -8270,7 +8270,7 @@ int PPPMDisp::timing_3d(int n, double &time3d)
   }
 
   MPI_Barrier(world);
-  time2 = MPI_Wtime();
+  time2 = platform::walltime();
   time3d += (time2 - time1) * mixing;
 
   if (differentiation_flag) return 2;

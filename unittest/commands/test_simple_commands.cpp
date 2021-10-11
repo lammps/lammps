@@ -20,7 +20,6 @@
 #include "input.h"
 #include "output.h"
 #include "update.h"
-#include "utils.h"
 #include "variable.h"
 
 #include "../testing/core.h"
@@ -217,7 +216,7 @@ TEST_F(SimpleCommandsTest, Quit)
     TEST_FAILURE(".*ERROR: Expected integer .*", command("quit xxx"););
 
     // the following tests must be skipped with OpenMPI due to using threads
-    if (Info::get_mpi_vendor() == "Open MPI") GTEST_SKIP();
+    if (platform::mpi_vendor() == "Open MPI") GTEST_SKIP();
     ASSERT_EXIT(command("quit"), ExitedWithCode(0), "");
     ASSERT_EXIT(command("quit 9"), ExitedWithCode(9), "");
 }
@@ -528,7 +527,7 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (Info::get_mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
+    if (platform::mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
         std::cout << "Warning: using OpenMPI without exceptions. "
                      "Death tests will be skipped\n";
 

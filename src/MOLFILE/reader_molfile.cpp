@@ -85,13 +85,7 @@ void ReaderMolfile::settings(int narg, char **arg)
     if (mf->find_plugin(path)!= MFI::E_MATCH)
       error->one(FLERR,"No suitable molfile plugin found");
 
-    if (screen)
-      fprintf(screen,"Dump reader uses molfile plugin: %s\n",
-              mf->get_plugin_name());
-
-    if (logfile)
-      fprintf(logfile,"Dump reader uses molfile plugin: %s\n",
-              mf->get_plugin_name());
+    utils::logmesg(lmp,"Dump reader uses molfile plugin: {}\n", mf->get_plugin_name());
   }
 }
 
@@ -100,30 +94,22 @@ void ReaderMolfile::settings(int narg, char **arg)
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-void ReaderMolfile::open_file(const char *file)
+void ReaderMolfile::open_file(const std::string &file)
 {
   int rv;
-  char str[1024];
 
   // close open file, if needed.
   if (mf->is_open()) mf->close();
 
-  rv = mf->open(file,&natoms);
+  rv = mf->open(file.c_str(),&natoms);
 
-  if (rv != MFI::E_NONE) {
-    snprintf(str,1024,"Cannot open file %s",file);
-    error->one(FLERR,str);
-  }
+  if (rv != MFI::E_NONE) error->one(FLERR,"Cannot open file {}", file);
 
-  if (natoms < 1) {
-    snprintf(str,1024,"No atoms in file %s",file);
-    error->one(FLERR,str);
-  }
+  if (natoms < 1) error->one(FLERR,"No atoms in file {}", file);
 
   memory->create(types,natoms,"reader:types");
   memory->create(coords,3*natoms,"reader:coords");
-  if (mf->has_vels())
-    memory->create(vels,3*natoms,"reader:vels");
+  if (mf->has_vels()) memory->create(vels,3*natoms,"reader:vels");
 
   // initialize system properties, if available
   if (mf->has_props()) {

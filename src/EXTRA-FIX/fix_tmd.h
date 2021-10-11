@@ -52,7 +52,7 @@ class FixTMD : public Fix {
   double **xf, **xold;
 
   void readfile(char *);
-  void open(char *);
+  void open(const std::string &);
 };
 
 }    // namespace LAMMPS_NS

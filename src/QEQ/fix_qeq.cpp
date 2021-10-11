@@ -767,7 +767,7 @@ void FixQEq::read_file(char *file)
         for (int n=nlo; n <= nhi; ++n) zcore[n] = val;
         for (int n=nlo; n <= nhi; ++n) setflag[n] = 1;
       }
-    } catch (EOFException &e) {
+    } catch (EOFException &) {
       ; // catch and ignore to exit loop
     } catch (std::exception &e) {
       error->one(FLERR,e.what());

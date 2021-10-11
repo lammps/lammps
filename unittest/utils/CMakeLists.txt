@@ -13,7 +13,25 @@ add_test(ArgUtils test_argutils)
 add_executable(test_utils test_utils.cpp)
 target_link_libraries(test_utils PRIVATE lammps GTest::GMockMain GTest::GMock GTest::GTest)
 add_test(Utils test_utils)
-set_tests_properties(Utils PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
+
+add_executable(test_platform test_platform.cpp)
+target_link_libraries(test_platform PRIVATE lammps GTest::GMockMain GTest::GMock GTest::GTest)
+add_test(Platform test_platform)
+
+set_tests_properties(Utils Platform PROPERTIES
+  ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
+
+if(BUILD_SHARED_LIBS)
+  enable_language(C)
+  add_library(testsharedobj MODULE testshared.c)
+  set_target_properties(testsharedobj PROPERTIES PREFIX "" WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
+  add_library(testsharedlib SHARED testshared.c)
+  set_target_properties(testsharedlib PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
+  add_dependencies(test_platform testsharedobj testsharedlib)
+  target_compile_definitions(test_platform PRIVATE TEST_SHARED_LOAD=1
+    TEST_SHARED_LIB=$<TARGET_FILE:testsharedlib>
+    TEST_SHARED_OBJ=$<TARGET_FILE:testsharedobj>)
+endif()
 
 add_executable(test_fmtlib test_fmtlib.cpp)
 target_link_libraries(test_fmtlib PRIVATE lammps GTest::GMockMain GTest::GMock GTest::GTest)

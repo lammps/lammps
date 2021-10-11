@@ -615,7 +615,7 @@ int FixACKS2ReaxFF::BiCGStab(double *b, double *x)
       error->warning(FLERR,"Fix acks2/reaxff BiCGStab numerical breakdown, omega = {:.8}, rho = {:.8}",
                       omega,rho);
     } else if (i >= imax) {
-      error->warning(FLERR,"Fix acks2/reaxff BiCGStab convergence failed afteri {} iterations "
+      error->warning(FLERR,"Fix acks2/reaxff BiCGStab convergence failed after {} iterations "
                            "at step {}", i, update->ntimestep);
     }
   }

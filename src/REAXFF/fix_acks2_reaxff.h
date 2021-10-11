@@ -40,7 +40,6 @@ class FixACKS2ReaxFF : public FixQEqReaxFF {
   int last_rows_rank, last_rows_flag;
 
   double **s_hist_X, **s_hist_last;
-
   double *bcut_acks2, bond_softness, **bcut;    // acks2 parameters
 
   sparse_matrix X;

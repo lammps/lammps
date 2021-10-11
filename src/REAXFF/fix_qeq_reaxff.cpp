@@ -389,9 +389,13 @@ void FixQEqReaxFF::init()
   if (efield && (strcmp(update->unit_style,"real") != 0))
     error->all(FLERR,"Must use unit_style real with fix qeq/reax and external fields");
 
+  // ensure that fix efield is properly initialized before accessing its data
+  if (efield) efield->init();
+
   if (efield && efield->varflag != FixEfield::CONSTANT)
     error->all(FLERR,"Cannot yet use fix qeq/reaxff with variable efield");
-  // need a half neighbor list w/ Newton off and ghost neighbors
+
+  // we need a half neighbor list w/ Newton off and ghost neighbors
   // built whenever re-neighboring occurs
 
   int irequest = neighbor->request(this,instance_me);

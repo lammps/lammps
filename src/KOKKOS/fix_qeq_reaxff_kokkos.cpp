@@ -257,8 +257,7 @@ void FixQEqReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
 
   // init_matvec
 
-  if (field_flag)
-    get_chi_field();
+  if (efield) get_chi_field();
 
   k_s_hist.template sync<DeviceType>();
   k_t_hist.template sync<DeviceType>();
@@ -384,8 +383,7 @@ void FixQEqReaxFFKokkos<DeviceType>::allocate_array()
 
   // init_storage
 
-  if (field_flag)
-    get_chi_field();
+  if (efield) get_chi_field();
 
   FixQEqReaxFFKokkosZeroFunctor<DeviceType> zero_functor(this);
   Kokkos::parallel_for(ignum,zero_functor);

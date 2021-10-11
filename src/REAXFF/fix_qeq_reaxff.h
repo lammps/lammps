@@ -65,6 +65,7 @@ class FixQEqReaxFF : public Fix {
   int nlevels_respa;
   class NeighList *list;
   class PairReaxFF *reaxff;
+  class FixEfield *efield;
   int *ilist, *jlist, *numneigh, **firstneigh;
 
   double swa, swb;     // lower/upper Taper cutoff radius
@@ -140,8 +141,6 @@ class FixQEqReaxFF : public Fix {
   // dual CG support
   int dual_enabled;            // 0: Original, separate s & t optimization; 1: dual optimization
   int matvecs_s, matvecs_t;    // Iteration count for each system
-
-  int field_flag;              // 1: field enabled
 };
 
 }    // namespace LAMMPS_NS

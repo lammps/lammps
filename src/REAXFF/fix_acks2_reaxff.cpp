@@ -316,15 +316,13 @@ void FixACKS2ReaxFF::init_bondcut()
 
 void FixACKS2ReaxFF::init_storage()
 {
-  if (field_flag)
-    get_chi_field();
+  if (efield) get_chi_field();
 
   for (int ii = 0; ii < NN; ii++) {
     int i = ilist[ii];
     if (atom->mask[i] & groupbit) {
       b_s[i] = -chi[atom->type[i]];
-      if (field_flag)
-        b_s[i] -= chi_field[i];
+      if (efield) b_s[i] -= chi_field[i];
       b_s[NN + i] = 0.0;
       s[i] = 0.0;
       s[NN + i] = 0.0;
@@ -366,8 +364,7 @@ void FixACKS2ReaxFF::pre_force(int /*vflag*/)
   if (n > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE)
     reallocate_matrix();
 
-  if (field_flag)
-    get_chi_field();
+  if (efield) get_chi_field();
 
   init_matvec();
 
@@ -402,8 +399,7 @@ void FixACKS2ReaxFF::init_matvec()
       /* init pre-conditioner for H and init solution vectors */
       Hdia_inv[i] = 1. / eta[atom->type[i]];
       b_s[i] = -chi[atom->type[i]];
-      if (field_flag)
-        b_s[i] -= chi_field[i];
+      if (efield) b_s[i] -= chi_field[i];
       b_s[NN+i] = 0.0;
 
       /* cubic extrapolation for s from previous solutions */

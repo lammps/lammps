@@ -33,6 +33,7 @@
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "pair.h"
+#include "region.h"
 #include "respa.h"
 #include "text_file_reader.h"
 #include "update.h"
@@ -382,11 +383,14 @@ void FixQEqReaxFF::init()
   if (group->count(igroup) == 0)
     error->all(FLERR,"Fix qeq/reaxff group has no atoms");
 
-  field_flag = 0;
-  for (int n = 0; n < modify->nfix; n++)
-    if (utils::strmatch(modify->fix[n]->style,"^efield"))
-      field_flag = 1;
+  efield = nullptr;
+  int ifix = modify->find_fix_by_style("^efield");
+  if (ifix >= 0) efield = (FixEfield *) modify->fix[ifix];
+  if (efield && (strcmp(update->unit_style,"real") != 0))
+    error->all(FLERR,"Must use unit_style real with fix qeq/reax and external fields");
 
+  if (efield && efield->varflag != FixEfield::CONSTANT)
+    error->all(FLERR,"Cannot yet use fix qeq/reaxff with variable efield");
   // need a half neighbor list w/ Newton off and ghost neighbors
   // built whenever re-neighboring occurs
 
@@ -511,16 +515,14 @@ void FixQEqReaxFF::min_setup_pre_force(int vflag)
 
 void FixQEqReaxFF::init_storage()
 {
-  if (field_flag)
-    get_chi_field();
+  if (efield) get_chi_field();
 
   for (int ii = 0; ii < NN; ii++) {
     int i = ilist[ii];
     if (atom->mask[i] & groupbit) {
       Hdia_inv[i] = 1. / eta[atom->type[i]];
       b_s[i] = -chi[atom->type[i]];
-      if (field_flag)
-        b_s[i] -= chi_field[i];
+      if (efield) b_s[i] -= chi_field[i];
       b_t[i] = -1.0;
       b_prc[i] = 0;
       b_prm[i] = 0;
@@ -558,8 +560,7 @@ void FixQEqReaxFF::pre_force(int /*vflag*/)
   if (n > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE)
     reallocate_matrix();
 
-  if (field_flag)
-    get_chi_field();
+  if (efield) get_chi_field();
 
   init_matvec();
 
@@ -600,8 +601,7 @@ void FixQEqReaxFF::init_matvec()
       /* init pre-conditioner for H and init solution vectors */
       Hdia_inv[i] = 1. / eta[atom->type[i]];
       b_s[i]      = -chi[atom->type[i]];
-      if (field_flag)
-        b_s[i] -= chi_field[i];
+      if (efield) b_s[i] -= chi_field[i];
       b_t[i]      = -1.0;
 
       /* quadratic extrapolation for s & t from previous solutions */
@@ -1072,25 +1072,42 @@ void FixQEqReaxFF::vector_add(double* dest, double c, double* v, int k)
 
 void FixQEqReaxFF::get_chi_field()
 {
-  int nlocal = atom->nlocal;
-
   memset(&chi_field[0],0.0,atom->nmax*sizeof(double));
+  if (!efield) return;
 
-  if (!(strcmp(update->unit_style,"real") == 0))
-    error->all(FLERR,"Must use unit_style real with fix qeq/reax and external fields");
+  const double * const *x = (const double * const *)atom->x;
+  const int *mask = atom->mask;
+  const imageint *image = atom->image;
 
-  double factor = 1.0/force->qe2f;
+  const double factor = 1.0/force->qe2f;
+  const int nlocal = atom->nlocal;
 
-  // loop over all fixes, find fix efield
+  // update electric field region if necessary
 
-  for (int n = 0; n < modify->nfix; n++) {
-    if (utils::strmatch(modify->fix[n]->style,"^efield")) {
+  Region *region = nullptr;
+  if (efield->iregion >= 0) {
+    region = domain->regions[efield->iregion];
+    region->prematch();
+  }
 
-      FixEfield* fix_efield = (FixEfield*) modify->fix[n];
-      double* field_energy = fix_efield->get_energy(); // Real units of kcal/mol/angstrom, need to convert to eV
+  // we currently only constant efield. Also atom selection is for the group of fix efield.
 
-      for (int i = 0; i < nlocal; i++)
-        chi_field[i] += field_energy[i]*factor;
+  if (efield->varflag == FixEfield::CONSTANT) {
+    double unwrap[3];
+    const double fx = efield->ex;
+    const double fy = efield->ey;
+    const double fz = efield->ez;
+    const int efgroupbit = efield->groupbit;
+
+    // charge interactions
+    // force = qE, potential energy = F dot x in unwrapped coords
+
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & efgroupbit) {
+        if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
+        domain->unmap(x[i],image[i],unwrap);
+        chi_field[i] = factor*(fx*unwrap[0] + fy*unwrap[1] + fz*unwrap[2]);
+      }
     }
   }
 }

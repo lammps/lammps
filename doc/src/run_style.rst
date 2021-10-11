@@ -125,7 +125,7 @@ screen.0 by default; see the :doc:`-plog and -pscreen command-line switches <Run
 for the second partition will not contain thermodynamic output beyond the
 first timestep of the run.
 
-See the :doc:`Speed packages <Speed_packages>` page for performance
+See the :doc:`Accelerator packages <Speed_packages>` page for performance
 details of the speed-up offered by the *verlet/split* style.  One
 important performance consideration is the assignment of logical
 processors in the 2 partitions to the physical cores of a parallel
@@ -298,7 +298,7 @@ can use the :doc:`-suffix command-line switch <Run_options>` when you
 invoke LAMMPS, or you can use the :doc:`suffix <suffix>` command in your
 input script.
 
-See the :doc:`Speed packages <Speed_packages>` page for more
+See the :doc:`Accelerator packages <Speed_packages>` page for more
 instructions on how to use the accelerated styles effectively.
 
 ----------

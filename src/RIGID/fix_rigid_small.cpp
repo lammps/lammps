@@ -391,14 +391,14 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   // sets bodytag for owned atoms
   // body attributes are computed later by setup_bodies()
 
-  double time1 = MPI_Wtime();
+  double time1 = platform::walltime();
 
   create_bodies(bodyID);
   if (customflag) delete [] bodyID;
 
   if (comm->me == 0)
     utils::logmesg(lmp,"  create bodies CPU = {:.3f} seconds\n",
-                   MPI_Wtime()-time1);
+                   platform::walltime()-time1);
 
   // set nlocal_body and allocate bodies I own
 

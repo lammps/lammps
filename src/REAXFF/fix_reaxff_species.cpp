@@ -56,6 +56,7 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
   size_peratom_cols = 0;
   peratom_freq = 1;
 
+  compressed = 0;
   nvalid = -1;
 
   MPI_Comm_rank(world,&me);
@@ -106,23 +107,14 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
   strcpy(tmparg[2],arg[5]);
 
   if (me == 0) {
-    char *suffix = strrchr(arg[6],'.');
-    if (suffix && strcmp(suffix,".gz") == 0) {
-#ifdef LAMMPS_GZIP
-      auto gzip = fmt::format("gzip -6 > {}",arg[6]);
-#ifdef _WIN32
-      fp = _popen(gzip.c_str(),"wb");
-#else
-      fp = popen(gzip.c_str(),"w");
-#endif
-#else
-      error->one(FLERR,"Cannot open gzipped file");
-#endif
+    if (platform::has_compress_extension(arg[6])) {
+      fp = platform::compressed_write(arg[6]);
+      compressed = 1;
+      if (!fp) error->one(FLERR,"Cannot open compressed file");
     } else fp = fopen(arg[6],"w");
 
-    if (!fp)
-      error->one(FLERR,fmt::format("Cannot open fix reaxff/species file {}: "
-                                   "{}",arg[6],utils::getsyserror()));
+    if (!fp) error->one(FLERR,fmt::format("Cannot open fix reaxff/species file {}: "
+                                          "{}",arg[6],utils::getsyserror()));
   }
 
   x0 = nullptr;
@@ -256,8 +248,11 @@ FixReaxFFSpecies::~FixReaxFFSpecies()
   if (filepos)
     delete [] filepos;
 
-  if (me == 0) fclose(fp);
-  if (me == 0 && posflag && multipos_opened) fclose(pos);
+  if (me == 0) {
+    if (compressed) platform::pclose(fp);
+    else fclose(fp);
+    if (posflag && multipos_opened) fclose(pos);
+  }
 
   modify->delete_compute("SPECATOM");
   modify->delete_fix("SPECBOND");
@@ -683,8 +678,7 @@ void FixReaxFFSpecies::OpenPos()
   char *ptr = strchr(filepos,'*');
   *ptr = '\0';
   if (padflag == 0)
-    sprintf(filecurrent,"%s" BIGINT_FORMAT "%s",
-            filepos,ntimestep,ptr+1);
+    sprintf(filecurrent,"%s" BIGINT_FORMAT "%s",filepos,ntimestep,ptr+1);
   else {
     char bif[8],pad[16];
     strcpy(bif,BIGINT_FORMAT);

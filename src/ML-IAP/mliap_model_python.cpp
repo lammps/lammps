@@ -132,7 +132,7 @@ void MLIAPModelPython::connect_param_counts()
 
 void MLIAPModelPython::compute_gradients(MLIAPData *data)
 {
-  if (not model_loaded) { error->all(FLERR, "Model not loaded."); }
+  if (!model_loaded) { error->all(FLERR, "Model not loaded."); }
 
   PyGILState_STATE gstate = PyGILState_Ensure();
   MLIAPPY_compute_gradients(this, data);

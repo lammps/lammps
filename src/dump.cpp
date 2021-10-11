@@ -108,9 +108,8 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
   // if contains '%', write one file per proc and replace % with proc-ID
   // if contains '*', write one file per timestep and replace * with timestep
   // check file suffixes
-  //   if ends in .bin = binary file
-  //   else if ends in .gz = gzipped text file
-  //   else if ends in .zst = Zstd compressed text file
+  //   if ends in .bin -> binary file
+  //   else if ends in .gz or other known extensions -> compressed text file
   //   else ASCII text file
 
   fp = nullptr;
@@ -144,8 +143,7 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
   if (strchr(filename,'*')) multifile = 1;
 
   if (utils::strmatch(filename, "\\.bin$")) binary = 1;
-  if (utils::strmatch(filename, "\\.gz$")
-      || utils::strmatch(filename, "\\.zst$")) compressed = 1;
+  if (platform::has_compress_extension(filename)) compressed = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -198,7 +196,7 @@ Dump::~Dump()
 
   if (multifile == 0 && fp != nullptr) {
     if (compressed) {
-      if (filewriter) pclose(fp);
+      if (filewriter) platform::pclose(fp);
     } else {
       if (filewriter) fclose(fp);
     }
@@ -520,7 +518,7 @@ void Dump::write()
 
   if (multifile) {
     if (compressed) {
-      if (filewriter && fp != nullptr) pclose(fp);
+      if (filewriter && fp != nullptr) platform::pclose(fp);
     } else {
       if (filewriter && fp != nullptr) fclose(fp);
     }
@@ -530,7 +528,7 @@ void Dump::write()
 
 /* ----------------------------------------------------------------------
    generic opening of a dump file
-   ASCII or binary or gzipped
+   ASCII or binary or compressed
    some derived classes override this function
 ------------------------------------------------------------------------- */
 
@@ -580,16 +578,7 @@ void Dump::openfile()
 
   if (filewriter) {
     if (compressed) {
-#ifdef LAMMPS_GZIP
-      auto gzip = fmt::format("gzip -6 > {}",filecurrent);
-#ifdef _WIN32
-      fp = _popen(gzip.c_str(),"wb");
-#else
-      fp = popen(gzip.c_str(),"w");
-#endif
-#else
-      error->one(FLERR,"Cannot open gzipped file");
-#endif
+      fp = platform::compressed_write(filecurrent);
     } else if (binary) {
       fp = fopen(filecurrent,"wb");
     } else if (append_flag) {

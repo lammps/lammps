@@ -27,6 +27,7 @@ namespace LAMMPS_NS {
 class DumpMovie : public DumpImage {
  public:
   DumpMovie(LAMMPS *, int, char **);
+  virtual ~DumpMovie();
 
   virtual void openfile();
   virtual void init_style();

@@ -637,10 +637,10 @@ TEST_F(ResetIDsTest, DeathTests)
     TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*",
                  command("reset_mol_ids all compress"););
 
-    TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*",
+    TEST_FAILURE(".*ERROR: Expected boolean parameter instead of 'xxx'.*",
                  command("reset_mol_ids all compress xxx"););
     TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*", command("reset_mol_ids all single"););
-    TEST_FAILURE(".*ERROR: Illegal reset_mol_ids command.*",
+    TEST_FAILURE(".*ERROR: Expected boolean parameter instead of 'xxx'.*",
                  command("reset_mol_ids all single xxx"););
 }
 

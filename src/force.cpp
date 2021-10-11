@@ -811,15 +811,11 @@ void Force::set_special(int narg, char **arg)
       iarg += 4;
     } else if (strcmp(arg[iarg],"angle") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal special_bonds command");
-      if (strcmp(arg[iarg+1],"no") == 0) special_angle = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) special_angle = 1;
-      else error->all(FLERR,"Illegal special_bonds command");
+      special_angle = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"dihedral") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal special_bonds command");
-      if (strcmp(arg[iarg+1],"no") == 0) special_dihedral = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) special_dihedral = 1;
-      else error->all(FLERR,"Illegal special_bonds command");
+      special_dihedral = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal special_bonds command");
   }

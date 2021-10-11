@@ -179,24 +179,20 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   int num_common_keywords = 2;
   for (int m = 0; m < num_common_keywords; m++) {
     if (strcmp(arg[iarg],"stabilization") == 0) {
-      if (strcmp(arg[iarg+1],"no") == 0) {
-        if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
-                                      "'stabilization' keyword has too few arguments");
-        iarg += 2;
-      }
-      if (strcmp(arg[iarg+1],"yes") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
+                                    "'stabilization' keyword has too few arguments");
+      stabilization_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      if (stabilization_flag) {
         if (iarg+4 > narg) error->all(FLERR,"Illegal fix bond/react command:"
                                       "'stabilization' keyword has too few arguments");
         exclude_group = utils::strdup(arg[iarg+2]);
-        stabilization_flag = 1;
         nve_limit_xmax = arg[iarg+3];
         iarg += 4;
-      }
+      } else iarg += 2;
     } else if (strcmp(arg[iarg],"reset_mol_ids") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
                                     "'reset_mol_ids' keyword has too few arguments");
-      if (strcmp(arg[iarg+1],"yes") == 0) reset_mol_ids_flag = 1; // default
-      if (strcmp(arg[iarg+1],"no") == 0) reset_mol_ids_flag = 0;
+      reset_mol_ids_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"react") == 0) {
       break;
@@ -914,7 +910,8 @@ void FixBondReact::post_integrate()
 
   int j;
   for (rxnID = 0; rxnID < nreacts; rxnID++) {
-    if (max_rxn[rxnID] <= reaction_count_total[rxnID]) continue;
+    if ((update->ntimestep % nevery[rxnID]) ||
+        (max_rxn[rxnID] <= reaction_count_total[rxnID])) continue;
     for (int ii = 0; ii < nall; ii++) {
       partner[ii] = 0;
       finalpartner[ii] = 0;

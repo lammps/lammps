@@ -50,7 +50,7 @@ if(DOWNLOAD_QUIP)
     GIT_TAG origin/public
     GIT_SHALLOW YES
     GIT_PROGRESS YES
-    PATCH_COMMAND cp ${CMAKE_BINARY_DIR}/quip.config <SOURCE_DIR>/arch/Makefile.lammps
+    PATCH_COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/quip.config <SOURCE_DIR>/arch/Makefile.lammps
     CONFIGURE_COMMAND env QUIP_ARCH=lammps make config
     BUILD_COMMAND env QUIP_ARCH=lammps make libquip
     INSTALL_COMMAND ""

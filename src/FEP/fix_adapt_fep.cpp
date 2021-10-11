@@ -138,21 +138,15 @@ FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"reset") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix adapt/fep command");
-      if (strcmp(arg[iarg+1],"no") == 0) resetflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) resetflag = 1;
-      else error->all(FLERR,"Illegal fix adapt/fep command");
+      resetflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"scale") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix adapt/fep command");
-      if (strcmp(arg[iarg+1],"no") == 0) scaleflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) scaleflag = 1;
-      else error->all(FLERR,"Illegal fix adapt/fep command");
+      scaleflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"after") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix adapt/fep command");
-      if (strcmp(arg[iarg+1],"no") == 0) afterflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) afterflag = 1;
-      else error->all(FLERR,"Illegal fix adapt/fep command");
+      afterflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix adapt/fep command");
   }

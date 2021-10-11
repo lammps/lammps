@@ -77,11 +77,7 @@ FixMSCG::FixMSCG(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"range") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix mscg command");
-      if (strcmp(arg[iarg+1],"on") == 0)
-        range_flag = 1;
-      else if (strcmp(arg[iarg+1],"off") == 0)
-        range_flag = 0;
-      else error->all(FLERR,"Illegal fix mscg command");
+      range_flag = utils::logical(FLERR, arg[iarg+1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"name") == 0) {
       if (iarg+ntypes+1 > narg)
@@ -324,8 +320,7 @@ void FixMSCG::post_run()
   if (nframes != n_frames)
     error->warning(FLERR,"Fix mscg n_frames is inconsistent with control.in");
   if (nframes % block_size != 0)
-    error->warning(FLERR,"Fix mscg n_frames is not divisible by "
-                   "block_size in control.in");
+    error->warning(FLERR,"Fix mscg n_frames is not divisible by block_size in control.in");
 
   if (range_flag)
     rangefinder_solve_and_output(mscg_struct);

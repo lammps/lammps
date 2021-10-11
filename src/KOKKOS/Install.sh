@@ -201,6 +201,8 @@ action nbin_kokkos.cpp
 action nbin_kokkos.h
 action nbin_ssa_kokkos.cpp nbin_ssa.cpp
 action nbin_ssa_kokkos.h nbin_ssa.h
+action math_extra_kokkos.cpp
+action math_extra_kokkos.h
 action math_special_kokkos.cpp
 action math_special_kokkos.h
 action min_cg_kokkos.cpp

@@ -35,8 +35,8 @@ class LAMMPSAbortException : public LAMMPSException {
  public:
   MPI_Comm universe;
 
-  LAMMPSAbortException(const std::string &msg, MPI_Comm universe) :
-      LAMMPSException(msg), universe(universe)
+  LAMMPSAbortException(const std::string &msg, MPI_Comm _universe) :
+      LAMMPSException(msg), universe(_universe)
   {
   }
 };

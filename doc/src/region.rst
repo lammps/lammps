@@ -371,26 +371,13 @@ sub-regions can be defined with the *open* keyword.
 
 ----------
 
-Styles with a *gpu*, *intel*, *kk*, *omp*, or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Accelerator packages <Speed_packages>`
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
+.. include:: accel_styles.rst
 
-The code using the region (such as a fix or compute) must also be supported
-by Kokkos or no acceleration will occur. Currently, only *block* style
-regions are supported by Kokkos.
+.. note::
 
-These accelerated styles are part of the Kokkos package.  They are
-only enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Accelerator packages <Speed_packages>` page for more
-instructions on how to use the accelerated styles effectively.
+  Currently, only *block* style regions are supported by Kokkos.  The
+  code using the region (such as a fix or compute) must also be
+  supported by Kokkos or no acceleration will occur.
 
 ----------
 

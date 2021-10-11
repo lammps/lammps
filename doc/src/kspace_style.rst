@@ -414,33 +414,26 @@ relative RMS error.
 
 ----------
 
-Styles with a *gpu*, *intel*, *kk*, *omp*, or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Accelerator packages <Speed_packages>`
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
+.. include:: accel_styles.rst
 
-More specifically, the *pppm/gpu* style performs charge assignment and
-force interpolation calculations on the GPU.  These processes are
-performed either in single or double precision, depending on whether
-the -DFFT_SINGLE setting was specified in your low-level Makefile, as
-discussed above.  The FFTs themselves are still calculated on the CPU.
-If *pppm/gpu* is used with a GPU-enabled pair style, part of the PPPM
-calculation can be performed concurrently on the GPU while other
-calculations for non-bonded and bonded force calculation are performed
-on the CPU.
+.. note:: 
 
-The *pppm/kk* style performs charge assignment and force interpolation
-calculations, along with the FFTs themselves, on the GPU or (optionally) threaded
-on the CPU when using OpenMP and FFTW3.
+  For the GPU package, the *pppm/gpu* style performs charge assignment
+  and force interpolation calculations on the GPU.  These processes
+  are performed either in single or double precision, depending on
+  whether the -DFFT_SINGLE setting was specified in your low-level
+  Makefile, as discussed above.  The FFTs themselves are still
+  calculated on the CPU.  If *pppm/gpu* is used with a GPU-enabled
+  pair style, part of the PPPM calculation can be performed
+  concurrently on the GPU while other calculations for non-bonded and
+  bonded force calculation are performed on the CPU.
 
-These accelerated styles are part of the GPU, INTEL, KOKKOS,
-OPENMP, and OPT packages respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` page for more info.
+.. note:: 
 
-See the :doc:`Accelerator packages <Speed_packages>` page for more
-instructions on how to use the accelerated styles effectively.
+  For the KOKKOS package, the *pppm/kk* style performs charge
+  assignment and force interpolation calculations, along with the FFTs
+  themselves, on the GPU or (optionally) threaded on the CPU when
+  using OpenMP and FFTW3.
 
 ----------
 

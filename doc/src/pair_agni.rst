@@ -67,21 +67,7 @@ and input files are provided in the examples/PACKAGES/agni directory.
 
 ----------
 
-Styles with *omp* suffix is functionally the same as the corresponding
-style without the suffix. They have been optimized to run faster,
-depending on your available hardware, as discussed on the :doc:`Accelerator packages <Speed_packages>` page.  The accelerated style takes
-the same arguments and should produce the same results, except for
-round-off and precision issues.
-
-The accelerated style is part of the OPENMP.  They are only enabled
-if LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` page for more info.
-
-You can specify the accelerated style explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Accelerator packages <Speed_packages>` page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 

@@ -1619,7 +1619,7 @@ int TILD::modify_param(int narg, char** arg)
       if (narg < 5) error->all(FLERR, "Illegal kspace_modify tild command");
       double rp_one = utils::numeric(FLERR,arg[4],false,lmp);
       double xi_one = utils::numeric(FLERR,arg[5],false,lmp);
-      double np_rho_one = utils::numeric(FLERR,arg[5],false,lmp);
+      double np_rho_one = utils::numeric(FLERR,arg[6],false,lmp);
       for (int i = ilo; i <= ihi; i++) {
         for (int j = MAX(jlo,i); j <= jhi; j++) {
           potent_type_map[2][i][j] = 1;

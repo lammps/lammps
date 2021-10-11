@@ -7,7 +7,9 @@ a collection of convenience functions and utilities that perform common
 tasks that are required repeatedly throughout the LAMMPS code like
 reading or writing to files with error checking or translation of
 strings into specific types of numbers with checking for validity.  This
-reduces redundant implementations and encourages consistent behavior.
+reduces redundant implementations and encourages consistent behavior and
+thus has some overlap with the :doc:`"platform" sub-namespace
+<Developer_platform>`.
 
 I/O with status check and similar functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -60,6 +62,9 @@ silently returning the result of a partial conversion or zero in cases
 where the string is not a valid number.  This behavior allows to more
 easily detect typos or issues when processing input files.
 
+Similarly the :cpp:func:`logical() <LAMMPS_NS::utils::logical>` function
+will convert a string into a boolean and will only accept certain words.
+
 The *do_abort* flag should be set to ``true`` in case  this function
 is called only on a single MPI rank, as that will then trigger the
 a call to ``Error::one()`` for errors instead of ``Error::all()``
@@ -83,6 +88,9 @@ strings for compliance without conversion.
 .. doxygenfunction:: tnumeric
    :project: progguide
 
+.. doxygenfunction:: logical
+   :project: progguide
+
 
 String processing
 ^^^^^^^^^^^^^^^^^
@@ -93,6 +101,12 @@ and parsing files or arguments.
 ----------
 
 .. doxygenfunction:: strdup
+   :project: progguide
+
+.. doxygenfunction:: lowercase
+   :project: progguide
+
+.. doxygenfunction:: uppercase
    :project: progguide
 
 .. doxygenfunction:: trim
@@ -135,21 +149,6 @@ and parsing files or arguments.
    :project: progguide
 
 .. doxygenfunction:: is_double
-   :project: progguide
-
-File and path functions
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. doxygenfunction:: guesspath
-   :project: progguide
-
-.. doxygenfunction:: path_basename
-   :project: progguide
-
-.. doxygenfunction:: path_join
-   :project: progguide
-
-.. doxygenfunction:: file_is_readable
    :project: progguide
 
 Potential file functions

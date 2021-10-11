@@ -49,11 +49,6 @@
 #include <cerrno>
 #include <cctype>
 #include <sys/stat.h>
-#include <unistd.h>
-
-#ifdef _WIN32
-#include <direct.h>
-#endif
 
 using namespace LAMMPS_NS;
 
@@ -1068,19 +1063,14 @@ void Input::partition()
 {
   if (narg < 3) error->all(FLERR,"Illegal partition command");
 
-  int yesflag = 0;
-  if (strcmp(arg[0],"yes") == 0) yesflag = 1;
-  else if (strcmp(arg[0],"no") == 0) yesflag = 0;
-  else error->all(FLERR,"Illegal partition command");
-
   int ilo,ihi;
+  int yesflag = utils::logical(FLERR,arg[0],false,lmp);
   utils::bounds(FLERR,arg[1],1,universe->nworlds,ilo,ihi,error);
 
   // new command starts at the 3rd argument,
   // which must not be another partition command
 
-  if (strcmp(arg[2],"partition") == 0)
-    error->all(FLERR,"Illegal partition command");
+  if (strcmp(arg[2],"partition") == 0) error->all(FLERR,"Illegal partition command");
 
   char *cmd = strstr(line,arg[2]);
 
@@ -1123,21 +1113,16 @@ void Input::print()
         if (strcmp(arg[iarg],"file") == 0) fp = fopen(arg[iarg+1],"w");
         else fp = fopen(arg[iarg+1],"a");
         if (fp == nullptr)
-          error->one(FLERR,"Cannot open print file {}: {}",
-                                       arg[iarg+1], utils::getsyserror());
+          error->one(FLERR,"Cannot open print file {}: {}", arg[iarg+1], utils::getsyserror());
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"screen") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal print command");
-      if (strcmp(arg[iarg+1],"yes") == 0) screenflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) screenflag = 0;
-      else error->all(FLERR,"Illegal print command");
+      screenflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"universe") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal print command");
-      if (strcmp(arg[iarg+1],"yes") == 0) universeflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) universeflag = 0;
-      else error->all(FLERR,"Illegal print command");
+      universeflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal print command");
   }
@@ -1174,15 +1159,6 @@ void Input::quit()
 
 /* ---------------------------------------------------------------------- */
 
-char *shell_failed_message(const char* cmd, int errnum)
-{
-  std::string errmsg = fmt::format("Shell command '{}' failed with error '{}'",
-                                   cmd, strerror(errnum));
-  char *msg = new char[errmsg.size()+1];
-  strcpy(msg, errmsg.c_str());
-  return msg;
-}
-
 void Input::shell()
 {
   int rv,err;
@@ -1191,89 +1167,59 @@ void Input::shell()
 
   if (strcmp(arg[0],"cd") == 0) {
     if (narg != 2) error->all(FLERR,"Illegal shell cd command");
-    rv = (chdir(arg[1]) < 0) ? errno : 0;
+    rv = (platform::chdir(arg[1]) < 0) ? errno : 0;
     MPI_Reduce(&rv,&err,1,MPI_INT,MPI_MAX,0,world);
+    errno = err;
     if (me == 0 && err != 0) {
-      char *message = shell_failed_message("cd",err);
-      error->warning(FLERR,message);
-      delete[] message;
+      error->warning(FLERR, "Shell command 'cd {}' failed with error '{}'", arg[1], utils::getsyserror());
     }
-
   } else if (strcmp(arg[0],"mkdir") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal shell mkdir command");
-    if (me == 0)
+    if (me == 0) {
       for (int i = 1; i < narg; i++) {
-#if defined(_WIN32)
-        rv = _mkdir(arg[i]);
-#else
-        rv = mkdir(arg[i], S_IRWXU | S_IRGRP | S_IXGRP);
-#endif
-        if (rv < 0) {
-          char *message = shell_failed_message("mkdir",errno);
-          error->warning(FLERR,message);
-          delete[] message;
-        }
+        if (platform::mkdir(arg[i]) < 0)
+          error->warning(FLERR, "Shell command 'mkdir {}' failed with error '{}'",
+                         arg[i],utils::getsyserror());
       }
-
+    }
   } else if (strcmp(arg[0],"mv") == 0) {
     if (narg != 3) error->all(FLERR,"Illegal shell mv command");
-    rv = (rename(arg[1],arg[2]) < 0) ? errno : 0;
-    MPI_Reduce(&rv,&err,1,MPI_INT,MPI_MAX,0,world);
-    if (me == 0 && err != 0) {
-      char *message = shell_failed_message("mv",err);
-      error->warning(FLERR,message);
-      delete[] message;
+    if (me == 0) {
+      if (rename(arg[1],arg[2]) < 0) {
+        error->warning(FLERR, "Shell command 'mv {} {}' failed with error '{}'",
+                       arg[1],arg[2],utils::getsyserror());
+      }
     }
-
   } else if (strcmp(arg[0],"rm") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal shell rm command");
-    if (me == 0)
+    if (me == 0) {
       for (int i = 1; i < narg; i++) {
-        if (unlink(arg[i]) < 0) {
-          char *message = shell_failed_message("rm",errno);
-          error->warning(FLERR,message);
-          delete[] message;
-        }
+        if (platform::unlink(arg[i]) < 0)
+          error->warning(FLERR, "Shell command 'rm {}' failed with error '{}'",
+                         arg[i], utils::getsyserror());
       }
-
+    }
   } else if (strcmp(arg[0],"rmdir") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal shell rmdir command");
-    if (me == 0)
+    if (me == 0) {
       for (int i = 1; i < narg; i++) {
-        if (rmdir(arg[i]) < 0) {
-          char *message = shell_failed_message("rmdir",errno);
-          error->warning(FLERR,message);
-          delete[] message;
-        }
+        if (platform::rmdir(arg[i]) < 0)
+          error->warning(FLERR, "Shell command 'rmdir {}' failed with error '{}'",
+                         arg[i], utils::getsyserror());
       }
-
+    }
   } else if (strcmp(arg[0],"putenv") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal shell putenv command");
     for (int i = 1; i < narg; i++) {
       rv = 0;
-#ifdef _WIN32
-      if (arg[i]) rv = _putenv(utils::strdup(arg[i]));
-#else
-      if (arg[i]) {
-        std::string vardef(arg[i]);
-        auto found = vardef.find_first_of('=');
-        if (found == std::string::npos) {
-          rv = setenv(vardef.c_str(),"",1);
-        } else {
-          rv = setenv(vardef.substr(0,found).c_str(),
-                      vardef.substr(found+1).c_str(),1);
-        }
-      }
-#endif
+      if (arg[i]) rv = platform::putenv(arg[i]);
       rv = (rv < 0) ? errno : 0;
       MPI_Reduce(&rv,&err,1,MPI_INT,MPI_MAX,0,world);
-      if (me == 0 && err != 0) {
-        char *message = shell_failed_message("putenv",err);
-        error->warning(FLERR,message);
-        delete[] message;
-      }
+      errno = err;
+      if (me == 0 && err != 0)
+        error->warning(FLERR, "Shell command 'putenv {}' failed with error '{}'",
+                       arg[i], utils::getsyserror());
     }
-
   // use work string to concat args back into one string separated by spaces
   // invoke string in shell via system()
 
@@ -1632,16 +1578,10 @@ void Input::newton()
   int newton_pair=1,newton_bond=1;
 
   if (narg == 1) {
-    if (strcmp(arg[0],"off") == 0) newton_pair = newton_bond = 0;
-    else if (strcmp(arg[0],"on") == 0) newton_pair = newton_bond = 1;
-    else error->all(FLERR,"Illegal newton command");
+    newton_pair = newton_bond = utils::logical(FLERR,arg[0],false,lmp);
   } else if (narg == 2) {
-    if (strcmp(arg[0],"off") == 0) newton_pair = 0;
-    else if (strcmp(arg[0],"on") == 0) newton_pair= 1;
-    else error->all(FLERR,"Illegal newton command");
-    if (strcmp(arg[1],"off") == 0) newton_bond = 0;
-    else if (strcmp(arg[1],"on") == 0) newton_bond = 1;
-    else error->all(FLERR,"Illegal newton command");
+    newton_pair = utils::logical(FLERR,arg[0],false,lmp);
+    newton_bond = utils::logical(FLERR,arg[1],false,lmp);
   } else error->all(FLERR,"Illegal newton command");
 
   force->newton_pair = newton_pair;
@@ -1838,11 +1778,13 @@ void Input::suffix()
 {
   if (narg < 1) error->all(FLERR,"Illegal suffix command");
 
-  if (strcmp(arg[0],"off") == 0) lmp->suffix_enable = 0;
-  else if (strcmp(arg[0],"on") == 0) {
-    if (!lmp->suffix)
-      error->all(FLERR,"May only enable suffixes after defining one");
+  const std::string firstarg = arg[0];
+
+  if ((firstarg == "off") || (firstarg == "no") || (firstarg == "false")) {
+    lmp->suffix_enable = 0;
+  } else if ((firstarg == "on") || (firstarg == "yes") || (firstarg == "true")) {
     lmp->suffix_enable = 1;
+    if (!lmp->suffix) error->all(FLERR,"May only enable suffixes after defining one");
   } else {
     lmp->suffix_enable = 1;
 
@@ -1850,7 +1792,7 @@ void Input::suffix()
     delete[] lmp->suffix2;
     lmp->suffix = lmp->suffix2 = nullptr;
 
-    if (strcmp(arg[0],"hybrid") == 0) {
+    if (firstarg == "hybrid") {
       if (narg != 3) error->all(FLERR,"Illegal suffix command");
       lmp->suffix = utils::strdup(arg[1]);
       lmp->suffix2 = utils::strdup(arg[2]);

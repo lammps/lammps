@@ -39,7 +39,6 @@
 
 #include <cmath>
 #include <cstring>
-#include <strings.h>    // for strcasecmp()
 
 #include "reaxff_api.h"
 
@@ -227,21 +226,18 @@ void PairReaxFF::settings(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"checkqeq") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reaxff command");
+      qeqflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       if (strcmp(arg[iarg+1],"yes") == 0) qeqflag = 1;
       else if (strcmp(arg[iarg+1],"no") == 0) qeqflag = 0;
       else error->all(FLERR,"Illegal pair_style reaxff command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"enobonds") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reaxff command");
-      if (strcmp(arg[iarg+1],"yes") == 0) api->control->enobondsflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) api->control->enobondsflag = 0;
-      else error->all(FLERR,"Illegal pair_style reaxff command");
+      api->control->enobondsflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"lgvdw") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reaxff command");
-      if (strcmp(arg[iarg+1],"yes") == 0) api->control->lgflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) api->control->lgflag = 0;
-      else error->all(FLERR,"Illegal pair_style reaxff command");
+      api->control->lgflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"safezone") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reaxff command");
@@ -302,7 +298,7 @@ void PairReaxFF::coeff(int nargs, char **args)
   // pair_coeff element map
   for (int i = 3; i < nargs; i++)
     for (int j = 0; j < nreax_types; j++)
-      if (strcasecmp(args[i],api->system->reax_param.sbp[j].name) == 0) {
+      if (utils::lowercase(args[i]) == utils::lowercase(api->system->reax_param.sbp[j].name)) {
         map[i-2] = j;
         itmp ++;
       }

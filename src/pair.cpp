@@ -167,9 +167,7 @@ void Pair::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"shift") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) offset_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) offset_flag = 0;
-      else error->all(FLERR,"Illegal pair_modify command");
+      offset_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"table") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
@@ -193,15 +191,11 @@ void Pair::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"tail") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) tail_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) tail_flag = 0;
-      else error->all(FLERR,"Illegal pair_modify command");
+      tail_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"compute") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) compute_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) compute_flag = 0;
-      else error->all(FLERR,"Illegal pair_modify command");
+      compute_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"nofdotr") == 0) {
       no_virial_fdotr_compute = 1;
@@ -1805,7 +1799,7 @@ void Pair::write_file(int narg, char **arg)
     //   write out a line with "DATE:" and "UNITS:" tags
     // - if the file already exists, print a message about appending
     //   while printing the date and check that units are consistent.
-    if (utils::file_is_readable(table_file)) {
+    if (platform::file_is_readable(table_file)) {
       std::string units = utils::get_potential_units(table_file,"table");
       if (!units.empty() && (units != update->unit_style)) {
         error->one(FLERR,"Trying to append to a table file "

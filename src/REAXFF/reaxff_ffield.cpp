@@ -32,7 +32,6 @@
 #include "text_file_reader.h"
 #include "utils.h"
 
-#include <cctype>
 #include <cmath>
 #include <cstring>
 #include <exception>
@@ -40,6 +39,7 @@
 
 using LAMMPS_NS::utils::open_potential;
 using LAMMPS_NS::utils::getsyserror;
+using LAMMPS_NS::utils::uppercase;
 
 namespace ReaxFF {
 
@@ -161,11 +161,10 @@ namespace ReaxFF {
           if (values.count() < 9)
             THROW_ERROR("Invalid force field file format");
 
-          auto element = values.next_string();
-          int len = MIN(element.size(),3); // truncate stored element symbol if necessary
-          for (j = 0; j < len; ++j)
-            sbp[i].name[j] = toupper(element[j]);
-          sbp[i].name[len] = '\0';
+          // copy element symbol in uppercase and truncate stored element symbol if necessary
+          auto element = uppercase(values.next_string());
+          strncpy(sbp[i].name,element.c_str(),4);
+          sbp[i].name[3] = '\0';
 
           sbp[i].r_s        = values.next_double();
           sbp[i].valency    = values.next_double();

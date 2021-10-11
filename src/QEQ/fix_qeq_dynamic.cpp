@@ -56,9 +56,7 @@ FixQEqDynamic::FixQEqDynamic(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"warn") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qeq/dynamic command");
-      if (strcmp(arg[iarg+1],"no") == 0) maxwarn = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) maxwarn = 1;
-      else error->all(FLERR,"Illegal fix qeq/dynamic command");
+      maxwarn = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix qeq/dynamic command");
   }

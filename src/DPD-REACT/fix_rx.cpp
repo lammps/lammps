@@ -58,7 +58,7 @@ namespace /* anonymous */
 {
 
 typedef double TimerType;
-TimerType getTimeStamp() { return MPI_Wtime(); }
+TimerType getTimeStamp() { return platform::walltime(); }
 double getElapsedTime( const TimerType &t0, const TimerType &t1) { return t1-t0; }
 
 } // end namespace
@@ -126,7 +126,7 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR, errmsg);
     }
 
-    if (comm->me == 0 and Verbosity > 1) {
+    if (comm->me == 0 && Verbosity > 1) {
       std::string msg = "FixRX: matrix format is ";
       if (useSparseKinetics)
          msg += std::string("sparse");
@@ -172,7 +172,7 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
     char *word = arg[iarg++];
     minSteps = atoi( word );
 
-    if (comm->me == 0 and Verbosity > 1) {
+    if (comm->me == 0 && Verbosity > 1) {
       char msg[128];
       sprintf(msg, "FixRX: RK4 numSteps= %d", minSteps);
       error->message(FLERR, msg);
@@ -197,7 +197,7 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
     // maxIters must be at least minSteps.
     maxIters = std::max( minSteps, maxIters );
 
-    if (comm->me == 0 and Verbosity > 1) {
+    if (comm->me == 0 && Verbosity > 1) {
       //printf("FixRX: RKF45 minSteps= %d maxIters= %d absTol= %e relTol= %e\n", minSteps, maxIters, absTol, relTol);
       char msg[128];
       sprintf(msg, "FixRX: RKF45 minSteps= %d maxIters= %d relTol= %.1e absTol= %.1e diagnosticFrequency= %d", minSteps, maxIters, relTol, absTol, diagnosticFrequency);
@@ -371,7 +371,7 @@ void FixRX::initSparse()
 {
   const int Verbosity = 1;
 
-  if (comm->me == 0 and Verbosity > 1) {
+  if (comm->me == 0 && Verbosity > 1) {
     for (int k = 0; k < nspecies; ++k)
       printf("atom->dvname[%d]= %s\n", k, atom->dvname[k]);
 
@@ -421,7 +421,7 @@ void FixRX::initSparse()
     std::string pstr, rstr;
     bool allAreIntegral = true;
     for (int k = 0; k < nspecies; ++k) {
-      if (stoichReactants[i][k] == 0 and stoichProducts[i][k] == 0)
+      if (stoichReactants[i][k] == 0 && stoichProducts[i][k] == 0)
         nzeros++;
 
       if (stoichReactants[i][k] > 0.0) {
@@ -448,7 +448,7 @@ void FixRX::initSparse()
         pstr += atom->dvname[k];
       }
     }
-    if (comm->me == 0 and Verbosity > 1)
+    if (comm->me == 0 && Verbosity > 1)
       printf("rx%3d: %d %d %d ... %s %s %s\n", i, nreac_i, nprod_i, allAreIntegral, rstr.c_str(), /*reversible[i]*/ (false) ? "<=>" : "=", pstr.c_str());
 
     mxreac = std::max( mxreac, nreac_i );
@@ -457,7 +457,7 @@ void FixRX::initSparse()
     if (allAreIntegral) nIntegral++;
   }
 
-  if (comm->me == 0 and Verbosity > 1) {
+  if (comm->me == 0 && Verbosity > 1) {
     char msg[256];
     sprintf(msg, "FixRX: Sparsity of Stoichiometric Matrix= %.1f%% non-zeros= %d nspecies= %d nreactions= %d maxReactants= %d maxProducts= %d maxSpecies= %d integralReactions= %d", 100*(double(nzeros) / (nspecies * nreactions)), nzeros, nspecies, nreactions, mxreac, mxprod, (mxreac + mxprod), SparseKinetics_enableIntegralReactions);
     error->message(FLERR, msg);
@@ -539,7 +539,7 @@ void FixRX::initSparse()
        sparseKinetics_isIntegralReaction[i] = isIntegral_i;
   }
 
-  if (comm->me == 0 and Verbosity > 1) {
+  if (comm->me == 0 && Verbosity > 1) {
     for (int i = 1; i < nu_bin.size(); ++i)
       if (nu_bin[i] > 0)
         printf("nu_bin[%d] = %d\n", i, nu_bin[i]);
@@ -554,7 +554,7 @@ void FixRX::initSparse()
             rstr += " + ";
 
           char digit[6];
-          if (SparseKinetics_enableIntegralReactions and sparseKinetics_isIntegralReaction[i])
+          if (SparseKinetics_enableIntegralReactions && sparseKinetics_isIntegralReaction[i])
             sprintf(digit,"%d ", sparseKinetics_inu[i][kk]);
           else
             sprintf(digit,"%4.1f ", sparseKinetics_nu[i][kk]);
@@ -570,7 +570,7 @@ void FixRX::initSparse()
             pstr += " + ";
 
           char digit[6];
-          if (SparseKinetics_enableIntegralReactions and sparseKinetics_isIntegralReaction[i])
+          if (SparseKinetics_enableIntegralReactions && sparseKinetics_isIntegralReaction[i])
             sprintf(digit,"%d ", sparseKinetics_inu[i][kk]);
           else
             sprintf(digit,"%4.1f ", sparseKinetics_nu[i][kk]);
@@ -578,7 +578,7 @@ void FixRX::initSparse()
           pstr += atom->dvname[k];
         }
       }
-      if (comm->me == 0 and Verbosity > 1)
+      if (comm->me == 0 && Verbosity > 1)
         printf("rx%3d: %s %s %s\n", i, rstr.c_str(), /*reversible[i]*/ (false) ? "<=>" : "=", pstr.c_str());
     }
     // end for nreactions

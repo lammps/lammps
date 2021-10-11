@@ -142,12 +142,7 @@ FixSRD::FixSRD(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg], "overlap") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix srd command");
-      if (strcmp(arg[iarg + 1], "yes") == 0)
-        overlap = 1;
-      else if (strcmp(arg[iarg + 1], "no") == 0)
-        overlap = 0;
-      else
-        error->all(FLERR, "Illegal fix srd command");
+      overlap = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "inside") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix srd command");
@@ -162,12 +157,7 @@ FixSRD::FixSRD(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg], "exact") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix srd command");
-      if (strcmp(arg[iarg + 1], "yes") == 0)
-        exactflag = 1;
-      else if (strcmp(arg[iarg + 1], "no") == 0)
-        exactflag = 0;
-      else
-        error->all(FLERR, "Illegal fix srd command");
+      exactflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "radius") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix srd command");
@@ -206,12 +196,7 @@ FixSRD::FixSRD(LAMMPS *lmp, int narg, char **arg) :
       iarg += 3;
     } else if (strcmp(arg[iarg], "tstat") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix srd command");
-      if (strcmp(arg[iarg + 1], "no") == 0)
-        tstat = 0;
-      else if (strcmp(arg[iarg + 1], "yes") == 0)
-        tstat = 1;
-      else
-        error->all(FLERR, "Illegal fix srd command");
+      tstat = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "rescale") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix srd command");

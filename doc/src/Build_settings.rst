@@ -71,7 +71,8 @@ LAMMPS can use them if they are available on your system.
 
          -D FFTW3_INCLUDE_DIR=path   # path to FFTW3 include files
          -D FFTW3_LIBRARY=path       # path to FFTW3 libraries
-         -D FFT_FFTW_THREADS=on      # enable using threaded FFTW3 libraries
+         -D FFTW3_OMP_LIBRARY=path   # path to FFTW3 OpenMP wrapper libraries
+         -D FFT_FFTW_THREADS=on      # enable using OpenMP threaded FFTW3 libraries
          -D MKL_INCLUDE_DIR=path     # ditto for Intel MKL library
          -D FFT_MKL_THREADS=on       # enable using threaded FFTs with MKL libraries
          -D MKL_LIBRARY=path         # path to MKL libraries
@@ -353,8 +354,10 @@ Read or write compressed files
 -----------------------------------------
 
 If this option is enabled, large files can be read or written with
-gzip compression by several LAMMPS commands, including
-:doc:`read_data <read_data>`, :doc:`rerun <rerun>`, and :doc:`dump <dump>`.
+compression by ``gzip`` or similar tools by several LAMMPS commands,
+including :doc:`read_data <read_data>`, :doc:`rerun <rerun>`, and
+:doc:`dump <dump>`.  Currently supported compression tools are:
+``gzip``, ``bzip2``, ``zstd``, and ``lzma``.
 
 .. tabs::
 
@@ -363,8 +366,7 @@ gzip compression by several LAMMPS commands, including
       .. code-block:: bash
 
          -D WITH_GZIP=value       # yes or no
-                                  # default is yes if CMake can find gzip, else no
-         -D GZIP_EXECUTABLE=path  # path to gzip executable if CMake cannot find it
+                                  # default is yes if CMake can find the gzip program, else no
 
    .. tab:: Traditional make
 
@@ -372,14 +374,15 @@ gzip compression by several LAMMPS commands, including
 
          LMP_INC = -DLAMMPS_GZIP
 
-This option requires that your operating system fully supports the "popen()"
-function in the standard runtime library and that a ``gzip`` executable can be
-found by LAMMPS during a run.
+This option requires that your operating system fully supports the
+"popen()" function in the standard runtime library and that a ``gzip``
+or other executable can be found by LAMMPS in the standard search path
+during a run.
 
 .. note::
 
-   On some clusters with high-speed networks, using the "fork()" library
-   call (required by "popen()") can interfere with the fast communication
+   On clusters with high-speed networks, using the "fork()" library call
+   (required by "popen()") can interfere with the fast communication
    library and lead to simulations using compressed output or input to
    hang or crash. For selected operations, compressed file I/O is also
    available using a compression library instead, which is what the

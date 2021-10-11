@@ -23,7 +23,15 @@
 #include <cstring>
 #include <cctype>
 #include <csignal>
-#include <unistd.h>
+
+#if defined(_WIN32)
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#include <windows.h>            // for _getpid()
+#else
+#include <unistd.h>             // for getpid()
+#endif
 
 #ifdef LMP_KOKKOS_GPU
 
@@ -381,9 +389,7 @@ void KokkosLMP::accelerator(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"newton") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
-      if (strcmp(arg[iarg+1],"off") == 0) newtonflag = 0;
-      else if (strcmp(arg[iarg+1],"on") == 0) newtonflag = 1;
-      else error->all(FLERR,"Illegal package kokkos command");
+      newtonflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"comm") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
@@ -459,21 +465,15 @@ void KokkosLMP::accelerator(int narg, char **arg)
     } else if ((strcmp(arg[iarg],"gpu/aware") == 0)
                || (strcmp(arg[iarg],"cuda/aware") == 0)) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
-      if (strcmp(arg[iarg+1],"off") == 0) gpu_aware_flag = 0;
-      else if (strcmp(arg[iarg+1],"on") == 0) gpu_aware_flag = 1;
-      else error->all(FLERR,"Illegal package kokkos command");
+      gpu_aware_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"pair/only") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
-      if (strcmp(arg[iarg+1],"off") == 0) pair_only_flag = 0;
-      else if (strcmp(arg[iarg+1],"on") == 0) pair_only_flag = 1;
-      else error->all(FLERR,"Illegal package kokkos command");
+      pair_only_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"neigh/thread") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
-      if (strcmp(arg[iarg+1],"off") == 0) neigh_thread = 0;
-      else if (strcmp(arg[iarg+1],"on") == 0) neigh_thread = 1;
-      else error->all(FLERR,"Illegal package kokkos command");
+      neigh_thread = utils::logical(FLERR,arg[iarg+1],false,lmp);
       neigh_thread_set = 1;
       iarg += 2;
     } else error->all(FLERR,"Illegal package kokkos command");
@@ -599,6 +599,10 @@ int KokkosLMP::neigh_count(int m)
 void KokkosLMP::my_signal_handler(int sig)
 {
   if (sig == SIGSEGV) {
+#if defined(_WIN32)
+    kill(_getpid(),SIGABRT);
+#else
     kill(getpid(),SIGABRT);
+#endif
   }
 }

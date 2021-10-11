@@ -78,7 +78,7 @@ class ReadData : public Command {
 
   // methods
 
-  void open(char *);
+  void open(const std::string &);
   void scan(int &, int &, int &, int &);
   int reallocate(int **, int, int);
   void header(int);

@@ -16,17 +16,18 @@
    Contributing author: Paul Coffman (IBM)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
 #include "dump_xyz_mpiio.h"
-#include <cmath>
 
-#include <cstring>
-#include "domain.h"
-#include "update.h"
 #include "compute.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
+#include "memory.h"
+#include "update.h"
 
+#include <cmath>
+#include <cstring>
+
+#include "omp_compat.h"
 #if defined(_OPENMP)
 #include <omp.h>
 #endif

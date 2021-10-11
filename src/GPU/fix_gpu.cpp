@@ -136,16 +136,17 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"neigh") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
-      if (strcmp(arg[iarg+1],"yes") == 0) _gpu_mode = GPU_NEIGH;
-      else if (strcmp(arg[iarg+1],"no") == 0) _gpu_mode = GPU_FORCE;
-      else if (strcmp(arg[iarg+1],"hybrid") == 0) _gpu_mode = GPU_HYB_NEIGH;
+      const std::string modearg = arg[iarg+1];
+      if ((modearg == "yes") || (modearg == "on") || (modearg == "true"))
+        _gpu_mode = GPU_NEIGH;
+      else if ((modearg == "no") || (modearg == "off") || (modearg == "false"))
+        _gpu_mode = GPU_FORCE;
+      else if (modearg == "hybrid") _gpu_mode = GPU_HYB_NEIGH;
       else error->all(FLERR,"Illegal package gpu command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"newton") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
-      if (strcmp(arg[iarg+1],"off") == 0) newtonflag = 0;
-      else if (strcmp(arg[iarg+1],"on") == 0) newtonflag = 1;
-      else error->all(FLERR,"Illegal package gpu command");
+      newtonflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"binsize") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
@@ -185,9 +186,7 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"pair/only") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
-      if (strcmp(arg[iarg+1],"off") == 0) pair_only_flag = 0;
-      else if (strcmp(arg[iarg+1],"on") == 0) pair_only_flag = 1;
-      else error->all(FLERR,"Illegal package gpu command");
+      pair_only_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"ocl_args") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");

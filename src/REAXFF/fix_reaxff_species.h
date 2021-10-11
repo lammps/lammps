@@ -45,7 +45,7 @@ class FixReaxFFSpecies : public Fix {
 
  protected:
   int me, nprocs, nmax, nlocal, ntypes, ntotal;
-  int nrepeat, nfreq, posfreq;
+  int nrepeat, nfreq, posfreq, compressed;
   int Nmoltype, vector_nmole, vector_nspec;
   int *Name, *MolName, *NMol, *nd, *MolType, *molmap;
   double *clusterID;

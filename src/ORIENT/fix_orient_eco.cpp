@@ -550,7 +550,7 @@ int FixOrientECO::get_norm() {
         squared_distance = delta[0] * delta[0] + delta[1] * delta[1] + delta[2] * delta[2];
 
         // check if atom is within cutoff region
-        if ((squared_distance != 0.0) and (squared_distance < squared_cutoff)) {
+        if ((squared_distance != 0.0) && (squared_distance < squared_cutoff)) {
           ++neigh;
           squared_distance *= inv_squared_cutoff;
 

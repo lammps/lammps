@@ -203,19 +203,33 @@ int FixMolSwap::attempt_swap()
 
   tagint molID = 
     minmol + static_cast<tagint> (random->uniform() * (maxmol-minmol+1));
-  if (molID < maxmol) molID = maxmol;
+  if (molID > maxmol) molID = maxmol;
+
+  //printf("  Attempt %ld molID %d\n",update->ntimestep,molID);
 
   int *mask = atom->mask;
   int *type = atom->type;
   tagint *molecule = atom->molecule;
   int nlocal = atom->nlocal;
 
+  // DEBUG
+  int origitype = 0;
+  int origjtype = 0;
+
   for (int i = 0; i < nlocal; i++) {
     if (molecule[i] != molID) continue;
     if (!(mask[i] & groupbit)) continue;
-    if (type[i] == itype) type[i] = jtype;
-    else if (type[i] == jtype) type[i] = itype;
+    if (type[i] == itype) {
+      origitype++;
+      type[i] = jtype;
+    } else if (type[i] == jtype) {
+      origjtype++;
+      type[i] = itype;
+    }
   }
+
+  //printf("    ijtype %d %d orig %d %d count %d\n",
+   //      itype,jtype,origitype,origjtype,origitype+origjtype);
 
   // if unequal_cutoffs, call comm->borders() and rebuild neighbor list
   // else communicate ghost atoms
@@ -236,10 +250,13 @@ int FixMolSwap::attempt_swap()
 
   double energy_after = energy_full();
 
+  //printf("    eng before: %g, eng after %g\n",energy_before,energy_after);
+
   // swap accepted
 
   if (random->uniform() < exp(beta*(energy_before - energy_after))) {
     energy_stored = energy_after;
+    //printf("    accept\n");
     return 1;
 
   // swap not accepted
@@ -248,6 +265,7 @@ int FixMolSwap::attempt_swap()
   //   since will be done on next cycle or in Verlet when this fix is done
 
   } else {
+    //printf("    reject\n");
     for (int i = 0; i < nlocal; i++) {
       if (molecule[i] != molID) continue;
       if (!(mask[i] & groupbit)) continue;

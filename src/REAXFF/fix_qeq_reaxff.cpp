@@ -24,6 +24,7 @@
 #include "atom.h"
 #include "citeme.h"
 #include "comm.h"
+#include "domain.h"
 #include "error.h"
 #include "fix_efield.h"
 #include "force.h"
@@ -56,6 +57,7 @@ public:
 };
 
 static constexpr double EV_TO_KCAL_PER_MOL = 14.4;
+static constexpr double SMALL = 1.0e-14;
 
 static const char cite_fix_qeq_reaxff[] =
   "fix qeq/reaxff command:\n\n"
@@ -386,14 +388,21 @@ void FixQEqReaxFF::init()
   efield = nullptr;
   int ifix = modify->find_fix_by_style("^efield");
   if (ifix >= 0) efield = (FixEfield *) modify->fix[ifix];
-  if (efield && (strcmp(update->unit_style,"real") != 0))
-    error->all(FLERR,"Must use unit_style real with fix qeq/reax and external fields");
 
-  // ensure that fix efield is properly initialized before accessing its data
-  if (efield) efield->init();
+  // ensure that fix efield is properly initialized before accessing its data and check some settings
+  if (efield) {
+    efield->init();
+    if (strcmp(update->unit_style,"real") != 0)
+      error->all(FLERR,"Must use unit_style real with fix qeq/reax and external fields");
+    if (efield->varflag != FixEfield::CONSTANT)
+      error->all(FLERR,"Cannot yet use fix qeq/reaxff with variable efield");
 
-  if (efield && efield->varflag != FixEfield::CONSTANT)
-    error->all(FLERR,"Cannot yet use fix qeq/reaxff with variable efield");
+    if (((fabs(efield->ex) > SMALL) && domain->xperiodic) ||
+         ((fabs(efield->ey) > SMALL) && domain->yperiodic) ||
+         ((fabs(efield->ez) > SMALL) && domain->zperiodic))
+      error->all(FLERR,"Must not have electric field component in direction of periodic "
+                      " boundary when using charge equilibration with ReaxFF.");
+  }
 
   // we need a half neighbor list w/ Newton off and ghost neighbors
   // built whenever re-neighboring occurs

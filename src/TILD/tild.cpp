@@ -156,7 +156,7 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   nrepeat = 0;
   peratom_freq = 0;
   write_grid_flag  = 0;
-  set_rho0 = 1.0;
+  set_rho0 = 0.0;
   subtract_rho0 = 0;
   norm_flag = 1;
   npergrid = 0; 
@@ -1168,7 +1168,7 @@ void TILD::calc_work(FFT_SCALAR *wk, const int itype, const int jtype){
     params[0] = rp[itype][jtype];
     params[1] = xi[itype][jtype];
     params[2] = np_rho[itype][jtype];
-    if (set_rho0 != 0.0f) params[2] = modified_rho0;
+    if (set_rho0 > 0.0f) params[2] = modified_rho0;
     init_potential(tmp, style, params);
 
     int j = 0;
@@ -2503,25 +2503,21 @@ double TILD::calculate_rho0(){
   int particles_not_tild = 0;
   vector<int> count_per_type (ntypes+1,0);
   double lmass = 0, lmass_all = 0;
-
-  bool any_defined_shapes=false;
-
-  for (int i=0; i<=nstyles; i++){
-    if (potent_type_map[0][i][i] == 0){
-      any_defined_shapes=true;
-      break;
-    }
-  }
-
+  int tild_particles_non_gaussian = 0;
 
   for (int i = 0; i < nlocal; i++) {
     if ( potent_type_map[0][type[i]][type[i]] == 1) {
       particles_not_tild++;
     } else {
       count_per_type[type[i]]++;
+      if (potent_type_map[1][type[i]][type[i]] != 1 ){
+        tild_particles_non_gaussian++;
+      }
     }
   }
 
+  MPI_Allreduce(&tild_particles_non_gaussian, &tild_particles_non_gaussian, 1, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(&particles_not_tild, &particles_not_tild, 1, MPI_DOUBLE, MPI_SUM, world);
 
   for ( int itype = 1; itype <= ntypes; itype++) {
     MPI_Allreduce(&count_per_type[itype], &count_per_type[itype], 1, MPI_DOUBLE, MPI_SUM, world);
@@ -2538,25 +2534,21 @@ double TILD::calculate_rho0(){
 
   MPI_Allreduce(&lmass, &lmass, 1, MPI_DOUBLE, MPI_SUM, world);
 
-  if (set_rho0 != 0.0f){
+  double total_sphere_vol = 0;
+    for ( int itype = 1; itype <= ntypes; itype++) {
+      if (potent_type_map[2][itype][itype] == 1) {
+      total_sphere_vol += count_per_type[itype] * (4.0 * MY_PI / 3.0) * rp[itype][itype] * rp[itype][itype] * rp[itype][itype];
+      }
+    }
 
+  if (set_rho0 <= 0.0f){
     for ( int itype = 1; itype <= ntypes; itype++) {
       if (potent_type_map[2][itype][itype] == 1) {
         lmass += count_per_type[itype] * (4.0 * MY_PI / 3.0) * rp[itype][itype] * rp[itype][itype] * rp[itype][itype] * np_rho[itype][itype];
       }
     }
-
   } else {
-
-    double total_sphere_vol = 0;
-    for ( int itype = 1; itype <= ntypes; itype++) {
-      if (potent_type_map[2][itype][itype] == 1) {
-        total_sphere_vol += count_per_type[itype] * (4.0 * MY_PI / 3.0) * rp[itype][itype] * rp[itype][itype] * rp[itype][itype];
-      }
-    }
-
     modified_rho0 = (set_rho0 * vole - lmass) /total_sphere_vol;
-
     for ( int itype = 1; itype <= ntypes; itype++) {
       if (potent_type_map[2][itype][itype] == 1) {
         lmass += count_per_type[itype] * (4.0 * MY_PI / 3.0) * rp[itype][itype] * rp[itype][itype] * rp[itype][itype] * modified_rho0;
@@ -2565,7 +2557,6 @@ double TILD::calculate_rho0(){
   }
 
   MPI_Allreduce(&lmass, &lmass_all, 1, MPI_DOUBLE, MPI_SUM, world);
-
 
   rho0 = lmass_all / vole;
   if (comm->me == 0) {
@@ -2576,8 +2567,8 @@ double TILD::calculate_rho0(){
     utils::logmesg(lmp,mesg);
     }
 
-  if (rho0 == 0.f){
-    error->warning(FLERR,"Calculated rho0 is 0; using user specificed rho0");
+  if (rho0 <= 0.f){
+    error->warning(FLERR,"Calculated rho0 <= 0; using user specificed rho0");
     std::string mesg = 
       fmt::format("  Found {} particles without a TILD potential\n", particles_not_tild);
     mesg += fmt::format("  User set rho0 = {:.6f}; used rho0 = {:.6f} for TILD potential.\n",

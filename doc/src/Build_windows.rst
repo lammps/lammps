@@ -4,6 +4,7 @@ Notes for building LAMMPS on Windows
 * :ref:`General remarks <generic>`
 * :ref:`Running Linux on Windows <linux>`
 * :ref:`Using GNU GCC ported to Windows <gnu>`
+* :ref:`Using Visual Studio <msvc>`
 * :ref:`Using a cross-compiler <cross>`
 
 ----------
@@ -31,13 +32,13 @@ pre-compiled Windows binary packages are sufficient for your needs.  If
 it is necessary for you to compile LAMMPS on a Windows machine
 (e.g. because it is your main desktop), please also consider using a
 virtual machine software and compile and run LAMMPS in a Linux virtual
-machine, or - if you have a sufficiently up-to-date Windows 10
-installation - consider using the Windows subsystem for Linux.  This
-optional Windows feature allows you to run the bash shell from Ubuntu
-from within Windows and from there on, you can pretty much use that
-shell like you are running on an Ubuntu Linux machine (e.g. installing
-software via apt-get and more).  For more details on that, please see
-:doc:`this tutorial <Howto_wsl>`.
+machine, or - if you have a sufficiently up-to-date Windows 10 or
+Windows 11 installation - consider using the Windows subsystem for
+Linux.  This optional Windows feature allows you to run the bash shell
+from Ubuntu from within Windows and from there on, you can pretty much
+use that shell like you are running on an Ubuntu Linux machine
+(e.g. installing software via apt-get and more).  For more details on
+that, please see :doc:`this tutorial <Howto_wsl>`.
 
 .. _gnu:
 
@@ -66,6 +67,35 @@ experience in using Cygwin.  If you do come across portability problems
 requiring changes to the LAMMPS source code, or figure out corrections
 yourself, please report them on the lammps-users mailing list, or file
 them as an issue or pull request on the LAMMPS GitHub project.
+
+.. _msvc:
+
+Using Microsoft Visual Studio
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Following the integration of the :doc:`platform namespace
+<Developer_platform>` into the LAMMPS code base, portability of LAMMPS
+to be compiled on Windows using Visual Studio has been significantly
+improved.  This has been tested with Visual Studio 2019 (aka version
+16).  Not all features and packages in LAMMPS are currently supported
+out of the box, but a preset ``cmake/presets/windows.cmake`` is provided
+that contains the packages that have been compiled successfully.  You
+must use the CMake based build procedure, and either use the integrated
+CMake support of Visual Studio or use an external CMake installation to
+create build files for the Visual Studio build system.  Please note that
+on launching Visual Studio it will scan the directory tree and likely
+miss the correct master ``CMakeLists.txt``.  Try to open the
+``cmake/CMakeSettings.json`` and use those CMake configurations as a
+starting point.  It is also possible to configure and compile LAMMPS
+from the command line with a CMake binary from `cmake.org <https://cmake.org>`_.
+
+To support running in parallel you can compile with OpenMP enabled using
+the OPENMP package or install Microsoft MPI (including the SDK) and compile
+LAMMPS with MPI enabled.
+
+This is work in progress and you should contact the LAMMPS developers
+via GitHub, the forum, or the mailing list, if you have questions or
+LAMMPS specific problems.
 
 .. _cross:
 

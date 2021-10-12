@@ -35,7 +35,7 @@ DumpCFGGZ::~DumpCFGGZ() {}
 
 /* ----------------------------------------------------------------------
    generic opening of a dump file
-   ASCII or binary or gzipped
+   ASCII or binary or compressed
    some derived classes override this function
 ------------------------------------------------------------------------- */
 

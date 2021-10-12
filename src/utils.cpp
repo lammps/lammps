@@ -31,25 +31,6 @@
 #include <cstring>
 #include <ctime>
 
-#if defined(__linux__)
-#include <unistd.h>    // for readlink
-#endif
-
-#if defined(__APPLE__)
-#include <fcntl.h>    // for fcntl
-#include <sys/syslimits.h>
-#endif
-
-#if defined(_WIN32)
-// target Windows version is Windows 7 and later
-#if defined(_WIN32_WINNT)
-#undef _WIN32_WINNT
-#endif
-#define _WIN32_WINNT _WIN32_WINNT_WIN7
-#include <io.h>
-#include <windows.h>
-#endif
-
 /*! \file utils.cpp */
 
 /*
@@ -165,44 +146,6 @@ std::string utils::getsyserror()
   return std::string(strerror(errno));
 }
 
-/** On Linux the folder /proc/self/fd holds symbolic links to the actual
- * pathnames associated with each open file descriptor of the current process.
- * On MacOS the same kind of information can be obtained using ``fcntl(fd,F_GETPATH,buf)``.
- * On Windows we use ``GetFinalPathNameByHandleA()`` which is available with
- * Windows Vista and later.
- *
- * This function is used to provide a filename with error messages in functions
- * where the filename is not passed as an argument, but the FILE * pointer.
- */
-const char *utils::guesspath(char *buf, int len, FILE *fp)
-{
-  memset(buf, 0, len);
-
-#if defined(__linux__)
-  int fd = fileno(fp);
-  // get pathname from /proc or copy (unknown)
-  if (readlink(fmt::format("/proc/self/fd/{}", fd).c_str(), buf, len - 1) <= 0)
-    strncpy(buf, "(unknown)", len - 1);
-#elif defined(__APPLE__)
-  int fd = fileno(fp);
-  char filepath[PATH_MAX];
-  if (fcntl(fd, F_GETPATH, filepath) != -1)
-    strncpy(buf, filepath, len - 1);
-  else
-    strncpy(buf, "(unknown)", len - 1);
-#elif defined(_WIN32)
-  char filepath[MAX_PATH];
-  HANDLE h = (HANDLE) _get_osfhandle(_fileno(fp));
-  if (GetFinalPathNameByHandleA(h, filepath, PATH_MAX, FILE_NAME_NORMALIZED) > 0)
-    strncpy(buf, filepath, len - 1);
-  else
-    strncpy(buf, "(unknown)", len - 1);
-#else
-  strncpy(buf, "(unknown)", len - 1);
-#endif
-  return buf;
-}
-
 // read line into buffer. if line is too long keep reading until EOL or EOF
 // but return only the first part with a newline at the end.
 
@@ -256,7 +199,7 @@ void utils::sfgets(const char *srcname, int srcline, char *s, int size, FILE *fp
     std::string errmsg;
 
     // try to figure out the file name from the file pointer
-    if (!filename) filename = guesspath(buf, MAXPATHLENBUF, fp);
+    if (!filename) filename = platform::guesspath(fp, buf, MAXPATHLENBUF);
 
     if (feof(fp)) {
       errmsg = "Unexpected end of file while reading file '";
@@ -285,7 +228,7 @@ void utils::sfread(const char *srcname, int srcline, void *s, size_t size, size_
     std::string errmsg;
 
     // try to figure out the file name from the file pointer
-    if (!filename) filename = guesspath(buf, MAXPATHLENBUF, fp);
+    if (!filename) filename = platform::guesspath(fp, buf, MAXPATHLENBUF);
 
     if (feof(fp)) {
       errmsg = "Unexpected end of file while reading file '";
@@ -369,7 +312,7 @@ int utils::logical(const char *file, int line, const char *str, bool do_abort, L
       lmp->error->all(file, line, msg);
   }
 
-  // convert to ascii and lowercase
+  // convert to ascii
   std::string buf(str);
   if (has_utf8(buf)) buf = utf8_subst(buf);
 
@@ -752,6 +695,28 @@ char *utils::strdup(const std::string &text)
 }
 
 /* ----------------------------------------------------------------------
+   Return string converted to lowercase
+------------------------------------------------------------------------- */
+
+std::string utils::lowercase(const std::string &text)
+{
+  std::string converted(text);
+  for (auto &c : converted) c = ::tolower(c);
+  return converted;
+}
+
+/* ----------------------------------------------------------------------
+   Return string converted to uppercase
+------------------------------------------------------------------------- */
+
+std::string utils::uppercase(const std::string &text)
+{
+  std::string converted(text);
+  for (auto &c : converted) c = ::toupper(c);
+  return converted;
+}
+
+/* ----------------------------------------------------------------------
    Return string without leading or trailing whitespace
 ------------------------------------------------------------------------- */
 
@@ -920,7 +885,7 @@ size_t utils::count_words(const std::string &text, const std::string &separators
 
 size_t utils::trim_and_count_words(const std::string &text, const std::string &separators)
 {
-  return utils::count_words(utils::trim_comment(text), separators);
+  return utils::count_words(trim_comment(text), separators);
 }
 
 /* ----------------------------------------------------------------------
@@ -1066,71 +1031,6 @@ bool utils::is_id(const std::string &str)
 }
 
 /* ----------------------------------------------------------------------
-   strip off leading part of path, return just the filename
-------------------------------------------------------------------------- */
-
-std::string utils::path_basename(const std::string &path)
-{
-#if defined(_WIN32)
-  size_t start = path.find_last_of("/\\");
-#else
-  size_t start = path.find_last_of('/');
-#endif
-
-  if (start == std::string::npos) {
-    start = 0;
-  } else {
-    start += 1;
-  }
-
-  return path.substr(start);
-}
-
-/* ----------------------------------------------------------------------
-   Return only the leading part of a path, return just the directory
-------------------------------------------------------------------------- */
-
-std::string utils::path_dirname(const std::string &path)
-{
-#if defined(_WIN32)
-  size_t start = path.find_last_of("/\\");
-#else
-  size_t start = path.find_last_of('/');
-#endif
-
-  if (start == std::string::npos) return ".";
-
-  return path.substr(0, start);
-}
-
-/* ----------------------------------------------------------------------
-   join two paths
-------------------------------------------------------------------------- */
-
-std::string utils::path_join(const std::string &a, const std::string &b)
-{
-#if defined(_WIN32)
-  return fmt::format("{}\\{}", a, b);
-#else
-  return fmt::format("{}/{}", a, b);
-#endif
-}
-
-/* ----------------------------------------------------------------------
-   try to open file for reading
-------------------------------------------------------------------------- */
-
-bool utils::file_is_readable(const std::string &path)
-{
-  FILE *fp = fopen(path.c_str(), "r");
-  if (fp) {
-    fclose(fp);
-    return true;
-  }
-  return false;
-}
-
-/* ----------------------------------------------------------------------
    try to find potential file as specified by name
    search current directory and the LAMMPS_POTENTIALS directory if
    specified
@@ -1138,28 +1038,13 @@ bool utils::file_is_readable(const std::string &path)
 
 std::string utils::get_potential_file_path(const std::string &path)
 {
-  std::string filepath = path;
-  std::string filename = utils::path_basename(path);
-
-  if (utils::file_is_readable(filepath)) {
-    return filepath;
+  if (platform::file_is_readable(path)) {
+    return path;
   } else {
-    // try the environment variable directory
-    const char *var = getenv("LAMMPS_POTENTIALS");
-
-    if (var != nullptr) {
-#if defined(_WIN32)
-      Tokenizer dirs(var, ";");
-#else
-      Tokenizer dirs(var, ":");
-#endif
-      while (dirs.has_next()) {
-        auto pot = utils::path_basename(filepath);
-        auto dir = dirs.next();
-        filepath = utils::path_join(dir, pot);
-
-        if (utils::file_is_readable(filepath)) { return filepath; }
-      }
+    for (const auto &dir : platform::list_pathenv("LAMMPS_POTENTIALS")) {
+      auto pot = platform::path_basename(path);
+      auto filepath = platform::path_join(dir, pot);
+      if (platform::file_is_readable(filepath)) return filepath;
     }
   }
   return "";
@@ -1309,7 +1194,7 @@ double utils::timespec2seconds(const std::string &timespec)
       if (!values.has_next()) break;
       vals[i] = values.next_int();
     }
-  } catch (TokenizerException &e) {
+  } catch (TokenizerException &) {
     return -1.0;
   }
 

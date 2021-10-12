@@ -710,7 +710,7 @@ void TAD::perform_neb(int ievent)
   //    time_neb += timer->get_wall(Timer::TOTAL);
 
   MPI_Barrier(world);
-  double time_tmp = MPI_Wtime();
+  double time_tmp = platform::walltime();
 
   double dt_hold = update->dt;
   update->dt = dt_neb;
@@ -718,7 +718,7 @@ void TAD::perform_neb(int ievent)
   update->dt = dt_hold;
 
   MPI_Barrier(world);
-  time_neb += MPI_Wtime() - time_tmp;
+  time_neb += platform::walltime() - time_tmp;
 
   if (universe->me == 0) {
     universe->ulogfile = ulogfile_lammps;

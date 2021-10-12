@@ -272,7 +272,7 @@ void DumpNetCDFMPIIO::openfile()
   if (append_flag && !multifile) {
     // Fixme! Perform checks if dimensions and variables conform with
     // data structure standard.
-    if (not utils::file_is_readable(filecurrent))
+    if (!platform::file_is_readable(filecurrent))
       error->all(FLERR, "cannot append to non-existent file {}", filecurrent);
 
     MPI_Offset index[NC_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];

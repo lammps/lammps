@@ -15,7 +15,7 @@ target_link_libraries(test_utils PRIVATE lammps gmock_main)
 add_test(Utils test_utils)
 
 add_executable(test_platform test_platform.cpp)
-target_link_libraries(test_platform PRIVATE lammps GTest::GMockMain GTest::GMock GTest::GTest)
+target_link_libraries(test_platform PRIVATE lammps gmock_main)
 add_test(Platform test_platform)
 
 set_tests_properties(Utils Platform PROPERTIES

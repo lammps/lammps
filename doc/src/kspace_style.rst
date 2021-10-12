@@ -416,7 +416,7 @@ relative RMS error.
 
 .. include:: accel_styles.rst
 
-.. note:: 
+.. note::
 
   For the GPU package, the *pppm/gpu* style performs charge assignment
   and force interpolation calculations on the GPU.  These processes
@@ -428,7 +428,7 @@ relative RMS error.
   concurrently on the GPU while other calculations for non-bonded and
   bonded force calculation are performed on the CPU.
 
-.. note:: 
+.. note::
 
   For the KOKKOS package, the *pppm/kk* style performs charge
   assignment and force interpolation calculations, along with the FFTs

@@ -159,28 +159,14 @@ taken from the ij and ik pairs (:math:`\sigma`, *a*, :math:`\gamma`)
 
 ----------
 
-Styles with a *gpu*, *intel*, *kk*, *omp*, or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
+.. include:: accel_styles.rst
 
-These accelerated styles are part of the GPU, INTEL, KOKKOS,
-OPENMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` page for more info.
+.. note::
 
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-When using the INTEL package with this style, there is an
-additional 5 to 10 percent performance improvement when the
-Stillinger-Weber parameters p and q are set to 4 and 0 respectively.
-These parameters are common for modeling silicon and water.
-
-See the :doc:`Speed packages <Speed_packages>` page for more
-instructions on how to use the accelerated styles effectively.
+  When using the INTEL package with this style, there is an additional
+  5 to 10 percent performance improvement when the Stillinger-Weber
+  parameters p and q are set to 4 and 0 respectively.  These
+  parameters are common for modeling silicon and water.
 
 ----------
 

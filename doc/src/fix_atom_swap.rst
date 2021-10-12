@@ -102,7 +102,7 @@ volume.  The specified region must have been previously defined with a
 specified region. Swaps are not otherwise attempted.
 
 You should ensure you do not swap atoms belonging to a molecule, or
-LAMMPS will soon generate an error when it tries to find those atoms.
+LAMMPS will soon generatean error when it tries to find those atoms.
 LAMMPS will warn you if any of the atoms eligible for swapping have a
 non-zero molecule ID, but does not check for this at the time of
 swapping.

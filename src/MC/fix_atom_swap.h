@@ -40,7 +40,7 @@ class FixAtomSwap : public Fix {
 
  private:
   int nevery, seed;
-  int conserve_ke_flag;    // yes = conserve ke, no = do not conserve ke
+  int ke_flag;              // yes = conserve ke, no = do not conserve ke
   int semi_grand_flag;     // yes = semi-grand canonical, no = constant composition
   int ncycles;
   int niswap, njswap;                  // # of i,j swap atoms on all procs

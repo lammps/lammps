@@ -35,12 +35,14 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
+#define BIG 1.0e20
+
 /* ---------------------------------------------------------------------- */
 
 FixMolSwap::FixMolSwap(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg != 9) error->all(FLERR,"Illegal fix mol/swap command");
+  if (narg < 9) error->all(FLERR,"Illegal fix mol/swap command");
 
   vector_flag = 1;
   size_vector = 2;
@@ -58,13 +60,32 @@ FixMolSwap::FixMolSwap(LAMMPS *lmp, int narg, char **arg) :
   seed = utils::inumeric(FLERR,arg[7],false,lmp);
   double temperature = utils::numeric(FLERR,arg[8],false,lmp);
 
+  // optional args
+
+  ke_flag = 1;
+
+  int iarg = 9;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"ke") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix mol/swap command");
+      ke_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
+    } else error->all(FLERR,"Illegal fix mol/swap command");
+  }
+
+  // error check
+
   if (nevery <= 0) error->all(FLERR,"Illegal fix mol/swap command");
   if (ncycles < 0) error->all(FLERR,"Illegal fix mol/swap command");
+  if (itype == jtype) error->all(FLERR,"Illegal fix mol/swap command");
   if (itype <= 0 || itype > atom->ntypes ||
       jtype <= 0 || jtype > atom->ntypes)
     error->all(FLERR,"Fix mol/swap atom types are invalid");
   if (seed <= 0) error->all(FLERR,"Illegal fix mol/swap command");
   if (temperature <= 0.0) error->all(FLERR,"Illegal fix mol/swap command");
+  if (ke_flag && atom->rmass) 
+    error->all(FLERR,"Cannot conserve kinetic energy with fix mol/swap "
+               "unless per-type masses");
 
   beta = 1.0/(force->boltz*temperature);
 
@@ -79,12 +100,17 @@ FixMolSwap::FixMolSwap(LAMMPS *lmp, int narg, char **arg) :
 
   // zero out counters
 
-  nswap_attempts = 0.0;
-  nswap_successes = 0.0;
+  nswap_attempt = 0.0;
+  nswap_accept = 0.0;
+
+  // qflag = 1 if charges are defined
+
+  if (atom->q_flag) qflag = 1;
+  else qflag = 0;
 
   // set comm size needed by this Fix
 
-  if (atom->q_flag) comm_forward = 2;
+  if (qflag) comm_forward = 2;
   else comm_forward = 1;
 }
 
@@ -141,6 +167,54 @@ void FixMolSwap::init()
   MPI_Allreduce(&minmol_me,&minmol,1,MPI_LMP_TAGINT,MPI_MIN,world);
   MPI_Allreduce(&maxmol_me,&maxmol,1,MPI_LMP_TAGINT,MPI_MAX,world);
 
+  // if ke_flag, check if itype/jtype masses are different
+  // if yes, pre-calcuate velocity scale factors that keep KE constant
+  // if no, turn ke_flag off
+
+  if (ke_flag) {
+    double *mass = atom->mass;
+    if (mass[itype] != mass[jtype]) {
+      i2j_vscale = sqrt(mass[itype]/mass[jtype]);
+      j2i_vscale = sqrt(mass[jtype]/mass[itype]);
+    } else ke_flag = 0;
+  }
+
+  // if qflag, check if all charges for itype are identical, ditto for jtype
+  // if not, cannot swap charges, issue warning
+
+  if (qflag) {
+    double *q = atom->q;
+
+    double iqone,jqone;
+    iqone = jqone = -BIG;
+
+    for (int i = 0; i < nlocal; i++) {
+      if (molecule[i] == 0) continue;
+      if (!(mask[i] & groupbit)) continue;
+      if (type[i] == itype) iqone = q[i];
+      if (type[i] == jtype) jqone = q[i];
+    }
+
+    MPI_Allreduce(&iqone,&iq,1,MPI_DOUBLE,MPI_MAX,world);
+    MPI_Allreduce(&jqone,&jq,1,MPI_DOUBLE,MPI_MAX,world);
+
+    int flag = 0;
+
+    for (int i = 0; i < nlocal; i++) {
+      if (molecule[i] == 0) continue;
+      if (!(mask[i] & groupbit)) continue;
+      if (type[i] == itype && q[i] != iq) flag = 1;
+      if (type[i] == jtype && q[i] != jq) flag = 1;
+    }
+
+    int flagall;
+    MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_MAX,world);
+    if (flagall) qflag = 0;
+
+    if (!qflag && comm->me == 0) 
+      error->warning(FLERR,"Cannot swap charges in fix mol/swap");
+  }
+
   // check if all cutoffs involving itype and jtype are the same
   // if not, reneighboring will be needed after swaps
 
@@ -152,7 +226,7 @@ void FixMolSwap::init()
 }
 
 /* ----------------------------------------------------------------------
-   perform Ncycle Monte Carlo swaps
+   perform ncycle Monte Carlo swaps
 ------------------------------------------------------------------------- */
 
 void FixMolSwap::pre_exchange()
@@ -178,11 +252,13 @@ void FixMolSwap::pre_exchange()
 
   // attempt Ncycle molecule swaps
 
-  int nsuccess = 0;
-  for (int m = 0; m < ncycles; m++) nsuccess += attempt_swap();
+  int naccept = 0;
+  for (int m = 0; m < ncycles; m++) naccept += attempt_swap();
 
-  nswap_attempts += ncycles;
-  nswap_successes += nsuccess;
+  // udpate MC stats
+
+  nswap_attempt += ncycles;
+  nswap_accept += naccept;
 
   next_reneighbor = update->ntimestep + nevery;
 }
@@ -199,13 +275,15 @@ int FixMolSwap::attempt_swap()
   double energy_before = energy_stored;
 
   // pick a random molecule
-  // swap all of its eligible itype & jtype atoms
+  // swap properties of all its eligible itype & jtype atoms
 
   tagint molID = 
     minmol + static_cast<tagint> (random->uniform() * (maxmol-minmol+1));
   if (molID > maxmol) molID = maxmol;
 
   int *mask = atom->mask;
+  double **v = atom->v;
+  double *q = atom->q;
   int *type = atom->type;
   tagint *molecule = atom->molecule;
   int nlocal = atom->nlocal;
@@ -213,8 +291,23 @@ int FixMolSwap::attempt_swap()
   for (int i = 0; i < nlocal; i++) {
     if (molecule[i] != molID) continue;
     if (!(mask[i] & groupbit)) continue;
-    if (type[i] == itype) type[i] = jtype;
-    else if (type[i] == jtype) type[i] = itype;
+    if (type[i] == itype) {
+      type[i] = jtype;
+      if (qflag) q[i] = jq;
+      if (ke_flag) {
+        v[i][0] *= i2j_vscale;
+        v[i][1] *= i2j_vscale;
+        v[i][2] *= i2j_vscale;
+      }
+    } else if (type[i] == jtype) {
+      type[i] = itype;
+      if (qflag) q[i] = iq;
+      if (ke_flag) {
+        v[i][0] *= j2i_vscale;
+        v[i][1] *= j2i_vscale;
+        v[i][2] *= j2i_vscale;
+      }
+    }
   }
 
   // if unequal_cutoffs, call comm->borders() and rebuild neighbor list
@@ -236,23 +329,37 @@ int FixMolSwap::attempt_swap()
 
   double energy_after = energy_full();
 
-  // swap accepted
+  // swap accepted, return 1
 
   if (random->uniform() < exp(beta*(energy_before - energy_after))) {
     energy_stored = energy_after;
     return 1;
+  }
 
-  // swap not accepted
+  // swap not accepted, return 0
   // restore the swapped itype & jtype atoms
   // do not need to re-call comm->borders() and rebuild neighbor list
-  //   since will be done on next cycle or in Verlet when this fix is done
+  //   since will be done on next cycle or in Verlet when this fix finishes
 
-  } else {
-    for (int i = 0; i < nlocal; i++) {
-      if (molecule[i] != molID) continue;
-      if (!(mask[i] & groupbit)) continue;
-      if (type[i] == itype) type[i] = jtype;
-      else if (type[i] == jtype) type[i] = itype;
+  for (int i = 0; i < nlocal; i++) {
+    if (molecule[i] != molID) continue;
+    if (!(mask[i] & groupbit)) continue;
+    if (type[i] == itype) {
+      type[i] = jtype;
+      if (qflag) q[i] = jq;
+      if (ke_flag) {
+        v[i][0] *= i2j_vscale;
+        v[i][1] *= i2j_vscale;
+        v[i][2] *= i2j_vscale;
+      }
+    } else if (type[i] == jtype) {
+      type[i] = itype;
+      if (qflag) q[i] = iq;
+      if (ke_flag) {
+        v[i][0] *= j2i_vscale;
+        v[i][1] *= j2i_vscale;
+        v[i][2] *= j2i_vscale;
+      }
     }
   }
 
@@ -300,7 +407,7 @@ int FixMolSwap::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*
 
   m = 0;
 
-  if (atom->q_flag) {
+  if (qflag) {
     for (i = 0; i < n; i++) {
       j = list[i];
       buf[m++] = type[j];
@@ -328,7 +435,7 @@ void FixMolSwap::unpack_forward_comm(int n, int first, double *buf)
   m = 0;
   last = first + n;
 
-  if (atom->q_flag) {
+  if (qflag) {
     for (i = first; i < last; i++) {
       type[i] = static_cast<int> (buf[m++]);
       q[i] = buf[m++];
@@ -345,8 +452,8 @@ void FixMolSwap::unpack_forward_comm(int n, int first, double *buf)
 
 double FixMolSwap::compute_vector(int n)
 {
-  if (n == 0) return nswap_attempts;
-  if (n == 1) return nswap_successes;
+  if (n == 0) return nswap_attempt;
+  if (n == 1) return nswap_accept;
   return 0.0;
 }
 
@@ -360,8 +467,8 @@ void FixMolSwap::write_restart(FILE *fp)
   double list[6];
   list[n++] = random->state();
   list[n++] = ubuf(next_reneighbor).d;
-  list[n++] = nswap_attempts;
-  list[n++] = nswap_successes;
+  list[n++] = nswap_attempt;
+  list[n++] = nswap_accept;
   list[n++] = ubuf(update->ntimestep).d;
 
   if (comm->me == 0) {
@@ -385,8 +492,8 @@ void FixMolSwap::restart(char *buf)
 
   next_reneighbor = (bigint) ubuf(list[n++]).i;
 
-  nswap_attempts = static_cast<int>(list[n++]);
-  nswap_successes = static_cast<int>(list[n++]);
+  nswap_attempt = static_cast<int>(list[n++]);
+  nswap_accept = static_cast<int>(list[n++]);
 
   bigint ntimestep_restart = (bigint) ubuf(list[n++]).i;
   if (ntimestep_restart != update->ntimestep)

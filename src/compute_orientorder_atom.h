@@ -55,9 +55,11 @@ class ComputeOrientOrderAtom : public Compute {
   double polar_prefactor(int, int, double);
   double associated_legendre(int, int, double);
 
-  virtual void init_clebsch_gordan();
-  double *cglist;    // Clebsch-Gordan coeffs
-  int idxcg_max;
+  virtual void init_wigner3j();
+  double triangle_coeff(const int a, const int b, const int c);
+  double w3j(const int L, const int j1, const int j2, const int j3);
+  double *w3jlist;    // Wigner coeffs
+  int widx_max;
   int chunksize;
 };
 

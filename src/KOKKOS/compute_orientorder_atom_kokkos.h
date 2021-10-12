@@ -127,8 +127,8 @@ class ComputeOrientOrderAtomKokkos : public ComputeOrientOrderAtom {
   KOKKOS_INLINE_FUNCTION
   double associated_legendre(int, int, double) const;
 
-  void init_clebsch_gordan();
-  t_sna_1d d_cglist;                     // Clebsch-Gordan coeffs
+  void init_wigner3j();
+  t_sna_1d d_w3jlist;                     // Wigner coeffs
 };
 
 }

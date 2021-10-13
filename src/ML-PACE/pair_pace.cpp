@@ -209,9 +209,9 @@ void PairPACE::compute(int eflag, int vflag) {
       dely = x[j][1] - ytmp;
       delz = x[j][2] - ztmp;
 
-      fij[0] = scale[itype][jtype]*aceimpl->ace->neighbours_forces(jj, 0);
-      fij[1] = scale[itype][jtype]*aceimpl->ace->neighbours_forces(jj, 1);
-      fij[2] = scale[itype][jtype]*aceimpl->ace->neighbours_forces(jj, 2);
+      fij[0] = scale[itype][itype]*aceimpl->ace->neighbours_forces(jj, 0);
+      fij[1] = scale[itype][itype]*aceimpl->ace->neighbours_forces(jj, 1);
+      fij[2] = scale[itype][itype]*aceimpl->ace->neighbours_forces(jj, 2);
 
       f[i][0] += fij[0];
       f[i][1] += fij[1];
@@ -230,7 +230,7 @@ void PairPACE::compute(int eflag, int vflag) {
     // tally energy contribution
     if (eflag) {
       // evdwl = energy of atom I
-      evdwl = scale[1][1]*aceimpl->ace->e_atom;
+      evdwl = scale[itype][itype]*aceimpl->ace->e_atom;
       ev_tally_full(i, 2.0 * evdwl, 0.0, 0.0, 0.0, 0.0, 0.0);
     }
   }

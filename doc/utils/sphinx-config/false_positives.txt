@@ -685,6 +685,7 @@ diagonalized
 diagonalizers
 diagonalizing
 Diallo
+diblock
 Dickel
 diel
 differentiable
@@ -1278,6 +1279,7 @@ hgrid
 hhmrr
 Hibbs
 Higdon
+hiID
 Hijazi
 Hilger
 Hinestrosa
@@ -1774,6 +1776,7 @@ Loewen
 logfile
 logfreq
 logicals
+loID
 Lomdahl
 Lond
 lookup

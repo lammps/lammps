@@ -23,9 +23,12 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "group.h"
 #include "memory.h"
+#include "modify.h"
 #include "neigh_list.h"
 #include "pair.h"
+#include "respa.h"
 #include "suffix.h"
 #include "text_file_reader.h"
 #include "update.h"
@@ -287,6 +290,23 @@ void FixQEq::reallocate_matrix()
 double FixQEq::compute_scalar()
 {
   return matvecs;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixQEq::init()
+{
+  if (!atom->q_flag)
+    error->all(FLERR,"Fix {} requires atom attribute q", style);
+
+  ngroup = group->count(igroup);
+  if (ngroup == 0) error->all(FLERR,"Fix {} group has no atoms", style);
+
+  if ((comm->me == 0) && (modify->find_fix_by_style("^efield") >= 0))
+    error->warning(FLERR,"Fix efield is ignored during charge equilibration");
+
+  if (utils::strmatch(update->integrate_style,"^respa"))
+    nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
 /* ---------------------------------------------------------------------- */

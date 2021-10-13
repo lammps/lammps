@@ -41,6 +41,11 @@ class PairOxdnaHbond : public Pair {
   void write_data(FILE *);
   void write_data_all(FILE *);
   void *extract(const char *, int &);
+  
+  virtual int pack_forward_comm(int, int *, double *, int, int *);
+  virtual void unpack_forward_comm(int, int, double *);
+  int pack_reverse_comm(int, int, double *);
+  void unpack_reverse_comm(int, int *, double *);
 
  protected:
   // h-bonding interaction
@@ -67,6 +72,9 @@ class PairOxdnaHbond : public Pair {
   double **a_hb8, **theta_hb8_0, **dtheta_hb8_ast;
   double **b_hb8, **dtheta_hb8_c;
 
+  // per-atom arrays for q_to_exyz storage
+  double **nx, **ny, **nz;
+  
   int seqdepflag;
 
   virtual void allocate();

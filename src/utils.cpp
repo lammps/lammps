@@ -1481,7 +1481,7 @@ static int ismetachar(char c);
 int re_matchp(const char *text, re_t pattern, int *matchlen)
 {
   *matchlen = 0;
-  if (pattern != 0) {
+  if (pattern != nullptr) {
     if (pattern[0].type == RX_BEGIN) {
       return ((matchpattern(&pattern[1], text, matchlen)) ? 0 : -1);
     } else {
@@ -1595,7 +1595,7 @@ re_t re_compile(re_ctx_t context, const char *pattern)
           i += 1;                  /* Increment i to avoid including '^' in the char-buffer */
           if (pattern[i + 1] == 0) /* incomplete pattern, missing non-zero char after '^' */
           {
-            return 0;
+            return nullptr;
           }
         } else {
           re_compiled[j].type = RX_CHAR_CLASS;
@@ -1605,20 +1605,20 @@ re_t re_compile(re_ctx_t context, const char *pattern)
         while ((pattern[++i] != ']') && (pattern[i] != '\0')) {
           /* Missing ] */
           if (pattern[i] == '\\') {
-            if (ccl_bufidx >= MAX_CHAR_CLASS_LEN - 1) { return 0; }
+            if (ccl_bufidx >= MAX_CHAR_CLASS_LEN - 1) { return nullptr; }
             if (pattern[i + 1] == 0) /* incomplete pattern, missing non-zero char after '\\' */
             {
-              return 0;
+              return nullptr;
             }
             ccl_buf[ccl_bufidx++] = pattern[i++];
           } else if (ccl_bufidx >= MAX_CHAR_CLASS_LEN) {
-            return 0;
+            return nullptr;
           }
           ccl_buf[ccl_bufidx++] = pattern[i];
         }
         if (ccl_bufidx >= MAX_CHAR_CLASS_LEN) {
           /* Catches cases such as [00000000000000000000000000000000000000][ */
-          return 0;
+          return nullptr;
         }
         /* Null-terminate string end */
         ccl_buf[ccl_bufidx++] = 0;
@@ -1633,7 +1633,7 @@ re_t re_compile(re_ctx_t context, const char *pattern)
     }
     /* no buffer-out-of-bounds access on invalid patterns -
      * see https://github.com/kokke/tiny-regex-c/commit/1a279e04014b70b0695fba559a7c05d55e6ee90b */
-    if (pattern[i] == 0) { return 0; }
+    if (pattern[i] == 0) { return nullptr; }
 
     i += 1;
     j += 1;

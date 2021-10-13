@@ -96,8 +96,8 @@ public:
 // constructor
 Tree::Tree()
 {
-        root = 0;
-        current = 0;
+        root = nullptr;
+        current = nullptr;
         size = 0;
     DeleteAuxData = nullptr;
 }

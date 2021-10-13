@@ -222,8 +222,8 @@ PairMGPT::triplet_data *PairMGPT::get_triplet(const double xx[][3],int i,int j,i
 
   double t0,t1;
 
-  bond_data *bij = 0,*bik = 0;
-  triplet_data *tptr = 0;
+  bond_data *bij = nullptr,*bik = nullptr;
+  triplet_data *tptr = nullptr;
 
   t0 = gettime();
   if (recompute == 0) {
@@ -231,7 +231,7 @@ PairMGPT::triplet_data *PairMGPT::get_triplet(const double xx[][3],int i,int j,i
     bik = bhash->Lookup(Doublet(i,k));
   }
 
-  if (bij == 0) {
+  if (bij == nullptr) {
     if (recompute == 0)
       bij = bhash->Insert(Doublet(i,j));
     else
@@ -242,7 +242,7 @@ PairMGPT::triplet_data *PairMGPT::get_triplet(const double xx[][3],int i,int j,i
       make_bond(xx,j,i,bij);
   }
 
-  if (bik == 0) {
+  if (bik == nullptr) {
     if (recompute == 0)
       bik = bhash->Insert(Doublet(i,k));
     else
@@ -256,7 +256,7 @@ PairMGPT::triplet_data *PairMGPT::get_triplet(const double xx[][3],int i,int j,i
   t_make_b += t1-t0;
 
   t0 = gettime();
-  if (bij != 0 && bij != 0) {
+  if (bij != nullptr && bij != nullptr) {
     tptr = twork;
     make_triplet(bij,bik,tptr);
     *dvir_ij_p = bij->fl_deriv_sum;
@@ -933,7 +933,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
           const int ski = (k < i) ? 1 : -1;
 
 
-          T12 = T23 = T31 = 0;
+          T12 = T23 = T31 = nullptr;
 
           mj = first[j];
           /*
@@ -1042,7 +1042,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
                 accumulate_forces_3(w3);
             }
 
-            if (T12 != 0) {
+            if (T12 != nullptr) {
               //printf("T12 i,j,k = %d,%d,%d\n",i,j,k);
               mcount++;
               if (three_body_energies && evflag) {
@@ -1098,7 +1098,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
                 accumulate_forces_3(w3);
             }
 
-            if (T23 != 0) {
+            if (T23 != nullptr) {
               //printf("T23 i,j,k = %d,%d,%d\n",i,j,k);
               mcount++;
               if (three_body_energies && evflag) {
@@ -1154,7 +1154,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
 
             }
 
-            if (T31 != 0) {
+            if (T31 != nullptr) {
               //printf("T31 i,j,k = %d,%d,%d\n",i,j,k);
               mcount++;
               if (three_body_energies && evflag) {
@@ -1327,15 +1327,15 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
                       tr1 = tr2 = tr3 = 0.0;
 
                       dvir_im = dvir_jm = dvir_km = 0.0;
-                      T45 = T56 = T64 = 0;
-                      if (T12 != 0 && c_km && c_im)
+                      T45 = T56 = T64 = nullptr;
+                      if (T12 != nullptr && c_km && c_im)
                         T45 = get_triplet(xx,m,i,k,&bond_hash,&T45work,&dvir_im,&dvir_km);
-                      if (T23 != 0 && c_im && c_jm)
+                      if (T23 != nullptr && c_im && c_jm)
                         T56 = get_triplet(xx,m,i,j,&bond_hash,&T56work,&dvir_im,&dvir_jm);
-                      if (T31 != 0 && c_jm && c_km)
+                      if (T31 != nullptr && c_jm && c_km)
                         T64 = get_triplet(xx,m,j,k,&bond_hash,&T64work,&dvir_jm,&dvir_km);
 
-                      if (T12 != 0 && T45 != 0) {
+                      if (T12 != nullptr && T45 != nullptr) {
                         if (four_body_energies && evflag) {
                           tr1 = transtrace(T12->H1H2,T45->H1H2);
                           double dvir = ( (dvir_ij + dvir_jk + dvir_im + dvir_km)*splinepot.ve +
@@ -1364,7 +1364,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
                           accumulate_forces_4(w4);
                       }
 
-                      if (T23 != 0 && T56 != 0) {
+                      if (T23 != nullptr && T56 != nullptr) {
                         if (four_body_energies && evflag) {
                           tr2 = transtrace(T23->H1H2,T56->H1H2);
                           double dvir = ( (dvir_ki + dvir_jk + dvir_im + dvir_jm)*splinepot.ve +
@@ -1394,7 +1394,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
 
                       }
 
-                      if (T31 != 0 && T64 != 0) {
+                      if (T31 != nullptr && T64 != nullptr) {
                         if (four_body_energies && evflag) {
                           tr3 = transtrace(T31->H1H2,T64->H1H2);
                           double dvir = ( (dvir_ki + dvir_ij + dvir_jm + dvir_km)*splinepot.ve +

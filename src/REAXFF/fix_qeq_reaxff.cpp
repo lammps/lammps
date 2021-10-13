@@ -401,7 +401,7 @@ void FixQEqReaxFF::init()
          ((fabs(efield->ey) > SMALL) && domain->yperiodic) ||
          ((fabs(efield->ez) > SMALL) && domain->zperiodic))
       error->all(FLERR,"Must not have electric field component in direction of periodic "
-                      " boundary when using charge equilibration with ReaxFF.");
+                       "boundary when using charge equilibration with ReaxFF.");
   }
 
   // we need a half neighbor list w/ Newton off and ghost neighbors

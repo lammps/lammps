@@ -94,6 +94,12 @@ This fix does not correctly handle interactions involving multiple
 periodic images of the same atom. Hence, it should not be used for
 periodic cell dimensions less than 10 angstroms.
 
+This fix may be used in combination with :doc:`fix efield <fix_efield>`
+and will apply the external electric field during charge equilibration,
+but there may be only one fix efield instance used, it may only use a
+constant electric field, and the electric field vector may only have
+components in non-periodic directions.
+
 Related commands
 """"""""""""""""
 

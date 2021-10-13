@@ -52,9 +52,9 @@ class FileReaderException : public std::exception {
  public:
   FileReaderException(const std::string &msg) : message(msg) {}
 
-  ~FileReaderException() throw() {}
+  ~FileReaderException() noexcept {}
 
-  virtual const char *what() const throw() { return message.c_str(); }
+  virtual const char *what() const noexcept { return message.c_str(); }
 };
 
 class EOFException : public FileReaderException {

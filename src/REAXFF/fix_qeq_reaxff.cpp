@@ -1091,11 +1091,8 @@ void FixQEqReaxFF::get_chi_field()
   const double * const *x = (const double * const *)atom->x;
   const int *mask = atom->mask;
   const imageint *image = atom->image;
-
-  // efield energy is in real units of kcal/mol/angstrom, need to convert to eV
-
-  const double factor = 1.0/force->qe2f;
   const int nlocal = atom->nlocal;
+
 
   // update electric field region if necessary
 
@@ -1105,7 +1102,11 @@ void FixQEqReaxFF::get_chi_field()
     region->prematch();
   }
 
-  // currently only support constant efield
+  // efield energy is in real units of kcal/mol/angstrom, need to convert to eV
+
+  const double factor = -1.0/force->qe2f;
+
+  // currently we only support constant efield
   // atom selection is for the group of fix efield
 
   if (efield->varflag == FixEfield::CONSTANT) {
@@ -1122,7 +1123,7 @@ void FixQEqReaxFF::get_chi_field()
       if (mask[i] & efgroupbit) {
         if (region && !region->match(x[i][0],x[i][1],x[i][2])) continue;
         domain->unmap(x[i],image[i],unwrap);
-        chi_field[i] = -factor*(fx*unwrap[0] + fy*unwrap[1] + fz*unwrap[2]);
+        chi_field[i] = factor*(fx*unwrap[0] + fy*unwrap[1] + fz*unwrap[2]);
       }
     }
   }

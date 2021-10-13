@@ -14,7 +14,7 @@ environments with restricted disk space capacity it may be needed to
 reduce the storage requirements. Here are some suggestions:
 
 - Create a so-called shallow repository by cloning only the last commit
-  instead of the full project history by using ``git clone git@github.com:lammps/lammps --depth=1 --branch=master``.
+  instead of the full project history by using ``git clone git@github.com:lammps/lammps --depth=1 --branch=develop``.
   This reduces the downloaded size to about half.  With ``--depth=1`` it is not possible to check out different
   versions/branches of LAMMPS, using ``--depth=1000`` will make multiple recent versions available at little
   extra storage needs (the entire git history had nearly 30,000 commits in fall 2021).

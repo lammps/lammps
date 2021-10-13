@@ -166,7 +166,7 @@ intel", or "package omp" command with default settings.
    set, either to default values or to specified settings.  I.e. settings
    from previous invocations do not persist across multiple invocations.
 
-See the :doc:`Speed packages <Speed_packages>` page for more details
+See the :doc:`Accelerator packages <Speed_packages>` page for more details
 about using the various accelerator packages for speeding up LAMMPS
 simulations.
 

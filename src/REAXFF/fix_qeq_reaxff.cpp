@@ -380,10 +380,19 @@ void FixQEqReaxFF::reallocate_matrix()
 void FixQEqReaxFF::init()
 {
   if (!atom->q_flag)
-    error->all(FLERR,"Fix qeq/reaxff requires atom attribute q");
+    error->all(FLERR,"Fix {} requires atom attribute q", style);
 
   if (group->count(igroup) == 0)
-    error->all(FLERR,"Fix qeq/reaxff group has no atoms");
+    error->all(FLERR,"Fix {} group has no atoms", style);
+
+  // there may be only one instance of fix efield
+
+  int num_efield = 0;
+  for (int ifix = 0; ifix < modify->nfix; ++ifix) {
+    if (utils::strmatch(modify->fix[ifix]->style, "^efield")) ++num_efield;
+  }
+  if (num_efield > 1)
+    error->all(FLERR, "There may be only one fix efield instance used with fix {}", style);
 
   efield = nullptr;
   int ifix = modify->find_fix_by_style("^efield");
@@ -393,9 +402,9 @@ void FixQEqReaxFF::init()
   if (efield) {
     efield->init();
     if (strcmp(update->unit_style,"real") != 0)
-      error->all(FLERR,"Must use unit_style real with fix qeq/reax and external fields");
+      error->all(FLERR,"Must use unit_style real with fix {} and external fields", style);
     if (efield->varflag != FixEfield::CONSTANT)
-      error->all(FLERR,"Cannot yet use fix qeq/reaxff with variable efield");
+      error->all(FLERR,"Cannot (yet) use fix {} with variable efield", style);
 
     if (((fabs(efield->ex) > SMALL) && domain->xperiodic) ||
          ((fabs(efield->ey) > SMALL) && domain->yperiodic) ||

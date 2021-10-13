@@ -23,14 +23,16 @@
 #define LMP_POINTERS_H
 
 #include "lmptype.h"    // IWYU pragma: export
+
 #include <mpi.h>        // IWYU pragma: export
 #include <cstddef>      // IWYU pragme: export
 #include <cstdio>       // IWYU pragma: export
 #include <string>       // IWYU pragma: export
-#include "lammps.h"     // IWYU pragma: export
-#include "utils.h"      // IWYU pragma: export
+
 #include "fmt/format.h" // IWYU pragma: export
+#include "lammps.h"     // IWYU pragma: export
 #include "platform.h"   // IWYU pragma: export
+#include "utils.h"      // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
@@ -90,6 +92,14 @@ class Pointers {
     memoryKK(ptr->memoryKK),
     python(ptr->python) {}
   virtual ~Pointers() {}
+
+  // remove default members execept for the copy constructor
+
+  Pointers() = delete;
+  Pointers(const Pointers &) = default;
+  Pointers(Pointers &&) = delete;
+  Pointers & operator=(const Pointers&) = delete;
+  Pointers & operator=(Pointers&&) = delete;
 
  protected:
   LAMMPS *lmp;

@@ -40,7 +40,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixMolSwap::FixMolSwap(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg), random(nullptr), c_pe(nullptr)
 {
   if (narg < 9) error->all(FLERR,"Illegal fix mol/swap command");
 
@@ -83,7 +83,7 @@ FixMolSwap::FixMolSwap(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Fix mol/swap atom types are invalid");
   if (seed <= 0) error->all(FLERR,"Illegal fix mol/swap command");
   if (temperature <= 0.0) error->all(FLERR,"Illegal fix mol/swap command");
-  if (ke_flag && atom->rmass) 
+  if (ke_flag && atom->rmass)
     error->all(FLERR,"Cannot conserve kinetic energy with fix mol/swap "
                "unless per-type masses");
 
@@ -211,7 +211,7 @@ void FixMolSwap::init()
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_MAX,world);
     if (flagall) qflag = 0;
 
-    if (!qflag && comm->me == 0) 
+    if (!qflag && comm->me == 0)
       error->warning(FLERR,"Cannot swap charges in fix mol/swap");
   }
 
@@ -277,7 +277,7 @@ int FixMolSwap::attempt_swap()
   // pick a random molecule
   // swap properties of all its eligible itype & jtype atoms
 
-  tagint molID = 
+  tagint molID =
     minmol + static_cast<tagint> (random->uniform() * (maxmol-minmol+1));
   if (molID > maxmol) molID = maxmol;
 

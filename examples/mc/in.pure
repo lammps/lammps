@@ -13,7 +13,7 @@ neigh_modify       delay 0
 pair_style         lj/cut 1.1224620483
 bond_style         fene
 angle_style        cosine
-special_bonds	   lj 0.0 1.0 1.0
+special_bonds      lj 0.0 1.0 1.0
 
 read_data          data.bead
 
@@ -21,7 +21,7 @@ pair_coeff         * * 1.0 1.0 1.1224620483
 pair_coeff         1 2 1.1 1.0 1.1224620483
 bond_coeff         1 30.0 1.5 1.0 1.0
 angle_coeff        1 1.500
-pair_modify 	   shift yes
+pair_modify        shift yes
 
 variable           vt1 atom type==1
 variable           vt2 atom type==2
@@ -30,8 +30,8 @@ group              g2 dynamic all var vt2 every 100
 variable           count1 equal count(g1)
 variable           count2 equal count(g2)
 
-timestep	   0.010
-	
+timestep           0.010
+
 fix                1 all langevin 1.0 1.0 100.0 702547
 fix                2 all nve
 fix                3 all mol/swap 100 1 1 2 482794 1.0

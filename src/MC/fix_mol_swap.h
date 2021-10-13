@@ -44,7 +44,7 @@ class FixMolSwap : public Fix {
 
   int ke_flag;            // 1 if kinetic energy is also swapped
   double i2j_vscale;      // scale factors for velocity to keep KE constant
-  double j2i_vscale; 
+  double j2i_vscale;
 
   int qflag;              // 1 if charge is also swapped
   double iq,jq;           // charge values for all itype,jtype atoms

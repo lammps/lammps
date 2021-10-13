@@ -24,6 +24,6 @@ fix             2 all nvt temp 300 300 50.0
 
 timestep        0.5
 thermo          10
-thermo_style    custom step temp press density vol 
+thermo_style    custom step temp press density vol
 
 run 20

@@ -108,21 +108,22 @@ TEST_F(LAMMPS_plain, TestStyles)
     const char *found;
 
     const char *atom_styles[] = {"atomic", "body",   "charge", "ellipsoid", "hybrid",
-                                 "line",   "sphere", "tri",    NULL};
-    for (int i = 0; atom_styles[i] != NULL; ++i) {
+                                 "line",   "sphere", "tri",    nullptr};
+    for (int i = 0; atom_styles[i] != nullptr; ++i) {
         found = lmp->match_style("atom", atom_styles[i]);
-        EXPECT_STREQ(found, NULL);
+        EXPECT_STREQ(found, nullptr);
     }
 
-    const char *molecule_atom_styles[] = {"angle", "bond", "full", "molecular", "template", NULL};
-    for (int i = 0; molecule_atom_styles[i] != NULL; ++i) {
+    const char *molecule_atom_styles[] = {"angle",     "bond",     "full",
+                                          "molecular", "template", nullptr};
+    for (int i = 0; molecule_atom_styles[i] != nullptr; ++i) {
         found = lmp->match_style("atom", molecule_atom_styles[i]);
         EXPECT_STREQ(found, "MOLECULE");
     }
 
     const char *kokkos_atom_styles[] = {"angle/kk",     "bond/kk",   "full/kk",
-                                        "molecular/kk", "hybrid/kk", NULL};
-    for (int i = 0; kokkos_atom_styles[i] != NULL; ++i) {
+                                        "molecular/kk", "hybrid/kk", nullptr};
+    for (int i = 0; kokkos_atom_styles[i] != nullptr; ++i) {
         found = lmp->match_style("atom", kokkos_atom_styles[i]);
         EXPECT_STREQ(found, "KOKKOS");
     }
@@ -149,7 +150,7 @@ TEST_F(LAMMPS_plain, TestStyles)
     found = lmp->match_style("atom", "sph");
     EXPECT_STREQ(found, "SPH");
     found = lmp->match_style("atom", "i_don't_exist");
-    EXPECT_STREQ(found, NULL);
+    EXPECT_STREQ(found, nullptr);
 }
 
 // test fixture for OpenMP with 2 threads

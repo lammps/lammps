@@ -31,10 +31,6 @@ MLIAPModelLinear::MLIAPModelLinear(LAMMPS* lmp, char* coefffilename) :
   if (nparams > 0) ndescriptors = nparams - 1;
 }
 
-/* ---------------------------------------------------------------------- */
-
-MLIAPModelLinear::~MLIAPModelLinear() {}
-
 /* ----------------------------------------------------------------------
    get number of parameters
    ---------------------------------------------------------------------- */

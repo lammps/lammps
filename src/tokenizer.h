@@ -97,7 +97,7 @@ class ValueTokenizer {
  public:
   ValueTokenizer(const std::string &str,
                  const std::string &separators = TOKENIZER_DEFAULT_SEPARATORS);
-  ValueTokenizer(const ValueTokenizer &);
+  ValueTokenizer(const ValueTokenizer &) = default;
   ValueTokenizer(ValueTokenizer &&);
   ValueTokenizer &operator=(const ValueTokenizer &);
   ValueTokenizer &operator=(ValueTokenizer &&);

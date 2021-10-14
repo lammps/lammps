@@ -198,9 +198,6 @@ std::vector<std::string> Tokenizer::as_vector() {
 ValueTokenizer::ValueTokenizer(const std::string &str, const std::string &separators) : tokens(str, separators) {
 }
 
-ValueTokenizer::ValueTokenizer(const ValueTokenizer &rhs) : tokens(rhs.tokens) {
-}
-
 ValueTokenizer::ValueTokenizer(ValueTokenizer &&rhs) : tokens(std::move(rhs.tokens)) {
 }
 

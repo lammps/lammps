@@ -26,11 +26,9 @@
 
 
 
-MixedJoint::MixedJoint(){
-}
+MixedJoint::MixedJoint() = default;
 
-MixedJoint::~MixedJoint(){
-}
+MixedJoint::~MixedJoint() = default;
 
 JointType MixedJoint::GetType(){
   return MIXEDJOINT;

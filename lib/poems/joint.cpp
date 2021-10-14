@@ -33,8 +33,7 @@ Joint::Joint(){
   pk_C_k.Identity();
 }
 
-Joint::~Joint(){
-}
+Joint::~Joint() = default;
 
 void Joint::SetBodies(Body* b1, Body* b2){
   body1 = b1;

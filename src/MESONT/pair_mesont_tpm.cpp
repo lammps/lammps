@@ -38,7 +38,7 @@ using namespace LAMMPS_NS;
 class MESONTList {
 public:
   MESONTList(const Atom* atom, const NeighList* nblist);
-  ~MESONTList() {};
+  ~MESONTList() = default;;
   //list of segments
   const std::vector<std::array<int,2>>& get_segments() const;
   //list of triplets

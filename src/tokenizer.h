@@ -35,7 +35,7 @@ class Tokenizer {
   size_t ntokens;
 
  public:
-  Tokenizer(const std::string &str, const std::string &separators = TOKENIZER_DEFAULT_SEPARATORS);
+  Tokenizer(std::string str, std::string separators = TOKENIZER_DEFAULT_SEPARATORS);
   Tokenizer(Tokenizer &&);
   Tokenizer(const Tokenizer &);
   Tokenizer &operator=(const Tokenizer &);

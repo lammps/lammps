@@ -22,13 +22,11 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
-#include "group.h"
 #include "kspace.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
-#include "respa.h"
 #include "update.h"
 
 #include <cmath>
@@ -51,11 +49,7 @@ FixQEqPoint::FixQEqPoint(LAMMPS *lmp, int narg, char **arg) :
 
 void FixQEqPoint::init()
 {
-  if (!atom->q_flag)
-    error->all(FLERR,"Fix qeq/point requires atom attribute q");
-
-  ngroup = group->count(igroup);
-  if (ngroup == 0) error->all(FLERR,"Fix qeq/point group has no atoms");
+  FixQEq::init();
 
   int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->pair = 0;
@@ -65,10 +59,6 @@ void FixQEqPoint::init()
 
   int ntypes = atom->ntypes;
   memory->create(shld,ntypes+1,ntypes+1,"qeq:shielding");
-
-  if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
-
 }
 
 /* ---------------------------------------------------------------------- */

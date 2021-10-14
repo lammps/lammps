@@ -61,9 +61,11 @@ class KokkosLMP : protected Pointers {
   int neigh_count(int);
 
   template<class DeviceType>
-  int need_dup()
+  int need_dup(int qeq_flag = 0)
   {
     int value = 0;
+    int neighflag = this->neighflag;
+    if (qeq_flag) neighflag = this->neighflag_qeq;
 
     if (neighflag == HALFTHREAD)
       value = std::is_same<typename NeedDup<HALFTHREAD,DeviceType>::value,Kokkos::Experimental::ScatterDuplicated>::value;

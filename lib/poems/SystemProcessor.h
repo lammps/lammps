@@ -49,9 +49,9 @@ private:
         POEMSChain * AddNewChain(POEMSNode * currentNode);
         bool setLinkVisited(POEMSNode * firstNode, POEMSNode * secondNode);
 public:
-        SystemProcessor(void);
+        SystemProcessor();
 
-        ~SystemProcessor(void)  {
+        ~SystemProcessor()  {
                 headsOfSystems.DeleteValues();
                 for(int i = 0; i < ringsInSystem.GetNumElements(); i++)
                 {
@@ -66,7 +66,7 @@ public:
         int getNumberOfHeadChains();
 };
 
-SystemProcessor::SystemProcessor(void){
+SystemProcessor::SystemProcessor(){
   // register callback for deleting auxiliary data from tree nodes.
   nodes.SetDeleteAuxData(&POEMSNodeDelete_cb);
 }
@@ -271,14 +271,14 @@ bool SystemProcessor::setLinkVisited(POEMSNode * firstNode, POEMSNode * secondNo
         return true;                                                                            //return true to indicate that this is the first time the link has been visited
 }
 
-List<POEMSChain> * SystemProcessor::getSystemData(void) //Gets the list of POEMSChains that comprise the system.  Might eventually only
+List<POEMSChain> * SystemProcessor::getSystemData() //Gets the list of POEMSChains that comprise the system.  Might eventually only
                                                                                                                 //return chains linked to the reference plane, but currently returns every chain
                                                                                                                 //in the system.
 {
         return &headsOfSystems;
 }
 
-int SystemProcessor::getNumberOfHeadChains(void) //This function isnt implemented yet, and might be taken out entirely; this was a holdover
+int SystemProcessor::getNumberOfHeadChains() //This function isnt implemented yet, and might be taken out entirely; this was a holdover
                                                                                                 //from when I intended to return an array of chain pointers, rather than a list of chains
                                                                                                 //It will probably be deleted once I finish figuring out exactly what needs to be returned
 {

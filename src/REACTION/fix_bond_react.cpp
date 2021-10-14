@@ -49,6 +49,7 @@ Contributing Author: Jacob Gissinger (jacob.r.gissinger@gmail.com)
 #include <cstring>
 
 #include <algorithm>
+#include <random>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -1380,6 +1381,10 @@ void FixBondReact::superimpose_algorithm()
 
   if (!rxnflag) return;
 
+  // C++11 and later compatible version of Park pRNG
+  std::random_device rnd;
+  std::minstd_rand park_rng(rnd());
+
   // check if we overstepped our reaction limit
   for (int i = 0; i < nreacts; i++) {
     if (reaction_count_total[i] > max_rxn[i]) {
@@ -1400,7 +1405,7 @@ void FixBondReact::superimpose_algorithm()
         for (int j = 0; j < nprocs; j++)
           for (int k = 0; k < local_rxncounts[j]; k++)
             rxn_by_proc[itemp++] = j;
-        std::random_shuffle(&rxn_by_proc[0],&rxn_by_proc[delta_rxn]);
+        std::shuffle(&rxn_by_proc[0],&rxn_by_proc[delta_rxn], park_rng);
         for (int j = 0; j < nprocs; j++)
           all_localskips[j] = 0;
         nghostlyskips[i] = 0;

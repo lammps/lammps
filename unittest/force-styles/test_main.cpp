@@ -47,7 +47,7 @@ void write_yaml_header(YamlWriter *writer, TestConfig *cfg, const char *version)
     writer->emit("lammps_version", version);
 
     // date_generated
-    std::time_t now   = time(NULL);
+    std::time_t now   = time(nullptr);
     std::string block = trim(ctime(&now));
     writer->emit("date_generated", block);
 

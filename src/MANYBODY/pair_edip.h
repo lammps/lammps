@@ -90,11 +90,11 @@ class PairEDIP : public Pair {
   Param *params;    // parameter set for an I-J-K interaction
 
   void allocate();
-  void allocatePreLoops(void);
-  void deallocatePreLoops(void);
-  void allocateGrids(void);
-  void deallocateGrids(void);
-  void initGrids(void);
+  void allocatePreLoops();
+  void deallocatePreLoops();
+  void allocateGrids();
+  void deallocateGrids();
+  void initGrids();
 
   void read_file(char *);
   void setup_params();

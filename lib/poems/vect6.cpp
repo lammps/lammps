@@ -23,8 +23,6 @@ using namespace std;
 Vect6::Vect6(){
   numrows = 6; numcols = 1;
 }
-Vect6::~Vect6(){
-}
 
 Vect6::Vect6(const Vect6& A){  // copy constructor
   numrows = 6; numcols = 1;

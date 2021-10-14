@@ -21,8 +21,7 @@
 Point::Point(){
   position.Zeros();
 }
-Point::~Point(){
-}
+Point::~Point() = default;
 
 bool Point::ReadIn(std::istream& in){
   return ReadInPointData(in);

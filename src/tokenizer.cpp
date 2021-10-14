@@ -49,8 +49,8 @@ TokenizerException::TokenizerException(const std::string &msg, const std::string
  * \param  str          string to be processed
  * \param  _separators  string with separator characters (default: " \t\r\n\f") */
 
-Tokenizer::Tokenizer(const std::string &str, const std::string &_separators) :
-    text(str), separators(_separators), start(0), ntokens(std::string::npos)
+Tokenizer::Tokenizer(std::string str, std::string _separators) :
+    text(std::move(str)), separators(std::move(_separators)), start(0), ntokens(std::string::npos)
 {
     // replace known UTF-8 characters with ASCII equivalents
     if (utils::has_utf8(text)) text = utils::utf8_subst(text);
@@ -196,9 +196,6 @@ std::vector<std::string> Tokenizer::as_vector() {
  * \see Tokenizer InvalidIntegerException InvalidFloatException */
 
 ValueTokenizer::ValueTokenizer(const std::string &str, const std::string &separators) : tokens(str, separators) {
-}
-
-ValueTokenizer::ValueTokenizer(const ValueTokenizer &rhs) : tokens(rhs.tokens) {
 }
 
 ValueTokenizer::ValueTokenizer(ValueTokenizer &&rhs) : tokens(std::move(rhs.tokens)) {

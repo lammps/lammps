@@ -143,7 +143,7 @@ void utils::fmtargs_logmesg(LAMMPS *lmp, fmt::string_view format, fmt::format_ar
 
 std::string utils::getsyserror()
 {
-  return std::string(strerror(errno));
+  return {strerror(errno)};
 }
 
 // read line into buffer. if line is too long keep reading until EOL or EOF
@@ -738,7 +738,7 @@ std::string utils::trim_comment(const std::string &line)
 {
   auto end = line.find_first_of('#');
   if (end != std::string::npos) { return line.substr(0, end); }
-  return std::string(line);
+  return {line};
 }
 
 /* ----------------------------------------------------------------------

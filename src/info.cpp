@@ -1011,7 +1011,7 @@ std::vector<std::string> Info::get_available_styles(const std::string &category)
   } else if (category == "command") {
     return get_style_names(input->command_map);
   }
-  return std::vector<std::string>();
+  return {};
 }
 
 template<typename ValueType>

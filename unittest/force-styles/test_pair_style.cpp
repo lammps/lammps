@@ -1252,7 +1252,7 @@ TEST(PairStyle, single)
     int argc    = sizeof(args) / sizeof(char *);
 
     // need to add this dependency
-    test_config.prerequisites.push_back(std::make_pair("atom", "full"));
+    test_config.prerequisites.emplace_back("atom", "full");
 
     // create a LAMMPS instance with standard settings to detect the number of atom types
     if (!verbose) ::testing::internal::CaptureStdout();

@@ -822,7 +822,7 @@ void FixQMMM::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 /* local memory usage. approximately. */
-double FixQMMM::memory_usage(void)
+double FixQMMM::memory_usage()
 {
   double bytes;
 

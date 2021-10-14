@@ -34,7 +34,7 @@ class TextFileReader {
   bool ignore_comments;    //!< Controls whether comments are ignored
 
   TextFileReader(const std::string &filename, const std::string &filetype);
-  TextFileReader(FILE *fp, const std::string &filetype);
+  TextFileReader(FILE *fp, std::string filetype);
 
   ~TextFileReader();
 

@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class AtomVecOxdna : public AtomVec {
  public:
   AtomVecOxdna(class LAMMPS *);
-  ~AtomVecOxdna();
+  ~AtomVecOxdna() = default;
 
   void grow_pointers();
   void data_atom_post(int);

@@ -2035,7 +2035,7 @@ std::string Molecule::parse_keyword(int flag, char *line)
 
     MPI_Bcast(&eof,1,MPI_INT,0,world);
     if (eof) {
-      return std::string("");
+      return {""};
     }
 
     // bcast keyword line to all procs

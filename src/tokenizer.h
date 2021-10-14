@@ -35,7 +35,7 @@ class Tokenizer {
   size_t ntokens;
 
  public:
-  Tokenizer(const std::string &str, const std::string &separators = TOKENIZER_DEFAULT_SEPARATORS);
+  Tokenizer(std::string str, std::string separators = TOKENIZER_DEFAULT_SEPARATORS);
   Tokenizer(Tokenizer &&);
   Tokenizer(const Tokenizer &);
   Tokenizer &operator=(const Tokenizer &);
@@ -97,7 +97,7 @@ class ValueTokenizer {
  public:
   ValueTokenizer(const std::string &str,
                  const std::string &separators = TOKENIZER_DEFAULT_SEPARATORS);
-  ValueTokenizer(const ValueTokenizer &);
+  ValueTokenizer(const ValueTokenizer &) = default;
   ValueTokenizer(ValueTokenizer &&);
   ValueTokenizer &operator=(const ValueTokenizer &);
   ValueTokenizer &operator=(ValueTokenizer &&);

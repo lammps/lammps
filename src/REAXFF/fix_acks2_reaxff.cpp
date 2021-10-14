@@ -866,15 +866,14 @@ void FixACKS2ReaxFF::more_reverse_comm(double *vec)
 double FixACKS2ReaxFF::memory_usage()
 {
   double bytes;
-
-  int size = 2*nmax + 2;
+  const double size = 2.0*nmax + 2.0;
 
   bytes = size*nprev * sizeof(double); // s_hist
-  bytes += nmax*4 * sizeof(double); // storage
-  bytes += size*11 * sizeof(double); // storage
-  bytes += n_cap*4 * sizeof(int); // matrix...
-  bytes += m_cap*2 * sizeof(int);
-  bytes += m_cap*2 * sizeof(double);
+  bytes += nmax*4.0 * sizeof(double); // storage
+  bytes += size*11.0 * sizeof(double); // storage
+  bytes += n_cap*4.0 * sizeof(int); // matrix...
+  bytes += m_cap*2.0 * sizeof(int);
+  bytes += m_cap*2.0 * sizeof(double);
 
   return bytes;
 }

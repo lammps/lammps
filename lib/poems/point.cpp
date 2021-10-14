@@ -39,6 +39,6 @@ Point* NewPoint(int type){
     case FIXEDPOINT :  // A Fixed Point
       return new FixedPoint();
     default  :  // error
-      return 0;
+      return nullptr;
   }
 }

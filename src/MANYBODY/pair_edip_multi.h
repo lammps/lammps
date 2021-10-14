@@ -57,8 +57,8 @@ class PairEDIPMulti : public Pair {
   Param *params;    // parameter set for an I-J-K interaction
 
   void allocate();
-  void allocatePreLoops(void);
-  void deallocatePreLoops(void);
+  void allocatePreLoops();
+  void deallocatePreLoops();
 
   void read_file(char *);
   void setup();

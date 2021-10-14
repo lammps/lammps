@@ -463,7 +463,7 @@ void PairEDIP::compute(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void PairEDIP::allocateGrids(void)
+void PairEDIP::allocateGrids()
 {
   int numGridPointsOneCutoffFunction;
   int numGridPointsNotOneCutoffFunction;

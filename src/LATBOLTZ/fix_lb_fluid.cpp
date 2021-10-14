@@ -570,7 +570,7 @@ int FixLbFluid::setmask()
   return mask;
 }
 
-void FixLbFluid::init(void)
+void FixLbFluid::init()
 {
   int i,j;
 
@@ -787,7 +787,7 @@ int FixLbFluid::unpack_exchange(int nlocal, double *buf)
 //==========================================================================
 //   calculate the force from the local atoms acting on the fluid.
 //==========================================================================
-void FixLbFluid::calc_fluidforce(void)
+void FixLbFluid::calc_fluidforce()
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -1255,7 +1255,7 @@ require more frequent neighborlist rebuilds");
 // read in a fluid restart file.  This is only used to restart the
 // fluid portion of a LAMMPS simulation.
 //==========================================================================
-void FixLbFluid::read_restartfile(void)
+void FixLbFluid::read_restartfile()
 {
   MPI_Status status;
   MPI_Datatype realtype;
@@ -1295,7 +1295,7 @@ void FixLbFluid::read_restartfile(void)
 //==========================================================================
 // write a fluid restart file.
 //==========================================================================
-void FixLbFluid::write_restartfile(void)
+void FixLbFluid::write_restartfile()
 {
 
   MPI_File fh;
@@ -1343,7 +1343,7 @@ void FixLbFluid::write_restartfile(void)
 // This assumes that all the simulation parameters have been given in
 // terms of distance, time and mass units.
 //==========================================================================
-void FixLbFluid::rescale(void)
+void FixLbFluid::rescale()
 {
   vwtp = vwtp*dt_lb/dx_lb;
   vwbt = vwbt*dt_lb/dx_lb;
@@ -1419,7 +1419,7 @@ satisfy the Courant condition.\n");
 // Set the lattice-Boltzmann velocity vectors and weights for the D3Q15
 // model.  Initialize the fluid velocity and density.
 //==========================================================================
-void FixLbFluid::initializeLB15(void)
+void FixLbFluid::initializeLB15()
 {
   int i,j,k,m;
 
@@ -1586,7 +1586,7 @@ void FixLbFluid::initializeLB15(void)
 // Set the lattice-Boltzmann velocity vectors and weights for the D3Q19
 // model.  Initialize the fluid velocity and density.
 //==========================================================================
-void FixLbFluid::initializeLB19(void)
+void FixLbFluid::initializeLB19()
 {
   int i,j,k,m;
 
@@ -1823,7 +1823,7 @@ void FixLbFluid::initializeLB19(void)
 // Initialize the equilibrium distribution functions
 // (this just uses the initial fluid parameters, and assumes no forces).
 //==========================================================================
-void FixLbFluid::initialize_feq(void)
+void FixLbFluid::initialize_feq()
 {
   int i,j,k,p;
   MPI_Request requests[8];
@@ -2311,7 +2311,7 @@ void FixLbFluid::equilibriumdist19(int xstart, int xend, int ystart, int yend, i
 // Calculate the fluid density and velocity over the entire simulation
 // domain.
 //==========================================================================
-void FixLbFluid::parametercalc_full(void)
+void FixLbFluid::parametercalc_full()
 {
   MPI_Request requests[4];
   MPI_Request requests2[12];
@@ -2529,7 +2529,7 @@ void FixLbFluid::update_periodic(int xstart, int xend, int ystart, int yend, int
 //==========================================================================
 //   Print the fluid properties to the screen.
 //==========================================================================
-void FixLbFluid::streamout(void)
+void FixLbFluid::streamout()
 {
   int i,j,k;
   int istart,jstart,kstart;
@@ -2651,7 +2651,7 @@ void FixLbFluid::streamout(void)
 // Update the distribution functions over the entire simulation domain for
 // the D3Q15 model.
 //==========================================================================
-void FixLbFluid::update_full15(void)
+void FixLbFluid::update_full15()
 {
 
    MPI_Request req_send15,req_recv15;
@@ -3008,7 +3008,7 @@ void FixLbFluid::update_full15(void)
 // Update the distribution functions over the entire simulation domain for
 // the D3Q19 model.
 //==========================================================================
-void FixLbFluid::update_full19(void)
+void FixLbFluid::update_full19()
 {
 
   MPI_Request req_send15,req_recv15;

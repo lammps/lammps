@@ -66,28 +66,28 @@ static const char cite_fix_acks2_reax[] =
 FixACKS2ReaxFF::FixACKS2ReaxFF(LAMMPS *lmp, int narg, char **arg) :
   FixQEqReaxFF(lmp, narg, arg)
 {
-  bcut = NULL;
+  bcut = nullptr;
 
-  X_diag = NULL;
-  Xdia_inv = NULL;
+  X_diag = nullptr;
+  Xdia_inv = nullptr;
 
   // BiCGStab
-  g = NULL;
-  q_hat = NULL;
-  r_hat = NULL;
-  y = NULL;
-  z = NULL;
+  g = nullptr;
+  q_hat = nullptr;
+  r_hat = nullptr;
+  y = nullptr;
+  z = nullptr;
 
   // X matrix
-  X.firstnbr = NULL;
-  X.numnbrs = NULL;
-  X.jlist = NULL;
-  X.val = NULL;
+  X.firstnbr = nullptr;
+  X.numnbrs = nullptr;
+  X.jlist = nullptr;
+  X.val = nullptr;
 
   // Update comm sizes for this fix
   comm_forward = comm_reverse = 2;
 
-  s_hist_X = s_hist_last = NULL;
+  s_hist_X = s_hist_last = nullptr;
 
   last_rows_rank = 0;
   last_rows_flag = (comm->me == last_rows_rank);
@@ -149,8 +149,8 @@ void FixACKS2ReaxFF::pertype_parameters(char *arg)
     bcut_acks2 = (double *) pair->extract("bcut_acks2",tmp);
     double* bond_softness_ptr = (double *) pair->extract("bond_softness",tmp);
 
-    if (chi == NULL || eta == NULL || gamma == NULL ||
-        bcut_acks2 == NULL || bond_softness_ptr == NULL)
+    if (chi == nullptr || eta == nullptr || gamma == nullptr ||
+        bcut_acks2 == nullptr || bond_softness_ptr == nullptr)
       error->all(FLERR,
                  "Fix acks2/reaxff could not extract params from pair reaxff");
     bond_softness = *bond_softness_ptr;
@@ -303,7 +303,7 @@ void FixACKS2ReaxFF::init_bondcut()
   int ntypes;
 
   ntypes = atom->ntypes;
-  if (bcut == NULL)
+  if (bcut == nullptr)
     memory->create(bcut,ntypes+1,ntypes+1,"acks2:bondcut");
 
   for (i = 1; i <= ntypes; ++i)
@@ -856,7 +856,7 @@ void FixACKS2ReaxFF::more_reverse_comm(double *vec)
   if (last_rows_flag)
     MPI_Reduce(MPI_IN_PLACE,&vec[2*NN],2,MPI_DOUBLE,MPI_SUM,last_rows_rank,world);
   else
-    MPI_Reduce(&vec[2*NN],NULL,2,MPI_DOUBLE,MPI_SUM,last_rows_rank,world);
+    MPI_Reduce(&vec[2*NN],nullptr,2,MPI_DOUBLE,MPI_SUM,last_rows_rank,world);
 }
 
 /* ----------------------------------------------------------------------

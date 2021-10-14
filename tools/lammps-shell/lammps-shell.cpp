@@ -21,7 +21,7 @@
 #endif
 #include <windows.h>
 #else
-#include <signal.h>
+#include <csignal>
 #endif
 
 #if defined(_OPENMP)
@@ -153,14 +153,14 @@ static int save_history(std::string range, std::string file)
         std::size_t found = range.find_first_of("-");
 
         if (found == std::string::npos) { // only a single number
-            int num = strtol(range.c_str(), NULL, 10);
+            int num = strtol(range.c_str(), nullptr, 10);
             if ((num >= from) && (num <= to)) {
                 from = to = num;
             } else
                 return 1;
         } else {             // range of numbers
             if (found > 0) { // get number before '-'
-                int num = strtol(range.substr(0, found).c_str(), NULL, 10);
+                int num = strtol(range.substr(0, found).c_str(), nullptr, 10);
                 if ((num >= from) && (num <= to)) {
                     from = num;
                 } else
@@ -168,7 +168,7 @@ static int save_history(std::string range, std::string file)
             }
 
             if (range.size() > found + 1) { // get number after '-'
-                int num = strtol(range.substr(found + 1).c_str(), NULL, 10);
+                int num = strtol(range.substr(found + 1).c_str(), nullptr, 10);
                 if ((num >= from) && (num <= to)) {
                     to = num;
                 } else
@@ -340,13 +340,13 @@ static char *variable_expand_generator(const char *text, int state)
 
 static char *plugin_generator(const char *text, int state)
 {
-    const char *subcmd[] = {"load", "unload", "list", "clear", NULL};
+    const char *subcmd[] = {"load", "unload", "list", "clear", nullptr};
     const char *sub;
     static std::size_t idx=0, len;
     if (!state) idx = 0;
     len = strlen(text);
 
-    while ((sub = subcmd[idx]) != NULL) {
+    while ((sub = subcmd[idx]) != nullptr) {
         ++idx;
         if (strncmp(text,sub,len) == 0)
             return dupstring(sub);
@@ -356,12 +356,12 @@ static char *plugin_generator(const char *text, int state)
 
 static char *plugin_style_generator(const char *text, int state)
 {
-    const char *styles[] = {"pair", "fix", "command", NULL};
+    const char *styles[] = {"pair", "fix", "command", nullptr};
     const char *s;
     static std::size_t idx=0, len;
     if (!state) idx = 0;
     len = strlen(text);
-    while ((s = styles[idx]) != NULL) {
+    while ((s = styles[idx]) != nullptr) {
         ++idx;
         if (strncmp(text,s,len) == 0)
             return dupstring(s);

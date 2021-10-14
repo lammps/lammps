@@ -24,7 +24,7 @@
 class VirtualRowMatrix : public VirtualMatrix  {
 public:
   VirtualRowMatrix();
-  ~VirtualRowMatrix();
+  ~VirtualRowMatrix() = default;
   double& operator_2int (int i, int j); // array access
   double Get_2int(int i, int j) const;
   void Set_2int(int i, int j, double value);

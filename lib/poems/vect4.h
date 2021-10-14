@@ -28,7 +28,7 @@ class Vect4 : public VirtualColMatrix  {
   double elements[4];
 public:
   Vect4();
-  ~Vect4();
+  ~Vect4() = default;
   Vect4(const Vect4& A);  // copy constructor
   Vect4(const VirtualMatrix& A);  // copy constructor
 

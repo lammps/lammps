@@ -215,15 +215,6 @@ FixSMDMoveTriSurf::FixSMDMoveTriSurf(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-FixSMDMoveTriSurf::~FixSMDMoveTriSurf()
-{
-  // unregister callbacks to this fix from Atom class
-  //atom->delete_callback(id,Atom::GROW);
-  //atom->delete_callback(id,Atom::RESTART);
-}
-
-/* ---------------------------------------------------------------------- */
-
 int FixSMDMoveTriSurf::setmask() {
         int mask = 0;
         mask |= INITIAL_INTEGRATE;

@@ -617,15 +617,12 @@ foreach(PKG_WITH_INCL CORESHELL QEQ OPENMP DPD-SMOOTH KOKKOS OPT INTEL GPU)
 endforeach()
 
 if(PKG_PLUGIN)
-  if(BUILD_SHARED_LIBS)
-    target_compile_definitions(lammps PRIVATE -DLMP_PLUGIN)
-  else()
-    message(WARNING "Plugin loading will not work unless BUILD_SHARED_LIBS is enabled")
-  endif()
-  # link with -ldl or equivalent for plugin loading; except on Windows
-  if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-    target_link_libraries(lammps PRIVATE ${CMAKE_DL_LIBS})
-  endif()
+  target_compile_definitions(lammps PRIVATE -DLMP_PLUGIN)
+endif()
+
+# link with -ldl or equivalent for plugin loading; except on Windows
+if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+   target_link_libraries(lammps PRIVATE ${CMAKE_DL_LIBS})
 endif()
 
 ######################################################################

@@ -312,6 +312,10 @@ void ReadData::command(int narg, char **arg)
     error->all(FLERR,fmt::format("Cannot open file {}: {}",
                                  arg[0], utils::getsyserror()));
 
+  // reset so we can warn about reset image flags exactly once per data file
+
+  atom->reset_image_flag[0] = atom->reset_image_flag[1] = atom->reset_image_flag[2] = false;
+
   // first time system initialization
 
   if (addflag == NONE) {
@@ -1236,6 +1240,22 @@ void ReadData::atoms()
     if (eof) error->all(FLERR,"Unexpected end of data file");
     atom->data_atoms(nchunk,buffer,id_offset,mol_offset,toffset,shiftflag,shift);
     nread += nchunk;
+  }
+
+  // warn if we have read data with non-zero image flags for non-periodic boundaries.
+  // we may want to turn this into an error at some point, since this essentially
+  // creates invalid position information that works by accident most of the time.
+
+  if (comm->me == 0) {
+    if (atom->reset_image_flag[0])
+      error->warning(FLERR,"Non-zero imageflag(s) in x direction for "
+                           "non-periodic boundary reset to zero");
+    if (atom->reset_image_flag[1])
+      error->warning(FLERR,"Non-zero imageflag(s) in y direction for "
+                           "non-periodic boundary reset to zero");
+    if (atom->reset_image_flag[2])
+      error->warning(FLERR,"Non-zero imageflag(s) in z direction for "
+                           "non-periodic boundary reset to zero");
   }
 
   // check that all atoms were assigned correctly

@@ -270,6 +270,10 @@ class Atom : protected Pointers {
 
   int *sametag;    // sametag[I] = next atom with same ID, -1 if no more
 
+  // true if image flags were reset to 0 during data_atoms()
+
+  bool reset_image_flag[3];
+
   // AtomVec factory types and map
 
   typedef AtomVec *(*AtomVecCreator)(LAMMPS *);

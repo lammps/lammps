@@ -45,7 +45,7 @@ void FixBrownian::init()
 {
   FixBrownianBase::init();
   g1 /= gamma_t;
-  g2 *= sqrt(gamma_t);
+  g2 /= sqrt(gamma_t);
 }
 
 /* ---------------------------------------------------------------------- */

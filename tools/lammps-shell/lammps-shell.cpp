@@ -563,24 +563,24 @@ static void init_commands()
     // store internal commands
     int ncmds = sizeof(cmdlist) / sizeof(const char *);
     for (int i = 0; i < ncmds; ++i)
-        commands.push_back(cmdlist[i]);
+        commands.emplace_back(cmdlist[i]);
 
     // store optional commands from command styles
     ncmds = lammps_style_count(lmp, "command");
     for (int i = 0; i < ncmds; ++i) {
-        if (lammps_style_name(lmp, "command", i, buf, BUFLEN)) commands.push_back(buf);
+        if (lammps_style_name(lmp, "command", i, buf, BUFLEN)) commands.emplace_back(buf);
     }
 
     // store LAMMPS shell specific command names
-    commands.push_back("help");
-    commands.push_back("exit");
-    commands.push_back("pwd");
-    commands.push_back("cd");
-    commands.push_back("mem");
-    commands.push_back("source");
-    commands.push_back("history");
-    commands.push_back("clear_history");
-    commands.push_back("save_history");
+    commands.emplace_back("help");
+    commands.emplace_back("exit");
+    commands.emplace_back("pwd");
+    commands.emplace_back("cd");
+    commands.emplace_back("mem");
+    commands.emplace_back("source");
+    commands.emplace_back("history");
+    commands.emplace_back("clear_history");
+    commands.emplace_back("save_history");
 
     // set name so there can be specific entries in ~/.inputrc
     rl_readline_name               = "lammps-shell";

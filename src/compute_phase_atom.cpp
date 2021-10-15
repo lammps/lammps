@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -152,19 +152,19 @@ void ComputePhaseAtom::compute_peratom()
       vsum[2] = v[i][2];
 
       for (jj = 0; jj < jnum; jj++) {
-	j = jlist[jj];
-	j &= NEIGHMASK;
+        j = jlist[jj];
+        j &= NEIGHMASK;
 
-	delx = xtmp - x[j][0];
-	dely = ytmp - x[j][1];
-	delz = ztmp - x[j][2];
-	rsq = delx*delx + dely*dely + delz*delz;
-	if (rsq < cutsq) {
-	  count++;
+        delx = xtmp - x[j][0];
+        dely = ytmp - x[j][1];
+        delz = ztmp - x[j][2];
+        rsq = delx*delx + dely*dely + delz*delz;
+        if (rsq < cutsq) {
+          count++;
           vsum[0] += v[j][0];
           vsum[1] += v[j][1];
           vsum[2] += v[j][2];
-	}
+        }
       }
 
       vavg[0] = vsum[0]/count;

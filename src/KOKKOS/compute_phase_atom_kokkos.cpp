@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -182,7 +182,7 @@ void ComputePhaseAtomKokkos<DeviceType>::operator()(TagComputePhaseAtom, const i
     for (int jj = 0; jj < jnum; jj++) {
       int j = d_neighbors(i,jj);
       j &= NEIGHMASK;
-      
+
       const F_FLOAT delx = x(j,0) - xtmp;
       const F_FLOAT dely = x(j,1) - ytmp;
       const F_FLOAT delz = x(j,2) - ztmp;

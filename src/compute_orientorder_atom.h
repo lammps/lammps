@@ -36,6 +36,7 @@ class ComputeOrientOrderAtom : public Compute {
   int iqlcomp, qlcomp, qlcompflag, wlflag, wlhatflag;
   int *qlist;
   int nqlist;
+  double *qnormfac,*qnormfac2;
 
  protected:
   int nmax, maxneigh, ncol, nnn;

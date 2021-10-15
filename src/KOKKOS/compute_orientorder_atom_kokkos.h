@@ -71,6 +71,7 @@ class ComputeOrientOrderAtomKokkos : public ComputeOrientOrderAtom {
   void init();
   void compute_peratom();
   t_sna_1i d_qlist;
+  t_sna_1d d_qnormfac,d_qnormfac2;
 
   template<class TagStyle>
   void check_team_size_for(int, int&, int);

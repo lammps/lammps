@@ -62,6 +62,20 @@ ComputeOrientOrderAtomKokkos<DeviceType>::ComputeOrientOrderAtomKokkos(LAMMPS *l
   datamask_modify = EMPTY_MASK;
 
   host_flag = (execution_space == Host);
+
+  d_qnormfac = t_sna_1d("orientorder/atom:qnormfac",nqlist);
+  d_qnormfac2 = t_sna_1d("orientorder/atom:qnormfac2",nqlist);
+
+  auto h_qnormfac = Kokkos::create_mirror_view(d_qnormfac);
+  auto h_qnormfac2 = Kokkos::create_mirror_view(d_qnormfac2);
+
+  for (int il = 0; il < nqlist; il++) {
+    h_qnormfac[il] = qnormfac[il];
+    h_qnormfac2[il] = qnormfac2[il];
+  }
+
+  Kokkos::deep_copy(d_qnormfac,h_qnormfac);
+  Kokkos::deep_copy(d_qnormfac2,h_qnormfac2);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -518,11 +532,10 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::calc_boop2(int ncount, int ii) co
   int jj = 0;
   for (int il = 0; il < nqlist; il++) {
     int l = d_qlist[il];
-    double qnormfac = sqrt(MY_4PI/(2*l+1));
     double qm_sum = d_qnm(ii,il,0).re*d_qnm(ii,il,0).re;
     for (int m = 1; m < l+1; m++)
       qm_sum += 2.0*(d_qnm(ii,il,m).re*d_qnm(ii,il,m).re + d_qnm(ii,il,m).im*d_qnm(ii,il,m).im);
-    d_qnarray(i,jj++) = qnormfac * sqrt(qm_sum);
+    d_qnarray(i,jj++) = d_qnormfac(il) * sqrt(qm_sum);
   }
 
   // calculate W_l
@@ -553,7 +566,7 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::calc_boop2(int ncount, int ii) co
           wlsum += Q1Q2Q3*c;
         }
       }
-      d_qnarray(i,jj++) = wlsum/sqrt(2.0*l+1.0);
+      d_qnarray(i,jj++) = wlsum/d_qnormfac2(il);
       nterms++;
     }
   }
@@ -564,13 +577,11 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::calc_boop2(int ncount, int ii) co
     const int jptr = jj-nterms;
     if (!wlflag) jj = jptr;
     for (int il = 0; il < nqlist; il++) {
-      int l = d_qlist[il];
       if (d_qnarray(i,il) < QEPSILON)
         d_qnarray(i,jj++) = 0.0;
       else {
-        const double qnormfac = sqrt(MY_4PI/(2*l+1));
-        const double qnfac = qnormfac/d_qnarray(i,il);
-        d_qnarray(i,jj++) = d_qnarray(i,jptr+il) * (qnfac*qnfac*qnfac) * sqrt(2.0*l+1.0);
+        const double qnfac = d_qnormfac(il)/d_qnarray(i,il);
+        d_qnarray(i,jj++) = d_qnarray(i,jptr+il) * (qnfac*qnfac*qnfac) * d_qnormfac2(il);
       }
     }
   }
@@ -586,8 +597,7 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::calc_boop2(int ncount, int ii) co
         d_qnarray(i,jj++) = 0.0;
       }
     else {
-      const double qnormfac = sqrt(MY_4PI/(2*l+1));
-      const double qnfac = qnormfac/d_qnarray(i,il);
+      const double qnfac = d_qnormfac(il)/d_qnarray(i,il);
       for (int m = -l; m < 0; m++) {
         // Computed only qnm for m>=0.
         // qnm[-m] = (-1)^m * conjg(qnm[m])

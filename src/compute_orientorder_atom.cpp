@@ -57,7 +57,8 @@ using namespace MathSpecial;
 ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
   qlist(nullptr), distsq(nullptr), nearest(nullptr), rlist(nullptr),
-  qnarray(nullptr), qnm_r(nullptr), qnm_i(nullptr), w3jlist(nullptr)
+  qnarray(nullptr), qnm_r(nullptr), qnm_i(nullptr), w3jlist(nullptr),
+  qnormfac(nullptr),qnormfac2(nullptr)
 {
   if (narg < 3 ) error->all(FLERR,"Illegal compute orientorder/atom command");
 
@@ -154,9 +155,17 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
 
   nmax = 0;
   maxneigh = 0;
+
+  memory->create(qnormfac,nqlist,"orientorder/atom:qnormfac");
+  memory->create(qnormfac2,nqlist,"orientorder/atom:qnormfac2");
+  for (int il = 0; il < nqlist; il++) {
+    int l = qlist[il];
+    qnormfac[il] = sqrt(MY_4PI/(2*l+1));
+    qnormfac2[il] = sqrt(2*l+1);
+  }
 }
 
-/* ---------------------------------------------------------------------- */
+/*  --------------------------------------------------------------------- */
 
 ComputeOrientOrderAtom::~ComputeOrientOrderAtom()
 {
@@ -167,6 +176,8 @@ ComputeOrientOrderAtom::~ComputeOrientOrderAtom()
   memory->destroy(rlist);
   memory->destroy(nearest);
   memory->destroy(qlist);
+  memory->destroy(qnormfac);
+  memory->destroy(qnormfac2);
   memory->destroy(qnm_r);
   memory->destroy(qnm_i);
   memory->destroy(w3jlist);
@@ -497,11 +508,10 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
   int jj = 0;
   for (int il = 0; il < nqlist; il++) {
     int l = qlist[il];
-    double qnormfac = sqrt(MY_4PI/(2*l+1));
     double qm_sum = qnm_r[il][0]*qnm_r[il][0];
     for (int m = 1; m < l+1; m++)
       qm_sum += 2.0*(qnm_r[il][m]*qnm_r[il][m] + qnm_i[il][m]*qnm_i[il][m]);
-    qn[jj++] = qnormfac * sqrt(qm_sum);
+    qn[jj++] = qnormfac[il] * sqrt(qm_sum);
   }
 
   // calculate W_l
@@ -531,7 +541,7 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
           wlsum += Q1Q2Q3*c;
         }
       }
-      qn[jj++] = wlsum/sqrt(2*l+1);
+      qn[jj++] = wlsum/qnormfac2[il];
       nterms++;
     }
   }
@@ -542,13 +552,11 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
     const int jptr = jj-nterms;
     if (!wlflag) jj = jptr;
     for (int il = 0; il < nqlist; il++) {
-      int l = qlist[il];
       if (qn[il] < QEPSILON)
         qn[jj++] = 0.0;
       else {
-        double qnormfac = sqrt(MY_4PI/(2*l+1));
-        double qnfac = qnormfac/qn[il];
-        qn[jj++] = qn[jptr+il] * (qnfac*qnfac*qnfac) * sqrt(2*l+1);
+        double qnfac = qnormfac[il]/qn[il];
+        qn[jj++] = qn[jptr+il] * (qnfac*qnfac*qnfac) * qnormfac2[il];
       }
     }
   }
@@ -564,8 +572,7 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
         qn[jj++] = 0.0;
       }
     else {
-      double qnormfac = sqrt(MY_4PI/(2*l+1));
-      double qnfac = qnormfac/qn[il];
+      double qnfac = qnormfac[il]/qn[il];
       for (int m = -l; m < 0; m++) {
         // Computed only qnm for m>=0.
         // qnm[-m] = (-1)^m * conjg(qnm[m])

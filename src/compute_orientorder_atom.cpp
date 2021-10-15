@@ -165,7 +165,7 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
   }
 }
 
-/*  --------------------------------------------------------------------- */
+/* --------------------------------------------------------------------- */
 
 ComputeOrientOrderAtom::~ComputeOrientOrderAtom()
 {

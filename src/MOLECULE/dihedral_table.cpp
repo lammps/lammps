@@ -86,7 +86,7 @@ static int solve_cyc_tridiag( const double diag[], size_t d_stride,
   double * c = (double *) malloc (N * sizeof (double));
   double * z = (double *) malloc (N * sizeof (double));
 
-  if (delta == 0 || gamma == 0 || alpha == 0 || c == 0 || z == 0) {
+  if (delta == nullptr || gamma == nullptr || alpha == nullptr || c == nullptr || z == nullptr) {
     if (warn)
       fprintf(stderr,"Internal Cyclic Spline Error: failed to allocate working space\n");
 

@@ -32,10 +32,6 @@ DumpXYZZstd::DumpXYZZstd(LAMMPS *lmp, int narg, char **arg) : DumpXYZ(lmp, narg,
   if (!compressed) error->all(FLERR, "Dump xyz/zstd only writes compressed files");
 }
 
-/* ---------------------------------------------------------------------- */
-
-DumpXYZZstd::~DumpXYZZstd() {}
-
 /* ----------------------------------------------------------------------
    generic opening of a dump file
    ASCII or binary or compressed

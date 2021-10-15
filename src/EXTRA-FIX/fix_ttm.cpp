@@ -77,7 +77,7 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
   nzgrid = utils::inumeric(FLERR,arg[12],false,lmp);
 
   tinit = 0.0;
-  infile = outfile = NULL;
+  infile = outfile = nullptr;
 
   int iarg = 13;
   while (iarg < narg) {

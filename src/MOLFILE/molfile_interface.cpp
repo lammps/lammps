@@ -35,9 +35,9 @@
 #define DEBUG 0
 
 extern "C" {
-  typedef int (*initfunc)(void);
+  typedef int (*initfunc)();
   typedef int (*regfunc)(void *, vmdplugin_register_cb);
-  typedef int (*finifunc)(void);
+  typedef int (*finifunc)();
 
   typedef struct {
     void *p;

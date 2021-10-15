@@ -28,7 +28,7 @@ namespace LAMMPS_NS {
 class DumpLocalGZ : public DumpLocal {
  public:
   DumpLocalGZ(class LAMMPS *, int, char **);
-  virtual ~DumpLocalGZ();
+  virtual ~DumpLocalGZ() = default;
 
  protected:
   GzFileWriter writer;

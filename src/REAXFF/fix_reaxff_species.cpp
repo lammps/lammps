@@ -96,15 +96,9 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
     rene_flag = 1;
   }
 
-  if (me == 0 && rene_flag) {
-    error->warning(FLERR,"Resetting reneighboring criteria for fix reaxff/species");
-  }
-
-  tmparg = nullptr;
-  memory->create(tmparg,4,4,"reaxff/species:tmparg");
-  strcpy(tmparg[0],arg[3]);
-  strcpy(tmparg[1],arg[4]);
-  strcpy(tmparg[2],arg[5]);
+  if (me == 0 && rene_flag)
+    error->warning(FLERR,"Resetting reneighboring criteria to 'delay {} every {} check no' "
+                   "for fix reaxff/species",neighbor->delay, neighbor->every);
 
   if (me == 0) {
     if (platform::has_compress_extension(arg[6])) {
@@ -113,8 +107,8 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
       if (!fp) error->one(FLERR,"Cannot open compressed file");
     } else fp = fopen(arg[6],"w");
 
-    if (!fp) error->one(FLERR,fmt::format("Cannot open fix reaxff/species file {}: "
-                                          "{}",arg[6],utils::getsyserror()));
+    if (!fp)
+      error->one(FLERR,"Cannot open fix reaxff/species file {}: {}",arg[6],utils::getsyserror());
   }
 
   x0 = nullptr;
@@ -243,7 +237,6 @@ FixReaxFFSpecies::~FixReaxFFSpecies()
   memory->destroy(NMol);
   memory->destroy(MolType);
   memory->destroy(MolName);
-  memory->destroy(tmparg);
 
   if (filepos)
     delete [] filepos;
@@ -309,7 +302,7 @@ void FixReaxFFSpecies::init()
                         "abo15 abo16 abo17 abo18 abo19 abo20 abo21 abo22 abo23 abo24");
 
     // create a fix to point to fix_ave_atom for averaging stored properties
-    auto fixcmd = fmt::format("SPECBOND all ave/atom {} {} {}",tmparg[0],tmparg[1],tmparg[2]);
+    auto fixcmd = fmt::format("SPECBOND all ave/atom {} {} {}",nevery,nrepeat,nfreq);
     for (int i = 1; i < 32; ++i) fixcmd += " c_SPECATOM[" + std::to_string(i) + "]";
     f_SPECBOND = (FixAveAtom *) modify->add_fix(fixcmd);
     setupflag = 1;

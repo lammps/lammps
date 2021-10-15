@@ -205,6 +205,7 @@ namespace ReaxFF {
           sbp[i].b_o_131    = values.next_double();
           sbp[i].b_o_132    = values.next_double();
           sbp[i].b_o_133    = values.next_double();
+          sbp[i].bcut_acks2  = values.next_double();
 
           // line four
 

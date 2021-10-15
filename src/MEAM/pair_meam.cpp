@@ -255,7 +255,7 @@ void PairMEAM::coeff(int narg, char **arg)
                                  "'maxelt' in meam.h and recompile.", maxelt);
 
   for (int i = 0; i < nlibelements; i++) {
-    libelements.push_back(arg[i+3]);
+    libelements.emplace_back(arg[i+3]);
     mass.push_back(0.0);
   }
 

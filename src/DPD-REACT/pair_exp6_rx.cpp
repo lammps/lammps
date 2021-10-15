@@ -58,7 +58,7 @@ struct PairExp6ParamDataType
           *epsilonOld2, *alphaOld2, *rmOld2, *mixWtSite2old;
 
    // Default constructor -- nullify everything.
-   PairExp6ParamDataType(void)
+   PairExp6ParamDataType()
       : n(0), epsilon1(nullptr), alpha1(nullptr), rm1(nullptr), mixWtSite1(nullptr),
               epsilon2(nullptr), alpha2(nullptr), rm2(nullptr), mixWtSite2(nullptr),
               epsilonOld1(nullptr), alphaOld1(nullptr), rmOld1(nullptr), mixWtSite1old(nullptr),

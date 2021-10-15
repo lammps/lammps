@@ -166,6 +166,7 @@ page are followed by one or more of (g,i,k,o,t) to indicate which
 accelerated styles exist.
 
 * :doc:`accelerate/cos <fix_accelerate_cos>` - apply cosine-shaped acceleration to atoms
+* :doc:`acks2/reaxff <fix_acks2_reaxff>` - apply ACKS2 charge equilibration
 * :doc:`adapt <fix_adapt>` - change a simulation parameter over time
 * :doc:`adapt/fep <fix_adapt_fep>` - enhanced version of fix adapt
 * :doc:`addforce <fix_addforce>` - add a force to each atom
@@ -246,6 +247,7 @@ accelerated styles exist.
 * :doc:`manifoldforce <fix_manifoldforce>` - restrain atoms to a manifold during minimization
 * :doc:`mdi/engine <fix_mdi_engine>` - connect LAMMPS to external programs via the MolSSI Driver Interface (MDI)
 * :doc:`meso/move <fix_meso_move>` - move mesoscopic SPH/SDPD particles in a prescribed fashion
+* :doc:`mol/swap <fix_mol_swap>` - Monte Carlo atom type swapping with a molecule
 * :doc:`momentum <fix_momentum>` - zero the linear and/or angular momentum of a group of atoms
 * :doc:`momentum/chunk <fix_momentum>` - zero the linear and/or angular momentum of a chunk of atoms
 * :doc:`move <fix_move>` - move atoms in a prescribed fashion

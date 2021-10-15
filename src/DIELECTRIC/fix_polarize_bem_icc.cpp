@@ -93,10 +93,6 @@ FixPolarizeBEMICC::FixPolarizeBEMICC(LAMMPS *lmp, int narg, char **arg) : Fix(lm
 
 /* ---------------------------------------------------------------------- */
 
-FixPolarizeBEMICC::~FixPolarizeBEMICC() {}
-
-/* ---------------------------------------------------------------------- */
-
 int FixPolarizeBEMICC::setmask()
 {
   int mask = 0;

@@ -676,7 +676,10 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
       }
 
       for (int index = nlo; index <= nhi; index++) {
-        earg[newarg] = utils::strdup(fmt::format("{}2_{}[{}]{}", word[0], id, index, tail));
+        if (word[1] == '2')
+          earg[newarg] = utils::strdup(fmt::format("{}2_{}[{}]{}", word[0], id, index, tail));
+        else
+          earg[newarg] = utils::strdup(fmt::format("{}_{}[{}]{}", word[0], id, index, tail));
         newarg++;
       }
     } else {

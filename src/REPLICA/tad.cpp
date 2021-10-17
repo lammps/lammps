@@ -840,11 +840,9 @@ void TAD::initialize_event_list() {
 
 void TAD::delete_event_list() {
 
-  for (int i = 0; i < n_event_list; i++) {
-    char str[128];
-    sprintf(str,"tad_event_%d",i);
-    modify->delete_fix(str);
-  }
+  for (int i = 0; i < n_event_list; i++)
+    modify->delete_fix(fmt::format("tad_event_{}",i));
+
   memory->sfree(fix_event_list);
   fix_event_list = nullptr;
   n_event_list = 0;

@@ -65,6 +65,12 @@
 #include "lmpinstalledpkgs.h"
 #include "lmpgitversion.h"
 
+#if defined(LAMMPS_UPDATE)
+#define UPDATE_STRING " - " LAMMPS_UPDATE
+#else
+#define UPDATE_STRING ""
+#endif
+
 static void print_style(FILE *fp, const char *str, int &pos);
 
 struct LAMMPS_NS::package_styles_lists {
@@ -511,7 +517,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     }
 
     if ((universe->me == 0) && !helpflag)
-      utils::logmesg(this,fmt::format("LAMMPS ({})\n",version));
+      utils::logmesg(this,fmt::format("LAMMPS ({}{})\n",version,UPDATE_STRING));
 
   // universe is one or more worlds, as setup by partition switch
   // split universe communicator into separate world communicators
@@ -1147,10 +1153,10 @@ void _noopt LAMMPS::help()
 
   if (has_git_info) {
     fprintf(fp,"\nLarge-scale Atomic/Molecular Massively Parallel Simulator - "
-            LAMMPS_VERSION "\nGit info (%s / %s)\n\n",git_branch, git_descriptor);
+            LAMMPS_VERSION UPDATE_STRING "\nGit info (%s / %s)\n\n",git_branch, git_descriptor);
   } else {
     fprintf(fp,"\nLarge-scale Atomic/Molecular Massively Parallel Simulator - "
-            LAMMPS_VERSION "\n\n");
+            LAMMPS_VERSION UPDATE_STRING "\n\n");
   }
   fprintf(fp,
           "Usage example: %s -var t 300 -echo screen -in in.alloy\n\n"

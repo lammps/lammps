@@ -15,8 +15,10 @@
 #include "plugin.h"
 
 #include "comm.h"
+#include "compute.h"
 #include "domain.h"
 #include "error.h"
+#include "fix.h"
 #include "input.h"
 #include "force.h"
 #include "modify.h"
@@ -365,9 +367,10 @@ namespace LAMMPS_NS
       auto found = compute_map->find(name);
       if (found != compute_map->end()) compute_map->erase(name);
 
-      for (int icompute = lmp->modify->find_compute_by_style(name);
-           icompute >= 0; icompute = lmp->modify->find_compute_by_style(name))
-        lmp->modify->delete_compute(icompute);
+      // must delete all compute instances using this compute style
+
+      for (auto icompute : lmp->modify->get_compute_by_style(name))
+        lmp->modify->delete_compute(icompute->id);
 
     } else if (pstyle == "fix") {
 
@@ -375,9 +378,10 @@ namespace LAMMPS_NS
       auto found = fix_map->find(name);
       if (found != fix_map->end()) fix_map->erase(name);
 
-      for (int ifix = lmp->modify->find_fix_by_style(name);
-           ifix >= 0; ifix = lmp->modify->find_fix_by_style(name))
-        lmp->modify->delete_fix(ifix);
+      // must delete all fix instances using this fix style
+
+      for (auto ifix : lmp->modify->get_fix_by_style(name))
+        lmp->modify->delete_fix(ifix->id);
 
     } else if (pstyle == "region") {
 

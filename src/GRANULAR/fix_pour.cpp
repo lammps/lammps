@@ -343,8 +343,8 @@ void FixPour::init()
   // if rigidflag defined, check for rigid/small fix
   // its molecule template must be same as this one
 
-  fixrigid = modify->get_fix_by_id(idrigid);
   if (rigidflag) {
+    fixrigid = modify->get_fix_by_id(idrigid);
     if (!fixrigid) error->all(FLERR,"Fix pour rigid fix does not exist");
     int tmp;
     if (onemols != (Molecule **) fixrigid->extract("onemol",tmp))
@@ -354,8 +354,8 @@ void FixPour::init()
   // if shakeflag defined, check for SHAKE fix
   // its molecule template must be same as this one
 
-  fixshake = modify->get_fix_by_id(idshake);
   if (shakeflag) {
+    fixshake = modify->get_fix_by_id(idshake);
     if (!fixshake) error->all(FLERR,"Fix pour shake fix does not exist");
     int tmp;
     if (onemols != (Molecule **) fixshake->extract("onemol",tmp))

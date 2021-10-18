@@ -362,10 +362,11 @@ void FixShake::init()
   // set ptrs to rRESPA variables
 
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    ifix_respa = modify->find_fix_by_style("^RESPA");
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
-    loop_respa = ((Respa *) update->integrate)->loop;
-    step_respa = ((Respa *) update->integrate)->step;
+    fix_respa = (FixRespa *) modify->get_fix_by_style("^RESPA").front();
+    Respa *respa_style = (Respa *) update->integrate;
+    nlevels_respa = respa_style->nlevels;
+    loop_respa = respa_style->loop;
+    step_respa = respa_style->step;
   }
 
   // set equilibrium bond distances
@@ -1619,7 +1620,7 @@ void FixShake::unconstrained_update_respa(int ilevel)
   // x + dt0 (v + dtN/m fN + 1/2 dt(N-1)/m f(N-1) + ... + 1/2 dt0/m f0)
   // also set dtfsq = dt0*dtN so that shake,shake3,etc can use it
 
-  double ***f_level = ((FixRespa *) modify->fix[ifix_respa])->f_level;
+  double ***f_level = fix_respa->f_level;
   dtfsq = dtf_inner * step_respa[ilevel];
 
   double invmass,dtfmsq;

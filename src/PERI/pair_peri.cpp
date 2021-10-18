@@ -55,6 +55,8 @@ PairPeri::~PairPeri()
     memory->destroy(s00);
     memory->destroy(alpha);
     memory->destroy(cut);
+    memory->destroy(cutsq);
+    memory->destroy(setflag);
     memory->destroy(kspring);
 
     memory->destroy(s0_new);

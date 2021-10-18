@@ -909,6 +909,10 @@ void LAMMPS::init()
 
 void LAMMPS::destroy()
 {
+  // must wipe out all plugins first, if configured
+#if defined(LMP_PLUGIN)
+  input->one("plugin clear");
+#endif
   delete update;
   update = nullptr;
 

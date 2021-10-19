@@ -389,7 +389,7 @@ void FixQEqReaxFF::init()
 
   efield = nullptr;
   auto fixes = modify->get_fix_by_style("^efield");
-  if (fixes.size() == 0) efield = (FixEfield *) fixes.front();
+  if (fixes.size() == 1) efield = (FixEfield *) fixes.front();
   else if (fixes.size() > 1)
     error->all(FLERR, "There may be only one fix efield instance used with fix {}", style);
 

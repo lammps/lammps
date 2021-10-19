@@ -1742,7 +1742,7 @@ void Domain::add_region(int narg, char **arg)
   if (narg < 2) error->all(FLERR,"Illegal region command");
 
   if (strcmp(arg[1],"delete") == 0) {
-    delete_region(narg,arg);
+    delete_region(arg[2]);
     return;
   }
 
@@ -1811,16 +1811,6 @@ Region *Domain::region_creator(LAMMPS *lmp, int narg, char ** arg)
    delete a region
 ------------------------------------------------------------------------- */
 
-void Domain::delete_region(int narg, char **arg)
-{
-  if (narg != 2) error->all(FLERR,"Illegal region command");
-
-  int iregion = find_region(arg[0]);
-  if (iregion == -1) error->all(FLERR,"Delete region ID does not exist");
-
-  delete_region(iregion);
-}
-
 void Domain::delete_region(int iregion)
 {
   if ((iregion < 0) || (iregion >= nregion)) return;
@@ -1833,12 +1823,20 @@ void Domain::delete_region(int iregion)
   nregion--;
 }
 
+void Domain::delete_region(const std::string &id)
+{
+  int iregion = find_region(id);
+  if (iregion == -1) error->all(FLERR,"Delete region ID does not exist");
+
+  delete_region(iregion);
+}
+
 /* ----------------------------------------------------------------------
    return region index if name matches existing region ID
    return -1 if no such region
 ------------------------------------------------------------------------- */
 
-int Domain::find_region(const std::string &name)
+int Domain::find_region(const std::string &name) const
 {
   for (int iregion = 0; iregion < nregion; iregion++)
     if (name == regions[iregion]->id) return iregion;
@@ -1846,15 +1844,19 @@ int Domain::find_region(const std::string &name)
 }
 
 /* ----------------------------------------------------------------------
-   return region index if name matches existing region style
-   return -1 if no such region
+   look up pointers to regions by region style name
+   return vector with matching pointers
 ------------------------------------------------------------------------- */
 
-int Domain::find_region_by_style(const std::string &name)
+const std::vector<Region *> Domain::get_region_by_style(const std::string &name) const
 {
+  std::vector<Region *> matches;
+  if (name.empty()) return matches;
+
   for (int iregion = 0; iregion < nregion; iregion++)
-    if (name == regions[iregion]->style) return iregion;
-  return -1;
+    if (name == regions[iregion]->style) matches.push_back(regions[iregion]);
+
+  return matches;
 }
 
 /* ----------------------------------------------------------------------

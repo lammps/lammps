@@ -79,6 +79,8 @@ void AngleAmoeba::compute(int eflag, int vflag)
   double **x = atom->x;
   double **f = atom->f;
   int **anglelist = neighbor->anglelist;
+  int **nspecial = atom->nspecial;
+
   int nanglelist = neighbor->nanglelist;
   int nlocal = atom->nlocal;
   int newton_bond = force->newton_bond;
@@ -90,11 +92,11 @@ void AngleAmoeba::compute(int eflag, int vflag)
     type = anglelist[n][3];
 
     // tflag = 0 for "angle", 1 for "anglep" in Tinker PRM file
-    // atom 2 must have 3 bond partners to invoke "anglep" option
+    // atom 2 must have 3 bond partners to invoke anglep() variant
 
     tflag = pflag[type];
 
-    if (tflag && atom->num_bond[i2] == 3) {
+    if (tflag && nspecial[i2][0] == 3) {
       anglep(i1,i2,i3,type,eflag);
       continue;
     }
@@ -203,7 +205,7 @@ void AngleAmoeba::anglep(int i1, int i2, int i3, int type, int eflag)
 
   double **x = atom->x;
   double **f = atom->f;
-  tagint **bond_atom = atom->bond_atom;
+  tagint **special = atom->special;
   int nlocal = atom->nlocal;
   int newton_bond = force->newton_bond;
 
@@ -213,7 +215,7 @@ void AngleAmoeba::anglep(int i1, int i2, int i3, int type, int eflag)
   i3tag = atom->tag[i3];
 
   for (int ibond = 0; ibond < 3; ibond++) {
-    i4tag = bond_atom[i2][ibond];
+    i4tag = special[i2][ibond];
     if (i4tag != i1tag && i4tag != i3tag) break;
   }
 
@@ -289,15 +291,6 @@ void AngleAmoeba::anglep(int i1, int i2, int i3, int type, int eflag)
 
   if (eflag) eangle = k2[type]*dtheta2 + k3[type]*dtheta3 + 
                k4[type]*dtheta4 + k5[type]*dtheta5 + k6[type]*dtheta6;
-
-  /*
-  printf("ANGLEP: %d %d %d %d: eng %g\n",
-         atom->tag[i1],
-         atom->tag[i2],
-         atom->tag[i3],
-         atom->tag[i4],
-         eangle);
-  */
 
   // chain rule terms for first derivative components
 

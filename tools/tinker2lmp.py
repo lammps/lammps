@@ -580,9 +580,6 @@ atype = []
 aparams = []
 baparams = []
 
-#DEBUG
-opcount = 0
-
 for atom1,atom2,atom3 in alist:
   type1 = type[atom1-1]
   type2 = type[atom2-1]
@@ -609,9 +606,6 @@ for atom1,atom2,atom3 in alist:
     #     option 2 if one of 2 additional bonds is to an H atom
     #     option 3 if both of 2 additional bonds is to an H atom
 
-    # DEBUG
-    debugflag = 0
-    
     if len(params[3]) == 1:
       which = 1
       
@@ -638,10 +632,6 @@ for atom1,atom2,atom3 in alist:
       print "  Nbonds and hydrogen count:",nbonds,hcount
       print "  which:",which,m
 
-      # DEBUG
-      debugflag = 1
-      opcount += 1
-      
     elif len(params[3]) == 3:
       nbonds,hcount = xyz.angle_hbond_count(atom1,atom2,atom3,lmptype,lmpmass)
       
@@ -668,23 +658,15 @@ for atom1,atom2,atom3 in alist:
       print "  Nbonds and hydrogen count:",nbonds,hcount
       print "  which:",which,m
 
-      # DEBUG
-      debugflag = 1
-      opcount += 1
-
   else:
     print "Angle not found",atom1,atom2,atom3,c1,c2,c3
     sys.exit()
     
   if not flags[m]:
     pflag,v1,v2,v3,v4,v5,v6 = params[3][which-1]
-    # DEBUG single line
-    if debugflag: pflag = 2
     aparams.append((pflag,v1,v2,v3,v4,v5,v6))
     flags[m] = len(aparams)
   atype.append(flags[m])
-
-print "OPTION angles",opcount
 
   # NOTE: baparams may need to be flipped if match is 3,2,1 instead of 1,2,3
   

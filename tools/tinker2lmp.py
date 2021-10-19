@@ -294,18 +294,28 @@ class PRMfile:
           class2 = int(words[2])
           class3 = int(words[3])
           class4 = int(words[4])
-          value1 = words[5]
-          value2 = words[6]
-          value3 = words[7]
-          value4 = words[8]
-          value5 = words[9]
-          value6 = words[10]
-          value7 = words[11]
-          value8 = words[12]
-          value9 = words[13]
-          params.append((class1,class2,class3,class4,
-                         value1,value2,value3,value4,value5,
-                         value6,value7,value8,value9))
+          
+          if len(words) <= 5:
+            print "Torsion has no params",class1,class2,class3,class4
+            sys.exit()
+          if (len(words)-5) % 3: 
+            print "Torsion does not have triplets of params", \
+              class1,class2,class3,class4
+            sys.exit()
+
+          mfourier = (len(words)-5) / 3
+          oneparams = [class1,class2,class3,class4,mfourier]
+
+          for iset in range(mfourier):
+            value1 = float(words[5 + iset*3 + 0])
+            value2 = float(words[5 + iset*3 + 1])
+            value3 = int(words[5 + iset*3 + 2])
+            lmp1 = value1/2.0
+            lmp2 = value3
+            lmp3 = value2
+            oneparams += [lmp1,lmp2,lmp3]
+            
+          params.append(oneparams)
       iline += 1
     return params
     
@@ -493,13 +503,14 @@ for atom2 in id:
 # generate topology via triple loop over neighbors of dihedral atom2
 #   double loop over bonds of atom2
 #   additional loop over bonds of atom3
-# avoid double counting by requiring atom1 < atom3
+# avoid double counting the reverse dihedral by use of ddict dictionary
 
 id = xyz.id
 type = xyz.type
 bonds = xyz.bonds
 
 dlist = []
+ddict = {}
 
 for atom2 in id:
   for atom1 in bonds[atom2-1]:
@@ -507,8 +518,9 @@ for atom2 in id:
       if atom3 == atom1: continue
       for atom4 in bonds[atom3-1]:
         if atom4 == atom2 or atom4 == atom1: continue
-        if atom1 < atom3:
-          dlist.append((atom1,atom2,atom3,atom4))
+        if (atom4,atom3,atom2,atom1) in ddict: continue
+        dlist.append((atom1,atom2,atom3,atom4))
+        ddict[(atom1,atom2,atom3,atom4)] = 1
 
 # ----------------------------------------
 # create lists of bond/angle/dihedral types
@@ -651,13 +663,6 @@ for atom1,atom2,atom3 in alist:
         which = 3
         m += 2
 
-      print "4-bond angle"
-      print "  angle atom IDs:",atom1,atom2,atom3
-      print "  angle atom classes:",c1,c2,c3
-      print "  Tinker FF file param options:",len(params[3])
-      print "  Nbonds and hydrogen count:",nbonds,hcount
-      print "  which:",which,m
-
   else:
     print "Angle not found",atom1,atom2,atom3,c1,c2,c3
     sys.exit()
@@ -724,8 +729,8 @@ for atom1,atom2,atom3,atom4 in dlist:
     sys.exit()
 
   if not flags[m]:
-    v1,v2,v3,v4,v5,v6,v7,v8,v9 = params[4:]
-    dparams.append((v1,v2,v3,v4,v5,v6,v7,v8,v9))
+    oneparams = params[4:]
+    dparams.append(oneparams)
     flags[m] = len(dparams)
   dtype.append(flags[m])
 
@@ -869,7 +874,8 @@ if ndihedrals:
   
   lines = []
   for i,one in enumerate(dparams):
-    line = "%d %s" % (i+1,' '.join(one))
+    strone = [str(single) for single in one]
+    line = "%d %s" % (i+1,' '.join(strone))
     lines.append(line+'\n')
   d.sections["Dihedral Coeffs"] = lines
 

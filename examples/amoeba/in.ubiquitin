@@ -7,7 +7,7 @@ atom_style amoeba
 
 bond_style      class2
 angle_style     amoeba
-dihedral_style  none
+dihedral_style  fourier
 
 # per-atom properties required by AMOEBA or HIPPO
 

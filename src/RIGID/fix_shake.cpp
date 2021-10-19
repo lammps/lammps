@@ -361,8 +361,13 @@ void FixShake::init()
   // could have changed locations in fix list since created
   // set ptrs to rRESPA variables
 
+  fix_respa = nullptr;
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    fix_respa = (FixRespa *) modify->get_fix_by_style("^RESPA").front();
+    if (update->whichflag > 0) {
+      auto fixes = modify->get_fix_by_style("^RESPA");
+      if (fixes.size() > 0) fix_respa = (FixRespa *) fixes.front();
+      else error->all(FLERR,"Run style respa did not create fix RESPA");
+    }
     Respa *respa_style = (Respa *) update->integrate;
     nlevels_respa = respa_style->nlevels;
     loop_respa = respa_style->loop;

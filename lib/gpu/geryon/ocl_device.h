@@ -88,7 +88,7 @@ struct OCLProperties {
   cl_uint clock;
   size_t work_group_size;
   size_t work_item_size[3];
-  bool double_precision;
+  bool has_double_precision;
   int preferred_vector_width32, preferred_vector_width64;
   int alignment;
   size_t timer_resolution;
@@ -226,7 +226,7 @@ class UCL_Device {
   inline bool double_precision() { return double_precision(_device); }
   /// Returns true if double precision is support for the device
   inline bool double_precision(const int i)
-    {return _properties[i].double_precision;}
+    {return _properties[i].has_double_precision;}
 
   /// Get the number of compute units on the current device
   inline unsigned cus() { return cus(_device); }
@@ -569,9 +569,9 @@ void UCL_Device::add_properties(cl_device_id device_list) {
   CL_SAFE_CALL(clGetDeviceInfo(device_list,CL_DEVICE_DOUBLE_FP_CONFIG,
                                sizeof(double_avail),&double_avail,nullptr));
   if ((double_avail & double_mask) == double_mask)
-    op.double_precision=true;
+    op.has_double_precision=true;
   else
-    op.double_precision=false;
+    op.has_double_precision=false;
 
   CL_SAFE_CALL(clGetDeviceInfo(device_list,
                                CL_DEVICE_PROFILING_TIMER_RESOLUTION,

@@ -268,16 +268,9 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
 
   // print stats
 
-  if (me == 0) {
-    if (screen)
-      fprintf(screen,
-              "Particle insertion: %d every %d steps, %d by step %d\n",
-              nper,nfreq,ninsert,nfinal);
-    if (logfile)
-      fprintf(logfile,
-              "Particle insertion: %d every %d steps, %d by step %d\n",
-              nper,nfreq,ninsert,nfinal);
-  }
+  if (me == 0)
+    utils::logmesg(lmp, "Particle insertion: {} every {} steps, {} by step {}\n",
+                   nper,nfreq,ninsert,nfinal);
 }
 
 /* ---------------------------------------------------------------------- */

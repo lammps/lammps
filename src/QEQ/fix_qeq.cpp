@@ -302,7 +302,7 @@ void FixQEq::init()
   ngroup = group->count(igroup);
   if (ngroup == 0) error->all(FLERR,"Fix {} group has no atoms", style);
 
-  if ((comm->me == 0) && (modify->find_fix_by_style("^efield") >= 0))
+  if ((comm->me == 0) && (modify->get_fix_by_style("^efield").size() > 0))
     error->warning(FLERR,"Fix efield is ignored during charge equilibration");
 
   if (utils::strmatch(update->integrate_style,"^respa"))

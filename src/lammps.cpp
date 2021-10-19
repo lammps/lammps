@@ -51,6 +51,10 @@
 #include "update.h"
 #include "version.h"
 
+#if defined(LMP_PLUGIN)
+#include "plugin.h"
+#endif
+
 #include <cctype>
 #include <cmath>
 #include <cstring>
@@ -911,7 +915,7 @@ void LAMMPS::destroy()
 {
   // must wipe out all plugins first, if configured
 #if defined(LMP_PLUGIN)
-  input->one("plugin clear");
+  plugin_clear(this);
 #endif
   delete update;
   update = nullptr;

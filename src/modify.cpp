@@ -1092,18 +1092,6 @@ int Modify::find_fix(const std::string &id)
 }
 
 /* ----------------------------------------------------------------------
-   find a fix by style
-   return index of fix or -1 if not found
-------------------------------------------------------------------------- */
-
-int Modify::find_fix_by_style(const char *style)
-{
-  for (int ifix = 0; ifix < nfix; ifix++)
-    if (utils::strmatch(fix[ifix]->style,style)) return ifix;
-  return -1;
-}
-
-/* ----------------------------------------------------------------------
    look up pointer to Fix class by fix-ID
    return null pointer if ID not found
 ------------------------------------------------------------------------- */
@@ -1387,18 +1375,6 @@ int Modify::find_compute(const std::string &id)
 }
 
 /* ----------------------------------------------------------------------
-   find a compute by style
-   return index of compute or -1 if not found
-------------------------------------------------------------------------- */
-
-int Modify::find_compute_by_style(const char *style)
-{
-  for (int icompute = 0; icompute < ncompute; icompute++)
-    if (utils::strmatch(compute[icompute]->style,style)) return icompute;
-  return -1;
-}
-
-/* ----------------------------------------------------------------------
    look up pointer to Compute class by compute-ID
    return null pointer if ID not found
 ------------------------------------------------------------------------- */
@@ -1412,8 +1388,8 @@ Compute *Modify::get_compute_by_id(const std::string &id) const
 }
 
 /* ----------------------------------------------------------------------
-   look up pointer to compute by compute style name
-   return null pointer if style not used
+   look up pointers to computes by compute style name
+   return vector with matching pointers
 ------------------------------------------------------------------------- */
 
 const std::vector<Compute *> Modify::get_compute_by_style(const std::string &style) const

@@ -640,9 +640,10 @@ void FixACKS2ReaxFF::sparse_matvec_acks2(sparse_matrix *H, sparse_matrix *X, dou
 
   for (ii = nn; ii < NN; ++ii) {
     i = ilist[ii];
-    if (atom->mask[i] & groupbit)
+    if (atom->mask[i] & groupbit) {
       b[i] = 0;
       b[NN + i] = 0;
+    }
   }
   // last two rows
   b[2*NN] = 0;

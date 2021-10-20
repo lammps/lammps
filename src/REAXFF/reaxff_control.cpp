@@ -81,7 +81,7 @@ namespace ReaxFF {
       LAMMPS_NS::TextFileReader reader(control_file, "ReaxFF control");
       reader.ignore_comments = false;
 
-      while (1) {
+      while (true) {
         auto values = reader.next_values(0);
 
         // empty line

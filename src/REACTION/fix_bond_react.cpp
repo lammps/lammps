@@ -3763,7 +3763,7 @@ void FixBondReact::read(int myrxn)
   // stop when read an unrecognized line
 
   ncreate = 0;
-  while (1) {
+  while (true) {
 
     readline(line);
 

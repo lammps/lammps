@@ -232,13 +232,13 @@ namespace ReaxFF {
     reallocate_data *wsr = &(workspace->realloc);
 
     if (system->n >= DANGER_ZONE * system->local_cap ||
-        (0 && system->n <= LOOSE_ZONE * system->local_cap)) {
+        (false && system->n <= LOOSE_ZONE * system->local_cap)) {
       system->local_cap = MAX((int)(system->n * safezone), mincap);
     }
 
     int Nflag = 0;
     if (system->N >= DANGER_ZONE * system->total_cap ||
-        (0 && system->N <= LOOSE_ZONE * system->total_cap)) {
+        (false && system->N <= LOOSE_ZONE * system->total_cap)) {
       Nflag = 1;
       system->total_cap = MAX((int)(system->N * safezone), mincap);
     }
@@ -272,7 +272,7 @@ namespace ReaxFF {
     if (control->hbond_cut > 0) {
       Hflag = 0;
       if (system->numH >= DANGER_ZONE * system->Hcap ||
-          (0 && system->numH <= LOOSE_ZONE * system->Hcap)) {
+          (false && system->numH <= LOOSE_ZONE * system->Hcap)) {
         Hflag = 1;
         system->Hcap = int(MAX(system->numH * saferzone, mincap));
       }

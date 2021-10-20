@@ -1471,7 +1471,7 @@ int PPPMDisp::qr_alg(double **A, double **Q, int n)
   // start loop for the matrix factorization
   int count = 0;
   int countmax = 100000;
-  while (1) {
+  while (true) {
     // make a Wilkinson shift
     an1 = A[n-2][n-2];
     an = A[n-1][n-1];
@@ -2645,7 +2645,7 @@ void PPPMDisp::set_grid()
   if (!gridflag) {
     h = h_x = h_y = h_z = 4.0/g_ewald;
     int count = 0;
-    while (1) {
+    while (true) {
 
       // set grid dimension
 
@@ -3663,7 +3663,7 @@ void PPPMDisp::set_n_pppm_6()
   // decrease grid spacing until required precision is obtained
 
   int count = 0;
-  while (1) {
+  while (true) {
 
     // set grid dimension
     nx_pppm_6 = static_cast<int> (xprd/h_x);

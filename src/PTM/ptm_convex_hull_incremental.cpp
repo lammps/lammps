@@ -263,7 +263,7 @@ int get_convex_hull(int num_points, const double (*points)[3], convexhull_t* ch,
         int ret = 0;
         int num_prev = ch->num_prev;
         ch->num_prev = num_points;
-        if (!ch->ok || 0)
+        if (!ch->ok || false)
         {
                 ret = initialize_convex_hull(num_points, points, ch->facets, ch->plane_normal, ch->processed, ch->initial_vertices, ch->barycentre);
                 if (ret != 0)

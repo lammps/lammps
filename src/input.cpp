@@ -180,7 +180,7 @@ void Input::file()
 {
   int m,n;
 
-  while (1) {
+  while (true) {
 
     // read a line from input script
     // n = length of line including str terminator, 0 if end of file
@@ -189,7 +189,7 @@ void Input::file()
     if (me == 0) {
 
       m = 0;
-      while (1) {
+      while (true) {
 
         if (infile == nullptr) {
           n = 0;

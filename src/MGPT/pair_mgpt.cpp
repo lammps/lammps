@@ -191,7 +191,7 @@ static inline double mtrace(int n,double A[8][8],double B[8][8]) {
 
 void PairMGPT::make_triplet(bond_data *ij_bond,bond_data *ik_bond,
                              triplet_data *triptr) {
-  if (1) {
+  if (true) {
     const trmul_fun tr_mul = linalg.tr_mul;
     tr_mul(&(ij_bond->H.m[1][0]), &(ik_bond->H.m[1][0]) ,&(triptr->H1H2.m[1][0]) );
     tr_mul(&(ij_bond->Hx.m[1][0]),&(ik_bond->H.m[1][0]) ,&(triptr->H1xH2.m[1][0]));
@@ -289,7 +289,7 @@ double PairMGPT::numderiv3t(double xx[][3],int i,int j,int k,int p) {
 
   xx[i][p] = xsave - delta;
   make_bond(xx,i,j,&Bij);
-  if (0) { /* This bond doesn't change when i is perturbed */
+  if (false) { /* This bond doesn't change when i is perturbed */
     make_bond(xx,j,k,&Bjk);
   }
   make_bond(xx,k,i,&Bki);
@@ -341,7 +341,7 @@ double PairMGPT::numderiv4(double xx[][3],int i,int j,int k,int m,int p) {
 
   xx[i][p] = xsave - delta;
   make_bond(xx,i,j,&Bij);
-  if (0) { /* Only the i coordinates changed... */
+  if (false) { /* Only the i coordinates changed... */
     make_bond(xx,j,k,&Bjk);
     make_bond(xx,k,m,&Bkm);
   }
@@ -438,7 +438,7 @@ void PairMGPT::force_debug_4(double xx[][3],
   for (int p = 0; p<3; p++) {
     /* Compute numerical derivatives by displacing atoms i,j,k,m */
     double ndfi,ndfj,ndfk,ndfm;
-    if (1) {
+    if (true) {
       double ndf[] = {0.0,0.0,0.0,0.0};
       for (int s = 0; s<4; s++)
         for (int t = 0; t<4; t++)
@@ -765,7 +765,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
 
   int c_p = 0, c_t = 0, c_q = 0;
 
-  if (0)
+  if (false)
     if (domain->triclinic) {
       if (comm->me == 0)
         printf("Can not handle triclinic box yet\n");
@@ -1690,7 +1690,7 @@ void PairMGPT::compute(int eflag, int vflag)
 
   compute_x(listfull->numneigh,listfull->firstneigh,&e_s,&e_p,&e_t,&e_q,evflag,newton_pair);
 
-  if (0) { // Stupid force calculation / verification
+  if (false) { // Stupid force calculation / verification
     int ii,nmax=-1;
     for (ii = 0; ii<listfull->inum + listfull->gnum; ii++) {
       int i = listfull->ilist[ii];
@@ -1768,7 +1768,7 @@ void PairMGPT::compute(int eflag, int vflag)
   }
 
 
-  if (0) {
+  if (false) {
     printf("\nForces MGPT:\n");
     const int iimax = (listfull->inum < 10) ? listfull->inum : 10;
     for (int ii = 0; ii<iimax; ii++) {

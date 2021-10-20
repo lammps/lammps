@@ -26,7 +26,7 @@
 #include "atom_masks.h"
 #include "kokkos.h"
 #include "math_const.h"
-#include "math_special.h"
+#include "math_special_kokkos.h"
 #include "memory_kokkos.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -38,7 +38,7 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using namespace MathSpecial;
+using namespace MathSpecialKokkos;
 using namespace std;
 
 #ifdef DBL_EPSILON
@@ -556,8 +556,9 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::calc_boop2(int ncount, int ii) co
           // structure enforces visiting only one member of each
           // such symmetry (invariance) group.
 
-          const int sgn = 1 - 2*(m1&1);
-          // m1 <= 0, and Qlm[-m] = (-1)^m*conjg(Qlm[m]). sgn = (-1)^m.
+          //const int sgn = 1 - 2*(m1&1);
+          const int sgn = powint(-1,m1); // sgn = (-1)^m
+          // m1 <= 0, and Qlm[-m] = (-1)^m*conjg(Qlm[m])
           SNAcomplex Q1Q2;
           Q1Q2.re = (d_qnm(ii,il,-m1).re*d_qnm(ii,il,m2).re + d_qnm(ii,il,-m1).im*d_qnm(ii,il,m2).im)*sgn;
           Q1Q2.im = (d_qnm(ii,il,-m1).re*d_qnm(ii,il,m2).im - d_qnm(ii,il,-m1).im*d_qnm(ii,il,m2).re)*sgn;
@@ -601,7 +602,8 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::calc_boop2(int ncount, int ii) co
       for (int m = -l; m < 0; m++) {
         // Computed only qnm for m>=0.
         // qnm[-m] = (-1)^m * conjg(qnm[m])
-        const int sgn = 1 - 2*(m&1); // sgn = (-1)^m
+        //const int sgn = 1 - 2*(m&1); // sgn = (-1)^m
+        const int sgn = powint(-1,m); // sgn = (-1)^m
         d_qnarray(i,jj++) =  d_qnm(ii,il,-m).re * qnfac * sgn;
         d_qnarray(i,jj++) = -d_qnm(ii,il,-m).im * qnfac * sgn;
       }

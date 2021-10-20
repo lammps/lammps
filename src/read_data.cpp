@@ -267,14 +267,11 @@ void ReadData::command(int narg, char **arg)
         error->all(FLERR,"Illegal read_data command");
       memory->grow(fix_index,nfix+1,"read_data:fix_index");
       fix_header = (char **)
-        memory->srealloc(fix_header,(nfix+1)*sizeof(char *),
-                         "read_data:fix_header");
+        memory->srealloc(fix_header,(nfix+1)*sizeof(char *),"read_data:fix_header");
       fix_section = (char **)
-        memory->srealloc(fix_section,(nfix+1)*sizeof(char *),
-                         "read_data:fix_section");
+        memory->srealloc(fix_section,(nfix+1)*sizeof(char *),"read_data:fix_section");
       fix_index[nfix] = modify->find_fix(arg[iarg+1]);
-      if (fix_index[nfix] < 0)
-        error->all(FLERR,"Fix ID for read_data does not exist");
+      if (fix_index[nfix] < 0) error->all(FLERR,"Fix ID for read_data does not exist");
       if (strcmp(arg[iarg+2],"NULL") == 0) fix_header[nfix] = nullptr;
       else fix_header[nfix] = utils::strdup(arg[iarg+2]);
       fix_section[nfix] = utils::strdup(arg[iarg+3]);

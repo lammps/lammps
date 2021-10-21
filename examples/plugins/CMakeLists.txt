@@ -29,16 +29,14 @@ else()
   if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(CMAKE_INSTALL_PREFIX "$ENV{HOME}/.local" CACHE PATH "Default install path" FORCE)
   endif()
+  # ugly hacks for MSVC which by default always reports an old C++ standard in the __cplusplus macro
+  # and prints lots of pointless warnings about "unsafe" functions
+  if(MSVC)
+    add_compile_options(/Zc:__cplusplus)
+    add_compile_options(/wd4244)
+    add_compile_options(/wd4267)
+    add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 endif()
-
-# ugly hacks for MSVC which by default always reports an old C++ standard in the __cplusplus macro
-# and prints lots of pointless warnings about "unsafe" functions
-#if(MSVC)
-#  add_compile_options(/Zc:__cplusplus)
-#  add_compile_options(/wd4244)
-#  add_compile_options(/wd4267)
-#  add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
-#endif()
 
 # C++11 is required
 set(CMAKE_CXX_STANDARD 11)

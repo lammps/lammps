@@ -10,18 +10,8 @@ endif()
 
 target_link_libraries(test_simple_commands PRIVATE lammps gmock)
 add_test(NAME SimpleCommands COMMAND test_simple_commands WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-if(BUILD_IS_MULTI_CONFIG)
-  set(LAMMPS_PLUGIN_BIN_DIR ${CMAKE_BINARY_DIR}/build-plugins/$<CONFIG>)
-else()
-  set(LAMMPS_PLUGIN_BIN_DIR ${CMAKE_BINARY_DIR}/build-plugins)
-endif()
-if(APPLE)
-  set_tests_properties(SimpleCommands PROPERTIES
-    ENVIRONMENT "DYLD_LIBRARY_PATH=${LAMMPS_PLUGIN_BIN_DIR}/:${DYLD_LIBRARY_PATH}")
-else()
-  set_tests_properties(SimpleCommands PROPERTIES
-    ENVIRONMENT "LD_LIBRARY_PATH=${LAMMPS_PLUGIN_BIN_DIR}/:${LD_LIBRARY_PATH}")
-endif()
+set_tests_properties(SimpleCommands PROPERTIES
+          ENVIRONMENT "LAMMPS_PLUGIN_BIN_DIR=${CMAKE_BINARY_DIR}/build-plugins")
 
 add_executable(test_lattice_region test_lattice_region.cpp)
 target_link_libraries(test_lattice_region PRIVATE lammps gmock)

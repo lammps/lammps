@@ -70,7 +70,7 @@ add_library(zero2plugin MODULE zero2plugin.cpp pair_zero2.cpp bond_zero2.cpp
                                angle_zero2.cpp dihedral_zero2.cpp improper_zero2.cpp)
 target_link_libraries(zero2plugin PRIVATE lammps)
 
-set_target_properties(morse2plugin nve2plugin helloplugin zero2plugin PROPERTIES PREFIX "")
+set_target_properties(morse2plugin nve2plugin helloplugin zero2plugin PROPERTIES PREFIX "" SUFFIX ".so")
 
 # MacOS seems to need this
 if(CMAKE_SYSTEM_NAME STREQUAL Darwin)

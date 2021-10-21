@@ -34,7 +34,7 @@ namespace LAMMPS_NS {
 class DumpXYZZstd : public DumpXYZ {
  public:
   DumpXYZZstd(class LAMMPS *, int, char **);
-  virtual ~DumpXYZZstd();
+  virtual ~DumpXYZZstd() = default;
 
  protected:
   ZstdFileWriter writer;

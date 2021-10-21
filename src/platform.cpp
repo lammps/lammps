@@ -415,7 +415,7 @@ std::string platform::mpi_info(int &major, int &minor)
   major = 1;
   minor = 0;
 #endif
-  return std::string(version);
+  return {version};
 }
 
 /* ----------------------------------------------------------------------
@@ -543,8 +543,8 @@ void *platform::dlopen(const std::string &fname)
 std::string platform::dlerror()
 {
   const char *errmesg = ::dlerror();
-  if (errmesg) return std::string(errmesg);
-  else return "";
+  if (errmesg) return {errmesg};
+  else return {""};
 }
 
 // close a shared object

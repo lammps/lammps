@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class FixPolarizeBEMICC : public Fix {
  public:
   FixPolarizeBEMICC(class LAMMPS *, int, char **);
-  ~FixPolarizeBEMICC();
+  ~FixPolarizeBEMICC() = default;
   virtual int setmask();
   virtual void init();
   virtual void setup(int);

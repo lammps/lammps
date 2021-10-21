@@ -42,7 +42,7 @@ add_test(NAME RunLammps
          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set_tests_properties(RunLammps PROPERTIES
 	ENVIRONMENT "TSAN_OPTIONS=ignore_noninstrumented_modules=1;HWLOC_HIDE_ERRORS=1"
-        PASS_REGULAR_EXPRESSION "^LAMMPS \\([0-9]+ [A-Za-z]+ 2[0-9][0-9][0-9]\\)")
+        PASS_REGULAR_EXPRESSION "LAMMPS \\([0-9]+ [A-Za-z]+ 2[0-9][0-9][0-9]( - Update [0-9]+)?\\)")
 
 # check if the compiled executable will print the help message
 add_test(NAME HelpMessage

@@ -29,10 +29,6 @@ DumpCFGGZ::DumpCFGGZ(LAMMPS *lmp, int narg, char **arg) : DumpCFG(lmp, narg, arg
   if (!compressed) error->all(FLERR, "Dump cfg/gz only writes compressed files");
 }
 
-/* ---------------------------------------------------------------------- */
-
-DumpCFGGZ::~DumpCFGGZ() {}
-
 /* ----------------------------------------------------------------------
    generic opening of a dump file
    ASCII or binary or compressed

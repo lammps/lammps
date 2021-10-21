@@ -143,7 +143,7 @@ void utils::fmtargs_logmesg(LAMMPS *lmp, fmt::string_view format, fmt::format_ar
 
 std::string utils::getsyserror()
 {
-  return std::string(strerror(errno));
+  return {strerror(errno)};
 }
 
 // read line into buffer. if line is too long keep reading until EOL or EOF
@@ -661,7 +661,10 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
       }
 
       for (int index = nlo; index <= nhi; index++) {
-        earg[newarg] = utils::strdup(fmt::format("{}2_{}[{}]{}", word[0], id, index, tail));
+        if (word[1] == '2')
+          earg[newarg] = utils::strdup(fmt::format("{}2_{}[{}]{}", word[0], id, index, tail));
+        else
+          earg[newarg] = utils::strdup(fmt::format("{}_{}[{}]{}", word[0], id, index, tail));
         newarg++;
       }
     } else {
@@ -738,7 +741,7 @@ std::string utils::trim_comment(const std::string &line)
 {
   auto end = line.find_first_of('#');
   if (end != std::string::npos) { return line.substr(0, end); }
-  return std::string(line);
+  return {line};
 }
 
 /* ----------------------------------------------------------------------
@@ -1481,7 +1484,7 @@ static int ismetachar(char c);
 int re_matchp(const char *text, re_t pattern, int *matchlen)
 {
   *matchlen = 0;
-  if (pattern != 0) {
+  if (pattern != nullptr) {
     if (pattern[0].type == RX_BEGIN) {
       return ((matchpattern(&pattern[1], text, matchlen)) ? 0 : -1);
     } else {
@@ -1595,7 +1598,7 @@ re_t re_compile(re_ctx_t context, const char *pattern)
           i += 1;                  /* Increment i to avoid including '^' in the char-buffer */
           if (pattern[i + 1] == 0) /* incomplete pattern, missing non-zero char after '^' */
           {
-            return 0;
+            return nullptr;
           }
         } else {
           re_compiled[j].type = RX_CHAR_CLASS;
@@ -1605,20 +1608,20 @@ re_t re_compile(re_ctx_t context, const char *pattern)
         while ((pattern[++i] != ']') && (pattern[i] != '\0')) {
           /* Missing ] */
           if (pattern[i] == '\\') {
-            if (ccl_bufidx >= MAX_CHAR_CLASS_LEN - 1) { return 0; }
+            if (ccl_bufidx >= MAX_CHAR_CLASS_LEN - 1) { return nullptr; }
             if (pattern[i + 1] == 0) /* incomplete pattern, missing non-zero char after '\\' */
             {
-              return 0;
+              return nullptr;
             }
             ccl_buf[ccl_bufidx++] = pattern[i++];
           } else if (ccl_bufidx >= MAX_CHAR_CLASS_LEN) {
-            return 0;
+            return nullptr;
           }
           ccl_buf[ccl_bufidx++] = pattern[i];
         }
         if (ccl_bufidx >= MAX_CHAR_CLASS_LEN) {
           /* Catches cases such as [00000000000000000000000000000000000000][ */
-          return 0;
+          return nullptr;
         }
         /* Null-terminate string end */
         ccl_buf[ccl_bufidx++] = 0;
@@ -1633,7 +1636,7 @@ re_t re_compile(re_ctx_t context, const char *pattern)
     }
     /* no buffer-out-of-bounds access on invalid patterns -
      * see https://github.com/kokke/tiny-regex-c/commit/1a279e04014b70b0695fba559a7c05d55e6ee90b */
-    if (pattern[i] == 0) { return 0; }
+    if (pattern[i] == 0) { return nullptr; }
 
     i += 1;
     j += 1;

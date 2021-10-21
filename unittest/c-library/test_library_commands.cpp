@@ -19,8 +19,8 @@ const char *cont_input[] = {"create_atoms 1 single &", "0.2 0.1 0.1"};
 class LibraryCommands : public ::testing::Test {
 protected:
     void *lmp;
-    LibraryCommands(){};
-    ~LibraryCommands() override{};
+    LibraryCommands() = default;
+    ~LibraryCommands() override = default;
 
     void SetUp() override
     {
@@ -31,7 +31,7 @@ protected:
         int argc    = sizeof(args) / sizeof(char *);
 
         ::testing::internal::CaptureStdout();
-        lmp                = lammps_open_no_mpi(argc, argv, NULL);
+        lmp                = lammps_open_no_mpi(argc, argv, nullptr);
         std::string output = ::testing::internal::GetCapturedStdout();
         if (verbose) std::cout << output;
         EXPECT_THAT(output, StartsWith("LAMMPS ("));

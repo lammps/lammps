@@ -109,6 +109,8 @@ action domain_kokkos.h
 action fftdata_kokkos.h fft3d.h
 action fft3d_kokkos.cpp fft3d.cpp
 action fft3d_kokkos.h fft3d.h
+action fix_acks2_reaxff_kokkos.cpp fix_acks2_reaxff.cpp
+action fix_acks2_reaxff_kokkos.h fix_acks2_reaxff.h
 action fix_deform_kokkos.cpp
 action fix_deform_kokkos.h
 action fix_enforce2d_kokkos.cpp

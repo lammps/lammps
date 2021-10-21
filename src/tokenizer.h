@@ -35,7 +35,7 @@ class Tokenizer {
   size_t ntokens;
 
  public:
-  Tokenizer(const std::string &str, const std::string &separators = TOKENIZER_DEFAULT_SEPARATORS);
+  Tokenizer(std::string str, std::string separators = TOKENIZER_DEFAULT_SEPARATORS);
   Tokenizer(Tokenizer &&);
   Tokenizer(const Tokenizer &);
   Tokenizer &operator=(const Tokenizer &);
@@ -62,11 +62,11 @@ class TokenizerException : public std::exception {
    * \param  token  String of the token/word that caused the error */
   TokenizerException(const std::string &msg, const std::string &token);
 
-  ~TokenizerException() throw() {}
+  ~TokenizerException() noexcept {}
 
   /** Retrieve message describing the thrown exception
    * \return string with error message */
-  virtual const char *what() const throw() { return message.c_str(); }
+  virtual const char *what() const noexcept { return message.c_str(); }
 };
 
 class InvalidIntegerException : public TokenizerException {
@@ -97,7 +97,7 @@ class ValueTokenizer {
  public:
   ValueTokenizer(const std::string &str,
                  const std::string &separators = TOKENIZER_DEFAULT_SEPARATORS);
-  ValueTokenizer(const ValueTokenizer &);
+  ValueTokenizer(const ValueTokenizer &) = default;
   ValueTokenizer(ValueTokenizer &&);
   ValueTokenizer &operator=(const ValueTokenizer &);
   ValueTokenizer &operator=(ValueTokenizer &&);

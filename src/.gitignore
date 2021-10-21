@@ -609,6 +609,8 @@
 /fft3d_wrap.h
 /fix_accelerate_cos.cpp
 /fix_accelerate_cos.h
+/fix_acks2_reaxff.cpp
+/fix_acks2_reaxff.h
 /fix_adapt_fep.cpp
 /fix_adapt_fep.h
 /fix_addtorque.cpp
@@ -1393,6 +1395,8 @@
 /fix_drude_transform.h
 /fix_langevin_drude.cpp
 /fix_langevin_drude.h
+/fix_mol_swap.cpp
+/fix_mol_swap.h
 /fix_pimd.cpp
 /fix_pimd.h
 /fix_qbmsst.cpp

@@ -28,7 +28,7 @@ namespace LAMMPS_NS {
 class DumpAtomGZ : public DumpAtom {
  public:
   DumpAtomGZ(class LAMMPS *, int, char **);
-  virtual ~DumpAtomGZ();
+  virtual ~DumpAtomGZ() = default;
 
  protected:
   GzFileWriter writer;

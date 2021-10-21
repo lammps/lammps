@@ -24,8 +24,8 @@ using namespace std;
 
 Matrix::Matrix(){
   numrows = numcols = 0;
-  rows = 0;
-  elements = 0;
+  rows = nullptr;
+  elements = nullptr;
 }
 
 Matrix::~Matrix(){
@@ -35,8 +35,8 @@ Matrix::~Matrix(){
 
 Matrix::Matrix(const Matrix& A){
   numrows = numcols = 0;
-  rows = 0;
-  elements = 0;
+  rows = nullptr;
+  elements = nullptr;
   Dim(A.numrows,A.numcols);
   for(int i=0;i<numrows*numcols;i++)
     elements[i] = A.elements[i];
@@ -44,8 +44,8 @@ Matrix::Matrix(const Matrix& A){
 
 Matrix::Matrix(const VirtualMatrix& A){
   numrows = numcols = 0;
-  rows = 0;
-  elements = 0;
+  rows = nullptr;
+  elements = nullptr;
   Dim(A.GetNumRows(),A.GetNumCols());
   for(int i=0;i<numrows;i++)
     for(int j=0;j<numcols;j++)
@@ -54,8 +54,8 @@ Matrix::Matrix(const VirtualMatrix& A){
 
 Matrix::Matrix(int m, int n){
   numrows = numcols = 0;
-  rows = 0;
-  elements = 0;
+  rows = nullptr;
+  elements = nullptr;
   this->Dim(m,n);
 }
 

@@ -30,7 +30,7 @@ class Vect3 : public VirtualColMatrix  {
   double elements[3];
 public:
   Vect3();
-  ~Vect3();
+  ~Vect3() = default;
   Vect3(const Vect3& A);  // copy constructor
   Vect3(const VirtualMatrix& A);  // copy constructor
 

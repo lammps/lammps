@@ -37,12 +37,6 @@ DumpCustomZstd::DumpCustomZstd(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Dump custom/zstd only writes compressed files");
 }
 
-/* ---------------------------------------------------------------------- */
-
-DumpCustomZstd::~DumpCustomZstd()
-{
-}
-
 /* ----------------------------------------------------------------------
    generic opening of a dump file
    ASCII or binary or compressed

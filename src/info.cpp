@@ -299,6 +299,7 @@ void Info::command(int narg, char **arg)
     if (has_png_support()) fputs("-DLAMMPS_PNG\n",out);
     if (has_jpeg_support()) fputs("-DLAMMPS_JPEG\n",out);
     if (has_ffmpeg_support()) fputs("-DLAMMPS_FFMPEG\n",out);
+    if (has_fft_single_support()) fputs("-DFFT_SINGLE\n",out);
     if (has_exceptions()) fputs("-DLAMMPS_EXCEPTIONS\n",out);
 
 #if defined(LAMMPS_BIGBIG)
@@ -879,6 +880,8 @@ bool Info::is_available(const char *category, const char *name)
       return has_jpeg_support();
     } else if (strcmp(name,"ffmpeg") == 0) {
       return has_ffmpeg_support();
+    } else if (strcmp(name,"fft_single") == 0) {
+      return has_fft_single_support();
     } else if (strcmp(name,"exceptions") == 0) {
       return has_exceptions();
     }
@@ -1011,7 +1014,7 @@ std::vector<std::string> Info::get_available_styles(const std::string &category)
   } else if (category == "command") {
     return get_style_names(input->command_map);
   }
-  return std::vector<std::string>();
+  return {};
 }
 
 template<typename ValueType>
@@ -1127,6 +1130,14 @@ bool Info::has_ffmpeg_support() {
 #endif
 }
 
+bool Info::has_fft_single_support() {
+#ifdef FFT_SINGLE
+  return true;
+#else
+  return false;
+#endif
+}
+
 bool Info::has_exceptions() {
 #ifdef LAMMPS_EXCEPTIONS
   return true;
@@ -1146,12 +1157,14 @@ bool Info::has_package(const std::string &package_name) {
 
 #if defined(LMP_GPU)
 extern bool lmp_gpu_config(const std::string &, const std::string &);
-extern bool lmp_has_gpu_device();
+extern bool lmp_has_compatible_gpu_device();
 extern std::string lmp_gpu_device_info();
 
+// we will only report compatible GPUs, i.e. when a GPU device is
+// available *and* supports the required floating point precision
 bool Info::has_gpu_device()
 {
-  return lmp_has_gpu_device();
+  return lmp_has_compatible_gpu_device();
 }
 
 std::string Info::get_gpu_device_info()

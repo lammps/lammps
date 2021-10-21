@@ -64,8 +64,8 @@ protected:
 
 public:
         // constructor, destructor
-        Tree(void);
-        ~Tree(void)
+        Tree();
+        ~Tree()
         {
                 ClearTree(root);
         };
@@ -85,19 +85,19 @@ public:
         void Insert(const int& item, const int& data, void * AuxData = nullptr);
         void Delete(const int& item);
         void AVLInsert(TreeNode* &tree, TreeNode* newNode, int &reviseBalanceFactor);
-        void ClearList(void);
+        void ClearList();
 
         // tree specific methods
         void Update(const int& item);
-        TreeNode *GetRoot(void) const;
+        TreeNode *GetRoot() const;
 };
 
 
 // constructor
-Tree::Tree(void)
+Tree::Tree()
 {
-        root = 0;
-        current = 0;
+        root = nullptr;
+        current = nullptr;
         size = 0;
     DeleteAuxData = nullptr;
 }
@@ -105,7 +105,7 @@ Tree::Tree(void)
 
 
 // return root pointer
-TreeNode *Tree::GetRoot(void) const
+TreeNode *Tree::GetRoot() const
 {
         return root;
 }
@@ -603,7 +603,7 @@ void Tree::ClearTree(TreeNode * &t)
 }
 
 // delete all nodes in list
-void Tree::ClearList(void)
+void Tree::ClearList()
 {
         delete root;
         delete current;

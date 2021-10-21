@@ -52,9 +52,6 @@ AtomVecOxdna::AtomVecOxdna(LAMMPS *lmp) : AtomVec(lmp)
     error->warning(FLERR, "Write_data command requires newton on to preserve 3'->5' bond polarity");
 }
 
-/* ---------------------------------------------------------------------- */
-AtomVecOxdna::~AtomVecOxdna() {}
-
 /* ----------------------------------------------------------------------
    set local copies of all grow ptrs used by this class, except defaults
    needed in replicate when 2 atom classes exist and it calls pack_restart()

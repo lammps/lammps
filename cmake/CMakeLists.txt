@@ -133,10 +133,7 @@ endif()
 set(LAMMPS_BINARY lmp${LAMMPS_MACHINE})
 
 option(BUILD_SHARED_LIBS "Build shared library" OFF)
-if(BUILD_SHARED_LIBS) # for all pkg libs, mpi_stubs and linalg
-  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-endif()
-
+option(CMAKE_POSITION_INDEPENDENT_CODE "Create object compatible with shared libraries" ON)
 option(BUILD_TOOLS "Build and install LAMMPS tools (msi2lmp, binary2txt, chain)" OFF)
 option(BUILD_LAMMPS_SHELL "Build and install the LAMMPS shell" OFF)
 

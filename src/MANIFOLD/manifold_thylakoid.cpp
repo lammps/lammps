@@ -38,8 +38,8 @@ manifold_thylakoid::manifold_thylakoid( LAMMPS *lmp, int /*narg*/, char ** /*arg
 
 manifold_thylakoid::~manifold_thylakoid()
 {
-  for (std::size_t i = 0; i < parts.size(); ++i) {
-    delete parts[i];
+  for (auto & part : parts) {
+    delete part;
   }
 }
 
@@ -73,11 +73,11 @@ void manifold_thylakoid::checkup()
   if (comm->me == 0) {
     fprintf(screen,"This is checkup of thylakoid %p\n", this);
     fprintf(screen,"I have %ld parts. They are:\n", parts.size());
-    for (int i = 0; i < (int)parts.size(); ++i) {
+    for (auto & part : parts) {
       fprintf(screen, "[%f, %f] x [%f, %f] x [%f, %f]\n",
-              parts[i]->xlo, parts[i]->xhi,
-              parts[i]->ylo, parts[i]->yhi,
-              parts[i]->zlo, parts[i]->zhi );
+              part->xlo, part->xhi,
+              part->ylo, part->yhi,
+              part->zlo, part->zhi );
     }
     fprintf(screen,"My params are:\n");
     for (int i = 0; i < NPARAMS; ++i) {

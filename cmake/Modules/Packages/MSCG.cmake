@@ -12,47 +12,11 @@ if(DOWNLOAD_MSCG)
   mark_as_advanced(MSCG_URL)
   mark_as_advanced(MSCG_MD5)
 
-  # always compile a static lib but with position independent code
-  # make a copy of current settings for later use
-  set(OLD_SHARED_LIBS ${BUILD_SHARED_LIBS})
-  set(OLD_POSITION_INDEPENDENT_CODE ${CMAKE_POSITION_INDEPENDENT_CODE})
-  set(BUILD_SHARED_LIBS OFF)
-  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-
-  if(CMAKE_VERSION VERSION_LESS 3.14)
-    file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/_deps)
-    file(DOWNLOAD ${MSCG_URL} ${CMAKE_BINARY_DIR}/_deps/mscg.tar.gz EXPECTED_HASH MD5=${MSCG_MD5})
-    execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_BINARY_DIR}/_deps/mscg.tar.gz
-      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/_deps)
-
-    file(GLOB MSCG_SOURCE "${CMAKE_BINARY_DIR}/_deps/MSCG-release-*")
-    # sanity check. do not allow to have multiple downloaded and extracted versions of the source
-    list(LENGTH MSCG_SOURCE _num)
-    if(_num GREATER 1)
-      message(FATAL_ERROR "Inconsistent MSCG library sources. Please delete ${CMAKE_BINARY_DIR}/_deps and re-run cmake")
-    endif()
-    add_subdirectory(${MSCG_SOURCE}/src/CMake ${CMAKE_BINARY_DIR}/_deps/mscg-build)
-  else()
-    include(FetchContent)
-    FetchContent_Declare(mscg URL ${MSCG_URL} URL_HASH MD5=${MSCG_MD5} SOURCE_SUBDIR src/CMake)
-    FetchContent_MakeAvailable(mscg)
-    set(MSCG_SOURCE ${CMAKE_BINARY_DIR}/_deps/mscg-src)
-  endif()
-
-  # restore previous settings
-  if(OLD_POSITION_INDEPENDENT_CODE)
-    set(CMAKE_POSITON_INDEPENDENT_CODE ${OLD_POSITION_INDEPENDENT_CODE})
-  else()
-    unset(CMAKE_POSITION_INDEPENDENT_CODE)
-  endif()
-  if (OLD_SHARED_LIBS)
-    set(BUILD_SHARED_LIBS ${OLD_SHARED_LIBS})
-  else()
-    unset(BUILD_SHARED_LIBS)
-  endif()
+  include(ExternalCMakeProject)
+  ExternalCMakeProject(mscg ${MSCG_URL} ${MSCG_MD5} MSCG-release src/CMake)
 
   # set include and link library
-  target_include_directories(lammps PRIVATE "${MSCG_SOURCE}/src")
+  target_include_directories(lammps PRIVATE "${CMAKE_BINARY_DIR}/_deps/mscg-src/src")
   target_link_libraries(lammps PRIVATE mscg)
 else()
   find_package(MSCG)

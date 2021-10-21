@@ -11,24 +11,8 @@ mark_as_advanced(GTEST_URL)
 mark_as_advanced(GTEST_MD5)
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
-# workaround for older CMake versions (tested on Ubuntu 18.04 with CMake 3.10)
-if(CMAKE_VERSION VERSION_LESS 3.14)
-  file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/_deps)
-  file(DOWNLOAD ${GTEST_URL} ${CMAKE_BINARY_DIR}/_deps/googletest.tar.gz EXPECTED_HASH MD5=${GTEST_MD5})
-  execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_BINARY_DIR}/_deps/googletest.tar.gz
-    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/_deps)
-  file(GLOB GTEST_SOURCE "${CMAKE_BINARY_DIR}/_deps/googletest-*")
-  # sanity check. do not allow to have multiple downloaded and extracted versions of the source
-  list(LENGTH GTEST_SOURCE _num)
-  if(_num GREATER 1)
-    message(FATAL_ERROR "Inconsistent googletest sources. Please delete ${CMAKE_BINARY_DIR}/_deps and re-run cmake")
-  endif()
-  add_subdirectory(${GTEST_SOURCE} ${CMAKE_BINARY_DIR}/googletest)
-else()
-  include(FetchContent)
-  FetchContent_Declare(googletest URL ${GTEST_URL} URL_HASH MD5=${GTEST_MD5})
-  FetchContent_MakeAvailable(googletest)
-endif()
+include(ExternalCMakeProject)
+ExternalCMakeProject(googletest ${GTEST_URL} ${GTEST_MD5} googletest .)
 
 ########################################
 # General tests using the LAMMPS executable itself

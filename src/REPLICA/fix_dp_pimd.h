@@ -130,13 +130,13 @@ class FixDPPimd : public Fix {
   double gamma, c1, c2, tau;
   double *tau_k, *c1_k, *c2_k;
   double pilescale=1.0;
-  double baoab_temp;
+  double Lan_temp;
 
   class RanMars *random;
   int seed=975481;
   FILE *frand;
 
-  void baoab_init();
+  void Langevin_init();
   // void baoab_update_v();
   // void baoab_update_x();
   // void random_v();
@@ -149,7 +149,7 @@ class FixDPPimd : public Fix {
   double **eta;
   double ke_centroid, alpha2, sgn_, sgn, alpha;
 
-  double _omega_np, *_omega_k, *baoab_s, *baoab_c; // sin(omega_k*dt*0.5), cos(omega_k*dt*0.5)
+  double _omega_np, *_omega_k, *Lan_s, *Lan_c; // sin(omega_k*dt*0.5), cos(omega_k*dt*0.5)
   
   /* Bussi-Zykova-Parrinello barostat */
 

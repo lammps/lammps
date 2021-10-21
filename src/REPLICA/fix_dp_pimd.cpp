@@ -46,7 +46,7 @@ using namespace MathConst;
 
 enum{PIMD,NMPIMD,CMD};
 enum{physical, normal};
-enum{baoab};
+enum{baoab, obabo};
 enum{SVR, PILE_L, PILE_G};
 enum{nve, nvt, nph, npt};
 enum{MSTI, SCTI};
@@ -61,12 +61,12 @@ FixDPPimd::FixDPPimd(LAMMPS *lmp, int narg, char **arg) :
 {
   method       = NMPIMD;
   fmmode       = physical;
-  integrator   = baoab;
+  integrator   = obabo;
   thermostat   = PILE_L;
   ensemble     = nvt;
   fmass        = 1.0;
   temp         = 298.15;
-  baoab_temp   = 298.15;
+  Lan_temp   = 298.15;
   sp           = 1.0;
   harmonicflag = 0;
   omega        = 0.0;
@@ -87,8 +87,9 @@ FixDPPimd::FixDPPimd(LAMMPS *lmp, int narg, char **arg) :
 
     else if(strcmp(arg[i], "integrator")==0)
     {
-      if(strcmp(arg[i+1], "baoab")==0) integrator=baoab;
-      else error->universe_all(FLERR, "Unknown integrator parameter for fix pimd. Only baoab integrator is supported!");
+      if(strcmp(arg[i+1], "obabo")==0) integrator=obabo;
+      else if(strcmp(arg[i+1], "baoab")==0) integrator=baoab;
+      else error->universe_all(FLERR, "Unknown integrator parameter for fix pimd. Only obabo and baoab integrators is supported!");
     }
 
     else if(strcmp(arg[i], "ensemble")==0)
@@ -192,9 +193,9 @@ FixDPPimd::FixDPPimd(LAMMPS *lmp, int narg, char **arg) :
 
   // initialize Marsaglia RNG with processor-unique seed
 
-  if(integrator==baoab)
+  if(integrator==baoab || integrator==obabo)
   {
-    baoab_temp = temp;
+    Lan_temp = temp;
     random = new RanMars(lmp, seed + universe->me);
   }
   
@@ -301,7 +302,7 @@ FixDPPimd::FixDPPimd(LAMMPS *lmp, int narg, char **arg) :
 FixDPPimd::~FixDPPimd()
 {
   delete _omega_k;
-  delete baoab_c, baoab_s;
+  delete Lan_c, Lan_s;
   if(integrator==baoab)
   {
     delete random;
@@ -391,12 +392,12 @@ void FixDPPimd::init()
   omega_np = np / (hbar * beta) * sqrt(force->mvv2e);
   fbond = _fbond * force->mvv2e;
 
-  beta_np = 1.0 / force->boltz / baoab_temp / np;
+  beta_np = 1.0 / force->boltz / Lan_temp / np;
 
   if(universe->me==0)
     printf("Fix pimd -P/(beta^2 * hbar^2) = %20.7lE (kcal/mol/A^2)\n\n", fbond);
 
-  if(integrator==baoab)   
+  if(integrator==baoab || integrator==obabo)
   {
     dtf = 0.5 * update->dt * force->ftm2v;
     dtv = 0.5 * update->dt;
@@ -415,11 +416,11 @@ void FixDPPimd::init()
   if(method==CMD || method==NMPIMD) nmpimd_init();
   else for(int i=1; i<=atom->ntypes; i++) mass[i] = atom->mass[i] / np * fmass;
 
-  if(integrator==baoab)
+  if(integrator==baoab || integrator==obabo)
   {
     if(!baoab_ready)
     {
-      baoab_init();
+      Langevin_init();
     }
     // fprintf(stdout, "baoab thermostat initialized!\n");
   }
@@ -509,7 +510,24 @@ void FixDPPimd::initial_integrate(int /*vflag*/)
     domain->unmap(x[i], image[i]);
   }
   
-  if(integrator==baoab)
+  if(integrator==obabo)
+  {
+    if(ensemble==nvt || ensemble==npt)
+    {
+      o_step();
+      press_o_step();
+    }
+    if(pextflag) press_v_step();
+    b_step();
+    if(method==NMPIMD)
+    {
+      nmpimd_fill(atom->x);
+      comm_exec(atom->x);
+      nmpimd_transform(buf_beads, atom->x, M_x2xp[universe->iworld]);
+    }
+  }
+
+  else if(integrator==baoab)
   {
     if(pextflag) press_v_step();
     b_step();
@@ -531,16 +549,16 @@ void FixDPPimd::initial_integrate(int /*vflag*/)
 
 void FixDPPimd::post_integrate()
 {
-  if(integrator==baoab)
+  if(integrator==baoab || integrator==obabo)
   {
     qc_step();
     a_step();
-    if(ensemble==nvt || ensemble==npt)
+    if((ensemble==nvt || ensemble==npt) && integrator==baoab)
     {
       o_step();
       if(pextflag) press_o_step();
     }
-    else if(ensemble==nve || ensemble==nph)
+    else if(ensemble==nve || ensemble==nph || integrator==obabo)
     {
     
     }
@@ -582,7 +600,19 @@ void FixDPPimd::post_integrate()
 
 void FixDPPimd::final_integrate()
 {
-  if(integrator==baoab)
+  if(integrator==obabo)
+  {
+    compute_totke();
+    compute_p_cv();
+    if(pextflag) press_v_step();
+    b_step();
+    if(ensemble==nvt || ensemble==npt)
+    {
+      o_step();
+      press_o_step();
+    }
+  }
+  else if(integrator==baoab)
   {
     // compute_totke();
     compute_p_cv();
@@ -633,40 +663,44 @@ void FixDPPimd::post_force(int /*flag*/)
 }
 
 /* ----------------------------------------------------------------------
-   Langevin thermostat, BAOAB integrator
+   NM propagator and Langevin thermostat initialization
 ------------------------------------------------------------------------- */
 
-void FixDPPimd::baoab_init()
+void FixDPPimd::Langevin_init()
 {
-  //fprintf(stdout, "baoab_temp=%.2f.\n", baoab_temp);
-  double KT = force->boltz * baoab_temp;
+  //fprintf(stdout, "Lan_temp=%.2f.\n", Lan_temp);
+  double KT = force->boltz * Lan_temp;
   double beta = 1.0 / KT;
   double hbar = force->hplanck / (2.0 * MY_PI);
   _omega_np = np / beta / hbar;
   double _omega_np_dt_half = _omega_np * update->dt * 0.5;
 
   _omega_k = new double[np];
-  baoab_c = new double[np];
-  baoab_s = new double[np];
+  Lan_c = new double[np];
+  Lan_s = new double[np];
   if(fmmode==physical){
     for (int i=0; i<np; i++)
     {
       _omega_k[i] = _omega_np * sqrt(lam[i]); 
-      baoab_c[i] = cos(sqrt(lam[i])*_omega_np_dt_half);
-      baoab_s[i] = sin(sqrt(lam[i])*_omega_np_dt_half);
+      Lan_c[i] = cos(sqrt(lam[i])*_omega_np_dt_half);
+      Lan_s[i] = sin(sqrt(lam[i])*_omega_np_dt_half);
     }
   }
   else if(fmmode==normal){
     for (int i=0; i<np; i++)
     {
       _omega_k[i] = _omega_np; 
-      baoab_c[i] = cos(_omega_np_dt_half);
-      baoab_s[i] = sin(_omega_np_dt_half);
+      Lan_c[i] = cos(_omega_np_dt_half);
+      Lan_s[i] = sin(_omega_np_dt_half);
     }
   }
   if(tau > 0) gamma = 1.0 / tau;
   else gamma = np / beta / hbar;
-  c1 = exp(-gamma * update->dt); // tau is the damping time of the centroid mode.
+  
+  if(integrator==obabo) c1 = exp(-gamma * 0.5 * update->dt); // tau is the damping time of the centroid mode.
+  else if(integrator==baoab) c1 = exp(-gamma * update->dt); 
+  else error->universe_all(FLERR, "Unknown integrator parameter for fix pimd. Only obabo and baoab integrators is supported!");
+
   c2 = sqrt(1.0 - c1 * c1); // note that c1 and c2 here only works for the centroid mode.
 
   if(thermostat == PILE_L || thermostat == PILE_G)
@@ -681,7 +715,9 @@ void FixDPPimd::baoab_init()
     for(int i=1; i<np; i++)
     {
       tau_k[i] = 0.5 / pilescale / _omega_k[i];
-      c1_k[i] = exp(-1.0 * update->dt / tau_k[i]);
+      if(integrator==obabo) c1_k[i] = exp(-0.5 * update->dt / tau_k[i]);
+      else if(integrator==baoab) c1_k[i] = exp(-1.0 * update->dt / tau_k[i]);
+      else error->universe_all(FLERR, "Unknown integrator parameter for fix pimd. Only obabo and baoab integrators is supported!");
       c2_k[i] = sqrt(1.0 - c1_k[i] * c1_k[i]);
     }
     for(int i=0; i<np; i++)
@@ -702,10 +738,26 @@ void FixDPPimd::baoab_init()
 
 void FixDPPimd::b_step()
 {
+
   int n = atom->nlocal;
   int *type = atom->type;
   double **v = atom->v;
   double **f = atom->f;
+
+  // if(universe->iworld==0) 
+  // {
+  //   printf("start b_step, v:\n");
+  //   for(int i=0; i<atom->nlocal; i++)
+  //   {
+  //     printf("%ld  ", atom->tag[i]);
+  //     for(int j=0; j<3; j++)
+  //     {
+  //       printf("%.8e  ", atom->v[i][j]);
+  //     }
+  //     printf("\n");
+  //   }
+  //   printf("\n");
+  // }
 
   for(int i=0; i<n; i++)
   {
@@ -715,28 +767,60 @@ void FixDPPimd::b_step()
     v[i][2] += dtfm * f[i][2];
   }
 
+  // if(universe->iworld==0) 
+  // {
+  //   printf("end b_step, v:\n");
+  //   for(int i=0; i<atom->nlocal; i++)
+  //   {
+  //     printf("%ld  ", atom->tag[i]);
+  //     for(int j=0; j<3; j++)
+  //     {
+  //       printf("%.8e  ", atom->v[i][j]);
+  //     }
+  //     printf("\n");
+  //   }
+  //   printf("\n");
+  // }
+
+  double vnorm1 = 0.0, vnorm2 = 0.0; 
+  for(int i=0; i<atom->nlocal; i++)
+  {
+    for(int j=0; j<3; j++)
+    {
+      vnorm1 += atom->v[i][j];
+      vnorm2 += atom->v[i][j] * atom->v[i][j];
+    }
+  }
+
+  // printf("end b_step, v:\n");
+  // printf("vnorm1: %.16e\n", vnorm1);
+  // printf("vnorm2: %.16e\n", vnorm2);
+
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixDPPimd::qc_step(){
-  printf("\nstart qc_step, vol = %.8e h = (%.8e %.8e %.8e)\n", domain->xprd*domain->yprd*domain->zprd, domain->xprd, domain->yprd, domain->zprd);
+  // if(universe->iworld==0) printf("\nstart qc_step, vol = %.8e h = (%.8e %.8e %.8e)\n", domain->xprd*domain->yprd*domain->zprd, domain->xprd, domain->yprd, domain->zprd);
   int nlocal = atom->nlocal;
   double **x = atom->x;
   double **v = atom->v;
   tagint *tag = atom->tag;
 
-  printf("start qc_step, x:\n");
-  for(int i=0; i<nlocal; i++)
-  {
-    printf("%ld  ", tag[i]);
-    for(int j=0; j<3; j++)
-    {
-      printf("%.8e  ", x[i][j]);
-    }
-    printf("\n");
-  }
-  printf("\n");
+  // if(universe->iworld==0) 
+  // {
+  // printf("start qc_step, x:\n");
+  // for(int i=0; i<nlocal; i++)
+  // {
+  //   printf("%ld  ", tag[i]);
+  //   for(int j=0; j<3; j++)
+  //   {
+  //     printf("%.8e  ", x[i][j]);
+  //   }
+  //   printf("\n");
+  // }
+  // printf("\n");
+  // }
 
   if(!pextflag) {
     if(universe->iworld == 0)
@@ -754,23 +838,23 @@ void FixDPPimd::qc_step(){
   }
   else if(pextflag) {
     double expq = exp(dtv * vw);
-    printf("\nin qc_step, expq = %.15e\n\n", expq);
+    // if(universe->iworld==0) printf("\nin qc_step, expq = %.15e\n\n", expq);
     //double expv = exp(-(1. + 1./atom->natoms) * dtv * vw);
     double expv = exp(-dtv * vw);
     if(universe->iworld == 0)
     {
 
-      printf("in qc_step, v:\n");
-      for(int i=0; i<nlocal; i++)
-      {
-        printf("%ld  ", tag[i]);
-        for(int j=0; j<3; j++)
-        {
-          printf("%.8e  ", v[i][j]);
-        }
-        printf("\n");
-      }
-      printf("\n");
+      // printf("in qc_step, v:\n");
+      // for(int i=0; i<nlocal; i++)
+      // {
+      //   printf("%ld  ", tag[i]);
+      //   for(int j=0; j<3; j++)
+      //   {
+      //     printf("%.8e  ", v[i][j]);
+      //   }
+      //   printf("\n");
+      // }
+      // printf("\n");
 
       for(int i=0; i<nlocal; i++)
       {
@@ -797,18 +881,34 @@ void FixDPPimd::qc_step(){
 
   }
 
-  printf("end qc_step, vol = %.8e h = (%.8e %.8e %.8e)\n\n", domain->xprd*domain->yprd*domain->zprd, domain->xprd, domain->yprd, domain->zprd);
-  printf("end qc_step, x:\n");
-  for(int i=0; i<nlocal; i++)
+  // if(universe->iworld==0) printf("end qc_step, vol = %.8e h = (%.8e %.8e %.8e)\n\n", domain->xprd*domain->yprd*domain->zprd, domain->xprd, domain->yprd, domain->zprd);
+  // if(universe->iworld==0) printf("end qc_step, x:\n");
+  // if(universe->iworld==0) {
+  // for(int i=0; i<nlocal; i++)
+  // {
+  //   printf("%ld  ", tag[i]);
+  //   for(int j=0; j<3; j++)
+  //   {
+  //     printf("%.8e  ", x[i][j]);
+  //   }
+  //   printf("\n");
+  // }
+  // printf("\n");
+  // }
+
+  double vnorm1 = 0.0, vnorm2 = 0.0; 
+  for(int i=0; i<atom->nlocal; i++)
   {
-    printf("%ld  ", tag[i]);
     for(int j=0; j<3; j++)
     {
-      printf("%.8e  ", x[i][j]);
+      vnorm1 += atom->v[i][j];
+      vnorm2 += atom->v[i][j] * atom->v[i][j];
     }
-    printf("\n");
   }
-  printf("\n");
+
+  // printf("end qc_step, v:\n");
+  // printf("vnorm1: %.16e\n", vnorm1);
+  // printf("vnorm2: %.16e\n", vnorm2);
 }
 
 void FixDPPimd::a_step(){
@@ -823,12 +923,12 @@ void FixDPPimd::a_step(){
     {
       x0 = x[i][0]; x1 = x[i][1]; x2 = x[i][2];
       v0 = v[i][0]; v1 = v[i][1]; v2 = v[i][2];
-      x[i][0] = baoab_c[universe->iworld] * x0 + 1./_omega_k[universe->iworld] * baoab_s[universe->iworld] * v0;
-      x[i][1] = baoab_c[universe->iworld] * x1 + 1./_omega_k[universe->iworld] * baoab_s[universe->iworld] * v1;
-      x[i][2] = baoab_c[universe->iworld] * x2 + 1./_omega_k[universe->iworld] * baoab_s[universe->iworld] * v2;
-      v[i][0] = -1.*_omega_k[universe->iworld] * baoab_s[universe->iworld] * x0 + baoab_c[universe->iworld] * v0;
-      v[i][1] = -1.*_omega_k[universe->iworld] * baoab_s[universe->iworld] * x1 + baoab_c[universe->iworld] * v1;
-      v[i][2] = -1.*_omega_k[universe->iworld] * baoab_s[universe->iworld] * x2 + baoab_c[universe->iworld] * v2;
+      x[i][0] = Lan_c[universe->iworld] * x0 + 1./_omega_k[universe->iworld] * Lan_s[universe->iworld] * v0;
+      x[i][1] = Lan_c[universe->iworld] * x1 + 1./_omega_k[universe->iworld] * Lan_s[universe->iworld] * v1;
+      x[i][2] = Lan_c[universe->iworld] * x2 + 1./_omega_k[universe->iworld] * Lan_s[universe->iworld] * v2;
+      v[i][0] = -1.*_omega_k[universe->iworld] * Lan_s[universe->iworld] * x0 + Lan_c[universe->iworld] * v0;
+      v[i][1] = -1.*_omega_k[universe->iworld] * Lan_s[universe->iworld] * x1 + Lan_c[universe->iworld] * v1;
+      v[i][2] = -1.*_omega_k[universe->iworld] * Lan_s[universe->iworld] * x2 + Lan_c[universe->iworld] * v2;
     }
   }
 
@@ -839,7 +939,7 @@ void FixDPPimd::svr_step(MPI_Comm which)
 {
   int nlocal = atom->nlocal;
   int *type = atom->type;
-  double beta_np = 1.0 / force->boltz / baoab_temp / np * force->mvv2e;
+  double beta_np = 1.0 / force->boltz / Lan_temp / np * force->mvv2e;
 
   // compute bead kinetic energy
   double ke_0 = 0.0, ke_total = 0.0;
@@ -889,15 +989,15 @@ void FixDPPimd::svr_step(MPI_Comm which)
 
 void FixDPPimd::press_v_step()
 {
-  printf("iworld = %d, start press_v_step, pw = %.8e.\n", universe->iworld, vw*W);
+  // printf("iworld = %d, start press_v_step, pw = %.8e.\n", universe->iworld, vw*W);
   int nlocal = atom->nlocal;
   double **f = atom->f;
   double **v = atom->v;
   int *type = atom->type; 
   double volume = domain->xprd * domain->yprd * domain->zprd;
   vw += dtv * 3 * (volume * np * (p_cv - Pext) + Vcoeff / beta_np) / W;
-  printf("iworld = %d, p_cv = %.6e, Pext = %.6e, beta_np = %.6e, W = %.6e.\n", universe->iworld, p_cv, Pext, beta_np, W);
-  printf("iworld = %d, after adding kinetic part, pw = %.8e.\n", universe->iworld, vw*W);
+  // printf("iworld = %d, p_cv = %.6e, Pext = %.6e, beta_np = %.6e, W = %.6e.\n", universe->iworld, np*p_cv, Pext, beta_np, W);
+  // printf("iworld = %d, after adding kinetic part, pw = %.8e.\n", universe->iworld, vw*W);
   if(universe->iworld==0){
     double dvw = 0.0;
     for(int i = 0; i < nlocal; i++)
@@ -911,13 +1011,14 @@ void FixDPPimd::press_v_step()
     vw += dvw;
   }
   MPI_Bcast(&vw, 1, MPI_DOUBLE, 0, universe->uworld);
-  printf("iworld = %d, ending press_v_step, pw = %.8e.\n", universe->iworld, vw*W);
+  // printf("iworld = %d, ending press_v_step, pw = %.8e.\n", universe->iworld, vw*W);
 }
 
 
 void FixDPPimd::press_o_step()
 {
   r1 = random->gaussian();
+  // r1 = 0.0;
   vw = c1 * vw + c2 * sqrt(1. / W / beta_np) * r1;
 }
 
@@ -925,7 +1026,7 @@ void FixDPPimd::o_step()
 {
   int nlocal = atom->nlocal;
   int *type = atom->type;
-  double beta_np = 1.0 / force->boltz / baoab_temp / np * force->mvv2e;
+  double beta_np = 1.0 / force->boltz / Lan_temp / np * force->mvv2e;
   if(thermostat == PILE_L)
   {
     for(int i=0; i<nlocal; i++)
@@ -933,7 +1034,7 @@ void FixDPPimd::o_step()
       r1 = random->gaussian();
       r2 = random->gaussian();
       r3 = random->gaussian();
-      //r1 = r2 = r3 = 0.0;
+      // r1 = r2 = r3 = 0.0;
       //char* rns;
       //sprintf(rns, "%.6e %.6e %.6e\n", r1, r2, r3); 
       //fwrite(rns, sizeof(char), sizeof(rns), frand);
@@ -1451,16 +1552,16 @@ void FixDPPimd::compute_vir()
   //}
 
   //MPI_Allreduce(&xcfc, &centroid_vir, 1, MPI_DOUBLE, MPI_SUM, world);
-  printf("computing vir, vir:\n");
-  for(int i=0; i<3; i++)
-  {
-    for(int j=0; j<3; j++)
-    {
-      printf("%.8e  ", virial[3*i+j]);
-    }
-    printf("\n");
-  }
-  printf("\n");
+  // printf("computing vir, vir:\n");
+  // for(int i=0; i<3; i++)
+  // {
+  //   for(int j=0; j<3; j++)
+  //   {
+  //     printf("%.8e  ", virial[3*i+j]);
+  //   }
+  //   printf("\n");
+  // }
+  // printf("\n");
   vir=(virial[0]+virial[4]+virial[8]);
   MPI_Allreduce(&vir,&vir,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
   //printf("iworld=%d, vir=%.4e.\n", universe->iworld, vir);
@@ -1521,7 +1622,7 @@ void FixDPPimd::compute_p_cv()
     p_cv = 1. / 3.  * inv_volume  * (2. * ke_bead - 1. * centroid_vir + 1. * vir) / force->nktv2p / np; 
   }
   MPI_Bcast(&p_cv, 1, MPI_DOUBLE, 0, universe->uworld);
-  fprintf(stdout, "in compute_p_cv, iworld = %d, ke_bead = %.8e, centroid_vir = %.8e, vir = %.8e, p_cv = %.8e.\n", universe->iworld, ke_bead, centroid_vir, vir, p_cv);
+  // fprintf(stdout, "in compute_p_cv, iworld = %d, ke_bead = %.22e, centroid_vir = %.22e, vir = %.22e, vol = %.22e, p_cv = %.8e.\n", universe->iworld, ke_bead, centroid_vir, vir, 1./inv_volume, p_cv);
   // fprintf(stdout, "iworld = %d.\n", universe->iworld);
 }
 

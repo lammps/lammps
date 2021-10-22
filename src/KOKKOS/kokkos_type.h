@@ -222,6 +222,7 @@ struct ExecutionSpaceFromDevice<Kokkos::Experimental::HIP> {
 template<>
 struct ExecutionSpaceFromDevice<Kokkos::Experimental::SYCL> {
   static const LAMMPS_NS::ExecutionSpace space = LAMMPS_NS::Device;
+};
 #elif defined(KOKKOS_ENABLE_OPENMPTARGET)
 template<>
 struct ExecutionSpaceFromDevice<Kokkos::Experimental::OpenMPTarget> {

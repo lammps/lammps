@@ -443,6 +443,27 @@ int platform::putenv(const std::string &vardef)
 }
 
 /* ----------------------------------------------------------------------
+   unset environment variable
+------------------------------------------------------------------------- */
+
+int platform::unsetenv(const std::string &variable)
+{
+  if (variable.size() == 0) return -1;
+
+#ifdef _WIN32
+  // empty _putenv() definition deletes variable on Windows
+  // must not have an equal sign as that will result in creating an environment variable
+  if (variable.find_first_of('=') != std::string::npos) return -1;
+  auto var = utils::strdup(variable);
+  int rv = _putenv(var);
+  delete[] var;
+  return rv;
+#else
+  return ::unsetenv(variable.c_str());
+#endif
+}
+
+/* ----------------------------------------------------------------------
    split a "path" environment variable into a list
 ------------------------------------------------------------------------- */
 

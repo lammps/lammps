@@ -20,7 +20,7 @@
 
 #include <Kokkos_Core.hpp>
 #include <Kokkos_DualView.hpp>
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 #include <Kokkos_Vectorization.hpp>
 #include <Kokkos_ScatterView.hpp>
 #include <Kokkos_UnorderedMap.hpp>

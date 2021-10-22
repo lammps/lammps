@@ -1,8 +1,22 @@
 
 find_package(YAML)
-if(NOT YAML_FOUND)
+if(YAML_FOUND)
+  set(DOWNLOAD_YAML_DEFAULT OFF)
+else()
+  set(DOWNLOAD_YAML_DEFAULT ON)
+endif()
+option(DOWNLOAD_YAML "Download YAML library instead of using an already installed one)" ${DOWNLOAD_YAML_DEFAULT})
+set(YAML_URL "https://github.com/akohlmey/libyaml/archive/refs/heads/new-cmake.tar.gz" CACHE STRING "URL for libyaml tarball")
+set(YAML_MD5 "b45401559221758b7b48d67eecf27077" CACHE STRING "MD5 checksum of libyaml tarball")
+mark_as_advanced(YAML_URL)
+mark_as_advanced(YAML_MD5)
+
+if(DOWNLOAD_YAML)
   # download and build a local copy of libyaml
-  include(YAML)
+  set(BUILD_TESTING off)
+  include(ExternalCMakeProject)
+  ExternalCMakeProject(libyaml ${YAML_URL} ${YAML_MD5} libyaml .)
+  add_library(Yaml::Yaml ALIAS yaml)
 endif()
 
 if(CMAKE_VERSION VERSION_LESS 3.12)

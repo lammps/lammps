@@ -41,6 +41,18 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
+// helper class
+
+namespace {
+  class parser_error : public std::exception {
+    std::string message;
+
+  public:
+    parser_error(const std::string &mesg) { message = mesg; }
+    const char *what() const noexcept { return message.c_str(); }
+  };
+}
+
 // OFFSET avoids outside-of-box atoms being rounded to grid pts incorrectly
 // SHIFT = 0.0 assigns atoms to lower-left grid pt
 // SHIFT = 0.5 assigns atoms to nearest grid pt

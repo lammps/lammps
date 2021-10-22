@@ -46,6 +46,18 @@ using namespace FixConst;
 static constexpr int OFFSET = 16384;
 static constexpr double SHIFT = 0.0;
 
+// helper class
+
+namespace {
+  class parser_error : public std::exception {
+    std::string message;
+
+  public:
+    parser_error(const std::string &mesg) { message = mesg; }
+    const char *what() const noexcept { return message.c_str(); }
+  };
+}
+
 /* ---------------------------------------------------------------------- */
 
 FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :

@@ -31,7 +31,12 @@ endif()
 
 set(TEST_INPUT_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 add_library(style_tests STATIC yaml_writer.cpp error_stats.cpp test_config_reader.cpp test_main.cpp)
-target_compile_definitions(style_tests PRIVATE -DTEST_INPUT_FOLDER=${TEST_INPUT_FOLDER})
+if(YAML_FOUND)
+  target_compile_definitions(style_tests PRIVATE TEST_INPUT_FOLDER=${TEST_INPUT_FOLDER})
+else()
+  # we always use static linkage with local compiled libyaml
+  target_compile_definitions(style_tests PRIVATE TEST_INPUT_FOLDER=${TEST_INPUT_FOLDER} YAML_DECLARE_STATIC)
+endif()
 target_include_directories(style_tests PRIVATE ${LAMMPS_SOURCE_DIR})
 target_link_libraries(style_tests PUBLIC gmock Yaml::Yaml lammps)
 if(BUILD_MPI)

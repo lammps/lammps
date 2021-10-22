@@ -1047,7 +1047,7 @@ bool lmp_has_compatible_gpu_device()
   UCL_Device gpu;
   bool compatible_gpu = gpu.num_platforms() > 0;
   #if defined(_SINGLE_DOUBLE) || defined(_DOUBLE_DOUBLE)
-  if (!gpu.double_precision(0))
+  if (compatible_gpu && !gpu.double_precision(0))
     compatible_gpu = false;
   #endif
   return compatible_gpu;

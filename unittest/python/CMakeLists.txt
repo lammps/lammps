@@ -21,7 +21,7 @@ else()
 endif()
 
 add_executable(test_python_package test_python_package.cpp)
-target_link_libraries(test_python_package PRIVATE lammps gmock)
+target_link_libraries(test_python_package PRIVATE lammps GTest::GMock)
 target_compile_definitions(test_python_package PRIVATE -DTEST_INPUT_FOLDER=${TEST_INPUT_FOLDER})
 # this requires CMake 3.12. don't care to add backward compatibility for this.
 if(Python3_Development_FOUND)

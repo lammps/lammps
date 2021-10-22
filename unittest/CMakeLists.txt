@@ -13,6 +13,10 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
 include(ExternalCMakeProject)
 ExternalCMakeProject(googletest ${GTEST_URL} ${GTEST_MD5} googletest .)
+add_library(GTest::GTest ALIAS gtest)
+add_library(GTest::GMock ALIAS gmock)
+add_library(GTest::GTestMain ALIAS gtest_main)
+add_library(GTest::GMockMain ALIAS gmock_main)
 
 ########################################
 # General tests using the LAMMPS executable itself

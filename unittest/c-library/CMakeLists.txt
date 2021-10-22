@@ -1,24 +1,24 @@
 
 add_executable(test_library_open test_library_open.cpp test_main.cpp)
-target_link_libraries(test_library_open PRIVATE lammps gmock)
+target_link_libraries(test_library_open PRIVATE lammps GTest::GMock)
 add_test(LibraryOpen test_library_open)
 
 add_executable(test_library_commands test_library_commands.cpp test_main.cpp)
-target_link_libraries(test_library_commands PRIVATE lammps gmock)
+target_link_libraries(test_library_commands PRIVATE lammps GTest::GMock)
 add_test(LibraryCommands test_library_commands)
 
 add_executable(test_library_external test_library_external.cpp test_main.cpp)
-target_link_libraries(test_library_external PRIVATE lammps gmock)
+target_link_libraries(test_library_external PRIVATE lammps GTest::GMock)
 add_test(LibraryExternal test_library_external)
 
 add_executable(test_library_properties test_library_properties.cpp test_main.cpp)
-target_link_libraries(test_library_properties PRIVATE lammps gmock)
+target_link_libraries(test_library_properties PRIVATE lammps GTest::GMock)
 target_compile_definitions(test_library_properties PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
 add_test(LibraryProperties test_library_properties)
 set_tests_properties(LibraryProperties PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
 
 add_executable(test_library_scatter_gather test_library_scatter_gather.cpp test_main.cpp)
-target_link_libraries(test_library_scatter_gather PRIVATE lammps gmock)
+target_link_libraries(test_library_scatter_gather PRIVATE lammps GTest::GMock)
 target_compile_definitions(test_library_scatter_gather PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
 add_test(LibraryScatterGather test_library_scatter_gather)
 set_tests_properties(LibraryScatterGather PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
@@ -63,11 +63,11 @@ foreach(WITH "JPEG" "PNG" "GZIP" "FFMPEG")
 endforeach()
 
 add_executable(test_library_config test_library_config.cpp test_main.cpp)
-target_link_libraries(test_library_config PRIVATE lammps gmock)
+target_link_libraries(test_library_config PRIVATE lammps GTest::GMock)
 target_compile_definitions(test_library_config PRIVATE ${TEST_CONFIG_DEFS})
 add_test(LibraryConfig test_library_config)
 
 add_executable(test_library_mpi test_library_mpi.cpp)
-target_link_libraries(test_library_mpi PRIVATE lammps gmock)
+target_link_libraries(test_library_mpi PRIVATE lammps GTest::GMock)
 target_compile_definitions(test_library_mpi PRIVATE ${TEST_CONFIG_DEFS})
 add_mpi_test(NAME LibraryMPI NUM_PROCS 4 COMMAND $<TARGET_FILE:test_library_mpi>)

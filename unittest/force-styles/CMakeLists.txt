@@ -7,7 +7,7 @@ else()
 endif()
 option(DOWNLOAD_YAML "Download YAML library instead of using an already installed one)" ${DOWNLOAD_YAML_DEFAULT})
 set(YAML_URL "https://github.com/akohlmey/libyaml/archive/refs/heads/new-cmake.tar.gz" CACHE STRING "URL for libyaml tarball")
-set(YAML_MD5 "b45401559221758b7b48d67eecf27077" CACHE STRING "MD5 checksum of libyaml tarball")
+set(YAML_MD5 "1683f5957a79d7a823e09575b0488df2" CACHE STRING "MD5 checksum of libyaml tarball")
 mark_as_advanced(YAML_URL)
 mark_as_advanced(YAML_MD5)
 

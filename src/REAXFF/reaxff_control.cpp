@@ -40,6 +40,15 @@ using LAMMPS_NS::utils::sfgets;
 using LAMMPS_NS::utils::logmesg;
 using LAMMPS_NS::ValueTokenizer;
 
+namespace {
+  class parser_error : public std::exception {
+    std::string message;
+  public:
+    parser_error(const std::string &mesg) { message = mesg; }
+    const char *what() const noexcept { return message.c_str(); }
+  };
+}
+
 namespace ReaxFF {
   static std::unordered_set<std::string> inactive_keywords = {
     "ensemble_type", "nsteps", "dt", "proc_by_dim", "random_vel",
@@ -53,13 +62,6 @@ namespace ReaxFF {
     "freq_diffusion_coef", "restrict_type", "traj_title", "simulation_name",
     "energy_update_freq", "atom_info", "atom_velocities", "atom_forces",
     "bond_info", "angle_info" };
-
-  class parser_error : public std::exception {
-    std::string message;
-  public:
-    parser_error(const std::string &mesg) { message = mesg; }
-    const char *what() const noexcept { return message.c_str(); }
-  };
 
   // NOTE: this function is run on MPI rank 0 only
 

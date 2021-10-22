@@ -41,6 +41,18 @@ static constexpr int MAXLINE = 256;
 static constexpr int CHUNK = 1024;
 static constexpr int OFFSET = 16384;
 
+// helper class
+
+namespace {
+  class parser_error : public std::exception {
+    std::string message;
+
+  public:
+    parser_error(const std::string &mesg) { message = mesg; }
+    const char *what() const noexcept { return message.c_str(); }
+  };
+}
+
 /* ---------------------------------------------------------------------- */
 
 FixTTMGrid::FixTTMGrid(LAMMPS *lmp, int narg, char **arg) :

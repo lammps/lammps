@@ -49,12 +49,14 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-class parser_error : public std::exception {
-  std::string message;
-public:
-  parser_error(const std::string &mesg) { message = mesg; }
-  const char *what() const noexcept { return message.c_str(); }
-};
+namespace {
+  class parser_error : public std::exception {
+    std::string message;
+  public:
+    parser_error(const std::string &mesg) { message = mesg; }
+    const char *what() const noexcept { return message.c_str(); }
+  };
+}
 
 static constexpr double EV_TO_KCAL_PER_MOL = 14.4;
 static constexpr double SMALL = 1.0e-14;

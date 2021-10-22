@@ -43,12 +43,14 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-class parser_error : public std::exception {
-  std::string message;
-public:
-  parser_error(const std::string &mesg) { message = mesg; }
-  const char *what() const noexcept { return message.c_str(); }
-};
+namespace {
+  class parser_error : public std::exception {
+    std::string message;
+  public:
+    parser_error(const std::string &mesg) { message = mesg; }
+    const char *what() const noexcept { return message.c_str(); }
+  };
+}
 
 static const char cite_fix_acks2_reax[] =
   "fix acks2/reaxff command:\n\n"

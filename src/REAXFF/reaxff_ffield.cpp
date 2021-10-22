@@ -41,14 +41,16 @@ using LAMMPS_NS::utils::open_potential;
 using LAMMPS_NS::utils::getsyserror;
 using LAMMPS_NS::utils::uppercase;
 
-namespace ReaxFF {
-
+namespace {
   class parser_error : public std::exception {
     std::string message;
   public:
     parser_error(const std::string &mesg) { message = mesg; }
     const char *what() const noexcept { return message.c_str(); }
   };
+}
+
+namespace ReaxFF {
 
   void Read_Force_Field(const char *filename, reax_interaction *reax,
                         control_params *control, MPI_Comm world)

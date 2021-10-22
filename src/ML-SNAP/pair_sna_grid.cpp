@@ -205,8 +205,8 @@ void PairSNAGrid::settings(int narg, char ** arg)
   
   // process required arguments
 
-  memory->create(radelem,ntypes+1,"sna/grid/local:radelem"); // offset by 1 to match up with types
-  memory->create(wjelem,ntypes+1,"sna/grid/local:wjelem");
+  memory->create(radelem,ntypes+1,"pair:sna/grid:radelem"); // offset by 1 to match up with types
+  memory->create(wjelem,ntypes+1,"pair:sna/grid:wjelem");
 
   rcutfac = atof(arg[0]);
   rfac0 = atof(arg[1]);
@@ -221,7 +221,7 @@ void PairSNAGrid::settings(int narg, char ** arg)
 
   double cut;
   cutmax = 0.0;
-  memory->create(cutsq,ntypes+1,ntypes+1,"sna/grid/local:cutsq");
+  memory->create(cutsq,ntypes+1,ntypes+1,"pair:sna/grid:cutsq");
   for(int i = 1; i <= ntypes; i++) {
     cut = 2.0*radelem[i]*rcutfac;
     if (cut > cutmax) cutmax = cut;
@@ -262,7 +262,7 @@ void PairSNAGrid::settings(int narg, char ** arg)
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal pair sna/grid command");
       chemflag = 1;
-      memory->create(map,ntypes+1,"compute_sna_grid_local:map");
+      memory->create(map,ntypes+1,"pair:sna/grid:map");
       nelements = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       for (int i = 0; i < ntypes; i++) {
         int jelem = utils::inumeric(FLERR,arg[iarg+2+i],false,lmp);

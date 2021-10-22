@@ -67,6 +67,7 @@ void PairGrid::init()
 
 void PairGrid::setup()
 {
+  printf("Hello, world! C\n");  
   deallocate_grid();
   set_grid_global();
   set_grid_local();
@@ -297,9 +298,11 @@ void PairGrid::settings(int narg, char ** arg)
 void PairGrid::coeff(int narg, char **arg)
 {
   if (!allocated) allocate();
-  if (narg != 2 + atom->ntypes) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg != 2) error->all(FLERR,"Incorrect args for pair coefficients");
+ //  if (narg != 2 + atom->ntypes) error->all(FLERR,"Incorrect args for pair coefficients");
 
-  map_element2type(narg-4,arg+4);
+  //  map_element2type(narg-4,arg+4);
+  //  map_element2type(0,nullptr);
 
 }
 
@@ -321,13 +324,13 @@ void PairGrid::init_style()
 }
 
 /* ----------------------------------------------------------------------
-   init for one type pair i,j and corresponding j,i
+   return maximum force cut off distance
 ------------------------------------------------------------------------- */
 
 double PairGrid::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
-  return 0.0;
+  return cutmax;
 }
 
 /* ----------------------------------------------------------------------

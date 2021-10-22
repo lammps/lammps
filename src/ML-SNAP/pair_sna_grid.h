@@ -45,7 +45,6 @@ class PairSNAGrid : public PairGrid {
   int *map;    // map types to [0,nelements)
   int nelements, chemflag;
   class SNA *snaptr;
-  double cutmax;
   int quadraticflag;
 };
 

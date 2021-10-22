@@ -57,7 +57,7 @@ class PairGrid : public Pair {
   int ndesc;                           // number of descriptors
   int ndesc_base;                      // number of columns used for coords, etc.
   int gridlocal_allocated;             // shows if gridlocal allocated
-  double **beta;                      // betas for all local grid points in list
+  double **beta;                       // betas for all local grid points in list
   int beta_max;                        // length of beta
 
   void allocate();                     // allocate pairstyle arrays

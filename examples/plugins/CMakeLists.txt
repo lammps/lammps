@@ -36,6 +36,7 @@ else()
     add_compile_options(/wd4244)
     add_compile_options(/wd4267)
     add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
+  endif()
 endif()
 
 # C++11 is required

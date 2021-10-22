@@ -226,7 +226,8 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
     data.h_resize() = 0;
 
     Kokkos::deep_copy(d_scalars, h_scalars);
-#ifdef LMP_KOKKOS_GPU
+
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
     #define BINS_PER_BLOCK 2
     const int factor = atoms_per_bin<64?2:1;
 #else
@@ -240,7 +241,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
       if (newton_pair) {
         if (SIZE) {
           NPairKokkosBuildFunctorSize<DeviceType,TRI?0:HALF_NEIGH,1,TRI> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
-#if defined(LMP_KOKKOS_GPU) && !defined(KOKKOS_ENABLE_OPENMPTARGET)
+#ifdef LMP_KOKKOS_GPU
           if (ExecutionSpaceFromDevice<DeviceType>::space == Device) {
             int team_size = atoms_per_bin*factor;
             int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
@@ -258,7 +259,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
 #endif
         } else {
           NPairKokkosBuildFunctor<DeviceType,TRI?0:HALF_NEIGH,1,TRI> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
-#if defined(LMP_KOKKOS_GPU) && !defined(KOKKOS_ENABLE_OPENMPTARGET)
+#ifdef LMP_KOKKOS_GPU
           if (ExecutionSpaceFromDevice<DeviceType>::space == Device) {
             int team_size = atoms_per_bin*factor;
             int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
@@ -278,7 +279,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
       } else {
         if (SIZE) {
           NPairKokkosBuildFunctorSize<DeviceType,HALF_NEIGH,0,0> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
-#if defined(LMP_KOKKOS_GPU) && !defined(KOKKOS_ENABLE_OPENMPTARGET)
+#ifdef LMP_KOKKOS_GPU
           if (ExecutionSpaceFromDevice<DeviceType>::space == Device) {
             int team_size = atoms_per_bin*factor;
             int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
@@ -296,7 +297,7 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
 #endif
         } else {
           NPairKokkosBuildFunctor<DeviceType,HALF_NEIGH,0,0> f(data,atoms_per_bin * 5 * sizeof(X_FLOAT) * factor);
-#if defined(LMP_KOKKOS_GPU) && !defined(KOKKOS_ENABLE_OPENMPTARGET)
+#ifdef LMP_KOKKOS_GPU
           if (ExecutionSpaceFromDevice<DeviceType>::space == Device) {
             int team_size = atoms_per_bin*factor;
             int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
@@ -607,7 +608,6 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGPU(typename Kokkos::TeamPolic
   other_id[MY_II] = i;
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
   int test = (__syncthreads_count(i >= 0 && i <= nlocal) == 0);
-
   if (test) return;
 #elif defined(KOKKOS_ENABLE_SYCL)
   int not_done = (i >= 0 && i <= nlocal);
@@ -1059,7 +1059,6 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
     other_id[MY_II] = i;
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
     int test = (__syncthreads_count(i >= 0 && i <= nlocal) == 0);
-
     if (test) return;
 #elif defined(KOKKOS_ENABLE_SYCL)
     int not_done = (i >= 0 && i <= nlocal);

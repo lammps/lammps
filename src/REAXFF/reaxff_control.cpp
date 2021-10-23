@@ -40,15 +40,6 @@ using LAMMPS_NS::utils::sfgets;
 using LAMMPS_NS::utils::logmesg;
 using LAMMPS_NS::ValueTokenizer;
 
-namespace {
-  class parser_error : public std::exception {
-    std::string message;
-  public:
-    parser_error(const std::string &mesg) { message = mesg; }
-    const char *what() const noexcept { return message.c_str(); }
-  };
-}
-
 namespace ReaxFF {
   static std::unordered_set<std::string> inactive_keywords = {
     "ensemble_type", "nsteps", "dt", "proc_by_dim", "random_vel",
@@ -62,6 +53,15 @@ namespace ReaxFF {
     "freq_diffusion_coef", "restrict_type", "traj_title", "simulation_name",
     "energy_update_freq", "atom_info", "atom_velocities", "atom_forces",
     "bond_info", "angle_info" };
+
+  class control_parser_error : public std::exception {
+    std::string message;
+  public:
+    explicit control_parser_error(const std::string &format, const std::string &keyword) {
+      message = fmt::format(format, keyword);
+    }
+    const char *what() const noexcept { return message.c_str(); }
+  };
 
   // NOTE: this function is run on MPI rank 0 only
 
@@ -92,7 +92,7 @@ namespace ReaxFF {
         auto keyword = values.next_string();
 
         if (!values.has_next())
-          throw parser_error(fmt::format("No value(s) for control parameter: {}\n",keyword));
+          throw control_parser_error("No value(s) for control parameter: {}\n", keyword);
 
         if (inactive_keywords.find(keyword) != inactive_keywords.end()) {
           error->warning(FLERR,fmt::format("Ignoring inactive control "
@@ -114,8 +114,7 @@ namespace ReaxFF {
             error->warning(FLERR,"Support for writing native trajectories has "
                            "been removed after LAMMPS version 8 April 2021");
         } else {
-          throw parser_error(fmt::format("Unknown parameter {} in "
-                                         "control file", keyword));
+          throw control_parser_error("Unknown parameter {} in control file", keyword);
         }
       }
     } catch (LAMMPS_NS::EOFException &) {

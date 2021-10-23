@@ -41,18 +41,6 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-// helper class
-
-namespace {
-  class parser_error : public std::exception {
-    std::string message;
-
-  public:
-    parser_error(const std::string &mesg) { message = mesg; }
-    const char *what() const noexcept { return message.c_str(); }
-  };
-}
-
 // OFFSET avoids outside-of-box atoms being rounded to grid pts incorrectly
 // SHIFT = 0.0 assigns atoms to lower-left grid pt
 // SHIFT = 0.5 assigns atoms to nearest grid pt
@@ -596,10 +584,10 @@ void FixTTMMod::read_electron_temperatures(const std::string &filename)
         // check correctness of input data
 
         if ((ix < 0) || (ix >= nxgrid) || (iy < 0) || (iy >= nygrid) || (iz < 0) || (iz >= nzgrid))
-          throw parser_error("Fix ttm invalid grid index in fix ttm/mod grid file");
+          throw TokenizerException("Fix ttm invalid grid index in fix ttm/mod grid file","");
 
         if (T_tmp < 0.0)
-          throw parser_error("Fix ttm electron temperatures must be > 0.0");
+          throw TokenizerException("Fix ttm electron temperatures must be > 0.0","");
 
         T_electron[iz][iy][ix] = T_tmp;
         T_initial_set[iz][iy][ix] = 1;

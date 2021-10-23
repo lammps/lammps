@@ -60,7 +60,7 @@ class TokenizerException : public std::exception {
    *
    * \param  msg    String with error message
    * \param  token  String of the token/word that caused the error */
-  TokenizerException(const std::string &msg, const std::string &token);
+  explicit TokenizerException(const std::string &msg, const std::string &token);
 
   ~TokenizerException() noexcept {}
 
@@ -74,7 +74,7 @@ class InvalidIntegerException : public TokenizerException {
   /** Thrown during converting string to integer number
    *
    * \param  token  String of the token/word that caused the error */
-  InvalidIntegerException(const std::string &token) :
+  explicit InvalidIntegerException(const std::string &token) :
       TokenizerException("Not a valid integer number", token)
   {
   }
@@ -85,7 +85,7 @@ class InvalidFloatException : public TokenizerException {
   /** Thrown during converting string to floating point number
    *
    * \param  token  String of the token/word that caused the error */
-  InvalidFloatException(const std::string &token) :
+  explicit InvalidFloatException(const std::string &token) :
       TokenizerException("Not a valid floating-point number", token)
   {
   }

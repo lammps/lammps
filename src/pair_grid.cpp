@@ -59,20 +59,19 @@ PairGrid::~PairGrid()
 
 /* ---------------------------------------------------------------------- */
 
-void PairGrid::init()
-{
-}
-
-/* ---------------------------------------------------------------------- */
-
 void PairGrid::setup()
 {
   printf("Hello, world! C\n");  
   deallocate_grid();
+  printf("Hello, world! D\n");  
   set_grid_global();
+  printf("Hello, world! E\n");  
   set_grid_local();
+  printf("Hello, world! F\n");  
   allocate_grid();
+  printf("Hello, world! G\n");  
   assign_coords();
+  printf("Hello, world! H\n");  
 }
 
 /* ----------------------------------------------------------------------
@@ -96,6 +95,7 @@ void PairGrid::allocate_grid()
 {
   if (nxlo <= nxhi && nylo <= nyhi && nzlo <= nzhi) {
     gridlocal_allocated = 1;
+    printf("ngridlocal = %d ndesc = %d\n",ngridlocal, ndesc);
     memory->create4d_offset(gridlocal,ndesc,nzlo,nzhi,nylo,nyhi,
 			    nxlo,nxhi,"pair/grid:gridlocal");
     memory->create(alocal, ngridlocal, ndesc, "pair/grid:alocal");
@@ -209,6 +209,7 @@ void PairGrid::set_grid_local()
 
 void PairGrid::assign_coords()
 {
+  printf("nxhi/lo = %d %d nyhi/lo = %d %d  nzhi/lo = %d %d\n",nxlo,nxhi,nylo,nyhi,nzlo,nzhi);
   int igrid = 0;
   for (int iz = nzlo; iz <= nzhi; iz++)
     for (int iy = nylo; iy <= nyhi; iy++)
@@ -266,6 +267,10 @@ void PairGrid::allocate()
   allocated = 1;
   int n = atom->ntypes;
   memory->create(setflag,n+1,n+1,"pair:setflag");
+  for (int i = 1; i <= n; i++)
+    for (int j = i; j <= n; j++)
+      setflag[i][j] = 0;
+
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
   map = new int[n+1];
 }
@@ -298,28 +303,11 @@ void PairGrid::settings(int narg, char ** arg)
 void PairGrid::coeff(int narg, char **arg)
 {
   if (!allocated) allocate();
-  if (narg != 2) error->all(FLERR,"Incorrect args for pair coefficients");
+  if (narg < 2) error->all(FLERR,"Incorrect args for pair coefficients");
  //  if (narg != 2 + atom->ntypes) error->all(FLERR,"Incorrect args for pair coefficients");
 
-  //  map_element2type(narg-4,arg+4);
+  map_element2type(narg-2,arg+2);
   //  map_element2type(0,nullptr);
-
-}
-
-/* ----------------------------------------------------------------------
-   init specific to this pair style
-------------------------------------------------------------------------- */
-
-void PairGrid::init_style()
-{
-  if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style grid requires newton pair on");
-
-  // no neighbor list
-
-  // int irequest = neighbor->request(this,instance_me);
-  // neighbor->requests[irequest]->half = 0;
-  // neighbor->requests[irequest]->full = 1;
 
 }
 
@@ -329,7 +317,9 @@ void PairGrid::init_style()
 
 double PairGrid::init_one(int i, int j)
 {
+  printf("i = %d j = %d setflag = %d\n", i, j, setflag[i][j]);
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
+  printf("PairGrid cutmax = %g\n",cutmax);
   return cutmax;
 }
 

@@ -56,6 +56,6 @@ pair_style sna/grid grid ${ngrid} ${ngrid} ${ngrid} &
 	${rcutfac} ${rfac0} ${twojmax} ${radelem} &
 	${wj} rmin0 ${rmin0} bzeroflag ${bzero} &
 	quadraticflag ${quad} switchflag ${switch}
-pair_coeff * *
+pair_coeff * * Al
 
 run 0

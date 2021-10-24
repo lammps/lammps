@@ -29,7 +29,7 @@ class PairSNAGrid : public PairGrid {
   PairSNAGrid(class LAMMPS *);
   ~PairSNAGrid();
 
-  void init();
+  void init_style();
   void init_list(int, class NeighList *);
   void settings(int, char **);
   void compute(int, int);
@@ -43,9 +43,12 @@ class PairSNAGrid : public PairGrid {
   double *radelem;
   double *wjelem;
   int *map;    // map types to [0,nelements)
-  int nelements, chemflag;
+  int nelements;
   class SNA *snaptr;
   int quadraticflag;
+  int twojmax, switchflag, bzeroflag, bnormflag;
+  int chemflag, wselfallflag;
+  double rfac0, rmin0;
 };
 
 }

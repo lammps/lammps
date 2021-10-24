@@ -53,13 +53,10 @@ PairSNAGrid::~PairSNAGrid()
 
 /* ---------------------------------------------------------------------- */
 
-void PairSNAGrid::init()
+void PairSNAGrid::init_style()
 {
   if (force->pair == nullptr)
     error->all(FLERR,"Pair sna/grid requires a pair style be defined");
-
-  if (cutmax > force->pair->cutforce)
-    error->all(FLERR,"Pair sna/grid cutoff is longer than pairwise cutoff");
 
   // need an occasional full neighbor list
 
@@ -70,7 +67,13 @@ void PairSNAGrid::init()
   neighbor->requests[irequest]->full = 1;
   neighbor->requests[irequest]->occasional = 1;
 
+  snaptr = new SNA(lmp, rfac0, twojmax,
+                   rmin0, switchflag, bzeroflag,
+                   chemflag, bnormflag, wselfallflag, nelements);  
+  ndesc = ndesc_base + snaptr->ncoeff;
+  printf("ndesc = %d\n", ndesc);
   snaptr->init();
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -173,8 +176,6 @@ void PairSNAGrid::compute(int eflag, int vflag)
 
 void PairSNAGrid::settings(int narg, char ** arg)
 {
-  double rfac0, rmin0;
-  int twojmax, switchflag, bzeroflag, bnormflag, wselfallflag;
 
   // call base class first
 
@@ -232,6 +233,8 @@ void PairSNAGrid::settings(int narg, char ** arg)
     }
   }
 
+  printf("settings cutmax = %g \n",cutmax);
+  
   // process optional args
 
   int iarg = nargmin;

@@ -28,7 +28,7 @@ class PairGrid : public Pair {
  public:
   PairGrid(class LAMMPS *);
   virtual ~PairGrid();
-  void init();
+  virtual void init_style(){};
   void setup();
   virtual void compute(int, int) {
     printf("DANGER! This function should always be overridden by child\n");
@@ -36,7 +36,6 @@ class PairGrid : public Pair {
 
   void settings(int, char **);
   virtual void coeff(int, char **);
-  virtual void init_style();
   virtual double init_one(int, int);
   double memory_usage();
   

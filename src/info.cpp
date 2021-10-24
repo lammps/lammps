@@ -906,10 +906,8 @@ bool Info::is_defined(const char *category, const char *name)
         return true;
     }
   } else if (strcmp(category,"fix") == 0) {
-    int nfix = modify->nfix;
-    Fix **fix = modify->fix;
-    for (int i=0; i < nfix; ++i) {
-      if (strcmp(fix[i]->id,name) == 0)
+    for (auto fix : modify->get_fix_list()) {
+      if (strcmp(fix->id,name) == 0)
         return true;
     }
   } else if (strcmp(category,"group") == 0) {

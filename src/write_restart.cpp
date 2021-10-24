@@ -413,9 +413,9 @@ void WriteRestart::write(const std::string &file)
 
   // invoke any fixes that write their own restart file
 
-  for (int ifix = 0; ifix < modify->nfix; ifix++)
-    if (modify->fix[ifix]->restart_file)
-      modify->fix[ifix]->write_restart_file(file.c_str());
+  for (auto fix : modify->get_fix_list())
+    if (fix->restart_file)
+      fix->write_restart_file(file.c_str());
 }
 
 /* ----------------------------------------------------------------------

@@ -201,8 +201,9 @@ void Comm::init()
   if (ghost_velocity) size_forward += atom->avec->size_velocity;
   if (ghost_velocity) size_border += atom->avec->size_velocity;
 
-  for (int i = 0; i < modify->nfix; i++)
-    size_border += modify->fix[i]->comm_border;
+  const auto &fix_list = modify->get_fix_list();
+  for (auto fix : fix_list)
+    size_border += fix->comm_border;
 
   // per-atom limits for communication
   // maxexchange = max # of datums in exchange comm, set in exchange()
@@ -217,9 +218,9 @@ void Comm::init()
   if (force->pair) maxforward = MAX(maxforward,force->pair->comm_forward);
   if (force->pair) maxreverse = MAX(maxreverse,force->pair->comm_reverse);
 
-  for (int i = 0; i < modify->nfix; i++) {
-    maxforward = MAX(maxforward,modify->fix[i]->comm_forward);
-    maxreverse = MAX(maxreverse,modify->fix[i]->comm_reverse);
+  for (auto fix : fix_list) {
+    maxforward = MAX(maxforward,fix->comm_forward);
+    maxreverse = MAX(maxreverse,fix->comm_reverse);
   }
 
   for (int i = 0; i < modify->ncompute; i++) {
@@ -241,12 +242,9 @@ void Comm::init()
 
   maxexchange_atom = atom->avec->maxexchange;
 
-  int nfix = modify->nfix;
-  Fix **fix = modify->fix;
-
   maxexchange_fix_dynamic = 0;
-  for (int i = 0; i < nfix; i++)
-    if (fix[i]->maxexchange_dynamic) maxexchange_fix_dynamic = 1;
+  for (auto fix : fix_list)
+    if (fix->maxexchange_dynamic) maxexchange_fix_dynamic = 1;
 
   if ((mode == Comm::MULTI) && (neighbor->style != Neighbor::MULTI))
     error->all(FLERR,"Cannot use comm mode multi without multi-style neighbor lists");
@@ -267,12 +265,9 @@ void Comm::init()
 
 void Comm::init_exchange()
 {
-  int nfix = modify->nfix;
-  Fix **fix = modify->fix;
-
   maxexchange_fix = 0;
-  for (int i = 0; i < nfix; i++)
-    maxexchange_fix += fix[i]->maxexchange;
+  for (auto fix : modify->get_fix_list())
+    maxexchange_fix += fix->maxexchange;
 
   maxexchange = maxexchange_atom + maxexchange_fix;
   bufextra = maxexchange + BUFEXTRA;

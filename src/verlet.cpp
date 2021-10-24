@@ -22,6 +22,7 @@
 #include "dihedral.h"
 #include "domain.h"
 #include "error.h"
+#include "fix.h"
 #include "force.h"
 #include "improper.h"
 #include "kspace.h"
@@ -49,10 +50,14 @@ void Verlet::init()
 {
   Integrate::init();
 
-  // warn if no fixes
+  // warn if no fixes doing time integration
 
-  if (modify->nfix == 0 && comm->me == 0)
-    error->warning(FLERR,"No fixes defined, atoms won't move");
+  bool do_time_integrate = false;
+  for (auto fix : modify->get_fix_list())
+    if (fix->time_integrate) do_time_integrate;
+
+  if (!do_time_integrate && (comm->me == 0))
+    error->warning(FLERR,"No fixes with time integration, atoms won't move");
 
   // virial_style:
   // VIRIAL_PAIR if computed explicitly in pair via sum over pair interactions

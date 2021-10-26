@@ -8,12 +8,13 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+#include "ptm_convex_hull_incremental.h"
+#include "ptm_constants.h"
+
 #include <cmath>
 #include <cfloat>
 #include <cstring>
 #include <cassert>
-#include "ptm_convex_hull_incremental.h"
-#include "ptm_constants.h"
 
 namespace ptm {
 
@@ -252,19 +253,18 @@ static int initialize_convex_hull(int num_points, const double (*points)[3], int
 
 int get_convex_hull(int num_points, const double (*points)[3], convexhull_t* ch, int8_t simplex[][3])
 {
-        assert(        num_points == PTM_NUM_POINTS_FCC
-                || num_points == PTM_NUM_POINTS_HCP
-                || num_points == PTM_NUM_POINTS_BCC
-                || num_points == PTM_NUM_POINTS_ICO
-                || num_points == PTM_NUM_POINTS_SC
-                || num_points == PTM_NUM_POINTS_DCUB
-                || num_points == PTM_NUM_POINTS_DHEX);
+        assert(num_points == PTM_NUM_POINTS_FCC
+               || num_points == PTM_NUM_POINTS_HCP
+               || num_points == PTM_NUM_POINTS_BCC
+               || num_points == PTM_NUM_POINTS_ICO
+               || num_points == PTM_NUM_POINTS_SC
+               || num_points == PTM_NUM_POINTS_DCUB
+               || num_points == PTM_NUM_POINTS_DHEX);
 
         int ret = 0;
         int num_prev = ch->num_prev;
         ch->num_prev = num_points;
-        if (!ch->ok || false)
-        {
+        if (!ch->ok) {
                 ret = initialize_convex_hull(num_points, points, ch->facets, ch->plane_normal, ch->processed, ch->initial_vertices, ch->barycentre);
                 if (ret != 0)
                         return ret;
@@ -273,8 +273,7 @@ int get_convex_hull(int num_points, const double (*points)[3], convexhull_t* ch,
                 num_prev = 0;
         }
 
-        for (int i = num_prev;i<num_points;i++)
-        {
+        for (int i = num_prev;i<num_points;i++) {
                 if (ch->processed[i])
                         continue;
                 ch->processed[i] = true;

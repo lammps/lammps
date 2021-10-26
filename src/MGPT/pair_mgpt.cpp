@@ -191,24 +191,24 @@ static inline double mtrace(int n,double A[8][8],double B[8][8]) {
 
 void PairMGPT::make_triplet(bond_data *ij_bond,bond_data *ik_bond,
                              triplet_data *triptr) {
-  if (true) {
-    const trmul_fun tr_mul = linalg.tr_mul;
-    tr_mul(&(ij_bond->H.m[1][0]), &(ik_bond->H.m[1][0]) ,&(triptr->H1H2.m[1][0]) );
-    tr_mul(&(ij_bond->Hx.m[1][0]),&(ik_bond->H.m[1][0]) ,&(triptr->H1xH2.m[1][0]));
-    tr_mul(&(ij_bond->Hy.m[1][0]),&(ik_bond->H.m[1][0]) ,&(triptr->H1yH2.m[1][0]));
-    tr_mul(&(ij_bond->Hz.m[1][0]),&(ik_bond->H.m[1][0]) ,&(triptr->H1zH2.m[1][0]));
-    tr_mul(&(ij_bond->H.m[1][0]) ,&(ik_bond->Hx.m[1][0]),&(triptr->H1H2x.m[1][0]));
-    tr_mul(&(ij_bond->H.m[1][0]) ,&(ik_bond->Hy.m[1][0]),&(triptr->H1H2y.m[1][0]));
-    tr_mul(&(ij_bond->H.m[1][0]) ,&(ik_bond->Hz.m[1][0]),&(triptr->H1H2z.m[1][0]));
-  } else {
-    transprod(ij_bond->H, ik_bond->H ,triptr->H1H2 );
-    transprod(ij_bond->Hx,ik_bond->H ,triptr->H1xH2);
-    transprod(ij_bond->Hy,ik_bond->H ,triptr->H1yH2);
-    transprod(ij_bond->Hz,ik_bond->H ,triptr->H1zH2);
-    transprod(ij_bond->H ,ik_bond->Hx,triptr->H1H2x);
-    transprod(ij_bond->H ,ik_bond->Hy,triptr->H1H2y);
-    transprod(ij_bond->H ,ik_bond->Hz,triptr->H1H2z);
-  }
+#if 1
+  const trmul_fun tr_mul = linalg.tr_mul;
+  tr_mul(&(ij_bond->H.m[1][0]), &(ik_bond->H.m[1][0]) ,&(triptr->H1H2.m[1][0]) );
+  tr_mul(&(ij_bond->Hx.m[1][0]),&(ik_bond->H.m[1][0]) ,&(triptr->H1xH2.m[1][0]));
+  tr_mul(&(ij_bond->Hy.m[1][0]),&(ik_bond->H.m[1][0]) ,&(triptr->H1yH2.m[1][0]));
+  tr_mul(&(ij_bond->Hz.m[1][0]),&(ik_bond->H.m[1][0]) ,&(triptr->H1zH2.m[1][0]));
+  tr_mul(&(ij_bond->H.m[1][0]) ,&(ik_bond->Hx.m[1][0]),&(triptr->H1H2x.m[1][0]));
+  tr_mul(&(ij_bond->H.m[1][0]) ,&(ik_bond->Hy.m[1][0]),&(triptr->H1H2y.m[1][0]));
+  tr_mul(&(ij_bond->H.m[1][0]) ,&(ik_bond->Hz.m[1][0]),&(triptr->H1H2z.m[1][0]));
+#else
+  transprod(ij_bond->H, ik_bond->H ,triptr->H1H2 );
+  transprod(ij_bond->Hx,ik_bond->H ,triptr->H1xH2);
+  transprod(ij_bond->Hy,ik_bond->H ,triptr->H1yH2);
+  transprod(ij_bond->Hz,ik_bond->H ,triptr->H1zH2);
+  transprod(ij_bond->H ,ik_bond->Hx,triptr->H1H2x);
+  transprod(ij_bond->H ,ik_bond->Hy,triptr->H1H2y);
+  transprod(ij_bond->H ,ik_bond->Hz,triptr->H1H2z);
+#endif
 }
 
 static double t_make_t = 0.0,t_make_b = 0.0,n_make = 0.0;

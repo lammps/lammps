@@ -192,35 +192,11 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
   
-  // loop over all local atoms, handle calculation of local reference frame 
-  
-  if (atom->lrefpos_flag < atom->nmax) {  
-	for (in = 0; in < atom->nlocal; in++) {
-	 
-	  int n = alist[in];
-	 
-	  double *qn,nx_temp[3],ny_temp[3],nz_temp[3]; // quaternion and Cartesian unit vectors in lab frame 
-	  qn=bonus[ellipsoid[n]].quat;
-      MathExtra::q_to_exyz(qn,nx_temp,ny_temp,nz_temp);
-	  
- 	  nx[n][0] = nx_temp[0];
-	  nx[n][1] = nx_temp[1];
-	  nx[n][2] = nx_temp[2];
-	  ny[n][0] = ny_temp[0];
-	  ny[n][1] = ny_temp[1];
-	  ny[n][2] = ny_temp[2];
-	  nz[n][0] = nz_temp[0];
-	  nz[n][1] = nz_temp[1];
-	  nz[n][2] = nz_temp[2];
-	  
-	  //printf("\n In top:	nx[0] = %f, nx[1] = %f, nx[2] = %f, id = %d", nx[n][0], nx[n][1], nx[n][2], atom->tag[n]); 
-	  
-	  atom->lrefpos_flag += 1;
-	}
-  }
- 
-  //if (newton_pair) comm->reverse_comm_pair(this);
-  comm->forward_comm_pair(this);
+  // n(x/y/z)_xtrct = extracted q_to_exyz from oxdna_excv 
+  int dim;
+  nx_xtrct = (double **) force->pair->extract("nx",dim);
+  ny_xtrct = (double **) force->pair->extract("ny",dim);
+  nz_xtrct = (double **) force->pair->extract("nz",dim);
 
   // loop over pair interaction neighbors of my atoms
 
@@ -231,11 +207,11 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
 
     //printf("\n In A loop:	nx[0] = %f, nx[1] = %f, nx[2] = %f, id = %d", nx[a][0], nx[a][1], nx[a][2], atom->tag[a]); 
 
-    ax[0] = nx[a][0];
-	ax[1] = nx[a][1];
-	ax[2] = nx[a][2];
+    ax[0] = nx_xtrct[a][0];
+	  ax[1] = nx_xtrct[a][1];
+	  ax[2] = nx_xtrct[a][2];
 	  
-	ra_chb[0] = d_chb*ax[0];
+	  ra_chb[0] = d_chb*ax[0];
     ra_chb[1] = d_chb*ax[1];
     ra_chb[2] = d_chb*ax[2];
 	
@@ -252,11 +228,11 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
 
       btype = type[b];
 
-	  bx[0] = nx[b][0];
-	  bx[1] = nx[b][1];
-	  bx[2] = nx[b][2];
+	    bx[0] = nx_xtrct[b][0];
+	    bx[1] = nx_xtrct[b][1];
+	    bx[2] = nx_xtrct[b][2];
 		
-	  rb_chb[0] = d_chb*bx[0];
+	    rb_chb[0] = d_chb*bx[0];
       rb_chb[1] = d_chb*bx[1];
       rb_chb[2] = d_chb*bx[2];
 	  
@@ -315,15 +291,15 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
       // early rejection criterium
       if (f4t3) {
 		  
-	  double az[3];
-	  double bz[3];	  
+	    double az[3];
+	    double bz[3];	  
 		  
-	  az[0] = nz[a][0];
-	  az[1] = nz[a][1];
-	  az[2] = nz[a][2];
-	  bz[0] = nz[b][0];
-	  bz[1] = nz[b][1];
-	  bz[2] = nz[b][2];
+	    az[0] = nz_xtrct[a][0];
+	    az[1] = nz_xtrct[a][1];
+	    az[2] = nz_xtrct[a][2];
+	    bz[0] = nz_xtrct[b][0];
+  	  bz[1] = nz_xtrct[b][1];
+  	  bz[2] = nz_xtrct[b][2];
 
       cost4 = MathExtra::dot3(az,bz);
       if (cost4 >  1.0) cost4 =  1.0;

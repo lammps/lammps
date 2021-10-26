@@ -106,6 +106,8 @@ PairOxdnaCoaxstk::~PairOxdnaCoaxstk()
 
 void PairOxdnaCoaxstk::compute(int eflag, int vflag)
 {
+	
+  //printf("\n Coaxstk HERE, proc = %d \n", comm->me);	
 
   double delf[3],delt[3],delta[3],deltb[3]; // force, torque increment;
   double evdwl,fpair,finc,tpair,factor_lj;

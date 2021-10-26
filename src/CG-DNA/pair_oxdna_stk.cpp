@@ -214,6 +214,8 @@ void PairOxdnaStk::ev_tally_xyz(int i, int j, int nlocal, int newton_bond,
 
 void PairOxdnaStk::compute(int eflag, int vflag)
 {
+	
+  //printf("\n Stk HERE, proc = %d \n", comm->me);	
 
   double delf[3],delta[3],deltb[3]; // force, torque increment;
   double evdwl,fpair,finc,tpair;

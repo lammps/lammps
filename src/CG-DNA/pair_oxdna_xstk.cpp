@@ -112,6 +112,8 @@ PairOxdnaXstk::~PairOxdnaXstk()
 void PairOxdnaXstk::compute(int eflag, int vflag)
 {
 
+  //printf("\n Xstk HERE, proc = %d \n", comm->me);	
+
   double delf[3],delta[3],deltb[3]; // force, torque increment;
   double evdwl,fpair,finc,tpair,factor_lj;
   double delr_hb[3],delr_hb_norm[3],rsq_hb,r_hb,rinv_hb;

@@ -41,6 +41,9 @@ class PairOxdnaExcv : public Pair {
   void write_data(FILE *);
   void write_data_all(FILE *);
   void *extract(const char *, int &);
+  
+  virtual int pack_forward_comm(int, int *, double *, int, int *);
+  virtual void unpack_forward_comm(int, int, double *);
 
  protected:
   // s=sugar-phosphate backbone site, b=base site, st=stacking site
@@ -52,6 +55,9 @@ class PairOxdnaExcv : public Pair {
   double **lj1_sb, **lj2_sb, **b_sb, **cut_sb_c, **cutsq_sb_c;
   double **epsilon_bb, **sigma_bb, **cut_bb_ast, **cutsq_bb_ast;
   double **lj1_bb, **lj2_bb, **b_bb, **cut_bb_c, **cutsq_bb_c;
+  
+  // per-atom arrays for q_to_exyz storage
+  double **nx, **ny, **nz;
 
   virtual void allocate();
 };

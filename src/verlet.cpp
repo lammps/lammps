@@ -53,7 +53,7 @@ void Verlet::init()
   // warn if no fixes doing time integration
 
   bool do_time_integrate = false;
-  for (auto fix : modify->get_fix_list())
+  for (const auto &fix : modify->get_fix_list())
     if (fix->time_integrate) do_time_integrate;
 
   if (!do_time_integrate && (comm->me == 0))

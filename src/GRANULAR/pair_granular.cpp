@@ -1160,12 +1160,12 @@ void PairGranular::init_style()
   int itype;
   for (i = 1; i <= atom->ntypes; i++) {
     onerad_dynamic[i] = onerad_frozen[i] = 0.0;
-    for (auto ipour : pours) {
+    for (auto &ipour : pours) {
       itype = i;
       double maxrad = *((double *) ipour->extract("radius", itype));
       if (maxrad > 0.0) onerad_dynamic[i] = maxrad;
     }
-    for (auto idep : deps) {
+    for (auto &idep : deps) {
       itype = i;
       double maxrad = *((double *) idep->extract("radius", itype));
       if (maxrad > 0.0) onerad_dynamic[i] = maxrad;

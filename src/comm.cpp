@@ -202,7 +202,7 @@ void Comm::init()
   if (ghost_velocity) size_border += atom->avec->size_velocity;
 
   const auto &fix_list = modify->get_fix_list();
-  for (auto fix : fix_list)
+  for (const auto &fix : fix_list)
     size_border += fix->comm_border;
 
   // per-atom limits for communication
@@ -218,7 +218,7 @@ void Comm::init()
   if (force->pair) maxforward = MAX(maxforward,force->pair->comm_forward);
   if (force->pair) maxreverse = MAX(maxreverse,force->pair->comm_reverse);
 
-  for (auto fix : fix_list) {
+  for (const auto &fix : fix_list) {
     maxforward = MAX(maxforward,fix->comm_forward);
     maxreverse = MAX(maxreverse,fix->comm_reverse);
   }
@@ -243,7 +243,7 @@ void Comm::init()
   maxexchange_atom = atom->avec->maxexchange;
 
   maxexchange_fix_dynamic = 0;
-  for (auto fix : fix_list)
+  for (const auto &fix : fix_list)
     if (fix->maxexchange_dynamic) maxexchange_fix_dynamic = 1;
 
   if ((mode == Comm::MULTI) && (neighbor->style != Neighbor::MULTI))
@@ -266,7 +266,7 @@ void Comm::init()
 void Comm::init_exchange()
 {
   maxexchange_fix = 0;
-  for (auto fix : modify->get_fix_list())
+  for (const auto &fix : modify->get_fix_list())
     maxexchange_fix += fix->maxexchange;
 
   maxexchange = maxexchange_atom + maxexchange_fix;

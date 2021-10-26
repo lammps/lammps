@@ -569,7 +569,7 @@ void Info::command(int narg, char **arg)
     int i = 0;
     char **names = group->names;
     fputs("\nCompute information:\n",out);
-    for (auto compute : modify->get_compute_list())
+    for (const auto &compute : modify->get_compute_list())
       fmt::print(out,"Compute[{:3d}]:  {:16}  style = {:16}  group = {}\n", i++,
                  std::string(compute->id)+',',std::string(compute->style)+',',
                  names[compute->igroup]);
@@ -598,7 +598,7 @@ void Info::command(int narg, char **arg)
     int i = 0;
     char **names = group->names;
     fputs("\nFix information:\n",out);
-    for (auto fix : modify->get_fix_list())
+    for (const auto &fix : modify->get_fix_list())
       fmt::print(out, "Fix[{:3d}]:      {:16}  style = {:16}  group = {}\n",i++,
                  std::string(fix->id)+',',std::string(fix->style)+',',names[fix->igroup]);
   }
@@ -906,7 +906,7 @@ bool Info::is_defined(const char *category, const char *name)
         return true;
     }
   } else if (strcmp(category,"fix") == 0) {
-    for (auto fix : modify->get_fix_list()) {
+    for (const auto &fix : modify->get_fix_list()) {
       if (strcmp(fix->id,name) == 0)
         return true;
     }
@@ -1011,7 +1011,7 @@ static std::vector<std::string> get_style_names(std::map<std::string, ValueType>
   std::vector<std::string> names;
 
   names.reserve(styles->size());
-  for (auto const& kv : *styles) {
+  for (auto const &kv : *styles) {
     // skip "secret" styles
     if (isupper(kv.first[0])) continue;
     names.push_back(kv.first);

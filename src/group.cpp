@@ -105,7 +105,7 @@ void Group::assign(int narg, char **arg)
     int igroup = find(arg[0]);
     if (igroup == -1) error->all(FLERR,"Could not find group delete group ID");
     if (igroup == 0) error->all(FLERR,"Cannot delete group all");
-    for (auto fix : modify->get_fix_list())
+    for (const auto &fix : modify->get_fix_list())
       if (fix->igroup == igroup)
         error->all(FLERR,"Cannot delete group currently used by a fix");
     for (i = 0; i < modify->ncompute; i++)

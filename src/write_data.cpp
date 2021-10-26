@@ -213,7 +213,7 @@ void WriteData::write(const std::string &file)
   // extra sections managed by fixes
 
   if (fixflag)
-    for (auto ifix : modify->get_fix_list())
+    for (auto &ifix : modify->get_fix_list())
       if (ifix->wd_section)
         for (int m = 0; m < ifix->wd_section; m++) fix(ifix,m);
 
@@ -267,7 +267,7 @@ void WriteData::header()
   // fix info
 
   if (fixflag)
-    for (auto ifix : modify->get_fix_list())
+    for (auto &ifix : modify->get_fix_list())
       if (ifix->wd_header)
         for (int m = 0; m < ifix->wd_header; m++)
           ifix->write_data_header(fp,m);

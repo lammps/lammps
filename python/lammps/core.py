@@ -1361,7 +1361,7 @@ class lammps(object):
     This function is a wrapper around the :cpp:func:`lammps_create_atoms`
     function of the C-library interface, and the behavior is similar except
     that the *v*, *image*, and *shrinkexceed* arguments are optional and
-    default to *None*, *None*, and *False*, respectively. With none being
+    default to *None*, *None*, and *False*, respectively. With *None* being
     equivalent to a ``NULL`` pointer in C.
 
     The lists of coordinates, types, atom IDs, velocities, image flags can
@@ -1389,7 +1389,7 @@ class lammps(object):
     :return: number of atoms created. 0 if insufficient or invalid data
     :rtype: int
     """
-    if id:
+    if id != None:
       id_lmp = (self.c_tagint*n)()
       try:
         id_lmp[:] = id[0:n]
@@ -1411,7 +1411,7 @@ class lammps(object):
     except ValueError:
       return 0
 
-    if v:
+    if v != None:
       v_lmp = (c_double*(three_n))()
       try:
         v_lmp[:] = v[0:three_n]
@@ -1420,7 +1420,7 @@ class lammps(object):
     else:
       v_lmp = None
 
-    if image:
+    if image != None:
       img_lmp = (self.c_imageint*n)()
       try:
         img_lmp[:] = image[0:n]

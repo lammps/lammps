@@ -99,7 +99,7 @@ class lammps(object):
     # load a shared object.
 
     try:
-      if ptr: self.lib = CDLL("",RTLD_GLOBAL)
+      if ptr is not None: self.lib = CDLL("",RTLD_GLOBAL)
     except OSError:
       self.lib = None
 
@@ -329,7 +329,7 @@ class lammps(object):
     #   ptr is the desired instance of LAMMPS
     #   just convert it to ctypes ptr and store in self.lmp
 
-    if not ptr:
+    if ptr is None:
 
       # with mpi4py v2+, we can pass MPI communicators to LAMMPS
       # need to adjust for type of MPI communicator object
@@ -338,7 +338,7 @@ class lammps(object):
         from mpi4py import MPI
         self.MPI = MPI
 
-      if comm:
+      if comm is not None:
         if not self.has_mpi_support:
           raise Exception('LAMMPS not compiled with real MPI library')
         if not self.has_mpi4py:
@@ -354,7 +354,7 @@ class lammps(object):
 
         narg = 0
         cargs = None
-        if cmdargs:
+        if cmdargs is not None:
           cmdargs.insert(0,"lammps")
           narg = len(cmdargs)
           for i in range(narg):
@@ -376,7 +376,7 @@ class lammps(object):
         if self.has_mpi4py and self.has_mpi_support:
           self.comm = self.MPI.COMM_WORLD
         self.opened = 1
-        if cmdargs:
+        if cmdargs is not None:
           cmdargs.insert(0,"lammps")
           narg = len(cmdargs)
           for i in range(narg):

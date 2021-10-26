@@ -1389,7 +1389,7 @@ class lammps(object):
     :return: number of atoms created. 0 if insufficient or invalid data
     :rtype: int
     """
-    if id != None:
+    if id is not None:
       id_lmp = (self.c_tagint*n)()
       try:
         id_lmp[:] = id[0:n]
@@ -1411,7 +1411,7 @@ class lammps(object):
     except ValueError:
       return 0
 
-    if v != None:
+    if v is not None:
       v_lmp = (c_double*(three_n))()
       try:
         v_lmp[:] = v[0:three_n]
@@ -1420,7 +1420,7 @@ class lammps(object):
     else:
       v_lmp = None
 
-    if image != None:
+    if image is not None:
       img_lmp = (self.c_imageint*n)()
       try:
         img_lmp[:] = image[0:n]

@@ -517,7 +517,7 @@ void PairMEAM::read_user_meam_file(const std::string &userfile)
   char * line = nullptr;
   char buffer[MAXLINE];
 
-  while (1) {
+  while (true) {
     int which;
     int nindex, index[3];
     double value;

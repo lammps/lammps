@@ -640,7 +640,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
   }
 
   eof = 0;
-  while (1) {
+  while (true) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fpparam);
       if (ptr == nullptr) {

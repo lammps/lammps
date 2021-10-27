@@ -494,7 +494,7 @@ void FixNVEManifoldRattle::rattle_manifold_x(double *x, double *v,
   const double c_inv = 1.0 / c;
 
 
-  while (1) {
+  while (true) {
     v[0] = vt[0] - l*no_dt[0];
     v[1] = vt[1] - l*no_dt[1];
     v[2] = vt[2] - l*no_dt[2];

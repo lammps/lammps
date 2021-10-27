@@ -255,7 +255,7 @@ void FixRX::post_constructor()
   int eof = 0;
   char * word;
 
-  while (1) {
+  while (true) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
       if (ptr == nullptr) {
@@ -804,7 +804,7 @@ void FixRX::read_file(char *file)
   char line[MAXLINE],*ptr;
   int eof = 0;
 
-  while (1) {
+  while (true) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
       if (ptr == nullptr) {
@@ -858,7 +858,7 @@ void FixRX::read_file(char *file)
 
   nreactions=0;
   sign = -1.0;
-  while (1) {
+  while (true) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
       if (ptr == nullptr) {
@@ -1155,7 +1155,7 @@ int FixRX::rkf45_h0 (const int neq, const double t, const double /*t_stop*/,
    // compute ydot at t=t0
    rhs (t, y, ydot, v_params);
 
-   while (1)
+   while (true)
    {
       // Estimate y'' with finite-difference ...
 
@@ -1254,7 +1254,7 @@ void FixRX::odeDiagnostics()
   double max_per_proc[numCounters];
   double min_per_proc[numCounters];
 
-  if (1)
+  if (true)
   {
      static bool firstStep = true;
 
@@ -1285,7 +1285,7 @@ void FixRX::odeDiagnostics()
 
      printf("me= %d nst= %g nfc= %g time= %g nlocal= %g lmpnst= %g weight_idx= %d 1st= %d aveNeigh= %g\n", comm->me, this->diagnosticCounter[0], this->diagnosticCounter[1], this->diagnosticCounter[2], this->diagnosticCounter[3], this->diagnosticCounter[4], rx_weight_index, firstStep, averageNumNeighbors);
 
-     if (rx_weight_index != -1 && !firstStep && 0)
+     if (rx_weight_index != -1 && !firstStep && false)
      {
         double *rx_weight = atom->dvector[rx_weight_index];
 

@@ -36,8 +36,8 @@ manifold_thylakoid::manifold_thylakoid( LAMMPS *lmp, int /*narg*/, char ** /*arg
 
 manifold_thylakoid::~manifold_thylakoid()
 {
-  for (std::size_t i = 0; i < parts.size(); ++i) {
-    delete parts[i];
+  for (auto & part : parts) {
+    delete part;
   }
 }
 

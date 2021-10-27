@@ -2239,8 +2239,7 @@ double FixBondReact::custom_constraint(std::string varstr)
   }
   evlstr.push_back(varstr.substr(prev3+1));
 
-  for (int i = 0; i < evlstr.size(); i++)
-    evlcat += evlstr[i];
+  for (auto & evl : evlstr) evlcat += evl;
 
   char *cstr = utils::strdup(evlcat);
   val = input->variable->compute_equal(cstr);
@@ -3763,7 +3762,7 @@ void FixBondReact::read(int myrxn)
   // stop when read an unrecognized line
 
   ncreate = 0;
-  while (1) {
+  while (true) {
 
     readline(line);
 

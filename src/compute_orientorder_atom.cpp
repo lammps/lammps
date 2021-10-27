@@ -542,8 +542,8 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
           const double c = w3jlist[widx_count++];
           wlsum += Q1Q2Q3*c;
 
-          sgn = -sgn; // sgn = (-1)^m
         }
+        sgn = -sgn; // sgn = (-1)^m1
       }
       qn[jj++] = wlsum/qnormfac2[il];
       nterms++;

@@ -565,8 +565,8 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::calc_boop2(int ncount, int ii) co
           const double c = d_w3jlist[widx_count++];
           wlsum += Q1Q2Q3*c;
 
-          sgn = -sgn; // sgn = (-1)^m
         }
+        sgn = -sgn; // sgn = (-1)^m1
       }
       d_qnarray(i,jj++) = wlsum/d_qnormfac2(il);
       nterms++;

@@ -321,9 +321,7 @@ following settings:
 
       .. code-block:: make
 
-         LMP_INC = -DLAMMPS_JPEG
-         LMP_INC = -DLAMMPS_PNG
-         LMP_INC = -DLAMMPS_FFMPEG
+         LMP_INC = -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_FFMPEG  <other LMP_INC settings>
 
          JPG_INC = -I/usr/local/include   # path to jpeglib.h, png.h, zlib.h header files if make cannot find them
          JPG_PATH = -L/usr/lib            # paths to libjpeg.a, libpng.a, libz.a (.so) files if make cannot find them
@@ -372,7 +370,7 @@ including :doc:`read_data <read_data>`, :doc:`rerun <rerun>`, and
 
       .. code-block:: make
 
-         LMP_INC = -DLAMMPS_GZIP
+         LMP_INC = -DLAMMPS_GZIP   <other LMP_INC settings>
 
 This option requires that your operating system fully supports the
 "popen()" function in the standard runtime library and that a ``gzip``
@@ -454,7 +452,7 @@ those systems:
 
       .. code-block:: make
 
-         LMP_INC = -DLAMMPS_LONGLONG_TO_LONG
+         LMP_INC = -DLAMMPS_LONGLONG_TO_LONG  <other LMP_INC settings>
 
 ----------
 
@@ -481,7 +479,7 @@ e.g. to Python. Of course, the calling code has to be set up to
 
       .. code-block:: make
 
-         LMP_INC = -DLAMMPS_EXCEPTIONS
+         LMP_INC = -DLAMMPS_EXCEPTIONS   <other LMP_INC settings>
 
 .. note::
 
@@ -522,7 +520,7 @@ executable, not the library.
 
       .. code-block:: make
 
-         LMP_INC = -DLAMMPS_TRAP_FPE
+         LMP_INC = -DLAMMPS_TRAP_FPE  <other LMP_INC settings>
 
 After compilation with this flag set, the LAMMPS executable will stop
 and produce a core dump when a division by zero, overflow, illegal math

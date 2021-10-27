@@ -306,7 +306,7 @@ void FixTTMGrid::read_electron_temperatures(const std::string &filename)
           int iz = values.next_int();
 
           if (ix < 0 || ix >= nxgrid || iy < 0 || iy >= nygrid || iz < 0 || iz >= nzgrid)
-            throw parser_error("Fix ttm/grid invalid grid index in input");
+            throw TokenizerException("Fix ttm/grid invalid grid index in input","");
 
           if (ix >= nxlo_in && ix <= nxhi_in && iy >= nylo_in && iy <= nyhi_in
               && iz >= nzlo_in && iz <= nzhi_in) {
@@ -314,7 +314,7 @@ void FixTTMGrid::read_electron_temperatures(const std::string &filename)
             T_initial_set[iz][iy][ix] = 1;
           }
         } else {
-          throw parser_error("Incorrect format in fix ttm electron grid file");
+          throw TokenizerException("Incorrect format in fix ttm electron grid file","");
         }
       } catch (std::exception &e) {
         error->one(FLERR,e.what());

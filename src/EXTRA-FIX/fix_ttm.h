@@ -77,14 +77,6 @@ class FixTTM : public Fix {
   virtual void deallocate_grid();
   virtual void read_electron_temperatures(const std::string &);
   virtual void write_electron_temperatures(const std::string &);
-
-  class parser_error : public std::exception {
-    std::string message;
-
-   public:
-    parser_error(const std::string &mesg) { message = mesg; }
-    const char *what() const noexcept { return message.c_str(); }
-  };
 };
 
 }    // namespace LAMMPS_NS

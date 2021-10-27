@@ -82,7 +82,6 @@ void AtomVecSpin::grow_pointers()
 
 void AtomVecSpin::force_clear(int n, size_t nbytes)
 {
-  memset(&f[n][0],0,3*nbytes);
   memset(&fm[n][0],0,3*nbytes);
   memset(&fm_long[n][0],0,3*nbytes);
 }

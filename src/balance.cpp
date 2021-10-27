@@ -196,8 +196,8 @@ void Balance::command(int narg, char **arg)
       if (style != -1) error->all(FLERR,"Illegal balance command");
       if (iarg+4 > narg) error->all(FLERR,"Illegal balance command");
       style = SHIFT;
-      if (strlen(arg[iarg+1]) > 3) error->all(FLERR,"Illegal balance command");
-      strcpy(bstr,arg[iarg+1]);
+      if (strlen(arg[iarg+1]) > BSTR_SIZE) error->all(FLERR,"Illegal balance command");
+      strncpy(bstr,arg[iarg+1],BSTR_SIZE+1);
       nitermax = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
       if (nitermax <= 0) error->all(FLERR,"Illegal balance command");
       stopthresh = utils::numeric(FLERR,arg[iarg+3],false,lmp);
@@ -259,7 +259,7 @@ void Balance::command(int narg, char **arg)
   // must reset atom map after exchange() since it clears it
 
   MPI_Barrier(world);
-  double start_time = MPI_Wtime();
+  double start_time = platform::walltime();
 
   lmp->init();
 
@@ -386,7 +386,7 @@ void Balance::command(int narg, char **arg)
 
   if (me == 0) {
     std::string mesg = fmt::format(" rebalancing time: {:.3f} seconds\n",
-                                   MPI_Wtime()-start_time);
+                                   platform::walltime()-start_time);
     mesg += fmt::format("  iteration count = {}\n",niter);
     for (int i = 0; i < nimbalance; ++i) mesg += imbalances[i]->info();
     mesg += fmt::format("  initial/final maximal load/proc = {:.8} {:.8}\n"

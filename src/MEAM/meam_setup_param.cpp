@@ -15,13 +15,13 @@
 #include "meam.h"
 
 #include "math_const.h"
+
 #include <algorithm>
 #include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-//
 //     do a sanity check on index parameters
 void
 MEAM::meam_checkindex(int num, int lim, int nidx, int* idx /*idx(3)*/, int* ierr)

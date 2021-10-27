@@ -30,6 +30,8 @@
 #include "neighbor.h"
 #include "update.h"
 
+#include <cstring>
+
 #include "InterfaceLammps.h"    // n2p2 interface header
 
 using namespace LAMMPS_NS;
@@ -146,12 +148,7 @@ void PairHDNNP::settings(int narg, char **arg)
       // show extrapolation warnings
     } else if (strcmp(arg[iarg], "showew") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal pair_style command");
-      if (strcmp(arg[iarg + 1], "yes") == 0)
-        showew = true;
-      else if (strcmp(arg[iarg + 1], "no") == 0)
-        showew = false;
-      else
-        error->all(FLERR, "Illegal pair_style command");
+      showew = utils::logical(FLERR, arg[iarg + 1], false, lmp) == 1;
       iarg += 2;
       // show extrapolation warning summary
     } else if (strcmp(arg[iarg], "showewsum") == 0) {
@@ -166,12 +163,7 @@ void PairHDNNP::settings(int narg, char **arg)
       // reset extrapolation warning counter
     } else if (strcmp(arg[iarg], "resetew") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal pair_style command");
-      if (strcmp(arg[iarg + 1], "yes") == 0)
-        resetew = true;
-      else if (strcmp(arg[iarg + 1], "no") == 0)
-        resetew = false;
-      else
-        error->all(FLERR, "Illegal pair_style command");
+      resetew = utils::logical(FLERR, arg[iarg + 1], false, lmp) == 1;
       iarg += 2;
       // length unit conversion factor
     } else if (strcmp(arg[iarg], "cflength") == 0) {

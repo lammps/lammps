@@ -81,22 +81,40 @@ check_for_autogen_files(${LAMMPS_SOURCE_DIR})
 include(CheckIncludeFileCXX)
 
 # set required compiler flags and compiler/CPU arch specific optimizations
-if((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") OR (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM"))
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.3 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.4)
-    set(CMAKE_TUNE_DEFAULT "-xCOMMON-AVX512")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Qrestrict")
+    endif()
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.3 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.4)
+      set(CMAKE_TUNE_DEFAULT "/QxCOMMON-AVX512")
+    else()
+      set(CMAKE_TUNE_DEFAULT "/QxHost")
+    endif()
   else()
-    set(CMAKE_TUNE_DEFAULT "-xHost")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.3 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.4)
+      set(CMAKE_TUNE_DEFAULT "-xCOMMON-AVX512")
+    else()
+      set(CMAKE_TUNE_DEFAULT "-xHost")
+    endif()
   endif()
 endif()
 
-# we require C++11 without extensions
+# we require C++11 without extensions. Kokkos requires at least C++14 (currently)
 set(CMAKE_CXX_STANDARD 11)
+if(PKG_KOKKOS AND (CMAKE_CXX_STANDARD LESS 14))
+  set(CMAKE_CXX_STANDARD 14)
+endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "Use compiler extensions")
-# ugly hack for MSVC which by default always reports an old C++ standard in the __cplusplus macro
+# ugly hacks for MSVC which by default always reports an old C++ standard in the __cplusplus macro
+# and prints lots of pointless warnings about "unsafe" functions
 if(MSVC)
   add_compile_options(/Zc:__cplusplus)
+  add_compile_options(/wd4244)
+  add_compile_options(/wd4267)
+  add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 endif()
 
 # export all symbols when building a .dll file on windows
@@ -281,6 +299,11 @@ else()
   target_include_directories(mpi_stubs PUBLIC $<BUILD_INTERFACE:${LAMMPS_SOURCE_DIR}/STUBS>)
   if(BUILD_SHARED_LIBS)
     target_link_libraries(lammps PRIVATE mpi_stubs)
+    if(MSVC)
+      target_link_libraries(lmp PRIVATE mpi_stubs)
+      target_include_directories(lmp INTERFACE $<BUILD_INTERFACE:${LAMMPS_SOURCE_DIR}/STUBS>)
+      target_compile_definitions(lmp INTERFACE $<INSTALL_INTERFACE:LAMMPS_LIB_NO_MPI>)
+    endif(MSVC)
     target_include_directories(lammps INTERFACE $<BUILD_INTERFACE:${LAMMPS_SOURCE_DIR}/STUBS>)
     target_compile_definitions(lammps INTERFACE $<INSTALL_INTERFACE:LAMMPS_LIB_NO_MPI>)
   else()
@@ -468,9 +491,12 @@ foreach(HEADER cmath)
   endif(NOT FOUND_${HEADER})
 endforeach(HEADER)
 
-set(MATH_LIBRARIES "m" CACHE STRING "math library")
-mark_as_advanced( MATH_LIBRARIES )
-target_link_libraries(lammps PRIVATE ${MATH_LIBRARIES})
+# make the standard math library overrideable and autodetected (for systems that don't have it)
+find_library(STANDARD_MATH_LIB m DOC "Standard Math library")
+mark_as_advanced(STANDARD_MATH_LIB)
+if(STANDARD_MATH_LIB)
+  target_link_libraries(lammps PRIVATE ${STANDARD_MATH_LIB})
+endif()
 
 ######################################
 # Generate Basic Style files
@@ -591,15 +617,12 @@ foreach(PKG_WITH_INCL CORESHELL QEQ OPENMP DPD-SMOOTH KOKKOS OPT INTEL GPU)
 endforeach()
 
 if(PKG_PLUGIN)
-  if(BUILD_SHARED_LIBS)
-    target_compile_definitions(lammps PRIVATE -DLMP_PLUGIN)
-  else()
-    message(WARNING "Plugin loading will not work unless BUILD_SHARED_LIBS is enabled")
-  endif()
-  # link with -ldl or equivalent for plugin loading; except on Windows
-  if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-    target_link_libraries(lammps PRIVATE ${CMAKE_DL_LIBS})
-  endif()
+  target_compile_definitions(lammps PRIVATE -DLMP_PLUGIN)
+endif()
+
+# link with -ldl or equivalent for plugin loading; except on Windows
+if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+   target_link_libraries(lammps PRIVATE ${CMAKE_DL_LIBS})
 endif()
 
 ######################################################################
@@ -608,7 +631,7 @@ endif()
 # and after everything else that is compiled locally
 ######################################################################
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-  target_link_libraries(lammps PRIVATE -lwsock32 -lpsapi)
+  target_link_libraries(lammps PRIVATE "wsock32;psapi")
 endif()
 
 ######################################################

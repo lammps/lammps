@@ -7,8 +7,8 @@ else()
 endif()
 
 include(ExternalProject)
-set(GTEST_URL "https://github.com/google/googletest/archive/release-1.10.0.tar.gz" CACHE STRING "URL for GTest tarball")
-set(GTEST_MD5 "ecd1fa65e7de707cd5c00bdac56022cd" CACHE STRING "MD5 checksum of GTest tarball")
+set(GTEST_URL "https://github.com/google/googletest/archive/release-1.11.0.tar.gz" CACHE STRING "URL of googletest source")
+set(GTEST_MD5 "e8a8df240b6938bb6384155d4c37d937" CACHE STRING "MD5 sum for googletest source")
 mark_as_advanced(GTEST_URL)
 mark_as_advanced(GTEST_MD5)
 ExternalProject_Add(googletest

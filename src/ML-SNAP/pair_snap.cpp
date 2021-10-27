@@ -26,6 +26,7 @@
 #include "tokenizer.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -499,8 +500,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     nelemtmp = words.next_int();
     ncoeffall = words.next_int();
   } catch (TokenizerException &e) {
-    error->all(FLERR,"Incorrect format in SNAP coefficient "
-                                 "file: {}", e.what());
+    error->all(FLERR,"Incorrect format in SNAP coefficient file: {}", e.what());
   }
 
   // clean out old arrays and set up element lists
@@ -537,7 +537,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     std::vector<std::string> words;
     try {
       words = Tokenizer(utils::trim_comment(line),"\"' \t\n\r\f").as_vector();
-    } catch (TokenizerException &e) {
+    } catch (TokenizerException &) {
       // ignore
     }
     if (words.size() != 3)
@@ -598,8 +598,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 
         coeffelem[jelem][icoeff] = coeff.next_double();
       } catch (TokenizerException &e) {
-        error->all(FLERR,"Incorrect format in SNAP coefficient "
-                                     "file: {}", e.what());
+        error->all(FLERR,"Incorrect format in SNAP coefficient file: {}", e.what());
       }
     }
   }
@@ -608,8 +607,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
 
   for (int jelem = 0; jelem < nelements; jelem++) {
     if (elementflags[jelem] == 0)
-      error->all(FLERR,"Element {} not found in SNAP coefficient "
-                                   "file", elements[jelem]);
+      error->all(FLERR,"Element {} not found in SNAP coefficient file", elements[jelem]);
   }
   delete[] elementflags;
 
@@ -659,7 +657,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     std::vector<std::string> words;
     try {
       words = Tokenizer(utils::trim_comment(line),"\"' \t\n\r\f").as_vector();
-    } catch (TokenizerException &e) {
+    } catch (TokenizerException &) {
       // ignore
     }
 

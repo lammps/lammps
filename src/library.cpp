@@ -52,7 +52,6 @@
 #include "variable.h"
 
 #include <cstring>
-#include <vector>
 
 #if defined(LAMMPS_EXCEPTIONS)
 #include "exceptions.h"
@@ -4395,9 +4394,9 @@ void lammps_get_os_info(char *buffer, int buf_size)
 {
   if (buf_size <=0) return;
   buffer[0] = buffer[buf_size-1] = '\0';
-  std::string txt = Info::get_os_info() + "\n";
-  txt += Info::get_compiler_info();
-  txt += " with " + Info::get_openmp_info() + "\n";
+  std::string txt = platform::os_info() + "\n";
+  txt += platform::compiler_info();
+  txt += " with " + platform::openmp_standard() + "\n";
   strncpy(buffer, txt.c_str(), buf_size-1);
 }
 
@@ -4421,15 +4420,16 @@ int lammps_config_has_mpi_support()
 
 /* ---------------------------------------------------------------------- */
 
-/** Check if the LAMMPS library supports compressed files via a pipe to gzip
+/** Check if the LAMMPS library supports reading or writing compressed
+ * files via a pipe to gzip or similar compression programs
 
 \verbatim embed:rst
 Several LAMMPS commands (e.g. :doc:`read_data`, :doc:`write_data`,
 :doc:`dump styles atom, custom, and xyz <dump>`) support reading and
 writing compressed files via creating a pipe to the ``gzip`` program.
 This function checks whether this feature was :ref:`enabled at compile
-time <gzip>`. It does **not** check whether the ``gzip`` itself is
-installed and usable.
+time <gzip>`. It does **not** check whether``gzip`` or any other
+supported compression programs themselves are installed and usable.
 \endverbatim
  *
  * \return 1 if yes, otherwise 0

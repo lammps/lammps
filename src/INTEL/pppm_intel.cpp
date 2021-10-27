@@ -25,6 +25,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
+#include "force.h"
 #include "gridcomm.h"
 #include "math_const.h"
 #include "math_special.h"
@@ -32,7 +33,6 @@
 #include "modify.h"
 #include "suffix.h"
 
-#include <cstdlib>
 #include <cmath>
 
 #include "omp_compat.h"

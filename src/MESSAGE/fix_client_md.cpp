@@ -13,15 +13,16 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_client_md.h"
-#include <cstdio>
-#include <cstring>
-#include "update.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "error.h"
+#include "update.h"
+
+#include <cstring>
 
 // CSlib interface
 

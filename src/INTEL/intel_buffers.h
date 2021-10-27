@@ -26,7 +26,6 @@
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "intel_preprocess.h"
-#include <cstring>
 
 namespace LAMMPS_NS {
 
@@ -35,7 +34,7 @@ namespace LAMMPS_NS {
 #define FORCE_T typename IntelBuffers<flt_t,acc_t>::vec3_acc_t
 
 struct IntelNeighListPtrs {
-  void * list_ptr;
+  void *list_ptr;
   int *cnumneigh;
   int *numneighhalf;
   int size;

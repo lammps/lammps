@@ -333,6 +333,12 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
     gpu_barrier();
   }
 
+  // check if double precision support is available
+  #if defined(_SINGLE_DOUBLE) || defined(_DOUBLE_DOUBLE)
+  if (!gpu->double_precision())
+    return -16;
+  #endif
+
   // Setup auto bin size calculation for calls from atom::sort
   // - This is repeated in neighbor init with additional info
   if (_user_cell_size<0.0) {
@@ -348,7 +354,7 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
 }
 
 template <class numtyp, class acctyp>
-int DeviceT::set_ocl_params(std::string s_config, std::string extra_args) {
+int DeviceT::set_ocl_params(std::string s_config, const std::string &extra_args) {
   #ifdef USE_OPENCL
 
   #include "lal_pre_ocl_config.h"
@@ -368,7 +374,7 @@ int DeviceT::set_ocl_params(std::string s_config, std::string extra_args) {
   int token_count=0;
   std::string params[18];
   char ocl_config[2048];
-  strcpy(ocl_config,s_config.c_str());
+  strncpy(ocl_config,s_config.c_str(),2047);
   char *pch = strtok(ocl_config,",");
   _ocl_config_name=pch;
   pch = strtok(nullptr,",");
@@ -546,14 +552,9 @@ int DeviceT::init_nbor(Neighbor *nbor, const int nlocal,
     return -3;
 
   if (_user_cell_size<0.0) {
-    #ifndef LAL_USE_OLD_NEIGHBOR
-    _neighbor_shared.setup_auto_cell_size(true,cutoff,nbor->simd_size());
-    #else
     _neighbor_shared.setup_auto_cell_size(false,cutoff,nbor->simd_size());
-    #endif
   } else
-    _neighbor_shared.setup_auto_cell_size(false,_user_cell_size,
-                                          nbor->simd_size());
+    _neighbor_shared.setup_auto_cell_size(false,_user_cell_size,nbor->simd_size());
   nbor->set_cutoff(cutoff);
 
   return 0;
@@ -984,18 +985,16 @@ int DeviceT::compile_kernels() {
   _max_bio_shared_types=gpu_lib_data[17];
   _pppm_max_spline=gpu_lib_data[18];
 
-  if (static_cast<size_t>(_block_pair)>gpu->group_size_dim(0) ||
-      static_cast<size_t>(_block_bio_pair)>gpu->group_size_dim(0) ||
-      static_cast<size_t>(_block_ellipse)>gpu->group_size_dim(0) ||
-      static_cast<size_t>(_pppm_block)>gpu->group_size_dim(0) ||
-      static_cast<size_t>(_block_nbor_build)>gpu->group_size_dim(0) ||
-      static_cast<size_t>(_block_cell_2d)>gpu->group_size_dim(0) ||
-      static_cast<size_t>(_block_cell_2d)>gpu->group_size_dim(1) ||
-      static_cast<size_t>(_block_cell_id)>gpu->group_size_dim(0) ||
-      static_cast<size_t>(_max_shared_types*_max_shared_types*
-                          sizeof(numtyp)*17 > gpu->slm_size()) ||
-      static_cast<size_t>(_max_bio_shared_types*2*sizeof(numtyp) >
-                          gpu->slm_size()))
+  if (static_cast<size_t>(_block_pair) > gpu->group_size_dim(0) ||
+      static_cast<size_t>(_block_bio_pair) > gpu->group_size_dim(0) ||
+      static_cast<size_t>(_block_ellipse) > gpu->group_size_dim(0) ||
+      static_cast<size_t>(_pppm_block) > gpu->group_size_dim(0) ||
+      static_cast<size_t>(_block_nbor_build) > gpu->group_size_dim(0) ||
+      static_cast<size_t>(_block_cell_2d) > gpu->group_size_dim(0) ||
+      static_cast<size_t>(_block_cell_2d) > gpu->group_size_dim(1) ||
+      static_cast<size_t>(_block_cell_id) > gpu->group_size_dim(0) ||
+      static_cast<size_t>(_max_shared_types*_max_shared_types*sizeof(numtyp)*17 > gpu->slm_size()) ||
+      static_cast<size_t>(_max_bio_shared_types*2*sizeof(numtyp) > gpu->slm_size()))
     return -13;
 
   if (_block_pair % _simd_size != 0 || _block_bio_pair % _simd_size != 0 ||
@@ -1040,10 +1039,18 @@ Device<PRECISION,ACC_PRECISION> global_device;
 
 using namespace LAMMPS_AL;
 
-bool lmp_has_gpu_device()
+// check if a suitable GPU is present.
+// for mixed and double precision GPU library compilation
+// also the GPU needs to support double precision.
+bool lmp_has_compatible_gpu_device()
 {
   UCL_Device gpu;
-  return (gpu.num_platforms() > 0);
+  bool compatible_gpu = gpu.num_platforms() > 0;
+  #if defined(_SINGLE_DOUBLE) || defined(_DOUBLE_DOUBLE)
+  if (compatible_gpu && !gpu.double_precision(0))
+    compatible_gpu = false;
+  #endif
+  return compatible_gpu;
 }
 
 std::string lmp_gpu_device_info()
@@ -1071,9 +1078,8 @@ void lmp_clear_device() {
   global_device.clear_device();
 }
 
-double lmp_gpu_forces(double **f, double **tor, double *eatom,
-                      double **vatom, double *virial, double &ecoul,
-                      int &error_flag) {
+double lmp_gpu_forces(double **f, double **tor, double *eatom, double **vatom,
+                      double *virial, double &ecoul, int &error_flag) {
   return global_device.fix_gpu(f,tor,eatom,vatom,virial,ecoul,error_flag);
 }
 

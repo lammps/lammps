@@ -33,9 +33,7 @@ DISTRIBUTION A. Approved for public release; distribution unlimited. OPSEC#4918
 
 #include "atom.h"
 #include "citeme.h"
-#include "comm.h"
 #include "error.h"
-#include "force.h"
 #include "math_special.h"
 #include "memory.h"
 #include "neighbor.h"
@@ -434,7 +432,7 @@ void PairRANN::read_atom_types(std::vector<std::string> line,char *filename,int 
   int nwords = line.size();
   if (nwords < 1) error->one(filename,linenum,"Incorrect syntax for atom types");
   nelements = nwords;
-  line.push_back("all");
+  line.emplace_back("all");
   allocate(line);
 }
 

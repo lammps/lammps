@@ -69,7 +69,7 @@ TEST(lammps_external, callback)
     int argc           = sizeof(args) / sizeof(char *);
 
     ::testing::internal::CaptureStdout();
-    void *handle       = lammps_open_no_mpi(argc, argv, NULL);
+    void *handle       = lammps_open_no_mpi(argc, argv, nullptr);
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
 
@@ -136,7 +136,7 @@ TEST(lammps_external, array)
     int argc           = sizeof(args) / sizeof(char *);
 
     ::testing::internal::CaptureStdout();
-    void *handle       = lammps_open_no_mpi(argc, argv, NULL);
+    void *handle       = lammps_open_no_mpi(argc, argv, nullptr);
     std::string output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
 

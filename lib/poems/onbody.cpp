@@ -30,9 +30,9 @@ using namespace std;
 
 
 OnBody::OnBody(){
-  system_body = 0;
-  system_joint = 0;
-  parent = 0;
+  system_body = nullptr;
+  system_joint = nullptr;
+  parent = nullptr;
 
   // these terms have zeros which are NEVER overwritten
   sI.Zeros();

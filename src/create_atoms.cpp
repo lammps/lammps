@@ -151,9 +151,7 @@ void CreateAtoms::command(int narg, char **arg)
       iarg += 3;
     } else if (strcmp(arg[iarg],"remap") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal create_atoms command");
-      if (strcmp(arg[iarg+1],"yes") == 0) remapflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) remapflag = 0;
-      else error->all(FLERR,"Illegal create_atoms command");
+      remapflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"mol") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal create_atoms command");
@@ -176,28 +174,20 @@ void CreateAtoms::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"var") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal create_atoms command");
       delete [] vstr;
-      int n = strlen(arg[iarg+1]) + 1;
-      vstr = new char[n];
-      strcpy(vstr,arg[iarg+1]);
+      vstr = utils::strdup(arg[iarg+1]);
       varflag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"set") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal create_atoms command");
       if (strcmp(arg[iarg+1],"x") == 0) {
         delete [] xstr;
-        int n = strlen(arg[iarg+2]) + 1;
-        xstr = new char[n];
-        strcpy(xstr,arg[iarg+2]);
+        xstr = utils::strdup(arg[iarg+2]);
       } else if (strcmp(arg[iarg+1],"y") == 0) {
         delete [] ystr;
-        int n = strlen(arg[iarg+2]) + 1;
-        ystr = new char[n];
-        strcpy(ystr,arg[iarg+2]);
+        ystr = utils::strdup(arg[iarg+2]);
       } else if (strcmp(arg[iarg+1],"z") == 0) {
         delete [] zstr;
-        int n = strlen(arg[iarg+2]) + 1;
-        zstr = new char[n];
-        strcpy(zstr,arg[iarg+2]);
+        zstr = utils::strdup(arg[iarg+2]);
       } else error->all(FLERR,"Illegal create_atoms command");
       iarg += 3;
     } else if (strcmp(arg[iarg],"rotate") == 0) {
@@ -388,7 +378,7 @@ void CreateAtoms::command(int narg, char **arg)
   // Record wall time for atom creation
 
   MPI_Barrier(world);
-  double time1 = MPI_Wtime();
+  double time1 = platform::walltime();
 
   // clear ghost count and any ghost bonus data internal to AtomVec
   // same logic as beginning of Comm::exchange()
@@ -601,7 +591,7 @@ void CreateAtoms::command(int narg, char **arg)
     if (scaleflag) domain->print_box("  using lattice units in ");
     else domain->print_box("  using box units in ");
     utils::logmesg(lmp,"  create_atoms CPU = {:.3f} seconds\n",
-                   MPI_Wtime() - time1);
+                   platform::walltime() - time1);
   }
 }
 

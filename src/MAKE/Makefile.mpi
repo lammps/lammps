@@ -7,12 +7,12 @@ SHELL = /bin/sh
 # specify flags and libraries needed for your compiler
 
 CC =		mpicxx
-CCFLAGS =	-g -O3
+CCFLAGS =	-g -O3 -std=c++11
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
 LINK =		mpicxx
-LINKFLAGS =	-g -O3
+LINKFLAGS =	-g -O3 -std=c++11
 LIB =
 SIZE =		size
 
@@ -64,6 +64,11 @@ FFT_LIB =
 JPG_INC =
 JPG_PATH =
 JPG_LIB =
+
+# library for loading shared objects (defaults to -ldl)
+# uncomment to change the default
+
+# override DYN_LIB =
 
 # ---------------------------------------------------------------------
 # build rules and dependencies

@@ -114,7 +114,7 @@ void ReadData::command(int narg, char **arg)
   if (narg < 1) error->all(FLERR,"Illegal read_data command");
 
   MPI_Barrier(world);
-  double time1 = MPI_Wtime();
+  double time1 = platform::walltime();
 
   // optional args
 
@@ -308,9 +308,13 @@ void ReadData::command(int narg, char **arg)
 
   // check if data file is available and readable
 
-  if (!utils::file_is_readable(arg[0]))
+  if (!platform::file_is_readable(arg[0]))
     error->all(FLERR,fmt::format("Cannot open file {}: {}",
                                  arg[0], utils::getsyserror()));
+
+  // reset so we can warn about reset image flags exactly once per data file
+
+  atom->reset_image_flag[0] = atom->reset_image_flag[1] = atom->reset_image_flag[2] = false;
 
   // first time system initialization
 
@@ -741,7 +745,7 @@ void ReadData::command(int narg, char **arg)
     // close file
 
     if (me == 0) {
-      if (compressed) pclose(fp);
+      if (compressed) platform::pclose(fp);
       else fclose(fp);
       fp = nullptr;
     }
@@ -914,7 +918,7 @@ void ReadData::command(int narg, char **arg)
   MPI_Barrier(world);
 
   if (comm->me == 0)
-    utils::logmesg(lmp,"  read_data CPU = {:.3f} seconds\n",MPI_Wtime()-time1);
+    utils::logmesg(lmp,"  read_data CPU = {:.3f} seconds\n",platform::walltime()-time1);
 }
 
 /* ----------------------------------------------------------------------
@@ -1238,6 +1242,22 @@ void ReadData::atoms()
     nread += nchunk;
   }
 
+  // warn if we have read data with non-zero image flags for non-periodic boundaries.
+  // we may want to turn this into an error at some point, since this essentially
+  // creates invalid position information that works by accident most of the time.
+
+  if (comm->me == 0) {
+    if (atom->reset_image_flag[0])
+      error->warning(FLERR,"Non-zero imageflag(s) in x direction for "
+                           "non-periodic boundary reset to zero");
+    if (atom->reset_image_flag[1])
+      error->warning(FLERR,"Non-zero imageflag(s) in y direction for "
+                           "non-periodic boundary reset to zero");
+    if (atom->reset_image_flag[2])
+      error->warning(FLERR,"Non-zero imageflag(s) in z direction for "
+                           "non-periodic boundary reset to zero");
+  }
+
   // check that all atoms were assigned correctly
 
   bigint n = atom->nlocal;
@@ -1321,7 +1341,7 @@ void ReadData::bonds(int firstpass)
   int *count = nullptr;
   if (firstpass) {
     memory->create(count,nlocal,"read_data:count");
-    memset(count,0,nlocal*sizeof(int));
+    if (count) memset(count,0,nlocal*sizeof(int));
   }
 
   // read and process bonds
@@ -1395,7 +1415,7 @@ void ReadData::angles(int firstpass)
   int *count = nullptr;
   if (firstpass) {
     memory->create(count,nlocal,"read_data:count");
-    memset(count,0,nlocal*sizeof(int));
+    if (count) memset(count,0,nlocal*sizeof(int));
   }
 
   // read and process angles
@@ -1469,7 +1489,7 @@ void ReadData::dihedrals(int firstpass)
   int *count = nullptr;
   if (firstpass) {
     memory->create(count,nlocal,"read_data:count");
-    memset(count,0,nlocal*sizeof(int));
+    if (count) memset(count,0,nlocal*sizeof(int));
   }
 
   // read and process dihedrals
@@ -1543,7 +1563,7 @@ void ReadData::impropers(int firstpass)
   int *count = nullptr;
   if (firstpass) {
     memory->create(count,nlocal,"read_data:count");
-    memset(count,0,nlocal*sizeof(int));
+    if (count) memset(count,0,nlocal*sizeof(int));
   }
 
   // read and process impropers
@@ -1951,34 +1971,20 @@ int ReadData::reallocate(int **pcount, int cmax, int amax)
 
 /* ----------------------------------------------------------------------
    proc 0 opens data file
-   test if gzipped
+   test if compressed
 ------------------------------------------------------------------------- */
 
-void ReadData::open(char *file)
+void ReadData::open(const std::string &file)
 {
-  if (utils::strmatch(file,"\\.gz$")) {
+  if (platform::has_compress_extension(file)) {
     compressed = 1;
-
-#ifdef LAMMPS_GZIP
-    auto gunzip = fmt::format("gzip -c -d {}",file);
-
-#ifdef _WIN32
-    fp = _popen(gunzip.c_str(),"rb");
-#else
-    fp = popen(gunzip.c_str(),"r");
-#endif
-
-#else
-    error->one(FLERR,"Cannot open gzipped file without gzip support");
-#endif
+    fp = platform::compressed_read(file);
+    if (!fp) error->one(FLERR,"Cannot open compressed file {}", file);
   } else {
     compressed = 0;
-    fp = fopen(file,"r");
+    fp = fopen(file.c_str(),"r");
+    if (!fp) error->one(FLERR,"Cannot open file {}: {}", file, utils::getsyserror());
   }
-
-  if (fp == nullptr)
-    error->one(FLERR,"Cannot open file {}: {}",
-                                 file, utils::getsyserror());
 }
 
 /* ----------------------------------------------------------------------

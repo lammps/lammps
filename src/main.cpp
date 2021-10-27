@@ -28,10 +28,6 @@
 #include <fenv.h>
 #endif
 
-#if defined(LAMMPS_EXCEPTIONS)
-#include "exceptions.h"
-#endif
-
 // import MolSSI Driver Interface library
 #if defined(LMP_MDI)
 #include <mdi.h>
@@ -83,7 +79,7 @@ int main(int argc, char **argv)
     KokkosLMP::finalize();
     Python::finalize();
     MPI_Abort(ae.universe, 1);
-  } catch (LAMMPSException &e) {
+  } catch (LAMMPSException &) {
     KokkosLMP::finalize();
     Python::finalize();
     MPI_Barrier(lammps_comm);

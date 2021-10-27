@@ -56,7 +56,7 @@ Special::~Special()
 void Special::build()
 {
   MPI_Barrier(world);
-  double time1 = MPI_Wtime();
+  double time1 = platform::walltime();
 
   if (me == 0) {
     const double * const special_lj   = force->special_lj;
@@ -1303,5 +1303,5 @@ void Special::timer_output(double time1)
 {
   if (comm->me == 0)
     utils::logmesg(lmp,"  special bonds CPU = {:.3f} seconds\n",
-                   MPI_Wtime()-time1);
+                   platform::walltime()-time1);
 }

@@ -35,7 +35,6 @@
 #include "library.h"
 
 #include <algorithm>
-#include <cmath>
 #include <cstring>
 
 #ifdef LMP_INTEL
@@ -44,6 +43,7 @@
 
 #ifdef LMP_GPU
 #include "fix_gpu.h"
+#include <cmath>
 #endif
 
 using namespace LAMMPS_NS;
@@ -260,6 +260,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
   map_hash = nullptr;
 
   unique_tags = nullptr;
+  reset_image_flag[0] = reset_image_flag[1] = reset_image_flag[2] = false;
 
   atom_style = nullptr;
   avec = nullptr;
@@ -269,7 +270,7 @@ Atom::Atom(LAMMPS *lmp) : Pointers(lmp)
 #define ATOM_CLASS
 #define AtomStyle(key,Class) \
   (*avec_map)[#key] = &avec_creator<Class>;
-#include "style_atom.h"
+#include "style_atom.h"  // IWYU pragma: keep
 #undef AtomStyle
 #undef ATOM_CLASS
 }
@@ -351,7 +352,7 @@ Atom::~Atom()
 
   // delete mapping data structures
 
-  map_delete();
+  Atom::map_delete();
 
   delete unique_tags;
 }
@@ -666,7 +667,7 @@ void Atom::set_atomflag_defaults()
 
 void Atom::create_avec(const std::string &style, int narg, char **arg, int trysuffix)
 {
-  delete [] atom_style;
+  delete[] atom_style;
   if (avec) delete avec;
   atom_style = nullptr;
   avec = nullptr;
@@ -690,11 +691,9 @@ void Atom::create_avec(const std::string &style, int narg, char **arg, int trysu
     std::string estyle = style + "/";
     if (sflag == 1) estyle += lmp->suffix;
     else estyle += lmp->suffix2;
-    atom_style = new char[estyle.size()+1];
-    strcpy(atom_style,estyle.c_str());
+    atom_style = utils::strdup(estyle);
   } else {
-    atom_style = new char[style.size()+1];
-    strcpy(atom_style,style.c_str());
+    atom_style = utils::strdup(style);
   }
 
   // if molecular system:
@@ -825,17 +824,13 @@ void Atom::modify_params(int narg, char **arg)
     if (strcmp(arg[iarg],"id") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal atom_modify command");
       if (domain->box_exist)
-        error->all(FLERR,
-                   "Atom_modify id command after simulation box is defined");
-      if (strcmp(arg[iarg+1],"yes") == 0) tag_enable = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) tag_enable = 0;
-      else error->all(FLERR,"Illegal atom_modify command");
+        error->all(FLERR,"Atom_modify id command after simulation box is defined");
+      tag_enable = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"map") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal atom_modify command");
       if (domain->box_exist)
-        error->all(FLERR,
-                   "Atom_modify map command after simulation box is defined");
+        error->all(FLERR,"Atom_modify map command after simulation box is defined");
       if (strcmp(arg[iarg+1],"array") == 0) map_user = 1;
       else if (strcmp(arg[iarg+1],"hash") == 0) map_user = 2;
       else if (strcmp(arg[iarg+1],"yes") == 0) map_user = 3;
@@ -1141,7 +1136,6 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
   // remap atom into simulation box
   // if atom is in my sub-domain, unpack its values
 
-  int flagx = 0, flagy = 0, flagz = 0;
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
 
@@ -1161,9 +1155,9 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
       imz = utils::inumeric(FLERR,values[iptr+2],false,lmp);
       if ((domain->dimension == 2) && (imz != 0))
         error->all(FLERR,"Z-direction image flag must be 0 for 2d-systems");
-      if ((!domain->xperiodic) && (imx != 0)) { flagx = 1; imx = 0; }
-      if ((!domain->yperiodic) && (imy != 0)) { flagy = 1; imy = 0; }
-      if ((!domain->zperiodic) && (imz != 0)) { flagz = 1; imz = 0; }
+      if ((!domain->xperiodic) && (imx != 0)) { reset_image_flag[0] = true; imx = 0; }
+      if ((!domain->yperiodic) && (imy != 0)) { reset_image_flag[1] = true; imy = 0; }
+      if ((!domain->zperiodic) && (imz != 0)) { reset_image_flag[2] = true; imz = 0; }
     }
     imagedata = ((imageint) (imx + IMGMAX) & IMGMASK) |
         (((imageint) (imy + IMGMAX) & IMGMASK) << IMGBITS) |
@@ -1199,23 +1193,6 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
 
     buf = next + 1;
   }
-
-  // warn if reading data with non-zero image flags for non-periodic boundaries.
-  // we may want to turn this into an error at some point, since this essentially
-  // creates invalid position information that works by accident most of the time.
-
-  if (comm->me == 0) {
-    if (flagx)
-      error->warning(FLERR,"Non-zero imageflag(s) in x direction for "
-                           "non-periodic boundary reset to zero");
-    if (flagy)
-      error->warning(FLERR,"Non-zero imageflag(s) in y direction for "
-                           "non-periodic boundary reset to zero");
-    if (flagz)
-      error->warning(FLERR,"Non-zero imageflag(s) in z direction for "
-                           "non-periodic boundary reset to zero");
-  }
-
   delete [] values;
 }
 
@@ -2534,27 +2511,27 @@ void Atom::remove_custom(int index, int flag, int cols)
 {
   if (flag == 0 && cols == 0) {
     memory->destroy(ivector[index]);
-    ivector[index] = NULL;
+    ivector[index] = nullptr;
     delete [] ivname[index];
-    ivname[index] = NULL;
+    ivname[index] = nullptr;
 
   } else if (flag == 1 && cols == 0) {
     memory->destroy(dvector[index]);
-    dvector[index] = NULL;
+    dvector[index] = nullptr;
     delete [] dvname[index];
-    dvname[index] = NULL;
+    dvname[index] = nullptr;
 
   } else if (flag == 0 && cols) {
     memory->destroy(iarray[index]);
-    iarray[index] = NULL;
+    iarray[index] = nullptr;
     delete [] ianame[index];
-    ianame[index] = NULL;
+    ianame[index] = nullptr;
 
   } else if (flag == 1 && cols) {
     memory->destroy(darray[index]);
-    darray[index] = NULL;
+    darray[index] = nullptr;
     delete [] daname[index];
-    daname[index] = NULL;
+    daname[index] = nullptr;
   }
 }
 
@@ -2787,9 +2764,9 @@ void *Atom::extract(const char *name)
     if (!array) index = find_custom(&name[2],flag,cols);
     else index = find_custom(&name[3],flag,cols);
 
-    if (index < 0) return NULL;
-    if (which != flag) return NULL;
-    if ((!array && cols) || (array && !cols)) return NULL;
+    if (index < 0) return nullptr;
+    if (which != flag) return nullptr;
+    if ((!array && cols) || (array && !cols)) return nullptr;
 
     if (!which && !array) return (void *) ivector[index];
     if (which && !array) return (void *) dvector[index];

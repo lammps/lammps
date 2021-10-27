@@ -6,13 +6,13 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		g++ -std=c++11
-CCFLAGS =	-g -O3
+CC =		g++
+CCFLAGS =	-g -O3 -std=c++11
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
-LINK =		g++ -std=c++11
-LINKFLAGS =	-g -O
+LINK =		g++
+LINKFLAGS =	-g -O -std=c++11
 LIB = 
 SIZE =		size
 

@@ -20,7 +20,6 @@
 #include "input.h"
 #include "output.h"
 #include "update.h"
-#include "utils.h"
 #include "variable.h"
 
 #include "../testing/core.h"
@@ -160,7 +159,8 @@ TEST_F(SimpleCommandsTest, Partition)
     BEGIN_HIDE_OUTPUT();
     command("echo none");
     END_HIDE_OUTPUT();
-    TEST_FAILURE(".*ERROR: Illegal partition command .*", command("partition xxx 1 echo none"););
+    TEST_FAILURE(".*ERROR: Expected boolean parameter instead of 'xxx'.*",
+                 command("partition xxx 1 echo none"););
     TEST_FAILURE(".*ERROR: Numeric index 2 is out of bounds.*",
                  command("partition yes 2 echo none"););
 
@@ -216,7 +216,7 @@ TEST_F(SimpleCommandsTest, Quit)
     TEST_FAILURE(".*ERROR: Expected integer .*", command("quit xxx"););
 
     // the following tests must be skipped with OpenMPI due to using threads
-    if (Info::get_mpi_vendor() == "Open MPI") GTEST_SKIP();
+    if (platform::mpi_vendor() == "Open MPI") GTEST_SKIP();
     ASSERT_EXIT(command("quit"), ExitedWithCode(0), "");
     ASSERT_EXIT(command("quit 9"), ExitedWithCode(9), "");
 }
@@ -248,6 +248,8 @@ TEST_F(SimpleCommandsTest, Suffix)
     ASSERT_EQ(lmp->suffix2, nullptr);
 
     TEST_FAILURE(".*ERROR: May only enable suffixes after defining one.*", command("suffix on"););
+    TEST_FAILURE(".*ERROR: May only enable suffixes after defining one.*", command("suffix yes"););
+    TEST_FAILURE(".*ERROR: May only enable suffixes after defining one.*", command("suffix true"););
 
     BEGIN_HIDE_OUTPUT();
     command("suffix one");
@@ -268,6 +270,26 @@ TEST_F(SimpleCommandsTest, Suffix)
 
     BEGIN_HIDE_OUTPUT();
     command("suffix off");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->suffix_enable, 0);
+
+    BEGIN_HIDE_OUTPUT();
+    command("suffix yes");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->suffix_enable, 1);
+
+    BEGIN_HIDE_OUTPUT();
+    command("suffix no");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->suffix_enable, 0);
+
+    BEGIN_HIDE_OUTPUT();
+    command("suffix true");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->suffix_enable, 1);
+
+    BEGIN_HIDE_OUTPUT();
+    command("suffix false");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->suffix_enable, 0);
 
@@ -505,7 +527,7 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (Info::get_mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
+    if (platform::mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
         std::cout << "Warning: using OpenMPI without exceptions. "
                      "Death tests will be skipped\n";
 

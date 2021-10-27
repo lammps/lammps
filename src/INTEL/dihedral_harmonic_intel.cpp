@@ -26,9 +26,9 @@
 #include "modify.h"
 #include "neighbor.h"
 #include "suffix.h"
-#include "update.h"
 
 #include <cmath>
+#include <cstring>
 
 #include "omp_compat.h"
 

@@ -140,10 +140,8 @@ FixNVEManifoldRattle::FixNVEManifoldRattle( LAMMPS *lmp, int &narg, char **arg,
     if (strcmp(arg[argi], "every") == 0) {
       nevery = utils::inumeric(FLERR,arg[argi+1],false,lmp);
       next_output = update->ntimestep + nevery;
-      if (comm->me == 0) {
-        fprintf(screen,"Outputting every %d steps, next is %d\n",
-                        nevery, next_output);
-      }
+      if (comm->me == 0)
+        utils::logmesg(lmp,"Outputting every {} steps, next is {}\n",nevery, next_output);
       argi += 2;
     } else if (error_on_unknown_keyword) {
       error->all(FLERR,"Error parsing arg \"{}\".\n",arg[argi]);
@@ -211,11 +209,9 @@ void FixNVEManifoldRattle::print_stats( const char *header )
     double inv_tdiff = 1.0/( static_cast<double>(ntimestep) - stats.last_out );
     stats.last_out = ntimestep;
 
-    fprintf(screen, "%s stats for time step " BIGINT_FORMAT " on %d atoms:\n",
-            header, ntimestep, stats.natoms);
-    fprintf(screen, "  iters/atom: x = %f, v = %f, dofs removed %d",
-            x_iters * inv_tdiff, v_iters * inv_tdiff, stats.dofs_removed);
-    fprintf(screen,"\n");
+    utils::logmesg(lmp, "{} stats for time step {} on {} atoms:\n", header, ntimestep, stats.natoms);
+    utils::logmesg(lmp, "  iters/atom: x = {}, v = {}, dofs removed = {}\n",
+                   x_iters * inv_tdiff, v_iters * inv_tdiff, stats.dofs_removed);
   }
 
   stats.x_iters_per_atom = 0;

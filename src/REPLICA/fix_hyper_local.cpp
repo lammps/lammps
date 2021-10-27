@@ -447,7 +447,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   //double time1,time2,time3,time4,time5,time6,time7,time8;
-  //time1 = MPI_Wtime();
+  //time1 = platform::walltime();
 
   nostrainyet = 0;
 
@@ -520,7 +520,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
     maxhalfstrain[iold] = halfstrain;
   }
 
-  //time2 = MPI_Wtime();
+  //time2 = platform::walltime();
 
   // reverse comm acquires maxstrain of all current owned atoms
   //   needed b/c only saw half the bonds of each atom
@@ -531,7 +531,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
   comm->reverse_comm_fix(this);
   comm->forward_comm_fix(this);
 
-  //time3 = MPI_Wtime();
+  //time3 = platform::walltime();
 
   // -------------------------------------------------------------
   // stage 2:
@@ -636,7 +636,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
     maxstrain_domain[i] = emax;
   }
 
-  //time4 = MPI_Wtime();
+  //time4 = platform::walltime();
 
   // reverse comm to acquire maxstrain_domain from ghost atoms
   //   needed b/c neigh list may refer to old owned atoms that are now ghost
@@ -646,7 +646,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
   comm->reverse_comm_fix(this);
   comm->forward_comm_fix(this);
 
-  //time5 = MPI_Wtime();
+  //time5 = platform::walltime();
 
   // -------------------------------------------------------------
   // stage 3:
@@ -672,7 +672,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
     bias[nbias++] = maxhalf[iold];
   }
 
-  //time6 = MPI_Wtime();
+  //time6 = platform::walltime();
 
   // -------------------------------------------------------------
   // stage 4:
@@ -724,7 +724,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
     // myboost += exp(beta * biascoeff[m]*vbias);
   }
 
-  //time7 = MPI_Wtime();
+  //time7 = platform::walltime();
 
   // -------------------------------------------------------------
   // stage 5:
@@ -887,7 +887,7 @@ void FixHyperLocal::build_bond_list(int natom)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   double time1,time2;
-  time1 = MPI_Wtime();
+  time1 = platform::walltime();
 
   if (natom) {
     nevent++;
@@ -1185,7 +1185,7 @@ void FixHyperLocal::build_bond_list(int natom)
   // DEBUG
   //if (me == 0) printf("TOTAL BOND COUNT = %ld\n",allbonds);
 
-  time2 = MPI_Wtime();
+  time2 = platform::walltime();
 
   if (firstflag) nnewbond = 0;
   else {

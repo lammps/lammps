@@ -17,15 +17,16 @@
 ------------------------------------------------------------------------- */
 
 #include "mliap_model_nn.h"
-#include "pair_mliap.h"
+
 #include "mliap_data.h"
+#include "pair_mliap.h"
 
 #include "comm.h"
 #include "error.h"
 #include "memory.h"
 #include "tokenizer.h"
 
-#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -39,7 +40,7 @@ MLIAPModelNN::MLIAPModelNN(LAMMPS* lmp, char* coefffilename) :
   nnodes = nullptr;
   activation = nullptr;
   scale = nullptr;
-  if (coefffilename) read_coeffs(coefffilename);
+  if (coefffilename) MLIAPModelNN::read_coeffs(coefffilename);
   nonlinearflag = 1;
 }
 
@@ -156,8 +157,8 @@ void MLIAPModelNN::read_coeffs(char *coefffilename)
       memory->create(scale,nelements,2,ndescriptors,"mliap_model:scale");
 
       for (int ilayer = 0; ilayer < nlayers; ilayer++) {
-        tstr = strtok(NULL,"' \t\n\r\f");
-        nnodes[ilayer] = atoi(strtok(NULL,"' \t\n\r\f"));
+        tstr = strtok(nullptr,"' \t\n\r\f");
+        nnodes[ilayer] = atoi(strtok(nullptr,"' \t\n\r\f"));
 
         if (strncmp(tstr, "linear", 6) == 0) activation[ilayer] = 0;
         else if (strncmp(tstr, "sigmoid", 7) == 0) activation[ilayer] = 1;

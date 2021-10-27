@@ -115,8 +115,8 @@ External contributions
 
 If you prefer to do so, you can also develop and support your add-on
 feature **without** having it included in the LAMMPS distribution, for
-example as a download from a website of your own.  See the `Offsite
-LAMMPS packages and tools <https://www.lammps.org/offsite.html>`_ page
+example as a download from a website of your own.  See the `External
+LAMMPS packages and tools <https://www.lammps.org/external.html>`_ page
 of the LAMMPS website for examples of groups that do this.  We are happy
 to advertise your package and website from that page.  Simply email the
 `developers <https://www.lammps.org/authors.html>`_ with info about your

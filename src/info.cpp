@@ -48,6 +48,8 @@
 #include <cctype>
 #include <cmath>
 #include <cstring>
+#include <ctime>
+#include <exception>
 #include <map>
 
 #ifdef _WIN32
@@ -280,7 +282,7 @@ void Info::command(int narg, char **arg)
       fmt::print(out,"Git info: {} / {} / {}\n",
                  lmp->git_branch, lmp->git_descriptor,lmp->git_commit);
 
-    fmt::print(out,"\nOS information: {}\n\n",get_os_info());
+    fmt::print(out,"\nOS information: {}\n\n",platform::os_info());
 
     fmt::print(out,"sizeof(smallint): {}-bit\n"
                "sizeof(imageint): {}-bit\n"
@@ -290,13 +292,14 @@ void Info::command(int narg, char **arg)
                sizeof(tagint)*8, sizeof(bigint)*8);
 
     fmt::print(out,"\nCompiler: {} with {}\nC++ standard: {}\n",
-               get_compiler_info(),get_openmp_info(),get_cxx_info());
+               platform::compiler_info(),platform::openmp_standard(),platform::cxx_standard());
 
     fputs("\nActive compile time flags:\n\n",out);
     if (has_gzip_support()) fputs("-DLAMMPS_GZIP\n",out);
     if (has_png_support()) fputs("-DLAMMPS_PNG\n",out);
     if (has_jpeg_support()) fputs("-DLAMMPS_JPEG\n",out);
     if (has_ffmpeg_support()) fputs("-DLAMMPS_FFMPEG\n",out);
+    if (has_fft_single_support()) fputs("-DFFT_SINGLE\n",out);
     if (has_exceptions()) fputs("-DLAMMPS_EXCEPTIONS\n",out);
 
 #if defined(LAMMPS_BIGBIG)
@@ -306,6 +309,7 @@ void Info::command(int narg, char **arg)
 #else // defined(LAMMPS_SMALLSMALL)
     fputs("-DLAMMPS_SMALLSMALL\n",out);
 #endif
+    if (has_gzip_support()) fmt::print(out,"\n{}\n",platform::compress_info());
 
     int ncword, ncline = 0;
     fputs("\nInstalled packages:\n\n",out);
@@ -351,7 +355,7 @@ void Info::command(int narg, char **arg)
 
   if (flags & COMM) {
     int major,minor;
-    std::string version = get_mpi_info(major,minor);
+    std::string version = platform::mpi_info(major,minor);
 
     fmt::print(out,"\nCommunication information:\n"
                "MPI library level: MPI v{}.{}\n"
@@ -633,24 +637,8 @@ void Info::command(int narg, char **arg)
   }
 
   if (flags & TIME) {
-    double wallclock = MPI_Wtime() - lmp->initclock;
-    double cpuclock = 0.0;
-
-#if defined(_WIN32)
-    // from MSD docs.
-    FILETIME ct,et,kt,ut;
-    union { FILETIME ft; uint64_t ui; } cpu;
-    if (GetProcessTimes(GetCurrentProcess(),&ct,&et,&kt,&ut)) {
-      cpu.ft = ut;
-      cpuclock = cpu.ui * 0.0000001;
-    }
-#else /* POSIX */
-    struct rusage ru;
-    if (getrusage(RUSAGE_SELF, &ru) == 0) {
-      cpuclock  = (double) ru.ru_utime.tv_sec;
-      cpuclock += (double) ru.ru_utime.tv_usec * 0.000001;
-    }
-#endif /* ! _WIN32 */
+    double wallclock = platform::walltime() - lmp->initclock;
+    double cpuclock = platform::cputime();
 
     int cpuh,cpum,cpus,wallh,wallm,walls;
     cpus = fmod(cpuclock,60.0);
@@ -893,6 +881,8 @@ bool Info::is_available(const char *category, const char *name)
       return has_jpeg_support();
     } else if (strcmp(name,"ffmpeg") == 0) {
       return has_ffmpeg_support();
+    } else if (strcmp(name,"fft_single") == 0) {
+      return has_fft_single_support();
     } else if (strcmp(name,"exceptions") == 0) {
       return has_exceptions();
     }
@@ -1025,7 +1015,7 @@ std::vector<std::string> Info::get_available_styles(const std::string &category)
   } else if (category == "command") {
     return get_style_names(input->command_map);
   }
-  return std::vector<std::string>();
+  return {};
 }
 
 template<typename ValueType>
@@ -1141,6 +1131,14 @@ bool Info::has_ffmpeg_support() {
 #endif
 }
 
+bool Info::has_fft_single_support() {
+#ifdef FFT_SINGLE
+  return true;
+#else
+  return false;
+#endif
+}
+
 bool Info::has_exceptions() {
 #ifdef LAMMPS_EXCEPTIONS
   return true;
@@ -1160,12 +1158,14 @@ bool Info::has_package(const std::string &package_name) {
 
 #if defined(LMP_GPU)
 extern bool lmp_gpu_config(const std::string &, const std::string &);
-extern bool lmp_has_gpu_device();
+extern bool lmp_has_compatible_gpu_device();
 extern std::string lmp_gpu_device_info();
 
+// we will only report compatible GPUs, i.e. when a GPU device is
+// available *and* supports the required floating point precision
 bool Info::has_gpu_device()
 {
-  return lmp_has_gpu_device();
+  return lmp_has_compatible_gpu_device();
 }
 
 std::string Info::get_gpu_device_info()
@@ -1262,185 +1262,6 @@ bool Info::has_accelerator_feature(const std::string &package,
   }
 #endif
   return false;
-}
-
-/* ---------------------------------------------------------------------- */
-#define _INFOBUF_SIZE 256
-
-std::string Info::get_os_info()
-{
-  std::string buf;
-
-#if defined(_WIN32)
-  DWORD fullversion,majorv,minorv,buildv=0;
-
-  fullversion = GetVersion();
-  majorv = (DWORD) (LOBYTE(LOWORD(fullversion)));
-  minorv = (DWORD) (HIBYTE(LOWORD(fullversion)));
-  if (fullversion < 0x80000000)
-    buildv = (DWORD) (HIWORD(fullversion));
-
-  buf = fmt::format("Windows {}.{} ({}) on ",majorv,minorv,buildv);
-
-  SYSTEM_INFO si;
-  GetSystemInfo(&si);
-
-  switch (si.wProcessorArchitecture) {
-  case PROCESSOR_ARCHITECTURE_AMD64:
-    buf += "x86_64";
-    break;
-  case PROCESSOR_ARCHITECTURE_ARM:
-    buf += "arm";
-    break;
-  case PROCESSOR_ARCHITECTURE_IA64:
-    buf += "ia64";
-    break;
-  case PROCESSOR_ARCHITECTURE_INTEL:
-    buf += "i386";
-    break;
-  default:
-    buf += "(unknown)";
-  }
-#else
-  struct utsname ut;
-  uname(&ut);
-
-  // try to get OS distribution name, if available
-  std::string distro = ut.sysname;
-  if (utils::file_is_readable("/etc/os-release")) {
-    try {
-        TextFileReader reader("/etc/os-release","");
-        while (1) {
-          auto words = reader.next_values(0,"=");
-          if ((words.count() > 1) && (words.next_string() == "PRETTY_NAME")) {
-            distro += " " + utils::trim(words.next_string());
-            break;
-          }
-        }
-    } catch (std::exception &e) {
-      ; // EOF but keyword not found
-    }
-  }
-
-  buf = fmt::format("{} {} on {}", distro, ut.release, ut.machine);
-#endif
-  return buf;
-}
-
-std::string Info::get_compiler_info()
-{
-  std::string buf;
-#if defined(__INTEL_LLVM_COMPILER)
-  double version = static_cast<double>(__INTEL_LLVM_COMPILER)*0.01;
-  buf = fmt::format("Intel LLVM C++ {:.1f} / {}", version, __VERSION__);
-#elif defined(__clang__)
-  buf = fmt::format("Clang C++ {}", __VERSION__);
-#elif defined(__PGI)
-  buf = fmt::format("PGI C++ {}.{}",__PGIC__,__PGIC_MINOR__);
-#elif defined(__INTEL_COMPILER)
-  double version = static_cast<double>(__INTEL_COMPILER)*0.01;
-  buf = fmt::format("Intel Classic C++ {:.2f}.{} / {}", version,
-                    __INTEL_COMPILER_UPDATE, __VERSION__);
-#elif defined(__GNUC__)
-  buf = fmt::format("GNU C++ {}",   __VERSION__);
-#else
-  buf = "(Unknown)";
-#endif
-  return buf;
-}
-
-std::string Info::get_openmp_info()
-{
-
-#if !defined(_OPENMP)
-  return "OpenMP not enabled";
-#else
-
-// Supported OpenMP version corresponds to the release date of the
-// specifications as posted at https://www.openmp.org/specifications/
-
-#if _OPENMP > 202011
-  return "OpenMP newer than version 5.1";
-#elif _OPENMP == 202011
-  return "OpenMP 5.1";
-#elif _OPENMP == 201811
-  return "OpenMP 5.0";
-#elif _OPENMP == 201611
-  return "OpenMP 5.0 preview 1";
-#elif _OPENMP == 201511
-  return "OpenMP 4.5";
-#elif _OPENMP == 201307
-  return "OpenMP 4.0";
-#elif _OPENMP == 201107
-  return "OpenMP 3.1";
-#elif _OPENMP == 200805
-  return "OpenMP 3.0";
-#elif _OPENMP == 200505
-  return "OpenMP 2.5";
-#elif _OPENMP == 200203
-  return "OpenMP 2.0";
-#else
-  return "unknown OpenMP version";
-#endif
-
-#endif
-}
-
-std::string Info::get_mpi_vendor() {
-  #if defined(MPI_STUBS)
-  return "MPI STUBS";
-  #elif defined(OPEN_MPI)
-  return "Open MPI";
-  #elif defined(MPICH_NAME)
-  return "MPICH";
-  #elif defined(I_MPI_VERSION)
-  return "Intel MPI";
-  #elif defined(PLATFORM_MPI)
-  return "Platform MPI";
-  #elif defined(HP_MPI)
-  return "HP MPI";
-  #elif defined(MSMPI_VER)
-  return "Microsoft MPI";
-  #else
-  return "Unknown MPI implementation";
-  #endif
-}
-
-std::string Info::get_mpi_info(int &major, int &minor)
-{
-  int len;
-#if (defined(MPI_VERSION) && (MPI_VERSION > 2)) || defined(MPI_STUBS)
-  static char version[MPI_MAX_LIBRARY_VERSION_STRING];
-  MPI_Get_library_version(version,&len);
-#else
-  static char version[32];
-  strcpy(version,get_mpi_vendor().c_str());
-  len = strlen(version);
-#endif
-
-  MPI_Get_version(&major,&minor);
-  if (len > 80) {
-    char *ptr = strchr(version+80,'\n');
-    if (ptr) *ptr = '\0';
-  }
-  return std::string(version);
-}
-
-std::string Info::get_cxx_info()
-{
-#if __cplusplus > 201703L
-  return "newer than C++17";
-#elif __cplusplus == 201703L
-  return "C++17";
-#elif __cplusplus == 201402L
-  return "C++14";
-#elif __cplusplus == 201103L
-  return "C++11";
-#elif __cplusplus == 199711L
-  return "C++98";
-#else
-  return "unknown";
-#endif
 }
 
 std::string Info::get_accelerator_info(const std::string &package)

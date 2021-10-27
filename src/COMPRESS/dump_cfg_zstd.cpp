@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -18,10 +17,12 @@
 
 #ifdef LAMMPS_ZSTD
 
+#include "dump_cfg_zstd.h"
+
 #include "atom.h"
 #include "domain.h"
-#include "dump_cfg_zstd.h"
 #include "error.h"
+#include "file_writer.h"
 #include "update.h"
 
 #include <cstring>
@@ -29,20 +30,10 @@
 using namespace LAMMPS_NS;
 #define UNWRAPEXPAND 10.0
 
-DumpCFGZstd::DumpCFGZstd(LAMMPS *lmp, int narg, char **arg) :
-  DumpCFG(lmp, narg, arg)
+DumpCFGZstd::DumpCFGZstd(LAMMPS *lmp, int narg, char **arg) : DumpCFG(lmp, narg, arg)
 {
-  if (!compressed)
-    error->all(FLERR,"Dump cfg/zstd only writes compressed files");
+  if (!compressed) error->all(FLERR, "Dump cfg/zstd only writes compressed files");
 }
-
-
-/* ---------------------------------------------------------------------- */
-
-DumpCFGZstd::~DumpCFGZstd()
-{
-}
-
 
 /* ----------------------------------------------------------------------
    generic opening of a dump file
@@ -65,16 +56,15 @@ void DumpCFGZstd::openfile()
   if (multifile) {
     char *filestar = filecurrent;
     filecurrent = new char[strlen(filestar) + 16];
-    char *ptr = strchr(filestar,'*');
+    char *ptr = strchr(filestar, '*');
     *ptr = '\0';
     if (padflag == 0)
-      sprintf(filecurrent,"%s" BIGINT_FORMAT "%s",
-              filestar,update->ntimestep,ptr+1);
+      sprintf(filecurrent, "%s" BIGINT_FORMAT "%s", filestar, update->ntimestep, ptr + 1);
     else {
-      char bif[8],pad[16];
-      strcpy(bif,BIGINT_FORMAT);
-      sprintf(pad,"%%s%%0%d%s%%s",padflag,&bif[1]);
-      sprintf(filecurrent,pad,filestar,update->ntimestep,ptr+1);
+      char bif[8], pad[16];
+      strcpy(bif, BIGINT_FORMAT);
+      sprintf(pad, "%%s%%0%d%s%%s", padflag, &bif[1]);
+      sprintf(filecurrent, pad, filestar, update->ntimestep, ptr + 1);
     }
     *ptr = '*';
     if (maxfiles > 0) {
@@ -95,9 +85,7 @@ void DumpCFGZstd::openfile()
   // each proc with filewriter = 1 opens a file
 
   if (filewriter) {
-    if (append_flag) {
-      error->one(FLERR, "dump cfg/zstd currently doesn't support append");
-    }
+    if (append_flag) { error->one(FLERR, "dump cfg/zstd currently doesn't support append"); }
 
     try {
       writer.open(filecurrent);
@@ -108,7 +96,7 @@ void DumpCFGZstd::openfile()
 
   // delete string with timestep replaced
 
-  if (multifile) delete [] filecurrent;
+  if (multifile) delete[] filecurrent;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -123,24 +111,25 @@ void DumpCFGZstd::write_header(bigint n)
   //   so molecules are not split across periodic box boundaries
 
   double scale = 1.0;
-  if (atom->peri_flag) scale = atom->pdscale;
-  else if (unwrapflag == 1) scale = UNWRAPEXPAND;
+  if (atom->peri_flag)
+    scale = atom->pdscale;
+  else if (unwrapflag == 1)
+    scale = UNWRAPEXPAND;
 
   std::string header = fmt::format("Number of particles = {}\n", n);
   header += fmt::format("A = {0:g} Angstrom (basic length-scale)\n", scale);
-  header += fmt::format("H0(1,1) = {0:g} A\n",domain->xprd);
+  header += fmt::format("H0(1,1) = {0:g} A\n", domain->xprd);
   header += fmt::format("H0(1,2) = 0 A \n");
   header += fmt::format("H0(1,3) = 0 A \n");
-  header += fmt::format("H0(2,1) = {0:g} A \n",domain->xy);
-  header += fmt::format("H0(2,2) = {0:g} A\n",domain->yprd);
+  header += fmt::format("H0(2,1) = {0:g} A \n", domain->xy);
+  header += fmt::format("H0(2,2) = {0:g} A\n", domain->yprd);
   header += fmt::format("H0(2,3) = 0 A \n");
-  header += fmt::format("H0(3,1) = {0:g} A \n",domain->xz);
-  header += fmt::format("H0(3,2) = {0:g} A \n",domain->yz);
-  header += fmt::format("H0(3,3) = {0:g} A\n",domain->zprd);
+  header += fmt::format("H0(3,1) = {0:g} A \n", domain->xz);
+  header += fmt::format("H0(3,2) = {0:g} A \n", domain->yz);
+  header += fmt::format("H0(3,3) = {0:g} A\n", domain->zprd);
   header += fmt::format(".NO_VELOCITY.\n");
-  header += fmt::format("entry_count = {}\n",nfield-2);
-  for (int i = 0; i < nfield-5; i++)
-    header += fmt::format("auxiliary[{}] = {}\n",i,auxname[i]);
+  header += fmt::format("entry_count = {}\n", nfield - 2);
+  for (int i = 0; i < nfield - 5; i++) header += fmt::format("auxiliary[{}] = {}\n", i, auxname[i]);
 
   writer.write(header.c_str(), header.length());
 }
@@ -165,13 +154,13 @@ void DumpCFGZstd::write_data(int n, double *mybuf)
             written = snprintf(vbuffer, VBUFFER_SIZE, "%s \n", typenames[(int) mybuf[m]]);
           } else if (j >= 2) {
             if (vtype[j] == Dump::INT)
-              written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], static_cast<int> (mybuf[m]));
+              written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], static_cast<int>(mybuf[m]));
             else if (vtype[j] == Dump::DOUBLE)
               written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], mybuf[m]);
             else if (vtype[j] == Dump::STRING)
               written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], typenames[(int) mybuf[m]]);
             else if (vtype[j] == Dump::BIGINT)
-              written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], static_cast<bigint> (mybuf[m]));
+              written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], static_cast<bigint>(mybuf[m]));
           }
           if (written > 0) {
             writer.write(vbuffer, written);
@@ -192,17 +181,17 @@ void DumpCFGZstd::write_data(int n, double *mybuf)
           } else if (j == 1) {
             written = snprintf(vbuffer, VBUFFER_SIZE, "%s \n", typenames[(int) mybuf[m]]);
           } else if (j >= 2 && j <= 4) {
-            double unwrap_coord = (mybuf[m] - 0.5)/UNWRAPEXPAND + 0.5;
+            double unwrap_coord = (mybuf[m] - 0.5) / UNWRAPEXPAND + 0.5;
             written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], unwrap_coord);
           } else if (j >= 5) {
             if (vtype[j] == Dump::INT)
-              written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], static_cast<int> (mybuf[m]));
+              written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], static_cast<int>(mybuf[m]));
             else if (vtype[j] == Dump::DOUBLE)
               written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], mybuf[m]);
             else if (vtype[j] == Dump::STRING)
               written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], typenames[(int) mybuf[m]]);
             else if (vtype[j] == Dump::BIGINT)
-              written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], static_cast<bigint> (mybuf[m]));
+              written = snprintf(vbuffer, VBUFFER_SIZE, vformat[j], static_cast<bigint>(mybuf[m]));
           }
           if (written > 0) {
             writer.write(vbuffer, written);
@@ -226,9 +215,7 @@ void DumpCFGZstd::write()
     if (multifile) {
       writer.close();
     } else {
-      if (flush_flag && writer.isopen()) {
-        writer.flush();
-      }
+      if (flush_flag && writer.isopen()) { writer.flush(); }
     }
   }
 }
@@ -240,16 +227,13 @@ int DumpCFGZstd::modify_param(int narg, char **arg)
   int consumed = DumpCFG::modify_param(narg, arg);
   if (consumed == 0) {
     try {
-      if (strcmp(arg[0],"checksum") == 0) {
-        if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-        if (strcmp(arg[1],"yes") == 0) writer.setChecksum(true);
-        else if (strcmp(arg[1],"no") == 0) writer.setChecksum(false);
-        else error->all(FLERR,"Illegal dump_modify command");
+      if (strcmp(arg[0], "checksum") == 0) {
+        if (narg < 2) error->all(FLERR, "Illegal dump_modify command");
+        writer.setChecksum(utils::logical(FLERR, arg[1], false, lmp) == 1);
         return 2;
-      } else if (strcmp(arg[0],"compression_level") == 0) {
-        if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-        int compression_level = utils::inumeric(FLERR, arg[1], false, lmp);
-        writer.setCompressionLevel(compression_level);
+      } else if (strcmp(arg[0], "compression_level") == 0) {
+        if (narg < 2) error->all(FLERR, "Illegal dump_modify command");
+        writer.setCompressionLevel(utils::inumeric(FLERR, arg[1], false, lmp));
         return 2;
       }
     } catch (FileWriterException &e) {

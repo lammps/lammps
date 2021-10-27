@@ -29,7 +29,7 @@ protected:
         MPI_Initialized(&flag);
         if (!flag) MPI_Init(&argc, &argv);
     }
-    ~Input_commands() override {}
+    ~Input_commands() override = default;
 
     void SetUp() override
     {

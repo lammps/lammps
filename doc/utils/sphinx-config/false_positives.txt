@@ -19,6 +19,7 @@ accuracies
 ach
 ackland
 Ackland
+acks
 acolor
 acos
 Acta
@@ -77,6 +78,7 @@ allocators
 allosws
 AlO
 Alonso
+Alperen
 alphak
 alphashrink
 amap
@@ -685,6 +687,7 @@ diagonalized
 diagonalizers
 diagonalizing
 Diallo
+diblock
 Dickel
 diel
 differentiable
@@ -1135,6 +1138,7 @@ Germann
 Germano
 gerolf
 Gerolf
+getrusage
 Gershgorin
 getter
 gettimeofday
@@ -1222,6 +1226,7 @@ Guo
 gw
 gyromagnetic
 gz
+gzip
 gzipped
 Haak
 Hafskjold
@@ -1252,6 +1257,7 @@ hbond
 hcp
 hdnnp
 HDNNP
+Hearn
 heatconduction
 Hebbeker
 Hebenstreit
@@ -1278,6 +1284,7 @@ hgrid
 hhmrr
 Hibbs
 Higdon
+hiID
 Hijazi
 Hilger
 Hinestrosa
@@ -1774,6 +1781,7 @@ Loewen
 logfile
 logfreq
 logicals
+loID
 Lomdahl
 Lond
 lookup
@@ -1809,6 +1817,7 @@ lyon
 Lysogorskiy
 Lyulin
 lz
+lzma
 Maaravi
 MACHDYN
 machdyn
@@ -2262,6 +2271,7 @@ Nmols
 nn
 nnodes
 Nocedal
+nO
 nocite
 nocoeff
 nodeless
@@ -2440,6 +2450,7 @@ packings
 padua
 Padua
 pafi
+PairIJ
 palegoldenrod
 palegreen
 paleturquoise
@@ -2760,6 +2771,7 @@ REAXFF
 ReaxFF
 reaxff
 rebo
+recurse
 recursing
 Ree
 refactored
@@ -3074,6 +3086,7 @@ Spearot
 specular
 spellcheck
 Spellmeyer
+Speybroeck
 sph
 SPH
 Spickermann
@@ -3439,6 +3452,7 @@ usec
 uSemiParallel
 userguide
 username
+usleep
 usr
 util
 utils
@@ -3486,6 +3500,7 @@ Verlag
 verlet
 Verlet
 versa
+Verstraelen
 ves
 vflag
 vhi
@@ -3552,6 +3567,7 @@ vzcm
 vzi
 Waals
 Wadley
+Waroquier
 wallstyle
 walltime
 Waltham
@@ -3656,6 +3672,7 @@ Yc
 ycm
 Yeh
 yellowgreen
+yEs
 Yethiraj
 yflag
 yhi

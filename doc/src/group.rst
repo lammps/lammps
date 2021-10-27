@@ -38,7 +38,7 @@ Syntax
        *intersect* args = two or more group IDs
        *dynamic* args = parent-ID keyword value ...
          one or more keyword/value pairs may be appended
-         keyword = *region* or *var* or *every*
+         keyword = *region* or *var* or *property* or *every*
            *region* value = region-ID
            *var* value = name of variable
            *property* value = name of custom integer or floating point vector

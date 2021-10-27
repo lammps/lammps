@@ -19,7 +19,6 @@
 
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
-#include "atom_vec_oxdna.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"
@@ -30,7 +29,6 @@
 
 #include <cmath>
 #include <cstring>
-#include <utility>
 
 using namespace LAMMPS_NS;
 using namespace MFOxdna;

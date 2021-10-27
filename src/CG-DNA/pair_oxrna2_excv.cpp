@@ -17,8 +17,6 @@
 
 #include "pair_oxrna2_excv.h"
 
-#include <cstring>
-
 using namespace LAMMPS_NS;
 
 /* ----------------------------------------------------------------------

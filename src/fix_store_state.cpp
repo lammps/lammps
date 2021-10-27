@@ -19,16 +19,15 @@
 #include "compute.h"
 #include "update.h"
 #include "domain.h"
-#include "force.h"
 #include "modify.h"
 #include "fix.h"
 #include "group.h"
 #include "input.h"
 #include "variable.h"
-#include "variable.h"
-#include "utils.h"
 #include "memory.h"
 #include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -232,9 +231,7 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"com") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix store/state command");
-      if (strcmp(arg[iarg+1],"no") == 0) comflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) comflag = 1;
-      else error->all(FLERR,"Illegal fix store/state command");
+      comflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix store/state command");
   }
@@ -247,16 +244,13 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
       if (icompute < 0)
         error->all(FLERR,"Compute ID for fix store/state does not exist");
       if (modify->compute[icompute]->peratom_flag == 0)
-        error->all(FLERR,"Fix store/state compute "
-                   "does not calculate per-atom values");
+        error->all(FLERR,"Fix store/state compute does not calculate per-atom values");
       if (argindex[i] == 0 &&
           modify->compute[icompute]->size_peratom_cols != 0)
-        error->all(FLERR,"Fix store/state compute does not "
-                   "calculate a per-atom vector");
+        error->all(FLERR,"Fix store/state compute does not calculate a per-atom vector");
       if (argindex[i] && modify->compute[icompute]->size_peratom_cols == 0)
         error->all(FLERR,
-                   "Fix store/state compute does not "
-                   "calculate a per-atom array");
+                   "Fix store/state compute does not calculate a per-atom array");
       if (argindex[i] &&
           argindex[i] > modify->compute[icompute]->size_peratom_cols)
         error->all(FLERR,
@@ -338,7 +332,7 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
   // register with Atom class
 
   values = nullptr;
-  grow_arrays(atom->nmax);
+  FixStoreState::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
   atom->add_callback(Atom::RESTART);
 
@@ -354,7 +348,7 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
 
   kflag = 1;
   cfv_flag = 0;
-  end_of_step();
+  FixStoreState::end_of_step();
   firstflag = 1;
 }
 

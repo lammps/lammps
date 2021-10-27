@@ -30,7 +30,6 @@ FixStyle(qeq/reax/kk/host,FixQEqReaxFFKokkos<LMPHostType>);
 #include "kokkos_type.h"
 #include "neigh_list.h"
 #include "neigh_list_kokkos.h"
-#include "kokkos_base.h"
 
 namespace LAMMPS_NS {
 
@@ -42,7 +41,7 @@ struct TagFixQEqReaxFFPackForwardComm {};
 struct TagFixQEqReaxFFUnpackForwardComm {};
 
 template<class DeviceType>
-class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
+class FixQEqReaxFFKokkos : public FixQEqReaxFF {
  public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
@@ -201,8 +200,8 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   typename AT::t_int_1d d_jlist;
   typename AT::t_ffloat_1d d_val;
 
-  DAT::tdual_ffloat_1d k_t, k_s;
-  typename AT::t_ffloat_1d d_Hdia_inv, d_b_s, d_b_t, d_t, d_s;
+  DAT::tdual_ffloat_1d k_t, k_s, k_chi_field;
+  typename AT::t_ffloat_1d d_Hdia_inv, d_b_s, d_b_t, d_t, d_s, d_chi_field;
   HAT::t_ffloat_1d h_t, h_s;
   typename AT::t_ffloat_1d_randomread r_b_s, r_b_t, r_t, r_s;
 
@@ -241,6 +240,7 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   void copy_arrays(int, int, int);
   int pack_exchange(int, double *);
   int unpack_exchange(int, double *);
+  void get_chi_field();
 };
 
 template <class DeviceType>

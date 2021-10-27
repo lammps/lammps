@@ -166,7 +166,7 @@ void potdata::readpot(const char *parmin_file,const char *potin_file,const doubl
   int ipotx,modex; double pnx;
   double vol0;
 
-  double *vatab,*vbtab,*vctab,*vdtab,*vetab,*p1tab,*altab,*vpairtab = 0;
+  double *vatab,*vbtab,*vctab,*vdtab,*vetab,*p1tab,*altab,*vpairtab = nullptr;
   double *r0rwstab,*evol0tab;
   double (*C)[4];
   double *y,*dy;

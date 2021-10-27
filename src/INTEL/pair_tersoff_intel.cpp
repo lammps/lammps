@@ -18,17 +18,13 @@
 
 #include "pair_tersoff_intel.h"
 
-#include "atom.h"
-#include "neighbor.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "force.h"
-#include "comm.h"
-#include "memory.h"
-#include "error.h"
-
-#include <cmath>
-#include <cstring>
+#include "neighbor.h"
 
 using namespace LAMMPS_NS;
 

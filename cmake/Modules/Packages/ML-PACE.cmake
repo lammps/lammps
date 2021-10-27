@@ -5,7 +5,7 @@ mark_as_advanced(PACELIB_URL)
 mark_as_advanced(PACELIB_MD5)
 
 # download library sources to build folder
-file(DOWNLOAD ${PACELIB_URL} ${CMAKE_BINARY_DIR}/libpace.tar.gz EXPECTED_HASH MD5=${PACELIB_MD5}) #SHOW_PROGRESS 
+file(DOWNLOAD ${PACELIB_URL} ${CMAKE_BINARY_DIR}/libpace.tar.gz EXPECTED_HASH MD5=${PACELIB_MD5}) #SHOW_PROGRESS
 
 # uncompress downloaded sources
 execute_process(

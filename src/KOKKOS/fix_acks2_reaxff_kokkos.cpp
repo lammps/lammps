@@ -1966,7 +1966,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::get_chi_field()
 
 namespace LAMMPS_NS {
 template class FixACKS2ReaxFFKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class FixACKS2ReaxFFKokkos<LMPHostType>;
 #endif
 }

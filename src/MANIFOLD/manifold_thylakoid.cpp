@@ -34,16 +34,12 @@ manifold_thylakoid::manifold_thylakoid( LAMMPS *lmp, int /*narg*/, char ** /*arg
   // fix should call post_param_init();
 }
 
-
-
 manifold_thylakoid::~manifold_thylakoid()
 {
   for (std::size_t i = 0; i < parts.size(); ++i) {
     delete parts[i];
   }
 }
-
-
 
 void manifold_thylakoid::post_param_init()
 {
@@ -59,52 +55,21 @@ void manifold_thylakoid::post_param_init()
   LB = params[1];
   lB = params[2];
 
-  if (comm->me == 0) {
-    fprintf(screen,"My params are now: lT = %f, LT = %f, pad = %f, "
-            "wB = %f, LB = %f, lB = %f\n", lT, LT, pad, wB, LB, lB );
-    fprintf(screen,"Calling init_domains() from post_param_init().\n");
-  }
   init_domains();
-  checkup();
 }
-
-void manifold_thylakoid::checkup()
-{
-  if (comm->me == 0) {
-    fprintf(screen,"This is checkup of thylakoid %p\n", this);
-    fprintf(screen,"I have %ld parts. They are:\n", parts.size());
-    for (int i = 0; i < (int)parts.size(); ++i) {
-      fprintf(screen, "[%f, %f] x [%f, %f] x [%f, %f]\n",
-              parts[i]->xlo, parts[i]->xhi,
-              parts[i]->ylo, parts[i]->yhi,
-              parts[i]->zlo, parts[i]->zhi );
-    }
-    fprintf(screen,"My params are:\n");
-    for (int i = 0; i < NPARAMS; ++i) {
-      fprintf(screen,"%f\n", params[i]);
-    }
-  }
-}
-
 
 double manifold_thylakoid::g( const double *x )
 {
   int err = 0;
   std::size_t idx;
   thyla_part *p = get_thyla_part(x,&err,&idx);
-  if (err) {
-    char msg[2048];
-    sprintf(msg,"Error getting thyla_part for x = (%f, %f, %f)",x[0],x[1],x[2]);
-    error->one(FLERR,msg);
-  }
+  if (err) error->one(FLERR,"Error getting thyla_part for x = ({}, {}, {})",x[0],x[1],x[2]);
+
   double con_val = p->g(x);
   if (std::isfinite(con_val)) {
     return con_val;
   } else {
-    char msg[2048];
-    sprintf(msg,"Error, thyla_part of type %d returned %f as constraint val!",
-            p->type, con_val);
-    error->one(FLERR,msg);
+    error->one(FLERR,"Error, thyla_part of type {} returned {} as constraint val!", p->type, con_val);
     return 0;
   }
 }
@@ -114,20 +79,14 @@ void   manifold_thylakoid::n( const double *x, double *n )
   int err = 0;
   std::size_t idx;
   thyla_part *p = get_thyla_part(x,&err,&idx);
-  if (err) {
-    char msg[2048];
-    sprintf(msg,"Error getting thyla_part for x = (%f, %f, %f)",x[0],x[1],x[2]);
-    error->one(FLERR,msg);
-  }
+  if (err)
+    error->one(FLERR,"Error getting thyla_part for x = ({}, {}, {})",x[0],x[1],x[2]);
   p->n(x,n);
   if (std::isfinite(n[0]) && std::isfinite(n[1]) && std::isfinite(n[2])) {
     return;
-  } else {
-    char msg[2048];
-    sprintf(msg,"Error, thyla_part of type %d returned (%f,%f,%f) as gradient!",
-            p->type, n[0], n[1], n[2]);
-    error->one(FLERR,msg);
-  }
+  } else
+    error->one(FLERR,"thyla_part of type {} returned ({},{},{}) as gradient!",
+               p->type, n[0], n[1], n[2]);
 }
 
 thyla_part *manifold_thylakoid::get_thyla_part( const double *x, int * /*err_flag*/, std::size_t *idx )
@@ -140,9 +99,7 @@ thyla_part *manifold_thylakoid::get_thyla_part( const double *x, int * /*err_fla
       return p;
     }
   }
-  char msg[2048];
-  sprintf(msg,"Could not find thyla_part for x = (%f,%f,%f)", x[0],x[1],x[2]);
-  error->one(FLERR,msg);
+  error->one(FLERR,"Could not find thyla_part for x = ({},{},{})", x[0],x[1],x[2]);
   return nullptr;
 }
 
@@ -153,12 +110,9 @@ thyla_part *manifold_thylakoid::get_thyla_part( const double *x, int * /*err_fla
 
 void manifold_thylakoid::init_domains()
 {
-  if (wB + 2*lB > LT) {
-    char msg[2048];
-    sprintf(msg,"LT = %f not large enough to accommodate bridge with "
-            "wB = %f and lB = %f! %f > %f\n", LT, wB, lB, wB + 2*lB, LT);
-    error->one(FLERR,msg);
-  }
+  if (wB + 2*lB > LT)
+    error->one(FLERR,"LT = {} not large enough to accommodate bridge with "
+               "wB = {} and lB = {}! {} > {}\n", LT, wB, lB, wB + 2*lB, LT);
 
   // Determine some constant coordinates:
   x0 = -( 0.5*LB + lB + lT + LT + lT + pad);
@@ -375,12 +329,9 @@ void manifold_thylakoid::init_domains()
   parts.push_back(p);
 
   // Check if this plane lines up with bl:
-  if (fabs(plr.pt[0] - bl.pt[0] + lB) > 1e-8) {
-    char msg[2048];
-    sprintf(msg,"Origins of plane left right and bridge left misaligned! %f != %f!\n",
-            plr.pt[0], bl.pt[0] - lB );
-    error->one(FLERR,msg);
-  }
+  if (fabs(plr.pt[0] - bl.pt[0] + lB) > 1e-8)
+    error->one(FLERR,"Origins of plane left right and bridge left misaligned! {} != {}!\n",
+               plr.pt[0], bl.pt[0] - lB );
 
   // Now, for the right stack, you can mirror the other...
   // To mirror them you need to invert lo[0] and hi[0] and flip their sign.
@@ -428,12 +379,9 @@ void manifold_thylakoid::init_domains()
   set_domain(p, prr.lo, prr.hi);
   parts.push_back(p);
 
-  if (fabs(prr.pt[0] - br.pt[0] - lB) > 1e-8) {
-    char msg[2048];
-    sprintf(msg,"Origins of plane left right and bridge left misaligned! %f != %f!\n",
-            prr.pt[0], br.pt[0] + lB);
-    error->one(FLERR,msg);
-  }
+  if (fabs(prr.pt[0] - br.pt[0] - lB) > 1e-8)
+    error->one(FLERR,"Origins of plane left right and bridge left misaligned! {} != {}!\n",
+               prr.pt[0], br.pt[0] + lB);
 }
 
 

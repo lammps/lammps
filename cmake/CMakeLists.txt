@@ -81,9 +81,9 @@ check_for_autogen_files(${LAMMPS_SOURCE_DIR})
 include(CheckIncludeFileCXX)
 
 # set required compiler flags and compiler/CPU arch specific optimizations
-if((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") OR (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM"))
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
   if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    if (CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Qrestrict")
     endif()
     if(CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.3 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.4)

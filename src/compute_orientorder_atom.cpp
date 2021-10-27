@@ -195,6 +195,8 @@ void ComputeOrientOrderAtom::init()
     error->all(FLERR,"Compute orientorder/atom cutoff is "
                "longer than pairwise cutoff");
 
+  memory->destroy(qnm_r);
+  memory->destroy(qnm_i);
   memory->create(qnm_r,nqlist,qmax+1,"orientorder/atom:qnm_r");
   memory->create(qnm_i,nqlist,qmax+1,"orientorder/atom:qnm_i");
 
@@ -667,6 +669,7 @@ void ComputeOrientOrderAtom::init_wigner3j()
     }
   }
   widx_max = widx_count;
+  memory->destroy(w3jlist);
   memory->create(w3jlist, widx_max, "computeorientorderatom:w3jlist");
 
   widx_count = 0;

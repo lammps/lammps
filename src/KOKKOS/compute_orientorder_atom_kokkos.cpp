@@ -26,7 +26,7 @@
 #include "atom_masks.h"
 #include "kokkos.h"
 #include "math_const.h"
-#include "math_special_kokkos.h"
+#include "math_special.h"
 #include "memory_kokkos.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -38,7 +38,7 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using namespace MathSpecialKokkos;
+using namespace MathSpecial;
 using namespace std;
 
 #ifdef DBL_EPSILON
@@ -546,6 +546,7 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::calc_boop2(int ncount, int ii) co
     for (int il = 0; il < nqlist; il++) {
       int l = d_qlist[il];
       double wlsum = 0.0;
+      int sgn = 1;
       for (int m1 = -l; m1 <= 0; m1++) {
         for (int m2 = 0; m2 <= ((-m1)>>1); m2++) {
           const int m3 = -(m1 + m2);
@@ -556,8 +557,6 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::calc_boop2(int ncount, int ii) co
           // structure enforces visiting only one member of each
           // such symmetry (invariance) group.
 
-          //const int sgn = 1 - 2*(m1&1);
-          const int sgn = powint(-1,m1); // sgn = (-1)^m
           // m1 <= 0, and Qlm[-m] = (-1)^m*conjg(Qlm[m])
           SNAcomplex Q1Q2;
           Q1Q2.re = (d_qnm(ii,il,-m1).re*d_qnm(ii,il,m2).re + d_qnm(ii,il,-m1).im*d_qnm(ii,il,m2).im)*sgn;
@@ -565,6 +564,8 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::calc_boop2(int ncount, int ii) co
           const double Q1Q2Q3 = Q1Q2.re*d_qnm(ii,il,m3).re - Q1Q2.im*d_qnm(ii,il,m3).im;
           const double c = d_w3jlist[widx_count++];
           wlsum += Q1Q2Q3*c;
+
+          sgn = -sgn; // sgn = (-1)^m
         }
       }
       d_qnarray(i,jj++) = wlsum/d_qnormfac2(il);
@@ -599,13 +600,14 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::calc_boop2(int ncount, int ii) co
       }
     else {
       const double qnfac = d_qnormfac(il)/d_qnarray(i,il);
+      int sgn = 1;
       for (int m = -l; m < 0; m++) {
         // Computed only qnm for m>=0.
         // qnm[-m] = (-1)^m * conjg(qnm[m])
-        //const int sgn = 1 - 2*(m&1); // sgn = (-1)^m
-        const int sgn = powint(-1,m); // sgn = (-1)^m
         d_qnarray(i,jj++) =  d_qnm(ii,il,-m).re * qnfac * sgn;
         d_qnarray(i,jj++) = -d_qnm(ii,il,-m).im * qnfac * sgn;
+
+        sgn = -sgn; // sgn = (-1)^m
       }
       for (int m = 0; m < l+1; m++) {
         d_qnarray(i,jj++) = d_qnm(ii,il,m).re * qnfac;

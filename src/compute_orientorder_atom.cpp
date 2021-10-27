@@ -524,6 +524,7 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
     for (int il = 0; il < nqlist; il++) {
       int l = qlist[il];
       double wlsum = 0.0;
+      int sgn = 1;
       for (int m1 = -l; m1 <= 0; m1++) {
         for (int m2 = 0; m2 <= ((-m1)>>1); m2++) {
           const int m3 = -(m1 + m2);
@@ -534,14 +535,14 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
           // structure enforces visiting only one member of each
           // such symmetry (invariance) group.
 
-          //const int sgn = 1 - 2*(m1&1);
-          const int sgn = powint(-1,m1); // sgn = (-1)^m
           // m1 <= 0, and Qlm[-m] = (-1)^m*conjg(Qlm[m])
           const double Q1Q2_r = (qnm_r[il][-m1]*qnm_r[il][m2] + qnm_i[il][-m1]*qnm_i[il][m2])*sgn;
           const double Q1Q2_i = (qnm_r[il][-m1]*qnm_i[il][m2] - qnm_i[il][-m1]*qnm_r[il][m2])*sgn;
           const double Q1Q2Q3 = Q1Q2_r*qnm_r[il][m3] - Q1Q2_i*qnm_i[il][m3];
           const double c = w3jlist[widx_count++];
           wlsum += Q1Q2Q3*c;
+
+          sgn = -sgn; // sgn = (-1)^m
         }
       }
       qn[jj++] = wlsum/qnormfac2[il];
@@ -576,13 +577,14 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
       }
     else {
       double qnfac = qnormfac[il]/qn[il];
+      int sgn = 1;
       for (int m = -l; m < 0; m++) {
         // Computed only qnm for m>=0.
         // qnm[-m] = (-1)^m * conjg(qnm[m])
-        //const int sgn = 1 - 2*(m&1); // sgn = (-1)^m
-        const int sgn = powint(-1,m); // sgn = (-1)^m
         qn[jj++] =  qnm_r[il][-m] * qnfac * sgn;
         qn[jj++] = -qnm_i[il][-m] * qnfac * sgn;
+
+        sgn = -sgn; // sgn = (-1)^m
       }
       for (int m = 0; m < l+1; m++) {
         qn[jj++] = qnm_r[il][m] * qnfac;

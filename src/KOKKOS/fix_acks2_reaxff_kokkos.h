@@ -299,7 +299,7 @@ struct FixACKS2ReaxFFKokkosComputeHFunctor {
     c.template compute_h_team<NEIGHFLAG>(team, atoms_per_team, vector_length);
   }
 
-  size_t team_shmem_size(int team_size) const {
+  size_t team_shmem_size(int /*team_size*/) const {
     size_t shmem_size =
         Kokkos::View<int *, scratch_space, Kokkos::MemoryUnmanaged>::shmem_size(
             atoms_per_team) + // s_ilist
@@ -347,7 +347,7 @@ struct FixACKS2ReaxFFKokkosComputeXFunctor {
     c.template compute_x_team<NEIGHFLAG>(team, atoms_per_team, vector_length);
   }
 
-  size_t team_shmem_size(int team_size) const {
+  size_t team_shmem_size(int /*team_size*/) const {
     size_t shmem_size =
         Kokkos::View<int *, scratch_space, Kokkos::MemoryUnmanaged>::shmem_size(
             atoms_per_team) + // s_ilist

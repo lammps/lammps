@@ -45,16 +45,10 @@
 #include <cmath>
 #include <cstring>
 #include <exception>
+#include <string>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-
-class parser_error : public std::exception {
-  std::string message;
-public:
-  parser_error(const std::string &mesg) { message = mesg; }
-  const char *what() const noexcept { return message.c_str(); }
-};
 
 static constexpr double EV_TO_KCAL_PER_MOL = 14.4;
 static constexpr double SMALL = 1.0e-14;
@@ -241,15 +235,16 @@ void FixQEqReaxFF::pertype_parameters(char *arg)
       for (int i = 1; i <= ntypes; i++) {
         const char *line = reader.next_line();
         if (!line)
-          throw parser_error("Invalid param file for fix qeq/reaxff");
+          throw TokenizerException("Fix qeq/reaxff: Invalid param file format","");
         ValueTokenizer values(line);
 
         if (values.count() != 4)
-          throw parser_error("Fix qeq/reaxff: Incorrect format of param file");
+          throw TokenizerException("Fix qeq/reaxff: Incorrect format of param file","");
 
         int itype = values.next_int();
         if ((itype < 1) || (itype > ntypes))
-          throw parser_error("Fix qeq/reaxff: invalid atom type in param file");
+          throw TokenizerException("Fix qeq/reaxff: invalid atom type in param file",
+                                   std::to_string(itype));
 
         chi[itype] = values.next_double();
         eta[itype] = values.next_double();

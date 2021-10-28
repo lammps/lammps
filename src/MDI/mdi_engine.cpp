@@ -196,7 +196,7 @@ void MDIEngine::command(int narg, char ** /*arg*/)
 
   char *command;
 
-  while (1) {
+  while (true) {
 
     // mdi/engine command only recognizes three nodes
     // DEFAULT, INIT_MD, INIT_OPTG
@@ -261,7 +261,7 @@ char *MDIEngine::mdi_md()
 
   // run MD one step at a time
 
-  while (1) {
+  while (true) {
     update->whichflag = 1;
     timer->init_timeout();
     update->nsteps += 1;

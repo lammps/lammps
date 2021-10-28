@@ -43,13 +43,6 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-class parser_error : public std::exception {
-  std::string message;
-public:
-  parser_error(const std::string &mesg) { message = mesg; }
-  const char *what() const noexcept { return message.c_str(); }
-};
-
 static const char cite_fix_acks2_reax[] =
   "fix acks2/reaxff command:\n\n"
   "@Article{O'Hearn2020,\n"
@@ -173,26 +166,27 @@ void FixACKS2ReaxFF::pertype_parameters(char *arg)
 
       const char *line = reader.next_line();
       if (!line)
-        throw parser_error("Invalid parameter file for fix acks2/reaxff");
+        throw TokenizerException("Invalid parameter file for fix acks2/reaxff","");
       ValueTokenizer values(line);
 
       if (values.count() != 1)
-        throw parser_error("Fix acks2/reaxff: Incorrect format of parameter file");
+        throw TokenizerException("Fix acks2/reaxff: Incorrect parameter file format","");
 
       bond_softness = values.next_double();
 
       for (int i = 1; i <= ntypes; i++) {
         const char *line = reader.next_line();
         if (!line)
-          throw parser_error("Invalid parameter file for fix acks2/reaxff");
+          throw TokenizerException("Fix acks2/reaxff: Incorrect parameter file format","");
         ValueTokenizer values(line);
 
         if (values.count() != 5)
-          throw parser_error("Fix acks2/reaxff: Incorrect format of parameter file");
+          throw TokenizerException("Fix acks2/reaxff: Incorrect parameter file format","");
 
         int itype = values.next_int();
         if ((itype < 1) || (itype > ntypes))
-          throw parser_error("Fix acks2/reaxff: invalid atom type in parameter file");
+          throw TokenizerException("Fix acks2/reaxff: invalid atom type in parameter file",
+                                   std::to_string(itype));
 
         chi[itype] = values.next_double();
         eta[itype] = values.next_double();

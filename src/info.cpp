@@ -309,6 +309,7 @@ void Info::command(int narg, char **arg)
 #else // defined(LAMMPS_SMALLSMALL)
     fputs("-DLAMMPS_SMALLSMALL\n",out);
 #endif
+    if (has_gzip_support()) fmt::print(out,"\n{}\n",platform::compress_info());
 
     int ncword, ncline = 0;
     fputs("\nInstalled packages:\n\n",out);

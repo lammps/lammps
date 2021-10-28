@@ -42,6 +42,9 @@ Platform information functions
 .. doxygenfunction:: mpi_info
    :project: progguide
 
+.. doxygenfunction:: compress_info
+   :project: progguide
+
 
 File and path functions and global constants
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

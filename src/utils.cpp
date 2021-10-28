@@ -954,7 +954,7 @@ std::vector<std::string> utils::split_words(const std::string &text)
     }
 
     // unquoted
-    while (1) {
+    while (true) {
       if ((c == '\'') || (c == '"')) goto quoted;
       // skip escaped quote
       if ((c == '\\') && ((buf[1] == '\'') || (buf[1] == '"'))) {

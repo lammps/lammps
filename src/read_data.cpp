@@ -427,7 +427,7 @@ void ReadData::command(int narg, char **arg)
   nlocal_previous = atom->nlocal;
   int firstpass = 1;
 
-  while (1) {
+  while (true) {
 
     // open file on proc 0
 
@@ -962,7 +962,7 @@ void ReadData::header(int firstpass)
     if (eof == nullptr) error->one(FLERR,"Unexpected end of data file");
   }
 
-  while (1) {
+  while (true) {
 
     // read a line and bcast length
 

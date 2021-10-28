@@ -927,7 +927,7 @@ int Balance::shift()
         // else add split I-1 or J+1 to set and try again
         // delta = size of expanded split set that will satisy criterion
 
-        while (1) {
+        while (true) {
           delta = (j-i) * close;
           midpt = 0.5 * (split[i]+split[j]);
           start = midpt - 0.5*delta;

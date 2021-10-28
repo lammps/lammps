@@ -842,7 +842,7 @@ void FixPour::xyz_random(double h, double *coord)
       coord[2] = h;
     } else {
       double r1,r2;
-      while (1) {
+      while (true) {
         r1 = random->uniform() - 0.5;
         r2 = random->uniform() - 0.5;
         if (r1*r1 + r2*r2 < 0.25) break;

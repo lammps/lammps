@@ -93,7 +93,7 @@ void MLIAPDescriptorSO3::read_paramfile(char *paramfilename)
   int eof = 0;
   int n, nwords;
 
-  while (1) {
+  while (true) {
     if (comm->me == 0) {
       ptr = utils::fgets_trunc(line, MAXLINE, fpparam);
       if (ptr == nullptr) {

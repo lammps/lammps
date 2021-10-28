@@ -1379,6 +1379,8 @@ void LAMMPS::print_config(FILE *fp)
              sizeof(smallint)*8, sizeof(imageint)*8,
              sizeof(tagint)*8, sizeof(bigint)*8);
 
+  if (Info::has_gzip_support()) fmt::print(fp,"\n{}\n",platform::compress_info());
+
   fputs("\nInstalled packages:\n\n",fp);
   for (int i = 0; nullptr != (pkg = installed_packages[i]); ++i) {
     ncword = strlen(pkg);

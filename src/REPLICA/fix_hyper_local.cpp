@@ -980,7 +980,7 @@ void FixHyperLocal::build_bond_list(int natom)
                                          "hyper/local:clist");
   }
 
-  while (1) {
+  while (true) {
     if (firstflag) break;
     for (i = 0; i < nall; i++) numcoeff[i] = 0;
     for (i = 0; i < nall; i++) clist[i] = nullptr;

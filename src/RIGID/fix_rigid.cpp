@@ -2281,7 +2281,7 @@ void FixRigid::readfile(int which, double *vec,
     if (fp == nullptr)
       error->one(FLERR,"Cannot open fix rigid file {}: {}",
                                    inpfile,utils::getsyserror());
-    while (1) {
+    while (true) {
       eof = fgets(line,MAXLINE,fp);
       if (eof == nullptr) error->one(FLERR,"Unexpected end of fix rigid file");
       start = &line[strspn(line," \t\n\v\f\r")];

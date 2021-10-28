@@ -382,7 +382,7 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
   int eof = 0;
   int n,nwords;
 
-  while (1) {
+  while (true) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fpparam);
       if (ptr == nullptr) {

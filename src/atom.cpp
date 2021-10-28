@@ -1905,7 +1905,7 @@ void Atom::add_molecule(int narg, char **arg)
 
   int ifile = 1;
   int index = 1;
-  while (1) {
+  while (true) {
     molecules = (Molecule **)
       memory->srealloc(molecules,(nmolecule+1)*sizeof(Molecule *),
                        "atom::molecules");

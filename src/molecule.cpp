@@ -412,7 +412,7 @@ void Molecule::read(int flag)
   // skip blank lines or lines that start with "#"
   // stop when read an unrecognized line
 
-  while (1) {
+  while (true) {
 
     readline(line);
 

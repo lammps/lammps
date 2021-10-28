@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -174,7 +175,7 @@ void Domain::init()
 
   deform_flag = deform_vremap = deform_groupbit = 0;
   for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"deform") == 0) {
+    if (utils::strmatch(modify->fix[i]->style,"^deform")) {
       deform_flag = 1;
       if (((FixDeform *) modify->fix[i])->remapflag == Domain::V_REMAP) {
         deform_vremap = 1;
@@ -527,10 +528,11 @@ void Domain::reset_box()
 
 void Domain::pbc()
 {
+  int nlocal = atom->nlocal;
+  if (!nlocal) return;
   int i;
   imageint idim,otherdims;
   double *lo,*hi,*period;
-  int nlocal = atom->nlocal;
   double **x = atom->x;
   double **v = atom->v;
   int *mask = atom->mask;
@@ -541,7 +543,7 @@ void Domain::pbc()
 
   double *coord;
   int n3 = 3*nlocal;
-  coord = &x[0][0];  // note: x is always initialized to at least one element.
+  coord = &x[0][0];
   int flag = 0;
   for (i = 0; i < n3; i++)
     if (!std::isfinite(*coord++)) flag = 1;

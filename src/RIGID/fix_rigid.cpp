@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -81,7 +82,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   eflags = nullptr;
   orient = nullptr;
   dorient = nullptr;
-  grow_arrays(atom->nmax);
+  FixRigid::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
 
   // parse args for rigid body specification
@@ -128,14 +129,14 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
       // determine whether atom-style variable or atom property is used
 
       if (utils::strmatch(arg[4],"^i_")) {
-        int is_double=0;
-        int custom_index = atom->find_custom(arg[4]+2,is_double);
+        int is_double,cols;
+        int custom_index = atom->find_custom(arg[4]+2,is_double,cols);
         if (custom_index == -1)
           error->all(FLERR,"Fix rigid custom requires "
                      "previously defined property/atom");
         else if (is_double)
           error->all(FLERR,"Fix rigid custom requires "
-                     "integer-valued property/atom");
+                     "integer-valued property/atom vector");
         int minval = INT_MAX;
         int *value = atom->ivector[custom_index];
         for (i = 0; i < nlocal; i++)
@@ -534,9 +535,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"reinit") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid command");
-      if (strcmp("yes",arg[iarg+1]) == 0) reinitflag = 1;
-      else if  (strcmp("no",arg[iarg+1]) == 0) reinitflag = 0;
-      else error->all(FLERR,"Illegal fix rigid command");
+      reinitflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"gravity") == 0) {
@@ -602,8 +601,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   for (ibody = 0; ibody < nbody; ibody++) nsum += nrigid[ibody];
 
   if (me == 0)
-    utils::logmesg(lmp,fmt::format("  {} rigid bodies with {} atoms\n",
-                                   nbody,nsum));
+    utils::logmesg(lmp,"  {} rigid bodies with {} atoms\n",nbody,nsum);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -698,8 +696,8 @@ void FixRigid::init()
       if (modify->fix[i]->rigid_flag) rflag = 1;
       if (rflag && (modify->fmask[i] & POST_FORCE) &&
           !modify->fix[i]->rigid_flag)
-        error->warning(FLERR,fmt::format("Fix {} alters forces after fix "
-                                         "rigid",modify->fix[i]->id));
+        error->warning(FLERR,"Fix {} alters forces after fix rigid",
+                       modify->fix[i]->id);
     }
   }
 
@@ -2281,9 +2279,9 @@ void FixRigid::readfile(int which, double *vec,
   if (me == 0) {
     fp = fopen(inpfile,"r");
     if (fp == nullptr)
-      error->one(FLERR,fmt::format("Cannot open fix rigid file {}: {}",
-                                   inpfile,utils::getsyserror()));
-    while (1) {
+      error->one(FLERR,"Cannot open fix rigid file {}: {}",
+                                   inpfile,utils::getsyserror());
+    while (true) {
       eof = fgets(line,MAXLINE,fp);
       if (eof == nullptr) error->one(FLERR,"Unexpected end of fix rigid file");
       start = &line[strspn(line," \t\n\v\f\r")];
@@ -2390,8 +2388,8 @@ void FixRigid::write_restart_file(const char *file)
   auto outfile = std::string(file) + ".rigid";
   FILE *fp = fopen(outfile.c_str(),"w");
   if (fp == nullptr)
-    error->one(FLERR,fmt::format("Cannot open fix rigid restart file {}: {}",
-                                 outfile,utils::getsyserror()));
+    error->one(FLERR,"Cannot open fix rigid restart file {}: {}",
+                                 outfile,utils::getsyserror());
 
   fmt::print(fp,"# fix rigid mass, COM, inertia tensor info for "
              "{} bodies on timestep {}\n\n",nbody,update->ntimestep);

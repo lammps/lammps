@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(temp/chunk,ComputeTempChunk)
-
+// clang-format off
+ComputeStyle(temp/chunk,ComputeTempChunk);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_TEMP_CHUNK_H
@@ -47,20 +47,20 @@ class ComputeTempChunk : public Compute {
   double memory_usage();
 
  private:
-  int nchunk,maxchunk,comflag,biasflag;
+  int nchunk, maxchunk, comflag, biasflag;
   int nvalues;
   int *which;
   char *idchunk;
   class ComputeChunkAtom *cchunk;
-  double adof,cdof;
+  double adof, cdof;
   char *id_bias;
-  class Compute *tbias;     // ptr to additional bias compute
+  class Compute *tbias;    // ptr to additional bias compute
   bigint comstep;
 
-  double *sum,*sumall;
-  int *count,*countall;
-  double *massproc,*masstotal;
-  double **vcm,**vcmall;
+  double *sum, *sumall;
+  int *count, *countall;
+  double *massproc, *masstotal;
+  double **vcm, **vcmall;
 
   void vcm_compute();
   void temperature(int);
@@ -69,7 +69,7 @@ class ComputeTempChunk : public Compute {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

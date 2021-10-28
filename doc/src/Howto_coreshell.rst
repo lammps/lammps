@@ -5,7 +5,7 @@ The adiabatic core-shell model by :ref:`Mitchell and Fincham <MitchellFincham>` 
 to a system.  In order to mimic the electron shell of an ion, a
 satellite particle is attached to it. This way the ions are split into
 a core and a shell where the latter is meant to react to the
-electrostatic environment inducing polarizability.  See the :doc:`Howto polarizable <Howto_polarizable>` doc page for a discussion of all
+electrostatic environment inducing polarizability.  See the :doc:`Howto polarizable <Howto_polarizable>` page for a discussion of all
 the polarizable models available in LAMMPS.
 
 Technically, shells are attached to the cores by a spring force f =
@@ -78,7 +78,7 @@ satellite particle if desired.
 Since the core/shell model permits distances of r = 0.0 between the
 core and shell, a pair style with a "cs" suffix needs to be used to
 implement a valid long-range Coulombic correction.  Several such pair
-styles are provided in the CORESHELL package.  See :doc:`this doc page <pair_cs>` for details.  All of the core/shell enabled pair
+styles are provided in the CORESHELL package.  See :doc:`this page <pair_cs>` for details.  All of the core/shell enabled pair
 styles require the use of a long-range Coulombic solver, as specified
 by the :doc:`kspace_style <kspace_style>` command.  Either the PPPM or
 Ewald solvers can be used.

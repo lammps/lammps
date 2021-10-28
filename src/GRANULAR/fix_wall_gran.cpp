@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -436,7 +437,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   // register with Atom class
 
   history_one = nullptr;
-  grow_arrays(atom->nmax);
+  FixWallGran::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
   atom->add_callback(Atom::RESTART);
 
@@ -1192,7 +1193,7 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
     knfac = E; //Hooke
     a = sqrt(dR);
     Fne = knfac*delta;
-    if (normal_model != HOOKE) {
+    if (normal_model != NORMAL_HOOKE) {
       Fne *= a;
       knfac *= a;
     }
@@ -1554,8 +1555,7 @@ double FixWallGran::memory_usage()
 
 void FixWallGran::grow_arrays(int nmax)
 {
-  if (use_history) memory->grow(history_one,nmax,size_history,
-                                "fix_wall_gran:history_one");
+  if (use_history) memory->grow(history_one,nmax,size_history,"fix_wall_gran:history_one");
   if (peratom_flag) {
     memory->grow(array_atom,nmax,size_peratom_cols,"fix_wall_gran:array_atom");
   }

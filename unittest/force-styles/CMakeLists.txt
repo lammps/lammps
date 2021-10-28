@@ -15,7 +15,7 @@ if(CMAKE_VERSION VERSION_LESS 3.12)
 else()
   find_package(Python COMPONENTS Interpreter)
 endif()
-if (Python_EXECUTABLE)
+if(Python_EXECUTABLE)
   add_custom_target(check-tests
     ${Python_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/check_tests.py
     -s ${LAMMPS_SOURCE_DIR} -t ${CMAKE_CURRENT_SOURCE_DIR}/tests
@@ -26,14 +26,14 @@ set(TEST_INPUT_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 add_library(style_tests STATIC yaml_writer.cpp error_stats.cpp test_config_reader.cpp test_main.cpp)
 target_compile_definitions(style_tests PRIVATE -DTEST_INPUT_FOLDER=${TEST_INPUT_FOLDER})
 target_include_directories(style_tests PRIVATE ${LAMMPS_SOURCE_DIR})
-target_link_libraries(style_tests PUBLIC GTest::GTest GTest::GMock Yaml::Yaml)
+target_link_libraries(style_tests PUBLIC GTest::GTest GTest::GMock Yaml::Yaml lammps)
 if(BUILD_MPI)
   target_link_libraries(style_tests PUBLIC MPI::MPI_CXX)
 else()
   target_link_libraries(style_tests PUBLIC mpi_stubs)
 endif()
 # propagate sanitizer options to test tools
-if (ENABLE_SANITIZER AND (NOT ENABLE_SANITIZER STREQUAL "none"))
+if(ENABLE_SANITIZER AND (NOT (ENABLE_SANITIZER STREQUAL "none")))
   if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.13)
     target_compile_options(style_tests PUBLIC -fsanitize=${ENABLE_SANITIZER})
     target_link_options(style_tests PUBLIC -fsanitize=${ENABLE_SANITIZER})
@@ -53,10 +53,10 @@ if(FFT_SINGLE)
   target_compile_definitions(test_pair_style PRIVATE -DFFT_SINGLE)
 endif()
 
-# tests for a molecular systems and related pair styles
+# tests for molecular systems and related pair styles
 file(GLOB MOL_PAIR_TESTS LIST_DIRECTORIES false ${TEST_INPUT_FOLDER}/mol-pair-*.yaml)
 # cannot test MSM with single precision data
-if (FFT_SINGLE)
+if(FFT_SINGLE)
   list(FILTER MOL_PAIR_TESTS EXCLUDE REGEX "msm")
 endif()
 foreach(TEST ${MOL_PAIR_TESTS})
@@ -106,7 +106,7 @@ endforeach()
 # kspace style tester, currently uses the pair style tool
 file(GLOB KSPACE_TESTS LIST_DIRECTORIES false ${TEST_INPUT_FOLDER}/kspace-*.yaml)
 # cannot test MSM with single precision data
-if (FFT_SINGLE)
+if(FFT_SINGLE)
   list(FILTER KSPACE_TESTS EXCLUDE REGEX "msm")
 endif()
 foreach(TEST ${KSPACE_TESTS})
@@ -117,6 +117,9 @@ endforeach()
 
 # tester for timestepping fixes
 add_executable(test_fix_timestep test_fix_timestep.cpp)
+if(NOT BUILD_SHARED_LIBS)
+  target_compile_definitions(test_fix_timestep PRIVATE USING_STATIC_LIBS=1)
+endif()
 target_link_libraries(test_fix_timestep PRIVATE lammps style_tests)
 
 # tests for timestep related fixes (time integration, thermostat, force manipulation, constraints/restraints)

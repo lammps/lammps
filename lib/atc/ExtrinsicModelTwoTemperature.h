@@ -25,7 +25,7 @@ namespace ATC {
   //--------------------------------------------------------
 
   class ExtrinsicModelTwoTemperature : public ExtrinsicModel {
-  
+
   public:
 
     // constructor
@@ -50,7 +50,7 @@ namespace ATC {
 
     /** Add model-specific output data */
     virtual void output(OUTPUT_LIST & outputData);
-  
+
     /** set up LAMMPS display variables */
     virtual int size_vector(int externalSize);
 

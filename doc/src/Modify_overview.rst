@@ -40,8 +40,10 @@ then your pair_foo.h file should be structured as follows:
 .. code-block:: c++
 
    #ifdef PAIR_CLASS
-   PairStyle(foo,PairFoo)
+   // clang-format off
+   PairStyle(foo,PairFoo);
    #else
+   // clanf-format on
    ...
    (class definition for PairFoo)
    ...

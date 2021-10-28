@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -78,18 +78,17 @@ TEST_F(TextFileReaderTest, permissions)
 
 TEST_F(TextFileReaderTest, nofp)
 {
-    ASSERT_THROW({ TextFileReader reader(nullptr, "test"); },
-                 FileReaderException);
+    ASSERT_THROW({ TextFileReader reader(nullptr, "test"); }, FileReaderException);
 }
 
 TEST_F(TextFileReaderTest, usefp)
 {
     test_files();
-    FILE *fp = fopen("text_reader_two.file","r");
-    ASSERT_NE(fp,nullptr);
+    FILE *fp = fopen("text_reader_two.file", "r");
+    ASSERT_NE(fp, nullptr);
 
     auto reader = new TextFileReader(fp, "test");
-    auto line              = reader->next_line();
+    auto line   = reader->next_line();
     ASSERT_STREQ(line, "4  ");
     line = reader->next_line(1);
     ASSERT_STREQ(line, "4 0.5   ");
@@ -100,14 +99,14 @@ TEST_F(TextFileReaderTest, usefp)
     ASSERT_STREQ(values.next_string().c_str(), "1.5");
     ASSERT_NE(reader->next_line(), nullptr);
     double data[20];
-    ASSERT_THROW({ reader->next_dvector(data,20); }, FileReaderException);
+    ASSERT_THROW({ reader->next_dvector(data, 20); }, FileReaderException);
     ASSERT_THROW({ reader->skip_line(); }, EOFException);
     ASSERT_EQ(reader->next_line(), nullptr);
     delete reader;
 
     // check that we reached EOF and the destructor didn't close the file.
-    ASSERT_EQ(feof(fp),1);
-    ASSERT_EQ(fclose(fp),0);
+    ASSERT_EQ(feof(fp), 1);
+    ASSERT_EQ(fclose(fp), 0);
 }
 
 TEST_F(TextFileReaderTest, comments)
@@ -126,7 +125,7 @@ TEST_F(TextFileReaderTest, comments)
     ASSERT_STREQ(values.next_string().c_str(), "1.5");
     ASSERT_NE(reader.next_line(), nullptr);
     double data[20];
-    ASSERT_THROW({ reader.next_dvector(data,20); }, FileReaderException);
+    ASSERT_THROW({ reader.next_dvector(data, 20); }, FileReaderException);
     ASSERT_THROW({ reader.skip_line(); }, EOFException);
     ASSERT_EQ(reader.next_line(), nullptr);
 }
@@ -161,7 +160,7 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (Info::get_mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
+    if (platform::mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
         std::cout << "Warning: using OpenMPI without exceptions. "
                      "Death tests will be skipped\n";
 

@@ -33,7 +33,7 @@ namespace ATC {
 
     // destructor
     virtual ~AtomNumber() {};
-    
+
     /** reset the quantity */
     virtual void reset() const;
 
@@ -65,7 +65,7 @@ namespace ATC {
 
     // destructor
     virtual ~AtomTypeVector() {};
-    
+
     /** reset the quantity */
     virtual void reset() const;
 
@@ -73,14 +73,14 @@ namespace ATC {
     ATC_Method * atc_;
     int ntypes_;
     std::vector<int> typeList_,index_; // lammps->atc & atc->lammps
-    std::vector<int> groupList_; 
+    std::vector<int> groupList_;
 
   private:
     AtomTypeVector(); // do not define
 
   };
 
-  
+
   //      inherited classes are used for this task because
   //      lammps changes pointer location so it can only be
   //      accessed by functions
@@ -88,32 +88,32 @@ namespace ATC {
    *  @class  XrefWrapper
    *  @brief  Class for wrapping the xref_ array
    */
-  
+
   class XrefWrapper : public ProtectedClonedAtomQuantity<double> {
-    
+
   public:
-    
+
     // constructor
     XrefWrapper(ATC_Method * atc, AtomType atomType=INTERNAL);
-    
+
     // destructor
     virtual ~XrefWrapper() {};
-    
+
   protected:
-    
+
     /** pointer to atc to access raw pointer */
     ATC_Method * atc_;
 
     /** gets appropriate pointer for lammps data */
     double ** lammps_vector() const;
-    
+
   private:
 
     // do not define
     XrefWrapper();
-    
+
   };
-  
+
   /**
    *  @class  AtomToElementMap
    *  @brief  Class for identifying the element associated with an atom
@@ -158,13 +158,13 @@ namespace ATC {
     // constructor
     AtomInElementSet(ATC_Method * atc,
                      PerAtomQuantity<int> * map,
-                     ESET eset, int type); 
+                     ESET eset, int type);
 
     // destructor
     virtual ~AtomInElementSet();
 
     // accessors
-    virtual const ID_LIST & quantity(); 
+    virtual const ID_LIST & quantity();
     virtual ID_LIST & set_quantity() {return list_;}
     int size() {if (needReset_) reset(); return list_.size(); }
     ID_PAIR item(int i) {if (needReset_) reset(); return list_[i]; }
@@ -251,7 +251,7 @@ namespace ATC {
 
     /** pointer to lammps interface */
     const LammpsInterface * lammpsInterface_;
-    
+
     /** reference to array mapping atc indices to lammps indices */
     const Array<int> & atcToLammps_;
 
@@ -415,7 +415,7 @@ namespace ATC {
    *  @class  AtomicMassWeightedDisplacement
    *  @brief  Class for computing the precursor atomic quantity m*(x - x_ref)
    */
-  
+
   class AtomicMassWeightedDisplacement : public ProtectedAtomQuantity<double> {
 
   public:
@@ -437,7 +437,7 @@ namespace ATC {
 
     /** atomic positions */
     PerAtomQuantity<double> * atomPositions_;
-    
+
     /** atomic masses */
     PerAtomQuantity<double> * atomMasses_;
 
@@ -445,17 +445,17 @@ namespace ATC {
     PerAtomQuantity<double> * atomReferencePositions_;
 
   private:
-    
+
     // do not define
     AtomicMassWeightedDisplacement();
 
   };
 
   /**
-   *  @class  FluctuatingVelocity 
+   *  @class  FluctuatingVelocity
    *  @brief  Class for computing the atomic quantity v - bar{v}
    */
-  
+
   class FluctuatingVelocity : public ProtectedAtomQuantity<double> {
 
   public:
@@ -480,7 +480,7 @@ namespace ATC {
     /** atomic mean velocities */
     PerAtomQuantity<double> * atomMeanVelocities_;
   private:
-    
+
     // do not define
     FluctuatingVelocity();
 
@@ -490,7 +490,7 @@ namespace ATC {
    *  @class  ChargeVelcity
    *  @brief  Class for computing the atomic quantity q v'
    */
-  
+
   class ChargeVelocity : public ProtectedAtomQuantity<double> {
 
   public:
@@ -515,7 +515,7 @@ namespace ATC {
     /** atomic mean velocities */
     FundamentalAtomQuantity * atomCharge_;
   private:
-    
+
     // do not define
     ChargeVelocity();
 
@@ -525,7 +525,7 @@ namespace ATC {
    *  @class  SpeciesVelcity
    *  @brief  Class for computing the atomic quantity m^(a) v'
    */
-  
+
   class SpeciesVelocity : public ProtectedAtomQuantity<double> {
 
   public:
@@ -550,7 +550,7 @@ namespace ATC {
     /** atomic mean velocities */
     PerAtomQuantity<double> * atomTypeVector_;
   private:
-    
+
     // do not define
     SpeciesVelocity();
 
@@ -560,7 +560,7 @@ namespace ATC {
    *  @class  AtomicMomentum
    *  @brief  Class for computing the precursor atomic quantity m*v
    */
-  
+
   class AtomicMomentum : public ProtectedAtomQuantity<double> {
 
   public:
@@ -586,17 +586,17 @@ namespace ATC {
     PerAtomQuantity<double> * atomMasses_;
 
   private:
-    
+
     // do not define
     AtomicMomentum();
 
   };
 
   /**
-   *  @class  AtomicEnergyForTemperature 
-   *  @brief  Base class for accessing quantities needed for computing temperature 
+   *  @class  AtomicEnergyForTemperature
+   *  @brief  Base class for accessing quantities needed for computing temperature
    */
-  
+
   class AtomicEnergyForTemperature : public ProtectedAtomQuantity<double> {
 
   public:
@@ -613,18 +613,18 @@ namespace ATC {
     virtual double kinetic_energy_multiplier() const = 0;
 
   private:
-    
+
     // do not define
     AtomicEnergyForTemperature();
 
   };
 
   /**
-   *  @class  TwiceKineticEnergy 
-   *  @brief  Class for computing the precursor atomic quantity m*v*v 
+   *  @class  TwiceKineticEnergy
+   *  @brief  Class for computing the precursor atomic quantity m*v*v
    *          (used when the kinetic definition of temperature is required)
    */
-  
+
   class TwiceKineticEnergy : public AtomicEnergyForTemperature {
 
   public:
@@ -653,17 +653,17 @@ namespace ATC {
     PerAtomQuantity<double> * atomMasses_;
 
   private:
-    
+
     // do not define
     TwiceKineticEnergy();
 
   };
 
   /**
-   *  @class  KineticTensor 
-   *  @brief  Class for computing the atomic quantity m v (x) v 
+   *  @class  KineticTensor
+   *  @brief  Class for computing the atomic quantity m v (x) v
    */
-  
+
   class KineticTensor : public ProtectedAtomQuantity<double> {
 
   public:
@@ -689,7 +689,7 @@ namespace ATC {
     PerAtomQuantity<double> * atomMasses_;
 
   private:
-    
+
     // do not define
     KineticTensor();
 
@@ -697,10 +697,10 @@ namespace ATC {
 
 
   /**
-   *  @class  FluctuatingKineticTensor 
-   *  @brief  Class for computing the atomic quantity m v (x) v 
+   *  @class  FluctuatingKineticTensor
+   *  @brief  Class for computing the atomic quantity m v (x) v
    */
-  
+
   class FluctuatingKineticTensor : public ProtectedAtomQuantity<double> {
 
   public:
@@ -729,18 +729,18 @@ namespace ATC {
     /** atomic mean velocities */
     PerAtomQuantity<double> * atomMeanVelocities_;
   private:
-    
+
     // do not define
     FluctuatingKineticTensor();
 
   };
 
   /**
-   *  @class  TwiceFluctuatingKineticEnergy 
-   *  @brief  Class for computing the precursor atomic quantity m*(v-vr)*(v-vr) 
+   *  @class  TwiceFluctuatingKineticEnergy
+   *  @brief  Class for computing the precursor atomic quantity m*(v-vr)*(v-vr)
    *          (used when the kinetic definition of temperature is required)
    */
-  
+
   class TwiceFluctuatingKineticEnergy : public AtomicEnergyForTemperature {
 
   public:
@@ -773,7 +773,7 @@ namespace ATC {
     PerAtomQuantity<double> * atomMeanVelocities_;
 
   private:
-    
+
     // do not define
     TwiceFluctuatingKineticEnergy();
 
@@ -781,10 +781,10 @@ namespace ATC {
 
   /**
    *  @class  MixedKePeEnergy
-   *  @brief  Class for computing the precursor atomic quantity for 
+   *  @brief  Class for computing the precursor atomic quantity for
    *          a mixed temperature definition involving both KE and PE
    */
-  
+
   class MixedKePeEnergy : public AtomicEnergyForTemperature {
 
   public:
@@ -821,7 +821,7 @@ namespace ATC {
     PerAtomQuantity<double> * potentialEnergy_;
 
   private:
-    
+
     // do not define
     MixedKePeEnergy();
 
@@ -831,7 +831,7 @@ namespace ATC {
    *  @class  TotalEnergy
    *  @brief  Class for the atomic total energy
    */
-  
+
   class TotalEnergy : public ProtectedAtomQuantity<double> {
 
   public:
@@ -861,10 +861,10 @@ namespace ATC {
 
   /**
    *  @class  FluctuatingPotentialEnergy
-   *  @brief  Class for computing the precursor atomic quantity for 
+   *  @brief  Class for computing the precursor atomic quantity for
    *          a configurational (PE-based) temperature
    */
-  
+
   class FluctuatingPotentialEnergy : public AtomicEnergyForTemperature {
 
   public:
@@ -893,18 +893,18 @@ namespace ATC {
     PerAtomQuantity<double> * referencePotential_;
 
   private:
-    
+
     // do not define
     FluctuatingPotentialEnergy();
 
   };
 
   /**
-   *  @class  DotTwiceKineticEnergy 
-   *  @brief  Class for computing the precursor atomic power 2*v*f 
+   *  @class  DotTwiceKineticEnergy
+   *  @brief  Class for computing the precursor atomic power 2*v*f
    *          (used when the kinetic definition of temperature is required)
    */
- 
+
   class DotTwiceKineticEnergy : public ProtectedAtomQuantity<double> {
 
   public:
@@ -930,7 +930,7 @@ namespace ATC {
     PerAtomQuantity<double> * atomVelocities_;
 
   private:
-    
+
     // do not define
     DotTwiceKineticEnergy();
 
@@ -941,7 +941,7 @@ namespace ATC {
    *  @brief  Class for computing the quantity |v|^2
    *          (used for weights in the thermostat)
    */
- 
+
   class VelocitySquared : public ProtectedAtomQuantity<double> {
 
   public:
@@ -974,7 +974,7 @@ namespace ATC {
    *  @brief  Class for computing the 2nd order RHS fractional step
    *          contribution to the equation for lambda, with appropriate weights
    */
- 
+
   class LambdaSquared : public ProtectedAtomQuantity<double> {
 
   public:
@@ -1020,12 +1020,12 @@ namespace ATC {
   class LargeToSmallAtomMap : public ProtectedAtomQuantity<int> {
 
   public:
-    
+
     // constructor
     LargeToSmallAtomMap(ATC_Method * atc,
                         AtomType atomType = INTERNAL)
     : ProtectedAtomQuantity<int>(atc,1,atomType), size_(0) {};
-    
+
     // destructor
     virtual ~LargeToSmallAtomMap() {};
 
@@ -1051,7 +1051,7 @@ namespace ATC {
     virtual int unpack_exchange(int /* i */, double * /* buffer */) {return 0;};
 
     /** packs up data for parallel transfer to ghost atoms on other processors */
-    virtual int pack_comm(int /* index */, double * /* buf */, 
+    virtual int pack_comm(int /* index */, double * /* buf */,
                           int /* pbc_flag */, int * /* pbc */) {return 0;};
 
     /** unpacks data after parallel transfer to ghost atoms on other processors */
@@ -1081,12 +1081,12 @@ namespace ATC {
   class AtomToType : public LargeToSmallAtomMap {
 
   public:
-    
+
     // constructor
     AtomToType(ATC_Method * atc,
                int type,
                AtomType atomType = INTERNAL);
-    
+
     // destructor
     virtual ~AtomToType() {};
 
@@ -1113,12 +1113,12 @@ namespace ATC {
   class AtomToGroup : public LargeToSmallAtomMap {
 
   public:
-    
+
     // constructor
     AtomToGroup(ATC_Method * atc,
                 int group,
                 AtomType atomType = INTERNAL);
-    
+
     // destructor
     virtual ~AtomToGroup() {};
 
@@ -1145,13 +1145,13 @@ namespace ATC {
   class AtomToNodeset : public LargeToSmallAtomMap {
 
   public:
-    
+
     // constructor
     AtomToNodeset(ATC_Method * atc,
                   SetDependencyManager<int> * subsetNodes,
                   PerAtomQuantity<int> * atomElement = nullptr,
                   AtomType atomType = INTERNAL);
-    
+
     // destructor
     virtual ~AtomToNodeset() {
       atomElement_->remove_dependence(this);
@@ -1190,13 +1190,13 @@ namespace ATC {
   class AtomToElementset : public LargeToSmallAtomMap {
 
   public:
-    
+
     // constructor
     AtomToElementset(ATC_Method * atc,
                      MatrixDependencyManager<DenseMatrix, bool> * elementMask,
                      PerAtomQuantity<int> * atomElement = nullptr,
                      AtomType atomType = INTERNAL);
-    
+
     // destructor
     virtual ~AtomToElementset();
 
@@ -1225,17 +1225,17 @@ namespace ATC {
    *  @class  MappedAtomQuantity
    *  @brief  generic reduced mapping
    */
-  
+
   class MappedAtomQuantity : public ProtectedMappedAtomQuantity<double> {
 
   public:
-    
+
     // constructor
     MappedAtomQuantity(ATC_Method * atc,
                        PerAtomQuantity<double> * source,
                        LargeToSmallAtomMap * map,
                        AtomType atomType = INTERNAL);
-    
+
     // destructor
     virtual ~MappedAtomQuantity() {
       source_->remove_dependence(this);
@@ -1265,7 +1265,7 @@ namespace ATC {
    *  @brief  Class for computing the quantity |v|^2 on a subset of atoms
    *          (used for weights in the thermostat)
    */
- 
+
   class VelocitySquaredMapped : public ProtectedMappedAtomQuantity<double> {
 
   public:
@@ -1299,7 +1299,7 @@ namespace ATC {
    *  @brief  Class for computing the 2nd order RHS fractional step
    *          contribution to the equation for lambda, with appropriate weights
    */
- 
+
   class LambdaSquaredMapped : public ProtectedMappedAtomQuantity<double> {
 
   public:
@@ -1337,10 +1337,10 @@ namespace ATC {
   };
 
   /**
-   *  @class  HeatCapacity 
-   *  @brief  Class for the classical atomic heat capacity 
+   *  @class  HeatCapacity
+   *  @brief  Class for the classical atomic heat capacity
    */
-  
+
   class HeatCapacity : public ConstantQuantity<double> {
 
   public:
@@ -1354,17 +1354,17 @@ namespace ATC {
   protected:
 
   private:
-    
+
     // do not define
     HeatCapacity();
 
   };
 
   /**
-   *  @class  AtomicVelocityRescaleFactor 
-   *  @brief  Class for computing the atomic rescaling induced by the rescaling thermostat 
+   *  @class  AtomicVelocityRescaleFactor
+   *  @brief  Class for computing the atomic rescaling induced by the rescaling thermostat
    */
- 
+
   class AtomicVelocityRescaleFactor : public ProtectedAtomQuantity<double> {
 
   public:
@@ -1386,17 +1386,17 @@ namespace ATC {
     PerAtomQuantity<double> * atomLambdas_;
 
   private:
-    
+
     // do not define
     AtomicVelocityRescaleFactor();
 
   };
 
   /**
-   *  @class  AtomicFluctuatingVelocityRescaled 
-   *  @brief  Class for computing the atomic rescaling of the velocity fluctuations by the rescaling thermostat 
+   *  @class  AtomicFluctuatingVelocityRescaled
+   *  @brief  Class for computing the atomic rescaling of the velocity fluctuations by the rescaling thermostat
    */
- 
+
   class AtomicFluctuatingVelocityRescaled : public ProtectedAtomQuantity<double> {
 
   public:
@@ -1422,17 +1422,17 @@ namespace ATC {
     PerAtomQuantity<double> * atomFluctuatingVelocity_;
 
   private:
-    
+
     // do not define
     AtomicFluctuatingVelocityRescaled();
 
   };
 
   /**
-   *  @class  AtomicCombinedRescaleThermostatError 
-   *  @brief  Class for computing the atomic error in the rescaling thermostat when used in combination with a specified streaming velocity 
+   *  @class  AtomicCombinedRescaleThermostatError
+   *  @brief  Class for computing the atomic error in the rescaling thermostat when used in combination with a specified streaming velocity
    */
- 
+
   class AtomicCombinedRescaleThermostatError : public ProtectedAtomQuantity<double> {
 
   public:
@@ -1466,17 +1466,17 @@ namespace ATC {
     PerAtomQuantity<double> * atomMass_;
 
   private:
-    
+
     // do not define
     AtomicCombinedRescaleThermostatError();
 
   };
 
   /**
-   *  @class  AtomicThermostatForce 
-   *  @brief  Class for computing the atomic force induced by the GLC-based thermostats 
+   *  @class  AtomicThermostatForce
+   *  @brief  Class for computing the atomic force induced by the GLC-based thermostats
    */
-  
+
   class AtomicThermostatForce : public ProtectedAtomQuantity<double> {
 
   public:
@@ -1502,17 +1502,17 @@ namespace ATC {
     PerAtomQuantity<double> * atomVelocities_;
 
   private:
-    
+
     // do not define
     AtomicThermostatForce();
 
   };
 
   /**
-   *  @class  AtomicKinetostatForceDisplacement 
-   *  @brief  Class for computing the atomic force induced by the GLC-based kinetostats 
+   *  @class  AtomicKinetostatForceDisplacement
+   *  @brief  Class for computing the atomic force induced by the GLC-based kinetostats
    */
-  
+
   class AtomicKinetostatForceDisplacement : public ProtectedAtomQuantity<double> {
 
   public:
@@ -1541,7 +1541,7 @@ namespace ATC {
     PerAtomQuantity<double> * atomMass_;
 
   private:
-    
+
     // do not define
     AtomicKinetostatForceDisplacement();
 
@@ -1549,9 +1549,9 @@ namespace ATC {
 
   /**
    *  @class  AtomicKinetostatForceVelocity
-   *  @brief  Class for computing the atomic force induced by the GLC-based kinetostats 
+   *  @brief  Class for computing the atomic force induced by the GLC-based kinetostats
    */
-  
+
   class AtomicKinetostatForceVelocity : public AtomicKinetostatForceDisplacement {
 
   public:
@@ -1580,9 +1580,9 @@ namespace ATC {
 
   /**
    *  @class  AtomicKinetostatForceStress
-   *  @brief  Class for computing the atomic force induced by the stress-based kinetostats 
+   *  @brief  Class for computing the atomic force induced by the stress-based kinetostats
    */
-  
+
   class AtomicKinetostatForceStress : public ProtectedAtomQuantity<double> {
 
   public:
@@ -1604,7 +1604,7 @@ namespace ATC {
     PerAtomQuantity<double> * atomLambda_;
 
   private:
-    
+
     // do not define
     AtomicKinetostatForceStress();
 
@@ -1614,7 +1614,7 @@ namespace ATC {
    *  @class  PerAtomKernelFunction
    *  @brief  Class for computing the kernel function at each atom location
    */
-  
+
   class PerAtomKernelFunction : public ProtectedAtomSparseMatrix<double> {
 
   public:
@@ -1639,7 +1639,7 @@ namespace ATC {
     const FE_Engine * feEngine_;
 
   private:
-    
+
     // do not define
     PerAtomKernelFunction();
 
@@ -1649,7 +1649,7 @@ namespace ATC {
    *  @class  PerAtomShapeFunction
    *  @brief  Class for computing the shape function at each atom location
    */
-  
+
   class PerAtomShapeFunction : public ProtectedAtomSparseMatrix<double> {
 
   public:
@@ -1678,7 +1678,7 @@ namespace ATC {
     const FE_Engine * feEngine_;
 
   private:
-    
+
     // do not define
     PerAtomShapeFunction();
 
@@ -1688,7 +1688,7 @@ namespace ATC {
    *  @class  LambdaCouplingMatrix
    *  @brief  constructs the coupling matrix needed to solve for lambda, i.e. N in N^T w N L = b
    */
-  
+
   class LambdaCouplingMatrix : public ProtectedMappedAtomSparseMatrix<double> {
 
   public:
@@ -1697,7 +1697,7 @@ namespace ATC {
     LambdaCouplingMatrix(ATC_Method * atc,
                          MatrixDependencyManager<DenseMatrix, int> * nodeToOverlapMap = nullptr,
                          SPAR_MAN * shapeFunction = nullptr);
-    
+
     // destructor
     virtual ~LambdaCouplingMatrix() {
       shapeFunction_->remove_dependence(this);
@@ -1727,7 +1727,7 @@ namespace ATC {
    *  @brief  constructs the coupling matrix needed to solve for lambda, i.e. N in N^T w N L = b
    *          when localization is being used for the constraint
    */
-  
+
   class LocalLambdaCouplingMatrix : public LambdaCouplingMatrix {
 
   public:
@@ -1737,7 +1737,7 @@ namespace ATC {
                               MatrixDependencyManager<DenseMatrix, int> * lambdaAtomMap = nullptr,
                               MatrixDependencyManager<DenseMatrix, int> * nodeToOverlapMap = nullptr,
                               SPAR_MAN * shapeFunction = nullptr);
-    
+
     // destructor
     virtual ~LocalLambdaCouplingMatrix() {
       lambdaAtomMap_->remove_dependence(this);
@@ -1762,7 +1762,7 @@ namespace ATC {
    *  @class  GhostCouplingMatrix
    *  @brief  constructs the modified shape functions used to compute the total forces between ghost and internal atoms
    */
-  
+
   class GhostCouplingMatrix : public LambdaCouplingMatrix {
 
   public:
@@ -1772,7 +1772,7 @@ namespace ATC {
                         SPAR_MAN * shapeFunction,
                         SetDependencyManager<int> * subsetNodes,
                         MatrixDependencyManager<DenseMatrix, int> * nodeToOverlapMap = nullptr);
-    
+
     // destructor
     virtual ~GhostCouplingMatrix() {
       subsetNodes_->remove_dependence(this);

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,8 +19,6 @@
 
 #include "pair_lcbop.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
@@ -30,6 +29,8 @@
 #include "memory.h"
 #include "error.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -66,7 +67,7 @@ PairLCBOP::~PairLCBOP()
 {
   memory->destroy(SR_numneigh);
   memory->sfree(SR_firstneigh);
-  delete [] ipage;
+  delete[] ipage;
   memory->destroy(N);
   memory->destroy(M);
 
@@ -166,7 +167,7 @@ void PairLCBOP::init_style()
   if (oneatom != neighbor->oneatom) create = 1;
 
   if (create) {
-    delete [] ipage;
+    delete[] ipage;
     pgsize = neighbor->pgsize;
     oneatom = neighbor->oneatom;
 
@@ -385,7 +386,7 @@ void PairLCBOP::FSR(int eflag, int /*vflag*/)
       del[0] = delx;
       del[1] = dely;
       del[2] = delz;
-      Bij = bondorder(i,j,del,rijmag,VA,f,vflag_atom);
+      Bij = bondorder(i,j,del,rijmag,VA,f);
       dVAdi = Bij*dVA;
 
       // F = (dVRdi+dVAdi)*(-grad rijmag)
@@ -401,8 +402,7 @@ void PairLCBOP::FSR(int eflag, int /*vflag*/)
 
       double evdwl=0.0;
       if (eflag) evdwl = VR - Bij*VA;
-      if (evflag) ev_tally(i,j,nlocal,newton_pair,
-        evdwl,0.0,fpair,delx,dely,delz);
+      if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,fpair,delx,dely,delz);
     }
   }
 }
@@ -492,8 +492,7 @@ void PairLCBOP::FLR(int eflag, int /*vflag*/)
 
       double evdwl=0.0;
       if (eflag) evdwl = V;
-      if (evflag) ev_tally(i,j,nlocal,newton_pair,
-        evdwl,0.0,fpair,delx,dely,delz);
+      if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,fpair,delx,dely,delz);
     }
   }
 }
@@ -502,7 +501,7 @@ void PairLCBOP::FLR(int eflag, int /*vflag*/)
    forces for Nij and Mij
 ------------------------------------------------------------------------- */
 
-void PairLCBOP::FNij( int i, int j, double factor, double **f, int vflag_atom) {
+void PairLCBOP::FNij( int i, int j, double factor, double **f) {
   int atomi = i;
   int atomj = j;
   int *SR_neighs = SR_firstneigh[i];
@@ -531,7 +530,7 @@ void PairLCBOP::FNij( int i, int j, double factor, double **f, int vflag_atom) {
         f[atomk][1] -= rik[1]*fpair;
         f[atomk][2] -= rik[2]*fpair;
 
-        if (vflag_atom) v_tally2(atomi,atomk,fpair,rik);
+        if (vflag_either) v_tally2(atomi,atomk,fpair,rik);
       }
     }
   }
@@ -539,7 +538,7 @@ void PairLCBOP::FNij( int i, int j, double factor, double **f, int vflag_atom) {
 
 /* ---------------------------------------------------------------------- */
 
-void PairLCBOP::FMij( int i, int j, double factor, double **f, int vflag_atom) {
+void PairLCBOP::FMij( int i, int j, double factor, double **f) {
   int atomi = i;
   int atomj = j;
   int *SR_neighs = SR_firstneigh[i];
@@ -572,12 +571,12 @@ void PairLCBOP::FMij( int i, int j, double factor, double **f, int vflag_atom) {
         f[atomk][0] -= rik[0]*fpair;
         f[atomk][1] -= rik[1]*fpair;
         f[atomk][2] -= rik[2]*fpair;
-        if (vflag_atom) v_tally2(atomi,atomk,fpair,rik);
+        if (vflag_either) v_tally2(atomi,atomk,fpair,rik);
       }
 
       if (dF > TOL) {
         double factor2 = factor*f_c_ik*dF;
-        FNij( atomk, atomi, factor2, f, vflag_atom );
+        FNij(atomk, atomi, factor2, f);
       }
     }
   }
@@ -587,17 +586,15 @@ void PairLCBOP::FMij( int i, int j, double factor, double **f, int vflag_atom) {
    Bij function
 ------------------------------------------------------------------------- */
 
-double PairLCBOP::bondorder(int i, int j, double rij[3],
-    double rijmag, double VA,
-    double **f, int vflag_atom)
+double PairLCBOP::bondorder(int i, int j, double rij[3],double rijmag, double VA,double **f)
 {
 
   double bij, bji;
   /* bij & bji */{
     double rji[3];
     rji[0] = -rij[0]; rji[1] = -rij[1]; rji[2] = -rij[2];
-    bij = b(i,j,rij,rijmag,VA,f,vflag_atom);
-    bji = b(j,i,rji,rijmag,VA,f,vflag_atom);
+    bij = b(i,j,rij,rijmag,VA,f);
+    bji = b(j,i,rji,rijmag,VA,f);
   }
 
   double Fij_conj;
@@ -662,31 +659,30 @@ double PairLCBOP::bondorder(int i, int j, double rij[3],
     }
 
     double dF_dNij, dF_dNji, dF_dNconj;
-    Fij_conj = F_conj( Nij, Nji, Nconj, &dF_dNij, &dF_dNji, &dF_dNconj );
+    Fij_conj = F_conj(Nij, Nji, Nconj, &dF_dNij, &dF_dNji, &dF_dNconj);
 
     /*forces for Nij*/
     if (3-Nij > TOL) {
-      double factor = -VA*0.5*( dF_dNij + dF_dNconj*( dNconj_dNij + dNconj_dNel*dNij_el_dNij ) );
-      FNij( i, j, factor, f, vflag_atom );
+      double factor = -VA*0.5*(dF_dNij + dF_dNconj*(dNconj_dNij + dNconj_dNel*dNij_el_dNij));
+      FNij(i, j, factor, f);
     }
     /*forces for Nji*/
     if (3-Nji > TOL) {
-      double factor = -VA*0.5*( dF_dNji + dF_dNconj*( dNconj_dNji + dNconj_dNel*dNji_el_dNji ) );
-      FNij( j, i, factor, f, vflag_atom );
+      double factor = -VA*0.5*(dF_dNji + dF_dNconj*(dNconj_dNji + dNconj_dNel*dNji_el_dNji));
+      FNij(j, i, factor, f);
     }
     /*forces for Mij*/
     if (3-Mij > TOL) {
-      double factor = -VA*0.5*( dF_dNconj*dNconj_dNel*dNij_el_dMij );
-      FMij( i, j, factor, f, vflag_atom );
+      double factor = -VA*0.5*(dF_dNconj*dNconj_dNel*dNij_el_dMij);
+      FMij(i, j, factor, f);
     }
     if (3-Mji > TOL) {
-      double factor = -VA*0.5*( dF_dNconj*dNconj_dNel*dNji_el_dMji );
-      FMij( j, i, factor, f, vflag_atom );
+      double factor = -VA*0.5*(dF_dNconj*dNconj_dNel*dNji_el_dMji);
+      FMij(j,i,factor,f);
     }
   }
 
-
-  double Bij = 0.5*( bij + bji + Fij_conj );
+  double Bij = 0.5*(bij + bji + Fij_conj);
   return Bij;
 }
 
@@ -694,9 +690,7 @@ double PairLCBOP::bondorder(int i, int j, double rij[3],
   bij function
 ------------------------------------------------------------------------- */
 
-double PairLCBOP::b(int i, int j, double rij[3],
-                 double rijmag, double VA,
-                 double **f, int vflag_atom) {
+double PairLCBOP::b(int i, int j, double rij[3], double rijmag, double VA, double **f) {
   int *SR_neighs = SR_firstneigh[i];
   double **x = atom->x;
   int atomi = i;
@@ -817,7 +811,7 @@ double PairLCBOP::b(int i, int j, double rij[3],
       f[atomj][0] += fj[0]; f[atomj][1] += fj[1]; f[atomj][2] += fj[2];
       f[atomk][0] += fk[0]; f[atomk][1] += fk[1]; f[atomk][2] += fk[2];
 
-      if (vflag_atom) {
+      if (vflag_either) {
         double rji[3], rki[3];
         rji[0] = -rij[0]; rji[1] = -rij[1]; rji[2] = -rij[2];
         rki[0] = -rik[0]; rki[1] = -rik[1]; rki[2] = -rik[2];
@@ -936,15 +930,12 @@ void PairLCBOP::read_file(char *filename)
 
   if (comm->me == 0) {
     FILE *fp = utils::open_potential(filename,lmp,nullptr);
-    if (fp == nullptr) {
-      char str[128];
-      snprintf(str,128,"Cannot open LCBOP potential file %s",filename);
-      error->one(FLERR,str);
-    }
+    if (fp == nullptr)
+      error->one(FLERR,"Cannot open LCBOP potential file {}: {}",filename,utils::getsyserror());
 
     // skip initial comment lines
 
-    while (1) {
+    while (true) {
       utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
       if (s[0] != '#') break;
     }
@@ -980,7 +971,7 @@ void PairLCBOP::read_file(char *filename)
     utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&eps);
     utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&delta);
 
-    while (1) {
+    while (true) {
       utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
       if (s[0] != '#') break;
     }
@@ -997,7 +988,7 @@ void PairLCBOP::read_file(char *filename)
             &F_conj_data[i][2][k][l],
             &F_conj_data[i][3][k][l]);
         }
-        while (1) { utils::sfgets(FLERR,s,MAXLINE,fp,filename,error); if (s[0] != '#') break; }
+        while (true) { utils::sfgets(FLERR,s,MAXLINE,fp,filename,error); if (s[0] != '#') break; }
       }
     }
 

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -100,8 +101,7 @@ void Hyper::command(int narg, char **arg)
 
   // create FixEventHyper class to store event and pre-quench states
 
-  modify->add_fix("hyper_event all EVENT/HYPER");
-  fix_event = (FixEventHyper *) modify->fix[modify->nfix-1];
+  fix_event = (FixEventHyper *) modify->add_fix("hyper_event all EVENT/HYPER");
 
   // create Finish for timing output
 

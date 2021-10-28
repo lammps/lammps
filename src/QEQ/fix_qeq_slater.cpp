@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -21,14 +22,12 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
-#include "group.h"
 #include "kspace.h"
 #include "math_const.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "pair.h"
-#include "respa.h"
 #include "update.h"
 
 #include <cmath>
@@ -52,6 +51,10 @@ FixQEqSlater::FixQEqSlater(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qeq/slater command");
       alpha = atof(arg[iarg+1]);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"warn") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix qeq/slater command");
+      maxwarn = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
     } else error->all(FLERR,"Illegal fix qeq/slater command");
   }
 
@@ -62,11 +65,7 @@ FixQEqSlater::FixQEqSlater(LAMMPS *lmp, int narg, char **arg) :
 
 void FixQEqSlater::init()
 {
-  if (!atom->q_flag)
-    error->all(FLERR,"Fix qeq/slater requires atom attribute q");
-
-  ngroup = group->count(igroup);
-  if (ngroup == 0) error->all(FLERR,"Fix qeq/slater group has no atoms");
+  FixQEq::init();
 
   int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->pair = 0;
@@ -79,9 +78,6 @@ void FixQEqSlater::init()
     if (zeta[i] == 0.0)
       error->all(FLERR,"Invalid param file for fix qeq/slater");
   }
-
-  if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -120,6 +116,7 @@ void FixQEqSlater::pre_force(int /*vflag*/)
   init_matvec();
   matvecs = CG(b_s, s);         // CG on s - parallel
   matvecs += CG(b_t, t);        // CG on t - parallel
+  matvecs /= 2;
   calculate_Q();
 
   if (force->kspace) force->kspace->qsum_qsq();
@@ -140,18 +137,18 @@ void FixQEqSlater::init_matvec()
   for (ii = 0; ii < inum; ++ii) {
     i = ilist[ii];
     if (atom->mask[i] & groupbit) {
-      Hdia_inv[i] = 1. / eta[ atom->type[i] ];
-      b_s[i]      = -( chi[atom->type[i]] + chizj[i] );
+      Hdia_inv[i] = 1. / eta[atom->type[i]];
+      b_s[i]      = -(chi[atom->type[i]] + chizj[i]);
       b_t[i]      = -1.0;
-      t[i] = t_hist[i][2] + 3 * ( t_hist[i][0] - t_hist[i][1] );
+      t[i] = t_hist[i][2] + 3 * (t_hist[i][0] - t_hist[i][1]);
       s[i] = 4*(s_hist[i][0]+s_hist[i][2])-(6*s_hist[i][1]+s_hist[i][3]);
     }
   }
 
   pack_flag = 2;
-  comm->forward_comm_fix(this); //Dist_vector( s );
+  comm->forward_comm_fix(this); //Dist_vector(s);
   pack_flag = 3;
-  comm->forward_comm_fix(this); //Dist_vector( t );
+  comm->forward_comm_fix(this); //Dist_vector(t);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -209,8 +206,8 @@ void FixQEqSlater::compute_H()
   }
 
   if (m_fill >= H.m)
-    error->all(FLERR,fmt::format(FLERR,"Fix qeq/slater has insufficient H "
-                                 "matrix size:m_fill={} H.m={}\n",m_fill,H.m));
+    error->all(FLERR,FLERR,"Fix qeq/slater has insufficient H "
+                                 "matrix size:m_fill={} H.m={}\n",m_fill,H.m);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -339,7 +336,7 @@ double FixQEqSlater::calculate_H_wolf(double zei, double zej, double zj,
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqSlater::sparse_matvec( sparse_matrix *A, double *x, double *b )
+void FixQEqSlater::sparse_matvec(sparse_matrix *A, double *x, double *b)
 {
   int i, j, itr_j;
 
@@ -361,7 +358,7 @@ void FixQEqSlater::sparse_matvec( sparse_matrix *A, double *x, double *b )
 
   for (i = 0; i < nlocal; ++i) {
     if (atom->mask[i] & groupbit) {
-      for( itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
+      for(itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
         j = A->jlist[itr_j];
         b[i] += A->val[itr_j] * x[j];
         b[j] += A->val[itr_j] * x[i];

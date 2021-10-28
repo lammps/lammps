@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -31,33 +32,20 @@ Reader::Reader(LAMMPS *lmp) : Pointers(lmp)
    generic version for ASCII files that may be compressed
 ------------------------------------------------------------------------- */
 
-void Reader::open_file(const char *file)
+void Reader::open_file(const std::string &file)
 {
   if (fp != nullptr) close_file();
 
-  if (utils::strmatch(file,"\\.gz$")) {
+  if (platform::has_compress_extension(file)) {
     compressed = 1;
-
-#ifdef LAMMPS_GZIP
-    auto gunzip = fmt::format("gzip -c -d {}",file);
-
-#ifdef _WIN32
-    fp = _popen(gunzip.c_str(),"rb");
-#else
-    fp = popen(gunzip.c_str(),"r");
-#endif
-
-#else
-    error->one(FLERR,"Cannot open gzipped file without gzip support");
-#endif
+    fp = platform::compressed_read(file);
+    if (!fp) error->one(FLERR,"Cannot open compressed file for reading");
   } else {
     compressed = 0;
-    fp = fopen(file,"r");
+    fp = fopen(file.c_str(),"r");
   }
 
-  if (fp == nullptr)
-    error->one(FLERR,fmt::format("Cannot open file {}: {}",
-                                 file, utils::getsyserror()));
+  if (!fp) error->one(FLERR,"Cannot open file {}: {}", file, utils::getsyserror());
 }
 
 /* ----------------------------------------------------------------------
@@ -68,7 +56,7 @@ void Reader::open_file(const char *file)
 void Reader::close_file()
 {
   if (fp == nullptr) return;
-  if (compressed) pclose(fp);
+  if (compressed) platform::pclose(fp);
   else fclose(fp);
   fp = nullptr;
 }

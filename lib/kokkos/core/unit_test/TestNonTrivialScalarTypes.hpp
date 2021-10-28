@@ -173,17 +173,17 @@ struct my_complex {
   }
 
   KOKKOS_INLINE_FUNCTION
-  bool operator==(const my_complex &src) {
+  bool operator==(const my_complex &src) const {
     return (re == src.re) && (im == src.im) && (dummy == src.dummy);
   }
 
   KOKKOS_INLINE_FUNCTION
-  bool operator!=(const my_complex &src) {
+  bool operator!=(const my_complex &src) const {
     return (re != src.re) || (im != src.im) || (dummy != src.dummy);
   }
 
   KOKKOS_INLINE_FUNCTION
-  bool operator!=(const double &val) {
+  bool operator!=(const double &val) const {
     return (re != val) || (im != 0) || (dummy != 0);
   }
 

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,9 +18,9 @@
 #ifdef LAMMPS_ZSTD
 
 #ifdef DUMP_CLASS
-
-DumpStyle(atom/zstd,DumpAtomZstd)
-
+// clang-format off
+DumpStyle(atom/zstd,DumpAtomZstd);
+// clang-format on
 #else
 
 #ifndef LMP_DUMP_ATOM_ZSTD_H
@@ -34,7 +34,7 @@ namespace LAMMPS_NS {
 class DumpAtomZstd : public DumpAtom {
  public:
   DumpAtomZstd(class LAMMPS *, int, char **);
-  virtual ~DumpAtomZstd();
+  virtual ~DumpAtomZstd() = default;
 
  protected:
   ZstdFileWriter writer;
@@ -47,7 +47,7 @@ class DumpAtomZstd : public DumpAtom {
   virtual int modify_param(int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

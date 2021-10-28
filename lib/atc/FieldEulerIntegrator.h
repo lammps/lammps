@@ -60,7 +60,7 @@ class FieldEulerIntegrator {
   const PhysicsModel * physicsModel_;
 
   /** field name */
-  FieldName fieldName_; 
+  FieldName fieldName_;
 
   /** rhs mask */
   Array2D <bool> rhsMask_;

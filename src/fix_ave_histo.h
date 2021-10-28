@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(ave/histo,FixAveHisto)
-
+// clang-format off
+FixStyle(ave/histo,FixAveHisto);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_AVE_HISTO_H
@@ -33,33 +33,33 @@ class FixAveHisto : public Fix {
   void setup(int);
   virtual void end_of_step();
   double compute_vector(int);
-  double compute_array(int,int);
+  double compute_array(int, int);
 
  protected:
-  int me,nvalues;
-  int nrepeat,nfreq,irepeat;
-  bigint nvalid,nvalid_last;
-  int *which,*argindex,*value2index;
+  int me, nvalues;
+  int nrepeat, nfreq, irepeat;
+  bigint nvalid, nvalid_last;
+  int *which, *argindex, *value2index;
   char **ids;
   FILE *fp;
-  double lo,hi,binsize,bininv;
-  int kind,beyond,overwrite;
-  long filepos;
+  double lo, hi, binsize, bininv;
+  int kind, beyond, overwrite;
+  bigint filepos;
 
-  double stats[4],stats_total[4],stats_all[4];
+  double stats[4], stats_total[4], stats_all[4];
   double **stats_list;
 
   int nbins;
-  double *bin,*bin_total,*bin_all;
+  double *bin, *bin_total, *bin_all;
   double **bin_list;
   double *coord;
 
   double *vector;
   int maxatom;
 
-  int ave,nwindow,startstep,mode;
-  char *title1,*title2,*title3;
-  int iwindow,window_limit;
+  int ave, nwindow, startstep, mode;
+  char *title1, *title2, *title3;
+  int iwindow, window_limit;
 
   void bin_one(double);
   void bin_vector(int, double *, int);
@@ -68,7 +68,7 @@ class FixAveHisto : public Fix {
   bigint nextvalid();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

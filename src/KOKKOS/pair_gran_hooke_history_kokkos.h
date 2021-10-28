@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(gran/hooke/history/kk,PairGranHookeHistoryKokkos<LMPDeviceType>)
-PairStyle(gran/hooke/history/kk/device,PairGranHookeHistoryKokkos<LMPDeviceType>)
-PairStyle(gran/hooke/history/kk/host,PairGranHookeHistoryKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(gran/hooke/history/kk,PairGranHookeHistoryKokkos<LMPDeviceType>);
+PairStyle(gran/hooke/history/kk/device,PairGranHookeHistoryKokkos<LMPDeviceType>);
+PairStyle(gran/hooke/history/kk/host,PairGranHookeHistoryKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_GRAN_HOOKE_HISTORY_KOKKOS_H
 #define LMP_PAIR_GRAN_HOOKE_HISTORY_KOKKOS_H
 
@@ -91,8 +92,8 @@ class PairGranHookeHistoryKokkos : public PairGranHookeHistory {
   typename AT::t_int_1d_randomread d_ilist;
   typename AT::t_int_1d_randomread d_numneigh;
 
-  typename Kokkos::View<int**> d_firsttouch;
-  typename Kokkos::View<LMP_FLOAT**> d_firstshear;
+  typename AT::t_int_2d d_firsttouch;
+  typename AT::t_float_2d d_firstshear;
 
   typename AT::t_neighbors_2d d_neighbors_touch;
   typename AT::t_int_1d d_numneigh_touch;

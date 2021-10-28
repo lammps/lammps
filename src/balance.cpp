@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -195,8 +196,8 @@ void Balance::command(int narg, char **arg)
       if (style != -1) error->all(FLERR,"Illegal balance command");
       if (iarg+4 > narg) error->all(FLERR,"Illegal balance command");
       style = SHIFT;
-      if (strlen(arg[iarg+1]) > 3) error->all(FLERR,"Illegal balance command");
-      strcpy(bstr,arg[iarg+1]);
+      if (strlen(arg[iarg+1]) > BSTR_SIZE) error->all(FLERR,"Illegal balance command");
+      strncpy(bstr,arg[iarg+1],BSTR_SIZE+1);
       nitermax = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
       if (nitermax <= 0) error->all(FLERR,"Illegal balance command");
       stopthresh = utils::numeric(FLERR,arg[iarg+3],false,lmp);
@@ -258,7 +259,7 @@ void Balance::command(int narg, char **arg)
   // must reset atom map after exchange() since it clears it
 
   MPI_Barrier(world);
-  double start_time = MPI_Wtime();
+  double start_time = platform::walltime();
 
   lmp->init();
 
@@ -371,9 +372,8 @@ void Balance::command(int narg, char **arg)
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
   if (natoms != atom->natoms)
-    error->all(FLERR,fmt::format("Lost atoms via balance: "
-                                 "original {}  current {}",
-                                 atom->natoms,natoms).c_str());
+    error->all(FLERR,"Lost atoms via balance: original {}  current {}",
+               atom->natoms,natoms);
 
   // imbfinal = final imbalance
   // set disable = 1, so weights no longer migrate with atoms
@@ -386,7 +386,7 @@ void Balance::command(int narg, char **arg)
 
   if (me == 0) {
     std::string mesg = fmt::format(" rebalancing time: {:.3f} seconds\n",
-                                   MPI_Wtime()-start_time);
+                                   platform::walltime()-start_time);
     mesg += fmt::format("  iteration count = {}\n",niter);
     for (int i = 0; i < nimbalance; ++i) mesg += imbalances[i]->info();
     mesg += fmt::format("  initial/final maximal load/proc = {:.8} {:.8}\n"
@@ -458,7 +458,7 @@ void Balance::options(int iarg, int narg, char **arg)
         nopt = imb->options(narg-iarg,arg+iarg+2);
         imbalances[nimbalance++] = imb;
       } else {
-        error->all(FLERR,"Unknown (fix) balance weight method");
+        error->all(FLERR,"Unknown (fix) balance weight method: {}", arg[iarg+1]);
       }
       iarg += 2+nopt;
 
@@ -478,8 +478,8 @@ void Balance::options(int iarg, int narg, char **arg)
   if (outflag && comm->me == 0) {
     fp = fopen(arg[outarg],"w");
     if (fp == nullptr)
-      error->one(FLERR,fmt::format("Cannot open (fix) balance output file {}: {}",
-                                   arg[outarg], utils::getsyserror()));
+      error->one(FLERR,"Cannot open (fix) balance output file {}: {}",
+                                   arg[outarg], utils::getsyserror());
   }
 }
 
@@ -499,8 +499,7 @@ void Balance::weight_storage(char *prefix)
   int ifix = modify->find_fix(cmd);
   if (ifix < 1) {
     cmd += " all STORE peratom 0 1";
-    modify->add_fix(cmd);
-    fixstore = (FixStore *) modify->fix[modify->nfix-1];
+    fixstore = (FixStore *) modify->add_fix(cmd);
   } else fixstore = (FixStore *) modify->fix[ifix];
 
   // do not carry weights with atoms during normal atom migration
@@ -931,7 +930,7 @@ int Balance::shift()
         // else add split I-1 or J+1 to set and try again
         // delta = size of expanded split set that will satisy criterion
 
-        while (1) {
+        while (true) {
           delta = (j-i) * close;
           midpt = 0.5 * (split[i]+split[j]);
           start = midpt - 0.5*delta;
@@ -1030,12 +1029,12 @@ void Balance::tally(int dim, int n, double *split)
   if (wtflag) {
     weight = fixstore->vstore;
     for (int i = 0; i < nlocal; i++) {
-      index = binary(x[i][dim],n,split);
+      index = utils::binary_search(x[i][dim],n,split);
       onecost[index] += weight[i];
     }
   } else {
     for (int i = 0; i < nlocal; i++) {
-      index = binary(x[i][dim],n,split);
+      index = utils::binary_search(x[i][dim],n,split);
       onecost[index] += 1.0;
     }
   }
@@ -1132,16 +1131,16 @@ double Balance::imbalance_splits()
   if (wtflag) {
     weight = fixstore->vstore;
     for (int i = 0; i < nlocal; i++) {
-      ix = binary(x[i][0],nx,xsplit);
-      iy = binary(x[i][1],ny,ysplit);
-      iz = binary(x[i][2],nz,zsplit);
+      ix = utils::binary_search(x[i][0],nx,xsplit);
+      iy = utils::binary_search(x[i][1],ny,ysplit);
+      iz = utils::binary_search(x[i][2],nz,zsplit);
       proccost[iz*nx*ny + iy*nx + ix] += weight[i];
     }
   } else {
     for (int i = 0; i < nlocal; i++) {
-      ix = binary(x[i][0],nx,xsplit);
-      iy = binary(x[i][1],ny,ysplit);
-      iz = binary(x[i][2],nz,zsplit);
+      ix = utils::binary_search(x[i][0],nx,xsplit);
+      iy = utils::binary_search(x[i][1],ny,ysplit);
+      iz = utils::binary_search(x[i][2],nz,zsplit);
       proccost[iz*nx*ny + iy*nx + ix] += 1.0;
     }
   }
@@ -1160,40 +1159,6 @@ double Balance::imbalance_splits()
   double imbalance = 1.0;
   if (maxcost > 0.0) imbalance = maxcost / (totalcost/nprocs);
   return imbalance;
-}
-
-/* ----------------------------------------------------------------------
-   binary search for where value falls in N-length vec
-   note that vec actually has N+1 values, but ignore last one
-   values in vec are monotonically increasing, but adjacent values can be ties
-   value may be outside range of vec limits
-   always return index from 0 to N-1 inclusive
-   return 0 if value < vec[0]
-   reutrn N-1 if value >= vec[N-1]
-   return index = 1 to N-2 inclusive if vec[index] <= value < vec[index+1]
-   note that for adjacent tie values, index of lower tie is not returned
-     since never satisfies 2nd condition that value < vec[index+1]
-------------------------------------------------------------------------- */
-
-int Balance::binary(double value, int n, double *vec)
-{
-  int lo = 0;
-  int hi = n-1;
-
-  if (value < vec[lo]) return lo;
-  if (value >= vec[hi]) return hi;
-
-  // insure vec[lo] <= value < vec[hi] at every iteration
-  // done when lo,hi are adjacent
-
-  int index = (lo+hi)/2;
-  while (lo < hi-1) {
-    if (value < vec[index]) hi = index;
-    else if (value >= vec[index]) lo = index;
-    index = (lo+hi)/2;
-  }
-
-  return index;
 }
 
 /* ----------------------------------------------------------------------

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -22,9 +22,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(python,PairPython)
-
+// clang-format off
+PairStyle(python,PairPython);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_PYTHON_H
@@ -46,14 +46,14 @@ class PairPython : public Pair {
 
  protected:
   double cut_global;
-  void * py_potential;
-  int  * skip_types;
+  void *py_potential;
+  int *skip_types;
 
   virtual void allocate();
-  void * get_member_function(const char *);
+  void *get_member_function(const char *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

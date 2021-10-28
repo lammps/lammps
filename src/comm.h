@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -14,7 +14,7 @@
 #ifndef LMP_COMM_H
 #define LMP_COMM_H
 
-#include "pointers.h"  // IWYU pragma: export
+#include "pointers.h"    // IWYU pragma: export
 
 namespace LAMMPS_NS {
 
@@ -24,38 +24,41 @@ class Comm : protected Pointers {
   int layout;    // LAYOUT_UNIFORM = equal-sized bricks
                  // LAYOUT_NONUNIFORM = logical bricks, but diff sizes via LB
                  // LAYOUT_TILED = general tiling, due to RCB LB
-  enum{LAYOUT_UNIFORM,LAYOUT_NONUNIFORM,LAYOUT_TILED};
-  int mode;      // 0 = single cutoff, 1 = multi-type cutoff
-  enum{SINGLE,MULTI};
+  enum { LAYOUT_UNIFORM, LAYOUT_NONUNIFORM, LAYOUT_TILED };
+  int mode;    // 0 = single cutoff, 1 = multi-collection cutoff, 2 = multiold-type cutoff
+  enum { SINGLE, MULTI, MULTIOLD };
 
-  int me,nprocs;                    // proc info
-  int ghost_velocity;               // 1 if ghost atoms have velocity, 0 if not
-  double cutghost[3];               // cutoffs used for acquiring ghost atoms
-  double cutghostuser;              // user-specified ghost cutoff (mode == 0)
-  double *cutusermulti;            // per type user ghost cutoff (mode == 1)
-  int recv_from_partition;          // recv proc layout from this partition
-  int send_to_partition;            // send my proc layout to this partition
-                                    // -1 if no recv or send
-  int other_partition_style;        // 0 = recv layout dims must be multiple of
-                                    //     my layout dims
+  int me, nprocs;               // proc info
+  int ghost_velocity;           // 1 if ghost atoms have velocity, 0 if not
+  double cutghost[3];           // cutoffs used for acquiring ghost atoms
+  double cutghostuser;          // user-specified ghost cutoff (mode == SINGLE)
+  double *cutusermulti;         // per collection user ghost cutoff (mode == MULTI)
+  double *cutusermultiold;      // per type user ghost cutoff (mode == MULTIOLD)
+  int ncollections;             // # of collections known by comm, used to test if # has changed
+  int ncollections_cutoff;      // # of collections stored b cutoff/multi
+  int recv_from_partition;      // recv proc layout from this partition
+  int send_to_partition;        // send my proc layout to this partition
+                                // -1 if no recv or send
+  int other_partition_style;    // 0 = recv layout dims must be multiple of
+                                //     my layout dims
 
-  int nthreads;                // OpenMP threads per MPI process
+  int nthreads;    // OpenMP threads per MPI process
 
   // public settings specific to layout = UNIFORM, NONUNIFORM
 
-  int procgrid[3];                  // procs assigned in each dim of 3d grid
-  int user_procgrid[3];             // user request for procs in each dim
-  int myloc[3];                     // which proc I am in each dim
-  int procneigh[3][2];              // my 6 neighboring procs, 0/1 = left/right
-  double *xsplit,*ysplit,*zsplit;   // fractional (0-1) sub-domain sizes
-  int ***grid2proc;                 // which proc owns i,j,k loc in 3d grid
+  int procgrid[3];                     // procs assigned in each dim of 3d grid
+  int user_procgrid[3];                // user request for procs in each dim
+  int myloc[3];                        // which proc I am in each dim
+  int procneigh[3][2];                 // my 6 neighboring procs, 0/1 = left/right
+  double *xsplit, *ysplit, *zsplit;    // fractional (0-1) sub-domain sizes
+  int ***grid2proc;                    // which proc owns i,j,k loc in 3d grid
 
   // public settings specific to layout = TILED
 
-  int rcbnew;                       // 1 if just reset by rebalance, else 0
-  double mysplit[3][2];             // fractional (0-1) bounds of my sub-domain
-  double rcbcutfrac;                // fractional RCB cut by this proc
-  int rcbcutdim;                    // dimension of RCB cut
+  int rcbnew;              // 1 if just reset by rebalance, else 0
+  double mysplit[3][2];    // fractional (0-1) bounds of my sub-domain
+  double rcbcutfrac;       // fractional RCB cut by this proc
+  int rcbcutdim;           // dimension of RCB cut
 
   // methods
 
@@ -66,23 +69,23 @@ class Comm : protected Pointers {
   virtual void init();
   void modify_params(int, char **);
 
-  void set_processors(int, char **);      // set 3d processor grid attributes
-  virtual void set_proc_grid(int outflag = 1); // setup 3d grid of procs
+  void set_processors(int, char **);              // set 3d processor grid attributes
+  virtual void set_proc_grid(int outflag = 1);    // setup 3d grid of procs
 
-  double get_comm_cutoff();     // determine communication cutoff
+  double get_comm_cutoff();    // determine communication cutoff
 
-  virtual void setup() = 0;                      // setup 3d comm pattern
-  virtual void forward_comm(int dummy = 0) = 0;  // forward comm of atom coords
-  virtual void reverse_comm() = 0;               // reverse comm of forces
-  virtual void exchange() = 0;                   // move atoms to new procs
-  virtual void borders() = 0;                    // setup list of atoms to comm
+  virtual void setup() = 0;                        // setup 3d comm pattern
+  virtual void forward_comm(int dummy = 0) = 0;    // forward comm of atom coords
+  virtual void reverse_comm() = 0;                 // reverse comm of forces
+  virtual void exchange() = 0;                     // move atoms to new procs
+  virtual void borders() = 0;                      // setup list of atoms to comm
 
   // forward/reverse comm from a Pair, Fix, Compute, Dump
 
   virtual void forward_comm_pair(class Pair *) = 0;
   virtual void reverse_comm_pair(class Pair *) = 0;
-  virtual void forward_comm_fix(class Fix *, int size=0) = 0;
-  virtual void reverse_comm_fix(class Fix *, int size=0) = 0;
+  virtual void forward_comm_fix(class Fix *, int size = 0) = 0;
+  virtual void reverse_comm_fix(class Fix *, int size = 0) = 0;
   virtual void reverse_comm_fix_variable(class Fix *) = 0;
   virtual void forward_comm_compute(class Compute *) = 0;
   virtual void reverse_comm_compute(class Compute *) = 0;
@@ -95,12 +98,15 @@ class Comm : protected Pointers {
 
   virtual void forward_comm_array(int, double **) = 0;
   virtual int exchange_variable(int, double *, double *&) = 0;
-  int binary(double, int, double *);
 
   // map a point to a processor, based on current decomposition
 
   virtual void coord2proc_setup() {}
   virtual int coord2proc(double *, int &, int &, int &);
+
+  // partition a global regular grid by proc sub-domains
+
+  void partition_grid(int, int, int, double, int &, int &, int &, int &, int &, int &);
 
   // memory usage
 
@@ -108,62 +114,62 @@ class Comm : protected Pointers {
 
   // non-virtual functions common to all Comm styles
 
-  void ring(int, int, void *, int, void (*)(int, char *, void *),
-            void *, void *, int self = 1);
+  void ring(int, int, void *, int, void (*)(int, char *, void *), void *, void *, int self = 1);
   int rendezvous(int, int, char *, int, int, int *,
-                 int (*)(int, char *, int &, int *&, char *&, void *),
-                 int, char *&, int, void *, int statflag=0);
+                 int (*)(int, char *, int &, int *&, char *&, void *), int, char *&, int, void *,
+                 int statflag = 0);
 
   // extract data useful to other classes
-  virtual void *extract(const char *, int &) {return nullptr;}
+
+  virtual void *extract(const char *, int &) { return nullptr; }
 
  protected:
-  int bordergroup;           // only communicate this group in borders
+  int bordergroup;    // only communicate this group in borders
 
-  int triclinic;                    // 0 if domain is orthog, 1 if triclinic
-  int map_style;                    // non-0 if global->local mapping is done
-  int comm_x_only,comm_f_only;      // 1 if only exchange x,f in for/rev comm
+  int triclinic;                   // 0 if domain is orthog, 1 if triclinic
+  int map_style;                   // non-0 if global->local mapping is done
+  int comm_x_only, comm_f_only;    // 1 if only exchange x,f in for/rev comm
 
-  int size_forward;                 // # of per-atom datums in forward comm
-  int size_reverse;                 // # of datums in reverse comm
-  int size_border;                  // # of datums in forward border comm
+  int size_forward;    // # of per-atom datums in forward comm
+  int size_reverse;    // # of datums in reverse comm
+  int size_border;     // # of datums in forward border comm
 
-  int maxforward,maxreverse;    // max # of datums in forward/reverse comm
-  int maxexchange;              // max size of one exchanged atom
-  int maxexchange_atom;         // contribution to maxexchange from AtomVec
-  int maxexchange_fix;          // static contribution to maxexchange from Fixes
-  int maxexchange_fix_dynamic;  // 1 if a fix has a dynamic contribution
-  int bufextra;                 // augment send buf size for an exchange atom
+  int maxforward, maxreverse;     // max # of datums in forward/reverse comm
+  int maxexchange;                // max size of one exchanged atom
+  int maxexchange_atom;           // contribution to maxexchange from AtomVec
+  int maxexchange_fix;            // static contribution to maxexchange from Fixes
+  int maxexchange_fix_dynamic;    // 1 if a fix has a dynamic contribution
+  int bufextra;                   // augment send buf size for an exchange atom
 
+  int gridflag;        // option for creating 3d grid
+  int mapflag;         // option for mapping procs to 3d grid
+  char xyz[4];         // xyz mapping of procs to 3d grid
+  char *customfile;    // file with custom proc map
+  char *outfile;       // proc grid/map output file
 
-  int gridflag;                     // option for creating 3d grid
-  int mapflag;                      // option for mapping procs to 3d grid
-  char xyz[4];                      // xyz mapping of procs to 3d grid
-  char *customfile;                 // file with custom proc map
-  char *outfile;                    // proc grid/map output file
-
-  int otherflag;                    // 1 if this partition dependent on another
-  int other_style;                  // style of dependency
-  int other_procgrid[3];            // proc layout of another partition
-  int other_coregrid[3];            // core layout of another partition
-  int ncores;                       // # of cores per node
-  int coregrid[3];                  // 3d grid of cores within a node
-  int user_coregrid[3];             // user request for cores in each dim
+  int otherflag;            // 1 if this partition dependent on another
+  int other_style;          // style of dependency
+  int other_procgrid[3];    // proc layout of another partition
+  int other_coregrid[3];    // core layout of another partition
+  int ncores;               // # of cores per node
+  int coregrid[3];          // 3d grid of cores within a node
+  int user_coregrid[3];     // user request for cores in each dim
+  int multi_reduce;         // 1 if multi cutoff is intra-collection cutoff
 
   void init_exchange();
   int rendezvous_irregular(int, char *, int, int, int *,
-                           int (*)(int, char *, int &, int *&, char *&, void *),
-                           int, char *&, int, void *, int);
+                           int (*)(int, char *, int &, int *&, char *&, void *), int, char *&, int,
+                           void *, int);
   int rendezvous_all2all(int, char *, int, int, int *,
-                         int (*)(int, char *, int &, int *&, char *&, void *),
-                         int, char *&, int, void *, int);
+                         int (*)(int, char *, int &, int *&, char *&, void *), int, char *&, int,
+                         void *, int);
   void rendezvous_stats(int, int, int, int, int, int, bigint);
 
  public:
-  enum{MULTIPLE};
+  enum { MULTIPLE };
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 
@@ -194,6 +200,10 @@ Specified cutoff must be >= 0.0.
 E: Use cutoff keyword to set cutoff in single mode
 
 Mode is single so cutoff/multi keyword cannot be used.
+
+E: Use cutoff/bytype in mode multi only
+
+Mode is single so cutoff/bytype keyword cannot be used.
 
 E: Cannot set cutoff/multi before simulation box is defined
 
@@ -239,6 +249,10 @@ E: Processor count in z must be 1 for 2d simulation
 
 Self-explanatory.
 
+E: Cannot use multi/tiered communication with Newton off
+
+Self-explanatory.
+
 E: Cannot put data on ring from nullptr pointer
 
 W: Communication cutoff is 0.0. No ghost atoms will be generated. Atoms may get lost.
@@ -271,6 +285,6 @@ UNDOCUMENTED
 U: OMP_NUM_THREADS environment is not set.
 
 This environment variable must be set appropriately to use the
-USER-OMP package.
+OPENMP package.
 
 */

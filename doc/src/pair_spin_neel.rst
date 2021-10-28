@@ -80,7 +80,7 @@ Restrictions
 
 All the *pair/spin* styles are part of the SPIN package.  These styles
 are only enabled if LAMMPS was built with this package, and if the
-atom_style "spin" was declared.  See the :doc:`Build package <Build_package>` doc page for more info.
+atom_style "spin" was declared.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

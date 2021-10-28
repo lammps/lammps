@@ -45,8 +45,8 @@ Description
 Compute *stress/mop* and compute *stress/mop/profile* define computations that
 calculate components of the local stress tensor using the method of
 planes :ref:`(Todd) <mop-todd>`.  Specifically in compute *stress/mop* calculates 3
-components are computed in directions *dir*\ ,\ *x*\ ; *dir*\ ,\ *y*\ ; and
-*dir*\ ,\ *z*\ ; where *dir* is the direction normal to the plane, while
+components are computed in directions *dir*,\ *x*\ ; *dir*,\ *y*\ ; and
+*dir*,\ *z*\ ; where *dir* is the direction normal to the plane, while
 in compute *stress/mop/profile* the profile of the stress is computed.
 
 Contrary to methods based on histograms of atomic stress (i.e. using
@@ -87,12 +87,12 @@ and stress_dir,z.
 
 The values are in pressure :doc:`units <units>`.
 
-The values produced by this compute can be accessed by various :doc:`output commands <Howto_output>`. For instance, the results can be written to a file using the :doc:`fix ave/time <fix_ave_time>` command. Please see the example in the examples/USER/mop folder.
+The values produced by this compute can be accessed by various :doc:`output commands <Howto_output>`. For instance, the results can be written to a file using the :doc:`fix ave/time <fix_ave_time>` command. Please see the example in the examples/PACKAGES/mop folder.
 
 Restrictions
 """"""""""""
 
-These styles are part of the USER-MISC package. They are only enabled if
+These styles are part of the EXTRA-COMPUTE package. They are only enabled if
 LAMMPS is built with that package. See the :doc:`Build package <Build_package>`
 doc page on for more info.
 

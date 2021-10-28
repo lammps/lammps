@@ -39,7 +39,7 @@ Output info
 
 This compute calculates a per-atom vector, whose values can be
 accessed by any command that uses per-atom values from a compute as
-input.  See the :doc:`Howto output <Howto_output>` doc page for an
+input.  See the :doc:`Howto output <Howto_output>` page for an
 overview of LAMMPS output options.
 
 The per-atom vector values will be a number >= 0.0, as explained
@@ -47,6 +47,10 @@ above.
 
 Restrictions
 """"""""""""
+
+This compute is part of the GRANULAR package.  It is only enabled if
+LAMMPS was built with that package.  See the
+:doc:`Build package <Build_package>` page for more info.
 
 This compute requires that atoms store a radius as defined by the
 :doc:`atom_style sphere <atom_style>` command.

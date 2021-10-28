@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -305,9 +306,8 @@ void Update::set_units(const char *style)
 
   // check if timestep was changed from default value
   if (!dt_default && (comm->me == 0)) {
-    error->warning(FLERR,fmt::format("Changing timestep from {:.6} to {:.6} "
-                                     "due to changing units to {}",
-                                     dt_old, dt, unit_style));
+    error->warning(FLERR,"Changing timestep from {:.6} to {:.6} due to "
+                   "changing units to {}", dt_old, dt, unit_style);
   }
   dt_default = 1;
 }
@@ -335,8 +335,7 @@ void Update::create_integrate(int narg, char **arg, int trysuffix)
     if (sflag == 1) estyle += lmp->suffix;
     else  estyle += lmp->suffix2;
   }
-  integrate_style = new char[estyle.size()+1];
-  strcpy(integrate_style,estyle.c_str());
+  integrate_style = utils::strdup(estyle);
 }
 
 /* ----------------------------------------------------------------------
@@ -406,8 +405,7 @@ void Update::create_minimize(int narg, char **arg, int trysuffix)
     if (sflag == 1) estyle += lmp->suffix;
     else estyle += lmp->suffix2;
   }
-  minimize_style = new char[estyle.size()+1];
-  strcpy(minimize_style,estyle.c_str());
+  minimize_style = utils::strdup(estyle);
 }
 
 /* ----------------------------------------------------------------------

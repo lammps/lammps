@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,51 +16,11 @@
 
 #include "comm.h"
 #include "error.h"
+#include "fmt/chrono.h"
 
 #include <cstring>
 
-#ifdef _WIN32
-#include <windows.h>
-#include <cstdint>
-#else
-#include <sys/time.h>
-#include <sys/resource.h>
-#endif
-
-#include <ctime>
-
 using namespace LAMMPS_NS;
-
-
-// Return the CPU time for the current process in seconds very
-// much in the same way as MPI_Wtime() returns the wall time.
-
-static double CPU_Time()
-{
-  double rv = 0.0;
-
-#ifdef _WIN32
-
-  // from MSD docs.
-  FILETIME ct,et,kt,ut;
-  union { FILETIME ft; uint64_t ui; } cpu;
-  if (GetProcessTimes(GetCurrentProcess(),&ct,&et,&kt,&ut)) {
-    cpu.ft = ut;
-    rv = cpu.ui * 0.0000001;
-  }
-
-#else /* ! _WIN32 */
-
-  struct rusage ru;
-  if (getrusage(RUSAGE_SELF, &ru) == 0) {
-    rv = (double) ru.ru_utime.tv_sec;
-    rv += (double) ru.ru_utime.tv_usec * 0.000001;
-  }
-
-#endif /* ! _WIN32 */
-
-  return rv;
-}
 
 /* ---------------------------------------------------------------------- */
 
@@ -90,8 +51,8 @@ void Timer::_stamp(enum ttype which)
 {
   double current_cpu=0.0, current_wall=0.0;
 
-  if (_level > NORMAL) current_cpu = CPU_Time();
-  current_wall = MPI_Wtime();
+  if (_level > NORMAL) current_cpu = platform::cputime();
+  current_wall = platform::walltime();
 
   if ((which > TOTAL) && (which < NUM_TIMER)) {
     const double delta_cpu = current_cpu - previous_cpu;
@@ -114,8 +75,8 @@ void Timer::_stamp(enum ttype which)
 
   if (_sync) {
     MPI_Barrier(world);
-    if (_level > NORMAL) current_cpu = CPU_Time();
-    current_wall = MPI_Wtime();
+    if (_level > NORMAL) current_cpu = platform::cputime();
+    current_wall = platform::walltime();
 
     cpu_array[SYNC]  += current_cpu - previous_cpu;
     wall_array[SYNC] += current_wall - previous_wall;
@@ -134,8 +95,8 @@ void Timer::barrier_start()
 
   if (_level < LOOP) return;
 
-  current_cpu = CPU_Time();
-  current_wall = MPI_Wtime();
+  current_cpu = platform::cputime();
+  current_wall = platform::walltime();
 
   cpu_array[TOTAL]  = current_cpu;
   wall_array[TOTAL] = current_wall;
@@ -153,8 +114,8 @@ void Timer::barrier_stop()
 
   if (_level < LOOP) return;
 
-  current_cpu = CPU_Time();
-  current_wall = MPI_Wtime();
+  current_cpu = platform::cputime();
+  current_wall = platform::walltime();
 
   cpu_array[TOTAL]  = current_cpu - cpu_array[TOTAL];
   wall_array[TOTAL] = current_wall - wall_array[TOTAL];
@@ -164,7 +125,7 @@ void Timer::barrier_stop()
 
 double Timer::cpu(enum ttype which)
 {
-  double current_cpu = CPU_Time();
+  double current_cpu = platform::cputime();
   return (current_cpu - cpu_array[which]);
 }
 
@@ -173,7 +134,7 @@ double Timer::cpu(enum ttype which)
 double Timer::elapsed(enum ttype which)
 {
   if (_level == OFF) return 0.0;
-  double current_wall = MPI_Wtime();
+  double current_wall = platform::walltime();
   return (current_wall - wall_array[which]);
 }
 
@@ -204,7 +165,7 @@ void Timer::print_timeout(FILE *fp)
   // format timeout setting
   if (_timeout > 0) {
     // time since init_timeout()
-    const double d = MPI_Wtime() - timeout_start;
+    const double d = platform::walltime() - timeout_start;
     // remaining timeout in seconds
     int s = _timeout - d;
     // remaining 1/100ths of seconds
@@ -223,7 +184,7 @@ void Timer::print_timeout(FILE *fp)
 
 bool Timer::_check_timeout()
 {
-  double walltime = MPI_Wtime() - timeout_start;
+  double walltime = platform::walltime() - timeout_start;
   // broadcast time to insure all ranks act the same.
   MPI_Bcast(&walltime,1,MPI_DOUBLE,0,world);
 
@@ -241,7 +202,7 @@ bool Timer::_check_timeout()
 /* ---------------------------------------------------------------------- */
 double Timer::get_timeout_remain()
 {
-  return (_timeout < 0.0) ? 0.0 : _timeout + timeout_start - MPI_Wtime();
+  return (_timeout < 0.0) ? 0.0 : _timeout + timeout_start - platform::walltime();
 }
 
 /* ----------------------------------------------------------------------
@@ -282,20 +243,17 @@ void Timer::modify_params(int narg, char **arg)
     ++iarg;
   }
 
-  timeout_start = MPI_Wtime();
+  timeout_start = platform::walltime();
   if (comm->me == 0) {
 
     // format timeout setting
-    char timebuf[32];
-    if (_timeout < 0) strcpy(timebuf,"off");
-    else {
-      time_t tv = _timeout;
-      struct tm *tm = gmtime(&tv);
-      strftime(timebuf,32,"%H:%M:%S",tm);
+    std::string timeout = "off";
+    if (_timeout >= 0) {
+      std::time_t tv = _timeout;
+      timeout = fmt::format("{:%H:%M:%S}", fmt::gmtime(tv));
     }
 
-    utils::logmesg(lmp,fmt::format("New timer settings: style={}  mode={}  "
-                                   "timeout={}\n",timer_style[_level],
-                                   timer_mode[_sync],timebuf));
+    utils::logmesg(lmp,"New timer settings: style={}  mode={}  timeout={}\n",
+                   timer_style[_level],timer_mode[_sync],timeout);
   }
 }

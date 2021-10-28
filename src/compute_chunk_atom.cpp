@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -219,9 +220,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"compress") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute chunk/atom command");
-      else if (strcmp(arg[iarg+1],"no") == 0) compress = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) compress = 1;
-      else error->all(FLERR,"Illegal compute chunk/atom command");
+      compress = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"discard") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute chunk/atom command");
@@ -254,9 +253,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"pbc") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute chunk/atom command");
-      if (strcmp(arg[iarg+1],"no") == 0) pbcflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) pbcflag = 1;
-      else error->all(FLERR,"Illegal compute chunk/atom command");
+      pbcflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal compute chunk/atom command");
   }
@@ -561,13 +558,9 @@ void ComputeChunkAtom::init()
   // fixstore initializes all values to 0.0
 
   if ((idsflag == ONCE || lockcount) && !fixstore) {
-    std::string cmd = id + std::string("_COMPUTE_STORE");
-    id_fix = new char[cmd.size()+1];
-    strcpy(id_fix,cmd.c_str());
-
-    cmd += fmt::format(" {} STORE peratom 1 1", group->names[igroup]);
-    modify->add_fix(cmd);
-    fixstore = (FixStore *) modify->fix[modify->nfix-1];
+    id_fix = utils::strdup(id + std::string("_COMPUTE_STORE"));
+    fixstore = (FixStore *) modify->add_fix(fmt::format("{} {} STORE peratom 1 1",
+                                                        id_fix, group->names[igroup]));
   }
 
   if ((idsflag != ONCE && !lockcount) && fixstore) {

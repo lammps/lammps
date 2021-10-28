@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -163,11 +164,11 @@ void ComputeClusterAtom::compute_peratom()
 
   int change,done,anychange;
 
-  while (1) {
+  while (true) {
     comm->forward_comm_compute(this);
 
     change = 0;
-    while (1) {
+    while (true) {
       done = 1;
       for (ii = 0; ii < inum; ii++) {
         i = ilist[ii];

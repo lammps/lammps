@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -124,9 +125,7 @@ void CreateBonds::command(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"special") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal create_bonds command");
-      if (strcmp(arg[iarg+1],"yes") == 0) specialflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) specialflag = 0;
-      else error->all(FLERR,"Illegal create_bonds command");
+      specialflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal create_bonds command");
   }
@@ -298,8 +297,8 @@ void CreateBonds::many()
 
       if (!newton_bond || tag[i] < tag[j]) {
         if (num_bond[i] == atom->bond_per_atom)
-          error->one(FLERR,fmt::format("New bond exceeded bonds per atom limit "
-                                       " of {} in create_bonds",atom->bond_per_atom));
+          error->one(FLERR,"New bond exceeded bonds per atom limit "
+                                       " of {} in create_bonds",atom->bond_per_atom);
         bond_type[i][num_bond[i]] = btype;
         bond_atom[i][num_bond[i]] = tag[j];
         num_bond[i]++;
@@ -320,8 +319,8 @@ void CreateBonds::many()
   bigint nadd_bonds = atom->nbonds - nbonds_previous;
 
   if (comm->me == 0)
-    utils::logmesg(lmp,fmt::format("Added {} bonds, new total = {}\n",
-                                   nadd_bonds,atom->nbonds));
+    utils::logmesg(lmp,"Added {} bonds, new total = {}\n",
+                   nadd_bonds,atom->nbonds);
 }
 
 /* ---------------------------------------------------------------------- */

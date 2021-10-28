@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -55,6 +56,19 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::copy_neighbor_info()
 
   newton_pair = force->newton_pair;
   k_cutneighsq = neighborKK->k_cutneighsq;
+
+  // overwrite per-type Neighbor cutoffs with custom value set by requestor
+  // only works for style = BIN (checked by Neighbor class)
+
+  if (cutoff_custom > 0.0) {
+    int n = atom->ntypes;
+    auto k_mycutneighsq = DAT::tdual_xfloat_2d("neigh:cutneighsq,",n+1,n+1);
+    for (int i = 1; i <= n; i++)
+      for (int j = 1; j <= n; j++)
+        k_mycutneighsq.h_view(i,j) = cutoff_custom * cutoff_custom;
+    k_cutneighsq = k_mycutneighsq;
+  }
+
   k_cutneighsq.modify<LMPHostType>();
 
   // exclusion info
@@ -212,7 +226,8 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
     data.h_resize() = 0;
 
     Kokkos::deep_copy(d_scalars, h_scalars);
-#ifdef LMP_KOKKOS_GPU
+
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
     #define BINS_PER_BLOCK 2
     const int factor = atoms_per_bin<64?2:1;
 #else
@@ -591,11 +606,14 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGPU(typename Kokkos::TeamPolic
     other_x[MY_II + 3 * atoms_per_bin] = itype;
   }
   other_id[MY_II] = i;
-#ifndef KOKKOS_ENABLE_SYCL
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
   int test = (__syncthreads_count(i >= 0 && i <= nlocal) == 0);
-
   if (test) return;
-#else
+#elif defined(KOKKOS_ENABLE_SYCL)
+  int not_done = (i >= 0 && i <= nlocal);
+  dev.team_reduce(Kokkos::Max<int>(not_done));
+  if(not_done == 0) return;
+#elif defined(KOKKOS_ENABLE_OPENMPTARGET)
   dev.team_barrier();
 #endif
 
@@ -1039,12 +1057,14 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
       other_x[MY_II + 4 * atoms_per_bin] = radi;
     }
     other_id[MY_II] = i;
-    // FIXME_SYCL
-#ifndef KOKKOS_ENABLE_SYCL
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
     int test = (__syncthreads_count(i >= 0 && i <= nlocal) == 0);
-
     if (test) return;
-#else
+#elif defined(KOKKOS_ENABLE_SYCL)
+    int not_done = (i >= 0 && i <= nlocal);
+    dev.team_reduce(Kokkos::Max<int>(not_done));
+    if(not_done == 0) return;
+#elif defined(KOKKOS_ENABLE_OPENMPTARGET)
     dev.team_barrier();
 #endif
 

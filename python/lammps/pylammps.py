@@ -1,6 +1,6 @@
 # ----------------------------------------------------------------------
 #   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-#   http://lammps.sandia.gov, Sandia National Laboratories
+#   https://www.lammps.org/ Sandia National Laboratories
 #   Steve Plimpton, sjplimp@sandia.gov
 #
 #   Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -23,7 +23,6 @@ from __future__ import print_function
 import os
 import re
 import select
-import sys
 from collections import namedtuple
 
 from .core import lammps
@@ -41,7 +40,7 @@ class OutputCapture(object):
     os.dup2(self.stdout_pipe_write, self.stdout_fd)
     return self
 
-  def __exit__(self, type, value, tracebac):
+  def __exit__(self, exc_type, exc_value, traceback):
     os.dup2(self.stdout, self.stdout_fd)
     os.close(self.stdout)
     os.close(self.stdout_pipe_read)
@@ -241,7 +240,8 @@ class Atom2D(Atom):
 
   @property
   def position(self):
-    """
+    """Access to coordinates of an atom
+
     :getter: Return position of atom
     :setter: Set position of atom
     :type: tuple (float, float)
@@ -256,7 +256,7 @@ class Atom2D(Atom):
 
   @property
   def velocity(self):
-    """
+    """Access to velocity of an atom
     :getter: Return velocity of atom
     :setter: Set velocity of atom
     :type: tuple (float, float)
@@ -271,8 +271,7 @@ class Atom2D(Atom):
 
   @property
   def force(self):
-    """
-    Return the total force acting on the atom
+    """Access to force of an atom
 
     :type: tuple (float, float)
     """
@@ -351,6 +350,7 @@ def get_thermo_data(output):
                     for i, col in enumerate(columns):
                         current_run[col].append(values[i])
                 except ValueError:
+                  # cannot convert. must be a non-thermo output. ignore.
                   pass
 
     return runs
@@ -408,6 +408,12 @@ class PyLammps(object):
     self._cmd_history = []
     self._enable_cmd_history = False
     self.runs = []
+
+  def __enter__(self):
+    return self
+
+  def __exit__(self, ex_type, ex_value, ex_traceback):
+    self.close()
 
   def __del__(self):
     if self.lmp: self.lmp.close()
@@ -502,11 +508,6 @@ class PyLammps(object):
     :py:attr:`PyLammps.last_run`.
     """
     output = self.__getattr__('run')(*args, **kwargs)
-
-    comm = self.lmp.get_mpi_comm()
-    if comm:
-      output = self.lmp.comm.bcast(output, root=0)
-
     self.runs += get_thermo_data(output)
     return output
 
@@ -637,7 +638,7 @@ class PyLammps(object):
     return [x.strip() for x in value.split('=')]
 
   def _parse_info_system(self, output):
-    lines = output[6:-2]
+    lines = output[5:-2]
     system = {}
 
     for line in lines:
@@ -698,7 +699,7 @@ class PyLammps(object):
     return system
 
   def _parse_info_communication(self, output):
-    lines = output[6:-3]
+    lines = output[5:-3]
     comm = {}
 
     for line in lines:
@@ -719,7 +720,7 @@ class PyLammps(object):
     return comm
 
   def _parse_element_list(self, output):
-    lines = output[6:-3]
+    lines = output[5:-3]
     elements = []
 
     for line in lines:
@@ -731,7 +732,7 @@ class PyLammps(object):
     return elements
 
   def _parse_groups(self, output):
-    lines = output[6:-3]
+    lines = output[5:-3]
     groups = []
     group_pattern = re.compile(r"(?P<name>.+) \((?P<type>.+)\)")
 
@@ -777,6 +778,10 @@ class PyLammps(object):
         cmd = ' '.join(cmd_args)
         self.command(cmd)
         output = capture.output
+
+      comm = self.lmp.get_mpi_comm()
+      if comm:
+        output = self.lmp.comm.bcast(output, root=0)
 
       if 'verbose' in kwargs and kwargs['verbose']:
         print(output)
@@ -849,30 +854,30 @@ class IPyLammps(PyLammps):
     """
     cmd_args = [group, "image", filename, color, diameter]
 
-    if size:
+    if size is not None:
       width = size[0]
       height = size[1]
       cmd_args += ["size", width, height]
 
-    if view:
+    if view is not None:
       theta = view[0]
       phi = view[1]
       cmd_args += ["view", theta, phi]
 
-    if center:
+    if center is not None:
       flag = center[0]
       Cx = center[1]
       Cy = center[2]
       Cz = center[3]
       cmd_args += ["center", flag, Cx, Cy, Cz]
 
-    if up:
+    if up is not None:
       Ux = up[0]
       Uy = up[1]
       Uz = up[2]
       cmd_args += ["up", Ux, Uy, Uz]
 
-    if zoom:
+    if zoom is not None:
       cmd_args += ["zoom", zoom]
 
     cmd_args.append("modify backcolor " + background_color)

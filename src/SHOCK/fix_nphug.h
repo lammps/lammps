@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(nphug,FixNPHug)
-
+// clang-format off
+FixStyle(nphug,FixNPHug);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_NPHUG_H
@@ -31,11 +31,11 @@ class FixNPHug : public FixNH {
   void init();
   void setup(int);
   int modify_param(int, char **);
-  int pack_restart_data(double *); // pack restart data
+  int pack_restart_data(double *);    // pack restart data
   void restart(char *);
 
  private:
-  class Compute *pe;               // PE compute pointer
+  class Compute *pe;    // PE compute pointer
 
   void compute_temp_target();
   double compute_vector(int);
@@ -47,15 +47,15 @@ class FixNPHug : public FixNH {
 
   char *id_pe;
   int peflag;
-  int v0_set,p0_set,e0_set;
-  double v0,p0,e0,rho0;
+  int v0_set, p0_set, e0_set;
+  double v0, p0, e0, rho0;
   int idir;
   int uniaxial;
 
   int size_restart_global();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -144,8 +145,7 @@ void PRD::command(int narg, char **arg)
 
   // create ComputeTemp class to monitor temperature
 
-  modify->add_compute("prd_temp all temp");
-  temperature = modify->compute[modify->ncompute-1];
+  temperature = modify->add_compute("prd_temp all temp");
 
   // create Velocity class for velocity creation in dephasing
   // pass it temperature compute, loop_setting, dist_setting settings
@@ -167,8 +167,7 @@ void PRD::command(int narg, char **arg)
 
   // create FixEventPRD class to store event and pre-quench states
 
-  modify->add_fix("prd_event all EVENT/PRD");
-  fix_event = (FixEventPRD *) modify->fix[modify->nfix-1];
+  fix_event = (FixEventPRD *) modify->add_fix("prd_event all EVENT/PRD");
 
   // create Finish for timing output
 

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale AtomicKokkos/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ATOM_CLASS
-
-AtomStyle(dpd/kk,AtomVecDPDKokkos)
-AtomStyle(dpd/kk/device,AtomVecDPDKokkos)
-AtomStyle(dpd/kk/host,AtomVecDPDKokkos)
-
+// clang-format off
+AtomStyle(dpd/kk,AtomVecDPDKokkos);
+AtomStyle(dpd/kk/device,AtomVecDPDKokkos);
+AtomStyle(dpd/kk/host,AtomVecDPDKokkos);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_ATOM_VEC_DPD_KOKKOS_H
 #define LMP_ATOM_VEC_DPD_KOKKOS_H
 

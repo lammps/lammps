@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,12 +13,14 @@
 ------------------------------------------------------------------------- */
 
 #include "dump_atom.h"
-#include <cstring>
-#include "domain.h"
+
 #include "atom.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
+#include "memory.h"
 #include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -113,15 +116,11 @@ int DumpAtom::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"scale") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-    if (strcmp(arg[1],"yes") == 0) scale_flag = 1;
-    else if (strcmp(arg[1],"no") == 0) scale_flag = 0;
-    else error->all(FLERR,"Illegal dump_modify command");
+    scale_flag = utils::logical(FLERR,arg[1],false,lmp);
     return 2;
   } else if (strcmp(arg[0],"image") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
-    if (strcmp(arg[1],"yes") == 0) image_flag = 1;
-    else if (strcmp(arg[1],"no") == 0) image_flag = 0;
-    else error->all(FLERR,"Illegal dump_modify command");
+    image_flag = utils::logical(FLERR,arg[1],false,lmp);
     return 2;
   }
   return 0;
@@ -561,7 +560,8 @@ void DumpAtom::write_binary(int n, double *mybuf)
 
 void DumpAtom::write_string(int n, double *mybuf)
 {
-  fwrite(mybuf,sizeof(char),n,fp);
+  if (mybuf)
+    fwrite(mybuf,sizeof(char),n,fp);
 }
 
 /* ---------------------------------------------------------------------- */

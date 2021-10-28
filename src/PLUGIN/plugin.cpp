@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,17 +19,11 @@
 #include "error.h"
 #include "input.h"
 #include "force.h"
-#include "lammps.h"
 #include "modify.h"
 
+#include <cstring>
 #include <map>
 #include <list>
-
-#ifdef _WIN32
-#include <windows.h>
-#else
-#include <dlfcn.h>
-#endif
 
 namespace LAMMPS_NS
 {
@@ -69,8 +64,8 @@ namespace LAMMPS_NS
         utils::logmesg(lmp,"Currently loaded plugins\n");
         for (int i=0; i < num; ++i) {
           auto entry = plugin_get_info(i);
-          utils::logmesg(lmp,fmt::format("{:4}: {} style plugin {}\n",
-                                         i+1,entry->style,entry->name));
+          utils::logmesg(lmp,"{:4}: {} style plugin {}\n",
+                         i+1,entry->style,entry->name);
         }
       }
     } else error->all(FLERR,"Illegal plugin command");
@@ -86,32 +81,28 @@ namespace LAMMPS_NS
   {
 #if defined(LMP_PLUGIN)
     int me = lmp->comm->me;
-#if defined(WIN32)
-    lmp->error->all(FLERR,"Loading of plugins on Windows is not supported\n");
-#else
 
     // open DSO file from given path; load symbols globally
 
-    dlerror();
-    void *dso = dlopen(file,RTLD_NOW|RTLD_GLOBAL);
+    platform::dlerror();
+    void *dso = platform::dlopen(file);
     if (dso == nullptr) {
       if (me == 0)
-        utils::logmesg(lmp,fmt::format("Open of file {} failed: {}\n",
-                                       file,dlerror()));
+        utils::logmesg(lmp,"Open of file {} failed: {}\n",file,platform::dlerror());
       return;
     }
 
     // look up lammpsplugin_init() function in DSO
     // function must have C bindings so there is no name mangling
 
-    dlerror();
-    void *initfunc = dlsym(dso,"lammpsplugin_init");
+    platform::dlerror();
+    void *initfunc = platform::dlsym(dso,"lammpsplugin_init");
     if (initfunc == nullptr) {
-      dlclose(dso);
+      platform::dlclose(dso);
 
       if (me == 0)
-        utils::logmesg(lmp,fmt::format("Plugin symbol lookup failure in "
-                                       "file {}: {}\n",file,dlerror()));
+        utils::logmesg(lmp,"Plugin symbol lookup failure in file {}: {}\n",
+                       file,platform::dlerror());
       return;
     }
 
@@ -121,7 +112,6 @@ namespace LAMMPS_NS
 
     (*(lammpsplugin_initfunc)(initfunc))((void *)lmp, dso,
                                          (void *)&plugin_register);
-#endif
 #endif
   }
 
@@ -144,20 +134,19 @@ namespace LAMMPS_NS
     int idx = plugin_find(plugin->style,plugin->name);
     if (idx >= 0) {
       if (me == 0)
-        utils::logmesg(lmp,fmt::format("Ignoring load of {} style {}: must "
-                                       "unload existing {} plugin first\n",
-                                       plugin->style,plugin->name,plugin->name));
+        utils::logmesg(lmp,"Ignoring load of {} style {}: must "
+                       "unload existing {} plugin first\n",
+                       plugin->style,plugin->name,plugin->name);
       return;
     }
 
     if (me == 0) {
-      utils::logmesg(lmp,fmt::format("Loading plugin: {} by {}\n",
-                                     plugin->info,plugin->author));
+      utils::logmesg(lmp,"Loading plugin: {} by {}\n",
+                     plugin->info,plugin->author);
       // print version info only if the versions of host and plugin don't match
       if ((plugin->version) && (strcmp(plugin->version,lmp->version) != 0))
-        utils::logmesg(lmp,fmt::format("  compiled for LAMMPS version {} "
-                                       "loaded into LAMMPS version {}\n",
-                                       plugin->version,lmp->version));
+        utils::logmesg(lmp,"  compiled for LAMMPS version {}, loaded into "
+                       "LAMMPS version {}\n",plugin->version,lmp->version);
     }
 
     pluginlist.push_back(*plugin);
@@ -173,9 +162,8 @@ namespace LAMMPS_NS
       auto pair_map = lmp->force->pair_map;
       if (pair_map->find(plugin->name) != pair_map->end()) {
         if (lmp->comm->me == 0)
-          lmp->error->warning(FLERR,fmt::format("Overriding built-in pair "
-                                                "style {} from plugin",
-                                                plugin->name));
+          lmp->error->warning(FLERR,"Overriding built-in pair "
+                              "style {} from plugin",plugin->name);
       }
       (*pair_map)[plugin->name] = (Force::PairCreator)plugin->creator.v1;
 
@@ -183,9 +171,8 @@ namespace LAMMPS_NS
       auto bond_map = lmp->force->bond_map;
       if (bond_map->find(plugin->name) != bond_map->end()) {
         if (lmp->comm->me == 0)
-          lmp->error->warning(FLERR,fmt::format("Overriding built-in bond "
-                                                "style {} from plugin",
-                                                plugin->name));
+          lmp->error->warning(FLERR,"Overriding built-in bond "
+                              "style {} from plugin",plugin->name);
       }
       (*bond_map)[plugin->name] = (Force::BondCreator)plugin->creator.v1;
 
@@ -193,9 +180,8 @@ namespace LAMMPS_NS
       auto angle_map = lmp->force->angle_map;
       if (angle_map->find(plugin->name) != angle_map->end()) {
         if (lmp->comm->me == 0)
-          lmp->error->warning(FLERR,fmt::format("Overriding built-in angle "
-                                                "style {} from plugin",
-                                                plugin->name));
+          lmp->error->warning(FLERR,"Overriding built-in angle "
+                              "style {} from plugin",plugin->name);
       }
       (*angle_map)[plugin->name] = (Force::AngleCreator)plugin->creator.v1;
 
@@ -203,9 +189,8 @@ namespace LAMMPS_NS
       auto dihedral_map = lmp->force->dihedral_map;
       if (dihedral_map->find(plugin->name) != dihedral_map->end()) {
         if (lmp->comm->me == 0)
-          lmp->error->warning(FLERR,fmt::format("Overriding built-in dihedral "
-                                                "style {} from plugin",
-                                                plugin->name));
+          lmp->error->warning(FLERR,"Overriding built-in dihedral "
+                              "style {} from plugin",plugin->name);
       }
       (*dihedral_map)[plugin->name] = (Force::DihedralCreator)plugin->creator.v1;
 
@@ -213,9 +198,8 @@ namespace LAMMPS_NS
       auto improper_map = lmp->force->improper_map;
       if (improper_map->find(plugin->name) != improper_map->end()) {
         if (lmp->comm->me == 0)
-          lmp->error->warning(FLERR,fmt::format("Overriding built-in improper "
-                                                "style {} from plugin",
-                                                plugin->name));
+          lmp->error->warning(FLERR,"Overriding built-in improper "
+                              "style {} from plugin",plugin->name);
       }
       (*improper_map)[plugin->name] = (Force::ImproperCreator)plugin->creator.v1;
 
@@ -223,9 +207,8 @@ namespace LAMMPS_NS
       auto compute_map = lmp->modify->compute_map;
       if (compute_map->find(plugin->name) != compute_map->end()) {
         if (lmp->comm->me == 0)
-          lmp->error->warning(FLERR,fmt::format("Overriding built-in compute "
-                                                "style {} from plugin",
-                                                plugin->name));
+          lmp->error->warning(FLERR,"Overriding built-in compute "
+                              "style {} from plugin",plugin->name);
       }
       (*compute_map)[plugin->name] = (Modify::ComputeCreator)plugin->creator.v2;
 
@@ -233,9 +216,8 @@ namespace LAMMPS_NS
       auto fix_map = lmp->modify->fix_map;
       if (fix_map->find(plugin->name) != fix_map->end()) {
         if (lmp->comm->me == 0)
-          lmp->error->warning(FLERR,fmt::format("Overriding built-in fix "
-                                                "style {} from plugin",
-                                                plugin->name));
+          lmp->error->warning(FLERR,"Overriding built-in fix "
+                              "style {} from plugin",plugin->name);
       }
       (*fix_map)[plugin->name] = (Modify::FixCreator)plugin->creator.v2;
 
@@ -243,9 +225,8 @@ namespace LAMMPS_NS
       auto region_map = lmp->domain->region_map;
       if (region_map->find(plugin->name) != region_map->end()) {
         if (lmp->comm->me == 0)
-          lmp->error->warning(FLERR,fmt::format("Overriding built-in region "
-                                                "style {} from plugin",
-                                                plugin->name));
+          lmp->error->warning(FLERR,"Overriding built-in region "
+                              "style {} from plugin",plugin->name);
       }
       (*region_map)[plugin->name] = (Domain::RegionCreator)plugin->creator.v2;
 
@@ -253,15 +234,14 @@ namespace LAMMPS_NS
       auto command_map = lmp->input->command_map;
       if (command_map->find(plugin->name) != command_map->end()) {
         if (lmp->comm->me == 0)
-          lmp->error->warning(FLERR,fmt::format("Overriding built-in command "
-                                                "style {} from plugin",
-                                                plugin->name));
+          lmp->error->warning(FLERR,"Overriding built-in command "
+                              "style {} from plugin",plugin->name);
       }
       (*command_map)[plugin->name] = (Input::CommandCreator)plugin->creator.v1;
 
     } else {
-      utils::logmesg(lmp,fmt::format("Loading plugin for {} styles not "
-                                     "yet implemented\n",pstyle));
+      utils::logmesg(lmp,"Loading plugins for {} styles not "
+                     "yet implemented\n",pstyle);
       pluginlist.pop_back();
     }
 #endif
@@ -285,8 +265,8 @@ namespace LAMMPS_NS
         && (strcmp(style,"fix") != 0) && (strcmp(style,"region") != 0)
         && (strcmp(style,"command") != 0)) {
       if (me == 0)
-        utils::logmesg(lmp,fmt::format("Ignoring unload: {} is not a "
-                                       "supported plugin style\n",style));
+        utils::logmesg(lmp,"Ignoring unload: {} is not a "
+                       "supported plugin style\n",style);
       return;
     }
 
@@ -294,8 +274,8 @@ namespace LAMMPS_NS
     int idx = plugin_find(style,name);
     if (idx < 0) {
       if (me == 0)
-        utils::logmesg(lmp,fmt::format("Ignoring unload of {} style {}: not "
-                                       "loaded from a plugin\n",style,name));
+        utils::logmesg(lmp,"Ignoring unload of {} style {}: not "
+                       "loaded from a plugin\n",style,name);
       return;
     }
 
@@ -305,7 +285,7 @@ namespace LAMMPS_NS
     // remove selected plugin from list of plugins
 
     if (me == 0)
-      utils::logmesg(lmp,fmt::format("Unloading {} style {}\n",style,name));
+      utils::logmesg(lmp,"Unloading {} style {}\n",style,name);
     plugin_erase(style,name);
 
     // remove style of given name from corresponding map
@@ -420,9 +400,7 @@ namespace LAMMPS_NS
 
     -- dso_refcounter[handle];
     if (dso_refcounter[handle] == 0) {
-#ifndef WIN32
-      dlclose(handle);
-#endif
+      platform::dlclose(handle);
     }
 #endif
   }
@@ -486,8 +464,8 @@ namespace LAMMPS_NS
   const lammpsplugin_t *plugin_get_info(int idx)
   {
     int i=0;
-    for (auto p=pluginlist.begin(); p != pluginlist.end(); ++p) {
-      if (i == idx) return &(*p);
+    for (auto & p : pluginlist) {
+      if (i == idx) return &p;
       ++i;
     }
     return nullptr;

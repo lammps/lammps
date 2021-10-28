@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -64,7 +65,7 @@ void WriteRestart::command(int narg, char **arg)
   // if filename contains a "*", replace with current timestep
 
   std::string file = arg[0];
-  std::size_t found = file.find("*");
+  std::size_t found = file.find('*');
   if (found != std::string::npos)
     file.replace(found,1,fmt::format("{}",update->ntimestep));
 
@@ -204,7 +205,7 @@ void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
    file = final file name to write, except may contain a "%"
 ------------------------------------------------------------------------- */
 
-void WriteRestart::write(std::string file)
+void WriteRestart::write(const std::string &file)
 {
   // special case where reneighboring is not done in integrator
   //   on timestep restart file is written (due to build_once being set)
@@ -227,12 +228,12 @@ void WriteRestart::write(std::string file)
 
   if (me == 0) {
     std::string base = file;
-    if (multiproc) base.replace(base.find("%"),1,"base");
+    if (multiproc) base.replace(base.find('%'),1,"base");
 
     fp = fopen(base.c_str(),"wb");
     if (fp == nullptr)
-      error->one(FLERR, fmt::format("Cannot open restart file {}: {}",
-                                    base, utils::getsyserror()));
+      error->one(FLERR, "Cannot open restart file {}: {}",
+                                    base, utils::getsyserror());
   }
 
   // proc 0 writes magic string, endian flag, numeric version
@@ -268,7 +269,7 @@ void WriteRestart::write(std::string file)
 
   double *buf;
   memory->create(buf,max_size,"write_restart:buf");
-  memset(buf,0,max_size*sizeof(buf));
+  memset(buf,0,max_size*sizeof(double));
 
   // all procs write file layout info which may include per-proc sizes
 
@@ -289,13 +290,13 @@ void WriteRestart::write(std::string file)
     }
 
     std::string multiname = file;
-    multiname.replace(multiname.find("%"),1,fmt::format("{}",icluster));
+    multiname.replace(multiname.find('%'),1,fmt::format("{}",icluster));
 
     if (filewriter) {
       fp = fopen(multiname.c_str(),"wb");
       if (fp == nullptr)
-        error->one(FLERR, fmt::format("Cannot open restart file {}: {}",
-                                      multiname, utils::getsyserror()));
+        error->one(FLERR, "Cannot open restart file {}: {}",
+                                      multiname, utils::getsyserror());
       write_int(PROCSPERFILE,nclusterprocs);
     }
   }
@@ -594,7 +595,7 @@ void WriteRestart::file_layout(int send_size)
   // this allows all ranks to compute offset to their data
 
   if (mpiioflag) {
-    if (me == 0) headerOffset = ftell(fp);
+    if (me == 0) headerOffset = platform::ftell(fp);
     MPI_Bcast(&headerOffset,1,MPI_LMP_BIGINT,0,world);
   }
 }
@@ -609,8 +610,8 @@ void WriteRestart::file_layout(int send_size)
 
 void WriteRestart::magic_string()
 {
-  std::string magic = MAGIC_STRING;
-  fwrite(magic.c_str(),sizeof(char),magic.size()+1,fp);
+  const char magic[] = MAGIC_STRING;
+  fwrite(magic,sizeof(char),strlen(magic)+1,fp);
 }
 
 /* ---------------------------------------------------------------------- */

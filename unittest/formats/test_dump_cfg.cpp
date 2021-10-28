@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -97,7 +97,8 @@ TEST_F(DumpCfgTest, write_dump)
     ASSERT_THAT(lines[0], Eq("Number of particles = 32"));
     delete_file("dump_cfg0.melt.cfg");
 
-    TEST_FAILURE(".*ERROR: Unrecognized dump style 'xxx'.*", command("write_dump all xxx test.xxx"););
+    TEST_FAILURE(".*ERROR: Unrecognized dump style 'xxx'.*",
+                 command("write_dump all xxx test.xxx"););
 }
 
 TEST_F(DumpCfgTest, unwrap_run0)

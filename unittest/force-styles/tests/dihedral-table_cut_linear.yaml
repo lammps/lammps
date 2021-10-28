@@ -1,7 +1,7 @@
 ---
 lammps_version: 10 Mar 2021
 date_generated: Tue Mar 23 08:05:02 202
-epsilon: 1e-14
+epsilon: 5e-14
 prerequisites: ! |
   atom full
   dihedral table/cut

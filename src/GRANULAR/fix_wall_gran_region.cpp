@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -45,8 +46,7 @@ FixWallGranRegion::FixWallGranRegion(LAMMPS *lmp, int narg, char **arg) :
   if (iregion == -1)
     error->all(FLERR,"Region ID for fix wall/gran/region does not exist");
   region = domain->regions[iregion];
-  region_style = new char[strlen(region->style)+1];
-  strcpy(region_style,region->style);
+  region_style = utils::strdup(region->style);
   nregion = region->nregion;
 
   tmax = domain->regions[iregion]->tmax;
@@ -61,7 +61,7 @@ FixWallGranRegion::FixWallGranRegion(LAMMPS *lmp, int narg, char **arg) :
   ncontact = nullptr;
   walls = nullptr;
   history_many = nullptr;
-  grow_arrays(atom->nmax);
+  FixWallGranRegion::grow_arrays(atom->nmax);
 
   // initialize shear history as if particle is not touching region
 
@@ -98,21 +98,17 @@ void FixWallGranRegion::init()
   // check if region properties changed between runs
   // reset if restart info was inconsistent
 
-  if (strcmp(idregion,region->id) != 0 ||
-      strcmp(region_style,region->style) != 0 ||
-      nregion != region->nregion) {
-    char str[256];
-    snprintf(str,256,"Region properties for region %s changed between runs, "
-             "resetting its motion",idregion);
-    error->warning(FLERR,str);
+  if ((strcmp(idregion,region->id) != 0)
+      || (strcmp(region_style,region->style) != 0)
+      || (nregion != region->nregion)) {
+    error->warning(FLERR,"Region properties for region {} changed between "
+                   "runs, resetting its motion",idregion);
     region->reset_vel();
   }
 
   if (motion_resetflag) {
-    char str[256];
-    snprintf(str,256,"Region properties for region %s are inconsistent "
-             "with restart file, resetting its motion",idregion);
-    error->warning(FLERR,str);
+    error->warning(FLERR,"Region properties for region {} are inconsistent "
+                   "with restart file, resetting its motion",idregion);
     region->reset_vel();
   }
 }
@@ -358,8 +354,7 @@ void FixWallGranRegion::grow_arrays(int nmax)
   if (use_history) {
     memory->grow(ncontact,nmax,"fix_wall_gran:ncontact");
     memory->grow(walls,nmax,tmax,"fix_wall_gran:walls");
-    memory->grow(history_many,nmax,tmax,size_history,
-                 "fix_wall_gran:history_many");
+    memory->grow(history_many,nmax,tmax,size_history,"fix_wall_gran:history_many");
   }
   if (peratom_flag)
     memory->grow(array_atom,nmax,size_peratom_cols,"fix_wall_gran:array_atom");

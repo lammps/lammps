@@ -102,7 +102,7 @@ class LammpsInterface {
   };
 
   // Provides a struct for easily passing/recovering data about SparseMats
-  struct SparseMatInfo { 
+  struct SparseMatInfo {
     INDEX rows;
     INDEX cols;
     INDEX rowsCRS;
@@ -116,9 +116,9 @@ class LammpsInterface {
   static void Destroy();
 
   /** Set lammps pointer */
-  void set_lammps(LAMMPS_NS::LAMMPS * lammps) 
-  { 
-    lammps_ = lammps; 
+  void set_lammps(LAMMPS_NS::LAMMPS * lammps)
+  {
+    lammps_ = lammps;
     MPI_Comm_rank(lammps_->world, & commRank_);
     MPI_Comm_size(lammps_->world, & commSize_);
   }
@@ -180,7 +180,7 @@ class LammpsInterface {
   void sparse_allsum(SparseMatrix<double> &toShare) const
 #ifdef ISOLATE_FE
   {
-    MPI_Wrappers::sparse_allsum(lammps_->world, toShare); 
+    MPI_Wrappers::sparse_allsum(lammps_->world, toShare);
   }
 #else
 ;
@@ -248,27 +248,27 @@ class LammpsInterface {
     MPI_Wrappers::stop(lammps_->world, msg);
   }
   std::string read_file(std::string filename) const;
-  void write_file(std::string filename, std::string contents, 
+  void write_file(std::string filename, std::string contents,
      std::ofstream::openmode mode = std::ofstream::out) const {
      if (! comm_rank()) {
        std::ofstream f(filename.c_str(),mode);
        f << contents;
        f.close();
-     } 
+     }
      // ignore other ranks and assume they are consistent
   }
 // end MPI --------------------------------------------------------------------
 
   void print_debug(std::string msg="") const
   {
-    std::cout << "rank " << comm_rank() << " " << msg << "\n" << std::flush; 
+    std::cout << "rank " << comm_rank() << " " << msg << "\n" << std::flush;
     barrier();
   }
 
   int comm_rank(void) const { return commRank_;}
   int comm_size(void) const { return commSize_;}
   bool rank_zero(void) const { return (commRank_==0);}
-  bool serial(void) const { 
+  bool serial(void) const {
     int size = 1; MPI_Comm_size(lammps_->world,&size);
     return (size==1);
   }
@@ -280,12 +280,12 @@ class LammpsInterface {
     std::stringstream full_msg;
     if (serial()) {
       full_msg << " ATC: " << msg << "\n";
-    } 
+    }
     else {
       full_msg << " ATC: P" << me << ", " << msg << "\n";
     }
     std::string mesg = full_msg.str();
-    
+
     if (lammps_->screen)  fprintf(lammps_->screen, "%s",mesg.c_str());
     if (lammps_->logfile) fprintf(lammps_->logfile,"%s",mesg.c_str());
   }
@@ -312,7 +312,7 @@ class LammpsInterface {
     std::stringstream full_msg;
     if (serial()) {
       full_msg << " ATC: " << tag << data << "\n";
-    } 
+    }
     else {
       int commSize = comm_size();
       double *recv = new double[commSize];
@@ -360,13 +360,13 @@ class LammpsInterface {
   int nghost() const;
   int nmax() const;
   int ntypes() const;
-  double ** xatom() const; 
-  double ** vatom() const; 
-  double ** fatom() const; 
-  const int * atom_mask() const; 
+  double ** xatom() const;
+  double ** vatom() const;
+  double ** fatom() const;
+  const int * atom_mask() const;
   int * atom_mask();
-  int * atom_type() const; 
-  int * atom_tag() const; 
+  int * atom_type() const;
+  int * atom_tag() const;
   int * atom_to_molecule() const;
   int * num_bond() const;
   int ** bond_atom() const;
@@ -442,7 +442,7 @@ class LammpsInterface {
   }
   /*@}*/
   void minimum_image(double & dx, double & dy, double & dz) const;
-  void closest_image(const double * const xi, const double * const xj, double * const xjImage) const; 
+  void closest_image(const double * const xi, const double * const xj, double * const xjImage) const;
 
 
   /** \name Methods that interface with Update class */
@@ -451,7 +451,7 @@ class LammpsInterface {
   //double minimize_energy() { return lammps_->update->minimize->ecurrent; }
   double minimize_energy() const { return lammps_->update->minimize->eprevious; }
   /*@}*/
-  
+
   /** \name Methods that interface with Lattice class */
   /*@{*/
   double xlattice() const;
@@ -487,12 +487,12 @@ class LammpsInterface {
   // interface to "single"
   double pair_force(int i, int j, double rsq, double& fmag_over_rmag) const; // pair class
   double pair_force(int n, double rsq, double& fmag_over_rmag) const; // bond class
-  double pair_force(std::map< std::pair< int,int >,int >::const_iterator itr, double rsq, double& fmag_over_rmag, int nbonds = 0) const; 
-  double pair_force(std::pair< std::pair< int,int >,int > apair, double rsq, double& fmag_over_rmag, int nbonds = 0) const; 
+  double pair_force(std::map< std::pair< int,int >,int >::const_iterator itr, double rsq, double& fmag_over_rmag, int nbonds = 0) const;
+  double pair_force(std::pair< std::pair< int,int >,int > apair, double rsq, double& fmag_over_rmag, int nbonds = 0) const;
   double pair_cutoff() const;
   void pair_reinit() const;
   int single_enable() const;
-  LAMMPS_NS::PairEAM * pair_eam(void) const; 
+  LAMMPS_NS::PairEAM * pair_eam(void) const;
   double bond_stiffness(int i, int j, double rsq) const;
   /*@}*/
 
@@ -500,12 +500,12 @@ class LammpsInterface {
   /*@{*/
   int delete_atom(int id) const;
   int insert_atom(int type, int mask, double* x, double* v, double q = 0) const;
-  double shortrange_energy(double *x, int type, int id = -1, 
+  double shortrange_energy(double *x, int type, int id = -1,
     double max = big_) const;
   int reset_ghosts(int dn) const;
   double shortrange_energy(int id, double max = big_) const;
   POTENTIAL potential(void) const;
-  int type_to_groupbit(int itype) const; 
+  int type_to_groupbit(int itype) const;
   int      change_type(int itype, int jtype) const;
   int      count_type(int itype) const;
   bool     epsilons(int type, POTENTIAL p, double * epsilons) const;
@@ -549,7 +549,7 @@ class LammpsInterface {
       j %= n;
     }
     return factor_coul;
-  } 
+  }
   /*@}*/
 
   /** \name Methods that interface with Group class */
@@ -613,8 +613,8 @@ class LammpsInterface {
   /*@{*/
   int   bond_list_length() const;
   int ** bond_list() const; // direct access
-  int * bond_list(int n) const { return bond_list()[n];} 
-  int   bond_list_i(int n) const    { return bond_list(n)[0];} 
+  int * bond_list(int n) const { return bond_list()[n];}
+  int   bond_list_i(int n) const    { return bond_list(n)[0];}
   int   bond_list_j(int n) const    { return bond_list(n)[1];}
   int   bond_list_type(int n) const { return bond_list(n)[2];}
   /*@}*/
@@ -636,9 +636,9 @@ class LammpsInterface {
   /*@}*/
 
   /** \name Methods that interface with compute class */
-  enum COMPUTE_INVOKED 
+  enum COMPUTE_INVOKED
    {INVOKED_SCALAR=1,INVOKED_VECTOR=2,INVOKED_ARRAY=4,INVOKED_PERATOM=8};
-  enum PER_ATOM_COMPUTE 
+  enum PER_ATOM_COMPUTE
    {PE_ATOM,
     STRESS_ATOM,
     CENTRO_ATOM,
@@ -662,7 +662,7 @@ class LammpsInterface {
   std::string compute_pe_name(void) const {return atomPeNameBase_;};//  +fix_id();}; enables unique names, if desired
   void     computes_clearstep(void) const {lammps_->modify->clearstep_compute();};
   /*@}*/
- 
+
 
 
   /** Return lammps pointer -- only as a last resort! */

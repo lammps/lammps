@@ -2,6 +2,7 @@
 
 SHELL = /bin/bash
 PYTHON = python
+DYN_LIB = -ldl
 
 #.IGNORE:
 
@@ -37,8 +38,9 @@ endif
 
 # Package variables
 
-# PACKAGE    = standard packages
-# PACKUSER   = user packagse
+# PACKAGE    = all packages
+# PACKBASIC  = a few core packages
+# PACKMOST   = most packages that do not require additional libs
 # PACKLIB    = all packages that require an additional lib
 #              should be PACKSYS + PACKINT + PACKEXT
 # PACKSYS    = subset that reqiure a common system library
@@ -46,33 +48,212 @@ endif
 # PACKINT    = subset that require an internal (provided) library
 # PACKEXT    = subset that require an external (downloaded) library
 
-PACKAGE = asphere body class2 colloid compress coreshell dipole gpu \
-	  granular kim kokkos kspace latte manybody mc message misc \
-	  mliap molecule mpiio mscg opt peri plugin poems \
-	  python qeq replica rigid shock snap spin srd voronoi
+PACKAGE = \
+	adios \
+	asphere \
+	awpmd \
+	bocs \
+	body \
+	brownian \
+	cg-dna \
+	cg-sdk \
+	class2 \
+	colloid \
+	colvars \
+	compress \
+	coreshell \
+	diffraction \
+	dipole \
+	dpd-basic \
+	dpd-meso \
+	dpd-react \
+	dpd-smooth \
+	drude \
+	eff \
+	extra-compute \
+	extra-dump \
+	extra-fix \
+	extra-molecule \
+	extra-pair \
+	fep \
+	gpu \
+	granular \
+	h5md \
+	intel \
+	interlayer \
+	kim \
+	kokkos \
+	kspace \
+	latboltz \
+	latte \
+	machdyn \
+	manifold \
+	manybody \
+	mc \
+	mdi \
+	meam \
+	mesont \
+	message \
+	mgpt \
+	misc \
+	ml-hdnnp \
+	ml-pace \
+	ml-quip \
+	ml-rann \
+	ml-snap \
+	mofff \
+	molecule \
+	molfile \
+	mpiio \
+	mscg \
+	netcdf \
+	openmp \
+	opt \
+	orient \
+	peri \
+	plugin \
+	plumed \
+	poems \
+	ptm \
+	python \
+	qeq \
+	qmmm \
+	qtb \
+	reaction \
+	reaxff \
+	replica \
+	rigid \
+	scafacos \
+	shock \
+	smtbq \
+	sph \
+	spin \
+	srd \
+	tally \
+	uef \
+	voronoi \
+	vtk \
+	yaff \
+	atc \
+	dielectric \
+	ml-iap \
+	phonon
 
-PACKUSER = user-adios user-atc user-awpmd user-bocs user-cgdna user-cgsdk user-colvars \
-	   user-diffraction user-dpd user-drude user-eff user-fep user-h5md \
-	   user-intel user-lb user-manifold user-meamc user-mesodpd user-mesont \
-	   user-mgpt user-misc user-mofff user-molfile \
-	   user-netcdf user-omp user-phonon user-pace user-plumed user-ptm user-qmmm \
-	   user-qtb user-quip user-reaction user-reaxc user-scafacos user-smd user-smtbq \
-	   user-sdpd user-sph user-tally user-uef user-vtk user-yaff
+# NOTE: the last four packages must remain at the end since
+# they depend on other packages to be installed first.
 
-PACKLIB = compress gpu kim kokkos latte message mpiio mscg poems python voronoi \
-	  user-adios user-atc user-awpmd user-colvars user-h5md user-lb user-mesont \
-	  user-molfile user-netcdf user-pace user-plumed user-qmmm user-quip \
-	  user-scafacos user-smd user-vtk
+PACKBASIC = kspace manybody molecule rigid
 
-PACKSYS = compress mpiio python user-lb
+PACKMOST = \
+	asphere \
+	bocs \
+	body \
+	brownian \
+	cg-dna \
+	cg-sdk \
+	class2 \
+	colloid \
+	coreshell \
+	diffraction \
+	dipole \
+	dpd-basic \
+	dpd-meso \
+	dpd-react \
+	dpd-smooth \
+	drude \
+	eff \
+	extra-compute \
+	extra-dump \
+	extra-fix \
+	extra-molecule \
+	extra-pair \
+	fep \
+	granular \
+	interlayer \
+	kspace \
+	manybody \
+	mc \
+	meam \
+	misc \
+	ml-snap \
+	mofff \
+	molecule \
+	openmp \
+	opt \
+	orient \
+	peri \
+	plugin \
+	poems \
+	qeq \
+	reaction \
+	reaxff \
+	replica \
+	rigid \
+	shock \
+	sph \
+	spin \
+	srd \
+	uef \
+	yaff \
+	dielectric \
+	ml-iap \
+	phonon
 
-PACKINT = gpu kokkos message poems user-atc user-awpmd user-colvars user-mesont
+# NOTE ^^^^^: the last three packages must remain at the end since
+# they depend on other packages to be installed first.
 
-PACKEXT = kim latte mscg voronoi \
-	  user-adios user-h5md user-molfile user-netcdf user-pace user-plumed \
-	  user-qmmm user-quip user-scafacos user-smd user-vtk
+PACKLIB = \
+	compress \
+	gpu \
+	kim \
+	kokkos \
+	latte \
+	message \
+	mpiio \
+	mscg \
+	poems \
+	python \
+	voronoi \
+	adios \
+	atc \
+	awpmd \
+	colvars \
+	h5md \
+	ml-hdnnp \
+	latboltz \
+	mdi \
+	mesont \
+	molfile \
+	netcdf \
+	ml-pace \
+	plumed \
+	qmmm \
+	ml-quip \
+	scafacos \
+	machdyn \
+	vtk
 
-PACKALL = $(PACKAGE) $(PACKUSER)
+PACKSYS = compress latboltz mpiio python
+
+PACKINT = atc awpmd colvars gpu kokkos mesont message poems
+
+PACKEXT = \
+	adios \
+	h5md \
+	kim \
+	latte \
+	machdyn \
+	ml-hdnnp \
+	ml-pace \
+	ml-quip \
+	molfile \
+	mscg \
+	netcdf \
+	plumed \
+	qmmm \
+	scafacos \
+	voronoi \
+	vtk \
 
 # Helper GNU make function for conversion to upper case without using shell commands
 uppercase_TABLE:=a,A b,B c,C d,D e,E f,F g,G h,H i,I j,J k,K l,L m,M n,N o,O p,P q,Q r,R s,S t,T u,U v,V w,W x,X y,Y z,Z
@@ -80,12 +261,11 @@ uppercase_internal=$(if $1,$$(subst $(firstword $1),$(call uppercase_internal,$(
 uppercase=$(eval uppercase_RESULT:=$(call uppercase_internal,$(uppercase_TABLE),$1))$(uppercase_RESULT)
 
 PACKAGEUC = $(call uppercase,$(PACKAGE))
-PACKUSERUC = $(call uppercase,$(PACKUSER))
+PACKAGESORTED = $(sort $(PACKAGEUC))
 
 YESDIR = $(call uppercase,$(@:yes-%=%))
 NODIR  = $(call uppercase,$(@:no-%=%))
 LIBDIR = $(@:lib-%=%)
-LIBUSERDIR = $(@:lib-user-%=%)
 
 # List of all targets
 
@@ -104,10 +284,10 @@ help:
 	@echo 'make no-package              remove a single pkg from src dir'
 	@echo 'make yes-all                 install all pgks in src dir'
 	@echo 'make no-all                  remove all pkgs from src dir'
-	@echo 'make yes-standard (yes-std)  install all standard pkgs'
-	@echo 'make no-standard (no-std)    remove all standard pkgs'
-	@echo 'make yes-user                install all user pkgs'
-	@echo 'make no-user                 remove all user pkgs'
+	@echo 'make yes-basic               install a few commonly used pgks'
+	@echo 'make no-basic                remove a few commonly used pkgs'
+	@echo 'make yes-most                install most pgks w/o libs'
+	@echo 'make no-most                 remove most pgks w/o libs'
 	@echo 'make yes-lib       install all pkgs with libs (included or ext)'
 	@echo 'make no-lib        remove all pkgs with libs (included or ext)'
 	@echo 'make yes-ext                 install all pkgs with external libs'
@@ -152,7 +332,7 @@ lmpinstalledpkgs.h: $(SRC) $(INC)
 	@echo '#ifndef LMP_INSTALLED_PKGS_H' >  ${TMPNAME}.lmpinstalled
 	@echo '#define LMP_INSTALLED_PKGS_H' >> ${TMPNAME}.lmpinstalled
 	@echo 'const char * LAMMPS_NS::LAMMPS::installed_packages[] = {' >> ${TMPNAME}.lmpinstalled
-	@for p in $(PACKAGEUC) $(PACKUSERUC); do info=$$($(SHELL) Package.sh $$p installed); \
+	@for p in $(PACKAGEUC); do info=$$($(SHELL) Package.sh $$p installed); \
              [ -n "$$info" ] && echo "\"$$info\"" | sed -e 's/".*package \(.*\)"/"\1",/' >> ${TMPNAME}.lmpinstalled || :; done
 	@echo ' NULL };' >> ${TMPNAME}.lmpinstalled
 	@echo '#endif' >> ${TMPNAME}.lmpinstalled
@@ -221,14 +401,14 @@ ifeq ($(mode),static)
 	@cd $(objdir); \
 	$(MAKE) $(MFLAGS) "OBJ = $(OBJLIB)" "INC = $(INC)" "SHFLAGS =" \
 	  "LMPLIB = $(ARLIB)" "ARLIB = $(ARLIB)" "SHLIB = $(SHLIB)" \
-	  "LMPLINK = $(LMPLINK)" "EXE = ../$(EXE)" ../$(EXE)
+	  "LMPLINK = $(LMPLINK)" "DYN_LIB = $(DYN_LIB)" "EXE = ../$(EXE)" ../$(EXE)
 	@ln -s $(ARLIB) $(ARLINK)
 endif
 ifeq ($(mode),shared)
 	@cd $(objdir); \
 	$(MAKE) $(MFLAGS) "OBJ = $(OBJLIB)" "INC = $(INC)" \
 	  "LMPLIB = $(SHLIB)" "ARLIB = $(ARLIB)" "SHLIB = $(SHLIB)" \
-	  "LMPLINK = $(LMPLINK)" "EXE = ../$(EXE)" ../$(EXE)
+	  "LMPLINK = $(LMPLINK)" "DYN_LIB = $(DYN_LIB)" "EXE = ../$(EXE)" ../$(EXE)
 	@ln -s $(SHLIB) $(SHLINK)
 endif
 # backward compatibility
@@ -259,6 +439,7 @@ clean:
 
 clean-all:
 	rm -rf Obj_*
+	rm style_*.h packages_*.h lmpgitversion.h lmpinstalledpkgs.h
 
 clean-%:
 	@if [ $@ = "clean-serial" ]; \
@@ -288,17 +469,40 @@ tar:
 	@cd ..; tar cvzf src/$(ROOT)_src.tar.gz \
 	  src/Make* src/Package.sh src/Depend.sh src/Install.sh src/Fetch.sh \
 	  src/MAKE src/DEPEND src/*.cpp src/*.h src/STUBS \
-	  $(patsubst %,src/%,$(PACKAGEUC)) $(patsubst %,src/%,$(PACKUSERUC)) \
+	  $(patsubst %,src/%,$(PACKAGEUC)) \
           --exclude=*/.svn
 	@cd STUBS; $(MAKE)
 	@echo "Created $(ROOT)_src.tar.gz"
 
+check-whitespace:
+	$(PYTHON) ../tools/coding_standard/whitespace.py ..
+
+fix-whitespace:
+	$(PYTHON) ../tools/coding_standard/whitespace.py .. -f
+
+check-permissions:
+	$(PYTHON) ../tools/coding_standard/permissions.py ..
+
+fix-permissions:
+	$(PYTHON) ../tools/coding_standard/permissions.py .. -f
+
+check-homepage:
+	$(PYTHON) ../tools/coding_standard/homepage.py ..
+
+fix-homepage:
+	$(PYTHON) ../tools/coding_standard/homepage.py .. -f
+
+format-src:
+	clang-format -i --verbose --style=file *.cpp *.h */*.cpp */*.h
+
+format-tests:
+	clang-format -i --verbose --style=file ../unittest/*/*.cpp ../unittest/*/*.h
+
+
 # Package management
 
 package:
-	@echo 'Standard packages:' $(PACKAGE)
-	@echo ''
-	@echo 'User-contributed packages:' $(PACKUSER)
+	@echo 'Available packages:' $(PACKAGE)
 	@echo ''
 	@echo 'Packages that need system libraries:' $(PACKSYS)
 	@echo ''
@@ -312,14 +516,14 @@ package:
 	@echo 'make package-installed (pi)  list of installed packages'
 	@echo 'make yes-package             install a single pgk in src dir'
 	@echo 'make no-package              remove a single pkg from src dir'
+	@echo 'make yes-basic               install a few commonly used pgks in src'
+	@echo 'make no-basic                remove a few commonly used pkgs from src dir'
+	@echo 'make yes-most                install most pgks w/o libs in src'
+	@echo 'make no-most                 remove most pkgs w/o libs from src dir'
 	@echo 'make yes-all                 install all pgks in src dir'
 	@echo 'make no-all                  remove all pkgs from src dir'
-	@echo 'make yes-standard (yes-std)  install all standard pkgs'
-	@echo 'make no-standard (no-std)    remove all standard pkgs'
-	@echo 'make yes-user                install all user pkgs'
-	@echo 'make no-user                 remove all user pkgs'
-	@echo 'make yes-lib       install all pkgs with libs (included or ext)'
-	@echo 'make no-lib        remove all pkgs with libs (included or ext)'
+	@echo 'make yes-lib                 install all pkgs with libs (included or ext)'
+	@echo 'make no-lib                  remove all pkgs with libs (included or ext)'
 	@echo 'make yes-ext                 install all pkgs with external libs'
 	@echo 'make no-ext                  remove all pkgs with external libs'
 	@echo ''
@@ -330,22 +534,34 @@ package:
 	@echo 'make lib-package      build and/or download a package library'
 
 yes-all:
-	@for p in $(PACKALL); do $(MAKE) yes-$$p; done
-
-no-all:
-	@for p in $(PACKALL); do $(MAKE) no-$$p; done
-
-yes-standard yes-std:
 	@for p in $(PACKAGE); do $(MAKE) yes-$$p; done
 
-no-standard no-std:
+no-all:
 	@for p in $(PACKAGE); do $(MAKE) no-$$p; done
 
+yes-standard yes-std:
+	@echo 'There are no more "standard" or "user" packages in LAMMPS'
+
+no-standard no-std:
+	@echo 'There are no more "standard" or "user" packages in LAMMPS'
+
 yes-user:
-	@for p in $(PACKUSER); do $(MAKE) yes-$$p; done
+	@echo 'There are no more "standard" or "user" packages in LAMMPS'
 
 no-user:
-	@for p in $(PACKUSER); do $(MAKE) no-$$p; done
+	@echo 'There are no more "standard" or "user" packages in LAMMPS'
+
+yes-basic:
+	@for p in $(PACKBASIC); do $(MAKE) yes-$$p; done
+
+no-basic:
+	@for p in $(PACKBASIC); do $(MAKE) no-$$p; done
+
+yes-most:
+	@for p in $(PACKMOST); do $(MAKE) yes-$$p; done
+
+no-most:
+	@for p in $(PACKMOST); do $(MAKE) no-$$p; done
 
 yes-lib:
 	@for p in $(PACKLIB); do $(MAKE) yes-$$p; done
@@ -397,9 +613,6 @@ lib-%:
 	@if [ -e ../lib/$(LIBDIR)/Install.py ]; then \
 	  echo "Installing lib $(@:lib-%=%)"; \
 	  ( cd ../lib/$(LIBDIR); $(PYTHON) Install.py $(args) ); \
-	elif [ -e ../lib/$(LIBUSERDIR)/Install.py ]; then \
-	  echo "Installing lib $(@:lib-user-%=%)"; \
-	  ( cd ../lib/$(LIBUSERDIR); $(PYTHON) Install.py $(args) ); \
 	else \
 	  echo "Install script for lib $(@:lib-%=%) does not exist"; \
 	fi; touch main.cpp
@@ -412,28 +625,21 @@ lib-%:
 # purge = delete obsolete and auto-generated package files
 
 package-status ps:
-	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p status; done
-	@echo ''
-	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p status; done
+	@for p in $(PACKAGESORTED); do $(SHELL) Package.sh $$p status; done
 
 package-installed pi:
-	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p installed; done
-	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p installed; done
+	@for p in $(PACKAGESORTED); do $(SHELL) Package.sh $$p installed; done
 
 package-update pu: purge
+	@echo 'Updating installed packages:'
 	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p update; done
-	@echo ''
-	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p update; done
 
 package-overwrite: purge
-	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p overwrite; done
-	@echo ''
-	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p overwrite; done
+	@echo 'Overwriting installed packages:'
+	@for p in $(PACKAGESORTED); do $(SHELL) Package.sh $$p overwrite; done
 
 package-diff pd:
-	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p diff; done
-	@echo ''
-	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p diff; done
+	@for p in $(PACKAGESORTED); do $(SHELL) Package.sh $$p diff; done
 
 purge: Purge.list
 	@echo 'Purging obsolete and auto-generated source files'

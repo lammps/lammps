@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -22,8 +23,6 @@
 #include "neighbor.h"
 #include "suffix.h"
 #include "update.h"
-
-#include <ctime>
 
 using namespace LAMMPS_NS;
 
@@ -271,30 +270,24 @@ void Bond::write_file(int narg, char **arg)
     //   write out a line with "DATE:" and "UNITS:" tags
     // - if the file already exists, print a message about appending
     //   while printing the date and check that units are consistent.
-    if (utils::file_is_readable(table_file)) {
+    if (platform::file_is_readable(table_file)) {
       std::string units = utils::get_potential_units(table_file,"table");
       if (!units.empty() && (units != update->unit_style)) {
-        error->one(FLERR,fmt::format("Trying to append to a table file "
-                                     "with UNITS: {} while units are {}",
-                                     units, update->unit_style));
+        error->one(FLERR,"Trying to append to a table file with UNITS: {} while units are {}",
+                   units, update->unit_style);
       }
       std::string date = utils::get_potential_date(table_file,"table");
-      utils::logmesg(lmp,fmt::format("Appending to table file {} with "
-                                     "DATE: {}\n", table_file, date));
+      utils::logmesg(lmp,"Appending to table file {} with DATE: {}\n", table_file, date);
       fp = fopen(table_file.c_str(),"a");
     } else {
-      char datebuf[16];
-      time_t tv = time(nullptr);
-      strftime(datebuf,15,"%Y-%m-%d",localtime(&tv));
-      utils::logmesg(lmp,fmt::format("Creating table file {} with "
-                                     "DATE: {}\n", table_file, datebuf));
+      utils::logmesg(lmp,"Creating table file {} with DATE: {}\n",
+                     table_file, utils::current_date());
       fp = fopen(table_file.c_str(),"w");
       if (fp) fmt::print(fp,"# DATE: {} UNITS: {} Created by bond_write\n",
-                         datebuf, update->unit_style);
+                         utils::current_date(), update->unit_style);
     }
     if (fp == nullptr)
-      error->one(FLERR,fmt::format("Cannot open bond_write file {}: {}",
-                                   arg[4], utils::getsyserror()));
+      error->one(FLERR,"Cannot open bond_write file {}: {}", arg[4], utils::getsyserror());
   }
 
   // initialize potentials before evaluating bond potential

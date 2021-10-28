@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,21 +17,23 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_deform.h"
-#include <cstring>
-#include <cmath>
+
 #include "atom.h"
-#include "update.h"
 #include "comm.h"
-#include "irregular.h"
 #include "domain.h"
-#include "lattice.h"
-#include "force.h"
-#include "modify.h"
-#include "math_const.h"
-#include "kspace.h"
-#include "input.h"
-#include "variable.h"
 #include "error.h"
+#include "force.h"
+#include "input.h"
+#include "irregular.h"
+#include "kspace.h"
+#include "lattice.h"
+#include "math_const.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -1005,9 +1008,7 @@ void FixDeform::options(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"flip") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix deform command");
-      if (strcmp(arg[iarg+1],"yes") == 0) flipflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) flipflag = 0;
-      else error->all(FLERR,"Illegal fix deform command");
+      flipflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix deform command");
   }

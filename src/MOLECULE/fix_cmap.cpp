@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -111,7 +112,7 @@ FixCMAP::FixCMAP(LAMMPS *lmp, int narg, char **arg) :
   crossterm_atom5 = nullptr;
 
   nmax_previous = 0;
-  grow_arrays(atom->nmax);
+  FixCMAP::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
   atom->add_callback(Atom::RESTART);
 
@@ -260,11 +261,11 @@ void FixCMAP::pre_neighbor()
 
       if (atom1 == -1 || atom2 == -1 || atom3 == -1 ||
           atom4 == -1 || atom5 == -1)
-        error->one(FLERR,fmt::format("CMAP atoms {} {} {} {} {} missing on "
+        error->one(FLERR,"CMAP atoms {} {} {} {} {} missing on "
                                      "proc {} at step {}",
                                      crossterm_atom1[i][m],crossterm_atom2[i][m],
                                      crossterm_atom3[i][m],crossterm_atom4[i][m],
-                                     crossterm_atom5[i][m],me,update->ntimestep));
+                                     crossterm_atom5[i][m],me,update->ntimestep);
       atom1 = domain->closest_image(i,atom1);
       atom2 = domain->closest_image(i,atom2);
       atom3 = domain->closest_image(i,atom3);
@@ -640,8 +641,8 @@ void FixCMAP::read_grid_map(char *cmapfile)
   if (comm->me == 0) {
     fp = utils::open_potential(cmapfile,lmp,nullptr);
     if (fp == nullptr)
-      error->one(FLERR,fmt::format("Cannot open fix cmap file {}: {}",
-                                   cmapfile, utils::getsyserror()));
+      error->one(FLERR,"Cannot open fix cmap file {}: {}",
+                                   cmapfile, utils::getsyserror());
 
   }
 
@@ -1071,7 +1072,7 @@ void FixCMAP::read_data_section(char *keyword, int n, char *buf,
   *next = '\n';
 
   if (nwords != 7)
-    error->all(FLERR,fmt::format("Incorrect {} format in data file",keyword));
+    error->all(FLERR,"Incorrect {} format in data file",keyword);
 
   // loop over lines of CMAP crossterms
   // tokenize the line into values

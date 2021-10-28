@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -307,10 +308,9 @@ struct fft_plan_3d *fft_3d_create_plan(
     first_jhi = (ip1+1)*nmid/np1 - 1;
     first_klo = ip2*nslow/np2;
     first_khi = (ip2+1)*nslow/np2 - 1;
-    plan->pre_plan =
-      remap_3d_create_plan(comm,in_ilo,in_ihi,in_jlo,in_jhi,in_klo,in_khi,
-                           first_ilo,first_ihi,first_jlo,first_jhi,
-                           first_klo,first_khi,2,0,0,FFT_PRECISION,0);
+    plan->pre_plan = remap_3d_create_plan(comm,in_ilo,in_ihi,in_jlo,in_jhi,in_klo,in_khi,
+                                          first_ilo,first_ihi,first_jlo,first_jhi,
+                                          first_klo,first_khi,2,0,0,FFT_PRECISION,0);
     if (plan->pre_plan == nullptr) return nullptr;
   }
 
@@ -329,13 +329,10 @@ struct fft_plan_3d *fft_3d_create_plan(
   second_jhi = nmid - 1;
   second_klo = ip2*nslow/np2;
   second_khi = (ip2+1)*nslow/np2 - 1;
-  plan->mid1_plan =
-      remap_3d_create_plan(comm,
-                           first_ilo,first_ihi,first_jlo,first_jhi,
-                           first_klo,first_khi,
-                           second_ilo,second_ihi,second_jlo,second_jhi,
-                           second_klo,second_khi,2,1,0,FFT_PRECISION,
-                           usecollective);
+  plan->mid1_plan = remap_3d_create_plan(comm, first_ilo,first_ihi,first_jlo,first_jhi,
+                                         first_klo,first_khi,second_ilo,second_ihi,
+                                         second_jlo,second_jhi,second_klo,second_khi,
+                                         2,1,0,FFT_PRECISION,usecollective);
   if (plan->mid1_plan == nullptr) return nullptr;
 
   // 1d FFTs along mid axis

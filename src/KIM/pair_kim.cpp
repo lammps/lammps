@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -147,7 +148,7 @@ PairKIM::PairKIM(LAMMPS *lmp) :
 PairKIM::~PairKIM()
 {
   // clean up kim_modelname
-  if (kim_modelname != 0) delete [] kim_modelname;
+  if (kim_modelname != nullptr) delete [] kim_modelname;
 
   // clean up lammps atom species number to unique particle names mapping
   if (lmps_unique_elements)
@@ -168,7 +169,7 @@ PairKIM::~PairKIM()
   // clean up lmps_stripped_neigh_ptr
   if (lmps_stripped_neigh_ptr) {
     delete [] lmps_stripped_neigh_ptr;
-    lmps_stripped_neigh_ptr = 0;
+    lmps_stripped_neigh_ptr = nullptr;
   }
 
   // clean up allocated memory for standard Pair class usage
@@ -183,7 +184,7 @@ PairKIM::~PairKIM()
   // clean up neighborlist pointers
   if (neighborLists) {
     delete [] neighborLists;
-    neighborLists = 0;
+    neighborLists = nullptr;
   }
 
   // clean up KIM interface (if necessary)
@@ -329,9 +330,9 @@ void PairKIM::settings(int narg, char **arg)
   set_lmps_flags();
 
   // set KIM Model name
-  if (kim_modelname != 0) {
+  if (kim_modelname != nullptr) {
     delete [] kim_modelname;
-    kim_modelname = 0;
+    kim_modelname = nullptr;
   }
   kim_modelname = utils::strdup(arg[0]);
 
@@ -384,7 +385,7 @@ void PairKIM::coeff(int narg, char **arg)
     delete [] lmps_unique_elements;
   }
   lmps_unique_elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) lmps_unique_elements[i] = 0;
+  for (i = 0; i < atom->ntypes; i++) lmps_unique_elements[i] = nullptr;
 
   // Assume all species arguments are valid
   // errors will be detected by below
@@ -434,8 +435,8 @@ void PairKIM::coeff(int narg, char **arg)
     if (supported) {
       kim_particle_codes[i] = code;
     } else {
-      error->all(FLERR,fmt::format("GetSpeciesSupportAndCode: symbol not "
-                                   "found: {}",lmps_unique_elements[i]));
+      error->all(FLERR,"GetSpeciesSupportAndCode: symbol not "
+                                   "found: {}",lmps_unique_elements[i]);
     }
   }
   // Set the new values for PM parameters
@@ -478,9 +479,9 @@ void PairKIM::coeff(int narg, char **arg)
       }
 
       if (param_index >= numberOfParameters)
-        error->all(FLERR,fmt::format("Wrong argument for pair coefficients.\n"
+        error->all(FLERR,"Wrong argument for pair coefficients.\n"
                                      "This Model does not have the requested "
-                                     "'{}' parameter", paramname));
+                                     "'{}' parameter", paramname);
 
       // Get the index_range for the requested parameter
       int nlbound(0);
@@ -491,9 +492,9 @@ void PairKIM::coeff(int narg, char **arg)
 
         // Check to see if the indices range contains only integer numbers & :
         if (argtostr.find_first_not_of("0123456789:") != std::string::npos)
-          error->all(FLERR,fmt::format("Illegal index_range.\nExpected integer"
+          error->all(FLERR,"Illegal index_range.\nExpected integer"
                                        " parameter(s) instead of '{}' in "
-                                       "index_range", argtostr));
+                                       "index_range", argtostr);
 
         std::string::size_type npos = argtostr.find(':');
         if (npos != std::string::npos) {
@@ -504,16 +505,16 @@ void PairKIM::coeff(int narg, char **arg)
 
           if (nubound < 1 || nubound > extent ||
               nlbound < 1 || nlbound > nubound)
-            error->all(FLERR,fmt::format("Illegal index_range '{}-{}' for '{}' "
+            error->all(FLERR,"Illegal index_range '{}-{}' for '{}' "
                                          "parameter with the extent of '{}'",
-                                         nlbound, nubound, paramname, extent));
+                                         nlbound, nubound, paramname, extent);
         } else {
           nlbound = atoi(argtostr.c_str());
 
           if (nlbound < 1 || nlbound > extent)
-            error->all(FLERR,fmt::format("Illegal index '{}' for '{}' parameter "
+            error->all(FLERR,"Illegal index '{}' for '{}' parameter "
                                          "with the extent of '{}'", nlbound,
-                                         paramname, extent));
+                                         paramname, extent);
 
           nubound = nlbound;
         }
@@ -543,10 +544,10 @@ void PairKIM::coeff(int narg, char **arg)
         } else
           error->all(FLERR,"Wrong parameter type to update");
       } else {
-        error->all(FLERR,fmt::format("Wrong number of variable values for pair "
+        error->all(FLERR,"Wrong number of variable values for pair "
                                      "coefficients.\n'{}' values are requested "
                                      "for '{}' parameter", nubound - nlbound + 1,
-                                     paramname));
+                                     paramname);
       }
     }
 
@@ -1052,8 +1053,8 @@ void PairKIM::set_lmps_flags()
   } else if ((unit_style_str == "lj") ||
              (unit_style_str == "micro") ||
              (unit_style_str == "nano")) {
-    error->all(FLERR,fmt::format("LAMMPS unit_style {} not supported "
-                                 "by KIM models", unit_style_str));
+    error->all(FLERR,"LAMMPS unit_style {} not supported "
+                                 "by KIM models", unit_style_str);
   } else {
     error->all(FLERR,"Unknown unit_style");
   }

@@ -67,7 +67,7 @@ endfunction()
 
 macro(pkg_depends PKG1 PKG2)
   if(PKG_${PKG1} AND NOT (PKG_${PKG2} OR BUILD_${PKG2}))
-    message(FATAL_ERROR "${PKG1} package needs LAMMPS to be build with ${PKG2}")
+    message(FATAL_ERROR "The ${PKG1} package needs LAMMPS to be build with the ${PKG2} package")
   endif()
 endmacro()
 
@@ -85,7 +85,7 @@ endfunction(GenerateBinaryHeader)
 
 # fetch missing potential files
 function(FetchPotentials pkgfolder potfolder)
-  if (EXISTS "${pkgfolder}/potentials.txt")
+  if(EXISTS "${pkgfolder}/potentials.txt")
     file(STRINGS "${pkgfolder}/potentials.txt" linelist REGEX "^[^#].")
     foreach(line ${linelist})
       string(FIND ${line} " " blank)
@@ -106,7 +106,7 @@ function(FetchPotentials pkgfolder potfolder)
 endfunction(FetchPotentials)
 
 # set CMAKE_LINUX_DISTRO and CMAKE_DISTRO_VERSION on Linux
-if((CMAKE_SYSTEM_NAME STREQUAL Linux) AND (EXISTS /etc/os-release))
+if((CMAKE_SYSTEM_NAME STREQUAL "Linux") AND (EXISTS /etc/os-release))
   file(STRINGS /etc/os-release distro REGEX "^NAME=")
   string(REGEX REPLACE "NAME=\"?([^\"]*)\"?" "\\1" distro "${distro}")
   file(STRINGS /etc/os-release disversion REGEX "^VERSION_ID=")

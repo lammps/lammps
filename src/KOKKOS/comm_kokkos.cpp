@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -1127,9 +1128,10 @@ void CommKokkos::borders_device() {
   max = MAX(maxforward*rmax,maxreverse*smax);
   if (max > maxrecv) grow_recv_kokkos(max);
 
+  atomKK->modified(exec_space,ALL_MASK);
+
   // reset global->local map
 
-  atomKK->modified(exec_space,ALL_MASK);
   if (map_style != Atom::MAP_NONE) {
     atomKK->sync(Host,TAG_MASK);
     atom->map_set();
@@ -1312,4 +1314,14 @@ void CommKokkos::grow_swap(int n)
 
   memory->grow(maxsendlist,n,"comm:maxsendlist");
   for (int i=0;i<maxswap;i++) maxsendlist[i]=size;
+}
+
+/* ----------------------------------------------------------------------
+   forward communication of N values in per-atom array
+------------------------------------------------------------------------- */
+
+void CommKokkos::forward_comm_array(int nsize, double **array)
+{
+  k_sendlist.sync<LMPHostType>();
+  CommBrick::forward_comm_array(nsize,array);
 }

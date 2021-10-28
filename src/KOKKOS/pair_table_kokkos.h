@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(table/kk,PairTableKokkos<LMPDeviceType>)
-PairStyle(table/kk/device,PairTableKokkos<LMPDeviceType>)
-PairStyle(table/kk/host,PairTableKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(table/kk,PairTableKokkos<LMPDeviceType>);
+PairStyle(table/kk/device,PairTableKokkos<LMPDeviceType>);
+PairStyle(table/kk/host,PairTableKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_TABLE_KOKKOS_H
 #define LMP_PAIR_TABLE_KOKKOS_H
 
@@ -120,7 +121,6 @@ class PairTableKokkos : public PairTable {
 
   int update_table;
   void create_kokkos_tables();
-  void cleanup_copy();
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION

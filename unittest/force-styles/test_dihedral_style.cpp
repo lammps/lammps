@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -536,7 +536,7 @@ TEST(DihedralStyle, plain)
 
 TEST(DihedralStyle, omp)
 {
-    if (!LAMMPS::is_installed_pkg("USER-OMP")) GTEST_SKIP();
+    if (!LAMMPS::is_installed_pkg("OPENMP")) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 
     const char *args[] = {"DihedralStyle", "-log", "none", "-echo", "screen", "-nocite",
@@ -567,7 +567,7 @@ TEST(DihedralStyle, omp)
     const int nlocal = lmp->atom->nlocal;
     ASSERT_EQ(lmp->atom->natoms, nlocal);
 
-    // relax error a bit for USER-OMP package
+    // relax error a bit for OPENMP package
     double epsilon = 5.0 * test_config.epsilon;
 
     auto f   = lmp->atom->f;
@@ -631,7 +631,7 @@ TEST(DihedralStyle, omp)
     int id        = lmp->modify->find_compute("sum");
     double energy = lmp->modify->compute[id]->compute_scalar();
     EXPECT_FP_LE_WITH_EPS(dihedral->energy, test_config.run_energy, epsilon);
-    // TODO: this is currently broken for USER-OMP with dihedral style hybrid
+    // TODO: this is currently broken for OPENMP with dihedral style hybrid
     // needs to be fixed in the main code somewhere. Not sure where, though.
     if (test_config.dihedral_style.substr(0, 6) != "hybrid")
         EXPECT_FP_LE_WITH_EPS(dihedral->energy, energy, epsilon);
@@ -698,7 +698,7 @@ TEST(DihedralStyle, omp)
         id     = lmp->modify->find_compute("sum");
         energy = lmp->modify->compute[id]->compute_scalar();
         EXPECT_FP_LE_WITH_EPS(dihedral->energy, test_config.run_energy, epsilon);
-        // TODO: this is currently broken for USER-OMP with dihedral style hybrid
+        // TODO: this is currently broken for OPENMP with dihedral style hybrid
         // needs to be fixed in the main code somewhere. Not sure where, though.
         if (test_config.dihedral_style.substr(0, 6) != "hybrid")
             EXPECT_FP_LE_WITH_EPS(dihedral->energy, energy, epsilon);

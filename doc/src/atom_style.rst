@@ -10,7 +10,7 @@ Syntax
 
    atom_style style args
 
-* style = *angle* or *atomic* or *body* or *bond* or *charge* or *dipole* or  *dpd* or *edpd* or *electron* or *ellipsoid* or *full* or *line* or *mdpd* or *molecular* or *peri* or *smd* or *sph* or *sphere* or *spin* or *tdpd* or *tri* or *template* or *hybrid*
+* style = *angle* or *atomic* or *body* or *bond* or *charge* or *dipole* or  *dpd* or *edpd* or *electron* or *ellipsoid* or *full* or *line* or *mdpd* or *molecular* or *oxdna* or *peri* or *smd* or *sph* or *sphere* or *spin* or *tdpd* or *tri* or *template* or *hybrid*
 
   .. parsed-literal::
 
@@ -61,7 +61,7 @@ command.
    Restrictions section.
 
 Once a style is assigned, it cannot be changed, so use a style general
-enough to encompass all attributes.  E.g. with style *bond*\ , angular
+enough to encompass all attributes.  E.g. with style *bond*, angular
 terms cannot be used or added later to the model.  It is OK to use a
 style more general than needed, though it may be slightly inefficient.
 
@@ -88,6 +88,8 @@ quantities.
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *charge*     | charge                                              | atomic system with charges           |
 +--------------+-----------------------------------------------------+--------------------------------------+
+| *dielectric* | dipole, area, curvature                             | system with surface polarization     |
++--------------+-----------------------------------------------------+--------------------------------------+
 | *dipole*     | charge and dipole moment                            | system with dipolar particles        |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *dpd*        | internal temperature and internal energies          | DPD particles                        |
@@ -107,6 +109,8 @@ quantities.
 | *mesont*     | mass, radius, length, buckling, connections, tube id| mesoscopic nanotubes                 |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *molecular*  | bonds, angles, dihedrals, impropers                 | uncharged molecules                  |
++--------------+-----------------------------------------------------+--------------------------------------+
+| *oxdna*      | nucleotide polarity                                 | coarse-grained DNA and RNA models    |
 +--------------+-----------------------------------------------------+--------------------------------------+
 | *peri*       | mass, volume                                        | mesoscopic Peridynamic models        |
 +--------------+-----------------------------------------------------+--------------------------------------+
@@ -132,13 +136,13 @@ quantities.
    It is possible to add some attributes, such as a molecule ID, to
    atom styles that do not have them via the :doc:`fix property/atom <fix_property_atom>` command.  This command also
    allows new custom attributes consisting of extra integer or
-   floating-point values to be added to atoms.  See the :doc:`fix property/atom <fix_property_atom>` doc page for examples of cases
+   floating-point values to be added to atoms.  See the :doc:`fix property/atom <fix_property_atom>` page for examples of cases
    where this is useful and details on how to initialize, access, and
    output the custom values.
 
-All of the above styles define point particles, except the *sphere*\ ,
-*ellipsoid*\ , *electron*\ , *peri*\ , *wavepacket*\ , *line*\ , *tri*\ , and
-*body* styles, which define finite-size particles.  See the :doc:`Howto spherical <Howto_spherical>` doc page for an overview of using
+All of the above styles define point particles, except the *sphere*,
+*ellipsoid*, *electron*, *peri*, *wavepacket*, *line*, *tri*, and
+*body* styles, which define finite-size particles.  See the :doc:`Howto spherical <Howto_spherical>` page for an overview of using
 finite-size particle models with LAMMPS.
 
 All of the point-particle styles assign mass to particles on a
@@ -166,6 +170,17 @@ a point particle.  If it is an ellipsoid, it also stores a shape
 vector with the 3 diameters of the ellipsoid and a quaternion 4-vector
 with its orientation.
 
+For the *dielectric* style, each particle can be either a physical
+particle (e.g. an ion), or an interface particle representing a boundary
+element. For physical particles, the per-particle properties are
+the same as atom_style full.  For interface particles, in addition to
+these properties, each particle also has an area, a normal unit vector,
+a mean local curvature, the mean and difference of the dielectric constants
+of two sides of the interface, and the local dielectric constant at the
+boundary element.  The distinction between the physical and interface
+particles is only meaningful when :doc:`fix polarize <fix_polarize>`
+commands are applied to the interface particles.
+
 For the *dipole* style, a point dipole is defined for each point
 particle.  Note that if you wish the particles to be finite-size
 spheres as in a Stockmayer potential for a dipolar fluid, so that the
@@ -180,8 +195,14 @@ position, which is represented by the eradius = electron size.
 For the *peri* style, the particles are spherical and each stores a
 per-particle mass and volume.
 
+The *oxdna* style is for coarse-grained nucleotides and stores the
+3'-to-5' polarity of the nucleotide strand, which is set through
+the bond topology in the data file. The first (second) atom in a
+bond definition is understood to point towards the 3'-end (5'-end)
+of the strand. Note that this style is part of the CG-DNA package.
+
 The *dpd* style is for dissipative particle dynamics (DPD) particles.
-Note that it is part of the USER-DPD package, and is not for use with
+Note that it is part of the DPD-REACT package, and is not for use with
 the :doc:`pair_style dpd or dpd/stat <pair_dpd>` commands, which can
 simply use atom_style atomic.  Atom_style dpd extends DPD particle
 properties with internal temperature (dpdTheta), internal conductive
@@ -215,7 +236,7 @@ individual physical bodies from penetrating each other.
 For the *spin* style, a magnetic spin is associated to each atom.
 Those spins have a norm (their magnetic moment) and a direction.
 
-The *wavepacket* style is similar to *electron*\ , but the electrons may
+The *wavepacket* style is similar to *electron*, but the electrons may
 consist of several Gaussian wave packets, summed up with coefficients
 cs= (cs_re,cs_im).  Each of the wave packets is treated as a separate
 particle in LAMMPS, wave packets belonging to the same electron must
@@ -235,7 +256,7 @@ command.  The template stores one or more molecules with a single copy
 of the topology info (bonds,angles,etc) of each.  Individual atoms
 only store a template index and template atom to identify which
 molecule and which atom-within-the-molecule they represent.  Using the
-*template* style instead of the *bond*\ , *angle*\ , *molecular* styles
+*template* style instead of the *bond*, *angle*, *molecular* styles
 can save memory for systems comprised of a large number of small
 molecules, all of a single type (or small number of types).  See the
 paper by Grime and Voth, in :ref:`(Grime) <Grime>`, for examples of how this
@@ -262,7 +283,7 @@ the *bstyle* argument.  Body particles can represent complex entities,
 such as surface meshes of discrete points, collections of
 sub-particles, deformable objects, etc.
 
-The :doc:`Howto body <Howto_body>` doc page describes the body styles
+The :doc:`Howto body <Howto_body>` page describes the body styles
 LAMMPS currently supports, and provides more details as to the kind of
 body particles they represent.  For all styles, each body particle
 stores moments of inertia and a quaternion 4-vector, so that its
@@ -298,26 +319,9 @@ styles; see the :doc:`Modify <Modify>` doc page.
 
 ----------
 
-Styles with a *kk* suffix are functionally the same as the
-corresponding style without the suffix.  They have been optimized to
-run faster, depending on your available hardware, as discussed in on
-the :doc:`Speed packages <Speed_packages>` doc page.  The accelerated
-styles take the same arguments and should produce the same results,
-except for round-off and precision issues.
+.. include:: accel_styles.rst
 
-Note that other acceleration packages in LAMMPS, specifically the GPU,
-USER-INTEL, USER-OMP, and OPT packages do not use accelerated atom
-styles.
-
-The accelerated styles are part of the KOKKOS package.  They are only
-enabled if LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+----------
 
 Restrictions
 """"""""""""
@@ -326,9 +330,10 @@ This command cannot be used after the simulation box is defined by a
 :doc:`read_data <read_data>` or :doc:`create_box <create_box>` command.
 
 Many of the styles listed above are only enabled if LAMMPS was built
-with a specific package, as listed below.  See the :doc:`Build package <Build_package>` doc page for more info.
+with a specific package, as listed below.  See the :doc:`Build package
+<Build_package>` page for more info.
 
-The *angle*\ , *bond*\ , *full*\ , *molecular*\ , and *template* styles are
+The *angle*, *bond*, *full*, *molecular*, and *template* styles are
 part of the MOLECULE package.
 
 The *line* and *tri* styles are part of the ASPHERE package.
@@ -339,24 +344,26 @@ The *dipole* style is part of the DIPOLE package.
 
 The *peri* style is part of the PERI package for Peridynamics.
 
-The *electron* style is part of the USER-EFF package for :doc:`electronic force fields <pair_eff>`.
+The *oxdna* style is part of the CG-DNA package for coarse-grained simulation of DNA and RNA.
 
-The *dpd* style is part of the USER-DPD package for dissipative
+The *electron* style is part of the EFF package for :doc:`electronic force fields <pair_eff>`.
+
+The *dpd* style is part of the DPD-REACT package for dissipative
 particle dynamics (DPD).
 
-The *edpd*\ , *mdpd*\ , and *tdpd* styles are part of the USER-MESODPD package
+The *edpd*, *mdpd*, and *tdpd* styles are part of the DPD-MESO package
 for energy-conserving dissipative particle dynamics (eDPD), many-body
 dissipative particle dynamics (mDPD), and transport dissipative particle
 dynamics (tDPD), respectively.
 
-The *sph* style is part of the USER-SPH package for smoothed particle
-hydrodynamics (SPH).  See `this PDF guide <USER/sph/SPH_LAMMPS_userguide.pdf>`_ to using SPH in LAMMPS.
+The *sph* style is part of the SPH package for smoothed particle
+hydrodynamics (SPH).  See `this PDF guide <PDF/SPH_LAMMPS_userguide.pdf>`_ to using SPH in LAMMPS.
 
-The *mesont* style is part of the USER-MESONT package.
+The *mesont* style is part of the MESONT package.
 
 The *spin* style is part of the SPIN package.
 
-The *wavepacket* style is part of the USER-AWPMD package for the
+The *wavepacket* style is part of the AWPMD package for the
 :doc:`antisymmetrized wave packet MD method <pair_awpmd>`.
 
 Related commands

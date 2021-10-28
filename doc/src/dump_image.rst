@@ -153,7 +153,7 @@ framerate can be set using the :doc:`dump_modify <dump_modify>` command.
 To write out JPEG and PNG format files, you must build LAMMPS with
 support for the corresponding JPEG or PNG library. To convert images
 into movies, LAMMPS has to be compiled with the -DLAMMPS_FFMPEG
-flag. See the :doc:`Build settings <Build_settings>` doc page for
+flag. See the :doc:`Build settings <Build_settings>` page for
 details.
 
 .. note::
@@ -261,7 +261,7 @@ The *atom* keyword allow you to turn off the drawing of all atoms, if
 the specified value is *no*\ .  Note that this will not turn off the
 drawing of particles that are represented as lines, triangles, or
 bodies, as discussed below.  These particles can be drawn separately
-if the *line*\ , *tri*\ , or *body* keywords are used.
+if the *line*, *tri*, or *body* keywords are used.
 
 The *adiam* keyword allows you to override the *diameter* setting to
 set a single numeric *size*\ .  All atoms will be drawn with that
@@ -318,7 +318,7 @@ The *line* keyword can be used when :doc:`atom_style line <atom_style>`
 is used to define particles as line segments, and will draw them as
 lines.  If this keyword is not used, such particles will be drawn as
 spheres, the same as if they were regular atoms.  The only setting
-currently allowed for the *color* value is *type*\ , which will color
+currently allowed for the *color* value is *type*, which will color
 the lines according to the atom type of the particle.  By default the
 mapping of types to colors is as follows:
 
@@ -345,7 +345,7 @@ or edges (3 lines) or both, depending on the setting for *tflag*\ .  If
 edges are drawn, the *width* setting determines the diameters of the
 line segments.  If this keyword is not used, triangle particles will
 be drawn as spheres, the same as if they were regular atoms.  The only
-setting currently allowed for the *color* value is *type*\ , which will
+setting currently allowed for the *color* value is *type*, which will
 color the triangles according to the atom type of the particle.  By
 default the mapping of types to colors is as follows:
 
@@ -367,7 +367,7 @@ is used to define body particles with internal state
 body style.  If this keyword is not used, such particles will be drawn
 as spheres, the same as if they were regular atoms.
 
-The :doc:`Howto body <Howto_body>` doc page describes the body styles
+The :doc:`Howto body <Howto_body>` page describes the body styles
 LAMMPS currently supports, and provides more details as to the kind of
 body particles they represent and how they are drawn by this dump
 image command.  For all the body styles, individual atoms can be
@@ -375,10 +375,10 @@ either a body particle or a usual point (non-body) particle.  Non-body
 particles will be drawn the same way they would be as a regular atom.
 The *bflag1* and *bflag2* settings are numerical values which are
 passed to the body style to affect how the drawing of a body particle
-is done.  See the :doc:`Howto body <Howto_body>` doc page for a
+is done.  See the :doc:`Howto body <Howto_body>` page for a
 description of what these parameters mean for each body style.
 
-The only setting currently allowed for the *color* value is *type*\ ,
+The only setting currently allowed for the *color* value is *type*,
 which will color the body particles according to the atom type of the
 particle.  By default the mapping of types to colors is as follows:
 
@@ -399,10 +399,10 @@ objects to be drawn.
 
 The *fflag1* and *fflag2* settings are numerical values which are
 passed to the fix to affect how the drawing of its objects is done.
-See the individual fix doc page for a description of what these
+See the individual fix page for a description of what these
 parameters mean for a particular fix.
 
-The only setting currently allowed for the *color* value is *type*\ ,
+The only setting currently allowed for the *color* value is *type*,
 which will color the fix objects according to their type.  By default
 the mapping of types to colors is as follows:
 
@@ -423,11 +423,11 @@ i.e. the number of pixels in each direction.
 
 ----------
 
-The *view*\ , *center*\ , *up*\ , and *zoom* values determine how
+The *view*, *center*, *up*, and *zoom* values determine how
 3d simulation space is mapped to the 2d plane of the image.  Basically
 they control how the simulation box appears in the image.
 
-All of the *view*\ , *center*\ , *up*\ , and *zoom* values can be
+All of the *view*, *center*, *up*, and *zoom* values can be
 specified as numeric quantities, whose meaning is explained below.
 Any of them can also be specified as an :doc:`equal-style variable <variable>`,
 by using v_name as the value, where "name" is
@@ -447,13 +447,13 @@ specified via variables, then the variable values should be in
 degrees.
 
 The *center* keyword determines the point in simulation space that
-will be at the center of the image.  *Cx*\ , *Cy*\ , and *Cz* are
+will be at the center of the image.  *Cx*, *Cy*, and *Cz* are
 specified as fractions of the box dimensions, so that (0.5,0.5,0.5) is
 the center of the simulation box.  These values do not have to be
 between 0.0 and 1.0, if you want the simulation box to be offset from
 the center of the image.  Note, however, that if you choose strange
-values for *Cx*\ , *Cy*\ , or *Cz* you may get a blank image.  Internally,
-*Cx*\ , *Cy*\ , and *Cz* are converted into a point in simulation space.
+values for *Cx*, *Cy*, or *Cz* you may get a blank image.  Internally,
+*Cx*, *Cy*, and *Cz* are converted into a point in simulation space.
 If *flag* is set to "s" for static, then this conversion is done once,
 at the time the dump command is issued.  If *flag* is set to "d" for
 dynamic then the conversion is performed every time a new image is
@@ -590,8 +590,8 @@ Play the movie:
      % mplayer foo.mpg
      % ffplay bar.avi
 
-* c) Use the `Pizza.py <https://pizza.sandia.gov>`_
-  `animate tool <https://pizza.sandia.gov/doc/animate.html>`_,
+* c) Use the `Pizza.py <https://lammps.github.io/pizza>`_
+  `animate tool <https://lammps.github.io/pizza/doc/animate.html>`_,
   which works directly on a series of image files.
 
   .. code-block:: python
@@ -607,7 +607,7 @@ Play the movie:
 
 ----------
 
-See the :doc:`Modify <Modify>` doc page for information on how to add
+See the :doc:`Modify <Modify>` page for information on how to add
 new compute and fix styles to LAMMPS to calculate per-atom quantities
 which could then be output into dump files.
 
@@ -626,7 +626,7 @@ building LAMMPS and have the FFmpeg executable available on the
 machine where LAMMPS is being run.  Typically it's name is lowercase,
 i.e. ffmpeg.
 
-See the :doc:`Build settings <Build_settings>` doc page for details.
+See the :doc:`Build settings <Build_settings>` page for details.
 
 Note that since FFmpeg is run as an external program via a pipe,
 LAMMPS has limited control over its execution and no knowledge about

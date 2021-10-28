@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,19 +17,21 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_centro_atom.h"
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "force.h"
-#include "pair.h"
 #include "comm.h"
+#include "error.h"
+#include "force.h"
 #include "math_extra.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -54,11 +57,8 @@ ComputeCentroAtom::ComputeCentroAtom(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 4;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"axes") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute centro/atom command3");
-      if (strcmp(arg[iarg+1],"yes") == 0) axes_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) axes_flag = 0;
-      else error->all(FLERR,"Illegal compute centro/atom command2");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute centro/atom command3");
+      axes_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal compute centro/atom command1");
   }

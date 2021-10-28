@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -33,7 +34,7 @@ using namespace FixConst;
 enum{BONDMAX,TLIMIT,DISKFREE,VARIABLE};
 enum{LT,LE,GT,GE,EQ,NEQ,XOR};
 enum{HARD,SOFT,CONTINUE};
-enum{NOMSG,YESMSG};
+enum{NOMSG=0,YESMSG=1};
 
 /* ---------------------------------------------------------------------- */
 
@@ -53,8 +54,7 @@ FixHalt::FixHalt(LAMMPS *lmp, int narg, char **arg) :
     attribute = TLIMIT;
   } else if (strcmp(arg[iarg],"diskfree") == 0) {
     attribute = DISKFREE;
-    dlimit_path = new char[2];
-    strcpy(dlimit_path,".");
+    dlimit_path = utils::strdup(".");
   } else if (strcmp(arg[iarg],"bondmax") == 0) {
     attribute = BONDMAX;
   } else {
@@ -102,9 +102,7 @@ FixHalt::FixHalt(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"message") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix halt command");
-      if (strcmp(arg[iarg+1],"no") == 0) msgflag = NOMSG;
-      else if (strcmp(arg[iarg+1],"yes") == 0) msgflag = YESMSG;
-      else error->all(FLERR,"Illegal fix halt command");
+      msgflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"path") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix halt command");

@@ -35,6 +35,10 @@ hr {
      display: none;
 }
 
+#command-reference.section h2 {
+     display: none;
+}
+
 .ui.tabular.menu .item {
     padding-right: 1em;
     padding-left: 1em;

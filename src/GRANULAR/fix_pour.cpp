@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,26 +14,26 @@
 
 #include "fix_pour.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
-#include "force.h"
-#include "update.h"
 #include "comm.h"
-#include "molecule.h"
-#include "modify.h"
-#include "fix_gravity.h"
 #include "domain.h"
+#include "error.h"
+#include "fix_gravity.h"
+#include "force.h"
+#include "math_const.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "modify.h"
+#include "molecule.h"
+#include "random_park.h"
 #include "region.h"
 #include "region_block.h"
 #include "region_cylinder.h"
-#include "random_park.h"
-#include "math_extra.h"
-#include "math_const.h"
-#include "memory.h"
-#include "error.h"
+#include "update.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -267,16 +268,9 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
 
   // print stats
 
-  if (me == 0) {
-    if (screen)
-      fprintf(screen,
-              "Particle insertion: %d every %d steps, %d by step %d\n",
-              nper,nfreq,ninsert,nfinal);
-    if (logfile)
-      fprintf(logfile,
-              "Particle insertion: %d every %d steps, %d by step %d\n",
-              nper,nfreq,ninsert,nfinal);
-  }
+  if (me == 0)
+    utils::logmesg(lmp, "Particle insertion: {} every {} steps, {} by step {}\n",
+                   nper,nfreq,ninsert,nfinal);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -393,10 +387,12 @@ void FixPour::pre_exchange()
 
   if (next_reneighbor != update->ntimestep) return;
 
-  // clear ghost count and any ghost bonus data internal to AtomVec
+  // clear ghost count (and atom map) and any ghost bonus data
+  //   internal to AtomVec
   // same logic as beginning of Comm::exchange()
   // do it now b/c inserting atoms will overwrite ghost atoms
 
+  if (atom->map_style != Atom::MAP_NONE) atom->map_clear();
   atom->nghost = 0;
   atom->avec->clear_bonus();
 
@@ -700,7 +696,7 @@ void FixPour::pre_exchange()
   int ninserted_mols = ninserted_atoms / natom;
   ninserted += ninserted_mols;
   if (ninserted_mols < nnew && me == 0)
-    error->warning(FLERR,"Less insertions than requested",0);
+    error->warning(FLERR,"Less insertions than requested");
 
   // reset global natoms,nbonds,etc
   // increment maxtag_all and maxmol_all if necessary
@@ -720,10 +716,13 @@ void FixPour::pre_exchange()
     }
     if (maxtag_all >= MAXTAGINT)
       error->all(FLERR,"New atom IDs exceed maximum allowed ID");
-    if (atom->map_style != Atom::MAP_NONE) {
-      atom->map_init();
-      atom->map_set();
-    }
+  }
+
+  // rebuild atom map
+
+  if (atom->map_style != Atom::MAP_NONE) {
+    if (success) atom->map_init();
+    atom->map_set();
   }
 
   // free local memory
@@ -852,7 +851,7 @@ void FixPour::xyz_random(double h, double *coord)
       coord[2] = h;
     } else {
       double r1,r2;
-      while (1) {
+      while (true) {
         r1 = random->uniform() - 0.5;
         r2 = random->uniform() - 0.5;
         if (r1*r1 + r2*r2 < 0.25) break;

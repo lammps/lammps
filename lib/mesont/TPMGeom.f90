@@ -1,6 +1,6 @@
 ! ------------ ----------------------------------------------------------
 !   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-!   http://lammps.sandia.gov, Sandia National Laboratories
+!   https://www.lammps.org/ Sandia National Laboratories
 !   Steve Plimpton, sjplimp@sandia.gov
 !
 !   Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -9,9 +9,9 @@
 !   the GNU General Public License.
 !
 !   See the README file in the top-level LAMMPS directory.
-!   
+!
 !   Contributing author: Alexey N. Volkov, UA, avolkov1@ua.edu
-!------------------------------------------------------------------------- 
+!-------------------------------------------------------------------------
 
 module TPMGeom !************************************************************************************
 !
@@ -39,20 +39,20 @@ implicit none
 !---------------------------------------------------------------------------------------------------
 ! Global variables
 !---------------------------------------------------------------------------------------------------
-        
+
         ! Coordinates of the whole domain
         real(c_double)                  :: DomXmin, DomXmax, DomYmin, DomYmax, DomZmin, DomZmax
         real(c_double)                  :: DomLX, DomLY, DomLZ
         real(c_double)                  :: DomLXhalf, DomLYhalf, DomLZhalf
-        
-        ! Boundary conditions 
+
+        ! Boundary conditions
         integer(c_int)               :: BC_X            = 0
         integer(c_int)               :: BC_Y            = 0
         integer(c_int)               :: BC_Z            = 0
 
         ! Skin parameter in NBL and related algorithms
         real(c_double)                  :: Rskin        = 1.0d+00
-        
+
 contains !******************************************************************************************
 
         subroutine ApplyPeriodicBC ( R ) !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -111,12 +111,12 @@ contains !**********************************************************************
         !      cosA, cosine of the angle between lines.
         !      D1, D2, displacements.
         !      L12, unit vector directed along the closest distance.
-        !-------------------------------------------------------------------------------------------      
+        !-------------------------------------------------------------------------------------------
         real(c_double), intent(inout)                   :: H, cosA, D1, D2
         real(c_double), dimension(0:2), intent(out)     :: L12
         real(c_double), dimension(0:2), intent(in)      :: R1, L1, R2, L2
         !-------------------------------------------------------------------------------------------
-        real(c_double), intent(in)                      :: Prec 
+        real(c_double), intent(in)                      :: Prec
         real(c_double), dimension(0:2)                  :: Q1, Q2, R
         real(c_double)                                  :: C, DD1, DD2, C1, C2
         !-------------------------------------------------------------------------------------------
@@ -151,5 +151,5 @@ contains !**********************************************************************
                         L12 = L12 / H
                 end if
         end function LineLine !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        
+
 end module TPMGeom !********************************************************************************

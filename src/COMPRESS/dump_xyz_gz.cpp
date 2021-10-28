@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,30 +12,23 @@
 ------------------------------------------------------------------------- */
 
 #include "dump_xyz_gz.h"
+
 #include "error.h"
+#include "file_writer.h"
 #include "update.h"
 
 #include <cstring>
 
 using namespace LAMMPS_NS;
 
-DumpXYZGZ::DumpXYZGZ(LAMMPS *lmp, int narg, char **arg) :
-  DumpXYZ(lmp, narg, arg)
+DumpXYZGZ::DumpXYZGZ(LAMMPS *lmp, int narg, char **arg) : DumpXYZ(lmp, narg, arg)
 {
-  if (!compressed)
-    error->all(FLERR,"Dump xyz/gz only writes compressed files");
-}
-
-
-/* ---------------------------------------------------------------------- */
-
-DumpXYZGZ::~DumpXYZGZ()
-{
+  if (!compressed) error->all(FLERR, "Dump xyz/gz only writes compressed files");
 }
 
 /* ----------------------------------------------------------------------
    generic opening of a dump file
-   ASCII or binary or gzipped
+   ASCII or binary or compressed
    some derived classes override this function
 ------------------------------------------------------------------------- */
 
@@ -54,16 +47,15 @@ void DumpXYZGZ::openfile()
   if (multifile) {
     char *filestar = filecurrent;
     filecurrent = new char[strlen(filestar) + 16];
-    char *ptr = strchr(filestar,'*');
+    char *ptr = strchr(filestar, '*');
     *ptr = '\0';
     if (padflag == 0)
-      sprintf(filecurrent,"%s" BIGINT_FORMAT "%s",
-              filestar,update->ntimestep,ptr+1);
+      sprintf(filecurrent, "%s" BIGINT_FORMAT "%s", filestar, update->ntimestep, ptr + 1);
     else {
-      char bif[8],pad[16];
-      strcpy(bif,BIGINT_FORMAT);
-      sprintf(pad,"%%s%%0%d%s%%s",padflag,&bif[1]);
-      sprintf(filecurrent,pad,filestar,update->ntimestep,ptr+1);
+      char bif[8], pad[16];
+      strcpy(bif, BIGINT_FORMAT);
+      sprintf(pad, "%%s%%0%d%s%%s", padflag, &bif[1]);
+      sprintf(filecurrent, pad, filestar, update->ntimestep, ptr + 1);
     }
     *ptr = '*';
     if (maxfiles > 0) {
@@ -93,7 +85,7 @@ void DumpXYZGZ::openfile()
 
   // delete string with timestep replaced
 
-  if (multifile) delete [] filecurrent;
+  if (multifile) delete[] filecurrent;
 }
 
 void DumpXYZGZ::write_header(bigint ndump)
@@ -116,9 +108,9 @@ void DumpXYZGZ::write_data(int n, double *mybuf)
     char vbuffer[VBUFFER_SIZE];
     int m = 0;
     for (int i = 0; i < n; i++) {
-      int written = snprintf(vbuffer, VBUFFER_SIZE, format,
-              typenames[static_cast<int> (mybuf[m+1])],
-              mybuf[m+2],mybuf[m+3],mybuf[m+4]);
+      int written =
+          snprintf(vbuffer, VBUFFER_SIZE, format, typenames[static_cast<int>(mybuf[m + 1])],
+                   mybuf[m + 2], mybuf[m + 3], mybuf[m + 4]);
       if (written > 0) {
         writer.write(vbuffer, written);
       } else if (written < 0) {
@@ -138,9 +130,7 @@ void DumpXYZGZ::write()
     if (multifile) {
       writer.close();
     } else {
-      if (flush_flag && writer.isopen()) {
-        writer.flush();
-      }
+      if (flush_flag && writer.isopen()) { writer.flush(); }
     }
   }
 }
@@ -152,14 +142,14 @@ int DumpXYZGZ::modify_param(int narg, char **arg)
   int consumed = DumpXYZ::modify_param(narg, arg);
   if (consumed == 0) {
     try {
-      if (strcmp(arg[0],"compression_level") == 0) {
-        if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
+      if (strcmp(arg[0], "compression_level") == 0) {
+        if (narg < 2) error->all(FLERR, "Illegal dump_modify command");
         int compression_level = utils::inumeric(FLERR, arg[1], false, lmp);
         writer.setCompressionLevel(compression_level);
         return 2;
       }
     } catch (FileWriterException &e) {
-      error->one(FLERR, fmt::format("Illegal dump_modify command: {}", e.what()));
+      error->one(FLERR, "Illegal dump_modify command: {}", e.what());
     }
   }
   return consumed;

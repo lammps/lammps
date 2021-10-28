@@ -12,6 +12,7 @@
 *.sif
 *.dll
 *.pyc
+a.out
 __pycache__
 
 Obj_*
@@ -36,13 +37,20 @@ vgcore.*
 .Trashes
 ehthumbs.db
 Thumbs.db
-.clang-format
 .lammps_history
+.vs
 
 #cmake
 /build*
 /CMakeCache.txt
 /CMakeFiles/
+/Testing
 /Makefile
+/Testing
 /cmake_install.cmake
 /lmp
+out/Debug
+out/RelWithDebInfo
+out/Release
+out/x86
+out/x64

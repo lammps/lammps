@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -19,25 +20,24 @@
 
 #include "pair_granular.h"
 
-#include <cmath>
-#include <cstring>
-
 #include "atom.h"
-#include "force.h"
-#include "update.h"
-#include "modify.h"
+#include "comm.h"
+#include "error.h"
 #include "fix.h"
 #include "fix_dummy.h"
 #include "fix_neigh_history.h"
-#include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
+#include "force.h"
 #include "math_const.h"
 #include "math_special.h"
+#include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "update.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -67,6 +67,7 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   single_enable = 1;
   no_virial_fdotr_compute = 1;
   centroidstressflag = CENTROID_NOTAVAIL;
+  finitecutflag = 1;
 
   single_extra = 12;
   svector = new double[single_extra];
@@ -101,15 +102,15 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   // this is so final order of Modify:fix will conform to input script
 
   fix_history = nullptr;
-  modify->add_fix("NEIGH_HISTORY_GRANULAR_DUMMY all DUMMY");
-  fix_dummy = (FixDummy *) modify->fix[modify->nfix-1];
+  fix_dummy = (FixDummy *) modify->add_fix("NEIGH_HISTORY_GRANULAR_DUMMY all DUMMY");
 }
 
 /* ---------------------------------------------------------------------- */
 
 PairGranular::~PairGranular()
 {
-  delete [] svector;
+  delete[] svector;
+  delete[] history_transfer_factors;
 
   if (!fix_history) modify->delete_fix("NEIGH_HISTORY_GRANULAR_DUMMY");
   else modify->delete_fix("NEIGH_HISTORY_GRANULAR");
@@ -1120,21 +1121,21 @@ void PairGranular::init_style()
   // this is so its order in the fix list is preserved
 
   if (use_history && fix_history == nullptr) {
-    modify->replace_fix("NEIGH_HISTORY_GRANULAR_DUMMY","NEIGH_HISTORY_GRANULAR"
-                        " all NEIGH_HISTORY " + std::to_string(size_history),1);
-    int ifix = modify->find_fix("NEIGH_HISTORY_GRANULAR");
-    fix_history = (FixNeighHistory *) modify->fix[ifix];
+    fix_history = (FixNeighHistory *) modify->replace_fix("NEIGH_HISTORY_GRANULAR_DUMMY",
+                                                          "NEIGH_HISTORY_GRANULAR"
+                                                          " all NEIGH_HISTORY "
+                                                          + std::to_string(size_history),1);
     fix_history->pair = this;
   }
 
   // check for FixFreeze and set freeze_group_bit
 
-  for (i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"freeze") == 0) break;
-  if (i < modify->nfix) freeze_group_bit = modify->fix[i]->groupbit;
-  else freeze_group_bit = 0;
+  int ifix = modify->find_fix_by_style("^freeze");
+  if (ifix < 0) freeze_group_bit = 0;
+  else freeze_group_bit = modify->fix[ifix]->groupbit;
 
   // check for FixRigid so can extract rigid body masses
+  // FIXME: this only catches the first rigid fix, there may be multiple.
 
   fix_rigid = nullptr;
   for (i = 0; i < modify->nfix; i++)
@@ -1143,15 +1144,8 @@ void PairGranular::init_style()
 
   // check for FixPour and FixDeposit so can extract particle radii
 
-  int ipour;
-  for (ipour = 0; ipour < modify->nfix; ipour++)
-    if (strcmp(modify->fix[ipour]->style,"pour") == 0) break;
-  if (ipour == modify->nfix) ipour = -1;
-
-  int idep;
-  for (idep = 0; idep < modify->nfix; idep++)
-    if (strcmp(modify->fix[idep]->style,"deposit") == 0) break;
-  if (idep == modify->nfix) idep = -1;
+  int ipour = modify->find_fix_by_style("^pour");
+  int idep  = modify->find_fix_by_style("^deposit");
 
   // set maxrad_dynamic and maxrad_frozen for each type
   // include future FixPour and FixDeposit particles as dynamic
@@ -1185,10 +1179,8 @@ void PairGranular::init_style()
     }
   }
 
-  MPI_Allreduce(&onerad_dynamic[1],&maxrad_dynamic[1],atom->ntypes,
-                MPI_DOUBLE,MPI_MAX,world);
-  MPI_Allreduce(&onerad_frozen[1],&maxrad_frozen[1],atom->ntypes,
-                MPI_DOUBLE,MPI_MAX,world);
+  MPI_Allreduce(&onerad_dynamic[1],&maxrad_dynamic[1],atom->ntypes,MPI_DOUBLE,MPI_MAX,world);
+  MPI_Allreduce(&onerad_frozen[1],&maxrad_frozen[1],atom->ntypes,MPI_DOUBLE,MPI_MAX,world);
 
   // set fix which stores history info
 
@@ -1213,13 +1205,10 @@ double PairGranular::init_one(int i, int j)
         (tangential_model[i][i] != tangential_model[j][j]) ||
         (roll_model[i][i] != roll_model[j][j]) ||
         (twist_model[i][i] != twist_model[j][j])) {
-
-      char str[512];
-      sprintf(str,"Granular pair style functional forms are different, "
-              "cannot mix coefficients for types %d and %d. \n"
-              "This combination must be set explicitly "
-              "via pair_coeff command",i,j);
-      error->one(FLERR,str);
+      error->all(FLERR,"Granular pair style functional forms are different, "
+                 "cannot mix coefficients for types {} and {}. \n"
+                 "This combination must be set explicitly via a "
+                 "pair_coeff command",i,j);
     }
 
     if (normal_model[i][j] == HERTZ || normal_model[i][j] == HOOKE)
@@ -1839,4 +1828,51 @@ void PairGranular::transfer_history(double* source, double* target)
 {
   for (int i = 0; i < size_history; i++)
     target[i] = history_transfer_factors[i]*source[i];
+}
+
+/* ----------------------------------------------------------------------
+   self-interaction range of particle
+------------------------------------------------------------------------- */
+
+double PairGranular::atom2cut(int i)
+{
+  double cut;
+
+  cut = atom->radius[i]*2;
+  if(beyond_contact) {
+    int itype = atom->type[i];
+    if(normal_model[itype][itype] == JKR) {
+      cut += pulloff_distance(cut, cut, itype, itype);
+    }
+  }
+
+  return cut;
+}
+
+/* ----------------------------------------------------------------------
+   maximum interaction range for two finite particles
+------------------------------------------------------------------------- */
+
+double PairGranular::radii2cut(double r1, double r2)
+{
+  double cut = 0.0;
+
+  if(beyond_contact) {
+    int n = atom->ntypes;
+    double temp;
+
+    // Check all combinations of i and j to find theoretical maximum pull off distance
+    for(int i = 0; i < n; i++){
+      for(int j = 0; j < n; j++){
+        if(normal_model[i][j] == JKR) {
+          temp = pulloff_distance(r1, r2, i, j);
+          if(temp > cut) cut = temp;
+        }
+      }
+    }
+  }
+
+  cut += r1 + r2;
+
+  return cut;
 }

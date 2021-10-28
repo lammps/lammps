@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -36,6 +37,8 @@ PairCoulCut::PairCoulCut(LAMMPS *lmp) : Pair(lmp) {
 
 PairCoulCut::~PairCoulCut()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -131,14 +134,16 @@ void PairCoulCut::allocate()
   int n = atom->ntypes;
 
   memory->create(setflag,n+1,n+1,"pair:setflag");
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
+  memory->create(scale,n+1,n+1,"pair:scale");
+  for (int i = 1; i <= n; i++) {
+    for (int j = i; j <= n; j++) {
       setflag[i][j] = 0;
+      scale[i][j] = 1.0;
+    }
+  }
 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
-
   memory->create(cut,n+1,n+1,"pair:cut");
-  memory->create(scale,n+1,n+1,"pair:scale");
 }
 
 /* ----------------------------------------------------------------------
@@ -338,7 +343,7 @@ double PairCoulCut::single(int i, int j, int /*itype*/, int /*jtype*/,
 void *PairCoulCut::extract(const char *str, int &dim)
 {
   dim = 2;
-  if (strcmp(str,"cut_coul") == 0) return (void *) &cut;
+  if (strcmp(str,"cut_coul") == 0) return (void *) cut;
   if (strcmp(str,"scale") == 0) return (void *) scale;
   return nullptr;
 }

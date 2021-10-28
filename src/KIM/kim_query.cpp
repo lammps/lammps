@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -126,20 +127,20 @@ void KimQuery::command(int narg, char **arg)
   std::string query_function(arg[1]);
   if (query_function == "split" || query_function == "list" ||
       query_function == "index")
-    error->all(FLERR, fmt::format("Illegal 'kim query' command.\nThe '{}' "
+    error->all(FLERR, "Illegal 'kim query' command.\nThe '{}' "
                                   "keyword can not be used after '{}'",
-                                  query_function, format_arg));
+                                  query_function, format_arg);
 
   std::string model_name;
 
   // check the query_args format (a series of keyword=value pairs)
   for (int i = 2; i < narg; ++i) {
     if (!utils::strmatch(arg[i], "[=][\\[].*[\\]]"))
-      error->all(FLERR, fmt::format("Illegal query format.\nInput argument "
+      error->all(FLERR, "Illegal query format.\nInput argument "
                                     "of `{}` to 'kim query' is wrong. The "
                                     "query format is the keyword=[value], "
                                     "where value is always an array of one or "
-                                    "more comma-separated items", arg[i]));
+                                    "more comma-separated items", arg[i]);
   }
 
   if (query_function != "get_available_models") {
@@ -376,7 +377,7 @@ char *do_query(const std::string &qfunction, const std::string &mname,
       }
 
       auto user_agent = fmt::format("kim query--LAMMPS/{} ({})",
-                                    LAMMPS_VERSION, Info::get_os_info());
+                                    LAMMPS_VERSION, platform::os_info());
 
       curl_easy_setopt(handle, CURLOPT_USERAGENT, user_agent.c_str());
       curl_easy_setopt(handle, CURLOPT_URL, url.c_str());

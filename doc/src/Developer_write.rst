@@ -29,7 +29,9 @@ of code in the header before include guards:
 .. code-block:: c
 
    #ifdef FIX_CLASS
-   FixStyle(print/vel,FixPrintVel)
+   // clang-format off
+   FixStyle(print/vel,FixPrintVel);
+   // clang-format on
    #else
    /* the definition of the FixPrintVel class comes here */
    ...
@@ -59,7 +61,7 @@ of each timestep. First of all, implement a constructor:
    }
 
 In the constructor you should parse your fix arguments which are
-specified in the script. All fixes have pretty the same syntax:
+specified in the script. All fixes have pretty much the same syntax:
 ``fix <fix-ID> <fix group> <fix name> <fix arguments ...>``. The
 first 3 parameters are parsed by Fix base class constructor, while
 ``<fix arguments>`` should be parsed by you. In our case, we need to

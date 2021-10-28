@@ -21,7 +21,7 @@ and also an interface layer into the QM code similar to the one in QE.
 
 LAMMPS has support for two build systems, the traditional make based
 one and a newer one based on CMake.  You have to build LAMMPS as a
-library with the USER-QMMM package included and for that you need to
+library with the QMMM package included and for that you need to
 also build the libqmmm.a library in this folder.
 
 Below you will find some description of the steps needed in either case.
@@ -34,7 +34,7 @@ WARNING: This is code depending on two software packages that are
 independently maitained and are under continuous active development.
 It is thus much easier to break the QM/MM interface without noticing.
 Thus please test *very* carefully before using this software for
-production calculations. 
+production calculations.
 
 At this point, both mechanical and multipole based electrostatic
 coupling have been successfully tested on a cluster of water
@@ -55,7 +55,7 @@ build configuration with CMake:
 
   mkdir build-qmmm
   cd build-qmmm
-  cmake -C ../cmake/presets/minimal.cmake -D PKG_USER-QMMM=yes \
+  cmake -C ../cmake/presets/basic.cmake -D PKG_QMMM=yes \
            -D BUILD_LIB=yes -DBUILD_SHARED_LIBS=yes ../cmake
   make
   make install
@@ -116,7 +116,7 @@ Building with traditional make for LAMMPS
 =========================================
 
 
-Step 1) 
+Step 1)
 
 Go to src folder under the top-level folder of the LAMMPS source code
 and build the qmmm coupling library in this directory using one of
@@ -132,14 +132,14 @@ exist in this directory (lib/qmmm):
 libqmmm.a		the library LAMMPS will link against
 Makefile.lammps		settings the LAMMPS Makefile will import
 
-Makefile.lammps is created by the make command by simply copying the 
+Makefile.lammps is created by the make command by simply copying the
 Makefile.lammps.empty file. Currently no additional dependencies for
 this library exist.
 
 Step 2)
 
-Build a standalone LAMMPS executable as described in the LAMMPS 
-documentation and include the USER-QMMM package. This executable
+Build a standalone LAMMPS executable as described in the LAMMPS
+documentation and include the QMMM package. This executable
 is not functional for QM/MM, but it will usually be needed to
 run all MM calculations for equilibration and testing and also
 to confirm that the classical part of the code is set up correctly.
@@ -147,7 +147,7 @@ Also build a the LAMMPS library.  This can be a static library
 or a shared library.  For example for a static library with the
 minimum set of packages required for the examples here:
 
-  make yes-molecule yes-kspace yes-rigid yes-user-qmmm
+  make yes-molecule yes-kspace yes-rigid yes-qmmm
   make mpi
   make mode=lib mpi
 
@@ -173,7 +173,7 @@ Step 4)
 
 To compile and link the final QM/MM executable, which combines the
 compiled code from both packages, you have to return to the lib/qmmm
-directory and now edit the Makefile.<compiler> for the Makefile 
+directory and now edit the Makefile.<compiler> for the Makefile
 configuration used to compile LAMMPS and also update the directory
 and library settings for the Quantum ESPRESSO installation.
 
@@ -182,7 +182,7 @@ flags that will need to be used in addition to the various libraries
 from _both_ packages. Please see the provided example(s).
 
 "make -f Makefile.<compiler> all" will now recurse through both the
-Quantum ESPRESSO and LAMMPS directories to compile all files that 
+Quantum ESPRESSO and LAMMPS directories to compile all files that
 require recompilation and then link the combined QM/MM executable.
 
 If you want to only update the local objects and the QM/MM executable,
@@ -190,7 +190,7 @@ you can use "make -f Makefile.<compiler> pwqmmm.x"
 
 Please refer to the specific LAMMPS and Quantum ESPRESSO documentation
 for details on how to set up compilation for each package and make
-sure you have a set of settings and flags that allow you to build 
+sure you have a set of settings and flags that allow you to build
 each package successfully, so that it can run on its own.
 
 -------------------------------------------------
@@ -253,7 +253,7 @@ this is a regular input which in addition contains the line
 
 tqmmm = .true.
 
-in the &CONTROL namelist. This will make the include QE code 
+in the &CONTROL namelist. This will make the include QE code
 connect to the LAMMPS code and receive updated positions while
 it sends QM forces back to the MM code.
 

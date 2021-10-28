@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -293,7 +294,7 @@ void ProcMap::custom_grid(char *cfile, int nprocs,
     char *ptr;
     if (!fgets(line,MAXLINE,fp))
       error->one(FLERR,"Unexpected end of custom file");
-    while (1) {
+    while (true) {
       if ((ptr = strchr(line,'#'))) *ptr = '\0';
       if (strspn(line," \t\n\r") != strlen(line)) break;
       if (!fgets(line,MAXLINE,fp))
@@ -308,8 +309,8 @@ void ProcMap::custom_grid(char *cfile, int nprocs,
     procgrid[1] = procs.next_int();
     procgrid[2] = procs.next_int();
   } catch (TokenizerException &e) {
-    error->all(FLERR,fmt::format("Processors custom grid file "
-                                 "is inconsistent: {}", e.what()));
+    error->all(FLERR,"Processors custom grid file "
+                                 "is inconsistent: {}", e.what());
   }
 
   int flag = 0;
@@ -337,8 +338,8 @@ void ProcMap::custom_grid(char *cfile, int nprocs,
         cmap[i][2] = pmap.next_int();
         cmap[i][3] = pmap.next_int();
       } catch (TokenizerException &e) {
-        error->one(FLERR,fmt::format("Processors custom grid file is "
-                                     "inconsistent: {}", e.what()));
+        error->one(FLERR,"Processors custom grid file is "
+                                     "inconsistent: {}", e.what());
       }
     }
     fclose(fp);

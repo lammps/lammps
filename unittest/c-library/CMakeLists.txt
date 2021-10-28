@@ -7,11 +7,21 @@ add_executable(test_library_commands test_library_commands.cpp test_main.cpp)
 target_link_libraries(test_library_commands PRIVATE lammps GTest::GTest GTest::GMock)
 add_test(LibraryCommands test_library_commands)
 
+add_executable(test_library_external test_library_external.cpp test_main.cpp)
+target_link_libraries(test_library_external PRIVATE lammps GTest::GTest GTest::GMock)
+add_test(LibraryExternal test_library_external)
+
 add_executable(test_library_properties test_library_properties.cpp test_main.cpp)
 target_link_libraries(test_library_properties PRIVATE lammps GTest::GTest GTest::GMock)
 target_compile_definitions(test_library_properties PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
 add_test(LibraryProperties test_library_properties)
 set_tests_properties(LibraryProperties PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
+
+add_executable(test_library_scatter_gather test_library_scatter_gather.cpp test_main.cpp)
+target_link_libraries(test_library_scatter_gather PRIVATE lammps GTest::GTest GTest::GMock)
+target_compile_definitions(test_library_scatter_gather PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
+add_test(LibraryScatterGather test_library_scatter_gather)
+set_tests_properties(LibraryScatterGather PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
 
 set(TEST_CONFIG_DEFS "-DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR};-DLAMMPS_${LAMMPS_SIZES}")
 set(PKG_COUNT 0)

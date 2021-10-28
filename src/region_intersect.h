@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef REGION_CLASS
-
-RegionStyle(intersect,RegIntersect)
-
+// clang-format off
+RegionStyle(intersect,RegIntersect);
+// clang-format on
 #else
 
 #ifndef LMP_REGION_INTERSECT_H
@@ -35,16 +35,16 @@ class RegIntersect : public Region {
   void shape_update();
   void pretransform();
   void set_velocity();
-  void length_restart_string(int&);
+  void length_restart_string(int &);
   void write_restart(FILE *);
-  int restart(char *, int&);
+  int restart(char *, int &);
   void reset_vel();
 
  private:
   char **idsub;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

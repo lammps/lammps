@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,19 +18,17 @@
 
 #include "bond_table.h"
 
-#include <cmath>
-
-#include <cstring>
 #include "atom.h"
-#include "neighbor.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "error.h"
-
-#include "tokenizer.h"
+#include "neighbor.h"
 #include "table_file_reader.h"
+#include "tokenizer.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -341,7 +340,7 @@ void BondTable::read_table(Table *tb, char *file, char *keyword)
       tb->rfile[i] = values.next_double();
       tb->efile[i] = values.next_double();
       tb->ffile[i] = values.next_double();
-    } catch (TokenizerException &e) {
+    } catch (TokenizerException &) {
       ++cerror;
     }
 
@@ -378,15 +377,15 @@ void BondTable::read_table(Table *tb, char *file, char *keyword)
   }
 
   if (ferror) {
-    error->warning(FLERR, fmt::format("{} of {} force values in table are inconsistent with -dE/dr.\n"
-                                      "  Should only be flagged at inflection points",ferror,tb->ninput));
+    error->warning(FLERR, "{} of {} force values in table are inconsistent with -dE/dr.\n"
+                   "WARNING:  Should only be flagged at inflection points",ferror,tb->ninput);
   }
 
   // warn if data was read incompletely, e.g. columns were missing
 
   if (cerror) {
-    error->warning(FLERR, fmt::format("{} of {} lines in table were incomplete or could not be"
-                                      " parsed completely",cerror,tb->ninput));
+    error->warning(FLERR, "{} of {} lines in table were incomplete or could not be"
+                   " parsed completely",cerror,tb->ninput);
   }
 }
 
@@ -596,18 +595,14 @@ void BondTable::uf_lookup(int type, double x, double &u, double &f)
   }
 
   double fraction,a,b;
-  char estr[128];
   const Table *tb = &tables[tabindex[type]];
   const int itable = static_cast<int> ((x - tb->lo) * tb->invdelta);
-  if (itable < 0) {
-    sprintf(estr,"Bond length < table inner cutoff: "
-            "type %d length %g",type,x);
-    error->one(FLERR,estr);
-  } else if (itable >= tablength) {
-    sprintf(estr,"Bond length > table outer cutoff: "
-            "type %d length %g",type,x);
-    error->one(FLERR,estr);
-  }
+  if (itable < 0)
+    error->one(FLERR,"Bond length < table inner cutoff: "
+               "type {} length {:.8}",type,x);
+  else if (itable >= tablength)
+    error->one(FLERR,"Bond length > table outer cutoff: "
+               "type {} length {:.8}",type,x);
 
   if (tabstyle == LINEAR) {
     fraction = (x - tb->r[itable]) * tb->invdelta;

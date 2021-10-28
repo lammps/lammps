@@ -2,11 +2,11 @@ BootStrap: docker
 From: ubuntu:20.04
 
 %environment
-    export PATH=/usr/lib/ccache:/usr/local/cuda-11.0/bin:${PATH}:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64
-    export CUDADIR=/usr/local/cuda-11.0
-    export CUDA_PATH=/usr/local/cuda-11.0
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-11.0/lib64
-    export LIBRARY_PATH=/usr/local/cuda-11.0/lib64/stubs
+    export PATH=/usr/lib/ccache:/usr/local/cuda-11.4/bin:${PATH}:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64
+    export CUDADIR=/usr/local/cuda-11.4
+    export CUDA_PATH=/usr/local/cuda-11.4
+    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-11.4/lib64:/opt/rocm/lib:/opt/rocm-4.3.0/llvm/lib
+    export LIBRARY_PATH=/usr/local/cuda-11.4/lib64/stubs
 %post
     export DEBIAN_FRONTEND=noninteractive
     apt-get update
@@ -101,23 +101,19 @@ From: ubuntu:20.04
     add-apt-repository "deb http://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/ /"
     apt-get update
 
-    export CUDA_PKG_VERSION=11.0
+    export CUDA_PKG_VERSION=11.4
 
     apt-get install -y --no-install-recommends \
-        cuda-libraries-$CUDA_PKG_VERSION \
-        cuda-command-line-tools-$CUDA_PKG_VERSION \
-        cuda-libraries-dev-$CUDA_PKG_VERSION \
-        cuda-minimal-build-$CUDA_PKG_VERSION \
+        cuda-libraries-${CUDA_PKG_VERSION} \
+        cuda-command-line-tools-${CUDA_PKG_VERSION} \
+        cuda-libraries-dev-${CUDA_PKG_VERSION} \
+        cuda-minimal-build-${CUDA_PKG_VERSION} \
         cuda-compat-$CUDA_PKG_VERSION \
-        libcublas-11-0 \
-        libcublas-dev-11-0
-
-    echo "/usr/local/nvidia/lib" >> /etc/ld.so.conf.d/nvidia.conf
-    echo "/usr/local/nvidia/lib64" >> /etc/ld.so.conf.d/nvidia.conf
+        libcublas-${CUDA_PKG_VERSION} \
+        libcublas-dev-${CUDA_PKG_VERSION}
 
     # add missing symlink
-    ln -s /usr/local/cuda-11.0 /usr/local/cuda
-    ln -s /usr/local/cuda-11.0/lib64/stubs/libcuda.so /usr/local/cuda-11.0/lib64/stubs/libcuda.so.1
+    ln -s /usr/local/cuda-${CUDA_PKG_VERSION}/lib64/stubs/libcuda.so /usr/local/cuda-${CUDA_PKG_VERSION}/lib64/stubs/libcuda.so.1
 
     ###########################################################################
     # NVIDIA OpenCL
@@ -131,7 +127,7 @@ From: ubuntu:20.04
     ###########################################################################
 
     export PATH=$PATH:/opt/rocm/bin:/opt/rocm/profiler/bin:/opt/rocm/opencl/bin/x86_64
-    git clone -b rocm-3.7.x https://github.com/ROCmSoftwarePlatform/hipCUB.git
+    git clone -b release/rocm-rel-4.3 https://github.com/ROCmSoftwarePlatform/hipCUB.git
     mkdir hipCUB/build
     cd hipCUB/build
     CXX=hipcc cmake -D BUILD_TEST=off ..
@@ -166,7 +162,7 @@ From: ubuntu:20.04
     # Plumed
     ###########################################################################
 
-    export PLUMED_PKG_VERSION=2.6.1
+    export PLUMED_PKG_VERSION=2.7.2
 
     mkdir plumed
     cd plumed

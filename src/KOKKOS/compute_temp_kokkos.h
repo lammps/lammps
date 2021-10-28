@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(temp/kk,ComputeTempKokkos<LMPDeviceType>)
-ComputeStyle(temp/kk/device,ComputeTempKokkos<LMPDeviceType>)
-ComputeStyle(temp/kk/host,ComputeTempKokkos<LMPHostType>)
-
+// clang-format off
+ComputeStyle(temp/kk,ComputeTempKokkos<LMPDeviceType>);
+ComputeStyle(temp/kk/device,ComputeTempKokkos<LMPDeviceType>);
+ComputeStyle(temp/kk/host,ComputeTempKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_COMPUTE_TEMP_KOKKOS_H
 #define LMP_COMPUTE_TEMP_KOKKOS_H
 
@@ -26,6 +27,16 @@ ComputeStyle(temp/kk/host,ComputeTempKokkos<LMPHostType>)
 #include "kokkos_type.h"
 
 namespace LAMMPS_NS {
+
+template<int RMASS>
+struct TagComputeTempScalar{};
+
+template<int RMASS>
+struct TagComputeTempVector{};
+
+template<class DeviceType>
+class ComputeTempKokkos : public ComputeTemp {
+ public:
 
   struct s_CTEMP {
     double t0, t1, t2, t3, t4, t5;
@@ -54,17 +65,8 @@ namespace LAMMPS_NS {
       t5 += rhs.t5;
     }
   };
+
   typedef s_CTEMP CTEMP;
-
-template<int RMASS>
-struct TagComputeTempScalar{};
-
-template<int RMASS>
-struct TagComputeTempVector{};
-
-template<class DeviceType>
-class ComputeTempKokkos : public ComputeTemp {
- public:
   typedef DeviceType device_type;
   typedef CTEMP value_type;
   typedef ArrayTypes<DeviceType> AT;

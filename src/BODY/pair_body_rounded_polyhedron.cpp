@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -22,22 +23,22 @@
 
 #include "pair_body_rounded_polyhedron.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "atom_vec_body.h"
 #include "body_rounded_polyhedron.h"
 #include "comm.h"
-#include "force.h"
-#include "fix.h"
-#include "modify.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
 #include "error.h"
-#include "math_extra.h"
+#include "fix.h"
+#include "force.h"
 #include "math_const.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -557,8 +558,8 @@ void PairBodyRoundedPolyhedron::body2space(int i)
   }
 
   if ((body_num_edges > 0) && (edge_ends == nullptr))
-    error->one(FLERR,fmt::format("Inconsistent edge data for body of atom {}",
-                                 atom->tag[i]));
+    error->one(FLERR,"Inconsistent edge data for body of atom {}",
+                                 atom->tag[i]);
 
   for (int m = 0; m < body_num_edges; m++) {
     edge[nedge][0] = static_cast<int>(edge_ends[2*m+0]);
@@ -584,8 +585,8 @@ void PairBodyRoundedPolyhedron::body2space(int i)
   }
 
   if ((body_num_faces > 0) && (face_pts == nullptr))
-    error->one(FLERR,fmt::format("Inconsistent face data for body of atom {}",
-                                 atom->tag[i]));
+    error->one(FLERR,"Inconsistent face data for body of atom {}",
+                                 atom->tag[i]);
 
   for (int m = 0; m < body_num_faces; m++) {
     for (int k = 0; k < MAX_FACE_SIZE; k++)
@@ -1211,10 +1212,7 @@ int PairBodyRoundedPolyhedron::interaction_edge_to_edge(int ibody,
       contact_list[num_contacts].unique = 1;
       num_contacts++;
     }
-  } else {
-
   }
-
   return interact;
 }
 

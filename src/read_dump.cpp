@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -157,13 +158,14 @@ void ReadDump::command(int narg, char **arg)
   domain->print_box("  ");
 
   if (me == 0)
-    utils::logmesg(lmp, fmt::format("  {} atoms before read\n",natoms_prev)
-                   + fmt::format("  {} atoms in snapshot\n",nsnap_all)
-                   + fmt::format("  {} atoms purged\n",npurge_all)
-                   + fmt::format("  {} atoms replaced\n",nreplace_all)
-                   + fmt::format("  {} atoms trimmed\n",ntrim_all)
-                   + fmt::format("  {} atoms added\n",nadd_all)
-                   + fmt::format("  {} atoms after read\n",atom->natoms));
+    utils::logmesg(lmp,"  {} atoms before read\n"
+                   "  {} atoms in snapshot\n"
+                   "  {} atoms purged\n"
+                   "  {} atoms replaced\n"
+                   "  {} atoms trimmed\n"
+                   "  {} atoms added\n"
+                   "  {} atoms after read\n",natoms_prev,nsnap_all,
+                   npurge_all,nreplace_all,ntrim_all,nadd_all,atom->natoms);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -231,20 +233,21 @@ void ReadDump::setup_reader(int narg, char **arg)
   // create Nreader reader classes per reader
   // match readerstyle to options in style_reader.h
 
-  if (0) return;        // dummy line to enable else-if macro expansion
+  if (false) {
+    return;        // dummy line to enable else-if macro expansion
 
 #define READER_CLASS
 #define ReaderStyle(key,Class) \
-  else if (strcmp(readerstyle,#key) == 0) { \
-    for (int i = 0; i < nreader; i++) \
+  } else if (strcmp(readerstyle,#key) == 0) { \
+    for (int i = 0; i < nreader; i++) { \
       readers[i] = new Class(lmp); \
-  }
+    }
 #include "style_reader.h"       // IWYU pragma: keep
 #undef READER_CLASS
 
   // unrecognized style
 
-  else error->all(FLERR,utils::check_packages_for_style("reader",readerstyle,lmp));
+  } else error->all(FLERR,utils::check_packages_for_style("reader",readerstyle,lmp));
 
   if (utils::strmatch(readerstyle,"^adios")) {
       // everyone is a reader with adios
@@ -282,11 +285,11 @@ bigint ReadDump::seek(bigint nrequest, int exact)
       ntimestep = -1;
       if (multiproc) {
         std::string multiname = files[ifile];
-        multiname.replace(multiname.find("%"),1,"0");
+        multiname.replace(multiname.find('%'),1,"0");
         readers[0]->open_file(multiname.c_str());
       } else readers[0]->open_file(files[ifile]);
 
-      while (1) {
+      while (true) {
         eofflag = readers[0]->read_time(ntimestep);
         if (eofflag) break;
         if (ntimestep >= nrequest) break;
@@ -326,11 +329,11 @@ bigint ReadDump::seek(bigint nrequest, int exact)
     for (int i = 0; i < nreader; i++) {
       if (me == 0 && i == 0) continue;    // proc 0, reader 0 already found it
       std::string multiname = files[currentfile];
-      multiname.replace(multiname.find("%"),1,fmt::format("{}",firstfile+i));
+      multiname.replace(multiname.find('%'),1,fmt::format("{}",firstfile+i));
       readers[i]->open_file(multiname.c_str());
 
       bigint step;
-      while (1) {
+      while (true) {
         eofflag = readers[i]->read_time(step);
         if (eofflag) break;
         if (step == ntimestep) break;
@@ -374,12 +377,12 @@ bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
       if (ifile != currentfile) {
         if (multiproc) {
           std::string multiname = files[ifile];
-          multiname.replace(multiname.find("%"),1,"0");
+          multiname.replace(multiname.find('%'),1,"0");
           readers[0]->open_file(multiname.c_str());
         } else readers[0]->open_file(files[ifile]);
       }
 
-      while (1) {
+      while (true) {
         eofflag = readers[0]->read_time(ntimestep);
         if (eofflag) break;
         if (ntimestep > nlast) break;
@@ -428,11 +431,11 @@ bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
     for (int i = 0; i < nreader; i++) {
       if (me == 0 && i == 0) continue;
       std::string multiname = files[currentfile];
-      multiname.replace(multiname.find("%"),1,fmt::format("{}",firstfile+i));
+      multiname.replace(multiname.find('%'),1,fmt::format("{}",firstfile+i));
       readers[i]->open_file(multiname.c_str());
 
       bigint step;
-      while (1) {
+      while (true) {
         eofflag = readers[i]->read_time(step);
         if (eofflag) break;
         if (step == ntimestep) break;
@@ -1214,32 +1217,26 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"box") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
-      if (strcmp(arg[iarg+1],"yes") == 0) boxflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) boxflag = 0;
-      else error->all(FLERR,"Illegal read_dump command");
+      boxflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"replace") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
-      if (strcmp(arg[iarg+1],"yes") == 0) replaceflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) replaceflag = 0;
-      else error->all(FLERR,"Illegal read_dump command");
+      replaceflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"purge") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
-      if (strcmp(arg[iarg+1],"yes") == 0) purgeflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) purgeflag = 0;
-      else error->all(FLERR,"Illegal read_dump command");
+      purgeflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"trim") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
-      if (strcmp(arg[iarg+1],"yes") == 0) trimflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) trimflag = 0;
-      else error->all(FLERR,"Illegal read_dump command");
+      trimflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"add") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
       if (strcmp(arg[iarg+1],"yes") == 0) addflag = YESADD;
       else if (strcmp(arg[iarg+1],"no") == 0) addflag = NOADD;
+      else if (strcmp(arg[iarg+1],"true") == 0) addflag = YESADD;
+      else if (strcmp(arg[iarg+1],"false") == 0) addflag = NOADD;
       else if (strcmp(arg[iarg+1],"keep") == 0) addflag = KEEPADD;
       else error->all(FLERR,"Illegal read_dump command");
       iarg += 2;
@@ -1254,15 +1251,11 @@ int ReadDump::fields_and_keywords(int narg, char **arg)
       iarg += 3;
     } else if (strcmp(arg[iarg],"scaled") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
-      if (strcmp(arg[iarg+1],"yes") == 0) scaleflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) scaleflag = 0;
-      else error->all(FLERR,"Illegal read_dump command");
+      scaleflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"wrapped") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");
-      if (strcmp(arg[iarg+1],"yes") == 0) wrapflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) wrapflag = 0;
-      else error->all(FLERR,"Illegal read_dump command");
+      wrapflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"format") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal read_dump command");

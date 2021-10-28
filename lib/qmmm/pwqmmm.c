@@ -26,6 +26,8 @@
 #error "Unsupported QE coupling API. Want API version 1."
 #endif
 
+// we need to pass an MPI communicator to the LAMMPS library interface
+#define  LAMMPS_LIB_MPI
 #include "library.h"
 
 static const char delim[] = " \t\n\r";
@@ -67,8 +69,8 @@ int main(int argc, char **argv)
 #if 1    // AK: temporary hack
     if ( qmmmcfg.nmm != 2 ) {
         if (me == 0) {
-            fprintf( stderr, "\n Error in the number of processors for MM code"
-            "\n for the time being only two processor are allowed\n");
+            fprintf( stderr, "\n Error in the number of processors for the MM code.\n"
+            " Currently only requesting 2 MM processors is allowed.\n");
         }
         MPI_Finalize();
         return -1;
@@ -79,7 +81,7 @@ int main(int argc, char **argv)
         const char *msg;
 
         msg = check_qmmm_config(&qmmmcfg);
-        
+
         if ((nqm < 1) || (qmmmcfg.nmm < 2)) {
             msg = "Need at least 2 MM and 1 QM processes";
         }
@@ -236,7 +238,7 @@ int main(int argc, char **argv)
             }
         }
 
-        /* parse additional support command line flags for LAMMPS */  
+        /* parse additional support command line flags for LAMMPS */
 
         if (qmmmcfg.maarg != NULL) {
             char *ptr = strtok(qmmmcfg.maarg,delim);
@@ -308,7 +310,7 @@ int main(int argc, char **argv)
             }
         }
 
-        /* parse additional support command line flags for LAMMPS */  
+        /* parse additional support command line flags for LAMMPS */
 
         if (qmmmcfg.slarg != NULL) {
             char *ptr = strtok(qmmmcfg.maarg,delim);

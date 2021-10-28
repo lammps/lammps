@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -128,9 +129,7 @@ FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"dftb") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix msst command");
-      if (strcmp(arg[iarg+1],"yes") == 0) dftb = 1;
-      else if (strcmp(arg[iarg+1],"yes") == 0) dftb = 0;
-      else error->all(FLERR,"Illegal fix msst command");
+      dftb = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"beta") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix msst command");
@@ -151,8 +150,7 @@ FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
     mesg += fmt::format("  Cell mass-like parameter qmass "
                         "(units of mass^2/length^4) = {:.8g}\n", qmass);
     mesg += fmt::format("  Shock velocity = {:.8g}\n", velocity);
-    mesg += fmt::format("  Artificial viscosity "
-                        "(units of mass/length/time) = {:.8g}\n", mu);
+    mesg += fmt::format("  Artificial viscosity (units of mass/length/time) = {:.8g}\n", mu);
 
     if (p0_set)
       mesg += fmt::format("  Initial pressure specified to be {:.8g}\n", p0);
@@ -327,7 +325,7 @@ void FixMSST::setup(int /*vflag*/)
     v0 = compute_vol();
     v0_set = 1;
     if (comm->me == 0)
-      utils::logmesg(lmp,fmt::format("Fix MSST v0 = {:.8g}\n", v0));
+      utils::logmesg(lmp,"Fix MSST v0 = {:.8g}\n", v0);
   }
 
   if (p0_set == 0) {
@@ -335,7 +333,7 @@ void FixMSST::setup(int /*vflag*/)
     p0_set = 1;
 
     if (comm->me == 0)
-      utils::logmesg(lmp,fmt::format("Fix MSST p0 = {:.8g}\n", p0));
+      utils::logmesg(lmp,"Fix MSST p0 = {:.8g}\n", p0);
   }
 
   if (e0_set == 0) {
@@ -343,7 +341,7 @@ void FixMSST::setup(int /*vflag*/)
     e0_set = 1;
 
     if (comm->me == 0)
-      utils::logmesg(lmp,fmt::format("Fix MSST e0 = {:.8g}\n", e0));
+      utils::logmesg(lmp,"Fix MSST e0 = {:.8g}\n", e0);
   }
 
   temperature->compute_vector();
@@ -364,10 +362,9 @@ void FixMSST::setup(int /*vflag*/)
     double fac2 = omega[direction]/v0;
 
     if ( comm->me == 0 && tscale != 1.0)
-      utils::logmesg(lmp,fmt::format("Fix MSST initial strain rate of "
-                                     "{:.8g} established by reducing "
-                                     "temperature by factor of {:.8g}\n",
-                                     fac2,tscale));
+      utils::logmesg(lmp,"Fix MSST initial strain rate of {:.8g} "
+                     "established by reducing temperature by factor "
+                     "of {:.8g}\n",fac2,tscale);
     for (int i = 0; i < atom->nlocal; i++) {
       if (mask[i] & groupbit) {
         for (int k = 0; k < 3; k++) {

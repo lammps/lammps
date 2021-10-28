@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -72,7 +73,6 @@ using namespace MathConst;
 #define MULTI "etotal ke temp pe ebond eangle edihed eimp evdwl ecoul elong press"
 
 enum{ONELINE,MULTILINE};
-enum{INT,FLOAT,BIGINT};
 enum{SCALAR,VECTOR,ARRAY};
 
 
@@ -92,7 +92,7 @@ Thermo::Thermo(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   normuserflag = 0;
   lineflag = ONELINE;
   lostflag = lostbond = Thermo::ERROR;
-  lostbefore = 0;
+  lostbefore = warnbefore = 0;
   flushflag = 0;
 
   // set style and corresponding lineflag
@@ -400,42 +400,56 @@ void Thermo::call_vfunc(int ifield_in)
 
 /* ----------------------------------------------------------------------
    check for lost atoms, return current number of atoms
+   also could number of warnings across MPI ranks and update total
 ------------------------------------------------------------------------- */
 
 bigint Thermo::lost_check()
 {
-  // ntotal = current # of atoms
+  // ntotal = current # of atoms, and Error class warnings
 
-  bigint ntotal;
-  bigint nblocal = atom->nlocal;
-  MPI_Allreduce(&nblocal,&ntotal,1,MPI_LMP_BIGINT,MPI_SUM,world);
-  if (ntotal < 0)
+  bigint nlocal[2], ntotal[2] = {0,0};
+  nlocal[0] = atom->nlocal;
+  nlocal[1] = error->get_numwarn();
+  MPI_Allreduce(nlocal,ntotal,2,MPI_LMP_BIGINT,MPI_SUM,world);
+  if (ntotal[0] < 0)
     error->all(FLERR,"Too many total atoms");
-  if (ntotal == atom->natoms) return ntotal;
+
+  // print notification, if future warnings will be ignored
+  bigint maxwarn = error->get_maxwarn();
+  if ((maxwarn > 0) && (warnbefore == 0) && (ntotal[1] > maxwarn)) {
+    warnbefore = 1;
+    if (comm->me == 0)
+      error->message(FLERR,"WARNING: Too many warnings: {} vs {}. All "
+                     "future warnings will be suppressed",ntotal[1],maxwarn);
+  }
+  error->set_allwarn(MIN(MAXSMALLINT,ntotal[1]));
+
+  // no lost atoms, nothing else to do.
+  if (ntotal[0] == atom->natoms) return ntotal[0];
 
   // if not checking or already warned, just return
-  if (lostflag == Thermo::IGNORE) return ntotal;
+  if (lostflag == Thermo::IGNORE) return ntotal[0];
   if (lostflag == Thermo::WARN && lostbefore == 1) {
-    return ntotal;
+    return ntotal[0];
   }
 
   // error message
 
   if (lostflag == Thermo::ERROR)
-    error->all(FLERR,fmt::format("Lost atoms: original {} current {}",
-                                 atom->natoms,ntotal));
+    error->all(FLERR,"Lost atoms: original {} current {}",
+               atom->natoms,ntotal[0]);
 
   // warning message
 
   if (me == 0)
-    error->warning(FLERR,fmt::format("Lost atoms: original {} current {}",
-                                     atom->natoms,ntotal),0);
+    error->warning(FLERR,"Lost atoms: original {} current {}",
+                   atom->natoms,ntotal[0]);
 
   // reset total atom count
 
-  atom->natoms = ntotal;
+  atom->natoms = ntotal[0];
   lostbefore = 1;
-  return ntotal;
+  return ntotal[0];
 }
 
 /* ----------------------------------------------------------------------
@@ -525,19 +539,29 @@ void Thermo::modify_params(int narg, char **arg)
       else error->all(FLERR,"Illegal thermo_modify command");
       iarg += 2;
 
+    } else if (strcmp(arg[iarg],"warn") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal thermo_modify command");
+      if (strcmp(arg[iarg+1],"ignore") == 0) error->set_maxwarn(-1);
+      else if (strcmp(arg[iarg+1],"always") == 0) error->set_maxwarn(0);
+      else if (strcmp(arg[iarg+1],"reset") == 0) {
+        error->set_numwarn(0);
+        warnbefore = 0;
+      } else if (strcmp(arg[iarg+1],"default") == 0) {
+        warnbefore = 0;
+        error->set_numwarn(0);
+        error->set_maxwarn(100);
+      } else error->set_maxwarn(utils::inumeric(FLERR,arg[iarg+1],false,lmp));
+      iarg += 2;
+
     } else if (strcmp(arg[iarg],"norm") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal thermo_modify command");
       normuserflag = 1;
-      if (strcmp(arg[iarg+1],"no") == 0) normuser = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) normuser = 1;
-      else error->all(FLERR,"Illegal thermo_modify command");
+      normuser = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"flush") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal thermo_modify command");
-      if (strcmp(arg[iarg+1],"no") == 0) flushflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) flushflag = 1;
-      else error->all(FLERR,"Illegal thermo_modify command");
+      flushflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"line") == 0) {
@@ -879,7 +903,7 @@ void Thermo::parse_fields(char *str)
       if ((argi.get_type() == ArgInfo::UNKNOWN)
           || (argi.get_type() == ArgInfo::NONE)
           || (argi.get_dim() > 2))
-        error->all(FLERR,"Unknown keyword in thermo_style custom command");
+        error->all(FLERR,"Unknown keyword '{}' in thermo_style custom command",word);
 
       // process zero or one or two trailing brackets
       // argindex1,argindex2 = int inside each bracket pair, 0 if no bracket

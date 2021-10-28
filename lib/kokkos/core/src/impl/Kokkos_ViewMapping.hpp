@@ -2684,7 +2684,7 @@ struct ViewDataHandle<
   template <class SrcHandleType>
   KOKKOS_INLINE_FUNCTION static handle_type assign(
       const SrcHandleType& arg_handle, size_t offset) {
-    return handle_type(arg_handle.ptr + offset);
+    return handle_type(arg_handle + offset);
   }
 };
 
@@ -3846,8 +3846,8 @@ template <class T, class Enable = void>
 struct has_printable_label_typedef : public std::false_type {};
 
 template <class T>
-struct has_printable_label_typedef<
-    T, typename enable_if_type<typename T::printable_label_typedef>::type>
+struct has_printable_label_typedef<T,
+                                   void_t<typename T::printable_label_typedef>>
     : public std::true_type {};
 
 template <class MapType>

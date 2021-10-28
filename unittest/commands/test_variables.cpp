@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -22,9 +22,9 @@
 #include "region.h"
 #include "variable.h"
 
+#include "../testing/core.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "../testing/core.h"
 
 #include <cstring>
 #include <vector>
@@ -40,7 +40,6 @@ using ::testing::ExitedWithCode;
 using ::testing::MatchesRegex;
 using ::testing::StrEq;
 
-
 class VariableTest : public LAMMPSTest {
 protected:
     Group *group;
@@ -50,7 +49,7 @@ protected:
     void SetUp() override
     {
         testbinary = "VariableTest";
-        args = {"-log", "none", "-echo", "screen", "-nocite", "-v",   "num",  "1"};
+        args       = {"-log", "none", "-echo", "screen", "-nocite", "-v", "num", "1"};
         LAMMPSTest::SetUp();
         group    = lmp->group;
         domain   = lmp->domain;
@@ -162,8 +161,8 @@ TEST_F(VariableTest, CreateDelete)
     variable->internal_set(variable->find("ten"), 2.5);
     ASSERT_THAT(variable->retrieve("ten"), StrEq("2.5"));
     ASSERT_THAT(variable->retrieve("file"), StrEq("0"));
-    FILE *fp = fopen("MYFILE","w");
-    fputs(" ",fp);
+    FILE *fp = fopen("MYFILE", "w");
+    fputs(" ", fp);
     fclose(fp);
     ASSERT_THAT(variable->retrieve("file"), StrEq("1"));
     unlink("MYFILE");
@@ -218,7 +217,9 @@ TEST_F(VariableTest, CreateDelete)
 
 TEST_F(VariableTest, AtomicSystem)
 {
-    HIDE_OUTPUT([&] { command("atom_modify map array"); });
+    HIDE_OUTPUT([&] {
+        command("atom_modify map array");
+    });
     atomic_system();
     file_vars();
 
@@ -443,7 +444,7 @@ TEST_F(VariableTest, IfCommand)
     BEGIN_CAPTURE_OUTPUT();
     command("if x!=x|^a!=b then 'print \"bingo!\"'");
     text = END_CAPTURE_OUTPUT();
-    
+
     ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
 
     TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
@@ -516,7 +517,7 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (Info::get_mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
+    if (platform::mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
         std::cout << "Warning: using OpenMPI without exceptions. "
                      "Death tests will be skipped\n";
 

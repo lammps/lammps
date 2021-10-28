@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -105,11 +106,7 @@ void Rerun::command(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"post") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal rerun command");
-      if (strcmp(arg[iarg+1],"yes") == 0) {
-        postflag = 1;
-      } else if (strcmp(arg[iarg+1],"no") == 0) {
-        postflag = 0;
-      } else error->all(FLERR,"Illegal rerun command");
+      postflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"dump") == 0) {
       break;
@@ -159,7 +156,7 @@ void Rerun::command(int narg, char **arg)
   if (ntimestep < 0)
     error->all(FLERR,"Rerun dump file does not contain requested snapshot");
 
-  while (1) {
+  while (true) {
     ndump++;
     rd->header(firstflag);
     update->reset_timestep(ntimestep);

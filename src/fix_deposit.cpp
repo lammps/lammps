@@ -685,16 +685,15 @@ void FixDeposit::options(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"region") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
-      if (!domain->get_region_by_id(arg[iarg+1]))
-        error->all(FLERR,"Region ID for fix deposit does not exist");
+      iregion = domain->get_region_by_id(arg[iarg+1]);
+      if (!iregion) error->all(FLERR,"Region ID {} for fix deposit does not exist",arg[iarg+1]);
       idregion = utils::strdup(arg[iarg+1]);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"mol") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
       int imol = atom->find_molecule(arg[iarg+1]);
-      if (imol == -1)
-        error->all(FLERR,"Molecule template ID for fix deposit does not exist");
+      if (imol == -1) error->all(FLERR,"Molecule template ID for fix deposit does not exist");
       mode = MOLECULE;
       onemols = &atom->molecules[imol];
       nmol = onemols[0]->nset;

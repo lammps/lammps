@@ -48,11 +48,12 @@ class FixPAFI : public Fix {
   double memory_usage();
 
  protected:
-  int varflag, icompute;
-  char *computename;
+  int varflag, icompute, idotcompute, dotcompute_fields, proj_size;
+  char *computename, *dotcomputename;
   class Compute *PathCompute;
-  double proj[6], proj_all[6];          // f,v,h, psi
-  double results[5], results_all[5];    // f.n, (f.n)**2, psi, dx.n
+  class Compute *DotCompute;
+  double *proj, *proj_all;          // f,v,h, psi, fix fields
+  double *results, *results_all;    // f.n, (f.n)**2, psi, dx.n
   double c_v[10], c_v_all[10];
   double temperature, gamma, sqrtD, t_period, local_norm, mass_f;
   int force_flag, od_flag, com_flag;

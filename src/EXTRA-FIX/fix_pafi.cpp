@@ -51,7 +51,7 @@ static const char cite_fix_pafi_package[] =
   "pages={135503},\n"
   "year={2018},\n"
   "publisher={APS}\n}\n"
-  "Recommended to be coupled with PAFI++ code:\n"
+  "Recommended to be coupled with PAFI code:\n"
   "https://github.com/tomswinburne/pafi\n";
 
 using namespace FixConst;
@@ -59,8 +59,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), computename(nullptr), random(nullptr),
-      h(nullptr), step_respa(nullptr)
+  Fix(lmp, narg, arg), computename(nullptr), avecomputename(nullptr),
+      random(nullptr), h(nullptr), step_respa(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_pafi_package);
 
@@ -75,8 +75,12 @@ FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
   com_flag = 1;
   time_integrate = 1;
 
-  computename = utils::strdup(&arg[3][0]);
+  proj_size = 6; // if no in-path fixes
+  // for in-path fixes
+  idotcompute = -1;
+  dotcompute_fields = 0;
 
+  computename = utils::strdup(&arg[3][0]);
   icompute = modify->find_compute(computename);
   if (icompute == -1)
     error->all(FLERR,"Compute ID for fix pafi does not exist");
@@ -110,22 +114,44 @@ FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix pafi command");
       com_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
+    } else if(strcmp(arg[iarg],"dotcompute") == 0) {
+      if (iarg+3 > narg) error->all(FLERR,"Illegal fix pafi command");
+      dotcomputename = utils::strdup(&arg[iarg+1][0]);
+      dotcompute_fields = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
+      idotcompute = modify->find_compute(dotcomputename);
+      if (idotcompute == -1)
+        error->all(FLERR,"DotCompute ID for fix pafi does not exist");
+      DotCompute = modify->compute[idotcompute];
+      proj_size += dotcompute_fields;
+      size_vector += dotcompute_fields;
+      iarg += 3;
     } else error->all(FLERR,"Illegal fix pafi command");
   }
-  force_flag = 0;
 
+
+  force_flag = 0;
   for (int i = 0; i < 10; i++) {
     c_v[i] = 0.;
     c_v_all[i] = 0.;
   }
-  for (int i=0; i<6; i++) {
+
+  memory->create(proj,proj_size,"FixPAFI:results");
+  memory->create(proj_all,proj_size,"FixPAFI:resultsall");
+  for (int i=0; i<proj_size; i++) {
     proj[i] = 0.0;
     proj_all[i] = 0.0;
   }
-  for (int i=0; i<5; i++) {
+
+  memory->create(results,size_vector,"FixPAFI:results");
+  memory->create(results_all,size_vector,"FixPAFI:resultsall");
+  for (int i=0; i<size_vector; i++) {
     results[i] = 0.0;
     results_all[i] = 0.0;
   }
+
+
+
+
   maxatom = 1;
   memory->create(h,maxatom,3,"FixPAFI:h");
 
@@ -140,6 +166,7 @@ FixPAFI::~FixPAFI()
 {
   if (copymode) return;
   delete random;
+  delete [] avecomputename;
   delete [] computename;
   memory->destroy(h);
 }
@@ -228,6 +255,9 @@ void FixPAFI::post_force(int /*vflag*/)
   PathCompute->compute_peratom();
   double **path = PathCompute->array_atom;
 
+  if(idotcompute>=0) DotCompute->compute_peratom();
+
+
   // proj 0,1,2 = f.n, v.n, h.n
   // proj 3,4,5 = psi, f.n**2, f*(1-psi)
   // c_v 0,1,2 = fxcom, fycom, fzcom etc
@@ -235,7 +265,7 @@ void FixPAFI::post_force(int /*vflag*/)
     c_v[i] = 0.;
     c_v_all[i] = 0.;
   }
-  for (int i = 0; i < 6; i++) {
+  for (int i = 0; i < proj_size; i++) {
     proj[i] = 0.;
     proj_all[i] = 0.;
   }
@@ -278,6 +308,13 @@ void FixPAFI::post_force(int /*vflag*/)
       proj[5] += f[i][4]*deviation[1]; // (x-path).f
       proj[5] += f[i][5]*deviation[2]; // (x-path).f
 
+      if(dotcompute_fields>0) {
+        for(int i_dcf=0; i_dcf<dotcompute_fields; i_dcf++) {
+            proj[i_dcf] += DotCompute->array_atom[i_dcf] * deviation[0];
+            proj[i_dcf] += DotCompute->array_atom[dotcompute_fields+i_dcf] * deviation[1];
+            proj[i_dcf] += DotCompute->array_atom[2*dotcompute_fields+i_dcf] * deviation[2];
+        }
+      }
     }
   }
 
@@ -302,7 +339,7 @@ void FixPAFI::post_force(int /*vflag*/)
         c_v[9] += 1.0;
       }
   }
-  MPI_Allreduce(proj,proj_all,6,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(proj,proj_all,proj_size,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(c_v,c_v_all,10,MPI_DOUBLE,MPI_SUM,world);
 
   // results - f.n*(1-psi), (f.n)^2*(1-psi)^2, 1-psi, dX.n
@@ -394,6 +431,8 @@ void FixPAFI::min_post_force(int /*vflag*/)
   PathCompute->compute_peratom();
   double **path = PathCompute->array_atom;
 
+  if(idotcompute>=0) DotCompute->compute_peratom();
+
   // proj 0,1,2 = f.n, v.n, h.n
   // proj 3,4,5 = psi, f.n**2, f*(1-psi)
   // c_v 0,1,2 = fxcom, fycom, fzcom etc
@@ -401,7 +440,7 @@ void FixPAFI::min_post_force(int /*vflag*/)
     c_v[i] = 0.;
     c_v_all[i] = 0.;
   }
-  for (int i = 0; i < 6; i++) {
+  for (int i = 0; i < proj_size; i++) {
     proj[i] = 0.;
     proj_all[i] = 0.;
   }
@@ -441,6 +480,13 @@ void FixPAFI::min_post_force(int /*vflag*/)
       proj[5] += f[i][4]*deviation[1]; // (x-path).f
       proj[5] += f[i][5]*deviation[2]; // (x-path).f
 
+      if(dotcompute_fields>0) {
+        for(int i_dcf=0; i_dcf<dotcompute_fields; i_dcf++) {
+            proj[i_dcf] += DotCompute->array_atom[i_dcf] * deviation[0];
+            proj[i_dcf] += DotCompute->array_atom[dotcompute_fields+i_dcf] * deviation[1];
+            proj[i_dcf] += DotCompute->array_atom[2*dotcompute_fields+i_dcf] * deviation[2];
+        }
+      }
     }
   }
 
@@ -465,7 +511,7 @@ void FixPAFI::min_post_force(int /*vflag*/)
         c_v[9] += 1.0;
       }
   }
-  MPI_Allreduce(proj,proj_all,6,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(proj,proj_all,proj_size,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(c_v,c_v_all,10,MPI_DOUBLE,MPI_SUM,world);
 
   results_all[0] = proj_all[0] * (1.-proj_all[3]); // f.n * psi
@@ -474,7 +520,7 @@ void FixPAFI::min_post_force(int /*vflag*/)
   results_all[3] = fabs(proj_all[4]); // dX.n
   results_all[4] = proj_all[5]; // dX.f
 
-  MPI_Bcast(results_all,5,MPI_DOUBLE,0,world);
+  MPI_Bcast(results_all,size_vector,MPI_DOUBLE,0,world);
   force_flag = 1;
 
   for (int i = 0; i < nlocal; i++) {
@@ -523,7 +569,7 @@ void FixPAFI::initial_integrate(int /*vflag*/)
     c_v[i] = 0.;
     c_v_all[i] = 0.;
   }
-  for (int i = 0; i < 6; i++) {
+  for (int i = 0; i < proj_size; i++) {
     proj[i] = 0.;
     proj_all[i] = 0.;
   }
@@ -558,7 +604,7 @@ void FixPAFI::initial_integrate(int /*vflag*/)
   }
 
 
-  MPI_Allreduce(proj,proj_all,5,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(proj,proj_all,proj_size,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(c_v,c_v_all,10,MPI_DOUBLE,MPI_SUM,world);
 
   if (od_flag == 0) {
@@ -633,7 +679,7 @@ void FixPAFI::final_integrate()
     c_v[i] = 0.;
     c_v_all[i] = 0.;
   }
-  for (int i = 0; i < 6; i++) {
+  for (int i = 0; i < proj_size; i++) {
     proj[i] = 0.;
     proj_all[i] = 0.;
   }
@@ -655,7 +701,7 @@ void FixPAFI::final_integrate()
       }
   }
 
-  MPI_Allreduce(proj,proj_all,5,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(proj,proj_all,proj_size,MPI_DOUBLE,MPI_SUM,world);
   MPI_Allreduce(c_v,c_v_all,10,MPI_DOUBLE,MPI_SUM,world);
 
   if (od_flag == 0) {

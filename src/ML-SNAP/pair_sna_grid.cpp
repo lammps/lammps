@@ -34,9 +34,10 @@
 using namespace LAMMPS_NS;
 
 PairSNAGrid::PairSNAGrid(LAMMPS *lmp) :
-  PairGrid(lmp), cutsq(nullptr),
+  PairGrid(lmp),
   radelem(nullptr), wjelem(nullptr)
 {
+  snaptr = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

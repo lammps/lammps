@@ -37,13 +37,10 @@ class PairSNAGrid : public PairGrid {
 
  private:
   int ncoeff;
-  double **cutsq;
   class NeighList *list;
   double rcutfac;
   double *radelem;
   double *wjelem;
-  int *map;    // map types to [0,nelements)
-  int nelements;
   class SNA *snaptr;
   int quadraticflag;
   int twojmax, switchflag, bzeroflag, bnormflag;

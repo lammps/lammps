@@ -36,7 +36,6 @@ PairGrid::PairGrid(LAMMPS *lmp) :
   manybody_flag = 1;
   centroidstressflag = CENTROID_NOTAVAIL;
 
-
   ndesc = 0;
   ngridlocal = 0;
 
@@ -62,7 +61,7 @@ PairGrid::~PairGrid()
 void PairGrid::setup()
 {
   printf("Hello, world! C\n");  
-  deallocate_grid();
+  //  deallocate_grid();
   printf("Hello, world! D\n");  
   set_grid_global();
   printf("Hello, world! E\n");  
@@ -70,7 +69,7 @@ void PairGrid::setup()
   printf("Hello, world! F\n");  
   allocate_grid();
   printf("Hello, world! G\n");  
-  assign_coords();
+  //  assign_coords();
   printf("Hello, world! H\n");  
 }
 
@@ -273,6 +272,7 @@ void PairGrid::allocate()
 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
   map = new int[n+1];
+  printf("Allocated!\n");
 }
 
 /* ----------------------------------------------------------------------

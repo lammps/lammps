@@ -140,6 +140,7 @@ class Domain : protected Pointers {
   void delete_region(int);
   void delete_region(const std::string &);
   int find_region(const std::string &) const;
+  Region *get_region_by_id(const std::string &) const;
   const std::vector<Region *> get_region_by_style(const std::string &) const;
   void set_boundary(int, char **, int);
   void set_box(int, char **);

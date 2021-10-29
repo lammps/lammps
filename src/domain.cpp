@@ -1844,6 +1844,18 @@ int Domain::find_region(const std::string &name) const
 }
 
 /* ----------------------------------------------------------------------
+   return pointer to region name matches existing region ID
+   return null if no match
+------------------------------------------------------------------------- */
+
+Region *Domain::get_region_by_id(const std::string &name) const
+{
+  for (int iregion = 0; iregion < nregion; iregion++)
+    if (name == regions[iregion]->id) return regions[iregion];
+  return nullptr;
+}
+
+/* ----------------------------------------------------------------------
    look up pointers to regions by region style name
    return vector with matching pointers
 ------------------------------------------------------------------------- */

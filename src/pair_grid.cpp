@@ -60,6 +60,7 @@ PairGrid::~PairGrid()
 
 void PairGrid::setup()
 {
+  printf("Inside PairGrid::setup()\n");
   printf("Hello, world! C\n");  
   //  deallocate_grid();
   printf("Hello, world! D\n");  
@@ -317,6 +318,7 @@ void PairGrid::coeff(int narg, char **arg)
 
 double PairGrid::init_one(int i, int j)
 {
+  printf("Inside PairGrid::init_one()\n");
   printf("i = %d j = %d setflag = %d\n", i, j, setflag[i][j]);
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
   printf("PairGrid cutmax = %g\n",cutmax);

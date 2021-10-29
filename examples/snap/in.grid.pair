@@ -58,4 +58,6 @@ pair_style sna/grid grid ${ngrid} ${ngrid} ${ngrid} &
 	quadraticflag ${quad} switchflag ${switch}
 pair_coeff * * Al
 
+neighbor	0.0 nsq
+
 run 0

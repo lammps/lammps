@@ -74,18 +74,18 @@ FixDeposit::FixDeposit(LAMMPS *lmp, int narg, char **arg) :
 
   // error checks on region and its extent being inside simulation box
 
-  if (iregion == -1) error->all(FLERR,"Must specify a region in fix deposit");
-  if (domain->regions[iregion]->bboxflag == 0)
+  if (!iregion) error->all(FLERR,"Must specify a region in fix deposit");
+  if (iregion->bboxflag == 0)
     error->all(FLERR,"Fix deposit region does not support a bounding box");
-  if (domain->regions[iregion]->dynamic_check())
+  if (iregion->dynamic_check())
     error->all(FLERR,"Fix deposit region cannot be dynamic");
 
-  xlo = domain->regions[iregion]->extent_xlo;
-  xhi = domain->regions[iregion]->extent_xhi;
-  ylo = domain->regions[iregion]->extent_ylo;
-  yhi = domain->regions[iregion]->extent_yhi;
-  zlo = domain->regions[iregion]->extent_zlo;
-  zhi = domain->regions[iregion]->extent_zhi;
+  xlo = iregion->extent_xlo;
+  xhi = iregion->extent_xhi;
+  ylo = iregion->extent_ylo;
+  yhi = iregion->extent_yhi;
+  zlo = iregion->extent_zlo;
+  zhi = iregion->extent_zhi;
 
   if (domain->triclinic == 0) {
     if (xlo < domain->boxlo[0] || xhi > domain->boxhi[0] ||
@@ -227,23 +227,19 @@ void FixDeposit::init()
 {
   // set index and check validity of region
 
-  iregion = domain->find_region(idregion);
-  if (iregion == -1)
-    error->all(FLERR,"Region ID for fix deposit does not exist");
+  iregion = domain->get_region_by_id(idregion);
+  if (!iregion) error->all(FLERR,"Region ID {} for fix deposit does not exist", idregion);
 
   // if rigidflag defined, check for rigid/small fix
   // its molecule template must be same as this one
 
   fixrigid = nullptr;
   if (rigidflag) {
-    int ifix = modify->find_fix(idrigid);
-    if (ifix < 0) error->all(FLERR,"Fix deposit rigid fix does not exist");
-    fixrigid = modify->fix[ifix];
+    fixrigid = modify->get_fix_by_id(idrigid);
+    if (!fixrigid) error->all(FLERR,"Fix deposit rigid fix ID {} does not exist", idrigid);
     int tmp;
     if (onemols != (Molecule **) fixrigid->extract("onemol",tmp))
-      error->all(FLERR,
-                 "Fix deposit and fix rigid/small not using "
-                 "same molecule template ID");
+      error->all(FLERR, "Fix deposit and rigid fix are not using the same molecule template ID");
   }
 
   // if shakeflag defined, check for SHAKE fix
@@ -251,13 +247,11 @@ void FixDeposit::init()
 
   fixshake = nullptr;
   if (shakeflag) {
-    int ifix = modify->find_fix(idshake);
-    if (ifix < 0) error->all(FLERR,"Fix deposit shake fix does not exist");
-    fixshake = modify->fix[ifix];
+    fixshake = modify->get_fix_by_id(idshake);
+    if (!fixshake) error->all(FLERR,"Fix deposit shake fix ID {} does not exist", idshake);
     int tmp;
     if (onemols != (Molecule **) fixshake->extract("onemol",tmp))
-      error->all(FLERR,"Fix deposit and fix shake not using "
-                 "same molecule template ID");
+      error->all(FLERR,"Fix deposit and fix shake are not using the same molecule template ID");
   }
 
   // for finite size spherical particles:
@@ -357,13 +351,13 @@ void FixDeposit::pre_exchange()
         coord[0] = xlo + random->uniform() * (xhi-xlo);
         coord[1] = ylo + random->uniform() * (yhi-ylo);
         coord[2] = zlo + random->uniform() * (zhi-zlo);
-      } while (domain->regions[iregion]->match(coord[0],coord[1],coord[2]) == 0);
+      } while (iregion->match(coord[0],coord[1],coord[2]) == 0);
     } else if (distflag == DIST_GAUSSIAN) {
       do {
         coord[0] = xmid + random->gaussian() * sigma;
         coord[1] = ymid + random->gaussian() * sigma;
         coord[2] = zmid + random->gaussian() * sigma;
-      } while (domain->regions[iregion]->match(coord[0],coord[1],coord[2]) == 0);
+      } while (iregion->match(coord[0],coord[1],coord[2]) == 0);
     } else error->all(FLERR,"Unknown particle distribution in fix deposit");
 
     // adjust vertical coord by offset
@@ -662,7 +656,7 @@ void FixDeposit::options(int narg, char **arg)
 {
   // defaults
 
-  iregion = -1;
+  iregion = nullptr;
   idregion = nullptr;
   mode = ATOM;
   molfrac = nullptr;
@@ -691,8 +685,7 @@ void FixDeposit::options(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"region") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix deposit command");
-      iregion = domain->find_region(arg[iarg+1]);
-      if (iregion == -1)
+      if (!domain->get_region_by_id(arg[iarg+1]))
         error->all(FLERR,"Region ID for fix deposit does not exist");
       idregion = utils::strdup(arg[iarg+1]);
       iarg += 2;

@@ -113,6 +113,7 @@ class Modify : protected Pointers {
   int find_fix(const std::string &);
   // new API
   Fix *get_fix_by_id(const std::string &) const;
+  Fix *get_fix_by_index(int idx) const { return fix[idx]; }
   const std::vector<Fix *> get_fix_by_style(const std::string &) const;
   const std::vector<Fix *> &get_fix_list();
 
@@ -126,6 +127,7 @@ class Modify : protected Pointers {
   int find_compute(const std::string &);
   // new API
   Compute *get_compute_by_id(const std::string &) const;
+  Compute *get_compute_by_index(int idx) const { return compute[idx]; }
   const std::vector<Compute *> get_compute_by_style(const std::string &) const;
   const std::vector<Compute *> &get_compute_list();
 

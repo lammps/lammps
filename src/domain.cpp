@@ -1742,7 +1742,7 @@ void Domain::add_region(int narg, char **arg)
   if (narg < 2) error->all(FLERR,"Illegal region command");
 
   if (strcmp(arg[1],"delete") == 0) {
-    delete_region(arg[2]);
+    delete_region(arg[0]);
     return;
   }
 

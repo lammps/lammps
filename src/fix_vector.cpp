@@ -111,9 +111,9 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
   for (int i = 0; i < nvalues; i++) {
     if (which[i] == ArgInfo::COMPUTE) {
       Compute *compute = modify->compute[modify->find_compute(ids[i])];
-      if (argindex[0] == 0) value = compute->extscalar;
+      if (argindex[i] == 0) value = compute->extscalar;
       else if (compute->extvector >= 0) value = compute->extvector;
-      else value = compute->extlist[argindex[0]-1];
+      else value = compute->extlist[argindex[i]-1];
     } else if (which[i] == ArgInfo::FIX) {
       Fix *fix = modify->fix[modify->find_fix(ids[i])];
       if (argindex[i] == 0) value = fix->extvector;

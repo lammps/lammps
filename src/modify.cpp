@@ -991,7 +991,7 @@ Fix *Modify::replace_fix(const char *replaceID, int narg, char **arg, int trysuf
   // requires some error checking on arguments for new fix
 
   if (narg < 3) error->all(FLERR,"Illegal replace_fix invocation");
-  if (!get_fix_by_id(arg[0])) error->all(FLERR,"Replace_fix ID is already in use");
+  if (get_fix_by_id(arg[0])) error->all(FLERR,"Replace_fix ID {} is already in use",arg[0]);
 
   delete[] oldfix->id;
   oldfix->id = utils::strdup(arg[0]);

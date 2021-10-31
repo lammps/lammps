@@ -8,7 +8,7 @@ pair_style	lj/cut 2.5
 
 fix 0 all property/atom i_bodies
 
-read_data	data.rigid-property fix 0 NULL Bodies
+read_data	data.rigid-property fix 0 NULL Clumps
 
 velocity 	all create 100.0 4928459
 

@@ -765,7 +765,7 @@ void FixQEq::read_file(char *file)
                                            file,utils::getsyserror()));
       TextFileReader reader(fp, "qeq parameter");
 
-      while (1) {
+      while (true) {
         auto values = reader.next_values(0);
 
         if (values.count() == 0) continue;

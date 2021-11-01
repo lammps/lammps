@@ -464,8 +464,8 @@ namespace LAMMPS_NS
   const lammpsplugin_t *plugin_get_info(int idx)
   {
     int i=0;
-    for (auto p=pluginlist.begin(); p != pluginlist.end(); ++p) {
-      if (i == idx) return &(*p);
+    for (auto & p : pluginlist) {
+      if (i == idx) return &p;
       ++i;
     }
     return nullptr;

@@ -156,7 +156,7 @@ void Rerun::command(int narg, char **arg)
   if (ntimestep < 0)
     error->all(FLERR,"Rerun dump file does not contain requested snapshot");
 
-  while (1) {
+  while (true) {
     ndump++;
     rd->header(firstflag);
     update->reset_timestep(ntimestep);

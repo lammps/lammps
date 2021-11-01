@@ -231,7 +231,7 @@ std::string platform::os_info()
   if (platform::file_is_readable("/etc/os-release")) {
     try {
         TextFileReader reader("/etc/os-release","");
-        while (1) {
+        while (true) {
           auto words = reader.next_values(0,"=");
           if ((words.count() > 1) && (words.next_string() == "PRETTY_NAME")) {
             buf += " " + utils::trim(words.next_string());

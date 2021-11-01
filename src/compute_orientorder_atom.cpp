@@ -524,8 +524,8 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
     for (int il = 0; il < nqlist; il++) {
       int l = qlist[il];
       double wlsum = 0.0;
-      int sgn = 1;
       for (int m1 = -l; m1 <= 0; m1++) {
+        const int sgn = 1 - 2*(m1&1); // sgn = (-1)^m1
         for (int m2 = 0; m2 <= ((-m1)>>1); m2++) {
           const int m3 = -(m1 + m2);
           // Loop enforces -L<=m1<=0<=m2<=m3<=L, and m1+m2+m3=0
@@ -543,7 +543,6 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
           wlsum += Q1Q2Q3*c;
 
         }
-        sgn = -sgn; // sgn = (-1)^m1
       }
       qn[jj++] = wlsum/qnormfac2[il];
       nterms++;
@@ -577,14 +576,12 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
       }
     else {
       double qnfac = qnormfac[il]/qn[il];
-      int sgn = 1;
       for (int m = -l; m < 0; m++) {
         // Computed only qnm for m>=0.
         // qnm[-m] = (-1)^m * conjg(qnm[m])
+        const int sgn = 1 - 2*(m&1); // sgn = (-1)^m
         qn[jj++] =  qnm_r[il][-m] * qnfac * sgn;
         qn[jj++] = -qnm_i[il][-m] * qnfac * sgn;
-
-        sgn = -sgn; // sgn = (-1)^m
       }
       for (int m = 0; m < l+1; m++) {
         qn[jj++] = qnm_r[il][m] * qnfac;

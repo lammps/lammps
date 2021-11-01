@@ -546,8 +546,8 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::calc_boop2(int ncount, int ii) co
     for (int il = 0; il < nqlist; il++) {
       int l = d_qlist[il];
       double wlsum = 0.0;
-      int sgn = 1;
       for (int m1 = -l; m1 <= 0; m1++) {
+        const int sgn = 1 - 2*(m1&1); // sgn = (-1)^m1
         for (int m2 = 0; m2 <= ((-m1)>>1); m2++) {
           const int m3 = -(m1 + m2);
           // Loop enforces -L<=m1<=0<=m2<=m3<=L, and m1+m2+m3=0
@@ -566,7 +566,6 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::calc_boop2(int ncount, int ii) co
           wlsum += Q1Q2Q3*c;
 
         }
-        sgn = -sgn; // sgn = (-1)^m1
       }
       d_qnarray(i,jj++) = wlsum/d_qnormfac2(il);
       nterms++;
@@ -600,14 +599,12 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::calc_boop2(int ncount, int ii) co
       }
     else {
       const double qnfac = d_qnormfac(il)/d_qnarray(i,il);
-      int sgn = 1;
       for (int m = -l; m < 0; m++) {
         // Computed only qnm for m>=0.
         // qnm[-m] = (-1)^m * conjg(qnm[m])
+        const int sgn = 1 - 2*(m&1); // sgn = (-1)^m
         d_qnarray(i,jj++) =  d_qnm(ii,il,-m).re * qnfac * sgn;
         d_qnarray(i,jj++) = -d_qnm(ii,il,-m).im * qnfac * sgn;
-
-        sgn = -sgn; // sgn = (-1)^m
       }
       for (int m = 0; m < l+1; m++) {
         d_qnarray(i,jj++) = d_qnm(ii,il,m).re * qnfac;

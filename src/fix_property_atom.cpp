@@ -18,6 +18,7 @@
 #include "comm.h"
 #include "error.h"
 #include "memory.h"
+#include "read_data.h"
 #include "tokenizer.h"
 
 #include <cstring>
@@ -54,8 +55,7 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"mol") == 0) {
       if (atom->molecule_flag)
-        error->all(FLERR,"Fix property/atom mol when atom_style "
-                   "already has molecule attribute");
+        error->all(FLERR,"Fix property/atom mol when atom_style already has molecule attribute");
       if (molecule_flag)
         error->all(FLERR,"Fix property/atom cannot specify mol twice");
       styles[nvalue] = MOLECULE;
@@ -95,6 +95,8 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       index[nvalue] = atom->find_custom(&arg[iarg][2],flag,ncols);
       if (index[nvalue] >= 0)
         error->all(FLERR,"Fix property/atom vector name already exists");
+      if (ReadData::is_data_section(id))
+        error->all(FLERR,"Fix property/atom fix ID must not be a data file section name");
       index[nvalue] = atom->add_custom(&arg[iarg][2],0,0);
       cols[nvalue] = 0;
       values_peratom++;
@@ -107,6 +109,8 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       index[nvalue] = atom->find_custom(&arg[iarg][2],flag,ncols);
       if (index[nvalue] >= 0)
         error->all(FLERR,"Fix property/atom vector name already exists");
+      if (ReadData::is_data_section(id))
+        error->all(FLERR,"Fix property/atom fix ID must not be a data file section name");
       index[nvalue] = atom->add_custom(&arg[iarg][2],1,0);
       cols[nvalue] = 0;
       values_peratom++;
@@ -122,6 +126,8 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       which = atom->find_custom(&arg[iarg][3],flag,ncols);
       if (which >= 0)
         error->all(FLERR,"Fix property/atom array name {} already exists", &arg[iarg][3]);
+      if (ReadData::is_data_section(id))
+        error->all(FLERR,"Fix property/atom fix ID must not be a data file section name");
 
       ncols = utils::inumeric(FLERR,arg[iarg+1],true,lmp);
       if (ncols < 1)

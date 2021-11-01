@@ -12,8 +12,9 @@ Syntax
 
 * dump-ID = ID of dump to modify
 * one or more keyword/value pairs may be appended
+
 * these keywords apply to various dump styles
-* keyword = *append* or *at* or *buffer* or *delay* or *element* or *every* or *fileper* or *first* or *flush* or *format* or *image* or *label* or *maxfiles* or *nfile* or *pad* or *pbc* or *precision* or *region* or *refresh* or *scale* or *sfactor* or *sort* or *tfactor* or *thermo* or *thresh* or *time* or *units* or *unwrap*
+* keyword = *append* or *at* or *buffer* or *delay* or *element* or *every* or *fileper* or *first* or *flush* or *format* or *header* or *image* or *label* or *maxfiles* or *nfile* or *pad* or *pbc* or *precision* or *region* or *refresh* or *scale* or *sfactor* or *sort* or *tfactor* or *thermo* or *thresh* or *time* or *units* or *unwrap*
 
   .. parsed-literal::
 
@@ -35,6 +36,9 @@ Syntax
        *format* args = *line* string, *int* string, *float* string, M string, or *none*
          string = C-style format string
          M = integer from 1 to N, where N = # of per-atom quantities being output
+       *header* arg = *yes* or *no*
+         *yes* to write the header
+         *no* to not write the header
        *image* arg = *yes* or *no*
        *label* arg = string
          string = character string (e.g. BONDS) to use in header of dump local file
@@ -66,56 +70,11 @@ Syntax
        *unwrap* arg = *yes* or *no*
 
 * these keywords apply only to the *image* and *movie* :doc:`styles <dump_image>`
-* keyword = *acolor* or *adiam* or *amap* or *backcolor* or *bcolor* or *bdiam* or *boxcolor* or *color* or *bitrate* or *framerate* or *header*
+* keyword = *acolor* or *adiam* or *amap* or *backcolor* or *bcolor* or *bdiam* or *boxcolor* or *color* or *bitrate* or *framerate*
 
   .. parsed-literal::
 
-       *acolor* args = type color
-         type = atom type or range of types (see below)
-         color = name of color or color1/color2/...
-       *adiam* args = type diam
-         type = atom type or range of types (see below)
-         diam = diameter of atoms of that type (distance units)
-       *amap* args = lo hi style delta N entry1 entry2 ... entryN
-         lo = number or *min* = lower bound of range of color map
-         hi = number or *max* = upper bound of range of color map
-         style = 2 letters = "c" or "d" or "s" plus "a" or "f"
-           "c" for continuous
-           "d" for discrete
-           "s" for sequential
-           "a" for absolute
-           "f" for fractional
-         delta = binsize (only used for style "s", otherwise ignored)
-           binsize = range is divided into bins of this width
-         N = # of subsequent entries
-         entry = value color (for continuous style)
-           value = number or *min* or *max* = single value within range
-           color = name of color used for that value
-         entry = lo hi color (for discrete style)
-           lo/hi = number or *min* or *max* = lower/upper bound of subset of range
-           color = name of color used for that subset of values
-         entry = color (for sequential style)
-           color = name of color used for a bin of values
-       *backcolor* arg = color
-         color = name of color for background
-       *bcolor* args = type color
-         type = bond type or range of types (see below)
-         color = name of color or color1/color2/...
-       *bdiam* args = type diam
-         type = bond type or range of types (see below)
-         diam = diameter of bonds of that type (distance units)
-       *boxcolor* arg = color
-         color = name of color for simulation box lines and processor sub-domain lines
-       *color* args = name R G B
-         name = name of color
-         R,G,B = red/green/blue numeric values from 0.0 to 1.0
-       *bitrate* arg = rate
-         rate = target bitrate for movie in kbps
-       *framerate* arg = fps
-         fps = frames per second for movie
-       *header* arg = *yes* or *no*
-         *yes* to write the header
-         *no* to not write the header
+       see the :doc:`dump image <dump_image>` doc page for details
 
 * these keywords apply only to the */gz* and */zstd* dump styles
 * keyword = *compression_level*
@@ -126,7 +85,7 @@ Syntax
          level = integer specifying the compression level that should be used (see below for supported levels)
 
 * these keywords apply only to the */zstd* dump styles
-* keyword = *compression_level*
+* keyword = *checksum*
 
   .. parsed-literal::
 
@@ -144,7 +103,6 @@ Examples
    dump_modify xtcdump precision 10000 sfactor 0.1
    dump_modify 1 every 1000 nfile 20
    dump_modify 1 every v_myVar
-   dump_modify 1 amap min max cf 0.0 3 min green 0.5 yellow max blue boxcolor red
 
 Description
 """""""""""
@@ -163,8 +121,9 @@ which allow for use of MPI-IO.
 
 ----------
 
-These keywords apply to various dump styles, including the :doc:`dump image <dump_image>` and :doc:`dump movie <dump_image>` styles.  The
-description gives details.
+Unless otherwise noted, the following keywords apply to all the
+various dump styles, including the :doc:`dump image <dump_image>` and
+:doc:`dump movie <dump_image>` styles.
 
 ----------
 
@@ -377,6 +336,13 @@ integer.
 ----------
 
 The *fileper* keyword is documented below with the *nfile* keyword.
+
+----------
+
+The *header* keyword toggles whether the dump file will include a header.
+Excluding a header will reduce the size of the dump file for fixes such as
+:doc:`fix pair/tracker <fix_pair_tracker>` which do not require the information
+typically written to the header.
 
 ----------
 
@@ -715,297 +681,27 @@ box size stored with the snapshot.
 
 ----------
 
-These keywords apply only to the :doc:`dump image <dump_image>` and
-:doc:`dump movie <dump_image>` styles.  Any keyword that affects an
-image, also affects a movie, since the movie is simply a collection of
-images.  Some of the keywords only affect the :doc:`dump movie <dump_image>` style.  The descriptions give details.
+The COMPRESS package offers both GZ and Zstd compression variants of
+styles atom, custom, local, cfg, and xyz. When using these styles the
+compression level can be controlled by the :code:`compression_level`
+keyword. File names with these styles have to end in either
+:code:`.gz` or :code:`.zst`.
 
-----------
-
-The *acolor* keyword can be used with the :doc:`dump image <dump_image>`
-command, when its atom color setting is *type*, to set the color that
-atoms of each type will be drawn in the image.
-
-The specified *type* should be an integer from 1 to Ntypes = the
-number of atom types.  A wildcard asterisk can be used in place of or
-in conjunction with the *type* argument to specify a range of atom
-types.  This takes the form "\*" or "\*n" or "n\*" or "m\*n".  If N = the
-number of atom types, then an asterisk with no numeric values means
-all types from 1 to N.  A leading asterisk means all types from 1 to n
-(inclusive).  A trailing asterisk means all types from n to N
-(inclusive).  A middle asterisk means all types from m to n
-(inclusive).
-
-The specified *color* can be a single color which is any of the 140
-pre-defined colors (see below) or a color name defined by the
-dump_modify color option.  Or it can be two or more colors separated
-by a "/" character, e.g. red/green/blue.  In the former case, that
-color is assigned to all the specified atom types.  In the latter
-case, the list of colors are assigned in a round-robin fashion to each
-of the specified atom types.
-
-----------
-
-The *adiam* keyword can be used with the :doc:`dump image <dump_image>`
-command, when its atom diameter setting is *type*, to set the size
-that atoms of each type will be drawn in the image.  The specified
-*type* should be an integer from 1 to Ntypes.  As with the *acolor*
-keyword, a wildcard asterisk can be used as part of the *type*
-argument to specify a range of atom types.  The specified *diam* is
-the size in whatever distance :doc:`units <units>` the input script is
-using, e.g. Angstroms.
-
-----------
-
-The *amap* keyword can be used with the :doc:`dump image <dump_image>`
-command, with its *atom* keyword, when its atom setting is an
-atom-attribute, to setup a color map.  The color map is used to assign
-a specific RGB (red/green/blue) color value to an individual atom when
-it is drawn, based on the atom's attribute, which is a numeric value,
-e.g. its x-component of velocity if the atom-attribute "vx" was
-specified.
-
-The basic idea of a color map is that the atom-attribute will be
-within a range of values, and that range is associated with a series
-of colors (e.g. red, blue, green).  An atom's specific value (vx =
--3.2) can then mapped to the series of colors (e.g. halfway between
-red and blue), and a specific color is determined via an interpolation
-procedure.
-
-There are many possible options for the color map, enabled by the
-*amap* keyword.  Here are the details.
-
-The *lo* and *hi* settings determine the range of values allowed for
-the atom attribute.  If numeric values are used for *lo* and/or *hi*,
-then values that are lower/higher than that value are set to the
-value.  I.e. the range is static.  If *lo* is specified as *min* or
-*hi* as *max* then the range is dynamic, and the lower and/or
-upper bound will be calculated each time an image is drawn, based
-on the set of atoms being visualized.
-
-The *style* setting is two letters, such as "ca".  The first letter is
-either "c" for continuous, "d" for discrete, or "s" for sequential.
-The second letter is either "a" for absolute, or "f" for fractional.
-
-A continuous color map is one in which the color changes continuously
-from value to value within the range.  A discrete color map is one in
-which discrete colors are assigned to sub-ranges of values within the
-range.  A sequential color map is one in which discrete colors are
-assigned to a sequence of sub-ranges of values covering the entire
-range.
-
-An absolute color map is one in which the values to which colors are
-assigned are specified explicitly as values within the range.  A
-fractional color map is one in which the values to which colors are
-assigned are specified as a fractional portion of the range.  For
-example if the range is from -10.0 to 10.0, and the color red is to be
-assigned to atoms with a value of 5.0, then for an absolute color map
-the number 5.0 would be used.  But for a fractional map, the number
-0.75 would be used since 5.0 is 3/4 of the way from -10.0 to 10.0.
-
-The *delta* setting must be specified for all styles, but is only used
-for the sequential style; otherwise the value is ignored.  It
-specifies the bin size to use within the range for assigning
-consecutive colors to.  For example, if the range is from -10.0 to
-10.0 and a *delta* of 1.0 is used, then 20 colors will be assigned to
-the range.  The first will be from -10.0 <= color1 < -9.0, then second
-from -9.0 <= color2 < -8.0, etc.
-
-The *N* setting is how many entries follow.  The format of the entries
-depends on whether the color map style is continuous, discrete or
-sequential.  In all cases the *color* setting can be any of the 140
-pre-defined colors (see below) or a color name defined by the
-dump_modify color option.
-
-For continuous color maps, each entry has a *value* and a *color*\ .
-The *value* is either a number within the range of values or *min* or
-*max*\ .  The *value* of the first entry must be *min* and the *value*
-of the last entry must be *max*\ .  Any entries in between must have
-increasing values.  Note that numeric values can be specified either
-as absolute numbers or as fractions (0.0 to 1.0) of the range,
-depending on the "a" or "f" in the style setting for the color map.
-
-Here is how the entries are used to determine the color of an
-individual atom, given the value X of its atom attribute.  X will fall
-between 2 of the entry values.  The color of the atom is linearly
-interpolated (in each of the RGB values) between the 2 colors
-associated with those entries.  For example, if X = -5.0 and the 2
-surrounding entries are "red" at -10.0 and "blue" at 0.0, then the
-atom's color will be halfway between "red" and "blue", which happens
-to be "purple".
-
-For discrete color maps, each entry has a *lo* and *hi* value and a
-*color*\ .  The *lo* and *hi* settings are either numbers within the
-range of values or *lo* can be *min* or *hi* can be *max*\ .  The *lo*
-and *hi* settings of the last entry must be *min* and *max*\ .  Other
-entries can have any *lo* and *hi* values and the sub-ranges of
-different values can overlap.  Note that numeric *lo* and *hi* values
-can be specified either as absolute numbers or as fractions (0.0 to
-1.0) of the range, depending on the "a" or "f" in the style setting
-for the color map.
-
-Here is how the entries are used to determine the color of an
-individual atom, given the value X of its atom attribute.  The entries
-are scanned from first to last.  The first time that *lo* <= X <=
-*hi*, X is assigned the color associated with that entry.  You can
-think of the last entry as assigning a default color (since it will
-always be matched by X), and the earlier entries as colors that
-override the default.  Also note that no interpolation of a color RGB
-is done.  All atoms will be drawn with one of the colors in the list
-of entries.
-
-For sequential color maps, each entry has only a *color*\ .  Here is how
-the entries are used to determine the color of an individual atom,
-given the value X of its atom attribute.  The range is partitioned
-into N bins of width *binsize*\ .  Thus X will fall in a specific bin
-from 1 to N, say the Mth bin.  If it falls on a boundary between 2
-bins, it is considered to be in the higher of the 2 bins.  Each bin is
-assigned a color from the E entries.  If E < N, then the colors are
-repeated.  For example if 2 entries with colors red and green are
-specified, then the odd numbered bins will be red and the even bins
-green.  The color of the atom is the color of its bin.  Note that the
-sequential color map is really a shorthand way of defining a discrete
-color map without having to specify where all the bin boundaries are.
-
-Here is an example of using a sequential color map to color all the
-atoms in individual molecules with a different color.  See the
-examples/pour/in.pour.2d.molecule input script for an example of how
-this is used.
-
-.. code-block:: LAMMPS
-
-   variable        colors string &
-                   "red green blue yellow white &
-                   purple pink orange lime gray"
-   variable        mol atom mol%10
-   dump            1 all image 250 image.*.jpg v_mol type &
-                   zoom 1.6 adiam 1.5
-   dump_modify     1 pad 5 amap 0 10 sa 1 10 ${colors}
-
-In this case, 10 colors are defined, and molecule IDs are
-mapped to one of the colors, even if there are 1000s of molecules.
-
-----------
-
-The *backcolor* sets the background color of the images.  The color
-name can be any of the 140 pre-defined colors (see below) or a color
-name defined by the dump_modify color option.
-
-----------
-
-The *bcolor* keyword can be used with the :doc:`dump image <dump_image>`
-command, with its *bond* keyword, when its color setting is *type*, to
-set the color that bonds of each type will be drawn in the image.
-
-The specified *type* should be an integer from 1 to Nbondtypes = the
-number of bond types.  A wildcard asterisk can be used in place of or
-in conjunction with the *type* argument to specify a range of bond
-types.  This takes the form "\*" or "\*n" or "n\*" or "m\*n".  If N = the
-number of bond types, then an asterisk with no numeric values means
-all types from 1 to N.  A leading asterisk means all types from 1 to n
-(inclusive).  A trailing asterisk means all types from n to N
-(inclusive).  A middle asterisk means all types from m to n
-(inclusive).
-
-The specified *color* can be a single color which is any of the 140
-pre-defined colors (see below) or a color name defined by the
-dump_modify color option.  Or it can be two or more colors separated
-by a "/" character, e.g. red/green/blue.  In the former case, that
-color is assigned to all the specified bond types.  In the latter
-case, the list of colors are assigned in a round-robin fashion to each
-of the specified bond types.
-
-----------
-
-The *bdiam* keyword can be used with the :doc:`dump image <dump_image>`
-command, with its *bond* keyword, when its diam setting is *type*, to
-set the diameter that bonds of each type will be drawn in the image.
-The specified *type* should be an integer from 1 to Nbondtypes.  As
-with the *bcolor* keyword, a wildcard asterisk can be used as part of
-the *type* argument to specify a range of bond types.  The specified
-*diam* is the size in whatever distance :doc:`units <units>` you are
-using, e.g. Angstroms.
-
-----------
-
-The *bitrate* keyword can be used with the :doc:`dump movie <dump_image>` command to define the size of the resulting
-movie file and its quality via setting how many kbits per second are
-to be used for the movie file. Higher bitrates require less
-compression and will result in higher quality movies.  The quality is
-also determined by the compression format and encoder.  The default
-setting is 2000 kbit/s, which will result in average quality with
-older compression formats.
-
-.. note::
-
-   Not all movie file formats supported by dump movie allow the
-   bitrate to be set.  If not, the setting is silently ignored.
-
-----------
-
-The *boxcolor* keyword sets the color of the simulation box drawn
-around the atoms in each image as well as the color of processor
-sub-domain boundaries.  See the "dump image box" command for how to
-specify that a box be drawn via the *box* keyword, and the sub-domain
-boundaries via the *subbox* keyword.  The color name can be any of the
-140 pre-defined colors (see below) or a color name defined by the
-dump_modify color option.
-
-----------
-
-The *color* keyword allows definition of a new color name, in addition
-to the 140-predefined colors (see below), and associates 3
-red/green/blue RGB values with that color name.  The color name can
-then be used with any other dump_modify keyword that takes a color
-name as a value.  The RGB values should each be floating point values
-between 0.0 and 1.0 inclusive.
-
-When a color name is converted to RGB values, the user-defined color
-names are searched first, then the 140 pre-defined color names.  This
-means you can also use the *color* keyword to overwrite one of the
-pre-defined color names with new RBG values.
-
-----------
-
-The *framerate* keyword can be used with the :doc:`dump movie <dump_image>` command to define the duration of the resulting
-movie file.  Movie files written by the dump *movie* command have a
-default frame rate of 24 frames per second and the images generated
-will be converted at that rate.  Thus a sequence of 1000 dump images
-will result in a movie of about 42 seconds.  To make a movie run
-longer you can either generate images more frequently or lower the
-frame rate.  To speed a movie up, you can do the inverse.  Using a
-frame rate higher than 24 is not recommended, as it will result in
-simply dropping the rendered images. It is more efficient to dump
-images less frequently.
-
-----------
-
-The *header* keyword toggles whether the dump file will include a header.
-Excluding a header will reduce the size of the dump file for fixes such as
-:doc:`fix pair/tracker <fix_pair_tracker>` which do not require the information
-typically written to the header.
-
-----------
-
-The COMPRESS package offers both GZ and Zstd compression variants of styles
-atom, custom, local, cfg, and xyz. When using these styles the compression
-level can be controlled by the :code:`compression_level` parameter. File names
-with these styles have to end in either :code:`.gz` or :code:`.zst`.
-
-GZ supports compression levels from -1 (default), 0 (no compression), and 1 to
-9. 9 being the best compression. The COMPRESS :code:`/gz` styles use 9 as
-default compression level.
+GZ supports compression levels from -1 (default), 0 (no compression),
+and 1 to
+9. 9 being the best compression. The COMPRESS :code:`/gz` styles use 9
+as default compression level.
 
 Zstd offers a wider range of compression levels, including negative
-levels that sacrifice compression for performance. 0 is the
-default, positive levels are 1 to 22, with 22 being the most expensive
+levels that sacrifice compression for performance. 0 is the default,
+positive levels are 1 to 22, with 22 being the most expensive
 compression. Zstd promises higher compression/decompression speeds for
 similar compression ratios. For more details see
 `http://facebook.github.io/zstd/`.
 
-In addition, Zstd compressed files can have a checksum of the entire
-contents. The Zstd enabled dump styles enable this feature by default and it
-can be disabled with the :code:`checksum` parameter.
+In addition, Zstd compressed files can include a checksum of the
+entire contents. The Zstd enabled dump styles enable this feature by
+default and it can be disabled with the :code:`checksum` keyword.
 
 ----------
 
@@ -1046,100 +742,7 @@ The option defaults are
 * units = no
 * unwrap = no
 
-* acolor = \* red/green/blue/yellow/aqua/cyan
-* adiam = \* 1.0
-* amap = min max cf 0.0 2 min blue max red
-* backcolor = black
-* bcolor = \* red/green/blue/yellow/aqua/cyan
-* bdiam = \* 0.5
-* bitrate = 2000
-* boxcolor = yellow
-* color = 140 color names are pre-defined as listed below
-* framerate = 24
-
 * compression_level = 9 (gz variants)
 * compression_level = 0 (zstd variants)
 * checksum = yes (zstd variants)
 
-----------
-
-These are the standard 109 element names that LAMMPS pre-defines for
-use with the :doc:`dump image <dump_image>` and dump_modify commands.
-
-* 1-10 = "H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne"
-* 11-20 = "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar", "K", "Ca"
-* 21-30 = "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn"
-* 31-40 = "Ga", "Ge", "As", "Se", "Br", "Kr", "Rb", "Sr", "Y", "Zr"
-* 41-50 = "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn"
-* 51-60 = "Sb", "Te", "I", "Xe", "Cs", "Ba", "La", "Ce", "Pr", "Nd"
-* 61-70 = "Pm", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb"
-* 71-80 = "Lu", "Hf", "Ta", "W", "Re", "Os", "Ir", "Pt", "Au", "Hg"
-* 81-90 = "Tl", "Pb", "Bi", "Po", "At", "Rn", "Fr", "Ra", "Ac", "Th"
-* 91-100 = "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm"
-* 101-109 = "Md", "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt"
-
-----------
-
-These are the 140 colors that LAMMPS pre-defines for use with the
-:doc:`dump image <dump_image>` and dump_modify commands.  Additional
-colors can be defined with the dump_modify color command.  The 3
-numbers listed for each name are the RGB (red/green/blue) values.
-Divide each value by 255 to get the equivalent 0.0 to 1.0 value.
-
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| aliceblue = 240, 248, 255     | antiquewhite = 250, 235, 215         | aqua = 0, 255, 255              | aquamarine = 127, 255, 212     | azure = 240, 255, 255          |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| beige = 245, 245, 220         | bisque = 255, 228, 196               | black = 0, 0, 0                 | blanchedalmond = 255, 255, 205 | blue = 0, 0, 255               |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| blueviolet = 138, 43, 226     | brown = 165, 42, 42                  | burlywood = 222, 184, 135       | cadetblue = 95, 158, 160       | chartreuse = 127, 255, 0       |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| chocolate = 210, 105, 30      | coral = 255, 127, 80                 | cornflowerblue = 100, 149, 237  | cornsilk = 255, 248, 220       | crimson = 220, 20, 60          |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| cyan = 0, 255, 255            | darkblue = 0, 0, 139                 | darkcyan = 0, 139, 139          | darkgoldenrod = 184, 134, 11   | darkgray = 169, 169, 169       |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| darkgreen = 0, 100, 0         | darkkhaki = 189, 183, 107            | darkmagenta = 139, 0, 139       | darkolivegreen = 85, 107, 47   | darkorange = 255, 140, 0       |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| darkorchid = 153, 50, 204     | darkred = 139, 0, 0                  | darksalmon = 233, 150, 122      | darkseagreen = 143, 188, 143   | darkslateblue = 72, 61, 139    |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| darkslategray = 47, 79, 79    | darkturquoise = 0, 206, 209          | darkviolet = 148, 0, 211        | deeppink = 255, 20, 147        | deepskyblue = 0, 191, 255      |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| dimgray = 105, 105, 105       | dodgerblue = 30, 144, 255            | firebrick = 178, 34, 34         | floralwhite = 255, 250, 240    | forestgreen = 34, 139, 34      |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| fuchsia = 255, 0, 255         | gainsboro = 220, 220, 220            | ghostwhite = 248, 248, 255      | gold = 255, 215, 0             | goldenrod = 218, 165, 32       |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| gray = 128, 128, 128          | green = 0, 128, 0                    | greenyellow = 173, 255, 47      | honeydew = 240, 255, 240       | hotpink = 255, 105, 180        |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| indianred = 205, 92, 92       | indigo = 75, 0, 130                  | ivory = 255, 240, 240           | khaki = 240, 230, 140          | lavender = 230, 230, 250       |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| lavenderblush = 255, 240, 245 | lawngreen = 124, 252, 0              | lemonchiffon = 255, 250, 205    | lightblue = 173, 216, 230      | lightcoral = 240, 128, 128     |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| lightcyan = 224, 255, 255     | lightgoldenrodyellow = 250, 250, 210 | lightgreen = 144, 238, 144      | lightgrey = 211, 211, 211      | lightpink = 255, 182, 193      |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| lightsalmon = 255, 160, 122   | lightseagreen = 32, 178, 170         | lightskyblue = 135, 206, 250    | lightslategray = 119, 136, 153 | lightsteelblue = 176, 196, 222 |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| lightyellow = 255, 255, 224   | lime = 0, 255, 0                     | limegreen = 50, 205, 50         | linen = 250, 240, 230          | magenta = 255, 0, 255          |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| maroon = 128, 0, 0            | mediumaquamarine = 102, 205, 170     | mediumblue = 0, 0, 205          | mediumorchid = 186, 85, 211    | mediumpurple = 147, 112, 219   |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| mediumseagreen = 60, 179, 113 | mediumslateblue = 123, 104, 238      | mediumspringgreen = 0, 250, 154 | mediumturquoise = 72, 209, 204 | mediumvioletred = 199, 21, 133 |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| midnightblue = 25, 25, 112    | mintcream = 245, 255, 250            | mistyrose = 255, 228, 225       | moccasin = 255, 228, 181       | navajowhite = 255, 222, 173    |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| navy = 0, 0, 128              | oldlace = 253, 245, 230              | olive = 128, 128, 0             | olivedrab = 107, 142, 35       | orange = 255, 165, 0           |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| orangered = 255, 69, 0        | orchid = 218, 112, 214               | palegoldenrod = 238, 232, 170   | palegreen = 152, 251, 152      | paleturquoise = 175, 238, 238  |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| palevioletred = 219, 112, 147 | papayawhip = 255, 239, 213           | peachpuff = 255, 239, 213       | peru = 205, 133, 63            | pink = 255, 192, 203           |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| plum = 221, 160, 221          | powderblue = 176, 224, 230           | purple = 128, 0, 128            | red = 255, 0, 0                | rosybrown = 188, 143, 143      |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| royalblue = 65, 105, 225      | saddlebrown = 139, 69, 19            | salmon = 250, 128, 114          | sandybrown = 244, 164, 96      | seagreen = 46, 139, 87         |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| seashell = 255, 245, 238      | sienna = 160, 82, 45                 | silver = 192, 192, 192          | skyblue = 135, 206, 235        | slateblue = 106, 90, 205       |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| slategray = 112, 128, 144     | snow = 255, 250, 250                 | springgreen = 0, 255, 127       | steelblue = 70, 130, 180       | tan = 210, 180, 140            |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| teal = 0, 128, 128            | thistle = 216, 191, 216              | tomato = 253, 99, 71            | turquoise = 64, 224, 208       | violet = 238, 130, 238         |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| wheat = 245, 222, 179         | white = 255, 255, 255                | whitesmoke = 245, 245, 245      | yellow = 255, 255, 0           | yellowgreen = 154, 205, 50     |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+

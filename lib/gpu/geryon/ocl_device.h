@@ -88,7 +88,7 @@ struct OCLProperties {
   cl_uint clock;
   size_t work_group_size;
   size_t work_item_size[3];
-  bool double_precision;
+  bool has_double_precision;
   int preferred_vector_width32, preferred_vector_width64;
   int alignment;
   size_t timer_resolution;
@@ -226,7 +226,7 @@ class UCL_Device {
   inline bool double_precision() { return double_precision(_device); }
   /// Returns true if double precision is support for the device
   inline bool double_precision(const int i)
-    {return _properties[i].double_precision;}
+    {return _properties[i].has_double_precision;}
 
   /// Get the number of compute units on the current device
   inline unsigned cus() { return cus(_device); }
@@ -481,7 +481,7 @@ int UCL_Device::set_platform(int pid) {
       cl_device_id *subdevice_list = new cl_device_id[num_subdevices];
       CL_SAFE_CALL(clCreateSubDevices(device_list[i], props, num_subdevices,
                                       subdevice_list, &num_subdevices));
-      for (int j=0; j<num_subdevices; j++) {
+      for (cl_uint j=0; j<num_subdevices; j++) {
         _cl_devices.push_back(device_list[i]);
         add_properties(device_list[i]);
         _num_devices++;
@@ -569,9 +569,9 @@ void UCL_Device::add_properties(cl_device_id device_list) {
   CL_SAFE_CALL(clGetDeviceInfo(device_list,CL_DEVICE_DOUBLE_FP_CONFIG,
                                sizeof(double_avail),&double_avail,nullptr));
   if ((double_avail & double_mask) == double_mask)
-    op.double_precision=true;
+    op.has_double_precision=true;
   else
-    op.double_precision=false;
+    op.has_double_precision=false;
 
   CL_SAFE_CALL(clGetDeviceInfo(device_list,
                                CL_DEVICE_PROFILING_TIMER_RESOLUTION,
@@ -635,7 +635,7 @@ void UCL_Device::add_properties(cl_device_id device_list) {
   size_t ext_str_size_ret;
   CL_SAFE_CALL(clGetDeviceInfo(device_list, CL_DEVICE_EXTENSIONS, 0, nullptr,
                                &ext_str_size_ret));
-  char buffer2[ext_str_size_ret];
+  char *buffer2 = new char[ext_str_size_ret];
   CL_SAFE_CALL(clGetDeviceInfo(device_list, CL_DEVICE_EXTENSIONS,
                                ext_str_size_ret, buffer2, nullptr));
   #if defined(CL_VERSION_2_1) || defined(CL_VERSION_3_0)
@@ -666,6 +666,7 @@ void UCL_Device::add_properties(cl_device_id device_list) {
     if (arch >= 3.0)
       op.has_shuffle_support=true;
   }
+  delete[] buffer2;
   #endif
 
   _properties.push_back(op);
@@ -836,7 +837,7 @@ int UCL_Device::auto_set_platform(const enum UCL_DEVICE_TYPE type,
 
   bool vendor_match=false;
   bool type_match=false;
-  int max_cus=0;
+  unsigned int max_cus=0;
   int best_platform=0;
 
   std::string vendor_upper=vendor;

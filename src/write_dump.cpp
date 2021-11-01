@@ -57,7 +57,7 @@ void WriteDump::command(int narg, char **arg)
   for (int i = 2; i < modindex; ++i)
     dumpargs[i+2] = arg[i];
 
-  if (0) {
+  if (false) {
     return;         // dummy line to enable else-if macro expansion
 
 #define DUMP_CLASS

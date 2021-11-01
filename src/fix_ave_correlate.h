@@ -44,7 +44,7 @@ class FixAveCorrelate : public Fix {
 
   int type, ave, startstep, overwrite;
   double prefactor;
-  long filepos;
+  bigint filepos;
 
   int firstindex;    // index in values ring of earliest time sample
   int lastindex;     // index in values ring of latest time sample

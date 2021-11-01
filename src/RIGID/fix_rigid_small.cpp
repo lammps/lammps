@@ -391,14 +391,14 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   // sets bodytag for owned atoms
   // body attributes are computed later by setup_bodies()
 
-  double time1 = MPI_Wtime();
+  double time1 = platform::walltime();
 
   create_bodies(bodyID);
   if (customflag) delete [] bodyID;
 
   if (comm->me == 0)
     utils::logmesg(lmp,"  create bodies CPU = {:.3f} seconds\n",
-                   MPI_Wtime()-time1);
+                   platform::walltime()-time1);
 
   // set nlocal_body and allocate bodies I own
 
@@ -2451,7 +2451,7 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
     if (fp == nullptr)
       error->one(FLERR,"Cannot open fix rigid/small file {}: {}",
                                    inpfile,utils::getsyserror());
-    while (1) {
+    while (true) {
       eof = fgets(line,MAXLINE,fp);
       if (eof == nullptr)
         error->one(FLERR,"Unexpected end of fix rigid/small file");
@@ -2563,8 +2563,7 @@ void FixRigidSmall::write_restart_file(const char *file)
     auto outfile = std::string(file) + ".rigid";
     fp = fopen(outfile.c_str(),"w");
     if (fp == nullptr)
-      error->one(FLERR,"Cannot open fix rigid restart file {}: {}",
-                                   outfile,utils::getsyserror());
+      error->one(FLERR,"Cannot open fix rigid restart file {}: {}",outfile,utils::getsyserror());
 
     fmt::print(fp,"# fix rigid mass, COM, inertia tensor info for "
                "{} bodies on timestep {}\n\n",nbody,update->ntimestep);

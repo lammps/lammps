@@ -23,7 +23,7 @@ class PairSpin : public Pair {
 
  public:
   PairSpin(class LAMMPS *);
-  virtual ~PairSpin();
+  virtual ~PairSpin() = default;
   virtual void settings(int, char **);
   virtual void coeff(int, char **) {}
   virtual void init_style();

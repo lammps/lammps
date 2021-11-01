@@ -28,7 +28,6 @@
 #include "variable.h"
 
 #include <cstring>
-#include <unistd.h>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -274,18 +273,18 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
     if (ferror(fp))
       error->one(FLERR,"Error writing file header");
 
-    filepos = ftell(fp);
+    filepos = platform::ftell(fp);
   }
 
-  delete [] title1;
-  delete [] title2;
-  delete [] title3;
+  delete[] title1;
+  delete[] title2;
+  delete[] title3;
 
   // if wildcard expansion occurred, free earg memory from expand_args()
   // wait to do this until after file comment lines are printed
 
   if (expand) {
-    for (int i = 0; i < nvalues; i++) delete [] earg[i];
+    for (int i = 0; i < nvalues; i++) delete[] earg[i];
     memory->sfree(earg);
   }
 
@@ -446,24 +445,24 @@ FixAveTime::~FixAveTime()
       }
   }
 
-  delete [] format_user;
+  delete[] format_user;
 
-  delete [] which;
-  delete [] argindex;
-  delete [] value2index;
-  delete [] offcol;
-  delete [] varlen;
-  for (int i = 0; i < nvalues; i++) delete [] ids[i];
-  delete [] ids;
+  delete[] which;
+  delete[] argindex;
+  delete[] value2index;
+  delete[] offcol;
+  delete[] varlen;
+  for (int i = 0; i < nvalues; i++) delete[] ids[i];
+  delete[] ids;
 
-  delete [] extlist;
+  delete[] extlist;
 
   if (fp && me == 0) fclose(fp);
 
   memory->destroy(column);
 
-  delete [] vector;
-  delete [] vector_total;
+  delete[] vector;
+  delete[] vector_total;
   memory->destroy(array);
   memory->destroy(array_total);
   memory->destroy(array_list);
@@ -673,7 +672,7 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
 
   if (fp && me == 0) {
     clearerr(fp);
-    if (overwrite) fseek(fp,filepos,SEEK_SET);
+    if (overwrite) platform::fseek(fp,filepos);
     fprintf(fp,BIGINT_FORMAT,ntimestep);
     for (i = 0; i < nvalues; i++) fprintf(fp,format,vector_total[i]/norm);
     fprintf(fp,"\n");
@@ -683,9 +682,9 @@ void FixAveTime::invoke_scalar(bigint ntimestep)
     fflush(fp);
 
     if (overwrite) {
-      long fileend = ftell(fp);
-      if ((fileend > 0) && (ftruncate(fileno(fp),fileend)))
-        perror("Error while tuncating output");
+      bigint fileend = platform::ftell(fp);
+      if ((fileend > 0) && (platform::ftruncate(fp,fileend)))
+        error->warning(FLERR,"Error while tuncating output: {}", utils::getsyserror());
     }
   }
 }
@@ -885,7 +884,7 @@ void FixAveTime::invoke_vector(bigint ntimestep)
   // output result to file
 
   if (fp && me == 0) {
-    if (overwrite) fseek(fp,filepos,SEEK_SET);
+    if (overwrite) platform::fseek(fp,filepos);
     fprintf(fp,BIGINT_FORMAT " %d\n",ntimestep,nrows);
     for (i = 0; i < nrows; i++) {
       fprintf(fp,"%d",i+1);
@@ -894,9 +893,9 @@ void FixAveTime::invoke_vector(bigint ntimestep)
     }
     fflush(fp);
     if (overwrite) {
-      long fileend = ftell(fp);
-      if ((fileend > 0) && (ftruncate(fileno(fp),fileend)))
-        perror("Error while tuncating output");
+      bigint fileend = platform::ftell(fp);
+      if ((fileend > 0) && (platform::ftruncate(fp,fileend)))
+        error->warning(FLERR,"Error while tuncating output: {}", utils::getsyserror());
     }
   }
 }
@@ -1066,23 +1065,23 @@ void FixAveTime::options(int iarg, int narg, char **arg)
       iarg += 1;
     } else if (strcmp(arg[iarg],"format") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/time command");
-      delete [] format_user;
+      delete[] format_user;
       format_user = utils::strdup(arg[iarg+1]);
       format = format_user;
       iarg += 2;
     } else if (strcmp(arg[iarg],"title1") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
-      delete [] title1;
+      delete[] title1;
       title1 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title2") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
-      delete [] title2;
+      delete[] title2;
       title2 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title3") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/spatial command");
-      delete [] title3;
+      delete[] title3;
       title3 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix ave/time command");

@@ -56,6 +56,7 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
   size_peratom_cols = 0;
   peratom_freq = 1;
 
+  compressed = 0;
   nvalid = -1;
 
   MPI_Comm_rank(world,&me);
@@ -95,34 +96,19 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
     rene_flag = 1;
   }
 
-  if (me == 0 && rene_flag) {
-    error->warning(FLERR,"Resetting reneighboring criteria for fix reaxff/species");
-  }
-
-  tmparg = nullptr;
-  memory->create(tmparg,4,4,"reaxff/species:tmparg");
-  strcpy(tmparg[0],arg[3]);
-  strcpy(tmparg[1],arg[4]);
-  strcpy(tmparg[2],arg[5]);
+  if (me == 0 && rene_flag)
+    error->warning(FLERR,"Resetting reneighboring criteria to 'delay {} every {} check no' "
+                   "for fix reaxff/species",neighbor->delay, neighbor->every);
 
   if (me == 0) {
-    char *suffix = strrchr(arg[6],'.');
-    if (suffix && strcmp(suffix,".gz") == 0) {
-#ifdef LAMMPS_GZIP
-      auto gzip = fmt::format("gzip -6 > {}",arg[6]);
-#ifdef _WIN32
-      fp = _popen(gzip.c_str(),"wb");
-#else
-      fp = popen(gzip.c_str(),"w");
-#endif
-#else
-      error->one(FLERR,"Cannot open gzipped file");
-#endif
+    if (platform::has_compress_extension(arg[6])) {
+      fp = platform::compressed_write(arg[6]);
+      compressed = 1;
+      if (!fp) error->one(FLERR,"Cannot open compressed file");
     } else fp = fopen(arg[6],"w");
 
     if (!fp)
-      error->one(FLERR,fmt::format("Cannot open fix reaxff/species file {}: "
-                                   "{}",arg[6],utils::getsyserror()));
+      error->one(FLERR,"Cannot open fix reaxff/species file {}: {}",arg[6],utils::getsyserror());
   }
 
   x0 = nullptr;
@@ -251,13 +237,15 @@ FixReaxFFSpecies::~FixReaxFFSpecies()
   memory->destroy(NMol);
   memory->destroy(MolType);
   memory->destroy(MolName);
-  memory->destroy(tmparg);
 
   if (filepos)
     delete [] filepos;
 
-  if (me == 0) fclose(fp);
-  if (me == 0 && posflag && multipos_opened) fclose(pos);
+  if (me == 0) {
+    if (compressed) platform::pclose(fp);
+    else fclose(fp);
+    if (posflag && multipos_opened) fclose(pos);
+  }
 
   modify->delete_compute("SPECATOM");
   modify->delete_fix("SPECBOND");
@@ -314,7 +302,7 @@ void FixReaxFFSpecies::init()
                         "abo15 abo16 abo17 abo18 abo19 abo20 abo21 abo22 abo23 abo24");
 
     // create a fix to point to fix_ave_atom for averaging stored properties
-    auto fixcmd = fmt::format("SPECBOND all ave/atom {} {} {}",tmparg[0],tmparg[1],tmparg[2]);
+    auto fixcmd = fmt::format("SPECBOND all ave/atom {} {} {}",nevery,nrepeat,nfreq);
     for (int i = 1; i < 32; ++i) fixcmd += " c_SPECATOM[" + std::to_string(i) + "]";
     f_SPECBOND = (FixAveAtom *) modify->add_fix(fixcmd);
     setupflag = 1;
@@ -428,12 +416,12 @@ void FixReaxFFSpecies::FindMolecule ()
   }
 
   loop = 0;
-  while (1) {
+  while (true) {
     comm->forward_comm_fix(this);
     loop ++;
 
     change = 0;
-    while (1) {
+    while (true) {
       done = 1;
 
       for (ii = 0; ii < inum; ii++) {
@@ -683,8 +671,7 @@ void FixReaxFFSpecies::OpenPos()
   char *ptr = strchr(filepos,'*');
   *ptr = '\0';
   if (padflag == 0)
-    sprintf(filecurrent,"%s" BIGINT_FORMAT "%s",
-            filepos,ntimestep,ptr+1);
+    sprintf(filecurrent,"%s" BIGINT_FORMAT "%s",filepos,ntimestep,ptr+1);
   else {
     char bif[8],pad[16];
     strcpy(bif,BIGINT_FORMAT);

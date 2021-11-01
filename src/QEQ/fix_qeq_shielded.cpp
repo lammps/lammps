@@ -22,14 +22,12 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
-#include "group.h"
 #include "kspace.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "pair.h"
-#include "respa.h"
 #include "update.h"
 
 #include <cmath>
@@ -53,11 +51,7 @@ FixQEqShielded::FixQEqShielded(LAMMPS *lmp, int narg, char **arg) :
 
 void FixQEqShielded::init()
 {
-  if (!atom->q_flag)
-    error->all(FLERR,"Fix qeq/shielded requires atom attribute q");
-
-  ngroup = group->count(igroup);
-  if (ngroup == 0) error->all(FLERR,"Fix qeq/shielded group has no atoms");
+  FixQEq::init();
 
   int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->pair = 0;
@@ -75,10 +69,6 @@ void FixQEqShielded::init()
     if (gamma[i] == 0.0)
       error->all(FLERR,"Invalid param file for fix qeq/shielded");
   }
-
-  if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
-
 }
 
 /* ---------------------------------------------------------------------- */

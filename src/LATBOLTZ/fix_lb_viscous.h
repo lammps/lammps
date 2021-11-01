@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class FixLbViscous : public Fix {
  public:
   FixLbViscous(class LAMMPS *, int, char **);
-  ~FixLbViscous();
+  virtual ~FixLbViscous() = default;
   int setmask();
   void init();
   void setup(int);

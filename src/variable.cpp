@@ -39,7 +39,6 @@
 #include <cctype>
 #include <cmath>
 #include <cstring>
-#include <unistd.h>
 #include <unordered_map>
 
 using namespace LAMMPS_NS;
@@ -692,11 +691,11 @@ int Variable::next(int narg, char **arg)
       int seed = 12345 + universe->me + which[find(arg[0])];
       if (!random) random = new RanMars(lmp,seed);
       int delay = (int) (1000000*random->uniform());
-      usleep(delay);
-      while (1) {
+      platform::usleep(delay);
+      while (true) {
         if (!rename("tmp.lammps.variable","tmp.lammps.variable.lock")) break;
         delay = (int) (1000000*random->uniform());
-        usleep(delay);
+        platform::usleep(delay);
       }
 
       // if the file cannot be found, we may have a race with some
@@ -719,7 +718,7 @@ int Variable::next(int narg, char **arg)
            break;
         }
         delay = (int) (1000000*random->uniform());
-        usleep(delay);
+        platform::usleep(delay);
       }
       delete random;
       random = nullptr;
@@ -1235,7 +1234,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
   if (str == nullptr)
     print_var_error(FLERR,"Invalid syntax in variable formula",ivar);
 
-  while (1) {
+  while (true) {
     onechar = str[i];
 
     // whitespace: just skip
@@ -3217,7 +3216,7 @@ int Variable::find_matching_paren(char *str, int i, char *&contents, int ivar)
 
   int istart = i;
   int ilevel = 0;
-  while (1) {
+  while (true) {
     i++;
     if (!str[i]) break;
     if (str[i] == '(') ilevel++;
@@ -4788,7 +4787,7 @@ double Variable::evaluate_boolean(char *str)
   int i = 0;
   int expect = ARG;
 
-  while (1) {
+  while (true) {
     onechar = str[i];
 
     // whitespace: just skip
@@ -5082,7 +5081,7 @@ int VarReader::read_scalar(char *str)
   // read one string from file
 
   if (me == 0) {
-    while (1) {
+    while (true) {
       ptr = fgets(str,MAXLINE,fp);
       if (!ptr) { n=0; break; }             // end of file
       ptr[strcspn(ptr,"#")] = '\0';         // strip comment
@@ -5125,7 +5124,7 @@ int VarReader::read_peratom()
 
   char str[MAXLINE];
   if (me == 0) {
-    while (1) {
+    while (true) {
       ptr = fgets(str,MAXLINE,fp);
       if (!ptr) { n=0; break; }             // end of file
       ptr[strcspn(ptr,"#")] = '\0';         // strip comment

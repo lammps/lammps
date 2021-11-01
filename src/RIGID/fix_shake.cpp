@@ -222,13 +222,13 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
 
   // identify all SHAKE clusters
 
-  double time1 = MPI_Wtime();
+  double time1 = platform::walltime();
 
   find_clusters();
 
   if (comm->me == 0)
     utils::logmesg(lmp,"  find clusters CPU = {:.3f} seconds\n",
-                   MPI_Wtime()-time1);
+                   platform::walltime()-time1);
 
   // initialize list of SHAKE clusters to constrain
 

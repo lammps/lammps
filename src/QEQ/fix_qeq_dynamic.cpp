@@ -22,12 +22,10 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
-#include "group.h"
 #include "kspace.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
-#include "respa.h"
 #include "update.h"
 
 #include <cmath>
@@ -66,11 +64,7 @@ FixQEqDynamic::FixQEqDynamic(LAMMPS *lmp, int narg, char **arg) :
 
 void FixQEqDynamic::init()
 {
-  if (!atom->q_flag)
-    error->all(FLERR,"Fix qeq/dynamic requires atom attribute q");
-
-  ngroup = group->count(igroup);
-  if (ngroup == 0) error->all(FLERR,"Fix qeq/dynamic group has no atoms");
+  FixQEq::init();
 
   int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->pair = 0;
@@ -82,10 +76,6 @@ void FixQEqDynamic::init()
     if (comm->me == 0)
       error->warning(FLERR,"Fix qeq/dynamic tolerance may be too small"
                     " for damped dynamics");
-
-  if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
-
 }
 
 /* ---------------------------------------------------------------------- */

@@ -31,7 +31,6 @@
 
 #include <cmath>
 #include <cstring>
-#include <strings.h>    // for strcasecmp()
 
 #include "omp_compat.h"
 using namespace LAMMPS_NS;
@@ -85,13 +84,13 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
     ztype[i] = SAEDmaxType + 1;
   }
   for (int i=0; i<ntypes; i++) {
-       for (int j = 0; j < SAEDmaxType; j++) {
-         if (strcasecmp(arg[iarg],SAEDtypeList[j]) == 0) {
+     for (int j = 0; j < SAEDmaxType; j++) {
+       if (utils::lowercase(arg[iarg]) == utils::lowercase(SAEDtypeList[j])) {
          ztype[i] = j;
-         }
        }
-       if (ztype[i] == SAEDmaxType + 1)
-          error->all(FLERR,"Compute SAED: Invalid ASF atom type");
+     }
+     if (ztype[i] == SAEDmaxType + 1)
+       error->all(FLERR,"Compute SAED: Invalid ASF atom type");
     iarg++;
   }
 
@@ -348,7 +347,7 @@ void ComputeSAED::compute_vector()
   if (me == 0 && echo)
     utils::logmesg(lmp,"-----\nComputing SAED intensities");
 
-  double t0 = MPI_Wtime();
+  double t0 = platform::walltime();
   double *Fvec = new double[2*nRows]; // Strct factor (real & imaginary)
   // -- Note, vector entries correspond to different RELP
 
@@ -491,7 +490,7 @@ void ComputeSAED::compute_vector()
     vector[i] = (scratch[2*i] * scratch[2*i] + scratch[2*i+1] * scratch[2*i+1]) / natoms;
   }
 
-  double t2 = MPI_Wtime();
+  double t2 = platform::walltime();
 
   // compute memory usage per processor
   double bytes = memory_usage();

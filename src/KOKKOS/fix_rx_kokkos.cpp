@@ -54,7 +54,7 @@ namespace /* anonymous */
 {
 
 typedef double TimerType;
-TimerType getTimeStamp(void) { return MPI_Wtime(); }
+TimerType getTimeStamp(void) { return platform::walltime(); }
 double getElapsedTime( const TimerType &t0, const TimerType &t1) { return t1-t0; }
 
 } // end namespace
@@ -2075,7 +2075,7 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
 
   // Local list views. (This isn't working!)
   NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
-  if (not(list->kokkos))
+  if (!list->kokkos)
      error->one(FLERR,"list is not a Kokkos list\n");
 
   //typename ArrayTypes<DeviceType>::t_neighbors_2d d_neighbors = k_list->d_neighbors;

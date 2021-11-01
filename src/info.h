@@ -42,19 +42,13 @@ class Info : public Command {
   static bool has_png_support();
   static bool has_jpeg_support();
   static bool has_ffmpeg_support();
+  static bool has_fft_single_support();
   static bool has_exceptions();
   static bool has_package(const std::string &);
   static bool has_accelerator_feature(const std::string &, const std::string &,
                                       const std::string &);
   static bool has_gpu_device();
   static std::string get_gpu_device_info();
-
-  static std::string get_os_info();
-  static std::string get_compiler_info();
-  static std::string get_openmp_info();
-  static std::string get_mpi_vendor();
-  static std::string get_mpi_info(int &, int &);
-  static std::string get_cxx_info();
   static std::string get_accelerator_info(const std::string &pkg = "");
 
   void get_memory_info(double *);

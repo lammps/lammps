@@ -6,7 +6,7 @@ dump image command
 dump movie command
 ==================
 
-(see below for image/move specific :ref:`dump_modify options <dump_modify_image>`)
+(see below for image/movie specific :ref:`dump_modify options <dump_modify_image>`)
 
 Syntax
 """"""

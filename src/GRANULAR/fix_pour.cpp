@@ -41,7 +41,6 @@ using namespace MathConst;
 
 enum{ATOM,MOLECULE};
 enum{ONE,RANGE,POLY};
-enum{CONSTANT,EQUAL};    // same as FixGravity
 
 #define EPSILON 0.001
 #define SMALL 1.0e-10
@@ -186,10 +185,12 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
   // grav = gravity in distance/time^2 units
   // assume grav = -magnitude at this point, enforce in init()
 
-  int ifix = modify->find_fix_by_style("^gravity");
-  if (ifix == -1)
-    error->all(FLERR,"No fix gravity defined for fix pour");
-  grav = - ((FixGravity *) modify->fix[ifix])->magnitude * force->ftm2v;
+  auto fixlist = modify->get_fix_by_style("^gravity");
+  if (fixlist.size() != 1)
+    error->all(FLERR,"There must be exactly one fix gravity defined for fix pour");
+  auto fixgrav = (FixGravity *)fixlist.front();
+
+  grav = -fixgrav->magnitude * force->ftm2v;
 
   // nfreq = timesteps between insertions
   // should be time for a particle to fall from top of insertion region
@@ -208,9 +209,8 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
     v_relative = vy - rate;
     delta = yhi - ylo;
   }
-  double t =
-    (-v_relative - sqrt(v_relative*v_relative - 2.0*grav*delta)) / grav;
-  nfreq = static_cast<int> (t/update->dt + 0.5);
+  double t = (-v_relative - sqrt(v_relative*v_relative - 2.0*grav*delta)) / grav;
+  nfreq = static_cast<int>(t/update->dt + 0.5);
 
   // 1st insertion on next timestep
 
@@ -309,17 +309,16 @@ void FixPour::init()
   // for 3d must point in -z, for 2d must point in -y
   // else insertion cannot work
 
-  int ifix = modify->find_fix_by_style("^gravity");
-  if (ifix == -1)
-    error->all(FLERR,"No fix gravity defined for fix pour");
-
-  int varflag = ((FixGravity *) modify->fix[ifix])->varflag;
-  if (varflag != CONSTANT)
+  auto fixlist = modify->get_fix_by_style("^gravity");
+  if (fixlist.size() != 1)
+    error->all(FLERR,"There must be exactly one fix gravity defined for fix pour");
+  auto fixgrav = (FixGravity *)fixlist.front();
+  if (fixgrav->varflag != FixGravity::CONSTANT)
     error->all(FLERR,"Fix gravity for fix pour must be constant");
 
-  double xgrav = ((FixGravity *) modify->fix[ifix])->xgrav;
-  double ygrav = ((FixGravity *) modify->fix[ifix])->ygrav;
-  double zgrav = ((FixGravity *) modify->fix[ifix])->zgrav;
+  double xgrav = fixgrav->xgrav;
+  double ygrav = fixgrav->ygrav;
+  double zgrav = fixgrav->zgrav;
 
   if (domain->dimension == 3) {
     if (fabs(xgrav) > EPSILON || fabs(ygrav) > EPSILON ||
@@ -331,37 +330,29 @@ void FixPour::init()
       error->all(FLERR,"Gravity must point in -y to use with fix pour in 2d");
   }
 
-  double gnew = - ((FixGravity *) modify->fix[ifix])->magnitude * force->ftm2v;
-  if (gnew != grav)
-    error->all(FLERR,"Gravity changed since fix pour was created");
+  double gnew = -fixgrav->magnitude * force->ftm2v;
+  if (gnew != grav) error->all(FLERR,"Gravity changed since fix pour was created");
 
   // if rigidflag defined, check for rigid/small fix
   // its molecule template must be same as this one
 
-  fixrigid = nullptr;
   if (rigidflag) {
-    int ifix = modify->find_fix(idrigid);
-    if (ifix < 0) error->all(FLERR,"Fix pour rigid fix does not exist");
-    fixrigid = modify->fix[ifix];
+    fixrigid = modify->get_fix_by_id(idrigid);
+    if (!fixrigid) error->all(FLERR,"Fix pour rigid fix does not exist");
     int tmp;
     if (onemols != (Molecule **) fixrigid->extract("onemol",tmp))
-      error->all(FLERR,
-                 "Fix pour and fix rigid/small not using "
-                 "same molecule template ID");
+      error->all(FLERR,"Fix pour and fix rigid/small not using same molecule template ID");
   }
 
   // if shakeflag defined, check for SHAKE fix
   // its molecule template must be same as this one
 
-  fixshake = nullptr;
   if (shakeflag) {
-    int ifix = modify->find_fix(idshake);
-    if (ifix < 0) error->all(FLERR,"Fix pour shake fix does not exist");
-    fixshake = modify->fix[ifix];
+    fixshake = modify->get_fix_by_id(idshake);
+    if (!fixshake) error->all(FLERR,"Fix pour shake fix does not exist");
     int tmp;
     if (onemols != (Molecule **) fixshake->extract("onemol",tmp))
-      error->all(FLERR,"Fix pour and fix shake not using "
-                 "same molecule template ID");
+      error->all(FLERR,"Fix pour and fix shake not using same molecule template ID");
   }
 }
 

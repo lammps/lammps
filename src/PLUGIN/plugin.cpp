@@ -19,17 +19,11 @@
 #include "error.h"
 #include "input.h"
 #include "force.h"
-#include "lammps.h"
 #include "modify.h"
 
+#include <cstring>
 #include <map>
 #include <list>
-
-#ifdef _WIN32
-#include <windows.h>
-#else
-#include <dlfcn.h>
-#endif
 
 namespace LAMMPS_NS
 {
@@ -87,31 +81,28 @@ namespace LAMMPS_NS
   {
 #if defined(LMP_PLUGIN)
     int me = lmp->comm->me;
-#if defined(WIN32)
-    lmp->error->all(FLERR,"Loading of plugins on Windows is not supported\n");
-#else
 
     // open DSO file from given path; load symbols globally
 
-    dlerror();
-    void *dso = dlopen(file,RTLD_NOW|RTLD_GLOBAL);
+    platform::dlerror();
+    void *dso = platform::dlopen(file);
     if (dso == nullptr) {
       if (me == 0)
-        utils::logmesg(lmp,"Open of file {} failed: {}\n",file,dlerror());
+        utils::logmesg(lmp,"Open of file {} failed: {}\n",file,platform::dlerror());
       return;
     }
 
     // look up lammpsplugin_init() function in DSO
     // function must have C bindings so there is no name mangling
 
-    dlerror();
-    void *initfunc = dlsym(dso,"lammpsplugin_init");
+    platform::dlerror();
+    void *initfunc = platform::dlsym(dso,"lammpsplugin_init");
     if (initfunc == nullptr) {
-      dlclose(dso);
+      platform::dlclose(dso);
 
       if (me == 0)
         utils::logmesg(lmp,"Plugin symbol lookup failure in file {}: {}\n",
-                       file,dlerror());
+                       file,platform::dlerror());
       return;
     }
 
@@ -121,7 +112,6 @@ namespace LAMMPS_NS
 
     (*(lammpsplugin_initfunc)(initfunc))((void *)lmp, dso,
                                          (void *)&plugin_register);
-#endif
 #endif
   }
 
@@ -410,9 +400,7 @@ namespace LAMMPS_NS
 
     -- dso_refcounter[handle];
     if (dso_refcounter[handle] == 0) {
-#ifndef WIN32
-      dlclose(handle);
-#endif
+      platform::dlclose(handle);
     }
 #endif
   }
@@ -476,8 +464,8 @@ namespace LAMMPS_NS
   const lammpsplugin_t *plugin_get_info(int idx)
   {
     int i=0;
-    for (auto p=pluginlist.begin(); p != pluginlist.end(); ++p) {
-      if (i == idx) return &(*p);
+    for (auto & p : pluginlist) {
+      if (i == idx) return &p;
       ++i;
     }
     return nullptr;

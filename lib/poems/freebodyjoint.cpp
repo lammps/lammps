@@ -30,8 +30,7 @@ FreeBodyJoint::FreeBodyJoint(){
   DimQandU(7,6);
 }
 
-FreeBodyJoint::~FreeBodyJoint(){
-}
+FreeBodyJoint::~FreeBodyJoint() = default;
 
 JointType FreeBodyJoint::GetType(){
   return FREEBODYJOINT;

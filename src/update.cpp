@@ -335,8 +335,7 @@ void Update::create_integrate(int narg, char **arg, int trysuffix)
     if (sflag == 1) estyle += lmp->suffix;
     else  estyle += lmp->suffix2;
   }
-  integrate_style = new char[estyle.size()+1];
-  strcpy(integrate_style,estyle.c_str());
+  integrate_style = utils::strdup(estyle);
 }
 
 /* ----------------------------------------------------------------------
@@ -406,8 +405,7 @@ void Update::create_minimize(int narg, char **arg, int trysuffix)
     if (sflag == 1) estyle += lmp->suffix;
     else estyle += lmp->suffix2;
   }
-  minimize_style = new char[estyle.size()+1];
-  strcpy(minimize_style,estyle.c_str());
+  minimize_style = utils::strdup(estyle);
 }
 
 /* ----------------------------------------------------------------------

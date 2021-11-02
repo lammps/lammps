@@ -4,11 +4,6 @@
 # availability of the PYTHON package is tested for inside the tester.
 
 set(TEST_INPUT_FOLDER ${CMAKE_CURRENT_SOURCE_DIR})
-add_executable(test_python_package test_python_package.cpp)
-target_link_libraries(test_python_package PRIVATE lammps GTest::GMock GTest::GTest)
-target_compile_definitions(test_python_package PRIVATE -DTEST_INPUT_FOLDER=${TEST_INPUT_FOLDER})
-add_test(NAME PythonPackage COMMAND test_python_package WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-set_tests_properties(PythonPackage PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:${LAMMPS_PYTHON_DIR}:$ENV{PYTHONPATH};PYTHONUNBUFFERED=1")
 
 # we must have shared libraries enabled for testing the python module
 if(NOT BUILD_SHARED_LIBS)
@@ -22,8 +17,19 @@ if(CMAKE_VERSION VERSION_LESS 3.12)
     set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
   endif()
 else()
-  find_package(Python3 COMPONENTS Interpreter)
+  find_package(Python3 COMPONENTS Interpreter Development)
 endif()
+
+add_executable(test_python_package test_python_package.cpp)
+target_link_libraries(test_python_package PRIVATE lammps GTest::GMock GTest::GTest)
+target_compile_definitions(test_python_package PRIVATE -DTEST_INPUT_FOLDER=${TEST_INPUT_FOLDER})
+# this requires CMake 3.12. don't care to add backward compatibility for this.
+if(Python3_Development_FOUND)
+  target_compile_definitions(test_python_package PRIVATE -DTEST_HAVE_PYTHON_DEVELOPMENT=1)
+  target_link_libraries(test_python_package PRIVATE Python3::Python)
+endif()
+add_test(NAME PythonPackage COMMAND test_python_package WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+set_tests_properties(PythonPackage PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:${LAMMPS_PYTHON_DIR}:$ENV{PYTHONPATH};PYTHONUNBUFFERED=1")
 
 if(Python_EXECUTABLE)
   # prepare to augment the environment so that the LAMMPS python module and the shared library is found.

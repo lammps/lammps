@@ -39,7 +39,7 @@ class ReaderMolfile : public Reader {
                              int &, int &, int &);
   virtual void read_atoms(int, int, double **);
 
-  virtual void open_file(const char *);
+  virtual void open_file(const std::string &);
   virtual void close_file();
 
  private:

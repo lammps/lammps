@@ -30,12 +30,14 @@
 #include "utils.h"
 #include "update.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 PairTracker::PairTracker(LAMMPS *lmp) :
-    Pair(lmp), pack_choice(NULL)
+    Pair(lmp), pack_choice(nullptr)
 {
   single_enable = 1;
   no_virial_fdotr_compute = 1;
@@ -84,7 +86,7 @@ PairTracker::~PairTracker()
 
   delete[] pack_choice;
 
-  delete [] id_fix_store_local;
+  delete[] id_fix_store_local;
   memory->destroy(output_data);
   memory->destroy(type_filter);
 }
@@ -273,10 +275,9 @@ void PairTracker::settings(int narg, char **arg)
     } else if (strcmp(arg[iarg], "type/include") == 0) {
       if (iarg + 1 >= narg) error->all(FLERR, "Invalid keyword in pair tracker command");
       int ntypes = atom->ntypes;
-
-      int i, j, itype, jtype, in, jn, infield, jnfield;
+      int i, j, itype, jtype;
       int inlo, inhi, jnlo, jnhi;
-      char *istr, *jstr;
+
       if (!type_filter) {
         memory->create(type_filter, ntypes + 1, ntypes + 1, "pair/tracker:type_filter");
 
@@ -285,24 +286,12 @@ void PairTracker::settings(int narg, char **arg)
         }
       }
 
-      in = strlen(arg[iarg + 1]) + 1;
-      istr = new char[in];
-      strcpy(istr, arg[iarg + 1]);
-      std::vector<std::string> iwords = Tokenizer(istr, ",").as_vector();
-      infield = iwords.size();
+      auto iwords = Tokenizer(arg[iarg + 1], ",").as_vector();
+      auto jwords = Tokenizer(arg[iarg + 2], ",").as_vector();
 
-      jn = strlen(arg[iarg + 2]) + 1;
-      jstr = new char[jn];
-      strcpy(jstr, arg[iarg + 2]);
-      std::vector<std::string> jwords = Tokenizer(jstr, ",").as_vector();
-      jnfield = jwords.size();
-
-      for (i = 0; i < infield; i++) {
-        const char *ifield = iwords[i].c_str();
+      for (const auto &ifield : iwords) {
         utils::bounds(FLERR, ifield, 1, ntypes, inlo, inhi, error);
-
-        for (j = 0; j < jnfield; j++) {
-          const char *jfield = jwords[j].c_str();
+        for (const auto &jfield : jwords) {
           utils::bounds(FLERR, jfield, 1, ntypes, jnlo, jnhi, error);
 
           for (itype = inlo; itype <= inhi; itype++) {
@@ -313,8 +302,6 @@ void PairTracker::settings(int narg, char **arg)
           }
         }
       }
-      delete[] istr;
-      delete[] jstr;
       iarg += 2;
 
     } else {
@@ -465,7 +452,7 @@ double PairTracker::init_one(int i, int j)
   if (!allocated) allocate();
 
   // always mix prefactors geometrically
-  if (setflag[i][j] == 0) { cut[i][j] = mix_distance(cut[i][i], cut[j][j]); }
+  if (setflag[i][j] == 0) cut[i][j] = mix_distance(cut[i][i], cut[j][j]);
 
   cut[j][i] = cut[i][j];
 
@@ -494,7 +481,7 @@ void PairTracker::write_restart(FILE *fp)
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
       fwrite(&setflag[i][j], sizeof(int), 1, fp);
-      if (setflag[i][j]) { fwrite(&cut[i][j], sizeof(double), 1, fp); }
+      if (setflag[i][j]) fwrite(&cut[i][j], sizeof(double), 1, fp);
     }
 }
 
@@ -514,7 +501,7 @@ void PairTracker::read_restart(FILE *fp)
       if (me == 0) utils::sfread(FLERR, &setflag[i][j], sizeof(int), 1, fp, nullptr, error);
       MPI_Bcast(&setflag[i][j], 1, MPI_INT, 0, world);
       if (setflag[i][j]) {
-        if (me == 0) { utils::sfread(FLERR, &cut[i][j], sizeof(double), 1, fp, nullptr, error); }
+        if (me == 0) utils::sfread(FLERR, &cut[i][j], sizeof(double), 1, fp, nullptr, error);
         MPI_Bcast(&cut[i][j], 1, MPI_DOUBLE, 0, world);
       }
     }
@@ -618,7 +605,7 @@ void PairTracker::pack_time_broken(int n, int i, int j, double * data)
 void PairTracker::pack_time_total(int n, int i, int j, double * data)
 {
   double time = update->atime + (update->ntimestep - update->atimestep) * update->dt;
-  double time_initial = data[0];  
+  double time_initial = data[0];
   output_data[n] = time - time_initial;
 }
 

@@ -231,7 +231,6 @@ void PairEIM::compute(int eflag, int vflag)
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    itype = type[i];
     if (eflag) {
       phi = 0.5*rho[i]*fp[i];
       if (eflag_global) eng_vdwl += phi;

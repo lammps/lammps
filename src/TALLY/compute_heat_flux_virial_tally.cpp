@@ -22,8 +22,6 @@
 #include "pair.h"
 #include "update.h"
 
-#include <cmath>
-
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */

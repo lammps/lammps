@@ -7,6 +7,10 @@ add_executable(test_image_flags test_image_flags.cpp)
 target_link_libraries(test_image_flags PRIVATE lammps GTest::GMock GTest::GTest)
 add_test(NAME ImageFlags COMMAND test_image_flags WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
+add_executable(test_input_convert test_input_convert.cpp)
+target_link_libraries(test_input_convert PRIVATE lammps GTest::GMockMain GTest::GMock GTest::GTest)
+add_test(NAME InputConvert COMMAND test_input_convert WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
 add_executable(test_molecule_file test_molecule_file.cpp)
 target_link_libraries(test_molecule_file PRIVATE lammps GTest::GMock GTest::GTest)
 add_test(NAME MoleculeFile COMMAND test_molecule_file WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})

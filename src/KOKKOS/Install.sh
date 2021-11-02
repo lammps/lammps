@@ -109,6 +109,8 @@ action domain_kokkos.h
 action fftdata_kokkos.h fft3d.h
 action fft3d_kokkos.cpp fft3d.cpp
 action fft3d_kokkos.h fft3d.h
+action fix_acks2_reaxff_kokkos.cpp fix_acks2_reaxff.cpp
+action fix_acks2_reaxff_kokkos.h fix_acks2_reaxff.h
 action fix_deform_kokkos.cpp
 action fix_deform_kokkos.h
 action fix_enforce2d_kokkos.cpp
@@ -163,8 +165,8 @@ action fix_dpd_energy_kokkos.cpp fix_dpd_energy.cpp
 action fix_dpd_energy_kokkos.h fix_dpd_energy.h
 action fix_rx_kokkos.cpp fix_rx.cpp
 action fix_rx_kokkos.h fix_rx.h
-action gridcomm_kokkos.cpp gridcomm.cpp
-action gridcomm_kokkos.h gridcomm.h
+action gridcomm_kokkos.cpp fft3d.h
+action gridcomm_kokkos.h fft3d.h
 action improper_class2_kokkos.cpp improper_class2.cpp
 action improper_class2_kokkos.h improper_class2.h
 action improper_harmonic_kokkos.cpp improper_harmonic.cpp

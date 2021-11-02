@@ -20,7 +20,6 @@
 
 #include "file_writer.h"
 
-#include <exception>
 #include <string>
 #include <zlib.h>
 

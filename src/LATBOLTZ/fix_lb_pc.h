@@ -50,7 +50,7 @@ class FixLbPC : public Fix {
   double **up;
   double **up_old;
 
-  void compute_up(void);
+  void compute_up();
   class FixLbFluid *fix_lb_fluid;
 };
 

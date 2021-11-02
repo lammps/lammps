@@ -127,7 +127,7 @@ void NPairHalfSizeMultiNewtonOmp::build(NeighList *list)
         //   if j is ghost, only store if j coords are "above and to the right" of i
 
         for (j = js; j >= 0; j = bins[j]) {
-          if(icollection != jcollection and j < i) continue;
+          if(icollection != jcollection && j < i) continue;
 
               if (j >= nlocal) {
                 if (x[j][2] < ztmp) continue;

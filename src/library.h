@@ -35,7 +35,7 @@
 #endif
 
 #if defined(LAMMPS_BIGBIG) || defined(LAMMPS_SMALLBIG)
-#include <inttypes.h> /* for int64_t */
+#include <stdint.h> /* for int64_t */
 #endif
 
 /** Data type constants for extracting data from atoms, computes and fixes
@@ -95,6 +95,7 @@ void lammps_close(void *handle);
 void lammps_mpi_init();
 void lammps_mpi_finalize();
 void lammps_kokkos_finalize();
+void lammps_python_finalize();
 
 /* ----------------------------------------------------------------------
  * Library functions to process commands

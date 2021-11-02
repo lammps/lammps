@@ -30,8 +30,7 @@
 SphericalJoint::SphericalJoint(){
   DimQandU(4,3);
 }
-SphericalJoint::~SphericalJoint(){
-}
+SphericalJoint::~SphericalJoint() = default;
 
 JointType SphericalJoint::GetType(){
   return SPHERICALJOINT;

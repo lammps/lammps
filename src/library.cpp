@@ -33,17 +33,18 @@
 #include "group.h"
 #include "info.h"
 #include "input.h"
+#include "lmppython.h"
 #include "memory.h"
 #include "modify.h"
 #include "molecule.h"
 #include "neigh_list.h"
 #include "neighbor.h"
-#include "region.h"
-#include "respa.h"
 #include "output.h"
 #if defined(LMP_PLUGIN)
 #include "plugin.h"
 #endif
+#include "region.h"
+#include "respa.h"
 #include "thermo.h"
 #include "timer.h"
 #include "universe.h"
@@ -51,7 +52,6 @@
 #include "variable.h"
 
 #include <cstring>
-#include <vector>
 
 #if defined(LAMMPS_EXCEPTIONS)
 #include "exceptions.h"
@@ -339,6 +339,8 @@ function no more MPI calls may be made.
 
 .. versionadded:: 18Sep2020
 
+*See also*
+   :cpp:func:`lammps_kokkos_finalize`, :cpp:func:`lammps_python_finalize`
 \endverbatim */
 
 void lammps_mpi_finalize()
@@ -369,11 +371,49 @@ After calling this function no Kokkos functionality may be used.
 
 .. versionadded:: 2Jul2021
 
+*See also*
+   :cpp:func:`lammps_mpi_finalize`, :cpp:func:`lammps_python_finalize`
 \endverbatim */
 
 void lammps_kokkos_finalize()
 {
   KokkosLMP::finalize();
+}
+
+/* ---------------------------------------------------------------------- */
+
+/** Clear the embedded Python environment
+ *
+\verbatim embed:rst
+
+This function resets and clears an embedded Python environment
+by calling the `Py_Finalize() function
+<https://docs.python.org/3/c-api/init.html#c.Py_FinalizeEx>`_
+of the embedded Python library, if enabled.
+This call would free up all allocated resources and release
+loaded shared objects.
+
+However, this is **not** done when a LAMMPS instance is deleted because
+a) LAMMPS may have been used through the Python module and thus
+the Python interpreter is external and not embedded into LAMMPS
+and therefore may not be reset by LAMMPS b) some Python modules
+and extensions, most notably NumPy, are not compatible with being
+initialized multiple times, which would happen if additional
+LAMMPS instances using Python would be created *after*
+after calling Py_Finalize().
+
+This function can be called to explicitly clear the Python
+environment in case it is safe to do so.
+
+.. versionadded:: TBD
+
+*See also*
+   :cpp:func:`lammps_mpi_finalize`, :cpp:func:`lammps_kokkos_finalize`
+\endverbatim */
+
+void lammps_python_finalize()
+{
+  Python::finalize();
 }
 
 // ----------------------------------------------------------------------
@@ -2712,7 +2752,7 @@ Below is a brief C code demonstrating accessing this collected bond information.
 
    #include <stdio.h>
    #include <stdlib.h>
-   #include <inttypes.h>
+   #include <stdint.h>
    #include "library.h"
 
    int main(int argc, char **argv)
@@ -4354,9 +4394,9 @@ void lammps_get_os_info(char *buffer, int buf_size)
 {
   if (buf_size <=0) return;
   buffer[0] = buffer[buf_size-1] = '\0';
-  std::string txt = Info::get_os_info() + "\n";
-  txt += Info::get_compiler_info();
-  txt += " with " + Info::get_openmp_info() + "\n";
+  std::string txt = platform::os_info() + "\n";
+  txt += platform::compiler_info();
+  txt += " with " + platform::openmp_standard() + "\n";
   strncpy(buffer, txt.c_str(), buf_size-1);
 }
 
@@ -4380,15 +4420,16 @@ int lammps_config_has_mpi_support()
 
 /* ---------------------------------------------------------------------- */
 
-/** Check if the LAMMPS library supports compressed files via a pipe to gzip
+/** Check if the LAMMPS library supports reading or writing compressed
+ * files via a pipe to gzip or similar compression programs
 
 \verbatim embed:rst
 Several LAMMPS commands (e.g. :doc:`read_data`, :doc:`write_data`,
 :doc:`dump styles atom, custom, and xyz <dump>`) support reading and
 writing compressed files via creating a pipe to the ``gzip`` program.
 This function checks whether this feature was :ref:`enabled at compile
-time <gzip>`. It does **not** check whether the ``gzip`` itself is
-installed and usable.
+time <gzip>`. It does **not** check whether``gzip`` or any other
+supported compression programs themselves are installed and usable.
 \endverbatim
  *
  * \return 1 if yes, otherwise 0

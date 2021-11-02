@@ -486,7 +486,7 @@ void PairEDIPMulti::edip_fcut3(double r, Param *param, double &f, double &fdr)
    pre-calculated structures
 ------------------------------------------------------------------------- */
 
-void PairEDIPMulti::allocatePreLoops(void)
+void PairEDIPMulti::allocatePreLoops()
 {
   int nthreads = comm->nthreads;
 
@@ -497,7 +497,7 @@ void PairEDIPMulti::allocatePreLoops(void)
    deallocate preLoops
 ------------------------------------------------------------------------- */
 
-void PairEDIPMulti::deallocatePreLoops(void)
+void PairEDIPMulti::deallocatePreLoops()
 {
   memory->destroy(preForceCoord);
 }
@@ -602,7 +602,7 @@ void PairEDIPMulti::read_file(char *file)
   char line[MAXLINE],*ptr;
   int eof = 0;
 
-  while (1) {
+  while (true) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
       if (ptr == nullptr) {

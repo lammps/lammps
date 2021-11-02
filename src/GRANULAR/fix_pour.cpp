@@ -268,16 +268,9 @@ FixPour::FixPour(LAMMPS *lmp, int narg, char **arg) :
 
   // print stats
 
-  if (me == 0) {
-    if (screen)
-      fprintf(screen,
-              "Particle insertion: %d every %d steps, %d by step %d\n",
-              nper,nfreq,ninsert,nfinal);
-    if (logfile)
-      fprintf(logfile,
-              "Particle insertion: %d every %d steps, %d by step %d\n",
-              nper,nfreq,ninsert,nfinal);
-  }
+  if (me == 0)
+    utils::logmesg(lmp, "Particle insertion: {} every {} steps, {} by step {}\n",
+                   nper,nfreq,ninsert,nfinal);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -858,7 +851,7 @@ void FixPour::xyz_random(double h, double *coord)
       coord[2] = h;
     } else {
       double r1,r2;
-      while (1) {
+      while (true) {
         r1 = random->uniform() - 0.5;
         r2 = random->uniform() - 0.5;
         if (r1*r1 + r2*r2 < 0.25) break;

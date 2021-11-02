@@ -17,22 +17,22 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_eam_fs_kokkos.h"
-#include <cmath>
-#include <cstring>
-#include "kokkos.h"
-#include "pair_kokkos.h"
+
 #include "atom_kokkos.h"
-#include "force.h"
+#include "atom_masks.h"
 #include "comm.h"
-#include "neighbor.h"
+#include "error.h"
+#include "force.h"
+#include "kokkos.h"
+#include "memory_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "neigh_request.h"
-#include "memory_kokkos.h"
-#include "error.h"
-#include "atom_masks.h"
-
-#include "tokenizer.h"
+#include "neighbor.h"
+#include "pair_kokkos.h"
 #include "potential_file_reader.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -43,9 +43,9 @@ using namespace LAMMPS_NS;
 template<class DeviceType>
 PairEAMFSKokkos<DeviceType>::PairEAMFSKokkos(LAMMPS *lmp) : PairEAM(lmp)
 {
-  one_coeff = 1;
-  manybody_flag = 1;
   respa_enable = 0;
+  single_enable = 0;
+  one_coeff = 1;
 
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
@@ -200,9 +200,9 @@ void PairEAMFSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // communicate derivative of embedding function (on the device)
 
-  k_fp.template sync<DeviceType>();
-  comm->forward_comm_pair(this);
   k_fp.template modify<DeviceType>();
+  comm->forward_comm_pair(this);
+  k_fp.template sync<DeviceType>();
 
   // compute kernel C
 
@@ -321,6 +321,11 @@ void PairEAMFSKokkos<DeviceType>::init_style()
   }
 
 }
+
+/* ----------------------------------------------------------------------
+   convert read-in funcfl potential(s) to standard array format
+   interpolate all file values to a single grid and cutoff
+------------------------------------------------------------------------- */
 
 template<class DeviceType>
 void PairEAMFSKokkos<DeviceType>::file2array()
@@ -581,8 +586,8 @@ void PairEAMFSKokkos<DeviceType>::operator()(TagPairEAMFSKernelA<NEIGHFLAG,NEWTO
                   d_rhor_spline(d_type2rhor_ji,m,5))*p + d_rhor_spline(d_type2rhor_ji,m,6);
       if (NEWTON_PAIR || j < nlocal) {
         const int d_type2rhor_ij = d_type2rhor(itype,jtype);
-       a_rho[j] += ((d_rhor_spline(d_type2rhor_ij,m,3)*p + d_rhor_spline(d_type2rhor_ij,m,4))*p +
-                    d_rhor_spline(d_type2rhor_ij,m,5))*p + d_rhor_spline(d_type2rhor_ij,m,6);
+        a_rho[j] += ((d_rhor_spline(d_type2rhor_ij,m,3)*p + d_rhor_spline(d_type2rhor_ij,m,4))*p +
+                      d_rhor_spline(d_type2rhor_ij,m,5))*p + d_rhor_spline(d_type2rhor_ij,m,6);
       }
     }
 
@@ -620,7 +625,6 @@ void PairEAMFSKokkos<DeviceType>::operator()(TagPairEAMFSKernelB<EFLAG>, const i
     if (eflag_global) ev.evdwl += phi;
     if (eflag_atom) d_eatom[i] += phi;
   }
-
 }
 
 template<class DeviceType>

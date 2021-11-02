@@ -20,19 +20,17 @@
 
 #include "atom.h"
 #include "error.h"
+#include "integrate.h"
 #include "fix_mdi_engine.h"
-#include "force.h"
 #include "mdi.h"
 #include "min.h"
-#include "minimize.h"
 #include "modify.h"
 #include "output.h"
 #include "timer.h"
 #include "update.h"
-#include "verlet.h"
 
+#include <cstring>
 #include <limits>
-#include <string.h>
 
 using namespace LAMMPS_NS;
 
@@ -202,7 +200,7 @@ void MDIEngine::command(int narg, char ** /*arg*/)
 
   char *command;
 
-  while (1) {
+  while (true) {
 
     // mdi/engine command only recognizes three nodes
     // DEFAULT, INIT_MD, INIT_OPTG
@@ -267,7 +265,7 @@ char *MDIEngine::mdi_md()
 
   // run MD one step at a time
 
-  while (1) {
+  while (true) {
     update->whichflag = 1;
     timer->init_timeout();
     update->nsteps += 1;

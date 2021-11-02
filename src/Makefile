@@ -2,6 +2,7 @@
 
 SHELL = /bin/bash
 PYTHON = python
+DYN_LIB = -ldl
 
 #.IGNORE:
 
@@ -262,12 +263,11 @@ uppercase_internal=$(if $1,$$(subst $(firstword $1),$(call uppercase_internal,$(
 uppercase=$(eval uppercase_RESULT:=$(call uppercase_internal,$(uppercase_TABLE),$1))$(uppercase_RESULT)
 
 PACKAGEUC = $(call uppercase,$(PACKAGE))
-PACKUSERUC = $(call uppercase,$(PACKUSER))
+PACKAGESORTED = $(sort $(PACKAGEUC))
 
 YESDIR = $(call uppercase,$(@:yes-%=%))
 NODIR  = $(call uppercase,$(@:no-%=%))
 LIBDIR = $(@:lib-%=%)
-LIBUSERDIR = $(@:lib-%=%)
 
 # List of all targets
 
@@ -334,7 +334,7 @@ lmpinstalledpkgs.h: $(SRC) $(INC)
 	@echo '#ifndef LMP_INSTALLED_PKGS_H' >  ${TMPNAME}.lmpinstalled
 	@echo '#define LMP_INSTALLED_PKGS_H' >> ${TMPNAME}.lmpinstalled
 	@echo 'const char * LAMMPS_NS::LAMMPS::installed_packages[] = {' >> ${TMPNAME}.lmpinstalled
-	@for p in $(PACKAGEUC) $(PACKUSERUC); do info=$$($(SHELL) Package.sh $$p installed); \
+	@for p in $(PACKAGEUC); do info=$$($(SHELL) Package.sh $$p installed); \
              [ -n "$$info" ] && echo "\"$$info\"" | sed -e 's/".*package \(.*\)"/"\1",/' >> ${TMPNAME}.lmpinstalled || :; done
 	@echo ' NULL };' >> ${TMPNAME}.lmpinstalled
 	@echo '#endif' >> ${TMPNAME}.lmpinstalled
@@ -403,14 +403,14 @@ ifeq ($(mode),static)
 	@cd $(objdir); \
 	$(MAKE) $(MFLAGS) "OBJ = $(OBJLIB)" "INC = $(INC)" "SHFLAGS =" \
 	  "LMPLIB = $(ARLIB)" "ARLIB = $(ARLIB)" "SHLIB = $(SHLIB)" \
-	  "LMPLINK = $(LMPLINK)" "EXE = ../$(EXE)" ../$(EXE)
+	  "LMPLINK = $(LMPLINK)" "DYN_LIB = $(DYN_LIB)" "EXE = ../$(EXE)" ../$(EXE)
 	@ln -s $(ARLIB) $(ARLINK)
 endif
 ifeq ($(mode),shared)
 	@cd $(objdir); \
 	$(MAKE) $(MFLAGS) "OBJ = $(OBJLIB)" "INC = $(INC)" \
 	  "LMPLIB = $(SHLIB)" "ARLIB = $(ARLIB)" "SHLIB = $(SHLIB)" \
-	  "LMPLINK = $(LMPLINK)" "EXE = ../$(EXE)" ../$(EXE)
+	  "LMPLINK = $(LMPLINK)" "DYN_LIB = $(DYN_LIB)" "EXE = ../$(EXE)" ../$(EXE)
 	@ln -s $(SHLIB) $(SHLINK)
 endif
 # backward compatibility
@@ -471,7 +471,7 @@ tar:
 	@cd ..; tar cvzf src/$(ROOT)_src.tar.gz \
 	  src/Make* src/Package.sh src/Depend.sh src/Install.sh src/Fetch.sh \
 	  src/MAKE src/DEPEND src/*.cpp src/*.h src/STUBS \
-	  $(patsubst %,src/%,$(PACKAGEUC)) $(patsubst %,src/%,$(PACKUSERUC)) \
+	  $(patsubst %,src/%,$(PACKAGEUC)) \
           --exclude=*/.svn
 	@cd STUBS; $(MAKE)
 	@echo "Created $(ROOT)_src.tar.gz"
@@ -504,9 +504,7 @@ format-tests:
 # Package management
 
 package:
-	@echo 'Standard packages:' $(PACKAGE)
-	@echo ''
-	@echo 'User-contributed packages:' $(PACKUSER)
+	@echo 'Available packages:' $(PACKAGE)
 	@echo ''
 	@echo 'Packages that need system libraries:' $(PACKSYS)
 	@echo ''
@@ -617,9 +615,6 @@ lib-%:
 	@if [ -e ../lib/$(LIBDIR)/Install.py ]; then \
 	  echo "Installing lib $(@:lib-%=%)"; \
 	  ( cd ../lib/$(LIBDIR); $(PYTHON) Install.py $(args) ); \
-	elif [ -e ../lib/$(LIBUSERDIR)/Install.py ]; then \
-	  echo "Installing lib $(@:lib-%=%)"; \
-	  ( cd ../lib/$(LIBUSERDIR); $(PYTHON) Install.py $(args) ); \
 	else \
 	  echo "Install script for lib $(@:lib-%=%) does not exist"; \
 	fi; touch main.cpp
@@ -632,28 +627,21 @@ lib-%:
 # purge = delete obsolete and auto-generated package files
 
 package-status ps:
-	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p status; done
-	@echo ''
-	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p status; done
+	@for p in $(PACKAGESORTED); do $(SHELL) Package.sh $$p status; done
 
 package-installed pi:
-	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p installed; done
-	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p installed; done
+	@for p in $(PACKAGESORTED); do $(SHELL) Package.sh $$p installed; done
 
 package-update pu: purge
+	@echo 'Updating installed packages:'
 	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p update; done
-	@echo ''
-	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p update; done
 
 package-overwrite: purge
-	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p overwrite; done
-	@echo ''
-	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p overwrite; done
+	@echo 'Overwriting installed packages:'
+	@for p in $(PACKAGESORTED); do $(SHELL) Package.sh $$p overwrite; done
 
 package-diff pd:
-	@for p in $(PACKAGEUC); do $(SHELL) Package.sh $$p diff; done
-	@echo ''
-	@for p in $(PACKUSERUC); do $(SHELL) Package.sh $$p diff; done
+	@for p in $(PACKAGESORTED); do $(SHELL) Package.sh $$p diff; done
 
 purge: Purge.list
 	@echo 'Purging obsolete and auto-generated source files'

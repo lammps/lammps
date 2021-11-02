@@ -100,7 +100,6 @@ class Comm : protected Pointers {
 
   virtual void forward_comm_array(int, double **) = 0;
   virtual int exchange_variable(int, double *, double *&) = 0;
-  int binary(double, int, double *);
 
   // map a point to a processor, based on current decomposition
 

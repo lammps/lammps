@@ -30,6 +30,7 @@
 #include "error.h"
 #include "force.h"
 #include "memory.h"
+#include "neighbor.h"
 #include "neigh_list.h"
 #include "potential_file_reader.h"
 #include "tokenizer.h"
@@ -137,16 +138,16 @@ void PairLebedevaZ::compute(int eflag, int vflag)
         // derivatives
         fpair = -6.0*p.A*p.z06/r8+p.B*p.alpha*exp1/r; // used for x,y,z
         der   = p.D1+2*p.D2*rhosq-p.lambda1*sumD; // used for x,y
-        fxy   = fpair - 2*p.C*exp2*exp3*der;
-        fz    = fpair + 2*p.C*p.lambda2*sumD*exp2*exp3;
+        fxy   = 2*p.C*exp2*exp3*der;
+        fz    = 2*p.C*p.lambda2*sumD*exp2*exp3;
 
-        f[i][0] += delx*fxy;
-        f[i][1] += dely*fxy;
-        f[i][2] += delz*fz;
+        f[i][0] += delx*(fpair-fxy);
+        f[i][1] += dely*(fpair-fxy);
+        f[i][2] += delz*(fpair+fz);
         if (newton_pair || j < nlocal) {
-          f[j][0] -= delx*fxy;
-          f[j][1] -= dely*fxy;
-          f[j][2] -= delz*fz;
+          f[j][0] -= delx*(fpair-fxy);
+          f[j][1] -= dely*(fpair-fxy);
+          f[j][2] -= delz*(fpair+fz);
         }
 
         if (eflag) {
@@ -154,8 +155,18 @@ void PairLebedevaZ::compute(int eflag, int vflag)
         }
 
         if (evflag) {
-          ev_tally_xyz(i,j,nlocal,newton_pair,evdwl,0,
-                       -fxy,-fxy,-fz,delx,dely,delz);
+          ev_tally(i, j, nlocal, newton_pair, evdwl, 0.0, fpair, delx, dely, delz);
+          if (vflag_either) {
+            double fi[3],fj[3];
+            fi[0] = -delx * fxy;
+            fi[1] = -dely * fxy;
+            fi[2] =  delz * fz;
+            fj[0] =  delx * fxy;
+            fj[1] =  dely * fxy;
+            fj[2] = -delz * fz;
+            v_tally2_newton(i,fi,x[i]);
+            v_tally2_newton(j,fj,x[j]);
+          }
         }
       }
     }
@@ -224,6 +235,18 @@ void PairLebedevaZ::coeff(int narg, char **arg)
   }
 
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+}
+
+/* ----------------------------------------------------------------------
+   init specific to this pair style
+------------------------------------------------------------------------- */
+
+void PairLebedevaZ::init_style()
+{
+  if (force->newton_pair == 0)
+    error->all(FLERR,"Pair style lebedeva/z requires newton pair on");
+
+  neighbor->request(this,instance_me);
 }
 
 /* ----------------------------------------------------------------------

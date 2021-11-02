@@ -29,7 +29,7 @@ The following folks deserve special recognition.  Many of the packages
 they have written are unique for an MD code and LAMMPS would not be as
 general-purpose as it is without their expertise and efforts.
 
-* Metin Aktulga (MSU), REAXFF package for C version of ReaxFF
+* Metin Aktulga (MSU), REAXFF package for C/C++ version of ReaxFF
 * Mike Brown (Intel), GPU and INTEL packages
 * Colin Denniston (U Western Ontario), LATBOLTZ package
 * Georg Ganzenmuller (EMI), MACHDYN and SPH packages
@@ -37,9 +37,10 @@ general-purpose as it is without their expertise and efforts.
 * Reese Jones (Sandia) and colleagues, ATC package for atom/continuum coupling
 * Christoph Kloss (DCS Computing), LIGGGHTS code for granular materials, built on top of LAMMPS
 * Rudra Mukherjee (JPL), POEMS package for articulated rigid body motion
-* Trung Ngyuen (Northwestern U), GPU and RIGID and BODY packages
+* Trung Ngyuen (Northwestern U), GPU, RIGID, BODY, and DIELECTRIC packages
 * Mike Parks (Sandia), PERI package for Peridynamics
 * Roy Pollock (LLNL), Ewald and PPPM solvers
+* Julien Tranchida (Sandia), SPIN package
 * Christian Trott (Sandia), CUDA and KOKKOS packages
 * Ilya Valuev (JIHT), AWPMD package for wave packet MD
 * Greg Wagner (Northwestern U), MEAM package for MEAM potential

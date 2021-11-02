@@ -12,6 +12,7 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_store_local.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
@@ -36,16 +37,16 @@ FixStoreLocal::FixStoreLocal(LAMMPS *lmp, int narg, char **arg) :
   local_freq = nevery;
 
   nvalues = utils::inumeric(FLERR, arg[4], false, lmp);
-  
+
   if (nvalues <= 0) error->all(FLERR, "Illegal fix store/local command");
   if (nvalues == 1)
     size_local_cols = 0;
   else
     size_local_cols = nvalues;
   size_local_rows = 0;
-  
+
   vector = nullptr;
-  array = nullptr;  
+  array = nullptr;
   nmax = 0;
   ncount = 0;
 }
@@ -74,9 +75,9 @@ void FixStoreLocal::add_data(double *input_data, int i, int j)
   int *mask = atom->mask;
   if (!(mask[i] & groupbit)) return;
   if (!(mask[j] & groupbit)) return;
-  
+
   if (ncount >= nmax) reallocate(ncount);
-  
+
   // fill vector or array with local values
   if (nvalues == 1) {
     vector[ncount] = input_data[0];
@@ -114,7 +115,7 @@ void FixStoreLocal::reallocate(int n)
 }
 
 /* ----------------------------------------------------------------------
-   write global array to restart file 
+   write global array to restart file
 ------------------------------------------------------------------------- */
 
 void FixStoreLocal::write_restart(FILE *fp)
@@ -123,14 +124,14 @@ void FixStoreLocal::write_restart(FILE *fp)
 
   rbuf[0] = nmax;
   rbuf[1] = nvalues;
-  if (nvalues == 1) memcpy(&rbuf[2],vector,sizeof(double)*nmax);
-  else memcpy(&rbuf[2],&array[0][0],sizeof(double)*nmax*nvalues);
+  if (nvalues == 1) memcpy(&rbuf[2], vector, sizeof(double) * nmax);
+  else memcpy(&rbuf[2], &array[0][0], sizeof(double) * nmax * nvalues);
 
-  int n = nmax*nvalues + 2;
+  int n = nmax * nvalues + 2;
   if (comm->me == 0) {
     int size = n * sizeof(double);
-    fwrite(&size,sizeof(int),1,fp);
-    fwrite(rbuf,sizeof(double),n,fp);
+    fwrite(&size, sizeof(int), 1, fp);
+    fwrite(rbuf, sizeof(double), n, fp);
   }
 }
 
@@ -160,14 +161,14 @@ void FixStoreLocal::restart(char *buf)
 
     nmax = nrow_restart;
     nvalues = ncol_restart;
-    if (nvalues == 1) memory->create(vector,nmax,"fix/store/local:vector");
-    else memory->create(array,nmax,nvalues,"fix/store/local:array");
-    memory->create(rbuf,nmax*nvalues+2,"fix/store:rbuf");
+    if (nvalues == 1) memory->create(vector, nmax, "fix/store/local:vector");
+    else memory->create(array, nmax, nvalues, "fix/store/local:array");
+    memory->create(rbuf, nmax * nvalues + 2, "fix/store:rbuf");
   }
 
   int n = nmax*nvalues;
-  if (nvalues == 1) memcpy(vector,&dbuf[2],n*sizeof(double));
-  else memcpy(&array[0][0],&dbuf[2],n*sizeof(double));
+  if (nvalues == 1) memcpy(vector, &dbuf[2], n * sizeof(double));
+  else memcpy(&array[0][0], &dbuf[2], n * sizeof(double));
 }
 
 /* ----------------------------------------------------------------------
@@ -176,7 +177,7 @@ void FixStoreLocal::restart(char *buf)
 
 int FixStoreLocal::maxsize_restart()
 {
-  return nvalues+1;
+  return nvalues + 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -185,7 +186,7 @@ int FixStoreLocal::maxsize_restart()
 
 int FixStoreLocal::size_restart(int /*nlocal*/)
 {
-  return nvalues+1;
+  return nvalues + 1;
 }
 
 /* ----------------------------------------------------------------------

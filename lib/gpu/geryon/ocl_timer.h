@@ -38,8 +38,10 @@ namespace ucl_opencl {
 /// Class for timing OpenCL events
 class UCL_Timer {
  public:
-  inline UCL_Timer() : _total_time(0.0f), _initialized(false), has_measured_time(false) { }
-  inline UCL_Timer(UCL_Device &dev) : _total_time(0.0f), _initialized(false), has_measured_time(false)
+  inline UCL_Timer() : start_event(nullptr), stop_event(nullptr), _total_time(0.0f),
+                       _initialized(false), has_measured_time(false) { }
+  inline UCL_Timer(UCL_Device &dev) : start_event(nullptr), stop_event(nullptr), _total_time(0.0f),
+                                      _initialized(false), has_measured_time(false)
     { init(dev); }
 
   inline ~UCL_Timer() { clear(); }
@@ -139,7 +141,6 @@ class UCL_Timer {
   cl_event start_event, stop_event;
   cl_command_queue _cq;
   double _total_time;
-  double t_factor;
   bool _initialized;
   bool has_measured_time;
 };

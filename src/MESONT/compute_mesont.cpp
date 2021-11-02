@@ -15,16 +15,14 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_mesont.h"
-#include <cstring>
-#include "atom.h"
-#include "update.h"
-#include "comm.h"
-#include "force.h"
-#include "modify.h"
-#include "memory.h"
-#include "error.h"
-#include "pair.h"
 
+#include "atom.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "pair.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 
@@ -33,6 +31,7 @@ using namespace LAMMPS_NS;
 ComputeMesoNT::ComputeMesoNT(LAMMPS *lmp, int narg, char **arg) :
  Compute(lmp, narg, arg), energy(nullptr) {
   if (narg != 4) error->all(FLERR,"Illegal compute mesont command");
+
   std::string ctype = arg[3];
   if (ctype == "estretch") compute_type = ES;
   else if (ctype == "ebend") compute_type = EB;

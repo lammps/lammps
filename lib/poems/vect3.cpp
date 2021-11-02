@@ -23,8 +23,6 @@ using namespace std;
 Vect3::Vect3(){
   numrows = 3; numcols = 1;
 }
-Vect3::~Vect3(){
-}
 
 Vect3::Vect3(const Vect3& A){  // copy constructor
   numrows = 3; numcols = 1;

@@ -35,6 +35,13 @@ authors for more details.
 
 #ifdef __AVX512F__
 
+#ifndef _MM_SCALE_1
+#define _MM_SCALE_1 1
+#define _MM_SCALE_2 2
+#define _MM_SCALE_4 4
+#define _MM_SCALE_8 8
+#endif
+
 namespace ip_simd {
 
   typedef __mmask16 SIMD_mask;

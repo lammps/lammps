@@ -27,6 +27,10 @@
 #include "../testing/core.h"
 #include "../testing/systems/melt.h"
 
+#if defined(TEST_HAVE_PYTHON_DEVELOPMENT)
+#include <Python.h>
+#endif
+
 // location of '*.py' files required by tests
 #define STRINGIFY(val) XSTR(val)
 #define XSTR(val) #val
@@ -87,6 +91,23 @@ TEST_F(PythonPackageTest, InvokeFunctionFromFile)
     });
     ASSERT_THAT(output, HasSubstr("2.25\n"));
 }
+
+#if defined(TEST_HAVE_PYTHON_DEVELOPMENT)
+TEST_F(PythonPackageTest, InvokeInitialized)
+{
+    // execute python function from file
+    HIDE_OUTPUT([&] {
+        command("python printnum file ${input_dir}/func.py");
+    });
+    ASSERT_TRUE(Py_IsInitialized());
+    HIDE_OUTPUT([&] {
+        command("clear");
+    });
+    ASSERT_TRUE(Py_IsInitialized());
+    lammps_python_finalize();
+    ASSERT_FALSE(Py_IsInitialized());
+}
+#endif
 
 TEST_F(PythonPackageTest, InvokeFunctionPassInt)
 {

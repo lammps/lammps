@@ -113,7 +113,7 @@ class MolfileInterface {
   // inquire on interface status
 
   // true if file stream is active.
-  bool is_open() const { return (_ptr != 0); };
+  bool is_open() const { return (_ptr != nullptr); };
   // true if file format requires or provides atom properties
   bool has_props() const { return (_mode & (M_RSTRUCT | M_WSTRUCT)) != 0; };
   // true if file format can read or write velocities

@@ -25,15 +25,15 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
+#include "integrate.h"
 #include "irregular.h"
-#include "library.h"
 #include "memory.h"
 #include "modify.h"
 #include "update.h"
-#include "verlet.h"
 
+#include <cmath>
+#include <cstring>
 #include <limits>
-#include <string.h>
 
 enum { NONE, REAL, METAL };    // LAMMPS units which MDI supports
 
@@ -388,7 +388,7 @@ char *FixMDIEngine::engine_mode(const char *node)
 
   // respond to commands from the driver
 
-  while (not exit_flag and not local_exit_flag) {
+  while (!exit_flag && !local_exit_flag) {
 
     // read the next command from the driver
     // all procs call this, but only proc 0 receives the command

@@ -23,8 +23,8 @@ protected:
     void *lmp;
     std::string INPUT_DIR = STRINGIFY(TEST_INPUT_FOLDER);
 
-    GatherProperties(){};
-    ~GatherProperties() override{};
+    GatherProperties() = default;
+    ~GatherProperties() override = default;
 
     void SetUp() override
     {
@@ -36,7 +36,7 @@ protected:
         int argc    = sizeof(args) / sizeof(char *);
 
         ::testing::internal::CaptureStdout();
-        lmp                = lammps_open_no_mpi(argc, argv, NULL);
+        lmp                = lammps_open_no_mpi(argc, argv, nullptr);
         std::string output = ::testing::internal::GetCapturedStdout();
         if (verbose) std::cout << output;
         EXPECT_THAT(output, StartsWith("LAMMPS ("));

@@ -30,6 +30,7 @@ From: fedora:34
                mingw32-readline mingw64-readline \
                mingw32-termcap mingw64-termcap \
                mingw32-zlib mingw64-zlib \
+               mingw32-zstd mingw64-zstd \
                enchant python3-virtualenv doxygen latexmk \
                texlive-latex-fonts texlive-pslatex texlive-collection-latexrecommended \
                texlive-latex texlive-latexconfig doxygen-latex texlive-collection-latex \

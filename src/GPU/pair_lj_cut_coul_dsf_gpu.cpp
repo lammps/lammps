@@ -17,7 +17,6 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_cut_coul_dsf_gpu.h"
-#include <cmath>
 
 #include "atom.h"
 #include "domain.h"
@@ -136,9 +135,9 @@ void PairLJCutCoulDSFGPU::compute(int eflag, int vflag)
     error->one(FLERR,"Insufficient memory on accelerator");
 
   if (host_start<inum) {
-    cpu_time = MPI_Wtime();
+    cpu_time = platform::walltime();
     cpu_compute(host_start, inum, eflag, vflag, ilist, numneigh, firstneigh);
-    cpu_time = MPI_Wtime() - cpu_time;
+    cpu_time = platform::walltime() - cpu_time;
   }
 }
 

@@ -171,7 +171,7 @@ void FixDtReset::end_of_step()
       if (vsq > 0.0) dtv = xmax / sqrt(vsq);
       if (fsq > 0.0) dtf = sqrt(2.0 * xmax / (ftm2v * sqrt(fsq) * massinv));
       dt = MIN(dtv, dtf);
-      if (emax > 0.0 && vsq > 0.0 && fsq > 0.0) {
+      if ((emax > 0.0) && (fsq * vsq > 0.0)) {
         dte = emax / sqrt(fsq * vsq) / sqrt(ftm2v * mvv2e);
         dt = MIN(dt, dte);
       }

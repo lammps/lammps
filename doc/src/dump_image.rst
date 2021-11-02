@@ -79,6 +79,12 @@ Syntax
          seed = random # seed (positive integer)
          dfactor = strength of shading from 0.0 to 1.0
 
+dump_modify command
+===================
+
+Syntax
+""""""
+
 .. parsed-literal::
 
    dump_modify dump-ID keyword values ...

@@ -18,7 +18,6 @@
 
 #include "fix_peri_neigh.h"
 
-#include <cmath>
 #include "pair_peri_lps.h"
 #include "pair_peri_ves.h"
 #include "pair_peri_eps.h"
@@ -33,6 +32,9 @@
 #include "lattice.h"
 #include "memory.h"
 #include "error.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -68,6 +70,7 @@ FixPeriNeigh::FixPeriNeigh(LAMMPS *lmp,int narg, char **arg) :
   wvolume = nullptr;
 
   grow_arrays(atom->nmax);
+  memset(wvolume,0,atom->nmax*sizeof(double));
   atom->add_callback(Atom::GROW);
   atom->add_callback(Atom::RESTART);
 

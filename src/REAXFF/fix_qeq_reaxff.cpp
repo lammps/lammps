@@ -380,18 +380,13 @@ void FixQEqReaxFF::init()
   if (group->count(igroup) == 0)
     error->all(FLERR,"Fix {} group has no atoms", style);
 
-  // there may be only one instance of fix efield
-
-  int num_efield = 0;
-  for (int ifix = 0; ifix < modify->nfix; ++ifix) {
-    if (utils::strmatch(modify->fix[ifix]->style, "^efield")) ++num_efield;
-  }
-  if (num_efield > 1)
-    error->all(FLERR, "There may be only one fix efield instance used with fix {}", style);
+  // get pointer to fix efield if present. there may be at most one instance of fix efield in use.
 
   efield = nullptr;
-  int ifix = modify->find_fix_by_style("^efield");
-  if (ifix >= 0) efield = (FixEfield *) modify->fix[ifix];
+  auto fixes = modify->get_fix_by_style("^efield");
+  if (fixes.size() == 1) efield = (FixEfield *) fixes.front();
+  else if (fixes.size() > 1)
+    error->all(FLERR, "There may be only one fix efield instance used with fix {}", style);
 
   // ensure that fix efield is properly initialized before accessing its data and check some settings
   if (efield) {

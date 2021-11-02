@@ -15,6 +15,7 @@
 #include "npair_half_size_multi_old_newtoff_omp.h"
 
 #include "atom.h"
+#include "atom_vec.h"
 #include "domain.h"
 #include "error.h"
 #include "molecule.h"

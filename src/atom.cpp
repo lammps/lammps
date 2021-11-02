@@ -1704,8 +1704,7 @@ void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
 
 void Atom::data_fix_compute_variable(int nprev, int nnew)
 {
-  for (int m = 0; m < modify->nfix; m++) {
-    Fix *fix = modify->fix[m];
+  for (const auto &fix : modify->get_fix_list()) {
     if (fix->create_attribute)
       for (int i = nprev; i < nnew; i++)
         fix->set_arrays(i);
@@ -2242,15 +2241,13 @@ void Atom::setup_sort_bins()
 
 #ifdef LMP_GPU
   if (userbinsize == 0.0) {
-    int ifix = modify->find_fix("package_gpu");
-    if (ifix >= 0) {
+    FixGPU *fix = (FixGPU *)modify->get_fix_by_id("package_gpu");
+    if (fix) {
       const double subx = domain->subhi[0] - domain->sublo[0];
       const double suby = domain->subhi[1] - domain->sublo[1];
       const double subz = domain->subhi[2] - domain->sublo[2];
 
-      FixGPU *fix = static_cast<FixGPU *>(modify->fix[ifix]);
-      binsize = fix->binsize(subx, suby, subz, atom->nlocal,
-                             neighbor->cutneighmax);
+      binsize = fix->binsize(subx, suby, subz, atom->nlocal,neighbor->cutneighmax);
       bininv = 1.0 / binsize;
 
       nbinx = static_cast<int> (ceil(subx * bininv));

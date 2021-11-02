@@ -583,12 +583,11 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
       // compute
 
       if (word[0] == 'c') {
-        int icompute = lmp->modify->find_compute(id);
+        auto compute = lmp->modify->get_compute_by_id(id);
 
         // check for global vector/array, peratom array, local array
 
-        if (icompute >= 0) {
-          Compute *compute = lmp->modify->compute[icompute];
+        if (compute) {
           if (mode == 0 && compute->vector_flag) {
             nmax = compute->size_vector;
             expandflag = 1;
@@ -607,13 +606,11 @@ int utils::expand_args(const char *file, int line, int narg, char **arg, int mod
         // fix
 
       } else if (word[0] == 'f') {
-        int ifix = lmp->modify->find_fix(id);
+        auto fix = lmp->modify->get_fix_by_id(id);
 
         // check for global vector/array, peratom array, local array
 
-        if (ifix >= 0) {
-          Fix *fix = lmp->modify->fix[ifix];
-
+        if (fix) {
           if (mode == 0 && fix->vector_flag) {
             nmax = fix->size_vector;
             expandflag = 1;

@@ -37,9 +37,6 @@ class PairPeriLPSOMP : public PairPeriLPS, public ThrOMP {
   virtual void compute(int, int);
   virtual double memory_usage();
 
- protected:
-  void compute_dilatation_thr(int ifrom, int ito);
-
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
   void eval(int ifrom, int ito, ThrData *const thr);

@@ -488,41 +488,29 @@ void Update::reset_timestep(bigint newstep)
 
   output->reset_timestep(ntimestep);
 
-  for (int i = 0; i < modify->nfix; i++) {
-    if (modify->fix[i]->time_depend)
-      error->all(FLERR,
-                 "Cannot reset timestep with a time-dependent fix defined");
-  }
+  for (const auto &ifix : modify->get_fix_list())
+    if (ifix->time_depend)
+      error->all(FLERR, "Cannot reset timestep with time-dependent fix {} defined",ifix->style);
 
   // reset eflag/vflag global so no commands will think eng/virial are current
 
   eflag_global = vflag_global = -1;
 
-  // reset invoked flags of computes,
-  // so no commands will think they are current between runs
-
-  for (int i = 0; i < modify->ncompute; i++) {
-    modify->compute[i]->invoked_scalar = -1;
-    modify->compute[i]->invoked_vector = -1;
-    modify->compute[i]->invoked_array = -1;
-    modify->compute[i]->invoked_peratom = -1;
-    modify->compute[i]->invoked_local = -1;
-  }
-
+  // reset invoked flags of computes, so no commands will think they are current between runs
   // clear timestep list of computes that store future invocation times
 
-  for (int i = 0; i < modify->ncompute; i++)
-    if (modify->compute[i]->timeflag) modify->compute[i]->clearstep();
+  for (const auto &icompute : modify->get_compute_list()) {
+    icompute->invoked_scalar = -1;
+    icompute->invoked_vector = -1;
+    icompute->invoked_array = -1;
+    icompute->invoked_peratom = -1;
+    icompute->invoked_local = -1;
+    if (icompute->timeflag) icompute->clearstep();
+  }
 
   // Neighbor Bin/Stencil/Pair classes store timestamps that need to be cleared
 
   neighbor->reset_timestep(ntimestep);
-
-  // NOTE: 7Jun12, adding rerun command, don't think this is required
-
-  //for (int i = 0; i < domain->nregion; i++)
-  //  if (domain->regions[i]->dynamic_check())
-  //    error->all(FLERR,"Cannot reset timestep with a dynamic region defined");
 }
 
 /* ----------------------------------------------------------------------

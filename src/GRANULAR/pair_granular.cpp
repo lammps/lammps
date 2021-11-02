@@ -1140,22 +1140,29 @@ void PairGranular::init_style()
 
   // check for FixFreeze and set freeze_group_bit
 
-  int ifix = modify->find_fix_by_style("^freeze");
-  if (ifix < 0) freeze_group_bit = 0;
-  else freeze_group_bit = modify->fix[ifix]->groupbit;
+  auto fixlist = modify->get_fix_by_style("^freeze");
+  if (fixlist.size() == 0)
+    freeze_group_bit = 0;
+  else if (fixlist.size() > 1)
+    error->all(FLERR, "Only one fix freeze command at a time allowed");
+  else
+    freeze_group_bit = fixlist.front()->groupbit;
 
   // check for FixRigid so can extract rigid body masses
-  // FIXME: this only catches the first rigid fix, there may be multiple.
 
   fix_rigid = nullptr;
-  for (i = 0; i < modify->nfix; i++)
-    if (modify->fix[i]->rigid_flag) break;
-  if (i < modify->nfix) fix_rigid = modify->fix[i];
+  for (const auto &ifix : modify->get_fix_list()) {
+    if (ifix->rigid_flag) {
+      if (fix_rigid)
+        error->all(FLERR, "Only one fix rigid command at a time allowed");
+      else fix_rigid = ifix;
+    }
+  }
 
   // check for FixPour and FixDeposit so can extract particle radii
 
-  int ipour = modify->find_fix_by_style("^pour");
-  int idep  = modify->find_fix_by_style("^deposit");
+  auto pours = modify->get_fix_by_style("^pour");
+  auto deps = modify->get_fix_by_style("^deposit");
 
   // set maxrad_dynamic and maxrad_frozen for each type
   // include future FixPour and FixDeposit particles as dynamic
@@ -1163,15 +1170,15 @@ void PairGranular::init_style()
   int itype;
   for (i = 1; i <= atom->ntypes; i++) {
     onerad_dynamic[i] = onerad_frozen[i] = 0.0;
-    if (ipour >= 0) {
+    for (auto &ipour : pours) {
       itype = i;
-      double radmax = *((double *) modify->fix[ipour]->extract("radius",itype));
-      onerad_dynamic[i] = radmax;
+      double maxrad = *((double *) ipour->extract("radius", itype));
+      if (maxrad > 0.0) onerad_dynamic[i] = maxrad;
     }
-    if (idep >= 0) {
+    for (auto &idep : deps) {
       itype = i;
-      double radmax = *((double *) modify->fix[idep]->extract("radius",itype));
-      onerad_dynamic[i] = radmax;
+      double maxrad = *((double *) idep->extract("radius", itype));
+      if (maxrad > 0.0) onerad_dynamic[i] = maxrad;
     }
   }
 
@@ -1181,12 +1188,10 @@ void PairGranular::init_style()
   int nlocal = atom->nlocal;
 
   for (i = 0; i < nlocal; i++) {
-    double radius_cut = radius[i];
-    if (mask[i] & freeze_group_bit) {
-      onerad_frozen[type[i]] = MAX(onerad_frozen[type[i]],radius_cut);
-    } else {
-      onerad_dynamic[type[i]] = MAX(onerad_dynamic[type[i]],radius_cut);
-    }
+    if (mask[i] & freeze_group_bit)
+      onerad_frozen[type[i]] = MAX(onerad_frozen[type[i]], radius[i]);
+    else
+      onerad_dynamic[type[i]] = MAX(onerad_dynamic[type[i]], radius[i]);
   }
 
   MPI_Allreduce(&onerad_dynamic[1],&maxrad_dynamic[1],atom->ntypes,MPI_DOUBLE,MPI_MAX,world);
@@ -1195,9 +1200,8 @@ void PairGranular::init_style()
   // set fix which stores history info
 
   if (size_history > 0) {
-    int ifix = modify->find_fix("NEIGH_HISTORY_GRANULAR");
-    if (ifix < 0) error->all(FLERR,"Could not find pair fix neigh history ID");
-    fix_history = (FixNeighHistory *) modify->fix[ifix];
+    fix_history = (FixNeighHistory *) modify->get_fix_by_id("NEIGH_HISTORY_GRANULAR");
+    if (!fix_history) error->all(FLERR,"Could not find pair fix neigh history ID");
   }
 }
 

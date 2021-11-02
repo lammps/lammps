@@ -6,8 +6,7 @@ dump image command
 dump movie command
 ==================
 
-dump_modify command for image/movie options
-===========================================
+(see below for image/move specific :ref:`dump_modify options <dump_modify_image>`)
 
 Syntax
 """"""
@@ -82,8 +81,11 @@ Syntax
          seed = random # seed (positive integer)
          dfactor = strength of shading from 0.0 to 1.0
 
-dump_modify command
-===================
+
+.. _dump_modify_image:
+
+dump_modify options for dump image/movie
+========================================
 
 Syntax
 """"""

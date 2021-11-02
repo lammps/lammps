@@ -65,6 +65,9 @@ class PairOxdnaXstk : public Pair {
 
   double **a_xst8, **theta_xst8_0, **dtheta_xst8_ast;
   double **b_xst8, **dtheta_xst8_c;
+  
+  double **nx_xtrct, **ny_xtrct, **nz_xtrct; // per-atom arrays for q_to_exyz storage
+
 
   virtual void allocate();
 };

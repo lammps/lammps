@@ -650,7 +650,6 @@ void Atom::set_atomflag_defaults()
   rho_flag = esph_flag = cv_flag = vest_flag = 0;
   dpd_flag = edpd_flag = tdpd_flag = 0;
   sp_flag = 0;
-  lrefpos_flag = 0;
   x0_flag = 0;
   smd_flag = damage_flag = 0;
   mesont_flag = 0;

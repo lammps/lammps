@@ -26,6 +26,7 @@
 
 #include "atom_vec_ellipsoid.h"
 #include "math_extra.h"
+#include "pair.h"
 
 #include <cmath>
 
@@ -144,9 +145,7 @@ void BondOxdnaFene::ev_tally_xyz(int i, int j, int nlocal, int newton_bond, doub
    s=sugar-phosphate backbone site, b=base site, st=stacking site
 ------------------------------------------------------------------------- */
 void BondOxdnaFene::compute(int eflag, int vflag)
-{
-	
-  //printf("\n FENE-bond HERE, proc = %d \n", comm->me);	
+{	
 		
   int a, b, in, type;
   double delf[3], delta[3], deltb[3];    // force, torque increment;;
@@ -155,9 +154,9 @@ void BondOxdnaFene::compute(int eflag, int vflag)
   double r, rr0, rr0sq;
   // vectors COM-backbone site in lab frame
   double ra_cs[3], rb_cs[3];
-
-  double *qa, ax[3], ay[3], az[3];
-  double *qb, bx[3], by[3], bz[3];
+  // Cartesian unit vectors in lab frame
+  double ax[3],ay[3],az[3];
+  double bx[3],by[3],bz[3];
 
   double **x = atom->x;
   double **f = atom->f;
@@ -174,6 +173,12 @@ void BondOxdnaFene::compute(int eflag, int vflag)
 
   ebond = 0.0;
   ev_init(eflag, vflag);
+  
+  // n(x/y/z)_xtrct = extracted q_to_exyz from oxdna_excv 
+  int dim;
+  nx_xtrct = (double **) force->pair->extract("nx",dim);
+  ny_xtrct = (double **) force->pair->extract("ny",dim);
+  nz_xtrct = (double **) force->pair->extract("nz",dim);
 
   // loop over FENE bonds
 
@@ -183,10 +188,13 @@ void BondOxdnaFene::compute(int eflag, int vflag)
     b = bondlist[in][0];
     type = bondlist[in][2];
 
-    qa = bonus[ellipsoid[a]].quat;
-    MathExtra::q_to_exyz(qa, ax, ay, az);
-    qb = bonus[ellipsoid[b]].quat;
-    MathExtra::q_to_exyz(qb, bx, by, bz);
+	ax[0] = nx_xtrct[a][0];
+	ax[1] = nx_xtrct[a][1];
+	ax[2] = nx_xtrct[a][2];
+	bx[0] = nx_xtrct[b][0];
+	bx[1] = nx_xtrct[b][1];
+	bx[2] = nx_xtrct[b][2];
+	//(a/b)y/z not needed here as oxDNA(1) co-linear
 
     // vector COM-backbone site a and b
     compute_interaction_sites(ax, ay, az, ra_cs);
@@ -259,7 +267,6 @@ void BondOxdnaFene::compute(int eflag, int vflag)
       ev_tally_xyz(a, b, nlocal, newton_bond, ebond, delf[0], delf[1], delf[2], x[a][0] - x[b][0],
                    x[a][1] - x[b][1], x[a][2] - x[b][2]);
   } 
-  atom->lrefpos_flag = 0; // reset for next timestep
 }
 
 /* ---------------------------------------------------------------------- */

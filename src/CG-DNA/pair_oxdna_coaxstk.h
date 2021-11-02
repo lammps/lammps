@@ -62,6 +62,8 @@ class PairOxdnaCoaxstk : public Pair {
 
   double **a_cxst3p, **cosphi_cxst3p_ast, **b_cxst3p, **cosphi_cxst3p_c;
   double **a_cxst4p, **cosphi_cxst4p_ast, **b_cxst4p, **cosphi_cxst4p_c;
+  
+  double **nx_xtrct, **ny_xtrct, **nz_xtrct; // per-atom arrays for q_to_exyz storage
 
   virtual void allocate();
 };

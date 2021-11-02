@@ -40,6 +40,7 @@ class BondOxdnaFene : public Bond {
 
  protected:
   double *k, *Delta, *r0;    // FENE
+  double **nx_xtrct, **ny_xtrct, **nz_xtrct; // per-atom arrays for q_to_exyz storage
 
   void allocate();
   void ev_tally_xyz(int, int, int, int, double, double, double, double, double, double, double);

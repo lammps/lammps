@@ -190,10 +190,6 @@ class Atom : protected Pointers {
   // SPIN package
 
   int sp_flag;
-  
-  // CG-DNA package
-  
-  int lrefpos_flag;
 
   // MACHDYN package
 

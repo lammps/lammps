@@ -127,9 +127,10 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
   // vectors COM-backbone site, COM-base site in lab frame
   double ra_cs[3],ra_cb[3];
   double rb_cs[3],rb_cb[3];
-
+  // Cartesian unit vectors in lab frame
   double ax[3],ay[3],az[3];
   double bx[3],by[3],bz[3];
+  
   double *special_lj = force->special_lj;
 
   double **x = atom->x;
@@ -157,32 +158,26 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
   
   // loop over all local atoms, handle calculation of local reference frame 
   
-  if (!atom->lrefpos_flag) {  
-	for (in = 0; in < atom->nlocal; in++) {
-	 
-	  int n = alist[in];
-	 
-	  double *qn,nx_temp[3],ny_temp[3],nz_temp[3]; // quaternion and Cartesian unit vectors in lab frame 
-	  qn=bonus[ellipsoid[n]].quat;
-      MathExtra::q_to_exyz(qn,nx_temp,ny_temp,nz_temp);
-	  
- 	  nx[n][0] = nx_temp[0];
-	  nx[n][1] = nx_temp[1];
-	  nx[n][2] = nx_temp[2];
-	  ny[n][0] = ny_temp[0];
-	  ny[n][1] = ny_temp[1];
-	  ny[n][2] = ny_temp[2];
-	  nz[n][0] = nz_temp[0];
-	  nz[n][1] = nz_temp[1];
-	  nz[n][2] = nz_temp[2];
-	  
-	  //printf("\n In top: nx[0] = %f, nx[1] = %f, nx[2] = %f, id = %d", nx[n][0], nx[n][1], nx[n][2], atom->tag[n]); 
-	  
-	  atom->lrefpos_flag = 1;
-	}
+  for (in = 0; in < atom->nlocal; in++) {
+ 
+    int n = alist[in];
+ 
+    double *qn,nx_temp[3],ny_temp[3],nz_temp[3]; // quaternion and Cartesian unit vectors in lab frame 
+	qn=bonus[ellipsoid[n]].quat;
+	MathExtra::q_to_exyz(qn,nx_temp,ny_temp,nz_temp);
+  
+	nx[n][0] = nx_temp[0];
+	nx[n][1] = nx_temp[1];
+	nx[n][2] = nx_temp[2];
+	ny[n][0] = ny_temp[0];
+	ny[n][1] = ny_temp[1];
+	ny[n][2] = ny_temp[2];
+	nz[n][0] = nz_temp[0];
+	nz[n][1] = nz_temp[1];
+    nz[n][2] = nz_temp[2];
+  
   }
  
-  //if (newton_pair) comm->reverse_comm_pair(this);
   comm->forward_comm_pair(this);
 
   // loop over pair interaction neighbors of my atoms
@@ -190,9 +185,7 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
   for (ia = 0; ia < anum; ia++) {
 
     a = alist[ia];
-    atype = type[a];
-
-	//printf("\n In A loop:  nx[0] = %f, nx[1] = %f, nx[2] = %f, id = %d", nx[a][0], nx[a][1], nx[a][2], atom->tag[a]); 
+    atype = type[a]; 
 
     ax[0] = nx[a][0];
 	ax[1] = nx[a][1];
@@ -202,9 +195,7 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
 	ay[2] = ny[a][2];
 	az[0] = nz[a][0];
 	az[1] = nz[a][1];
-	az[2] = nz[a][2];
-	
-	//printf("\n ax[0] = %f, ax[1] = %f, ax[2] = %f, id = %d", ax[0], ax[1], ax[2], atom->tag[a]); 
+	az[2] = nz[a][2]; 
 
     // vector COM - backbone and base site a
     compute_interaction_sites(ax,ay,az,ra_cs,ra_cb);

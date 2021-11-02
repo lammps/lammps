@@ -3,6 +3,9 @@
 dump_modify command
 ===================
 
+:doc:`dump_modify <dump_image>` command for image/movie options
+===============================================================
+
 Syntax
 """"""
 

@@ -6,6 +6,9 @@ dump image command
 dump movie command
 ==================
 
+dump_modify command for image/movie options
+===========================================
+
 Syntax
 """"""
 
@@ -89,10 +92,9 @@ Syntax
 
    dump_modify dump-ID keyword values ...
 
-* these keywords apply only to the *image* and *movie* styles
+* these keywords apply only to the *image* and *movie* styles and are documented on this page
 * keyword = *acolor* or *adiam* or *amap* or *backcolor* or *bcolor* or *bdiam* or *boxcolor* or *color* or *bitrate* or *framerate*
-* these keywords are documented on this page
-* see the :doc:`dump modify <dump_modify>` doc page for other, more general options
+* see the :doc:`dump modify <dump_modify>` doc page for more general keywords
 
   .. parsed-literal::
 

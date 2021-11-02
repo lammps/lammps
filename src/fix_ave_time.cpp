@@ -243,10 +243,8 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   if (any_variable_length &&
       (nrepeat > 1 || ave == RUNNING || ave == WINDOW)) {
     for (int i = 0; i < nvalues; i++)
-      if (varlen[i] && which[i] == ArgInfo::COMPUTE) {
-        int icompute = modify->find_compute(ids[i]);
-        modify->compute[icompute]->lock_enable();
-      }
+      if (varlen[i] && which[i] == ArgInfo::COMPUTE)
+        modify->get_compute_by_id(ids[i])->lock_enable();
     lockforever = 0;
   }
 

@@ -304,7 +304,7 @@ void FixQEq::init()
   ngroup = group->count(igroup);
   if (ngroup == 0) error->all(FLERR,"Fix {} group has no atoms", style);
 
-  if ((comm->me == 0) && (modify->find_fix_by_style("^efield") >= 0))
+  if ((comm->me == 0) && (modify->get_fix_by_style("^efield").size() > 0))
     error->warning(FLERR,"Fix efield is ignored during charge equilibration");
 
   if (utils::strmatch(update->integrate_style,"^respa"))
@@ -765,7 +765,7 @@ void FixQEq::read_file(char *file)
                                            file,utils::getsyserror()));
       TextFileReader reader(fp, "qeq parameter");
 
-      while (1) {
+      while (true) {
         auto values = reader.next_values(0);
 
         if (values.count() == 0) continue;

@@ -332,23 +332,19 @@ void PairReaxFF::coeff(int nargs, char **args)
 
 void PairReaxFF::init_style()
 {
-  if (!atom->q_flag)
-    error->all(FLERR,"Pair style reaxff requires atom attribute q");
+  if (!atom->q_flag) error->all(FLERR,"Pair style reaxff requires atom attribute q");
 
-  bool have_qeq = ((modify->find_fix_by_style("^qeq/reax") != -1)
-                   || (modify->find_fix_by_style("^qeq/shielded") != -1)
-                   || (modify->find_fix_by_style("^acks2/reax") != -1));
-  if (!have_qeq && qeqflag == 1)
-    error->all(FLERR,"Pair reax/c requires use of fix qeq/reax or qeq/shielded"
-                       " or fix acks2/reax");
+  auto acks2_fixes = modify->get_fix_by_style("^acks2/reax");
+  int have_qeq = modify->get_fix_by_style("^qeq/reax").size()
+    + modify->get_fix_by_style("^qeq/shielded").size() + acks2_fixes.size();
 
-  int have_acks2 = (modify->find_fix_by_style("^acks2/reax") != -1);
-  api->system->acks2_flag = have_acks2;
-  if (api->system->acks2_flag) {
-    int ifix = modify->find_fix_by_style("^acks2/reax");
-    FixACKS2ReaxFF* acks2_fix = (FixACKS2ReaxFF*) modify->fix[ifix];
-    api->workspace->s = acks2_fix->get_s();
-  }
+  if (qeqflag && (have_qeq != 1))
+    error->all(FLERR,"Pair style reaxff requires use of exactly one of the "
+               "fix qeq/reaxff or fix qeq/shielded or fix acks2/reaxff commands");
+
+  api->system->acks2_flag = acks2_fixes.size();
+  if (api->system->acks2_flag)
+    api->workspace->s = ((FixACKS2ReaxFF *)acks2_fixes.front())->get_s();
 
   api->system->n = atom->nlocal; // my atoms
   api->system->N = atom->nlocal + atom->nghost; // mine + ghosts
@@ -476,9 +472,8 @@ void PairReaxFF::compute(int eflag, int vflag)
   api->system->bigN = static_cast<int> (atom->natoms);  // all atoms in the system
 
   if (api->system->acks2_flag) {
-    int ifix = modify->find_fix_by_style("^acks2/reax");
-    FixACKS2ReaxFF* acks2_fix = (FixACKS2ReaxFF*) modify->fix[ifix];
-    api->workspace->s = acks2_fix->get_s();
+    auto ifix = modify->get_fix_by_style("^acks2/reax").front();
+    api->workspace->s = ((FixACKS2ReaxFF*) ifix)->get_s();
   }
 
   // setup data structures

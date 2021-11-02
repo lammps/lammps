@@ -309,6 +309,7 @@ void Info::command(int narg, char **arg)
 #else // defined(LAMMPS_SMALLSMALL)
     fputs("-DLAMMPS_SMALLSMALL\n",out);
 #endif
+    if (has_gzip_support()) fmt::print(out,"\n{}\n",platform::compress_info());
 
     int ncword, ncline = 0;
     fputs("\nInstalled packages:\n\n",out);
@@ -566,16 +567,13 @@ void Info::command(int narg, char **arg)
   }
 
   if (flags & COMPUTES) {
-    int ncompute = modify->ncompute;
-    Compute **compute = modify->compute;
+    int i = 0;
     char **names = group->names;
     fputs("\nCompute information:\n",out);
-    for (int i=0; i < ncompute; ++i) {
-      fmt::print(out,"Compute[{:3d}]:  {:16}  style = {:16}  group = {}\n",
-                 i, std::string(compute[i]->id)+',',
-                 std::string(compute[i]->style)+',',
-                 names[compute[i]->igroup]);
-    }
+    for (const auto &compute : modify->get_compute_list())
+      fmt::print(out,"Compute[{:3d}]:  {:16}  style = {:16}  group = {}\n", i++,
+                 std::string(compute->id)+',',std::string(compute->style)+',',
+                 names[compute->igroup]);
   }
 
   if (flags & DUMPS) {
@@ -587,10 +585,8 @@ void Info::command(int narg, char **arg)
     fputs("\nDump information:\n",out);
     for (int i=0; i < ndump; ++i) {
       fmt::print(out,"Dump[{:3d}]:     {:16}  file = {:16}  style = {:16}  group = {:16}  ",
-                 i, std::string(dump[i]->id)+',',
-                 std::string(dump[i]->filename)+',',
-                 std::string(dump[i]->style)+',',
-                 std::string(names[dump[i]->igroup])+',');
+                 i, std::string(dump[i]->id)+',',std::string(dump[i]->filename)+',',
+                 std::string(dump[i]->style)+',',std::string(names[dump[i]->igroup])+',');
       if (nevery[i]) {
         fmt::print(out,"every = {}\n", nevery[i]);
       } else {
@@ -600,16 +596,12 @@ void Info::command(int narg, char **arg)
   }
 
   if (flags & FIXES) {
-    int nfix = modify->nfix;
-    Fix **fix = modify->fix;
+    int i = 0;
     char **names = group->names;
     fputs("\nFix information:\n",out);
-    for (int i=0; i < nfix; ++i) {
-      fmt::print(out, "Fix[{:3d}]:      {:16}  style = {:16}  group = {}\n",
-                 i,std::string(fix[i]->id)+',',
-                 std::string(fix[i]->style)+',',
-                 names[fix[i]->igroup]);
-    }
+    for (const auto &fix : modify->get_fix_list())
+      fmt::print(out, "Fix[{:3d}]:      {:16}  style = {:16}  group = {}\n",i++,
+                 std::string(fix->id)+',',std::string(fix->style)+',',names[fix->igroup]);
   }
 
   if (flags & VARIABLES) {
@@ -621,8 +613,7 @@ void Info::command(int narg, char **arg)
     for (int i=0; i < nvar; ++i) {
       int ndata = 1;
       fmt::print(out,"Variable[{:3d}]: {:16}  style = {:16}  def =",
-                 i,std::string(names[i])+',',
-                 std::string(varstyles[style[i]])+',');
+                 i,std::string(names[i])+',',std::string(varstyles[style[i]])+',');
       if (style[i] == Variable::INTERNAL) {
         fmt::print(out,"{:.8}\n",input->variable->dvalue[i]);
         continue;
@@ -797,13 +788,13 @@ bool Info::is_active(const char *category, const char *name)
 
   if (strcmp(category,"package") == 0) {
     if (strcmp(name,"gpu") == 0) {
-      return (modify->find_fix("package_gpu") >= 0) ? true : false;
+      return (modify->get_fix_by_id("package_gpu")) ? true : false;
     } else if (strcmp(name,"intel") == 0) {
-      return (modify->find_fix("package_intel") >= 0) ? true : false;
+      return (modify->get_fix_by_id("package_intel")) ? true : false;
     } else if (strcmp(name,"kokkos") == 0) {
       return (lmp->kokkos && lmp->kokkos->kokkos_exists) ? true : false;
     } else if (strcmp(name,"omp") == 0) {
-      return (modify->find_fix("package_omp") >= 0) ? true : false;
+      return (modify->get_fix_by_id("package_omp")) ? true : false;
     } else error->all(FLERR,"Unknown name for info package category: {}", name);
 
   } else if (strcmp(category,"newton") == 0) {
@@ -916,10 +907,8 @@ bool Info::is_defined(const char *category, const char *name)
         return true;
     }
   } else if (strcmp(category,"fix") == 0) {
-    int nfix = modify->nfix;
-    Fix **fix = modify->fix;
-    for (int i=0; i < nfix; ++i) {
-      if (strcmp(fix[i]->id,name) == 0)
+    for (const auto &fix : modify->get_fix_list()) {
+      if (strcmp(fix->id,name) == 0)
         return true;
     }
   } else if (strcmp(category,"group") == 0) {
@@ -1023,7 +1012,7 @@ static std::vector<std::string> get_style_names(std::map<std::string, ValueType>
   std::vector<std::string> names;
 
   names.reserve(styles->size());
-  for (auto const& kv : *styles) {
+  for (auto const &kv : *styles) {
     // skip "secret" styles
     if (isupper(kv.first[0])) continue;
     names.push_back(kv.first);

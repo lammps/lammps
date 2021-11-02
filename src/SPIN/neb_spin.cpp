@@ -387,7 +387,7 @@ void NEBSpin::readfile(char *file, int flag)
   if (flag == 0) {
     if (me_universe == 0) {
       open(file);
-      while (1) {
+      while (true) {
         eof = fgets(line,MAXLINE,fp);
         if (eof == nullptr) error->one(FLERR,"Unexpected end of neb/spin file");
         start = &line[strspn(line," \t\n\v\f\r")];
@@ -401,7 +401,7 @@ void NEBSpin::readfile(char *file, int flag)
     if (me == 0) {
       if (ireplica) {
         open(file);
-        while (1) {
+        while (true) {
           eof = fgets(line,MAXLINE,fp);
           if (eof == nullptr) error->one(FLERR,"Unexpected end of neb/spin file");
           start = &line[strspn(line," \t\n\v\f\r")];

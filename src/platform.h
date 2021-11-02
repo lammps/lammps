@@ -109,6 +109,15 @@ namespace platform {
 
   std::string mpi_info(int &major, int &minor);
 
+  /*! Return string with list of available compression types and executables
+   *
+   * This function tests which of the supported compression executables
+   * are available for reading or writing compressed files where supported.
+   *
+   *  \return  string with list of available compression tools */
+
+  std::string compress_info();
+
   /*! Add variable to the environment
    *
    * \param  vardef  variable name or variable definition (NAME=value)

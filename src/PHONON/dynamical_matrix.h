@@ -4,7 +4,9 @@
 
 #ifdef COMMAND_CLASS
 
-CommandStyle(dynamical_matrix,DynamicalMatrix)
+// clang-format off
+CommandStyle(dynamical_matrix,DynamicalMatrix);
+// clang-format on
 
 #else
 
@@ -23,21 +25,20 @@ class DynamicalMatrix : public Command {
   void setup();
 
  protected:
-  int eflag,vflag;            // flags for energy/virial computation
-  int external_force_clear;   // clear forces locally or externally
+  int eflag, vflag;            // flags for energy/virial computation
+  int external_force_clear;    // clear forces locally or externally
 
-
-  int triclinic;              // 0 if domain is orthog, 1 if triclinic
+  int triclinic;    // 0 if domain is orthog, 1 if triclinic
   int pairflag;
 
-  int pair_compute_flag;            // 0 if pair->compute is skipped
-  int kspace_compute_flag;          // 0 if kspace->compute is skipped
+  int pair_compute_flag;      // 0 if pair->compute is skipped
+  int kspace_compute_flag;    // 0 if kspace->compute is skipped
 
-  int nvec;                   // local atomic dof = length of xvec
+  int nvec;    // local atomic dof = length of xvec
 
   void update_force();
   void force_clear();
-  virtual void openfile(const char* filename);
+  virtual void openfile(const char *filename);
 
  private:
   void options(int, char **);
@@ -53,23 +54,22 @@ class DynamicalMatrix : public Command {
   double conv_distance;
   double conv_mass;
   double del;
-  int igroup,groupbit;
-  bigint gcount;             // number of atoms in group
-  bigint dynlen;             // rank of dynamical matrix
-  bigint dynlenb;            // new dynlen if folded
+  int igroup, groupbit;
+  bigint gcount;    // number of atoms in group
+  bigint dynlen;    // rank of dynamical matrix
+  bigint dynlenb;   // new dynlen if folded
   int scaleflag;
   bigint *groupmap;
 
-  int compressed;            // 1 if dump file is written compressed, 0 no
-  int binaryflag;            // 1 if dump file is written binary, 0 no
-  int file_opened;           // 1 if openfile method has been called, 0 no
-  int file_flag;             // 1 custom file name, 0 dynmat.dat
-  int folded;                // 1 folded, 0 nonfolded
+  int compressed;     // 1 if dump file is written compressed, 0 no
+  int binaryflag;     // 1 if dump file is written binary, 0 no
+  int file_opened;    // 1 if openfile method has been called, 0 no
+  int file_flag;      // 1 custom file name, 0 dynmat.dat
+  int folded;         // 1 folded, 0 nonfolded
 
   FILE *fp;
 };
-}
+}    // namespace LAMMPS_NS
 
-
-#endif //LMP_DYNAMICAL_MATRIX_H
+#endif    //LMP_DYNAMICAL_MATRIX_H
 #endif

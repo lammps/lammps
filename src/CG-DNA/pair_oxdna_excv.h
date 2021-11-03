@@ -56,8 +56,7 @@ class PairOxdnaExcv : public Pair {
   double **epsilon_bb, **sigma_bb, **cut_bb_ast, **cutsq_bb_ast;
   double **lj1_bb, **lj2_bb, **b_bb, **cut_bb_c, **cutsq_bb_c;
   
-  // per-atom arrays for q_to_exyz storage
-  double **nx, **ny, **nz;
+  double **nx, **ny, **nz; // per-atom arrays for local unit vectors
 
   virtual void allocate();
 };

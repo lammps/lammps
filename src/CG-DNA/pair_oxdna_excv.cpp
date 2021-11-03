@@ -50,7 +50,7 @@ PairOxdnaExcv::~PairOxdnaExcv()
 {
   if (allocated) {
 	  
-	memory->destroy(nx);
+    memory->destroy(nx);
     memory->destroy(ny);
     memory->destroy(nz);
 
@@ -156,24 +156,23 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
   
-  // loop over all local atoms, handle calculation of local reference frame 
-  
+  // loop over all local atoms, calculation of local reference frame 
   for (in = 0; in < atom->nlocal; in++) {
  
     int n = alist[in];
- 
     double *qn,nx_temp[3],ny_temp[3],nz_temp[3]; // quaternion and Cartesian unit vectors in lab frame 
-	qn=bonus[ellipsoid[n]].quat;
-	MathExtra::q_to_exyz(qn,nx_temp,ny_temp,nz_temp);
-  
-	nx[n][0] = nx_temp[0];
-	nx[n][1] = nx_temp[1];
-	nx[n][2] = nx_temp[2];
-	ny[n][0] = ny_temp[0];
-	ny[n][1] = ny_temp[1];
-	ny[n][2] = ny_temp[2];
-	nz[n][0] = nz_temp[0];
-	nz[n][1] = nz_temp[1];
+
+    qn=bonus[ellipsoid[n]].quat;
+    MathExtra::q_to_exyz(qn,nx_temp,ny_temp,nz_temp);
+
+    nx[n][0] = nx_temp[0];
+    nx[n][1] = nx_temp[1];
+    nx[n][2] = nx_temp[2];
+    ny[n][0] = ny_temp[0];
+    ny[n][1] = ny_temp[1];
+    ny[n][2] = ny_temp[2];
+    nz[n][0] = nz_temp[0];
+    nz[n][1] = nz_temp[1];
     nz[n][2] = nz_temp[2];
   
   }
@@ -188,14 +187,14 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
     atype = type[a]; 
 
     ax[0] = nx[a][0];
-	ax[1] = nx[a][1];
-	ax[2] = nx[a][2];
-	ay[0] = ny[a][0];
-	ay[1] = ny[a][1];
-	ay[2] = ny[a][2];
-	az[0] = nz[a][0];
-	az[1] = nz[a][1];
-	az[2] = nz[a][2]; 
+    ax[1] = nx[a][1];
+    ax[2] = nx[a][2];
+    ay[0] = ny[a][0];
+    ay[1] = ny[a][1];
+    ay[2] = ny[a][2];
+    az[0] = nz[a][0];
+    az[1] = nz[a][1];
+    az[2] = nz[a][2]; 
 
     // vector COM - backbone and base site a
     compute_interaction_sites(ax,ay,az,ra_cs,ra_cb);
@@ -220,14 +219,14 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
       btype = type[b];
 
       bx[0] = nx[b][0];
-	  bx[1] = nx[b][1];
-	  bx[2] = nx[b][2];
-	  by[0] = ny[b][0];
-	  by[1] = ny[b][1];
-	  by[2] = ny[b][2];
-	  bz[0] = nz[b][0];
-	  bz[1] = nz[b][1];
-	  bz[2] = nz[b][2];
+      bx[1] = nx[b][1];
+      bx[2] = nx[b][2];
+      by[0] = ny[b][0];
+      by[1] = ny[b][1];
+      by[2] = ny[b][2];
+      bz[0] = nz[b][0];
+      bz[1] = nz[b][1];
+      bz[2] = nz[b][2];
 
       // vector COM - backbone and base site b
       compute_interaction_sites(bx,by,bz,rb_cs,rb_cb);

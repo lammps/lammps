@@ -1,4 +1,4 @@
-# Custom CMake file for libyaml
+# Custom minimal -*- CMake -*- file for libyaml
 
 cmake_minimum_required(VERSION 3.10)
 project(libyaml VERSION 0.2.5
@@ -23,11 +23,12 @@ add_library(yaml
   src/writer.c
   )
 
-set (YAML_VERSION_MAJOR ${libyaml_VERSION_MAJOR})
-set (YAML_VERSION_MINOR ${libyaml_VERSION_MINOR})
-set (YAML_VERSION_PATCH ${libyaml_VERSION_PATCH})
-set (YAML_VERSION_STRING "${YAML_VERSION_MAJOR}.${YAML_VERSION_MINOR}.${YAML_VERSION_PATCH}")
-
-configure_file(cmake/config.h.in config.h)
+set(YAML_VERSION_STRING "${YAML_VERSION_MAJOR}.${YAML_VERSION_MINOR}.${YAML_VERSION_PATCH}")
+set(CONFIG_H_FILE "#ifndef LIBYAML_CONFIG_H\n#define LIBYAML_CONFIG_H\n")
+set(CONFIG_H_FILE "${CONFIG_H_FILE}#define YAML_VERSION_MAJOR ${libyaml_VERSION_MAJOR}\n")
+set(CONFIG_H_FILE "${CONFIG_H_FILE}#define YAML_VERSION_MINOR ${libyaml_VERSION_MINOR}\n")
+set(CONFIG_H_FILE "${CONFIG_H_FILE}#define YAML_VERSION_PATCH ${libyaml_VERSION_PATCH}\n")
+set(CONFIG_H_FILE "${CONFIG_H_FILE}#define YAML_VERSION_STRING \"${libyaml_VERSION_MAJOR}.${libyaml_VERSION_MINOR}.${libyaml_VERSION_PATCH}\"\n#endif\n")
+file(WRITE ${CMAKE_CURRENT_SOURCE_DIR}/include/config.h "${CONFIG_H_FILE}")
 target_compile_definitions(yaml PRIVATE YAML_DECLARE_STATIC HAVE_CONFIG_H)
 target_include_directories(yaml PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_BINARY_DIR})

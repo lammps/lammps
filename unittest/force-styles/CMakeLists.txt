@@ -8,7 +8,7 @@ if(NOT YAML_FOUND)
 
   # download and build a local copy of libyaml
   include(ExternalCMakeProject)
-  ExternalCMakeProject(libyaml ${YAML_URL} ${YAML_MD5} libyaml . CMakeLists.libyaml)
+  ExternalCMakeProject(libyaml ${YAML_URL} ${YAML_MD5} yaml . CMakeLists.libyaml)
   add_library(Yaml::Yaml ALIAS yaml)
 endif()
 

@@ -115,9 +115,6 @@ void PairOxdnaExcv::compute_interaction_sites(double e1[3], double /*e2*/[3],
 
 void PairOxdnaExcv::compute(int eflag, int vflag)
 {
-
-  //printf("\n ExcVol HERE, proc = %d \n", comm->me);
-
   double delf[3],delta[3],deltb[3]; // force, torque increment;
   double evdwl,fpair,factor_lj;
   double rtmp_s[3],rtmp_b[3];

@@ -405,7 +405,6 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
         gamma = d_cs - d_cst;
         gammacub = gamma * gamma * gamma;
         rinv_ss_cub = rinv_ss * rinv_ss * rinv_ss;
-
         aybx = MathExtra::dot3(ay,bx);
         azbx = MathExtra::dot3(az,bx);
         rax = MathExtra::dot3(delr_st_norm,ax);
@@ -545,7 +544,6 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
         gamma = d_cs - d_cst;
         gammacub = gamma * gamma * gamma;
         rinv_ss_cub = rinv_ss * rinv_ss * rinv_ss;
-
         aybx = MathExtra::dot3(ay,bx);
         azbx = MathExtra::dot3(az,bx);
         rax = MathExtra::dot3(delr_st_norm,ax);

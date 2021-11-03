@@ -146,14 +146,13 @@ void BondOxdnaFene::ev_tally_xyz(int i, int j, int nlocal, int newton_bond, doub
 ------------------------------------------------------------------------- */
 void BondOxdnaFene::compute(int eflag, int vflag)
 {	
-		
-  int a, b, in, type;
-  double delf[3], delta[3], deltb[3];    // force, torque increment;;
-  double delr[3], ebond, fbond;
-  double rsq, Deltasq, rlogarg;
-  double r, rr0, rr0sq;
+  int a,b,in,type;
+  double delf[3],delta[3],deltb[3];    // force, torque increment;;
+  double delr[3],ebond,fbond;
+  double rsq,Deltasq,rlogarg;
+  double r,rr0,rr0sq;
   // vectors COM-backbone site in lab frame
-  double ra_cs[3], rb_cs[3];
+  double ra_cs[3],rb_cs[3];
   // Cartesian unit vectors in lab frame
   double ax[3],ay[3],az[3];
   double bx[3],by[3],bz[3];
@@ -188,13 +187,13 @@ void BondOxdnaFene::compute(int eflag, int vflag)
     b = bondlist[in][0];
     type = bondlist[in][2];
 
-	ax[0] = nx_xtrct[a][0];
-	ax[1] = nx_xtrct[a][1];
-	ax[2] = nx_xtrct[a][2];
-	bx[0] = nx_xtrct[b][0];
-	bx[1] = nx_xtrct[b][1];
-	bx[2] = nx_xtrct[b][2];
-	// (a/b)y/z not needed here as oxDNA(1) co-linear
+    ax[0] = nx_xtrct[a][0];
+    ax[1] = nx_xtrct[a][1];
+    ax[2] = nx_xtrct[a][2];
+    bx[0] = nx_xtrct[b][0];
+    bx[1] = nx_xtrct[b][1];
+    bx[2] = nx_xtrct[b][2];
+    // (a/b)y/z not needed here as oxDNA(1) co-linear
 
     // vector COM-backbone site a and b
     compute_interaction_sites(ax, ay, az, ra_cs);
@@ -266,7 +265,7 @@ void BondOxdnaFene::compute(int eflag, int vflag)
     if (evflag)
       ev_tally_xyz(a, b, nlocal, newton_bond, ebond, delf[0], delf[1], delf[2], x[a][0] - x[b][0],
                    x[a][1] - x[b][1], x[a][2] - x[b][2]);
-  } 
+  }
 }
 
 /* ---------------------------------------------------------------------- */

@@ -218,7 +218,7 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
       rb_chb[0] = d_chb*bx[0];
       rb_chb[1] = d_chb*bx[1];
       rb_chb[2] = d_chb*bx[2];
-	  
+
       // vector h-bonding site b to a
       delr_hb[0] = x[a][0] + ra_chb[0] - x[b][0] - rb_chb[0];
       delr_hb[1] = x[a][1] + ra_chb[1] - x[b][1] - rb_chb[1];

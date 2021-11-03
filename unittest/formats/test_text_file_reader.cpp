@@ -65,9 +65,14 @@ TEST_F(TextFileReaderTest, nofile)
                  FileReaderException);
 }
 
+// this test cannot work on windows due to its non unix-like permission system
+
+#if !defined(_WIN32)
 TEST_F(TextFileReaderTest, permissions)
 {
+    platform::unlink("text_reader_noperms.file");
     FILE *fp = fopen("text_reader_noperms.file", "w");
+    ASSERT_NE(fp,nullptr);
     fputs("word\n", fp);
     fclose(fp);
     chmod("text_reader_noperms.file", 0);
@@ -75,6 +80,7 @@ TEST_F(TextFileReaderTest, permissions)
                  FileReaderException);
     platform::unlink("text_reader_noperms.file");
 }
+#endif
 
 TEST_F(TextFileReaderTest, nofp)
 {

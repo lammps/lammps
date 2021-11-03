@@ -35,8 +35,8 @@ class TextFileReaderTest : public ::testing::Test {
 protected:
     void TearDown() override
     {
-        unlink("text_reader_one.file");
-        unlink("text_reader_two.file");
+        platform::unlink("text_reader_one.file");
+        platform::unlink("text_reader_two.file");
     }
 
     void test_files()
@@ -73,7 +73,7 @@ TEST_F(TextFileReaderTest, permissions)
     chmod("text_reader_noperms.file", 0);
     ASSERT_THROW({ TextFileReader reader("text_reader_noperms.file", "test"); },
                  FileReaderException);
-    unlink("text_reader_noperms.file");
+    platform::unlink("text_reader_noperms.file");
 }
 
 TEST_F(TextFileReaderTest, nofp)

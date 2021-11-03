@@ -24,9 +24,9 @@ function(ExternalCMakeProject target url hash basedir cmakedir cmakefile)
   file(RENAME ${TARGET_SOURCE} ${CMAKE_BINARY_DIR}/_deps/${target}-src)
   if(NOT (cmakefile STREQUAL ""))
     file(COPY ${cmakefile} DESTINATION ${CMAKE_BINARY_DIR}/_deps/${target}-src/${cmakedir}/)
-	get_filename_component(_cmakefile ${cmakefile} NAME)
+    get_filename_component(_cmakefile ${cmakefile} NAME)
     file(RENAME "${CMAKE_BINARY_DIR}/_deps/${target}-src/${cmakedir}/${_cmakefile}"
-	  "${CMAKE_BINARY_DIR}/_deps/${target}-src/${cmakedir}/CMakeLists.txt")
+      "${CMAKE_BINARY_DIR}/_deps/${target}-src/${cmakedir}/CMakeLists.txt")
   endif()
   add_subdirectory("${CMAKE_BINARY_DIR}/_deps/${target}-src/${cmakedir}"
     "${CMAKE_BINARY_DIR}/_deps/${target}-build")

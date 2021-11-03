@@ -63,7 +63,7 @@ echo "or"
 echo
 echo "-D LAMMPS_DOWNLOADS_URL=${HTTP_CACHE_URL} -C \"${LAMMPS_HTTP_CACHE_CONFIG}\""
 echo
-echo "pip installations and git clones (from git://) are automatically redirected"
+echo "pip installations and git clones (from https://) are automatically redirected"
 echo
 echo Use 'deactivate_caches' to revert changes
 echo

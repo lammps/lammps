@@ -35,7 +35,7 @@ class ComputePlasticityAtom : public Compute {
  private:
   int nmax;
   double *plasticity;
-  int ifix_peri;
+  class FixPeriNeigh *fix_peri_neigh;
 };
 
 }    // namespace LAMMPS_NS

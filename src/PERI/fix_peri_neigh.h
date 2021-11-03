@@ -25,6 +25,7 @@ FixStyle(PERI_NEIGH,FixPeriNeigh);
 namespace LAMMPS_NS {
 
 class FixPeriNeigh : public Fix {
+  friend class PairPeri;
   friend class PairPeriPMB;
   friend class PairPeriPMBOMP;
   friend class PairPeriLPS;

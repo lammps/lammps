@@ -36,8 +36,9 @@ class Velocity : public Command {
   int igroup, groupbit;
   int style;
   int dist_flag, sum_flag, momentum_flag, rotation_flag;
-  int bias_flag, loop_flag, scale_flag, rfix;
+  int bias_flag, loop_flag, scale_flag;
   double xscale, yscale, zscale;
+  class Fix *rigid_fix;
   class Compute *temperature;
 
   void set(int, char **);

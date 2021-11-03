@@ -145,7 +145,7 @@ void BondOxdnaFene::ev_tally_xyz(int i, int j, int nlocal, int newton_bond, doub
    s=sugar-phosphate backbone site, b=base site, st=stacking site
 ------------------------------------------------------------------------- */
 void BondOxdnaFene::compute(int eflag, int vflag)
-{	
+{
   int a,b,in,type;
   double delf[3],delta[3],deltb[3];    // force, torque increment;;
   double delr[3],ebond,fbond;

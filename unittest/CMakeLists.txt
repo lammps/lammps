@@ -12,7 +12,7 @@ mark_as_advanced(GTEST_MD5)
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
 include(ExternalCMakeProject)
-ExternalCMakeProject(googletest ${GTEST_URL} ${GTEST_MD5} googletest .)
+ExternalCMakeProject(googletest ${GTEST_URL} ${GTEST_MD5} googletest . "")
 add_library(GTest::GTest ALIAS gtest)
 add_library(GTest::GMock ALIAS gmock)
 add_library(GTest::GTestMain ALIAS gtest_main)

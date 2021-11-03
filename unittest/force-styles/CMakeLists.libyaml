@@ -1,0 +1,33 @@
+# Custom CMake file for libyaml
+
+cmake_minimum_required(VERSION 3.10)
+project(libyaml VERSION 0.2.5
+  DESCRIPTION "LibYAML a YAML parser and emitter library"
+  LANGUAGES C
+  HOMEPAGE_URL https://pyyaml.org/wiki/LibYAML)
+
+# compilation settings and options
+option(BUILD_SHARED_LIBS "Build libYAML as a shared library" OFF)
+option(CMAKE_POSITION_INDEPENDENT_CODE "Create objects compatible with shared libraries" ON)
+
+include(GNUInstallDirs)
+
+add_library(yaml
+  src/api.c
+  src/dumper.c
+  src/emitter.c
+  src/loader.c
+  src/parser.c
+  src/reader.c
+  src/scanner.c
+  src/writer.c
+  )
+
+set (YAML_VERSION_MAJOR ${libyaml_VERSION_MAJOR})
+set (YAML_VERSION_MINOR ${libyaml_VERSION_MINOR})
+set (YAML_VERSION_PATCH ${libyaml_VERSION_PATCH})
+set (YAML_VERSION_STRING "${YAML_VERSION_MAJOR}.${YAML_VERSION_MINOR}.${YAML_VERSION_PATCH}")
+
+configure_file(cmake/config.h.in config.h)
+target_compile_definitions(yaml PRIVATE YAML_DECLARE_STATIC HAVE_CONFIG_H)
+target_include_directories(yaml PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include ${CMAKE_CURRENT_BINARY_DIR})

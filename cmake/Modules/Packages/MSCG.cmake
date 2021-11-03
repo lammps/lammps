@@ -13,7 +13,7 @@ if(DOWNLOAD_MSCG)
   mark_as_advanced(MSCG_MD5)
 
   include(ExternalCMakeProject)
-  ExternalCMakeProject(mscg ${MSCG_URL} ${MSCG_MD5} MSCG-release src/CMake)
+  ExternalCMakeProject(mscg ${MSCG_URL} ${MSCG_MD5} MSCG-release src/CMake "")
 
   # set include and link library
   target_include_directories(lammps PRIVATE "${CMAKE_BINARY_DIR}/_deps/mscg-src/src")

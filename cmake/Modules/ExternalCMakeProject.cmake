@@ -2,7 +2,7 @@
 # The sources will be unpacked to ${CMAKE_BINARY_DIR}/_deps/${target}-src
 # The binaries will be built in ${CMAKE_BINARY_DIR}/_deps/${target}-build
 #
-function(ExternalCMakeProject target url hash basedir cmakedir)
+function(ExternalCMakeProject target url hash basedir cmakedir cmakefile)
   # change settings locally
   set(BUILD_SHARED_LIBS OFF)
   set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -23,6 +23,9 @@ function(ExternalCMakeProject target url hash basedir cmakedir)
     endif()
     file(REMOVE_RECURSE ${CMAKE_BINARY_DIR}/_deps/${target}-src)
     file(RENAME ${TARGET_SOURCE} ${CMAKE_BINARY_DIR}/_deps/${target}-src)
+    if(NOT (cmakefile STREQUAL ""))
+      file(COPY ${cmakefile} ${CMAKE_BINARY_DIR}/_deps/${target}-src/${cmakedir}/CMakeLists.txt)
+    endif()
     add_subdirectory("${CMAKE_BINARY_DIR}/_deps/${target}-src/${cmakedir}"
       "${CMAKE_BINARY_DIR}/_deps/${target}-build")
   else()
@@ -30,6 +33,14 @@ function(ExternalCMakeProject target url hash basedir cmakedir)
     message(STATUS "Downloading ${url}")
     FetchContent_Declare(${target} URL ${url} URL_HASH MD5=${hash} SOURCE_SUBDIR ${cmakedir})
     message(STATUS "Unpacking and configuring ${archive}")
-    FetchContent_MakeAvailable(${target})
+    FetchContent_GetProperties(${target})
+    FetchContent_Populate(${target})
+    if(NOT (cmakefile STREQUAL ""))
+      file(COPY "${cmakefile}" DESTINATION "${${target}_SOURCE_DIR}/${cmakedir}/")
+      get_filename_component(_cmakefile "${cmakefile}" NAME)
+      file(RENAME "${${target}_SOURCE_DIR}/${cmakedir}/${_cmakefile}"
+        "${${target}_SOURCE_DIR}/${cmakedir}/CMakeLists.txt")
+    endif()
+    add_subdirectory("${${target}_SOURCE_DIR}/${cmakedir}" "${${target}_BINARY_DIR}")
   endif()
 endfunction(ExternalCMakeProject)

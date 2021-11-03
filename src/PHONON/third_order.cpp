@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -39,8 +40,8 @@
 #include "timer.h"
 #include "update.h"
 
-#include <algorithm>
 #include <cstring>
+#include <algorithm>
 
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
@@ -57,11 +58,12 @@ ThirdOrder::ThirdOrder(LAMMPS *lmp) : Command(lmp), fp(nullptr)
 
 ThirdOrder::~ThirdOrder()
 {
-  if (fp && comm->me == 0) fclose(fp);
+  if (fp && me == 0) {
+    if (compressed) platform::pclose(fp);
+    else fclose(fp);
+  }
   fp = nullptr;
   memory->destroy(groupmap);
-  // memory->destroy(ijnum);
-  // memory->destroy(neighbortags);
 }
 
 /* ----------------------------------------------------------------------
@@ -111,6 +113,8 @@ void ThirdOrder::setup()
 
 void ThirdOrder::command(int narg, char **arg)
 {
+  MPI_Comm_rank(world,&me);
+
   if (domain->box_exist == 0)
     error->all(FLERR,"third_order command before simulation box is defined");
   if (narg < 2) error->all(FLERR,"Illegal third_order command");
@@ -167,16 +171,16 @@ void ThirdOrder::command(int narg, char **arg)
   neighbortags = NULL;
 
   // read options from end of input line
-  if (style == REGULAR) options(narg-3,&arg[3]);  //COME BACK
-  else if (style == ESKM) options(narg-3,&arg[3]); //COME BACK
-  else error->all(FLERR,"Illegal third_order command");
+  if (style == REGULAR) options(narg-3,&arg[3]);
+  else if (style == ESKM) options(narg-3,&arg[3]);
+  else error->all(FLERR,"Illegal Third Order command");
   del = utils::numeric(FLERR, arg[2],false,lmp);
 
   if (!folded) dynlenb = dynlen;
   else dynlenb = (atom->natoms)*3;
 
   if (atom->map_style == Atom::MAP_NONE)
-    error->all(FLERR,"third_order command requires an atom map");
+    error->all(FLERR,"Third Order command requires an atom map, see atom_modify");
 
   // move atoms by 3-vector or specified variable(s)
 
@@ -208,42 +212,41 @@ void ThirdOrder::command(int narg, char **arg)
 
 void ThirdOrder::options(int narg, char **arg)
 {
-  if (narg < 0) error->all(FLERR,"Illegal third_order command");
+  if (narg < 0) error->all(FLERR,"Illegal Third Order command");
   int iarg = 0;
-  const char *filename = "third_order.dat";
+  const char *filename = "Third Order.dat";
 
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"file") == 0) {
+    if (strcmp(arg[iarg],"binary") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal Third Order command");
+      if (strcmp(arg[iarg+1],"gzip") == 0) {
+        compressed = 1;
+      } else {
+        binaryflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      }
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"file") == 0) {
       if (iarg+2 > narg) error->all(FLERR, "Illegal third_order command");
       filename = arg[iarg + 1];
       file_flag = 1;
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"binary") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal third_order command");
-      if (strcmp(arg[iarg+1],"gzip") == 0) {
-        compressed = 1;
-      } else if (strcmp(arg[iarg+1],"yes") == 0) {
-        binaryflag = 1;
-      }
-      iarg += 2;
     } else if (strcmp(arg[iarg],"fold") == 0) {
-      if (iarg+2 > narg) error->all(FLERR, "Illegal third_order command");
+      if (iarg+2 > narg) error->all(FLERR, "Illegal Third Order command");
       if (strcmp(arg[iarg+1],"yes") == 0) {
-        folded = 1;
+          folded = 1;
       } else if (strcmp(arg[iarg+1],"no") == 0) {
-        folded = 0;
-      } else error->all(FLERR,"Illegal input for third_order fold option");
+          folded = 0;
+      } else error->all(FLERR,"Illegal input for Third Order fold option");
       iarg += 2;
-    } else error->all(FLERR,"Illegal third_order command");
+    } else error->all(FLERR,"Illegal Third Order command");
   }
-  if (file_flag == 1 && comm->me == 0) {
+  if (file_flag == 1 && me == 0) {
     openfile(filename);
   }
 }
 
 /* ----------------------------------------------------------------------
    generic opening of a file
-   ASCII or binary or gzipped
+   ASCII or binary or compressed
    some derived classes override this function
 ------------------------------------------------------------------------- */
 
@@ -251,26 +254,20 @@ void ThirdOrder::openfile(const char* filename)
 {
   // if file already opened, return
   if (file_opened) return;
+  fp = nullptr;
 
-  if (compressed) {
-#ifdef LAMMPS_GZIP
-    char gzip[128];
-    sprintf(gzip,"gzip -6 > %s",filename);
-#ifdef _WIN32
-    fp = _popen(gzip,"wb");
-#else
-    fp = popen(gzip,"w");
-#endif
-#else
-    error->one(FLERR,"Cannot open gzipped file");
-#endif
-  } else if (binaryflag) {
-    fp = fopen(filename,"wb");
-  } else {
-    fp = fopen(filename,"w");
+  if (me == 0) {
+    if (compressed) {
+      fp = platform::compressed_write(std::string(filename)+".gz");
+      if (!fp) error->one(FLERR,"Cannot open compressed file");
+    } else if (binaryflag) {
+      fp = fopen(filename,"wb");
+    } else {
+      fp = fopen(filename,"w");
+    }
+    if (!fp) error->one(FLERR,"Cannot open third_order file: {}", utils::getsyserror());
   }
 
-  if (fp == nullptr) error->one(FLERR,"Cannot open dump file");
 
   file_opened = 1;
 }
@@ -299,12 +296,12 @@ void ThirdOrder::calculateMatrix()
 
   getNeighbortags();
 
-  if (comm->me == 0) {
-    utils::logmesg(lmp, fmt::format("Calculating Third Order ...\n"));
-    utils::logmesg(lmp, fmt::format("  Total # of atoms = {}\n", natoms));
-    utils::logmesg(lmp, fmt::format("  Atoms in group = {}\n", gcount));
-    utils::logmesg(lmp, fmt::format("  Total third order elements = {}\n", (dynlen*dynlenb*dynlenb)));
-  }
+  if (comm->me == 0 && screen) {
+    fprintf(screen,"Calculating Third Order ...\n");
+    fprintf(screen,"  Total # of atoms = " BIGINT_FORMAT "\n", natoms);
+    fprintf(screen,"  Atoms in group = " BIGINT_FORMAT "\n", gcount);
+    fprintf(screen,"  Total third order elements = "
+            BIGINT_FORMAT "\n", (dynlen*dynlen*dynlen) );
 
   update->nsteps = 0;
   int prog = 0;
@@ -393,7 +390,7 @@ void ThirdOrder::calculateMatrix()
           displace_atom(local_jdx, beta, 1);
           displace_atom(local_idx, alpha, 1);
           MPI_Reduce(dynmat,fdynmat,dynlenb,MPI_DOUBLE,MPI_SUM,0,world);
-          if (comm->me == 0){
+          if (me == 0){
             if (folded) {
               writeMatrix(fdynmat, gm[i-1], alpha, j, beta);
             } else {
@@ -404,7 +401,7 @@ void ThirdOrder::calculateMatrix()
         }
       }
     }
-    if (comm->me == 0 && screen) {
+    if (me == 0 && screen) {
       int p = 10 * gm[i-1] / gcount;
       if (p > prog) {
         prog = p;
@@ -417,7 +414,7 @@ void ThirdOrder::calculateMatrix()
   delete [] dynmat;
   delete [] fdynmat;
 
-  if (screen && comm->me ==0)
+  if (screen && me ==0)
     fprintf(screen,"Finished Calculating Third Order Tensor\n");
 }
 
@@ -427,7 +424,7 @@ void ThirdOrder::calculateMatrix()
 
 void ThirdOrder::writeMatrix(double *dynmat, bigint i, int a, bigint j, int b)
 {
-  if (comm->me != 0)
+  if (me != 0)
     return;
 
   double norm;
@@ -439,11 +436,13 @@ void ThirdOrder::writeMatrix(double *dynmat, bigint i, int a, bigint j, int b)
           square(dynmat[k*3+1])+
           square(dynmat[k*3+2]);
         if (norm > 1.0e-16)
-          fmt::print(fp,"{} {} {} {} {} {:.8f} {:.8f} {:.8f}\n",
-                     i+1, a + 1, j+1, b + 1, k+1,
-                     dynmat[k*3] * conversion,
-                     dynmat[k*3+1] * conversion,
-                     dynmat[k*3+2] * conversion);
+          fprintf(fp,
+                  BIGINT_FORMAT " %d " BIGINT_FORMAT " %d " BIGINT_FORMAT
+                  " %7.8f %7.8f %7.8f\n",
+                  i+1, a + 1, j+1, b + 1, k+1,
+                  dynmat[k*3] * conversion,
+                  dynmat[k*3+1] * conversion,
+                  dynmat[k*3+2] * conversion);
       }
     } else {
       for (int k = 0; k < gcount; k++){
@@ -451,11 +450,13 @@ void ThirdOrder::writeMatrix(double *dynmat, bigint i, int a, bigint j, int b)
           square(dynmat[k*3+1])+
           square(dynmat[k*3+2]);
         if (norm > 1.0e-16)
-          fmt::print(fp, "{} {} {} {} {} {:.8f} {:.8f} {:.8f}\n",
-                     i+1, a + 1, j+1, b + 1, groupmap[k]+1,
-                     dynmat[k*3] * conversion,
-                     dynmat[k*3+1] * conversion,
-                     dynmat[k*3+2] * conversion);
+          fprintf(fp,
+                  BIGINT_FORMAT " %d " BIGINT_FORMAT " %d " BIGINT_FORMAT
+                  " %7.8f %7.8f %7.8f\n",
+                  i+1, a + 1, j+1, b + 1, groupmap[k]+1,
+                  dynmat[k*3] * conversion,
+                  dynmat[k*3+1] * conversion,
+                  dynmat[k*3+2] * conversion);
       }
     }
   } else if (binaryflag && fp) {
@@ -570,13 +571,13 @@ void ThirdOrder::convert_units(const char *style)
     conv_distance = 1; // angstrom -> angstrom
 
   } else if (strcmp(style,"si") == 0) {
-    if (comm->me) error->warning(FLERR,"Conversion Warning: Multiplication by Large Float");
+    if (me) error->warning(FLERR,"Conversion Warning: Multiplication by Large Float");
     conv_energy = 6.022E22; // J -> 10 J/mol
     conv_mass = 6.022E26; // kg -> g/mol
     conv_distance = 1E-10; // meter -> angstrom
 
   } else if (strcmp(style,"cgs") == 0) {
-    if (comm->me) error->warning(FLERR,"Conversion Warning: Multiplication by Large Float");
+    if (me) error->warning(FLERR,"Conversion Warning: Multiplication by Large Float");
     conv_energy = 6.022E12; // Erg -> 10 J/mol
     conv_mass = 6.022E23; // g -> g/mol
     conv_distance = 1E-7; // centimeter -> angstrom
@@ -587,13 +588,13 @@ void ThirdOrder::convert_units(const char *style)
     conv_distance = 0.529177249; // bohr -> angstrom
 
   } else if (strcmp(style,"micro") == 0) {
-    if (comm->me) error->warning(FLERR,"Conversion Warning: Untested Conversion");
+    if (me) error->warning(FLERR,"Conversion Warning: Untested Conversion");
     conv_energy = 6.022E10; // picogram-micrometer^2/microsecond^2 -> 10 J/mol
     conv_mass = 6.022E11; // pg -> g/mol
     conv_distance = 1E-4; // micrometer -> angstrom
 
   } else if (strcmp(style,"nano") == 0) {
-    if (comm->me) error->warning(FLERR,"Conversion Warning: Untested Conversion");
+    if (me) error->warning(FLERR,"Conversion Warning: Untested Conversion");
     conv_energy = 6.022E4; // attogram-nanometer^2/nanosecond^2 -> 10 J/mol
     conv_mass = 6.022E5; // ag -> g/mol
     conv_distance = 0.1; // angstrom -> angstrom
@@ -619,7 +620,7 @@ void ThirdOrder::create_groupmap()
   bigint *temp_groupmap = new bigint[natoms];
 
   //find number of local atoms in the group (final_gid)
-  for (bigint i=1; i <= natoms; i++) {
+  for (bigint i=1; i<=natoms; i++) {
     local_idx = atom->map(i);
     if ((local_idx >= 0) && (local_idx < nlocal) && mask[local_idx] & groupbit)
       gid += 1; // gid at the end of loop is final_Gid
@@ -629,7 +630,7 @@ void ThirdOrder::create_groupmap()
 
   gid = 0;
   //create a map between global atom id and group atom id for each proc
-  for (bigint i=1; i <= natoms; i++) {
+  for (bigint i=1; i<=natoms; i++) {
     local_idx = atom->map(i);
     if ((local_idx >= 0) && (local_idx < nlocal)
         && (mask[local_idx] & groupbit)) {
@@ -639,12 +640,12 @@ void ThirdOrder::create_groupmap()
   }
 
   //populate arrays for Allgatherv
-  for (int i=0; i < comm->nprocs; i++) {
+  for (int i=0; i<comm->nprocs; i++) {
     recv[i] = 0;
   }
-  recv[comm->me] = gid;
+  recv[me] = gid;
   MPI_Allreduce(recv,displs,comm->nprocs,MPI_INT,MPI_SUM,world);
-  for (int i=0; i < comm->nprocs; i++) {
+  for (int i=0; i<comm->nprocs; i++) {
     recv[i]=displs[i];
     if (i>0) displs[i] = displs[i-1]+recv[i-1];
     else displs[i] = 0;
@@ -657,7 +658,7 @@ void ThirdOrder::create_groupmap()
 
   //populate member groupmap based on temp groupmap
   bigint j = 0;
-  for (bigint i=1; i <= natoms; i++) {
+  for (bigint i=1; i<=natoms; i++) {
     // flag groupmap contents that are in temp_groupmap
     if (j < gcount && i == temp_groupmap[j])
       groupmap[i-1] = j++;

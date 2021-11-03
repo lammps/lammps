@@ -107,6 +107,8 @@ void DynamicalMatrix::setup()
 
 void DynamicalMatrix::command(int narg, char **arg)
 {
+    MPI_Comm_rank(world,&me);
+
     if (domain->box_exist == 0)
         error->all(FLERR,"Dynamical_matrix command before simulation box is defined");
     if (narg < 2) error->all(FLERR,"Illegal dynamical_matrix command");
@@ -135,7 +137,7 @@ void DynamicalMatrix::command(int narg, char **arg)
     int style = -1;
     if (strcmp(arg[1],"regular") == 0) style = REGULAR;
     else if (strcmp(arg[1],"eskm") == 0) style = ESKM;
-    else error->all(FLERR,"Illegal dynamical_matrix command");
+    else error->all(FLERR,"Illegal Dynamical_matrix command");
     del = utils::numeric(FLERR, arg[2],false,lmp);
 
     // set option defaults
@@ -151,7 +153,7 @@ void DynamicalMatrix::command(int narg, char **arg)
     // read options from end of input line
     if (style == REGULAR) options(narg-3,&arg[3]);
     else if (style == ESKM) options(narg-3,&arg[3]);
-    else if (comm->me == 0 && screen) fprintf(screen,"Illegal Dynamical Matrix command\n");
+    else if (me == 0 && screen) fprintf(screen,"Illegal Dynamical Matrix command\n");
 
     if (!folded) dynlenb = dynlen;
     else dynlenb = (atom->natoms)*3;
@@ -234,7 +236,7 @@ void DynamicalMatrix::openfile(const char *filename)
     if (file_opened) return;
     fp = nullptr;
 
-    if (comm->me == 0) {
+    if (me == 0) {
         if (compressed) {
             fp = platform::compressed_write(std::string(filename)+".gz");
             if (!fp) error->one(FLERR,"Cannot open compressed file");
@@ -278,7 +280,7 @@ void DynamicalMatrix::calculateMatrix()
     //initialize dynmat to all zeros
     dynmat_clear(dynmat);
 
-    if (comm->me == 0 && screen) {
+    if (me == 0 && screen) {
         fprintf(screen,"Calculating Dynamical Matrix ...\n");
         fprintf(screen,"  Total # of atoms = " BIGINT_FORMAT "\n", natoms);
         fprintf(screen,"  Atoms in group = " BIGINT_FORMAT "\n", gcount);
@@ -340,10 +342,10 @@ void DynamicalMatrix::calculateMatrix()
         }
         for (int k=0; k<3; k++)
             MPI_Reduce(dynmat[k],fdynmat[k],dynlenb,MPI_DOUBLE,MPI_SUM,0,world);
-        if (comm->me == 0)
+        if (me == 0)
             writeMatrix(fdynmat);
         dynmat_clear(dynmat);
-        if (comm->me == 0 && screen) {
+        if (me == 0 && screen) {
             int p = 10 * gm[i-1] / gcount;
             if (p > prog) {
                 prog = p;
@@ -352,7 +354,7 @@ void DynamicalMatrix::calculateMatrix()
             }
         }
     }
-    if (comm->me == 0 && screen) fprintf(screen,"\n");
+    if (me == 0 && screen) fprintf(screen,"\n");
 
     for (int i=0; i < 3; i++)
         delete [] dynmat[i];
@@ -362,7 +364,7 @@ void DynamicalMatrix::calculateMatrix()
         delete [] fdynmat[i];
     delete [] fdynmat;
 
-    if (screen && comm->me ==0 ) fprintf(screen,"Finished Calculating Dynamical Matrix\n");
+    if (screen && me ==0 ) fprintf(screen,"Finished Calculating Dynamical Matrix\n");
 }
 
 /* ----------------------------------------------------------------------
@@ -371,7 +373,7 @@ void DynamicalMatrix::calculateMatrix()
 
 void DynamicalMatrix::writeMatrix(double **dynmat)
 {
-    if (comm->me != 0 || !fp)
+    if (me != 0 || !fp)
         return;
 
     clearerr(fp);
@@ -386,9 +388,9 @@ void DynamicalMatrix::writeMatrix(double **dynmat)
                 if ((j+1)%3==0) fprintf(fp, "%4.8f\n", dynmat[i][j]);
                 else fprintf(fp, "%4.8f ",dynmat[i][j]);
             }
-      }
-      if (ferror(fp))
-          error->one(FLERR,"Error writing to file");
+        }
+        if (ferror(fp))
+            error->one(FLERR,"Error writing to file");
     }
 }
 
@@ -470,7 +472,7 @@ void DynamicalMatrix::force_clear()
     if (force->newton) nbytes += sizeof(double) * atom->nghost;
 
     if (nbytes) {
-      memset(&atom->f[0][0],0,3*nbytes);
+        memset(&atom->f[0][0],0,3*nbytes);
     }
 }
 
@@ -512,13 +514,13 @@ void DynamicalMatrix::convert_units(const char *style)
         conv_distance = 1; // angstrom -> angstrom
 
     } else if (strcmp(style,"si") == 0) {
-        if (comm->me) error->warning(FLERR,"Conversion Warning: Multiplication by Large Float");
+        if (me) error->warning(FLERR,"Conversion Warning: Multiplication by Large Float");
         conv_energy = 6.022E22; // J -> 10 J/mol
         conv_mass = 6.022E26; // kg -> g/mol
         conv_distance = 1E-10; // meter -> angstrom
 
     } else if (strcmp(style,"cgs") == 0) {
-        if (comm->me) error->warning(FLERR,"Conversion Warning: Multiplication by Large Float");
+        if (me) error->warning(FLERR,"Conversion Warning: Multiplication by Large Float");
         conv_energy = 6.022E12; // Erg -> 10 J/mol
         conv_mass = 6.022E23; // g -> g/mol
         conv_distance = 1E-7; // centimeter -> angstrom
@@ -529,13 +531,13 @@ void DynamicalMatrix::convert_units(const char *style)
         conv_distance = 0.529177249; // bohr -> angstrom
 
     } else if (strcmp(style,"micro") == 0) {
-        if (comm->me) error->warning(FLERR,"Conversion Warning: Untested Conversion");
+        if (me) error->warning(FLERR,"Conversion Warning: Untested Conversion");
         conv_energy = 6.022E10; // picogram-micrometer^2/microsecond^2 -> 10 J/mol
         conv_mass = 6.022E11; // pg -> g/mol
         conv_distance = 1E-4; // micrometer -> angstrom
 
     } else if (strcmp(style,"nano") == 0) {
-        if (comm->me) error->warning(FLERR,"Conversion Warning: Untested Conversion");
+        if (me) error->warning(FLERR,"Conversion Warning: Untested Conversion");
         conv_energy = 6.022E4; // attogram-nanometer^2/nanosecond^2 -> 10 J/mol
         conv_mass = 6.022E5; // ag -> g/mol
         conv_distance = 0.1; // angstrom -> angstrom
@@ -583,9 +585,9 @@ void DynamicalMatrix::create_groupmap()
     for (int i=0; i < comm->nprocs; i++) {
         recv[i] = 0;
     }
-    recv[comm->me] = gid;
+    recv[me] = gid;
     MPI_Allreduce(recv,displs,comm->nprocs,MPI_INT,MPI_SUM,world);
-    for (int i=0; i < comm->nprocs; i++) {
+    for (int i=0; i<comm->nprocs; i++) {
         recv[i]=displs[i];
         if (i>0) displs[i] = displs[i-1]+recv[i-1];
         else displs[i] = 0;
@@ -597,7 +599,7 @@ void DynamicalMatrix::create_groupmap()
 
     //populate member groupmap based on temp groupmap
     bigint j = 0;
-    for (bigint i=1; i <= natoms; i++) {
+    for (bigint i=1; i<=natoms; i++) {
         // flag groupmap contents that are in temp_groupmap
         if (j < gcount && i == temp_groupmap[j])
             groupmap[i-1] = j++;

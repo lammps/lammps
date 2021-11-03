@@ -3,11 +3,9 @@
 //
 
 #ifdef COMMAND_CLASS
-
 // clang-format off
 CommandStyle(dynamical_matrix,DynamicalMatrix);
 // clang-format on
-
 #else
 
 #ifndef LMP_DYNAMICAL_MATRIX_H
@@ -59,6 +57,7 @@ class DynamicalMatrix : public Command {
   bigint dynlen;    // rank of dynamical matrix
   bigint dynlenb;   // new dynlen if folded
   int scaleflag;
+  int me;
   bigint *groupmap;
 
   int compressed;     // 1 if dump file is written compressed, 0 no

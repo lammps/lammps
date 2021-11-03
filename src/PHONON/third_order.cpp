@@ -232,9 +232,9 @@ void ThirdOrder::options(int narg, char **arg)
     } else if (strcmp(arg[iarg],"fold") == 0) {
       if (iarg+2 > narg) error->all(FLERR, "Illegal Third Order command");
       if (strcmp(arg[iarg+1],"yes") == 0) {
-          folded = 1;
+        folded = 1;
       } else if (strcmp(arg[iarg+1],"no") == 0) {
-          folded = 0;
+        folded = 0;
       } else error->all(FLERR,"Illegal input for Third Order fold option");
       iarg += 2;
     } else error->all(FLERR,"Illegal Third Order command");
@@ -297,11 +297,12 @@ void ThirdOrder::calculateMatrix()
   getNeighbortags();
 
   if (comm->me == 0 && screen) {
-    fprintf(screen,"Calculating Third Order ...\n");
-    fprintf(screen,"  Total # of atoms = " BIGINT_FORMAT "\n", natoms);
-    fprintf(screen,"  Atoms in group = " BIGINT_FORMAT "\n", gcount);
-    fprintf(screen,"  Total third order elements = "
-            BIGINT_FORMAT "\n", (dynlen*dynlen*dynlen) );
+    fprintf(screen, "Calculating Third Order ...\n");
+    fprintf(screen, "  Total # of atoms = " BIGINT_FORMAT "\n", natoms);
+    fprintf(screen, "  Atoms in group = " BIGINT_FORMAT "\n", gcount);
+    fprintf(screen, "  Total third order elements = "
+            BIGINT_FORMAT "\n", (dynlen * dynlen * dynlen));
+  }
 
   update->nsteps = 0;
   int prog = 0;

@@ -22,6 +22,7 @@
 #include "atom.h"
 #include "bond.h"
 #include "comm.h"
+#include "compute.h"
 #include "dihedral.h"
 #include "domain.h"
 #include "error.h"
@@ -48,7 +49,7 @@ enum{REGULAR,ESKM};
 
 DynamicalMatrix::DynamicalMatrix(LAMMPS *lmp) : Command(lmp), fp(nullptr)
 {
-    external_force_clear = 1;
+    external_force_clear = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -77,7 +78,6 @@ void DynamicalMatrix::setup()
     if (triclinic) domain->x2lamda(atom->nlocal);
     domain->pbc();
     domain->reset_box();
-    comm->setup();
     if (neighbor->style) neighbor->setup_bins();
     comm->exchange();
     comm->borders();
@@ -87,12 +87,14 @@ void DynamicalMatrix::setup()
     neighbor->build(1);
 
     // compute all forces
-    external_force_clear = 0;
+    int ifix = modify->find_fix("package_omp");
+    if (ifix >= 0) external_force_clear = 1;
     eflag=0;
     vflag=0;
     update_force();
 
-    modify->setup(vflag);
+    if (pair_compute_flag) force->pair->compute(eflag,vflag);
+    else if (force->pair) force->pair->compute_dummy(eflag,vflag);
     update->setupflag = 0;
 
     //if all then skip communication groupmap population
@@ -247,8 +249,6 @@ void DynamicalMatrix::openfile(const char *filename)
         }
         if (!fp) error->one(FLERR,"Cannot open dynmat file: {}", utils::getsyserror());
     }
-
-    if (fp == nullptr) error->one(FLERR,"Cannot open dump file");
 
     file_opened = 1;
 }
@@ -425,8 +425,16 @@ void DynamicalMatrix::displace_atom(int local_idx, int direction, int magnitude)
 
 void DynamicalMatrix::update_force()
 {
+    neighbor->decide(); // needed for intel potentials to work
     force_clear();
+    int n_pre_force = modify->n_pre_force;
+    int n_pre_reverse = modify->n_pre_reverse;
     int n_post_force = modify->n_post_force;
+
+    if (n_pre_force) {
+        modify->pre_force(vflag);
+        timer->stamp(Timer::MODIFY);
+    }
 
     if (pair_compute_flag) {
         force->pair->compute(eflag,vflag);
@@ -443,11 +451,14 @@ void DynamicalMatrix::update_force()
         force->kspace->compute(eflag,vflag);
         timer->stamp(Timer::KSPACE);
     }
+    if (n_pre_reverse) {
+        modify->pre_reverse(eflag,vflag);
+        timer->stamp(Timer::MODIFY);
+    }
     if (force->newton) {
         comm->reverse_comm();
         timer->stamp(Timer::COMM);
     }
-
     // force modifications
 
     if (n_post_force) modify->post_force(vflag);

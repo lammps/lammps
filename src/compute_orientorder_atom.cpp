@@ -362,26 +362,26 @@ int ComputeOrientOrderAtom::pack_forward_comm(int n, int *list, double *buf,
   
     if (pbc_flag == 0) {
       for (i = 0; i < n; i++) {
-	j = list[i];
-	buf[m++] = x[j][0];
-	buf[m++] = x[j][1];
-	buf[m++] = x[j][2];
+        j = list[i];
+        buf[m++] = x[j][0];
+        buf[m++] = x[j][1];
+        buf[m++] = x[j][2];
       }
     } else {
       if (domain->triclinic == 0) {
-	dx = pbc[0]*domain->xprd;
-	dy = pbc[1]*domain->yprd;
-	dz = pbc[2]*domain->zprd;
+        dx = pbc[0]*domain->xprd;
+        dy = pbc[1]*domain->yprd;
+        dz = pbc[2]*domain->zprd;
       } else {
-	dx = pbc[0]*domain->xprd + pbc[5]*domain->xy + pbc[4]*domain->xz;
-	dy = pbc[1]*domain->yprd + pbc[3]*domain->yz;
-	dz = pbc[2]*domain->zprd;
+        dx = pbc[0]*domain->xprd + pbc[5]*domain->xy + pbc[4]*domain->xz;
+        dy = pbc[1]*domain->yprd + pbc[3]*domain->yz;
+        dz = pbc[2]*domain->zprd;
       }
       for (i = 0; i < n; i++) {
-	j = list[i];
-	buf[m++] = x[j][0] + dx;
-	buf[m++] = x[j][1] + dy;
-	buf[m++] = x[j][2] + dz;
+        j = list[i];
+        buf[m++] = x[j][0] + dx;
+        buf[m++] = x[j][1] + dy;
+        buf[m++] = x[j][2] + dz;
       }
     }
   }

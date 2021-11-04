@@ -102,8 +102,8 @@ none
 
 .. _Popov:
 
-**(Popov1)** A.M. Popov, I. V. Lebedeva, A. A. Knizhnik, Y. E. Lozovik and B. V. Potapkin, Chem. Phys. Lett. 536, 82-86 (2012). 
+**(Popov1)** A.M. Popov, I. V. Lebedeva, A. A. Knizhnik, Y. E. Lozovik and B. V. Potapkin, Chem. Phys. Lett. 536, 82-86 (2012).
 
 .. _Koziol:
 
-**(Koziol1)** Z. Koziol, G. Gawlik and J. Jagielski, Chinese Phys. B 28, 096101 (2019). 
+**(Koziol1)** Z. Koziol, G. Gawlik and J. Jagielski, Chinese Phys. B 28, 096101 (2019).

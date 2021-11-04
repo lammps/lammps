@@ -30,6 +30,7 @@ FixStyle(qeq/reax/kk/host,FixQEqReaxFFKokkos<LMPHostType>);
 #include "kokkos_type.h"
 #include "neigh_list.h"
 #include "neigh_list_kokkos.h"
+#include "kokkos_base.h"
 
 namespace LAMMPS_NS {
 
@@ -41,7 +42,7 @@ struct TagFixQEqReaxFFPackForwardComm {};
 struct TagFixQEqReaxFFUnpackForwardComm {};
 
 template<class DeviceType>
-class FixQEqReaxFFKokkos : public FixQEqReaxFF {
+class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
  public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;

@@ -248,8 +248,8 @@ void Dump::init()
     reorderflag = 0;
 
     int gcmcflag = 0;
-    for (int i = 0; i < modify->nfix; i++)
-      if ((strcmp(modify->fix[i]->style,"gcmc") == 0))
+    for (const auto &fix : modify->get_fix_list())
+      if (utils::strmatch(fix->style,"^gcmc"))
         gcmcflag = 1;
 
     if (sortcol == 0 && atom->tag_consecutive() && !gcmcflag) {

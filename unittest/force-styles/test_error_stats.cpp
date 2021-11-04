@@ -9,6 +9,7 @@
 #include "fmtlib_format.cpp"
 #include "fmtlib_os.cpp"
 
+// Windows may define this as a macro
 #if defined(max)
 #undef max
 #endif

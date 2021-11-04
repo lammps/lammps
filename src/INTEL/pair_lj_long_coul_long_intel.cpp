@@ -18,19 +18,9 @@
 
 #include "pair_lj_long_coul_long_intel.h"
 
-#include "atom.h"
-#include "comm.h"
-#include "memory.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "neighbor.h"
 #include "suffix.h"
 
 using namespace LAMMPS_NS;
-
-#define C_FORCE_T typename ForceConst<flt_t>::c_force_t
-#define C_ENERGY_T typename ForceConst<flt_t>::c_energy_t
-#define TABLE_T typename ForceConst<flt_t>::table_t
 
 PairLJLongCoulLongIntel::PairLJLongCoulLongIntel(LAMMPS *lmp) :
   PairLJLongCoulLong(lmp)

@@ -58,7 +58,8 @@ void Error::universe_all(const std::string &file, int line, const std::string &s
   std::string mesg = "ERROR: " + str;
   try {
     mesg += fmt::format(" ({}:{})\n",truncpath(file),line);
-  } catch (fmt::format_error &e) {
+  } catch (fmt::format_error &) {
+    ; // do nothing
   }
   if (universe->me == 0) {
     if (universe->uscreen)  fputs(mesg.c_str(),universe->uscreen);
@@ -147,9 +148,9 @@ void Error::all(const std::string &file, int line, const std::string &str)
     std::string mesg = "ERROR: " + str;
     if (input && input->line) lastcmd = input->line;
     try {
-      mesg += fmt::format(" ({}:{})\nLast command: {}\n",
-                          truncpath(file),line,lastcmd);
-    } catch (fmt::format_error &e) {
+      mesg += fmt::format(" ({}:{})\nLast command: {}\n", truncpath(file),line,lastcmd);
+    } catch (fmt::format_error &) {
+      ; // do nothing
     }
     utils::logmesg(lmp,mesg);
   }

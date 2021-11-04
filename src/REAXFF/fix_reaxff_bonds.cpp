@@ -45,30 +45,21 @@ FixReaxFFBonds::FixReaxFFBonds(LAMMPS *lmp, int narg, char **arg) :
   MPI_Comm_size(world,&nprocs);
   ntypes = atom->ntypes;
   nmax = atom->nmax;
+  compressed = 0;
 
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
 
-  if (nevery <= 0)
-    error->all(FLERR,"Illegal fix reaxff/bonds command");
+  if (nevery <= 0) error->all(FLERR,"Illegal fix reaxff/bonds command");
 
   if (me == 0) {
-    char *suffix = strrchr(arg[4],'.');
-    if (suffix && strcmp(suffix,".gz") == 0) {
-#ifdef LAMMPS_GZIP
-      auto gzip = fmt::format("gzip -6 > {}",arg[4]);
-#ifdef _WIN32
-      fp = _popen(gzip.c_str(),"wb");
-#else
-      fp = popen(gzip.c_str(),"w");
-#endif
-#else
-      error->one(FLERR,"Cannot open gzipped file");
-#endif
+    if (platform::has_compress_extension(arg[4])) {
+      compressed = 1;
+      fp = platform::compressed_write(arg[4]);
+      if (!fp) error->one(FLERR,"Cannot open compressed file");
     } else fp = fopen(arg[4],"w");
 
-    if (!fp)
-      error->one(FLERR,fmt::format("Cannot open fix reaxff/bonds file {}: "
-                                   "{}",arg[4],utils::getsyserror()));
+    if (!fp) error->one(FLERR,fmt::format("Cannot open fix reaxff/bonds file {}: "
+                                          "{}",arg[4],utils::getsyserror()));
   }
 
   if (atom->tag_consecutive() == 0)

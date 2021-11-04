@@ -1,4 +1,4 @@
-/* -*- c++ -*- ----------------------------------------------------------
+/* -*- c++ -*- ---------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -39,7 +39,7 @@ class FixQEq : public Fix {
 
   // derived child classes must provide these functions
 
-  virtual void init() = 0;
+  virtual void init();
   virtual void pre_force(int) = 0;
 
   virtual int pack_forward_comm(int, int *, double *, int, int *);

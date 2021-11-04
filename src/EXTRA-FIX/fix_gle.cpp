@@ -234,7 +234,7 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
 
   char line[MAXLINE],*ptr;
   int n,nwords,ndone=0,eof=0;
-  while (1) {
+  while (true) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fgle);
       if (ptr == nullptr) {
@@ -300,7 +300,7 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
     ndone = eof = 0;
     const double cfac = force->boltz / force->mvv2e;
 
-    while (1) {
+    while (true) {
       if (comm->me == 0) {
         ptr = fgets(line,MAXLINE,fgle);
         if (ptr == nullptr) {
@@ -350,7 +350,7 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
   // allocates space for temporaries
   gle_tmp1=gle_tmp2=nullptr;
 
-  grow_arrays(atom->nmax);
+  FixGLE::grow_arrays(atom->nmax);
   init_gles();
 
   // add callbacks to enable restarts

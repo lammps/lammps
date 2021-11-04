@@ -125,8 +125,6 @@ void PairEAMFS::read_file(char *filename)
 
     // transparently convert units for supported conversions
 
-    // transparently convert units for supported conversions
-
     int unit_convert = reader.get_unit_convert();
     double conversion_factor = utils::get_conversion_factor(utils::ENERGY,
                                                             unit_convert);

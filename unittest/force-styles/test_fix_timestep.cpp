@@ -255,6 +255,9 @@ TEST(FixTimestep, plain)
 {
     if (!LAMMPS::is_installed_pkg("MOLECULE")) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+#if defined(USING_STATIC_LIBS)
+    if (test_config.skip_tests.count("static")) GTEST_SKIP();
+#endif
 
     const char *args[] = {"FixTimestep", "-log", "none", "-echo", "screen", "-nocite"};
 
@@ -703,6 +706,9 @@ TEST(FixTimestep, omp)
     if (!LAMMPS::is_installed_pkg("OPENMP")) GTEST_SKIP();
     if (!LAMMPS::is_installed_pkg("MOLECULE")) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+#if defined(USING_STATIC_LIBS)
+    if (test_config.skip_tests.count("static")) GTEST_SKIP();
+#endif
 
     const char *args[] = {"FixTimestep", "-log", "none", "-echo", "screen", "-nocite",
                           "-pk",         "omp",  "4",    "-sf",   "omp"};

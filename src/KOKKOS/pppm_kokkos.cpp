@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -2856,7 +2857,7 @@ int PPPMKokkos<DeviceType>::timing_1d(int n, double &time1d)
   copymode = 0;
 
   MPI_Barrier(world);
-  time1 = MPI_Wtime();
+  time1 = platform::walltime();
 
   for (int i = 0; i < n; i++) {
     fft1->timing1d(d_work1,nfft_both,FFT3dKokkos<DeviceType>::FORWARD);
@@ -2866,7 +2867,7 @@ int PPPMKokkos<DeviceType>::timing_1d(int n, double &time1d)
   }
 
   MPI_Barrier(world);
-  time2 = MPI_Wtime();
+  time2 = platform::walltime();
   time1d = time2 - time1;
 
   return 4;
@@ -2893,7 +2894,7 @@ int PPPMKokkos<DeviceType>::timing_3d(int n, double &time3d)
   copymode = 0;
 
   MPI_Barrier(world);
-  time1 = MPI_Wtime();
+  time1 = platform::walltime();
 
   for (int i = 0; i < n; i++) {
     fft1->compute(d_work1,d_work1,FFT3dKokkos<DeviceType>::FORWARD);
@@ -2903,7 +2904,7 @@ int PPPMKokkos<DeviceType>::timing_3d(int n, double &time3d)
   }
 
   MPI_Barrier(world);
-  time2 = MPI_Wtime();
+  time2 = platform::walltime();
   time3d = time2 - time1;
 
   return 4;

@@ -276,7 +276,7 @@ void ComputeTempSphere::compute_vector()
   // point particles will not contribute rotation due to radius = 0
 
   double massone,inertiaone,t[6];
-  for (int i = 0; i < 6; i++) t[i] = 0.0;
+  for (auto &ti : t) ti = 0.0;
 
   if (mode == ALL) {
     for (int i = 0; i < nlocal; i++)

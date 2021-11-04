@@ -194,8 +194,10 @@ void FixWallRegionEES::post_force(int /*vflag*/)
         nhat[(which+2)%3] = 0 ;
         sn2 = 0 ;
         MathExtra::transpose_matvec(A,nhat,tempvec);
-        for (int k = 0; k<3; k++) tempvec[k] *= shape[k];
-        for (int k = 0; k<3 ; k++) sn2 += tempvec[k]*tempvec[k];
+        for (int k = 0; k<3; k++) {
+          tempvec[k] *= shape[k];
+          sn2 += tempvec[k]*tempvec[k];
+        }
         sn = sqrt(sn2);
         tooclose[which] = sn;
       }
@@ -321,9 +323,11 @@ void FixWallRegionEES::ees(int m, int i)
 
   sigman2 = 0.0;
   MathExtra::transpose_matvec(A,nhat,tempvec);
-  for (int k = 0; k<3; k++) tempvec[k] *= shape[k];
-  for (int k = 0; k<3; k++) sigman2 += tempvec[k]*tempvec[k];
-  for (int k = 0; k<3; k++) SAn[k] = tempvec[k];
+  for (int k = 0; k<3; k++) {
+    tempvec[k] *= shape[k];
+    sigman2 += tempvec[k]*tempvec[k];
+    SAn[k] = tempvec[k];
+  }
 
   sigman = sqrt(sigman2);
   delta = fabs(region->contact[m].r);

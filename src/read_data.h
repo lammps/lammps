@@ -29,6 +29,7 @@ class ReadData : public Command {
   ReadData(class LAMMPS *);
   ~ReadData();
   void command(int, char **);
+  static bool is_data_section(const std::string &);
 
  private:
   int me, compressed;
@@ -78,7 +79,7 @@ class ReadData : public Command {
 
   // methods
 
-  void open(char *);
+  void open(const std::string &);
   void scan(int &, int &, int &, int &);
   int reallocate(int **, int, int);
   void header(int);

@@ -1,4 +1,3 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -20,6 +19,7 @@ ComputeStyle(temp/deform/kk/host,ComputeTempDeformKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_COMPUTE_TEMP_DEFORM_KOKKOS_H
 #define LMP_COMPUTE_TEMP_DEFORM_KOKKOS_H
 

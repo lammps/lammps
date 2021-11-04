@@ -41,7 +41,7 @@
 #if defined(__PLUMED_DEFAULT_KERNEL)
 #define PLUMED_QUOTE_DIRECT(name) #name
 #define PLUMED_QUOTE(macro) PLUMED_QUOTE_DIRECT(macro)
-static char plumed_default_kernel[] = "PLUMED_KERNEL=" PLUMED_QUOTE(__PLUMED_DEFAULT_KERNEL);
+static const char plumed_default_kernel[] = "PLUMED_KERNEL=" PLUMED_QUOTE(__PLUMED_DEFAULT_KERNEL);
 #endif
 
 /* -------------------------------------------------------------------- */
@@ -68,7 +68,7 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
 
 #if defined(__PLUMED_DEFAULT_KERNEL)
   if (getenv("PLUMED_KERNEL") == nullptr)
-    putenv(plumed_default_kernel);
+    platform::putenv(plumed_default_kernel);
 #endif
 
   p=new PLMD::Plumed;
@@ -176,11 +176,7 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
       if (universe->existflag == 1) {
         // Each replica writes an independent log file
         //  with suffix equal to the replica id
-        char str_num[32], logFile[1024];
-        sprintf(str_num,".%d",universe->iworld);
-        strncpy(logFile,arg[i],1024-32);
-        strcat(logFile,str_num);
-        p->cmd("setLogFile",logFile);
+        p->cmd("setLogFile",fmt::format("{}.{}",arg[i],universe->iworld).c_str());
         next=0;
       } else {
         // partition option not used
@@ -219,31 +215,13 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
 
   // Define compute to calculate potential energy
 
-  id_pe = new char[8];
-  strcpy(id_pe,"plmd_pe");
-  char **newarg = new char*[3];
-  newarg[0] = id_pe;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "pe";
-  modify->add_compute(3,newarg);
-  delete [] newarg;
-  int ipe = modify->find_compute(id_pe);
-  c_pe = modify->compute[ipe];
+  id_pe = utils::strdup("plmd_pe");
+  c_pe = modify->add_compute(std::string(id_pe) + " all pe");
 
   // Define compute to calculate pressure tensor
 
-  id_press = new char[11];
-  strcpy(id_press,"plmd_press");
-  newarg = new char*[5];
-  newarg[0] = id_press;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "pressure";
-  newarg[3] = (char *) "NULL";
-  newarg[4] = (char *) "virial";
-  modify->add_compute(5,newarg);
-  delete [] newarg;
-  int ipress = modify->find_compute(id_press);
-  c_press = modify->compute[ipress];
+  id_press = utils::strdup("plmd_press");
+  c_press = modify->add_compute(std::string(id_press) + " all pressure NULL virial");
 
   for (int i = 0; i < modify->nfix; i++) {
     const char * const check_style = modify->fix[i]->style;

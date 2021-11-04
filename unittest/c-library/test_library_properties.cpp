@@ -23,8 +23,8 @@ protected:
     void *lmp;
     std::string INPUT_DIR = STRINGIFY(TEST_INPUT_FOLDER);
 
-    LibraryProperties(){};
-    ~LibraryProperties() override{};
+    LibraryProperties() = default;
+    ~LibraryProperties() override = default;
 
     void SetUp() override
     {
@@ -36,7 +36,7 @@ protected:
         int argc    = sizeof(args) / sizeof(char *);
 
         ::testing::internal::CaptureStdout();
-        lmp                = lammps_open_no_mpi(argc, argv, NULL);
+        lmp                = lammps_open_no_mpi(argc, argv, nullptr);
         std::string output = ::testing::internal::GetCapturedStdout();
         if (verbose) std::cout << output;
         EXPECT_THAT(output, StartsWith("LAMMPS ("));
@@ -65,7 +65,7 @@ TEST_F(LibraryProperties, memory_usage)
 #if defined(__linux__) || defined(_WIN32)
     EXPECT_GE(meminfo[1], 0.0);
 #endif
-#if !defined(__INTEL_LLVM_COMPILER)
+#if (defined(__linux__) || defined(__APPLE__) || defined(_WIN32)) && !defined(__INTEL_LLVM_COMPILER)
     EXPECT_GT(meminfo[2], 0.0);
 #endif
 };
@@ -436,8 +436,8 @@ class AtomProperties : public ::testing::Test {
 protected:
     void *lmp;
 
-    AtomProperties(){};
-    ~AtomProperties() override{};
+    AtomProperties()= default;;
+    ~AtomProperties() override= default;;
 
     void SetUp() override
     {
@@ -447,7 +447,7 @@ protected:
         int argc    = sizeof(args) / sizeof(char *);
 
         ::testing::internal::CaptureStdout();
-        lmp                = lammps_open_no_mpi(argc, argv, NULL);
+        lmp                = lammps_open_no_mpi(argc, argv, nullptr);
         std::string output = ::testing::internal::GetCapturedStdout();
         if (verbose) std::cout << output;
         EXPECT_THAT(output, StartsWith("LAMMPS ("));

@@ -87,7 +87,7 @@ int main(int narg, char **arg)
       MPI_Abort(MPI_COMM_WORLD,1);
     }
   }
-  if (lammps == 1) plugin->open(0,NULL,comm_lammps,&lmp);
+  if (lammps == 1) lmp = plugin->open(0,NULL,comm_lammps,NULL);
 
   while (1) {
     if (me == 0) {
@@ -139,7 +139,7 @@ int main(int narg, char **arg)
 
   cmds[0] = (char *)"run 10";
   cmds[1] = (char *)"run 20";
-  if (lammps == 1) plugin->commands_list(lmp,2,cmds);
+  if (lammps == 1) plugin->commands_list(lmp,2,(const char **)cmds);
 
   /* delete all atoms
      create_atoms() to create new ones with old coords, vels
@@ -164,12 +164,13 @@ int main(int narg, char **arg)
 
   if (lammps == 1) {
     plugin->close(lmp);
+    MPI_Barrier(comm_lammps);
+    MPI_Comm_free(&comm_lammps);
     liblammpsplugin_release(plugin);
   }
 
   /* close down MPI */
 
-  if (lammps == 1) MPI_Comm_free(&comm_lammps);
   MPI_Barrier(MPI_COMM_WORLD);
   MPI_Finalize();
 }

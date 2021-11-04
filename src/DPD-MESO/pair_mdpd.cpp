@@ -19,19 +19,19 @@
 
 #include "pair_mdpd.h"
 
+#include "atom.h"
+#include "citeme.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "random_mars.h"
+#include "update.h"
+
 #include <cmath>
 #include <ctime>
-#include "atom.h"
-#include "comm.h"
-#include "update.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "random_mars.h"
-#include "citeme.h"
-#include "memory.h"
-#include "error.h"
-
 
 using namespace LAMMPS_NS;
 
@@ -217,12 +217,13 @@ void PairMDPD::settings(int narg, char **arg)
   seed = utils::inumeric(FLERR,arg[2],false,lmp);
 
   // initialize Marsaglia RNG with processor-unique seed
+  // create a positive seed based on the system clock, if requested.
 
   if (seed <= 0) {
-    struct timespec time;
-    clock_gettime( CLOCK_REALTIME, &time );
-    seed = time.tv_nsec;  // if seed is non-positive, get the current time as the seed
+    constexpr double LARGE_NUM = 2<<30;
+    seed = int(fmod(platform::walltime() * LARGE_NUM, LARGE_NUM)) + 1;
   }
+
   delete random;
   random = new RanMars(lmp,(seed + comm->me) % 900000000);
 

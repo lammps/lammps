@@ -508,11 +508,6 @@ class PyLammps(object):
     :py:attr:`PyLammps.last_run`.
     """
     output = self.__getattr__('run')(*args, **kwargs)
-
-    comm = self.lmp.get_mpi_comm()
-    if comm:
-      output = self.lmp.comm.bcast(output, root=0)
-
     self.runs += get_thermo_data(output)
     return output
 
@@ -643,7 +638,7 @@ class PyLammps(object):
     return [x.strip() for x in value.split('=')]
 
   def _parse_info_system(self, output):
-    lines = output[6:-2]
+    lines = output[5:-2]
     system = {}
 
     for line in lines:
@@ -704,7 +699,7 @@ class PyLammps(object):
     return system
 
   def _parse_info_communication(self, output):
-    lines = output[6:-3]
+    lines = output[5:-3]
     comm = {}
 
     for line in lines:
@@ -725,7 +720,7 @@ class PyLammps(object):
     return comm
 
   def _parse_element_list(self, output):
-    lines = output[6:-3]
+    lines = output[5:-3]
     elements = []
 
     for line in lines:
@@ -737,7 +732,7 @@ class PyLammps(object):
     return elements
 
   def _parse_groups(self, output):
-    lines = output[6:-3]
+    lines = output[5:-3]
     groups = []
     group_pattern = re.compile(r"(?P<name>.+) \((?P<type>.+)\)")
 
@@ -783,6 +778,10 @@ class PyLammps(object):
         cmd = ' '.join(cmd_args)
         self.command(cmd)
         output = capture.output
+
+      comm = self.lmp.get_mpi_comm()
+      if comm:
+        output = self.lmp.comm.bcast(output, root=0)
 
       if 'verbose' in kwargs and kwargs['verbose']:
         print(output)
@@ -855,30 +854,30 @@ class IPyLammps(PyLammps):
     """
     cmd_args = [group, "image", filename, color, diameter]
 
-    if size:
+    if size is not None:
       width = size[0]
       height = size[1]
       cmd_args += ["size", width, height]
 
-    if view:
+    if view is not None:
       theta = view[0]
       phi = view[1]
       cmd_args += ["view", theta, phi]
 
-    if center:
+    if center is not None:
       flag = center[0]
       Cx = center[1]
       Cy = center[2]
       Cz = center[3]
       cmd_args += ["center", flag, Cx, Cy, Cz]
 
-    if up:
+    if up is not None:
       Ux = up[0]
       Uy = up[1]
       Uz = up[2]
       cmd_args += ["up", Ux, Uy, Uz]
 
-    if zoom:
+    if zoom is not None:
       cmd_args += ["zoom", zoom]
 
     cmd_args.append("modify backcolor " + background_color)

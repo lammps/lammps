@@ -56,6 +56,17 @@ number of molecules of each species.  In this context, "species" means
 a unique molecule.  The chemical formula of each species is given in
 the first line.
 
+.. warning::
+
+   In order to compute averaged data, it is required that there are no
+   neighbor list rebuilds between the *Nfreq* steps. For that reason, fix
+   *reaxff/species* may change your neighbor list settings.  There will
+   be a warning message showing the new settings. Having an *Nfreq*
+   setting that is larger than what is required for correct computation
+   of the ReaxFF force field interactions can thus lead to incorrect
+   results.  For typical ReaxFF calculations a value of 100 is already
+   quite large.
+
 If the filename ends with ".gz", the output file is written in gzipped
 format.  A gzipped dump file will be about 3x smaller than the text version,
 but will also take longer to write.

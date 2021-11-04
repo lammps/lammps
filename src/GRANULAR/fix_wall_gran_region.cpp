@@ -46,8 +46,7 @@ FixWallGranRegion::FixWallGranRegion(LAMMPS *lmp, int narg, char **arg) :
   if (iregion == -1)
     error->all(FLERR,"Region ID for fix wall/gran/region does not exist");
   region = domain->regions[iregion];
-  region_style = new char[strlen(region->style)+1];
-  strcpy(region_style,region->style);
+  region_style = utils::strdup(region->style);
   nregion = region->nregion;
 
   tmax = domain->regions[iregion]->tmax;

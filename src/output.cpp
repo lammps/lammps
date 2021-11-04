@@ -335,7 +335,7 @@ void Output::write(bigint ntimestep)
     if (next_restart_single == ntimestep) {
 
       std::string file = restart1;
-      std::size_t found = file.find("*");
+      std::size_t found = file.find('*');
       if (found != std::string::npos)
         file.replace(found,1,fmt::format("{}",update->ntimestep));
 
@@ -423,7 +423,7 @@ void Output::write_restart(bigint ntimestep)
 {
   if (restart_flag_single) {
     std::string file = restart1;
-    std::size_t found = file.find("*");
+    std::size_t found = file.find('*');
     if (found != std::string::npos)
       file.replace(found,1,fmt::format("{}",update->ntimestep));
     restart->write(file);

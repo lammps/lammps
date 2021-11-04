@@ -20,10 +20,6 @@
 #define USE_OMP_SIMD
 #define __INTEL_COMPILER __INTEL_LLVM_COMPILER
 #define __INTEL_COMPILER_BUILD_DATE __INTEL_LLVM_COMPILER
-#define _MM_SCALE_1 1
-#define _MM_SCALE_2 2
-#define _MM_SCALE_4 4
-#define _MM_SCALE_8 8
 #endif
 
 #ifdef __INTEL_COMPILER

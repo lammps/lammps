@@ -58,7 +58,6 @@
 #include <cstring>
 
 #include <algorithm>
-#include <vector>
 #include <fstream>
 #include <iomanip>
 
@@ -2427,7 +2426,7 @@ void PairSMTBQ::Charge()
   ilist = list->ilist;
 
 
-  if (me == 0) t_init = MPI_Wtime();
+  if (me == 0) t_init = platform::walltime();
   if (step == 0) cluster = 0;
 
   // ---------------------------
@@ -2730,7 +2729,7 @@ void PairSMTBQ::Charge()
       printf (" convergence : %f - %f\n",enegchk[gp],enegmax[gp]);
     }
 
-    t_end = MPI_Wtime();
+    t_end = platform::walltime();
     dt = t_end - t_init;
     printf (" temps dans charges : %f seconde. \n",dt);
     printf (" ======================================================== \n");

@@ -47,11 +47,6 @@ PairLubricateOMP::PairLubricateOMP(LAMMPS *lmp) :
 
 /* ---------------------------------------------------------------------- */
 
-PairLubricateOMP::~PairLubricateOMP()
-{}
-
-/* ---------------------------------------------------------------------- */
-
 void PairLubricateOMP::compute(int eflag, int vflag)
 {
   ev_init(eflag,vflag);

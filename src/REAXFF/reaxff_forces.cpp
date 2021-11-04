@@ -27,7 +27,6 @@
 
 #include "reaxff_api.h"
 
-#include <mpi.h>
 #include <cmath>
 #include <cstring>
 

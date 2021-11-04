@@ -23,8 +23,6 @@ PairStyle(meam/c,PairMEAM);
 
 #include "pair.h"
 
-#include <vector>
-
 namespace LAMMPS_NS {
 
 class PairMEAM : public Pair {

@@ -45,7 +45,7 @@ struct PairExp6ParamDataTypeKokkos
           epsilonOld2, alphaOld2, rmOld2, mixWtSite2old;
 
    // Default constructor -- nullify everything.
-   PairExp6ParamDataTypeKokkos<DeviceType>(void)
+   PairExp6ParamDataTypeKokkos()
       : n(0)
    {}
 };
@@ -63,7 +63,7 @@ struct PairExp6ParamDataTypeKokkosVect
                            nTotalold;
 
    // Default constructor -- nullify everything.
-   PairExp6ParamDataTypeKokkosVect<DeviceType>(void)
+   PairExp6ParamDataTypeKokkosVect()
    {}
 };
 

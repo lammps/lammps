@@ -1140,7 +1140,8 @@ class DynRankView : public ViewTraits<DataType, Properties...> {
     // to avoid incomplete type errors from usng Kokkos::Cuda directly.
     if (std::is_same<Kokkos::CudaUVMSpace,
                      typename traits::device_type::memory_space>::value) {
-      typename traits::device_type::memory_space::execution_space().fence();
+      typename traits::device_type::memory_space::execution_space().fence(
+          "Kokkos::DynRankView<>::DynRankView: fence before UVM allocation");
     }
 #endif
     //------------------------------------------------------------
@@ -1154,7 +1155,8 @@ class DynRankView : public ViewTraits<DataType, Properties...> {
 #if defined(KOKKOS_ENABLE_CUDA)
     if (std::is_same<Kokkos::CudaUVMSpace,
                      typename traits::device_type::memory_space>::value) {
-      typename traits::device_type::memory_space::execution_space().fence();
+      typename traits::device_type::memory_space::execution_space().fence(
+          "Kokkos::DynRankView<>::DynRankView: fence after UVM allocation");
     }
 #endif
     //------------------------------------------------------------
@@ -1404,7 +1406,7 @@ class ViewMapping<
 
   template <class MemoryTraits>
   struct apply {
-    static_assert(Kokkos::Impl::is_memory_traits<MemoryTraits>::value, "");
+    static_assert(Kokkos::is_memory_traits<MemoryTraits>::value, "");
 
     using traits_type =
         Kokkos::ViewTraits<data_type, array_layout,
@@ -1574,7 +1576,7 @@ KOKKOS_INLINE_FUNCTION bool operator!=(const DynRankView<LT, LP...>& lhs,
 namespace Kokkos {
 namespace Impl {
 
-template <class OutputView, typename Enable = void>
+template <class OutputView, class Enable = void>
 struct DynRankViewFill {
   using const_value_type = typename OutputView::traits::const_value_type;
 
@@ -1693,9 +1695,11 @@ inline void deep_copy(
                    typename ViewTraits<DT, DP...>::value_type>::value,
       "deep_copy requires non-const type");
 
-  Kokkos::fence();
+  Kokkos::fence(
+      "Kokkos::deep_copy(DynRankView, value_type): fence before filling view");
   Kokkos::Impl::DynRankViewFill<DynRankView<DT, DP...> >(dst, value);
-  Kokkos::fence();
+  Kokkos::fence(
+      "Kokkos::deep_copy(DynRankView, value_type): fence after filling view");
 }
 
 /** \brief  Deep copy into a value in Host memory from a view.  */
@@ -1711,10 +1715,13 @@ inline void deep_copy(
 
   using src_traits       = ViewTraits<ST, SP...>;
   using src_memory_space = typename src_traits::memory_space;
-  Kokkos::fence();
+  Kokkos::fence(
+      "Kokkos::deep_copy(value_type, DynRankView): fence before copying "
+      "value");
   Kokkos::Impl::DeepCopy<HostSpace, src_memory_space>(&dst, src.data(),
                                                       sizeof(ST));
-  Kokkos::fence();
+  Kokkos::fence(
+      "Kokkos::deep_copy(value_type, DynRankView): fence after copying value");
 }
 
 //----------------------------------------------------------------------------
@@ -1744,14 +1751,14 @@ inline void deep_copy(
 
   enum {
     DstExecCanAccessSrc =
-        Kokkos::Impl::SpaceAccessibility<dst_execution_space,
-                                         src_memory_space>::accessible
+        Kokkos::SpaceAccessibility<dst_execution_space,
+                                   src_memory_space>::accessible
   };
 
   enum {
     SrcExecCanAccessDst =
-        Kokkos::Impl::SpaceAccessibility<src_execution_space,
-                                         dst_memory_space>::accessible
+        Kokkos::SpaceAccessibility<src_execution_space,
+                                   dst_memory_space>::accessible
   };
 
   if ((void*)dst.data() != (void*)src.data()) {
@@ -1762,10 +1769,14 @@ inline void deep_copy(
     // memory then can byte-wise copy
     if (rank(src) == 0 && rank(dst) == 0) {
       using value_type = typename dst_type::value_type;
-      Kokkos::fence();
+      Kokkos::fence(
+          "Kokkos::Impl::DeepCopy(DynRankView, DynRankView): fence before "
+          "copying rank-0 views");
       Kokkos::Impl::DeepCopy<dst_memory_space, src_memory_space>(
           dst.data(), src.data(), sizeof(value_type));
-      Kokkos::fence();
+      Kokkos::fence(
+          "Kokkos::Impl::DeepCopy(DynRankView, DynRankView): fence after "
+          "copying rank-0 views");
     } else if (std::is_same<
                    typename DstType::traits::value_type,
                    typename SrcType::traits::non_const_value_type>::value &&
@@ -1787,10 +1798,14 @@ inline void deep_copy(
                dst.extent(6) == src.extent(6) &&
                dst.extent(7) == src.extent(7)) {
       const size_t nbytes = sizeof(typename dst_type::value_type) * dst.span();
-      Kokkos::fence();
+      Kokkos::fence(
+          "Kokkos::Impl::DeepCopy(DynRankView, DynRankView): fence before "
+          "copying rank-1 views");
       Kokkos::Impl::DeepCopy<dst_memory_space, src_memory_space>(
           dst.data(), src.data(), nbytes);
-      Kokkos::fence();
+      Kokkos::fence(
+          "Kokkos::Impl::DeepCopy(DynRankView, DynRankView): fence after "
+          "copying rank-1 views");
     } else if (std::is_same<
                    typename DstType::traits::value_type,
                    typename SrcType::traits::non_const_value_type>::value &&
@@ -1817,29 +1832,43 @@ inline void deep_copy(
                dst.stride_6() == src.stride_6() &&
                dst.stride_7() == src.stride_7()) {
       const size_t nbytes = sizeof(typename dst_type::value_type) * dst.span();
-      Kokkos::fence();
+      Kokkos::fence(
+          "Kokkos::Impl::DeepCopy(DynRankView, DynRankView): fence before "
+          "copying rank-1 views");
       Kokkos::Impl::DeepCopy<dst_memory_space, src_memory_space>(
           dst.data(), src.data(), nbytes);
-      Kokkos::fence();
+      Kokkos::fence(
+          "Kokkos::Impl::DeepCopy(DynRankView, DynRankView): fence after "
+          "copying rank-1 views");
     } else if (DstExecCanAccessSrc) {
       // Copying data between views in accessible memory spaces and either
       // non-contiguous or incompatible shape.
-      Kokkos::fence();
+      Kokkos::fence(
+          "Kokkos::Impl::DeepCopy(DynRankView, DynRankView): fence before "
+          "remapping views of incompatible shape");
       Kokkos::Impl::DynRankViewRemap<dst_type, src_type>(dst, src);
-      Kokkos::fence();
+      Kokkos::fence(
+          "Kokkos::Impl::DeepCopy(DynRankView, DynRankView): fence after "
+          "remapping views of incompatible shape");
     } else if (SrcExecCanAccessDst) {
       // Copying data between views in accessible memory spaces and either
       // non-contiguous or incompatible shape.
-      Kokkos::fence();
+      Kokkos::fence(
+          "Kokkos::Impl::DeepCopy(DynRankView, DynRankView): fence before "
+          "remapping views of incompatible shape");
       Kokkos::Impl::DynRankViewRemap<dst_type, src_type, src_execution_space>(
           dst, src);
-      Kokkos::fence();
+      Kokkos::fence(
+          "Kokkos::Impl::DeepCopy(DynRankView, DynRankView): fence after "
+          "remapping views of incompatible shape");
     } else {
       Kokkos::Impl::throw_runtime_exception(
           "deep_copy given views that would require a temporary allocation");
     }
   } else {
-    Kokkos::fence();
+    Kokkos::fence(
+        "Kokkos::Impl::DeepCopy(DynRankView, DynRankView): fence due to same "
+        "src and dst");
   }
 }
 

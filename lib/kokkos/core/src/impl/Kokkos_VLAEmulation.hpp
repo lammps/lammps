@@ -130,20 +130,20 @@ struct ObjectWithVLAEmulation {
   // CRTP boilerplate
 
   KOKKOS_FORCEINLINE_FUNCTION
-  /* KOKKOS_CONSTEXPR_14 */
+  /* constexpr */
   Derived* _this() noexcept {
     return VLAEmulationAccess::_cast_to_derived(this);
   }
 
   KOKKOS_FORCEINLINE_FUNCTION
-  /* KOKKOS_CONSTEXPR_14 */
+  /* constexpr */
   Derived const* _this() const noexcept {
     return VLAEmulationAccess::_cast_to_derived(this);
   }
 
   // Note: can't be constexpr because of reinterpret_cast
   KOKKOS_FORCEINLINE_FUNCTION
-  /* KOKKOS_CONSTEXPR_14 */
+  /* constexpr */
   vla_value_type* _vla_pointer() noexcept {
     // The data starts right after the aligned storage of Derived
     return reinterpret_cast<vla_value_type*>(_this() + 1);
@@ -151,7 +151,7 @@ struct ObjectWithVLAEmulation {
 
   // Note: can't be constexpr because of reinterpret_cast
   KOKKOS_FORCEINLINE_FUNCTION
-  /* KOKKOS_CONSTEXPR_14 */
+  /* constexpr */
   vla_value_type const* _vla_pointer() const noexcept {
     // The data starts right after the aligned storage of Derived
     return reinterpret_cast<vla_value_type const*>(_this() + 1);
@@ -159,7 +159,7 @@ struct ObjectWithVLAEmulation {
 
  public:
   KOKKOS_INLINE_FUNCTION
-  static /* KOKKOS_CONSTEXPR_14 */ size_t required_allocation_size(
+  static /* constexpr */ size_t required_allocation_size(
       vla_entry_count_type num_vla_entries) {
     KOKKOS_EXPECTS(num_vla_entries >= 0);
     return sizeof(Derived) + num_vla_entries * sizeof(VLAValueType);

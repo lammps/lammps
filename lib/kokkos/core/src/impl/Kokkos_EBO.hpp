@@ -79,20 +79,6 @@ struct EBOBaseImpl;
 
 template <class T, template <class...> class CtorNotOnDevice>
 struct EBOBaseImpl<T, true, CtorNotOnDevice> {
-  /*
-   * Workaround for constexpr in C++11: we need to still call T(args...), but we
-   * can't do so in the body of a constexpr function (in C++11), and there's no
-   * data member to construct into. But we can construct into an argument
-   * of a delegating constructor...
-   */
-  // TODO @minor DSH the destructor gets called too early with this workaround
-  struct _constexpr_14_workaround_tag {};
-  struct _constexpr_14_workaround_no_device_tag {};
-  KOKKOS_FORCEINLINE_FUNCTION
-  constexpr EBOBaseImpl(_constexpr_14_workaround_tag, T&&) noexcept {}
-  inline constexpr EBOBaseImpl(_constexpr_14_workaround_no_device_tag,
-                               T&&) noexcept {}
-
   template <
       class... Args, class _ignored = void,
       typename std::enable_if<std::is_void<_ignored>::value &&
@@ -100,10 +86,7 @@ struct EBOBaseImpl<T, true, CtorNotOnDevice> {
                                   !CtorNotOnDevice<Args...>::value,
                               int>::type = 0>
   KOKKOS_FORCEINLINE_FUNCTION constexpr explicit EBOBaseImpl(
-      Args&&... args) noexcept(noexcept(T(std::forward<Args>(args)...)))
-      // still call the constructor
-      : EBOBaseImpl(_constexpr_14_workaround_tag{},
-                    T(std::forward<Args>(args)...)) {}
+      Args&&...) noexcept {}
 
   template <
       class... Args, class _ignored = void,
@@ -111,11 +94,7 @@ struct EBOBaseImpl<T, true, CtorNotOnDevice> {
                                   std::is_constructible<T, Args...>::value &&
                                   CtorNotOnDevice<Args...>::value,
                               long>::type = 0>
-  inline constexpr explicit EBOBaseImpl(Args&&... args) noexcept(
-      noexcept(T(std::forward<Args>(args)...)))
-      // still call the constructor
-      : EBOBaseImpl(_constexpr_14_workaround_no_device_tag{},
-                    T(std::forward<Args>(args)...)) {}
+  inline constexpr explicit EBOBaseImpl(Args&&...) noexcept {}
 
   KOKKOS_DEFAULTED_FUNCTION
   constexpr EBOBaseImpl(EBOBaseImpl const&) = default;
@@ -124,19 +103,16 @@ struct EBOBaseImpl<T, true, CtorNotOnDevice> {
   constexpr EBOBaseImpl(EBOBaseImpl&&) = default;
 
   KOKKOS_DEFAULTED_FUNCTION
-  KOKKOS_CONSTEXPR_14
-  EBOBaseImpl& operator=(EBOBaseImpl const&) = default;
+  constexpr EBOBaseImpl& operator=(EBOBaseImpl const&) = default;
 
   KOKKOS_DEFAULTED_FUNCTION
-  KOKKOS_CONSTEXPR_14
-  EBOBaseImpl& operator=(EBOBaseImpl&&) = default;
+  constexpr EBOBaseImpl& operator=(EBOBaseImpl&&) = default;
 
   KOKKOS_DEFAULTED_FUNCTION
   ~EBOBaseImpl() = default;
 
   KOKKOS_INLINE_FUNCTION
-  KOKKOS_CONSTEXPR_14
-  T& _ebo_data_member() & { return *reinterpret_cast<T*>(this); }
+  constexpr T& _ebo_data_member() & { return *reinterpret_cast<T*>(this); }
 
   KOKKOS_INLINE_FUNCTION
   constexpr T const& _ebo_data_member() const& {
@@ -154,8 +130,9 @@ struct EBOBaseImpl<T, true, CtorNotOnDevice> {
   }
 
   KOKKOS_INLINE_FUNCTION
-  KOKKOS_CONSTEXPR_14
-  T&& _ebo_data_member() && { return std::move(*reinterpret_cast<T*>(this)); }
+  constexpr T&& _ebo_data_member() && {
+    return std::move(*reinterpret_cast<T*>(this));
+  }
 };
 
 template <class T, template <class...> class CTorsNotOnDevice>
@@ -191,12 +168,10 @@ struct EBOBaseImpl<T, false, CTorsNotOnDevice> {
   constexpr EBOBaseImpl(EBOBaseImpl&&) noexcept = default;
 
   KOKKOS_DEFAULTED_FUNCTION
-  KOKKOS_CONSTEXPR_14
-  EBOBaseImpl& operator=(EBOBaseImpl const&) = default;
+  constexpr EBOBaseImpl& operator=(EBOBaseImpl const&) = default;
 
   KOKKOS_DEFAULTED_FUNCTION
-  KOKKOS_CONSTEXPR_14
-  EBOBaseImpl& operator=(EBOBaseImpl&&) = default;
+  constexpr EBOBaseImpl& operator=(EBOBaseImpl&&) = default;
 
   KOKKOS_DEFAULTED_FUNCTION
   ~EBOBaseImpl() = default;
@@ -232,8 +207,7 @@ struct StandardLayoutNoUniqueAddressMemberEmulation
   using ebo_base_t::ebo_base_t;
 
   KOKKOS_FORCEINLINE_FUNCTION
-  KOKKOS_CONSTEXPR_14
-  T& no_unique_address_data_member() & {
+  constexpr T& no_unique_address_data_member() & {
     return this->ebo_base_t::_ebo_data_member();
   }
 
@@ -253,8 +227,7 @@ struct StandardLayoutNoUniqueAddressMemberEmulation
   }
 
   KOKKOS_FORCEINLINE_FUNCTION
-  KOKKOS_CONSTEXPR_14
-  T&& no_unique_address_data_member() && {
+  constexpr T&& no_unique_address_data_member() && {
     return this->ebo_base_t::_ebo_data_member();
   }
 };

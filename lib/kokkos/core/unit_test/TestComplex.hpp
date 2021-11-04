@@ -515,4 +515,44 @@ TEST(TEST_CATEGORY, complex_issue_3867) {
 #undef CHECK_POW_COMPLEX_PROMOTION
 }
 
+TEST(TEST_CATEGORY, complex_operations_arithmetic_types_overloads) {
+#define STATIC_ASSERT(cond) static_assert(cond, "")
+
+  STATIC_ASSERT(Kokkos::real(1) == 1.);
+  STATIC_ASSERT(Kokkos::real(2.f) == 2.f);
+  STATIC_ASSERT(Kokkos::real(3.) == 3.);
+  STATIC_ASSERT(Kokkos::real(4.l) == 4.l);
+  STATIC_ASSERT((std::is_same<decltype(Kokkos::real(1)), double>::value));
+  STATIC_ASSERT((std::is_same<decltype(Kokkos::real(2.f)), float>::value));
+  STATIC_ASSERT((std::is_same<decltype(Kokkos::real(3.)), double>::value));
+  STATIC_ASSERT(
+      (std::is_same<decltype(Kokkos::real(4.l)), long double>::value));
+
+  STATIC_ASSERT(Kokkos::imag(1) == 0.);
+  STATIC_ASSERT(Kokkos::imag(2.f) == 0.f);
+  STATIC_ASSERT(Kokkos::imag(3.) == 0.);
+  STATIC_ASSERT(Kokkos::imag(4.l) == 0.l);
+  STATIC_ASSERT((std::is_same<decltype(Kokkos::imag(1)), double>::value));
+  STATIC_ASSERT((std::is_same<decltype(Kokkos::imag(2.f)), float>::value));
+  STATIC_ASSERT((std::is_same<decltype(Kokkos::imag(3.)), double>::value));
+  STATIC_ASSERT(
+      (std::is_same<decltype(Kokkos::real(4.l)), long double>::value));
+
+  // FIXME in principle could be checked at compile time too
+  ASSERT_EQ(Kokkos::conj(1), Kokkos::complex<double>(1));
+  ASSERT_EQ(Kokkos::conj(2.f), Kokkos::complex<float>(2.f));
+  ASSERT_EQ(Kokkos::conj(3.), Kokkos::complex<double>(3.));
+  ASSERT_EQ(Kokkos::conj(4.l), Kokkos::complex<long double>(4.l));
+  STATIC_ASSERT((
+      std::is_same<decltype(Kokkos::conj(1)), Kokkos::complex<double>>::value));
+  STATIC_ASSERT((std::is_same<decltype(Kokkos::conj(2.f)),
+                              Kokkos::complex<float>>::value));
+  STATIC_ASSERT((std::is_same<decltype(Kokkos::conj(3.)),
+                              Kokkos::complex<double>>::value));
+  STATIC_ASSERT((std::is_same<decltype(Kokkos::conj(4.l)),
+                              Kokkos::complex<long double>>::value));
+
+#undef STATIC_ASSERT
+}
+
 }  // namespace Test

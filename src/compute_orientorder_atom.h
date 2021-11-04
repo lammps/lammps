@@ -31,6 +31,8 @@ class ComputeOrientOrderAtom : public Compute {
   virtual void init();
   void init_list(int, class NeighList *);
   virtual void compute_peratom();
+  int pack_forward_comm(int, int *, double *, int, int *);
+  void unpack_forward_comm(int, int, double *);
   double memory_usage();
   double cutsq;
   int iqlcomp, qlcomp, qlcompflag, wlflag, wlhatflag;
@@ -38,7 +40,7 @@ class ComputeOrientOrderAtom : public Compute {
   int nqlist;
 
  protected:
-  int nmax, maxneigh, ncol, nnn;
+  int nmax,commflag,maxneigh,ncol,nnn;
   class NeighList *list;
   double *distsq;
   int *nearest;

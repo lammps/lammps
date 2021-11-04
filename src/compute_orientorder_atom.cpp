@@ -21,8 +21,10 @@
 
 #include "atom.h"
 #include "comm.h"
+#include "domain.h"
 #include "error.h"
 #include "force.h"
+#include "group.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
@@ -39,6 +41,8 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecial;
+
+enum{MASK,COORDS};
 
 
 #ifdef DBL_EPSILON
@@ -149,6 +153,8 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
   peratom_flag = 1;
   size_peratom_cols = ncol;
 
+  comm_forward = 3;
+
   nmax = 0;
   maxneigh = 0;
 }
@@ -239,6 +245,24 @@ void ComputeOrientOrderAtom::compute_peratom()
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
+
+  // if update->post_integrate set:
+  // a dynamic group in FixGroup is invoking a variable with this compute
+  // thus ghost atom coords need to be up-to-date after initial_integrate()
+
+  if (update->post_integrate) {
+    commflag = COORDS;
+    comm->forward_comm_compute(this);
+  }
+
+  // if group is dynamic, insure ghost atom masks are current
+
+  if (group->dynamic[igroup]) {
+    commflag = MASK;
+    comm->forward_comm_compute(this);
+  }
+
+  
   // compute order parameter for each atom in group
   // use full neighbor list to count atoms less than cutoff
 
@@ -310,6 +334,80 @@ void ComputeOrientOrderAtom::compute_peratom()
     }
   }
 }
+
+
+/* ---------------------------------------------------------------------- */
+
+int ComputeOrientOrderAtom::pack_forward_comm(int n, int *list, double *buf,
+                                          int pbc_flag, int *pbc)
+{
+  int i,j,m;
+  double dx,dy,dz;
+  
+  // pack atom coordinates for comms operation");
+
+  double **x = atom->x;
+  
+  m = 0;
+
+  if (commflag == MASK) {
+
+    int *mask = atom->mask;
+    for (i = 0; i < n; i++) {
+      j = list[i];
+      buf[m++] = ubuf(mask[j]).d;
+    }
+  
+  } else if (commflag == COORDS) {
+  
+    if (pbc_flag == 0) {
+      for (i = 0; i < n; i++) {
+	j = list[i];
+	buf[m++] = x[j][0];
+	buf[m++] = x[j][1];
+	buf[m++] = x[j][2];
+      }
+    } else {
+      if (domain->triclinic == 0) {
+	dx = pbc[0]*domain->xprd;
+	dy = pbc[1]*domain->yprd;
+	dz = pbc[2]*domain->zprd;
+      } else {
+	dx = pbc[0]*domain->xprd + pbc[5]*domain->xy + pbc[4]*domain->xz;
+	dy = pbc[1]*domain->yprd + pbc[3]*domain->yz;
+	dz = pbc[2]*domain->zprd;
+      }
+      for (i = 0; i < n; i++) {
+	j = list[i];
+	buf[m++] = x[j][0] + dx;
+	buf[m++] = x[j][1] + dy;
+	buf[m++] = x[j][2] + dz;
+      }
+    }
+  }
+  
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeOrientOrderAtom::unpack_forward_comm(int n, int first, double *buf)
+{
+  int i,m,last;
+
+  m = 0;
+  last = first + n;
+   
+  double **x = atom->x;
+  for (i = first; i < last; i++) {    
+    x[i][0] = buf[m++];
+    x[i][1] = buf[m++];
+    x[i][2] = buf[m++];
+  }
+  
+}
+
+
 
 /* ----------------------------------------------------------------------
    memory usage of local atom-based array

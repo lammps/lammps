@@ -711,8 +711,8 @@ default and it can be disabled with the :code:`checksum` keyword.
 Restrictions
 """"""""""""
 
-*dump_modify sort* is not supported for dumps of groups containing
-more than 2 billion atoms.
+Not all *dump_modify* options can be applied to all dump styles.
+Details are in the discussions of the individual options.
 
 Related commands
 """"""""""""""""

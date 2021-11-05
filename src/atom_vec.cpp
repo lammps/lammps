@@ -1707,7 +1707,7 @@ void AtomVec::create_atom(int itype, double *coord)
    initialize other peratom quantities
 ------------------------------------------------------------------------- */
 
-void AtomVec::data_atom(double *coord, imageint imagetmp, char **values)
+void AtomVec::data_atom(double *coord, imageint imagetmp, char **values, std::string &extract)
 {
   int m,n,datatype,cols;
   void *pdata;
@@ -1745,6 +1745,10 @@ void AtomVec::data_atom(double *coord, imageint imagetmp, char **values)
     } else if (datatype == Atom::INT) {
       if (cols == 0) {
         int *vec = *((int **) pdata);
+        if (vec == atom->type) {      // custom treatment of atom types
+          extract = values[ivalue++];
+          continue;
+        }
         vec[nlocal] = utils::inumeric(FLERR,values[ivalue++],true,lmp);
       } else {
         int **array = *((int ***) pdata);
@@ -1767,8 +1771,6 @@ void AtomVec::data_atom(double *coord, imageint imagetmp, char **values)
 
   if (tag[nlocal] <= 0)
     error->one(FLERR,"Invalid atom ID in Atoms section of data file");
-  if (type[nlocal] <= 0 || type[nlocal] > atom->ntypes)
-    error->one(FLERR,"Invalid atom type in Atoms section of data file");
 
   // if needed, modify unpacked values or initialize other peratom values
 

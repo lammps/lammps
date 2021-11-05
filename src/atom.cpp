@@ -1069,6 +1069,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
   double xdata[3],lamda[3];
   double *coord;
   char *next;
+  std::string typestr;
 
   next = strchr(buf,'\n');
   *next = '\0';
@@ -1193,15 +1194,20 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
     if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
         coord[1] >= sublo[1] && coord[1] < subhi[1] &&
         coord[2] >= sublo[2] && coord[2] < subhi[2]) {
-      avec->data_atom(xdata,imagedata,values);
+      avec->data_atom(xdata,imagedata,values,typestr);
       if (id_offset) tag[nlocal-1] += id_offset;
       if (mol_offset) molecule[nlocal-1] += mol_offset;
-      if (labelflag) type[nlocal-1] = ilabel[type[nlocal-1]-1];
-      if (type_offset) {
-        type[nlocal-1] += type_offset;
-        if (type[nlocal-1] > ntypes)
-          error->one(FLERR,"Invalid atom type in Atoms section of data file");
+      if (!isdigit(typestr[0])) {
+        if (!atom->labelmapflag) error->one(FLERR,"Invalid Types section in molecule file");
+        type[nlocal-1] = atom->find_label(typestr,Atom::ATOM);
+        if (type[nlocal-1] == -1) error->one(FLERR,"Invalid Types section in molecule file");
+      } else {
+        type[nlocal-1] = utils::inumeric(FLERR,typestr.c_str(),true,lmp);
+        if (labelflag) type[nlocal-1] = ilabel[type[nlocal-1]-1];
       }
+      if (type_offset) type[nlocal-1] += type_offset;
+      if (type[nlocal-1] <= 0 || type[nlocal-1] > ntypes)
+        error->one(FLERR,"Invalid atom type in Atoms section of data file");
     }
 
     buf = next + 1;

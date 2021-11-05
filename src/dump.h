@@ -186,10 +186,6 @@ E: Dump sort column is invalid
 
 Self-explanatory.
 
-E: Too many atoms to dump sort
-
-Cannot sort when running with more than 2^31 atoms.
-
 E: Dump could not find refresh compute ID
 
 UNDOCUMENTED

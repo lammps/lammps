@@ -55,7 +55,10 @@ ThirdOrder::ThirdOrder(LAMMPS *lmp) : Command(lmp), fp(nullptr)
 
 ThirdOrder::~ThirdOrder()
 {
-  if (fp && me == 0) fclose(fp);
+  if (fp && me == 0) {
+    if (compressed) platform::pclose(fp);
+    else fclose(fp);
+  }
   fp = nullptr;
   memory->destroy(groupmap);
 }
@@ -200,14 +203,14 @@ void ThirdOrder::options(int narg, char **arg)
       iarg += 2;
     } else error->all(FLERR,"Illegal third_order command");
   }
-  if (file_flag == 1 and me == 0) {
+  if (file_flag == 1 && me == 0) {
     openfile(filename);
   }
 }
 
 /* ----------------------------------------------------------------------
    generic opening of a file
-   ASCII or binary or gzipped
+   ASCII or binary or compressed
    some derived classes override this function
 ------------------------------------------------------------------------- */
 
@@ -215,27 +218,19 @@ void ThirdOrder::openfile(const char* filename)
 {
   // if file already opened, return
   if (file_opened) return;
+  fp = nullptr;
 
-  if (compressed) {
-#ifdef LAMMPS_GZIP
-    char gzip[128];
-    sprintf(gzip,"gzip -6 > %s",filename);
-#ifdef _WIN32
-    fp = _popen(gzip,"wb");
-#else
-    fp = popen(gzip,"w");
-#endif
-#else
-    error->one(FLERR,"Cannot open gzipped file");
-#endif
-  } else if (binaryflag) {
-    fp = fopen(filename,"wb");
-  } else {
-    fp = fopen(filename,"w");
+  if (me == 0) {
+    if (compressed) {
+      fp = platform::compressed_write(std::string(filename)+".gz");
+      if (!fp) error->one(FLERR,"Cannot open compressed file");
+    } else if (binaryflag) {
+      fp = fopen(filename,"wb");
+    } else {
+      fp = fopen(filename,"w");
+    }
+    if (!fp) error->one(FLERR,"Cannot open third_order file: {}", utils::getsyserror());
   }
-
-  if (fp == nullptr) error->one(FLERR,"Cannot open dump file");
-
   file_opened = 1;
 }
 

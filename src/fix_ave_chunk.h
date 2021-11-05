@@ -61,7 +61,7 @@ class FixAveChunk : public Fix {
   class ComputeChunkAtom *cchunk;
   int lockforever;
 
-  long filepos;
+  bigint filepos;
 
   int maxvar;
   double *varatom;

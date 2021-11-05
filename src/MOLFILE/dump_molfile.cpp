@@ -26,8 +26,8 @@
 #include "memory.h"
 #include "update.h"
 
-#include <cstring>
 #include <cmath>
+#include <cstring>
 
 #include "molfile_interface.h"
 
@@ -131,9 +131,9 @@ DumpMolfile::~DumpMolfile()
 
   if (typenames) {
     for (int i = 1; i <= ntypes; i++)
-      delete [] typenames[i];
+      delete[] typenames[i];
 
-    delete [] typenames;
+    delete[] typenames;
     typenames = nullptr;
   }
 }
@@ -152,8 +152,7 @@ void DumpMolfile::init_style()
       typenames = new char*[ntypes+1];
       for (int itype = 1; itype <= ntypes; itype++) {
         /* a 32-bit int can be maximally 10 digits plus sign */
-        typenames[itype] = new char[12];
-        sprintf(typenames[itype],"%d",itype);
+        typenames[itype] = utils::strdup(std::to_string(itype));
       }
     }
 
@@ -207,6 +206,7 @@ void DumpMolfile::write()
     }
   }
   ntotal = 0;
+  reorderflag = 0;
 
   // if file per timestep, open new file
 
@@ -430,9 +430,9 @@ int DumpMolfile::modify_param(int narg, char **arg)
 
     if (typenames) {
       for (int i = 1; i <= ntypes; i++)
-        delete [] typenames[i];
+        delete[] typenames[i];
 
-      delete [] typenames;
+      delete[] typenames;
       typenames = nullptr;
     }
 

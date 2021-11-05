@@ -19,12 +19,9 @@
 #include "system.h"
 #include "matrices.h"
 
-Solver::Solver(){
+Solver::Solver() = default;
 
-}
-
-Solver::~Solver(){
-}
+Solver::~Solver() = default;
 
 void Solver::SetSystem(System* s){
   system = s;

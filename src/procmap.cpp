@@ -294,7 +294,7 @@ void ProcMap::custom_grid(char *cfile, int nprocs,
     char *ptr;
     if (!fgets(line,MAXLINE,fp))
       error->one(FLERR,"Unexpected end of custom file");
-    while (1) {
+    while (true) {
       if ((ptr = strchr(line,'#'))) *ptr = '\0';
       if (strspn(line," \t\n\r") != strlen(line)) break;
       if (!fgets(line,MAXLINE,fp))

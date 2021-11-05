@@ -27,13 +27,9 @@ DumpLocalGZ::DumpLocalGZ(LAMMPS *lmp, int narg, char **arg) : DumpLocal(lmp, nar
   if (!compressed) error->all(FLERR, "Dump local/gz only writes compressed files");
 }
 
-/* ---------------------------------------------------------------------- */
-
-DumpLocalGZ::~DumpLocalGZ() {}
-
 /* ----------------------------------------------------------------------
    generic opening of a dump file
-   ASCII or binary or gzipped
+   ASCII or binary or compressed
    some derived classes override this function
 ------------------------------------------------------------------------- */
 

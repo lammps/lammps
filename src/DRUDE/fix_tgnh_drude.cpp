@@ -761,7 +761,7 @@ void FixTGNHDrude::setup_mol_mass_dof() {
               dof_mol, dof_int, dof_drude);
     }
   }
-  if (dof_mol <=0 or dof_int <=0 or dof_drude <=0)
+  if (dof_mol <=0 || dof_int <=0 || dof_drude <=0)
     error->all(FLERR, "TGNHC thermostat requires DOFs of molecules, atoms and dipoles larger than 0");
 }
 

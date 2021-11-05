@@ -911,7 +911,7 @@ template <class ft, class acc_t>
 void FixIntel::add_off_results(const ft * _noalias const f_in,
                                const acc_t * _noalias const ev_global) {
   if (_offload_balance < 0.0)
-    _balance_other_time = MPI_Wtime() - _balance_other_time;
+    _balance_other_time = platform::walltime() - _balance_other_time;
 
   start_watch(TIME_OFFLOAD_WAIT);
   #ifdef _LMP_INTEL_OFFLOAD

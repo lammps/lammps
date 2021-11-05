@@ -33,7 +33,7 @@ class PairLubricatePolyOMP : public PairLubricatePoly, public ThrOMP {
 
  public:
   PairLubricatePolyOMP(class LAMMPS *);
-  virtual ~PairLubricatePolyOMP();
+  virtual ~PairLubricatePolyOMP() = default;
 
   virtual void compute(int, int);
   virtual double memory_usage();

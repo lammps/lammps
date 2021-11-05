@@ -101,13 +101,19 @@ PairReaxFFOMP::~PairReaxFFOMP()
 
 void PairReaxFFOMP::init_style()
 {
-  if (!atom->q_flag)
-    error->all(FLERR,"Pair style reaxff/omp requires atom attribute q");
+  if (!atom->q_flag) error->all(FLERR,"Pair style reaxff/omp requires atom attribute q");
 
-  bool have_qeq = ((modify->find_fix_by_style("^qeq/reax") != -1)
-                   || (modify->find_fix_by_style("^qeq/shielded") != -1));
-  if (!have_qeq && qeqflag == 1)
-    error->all(FLERR,"Pair reaxff/omp requires use of fix qeq/reaxff or qeq/shielded");
+  auto acks2_fixes = modify->get_fix_by_style("^acks2/reax");
+  int have_qeq = modify->get_fix_by_style("^qeq/reax").size()
+    + modify->get_fix_by_style("^qeq/shielded").size() + acks2_fixes.size();
+
+  if (qeqflag && (have_qeq != 1))
+    error->all(FLERR,"Pair style reaxff/omp requires use of exactly one of the "
+               "fix qeq/reaxff or fix qeq/shielded or fix acks2/reaxff commands");
+
+  api->system->acks2_flag = acks2_fixes.size();
+  if (api->system->acks2_flag)
+    error->all(FLERR,"Cannot (yet) use ACKS2 with OPENMP ReaxFF");
 
   api->system->n = atom->nlocal; // my atoms
   api->system->N = atom->nlocal + atom->nghost; // mine + ghosts

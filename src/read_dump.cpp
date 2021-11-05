@@ -233,7 +233,7 @@ void ReadDump::setup_reader(int narg, char **arg)
   // create Nreader reader classes per reader
   // match readerstyle to options in style_reader.h
 
-  if (0) {
+  if (false) {
     return;        // dummy line to enable else-if macro expansion
 
 #define READER_CLASS
@@ -289,7 +289,7 @@ bigint ReadDump::seek(bigint nrequest, int exact)
         readers[0]->open_file(multiname.c_str());
       } else readers[0]->open_file(files[ifile]);
 
-      while (1) {
+      while (true) {
         eofflag = readers[0]->read_time(ntimestep);
         if (eofflag) break;
         if (ntimestep >= nrequest) break;
@@ -333,7 +333,7 @@ bigint ReadDump::seek(bigint nrequest, int exact)
       readers[i]->open_file(multiname.c_str());
 
       bigint step;
-      while (1) {
+      while (true) {
         eofflag = readers[i]->read_time(step);
         if (eofflag) break;
         if (step == ntimestep) break;
@@ -382,7 +382,7 @@ bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
         } else readers[0]->open_file(files[ifile]);
       }
 
-      while (1) {
+      while (true) {
         eofflag = readers[0]->read_time(ntimestep);
         if (eofflag) break;
         if (ntimestep > nlast) break;
@@ -435,7 +435,7 @@ bigint ReadDump::next(bigint ncurrent, bigint nlast, int nevery, int nskip)
       readers[i]->open_file(multiname.c_str());
 
       bigint step;
-      while (1) {
+      while (true) {
         eofflag = readers[i]->read_time(step);
         if (eofflag) break;
         if (step == ntimestep) break;

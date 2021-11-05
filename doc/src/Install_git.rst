@@ -9,7 +9,8 @@ has several advantages:
   command.
 * You can create your own development branches to add code to LAMMPS.
 * You can submit your new features back to GitHub for inclusion in
-  LAMMPS.
+  LAMMPS.  For that you should first create your own :doc:`fork on
+  GitHub <Howto_github>`.
 
 You must have `git <git_>`_ installed on your system to use the
 commands explained below to communicate with the git servers on
@@ -20,35 +21,53 @@ provides `limited support for subversion clients <svn_>`_.
 
    As of October 2016, the official home of public LAMMPS development is
    on GitHub.  The previously advertised LAMMPS git repositories on
-   git.lammps.org and bitbucket.org are now deprecated or offline.
+   git.lammps.org and bitbucket.org are now offline or deprecated.
 
 .. _git: https://git-scm.com
 .. _svn: https://help.github.com/en/github/importing-your-projects-to-github/working-with-subversion-on-github
 
-You can follow LAMMPS development on 3 different git branches:
+You can follow the LAMMPS development on 3 different git branches:
 
-* **stable**   :  this branch is updated with every stable release
-* **unstable** :  this branch is updated with every patch release
-* **master**   :  this branch continuously follows ongoing development
+* **stable**   :  this branch is updated with every stable release;
+  updates are always "fast forward" merges from *develop*
+* **release**  :  this branch is updated with every patch release;
+  updates are always "fast forward" merges from *develop*
+* **develop**  :  this branch follows the ongoing development and
+  is updated with every merge commit of a pull request
 
 To access the git repositories on your box, use the clone command to
 create a local copy of the LAMMPS repository with a command like:
 
 .. code-block:: bash
 
-   $ git clone -b unstable https://github.com/lammps/lammps.git mylammps
+   $ git clone -b release https://github.com/lammps/lammps.git mylammps
 
 where "mylammps" is the name of the directory you wish to create on
-your machine and "unstable" is one of the 3 branches listed above.
+your machine and "release" is one of the 3 branches listed above.
 (Note that you actually download all 3 branches; you can switch
 between them at any time using "git checkout <branch name>".)
+
+.. note::
+
+   The complete git history of the LAMMPS project is quite large because
+   it contains the entire commit history of the project since fall 2006,
+   which includes the time when LAMMPS was managed with subversion. This
+   also includes commits that have added and removed some large files
+   (mostly by accident).  If you do not need access to the entire commit
+   history, you can speed up the "cloning" process and reduce local disk
+   space requirements by using the *--depth* git command line flag thus
+   create a "shallow clone" of the repository that contains only a
+   subset of the git history. Using a depth of 1000 is usually sufficient
+   to include the head commits of the *develop* and the *release* branches.
+   To include the head commit of the *stable* branch you may need a depth
+   of up to 10000.
 
 Once the command completes, your directory will contain the same files
 as if you unpacked a current LAMMPS tarball, with the exception, that
 the HTML documentation files are not included.  They can be fetched
 from the LAMMPS website by typing ``make fetch`` in the doc directory.
-Or they can be generated from the content provided in doc/src by
-typing ``make html`` from the doc directory.
+Or they can be generated from the content provided in ``doc/src`` by
+typing ``make html`` from the ``doc`` directory.
 
 After initial cloning, as bug fixes and new features are added to
 LAMMPS you can stay up-to-date by typing the following git commands
@@ -56,9 +75,9 @@ from within the "mylammps" directory:
 
 .. code-block:: bash
 
-   $ git checkout unstable      # not needed if you always stay in this branch
-   $ git checkout stable        # use one of these 3 checkout commands
-   $ git checkout master        # to choose the branch to follow
+   $ git checkout release      # not needed if you always stay in this branch
+   $ git checkout stable       # use one of these 3 checkout commands
+   $ git checkout develop      # to choose the branch to follow
    $ git pull
 
 Doing a "pull" will not change any files you have added to the LAMMPS
@@ -81,7 +100,7 @@ Stable versions and what tagID to use for a particular stable version
 are discussed on `this page <https://www.lammps.org/bug.html#version>`_.
 Note that this command will print some warnings, because in order to get
 back to the latest revision and to be able to update with ``git pull``
-again, you will need to do ``git checkout unstable`` (or
+again, you will need to do ``git checkout release`` (or
 check out any other desired branch) first.
 
 Once you have updated your local files with a ``git pull`` (or ``git
@@ -137,9 +156,9 @@ changed.  How to do this depends on the build system you are using.
 .. admonition:: Git protocols
    :class: note
 
-   The servers at github.com support the "git://" and "https://" access
-   protocols for anonymous, read-only access.  If you have a suitably
-   configured GitHub account, you may also use SSH protocol with the
+   The servers at github.com support the "https://" access protocol for
+   anonymous, read-only access.  If you have a suitably configured GitHub
+   account, you may also use SSH protocol with the
    URL "git@github.com:lammps/lammps.git".
 
 The LAMMPS GitHub project is currently managed by Axel Kohlmeyer

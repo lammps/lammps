@@ -28,8 +28,8 @@ using namespace std;
 
 OnSolver::OnSolver(){
   numbodies = 0;
-  bodyarray = 0;
-  q=0;u=0; qdot=0; udot=0; qdotdot=0;
+  bodyarray = nullptr;
+  q=nullptr;u=nullptr; qdot=nullptr; udot=nullptr; qdotdot=nullptr;
   type = ONSOLVER;
 }
 

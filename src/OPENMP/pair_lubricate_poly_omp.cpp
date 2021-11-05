@@ -47,11 +47,6 @@ PairLubricatePolyOMP::PairLubricatePolyOMP(LAMMPS *lmp) :
 
 /* ---------------------------------------------------------------------- */
 
-PairLubricatePolyOMP::~PairLubricatePolyOMP()
-{}
-
-/* ---------------------------------------------------------------------- */
-
 void PairLubricatePolyOMP::compute(int eflag, int vflag)
 {
   ev_init(eflag,vflag);

@@ -446,11 +446,11 @@ int platform::putenv(const std::string &vardef)
 
   auto found = vardef.find_first_of('=');
 #ifdef _WIN32
-  // must assign a value to variable with _putenv()
+  // must assign a value to variable with _putenv_s()
   if (found == std::string::npos)
-    return _putenv(utils::strdup(vardef + "=1"));
+    return _putenv_s(vardef.c_str(), "1");
   else
-    return _putenv(utils::strdup(vardef));
+    return _putenv_s(vardef.substr(0, found).c_str(), vardef.substr(found+1).c_str());
 #else
   if (found == std::string::npos)
     return setenv(vardef.c_str(), "", 1);
@@ -458,6 +458,24 @@ int platform::putenv(const std::string &vardef)
     return setenv(vardef.substr(0, found).c_str(), vardef.substr(found + 1).c_str(), 1);
 #endif
   return -1;
+}
+
+/* ----------------------------------------------------------------------
+   unset environment variable
+------------------------------------------------------------------------- */
+
+int platform::unsetenv(const std::string &variable)
+{
+  if (variable.size() == 0) return -1;
+#ifdef _WIN32
+  // emulate POSIX semantics by returning -1 on trying to unset non-existing variable
+  const char *ptr = getenv(variable.c_str());
+  if (!ptr) return -1;
+  // empty _putenv_s() definition deletes variable
+  return _putenv_s(variable.c_str(),"");
+#else
+  return ::unsetenv(variable.c_str());
+#endif
 }
 
 /* ----------------------------------------------------------------------

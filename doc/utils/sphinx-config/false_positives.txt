@@ -1995,6 +1995,7 @@ minimizer
 minimizers
 minneigh
 minorder
+MinSizeRel
 minSteps
 mintcream
 Mintmire
@@ -2784,6 +2785,7 @@ relink
 relres
 relTol
 relu
+RelWithDebInfo
 remappings
 remd
 Ren

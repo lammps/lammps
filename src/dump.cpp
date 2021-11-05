@@ -237,7 +237,8 @@ void Dump::init()
       irregular = new Irregular(lmp);
 
     bigint size = group->count(igroup);
-    if (size > MAXSMALLINT) error->all(FLERR,"Too many atoms to dump sort");
+    int bigintflag = 0;
+    if (size > MAXSMALLINT) bigintflag = 1;
     int isize = static_cast<int> (size);
 
     // set reorderflag = 1 if can simply reorder local atoms rather than sort
@@ -252,7 +253,7 @@ void Dump::init()
       if (utils::strmatch(fix->style,"^gcmc"))
         gcmcflag = 1;
 
-    if (sortcol == 0 && atom->tag_consecutive() && !gcmcflag) {
+    if (sortcol == 0 && atom->tag_consecutive() && !gcmcflag && !bigintflag) {
       tagint *tag = atom->tag;
       int *mask = atom->mask;
       int nlocal = atom->nlocal;

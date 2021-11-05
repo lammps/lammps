@@ -60,7 +60,9 @@ static std::unordered_set<std::string> section_keywords = {
   "Dihedral Coeffs", "Improper Coeffs",
   "BondBond Coeffs", "BondAngle Coeffs", "MiddleBondTorsion Coeffs",
   "EndBondTorsion Coeffs", "AngleTorsion Coeffs",
-  "AngleAngleTorsion Coeffs", "BondBond13 Coeffs", "AngleAngle Coeffs"
+  "AngleAngleTorsion Coeffs", "BondBond13 Coeffs", "AngleAngle Coeffs",
+  "Atom Type Labels", "Bond Type Labels", "Angle Type Labels",
+  "Dihedral Type Labels", "Improper Type Labels"
 };
 
 // function to check whether a string is a known data section name

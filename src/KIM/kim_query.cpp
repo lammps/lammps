@@ -377,7 +377,7 @@ char *do_query(const std::string &qfunction, const std::string &mname,
       }
 
       auto user_agent = fmt::format("kim query--LAMMPS/{} ({})",
-                                    LAMMPS_VERSION, Info::get_os_info());
+                                    LAMMPS_VERSION, platform::os_info());
 
       curl_easy_setopt(handle, CURLOPT_USERAGENT, user_agent.c_str());
       curl_easy_setopt(handle, CURLOPT_URL, url.c_str());

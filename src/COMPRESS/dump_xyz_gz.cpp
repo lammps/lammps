@@ -26,13 +26,9 @@ DumpXYZGZ::DumpXYZGZ(LAMMPS *lmp, int narg, char **arg) : DumpXYZ(lmp, narg, arg
   if (!compressed) error->all(FLERR, "Dump xyz/gz only writes compressed files");
 }
 
-/* ---------------------------------------------------------------------- */
-
-DumpXYZGZ::~DumpXYZGZ() {}
-
 /* ----------------------------------------------------------------------
    generic opening of a dump file
-   ASCII or binary or gzipped
+   ASCII or binary or compressed
    some derived classes override this function
 ------------------------------------------------------------------------- */
 

@@ -139,12 +139,12 @@ void PairLJSDKCoulLongGPU::compute(int eflag, int vflag)
     error->one(FLERR,"Insufficient memory on accelerator");
 
   if (host_start<inum) {
-    cpu_time = MPI_Wtime();
+    cpu_time = platform::walltime();
     if (evflag) {
       if (eflag) cpu_compute<1,1>(host_start, inum, ilist, numneigh, firstneigh);
       else cpu_compute<1,0>(host_start, inum, ilist, numneigh, firstneigh);
     } else cpu_compute<0,0>(host_start, inum, ilist, numneigh, firstneigh);
-    cpu_time = MPI_Wtime() - cpu_time;
+    cpu_time = platform::walltime() - cpu_time;
   }
 }
 

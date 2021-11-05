@@ -1536,7 +1536,7 @@ double FixLbRigidPCSphere::compute_array(int i, int j)
 }
 
 /* ---------------------------------------------------------------------- */
- void FixLbRigidPCSphere::compute_up(void)
+ void FixLbRigidPCSphere::compute_up()
  {
    int *mask = atom->mask;
    int nlocal = atom->nlocal;

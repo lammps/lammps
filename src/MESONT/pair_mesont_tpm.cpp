@@ -38,7 +38,7 @@ using namespace LAMMPS_NS;
 class MESONTList {
 public:
   MESONTList(const Atom* atom, const NeighList* nblist);
-  ~MESONTList() {};
+  ~MESONTList() = default;;
   //list of segments
   const std::vector<std::array<int,2>>& get_segments() const;
   //list of triplets
@@ -197,7 +197,7 @@ MESONTList::MESONTList(const Atom* atom, const NeighList* nblist) {
       index_list.push_back(i);
       index_list_b[i] = index_list.size() - 1;
       int idx = i;
-      while (1) {
+      while (true) {
         idx = chain_list[idx][1];
         if (idx == cnt_end || idx == domain_end) break;
         else index_list.push_back(idx);

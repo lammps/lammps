@@ -34,7 +34,7 @@ namespace LAMMPS_NS {
 class DumpLocalZstd : public DumpLocal {
  public:
   DumpLocalZstd(class LAMMPS *, int, char **);
-  virtual ~DumpLocalZstd();
+  virtual ~DumpLocalZstd() = default;
 
  protected:
   ZstdFileWriter writer;

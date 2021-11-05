@@ -131,7 +131,7 @@ static void getparmindata(const char *potin_file,int nvol[1],double vol0[1],doub
     exit(1);
   }
 
-  if (0) {
+  if (false) {
     printf("Before sort:\n");
     for (int i = 0; i<n; i++)
       printf("%3d :: %.3f%s",i,volarr[i], (i%5==4) ? "\n" : "  ");
@@ -139,7 +139,7 @@ static void getparmindata(const char *potin_file,int nvol[1],double vol0[1],doub
   }
   qsort(volarr,n,sizeof(double),cmp_double);
 
-  if (0) {
+  if (false) {
     printf("After sort:\n");
     for (int i = 0; i<n; i++)
       printf("%3d :: %.3f%s",i,volarr[i], (i%5==4) ? "\n" : "  ");
@@ -166,7 +166,7 @@ void potdata::readpot(const char *parmin_file,const char *potin_file,const doubl
   int ipotx,modex; double pnx;
   double vol0;
 
-  double *vatab,*vbtab,*vctab,*vdtab,*vetab,*p1tab,*altab,*vpairtab = 0;
+  double *vatab,*vbtab,*vctab,*vdtab,*vetab,*p1tab,*altab,*vpairtab = nullptr;
   double *r0rwstab,*evol0tab;
   double (*C)[4];
   double *y,*dy;
@@ -194,7 +194,7 @@ void potdata::readpot(const char *parmin_file,const char *potin_file,const doubl
     int nvol;
     getparmindata(potin_file,&nvol,&vol0,&x0,&x1);
     dx = (x1-x0)/(nvol-1);
-    if (0) {
+    if (false) {
       printf("getparmindata() ==> nvol = %d, vol0 = %.6f, x0= %.6f, x1 = %.6f, dx = %.6f\n",
              nvol,vol0,x0,x1,dx);
     }
@@ -408,7 +408,7 @@ void potdata::readpot(const char *parmin_file,const char *potin_file,const doubl
         double vpair_tmp = vpairtab[i*nr+j];
         vpairtab[i*nr+j] = vpairtab[i*nr+j]*fscr + v2a - v2b;
 
-        if (0) if (fabs(vol-ivol) < 0.01) {
+        if (false) if (fabs(vol-ivol) < 0.01) {
           static FILE *xfile = nullptr;
           if (j == 0) {
             xfile = fopen("mgpt5-pot.dat","w");
@@ -487,7 +487,7 @@ void potdata::readpot(const char *parmin_file,const char *potin_file,const doubl
   evalspline(nx-1,x0,x1,C,x,&evol0,&devol0,&unused);
   devol0 *= dxdv;
 
-  if (1) {
+  if (true) {
     printf("%% READPOT PARAMETERS:\n");
 
     printf("%% ddl = %15.5e  %15.5e  %15.5e  %15.5e\n",ddl[1],ddl[2],ddl[3],ddl[4]);

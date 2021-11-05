@@ -21,8 +21,8 @@ double f_lammps_get_natoms();
 class LAMMPS_commands : public ::testing::Test {
 protected:
     LAMMPS_NS::LAMMPS *lmp;
-    LAMMPS_commands(){};
-    ~LAMMPS_commands() override{};
+    LAMMPS_commands()           = default;
+    ~LAMMPS_commands() override = default;
 
     void SetUp() override
     {

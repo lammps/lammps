@@ -283,7 +283,7 @@ void VerletKokkos::run(int n)
 
   atomKK->sync(Device,ALL_MASK);
   //static double time = 0.0;
-  //Kokkos::Impl::Timer ktimer;
+  //Kokkos::Timer ktimer;
 
   timer->init_timeout();
   for (int i = 0; i < n; i++) {
@@ -445,7 +445,7 @@ void VerletKokkos::run(int n)
     if (pair_compute_flag) {
       atomKK->sync(force->pair->execution_space,force->pair->datamask_read);
       atomKK->sync(force->pair->execution_space,~(~force->pair->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
-      Kokkos::Impl::Timer ktimer;
+      Kokkos::Timer ktimer;
       force->pair->compute(eflag,vflag);
       atomKK->modified(force->pair->execution_space,force->pair->datamask_modify);
       atomKK->modified(force->pair->execution_space,~(~force->pair->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));

@@ -33,7 +33,7 @@ class Reader : protected Pointers {
                              int &, int &, int &) = 0;
   virtual void read_atoms(int, int, double **) = 0;
 
-  virtual void open_file(const char *);
+  virtual void open_file(const std::string &);
   virtual void close_file();
 
  protected:

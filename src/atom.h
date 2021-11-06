@@ -33,6 +33,7 @@ class Atom : protected Pointers {
   enum { GROW = 0, RESTART = 1, BORDER = 2 };
   enum { ATOMIC = 0, MOLECULAR = 1, TEMPLATE = 2 };
   enum { ATOM = 0, BOND = 1, ANGLE = 2, DIHEDRAL = 3, IMPROPER = 4 };
+  enum { NUMERIC = 0, LABELS = 1};
   enum { MAP_NONE = 0, MAP_ARRAY = 1, MAP_HASH = 2, MAP_YES = 3 };
 
   // atom counts
@@ -175,7 +176,7 @@ class Atom : protected Pointers {
   // most are existence flags for per-atom vectors and arrays
   // 1 if variable is used, 0 if not
 
-  int labelmapflag;
+  int labelmapflag, types_style;
   int sphere_flag, ellipsoid_flag, line_flag, tri_flag, body_flag;
   int peri_flag, electron_flag;
   int wavepacket_flag, sph_flag;

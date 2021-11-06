@@ -20,6 +20,7 @@
 #include "error.h"
 #include "fix.h"
 #include "force.h"
+#include "label_map.h"
 #include "math_const.h"
 #include "memory.h"
 #include "modify.h"
@@ -1866,6 +1867,11 @@ void AtomVec::write_data(FILE *fp, int n, double **buf)
         }
       } else if (datatype == Atom::INT) {
         if (cols == 0) {
+          if (atom->types_style == Atom::LABELS &&
+              strcmp(atom->peratom[mdata_atom.index[nn]].name,"type") == 0) {
+            fmt::print(fp," {}",atom->lmaps[0]->typelabel[ubuf(buf[i][j++]).i-1]);
+            continue;
+          }
           fmt::print(fp," {}",ubuf(buf[i][j++]).i);
         } else {
           for (m = 0; m < cols; m++)

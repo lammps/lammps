@@ -73,6 +73,7 @@ void WriteData::command(int narg, char **arg)
   coeffflag = 1;
   fixflag = 1;
   lmapflag = 1;
+  atom->types_style = Atom::NUMERIC;
   int noinit = 0;
 
   int iarg = 1;
@@ -95,6 +96,12 @@ void WriteData::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"nolabelmap") == 0) {
       lmapflag = 0;
       iarg++;
+    } else if (strcmp(arg[iarg],"types_style") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal write_data command");
+      if (strcmp(arg[iarg+1],"numeric") == 0) atom->types_style = Atom::NUMERIC;
+      else if (strcmp(arg[iarg+1],"labels") == 0) atom->types_style = Atom::LABELS;
+      else error->all(FLERR,"Illegal write_data command");
+      iarg += 2;
     } else error->all(FLERR,"Illegal write_data command");
   }
 

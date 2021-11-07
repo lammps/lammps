@@ -1304,7 +1304,7 @@ void ReadData::atoms()
     if (eof) error->all(FLERR,"Unexpected end of data file");
     if (tlabelflag && !lmap->is_complete(Atom::ATOM))
       error->all(FLERR,"Label map is incomplete. "
-                 "All types must be assigned a type label.");
+                 "All types must be assigned a unique type label.");
     atom->data_atoms(nchunk,buffer,id_offset,mol_offset,toffset,
                      shiftflag,shift,tlabelflag,lmap->lmap2lmap.atom);
     nread += nchunk;
@@ -1422,7 +1422,7 @@ void ReadData::bonds(int firstpass)
     if (eof) error->all(FLERR,"Unexpected end of data file");
     if (blabelflag && !lmap->is_complete(Atom::BOND))
       error->all(FLERR,"Label map is incomplete. "
-                 "All types must be assigned a type label.");
+                 "All types must be assigned a unique type label.");
     atom->data_bonds(nchunk,buffer,count,id_offset,boffset,
                      blabelflag,lmap->lmap2lmap.bond);
     nread += nchunk;
@@ -1500,7 +1500,7 @@ void ReadData::angles(int firstpass)
     if (eof) error->all(FLERR,"Unexpected end of data file");
     if (alabelflag && !lmap->is_complete(Atom::ANGLE))
       error->all(FLERR,"Label map is incomplete. "
-                 "All types must be assigned a type label.");
+                 "All types must be assigned a unique type label.");
     atom->data_angles(nchunk,buffer,count,id_offset,aoffset,
                       alabelflag,lmap->lmap2lmap.angle);
     nread += nchunk;
@@ -1578,7 +1578,7 @@ void ReadData::dihedrals(int firstpass)
     if (eof) error->all(FLERR,"Unexpected end of data file");
     if (dlabelflag && !lmap->is_complete(Atom::DIHEDRAL))
       error->all(FLERR,"Label map is incomplete. "
-                 "All types must be assigned a type label.");
+                 "All types must be assigned a unique type label.");
     atom->data_dihedrals(nchunk,buffer,count,id_offset,doffset,
                          dlabelflag,lmap->lmap2lmap.dihedral);
     nread += nchunk;
@@ -1656,7 +1656,7 @@ void ReadData::impropers(int firstpass)
     if (eof) error->all(FLERR,"Unexpected end of data file");
     if (ilabelflag && !lmap->is_complete(Atom::IMPROPER))
       error->all(FLERR,"Label map is incomplete. "
-                 "All types must be assigned a type label.");
+                 "All types must be assigned a unique type label.");
     atom->data_impropers(nchunk,buffer,count,id_offset,ioffset,
                          ilabelflag,lmap->lmap2lmap.improper);
     nread += nchunk;
@@ -1853,7 +1853,7 @@ void ReadData::mass()
   if (eof) error->all(FLERR,"Unexpected end of data file");
   if (tlabelflag && !lmap->is_complete(Atom::ATOM))
     error->all(FLERR,"Label map is incomplete. "
-               "All types must be assigned a type label.");
+               "All types must be assigned a unique type label.");
 
   char *original = buf;
   for (int i = 0; i < ntypes; i++) {
@@ -1877,7 +1877,7 @@ void ReadData::paircoeffs()
 
   if (tlabelflag && !lmap->is_complete(Atom::ATOM))
     error->all(FLERR,"Label map is incomplete. "
-               "All types must be assigned a type label.");
+               "All types must be assigned a unique type label.");
 
   char *original = buf;
   for (int i = 0; i < ntypes; i++) {
@@ -1908,7 +1908,7 @@ void ReadData::pairIJcoeffs()
 
   if (tlabelflag && !lmap->is_complete(Atom::ATOM))
     error->all(FLERR,"Label map is incomplete. "
-               "All types must be assigned a type label.");
+               "All types must be assigned a unique type label.");
 
   char *original = buf;
   for (i = 0; i < ntypes; i++)
@@ -1939,7 +1939,7 @@ void ReadData::bondcoeffs()
 
   if (blabelflag && !lmap->is_complete(Atom::BOND))
     error->all(FLERR,"Label map is incomplete. "
-               "All types must be assigned a type label.");
+               "All types must be assigned a unique type label.");
 
   char *original = buf;
   for (int i = 0; i < nbondtypes; i++) {
@@ -1968,7 +1968,7 @@ void ReadData::anglecoeffs(int which)
 
   if (alabelflag && !lmap->is_complete(Atom::ANGLE))
     error->all(FLERR,"Label map is incomplete. "
-               "All types must be assigned a type label.");
+               "All types must be assigned a unique type label.");
 
   char *original = buf;
   for (int i = 0; i < nangletypes; i++) {
@@ -2001,7 +2001,7 @@ void ReadData::dihedralcoeffs(int which)
 
   if (dlabelflag && !lmap->is_complete(Atom::DIHEDRAL))
     error->all(FLERR,"Label map is incomplete. "
-               "All types must be assigned a type label.");
+               "All types must be assigned a unique type label.");
 
   char *original = buf;
   for (int i = 0; i < ndihedraltypes; i++) {
@@ -2041,7 +2041,7 @@ void ReadData::impropercoeffs(int which)
 
   if (ilabelflag && !lmap->is_complete(Atom::IMPROPER))
     error->all(FLERR,"Label map is incomplete. "
-               "All types must be assigned a type label.");
+               "All types must be assigned a unique type label.");
 
   char *original = buf;
   for (int i = 0; i < nimpropertypes; i++) {

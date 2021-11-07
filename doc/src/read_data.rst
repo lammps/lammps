@@ -587,7 +587,7 @@ label maps.
   .. parsed-literal::
 
        ID = number of angle (1-Nangles)
-       type = angle type (1-Nangletype)
+       type = angle type (1-Nangletype, or type label)
        atom1,atom2,atom3 = IDs of 1st,2nd,3rd atom in angle
 
 example:
@@ -631,23 +631,24 @@ atom, bond, etc. types in terms of user-provided strings instead of
 numbers.  If a type label section exists for a given interaction
 (atom, bond, angle, dihedral or improper), then all types must be
 assigned a type label for that interaction.  Type label sections must
-come before any section that utilizes that type.  The numeric types
-listed in the *Atoms*, *Bonds*, etc. section are first converted into
-their corresponding type label before being read into LAMMPS; type
-labels cannot be directly substituted for numeric types used in data
-files.  Data files assign all types to the default label map; if the
-type label does not already exist, the type label is created as a new
-type and assigned to the default label map.  The corresponding
-interaction coefficients listed in the data file are associated to
-this type.  There must be enough space in the per-type data
-arrays to create new types; see the *extra/atom/types* keyword for how
-to reserve extra space for new types, e.g., when reading multiple data
-files.  Note that, in this case, the numeric-to-label mapping within a
-data file does not necessary correspond to that of the simulation;
-once the default label map is fully defined, the :doc:`write_data <write_data>`
-command can be used to print out the default label map at a given
-point in a simulation.  See the :doc:`labelmap <labelmap>` command for
-more discussion on how to use type label maps.
+come before any section that utilizes that type.  Type labels can be
+directly substituted for numeric types listed in the *Atoms*, *Bonds*,
+etc. sections of data files. If numeric types are used, each
+interaction type is first converted into its corresponding type label
+before being read into LAMMPS.  Data files assign all types to the
+default label map; if the type label does not already exist, the type
+label is created as a new type and assigned to the default label map.
+The corresponding interaction coefficients listed in the data file are
+associated to this type.  There must be enough space in the per-type
+data arrays to create new types; see the *extra/atom/types* keyword
+for how to reserve extra space for new types, e.g., when reading
+multiple data files.  Note that, in this case, the numeric-to-label
+mapping within a data file does not necessary correspond to that of
+the simulation; once the default label map is fully defined, the
+:doc:`write_data <write_data>` command can be used to print out the
+default label map at a given point in a simulation.  See the
+:doc:`labelmap <labelmap>` command for more discussion on how to use
+type label maps.
 
 ----------
 
@@ -720,7 +721,7 @@ of analysis.
 The per-atom values have these meanings and units, listed alphabetically:
 
 * atom-ID = integer ID of atom
-* atom-type = type of atom (1-Ntype)
+* atom-type = type of atom (1-Ntype, or type label)
 * bodyflag = 1 for body particles, 0 for point particles
 * bond_nt = bond NT factor for MESONT particles (?? units)
 * buckling = buckling factor for MESONT particles (?? units)
@@ -1044,7 +1045,7 @@ label maps.
   .. parsed-literal::
 
        ID = bond number (1-Nbonds)
-       type = bond type (1-Nbondtype)
+       type = bond type (1-Nbondtype, or type label)
        atom1,atom2 = IDs of 1st,2nd atom in bond
 
 * example:
@@ -1108,7 +1109,7 @@ use type label maps.
   .. parsed-literal::
 
        ID = number of dihedral (1-Ndihedrals)
-       type = dihedral type (1-Ndihedraltype)
+       type = dihedral type (1-Ndihedraltype, or type label)
        atom1,atom2,atom3,atom4 = IDs of 1st,2nd,3rd,4th atom in dihedral
 
 * example:
@@ -1227,7 +1228,7 @@ use type label maps.
   .. parsed-literal::
 
        ID = number of improper (1-Nimpropers)
-       type = improper type (1-Nimpropertype)
+       type = improper type (1-Nimpropertype, or type label)
        atom1,atom2,atom3,atom4 = IDs of 1st,2nd,3rd,4th atom in improper
 
 * example:

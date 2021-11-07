@@ -118,7 +118,8 @@ etc. types are written in the Atoms, Bonds, etc. sections. If the
 value is specified as *numeric*, then numeric types are used. If the
 value is specified as *labels*, then interaction types are written as
 type labels using the default label map. When using type labels, the
-default label map must be written to the data file.
+default label map (i.e., Type Label sections) must be written to the
+data file.
 
 The *pair* keyword lets you specify in what format the pair
 coefficient information is written into the data file.  If the value

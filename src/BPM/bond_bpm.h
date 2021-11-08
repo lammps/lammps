@@ -25,7 +25,7 @@ class BondBPM : public Bond {
   virtual void compute(int, int) = 0;
   virtual void coeff(int, char **) = 0;
   virtual void init_style();
-  void settings(int, char **);  
+  void settings(int, char **);
   double equilibrium_distance(int);
   void write_restart(FILE *){};
   void read_restart(FILE *){};
@@ -35,18 +35,19 @@ class BondBPM : public Bond {
  protected:
   double r0_max_estimate;
   double max_stretch;
-  
+
+  char *id_fix_dummy, *id_fix_update;
   char *id_fix_store_local, *id_fix_prop_atom;
   class FixStoreLocal *fix_store_local;
-  class FixUpdateSpecialBonds *fix_update_special_bonds;
   class FixBondHistory *fix_bond_history;
+  class FixUpdateSpecialBonds *fix_update_special_bonds;
 
-  void process_broken(int, int);  
+  void process_broken(int, int);
   typedef void (BondBPM::*FnPtrPack)(int,int,int);
   FnPtrPack *pack_choice;              // ptrs to pack functions
   double *output_data;
 
-  int prop_atom_flag, nvalues;
+  int prop_atom_flag, nvalues, overlay_flag;
   int index_x_ref, index_y_ref, index_z_ref;
 
   void pack_id1(int,int,int);
@@ -57,7 +58,7 @@ class BondBPM : public Bond {
   void pack_z(int,int,int);
   void pack_x_ref(int,int,int);
   void pack_y_ref(int,int,int);
-  void pack_z_ref(int,int,int);  
+  void pack_z_ref(int,int,int);
 };
 
 }    // namespace LAMMPS_NS

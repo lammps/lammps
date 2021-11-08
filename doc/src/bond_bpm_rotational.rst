@@ -10,7 +10,7 @@ Syntax
 
    bond_style bpm/rotational keyword value attribute1 attribute2 ...
 
-* optional keyword = *store/local*
+* optional keyword = *overlay/pair* or *store/local*
 
   .. parsed-literal::
 
@@ -121,10 +121,11 @@ or :doc:`read_restart <read_restart>` commands:
 * :math:`\gamma_r`      (distance*force/seconds/radians units)
 * :math:`\gamma_t`      (distance*force/seconds/radians units)
 
-As bonds can be broken between neighbor list builds, particular
-:doc:`special_bonds <special_bonds>` are required. See the `:doc: how to <Howto_BPM>`
-page on BPMs or `:doc: fix update/special/bonds <fix_update_special_bonds>`
-for details.
+By default, pair forces are not calculated between bonded particles.
+Pair forces can alternatively be overlaid on top of bond forces
+using the *overlay/pair* keyword. These settings require specific
+:doc:`special_bonds <special_bonds>` settings described in the restrictions.
+Further details can be found in the `:doc: how to <Howto_BPM>` page on BPMs.
 
 This bond style tracks broken bonds and can record them using an instance of
 :doc:`fix store/local <fix_store_local>` if the *store/local* keyword is
@@ -157,8 +158,18 @@ This bond style can only be used if LAMMPS was built with the BPM
 package. See the :doc:`Build package <Build_package>` doc page for more
 info.
 
-The *bpm/rotational* style requires 1-3 and 1-4 :doc:`special_bonds <special_bonds>`
-be turned off using the :doc:`special_bonds <special_bonds>` command.
+By default if pair interactions are censored, this bond style requires setting
+
+.. code-block:: LAMMPS
+
+   special_bonds lj 0 1 1 coul 1 1 1
+
+and :doc:`newton <newton>` must be set to bond off.
+If the *overlay/pair* option is used, this bond style alternatively requires setting
+
+.. code-block:: LAMMPS
+
+   special_bonds lj/coul 1 1 1
 
 The *bpm/rotational* style requires :doc:`atom style sphere/bpm <atom_style>`.
 

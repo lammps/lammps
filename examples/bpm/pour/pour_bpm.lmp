@@ -26,7 +26,6 @@ fix             2 all wall/gran/region hertz/history 1.0 NULL 0.5 NULL 0.1 1 reg
 fix             3 all gravity 1e-4 vector 0 0 -1
 fix             4 all deposit 40 0 1500 712511343 mol my_mol region dropzone near 2.0 vz -0.05 -0.05
 fix             5 all nve/sphere/bpm
-fix             6 all update/special/bonds
 
 timestep        0.05
 thermo_style    custom step ke pe pxx pyy pzz c_tbond

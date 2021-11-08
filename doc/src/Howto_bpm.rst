@@ -26,37 +26,37 @@ preserved across run commands and is written to :doc:`binary restart files <rest
 such that restarting the system will not reset the reference state of a bond.
 
 As bonds can be broken between neighbor list builds, :doc:`special_bonds <special_bonds>`
-work differently for BPM bond styles. There are two possible special
-bond settings which determine how pair interactions work between bonded
-particles. First, one can simply overlay pair interactions such that all
-bonded particles also feel pair interactions. This can be accomplished by
-simply turning off all special bonds by setting
-
-.. code-block:: LAMMPS
-
-   special_bonds lj/coul 1 1 1
-
-Alternatively, one can censor all pair interactions between bonded particles.
+work differently for BPM bond styles. There are two possible settings
+which determine how pair interactions work between bonded
+particles.
+First, one can censor all pair interactions between bonded particles.
 Unlike :doc:`bond quartic <bond_quartic>`, this is not done by subtracting
 pair forces during the bond computation but rather by dynamically updating
-the special bond list. To do this, one must both define an instance of
-:doc:`fix update/special/bonds <fix_update_special_bonds>` and have the special bond
-settings
+the special bond list. This is the default behavior of BPM bond styles
+and is done by updating the 1-2 special bond list as bonds break.
+To do this, LAMMPS requires :doc:`newton <newton>` bond off such that all
+processors containing an atom know when a bond breaks. Additionally,
+one must use the following special bond settings
 
 .. code-block:: LAMMPS
 
    special_bonds lj 0 1 1 coul 1 1 1
 
-This fix ensures the 1-2 special bond list remains updated as bonds break. The fix
-also requires :doc:`newton <newton>` bond off such that whena bond breaks between
-atoms across multiple processors, all processors are aware of the event.
-The special bond settings then accomplish two tasks. First, they turns off 1-3 and
+These settings accomplish two goals. First, they turns off 1-3 and
 1-4 special bond lists, which are not currently supported for BPMs. As BPMs often
 have dense bond networks, generating 1-3 and 1-4 special bond lists is expensive.
 By setting the lj weight for 1-2 bonds to zero, this censors pairwise interactions.
-However, setting a nonzero coul weight for 1-2 bonds ensures all bonded
-neighbors are included in the neighbor list. All bonded neighbors must be included
-in neighbor lists as they could become unbonded at any timestep.
+By setting a nonzero coul weight for 1-2 bonds ensures all bonded neighbors are
+still included in the neighbor list in case bonds break between neighbor list builds.
+
+Alternatively, one can simply overlay pair interactions such that all
+bonded particles also feel pair interactions. This can be accomplished by
+using the *overlay/pair* keyword in the bond settings and by
+using the following special bond settings
+
+.. code-block:: LAMMPS
+
+   special_bonds lj/coul 1 1 1
 
 Currently there are two types of bonds included in this package. The first
 bond style, :doc:`bond bpm/spring <bond_bpm_spring>`, only applies pairwise,

@@ -385,33 +385,35 @@ void PairTracker::init_style()
         "Pair tracker incompatible with granular pairstyles that extend beyond contact");
 
     // check for FixFreeze and set freeze_group_bit
-    int ifix = modify->find_fix_by_style("^freeze");
-    if (ifix < 0) freeze_group_bit = 0;
-    else freeze_group_bit = modify->fix[ifix]->groupbit;
+
+    auto fixlist = modify->get_fix_by_style("^freeze");
+    if (fixlist.size() == 0)
+      freeze_group_bit = 0;
+    else if (fixlist.size() > 1)
+      error->all(FLERR, "Only one fix freeze command at a time allowed");
+    else
+      freeze_group_bit = fixlist.front()->groupbit;
 
     // check for FixPour and FixDeposit so can extract particle radii
-    int ipour;
-    for (ipour = 0; ipour < modify->nfix; ipour++)
-      if (strcmp(modify->fix[ipour]->style, "pour") == 0) break;
-    if (ipour == modify->nfix) ipour = -1;
 
-    int idep;
-    for (idep = 0; idep < modify->nfix; idep++)
-      if (strcmp(modify->fix[idep]->style, "deposit") == 0) break;
-    if (idep == modify->nfix) idep = -1;
+    auto pours = modify->get_fix_by_style("^pour");
+    auto deps = modify->get_fix_by_style("^deposit");
 
     // set maxrad_dynamic and maxrad_frozen for each type
     // include future FixPour and FixDeposit particles as dynamic
+
     int itype;
     for (i = 1; i <= atom->ntypes; i++) {
       onerad_dynamic[i] = onerad_frozen[i] = 0.0;
-      if (ipour >= 0) {
+      for (auto &ipour : pours) {
         itype = i;
-        onerad_dynamic[i] = *((double *) modify->fix[ipour]->extract("radius", itype));
+        double maxrad = *((double *) ipour->extract("radius", itype));
+        if (maxrad > 0.0) onerad_dynamic[i] = maxrad;
       }
-      if (idep >= 0) {
+      for (auto &idep : deps) {
         itype = i;
-        onerad_dynamic[i] = *((double *) modify->fix[idep]->extract("radius", itype));
+        double maxrad = *((double *) idep->extract("radius", itype));
+        if (maxrad > 0.0) onerad_dynamic[i] = maxrad;
       }
     }
 

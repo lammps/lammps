@@ -33,10 +33,11 @@ BondBPM::BondBPM(LAMMPS *lmp) : Bond(lmp)
 {
   id_fix_store_local = nullptr;
   id_fix_prop_atom = nullptr;
+  id_fix_update = nullptr;
   fix_store_local = nullptr;
-  fix_update_special_bonds = nullptr;
   fix_bond_history = nullptr;
 
+  overlay_flag = 0;
   prop_atom_flag = 0;
   nvalues = 0;
   output_data = nullptr;
@@ -44,6 +45,12 @@ BondBPM::BondBPM(LAMMPS *lmp) : Bond(lmp)
 
   r0_max_estimate = 0.0;
   max_stretch = 1.0;
+
+  // create dummy fix as placeholder for FixUpdateSpecialBonds
+  // this is so final order of Modify:fix will conform to input script
+
+  id_fix_dummy = utils::strdup("BPM_DUMMY");
+  modify->add_fix(fmt::format("{} all DUMMY ", id_fix_dummy));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -53,6 +60,13 @@ BondBPM::~BondBPM()
   delete [] pack_choice;
   delete [] id_fix_store_local;
   delete [] id_fix_prop_atom;
+
+  if (id_fix_dummy) modify->delete_fix(id_fix_dummy);
+  if (id_fix_update) modify->delete_fix(id_fix_update);
+
+  delete [] id_fix_dummy;
+  delete [] id_fix_update;
+
   memory->destroy(output_data);
 }
 
@@ -70,14 +84,38 @@ void BondBPM::init_style()
     fix_store_local->nvalues = nvalues;
   }
 
-  ifix = modify->find_fix_by_style("update/special/bonds");
-  if (ifix >= 0)
-    fix_update_special_bonds = (FixUpdateSpecialBonds *) modify->fix[ifix];
-  else {
-    fix_update_special_bonds = nullptr;
+
+  if (overlay_flag) {
     if (force->special_lj[1] != 1.0)
-      error->all(FLERR, "Without fix update/special/bonds, BPM bond styles "
+      error->all(FLERR, "With overlay/pair, BPM bond styles "
                         "require special_bonds weight of 1.0 for first neighbors");
+    if (id_fix_update) {
+      modify->delete_fix(id_fix_update);
+      delete [] id_fix_update;
+      id_fix_update = nullptr;
+    }
+  } else {
+    // Require atoms know about all of their bonds and if they break
+    if (force->newton_bond)
+      error->all(FLERR,"Without overlay/pair, BPM bond sytles require Newton bond off");
+
+    // special lj must be 0 1 1 to censor pair forces between bonded particles
+    // special coulomb must be 1 1 1 to ensure all pairs are included in the
+    //   neighbor list and 1-3 and 1-4 special bond lists are skipped
+    if (force->special_lj[1] != 0.0 || force->special_lj[2] != 1.0 ||
+        force->special_lj[3] != 1.0)
+      error->all(FLERR,"Without overlay/pair, BPM bond sytles requires special LJ weights = 0,1,1");
+    if (force->special_coul[1] != 1.0 || force->special_coul[2] != 1.0 ||
+        force->special_coul[3] != 1.0)
+      error->all(FLERR,"Without overlay/pair, BPM bond sytles requires special Coulomb weights = 1,1,1");
+
+    if (id_fix_dummy) {
+      id_fix_update = utils::strdup("BPM_update_special_bonds");
+      fix_update_special_bonds = (FixUpdateSpecialBonds *) modify->replace_fix(id_fix_dummy,
+        fmt::format("{} all update/special/bonds", id_fix_update),1);
+      delete [] id_fix_dummy;
+      id_fix_dummy = nullptr;
+    }
   }
 
   if (force->angle || force->dihedral || force->improper)
@@ -105,38 +143,44 @@ void BondBPM::settings(int narg, char **arg)
 {
   int iarg = 0;
   while (iarg < narg) {
-    if (id_fix_store_local) {
-      if (strcmp(arg[iarg], "id1") == 0) {
-        pack_choice[nvalues++] = &BondBPM::pack_id1;
-      } else if (strcmp(arg[iarg], "id2") == 0) {
-        pack_choice[nvalues++] = &BondBPM::pack_id2;
-      } else if (strcmp(arg[iarg], "time") == 0) {
-        pack_choice[nvalues++] = &BondBPM::pack_time;
-      } else if (strcmp(arg[iarg], "x") == 0) {
-        pack_choice[nvalues++] = &BondBPM::pack_x;
-      } else if (strcmp(arg[iarg], "y") == 0) {
-        pack_choice[nvalues++] = &BondBPM::pack_y;
-      } else if (strcmp(arg[iarg], "z") == 0) {
-        pack_choice[nvalues++] = &BondBPM::pack_z;
-      } else if (strcmp(arg[iarg], "x/ref") == 0) {
-        pack_choice[nvalues++] = &BondBPM::pack_x_ref;
-        prop_atom_flag = 1;
-      } else if (strcmp(arg[iarg], "y/ref") == 0) {
-        pack_choice[nvalues++] = &BondBPM::pack_y_ref;
-        prop_atom_flag = 1;
-      } else if (strcmp(arg[iarg], "z/ref") == 0) {
-        pack_choice[nvalues++] = &BondBPM::pack_z_ref;
-        prop_atom_flag = 1;
-      } else {
-        error->all(FLERR, "Illegal bond_style command");
-      }
-    } else if (strcmp(arg[iarg], "store/local") == 0) {
+    if (strcmp(arg[iarg], "store/local") == 0) {
       id_fix_store_local = utils::strdup(arg[iarg+1]);
-      iarg ++;
       nvalues = 0;
       pack_choice = new FnPtrPack[narg - iarg - 1];
+      iarg += 2;
+      while (iarg < narg) {
+        if (strcmp(arg[iarg], "id1") == 0) {
+          pack_choice[nvalues++] = &BondBPM::pack_id1;
+        } else if (strcmp(arg[iarg], "id2") == 0) {
+          pack_choice[nvalues++] = &BondBPM::pack_id2;
+        } else if (strcmp(arg[iarg], "time") == 0) {
+          pack_choice[nvalues++] = &BondBPM::pack_time;
+        } else if (strcmp(arg[iarg], "x") == 0) {
+          pack_choice[nvalues++] = &BondBPM::pack_x;
+        } else if (strcmp(arg[iarg], "y") == 0) {
+          pack_choice[nvalues++] = &BondBPM::pack_y;
+        } else if (strcmp(arg[iarg], "z") == 0) {
+          pack_choice[nvalues++] = &BondBPM::pack_z;
+        } else if (strcmp(arg[iarg], "x/ref") == 0) {
+          pack_choice[nvalues++] = &BondBPM::pack_x_ref;
+          prop_atom_flag = 1;
+        } else if (strcmp(arg[iarg], "y/ref") == 0) {
+          pack_choice[nvalues++] = &BondBPM::pack_y_ref;
+          prop_atom_flag = 1;
+        } else if (strcmp(arg[iarg], "z/ref") == 0) {
+          pack_choice[nvalues++] = &BondBPM::pack_z_ref;
+          prop_atom_flag = 1;
+        } else {
+          break;
+        }
+      iarg ++;
+      }
+    } else if (strcmp(arg[iarg], "overlay/pair") == 0) {
+      overlay_flag = 1;
+      iarg ++;
+    } else {
+      error->all(FLERR, "Illegal pair_style command");
     }
-    iarg ++;
   }
 
   if (id_fix_store_local) {
@@ -147,7 +191,7 @@ void BondBPM::settings(int narg, char **arg)
     // Use store property to save reference positions as it can transfer to ghost atoms
     if (prop_atom_flag == 1) {
 
-      id_fix_prop_atom = utils::strdup("BPM_PROPERTY_ATOM");
+      id_fix_prop_atom = utils::strdup("BPM_property_atom");
       int ifix = modify->find_fix(id_fix_prop_atom);
       if (ifix < 0) {
         modify->add_fix(fmt::format("{} all property/atom "

@@ -30,7 +30,6 @@ bond_coeff      2 1.0 0.20 1.0
 
 fix             1 all nve
 fix             2 all store/local 100 3
-fix             3 all update/special/bonds
 
 create_bonds    many plate plate 1 0.0 1.5 
 create_bonds    many projectile projectile 2 0.0 1.5

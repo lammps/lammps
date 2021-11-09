@@ -19,8 +19,8 @@ class DynamicalMatrix : public Command {
  public:
   DynamicalMatrix(class LAMMPS *);
   virtual ~DynamicalMatrix();
-  void command(int, char **);
-  void setup();
+  virtual void command(int, char **);
+  virtual void setup();
 
  protected:
   int eflag, vflag;            // flags for energy/virial computation
@@ -34,11 +34,10 @@ class DynamicalMatrix : public Command {
 
   int nvec;    // local atomic dof = length of xvec
 
-  void update_force();
-  void force_clear();
+  virtual void update_force();
+  virtual void force_clear();
   virtual void openfile(const char *filename);
 
- private:
   void options(int, char **);
   void calculateMatrix();
   void dynmat_clear(double **dynmat);

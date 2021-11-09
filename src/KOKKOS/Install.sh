@@ -106,6 +106,8 @@ action dihedral_opls_kokkos.cpp dihedral_opls.cpp
 action dihedral_opls_kokkos.h dihedral_opls.h
 action domain_kokkos.cpp
 action domain_kokkos.h
+action dynamical_matrix_kokkos.cpp dynamical_matrix.cpp
+action dynamical_matrix_kokkos.h dynamical_matrix.h
 action fftdata_kokkos.h fft3d.h
 action fft3d_kokkos.cpp fft3d.cpp
 action fft3d_kokkos.h fft3d.h

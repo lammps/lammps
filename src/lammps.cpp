@@ -51,6 +51,10 @@
 #include "update.h"
 #include "version.h"
 
+#if defined(LMP_PLUGIN)
+#include "plugin.h"
+#endif
+
 #include <cctype>
 #include <cmath>
 #include <cstring>
@@ -64,6 +68,12 @@
 
 #include "lmpinstalledpkgs.h"
 #include "lmpgitversion.h"
+
+#if defined(LAMMPS_UPDATE)
+#define UPDATE_STRING " - " LAMMPS_UPDATE
+#else
+#define UPDATE_STRING ""
+#endif
 
 static void print_style(FILE *fp, const char *str, int &pos);
 
@@ -511,7 +521,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     }
 
     if ((universe->me == 0) && !helpflag)
-      utils::logmesg(this,fmt::format("LAMMPS ({})\n",version));
+      utils::logmesg(this,fmt::format("LAMMPS ({}{})\n",version,UPDATE_STRING));
 
   // universe is one or more worlds, as setup by partition switch
   // split universe communicator into separate world communicators
@@ -905,6 +915,10 @@ void LAMMPS::init()
 
 void LAMMPS::destroy()
 {
+  // must wipe out all plugins first, if configured
+#if defined(LMP_PLUGIN)
+  plugin_clear(this);
+#endif
   delete update;
   update = nullptr;
 
@@ -1147,10 +1161,10 @@ void _noopt LAMMPS::help()
 
   if (has_git_info) {
     fprintf(fp,"\nLarge-scale Atomic/Molecular Massively Parallel Simulator - "
-            LAMMPS_VERSION "\nGit info (%s / %s)\n\n",git_branch, git_descriptor);
+            LAMMPS_VERSION UPDATE_STRING "\nGit info (%s / %s)\n\n",git_branch, git_descriptor);
   } else {
     fprintf(fp,"\nLarge-scale Atomic/Molecular Massively Parallel Simulator - "
-            LAMMPS_VERSION "\n\n");
+            LAMMPS_VERSION UPDATE_STRING "\n\n");
   }
   fprintf(fp,
           "Usage example: %s -var t 300 -echo screen -in in.alloy\n\n"
@@ -1350,7 +1364,7 @@ void LAMMPS::print_config(FILE *fp)
   fmt::print(fp,"Accelerator configuration:\n\n{}\n",
              Info::get_accelerator_info());
 #if defined(LMP_GPU)
-  fmt::print(fp,"GPU present: {}\n\n",Info::has_gpu_device() ? "yes" : "no");
+  fmt::print(fp,"Compatible GPU present: {}\n\n",Info::has_gpu_device() ? "yes" : "no");
 #endif
 
   fputs("Active compile time flags:\n\n",fp);
@@ -1358,6 +1372,7 @@ void LAMMPS::print_config(FILE *fp)
   if (Info::has_png_support()) fputs("-DLAMMPS_PNG\n",fp);
   if (Info::has_jpeg_support()) fputs("-DLAMMPS_JPEG\n",fp);
   if (Info::has_ffmpeg_support()) fputs("-DLAMMPS_FFMPEG\n",fp);
+  if (Info::has_fft_single_support()) fputs("-DFFT_SINGLE\n",fp);
   if (Info::has_exceptions()) fputs("-DLAMMPS_EXCEPTIONS\n",fp);
 #if defined(LAMMPS_BIGBIG)
   fputs("-DLAMMPS_BIGBIG\n",fp);

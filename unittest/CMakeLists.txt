@@ -8,7 +8,7 @@ add_test(NAME RunLammps
          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set_tests_properties(RunLammps PROPERTIES
 	ENVIRONMENT "TSAN_OPTIONS=ignore_noninstrumented_modules=1;HWLOC_HIDE_ERRORS=1"
-        PASS_REGULAR_EXPRESSION "^LAMMPS \\([0-9]+ [A-Za-z]+ 2[0-9][0-9][0-9]\\)")
+        PASS_REGULAR_EXPRESSION "LAMMPS \\([0-9]+ [A-Za-z]+ 2[0-9][0-9][0-9]( - Update [0-9]+)?\\)")
 
 # check if the compiled executable will print the help message
 add_test(NAME HelpMessage
@@ -31,6 +31,10 @@ if(BUILD_MPI)
     set(MPI_TEST_NUM_PROCS 1)
     set(MPI_TEST_WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
     cmake_parse_arguments(MPI_TEST "" "NAME;NUM_PROCS;WORKING_DIRECTORY" "COMMAND" ${ARGN})
+    # Do not add test when oversubscribing
+    if(MPI_TEST_NUMPROCS GREATER MPIEXEC_MAX_NUMPROCS)
+      return()
+    endif()
     list(GET MPI_TEST_COMMAND 0 EXECUTABLE)
     list(REMOVE_AT MPI_TEST_COMMAND 0)
     set(ARGS ${MPI_TEST_COMMAND})

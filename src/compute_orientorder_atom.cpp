@@ -198,6 +198,8 @@ void ComputeOrientOrderAtom::init()
     error->all(FLERR,"Compute orientorder/atom cutoff is "
                "longer than pairwise cutoff");
 
+  memory->destroy(qnm_r);
+  memory->destroy(qnm_i);
   memory->create(qnm_r,nqlist,2*qmax+1,"orientorder/atom:qnm_r");
   memory->create(qnm_i,nqlist,2*qmax+1,"orientorder/atom:qnm_i");
 
@@ -669,6 +671,7 @@ void ComputeOrientOrderAtom::init_clebsch_gordan()
         idxcg_count++;
   }
   idxcg_max = idxcg_count;
+  memory->destroy(cglist);
   memory->create(cglist, idxcg_max, "computeorientorderatom:cglist");
 
   idxcg_count = 0;

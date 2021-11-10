@@ -159,7 +159,7 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
   
-  // n(x/y/z)_xtrct = extracted local unit vectors in lab frame from oxdna_excv 
+  // n(x/y/z)_xtrct = extracted local unit vectors in lab frame from oxdna_excv
   int dim;
   nx_xtrct = (double **) force->pair->extract("nx",dim);
   ny_xtrct = (double **) force->pair->extract("ny",dim);
@@ -252,7 +252,7 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
 
       // early rejection criterium
       if (f4t1) {
-		  
+      
       az[0] = nz_xtrct[a][0];
       az[1] = nz_xtrct[a][1];
       az[2] = nz_xtrct[a][2];
@@ -395,9 +395,9 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
       // cosphi3 and cosphi4 (=cosphi3) force and virial
       if (cosphi3) {
 
-	ay[0] = ny_xtrct[a][0];
-	ay[1] = ny_xtrct[a][1];
-	ay[2] = ny_xtrct[a][2];
+        ay[0] = ny_xtrct[a][0];
+        ay[1] = ny_xtrct[a][1];
+        ay[2] = ny_xtrct[a][2];
 
         finc   = -f2 * f4t1* f4t4 * f4t5 * f4t6 * 2.0 * f5c3 * df5c3 * factor_lj;
         fpair += finc;

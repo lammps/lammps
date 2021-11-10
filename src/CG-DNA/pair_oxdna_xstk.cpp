@@ -155,8 +155,8 @@ void PairOxdnaXstk::compute(int eflag, int vflag)
   alist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
-  // n(x/y/z)_xtrct = extracted local unit vectors from oxdna_excv 
+
+  // n(x/y/z)_xtrct = extracted local unit vectors from oxdna_excv
   int dim;
   nx_xtrct = (double **) force->pair->extract("nx",dim);
   ny_xtrct = (double **) force->pair->extract("ny",dim);
@@ -250,7 +250,7 @@ void PairOxdnaXstk::compute(int eflag, int vflag)
 
       // early rejection criterium
       if (f4t3) {
-		  
+
       az[0] = nz_xtrct[a][0];
       az[1] = nz_xtrct[a][1];
       az[2] = nz_xtrct[a][2];

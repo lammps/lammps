@@ -254,8 +254,8 @@ void PairOxdnaStk::compute(int eflag, int vflag)
 
   evdwl = 0.0;
   ev_init(eflag,vflag);
-  
-  // n(x/y/z)_xtrct = extracted local unit vectors from oxdna_excv 
+
+  // n(x/y/z)_xtrct = extracted local unit vectors from oxdna_excv
   int dim;
   nx_xtrct = (double **) force->pair->extract("nx",dim);
   ny_xtrct = (double **) force->pair->extract("ny",dim);
@@ -342,13 +342,13 @@ void PairOxdnaStk::compute(int eflag, int vflag)
 
     // early rejection criterium
     if (f1) {
-		
+
     az[0] = nz_xtrct[a][0];
     az[1] = nz_xtrct[a][1];
     az[2] = nz_xtrct[a][2];
     bz[0] = nz_xtrct[b][0];
     bz[1] = nz_xtrct[b][1];
-    bz[2] = nz_xtrct[b][2];	
+    bz[2] = nz_xtrct[b][2];
 
     // theta4 angle and correction
     cost4 = MathExtra::dot3(bz,az);
@@ -373,10 +373,10 @@ void PairOxdnaStk::compute(int eflag, int vflag)
 
     // early rejection criterium
     if (f4t5) {
-	
+
     ay[0] = ny_xtrct[a][0];
     ay[1] = ny_xtrct[a][1];
-    ay[2] = ny_xtrct[a][2];	
+    ay[2] = ny_xtrct[a][2];
     by[0] = ny_xtrct[b][0];
     by[1] = ny_xtrct[b][1];
     by[2] = ny_xtrct[b][2];

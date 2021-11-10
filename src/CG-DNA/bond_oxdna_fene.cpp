@@ -172,8 +172,8 @@ void BondOxdnaFene::compute(int eflag, int vflag)
 
   ebond = 0.0;
   ev_init(eflag, vflag);
-  
-  // n(x/y/z)_xtrct = extracted local unit vectors in lab frame from oxdna_excv 
+
+  // n(x/y/z)_xtrct = extracted local unit vectors in lab frame from oxdna_excv
   int dim;
   nx_xtrct = (double **) force->pair->extract("nx",dim);
   ny_xtrct = (double **) force->pair->extract("ny",dim);
@@ -190,10 +190,21 @@ void BondOxdnaFene::compute(int eflag, int vflag)
     ax[0] = nx_xtrct[a][0];
     ax[1] = nx_xtrct[a][1];
     ax[2] = nx_xtrct[a][2];
+    ay[0] = ny_xtrct[a][0];
+    ay[1] = ny_xtrct[a][1];
+    ay[2] = ny_xtrct[a][2];
+    az[0] = nz_xtrct[a][0];
+    az[1] = nz_xtrct[a][1];
+    az[2] = nz_xtrct[a][2];
     bx[0] = nx_xtrct[b][0];
     bx[1] = nx_xtrct[b][1];
     bx[2] = nx_xtrct[b][2];
-    // (a/b)y/z not needed here as oxDNA(1) co-linear
+    by[0] = ny_xtrct[b][0];
+    by[1] = ny_xtrct[b][1];
+    by[2] = ny_xtrct[b][2];
+    bz[0] = nz_xtrct[b][0];
+    bz[1] = nz_xtrct[b][1];
+    bz[2] = nz_xtrct[b][2];
 
     // vector COM-backbone site a and b
     compute_interaction_sites(ax, ay, az, ra_cs);

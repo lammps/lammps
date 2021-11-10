@@ -39,7 +39,7 @@ PairOxdnaExcv::PairOxdnaExcv(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
   writedata = 1;
-  
+
   // set comm size needed by this Pair
   comm_forward = 9;
 }
@@ -49,7 +49,7 @@ PairOxdnaExcv::PairOxdnaExcv(LAMMPS *lmp) : Pair(lmp)
 PairOxdnaExcv::~PairOxdnaExcv()
 {
   if (allocated) {
-	  
+
     memory->destroy(nx);
     memory->destroy(ny);
     memory->destroy(nz);
@@ -127,7 +127,7 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
   // Cartesian unit vectors in lab frame
   double ax[3],ay[3],az[3];
   double bx[3],by[3],bz[3];
-  
+
   double *special_lj = force->special_lj;
 
   double **x = atom->x;
@@ -152,12 +152,12 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
   alist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
-  
-  // loop over all local atoms, calculation of local reference frame 
+
+  // loop over all local atoms, calculation of local reference frame
   for (in = 0; in < atom->nlocal; in++) {
- 
+
     int n = alist[in];
-    double *qn,nx_temp[3],ny_temp[3],nz_temp[3]; // quaternion and Cartesian unit vectors in lab frame 
+    double *qn,nx_temp[3],ny_temp[3],nz_temp[3]; // quaternion and Cartesian unit vectors in lab frame
 
     qn=bonus[ellipsoid[n]].quat;
     MathExtra::q_to_exyz(qn,nx_temp,ny_temp,nz_temp);
@@ -171,9 +171,9 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
     nz[n][0] = nz_temp[0];
     nz[n][1] = nz_temp[1];
     nz[n][2] = nz_temp[2];
-  
+
   }
- 
+
   comm->forward_comm_pair(this);
 
   // loop over pair interaction neighbors of my atoms
@@ -181,7 +181,7 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
   for (ia = 0; ia < anum; ia++) {
 
     a = alist[ia];
-    atype = type[a]; 
+    atype = type[a];
 
     ax[0] = nx[a][0];
     ax[1] = nx[a][1];
@@ -191,7 +191,7 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
     ay[2] = ny[a][2];
     az[0] = nz[a][0];
     az[1] = nz[a][1];
-    az[2] = nz[a][2]; 
+    az[2] = nz[a][2];
 
     // vector COM - backbone and base site a
     compute_interaction_sites(ax,ay,az,ra_cs,ra_cb);
@@ -892,7 +892,7 @@ void PairOxdnaExcv::unpack_forward_comm(int n, int first, double *buf)
 	nz[i][0] = buf[m++];
 	nz[i][1] = buf[m++];
 	nz[i][2] = buf[m++];
-  }	 
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -900,7 +900,7 @@ void PairOxdnaExcv::unpack_forward_comm(int n, int first, double *buf)
 void *PairOxdnaExcv::extract(const char *str, int &dim)
 {
   dim = 2;
-  
+
   if (strcmp(str,"nx") == 0) return (void *) nx;
   if (strcmp(str,"ny") == 0) return (void *) ny;
   if (strcmp(str,"nz") == 0) return (void *) nz;

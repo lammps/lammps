@@ -363,11 +363,7 @@ TEST(LAMMPS_init, NoOpenMP)
     FILE *fp = fopen("in.lammps_class_noomp", "w");
     fputs("\n", fp);
     fclose(fp);
-#if defined(__WIN32)
-    _putenv("OMP_NUM_THREADS");
-#else
-    unsetenv("OMP_NUM_THREADS");
-#endif
+    platform::unsetenv("OMP_NUM_THREADS");
 
     const char *args[] = {"LAMMPS_init", "-in", "in.lammps_class_noomp", "-log", "none", "-nocite"};
     char **argv        = (char **)args;

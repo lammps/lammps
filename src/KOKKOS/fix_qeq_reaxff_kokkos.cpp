@@ -256,13 +256,15 @@ void FixQEqReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
   } else { // GPU, use teams
     Kokkos::deep_copy(d_mfill_offset,0);
 
+    int atoms_per_team = 32;
+    int vector_length = 1;
 #ifdef KOKKOS_ENABLE_CUDA
-    int atoms_per_team = 4;
-    int vector_length = 32;
+    atoms_per_team = 4;
+    vector_length = 32;
 #endif
 #ifdef KOKKOS_ENABLE_HIP
-    int atoms_per_team = 64;
-    int vector_length = 8;
+    atoms_per_team = 64;
+    vector_length = 8;
 #endif
 
     int num_teams = inum / atoms_per_team + (inum % atoms_per_team ? 1 : 0);

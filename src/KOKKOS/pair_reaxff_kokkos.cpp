@@ -1223,7 +1223,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFComputePolar<NEIGHFLAG,E
   const F_FLOAT chi = paramssing(itype).chi;
   const F_FLOAT eta = paramssing(itype).eta;
 
-  const F_FLOAT epol = KCALpMOL_to_EV*(chi*qi+(eta/2.0)*qi*qi);
+  F_FLOAT epol = KCALpMOL_to_EV*(chi*qi+(eta/2.0)*qi*qi);
 
   /* energy due to coupling with kinetic energy potential */
   if (acks2_flag)
@@ -1553,8 +1553,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFComputeLJCoulomb<NEIGHFL
     #else
     const F_FLOAT denom3 = pow(denom1,0.3333333333333);
     #endif
-    const F_FLOAT ecoul = C_ele * qi*qj*Tap/denom3;
-    const F_FLOAT fcoul = C_ele * qi*qj*(dTap-Tap*rij/denom1)/denom3;
+    F_FLOAT ecoul = C_ele * qi*qj*Tap/denom3;
+    F_FLOAT fcoul = C_ele * qi*qj*(dTap-Tap*rij/denom1)/denom3;
 
     /* contribution to energy and gradients (atoms and cell)
      * due to geometry-dependent terms in the ACKS2
@@ -1694,13 +1694,13 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFComputeTabulatedLJCoulom
     const F_FLOAT evdwl = ((vdW.d*dif + vdW.c)*dif + vdW.b)*dif +
       vdW.a;
 
-    const F_FLOAT ecoul = (((ele.d*dif + ele.c)*dif + ele.b)*dif +
+    F_FLOAT ecoul = (((ele.d*dif + ele.c)*dif + ele.b)*dif +
       ele.a)*qi*qj;
 
     const F_FLOAT fvdwl = ((CEvd.d*dif + CEvd.c)*dif + CEvd.b)*dif +
       CEvd.a;
 
-    const F_FLOAT fcoul = (((CEclmb.d*dif+CEclmb.c)*dif+CEclmb.b)*dif +
+    F_FLOAT fcoul = (((CEclmb.d*dif+CEclmb.c)*dif+CEclmb.b)*dif +
       CEclmb.a)*qi*qj;
 
     /* contribution to energy and gradients (atoms and cell)

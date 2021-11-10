@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -479,8 +480,7 @@ void KSpace::modify_params(int narg, char **arg)
       if (nx_pppm_6 == 0 && ny_pppm_6 == 0 && nz_pppm_6 == 0)
         gridflag_6 = 0;
       else if (nx_pppm_6 <= 0 || ny_pppm_6 <= 0 || nz_pppm_6 == 0)
-        error->all(FLERR,"Kspace_modify mesh/disp parameters must be all "
-                   "zero or all positive");
+        error->all(FLERR,"Kspace_modify mesh/disp parameters must be all zero or all positive");
       else gridflag_6 = 1;
       iarg += 4;
     } else if (strcmp(arg[iarg],"order") == 0) {
@@ -498,9 +498,7 @@ void KSpace::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"overlap") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) overlap_allowed = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) overlap_allowed = 0;
-      else error->all(FLERR,"Illegal kspace_modify command");
+      overlap_allowed = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"force") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
@@ -534,21 +532,15 @@ void KSpace::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"compute") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) compute_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) compute_flag = 0;
-      else error->all(FLERR,"Illegal kspace_modify command");
+      compute_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"fftbench") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) fftbench = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) fftbench = 0;
-      else error->all(FLERR,"Illegal kspace_modify command");
+      fftbench = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"collective") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) collective_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) collective_flag = 0;
-      else error->all(FLERR,"Illegal kspace_modify command");
+      collective_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"diff") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
@@ -558,9 +550,7 @@ void KSpace::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"cutoff/adjust") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) adjust_cutoff_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) adjust_cutoff_flag = 0;
-      else error->all(FLERR,"Illegal kspace_modify command");
+      adjust_cutoff_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"kmax/ewald") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal kspace_modify command");
@@ -597,15 +587,11 @@ void KSpace::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"pressure/scalar") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) scalar_pressure_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) scalar_pressure_flag = 0;
-      else error->all(FLERR,"Illegal kspace_modify command");
+      scalar_pressure_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"disp/auto") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal kspace_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) auto_disp_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) auto_disp_flag = 0;
-      else error->all(FLERR,"Illegal kspace_modify command");
+      auto_disp_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else {
       int n = modify_param(narg-iarg,&arg[iarg]);

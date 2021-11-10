@@ -256,6 +256,7 @@ namespace {
 colvarmodule::rotation::rotation()
 {
   b_debug_gradients = false;
+  lambda = 0.0;
 #ifdef COLVARS_LAMMPS
   jacobi = new_Jacobi_solver(4);
 #else
@@ -268,6 +269,7 @@ colvarmodule::rotation::rotation(cvm::quaternion const &qi)
   : q(qi)
 {
   b_debug_gradients = false;
+  lambda = 0.0;
 #ifdef COLVARS_LAMMPS
   jacobi = new_Jacobi_solver(4);
 #else
@@ -283,6 +285,7 @@ colvarmodule::rotation::rotation(cvm::real angle, cvm::rvector const &axis)
   cvm::real const sina = cvm::sin(angle/2.0);
   q = cvm::quaternion(cvm::cos(angle/2.0),
                       sina * axis_n.x, sina * axis_n.y, sina * axis_n.z);
+  lambda = 0.0;
 #ifdef COLVARS_LAMMPS
   jacobi = new_Jacobi_solver(4);
 #else

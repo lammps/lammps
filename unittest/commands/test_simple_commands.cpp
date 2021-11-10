@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -20,13 +20,12 @@
 #include "input.h"
 #include "output.h"
 #include "update.h"
-#include "utils.h"
 #include "variable.h"
 
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
 #include "../testing/core.h"
 #include "../testing/utils.h"
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 
 #include <cstdio>
 #include <cstring>
@@ -36,7 +35,6 @@
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
-
 
 using LAMMPS_NS::utils::split_words;
 
@@ -161,7 +159,8 @@ TEST_F(SimpleCommandsTest, Partition)
     BEGIN_HIDE_OUTPUT();
     command("echo none");
     END_HIDE_OUTPUT();
-    TEST_FAILURE(".*ERROR: Illegal partition command .*", command("partition xxx 1 echo none"););
+    TEST_FAILURE(".*ERROR: Expected boolean parameter instead of 'xxx'.*",
+                 command("partition xxx 1 echo none"););
     TEST_FAILURE(".*ERROR: Numeric index 2 is out of bounds.*",
                  command("partition yes 2 echo none"););
 
@@ -205,7 +204,8 @@ TEST_F(SimpleCommandsTest, Processors)
     ASSERT_EQ(lmp->comm->user_procgrid[2], 0);
 
     TEST_FAILURE(".*ERROR: Illegal processors command .*", command("processors -1 0 0"););
-    TEST_FAILURE(".*ERROR: Specified processors != physical processors.*", command("processors 100 100 100"););
+    TEST_FAILURE(".*ERROR: Specified processors != physical processors.*",
+                 command("processors 100 100 100"););
 }
 
 TEST_F(SimpleCommandsTest, Quit)
@@ -216,7 +216,7 @@ TEST_F(SimpleCommandsTest, Quit)
     TEST_FAILURE(".*ERROR: Expected integer .*", command("quit xxx"););
 
     // the following tests must be skipped with OpenMPI due to using threads
-    if (Info::get_mpi_vendor() == "Open MPI") GTEST_SKIP();
+    if (platform::mpi_vendor() == "Open MPI") GTEST_SKIP();
     ASSERT_EXIT(command("quit"), ExitedWithCode(0), "");
     ASSERT_EXIT(command("quit 9"), ExitedWithCode(9), "");
 }
@@ -248,6 +248,8 @@ TEST_F(SimpleCommandsTest, Suffix)
     ASSERT_EQ(lmp->suffix2, nullptr);
 
     TEST_FAILURE(".*ERROR: May only enable suffixes after defining one.*", command("suffix on"););
+    TEST_FAILURE(".*ERROR: May only enable suffixes after defining one.*", command("suffix yes"););
+    TEST_FAILURE(".*ERROR: May only enable suffixes after defining one.*", command("suffix true"););
 
     BEGIN_HIDE_OUTPUT();
     command("suffix one");
@@ -268,6 +270,26 @@ TEST_F(SimpleCommandsTest, Suffix)
 
     BEGIN_HIDE_OUTPUT();
     command("suffix off");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->suffix_enable, 0);
+
+    BEGIN_HIDE_OUTPUT();
+    command("suffix yes");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->suffix_enable, 1);
+
+    BEGIN_HIDE_OUTPUT();
+    command("suffix no");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->suffix_enable, 0);
+
+    BEGIN_HIDE_OUTPUT();
+    command("suffix true");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(lmp->suffix_enable, 1);
+
+    BEGIN_HIDE_OUTPUT();
+    command("suffix false");
     END_HIDE_OUTPUT();
     ASSERT_EQ(lmp->suffix_enable, 0);
 
@@ -362,7 +384,12 @@ TEST_F(SimpleCommandsTest, Units)
 #if defined(LMP_PLUGIN)
 TEST_F(SimpleCommandsTest, Plugin)
 {
-    std::string loadfmt("plugin load {}plugin.so");
+    const char *bindir = getenv("LAMMPS_PLUGIN_BIN_DIR");
+    const char *config = getenv("CMAKE_CONFIG_TYPE");
+    if (!bindir) GTEST_SKIP();
+    std::string loadfmt = platform::path_join("plugin load ", bindir);
+    if (config) loadfmt = platform::path_join(loadfmt, config);
+    loadfmt = platform::path_join(loadfmt, "{}plugin.so");
     ::testing::internal::CaptureStdout();
     lmp->input->one(fmt::format(loadfmt, "hello"));
     auto text = ::testing::internal::GetCapturedStdout();
@@ -373,7 +400,7 @@ TEST_F(SimpleCommandsTest, Plugin)
     lmp->input->one(fmt::format(loadfmt, "xxx"));
     text = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << text;
-    ASSERT_THAT(text, MatchesRegex(".*Open of file xxx.* failed.*"));
+    ASSERT_THAT(text, MatchesRegex(".*Open of file .*xxx.* failed.*"));
 
     ::testing::internal::CaptureStdout();
     lmp->input->one(fmt::format(loadfmt, "nve2"));
@@ -404,8 +431,7 @@ TEST_F(SimpleCommandsTest, Plugin)
     lmp->input->one("plugin unload pair nve2");
     text = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << text;
-    ASSERT_THAT(text, MatchesRegex(".*Ignoring unload of pair style nve2: "
-                                   "not loaded from a plugin.*"));
+    ASSERT_THAT(text, MatchesRegex(".*Ignoring unload of pair style nve2: not from a plugin.*"));
 
     ::testing::internal::CaptureStdout();
     lmp->input->one("plugin unload fix nve2");
@@ -417,8 +443,7 @@ TEST_F(SimpleCommandsTest, Plugin)
     lmp->input->one("plugin unload fix nve");
     text = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << text;
-    ASSERT_THAT(text, MatchesRegex(".*Ignoring unload of fix style nve: "
-                                   "not loaded from a plugin.*"));
+    ASSERT_THAT(text, MatchesRegex(".*Ignoring unload of fix style nve: not from a plugin.*"));
 
     ::testing::internal::CaptureStdout();
     lmp->input->one("plugin list");
@@ -505,7 +530,7 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (Info::get_mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
+    if (platform::mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
         std::cout << "Warning: using OpenMPI without exceptions. "
                      "Death tests will be skipped\n";
 

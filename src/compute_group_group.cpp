@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,21 +19,22 @@
 
 #include "compute_group_group.h"
 
-#include <cstring>
-#include <cmath>
 #include "atom.h"
-#include "update.h"
-#include "force.h"
-#include "pair.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "neigh_list.h"
-#include "group.h"
-#include "kspace.h"
-#include "error.h"
 #include "comm.h"
 #include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "group.h"
+#include "kspace.h"
 #include "math_const.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "update.h"
+
+#include <cstring>
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -68,29 +70,19 @@ ComputeGroupGroup::ComputeGroupGroup(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 4;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"pair") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute group/group command");
-      if (strcmp(arg[iarg+1],"yes") == 0) pairflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) pairflag = 0;
-      else error->all(FLERR,"Illegal compute group/group command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute group/group command");
+      pairflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"kspace") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute group/group command");
-      if (strcmp(arg[iarg+1],"yes") == 0) kspaceflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) kspaceflag = 0;
-      else error->all(FLERR,"Illegal compute group/group command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute group/group command");
+      kspaceflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"boundary") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute group/group command");
-      if (strcmp(arg[iarg+1],"yes") == 0) boundaryflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) boundaryflag  = 0;
-      else error->all(FLERR,"Illegal compute group/group command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute group/group command");
+      boundaryflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"molecule") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute group/group command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute group/group command");
       if (strcmp(arg[iarg+1],"off") == 0) molflag = OFF;
       else if (strcmp(arg[iarg+1],"inter") == 0) molflag = INTER;
       else if (strcmp(arg[iarg+1],"intra") == 0) molflag  = INTRA;

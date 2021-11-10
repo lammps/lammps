@@ -45,7 +45,7 @@ Each replica's temperature is controlled at a different value by a fix
 with *fix-ID* that controls temperature. Most thermostat fix styles
 (with and without included time integration) are supported. The command
 will print an error message and abort, if the chosen fix is unsupported.
-The desired temperature is specified by *temp*\ , which is typically a
+The desired temperature is specified by *temp*, which is typically a
 variable previously set in the input script, so that each partition is
 assigned a different temperature.  See the :doc:`variable <variable>`
 command for more details.  For example:

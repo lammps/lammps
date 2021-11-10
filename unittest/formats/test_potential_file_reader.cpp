@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -20,9 +20,9 @@
 #include "MANYBODY/pair_tersoff.h"
 #include "MANYBODY/pair_tersoff_mod.h"
 #include "MANYBODY/pair_tersoff_mod_c.h"
+#include "MANYBODY/pair_tersoff_table.h"
 #include "MANYBODY/pair_tersoff_zbl.h"
 #include "MANYBODY/pair_vashishta.h"
-#include "USER-MISC/pair_tersoff_table.h"
 #include "info.h"
 #include "input.h"
 #include "potential_file_reader.h"
@@ -318,7 +318,7 @@ TEST_F(OpenPotentialTest, No_file)
     command("units metal");
     FILE *fp = utils::open_potential("Unknown.sw", lmp, &convert_flag);
     END_HIDE_OUTPUT();
-    ASSERT_EQ(fp,nullptr);
+    ASSERT_EQ(fp, nullptr);
 }
 
 int main(int argc, char **argv)
@@ -326,7 +326,7 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (Info::get_mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
+    if (platform::mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
         std::cout << "Warning: using OpenMPI without exceptions. "
                      "Death tests will be skipped\n";
 

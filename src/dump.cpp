@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -83,6 +84,7 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
   unit_flag = 0;
   unit_count = 0;
   delay_flag = 0;
+  write_header_flag = 1;
 
   maxfiles = -1;
   numfiles = 0;
@@ -98,7 +100,7 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
   maxsbuf = 0;
   sbuf = nullptr;
 
-  maxpbc = 0;
+  maxpbc = -1;
   xpbc = vpbc = nullptr;
   imagepbc = nullptr;
 
@@ -106,9 +108,8 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
   // if contains '%', write one file per proc and replace % with proc-ID
   // if contains '*', write one file per timestep and replace * with timestep
   // check file suffixes
-  //   if ends in .bin = binary file
-  //   else if ends in .gz = gzipped text file
-  //   else if ends in .zst = Zstd compressed text file
+  //   if ends in .bin -> binary file
+  //   else if ends in .gz or other known extensions -> compressed text file
   //   else ASCII text file
 
   fp = nullptr;
@@ -142,8 +143,7 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
   if (strchr(filename,'*')) multifile = 1;
 
   if (utils::strmatch(filename, "\\.bin$")) binary = 1;
-  if (utils::strmatch(filename, "\\.gz$")
-      || utils::strmatch(filename, "\\.zst$")) compressed = 1;
+  if (platform::has_compress_extension(filename)) compressed = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -196,7 +196,7 @@ Dump::~Dump()
 
   if (multifile == 0 && fp != nullptr) {
     if (compressed) {
-      if (filewriter) pclose(fp);
+      if (filewriter) platform::pclose(fp);
     } else {
       if (filewriter) fclose(fp);
     }
@@ -248,8 +248,8 @@ void Dump::init()
     reorderflag = 0;
 
     int gcmcflag = 0;
-    for (int i = 0; i < modify->nfix; i++)
-      if ((strcmp(modify->fix[i]->style,"gcmc") == 0))
+    for (const auto &fix : modify->get_fix_list())
+      if (utils::strmatch(fix->style,"^gcmc"))
         gcmcflag = 1;
 
     if (sortcol == 0 && atom->tag_consecutive() && !gcmcflag) {
@@ -377,7 +377,7 @@ void Dump::write()
   if (multiproc)
     MPI_Allreduce(&bnme,&nheader,1,MPI_LMP_BIGINT,MPI_SUM,clustercomm);
 
-  if (filewriter) write_header(nheader);
+  if (filewriter && write_header_flag) write_header(nheader);
 
   // insure buf is sized for packing and communicating
   // use nmax to insure filewriter proc can receive info from others
@@ -518,7 +518,7 @@ void Dump::write()
 
   if (multifile) {
     if (compressed) {
-      if (filewriter && fp != nullptr) pclose(fp);
+      if (filewriter && fp != nullptr) platform::pclose(fp);
     } else {
       if (filewriter && fp != nullptr) fclose(fp);
     }
@@ -528,7 +528,7 @@ void Dump::write()
 
 /* ----------------------------------------------------------------------
    generic opening of a dump file
-   ASCII or binary or gzipped
+   ASCII or binary or compressed
    some derived classes override this function
 ------------------------------------------------------------------------- */
 
@@ -578,16 +578,7 @@ void Dump::openfile()
 
   if (filewriter) {
     if (compressed) {
-#ifdef LAMMPS_GZIP
-      auto gzip = fmt::format("gzip -6 > {}",filecurrent);
-#ifdef _WIN32
-      fp = _popen(gzip.c_str(),"wb");
-#else
-      fp = popen(gzip.c_str(),"w");
-#endif
-#else
-      error->one(FLERR,"Cannot open gzipped file");
-#endif
+      fp = platform::compressed_write(filecurrent);
     } else if (binary) {
       fp = fopen(filecurrent,"wb");
     } else if (append_flag) {
@@ -910,16 +901,12 @@ void Dump::modify_params(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"append") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) append_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) append_flag = 0;
-      else error->all(FLERR,"Illegal dump_modify command");
+      append_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"buffer") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) buffer_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) buffer_flag = 0;
-      else error->all(FLERR,"Illegal dump_modify command");
+      buffer_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       if (buffer_flag && buffer_allow == 0)
         error->all(FLERR,"Dump_modify buffer yes not allowed for this style");
       iarg += 2;
@@ -929,6 +916,11 @@ void Dump::modify_params(int narg, char **arg)
       delaystep = utils::bnumeric(FLERR,arg[iarg+1],false,lmp);
       if (delaystep >= 0) delay_flag = 1;
       else delay_flag = 0;
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"header") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      header_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"every") == 0) {
@@ -951,8 +943,7 @@ void Dump::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"fileper") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
       if (!multiproc)
-        error->all(FLERR,"Cannot use dump_modify fileper "
-                   "without % in dump file name");
+        error->all(FLERR,"Cannot use dump_modify fileper without % in dump file name");
       int nper = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nper <= 0) error->all(FLERR,"Illegal dump_modify command");
 
@@ -977,16 +968,12 @@ void Dump::modify_params(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"first") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) first_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) first_flag = 0;
-      else error->all(FLERR,"Illegal dump_modify command");
+      first_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"flush") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) flush_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) flush_flag = 0;
-      else error->all(FLERR,"Illegal dump_modify command");
+      flush_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"format") == 0) {
@@ -1023,8 +1010,7 @@ void Dump::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"maxfiles") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
       if (!multifile)
-        error->all(FLERR,"Cannot use dump_modify maxfiles "
-                   "without * in dump file name");
+        error->all(FLERR,"Cannot use dump_modify maxfiles without * in dump file name");
       // wipe out existing storage
       if (maxfiles > 0) {
         for (int idx=0; idx < numfiles; ++idx)
@@ -1044,8 +1030,7 @@ void Dump::modify_params(int narg, char **arg)
     } else if (strcmp(arg[iarg],"nfile") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
       if (!multiproc)
-        error->all(FLERR,"Cannot use dump_modify nfile "
-                   "without % in dump file name");
+        error->all(FLERR,"Cannot use dump_modify nfile without % in dump file name");
       int nfile = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nfile <= 0) error->all(FLERR,"Illegal dump_modify command");
       nfile = MIN(nfile,nprocs);
@@ -1081,9 +1066,7 @@ void Dump::modify_params(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"pbc") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) pbcflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) pbcflag = 0;
-      else error->all(FLERR,"Illegal dump_modify command");
+      pbcflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"sort") == 0) {
@@ -1108,16 +1091,12 @@ void Dump::modify_params(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"time") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) time_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) time_flag = 0;
-      else error->all(FLERR,"Illegal dump_modify command");
+      time_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"units") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) unit_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) unit_flag = 0;
-      else error->all(FLERR,"Illegal dump_modify command");
+      unit_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else {

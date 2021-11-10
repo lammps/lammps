@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -953,7 +954,7 @@ void FixPOEMS::readfile(char *file)
   int nlocal = atom->nlocal;
   int i,id,nlen;
 
-  while (1) {
+  while (true) {
     if (me == 0) nlen = readline(fp,&line,&maxline);
     MPI_Bcast(&nlen,1,MPI_INT,0,world);
     if (nlen == 0) break;
@@ -985,7 +986,7 @@ int FixPOEMS::readline(FILE *fp, char **pline, int *pmaxline)
   char *line = *pline;
   int maxline = *pmaxline;
 
-  while (1) {
+  while (true) {
     if (n+1 >= maxline) {
       maxline += DELTA;
       memory->grow(line,maxline,"fix_poems:line");
@@ -1245,7 +1246,7 @@ int FixPOEMS::loopcheck(int nvert, int nedge, tagint **elist)
   int *stack = new int[nvert];
   ncluster = 0;
 
-  while (1) {
+  while (true) {
     for (i = 0; i < nvert; i++)
       if (mark[i] == 0) break;
     if (i == nvert) break;

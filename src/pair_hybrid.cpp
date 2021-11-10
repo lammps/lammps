@@ -1,7 +1,8 @@
+// clang-format off
 
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -340,6 +341,8 @@ void PairHybrid::settings(int narg, char **arg)
 
   // multiple[i] = 1 to M if sub-style used multiple times, else 0
 
+  int num_tip4p = 0, num_coul = 0; // count sub-styles with tip4p and coulomb
+
   for (int i = 0; i < nstyles; i++) {
     int count = 0;
     for (int j = 0; j < nstyles; j++) {
@@ -347,7 +350,21 @@ void PairHybrid::settings(int narg, char **arg)
       if (j == i) multiple[i] = count;
     }
     if (count == 1) multiple[i] = 0;
+
+    if (utils::strmatch(keywords[i],"/tip4p/")) ++num_tip4p;
+    if (utils::strmatch(keywords[i],"/coul/")
+        || utils::strmatch(keywords[i],"^comb")
+        || utils::strmatch(keywords[i],"^reax/c")) ++num_coul;
   }
+
+  if ((num_tip4p > 1) && (comm->me == 0))
+    error->warning(FLERR,"Using multiple tip4p sub-styles can result in "
+                   "inconsistent calculation of coulomb interactions");
+
+  if ((num_tip4p > 0) && (num_coul > 0) && (comm->me == 0))
+    error->warning(FLERR,"Using a tip4p sub-style with other sub-styles "
+                   "that include coulomb interactions can result in "
+                   "inconsistent calculation of the coulomb interactions");
 
   // set pair flags from sub-style flags
 
@@ -459,7 +476,7 @@ void PairHybrid::coeff(int narg, char **arg)
   // 4th arg = pair sub-style index if name used multiple times
   // allow for "none" as valid sub-style name
 
-  int multflag;
+  int multflag = 0;
   int m;
 
   for (m = 0; m < nstyles; m++) {
@@ -477,7 +494,7 @@ void PairHybrid::coeff(int narg, char **arg)
   int none = 0;
   if (m == nstyles) {
     if (strcmp(arg[2],"none") == 0) none = 1;
-    else error->all(FLERR,"Pair coeff for hybrid has invalid style");
+    else error->all(FLERR,"Pair coeff for hybrid has invalid style: {}",arg[2]);
   }
 
   // move 1st/2nd args to 2nd/3rd args
@@ -495,13 +512,16 @@ void PairHybrid::coeff(int narg, char **arg)
   // then unset setflag/map assigned to that style before setting it below
   // in case pair coeff for this sub-style is being called for 2nd time
 
-  if (!none && styles[m]->one_coeff)
+  if (!none && styles[m]->one_coeff) {
+    if ((strcmp(arg[0],"*") != 0) || (strcmp(arg[1],"*") != 0))
+      error->all(FLERR,"Incorrect args for pair coefficients");
     for (int i = 1; i <= atom->ntypes; i++)
       for (int j = i; j <= atom->ntypes; j++)
         if (nmap[i][j] && map[i][j][0] == m) {
           setflag[i][j] = 0;
           nmap[i][j] = 0;
         }
+  }
 
   // set setflag and which type pairs map to which sub-style
   // if sub-style is none: set hybrid setflag, wipe out map
@@ -552,7 +572,7 @@ void PairHybrid::init_style()
   // same style must not be used multiple times
 
   for (istyle = 0; istyle < nstyles; istyle++) {
-    bool is_gpu = (((PairHybrid *)styles[istyle])->suffix_flag & Suffix::GPU);
+    bool is_gpu = styles[istyle]->suffix_flag & Suffix::GPU;
     if (multiple[istyle] && is_gpu)
       error->all(FLERR,"GPU package styles must not be used multiple times");
   }
@@ -564,21 +584,24 @@ void PairHybrid::init_style()
       for (i = 1; i < 4; ++i) {
         if (((force->special_lj[i] == 0.0) || (force->special_lj[i] == 1.0))
             && (force->special_lj[i] != special_lj[istyle][i]))
-          error->all(FLERR,"Pair_modify special setting for pair hybrid "
-                     "incompatible with global special_bonds setting");
+          error->all(FLERR,"Pair_modify special lj 1-{} setting for pair hybrid substyle {} "
+                     "incompatible with global special_bonds setting", i+1, keywords[istyle]);
       }
     }
 
     if (special_coul[istyle]) {
       for (i = 1; i < 4; ++i) {
-        if (((force->special_coul[i] == 0.0)
-             || (force->special_coul[i] == 1.0))
+        if (((force->special_coul[i] == 0.0) || (force->special_coul[i] == 1.0))
             && (force->special_coul[i] != special_coul[istyle][i]))
-          error->all(FLERR,"Pair_modify special setting for pair hybrid "
-                     "incompatible with global special_bonds setting");
+          error->all(FLERR,"Pair_modify special coul 1-{} setting for pair hybrid substyle {} "
+                     "incompatible with global special_bonds setting", i+1, keywords[istyle]);
       }
     }
   }
+
+  // check beyond contact (set during pair coeff) before init style
+  for (istyle = 0; istyle < nstyles; istyle++)
+    if (styles[istyle]->beyond_contact) beyond_contact = 1;
 
   // each sub-style makes its neighbor list request(s)
 
@@ -879,7 +902,7 @@ void PairHybrid::modify_params(int narg, char **arg)
     int m;
     for (m = 0; m < nstyles; m++)
       if (strcmp(arg[1],keywords[m]) == 0) break;
-    if (m == nstyles) error->all(FLERR,"Unknown pair_modify hybrid sub-style");
+    if (m == nstyles) error->all(FLERR,"Unknown pair_modify hybrid sub-style: {}",arg[1]);
     int iarg = 2;
 
     if (multiple[m]) {
@@ -888,7 +911,7 @@ void PairHybrid::modify_params(int narg, char **arg)
       for (m = 0; m < nstyles; m++)
         if (strcmp(arg[1],keywords[m]) == 0 && multiflag == multiple[m]) break;
       if (m == nstyles)
-        error->all(FLERR,"Unknown pair_modify hybrid sub-style");
+        error->all(FLERR,"Unknown pair_modify hybrid sub-style: {}",arg[1]);
       iarg = 3;
     }
 
@@ -898,24 +921,18 @@ void PairHybrid::modify_params(int narg, char **arg)
 again:
 
     if (iarg < narg && strcmp(arg[iarg],"special") == 0) {
-      if (narg < iarg+5)
-        error->all(FLERR,"Illegal pair_modify special command");
+      if (narg < iarg+5) error->all(FLERR,"Illegal pair_modify special command");
       modify_special(m,narg-iarg,&arg[iarg+1]);
       iarg += 5;
       goto again;
     }
 
     // if 2nd keyword (after pair) is compute/tally:
-    // set flag to register USER-TALLY computes accordingly
+    // set flag to register TALLY computes accordingly
 
     if (iarg < narg && strcmp(arg[iarg],"compute/tally") == 0) {
-      if (narg < iarg+2)
-        error->all(FLERR,"Illegal pair_modify compute/tally command");
-      if (strcmp(arg[iarg+1],"yes") == 0) {
-        compute_tally[m] = 1;
-      } else if (strcmp(arg[iarg+1],"no") == 0) {
-        compute_tally[m] = 0;
-      } else error->all(FLERR,"Illegal pair_modify compute/tally command");
+      if (narg < iarg+2) error->all(FLERR,"Illegal pair_modify compute/tally command");
+      compute_tally[m] = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
       goto again;
     }
@@ -958,9 +975,7 @@ void PairHybrid::modify_special(int m, int /*narg*/, char **arg)
   special[2] = utils::numeric(FLERR,arg[2],false,lmp);
   special[3] = utils::numeric(FLERR,arg[3],false,lmp);
 
-  // have to cast to PairHybrid to work around C++ access restriction
-
-  if (((PairHybrid *)styles[m])->suffix_flag & (Suffix::INTEL|Suffix::GPU))
+  if (styles[m]->suffix_flag & (Suffix::INTEL|Suffix::GPU))
     error->all(FLERR,"Pair_modify special is not compatible with "
                      "suffix version of hybrid substyle");
 

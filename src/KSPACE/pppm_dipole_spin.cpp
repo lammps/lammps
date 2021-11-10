@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -298,8 +299,8 @@ void PPPMDipoleSpin::compute(int eflag, int vflag)
   //   to fully sum contribution in their 3d bricks
   // remap from 3d decomposition to FFT decomposition
 
-  gc_dipole->reverse_comm_kspace(this,3,sizeof(FFT_SCALAR),REVERSE_MU,
-                                 gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+  gc_dipole->reverse_comm(GridComm::KSPACE,this,3,sizeof(FFT_SCALAR),
+                          REVERSE_MU,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   brick2fft_dipole();
 
   // compute potential gradient on my FFT grid and
@@ -312,14 +313,14 @@ void PPPMDipoleSpin::compute(int eflag, int vflag)
   // all procs communicate E-field values
   // to fill ghost cells surrounding their 3d bricks
 
-  gc_dipole->forward_comm_kspace(this,9,sizeof(FFT_SCALAR),FORWARD_MU,
-                                 gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+  gc_dipole->forward_comm(GridComm::KSPACE,this,9,sizeof(FFT_SCALAR),
+                          FORWARD_MU,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   // extra per-atom energy/virial communication
 
   if (evflag_atom)
-    gc->forward_comm_kspace(this,18,sizeof(FFT_SCALAR),FORWARD_MU_PERATOM,
-                            gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+    gc->forward_comm(GridComm::KSPACE,this,18,sizeof(FFT_SCALAR),
+                     FORWARD_MU_PERATOM,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   // calculate the force on my particles
 

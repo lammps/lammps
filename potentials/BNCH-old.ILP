@@ -1,6 +1,6 @@
+# DATE: 2020-01-16 UNITS: metal CONTRIBUTOR: Wengen Ouyang w.g.ouyang@gmail.com CITATION: J. Chem.Theory Comput. 2016, 12, 2896-905 and J. Phys. Chem. C 2017, 121, 22826-22835
 # Interlayer Potential (ILP) for bilayer graphene/graphene, graphene/hBN and hBN/hBN junctions
 # The parameters below are fitted against the HSE + MBD DFT reference data from 3.1 A to 15 A.
-# Cite J. Chem.Theory Comput. 2016, 12, 2896-905 and J. Phys. Chem. C 2017, 121, 22826-22835. 
 
 #     beta  alpha  delta  epsilon   C      d      sR      reff     C6            S            rcut
 C  C  3.22  9.200  1.20   0.010   0.800   15.0   0.704   3.586  522.915  43.363442016573508    2.0

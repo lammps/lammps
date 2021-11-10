@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -24,7 +25,6 @@
 #include "variable.h"
 
 #include <cstring>
-#include <unistd.h>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -167,7 +167,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   // if wildcard expansion occurred, free earg memory from expand_args()
 
   if (expand) {
-    for (int i = 0; i < nvalues; i++) delete [] earg[i];
+    for (int i = 0; i < nvalues; i++) delete[] earg[i];
     memory->sfree(earg);
   }
 
@@ -433,12 +433,12 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
     if (ferror(fp))
       error->one(FLERR,"Error writing file header");
 
-    filepos = ftell(fp);
+    filepos = platform::ftell(fp);
   }
 
-  delete [] title1;
-  delete [] title2;
-  delete [] title3;
+  delete[] title1;
+  delete[] title2;
+  delete[] title3;
 
   // allocate and initialize memory for averaging
 
@@ -501,18 +501,18 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
 
 FixAveHisto::~FixAveHisto()
 {
-  delete [] which;
-  delete [] argindex;
-  delete [] value2index;
-  for (int i = 0; i < nvalues; i++) delete [] ids[i];
-  delete [] ids;
+  delete[] which;
+  delete[] argindex;
+  delete[] value2index;
+  for (int i = 0; i < nvalues; i++) delete[] ids[i];
+  delete[] ids;
 
   if (fp && me == 0) fclose(fp);
 
-  delete [] bin;
-  delete [] bin_total;
-  delete [] bin_all;
-  delete [] coord;
+  delete[] bin;
+  delete[] bin_total;
+  delete[] bin_all;
+  delete[] coord;
   memory->destroy(stats_list);
   memory->destroy(bin_list);
   memory->destroy(vector);
@@ -816,7 +816,7 @@ void FixAveHisto::end_of_step()
 
   if (fp && me == 0) {
     clearerr(fp);
-    if (overwrite) fseek(fp,filepos,SEEK_SET);
+    if (overwrite) platform::fseek(fp,filepos);
     fprintf(fp,BIGINT_FORMAT " %d %g %g %g %g\n",ntimestep,nbins,
             stats_total[0],stats_total[1],stats_total[2],stats_total[3]);
     if (stats_total[0] != 0.0)
@@ -832,9 +832,9 @@ void FixAveHisto::end_of_step()
 
     fflush(fp);
     if (overwrite) {
-      long fileend = ftell(fp);
-      if ((fileend > 0) && (ftruncate(fileno(fp),fileend)))
-        perror("Error while tuncating output");
+      bigint fileend = platform::ftell(fp);
+      if ((fileend > 0) && (platform::ftruncate(fp,fileend)))
+        error->warning(FLERR,"Error while tuncating output: {}",utils::getsyserror());
     }
   }
 }
@@ -992,17 +992,17 @@ void FixAveHisto::options(int iarg, int narg, char **arg)
       iarg += 1;
     } else if (strcmp(arg[iarg],"title1") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/histo command");
-      delete [] title1;
+      delete[] title1;
       title1 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title2") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/histo command");
-      delete [] title2;
+      delete[] title2;
       title2 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"title3") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix ave/histo command");
-      delete [] title3;
+      delete[] title3;
       title3 = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix ave/histo command");

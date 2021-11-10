@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -50,6 +51,7 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix bond/create command");
 
+  dynamic_group_allow = 1;
   force_reneighbor = 1;
   next_reneighbor = -1;
   vector_flag = 1;
@@ -164,7 +166,7 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
   // bondcount values will be initialized in setup()
 
   bondcount = nullptr;
-  grow_arrays(atom->nmax);
+  FixBondCreate::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
   countflag = 0;
 
@@ -1428,7 +1430,7 @@ double FixBondCreate::memory_usage()
 {
   int nmax = atom->nmax;
   double bytes = (double)nmax * sizeof(int);
-  bytes = 2*nmax * sizeof(tagint);
+  bytes += 2*nmax * sizeof(tagint);
   bytes += (double)nmax * sizeof(double);
   return bytes;
 }

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -25,7 +26,6 @@
 #include "memory.h"
 #include "tokenizer.h"
 
-#include <cctype>
 #include <cmath>
 #include <cstring>
 
@@ -147,13 +147,15 @@ Molecule::Molecule(LAMMPS *lmp, int narg, char **arg, int &index) :
 
   if (me == 0)
     utils::logmesg(lmp,"Read molecule template {}:\n  {} molecules\n"
+                   "  {} fragments\n"
                    "  {} atoms with max type {}\n"
                    "  {} bonds with max type {}\n"
                    "  {} angles with max type {}\n"
                    "  {} dihedrals with max type {}\n"
                    "  {} impropers with max type {}\n", id,nmolecules,
-                   natoms,ntypes,nbonds,nbondtypes,nangles,nangletypes,
-                   ndihedrals,ndihedraltypes,nimpropers,nimpropertypes);
+                   nfragments,natoms,ntypes,nbonds,nbondtypes,nangles,
+                   nangletypes,ndihedrals,ndihedraltypes,nimpropers,
+                   nimpropertypes);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -410,7 +412,7 @@ void Molecule::read(int flag)
   // skip blank lines or lines that start with "#"
   // stop when read an unrecognized line
 
-  while (1) {
+  while (true) {
 
     readline(line);
 
@@ -2033,7 +2035,7 @@ std::string Molecule::parse_keyword(int flag, char *line)
 
     MPI_Bcast(&eof,1,MPI_INT,0,world);
     if (eof) {
-      return std::string("");
+      return {""};
     }
 
     // bcast keyword line to all procs

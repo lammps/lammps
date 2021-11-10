@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,9 +13,9 @@
 
 #include "test_config_reader.h"
 #include "test_config.h"
+#include "utils.h"
 #include "yaml.h"
 #include "yaml_reader.h"
-#include "utils.h"
 
 #include <cstdlib>
 #include <cstring>
@@ -83,10 +83,10 @@ void TestConfigReader::prerequisites(const yaml_event_t &event)
     std::stringstream data((char *)event.data.scalar.value);
     std::string key, value;
 
-    while (1) {
+    while (true) {
         data >> key >> value;
         if (data.eof()) break;
-        config.prerequisites.push_back(std::make_pair(key, value));
+        config.prerequisites.emplace_back(key, value);
     }
 }
 
@@ -138,10 +138,10 @@ void TestConfigReader::extract(const yaml_event_t &event)
     std::stringstream data((char *)event.data.scalar.value);
     std::string name;
     int value;
-    while (1) {
+    while (true) {
         data >> name >> value;
         if (data.eof()) break;
-        config.extract.push_back(make_pair(name, value));
+        config.extract.emplace_back(name, value);
     }
 }
 

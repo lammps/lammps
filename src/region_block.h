@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef REGION_CLASS
-
-RegionStyle(block,RegBlock)
-
+// clang-format off
+RegionStyle(block,RegBlock);
+// clang-format on
 #else
 
 #ifndef LMP_REGION_BLOCK_H
@@ -35,7 +35,7 @@ class RegBlock : public Region {
   int surface_exterior(double *, double);
 
  protected:
-  double xlo,xhi,ylo,yhi,zlo,zhi;
+  double xlo, xhi, ylo, yhi, zlo, zhi;
   double corners[6][4][3];
   double face[6][3];
 
@@ -43,7 +43,7 @@ class RegBlock : public Region {
   int inside_face(double *, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

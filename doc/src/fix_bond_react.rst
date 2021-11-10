@@ -17,7 +17,7 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command.
 * bond/react = style name of this fix command
 * the common keyword/values may be appended directly after 'bond/react'
-* this applies to all reaction specifications (below)
+* common keywords apply to all reaction specifications
 * common_keyword = *stabilization* or *reset_mol_ids*
 
   .. parsed-literal::
@@ -69,7 +69,7 @@ Syntax
 Examples
 """"""""
 
-For unabridged example scripts and files, see examples/USER/reaction.
+For unabridged example scripts and files, see examples/PACKAGES/reaction.
 
 .. code-block:: LAMMPS
 
@@ -159,7 +159,7 @@ constant-topology parts of your system separately. The dynamic group
 contains only atoms not involved in a reaction at a given timestep,
 and therefore should be used by a subsequent system-wide time
 integrator such as nvt, npt, or nve, as shown in the second example
-above (full examples can be found at examples/USER/reaction). The time
+above (full examples can be found at examples/PACKAGES/reaction). The time
 integration command should be placed after the fix bond/react command
 due to the internal dynamic grouping performed by fix bond/react.
 
@@ -424,7 +424,7 @@ The constraint of type 'angle' has the following syntax:
 
    angle *ID1* *ID2* *ID3* *amin* *amax*
 
-where 'angle' is the required keyword, *ID1*\ , *ID2* and *ID3* are
+where 'angle' is the required keyword, *ID1*, *ID2* and *ID3* are
 pre-reaction atom IDs (or molecule-fragment IDs, see below), and these
 three atoms must form an angle between *amin* and *amax* for the
 reaction to occur (where *ID2* is the central atom). Angles must be
@@ -437,7 +437,7 @@ The constraint of type 'dihedral' has the following syntax:
 
    dihedral *ID1* *ID2* *ID3* *ID4* *amin* *amax* *amin2* *amax2*
 
-where 'dihedral' is the required keyword, and *ID1*\ , *ID2*\ , *ID3*
+where 'dihedral' is the required keyword, and *ID1*, *ID2*, *ID3*
 and *ID4* are pre-reaction atom IDs (or molecule-fragment IDs, see
 below). Dihedral angles are calculated in the interval (-180,180].
 Refer to the :doc:`dihedral style <dihedral_style>` documentation for
@@ -525,12 +525,12 @@ reaction can be imposed as follows:
 
 .. code-block:: LAMMPS
 
-compute 1 all pe/atom # in LAMMPS input script
-variable my_pe atom c_1 # in LAMMPS input script
+   compute 1 all pe/atom # in LAMMPS input script
+   variable my_pe atom c_1 # in LAMMPS input script
 
 .. code-block:: LAMMPS
 
-custom "rxnsum(v_my_pe) > 100" # in Constraints section of map file
+   custom "rxnsum(v_my_pe) > 100" # in Constraints section of map file
 
 The above example prevents the reaction from occurring unless the
 total potential energy of the reaction site is above 100. The variable
@@ -667,9 +667,9 @@ all other fixes that use any group created by fix bond/react.
 Restrictions
 """"""""""""
 
-This fix is part of the USER-REACTION package.  It is only enabled if
+This fix is part of the REACTION package.  It is only enabled if
 LAMMPS was built with that package.  See the
-:doc:`Build package <Build_package>` doc page for more info.
+:doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

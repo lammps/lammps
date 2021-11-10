@@ -108,7 +108,7 @@ atoms that include these constraints will be computed correctly.  If
 needed, the subtracted degrees-of-freedom can be altered using the
 *extra* option of the :doc:`compute_modify <compute_modify>` command.
 
-See the :doc:`Howto thermostat <Howto_thermostat>` doc page for a
+See the :doc:`Howto thermostat <Howto_thermostat>` page for a
 discussion of different ways to compute temperature and perform
 thermostatting.
 
@@ -124,7 +124,7 @@ and the 7-th is the cosine-shaped velocity amplitude :math:`V`,
 which can be used to calculate the reciprocal viscosity, as shown in the example.
 These values can be used by any command that uses global scalar or
 vector values from a compute as input.
-See the :doc:`Howto output <Howto_output>` doc page for an overview of LAMMPS output options.
+See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output options.
 
 The scalar value calculated by this compute is "intensive".  The
 first 6 elements of vector values are "extensive",
@@ -137,7 +137,7 @@ The 7-th element of vector value will be in velocity :doc:`units <units>`.
 Restrictions
 """"""""""""
 
-This command is only available when LAMMPS was built with the USER-MISC package.
+This command is only available when LAMMPS was built with the MISC package.
 Since this compute depends on :doc:`fix accelerate/cos <fix_accelerate_cos>` which can
 only work for 3d systems, it cannot be used for 2d systems.
 

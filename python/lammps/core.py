@@ -1,6 +1,6 @@
 # ----------------------------------------------------------------------
 #   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-#   http://lammps.sandia.gov, Sandia National Laboratories
+#   https://www.lammps.org/ Sandia National Laboratories
 #   Steve Plimpton, sjplimp@sandia.gov
 #
 #   Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,12 +18,12 @@ from __future__ import print_function
 
 import os
 import sys
-from ctypes import *
+from ctypes import *                    # lgtm [py/polluting-import]
 from os.path import dirname,abspath,join
 from inspect import getsourcefile
 
-from .constants import *
-from .data import *
+from .constants import *                # lgtm [py/polluting-import]
+from .data import *                     # lgtm [py/polluting-import]
 
 # -------------------------------------------------------------------------
 
@@ -99,8 +99,8 @@ class lammps(object):
     # load a shared object.
 
     try:
-      if ptr: self.lib = CDLL("",RTLD_GLOBAL)
-    except:
+      if ptr is not None: self.lib = CDLL("",RTLD_GLOBAL)
+    except OSError:
       self.lib = None
 
     # load liblammps.so unless name is given
@@ -201,6 +201,9 @@ class lammps(object):
       [c_void_p,c_char_p,c_int,c_int,c_int,POINTER(c_int),c_void_p]
     self.lib.lammps_scatter_atoms_subset.restype = None
 
+    self.lib.lammps_gather_bonds.argtypes = [c_void_p,c_void_p]
+    self.lib.lammps_gather_bonds.restype = None
+
     self.lib.lammps_gather.argtypes = \
       [c_void_p,c_char_p,c_int,c_int,c_void_p]
     self.lib.lammps_gather.restype = None
@@ -295,9 +298,16 @@ class lammps(object):
 
     self.lib.lammps_extract_variable.argtypes = [c_void_p, c_char_p, c_char_p]
 
-    # TODO: NOT IMPLEMENTED IN PYTHON WRAPPER
-    self.lib.lammps_fix_external_set_energy_global = [c_void_p, c_char_p, c_double]
-    self.lib.lammps_fix_external_set_virial_global = [c_void_p, c_char_p, POINTER(c_double)]
+    self.lib.lammps_fix_external_get_force.argtypes = [c_void_p, c_char_p]
+    self.lib.lammps_fix_external_get_force.restype = POINTER(POINTER(c_double))
+
+    self.lib.lammps_fix_external_set_energy_global.argtypes = [c_void_p, c_char_p, c_double]
+    self.lib.lammps_fix_external_set_virial_global.argtypes = [c_void_p, c_char_p, POINTER(c_double)]
+    self.lib.lammps_fix_external_set_energy_peratom.argtypes = [c_void_p, c_char_p, POINTER(c_double)]
+    self.lib.lammps_fix_external_set_virial_peratom.argtypes = [c_void_p, c_char_p, POINTER(POINTER(c_double))]
+
+    self.lib.lammps_fix_external_set_vector_length.argtypes = [c_void_p, c_char_p, c_int]
+    self.lib.lammps_fix_external_set_vector.argtypes = [c_void_p, c_char_p, c_int, c_double]
 
     # detect if Python is using a version of mpi4py that can pass communicators
     # only needed if LAMMPS has been compiled with MPI support.
@@ -307,20 +317,19 @@ class lammps(object):
         from mpi4py import __version__ as mpi4py_version
         # tested to work with mpi4py versions 2 and 3
         self.has_mpi4py = mpi4py_version.split('.')[0] in ['2','3']
-      except:
+      except ImportError:
         # ignore failing import
         pass
 
     # if no ptr provided, create an instance of LAMMPS
-    #   don't know how to pass an MPI communicator from PyPar
-    #   but we can pass an MPI communicator from mpi4py v2.0.0 and later
+    #   we can pass an MPI communicator from mpi4py v2.0.0 and later
     #   no_mpi call lets LAMMPS use MPI_COMM_WORLD
     #   cargs = array of C strings from args
     # if ptr, then are embedding Python in LAMMPS input script
     #   ptr is the desired instance of LAMMPS
     #   just convert it to ctypes ptr and store in self.lmp
 
-    if not ptr:
+    if ptr is None:
 
       # with mpi4py v2+, we can pass MPI communicators to LAMMPS
       # need to adjust for type of MPI communicator object
@@ -329,7 +338,7 @@ class lammps(object):
         from mpi4py import MPI
         self.MPI = MPI
 
-      if comm:
+      if comm is not None:
         if not self.has_mpi_support:
           raise Exception('LAMMPS not compiled with real MPI library')
         if not self.has_mpi4py:
@@ -345,7 +354,7 @@ class lammps(object):
 
         narg = 0
         cargs = None
-        if cmdargs:
+        if cmdargs is not None:
           cmdargs.insert(0,"lammps")
           narg = len(cmdargs)
           for i in range(narg):
@@ -367,7 +376,7 @@ class lammps(object):
         if self.has_mpi4py and self.has_mpi_support:
           self.comm = self.MPI.COMM_WORLD
         self.opened = 1
-        if cmdargs:
+        if cmdargs is not None:
           cmdargs.insert(0,"lammps")
           narg = len(cmdargs)
           for i in range(narg):
@@ -461,10 +470,16 @@ class lammps(object):
   # -------------------------------------------------------------------------
 
   def finalize(self):
-    """Shut down the MPI communication through the library interface by calling :cpp:func:`lammps_finalize`.
+    """Shut down the MPI communication and Kokkos environment (if active) through the
+       library interface by  calling :cpp:func:`lammps_mpi_finalize` and
+       :cpp:func:`lammps_kokkos_finalize`.
+
+       You cannot create or use any LAMMPS instances after this function is called
+       unless LAMMPS was compiled without MPI and without Kokkos support.
     """
     self.close()
-    self.lib.lammps_finalize()
+    self.lib.lammps_kokkos_finalize()
+    self.lib.lammps_mpi_finalize()
 
   # -------------------------------------------------------------------------
 
@@ -1134,10 +1149,10 @@ class lammps(object):
     with ExceptionCheck(self):
       if dtype == 0:
         data = ((count*natoms)*c_int)()
-        self.lib.lammps_gather_atoms(self.lmp,name,type,count,data)
+        self.lib.lammps_gather_atoms(self.lmp,name,dtype,count,data)
       elif dtype == 1:
         data = ((count*natoms)*c_double)()
-        self.lib.lammps_gather_atoms(self.lmp,name,type,count,data)
+        self.lib.lammps_gather_atoms(self.lmp,name,dtype,count,data)
       else:
         return None
     return data
@@ -1150,10 +1165,10 @@ class lammps(object):
     with ExceptionCheck(self):
       if dtype == 0:
         data = ((count*natoms)*c_int)()
-        self.lib.lammps_gather_atoms_concat(self.lmp,name,type,count,data)
+        self.lib.lammps_gather_atoms_concat(self.lmp,name,dtype,count,data)
       elif dtype == 1:
         data = ((count*natoms)*c_double)()
-        self.lib.lammps_gather_atoms_concat(self.lmp,name,type,count,data)
+        self.lib.lammps_gather_atoms_concat(self.lmp,name,dtype,count,data)
       else:
           return None
     return data
@@ -1193,6 +1208,32 @@ class lammps(object):
     if name: name = name.encode()
     with ExceptionCheck(self):
       self.lib.lammps_scatter_atoms_subset(self.lmp,name,dtype,count,ndata,ids,data)
+
+
+  # -------------------------------------------------------------------------
+
+  def gather_bonds(self):
+    """Retrieve global list of bonds
+
+    This is a wrapper around the :cpp:func:`lammps_gather_bonds`
+    function of the C-library interface.
+
+    This function returns a tuple with the number of bonds and a
+    flat list of ctypes integer values with the bond type, bond atom1,
+    bond atom2 for each bond.
+
+    .. versionadded:: 28Jul2021
+
+    :return: a tuple with the number of bonds and a list of c_int or c_long
+    :rtype: (int, 3*nbonds*c_tagint)
+    """
+    nbonds = self.extract_global("nbonds")
+    with ExceptionCheck(self):
+        data = ((3*nbonds)*self.c_tagint)()
+        self.lib.lammps_gather_bonds(self.lmp,data)
+        return nbonds,data
+
+  # -------------------------------------------------------------------------
 
   # return vector of atom/compute/fix properties gathered across procs
   # 3 variants to match src/library.cpp
@@ -1320,7 +1361,7 @@ class lammps(object):
     This function is a wrapper around the :cpp:func:`lammps_create_atoms`
     function of the C-library interface, and the behavior is similar except
     that the *v*, *image*, and *shrinkexceed* arguments are optional and
-    default to *None*, *None*, and *False*, respectively. With none being
+    default to *None*, *None*, and *False*, respectively. With *None* being
     equivalent to a ``NULL`` pointer in C.
 
     The lists of coordinates, types, atom IDs, velocities, image flags can
@@ -1348,11 +1389,11 @@ class lammps(object):
     :return: number of atoms created. 0 if insufficient or invalid data
     :rtype: int
     """
-    if id:
+    if id is not None:
       id_lmp = (self.c_tagint*n)()
       try:
         id_lmp[:] = id[0:n]
-      except:
+      except ValueError:
         return 0
     else:
       id_lmp = None
@@ -1360,30 +1401,30 @@ class lammps(object):
     type_lmp = (c_int*n)()
     try:
       type_lmp[:] = type[0:n]
-    except:
+    except ValueError:
       return 0
 
     three_n = 3*n
     x_lmp = (c_double*three_n)()
     try:
       x_lmp[:] = x[0:three_n]
-    except:
+    except ValueError:
       return 0
 
-    if v:
+    if v is not None:
       v_lmp = (c_double*(three_n))()
       try:
         v_lmp[:] = v[0:three_n]
-      except:
+      except ValueError:
         return 0
     else:
       v_lmp = None
 
-    if image:
+    if image is not None:
       img_lmp = (self.c_imageint*n)()
       try:
         img_lmp[:] = image[0:n]
-      except:
+      except ValueError:
         return 0
     else:
       img_lmp = None
@@ -1537,7 +1578,7 @@ class lammps(object):
     """
 
     result = {}
-    for p in ['GPU', 'KOKKOS', 'USER-INTEL', 'USER-OMP']:
+    for p in ['GPU', 'KOKKOS', 'INTEL', 'OPENMP']:
       result[p] = {}
       c = 'api'
       result[p][c] = []
@@ -1720,7 +1761,35 @@ class lammps(object):
 
   # -------------------------------------------------------------------------
 
-  def set_fix_external_callback(self, fix_name, callback, caller=None):
+  def set_fix_external_callback(self, fix_id, callback, caller=None):
+    """Set the callback function for a fix external instance with a given fix ID.
+
+    Optionally also set a reference to the calling object.
+
+    This is a wrapper around the :cpp:func:`lammps_set_fix_external_callback` function
+    of the C-library interface.  However this is set up to call a Python function with
+    the following arguments.
+
+    .. code-block: python
+
+       def func(object, ntimestep, nlocal, tag, x, f):
+
+    - object is the value of the "caller" argument
+    - ntimestep is the current timestep
+    - nlocal is the number of local atoms on the current MPI process
+    - tag is a 1d NumPy array of integers representing the atom IDs of the local atoms
+    - x is a 2d NumPy array of doubles of the coordinates of the local atoms
+    - f is a 2d NumPy array of doubles of the forces on the local atoms that will be added
+
+    .. versionchanged:: 28Jul2021
+
+    :param fix_id:  Fix-ID of a fix external instance
+    :type: string
+    :param callback: Python function that will be called from fix external
+    :type: function
+    :param caller: reference to some object passed to the callback function
+    :type: object, optional
+    """
     import numpy as np
 
     def callback_wrapper(caller, ntimestep, nlocal, tag_ptr, x_ptr, fext_ptr):
@@ -1732,10 +1801,161 @@ class lammps(object):
     cFunc   = self.FIX_EXTERNAL_CALLBACK_FUNC(callback_wrapper)
     cCaller = caller
 
-    self.callback[fix_name] = { 'function': cFunc, 'caller': caller }
+    self.callback[fix_id] = { 'function': cFunc, 'caller': caller }
     with ExceptionCheck(self):
-      self.lib.lammps_set_fix_external_callback(self.lmp, fix_name.encode(), cFunc, cCaller)
+      self.lib.lammps_set_fix_external_callback(self.lmp, fix_id.encode(), cFunc, cCaller)
 
+  # -------------------------------------------------------------------------
+
+  def fix_external_get_force(self, fix_id):
+    """Get access to the array with per-atom forces of a fix external instance with a given fix ID.
+
+    This is a wrapper around the :cpp:func:`lammps_fix_external_get_force` function
+    of the C-library interface.
+
+    .. versionadded:: 28Jul2021
+
+    :param fix_id:  Fix-ID of a fix external instance
+    :type: string
+    :return: requested data
+    :rtype: ctypes.POINTER(ctypes.POINTER(ctypes.double))
+    """
+
+    with ExceptionCheck(self):
+      return self.lib.lammps_fix_external_get_force(self.lmp, fix_id.encode())
+
+  # -------------------------------------------------------------------------
+
+  def fix_external_set_energy_global(self, fix_id, eng):
+    """Set the global energy contribution for a fix external instance with the given ID.
+
+    This is a wrapper around the :cpp:func:`lammps_fix_external_set_energy_global` function
+    of the C-library interface.
+
+    .. versionadded:: 28Jul2021
+
+    :param fix_id:  Fix-ID of a fix external instance
+    :type: string
+    :param eng:     potential energy value to be added by fix external
+    :type: float
+    """
+
+    with ExceptionCheck(self):
+      return self.lib.lammps_fix_external_set_energy_global(self.lmp, fix_id.encode(), eng)
+
+  # -------------------------------------------------------------------------
+
+  def fix_external_set_virial_global(self, fix_id, virial):
+    """Set the global virial contribution for a fix external instance with the given ID.
+
+    This is a wrapper around the :cpp:func:`lammps_fix_external_set_virial_global` function
+    of the C-library interface.
+
+    .. versionadded:: 28Jul2021
+
+    :param fix_id:  Fix-ID of a fix external instance
+    :type: string
+    :param eng:     list of 6 floating point numbers with the virial to be added by fix external
+    :type: float
+    """
+
+    cvirial = (6*c_double)(*virial)
+    with ExceptionCheck(self):
+      return self.lib.lammps_fix_external_set_virial_global(self.lmp, fix_id.encode(), cvirial)
+
+  # -------------------------------------------------------------------------
+
+  def fix_external_set_energy_peratom(self, fix_id, eatom):
+    """Set the per-atom energy contribution for a fix external instance with the given ID.
+
+    This is a wrapper around the :cpp:func:`lammps_fix_external_set_energy_peratom` function
+    of the C-library interface.
+
+    .. versionadded:: 28Jul2021
+
+    :param fix_id:  Fix-ID of a fix external instance
+    :type: string
+    :param eatom:   list of potential energy values for local atoms to be added by fix external
+    :type: float
+    """
+
+    nlocal = self.extract_setting('nlocal')
+    if len(eatom) < nlocal:
+      raise Exception('per-atom energy list length must be at least nlocal')
+    ceatom = (nlocal*c_double)(*eatom)
+    with ExceptionCheck(self):
+      return self.lib.lammps_fix_external_set_energy_peratom(self.lmp, fix_id.encode(), ceatom)
+
+  # -------------------------------------------------------------------------
+
+  def fix_external_set_virial_peratom(self, fix_id, vatom):
+    """Set the per-atom virial contribution for a fix external instance with the given ID.
+
+    This is a wrapper around the :cpp:func:`lammps_fix_external_set_virial_peratom` function
+    of the C-library interface.
+
+    .. versionadded:: 28Jul2021
+
+    :param fix_id:  Fix-ID of a fix external instance
+    :type: string
+    :param vatom:     list of natoms lists with 6 floating point numbers to be added by fix external
+    :type: float
+    """
+
+    # copy virial data to C compatible buffer
+    nlocal = self.extract_setting('nlocal')
+    if len(vatom) < nlocal:
+      raise Exception('per-atom virial first dimension must be at least nlocal')
+    if len(vatom[0]) != 6:
+      raise Exception('per-atom virial second dimension must be 6')
+    vbuf = (c_double * 6)
+    vptr = POINTER(c_double)
+    c_virial = (vptr * nlocal)()
+    for i in range(nlocal):
+        c_virial[i] = vbuf()
+        for j in range(6):
+          c_virial[i][j] = vatom[i][j]
+
+    with ExceptionCheck(self):
+      return self.lib.lammps_fix_external_set_virial_peratom(self.lmp, fix_id.encode(), c_virial)
+
+  # -------------------------------------------------------------------------
+  def fix_external_set_vector_length(self, fix_id, length):
+    """Set the vector length for a global vector stored with fix external for analysis
+
+    This is a wrapper around the :cpp:func:`lammps_fix_external_set_vector_length` function
+    of the C-library interface.
+
+    .. versionadded:: 28Jul2021
+
+    :param fix_id:  Fix-ID of a fix external instance
+    :type: string
+    :param length:  length of the global vector
+    :type: int
+    """
+
+    with ExceptionCheck(self):
+      return self.lib.lammps_fix_external_set_vector_length(self.lmp, fix_id.encode(), length)
+
+  # -------------------------------------------------------------------------
+  def fix_external_set_vector(self, fix_id, idx, val):
+    """Store a global vector value for a fix external instance with the given ID.
+
+    This is a wrapper around the :cpp:func:`lammps_fix_external_set_vector` function
+    of the C-library interface.
+
+    .. versionadded:: 28Jul2021
+
+    :param fix_id:  Fix-ID of a fix external instance
+    :type: string
+    :param idx:     1-based index of the value in the global vector
+    :type: int
+    :param val:     value to be stored in the global vector
+    :type: float
+    """
+
+    with ExceptionCheck(self):
+      return self.lib.lammps_fix_external_set_vector(self.lmp, fix_id.encode(), idx, val)
 
   # -------------------------------------------------------------------------
 

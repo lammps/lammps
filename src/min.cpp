@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -120,8 +121,7 @@ void Min::init()
   // create fix needed for storing atom-based quantities
   // will delete it at end of run
 
-  modify->add_fix("MINIMIZE all MINIMIZE");
-  fix_minimize = (FixMinimize *) modify->fix[modify->nfix-1];
+  fix_minimize = (FixMinimize *) modify->add_fix("MINIMIZE all MINIMIZE");
 
   // clear out extra global and per-atom dof
   // will receive requests for new per-atom dof during pair init()
@@ -157,8 +157,7 @@ void Min::init()
 
   // detect if fix omp is present for clearing force arrays
 
-  int ifix = modify->find_fix("package_omp");
-  if (ifix >= 0) external_force_clear = 1;
+  if (modify->get_fix_by_id("package_omp")) external_force_clear = 1;
 
   // set flags for arrays to clear in force_clear()
 
@@ -230,9 +229,8 @@ void Min::setup(int flag)
 
   // compute for potential energy
 
-  int id = modify->find_compute("thermo_pe");
-  if (id < 0) error->all(FLERR,"Minimization could not find thermo_pe compute");
-  pe_compute = modify->compute[id];
+  pe_compute = modify->get_compute_by_id("thermo_pe");
+  if (!pe_compute) error->all(FLERR,"Minimization could not find thermo_pe compute");
 
   // style-specific setup does two tasks
   // setup extra global dof vectors
@@ -705,15 +703,11 @@ void Min::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"halfstepback") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) halfstepback_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) halfstepback_flag = 0;
-      else error->all(FLERR,"Illegal min_modify command");
+      halfstepback_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"initialdelay") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) delaystep_start_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) delaystep_start_flag = 0;
-      else error->all(FLERR,"Illegal min_modify command");
+      delaystep_start_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"vdfmax") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
@@ -959,20 +953,19 @@ double Min::fnorm_max()
 
 double Min::total_torque()
 {
-  double fmsq,ftotsqone,ftotsqall;
+  double ftotsqone,ftotsqall;
   int nlocal = atom->nlocal;
   double hbar = force->hplanck/MY_2PI;
   double tx,ty,tz;
   double **sp = atom->sp;
   double **fm = atom->fm;
 
-  fmsq = ftotsqone = ftotsqall = 0.0;
+  ftotsqone = ftotsqall = 0.0;
   for (int i = 0; i < nlocal; i++) {
     tx = fm[i][1]*sp[i][2] - fm[i][2]*sp[i][1];
     ty = fm[i][2]*sp[i][0] - fm[i][0]*sp[i][2];
     tz = fm[i][0]*sp[i][1] - fm[i][1]*sp[i][0];
-    fmsq = tx*tx + ty*ty + tz*tz;
-    ftotsqone += fmsq;
+    ftotsqone += tx*tx + ty*ty + tz*tz;
   }
 
   // summing all fmsqtot on this replica
@@ -1030,7 +1023,7 @@ double Min::max_torque()
   double **sp = atom->sp;
   double **fm = atom->fm;
 
-  fmsq = fmaxsqone = fmaxsqall = 0.0;
+  fmaxsqone = fmaxsqall = 0.0;
   for (int i = 0; i < nlocal; i++) {
     tx = fm[i][1]*sp[i][2] - fm[i][2]*sp[i][1];
     ty = fm[i][2]*sp[i][0] - fm[i][0]*sp[i][2];

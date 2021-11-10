@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -27,18 +27,16 @@ struct HyperOneCoeff {
   tagint tag;
 };
 
-template<class T>
-class MyPage {
+template <class T> class MyPage {
  public:
-  int ndatum;      // total # of stored datums
-  int nchunk;      // total # of stored chunks
+  int ndatum;    // total # of stored datums
+  int nchunk;    // total # of stored chunks
   MyPage();
   virtual ~MyPage();
 
-  int init(int user_maxchunk=1, int user_pagesize=1024,
-           int user_pagedelta=1);
+  int init(int user_maxchunk = 1, int user_pagesize = 1024, int user_pagedelta = 1);
 
-  T *get(int n=1);
+  T *get(int n = 1);
 
   /** Get pointer to location that can store *maxchunk* items.
    *
@@ -48,8 +46,9 @@ class MyPage {
    *
    * \return pointer to chunk of memory or null pointer if run out of memory */
 
-  T *vget() {
-    if (index+maxchunk <= pagesize) return &page[index];
+  T *vget()
+  {
+    if (index + maxchunk <= pagesize) return &page[index];
     ipage++;
     if (ipage == npage) {
       allocate();
@@ -69,7 +68,8 @@ class MyPage {
    *
    * \param  n  Number of items used in previously reserved chunk */
 
-  void vgot(int n) {
+  void vgot(int n)
+  {
     if (n > maxchunk) errorflag = 1;
     ndatum += n;
     nchunk++;
@@ -82,9 +82,7 @@ class MyPage {
    *
    * \return total storage used in bytes */
 
-  double size() const {
-    return (double)npage*pagesize*sizeof(T);
-  }
+  double size() const { return (double) npage * pagesize * sizeof(T); }
 
   /** Return error status
    *
@@ -93,23 +91,23 @@ class MyPage {
   int status() const { return errorflag; }
 
  private:
-  T **pages;      // list of allocated pages
-  T *page;        // ptr to current page
-  int npage;      // # of allocated pages
-  int ipage;      // index of current page
-  int index;      // current index on current page
+  T **pages;    // list of allocated pages
+  T *page;      // ptr to current page
+  int npage;    // # of allocated pages
+  int ipage;    // index of current page
+  int index;    // current index on current page
 
-  int maxchunk;   // max # of datums in one requested chunk
-  int pagesize;   // # of datums in one page, default = 1024
-  int pagedelta;  // # of pages to allocate at once, default = 1
+  int maxchunk;     // max # of datums in one requested chunk
+  int pagesize;     // # of datums in one page, default = 1024
+  int pagedelta;    // # of pages to allocate at once, default = 1
 
-  int errorflag;  // flag > 0 if error has occurred
-                  // 1 = chunk size exceeded maxchunk
-                  // 2 = memory allocation error
+  int errorflag;    // flag > 0 if error has occurred
+                    // 1 = chunk size exceeded maxchunk
+                    // 2 = memory allocation error
   void allocate();
   void deallocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif

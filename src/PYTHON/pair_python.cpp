@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -27,7 +28,7 @@
 #include "python_utils.h"
 #include "update.h"
 
-#include <string>
+#include <cstring>
 #include <Python.h>  // IWYU pragma: export
 
 using namespace LAMMPS_NS;
@@ -252,20 +253,24 @@ void PairPython::coeff(int narg, char **arg)
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
-  // check if python potential file exists and source it
+
+  // check if python potential class type exists
+  // load module if necessary
   std::string full_cls_name = arg[2];
+  std::string module_name = "__main__";
+  std::string cls_name = full_cls_name;
+
   size_t lastpos = full_cls_name.rfind(".");
 
-  if (lastpos == std::string::npos) {
-    error->all(FLERR,"Python pair style requires fully qualified class name");
+  if (lastpos != std::string::npos) {
+    module_name = full_cls_name.substr(0, lastpos);
+    cls_name = full_cls_name.substr(lastpos+1);
   }
-
-  std::string module_name = full_cls_name.substr(0, lastpos);
-  std::string cls_name = full_cls_name.substr(lastpos+1);
 
   PyUtils::GIL lock;
 
   PyObject * pModule = PyImport_ImportModule(module_name.c_str());
+
   if (!pModule) {
     PyUtils::Print_Errors();
     error->all(FLERR,"Loading python pair style module failure");
@@ -277,7 +282,7 @@ void PairPython::coeff(int narg, char **arg)
   PyObject *py_pair_type = PyObject_GetAttrString(pModule, cls_name.c_str());
   if (!py_pair_type) {
     PyUtils::Print_Errors();
-    error->all(FLERR,"Could not find pair style class in module'");
+    error->all(FLERR, "Could not find pair style class {} in module {}", cls_name, module_name);
   }
 
   PyObject * py_pair_instance = PyObject_CallObject(py_pair_type, nullptr);

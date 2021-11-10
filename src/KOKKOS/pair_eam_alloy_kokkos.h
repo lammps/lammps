@@ -1,7 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
-
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(eam/alloy/kk,PairEAMAlloyKokkos<LMPDeviceType>)
-PairStyle(eam/alloy/kk/device,PairEAMAlloyKokkos<LMPDeviceType>)
-PairStyle(eam/alloy/kk/host,PairEAMAlloyKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(eam/alloy/kk,PairEAMAlloyKokkos<LMPDeviceType>);
+PairStyle(eam/alloy/kk/device,PairEAMAlloyKokkos<LMPDeviceType>);
+PairStyle(eam/alloy/kk/host,PairEAMAlloyKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_EAM_ALLOY_KOKKOS_H
 #define LMP_PAIR_EAM_ALLOY_KOKKOS_H
 
@@ -116,8 +116,6 @@ class PairEAMAlloyKokkos : public PairEAM, public KokkosBase {
   void unpack_reverse_comm(int, int *, double *);
 
  protected:
-  void cleanup_copy();
-
   typename AT::t_x_array x;
   typename AT::t_f_array f;
   typename AT::t_int_1d type;

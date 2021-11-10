@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -292,7 +293,7 @@ void KimInteractions::KIM_SET_TYPE_PARAMETERS(const std::string &input_line) con
   char line[MAXLINE], *ptr;
   int n, eof = 0;
 
-  while (1) {
+  while (true) {
     if (comm->me == 0) {
       ptr = fgets(line, MAXLINE,fp);
       if (ptr == nullptr) {

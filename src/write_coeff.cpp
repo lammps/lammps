@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -25,7 +26,6 @@
 
 #include <cctype>
 #include <cstring>
-#include <unistd.h>
 
 using namespace LAMMPS_NS;
 
@@ -92,7 +92,7 @@ void WriteCoeff::command(int narg, char **arg)
     fprintf(two,"# LAMMPS coeff file via write_coeff, version %s\n",
             lmp->version);
 
-    while (1) {
+    while (true) {
       int coeff_mode = REGULAR_MODE;
       if (fgets(str,256,one) == nullptr) break;
 
@@ -169,8 +169,8 @@ void WriteCoeff::command(int narg, char **arg)
     }
     fclose(one);
     fclose(two);
-    unlink(file);
+    platform::unlink(file);
   }
 
-  delete [] file;
+  delete[] file;
 }

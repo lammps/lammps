@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(spring/chunk,FixSpringChunk)
-
+// clang-format off
+FixStyle(spring/chunk,FixSpringChunk);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_SPRING_CHUNK_H
@@ -43,16 +43,16 @@ class FixSpringChunk : public Fix {
   int ilevel_respa;
   double k_spring;
   double esprings;
-  char *idchunk,*idcom;
+  char *idchunk, *idcom;
 
   int nchunk;
-  double **com0,**fcom;
+  double **com0, **fcom;
 
   class ComputeChunkAtom *cchunk;
   class ComputeCOMChunk *ccom;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

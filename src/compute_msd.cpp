@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,16 +14,15 @@
 
 #include "compute_msd.h"
 
-#include <cstring>
-
 #include "atom.h"
-#include "update.h"
-#include "group.h"
 #include "domain.h"
-#include "modify.h"
-#include "fix_store.h"
 #include "error.h"
+#include "fix_store.h"
+#include "group.h"
+#include "modify.h"
+#include "update.h"
 
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -49,15 +49,11 @@ ComputeMSD::ComputeMSD(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"com") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute msd command");
-      if (strcmp(arg[iarg+1],"no") == 0) comflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) comflag = 1;
-      else error->all(FLERR,"Illegal compute msd command");
+      comflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"average") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute msd command");
-      if (strcmp(arg[iarg+1],"no") == 0) avflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) avflag = 1;
-      else error->all(FLERR,"Illegal compute msd command");
+      avflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal compute msd command");
   }
@@ -65,13 +61,9 @@ ComputeMSD::ComputeMSD(LAMMPS *lmp, int narg, char **arg) :
   // create a new fix STORE style for reference positions
   // id = compute-ID + COMPUTE_STORE, fix group = compute group
 
-  std::string fixcmd = id + std::string("_COMPUTE_STORE");
-  id_fix = new char[fixcmd.size()+1];
-  strcpy(id_fix,fixcmd.c_str());
-
-  fixcmd += fmt::format(" {} STORE peratom 1 3",group->names[igroup]);
-  modify->add_fix(fixcmd);
-  fix = (FixStore *) modify->fix[modify->nfix-1];
+  id_fix = utils::strdup(id + std::string("_COMPUTE_STORE"));
+  fix = (FixStore *) modify->add_fix(fmt::format("{} {} STORE peratom 1 3",
+                                                 id_fix, group->names[igroup]));
 
   // calculate xu,yu,zu for fix store array
   // skip if reset from restart file

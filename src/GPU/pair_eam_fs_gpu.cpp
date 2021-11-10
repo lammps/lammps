@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -42,7 +43,7 @@ int eam_fs_gpu_init(const int ntypes, double host_cutforcesq,
                  int **host_type2rhor, int **host_type2z2r,
                  int *host_type2frho, double ***host_rhor_spline,
                  double ***host_z2r_spline, double ***host_frho_spline,
-                 double rdr, double rdrho, double rhomax,
+                 double** host_cutsq, double rdr, double rdrho, double rhomax,
                  int nrhor, int nrho, int nz2r, int nfrho, int nr,
                  const int nlocal, const int nall, const int max_nbors,
                  const int maxspecial, const double cell_size, int &gpu_mode,
@@ -69,6 +70,7 @@ double eam_fs_gpu_bytes();
 
 PairEAMFSGPU::PairEAMFSGPU(LAMMPS *lmp) : PairEAM(lmp), gpu_mode(GPU_FORCE)
 {
+  one_coeff = 1;
   respa_enable = 0;
   reinitflag = 0;
   cpu_time = 0.0;
@@ -155,7 +157,7 @@ void PairEAMFSGPU::compute(int eflag, int vflag)
 void PairEAMFSGPU::init_style()
 {
   if (force->newton_pair)
-    error->all(FLERR,"Cannot use newton pair with eam/fs/gpu pair style");
+    error->all(FLERR,"Pair style eam/fs/gpu requires newton pair off");
 
   // convert read-in file(s) to arrays and spline them
 
@@ -186,7 +188,7 @@ void PairEAMFSGPU::init_style()
   int mnf = 5e-2 * neighbor->oneatom;
   int success = eam_fs_gpu_init(atom->ntypes+1, cutforcesq, type2rhor, type2z2r,
                              type2frho, rhor_spline, z2r_spline, frho_spline,
-                             rdr, rdrho, rhomax, nrhor, nrho, nz2r, nfrho, nr,
+                             cutsq, rdr, rdrho, rhomax, nrhor, nrho, nz2r, nfrho, nr,
                              atom->nlocal, atom->nlocal+atom->nghost, mnf,
                              maxspecial, cell_size, gpu_mode, screen, fp_size);
   GPU_EXTRA::check_flag(success,error,world);
@@ -314,7 +316,7 @@ void PairEAMFSGPU::coeff(int narg, char **arg)
   if (fs) {
     for (i = 0; i < fs->nelements; i++) delete [] fs->elements[i];
     delete [] fs->elements;
-    delete [] fs->mass;
+    memory->destroy(fs->mass);
     memory->destroy(fs->frho);
     memory->destroy(fs->rhor);
     memory->destroy(fs->z2r);
@@ -355,6 +357,7 @@ void PairEAMFSGPU::coeff(int narg, char **arg)
         if (i == j) atom->set_mass(FLERR,i,fs->mass[map[i]]);
         count++;
       }
+      scale[i][j] = 1.0;
     }
   }
 
@@ -394,9 +397,7 @@ void PairEAMFSGPU::read_file(char *filename)
       file->elements = new char*[file->nelements];
       for (int i = 0; i < file->nelements; i++) {
         const std::string word = values.next_string();
-        const int n = word.length() + 1;
-        file->elements[i] = new char[n];
-        strcpy(file->elements[i], word.c_str());
+        file->elements[i] = utils::strdup(word);
       }
 
       //
@@ -407,6 +408,7 @@ void PairEAMFSGPU::read_file(char *filename)
       file->nr   = values.next_int();
       file->dr   = values.next_double();
       file->cut  = values.next_double();
+      rhomax = 0.0;
 
       if ((file->nrho <= 0) || (file->nr <= 0) || (file->dr <= 0.0))
         error->one(FLERR,"Invalid EAM potential file");
@@ -454,6 +456,7 @@ void PairEAMFSGPU::read_file(char *filename)
   MPI_Bcast(&file->nr, 1, MPI_INT, 0, world);
   MPI_Bcast(&file->dr, 1, MPI_DOUBLE, 0, world);
   MPI_Bcast(&file->cut, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&rhomax, 1, MPI_DOUBLE, 0, world);
 
   // allocate memory on other procs
   if (comm->me != 0) {

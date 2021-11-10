@@ -69,7 +69,7 @@ where N is the number of LAMMPS atom types:
 * filename
 * N element names = mapping of EDIP elements to atom types
 
-See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
+See the :doc:`pair_coeff <pair_coeff>` page for alternate ways
 to specify the path for the potential file.
 
 As an example, imagine a file Si.edip has EDIP values for Si.
@@ -142,7 +142,7 @@ script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -150,7 +150,7 @@ Restrictions
 """"""""""""
 
 This pair style can only be used if LAMMPS was built with the
-USER-MISC package.  See the :doc:`Build package <Build_package>` doc
+MANYBODY package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
 This pair style requires the :doc:`newton <newton>` setting to be "on"

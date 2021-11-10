@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -95,8 +96,7 @@ void PairLJLongCoulLong::settings(int narg, char **arg)
   if (!((ewald_order^ewald_off) & (1<<6)))
     dispersionflag = 0;
   if (!((ewald_order^ewald_off) & (1<<1)))
-    error->all(FLERR,
-               "Coulomb cut not supported in pair_style lj/long/coul/long");
+    error->all(FLERR,"Coulomb cut not supported in pair_style lj/long/coul/long");
   cut_lj_global = utils::numeric(FLERR,*(arg++),false,lmp);
   if (narg == 4 && ((ewald_order & 0x42) == 0x42))
     error->all(FLERR,"Only one cutoff allowed when requesting all long");

@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -19,18 +20,21 @@
 
 #include <Kokkos_Core.hpp>
 #include <Kokkos_DualView.hpp>
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 #include <Kokkos_Vectorization.hpp>
 #include <Kokkos_ScatterView.hpp>
+#include <Kokkos_UnorderedMap.hpp>
 
-enum{FULL=1u,HALFTHREAD=2u,HALF=4u};
+constexpr int FULL = 1;
+constexpr int HALFTHREAD = 2;
+constexpr int HALF = 4;
 
 #if defined(KOKKOS_ENABLE_CXX11)
 #undef ISFINITE
 #define ISFINITE(x) std::isfinite(x)
 #endif
 
-#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || defined(KOKKOS_ENABLE_SYCL)
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_OPENMPTARGET)
 #define LMP_KOKKOS_GPU
 #endif
 
@@ -44,7 +48,9 @@ enum{FULL=1u,HALFTHREAD=2u,HALF=4u};
 static constexpr LAMMPS_NS::bigint LMP_KOKKOS_AV_DELTA = 10;
 
 namespace Kokkos {
-  using NoInit = ViewAllocateWithoutInitializing;
+  static auto NoInit = [](std::string const& label) {
+    return Kokkos::view_alloc(Kokkos::WithoutInitializing, label);
+  };
 }
 
   struct lmp_float3 {
@@ -217,6 +223,11 @@ template<>
 struct ExecutionSpaceFromDevice<Kokkos::Experimental::SYCL> {
   static const LAMMPS_NS::ExecutionSpace space = LAMMPS_NS::Device;
 };
+#elif defined(KOKKOS_ENABLE_OPENMPTARGET)
+template<>
+struct ExecutionSpaceFromDevice<Kokkos::Experimental::OpenMPTarget> {
+  static const LAMMPS_NS::ExecutionSpace space = LAMMPS_NS::Device;
+};
 #endif
 
 // set host pinned space
@@ -226,6 +237,8 @@ typedef Kokkos::CudaHostPinnedSpace LMPPinnedHostType;
 typedef Kokkos::Experimental::HIPHostPinnedSpace LMPPinnedHostType;
 #elif defined(KOKKOS_ENABLE_SYCL)
 typedef Kokkos::Experimental::SYCLSharedUSMSpace LMPPinnedHostType;
+#elif defined(KOKKOS_ENABLE_OPENMPTARGET)
+typedef Kokkos::Serial LMPPinnedHostType;
 #endif
 
 // create simple LMPDeviceSpace typedef for non CUDA-, HIP-, or SYCL-specific
@@ -236,6 +249,8 @@ typedef Kokkos::Cuda LMPDeviceSpace;
 typedef Kokkos::Experimental::HIP LMPDeviceSpace;
 #elif defined(KOKKOS_ENABLE_SYCL)
 typedef Kokkos::Experimental::SYCL LMPDeviceSpace;
+#elif defined(KOKKOS_ENABLE_OPENMPTARGET)
+typedef Kokkos::Experimental::OpenMPTarget LMPDeviceSpace;
 #endif
 
 
@@ -272,6 +287,11 @@ struct AtomicDup<HALFTHREAD,Kokkos::Experimental::HIP> {
 #elif defined(KOKKOS_ENABLE_SYCL)
 template<>
 struct AtomicDup<HALFTHREAD,Kokkos::Experimental::SYCL> {
+  using value = Kokkos::Experimental::ScatterAtomic;
+};
+#elif defined(KOKKOS_ENABLE_OPENMPTARGET)
+template<>
+struct AtomicDup<HALFTHREAD,Kokkos::Experimental::OpenMPTarget> {
   using value = Kokkos::Experimental::ScatterAtomic;
 };
 #endif
@@ -512,6 +532,23 @@ typedef int T_INT;
 // ------------------------------------------------------------------------
 
 // LAMMPS types
+
+typedef Kokkos::UnorderedMap<LAMMPS_NS::tagint,int,LMPDeviceType> hash_type;
+typedef hash_type::HostMirror host_hash_type;
+
+struct dual_hash_type {
+  hash_type d_view;
+  host_hash_type h_view;
+
+  template<class DeviceType>
+  KOKKOS_INLINE_FUNCTION
+  std::enable_if_t<(std::is_same<DeviceType,LMPDeviceType>::value || Kokkos::SpaceAccessibility<LMPDeviceType::memory_space,LMPHostType::memory_space>::accessible),hash_type&> view() {return d_view;}
+
+  template<class DeviceType>
+  KOKKOS_INLINE_FUNCTION
+  std::enable_if_t<!(std::is_same<DeviceType,LMPDeviceType>::value || Kokkos::SpaceAccessibility<LMPDeviceType::memory_space,LMPHostType::memory_space>::accessible),host_hash_type&> view() {return h_view;}
+
+};
 
 template <class DeviceType>
 struct ArrayTypes;

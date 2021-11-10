@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -165,7 +166,7 @@ void ComputeAggregateAtom::compute_peratom()
 
   int change,done,anychange;
 
-  while (1) {
+  while (true) {
     comm->forward_comm_compute(this);
 
     // reverse communication when bonds are not stored on every processor
@@ -174,7 +175,7 @@ void ComputeAggregateAtom::compute_peratom()
       comm->reverse_comm_compute(this);
 
     change = 0;
-    while (1) {
+    while (true) {
       done = 1;
       for (i = 0; i < nlocal; i++) {
         if (!(mask[i] & groupbit)) continue;

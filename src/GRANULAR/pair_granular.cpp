@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -19,25 +20,24 @@
 
 #include "pair_granular.h"
 
-#include <cmath>
-#include <cstring>
-
 #include "atom.h"
-#include "force.h"
-#include "update.h"
-#include "modify.h"
+#include "comm.h"
+#include "error.h"
 #include "fix.h"
 #include "fix_dummy.h"
 #include "fix_neigh_history.h"
-#include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "memory.h"
-#include "error.h"
+#include "force.h"
 #include "math_const.h"
 #include "math_special.h"
+#include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "update.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -102,15 +102,15 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   // this is so final order of Modify:fix will conform to input script
 
   fix_history = nullptr;
-  modify->add_fix("NEIGH_HISTORY_GRANULAR_DUMMY all DUMMY");
-  fix_dummy = (FixDummy *) modify->fix[modify->nfix-1];
+  fix_dummy = (FixDummy *) modify->add_fix("NEIGH_HISTORY_GRANULAR_DUMMY all DUMMY");
 }
 
 /* ---------------------------------------------------------------------- */
 
 PairGranular::~PairGranular()
 {
-  delete [] svector;
+  delete[] svector;
+  delete[] history_transfer_factors;
 
   if (!fix_history) modify->delete_fix("NEIGH_HISTORY_GRANULAR_DUMMY");
   else modify->delete_fix("NEIGH_HISTORY_GRANULAR");
@@ -1121,38 +1121,38 @@ void PairGranular::init_style()
   // this is so its order in the fix list is preserved
 
   if (use_history && fix_history == nullptr) {
-    modify->replace_fix("NEIGH_HISTORY_GRANULAR_DUMMY","NEIGH_HISTORY_GRANULAR"
-                        " all NEIGH_HISTORY " + std::to_string(size_history),1);
-    int ifix = modify->find_fix("NEIGH_HISTORY_GRANULAR");
-    fix_history = (FixNeighHistory *) modify->fix[ifix];
+    fix_history = (FixNeighHistory *) modify->replace_fix("NEIGH_HISTORY_GRANULAR_DUMMY",
+                                                          "NEIGH_HISTORY_GRANULAR"
+                                                          " all NEIGH_HISTORY "
+                                                          + std::to_string(size_history),1);
     fix_history->pair = this;
   }
 
   // check for FixFreeze and set freeze_group_bit
 
-  for (i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"freeze") == 0) break;
-  if (i < modify->nfix) freeze_group_bit = modify->fix[i]->groupbit;
-  else freeze_group_bit = 0;
+  auto fixlist = modify->get_fix_by_style("^freeze");
+  if (fixlist.size() == 0)
+    freeze_group_bit = 0;
+  else if (fixlist.size() > 1)
+    error->all(FLERR, "Only one fix freeze command at a time allowed");
+  else
+    freeze_group_bit = fixlist.front()->groupbit;
 
   // check for FixRigid so can extract rigid body masses
 
   fix_rigid = nullptr;
-  for (i = 0; i < modify->nfix; i++)
-    if (modify->fix[i]->rigid_flag) break;
-  if (i < modify->nfix) fix_rigid = modify->fix[i];
+  for (const auto &ifix : modify->get_fix_list()) {
+    if (ifix->rigid_flag) {
+      if (fix_rigid)
+        error->all(FLERR, "Only one fix rigid command at a time allowed");
+      else fix_rigid = ifix;
+    }
+  }
 
   // check for FixPour and FixDeposit so can extract particle radii
 
-  int ipour;
-  for (ipour = 0; ipour < modify->nfix; ipour++)
-    if (strcmp(modify->fix[ipour]->style,"pour") == 0) break;
-  if (ipour == modify->nfix) ipour = -1;
-
-  int idep;
-  for (idep = 0; idep < modify->nfix; idep++)
-    if (strcmp(modify->fix[idep]->style,"deposit") == 0) break;
-  if (idep == modify->nfix) idep = -1;
+  auto pours = modify->get_fix_by_style("^pour");
+  auto deps = modify->get_fix_by_style("^deposit");
 
   // set maxrad_dynamic and maxrad_frozen for each type
   // include future FixPour and FixDeposit particles as dynamic
@@ -1160,15 +1160,15 @@ void PairGranular::init_style()
   int itype;
   for (i = 1; i <= atom->ntypes; i++) {
     onerad_dynamic[i] = onerad_frozen[i] = 0.0;
-    if (ipour >= 0) {
+    for (auto &ipour : pours) {
       itype = i;
-      double radmax = *((double *) modify->fix[ipour]->extract("radius",itype));
-      onerad_dynamic[i] = radmax;
+      double maxrad = *((double *) ipour->extract("radius", itype));
+      if (maxrad > 0.0) onerad_dynamic[i] = maxrad;
     }
-    if (idep >= 0) {
+    for (auto &idep : deps) {
       itype = i;
-      double radmax = *((double *) modify->fix[idep]->extract("radius",itype));
-      onerad_dynamic[i] = radmax;
+      double maxrad = *((double *) idep->extract("radius", itype));
+      if (maxrad > 0.0) onerad_dynamic[i] = maxrad;
     }
   }
 
@@ -1178,25 +1178,20 @@ void PairGranular::init_style()
   int nlocal = atom->nlocal;
 
   for (i = 0; i < nlocal; i++) {
-    double radius_cut = radius[i];
-    if (mask[i] & freeze_group_bit) {
-      onerad_frozen[type[i]] = MAX(onerad_frozen[type[i]],radius_cut);
-    } else {
-      onerad_dynamic[type[i]] = MAX(onerad_dynamic[type[i]],radius_cut);
-    }
+    if (mask[i] & freeze_group_bit)
+      onerad_frozen[type[i]] = MAX(onerad_frozen[type[i]], radius[i]);
+    else
+      onerad_dynamic[type[i]] = MAX(onerad_dynamic[type[i]], radius[i]);
   }
 
-  MPI_Allreduce(&onerad_dynamic[1],&maxrad_dynamic[1],atom->ntypes,
-                MPI_DOUBLE,MPI_MAX,world);
-  MPI_Allreduce(&onerad_frozen[1],&maxrad_frozen[1],atom->ntypes,
-                MPI_DOUBLE,MPI_MAX,world);
+  MPI_Allreduce(&onerad_dynamic[1],&maxrad_dynamic[1],atom->ntypes,MPI_DOUBLE,MPI_MAX,world);
+  MPI_Allreduce(&onerad_frozen[1],&maxrad_frozen[1],atom->ntypes,MPI_DOUBLE,MPI_MAX,world);
 
   // set fix which stores history info
 
   if (size_history > 0) {
-    int ifix = modify->find_fix("NEIGH_HISTORY_GRANULAR");
-    if (ifix < 0) error->all(FLERR,"Could not find pair fix neigh history ID");
-    fix_history = (FixNeighHistory *) modify->fix[ifix];
+    fix_history = (FixNeighHistory *) modify->get_fix_by_id("NEIGH_HISTORY_GRANULAR");
+    if (!fix_history) error->all(FLERR,"Could not find pair fix neigh history ID");
   }
 }
 

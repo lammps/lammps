@@ -8,9 +8,8 @@ fix brownian command
 fix brownian/sphere command
 ===========================
 
-fix brownian/sphere command
-===========================
-
+fix brownian/asphere command
+============================
 
 Syntax
 """"""
@@ -185,7 +184,7 @@ as defined by the :doc:`atom_style ellipsoid <atom_style>` command.
 If the *dipole* keyword is used, they must also store a dipole moment
 as defined by the :doc:`atom_style dipole <atom_style>` command.
 
-This fix is part of the USER-BROWNIAN package.  It is only enabled if
+This fix is part of the BROWNIAN package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 

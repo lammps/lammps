@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -39,6 +40,8 @@ PairLJCutCoulCut::PairLJCutCoulCut(LAMMPS *lmp) : Pair(lmp)
 
 PairLJCutCoulCut::~PairLJCutCoulCut()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -462,7 +465,7 @@ double PairLJCutCoulCut::single(int i, int j, int itype, int jtype,
 void *PairLJCutCoulCut::extract(const char *str, int &dim)
 {
   dim = 2;
-  if (strcmp(str,"cut_coul") == 0) return (void *) &cut_coul;
+  if (strcmp(str,"cut_coul") == 0) return (void *) cut_coul;
   if (strcmp(str,"epsilon") == 0) return (void *) epsilon;
   if (strcmp(str,"sigma") == 0) return (void *) sigma;
   return nullptr;

@@ -14,10 +14,10 @@ LAMMPS is a classical molecular dynamics simulation code designed to
 run efficiently on parallel computers.  It was developed at Sandia
 National Laboratories, a US Department of Energy facility, with
 funding from the DOE.  It is an open-source code, distributed freely
-under the terms of the GNU Public License (GPL).
+under the terms of the GNU Public License (GPL) version 2.
 
 The primary author of the code is Steve Plimpton, who can be emailed
-at sjplimp@sandia.gov.  The LAMMPS WWW Site at lammps.sandia.gov has
+at sjplimp@sandia.gov.  The LAMMPS WWW Site at www.lammps.org has
 more information about the code and its uses.
 
 The LAMMPS distribution includes the following files and directories:
@@ -37,14 +37,14 @@ tools                      pre- and post-processing tools
 
 Point your browser at any of these files to get started:
 
-https://lammps.sandia.gov/doc/Manual.html         LAMMPS manual
-https://lammps.sandia.gov/doc/Intro.html          hi-level introduction
-https://lammps.sandia.gov/doc/Build.html          how to build LAMMPS
-https://lammps.sandia.gov/doc/Run_head.html       how to run LAMMPS
-https://lammps.sandia.gov/doc/Commands_all.html   Table of available commands
-https://lammps.sandia.gov/doc/Library.html        LAMMPS library interfaces
-https://lammps.sandia.gov/doc/Modify.html         how to modify and extend LAMMPS
-https://lammps.sandia.gov/doc/Developer.html      LAMMPS developer info
+https://docs.lammps.org/Manual.html         LAMMPS manual
+https://docs.lammps.org/Intro.html          hi-level introduction
+https://docs.lammps.org/Build.html          how to build LAMMPS
+https://docs.lammps.org/Run_head.html       how to run LAMMPS
+https://docs.lammps.org/Commands_all.html   Table of available commands
+https://docs.lammps.org/Library.html        LAMMPS library interfaces
+https://docs.lammps.org/Modify.html         how to modify and extend LAMMPS
+https://docs.lammps.org/Developer.html      LAMMPS developer info
 
 You can also create these doc pages locally:
 

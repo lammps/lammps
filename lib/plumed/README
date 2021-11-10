@@ -51,6 +51,6 @@ When these steps are complete you can build LAMMPS
 with the PLUMED package installed:
 
 % cd lammps/src
-% make yes-user-plumed
+% make yes-plumed
 % make mpi (or whatever target you wish)
 

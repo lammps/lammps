@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -147,7 +148,7 @@ PairKIM::PairKIM(LAMMPS *lmp) :
 PairKIM::~PairKIM()
 {
   // clean up kim_modelname
-  if (kim_modelname != 0) delete [] kim_modelname;
+  if (kim_modelname != nullptr) delete [] kim_modelname;
 
   // clean up lammps atom species number to unique particle names mapping
   if (lmps_unique_elements)
@@ -168,7 +169,7 @@ PairKIM::~PairKIM()
   // clean up lmps_stripped_neigh_ptr
   if (lmps_stripped_neigh_ptr) {
     delete [] lmps_stripped_neigh_ptr;
-    lmps_stripped_neigh_ptr = 0;
+    lmps_stripped_neigh_ptr = nullptr;
   }
 
   // clean up allocated memory for standard Pair class usage
@@ -183,7 +184,7 @@ PairKIM::~PairKIM()
   // clean up neighborlist pointers
   if (neighborLists) {
     delete [] neighborLists;
-    neighborLists = 0;
+    neighborLists = nullptr;
   }
 
   // clean up KIM interface (if necessary)
@@ -329,9 +330,9 @@ void PairKIM::settings(int narg, char **arg)
   set_lmps_flags();
 
   // set KIM Model name
-  if (kim_modelname != 0) {
+  if (kim_modelname != nullptr) {
     delete [] kim_modelname;
-    kim_modelname = 0;
+    kim_modelname = nullptr;
   }
   kim_modelname = utils::strdup(arg[0]);
 
@@ -384,7 +385,7 @@ void PairKIM::coeff(int narg, char **arg)
     delete [] lmps_unique_elements;
   }
   lmps_unique_elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) lmps_unique_elements[i] = 0;
+  for (i = 0; i < atom->ntypes; i++) lmps_unique_elements[i] = nullptr;
 
   // Assume all species arguments are valid
   // errors will be detected by below

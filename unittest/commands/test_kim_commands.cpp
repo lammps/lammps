@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "../testing/core.h"
 #include "fmt/format.h"
 #include "info.h"
 #include "input.h"
@@ -22,7 +23,6 @@
 #include "variable.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "../testing/core.h"
 
 #include <cstdlib>
 #include <mpi.h>
@@ -35,7 +35,6 @@ using LAMMPS_NS::utils::split_words;
 namespace LAMMPS_NS {
 using ::testing::MatchesRegex;
 using ::testing::StrEq;
-
 
 class KimCommandsTest : public LAMMPSTest {
 protected:
@@ -685,7 +684,7 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (Info::get_mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
+    if (platform::mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
         std::cout << "Warning: using OpenMPI without exceptions. "
                      "Death tests will be skipped\n";
 

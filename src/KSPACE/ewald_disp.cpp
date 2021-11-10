@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -173,8 +174,7 @@ void EwaldDisp::init()
         case 6:
           if (ewald_mix==Pair::GEOMETRIC) { k = 1; break; }
           else if (ewald_mix==Pair::ARITHMETIC) { k = 2; break; }
-          error->all(FLERR,
-                     "Unsupported mixing rule in kspace_style ewald/disp");
+          error->all(FLERR,"Unsupported mixing rule in kspace_style ewald/disp");
           break;
         default:
           error->all(FLERR,"Unsupported order in kspace_style ewald/disp");

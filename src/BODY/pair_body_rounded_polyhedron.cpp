@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -22,22 +23,22 @@
 
 #include "pair_body_rounded_polyhedron.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "atom_vec_body.h"
 #include "body_rounded_polyhedron.h"
 #include "comm.h"
-#include "force.h"
-#include "fix.h"
-#include "modify.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
 #include "error.h"
-#include "math_extra.h"
+#include "fix.h"
+#include "force.h"
 #include "math_const.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -1211,10 +1212,7 @@ int PairBodyRoundedPolyhedron::interaction_edge_to_edge(int ibody,
       contact_list[num_contacts].unique = 1;
       num_contacts++;
     }
-  } else {
-
   }
-
   return interact;
 }
 

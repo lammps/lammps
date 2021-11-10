@@ -2,6 +2,7 @@
 lammps_version: 10 Feb 2021
 date_generated: Fri Feb 26 23:08:59 2021
 epsilon: 5e-13
+skip_tests: single
 prerequisites: ! |
   pair colloid
 pre_commands: ! |

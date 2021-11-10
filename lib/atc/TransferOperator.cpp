@@ -157,9 +157,9 @@ namespace ATC {
     // reallocate memory only if sizing has changed
     const SPAR_MAT & shapeFunctionMatrix(shapeFunction_->quantity());
     quantity_.resize(shapeFunctionMatrix.nCols(),sourceMatrix.nCols());
-    
+
     local_restriction(sourceMatrix,shapeFunctionMatrix);
-    
+
     // communicate for total restriction
     int count = quantity_.nRows()*quantity_.nCols();
     lammpsInterface_->allsum(_workspace_.ptr(),quantity_.ptr(),count);
@@ -221,9 +221,9 @@ namespace ATC {
     // reallocate memory only if sizing has changed
     const SPAR_MAT & shapeFunctionMatrix(shapeFunction_->quantity());
     quantity_.resize(shapeFunctionMatrix.nCols(),sourceMatrix.nCols());
-    
+
     local_restriction(sourceMatrix,shapeFunctionMatrix);
-    
+
     // communicate for total restriction
     int count = quantity_.nRows()*quantity_.nCols();
     lammpsInterface_->allsum(_workspace_.ptr(),quantity_.ptr(),count);
@@ -322,15 +322,15 @@ namespace ATC {
     // reallocate memory only if sizing has changed
     const SPAR_MAT & accumulantMatrix(accumulant_->quantity());
     quantity_.resize(accumulantMatrix.nCols(),sourceMatrix.nCols());
-    
+
     local_restriction(sourceMatrix,accumulantMatrix);
-    
+
     // communicate for total restriction
     int count = quantity_.nRows()*quantity_.nCols();
     lammpsInterface_->allsum(_workspace_.ptr(),quantity_.ptr(),count);
     if (weights_) {
       CLON_VEC w(weights_->quantity());
-      quantity_ *= w; 
+      quantity_ *= w;
     }
   }
 
@@ -551,10 +551,10 @@ namespace ATC {
     const DENS_MAT & positions(coarseGrainingPositions_->quantity());
     // reallocate memory only if sizing has changed
     quantity_.resize(atc_->num_nodes(),sourceMatrix.nCols());
-    
+
     local_restriction(sourceMatrix,positions,
                       kernelFunction_);
-    
+
     // communicate for total restriction
     int count = quantity_.nRows()*quantity_.nCols();
     lammpsInterface_->allsum(_workspace_.ptr(),quantity_.ptr(),count);
@@ -854,7 +854,7 @@ namespace ATC {
         _temp_ = shapeFunctionMatrix*sourceMatrix;
         for (int i = 0; i < quantity_.size(); ++i) {
           quantity_(i,i) = _temp_(i,0);
-        } 
+        }
       }
     }
   }

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -219,9 +220,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"compress") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute chunk/atom command");
-      else if (strcmp(arg[iarg+1],"no") == 0) compress = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) compress = 1;
-      else error->all(FLERR,"Illegal compute chunk/atom command");
+      compress = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"discard") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute chunk/atom command");
@@ -254,9 +253,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"pbc") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute chunk/atom command");
-      if (strcmp(arg[iarg+1],"no") == 0) pbcflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) pbcflag = 1;
-      else error->all(FLERR,"Illegal compute chunk/atom command");
+      pbcflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal compute chunk/atom command");
   }
@@ -319,40 +316,30 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
   }
 
   if (which == ArgInfo::COMPUTE) {
-    int icompute = modify->find_compute(cfvid);
-    if (icompute < 0)
-      error->all(FLERR,"Compute ID for compute chunk /atom does not exist");
-    if (modify->compute[icompute]->peratom_flag == 0)
-      error->all(FLERR,
-                 "Compute chunk/atom compute does not calculate "
-                 "per-atom values");
-    if (argindex == 0 &&
-        modify->compute[icompute]->size_peratom_cols != 0)
-      error->all(FLERR,"Compute chunk/atom compute does not "
-                 "calculate a per-atom vector");
-    if (argindex && modify->compute[icompute]->size_peratom_cols == 0)
-      error->all(FLERR,"Compute chunk/atom compute does not "
-                 "calculate a per-atom array");
-    if (argindex &&
-        argindex > modify->compute[icompute]->size_peratom_cols)
-      error->all(FLERR,"Compute chunk/atom compute array is "
-                 "accessed out-of-range");
+    cchunk = modify->get_compute_by_id(cfvid);
+    if (!cchunk)
+      error->all(FLERR,"Compute ID {} for compute chunk /atom does not exist",cfvid);
+    if (cchunk->peratom_flag == 0)
+      error->all(FLERR,"Compute chunk/atom compute does not calculate per-atom values");
+    if ((argindex == 0) && (cchunk->size_peratom_cols != 0))
+      error->all(FLERR,"Compute chunk/atom compute does not calculate a per-atom vector");
+    if (argindex && (cchunk->size_peratom_cols == 0))
+      error->all(FLERR,"Compute chunk/atom compute does not calculate a per-atom array");
+    if (argindex && argindex > cchunk->size_peratom_cols)
+      error->all(FLERR,"Compute chunk/atom compute array is accessed out-of-range");
   }
 
   if (which == ArgInfo::FIX) {
-    int ifix = modify->find_fix(cfvid);
-    if (ifix < 0)
-      error->all(FLERR,"Fix ID for compute chunk/atom does not exist");
-    if (modify->fix[ifix]->peratom_flag == 0)
-      error->all(FLERR,"Compute chunk/atom fix does not calculate "
-                 "per-atom values");
-    if (argindex == 0 && modify->fix[ifix]->size_peratom_cols != 0)
-      error->all(FLERR,
-                 "Compute chunk/atom fix does not calculate a per-atom vector");
-    if (argindex && modify->fix[ifix]->size_peratom_cols == 0)
-      error->all(FLERR,
-                 "Compute chunk/atom fix does not calculate a per-atom array");
-    if (argindex && argindex > modify->fix[ifix]->size_peratom_cols)
+    fchunk = modify->get_fix_by_id(cfvid);
+    if (!fchunk)
+      error->all(FLERR,"Fix ID {} for compute chunk/atom does not exist",cfvid);
+    if (fchunk->peratom_flag == 0)
+      error->all(FLERR,"Compute chunk/atom fix does not calculate per-atom values");
+    if (argindex == 0 && fchunk->size_peratom_cols != 0)
+      error->all(FLERR,"Compute chunk/atom fix does not calculate a per-atom vector");
+    if (argindex && fchunk->size_peratom_cols == 0)
+      error->all(FLERR,"Compute chunk/atom fix does not calculate a per-atom array");
+    if (argindex && argindex > fchunk->size_peratom_cols)
       error->all(FLERR,"Compute chunk/atom fix array is accessed out-of-range");
   }
 
@@ -361,16 +348,14 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
     if (ivariable < 0)
       error->all(FLERR,"Variable name for compute chunk/atom does not exist");
     if (input->variable->atomstyle(ivariable) == 0)
-      error->all(FLERR,"Compute chunk/atom variable is not "
-                 "atom-style variable");
+      error->all(FLERR,"Compute chunk/atom variable is not atom-style variable");
   }
 
   // setup scaling
 
   if (binflag) {
     if (domain->triclinic == 1 && scaleflag != REDUCED)
-      error->all(FLERR,"Compute chunk/atom for triclinic boxes "
-                 "requires units reduced");
+      error->all(FLERR,"Compute chunk/atom for triclinic boxes requires units reduced");
   }
 
   if (scaleflag == LATTICE) {
@@ -504,15 +489,13 @@ void ComputeChunkAtom::init()
   // set compute,fix,variable
 
   if (which == ArgInfo::COMPUTE) {
-    int icompute = modify->find_compute(cfvid);
-    if (icompute < 0)
-      error->all(FLERR,"Compute ID for compute chunk/atom does not exist");
-    cchunk = modify->compute[icompute];
+    cchunk = modify->get_compute_by_id(cfvid);
+    if (!cchunk)
+      error->all(FLERR,"Compute ID {} for compute chunk/atom does not exist",cfvid);
   } else if (which == ArgInfo::FIX) {
-    int ifix = modify->find_fix(cfvid);
-    if (ifix < 0)
-      error->all(FLERR,"Fix ID for compute chunk/atom does not exist");
-    fchunk = modify->fix[ifix];
+    fchunk = modify->get_fix_by_id(cfvid);
+    if (!fchunk)
+      error->all(FLERR,"Fix ID {} for compute chunk/atom does not exist",cfvid);
   } else if (which == ArgInfo::VARIABLE) {
     int ivariable = input->variable->find(cfvid);
     if (ivariable < 0)
@@ -561,13 +544,9 @@ void ComputeChunkAtom::init()
   // fixstore initializes all values to 0.0
 
   if ((idsflag == ONCE || lockcount) && !fixstore) {
-    std::string cmd = id + std::string("_COMPUTE_STORE");
-    id_fix = new char[cmd.size()+1];
-    strcpy(id_fix,cmd.c_str());
-
-    cmd += fmt::format(" {} STORE peratom 1 1", group->names[igroup]);
-    modify->add_fix(cmd);
-    fixstore = (FixStore *) modify->fix[modify->nfix-1];
+    id_fix = utils::strdup(id + std::string("_COMPUTE_STORE"));
+    fixstore = (FixStore *) modify->add_fix(fmt::format("{} {} STORE peratom 1 1",
+                                                        id_fix, group->names[igroup]));
   }
 
   if ((idsflag != ONCE && !lockcount) && fixstore) {

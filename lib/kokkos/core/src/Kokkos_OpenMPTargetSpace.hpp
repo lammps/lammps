@@ -179,8 +179,6 @@ class SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace, void>
       const RecordBase::function_type arg_dealloc = &deallocate);
 
  public:
-  std::string get_label() const;
-
   KOKKOS_INLINE_FUNCTION static SharedAllocationRecord* allocate(
       const Kokkos::Experimental::OpenMPTargetSpace& arg_space,
       const std::string& arg_label, const size_t arg_alloc_size) {
@@ -190,10 +188,6 @@ class SharedAllocationRecord<Kokkos::Experimental::OpenMPTargetSpace, void>
     return nullptr;
 #endif
   }
-
-  /**\brief  Reallocate tracked memory in the space */
-  static void* reallocate_tracked(void* const arg_alloc_ptr,
-                                  const size_t arg_alloc_size);
 };
 
 }  // namespace Impl

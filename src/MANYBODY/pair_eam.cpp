@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -393,9 +394,7 @@ void PairEAM::coeff(int narg, char **arg)
     funcfl = (Funcfl *)
       memory->srealloc(funcfl,nfuncfl*sizeof(Funcfl),"pair:funcfl");
     read_file(arg[2]);
-    int n = strlen(arg[2]) + 1;
-    funcfl[ifuncfl].file = new char[n];
-    strcpy(funcfl[ifuncfl].file,arg[2]);
+    funcfl[ifuncfl].file = utils::strdup(arg[2]);
   }
 
   // set setflag and map only for i,i type pairs

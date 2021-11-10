@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
-CommandStyle(write_data,WriteData)
-
+// clang-format off
+CommandStyle(write_data,WriteData);
+// clang-format on
 #else
 
 #ifndef LMP_WRITE_DATA_H
@@ -31,15 +31,15 @@ class WriteData : public Command {
   void write(const std::string &);
 
  private:
-  int me,nprocs;
+  int me, nprocs;
   int pairflag;
   int coeffflag;
   int fixflag;
   FILE *fp;
-  bigint nbonds_local,nbonds;
-  bigint nangles_local,nangles;
-  bigint ndihedrals_local,ndihedrals;
-  bigint nimpropers_local,nimpropers;
+  bigint nbonds_local, nbonds;
+  bigint nangles_local, nangles;
+  bigint ndihedrals_local, ndihedrals;
+  bigint nimpropers_local, nimpropers;
 
   void header();
   void type_arrays();
@@ -51,10 +51,10 @@ class WriteData : public Command {
   void dihedrals();
   void impropers();
   void bonus(int);
-  void fix(int, int);
+  void fix(class Fix *, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

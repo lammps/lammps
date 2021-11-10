@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DUMP_CLASS
-
-DumpStyle(custom,DumpCustom)
-
+// clang-format off
+DumpStyle(custom,DumpCustom);
+// clang-format on
 #else
 
 #ifndef LMP_DUMP_CUSTOM_H
@@ -29,70 +29,71 @@ class DumpCustom : public Dump {
   DumpCustom(class LAMMPS *, int, char **);
   virtual ~DumpCustom();
 
-  const char * MAGIC_STRING = "DUMPCUSTOM";
-  const int    FORMAT_REVISION = 0x0002;
-  const int    ENDIAN = 0x0001;
+  const char *MAGIC_STRING = "DUMPCUSTOM";
+  const int FORMAT_REVISION = 0x0002;
+  const int ENDIAN = 0x0001;
 
  protected:
-  int nevery;                // dump frequency for output
-  int iregion;               // -1 if no region, else which region
-  char *idregion;            // region ID
+  int nevery;        // dump frequency for output
+  int iregion;       // -1 if no region, else which region
+  char *idregion;    // region ID
 
-  int nthresh;               // # of defined thresholds
-  int nthreshlast;           // # of defined thresholds with value = LAST
+  int nthresh;                    // # of defined thresholds
+  int nthreshlast;                // # of defined thresholds with value = LAST
+                                  //
+  int *thresh_array;              // array to threshold on for each nthresh
+  int *thresh_op;                 // threshold operation for each nthresh
+  double *thresh_value;           // threshold value for each nthresh
+  int *thresh_last;               // for threshold value = LAST,
+                                  // index into thresh_fix
+                                  // -1 if not LAST, value is numeric
+                                  //
+  class FixStore **thresh_fix;    // stores values for each threshold LAST
+  char **thresh_fixID;            // IDs of thresh_fixes
+  int *thresh_first;              // 1 the first time a FixStore values accessed
 
-  int *thresh_array;         // array to threshold on for each nthresh
-  int *thresh_op;            // threshold operation for each nthresh
-  double *thresh_value;      // threshold value for each nthresh
-  int *thresh_last;          // for threshold value = LAST,
-                             // index into thresh_fix
-                             // -1 if not LAST, value is numeric
+  int expand;         // flag for whether field args were expanded
+  char **earg;        // field names with wildcard expansion
+  int nargnew;        // size of earg
+                      //
+  int *vtype;         // type of each vector (INT, DOUBLE)
+  char **vformat;     // format string for each vector element
+                      //
+  char *columns;      // column labels
+                      //
+  int nchoose;        // # of selected atoms
+  int maxlocal;       // size of atom selection and variable arrays
+  int *choose;        // local indices of selected atoms
+  double *dchoose;    // value for each atom to threshold against
+  int *clist;         // compressed list of indices of selected atoms
 
-  class FixStore **thresh_fix;  // stores values for each threshold LAST
-  char **thresh_fixID;          // IDs of thresh_fixes
-  int *thresh_first;            // 1 the first time a FixStore values accessed
-
-  int expand;                // flag for whether field args were expanded
-  char **earg;               // field names with wildcard expansion
-  int nargnew;               // size of earg
-
-  int *vtype;                // type of each vector (INT, DOUBLE)
-  char **vformat;            // format string for each vector element
-
-  char *columns;             // column labels
-
-  int nchoose;               // # of selected atoms
-  int maxlocal;              // size of atom selection and variable arrays
-  int *choose;               // local indices of selected atoms
-  double *dchoose;           // value for each atom to threshold against
-  int *clist;                // compressed list of indices of selected atoms
-
-  int nfield;                // # of keywords listed by user
-  int ioptional;             // index of start of optional args
-
-  int *field2index;          // which compute,fix,variable calcs this field
-  int *argindex;             // index into compute,fix scalar_atom,vector_atom
-                             // 0 for scalar_atom, 1-N for vector_atom values
-
-  int ncompute;              // # of Compute objects used by dump
-  char **id_compute;         // their IDs
-  class Compute **compute;   // list of ptrs to the Compute objects
-
-  int nfix;                  // # of Fix objects used by dump
-  char **id_fix;             // their IDs
-  class Fix **fix;           // list of ptrs to the Fix objects
-
-  int nvariable;             // # of Variables used by dump
-  char **id_variable;        // their names
-  int *variable;             // list of indices for the Variables
-  double **vbuf;             // local storage for variable evaluation
-
-  int ncustom;               // # of custom atom properties
-  char **id_custom;          // their names
-  int *flag_custom;          // their data type
-
-  int ntypes;                // # of atom types
-  char **typenames;             // array of element names for each type
+  int nfield;                 // # of keywords listed by user
+  int ioptional;              // index of start of optional args
+                              //
+  int *field2index;           // which compute,fix,variable,custom calcs this field
+  int *argindex;              // index into compute,fix,custom per-atom data
+                              // 0 for per-atom vector, 1-N for cols of per-atom array
+                              //
+  int ncompute;               // # of Computes accessed by dump
+  char **id_compute;          // their IDs
+  class Compute **compute;    // list of ptrs to the Computes
+                              //
+  int nfix;                   // # of Fixes used by dump
+  char **id_fix;              // their IDs
+  class Fix **fix;            // list of ptrs to the Fixes
+                              //
+  int nvariable;              // # of Variables used by dump
+  char **id_variable;         // their names
+  int *variable;              // list of Variable indices in Variable class
+  double **vbuf;              // local storage for variable evaluation
+                              //
+  int ncustom;                // # of Custom atom properties used by dump
+  char **id_custom;           // their names
+  int *custom;                // list of Custom indices in Atom class
+  int *custom_flag;           // list of IVEC,DVEC,IARRAY,DARRAY styles
+                              //
+  int ntypes;                 // # of atom types
+  char **typenames;           // array of element names for each type
 
   // private methods
 
@@ -120,19 +121,19 @@ class DumpCustom : public Dump {
   void format_revision_binary();
 
   typedef void (DumpCustom::*FnPtrHeader)(bigint);
-  FnPtrHeader header_choice;           // ptr to write header functions
+  FnPtrHeader header_choice;    // ptr to write header functions
   void header_binary(bigint);
   void header_binary_triclinic(bigint);
   void header_item(bigint);
   void header_item_triclinic(bigint);
 
   typedef int (DumpCustom::*FnPtrConvert)(int, double *);
-  FnPtrConvert convert_choice;          // ptr to convert data functions
+  FnPtrConvert convert_choice;    // ptr to convert data functions
   int convert_image(int, double *);
   int convert_noimage(int, double *);
 
   typedef void (DumpCustom::*FnPtrWrite)(int, double *);
-  FnPtrWrite write_choice;             // ptr to write data functions
+  FnPtrWrite write_choice;    // ptr to write data functions
   void write_binary(int, double *);
   void write_string(int, double *);
   void write_lines(int, double *);
@@ -140,7 +141,7 @@ class DumpCustom : public Dump {
   // customize by adding a method prototype
 
   typedef void (DumpCustom::*FnPtrPack)(int);
-  FnPtrPack *pack_choice;              // ptrs to pack functions
+  FnPtrPack *pack_choice;    // ptrs to pack functions
 
   void pack_compute(int);
   void pack_fix(int);
@@ -204,7 +205,7 @@ class DumpCustom : public Dump {
   void pack_tqz(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
-DihedralStyle(opls/kk,DihedralOPLSKokkos<LMPDeviceType>)
-DihedralStyle(opls/kk/device,DihedralOPLSKokkos<LMPDeviceType>)
-DihedralStyle(opls/kk/host,DihedralOPLSKokkos<LMPHostType>)
-
+// clang-format off
+DihedralStyle(opls/kk,DihedralOPLSKokkos<LMPDeviceType>);
+DihedralStyle(opls/kk/device,DihedralOPLSKokkos<LMPDeviceType>);
+DihedralStyle(opls/kk/host,DihedralOPLSKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_DIHEDRAL_OPLS_KOKKOS_H
 #define LMP_DIHEDRAL_OPLS_KOKKOS_H
 

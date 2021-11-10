@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -30,7 +31,6 @@
 
 #include <cmath>
 #include <cstring>
-#include <vector>
 
 using namespace LAMMPS_NS;
 
@@ -59,14 +59,14 @@ CommBrick::CommBrick(LAMMPS *lmp) :
 
 CommBrick::~CommBrick()
 {
-  free_swap();
+  CommBrick::free_swap();
   if (mode == Comm::MULTI) {
-    free_multi();
+    CommBrick::free_multi();
     memory->destroy(cutghostmulti);
   }
 
   if (mode == Comm::MULTIOLD) {
-    free_multiold();
+    CommBrick::free_multiold();
     memory->destroy(cutghostmultiold);
   }
 
@@ -111,12 +111,12 @@ void CommBrick::init_buffers()
 
   buf_send = buf_recv = nullptr;
   maxsend = maxrecv = BUFMIN;
-  grow_send(maxsend,2);
+  CommBrick::grow_send(maxsend,2);
   memory->create(buf_recv,maxrecv,"comm:buf_recv");
 
   nswap = 0;
   maxswap = 6;
-  allocate_swap(maxswap);
+  CommBrick::allocate_swap(maxswap);
 
   sendlist = (int **) memory->smalloc(maxswap*sizeof(int *),"comm:sendlist");
   memory->create(maxsendlist,maxswap,"comm:maxsendlist");

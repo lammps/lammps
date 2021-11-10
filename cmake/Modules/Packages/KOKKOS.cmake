@@ -1,6 +1,8 @@
 ########################################################################
 # As of version 3.3.0 Kokkos requires C++14
-set(CMAKE_CXX_STANDARD 14)
+if(CMAKE_CXX_STANDARD LESS 14)
+  message(FATAL_ERROR "The KOKKOS package requires the C++ standard to be set to at least C++14")
+endif()
 ########################################################################
 # consistency checks and Kokkos options/settings required by LAMMPS
 if(Kokkos_ENABLE_CUDA)
@@ -37,8 +39,8 @@ if(DOWNLOAD_KOKKOS)
   list(APPEND KOKKOS_LIB_BUILD_ARGS "-DCMAKE_CXX_EXTENSIONS=${CMAKE_CXX_EXTENSIONS}")
   list(APPEND KOKKOS_LIB_BUILD_ARGS "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}")
   include(ExternalProject)
-  set(KOKKOS_URL "https://github.com/kokkos/kokkos/archive/3.4.00.tar.gz" CACHE STRING "URL for KOKKOS tarball")
-  set(KOKKOS_MD5 "c2fdcedb6953e6160c765366f6045abb" CACHE STRING "MD5 checksum of KOKKOS tarball")
+  set(KOKKOS_URL "https://github.com/kokkos/kokkos/archive/3.4.01.tar.gz" CACHE STRING "URL for KOKKOS tarball")
+  set(KOKKOS_MD5 "4c84698917c93a18985b311bb6caf84f" CACHE STRING "MD5 checksum of KOKKOS tarball")
   mark_as_advanced(KOKKOS_URL)
   mark_as_advanced(KOKKOS_MD5)
   ExternalProject_Add(kokkos_build
@@ -58,7 +60,7 @@ if(DOWNLOAD_KOKKOS)
   target_link_libraries(lmp PRIVATE LAMMPS::KOKKOS)
   add_dependencies(LAMMPS::KOKKOS kokkos_build)
 elseif(EXTERNAL_KOKKOS)
-  find_package(Kokkos 3.4.00 REQUIRED CONFIG)
+  find_package(Kokkos 3.4.01 REQUIRED CONFIG)
   target_link_libraries(lammps PRIVATE Kokkos::kokkos)
   target_link_libraries(lmp PRIVATE Kokkos::kokkos)
 else()
@@ -74,11 +76,12 @@ else()
   target_link_libraries(lammps PRIVATE kokkos)
   target_link_libraries(lmp PRIVATE kokkos)
 endif()
-target_compile_definitions(lammps PRIVATE -DLMP_KOKKOS)
+target_compile_definitions(lammps PUBLIC $<BUILD_INTERFACE:LMP_KOKKOS>)
 
 set(KOKKOS_PKG_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/KOKKOS)
 set(KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/atom_kokkos.cpp
+                       ${KOKKOS_PKG_SOURCES_DIR}/atom_map_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/atom_vec_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/comm_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/comm_tiled_kokkos.cpp
@@ -99,7 +102,7 @@ if(PKG_KSPACE)
                                  ${KOKKOS_PKG_SOURCES_DIR}/gridcomm_kokkos.cpp
                                  ${KOKKOS_PKG_SOURCES_DIR}/remap_kokkos.cpp)
   if(Kokkos_ENABLE_CUDA)
-    if(NOT ${FFT} STREQUAL "KISS")
+    if(NOT (FFT STREQUAL "KISS"))
       target_compile_definitions(lammps PRIVATE -DFFT_CUFFT)
       target_link_libraries(lammps PRIVATE cufft)
     endif()
@@ -116,7 +119,7 @@ RegisterNBinStyle(${KOKKOS_PKG_SOURCES_DIR}/nbin_kokkos.h)
 RegisterNPairStyle(${KOKKOS_PKG_SOURCES_DIR}/npair_kokkos.h)
 RegisterNPairStyle(${KOKKOS_PKG_SOURCES_DIR}/npair_halffull_kokkos.h)
 
-if(PKG_USER-DPD)
+if(PKG_DPD-REACT)
   get_property(KOKKOS_PKG_SOURCES GLOBAL PROPERTY KOKKOS_PKG_SOURCES)
   list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/npair_ssa_kokkos.cpp)
   RegisterNPairStyle(${KOKKOS_PKG_SOURCES_DIR}/npair_ssa_kokkos.h)
@@ -126,4 +129,4 @@ endif()
 get_property(KOKKOS_PKG_SOURCES GLOBAL PROPERTY KOKKOS_PKG_SOURCES)
 
 target_sources(lammps PRIVATE ${KOKKOS_PKG_SOURCES})
-target_include_directories(lammps PRIVATE ${KOKKOS_PKG_SOURCES_DIR})
+target_include_directories(lammps PUBLIC $<BUILD_INTERFACE:${KOKKOS_PKG_SOURCES_DIR}>)

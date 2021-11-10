@@ -244,9 +244,10 @@ script after reading the restart file.
 Restrictions
 """"""""""""
 
-These dihedral styles can only be used if LAMMPS was built with the
-USER-MISC package.  See the :doc:`Build package <Build_package>` doc
-page for more info.
+The *table* dihedral style can only be used if LAMMPS was built with the
+MOLECULE package.  The *table/cut* dihedral style can only be used if
+LAMMPS was built with the EXTRA-MOLECULE package. See the
+:doc:`Build package <Build_package>` doc page for more info.
 
 Related commands
 """"""""""""""""

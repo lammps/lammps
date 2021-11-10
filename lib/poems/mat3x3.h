@@ -3,7 +3,7 @@
  *      POEMS: PARALLELIZABLE OPEN SOURCE EFFICIENT MULTIBODY SOFTWARE     *
  *      DESCRIPTION: SEE READ-ME                                           *
  *      FILE NAME: mat3x3.h                                                *
- *      AUTHORS: See Author List                                           * 
+ *      AUTHORS: See Author List                                           *
  *      GRANTS: See Grants List                                            *
  *      COPYRIGHT: (C) 2005 by Authors as listed in Author's List          *
  *      LICENSE: Please see License Agreement                              *
@@ -11,7 +11,7 @@
  *      ADMINISTRATOR: Prof. Kurt Anderson                                 *
  *                     Computational Dynamics Lab                          *
  *                     Rensselaer Polytechnic Institute                    *
- *                     110 8th St. Troy NY 12180                           * 
+ *                     110 8th St. Troy NY 12180                           *
  *      CONTACT:        anderk5@rpi.edu                                    *
  *_________________________________________________________________________*/
 
@@ -30,7 +30,7 @@ class Mat3x3 : public VirtualMatrix  {
   double elements[3][3];
 public:
   Mat3x3();
-  ~Mat3x3();
+  ~Mat3x3() = default;
   Mat3x3(const Mat3x3& A);  // copy constructor
   Mat3x3(const VirtualMatrix& A);  // copy constructor
 
@@ -68,16 +68,16 @@ public:
   friend void FastMult(Mat3x3& A, Mat3x3& B, Mat3x3& C);
   friend void FastMultT(Mat3x3& A, Mat3x3& B, Mat3x3& C);
   friend void FastAssignT(Mat3x3& A, Mat3x3& C);
-  friend void FastMult(Mat3x3& A, Vect3& B, ColMatrix& C);  
-  
+  friend void FastMult(Mat3x3& A, Vect3& B, ColMatrix& C);
+
   friend void OnPopulateSC(Vect3& gamma, Mat3x3& C, Mat6x6& SC);
   friend void OnPopulateSI(Mat3x3& inertia, double mass, Mat6x6& sI);
 
   friend void FastMult(Mat3x3& A, ColMatrix& B, Vect3& C);
-  
+
   friend void EP_Transformation(ColMatrix& q, Mat3x3& C);
   friend void EP_FromTransformation(ColMatrix& q, Mat3x3& C);
-  
+
 };
 
 #endif

@@ -75,7 +75,7 @@ be used, since they produce per-atom values.
 
 The *Nevery* argument specifies on what timesteps the input values
 will be used in order to be stored.  Only timesteps that are a
-multiple of *Nevery*\ , including timestep 0, will contribute values.
+multiple of *Nevery*, including timestep 0, will contribute values.
 
 Note that if you perform multiple runs, using the "pre no" option of
 the :doc:`run <run>` command to avoid initialization on subsequent runs,
@@ -107,7 +107,7 @@ bracketed term is appended, the Ith element of the global vector
 calculated by the fix is used.
 
 Note that some fixes only produce their values on certain timesteps,
-which must be compatible with *Nevery*\ , else an error will result.
+which must be compatible with *Nevery*, else an error will result.
 Users can also write code for their own fix styles and :doc:`add them to LAMMPS <Modify>`.
 
 If a value begins with "v\_", a variable name must follow which has
@@ -144,7 +144,7 @@ the vector are "intensive" or "extensive".  If the fix produces an
 array, then all elements in the array must be the same, either
 "intensive" or "extensive".  If a compute or fix provides the value
 stored, then the compute or fix determines whether the value is
-intensive or extensive; see the doc page for that compute or fix for
+intensive or extensive; see the page for that compute or fix for
 further info.  Values produced by a variable are treated as intensive.
 
 This fix can allocate storage for stored values accumulated over

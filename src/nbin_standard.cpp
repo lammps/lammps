@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -37,7 +38,7 @@ NBinStandard::NBinStandard(LAMMPS *lmp) : NBin(lmp) {}
 void NBinStandard::bin_atoms_setup(int nall)
 {
   // binhead = per-bin vector, mbins in length
-  // add 1 bin for USER-INTEL package
+  // add 1 bin for INTEL package
 
   if (mbins > maxbin) {
     maxbin = mbins;

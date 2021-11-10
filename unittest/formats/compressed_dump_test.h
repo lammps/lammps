@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/ Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,9 +17,9 @@
 #include "../testing/systems/melt.h"
 #include <string>
 
-extern const char * COMPRESS_SUFFIX;
-extern const char * COMPRESS_EXTENSION;
-extern char * COMPRESS_BINARY;
+extern const char *COMPRESS_SUFFIX;
+extern const char *COMPRESS_EXTENSION;
+extern char *COMPRESS_BINARY;
 
 class CompressedDumpTest : public MeltTest {
 protected:
@@ -27,19 +27,23 @@ protected:
     std::string compression_style;
 
 public:
-    CompressedDumpTest(const std::string & dump_style) : MeltTest(), dump_style(dump_style) {
+    CompressedDumpTest(const std::string &dump_style) : MeltTest(), dump_style(dump_style)
+    {
         compression_style = fmt::format("{}/{}", dump_style, COMPRESS_SUFFIX);
     }
 
-    std::string text_dump_filename(std::string ident) {
+    std::string text_dump_filename(std::string ident)
+    {
         return fmt::format("dump_{}_text_{}", COMPRESS_SUFFIX, ident);
     }
 
-    std::string compressed_dump_filename(std::string ident) {
+    std::string compressed_dump_filename(std::string ident)
+    {
         return fmt::format("dump_{}_compressed_{}.{}", COMPRESS_SUFFIX, ident, COMPRESS_EXTENSION);
     }
 
-    std::string converted_dump_filename(std::string ident) {
+    std::string converted_dump_filename(std::string ident)
+    {
         return fmt::format("dump_{}_compressed_{}", COMPRESS_SUFFIX, ident);
     }
 
@@ -64,21 +68,22 @@ public:
     }
 
     void generate_text_and_compressed_dump(std::string text_file, std::string compressed_file,
-                                           std::string dump_options, std::string dump_modify_options, int ntimesteps)
+                                           std::string dump_options,
+                                           std::string dump_modify_options, int ntimesteps)
     {
-        generate_text_and_compressed_dump(text_file, compressed_file,
-                                          dump_options, dump_options,
+        generate_text_and_compressed_dump(text_file, compressed_file, dump_options, dump_options,
                                           dump_modify_options, dump_modify_options, ntimesteps);
     }
 
     void generate_text_and_compressed_dump(std::string text_file, std::string compressed_file,
                                            std::string text_options, std::string compressed_options,
-                                           std::string text_modify_options, std::string compressed_modify_options,
-                                           int ntimesteps)
+                                           std::string text_modify_options,
+                                           std::string compressed_modify_options, int ntimesteps)
     {
         BEGIN_HIDE_OUTPUT();
         command(fmt::format("dump id0 all {} 1 {} {}", dump_style, text_file, text_options));
-        command(fmt::format("dump id1 all {} 1 {} {}", compression_style, compressed_file, compressed_options));
+        command(fmt::format("dump id1 all {} 1 {} {}", compression_style, compressed_file,
+                            compressed_options));
 
         if (!text_modify_options.empty()) {
             command(fmt::format("dump_modify id0 {}", text_modify_options));

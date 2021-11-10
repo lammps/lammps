@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,12 +13,8 @@
 ------------------------------------------------------------------------- */
 
 #include "nstencil_full_multi_3d.h"
-#include "neighbor.h"
+
 #include "neigh_list.h"
-#include "nbin.h"
-#include "memory.h"
-#include "atom.h"
-#include <math.h>
 
 using namespace LAMMPS_NS;
 
@@ -37,8 +34,8 @@ void NStencilFullMulti3d::set_stencil_properties()
 
   for (i = 0; i < n; i++) {
     for (j = 0; j < n; j++) {
-      flag_half_multi[i][j] = 0;
-      flag_skip_multi[i][j] = 0;
+      flag_half_multi[i][j] = true;
+      flag_skip_multi[i][j] = false;
       bin_collection_multi[i][j] = j;
     }
   }
@@ -79,8 +76,8 @@ void NStencilFullMulti3d::create()
       for (k = -sz; k <= sz; k++)
         for (j = -sy; j <= sy; j++)
           for (i = -sx; i <= sx; i++)
-	        if (bin_distance_multi(i,j,k,bin_collection) < cutsq)
-	          stencil_multi[icollection][jcollection][ns++] =
+                if (bin_distance_multi(i,j,k,bin_collection) < cutsq)
+                  stencil_multi[icollection][jcollection][ns++] =
                       k*mbiny*mbinx + j*mbinx + i;
 
       nstencil_multi[icollection][jcollection] = ns;

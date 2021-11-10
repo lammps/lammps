@@ -372,7 +372,7 @@ script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -380,12 +380,17 @@ Restrictions
 """"""""""""
 
 These pair styles are part of the MANYBODY package.  They are only
-enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 These pair potentials require the :doc:`newtion <newton>` setting to be
 "on" for pair interactions.
 
-The CdTe.bop and GaAs.bop potential files provided with LAMMPS (see the
+Pair style bop is not compatible with being used as a sub-style with
+doc:`hybrid pair styles <pair_hybrid>`. Pair style bop is also not
+compatible with :doc:`multi-cutoff neighbor lists <neighbor>` or
+:doc:`multi-cutoff communitcation <comm_modify>`.
+
+The .bop.table potential files provided with LAMMPS (see the
 potentials directory) are parameterized for metal :doc:`units <units>`.
 You can use the BOP potential with any LAMMPS units, but you would need
 to create your own BOP potential file with coefficients listed in the

@@ -42,7 +42,7 @@ context of your application.
    stand-alone code could communicate with LAMMPS through files that the
    command writes and reads.
 
-   See the :doc:`Modify command <Modify_command>` doc page for info on how
+   See the :doc:`Modify command <Modify_command>` page for info on how
    to add a new command to LAMMPS.
 
 .. spacer

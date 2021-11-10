@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -63,13 +64,14 @@ class NeighborKokkos : public Neighbor {
   DAT::tdual_int_2d k_dihedrallist;
   DAT::tdual_int_2d k_improperlist;
 
+  int device_flag;
+
  private:
 
   DAT::tdual_x_array x;
   DAT::tdual_x_array xhold;
 
   X_FLOAT deltasq;
-  int device_flag;
 
   void init_cutneighsq_kokkos(int);
   void create_kokkos_list(int);

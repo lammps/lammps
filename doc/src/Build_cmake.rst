@@ -140,7 +140,7 @@ can be used several times in one command.
 For your convenience we provide :ref:`CMake presets <cmake_presets>`
 that combine multiple settings to enable optional LAMMPS packages or use
 a different compiler tool chain.  Those are loaded with the *-C* flag
-(``-C ../cmake/presets/minimal.cmake``).  This step would only be needed
+(``-C ../cmake/presets/basic.cmake``).  This step would only be needed
 once, as the settings from the preset files are stored in the
 ``CMakeCache.txt`` file. It is also possible to customize the build
 by adding one or more *-D* flags to the CMake command line.
@@ -149,6 +149,42 @@ Generating files for alternate build tools (e.g. Ninja) and project files
 for IDEs like Eclipse, CodeBlocks, or Kate can be selected using the *-G*
 command line flag.  A list of available generator settings for your
 specific CMake version is given when running ``cmake --help``.
+
+.. _cmake_multiconfig:
+
+Multi-configuration build systems
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Throughout this manual it is mostly assumed that LAMMPS is being built
+on a Unix-like operating system with "make" as the underlying "builder",
+since this is the most common case.  In this case the build "configuration"
+is chose using ``-D CMAKE_BUILD_TYPE=<configuration>`` with ``<configuration>``
+being one of "Release", "Debug", "RelWithDebInfo", or "MinSizeRel".
+Some build tools, however, can also use or even require to have a so-called
+multi-configuration build system setup.  For those the built type (or
+configuration) is chosen at compile time using the same build files. E.g.
+with:
+
+.. code-block:: bash
+
+   cmake --build build-multi --config Release
+
+In that case the resulting binaries are not in the build folder directly
+but in sub-directories corresponding to the build type (i.e. Release in
+the example from above).  Similarly, for running unit tests the
+configuration is selected with the *-C* flag:
+
+.. code-block:: bash
+
+   ctest -C Debug
+
+The CMake scripts in LAMMPS have basic support for being compiled using a
+multi-config build system, but not all of it has been ported.  This is in
+particular applicable to compiling packages that require additional libraries
+that would be downloaded and compiled by CMake.  The "windows" preset file
+tries to keep track of which packages can be compiled natively with the
+MSVC compilers out-of-the box.  Not all of those external libraries are
+portable to Windows either.
 
 
 Installing CMake

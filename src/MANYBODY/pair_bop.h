@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -28,7 +28,7 @@ PairStyle(bop,PairBOP);
 #include "pair.h"
 
 namespace LAMMPS_NS {
-  class TabularFunction;
+class TabularFunction;
 
 class PairBOP : public Pair {
 
@@ -43,7 +43,6 @@ class PairBOP : public Pair {
   double memory_usage();
 
  private:
-
   struct PairParameters {
     double cutB, cutBsq, cutL, cutLsq;
     TabularFunction *betaS;
@@ -106,13 +105,13 @@ class PairBOP : public Pair {
   double *sigma_f, *sigma_k, *small3;
   double *pro_delta, *pro;
 
-  int bop_types;                // number of elments in potential file
-  int npairs;                   // number of element pairs
-  int ntriples;                 // number of all triples
-  char **bop_elements;          // names of elements in potential file
+  int bop_types;          // number of elments in potential file
+  int npairs;             // number of element pairs
+  int ntriples;           // number of all triples
+  char **bop_elements;    // names of elements in potential file
   double bytes;
 
-  int otfly;       // = 1 faster, more memory, = 0 slower, less memory
+  int otfly;    // = 1 faster, more memory, = 0 slower, less memory
 
   PairList1 *pairlist1;
   PairList2 *pairlist2;

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -97,7 +98,7 @@ void Universe::reorder(char *style, char *arg)
       char *ptr;
       if (!fgets(line,MAXLINE,fp))
         error->one(FLERR,"Unexpected end of -reorder file");
-      while (1) {
+      while (true) {
         if ((ptr = strchr(line,'#'))) *ptr = '\0';
         if (strspn(line," \t\n\r") != strlen(line)) break;
         if (!fgets(line,MAXLINE,fp))
@@ -173,7 +174,7 @@ void Universe::add_world(char *str)
     if (part.find_first_not_of("0123456789x") != std::string::npos) valid = false;
 
     if (valid) {
-      std::size_t found = part.find_first_of("x");
+      std::size_t found = part.find_first_of('x');
 
       // 'x' may not be the first or last character
 

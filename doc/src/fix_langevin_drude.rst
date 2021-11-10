@@ -35,7 +35,7 @@ Examples
    fix 3 all langevin/drude 300.0 100.0 19377 1.0 20.0 83451
    fix 1 all langevin/drude 298.15 100.0 19377 5.0 10.0 83451 zero yes
 
-Example input scripts available: examples/USER/drude
+Example input scripts available: examples/PACKAGES/drude
 
 Description
 """""""""""
@@ -100,7 +100,7 @@ transform:
     f = \frac m {M'}\, F' + f'
 
 This fix also thermostats non-polarizable atoms in the group at
-temperature *Tcom*\ , as if they had a massless Drude partner.  The
+temperature *Tcom*, as if they had a massless Drude partner.  The
 Drude particles themselves need not be in the group. The center of
 mass and the dipole are thermostatted iff the core atom is in the
 group.
@@ -122,7 +122,7 @@ from them before thermostatting takes place; see the description below.
    Likewise, this fix should not normally be used on atoms that also have
    their temperature controlled by another fix - e.g. by :doc:`fix nvt <fix_nh>` or :doc:`fix temp/rescale <fix_temp_rescale>` commands.
 
-See the :doc:`Howto thermostat <Howto_thermostat>` doc page for a
+See the :doc:`Howto thermostat <Howto_thermostat>` page for a
 discussion of different ways to compute temperature and perform
 thermostatting.
 
@@ -167,17 +167,20 @@ functions, and include :doc:`thermo_style <thermo_style>` command
 keywords for the simulation box parameters and timestep and elapsed
 time.  Thus it is easy to specify a time-dependent temperature.
 
-Like other fixes that perform thermostatting, this fix can be used with
-:doc:`compute commands <compute>` that remove a "bias" from the atom
-velocities.  E.g. removing the center-of-mass velocity from a group of
-atoms.  This is not done by default, but only if the
-:doc:`fix_modify <fix_modify>` command is used to assign a temperature
-compute to this fix that includes such a bias term.  See the doc pages
-for individual :doc:`compute commands <compute>` to determine which ones
-include a bias.  In this case, the thermostat works in the following
-manner: bias is removed from each atom, thermostatting is performed on
-the remaining thermal degrees of freedom, and the bias is added back
-in.  NOTE: this feature has not been tested.
+Like other fixes that perform thermostatting, this fix can be used
+with :doc:`compute commands <compute>` that remove a "bias" from the
+atom velocities.  E.g. to apply the thermostat only to atoms within a
+spatial :doc:`region <region>`, or to remove the center-of-mass
+velocity from a group of atoms, or to remove the x-component of
+velocity from the calculation.
+
+This is not done by default, but only if the :doc:`fix_modify
+<fix_modify>` command is used to assign a temperature compute to this
+fix that includes such a bias term.  See the doc pages for individual
+:doc:`compute temp commands <compute>` to determine which ones include
+a bias.  In this case, the thermostat works in the following manner:
+bias is removed from each atom, thermostatting is performed on the
+remaining thermal degrees of freedom, and the bias is added back in.
 
 Note: The temperature thermostatting the core-Drude particle pairs
 should be chosen low enough, so as to mimic as closely as possible the
@@ -207,7 +210,7 @@ thermostat on centers of mass. Because the random forces on different
 centers of mass are independent, they do not sum exactly to zero.  As
 a result, this fix applies a small random force to the entire system,
 and the momentum of the total center of mass of the system undergoes a
-slow random walk.  If the keyword *zero* is set to *yes*\ , the total
+slow random walk.  If the keyword *zero* is set to *yes*, the total
 random force on the centers of mass is set exactly to zero by
 subtracting off an equal part of it from each center of mass in the
 group. As a result, the total center of mass of a system with zero
@@ -239,7 +242,7 @@ Comments:
 * *zero yes* avoids a drift of the center of mass of
   the system, but is a bit slower.
 * Use two different random seeds to avoid unphysical correlations.
-* Temperature is controlled by the fix *langevin/drude*\ , so the
+* Temperature is controlled by the fix *langevin/drude*, so the
   time-integration fixes do not thermostat.  Don't forget to
   time-integrate both cores and Drude particles.
 * Pressure is time-integrated only once by using *nve* for Drude
@@ -251,7 +254,7 @@ Comments:
   fix *npt* and :doc:`fix drude/transform <fix_drude_transform>`, the
   *fix_modify* command is not required here, because the fix *nph*
   computes the global pressure even if its group is *ATOMS*\ . This is
-  what we want. If we thermostatted *ATOMS* using *npt*\ , the pressure
+  what we want. If we thermostatted *ATOMS* using *npt*, the pressure
   should be the global one, but the temperature should be only that of
   the cores. That's why the command *fix_modify* should be called in
   that case.

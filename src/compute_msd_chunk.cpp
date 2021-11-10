@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,18 +14,17 @@
 
 #include "compute_msd_chunk.h"
 
-#include <cstring>
-
 #include "atom.h"
-#include "group.h"
-#include "update.h"
-#include "modify.h"
 #include "compute_chunk_atom.h"
 #include "domain.h"
-#include "fix_store.h"
-#include "memory.h"
 #include "error.h"
+#include "fix_store.h"
+#include "group.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
 
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -47,20 +47,18 @@ ComputeMSDChunk::ComputeMSDChunk(LAMMPS *lmp, int narg, char **arg) :
   idchunk = utils::strdup(arg[3]);
 
   firstflag = 1;
-  init();
+  ComputeMSDChunk::init();
 
   // create a new fix STORE style for reference positions
   // id = compute-ID + COMPUTE_STORE, fix group = compute group
-  // do not know size of array at this point, just allocate 1x3 array
+  // do not know size of array at this point, just allocate 1x1 array
   // fix creation must be done now so that a restart run can
   //   potentially re-populate the fix array (and change it to correct size)
   // otherwise size reset and init will be done in setup()
 
   id_fix = utils::strdup(std::string(id) + "_COMPUTE_STORE");
-  std::string fixcmd = id_fix
-    + fmt::format(" {} STORE global 1 1",group->names[igroup]);
-  modify->add_fix(fixcmd);
-  fix = (FixStore *) modify->fix[modify->nfix-1];
+  fix = (FixStore *) modify->add_fix(fmt::format("{} {} STORE global 1 1",
+                                                 id_fix,group->names[igroup]));
 }
 
 /* ---------------------------------------------------------------------- */

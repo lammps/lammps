@@ -4,11 +4,6 @@
 # availability of the PYTHON package is tested for inside the tester.
 
 set(TEST_INPUT_FOLDER ${CMAKE_CURRENT_SOURCE_DIR})
-add_executable(test_python_package test_python_package.cpp)
-target_link_libraries(test_python_package PRIVATE lammps GTest::GMock GTest::GTest)
-target_compile_definitions(test_python_package PRIVATE -DTEST_INPUT_FOLDER=${TEST_INPUT_FOLDER})
-add_test(NAME PythonPackage COMMAND test_python_package WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-set_tests_properties(PythonPackage PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:${LAMMPS_PYTHON_DIR}:$ENV{PYTHONPATH};PYTHONUNBUFFERED=1")
 
 # we must have shared libraries enabled for testing the python module
 if(NOT BUILD_SHARED_LIBS)
@@ -22,17 +17,35 @@ if(CMAKE_VERSION VERSION_LESS 3.12)
     set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
   endif()
 else()
-  find_package(Python3 COMPONENTS Interpreter)
+  find_package(Python3 COMPONENTS Interpreter Development)
 endif()
+
+add_executable(test_python_package test_python_package.cpp)
+target_link_libraries(test_python_package PRIVATE lammps GTest::GMock)
+target_compile_definitions(test_python_package PRIVATE -DTEST_INPUT_FOLDER=${TEST_INPUT_FOLDER})
+# this requires CMake 3.12. don't care to add backward compatibility for this.
+if(Python3_Development_FOUND)
+  target_compile_definitions(test_python_package PRIVATE -DTEST_HAVE_PYTHON_DEVELOPMENT=1)
+  target_link_libraries(test_python_package PRIVATE Python3::Python)
+endif()
+add_test(NAME PythonPackage COMMAND test_python_package WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+set_tests_properties(PythonPackage PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:${LAMMPS_PYTHON_DIR}:$ENV{PYTHONPATH};PYTHONUNBUFFERED=1")
 
 if(Python_EXECUTABLE)
   # prepare to augment the environment so that the LAMMPS python module and the shared library is found.
   set(PYTHON_TEST_ENVIRONMENT PYTHONPATH=${LAMMPS_PYTHON_DIR}:$ENV{PYTHONPATH})
-  list(APPEND PYTHON_TEST_ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
-  if(APPLE)
-    list(APPEND PYTHON_TEST_ENVIRONMENT "DYLD_LIBRARY_PATH=${CMAKE_BINARY_DIR}:$ENV{DYLD_LIBRARY_PATH};LAMMPS_CMAKE_CACHE=${CMAKE_BINARY_DIR}/CMakeCache.txt")
+  get_property(BUILD_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+  if(BUILD_IS_MULTI_CONFIG)
+    set(LAMMPS_LIB_PATH ${CMAKE_BINARY_DIR}/$<CONFIG>)
   else()
-    list(APPEND PYTHON_TEST_ENVIRONMENT "LD_LIBRARY_PATH=${CMAKE_BINARY_DIR}:$ENV{LD_LIBRARY_PATH};LAMMPS_CMAKE_CACHE=${CMAKE_BINARY_DIR}/CMakeCache.txt")
+    set(LAMMPS_LIB_PATH ${CMAKE_BINARY_DIR})
+  endif()
+  list(APPEND PYTHON_TEST_ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
+  list(APPEND PYTHON_TEST_ENVIRONMENT "TEST_INPUT_DIR=${CMAKE_CURRENT_SOURCE_DIR}")
+  if(APPLE)
+    list(APPEND PYTHON_TEST_ENVIRONMENT "DYLD_LIBRARY_PATH=${LAMMPS_LIB_PATH}:$ENV{DYLD_LIBRARY_PATH};LAMMPS_CMAKE_CACHE=${CMAKE_BINARY_DIR}/CMakeCache.txt")
+  else()
+    list(APPEND PYTHON_TEST_ENVIRONMENT "LD_LIBRARY_PATH=${LAMMPS_LIB_PATH}:$ENV{LD_LIBRARY_PATH};LAMMPS_CMAKE_CACHE=${CMAKE_BINARY_DIR}/CMakeCache.txt")
   endif()
   if(LAMMPS_MACHINE)
     # convert from '_machine' to 'machine'
@@ -45,7 +58,7 @@ if(Python_EXECUTABLE)
     find_package_handle_standard_args(COVERAGE DEFAULT_MSG COVERAGE_BINARY)
 
     if(COVERAGE_FOUND)
-        set(PYTHON_TEST_RUNNER ${Python_EXECUTABLE} -u ${COVERAGE_BINARY} run --parallel-mode --include=${LAMMPS_PYTHON_DIR}/lammps/*.py --omit=${LAMMPS_PYTHON_DIR}/install.py)
+        set(PYTHON_TEST_RUNNER ${Python_EXECUTABLE} -u ${COVERAGE_BINARY} run --rcfile=${CMAKE_BINARY_DIR}/.coveragerc)
     else()
         set(PYTHON_TEST_RUNNER ${Python_EXECUTABLE} -u)
     endif()
@@ -85,6 +98,17 @@ if(Python_EXECUTABLE)
            COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-formats.py -v
            WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
   set_tests_properties(PythonFormats PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
+
+  add_test(NAME PythonFixExternal
+           COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-fix-external.py -v
+           WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
+  set_tests_properties(PythonFixExternal PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
+
+  add_test(NAME PythonScatterGather
+           COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-scatter-gather.py -v
+           WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
+  set_tests_properties(PythonScatterGather PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
+
 else()
   message(STATUS "Skipping Tests for the LAMMPS Python Module: no suitable Python interpreter")
 endif()

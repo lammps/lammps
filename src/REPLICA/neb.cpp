@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -14,7 +15,6 @@
 #include "neb.h"
 
 #include "atom.h"
-#include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "finish.h"
@@ -50,7 +50,7 @@ NEB::NEB(LAMMPS *lmp) : Command(lmp), all(nullptr), rdist(nullptr) {}
 
 NEB::NEB(LAMMPS *lmp, double etol_in, double ftol_in, int n1steps_in,
          int n2steps_in, int nevery_in, double *buf_init, double *buf_final)
-  : Command(lmp), all(nullptr), rdist(nullptr)
+  : Command(lmp), fp(nullptr), all(nullptr), rdist(nullptr)
 {
   double delx,dely,delz;
 
@@ -93,7 +93,11 @@ NEB::~NEB()
 {
   MPI_Comm_free(&roots);
   memory->destroy(all);
-  delete [] rdist;
+  delete[] rdist;
+  if (fp) {
+    if (compressed) platform::pclose(fp);
+    else fclose(fp);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -378,8 +382,8 @@ void NEB::readfile(char *file, int flag)
   char line[MAXLINE];
   double xx,yy,zz,delx,dely,delz;
 
-  if (me_universe == 0 && screen)
-    fprintf(screen,"Reading NEB coordinate file(s) ...\n");
+  if (me_universe == 0 && universe->uscreen)
+    fprintf(universe->uscreen,"Reading NEB coordinate file(s) ...\n");
 
   // flag = 0, universe root reads header of file, bcast to universe
   // flag = 1, each replica's root reads header of file, bcast to world
@@ -388,7 +392,7 @@ void NEB::readfile(char *file, int flag)
   if (flag == 0) {
     if (me_universe == 0) {
       open(file);
-      while (1) {
+      while (true) {
         eof = fgets(line,MAXLINE,fp);
         if (eof == nullptr) error->one(FLERR,"Unexpected end of NEB file");
         start = &line[strspn(line," \t\n\v\f\r")];
@@ -404,7 +408,7 @@ void NEB::readfile(char *file, int flag)
     if (me == 0) {
       if (ireplica) {
         open(file);
-        while (1) {
+        while (true) {
           eof = fgets(line,MAXLINE,fp);
           if (eof == nullptr) error->one(FLERR,"Unexpected end of NEB file");
           start = &line[strspn(line," \t\n\v\f\r")];
@@ -524,41 +528,31 @@ void NEB::readfile(char *file, int flag)
 
   if (flag == 0) {
     if (me_universe == 0) {
-      if (compressed) pclose(fp);
+      if (compressed) platform::pclose(fp);
       else fclose(fp);
     }
   } else {
     if (me == 0 && ireplica) {
-      if (compressed) pclose(fp);
+      if (compressed) platform::pclose(fp);
       else fclose(fp);
     }
   }
+  fp = nullptr;
 }
 
 /* ----------------------------------------------------------------------
    universe proc 0 opens NEB data file
-   test if gzipped
+   test if compressed
 ------------------------------------------------------------------------- */
 
 void NEB::open(char *file)
 {
   compressed = 0;
-  char *suffix = file + strlen(file) - 3;
-  if (suffix > file && strcmp(suffix,".gz") == 0) compressed = 1;
-  if (!compressed) fp = fopen(file,"r");
-  else {
-#ifdef LAMMPS_GZIP
-    auto gunzip = std::string("gzip -c -d ") + file;
-#ifdef _WIN32
-    fp = _popen(gunzip.c_str(),"rb");
-#else
-    fp = popen(gunzip.c_str(),"r");
-#endif
-
-#else
-    error->one(FLERR,"Cannot open gzipped file");
-#endif
-  }
+  if (platform::has_compress_extension(file)) {
+    compressed = 1;
+    fp = platform::compressed_read(file);
+    if (!fp) error->one(FLERR,"Cannot open compressed file");
+  } else fp = fopen(file,"r");
 
   if (fp == nullptr)
     error->one(FLERR,"Cannot open file {}: {}",file,utils::getsyserror());

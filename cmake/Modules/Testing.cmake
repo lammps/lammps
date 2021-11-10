@@ -19,11 +19,11 @@ if(ENABLE_TESTING)
   # we need to build and link a LOT of tester executables, so it is worth checking if
   # a faster linker is available. requires GNU or Clang compiler, newer CMake.
   # also only verified with Fedora Linux > 30 and Ubuntu <= 18.04 (Ubuntu 20.04 fails)
-  if((CMAKE_SYSTEM_NAME STREQUAL Linux) AND (CMAKE_VERSION VERSION_GREATER_EQUAL 3.13)
-      AND ((${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-        OR (${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")))
-    if (((CMAKE_LINUX_DISTRO STREQUAL Ubuntu) AND (CMAKE_DISTRO_VERSION VERSION_LESS_EQUAL 18.04))
-        OR ((CMAKE_LINUX_DISTRO STREQUAL Fedora) AND (CMAKE_DISTRO_VERSION VERSION_GREATER 30)))
+  if((CMAKE_SYSTEM_NAME STREQUAL "Linux") AND (CMAKE_VERSION VERSION_GREATER_EQUAL 3.13)
+      AND ((CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        OR (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")))
+    if(((CMAKE_LINUX_DISTRO STREQUAL "Ubuntu") AND (CMAKE_DISTRO_VERSION VERSION_LESS_EQUAL 18.04))
+        OR ((CMAKE_LINUX_DISTRO STREQUAL "Fedora") AND (CMAKE_DISTRO_VERSION VERSION_GREATER 30)))
       include(CheckCXXCompilerFlag)
       set(CMAKE_CUSTOM_LINKER_DEFAULT default)
       check_cxx_compiler_flag(-fuse-ld=lld HAVE_LLD_LINKER_FLAG)
@@ -58,7 +58,7 @@ if(ENABLE_TESTING)
 endif()
 
 # Compiler specific features for testing
-if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   option(ENABLE_COVERAGE "Enable collecting code coverage data" OFF)
   mark_as_advanced(ENABLE_COVERAGE)
   if(ENABLE_COVERAGE)
@@ -83,7 +83,7 @@ mark_as_advanced(ENABLE_IWYU)
 if(ENABLE_IWYU)
   # enforce these settings
   set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE BOOL "Enable reporting compilation commands to compile_commands.json" FORCE)
-  if (NOT ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") OR (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")))
+  if(NOT ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") OR (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")))
     message(FATAL_ERROR "IWYU is only supported with Clang or GNU compilers")
   endif()
   # detect the "native" header folder so we can include them first
@@ -91,7 +91,7 @@ if(ENABLE_IWYU)
   string(REGEX REPLACE ".*libraries: *=([^:]+):.*" "\\1/include" IWYU_EXTRA_INCLUDE_DIR ${IWYU_SEARCH_PATHS})
   find_program(IWYU_EXE NAMES include-what-you-use iwyu)
   find_program(IWYU_TOOL NAMES iwyu_tool iwyu-tool iwyu_tool.py)
-  if (IWYU_EXE AND IWYU_TOOL)
+  if(IWYU_EXE AND IWYU_TOOL)
     add_custom_target(
       iwyu
       ${IWYU_TOOL} -o clang -p ${CMAKE_CURRENT_BINARY_DIR} -- -I${IWYU_EXTRA_INCLUDE_DIR} -Xiwyu --mapping_file=${CMAKE_CURRENT_SOURCE_DIR}/iwyu/iwyu-extra-map.imp

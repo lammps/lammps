@@ -112,7 +112,7 @@ ENDIF()
 
 set(Kokkos_VERSION_MAJOR 3)
 set(Kokkos_VERSION_MINOR 4)
-set(Kokkos_VERSION_PATCH 00)
+set(Kokkos_VERSION_PATCH 01)
 set(Kokkos_VERSION "${Kokkos_VERSION_MAJOR}.${Kokkos_VERSION_MINOR}.${Kokkos_VERSION_PATCH}")
 math(EXPR KOKKOS_VERSION "${Kokkos_VERSION_MAJOR} * 10000 + ${Kokkos_VERSION_MINOR} * 100 + ${Kokkos_VERSION_PATCH}")
 
@@ -206,8 +206,13 @@ ENDIF()
 IF (KOKKOS_HAS_TRILINOS)
   # Overwrite the old flags at the top-level
   # Because Tribits doesn't use lists, it uses spaces for the list of CXX flags
-  # we have to match the annoying behavior
-  STRING(REPLACE ";" " " KOKKOSCORE_COMPILE_OPTIONS "${KOKKOS_COMPILE_OPTIONS}")
+  # we have to match the annoying behavior, also we have to preserve quotes
+  # which needs another workaround.
+  SET(KOKKOS_COMPILE_OPTIONS_TMP)
+  FOREACH(OPTION ${KOKKOS_COMPILE_OPTIONS})
+    LIST(APPEND KOKKOS_COMPILE_OPTIONS_TMP \"${OPTION}\")
+  ENDFOREACH()
+  STRING(REPLACE ";" " " KOKKOSCORE_COMPILE_OPTIONS "${KOKKOS_COMPILE_OPTIONS_TMP}")
   LIST(APPEND KOKKOS_ALL_COMPILE_OPTIONS ${KOKKOS_COMPILE_OPTIONS})
   IF (KOKKOS_ENABLE_CUDA)
     LIST(APPEND KOKKOS_ALL_COMPILE_OPTIONS ${KOKKOS_CUDA_OPTIONS})

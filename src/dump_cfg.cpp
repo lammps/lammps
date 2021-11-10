@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -232,7 +233,8 @@ void DumpCFG::write_data(int n, double *mybuf)
 
 void DumpCFG::write_string(int n, double *mybuf)
 {
-  fwrite(mybuf,sizeof(char),n,fp);
+  if (mybuf)
+    fwrite(mybuf,sizeof(char),n,fp);
 }
 
 /* ---------------------------------------------------------------------- */

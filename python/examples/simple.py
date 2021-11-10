@@ -9,11 +9,10 @@
 
 # Parallel syntax: mpirun -np 4 simple.py in.lammps
 #                  in.lammps = LAMMPS input script
-# also need to uncomment either Pypar or mpi4py sections below
+# also need to uncomment mpi4py sections below
 
 from __future__ import print_function
 import sys
-import numpy as np
 import ctypes
 
 # parse command line
@@ -26,11 +25,6 @@ if len(argv) != 2:
 infile = sys.argv[1]
 
 me = 0
-
-# uncomment this if running in parallel via Pypar
-#import pypar
-#me = pypar.rank()
-#nprocs = pypar.size()
 
 # uncomment this if running in parallel via mpi4py
 #from mpi4py import MPI
@@ -132,9 +126,6 @@ lmp.reset_box([0,0,0],[10,10,8],0,0,0)
 
 boxlo,boxhi,xy,yz,xz,periodicity,box_change = lmp.extract_box()
 if me == 0: print("Box info",boxlo,boxhi,xy,yz,xz,periodicity,box_change)
-
-# uncomment if running in parallel via Pypar
-#print("Proc %d out of %d procs has" % (me,nprocs), lmp)
 
 # uncomment if running in parallel via mpi4py
 #print("Proc %d out of %d procs has" % (me,nprocs), lmp)

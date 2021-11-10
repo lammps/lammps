@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -49,12 +50,6 @@ EwaldDipoleSpin::EwaldDipoleSpin(LAMMPS *lmp) :
   mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);     // in eV.Ang^3
   mub2mu0hbinv = mub2mu0 / hbar;                // in rad.THz
 }
-
-/* ----------------------------------------------------------------------
-   free all memory
-------------------------------------------------------------------------- */
-
-EwaldDipoleSpin::~EwaldDipoleSpin() {}
 
 /* ----------------------------------------------------------------------
    called once before run

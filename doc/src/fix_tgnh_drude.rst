@@ -62,7 +62,7 @@ Examples
    fix 2 jello tgnpt/drude temp 300.0 300.0 100.0 1.0 20.0 tri 5.0 5.0 1000.0
    fix 2 ice tgnpt/drude temp 250.0 250.0 100.0 1.0 20.0 x 1.0 1.0 0.5 y 2.0 2.0 0.5 z 3.0 3.0 0.5 yz 0.1 0.1 0.5 xz 0.2 0.2 0.5 xy 0.3 0.3 0.5 nreset 1000
 
-Example input scripts available: examples/USER/drude
+Example input scripts available: examples/PACKAGES/drude
 
 Description
 """""""""""
@@ -139,7 +139,7 @@ The parameter *Tdrude* is the desired temperature for Drude motion at each times
 Similar to *Tdamp*, the *Tdamp_drude* parameter determines the relaxation speed for Drude motion.
 Fix group are the only ones whose velocities and positions are updated
 by the velocity/position update portion of the integration.
-Other thermostat-related keywords are *tchain*\  and *tloop*\ ,
+Other thermostat-related keywords are *tchain*\  and *tloop*,
 which are detailed in :doc:`fix nvt <fix_nh>`.
 
 .. note::
@@ -158,13 +158,13 @@ which are detailed in :doc:`fix nvt <fix_nh>`.
 ----------
 
 The barostat parameters for fix style *tgnpt/drude* is specified
-using one or more of the *iso*\ , *aniso*\ , *tri*\ , *x*\ , *y*\ , *z*\ , *xy*\ ,
-*xz*\ , *yz*\ , and *couple* keywords.  These keywords give you the
+using one or more of the *iso*, *aniso*, *tri*, *x*, *y*, *z*, *xy*,
+*xz*, *yz*, and *couple* keywords.  These keywords give you the
 ability to specify all 6 components of an external stress tensor, and
 to couple various of these components together so that the dimensions
 they represent are varied together during a constant-pressure
-simulation. Other barostat-related keywords are *pchain*\ , *mtk*\ , *ploop*\ ,
-*nreset*\ , *scalexy*\ , *scaleyz*\ , *scalexz*\ , *flip*\ and *fixedpoint*.
+simulation. Other barostat-related keywords are *pchain*, *mtk*, *ploop*,
+*nreset*, *scalexy*, *scaleyz*, *scalexz*, *flip*\ and *fixedpoint*.
 The meaning of barostat parameters are detailed in :doc:`fix npt <fix_nh>`.
 
 Regardless of what atoms are in the fix group (the only atoms which
@@ -187,26 +187,32 @@ barostatting.
 
 ----------
 
-Like other fixes that perform thermostatting, these fixes can
-be used with :doc:`compute commands <compute>` that calculate a
-temperature after removing a "bias" from the atom velocities.
-This is not done by default, but only if the :doc:`fix_modify <fix_modify>` command
-is used to assign a temperature compute to this fix that includes such
-a bias term.  See the doc pages for individual :doc:`compute commands <compute>` to determine which ones include a bias.  In
-this case, the thermostat works in the following manner: the current
-temperature is calculated taking the bias into account, bias is
-removed from each atom, thermostatting is performed on the remaining
-thermal DOF, and the bias is added back in.
+Like other fixes that perform thermostatting, this fix can be used
+with :doc:`compute commands <compute>` that remove a "bias" from the
+atom velocities.  E.g. to apply the thermostat only to atoms within a
+spatial :doc:`region <region>`, or to remove the center-of-mass
+velocity from a group of atoms, or to remove the x-component of
+velocity from the calculation.
+
+This is not done by default, but only if the :doc:`fix_modify
+<fix_modify>` command is used to assign a temperature compute to this
+fix that includes such a bias term.  See the doc pages for individual
+:doc:`compute temp commands <compute>` to determine which ones include
+a bias.  In this case, the thermostat works in the following manner:
+bias is removed from each atom, thermostatting is performed on the
+remaining thermal degrees of freedom, and the bias is added back in.
 
 .. note::
 
-   However, not all temperature compute commands are valid to be used with these fixes.
-   Precisely, only temperature compute that does not modify the DOF of the group can be used.
-   E.g. :doc:`compute temp/ramp <compute_temp_ramp>` and :doc:`compute viscosity/cos <compute_viscosity_cos>`
-   compute the kinetic energy after remove a velocity gradient without affecting the DOF of the group,
-   then they can be invoked in this way.
-   In contrast, :doc:`compute temp/partial <compute_temp_partial>` may remove the DOF at one or more dimensions,
-   therefore it cannot be used with these fixes.
+   However, not all temperature compute commands are valid to be used
+   with these fixes.  Precisely, only temperature compute that does
+   not modify the DOF of the group can be used.  E.g. :doc:`compute
+   temp/ramp <compute_temp_ramp>` and :doc:`compute viscosity/cos
+   <compute_viscosity_cos>` compute the kinetic energy after remove a
+   velocity gradient without affecting the DOF of the group, then they
+   can be invoked in this way.  In contrast, :doc:`compute
+   temp/partial <compute_temp_partial>` may remove the DOF at one or
+   more dimensions, therefore it cannot be used with these fixes.
 
 ----------
 
@@ -244,7 +250,7 @@ compute temperature on a subset of atoms.
 The cumulative energy change in the system imposed by these fixes, due
 to thermostatting and/or barostatting, are included in the
 :doc:`thermodynamic output <thermo_style>` keywords *ecouple* and
-*econserve*.  See the :doc:`thermo_style <thermo_style>` doc page for
+*econserve*.  See the :doc:`thermo_style <thermo_style>` page for
 details.
 
 These fixes compute a global scalar which can be accessed by various
@@ -271,12 +277,12 @@ Restrictions
 """"""""""""
 
 These fixes are only available when LAMMPS was built with the
-USER-DRUDE package.  These fixes cannot be used with dynamic groups as
+DRUDE package.  These fixes cannot be used with dynamic groups as
 defined by the :doc:`group <group>` command.  These fixes cannot be
 used in 2D simulations.
 
-*X*\ , *y*\ , *z* cannot be barostatted if the associated dimension is not
-periodic.  *Xy*\ , *xz*\ , and *yz* can only be barostatted if the
+*X*, *y*, *z* cannot be barostatted if the associated dimension is not
+periodic.  *Xy*, *xz*, and *yz* can only be barostatted if the
 simulation domain is triclinic and the second dimension in the keyword
 (\ *y* dimension in *xy*\ ) is periodic.  The :doc:`create_box <create_box>`,
 :doc:`read data <read_data>`, and :doc:`read_restart <read_restart>`
@@ -288,10 +294,10 @@ For the *temp* keyword, the final *Tstop* cannot be 0.0 since it would
 make the external T = 0.0 at some timestep during the simulation which
 is not allowed in the Nose/Hoover formulation.
 
-The *scaleyz yes*\ , *scalexz yes*\ , and *scalexy yes* options
+The *scaleyz yes*, *scalexz yes*, and *scalexy yes* options
 can only be used if the second dimension in the keyword is periodic,
 and if the tilt factor is not coupled to the barostat via keywords
-*tri*\ , *yz*\ , *xz*\ , and *xy*\ .
+*tri*, *yz*, *xz*, and *xy*\ .
 
 Related commands
 """"""""""""""""

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,17 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <ciso646>
-#if !defined(__MINGW32__)
-#include "erf.h"
-#endif
-#include <direct.h>
 #include <cmath>
-#include <cstring>
-// LAMMPS uses usleep with 100 ms arguments, no microsecond precision needed
-#if !defined(__MINGW32__)
-#include "sleep.h"
-#endif
+#include <direct.h>
 
 // some symbols have different names in Windows
 
@@ -34,32 +25,36 @@
 // the following functions are defined to get rid of
 // 'ambiguous call to overloaded function' error in VSS for mismatched type arguments
 #if !defined(__MINGW32__)
-inline double pow(int i, int j){
-  return pow((double)i,j);
+inline double pow(int i, int j)
+{
+  return pow((double) i, j);
 }
-inline double fabs(int i){
+inline double fabs(int i)
+{
   return fabs((double) i);
 }
-inline double sqrt(int i){
+inline double sqrt(int i)
+{
   return sqrt((double) i);
 }
 #endif
 
-inline double trunc(double x) {
+inline double trunc(double x)
+{
   return x > 0 ? floor(x) : ceil(x);
 }
 
 // Windows version of mkdir function does not have permission flags
 #ifndef S_IRWXU
-# define S_IRWXU 0
+#define S_IRWXU 0
 #endif
 #ifndef S_IRGRP
-# define S_IRGRP 0
+#define S_IRGRP 0
 #endif
 #ifndef S_IXGRP
-# define S_IXGRP 0
+#define S_IXGRP 0
 #endif
-inline int mkdir(const char *path, int){
+inline int mkdir(const char *path, int)
+{
   return _mkdir(path);
 }
-

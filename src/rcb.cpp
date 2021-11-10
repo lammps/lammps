@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -284,7 +285,7 @@ void RCB::compute(int dimension, int n, double **x, double *wt,
       first_iteration = 1;
       indexlo = indexhi = 0;
 
-      while (1) {
+      while (true) {
 
         // choose bisector value
         // use old value on 1st iteration if old cut dimension is the same
@@ -813,7 +814,7 @@ void RCB::compute_old(int dimension, int n, double **x, double *wt,
     first_iteration = 1;
     indexlo = indexhi = 0;
 
-    while (1) {
+    while (true) {
 
       // choose bisector value
       // use old value on 1st iteration if old cut dimension is the same

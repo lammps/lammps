@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -33,7 +34,7 @@
 #include <cmath>
 #include <cstring>
 
-#ifdef LMP_USER_OMP
+#ifdef LMP_OPENMP
 #include "modify.h"
 #include "fix_omp.h"
 #include "thr_data.h"
@@ -47,7 +48,7 @@ static void mpi_timings(const char *label, Timer *t, enum Timer::ttype tt,
                         MPI_Comm world, const int nprocs, const int nthreads,
                         const int me, double time_loop, FILE *scr, FILE *log);
 
-#ifdef LMP_USER_OMP
+#ifdef LMP_OPENMP
 static void omp_times(FixOMP *fix, const char *label, enum Timer::ttype which,
                       const int nthreads,FILE *scr, FILE *log);
 #endif
@@ -362,15 +363,14 @@ void Finish::end(int flag)
     }
   }
 
-#ifdef LMP_USER_OMP
-  int ifix = modify->find_fix("package_omp");
+#ifdef LMP_OPENMP
+  FixOMP *fixomp = (FixOMP *) modify->get_fix_by_id("package_omp");
 
   // print thread breakdown only with full timer detail
 
-  if ((ifix >= 0) && timer->has_full() && me == 0) {
+  if (fixomp && timer->has_full() && me == 0) {
     double thr_total = 0.0;
     ThrData *td;
-    FixOMP *fixomp = static_cast<FixOMP *>(lmp->modify->fix[ifix]);
     for (i=0; i < nthreads; ++i) {
       td = fixomp->get_thr(i);
       thr_total += td->get_time(Timer::ALL);
@@ -690,7 +690,7 @@ void mpi_timings(const char *label, Timer *t, enum Timer::ttype tt,
 
 /* ---------------------------------------------------------------------- */
 
-#ifdef LMP_USER_OMP
+#ifdef LMP_OPENMP
 void omp_times(FixOMP *fix, const char *label, enum Timer::ttype which,
                       const int nthreads,FILE *scr, FILE *log)
 {

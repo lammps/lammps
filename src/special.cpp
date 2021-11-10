@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -55,7 +56,7 @@ Special::~Special()
 void Special::build()
 {
   MPI_Barrier(world);
-  double time1 = MPI_Wtime();
+  double time1 = platform::walltime();
 
   if (me == 0) {
     const double * const special_lj   = force->special_lj;
@@ -236,10 +237,8 @@ void Special::onetwo_build_newton()
   // perform rendezvous operation
 
   char *buf;
-  int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(PairRvous),
-                                 0,proclist,
-                                 rendezvous_pairs,0,buf,sizeof(PairRvous),
-                                 (void *) this);
+  int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(PairRvous), 0,proclist,
+                                 rendezvous_pairs,0,buf,sizeof(PairRvous), (void *) this);
   PairRvous *outbuf = (PairRvous *) buf;
 
   memory->destroy(proclist);
@@ -370,10 +369,8 @@ void Special::onethree_build()
   // perform rendezvous operation
 
   char *buf;
-  int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(PairRvous),
-                                 0,proclist,
-                                 rendezvous_pairs,0,buf,sizeof(PairRvous),
-                                 (void *) this);
+  int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(PairRvous), 0,proclist,
+                                 rendezvous_pairs,0,buf,sizeof(PairRvous), (void *) this);
   PairRvous *outbuf = (PairRvous *) buf;
 
   memory->destroy(proclist);
@@ -474,10 +471,8 @@ void Special::onefour_build()
   // perform rendezvous operation
 
   char *buf;
-  int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(PairRvous),
-                                 0,proclist,
-                                 rendezvous_pairs,0,buf,sizeof(PairRvous),
-                                 (void *) this);
+  int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(PairRvous), 0,proclist,
+                                 rendezvous_pairs,0,buf,sizeof(PairRvous), (void *) this);
   PairRvous *outbuf = (PairRvous *) buf;
 
   memory->destroy(proclist);
@@ -897,10 +892,8 @@ void Special::angle_trim()
     // perform rendezvous operation
 
     char *buf;
-    int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(PairRvous),
-                                   0,proclist,
-                                   rendezvous_pairs,0,buf,sizeof(PairRvous),
-                                   (void *) this);
+    int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(PairRvous), 0,proclist,
+                                   rendezvous_pairs,0,buf,sizeof(PairRvous), (void *) this);
     PairRvous *outbuf = (PairRvous *) buf;
 
     memory->destroy(proclist);
@@ -1110,10 +1103,8 @@ void Special::dihedral_trim()
     // perform rendezvous operation
 
     char *buf;
-    int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(PairRvous),
-                                   0,proclist,
-                                   rendezvous_pairs,0,buf,sizeof(PairRvous),
-                                   (void *) this);
+    int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(PairRvous), 0,proclist,
+                                   rendezvous_pairs,0,buf,sizeof(PairRvous), (void *) this);
     PairRvous *outbuf = (PairRvous *) buf;
 
     memory->destroy(proclist);
@@ -1245,9 +1236,8 @@ int Special::rendezvous_ids(int n, char *inbuf,
    outbuf = same list of N PairRvous datums, routed to different procs
 ------------------------------------------------------------------------- */
 
-int Special::rendezvous_pairs(int n, char *inbuf,
-                             int &flag, int *&proclist, char *&outbuf,
-                             void *ptr)
+int Special::rendezvous_pairs(int n, char *inbuf, int &flag, int *&proclist,
+                              char *&outbuf, void *ptr)
 {
   Special *sptr = (Special *) ptr;
   Atom *atom = sptr->atom;
@@ -1300,9 +1290,8 @@ int Special::rendezvous_pairs(int n, char *inbuf,
 
 void Special::fix_alteration()
 {
-  for (int ifix = 0; ifix < modify->nfix; ifix++)
-    if (modify->fix[ifix]->special_alter_flag)
-      modify->fix[ifix]->rebuild_special();
+  for (const auto &ifix : modify->get_fix_list())
+    if (ifix->special_alter_flag) ifix->rebuild_special();
 }
 
 /* ----------------------------------------------------------------------
@@ -1313,5 +1302,5 @@ void Special::timer_output(double time1)
 {
   if (comm->me == 0)
     utils::logmesg(lmp,"  special bonds CPU = {:.3f} seconds\n",
-                   MPI_Wtime()-time1);
+                   platform::walltime()-time1);
 }

@@ -59,12 +59,12 @@ namespace ATC {
     const double A = c[2] * c3inv;
     const double B = c[1] * c3inv;
     const double C = c[0] * c3inv;
-    
+
     // substitute x = t - A/3 so t^3 + pt + q = 0
     const double A2 = A*A;
     const double p = (1.0/3.0)*((-1.0/3.0)*A2 + B);
     const double q = 0.5*((2.0/27.0)*A*A2 - (1.0/3.0)*A*B + C);
-   
+
     // Cardano's fomula
     const double p3 = p*p*p;
     const double D  = q*q + p3;
@@ -103,13 +103,13 @@ namespace ATC {
   }
 
   // solve ode with polynomial source : y'n + a_n-1 y'n-1 + ... = b_n x^n +...
-  void integrate_ode(double x, 
+  void integrate_ode(double x,
                      int na, double * a, double * y0, double * y, int nb, double * /* b */ )
   {
     if (na == 2) {
       // particular
       if ( a[1] == 0) {
-        if ( a[0] == 0) { 
+        if ( a[0] == 0) {
           y[0] = y0[0]+y0[1]*x;
           y[1] =       y0[1];
         }
@@ -132,7 +132,7 @@ namespace ATC {
         c /= j;
         z *= x;
         y[0] += c*z;
-      }  
+      }
     }
     else throw ATC_Error("can only integrate 2nd order ODEs currently");
   }

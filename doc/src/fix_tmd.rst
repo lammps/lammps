@@ -105,6 +105,9 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
+This fix is part of the EXTRA-FIX package.  It is only enabled if LAMMPS
+was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+
 All TMD fixes must be listed in the input script after all integrator
 fixes (nve, nvt, npt) are applied.  This ensures that atoms are moved
 before their positions are corrected to comply with the constraint.

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -21,6 +22,7 @@
 #include "dihedral.h"
 #include "domain.h"
 #include "error.h"
+#include "fix.h"
 #include "force.h"
 #include "improper.h"
 #include "kspace.h"
@@ -48,10 +50,14 @@ void Verlet::init()
 {
   Integrate::init();
 
-  // warn if no fixes
+  // warn if no fixes doing time integration
 
-  if (modify->nfix == 0 && comm->me == 0)
-    error->warning(FLERR,"No fixes defined, atoms won't move");
+  bool do_time_integrate = false;
+  for (const auto &fix : modify->get_fix_list())
+    if (fix->time_integrate) do_time_integrate;
+
+  if (!do_time_integrate && (comm->me == 0))
+    error->warning(FLERR,"No fixes with time integration, atoms won't move");
 
   // virial_style:
   // VIRIAL_PAIR if computed explicitly in pair via sum over pair interactions
@@ -67,8 +73,7 @@ void Verlet::init()
 
   // detect if fix omp is present for clearing force arrays
 
-  int ifix = modify->find_fix("package_omp");
-  if (ifix >= 0) external_force_clear = 1;
+  if (modify->get_fix_by_id("package_omp")) external_force_clear = 1;
 
   // set flags for arrays to clear in force_clear()
 

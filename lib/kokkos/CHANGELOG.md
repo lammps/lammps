@@ -1,5 +1,20 @@
 # Change Log
 
+## [3.4.01](https://github.com/kokkos/kokkos/tree/3.4.01) (2021-05-19)
+[Full Changelog](https://github.com/kokkos/kokkos/compare/3.4.00...3.4.01)
+
+**Bug Fixes:**
+- Windows: Remove atomic_compare_exchange_strong overload conflicts with Windows [\#4024](https://github.com/kokkos/kokkos/pull/4024)
+- OpenMPTarget: Fixup allocation headers with OpenMPTarget backend [\#4020](https://github.com/kokkos/kokkos/pull/4020)
+- OpenMPTarget: Add missing specailization for OMPT to Kokkos Random [\#4022](https://github.com/kokkos/kokkos/pull/4022)
+- AMD: Add support for AMD Zen3 CPU architecture [\#4021](https://github.com/kokkos/kokkos/pull/4021)
+- SYCL: Implement SYCL::print_configuration [\#4012](https://github.com/kokkos/kokkos/pull/4012)
+- Containers: staticcsrgraph: use device type instead of execution space to construct views [\#3998](https://github.com/kokkos/kokkos/pull/3998)
+- nvcc_wrapper: fix errors in argument handling, suppress duplicates of GPU architecture and RDC flags [\#4006](https://github.com/kokkos/kokkos/pull/4006)
+- CI: Add icpx testing to intel container [\#4004](https://github.com/kokkos/kokkos/pull/4004)
+- CMake/TRIBITS: Keep quoted compiler flags when passing to Trilinos [\#4007](https://github.com/kokkos/kokkos/pull/4007)
+- CMake: Rename IntelClang to IntelLLVM [\#3945](https://github.com/kokkos/kokkos/pull/3945)
+
 ## [3.4.00](https://github.com/kokkos/kokkos/tree/3.4.00) (2021-04-25)
 [Full Changelog](https://github.com/kokkos/kokkos/compare/3.3.01...3.4.00)
 

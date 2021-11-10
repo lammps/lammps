@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,17 +12,18 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(snap/kk,PairSNAPKokkosDevice<LMPDeviceType>)
-PairStyle(snap/kk/device,PairSNAPKokkosDevice<LMPDeviceType>)
+// clang-format off
+PairStyle(snap/kk,PairSNAPKokkosDevice<LMPDeviceType>);
+PairStyle(snap/kk/device,PairSNAPKokkosDevice<LMPDeviceType>);
 #ifdef LMP_KOKKOS_GPU
-PairStyle(snap/kk/host,PairSNAPKokkosHost<LMPHostType>)
+PairStyle(snap/kk/host,PairSNAPKokkosHost<LMPHostType>);
 #else
-PairStyle(snap/kk/host,PairSNAPKokkosDevice<LMPHostType>)
+PairStyle(snap/kk/host,PairSNAPKokkosDevice<LMPHostType>);
 #endif
-
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_SNAP_KOKKOS_H
 #define LMP_PAIR_SNAP_KOKKOS_H
 
@@ -43,7 +44,8 @@ struct TagPairSNAPComputeForce{};
 struct TagPairSNAPComputeNeigh{};
 struct TagPairSNAPComputeCayleyKlein{};
 struct TagPairSNAPPreUi{};
-struct TagPairSNAPComputeUi{};
+struct TagPairSNAPComputeUiSmall{}; // more parallelism, more divergence
+struct TagPairSNAPComputeUiLarge{}; // less parallelism, no divergence
 struct TagPairSNAPTransformUi{}; // re-order ulisttot from SoA to AoSoA, zero ylist
 struct TagPairSNAPComputeZi{};
 struct TagPairSNAPBeta{};
@@ -52,7 +54,9 @@ struct TagPairSNAPTransformBi{}; // re-order blist from AoSoA to AoS
 struct TagPairSNAPComputeYi{};
 struct TagPairSNAPComputeYiWithZlist{};
 template<int dir>
-struct TagPairSNAPComputeFusedDeidrj{};
+struct TagPairSNAPComputeFusedDeidrjSmall{}; // more parallelism, more divergence
+template<int dir>
+struct TagPairSNAPComputeFusedDeidrjLarge{}; // less parallelism, no divergence
 
 // CPU backend only
 struct TagPairSNAPComputeNeighCPU{};
@@ -142,7 +146,10 @@ public:
   void operator() (TagPairSNAPPreUi,const int iatom_mod, const int j, const int iatom_div) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator() (TagPairSNAPComputeUi,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeUi>::member_type& team) const;
+  void operator() (TagPairSNAPComputeUiSmall,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeUiSmall>::member_type& team) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairSNAPComputeUiLarge,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeUiLarge>::member_type& team) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPTransformUi,const int iatom_mod, const int j, const int iatom_div) const;
@@ -167,7 +174,11 @@ public:
 
   template<int dir>
   KOKKOS_INLINE_FUNCTION
-  void operator() (TagPairSNAPComputeFusedDeidrj<dir>,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeFusedDeidrj<dir> >::member_type& team) const;
+  void operator() (TagPairSNAPComputeFusedDeidrjSmall<dir>,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeFusedDeidrjSmall<dir> >::member_type& team) const;
+
+  template<int dir>
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairSNAPComputeFusedDeidrjLarge<dir>,const typename Kokkos::TeamPolicy<DeviceType, TagPairSNAPComputeFusedDeidrjLarge<dir> >::member_type& team) const;
 
   // CPU backend only
   KOKKOS_INLINE_FUNCTION

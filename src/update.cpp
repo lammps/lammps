@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -334,8 +335,7 @@ void Update::create_integrate(int narg, char **arg, int trysuffix)
     if (sflag == 1) estyle += lmp->suffix;
     else  estyle += lmp->suffix2;
   }
-  integrate_style = new char[estyle.size()+1];
-  strcpy(integrate_style,estyle.c_str());
+  integrate_style = utils::strdup(estyle);
 }
 
 /* ----------------------------------------------------------------------
@@ -405,8 +405,7 @@ void Update::create_minimize(int narg, char **arg, int trysuffix)
     if (sflag == 1) estyle += lmp->suffix;
     else estyle += lmp->suffix2;
   }
-  minimize_style = new char[estyle.size()+1];
-  strcpy(minimize_style,estyle.c_str());
+  minimize_style = utils::strdup(estyle);
 }
 
 /* ----------------------------------------------------------------------
@@ -489,41 +488,29 @@ void Update::reset_timestep(bigint newstep)
 
   output->reset_timestep(ntimestep);
 
-  for (int i = 0; i < modify->nfix; i++) {
-    if (modify->fix[i]->time_depend)
-      error->all(FLERR,
-                 "Cannot reset timestep with a time-dependent fix defined");
-  }
+  for (const auto &ifix : modify->get_fix_list())
+    if (ifix->time_depend)
+      error->all(FLERR, "Cannot reset timestep with time-dependent fix {} defined",ifix->style);
 
   // reset eflag/vflag global so no commands will think eng/virial are current
 
   eflag_global = vflag_global = -1;
 
-  // reset invoked flags of computes,
-  // so no commands will think they are current between runs
-
-  for (int i = 0; i < modify->ncompute; i++) {
-    modify->compute[i]->invoked_scalar = -1;
-    modify->compute[i]->invoked_vector = -1;
-    modify->compute[i]->invoked_array = -1;
-    modify->compute[i]->invoked_peratom = -1;
-    modify->compute[i]->invoked_local = -1;
-  }
-
+  // reset invoked flags of computes, so no commands will think they are current between runs
   // clear timestep list of computes that store future invocation times
 
-  for (int i = 0; i < modify->ncompute; i++)
-    if (modify->compute[i]->timeflag) modify->compute[i]->clearstep();
+  for (const auto &icompute : modify->get_compute_list()) {
+    icompute->invoked_scalar = -1;
+    icompute->invoked_vector = -1;
+    icompute->invoked_array = -1;
+    icompute->invoked_peratom = -1;
+    icompute->invoked_local = -1;
+    if (icompute->timeflag) icompute->clearstep();
+  }
 
   // Neighbor Bin/Stencil/Pair classes store timestamps that need to be cleared
 
   neighbor->reset_timestep(ntimestep);
-
-  // NOTE: 7Jun12, adding rerun command, don't think this is required
-
-  //for (int i = 0; i < domain->nregion; i++)
-  //  if (domain->regions[i]->dynamic_check())
-  //    error->all(FLERR,"Cannot reset timestep with a dynamic region defined");
 }
 
 /* ----------------------------------------------------------------------

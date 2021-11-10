@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -73,10 +74,8 @@ ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
   // id = compute-ID + COMPUTE_STORE, fix group = compute group
 
   id_fix = utils::strdup(std::string(id) + "_COMPUTE_STORE");
-  std::string cmd = id_fix + fmt::format(" {} STORE peratom 1 3",
-                                         group->names[igroup]);
-  modify->add_fix(cmd);
-  fix = (FixStore *) modify->fix[modify->nfix-1];
+  fix = (FixStore *) modify->add_fix(fmt::format("{} {} STORE peratom 1 3",
+                                                 id_fix, group->names[igroup]));
 
   // calculate xu,yu,zu for fix store array
   // skip if reset from restart file

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -149,9 +150,9 @@ void PairLJCutTIP4PLongGPU::compute(int eflag, int vflag)
     error->one(FLERR,"Insufficient memory on accelerator");
 
 //  if (host_start<inum) {
-//    cpu_time = MPI_Wtime();
+//    cpu_time = platform::walltime();
 //    cpu_compute(host_start, inum, eflag, vflag, ilist, numneigh, firstneigh);
-//    cpu_time = MPI_Wtime() - cpu_time;
+//    cpu_time = platform::walltime() - cpu_time;
 //  }
 }
 
@@ -166,8 +167,9 @@ void PairLJCutTIP4PLongGPU::init_style()
   if (atom->tag_enable == 0)
     error->all(FLERR,"Pair style lj/cut/tip4p/long/gpu requires atom IDs");
   if (!atom->q_flag)
-    error->all(FLERR,
-               "Pair style lj/cut/tip4p/long/gpu requires atom attribute q");
+    error->all(FLERR, "Pair style lj/cut/tip4p/long/gpu requires atom attribute q");
+  if (force->newton_pair)
+    error->all(FLERR,"Pair style lj/cut/tip4p/long/gpu requires newton pair off");
   if (force->bond == nullptr)
     error->all(FLERR,"Must use a bond style with TIP4P potential");
   if (force->angle == nullptr)
@@ -218,9 +220,10 @@ void PairLJCutTIP4PLongGPU::init_style()
     cell_size = (cut_coul+qdist+blen) + neighbor->skin;
   }
   if (comm->cutghostuser < cell_size) {
-    comm->cutghostuser = cell_size;
     if (comm->me == 0)
-      error->warning(FLERR,"Increasing communication cutoff for TIP4P GPU style");
+      error->warning(FLERR,"Increasing communication cutoff from {:.8} "
+                      "to {:.8} for TIP4P GPU style",comm->cutghostuser,cell_size);
+    comm->cutghostuser = cell_size;
   }
 
   int mnf = 5e-2 * neighbor->oneatom;

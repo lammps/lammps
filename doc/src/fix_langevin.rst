@@ -112,7 +112,7 @@ thermostatting takes place; see the description below.
    fix - e.g. by :doc:`fix nvt <fix_nh>` or :doc:`fix temp/rescale
    <fix_temp_rescale>` commands.
 
-See the :doc:`Howto thermostat <Howto_thermostat>` doc page for
+See the :doc:`Howto thermostat <Howto_thermostat>` page for
 a discussion of different ways to compute temperature and perform
 thermostatting.
 
@@ -138,16 +138,18 @@ temperature with optional time-dependence as well.
 
 Like other fixes that perform thermostatting, this fix can be used
 with :doc:`compute commands <compute>` that remove a "bias" from the
-atom velocities.  E.g. removing the center-of-mass velocity from a
-group of atoms or removing the x-component of velocity from the
-calculation.  This is not done by default, but only if the
-:doc:`fix_modify <fix_modify>` command is used to assign a temperature
-compute to this fix that includes such a bias term.  See the doc pages
-for individual :doc:`compute commands <compute>` to determine which ones
-include a bias.  In this case, the thermostat works in the following
-manner: bias is removed from each atom, thermostatting is performed on
-the remaining thermal degrees of freedom, and the bias is added back
-in.
+atom velocities.  E.g. to apply the thermostat only to atoms within a
+spatial :doc:`region <region>`, or to remove the center-of-mass
+velocity from a group of atoms, or to remove the x-component of
+velocity from the calculation.
+
+This is not done by default, but only if the :doc:`fix_modify
+<fix_modify>` command is used to assign a temperature compute to this
+fix that includes such a bias term.  See the doc pages for individual
+:doc:`compute temp commands <compute>` to determine which ones include
+a bias.  In this case, the thermostat works in the following manner:
+bias is removed from each atom, thermostatting is performed on the
+remaining thermal degrees of freedom, and the bias is added back in.
 
 The *damp* parameter is specified in time units and determines how
 rapidly the temperature is relaxed.  For example, a value of 100.0 means
@@ -183,7 +185,8 @@ omega (which is derived from the angular momentum in the case of
 aspherical particles).
 
 The rotational temperature of the particles can be monitored by the
-:doc:`compute temp/sphere <compute_temp_sphere>` and :doc:`compute temp/asphere <compute_temp_asphere>` commands with their rotate
+:doc:`compute temp/sphere <compute_temp_sphere>` and :doc:`compute
+temp/asphere <compute_temp_asphere>` commands with their rotate
 options.
 
 For the *omega* keyword there is also a scale factor of
@@ -239,7 +242,7 @@ thermostat. Because the random forces on different atoms are
 independent, they do not sum exactly to zero.  As a result, this fix
 applies a small random force to the entire system, and the
 center-of-mass of the system undergoes a slow random walk.  If the
-keyword *zero* is set to *yes*\ , the total random force is set exactly
+keyword *zero* is set to *yes*, the total random force is set exactly
 to zero by subtracting off an equal part of it from each atom in the
 group.  As a result, the center-of-mass of a system with zero initial
 momentum will not drift over time.
@@ -252,7 +255,7 @@ limit of the integrator), while still producing the correct Boltzmann
 distribution of atom positions.
 
 The current implementation provides the user with the option to output
-the velocity in one of two forms: *vfull* or *vhalf*\ , which replaces
+the velocity in one of two forms: *vfull* or *vhalf*, which replaces
 the outdated option *yes*\ . The *gjf* option *vfull* outputs the
 on-site velocity given in :ref:`Gronbech-Jensen/Farago
 <Gronbech-Jensen>`; this velocity is shown to be systematically lower
@@ -291,8 +294,8 @@ this fix and by the compute should be the same.
 
 The cumulative energy change in the system imposed by this fix is
 included in the :doc:`thermodynamic output <thermo_style>` keywords
-*ecouple* and *econserve*\ , but only if the *tally* keyword to set to
-*yes*\ .  See the :doc:`thermo_style <thermo_style>` doc page for
+*ecouple* and *econserve*, but only if the *tally* keyword to set to
+*yes*\ .  See the :doc:`thermo_style <thermo_style>` page for
 details.
 
 This fix computes a global scalar which can be accessed by various

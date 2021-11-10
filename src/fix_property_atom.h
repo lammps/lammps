@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(property/atom,FixPropertyAtom)
-
+// clang-format off
+FixStyle(property/atom,FixPropertyAtom);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_PROPERTY_ATOM_H
@@ -51,15 +51,18 @@ class FixPropertyAtom : public Fix {
   double memory_usage();
 
  protected:
-  int nvalue,border;
-  int molecule_flag,q_flag,rmass_flag;
-  int *style,*index;
-  char *astyle;
+  int nvalue, border;
+  int molecule_flag, q_flag, rmass_flag;    // flags for specific fields
+  int *styles;                              // style of each value, see enum
+  int *index;                               // indices into atom custom data structs
+  int *cols;                                // columns per value, for arrays
+  char *astyle;                             // atom style at instantiation
 
-  int nmax_old;         // length of peratom arrays the last time they grew
+  int values_peratom;    // # of values per atom, including multiple for arrays
+  int nmax_old;          // length of peratom arrays the last time they grew
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

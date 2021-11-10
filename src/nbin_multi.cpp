@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -20,6 +21,8 @@
 #include "update.h"
 #include "error.h"
 #include "memory.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -201,7 +204,7 @@ void NBinMulti::setup_bins(int /*style*/)
     // test for too many global bins in any dimension due to huge global domain
 
     if (bbox[0]*binsizeinv > MAXSMALLINT || bbox[1]*binsizeinv > MAXSMALLINT ||
-	    bbox[2]*binsizeinv > MAXSMALLINT)
+            bbox[2]*binsizeinv > MAXSMALLINT)
       error->all(FLERR,"Domain too large for neighbor bins");
 
     // create actual bins
@@ -232,7 +235,7 @@ void NBinMulti::setup_bins(int /*style*/)
     bininvz_multi[n] = 1.0 / binsizez_multi[n];
 
     if (binsize_optimal*bininvx_multi[n] > CUT2BIN_RATIO ||
-	    binsize_optimal*bininvy_multi[n] > CUT2BIN_RATIO)
+            binsize_optimal*bininvy_multi[n] > CUT2BIN_RATIO)
       error->all(FLERR,"Cannot use neighbor bins - box size << cutoff");
     if ((dimension == 3) && (binsize_optimal*bininvz_multi[n] > CUT2BIN_RATIO))
       error->all(FLERR,"Cannot use neighbor bins - box size << cutoff");

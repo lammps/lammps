@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,15 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "../testing/core.h"
 #include "atom.h"
 #include "info.h"
 #include "input.h"
 #include "lammps.h"
 #include "molecule.h"
-#include "utils.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "../testing/core.h"
 
 #include <cstdio>
 #include <mpi.h>
@@ -34,8 +33,7 @@ using utils::split_words;
 
 #define test_name test_info_->name()
 
-
-static void create_molecule_files(const std::string & h2o_filename, const std::string & co2_filename)
+static void create_molecule_files(const std::string &h2o_filename, const std::string &co2_filename)
 {
     // create molecule files
     const char h2o_file[] = "# Water molecule. SPC/E model.\n\n3 atoms\n2 bonds\n1 angles\n\n"
@@ -77,11 +75,10 @@ bool verbose = false;
 
 class MoleculeFileTest : public LAMMPSTest {
 protected:
-    static void SetUpTestSuite() {
-        create_molecule_files("moltest.h2o.mol", "moltest.co2.mol");
-    }
+    static void SetUpTestSuite() { create_molecule_files("moltest.h2o.mol", "moltest.co2.mol"); }
 
-    static void TearDownTestSuite() {
+    static void TearDownTestSuite()
+    {
         remove("moltest.h2o.mol");
         remove("moltest.co2.mol");
     }
@@ -93,10 +90,7 @@ protected:
         ASSERT_NE(lmp, nullptr);
     }
 
-    void TearDown() override
-    {
-        LAMMPSTest::TearDown();
-    }
+    void TearDown() override { LAMMPSTest::TearDown(); }
 
     void run_mol_cmd(const std::string &name, const std::string &args, const std::string &content)
     {
@@ -209,6 +203,7 @@ TEST_F(MoleculeFileTest, twofiles)
 
 TEST_F(MoleculeFileTest, bonds)
 {
+    if (!LAMMPS::is_installed_pkg("MOLECULE")) GTEST_SKIP();
     BEGIN_CAPTURE_OUTPUT();
     command("atom_style bond");
     command("region box block 0 1 0 1 0 1");
@@ -261,7 +256,7 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (Info::get_mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
+    if (platform::mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
         std::cout << "Warning: using OpenMPI without exceptions. "
                      "Death tests will be skipped\n";
 

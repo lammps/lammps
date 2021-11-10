@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -53,9 +54,7 @@ ComputeFragmentAtom::ComputeFragmentAtom(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"single") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute fragment/atom command");
-      if (strcmp(arg[iarg+1],"yes") == 0) singleflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) singleflag = 0;
-      else error->all(FLERR,"Illegal compute fragment/atom command");
+      singleflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal compute fragment/atom command");
   }
@@ -151,7 +150,7 @@ void ComputeFragmentAtom::compute_peratom()
 
   int iteration = 0;
 
-  while (1) {
+  while (true) {
     iteration++;
 
     comm->forward_comm_compute(this);

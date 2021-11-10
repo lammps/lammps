@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://lammps.sandia.gov/, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,22 +17,23 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_plasticity_atom.h"
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
 #include "comm.h"
+#include "error.h"
 #include "fix_peri_neigh.h"
 #include "force.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputePlasticityAtom::
-ComputePlasticityAtom(LAMMPS *lmp, int narg, char **arg) :
+ComputePlasticityAtom::ComputePlasticityAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
   if (narg != 3) error->all(FLERR,"Illegal compute plasticity/atom command");
@@ -58,17 +60,15 @@ ComputePlasticityAtom::~ComputePlasticityAtom()
 
 void ComputePlasticityAtom::init()
 {
-  int count = 0;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style,"plasticity/peri") == 0) count++;
-  if (count > 1 && comm->me == 0)
+  if ((comm->me == 0) && (modify->get_compute_by_style("plasticity/atom").size() > 1))
     error->warning(FLERR,"More than one compute plasticity/atom");
 
   // find associated PERI_NEIGH fix that must exist
 
-  ifix_peri = modify->find_fix_by_style("^PERI_NEIGH");
-  if (ifix_peri == -1)
-    error->all(FLERR,"Compute plasticity/atom requires a Peridynamics pair style");
+  auto fixes = modify->get_fix_by_style("PERI_NEIGH");
+  if (fixes.size() == 0)
+    error->all(FLERR,"Compute plasticity/atom requires a peridynamic potential");
+  else fix_peri_neigh = (FixPeriNeigh *)fixes.front();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -88,7 +88,7 @@ void ComputePlasticityAtom::compute_peratom()
 
   // extract plasticity for each atom in group
 
-  double *lambdaValue = ((FixPeriNeigh *) modify->fix[ifix_peri])->lambdaValue;
+  double *lambdaValue = fix_peri_neigh->lambdaValue;
 
   int *mask = atom->mask;
   int nlocal = atom->nlocal;

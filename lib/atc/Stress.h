@@ -14,7 +14,7 @@ namespace ATC {
   enum ElasticityTensorType {FIRST_ELASTICITY_TENSOR=0, SECOND_ELASTICITY_TENSOR};
   /**
    * @class Stress
-   * @brief Base class that defines interface for a constitutive law 
+   * @brief Base class that defines interface for a constitutive law
    * @brief that computes stress given all field and gradient information.
    */
   class Stress
@@ -29,14 +29,14 @@ namespace ATC {
       //* Units: mvv/L^3 (i.e. for units Real: g/(mol ps^2 A^2) )
       virtual void stress(const FIELD_MATS &fields,
                           const GRAD_FIELD_MATS &gradFields,
-                          DENS_MAT_VEC &stress)=0; 
-      //* Computes free (T>0)/potential(T=0) energy density 
+                          DENS_MAT_VEC &stress)=0;
+      //* Computes free (T>0)/potential(T=0) energy density
       //* Units: mvv/L^3 (i.e. for units Real: g/(mol ps^2 A^2) )
       virtual void elastic_energy(const FIELD_MATS &fields,
                                   const GRAD_FIELD_MATS &gradFields,
                                   DENS_MAT &energy) const;
       //* Returns the material tangent at a given deformation gradient.
-      virtual void tangent(const MATRIX & /* F */, MATRIX & /* C */) const 
+      virtual void tangent(const MATRIX & /* F */, MATRIX & /* C */) const
         {throw ATC_Error("Stress::tangent: unimplemented function");}
   };
 
@@ -44,7 +44,7 @@ namespace ATC {
   /**
    *  @class  StressCubicElastic
    *  @brief  Class for computing stress for a cubic elastic material
-   */ 
+   */
 
   class StressCubicElastic : public Stress
   {
@@ -69,7 +69,7 @@ namespace ATC {
   /**
    *  @class  StressCubicElasticDamped
    *  @brief  Class for computing stress for a cubic elastic material w/ damping
-   */ 
+   */
 
   class StressCubicElasticDamped : public StressCubicElastic
   {
@@ -85,8 +85,8 @@ namespace ATC {
   };
 
   /**
-   *  @class  StressLinearElastic 
-   *  @brief  Class for computing stress for a linear elastic material  
+   *  @class  StressLinearElastic
+   *  @brief  Class for computing stress for a linear elastic material
    */
 
   class StressLinearElastic : public StressCubicElastic
@@ -99,7 +99,7 @@ namespace ATC {
     protected:
       double E_, nu_;
       double mu_, lambda_;
-  };   
+  };
 
   // forward declarations needed by StressCauchyBorn
   class CbPotential;
@@ -120,7 +120,7 @@ namespace ATC {
 
   /**
    * @class StressCauchyBorn
-   * @brief Class for computing the stress and elastic constants for a 
+   * @brief Class for computing the stress and elastic constants for a
    * @brief Cauchy-Born material.
    */
 
@@ -129,17 +129,17 @@ namespace ATC {
   {
     public:
       StressCauchyBorn(std::fstream &matfile, CbData &cb);
-      virtual ~StressCauchyBorn(); 
+      virtual ~StressCauchyBorn();
       virtual void initialize(void);
       //* Returns the stress computed from a 0K Cauchy-Born approxmation.
       virtual void stress(const FIELD_MATS &fields, const GRAD_FIELD_MATS &gradFields,
                   DENS_MAT_VEC &flux);
-      //* Computes free (T>0)/potential(T=0) energy density 
+      //* Computes free (T>0)/potential(T=0) energy density
       //* Units: mvv/L^3 (i.e. for units Real: g/(mol ps^2 A^2) )
-      virtual void elastic_energy(const FIELD_MATS &fields, 
+      virtual void elastic_energy(const FIELD_MATS &fields,
                           const GRAD_FIELD_MATS &gradFields,
                           DENS_MAT &energy) const;
-      //* Computes entropic energy density 
+      //* Computes entropic energy density
       void entropic_energy(const FIELD_MATS &fields, const GRAD_FIELD_MATS &gradFields,
                           DENS_MAT &energy) const;
       //* Returns the material tangent at a given deformation gradient.
@@ -171,13 +171,13 @@ namespace ATC {
         void function(const VECTOR & F, DENS_VEC & R)
         {
           DENS_MAT B;
-          tangent(F,R,B); 
+          tangent(F,R,B);
         }
         void tangent(const VECTOR & F, DENS_VEC & R, MATRIX & B)
         {
           cbP_ = cauchyBornStress_->elasticity_tensor(F, B);
-          
-          R = cbP_ - targetP_; 
+
+          R = cbP_ - targetP_;
         }
       private:
         StressCauchyBorn * cauchyBornStress_;
@@ -195,13 +195,13 @@ namespace ATC {
         void function(const VECTOR & U, DENS_VEC & r)
         {
           DENS_MAT C;
-          tangent(U,r,C); 
+          tangent(U,r,C);
         }
         void tangent(const VECTOR & U, DENS_VEC & r, MATRIX & C)
         {
           cbS_ = cauchyBornStress_->elasticity_tensor(U, C, SECOND_ELASTICITY_TENSOR);
-          
-          r = cbS_ - targetS_; 
+
+          r = cbS_ - targetS_;
         }
       private:
         StressCauchyBorn * cauchyBornStress_;
@@ -209,4 +209,4 @@ namespace ATC {
     };
 
 }
-#endif 
+#endif

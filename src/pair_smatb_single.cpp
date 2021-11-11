@@ -29,8 +29,6 @@ This pair style is written by Daniele Rapetti (iximiel@gmail.com)
 
 using namespace LAMMPS_NS;
 
-#define MAXLINE 1024
-
 PairSMATBSingle::PairSMATBSingle(LAMMPS *lmp) :
     Pair(lmp), nmax(0), on_eb(nullptr), r0(0), p(0), A(0), q(0), QSI(0), cutOffStart(0),
     cutOffEnd(0), cutOffEnd2(0), a3(0), a4(0), a5(0), x3(0), x4(0), x5(0)

@@ -29,41 +29,48 @@ namespace LAMMPS_NS {
 class PairSMATB : public Pair {
  public:
   PairSMATB(class LAMMPS *);
-  virtual ~PairSMATB();
-  void compute(int, int);    //workhorse routine that computes pairwise interactions
-  /*
-    void compute_inner();
-    void compute_middle();
-    void compute_outer(int, int);
-    */
-  void settings(int, char **);    //reads the input script line with arguments you define
-  void coeff(int, char **);       //set coefficients for one i,j type pair
-  //void init_style();//initialization specific to this pair style
-  double init_one(int, int);    //perform initialization for one i,j type pair
-  //double single(int, int, int, int, double, double, double, double &);//force and energy of a single pairwise interaction between 2 atoms
-
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  void write_data(FILE *);
-  void write_data_all(FILE *);
-
-  virtual int pack_forward_comm(int, int *, double *, int, int *);
-  virtual void unpack_forward_comm(int, int, double *);
-  virtual int pack_reverse_comm(int, int, double *);
-  virtual void unpack_reverse_comm(int, int *, double *);
+  ~PairSMATB() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
+  void write_data(FILE *) override;
+  void write_data_all(FILE *) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
 
  protected:
   virtual void allocate();
-  int nmax;                             // allocated size of per-atom arrays
-  double *on_eb;                        //allocated to store up caclulation values
-  double **r0;                          // interaction radius, user-given
-  double **p, **A, **q, **QSI;          // parameters user-given
-  double **cutOffStart, **cutOffEnd;    //cut offs, user given
-  double **cutOffEnd2;                  //squared cut off end, calculated
-  double **a3, **a4, **a5;              //polynomial for cutoff linking to zero:   Ae^p substitution
-  double **x3, **x4, **x5;              //polynomial for cutoff linking to zero: QSIe^q substitution
+  // allocated size of per-atom arrays
+  int nmax;
+  //allocated to store up caclulation values
+  double *on_eb{nullptr};
+  // interaction radius, user-given
+  double **r0{nullptr};
+  // parameters user-given
+  double **p{nullptr};
+  double **A{nullptr};
+  double **q{nullptr};
+  double **QSI{nullptr};
+  //extremes of the cut off, user given
+  double **cutOffStart{nullptr};
+  double **cutOffEnd{nullptr};
+  //squared cut off end, calculated
+  double **cutOffEnd2{nullptr};
+  //polynomial for cutoff linking to zero:   Ae^p substitution
+  double **a3{nullptr};
+  double **a4{nullptr};
+  double **a5{nullptr};
+  //polynomial for cutoff linking to zero: QSIe^q substitution
+  double **x3{nullptr};
+  double **x4{nullptr};
+  double **x5{nullptr};
   /* latex form of the potential (R_c is cutOffEnd, \Xi is QSI):
 
        E_i =

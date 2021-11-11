@@ -29,40 +29,48 @@ namespace LAMMPS_NS {
 class PairSMATBSingle : public Pair {
  public:
   PairSMATBSingle(class LAMMPS *);
-  virtual ~PairSMATBSingle();
-  void compute(int, int);    //workhorse routine that computes pairwise interactions
-  /*
-    void compute_inner();
-    void compute_middle();
-    void compute_outer(int, int);
-    */
-  void settings(int, char **);    //reads the input script line with arguments you define
-  void coeff(int, char **);       //set coefficients for one i,j type pair
-  //void init_style();//initialization specific to this pair style
-  double init_one(int, int);    //perform initialization for one i,j type pair
-
-  virtual void write_restart(FILE *);
-  virtual void read_restart(FILE *);
-  virtual void write_restart_settings(FILE *);
-  virtual void read_restart_settings(FILE *);
-  virtual void write_data(FILE *);
-  virtual void write_data_all(FILE *);
-
-  virtual int pack_forward_comm(int, int *, double *, int, int *);
-  virtual void unpack_forward_comm(int, int, double *);
-  virtual int pack_reverse_comm(int, int, double *);
-  virtual void unpack_reverse_comm(int, int *, double *);
+  ~PairSMATBSingle() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
+  void write_data(FILE *) override;
+  void write_data_all(FILE *) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
 
  protected:
   virtual void allocate();
-  int nmax;                         // allocated size of per-atom arrays
-  double *on_eb;                    //allocated to store up caclulation values
-  double r0;                        // interaction radius, user-given
-  double p, A, q, QSI;              // parameters user-given
-  double cutOffStart, cutOffEnd;    //cut offs, user given
-  double cutOffEnd2;                //squared cut off end, calculated
-  double a3, a4, a5;                //polynomial for cutoff linking to zero:   Ae^p substitution
-  double x3, x4, x5;                //polynomial for cutoff linking to zero: QSIe^q substitution
+  // allocated size of per-atom arrays
+  int nmax;
+  //allocated to store up caclulation values
+  double *on_eb{nullptr};
+  // interaction radius, user-given
+  double r0;
+  // parameters user-given
+  double p;
+  double A;
+  double q;
+  double QSI;
+  //cut offs, user given
+  double cutOffStart;
+  double cutOffEnd;
+  //squared cut off end, calculated
+  double cutOffEnd2;
+  //polynomial for cutoff linking to zero:   Ae^p substitution
+  double a3;
+  double a4;
+  double a5;
+  //polynomial for cutoff linking to zero: QSIe^q substitution
+  double x3;
+  double x4;
+  double x5;
 };
 
 }    // namespace LAMMPS_NS

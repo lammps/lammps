@@ -10,7 +10,7 @@
 
    See the README file in the top-level LAMMPS directory.
 
-   This style is written by Daniele Rapetti (iximiel@gmail.com)
+   This pair style is written by Daniele Rapetti (iximiel@gmail.com)
    ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
@@ -26,53 +26,51 @@ PairStyle(smatb/single,PairSMATBSingle)
 
 namespace LAMMPS_NS {
 
-
-  class PairSMATBSingle : public Pair {
-  public:
-    // public variables so USER-ATC package can access them
-
-    PairSMATBSingle(class LAMMPS *);
-    virtual ~PairSMATBSingle();
-    void compute(int, int);//workhorse routine that computes pairwise interactions
-    /*
+class PairSMATBSingle : public Pair {
+ public:
+  PairSMATBSingle(class LAMMPS *);
+  virtual ~PairSMATBSingle();
+  void compute(int, int);    //workhorse routine that computes pairwise interactions
+  /*
     void compute_inner();
     void compute_middle();
-    void compute_outer(int, int);*/
-    void settings(int, char **);//reads the input script line with arguments you define
-    void coeff(int, char **);//set coefficients for one i,j type pair
-    //void init_style();//initialization specific to this pair style
-    double init_one(int, int);//perform initialization for one i,j type pair
-    //double single(int, int, int, int, double, double, double, double &);//force and energy of a single pairwise interaction between 2 atoms
+    void compute_outer(int, int);
+    */
+  void settings(int, char **);    //reads the input script line with arguments you define
+  void coeff(int, char **);       //set coefficients for one i,j type pair
+  //void init_style();//initialization specific to this pair style
+  double init_one(int, int);    //perform initialization for one i,j type pair
 
-    virtual void write_restart(FILE *);
-    virtual void read_restart(FILE *);
-    virtual void write_restart_settings(FILE *);
-    virtual void read_restart_settings(FILE *);
-    virtual void write_data(FILE *);
-    virtual void write_data_all(FILE *);
+  virtual void write_restart(FILE *);
+  virtual void read_restart(FILE *);
+  virtual void write_restart_settings(FILE *);
+  virtual void read_restart_settings(FILE *);
+  virtual void write_data(FILE *);
+  virtual void write_data_all(FILE *);
 
-    virtual int    pack_forward_comm(int, int *, double *, int, int *);
-    virtual void unpack_forward_comm(int, int, double *);
-    virtual int    pack_reverse_comm(int , int , double *);
-    virtual void unpack_reverse_comm(int , int *, double *);
-  protected: 
-    virtual void allocate();
-    int nmax;            // allocated size of per-atom arrays
-    double *on_eb;       //allocated to store up caclulation values
-    double r0;           // interaction radius, user-given
-    double p, A, q, QSI; // parameters user-given
-    double cutOffStart, cutOffEnd;//cut offs, user given
-    double cutOffEnd2;  //squared cut off end, calculated
-    double a3, a4, a5;  //polynomial for cutoff linking to zero:   Ae^p substitution
-    double x3, x4, x5;  //polynomial for cutoff linking to zero: QSIe^q substitution
-  };
+  virtual int pack_forward_comm(int, int *, double *, int, int *);
+  virtual void unpack_forward_comm(int, int, double *);
+  virtual int pack_reverse_comm(int, int, double *);
+  virtual void unpack_reverse_comm(int, int *, double *);
 
-}
+ protected:
+  virtual void allocate();
+  int nmax;                         // allocated size of per-atom arrays
+  double *on_eb;                    //allocated to store up caclulation values
+  double r0;                        // interaction radius, user-given
+  double p, A, q, QSI;              // parameters user-given
+  double cutOffStart, cutOffEnd;    //cut offs, user given
+  double cutOffEnd2;                //squared cut off end, calculated
+  double a3, a4, a5;                //polynomial for cutoff linking to zero:   Ae^p substitution
+  double x3, x4, x5;                //polynomial for cutoff linking to zero: QSIe^q substitution
+};
+
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
 
-/* ERROR/WARNING messages:
+    /* ERROR/WARNING messages:
 
    E: Illegal ... command
 
@@ -83,10 +81,4 @@ namespace LAMMPS_NS {
    E: Incorrect args for pair coefficients
 
    Self-explanatory.  Check the input script or data file.
-
-   E: Cannot open EAM potential file %s
-
-   The specified EAM potential file cannot be opened.  Check that the
-   path and name are correct.
-
 */

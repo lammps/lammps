@@ -66,7 +66,7 @@ void PairSMATBSingle::compute(int eflag, int vflag)
   double dijsq, dij;
   double espo, aexpp, qsiexpq, eb_i, Fb, Fr;
   double polyval, polyval2, polyval3, polyval4, polyval5;
-  //sets up the flags for energy caclulations
+  //sets up the flags for energy calculations
   if (eflag || vflag) {
     ev_setup(eflag, vflag);
     eng_vdwl = 0;

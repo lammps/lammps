@@ -49,7 +49,7 @@ class PairSMATB : public Pair {
   virtual void allocate();
   // allocated size of per-atom arrays
   int nmax;
-  //allocated to store up caclulation values
+  //allocated to store up calculation values
   double *on_eb{nullptr};
   // interaction radius, user-given
   double **r0{nullptr};

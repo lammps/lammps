@@ -27,7 +27,7 @@ Examples
 .. code-block:: LAMMPS
 
    pair_style smatb
-   paiR_{c}oeff 1 1 2.88 10.35 4.178 0.210 1.818 4.07293506 4.9883063257983666
+   pair_coeff 1 1 2.88 10.35 4.178 0.210 1.818 4.07293506 4.9883063257983666
 
 
 Description
@@ -41,11 +41,13 @@ given by
 
       E_{ik}  =\left\lbrace\begin{array}{ll}
        A e^{-p \left(\frac{R_{ik}}{R_{0}}-1\right)}
-      -\sqrt{\sum_{j,R_{ij}\leq R_{c}}\Xi^2e^{-2q\left(\frac{R_{ij}}{R_{0}}-1\right)}}& R_{ij} < R_{sc}\\
+      -\sqrt{\sum_{j,R_{ij}\leq R_{c}}\Xi^2
+      e^{-2q\left(\frac{R_{ij}}{R_{0}}-1\right)}}& R_{ij} < R_{sc}\\
       {\left(a_3\left(R_{ik}-R_{c}\right)^3+a_4\left(R_{ik}-R_{c}\right)^4
       +a_5\left(R_{ik}-R_{c}\right)^5\right)
       -\sqrt{\sum_{j,R_{ij}\leq R_{c}}\left(x_3\left(R_{ij}-R_{c}\right)^3
-      +x_4\left(R_{ij}-R_{c}\right)^4+x_5\left(R_{ij}-R_{c}\right)^5\right)^2}} & R_{sc} < R_{ij} < R_{c}
+      +x_4\left(R_{ij}-R_{c}\right)^4+x_5\left(R_{ij}-R_{c}\right)^5\right)^2}}
+      & R_{sc} < R_{ij} < R_{c}
       \end{array}
       \right.
 
@@ -61,7 +63,7 @@ Coefficients
 """"""""""""
 
 The following coefficients must be defined for each pair of atoms types via the
-:doc:`paiR_{c}oeff <paiR_{c}oeff>` command as in the examples above, or in the data
+:doc:`pair_coeff <pair_coeff>` command as in the examples above, or in the data
 file or restart files read by the :doc:`read_data <read_data>` or
 :doc:`read_restart <read_restart>` commands, or by mixing as described below:
 
@@ -88,10 +90,15 @@ For atom type pairs I,J and I != J the coefficients are not automatically mixed.
 
 ----------
 
+Restrictions
+""""""""""""
+
+none
+
 Related commands
 """"""""""""""""
 
-* :doc:`paiR_{c}oeff <paiR_{c}oeff>`
+* :doc:`pair_coeff <pair_coeff>`
 
 Default
 """""""

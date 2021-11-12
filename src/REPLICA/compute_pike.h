@@ -31,9 +31,9 @@ class ComputePIKE : public Compute {
   void init();
   double compute_scalar();
 
- private:
+ protected:
   double pfactor;
-  int bead_flag;
+  int bead_flag = 0;
   char *id_fix;
   int ifix;
   class FixDPPimd *fix_dppimd;

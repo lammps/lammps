@@ -27,7 +27,7 @@ Examples
 .. code-block:: LAMMPS
 
    pair_style smatb
-   pair_coeff 1 1 2.88 10.35 4.178 0.210 1.818 4.07293506 4.9883063257983666
+   paiR_{c}oeff 1 1 2.88 10.35 4.178 0.210 1.818 4.07293506 4.9883063257983666
 
 
 Description
@@ -41,35 +41,37 @@ given by
 
       E_{ik}  =\left\lbrace\begin{array}{ll}
        A e^{-p \left(\frac{R_{ik}}{R_{0}}-1\right)}
-      -\sqrt{\sum_{j,R_{ij}\leq R_c}\Xi^2e^{-2q\left(\frac{R_{ij}}{R_{0}}-1\right)}}& R_{ij} < R_{sc}\\
-      {\left(a_3\left(R_{ik}-R_c\right)^3+a_4\left(R_{ik}-R_c\right)^4
-      +a_5\left(R_{ik}-R_c\right)^5\right)
-      -\sqrt{\sum_{j,R_{ij}\leq R_c}\left(x_3\left(R_{ij}-R_c\right)^3
-      +x_4\left(R_{ij}-R_c\right)^4+x_5\left(R_{ij}-R_c\right)^5\right)^2}} & R_{sc} < R_{ij} < r_c
+      -\sqrt{\sum_{j,R_{ij}\leq R_{c}}\Xi^2e^{-2q\left(\frac{R_{ij}}{R_{0}}-1\right)}}& R_{ij} < R_{sc}\\
+      {\left(a_3\left(R_{ik}-R_{c}\right)^3+a_4\left(R_{ik}-R_{c}\right)^4
+      +a_5\left(R_{ik}-R_{c}\right)^5\right)
+      -\sqrt{\sum_{j,R_{ij}\leq R_{c}}\left(x_3\left(R_{ij}-R_{c}\right)^3
+      +x_4\left(R_{ij}-R_{c}\right)^4+x_5\left(R_{ij}-R_{c}\right)^5\right)^2}} & R_{sc} < R_{ij} < R_{c}
       \end{array}
       \right.
 
 The polynomial coefficients :math:`a_3`, :math:`a_4`, :math:`a_5`, :math:`x_3`,
 :math:`x_4`, :math:`x_5` are computed by LAMMPS smoothly
 link the two exponentials and their first and second order derivatives to zero 
-from the inner cutoff :math:`R_{sc}` to the outer cutoff :math:`R_c`.
+from the inner cutoff :math:`R_{sc}` to the outer cutoff :math:`R_{c}`. 
+
+:math:`R_{ik}` is the distance between the atom :math:`i` and :math:`k`
 
 
 Coefficients
 """"""""""""
 
 The following coefficients must be defined for each pair of atoms types via the
-:doc:`pair_coeff <pair_coeff>` command as in the examples above, or in the data
+:doc:`paiR_{c}oeff <paiR_{c}oeff>` command as in the examples above, or in the data
 file or restart files read by the :doc:`read_data <read_data>` or
 :doc:`read_restart <read_restart>` commands, or by mixing as described below:
 
 * :math:`R_{0}` (distance units)
-* :math:`p` 
-* :math:`q`
+* :math:`p` (dimensionless)
+* :math:`q` (dimensionless)
 * :math:`A` (energy units)
 * :math:`\Xi` (energy units)
 * :math:`R_{cs}` (distance units) 
-* :math:`R_c` (distance units)
+* :math:`R_{c}` (distance units)
 
 
 Note that: :math:`R_{0}` is the nearest neighbour distance, usually coincides
@@ -89,7 +91,7 @@ For atom type pairs I,J and I != J the coefficients are not automatically mixed.
 Related commands
 """"""""""""""""
 
-* :doc:`pair_coeff <pair_coeff>`
+* :doc:`paiR_{c}oeff <paiR_{c}oeff>`
 
 Default
 """""""

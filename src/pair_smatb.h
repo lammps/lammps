@@ -74,8 +74,8 @@ class PairSMATB : public Pair {
   /* latex form of the potential (R_c is cutOffEnd, \Xi is QSI):
 
        E_i =
-       \sum_{j,R_{ij}\leq R_c} A  e^{-p \lrt{\frac{R_{ij}}{R_{0}}-1}}
-       -\sqrt{\sum_{j,R_{ij}\leq R_c}\Xi^2 e^{-2q\lrt{\frac{R_{ij}}{R_{0}}-1}}}.
+       \sum_{j,R_{ij}\leq R_c} A  e^{-p \left(\frac{R_{ij}}{R_{0}}-1\right)}
+       -\sqrt{\sum_{j,R_{ij}\leq R_c}\Xi^2 e^{-2q\left(\frac{R_{ij}}{R_{0}}-1\right)}}.
 
        NB::this form does not have the polynomial link to 0 for the cut off
      */

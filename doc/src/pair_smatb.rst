@@ -34,9 +34,9 @@ given by
 
 .. math::
 
-   E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} -
-       \left(\frac{\sigma}{r}\right)^6 \right]
-                       \qquad r < r_c
+      E_i =
+       \sum_{j,R_{ij}\leq R_c} A  e^{-p \left(\frac{R_{ij}}{R_{0}}-1\right)}
+       -\sqrt{\sum_{j,R_{ij}\leq R_c}\Xi^2 e^{-2q\left(\frac{R_{ij}}{R_{0}}-1\right)}}.
 
 :math:`r_c` is the cutoff.
 
@@ -62,43 +62,6 @@ distance for the potential, not as the energy minimum at :math:`2^{\frac{1}{6}} 
 The last coefficient is optional.  If not specified, the global
 LJ cutoff specified in the pair_style command are used.
 
-----------
-
-A version of these styles with a soft core, *lj/cut/soft*, suitable
-for use in free energy calculations, is part of the FEP package and
-is documented with the :doc:`pair_style */soft <pair_fep_soft>`
-styles.
-
-----------
-
-.. include:: accel_styles.rst
-
-----------
-
-Mixing, shift, table, tail correction, restart, rRESPA info
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-
-For atom type pairs I,J and I != J, the epsilon and sigma coefficients
-and cutoff distance for all of the lj/cut pair styles can be mixed.
-The default mix value is *geometric*.  See the "pair_modify" command
-for details.
-
-All of the *lj/cut* pair styles support the
-:doc:`pair_modify <pair_modify>` shift option for the energy of the
-Lennard-Jones portion of the pair interaction.
-
-All of the *lj/cut* pair styles support the
-:doc:`pair_modify <pair_modify>` tail option for adding a long-range
-tail correction to the energy and pressure for the Lennard-Jones
-portion of the pair interaction.
-
-All of the *lj/cut* pair styles write their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do
-not need to be specified in an input script that reads a restart file.
-
-The *lj/cut* pair styles support the use of the
-*inner*, *middle*, and *outer* keywords of the :doc:`run_style respa <run_style>` command, meaning the pairwise forces can be
-partitioned by distance at different levels of the rRESPA hierarchy.
-The other styles only support the *pair* keyword of run_style respa.
 See the :doc:`run_style <run_style>` command for details.
 
 ----------
@@ -107,14 +70,6 @@ Related commands
 """"""""""""""""
 
 * :doc:`pair_coeff <pair_coeff>`
-* :doc:`pair_style lj/cut/coul/cut <pair_lj_cut_coul>`
-* :doc:`pair_style lj/cut/coul/debye <pair_lj_cut_coul>`
-* :doc:`pair_style lj/cut/coul/dsf <pair_lj_cut_coul>`
-* :doc:`pair_style lj/cut/coul/long <pair_lj_cut_coul>`
-* :doc:`pair_style lj/cut/coul/msm <pair_lj_cut_coul>`
-* :doc:`pair_style lj/cut/coul/wolf <pair_lj_cut_coul>`
-* :doc:`pair_style lj/cut/tip4p/cut <pair_lj_cut_tip4p>`
-* :doc:`pair_style lj/cut/tip4p/long <pair_lj_cut_tip4p>`
 
 Default
 """""""

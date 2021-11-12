@@ -22,6 +22,12 @@
 #include "modify.h"
 #include "fix.h"
 #include "universe.h"
+#include "update.h"
+#include "utils.h"
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
+#include <mpi.h>
 
 using namespace LAMMPS_NS;
 
@@ -33,18 +39,19 @@ ComputePIKE::ComputePIKE(LAMMPS *lmp, int narg, char **arg) :
   if (narg != 7) error->all(FLERR,"Illegal compute pike command");
 
   int iarg = 3;
-  while (iarg < narg) {
+
+  for (int iarg = 3; iarg < narg - 1; iarg += 2) {
     if (strcmp(arg[iarg], "dp_pimd") == 0) {
       id_fix = arg[iarg+1];
-      iarg += 1;
     }
 
     if (strcmp(arg[iarg], "bead") == 0) {
       if (strcmp(arg[iarg+1], "yes") == 0) bead_flag = 1;
       else if (strcmp(arg[iarg+1], "no") == 0) bead_flag = 0;
-      iarg += 1;
     }
   }
+
+  printf("bead_flag=%d\n", bead_flag);
   scalar_flag = 1;
   extscalar = 1;
 }
@@ -62,15 +69,21 @@ void ComputePIKE::init()
 
 double ComputePIKE::compute_scalar()
 {
+  printf("coming into compute_scalar\n");
   invoked_scalar = update->ntimestep;
 
   double **v = atom->v;
   double *rmass = atom->rmass;
+  printf("before fix_dppimd->mass\n");
   double *mass = fix_dppimd->mass;
+  //for(int i=0; i<atom->nlocal; i++) printf("%.2f ", mass[atom->type[i]]);
+  printf("\n");
+  printf("after fix_dppimd->mass\n");
   int *mask = atom->mask;
   int *type = atom->type;
   int nlocal = atom->nlocal;
 
+  printf("2 oming into compute_scalar\n");
   double ke = 0.0;
 
   if (rmass) {
@@ -85,12 +98,15 @@ double ComputePIKE::compute_scalar()
   }
 
 //   MPI_Allreduce(&ke,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
-  
-  if(bead_flag){
-      MPI_Allreduce(&ke,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
+  double ke_total = 0.0;
+  printf("bead_flag=%d\n", this->bead_flag);
+  if (bead_flag == 1){
+      printf("yes bead!\n");
+      MPI_Allreduce(&ke,&ke_total,1,MPI_DOUBLE,MPI_SUM,world);
   }
-  else{
-      MPI_Allreduce(&ke,&scalar,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
+  else if (bead_flag == 0){
+      printf("no bead!\n");
+    //   MPI_Allreduce(&ke,&ke_total,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
   }
   scalar *= pfactor;
 

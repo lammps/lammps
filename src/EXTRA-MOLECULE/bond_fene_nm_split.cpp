@@ -26,7 +26,6 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using MathConst::MY_CUBEROOT2;
 
 /* ---------------------------------------------------------------------- */
 
@@ -91,8 +90,7 @@ void BondFENEnmSplit::compute(int eflag, int vflag)
 
     fbond = -k[type] / rlogarg;
     // force from n-m term
-    // MY_CUBEROOT2 cutoff assumes sigma = 2^{1/6}
-    if (rsq < MY_CUBEROOT2) {
+    if (rsq < sigma[type]*sigma[type]) {
       r = sqrt(rsq);
       fbond += epsilon[type] * (nn[type] * mm[type] / (nn[type] - mm[type])) *
           (pow(sigma[type] / r, nn[type]) - pow(sigma[type] / r, mm[type])) / rsq;
@@ -102,7 +100,7 @@ void BondFENEnmSplit::compute(int eflag, int vflag)
 
     if (eflag) {
       ebond = -0.5 * k[type] * r0sq * log(rlogarg);
-      if (rsq < MY_CUBEROOT2)
+      if (rsq < sigma[type]*sigma[type])
         ebond += (epsilon[type] / (nn[type] - mm[type])) *
             (mm[type] * pow(sigma[type] / r, nn[type]) - nn[type] * pow(sigma[type] / r, mm[type]));
     }
@@ -260,8 +258,7 @@ double BondFENEnmSplit::single(int type, double rsq, int /*i*/, int /*j*/, doubl
   double eng = -0.5 * k[type] * r0sq * log(rlogarg);
   fforce = -k[type] / rlogarg;
 
-  // MY_CUBEROOT2 cutoff assumes sigma = 2^1/6
-  if (rsq < MY_CUBEROOT2) {
+  if (rsq < sigma[type]*sigma[type]) {
     r = sqrt(rsq);
     fforce += epsilon[type] * (nn[type] * mm[type] / (nn[type] - mm[type])) *
         (pow(sigma[type] / r, nn[type]) - pow(sigma[type] / r, mm[type])) / rsq;

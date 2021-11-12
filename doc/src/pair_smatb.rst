@@ -27,32 +27,32 @@ Examples
 .. code-block:: LAMMPS
 
    pair_style smatb
-   pair_coeff 1 1 2.88 10.35	4.178	0.210	1.818	4.07293506	4.9883063257983666
+   pair_coeff 1 1 2.88 10.35 4.178 0.210 1.818 4.07293506 4.9883063257983666
+
 
 Description
 """""""""""
 
-The *smatb* styles compute the Second Moment Aproximation to the Tight Binding
+The *smatb* styles compute the Second Moment Approximation to the Tight Binding
 :ref:`(Cyrot) <Cyrot>`, :ref:`(Gupta) <Gupta>`, :ref:`(Rosato) <Rosato>`,
 given by
 
 .. math::
 
-      E_{ik} &= A e^{-p \left(\frac{R_{ik}}{R_{0}}-1\right)} -\sqrt{
-            \sum_{j,R_{ij}\leq R_c}\Xi^2
-            e^{-2q\left(\frac{R_{ij}}{R_{0}}-1\right)}}.\qquad R_{ij} < R_{sc}\\
-      E_{ik} &=\left(a_3\left(R_{ik}-R_c\right)^3
-            +a_4\left(R_{ik}-R_c\right)^4
-            +a_5\left(R_{ik}-R_c\right)^5\right) -\sqrt{
-            \sum_{j,R_{ij}\left(
-            x_3\left(R_{ij}-R_c\right)^3
-            +x_4\left(R_{ij}-R_c\right)^4
-            +x_5\left(R_{ij}-R_c\right)^5
-            \right)^2}. \qquad R_{sc} < R_{ij} < r_c
+      E_{ik}  =\left\lbrace\begin{array}{ll}
+       A e^{-p \left(\frac{R_{ik}}{R_{0}}-1\right)}
+      -\sqrt{\sum_{j,R_{ij}\leq R_c}\Xi^2e^{-2q\left(\frac{R_{ij}}{R_{0}}-1\right)}}& R_{ij} < R_{sc}\\
+      {\left(a_3\left(R_{ik}-R_c\right)^3+a_4\left(R_{ik}-R_c\right)^4
+      +a_5\left(R_{ik}-R_c\right)^5\right)
+      -\sqrt{\sum_{j,R_{ij}\leq R_c}\left(x_3\left(R_{ij}-R_c\right)^3
+      +x_4\left(R_{ij}-R_c\right)^4+x_5\left(R_{ij}-R_c\right)^5\right)^2}} & R_{sc} < R_{ij} < r_c
+      \end{array}
+      \right.
 
-The polynomial coefficients a3, a4, a5, x3, x4, x5 are computed by LAMMPS smoothly
-link the two exponential to zero from the inner cutoff :math:`R_{sc}` to the
-outer cutoff :math:`R_c`.
+The polynomial coefficients :math:`a_3`, :math:`a_4`, :math:`a_5`, :math:`x_3`,
+:math:`x_4`, :math:`x_5` are computed by LAMMPS smoothly
+link the two exponentials and their first and second order derivatives to zero 
+from the inner cutoff :math:`R_{sc}` to the outer cutoff :math:`R_c`.
 
 
 Coefficients
@@ -72,17 +72,17 @@ file or restart files read by the :doc:`read_data <read_data>` or
 * :math:`R_c` (distance units)
 
 
-Note that : when :math:`R_{cs} < R_{ij} < R_c` the exponentials are substituted
-by a polynomial in the form:
-:math:`P(R_{ij}) = P_3\left(R_{ij}-R_c\right)^3+P_4\left(R_{ij}-R_c\right)^4+P_5\left(R_{ij}-R_c\right)^5`,
-where :math:`P_3`, :math:`P_4` nd :math:`P_5` are calculated at the
-initialization of the potential in order to guarantee the continuity of the 
-function, of the first and of the second derivateves in :math:`R_{cs}`,
-moreover the vaule of :math:`P(R_{ij})` and of its first and second derivative
-is automatically zero in the end of the cutoff :math:`R_c` due to its polynomial
-form.
+Note that: :math:`R_{0}` is the nearest neighbour distance, usually coincides
+with the diameter of the atoms
 
 See the :doc:`run_style <run_style>` command for details.
+
+----------
+
+Mixing info
+"""""""""""
+
+For atom type pairs I,J and I != J the coefficients are not automatically mixed.
 
 ----------
 

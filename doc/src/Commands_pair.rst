@@ -240,6 +240,8 @@ OPT.
    * :doc:`rebo (io) <pair_airebo>`
    * :doc:`resquared (go) <pair_resquared>`
    * :doc:`sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>`
+   * :doc:`smatb <pair_smatb>`
+   * :doc:`smatb/single<pair_smatb>`
    * :doc:`smd/hertz <pair_smd_hertz>`
    * :doc:`smd/tlsph <pair_smd_tlsph>`
    * :doc:`smd/tri_surface <pair_smd_triangulated_surface>`

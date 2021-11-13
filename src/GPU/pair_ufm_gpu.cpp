@@ -136,10 +136,6 @@ void PairUFMGPU::init_style()
 {
 //  cut_respa = nullptr;
 
-/*
-  if (force->newton_pair)
-    error->all(FLERR,"Pair style ufm/gpu requires newton pair off");
-*/
 
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;

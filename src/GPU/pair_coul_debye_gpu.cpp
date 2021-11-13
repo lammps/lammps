@@ -138,10 +138,6 @@ void PairCoulDebyeGPU::init_style()
   if (!atom->q_flag)
     error->all(FLERR,"Pair style coul/debye/gpu requires atom attribute q");
 
-/*
-  if (force->newton_pair)
-    error->all(FLERR,"Pair style coul/debye/gpu requires newton pair off");
-*/
 
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;

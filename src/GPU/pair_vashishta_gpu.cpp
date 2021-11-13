@@ -156,10 +156,6 @@ void PairVashishtaGPU::init_style()
 
   if (atom->tag_enable == 0)
     error->all(FLERR,"Pair style vashishta/gpu requires atom IDs");
-/*
-  if (force->newton_pair != 0)
-    error->all(FLERR,"Pair style vashishta/gpu requires newton pair off");
-*/
 
   double *cutsq, *r0, *gamma, *eta;
   double *lam1inv, *lam4inv, *zizj, *mbigd;

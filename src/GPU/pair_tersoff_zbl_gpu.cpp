@@ -155,10 +155,6 @@ void PairTersoffZBLGPU::init_style()
 
   if (atom->tag_enable == 0)
     error->all(FLERR,"Pair style tersoff/zbl/gpu requires atom IDs");
-/*
-  if (force->newton_pair != 0)
-    error->all(FLERR,"Pair style tersoff/zbl/gpu requires newton pair off");
-*/
 
   double *lam1, *lam2, *lam3, *powermint;
   double *biga, *bigb, *bigr, *bigd;

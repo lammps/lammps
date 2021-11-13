@@ -144,10 +144,6 @@ void PairLJCutCoulMSMGPU::init_style()
   if (!atom->q_flag)
     error->all(FLERR,"Pair style lj/cut/coul/cut/gpu requires atom attribute q");
 
-/*
-  if (force->newton_pair)
-    error->all(FLERR,"Pair style lj/cut/coul/msm/gpu requires newton pair off");
-*/
 
   if (force->kspace->scalar_pressure_flag)
     error->all(FLERR,"Must use 'kspace_modify pressure/scalar no' with GPU MSM Pair styles");

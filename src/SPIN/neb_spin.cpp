@@ -78,7 +78,8 @@ NEBSpin::~NEBSpin()
 {
   MPI_Comm_free(&roots);
   memory->destroy(all);
-  delete [] rdist;
+  delete[] rdist;
+  if (fp) fclose(fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -373,8 +374,8 @@ void NEBSpin::readfile(char *file, int flag)
   double xx,yy,zz;
   double musp,spx,spy,spz;
 
-  if (me_universe == 0 && screen)
-    fprintf(screen,"Reading NEBSpin coordinate file(s) ...\n");
+  if (me_universe == 0 && universe->uscreen)
+    fprintf(universe->uscreen,"Reading NEBSpin coordinate file(s) ...\n");
 
   // flag = 0, universe root reads header of file, bcast to universe
   // flag = 1, each replica's root reads header of file, bcast to world
@@ -546,8 +547,8 @@ void NEBSpin::readfile(char *file, int flag)
 
   // clean up
 
-  delete [] buffer;
-  delete [] values;
+  delete[] buffer;
+  delete[] values;
 
   if (flag == 0) {
     if (me_universe == 0) {
@@ -560,6 +561,7 @@ void NEBSpin::readfile(char *file, int flag)
       else fclose(fp);
     }
   }
+  fp = nullptr;
 }
 
 /* ----------------------------------------------------------------------

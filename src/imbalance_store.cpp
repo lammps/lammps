@@ -44,18 +44,17 @@ int ImbalanceStore::options(int narg, char **arg)
 
 void ImbalanceStore::compute(double *weight)
 {
-  int dflag = 0;
-  int idx = atom->find_custom(name,dflag);
+  int flag,cols;
+  int index = atom->find_custom(name,flag,cols);
 
   // property does not exist
 
-  if (idx < 0 || dflag != 1) return;
+  if (index < 0 || flag != 1 || cols)
+    error->all(FLERR,"Balance weight store vector does not exist");
 
-  double *prop = atom->dvector[idx];
+  double *prop = atom->dvector[index];
   const int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; ++i)
-    prop[i] = weight[i];
+  for (int i = 0; i < nlocal; ++i) prop[i] = weight[i];
 }
 
 /* -------------------------------------------------------------------- */

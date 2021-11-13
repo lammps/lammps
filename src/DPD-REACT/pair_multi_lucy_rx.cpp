@@ -436,7 +436,7 @@ void PairMultiLucyRX::coeff(int narg, char **arg)
   else {
      isite1 = nspecies;
      for (int ispecies = 0; ispecies < nspecies; ++ispecies)
-        if (strcmp(site1, atom->dname[ispecies]) == 0) {
+        if (strcmp(site1, atom->dvname[ispecies]) == 0) {
            isite1 = ispecies;
            break;
         }
@@ -450,7 +450,7 @@ void PairMultiLucyRX::coeff(int narg, char **arg)
   else {
      isite2 = nspecies;
      for (int ispecies = 0; ispecies < nspecies; ++ispecies)
-        if (strcmp(site2, atom->dname[ispecies]) == 0) {
+        if (strcmp(site2, atom->dvname[ispecies]) == 0) {
            isite2 = ispecies;
            break;
         }

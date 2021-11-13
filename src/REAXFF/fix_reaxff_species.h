@@ -61,8 +61,6 @@ class FixReaxFFSpecies : public Fix {
   char *ele, **eletype, *filepos;
 
   void Output_ReaxFF_Bonds(bigint, FILE *);
-  void create_compute();
-  void create_fix();
   AtomCoord chAnchor(AtomCoord, AtomCoord);
   virtual void FindMolecule();
   void SortMolecule(int &);
@@ -82,7 +80,6 @@ class FixReaxFFSpecies : public Fix {
   class NeighList *list;
   class FixAveAtom *f_SPECBOND;
   class PairReaxFF *reaxff;
-
 };
 }
 

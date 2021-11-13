@@ -74,7 +74,8 @@ protected:
     }
 };
 
-#define MAX_BUF_SIZE 128
+static constexpr int MAX_BUF_SIZE=128;
+
 TEST_F(FileOperationsTest, safe_fgets)
 {
     char buf[MAX_BUF_SIZE];
@@ -110,7 +111,6 @@ TEST_F(FileOperationsTest, safe_fgets)
     fclose(fp);
 }
 
-#define MAX_BUF_SIZE 128
 TEST_F(FileOperationsTest, fgets_trunc)
 {
     char buf[MAX_BUF_SIZE];
@@ -119,13 +119,15 @@ TEST_F(FileOperationsTest, fgets_trunc)
     FILE *fp = fopen("safe_file_read_test.txt", "rb");
     ASSERT_NE(fp, nullptr);
 
+    // read line shorter than buffer
     memset(buf, 0, MAX_BUF_SIZE);
     ptr = utils::fgets_trunc(buf, MAX_BUF_SIZE, fp);
     ASSERT_THAT(buf, StrEq("one line\n"));
     ASSERT_NE(ptr,nullptr);
 
+    // read line of exactly the buffer length
     memset(buf, 0, MAX_BUF_SIZE);
-    ptr = utils::fgets_trunc(buf, MAX_BUF_SIZE, fp);
+    ptr = utils::fgets_trunc(buf, sizeof("two_lines\n"), fp);
     ASSERT_THAT(buf, StrEq("two_lines\n"));
     ASSERT_NE(ptr,nullptr);
 
@@ -172,7 +174,6 @@ TEST_F(FileOperationsTest, fgets_trunc)
     fclose(fp);
 }
 
-#define MAX_BUF_SIZE 128
 TEST_F(FileOperationsTest, safe_fread)
 {
     char buf[MAX_BUF_SIZE];

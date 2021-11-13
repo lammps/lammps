@@ -34,7 +34,7 @@
 #include <cmath>
 #include <cstring>
 
-#ifdef LMP_USER_OMP
+#ifdef LMP_OPENMP
 #include "modify.h"
 #include "fix_omp.h"
 #include "thr_data.h"
@@ -48,7 +48,7 @@ static void mpi_timings(const char *label, Timer *t, enum Timer::ttype tt,
                         MPI_Comm world, const int nprocs, const int nthreads,
                         const int me, double time_loop, FILE *scr, FILE *log);
 
-#ifdef LMP_USER_OMP
+#ifdef LMP_OPENMP
 static void omp_times(FixOMP *fix, const char *label, enum Timer::ttype which,
                       const int nthreads,FILE *scr, FILE *log);
 #endif
@@ -363,7 +363,7 @@ void Finish::end(int flag)
     }
   }
 
-#ifdef LMP_USER_OMP
+#ifdef LMP_OPENMP
   int ifix = modify->find_fix("package_omp");
 
   // print thread breakdown only with full timer detail
@@ -691,7 +691,7 @@ void mpi_timings(const char *label, Timer *t, enum Timer::ttype tt,
 
 /* ---------------------------------------------------------------------- */
 
-#ifdef LMP_USER_OMP
+#ifdef LMP_OPENMP
 void omp_times(FixOMP *fix, const char *label, enum Timer::ttype which,
                       const int nthreads,FILE *scr, FILE *log)
 {

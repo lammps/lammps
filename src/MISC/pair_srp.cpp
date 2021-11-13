@@ -84,8 +84,7 @@ PairSRP::PairSRP(LAMMPS *lmp) : Pair(lmp), fix_id(nullptr)
   //   will be invoked before other fixes that migrate atoms
   //   this is checked for in FixSRP
 
-  modify->add_fix(fmt::format("{:02d}_FIX_SRP all SRP",srp_instance));
-  f_srp = (FixSRP *) modify->fix[modify->nfix-1];
+  f_srp = (FixSRP *) modify->add_fix(fmt::format("{:02d}_FIX_SRP all SRP",srp_instance));
   ++srp_instance;
 }
 

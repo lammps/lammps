@@ -19,19 +19,19 @@
 
 #include "compute_temp_cs.h"
 
-#include <cstring>
-
 #include "atom.h"
 #include "atom_vec.h"
+#include "comm.h"
 #include "domain.h"
-#include "update.h"
+#include "error.h"
+#include "fix_store.h"
 #include "force.h"
 #include "group.h"
-#include "modify.h"
-#include "fix_store.h"
-#include "comm.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
 
 
 using namespace LAMMPS_NS;
@@ -74,8 +74,7 @@ ComputeTempCS::ComputeTempCS(LAMMPS *lmp, int narg, char **arg) :
   strcpy(id_fix,fixcmd.c_str());
 
   fixcmd += fmt::format(" {} STORE peratom 0 1", group->names[igroup]);
-  modify->add_fix(fixcmd);
-  fix = (FixStore *) modify->fix[modify->nfix-1];
+  fix = (FixStore *)modify->add_fix(fixcmd);
 
   // set fix store values = 0 for now
   // fill them in via setup() once Comm::borders() has been called

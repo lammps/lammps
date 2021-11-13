@@ -28,8 +28,8 @@
 #include "region.h"
 #include "update.h"
 #include "variable.h"
-
-#include <cstring>
+#include "fmt/format.h"
+#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -44,7 +44,7 @@ enum{ID,MOL,PROC,PROCP1,TYPE,ELEMENT,MASS,
      Q,MUX,MUY,MUZ,MU,RADIUS,DIAMETER,
      OMEGAX,OMEGAY,OMEGAZ,ANGMOMX,ANGMOMY,ANGMOMZ,
      TQX,TQY,TQZ,
-     COMPUTE,FIX,VARIABLE,INAME,DNAME};
+     COMPUTE,FIX,VARIABLE,IVEC,DVEC,IARRAY,DARRAY};
 enum{LT,LE,GT,GE,EQ,NEQ,XOR};
 
 #define ONEFIELD 32
@@ -55,12 +55,15 @@ enum{LT,LE,GT,GE,EQ,NEQ,XOR};
 DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   Dump(lmp, narg, arg),
   idregion(nullptr), thresh_array(nullptr), thresh_op(nullptr), thresh_value(nullptr),
-  thresh_last(nullptr), thresh_fix(nullptr), thresh_fixID(nullptr), thresh_first(nullptr),
+  thresh_last(nullptr), thresh_fix(nullptr),
+  thresh_fixID(nullptr), thresh_first(nullptr),
   earg(nullptr), vtype(nullptr), vformat(nullptr), columns(nullptr), choose(nullptr),
-  dchoose(nullptr), clist(nullptr), field2index(nullptr), argindex(nullptr), id_compute(nullptr),
-  compute(nullptr), id_fix(nullptr), fix(nullptr), id_variable(nullptr), variable(nullptr),
-  vbuf(nullptr), id_custom(nullptr), flag_custom(nullptr), typenames(nullptr),
-  pack_choice(nullptr)
+  dchoose(nullptr), clist(nullptr), field2index(nullptr),
+  argindex(nullptr), id_compute(nullptr),
+  compute(nullptr), id_fix(nullptr), fix(nullptr),
+  id_variable(nullptr), variable(nullptr),
+  vbuf(nullptr), id_custom(nullptr), custom(nullptr), custom_flag(nullptr),
+  typenames(nullptr), pack_choice(nullptr)
 {
   if (narg == 5) error->all(FLERR,"No dump custom arguments specified");
 
@@ -118,7 +121,8 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
 
   ncustom = 0;
   id_custom = nullptr;
-  flag_custom = nullptr;
+  custom = nullptr;
+  custom_flag = nullptr;
 
   // process attributes
   // ioptional = start of additional optional args in expanded args
@@ -234,7 +238,8 @@ DumpCustom::~DumpCustom()
 
   for (int i = 0; i < ncustom; i++) delete[] id_custom[i];
   memory->sfree(id_custom);
-  memory->sfree(flag_custom);
+  delete [] custom;
+  delete [] custom_flag;
 
   memory->destroy(choose);
   memory->destroy(dchoose);
@@ -314,7 +319,7 @@ void DumpCustom::init_style()
   else if (buffer_flag == 1) write_choice = &DumpCustom::write_string;
   else write_choice = &DumpCustom::write_lines;
 
-  // find current ptr for each compute,fix,variable
+  // find current ptr for each compute,fix,variable and custom atom property
   // check that fix frequency is acceptable
 
   for (i = 0; i < ncompute; i++) {
@@ -338,10 +343,16 @@ void DumpCustom::init_style()
     variable[i] = ivariable;
   }
 
-  for (i = 0; i < ncustom; i++) {
-    int icustom = atom->find_custom(id_custom[i],flag_custom[i]);
+  int icustom,flag,cols;
+  for (int i = 0; i < ncustom; i++) {
+    icustom = atom->find_custom(id_custom[i],flag,cols);
     if (icustom < 0)
-      error->all(FLERR,"Could not find custom per-atom property ID");
+      error->all(FLERR,"Could not find dump custom atom property name");
+    custom[i] = icustom;
+    if (!flag && !cols) custom_flag[i] = IVEC;
+    else if (flag && !cols) custom_flag[i] = DVEC;
+    else if (!flag && cols) custom_flag[i] = IARRAY;
+    else if (flag && cols) custom_flag[i] = DARRAY;
   }
 
   // set index and check validity of region
@@ -1021,23 +1032,37 @@ int DumpCustom::count()
         ptr = vbuf[field2index[i]];
         nstride = 1;
 
-      } else if (thresh_array[ithresh] == DNAME) {
-        int iwhich,tmp;
+      } else if (thresh_array[ithresh] == IVEC) {
         i = nfield + ithresh;
-        iwhich = atom->find_custom(id_custom[field2index[i]],tmp);
-        ptr = atom->dvector[iwhich];
-        nstride = 1;
-
-      } else if (thresh_array[ithresh] == INAME) {
-        int iwhich,tmp;
-        i = nfield + ithresh;
-        iwhich = atom->find_custom(id_custom[field2index[i]],tmp);
-
+        int iwhich = custom[field2index[i]];
         int *ivector = atom->ivector[iwhich];
         for (i = 0; i < nlocal; i++)
           dchoose[i] = ivector[i];
         ptr = dchoose;
         nstride = 1;
+
+      } else if (thresh_array[ithresh] == DVEC) {
+	i = nfield + ithresh;
+        int iwhich = custom[field2index[i]];
+        ptr = atom->dvector[iwhich];
+	nstride = 1;
+
+      } else if (thresh_array[ithresh] == IARRAY) {
+        i = nfield + ithresh;
+        int iwhich = custom[field2index[i]];
+        int **iarray = atom->iarray[iwhich];
+	int icol = argindex[i] - 1;
+        for (i = 0; i < nlocal; i++)
+          dchoose[i] = iarray[i][icol];
+        ptr = dchoose;
+        nstride = 1;
+
+      } else if (thresh_array[ithresh] == DARRAY) {
+        i = nfield + ithresh;
+        int iwhich = custom[field2index[i]];
+        double **darray = atom->darray[iwhich];
+	ptr = &darray[0][argindex[i]-1];
+	nstride = atom->dcols[iwhich];
       }
 
       // unselect atoms that don't meet threshold criterion
@@ -1240,7 +1265,6 @@ int DumpCustom::parse_fields(int narg, char **arg)
   // customize by adding to if statement
 
   for (int iarg = 0; iarg < narg; iarg++) {
-
     if (strcmp(arg[iarg],"id") == 0) {
       pack_choice[iarg] = &DumpCustom::pack_id;
       if (sizeof(tagint) == sizeof(smallint)) vtype[iarg] = Dump::INT;
@@ -1423,9 +1447,10 @@ int DumpCustom::parse_fields(int narg, char **arg)
       pack_choice[iarg] = &DumpCustom::pack_tqz;
       vtype[iarg] = Dump::DOUBLE;
 
-    } else {
+    // compute or fix or variable or custom vector/array
 
-      int n,tmp;
+    } else {
+      int n,flag,cols;
       ArgInfo argi(arg[iarg],ArgInfo::COMPUTE|ArgInfo::FIX|ArgInfo::VARIABLE
                    |ArgInfo::DNAME|ArgInfo::INAME);
       argindex[iarg] = argi.get_index1();
@@ -1437,8 +1462,8 @@ int DumpCustom::parse_fields(int narg, char **arg)
         error->all(FLERR,"Invalid attribute in dump custom command");
         break;
 
-        // compute value = c_ID
-        // if no trailing [], then arg is set to 0, else arg is int between []
+      // compute value = c_ID
+      // if no trailing [], then arg is set to 0, else arg is int between []
 
       case ArgInfo::COMPUTE:
         pack_choice[iarg] = &DumpCustom::pack_compute;
@@ -1459,8 +1484,8 @@ int DumpCustom::parse_fields(int narg, char **arg)
         field2index[iarg] = add_compute(name);
         break;
 
-        // fix value = f_ID
-        // if no trailing [], then arg is set to 0, else arg is between []
+      // fix value = f_ID
+      // if no trailing [], then arg is set to 0, else arg is between []
 
       case ArgInfo::FIX:
         pack_choice[iarg] = &DumpCustom::pack_fix;
@@ -1481,7 +1506,7 @@ int DumpCustom::parse_fields(int narg, char **arg)
         field2index[iarg] = add_fix(name);
         break;
 
-        // variable value = v_name
+      // variable value = v_name
 
       case ArgInfo::VARIABLE:
         pack_choice[iarg] = &DumpCustom::pack_variable;
@@ -1495,39 +1520,56 @@ int DumpCustom::parse_fields(int narg, char **arg)
         field2index[iarg] = add_variable(name);
         break;
 
-        // custom per-atom floating point value = d_ID
+      // custom per-atom floating point vector or array
 
       case ArgInfo::DNAME:
         pack_choice[iarg] = &DumpCustom::pack_custom;
         vtype[iarg] = Dump::DOUBLE;
 
-        tmp = -1;
-        n = atom->find_custom(name,tmp);
+        n = atom->find_custom(name,flag,cols);
+
         if (n < 0)
           error->all(FLERR,"Could not find custom per-atom property ID: {}", name);
-
-        if (tmp != 1)
-          error->all(FLERR,"Custom per-atom property ID {} is not floating point", name);
+        if (argindex[iarg] == 0) {
+          if (!flag || cols)
+            error->all(FLERR,"Property double vector for dump custom does not exist");
+        } else {
+          if (!flag || !cols)
+            error->all(FLERR,"Property double array for dump custom does not exist");
+          if (argindex[iarg] > atom->dcols[n])
+            error->all(FLERR,"Dump custom property array is accessed out-of-range");
+        }
 
         field2index[iarg] = add_custom(name,1);
         break;
 
-        // custom per-atom integer value = i_ID
+      // custom per-atom integer vector or array
 
       case ArgInfo::INAME:
         pack_choice[iarg] = &DumpCustom::pack_custom;
         vtype[iarg] = Dump::INT;
 
-        tmp = -1;
-        n = atom->find_custom(name,tmp);
+        n = atom->find_custom(name,flag,cols);
+
         if (n < 0)
           error->all(FLERR,"Could not find custom per-atom property ID: {}", name);
-
-        if (tmp != 0)
-          error->all(FLERR,"Custom per-atom property ID {} is not integer", name);
+        if (argindex[iarg] == 0) {
+          if (flag || cols)
+            error->all(FLERR,
+                       "Property integer vector for dump custom does not exist");
+        } else {
+          if (flag || !cols)
+            error->all(FLERR,
+                       "Property integer array for dump custom does not exist");
+          if (argindex[iarg] > atom->icols[n])
+            error->all(FLERR,
+                       "Dump custom property array is accessed out-of-range");
+        }
 
         field2index[iarg] = add_custom(name,0);
         break;
+
+      // no match
 
       default:
         return iarg;
@@ -1613,7 +1655,7 @@ int DumpCustom::add_variable(const char *id)
 
 /* ----------------------------------------------------------------------
    add custom atom property to list used by dump
-   return index of where this property is in list
+   return index of where this property is in Atom class custom lists
    if already in list, do not add, just return index, else add to list
 ------------------------------------------------------------------------- */
 
@@ -1621,19 +1663,21 @@ int DumpCustom::add_custom(const char *id, int flag)
 {
   int icustom;
   for (icustom = 0; icustom < ncustom; icustom++)
-    if ((strcmp(id,id_custom[icustom]) == 0)
-        && (flag == flag_custom[icustom])) break;
+    if (strcmp(id,id_custom[icustom]) == 0) break;
   if (icustom < ncustom) return icustom;
 
   id_custom = (char **)
     memory->srealloc(id_custom,(ncustom+1)*sizeof(char *),"dump:id_custom");
-  flag_custom = (int *)
-    memory->srealloc(flag_custom,(ncustom+1)*sizeof(int),"dump:flag_custom");
+
+  delete [] custom;
+  custom = new int[ncustom+1];
+  delete [] custom_flag;
+  custom_flag = new int[ncustom+1];
 
   id_custom[ncustom] = utils::strdup(id);
-  flag_custom[ncustom] = flag;
-
+  custom_flag[ncustom] = flag;
   ncustom++;
+
   return ncustom-1;
 }
 
@@ -1717,7 +1761,7 @@ int DumpCustom::modify_param(int narg, char **arg)
     ArgInfo argi(arg[1],ArgInfo::COMPUTE);
     if ((argi.get_type() != ArgInfo::COMPUTE) || (argi.get_dim() != 0))
       error->all(FLERR,"Illegal dump_modify command");
-    if (refreshflag) error->all(FLERR,"Dump modify can only have one refresh");
+    if (refreshflag) error->all(FLERR,"Dump_modify can only have one refresh");
 
     refreshflag = 1;
     refresh = argi.copy_name();
@@ -1837,14 +1881,14 @@ int DumpCustom::modify_param(int narg, char **arg)
     else if (strcmp(arg[1],"tqy") == 0) thresh_array[nthresh] = TQY;
     else if (strcmp(arg[1],"tqz") == 0) thresh_array[nthresh] = TQZ;
 
+    // compute or fix or variable or custom vector/array
+    // must grow field2index and argindex arrays, since access is beyond nfield
+
     else {
-
-      // must grow field2index and argindex arrays, since access is beyond nfield
-
       memory->grow(field2index,nfield+nthresh+1,"dump:field2index");
       memory->grow(argindex,nfield+nthresh+1,"dump:argindex");
 
-      int n,tmp;
+      int n,flag,cols;
       ArgInfo argi(arg[1],ArgInfo::COMPUTE|ArgInfo::FIX|ArgInfo::VARIABLE
                    |ArgInfo::DNAME|ArgInfo::INAME);
       argindex[nfield+nthresh] = argi.get_index1();
@@ -1856,8 +1900,8 @@ int DumpCustom::modify_param(int narg, char **arg)
         error->all(FLERR,"Invalid attribute in dump modify command");
         break;
 
-        // compute value = c_ID
-        // if no trailing [], then arg is set to 0, else arg is between []
+      // compute value = c_ID
+      // if no trailing [], then arg is set to 0, else arg is between []
 
       case ArgInfo::COMPUTE:
         thresh_array[nthresh] = COMPUTE;
@@ -1877,8 +1921,8 @@ int DumpCustom::modify_param(int narg, char **arg)
         field2index[nfield+nthresh] = add_compute(name);
         break;
 
-        // fix value = f_ID
-        // if no trailing [], then arg is set to 0, else arg is between []
+      // fix value = f_ID
+      // if no trailing [], then arg is set to 0, else arg is between []
 
       case ArgInfo::FIX:
         thresh_array[nthresh] = FIX;
@@ -1897,8 +1941,7 @@ int DumpCustom::modify_param(int narg, char **arg)
         field2index[nfield+nthresh] = add_fix(name);
         break;
 
-        // variable value = v_ID
-        // must grow field2index and argindex arrays, since access is beyond nfield
+      // variable value = v_ID
 
       case ArgInfo::VARIABLE:
         thresh_array[nthresh] = VARIABLE;
@@ -1910,29 +1953,57 @@ int DumpCustom::modify_param(int narg, char **arg)
         field2index[nfield+nthresh] = add_variable(name);
         break;
 
-        // custom per atom floating point value = d_ID
+      // custom per atom floating point vector or array
 
       case ArgInfo::DNAME:
-        thresh_array[nthresh] = DNAME;
-        tmp = -1;
-        n = atom->find_custom(name,tmp);
-        if ((n < 0) || (tmp != 1))
-          error->all(FLERR,"Could not find dump modify custom atom floating point property ID: {}",name);
+        n = atom->find_custom(name,flag,cols);
 
-        field2index[nfield+nthresh] = add_custom(name,1);
-        break;
-
-        // custom per atom integer value = i_ID
-
-      case ArgInfo::INAME:
-        thresh_array[nthresh] = INAME;
-        tmp = -1;
-        n = atom->find_custom(name,tmp);
-        if ((n < 0) || (tmp != 0))
-          error->all(FLERR,"Could not find dump modify custom atom integer property ID: {}",name);
+        if (n < 0)
+          error->all(FLERR,"Could not find custom per-atom property ID: {}", name);
+        if (argindex[nfield+nthresh] == 0) {
+          if (flag || cols)
+            error->all(FLERR,
+                       "Property double vector for dump custom does not exist");
+          thresh_array[nthresh] = DVEC;
+        } else {
+          if (flag || !cols)
+            error->all(FLERR,
+                       "Property double array for dump custom does not exist");
+          if (argindex[nfield+nthresh] > atom->dcols[n])
+            error->all(FLERR,
+                       "Dump custom property array is accessed out-of-range");
+          thresh_array[nthresh] = DARRAY;
+        }
 
         field2index[nfield+nthresh] = add_custom(name,0);
         break;
+
+      // custom per atom integer vector or array
+
+      case ArgInfo::INAME:
+        n = atom->find_custom(name,flag,cols);
+
+        if (n < 0)
+          error->all(FLERR,"Could not find custom per-atom property ID: {}", name);
+        if (argindex[nfield+nthresh] == 0) {
+          if (flag || cols)
+            error->all(FLERR,
+                       "Property integer vector for dump custom does not exist");
+          thresh_array[nthresh] = IVEC;
+        } else {
+          if (flag || !cols)
+            error->all(FLERR,
+                       "Property integer array for dump custom does not exist");
+          if (argindex[nfield+nthresh] > atom->icols[n])
+            error->all(FLERR,
+                       "Dump custom property array is accessed out-of-range");
+          thresh_array[nthresh] = IARRAY;
+        }
+
+        field2index[nfield+nthresh] = add_custom(name,0);
+        break;
+
+      // no match
 
       default:
         error->all(FLERR,"Invalid dump_modify thresh attribute: {}",name);
@@ -1960,18 +2031,15 @@ int DumpCustom::modify_param(int narg, char **arg)
       thresh_last[nthresh] = -1;
     } else {
       thresh_fix = (FixStore **)
-        memory->srealloc(thresh_fix,(nthreshlast+1)*sizeof(FixStore *),
-                         "dump:thresh_fix");
+        memory->srealloc(thresh_fix,(nthreshlast+1)*sizeof(FixStore *),"dump:thresh_fix");
       thresh_fixID = (char **)
-        memory->srealloc(thresh_fixID,(nthreshlast+1)*sizeof(char *),
-                         "dump:thresh_fixID");
+        memory->srealloc(thresh_fixID,(nthreshlast+1)*sizeof(char *),"dump:thresh_fixID");
       memory->grow(thresh_first,(nthreshlast+1),"dump:thresh_first");
 
       std::string threshid = fmt::format("{}{}_DUMP_STORE",id,nthreshlast);
       thresh_fixID[nthreshlast] = utils::strdup(threshid);
-      modify->add_fix(fmt::format("{} {} STORE peratom 1 1",threshid,
-                                  group->names[igroup]));
-      thresh_fix[nthreshlast] = (FixStore *) modify->fix[modify->nfix-1];
+      threshid += fmt::format(" {} STORE peratom 1 1", group->names[igroup]);
+      thresh_fix[nthreshlast] = (FixStore *) modify->add_fix(threshid);
 
       thresh_last[nthreshlast] = nthreshlast;
       thresh_first[nthreshlast] = 1;
@@ -2061,25 +2129,34 @@ void DumpCustom::pack_variable(int n)
 
 void DumpCustom::pack_custom(int n)
 {
+  int flag = custom_flag[field2index[n]];
+  int iwhich = custom[field2index[n]];
+  int index = argindex[n];
 
-  int index = field2index[n];
-
-  if (flag_custom[index] == 0) { // integer
-    int iwhich,tmp;
-    iwhich = atom->find_custom(id_custom[index],tmp);
-
+  if (flag == IVEC) {
     int *ivector = atom->ivector[iwhich];
     for (int i = 0; i < nchoose; i++) {
       buf[n] = ivector[clist[i]];
       n += size_one;
     }
-  } else if (flag_custom[index] == 1) { // double
-    int iwhich,tmp;
-    iwhich = atom->find_custom(id_custom[index],tmp);
-
+  } else if (flag == DVEC) {
     double *dvector = atom->dvector[iwhich];
     for (int i = 0; i < nchoose; i++) {
       buf[n] = dvector[clist[i]];
+      n += size_one;
+    }
+  } else if (flag == IARRAY) {
+    index--;
+    int **iarray = atom->iarray[iwhich];
+    for (int i = 0; i < nchoose; i++) {
+      buf[n] = iarray[clist[i]][index];
+      n += size_one;
+    }
+  } else if (flag == DARRAY) {
+    index--;
+    double **darray = atom->darray[iwhich];
+    for (int i = 0; i < nchoose; i++) {
+      buf[n] = darray[clist[i]][index];
       n += size_one;
     }
   }

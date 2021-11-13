@@ -16,7 +16,7 @@
 
 #include <cstdlib>
 
-#if defined(LMP_USER_INTEL) && !defined(LAMMPS_MEMALIGN) && !defined(_WIN32)
+#if defined(LMP_INTEL) && !defined(LAMMPS_MEMALIGN) && !defined(_WIN32)
 #define LAMMPS_MEMALIGN 64
 #endif
 

@@ -11,6 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#include "../testing/core.h"
 #include "atom.h"
 #include "atom_vec_body.h"
 #include "atom_vec_ellipsoid.h"
@@ -24,7 +25,6 @@
 #include "utils.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "../testing/core.h"
 
 #include <cmath>
 #include <cstdio>
@@ -48,7 +48,7 @@
 
 using LAMMPS_NS::utils::split_words;
 
-static void create_molecule_files(const std::string & h2o_filename, const std::string & co2_filename)
+static void create_molecule_files(const std::string &h2o_filename, const std::string &co2_filename)
 {
     // create molecule files
     const char h2o_file[] = "# Water molecule. SPC/E model.\n\n3 atoms\n2 bonds\n1 angles\n\n"
@@ -95,11 +95,10 @@ using ::testing::Eq;
 
 class AtomStyleTest : public LAMMPSTest {
 protected:
-    static void SetUpTestSuite() {
-        create_molecule_files("h2o.mol", "co2.mol");
-    }
+    static void SetUpTestSuite() { create_molecule_files("h2o.mol", "co2.mol"); }
 
-    static void TearDownTestSuite() {
+    static void TearDownTestSuite()
+    {
         remove("h2o.mol");
         remove("co2.mol");
     }
@@ -237,8 +236,10 @@ struct AtomState {
     bool has_dihedral = false;
     bool has_improper = false;
 
-    bool has_iname        = false;
-    bool has_dname        = false;
+    bool has_ivname       = false;
+    bool has_dvname       = false;
+    bool has_ianame       = false;
+    bool has_daname       = false;
     bool has_mass         = false;
     bool has_mass_setflag = false;
 
@@ -444,8 +445,10 @@ void ASSERT_ATOM_STATE_EQ(Atom *atom, const AtomState &expected)
     ASSERT_EQ(atom->nivector, expected.nivector);
     ASSERT_EQ(atom->ndvector, expected.ndvector);
 
-    ASSERT_ARRAY_ALLOCATED(atom->iname, expected.has_iname);
-    ASSERT_ARRAY_ALLOCATED(atom->dname, expected.has_dname);
+    ASSERT_ARRAY_ALLOCATED(atom->ivname, expected.has_ivname);
+    ASSERT_ARRAY_ALLOCATED(atom->dvname, expected.has_dvname);
+    ASSERT_ARRAY_ALLOCATED(atom->ianame, expected.has_ianame);
+    ASSERT_ARRAY_ALLOCATED(atom->daname, expected.has_daname);
     ASSERT_ARRAY_ALLOCATED(atom->mass, expected.has_mass);
     ASSERT_ARRAY_ALLOCATED(atom->mass_setflag, expected.has_mass_setflag);
 
@@ -4555,7 +4558,8 @@ TEST_F(AtomStyleTest, property_atom)
 {
     BEGIN_HIDE_OUTPUT();
     command("atom_modify map array");
-    command("fix Properties all property/atom i_one d_two mol d_three q rmass ghost yes");
+    command("fix Properties all property/atom "
+            "i_one d_two mol d_three q rmass i2_four 2 d2_five 3 ghost yes");
     END_HIDE_OUTPUT();
 
     AtomState expected;
@@ -4570,8 +4574,10 @@ TEST_F(AtomStyleTest, property_atom)
     expected.has_x              = true;
     expected.has_v              = true;
     expected.has_f              = true;
-    expected.has_iname          = true;
-    expected.has_dname          = true;
+    expected.has_ivname         = true;
+    expected.has_dvname         = true;
+    expected.has_ianame         = true;
+    expected.has_daname         = true;
     expected.has_extra_grow     = true;
     expected.has_extra_restart  = true;
     expected.has_extra_border   = true;
@@ -4614,7 +4620,12 @@ TEST_F(AtomStyleTest, property_atom)
     command("set atom 2 d_three -1.0");
     command("set atom 3 d_three 0.5");
     command("set atom 4 d_three 2.0");
-
+    command("set atom * d2_five[1] -5.9");
+    command("set atom * d2_five[2] 1.1e-2");
+    command("set atom * d2_five[3] .1");
+    command("set atom 1*2 i2_four[1] -2");
+    command("set atom 3*4 i2_four[1] -1");
+    command("set atom * i2_four[2] 2");
     END_HIDE_OUTPUT();
     expected.natoms           = 4;
     expected.nlocal           = 4;
@@ -4637,7 +4648,8 @@ TEST_F(AtomStyleTest, property_atom)
     command("pair_style zero 4.0");
     command("units real");
     command("atom_modify map array");
-    command("fix props all property/atom i_one d_two mol d_three q rmass ghost yes");
+    command("fix props all property/atom i_one d_two mol d_three q rmass "
+            "i2_four 2 d2_five 3 ghost yes");
     command("read_data test_atom_styles.data fix props NULL Properties");
     command("pair_coeff * *");
     END_HIDE_OUTPUT();
@@ -4726,7 +4738,8 @@ TEST_F(AtomStyleTest, property_atom)
     command("clear");
     ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("atomic"));
     command("read_restart test_atom_styles.restart");
-    command("fix props all property/atom i_one d_two mol d_three q rmass ghost yes");
+    command("fix props all property/atom i_one d_two mol d_three q rmass "
+            "i2_four 2 d2_five 3 ghost yes");
     END_HIDE_OUTPUT();
     expected.natoms           = 2;
     expected.nlocal           = 2;
@@ -4738,7 +4751,11 @@ TEST_F(AtomStyleTest, property_atom)
     expected.has_mass_setflag = true;
     expected.has_sametag      = true;
     expected.has_extra        = true;
-    expected.nextra_store     = 7;
+    expected.has_ivname         = true;
+    expected.has_dvname         = true;
+    expected.has_ianame         = true;
+    expected.has_daname         = true;
+    expected.nextra_store     = 12;
 
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
     ASSERT_NE(lmp->atom->avec, nullptr);

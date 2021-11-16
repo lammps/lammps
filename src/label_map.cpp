@@ -101,6 +101,8 @@ void LabelMap::modify_lmap(int narg, char **arg)
     std::string slabel(arg[iarg++]);
     if (isdigit(slabel[0]))
       error->all(FLERR,"Type labels cannot start with a number");
+    if (search(slabel,(*labels),ntypes) != -1)
+      error->all(FLERR,"Type label already exists: types labels must be unique");
     (*labels)[itype-1] = slabel;
   }
 }

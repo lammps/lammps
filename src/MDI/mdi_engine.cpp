@@ -20,8 +20,8 @@
 
 #include "atom.h"
 #include "error.h"
-#include "integrate.h"
 #include "fix_mdi_engine.h"
+#include "integrate.h"
 #include "mdi.h"
 #include "min.h"
 #include "modify.h"
@@ -176,17 +176,13 @@ void MDIEngine::command(int narg, char ** /*arg*/)
 
   // if the mdi/engine fix is not already present, add it now
 
-  int ifix = modify->find_fix_by_style("mdi/engine");
   bool added_mdi_engine_fix = false;
-  if (ifix < 0) {
-    modify->add_fix("MDI_ENGINE_INTERNAL all mdi/engine");
+  auto fixes = modify->get_fix_by_style("mdi/engine");
+  if (fixes.size() == 0) {
     added_mdi_engine_fix = true;
-  }
-
-  // identify the mdi_engine fix
-
-  ifix = modify->find_fix_by_style("mdi/engine");
-  mdi_fix = static_cast<FixMDIEngine *>(modify->fix[ifix]);
+    mdi_fix = (FixMDIEngine *) modify->add_fix("MDI_ENGINE_INTERNAL all mdi/engine");
+  } else
+    mdi_fix = (FixMDIEngine *) fixes.front();
 
   // check that LAMMPS is setup as a compatible MDI engine
 
@@ -224,7 +220,7 @@ void MDIEngine::command(int narg, char ** /*arg*/)
       error->all(FLERR, "MDI node exited with invalid command: {}", command);
   }
 
-  // remove mdi/engine fix that mdi/engine instantiated
+  // remove mdi/engine fix if instantiated here by mdi/engine
 
   if (added_mdi_engine_fix) modify->delete_fix("MDI_ENGINE_INTERNAL");
 }

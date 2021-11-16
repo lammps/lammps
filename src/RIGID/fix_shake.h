@@ -77,8 +77,8 @@ class FixShake : public Fix {
   int molecular;                             // copy of atom->molecular
   double *bond_distance, *angle_distance;    // constraint distances
 
-  int ifix_respa;       // rRESPA fix needed by SHAKE
-  int nlevels_respa;    // copies of needed rRESPA variables
+  class FixRespa *fix_respa;    // rRESPA fix needed by SHAKE
+  int nlevels_respa;            // copies of needed rRESPA variables
   int *loop_respa;
   double *step_respa;
 

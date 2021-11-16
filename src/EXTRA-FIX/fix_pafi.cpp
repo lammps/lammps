@@ -103,12 +103,14 @@ FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 7;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"overdamped") == 0) {
+      if(iarg+2>narg) error->all(FLERR,"Illegal fix pafi command");
       if (strcmp(arg[iarg+1],"no") == 0) od_flag = 0;
       else if (strcmp(arg[iarg+1],"0") == 0) od_flag = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) od_flag = 1;
       else if (strcmp(arg[iarg+1],"1") == 0) od_flag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"com") == 0) {
+      if(iarg+2>narg) error->all(FLERR,"Illegal fix pafi command");
       if (strcmp(arg[iarg+1],"no") == 0) com_flag = 0;
       else if (strcmp(arg[iarg+1],"0") == 0) com_flag = 0;
       else if (strcmp(arg[iarg+1],"yes") == 0) com_flag = 1;
@@ -116,6 +118,7 @@ FixPAFI::FixPAFI(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else error->all(FLERR,"Illegal fix pafi command");
   }
+  
   force_flag = 0;
 
   for (int i = 0; i < 10; i++) {

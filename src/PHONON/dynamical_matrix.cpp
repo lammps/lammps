@@ -78,6 +78,7 @@ void DynamicalMatrix::setup()
   if (triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
   domain->reset_box();
+  comm->setup();
   if (neighbor->style) neighbor->setup_bins();
   comm->exchange();
   comm->borders();
@@ -87,13 +88,13 @@ void DynamicalMatrix::setup()
   neighbor->build(1);
 
   // compute all forces
-  if (!modify->get_fix_by_id("package_omp")) external_force_clear = 1;
+  // if (!modify->get_fix_by_id("package_omp")) external_force_clear = 1;
   eflag=0;
   vflag=0;
   update_force();
 
-  if (pair_compute_flag) force->pair->compute(eflag,vflag);
-  else if (force->pair) force->pair->compute_dummy(eflag,vflag);
+  // if (pair_compute_flag) force->pair->compute(eflag,vflag);
+  // else if (force->pair) force->pair->compute_dummy(eflag,vflag);
   update->setupflag = 0;
 
   //if all then skip communication groupmap population
@@ -460,8 +461,10 @@ void DynamicalMatrix::update_force()
   }
   // force modifications
 
-  if (n_post_force) modify->post_force(vflag);
-  timer->stamp(Timer::MODIFY);
+  if (n_post_force) {
+    modify->post_force(vflag);
+    timer->stamp(Timer::MODIFY);
+  }
 
   ++ update->nsteps;
 }

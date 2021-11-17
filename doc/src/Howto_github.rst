@@ -141,7 +141,8 @@ unrelated feature, you should switch branches!
    Committing changes to the *develop*, *release*, or *stable* branches
    is strongly discouraged.  While it may be convenient initially, it
    will create more work in the long run.  Various texts and tutorials
-   on using git effectively discuss the motivation for this.
+   on using git effectively discuss the motivation for using feature
+   branches instead.
 
 **After changes are made**
 

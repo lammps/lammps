@@ -53,7 +53,7 @@ ComputeSMDTriangleVertices::ComputeSMDTriangleVertices(LAMMPS *lmp, int narg, ch
 /* ---------------------------------------------------------------------- */
 
 ComputeSMDTriangleVertices::~ComputeSMDTriangleVertices() {
-    memory->sfree(outputVector);
+    memory->destroy(outputVector);
 }
 
 /* ---------------------------------------------------------------------- */

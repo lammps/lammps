@@ -133,10 +133,7 @@ endif()
 set(LAMMPS_BINARY lmp${LAMMPS_MACHINE})
 
 option(BUILD_SHARED_LIBS "Build shared library" OFF)
-if(BUILD_SHARED_LIBS) # for all pkg libs, mpi_stubs and linalg
-  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-endif()
-
+option(CMAKE_POSITION_INDEPENDENT_CODE "Create object compatible with shared libraries" ON)
 option(BUILD_TOOLS "Build and install LAMMPS tools (msi2lmp, binary2txt, chain)" OFF)
 option(BUILD_LAMMPS_SHELL "Build and install the LAMMPS shell" OFF)
 
@@ -303,10 +300,12 @@ else()
       target_link_libraries(lmp PRIVATE mpi_stubs)
       target_include_directories(lmp INTERFACE $<BUILD_INTERFACE:${LAMMPS_SOURCE_DIR}/STUBS>)
       target_compile_definitions(lmp INTERFACE $<INSTALL_INTERFACE:LAMMPS_LIB_NO_MPI>)
-    endif(MSVC)
+    endif()
     target_include_directories(lammps INTERFACE $<BUILD_INTERFACE:${LAMMPS_SOURCE_DIR}/STUBS>)
     target_compile_definitions(lammps INTERFACE $<INSTALL_INTERFACE:LAMMPS_LIB_NO_MPI>)
   else()
+    target_include_directories(lammps INTERFACE $<BUILD_INTERFACE:${LAMMPS_SOURCE_DIR}/STUBS>)
+    target_compile_definitions(lammps INTERFACE $<INSTALL_INTERFACE:LAMMPS_LIB_NO_MPI>)
     target_link_libraries(lammps PUBLIC mpi_stubs)
   endif()
   add_library(MPI::MPI_CXX ALIAS mpi_stubs)
@@ -809,11 +808,17 @@ if(ClangFormat_FOUND)
 endif()
 
 get_target_property(DEFINES lammps COMPILE_DEFINITIONS)
+get_property(BUILD_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if(BUILD_IS_MULTI_CONFIG)
+  set(LAMMPS_BUILD_TYPE "Multi-Config")
+else()
+  set(LAMMPS_BUILD_TYPE ${CMAKE_BUILD_TYPE})
+endif()
 include(FeatureSummary)
 feature_summary(DESCRIPTION "The following tools and libraries have been found and configured:" WHAT PACKAGES_FOUND)
 message(STATUS "<<< Build configuration >>>
    Operating System: ${CMAKE_SYSTEM_NAME} ${CMAKE_LINUX_DISTRO} ${CMAKE_DISTRO_VERSION}
-   Build type:       ${CMAKE_BUILD_TYPE}
+   Build type:       ${LAMMPS_BUILD_TYPE}
    Install path:     ${CMAKE_INSTALL_PREFIX}
    Generator:        ${CMAKE_GENERATOR} using ${CMAKE_MAKE_PROGRAM}")
 ###############################################################################

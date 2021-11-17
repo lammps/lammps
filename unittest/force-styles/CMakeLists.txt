@@ -1,8 +1,15 @@
 
 find_package(YAML)
 if(NOT YAML_FOUND)
+  set(YAML_URL "https://pyyaml.org/download/libyaml/yaml-0.2.5.tar.gz" CACHE STRING "URL for libyaml tarball")
+  set(YAML_MD5 "bb15429d8fb787e7d3f1c83ae129a999" CACHE STRING "MD5 checksum of libyaml tarball")
+  mark_as_advanced(YAML_URL)
+  mark_as_advanced(YAML_MD5)
+
   # download and build a local copy of libyaml
-  include(YAML)
+  include(ExternalCMakeProject)
+  ExternalCMakeProject(libyaml ${YAML_URL} ${YAML_MD5} yaml . CMakeLists.libyaml)
+  add_library(Yaml::Yaml ALIAS yaml)
 endif()
 
 if(CMAKE_VERSION VERSION_LESS 3.12)
@@ -24,9 +31,14 @@ endif()
 
 set(TEST_INPUT_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 add_library(style_tests STATIC yaml_writer.cpp error_stats.cpp test_config_reader.cpp test_main.cpp)
-target_compile_definitions(style_tests PRIVATE -DTEST_INPUT_FOLDER=${TEST_INPUT_FOLDER})
+if(YAML_FOUND)
+  target_compile_definitions(style_tests PRIVATE TEST_INPUT_FOLDER=${TEST_INPUT_FOLDER})
+else()
+  # we always use static linkage with local compiled libyaml
+  target_compile_definitions(style_tests PRIVATE TEST_INPUT_FOLDER=${TEST_INPUT_FOLDER} YAML_DECLARE_STATIC)
+endif()
 target_include_directories(style_tests PRIVATE ${LAMMPS_SOURCE_DIR})
-target_link_libraries(style_tests PUBLIC GTest::GTest GTest::GMock Yaml::Yaml lammps)
+target_link_libraries(style_tests PUBLIC gmock Yaml::Yaml lammps)
 if(BUILD_MPI)
   target_link_libraries(style_tests PUBLIC MPI::MPI_CXX)
 else()
@@ -43,7 +55,7 @@ endif()
 # unit test for error stats class
 add_executable(test_error_stats test_error_stats.cpp)
 target_include_directories(test_error_stats PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${LAMMPS_SOURCE_DIR})
-target_link_libraries(test_error_stats PRIVATE GTest::GTestMain GTest::GTest)
+target_link_libraries(test_error_stats PRIVATE gtest_main)
 add_test(NAME ErrorStats COMMAND test_error_stats)
 
 # pair style tester

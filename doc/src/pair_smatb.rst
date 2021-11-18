@@ -38,26 +38,32 @@ The *smatb* styles compute the Second Moment Approximation to the Tight Binding
 given by
 
 .. math::
+      E_{i}  = \sum_{j,R_{ij}\leq R_{c}} \alpha(R_{ij}) - \sqrt{\sum_{j,R_{ij}\leq R_{c}}\Xi^2(R_{ij})}
 
-      E_{ik}  =\left\lbrace\begin{array}{ll}
-       A e^{-p \left(\frac{R_{ik}}{R_{0}}-1\right)}
-      -\sqrt{\sum_{j,R_{ij}\leq R_{c}}\Xi^2
-      e^{-2q\left(\frac{R_{ij}}{R_{0}}-1\right)}}& R_{ij} < R_{sc}\\
-      {\left(a_3\left(R_{ik}-R_{c}\right)^3+a_4\left(R_{ik}-R_{c}\right)^4
-      +a_5\left(R_{ik}-R_{c}\right)^5\right)
-      -\sqrt{\sum_{j,R_{ij}\leq R_{c}}\left(x_3\left(R_{ij}-R_{c}\right)^3
-      +x_4\left(R_{ij}-R_{c}\right)^4+x_5\left(R_{ij}-R_{c}\right)^5\right)^2}}
-      & R_{sc} < R_{ij} < R_{c}
+:math:`R_{ij}` is the distance between the atom :math:`i` and :math:`j`.
+And the two functions :math:`\alpha\left(r\right)` and :math:`\Xi\left(r\right)` are:
+
+.. math::
+   \alpha\left(r\right)=\left\lbrace\begin{array}{ll}
+      A e^{-p \left(\frac{r}{R_{0}}-1\right)} & r < R_{sc}\\
+      a_3\left(r-R_{c}\right)^3+a_4\left(r-R_{c}\right)^4
+      +a_5\left(r-R_{c}\right)^5& R_{sc} < r < R_{c}
       \end{array}
       \right.
 
+.. math::
+      \Xi\left(r\right)=\left\lbrace\begin{array}{ll}
+      \xi e^{-q \left(\frac{r}{R_{0}}-1\right)} & r < R_{sc}\\
+      x_3\left(r-R_{c}\right)^3+x_4\left(r-R_{c}\right)^4
+      +x_5\left(r-R_{c}\right)^5& R_{sc} < r < R_{c}
+      \end{array}
+      \right.
+
+
 The polynomial coefficients :math:`a_3`, :math:`a_4`, :math:`a_5`, :math:`x_3`,
-:math:`x_4`, :math:`x_5` are computed by LAMMPS smoothly
-link the two exponentials and their first and second order derivatives to zero 
+:math:`x_4`, :math:`x_5` are computed by LAMMPS: the two exponentials and their
+first and second order derivatives are smoothly linked to zero, 
 from the inner cutoff :math:`R_{sc}` to the outer cutoff :math:`R_{c}`. 
-
-:math:`R_{ik}` is the distance between the atom :math:`i` and :math:`k`
-
 
 Coefficients
 """"""""""""
@@ -71,7 +77,7 @@ file or restart files read by the :doc:`read_data <read_data>` or
 * :math:`p` (dimensionless)
 * :math:`q` (dimensionless)
 * :math:`A` (energy units)
-* :math:`\Xi` (energy units)
+* :math:`\xi` (energy units)
 * :math:`R_{cs}` (distance units) 
 * :math:`R_{c}` (distance units)
 

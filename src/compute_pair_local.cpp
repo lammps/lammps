@@ -31,7 +31,7 @@ using namespace LAMMPS_NS;
 
 #define DELTA 10000
 
-enum{DIST,ENG,FORCE,FX,FY,FZ,PN};
+enum{DIST,ENG,FORCE,FX,FY,FZ,PN,DX,DY,DZ};
 enum{TYPE,RADIUS};
 
 /* ---------------------------------------------------------------------- */
@@ -56,6 +56,9 @@ ComputePairLocal::ComputePairLocal(LAMMPS *lmp, int narg, char **arg) :
     else if (strcmp(arg[iarg],"fx") == 0) pstyle[nvalues++] = FX;
     else if (strcmp(arg[iarg],"fy") == 0) pstyle[nvalues++] = FY;
     else if (strcmp(arg[iarg],"fz") == 0) pstyle[nvalues++] = FZ;
+    else if (strcmp(arg[iarg],"dx") == 0) pstyle[nvalues++] = DX;
+    else if (strcmp(arg[iarg],"dy") == 0) pstyle[nvalues++] = DY;
+    else if (strcmp(arg[iarg],"dz") == 0) pstyle[nvalues++] = DZ;
     else if (arg[iarg][0] == 'p') {
       int n = atoi(&arg[iarg][1]);
       if (n <= 0) error->all(FLERR,
@@ -92,7 +95,7 @@ ComputePairLocal::ComputePairLocal(LAMMPS *lmp, int narg, char **arg) :
 
   singleflag = 0;
   for (int i = 0; i < nvalues; i++)
-    if (pstyle[i] != DIST) singleflag = 1;
+    if (pstyle[i] != DIST && pstyle[i] != DX && pstyle[i] != DY && pstyle[i] != DZ) singleflag = 1;
 
   if (nvalues == 1) size_local_cols = 0;
   else size_local_cols = nvalues;
@@ -269,6 +272,12 @@ int ComputePairLocal::compute_pairs(int flag)
           case DIST:
             ptr[n] = sqrt(rsq);
             break;
+          case DX:
+            ptr[n] = delx;
+          case DY:
+            ptr[n] = dely;
+          case DZ:
+            ptr[n] = delz;
           case ENG:
             ptr[n] = eng;
             break;

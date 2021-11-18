@@ -13,7 +13,7 @@ Syntax
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * bond/local = style name of this compute command
 * one or more values may be appended
-* value = *dist* or *engpot* or *force* or *fx* or *fy* or *fz* or *engvib* or *engrot* or *engtrans* or *omega* or *velvib* or *v_name*
+* value = *dist* or *dx* or *dy* or *dz* or *engpot* or *force* or *fx* or *fy* or *fz* or *engvib* or *engrot* or *engtrans* or *omega* or *velvib* or *v_name*
 
 .. parsed-literal::
 
@@ -21,6 +21,7 @@ Syntax
      *engpot* = bond potential energy
      *force* = bond force
 
+     *dx*,\ *dy*,\ *dz* = components of pairwise distance
      *fx*,\ *fy*,\ *fz* = components of bond force
      *engvib* = bond kinetic energy of vibration
      *engrot* = bond kinetic energy of rotation
@@ -63,6 +64,9 @@ whether the 2 atoms represent a simple diatomic molecule, or are part
 of some larger molecule.
 
 The value *dist* is the current length of the bond.
+The values *dx*, *dy*, and *dz* are the xyz components of the
+*distance* between the pair of atoms. This value is always the 
+distance from the atom of lower to the one of higher id.
 
 The value *engpot* is the potential energy for the bond,
 based on the current separation of the pair of atoms in the bond.

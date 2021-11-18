@@ -13,11 +13,12 @@ Syntax
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * pair/local = style name of this compute command
 * one or more values may be appended
-* value = *dist* or *eng* or *force* or *fx* or *fy* or *fz* or *pN*
+* value = *dist* or *dx* or *dy* or *dz* or *eng* or *force* or *fx* or *fy* or *fz* or *pN*
 
   .. parsed-literal::
 
        *dist* = pairwise distance
+       *dx*,\ *dy*,\ *dz* = components of pairwise distance
        *eng* = pairwise energy
        *force* = pairwise force
        *fx*,\ *fy*,\ *fz* = components of pairwise force
@@ -56,6 +57,9 @@ force cutoff distance for that interaction, as defined by the
 commands.
 
 The value *dist* is the distance between the pair of atoms.
+The values *dx*, *dy*, and *dz* are the xyz components of the
+*distance* between the pair of atoms. This value can be inconsistent
+due to changing interactions and neighbor list orders.
 
 The value *eng* is the interaction energy for the pair of atoms.
 
@@ -89,10 +93,10 @@ from the second of the two sub-styles.  If the referenced *pN*
 is not computed for the specific pairwise interaction (based on
 atom types), then the output will be 0.0.
 
-The value *dist* will be in distance :doc:`units <units>`.  The value
-*eng* will be in energy :doc:`units <units>`.  The values *force*, *fx*,
-*fy*, and *fz* will be in force :doc:`units <units>`.  The values *pN*
-will be in whatever units the pair style defines.
+The value *dist*, *dx*, *dy* and *dz* will be in distance :doc:`units <units>`.  
+The value *eng* will be in energy :doc:`units <units>`.  
+The values *force*, *fx*, *fy*, and *fz* will be in force :doc:`units <units>`.  
+The values *pN* will be in whatever units the pair style defines.
 
 The optional *cutoff* keyword determines how the force cutoff distance
 for an interaction is determined.  For the default setting of *type*,

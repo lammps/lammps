@@ -84,7 +84,7 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
   id_fix_species = nullptr;
   id_fix_species_old = nullptr;
 
-  const int Verbosity = 1;
+  constexpr int Verbosity = 1;
 
   // Keep track of the argument list.
   int iarg = 3;
@@ -101,13 +101,10 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(word,"none") == 0) {
       wtFlag = 0;
       localTempFlag = NONE;
-    }
-    else if (strcmp(word,"lucy") == 0) {
+    } else if (strcmp(word,"lucy") == 0) {
       wtFlag = LUCY;
       localTempFlag = HARMONIC;
-    }
-    else
-      error->all(FLERR,"Illegal fix rx local temperature weighting technique");
+    } else error->all(FLERR,"Illegal fix rx local temperature weighting technique");
   }
 
   // Select either sparse and dense matrix
@@ -120,21 +117,11 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
       useSparseKinetics = true;
     else if (strcmp(word,"dense") == 0)
       useSparseKinetics = false;
-    else {
-      std::string errmsg = "Illegal command " + std::string(word)
-                             + " expected \"sparse\" or \"dense\"\n";
-      error->all(FLERR, errmsg);
-    }
+    else error->all(FLERR, "Illegal command " + std::string(word)
+                    + " expected \"sparse\" or \"dense\"\n");
 
-    if (comm->me == 0 && Verbosity > 1) {
-      std::string msg = "FixRX: matrix format is ";
-      if (useSparseKinetics)
-         msg += std::string("sparse");
-      else
-         msg += std::string("dense");
-
-      error->message(FLERR, msg);
-    }
+    if (comm->me == 0 && Verbosity > 1)
+      error->message(FLERR, fmt::format("FixRX: matrix format is {}",word));
   }
 
   // Determine the ODE solver/stepper strategy in arg[6].
@@ -169,40 +156,32 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
   }
 
   if (odeIntegrationFlag == ODE_LAMMPS_RK4 && narg==8) {
-    char *word = arg[iarg++];
-    minSteps = atoi( word );
+    minSteps = utils::inumeric(FLERR,arg[iarg++],false,lmp);
 
-    if (comm->me == 0 && Verbosity > 1) {
-      char msg[128];
-      sprintf(msg, "FixRX: RK4 numSteps= %d", minSteps);
-      error->message(FLERR, msg);
-    }
-  }
-  else if (odeIntegrationFlag == ODE_LAMMPS_RK4 && narg>8) {
+    if (comm->me == 0 && Verbosity > 1)
+      error->message(FLERR,fmt::format("FixRX: RK4 numSteps= {}", minSteps));
+  } else if (odeIntegrationFlag == ODE_LAMMPS_RK4 && narg>8) {
     error->all(FLERR,"Illegal fix rx command.  Too many arguments for RK4 solver.");
-  }
-  else if (odeIntegrationFlag == ODE_LAMMPS_RKF45) {
+  } else if (odeIntegrationFlag == ODE_LAMMPS_RKF45) {
     // Must have four options.
     if (narg < 11)
       error->all(FLERR,"Illegal fix rx command.  Too few arguments for RKF45 solver.");
 
-    minSteps = atoi( arg[iarg++] );
-    maxIters = atoi( arg[iarg++] );
-    relTol   = strtod( arg[iarg++], nullptr);
-    absTol   = strtod( arg[iarg++], nullptr);
+    minSteps = utils::inumeric(FLERR,arg[iarg++],false,lmp);
+    maxIters = utils::inumeric(FLERR,arg[iarg++],false,lmp);
+    relTol   = utils::numeric(FLERR,arg[iarg++],false,lmp);
+    absTol   = utils::numeric(FLERR,arg[iarg++],false,lmp);
 
     if (iarg < narg)
-      diagnosticFrequency = atoi( arg[iarg++] );
+      diagnosticFrequency = utils::inumeric(FLERR,arg[iarg++],false,lmp);
 
     // maxIters must be at least minSteps.
     maxIters = std::max( minSteps, maxIters );
 
-    if (comm->me == 0 && Verbosity > 1) {
-      //printf("FixRX: RKF45 minSteps= %d maxIters= %d absTol= %e relTol= %e\n", minSteps, maxIters, absTol, relTol);
-      char msg[128];
-      sprintf(msg, "FixRX: RKF45 minSteps= %d maxIters= %d relTol= %.1e absTol= %.1e diagnosticFrequency= %d", minSteps, maxIters, relTol, absTol, diagnosticFrequency);
-      error->message(FLERR, msg);
-    }
+    if (comm->me == 0 && Verbosity > 1)
+      error->message(FLERR, fmt::format("FixRX: RKF45 minSteps= {} maxIters= {} "
+                                        "relTol= {:.1e} absTol= {:.1e} diagnosticFrequency= {}",
+                                        minSteps, maxIters, relTol, absTol, diagnosticFrequency));
   }
 
   // Initialize/Create the sparse matrix database.
@@ -265,11 +244,8 @@ void FixRX::post_constructor()
   fp = nullptr;
   if (comm->me == 0) {
     fp = utils::open_potential(kineticsFile,lmp,nullptr);
-    if (fp == nullptr) {
-      char str[128];
-      snprintf(str,128,"Cannot open rx file %s",kineticsFile);
-      error->one(FLERR,str);
-    }
+    if (fp == nullptr)
+      error->one(FLERR,"Cannot open rx file {}: {}",kineticsFile,utils::getsyserror());
   }
 
   // Assign species names to tmpspecies array and determine the number of unique species
@@ -279,7 +255,7 @@ void FixRX::post_constructor()
   int eof = 0;
   char * word;
 
-  while (1) {
+  while (true) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
       if (ptr == nullptr) {
@@ -358,7 +334,7 @@ void FixRX::post_constructor()
   read_file( kineticsFile );
 
   if (useSparseKinetics)
-    this->initSparse();
+    initSparse();
 
   // set comm size needed by this Pair
   comm_forward = nspecies*2;
@@ -369,7 +345,7 @@ void FixRX::post_constructor()
 
 void FixRX::initSparse()
 {
-  const int Verbosity = 1;
+  constexpr int Verbosity = 1;
 
   if (comm->me == 0 && Verbosity > 1) {
     for (int k = 0; k < nspecies; ++k)
@@ -449,7 +425,8 @@ void FixRX::initSparse()
       }
     }
     if (comm->me == 0 && Verbosity > 1)
-      printf("rx%3d: %d %d %d ... %s %s %s\n", i, nreac_i, nprod_i, allAreIntegral, rstr.c_str(), /*reversible[i]*/ (false) ? "<=>" : "=", pstr.c_str());
+      utils::logmesg(lmp,"rx{:3d}: {} {} {} ... {} = {}\n",
+                     i, nreac_i, nprod_i, allAreIntegral, rstr, pstr);
 
     mxreac = std::max( mxreac, nreac_i );
     mxprod = std::max( mxprod, nprod_i );
@@ -458,8 +435,12 @@ void FixRX::initSparse()
   }
 
   if (comm->me == 0 && Verbosity > 1) {
-    char msg[256];
-    sprintf(msg, "FixRX: Sparsity of Stoichiometric Matrix= %.1f%% non-zeros= %d nspecies= %d nreactions= %d maxReactants= %d maxProducts= %d maxSpecies= %d integralReactions= %d", 100*(double(nzeros) / (nspecies * nreactions)), nzeros, nspecies, nreactions, mxreac, mxprod, (mxreac + mxprod), SparseKinetics_enableIntegralReactions);
+    auto msg = fmt::format("FixRX: Sparsity of Stoichiometric Matrix= {:.1f}% non-zeros= {} "
+                           "nspecies= {} nreactions= {} maxReactants= {} maxProducts= {} "
+                           "maxSpecies= {} integralReactions= {}",
+                           100*(double(nzeros) / (nspecies * nreactions)), nzeros, nspecies,
+                           nreactions, mxreac, mxprod, (mxreac + mxprod),
+                           SparseKinetics_enableIntegralReactions);
     error->message(FLERR, msg);
   }
 
@@ -774,18 +755,9 @@ void FixRX::pre_force(int /*vflag*/)
 
   double time_ODE = getElapsedTime(timer_localTemperature, timer_ODE);
 
-  //printf("me= %d total= %g temp= %g ode= %g comm= %g nlocal= %d nfc= %d %d\n", comm->me,
-  //                       getElapsedTime(timer_start, timer_stop),
-  //                       getElapsedTime(timer_start, timer_localTemperature),
-  //                       getElapsedTime(timer_localTemperature, timer_ODE),
-  //                       getElapsedTime(timer_ODE, timer_stop), nlocal, nFuncs, nSteps);
-
   // Warn the user if a failure was detected in the ODE solver.
-  if (nFails > 0) {
-    char sbuf[128];
-    sprintf(sbuf,"in FixRX::pre_force, ODE solver failed for %d atoms.", nFails);
-    error->warning(FLERR, sbuf);
-  }
+  if (nFails > 0)
+    error->warning(FLERR, fmt::format("FixRX::pre_force ODE solver failed for {} atoms.", nFails));
 
   // Compute and report ODE diagnostics, if requested.
   if (odeIntegrationFlag == ODE_LAMMPS_RKF45 && diagnosticFrequency != 0) {
@@ -832,7 +804,7 @@ void FixRX::read_file(char *file)
   char line[MAXLINE],*ptr;
   int eof = 0;
 
-  while (1) {
+  while (true) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
       if (ptr == nullptr) {
@@ -886,7 +858,7 @@ void FixRX::read_file(char *file)
 
   nreactions=0;
   sign = -1.0;
-  while (1) {
+  while (true) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
       if (ptr == nullptr) {
@@ -1183,7 +1155,7 @@ int FixRX::rkf45_h0 (const int neq, const double t, const double /*t_stop*/,
    // compute ydot at t=t0
    rhs (t, y, ydot, v_params);
 
-   while (1)
+   while (true)
    {
       // Estimate y'' with finite-difference ...
 
@@ -1282,7 +1254,7 @@ void FixRX::odeDiagnostics()
   double max_per_proc[numCounters];
   double min_per_proc[numCounters];
 
-  if (1)
+  if (true)
   {
      static bool firstStep = true;
 
@@ -1313,7 +1285,7 @@ void FixRX::odeDiagnostics()
 
      printf("me= %d nst= %g nfc= %g time= %g nlocal= %g lmpnst= %g weight_idx= %d 1st= %d aveNeigh= %g\n", comm->me, this->diagnosticCounter[0], this->diagnosticCounter[1], this->diagnosticCounter[2], this->diagnosticCounter[3], this->diagnosticCounter[4], rx_weight_index, firstStep, averageNumNeighbors);
 
-     if (rx_weight_index != -1 && !firstStep && 0)
+     if (rx_weight_index != -1 && !firstStep && false)
      {
         double *rx_weight = atom->dvector[rx_weight_index];
 
@@ -1422,17 +1394,9 @@ void FixRX::odeDiagnostics()
   double time_local = getElapsedTime( timer_start, timer_stop );
 
   if (comm->me == 0) {
-    char smesg[128];
-
-#define print_mesg(smesg) {\
-    if (screen)  fprintf(screen,"%s\n", smesg); \
-    if (logfile) fprintf(logfile,"%s\n", smesg); }
-
-    sprintf(smesg, "FixRX::ODE Diagnostics:  # of iters  |# of rhs evals| run-time (sec) | # atoms");
-    print_mesg(smesg);
-
-    sprintf(smesg, "         AVG per ODE  : %-12.5g | %-12.5g | %-12.5g", avg_per_atom[0], avg_per_atom[1], avg_per_atom[2]);
-    print_mesg(smesg);
+    utils::logmesg(lmp,"FixRX::ODE Diagnostics:  # of iters  |# of rhs evals| run-time (sec) | # atoms\n");
+    utils::logmesg(lmp,"         AVG per ODE  : {:>12.5g} | {:>12.5g} | {:>12.5g}\n",
+                   avg_per_atom[0], avg_per_atom[1], avg_per_atom[2]);
 
     // only valid for single time-step!
     if (diagnosticFrequency == 1) {
@@ -1440,41 +1404,32 @@ void FixRX::odeDiagnostics()
       for (int i = 0; i < numCounters; ++i)
         rms_per_ODE[i] = sqrt( sum_sq[i+numCounters] / nODEs );
 
-      sprintf(smesg, "         RMS per ODE  : %-12.5g | %-12.5g ", rms_per_ODE[0], rms_per_ODE[1]);
-      print_mesg(smesg);
-
-      sprintf(smesg, "         MAX per ODE  : %-12.5g | %-12.5g ", max_per_ODE[0], max_per_ODE[1]);
-      print_mesg(smesg);
-
-      sprintf(smesg, "         MIN per ODE  : %-12.5g | %-12.5g ", min_per_ODE[0], min_per_ODE[1]);
-      print_mesg(smesg);
+      utils::logmesg(lmp, "         RMS per ODE  : {:>12.5g} | {:>12.5g}\n",
+                     rms_per_ODE[0], rms_per_ODE[1]);
+      utils::logmesg(lmp, "         MAX per ODE  : {:>12.5g} | {:>12.5g}\n",
+                     max_per_ODE[0], max_per_ODE[1]);
+      utils::logmesg(lmp, "         MIN per ODE  : {:>12.5g} | {:>12.5g}\n",
+                     min_per_ODE[0], min_per_ODE[1]);
     }
 
-    sprintf(smesg, "         AVG per Proc : %-12.5g | %-12.5g | %-12.5g | %-12.5g", avg_per_proc[StepSum], avg_per_proc[FuncSum], avg_per_proc[TimeSum], avg_per_proc[AtomSum]);
-    print_mesg(smesg);
+    utils::logmesg(lmp,"         AVG per Proc : {:>12.5g} | {:>12.5g} | {:>12.5g} | {:>12.5g}\n",
+                   avg_per_proc[StepSum], avg_per_proc[FuncSum], avg_per_proc[TimeSum], avg_per_proc[AtomSum]);
 
     if (comm->nprocs > 1) {
       double rms_per_proc[numCounters];
       for (int i = 0; i < numCounters; ++i)
         rms_per_proc[i] = sqrt( sum_sq[i] / comm->nprocs );
 
-      sprintf(smesg, "         RMS per Proc : %-12.5g | %-12.5g | %-12.5g | %-12.5g", rms_per_proc[0], rms_per_proc[1], rms_per_proc[2], rms_per_proc[AtomSum]);
-      print_mesg(smesg);
-
-      sprintf(smesg, "         MAX per Proc : %-12.5g | %-12.5g | %-12.5g | %-12.5g", max_per_proc[0], max_per_proc[1], max_per_proc[2], max_per_proc[AtomSum]);
-      print_mesg(smesg);
-
-      sprintf(smesg, "         MIN per Proc : %-12.5g | %-12.5g | %-12.5g | %-12.5g", min_per_proc[0], min_per_proc[1], min_per_proc[2], min_per_proc[AtomSum]);
-      print_mesg(smesg);
+      utils::logmesg(lmp,"         RMS per Proc : {:>12.5g} | {:>12.5g} | {:>12.5g} | {:>12.5g}\n",
+                     rms_per_proc[0], rms_per_proc[1], rms_per_proc[2], rms_per_proc[AtomSum]);
+      utils::logmesg(lmp,"         MAX per Proc : {:>12.5g} | {:>12.5g} | {:>12.5g} | {:>12.5g}\n",
+                     max_per_proc[0], max_per_proc[1], max_per_proc[2], max_per_proc[AtomSum]);
+      utils::logmesg(lmp,"         MIN per Proc : {:>12.5g} | {:>12.5g} | {:>12.5g} | {:>12.5g}\n",
+                     min_per_proc[0], min_per_proc[1], min_per_proc[2], min_per_proc[AtomSum]);
     }
 
-    sprintf(smesg, "  AVG'd over %d time-steps", nTimes);
-    print_mesg(smesg);
-    sprintf(smesg, "  AVG'ing took %g sec", time_local);
-    print_mesg(smesg);
-
-#undef print_mesg
-
+    utils::logmesg(lmp, "  AVG'd over {} time-steps\n", nTimes);
+    utils::logmesg(lmp, "  AVG'ing took {} sec", time_local);
   }
 
   // Reset the counters.

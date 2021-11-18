@@ -496,11 +496,8 @@ void Balance::weight_storage(char *prefix)
   if (prefix) cmd = prefix;
   cmd += "IMBALANCE_WEIGHTS";
 
-  int ifix = modify->find_fix(cmd);
-  if (ifix < 1) {
-    cmd += " all STORE peratom 0 1";
-    fixstore = (FixStore *) modify->add_fix(cmd);
-  } else fixstore = (FixStore *) modify->fix[ifix];
+  fixstore = (FixStore *) modify->get_fix_by_id(cmd);
+  if (!fixstore) fixstore = (FixStore *) modify->add_fix(cmd + " all STORE peratom 0 1");
 
   // do not carry weights with atoms during normal atom migration
 
@@ -930,7 +927,7 @@ int Balance::shift()
         // else add split I-1 or J+1 to set and try again
         // delta = size of expanded split set that will satisy criterion
 
-        while (1) {
+        while (true) {
           delta = (j-i) * close;
           midpt = 0.5 * (split[i]+split[j]);
           start = midpt - 0.5*delta;

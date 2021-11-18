@@ -167,7 +167,7 @@ The KAPPA directory has example scripts for computing the thermal
 conductivity (kappa) of a LJ liquid using 5 different methods.  See
 the KAPPA/README file for more info.
 
-The MC directory has an example script for using LAMMPS as an
+The MC-LOOP directory has an example script for using LAMMPS as an
 energy-evaluation engine in a iterative Monte Carlo energy-relaxation
 loop.
 

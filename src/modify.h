@@ -17,6 +17,7 @@
 #include "pointers.h"
 
 #include <map>
+#include <vector>
 
 namespace LAMMPS_NS {
 
@@ -107,16 +108,28 @@ class Modify : protected Pointers {
   void modify_fix(int, char **);
   void delete_fix(const std::string &);
   void delete_fix(int);
+
+  // deprecated API
   int find_fix(const std::string &);
-  int find_fix_by_style(const char *);
+  // new API
+  Fix *get_fix_by_id(const std::string &) const;
+  Fix *get_fix_by_index(int idx) const { return fix[idx]; }
+  const std::vector<Fix *> get_fix_by_style(const std::string &) const;
+  const std::vector<Fix *> &get_fix_list();
 
   Compute *add_compute(int, char **, int trysuffix = 1);
   Compute *add_compute(const std::string &, int trysuffix = 1);
   void modify_compute(int, char **);
   void delete_compute(const std::string &);
   void delete_compute(int);
+
+  // deprecated API
   int find_compute(const std::string &);
-  int find_compute_by_style(const char *);
+  // new API
+  Compute *get_compute_by_id(const std::string &) const;
+  Compute *get_compute_by_index(int idx) const { return compute[idx]; }
+  const std::vector<Compute *> get_compute_by_style(const std::string &) const;
+  const std::vector<Compute *> &get_compute_list();
 
   void clearstep_compute();
   void addstep_compute(bigint);
@@ -164,6 +177,10 @@ class Modify : protected Pointers {
   int *used_restart_peratom;
 
   int index_permanent;    // fix/compute index returned to library call
+
+  // vectors to be used for new-API accessors as wrapper
+  std::vector<Fix *>fix_list;
+  std::vector<Compute *>compute_list;
 
   void list_init(int, int &, int *&);
   void list_init_end_of_step(int, int &, int *&);

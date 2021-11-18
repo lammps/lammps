@@ -2451,7 +2451,7 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
     if (fp == nullptr)
       error->one(FLERR,"Cannot open fix rigid/small file {}: {}",
                                    inpfile,utils::getsyserror());
-    while (1) {
+    while (true) {
       eof = fgets(line,MAXLINE,fp);
       if (eof == nullptr)
         error->one(FLERR,"Unexpected end of fix rigid/small file");

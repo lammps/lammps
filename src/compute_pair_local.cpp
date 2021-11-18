@@ -267,17 +267,20 @@ int ComputePairLocal::compute_pairs(int flag)
         if (nvalues == 1) ptr = &vlocal[m];
         else ptr = alocal[m];
 
+        // to make sure dx, dy and dz are always from the lower to the higher id
+        double directionCorrection = i > j ? -1.0 : 1.0;
+
         for (n = 0; n < nvalues; n++) {
           switch (pstyle[n]) {
           case DIST:
             ptr[n] = sqrt(rsq);
             break;
           case DX:
-            ptr[n] = delx;
+            ptr[n] = delx*directionCorrection;
           case DY:
-            ptr[n] = dely;
+            ptr[n] = dely*directionCorrection;
           case DZ:
-            ptr[n] = delz;
+            ptr[n] = delz*directionCorrection;
           case ENG:
             ptr[n] = eng;
             break;

@@ -58,8 +58,8 @@ commands.
 
 The value *dist* is the distance between the pair of atoms.
 The values *dx*, *dy*, and *dz* are the xyz components of the
-*distance* between the pair of atoms. This value can be inconsistent
-due to changing interactions and neighbor list orders.
+*distance* between the pair of atoms. This value is always the 
+distance from the atom of lower to the one with the higher id.
 
 The value *eng* is the interaction energy for the pair of atoms.
 

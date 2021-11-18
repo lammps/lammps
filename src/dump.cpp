@@ -228,7 +228,7 @@ void Dump::init()
   if (sort_flag) {
     if (multiproc > 1)
       error->all(FLERR,
-                 "Cannot dump sort when multiple dump files are written");
+                 "Cannot dump sort when 'nfile' or 'fileper' keywords are set to non-default values");
     if (sortcol == 0 && atom->tag_enable == 0)
       error->all(FLERR,"Cannot dump sort on atom IDs with no atom IDs defined");
     if (sortcol && sortcol > size_one)

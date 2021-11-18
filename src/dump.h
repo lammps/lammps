@@ -173,10 +173,9 @@ E: Dump file MPI-IO output not allowed with % in filename
 This is because a % signifies one file per processor and MPI-IO
 creates one large file for all processors.
 
-E: Cannot dump sort when multiple dump files are written
+E: Cannot dump sort when 'nfile' or 'fileper' keywords are set to non-default values
 
-In this mode, each processor dumps its atoms to a file, so
-no sorting is allowed.
+Can only dump sort when the number of dump file pieces using % in filename equals the number of processors
 
 E: Cannot dump sort on atom IDs with no atom IDs defined
 

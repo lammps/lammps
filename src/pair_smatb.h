@@ -11,7 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 
    This style is written by Daniele Rapetti (iximiel@gmail.com)
-   ------------------------------------------------------------------------- */
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+This pair style is written by Daniele Rapetti (iximiel@gmail.com)
+------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
 // clang-format off

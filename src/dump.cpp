@@ -237,9 +237,6 @@ void Dump::init()
       irregular = new Irregular(lmp);
 
     bigint size = group->count(igroup);
-    int bigintflag = 0;
-    if (size > MAXSMALLINT) bigintflag = 1;
-    int isize = static_cast<int> (size);
 
     // set reorderflag = 1 if can simply reorder local atoms rather than sort
     // criteria: sorting by ID, atom IDs are consecutive from 1 to Natoms
@@ -253,7 +250,7 @@ void Dump::init()
       if (utils::strmatch(fix->style,"^gcmc"))
         gcmcflag = 1;
 
-    if (sortcol == 0 && atom->tag_consecutive() && !gcmcflag && !bigintflag) {
+    if (sortcol == 0 && atom->tag_consecutive() && !gcmcflag) {
       tagint *tag = atom->tag;
       int *mask = atom->mask;
       int nlocal = atom->nlocal;
@@ -269,7 +266,7 @@ void Dump::init()
       MPI_Allreduce(&min,&minall,1,MPI_LMP_TAGINT,MPI_MIN,world);
       MPI_Allreduce(&max,&maxall,1,MPI_LMP_TAGINT,MPI_MAX,world);
 
-      if (maxall-minall+1 == isize) {
+      if (maxall-minall+1 == size) {
         reorderflag = 1;
         double range = maxall-minall + EPSILON;
         idlo = static_cast<tagint> (range*me/nprocs + minall);
@@ -285,7 +282,7 @@ void Dump::init()
         else if (me+1 != hi) idhi++;
 
         nme_reorder = idhi-idlo;
-        ntotal_reorder = isize;
+        ntotal_reorder = size;
       }
     }
   }

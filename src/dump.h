@@ -116,7 +116,7 @@ class Dump : protected Pointers {
 
   bigint ntotal;         // total # of per-atom lines in snapshot
   int reorderflag;       // 1 if OK to reorder instead of sort
-  int ntotal_reorder;    // # of atoms that must be in snapshot
+  bigint ntotal_reorder;    // # of atoms that must be in snapshot
   int nme_reorder;       // # of atoms I must own in snapshot
   tagint idlo;           // lowest ID I own when reordering
 

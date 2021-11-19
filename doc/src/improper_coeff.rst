@@ -32,7 +32,11 @@ file read by the :doc:`read_data <read_data>` command or in a restart
 file.
 
 N can be specified in one of two ways.  An explicit numeric value can
-be used, as in the first example above.  Or N can be a :doc:`type label <labelmap>`.
+be used, as in the first example above.  Or N can be a type label,
+which is an alphanumeric string defined by the :doc:`labelmap
+<labelmap>` command or in a section of a data file read by the
+:doc:`read_data <read_data>` command.
+
 For numeric values only, a wild-card asterisk can be used to set the
 coefficients for multiple improper types.  This takes the form "\*" or
 "\*n" or "n\*" or "m\*n".  If N = the number of improper types, then

@@ -33,6 +33,7 @@ Settings howto
    :maxdepth: 1
 
    Howto_2d
+   Howto_type_labels
    Howto_triclinic
    Howto_thermostat
    Howto_barostat

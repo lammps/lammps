@@ -22,6 +22,9 @@ Examples
    dihedral_coeff * 80.0 1 3 0.5
    dihedral_coeff 2* 80.0 1 3 0.5
 
+JAKE add an example with 2 lines.  First = labelmap command, second =
+use the type label.
+
 Description
 """""""""""
 
@@ -31,7 +34,11 @@ Dihedral coefficients can also be set in the data file read by the
 :doc:`read_data <read_data>` command or in a restart file.
 
 N can be specified in one of two ways.  An explicit numeric value can
-be used, as in the first example above.  Or N can be a :doc:`type label <labelmap>`.
+be used, as in the first example above.  Or N can be a type label,
+which is an alphanumeric string defined by the :doc:`labelmap
+<labelmap>` command or in a section of a data file read by the
+:doc:`read_data <read_data>` command.
+
 For numeric values only, a wild-card asterisk can be used to set the
 coefficients for multiple dihedral types.  This takes the form "\*" or
 "\*n" or "n\*" or "m\*n".  If N = the number of dihedral types, then

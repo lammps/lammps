@@ -477,7 +477,7 @@ These are the section keywords for the body of the file.
 
 * *Atoms, Velocities, Masses, Ellipsoids, Lines, Triangles, Bodies* = atom-property sections
 * *Bonds, Angles, Dihedrals, Impropers* = molecular topology sections
-* *Atom Type Labels, Bond Type Labels, Angle Type Labels, Dihedral Type Labels, Improper Type Labels* = type label map
+* *Atom Type Labels, Bond Type Labels, Angle Type Labels, Dihedral Type Labels, Improper Type Labels* = type label maps
 * *Pair Coeffs, PairIJ Coeffs, Bond Coeffs, Angle Coeffs, Dihedral Coeffs,    Improper Coeffs* = force field sections
 * *BondBond Coeffs, BondAngle Coeffs, MiddleBondTorsion Coeffs,    EndBondTorsion Coeffs, AngleTorsion Coeffs, AngleAngleTorsion Coeffs,    BondBond13 Coeffs, AngleAngle Coeffs* = class 2 force field sections
 
@@ -547,11 +547,13 @@ input script.
        ID = angle type (1-N)
        label = alphanumeric type label
 
-See the *Atom Type Labels* section for more details about how angle
-types are interpreted when reading one or more data files that contain
-angle type label sections.  See the :doc:`labelmap <labelmap>` command
-for a discussion about how to format angle type labels and use type
-label maps.
+Define alphanumeric type labels for each numeric angle type.  These
+can be used in the Angles section in place of a numeric type, but only
+if the this section appears before the Angles section.
+
+See the :doc:`Howto type labels <Howto_type_labels>` doc page for the
+allowed syntax of type labels and a general discussion of how type
+labels can be used.
 
 ----------
 
@@ -599,8 +601,15 @@ example:
 The 3 atoms are ordered linearly within the angle.  Thus the central
 atom (around which the angle is computed) is the atom2 in the list.
 E.g. H,O,H for a water molecule.  The *Angles* section must appear
-after the *Atoms* section.  All values in this section must be
-integers (1, not 1.0).
+after the *Atoms* section.  
+
+All values in this section must be integers (1, not 1.0).  However,
+the type can be a numeric value or an alphanumeric label.  The latter
+is only allowed if the type label has been defined by the
+:doc:`labelmap <labelmap>` command or an Angle Type Labels section
+earlier in the data file.  See the :doc:`Howto type labels
+<Howto_type_labels>` doc page for the allowed syntax of type labels
+and a general discussion of how type labels can be used.
 
 ----------
 
@@ -626,29 +635,13 @@ integers (1, not 1.0).
        ID = numeric atom type (1-N)
        label = alphanumeric type label
 
-Type labels can be used to make data files more general, by defining
-atom, bond, etc. types in terms of user-provided strings instead of
-numbers.  If a type label section exists for a given interaction
-(atom, bond, angle, dihedral or improper), then all types must be
-assigned a type label for that interaction.  Type label sections must
-come before any section that utilizes that type.  Type labels can be
-directly substituted for numeric types listed in the *Atoms*, *Bonds*,
-etc. sections of data files. If numeric types are used, each
-interaction type is first converted into its corresponding type label
-before being read into LAMMPS.  Data files assign all types to the
-default label map; if the type label does not already exist, the type
-label is created as a new type and assigned to the default label map.
-The corresponding interaction coefficients listed in the data file are
-associated to this type.  There must be enough space in the per-type
-data arrays to create new types; see the *extra/atom/types* keyword
-for how to reserve extra space for new types, e.g., when reading
-multiple data files.  Note that, in this case, the numeric-to-label
-mapping within a data file does not necessary correspond to that of
-the simulation; once the default label map is fully defined, the
-:doc:`write_data <write_data>` command can be used to print out the
-default label map at a given point in a simulation.  See the
-:doc:`labelmap <labelmap>` command for more discussion on how to use
-type label maps.
+Define alphanumeric type labels for each numeric atom type.  These
+can be used in the Atoms section in place of a numeric type, but only
+if the Atom Type Labels section appears before the Atoms section.
+
+See the :doc:`Howto type labels <Howto_type_labels>` doc page for the
+allowed syntax of type labels and a general discussion of how type
+labels can be used.
 
 ----------
 
@@ -772,6 +765,13 @@ map array is used, but not if an atom map hash is used; see the
 not used (e.g. an atomic system with no bonds), and you don't care if
 unique atom IDs appear in dump files, then the atom-IDs can all be set
 to 0.
+
+The atom-type can be a numeric value or an alphanumeric label.  The
+latter is only allowed if the type label has been defined by the
+:doc:`labelmap <labelmap>` command or an Atom Type Labels section
+earlier in the data file.  See the :doc:`Howto type labels
+<Howto_type_labels>` doc page for the allowed syntax of type labels
+and a general discussion of how type labels can be used.
 
 The molecule ID is a second identifier attached to an atom.  Normally, it
 is a number from 1 to N, identifying which molecule the atom belongs
@@ -993,11 +993,13 @@ script.
        ID = bond type (1-N)
        label = alphanumeric type label
 
-See the *Atom Type Labels* section for more details about how bond
-types are interpreted when reading one or more data files that contain
-bond type label sections.  See the :doc:`labelmap <labelmap>` command
-for a discussion about how to format bond type labels and use type
-label maps.
+Define alphanumeric type labels for each numeric bond type.  These can
+be used in the Bonds section in place of a numeric type, but only if
+the this section appears before the Angles section.
+
+See the :doc:`Howto type labels <Howto_type_labels>` doc page for the
+allowed syntax of type labels and a general discussion of how type
+labels can be used.
 
 ----------
 
@@ -1054,8 +1056,15 @@ label maps.
 
        12 3 17 29
 
-The *Bonds* section must appear after the *Atoms* section.  All values
-in this section must be integers (1, not 1.0).
+The *Bonds* section must appear after the *Atoms* section.
+
+All values in this section must be integers (1, not 1.0).  However,
+the type can be a numeric value or an alphanumeric label.  The latter
+is only allowed if the type label has been defined by the
+:doc:`labelmap <labelmap>` command or a Bond Type Labels section
+earlier in the data file.  See the :doc:`Howto type labels
+<Howto_type_labels>` doc page for the allowed syntax of type labels
+and a general discussion of how type labels can be used.
 
 ----------
 
@@ -1093,11 +1102,13 @@ Coefficients can also be set via the
        ID = dihedral type (1-N)
        label = alphanumeric type label
 
-See the *Atom Type Labels* section for more details about how dihedral
-types are interpreted when reading one or more data files that contain
-dihedral type label sections.  See the :doc:`labelmap <labelmap>`
-command for a discussion about how to format dihedral type labels and
-use type label maps.
+Define alphanumeric type labels for each numeric dihedral type.  These
+can be used in the Dihedrals section in place of a numeric type, but
+only if the this section appears before the Dihedrals section.
+
+See the :doc:`Howto type labels <Howto_type_labels>` doc page for the
+allowed syntax of type labels and a general discussion of how type
+labels can be used.
 
 ----------
 
@@ -1119,8 +1130,15 @@ use type label maps.
        12 4 17 29 30 21
 
 The 4 atoms are ordered linearly within the dihedral.  The *Dihedrals*
-section must appear after the *Atoms* section.  All values in this
-section must be integers (1, not 1.0).
+section must appear after the *Atoms* section.  
+
+All values in this section must be integers (1, not 1.0).  However,
+the type can be a numeric value or an alphanumeric label.  The latter
+is only allowed if the type label has been defined by the
+:doc:`labelmap <labelmap>` command or a Dihedral Type Labels section
+earlier in the data file.  See the :doc:`Howto type labels
+<Howto_type_labels>` doc page for the allowed syntax of type labels
+and a general discussion of how type labels can be used.
 
 ----------
 
@@ -1212,11 +1230,13 @@ Coefficients can also be set via the
        ID = improper type (1-N)
        label = alphanumeric type label
 
-See the *Atom Type Labels* section for more details about how improper
-types are interpreted when reading one or more data files that contain
-improper type label sections.  See the :doc:`labelmap <labelmap>`
-command for a discussion about how to format improper type labels and
-use type label maps.
+Define alphanumeric type labels for each numeric improper type.  These
+can be used in the Impropers section in place of a numeric type, but
+only if the this section appears before the Impropers section.
+
+See the :doc:`Howto type labels <Howto_type_labels>` doc page for the
+allowed syntax of type labels and a general discussion of how type
+labels can be used.
 
 ----------
 
@@ -1238,11 +1258,19 @@ use type label maps.
        12 3 17 29 13 100
 
 The ordering of the 4 atoms determines the definition of the improper
-angle used in the formula for each :doc:`improper style <improper_style>`.  See the doc pages for individual styles
-for details.
+angle used in the formula for each :doc:`improper style
+<improper_style>`.  See the doc pages for individual styles for
+details.
 
-The *Impropers* section must appear after the *Atoms* section.  All
-values in this section must be integers (1, not 1.0).
+The *Impropers* section must appear after the *Atoms* section.
+
+All values in this section must be integers (1, not 1.0).  However,
+the type can be a numeric value or an alphanumeric label.  The latter
+is only allowed if the type label has been defined by the
+:doc:`labelmap <labelmap>` command or a Improper Type Labels section
+earlier in the data file.  See the :doc:`Howto type labels
+<Howto_type_labels>` doc page for the allowed syntax of type labels
+and a general discussion of how type labels can be used.
 
 ----------
 

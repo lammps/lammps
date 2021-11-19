@@ -21,7 +21,10 @@ Examples
    bond_coeff 5 80.0 1.2
    bond_coeff * 30.0 1.5 1.0 1.0
    bond_coeff 1*4 30.0 1.5 1.0 1.0
-   bond_coeff 1 harmonic 200.0 1.0
+   bond_coeff 1 harmonic 200.0 1.0 (for bond_style hybrid)
+
+JAKE add an example with 2 lines.  First = labelmap command, second =
+use the type label.
 
 Description
 """""""""""
@@ -31,8 +34,12 @@ The number and meaning of the coefficients depends on the bond style.
 Bond coefficients can also be set in the data file read by the
 :doc:`read_data <read_data>` command or in a restart file.
 
-N can be specified in one of several ways.  An explicit numeric value can
-be used, as in the first example above.  Or N can be a :doc:`type label <labelmap>`.
+N can be specified in one of several ways.  An explicit numeric value
+can be used, as in the first example above.  Or N can be a type label,
+which is an alphanumeric string defined by the :doc:`labelmap
+<labelmap>` command or in a section of a data file read by the
+:doc:`read_data <read_data>` command.
+
 For numeric values only, a wild-card asterisk can be used to set the
 coefficients for multiple bond types.  This takes the form "\*" or
 "\*n" or "n\*" or "m\*n".  If N = the number of bond types, then an

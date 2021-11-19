@@ -8,16 +8,17 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   labelmap interaction numeric-type type-label ... keyword values
+   labelmap type-kind numeric-type type-label ... keyword arg
 
-* interaction = *atom* or *bond* or *angle* or *dihedral* or *improper*
-* one or more numeric-type/type-label pairs may be appended
-* keyword = *map/assign*
+* type-kind = *atom* or *bond* or *angle* or *dihedral* or *improper*
+* one or more numeric-type/type-label pairs may be specified
+* zero or more keyword/arg pairs may be appended
+* keyword = *mapID*
 
   .. parsed-literal::
 
-       *map/assign* value = mapID
-         mapID = name of auxiliary label map
+       *mapID* arg = name
+         name = ID for the label map
 
 Examples
 """"""""
@@ -26,78 +27,54 @@ Examples
 
    labelmap atom 3 carbon
    labelmap bond 1 [c1][c2] 2 [c1][hc]
+   labelmap bond 1 [c1][c2] 2 [c1][hc] mapID myMap
+   JAKE: give an example of a command using variable labelmap func (see below)
 
 Description
 """""""""""
 
-Define or replace the alphanumeric type label associated with a
-numeric atom, bond, angle, dihedral or improper type. Type labels are
-strings that can be assigned to each interaction type. Pairing each
-numeric type used by LAMMPS with a character-based type can be
-helpful in a variety of situations. For example, type labels can make
-various inputs more readable and compatible with other inputs (data
-files, molecule templates, etc.), particularly if your model's force
-field uses alphanumeric atom types. The default type label map can
-also be defined by :doc:`data files <read_data>` using the relevant
-Type Label sections.
+Define alphanumeric type labels to associate with one or more numeric
+atom, bond, angle, dihedral or improper types.  A collection of type
+labels for a particular type-kind (atom types, bond types, etc) is
+stored as a label map.  As explained below, this command also allows
+definition of multiple label maps for the same type-kind by use of the
+mapID keyword.
 
-.. note::
+Label maps can also be defined by the :doc:`read_data <read_data>`
+command when it reads these sections in a data file: Atom Type Labels,
+Bond Type Lables, etc.  See the :doc:`Howto type labels
+<Howto_type_labels>` doc page for a general discussion of how type
+labels can be used.
 
-   If substituting numeric types with type labels is currently
-   supported by a given command, this feature will be mentioned on
-   that command's doc page. Or, for input script commands, type labels
-   can be processed using :doc:`variable <variable>` syntax using
-   labelmap functions.
+As explained on the Howto page, valid type labels can contain any
+alphanumeric character, but cannot start with a number.  They can also
+contain any of these characters: square brackets "[" and "]", dash
+"-", underscore "_", JAKE what other chars are allowed?  Note that
+type labels cannot contain the symbols '#' or '*'.
 
-.. note::
+A *labelmap* command can only modify the label map for one type-kind
+(atom types, bond types, etc).  Any number of numeric-type/type-label
+pairs may follow.  If a type label already exists for a given numeric
+type, it will be overwritten.  Type labels must be unique; assigning
+the same type label to multiple numeric types is not allowed.  Note
+that there is no requirement that a type label be defined for every
+numeric type.
 
-   Type labels cannot start with a number.
-
-The label map of only one type of interaction (atom, bond, etc.) may
-be modified by a given *labelmap* command. Any number of
-numeric-type/type-label pairs may follow. If a type label already
-exists for a given numeric type, it will be overwritten. Types labels
-must be unique; assigning the same type label to multiple numeric
-types is not permitted. There does not need to be a type label
-associated with every numeric type; in this case, those types without
-a label must be referenced by their numeric type.
-
-For certain features, it is necessary to be able to extract the
-atom types that make up a given bond, angle, dihedral or improper. The
-standard way to write multi-atom interaction types is to enclose the
-constituent atom types in brackets. For example, a bond type between
-atom type 'C' and 'H' is written as:
-
-.. code-block:: LAMMPS
-
-   bond_style harmonic
-   bond_coeff [C][H] 80.0 1.2
-
-In some circumstances, it may be helpful to define extra label maps in
-addition to the default one. An auxiliary label map can be created and
-populated using the *map/assign* keyword. Type labels of auxiliary
-label maps can be referenced by prefixing the type label with the
-mapID followed by "::". For example, a type label "C" assigned to a
-label map named "Map2" can be created and referenced as follows:
-
-.. code-block:: LAMMPS
-
-   labelmap bond 1 [C][H] map/assign Map2
-   bond_coeff Map2::[C][H] 80.0 1.2
-
-Auxiliary label maps are not written to restart or data files. Due to
-the syntax for auxiliary maps, type labels cannot contain the
-substring "::". The default label map has no prefix.
+It may sometimes be useful to define multiple label maps for a single
+type-kind.  This can be done using the *mapID* keyword.  The specified
+*name* is the mapID assigned to the label map.  The ID of a label map
+can only contain alphanumeric characters and underscores.  If the
+*mapID* keyword is not used, the specified type labels are assigned to
+the default label map for each type-kind, which has no mapID.
 
 ----------
 
 Restrictions
 """"""""""""
 
-Type labels cannot contain the symbols '#' or '*'. This command must
-come after the simulation box is defined by a :doc:`read_data <read_data>`,
-:doc:`read_restart <read_restart>`, or :doc:`create_box <create_box>`
-command.
+This command must come after the simulation box is defined by a
+:doc:`read_data <read_data>`, :doc:`read_restart <read_restart>`, or
+:doc:`create_box <create_box>` command.
 
 Related commands
 """"""""""""""""
@@ -108,4 +85,5 @@ Related commands
 Default
 """""""
 
-The option default is no type label map.
+If the mapID keyword is not used, specified type labels are assigned
+to the default map for the type-kind.

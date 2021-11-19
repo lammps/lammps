@@ -19,7 +19,7 @@ Syntax
        *nocoeff* = do not write out force field info
        *nofix* = do not write out extra sections read by fixes
        *nolabelmap* = do not write out the default label map
-       *types_style* value = *numeric* or *labels*
+       *types* value = *numeric* or *labels*
        *pair* value = *ii* or *ij*
          *ii* = write one line of pair coefficient info per atom type
          *ij* = write one line of pair coefficient info per IJ atom type pair
@@ -96,30 +96,36 @@ data file is read.
 
 ----------
 
-The *nocoeff* keyword requests that no force field parameters should
-be written to the data file. This can be very helpful, if one wants
-to make significant changes to the force field or if the parameters
-are read in separately anyway, e.g. from an include file.
+Use of the *nocoeff* keyword means no force field parameters are
+written to the data file. This can be helpful, for example, if you
+want to make significant changes to the force field or if the force
+field parameters are read in separately, e.g. from an include file.
 
-The *nofix* keyword requests that no extra sections read by fixes
-should be written to the data file (see the *fix* option of the
-:doc:`read_data <read_data>` command for details). For example, this
-option excludes sections for user-created per-atom properties
-from :doc:`fix property/atom <fix_property_atom>`.
+Use of the *nofix* keyword means no extra sections read by fixes are
+written to the data file (see the *fix* option of the :doc:`read_data
+<read_data>` command for details). For example, this option excludes
+sections for user-created per-atom properties from :doc:`fix
+property/atom <fix_property_atom>`.
 
-The *nolabelmap* keyword requests that the default label map should
-not be written to the data file (see the Type Label sections of
-:doc:`read_data <read_data>` command for details). By default, if the
-default label map is fully defined for a given interaction, i.e. every
-atom, bond, angle, dihedral or improper type has an associated type
-label, then a type label section for that interaction is written to
-the data file. The *types_style* keyword indicates how atom, bond,
-etc. types are written in the Atoms, Bonds, etc. sections. If the
-value is specified as *numeric*, then numeric types are used. If the
-value is specified as *labels*, then interaction types are written as
-type labels using the default label map. When using type labels, the
-default label map (i.e., Type Label sections) must be written to the
-data file.
+The *nolabelmap* and *types* keywords refer to label maps that may be
+defined for number atom types, bond types, angle types, etc.  Label
+maps can be defined in two ways, either by the :doc:`labelmap
+<labelmap>` command or in data files read by the :doc:`read_data
+<read_data>` command which have sections for Atom Type Labels, Bond
+Type Labels, Angle Type Labels, etc.  See the :doc:`Howto type labels
+<Howto_type_labels>` doc page for the allowed syntax of type labels
+and a general discussion of how type labels can be used.
+
+Use of the *nolabelmap* keyword means that even if default type label
+maps exist for Atoms, Bonds, Angles, etc, they are not written to the
+data file.  By default, they are written if they exist.
+
+The *types* keyword determins how atom types, bond types, angle types,
+etc are written into these data file sections: Atoms, Bonds, Angles,
+etc.  The default is the *numeric* setting, even if type label maps
+exist.  If the *labels" setting is used, type labels will be written
+to the data file, if the corresponding label map exists.  Note that
+when using *types labels*, the *nolabelmap* keyword cannot be used.
 
 The *pair* keyword lets you specify in what format the pair
 coefficient information is written into the data file.  If the value

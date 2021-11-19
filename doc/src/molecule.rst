@@ -70,8 +70,9 @@ and underscores.
 A single template can contain multiple molecules, listed one per file.
 Some of the commands listed above currently use only the first
 molecule in the template, and will issue a warning if the template
-contains multiple molecules.  The :doc:`atom_style template <atom_style>` command allows multiple-molecule templates
-to define a system with more than one templated molecule.
+contains multiple molecules.  The :doc:`atom_style template
+<atom_style>` command allows multiple-molecule templates to define a
+system with more than one templated molecule.
 
 Each filename can be followed by optional keywords which are applied
 only to the molecule in the file as used in this template.  This is to
@@ -173,12 +174,15 @@ These are the allowed section keywords for the body of the file.
 * *Special Bond Counts, Special Bonds* = special neighbor info
 * *Shake Flags, Shake Atoms, Shake Bond Types* = SHAKE info
 
-For the Types, Bonds, Angles, Dihedrals, and Impropers sections,  each
-atom, bond, etc. type can be listed either as a number (numeric type)
-or as an alphanumeric :doc:`type label <labelmap>`. Type labels cannot
-start with a number, and a label map must have previously been defined
-by a :doc:`labelmap <labelmap>` or :doc:`read_data <read_data>`
-command.
+For the Types, Bonds, Angles, Dihedrals, and Impropers sections, each
+atom/bond/angle/etc type can be specified either as a number (numeric
+type) or as an alphanumeric type label.  The latter is only allowed if
+type lables have been defined, either by the :doc:`labelmap
+<labelmap>` command or in data files read by the :doc:`read_data
+<read_data>` command which have sections for Atom Type Labels, Bond
+Type Labels, Angle Type Labels, etc.  See the :doc:`Howto type labels
+<Howto_type_labels>` doc page for the allowed syntax of type labels
+and a general discussion of how type labels can be used.
 
 If a Bonds section is specified then the Special Bond Counts and
 Special Bonds sections can also be used, if desired, to explicitly
@@ -186,25 +190,26 @@ list the 1-2, 1-3, 1-4 neighbors within the molecule topology (see
 details below).  This is optional since if these sections are not
 included, LAMMPS will auto-generate this information.  Note that
 LAMMPS uses this info to properly exclude or weight bonded pairwise
-interactions between bonded atoms.  See the
-:doc:`special_bonds <special_bonds>` command for more details.  One
-reason to list the special bond info explicitly is for the
-:doc:`thermalized Drude oscillator model <Howto_drude>` which treats the
-bonds between nuclear cores and Drude electrons in a different manner.
+interactions between bonded atoms.  See the :doc:`special_bonds
+<special_bonds>` command for more details.  One reason to list the
+special bond info explicitly is for the :doc:`thermalized Drude
+oscillator model <Howto_drude>` which treats the bonds between nuclear
+cores and Drude electrons in a different manner.
 
 .. note::
 
-   Whether a section is required depends on how the molecule
-   template is used by other LAMMPS commands.  For example, to add a
-   molecule via the :doc:`fix deposit <fix_deposit>` command, the Coords
-   and Types sections are required.  To add a rigid body via the :doc:`fix pour <fix_pour>` command, the Bonds (Angles, etc) sections are not
+   Whether a section is required depends on how the molecule template
+   is used by other LAMMPS commands.  For example, to add a molecule
+   via the :doc:`fix deposit <fix_deposit>` command, the Coords and
+   Types sections are required.  To add a rigid body via the :doc:`fix
+   pour <fix_pour>` command, the Bonds (Angles, etc) sections are not
    required, since the molecule will be treated as a rigid body.  Some
    sections are optional.  For example, the :doc:`fix pour <fix_pour>`
    command can be used to add "molecules" which are clusters of
    finite-size granular particles.  If the Diameters section is not
-   specified, each particle in the molecule will have a default diameter
-   of 1.0.  See the doc pages for LAMMPS commands that use molecule
-   templates for more details.
+   specified, each particle in the molecule will have a default
+   diameter of 1.0.  See the doc pages for LAMMPS commands that use
+   molecule templates for more details.
 
 Each section is listed below in alphabetic order.  The format of each
 section is described including the number of lines it must contain and

@@ -1,5 +1,6 @@
 ---
 lammps_version: 30 Jul 2021
+tags: slow, unstable
 date_generated: Mon Aug 23 20:32:04 2021
 epsilon: 5e-13
 skip_tests:

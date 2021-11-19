@@ -633,6 +633,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_h_item(int ii, int &m_fill, const
 
 template <class DeviceType>
 template <int NEIGHFLAG>
+KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::compute_h_team(
     const typename Kokkos::TeamPolicy<DeviceType>::member_type &team,
     int atoms_per_team, int vector_length) const {
@@ -935,6 +936,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_x_item(int ii, int &m_fill, const
 
 template <class DeviceType>
 template <int NEIGHFLAG>
+KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::compute_x_team(
     const typename Kokkos::TeamPolicy<DeviceType>::member_type &team,
     int atoms_per_team, int vector_length) const {

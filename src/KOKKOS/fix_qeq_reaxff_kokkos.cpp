@@ -802,6 +802,7 @@ template<class DeviceType>
 int FixQEqReaxFFKokkos<DeviceType>::cg_solve1()
 // b = b_s, x = s;
 {
+  int loop;
 #ifndef HIP_OPT_CG_SOLVE_FUSED
   const int inum = list->inum;
   F_FLOAT tmp, sig_old, b_norm;
@@ -873,7 +874,6 @@ int FixQEqReaxFFKokkos<DeviceType>::cg_solve1()
   MPI_Allreduce(&my_dot, &dot_sqr, 1, MPI_DOUBLE, MPI_SUM, world);
   F_FLOAT sig_new = dot_sqr;
 
-  int loop;
   for (loop = 1; (loop < imax) && (sqrt(sig_new)/b_norm > tolerance); loop++) {
 
     // comm->forward_comm_fix(this); //Dist_vector(d);
@@ -947,8 +947,8 @@ int FixQEqReaxFFKokkos<DeviceType>::cg_solve1()
                                      "failed after {} iterations at step {}: "
                                      "{}", loop, update->ntimestep,
                                      sqrt(sig_new)/b_norm));
-  return loop;
 #endif
+  return loop;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -957,6 +957,7 @@ template<class DeviceType>
 int FixQEqReaxFFKokkos<DeviceType>::cg_solve2()
 // b = b_t, x = t;
 {
+  int loop;
 #ifndef HIP_OPT_CG_SOLVE_FUSED
   const int inum = list->inum;
   F_FLOAT tmp, sig_old, b_norm;
@@ -1029,7 +1030,6 @@ int FixQEqReaxFFKokkos<DeviceType>::cg_solve2()
   MPI_Allreduce(&my_dot, &dot_sqr, 1, MPI_DOUBLE, MPI_SUM, world);
   F_FLOAT sig_new = dot_sqr;
 
-  int loop;
   for (loop = 1; (loop < imax) && (sqrt(sig_new)/b_norm > tolerance); loop++) {
 
     // comm->forward_comm_fix(this); //Dist_vector(d);
@@ -1103,8 +1103,8 @@ int FixQEqReaxFFKokkos<DeviceType>::cg_solve2()
                                      "failed after {} iterations at step {}: "
                                      "{}", loop, update->ntimestep,
                                      sqrt(sig_new)/b_norm));
-  return loop;
 #endif
+  return loop;
 }
 
 #ifdef HIP_OPT_CG_SOLVE_FUSED

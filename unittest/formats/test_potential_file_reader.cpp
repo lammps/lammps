@@ -283,7 +283,7 @@ TEST_F(OpenPotentialTest, Sw_conv)
 {
     int convert_flag = utils::get_supported_conversions(utils::ENERGY);
     ASSERT_EQ(convert_flag, utils::METAL2REAL | utils::REAL2METAL);
-    BEGIN_HIDE_OUTPUT();
+    BEGIN_CAPTURE_OUTPUT();
     command("units real");
     FILE *fp    = utils::open_potential("Si.sw", lmp, &convert_flag);
     auto text   = END_CAPTURE_OUTPUT();

@@ -1193,7 +1193,9 @@ int FixQEqReaxFFKokkos<DeviceType>::cg_solve_fused()
     // comm->forward_comm_fix(this); //Dist_vector( d );
     pack_flag = 1;
     // mark size 2 for fused
+    k_d_fused.template modify<DeviceType>();
     comm->forward_comm_fix(this, 2);
+    k_d_fused.template sync<DeviceType>();
 
     // sparse_matvec( &H, d, q );
     FixQEqReaxFFKokkosSparse22FusedFunctor<DeviceType> sparse22_functor(this);
@@ -2039,10 +2041,8 @@ int FixQEqReaxFFKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *
   #else
     k_d_fused.sync_host();
     for (m = 0; m < n; m++) {
-      if (!(converged & 1))
-        buf[m*2] = h_d_fused(list[m],0);
-      if (!(converged & 2))
-        buf[m*2+1] = h_d_fused(list[m],1);
+      buf[m*2] = h_d_fused(list[m],0);
+      buf[m*2+1] = h_d_fused(list[m],1);
     }
   #endif
   } else if (pack_flag == 2) {
@@ -2083,10 +2083,8 @@ void FixQEqReaxFFKokkos<DeviceType>::unpack_forward_comm(int n, int first, doubl
     #else
       k_d_fused.sync_host();
       for (m = 0, i = first; m < n; m++, i++) {
-        if (!(converged & 1))
-          h_d_fused(i,0) = buf[m*2];
-        if (!(converged & 2))
-          h_d_fused(i,1) = buf[m*2+1];
+        h_d_fused(i,0) = buf[m*2];
+        h_d_fused(i,1) = buf[m*2+1];
       }
       k_d_fused.modify_host();
     #endif

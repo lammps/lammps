@@ -318,10 +318,10 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   void init_hist();
   void allocate_matrix();
   void allocate_array();
-  void cg_solve1();
-  void cg_solve2();
+  int cg_solve1();
+  int cg_solve2();
   #ifdef HIP_OPT_CG_SOLVE_FUSED
-  void cg_solve_fused();
+  int cg_solve_fused();
   #endif
   void calculate_q();
 
@@ -471,10 +471,10 @@ struct FixQEqReaxFFKokkosSparse22Functor  {
 
 #ifdef HIP_OPT_CG_SOLVE_FUSED
 template <class DeviceType>
-struct FixQEqReaxKokkosSparse22FusedFunctor  {
+struct FixQEqReaxFFKokkosSparse22FusedFunctor  {
   typedef DeviceType  device_type ;
-  FixQEqReaxKokkos<DeviceType> c;
-  FixQEqReaxKokkosSparse22FusedFunctor(FixQEqReaxKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+  FixQEqReaxFFKokkos<DeviceType> c;
+  FixQEqReaxFFKokkosSparse22FusedFunctor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
   };
   KOKKOS_INLINE_FUNCTION
@@ -512,10 +512,10 @@ struct FixQEqReaxFFKokkosSparse32Functor  {
 
 #ifdef HIP_OPT_CG_SOLVE_FUSED
 template <class DeviceType>
-struct FixQEqReaxKokkosSparse12_32Functor  {
+struct FixQEqReaxFFKokkosSparse12_32Functor  {
   typedef DeviceType  device_type ;
-  FixQEqReaxKokkos<DeviceType> c;
-  FixQEqReaxKokkosSparse12_32Functor(FixQEqReaxKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+  FixQEqReaxFFKokkos<DeviceType> c;
+  FixQEqReaxFFKokkosSparse12_32Functor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
   };
   KOKKOS_INLINE_FUNCTION
@@ -553,10 +553,10 @@ struct FixQEqReaxFFKokkosVecSum2Functor  {
 
 #ifdef HIP_OPT_CG_SOLVE_FUSED
 template <class DeviceType>
-struct FixQEqReaxKokkosVecSum2FusedFunctor  {
+struct FixQEqReaxFFKokkosVecSum2FusedFunctor  {
   typedef DeviceType  device_type ;
-  FixQEqReaxKokkos<DeviceType> c;
-  FixQEqReaxKokkosVecSum2FusedFunctor(FixQEqReaxKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+  FixQEqReaxFFKokkos<DeviceType> c;
+  FixQEqReaxFFKokkosVecSum2FusedFunctor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
   };
   KOKKOS_INLINE_FUNCTION
@@ -597,11 +597,11 @@ struct FixQEqReaxFFKokkosNorm2Functor  {
 #ifdef HIP_OPT_CG_SOLVE_FUSED
 // fused operator
 template <class DeviceType>
-struct FixQEqReaxKokkosNorm12Functor  {
+struct FixQEqReaxFFKokkosNorm12Functor  {
   typedef DeviceType  device_type ;
-  FixQEqReaxKokkos<DeviceType> c;
+  FixQEqReaxFFKokkos<DeviceType> c;
   typedef F_FLOAT2 value_type;
-  FixQEqReaxKokkosNorm12Functor(FixQEqReaxKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+  FixQEqReaxFFKokkosNorm12Functor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
   };
   KOKKOS_INLINE_FUNCTION
@@ -642,11 +642,11 @@ struct FixQEqReaxFFKokkosDot2Functor  {
 #ifdef HIP_OPT_CG_SOLVE_FUSED
 // fused operators
 template <class DeviceType>
-struct FixQEqReaxKokkosDot11Functor  {
+struct FixQEqReaxFFKokkosDot11Functor  {
   typedef DeviceType  device_type ;
-  FixQEqReaxKokkos<DeviceType> c;
+  FixQEqReaxFFKokkos<DeviceType> c;
   typedef F_FLOAT2 value_type;
-  FixQEqReaxKokkosDot11Functor(FixQEqReaxKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+  FixQEqReaxFFKokkosDot11Functor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
   };
   KOKKOS_INLINE_FUNCTION
@@ -656,11 +656,11 @@ struct FixQEqReaxKokkosDot11Functor  {
 };
 
 template <class DeviceType>
-struct FixQEqReaxKokkosDot22Functor  {
+struct FixQEqReaxFFKokkosDot22Functor  {
   typedef DeviceType  device_type ;
-  FixQEqReaxKokkos<DeviceType> c;
+  FixQEqReaxFFKokkos<DeviceType> c;
   typedef F_FLOAT2 value_type;
-  FixQEqReaxKokkosDot22Functor(FixQEqReaxKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+  FixQEqReaxFFKokkosDot22Functor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
   };
   KOKKOS_INLINE_FUNCTION
@@ -698,10 +698,10 @@ struct FixQEqReaxFFKokkosPrecon2Functor  {
 
 #ifdef HIP_OPT_CG_SOLVE_FUSED
 template <class DeviceType>
-struct FixQEqReaxKokkosPrecon12Functor  {
+struct FixQEqReaxFFKokkosPrecon12Functor  {
   typedef DeviceType  device_type ;
-  FixQEqReaxKokkos<DeviceType> c;
-  FixQEqReaxKokkosPrecon12Functor(FixQEqReaxKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+  FixQEqReaxFFKokkos<DeviceType> c;
+  FixQEqReaxFFKokkosPrecon12Functor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
   };
   KOKKOS_INLINE_FUNCTION
@@ -727,11 +727,11 @@ struct FixQEqReaxFFKokkosPreconFunctor  {
 
 #ifdef HIP_OPT_CG_SOLVE_FUSED
 template <class DeviceType>
-struct FixQEqReaxKokkosPreconFusedFunctor  {
+struct FixQEqReaxFFKokkosPreconFusedFunctor  {
   typedef DeviceType  device_type ;
-  FixQEqReaxKokkos<DeviceType> c;
+  FixQEqReaxFFKokkos<DeviceType> c;
   typedef F_FLOAT2 value_type;
-  FixQEqReaxKokkosPreconFusedFunctor(FixQEqReaxKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+  FixQEqReaxFFKokkosPreconFusedFunctor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
   };
   KOKKOS_INLINE_FUNCTION

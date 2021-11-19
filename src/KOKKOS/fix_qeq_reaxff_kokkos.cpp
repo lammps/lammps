@@ -947,6 +947,7 @@ int FixQEqReaxFFKokkos<DeviceType>::cg_solve1()
                                      "{}", loop, update->ntimestep,
                                      sqrt(sig_new)/b_norm));
   return loop;
+#endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1108,7 +1109,7 @@ int FixQEqReaxFFKokkos<DeviceType>::cg_solve2()
 #ifdef HIP_OPT_CG_SOLVE_FUSED
 
 template<class DeviceType>
-void FixQEqReaxKokkos<DeviceType>::cg_solve_fused()
+int FixQEqReaxFFKokkos<DeviceType>::cg_solve_fused()
 // b = b_s, x = s;
 {
   // reset converged
@@ -1139,7 +1140,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve_fused()
   }
 
   // sparse_matvec( &H, x, q );
-  FixQEqReaxKokkosSparse12_32Functor<DeviceType> sparse_12_32_functor(this);
+  FixQEqReaxFFKokkosSparse12_32Functor<DeviceType> sparse_12_32_functor(this);
   Kokkos::parallel_for(inum,sparse_12_32_functor);
   if (neighflag != FULL) {
     Kokkos::abort("Not implemented!");
@@ -1159,7 +1160,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve_fused()
   // preconditioning: d[j] = r[j] * Hdia_inv[j];
   // b_norm = parallel_norm( b, nn );
   F_FLOAT2 my_norm;
-  FixQEqReaxKokkosNorm12Functor<DeviceType> norm12_functor(this);
+  FixQEqReaxFFKokkosNorm12Functor<DeviceType> norm12_functor(this);
   Kokkos::parallel_reduce(inum,norm12_functor,my_norm);
   F_FLOAT2 norm_sqr;
   MPI_Allreduce( &my_norm.v, &norm_sqr.v, 2, MPI_DOUBLE, MPI_SUM, world );
@@ -1167,7 +1168,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve_fused()
   b_norm.v[1] = sqrt(norm_sqr.v[1]);
 
   F_FLOAT2 my_dot;
-  FixQEqReaxKokkosDot11Functor<DeviceType> dot11_functor(this);
+  FixQEqReaxFFKokkosDot11Functor<DeviceType> dot11_functor(this);
   Kokkos::parallel_reduce(inum,dot11_functor,my_dot);
   F_FLOAT2 dot_sqr;
   MPI_Allreduce( &my_dot.v, &dot_sqr.v, 2, MPI_DOUBLE, MPI_SUM, world );
@@ -1194,7 +1195,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve_fused()
     comm->forward_comm_fix(this, 2);
 
     // sparse_matvec( &H, d, q );
-    FixQEqReaxKokkosSparse22FusedFunctor<DeviceType> sparse22_functor(this);
+    FixQEqReaxFFKokkosSparse22FusedFunctor<DeviceType> sparse22_functor(this);
     Kokkos::parallel_for(inum,sparse22_functor);
     if (neighflag != FULL) {
       Kokkos::abort("Not implemented!");
@@ -1213,7 +1214,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve_fused()
     // tmp = parallel_dot( d, q, nn);
     my_dot.init();
     dot_sqr.init();
-    FixQEqReaxKokkosDot22Functor<DeviceType> dot22_functor(this);
+    FixQEqReaxFFKokkosDot22Functor<DeviceType> dot22_functor(this);
     Kokkos::parallel_reduce(inum,dot22_functor,my_dot);
     MPI_Allreduce( &my_dot.v, &dot_sqr.v, 2, MPI_DOUBLE, MPI_SUM, world );
     tmp = dot_sqr;
@@ -1228,11 +1229,11 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve_fused()
     // vector_add( r, -alpha, q, nn );
     my_dot.init();
     dot_sqr.init();
-    FixQEqReaxKokkosPrecon12Functor<DeviceType> precon12_functor(this);
+    FixQEqReaxFFKokkosPrecon12Functor<DeviceType> precon12_functor(this);
     Kokkos::parallel_for(inum,precon12_functor);
     // preconditioning: p[j] = r[j] * Hdia_inv[j];
     // sig_new = parallel_dot( r, p, nn);
-    FixQEqReaxKokkosPreconFusedFunctor<DeviceType> precon_functor(this);
+    FixQEqReaxFFKokkosPreconFusedFunctor<DeviceType> precon_functor(this);
     Kokkos::parallel_reduce(inum,precon_functor,my_dot);
     MPI_Allreduce( &my_dot.v, &dot_sqr.v, 2, MPI_DOUBLE, MPI_SUM, world );
     sig_new = dot_sqr;
@@ -1243,7 +1244,7 @@ void FixQEqReaxKokkos<DeviceType>::cg_solve_fused()
       beta[1] = sig_new.v[1] / sig_old.v[1];
 
     // vector_sum( d, 1., p, beta, d, nn );
-    FixQEqReaxKokkosVecSum2FusedFunctor<DeviceType> vecsum12_functor(this);
+    FixQEqReaxFFKokkosVecSum2FusedFunctor<DeviceType> vecsum12_functor(this);
     Kokkos::parallel_for(inum,vecsum12_functor);
   }
 
@@ -1314,7 +1315,7 @@ void FixQEqReaxFFKokkos<DeviceType>::sparse12_item(int ii) const
 // fused operator
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxKokkos<DeviceType>::sparse12_32_item(int ii) const
+void FixQEqReaxFFKokkos<DeviceType>::sparse12_32_item(int ii) const
 {
   const int i = d_ilist[ii];
   const int itype = type(i);
@@ -1372,7 +1373,7 @@ void FixQEqReaxFFKokkos<DeviceType>::operator() (TagSparseMatvec1, const membert
 #ifdef HIP_OPT_CG_SOLVE_FUSED
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxKokkos<DeviceType>::operator() (TagSparseMatvec13, const membertype13 &team) const
+void FixQEqReaxFFKokkos<DeviceType>::operator() (TagSparseMatvec13, const membertype13 &team) const
 {
   const int i = d_ilist[team.league_rank()];
   if (mask[i] & groupbit) {
@@ -1418,7 +1419,7 @@ void FixQEqReaxFFKokkos<DeviceType>::operator() (TagSparseMatvec1Vector, const m
 #ifdef HIP_OPT_CG_SOLVE_FUSED
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxKokkos<DeviceType>::operator() (TagSparseMatvec13Vector, const membertype13vec &team) const
+void FixQEqReaxFFKokkos<DeviceType>::operator() (TagSparseMatvec13Vector, const membertype13vec &team) const
 {
   int k = team.league_rank () * team.team_size () + team.team_rank ();
   const int i = d_ilist[k];
@@ -1459,7 +1460,7 @@ void FixQEqReaxFFKokkos<DeviceType>::sparse22_item(int ii) const
 #ifdef HIP_OPT_CG_SOLVE_FUSED
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxKokkos<DeviceType>::sparse22_fused_item(int ii) const
+void FixQEqReaxFFKokkos<DeviceType>::sparse22_fused_item(int ii) const
 {
   const int i = d_ilist[ii];
   const int itype = type(i);
@@ -1535,7 +1536,7 @@ void FixQEqReaxFFKokkos<DeviceType>::operator() (TagSparseMatvec2, const membert
 #ifdef HIP_OPT_CG_SOLVE_FUSED
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxKokkos<DeviceType>::operator() (TagSparseMatvec2FusedVector, const membertype2fusedvec &team) const
+void FixQEqReaxFFKokkos<DeviceType>::operator() (TagSparseMatvec2FusedVector, const membertype2fusedvec &team) const
 {
   int k = team.league_rank () * team.team_size () + team.team_rank ();
   const int i = d_ilist[k];
@@ -1563,7 +1564,7 @@ void FixQEqReaxKokkos<DeviceType>::operator() (TagSparseMatvec2FusedVector, cons
 #ifdef HIP_OPT_CG_SOLVE_FUSED
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxKokkos<DeviceType>::operator() (TagSparseMatvec2Fused, const membertype2fused &team) const
+void FixQEqReaxFFKokkos<DeviceType>::operator() (TagSparseMatvec2Fused, const membertype2fused &team) const
 {
   const int i = d_ilist[team.league_rank()];
   if (mask[i] & groupbit) {
@@ -1680,7 +1681,7 @@ void FixQEqReaxFFKokkos<DeviceType>::vecsum2_item(int ii) const
 #ifdef HIP_OPT_CG_SOLVE_FUSED
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxKokkos<DeviceType>::vecsum2_fused_item(int ii) const
+void FixQEqReaxFFKokkos<DeviceType>::vecsum2_fused_item(int ii) const
 {
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
@@ -1729,7 +1730,7 @@ double FixQEqReaxFFKokkos<DeviceType>::norm2_item(int ii) const
 #ifdef HIP_OPT_CG_SOLVE_FUSED
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxKokkos<DeviceType>::norm12_item(int ii, F_FLOAT2& out) const
+void FixQEqReaxFFKokkos<DeviceType>::norm12_item(int ii, F_FLOAT2& out) const
 {
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
@@ -1781,7 +1782,7 @@ double FixQEqReaxFFKokkos<DeviceType>::dot2_item(int ii) const
 #ifdef HIP_OPT_CG_SOLVE_FUSED
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxKokkos<DeviceType>::dot11_item(int ii, F_FLOAT2& out) const
+void FixQEqReaxFFKokkos<DeviceType>::dot11_item(int ii, F_FLOAT2& out) const
 {
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
@@ -1794,7 +1795,7 @@ void FixQEqReaxKokkos<DeviceType>::dot11_item(int ii, F_FLOAT2& out) const
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxKokkos<DeviceType>::dot22_item(int ii, F_FLOAT2& out) const
+void FixQEqReaxFFKokkos<DeviceType>::dot22_item(int ii, F_FLOAT2& out) const
 {
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
@@ -1842,7 +1843,7 @@ void FixQEqReaxFFKokkos<DeviceType>::precon2_item(int ii) const
 // fused operator
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxKokkos<DeviceType>::precon12_item(int ii) const
+void FixQEqReaxFFKokkos<DeviceType>::precon12_item(int ii) const
 {
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
@@ -1878,7 +1879,7 @@ double FixQEqReaxFFKokkos<DeviceType>::precon_item(int ii) const
 #ifdef HIP_OPT_CG_SOLVE_FUSED
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxKokkos<DeviceType>::precon_fused_item(int ii, F_FLOAT2& out) const
+void FixQEqReaxFFKokkos<DeviceType>::precon_fused_item(int ii, F_FLOAT2& out) const
 {
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {

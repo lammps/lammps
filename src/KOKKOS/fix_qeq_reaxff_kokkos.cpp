@@ -415,9 +415,10 @@ void FixQEqReaxFFKokkos<DeviceType>::allocate_array()
     d_d = k_d.template view<DeviceType>();
     h_d = k_d.h_view;
 
+#endif
+
     memoryKK->create_kokkos(k_chi_field,chi_field,nmax,"qeq/kk:chi_field");
     d_chi_field = k_chi_field.template view<DeviceType>();
-#endif
 
 #ifdef HIP_OPT_CG_SOLVE_FUSED
     k_o_fused = DAT::tdual_ffloat2_1d("qeq/kk:o",nmax);

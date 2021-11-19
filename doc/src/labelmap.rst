@@ -56,12 +56,11 @@ Type Label sections.
 The label map of only one type of interaction (atom, bond, etc.) may
 be modified by a given *labelmap* command. Any number of
 numeric-type/type-label pairs may follow. If a type label already
-exists for a given numeric type, it will be overwritten. Assigning the
-same type label to multiple numeric types is permitted; how this
-ambiguity is treated may depend on the feature utilizing type labels.
-There does not need to be a type label associated with every numeric
-type; in this case, those types without a label must be referenced by
-their numeric type.
+exists for a given numeric type, it will be overwritten. Types labels
+must be unique; assigning the same type label to multiple numeric
+types is not permitted. There does not need to be a type label
+associated with every numeric type; in this case, those types without
+a label must be referenced by their numeric type.
 
 For certain features, it is necessary to be able to extract the
 atom types that make up a given bond, angle, dihedral or improper. The
@@ -95,9 +94,10 @@ substring "::". The default label map has no prefix.
 Restrictions
 """"""""""""
 
-This command must come after the simulation box is defined by a
-:doc:`read_data <read_data>`, :doc:`read_restart <read_restart>`, or
-:doc:`create_box <create_box>` command.
+Type labels cannot contain the symbols '#' or '*'. This command must
+come after the simulation box is defined by a :doc:`read_data <read_data>`,
+:doc:`read_restart <read_restart>`, or :doc:`create_box <create_box>`
+command.
 
 Related commands
 """"""""""""""""

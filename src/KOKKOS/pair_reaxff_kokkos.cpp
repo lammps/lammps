@@ -144,18 +144,15 @@ void PairReaxFFKokkos<DeviceType>::init_style()
 
   acks2_flag = api->system->acks2_flag;
   if (acks2_flag) {
-    int ifix = modify->find_fix_by_style("^acks2/reax");
-    Fix* fix = modify->fix[ifix];
-    if (!fix->kokkosable)
+    auto ifix = modify->get_fix_by_style("^acks2/reax").front();
+    if (!ifix->kokkosable)
       error->all(FLERR,"Must use Kokkos version of acks2/reaxff with pair reaxff/kk");
-    if (fix->execution_space == Host) {
-      FixACKS2ReaxFFKokkos<LMPHostType>* acks2_fix = (FixACKS2ReaxFFKokkos<LMPHostType>*) modify->fix[ifix];
-      auto k_s = acks2_fix->get_s();
+    if (ifix->execution_space == Host) {
+      auto k_s = ((FixACKS2ReaxFFKokkos<LMPHostType>*) ifix)->get_s();
       k_s.sync<DeviceType>();
       d_s = k_s.view<DeviceType>();
     } else {
-      FixACKS2ReaxFFKokkos<LMPDeviceType>* acks2_fix = (FixACKS2ReaxFFKokkos<LMPDeviceType>*) modify->fix[ifix];
-      auto k_s = acks2_fix->get_s();
+      auto k_s = ((FixACKS2ReaxFFKokkos<LMPDeviceType>*) ifix)->get_s();
       k_s.sync<DeviceType>();
       d_s = k_s.view<DeviceType>();
     }
@@ -726,16 +723,13 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   d_ilist = k_list->d_ilist;
 
   if (acks2_flag) {
-    int ifix = modify->find_fix_by_style("^acks2/reax");
-    Fix* fix = modify->fix[ifix];
-    if (fix->execution_space == Host) {
-      FixACKS2ReaxFFKokkos<LMPHostType>* acks2_fix = (FixACKS2ReaxFFKokkos<LMPHostType>*) modify->fix[ifix];
-      auto k_s = acks2_fix->get_s();
+    auto ifix = modify->get_fix_by_style("^acks2/reax").front();
+    if (ifix->execution_space == Host) {
+      auto k_s = ((FixACKS2ReaxFFKokkos<LMPHostType>*) ifix)->get_s();
       k_s.sync<DeviceType>();
       d_s = k_s.view<DeviceType>();
     } else {
-      FixACKS2ReaxFFKokkos<LMPDeviceType>* acks2_fix = (FixACKS2ReaxFFKokkos<LMPDeviceType>*) modify->fix[ifix];
-      auto k_s = acks2_fix->get_s();
+      auto k_s = ((FixACKS2ReaxFFKokkos<LMPDeviceType>*) ifix)->get_s();
       k_s.sync<DeviceType>();
       d_s = k_s.view<DeviceType>();
     }

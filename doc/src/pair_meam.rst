@@ -28,16 +28,16 @@ Description
    as of November 2010; see description below of the mixture_ref_t
    parameter
 
-Style *meam* computes pairwise interactions for a variety of materials
-using modified embedded-atom method (MEAM) potentials
+Pair style *meam* computes non-bonded interactions for a variety of materials
+using the modified embedded-atom method (MEAM)
 :ref:`(Baskes) <Baskes>`.  Conceptually, it is an extension to the original
-:doc:`EAM potentials <pair_eam>` which adds angular forces.  It is
+:doc:`EAM method <pair_eam>` which adds angular forces.  It is
 thus suitable for modeling metals and alloys with fcc, bcc, hcp and
-diamond cubic structures, as well as covalently bonded materials like
-silicon and carbon. Style *meam* is a translation of the (now obsolete)
-*meam* code from Fortran to C++. It is functionally equivalent to *meam*
-but more efficient, and thus *meam* has been removed from LAMMPS after
-the 12 December 2018 release.
+diamond cubic structures, as well as materials with covalent interactions
+like silicon and carbon. This *meam* pair style is a translation of the
+original Fortran version to C++. It is functionally equivalent but more
+efficient and has additional features. The Fortran version of the *meam*
+pair style has been removed from LAMMPS after the 12 December 2018 release.
 
 In the MEAM formulation, the total energy E of a system of atoms is
 given by:

@@ -73,6 +73,7 @@ void WriteData::command(int narg, char **arg)
   coeffflag = 1;
   fixflag = 1;
   lmapflag = 1;
+  atom->types_style = Atom::NUMERIC;
   int noinit = 0;
 
   int iarg = 1;
@@ -95,6 +96,12 @@ void WriteData::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"nolabelmap") == 0) {
       lmapflag = 0;
       iarg++;
+    } else if (strcmp(arg[iarg],"types_style") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal write_data command");
+      if (strcmp(arg[iarg+1],"numeric") == 0) atom->types_style = Atom::NUMERIC;
+      else if (strcmp(arg[iarg+1],"labels") == 0) atom->types_style = Atom::LABELS;
+      else error->all(FLERR,"Illegal write_data command");
+      iarg += 2;
     } else error->all(FLERR,"Illegal write_data command");
   }
 
@@ -220,9 +227,9 @@ void WriteData::write(const std::string &file)
   // extra sections managed by fixes
 
   if (fixflag)
-    for (int i = 0; i < modify->nfix; i++)
-      if (modify->fix[i]->wd_section)
-        for (int m = 0; m < modify->fix[i]->wd_section; m++) fix(i,m);
+    for (auto &ifix : modify->get_fix_list())
+      if (ifix->wd_section)
+        for (int m = 0; m < ifix->wd_section; m++) fix(ifix,m);
 
   // close data file
 
@@ -274,22 +281,19 @@ void WriteData::header()
   // fix info
 
   if (fixflag)
-    for (int i = 0; i < modify->nfix; i++)
-      if (modify->fix[i]->wd_header)
-        for (int m = 0; m < modify->fix[i]->wd_header; m++)
-          modify->fix[i]->write_data_header(fp,m);
+    for (auto &ifix : modify->get_fix_list())
+      if (ifix->wd_header)
+        for (int m = 0; m < ifix->wd_header; m++)
+          ifix->write_data_header(fp,m);
 
   // box info
 
-  auto box = fmt::format("\n{} {} xlo xhi"
-                         "\n{} {} ylo yhi"
-                         "\n{} {} zlo zhi\n",
+  auto box = fmt::format("\n{} {} xlo xhi\n{} {} ylo yhi\n{} {} zlo zhi\n",
                          domain->boxlo[0],domain->boxhi[0],
                          domain->boxlo[1],domain->boxhi[1],
                          domain->boxlo[2],domain->boxhi[2]);
   if (domain->triclinic)
-    box += fmt::format("{} {} {} xy xz yz\n",
-                       domain->xy,domain->xz,domain->yz);
+    box += fmt::format("{} {} {} xy xz yz\n",domain->xy,domain->xz,domain->yz);
   fputs(box.c_str(),fp);
 }
 
@@ -729,13 +733,13 @@ void WriteData::bonus(int flag)
    write out Mth section of data file owned by Fix ifix
 ------------------------------------------------------------------------- */
 
-void WriteData::fix(int ifix, int mth)
+void WriteData::fix(Fix *ifix, int mth)
 {
   // communication buffer for Fix info
   // maxrow X ncol = largest buffer needed by any proc
 
   int sendrow,ncol;
-  modify->fix[ifix]->write_data_section_size(mth,sendrow,ncol);
+  ifix->write_data_section_size(mth,sendrow,ncol);
   int maxrow;
   MPI_Allreduce(&sendrow,&maxrow,1,MPI_INT,MPI_MAX,world);
 
@@ -745,7 +749,7 @@ void WriteData::fix(int ifix, int mth)
 
   // pack my fix data into buf
 
-  modify->fix[ifix]->write_data_section_pack(mth,buf);
+  ifix->write_data_section_pack(mth,buf);
 
   // write one chunk of info per proc to file
   // proc 0 pings each proc, receives its chunk, writes to file
@@ -758,7 +762,7 @@ void WriteData::fix(int ifix, int mth)
     MPI_Status status;
     MPI_Request request;
 
-    modify->fix[ifix]->write_data_section_keyword(mth,fp);
+    ifix->write_data_section_keyword(mth,fp);
     for (int iproc = 0; iproc < nprocs; iproc++) {
       if (iproc) {
         MPI_Irecv(&buf[0][0],maxrow*ncol,MPI_DOUBLE,iproc,0,world,&request);
@@ -768,7 +772,7 @@ void WriteData::fix(int ifix, int mth)
         recvrow /= ncol;
       } else recvrow = sendrow;
 
-      modify->fix[ifix]->write_data_section(mth,fp,recvrow,buf,index);
+      ifix->write_data_section(mth,fp,recvrow,buf,index);
       index += recvrow;
     }
 

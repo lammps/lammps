@@ -101,6 +101,8 @@ void LabelMap::modify_lmap(int narg, char **arg)
     std::string slabel(arg[iarg++]);
     if (isdigit(slabel[0]))
       error->all(FLERR,"Type labels cannot start with a number");
+    if (search(slabel,(*labels),ntypes) != -1)
+      error->all(FLERR,"Type label already exists: types labels must be unique");
     (*labels)[itype-1] = slabel;
   }
 }
@@ -242,30 +244,47 @@ int LabelMap::search(const std::string &mylabel,
 }
 
 /* ----------------------------------------------------------------------
-   check if all types have been assigned a type label
+   check that all types have been assigned a unique type label
 ------------------------------------------------------------------------- */
 
 int LabelMap::is_complete(int mode)
 {
+  int i,j;
+
   if (mode == Atom::ATOM)
-  for (int i = 0; i < natomtypes; i++)
-    if (typelabel[i].empty()) return 0;
+    for (i = 0; i < natomtypes; i++) {
+      if (typelabel[i].empty()) return 0;
+      for (j = i+1; j < natomtypes; j++)
+        if (typelabel[i] == typelabel[j]) return 0;
+    }
 
   if (force->bond && mode == Atom::BOND)
-    for (int i = 0; i < nbondtypes; i++)
+    for (i = 0; i < nbondtypes; i++) {
       if (btypelabel[i].empty()) return 0;
+      for (j = i+1; j < nbondtypes; j++)
+        if (btypelabel[i] == btypelabel[j]) return 0;
+    }
 
   if (force->angle && mode == Atom::ANGLE)
-    for (int i = 0; i < nangletypes; i++)
+    for (i = 0; i < nangletypes; i++) {
       if (atypelabel[i].empty()) return 0;
+      for (j = i+1; j < nangletypes; j++)
+        if (atypelabel[i] == atypelabel[j]) return 0;
+    }
 
   if (force->dihedral && mode == Atom::DIHEDRAL)
-    for (int i = 0; i < ndihedraltypes; i++)
+    for (i = 0; i < ndihedraltypes; i++) {
       if (dtypelabel[i].empty()) return 0;
+      for (j = i+1; j < ndihedraltypes; j++)
+        if (dtypelabel[i] == dtypelabel[j]) return 0;
+    }
 
   if (force->improper && mode == Atom::IMPROPER)
-    for (int i = 0; i < nimpropertypes; i++)
+    for (i = 0; i < nimpropertypes; i++) {
       if (itypelabel[i].empty()) return 0;
+      for (j = i+1; j < nimpropertypes; j++)
+        if (itypelabel[i] == itypelabel[j]) return 0;
+    }
 
   return 1;
 }

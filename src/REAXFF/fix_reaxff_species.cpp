@@ -63,9 +63,9 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
   MPI_Comm_size(world,&nprocs);
   ntypes = atom->ntypes;
 
-  nevery = atoi(arg[3]);
-  nrepeat = atoi(arg[4]);
-  global_freq = nfreq = atoi(arg[5]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  nrepeat = utils::inumeric(FLERR,arg[4],false,lmp);
+  global_freq = nfreq = utils::inumeric(FLERR,arg[5],false,lmp);
 
   comm_forward = 4;
 
@@ -155,9 +155,9 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
     // set BO cutoff
     if (strcmp(arg[iarg],"cutoff") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix reaxff/species command");
-      itype = atoi(arg[iarg+1]);
-      jtype = atoi(arg[iarg+2]);
-      bo_cut = atof(arg[iarg+3]);
+      itype = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      jtype = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
+      bo_cut = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       if (itype > ntypes || jtype > ntypes)
         error->all(FLERR,"Illegal fix reaxff/species command");
       if (itype <= 0 || jtype <= 0)
@@ -187,7 +187,7 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"position") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix reaxff/species command");
       posflag = 1;
-      posfreq = atoi(arg[iarg+1]);
+      posfreq = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (posfreq < nfreq || (posfreq%nfreq != 0))
         error->all(FLERR,"Illegal fix reaxff/species command");
 

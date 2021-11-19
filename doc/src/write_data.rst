@@ -19,6 +19,7 @@ Syntax
        *nocoeff* = do not write out force field info
        *nofix* = do not write out extra sections read by fixes
        *nolabelmap* = do not write out the default label map
+       *types_style* value = *numeric* or *labels*
        *pair* value = *ii* or *ij*
          *ii* = write one line of pair coefficient info per atom type
          *ij* = write one line of pair coefficient info per IJ atom type pair
@@ -112,7 +113,13 @@ not be written to the data file (see the Type Label sections of
 default label map is fully defined for a given interaction, i.e. every
 atom, bond, angle, dihedral or improper type has an associated type
 label, then a type label section for that interaction is written to
-the data file.
+the data file. The *types_style* keyword indicates how atom, bond,
+etc. types are written in the Atoms, Bonds, etc. sections. If the
+value is specified as *numeric*, then numeric types are used. If the
+value is specified as *labels*, then interaction types are written as
+type labels using the default label map. When using type labels, the
+default label map (i.e., Type Label sections) must be written to the
+data file.
 
 The *pair* keyword lets you specify in what format the pair
 coefficient information is written into the data file.  If the value
@@ -153,4 +160,4 @@ Related commands
 Default
 """""""
 
-The option defaults are pair = ii.
+The option defaults are pair = ii and types_style = numeric.

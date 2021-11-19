@@ -384,7 +384,12 @@ TEST_F(SimpleCommandsTest, Units)
 #if defined(LMP_PLUGIN)
 TEST_F(SimpleCommandsTest, Plugin)
 {
-    std::string loadfmt("plugin load {}plugin.so");
+    const char *bindir = getenv("LAMMPS_PLUGIN_BIN_DIR");
+    const char *config = getenv("CMAKE_CONFIG_TYPE");
+    if (!bindir) GTEST_SKIP();
+    std::string loadfmt = platform::path_join("plugin load ", bindir);
+    if (config) loadfmt = platform::path_join(loadfmt, config);
+    loadfmt = platform::path_join(loadfmt, "{}plugin.so");
     ::testing::internal::CaptureStdout();
     lmp->input->one(fmt::format(loadfmt, "hello"));
     auto text = ::testing::internal::GetCapturedStdout();
@@ -395,7 +400,7 @@ TEST_F(SimpleCommandsTest, Plugin)
     lmp->input->one(fmt::format(loadfmt, "xxx"));
     text = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << text;
-    ASSERT_THAT(text, MatchesRegex(".*Open of file xxx.* failed.*"));
+    ASSERT_THAT(text, MatchesRegex(".*Open of file .*xxx.* failed.*"));
 
     ::testing::internal::CaptureStdout();
     lmp->input->one(fmt::format(loadfmt, "nve2"));
@@ -426,8 +431,7 @@ TEST_F(SimpleCommandsTest, Plugin)
     lmp->input->one("plugin unload pair nve2");
     text = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << text;
-    ASSERT_THAT(text, MatchesRegex(".*Ignoring unload of pair style nve2: "
-                                   "not loaded from a plugin.*"));
+    ASSERT_THAT(text, MatchesRegex(".*Ignoring unload of pair style nve2: not from a plugin.*"));
 
     ::testing::internal::CaptureStdout();
     lmp->input->one("plugin unload fix nve2");
@@ -439,8 +443,7 @@ TEST_F(SimpleCommandsTest, Plugin)
     lmp->input->one("plugin unload fix nve");
     text = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << text;
-    ASSERT_THAT(text, MatchesRegex(".*Ignoring unload of fix style nve: "
-                                   "not loaded from a plugin.*"));
+    ASSERT_THAT(text, MatchesRegex(".*Ignoring unload of fix style nve: not from a plugin.*"));
 
     ::testing::internal::CaptureStdout();
     lmp->input->one("plugin list");

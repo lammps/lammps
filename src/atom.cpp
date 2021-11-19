@@ -53,6 +53,7 @@ using namespace MathConst;
 #define DELTA 1
 #define DELTA_PERATOM 64
 #define EPSILON 1.0e-6
+#define MAXLINE 256
 
 /* ---------------------------------------------------------------------- */
 
@@ -1069,6 +1070,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
   double xdata[3],lamda[3];
   double *coord;
   char *next;
+  std::string typestr;
 
   next = strchr(buf,'\n');
   *next = '\0';
@@ -1193,15 +1195,20 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
     if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
         coord[1] >= sublo[1] && coord[1] < subhi[1] &&
         coord[2] >= sublo[2] && coord[2] < subhi[2]) {
-      avec->data_atom(xdata,imagedata,values);
+      avec->data_atom(xdata,imagedata,values,typestr);
       if (id_offset) tag[nlocal-1] += id_offset;
       if (mol_offset) molecule[nlocal-1] += mol_offset;
-      if (labelflag) type[nlocal-1] = ilabel[type[nlocal-1]-1];
-      if (type_offset) {
-        type[nlocal-1] += type_offset;
-        if (type[nlocal-1] > ntypes)
-          error->one(FLERR,"Invalid atom type in Atoms section of data file");
+      if (!isdigit(typestr[0])) {
+        if (!atom->labelmapflag) error->one(FLERR,"Invalid Atoms section in data file");
+        type[nlocal-1] = atom->find_label(typestr,Atom::ATOM);
+        if (type[nlocal-1] == -1) error->one(FLERR,"Invalid Atoms section in data file");
+      } else {
+        type[nlocal-1] = utils::inumeric(FLERR,typestr.c_str(),true,lmp);
+        if (labelflag) type[nlocal-1] = ilabel[type[nlocal-1]-1];
       }
+      if (type_offset) type[nlocal-1] += type_offset;
+      if (type[nlocal-1] <= 0 || type[nlocal-1] > ntypes)
+        error->one(FLERR,"Invalid atom type in Atoms section of data file");
     }
 
     buf = next + 1;
@@ -1269,20 +1276,30 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
   int m,tmp,itype,rv;
   tagint atom1,atom2;
   char *next;
+  char typechar[MAXLINE];
+  std::string typestr;
   int newton_bond = force->newton_bond;
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    rv = sscanf(buf,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT,
-                &tmp,&itype,&atom1,&atom2);
+    rv = sscanf(buf,"%d %s " TAGINT_FORMAT " " TAGINT_FORMAT,
+                &tmp,typechar,&atom1,&atom2);
     if (rv != 4)
       error->one(FLERR,"Incorrect format of Bonds section in data file");
     if (id_offset) {
       atom1 += id_offset;
       atom2 += id_offset;
     }
-    if (labelflag) itype = ilabel[itype-1];
+    typestr = typechar;
+    if (!isdigit(typestr[0])) {
+      if (!atom->labelmapflag) error->one(FLERR,"Invalid Bonds section in data file");
+      itype = atom->find_label(typestr,Atom::BOND);
+      if (itype == -1) error->one(FLERR,"Invalid Bonds section in data file");
+    } else {
+      itype = utils::inumeric(FLERR,typechar,true,lmp);
+      if (labelflag) itype = ilabel[itype-1];
+    }
     itype += type_offset;
 
     if ((atom1 <= 0) || (atom1 > map_tag_max) ||
@@ -1327,13 +1344,15 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
   int m,tmp,itype,rv;
   tagint atom1,atom2,atom3;
   char *next;
+  char typechar[MAXLINE];
+  std::string typestr;
   int newton_bond = force->newton_bond;
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    rv = sscanf(buf,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
-                &tmp,&itype,&atom1,&atom2,&atom3);
+    rv = sscanf(buf,"%d %s " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
+                &tmp,typechar,&atom1,&atom2,&atom3);
     if (rv != 5)
       error->one(FLERR,"Incorrect format of Angles section in data file");
     if (id_offset) {
@@ -1341,7 +1360,15 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
       atom2 += id_offset;
       atom3 += id_offset;
     }
-    if (labelflag) itype = ilabel[itype-1];
+    typestr = typechar;
+    if (!isdigit(typestr[0])) {
+      if (!atom->labelmapflag) error->one(FLERR,"Invalid Angles section in data file");
+      itype = atom->find_label(typestr,Atom::ANGLE);
+      if (itype == -1) error->one(FLERR,"Invalid Angles section in data file");
+    } else {
+      itype = utils::inumeric(FLERR,typechar,true,lmp);
+      if (labelflag) itype = ilabel[itype-1];
+    }
     itype += type_offset;
 
     if ((atom1 <= 0) || (atom1 > map_tag_max) ||
@@ -1400,14 +1427,16 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
   int m,tmp,itype,rv;
   tagint atom1,atom2,atom3,atom4;
   char *next;
+  char typechar[MAXLINE];
+  std::string typestr;
   int newton_bond = force->newton_bond;
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    rv = sscanf(buf,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT
+    rv = sscanf(buf,"%d %s " TAGINT_FORMAT " " TAGINT_FORMAT
                 " " TAGINT_FORMAT " " TAGINT_FORMAT,
-                &tmp,&itype,&atom1,&atom2,&atom3,&atom4);
+                &tmp,typechar,&atom1,&atom2,&atom3,&atom4);
     if (rv != 6)
       error->one(FLERR,"Incorrect format of Dihedrals section in data file");
     if (id_offset) {
@@ -1416,7 +1445,15 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
       atom3 += id_offset;
       atom4 += id_offset;
     }
-    if (labelflag) itype = ilabel[itype-1];
+    typestr = typechar;
+    if (!isdigit(typestr[0])) {
+      if (!atom->labelmapflag) error->one(FLERR,"Invalid Dihedrals section in data file");
+      itype = atom->find_label(typestr,Atom::DIHEDRAL);
+      if (itype == -1) error->one(FLERR,"Invalid Dihedrals section in data file");
+    } else {
+      itype = utils::inumeric(FLERR,typechar,true,lmp);
+      if (labelflag) itype = ilabel[itype-1];
+    }
     itype += type_offset;
 
     if ((atom1 <= 0) || (atom1 > map_tag_max) ||
@@ -1492,14 +1529,16 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
   int m,tmp,itype,rv;
   tagint atom1,atom2,atom3,atom4;
   char *next;
+  char typechar[MAXLINE];
+  std::string typestr;
   int newton_bond = force->newton_bond;
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    rv = sscanf(buf,"%d %d "
+    rv = sscanf(buf,"%d %s "
                 TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
-                &tmp,&itype,&atom1,&atom2,&atom3,&atom4);
+                &tmp,typechar,&atom1,&atom2,&atom3,&atom4);
     if (rv != 6)
       error->one(FLERR,"Incorrect format of Impropers section in data file");
     if (id_offset) {
@@ -1508,7 +1547,15 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
       atom3 += id_offset;
       atom4 += id_offset;
     }
-    if (labelflag) itype = ilabel[itype-1];
+    typestr = typechar;
+    if (!isdigit(typestr[0])) {
+      if (!atom->labelmapflag) error->one(FLERR,"Invalid Impropers section in data file");
+      itype = atom->find_label(typestr,Atom::IMPROPER);
+      if (itype == -1) error->one(FLERR,"Invalid Impropers section in data file");
+    } else {
+      itype = utils::inumeric(FLERR,typechar,true,lmp);
+      if (labelflag) itype = ilabel[itype-1];
+    }
     itype += type_offset;
 
     if ((atom1 <= 0) || (atom1 > map_tag_max) ||
@@ -1718,8 +1765,7 @@ void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
 
 void Atom::data_fix_compute_variable(int nprev, int nnew)
 {
-  for (int m = 0; m < modify->nfix; m++) {
-    Fix *fix = modify->fix[m];
+  for (const auto &fix : modify->get_fix_list()) {
     if (fix->create_attribute)
       for (int i = nprev; i < nnew; i++)
         fix->set_arrays(i);
@@ -2312,15 +2358,13 @@ void Atom::setup_sort_bins()
 
 #ifdef LMP_GPU
   if (userbinsize == 0.0) {
-    int ifix = modify->find_fix("package_gpu");
-    if (ifix >= 0) {
+    FixGPU *fix = (FixGPU *)modify->get_fix_by_id("package_gpu");
+    if (fix) {
       const double subx = domain->subhi[0] - domain->sublo[0];
       const double suby = domain->subhi[1] - domain->sublo[1];
       const double subz = domain->subhi[2] - domain->sublo[2];
 
-      FixGPU *fix = static_cast<FixGPU *>(modify->fix[ifix]);
-      binsize = fix->binsize(subx, suby, subz, atom->nlocal,
-                             neighbor->cutneighmax);
+      binsize = fix->binsize(subx, suby, subz, atom->nlocal,neighbor->cutneighmax);
       bininv = 1.0 / binsize;
 
       nbinx = static_cast<int> (ceil(subx * bininv));

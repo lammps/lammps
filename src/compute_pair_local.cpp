@@ -268,7 +268,7 @@ int ComputePairLocal::compute_pairs(int flag)
         else ptr = alocal[m];
 
         // to make sure dx, dy and dz are always from the lower to the higher id
-        double directionCorrection = i > j ? -1.0 : 1.0;
+        double directionCorrection = itag > jtag ? -1.0 : 1.0;
 
         for (n = 0; n < nvalues; n++) {
           switch (pstyle[n]) {

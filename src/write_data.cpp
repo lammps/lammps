@@ -96,7 +96,7 @@ void WriteData::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"nolabelmap") == 0) {
       lmapflag = 0;
       iarg++;
-    } else if (strcmp(arg[iarg],"types_style") == 0) {
+    } else if (strcmp(arg[iarg],"types") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal write_data command");
       if (strcmp(arg[iarg+1],"numeric") == 0) atom->types_style = Atom::NUMERIC;
       else if (strcmp(arg[iarg+1],"labels") == 0) atom->types_style = Atom::LABELS;

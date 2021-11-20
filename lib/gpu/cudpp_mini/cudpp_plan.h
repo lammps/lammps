@@ -99,7 +99,7 @@ class CUDPPRadixSortPlan : public CUDPPPlan
 public:
     CUDPPRadixSortPlan(CUDPPConfiguration config, size_t numElements);
     virtual ~CUDPPRadixSortPlan();
-        
+
     bool           m_bKeysOnly;
     bool           m_bManualCoalesce;
     bool           m_bUsePersistentCTAs;

@@ -59,13 +59,6 @@ FixLbViscous::FixLbViscous(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-FixLbViscous::~FixLbViscous()
-{
-
-}
-
-/* ---------------------------------------------------------------------- */
-
 int FixLbViscous::setmask()
 {
   int mask = 0;

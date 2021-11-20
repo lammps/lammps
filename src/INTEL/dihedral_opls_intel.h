@@ -42,27 +42,26 @@ class DihedralOPLSIntel : public DihedralOPLS {
 
   template <class flt_t> class ForceConst;
   template <class flt_t, class acc_t>
-  void compute(int eflag, int vflag, IntelBuffers<flt_t,acc_t> *buffers,
+  void compute(int eflag, int vflag, IntelBuffers<flt_t, acc_t> *buffers,
                const ForceConst<flt_t> &fc);
   template <int EVFLAG, int EFLAG, int NEWTON_BOND, class flt_t, class acc_t>
-  void eval(const int vflag, IntelBuffers<flt_t,acc_t> * buffers,
-            const ForceConst<flt_t> &fc);
+  void eval(const int vflag, IntelBuffers<flt_t, acc_t> *buffers, const ForceConst<flt_t> &fc);
   template <class flt_t, class acc_t>
-  void pack_force_const(ForceConst<flt_t> &fc,
-                        IntelBuffers<flt_t, acc_t> *buffers);
+  void pack_force_const(ForceConst<flt_t> &fc, IntelBuffers<flt_t, acc_t> *buffers);
 
-  #ifdef _LMP_INTEL_OFFLOAD
+#ifdef _LMP_INTEL_OFFLOAD
   int _use_base;
-  #endif
+#endif
 
-  template <class flt_t>
-  class ForceConst {
+  template <class flt_t> class ForceConst {
    public:
-    typedef struct { flt_t k1, k2, k3, k4; } fc_packed1;
+    typedef struct {
+      flt_t k1, k2, k3, k4;
+    } fc_packed1;
 
     fc_packed1 *bp;
 
-    ForceConst() : _nbondtypes(0)  {}
+    ForceConst() : _nbondtypes(0) {}
     ~ForceConst() { set_ntypes(0, nullptr); }
 
     void set_ntypes(const int nbondtypes, Memory *memory);
@@ -75,7 +74,7 @@ class DihedralOPLSIntel : public DihedralOPLS {
   ForceConst<double> force_const_double;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

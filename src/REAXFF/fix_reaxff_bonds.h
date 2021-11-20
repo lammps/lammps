@@ -36,7 +36,7 @@ class FixReaxFFBonds : public Fix {
   void end_of_step();
 
  protected:
-  int me, nprocs, nmax, ntypes, maxsize;
+  int me, nprocs, nmax, ntypes, maxsize, compressed;
   int *numneigh;
   tagint **neighid;
   double **abo;
@@ -56,7 +56,7 @@ class FixReaxFFBonds : public Fix {
   class PairReaxFF *reaxff;
   class NeighList *list;
 };
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

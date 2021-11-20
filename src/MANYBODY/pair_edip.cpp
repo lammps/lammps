@@ -463,7 +463,7 @@ void PairEDIP::compute(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void PairEDIP::allocateGrids(void)
+void PairEDIP::allocateGrids()
 {
   int numGridPointsOneCutoffFunction;
   int numGridPointsNotOneCutoffFunction;
@@ -527,7 +527,7 @@ void PairEDIP::allocateGrids(void)
    pre-calculated structures
 ------------------------------------------------------------------------- */
 
-void PairEDIP::allocatePreLoops(void)
+void PairEDIP::allocatePreLoops()
 {
   int nthreads = comm->nthreads;
 
@@ -545,7 +545,7 @@ void PairEDIP::allocatePreLoops(void)
    deallocate grids
 ------------------------------------------------------------------------- */
 
-void PairEDIP::deallocateGrids(void)
+void PairEDIP::deallocateGrids()
 {
   memory->destroy(cutoffFunction);
   memory->destroy(cutoffFunctionDerived);
@@ -562,7 +562,7 @@ void PairEDIP::deallocateGrids(void)
    deallocate preLoops
 ------------------------------------------------------------------------- */
 
-void PairEDIP::deallocatePreLoops(void)
+void PairEDIP::deallocatePreLoops()
 {
   memory->destroy(preInvR_ij);
   memory->destroy(preExp3B_ij);
@@ -597,7 +597,7 @@ void PairEDIP::settings(int narg, char ** /*arg*/)
 
 /* ---------------------------------------------------------------------- */
 
-void PairEDIP::initGrids(void)
+void PairEDIP::initGrids()
 {
   int l;
   int numGridPointsOneCutoffFunction;
@@ -778,7 +778,7 @@ void PairEDIP::read_file(char *file)
   if (comm->me == 0) {
     fp = utils::open_potential(file, lmp, nullptr);
     if (fp == nullptr)
-      error->one(FLERR,"Cannot open EDIP potential file {}: {}", file,utils::getsyserror());
+      error->one(FLERR, "Cannot open EDIP potential file {}: {}", file, utils::getsyserror());
   }
 
   // read each set of params from potential file
@@ -789,7 +789,7 @@ void PairEDIP::read_file(char *file)
   char line[MAXLINE], *ptr;
   int eof = 0;
 
-  while (1) {
+  while (true) {
     if (comm->me == 0) {
       ptr = fgets(line, MAXLINE, fp);
       if (ptr == nullptr) {

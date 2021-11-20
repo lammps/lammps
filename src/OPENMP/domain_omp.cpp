@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -16,13 +15,18 @@
    Contributing author : Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
 #include "accelerator_omp.h"
 #include "atom.h"
+#include "error.h"
+#include "omp_compat.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
-typedef struct { double x,y,z; } dbl3_t;
+typedef struct {
+  double x, y, z;
+} dbl3_t;
 
 /* ----------------------------------------------------------------------
    enforce PBC and modify box image flags for each atom
@@ -37,20 +41,35 @@ typedef struct { double x,y,z; } dbl3_t;
 
 void DomainOMP::pbc()
 {
-  dbl3_t * _noalias const x = (dbl3_t *)&atom->x[0][0];
-  dbl3_t * _noalias const v = (dbl3_t *)&atom->v[0][0];
-  const double * _noalias const lo     = (triclinic == 0) ? boxlo : boxlo_lamda;
-  const double * _noalias const hi     = (triclinic == 0) ? boxhi : boxhi_lamda;
-  const double * _noalias const period = (triclinic == 0) ? prd   : prd_lamda;
-  const int * _noalias const mask  = atom->mask;
-  imageint    * _noalias const image = atom->image;
   const int nlocal = atom->nlocal;
+  if (!nlocal) return;
+
+  // verify owned atoms have valid numerical coords
+  // may not if computed pairwise force between 2 atoms at same location
+
+  const double *_noalias const coord = &atom->x[0][0];
+  const int n3 = 3 * nlocal;
+  int flag = 0;
+#if defined(_OPENMP)    // clang-format off
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static) reduction(+:flag)
+#endif    // clang-format on
+  for (int i = 0; i < n3; i++)
+    if (!std::isfinite(coord[i])) flag = 1;
+  if (flag) error->one(FLERR, "Non-numeric atom coords - simulation unstable");
+
+  dbl3_t *_noalias const x = (dbl3_t *) &atom->x[0][0];
+  dbl3_t *_noalias const v = (dbl3_t *) &atom->v[0][0];
+  const double *_noalias const lo = (triclinic == 0) ? boxlo : boxlo_lamda;
+  const double *_noalias const hi = (triclinic == 0) ? boxhi : boxhi_lamda;
+  const double *_noalias const period = (triclinic == 0) ? prd : prd_lamda;
+  const int *_noalias const mask = atom->mask;
+  imageint *_noalias const image = atom->image;
 
 #if defined(_OPENMP)
 #pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
   for (int i = 0; i < nlocal; i++) {
-    imageint idim,otherdims;
+    imageint idim, otherdims;
 
     if (xperiodic) {
       if (x[i].x < lo[0]) {
@@ -64,7 +83,7 @@ void DomainOMP::pbc()
       }
       if (x[i].x >= hi[0]) {
         x[i].x -= period[0];
-        x[i].x = MAX(x[i].x,lo[0]);
+        x[i].x = MAX(x[i].x, lo[0]);
         if (deform_vremap && mask[i] & deform_groupbit) v[i].x -= h_rate[0];
         idim = image[i] & IMGMASK;
         otherdims = image[i] ^ idim;
@@ -89,7 +108,7 @@ void DomainOMP::pbc()
       }
       if (x[i].y >= hi[1]) {
         x[i].y -= period[1];
-        x[i].y = MAX(x[i].y,lo[1]);
+        x[i].y = MAX(x[i].y, lo[1]);
         if (deform_vremap && mask[i] & deform_groupbit) {
           v[i].x -= h_rate[5];
           v[i].y -= h_rate[1];
@@ -118,7 +137,7 @@ void DomainOMP::pbc()
       }
       if (x[i].z >= hi[2]) {
         x[i].z -= period[2];
-        x[i].z = MAX(x[i].z,lo[2]);
+        x[i].z = MAX(x[i].z, lo[2]);
         if (deform_vremap && mask[i] & deform_groupbit) {
           v[i].x -= h_rate[4];
           v[i].y -= h_rate[3];
@@ -141,16 +160,17 @@ void DomainOMP::pbc()
 
 void DomainOMP::lamda2x(int n)
 {
-  dbl3_t * _noalias const x = (dbl3_t *)&atom->x[0][0];
   const int num = n;
+  if (!n) return;
+  dbl3_t *_noalias const x = (dbl3_t *) &atom->x[0][0];
 
 #if defined(_OPENMP)
 #pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
   for (int i = 0; i < num; i++) {
-    x[i].x = h[0]*x[i].x + h[5]*x[i].y + h[4]*x[i].z + boxlo[0];
-    x[i].y = h[1]*x[i].y + h[3]*x[i].z + boxlo[1];
-    x[i].z = h[2]*x[i].z + boxlo[2];
+    x[i].x = h[0] * x[i].x + h[5] * x[i].y + h[4] * x[i].z + boxlo[0];
+    x[i].y = h[1] * x[i].y + h[3] * x[i].z + boxlo[1];
+    x[i].z = h[2] * x[i].z + boxlo[2];
   }
 }
 
@@ -161,8 +181,9 @@ void DomainOMP::lamda2x(int n)
 
 void DomainOMP::x2lamda(int n)
 {
-  dbl3_t * _noalias const x = (dbl3_t *)&atom->x[0][0];
   const int num = n;
+  if (!n) return;
+  dbl3_t *_noalias const x = (dbl3_t *) &atom->x[0][0];
 
 #if defined(_OPENMP)
 #pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
@@ -172,9 +193,8 @@ void DomainOMP::x2lamda(int n)
     double delta1 = x[i].y - boxlo[1];
     double delta2 = x[i].z - boxlo[2];
 
-    x[i].x = h_inv[0]*delta0 + h_inv[5]*delta1 + h_inv[4]*delta2;
-    x[i].y = h_inv[1]*delta1 + h_inv[3]*delta2;
-    x[i].z = h_inv[2]*delta2;
+    x[i].x = h_inv[0] * delta0 + h_inv[5] * delta1 + h_inv[4] * delta2;
+    x[i].y = h_inv[1] * delta1 + h_inv[3] * delta2;
+    x[i].z = h_inv[2] * delta2;
   }
 }
-

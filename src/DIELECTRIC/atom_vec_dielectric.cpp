@@ -17,6 +17,9 @@
 #include "atom.h"
 #include "citeme.h"
 
+#include <cmath>
+#include <cstring>
+
 using namespace LAMMPS_NS;
 
 static const char cite_user_dielectric_package[] =

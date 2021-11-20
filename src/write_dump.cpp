@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "write_dump.h"
-#include "style_dump.h"
+#include "style_dump.h"  // IWYU pragma: keep
 
 #include "comm.h"
 #include "dump.h"
@@ -57,14 +57,14 @@ void WriteDump::command(int narg, char **arg)
   for (int i = 2; i < modindex; ++i)
     dumpargs[i+2] = arg[i];
 
-  if (0) {
+  if (false) {
     return;         // dummy line to enable else-if macro expansion
 
 #define DUMP_CLASS
 #define DumpStyle(key,Class) \
   } else if (strcmp(arg[1],#key) == 0) { \
     dump = new Class(lmp,modindex+2,dumpargs);
-#include "style_dump.h"
+#include "style_dump.h"  // IWYU pragma: keep
 #undef DUMP_CLASS
 
   } else error->all(FLERR,utils::check_packages_for_style("dump",arg[1],lmp));

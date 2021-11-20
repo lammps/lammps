@@ -13,20 +13,21 @@
 ------------------------------------------------------------------------- */
 
 #include "server_md.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "update.h"
-#include "integrate.h"
-#include "kspace.h"
-#include "force.h"
-#include "pair.h"
-#include "neighbor.h"
 #include "comm.h"
 #include "domain.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "integrate.h"
+#include "kspace.h"
+#include "memory.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "update.h"
+
+#include <cstring>
 
 // CSlib interface
 

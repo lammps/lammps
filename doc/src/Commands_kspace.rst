@@ -24,6 +24,7 @@ OPT.
 
    * :doc:`ewald (o) <kspace_style>`
    * :doc:`ewald/disp <kspace_style>`
+   * :doc:`ewald/disp/dipole <kspace_style>`
    * :doc:`ewald/dipole <kspace_style>`
    * :doc:`ewald/dipole/spin <kspace_style>`
    * :doc:`msm (o) <kspace_style>`

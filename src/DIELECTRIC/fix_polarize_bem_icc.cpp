@@ -33,7 +33,6 @@
 #include "group.h"
 #include "kspace.h"
 #include "math_const.h"
-#include "memory.h"
 #include "msm_dielectric.h"
 #include "pair_coul_cut_dielectric.h"
 #include "pair_coul_long_dielectric.h"
@@ -91,10 +90,6 @@ FixPolarizeBEMICC::FixPolarizeBEMICC(LAMMPS *lmp, int narg, char **arg) : Fix(lm
   if (atom->torque_flag) torqueflag = 1;
   if (atom->avec->forceclearflag) extraflag = 1;
 }
-
-/* ---------------------------------------------------------------------- */
-
-FixPolarizeBEMICC::~FixPolarizeBEMICC() {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -356,12 +351,7 @@ int FixPolarizeBEMICC::modify_param(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg], "kspace") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix_modify command");
-      if (strcmp(arg[iarg + 1], "yes") == 0)
-        kspaceflag = 1;
-      else if (strcmp(arg[iarg + 1], "no") == 0)
-        kspaceflag = 0;
-      else
-        error->all(FLERR, "Illegal fix_modify command for fix polarize");
+      kspaceflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "dielectrics") == 0) {
       if (iarg + 6 > narg) error->all(FLERR, "Illegal fix_modify command");
@@ -396,7 +386,8 @@ int FixPolarizeBEMICC::modify_param(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-int FixPolarizeBEMICC::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
+int FixPolarizeBEMICC::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/,
+                                         int * /*pbc*/)
 {
   int m;
   for (m = 0; m < n; m++) buf[m] = atom->q[list[m]];

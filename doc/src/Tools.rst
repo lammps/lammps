@@ -7,7 +7,7 @@ steps are often necessary to setup and analyze a simulation.  A list
 of such tools can be found on the `LAMMPS webpage <lws_>`_ at these links:
 
 * `Pre/Post processing <https://www.lammps.org/prepost.html>`_
-* `Offsite LAMMPS packages & tools <https://www.lammps.org/offsite.html>`_
+* `External LAMMPS packages & tools <https://www.lammps.org/external.html>`_
 * `Pizza.py toolkit <pizza_>`_
 
 The last link for `Pizza.py <pizza_>`_ is a Python-based tool developed at
@@ -172,7 +172,7 @@ Chris Lorenz (chris.lorenz at kcl.ac.uk), King's College London.
 chain tool
 ----------------------
 
-The file chain.f creates a LAMMPS data file containing bead-spring
+The file chain.f90 creates a LAMMPS data file containing bead-spring
 polymer chains and/or monomer solvent atoms.  It uses a text file
 containing chain definition parameters as an input.  The created
 chains and solvent atoms can strongly overlap, so LAMMPS needs to run

@@ -86,8 +86,6 @@ namespace user_manifold {
     double lut_get_zp(double rr) const;
     void lut_get_z_and_zp(double rr, double &zz, double &zzp) const;
 
-    void test_lut();
-
     double taper(double);
     double taper_der(double);
   };

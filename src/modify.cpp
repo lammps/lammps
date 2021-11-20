@@ -13,15 +13,15 @@
 ------------------------------------------------------------------------- */
 
 #include "modify.h"
-#include "style_compute.h"
-#include "style_fix.h"
+#include "style_compute.h"      // IWYU pragma: keep
+#include "style_fix.h"          // IWYU pragma: keep
 
 #include "atom.h"
 #include "comm.h"
-#include "compute.h"
+#include "compute.h"            // IWYU pragma: keep
 #include "domain.h"
 #include "error.h"
-#include "fix.h"
+#include "fix.h"                // IWYU pragma: keep
 #include "group.h"
 #include "input.h"
 #include "memory.h"
@@ -30,7 +30,6 @@
 #include "variable.h"
 
 #include <cstring>
-#include <vector>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -95,7 +94,7 @@ void _noopt Modify::create_factories()
 #define FIX_CLASS
 #define FixStyle(key,Class) \
   (*fix_map)[#key] = &fix_creator<Class>;
-#include "style_fix.h"
+#include "style_fix.h"  // IWYU pragma: keep
 #undef FixStyle
 #undef FIX_CLASS
 
@@ -106,7 +105,7 @@ void _noopt Modify::create_factories()
 #define COMPUTE_CLASS
 #define ComputeStyle(key,Class) \
   (*compute_map)[#key] = &compute_creator<Class>;
-#include "style_compute.h"
+#include "style_compute.h"  // IWYU pragma: keep
 #undef ComputeStyle
 #undef COMPUTE_CLASS
 }
@@ -808,9 +807,8 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
   //   since some fixes access domain settings in their constructor
   // nullptr must be last entry in this list
 
-  const char *exceptions[] =
-    {"GPU", "OMP", "INTEL", "property/atom", "cmap", "cmap3", "rx",
-     "deprecated", "STORE/KIM", nullptr};
+  const char *exceptions[] = {"GPU", "OMP", "INTEL", "property/atom", "cmap", "cmap3", "rx",
+    "deprecated", "STORE/KIM", nullptr};
 
   if (domain->box_exist == 0) {
     int m;
@@ -823,7 +821,7 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
   // check group ID
 
   int igroup = group->find(arg[1]);
-  if (igroup == -1) error->all(FLERR,"Could not find fix group ID");
+  if (igroup == -1) error->all(FLERR,"Could not find fix group ID {}", arg[1]);
 
   // if fix ID exists:
   //   set newflag = 0 so create new fix in same location in fix list
@@ -857,8 +855,7 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
         if (estyle == fix[ifix]->style) match = 1;
       }
     }
-    if (!match)
-      error->all(FLERR,"Replacing a fix, but new style != old style");
+    if (!match) error->all(FLERR,"Replacing a fix, but new style != old style");
 
     if (fix[ifix]->igroup != igroup && comm->me == 0)
       error->warning(FLERR,"Replacing a fix, but new group != old group");
@@ -886,8 +883,7 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
         FixCreator &fix_creator = (*fix_map)[estyle];
         fix[ifix] = fix_creator(lmp,narg,arg);
         delete[] fix[ifix]->style;
-        fix[ifix]->style = new char[estyle.size()+1];
-        strcpy(fix[ifix]->style,estyle.c_str());
+        fix[ifix]->style = utils::strdup(estyle);
       }
     }
     if (fix[ifix] == nullptr && lmp->suffix2) {
@@ -896,8 +892,7 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
         FixCreator &fix_creator = (*fix_map)[estyle];
         fix[ifix] = fix_creator(lmp,narg,arg);
         delete[] fix[ifix]->style;
-        fix[ifix]->style = new char[estyle.size()+1];
-        strcpy(fix[ifix]->style,estyle.c_str());
+        fix[ifix]->style = utils::strdup(estyle);
       }
     }
   }
@@ -909,6 +904,21 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
 
   if (fix[ifix] == nullptr)
     error->all(FLERR,utils::check_packages_for_style("fix",arg[2],lmp));
+
+  // increment nfix and update fix_list vector (if new)
+
+  if (newflag) {
+    nfix++;
+    fix_list = std::vector<Fix *>(fix, fix+nfix);
+  }
+
+  // post_constructor() can call virtual methods in parent or child
+  //   which would otherwise not yet be visible in child class
+  // post_constructor() allows new fix to create other fixes
+  // nfix increment must come first so recursive call to add_fix within
+  //   post_constructor() will see updated nfix
+
+  fix[ifix]->post_constructor();
 
   // check if Fix is in restart_global list
   // if yes, pass state info to the Fix so it can reset itself
@@ -941,15 +951,12 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
                        fix[ifix]->style,fix[ifix]->id);
     }
 
-  // increment nfix (if new)
   // set fix mask values
-  // post_constructor() allows new fix to create other fixes
-  // nfix increment comes first so that recursive call to add_fix within
-  //   post_constructor() will see updated nfix
 
-  if (newflag) nfix++;
   fmask[ifix] = fix[ifix]->setmask();
-  fix[ifix]->post_constructor();
+
+  // return pointer to fix
+
   return fix[ifix];
 }
 
@@ -968,7 +975,6 @@ Fix *Modify::add_fix(const std::string &fixcmd, int trysuffix)
   return add_fix(args.size(),newarg.data(),trysuffix);
 }
 
-
 /* ----------------------------------------------------------------------
    replace replaceID fix with a new fix
    this is used by callers to preserve ordering of fixes
@@ -978,25 +984,24 @@ Fix *Modify::add_fix(const std::string &fixcmd, int trysuffix)
 
 Fix *Modify::replace_fix(const char *replaceID, int narg, char **arg, int trysuffix)
 {
-  int ifix = find_fix(replaceID);
-  if (ifix < 0) error->all(FLERR,"Modify replace_fix ID {} could not be found", replaceID);
+  auto oldfix = get_fix_by_id(replaceID);
+  if (!oldfix) error->all(FLERR,"Modify replace_fix ID {} could not be found", replaceID);
 
   // change ID, igroup, style of fix being replaced to match new fix
   // requires some error checking on arguments for new fix
 
   if (narg < 3) error->all(FLERR,"Illegal replace_fix invocation");
-  int jfix = find_fix(arg[0]);
-  if (jfix >= 0) error->all(FLERR,"Replace_fix ID is already in use");
+  if (get_fix_by_id(arg[0])) error->all(FLERR,"Replace_fix ID {} is already in use",arg[0]);
 
-  delete [] fix[ifix]->id;
-  fix[ifix]->id = utils::strdup(arg[0]);
+  delete[] oldfix->id;
+  oldfix->id = utils::strdup(arg[0]);
 
   int jgroup = group->find(arg[1]);
-  if (jgroup == -1) error->all(FLERR,"Could not find replace_fix group ID");
-  fix[ifix]->igroup = jgroup;
+  if (jgroup == -1) error->all(FLERR,"Could not find replace_fix group ID {}", arg[1]);
+  oldfix->igroup = jgroup;
 
-  delete [] fix[ifix]->style;
-  fix[ifix]->style = utils::strdup(arg[2]);
+  delete[] oldfix->style;
+  oldfix->style = utils::strdup(arg[2]);
 
   // invoke add_fix
   // it will find and overwrite the replaceID fix
@@ -1042,7 +1047,7 @@ void Modify::modify_fix(int narg, char **arg)
   int ifix;
   for (ifix = 0; ifix < nfix; ifix++)
     if (strcmp(arg[0],fix[ifix]->id) == 0) break;
-  if (ifix == nfix) error->all(FLERR,"Could not find fix_modify ID");
+  if (ifix == nfix) error->all(FLERR,"Could not find fix_modify ID {}", arg[0]);
 
   fix[ifix]->modify_params(narg-1,&arg[1]);
 }
@@ -1055,7 +1060,7 @@ void Modify::modify_fix(int narg, char **arg)
 void Modify::delete_fix(const std::string &id)
 {
   int ifix = find_fix(id);
-  if (ifix < 0) error->all(FLERR,"Could not find fix ID to delete");
+  if (ifix < 0) error->all(FLERR,"Could not find fix ID {} to delete", id);
   delete_fix(ifix);
 }
 
@@ -1071,6 +1076,7 @@ void Modify::delete_fix(int ifix)
   for (int i = ifix+1; i < nfix; i++) fix[i-1] = fix[i];
   for (int i = ifix+1; i < nfix; i++) fmask[i-1] = fmask[i];
   nfix--;
+  fix_list = std::vector<Fix *>(fix, fix+nfix);
 }
 
 /* ----------------------------------------------------------------------
@@ -1087,15 +1093,42 @@ int Modify::find_fix(const std::string &id)
 }
 
 /* ----------------------------------------------------------------------
-   find a fix by style
-   return index of fix or -1 if not found
+   look up pointer to Fix class by fix-ID
+   return null pointer if ID not found
 ------------------------------------------------------------------------- */
 
-int Modify::find_fix_by_style(const char *style)
+Fix *Modify::get_fix_by_id(const std::string &id) const
 {
+  if (id.empty()) return nullptr;
   for (int ifix = 0; ifix < nfix; ifix++)
-    if (utils::strmatch(fix[ifix]->style,style)) return ifix;
-  return -1;
+    if (id == fix[ifix]->id) return fix[ifix];
+  return nullptr;
+}
+
+/* ----------------------------------------------------------------------
+   look up pointer to fixes by fix style name
+   return vector of matching pointers
+------------------------------------------------------------------------- */
+
+const std::vector<Fix *> Modify::get_fix_by_style(const std::string &style) const
+{
+  std::vector<Fix *> matches;
+  if (style.empty()) return matches;
+
+  for (int ifix = 0; ifix < nfix; ifix++)
+    if (utils::strmatch(fix[ifix]->style,style)) matches.push_back(fix[ifix]);
+
+  return matches;
+}
+
+/* ----------------------------------------------------------------------
+   return list of fixes as vector
+------------------------------------------------------------------------- */
+
+const std::vector<Fix *> &Modify::get_fix_list()
+{
+  fix_list = std::vector<Fix *>(fix, fix+nfix);
+  return fix_list;
 }
 
 /* ----------------------------------------------------------------------
@@ -1220,8 +1253,7 @@ Compute *Modify::add_compute(int narg, char **arg, int trysuffix)
 
   if (ncompute == maxcompute) {
     maxcompute += DELTA;
-    compute = (Compute **)
-      memory->srealloc(compute,maxcompute*sizeof(Compute *),"modify:compute");
+    compute = (Compute **) memory->srealloc(compute,maxcompute*sizeof(Compute *),"modify:compute");
   }
 
   // create the Compute
@@ -1236,8 +1268,7 @@ Compute *Modify::add_compute(int narg, char **arg, int trysuffix)
         ComputeCreator &compute_creator = (*compute_map)[estyle];
         compute[ncompute] = compute_creator(lmp,narg,arg);
         delete[] compute[ncompute]->style;
-        compute[ncompute]->style = new char[estyle.size()+1];
-        strcpy(compute[ncompute]->style,estyle.c_str());
+        compute[ncompute]->style = utils::strdup(estyle);
       }
     }
     if (compute[ncompute] == nullptr && lmp->suffix2) {
@@ -1246,8 +1277,7 @@ Compute *Modify::add_compute(int narg, char **arg, int trysuffix)
         ComputeCreator &compute_creator = (*compute_map)[estyle];
         compute[ncompute] = compute_creator(lmp,narg,arg);
         delete[] compute[ncompute]->style;
-        compute[ncompute]->style = new char[estyle.size()+1];
-        strcpy(compute[ncompute]->style,estyle.c_str());
+        compute[ncompute]->style = utils::strdup(estyle);
       }
     }
   }
@@ -1261,6 +1291,7 @@ Compute *Modify::add_compute(int narg, char **arg, int trysuffix)
   if (compute[ncompute] == nullptr)
     error->all(FLERR,utils::check_packages_for_style("compute",arg[2],lmp));
 
+  compute_list = std::vector<Compute *>(compute, compute+ncompute+1);
   return compute[ncompute++];
 }
 
@@ -1304,7 +1335,7 @@ void Modify::modify_compute(int narg, char **arg)
   for (icompute = 0; icompute < ncompute; icompute++)
     if (strcmp(arg[0],compute[icompute]->id) == 0) break;
   if (icompute == ncompute)
-    error->all(FLERR,"Could not find compute_modify ID");
+    error->all(FLERR,"Could not find compute_modify ID {}", arg[0]);
 
   compute[icompute]->modify_params(narg-1,&arg[1]);
 }
@@ -1316,7 +1347,7 @@ void Modify::modify_compute(int narg, char **arg)
 void Modify::delete_compute(const std::string &id)
 {
   int icompute = find_compute(id);
-  if (icompute < 0) error->all(FLERR,"Could not find compute ID to delete");
+  if (icompute < 0) error->all(FLERR,"Could not find compute ID {} to delete", id);
   delete_compute(icompute);
 }
 
@@ -1329,6 +1360,7 @@ void Modify::delete_compute(int icompute)
   delete compute[icompute];
   for (int i = icompute+1; i < ncompute; i++) compute[i-1] = compute[i];
   ncompute--;
+  compute_list = std::vector<Compute *>(compute, compute+ncompute);
 }
 
 /* ----------------------------------------------------------------------
@@ -1345,15 +1377,42 @@ int Modify::find_compute(const std::string &id)
 }
 
 /* ----------------------------------------------------------------------
-   find a compute by style
-   return index of compute or -1 if not found
+   look up pointer to Compute class by compute-ID
+   return null pointer if ID not found
 ------------------------------------------------------------------------- */
 
-int Modify::find_compute_by_style(const char *style)
+Compute *Modify::get_compute_by_id(const std::string &id) const
 {
+  if (id.empty()) return nullptr;
   for (int icompute = 0; icompute < ncompute; icompute++)
-    if (utils::strmatch(compute[icompute]->style,style)) return icompute;
-  return -1;
+    if (id == compute[icompute]->id) return compute[icompute];
+  return nullptr;
+}
+
+/* ----------------------------------------------------------------------
+   look up pointers to computes by compute style name
+   return vector with matching pointers
+------------------------------------------------------------------------- */
+
+const std::vector<Compute *> Modify::get_compute_by_style(const std::string &style) const
+{
+  std::vector<Compute *> matches;
+  if (style.empty()) return matches;
+
+  for (int icompute = 0; icompute < ncompute; icompute++)
+    if (utils::strmatch(compute[icompute]->style,style)) matches.push_back(compute[icompute]);
+
+  return matches;
+}
+
+/* ----------------------------------------------------------------------
+   return vector with Computes
+------------------------------------------------------------------------- */
+
+const std::vector<Compute *> &Modify::get_compute_list()
+{
+  compute_list = std::vector<Compute *>(compute, compute+ncompute);
+  return compute_list;
 }
 
 /* ----------------------------------------------------------------------

@@ -23,7 +23,7 @@ namespace ucl_hip {
 // --------------------------------------------------------------------------
 typedef hipStream_t command_queue;
 
-inline void ucl_flush(command_queue &cq) {}
+inline void ucl_flush(command_queue &) {}
 
 inline void ucl_sync(hipStream_t &stream) {
   CU_SAFE_CALL(hipStreamSynchronize(stream));
@@ -141,12 +141,12 @@ class UCL_Device {
   /// Get a string telling the type of the current device
   inline std::string device_type_name() { return device_type_name(_device); }
   /// Get a string telling the type of the device
-  inline std::string device_type_name(const int i) { return "GPU"; }
+  inline std::string device_type_name(const int) { return "GPU"; }
 
   /// Get current device type (UCL_CPU, UCL_GPU, UCL_ACCELERATOR, UCL_DEFAULT)
   inline enum UCL_DEVICE_TYPE device_type() { return device_type(_device); }
   /// Get device type (UCL_CPU, UCL_GPU, UCL_ACCELERATOR, UCL_DEFAULT)
-  inline enum UCL_DEVICE_TYPE device_type(const int i) { return UCL_GPU; }
+  inline enum UCL_DEVICE_TYPE device_type(const int) { return UCL_GPU; }
 
   /// Returns true if host memory is efficiently addressable from device
   inline bool shared_memory() { return shared_memory(_device); }
@@ -204,7 +204,7 @@ class UCL_Device {
   // Get the bytes of free memory in the current device
   inline size_t free_bytes() { return free_bytes(_device); }
   // Get the bytes of free memory
-  inline size_t free_bytes(const int i) {
+  inline size_t free_bytes(const int) {
     CUDA_INT_TYPE dfree, dtotal;
     CU_SAFE_CALL_NS(hipMemGetInfo(&dfree, &dtotal));
     return static_cast<size_t>(dfree);
@@ -233,13 +233,13 @@ class UCL_Device {
   /// Get the maximum number of threads per block in dimension 'dim'
   inline size_t group_size_dim(const int i, const int dim)
     { return _properties[i].maxThreadsDim[dim];}
-  
+
   /// Get the shared local memory size in bytes
   inline size_t slm_size() { return slm_size(_device); }
   /// Get the shared local memory size in bytes
   inline size_t slm_size(const int i)
     { return _properties[i].sharedMemPerBlock; }
- 
+
   /// Return the maximum memory pitch in bytes for current device
   inline size_t max_pitch() { return max_pitch(_device); }
   /// Return the maximum memory pitch in bytes
@@ -257,26 +257,26 @@ class UCL_Device {
   inline bool fission_equal()
     { return fission_equal(_device); }
   /// True if splitting device into equal subdevices supported
-  inline bool fission_equal(const int i)
+  inline bool fission_equal(const int)
     { return false; }
   /// True if splitting device into subdevices by specified counts supported
   inline bool fission_by_counts()
     { return fission_by_counts(_device); }
   /// True if splitting device into subdevices by specified counts supported
-  inline bool fission_by_counts(const int i)
+  inline bool fission_by_counts(const int)
     { return false; }
   /// True if splitting device into subdevices by affinity domains supported
   inline bool fission_by_affinity()
     { return fission_by_affinity(_device); }
   /// True if splitting device into subdevices by affinity domains supported
-  inline bool fission_by_affinity(const int i)
+  inline bool fission_by_affinity(const int)
     { return false; }
 
   /// Maximum number of subdevices allowed from device fission
   inline int max_sub_devices()
     { return max_sub_devices(_device); }
   /// Maximum number of subdevices allowed from device fission
-  inline int max_sub_devices(const int i)
+  inline int max_sub_devices(const int)
     { return 0; }
 
   /// True if the device supports shuffle intrinsics
@@ -290,8 +290,7 @@ class UCL_Device {
   inline void print_all(std::ostream &out);
 
   /// For compatability with OCL API
-  inline int auto_set_platform(const enum UCL_DEVICE_TYPE type=UCL_GPU,
-			       const std::string vendor="")
+  inline int auto_set_platform(const enum UCL_DEVICE_TYPE, const std::string)
     { return set_platform(0); }
 
   inline int load_module(const void* program, hipModule_t& module, std::string *log=nullptr){
@@ -404,7 +403,7 @@ UCL_Device::~UCL_Device() {
   clear();
 }
 
-int UCL_Device::set_platform(const int pid) {
+int UCL_Device::set_platform(const int) {
   clear();
   #ifdef UCL_DEBUG
   assert(pid<num_platforms());

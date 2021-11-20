@@ -22,14 +22,12 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
-#include "group.h"
 #include "kspace.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "pair_comb.h"
 #include "pair_comb3.h"
-#include "respa.h"
 #include "update.h"
 
 #include <cmath>
@@ -66,9 +64,7 @@ FixQEqFire::FixQEqFire(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"warn") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix qeq/fire command");
-      if (strcmp(arg[iarg+1],"no") == 0) maxwarn = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) maxwarn = 1;
-      else error->all(FLERR,"Illegal fix qeq/fire command");
+      maxwarn = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix qeq/fire command");
   }
@@ -78,11 +74,7 @@ FixQEqFire::FixQEqFire(LAMMPS *lmp, int narg, char **arg) :
 
 void FixQEqFire::init()
 {
-  if (!atom->q_flag)
-    error->all(FLERR,"Fix qeq/fire requires atom attribute q");
-
-  ngroup = group->count(igroup);
-  if (ngroup == 0) error->all(FLERR,"Fix qeq/fire group has no atoms");
+  FixQEq::init();
 
   int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->pair = 0;
@@ -94,9 +86,6 @@ void FixQEqFire::init()
     if (comm->me == 0)
       error->warning(FLERR,"Fix qeq/fire tolerance may be too small"
                     " for damped fires");
-
-  if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
   comb3 = (PairComb3 *) force->pair_match("^comb3",0);
   if (!comb3) comb = (PairComb *) force->pair_match("^comb",0);

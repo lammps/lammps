@@ -84,7 +84,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   ftmp = nullptr;
   vtmp = nullptr;
 
-  grow_arrays(atom->nmax);
+  FixShake::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
 
   // set comm size needed by this fix
@@ -222,13 +222,13 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
 
   // identify all SHAKE clusters
 
-  double time1 = MPI_Wtime();
+  double time1 = platform::walltime();
 
   find_clusters();
 
   if (comm->me == 0)
     utils::logmesg(lmp,"  find clusters CPU = {:.3f} seconds\n",
-                   MPI_Wtime()-time1);
+                   platform::walltime()-time1);
 
   // initialize list of SHAKE clusters to constrain
 
@@ -361,11 +361,17 @@ void FixShake::init()
   // could have changed locations in fix list since created
   // set ptrs to rRESPA variables
 
+  fix_respa = nullptr;
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    ifix_respa = modify->find_fix_by_style("^RESPA");
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
-    loop_respa = ((Respa *) update->integrate)->loop;
-    step_respa = ((Respa *) update->integrate)->step;
+    if (update->whichflag > 0) {
+      auto fixes = modify->get_fix_by_style("^RESPA");
+      if (fixes.size() > 0) fix_respa = (FixRespa *) fixes.front();
+      else error->all(FLERR,"Run style respa did not create fix RESPA");
+    }
+    Respa *respa_style = (Respa *) update->integrate;
+    nlevels_respa = respa_style->nlevels;
+    loop_respa = respa_style->loop;
+    step_respa = respa_style->step;
   }
 
   // set equilibrium bond distances
@@ -1619,7 +1625,7 @@ void FixShake::unconstrained_update_respa(int ilevel)
   // x + dt0 (v + dtN/m fN + 1/2 dt(N-1)/m f(N-1) + ... + 1/2 dt0/m f0)
   // also set dtfsq = dt0*dtN so that shake,shake3,etc can use it
 
-  double ***f_level = ((FixRespa *) modify->fix[ifix_respa])->f_level;
+  double ***f_level = fix_respa->f_level;
   dtfsq = dtf_inner * step_respa[ilevel];
 
   double invmass,dtfmsq;

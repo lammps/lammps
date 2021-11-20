@@ -246,7 +246,7 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based array
   // register with Atom class
 
-  grow_arrays(atom->nmax);
+  FixMove::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
   atom->add_callback(Atom::RESTART);
 
@@ -779,10 +779,8 @@ void FixMove::initial_integrate(int /*vflag*/)
           if (vxvarstyle == EQUAL) v[i][0] = vx;
           else v[i][0] = velocity[i][0];
           if (rmass) {
-            dtfm = dtf / rmass[i];
             x[i][0] += dtv * v[i][0];
           } else {
-            dtfm = dtf / mass[type[i]];
             x[i][0] += dtv * v[i][0];
           }
         } else {
@@ -809,10 +807,8 @@ void FixMove::initial_integrate(int /*vflag*/)
           if (vyvarstyle == EQUAL) v[i][1] = vy;
           else v[i][1] = velocity[i][1];
           if (rmass) {
-            dtfm = dtf / rmass[i];
             x[i][1] += dtv * v[i][1];
           } else {
-            dtfm = dtf / mass[type[i]];
             x[i][1] += dtv * v[i][1];
           }
         } else {
@@ -839,10 +835,8 @@ void FixMove::initial_integrate(int /*vflag*/)
           if (vzvarstyle == EQUAL) v[i][2] = vz;
           else v[i][2] = velocity[i][2];
           if (rmass) {
-            dtfm = dtf / rmass[i];
             x[i][2] += dtv * v[i][2];
           } else {
-            dtfm = dtf / mass[type[i]];
             x[i][2] += dtv * v[i][2];
           }
         } else {

@@ -69,7 +69,7 @@ static void getparmindata(const char *potin_file,int nvol[1],double vol0[1],doub
 
   if (in == nullptr) {
     fprintf(stderr,"@%s:%d: Error reading potin file. Can not open file \'%s\'.\n",
-	    __FILE__,__LINE__,potin_file);
+            __FILE__,__LINE__,potin_file);
     exit(1);
   }
 
@@ -86,24 +86,24 @@ static void getparmindata(const char *potin_file,int nvol[1],double vol0[1],doub
     if (n == 0) {
       metal[0] = 0;
       if (sscanf(line,"%s %d %d",metal,&ipot,&mode) != 3) {
-	fprintf(stderr,"@%s:%d: Error on potin file. line = %s\n",
-		__FILE__,__LINE__,line);
-	exit(1);
+        fprintf(stderr,"@%s:%d: Error on potin file. line = %s\n",
+                __FILE__,__LINE__,line);
+        exit(1);
       }
     } else {
       metalx[0] = 0;
       if (sscanf(line,"%s %d %d",metalx,&ipotx,&modex) != 3) {
-	fprintf(stderr,"@%s:%d: Error on potin file. line = %s\n",
-		__FILE__,__LINE__,line);
-	exit(1);
+        fprintf(stderr,"@%s:%d: Error on potin file. line = %s\n",
+                __FILE__,__LINE__,line);
+        exit(1);
       } else if (strcmp(metal,metalx) != 0 || ipot != ipotx || mode != modex) {
-	fprintf(stderr,"@%s:%d: Error on potin file, parameter mismatch:\n"
-		"    metal  = \'%s\'    ipot  = %d    mode  = %d\n"
-		"    metalx = \'%s\'    ipotx = %d    modex = %d\n",
-		__FILE__,__LINE__,
-		metal,ipot,mode,
-		metalx,ipotx,modex);
-	exit(1);
+        fprintf(stderr,"@%s:%d: Error on potin file, parameter mismatch:\n"
+                "    metal  = \'%s\'    ipot  = %d    mode  = %d\n"
+                "    metalx = \'%s\'    ipotx = %d    modex = %d\n",
+                __FILE__,__LINE__,
+                metal,ipot,mode,
+                metalx,ipotx,modex);
+        exit(1);
       }
     }
 
@@ -127,11 +127,11 @@ static void getparmindata(const char *potin_file,int nvol[1],double vol0[1],doub
 
   if (n == 0) {
     fprintf(stderr,"@%s:%d: Invalid potin file \'%s\', no volume records.\n",
-	    __FILE__,__LINE__,potin_file);
+            __FILE__,__LINE__,potin_file);
     exit(1);
   }
 
-  if (0) {
+  if (false) {
     printf("Before sort:\n");
     for (int i = 0; i<n; i++)
       printf("%3d :: %.3f%s",i,volarr[i], (i%5==4) ? "\n" : "  ");
@@ -139,7 +139,7 @@ static void getparmindata(const char *potin_file,int nvol[1],double vol0[1],doub
   }
   qsort(volarr,n,sizeof(double),cmp_double);
 
-  if (0) {
+  if (false) {
     printf("After sort:\n");
     for (int i = 0; i<n; i++)
       printf("%3d :: %.3f%s",i,volarr[i], (i%5==4) ? "\n" : "  ");
@@ -166,7 +166,7 @@ void potdata::readpot(const char *parmin_file,const char *potin_file,const doubl
   int ipotx,modex; double pnx;
   double vol0;
 
-  double *vatab,*vbtab,*vctab,*vdtab,*vetab,*p1tab,*altab,*vpairtab = 0;
+  double *vatab,*vbtab,*vctab,*vdtab,*vetab,*p1tab,*altab,*vpairtab = nullptr;
   double *r0rwstab,*evol0tab;
   double (*C)[4];
   double *y,*dy;
@@ -194,9 +194,9 @@ void potdata::readpot(const char *parmin_file,const char *potin_file,const doubl
     int nvol;
     getparmindata(potin_file,&nvol,&vol0,&x0,&x1);
     dx = (x1-x0)/(nvol-1);
-    if (0) {
+    if (false) {
       printf("getparmindata() ==> nvol = %d, vol0 = %.6f, x0= %.6f, x1 = %.6f, dx = %.6f\n",
-	     nvol,vol0,x0,x1,dx);
+             nvol,vol0,x0,x1,dx);
     }
   } else {
     /* Two-line version, reparse this line, and read second line */
@@ -252,30 +252,30 @@ void potdata::readpot(const char *parmin_file,const char *potin_file,const doubl
     /* Read element type, mode, and pn parameter */ {
       int nf = sscanf(line,"%s %d %d %lf",metalx,&ipotx,&modex,&pnx);
       if (nf < 3) {
-	printf("Error in %s() @ %s:%d: Inconsistency in potential input file (%s) "
-	       "at record %d:\n"
-	       "  Expected at least three fields. Number of fields = %d\n",
-	       __func__,__FILE__,__LINE__,potin_file,ii,
-	       nf);
-	exit(1);
+        printf("Error in %s() @ %s:%d: Inconsistency in potential input file (%s) "
+               "at record %d:\n"
+               "  Expected at least three fields. Number of fields = %d\n",
+               __func__,__FILE__,__LINE__,potin_file,ii,
+               nf);
+        exit(1);
       }
       if (modex <= 4) {
-	pnx = 1.0;
+        pnx = 1.0;
       } else if (modex <= 6) {
-	if (nf != 4) {
-	  printf("Error in %s() @ %s:%d: Inconsistency in potential input file (%s) "
-		 "at record %d:\n"
-		 "  mode = %d, number of fields = %d\n",
-		 __func__,__FILE__,__LINE__,potin_file,ii,
-		 modex,nf);
-	  exit(1);
-	}
+        if (nf != 4) {
+          printf("Error in %s() @ %s:%d: Inconsistency in potential input file (%s) "
+                 "at record %d:\n"
+                 "  mode = %d, number of fields = %d\n",
+                 __func__,__FILE__,__LINE__,potin_file,ii,
+                 modex,nf);
+          exit(1);
+        }
       } else {
-	  printf("Error in %s() @ %s:%d: Inconsistency in potential input file (%s): "
-		 "at record %d\n"
-		 "  Invalid mode. mode = %d\n",
-		 __func__,__FILE__,__LINE__,potin_file,ii,
-		 modex);
+          printf("Error in %s() @ %s:%d: Inconsistency in potential input file (%s): "
+                 "at record %d\n"
+                 "  Invalid mode. mode = %d\n",
+                 __func__,__FILE__,__LINE__,potin_file,ii,
+                 modex);
       }
     }
 
@@ -285,21 +285,21 @@ void potdata::readpot(const char *parmin_file,const char *potin_file,const doubl
     } else {
       /* Check that {metal,ipot,mode}x == {metal,ipot,mode} */
       if (strcmp(metal,metalx) != 0 ||
-	 ipotx != ipot ||
-	 modex != mode ||
-	 pnx != pn) {
-	printf("Error in %s() @ %s:%d: Inconsistency in potential input file (%s) "
-	       "at record %d:\n"
-	       "metalx != metal (%s != %s) or\n"
-	       "ipotx  != ipot  (%d != %d) or\n"
-	       "modex  != mode  (%d != %d) or\n"
-	       "pnx    != pn    (%.3f != %.3f).\n",
-	       __func__,__FILE__,__LINE__,potin_file,ii,
-	       metalx,metal,
-	       ipotx,ipot,
-	       modex,mode,
-	       pnx,pn);
-	exit(1);
+         ipotx != ipot ||
+         modex != mode ||
+         pnx != pn) {
+        printf("Error in %s() @ %s:%d: Inconsistency in potential input file (%s) "
+               "at record %d:\n"
+               "metalx != metal (%s != %s) or\n"
+               "ipotx  != ipot  (%d != %d) or\n"
+               "modex  != mode  (%d != %d) or\n"
+               "pnx    != pn    (%.3f != %.3f).\n",
+               __func__,__FILE__,__LINE__,potin_file,ii,
+               metalx,metal,
+               ipotx,ipot,
+               modex,mode,
+               pnx,pn);
+        exit(1);
       }
     }
     //printf("LINE: %s\n",line);
@@ -310,20 +310,20 @@ void potdata::readpot(const char *parmin_file,const char *potin_file,const doubl
       double xi = x0 + i/((double) (nx-1)) * (x1-x0);
       double volguess = vol0 * xi*xi*xi;
       if (fabs(volguess/ivol - 1.0) > 1e-3)
-	printf("Wrong volume guess,  i=%d  volgues=%15.5e  ivol=%15.5e\n",
-	       i,volguess,ivol);
+        printf("Wrong volume guess,  i=%d  volgues=%15.5e  ivol=%15.5e\n",
+               i,volguess,ivol);
      }*/
 
     double ifrac = (pow(ivol/vol0,1.0/3.0) - x0)/((x1-x0)/(nx-1));
     i = (int) (ifrac + 0.1);
     if (fabs(i - ifrac) > 0.01) {
       printf("Volume point not in table... ii=%d i=%d ifrac=%15.5e  vol=%15.5e\n",
-	     ii,i,ifrac,ivol);
+             ii,i,ifrac,ivol);
       printf("vol0 = %15.5e  zval = %15.5e  mass = %15.5e\n",vol0,zval,mass);
       exit(1);
     } else if (tag[i] == 1) {
       printf("Duplicate volume point in table.... ii=%d i=%d ifrac=%15.5e  vol=%15.5e\n",
-	     ii,i,ifrac,ivol);
+             ii,i,ifrac,ivol);
       exit(1);
     } else tag[i] = 1;
 
@@ -334,7 +334,7 @@ void potdata::readpot(const char *parmin_file,const char *potin_file,const doubl
 
     fgets(line,sizeof(line),in);
     sscanf(line,"%lf %lf %lf %lf %lf",
-	   &vatab[i],&vbtab[i],&vctab[i],&vdtab[i],&vetab[i]);
+           &vatab[i],&vbtab[i],&vctab[i],&vdtab[i],&vetab[i]);
     if (ipot == 1) {
       vatab[i] *= vdtab[i];
       vctab[i] *= vctab[i];
@@ -358,67 +358,67 @@ void potdata::readpot(const char *parmin_file,const char *potin_file,const doubl
       double rj,ktan,dvdvol;
       fgets(line,sizeof(line),in);
       sscanf(line,"%lf %lf %lf %lf",
-	     &rj,&vpairtab[i*nr+j],&ktan,&dvdvol);
+             &rj,&vpairtab[i*nr+j],&ktan,&dvdvol);
 
       { /* Add screening and fl() part to pair energy table */
 
-	double al = altab[i];
-	double p1 = p1tab[i];
+        double al = altab[i];
+        double p1 = p1tab[i];
 
-	int bscreen = (al > 0.0);
+        int bscreen = (al > 0.0);
 
-	double xi = x0 + i/((double) (nx-1)) * (x1-x0);
-	double rws = rws_scale * xi;
+        double xi = x0 + i/((double) (nx-1)) * (x1-x0);
+        double rws = rws_scale * xi;
 
-	double r0rws = r0rwstab[i];
-	double r00 = r0rws*rws,rp = 1.8*rws;
-	if (bscreen == 0) r0rws = 10.0;
-	double alp = al,alm = al;
-	if (mode == 2 || mode == 4 || mode == 6) alm = 125.0;
-	al = alp;
+        double r0rws = r0rwstab[i];
+        double r00 = r0rws*rws,rp = 1.8*rws;
+        if (bscreen == 0) r0rws = 10.0;
+        double alp = al,alm = al;
+        if (mode == 2 || mode == 4 || mode == 6) alm = 125.0;
+        al = alp;
 
-	double r = r0 + j*(r1-r0)/(nr-1);
+        double r = r0 + j*(r1-r0)/(nr-1);
 
-	double rrws = r/rws;
-	//double rsqr = r*r;
-	// double fl(double r,int mode,double rp,double p1,double al,double r0)
-	double flr = fl(r,mode,rp,p1,al,r00,pn);
-	double fl2 = flr*flr;
-	double v2a = vatab[i]*fl2*fl2;
-	double v2b = vbtab[i]*fl2;
-	double fscr = 1.0;
+        double rrws = r/rws;
+        //double rsqr = r*r;
+        // double fl(double r,int mode,double rp,double p1,double al,double r0)
+        double flr = fl(r,mode,rp,p1,al,r00,pn);
+        double fl2 = flr*flr;
+        double v2a = vatab[i]*fl2*fl2;
+        double v2b = vbtab[i]*fl2;
+        double fscr = 1.0;
 
-	if (bscreen == 1 && rrws >= r0rws) {
-	  double arg = rrws/r0rwstab[i];
-	  double arg1 = arg - 1.0;
-	  double arg12 = arg1*arg1;
-	  double f,dp;
-	  if (mode <= 2) {
-	    f = fgauss(arg,al);
-	    dp=2.*al*arg*arg1;
-	  }
-	  else {
-	    f = hgauss(arg,al);
-	    double arg13 = arg1*arg12;
-	    dp=2.0*al*al*arg*arg13/(1.+al*arg12);
-	  }
-	  fscr = f*f;
-	}
+        if (bscreen == 1 && rrws >= r0rws) {
+          double arg = rrws/r0rwstab[i];
+          double arg1 = arg - 1.0;
+          double arg12 = arg1*arg1;
+          double f,dp;
+          if (mode <= 2) {
+            f = fgauss(arg,al);
+            dp=2.*al*arg*arg1;
+          }
+          else {
+            f = hgauss(arg,al);
+            double arg13 = arg1*arg12;
+            dp=2.0*al*al*arg*arg13/(1.+al*arg12);
+          }
+          fscr = f*f;
+        }
 
-	double vpair_tmp = vpairtab[i*nr+j];
-	vpairtab[i*nr+j] = vpairtab[i*nr+j]*fscr + v2a - v2b;
+        double vpair_tmp = vpairtab[i*nr+j];
+        vpairtab[i*nr+j] = vpairtab[i*nr+j]*fscr + v2a - v2b;
 
-	if (0) if (fabs(vol-ivol) < 0.01) {
-	  static FILE *xfile = nullptr;
-	  if (j == 0) {
-	    xfile = fopen("mgpt5-pot.dat","w");
-	    fprintf(xfile,"%%%%  vol = %15.5e  ivol = %15.5e i = %d  ii = %d\n",
-		    vol,ivol,i,ii);
-	  }
-	  fprintf(xfile,"%15.5e %15.5e %15.5e %15.5e %15.5e %20.10e\n",
-		  r,vpair_tmp,fscr,v2a,v2b,flr);
-	  if (j == nr-1) fclose(xfile);
-	}
+        if (false) if (fabs(vol-ivol) < 0.01) {
+          static FILE *xfile = nullptr;
+          if (j == 0) {
+            xfile = fopen("mgpt5-pot.dat","w");
+            fprintf(xfile,"%%%%  vol = %15.5e  ivol = %15.5e i = %d  ii = %d\n",
+                    vol,ivol,i,ii);
+          }
+          fprintf(xfile,"%15.5e %15.5e %15.5e %15.5e %15.5e %20.10e\n",
+                  r,vpair_tmp,fscr,v2a,v2b,flr);
+          if (j == nr-1) fclose(xfile);
+        }
 
 
       }
@@ -487,7 +487,7 @@ void potdata::readpot(const char *parmin_file,const char *potin_file,const doubl
   evalspline(nx-1,x0,x1,C,x,&evol0,&devol0,&unused);
   devol0 *= dxdv;
 
-  if (1) {
+  if (true) {
     printf("%% READPOT PARAMETERS:\n");
 
     printf("%% ddl = %15.5e  %15.5e  %15.5e  %15.5e\n",ddl[1],ddl[2],ddl[3],ddl[4]);
@@ -544,7 +544,7 @@ int main(int argc,char *argv[]) {
   int n = 25,i;
 
   printf("%% parmin = %s\n%% potin = %s\n%% vol = %15.5e\n",
-	 argv[1],argv[2],vol);
+         argv[1],argv[2],vol);
 
   readpot(argv[1],argv[2],vol);
 
@@ -555,7 +555,7 @@ int main(int argc,char *argv[]) {
     evalspline(nr-1,r0,r1,vpair_spline,x,&u,&f,&d2y);
     evalspline(nr-1,r0,r1,dvpair_spline,x,&vir,&dy,&d2y);
     printf("  %15.5e  %15.5e  %15.5e  %15.5e\n",
-	   x,u,f,vir);
+           x,u,f,vir);
   }
 
 

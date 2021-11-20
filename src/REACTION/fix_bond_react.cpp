@@ -49,6 +49,7 @@ Contributing Author: Jacob Gissinger (jacob.r.gissinger@gmail.com)
 #include <cstring>
 
 #include <algorithm>
+#include <random>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -140,6 +141,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   rxnfunclist[0] = "rxnsum";
   rxnfunclist[1] = "rxnave";
   nvvec = 0;
+  ncustomvars = 0;
   vvec = nullptr;
 
   nxspecial = nullptr;
@@ -153,7 +155,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   master_group = (char *) "bond_react_MASTER_group";
 
   // by using fixed group names, only one instance of fix bond/react is allowed.
-  if (modify->find_fix_by_style("^bond/react") != -1)
+  if (modify->get_fix_by_style("^bond/react").size() != 0)
     error->all(FLERR,"Only one instance of fix bond/react allowed at a time");
 
   // let's find number of reactions specified
@@ -178,24 +180,20 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   int num_common_keywords = 2;
   for (int m = 0; m < num_common_keywords; m++) {
     if (strcmp(arg[iarg],"stabilization") == 0) {
-      if (strcmp(arg[iarg+1],"no") == 0) {
-        if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
-                                      "'stabilization' keyword has too few arguments");
-        iarg += 2;
-      }
-      if (strcmp(arg[iarg+1],"yes") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
+                                    "'stabilization' keyword has too few arguments");
+      stabilization_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      if (stabilization_flag) {
         if (iarg+4 > narg) error->all(FLERR,"Illegal fix bond/react command:"
                                       "'stabilization' keyword has too few arguments");
         exclude_group = utils::strdup(arg[iarg+2]);
-        stabilization_flag = 1;
         nve_limit_xmax = arg[iarg+3];
         iarg += 4;
-      }
+      } else iarg += 2;
     } else if (strcmp(arg[iarg],"reset_mol_ids") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
                                     "'reset_mol_ids' keyword has too few arguments");
-      if (strcmp(arg[iarg+1],"yes") == 0) reset_mol_ids_flag = 1; // default
-      if (strcmp(arg[iarg+1],"no") == 0) reset_mol_ids_flag = 0;
+      reset_mol_ids_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"react") == 0) {
       break;
@@ -232,7 +230,6 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   memory->create(molecule_keyword,nreacts,"bond/react:molecule_keyword");
   memory->create(nconstraints,nreacts,"bond/react:nconstraints");
   memory->create(constraintstr,nreacts,MAXLINE,"bond/react:constraintstr");
-  memory->create(constraints,0,nreacts,"bond/react:constraints");
   memory->create(var_flag,NUMVARVALS,nreacts,"bond/react:var_flag");
   memory->create(var_id,NUMVARVALS,nreacts,"bond/react:var_id");
   memory->create(iatomtype,nreacts,"bond/react:iatomtype");
@@ -488,6 +485,9 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
     if (custom_charges_fragid[i] >= 0) CustomCharges(custom_charges_fragid[i],i);
   }
 
+  // get the names of per-atom variables needed by 'rxn' functions of custom constraint
+  customvarnames();
+
   // initialize Marsaglia RNG with processor-unique seed (Arrhenius prob)
 
   rrhandom = new RanMars*[narrhenius];
@@ -617,7 +617,6 @@ FixBondReact::~FixBondReact()
   memory->destroy(stabilize_steps_flag);
   memory->destroy(custom_charges_fragid);
   memory->destroy(molecule_keyword);
-  memory->destroy(constraints);
   memory->destroy(nconstraints);
   memory->destroy(constraintstr);
   memory->destroy(create_atoms_flag);
@@ -912,7 +911,8 @@ void FixBondReact::post_integrate()
 
   int j;
   for (rxnID = 0; rxnID < nreacts; rxnID++) {
-    if (max_rxn[rxnID] <= reaction_count_total[rxnID]) continue;
+    if ((update->ntimestep % nevery[rxnID]) ||
+        (max_rxn[rxnID] <= reaction_count_total[rxnID])) continue;
     for (int ii = 0; ii < nall; ii++) {
       partner[ii] = 0;
       finalpartner[ii] = 0;
@@ -1019,6 +1019,11 @@ void FixBondReact::post_integrate()
     unlimit_bond();
     return;
   }
+
+  // evaluate custom constraint variable values here and forward_comm
+  get_customvars();
+  commflag = 1;
+  comm->forward_comm_fix(this,ncustomvars);
 
   // run through the superimpose algorithm
   // this checks if simulation topology matches unreacted mol template
@@ -1376,6 +1381,10 @@ void FixBondReact::superimpose_algorithm()
 
   if (!rxnflag) return;
 
+  // C++11 and later compatible version of Park pRNG
+  std::random_device rnd;
+  std::minstd_rand park_rng(rnd());
+
   // check if we overstepped our reaction limit
   for (int i = 0; i < nreacts; i++) {
     if (reaction_count_total[i] > max_rxn[i]) {
@@ -1396,7 +1405,7 @@ void FixBondReact::superimpose_algorithm()
         for (int j = 0; j < nprocs; j++)
           for (int k = 0; k < local_rxncounts[j]; k++)
             rxn_by_proc[itemp++] = j;
-        std::random_shuffle(&rxn_by_proc[0],&rxn_by_proc[delta_rxn]);
+        std::shuffle(&rxn_by_proc[0],&rxn_by_proc[delta_rxn], park_rng);
         for (int j = 0; j < nprocs; j++)
           all_localskips[j] = 0;
         nghostlyskips[i] = 0;
@@ -1983,7 +1992,10 @@ int FixBondReact::check_constraints()
       *ptr = satisfied[i] ? '1' : '0';
     }
     double verdict = input->variable->evaluate_boolean(evalstr);
-    if (verdict == 0.0) return 0;
+    if (verdict == 0.0) {
+      memory->destroy(satisfied);
+      return 0;
+    }
   }
 
   // let's also check chirality within 'check_constraint'
@@ -2005,7 +2017,10 @@ int FixBondReact::check_constraints()
           }
         }
       }
-      if (get_chirality(my4coords) != chiral_atoms[i][1][rxnID]) return 0;
+      if (get_chirality(my4coords) != chiral_atoms[i][1][rxnID]) {
+        memory->destroy(satisfied);
+        return 0;
+      }
     }
   }
 
@@ -2087,6 +2102,100 @@ double FixBondReact::get_temperature(tagint **myglove, int row_offset, int col)
 }
 
 /* ----------------------------------------------------------------------
+get per-atom variable names used by  custom constraint
+------------------------------------------------------------------------- */
+
+void FixBondReact::customvarnames()
+{
+  int pos,pos1,pos2,pos3,prev3;
+  std::string varstr,argstr,varid;
+
+  // search all constraints' varstr for special 'rxn' functions
+  //   add variable names to customvarstrs
+  //   add values to customvars
+
+  for (rxnID = 0; rxnID < nreacts; rxnID++) {
+    for (int i = 0; i < nconstraints[rxnID]; i++) {
+      if (constraints[i][rxnID].type == CUSTOM) {
+        varstr = constraints[i][rxnID].str;
+        prev3 = -1;
+        while (true) {
+          // find next reaction special function occurrence
+          pos1 = INT_MAX;
+          for (int i = 0; i < nrxnfunction; i++) {
+            pos = varstr.find(rxnfunclist[i],prev3+1);
+            if (pos == std::string::npos) continue;
+            if (pos < pos1) pos1 = pos;
+          }
+          if (pos1 == INT_MAX) break;
+
+          pos2 = varstr.find("(",pos1);
+          pos3 = varstr.find(")",pos2);
+          if (pos2 == std::string::npos || pos3 == std::string::npos)
+            error->all(FLERR,"Bond/react: Illegal rxn function syntax\n");
+          prev3 = pos3;
+          argstr = varstr.substr(pos2+1,pos3-pos2-1);
+          argstr.erase(remove_if(argstr.begin(), argstr.end(), isspace), argstr.end()); // remove whitespace
+          pos2 = argstr.find(",");
+          if (pos2 != std::string::npos) varid = argstr.substr(0,pos2);
+          else varid = argstr;
+          // check if we already know about this variable
+          int varidflag = 0;
+          for (int j = 0; j < ncustomvars; j++) {
+            if (customvarstrs[j] == varid) {
+              varidflag = 1;
+              break;
+            }
+          }
+          if (!varidflag) {
+            customvarstrs.resize(ncustomvars+1);
+            customvarstrs[ncustomvars++] = varid;
+          }
+        }
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+evaluate per-atom variables needed for custom constraint
+------------------------------------------------------------------------- */
+
+void FixBondReact::get_customvars()
+{
+  double *tempvvec;
+  std::string varid;
+  int nall = atom->nlocal + atom->nghost;
+
+  memory->create(tempvvec,nall,"bond/react:tempvvec");
+  if (vvec == nullptr) {
+    memory->create(vvec,nall,ncustomvars,"bond/react:vvec");
+    nvvec = nall;
+  }
+  if (nvvec < nall) {
+    memory->grow(vvec,nall,ncustomvars,"bond/react:vvec");
+    nvvec = nall;
+  }
+  for (int i = 0; i < ncustomvars; i++) {
+    varid = customvarstrs[i];
+    if (varid.substr(0,2) != "v_") error->all(FLERR,"Bond/react: Reaction special function variable "
+                                     "name should begin with 'v_'");
+    varid = varid.substr(2);
+    int ivar = input->variable->find(varid.c_str());
+    if (ivar < 0)
+      error->all(FLERR,"Bond/react: Reaction special function variable "
+                                   "name does not exist");
+    if (!input->variable->atomstyle(ivar))
+      error->all(FLERR,"Bond/react: Reaction special function must "
+                                   "reference an atom-style variable");
+
+    input->variable->compute_atom(ivar,igroup,tempvvec,1,0);
+    for (int j = 0; j < nall; j++) vvec[j][i] = tempvvec[j];
+  }
+  memory->destroy(tempvvec);
+}
+
+/* ----------------------------------------------------------------------
 evaulate expression for variable constraint
 ------------------------------------------------------------------------- */
 
@@ -2120,6 +2229,7 @@ double FixBondReact::custom_constraint(std::string varstr)
     evlstr.push_back(varstr.substr(prev3+1,pos1-(prev3+1)));
     prev3 = pos3;
     argstr = varstr.substr(pos2+1,pos3-pos2-1);
+    argstr.erase(remove_if(argstr.begin(), argstr.end(), isspace), argstr.end()); // remove whitespace
     pos2 = argstr.find(",");
     if (pos2 != std::string::npos) {
       varid = argstr.substr(0,pos2);
@@ -2129,8 +2239,7 @@ double FixBondReact::custom_constraint(std::string varstr)
   }
   evlstr.push_back(varstr.substr(prev3+1));
 
-  for (int i = 0; i < evlstr.size(); i++)
-    evlcat += evlstr[i];
+  for (auto & evl : evlstr) evlcat += evl;
 
   char *cstr = utils::strdup(evlcat);
   val = input->variable->compute_equal(cstr);
@@ -2145,25 +2254,19 @@ currently two 'rxn' functions: rxnsum and rxnave
 double FixBondReact::rxnfunction(std::string rxnfunc, std::string varid,
                                  std::string fragid)
 {
-  if (varid.substr(0,2) != "v_") error->one(FLERR,"Bond/react: Reaction special function variable "
-                                   "name should begin with 'v_'");
-  varid = varid.substr(2);
-  int ivar = input->variable->find(varid.c_str());
+  int ivar = -1;
+  for (int i = 0; i < ncustomvars; i++) {
+    if (varid == customvarstrs[i]) {
+      ivar = i;
+      break;
+    }
+  }
+  // variable name should always be found, at this point
+  // however, let's double check for completeness
   if (ivar < 0)
     error->one(FLERR,"Bond/react: Reaction special function variable "
                                  "name does not exist");
-  if (!input->variable->atomstyle(ivar))
-    error->one(FLERR,"Bond/react: Reaction special function must "
-                                 "reference an atom-style variable");
-  if (vvec == nullptr) {
-    memory->create(vvec,atom->nlocal,"bond/react:vvec");
-    nvvec = atom->nlocal;
-  }
-  if (nvvec < atom->nlocal) {
-    memory->grow(vvec,atom->nlocal,"bond/react:vvec");
-    nvvec = atom->nlocal;
-  }
-  input->variable->compute_atom(ivar,igroup,vvec,1,0);
+
   int ifrag = -1;
   if (fragid != "all") {
     ifrag = onemol->findfragment(fragid.c_str());
@@ -2178,14 +2281,14 @@ double FixBondReact::rxnfunction(std::string rxnfunc, std::string varid,
     if (fragid == "all") {
       for (int i = 0; i < onemol->natoms; i++) {
         iatom = atom->map(glove[i][1]);
-        sumvvec += vvec[iatom];
+        sumvvec += vvec[iatom][ivar];
       }
       nsum = onemol->natoms;
     } else {
       for (int i = 0; i < onemol->natoms; i++) {
         if (onemol->fragmentmask[ifrag][i]) {
           iatom = atom->map(glove[i][1]);
-          sumvvec += vvec[iatom];
+          sumvvec += vvec[iatom][ivar];
           nsum++;
         }
       }
@@ -2830,6 +2933,19 @@ void FixBondReact::update_everything()
         rxnID = local_mega_glove[0][i];
         // reactions already shuffled from dedup procedure, so can skip first N
         if (iskip[rxnID]++ < nlocalskips[rxnID]) continue;
+
+        // atoms inserted here for serial MPI_STUBS build only
+        if (create_atoms_flag[rxnID] == 1) {
+          onemol = atom->molecules[unreacted_mol[rxnID]];
+          twomol = atom->molecules[reacted_mol[rxnID]];
+          if (insert_atoms(local_mega_glove,i)) {
+            inserted_atoms_flag = 1;
+          } else { // create aborted
+            reaction_count_total[rxnID]--;
+            continue;
+          }
+        }
+
         for (int j = 0; j < max_natoms+1; j++)
           update_mega_glove[j][update_num_mega] = local_mega_glove[j][i];
         update_num_mega++;
@@ -2842,7 +2958,7 @@ void FixBondReact::update_everything()
 
         // we can insert atoms here, now that reactions are finalized
         // can't do it any earlier, due to skipped reactions (max_rxn)
-        // reactions that create atoms are always treated as 'global'
+        // for MPI build, reactions that create atoms are always treated as 'global'
         if (create_atoms_flag[rxnID] == 1) {
           onemol = atom->molecules[unreacted_mol[rxnID]];
           twomol = atom->molecules[reacted_mol[rxnID]];
@@ -2858,16 +2974,17 @@ void FixBondReact::update_everything()
           update_mega_glove[j][update_num_mega] = global_mega_glove[j][i];
         update_num_mega++;
       }
-      // if inserted atoms and global map exists, reset map now instead
-      //   of waiting for comm since other pre-exchange fixes may use it
-      // invoke map_init() b/c atom count has grown
-      // do this once after all atom insertions
-      if (inserted_atoms_flag == 1 && atom->map_style != Atom::MAP_NONE) {
-        atom->map_init();
-        atom->map_set();
-      }
     }
     delete [] iskip;
+
+    // if inserted atoms and global map exists, reset map now instead
+    //   of waiting for comm since other pre-exchange fixes may use it
+    // invoke map_init() b/c atom count has grown
+    // do this once after all atom insertions
+    if (inserted_atoms_flag == 1 && atom->map_style != Atom::MAP_NONE) {
+      atom->map_init();
+      atom->map_set();
+    }
 
     // mark to-delete atoms
     nlocal = atom->nlocal;
@@ -3645,7 +3762,7 @@ void FixBondReact::read(int myrxn)
   // stop when read an unrecognized line
 
   ncreate = 0;
-  while (1) {
+  while (true) {
 
     readline(line);
 
@@ -3668,7 +3785,7 @@ void FixBondReact::read(int myrxn)
     else if (strstr(line,"constraints")) {
       sscanf(line,"%d",&nconstraints[myrxn]);
       if (maxnconstraints < nconstraints[myrxn]) maxnconstraints = nconstraints[myrxn];
-      memory->grow(constraints,maxnconstraints,nreacts,"bond/react:constraints");
+      constraints.resize(maxnconstraints, std::vector<Constraint>(nreacts));
     } else break;
   }
 
@@ -4027,6 +4144,15 @@ int FixBondReact::pack_forward_comm(int n, int *list, double *buf,
 
   m = 0;
 
+  if (commflag == 1) {
+    for (i = 0; i < n; i++) {
+      j = list[i];
+      for (k = 0; k < ncustomvars; k++)
+        buf[m++] = vvec[j][k];
+    }
+    return m;
+  }
+
   if (commflag == 2) {
     for (i = 0; i < n; i++) {
       j = list[i];
@@ -4051,12 +4177,16 @@ int FixBondReact::pack_forward_comm(int n, int *list, double *buf,
 
 void FixBondReact::unpack_forward_comm(int n, int first, double *buf)
 {
-  int i,j,m,ns,last;
+  int i,j,k,m,ns,last;
 
   m = 0;
   last = first + n;
 
-  if (commflag == 2) {
+  if (commflag == 1) {
+    for (i = first; i < last; i++)
+      for (k = 0; k < ncustomvars; k++)
+        vvec[i][k] = buf[m++];
+  } else if (commflag == 2) {
     for (i = first; i < last; i++)
       partner[i] = (tagint) ubuf(buf[m++]).i;
   } else {

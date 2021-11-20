@@ -28,6 +28,9 @@
 #include "neighbor.h"
 #include "update.h"
 
+#include <cmath>
+#include <cstring>
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -343,9 +346,10 @@ void PairTracker::init_style()
   if (ifix < 0) error->all(FLERR, "Could not find pair fix neigh history ID");
   fix_history = (FixNeighHistory *) modify->fix[ifix];
 
-  ifix = modify->find_fix_by_style("pair/tracker");
-  if (ifix < 0) error->all(FLERR, "Cannot use pair tracker without fix pair/tracker");
-  fix_pair_tracker = (FixPairTracker *) modify->fix[ifix];
+  auto trackfixes = modify->get_fix_by_style("pair/tracker");
+  if (trackfixes.size() != 1)
+    error->all(FLERR, "Must use exactly one fix pair/tracker command with pair style tracker");
+  fix_pair_tracker = (FixPairTracker *) trackfixes.front();
 }
 
 /* ----------------------------------------------------------------------
@@ -435,7 +439,7 @@ void PairTracker::read_restart_settings(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double PairTracker::single(int /*i*/, int /*j*/, int /*itype*/, int /*jtype*/, double /*rsq*/,
-                           double /*factor_coul*/, double /*factor_lj*/, double &/*fforce*/)
+                           double /*factor_coul*/, double /*factor_lj*/, double & /*fforce*/)
 {
   return 0.0;
 }

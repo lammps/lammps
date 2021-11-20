@@ -37,6 +37,7 @@ class FixGravity : public Fix {
   virtual void post_force_respa(int, int, int);
   double compute_scalar();
   void *extract(const char *, int &);
+  enum { CONSTANT, EQUAL };
 
  protected:
   int style, disable;

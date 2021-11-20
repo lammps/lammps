@@ -37,7 +37,6 @@ namespace user_manifold {
     virtual int nparams() { return NPARAMS; }
 
     virtual void post_param_init();
-    virtual void checkup();    // Some diagnostics...
    private:
     void init_domains();
 

@@ -27,7 +27,7 @@ Syntax
              on = set Newton pairwise flag on (currently not allowed)
            *pair/only* = *off* or *on*
              off = apply "gpu" suffix to all available styles in the GPU package (default)
-             on  - apply "gpu" suffix only pair styles
+             on  = apply "gpu" suffix only pair styles
            *binsize* value = size
              size = bin size for neighbor list construction (distance units)
            *split* = fraction
@@ -166,7 +166,7 @@ intel", or "package omp" command with default settings.
    set, either to default values or to specified settings.  I.e. settings
    from previous invocations do not persist across multiple invocations.
 
-See the :doc:`Speed packages <Speed_packages>` page for more details
+See the :doc:`Accelerator packages <Speed_packages>` page for more details
 about using the various accelerator packages for speeding up LAMMPS
 simulations.
 

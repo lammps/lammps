@@ -41,11 +41,9 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
-#include "group.h"
 #include "kspace.h"
 #include "math_const.h"
 #include "memory.h"
-#include "modify.h"
 #include "msm_dielectric.h"
 #include "pair_coul_cut_dielectric.h"
 #include "pair_coul_long_dielectric.h"
@@ -54,7 +52,6 @@
 #include "pair_lj_cut_coul_msm_dielectric.h"
 #include "pppm_dielectric.h"
 #include "random_park.h"
-#include "timer.h"
 #include "update.h"
 
 #include <cmath>
@@ -69,8 +66,8 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 FixPolarizeBEMGMRES::FixPolarizeBEMGMRES(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), q_backup(NULL), c(NULL), g(NULL), h(NULL), r(NULL), s(NULL), v(NULL),
-    y(NULL)
+    Fix(lmp, narg, arg), q_backup(nullptr), c(nullptr), g(nullptr), h(nullptr), r(nullptr), s(nullptr), v(nullptr),
+    y(nullptr)
 {
   if (narg < 5) error->all(FLERR, "Illegal fix polarize/bem/gmres command");
 
@@ -110,7 +107,7 @@ FixPolarizeBEMGMRES::FixPolarizeBEMGMRES(LAMMPS *lmp, int narg, char **arg) :
   if (atom->torque_flag) torqueflag = 1;
   if (atom->avec->forceclearflag) extraflag = 1;
 
-  grow_arrays(atom->nmax);
+  FixPolarizeBEMGMRES::grow_arrays(atom->nmax);
   atom->add_callback(0);    // to ensure to work with atom->sort()
 
   // output the residual and actual number of iterations
@@ -133,7 +130,7 @@ FixPolarizeBEMGMRES::~FixPolarizeBEMGMRES()
   memory->destroy(mat2tag);
   memory->destroy(tag2mat);
 
-  if (allocated) deallocate();
+  if (allocated) FixPolarizeBEMGMRES::deallocate();
   atom->delete_callback(id, 0);
 }
 
@@ -431,7 +428,7 @@ void FixPolarizeBEMGMRES::gmres_solve(double *x, double *r)
 
     // fill up h with zero
 
-    memset(h, 0, (size_t)(mr + 1) * mr * sizeof(double));
+    memset(h, 0, (size_t) (mr + 1) * mr * sizeof(double));
 
     // the inner loop k = 1..(n-1)
     // build up the k-th Krylov space,
@@ -524,7 +521,7 @@ void FixPolarizeBEMGMRES::gmres_solve(double *x, double *r)
 
 #ifdef _POLARIZE_DEBUG
       if (comm->me == 0)
-        error->warning(FLERR,"itr = {}: k = {}, norm(r) = {} norm(b) = {}", itr, k, rho, normb);
+        error->warning(FLERR, "itr = {}: k = {}, norm(r) = {} norm(b) = {}", itr, k, rho, normb);
 #endif
       if (rho <= rho_tol && rho <= tol_abs) break;
     }
@@ -742,17 +739,17 @@ double FixPolarizeBEMGMRES::vec_dot(const double *a1, const double *a2, int n)
 double FixPolarizeBEMGMRES::memory_usage()
 {
   double bytes = 0;
-  bytes += mat_dim * sizeof(double);          // induced_charges
-  bytes += mat_dim * sizeof(double);          // buffer
-  bytes += mat_dim * sizeof(double);          // rhs
-  bytes += atom->nmax * sizeof(double);       // induced_charge_idx
-  bytes += atom->nmax * sizeof(double);       // q_backup
-  bytes += mr * sizeof(double);               // c
-  bytes += (mr + 1) * sizeof(double);         // g
+  bytes += mat_dim * sizeof(double);                   // induced_charges
+  bytes += mat_dim * sizeof(double);                   // buffer
+  bytes += mat_dim * sizeof(double);                   // rhs
+  bytes += atom->nmax * sizeof(double);                // induced_charge_idx
+  bytes += atom->nmax * sizeof(double);                // q_backup
+  bytes += mr * sizeof(double);                        // c
+  bytes += (mr + 1) * sizeof(double);                  // g
   bytes += (double) (mr + 1) * mr * sizeof(double);    // h
-  bytes += mat_dim * sizeof(double);          // r
+  bytes += mat_dim * sizeof(double);                   // r
   bytes += (double) mr * (mr + 1) * sizeof(double);    // s
-  bytes += mat_dim * sizeof(double);          // v
+  bytes += mat_dim * sizeof(double);                   // v
   bytes += (double) (mr + 1) * mr * sizeof(double);    // y
   return bytes;
 }
@@ -799,12 +796,7 @@ int FixPolarizeBEMGMRES::modify_param(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg], "kspace") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix_modify command");
-      if (strcmp(arg[iarg + 1], "yes") == 0)
-        kspaceflag = 1;
-      else if (strcmp(arg[iarg + 1], "no") == 0)
-        kspaceflag = 0;
-      else
-        error->all(FLERR, "Illegal fix_modify command for fix polarize");
+      kspaceflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "dielectrics") == 0) {
       if (iarg + 6 > narg) error->all(FLERR, "Illegal fix_modify command");
@@ -868,7 +860,8 @@ void FixPolarizeBEMGMRES::set_arrays(int i)
 
 /* ---------------------------------------------------------------------- */
 
-int FixPolarizeBEMGMRES::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
+int FixPolarizeBEMGMRES::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/,
+                                           int * /*pbc*/)
 {
   int m;
   for (m = 0; m < n; m++) buf[m] = atom->q[list[m]];

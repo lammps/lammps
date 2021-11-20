@@ -20,16 +20,16 @@ namespace ATC {
 
   /**
    *  @class  ATC_Coupling
-   *  @brief  Base class for atom-continuum coupling 
+   *  @brief  Base class for atom-continuum coupling
    */
 
   class ATC_Coupling : public ATC_Method {
 
   public: /** methods */
-    
+
     friend class ExtrinsicModel; // friend is not inherited
     friend class ExtrinsicModelTwoTemperature;
-    friend class ExtrinsicModelDriftDiffusion; 
+    friend class ExtrinsicModelDriftDiffusion;
     friend class ExtrinsicModelDriftDiffusionConvection;
     friend class ExtrinsicModelElectrostatic;
     friend class ExtrinsicModelElectrostaticMomentum;
@@ -72,13 +72,13 @@ namespace ATC {
     virtual void pre_init_integrate();
 
     /** Predictor phase, Verlet first step for velocity and position */
-    virtual void init_integrate(); 
+    virtual void init_integrate();
 
     /** Predictor phase, executed after Verlet */
     virtual void post_init_integrate();
 
     /** Corrector phase, executed after Verlet*/
-    
+
     virtual void post_final_integrate();
 
     /** pre/post atomic force calculation in minimize */
@@ -95,9 +95,9 @@ namespace ATC {
     const std::set<std::string> & boundary_face_names() {return boundaryFaceNames_;};
     /** access to boundary integration method */
     int boundary_integration_type() {return bndyIntType_;};
-    void set_boundary_integration_type(int boundaryIntegrationType) 
+    void set_boundary_integration_type(int boundaryIntegrationType)
     {bndyIntType_ = boundaryIntegrationType;};
-    void set_boundary_face_set(const std::set< std::pair<int,int> > * boundaryFaceSet) 
+    void set_boundary_face_set(const std::set< std::pair<int,int> > * boundaryFaceSet)
     {bndyFaceSet_ = boundaryFaceSet;};
     BoundaryIntegrationType parse_boundary_integration
       (int narg, char **arg, const std::set< std::pair<int,int> > * boundaryFaceSet);
@@ -107,10 +107,10 @@ namespace ATC {
 //--------------------------------------------------------
 
     /** access to all boundary fluxes */
-    FIELDS &boundary_fluxes() {return boundaryFlux_;}; 
+    FIELDS &boundary_fluxes() {return boundaryFlux_;};
     /** wrapper for FE_Engine's compute_boundary_flux functions */
     void compute_boundary_flux(const Array2D<bool> & rhs_mask,
-                               const FIELDS &fields, 
+                               const FIELDS &fields,
                                FIELDS &rhs,
                                const Array< std::set <int> > atomMaterialGroups,
                                const VectorDependencyManager<SPAR_MAT * > * shpFcnDerivs,
@@ -128,12 +128,12 @@ namespace ATC {
 
     DENS_MAN &field_rhs(FieldName thisField) { return rhs_[thisField]; };
     /** allow FE_Engine to construct ATC structures after mesh is constructed */
-    virtual void initialize_mesh_data(void);  
+    virtual void initialize_mesh_data(void);
 
 // public for FieldIntegrator
-    bool source_atomic_quadrature(FieldName /* field */)  
+    bool source_atomic_quadrature(FieldName /* field */)
       { return (sourceIntegration_ == FULL_DOMAIN_ATOMIC_QUADRATURE_SOURCE); }
-    ATC::IntegrationDomainType source_integration() 
+    ATC::IntegrationDomainType source_integration()
       { return sourceIntegration_; }
 
     /** wrapper for FE_Engine's compute_sources */
@@ -143,25 +143,25 @@ namespace ATC {
                                   FIELD_MATS & atomicSources);
     /** computes tangent matrix using atomic quadrature near FE region */
    void masked_atom_domain_rhs_tangent(const std::pair<FieldName,FieldName> row_col,
-                                       const RHS_MASK & rhsMask,      
-                                       const FIELDS & fields,                  
+                                       const RHS_MASK & rhsMask,
+                                       const FIELDS & fields,
                                        SPAR_MAT & stiffness,
                                        const PhysicsModel * physicsModel);
     /** wrapper for FE_Engine's compute_rhs_vector functions */
     void compute_rhs_vector(const RHS_MASK & rhs_mask,
-                            const FIELDS &fields, 
+                            const FIELDS &fields,
                             FIELDS &rhs,
                             const IntegrationDomainType domain, // = FULL_DOMAIN
                             const PhysicsModel * physicsModel=nullptr);
    /** wrapper for FE_Engine's compute_tangent_matrix */
    void compute_rhs_tangent(const std::pair<FieldName,FieldName> row_col,
-                            const RHS_MASK & rhsMask,      
-                            const FIELDS & fields,                  
+                            const RHS_MASK & rhsMask,
+                            const FIELDS & fields,
                             SPAR_MAT & stiffness,
                             const IntegrationDomainType integrationType,
                             const PhysicsModel * physicsModel=nullptr);
    void tangent_matrix(const std::pair<FieldName,FieldName> row_col,
-                            const RHS_MASK & rhsMask,      
+                            const RHS_MASK & rhsMask,
                             const PhysicsModel * physicsModel,
                             SPAR_MAT & stiffness);
 
@@ -172,7 +172,7 @@ namespace ATC {
 
 // public for ImplicitSolveOperator
     /** return pointer to PrescribedDataManager */
-    PrescribedDataManager * prescribed_data_manager() 
+    PrescribedDataManager * prescribed_data_manager()
       { return prescribedDataMgr_; }
 // public for Kinetostat
     // TODO rename to "mass_matrix"
@@ -228,7 +228,7 @@ namespace ATC {
     void set_mass_mat_time_filter(FieldName thisField,TimeFilterManager::FilterIntegrationType filterIntegrationType);
 
     /** return reference to ExtrinsicModelManager */
-    ExtrinsicModelManager & extrinsic_model_manager() 
+    ExtrinsicModelManager & extrinsic_model_manager()
       { return extrinsicModelManager_; }
     /** access to time integrator */
     const TimeIntegrator * time_integrator(const FieldName & field) const {
@@ -242,7 +242,7 @@ namespace ATC {
     //---------------------------------------------------------------
     /*@{*/
     /** allow FE_Engine to construct data manager after mesh is constructed */
-    void construct_prescribed_data_manager (void); 
+    void construct_prescribed_data_manager (void);
     /** method to create physics model */
     void create_physics_model(const PhysicsType & physicsType,
                               std::string matFileName);
@@ -289,7 +289,7 @@ namespace ATC {
     void set_sources();
     /** assemble various contributions to the heat flux in the atomic region */
     void compute_atomic_sources(const Array2D<bool> & rhs_mask,
-                                const FIELDS &fields, 
+                                const FIELDS &fields,
                                 FIELDS &atomicSources);
 
     DENS_MAT &get_source(FieldName thisField){return sources_[thisField].set_quantity();};
@@ -313,25 +313,25 @@ namespace ATC {
     //---------------------------------------------------------------
     /*@{*/
     /** access for field mask */
-    Array2D<bool> &field_mask() {return fieldMask_;}; 
+    Array2D<bool> &field_mask() {return fieldMask_;};
     /** create field mask */
     void reset_flux_mask();
     /** field mask for intrinsic integration */
     Array2D<bool> intrinsicMask_;
     /** wrapper for FE_Engine's compute_flux functions */
     void compute_flux(const Array2D<bool> & rhs_mask,
-                      const FIELDS &fields, 
+                      const FIELDS &fields,
                       GRAD_FIELD_MATS &flux,
                       const PhysicsModel * physicsModel=nullptr,
                       const bool normalize = false);
     /** evaluate rhs on the atomic domain which is near the FE region */
     void masked_atom_domain_rhs_integral(const Array2D<bool> & rhs_mask,
-                                         const FIELDS &fields, 
+                                         const FIELDS &fields,
                                          FIELDS &rhs,
                                          const PhysicsModel * physicsModel);
     /** evaluate rhs on a specified domain defined by mask and physics model */
     void evaluate_rhs_integral(const Array2D<bool> & rhs_mask,
-                           const FIELDS &fields, 
+                           const FIELDS &fields,
                            FIELDS &rhs,
                            const IntegrationDomainType domain,
                            const PhysicsModel * physicsModel=nullptr);
@@ -422,8 +422,8 @@ namespace ATC {
     /*@{*/
     Array<int> elementToMaterialMap_;  // ATOMIC_TAG * elementToMaterialMap_;
     /** atomic ATC material tag */
-    
-    
+
+
     Array< std::set <int> > atomMaterialGroups_;  // ATOMIC_TAG*atomMaterialGroups_;
     Array< std::set <int> > atomMaterialGroupsMask_;  // ATOMIC_TAG*atomMaterialGroupsMask_;
     /*@}*/
@@ -432,7 +432,7 @@ namespace ATC {
     /** computational geometry */
     //---------------------------------------------------------------
     /*@{*/
-    bool atomQuadForInternal_;  
+    bool atomQuadForInternal_;
     MatrixDependencyManager<DenseMatrix, bool> * elementMask_;
     MatrixDependencyManager<DenseMatrix, bool> * elementMaskMass_;
     MatrixDependencyManager<DenseMatrix, bool> * elementMaskMassMd_;
@@ -465,7 +465,7 @@ namespace ATC {
     DIAG_MAN * atomicWeightsMask_;
     SPAR_MAN * shpFcnMask_;
     VectorDependencyManager<SPAR_MAT * > * shpFcnDerivsMask_;
-    Array<bool> atomMask_;  
+    Array<bool> atomMask_;
     SPAR_MAN atomToOverlapMat_;
     DIAG_MAN nodalMaskMat_;
     /*@}*/
@@ -475,7 +475,7 @@ namespace ATC {
     //---------------------------------------------------------------
     /*@{*/
     /** mask for computation of fluxes */
-    Array2D<bool> fieldMask_; 
+    Array2D<bool> fieldMask_;
     DIAG_MAT fluxMask_;
     DIAG_MAT fluxMaskComplement_;
     /** sources */

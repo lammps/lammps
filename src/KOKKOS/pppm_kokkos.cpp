@@ -31,6 +31,7 @@
 #include "memory_kokkos.h"
 #include "pair.h"
 #include "remap_kokkos.h"
+#include "kokkos_few.h"
 
 #include <cmath>
 
@@ -67,7 +68,7 @@ PPPMKokkos<DeviceType>::PPPMKokkos(LAMMPS *lmp) : PPPM(lmp)
 
   pppmflag = 1;
   group_group_enable = 0;
-  triclinic_support = 0;
+  triclinic_support = 1;
 
   nfactors = 3;
   //factors = new int[nfactors];
@@ -455,80 +456,95 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_setup4, const int &n) const
 template<class DeviceType>
 void PPPMKokkos<DeviceType>::setup_triclinic()
 {
-//  int i,j,k,n;
-//  double *prd;
-//
-//  // volume-dependent factors
-//  // adjust z dimension for 2d slab PPPM
-//  // z dimension for 3d PPPM is zprd since slab_volfactor = 1.0
-//
-//  prd = domain->prd;
-//
-//  double xprd = prd[0];
-//  double yprd = prd[1];
-//  double zprd = prd[2];
-//  double zprd_slab = zprd*slab_volfactor;
-//  volume = xprd * yprd * zprd_slab;
-//
-//  // use lamda (0-1) coordinates
-//
-//  delxinv = nx_pppm;
-//  delyinv = ny_pppm;
-//  delzinv = nz_pppm;
-//  delvolinv = delxinv*delyinv*delzinv/volume;
-//
-//  // d_fkx,d_fky,d_fkz for my FFT grid pts
-//
-//  double per_i,per_j,per_k;
-//
-//  n = 0;
-//  for (k = nzlo_fft; k <= nzhi_fft; k++) { // parallel_for
-//    per_k = k - nz_pppm*(2*k/nz_pppm);
-//    for (j = nylo_fft; j <= nyhi_fft; j++) {
-//      per_j = j - ny_pppm*(2*j/ny_pppm);
-//      for (i = nxlo_fft; i <= nxhi_fft; i++) {
-//        per_i = i - nx_pppm*(2*i/nx_pppm);
-//
-//        double unitk_lamda[3];
-//        unitk_lamda[0] = 2.0*MY_PI*per_i;
-//        unitk_lamda[1] = 2.0*MY_PI*per_j;
-//        unitk_lamda[2] = 2.0*MY_PI*per_k;
-//        x2lamdaT(&unitk_lamda[0],&unitk_lamda[0]);
-//        d_fkx[n] = unitk_lamda[0];
-//        d_fky[n] = unitk_lamda[1];
-//        d_fkz[n] = unitk_lamda[2];
-//        n++;
-//      }
-//    }
-//  }
-//
-//  // virial coefficients
-//
-//  double sqk,vterm;
-//
-//  for (n = 0; n < nfft; n++) { // parallel_for
-//    sqk = d_fkx[n]*d_fkx[n] + d_fky[n]*d_fky[n] + d_fkz[n]*d_fkz[n];
-//    if (sqk == 0.0) {
-//      d_vg(n,0) = 0.0;
-//      d_vg(n,1) = 0.0;
-//      d_vg(n,2) = 0.0;
-//      d_vg(n,3) = 0.0;
-//      d_vg(n,4) = 0.0;
-//      d_vg(n,5) = 0.0;
-//    } else {
-//      vterm = -2.0 * (1.0/sqk + 0.25/(g_ewald*g_ewald));
-//      d_vg(n,0) = 1.0 + vterm*d_fkx[n]*d_fkx[n];
-//      d_vg(n,1) = 1.0 + vterm*d_fky[n]*d_fky[n];
-//      d_vg(n,2) = 1.0 + vterm*d_fkz[n]*d_fkz[n];
-//      d_vg(n,3) = vterm*d_fkx[n]*d_fky[n];
-//      d_vg(n,4) = vterm*d_fkx[n]*d_fkz[n];
-//      d_vg(n,5) = vterm*d_fky[n]*d_fkz[n];
-//    }
-//  }
-//
-//  compute_gf_ik_triclinic();
+  double *prd;
+
+  // volume-dependent factors
+  // adjust z dimension for 2d slab PPPM
+  // z dimension for 3d PPPM is zprd since slab_volfactor = 1.0
+
+  prd = domain->prd;
+  // Update simulation box parameters
+  h = Few<double, 6>(domain->h);
+  h_inv = Few<double, 6>(domain->h_inv);
+
+  double xprd = prd[0];
+  double yprd = prd[1];
+  double zprd = prd[2];
+  double zprd_slab = zprd*slab_volfactor;
+  volume = xprd * yprd * zprd_slab;
+
+  // use lamda (0-1) coordinates
+
+  delxinv = nx_pppm;
+  delyinv = ny_pppm;
+  delzinv = nz_pppm;
+  delvolinv = delxinv*delyinv*delzinv/volume;
+
+  numz_fft = nzhi_fft-nzlo_fft + 1;
+  numy_fft = nyhi_fft-nylo_fft + 1;
+  numx_fft = nxhi_fft-nxlo_fft + 1;
+  const int inum_fft = numz_fft*numy_fft*numx_fft;
+
+  copymode = 1;
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_setup_triclinic1>(0,inum_fft),*this);
+  copymode = 0;
+
+  // virial coefficients
+
+  copymode = 1;
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_setup_triclinic2>(0,nfft),*this);
+  copymode = 0;
+
+  compute_gf_ik_triclinic();
 }
 
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void PPPMKokkos<DeviceType>::operator()(TagPPPM_setup_triclinic1, const int &n) const
+{
+  int k = n/(numy_fft*numx_fft);
+  int j = (n - k*numy_fft*numx_fft) / numx_fft;
+  int i = n - k*numy_fft*numx_fft - j*numx_fft;
+  k += nzlo_fft;
+  j += nylo_fft;
+  i += nxlo_fft;
+
+  double per_k = k - nz_pppm*(2*k/nz_pppm);
+  double per_j = j - ny_pppm*(2*j/ny_pppm);
+  double per_i = i - nx_pppm*(2*i/nx_pppm);
+
+  double unitk_lamda[3];
+  unitk_lamda[0] = 2.0*MY_PI*per_i;
+  unitk_lamda[1] = 2.0*MY_PI*per_j;
+  unitk_lamda[2] = 2.0*MY_PI*per_k;
+  x2lamdaT(&unitk_lamda[0],&unitk_lamda[0]);
+  d_fkx[n] = unitk_lamda[0];
+  d_fky[n] = unitk_lamda[1];
+  d_fkz[n] = unitk_lamda[2];
+}
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void PPPMKokkos<DeviceType>::operator()(TagPPPM_setup_triclinic2, const int &n) const
+{
+    const double sqk = d_fkx[n]*d_fkx[n] + d_fky[n]*d_fky[n] + d_fkz[n]*d_fkz[n];
+    if (sqk == 0.0) {
+      d_vg(n,0) = 0.0;
+      d_vg(n,1) = 0.0;
+      d_vg(n,2) = 0.0;
+      d_vg(n,3) = 0.0;
+      d_vg(n,4) = 0.0;
+      d_vg(n,5) = 0.0;
+    } else {
+      const double vterm = -2.0 * (1.0/sqk + 0.25/(g_ewald*g_ewald));
+      d_vg(n,0) = 1.0 + vterm*d_fkx[n]*d_fkx[n];
+      d_vg(n,1) = 1.0 + vterm*d_fky[n]*d_fky[n];
+      d_vg(n,2) = 1.0 + vterm*d_fkz[n]*d_fkz[n];
+      d_vg(n,3) = vterm*d_fkx[n]*d_fky[n];
+      d_vg(n,4) = vterm*d_fkx[n]*d_fkz[n];
+      d_vg(n,5) = vterm*d_fky[n]*d_fkz[n];
+    }
+}
 /* ----------------------------------------------------------------------
    reset local grid arrays and communication stencils
    called by fix balance b/c it changed sizes of processor sub-domains
@@ -1004,7 +1020,7 @@ void PPPMKokkos<DeviceType>::set_grid_global()
     tmp[0] = nx_pppm;
     tmp[1] = ny_pppm;
     tmp[2] = nz_pppm;
-    x2lamdaT(&tmp[0],&tmp[0]);
+    KSpace::x2lamdaT(&tmp[0],&tmp[0]);
     h_x = 1.0/tmp[0];
     h_y = 1.0/tmp[1];
     h_z = 1.0/tmp[2];
@@ -1232,7 +1248,7 @@ void PPPMKokkos<DeviceType>::compute_gf_ik()
   numz_fft = nzhi_fft-nzlo_fft + 1;
   numy_fft = nyhi_fft-nylo_fft + 1;
   numx_fft = nxhi_fft-nxlo_fft + 1;
-  const int inum_fft = numz_fft*numy_fft*numx_fft;
+  const int inum_fft = numx_fft*numy_fft*numz_fft;
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_compute_gf_ik>(0,inum_fft),*this);
@@ -1311,6 +1327,10 @@ void PPPMKokkos<DeviceType>::compute_gf_ik_triclinic()
   nby = static_cast<int> (tmp[1]);
   nbz = static_cast<int> (tmp[2]);
 
+  // Update the local copy of the domain box tilt
+  h = Few<double, 6>(domain->h);
+  h_inv = Few<double, 6>(domain->h_inv);
+
   twoorder = 2*order;
 
   copymode = 1;
@@ -1320,71 +1340,71 @@ void PPPMKokkos<DeviceType>::compute_gf_ik_triclinic()
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PPPMKokkos<DeviceType>::operator()(TagPPPM_compute_gf_ik_triclinic, const int &/*m*/) const
+void PPPMKokkos<DeviceType>::operator()(TagPPPM_compute_gf_ik_triclinic, const int &m) const
 {
-  //int n = (m - nzlo_fft)*(nyhi_fft+1 - nylo_fft)*(nxhi_fft+1 - nxlo_fft);
-  //
-  //const int mper = m - nz_pppm*(2*m/nz_pppm);
-  //const double snz = square(sin(MY_PI*mper/nz_pppm));
-  //
-  //for (int l = nylo_fft; l <= nyhi_fft; l++) {
-  //  const int lper = l - ny_pppm*(2*l/ny_pppm);
-  //  const double sny = square(sin(MY_PI*lper/ny_pppm));
-  //
-  //  for (int k = nxlo_fft; k <= nxhi_fft; k++) {
-  //    const int kper = k - nx_pppm*(2*k/nx_pppm);
-  //    const double snx = square(sin(MY_PI*kper/nx_pppm));
-  //
-  //    double unitk_lamda[3];
-  //    unitk_lamda[0] = 2.0*MY_PI*kper;
-  //    unitk_lamda[1] = 2.0*MY_PI*lper;
-  //    unitk_lamda[2] = 2.0*MY_PI*mper;
-  //    x2lamdaT(&unitk_lamda[0],&unitk_lamda[0]);
-  //
-  //    const double sqk = square(unitk_lamda[0]) + square(unitk_lamda[1]) + square(unitk_lamda[2]);
-  //
-  //    if (sqk != 0.0) {
-  //      const double numerator = 12.5663706/sqk;
-  //      const double denominator = gf_denom(snx,sny,snz);
-  //      double sum1 = 0.0;
-  //
-  //      for (int nx = -nbx; nx <= nbx; nx++) {
-  //        const double argx = MY_PI*kper/nx_pppm + MY_PI*nx;
-  //        const double wx = powsinxx(argx,twoorder);
-  //
-  //        for (int ny = -nby; ny <= nby; ny++) {
-  //          const double argy = MY_PI*lper/ny_pppm + MY_PI*ny;
-  //          const double wy = powsinxx(argy,twoorder);
-  //
-  //          for (int nz = -nbz; nz <= nbz; nz++) {
-  //            const double argz = MY_PI*mper/nz_pppm + MY_PI*nz;
-  //            const double wz = powsinxx(argz,twoorder);
-  //
-  //            double b[3];
-  //            b[0] = 2.0*MY_PI*nx_pppm*nx;
-  //            b[1] = 2.0*MY_PI*ny_pppm*ny;
-  //            b[2] = 2.0*MY_PI*nz_pppm*nz;
-  //            x2lamdaT(&b[0],&b[0]);
-  //
-  //            const double qx = unitk_lamda[0]+b[0];
-  //            const double sx = exp(-0.25*square(qx/g_ewald));
-  //
-  //            const double qy = unitk_lamda[1]+b[1];
-  //            const double sy = exp(-0.25*square(qy/g_ewald));
-  //
-  //            const double qz = unitk_lamda[2]+b[2];
-  //            const double sz = exp(-0.25*square(qz/g_ewald));
-  //
-  //            const double dot1 = unitk_lamda[0]*qx + unitk_lamda[1]*qy + unitk_lamda[2]*qz;
-  //            const double dot2 = qx*qx+qy*qy+qz*qz;
-  //            sum1 += (dot1/dot2) * sx*sy*sz * wx*wy*wz;
-  //          }
-  //        }
-  //      }
-  //      d_greensfn[n++] = numerator*sum1/denominator;
-  //    } else d_greensfn[n++] = 0.0;
-  //  }
-  //}
+  int n = (m - nzlo_fft)*(nyhi_fft+1 - nylo_fft)*(nxhi_fft+1 - nxlo_fft);
+
+  const int mper = m - nz_pppm*(2*m/nz_pppm);
+  const double snz = square(sin(MY_PI*mper/nz_pppm));
+
+  for (int l = nylo_fft; l <= nyhi_fft; l++) {
+    const int lper = l - ny_pppm*(2*l/ny_pppm);
+    const double sny = square(sin(MY_PI*lper/ny_pppm));
+
+    for (int k = nxlo_fft; k <= nxhi_fft; k++) {
+      const int kper = k - nx_pppm*(2*k/nx_pppm);
+      const double snx = square(sin(MY_PI*kper/nx_pppm));
+
+      double unitk_lamda[3];
+      unitk_lamda[0] = 2.0*MY_PI*kper;
+      unitk_lamda[1] = 2.0*MY_PI*lper;
+      unitk_lamda[2] = 2.0*MY_PI*mper;
+      x2lamdaT(&unitk_lamda[0],&unitk_lamda[0]);
+
+      const double sqk = square(unitk_lamda[0]) + square(unitk_lamda[1]) + square(unitk_lamda[2]);
+
+      if (sqk != 0.0) {
+        const double numerator = 12.5663706/sqk;
+        const double denominator = gf_denom(snx,sny,snz);
+        double sum1 = 0.0;
+
+        for (int nx = -nbx; nx <= nbx; nx++) {
+          const double argx = MY_PI*kper/nx_pppm + MY_PI*nx;
+          const double wx = powsinxx(argx,twoorder);
+
+          for (int ny = -nby; ny <= nby; ny++) {
+            const double argy = MY_PI*lper/ny_pppm + MY_PI*ny;
+            const double wy = powsinxx(argy,twoorder);
+
+            for (int nz = -nbz; nz <= nbz; nz++) {
+              const double argz = MY_PI*mper/nz_pppm + MY_PI*nz;
+              const double wz = powsinxx(argz,twoorder);
+
+              double b[3];
+              b[0] = 2.0*MY_PI*nx_pppm*nx;
+              b[1] = 2.0*MY_PI*ny_pppm*ny;
+              b[2] = 2.0*MY_PI*nz_pppm*nz;
+              x2lamdaT(&b[0],&b[0]);
+
+              const double qx = unitk_lamda[0]+b[0];
+              const double sx = exp(-0.25*square(qx/g_ewald));
+
+              const double qy = unitk_lamda[1]+b[1];
+              const double sy = exp(-0.25*square(qy/g_ewald));
+
+              const double qz = unitk_lamda[2]+b[2];
+              const double sz = exp(-0.25*square(qz/g_ewald));
+
+              const double dot1 = unitk_lamda[0]*qx + unitk_lamda[1]*qy + unitk_lamda[2]*qz;
+              const double dot2 = qx*qx+qy*qy+qz*qz;
+              sum1 += (dot1/dot2) * sx*sy*sz * wx*wy*wz;
+            }
+          }
+        }
+        d_greensfn[n++] = numerator*sum1/denominator;
+      } else d_greensfn[n++] = 0.0;
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1867,107 +1887,122 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik10, const int &ii) con
 template<class DeviceType>
 void PPPMKokkos<DeviceType>::poisson_ik_triclinic()
 {
-//  int i,j,k,n;
-//
-//  // compute gradients of V(r) in each of 3 dims by transforming ik*V(k)
-//  // FFT leaves data in 3d brick decomposition
-//  // copy it into inner portion of vdx,vdy,vdz arrays
-//
-//  // x direction gradient
-//
-//  n = 0;
-//  for (i = 0; i < nfft; i++) { // parallel_for1
-//    d_work2[n] = -d_fkx[i]*d_work1[n+1];
-//    d_work2[n+1] = d_fkx[i]*d_work1[n];
-//    n += 2;
-//  }
-//
-//  fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
-//
-//  n = 0;
-//  for (k = nzlo_in-nzlo_out; k <= nzhi_in-nzlo_out; k++) // parallel_for2
-//
-//
-//  // y direction gradient
-//
-//  n = 0;
-//  for (i = 0; i < nfft; i++) { // parallel_for3
-//    d_work2[n] = -d_fky[i]*d_work1[n+1];
-//    d_work2[n+1] = d_fky[i]*d_work1[n];
-//    n += 2;
-//  }
-//
-//  fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
-//
-//  n = 0;
-//  for (k = nzlo_in-nzlo_out; k <= nzhi_in-nzlo_out; k++) // parallel_for4
-//    for (j = nylo_in-nylo_out; j <= nyhi_in-nylo_out; j++)
-//      for (i = nxlo_in-nxlo_out; i <= nxhi_in-nxlo_out; i++) {
-//        d_vdy_brick(k,j,i) = d_work2[n];
-//        n += 2;
-//      }
-//
-//  // z direction gradient
-//
-//  n = 0;
-//  for (i = 0; i < nfft; i++) { // parallel_for5
-//    d_work2[n] = -d_fkz[i]*d_work1[n+1];
-//    d_work2[n+1] = d_fkz[i]*d_work1[n];
-//    n += 2;
-//  }
-//
-//  fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
-//
-//  n = 0;
-//  for (k = nzlo_in-nzlo_out; k <= nzhi_in-nzlo_out; k++) // parallel_for6
-//
+  // compute gradients of V(r) in each of 3 dims by transforming ik*V(k)
+  // FFT leaves data in 3d brick decomposition
+  // copy it into inner portion of vdx,vdy,vdz arrays
+
+  // x direction gradient
+
+  // merge three outer loops into one for better threading
+
+  numz_fft = nzhi_fft-nzlo_fft + 1;
+  numy_fft = nyhi_fft-nylo_fft + 1;
+  numx_fft = nxhi_fft-nxlo_fft + 1;
+  const int inum_fft = numz_fft*numy_fft*numx_fft;
+
+  numz_inout = (nzhi_in-nzlo_out)-(nzlo_in-nzlo_out) + 1;
+  numy_inout = (nyhi_in-nylo_out)-(nylo_in-nylo_out) + 1;
+  numx_inout = (nxhi_in-nxlo_out)-(nxlo_in-nxlo_out) + 1;
+  const int inum_inout = numz_inout*numy_inout*numx_inout;
+
+  copymode = 1;
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik_triclinic1>(0,nfft),*this);
+  copymode = 0;
+
+  fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
+
+  copymode = 1;
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik_triclinic2>(0,inum_inout),*this);
+  copymode = 0;
+
+  // y direction gradient
+
+  copymode = 1;
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik_triclinic3>(0,nfft),*this);
+  copymode = 0;
+
+  fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
+
+  copymode = 1;
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik_triclinic4>(0,inum_inout),*this);
+  copymode = 0;
+
+  // z direction gradient
+
+  copymode = 1;
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik_triclinic5>(0,nfft),*this);
+  copymode = 0;
+
+  fft2->compute(d_work2,d_work2,FFT3dKokkos<DeviceType>::BACKWARD);
+
+  copymode = 1;
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_poisson_ik_triclinic6>(0,inum_inout),*this);
+  copymode = 0;
+
 }
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik_triclinic1, const int &/*k*/) const
+void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik_triclinic1, const int &ii) const
 {
-
+  d_work2[2*ii] = -d_fkx[ii]*d_work1[2*ii+1];
+  d_work2[2*ii+1] = d_fkx[ii]*d_work1[2*ii];
 }
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik_triclinic2, const int &/*k*/) const
+void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik_triclinic2, const int &ii) const
 {
-//    for (j = nylo_in-nylo_out; j <= nyhi_in-nylo_out; j++)
-//      for (i = nxlo_in-nxlo_out; i <= nxhi_in-nxlo_out; i++) {
-//        d_vdx_brick(k,j,i) = d_work2[n];
-//        n += 2;
-//      }
+  const int n = ii*2;
+  int k = ii/(numy_inout*numx_inout);
+  int j = (ii - k*numy_inout*numx_inout) / numx_inout;
+  int i = ii - k*numy_inout*numx_inout - j*numx_inout;
+  k += nzlo_in-nzlo_out;
+  j += nylo_in-nylo_out;
+  i += nxlo_in-nxlo_out;
+  d_vdx_brick(k,j,i) = d_work2[n];
 }
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik_triclinic3, const int &/*k*/) const
-{
-//  int n = (k - (nzlo_in-nzlo_out))*((nyhi_in-nylo_out) - (nylo_in-nylo_out) + 1)*((nxhi_in-nxlo_out) - (nxlo_in-nxlo_out) + 1)*2;
-
-}
-
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
-void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik_triclinic4, const int &/*k*/) const
+void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik_triclinic3, const int &ii) const
 {
 //  int n = (k - (nzlo_in-nzlo_out))*((nyhi_in-nylo_out) - (nylo_in-nylo_out) + 1)*((nxhi_in-nxlo_out) - (nxlo_in-nxlo_out) + 1)*2;
-//
+  d_work2[2*ii] = -d_fky[ii]*d_work1[2*ii+1];
+  d_work2[2*ii+1] = d_fky[ii]*d_work1[2*ii];
+
 }
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik_triclinic5, const int &/*k*/) const
+void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik_triclinic4, const int &ii) const
 {
 //  int n = (k - (nzlo_in-nzlo_out))*((nyhi_in-nylo_out) - (nylo_in-nylo_out) + 1)*((nxhi_in-nxlo_out) - (nxlo_in-nxlo_out) + 1)*2;
 //
+
+  const int n = ii*2;
+  int k = ii/(numy_inout*numx_inout);
+  int j = (ii - k*numy_inout*numx_inout) / numx_inout;
+  int i = ii - k*numy_inout*numx_inout - j*numx_inout;
+  k += nzlo_in-nzlo_out;
+  j += nylo_in-nylo_out;
+  i += nxlo_in-nxlo_out;
+  d_vdy_brick(k,j,i) = d_work2[n];
 }
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik_triclinic6, const int &/*k*/) const
+void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik_triclinic5, const int &ii) const
+{
+//  int n = (k - (nzlo_in-nzlo_out))*((nyhi_in-nylo_out) - (nylo_in-nylo_out) + 1)*((nxhi_in-nxlo_out) - (nxlo_in-nxlo_out) + 1)*2;
+//
+  d_work2[2*ii] = -d_fkz[ii]*d_work1[2*ii+1];
+  d_work2[2*ii+1] = d_fkz[ii]*d_work1[2*ii];
+}
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik_triclinic6, const int &ii) const
 {
 //  int n = (k - (nzlo_in-nzlo_out))*((nyhi_in-nylo_out) - (nylo_in-nylo_out) + 1)*((nxhi_in-nxlo_out) - (nxlo_in-nxlo_out) + 1)*2;
 //
@@ -1976,6 +2011,14 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_poisson_ik_triclinic6, const int
 //      d_vdz_brick(k,j,i) = d_work2[n];
 //      n += 2;
 //    }
+  const int n = ii*2;
+  int k = ii/(numy_inout*numx_inout);
+  int j = (ii - k*numy_inout*numx_inout) / numx_inout;
+  int i = ii - k*numy_inout*numx_inout - j*numx_inout;
+  k += nzlo_in-nzlo_out;
+  j += nylo_in-nylo_out;
+  i += nxlo_in-nxlo_out;
+  d_vdz_brick(k,j,i) = d_work2[n];
 }
 
 /* ----------------------------------------------------------------------
@@ -2814,7 +2857,7 @@ int PPPMKokkos<DeviceType>::timing_1d(int n, double &time1d)
   copymode = 0;
 
   MPI_Barrier(world);
-  time1 = MPI_Wtime();
+  time1 = platform::walltime();
 
   for (int i = 0; i < n; i++) {
     fft1->timing1d(d_work1,nfft_both,FFT3dKokkos<DeviceType>::FORWARD);
@@ -2824,7 +2867,7 @@ int PPPMKokkos<DeviceType>::timing_1d(int n, double &time1d)
   }
 
   MPI_Barrier(world);
-  time2 = MPI_Wtime();
+  time2 = platform::walltime();
   time1d = time2 - time1;
 
   return 4;
@@ -2851,7 +2894,7 @@ int PPPMKokkos<DeviceType>::timing_3d(int n, double &time3d)
   copymode = 0;
 
   MPI_Barrier(world);
-  time1 = MPI_Wtime();
+  time1 = platform::walltime();
 
   for (int i = 0; i < n; i++) {
     fft1->compute(d_work1,d_work1,FFT3dKokkos<DeviceType>::FORWARD);
@@ -2861,7 +2904,7 @@ int PPPMKokkos<DeviceType>::timing_3d(int n, double &time3d)
   }
 
   MPI_Barrier(world);
-  time2 = MPI_Wtime();
+  time2 = platform::walltime();
   time3d = time2 - time1;
 
   return 4;
@@ -2899,3 +2942,4 @@ template class PPPMKokkos<LMPDeviceType>;
 template class PPPMKokkos<LMPHostType>;
 #endif
 }
+

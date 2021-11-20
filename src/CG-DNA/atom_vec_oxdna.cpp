@@ -14,7 +14,6 @@
 #include "atom_vec_oxdna.h"
 
 #include "atom.h"
-#include "comm.h"
 #include "error.h"
 #include "force.h"
 
@@ -49,11 +48,9 @@ AtomVecOxdna::AtomVecOxdna(LAMMPS *lmp) : AtomVec(lmp)
 
   setup_fields();
 
-  if(!force->newton_bond) error->warning(FLERR,"Write_data command requires newton on to preserve 3'->5' bond polarity");
+  if (!force->newton_bond)
+    error->warning(FLERR, "Write_data command requires newton on to preserve 3'->5' bond polarity");
 }
-
-/* ---------------------------------------------------------------------- */
-AtomVecOxdna::~AtomVecOxdna() {}
 
 /* ----------------------------------------------------------------------
    set local copies of all grow ptrs used by this class, except defaults

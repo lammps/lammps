@@ -27,6 +27,9 @@
 /*_ssa.h
 /*_ssa.cpp
 
+!accelerator_kokkos.h
+!accelerator_omp.h
+
 /fix_mdi_engine.cpp
 /fix_mdi_engine.h
 /library_mdi.cpp
@@ -202,7 +205,6 @@
 
 /plugin.cpp
 /plugin.h
-/lammpsplugin.h
 
 /atom_vec_spin.cpp
 /atom_vec_spin.h
@@ -265,8 +267,6 @@
 /fix_drag.h
 /fix_numdiff.cpp
 /fix_numdiff.h
-/fix_nve_noforce.cpp
-/fix_nve_noforce.h
 /fix_spring_rg.cpp
 /fix_spring_rg.h
 /fix_temp_csld.cpp
@@ -367,8 +367,6 @@
 /atom_vec_dpd.h
 /atom_vec_electron.cpp
 /atom_vec_electron.h
-/atom_vec_ellipsoid.cpp
-/atom_vec_ellipsoid.h
 /atom_vec_full.cpp
 /atom_vec_full.h
 /atom_vec_full_hars.cpp
@@ -535,8 +533,6 @@
 /dihedral_harmonic.h
 /dihedral_helix.cpp
 /dihedral_helix.h
-/dihedral_hybrid.cpp
-/dihedral_hybrid.h
 /dihedral_multi_harmonic.cpp
 /dihedral_multi_harmonic.h
 /dihedral_nharmonic.cpp
@@ -613,6 +609,8 @@
 /fft3d_wrap.h
 /fix_accelerate_cos.cpp
 /fix_accelerate_cos.h
+/fix_acks2_reaxff.cpp
+/fix_acks2_reaxff.h
 /fix_adapt_fep.cpp
 /fix_adapt_fep.h
 /fix_addtorque.cpp
@@ -858,8 +856,6 @@
 /fix_ti_rs.h
 /fix_ti_spring.cpp
 /fix_ti_spring.h
-/fix_ttm.cpp
-/fix_ttm.h
 /fix_tune_kspace.cpp
 /fix_tune_kspace.h
 /fix_wall_body_polygon.cpp
@@ -885,8 +881,6 @@
 /fix_widom.cpp
 /fix_widom.h
 /gpu_extra.h
-/gridcomm.cpp
-/gridcomm.h
 /group_ndx.cpp
 /group_ndx.h
 /gz_file_writer.cpp
@@ -911,14 +905,13 @@
 /improper_fourier.h
 /improper_harmonic.cpp
 /improper_harmonic.h
-/improper_hybrid.cpp
-/improper_hybrid.h
 /improper_inversion_harmonic.cpp
 /improper_inversion_harmonic.h
 /improper_ring.cpp
 /improper_ring.h
 /improper_umbrella.cpp
 /improper_umbrella.h
+/interlayer_taper.h
 /kissfft.h
 /lj_sdk_common.h
 /math_complex.h
@@ -933,7 +926,6 @@
 /msm_cg.h
 /neb.cpp
 /neb.h
-
 /pair_adp.cpp
 /pair_adp.h
 /pair_agni.cpp
@@ -994,6 +986,8 @@
 /pair_cosine_squared.h
 /pair_coul_diel.cpp
 /pair_coul_diel.h
+/pair_coul_exclude.cpp
+/pair_coul_exclude.h
 /pair_coul_long.cpp
 /pair_coul_long.h
 /pair_coul_msm.cpp
@@ -1180,6 +1174,8 @@
 /pair_oxrna2_*.cpp
 /pair_oxrna2_*.h
 /mf_oxdna.h
+/pair_peri.cpp
+/pair_peri.h
 /pair_peri_eps.cpp
 /pair_peri_eps.h
 /pair_peri_lps.cpp
@@ -1332,8 +1328,6 @@
 /thr_data.h
 /verlet_split.cpp
 /verlet_split.h
-/write_dump.cpp
-/write_dump.h
 /xdr_compat.cpp
 /xdr_compat.h
 /zstd_file_writer.cpp
@@ -1403,6 +1397,8 @@
 /fix_drude_transform.h
 /fix_langevin_drude.cpp
 /fix_langevin_drude.h
+/fix_mol_swap.cpp
+/fix_mol_swap.h
 /fix_pimd.cpp
 /fix_pimd.h
 /fix_qbmsst.cpp
@@ -1431,6 +1427,10 @@
 /fix_srp.h
 /fix_tfmc.cpp
 /fix_tfmc.h
+/fix_ttm.cpp
+/fix_ttm.h
+/fix_ttm_grid.cpp
+/fix_ttm_grid.h
 /fix_ttm_mod.cpp
 /fix_ttm_mod.h
 /pair_born_coul_long_cs.cpp

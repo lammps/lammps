@@ -407,7 +407,7 @@ Generally speaking, the following rules of thumb apply:
   by switching to single or mixed precision mode.
 
 See the `Benchmark page <https://www.lammps.org/bench.html>`_ of the
-LAMMPS web site for performance of the KOKKOS package on different
+LAMMPS website for performance of the KOKKOS package on different
 hardware.
 
 Advanced Kokkos options

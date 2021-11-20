@@ -1,6 +1,4 @@
-// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
-
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
@@ -24,6 +22,7 @@ PairStyle(reax/c/kk/host,PairReaxFFKokkos<LMPHostType>);
 // clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_REAXC_KOKKOS_H
 #define LMP_PAIR_REAXC_KOKKOS_H
 
@@ -36,8 +35,6 @@ PairStyle(reax/c/kk/host,PairReaxFFKokkos<LMPHostType>);
 #define KCALpMOL_to_EV 23.02
 #define HB_THRESHOLD   1e-2  // 0.01
 #define MAX_BONDS      30
-
-#define SQR(x)        ((x)*(x))
 
 #include "reaxff_inline.h"
 
@@ -255,12 +252,12 @@ class PairReaxFFKokkos : public PairReaxFF {
   struct params_sing{
     KOKKOS_INLINE_FUNCTION
     params_sing() {mass=0;chi=0;eta=0;r_s=0;r_pi=0;r_pi2=0;valency=0;valency_val=0;valency_e=0;valency_boc=0;nlp_opt=0;
-      p_lp2=0;p_ovun2=0;p_ovun5=0;p_val3=0;p_val5=0;p_hbond=0;};
+      p_lp2=0;p_ovun2=0;p_ovun5=0;p_val3=0;p_val5=0;p_hbond=0;bcut_acks2=0;};
     KOKKOS_INLINE_FUNCTION
     params_sing(int /*i*/) {mass=0;chi=0;eta=0;r_s=0;r_pi=0;r_pi2=0;valency=0;valency_val=0;valency_e=0;valency_boc=0;nlp_opt=0;
-      p_lp2=0;p_ovun2=0;p_ovun5=0;p_val3=0;p_val5=0;p_hbond=0;};
+      p_lp2=0;p_ovun2=0;p_ovun5=0;p_val3=0;p_val5=0;p_hbond=0;bcut_acks2=0;};
     F_FLOAT mass,chi,eta,r_s,r_pi,r_pi2,valency,valency_val,valency_e,valency_boc,nlp_opt,
-      p_lp2,p_ovun2,p_ovun5, p_val3, p_val5, p_hbond;
+      p_lp2,p_ovun2,p_ovun5, p_val3, p_val5, p_hbond, bcut_acks2;
   };
 
   struct params_twbp{
@@ -380,7 +377,7 @@ class PairReaxFFKokkos : public PairReaxFF {
   typename AT::t_float_1d d_tap;
   HAT::t_float_1d h_tap;
 
-  typename AT::t_float_1d d_bo_rij, d_hb_rsq, d_Deltap, d_Deltap_boc, d_total_bo;
+  typename AT::t_float_1d d_bo_rij, d_hb_rsq, d_Deltap, d_Deltap_boc, d_total_bo, d_s;
   typename AT::t_float_1d d_Delta, d_Delta_boc, d_Delta_lp, d_dDelta_lp, d_Delta_lp_temp, d_CdDelta;
   typename AT::t_ffloat_2d_dl d_BO, d_BO_s, d_BO_pi, d_BO_pi2, d_dBOp;
   typename AT::t_ffloat_2d_dl d_dln_BOp_pix, d_dln_BOp_piy, d_dln_BOp_piz;
@@ -429,7 +426,7 @@ class PairReaxFFKokkos : public PairReaxFF {
   typename AT::t_ffloat_2d_dl d_dBOpx, d_dBOpy, d_dBOpz;
 
   int neighflag, newton_pair, maxnumneigh, maxhb, maxbo;
-  int nlocal,nall,eflag,vflag;
+  int nlocal,nn,NN,eflag,vflag,acks2_flag;
   F_FLOAT cut_nbsq, cut_hbsq, cut_bosq, bo_cut, thb_cut, thb_cutsq;
   F_FLOAT bo_cut_bond;
 

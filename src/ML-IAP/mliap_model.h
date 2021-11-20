@@ -31,10 +31,10 @@ class MLIAPModel : protected Pointers {
   virtual void compute_force_gradients(class MLIAPData *) = 0;
   virtual void init();
   virtual double memory_usage() = 0;
-  int nelements;        // # of unique elements
-  int nonlinearflag;    // 1 if gradient() requires descriptors
-  int ndescriptors;     // number of descriptors
-  int nparams;          // number of parameters per element
+  int nelements;         // # of unique elements
+  int nonlinearflag;     // 1 if gradient() requires descriptors
+  int ndescriptors;      // number of descriptors
+  int nparams;           // number of parameters per element
   double **coeffelem;    // element coefficients
 
  protected:

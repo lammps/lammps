@@ -321,7 +321,7 @@ void FixEOStableRX::read_file(char *file)
   char line[MAXLINE],*ptr;
   int eof = 0;
 
-  while (1) {
+  while (true) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fp);
       if (ptr == nullptr) {
@@ -427,7 +427,7 @@ void FixEOStableRX::read_table(Table *tb, Table *tb2, char *file, char *keyword)
 
   // loop until section found with matching keyword
 
-  while (1) {
+  while (true) {
     if (fgets(line,MAXLINE,fp) == nullptr)
       error->one(FLERR,"Did not find keyword in table file");
     if (strspn(line," \t\n\r") == strlen(line)) continue;    // blank line

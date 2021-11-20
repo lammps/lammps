@@ -44,7 +44,7 @@ FixRespa::FixRespa(LAMMPS *lmp, int narg, char **arg) :
 
   f_level = nullptr;
   t_level = nullptr;
-  grow_arrays(atom->nmax);
+  FixRespa::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
 }
 

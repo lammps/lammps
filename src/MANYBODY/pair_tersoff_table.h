@@ -69,8 +69,8 @@ class PairTersoffTable : public Pair {
 
   double **preGtetaFunction, **preGtetaFunctionDerived;
   double *preCutoffFunction, *preCutoffFunctionDerived;
-  virtual void allocatePreLoops(void);
-  virtual void deallocatePreLoops(void);
+  virtual void allocatePreLoops();
+  virtual void deallocatePreLoops();
 
   // grids
 
@@ -79,8 +79,8 @@ class PairTersoffTable : public Pair {
   double **gtetaFunction, **gtetaFunctionDerived;
   double **betaZetaPower, **betaZetaPowerDerived;
 
-  void allocateGrids(void);
-  void deallocateGrids(void);
+  void allocateGrids();
+  void deallocateGrids();
 };
 
 }    // namespace LAMMPS_NS

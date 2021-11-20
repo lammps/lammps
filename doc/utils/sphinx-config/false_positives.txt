@@ -19,6 +19,7 @@ accuracies
 ach
 ackland
 Ackland
+acks
 acolor
 acos
 Acta
@@ -72,10 +73,12 @@ Alexey
 ali
 aliceblue
 Allinger
-allocaters
+allocator
+allocators
 allosws
 AlO
 Alonso
+Alperen
 alphak
 alphashrink
 amap
@@ -684,6 +687,7 @@ diagonalized
 diagonalizers
 diagonalizing
 Diallo
+diblock
 Dickel
 diel
 differentiable
@@ -1008,6 +1012,7 @@ FFmpeg
 ffplay
 fft
 fftbench
+fftMPI
 fftw
 fgets
 fhg
@@ -1133,6 +1138,7 @@ Germann
 Germano
 gerolf
 Gerolf
+getrusage
 Gershgorin
 getter
 gettimeofday
@@ -1174,6 +1180,7 @@ googletest
 Gordan
 Goudeau
 GPa
+GPL
 gpu
 gpuID
 gpus
@@ -1219,6 +1226,7 @@ Guo
 gw
 gyromagnetic
 gz
+gzip
 gzipped
 Haak
 Hafskjold
@@ -1249,6 +1257,7 @@ hbond
 hcp
 hdnnp
 HDNNP
+Hearn
 heatconduction
 Hebbeker
 Hebenstreit
@@ -1275,6 +1284,7 @@ hgrid
 hhmrr
 Hibbs
 Higdon
+hiID
 Hijazi
 Hilger
 Hinestrosa
@@ -1383,6 +1393,7 @@ inhomogeneities
 inhomogeneous
 init
 initialdelay
+initialisms
 initializations
 InitiatorIDs
 initio
@@ -1689,6 +1700,8 @@ Lett
 Leuven
 Leven
 Lewy
+LF
+LGPL
 lgvdw
 Liang
 libatc
@@ -1768,6 +1781,7 @@ Loewen
 logfile
 logfreq
 logicals
+loID
 Lomdahl
 Lond
 lookup
@@ -1803,6 +1817,7 @@ lyon
 Lysogorskiy
 Lyulin
 lz
+lzma
 Maaravi
 MACHDYN
 machdyn
@@ -1889,7 +1904,6 @@ maxX
 Mayergoyz
 Mayoral
 mbt
-Mbytes
 MBytes
 mc
 McLachlan
@@ -2094,6 +2108,7 @@ Murdick
 Murtola
 Murty
 Muser
+mutexes
 Muto
 muVT
 mux
@@ -2256,6 +2271,7 @@ Nmols
 nn
 nnodes
 Nocedal
+nO
 nocite
 nocoeff
 nodeless
@@ -2280,6 +2296,7 @@ normals
 Noskov
 noslip
 noticable
+Nout
 noutcol
 Noutput
 noutrow
@@ -2433,6 +2450,7 @@ packings
 padua
 Padua
 pafi
+PairIJ
 palegoldenrod
 palegreen
 paleturquoise
@@ -2753,6 +2771,7 @@ REAXFF
 ReaxFF
 reaxff
 rebo
+recurse
 recursing
 Ree
 refactored
@@ -3067,6 +3086,7 @@ Spearot
 specular
 spellcheck
 Spellmeyer
+Speybroeck
 sph
 SPH
 Spickermann
@@ -3432,6 +3452,7 @@ usec
 uSemiParallel
 userguide
 username
+usleep
 usr
 util
 utils
@@ -3479,6 +3500,7 @@ Verlag
 verlet
 Verlet
 versa
+Verstraelen
 ves
 vflag
 vhi
@@ -3545,6 +3567,7 @@ vzcm
 vzi
 Waals
 Wadley
+Waroquier
 wallstyle
 walltime
 Waltham
@@ -3649,6 +3672,7 @@ Yc
 ycm
 Yeh
 yellowgreen
+yEs
 Yethiraj
 yflag
 yhi

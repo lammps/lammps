@@ -19,19 +19,14 @@
 
 #include "atom.h"
 #include "atom_vec_dielectric.h"
-#include "comm.h"
 #include "error.h"
 #include "force.h"
-#include "integrate.h"
-#include "kspace.h"
 #include "math_const.h"
 #include "math_extra.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
-#include "respa.h"
-#include "update.h"
 
 #include <cmath>
 #include <cstring>
@@ -267,7 +262,8 @@ void PairLJLongCoulLongDielectric::compute(int eflag, int vflag)
             if (eflag) evdwl = f * (rn * (rn * lj3i[jtype] - lj4i[jtype]) - offseti[jtype]);
           }
         }
-      } else force_lj = evdwl = 0.0;
+      } else
+        force_lj = evdwl = 0.0;
 
       fpair_i = (force_coul * etmp + force_lj) * r2inv;
       f[i][0] += delx * fpair_i;

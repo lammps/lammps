@@ -35,7 +35,7 @@ class PairREBOIntel : public PairAIREBOIntel {
   virtual void settings(int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

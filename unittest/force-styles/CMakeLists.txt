@@ -53,7 +53,7 @@ if(FFT_SINGLE)
   target_compile_definitions(test_pair_style PRIVATE -DFFT_SINGLE)
 endif()
 
-# tests for a molecular systems and related pair styles
+# tests for molecular systems and related pair styles
 file(GLOB MOL_PAIR_TESTS LIST_DIRECTORIES false ${TEST_INPUT_FOLDER}/mol-pair-*.yaml)
 # cannot test MSM with single precision data
 if(FFT_SINGLE)
@@ -117,6 +117,9 @@ endforeach()
 
 # tester for timestepping fixes
 add_executable(test_fix_timestep test_fix_timestep.cpp)
+if(NOT BUILD_SHARED_LIBS)
+  target_compile_definitions(test_fix_timestep PRIVATE USING_STATIC_LIBS=1)
+endif()
 target_link_libraries(test_fix_timestep PRIVATE lammps style_tests)
 
 # tests for timestep related fixes (time integration, thermostat, force manipulation, constraints/restraints)

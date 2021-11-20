@@ -155,7 +155,7 @@ FixFilterCorotate::FixFilterCorotate(LAMMPS *lmp, int narg, char **arg) :
   shake_atom = nullptr;
   shake_type = nullptr;
 
-  grow_arrays(atom->nmax);
+  FixFilterCorotate::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);    //calls grow_arrays
 
   x_store = nullptr;

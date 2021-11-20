@@ -45,7 +45,7 @@ class FixReaxFFSpecies : public Fix {
 
  protected:
   int me, nprocs, nmax, nlocal, ntypes, ntotal;
-  int nrepeat, nfreq, posfreq;
+  int nrepeat, nfreq, posfreq, compressed;
   int Nmoltype, vector_nmole, vector_nspec;
   int *Name, *MolName, *NMol, *nd, *MolType, *molmap;
   double *clusterID;
@@ -53,7 +53,6 @@ class FixReaxFFSpecies : public Fix {
 
   double bg_cut;
   double **BOCut;
-  char **tmparg;
 
   FILE *fp, *pos;
   int eleflag, posflag, multipos, padflag, setupflag;
@@ -81,7 +80,7 @@ class FixReaxFFSpecies : public Fix {
   class FixAveAtom *f_SPECBOND;
   class PairReaxFF *reaxff;
 };
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

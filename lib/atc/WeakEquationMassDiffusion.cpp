@@ -47,4 +47,4 @@ void WeakEquationMassDiffusion::B_integrand(
 }
 }; // end namespace
 
-  
+

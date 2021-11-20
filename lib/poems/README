@@ -27,7 +27,7 @@ Rudranarayan Mukherjee (mukher@rpi.edu) - include "[POEMS]" in the subject
 
 or by mail:
 Prof. Kurt S. Anderson
-4006 Jonsson Engineering Center 	
+4006 Jonsson Engineering Center
 Rensselaer Polytechnic Institute
 110 8th Street,
 Troy, NY 12180-3510, U.S.A.
@@ -53,8 +53,8 @@ make -f Makefile.g++
 When you are done building this library, two files should
 exist in this directory:
 
-libpoems.a		the library LAMMPS will link against
-Makefile.lammps		settings the LAMMPS Makefile will import
+libpoems.a              the library LAMMPS will link against
+Makefile.lammps         settings the LAMMPS Makefile will import
 
 Makefile.lammps is created by the make command, by copying one of the
 Makefile.lammps.* files.  See the EXTRAMAKE setting at the top of the

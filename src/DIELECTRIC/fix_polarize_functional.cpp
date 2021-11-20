@@ -33,13 +33,11 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
-#include "group.h"
 #include "kspace.h"
 #include "math_const.h"
 #include "math_extra.h"
 #include "math_special.h"
 #include "memory.h"
-#include "modify.h"
 #include "msm_dielectric.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -50,8 +48,6 @@
 #include "pair_lj_cut_coul_long_dielectric.h"
 #include "pair_lj_cut_coul_msm_dielectric.h"
 #include "pppm_dielectric.h"
-#include "random_park.h"
-#include "timer.h"
 #include "update.h"
 
 #include <cmath>
@@ -131,7 +127,7 @@ FixPolarizeFunctional::FixPolarizeFunctional(LAMMPS *lmp, int narg, char **arg) 
   cg_r = cg_p = cg_Ap = nullptr;
   cg_A = nullptr;
 
-  grow_arrays(atom->nmax);
+  FixPolarizeFunctional::grow_arrays(atom->nmax);
   atom->add_callback(0);    // to ensure to work with atom->sort()
 }
 
@@ -482,12 +478,7 @@ int FixPolarizeFunctional::modify_param(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg], "kspace") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix_modify command");
-      if (strcmp(arg[iarg + 1], "yes") == 0)
-        kspaceflag = 1;
-      else if (strcmp(arg[iarg + 1], "no") == 0)
-        kspaceflag = 0;
-      else
-        error->all(FLERR, "Illegal fix_modify command for fix polarize/functional");
+      kspaceflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "dielectrics") == 0) {
       if (iarg + 6 > narg) error->all(FLERR, "Illegal fix_modify command");
@@ -538,7 +529,8 @@ int FixPolarizeFunctional::unpack_exchange(int nlocal, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int FixPolarizeFunctional::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
+int FixPolarizeFunctional::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/,
+                                             int * /*pbc*/)
 {
   int m;
   for (m = 0; m < n; m++) buf[m] = atom->q[list[m]];
@@ -591,21 +583,21 @@ void FixPolarizeFunctional::set_arrays(int i)
 double FixPolarizeFunctional::memory_usage()
 {
   double bytes = 0;
-  bytes += square(num_induced_charges) * sizeof(double);            // inverse_matrix
-  bytes += square(num_induced_charges) * sizeof(double);            // Rww
-  bytes += square(num_induced_charges) * sizeof(double);            // G1ww
-  bytes += square(num_induced_charges) * sizeof(double);            // ndotGww
-  bytes += square(num_induced_charges) * sizeof(double);            // G2ww
-  bytes += square(num_induced_charges) * sizeof(double);            // G3ww
-  bytes += num_induced_charges * sizeof(double);                    // qiRqwVector
-  bytes += num_induced_charges * sizeof(double);                    // sum2G2wq
-  bytes += num_induced_charges * sizeof(double);                    // sum1G2qw
-  bytes += num_induced_charges * sizeof(double);                    // sum1G1qw_epsilon
-  bytes += num_induced_charges * sizeof(double);                    // sum2ndotGwq_epsilon
-  bytes += (double)num_ions * num_induced_charges * sizeof(double); // G1qw_real
-  bytes += nmax * sizeof(int);                                      // induced_charge_idx
-  bytes += nmax * sizeof(int);                                      // ion_idx
-  bytes += num_induced_charges * sizeof(double);                    // induced_charges
+  bytes += square(num_induced_charges) * sizeof(double);                // inverse_matrix
+  bytes += square(num_induced_charges) * sizeof(double);                // Rww
+  bytes += square(num_induced_charges) * sizeof(double);                // G1ww
+  bytes += square(num_induced_charges) * sizeof(double);                // ndotGww
+  bytes += square(num_induced_charges) * sizeof(double);                // G2ww
+  bytes += square(num_induced_charges) * sizeof(double);                // G3ww
+  bytes += num_induced_charges * sizeof(double);                        // qiRqwVector
+  bytes += num_induced_charges * sizeof(double);                        // sum2G2wq
+  bytes += num_induced_charges * sizeof(double);                        // sum1G2qw
+  bytes += num_induced_charges * sizeof(double);                        // sum1G1qw_epsilon
+  bytes += num_induced_charges * sizeof(double);                        // sum2ndotGwq_epsilon
+  bytes += (double) num_ions * num_induced_charges * sizeof(double);    // G1qw_real
+  bytes += nmax * sizeof(int);                                          // induced_charge_idx
+  bytes += nmax * sizeof(int);                                          // ion_idx
+  bytes += num_induced_charges * sizeof(double);                        // induced_charges
   return bytes;
 }
 

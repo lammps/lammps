@@ -18,23 +18,16 @@
 #include "pair_lj_smooth_gpu.h"
 
 #include "atom.h"
-#include "atom_vec.h"
-#include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
 #include "gpu_extra.h"
-#include "integrate.h"
-#include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "suffix.h"
-#include "universe.h"
-#include "update.h"
 
 #include <cmath>
-#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -122,9 +115,9 @@ void PairLJSmoothGPU::compute(int eflag, int vflag)
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
 
   if (host_start < inum) {
-    cpu_time = MPI_Wtime();
+    cpu_time = platform::walltime();
     cpu_compute(host_start, inum, eflag, vflag, ilist, numneigh, firstneigh);
-    cpu_time = MPI_Wtime() - cpu_time;
+    cpu_time = platform::walltime() - cpu_time;
   }
   //fprintf("LJ_SMOOTH_GPU");
 }

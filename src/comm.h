@@ -98,12 +98,15 @@ class Comm : protected Pointers {
 
   virtual void forward_comm_array(int, double **) = 0;
   virtual int exchange_variable(int, double *, double *&) = 0;
-  int binary(double, int, double *);
 
   // map a point to a processor, based on current decomposition
 
   virtual void coord2proc_setup() {}
   virtual int coord2proc(double *, int &, int &, int &);
+
+  // partition a global regular grid by proc sub-domains
+
+  void partition_grid(int, int, int, double, int &, int &, int &, int &, int &, int &);
 
   // memory usage
 
@@ -117,6 +120,7 @@ class Comm : protected Pointers {
                  int statflag = 0);
 
   // extract data useful to other classes
+
   virtual void *extract(const char *, int &) { return nullptr; }
 
  protected:

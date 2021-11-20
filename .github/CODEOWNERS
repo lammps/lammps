@@ -83,7 +83,7 @@ src/library.*             @sjplimp
 src/main.cpp              @sjplimp
 src/min_*.*               @sjplimp
 src/memory.*              @sjplimp
-src/modify.*              @sjplimp
+src/modify.*              @sjplimp @stanmoore1
 src/molecule.*            @sjplimp
 src/my_page.h             @sjplimp
 src/my_pool_chunk.h       @sjplimp
@@ -129,7 +129,7 @@ src/math_eigen_impl.h     @jewettaij
 tools/msi2lmp/*       @akohlmey
 tools/emacs/*         @HaoZeke
 tools/singularity/*   @akohlmey @rbberger
-tools/code_standard/* @rbberger
+tools/coding_standard/* @rbberger
 tools/valgrind/*      @akohlmey
 tools/swig/*          @akohlmey
 tools/offline/*       @rbberger

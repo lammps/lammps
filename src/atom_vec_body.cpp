@@ -105,14 +105,14 @@ void AtomVecBody::process_args(int narg, char **arg)
 
   if (narg < 1) error->all(FLERR,"Invalid atom_style body command");
 
-  if (0) {
+  if (false) {
     bptr = nullptr;
 
 #define BODY_CLASS
 #define BodyStyle(key,Class) \
   } else if (strcmp(arg[0],#key) == 0) { \
     bptr = new Class(lmp,narg,arg);
-#include "style_body.h"
+#include "style_body.h"  // IWYU pragma: keep
 #undef BodyStyle
 #undef BODY_CLASS
 

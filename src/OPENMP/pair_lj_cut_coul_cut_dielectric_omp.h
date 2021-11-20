@@ -28,15 +28,15 @@ namespace LAMMPS_NS {
 class PairLJCutCoulCutDielectricOMP : public PairLJCutCoulCutDielectric, public ThrOMP {
  public:
   PairLJCutCoulCutDielectricOMP(class LAMMPS *);
-  virtual ~PairLJCutCoulCutDielectricOMP();
+  virtual ~PairLJCutCoulCutDielectricOMP() = default;
   virtual void compute(int, int);
 
  protected:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-  void eval(int ifrom, int ito, ThrData * const thr);
+  void eval(int ifrom, int ito, ThrData *const thr);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

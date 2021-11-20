@@ -16,6 +16,8 @@
 
 #include "mliap_model.h"
 
+#include <cmath>
+
 namespace LAMMPS_NS {
 
 class MLIAPModelNN : public MLIAPModel {
@@ -32,9 +34,9 @@ class MLIAPModelNN : public MLIAPModel {
   int nlayers;    // number of layers per element
 
  protected:
-  int *activation;       // activation functions
-  int *nnodes;           // number of nodes per layer
-  double ***scale;       // element scale values
+  int *activation;    // activation functions
+  int *nnodes;        // number of nodes per layer
+  double ***scale;    // element scale values
   virtual void read_coeffs(char *);
 
   inline double sigm(double x, double &deriv)

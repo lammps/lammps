@@ -163,7 +163,7 @@ class Atom : protected Pointers {
 
   // DIELECTRIC package
 
-  double *area,*ed,*em,*epsilon,*curvature,*q_unscaled;
+  double *area, *ed, *em, *epsilon, *curvature, *q_unscaled;
 
   // end of customization section
   // --------------------------------------------------------------------
@@ -269,6 +269,10 @@ class Atom : protected Pointers {
   // indices of atoms with same ID
 
   int *sametag;    // sametag[I] = next atom with same ID, -1 if no more
+
+  // true if image flags were reset to 0 during data_atoms()
+
+  bool reset_image_flag[3];
 
   // AtomVec factory types and map
 

@@ -10,13 +10,6 @@
 
 
 #include "colvarproxy_lammps.h"
-#include <mpi.h>
-#include <sys/stat.h>
-#include <cerrno>
-#include <cstring>
-#include <iostream>
-#include <memory>
-#include <string>
 
 #include "lammps.h"
 #include "error.h"
@@ -25,6 +18,12 @@
 
 #include "colvarmodule.h"
 #include "colvarproxy.h"
+
+#include <sys/stat.h>
+#include <cerrno>
+#include <cstring>
+#include <iostream>
+#include <memory>
 
 #define HASH_FAIL  -1
 

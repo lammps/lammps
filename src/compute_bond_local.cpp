@@ -388,7 +388,7 @@ int ComputeBondLocal::compute_bonds(int flag)
         }
 
         // to make sure dx, dy and dz are always from the lower to the higher id
-        double directionCorrection = atom1 > atom2 ? -1.0 : 1.0;
+        double directionCorrection = tag[atom1] > tag[atom2] ? -1.0 : 1.0;
 
         for (int n = 0; n < nvalues; n++) {
           switch (bstyle[n]) {

@@ -337,23 +337,6 @@ void FixGPU::post_force(int /* vflag */)
   force->pair->virial[4] += lvirial[4];
   force->pair->virial[5] += lvirial[5];
 
-  // for newton pair off: force->pair->vflag_fdotr = 0
-  //    which has been the case so far, virial_fdotr_compute() is never called
-  // for newton pair on: force->pair->vflag_fdotr = 1
-  //    for neigh yes: full neighbor lists are built on the device
-  //    for neigh no: full neighbor lists are built on the host
-  //       either way the virial is tallied to force->pair->virial as above
-  //    so as long as _particle_split == 1 
-  //    no need to call force->pair->virial_fdotr_compute();
-  //    If _particle_split < 1, the local atom forces computed by
-  //      the gpu pair styles on the host (cpu_compute()) got tallied
-  //      by comm->reverse_comm() (which is done before this post_force() function).
-  //      A call to force->pair->virial_fdotr_compute() would double count
-  //      the virial from the local atoms on the host.
-  // Here a possible workaround is to comment out the below command
-  //   while enforcing newton pair off for _particle_split < 1.
-
-  //if (force->pair->vflag_fdotr) force->pair->virial_fdotr_compute();
   timer->stamp(Timer::PAIR);
 }
 

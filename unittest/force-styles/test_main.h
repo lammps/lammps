@@ -36,10 +36,4 @@ void write_yaml_header(class YamlWriter *writer, TestConfig *cfg, const char *ve
 
 void EXPECT_STRESS(const std::string & name, double * stress, const stress_t & expected_stress, double epsilon);
 
-#if defined _WIN32
-static const char PATH_SEP = '\\';
-#else
-static const char PATH_SEP = '/';
-#endif
-
 #endif

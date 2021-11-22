@@ -99,7 +99,7 @@ LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg, const bool use
     for (auto &pre_command : cfg.pre_commands)
         command(pre_command);
 
-    std::string input_file = INPUT_FOLDER + PATH_SEP + cfg.input_file;
+    std::string input_file = platform::path_join(INPUT_FOLDER, cfg.input_file);
     lmp->input->file(input_file.c_str());
 
     if (use_respa) command("run_style respa 2 1 bond 1 pair 2");

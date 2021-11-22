@@ -108,7 +108,7 @@ LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg, const bool new
         command(pre_command);
     }
 
-    std::string input_file = INPUT_FOLDER + PATH_SEP + cfg.input_file;
+    std::string input_file = platform::path_join(INPUT_FOLDER, cfg.input_file);
     parse_input_script(input_file);
 
     command("bond_style " + cfg.bond_style);
@@ -194,7 +194,7 @@ void data_lammps(LAMMPS *lmp, const TestConfig &cfg)
     command("variable bond_style index '" + cfg.bond_style + "'");
     command("variable data_file index " + cfg.basename + ".data");
 
-    std::string input_file = INPUT_FOLDER + PATH_SEP + cfg.input_file;
+    std::string input_file = platform::path_join(INPUT_FOLDER, cfg.input_file);
     parse_input_script(input_file);
 
     for (auto &bond_coeff : cfg.bond_coeff) {

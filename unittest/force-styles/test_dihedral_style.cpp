@@ -108,7 +108,7 @@ LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg, const bool new
         command(pre_command);
     }
 
-    std::string input_file = INPUT_FOLDER + PATH_SEP + cfg.input_file;
+    std::string input_file = platform::path_join(INPUT_FOLDER, cfg.input_file);
     parse_input_script(input_file);
 
     command("dihedral_style " + cfg.dihedral_style);
@@ -203,7 +203,7 @@ void data_lammps(LAMMPS *lmp, const TestConfig &cfg)
         command("variable pair_style index 'lj/charmmfsw/coul/charmmfsh 7.0 8.0'");
     }
 
-    std::string input_file = INPUT_FOLDER + PATH_SEP + cfg.input_file;
+    std::string input_file = platform::path_join(INPUT_FOLDER, cfg.input_file);
     parse_input_script(input_file);
 
     for (auto &dihedral_coeff : cfg.dihedral_coeff) {

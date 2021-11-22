@@ -32,6 +32,7 @@
 using LAMMPS_NS::LAMMPS;
 using LAMMPS_NS::utils::split_words;
 using LAMMPS_NS::utils::trim;
+using LAMMPS_NS::tagint;
 
 void EXPECT_STRESS(const std::string & name, double * stress, const stress_t & expected_stress, double epsilon)
 {
@@ -43,6 +44,17 @@ void EXPECT_STRESS(const std::string & name, double * stress, const stress_t & e
     EXPECT_FP_LE_WITH_EPS(stress[4], expected_stress.xz, epsilon);
     EXPECT_FP_LE_WITH_EPS(stress[5], expected_stress.yz, epsilon);
     if (print_stats) std::cerr << name << " stats" << stats << std::endl;
+}
+
+void EXPECT_FORCES(const std::string & name, double ** f, tagint * tag, int nlocal, const std::vector<coord_t> & f_ref, double epsilon) {
+    ASSERT_EQ(nlocal + 1, f_ref.size());
+    ErrorStats stats;
+    for (int i = 0; i < nlocal; ++i) {
+        EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, epsilon);
+        EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, epsilon);
+    }
+    if (print_stats) std::cerr << name << " stats, newton on: " << stats << std::endl;
 }
 
 // common read_yaml_file function

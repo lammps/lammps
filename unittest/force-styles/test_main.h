@@ -15,7 +15,9 @@
 #define TEST_MAIN_H
 
 #include "test_config.h"
+#include "lmptype.h"
 #include <string>
+#include <vector>
 
 extern TestConfig test_config;
 extern bool print_stats;
@@ -35,5 +37,6 @@ void write_yaml_header(class YamlWriter *writer, TestConfig *cfg, const char *ve
     } while (0);
 
 void EXPECT_STRESS(const std::string & name, double * stress, const stress_t & expected_stress, double epsilon);
+void EXPECT_FORCES(const std::string & name, double ** f, LAMMPS_NS::tagint * tag, int nlocal, const std::vector<coord_t> & f_ref, double epsilon);
 
 #endif

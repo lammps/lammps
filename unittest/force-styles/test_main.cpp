@@ -15,10 +15,12 @@
 #include "pointers.h"
 #include "test_config.h"
 #include "test_config_reader.h"
+#include "error_stats.h"
 #include "utils.h"
 #include "yaml_writer.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "lammps.h"
 
 #include <cstdlib>
 #include <cstring>
@@ -27,8 +29,21 @@
 #include <mpi.h>
 #include <vector>
 
+using LAMMPS_NS::LAMMPS;
 using LAMMPS_NS::utils::split_words;
 using LAMMPS_NS::utils::trim;
+
+void EXPECT_STRESS(const std::string & name, double * stress, const stress_t & expected_stress, double epsilon)
+{
+    ErrorStats stats;
+    EXPECT_FP_LE_WITH_EPS(stress[0], expected_stress.xx, epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[1], expected_stress.yy, epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[2], expected_stress.zz, epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[3], expected_stress.xy, epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[4], expected_stress.xz, epsilon);
+    EXPECT_FP_LE_WITH_EPS(stress[5], expected_stress.yz, epsilon);
+    if (print_stats) std::cerr << name << " stats" << stats << std::endl;
+}
 
 // common read_yaml_file function
 bool read_yaml_file(const char *infile, TestConfig &config)

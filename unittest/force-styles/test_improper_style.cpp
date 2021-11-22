@@ -33,6 +33,7 @@
 #include "lammps.h"
 #include "modify.h"
 #include "universe.h"
+#include "platform.h"
 
 #include <cctype>
 #include <cstdio>
@@ -50,16 +51,11 @@ using ::testing::StartsWith;
 
 using namespace LAMMPS_NS;
 
-static void delete_file(const std::string &filename)
-{
-    remove(filename.c_str());
-};
-
 void cleanup_lammps(LAMMPS *lmp, const TestConfig &cfg)
 {
-    delete_file(cfg.basename + ".restart");
-    delete_file(cfg.basename + ".data");
-    delete_file(cfg.basename + "-coeffs.in");
+    platform::unlink(cfg.basename + ".restart");
+    platform::unlink(cfg.basename + ".data");
+    platform::unlink(cfg.basename + "-coeffs.in");
     delete lmp;
 }
 

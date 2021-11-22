@@ -54,16 +54,10 @@ using ::testing::StartsWith;
 
 using namespace LAMMPS_NS;
 
-static void delete_file(const std::string &filename)
-{
-    remove(filename.c_str());
-};
-
 void cleanup_lammps(LAMMPS *lmp, const TestConfig &cfg)
 {
-    delete_file(cfg.basename + ".restart");
+    platform::unlink(cfg.basename + ".restart");
     delete lmp;
-    lmp = nullptr;
 }
 
 LAMMPS *init_lammps(int argc, char **argv, const TestConfig &cfg, const bool use_respa = false)

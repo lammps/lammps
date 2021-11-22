@@ -65,7 +65,7 @@ of some larger molecule.
 
 The value *dist* is the current length of the bond.
 The values *dx*, *dy*, and *dz* are the xyz components of the
-*distance* between the pair of atoms. This value is always the 
+*distance* between the pair of atoms. This value is always the
 distance from the atom of lower to the one with the higher id.
 
 The value *engpot* is the potential energy for the bond,

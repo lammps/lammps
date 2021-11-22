@@ -58,7 +58,7 @@ commands.
 
 The value *dist* is the distance between the pair of atoms.
 The values *dx*, *dy*, and *dz* are the xyz components of the
-*distance* between the pair of atoms. This value is always the 
+*distance* between the pair of atoms. This value is always the
 distance from the atom of lower to the one with the higher id.
 
 The value *eng* is the interaction energy for the pair of atoms.
@@ -93,9 +93,9 @@ from the second of the two sub-styles.  If the referenced *pN*
 is not computed for the specific pairwise interaction (based on
 atom types), then the output will be 0.0.
 
-The value *dist*, *dx*, *dy* and *dz* will be in distance :doc:`units <units>`.  
-The value *eng* will be in energy :doc:`units <units>`.  
-The values *force*, *fx*, *fy*, and *fz* will be in force :doc:`units <units>`.  
+The value *dist*, *dx*, *dy* and *dz* will be in distance :doc:`units <units>`.
+The value *eng* will be in energy :doc:`units <units>`.
+The values *force*, *fx*, *fy*, and *fz* will be in force :doc:`units <units>`.
 The values *pN* will be in whatever units the pair style defines.
 
 The optional *cutoff* keyword determines how the force cutoff distance

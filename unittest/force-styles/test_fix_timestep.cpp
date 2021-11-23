@@ -282,29 +282,10 @@ TEST(FixTimestep, plain)
 
     double epsilon = test_config.epsilon;
 
-    auto tag = lmp->atom->tag;
-    auto x   = lmp->atom->x;
-    auto v   = lmp->atom->v;
     ErrorStats stats;
-    stats.reset();
-    const std::vector<coord_t> &x_ref = test_config.run_pos;
-    ASSERT_EQ(nlocal + 1, x_ref.size());
-    for (int i = 0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(x[i][0], x_ref[tag[i]].x, epsilon);
-        EXPECT_FP_LE_WITH_EPS(x[i][1], x_ref[tag[i]].y, epsilon);
-        EXPECT_FP_LE_WITH_EPS(x[i][2], x_ref[tag[i]].z, epsilon);
-    }
-    if (print_stats) std::cerr << "run_pos, normal run, verlet: " << stats << std::endl;
 
-    const std::vector<coord_t> &v_ref = test_config.run_vel;
-    stats.reset();
-    ASSERT_EQ(nlocal + 1, v_ref.size());
-    for (int i = 0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(v[i][0], v_ref[tag[i]].x, epsilon);
-        EXPECT_FP_LE_WITH_EPS(v[i][1], v_ref[tag[i]].y, epsilon);
-        EXPECT_FP_LE_WITH_EPS(v[i][2], v_ref[tag[i]].z, epsilon);
-    }
-    if (print_stats) std::cerr << "run_vel, normal run, verlet: " << stats << std::endl;
+    EXPECT_POSITIONS("run_pos (normal run, verlet)", lmp->atom, test_config.run_pos, epsilon);
+    EXPECT_VELOCITIES("run_vel (normal run, verlet)", lmp->atom, test_config.run_vel, epsilon);
 
     int ifix = lmp->modify->find_fix("test");
     if (ifix < 0) {
@@ -352,26 +333,8 @@ TEST(FixTimestep, plain)
     restart_lammps(lmp, test_config, false, false);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    tag = lmp->atom->tag;
-    x   = lmp->atom->x;
-    v   = lmp->atom->v;
-    stats.reset();
-    ASSERT_EQ(nlocal + 1, x_ref.size());
-    for (int i = 0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(x[i][0], x_ref[tag[i]].x, epsilon);
-        EXPECT_FP_LE_WITH_EPS(x[i][1], x_ref[tag[i]].y, epsilon);
-        EXPECT_FP_LE_WITH_EPS(x[i][2], x_ref[tag[i]].z, epsilon);
-    }
-    if (print_stats) std::cerr << "run_pos, restart, verlet: " << stats << std::endl;
-
-    stats.reset();
-    ASSERT_EQ(nlocal + 1, v_ref.size());
-    for (int i = 0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(v[i][0], v_ref[tag[i]].x, epsilon);
-        EXPECT_FP_LE_WITH_EPS(v[i][1], v_ref[tag[i]].y, epsilon);
-        EXPECT_FP_LE_WITH_EPS(v[i][2], v_ref[tag[i]].z, epsilon);
-    }
-    if (print_stats) std::cerr << "run_vel, restart, verlet: " << stats << std::endl;
+    EXPECT_POSITIONS("run_pos (restart, verlet)", lmp->atom, test_config.run_pos, epsilon);
+    EXPECT_VELOCITIES("run_vel (restart, verlet)", lmp->atom, test_config.run_vel, epsilon);
 
     ifix = lmp->modify->find_fix("test");
     if (ifix < 0) {
@@ -408,26 +371,8 @@ TEST(FixTimestep, plain)
         restart_lammps(lmp, test_config, true, false);
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
-        x   = lmp->atom->x;
-        tag = lmp->atom->tag;
-        stats.reset();
-        ASSERT_EQ(nlocal + 1, x_ref.size());
-        for (int i = 0; i < nlocal; ++i) {
-            EXPECT_FP_LE_WITH_EPS(x[i][0], x_ref[tag[i]].x, epsilon);
-            EXPECT_FP_LE_WITH_EPS(x[i][1], x_ref[tag[i]].y, epsilon);
-            EXPECT_FP_LE_WITH_EPS(x[i][2], x_ref[tag[i]].z, epsilon);
-        }
-        if (print_stats) std::cerr << "run_pos, rmass, verlet: " << stats << std::endl;
-
-        v = lmp->atom->v;
-        stats.reset();
-        ASSERT_EQ(nlocal + 1, v_ref.size());
-        for (int i = 0; i < nlocal; ++i) {
-            EXPECT_FP_LE_WITH_EPS(v[i][0], v_ref[tag[i]].x, epsilon);
-            EXPECT_FP_LE_WITH_EPS(v[i][1], v_ref[tag[i]].y, epsilon);
-            EXPECT_FP_LE_WITH_EPS(v[i][2], v_ref[tag[i]].z, epsilon);
-        }
-        if (print_stats) std::cerr << "run_vel, rmass, verlet: " << stats << std::endl;
+        EXPECT_POSITIONS("run_pos (rmass, verlet)", lmp->atom, test_config.run_pos, epsilon);
+        EXPECT_VELOCITIES("run_vel (rmass, verlet)", lmp->atom, test_config.run_vel, epsilon);
 
         ifix = lmp->modify->find_fix("test");
         if (ifix < 0) {
@@ -478,26 +423,8 @@ TEST(FixTimestep, plain)
         // lower required precision by two orders of magnitude to accommodate respa
         epsilon *= 100.0;
 
-        tag = lmp->atom->tag;
-        x   = lmp->atom->x;
-        v   = lmp->atom->v;
-        stats.reset();
-        ASSERT_EQ(nlocal + 1, x_ref.size());
-        for (int i = 0; i < nlocal; ++i) {
-            EXPECT_FP_LE_WITH_EPS(x[i][0], x_ref[tag[i]].x, epsilon);
-            EXPECT_FP_LE_WITH_EPS(x[i][1], x_ref[tag[i]].y, epsilon);
-            EXPECT_FP_LE_WITH_EPS(x[i][2], x_ref[tag[i]].z, epsilon);
-        }
-        if (print_stats) std::cerr << "run_pos, normal run, respa: " << stats << std::endl;
-
-        stats.reset();
-        ASSERT_EQ(nlocal + 1, v_ref.size());
-        for (int i = 0; i < nlocal; ++i) {
-            EXPECT_FP_LE_WITH_EPS(v[i][0], v_ref[tag[i]].x, epsilon);
-            EXPECT_FP_LE_WITH_EPS(v[i][1], v_ref[tag[i]].y, epsilon);
-            EXPECT_FP_LE_WITH_EPS(v[i][2], v_ref[tag[i]].z, epsilon);
-        }
-        if (print_stats) std::cerr << "run_vel, normal run, respa: " << stats << std::endl;
+        EXPECT_POSITIONS("run_pos (normal run, respa)", lmp->atom, test_config.run_pos, epsilon);
+        EXPECT_VELOCITIES("run_vel (normal run, respa)", lmp->atom, test_config.run_vel, epsilon);
 
         ifix = lmp->modify->find_fix("test");
         if (ifix < 0) {
@@ -533,26 +460,8 @@ TEST(FixTimestep, plain)
         restart_lammps(lmp, test_config, false, true);
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
-        tag = lmp->atom->tag;
-        x   = lmp->atom->x;
-        v   = lmp->atom->v;
-        stats.reset();
-        ASSERT_EQ(nlocal + 1, x_ref.size());
-        for (int i = 0; i < nlocal; ++i) {
-            EXPECT_FP_LE_WITH_EPS(x[i][0], x_ref[tag[i]].x, epsilon);
-            EXPECT_FP_LE_WITH_EPS(x[i][1], x_ref[tag[i]].y, epsilon);
-            EXPECT_FP_LE_WITH_EPS(x[i][2], x_ref[tag[i]].z, epsilon);
-        }
-        if (print_stats) std::cerr << "run_pos, restart, respa: " << stats << std::endl;
-
-        stats.reset();
-        ASSERT_EQ(nlocal + 1, v_ref.size());
-        for (int i = 0; i < nlocal; ++i) {
-            EXPECT_FP_LE_WITH_EPS(v[i][0], v_ref[tag[i]].x, epsilon);
-            EXPECT_FP_LE_WITH_EPS(v[i][1], v_ref[tag[i]].y, epsilon);
-            EXPECT_FP_LE_WITH_EPS(v[i][2], v_ref[tag[i]].z, epsilon);
-        }
-        if (print_stats) std::cerr << "run_vel, restart, respa: " << stats << std::endl;
+        EXPECT_POSITIONS("run_pos (restart, respa)", lmp->atom, test_config.run_pos, epsilon);
+        EXPECT_VELOCITIES("run_vel (restart, respa)", lmp->atom, test_config.run_vel, epsilon);
 
         ifix = lmp->modify->find_fix("test");
         if (ifix < 0) {
@@ -589,26 +498,8 @@ TEST(FixTimestep, plain)
             restart_lammps(lmp, test_config, true, true);
             if (!verbose) ::testing::internal::GetCapturedStdout();
 
-            x   = lmp->atom->x;
-            tag = lmp->atom->tag;
-            stats.reset();
-            ASSERT_EQ(nlocal + 1, x_ref.size());
-            for (int i = 0; i < nlocal; ++i) {
-                EXPECT_FP_LE_WITH_EPS(x[i][0], x_ref[tag[i]].x, epsilon);
-                EXPECT_FP_LE_WITH_EPS(x[i][1], x_ref[tag[i]].y, epsilon);
-                EXPECT_FP_LE_WITH_EPS(x[i][2], x_ref[tag[i]].z, epsilon);
-            }
-            if (print_stats) std::cerr << "run_pos, rmass, respa: " << stats << std::endl;
-
-            v = lmp->atom->v;
-            stats.reset();
-            ASSERT_EQ(nlocal + 1, v_ref.size());
-            for (int i = 0; i < nlocal; ++i) {
-                EXPECT_FP_LE_WITH_EPS(v[i][0], v_ref[tag[i]].x, epsilon);
-                EXPECT_FP_LE_WITH_EPS(v[i][1], v_ref[tag[i]].y, epsilon);
-                EXPECT_FP_LE_WITH_EPS(v[i][2], v_ref[tag[i]].z, epsilon);
-            }
-            if (print_stats) std::cerr << "run_vel, rmass, respa: " << stats << std::endl;
+            EXPECT_POSITIONS("run_pos (rmass, respa)", lmp->atom, test_config.run_pos, epsilon);
+            EXPECT_VELOCITIES("run_vel (rmass, respa)", lmp->atom, test_config.run_vel, epsilon);
 
             ifix = lmp->modify->find_fix("test");
             if (ifix < 0) {
@@ -685,29 +576,10 @@ TEST(FixTimestep, omp)
 
     double epsilon = test_config.epsilon;
 
-    auto tag = lmp->atom->tag;
-    auto x   = lmp->atom->x;
-    auto v   = lmp->atom->v;
     ErrorStats stats;
-    stats.reset();
-    const std::vector<coord_t> &x_ref = test_config.run_pos;
-    ASSERT_EQ(nlocal + 1, x_ref.size());
-    for (int i = 0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(x[i][0], x_ref[tag[i]].x, epsilon);
-        EXPECT_FP_LE_WITH_EPS(x[i][1], x_ref[tag[i]].y, epsilon);
-        EXPECT_FP_LE_WITH_EPS(x[i][2], x_ref[tag[i]].z, epsilon);
-    }
-    if (print_stats) std::cerr << "run_pos, normal run, verlet: " << stats << std::endl;
 
-    const std::vector<coord_t> &v_ref = test_config.run_vel;
-    stats.reset();
-    ASSERT_EQ(nlocal + 1, v_ref.size());
-    for (int i = 0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(v[i][0], v_ref[tag[i]].x, epsilon);
-        EXPECT_FP_LE_WITH_EPS(v[i][1], v_ref[tag[i]].y, epsilon);
-        EXPECT_FP_LE_WITH_EPS(v[i][2], v_ref[tag[i]].z, epsilon);
-    }
-    if (print_stats) std::cerr << "run_vel, normal run, verlet: " << stats << std::endl;
+    EXPECT_POSITIONS("run_pos (normal run, verlet)", lmp->atom, test_config.run_pos, epsilon);
+    EXPECT_VELOCITIES("run_vel (normal run, verlet)", lmp->atom, test_config.run_vel, epsilon);
 
     int ifix = lmp->modify->find_fix("test");
     if (ifix < 0) {
@@ -755,26 +627,8 @@ TEST(FixTimestep, omp)
     restart_lammps(lmp, test_config, false, false);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    tag = lmp->atom->tag;
-    x   = lmp->atom->x;
-    v   = lmp->atom->v;
-    stats.reset();
-    ASSERT_EQ(nlocal + 1, x_ref.size());
-    for (int i = 0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(x[i][0], x_ref[tag[i]].x, epsilon);
-        EXPECT_FP_LE_WITH_EPS(x[i][1], x_ref[tag[i]].y, epsilon);
-        EXPECT_FP_LE_WITH_EPS(x[i][2], x_ref[tag[i]].z, epsilon);
-    }
-    if (print_stats) std::cerr << "run_pos, restart, verlet: " << stats << std::endl;
-
-    stats.reset();
-    ASSERT_EQ(nlocal + 1, v_ref.size());
-    for (int i = 0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(v[i][0], v_ref[tag[i]].x, epsilon);
-        EXPECT_FP_LE_WITH_EPS(v[i][1], v_ref[tag[i]].y, epsilon);
-        EXPECT_FP_LE_WITH_EPS(v[i][2], v_ref[tag[i]].z, epsilon);
-    }
-    if (print_stats) std::cerr << "run_vel, restart, verlet: " << stats << std::endl;
+    EXPECT_POSITIONS("run_pos (restart, verlet)", lmp->atom, test_config.run_pos, epsilon);
+    EXPECT_VELOCITIES("run_vel (restart, verlet)", lmp->atom, test_config.run_vel, epsilon);
 
     ifix = lmp->modify->find_fix("test");
     if (ifix < 0) {
@@ -811,26 +665,8 @@ TEST(FixTimestep, omp)
         restart_lammps(lmp, test_config, true, false);
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
-        x   = lmp->atom->x;
-        tag = lmp->atom->tag;
-        stats.reset();
-        ASSERT_EQ(nlocal + 1, x_ref.size());
-        for (int i = 0; i < nlocal; ++i) {
-            EXPECT_FP_LE_WITH_EPS(x[i][0], x_ref[tag[i]].x, epsilon);
-            EXPECT_FP_LE_WITH_EPS(x[i][1], x_ref[tag[i]].y, epsilon);
-            EXPECT_FP_LE_WITH_EPS(x[i][2], x_ref[tag[i]].z, epsilon);
-        }
-        if (print_stats) std::cerr << "run_pos, rmass, verlet: " << stats << std::endl;
-
-        v = lmp->atom->v;
-        stats.reset();
-        ASSERT_EQ(nlocal + 1, v_ref.size());
-        for (int i = 0; i < nlocal; ++i) {
-            EXPECT_FP_LE_WITH_EPS(v[i][0], v_ref[tag[i]].x, epsilon);
-            EXPECT_FP_LE_WITH_EPS(v[i][1], v_ref[tag[i]].y, epsilon);
-            EXPECT_FP_LE_WITH_EPS(v[i][2], v_ref[tag[i]].z, epsilon);
-        }
-        if (print_stats) std::cerr << "run_vel, rmass, verlet: " << stats << std::endl;
+        EXPECT_POSITIONS("run_pos (rmass, verlet)", lmp->atom, test_config.run_pos, epsilon);
+        EXPECT_VELOCITIES("run_vel (rmass, verlet)", lmp->atom, test_config.run_vel, epsilon);
 
         ifix = lmp->modify->find_fix("test");
         if (ifix < 0) {
@@ -880,27 +716,8 @@ TEST(FixTimestep, omp)
         // lower required precision by two orders of magnitude to accommodate respa
         epsilon *= 100.0;
 
-        tag = lmp->atom->tag;
-        x   = lmp->atom->x;
-        v   = lmp->atom->v;
-        stats.reset();
-        ASSERT_EQ(nlocal + 1, x_ref.size());
-        for (int i = 0; i < nlocal; ++i) {
-            EXPECT_FP_LE_WITH_EPS(x[i][0], x_ref[tag[i]].x, epsilon);
-            EXPECT_FP_LE_WITH_EPS(x[i][1], x_ref[tag[i]].y, epsilon);
-            EXPECT_FP_LE_WITH_EPS(x[i][2], x_ref[tag[i]].z, epsilon);
-        }
-        if (print_stats) std::cerr << "run_pos, normal run, respa: " << stats << std::endl;
-        printf("x1\n");
-
-        stats.reset();
-        ASSERT_EQ(nlocal + 1, v_ref.size());
-        for (int i = 0; i < nlocal; ++i) {
-            EXPECT_FP_LE_WITH_EPS(v[i][0], v_ref[tag[i]].x, epsilon);
-            EXPECT_FP_LE_WITH_EPS(v[i][1], v_ref[tag[i]].y, epsilon);
-            EXPECT_FP_LE_WITH_EPS(v[i][2], v_ref[tag[i]].z, epsilon);
-        }
-        if (print_stats) std::cerr << "run_vel, normal run, respa: " << stats << std::endl;
+        EXPECT_POSITIONS("run_pos (normal run, respa)", lmp->atom, test_config.run_pos, epsilon);
+        EXPECT_VELOCITIES("run_vel (normal run, respa)", lmp->atom, test_config.run_vel, epsilon);
 
         ifix = lmp->modify->find_fix("test");
         if (ifix < 0) {
@@ -936,26 +753,8 @@ TEST(FixTimestep, omp)
         restart_lammps(lmp, test_config, false, true);
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
-        tag = lmp->atom->tag;
-        x   = lmp->atom->x;
-        v   = lmp->atom->v;
-        stats.reset();
-        ASSERT_EQ(nlocal + 1, x_ref.size());
-        for (int i = 0; i < nlocal; ++i) {
-            EXPECT_FP_LE_WITH_EPS(x[i][0], x_ref[tag[i]].x, epsilon);
-            EXPECT_FP_LE_WITH_EPS(x[i][1], x_ref[tag[i]].y, epsilon);
-            EXPECT_FP_LE_WITH_EPS(x[i][2], x_ref[tag[i]].z, epsilon);
-        }
-        if (print_stats) std::cerr << "run_pos, restart, respa: " << stats << std::endl;
-
-        stats.reset();
-        ASSERT_EQ(nlocal + 1, v_ref.size());
-        for (int i = 0; i < nlocal; ++i) {
-            EXPECT_FP_LE_WITH_EPS(v[i][0], v_ref[tag[i]].x, epsilon);
-            EXPECT_FP_LE_WITH_EPS(v[i][1], v_ref[tag[i]].y, epsilon);
-            EXPECT_FP_LE_WITH_EPS(v[i][2], v_ref[tag[i]].z, epsilon);
-        }
-        if (print_stats) std::cerr << "run_vel, restart, respa: " << stats << std::endl;
+        EXPECT_POSITIONS("run_pos (restart, respa)", lmp->atom, test_config.run_pos, epsilon);
+        EXPECT_VELOCITIES("run_vel (restart, respa)", lmp->atom, test_config.run_vel, epsilon);
 
         ifix = lmp->modify->find_fix("test");
         if (ifix < 0) {
@@ -992,26 +791,8 @@ TEST(FixTimestep, omp)
             restart_lammps(lmp, test_config, true, true);
             if (!verbose) ::testing::internal::GetCapturedStdout();
 
-            x   = lmp->atom->x;
-            tag = lmp->atom->tag;
-            stats.reset();
-            ASSERT_EQ(nlocal + 1, x_ref.size());
-            for (int i = 0; i < nlocal; ++i) {
-                EXPECT_FP_LE_WITH_EPS(x[i][0], x_ref[tag[i]].x, epsilon);
-                EXPECT_FP_LE_WITH_EPS(x[i][1], x_ref[tag[i]].y, epsilon);
-                EXPECT_FP_LE_WITH_EPS(x[i][2], x_ref[tag[i]].z, epsilon);
-            }
-            if (print_stats) std::cerr << "run_pos, rmass, respa: " << stats << std::endl;
-
-            v = lmp->atom->v;
-            stats.reset();
-            ASSERT_EQ(nlocal + 1, v_ref.size());
-            for (int i = 0; i < nlocal; ++i) {
-                EXPECT_FP_LE_WITH_EPS(v[i][0], v_ref[tag[i]].x, epsilon);
-                EXPECT_FP_LE_WITH_EPS(v[i][1], v_ref[tag[i]].y, epsilon);
-                EXPECT_FP_LE_WITH_EPS(v[i][2], v_ref[tag[i]].z, epsilon);
-            }
-            if (print_stats) std::cerr << "run_vel, rmass, respa: " << stats << std::endl;
+            EXPECT_POSITIONS("run_pos (rmass, respa)", lmp->atom, test_config.run_pos, epsilon);
+            EXPECT_VELOCITIES("run_vel (rmass, respa)", lmp->atom, test_config.run_vel, epsilon);
 
             ifix = lmp->modify->find_fix("test");
             if (ifix < 0) {

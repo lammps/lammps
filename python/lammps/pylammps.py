@@ -854,30 +854,30 @@ class IPyLammps(PyLammps):
     """
     cmd_args = [group, "image", filename, color, diameter]
 
-    if size:
+    if size is not None:
       width = size[0]
       height = size[1]
       cmd_args += ["size", width, height]
 
-    if view:
+    if view is not None:
       theta = view[0]
       phi = view[1]
       cmd_args += ["view", theta, phi]
 
-    if center:
+    if center is not None:
       flag = center[0]
       Cx = center[1]
       Cy = center[2]
       Cz = center[3]
       cmd_args += ["center", flag, Cx, Cy, Cz]
 
-    if up:
+    if up is not None:
       Ux = up[0]
       Uy = up[1]
       Uz = up[2]
       cmd_args += ["up", Ux, Uy, Uz]
 
-    if zoom:
+    if zoom is not None:
       cmd_args += ["zoom", zoom]
 
     cmd_args.append("modify backcolor " + background_color)

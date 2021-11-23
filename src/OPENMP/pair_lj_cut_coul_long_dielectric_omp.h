@@ -29,7 +29,7 @@ class PairLJCutCoulLongDielectricOMP : public PairLJCutCoulLongDielectric, publi
 
  public:
   PairLJCutCoulLongDielectricOMP(class LAMMPS *);
-  virtual ~PairLJCutCoulLongDielectricOMP();
+  virtual ~PairLJCutCoulLongDielectricOMP() = default;
   virtual void compute(int, int);
 
  protected:

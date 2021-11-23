@@ -63,7 +63,7 @@ class PairReaxFF : public Pair {
   double cutmax;
   class FixReaxFF *fix_reaxff;
 
-  double *chi, *eta, *gamma;
+  double *chi, *eta, *gamma, *bcut_acks2;
   int qeqflag;
   int setup_flag;
   int firstwarn;

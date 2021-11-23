@@ -23,6 +23,7 @@ OPT.
    :columns: 5
 
    * :doc:`accelerate/cos <fix_accelerate_cos>`
+   * :doc:`acks2/reaxff (k) <fix_acks2_reaxff>`
    * :doc:`adapt <fix_adapt>`
    * :doc:`adapt/fep <fix_adapt_fep>`
    * :doc:`addforce <fix_addforce>`
@@ -103,6 +104,7 @@ OPT.
    * :doc:`manifoldforce <fix_manifoldforce>`
    * :doc:`mdi/engine <fix_mdi_engine>`
    * :doc:`meso/move <fix_meso_move>`
+   * :doc:`mol/swap <fix_mol_swap>`
    * :doc:`momentum (k) <fix_momentum>`
    * :doc:`momentum/chunk <fix_momentum>`
    * :doc:`move <fix_move>`

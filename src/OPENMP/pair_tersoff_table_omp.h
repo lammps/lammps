@@ -37,8 +37,8 @@ class PairTersoffTableOMP : public PairTersoffTable, public ThrOMP {
   double ***thrGtetaFunction, ***thrGtetaFunctionDerived;
   double **thrCutoffFunction, **thrCutoffFunctionDerived;
 
-  void allocatePreLoops(void);
-  void deallocatePreLoops(void);
+  void allocatePreLoops();
+  void deallocatePreLoops();
 
  private:
   template <int EVFLAG, int VFLAG_ATOM> void eval(int ifrom, int ito, ThrData *const thr);

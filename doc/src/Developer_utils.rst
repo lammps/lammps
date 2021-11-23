@@ -7,7 +7,9 @@ a collection of convenience functions and utilities that perform common
 tasks that are required repeatedly throughout the LAMMPS code like
 reading or writing to files with error checking or translation of
 strings into specific types of numbers with checking for validity.  This
-reduces redundant implementations and encourages consistent behavior.
+reduces redundant implementations and encourages consistent behavior and
+thus has some overlap with the :doc:`"platform" sub-namespace
+<Developer_platform>`.
 
 I/O with status check and similar functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -101,6 +103,12 @@ and parsing files or arguments.
 .. doxygenfunction:: strdup
    :project: progguide
 
+.. doxygenfunction:: lowercase
+   :project: progguide
+
+.. doxygenfunction:: uppercase
+   :project: progguide
+
 .. doxygenfunction:: trim
    :project: progguide
 
@@ -141,21 +149,6 @@ and parsing files or arguments.
    :project: progguide
 
 .. doxygenfunction:: is_double
-   :project: progguide
-
-File and path functions
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. doxygenfunction:: guesspath
-   :project: progguide
-
-.. doxygenfunction:: path_basename
-   :project: progguide
-
-.. doxygenfunction:: path_join
-   :project: progguide
-
-.. doxygenfunction:: file_is_readable
    :project: progguide
 
 Potential file functions

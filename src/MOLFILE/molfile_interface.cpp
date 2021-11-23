@@ -17,20 +17,16 @@
 ------------------------------------------------------------------------- */
 
 #include "molfile_interface.h"
+
+#include "platform.h"
+#include "tokenizer.h"
+#include "utils.h"
+
 #include "molfile_plugin.h"
 
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>
-#include <cctype>
-#include <strings.h>    // for strcasecmp()
-
-#if defined(_WIN32)
-#include <windows.h>
-#else
-#include <dirent.h>
-#include <dlfcn.h>
-#endif
 
 #if vmdplugin_ABIVERSION < 16
 #error "unsupported VMD molfile plugin ABI version"
@@ -39,9 +35,9 @@
 #define DEBUG 0
 
 extern "C" {
-  typedef int (*initfunc)(void);
+  typedef int (*initfunc)();
   typedef int (*regfunc)(void *, vmdplugin_register_cb);
-  typedef int (*finifunc)(void);
+  typedef int (*finifunc)();
 
   typedef struct {
     void *p;
@@ -199,172 +195,17 @@ extern "C" {
     return 0;
   }
 
-  // directory traversal helper functions
-
-#if defined(_WIN32)
-
-  // Win32 directory traversal handle
-  typedef struct {
-    HANDLE h;
-    WIN32_FIND_DATA fd;
-    char *name;
-    char *searchname;
-    int dlen;
-  } dirhandle_t;
-
-  // open a directory handle
-  static dirhandle_t *my_opendir(const char *dirname)
-  {
-    dirhandle_t *d;
-    int len;
-
-    if (dirname == nullptr)
-      return nullptr;
-    d = new dirhandle_t;
-
-    len = 2 + strlen(dirname);
-    d->name = new char[len];
-    strcpy(d->name, dirname);
-    strcat(d->name, "\\");
-    d->dlen = len;
-
-    len += 1;
-    d->searchname = new char[len];
-    strcpy(d->searchname, dirname);
-    strcat(d->searchname, "\\*");
-
-    d->h = FindFirstFile(d->searchname, &(d->fd));
-    if (d->h == ((HANDLE)(-1))) {
-      delete[] d->searchname;
-      delete[] d->name;
-      delete d;
-      return nullptr;
-    }
-    return d;
-  }
-
-  // get next file name from directory handle
-  static char *my_readdir(dirhandle_t *d)
-  {
-    if (FindNextFile(d->h, &(d->fd))) {
-      return d->fd.cFileName;
-    }
-    return nullptr;
-  }
-
-  // close directory handle
-  static void my_closedir(dirhandle_t *d)
-  {
-    if (d->h != nullptr) {
-      FindClose(d->h);
-    }
-    delete[] d->searchname;
-    delete[] d->name;
-    delete d;
-  }
-
-  // open a shared object file
-  static void *my_dlopen(const char *fname) {
-    return (void *)LoadLibrary(fname);
-  }
-
-  // resolve a symbol in shared object
-  static void *my_dlsym(void *h, const char *sym) {
-    return (void *)GetProcAddress((HINSTANCE)h, sym);
-  }
-
-  // close a shared object
-  static int my_dlclose(void *h) {
-    /* FreeLibrary returns nonzero on success */
-    return !FreeLibrary((HINSTANCE)h);
-  }
-
-#else
-
-  // Unix directory traversal handle
-  typedef struct {
-    DIR *d;
-    char *name;
-    int dlen;
-  } dirhandle_t;
-
-  // open a directory handle
-  static dirhandle_t *my_opendir(const char *dirname)
-  {
-    dirhandle_t *d;
-    int len;
-
-    if (dirname == nullptr) return nullptr;
-
-    d = new dirhandle_t;
-    len = 2 + strlen(dirname);
-    d->name = new char[len];
-    strcpy(d->name,dirname);
-    strcat(d->name,"/");
-    d->dlen = len;
-
-    d->d = opendir(d->name);
-    if (d->d == nullptr) {
-      delete[] d->name;
-      delete d;
-      return nullptr;
-    }
-    return d;
-  }
-
-  // get next file name from directory handle
-  static char *my_readdir(dirhandle_t *d)
-  {
-    struct dirent *p;
-
-    if ((p = readdir(d->d)) != nullptr) {
-      return p->d_name;
-    }
-
-    return nullptr;
-  }
-
-  // close directory handle
-  static void my_closedir(dirhandle_t *d)
-  {
-    if (d->d != nullptr) {
-      closedir(d->d);
-    }
-    delete[] d->name;
-    delete d;
-    return;
-  }
-
-  // open a shared object file
-  static void *my_dlopen(const char *fname) {
-    return dlopen(fname, RTLD_NOW);
-  }
-
-  // resolve a symbol in shared object
-  static void *my_dlsym(void *h, const char *sym) {
-    return dlsym(h, sym);
-  }
-
-  // close a shared object
-  static int my_dlclose(void *h) {
-    return dlclose(h);
-  }
-
-#endif
-
 } // end of extern "C" region
 
 using namespace LAMMPS_NS;
 
 // constructor.
 MolfileInterface::MolfileInterface(const char *type, const int mode)
-  : _plugin(0), _dso(0), _ptr(0), _info(0), _natoms(0),
-    _mode(mode), _caps(M_NONE)
+  : _plugin(nullptr), _dso(nullptr), _ptr(nullptr), _info(nullptr), _natoms(0),
+    _mode(mode), _caps(M_NONE), _props(0)
 {
-  _name = new char[5];
-  strcpy(_name,"none");
-  _type = new char[1+strlen(type)];
-  strcpy(_type,type);
+  _name = utils::strdup("none");
+  _type = utils::strdup(type);
 }
 
 // destructor.
@@ -384,62 +225,21 @@ MolfileInterface::~MolfileInterface()
 // register the best matching plugin in a given directory
 int MolfileInterface::find_plugin(const char *pluginpath)
 {
-  dirhandle_t *dir;
-  char *filename, *ext, *next, *path, *plugindir;
   int retval = E_NONE;
 
-#if defined(_WIN32)
-#define MY_PATHSEP ';'
-#else
-#define MY_PATHSEP ':'
-#endif
   if (pluginpath == nullptr) return E_DIR;
-  plugindir = path = strdup(pluginpath);
 
-  while (plugindir) {
-    // check if this a single directory or path.
-    next = strchr(plugindir,MY_PATHSEP);
-    if (next) {
-      *next = '\0';
-      ++next;
+  // search for suitable file names in provided path and try to inspect them
+  // only look at .so files, since this is what VMD uses on all platforms
+
+  for (const auto &dir : Tokenizer(pluginpath,":").as_vector()) {
+    for (const auto &filename : platform::list_directory(dir)) {
+      if (utils::strmatch(filename,"\\.so$")) {
+        int rv = load_plugin(platform::path_join(dir,filename).c_str());
+        if (rv > retval) retval = rv;
+      }
     }
-
-    dir = my_opendir(plugindir);
-    if (!dir)
-      retval = (retval > E_DIR) ? retval : E_DIR;
-
-    // search for suitable file names and try to inspect them
-    while (dir) {
-      char *fullname;
-      int len;
-
-      filename = my_readdir(dir);
-      if (filename == nullptr) break;
-
-      // only look at .so files
-      ext = strrchr(filename, '.');
-      if (ext == nullptr) continue;
-      if (strcasecmp(ext,".so") != 0) continue;
-
-      // construct full pathname of potential DSO
-      len = dir->dlen;
-      len += strlen(filename);
-      fullname = new char[len];
-      strcpy(fullname,dir->name);
-      strcat(fullname,filename);
-
-      // try to register plugin at file name.
-      int rv = load_plugin(fullname);
-      if (rv > retval) retval = rv;
-
-      delete[] fullname;
-    }
-    if (dir)
-      my_closedir(dir);
-
-    plugindir = next;
   }
-  free(path);
   return retval;
 }
 
@@ -447,25 +247,25 @@ int MolfileInterface::find_plugin(const char *pluginpath)
 int MolfileInterface::load_plugin(const char *filename)
 {
   void *dso;
-  int len, retval = E_NONE;
+  int retval = E_NONE;
 
   // access shared object
-  dso = my_dlopen(filename);
+  dso = platform::dlopen(filename);
   if (dso == nullptr)
     return E_FILE;
 
   // check for required plugin symbols
-  void *ifunc = my_dlsym(dso,"vmdplugin_init");
-  void *rfunc = my_dlsym(dso,"vmdplugin_register");
-  void *ffunc = my_dlsym(dso,"vmdplugin_fini");
+  void *ifunc = platform::dlsym(dso,"vmdplugin_init");
+  void *rfunc = platform::dlsym(dso,"vmdplugin_register");
+  void *ffunc = platform::dlsym(dso,"vmdplugin_fini");
   if (ifunc == nullptr || rfunc == nullptr || ffunc == nullptr) {
-    my_dlclose(dso);
+    platform::dlclose(dso);
     return E_SYMBOL;
   }
 
   // initialize plugin. skip plugin if it fails.
   if (((initfunc)(ifunc))()) {
-    my_dlclose(dso);
+    platform::dlclose(dso);
     return E_SYMBOL;
   }
 
@@ -528,12 +328,8 @@ int MolfileInterface::load_plugin(const char *filename)
     forget_plugin();
 
     delete[] _name;
-    len = 16;
-    len += strlen(plugin->prettyname);
-    len += strlen(plugin->author);
-    _name = new char[len];
-    sprintf(_name,"%s v%d.%d by %s",plugin->prettyname,
-            plugin->majorv, plugin->minorv, plugin->author);
+    _name = utils::strdup(fmt::format("{} v{}.{} by {}", plugin->prettyname,
+                                      plugin->majorv, plugin->minorv, plugin->author));
 
     // determine plugin capabilities
     _caps = M_NONE;
@@ -569,7 +365,7 @@ int MolfileInterface::load_plugin(const char *filename)
   }
 
   // better luck next time. clean up and return.
-  my_dlclose(dso);
+  platform::dlclose(dso);
   return retval;
 }
 
@@ -583,10 +379,10 @@ void MolfileInterface::forget_plugin()
     _plugin = nullptr;
 
   if (_dso) {
-    void *ffunc = my_dlsym(_dso,"vmdplugin_fini");
+    void *ffunc = platform::dlsym(_dso,"vmdplugin_fini");
     if (ffunc)
       ((finifunc)ffunc)();
-    my_dlclose(_dso);
+    platform::dlclose(_dso);
   }
   _dso = nullptr;
 

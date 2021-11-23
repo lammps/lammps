@@ -269,7 +269,7 @@ void WriteRestart::write(const std::string &file)
 
   double *buf;
   memory->create(buf,max_size,"write_restart:buf");
-  memset(buf,0,max_size*sizeof(buf));
+  memset(buf,0,max_size*sizeof(double));
 
   // all procs write file layout info which may include per-proc sizes
 
@@ -413,9 +413,9 @@ void WriteRestart::write(const std::string &file)
 
   // invoke any fixes that write their own restart file
 
-  for (int ifix = 0; ifix < modify->nfix; ifix++)
-    if (modify->fix[ifix]->restart_file)
-      modify->fix[ifix]->write_restart_file(file.c_str());
+  for (auto &fix : modify->get_fix_list())
+    if (fix->restart_file)
+      fix->write_restart_file(file.c_str());
 }
 
 /* ----------------------------------------------------------------------
@@ -595,7 +595,7 @@ void WriteRestart::file_layout(int send_size)
   // this allows all ranks to compute offset to their data
 
   if (mpiioflag) {
-    if (me == 0) headerOffset = ftell(fp);
+    if (me == 0) headerOffset = platform::ftell(fp);
     MPI_Bcast(&headerOffset,1,MPI_LMP_BIGINT,0,world);
   }
 }

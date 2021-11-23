@@ -179,7 +179,7 @@ void System::WriteOut(ostream& out){
   int i = 0;
   Body* body;
   ListElement<Body>* b_ele = bodies.GetHeadElement();
-  while(b_ele !=0){
+  while(b_ele !=nullptr){
     out << i << ' ';
 
     body = b_ele->value;
@@ -200,7 +200,7 @@ void System::WriteOut(ostream& out){
   i = 0;
   Joint* joint;
   ListElement<Joint>* j_ele = joints.GetHeadElement();
-  while(j_ele !=0){
+  while(j_ele !=nullptr){
     out << i << ' ';
     joint = j_ele->value;
 

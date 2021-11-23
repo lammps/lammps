@@ -75,6 +75,7 @@ FixQEqReaxFFKokkos<DeviceType>::~FixQEqReaxFFKokkos()
 
   memoryKK->destroy_kokkos(k_s_hist,s_hist);
   memoryKK->destroy_kokkos(k_t_hist,t_hist);
+  memoryKK->destroy_kokkos(k_chi_field,chi_field);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -256,6 +257,8 @@ void FixQEqReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
 
   // init_matvec
 
+  if (efield) get_chi_field();
+
   k_s_hist.template sync<DeviceType>();
   k_t_hist.template sync<DeviceType>();
   FixQEqReaxFFKokkosMatVecFunctor<DeviceType> matvec_functor(this);
@@ -373,9 +376,14 @@ void FixQEqReaxFFKokkos<DeviceType>::allocate_array()
     k_d = DAT::tdual_ffloat_1d("qeq/kk:d",nmax);
     d_d = k_d.template view<DeviceType>();
     h_d = k_d.h_view;
+
+    memoryKK->create_kokkos(k_chi_field,chi_field,nmax,"qeq/kk:chi_field");
+    d_chi_field = k_chi_field.template view<DeviceType>();
   }
 
   // init_storage
+
+  if (efield) get_chi_field();
 
   FixQEqReaxFFKokkosZeroFunctor<DeviceType> zero_functor(this);
   Kokkos::parallel_for(ignum,zero_functor);
@@ -392,7 +400,7 @@ void FixQEqReaxFFKokkos<DeviceType>::zero_item(int ii) const
 
   if (mask[i] & groupbit) {
     d_Hdia_inv[i] = 1.0 / params(itype).eta;
-    d_b_s[i] = -params(itype).chi;
+    d_b_s[i] = -params(itype).chi - d_chi_field[i];
     d_b_t[i] = -1.0;
     d_s[i] = 0.0;
     d_t[i] = 0.0;
@@ -711,7 +719,7 @@ void FixQEqReaxFFKokkos<DeviceType>::matvec_item(int ii) const
 
   if (mask[i] & groupbit) {
     d_Hdia_inv[i] = 1.0 / params(itype).eta;
-    d_b_s[i] = -params(itype).chi;
+    d_b_s[i] = -params(itype).chi - d_chi_field[i];
     d_b_t[i] = -1.0;
     d_t[i] = d_t_hist(i,2) + 3*(d_t_hist(i,0) - d_t_hist(i,1));
     d_s[i] = 4*(d_s_hist(i,0)+d_s_hist(i,2))-(6*d_s_hist(i,1)+d_s_hist(i,3));
@@ -1571,6 +1579,17 @@ int FixQEqReaxFFKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
   k_t_hist.template modify<LMPHostType>();
 
   return nprev*2;
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixQEqReaxFFKokkos<DeviceType>::get_chi_field()
+{
+  atomKK->sync(Host,X_MASK|MASK_MASK|IMAGE_MASK);
+  FixQEqReaxFF::get_chi_field();
+  k_chi_field.modify_host();
+  k_chi_field.sync_device();
 }
 
 /* ---------------------------------------------------------------------- */

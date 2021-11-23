@@ -41,7 +41,7 @@
 #if defined(__PLUMED_DEFAULT_KERNEL)
 #define PLUMED_QUOTE_DIRECT(name) #name
 #define PLUMED_QUOTE(macro) PLUMED_QUOTE_DIRECT(macro)
-static char plumed_default_kernel[] = "PLUMED_KERNEL=" PLUMED_QUOTE(__PLUMED_DEFAULT_KERNEL);
+static const char plumed_default_kernel[] = "PLUMED_KERNEL=" PLUMED_QUOTE(__PLUMED_DEFAULT_KERNEL);
 #endif
 
 /* -------------------------------------------------------------------- */
@@ -68,7 +68,7 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
 
 #if defined(__PLUMED_DEFAULT_KERNEL)
   if (getenv("PLUMED_KERNEL") == nullptr)
-    putenv(plumed_default_kernel);
+    platform::putenv(plumed_default_kernel);
 #endif
 
   p=new PLMD::Plumed;

@@ -28,7 +28,7 @@ namespace LAMMPS_NS {
 class PairLJCutCoulCutDielectricOMP : public PairLJCutCoulCutDielectric, public ThrOMP {
  public:
   PairLJCutCoulCutDielectricOMP(class LAMMPS *);
-  virtual ~PairLJCutCoulCutDielectricOMP();
+  virtual ~PairLJCutCoulCutDielectricOMP() = default;
   virtual void compute(int, int);
 
  protected:

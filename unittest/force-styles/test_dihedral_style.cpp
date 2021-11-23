@@ -336,20 +336,10 @@ TEST(DihedralStyle, plain)
 
     double epsilon = test_config.epsilon;
 
-    auto f   = lmp->atom->f;
-    auto tag = lmp->atom->tag;
     ErrorStats stats;
-    stats.reset();
-    const std::vector<coord_t> &f_ref = test_config.init_forces;
-    ASSERT_EQ(nlocal + 1, f_ref.size());
-    for (int i = 0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, epsilon);
-    }
-    if (print_stats) std::cerr << "init_forces stats, newton on: " << stats << std::endl;
-
     auto dihedral = lmp->force->dihedral;
+
+    EXPECT_FORCES("init_forces (newton on)", lmp->atom, test_config.init_forces, epsilon);
     EXPECT_STRESS("init_stress (newton on)", dihedral->virial, test_config.init_stress, epsilon);
 
     stats.reset();
@@ -360,19 +350,7 @@ TEST(DihedralStyle, plain)
     run_lammps(lmp);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f      = lmp->atom->f;
-    tag    = lmp->atom->tag;
-
-    const std::vector<coord_t> &f_run = test_config.run_forces;
-    ASSERT_EQ(nlocal + 1, f_run.size());
-    stats.reset();
-    for (int i = 0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, 10 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, 10 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, 10 * epsilon);
-    }
-    if (print_stats) std::cerr << "run_forces  stats, newton on: " << stats << std::endl;
-
+    EXPECT_FORCES("run_forces (newton on)", lmp->atom, test_config.run_forces, 10 * epsilon);
     EXPECT_STRESS("run_stress (newton on)", dihedral->virial, test_config.run_stress, epsilon);
 
     stats.reset();
@@ -389,18 +367,9 @@ TEST(DihedralStyle, plain)
 
     // skip over these tests if newton bond is forced to be on
     if (lmp->force->newton_bond == 0) {
-
-        f   = lmp->atom->f;
-        tag = lmp->atom->tag;
-        stats.reset();
-        for (int i = 0; i < nlocal; ++i) {
-            EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, epsilon);
-            EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, epsilon);
-            EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, epsilon);
-        }
-        if (print_stats) std::cerr << "init_forces stats, newton off:" << stats << std::endl;
-
         dihedral = lmp->force->dihedral;
+
+        EXPECT_FORCES("init_forces (newton off)", lmp->atom, test_config.init_forces, epsilon);
         EXPECT_STRESS("init_stress (newton off)", dihedral->virial, test_config.init_stress, epsilon);
 
         stats.reset();
@@ -411,16 +380,7 @@ TEST(DihedralStyle, plain)
         run_lammps(lmp);
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
-        f      = lmp->atom->f;
-        tag    = lmp->atom->tag;
-        stats.reset();
-        for (int i = 0; i < nlocal; ++i) {
-            EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, 10 * epsilon);
-            EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, 10 * epsilon);
-            EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, 10 * epsilon);
-        }
-        if (print_stats) std::cerr << "run_forces  stats, newton off:" << stats << std::endl;
-
+        EXPECT_FORCES("run_forces (newton off)", lmp->atom, test_config.run_forces, 10 * epsilon);
         EXPECT_STRESS("run_stress (newton off)", dihedral->virial, test_config.run_stress, epsilon);
 
         stats.reset();
@@ -435,18 +395,9 @@ TEST(DihedralStyle, plain)
     restart_lammps(lmp, test_config);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f   = lmp->atom->f;
-    tag = lmp->atom->tag;
-    stats.reset();
-    ASSERT_EQ(nlocal + 1, f_ref.size());
-    for (int i = 0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, epsilon);
-    }
-    if (print_stats) std::cerr << "restart_forces stats:" << stats << std::endl;
-
     dihedral = lmp->force->dihedral;
+
+    EXPECT_FORCES("restart_forces", lmp->atom, test_config.init_forces, epsilon);
     EXPECT_STRESS("restart_stress", dihedral->virial, test_config.init_stress, epsilon);
 
     stats.reset();
@@ -457,18 +408,9 @@ TEST(DihedralStyle, plain)
     data_lammps(lmp, test_config);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f   = lmp->atom->f;
-    tag = lmp->atom->tag;
-    stats.reset();
-    ASSERT_EQ(nlocal + 1, f_ref.size());
-    for (int i = 0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, epsilon);
-    }
-    if (print_stats) std::cerr << "data_forces stats:" << stats << std::endl;
-
     dihedral = lmp->force->dihedral;
+
+    EXPECT_FORCES("data_forces", lmp->atom, test_config.init_forces, epsilon);
     EXPECT_STRESS("data_stress", dihedral->virial, test_config.init_stress, epsilon);
 
     stats.reset();
@@ -516,20 +458,10 @@ TEST(DihedralStyle, omp)
     // relax error a bit for OPENMP package
     double epsilon = 5.0 * test_config.epsilon;
 
-    auto f   = lmp->atom->f;
-    auto tag = lmp->atom->tag;
-
-    const std::vector<coord_t> &f_ref = test_config.init_forces;
     ErrorStats stats;
-    stats.reset();
-    for (int i = 0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, epsilon);
-    }
-    if (print_stats) std::cerr << "init_forces stats, newton on: " << stats << std::endl;
-
     auto dihedral = lmp->force->dihedral;
+
+    EXPECT_FORCES("init_forces (newton on)", lmp->atom, test_config.init_forces, epsilon);
     EXPECT_STRESS("init_stress (newton on)", dihedral->virial, test_config.init_stress, 10 * epsilon);
 
     stats.reset();
@@ -540,19 +472,7 @@ TEST(DihedralStyle, omp)
     run_lammps(lmp);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f      = lmp->atom->f;
-    tag    = lmp->atom->tag;
-
-    const std::vector<coord_t> &f_run = test_config.run_forces;
-    ASSERT_EQ(nlocal + 1, f_run.size());
-    stats.reset();
-    for (int i = 0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, 10 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, 10 * epsilon);
-        EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, 10 * epsilon);
-    }
-    if (print_stats) std::cerr << "run_forces  stats, newton on: " << stats << std::endl;
-
+    EXPECT_FORCES("run_forces (newton on)", lmp->atom, test_config.run_forces, 10 * epsilon);
     EXPECT_STRESS("run_stress (newton on)", dihedral->virial, test_config.run_stress, 10 * epsilon);
 
     stats.reset();
@@ -572,18 +492,9 @@ TEST(DihedralStyle, omp)
 
     // skip over these tests if newton bond is forced to be on
     if (lmp->force->newton_bond == 0) {
-
-        f   = lmp->atom->f;
-        tag = lmp->atom->tag;
-        stats.reset();
-        for (int i = 0; i < nlocal; ++i) {
-            EXPECT_FP_LE_WITH_EPS(f[i][0], f_ref[tag[i]].x, epsilon);
-            EXPECT_FP_LE_WITH_EPS(f[i][1], f_ref[tag[i]].y, epsilon);
-            EXPECT_FP_LE_WITH_EPS(f[i][2], f_ref[tag[i]].z, epsilon);
-        }
-        if (print_stats) std::cerr << "init_forces stats, newton off:" << stats << std::endl;
-
         dihedral = lmp->force->dihedral;
+
+        EXPECT_FORCES("init_forces (newton off)", lmp->atom, test_config.init_forces, epsilon);
         EXPECT_STRESS("init_stress (newton off)", dihedral->virial, test_config.init_stress, 10 * epsilon);
 
         stats.reset();
@@ -594,16 +505,7 @@ TEST(DihedralStyle, omp)
         run_lammps(lmp);
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
-        f   = lmp->atom->f;
-        tag = lmp->atom->tag;
-        stats.reset();
-        for (int i = 0; i < nlocal; ++i) {
-            EXPECT_FP_LE_WITH_EPS(f[i][0], f_run[tag[i]].x, 10 * epsilon);
-            EXPECT_FP_LE_WITH_EPS(f[i][1], f_run[tag[i]].y, 10 * epsilon);
-            EXPECT_FP_LE_WITH_EPS(f[i][2], f_run[tag[i]].z, 10 * epsilon);
-        }
-        if (print_stats) std::cerr << "run_forces  stats, newton off:" << stats << std::endl;
-
+        EXPECT_FORCES("run_forces (newton off)", lmp->atom, test_config.run_forces, 10 * epsilon);
         EXPECT_STRESS("run_stress (newton off)", dihedral->virial, test_config.run_stress, 10 * epsilon);
 
         stats.reset();

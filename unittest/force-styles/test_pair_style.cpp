@@ -625,7 +625,7 @@ TEST(PairStyle, kokkos_omp)
                           "-k", "on", "t", "4", "-sf", "kk"};
 
     // cannot run dpd styles with more than 1 thread due to using multiple pRNGs
-    if (utils::strmatch(test_config.pair_style, "^dpd")) args[8] = "1";
+    if (utils::strmatch(test_config.pair_style, "^dpd")) args[9] = "1";
 
     char **argv = (char **)args;
     int argc    = sizeof(args) / sizeof(char *);

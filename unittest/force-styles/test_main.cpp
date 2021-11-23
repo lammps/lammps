@@ -38,6 +38,7 @@ using LAMMPS_NS::tagint;
 
 void EXPECT_STRESS(const std::string & name, double * stress, const stress_t & expected_stress, double epsilon)
 {
+    SCOPED_TRACE("EXPECT_STRESS: " + name);
     ErrorStats stats;
     EXPECT_FP_LE_WITH_EPS(stress[0], expected_stress.xx, epsilon);
     EXPECT_FP_LE_WITH_EPS(stress[1], expected_stress.yy, epsilon);
@@ -49,6 +50,7 @@ void EXPECT_STRESS(const std::string & name, double * stress, const stress_t & e
 }
 
 void EXPECT_FORCES(const std::string & name, Atom * atom, const std::vector<coord_t> & f_ref, double epsilon) {
+    SCOPED_TRACE("EXPECT_FORCES: " + name);
     double ** f = atom->f;
     tagint * tag = atom->tag;
     const int nlocal = atom->nlocal;
@@ -63,6 +65,7 @@ void EXPECT_FORCES(const std::string & name, Atom * atom, const std::vector<coor
 }
 
 void EXPECT_POSITIONS(const std::string & name, Atom * atom, const std::vector<coord_t> & x_ref, double epsilon) {
+    SCOPED_TRACE("EXPECT_POSITIONS: " + name);
     double ** x = atom->x;
     tagint * tag = atom->tag;
     const int nlocal = atom->nlocal;
@@ -77,6 +80,7 @@ void EXPECT_POSITIONS(const std::string & name, Atom * atom, const std::vector<c
 }
 
 void EXPECT_VELOCITIES(const std::string & name, Atom * atom, const std::vector<coord_t> & v_ref, double epsilon) {
+    SCOPED_TRACE("EXPECT_VELOCITIES: " + name);
     double ** v = atom->v;
     tagint * tag = atom->tag;
     const int nlocal = atom->nlocal;

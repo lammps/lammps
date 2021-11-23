@@ -21,6 +21,7 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "lammps.h"
+#include "atom.h"
 
 #include <cstdlib>
 #include <cstring>
@@ -30,6 +31,7 @@
 #include <vector>
 
 using LAMMPS_NS::LAMMPS;
+using LAMMPS_NS::Atom;
 using LAMMPS_NS::utils::split_words;
 using LAMMPS_NS::utils::trim;
 using LAMMPS_NS::tagint;
@@ -46,7 +48,10 @@ void EXPECT_STRESS(const std::string & name, double * stress, const stress_t & e
     if (print_stats) std::cerr << name << " stats" << stats << std::endl;
 }
 
-void EXPECT_FORCES(const std::string & name, double ** f, tagint * tag, int nlocal, const std::vector<coord_t> & f_ref, double epsilon) {
+void EXPECT_FORCES(const std::string & name, Atom * atom, const std::vector<coord_t> & f_ref, double epsilon) {
+    double ** f = atom->f;
+    tagint * tag = atom->tag;
+    const int nlocal = atom->nlocal;
     ASSERT_EQ(nlocal + 1, f_ref.size());
     ErrorStats stats;
     for (int i = 0; i < nlocal; ++i) {

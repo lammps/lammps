@@ -358,7 +358,7 @@ TEST(PairStyle, plain)
 #endif
     auto pair   = lmp->force->pair;
 
-    EXPECT_FORCES("init_forces (newton on)", lmp->atom->f, lmp->atom->tag, nlocal, test_config.init_forces, epsilon);
+    EXPECT_FORCES("init_forces (newton on)", lmp->atom, test_config.init_forces, epsilon);
     EXPECT_STRESS("init_stress (newton on)", pair->virial, test_config.init_stress, epsilon);
 
     ErrorStats stats;
@@ -371,7 +371,7 @@ TEST(PairStyle, plain)
     run_lammps(lmp);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    EXPECT_FORCES("run_forces (newton on)", lmp->atom->f, lmp->atom->tag, nlocal, test_config.run_forces, 5 * epsilon);
+    EXPECT_FORCES("run_forces (newton on)", lmp->atom, test_config.run_forces, 5 * epsilon);
     EXPECT_STRESS("run_stress (newton on)", pair->virial, test_config.run_stress, epsilon);
 
     stats.reset();
@@ -393,7 +393,7 @@ TEST(PairStyle, plain)
     if (lmp->force->newton_pair == 0) {
         pair   = lmp->force->pair;
 
-        EXPECT_FORCES("init_forces (newton off)", lmp->atom->f, lmp->atom->tag, nlocal, test_config.init_forces, epsilon);
+        EXPECT_FORCES("init_forces (newton off)", lmp->atom, test_config.init_forces, epsilon);
         EXPECT_STRESS("init_stress (newton off)", pair->virial, test_config.init_stress, 3 * epsilon);
 
         stats.reset();
@@ -405,7 +405,7 @@ TEST(PairStyle, plain)
         run_lammps(lmp);
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
-        EXPECT_FORCES("run_forces (newton off)", lmp->atom->f, lmp->atom->tag, nlocal, test_config.run_forces, 5 * epsilon);
+        EXPECT_FORCES("run_forces (newton off)", lmp->atom, test_config.run_forces, 5 * epsilon);
         EXPECT_STRESS("run_stress (newton off)", pair->virial, test_config.run_stress, epsilon);
 
         stats.reset();
@@ -425,7 +425,7 @@ TEST(PairStyle, plain)
 
     pair   = lmp->force->pair;
 
-    EXPECT_FORCES("restart_forces", lmp->atom->f, lmp->atom->tag, nlocal, test_config.init_forces, epsilon);
+    EXPECT_FORCES("restart_forces", lmp->atom, test_config.init_forces, epsilon);
     EXPECT_STRESS("restart_stress", pair->virial, test_config.init_stress, epsilon);
 
     stats.reset();
@@ -441,7 +441,7 @@ TEST(PairStyle, plain)
 
         pair   = lmp->force->pair;
 
-        EXPECT_FORCES("nofdotr_forces", lmp->atom->f, lmp->atom->tag, nlocal, test_config.init_forces, epsilon);
+        EXPECT_FORCES("nofdotr_forces", lmp->atom, test_config.init_forces, epsilon);
         EXPECT_STRESS("nofdotr_stress", pair->virial, test_config.init_stress, epsilon);
 
         stats.reset();
@@ -455,7 +455,7 @@ TEST(PairStyle, plain)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     pair   = lmp->force->pair;
-    EXPECT_FORCES("data_forces", lmp->atom->f, lmp->atom->tag, nlocal, test_config.init_forces, epsilon);
+    EXPECT_FORCES("data_forces", lmp->atom, test_config.init_forces, epsilon);
     EXPECT_STRESS("data_stress", pair->virial, test_config.init_stress, epsilon);
 
     stats.reset();
@@ -477,7 +477,7 @@ TEST(PairStyle, plain)
         pair = lmp->force->pair;
         if (pair->ncoultablebits) epsilon *= 5.0e6;
 
-        EXPECT_FORCES("run_forces (r-RESPA)", lmp->atom->f, lmp->atom->tag, nlocal, test_config.run_forces, 5 * epsilon);
+        EXPECT_FORCES("run_forces (r-RESPA)", lmp->atom, test_config.run_forces, 5 * epsilon);
         EXPECT_STRESS("run_stress (r-RESPA)", pair->virial, test_config.run_stress, epsilon);
 
         stats.reset();
@@ -539,7 +539,7 @@ TEST(PairStyle, omp)
     auto pair   = lmp->force->pair;
     ErrorStats stats;
 
-    EXPECT_FORCES("init_forces (newton on)", lmp->atom->f, lmp->atom->tag, nlocal, test_config.init_forces, epsilon);
+    EXPECT_FORCES("init_forces (newton on)", lmp->atom, test_config.init_forces, epsilon);
     EXPECT_STRESS("init_stress (newton on)", pair->virial, test_config.init_stress, 10 * epsilon);
 
     stats.reset();
@@ -551,7 +551,7 @@ TEST(PairStyle, omp)
     run_lammps(lmp);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    EXPECT_FORCES("run_forces (newton on)", lmp->atom->f, lmp->atom->tag, nlocal, test_config.run_forces, 5* epsilon);
+    EXPECT_FORCES("run_forces (newton on)", lmp->atom, test_config.run_forces, 5* epsilon);
     EXPECT_STRESS("run_stress (newton on)", pair->virial, test_config.run_stress, 10 * epsilon);
 
     stats.reset();
@@ -572,7 +572,7 @@ TEST(PairStyle, omp)
 
         pair   = lmp->force->pair;
 
-        EXPECT_FORCES("run_forces (newton off)", lmp->atom->f, lmp->atom->tag, nlocal, test_config.run_forces, epsilon);
+        EXPECT_FORCES("run_forces (newton off)", lmp->atom, test_config.run_forces, epsilon);
         EXPECT_STRESS("init_stress (newton off)", pair->virial, test_config.init_stress, 10 * epsilon);
 
         stats.reset();
@@ -584,7 +584,7 @@ TEST(PairStyle, omp)
         run_lammps(lmp);
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
-        EXPECT_FORCES("run_forces (newton off)", lmp->atom->f, lmp->atom->tag, nlocal, test_config.run_forces, 5 * epsilon);
+        EXPECT_FORCES("run_forces (newton off)", lmp->atom, test_config.run_forces, 5 * epsilon);
         EXPECT_STRESS("run_stress (newton off)", pair->virial, test_config.run_stress, 10 * epsilon);
 
         stats.reset();
@@ -602,7 +602,7 @@ TEST(PairStyle, omp)
 
     pair   = lmp->force->pair;
 
-    EXPECT_FORCES("nofdotr_forces", lmp->atom->f, lmp->atom->tag, nlocal, test_config.init_forces, 5 * epsilon);
+    EXPECT_FORCES("nofdotr_forces", lmp->atom, test_config.init_forces, 5 * epsilon);
     EXPECT_STRESS("nofdotr_stress", pair->virial, test_config.init_stress, 10 * epsilon);
 
     stats.reset();
@@ -662,7 +662,7 @@ TEST(PairStyle, kokkos_omp)
     auto pair   = lmp->force->pair;
     ErrorStats stats;
 
-    EXPECT_FORCES("init_forces (newton on)", lmp->atom->f, lmp->atom->tag, nlocal, test_config.init_forces, epsilon);
+    EXPECT_FORCES("init_forces (newton on)", lmp->atom, test_config.init_forces, epsilon);
     EXPECT_STRESS("init_stress (newton on)", pair->virial, test_config.init_stress, 10 * epsilon);
 
     stats.reset();
@@ -674,7 +674,7 @@ TEST(PairStyle, kokkos_omp)
     run_lammps(lmp);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    EXPECT_FORCES("run_forces (newton on)", lmp->atom->f, lmp->atom->tag, nlocal, test_config.run_forces, 5 * epsilon);
+    EXPECT_FORCES("run_forces (newton on)", lmp->atom, test_config.run_forces, 5 * epsilon);
     EXPECT_STRESS("run_stress (newton on)", pair->virial, test_config.run_stress, 10 * epsilon);
 
     stats.reset();
@@ -695,7 +695,7 @@ TEST(PairStyle, kokkos_omp)
 
         pair   = lmp->force->pair;
 
-        EXPECT_FORCES("init_forces (newton off)", lmp->atom->f, lmp->atom->tag, nlocal, test_config.init_forces, epsilon);
+        EXPECT_FORCES("init_forces (newton off)", lmp->atom, test_config.init_forces, epsilon);
         EXPECT_STRESS("init_stress (newton off)", pair->virial, test_config.init_stress, 10 * epsilon);
 
         stats.reset();
@@ -707,7 +707,7 @@ TEST(PairStyle, kokkos_omp)
         run_lammps(lmp);
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
-        EXPECT_FORCES("run_forces (newton off)", lmp->atom->f, lmp->atom->tag, nlocal, test_config.run_forces, 5 * epsilon);
+        EXPECT_FORCES("run_forces (newton off)", lmp->atom, test_config.run_forces, 5 * epsilon);
         EXPECT_STRESS("run_stress (newton off)", pair->virial, test_config.run_stress, 10 * epsilon);
 
         stats.reset();
@@ -725,7 +725,7 @@ TEST(PairStyle, kokkos_omp)
 
     pair   = lmp->force->pair;
 
-    EXPECT_FORCES("nofdotr_forces", lmp->atom->f, lmp->atom->tag, nlocal, test_config.init_forces, 5 * epsilon);
+    EXPECT_FORCES("nofdotr_forces", lmp->atom, test_config.init_forces, 5 * epsilon);
     EXPECT_STRESS("nofdotr_stress", pair->virial, test_config.init_stress, 10 * epsilon);
 
     stats.reset();
@@ -805,7 +805,7 @@ TEST(PairStyle, gpu)
     ErrorStats stats;
     auto pair   = lmp->force->pair;
 
-    EXPECT_FORCES("init_forces (newton off)", lmp->atom->f, lmp->atom->tag, nlocal, test_config.init_forces, epsilon);
+    EXPECT_FORCES("init_forces (newton off)", lmp->atom, test_config.init_forces, epsilon);
     EXPECT_STRESS("init_stress (newton off)", pair->virial, test_config.init_stress, 10 * epsilon);
 
     stats.reset();
@@ -817,7 +817,7 @@ TEST(PairStyle, gpu)
     run_lammps(lmp);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    EXPECT_FORCES("run_forces (newton off)", lmp->atom->f, lmp->atom->tag, nlocal, test_config.run_forces, 5 * epsilon);
+    EXPECT_FORCES("run_forces (newton off)", lmp->atom, test_config.run_forces, 5 * epsilon);
     EXPECT_STRESS("run_stress (newton off)", pair->virial, test_config.run_stress, 10 * epsilon);
 
     stats.reset();
@@ -889,7 +889,7 @@ TEST(PairStyle, intel)
     ErrorStats stats;
     auto pair     = lmp->force->pair;
 
-    EXPECT_FORCES("init_forces", lmp->atom->f, lmp->atom->tag, nlocal, test_config.init_forces, epsilon);
+    EXPECT_FORCES("init_forces", lmp->atom, test_config.init_forces, epsilon);
     EXPECT_STRESS("init_stress", pair->virial, test_config.init_stress, 10 * epsilon);
 
     stats.reset();
@@ -901,7 +901,7 @@ TEST(PairStyle, intel)
     run_lammps(lmp);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    EXPECT_FORCES("run_forces", lmp->atom->f, lmp->atom->tag, nlocal, test_config.run_forces, 5 * epsilon);
+    EXPECT_FORCES("run_forces", lmp->atom, test_config.run_forces, 5 * epsilon);
     EXPECT_STRESS("run_stress", pair->virial, test_config.run_stress, 10 * epsilon);
 
     stats.reset();
@@ -963,7 +963,7 @@ TEST(PairStyle, opt)
     ErrorStats stats;
     auto pair = lmp->force->pair;
 
-    EXPECT_FORCES("init_forces (newton off)", lmp->atom->f, lmp->atom->tag, nlocal, test_config.init_forces, epsilon);
+    EXPECT_FORCES("init_forces (newton off)", lmp->atom, test_config.init_forces, epsilon);
     EXPECT_STRESS("init_stress", pair->virial, test_config.init_stress, 10 * epsilon);
 
     stats.reset();
@@ -975,7 +975,7 @@ TEST(PairStyle, opt)
     run_lammps(lmp);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    EXPECT_FORCES("run_forces", lmp->atom->f, lmp->atom->tag, nlocal, test_config.run_forces, 5 * epsilon);
+    EXPECT_FORCES("run_forces", lmp->atom, test_config.run_forces, 5 * epsilon);
     EXPECT_STRESS("run_stress", pair->virial, test_config.run_stress, 10 * epsilon);
 
     stats.reset();
@@ -992,7 +992,7 @@ TEST(PairStyle, opt)
 
     pair   = lmp->force->pair;
 
-    EXPECT_FORCES("nofdotr_forces", lmp->atom->f, lmp->atom->tag, nlocal, test_config.init_forces, 5 * epsilon);
+    EXPECT_FORCES("nofdotr_forces", lmp->atom, test_config.init_forces, 5 * epsilon);
     EXPECT_STRESS("nofdotr_stress", pair->virial, test_config.init_stress, 10 * epsilon);
 
     stats.reset();

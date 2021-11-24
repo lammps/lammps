@@ -75,7 +75,7 @@ FixChargeRegulation::FixChargeRegulation(LAMMPS *lmp, int narg, char **arg) :
   size_vector = 8;
   global_freq = 1;
   extvector = 0;
-  restart_global = 1;
+  restart_global = 0;
   time_depend = 1;
   cr_nmax = 0;
   overlap_flag = 0;
@@ -985,9 +985,17 @@ int FixChargeRegulation::insert_particle(int ptype, double charge, double rd, do
     modify->create_attribute(m);
 
   }
-  atom->nghost = 0;
-  comm->borders();
   atom->natoms++;
+  atom->nghost = 0;
+  if (atom->tag_enable) {
+    if (atom->tag_enable) {
+      atom->tag_extend();
+      if (atom->map_style != Atom::MAP_NONE) atom->map_init();
+    }
+  }
+  if (triclinic) domain->x2lamda(atom->nlocal);
+  comm->borders();
+  if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
   return m;
 }
 

@@ -319,8 +319,11 @@ void Output::write(bigint ntimestep)
           next_dump[idump] = nextdump;
         }
 /*END*/
-        if (prepare_computes || every_dump[idump] == 0)
+        if (dump[idump]->clearstep || every_dump[idump] == 0) {
           modify->addstep_compute(next_dump[idump]);
+          if (prepare_computes)
+            modify->addstep_compute_all(next_dump[idump]);
+        }
       }
       if (idump) next_dump_any = MIN(next_dump_any,next_dump[idump]);
       else next_dump_any = next_dump[0];

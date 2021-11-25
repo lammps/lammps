@@ -1196,11 +1196,7 @@ bool Dump::is_writing()
 
 bool Dump::is_consuming_computes()
 {
-  if (vtime <= 0)
-    return clearstep == 1;
-  if (clearstep && (update->atime+update->dt > next_time))
-    return true;
-  return false;
+  return (vtime > 0 && (update->atime+update->dt >= next_time));
 }
 
 /* ----------------------------------------------------------------------
@@ -1211,7 +1207,7 @@ bool Dump::should_clear_computes()
 {
   if (vtime <= 0)
     return clearstep;
-  if (clearstep && (update->atime > next_time))
+  if (clearstep && (update->atime >= next_time))
     return true;
   return false;
 }

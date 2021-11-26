@@ -1107,14 +1107,12 @@ void Dump::modify_params(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"vtime") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
-      if (vartime_flag == 0) {
+      if (vartime_flag == 0)
         error->all(FLERR,"Cannot use dump_modify vtime for this dump style");
-      }
       vtime = utils::numeric(FLERR, arg[iarg+1],false,lmp);
       if (vtime <= 0) error->all(FLERR,"Illegal dump_modify command");
-      next_time = 0;
-      while (update->atime >= next_time)
-        next_time += vtime;
+      update->update_time();
+      next_time = vtime*(floor(update->atime/vtime)+1);
       //resetting the frequency of the dump to 1
       int idump;
       for (idump = 0; idump < output->ndump; idump++)
@@ -1191,10 +1189,10 @@ bool Dump::is_writing()
 }
 
 /* ----------------------------------------------------------------------
-   Checks whether computes should be prepared at a given time
+   Checks whether computes should be prepared for a time-based dump
 ------------------------------------------------------------------------- */
 
-bool Dump::is_consuming_computes()
+bool Dump::vtime_prepare_computes()
 {
   return (vtime > 0 && (update->atime+update->dt >= next_time));
 }
@@ -1205,10 +1203,9 @@ bool Dump::is_consuming_computes()
 
 bool Dump::should_clear_computes()
 {
-  if (vtime <= 0)
-    return clearstep;
-  if (clearstep && (update->atime >= next_time))
-    return true;
-  return false;
+  if (vtime <= 0) //just return clearstep if it is not a time-based dump
+    return clearstep == 1;
+  else
+    return (clearstep && (update->atime >= next_time));
 }
 

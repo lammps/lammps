@@ -288,7 +288,6 @@ void Output::write(bigint ntimestep)
   // next_dump does not force output on last step of run
   // wrap dumps that invoke computes or eval of variable with clear/add
 
-  bool prepare_computes;
   bool clear_computes;
   bool trigger_output;
 
@@ -300,8 +299,7 @@ void Output::write(bigint ntimestep)
         //the order is important
         clear_computes = dump[idump]->should_clear_computes();
         trigger_output = dump[idump]->is_writing();
-        prepare_computes = dump[idump]->is_consuming_computes();
-
+/*Clear invoke_flag for all computes*/
         if (clear_computes || every_dump[idump] == 0)
           modify->clearstep_compute();
 /*Checks whether to write*/
@@ -318,12 +316,14 @@ void Output::write(bigint ntimestep)
             error->all(FLERR,"Dump every variable returned a bad timestep");
           next_dump[idump] = nextdump;
         }
-/*END*/
+/*Add new timestep at which computes will be calculated*/
         if (dump[idump]->clearstep || every_dump[idump] == 0) {
-          modify->addstep_compute(next_dump[idump]);
-          if (prepare_computes)
+          if (dump[idump]->vtime_prepare_computes())
             modify->addstep_compute_all(next_dump[idump]);
+          else
+            modify->addstep_compute(next_dump[idump]);
         }
+/*END*/
       }
       if (idump) next_dump_any = MIN(next_dump_any,next_dump[idump]);
       else next_dump_any = next_dump[0];

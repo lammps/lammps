@@ -60,7 +60,7 @@ which is proportional to the tangential shear displacement with a stiffness
 of :math:`k_s`. This tangential force also induces a torque.
 In addition, bending and twisting torques are also applied to particles
 which are proportional to angular bending and twisting displacements with
-stiffnesses of :math`k_b` and :math:`k_t', respectively.
+stiffnesses of :math`k_b` and :math:`k_t`, respectively.
 Details on the calculations of shear displacements and angular displacements
 can be found in :ref:`(Wang) <Wang2009>` and :ref:`(Wang and Mora) <WangMora2009b>`.
 
@@ -98,7 +98,7 @@ where :math:`\gamma_n` is the damping strength, :math:`\hat{r}` is the
 radial normal vector, and :math:`\vec{v}` is the velocity difference
 between the two particles. Similarly, tangential forces are applied to
 each atom proportional to the relative differences in sliding velocities
-with a constant prefactor :math:`\gamma_s` (:ref:`(Wang et al.) <Wang2015>)
+with a constant prefactor :math:`\gamma_s` (:ref:`(Wang et al.) <Wang2015>`)
 along with their associated torques. The rolling and twisting components of
 the relative angular velocities of the two atoms are also damped by applying
 torques with prefactors of :math:`\gamma_r` and :math:`\gamma_t`, respectively.

@@ -28,11 +28,13 @@
 #include "neighbor.h"
 #include "potential_file_reader.h"
 #include "tokenizer.h"
+#include "math_const.h"
 
 #include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 #define DELTA 4
 
@@ -231,9 +233,24 @@ void PairSW::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairSW::settings(int narg, char **/*arg*/)
+void PairSW::settings(int narg, char **arg)
 {
-  if (narg != 0) error->all(FLERR,"Illegal pair_style command");
+  //if (narg != 0) error->all(FLERR,"Illegal pair_style command");
+  // default values
+
+  modify_flag = 0;
+
+  // process optional keywords
+
+  int iarg = 0;
+
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"modify") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style command");
+      modify_flag = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
+    } else error->all(FLERR,"Illegal pair_style command");
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -485,7 +502,7 @@ void PairSW::threebody(Param *paramij, Param *paramik, Param *paramijk,
   double r1,rinvsq1,rainv1,gsrainv1,gsrainvsq1,expgsrainv1;
   double r2,rinvsq2,rainv2,gsrainv2,gsrainvsq2,expgsrainv2;
   double rinv12,cs,delcs,delcssq,facexp,facrad,frad1,frad2;
-  double facang,facang12,csfacang,csfac1,csfac2;
+  double facang,facang12,csfacang,csfac1,csfac2,factor;
 
   r1 = sqrt(rsq1);
   rinvsq1 = 1.0/rsq1;
@@ -504,6 +521,14 @@ void PairSW::threebody(Param *paramij, Param *paramik, Param *paramijk,
   rinv12 = 1.0/(r1*r2);
   cs = (delr1[0]*delr2[0] + delr1[1]*delr2[1] + delr1[2]*delr2[2]) * rinv12;
   delcs = cs - paramijk->costheta;
+  // Modification
+  if(modify_flag) {
+    if(fabs(delcs) >= 0.35) delcs = 0.0;
+    else if(fabs(delcs) < 0.35 && fabs(delcs) > 0.25) {
+      factor = 0.5 + 0.5*cos(MY_PI*(delcs-0.25)/(0.35-0.25));
+      delcs *= factor;
+    }
+  }
   delcssq = delcs*delcs;
 
   facexp = expgsrainv1*expgsrainv2;

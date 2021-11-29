@@ -54,6 +54,8 @@ class PairSW : public Pair {
   int maxshort;       // size of short neighbor list array
   int *neighshort;    // short neighbor list array
 
+  int modify_flag;    // flag to turn on/off the modification
+
   virtual void allocate();
   void read_file(char *);
   virtual void setup_params();

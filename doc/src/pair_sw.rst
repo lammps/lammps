@@ -14,7 +14,15 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   pair_style sw
+   pair_style style keywords values
+
+* style = *sw* or *sw/gpu* or *sw/omp*
+* keyword = *modify*
+
+  .. parsed-literal::
+
+       *modify* value = flag
+         flag = 0/1 to turn off/on the modification
 
 Examples
 """"""""
@@ -24,6 +32,9 @@ Examples
    pair_style sw
    pair_coeff * * si.sw Si
    pair_coeff * * GaN.sw Ga N Ga
+
+   pair_style sw modify 1
+   pair_coeff * * tmd.sw Mo S S
 
 Description
 """""""""""
@@ -157,16 +168,52 @@ used for anything and can be set to 0.0 if desired.
 This is also true for the parameters in :math:`\phi_3` that are
 taken from the ij and ik pairs (:math:`\sigma`, *a*, :math:`\gamma`)
 
+The *modify* keyword computes the energy E of a system of atoms, whose
+formula is the same as the Stillinger-Weber potential. The only modification
+is in the three-body term, where :math:`\delta = \cos \theta_{ijk} - \cos \theta_{0ijk}`
+is modified with the following function:
+
+.. math::
+
+  g_C(\delta) & = \left\{ \begin{array} {r@{\quad:\quad}l}
+    1 & \delta < \delta_1 \\
+    \frac{1}{2} + \frac{1}{2} \cos \left( \pi \frac{\delta-\delta_1}{\delta_2 - \delta_1} \right) &
+      \delta_1 < \delta < \delta_2 \\
+    0 & \delta > \delta_2
+    \end{array} \right. \\
+
+
+The *modify* keyword is designed for simulations of materials when
+distinguishing three-body angles are necessary, such as borophene
+and transition metal dichalcogenide, which cannot be described 
+by the original code for the Stillinger-Weber potential. Validation, 
+benchmark tests, and applications of the *modify* keyword can be found in
+:ref:`(Jiang_1) <Jiang1>` and :ref:`(Jiang_2) <Jiang2>`.
+
 ----------
 
-.. include:: accel_styles.rst
+Styles with a *gpu*, *intel*, *kk*, *omp*, or *opt* suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
+page.  The accelerated styles take the same arguments and should
+produce the same results, except for round-off and precision issues.
 
-.. note::
+These accelerated styles are part of the GPU, INTEL, KOKKOS,
+OPENMP and OPT packages, respectively.  They are only enabled if
+LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` page for more info.
 
-  When using the INTEL package with this style, there is an additional
-  5 to 10 percent performance improvement when the Stillinger-Weber
-  parameters p and q are set to 4 and 0 respectively.  These
-  parameters are common for modeling silicon and water.
+You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
+:doc:`suffix <suffix>` command in your input script.
+
+When using the INTEL package with this style, there is an
+additional 5 to 10 percent performance improvement when the
+Stillinger-Weber parameters p and q are set to 4 and 0 respectively.
+These parameters are common for modeling silicon and water.
+
+See the :doc:`Speed packages <Speed_packages>` page for more
+instructions on how to use the accelerated styles effectively.
 
 ----------
 
@@ -220,3 +267,11 @@ none
 .. _Stillinger2:
 
 **(Stillinger)** Stillinger and Weber, Phys Rev B, 31, 5262 (1985).
+
+.. _Jiang1:
+
+**(Jiang_1)** J.-W. Jiang, Nanotechnology 26, 315706 (2015).
+
+.. _Jiang2:
+
+**(Jiang_2)** J.-W. Jiang, Acta Mech. Solida. Sin 32, 17 (2019).

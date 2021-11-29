@@ -2176,17 +2176,6 @@ void AtomVec::write_angle(FILE *fp, int n, tagint **buf, int index)
       index++;
     }
   }
-  
-  
-  std::string typestr;
-  for (int i = 0; i < n; i++) {
-    typestr = std::to_string(buf[i][0]);
-    if (atom->types_style == Atom::LABELS)
-      typestr = atom->lmaps[0]->atypelabel[buf[i][0]-1];
-    fmt::print(fp,"{} {} {} {} {}\n",index,
-               typestr,buf[i][1],buf[i][2],buf[i][3]);
-    index++;
-  }
 }
 
 /* ----------------------------------------------------------------------

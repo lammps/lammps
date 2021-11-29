@@ -128,6 +128,8 @@ ReadData::~ReadData()
   memory->destroy(fix_index);
   memory->sfree(fix_header);
   memory->sfree(fix_section);
+
+  delete lmap;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -753,7 +755,7 @@ void ReadData::command(int narg, char **arg)
           if (atomflag == 1)
             error->all(FLERR,"Must read Atom Type Labels before Atoms");
           tlabelflag = 1;
-          typelabels(lmap->typelabel,ntypes,Atom::ATOM);
+          typelabels(Atom::ATOM);
         } else skip_lines(ntypes);
 
       } else if (strcmp(keyword,"Bond Type Labels") == 0) {
@@ -762,7 +764,7 @@ void ReadData::command(int narg, char **arg)
             if (bondflag == 1)
               error->all(FLERR,"Must read Bond Type Labels before Bonds");
             blabelflag = 1;
-            typelabels(lmap->btypelabel,nbondtypes,Atom::BOND);
+            typelabels(Atom::BOND);
           } else skip_lines(nbondtypes);
         }
 
@@ -772,7 +774,7 @@ void ReadData::command(int narg, char **arg)
             if (angleflag == 1)
               error->all(FLERR,"Must read Angle Type Labels before Angles");
             alabelflag = 1;
-            typelabels(lmap->atypelabel,nangletypes,Atom::ANGLE);
+            typelabels(Atom::ANGLE);
           } else skip_lines(nangletypes);
         }
 
@@ -782,7 +784,7 @@ void ReadData::command(int narg, char **arg)
             if (dihedralflag == 1)
               error->all(FLERR,"Must read Dihedral Type Labels before Dihedrals");
             dlabelflag = 1;
-            typelabels(lmap->dtypelabel,ndihedraltypes,Atom::DIHEDRAL);
+            typelabels(Atom::DIHEDRAL);
           } else skip_lines(ndihedraltypes);
         }
 
@@ -792,7 +794,7 @@ void ReadData::command(int narg, char **arg)
             if (improperflag == 1)
               error->all(FLERR,"Must read Improper Type Labels before Impropers");
             ilabelflag = 1;
-            typelabels(lmap->itypelabel,nimpropertypes,Atom::IMPROPER);
+            typelabels(Atom::IMPROPER);
           } else skip_lines(nimpropertypes);
         }
 
@@ -1883,8 +1885,7 @@ void ReadData::paircoeffs()
   for (int i = 0; i < ntypes; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    parse_coeffs(buf,nullptr,1,2,toffset,tlabelflag,
-                 lmap->lmap2lmap.atom);
+    parse_coeffs(buf,nullptr,1,2,toffset,tlabelflag,lmap->lmap2lmap.atom);
     if (ncoeffarg == 0)
       error->all(FLERR,"Unexpected empty line in PairCoeffs section");
     force->pair->coeff(ncoeffarg,coeffarg);
@@ -1915,8 +1916,7 @@ void ReadData::pairIJcoeffs()
     for (j = i; j < ntypes; j++) {
       next = strchr(buf,'\n');
       *next = '\0';
-      parse_coeffs(buf,nullptr,0,2,toffset,tlabelflag,
-                   lmap->lmap2lmap.atom);
+      parse_coeffs(buf,nullptr,0,2,toffset,tlabelflag,lmap->lmap2lmap.atom);
       if (ncoeffarg == 0)
         error->all(FLERR,"Unexpected empty line in PairCoeffs section");
       force->pair->coeff(ncoeffarg,coeffarg);
@@ -2060,28 +2060,64 @@ void ReadData::impropercoeffs(int which)
 
 /* ---------------------------------------------------------------------- */
 
-void ReadData::typelabels(std::vector<std::string> &mytypelabel, int myntypes, int mode)
+void ReadData::typelabels(int mode)
 {
   if (settypeflag)
     error->all(FLERR,"Must read Type Labels before any section involving types");
-  char *next;
-  char *buf = new char[myntypes*MAXLINE];
+
+  int lntypes = 0;
+  std::vector<std::string> *labels;
+  std::unordered_map<std::string, int> *labels_map;
+
+  switch (mode)
+  {
+  case Atom::ATOM:
+    lntypes = lmap->natomtypes;
+    labels = &lmap->typelabel;
+    labels_map = &lmap->typelabel_map;
+    break;
+  case Atom::BOND:
+    lntypes = lmap->nbondtypes;
+    labels = &lmap->btypelabel;
+    labels_map = &lmap->btypelabel_map;
+    break;
+  case Atom::ANGLE:
+    lntypes = lmap->nangletypes;
+    labels = &lmap->atypelabel;
+    labels_map = &lmap->atypelabel_map;
+    break;
+  case Atom::DIHEDRAL:
+    lntypes = lmap->ndihedraltypes;
+    labels = &lmap->dtypelabel;
+    labels_map = &lmap->dtypelabel_map;
+    break;
+  case Atom::IMPROPER:
+    lntypes = lmap->nimpropertypes;
+    labels = &lmap->itypelabel;
+    labels_map = &lmap->itypelabel_map;
+    break;
+  }
+
+  if (lntypes == 0) return;
 
   if (!atom->labelmapflag) atom->add_label_map();
 
-  int eof = utils::read_lines_from_file(fp,myntypes,MAXLINE,buf,me,world);
+  char *buf = new char[lntypes*MAXLINE];
+  int eof = utils::read_lines_from_file(fp,lntypes,MAXLINE,buf,me,world);
   if (eof) error->all(FLERR,"Unexpected end of data file");
-
+  
+  char *next;
   char *original = buf;
   char *typelabel = new char[MAXLINE];
-  for (int i = 0; i < myntypes; i++) {
+  for (int i = 0; i < lntypes; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
     int rv = sscanf(buf,"%*d %s",typelabel);
     if (rv != 1) error->all(FLERR,"Invalid data file section: Type Labels");
-    if (isdigit(typelabel[0]))
+    if (isdigit(typelabel[0])) 
       error->all(FLERR,"Type labels cannot start with a number");
-    mytypelabel[i] = typelabel;
+    (*labels)[i] = typelabel;
+    (*labels_map)[typelabel] = i + 1;
     buf = next + 1;
   }
   delete[] original;

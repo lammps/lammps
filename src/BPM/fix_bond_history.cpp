@@ -130,13 +130,14 @@ double FixBondHistory::get_atom_value(int i, int m, int idata)
 
 /* ----------------------------------------------------------------------
    If stored values are updated, need to copy to atom arrays before exchanging
-   Always called before neighborlist rebuilt
+   If bondstore array has been allocated, call before nlist rebuild
    Also call prior to irregular communication in other fixes (e.g. deform)
 ------------------------------------------------------------------------- */
 
 void FixBondHistory::pre_exchange()
 {
   if (!update_flag) return;
+  if (!bondstore) return;
 
   int i1, i2, n, m, idata;
   int **bondlist = neighbor->bondlist;
@@ -193,6 +194,7 @@ void FixBondHistory::allocate()
 
 void FixBondHistory::setup_post_neighbor()
 {
+  pre_exchange();
   post_neighbor();
 }
 

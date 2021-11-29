@@ -53,6 +53,8 @@ class FixDPPimd : public Fix {
   int barostat;
   int integrator;
   int ensemble;
+  int removecomflag;
+  void remove_com_motion(); double masstotal;
 
   /* ring-polymer model */
 

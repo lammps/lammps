@@ -31,6 +31,7 @@
 #include "utils.h"
 #include "timer.h"
 #include "atom.h"
+#include "group.h"
 #include "compute.h"
 #include "modify.h"
 #include "domain.h"
@@ -59,21 +60,25 @@ FixDPPimd::FixDPPimd(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   random(nullptr), c_pe(nullptr), c_press(nullptr)
 {
-  method       = NMPIMD;
-  fmmode       = physical;
-  integrator   = obabo;
-  thermostat   = PILE_L;
-  ensemble     = nvt;
-  fmass        = 1.0;
-  temp         = 298.15;
-  Lan_temp   = 298.15;
-  sp           = 1.0;
-  harmonicflag = 0;
-  omega        = 0.0;
-  tiflag       = 0;
-  timethod     = MSTI;
-  lambda       = 0.0;
-  pextflag     = 0;
+  method        = NMPIMD;
+  fmmode        = physical;
+  integrator    = obabo;
+  thermostat    = PILE_L;
+  ensemble      = nvt;
+  fmass         = 1.0;
+  temp          = 298.15;
+  Lan_temp      = 298.15;
+  sp            = 1.0;
+  tau           = 1.0;
+  tau_p         = 1.0;
+  Pext          = 1.0;
+  harmonicflag  = 0;
+  omega         = 0.0;
+  tiflag        = 0;
+  timethod      = MSTI;
+  lambda        = 0.0;
+  pextflag      = 0;
+  removecomflag = 1;
 
   for(int i=3; i<narg-1; i+=2)
   {
@@ -187,6 +192,12 @@ FixDPPimd::FixDPPimd(LAMMPS *lmp, int narg, char **arg) :
       harmonicflag = 1;
       omega = atof(arg[i+1]);
       if(omega<0) error->universe_all(FLERR,"Invalid model frequency value for fix pimd");
+    }
+
+    else if(strcmp(arg[i], "rmcom")==0)
+    {
+      if(strcmp(arg[i+1], "yes")==0) removecomflag = 1;
+      else if(strcmp(arg[i+1], "no")==0) removecomflag = 0;
     }
     else error->universe_all(arg[i],i+1,"Unknown keyword for fix pimd");
   }
@@ -338,7 +349,8 @@ void FixDPPimd::end_of_step()
   compute_vir();
   compute_vir_();
   // compute_p_prim();
-  compute_p_cv();
+  //compute_p_cv();
+  compute_totke();
   compute_tote();
   if(pextflag) compute_totenthalpy();
 
@@ -359,6 +371,7 @@ void FixDPPimd::init()
   if(universe->me==0 && screen) fprintf(screen,"Fix pimd initializing Path-Integral ...\n");
   // fprintf(stdout, "Fix pimd initilizing Path-Integral ...\n");
 
+  masstotal = group->mass(igroup);
   // prepare the constants
 
   np = universe->nworlds;
@@ -431,6 +444,7 @@ void FixDPPimd::init()
     W = (3*atom->natoms) * tau_p * tau_p / beta_np; // consistent with the definition in i-Pi
     //W = 4 * tau_p * tau_p / beta_np;
     //printf("N=%d, tau_p=%f, beta=%f, W=%f\n", atom->natoms, tau_p, beta_np, W);
+    // Vcoeff = -1.0;
     Vcoeff = 1.0;
     vw = 0.0;
   }
@@ -459,6 +473,7 @@ void FixDPPimd::setup(int vflag)
   if(universe->me==0 && screen) fprintf(screen,"Setting up Path-Integral ...\n");
   if(universe->me==0) printf("Setting up Path-Integral ...\n");
   post_force(vflag);
+  compute_totke();
   compute_p_cv();
   //compute_p_vir();
   end_of_step();
@@ -505,25 +520,28 @@ void FixDPPimd::initial_integrate(int /*vflag*/)
   int nlocal = atom->nlocal;
   double **x = atom->x;
   imageint *image = atom->image;
-  for(int i=0; i<nlocal; i++)
-  {
-    domain->unmap(x[i], image[i]);
-  }
+  // for(int i=0; i<nlocal; i++)
+  // {
+  //   domain->unmap(x[i], image[i]);
+  // }
   
   if(integrator==obabo)
   {
     if(ensemble==nvt || ensemble==npt)
     {
       o_step();
+      if(removecomflag) remove_com_motion();
       press_o_step();
     }
+    compute_totke();
+    compute_p_cv();
     if(pextflag) press_v_step();
     b_step();
     if(method==NMPIMD)
     {
-      nmpimd_fill(atom->x);
-      comm_exec(atom->x);
-      nmpimd_transform(buf_beads, atom->x, M_x2xp[universe->iworld]);
+      // nmpimd_fill(atom->x);
+      // comm_exec(atom->x);
+      // nmpimd_transform(buf_beads, atom->x, M_x2xp[universe->iworld]);
     }
   }
 
@@ -552,10 +570,11 @@ void FixDPPimd::post_integrate()
   if(integrator==baoab || integrator==obabo)
   {
     qc_step();
-    a_step();
+    // a_step();
     if((ensemble==nvt || ensemble==npt) && integrator==baoab)
     {
       o_step();
+      if(removecomflag) remove_com_motion();
       if(pextflag) press_o_step();
     }
     else if(ensemble==nve || ensemble==nph || integrator==obabo)
@@ -567,15 +586,15 @@ void FixDPPimd::post_integrate()
       error->universe_all(FLERR, "Unknown ensemble parameter for fix pimd. Only nve and nvt are supported!\n");
     }
     qc_step();
-    a_step();
+    // a_step();
 
     compute_spring_energy();
 
     if(method==NMPIMD)
     {
-      nmpimd_fill(atom->x);
-      comm_exec(atom->x);
-      nmpimd_transform(buf_beads, atom->x, M_xp2x[universe->iworld]);
+      // nmpimd_fill(atom->x);
+      // comm_exec(atom->x);
+      // nmpimd_transform(buf_beads, atom->x, M_xp2x[universe->iworld]);
     }
 
     int nlocal = atom->nlocal;
@@ -583,10 +602,10 @@ void FixDPPimd::post_integrate()
     imageint *image = atom->image;
 
     // remap the atom coordinates and image flags so that all the atoms are in the box and domain->pbc() does not change their coordinates
-    for(int i=0; i<nlocal; i++)
-    {
-      domain->remap(x[i], image[i]);
-    }
+    // for(int i=0; i<nlocal; i++)
+    // {
+    //   domain->remap(x[i], image[i]);
+    // }
   
   }
 
@@ -609,6 +628,7 @@ void FixDPPimd::final_integrate()
     if(ensemble==nvt || ensemble==npt)
     {
       o_step();
+      if(removecomflag) remove_com_motion();
       press_o_step();
     }
   }
@@ -633,10 +653,10 @@ void FixDPPimd::post_force(int /*flag*/)
   int nlocal = atom->nlocal;
   double **x = atom->x;
   imageint *image = atom->image;
-  for(int i=0; i<nlocal; i++)
-  {
-    domain->unmap(x[i], image[i]);
-  }
+  // for(int i=0; i<nlocal; i++)
+  // {
+  //   domain->unmap(x[i], image[i]);
+  // }
 
   inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
   comm_exec(atom->x);
@@ -654,9 +674,9 @@ void FixDPPimd::post_force(int /*flag*/)
   // transform the force into normal mode representation
   if(method==NMPIMD)
   {
-    nmpimd_fill(atom->f);
-    comm_exec(atom->f);
-    nmpimd_transform(buf_beads, atom->f, M_x2xp[universe->iworld]);
+    // nmpimd_fill(atom->f);
+    // comm_exec(atom->f);
+    // nmpimd_transform(buf_beads, atom->f, M_x2xp[universe->iworld]);
   }
   c_pe->addstep(update->ntimestep+1); 
   c_press->addstep(update->ntimestep+1); 
@@ -782,6 +802,7 @@ void FixDPPimd::b_step()
   //   printf("\n");
   // }
 
+  if(removecomflag) remove_com_motion();
   double vnorm1 = 0.0, vnorm2 = 0.0; 
   for(int i=0; i<atom->nlocal; i++)
   {
@@ -933,6 +954,22 @@ void FixDPPimd::a_step(){
   }
 
 }
+void FixDPPimd::remove_com_motion(){
+  double **x = atom->x;
+  double **v = atom->v;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  if (dynamic)  masstotal = group->mass(igroup);
+  double vcm[3];
+  group->vcm(igroup,masstotal,vcm);    
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) {
+      v[i][0] -= vcm[0];
+      v[i][1] -= vcm[1];
+      v[i][2] -= vcm[2];
+    }
+  }
+}
 
 /* ---------------------------------------------------------------------- */
 void FixDPPimd::svr_step(MPI_Comm which)
@@ -999,15 +1036,15 @@ void FixDPPimd::press_v_step()
   // printf("iworld = %d, p_cv = %.6e, Pext = %.6e, beta_np = %.6e, W = %.6e.\n", universe->iworld, np*p_cv, Pext, beta_np, W);
   // printf("iworld = %d, after adding kinetic part, pw = %.8e.\n", universe->iworld, vw*W);
   if(universe->iworld==0){
-    double dvw = 0.0;
+    double dvw_proc = 0.0, dvw = 0.0;
     for(int i = 0; i < nlocal; i++)
     {
       for(int j = 0; j < 3; j++)
       {
-        dvw += dtv2 * f[i][j] * v[i][j] / W + dtv3 * f[i][j] * f[i][j] / mass[type[i]] / W;
+        dvw_proc += dtv2 * f[i][j] * v[i][j] / W + dtv3 * f[i][j] * f[i][j] / mass[type[i]] / W;
       }
     }
-    MPI_Allreduce(&dvw, &dvw, 1, MPI_DOUBLE, MPI_SUM, world);
+    MPI_Allreduce(&dvw_proc, &dvw, 1, MPI_DOUBLE, MPI_SUM, world);
     vw += dvw;
   }
   MPI_Bcast(&vw, 1, MPI_DOUBLE, 0, universe->uworld);
@@ -1526,8 +1563,10 @@ void FixDPPimd::compute_vir_()
       xcf += (atom->x[i][j] - xc[3*i+j]) * atom->f[i][j];
     }
   }
-  MPI_Allreduce(&xf, &vir_, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
-  MPI_Allreduce(&xcf, &centroid_vir, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
+  xf = vir_;
+  xcf = centroid_vir;
+  // MPI_Allreduce(&xf, &vir_, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
+  // MPI_Allreduce(&xcf, &centroid_vir, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
 }
 
 void FixDPPimd::compute_vir()
@@ -1563,7 +1602,7 @@ void FixDPPimd::compute_vir()
   // }
   // printf("\n");
   vir=(virial[0]+virial[4]+virial[8]);
-  MPI_Allreduce(&vir,&vir,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
+  // MPI_Allreduce(&vir,&vir,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
   //printf("iworld=%d, vir=%.4e.\n", universe->iworld, vir);
 }
 /* ---------------------------------------------------------------------- */
@@ -1651,7 +1690,8 @@ void FixDPPimd::compute_totke()
   }
   MPI_Allreduce(&kine, &ke_bead, 1, MPI_DOUBLE, MPI_SUM, world);
   ke_bead *= force->mvv2e;
-  MPI_Allreduce(&kine, &totke, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
+  totke = ke_bead;
+  // MPI_Allreduce(&kine, &totke, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
   totke *= force->mvv2e / np;
 
   c_press->compute_scalar();
@@ -1666,7 +1706,8 @@ void FixDPPimd::compute_pote()
   c_pe->compute_scalar();
   pot_energy_partition = c_pe->scalar;
   pot_energy_partition /= np;
-  MPI_Allreduce(&pot_energy_partition, &pote, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
+  pote = pot_energy_partition;
+  // MPI_Allreduce(&pot_energy_partition, &pote, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1758,7 +1799,8 @@ double FixDPPimd::compute_vector(int n)
   if(n==5) { return t_vir; }
   if(n==6) { return t_cv; }
   if(n==7) { return p_prim; }
-  if(n==8) { return p_vir; }
+  // if(n==8) { return p_vir; }
+  if(n==8) { return 0.5*W*vw*vw; }
   if(n==9) { return p_cv; }
   //if(pextflag) size_vector = 11;
   if(n==10) {return vw;}

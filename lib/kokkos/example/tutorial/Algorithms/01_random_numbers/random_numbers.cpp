@@ -45,7 +45,7 @@
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Random.hpp>
 #include <Kokkos_DualView.hpp>
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 #include <cstdlib>
 
 using DefaultHostType = Kokkos::HostSpace::execution_space;
@@ -74,7 +74,7 @@ using DefaultHostType = Kokkos::HostSpace::execution_space;
 template <class GeneratorPool>
 struct generate_random {
   // Output View for the random numbers
-  Kokkos::View<uint64_t*> vals;
+  Kokkos::View<uint64_t**> vals;
 
   // The GeneratorPool
   GeneratorPool rand_pool;
@@ -82,7 +82,7 @@ struct generate_random {
   int samples;
 
   // Initialize all members
-  generate_random(Kokkos::View<uint64_t*> vals_, GeneratorPool rand_pool_,
+  generate_random(Kokkos::View<uint64_t**> vals_, GeneratorPool rand_pool_,
                   int samples_)
       : vals(vals_), rand_pool(rand_pool_), samples(samples_) {}
 
@@ -94,8 +94,7 @@ struct generate_random {
     // Draw samples numbers from the pool as urand64 between 0 and
     // rand_pool.MAX_URAND64 Note there are function calls to get other type of
     // scalars, and also to specify Ranges or get a normal distributed float.
-    for (int k = 0; k < samples; k++)
-      vals(i * samples + k) = rand_gen.urand64();
+    for (int k = 0; k < samples; k++) vals(i, k) = rand_gen.urand64();
 
     // Give the state back, which will allow another thread to acquire it
     rand_pool.free_state(rand_gen);
@@ -103,11 +102,11 @@ struct generate_random {
 };
 
 int main(int argc, char* args[]) {
+  Kokkos::initialize(argc, args);
   if (argc != 3) {
     printf("Please pass two integers on the command line\n");
   } else {
     // Initialize Kokkos
-    Kokkos::initialize(argc, args);
     int size    = std::stoi(args[1]);
     int samples = std::stoi(args[2]);
 
@@ -117,7 +116,7 @@ int main(int argc, char* args[]) {
     // pool.
     Kokkos::Random_XorShift64_Pool<> rand_pool64(5374857);
     Kokkos::Random_XorShift1024_Pool<> rand_pool1024(5374857);
-    Kokkos::DualView<uint64_t*> vals("Vals", size * samples);
+    Kokkos::DualView<uint64_t**> vals("Vals", size, samples);
 
     // Run some performance comparisons
     Kokkos::Timer timer;
@@ -151,8 +150,7 @@ int main(int argc, char* args[]) {
            1.0e-9 * samples * size / time_1024);
 
     Kokkos::deep_copy(vals.h_view, vals.d_view);
-
-    Kokkos::finalize();
   }
+  Kokkos::finalize();
   return 0;
 }

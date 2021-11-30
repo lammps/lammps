@@ -49,7 +49,7 @@
 #include <CL/sycl.hpp>
 
 #include <impl/Kokkos_Error.hpp>
-
+#include <impl/Kokkos_Profiling.hpp>
 namespace Kokkos {
 namespace Experimental {
 namespace Impl {
@@ -68,7 +68,10 @@ class SYCLInternal {
 
   void* scratch_space(const size_type size);
   void* scratch_flags(const size_type size);
+  void* resize_team_scratch_space(std::int64_t bytes,
+                                  bool force_shrink = false);
 
+  uint32_t impl_get_instance_id() const;
   int m_syclDev = -1;
 
   size_t m_maxWorkgroupSize   = 0;
@@ -81,6 +84,11 @@ class SYCLInternal {
   size_type m_scratchFlagsCount       = 0;
   size_type* m_scratchFlags           = nullptr;
 
+  int64_t m_team_scratch_current_size = 0;
+  void* m_team_scratch_ptr            = nullptr;
+
+  uint32_t m_instance_id = Kokkos::Tools::Experimental::Impl::idForInstance<
+      Kokkos::Experimental::SYCL>(reinterpret_cast<uintptr_t>(this));
   std::optional<sycl::queue> m_queue;
 
   // Using std::vector<std::optional<sycl::queue>> reveals a compiler bug when
@@ -94,40 +102,16 @@ class SYCLInternal {
   template <sycl::usm::alloc Kind>
   class USMObjectMem {
    public:
-    class Deleter {
-     public:
-      Deleter() = default;
-      explicit Deleter(USMObjectMem* mem) : m_mem(mem) {}
-
-      template <typename T>
-      void operator()(T* p) const noexcept {
-        assert(m_mem);
-        assert(sizeof(T) == m_mem->size());
-
-        if constexpr (sycl::usm::alloc::device == kind)
-          // Only skipping the dtor on trivially copyable types
-          static_assert(std::is_trivially_copyable_v<T>);
-        else
-          p->~T();
-
-        m_mem->m_size = 0;
-      }
-
-     private:
-      USMObjectMem* m_mem = nullptr;
-    };
-
-    static constexpr sycl::usm::alloc kind = Kind;
-
     void reset();
 
-    void reset(sycl::queue q) {
+    void reset(sycl::queue q, uint32_t instance_id) {
+      m_instance_id = instance_id;
       reset();
       m_q.emplace(std::move(q));
     }
-
     USMObjectMem() = default;
-    explicit USMObjectMem(sycl::queue q) noexcept : m_q(std::move(q)) {}
+    explicit USMObjectMem(sycl::queue q, uint32_t instance_id) noexcept
+        : m_q(std::move(q)), m_instance_id(instance_id) {}
 
     USMObjectMem(USMObjectMem const&) = delete;
     USMObjectMem(USMObjectMem&&)      = delete;
@@ -139,7 +123,6 @@ class SYCLInternal {
     void* data() noexcept { return m_data; }
     const void* data() const noexcept { return m_data; }
 
-    size_t size() const noexcept { return m_size; }
     size_t capacity() const noexcept { return m_capacity; }
 
     // reserve() allocates space for at least n bytes
@@ -147,120 +130,68 @@ class SYCLInternal {
     size_t reserve(size_t n);
 
    private:
-    using AllocationSpace =
-        std::conditional_t<Kind == sycl::usm::alloc::device,
-                           Kokkos::Experimental::SYCLDeviceUSMSpace,
-                           Kokkos::Experimental::SYCLSharedUSMSpace>;
-
-    // This will memcpy an object T into memory held by this object
-    // returns: a T* to that object
-    //
-    // Note:  it is UB to dereference this pointer with an object that is
-    // not an implicit-lifetime nor trivially-copyable type, but presumably much
-    // faster because we can use USM device memory
-    template <typename T>
-    std::unique_ptr<T, Deleter> memcpy_from(const T& t) {
-      reserve(sizeof(T));
-      sycl::event memcopied = m_q->memcpy(m_data, std::addressof(t), sizeof(T));
-      fence(memcopied);
-
-      std::unique_ptr<T, Deleter> ptr(reinterpret_cast<T*>(m_data),
-                                      Deleter(this));
-      m_size = sizeof(T);
-      return ptr;
-    }
-
-    // This will copy-constuct an object T into memory held by this object
-    // returns: a unique_ptr<T, destruct_delete> that will call the
-    // destructor on the type when it goes out of scope.
-    //
-    // Note:  This will not work with USM device memory
-    template <typename T>
-    std::unique_ptr<T, Deleter> copy_construct_from(const T& t) {
-      static_assert(kind != sycl::usm::alloc::device,
-                    "Cannot copy construct into USM device memory");
-
-      reserve(sizeof(T));
-
-      std::unique_ptr<T, Deleter> ptr(new (m_data) T(t), Deleter(this));
-      m_size = sizeof(T);
-      return ptr;
-    }
+    using AllocationSpace = std::conditional_t<
+        Kind == sycl::usm::alloc::device,
+        Kokkos::Experimental::SYCLDeviceUSMSpace,
+        std::conditional_t<Kind == sycl::usm::alloc::shared,
+                           Kokkos::Experimental::SYCLSharedUSMSpace,
+                           Kokkos::Experimental::SYCLHostUSMSpace>>;
 
    public:
-    // Performs either memcpy (for USM device memory) and returns a T*
-    // (but is technically UB when dereferenced on an object that is not
-    // an implicit-lifetime nor trivially-copyable type
-    //
-    // or
-    //
-    // performs copy construction (for other USM memory types) and returns a
-    // unique_ptr<T, ...>
+    // Performs either sycl::memcpy (for USM device memory) or std::memcpy
+    // (otherwise) and returns a reference to the copied object.
     template <typename T>
-    std::unique_ptr<T, Deleter> copy_from(const T& t) {
-      if constexpr (sycl::usm::alloc::device == kind)
-        return memcpy_from(t);
-      else
-        return copy_construct_from(t);
+    T& copy_from(const T& t) {
+      fence();
+      reserve(sizeof(T));
+      if constexpr (sycl::usm::alloc::device == Kind) {
+        sycl::event memcopied =
+            m_q->memcpy(m_data, std::addressof(t), sizeof(T));
+        SYCLInternal::fence(
+            memcopied,
+            "Kokkos::Experimental::SYCLInternal::USMObject fence after copy",
+            m_instance_id);
+      } else
+        std::memcpy(m_data, std::addressof(t), sizeof(T));
+      return *reinterpret_cast<T*>(m_data);
     }
 
-   private:
-    // Returns a reference to t (helpful when debugging)
-    template <typename T>
-    T& memcpy_to(T& t) {
-      assert(sizeof(T) == m_size);
-
-      sycl::event memcopied = m_q->memcpy(std::addressof(t), m_data, sizeof(T));
-      fence(memcopied);
-
-      return t;
+    void fence() {
+      SYCLInternal::fence(
+          m_last_event,
+          "Kokkos::Experimental::SYCLInternal::USMObject fence to wait for "
+          "last event to finish",
+          m_instance_id);
     }
 
-    // Returns a reference to t (helpful when debugging)
-    template <typename T>
-    T& move_assign_to(T& t) {
-      static_assert(kind != sycl::usm::alloc::device,
-                    "Cannot move_assign_to from USM device memory");
-
-      assert(sizeof(T) == m_size);
-
-      t = std::move(*static_cast<T*>(m_data));
-
-      return t;
-    }
-
-   public:
-    // Returns a reference to t (helpful when debugging)
-    template <typename T>
-    T& transfer_to(T& t) {
-      if constexpr (sycl::usm::alloc::device == kind)
-        return memcpy_to(t);
-      else
-        return move_assign_to(t);
+    void register_event(sycl::event event) {
+      assert(m_last_event
+                 .get_info<sycl::info::event::command_execution_status>() ==
+             sycl::info::event_command_status::complete);
+      m_last_event = event;
     }
 
    private:
     // USMObjectMem class invariants
     // All four expressions below must evaluate to true:
     //
-    //  !m_data == !m_capacity
-    //  m_q || !m_data
-    //  m_data || !m_size
-    //  m_size <= m_capacity
+    //  !m_data == (m_capacity == 0)
+    //      m_q || !m_data
     //
     //  The above invariants mean that:
-    //  if m_size != 0 then m_data != 0
-    //  if m_data != 0 then m_capacity != 0 && m_q != nullopt
-    //  if m_data == 0 then m_capacity == 0
+    //  if m_data != nullptr then m_capacity != 0 && m_q != nullopt
+    //  if m_data == nullptr then m_capacity == 0
 
     std::optional<sycl::queue> m_q;
     void* m_data      = nullptr;
-    size_t m_size     = 0;  // sizeof(T) iff m_data points to live T
     size_t m_capacity = 0;
+    sycl::event m_last_event;
+
+    uint32_t m_instance_id;
   };
 
   // An indirect kernel is one where the functor to be executed is explicitly
-  // copied to USM device memory before being executed, to get around the
+  // copied to USM memory before being executed, to get around the
   // trivially copyable limitation of SYCL.
   using IndirectKernelMem = USMObjectMem<sycl::usm::alloc::shared>;
   IndirectKernelMem m_indirectKernelMem;
@@ -286,18 +217,18 @@ class SYCLInternal {
   // fence(...) takes any type with a .wait_and_throw() method
   // (sycl::event and sycl::queue)
   template <typename WAT>
-  static void fence_helper(WAT& wat) {
-    try {
-      wat.wait_and_throw();
-    } catch (sycl::exception const& e) {
-      Kokkos::Impl::throw_runtime_exception(
-          std::string("There was a synchronous SYCL error:\n") += e.what());
-    }
-  }
+  static void fence_helper(WAT& wat, const std::string& name,
+                           uint32_t instance_id);
 
  public:
-  static void fence(sycl::queue& q) { fence_helper(q); }
-  static void fence(sycl::event& e) { fence_helper(e); }
+  static void fence(sycl::queue& q, const std::string& name,
+                    uint32_t instance_id) {
+    fence_helper(q, name, instance_id);
+  }
+  static void fence(sycl::event& e, const std::string& name,
+                    uint32_t instance_id) {
+    fence_helper(e, name, instance_id);
+  }
 };
 
 template <typename Functor, typename Storage,
@@ -312,20 +243,24 @@ class SYCLFunctionWrapper<Functor, Storage, true> {
   SYCLFunctionWrapper(const Functor& functor, Storage&) : m_functor(functor) {}
 
   const Functor& get_functor() const { return m_functor; }
+
+  static void register_event(Storage&, sycl::event){};
 };
 
 template <typename Functor, typename Storage>
 class SYCLFunctionWrapper<Functor, Storage, false> {
-  std::unique_ptr<Functor,
-                  Experimental::Impl::SYCLInternal::IndirectKernelMem::Deleter>
-      m_kernelFunctorPtr;
+  const Functor& m_kernelFunctor;
 
  public:
   SYCLFunctionWrapper(const Functor& functor, Storage& storage)
-      : m_kernelFunctorPtr(storage.copy_from(functor)) {}
+      : m_kernelFunctor(storage.copy_from(functor)) {}
 
   std::reference_wrapper<const Functor> get_functor() const {
-    return {*m_kernelFunctorPtr};
+    return {m_kernelFunctor};
+  }
+
+  static void register_event(Storage& storage, sycl::event event) {
+    storage.register_event(event);
   }
 };
 

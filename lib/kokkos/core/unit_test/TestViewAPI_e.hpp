@@ -54,23 +54,24 @@ namespace Test {
 TEST(TEST_CATEGORY, view_remap) {
   enum { N0 = 3, N1 = 2, N2 = 8, N3 = 9 };
 
-#ifdef KOKKOS_ENABLE_CUDA
+#if defined(KOKKOS_ENABLE_CUDA)
 #define EXECSPACE                                                     \
   std::conditional<std::is_same<TEST_EXECSPACE, Kokkos::Cuda>::value, \
                    Kokkos::CudaHostPinnedSpace, TEST_EXECSPACE>::type
-#else
-#ifdef KOKKOS_ENABLE_HIP
+#elif defined(KOKKOS_ENABLE_HIP)
 #define EXECSPACE                                                     \
   std::conditional<                                                   \
       std::is_same<TEST_EXECSPACE, Kokkos::Experimental::HIP>::value, \
       Kokkos::Experimental::HIPHostPinnedSpace, TEST_EXECSPACE>::type
-#else
-#if defined(KOKKOS_ENABLE_OPENMPTARGET) || defined(KOKKOS_ENABLE_SYCL)
+#elif defined(KOKKOS_ENABLE_SYCL)
+#define EXECSPACE                                                      \
+  std::conditional<                                                    \
+      std::is_same<TEST_EXECSPACE, Kokkos::Experimental::SYCL>::value, \
+      Kokkos::Experimental::SYCLHostUSMSpace, TEST_EXECSPACE>::type
+#elif defined(KOKKOS_ENABLE_OPENMPTARGET)
 #define EXECSPACE Kokkos::HostSpace
 #else
 #define EXECSPACE TEST_EXECSPACE
-#endif
-#endif
 #endif
 
   using output_type =

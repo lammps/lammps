@@ -560,11 +560,26 @@ They must be specified in uppercase.
    *  - VEGA908
       - GPU
       - AMD GPU MI100 GFX908
-   *  - INTEL_GEN
+   *  - VEGA90A
       - GPU
-      - Intel GPUs Gen9+
+      - AMD GPU
+   *  - INTEL_DG1
+      - GPU
+      - Intel Iris XeMAX GPU
+   *  - INTEL_GEN9
+      - GPU
+      - Intel GPU Gen9
+   *  - INTEL_GEN11
+      - GPU
+      - Intel GPU Gen11
+   *  - INTEL_GEN12LP
+      - GPU
+      - Intel GPU Gen12LP
+   *  - INTEL_XEHP
+      - GPU
+      - Intel GPUs Xe-HP
 
-This list was last updated for version 3.4.1 of the Kokkos library.
+This list was last updated for version 3.5.0 of the Kokkos library.
 
 .. tabs::
 

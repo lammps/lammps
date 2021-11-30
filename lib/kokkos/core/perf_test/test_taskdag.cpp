@@ -56,7 +56,7 @@ int main() { return 0; }
 #include <cstdlib>
 #include <limits>
 
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 
 using ExecSpace = Kokkos::DefaultExecutionSpace;
 
@@ -220,7 +220,7 @@ int main(int argc, char* argv[]) {
     double time_sum = 0;
 
     for (int i = 0; i < test_repeat_outer; ++i) {
-      Kokkos::Impl::Timer timer;
+      Kokkos::Timer timer;
 
       Functor::FutureType ftmp =
           Kokkos::host_spawn(Kokkos::TaskSingle(sched), Functor(fib_input));

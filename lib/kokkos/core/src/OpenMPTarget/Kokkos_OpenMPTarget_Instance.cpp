@@ -59,7 +59,34 @@
 namespace Kokkos {
 namespace Experimental {
 namespace Impl {
-void OpenMPTargetInternal::fence() {}
+uint32_t OpenMPTargetInternal::impl_get_instance_id() const noexcept {
+  return m_instance_id;
+}
+
+void OpenMPTargetInternal::fence(openmp_fence_is_static is_static) {
+  fence(
+      "Kokkos::Experimental::Impl::OpenMPTargetInternal::fence: Unnamed "
+      "Internal Fence",
+      is_static);
+}
+void OpenMPTargetInternal::fence(const std::string& name,
+                                 openmp_fence_is_static is_static) {
+  if (is_static == openmp_fence_is_static::no) {
+    Kokkos::Tools::Experimental::Impl::profile_fence_event<
+        Kokkos::Experimental::OpenMPTarget>(
+        name,
+        Kokkos::Tools::Experimental::Impl::DirectFenceIDHandle{
+            impl_get_instance_id()},
+        [&]() {});
+  } else {
+    Kokkos::Tools::Experimental::Impl::profile_fence_event<
+        Kokkos::Experimental::OpenMPTarget>(
+        name,
+        Kokkos::Tools::Experimental::SpecialSynchronizationCases::
+            GlobalDeviceSynchronization,
+        [&]() {});
+  }
+}
 int OpenMPTargetInternal::concurrency() { return 128000; }
 const char* OpenMPTargetInternal::name() { return "OpenMPTarget"; }
 void OpenMPTargetInternal::print_configuration(std::ostream& /*stream*/,
@@ -77,7 +104,18 @@ void OpenMPTargetInternal::impl_finalize() {
     Kokkos::kokkos_free<Kokkos::Experimental::OpenMPTargetSpace>(
         space.m_uniquetoken_ptr);
 }
-void OpenMPTargetInternal::impl_initialize() { m_is_initialized = true; }
+void OpenMPTargetInternal::impl_initialize() {
+  m_is_initialized = true;
+
+  // FIXME_OPENMPTARGET:  Only fix the number of teams for NVIDIA architectures
+  // from Pascal and upwards.
+#if defined(KOKKOS_ARCH_PASCAL) || defined(KOKKOS_ARCH_VOLTA) || \
+    defined(KOKKOS_ARCH_TURING75) || defined(KOKKOS_ARCH_AMPERE)
+#if defined(KOKKOS_COMPILER_CLANG) && (KOKKOS_COMPILER_CLANG >= 1300)
+  omp_set_num_teams(512);
+#endif
+#endif
+}
 int OpenMPTargetInternal::impl_is_initialized() {
   return m_is_initialized ? 1 : 0;
 }
@@ -100,11 +138,28 @@ void OpenMPTarget::print_configuration(std::ostream& stream,
   m_space_instance->print_configuration(stream, detail);
 }
 
+uint32_t OpenMPTarget::impl_instance_id() const noexcept {
+  return m_space_instance->impl_get_instance_id();
+}
+
 int OpenMPTarget::concurrency() {
   return Impl::OpenMPTargetInternal::impl_singleton()->concurrency();
 }
 void OpenMPTarget::fence() {
-  Impl::OpenMPTargetInternal::impl_singleton()->fence();
+  Impl::OpenMPTargetInternal::impl_singleton()->fence(
+      "Kokkos::OpenMPTarget::fence: Unnamed Instance Fence");
+}
+void OpenMPTarget::fence(const std::string& name) {
+  Impl::OpenMPTargetInternal::impl_singleton()->fence(name);
+}
+void OpenMPTarget::impl_static_fence() {
+  Impl::OpenMPTargetInternal::impl_singleton()->fence(
+      "Kokkos::OpenMPTarget::fence: Unnamed Instance Fence",
+      Kokkos::Experimental::Impl::openmp_fence_is_static::yes);
+}
+void OpenMPTarget::impl_static_fence(const std::string& name) {
+  Impl::OpenMPTargetInternal::impl_singleton()->fence(
+      name, Kokkos::Experimental::Impl::openmp_fence_is_static::yes);
 }
 
 void OpenMPTarget::impl_initialize() { m_space_instance->impl_initialize(); }
@@ -146,7 +201,10 @@ void OpenMPTargetSpaceInitializer::finalize(const bool all_spaces) {
 }
 
 void OpenMPTargetSpaceInitializer::fence() {
-  Kokkos::Experimental::OpenMPTarget::fence();
+  Kokkos::Experimental::OpenMPTarget::impl_static_fence();
+}
+void OpenMPTargetSpaceInitializer::fence(const std::string& name) {
+  Kokkos::Experimental::OpenMPTarget::impl_static_fence(name);
 }
 
 void OpenMPTargetSpaceInitializer::print_configuration(std::ostream& msg,

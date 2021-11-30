@@ -431,7 +431,7 @@ void DeleteAtoms::delete_porosity(int narg, char **arg)
   if (strcmp(arg[2],"NULL") == 0) regionflag = 0;
   else {
     regionflag = 1;
-    int iregion = domain->find_region(arg[2]);
+    iregion = domain->find_region(arg[2]);
     if (iregion == -1) error->all(FLERR,"Could not find delete_atoms region ID");
     domain->regions[iregion]->prematch();
   }
@@ -448,17 +448,18 @@ void DeleteAtoms::delete_porosity(int narg, char **arg)
   memory->create(dlist,nlocal,"delete_atoms:dlist");
   for (int i = 0; i < nlocal; i++) dlist[i] = 0;
 
-  // delete fraction of atoms in both group and region
+  // delete fraction of atoms which are in both group and region
 
   double **x = atom->x;
   int *mask = atom->mask;
 
   int groupbit = group->bitmask[igroup];
 
-  for (int i = 0; i < nlocal; i++) {
+  for (int i = 0; i < nlocal; i++) { 
     if (!(mask[i] & groupbit)) continue;
-    if (regionflag && domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
-      if (random->uniform() <= porosity_fraction) dlist[i] = 1;
+    if (regionflag && 
+        !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2])) continue;
+    if (random->uniform() <= porosity_fraction) dlist[i] = 1;
   }
 
   delete random;

@@ -81,9 +81,9 @@ be deleted when running on different numbers of processors.
 
 For style *porosity* a specified *fraction* of atoms are deleted which
 are both in the specified group and within the specified region.  The
-region-ID can be specified as NULL to only impose the group
-criterion.  Likewise, specifying the group-ID as *all* will only impose
-the region criterion.
+region-ID can be specified as NULL to only impose the group criterion.
+Likewise, specifying the group-ID as *all* will only impose the region
+criterion.
 
 For example, if fraction is 0.1, then 10% of the eligible atoms will
 be deleted.  The atoms to delete are chosen randomly.  There is no
@@ -97,8 +97,8 @@ number of atoms in the system.  Note that this is not done for
 molecular systems (see the :doc:`atom_style <atom_style>` command),
 regardless of the *compress* setting, since it would foul up the bond
 connectivity that has already been assigned.  However, the
-:doc:`reset_atom_ids <reset_atom_ids>` command can be used after this command to
-accomplish the same thing.
+:doc:`reset_atom_ids <reset_atom_ids>` command can be used after this
+command to accomplish the same thing.
 
 Note that the re-assignment of IDs is not really a compression, where
 gaps in atom IDs are removed by decrementing atom IDs that are larger.
@@ -108,15 +108,15 @@ the :doc:`create_atoms <create_atoms>` command explains.
 
 A molecular system with fixed bonds, angles, dihedrals, or improper
 interactions, is one where the topology of the interactions is
-typically defined in the data file read by the
-:doc:`read_data <read_data>` command, and where the interactions
-themselves are defined with the :doc:`bond_style <bond_style>`,
-:doc:`angle_style <angle_style>`, etc commands.  If you delete atoms
-from such a system, you must be careful not to end up with bonded
-interactions that are stored by remaining atoms but which include
-deleted atoms.  This will cause LAMMPS to generate a "missing atoms"
-error when the bonded interaction is computed.  The *bond* and *mol*
-keywords offer two ways to do that.
+typically defined in the data file read by the :doc:`read_data
+<read_data>` command, and where the interactions themselves are
+defined with the :doc:`bond_style <bond_style>`, :doc:`angle_style
+<angle_style>`, etc commands.  If you delete atoms from such a system,
+you must be careful not to end up with bonded interactions that are
+stored by remaining atoms but which include deleted atoms.  This will
+cause LAMMPS to generate a "missing atoms" error when the bonded
+interaction is computed.  The *bond* and *mol* keywords offer two ways
+to do that.
 
 It the *bond* keyword is set to *yes* then any bond or angle or
 dihedral or improper interaction that includes a deleted atom is also

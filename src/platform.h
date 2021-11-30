@@ -125,6 +125,13 @@ namespace platform {
 
   int putenv(const std::string &vardef);
 
+  /*! Delete variable from the environment
+   *
+   * \param  variable  variable name
+   * \return -1 if failure otherwise 0 */
+
+  int unsetenv(const std::string &variable);
+
   /*! Get list of entries in a path environment variable
    *
    * This provides a list of strings of the entries in an environment

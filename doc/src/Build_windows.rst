@@ -89,6 +89,11 @@ miss the correct master ``CMakeLists.txt``.  Try to open the
 starting point.  It is also possible to configure and compile LAMMPS
 from the command line with a CMake binary from `cmake.org <https://cmake.org>`_.
 
+Please note, that for either approach CMake will create a so-called
+:ref:`"multi-configuration" build environment <cmake_multiconfig>`, and
+the command lines for building and testing LAMMPS must be adjusted
+accordingly.
+
 To support running in parallel you can compile with OpenMP enabled using
 the OPENMP package or install Microsoft MPI (including the SDK) and compile
 LAMMPS with MPI enabled.

@@ -25,6 +25,7 @@ KOKKOS_DEVICES ?= "OpenMP"
 # IBM:      BGQ,Power7,Power8,Power9
 # AMD-GPUS: Vega900,Vega906,Vega908,Vega90A
 # AMD-CPUS: AMDAVX,Zen,Zen2,Zen3
+# Intel-GPUs: Gen9,Gen11,Gen12LP,DG1,XeHP
 KOKKOS_ARCH ?= ""
 # Options: yes,no
 KOKKOS_DEBUG ?= "no"

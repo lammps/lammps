@@ -99,7 +99,7 @@ first_xcompiler_arg=1
 if [[ -z ${NVCC_WRAPPER_TMPDIR+x} ]]; then
   temp_dir=${TMPDIR:-/tmp}
 else
-  temp_dir=${NVCC_WRAPPER_TMPDIR+x}
+  temp_dir=${NVCC_WRAPPER_TMPDIR}
 fi
 
 # optimization flag added as a command-line argument

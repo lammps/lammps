@@ -118,6 +118,9 @@ Environment variable functions
 .. doxygenfunction:: putenv
    :project: progguide
 
+.. doxygenfunction:: unsetenv
+   :project: progguide
+
 .. doxygenfunction:: list_pathenv
    :project: progguide
 

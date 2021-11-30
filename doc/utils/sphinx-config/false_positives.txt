@@ -1125,6 +1125,7 @@ gaussian
 gaussians
 Gaussians
 Gavhane
+Gawlik
 gayberne
 gcc
 gcmc
@@ -1483,6 +1484,7 @@ Izz
 Jacobsen
 Jadhao
 Jadhav
+Jagielski
 jagreat
 Jahn
 Jalalvand
@@ -1609,6 +1611,7 @@ Koslowski
 Kosovan
 Koster
 Kosztin
+Koziol
 Kp
 kradius
 Kraker
@@ -1995,6 +1998,7 @@ minimizer
 minimizers
 minneigh
 minorder
+MinSizeRel
 minSteps
 mintcream
 Mintmire
@@ -2784,6 +2788,7 @@ relink
 relres
 relTol
 relu
+RelWithDebInfo
 remappings
 remd
 Ren

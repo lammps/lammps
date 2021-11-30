@@ -1,20 +1,17 @@
-# bilayer MoS2
+# monolayer MoS2
 units      	metal
 boundary   	p p f
 processors	* * 1
 
 atom_style 	full
-read_data       ./single_layer_MoS2.data
+read_data       single_layer_MoS2.data
 
-variable        mS  equal 32.065   # mass of sulphur atom , uint: a.u.=1.66X10^(-27)kg
-variable        mMo equal 95.94    # mass of molebdenum atom , uint: a.u.=1.66X10^(-27)kg
-
-mass            * ${mS}
-mass            1 ${mMo}
+mass            * 32.065	# mass of sulphur atom , uint: a.u.=1.66X10^(-27)kg
+mass            1 95.94		# mass of molebdenum atom , uint: a.u.=1.66X10^(-27)kg
 
 ########################## Define potentials ################################
-pair_style      sw modify 1
-pair_coeff      * * tmd.sw Mo S S
+pair_style      sw/mod
+pair_coeff      * * tmd.sw.mod Mo S S
 #########################################################################
 
 ### Simulation settings ####

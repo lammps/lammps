@@ -28,19 +28,17 @@
 #include "neighbor.h"
 #include "potential_file_reader.h"
 #include "tokenizer.h"
-#include "math_const.h"
 
 #include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 #define DELTA 4
 
 /* ---------------------------------------------------------------------- */
 
-PairSW::PairSW(LAMMPS *lmp) : Pair(lmp)
+PairSW::PairSW(LAMMPS *lmp) : Pair(lmp), variant(SW)
 {
   single_enable = 0;
   restartinfo = 0;
@@ -233,24 +231,9 @@ void PairSW::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairSW::settings(int narg, char **arg)
+void PairSW::settings(int narg, char **/*arg*/)
 {
-  //if (narg != 0) error->all(FLERR,"Illegal pair_style command");
-  // default values
-
-  modify_flag = 0;
-
-  // process optional keywords
-
-  int iarg = 0;
-
-  while (iarg < narg) {
-    if (strcmp(arg[iarg],"modify") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style command");
-      modify_flag = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      iarg += 2;
-    } else error->all(FLERR,"Illegal pair_style command");
-  }
+  if (narg != 0) error->all(FLERR,"Illegal pair_style command");
 }
 
 /* ----------------------------------------------------------------------
@@ -309,8 +292,22 @@ void PairSW::read_file(char *file)
   // open file on proc 0
 
   if (comm->me == 0) {
-    PotentialFileReader reader(lmp, file, "sw", unit_convert_flag);
-    char *line;
+    std::string potential_name;
+    switch (variant) {
+    case SW:
+      potential_name = "sw";
+      break;
+
+    case SW_MOD:
+      potential_name = "sw/mod";
+      break;
+
+    default:
+      error->one(FLERR,"Unknown SW style variant {}",variant);
+    }
+
+    PotentialFileReader reader(lmp, file, potential_name, unit_convert_flag);
+    char * line;
 
     // transparently convert units for supported conversions
 
@@ -345,7 +342,8 @@ void PairSW::read_file(char *file)
 
         if (nparams == maxparam) {
           maxparam += DELTA;
-          params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),"pair:params");
+          params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
+                                              "pair:params");
 
           // make certain all addional allocated storage is initialized
           // to avoid false positives when checking with valgrind
@@ -502,7 +500,7 @@ void PairSW::threebody(Param *paramij, Param *paramik, Param *paramijk,
   double r1,rinvsq1,rainv1,gsrainv1,gsrainvsq1,expgsrainv1;
   double r2,rinvsq2,rainv2,gsrainv2,gsrainvsq2,expgsrainv2;
   double rinv12,cs,delcs,delcssq,facexp,facrad,frad1,frad2;
-  double facang,facang12,csfacang,csfac1,csfac2,factor;
+  double facang,facang12,csfacang,csfac1,csfac2;
 
   r1 = sqrt(rsq1);
   rinvsq1 = 1.0/rsq1;
@@ -521,14 +519,6 @@ void PairSW::threebody(Param *paramij, Param *paramik, Param *paramijk,
   rinv12 = 1.0/(r1*r2);
   cs = (delr1[0]*delr2[0] + delr1[1]*delr2[1] + delr1[2]*delr2[2]) * rinv12;
   delcs = cs - paramijk->costheta;
-  // Modification
-  if(modify_flag) {
-    if(fabs(delcs) >= 0.35) delcs = 0.0;
-    else if(fabs(delcs) < 0.35 && fabs(delcs) > 0.25) {
-      factor = 0.5 + 0.5*cos(MY_PI*(delcs-0.25)/(0.35-0.25));
-      delcs *= factor;
-    }
-  }
   delcssq = delcs*delcs;
 
   facexp = expgsrainv1*expgsrainv2;

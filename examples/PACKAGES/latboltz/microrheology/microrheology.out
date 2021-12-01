@@ -1,0 +1,96 @@
+LAMMPS (29 Sep 2021 - Update 1)
+Reading data file ...
+  orthogonal box = (-48.000000 -48.000000 -48.000000) to (48.000000 48.000000 48.000000)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  482 atoms
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     0 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     1 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.014 seconds
+2 atoms in group ForceAtoms
+480 atoms in group FluidAtoms
+Using a lattice-Boltzmann grid of 80 by 80 by 80 total grid points. (../fix_lb_fluid.cpp:475)
+Local Grid Geometry created. (../fix_lb_fluid.cpp:1021)
+First Run initialized
+  2 rigid bodies with 482 atoms
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 6.18
+  ghost atom cutoff = 6.18
+  binsize = 3.09, bins = 32 32 32
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Setting up Verlet run ...
+  Unit style    : nano
+  Current step  : 0
+  Time step     : 0.00025
+WARNING: Communication cutoff adjusted to 6.18 (../comm.cpp:739)
+Per MPI rank memory allocation (min/avg/max) = 7.071 | 7.133 | 7.196 Mbytes
+Step v_x1 v_y1 v_z1 v_x2 v_y2 v_z2 
+       0           -6           -6           -6            6            6            6 
+     100   -5.9728258   -6.0005827   -5.9442685    5.9742978    6.0301171    5.9331116 
+     200   -5.9160265   -5.9832234   -5.9485519    6.0258914    6.0954103    5.8748455 
+     300    -5.859605   -5.9503512   -5.9827305    6.0472442    6.0610438    5.8531801 
+     400   -5.8495832    -5.923183   -6.0205706    6.1502952    5.9975714    5.8964144 
+     500   -5.8229958   -5.9256007    -5.963852    6.1738854    5.8961268    5.8723276 
+     600   -5.7813718   -5.9423848   -5.9309537    6.2083705     5.866578    5.9308017 
+     700   -5.7652512   -5.8737534   -5.9083059    6.2502919     5.757157    5.9690204 
+     800   -5.7586139   -5.8559089   -5.8863028    6.2708214    5.7307727    5.9443721 
+     900   -5.7200104   -5.8603762   -5.8944329      6.28719    5.7723113    5.9660136 
+    1000   -5.7224239   -5.8487095   -5.9013071    6.3156272    5.8026721    5.9558441 
+    1100    -5.576187   -5.8604571   -5.9254376    6.3778561    5.7655467    5.9702619 
+    1200   -5.5348377   -5.8086817   -5.9982829    6.3979309    5.8028207     5.930579 
+    1300   -5.5937473   -5.7733457   -6.0596682    6.3630776     5.937045    5.9662317 
+    1400   -5.6207137   -5.7027974   -6.0641922    6.3079248    5.9631009    5.9707377 
+    1500   -5.6648138   -5.6229854   -6.0989624    6.2784552    5.9448163    5.9254903 
+    1600   -5.6905161   -5.5479418   -6.0704567    6.3133179     5.941372    5.8933924 
+    1700   -5.6878847   -5.5415566   -6.0222328    6.3633902    5.9957476    5.7994115 
+    1800   -5.6500526   -5.5204331   -5.9767389    6.4081067    5.9651289    5.7297962 
+    1900   -5.7221835   -5.4972898   -5.9670446    6.4470403    5.9161644    5.6902098 
+    2000   -5.7427378   -5.4637388   -6.0196569    6.3668465    5.9127502    5.6931183 
+Loop time of 337.139 on 4 procs for 2000 steps with 482 atoms
+
+Performance: 128.137 ns/day, 0.187 hours/ns, 5.932 timesteps/s
+100.0% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.0025147  | 0.0050251  | 0.0075003  |   3.5 |  0.00
+Bond    | 0.0004674  | 0.00047853 | 0.0004909  |   0.0 |  0.00
+Neigh   | 0.0005738  | 0.0036401  | 0.0068179  |   5.0 |  0.00
+Comm    | 0.056088   | 0.063835   | 0.071507   |   2.3 |  0.02
+Output  | 0.0026851  | 0.0074911  | 0.0090938  |   3.2 |  0.00
+Modify  | 336.86     | 336.88     | 336.9      |   0.1 | 99.92
+Other   |            | 0.1791     |            |       |  0.05
+
+Nlocal:        120.500 ave         241 max           0 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:        181.000 ave         297 max          80 min
+Histogram: 2 0 0 0 0 0 0 0 1 1
+Neighs:         0.00000 ave           0 max           0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0.0000000
+Ave special neighs/atom = 0.0000000
+Neighbor list builds = 20
+Dangerous builds = 0
+
+LB equilibriumDist time: 185.672949
+LB update time: 78.463559
+LB PCalc time: 43.293723
+LB fluidForce time: 16.211223
+LB CorrectU time: 13.017318
+Total wall time: 0:05:37

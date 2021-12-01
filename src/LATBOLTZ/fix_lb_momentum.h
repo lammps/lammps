@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   https://www.lammps.org/, Sandia National Laboratories
+   http://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,7 +13,7 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(lb/momentum,FixLbMomentum);
+FixStyle(lb/momentum,FixLbMomentum)
 // clang-format on
 #else
 
@@ -23,7 +23,7 @@ FixStyle(lb/momentum,FixLbMomentum);
 #include "fix.h"
 
 namespace LAMMPS_NS {
-
+ 
 class FixLbMomentum : public Fix {
  public:
   FixLbMomentum(class LAMMPS *, int, char **);
@@ -33,13 +33,14 @@ class FixLbMomentum : public Fix {
 
  private:
   int linear;
-  int xflag, yflag, zflag;
+  int xflag,yflag,zflag;
   double masstotal;
+  int count;
 
   class FixLbFluid *fix_lb_fluid;
 };
 
-}    // namespace LAMMPS_NS
+}   // namespace LAMMPS_NS
 
 #endif
 #endif

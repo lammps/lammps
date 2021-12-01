@@ -1,0 +1,71 @@
+<?xml version="1.0" ?>
+<!DOCTYPE Xdmf SYSTEM "Xdmf.dtd" []>
+<Xdmf Version="2.0">
+  <Domain>
+    <Grid Name="fluid" GridType="Collection" CollectionType="Temporal">
+
+      <Grid Name="0">
+        <Time Value="0.000000"/>
+
+        <Topology TopologyType="3DCoRectMesh" Dimensions="61 51 61"/>
+        <Geometry GeometryType="ORIGIN_DXDYDZ">
+          <DataItem Dimensions="3">
+            -120.000000 -100.000000 -120.000000
+          </DataItem>
+          <DataItem Dimensions="3">
+            4.000000 4.000000 4.000000
+          </DataItem>
+        </Geometry>
+
+        <Attribute Name="density">
+          <DataItem ItemType="Function" Function="$0 * 1.000000" Dimensions="61 51 61">
+            <DataItem Precision="8" Format="Binary" Seek="0" Dimensions="61 51 61">
+              fflow.raw
+            </DataItem>
+          </DataItem>
+        </Attribute>
+
+        <Attribute Name="velocity" AttributeType="Vector">
+          <DataItem ItemType="Function" Function="$0 * 2.000000" Dimensions="61 51 61 3">
+            <DataItem Precision="8" Format="Binary" Seek="1518168" Dimensions="61 51 61 3">
+              fflow.raw
+            </DataItem>
+          </DataItem>
+        </Attribute>
+
+      </Grid>
+
+      <Grid Name="2500">
+        <Time Value="1.000000"/>
+
+        <Topology TopologyType="3DCoRectMesh" Dimensions="61 51 61"/>
+        <Geometry GeometryType="ORIGIN_DXDYDZ">
+          <DataItem Dimensions="3">
+            -120.000000 -100.000000 -120.000000
+          </DataItem>
+          <DataItem Dimensions="3">
+            4.000000 4.000000 4.000000
+          </DataItem>
+        </Geometry>
+
+        <Attribute Name="density">
+          <DataItem ItemType="Function" Function="$0 * 1.000000" Dimensions="61 51 61">
+            <DataItem Precision="8" Format="Binary" Seek="6072672" Dimensions="61 51 61">
+              fflow.raw
+            </DataItem>
+          </DataItem>
+        </Attribute>
+
+        <Attribute Name="velocity" AttributeType="Vector">
+          <DataItem ItemType="Function" Function="$0 * 2.000000" Dimensions="61 51 61 3">
+            <DataItem Precision="8" Format="Binary" Seek="7590840" Dimensions="61 51 61 3">
+              fflow.raw
+            </DataItem>
+          </DataItem>
+        </Attribute>
+
+      </Grid>
+
+    </Grid>
+  </Domain>
+</Xdmf>

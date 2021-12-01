@@ -1,0 +1,81 @@
+LAMMPS (29 Sep 2021 - Update 1)
+Reading data file ...
+  orthogonal box = (0.0000000 0.0000000 0.0000000) to (40.000000 40.000000 40.000000)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  992 atoms
+  scanning bonds ...
+  1 = max bonds/atom
+  reading bonds ...
+  31 bonds
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        1        1       
+  special bond factors coul:  0        1        1       
+     2 = max # of 1-2 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.027 seconds
+32 atoms in group ForceAtoms
+960 atoms in group FluidAtoms
+Using a lattice-Boltzmann grid of 40 by 40 by 41 total grid points. (../fix_lb_fluid.cpp:475)
+Local Grid Geometry created. (../fix_lb_fluid.cpp:1021)
+First Run initialized
+  create bodies CPU = 0.000 seconds
+  32 rigid bodies with 992 atoms
+  0.70010803 = max distance from body owner to body atom
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.18369
+  ghost atom cutoff = 2.5
+  binsize = 1.091845, bins = 37 37 37
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Setting up Verlet run ...
+  Unit style    : nano
+  Current step  : 0
+  Time step     : 0.0001
+WARNING: Communication cutoff 2.5 is shorter than a bond length based estimate of 2.6825. This may lead to errors. (../comm.cpp:730)
+Per MPI rank memory allocation (min/avg/max) = 8.114 | 10.07 | 12.65 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            0   -8.2758489    2790.7741    2782.4982   0.85835765 
+   10000    15.559756   -10.240592    2817.6714    2827.7319 -0.0015697449 
+Loop time of 217.363 on 4 procs for 10000 steps with 992 atoms
+
+Performance: 397.491 ns/day, 0.060 hours/ns, 46.006 timesteps/s
+99.8% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.013036   | 0.048243   | 0.13073    |  22.1 |  0.02
+Bond    | 0.0098736  | 0.02098    | 0.040036   |   8.4 |  0.01
+Neigh   | 0.4698     | 0.4764     | 0.48073    |   0.7 |  0.22
+Comm    | 0.085369   | 0.27273    | 0.51085    |  36.0 |  0.13
+Output  | 0.13148    | 0.36286    | 1.0297     |  63.9 |  0.17
+Modify  | 215.41     | 215.91     | 216.3      |   2.2 | 99.33
+Other   |            | 0.2725     |            |       |  0.13
+
+Nlocal:        248.000 ave         802 max           0 min
+Histogram: 2 0 1 0 0 0 0 0 0 1
+Nghost:        113.250 ave         190 max          42 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:        4.25000 ave          15 max           0 min
+Histogram: 2 1 0 0 0 0 0 0 0 1
+
+Total # of neighbors = 17
+Ave neighs/atom = 0.017137097
+Ave special neighs/atom = 0.062500000
+Neighbor list builds = 495
+Dangerous builds = 0
+
+LB equilibriumDist time: 94.576600
+LB update time: 66.882962
+LB PCalc time: 33.159861
+LB fluidForce time: 11.576858
+LB CorrectU time: 8.640308
+Total wall time: 0:03:37

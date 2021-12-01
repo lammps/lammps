@@ -25,26 +25,13 @@ Description
 
 This fix is similar to the :doc:`fix viscous <fix_viscous>` command, and
 is to be used in place of that command when a lattice-Boltzmann fluid
-is present, and the user wishes to integrate the particle motion using
-one of the built in LAMMPS integrators.
+is present using the :doc:`fix lb/fluid <fix_lb_fluid>`.  This should be used in conjunction with one of the built-in LAMMPS integrators, such as :doc:`fix NVE <fix_nve>` or :doc:`fix rigid <fix_rigid>`.
 
-This fix adds a force, F = - Gamma\*(velocity-fluid_velocity), to each
-atom, where Gamma is the force coupling constant described in the :doc:`fix lb/fluid <fix_lb_fluid>` command (which applies an equal and
-opposite force to the fluid).
-
-.. note::
-
-   This fix should only be used in conjunction with one of the
-   built in LAMMPS integrators; it should not be used with the :doc:`fix lb/pc <fix_lb_pc>` or :doc:`fix lb/rigid/pc/sphere <fix_lb_rigid_pc_sphere>` integrators, which
-   already include the hydrodynamic forces.  These latter fixes should
-   only be used if the force coupling constant has been set by the user
-   (instead of using the default value); if the default force coupling
-   value is used, then this fix provides the only method for adding the
-   hydrodynamic forces to the particles.
+This fix adds a viscous force to each atom to cause it move with the same velocity as the fluid (an equal and opposite force is applied to the fluid via :doc:`fix lb/fluid <fix_lb_fluid>`).  When :doc:`fix lb/fluid <fix_lb_fluid>` is called with the noise option, the atoms will also experience random forces which will thermalize them to the same temperature as the fluid.  In this way, the combination of this fix with :doc:`fix lb/fluid <fix_lb_fluid>` and a LAMMPS integrator like :doc:`fix NVE <fix_nve>` is analogous to :doc:`fix langevin <fix_langevin>` except here the fluid is explicit.  The temperature of the particles can be monitored via the scalar output of :doc:`fix lb/fluid <fix_lb_fluid>`.
 
 ----------
 
-For further details, as well as descriptions and results of several
+For details of an earlier implementation of this fix, as well as descriptions and results of several
 test runs, see :ref:`Mackay et al. <Mackay3>`.  Please include a citation to
 this paper if this fix is used in work contributing to published
 research.
@@ -78,14 +65,11 @@ Can only be used if a lattice-Boltzmann fluid has been created via the
 :doc:`fix lb/fluid <fix_lb_fluid>` command, and must come after this
 command.
 
-This fix should not be used if either the :doc:`fix lb/pc <fix_lb_pc>`
-or :doc:`fix lb/rigid/pc/sphere <fix_lb_rigid_pc_sphere>` integrator is
-used.
 
 Related commands
 """"""""""""""""
 
-:doc:`fix lb/fluid <fix_lb_fluid>`, :doc:`fix lb/pc <fix_lb_pc>`, :doc:`fix lb/rigid/pc/sphere <fix_lb_rigid_pc_sphere>`
+:doc:`fix lb/fluid <fix_lb_fluid>`
 
 Default
 """""""

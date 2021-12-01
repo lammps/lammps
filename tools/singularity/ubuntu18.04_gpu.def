@@ -110,6 +110,7 @@ From: ubuntu:18.04
         valgrind \
         gdb \
         zstd \
+        libyaml-cpp-dev \
         libkim-api-dev \
         openkim-models
 

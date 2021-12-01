@@ -17,7 +17,7 @@ From: centos:8
                texlive-framed texlive-wrapfig texlive-upquote texlive-capt-of \
                texlive-needspace texlive-titlesec texlive-anysize texlive-dvipng \
                blas-devel lapack-devel libyaml-devel openkim-models kim-api-devel \
-               zstd libzstd-devel
+               zstd libzstd-devel yaml-cpp-devel
         dnf clean all
 
         # we need to reset any module variables

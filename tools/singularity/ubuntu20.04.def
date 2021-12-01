@@ -71,6 +71,7 @@ From: ubuntu:20.04
         valgrind \
         gdb \
         zstd \
+        libyaml-cpp-dev \
         libkim-api-dev \
         openkim-models
 

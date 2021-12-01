@@ -65,6 +65,7 @@ From: nvidia/cuda:11.4.2-devel-ubuntu20.04
         valgrind \
         gdb \
         zstd \
+        libyaml-cpp-dev \
         libkim-api-dev \
         openkim-models
 

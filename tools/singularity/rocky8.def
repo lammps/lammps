@@ -17,6 +17,7 @@ From: rockylinux/rockylinux:8
                texlive-framed texlive-wrapfig texlive-upquote texlive-capt-of \
                texlive-needspace texlive-titlesec texlive-anysize texlive-dvipng \
                blas-devel lapack-devel libyaml-devel openkim-models kim-api-devel \
+               yaml-cpp-devel \
                zstd libzstd-devel
         dnf clean all
 

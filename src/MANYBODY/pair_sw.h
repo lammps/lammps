@@ -61,7 +61,7 @@ class PairSW : public Pair {
   void read_file(char *);
   virtual void setup_params();
   void twobody(Param *, double, double &, int, double &);
-  void threebody(Param *, Param *, Param *, double, double, double *, double *, double *, double *,
+  virtual void threebody(Param *, Param *, Param *, double, double, double *, double *, double *, double *,
                  int, double &);
 };
 

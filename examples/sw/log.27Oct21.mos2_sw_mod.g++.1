@@ -1,13 +1,13 @@
-LAMMPS (27 Oct 2021)
+LAMMPS (30 Jul 2021)
 OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (../comm.cpp:98)
   using 1 OpenMP thread(s) per MPI task
-# bilayer MoS2
+# monolayer MoS2
 units      	metal
 boundary   	p p f
 processors	* * 1
 
 atom_style 	full
-read_data       ./single_layer_MoS2.data
+read_data       single_layer_MoS2.data
 Reading data file ...
   triclinic box = (0.0000000 0.0000000 -100.00000) to (51.152320 44.299209 100.00000) with tilt (25.576160 0.0000000 0.0000000)
   1 by 1 by 1 MPI processor grid
@@ -20,21 +20,16 @@ Finding 1-2 1-3 1-4 neighbors ...
      0 = max # of 1-3 neighbors
      0 = max # of 1-4 neighbors
      1 = max # of special neighbors
-  special bonds CPU = 0.000 seconds
-  read_data CPU = 0.006 seconds
+  special bonds CPU = 0.001 seconds
+  read_data CPU = 0.005 seconds
 
-variable        mS  equal 32.065   # mass of sulphur atom , uint: a.u.=1.66X10^(-27)kg
-variable        mMo equal 95.94    # mass of molebdenum atom , uint: a.u.=1.66X10^(-27)kg
-
-mass            * ${mS}
-mass            * 32.065
-mass            1 ${mMo}
-mass            1 95.94
+mass            * 32.065	# mass of sulphur atom , uint: a.u.=1.66X10^(-27)kg
+mass            1 95.94		# mass of molebdenum atom , uint: a.u.=1.66X10^(-27)kg
 
 ########################## Define potentials ################################
-pair_style      sw modify 1
-pair_coeff      * * tmd.sw Mo S S
-Reading sw potential file tmd.sw with DATE: 2018-03-26
+pair_style      sw/mod
+pair_coeff      * * tmd.sw.mod Mo S S
+Reading sw/mod potential file tmd.sw.mod with DATE: 2018-03-26
 #########################################################################
 
 ### Simulation settings ####
@@ -58,7 +53,7 @@ Neighbor list info ...
   ghost atom cutoff = 5.158796
   binsize = 2.579398, bins = 30 18 78
   1 neighbor lists, perpetual/occasional/extra = 1 0 0
-  (1) pair sw, perpetual
+  (1) pair sw/mod, perpetual
       attributes: full, newton on
       pair build: full/bin
       stencil: full/bin/3d
@@ -76,21 +71,21 @@ Step TotEng PotEng KinEng Temp
     4000   -899.28397   -920.50737    21.223397    214.06955 
     4500   -899.28386   -919.79154    20.507685    206.85053 
     5000   -899.28077   -918.78947    19.508698    196.77425 
-Loop time of 3.13855 on 1 procs for 5000 steps with 768 atoms
+Loop time of 2.88628 on 1 procs for 5000 steps with 768 atoms
 
-Performance: 137.643 ns/day, 0.174 hours/ns, 1593.092 timesteps/s
+Performance: 149.674 ns/day, 0.160 hours/ns, 1732.334 timesteps/s
 99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 3.0292     | 3.0292     | 3.0292     |   0.0 | 96.52
-Bond    | 0.0033211  | 0.0033211  | 0.0033211  |   0.0 |  0.11
+Pair    | 2.8297     | 2.8297     | 2.8297     |   0.0 | 98.04
+Bond    | 0.00028899 | 0.00028899 | 0.00028899 |   0.0 |  0.01
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.020003   | 0.020003   | 0.020003   |   0.0 |  0.64
-Output  | 0.0005136  | 0.0005136  | 0.0005136  |   0.0 |  0.02
-Modify  | 0.051294   | 0.051294   | 0.051294   |   0.0 |  1.63
-Other   |            | 0.03422    |            |       |  1.09
+Comm    | 0.0095191  | 0.0095191  | 0.0095191  |   0.0 |  0.33
+Output  | 0.0002787  | 0.0002787  | 0.0002787  |   0.0 |  0.01
+Modify  | 0.034603   | 0.034603   | 0.034603   |   0.0 |  1.20
+Other   |            | 0.01188    |            |       |  0.41
 
 Nlocal:        768.000 ave         768 max         768 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -106,4 +101,4 @@ Ave neighs/atom = 26.666667
 Ave special neighs/atom = 0.0000000
 Neighbor list builds = 0
 Dangerous builds = 0
-Total wall time: 0:00:03
+Total wall time: 0:00:02

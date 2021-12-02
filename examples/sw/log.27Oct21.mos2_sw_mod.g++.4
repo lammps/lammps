@@ -1,0 +1,104 @@
+LAMMPS (27 Oct 2021)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (../comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+# monolayer MoS2
+units      	metal
+boundary   	p p f
+processors	* * 1
+
+atom_style 	full
+read_data       single_layer_MoS2.data
+Reading data file ...
+  triclinic box = (0.0000000 0.0000000 -100.00000) to (51.152320 44.299209 100.00000) with tilt (25.576160 0.0000000 0.0000000)
+  2 by 2 by 1 MPI processor grid
+  reading atoms ...
+  768 atoms
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     0 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     1 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.005 seconds
+
+mass            * 32.065	# mass of sulphur atom , uint: a.u.=1.66X10^(-27)kg
+mass            1 95.94		# mass of molebdenum atom , uint: a.u.=1.66X10^(-27)kg
+
+########################## Define potentials ################################
+pair_style      sw/mod
+pair_coeff      * * tmd.sw.mod Mo S S
+Reading sw potential file tmd.sw.mod with DATE: 2018-03-26
+#########################################################################
+
+### Simulation settings ####
+timestep        0.001
+velocity        all create 300.0 12345
+
+############################
+
+# Output
+thermo          500
+thermo_style    custom step etotal pe ke temp
+thermo_modify   lost warn
+
+###### Run molecular dynamics ######
+fix             thermostat all nve
+run             5000
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 5.158796
+  ghost atom cutoff = 5.158796
+  binsize = 2.579398, bins = 30 18 78
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair sw/mod, perpetual
+      attributes: full, newton on
+      pair build: full/bin
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 6.360 | 6.360 | 6.360 Mbytes
+Step TotEng PotEng KinEng Temp 
+       0   -899.28605   -929.02881    29.742759          300 
+     500   -899.28626   -922.45519    23.168929    233.69313 
+    1000   -899.29247   -925.86547    26.573002    268.02828 
+    1500   -899.27957   -916.95478    17.675214    178.28084 
+    2000   -899.28171   -918.38728    19.105573    192.70814 
+    2500   -899.28732   -922.50423     23.21691    234.17709 
+    3000   -899.28195   -918.74112    19.459174    196.27473 
+    3500   -899.27944   -918.03105    18.751604    189.13784 
+    4000   -899.28397   -920.50737    21.223397    214.06955 
+    4500   -899.28386   -919.79154    20.507685    206.85053 
+    5000   -899.28077   -918.78947    19.508698    196.77425 
+Loop time of 0.741432 on 4 procs for 5000 steps with 768 atoms
+
+Performance: 582.656 ns/day, 0.041 hours/ns, 6743.708 timesteps/s
+99.8% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.64552    | 0.65764    | 0.66951    |   1.4 | 88.70
+Bond    | 0.00027894 | 0.00029732 | 0.00031402 |   0.0 |  0.04
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.054789   | 0.066165   | 0.078466   |   4.3 |  8.92
+Output  | 0.00010959 | 0.00011859 | 0.00013564 |   0.0 |  0.02
+Modify  | 0.0083096  | 0.0085094  | 0.0087577  |   0.2 |  1.15
+Other   |            | 0.008697   |            |       |  1.17
+
+Nlocal:        192.000 ave         194 max         190 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+Nghost:        194.000 ave         196 max         192 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+Neighs:         0.00000 ave           0 max           0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:      5120.00 ave        5170 max        5070 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+
+Total # of neighbors = 20480
+Ave neighs/atom = 26.666667
+Ave special neighs/atom = 0.0000000
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:00

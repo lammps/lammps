@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Jin-Wu Jiang (SHU) and Wengen Ouyang (WHU)
+   Contributing authors: Jin-Wu Jiang (Shanghai U) and Wengen Ouyang (Wuhan U)
 ------------------------------------------------------------------------- */
 
 #include "pair_sw_mod.h"
@@ -28,9 +28,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairSWMOD::PairSWMOD(LAMMPS *lmp) : PairSW(lmp) {
-  variant = SW_MOD;
-}
+PairSWMOD::PairSWMOD(LAMMPS *lmp) : PairSW(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 

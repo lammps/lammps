@@ -36,8 +36,6 @@ class PairSW : public Pair {
 
   static constexpr int NPARAMS_PER_LINE = 14;
 
-  enum { SW, SW_MOD };    // for telling class variants apart in shared code
-
   struct Param {
     double epsilon, sigma;
     double littlea, lambda, gamma, costheta;
@@ -51,7 +49,6 @@ class PairSW : public Pair {
   };
 
  protected:
-  int variant;
   double cutmax;      // max cutoff for all elements
   Param *params;      // parameter set for an I-J-K interaction
   int maxshort;       // size of short neighbor list array

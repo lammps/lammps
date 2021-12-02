@@ -38,7 +38,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairSW::PairSW(LAMMPS *lmp) : Pair(lmp), variant(SW)
+PairSW::PairSW(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 0;
   restartinfo = 0;
@@ -292,21 +292,7 @@ void PairSW::read_file(char *file)
   // open file on proc 0
 
   if (comm->me == 0) {
-    std::string potential_name;
-    switch (variant) {
-    case SW:
-      potential_name = "sw";
-      break;
-
-    case SW_MOD:
-      potential_name = "sw/mod";
-      break;
-
-    default:
-      error->one(FLERR,"Unknown SW style variant {}",variant);
-    }
-
-    PotentialFileReader reader(lmp, file, potential_name, unit_convert_flag);
+    PotentialFileReader reader(lmp, file, "sw", unit_convert_flag);
     char * line;
 
     // transparently convert units for supported conversions

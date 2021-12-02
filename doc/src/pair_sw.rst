@@ -3,26 +3,22 @@
 .. index:: pair_style sw/intel
 .. index:: pair_style sw/kk
 .. index:: pair_style sw/omp
+.. index:: pair_style sw/mod
+.. index:: pair_style sw/mod/omp
 
 pair_style sw command
 =====================
 
-Accelerator Variants: *sw/gpu*, *sw/intel*, *sw/kk*, *sw/omp*
+Accelerator Variants: *sw/gpu*, *sw/intel*, *sw/kk*, *sw/omp*, *sw/mod/omp*
 
 Syntax
 """"""
 
 .. code-block:: LAMMPS
 
-   pair_style style keywords values
+   pair_style style
 
-* style = *sw* or *sw/gpu* or *sw/omp*
-* keyword = *modify*
-
-  .. parsed-literal::
-
-       *modify* value = flag
-         flag = 0/1 to turn off/on the modification
+* style = *sw* or *sw/mod*
 
 Examples
 """"""""
@@ -33,8 +29,8 @@ Examples
    pair_coeff * * si.sw Si
    pair_coeff * * GaN.sw Ga N Ga
 
-   pair_style sw modify 1
-   pair_coeff * * tmd.sw Mo S S
+   pair_style sw/mod
+   pair_coeff * * tmd.sw.mod Mo S S
 
 Description
 """""""""""
@@ -168,7 +164,7 @@ used for anything and can be set to 0.0 if desired.
 This is also true for the parameters in :math:`\phi_3` that are
 taken from the ij and ik pairs (:math:`\sigma`, *a*, :math:`\gamma`)
 
-The *modify* keyword computes the energy E of a system of atoms, whose
+The *sw/mod* style computes the energy E of a system of atoms, whose
 formula is the same as the Stillinger-Weber potential. The only modification
 is in the three-body term, where :math:`\delta = \cos \theta_{ijk} - \cos \theta_{0ijk}`
 is modified with the following function:
@@ -183,7 +179,7 @@ is modified with the following function:
     \end{array} \right. \\
 
 
-The *modify* keyword is designed for simulations of materials when
+The *sw/mod* style is designed for simulations of materials when
 distinguishing three-body angles are necessary, such as borophene
 and transition metal dichalcogenide, which cannot be described 
 by the original code for the Stillinger-Weber potential. Validation, 
@@ -192,28 +188,14 @@ benchmark tests, and applications of the *modify* keyword can be found in
 
 ----------
 
-Styles with a *gpu*, *intel*, *kk*, *omp*, or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
+.. include:: accel_styles.rst
 
-These accelerated styles are part of the GPU, INTEL, KOKKOS,
-OPENMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` page for more info.
+.. note::
 
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-When using the INTEL package with this style, there is an
-additional 5 to 10 percent performance improvement when the
-Stillinger-Weber parameters p and q are set to 4 and 0 respectively.
-These parameters are common for modeling silicon and water.
-
-See the :doc:`Speed packages <Speed_packages>` page for more
-instructions on how to use the accelerated styles effectively.
+  When using the INTEL package with this style, there is an additional
+  5 to 10 percent performance improvement when the Stillinger-Weber
+  parameters p and q are set to 4 and 0 respectively.  These
+  parameters are common for modeling silicon and water.
 
 ----------
 

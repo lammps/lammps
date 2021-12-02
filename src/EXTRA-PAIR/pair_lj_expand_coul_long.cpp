@@ -18,21 +18,21 @@
 
 #include "pair_lj_expand_coul_long.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "kspace.h"
-#include "update.h"
-#include "respa.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "respa.h"
+#include "update.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -61,6 +61,8 @@ PairLJExpandCoulLong::PairLJExpandCoulLong(LAMMPS *lmp) : Pair(lmp)
 
 PairLJExpandCoulLong::~PairLJExpandCoulLong()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

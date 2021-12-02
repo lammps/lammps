@@ -181,8 +181,8 @@ is modified with the following function:
 
 The *sw/mod* style is designed for simulations of materials when
 distinguishing three-body angles are necessary, such as borophene
-and transition metal dichalcogenide, which cannot be described 
-by the original code for the Stillinger-Weber potential. Validation, 
+and transition metal dichalcogenide, which cannot be described
+by the original code for the Stillinger-Weber potential. Validation,
 benchmark tests, and applications of the *modify* keyword can be found in
 :ref:`(Jiang_1) <Jiang1>` and :ref:`(Jiang_2) <Jiang2>`.
 

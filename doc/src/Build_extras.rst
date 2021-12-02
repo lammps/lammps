@@ -341,6 +341,18 @@ minutes to hours) to build.  Of course you only need to do that once.)
          $ make lib-kim args="-p /usr/local" # use an existing KIM API installation at the provided location
          $ make lib-kim args="-p /usr/local -a EAM_Dynamo_Ackland_W__MO_141627196590_002" # ditto but add one model or driver
 
+      When using the "-b " option, the KIM library is built using its native
+      cmake build system.  The ``lib/kim/Install.py`` script supports a
+      ``CMAKE`` environment variable if the cmake executable is named other
+      than ``cmake`` on your system.  Additional environment variables may be
+      provided on the command line for use by cmake.  For example, to use the
+      ``cmake3`` executable and tell it to use the gnu version 11 compilers
+      to build KIM, one could use the following command line.
+
+      .. code-block:: bash
+
+         $ CMAKE=cmake3 CXX=g++-11 CC=gcc-11 FC=gfortran-11 make lib-kim args="-b "  # (re-)install KIM API lib using cmake3 and gnu v11 compilers with only example models
+
       Settings for debugging OpenKIM web queries discussed below need to
       be applied by adding them to the ``LMP_INC`` variable through
       editing the ``Makefile.machine`` you are using.  For example:

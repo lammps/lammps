@@ -206,7 +206,7 @@ def get_byte_index(rep_inds, byteindfns, intrajfns):
         # close the trajfile object
         fobj.close()
 
-        return
+    return
 
 
 def write_reordered_traj(temp_inds, byte_inds, outtemps, temps,
@@ -459,6 +459,8 @@ if __name__ == "__main__":
 
     # get (unordered) trajectories
     temps = np.loadtxt(tempfn)
+    if not out_temps:
+        out_temps = temps
     ntemps = len(temps)
     intrajfns = ["%s.%d.lammpstrj" % (traj_prefix, k) for k in range(ntemps)]
     # check if the trajs. (or their zipped versions are present)

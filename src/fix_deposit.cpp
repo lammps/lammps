@@ -569,10 +569,12 @@ void FixDeposit::pre_exchange()
     //   coord is new position of geometric center of mol, not COM
     // FixShake::set_molecule stores shake info for molecule
 
-    if (rigidflag)
-      fixrigid->set_molecule(nlocalprev,maxtag_all,imol,coord,vnew,quat);
-    else if (shakeflag)
-      fixshake->set_molecule(nlocalprev,maxtag_all,imol,coord,vnew,quat);
+    if (mode == MOLECULE) {
+      if (rigidflag)
+        fixrigid->set_molecule(nlocalprev,maxtag_all,imol,coord,vnew,quat);
+      else if (shakeflag)
+        fixshake->set_molecule(nlocalprev,maxtag_all,imol,coord,vnew,quat);
+    }
 
     success = 1;
     break;

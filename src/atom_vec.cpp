@@ -2090,19 +2090,13 @@ int AtomVec::pack_bond(tagint **buf)
 
 void AtomVec::write_bond(FILE *fp, int n, tagint **buf, int index)
 {
-  if (atom->types_style == Atom::LABELS) {
-    auto &btypelabel = atom->lmaps[0]->btypelabel;
-    for (int i = 0; i < n; i++) {
-      fmt::print(fp,"{} {} {} {}\n",index,
-                 btypelabel[buf[i][0]-1],buf[i][1],buf[i][2]);
-      index++;
-    }
-  } else {
-    for (int i = 0; i < n; i++) {
-      fmt::print(fp,"{} {} {} {}\n",index,
-                 buf[i][0],buf[i][1],buf[i][2]);
-      index++;
-    }
+  std::string typestr;
+  for (int i = 0; i < n; i++) {
+    typestr = std::to_string(buf[i][0]);
+    if (atom->types_style == Atom::LABELS)
+      typestr = atom->lmaps[0]->btypelabel[buf[i][0]-1];
+    fmt::print(fp,"{} {} {} {}\n",index,typestr,buf[i][1],buf[i][2]);
+    index++;
   }
 }
 
@@ -2162,19 +2156,14 @@ int AtomVec::pack_angle(tagint **buf)
 
 void AtomVec::write_angle(FILE *fp, int n, tagint **buf, int index)
 {
-  if (atom->types_style == Atom::LABELS) {
-    auto &atypelabel = atom->lmaps[0]->atypelabel;
-    for (int i = 0; i < n; i++) {
-      fmt::print(fp,"{} {} {} {} {}\n",index,
-                 atypelabel[buf[i][0]-1],buf[i][1],buf[i][2],buf[i][3]);
-      index++;
-    }
-  } else {
-    for (int i = 0; i < n; i++) {
-      fmt::print(fp,"{} {} {} {} {}\n",index,
-                 buf[i][0],buf[i][1],buf[i][2],buf[i][3]);
-      index++;
-    }
+  std::string typestr;
+  for (int i = 0; i < n; i++) {
+    typestr = std::to_string(buf[i][0]);
+    if (atom->types_style == Atom::LABELS)
+      typestr = atom->lmaps[0]->atypelabel[buf[i][0]-1];
+    fmt::print(fp,"{} {} {} {} {}\n",index,
+               typestr,buf[i][1],buf[i][2],buf[i][3]);
+    index++;
   }
 }
 
@@ -2232,19 +2221,14 @@ int AtomVec::pack_dihedral(tagint **buf)
 
 void AtomVec::write_dihedral(FILE *fp, int n, tagint **buf, int index)
 {
-  if (atom->types_style == Atom::LABELS) {
-    auto &dtypelabel = atom->lmaps[0]->dtypelabel;
-    for (int i = 0; i < n; i++) {
-      fmt::print(fp,"{} {} {} {} {} {}\n",index,dtypelabel[buf[i][0]-1],
-                 buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
-      index++;
-    }
-  } else {
-    for (int i = 0; i < n; i++) {
-      fmt::print(fp,"{} {} {} {} {} {}\n",index,buf[i][0],
-                 buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
-      index++;
-    }
+  std::string typestr;
+  for (int i = 0; i < n; i++) {
+    typestr = std::to_string(buf[i][0]);
+    if (atom->types_style == Atom::LABELS)
+      typestr = atom->lmaps[0]->dtypelabel[buf[i][0]-1];
+    fmt::print(fp,"{} {} {} {} {} {}\n",index,typestr,
+               buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
+    index++;
   }
 }
 
@@ -2302,19 +2286,14 @@ int AtomVec::pack_improper(tagint **buf)
 
 void AtomVec::write_improper(FILE *fp, int n, tagint **buf, int index)
 {
-  if (atom->types_style == Atom::LABELS) {
-    auto &itypelabel = atom->lmaps[0]->itypelabel;
-    for (int i = 0; i < n; i++) {
-      fmt::print(fp,"{} {} {} {} {} {}\n",index,itypelabel[buf[i][0]-1],
-                 buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
-      index++;
-    }
-  } else {
-    for (int i = 0; i < n; i++) {
-      fmt::print(fp,"{} {} {} {} {} {}\n",index,buf[i][0],
-                 buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
-      index++;
-    }
+  std::string typestr;
+  for (int i = 0; i < n; i++) {
+    typestr = std::to_string(buf[i][0]);
+    if (atom->types_style == Atom::LABELS)
+      typestr = atom->lmaps[0]->itypelabel[buf[i][0]-1];
+    fmt::print(fp,"{} {} {} {} {} {}\n",index,typestr,
+               buf[i][1],buf[i][2],buf[i][3],buf[i][4]);
+    index++;
   }
 }
 

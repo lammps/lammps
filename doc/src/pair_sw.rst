@@ -9,7 +9,12 @@
 pair_style sw command
 =====================
 
-Accelerator Variants: *sw/gpu*, *sw/intel*, *sw/kk*, *sw/omp*, *sw/mod/omp*
+Accelerator Variants: *sw/gpu*, *sw/intel*, *sw/kk*, *sw/omp*
+
+pair_style sw/mod command
+=========================
+
+Accelerator Variants: *sw/mod/omp*
 
 Syntax
 """"""
@@ -55,8 +60,29 @@ where :math:`\phi_2` is a two-body term and :math:`\phi_3` is a
 three-body term.  The summations in the formula are over all neighbors J
 and K of atom I within a cutoff distance :math:`a `\sigma`.
 
-Only a single pair_coeff command is used with the *sw* style which
-specifies a Stillinger-Weber potential file with parameters for all
+The *sw/mod* style computes the energy E of a system of atoms, whose potential
+function is mostly the same as the Stillinger-Weber potential. The only modification
+is in the three-body term, where :math:`\delta = \cos \theta_{ijk} - \cos \theta_{0ijk}`
+is modified with the following function:
+
+.. math::
+
+  g_C(\delta) & = \left\{ \begin{array} {r@{\quad:\quad}l}
+    1 & \delta < \delta_1 \\
+    \frac{1}{2} + \frac{1}{2} \cos \left( \pi \frac{\delta-\delta_1}{\delta_2 - \delta_1} \right) &
+      \delta_1 < \delta < \delta_2 \\
+    0 & \delta > \delta_2
+    \end{array} \right. \\
+
+The *sw/mod* style is designed for simulations of materials when
+distinguishing three-body angles are necessary, such as borophene
+and transition metal dichalcogenide, which cannot be described
+by the original code for the Stillinger-Weber potential. Validation,
+benchmark tests, and applications of the *sw/mod* style can be found in
+:ref:`(Jiang_1) <Jiang1>` and :ref:`(Jiang_2) <Jiang2>`.
+
+Only a single pair_coeff command is used with the *sw* and *sw/mod* styles
+which specifies a Stillinger-Weber potential file with parameters for all
 needed elements.  These are mapped to LAMMPS atom types by specifying
 N additional arguments after the filename in the pair_coeff command,
 where N is the number of LAMMPS atom types:
@@ -163,28 +189,6 @@ entries whose second and third element are different (e.g. SiCSi) are not
 used for anything and can be set to 0.0 if desired.
 This is also true for the parameters in :math:`\phi_3` that are
 taken from the ij and ik pairs (:math:`\sigma`, *a*, :math:`\gamma`)
-
-The *sw/mod* style computes the energy E of a system of atoms, whose
-formula is the same as the Stillinger-Weber potential. The only modification
-is in the three-body term, where :math:`\delta = \cos \theta_{ijk} - \cos \theta_{0ijk}`
-is modified with the following function:
-
-.. math::
-
-  g_C(\delta) & = \left\{ \begin{array} {r@{\quad:\quad}l}
-    1 & \delta < \delta_1 \\
-    \frac{1}{2} + \frac{1}{2} \cos \left( \pi \frac{\delta-\delta_1}{\delta_2 - \delta_1} \right) &
-      \delta_1 < \delta < \delta_2 \\
-    0 & \delta > \delta_2
-    \end{array} \right. \\
-
-
-The *sw/mod* style is designed for simulations of materials when
-distinguishing three-body angles are necessary, such as borophene
-and transition metal dichalcogenide, which cannot be described
-by the original code for the Stillinger-Weber potential. Validation,
-benchmark tests, and applications of the *modify* keyword can be found in
-:ref:`(Jiang_1) <Jiang1>` and :ref:`(Jiang_2) <Jiang2>`.
 
 ----------
 

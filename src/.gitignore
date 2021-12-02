@@ -1208,6 +1208,8 @@
 /pair_sph_taitwater_morris.h
 /pair_sw.cpp
 /pair_sw.h
+/pair_sw_mod.cpp
+/pair_sw_mod.h
 /pair_tersoff.cpp
 /pair_tersoff.h
 /pair_tersoff_mod.cpp

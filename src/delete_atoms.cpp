@@ -237,9 +237,9 @@ void DeleteAtoms::delete_region(int narg, char **arg)
 {
   if (narg < 2) error->all(FLERR,"Illegal delete_atoms command");
 
-  int iregion = domain->find_region(arg[1]);
-  if (iregion == -1) error->all(FLERR,"Could not find delete_atoms region ID");
-  domain->regions[iregion]->prematch();
+  auto iregion = domain->get_region_by_id(arg[1]);
+  if (!iregion) error->all(FLERR,"Could not find delete_atoms region ID");
+  iregion->prematch();
 
   options(narg-2,&arg[2]);
 
@@ -252,7 +252,7 @@ void DeleteAtoms::delete_region(int narg, char **arg)
   double **x = atom->x;
 
   for (int i = 0; i < nlocal; i++)
-    if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2])) dlist[i] = 1;
+    if (iregion->match(x[i][0],x[i][1],x[i][2])) dlist[i] = 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -427,14 +427,9 @@ void DeleteAtoms::delete_porosity(int narg, char **arg)
   int igroup = group->find(arg[1]);
   if (igroup == -1) error->all(FLERR,"Could not find delete_atoms group ID");
 
-  int iregion,regionflag;
-  if (strcmp(arg[2],"NULL") == 0) regionflag = 0;
-  else {
-    regionflag = 1;
-    iregion = domain->find_region(arg[2]);
-    if (iregion == -1) error->all(FLERR,"Could not find delete_atoms region ID");
-    domain->regions[iregion]->prematch();
-  }
+  auto iregion = domain->get_region_by_id(arg[2]);
+  if (!iregion && (strcmp(arg[2],"NULL") != 0))
+    error->all(FLERR,"Could not find delete_atoms region ID");
 
   double porosity_fraction = utils::numeric(FLERR,arg[3],false,lmp);
   int seed = utils::inumeric(FLERR,arg[4],false,lmp);
@@ -454,11 +449,11 @@ void DeleteAtoms::delete_porosity(int narg, char **arg)
   int *mask = atom->mask;
 
   int groupbit = group->bitmask[igroup];
+  if (iregion) iregion->prematch();
 
   for (int i = 0; i < nlocal; i++) { 
     if (!(mask[i] & groupbit)) continue;
-    if (regionflag && 
-        !domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2])) continue;
+    if (iregion && !iregion->match(x[i][0],x[i][1],x[i][2])) continue;
     if (random->uniform() <= porosity_fraction) dlist[i] = 1;
   }
 

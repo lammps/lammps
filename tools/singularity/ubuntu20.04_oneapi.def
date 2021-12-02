@@ -9,12 +9,11 @@ From: ubuntu:20.04
     apt-get update
     apt-get upgrade --no-install-recommends -y
     apt-get install --no-install-recommends -y \
+        gpg-agent \
         bc \
         build-essential \
         ccache \
         clang \
-        cmake \
-        cmake-curses-gui \
         curl \
         doxygen \
         enchant \
@@ -54,6 +53,15 @@ From: ubuntu:20.04
         python3-virtualenv \
         rsync \
         ssh \
+        texlive \
+        texlive-latex-recommended \
+        texlive-formats-extra \
+        texlive-pictures \
+        texlive-publishers \
+        texlive-science \
+        dvipng \
+        latexmk \
+        xindy \
         vim-nox \
         virtualenv \
         voro++-dev \
@@ -67,12 +75,43 @@ From: ubuntu:20.04
         openkim-models
 
     ###########################################################################
-    # Intel OpenCL
+    # Latest CMake (needed for OneAPI)
     ###########################################################################
 
-    add-apt-repository ppa:intel-opencl/intel-opencl
-    apt-get update
-    apt-get install -y intel-opencl-icd
+    wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
+    apt-add-repository 'deb https://apt.kitware.com/ubuntu/ focal main'
+    apt update
+    apt install -y cmake
+
+    ###########################################################################
+    # OneAPI
+    ###########################################################################
+
+    cd /tmp
+    wget https://apt.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+    # add to your apt sources keyring so that archives signed with this key will be trusted.
+    apt-key add GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+    # remove the public key
+    rm GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+    echo "deb https://apt.repos.intel.com/oneapi all main" | tee /etc/apt/sources.list.d/oneAPI.list
+    add-apt-repository "deb https://apt.repos.intel.com/oneapi all main"
+    apt update
+    apt install -y \
+        intel-oneapi-compiler-dpcpp-cpp \
+        intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic \
+        intel-oneapi-compiler-fortran \
+        intel-oneapi-dev-utilities \
+        intel-oneapi-openmp \
+        intel-oneapi-ipp-devel \
+        intel-oneapi-mpi-devel \
+        intel-oneapi-tbb-devel \
+        intel-oneapi-ippcp-devel \
+        intel-oneapi-ccl-devel \
+        intel-oneapi-dnnl-devel \
+        intel-oneapi-onevpl-devel \
+        intel-oneapi-dal-devel \
+        intel-oneapi-mkl-devel \
+        intel-oneapi-libdpstd-devel
 
     ###########################################################################
     # KIM-API
@@ -113,7 +152,6 @@ From: ubuntu:20.04
     cd ../../
     rm -rvf plumed
 
-
     ###########################################################################
     # Customizations
     ###########################################################################
@@ -122,7 +160,7 @@ From: ubuntu:20.04
     CUSTOM_PROMPT_ENV=/.singularity.d/env/99-zz_custom_prompt.sh
     cat >$CUSTOM_PROMPT_ENV <<EOF
 #!/bin/bash
-PS1="[ubuntu20.04/intel:\u@\h] \W> "
+PS1="[ubuntu20.04_oneapi:\u@\h] \W> "
 EOF
     chmod 755 $CUSTOM_PROMPT_ENV
 
@@ -133,10 +171,10 @@ EOF
     # clean cache
     rm -rf /var/lib/apt/lists/*
 
-
 %environment
     LC_ALL=C
     export LC_ALL
+    export PATH=/usr/lib/ccache:$PATH
     # tell OpenMPI to not try using Infiniband
     OMPI_MCA_btl="^openib"
     # do not warn about unused components as this messes up testing
@@ -144,4 +182,4 @@ EOF
     export OMPI_MCA_btl OMPI_MCA_btl_base_warn_component_unused
 
 %labels
-    Author rbberger, akohlmey
+    Author akohlmey, rbberger

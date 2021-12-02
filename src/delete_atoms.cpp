@@ -451,7 +451,7 @@ void DeleteAtoms::delete_porosity(int narg, char **arg)
   int groupbit = group->bitmask[igroup];
   if (iregion) iregion->prematch();
 
-  for (int i = 0; i < nlocal; i++) { 
+  for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
     if (iregion && !iregion->match(x[i][0],x[i][1],x[i][2])) continue;
     if (random->uniform() <= porosity_fraction) dlist[i] = 1;

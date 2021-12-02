@@ -16,205 +16,72 @@
 
 #include "pair_sw_mod_omp.h"
 
-#include "atom.h"
-#include "comm.h"
-#include "memory.h"
-#include "neigh_list.h"
-#include "suffix.h"
+#include "math_const.h"
 
-#include "omp_compat.h"
+#include <cmath>
+
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairSWMODOMP::PairSWMODOMP(LAMMPS *lmp) :
-  PairSWMOD(lmp), ThrOMP(lmp, THR_PAIR)
+void PairSWMODOMP::threebody(Param *paramij, Param *paramik, Param *paramijk,
+                            double rsq1, double rsq2,
+                            double *delr1, double *delr2,
+                            double *fj, double *fk, int eflag, double &eng)
 {
-  suffix_flag |= Suffix::OMP;
-  respa_enable = 0;
-}
+  double r1,rinvsq1,rainv1,gsrainv1,gsrainvsq1,expgsrainv1;
+  double r2,rinvsq2,rainv2,gsrainv2,gsrainvsq2,expgsrainv2;
+  double rinv12,cs,delcs,delcssq,facexp,facrad,frad1,frad2;
+  double facang,facang12,csfacang,csfac1,csfac2,factor;
 
-/* ---------------------------------------------------------------------- */
+  r1 = sqrt(rsq1);
+  rinvsq1 = 1.0/rsq1;
+  rainv1 = 1.0/(r1 - paramij->cut);
+  gsrainv1 = paramij->sigma_gamma * rainv1;
+  gsrainvsq1 = gsrainv1*rainv1/r1;
+  expgsrainv1 = exp(gsrainv1);
 
-void PairSWMODOMP::compute(int eflag, int vflag)
-{
-  ev_init(eflag,vflag);
+  r2 = sqrt(rsq2);
+  rinvsq2 = 1.0/rsq2;
+  rainv2 = 1.0/(r2 - paramik->cut);
+  gsrainv2 = paramik->sigma_gamma * rainv2;
+  gsrainvsq2 = gsrainv2*rainv2/r2;
+  expgsrainv2 = exp(gsrainv2);
 
-  const int nall = atom->nlocal + atom->nghost;
-  const int nthreads = comm->nthreads;
-  const int inum = list->inum;
-
-#if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
-#endif
-  {
-    int ifrom, ito, tid;
-
-    loop_setup_thr(ifrom, ito, tid, inum, nthreads);
-    ThrData *thr = fix->get_thr(tid);
-    thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, nullptr, thr);
-
-    if (evflag) {
-      if (eflag) {
-        eval<1,1>(ifrom, ito, thr);
-      } else {
-        eval<1,0>(ifrom, ito, thr);
-      }
-    } else eval<0,0>(ifrom, ito, thr);
-
-    thr->timer(Timer::PAIR);
-    reduce_thr(this, eflag, vflag, thr);
-  } // end of omp parallel region
-}
-
-template <int EVFLAG, int EFLAG>
-void PairSWMODOMP::eval(int iifrom, int iito, ThrData * const thr)
-{
-  int i,j,k,ii,jj,kk,jnum,jnumm1,maxshort_thr;
-  tagint itag,jtag;
-  int itype,jtype,ktype,ijparam,ikparam,ijkparam;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,rsq1,rsq2;
-  double delr1[3],delr2[3],fj[3],fk[3];
-  int *ilist,*jlist,*numneigh,**firstneigh,*neighshort_thr;
-
-  evdwl = 0.0;
-
-  const dbl3_t * _noalias const x = (dbl3_t *) atom->x[0];
-  dbl3_t * _noalias const f = (dbl3_t *) thr->get_f()[0];
-  const tagint * _noalias const tag = atom->tag;
-  const int * _noalias const type = atom->type;
-  const int nlocal = atom->nlocal;
-
-  ilist = list->ilist;
-  numneigh = list->numneigh;
-  firstneigh = list->firstneigh;
-  maxshort_thr = maxshort;
-  memory->create(neighshort_thr,maxshort_thr,"pair_thr:neighshort_thr");
-
-  double fxtmp,fytmp,fztmp;
-
-  // loop over full neighbor list of my atoms
-
-  for (ii = iifrom; ii < iito; ++ii) {
-
-    i = ilist[ii];
-    itag = tag[i];
-    itype = map[type[i]];
-    xtmp = x[i].x;
-    ytmp = x[i].y;
-    ztmp = x[i].z;
-    fxtmp = fytmp = fztmp = 0.0;
-
-    // two-body interactions, skip half of them
-
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
-    int numshort = 0;
-
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      j &= NEIGHMASK;
-
-      delx = xtmp - x[j].x;
-      dely = ytmp - x[j].y;
-      delz = ztmp - x[j].z;
-      rsq = delx*delx + dely*dely + delz*delz;
-
-      jtype = map[type[j]];
-      ijparam = elem3param[itype][jtype][jtype];
-      if (rsq >= params[ijparam].cutsq) {
-        continue;
-      } else {
-        neighshort_thr[numshort++] = j;
-        if (numshort >= maxshort_thr) {
-          maxshort_thr += maxshort_thr/2;
-          memory->grow(neighshort_thr,maxshort_thr,"pair:neighshort_thr");
-        }
-      }
-
-      jtag = tag[j];
-      if (itag > jtag) {
-        if ((itag+jtag) % 2 == 0) continue;
-      } else if (itag < jtag) {
-        if ((itag+jtag) % 2 == 1) continue;
-      } else {
-        if (x[j].z < ztmp) continue;
-        if (x[j].z == ztmp && x[j].y < ytmp) continue;
-        if (x[j].z == ztmp && x[j].y == ytmp && x[j].x < xtmp) continue;
-      }
-
-      twobody(&params[ijparam],rsq,fpair,EFLAG,evdwl);
-
-      fxtmp += delx*fpair;
-      fytmp += dely*fpair;
-      fztmp += delz*fpair;
-      f[j].x -= delx*fpair;
-      f[j].y -= dely*fpair;
-      f[j].z -= delz*fpair;
-
-      if (EVFLAG) ev_tally_thr(this,i,j,nlocal,/* newton_pair */ 1,
-                               evdwl,0.0,fpair,delx,dely,delz,thr);
-    }
-
-    jnumm1 = numshort - 1;
-
-    for (jj = 0; jj < jnumm1; jj++) {
-      j = neighshort_thr[jj];
-      jtype = map[type[j]];
-      ijparam = elem3param[itype][jtype][jtype];
-      delr1[0] = x[j].x - xtmp;
-      delr1[1] = x[j].y - ytmp;
-      delr1[2] = x[j].z - ztmp;
-      rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
-
-      double fjxtmp,fjytmp,fjztmp;
-      fjxtmp = fjytmp = fjztmp = 0.0;
-
-      for (kk = jj+1; kk < numshort; kk++) {
-        k = neighshort_thr[kk];
-        ktype = map[type[k]];
-        ikparam = elem3param[itype][ktype][ktype];
-        ijkparam = elem3param[itype][jtype][ktype];
-
-        delr2[0] = x[k].x - xtmp;
-        delr2[1] = x[k].y - ytmp;
-        delr2[2] = x[k].z - ztmp;
-        rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
-
-        threebody(&params[ijparam],&params[ikparam],&params[ijkparam],
-                  rsq1,rsq2,delr1,delr2,fj,fk,EFLAG,evdwl);
-
-        fxtmp -= fj[0] + fk[0];
-        fytmp -= fj[1] + fk[1];
-        fztmp -= fj[2] + fk[2];
-        fjxtmp += fj[0];
-        fjytmp += fj[1];
-        fjztmp += fj[2];
-        f[k].x += fk[0];
-        f[k].y += fk[1];
-        f[k].z += fk[2];
-
-        if (EVFLAG) ev_tally3_thr(this,i,j,k,evdwl,0.0,fj,fk,delr1,delr2,thr);
-      }
-      f[j].x += fjxtmp;
-      f[j].y += fjytmp;
-      f[j].z += fjztmp;
-    }
-    f[i].x += fxtmp;
-    f[i].y += fytmp;
-    f[i].z += fztmp;
+  rinv12 = 1.0/(r1*r2);
+  cs = (delr1[0]*delr2[0] + delr1[1]*delr2[1] + delr1[2]*delr2[2]) * rinv12;
+  delcs = cs - paramijk->costheta;
+  // Modification to delcs
+  if(fabs(delcs) >= 0.35) delcs = 0.0;
+  else if(fabs(delcs) < 0.35 && fabs(delcs) > 0.25) {
+    factor = 0.5 + 0.5*cos(MY_PI*(delcs-0.25)/(0.35-0.25));
+    delcs *= factor;
   }
-  memory->destroy(neighshort_thr);
-}
+  delcssq = delcs*delcs;
 
-/* ---------------------------------------------------------------------- */
+  facexp = expgsrainv1*expgsrainv2;
 
-double PairSWMODOMP::memory_usage()
-{
-  double bytes = memory_usage_thr();
-  bytes += PairSWMOD::memory_usage();
+  // facrad = sqrt(paramij->lambda_epsilon*paramik->lambda_epsilon) *
+  //          facexp*delcssq;
 
-  return bytes;
+  facrad = paramijk->lambda_epsilon * facexp*delcssq;
+  frad1 = facrad*gsrainvsq1;
+  frad2 = facrad*gsrainvsq2;
+  facang = paramijk->lambda_epsilon2 * facexp*delcs;
+  facang12 = rinv12*facang;
+  csfacang = cs*facang;
+  csfac1 = rinvsq1*csfacang;
+
+  fj[0] = delr1[0]*(frad1+csfac1)-delr2[0]*facang12;
+  fj[1] = delr1[1]*(frad1+csfac1)-delr2[1]*facang12;
+  fj[2] = delr1[2]*(frad1+csfac1)-delr2[2]*facang12;
+
+  csfac2 = rinvsq2*csfacang;
+
+  fk[0] = delr2[0]*(frad2+csfac2)-delr1[0]*facang12;
+  fk[1] = delr2[1]*(frad2+csfac2)-delr1[1]*facang12;
+  fk[2] = delr2[2]*(frad2+csfac2)-delr1[2]*facang12;
+
+  if (eflag) eng = facrad;
 }

@@ -24,21 +24,19 @@ PairStyle(sw/mod/omp,PairSWMODOMP);
 #ifndef LMP_PAIR_SW_MOD_OMP_H
 #define LMP_PAIR_SW_MOD_OMP_H
 
-#include "pair_sw_mod.h"
-#include "thr_omp.h"
+#include "pair_sw_omp.h"
 
 namespace LAMMPS_NS {
 
-class PairSWMODOMP : public PairSWMOD, public ThrOMP {
+class PairSWMODOMP : public PairSWOMP {
 
  public:
-  PairSWMODOMP(class LAMMPS *);
+  PairSWMODOMP(class LAMMPS *lmp) : PairSWOMP(lmp) {}
+  virtual ~PairSWMODOMP() {}
 
-  virtual void compute(int, int);
-  virtual double memory_usage();
-
- private:
-  template <int EVFLAG, int EFLAG> void eval(int ifrom, int ito, ThrData *const thr);
+ protected:
+  void threebody(Param *, Param *, Param *, double, double, double *, double *, double *, double *,
+                 int, double &);
 };
 
 }    // namespace LAMMPS_NS

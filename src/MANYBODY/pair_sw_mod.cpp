@@ -29,7 +29,11 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairSWMOD::PairSWMOD(LAMMPS *lmp) : PairSW(lmp) {}
+PairSWMOD::PairSWMOD(LAMMPS *lmp) : PairSW(lmp)
+{
+  delta1 = 0.25;
+  delta2 = 0.35;
+}
 
 /* ----------------------------------------------------------------------
    global settings
@@ -47,8 +51,11 @@ void PairSWMOD::settings(int narg, char **arg)
       delta1 = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       delta2 = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       iarg += 3;
+      if ((delta1 < 0.0) || (delta1 > 1.0) || (delta2 < 0.0) || (delta2 > 1.0) || (delta1 > delta2))
+        error->all(FLERR,"Illegal values for maxdelcs keyword");
     } else error->all(FLERR,"Illegal pair_style command");
   }
+  PairSW::settings(narg-iarg,arg+iarg);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -80,9 +87,8 @@ void PairSWMOD::threebody(Param *paramij, Param *paramik, Param *paramijk,
   rinv12 = 1.0/(r1*r2);
   cs = (delr1[0]*delr2[0] + delr1[1]*delr2[1] + delr1[2]*delr2[2]) * rinv12;
   delcs = cs - paramijk->costheta;
+
   // Modification to delcs
-  //delta1 = 0.25;
-  //delta2 = 0.35;
   if(fabs(delcs) >= delta2) delcs = 0.0;
   else if(fabs(delcs) < delta2 && fabs(delcs) > delta1) {
     factor = 0.5 + 0.5*cos(MY_PI*(fabs(delcs) - delta1)/(delta2 - delta1));

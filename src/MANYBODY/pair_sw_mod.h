@@ -27,11 +27,12 @@ namespace LAMMPS_NS {
 class PairSWMOD : public PairSW {
  public:
   PairSWMOD(class LAMMPS *);
-  ~PairSWMOD() {}
+  virtual ~PairSWMOD() {}
 
  protected:
   double delta1;
   double delta2;
+
   void settings(int, char **);
   void threebody(Param *, Param *, Param *, double, double, double *, double *, double *, double *,
                  int, double &);

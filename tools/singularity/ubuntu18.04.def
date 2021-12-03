@@ -75,6 +75,7 @@ From: ubuntu:18.04
         valgrind \
         gdb \
         zstd \
+        libyaml-cpp-dev \
         libkim-api-dev \
         openkim-models
 
@@ -105,7 +106,7 @@ From: ubuntu:18.04
     # Plumed
     ###########################################################################
 
-    export PLUMED_PKG_VERSION=2.7.2
+    export PLUMED_PKG_VERSION=2.7.3
 
     mkdir plumed
     cd plumed

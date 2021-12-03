@@ -97,7 +97,7 @@ class FixRX : public Fix {
   // Sparse stoichiometric matrix storage format and methods.
   bool useSparseKinetics;
   //SparseKinetics sparseKinetics;
-  void initSparse(void);
+  void initSparse();
   int rhs_sparse(double, const double *, double *, void *) const;
 
   int sparseKinetics_maxReactants;    //<! Max # of reactants species in any reaction
@@ -134,7 +134,7 @@ class FixRX : public Fix {
   int *diagnosticCounterPerODE[numDiagnosticCounters];
 
   //!< ODE Solver diagnostics.
-  void odeDiagnostics(void);
+  void odeDiagnostics();
 
  protected:
   char *kineticsFile;

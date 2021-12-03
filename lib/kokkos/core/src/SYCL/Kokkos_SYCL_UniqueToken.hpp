@@ -89,7 +89,7 @@ class UniqueToken<SYCL, UniqueTokenScope::Global> {
     const Kokkos::pair<int, int> result =
         Kokkos::Impl::concurrent_bitset::acquire_bounded(
             m_buffer, m_count
-#if defined(KOKKOS_ARCH_INTEL_GEN)
+#ifdef KOKKOS_ARCH_INTEL_GPU
             ,
             Kokkos::Impl::clock_tic() % m_count
 #endif

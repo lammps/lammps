@@ -378,7 +378,7 @@ void CreateAtoms::command(int narg, char **arg)
   // Record wall time for atom creation
 
   MPI_Barrier(world);
-  double time1 = MPI_Wtime();
+  double time1 = platform::walltime();
 
   // clear ghost count and any ghost bonus data internal to AtomVec
   // same logic as beginning of Comm::exchange()
@@ -591,7 +591,7 @@ void CreateAtoms::command(int narg, char **arg)
     if (scaleflag) domain->print_box("  using lattice units in ");
     else domain->print_box("  using box units in ");
     utils::logmesg(lmp,"  create_atoms CPU = {:.3f} seconds\n",
-                   MPI_Wtime() - time1);
+                   platform::walltime() - time1);
   }
 }
 
@@ -693,7 +693,7 @@ void CreateAtoms::add_random()
 
   int valid;
   for (int i = 0; i < nrandom; i++) {
-    while (1) {
+    while (true) {
       xone[0] = xlo + random->uniform() * (xhi-xlo);
       xone[1] = ylo + random->uniform() * (yhi-ylo);
       xone[2] = zlo + random->uniform() * (zhi-zlo);

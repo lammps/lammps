@@ -97,7 +97,7 @@ int main(int narg, char **arg)
 
     // loop over snapshots in file
 
-    while (1) {
+    while (true) {
       int endian = 0x0001;
       int revision = 0x0001;
 

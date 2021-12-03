@@ -637,7 +637,7 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
     char line[MAX_F_TABLE_LINE_LENGTH];
     std::vector<std::string> inputLines;
     while (fgets(line, MAX_F_TABLE_LINE_LENGTH, fpi)) {
-      inputLines.push_back(std::string(line));
+      inputLines.emplace_back(line);
     }
     fclose(fpi);
 

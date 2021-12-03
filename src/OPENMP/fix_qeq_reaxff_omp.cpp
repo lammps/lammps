@@ -232,12 +232,15 @@ void FixQEqReaxFFOMP::compute_H()
 
 void FixQEqReaxFFOMP::init_storage()
 {
+  if (efield) get_chi_field();
+
 #if defined(_OPENMP)
 #pragma omp parallel for schedule(static)
 #endif
   for (int i = 0; i < NN; i++) {
     Hdia_inv[i] = 1. / eta[atom->type[i]];
     b_s[i] = -chi[atom->type[i]];
+    if (efield) b_s[i] -= chi_field[i];
     b_t[i] = -1.0;
     b_prc[i] = 0;
     b_prm[i] = 0;
@@ -273,6 +276,8 @@ void FixQEqReaxFFOMP::pre_force(int /* vflag */)
   if (atom->nmax > nmax) reallocate_storage();
   if (n > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE)
     reallocate_matrix();
+
+  if (efield) get_chi_field();
 
   init_matvec();
 
@@ -310,6 +315,7 @@ void FixQEqReaxFFOMP::init_matvec()
         /* init pre-conditioner for H and init solution vectors */
         Hdia_inv[i] = 1. / eta[atom->type[i]];
         b_s[i]      = -chi[atom->type[i]];
+        if (efield) b_s[i] -= chi_field[i];
         b_t[i]      = -1.0;
 
         // Predictor Step
@@ -338,6 +344,7 @@ void FixQEqReaxFFOMP::init_matvec()
         /* init pre-conditioner for H and init solution vectors */
         Hdia_inv[i] = 1. / eta[atom->type[i]];
         b_s[i]      = -chi[atom->type[i]];
+        if (efield) b_s[i] -= chi_field[i];
         b_t[i]      = -1.0;
 
         /* linear extrapolation for s & t from previous solutions */

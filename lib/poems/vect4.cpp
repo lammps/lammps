@@ -23,8 +23,6 @@ using namespace std;
 Vect4::Vect4(){
   numrows = 4; numcols = 1;
 }
-Vect4::~Vect4(){
-}
 
 Vect4::Vect4(const Vect4& A){  // copy constructor
   numrows = 4; numcols = 1;

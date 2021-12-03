@@ -36,10 +36,10 @@
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "update.h"
+#include "fix_acks2_reaxff.h"
 
 #include <cmath>
 #include <cstring>
-#include <strings.h>    // for strcasecmp()
 
 #include "reaxff_api.h"
 
@@ -155,6 +155,7 @@ PairReaxFF::~PairReaxFF()
     delete [] chi;
     delete [] eta;
     delete [] gamma;
+    delete [] bcut_acks2;
   }
 
   memory->destroy(tmpid);
@@ -179,6 +180,7 @@ void PairReaxFF::allocate()
   chi = new double[n+1];
   eta = new double[n+1];
   gamma = new double[n+1];
+  bcut_acks2 = new double[n+1];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -299,7 +301,7 @@ void PairReaxFF::coeff(int nargs, char **args)
   // pair_coeff element map
   for (int i = 3; i < nargs; i++)
     for (int j = 0; j < nreax_types; j++)
-      if (strcasecmp(args[i],api->system->reax_param.sbp[j].name) == 0) {
+      if (utils::lowercase(args[i]) == utils::lowercase(api->system->reax_param.sbp[j].name)) {
         map[i-2] = j;
         itmp ++;
       }
@@ -330,13 +332,19 @@ void PairReaxFF::coeff(int nargs, char **args)
 
 void PairReaxFF::init_style()
 {
-  if (!atom->q_flag)
-    error->all(FLERR,"Pair style reaxff requires atom attribute q");
+  if (!atom->q_flag) error->all(FLERR,"Pair style reaxff requires atom attribute q");
 
-  bool have_qeq = ((modify->find_fix_by_style("^qeq/reax") != -1)
-                   || (modify->find_fix_by_style("^qeq/shielded") != -1));
-  if (!have_qeq && qeqflag == 1)
-    error->all(FLERR,"Pair reaxff requires use of fix qeq/reaxff or qeq/shielded");
+  auto acks2_fixes = modify->get_fix_by_style("^acks2/reax");
+  int have_qeq = modify->get_fix_by_style("^qeq/reax").size()
+    + modify->get_fix_by_style("^qeq/shielded").size() + acks2_fixes.size();
+
+  if (qeqflag && (have_qeq != 1))
+    error->all(FLERR,"Pair style reaxff requires use of exactly one of the "
+               "fix qeq/reaxff or fix qeq/shielded or fix acks2/reaxff commands");
+
+  api->system->acks2_flag = acks2_fixes.size();
+  if (api->system->acks2_flag)
+    api->workspace->s = ((FixACKS2ReaxFF *)acks2_fixes.front())->get_s();
 
   api->system->n = atom->nlocal; // my atoms
   api->system->N = atom->nlocal + atom->nghost; // mine + ghosts
@@ -462,6 +470,11 @@ void PairReaxFF::compute(int eflag, int vflag)
   api->system->n = atom->nlocal; // my atoms
   api->system->N = atom->nlocal + atom->nghost; // mine + ghosts
   api->system->bigN = static_cast<int> (atom->natoms);  // all atoms in the system
+
+  if (api->system->acks2_flag) {
+    auto ifix = modify->get_fix_by_style("^acks2/reax").front();
+    api->workspace->s = ((FixACKS2ReaxFF*) ifix)->get_s();
+  }
 
   // setup data structures
 
@@ -728,6 +741,16 @@ void *PairReaxFF::extract(const char *str, int &dim)
       if (map[i] >= 0) gamma[i] = api->system->reax_param.sbp[map[i]].gamma;
       else gamma[i] = 0.0;
     return (void *) gamma;
+   }
+   if (strcmp(str,"bcut_acks2") == 0 && bcut_acks2) {
+    for (int i = 1; i <= atom->ntypes; i++)
+      if (map[i] >= 0) bcut_acks2[i] = api->system->reax_param.sbp[map[i]].bcut_acks2;
+      else bcut_acks2[i] = 0.0;
+    return (void *) bcut_acks2;
+  }
+  if (strcmp(str,"bond_softness") == 0) {
+      double* bond_softness = &api->system->reax_param.gp.l[34];
+    return (void *) bond_softness;
   }
   return nullptr;
 }

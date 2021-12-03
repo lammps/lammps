@@ -44,7 +44,7 @@
 
 #include <Kokkos_Core.hpp>
 
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 #include <iostream>
 #include <cstdlib>
 #include <cstdint>
@@ -280,7 +280,7 @@ struct functor_teamvector_for {
 
         if (test != value) {
           KOKKOS_IMPL_DO_NOT_USE_PRINTF(
-              "FAILED teamvector_parallel_for %i %i %f %f\n",
+              "FAILED teamvector_parallel_for %i %i %lf %lf\n",
               team.league_rank(), team.team_rank(), static_cast<double>(test),
               static_cast<double>(value));
           flag() = 1;
@@ -493,7 +493,12 @@ template <class ExecutionSpace>
 bool Test(int test) {
   bool passed = true;
 
+// With SYCL 33*8 exceeds the maximum work group size
+#ifdef KOKKOS_ENABLE_SYCL
+  int team_size = 31;
+#else
   int team_size = 33;
+#endif
   if (team_size > int(ExecutionSpace::concurrency()))
     team_size = int(ExecutionSpace::concurrency());
   passed = passed && test_scalar<int, ExecutionSpace>(317, team_size, test);

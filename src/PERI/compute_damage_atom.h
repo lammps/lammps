@@ -35,7 +35,7 @@ class ComputeDamageAtom : public Compute {
  private:
   int nmax;
   double *damage;
-  int ifix_peri;
+  class FixPeriNeigh *fix_peri_neigh;
 };
 
 }    // namespace LAMMPS_NS

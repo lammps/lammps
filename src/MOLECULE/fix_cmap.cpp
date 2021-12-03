@@ -30,18 +30,19 @@
 
 #include "fix_cmap.h"
 
-#include <cmath>
-
-#include <cstring>
 #include "atom.h"
-#include "update.h"
-#include "respa.h"
-#include "domain.h"
-#include "force.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "respa.h"
+#include "tokenizer.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -1043,12 +1044,24 @@ void FixCMAP::bc_interpol(double x1, double x2, int low1, int low2, double *gs,
 
 void FixCMAP::read_data_header(char *line)
 {
-  if (strstr(line,"crossterms")) {
-    sscanf(line,BIGINT_FORMAT,&ncmap);
-  } else error->all(FLERR,"Invalid read data header line for fix cmap");
+  ValueTokenizer values(line);
 
-  // didn't set in constructor because this fix could be defined
-  // before newton command
+  try {
+    ncmap = values.next_bigint();
+    if (values.count() == 2) {
+      if (values.next_string() != "crossterms")
+        throw TokenizerException("invalid format",utils::trim(line));
+    } else if (values.count() == 3) {
+      if ((values.next_string() != "cmap") || (values.next_string() != "crossterms"))
+        throw TokenizerException("invalid format",utils::trim(line));
+    } else {
+      throw TokenizerException("valid format",utils::trim(line));
+    }
+  } catch (std::exception &e) {
+    error->all(FLERR,"Invalid read data header line for fix cmap: {}", e.what());
+  }
+
+  // not set in constructor because this fix could be defined before newton command
 
   newton_bond = force->newton_bond;
 }
@@ -1064,26 +1077,28 @@ void FixCMAP::read_data_section(char *keyword, int n, char *buf,
 {
   int m,tmp,itype;
   tagint atom1,atom2,atom3,atom4,atom5;
-  char *next;
 
-  next = strchr(buf,'\n');
-  *next = '\0';
-  int nwords = utils::count_words(utils::trim_comment(buf));
-  *next = '\n';
-
-  if (nwords != 7)
-    error->all(FLERR,"Incorrect {} format in data file",keyword);
+  auto lines = utils::split_lines(buf);
+  if (lines.size() == 0) return;
 
   // loop over lines of CMAP crossterms
   // tokenize the line into values
   // add crossterm to one of my atoms, depending on newton_bond
 
-  for (int i = 0; i < n; i++) {
-    next = strchr(buf,'\n');
-    *next = '\0';
-    sscanf(buf,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT
-           " " TAGINT_FORMAT " " TAGINT_FORMAT,
-           &tmp,&itype,&atom1,&atom2,&atom3,&atom4,&atom5);
+  for (const auto &line : lines) {
+    ValueTokenizer values(line);
+    try {
+      values.skip();
+      itype = values.next_int();
+      atom1 = values.next_tagint();
+      atom2 = values.next_tagint();
+      atom3 = values.next_tagint();
+      atom4 = values.next_tagint();
+      atom5 = values.next_tagint();
+      if (values.has_next()) throw TokenizerException("too many items",line);
+    } catch (std::exception &e) {
+      error->all(FLERR,"Incorrect format of CMAP section: {}", e.what());
+    }
 
     atom1 += id_offset;
     atom2 += id_offset;
@@ -1092,8 +1107,7 @@ void FixCMAP::read_data_section(char *keyword, int n, char *buf,
     atom5 += id_offset;
 
     if ((m = atom->map(atom1)) >= 0) {
-      if (num_crossterm[m] == CMAPMAX)
-        error->one(FLERR,"Too many CMAP crossterms for one atom");
+      if (num_crossterm[m] == CMAPMAX) error->one(FLERR,"Too many CMAP crossterms for one atom");
       crossterm_type[m][num_crossterm[m]] = itype;
       crossterm_atom1[m][num_crossterm[m]] = atom1;
       crossterm_atom2[m][num_crossterm[m]] = atom2;
@@ -1104,8 +1118,7 @@ void FixCMAP::read_data_section(char *keyword, int n, char *buf,
     }
 
     if ((m = atom->map(atom2)) >= 0) {
-      if (num_crossterm[m] == CMAPMAX)
-        error->one(FLERR,"Too many CMAP crossterms for one atom");
+      if (num_crossterm[m] == CMAPMAX) error->one(FLERR,"Too many CMAP crossterms for one atom");
       crossterm_type[m][num_crossterm[m]] = itype;
       crossterm_atom1[m][num_crossterm[m]] = atom1;
       crossterm_atom2[m][num_crossterm[m]] = atom2;
@@ -1116,8 +1129,7 @@ void FixCMAP::read_data_section(char *keyword, int n, char *buf,
     }
 
     if ((m = atom->map(atom3)) >= 0) {
-      if (num_crossterm[m] == CMAPMAX)
-        error->one(FLERR,"Too many CMAP crossterms for one atom");
+      if (num_crossterm[m] == CMAPMAX) error->one(FLERR,"Too many CMAP crossterms for one atom");
       crossterm_type[m][num_crossterm[m]] = itype;
       crossterm_atom1[m][num_crossterm[m]] = atom1;
       crossterm_atom2[m][num_crossterm[m]] = atom2;
@@ -1128,8 +1140,7 @@ void FixCMAP::read_data_section(char *keyword, int n, char *buf,
     }
 
     if ((m = atom->map(atom4)) >= 0) {
-      if (num_crossterm[m] == CMAPMAX)
-        error->one(FLERR,"Too many CMAP crossterms for one atom");
+      if (num_crossterm[m] == CMAPMAX) error->one(FLERR,"Too many CMAP crossterms for one atom");
       crossterm_type[m][num_crossterm[m]] = itype;
       crossterm_atom1[m][num_crossterm[m]] = atom1;
       crossterm_atom2[m][num_crossterm[m]] = atom2;
@@ -1140,8 +1151,7 @@ void FixCMAP::read_data_section(char *keyword, int n, char *buf,
     }
 
     if ((m = atom->map(atom5)) >= 0) {
-      if (num_crossterm[m] == CMAPMAX)
-        error->one(FLERR,"Too many CMAP crossterms for one atom");
+      if (num_crossterm[m] == CMAPMAX) error->one(FLERR,"Too many CMAP crossterms for one atom");
       crossterm_type[m][num_crossterm[m]] = itype;
       crossterm_atom1[m][num_crossterm[m]] = atom1;
       crossterm_atom2[m][num_crossterm[m]] = atom2;
@@ -1150,8 +1160,6 @@ void FixCMAP::read_data_section(char *keyword, int n, char *buf,
       crossterm_atom5[m][num_crossterm[m]] = atom5;
       num_crossterm[m]++;
     }
-
-    buf = next + 1;
   }
 }
 
@@ -1169,7 +1177,7 @@ bigint FixCMAP::read_data_skip_lines(char * /*keyword*/)
 
 void FixCMAP::write_data_header(FILE *fp, int /*mth*/)
 {
-  fprintf(fp,BIGINT_FORMAT " cmap crossterms\n",ncmap);
+  fmt::print(fp,"{} crossterms\n",ncmap);
 }
 
 /* ----------------------------------------------------------------------
@@ -1247,11 +1255,9 @@ void FixCMAP::write_data_section(int /*mth*/, FILE *fp,
                                   int n, double **buf, int index)
 {
   for (int i = 0; i < n; i++)
-    fprintf(fp,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT
-            " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT "\n",
-            index+i,(int) ubuf(buf[i][0]).i,(tagint) ubuf(buf[i][1]).i,
-            (tagint) ubuf(buf[i][2]).i,(tagint) ubuf(buf[i][3]).i,
-            (tagint) ubuf(buf[i][4]).i,(tagint) ubuf(buf[i][5]).i);
+    fmt::print(fp,"{} {} {} {} {} {} {}\n",
+               index+i,ubuf(buf[i][0]).i, ubuf(buf[i][1]).i, ubuf(buf[i][2]).i,
+               ubuf(buf[i][3]).i,ubuf(buf[i][4]).i,ubuf(buf[i][5]).i);
 }
 
 // ----------------------------------------------------------------------

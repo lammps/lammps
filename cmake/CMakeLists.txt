@@ -81,12 +81,23 @@ check_for_autogen_files(${LAMMPS_SOURCE_DIR})
 include(CheckIncludeFileCXX)
 
 # set required compiler flags and compiler/CPU arch specific optimizations
-if((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") OR (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM"))
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.3 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.4)
-    set(CMAKE_TUNE_DEFAULT "-xCOMMON-AVX512")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Qrestrict")
+    endif()
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.3 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.4)
+      set(CMAKE_TUNE_DEFAULT "/QxCOMMON-AVX512")
+    else()
+      set(CMAKE_TUNE_DEFAULT "/QxHost")
+    endif()
   else()
-    set(CMAKE_TUNE_DEFAULT "-xHost")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.3 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.4)
+      set(CMAKE_TUNE_DEFAULT "-xCOMMON-AVX512")
+    else()
+      set(CMAKE_TUNE_DEFAULT "-xHost")
+    endif()
   endif()
 endif()
 
@@ -97,9 +108,13 @@ if(PKG_KOKKOS AND (CMAKE_CXX_STANDARD LESS 14))
 endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "Use compiler extensions")
-# ugly hack for MSVC which by default always reports an old C++ standard in the __cplusplus macro
+# ugly hacks for MSVC which by default always reports an old C++ standard in the __cplusplus macro
+# and prints lots of pointless warnings about "unsafe" functions
 if(MSVC)
   add_compile_options(/Zc:__cplusplus)
+  add_compile_options(/wd4244)
+  add_compile_options(/wd4267)
+  add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 endif()
 
 # export all symbols when building a .dll file on windows
@@ -118,10 +133,7 @@ endif()
 set(LAMMPS_BINARY lmp${LAMMPS_MACHINE})
 
 option(BUILD_SHARED_LIBS "Build shared library" OFF)
-if(BUILD_SHARED_LIBS) # for all pkg libs, mpi_stubs and linalg
-  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-endif()
-
+option(CMAKE_POSITION_INDEPENDENT_CODE "Create object compatible with shared libraries" ON)
 option(BUILD_TOOLS "Build and install LAMMPS tools (msi2lmp, binary2txt, chain)" OFF)
 option(BUILD_LAMMPS_SHELL "Build and install the LAMMPS shell" OFF)
 
@@ -284,9 +296,16 @@ else()
   target_include_directories(mpi_stubs PUBLIC $<BUILD_INTERFACE:${LAMMPS_SOURCE_DIR}/STUBS>)
   if(BUILD_SHARED_LIBS)
     target_link_libraries(lammps PRIVATE mpi_stubs)
+    if(MSVC)
+      target_link_libraries(lmp PRIVATE mpi_stubs)
+      target_include_directories(lmp INTERFACE $<BUILD_INTERFACE:${LAMMPS_SOURCE_DIR}/STUBS>)
+      target_compile_definitions(lmp INTERFACE $<INSTALL_INTERFACE:LAMMPS_LIB_NO_MPI>)
+    endif()
     target_include_directories(lammps INTERFACE $<BUILD_INTERFACE:${LAMMPS_SOURCE_DIR}/STUBS>)
     target_compile_definitions(lammps INTERFACE $<INSTALL_INTERFACE:LAMMPS_LIB_NO_MPI>)
   else()
+    target_include_directories(lammps INTERFACE $<BUILD_INTERFACE:${LAMMPS_SOURCE_DIR}/STUBS>)
+    target_compile_definitions(lammps INTERFACE $<INSTALL_INTERFACE:LAMMPS_LIB_NO_MPI>)
     target_link_libraries(lammps PUBLIC mpi_stubs)
   endif()
   add_library(MPI::MPI_CXX ALIAS mpi_stubs)
@@ -471,9 +490,12 @@ foreach(HEADER cmath)
   endif(NOT FOUND_${HEADER})
 endforeach(HEADER)
 
-set(MATH_LIBRARIES "m" CACHE STRING "math library")
-mark_as_advanced( MATH_LIBRARIES )
-target_link_libraries(lammps PRIVATE ${MATH_LIBRARIES})
+# make the standard math library overrideable and autodetected (for systems that don't have it)
+find_library(STANDARD_MATH_LIB m DOC "Standard Math library")
+mark_as_advanced(STANDARD_MATH_LIB)
+if(STANDARD_MATH_LIB)
+  target_link_libraries(lammps PRIVATE ${STANDARD_MATH_LIB})
+endif()
 
 ######################################
 # Generate Basic Style files
@@ -594,15 +616,12 @@ foreach(PKG_WITH_INCL CORESHELL QEQ OPENMP DPD-SMOOTH KOKKOS OPT INTEL GPU)
 endforeach()
 
 if(PKG_PLUGIN)
-  if(BUILD_SHARED_LIBS)
-    target_compile_definitions(lammps PRIVATE -DLMP_PLUGIN)
-  else()
-    message(WARNING "Plugin loading will not work unless BUILD_SHARED_LIBS is enabled")
-  endif()
-  # link with -ldl or equivalent for plugin loading; except on Windows
-  if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
-    target_link_libraries(lammps PRIVATE ${CMAKE_DL_LIBS})
-  endif()
+  target_compile_definitions(lammps PRIVATE -DLMP_PLUGIN)
+endif()
+
+# link with -ldl or equivalent for plugin loading; except on Windows
+if(NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows")
+   target_link_libraries(lammps PRIVATE ${CMAKE_DL_LIBS})
 endif()
 
 ######################################################################
@@ -611,7 +630,7 @@ endif()
 # and after everything else that is compiled locally
 ######################################################################
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-  target_link_libraries(lammps PRIVATE -lwsock32 -lpsapi)
+  target_link_libraries(lammps PRIVATE "wsock32;psapi")
 endif()
 
 ######################################################
@@ -789,11 +808,17 @@ if(ClangFormat_FOUND)
 endif()
 
 get_target_property(DEFINES lammps COMPILE_DEFINITIONS)
+get_property(BUILD_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if(BUILD_IS_MULTI_CONFIG)
+  set(LAMMPS_BUILD_TYPE "Multi-Config")
+else()
+  set(LAMMPS_BUILD_TYPE ${CMAKE_BUILD_TYPE})
+endif()
 include(FeatureSummary)
 feature_summary(DESCRIPTION "The following tools and libraries have been found and configured:" WHAT PACKAGES_FOUND)
 message(STATUS "<<< Build configuration >>>
    Operating System: ${CMAKE_SYSTEM_NAME} ${CMAKE_LINUX_DISTRO} ${CMAKE_DISTRO_VERSION}
-   Build type:       ${CMAKE_BUILD_TYPE}
+   Build type:       ${LAMMPS_BUILD_TYPE}
    Install path:     ${CMAKE_INSTALL_PREFIX}
    Generator:        ${CMAKE_GENERATOR} using ${CMAKE_MAKE_PROGRAM}")
 ###############################################################################

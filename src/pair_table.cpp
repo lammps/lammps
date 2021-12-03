@@ -407,7 +407,7 @@ void PairTable::read_table(Table *tb, char *file, char *keyword)
       rfile = values.next_double();
       tb->efile[i] = conversion_factor * values.next_double();
       tb->ffile[i] = conversion_factor * values.next_double();
-    } catch (TokenizerException &e) {
+    } catch (TokenizerException &) {
       ++cerror;
     }
 

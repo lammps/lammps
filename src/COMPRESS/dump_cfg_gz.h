@@ -28,7 +28,7 @@ namespace LAMMPS_NS {
 class DumpCFGGZ : public DumpCFG {
  public:
   DumpCFGGZ(class LAMMPS *, int, char **);
-  virtual ~DumpCFGGZ();
+  virtual ~DumpCFGGZ() = default;
 
  protected:
   GzFileWriter writer;

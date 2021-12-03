@@ -41,7 +41,7 @@ class NBinSSA : public NBinStandard {
   int lbinzhi;    // highest local bin z-dim coordinate
 
   NBinSSA(class LAMMPS *);
-  ~NBinSSA();
+  virtual ~NBinSSA() = default;
 
   void bin_atoms_setup(int);
   void bin_atoms();

@@ -246,7 +246,7 @@ TEST_F(GroupTest, Molecular)
     ASSERT_DOUBLE_EQ(group->mass(group->find("half")), 40);
     ASSERT_DOUBLE_EQ(group->mass(group->find("half"), domain->find_region("top")), 10);
     ASSERT_NEAR(group->charge(group->find("top")), 0, 1.0e-14);
-    ASSERT_DOUBLE_EQ(group->charge(group->find("right"), domain->find_region("top")), 0);
+    ASSERT_NEAR(group->charge(group->find("right"), domain->find_region("top")), 0, 1.0e-14);
 
     TEST_FAILURE(".*ERROR: Illegal group command.*", command("group three include xxx"););
 }
@@ -316,7 +316,7 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (Info::get_mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
+    if (platform::mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
         std::cout << "Warning: using OpenMPI without exceptions. "
                      "Death tests will be skipped\n";
 

@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class EwaldDipoleSpin : public EwaldDipole {
  public:
   EwaldDipoleSpin(class LAMMPS *);
-  virtual ~EwaldDipoleSpin();
+  virtual ~EwaldDipoleSpin() = default;
   void init();
   void setup();
   void compute(int, int);

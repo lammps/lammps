@@ -253,7 +253,7 @@ int MinLineSearch::linemin_backtrack(double eoriginal, double &alpha)
 
   // backtrack with alpha until energy decrease is sufficient
 
-  while (1) {
+  while (true) {
     ecurrent = alpha_step(alpha,1);
 
     // if energy change is better than ideal, exit with success
@@ -412,7 +412,7 @@ int MinLineSearch::linemin_quadratic(double eoriginal, double &alpha)
   //        etmp-eoriginal+alphatmp*fdothall);
   // alpha_step(0.0,1);
 
-  while (1) {
+  while (true) {
     ecurrent = alpha_step(alpha,1);
 
     // compute new fh, alpha, delfh
@@ -708,7 +708,7 @@ int MinLineSearch::linemin_forcezero(double eoriginal, double &alpha)
 
   // main linesearch loop
 
-  while (1) {
+  while (true) {
     backtrack = false;
     fhPrev = fhCurr;
     engPrev = engCurr;

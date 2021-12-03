@@ -104,7 +104,7 @@ void hip_stream_scratch_test(
   hipStream_t stream[4];
   Kokkos::Experimental::HIP hip[4];
   for (int i = 0; i < K; i++) {
-    HIP_SAFE_CALL(hipStreamCreate(&stream[i]));
+    KOKKOS_IMPL_HIP_SAFE_CALL(hipStreamCreate(&stream[i]));
     hip[i] = Kokkos::Experimental::HIP(stream[i]);
   }
 // Test that growing scratch size in subsequent calls doesn't crash things
@@ -131,7 +131,7 @@ void hip_stream_scratch_test(
   Kokkos::fence();
   for (int i = 0; i < K; i++) {
     hip[i] = Kokkos::Experimental::HIP();
-    HIP_SAFE_CALL(hipStreamDestroy(stream[i]));
+    KOKKOS_IMPL_HIP_SAFE_CALL(hipStreamDestroy(stream[i]));
   }
 }
 }  // namespace Impl

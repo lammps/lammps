@@ -710,7 +710,7 @@ void TAD::perform_neb(int ievent)
   //    time_neb += timer->get_wall(Timer::TOTAL);
 
   MPI_Barrier(world);
-  double time_tmp = MPI_Wtime();
+  double time_tmp = platform::walltime();
 
   double dt_hold = update->dt;
   update->dt = dt_neb;
@@ -718,7 +718,7 @@ void TAD::perform_neb(int ievent)
   update->dt = dt_hold;
 
   MPI_Barrier(world);
-  time_neb += MPI_Wtime() - time_tmp;
+  time_neb += platform::walltime() - time_tmp;
 
   if (universe->me == 0) {
     universe->ulogfile = ulogfile_lammps;
@@ -840,11 +840,9 @@ void TAD::initialize_event_list() {
 
 void TAD::delete_event_list() {
 
-  for (int i = 0; i < n_event_list; i++) {
-    char str[128];
-    sprintf(str,"tad_event_%d",i);
-    modify->delete_fix(str);
-  }
+  for (int i = 0; i < n_event_list; i++)
+    modify->delete_fix(fmt::format("tad_event_{}",i));
+
   memory->sfree(fix_event_list);
   fix_event_list = nullptr;
   n_event_list = 0;

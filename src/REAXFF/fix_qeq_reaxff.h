@@ -45,7 +45,7 @@ class FixQEqReaxFF : public Fix {
   virtual void init();
   void init_list(int, class NeighList *);
   virtual void init_storage();
-  void setup_pre_force(int);
+  virtual void setup_pre_force(int);
   virtual void pre_force(int);
 
   void setup_pre_force_respa(int, int);
@@ -65,6 +65,7 @@ class FixQEqReaxFF : public Fix {
   int nlevels_respa;
   class NeighList *list;
   class PairReaxFF *reaxff;
+  class FixEfield *efield;
   int *ilist, *jlist, *numneigh, **firstneigh;
 
   double swa, swb;     // lower/upper Taper cutoff radius
@@ -92,6 +93,7 @@ class FixQEqReaxFF : public Fix {
   double *Hdia_inv;
   double *b_s, *b_t;
   double *b_prc, *b_prm;
+  double *chi_field;
 
   //CG storage
   double *p, *q, *r, *d;
@@ -105,7 +107,7 @@ class FixQEqReaxFF : public Fix {
   virtual void deallocate_storage();
   void reallocate_storage();
   virtual void allocate_matrix();
-  void deallocate_matrix();
+  virtual void deallocate_matrix();
   void reallocate_matrix();
 
   virtual void init_matvec();
@@ -133,6 +135,8 @@ class FixQEqReaxFF : public Fix {
 
   virtual void vector_sum(double *, double, double *, double, double *, int);
   virtual void vector_add(double *, double, double *, int);
+
+  virtual void get_chi_field();
 
   // dual CG support
   int dual_enabled;            // 0: Original, separate s & t optimization; 1: dual optimization

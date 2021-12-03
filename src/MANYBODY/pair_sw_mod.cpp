@@ -40,7 +40,8 @@ void PairSWMOD::threebody(Param *paramij, Param *paramik, Param *paramijk,
   double r1,rinvsq1,rainv1,gsrainv1,gsrainvsq1,expgsrainv1;
   double r2,rinvsq2,rainv2,gsrainv2,gsrainvsq2,expgsrainv2;
   double rinv12,cs,delcs,delcssq,facexp,facrad,frad1,frad2;
-  double facang,facang12,csfacang,csfac1,csfac2,factor;
+  double facang,facang12,csfacang,csfac1,csfac2;
+  double delta1,delta2,factor;
 
   r1 = sqrt(rsq1);
   rinvsq1 = 1.0/rsq1;
@@ -60,9 +61,11 @@ void PairSWMOD::threebody(Param *paramij, Param *paramik, Param *paramijk,
   cs = (delr1[0]*delr2[0] + delr1[1]*delr2[1] + delr1[2]*delr2[2]) * rinv12;
   delcs = cs - paramijk->costheta;
   // Modification to delcs
-  if(fabs(delcs) >= 0.35) delcs = 0.0;
-  else if(fabs(delcs) < 0.35 && fabs(delcs) > 0.25) {
-    factor = 0.5 + 0.5*cos(MY_PI*(delcs-0.25)/(0.35-0.25));
+  delta1 = 0.25;
+  delta2 = 0.35;
+  if(fabs(delcs) >= delta2) delcs = 0.0;
+  else if(fabs(delcs) < delta2 && fabs(delcs) > delta1) {
+    factor = 0.5 + 0.5*cos(MY_PI*(delcs - delta1)/(delta2 - delta1));
     delcs *= factor;
   }
   delcssq = delcs*delcs;

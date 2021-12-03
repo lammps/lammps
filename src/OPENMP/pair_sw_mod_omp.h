@@ -31,10 +31,14 @@ namespace LAMMPS_NS {
 class PairSWMODOMP : public PairSWOMP {
 
  public:
-  PairSWMODOMP(class LAMMPS *lmp) : PairSWOMP(lmp) {}
+  PairSWMODOMP(class LAMMPS *);
   virtual ~PairSWMODOMP() {}
 
  protected:
+  double delta1;
+  double delta2;
+
+  void settings(int, char **);
   void threebody(Param *, Param *, Param *, double, double, double *, double *, double *, double *,
                  int, double &);
 };

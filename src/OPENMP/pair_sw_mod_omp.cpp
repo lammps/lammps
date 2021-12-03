@@ -16,12 +16,43 @@
 
 #include "pair_sw_mod_omp.h"
 
+#include "error.h"
 #include "math_const.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+
+PairSWMODOMP::PairSWMODOMP(LAMMPS *lmp) : PairSWOMP(lmp)
+{
+  delta1 = 0.25;
+  delta2 = 0.35;
+}
+
+/* ----------------------------------------------------------------------
+   global settings
+------------------------------------------------------------------------- */
+
+void PairSWMODOMP::settings(int narg, char **arg)
+{
+  // process optional keywords
+
+  int iarg = 0;
+
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"maxdelcs") == 0) {
+      if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style command");
+      delta1 = utils::numeric(FLERR,arg[iarg+1],false,Pointers::lmp);
+      delta2 = utils::numeric(FLERR,arg[iarg+2],false,Pointers::lmp);
+      iarg += 3;
+      if ((delta1 < 0.0) || (delta1 > 1.0) || (delta2 < 0.0) || (delta2 > 1.0) || (delta1 > delta2))
+        error->all(FLERR,"Illegal values for maxdelcs keyword");
+    } else error->all(FLERR,"Illegal pair_style command");
+  }
+  PairSWOMP::settings(narg-iarg,arg+iarg);
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -34,7 +65,6 @@ void PairSWMODOMP::threebody(Param *paramij, Param *paramik, Param *paramijk,
   double r2,rinvsq2,rainv2,gsrainv2,gsrainvsq2,expgsrainv2;
   double rinv12,cs,delcs,delcssq,facexp,facrad,frad1,frad2;
   double facang,facang12,csfacang,csfac1,csfac2,factor;
-  double delta1,delta2,factor;
 
   r1 = sqrt(rsq1);
   rinvsq1 = 1.0/rsq1;
@@ -53,9 +83,8 @@ void PairSWMODOMP::threebody(Param *paramij, Param *paramik, Param *paramijk,
   rinv12 = 1.0/(r1*r2);
   cs = (delr1[0]*delr2[0] + delr1[1]*delr2[1] + delr1[2]*delr2[2]) * rinv12;
   delcs = cs - paramijk->costheta;
+
   // Modification to delcs
-  delta1 = 0.25;
-  delta2 = 0.35;
   if(fabs(delcs) >= delta2) delcs = 0.0;
   else if(fabs(delcs) < delta2 && fabs(delcs) > delta1) {
     factor = 0.5 + 0.5*cos(MY_PI*(fabs(delcs) - delta1)/(delta2 - delta1));

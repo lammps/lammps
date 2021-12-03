@@ -32,7 +32,6 @@ Syntax
          delta1 = The minimum thershold for cosine of three-body angle
          delta2 = The maximum threshold for cosine of three-body angle
 
-
 Examples
 """"""""
 
@@ -78,7 +77,7 @@ is modified with the following function:
   \delta = \delta f_C(\delta) 
   f_C(\delta) & = \left\{ \begin{array} {r@{\quad:\quad}l}
     1 & \lvert \delta \rvert < \delta_1 \\
-    \frac{1}{2} + \frac{1}{2} \cos \left( \pi \frac{\delta-\delta_1}{\delta_2 - \delta_1} \right) &
+    \frac{1}{2} + \frac{1}{2} \cos \left( \pi \frac{\lvert \delta \rvert - \delta_1}{\delta_2 - \delta_1} \right) &
       \delta_1 < \lvert \delta \rvert < \delta_2 \\
     0 & \vert \delta \rvert > \delta_2
     \end{array} \right. \\

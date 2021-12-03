@@ -85,7 +85,7 @@ void PairSWMOD::threebody(Param *paramij, Param *paramik, Param *paramijk,
   //delta2 = 0.35;
   if(fabs(delcs) >= delta2) delcs = 0.0;
   else if(fabs(delcs) < delta2 && fabs(delcs) > delta1) {
-    factor = 0.5 + 0.5*cos(MY_PI*(delcs - delta1)/(delta2 - delta1));
+    factor = 0.5 + 0.5*cos(MY_PI*(fabs(delcs) - delta1)/(delta2 - delta1));
     delcs *= factor;
   }
   delcssq = delcs*delcs;

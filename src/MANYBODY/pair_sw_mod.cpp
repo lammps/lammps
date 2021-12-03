@@ -18,6 +18,7 @@
 
 #include "pair_sw_mod.h"
 
+#include "error.h"
 #include "math_const.h"
 
 #include <cmath>
@@ -30,6 +31,26 @@ using namespace MathConst;
 
 PairSWMOD::PairSWMOD(LAMMPS *lmp) : PairSW(lmp) {}
 
+/* ----------------------------------------------------------------------
+   global settings
+------------------------------------------------------------------------- */
+
+void PairSWMOD::settings(int narg, char **arg)
+{
+  // process optional keywords
+
+  int iarg = 0;
+
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"maxdelcs") == 0) {
+      if (iarg+3 > narg) error->all(FLERR,"Illegal pair_style command");
+      delta1 = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      delta2 = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      iarg += 3;
+    } else error->all(FLERR,"Illegal pair_style command");
+  }
+}
+
 /* ---------------------------------------------------------------------- */
 
 void PairSWMOD::threebody(Param *paramij, Param *paramik, Param *paramijk,
@@ -40,8 +61,7 @@ void PairSWMOD::threebody(Param *paramij, Param *paramik, Param *paramijk,
   double r1,rinvsq1,rainv1,gsrainv1,gsrainvsq1,expgsrainv1;
   double r2,rinvsq2,rainv2,gsrainv2,gsrainvsq2,expgsrainv2;
   double rinv12,cs,delcs,delcssq,facexp,facrad,frad1,frad2;
-  double facang,facang12,csfacang,csfac1,csfac2;
-  double delta1,delta2,factor;
+  double facang,facang12,csfacang,csfac1,csfac2,factor;
 
   r1 = sqrt(rsq1);
   rinvsq1 = 1.0/rsq1;
@@ -61,8 +81,8 @@ void PairSWMOD::threebody(Param *paramij, Param *paramik, Param *paramijk,
   cs = (delr1[0]*delr2[0] + delr1[1]*delr2[1] + delr1[2]*delr2[2]) * rinv12;
   delcs = cs - paramijk->costheta;
   // Modification to delcs
-  delta1 = 0.25;
-  delta2 = 0.35;
+  //delta1 = 0.25;
+  //delta2 = 0.35;
   if(fabs(delcs) >= delta2) delcs = 0.0;
   else if(fabs(delcs) < delta2 && fabs(delcs) > delta1) {
     factor = 0.5 + 0.5*cos(MY_PI*(delcs - delta1)/(delta2 - delta1));

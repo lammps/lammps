@@ -30,6 +30,9 @@ class PairSWMOD : public PairSW {
   ~PairSWMOD() {}
 
  protected:
+  double delta1;
+  double delta2;
+  void settings(int, char **);
   void threebody(Param *, Param *, Param *, double, double, double *, double *, double *, double *,
                  int, double &);
 };

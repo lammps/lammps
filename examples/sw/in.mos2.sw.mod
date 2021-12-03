@@ -10,7 +10,7 @@ mass            * 32.065	# mass of sulphur atom , uint: a.u.=1.66X10^(-27)kg
 mass            1 95.94		# mass of molebdenum atom , uint: a.u.=1.66X10^(-27)kg
 
 ########################## Define potentials ################################
-pair_style      sw/mod
+pair_style      sw/mod maxdelcs 0.25 0.35
 pair_coeff      * * tmd.sw.mod Mo S S
 #########################################################################
 

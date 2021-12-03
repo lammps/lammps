@@ -21,9 +21,17 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   pair_style style
+   pair_style style keyword values
 
 * style = *sw* or *sw/mod*
+* keyword = *maxdelcs*
+
+  .. parsed-literal::
+
+       *maxdelcs* value = delta1 delta2
+         delta1 = The minimum thershold for cosine of three-body angle
+         delta2 = The maximum threshold for cosine of three-body angle
+
 
 Examples
 """"""""
@@ -34,7 +42,7 @@ Examples
    pair_coeff * * si.sw Si
    pair_coeff * * GaN.sw Ga N Ga
 
-   pair_style sw/mod
+   pair_style sw/mod maxdelcs 0.25 0.35
    pair_coeff * * tmd.sw.mod Mo S S
 
 Description

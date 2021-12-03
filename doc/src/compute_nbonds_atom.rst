@@ -23,11 +23,11 @@ Examples
 Description
 """""""""""
 
-Define a computation that computes the number of bonds per-atom.
-Bonds which are broken are not counted in the tally.
-See :doc:`bond_style quartic <bond_quartic>` or the
-:doc:`Howto bpm <Howto_bpm>` page. The number of bonds will be zero
-for atoms not in the specified compute group.
+Define a computation that computes the number of bonds each atom is
+part of.  Bonds which are broken are not counted in the tally.  See
+the :doc:`Howto broken bonds <Howto_bpm>` page for more information.
+The number of bonds will be zero for atoms not in the specified
+compute group. This compute does not depend on Newton bond settings.
 
 Output info
 """""""""""
@@ -40,9 +40,8 @@ LAMMPS output options.
 Restrictions
 """"""""""""
 
-This fix can only be used if LAMMPS was built with the BPM
-package.  See the :doc:`Build package <Build_package>` doc page for more
-info.
+This fix can only be used if LAMMPS was built with the BPM package.
+See the :doc:`Build package <Build_package>` doc page for more info.
 
 Related commands
 """"""""""""""""

@@ -139,7 +139,6 @@ void NPairHalfSizeMultiOldNewtonTri::build(NeighList *list)
             else if (domain->minimum_image_check(delx,dely,delz))
               neighptr[n++] = jh;
             else if (which > 0) neighptr[n++] = jh ^ (which << SBBITS);
-            // OLD: if (which >= 0) neighptr[n++] = j ^ (which << SBBITS);
           } else neighptr[n++] = jh;
         }
       }

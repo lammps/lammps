@@ -40,6 +40,7 @@ class PairTracker : public Pair {
   virtual double single(int, int, int, int, double, double, double, double &);
   double atom2cut(int);
   double radii2cut(double, double);
+  void transfer_history(double *, double *);
 
  protected:
   int sizeflag;
@@ -75,8 +76,6 @@ class PairTracker : public Pair {
   void pack_rmin(int, int, int, double *);
   void pack_rave(int, int, int, double *);
 
-  void transfer_data(int, int);
-  void transfer_history(double *, double *);
   void process_data(int, int, double *);
   void allocate();
 };

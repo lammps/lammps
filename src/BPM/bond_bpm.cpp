@@ -112,7 +112,7 @@ void BondBPM::init_style()
     if (id_fix_dummy) {
       id_fix_update = utils::strdup("BPM_update_special_bonds");
       fix_update_special_bonds = (FixUpdateSpecialBonds *) modify->replace_fix(id_fix_dummy,
-        fmt::format("{} all update/special/bonds", id_fix_update),1);
+        fmt::format("{} all UPDATE/SPECIAL/BONDS", id_fix_update),1);
       delete [] id_fix_dummy;
       id_fix_dummy = nullptr;
     }

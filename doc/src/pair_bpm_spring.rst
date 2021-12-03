@@ -48,12 +48,22 @@ given by
 
    w = 1.0 - \left( \frac{r}{r_c} \right)^8 .
 
-This pair style is designed for use in a spring-based bonded particle model.
-It mirrors the construction of the :doc:`bpm/spring <bond_bpm_spring>` bond style.
+This pair style is designed for use in a spring-based bonded particle
+model.  It mirrors the construction of the :doc:`bpm/spring
+<bond_bpm_spring>` bond style.
+
+This pair interaction is always applied to pairs of nonbonded particles
+that are within the interaction distance. For pairs of bonded particles
+that are within the interaction distance, there is the option to either
+include this pair interaction and overlay the pair force over the bond
+force or to exclude this pair interaction such that the two particles
+only interact via the bond force. See discussion of the *overlay/pair*
+option for BPM bond styles and the :doc:`special_bonds <special_bonds>`
+command in the `:doc: how to <Howto_BPM>` page on BPMs for more details.
 
 The following coefficients must be defined for each pair of atom types
-via the :doc:`pair_coeff <pair_coeff>` command as in the examples above,
-or in the data file or restart files read by the
+via the :doc:`pair_coeff <pair_coeff>` command as in the examples
+above, or in the data file or restart files read by the
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands, or by mixing as described below:
 
@@ -79,8 +89,9 @@ shift option, since the pair interaction goes to 0.0 at the cutoff.
 The :doc:`pair_modify <pair_modify>` table and tail options are not
 relevant for this pair style.
 
-This pair style writes its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
-to be specified in an input script that reads a restart file.
+This pair style writes its information to :doc:`binary restart files
+<restart>`, so pair_style and pair_coeff commands do not need to be
+specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the

@@ -30,10 +30,6 @@ class FixStoreLocal : public Fix {
   ~FixStoreLocal();
   int setmask();
   void post_force(int);
-  void write_restart(FILE *);
-  void restart(char *);
-  int size_restart(int);
-  int maxsize_restart();
   double memory_usage();
   void add_data(double *, int, int);
   int nvalues;
@@ -47,7 +43,6 @@ class FixStoreLocal : public Fix {
   int ncount;
 
   void reallocate(int);
-  double *rbuf;    // restart buffer for GLOBAL vec/array
 };
 
 }    // namespace LAMMPS_NS

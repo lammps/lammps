@@ -134,7 +134,7 @@ void BondBPMSpring::compute(int eflag, int vflag)
     store_data();
   }
 
-  int i1,i2,m,n,type,itype,jtype;
+  int i1,i2,itmp,m,n,type,itype,jtype;
   double delx, dely, delz, delvx, delvy, delvz;
   double e, rsq, r, r0, rinv, smooth, fbond, ebond, dot;
 
@@ -143,6 +143,7 @@ void BondBPMSpring::compute(int eflag, int vflag)
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
+  tagint *tag = atom->tag;
   int **bondlist = neighbor->bondlist;
   int nbondlist = neighbor->nbondlist;
   int nlocal = atom->nlocal;
@@ -159,6 +160,15 @@ void BondBPMSpring::compute(int eflag, int vflag)
     i2 = bondlist[n][1];
     type = bondlist[n][2];
     r0 = bondstore[n][0];
+
+    // Ensure pair is always ordered to ensure numerical operations
+    // are identical to minimize the possibility that a bond straddling
+    // an mpi grid (newton off) doesn't break on one proc but not the other
+    if (tag[i2] < tag[i1]) {
+      itmp = i1;
+      i1 = i2;
+      i2 = itmp;
+    }
 
     // If bond hasn't been set - should be initialized to zero
     if (r0 < EPSILON || std::isnan(r0))

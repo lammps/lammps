@@ -44,7 +44,7 @@ PairTracker::PairTracker(LAMMPS *lmp) :
 
   neighprev = 0;
   history = 1;
-  size_history = 4;
+  size_history = 3;
   nondefault_history_transfer = 1;
 
   finitecutflag = 0;
@@ -96,7 +96,7 @@ PairTracker::~PairTracker()
 void PairTracker::compute(int eflag, int vflag)
 {
   int i, j, ii, jj, inum, jnum, itype, jtype;
-  double xtmp, ytmp, ztmp, delx, dely, delz, time;
+  double xtmp, ytmp, ztmp, delx, dely, delz;
   double radi, radj, radsum, rsq, r;
   int *ilist, *jlist, *numneigh, **firstneigh;
   int *touch, **firsttouch;
@@ -152,23 +152,20 @@ void PairTracker::compute(int eflag, int vflag)
           }
 
           touch[jj] = 0;
-          data[0] = 0.0;    // initial time
-          data[1] = 0.0;    // initial timestep
-          data[2] = 0.0;    // sum of r, may overflow
-          data[3] = 0.0;    // min of r
+          data[0] = 0.0;    // initial timestep
+          data[1] = 0.0;    // sum of r, may be inaccurate over long times
+          data[2] = 0.0;    // min of r
 
         } else {
 
           data = &alldata[size_history * jj];
           if (touch[jj] == 0) {
-            time = update->atime + (update->ntimestep - update->atimestep) * update->dt;
-            data[0] = time;
-            data[1] = (double) update->ntimestep;
+            data[0] = (double) update->ntimestep;
+            data[1] = r;
             data[2] = r;
-            data[3] = r;
           } else if (updateflag) {
-            data[2] += r;
-            if (data[3] > r) data[3] = r;
+            data[1] += r;
+            if (data[2] > r) data[2] = r;
           }
           touch[jj] = 1;
         }
@@ -182,23 +179,20 @@ void PairTracker::compute(int eflag, int vflag)
           }
 
           touch[jj] = 0;
-          data[0] = 0.0;    // initial time
-          data[1] = 0.0;    // initial timestep
-          data[2] = 0.0;    // sum of r, may overflow
-          data[3] = 0.0;    // min of r
+          data[0] = 0.0;    // initial timestep
+          data[1] = 0.0;    // sum of r, may be inaccurate over long times
+          data[2] = 0.0;    // min of r
 
         } else {
 
           data = &alldata[size_history * jj];
           if (touch[jj] == 0) {
-            time = update->atime + (update->ntimestep - update->atimestep) * update->dt;
-            data[0] = time;
-            data[1] = (double) update->ntimestep;
+            data[0] = (double) update->ntimestep;
+            data[1] = r;
             data[2] = r;
-            data[3] = r;
           } else if (updateflag) {
-            data[2] += r;
-            if (data[3] > r) data[3] = r;
+            data[1] += r;
+            if (data[2] > r) data[2] = r;
           }
           touch[jj] = 1;
         }
@@ -570,9 +564,7 @@ double PairTracker::radii2cut(double r1, double r2)
 
 void PairTracker::process_data(int i, int j, double * input_data)
 {
-  double time = update->atime + (update->ntimestep - update->atimestep) * update->dt;
-  int time_initial = (int) input_data[0];
-  if ((time - time_initial) < tmin) return;
+  if ((update->ntimestep - input_data[0]) < tmin) return;
 
   if (type_filter) {
     int *type = atom->type;
@@ -590,25 +582,21 @@ void PairTracker::process_data(int i, int j, double * input_data)
 
 void PairTracker::pack_time_created(int n, int i, int j, double * data)
 {
-  double time_initial = data[0];
-  output_data[n] = time_initial;
+  output_data[n] = data[0];
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairTracker::pack_time_broken(int n, int i, int j, double * data)
 {
-  double time = update->atime + (update->ntimestep - update->atimestep) * update->dt;
-  output_data[n] = time;
+  output_data[n] = update->ntimestep;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairTracker::pack_time_total(int n, int i, int j, double * data)
 {
-  double time = update->atime + (update->ntimestep - update->atimestep) * update->dt;
-  double time_initial = data[0];
-  output_data[n] = time - time_initial;
+  output_data[n] = update->ntimestep - data[0];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -655,15 +643,12 @@ void PairTracker::pack_z(int n, int i, int j, double * data)
 
 void PairTracker::pack_rmin(int n, int i, int j, double * data)
 {
-  double rmin = data[3];
-  output_data[n] = rmin;
+  output_data[n] = data[2];
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairTracker::pack_rave(int n, int i, int j, double * data)
 {
-  double rsum = data[2];
-  double nstep_initial = data[1];
-  output_data[n] = rsum / (update->ntimestep - nstep_initial);
+  output_data[n] = data[1] / (update->ntimestep - data[0]);
 }

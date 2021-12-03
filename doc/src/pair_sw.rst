@@ -74,7 +74,7 @@ is modified with the following function:
 
 .. math::
 
-  \delta = \delta f_C(\delta) 
+  \delta = \delta f_C(\delta)
   f_C(\delta) & = \left\{ \begin{array} {r@{\quad:\quad}l}
     1 & \lvert \delta \rvert < \delta_1 \\
     \frac{1}{2} + \frac{1}{2} \cos \left( \pi \frac{\lvert \delta \rvert - \delta_1}{\delta_2 - \delta_1} \right) &
@@ -89,7 +89,7 @@ by the original code for the Stillinger-Weber potential. Validation,
 benchmark tests, and applications of the *sw/mod* style can be found in
 :ref:`(Jiang_1) <Jiang1>` and :ref:`(Jiang_2) <Jiang2>`.
 
-For borophene and transition metal dichalcogenide, `\delta_1 = 0.25` and `\delta_2 = 0.35`. 
+For borophene and transition metal dichalcogenide, `\delta_1 = 0.25` and `\delta_2 = 0.35`.
 
 Only a single pair_coeff command is used with the *sw* and *sw/mod* styles
 which specifies a Stillinger-Weber potential file with parameters for all

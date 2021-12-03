@@ -28,7 +28,7 @@ Syntax
 
   .. parsed-literal::
 
-       *maxdelcs* value = delta1 delta2
+       *maxdelcs* value = delta1 delta2 (optional)
          delta1 = The minimum thershold for cosine of three-body angle
          delta2 = The maximum threshold for cosine of three-body angle
 
@@ -256,7 +256,8 @@ Related commands
 Default
 """""""
 
-none
+The default values for the *maxdelcs* setting of the *sw/mod* pair
+style are `\delta_1 = 0.25` and `\delta_2 = 0.35`.
 
 ----------
 

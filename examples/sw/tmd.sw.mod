@@ -1,1 +1,0 @@
-../../potentials/tmd.sw.mod

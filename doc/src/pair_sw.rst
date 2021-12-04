@@ -67,14 +67,26 @@ where :math:`\phi_2` is a two-body term and :math:`\phi_3` is a
 three-body term.  The summations in the formula are over all neighbors J
 and K of atom I within a cutoff distance :math:`a `\sigma`.
 
+The *sw/mod* style is designed for simulations of materials when
+distinguishing three-body angles are necessary, such as borophene
+and transition metal dichalcogenide, which cannot be described
+by the original code for the Stillinger-Weber potential. 
+For instance, there are several types of angles around each Mo atom in `MoS_2`,
+and some unnecessary angle types should be excluded in the three-body interaction.
+Such exclusion may be realized by selecting proper angle types directly.
+The exclusion of unnecessary angles is achieved here by the cut-off function (`f_C(\delta)`),
+which induces only minimum modifications for LAMMPS.
+
+Validation, benchmark tests, and applications of the *sw/mod* style 
+can be found in :ref:`(Jiang_1) <Jiang1>` and :ref:`(Jiang_2) <Jiang2>`.
+
 The *sw/mod* style computes the energy E of a system of atoms, whose potential
 function is mostly the same as the Stillinger-Weber potential. The only modification
-is in the three-body term, where :math:`\delta = \cos \theta_{ijk} - \cos \theta_{0ijk}`
-is modified with the following function:
+is in the three-body term, where the value of :math:`\delta = \cos \theta_{ijk} - \cos \theta_{0ijk}`
+used in the original energy and force expression is scaled by a switching factor `f_C(\delta)`:
 
 .. math::
 
-  \delta = \delta f_C(\delta)
   f_C(\delta) & = \left\{ \begin{array} {r@{\quad:\quad}l}
     1 & \lvert \delta \rvert < \delta_1 \\
     \frac{1}{2} + \frac{1}{2} \cos \left( \pi \frac{\lvert \delta \rvert - \delta_1}{\delta_2 - \delta_1} \right) &
@@ -82,14 +94,22 @@ is modified with the following function:
     0 & \vert \delta \rvert > \delta_2
     \end{array} \right. \\
 
-The *sw/mod* style is designed for simulations of materials when
-distinguishing three-body angles are necessary, such as borophene
-and transition metal dichalcogenide, which cannot be described
-by the original code for the Stillinger-Weber potential. Validation,
-benchmark tests, and applications of the *sw/mod* style can be found in
-:ref:`(Jiang_1) <Jiang1>` and :ref:`(Jiang_2) <Jiang2>`.
-
+This cut-off function decreases smoothly from 1 to 0 over the range [`delta_1`, `delta_2`].
+This smoothly turns off the energy and force contributions for `\lvert \delta \rvert > deltai_2`.
+It is suggested that `delta_1` and `delta_2` to be the value around
+`0.5 \lvert \cos \left( \theta_1 \right) - \cos \left( \theta_2 \right) \rvert`,
+with `theta_1` and `theta_2` as the different types of angles around an atom.
 For borophene and transition metal dichalcogenide, `\delta_1 = 0.25` and `\delta_2 = 0.35`.
+This value enables the cut-off function to exclude unnecessary angles in the three-body SW terms.
+
+.. note::
+
+   The cut-off function is just to be used as a technique to exclude some unnecessary angles, 
+   and it has no physical meaning. It should be noted that the force and potential are inconsistent 
+   with each other in the decaying range of the cut-off function, as the angle dependence for the 
+   cut-off function is not implemented in the force (first derivation of potential). 
+   However, the angle variation is much smaller than the given threshhold value for actual simulations, 
+   so the inconsistency between potential and force can be neglected in actual simulations. 
 
 Only a single pair_coeff command is used with the *sw* and *sw/mod* styles
 which specifies a Stillinger-Weber potential file with parameters for all

@@ -3,7 +3,7 @@ units      	metal
 boundary   	p p f
 processors	* * 1
 
-atom_style 	full
+atom_style 	atomic
 read_data       single_layer_MoS2.data
 
 mass            * 32.065	# mass of sulphur atom , uint: a.u.=1.66X10^(-27)kg

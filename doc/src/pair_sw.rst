@@ -78,7 +78,7 @@ The exclusion of unnecessary angles is achieved here by the cut-off function (`f
 which induces only minimum modifications for LAMMPS.
 
 Validation, benchmark tests, and applications of the *sw/mod* style
-can be found in :ref:`(Jiang_1) <Jiang1>` and :ref:`(Jiang_2) <Jiang2>`.
+can be found in :ref:`(Jiang2) <Jiang2>` and :ref:`(Jiang3) <Jiang3>`.
 
 The *sw/mod* style computes the energy E of a system of atoms, whose potential
 function is mostly the same as the Stillinger-Weber potential. The only modification
@@ -285,10 +285,10 @@ style are `\delta_1 = 0.25` and `\delta_2 = 0.35`.
 
 **(Stillinger)** Stillinger and Weber, Phys Rev B, 31, 5262 (1985).
 
-.. _Jiang1:
-
-**(Jiang_1)** J.-W. Jiang, Nanotechnology 26, 315706 (2015).
-
 .. _Jiang2:
 
-**(Jiang_2)** J.-W. Jiang, Acta Mech. Solida. Sin 32, 17 (2019).
+**(Jiang2)** J.-W. Jiang, Nanotechnology 26, 315706 (2015).
+
+.. _Jiang3:
+
+**(Jiang3)** J.-W. Jiang, Acta Mech. Solida. Sin 32, 17 (2019).

@@ -279,6 +279,7 @@ class Fix : protected Pointers {
   void v_setup(int);
   void v_tally(int, int *, double, double *);
   void v_tally(int,int*,double,double*,int,int,int[][2],double*,double[][3]);
+  void v_tally(int,int*,double,double*,double[][3],double[][3],double[]);
   void v_tally(int, double *);
   void v_tally(int, int, double);
 };

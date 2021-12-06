@@ -394,6 +394,50 @@ void Fix::v_tally(int n, int *list, double total, double *v)
    tally virial into global and per-atom accumulators
    n = # of local owned atoms involved, with local indices in list
    vtot = total virial for the interaction involving total atoms
+   rlist = list of positional vectors
+   flist = list of force vectors
+   center = centroid coordinate
+   increment global virial by n/total fraction
+   increment per-atom virial of each atom in list by 1/total fraction
+   add centroid form atomic virial contribution for each atom if available
+   this method can be used when fix computes forces in post_force()
+   and only total forces on each atom in group are easily available
+     e.g. fix rigid/small: compute virial only on owned atoms
+       whether newton_bond is on or off
+     other procs will tally left-over fractions for atoms they own
+------------------------------------------------------------------------- */
+
+void Fix::v_tally(int n, int *list, double total, double *vtot,
+    double rlist[][3], double flist[][3], double center[])
+{
+
+  v_tally(n, list, total, vtot);
+
+  if (cvflag_atom) {
+    for (int i = 0; i< n; i++) {
+      const double ri0[3] = {
+        rlist[i][0]-center[0],
+        rlist[i][1]-center[1],
+        rlist[i][2]-center[2],
+      };
+      cvatom[list[i]][0] += ri0[0]*flist[i][0];
+      cvatom[list[i]][1] += ri0[1]*flist[i][1];
+      cvatom[list[i]][2] += ri0[2]*flist[i][2];
+      cvatom[list[i]][3] += ri0[0]*flist[i][1];
+      cvatom[list[i]][4] += ri0[0]*flist[i][2];
+      cvatom[list[i]][5] += ri0[1]*flist[i][2];
+      cvatom[list[i]][6] += ri0[1]*flist[i][0];
+      cvatom[list[i]][7] += ri0[2]*flist[i][0];
+      cvatom[list[i]][8] += ri0[2]*flist[i][1];
+    }
+  }
+
+}
+
+/* ----------------------------------------------------------------------
+   tally virial into global and per-atom accumulators
+   n = # of local owned atoms involved, with local indices in list
+   vtot = total virial for the interaction involving total atoms
    npair = # of atom pairs with forces beween them
    pairlist = indice list of pairs
    fpairlist = forces between pairs

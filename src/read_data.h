@@ -44,8 +44,7 @@ class ReadData : public Command {
   int nlocal_previous;
   bigint natoms;
   bigint nbonds, nangles, ndihedrals, nimpropers;
-  int ntypes;
-  int nbondtypes, nangletypes, ndihedraltypes, nimpropertypes;
+  int ntypes, nbondtypes, nangletypes, ndihedraltypes, nimpropertypes;
 
   bigint nellipsoids;
   class AtomVecEllipsoid *avec_ellipsoid;
@@ -112,7 +111,7 @@ class ReadData : public Command {
   void anglecoeffs(int);
   void dihedralcoeffs(int);
   void impropercoeffs(int);
-  void typelabels(std::vector<std::string> &, int, int);
+  void typelabels(int);
 
   void fix(int, char *);
 };

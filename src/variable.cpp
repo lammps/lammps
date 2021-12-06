@@ -4430,11 +4430,10 @@ int Variable::labelmap_function(char *word, char *contents, Tree **tree,
     return 0;
 
   if (!atom->labelmapflag)
-    print_var_error(FLERR,"Invalid type label in "
-                    "variable formula",ivar);
+    print_var_error(FLERR,"Invalid type label in variable formula",ivar);
 
   int value;
-  std::string typestr = contents;
+  std::string typestr(contents);
 
   if (strcmp(word,"label") == 0) {
     value = atom->find_label(typestr,Atom::ATOM);
@@ -4453,8 +4452,7 @@ int Variable::labelmap_function(char *word, char *contents, Tree **tree,
   }
 
   if (value == -1)
-    print_var_error(FLERR,"Invalid type label in "
-                    "variable formula",ivar);
+    print_var_error(FLERR,"Invalid type label in variable formula",ivar);
 
   // save value in tree or on argstack
 

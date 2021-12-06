@@ -49,6 +49,8 @@ static const char cite_fix_bond_swap[] =
   " pages =   {12718--12728}\n"
   "}\n\n";
 
+#define DELTA_PERMUTE 100
+
 /* ---------------------------------------------------------------------- */
 
 FixBondSwap::FixBondSwap(LAMMPS *lmp, int narg, char **arg) :
@@ -91,10 +93,13 @@ FixBondSwap::FixBondSwap(LAMMPS *lmp, int narg, char **arg) :
   modify->add_compute(fmt::format("{} all temp",id_temp));
   tflag = 1;
 
-  // initialize atom list
+  // initialize two permutation lists
 
   nmax = 0;
   alist = nullptr;
+
+  maxpermute = 0;
+  permute = nullptr;
 
   naccept = foursome = 0;
 }
@@ -111,6 +116,7 @@ FixBondSwap::~FixBondSwap()
   delete [] id_temp;
 
   memory->destroy(alist);
+  delete [] permute;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -248,8 +254,8 @@ void FixBondSwap::post_integrate()
   }
 
   int tmp;
-  for (i = 0; i < neligible; i++) {
-    j = static_cast<int> (random->uniform() * neligible);
+  for (i = 0; i < neligible-1; i++) {
+    j = i + static_cast<int> (random->uniform() * (neligible-i));
     tmp = alist[i];
     alist[i] = alist[j];
     alist[j] = tmp;
@@ -277,8 +283,35 @@ void FixBondSwap::post_integrate()
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
+    neighbor_permutation(jnum);
+
+    // DEBUG
+
+    int picked[4];
+    int count = 0;
+    printf("BSWAP CANDIDATES nstep %ld itag %d jnum %d jtags",
+           update->ntimestep,atom->tag[i],jnum);
     for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
+      j = jlist[permute[jj]];
+      j &= NEIGHMASK;
+      printf(" %d",atom->tag[j]);
+      if (j >= nlocal) continue;
+      if ((mask[j] & groupbit) == 0) continue;
+      if (molecule[i] != molecule[j]) continue;
+      picked[count++] = atom->tag[j];
+    }
+    if (count) {
+      printf(" picked %d",count);
+      for (jj = 0; jj < count; jj++) {
+        printf(" %d",picked[jj]);
+      }
+    }
+    printf("\n");
+
+    // END DEBUG
+
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[permute[jj]];
       j &= NEIGHMASK;
       if (j >= nlocal) continue;
       if ((mask[j] & groupbit) == 0) continue;
@@ -296,6 +329,8 @@ void FixBondSwap::post_integrate()
       // 4 atoms must be unique (no duplicates): inext != jnext, inext != j
       //   already know i != inext, j != jnext
       // all 4 old and new bonds must have length < cutoff
+
+      printf("SWAP candidate jtag\n",atom->tag[j]);
 
       for (ibond = 0; ibond < num_bond[i]; ibond++) {
         inext = atom->map(bond_atom[i][ibond]);
@@ -713,6 +748,34 @@ double FixBondSwap::angle_eng(int atype, int i, int j, int k)
 
   if (i == -1 || k == -1) return 0.0;
   return force->angle->single(atype,i,j,k);
+}
+
+/* ----------------------------------------------------------------------
+   create a random permutation of one atom's N neighbor list atoms
+   uses one-pass Fisher-Yates shuffle on an initial identity permutation
+   output: randomized permute[] vector, used to index neighbors
+------------------------------------------------------------------------- */
+
+void FixBondSwap::neighbor_permutation(int n)
+{
+  int i,j,tmp;
+
+  if (n > maxpermute) {
+    delete [] permute;
+    maxpermute = n + DELTA_PERMUTE;
+    permute = new int[maxpermute];
+  }
+
+  // Fisher-Yates shuffle
+
+  for (i = 0; i < n; i++) permute[i] = i;
+
+  for (i = 0; i < n-1; i++) {
+    j = i + static_cast<int> (random->uniform() * (n-i));
+    tmp = permute[i];
+    permute[i] = permute[j];
+    permute[j] = tmp;
+  }
 }
 
 /* ----------------------------------------------------------------------

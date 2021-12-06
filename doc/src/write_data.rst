@@ -107,25 +107,27 @@ written to the data file (see the *fix* option of the :doc:`read_data
 sections for user-created per-atom properties from :doc:`fix
 property/atom <fix_property_atom>`.
 
-The *nolabelmap* and *types* keywords refer to label maps that may be
-defined for number atom types, bond types, angle types, etc.  Label
-maps can be defined in two ways, either by the :doc:`labelmap
-<labelmap>` command or in data files read by the :doc:`read_data
-<read_data>` command which have sections for Atom Type Labels, Bond
-Type Labels, Angle Type Labels, etc.  See the :doc:`Howto type labels
+The *nolabelmap* and *types* keywords refer to type labels that may be
+defined for numeric atom types, bond types, angle types, etc.  Only
+the default label map is written to data files.  The default label map
+can be defined in two ways, either by the :doc:`labelmap <labelmap>`
+command or in data files read by the :doc:`read_data <read_data>`
+command which have sections for Atom Type Labels, Bond Type Labels,
+Angle Type Labels, etc.  See the :doc:`Howto type labels
 <Howto_type_labels>` doc page for the allowed syntax of type labels
 and a general discussion of how type labels can be used.
 
-Use of the *nolabelmap* keyword means that even if default type label
-maps exist for Atoms, Bonds, Angles, etc, they are not written to the
-data file.  By default, they are written if they exist.
+Use of the *nolabelmap* keyword means that even if the default type
+label map exists for Atoms, Bonds, Angles, etc., type labels are not
+written to the data file.  By default, they are written if they exist.
 
-The *types* keyword determins how atom types, bond types, angle types,
-etc are written into these data file sections: Atoms, Bonds, Angles,
-etc.  The default is the *numeric* setting, even if type label maps
-exist.  If the *labels" setting is used, type labels will be written
-to the data file, if the corresponding label map exists.  Note that
-when using *types labels*, the *nolabelmap* keyword cannot be used.
+The *types* keyword determines how atom types, bond types, angle
+types, etc are written into these data file sections: Atoms, Bonds,
+Angles, etc.  The default is the *numeric* setting, even if type label
+maps exist.  If the *labels* setting is used, type labels will be
+written to the data file, if the corresponding label map exists.  Note
+that when using *types labels*, the *nolabelmap* keyword cannot be
+used.
 
 The *pair* keyword lets you specify in what format the pair
 coefficient information is written into the data file.  If the value

@@ -22,6 +22,9 @@ Examples
    improper_coeff * 80.2 -1 2
    improper_coeff *4 80.2 -1 2
 
+   labelmap improper 1 [C][C][C][N]
+   improper_coeff [C][C][C][N] 300.0 0.0
+
 Description
 """""""""""
 

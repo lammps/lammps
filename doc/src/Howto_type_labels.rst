@@ -10,35 +10,35 @@ appear in LAMMPS input or output files.  However, LAMMPS also has the
 option to use alphanumeric strings, called type labels, for these
 values in its input and output.
 
-This can be useful in various scenarios.  For example, type labels can
-make inputs more readable and compatible with other inputs (e.g. data
-files, molecule template files read by the :doc:`molecule <molecule>`
-command), particularly if a force field uses alphanumeric atom types.
-See a list of other commands below which can use label types in
-interesting ways.
+Using labels instead of numeric types can be useful in various
+scenarios.  For example, type labels can make inputs more readable and
+compatible with other inputs (e.g., data files, molecule template
+files read by the :doc:`molecule <molecule>` command, etc.),
+particularly if a force field uses alphanumeric atom types. See a list
+of other commands below which can use label types in interesting ways.
 
-A collection of one or more type labels for one category of types
-(atom types, bond types, etc) is stored as a "label map" which is
-simply a list of numeric types and associated type labels.  Within a
-map, each type label must be unique.  It can be assigned to only one
-numeric type.  Not all numeric types need have a type label assigned.
+A collection of type labels for all interaction types (atom types,
+bond types, etc) is stored as a "label map" which is simply a list of
+numeric types and associated type labels.  Within a map, each type
+label must be unique.  It can be assigned to only one numeric type.
+Not all numeric types need have a type label assigned.
 
-There can be mutliple label maps defined for a single type category,
-e.g. atom types.  There is a default label map which has no mapID.
-Additional label maps each have a mapID, which is a string containing
-only alphanumeric characters and underscores.
+There can be multiple label maps defined.  There is a default label
+map which has no mapID.  Additional label maps each have a mapID,
+which is a string containing only alphanumeric characters and
+underscores.
 
 Valid type labels can contain any alphanumeric character, but cannot
-start with a number.  They can also contain any of these characters:
-square brackets "[" and "]", dash "-", underscore "_", JAKE what other
-chars are allowed?  Note that type labels cannot contain the symbols
+start with a number.  They can also contain standard characters, such
+as square brackets "[" and "]", underscore "_", dash "-", plus "+" and
+equals "=" signs.  Note that type labels cannot contain the symbols
 '#' or '*'.
 
-As explained below, for certain command in LAMMPS, it is useful to
+As explained below, for certain commands in LAMMPS, it is useful to
 define type labels so that the atom types that make up a given bond,
 angle, dihedral, or improper can be deduced from the type label.  A
 standard way to do that is to define the type label for the bond by
-enclosing the constituent atom types in square brackets.  E.g. define
+enclosing the constituent atom types in square brackets.  E.g., define
 a C-H bond with a type label "[C][H]".
 
 There are two ways to define label maps.  One is via the
@@ -47,12 +47,13 @@ keyword to allow creation of type labels in either a default map or an
 additional map with a mapID.  The other is via the :doc:`read_data
 <read_data>` command.  A data file can have sections such as Atom Type
 Labels, Bond Type Lables, etc, which associate type labels with
-numeric types.  Only default label maps can be defined in this manner.
+numeric types.  Only the default label map can be defined in this
+manner.
 
-If defined, default label maps can be written out to data files by the
-:doc:`write_data <write_data>` command.  They are also written to and
-read from restart files, by the :doc:`write_restart <write_restart>`
-and :doc:`read_restart <read_restart>` commands.  Label maps with
+If defined, the default label map can be written out to data files by
+the :doc:`write_data <write_data>` command.  They are also written to
+and read from restart files, by the :doc:`write_restart <write_restart>`
+and :doc:`read_restart <read_restart>` commands. Label maps with
 mapIDs cannot be written to either data or restart files by these
 commands.
 
@@ -67,8 +68,8 @@ mapID prepended, followed by a double colon "::".  If a type label is
 not defined for a particular numeric type, only its numeric type can
 be used.
 
-The first example uses a default label map for bond types.  The second
-uses a label map with mapID = Map2.
+The first example uses the default label map for bond types.  The
+second uses a label map with mapID = Map2.
 
 .. code-block:: LAMMPS
 
@@ -117,9 +118,20 @@ LAMMPS soon (as of Nov 2021).
 Commands that can use label types in interesting ways
 """""""""""""""""""""""""""""""""""""""""""""""""""""
 
-Provide a few details on these to spark user's interest?  If not yet
-implemented, just say this is planned, as of Nov 2021.
+As of Nov 2021, efforts are underway to utilize type labels in various
+commands.
 
-fix bond/react
+Any workflow that involves reading multiple data files, molecule
+templates or a combination of the two will be greatly streamlined by
+using type labels instead of numeric types, because types are
+automatically synced between the files.  For example, the creation of
+simulation-ready reaction templates for :doc:`fix bond/react <fix_bond_react>`
+is much simpler when using type labels, and results in templates that
+can be used without modification in new simulations.  Additional fix
+bond/react features enabled by type labels are in progress, such as
+using wildcards to further increase the portability of reaction
+templates, as well as automatically inferring the types of newly
+created bond, angle, etc. interactions.
+
 pair_style kim
 other?

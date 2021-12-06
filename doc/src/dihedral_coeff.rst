@@ -22,8 +22,8 @@ Examples
    dihedral_coeff * 80.0 1 3 0.5
    dihedral_coeff 2* 80.0 1 3 0.5
 
-JAKE add an example with 2 lines.  First = labelmap command, second =
-use the type label.
+   labelmap dihedral 1 [C][C][O][H]
+   dihedral_coeff [C][C][O][H] 80.0 1 3
 
 Description
 """""""""""

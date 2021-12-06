@@ -40,9 +40,8 @@ or both of the types in the I,J pair can be a type label, which is an
 alphanumeric string defined by the :doc:`labelmap <labelmap>` command
 or in a section of a data file read by the :doc:`read_data
 <read_data>` command, and which converts internally to a numeric type.
-In either case I <= J is required.  Interally, LAMMPS will set
-coefficients for the symmetric J,I interaction to the same values as
-the I <= J interaction.
+Interally, LAMMPS will set coefficients for the symmetric J,I
+interaction to the same values as the I <= J interaction.
 
 For numeric values only, a wildcard asterisk can be used in place of
 or in conjunction with the I,J arguments to set the coefficients for
@@ -53,9 +52,9 @@ asterisk means all types from 1 to n (inclusive).  A trailing asterisk
 means all types from n to N (inclusive).  A middle asterisk means all
 types from m to n (inclusive).  For the asterisk syntax, only type
 pairs with I <= J are considered; if asterisks imply type pairs where
-J < I, they are ignored (no error as with non-asterisk arguments).
-Again interally, LAMMPS will set the coefficients for the symmetric
-J,I interactions to the same values as the I <= J interactions.
+J < I, they are ignored. Again internally, LAMMPS will set the
+coefficients for the symmetric J,I interactions to the same values as
+the I <= J interactions.
 
 Note that a pair_coeff command can override a previous setting for the
 same I,J pair.  For example, these commands set the coeffs for all I,J

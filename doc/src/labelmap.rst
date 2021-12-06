@@ -28,19 +28,18 @@ Examples
    labelmap atom 3 carbon
    labelmap bond 1 [c1][c2] 2 [c1][hc]
    labelmap bond 1 [c1][c2] 2 [c1][hc] mapID myMap
-   JAKE: give an example of a command using variable labelmap func (see below)
+   labelmap atom $(label(carbon)) C // change type label from 'carbon' to 'C'
 
 Description
 """""""""""
 
 Define alphanumeric type labels to associate with one or more numeric
 atom, bond, angle, dihedral or improper types.  A collection of type
-labels for a particular type-kind (atom types, bond types, etc) is
-stored as a label map.  As explained below, this command also allows
-definition of multiple label maps for the same type-kind by use of the
-mapID keyword.
+labels for all atom types, bond types, etc is stored as a label map.
+As explained below, this command also allows definition of multiple
+label maps by use of the mapID keyword.
 
-Label maps can also be defined by the :doc:`read_data <read_data>`
+The default label maps can also be defined by the :doc:`read_data <read_data>`
 command when it reads these sections in a data file: Atom Type Labels,
 Bond Type Lables, etc.  See the :doc:`Howto type labels
 <Howto_type_labels>` doc page for a general discussion of how type
@@ -48,9 +47,9 @@ labels can be used.
 
 As explained on the Howto page, valid type labels can contain any
 alphanumeric character, but cannot start with a number.  They can also
-contain any of these characters: square brackets "[" and "]", dash
-"-", underscore "_", JAKE what other chars are allowed?  Note that
-type labels cannot contain the symbols '#' or '*'.
+contain standard characters such as square brackets "[" and "]", dash
+"-", underscore "_", plus "+" and equals "=" signs.  Note that type
+labels cannot contain the symbols '#' or '*'.
 
 A *labelmap* command can only modify the label map for one type-kind
 (atom types, bond types, etc).  Any number of numeric-type/type-label
@@ -60,12 +59,12 @@ the same type label to multiple numeric types is not allowed.  Note
 that there is no requirement that a type label be defined for every
 numeric type.
 
-It may sometimes be useful to define multiple label maps for a single
-type-kind.  This can be done using the *mapID* keyword.  The specified
-*name* is the mapID assigned to the label map.  The ID of a label map
-can only contain alphanumeric characters and underscores.  If the
-*mapID* keyword is not used, the specified type labels are assigned to
-the default label map for each type-kind, which has no mapID.
+It may sometimes be useful to define multiple label maps.  This can be
+done using the *mapID* keyword.  The specified *name* is the mapID
+assigned to the label map.  The ID of a label map can only contain
+alphanumeric characters and underscores.  If the *mapID* keyword is
+not used, the specified type labels are assigned to the default label
+map, which has no mapID.
 
 ----------
 
@@ -86,4 +85,4 @@ Default
 """""""
 
 If the mapID keyword is not used, specified type labels are assigned
-to the default map for the type-kind.
+to the default map.

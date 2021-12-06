@@ -22,8 +22,8 @@ Examples
    angle_coeff * 5.0
    angle_coeff 2*10 5.0
 
-JAKE add an example with 2 lines.  First = labelmap command, second =
-use the type label.
+   labelmap angle 1 [C][O][H]
+   angle_coeff [C][O][H] 300.0 107.0
 
 Description
 """""""""""

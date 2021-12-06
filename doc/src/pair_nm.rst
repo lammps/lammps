@@ -180,7 +180,7 @@ LAMMPS was built with that package.  See the
 Related commands
 """"""""""""""""
 
-:doc:`pair_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair style lj/cut <pair_lj>`, :doc:`bond style fene/nm <bond_fene>`
 
 Default
 """""""

@@ -13,20 +13,20 @@
 
 #ifdef BOND_CLASS
 // clang-format off
-BondStyle(fene/nm/split,BondFENEnmSplit);
+BondStyle(fene/nm,BondFENENM);
 // clang-format on
 #else
 
-#ifndef LMP_BOND_FENE_NM_SPLIT_H
-#define LMP_BOND_FENE_NM_SPLIT_H
+#ifndef LMP_BOND_FENE_NM_H
+#define LMP_BOND_FENE_NM_H
 
 #include "bond_fene.h"
 
 namespace LAMMPS_NS {
-class BondFENEnmSplit : public BondFENE {
+class BondFENENM : public BondFENE {
  public:
-  BondFENEnmSplit(class LAMMPS *);
-  virtual ~BondFENEnmSplit();
+  BondFENENM(class LAMMPS *);
+  virtual ~BondFENENM();
   virtual void compute(int, int);
   virtual void coeff(int, char **);
   void init_style();

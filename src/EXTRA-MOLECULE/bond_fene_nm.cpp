@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "bond_fene_nm_split.h"
+#include "bond_fene_nm.h"
 
 #include "atom.h"
 #include "comm.h"
@@ -29,11 +29,11 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondFENEnmSplit::BondFENEnmSplit(LAMMPS *lmp) : BondFENE(lmp) {}
+BondFENENM::BondFENENM(LAMMPS *lmp) : BondFENE(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
-BondFENEnmSplit::~BondFENEnmSplit()
+BondFENENM::~BondFENENM()
 {
   if (allocated && !copymode) {
     memory->destroy(nn);
@@ -43,7 +43,7 @@ BondFENEnmSplit::~BondFENEnmSplit()
 
 /* ---------------------------------------------------------------------- */
 
-void BondFENEnmSplit::compute(int eflag, int vflag)
+void BondFENENM::compute(int eflag, int vflag)
 {
   int i1, i2, n, type;
   double delx, dely, delz, ebond, fbond;
@@ -123,7 +123,7 @@ void BondFENEnmSplit::compute(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void BondFENEnmSplit::allocate()
+void BondFENENM::allocate()
 {
   BondFENE::allocate();
   int n = atom->nbondtypes + 1;
@@ -135,7 +135,7 @@ void BondFENEnmSplit::allocate()
    set coeffs for one type
 ------------------------------------------------------------------------- */
 
-void BondFENEnmSplit::coeff(int narg, char **arg)
+void BondFENENM::coeff(int narg, char **arg)
 {
   if (narg != 7) error->all(FLERR, "Incorrect args for bond coefficients");
   if (!allocated) allocate();
@@ -169,7 +169,7 @@ void BondFENEnmSplit::coeff(int narg, char **arg)
    check if special_bond settings are valid
 ------------------------------------------------------------------------- */
 
-void BondFENEnmSplit::init_style()
+void BondFENENM::init_style()
 {
   // special bonds should be 0 1 1
 
@@ -180,7 +180,7 @@ void BondFENEnmSplit::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-double BondFENEnmSplit::equilibrium_distance(int i)
+double BondFENENM::equilibrium_distance(int i)
 {
   return 0.97 * sigma[i];
 }
@@ -189,7 +189,7 @@ double BondFENEnmSplit::equilibrium_distance(int i)
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void BondFENEnmSplit::write_restart(FILE *fp)
+void BondFENENM::write_restart(FILE *fp)
 {
   fwrite(&k[1], sizeof(double), atom->nbondtypes, fp);
   fwrite(&r0[1], sizeof(double), atom->nbondtypes, fp);
@@ -203,7 +203,7 @@ void BondFENEnmSplit::write_restart(FILE *fp)
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void BondFENEnmSplit::read_restart(FILE *fp)
+void BondFENENM::read_restart(FILE *fp)
 {
   allocate();
 
@@ -229,7 +229,7 @@ void BondFENEnmSplit::read_restart(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void BondFENEnmSplit::write_data(FILE *fp)
+void BondFENENM::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->nbondtypes; i++)
     fprintf(fp, "%d %g %g %g %g %g %g\n", i, k[i], r0[i], epsilon[i], sigma[i], nn[i], mm[i]);
@@ -237,7 +237,7 @@ void BondFENEnmSplit::write_data(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double BondFENEnmSplit::single(int type, double rsq, int /*i*/, int /*j*/, double &fforce)
+double BondFENENM::single(int type, double rsq, int /*i*/, int /*j*/, double &fforce)
 {
   double r0sq = r0[type] * r0[type];
   double rlogarg = 1.0 - rsq / r0sq;
@@ -271,7 +271,7 @@ double BondFENEnmSplit::single(int type, double rsq, int /*i*/, int /*j*/, doubl
 
 /* ---------------------------------------------------------------------- */
 
-void *BondFENEnmSplit::extract(const char *str, int &dim)
+void *BondFENENM::extract(const char *str, int &dim)
 {
   dim = 1;
   if (strcmp(str, "kappa") == 0) return (void *) k;

@@ -70,14 +70,14 @@ and K of atom I within a cutoff distance :math:`a `\sigma`.
 The *sw/mod* style is designed for simulations of materials when
 distinguishing three-body angles are necessary, such as borophene
 and transition metal dichalcogenide, which cannot be described
-by the original code for the Stillinger-Weber potential. 
+by the original code for the Stillinger-Weber potential.
 For instance, there are several types of angles around each Mo atom in `MoS_2`,
 and some unnecessary angle types should be excluded in the three-body interaction.
 Such exclusion may be realized by selecting proper angle types directly.
 The exclusion of unnecessary angles is achieved here by the cut-off function (`f_C(\delta)`),
 which induces only minimum modifications for LAMMPS.
 
-Validation, benchmark tests, and applications of the *sw/mod* style 
+Validation, benchmark tests, and applications of the *sw/mod* style
 can be found in :ref:`(Jiang_1) <Jiang1>` and :ref:`(Jiang_2) <Jiang2>`.
 
 The *sw/mod* style computes the energy E of a system of atoms, whose potential
@@ -94,22 +94,22 @@ used in the original energy and force expression is scaled by a switching factor
     0 & \vert \delta \rvert > \delta_2
     \end{array} \right. \\
 
-This cut-off function decreases smoothly from 1 to 0 over the range :math:[\delta_1, \delta_2]. 
-This smoothly turns off the energy and force contributions for :math:\lvert \delta \rvert > \delta_2. 
-It is suggested that :math:\delta_1 and :math:\delta_2 to be the value around 
-:math:0.5 \lvert \cos \theta_1 - \cos \theta_2 \rvert, with 
-:math:\theta_1 and :math:\theta_2 as the different types of angles around an atom. 
+This cut-off function decreases smoothly from 1 to 0 over the range :math:[\delta_1, \delta_2].
+This smoothly turns off the energy and force contributions for :math:\lvert \delta \rvert > \delta_2.
+It is suggested that :math:\delta_1 and :math:\delta_2 to be the value around
+:math:0.5 \lvert \cos \theta_1 - \cos \theta_2 \rvert, with
+:math:\theta_1 and :math:\theta_2 as the different types of angles around an atom.
 For borophene and transition metal dichalcogenide, :math:\delta_1 = 0.25 and :math:\delta_2 = 0.35.
 This value enables the cut-off function to exclude unnecessary angles in the three-body SW terms.
 
 .. note::
 
-   The cut-off function is just to be used as a technique to exclude some unnecessary angles, 
-   and it has no physical meaning. It should be noted that the force and potential are inconsistent 
-   with each other in the decaying range of the cut-off function, as the angle dependence for the 
-   cut-off function is not implemented in the force (first derivation of potential). 
-   However, the angle variation is much smaller than the given threshhold value for actual simulations, 
-   so the inconsistency between potential and force can be neglected in actual simulations. 
+   The cut-off function is just to be used as a technique to exclude some unnecessary angles,
+   and it has no physical meaning. It should be noted that the force and potential are inconsistent
+   with each other in the decaying range of the cut-off function, as the angle dependence for the
+   cut-off function is not implemented in the force (first derivation of potential).
+   However, the angle variation is much smaller than the given threshhold value for actual simulations,
+   so the inconsistency between potential and force can be neglected in actual simulations.
 
 Only a single pair_coeff command is used with the *sw* and *sw/mod* styles
 which specifies a Stillinger-Weber potential file with parameters for all

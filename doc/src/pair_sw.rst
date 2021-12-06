@@ -83,23 +83,23 @@ can be found in :ref:`(Jiang2) <Jiang2>` and :ref:`(Jiang3) <Jiang3>`.
 The *sw/mod* style computes the energy E of a system of atoms, whose potential
 function is mostly the same as the Stillinger-Weber potential. The only modification
 is in the three-body term, where the value of :math:`\delta = \cos \theta_{ijk} - \cos \theta_{0ijk}`
-used in the original energy and force expression is scaled by a switching factor `f_C(\delta)`:
+used in the original energy and force expression is scaled by a switching factor :math:`f_C(\delta)`:
 
 .. math::
 
   f_C(\delta) & = \left\{ \begin{array} {r@{\quad:\quad}l}
-    1 & \lvert \delta \rvert < \delta_1 \\
-    \frac{1}{2} + \frac{1}{2} \cos \left( \pi \frac{\lvert \delta \rvert - \delta_1}{\delta_2 - \delta_1} \right) &
-      \delta_1 < \lvert \delta \rvert < \delta_2 \\
-    0 & \vert \delta \rvert > \delta_2
+    1 & \left| \delta \right| < \delta_1 \\
+    \frac{1}{2} + \frac{1}{2} \cos \left( \pi \frac{\left| \delta \right| - \delta_1}{\delta_2 - \delta_1} \right) &
+      \delta_1 < \left| \delta \right| < \delta_2 \\
+    0 & \left| \delta \right| > \delta_2
     \end{array} \right. \\
 
-This cut-off function decreases smoothly from 1 to 0 over the range :math:[\delta_1, \delta_2].
-This smoothly turns off the energy and force contributions for :math:\lvert \delta \rvert > \delta_2.
-It is suggested that :math:\delta_1 and :math:\delta_2 to be the value around
-:math:0.5 \lvert \cos \theta_1 - \cos \theta_2 \rvert, with
-:math:\theta_1 and :math:\theta_2 as the different types of angles around an atom.
-For borophene and transition metal dichalcogenide, :math:\delta_1 = 0.25 and :math:\delta_2 = 0.35.
+This cut-off function decreases smoothly from 1 to 0 over the range :math:`[\delta_1, \delta_2]`.
+This smoothly turns off the energy and force contributions for :math:`\left| \delta \right| > \delta_2`.
+It is suggested that :math:`\delta 1` and :math:`\delta_2` to be the value around
+:math:`0.5 \left| \cos \theta_1 - \cos \theta_2 \right|`, with
+:math:`\theta_1` and :math:`\theta_2` as the different types of angles around an atom.
+For borophene and transition metal dichalcogenide, :math:`\delta_1 = 0.25` and :math:`\delta_2 = 0.35`.
 This value enables the cut-off function to exclude unnecessary angles in the three-body SW terms.
 
 .. note::
@@ -108,7 +108,7 @@ This value enables the cut-off function to exclude unnecessary angles in the thr
    and it has no physical meaning. It should be noted that the force and potential are inconsistent
    with each other in the decaying range of the cut-off function, as the angle dependence for the
    cut-off function is not implemented in the force (first derivation of potential).
-   However, the angle variation is much smaller than the given threshhold value for actual simulations,
+   However, the angle variation is much smaller than the given threshold value for actual simulations,
    so the inconsistency between potential and force can be neglected in actual simulations.
 
 Only a single pair_coeff command is used with the *sw* and *sw/mod* styles
@@ -277,7 +277,7 @@ Default
 """""""
 
 The default values for the *maxdelcs* setting of the *sw/mod* pair
-style are `\delta_1 = 0.25` and `\delta_2 = 0.35`.
+style are *delta1* = 0.25 and *delta2* = 0.35`.
 
 ----------
 

@@ -81,14 +81,15 @@ interaction has the following form:
    E = \frac{E_0}{(n-m)} \left[ m \left(\frac{r_0}{r}\right)^n - n
    \left(\frac{r_0}{r}\right)^m \right] \qquad r < r_c
 
-where :math:`r_c` is the cutoff.
+where :math:`r_c` is the cutoff and :math:`r_0` is the minimum of the
+potential.  Please note that this differs from the convention used for
+other Lennard-Jones potentials in LAMMPS where :math:`\sigma` represents
+the location where the energy is zero.
 
 Style *nm/cut/split* applies the standard LJ (12-6) potential above
-:math:`2^\frac{1}{6} r_0`. Note, `r_0` is the relevant length scale
-denoting the location of the energy minimum and is not the distance
-to `E=0`. Style *nm/cut/split* is employed in polymer equilibration
-protocols that combine core-softening approaches with topology-changing
-moves :ref:`Dietz <Dietz>`.
+:math:`r_0 = 2^\frac{1}{6}\sigma`.  Style *nm/cut/split* is employed in
+polymer equilibration protocols that combine core-softening approaches
+with topology-changing moves :ref:`Dietz <Dietz>`.
 
 Style *nm/cut/coul/cut* adds a Coulombic pairwise interaction given by
 

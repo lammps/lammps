@@ -5,11 +5,11 @@ epsilon: 2.5e-13
 skip_tests:
 prerequisites: ! |
   atom full
-  bond fene/nm/split
+  bond fene/nm
 pre_commands: ! ""
 post_commands: ! ""
 input_file: in.fourmol
-bond_style: fene/nm/split
+bond_style: fene/nm
 bond_coeff: ! |
   1 250 3   0.022 1.5 12 6
   2 300 2.2 0.005 1.1 12 6

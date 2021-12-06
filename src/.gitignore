@@ -393,8 +393,8 @@
 /bond_fene.h
 /bond_fene_expand.cpp
 /bond_fene_expand.h
-/bond_fene_nm_cut_split.cpp
-/bond_fene_nm_cut_split.h
+/bond_fene_nm.cpp
+/bond_fene_nm.h
 /bond_gaussian.cpp
 /bond_gaussian.h
 /bond_gromos.cpp

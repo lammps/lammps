@@ -38,7 +38,7 @@ From: fedora:34
                texlive-framed texlive-wrapfig texlive-upquote texlive-capt-of \
                texlive-needspace texlive-titlesec texlive-anysize texlive-dvipng texlive-xindy \
                blas-devel lapack-devel libyaml-devel openkim-models kim-api-devel \
-               zstd libzstd-devel
+               zstd libzstd-devel yaml-cpp-devel
         dnf clean all
 
         # enable Lmod and load MPI
@@ -49,7 +49,7 @@ From: fedora:34
         # manually install Plumed
         mkdir plumed
         cd plumed
-        version=2.7.1
+        version=2.7.3
         curl -L -o plumed.tar.gz https://github.com/plumed/plumed2/releases/download/v${version}/plumed-src-${version}.tgz
         tar -xzf plumed.tar.gz
         cd plumed-${version}

@@ -54,7 +54,7 @@ void Verlet::init()
 
   bool do_time_integrate = false;
   for (const auto &fix : modify->get_fix_list())
-    if (fix->time_integrate) do_time_integrate;
+    if (fix->time_integrate) do_time_integrate = true;
 
   if (!do_time_integrate && (comm->me == 0))
     error->warning(FLERR,"No fixes with time integration, atoms won't move");

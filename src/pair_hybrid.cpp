@@ -706,11 +706,10 @@ double PairHybrid::init_one(int i, int j)
   for (int k = 0; k < nmap[i][j]; k++) {
     map[j][i][k] = map[i][j][k];
     double cut = styles[map[i][j][k]]->init_one(i,j);
-    styles[map[i][j][k]]->cutsq[i][j] =
-      styles[map[i][j][k]]->cutsq[j][i] = cut*cut;
+    if (styles[map[i][j][k]]->did_mix) did_mix = true;
+    styles[map[i][j][k]]->cutsq[i][j] = styles[map[i][j][k]]->cutsq[j][i] = cut*cut;
     if (styles[map[i][j][k]]->ghostneigh)
-      cutghost[i][j] = cutghost[j][i] =
-        MAX(cutghost[i][j],styles[map[i][j][k]]->cutghost[i][j]);
+      cutghost[i][j] = cutghost[j][i] = MAX(cutghost[i][j],styles[map[i][j][k]]->cutghost[i][j]);
     if (tail_flag) {
       etail_ij += styles[map[i][j][k]]->etail_ij;
       ptail_ij += styles[map[i][j][k]]->ptail_ij;

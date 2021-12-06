@@ -35,7 +35,6 @@ class ComputeTempDrude : public Compute {
   int modify_param(int, char **);
 
  private:
-  int fix_dof;
   class FixDrude *fix_drude;
   char *id_temp;
   class Compute *temperature;

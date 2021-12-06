@@ -138,6 +138,9 @@ void Experimental::RawMemoryAllocationFailure::print_error_message(
     case AllocationMechanism::SYCLMallocShared:
       o << "sycl::malloc_shared().";
       break;
+    case AllocationMechanism::SYCLMallocHost:
+      o << "sycl::malloc_host().";
+      break;
   }
   append_additional_error_information(o);
   o << ")" << std::endl;

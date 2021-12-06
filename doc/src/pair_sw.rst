@@ -94,12 +94,12 @@ used in the original energy and force expression is scaled by a switching factor
     0 & \vert \delta \rvert > \delta_2
     \end{array} \right. \\
 
-This cut-off function decreases smoothly from 1 to 0 over the range [`delta_1`, `delta_2`].
-This smoothly turns off the energy and force contributions for `\lvert \delta \rvert > deltai_2`.
-It is suggested that `delta_1` and `delta_2` to be the value around
-`0.5 \lvert \cos \left( \theta_1 \right) - \cos \left( \theta_2 \right) \rvert`,
-with `theta_1` and `theta_2` as the different types of angles around an atom.
-For borophene and transition metal dichalcogenide, `\delta_1 = 0.25` and `\delta_2 = 0.35`.
+This cut-off function decreases smoothly from 1 to 0 over the range :math:[\delta_1, \delta_2]. 
+This smoothly turns off the energy and force contributions for :math:\lvert \delta \rvert > \delta_2. 
+It is suggested that :math:\delta_1 and :math:\delta_2 to be the value around 
+:math:0.5 \lvert \cos \theta_1 - \cos \theta_2 \rvert, with 
+:math:\theta_1 and :math:\theta_2 as the different types of angles around an atom. 
+For borophene and transition metal dichalcogenide, :math:\delta_1 = 0.25 and :math:\delta_2 = 0.35.
 This value enables the cut-off function to exclude unnecessary angles in the three-body SW terms.
 
 .. note::

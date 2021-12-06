@@ -195,5 +195,5 @@ none
 
 .. _Dietz:
 
-**(Dietz)** J.D. Dietz, R.S. Hoy, “Facile equilibration of well-entangled
-semi-flexible bead-spring polymer melts,” arXiv:2109.11001
+**(Dietz)** J.D. Dietz, R.S. Hoy, "Facile equilibration of well-entangled
+semi-flexible bead-spring polymer melts" arXiv:2109.11001

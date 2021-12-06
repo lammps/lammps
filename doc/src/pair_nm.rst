@@ -83,12 +83,12 @@ interaction has the following form:
 
 where :math:`r_c` is the cutoff.
 
-Style *nm/cut/split* applies the standard LJ (12-6) potential above 
+Style *nm/cut/split* applies the standard LJ (12-6) potential above
 :math:`2^\frac{1}{6} r_0`. Note, `r_0` is the relevant length scale
-denoting the location of the energy minimum and is not the distance 
+denoting the location of the energy minimum and is not the distance
 to `E=0`. Style *nm/cut/split* is employed in polymer equilibration
-protocols that combine core-softening approaches with topology-changing 
-moves :ref:`Dietz <Dietz>`. 
+protocols that combine core-softening approaches with topology-changing
+moves :ref:`Dietz <Dietz>`.
 
 Style *nm/cut/coul/cut* adds a Coulombic pairwise interaction given by
 
@@ -194,5 +194,5 @@ none
 
 .. _Dietz:
 
-**(Dietz)** J.D. Dietz, R.S. Hoy, “Facile equilibration of well-entangled 
+**(Dietz)** J.D. Dietz, R.S. Hoy, “Facile equilibration of well-entangled
 semiflexible bead-spring polymer melts,” arXiv:2109.11001

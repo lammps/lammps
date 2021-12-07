@@ -31,7 +31,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 #define LB_FACTOR 1.5
-#define DELTA 10000
+#define DELTA 8192
 
 /* ---------------------------------------------------------------------- */
 
@@ -84,32 +84,13 @@ int FixBondHistory::setmask()
 void FixBondHistory::post_constructor()
 {
   // Store saved bond quantities for each atom using fix property atom
-  char **newarg = new char*[5];
-  int nvalue = 0;
+
+  char *id_fix = utils::strdup(id + std::string("_FIX_PROP_ATOM"));
+  char *id_array = utils::strdup(std::string("d2_") + id);
+  modify->add_fix(fmt::format("{} {} property/atom {} {}",
+                                id_fix, group->names[igroup], id_array, nbond*ndata));
   int tmp1, tmp2;
-
-  int nn = strlen(id) + strlen("_FIX_PROP_ATOM") + 1;
-  new_fix_id = new char[nn];
-  strcpy(new_fix_id, "FIX_PROP_ATOM_");
-  strcat(new_fix_id, id);
-
-  nn = strlen(id) + 4 ;
-  array_id = new char[nn];
-  strcpy(array_id, "d2_");
-  strcat(array_id, id);
-
-  char ncols[16];
-  sprintf(ncols,"%d",nbond*ndata);
-  newarg[0] = new_fix_id;
-  newarg[1] = group->names[igroup];
-  newarg[2] = (char *) "property/atom";
-  newarg[3] = array_id;
-  newarg[4] = ncols;
-
-  modify->add_fix(5,newarg);
-  index = atom->find_custom(&array_id[3],tmp1,tmp2);
-
-  delete [] newarg;
+  index = atom->find_custom(&id_array[3],tmp1,tmp2);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -137,6 +118,7 @@ double FixBondHistory::get_atom_value(int i, int m, int idata)
 void FixBondHistory::pre_exchange()
 {
   if (!update_flag) return;
+  if (!stored_flag) return;
   if (!bondstore) return;
 
   int i1, i2, n, m, idata;
@@ -194,6 +176,12 @@ void FixBondHistory::allocate()
 
 void FixBondHistory::setup_post_neighbor()
 {
+  //Grow array if number of bonds has increased
+  while (neighbor->nbondlist >= maxbond) {
+    maxbond += DELTA;
+    memory->grow(bondstore,maxbond,ndata,"fix_bond_store:bondstore");
+  }
+  
   pre_exchange();
   post_neighbor();
 }
@@ -296,13 +284,28 @@ void FixBondHistory::set_arrays(int i)
 }
 
 /* ----------------------------------------------------------------------
-   Remove all data for row by compressing data
+   Remove all data for row by compressing data - moving last element
 ------------------------------------------------------------------------- */
 
 void FixBondHistory::delete_bond(int i, int m)
 {
   double **stored = atom->darray[index];
   int n = atom->num_bond[i];
+  if (m != n-1) shift_bond(i, m, n-1);
+
   for (int idata = 0; idata < ndata; idata ++)
-    stored[i][m*ndata+idata] = stored[i][(n-1)*ndata+idata];
+    stored[i][(n-1)*ndata+idata] = 0.0;
+}
+
+/* ----------------------------------------------------------------------
+   Shift bond data to a new location
+   Used by some fixes that delete bonds which don't move last element
+------------------------------------------------------------------------- */
+
+void FixBondHistory::shift_bond(int i, int m, int k)
+{
+  double **stored = atom->darray[index];
+  int n = atom->num_bond[i];
+  for (int idata = 0; idata < ndata; idata ++)
+    stored[i][m*ndata+idata] = stored[i][k*ndata+idata];
 }

@@ -22,7 +22,7 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define DELTA 1000
+#define DELTA 1024
 
 /* ---------------------------------------------------------------------- */
 
@@ -32,9 +32,9 @@ FixStoreLocal::FixStoreLocal(LAMMPS *lmp, int narg, char **arg) :
   if (narg != 5) error->all(FLERR, "Illegal fix store/local command");
   local_flag = 1;
 
-  nevery = utils::inumeric(FLERR, arg[3], false, lmp);
-  if (nevery <= 0) error->all(FLERR, "Illegal fix store/local command");
-  local_freq = nevery;
+  nreset = utils::inumeric(FLERR, arg[3], false, lmp);
+  if (nreset <= 0) error->all(FLERR, "Illegal fix store/local command");
+  local_freq = nreset;
 
   nvalues = utils::inumeric(FLERR, arg[4], false, lmp);
 
@@ -92,7 +92,7 @@ void FixStoreLocal::add_data(double *input_data, int i, int j)
 
 void FixStoreLocal::post_force(int /*vflag*/)
 {
-  if (update->ntimestep % nevery == 0) {
+  if (update->ntimestep % nreset == 0) {
     size_local_rows = ncount;
     ncount = 0;
   }

@@ -38,7 +38,6 @@ As bonds can be broken between neighbor list builds, the
 :doc:`special_bonds <special_bonds>` command works differently for BPM
 bond styles. There are two possible settings which determine how pair
 interactions work between bonded particles.  First, one can turn off
-          
 all pair interactions between bonded particles.  Unlike :doc:`bond
 quartic <bond_quartic>`, this is not done by subtracting pair forces
 during the bond computation but rather by dynamically updating the
@@ -76,6 +75,9 @@ by using the following special bond settings
 
    special_bonds lj/coul 1 1 1
 
+See the :doc:`Howto <Howto_broken_bonds>` page on broken bonds for
+more information.
+
 ----------
 
 Currently there are two types of bonds included in the BPM
@@ -104,3 +106,18 @@ In addition to bond styles, a new pair style :doc:`pair bpm/spring
 <pair_bpm_spring>` was added to accompany the bpm/spring bond
 style. This pair style is simply a hookean repulsion with similar
 velocity damping as its sister bond style.
+
+----------
+
+While LAMMPS has many untilites to create and delete bonds, only a
+select few are compatible with BPM bond styles. They include:
+
+* :doc:`create_bonds <create_bonds>`
+* :doc:`delete_bonds <delete_bonds>`
+* :doc:`fix bond/create <fix_bond_create>`
+* :doc:`fix bond/break <fix_bond_break>`
+
+Note :doc:`bond_create <bond_create>` requires certain special_bonds settings.
+To subtract pair interactions, one will need to switch between different
+special_bonds settings in the input script. An example is found in
+examples/bpm/impact.

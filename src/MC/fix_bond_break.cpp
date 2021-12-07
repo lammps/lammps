@@ -18,11 +18,13 @@
 #include "update.h"
 #include "respa.h"
 #include "atom.h"
+#include "fix_bond_history.h"
 #include "force.h"
 #include "comm.h"
 #include "neighbor.h"
 #include "random_mars.h"
 #include "memory.h"
+#include "modify.h"
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -261,6 +263,10 @@ void FixBondBreak::post_integrate()
   commflag = 1;
   comm->forward_comm_fix(this,2);
 
+  // find instances of bond history to delete data
+  auto histories = modify->get_fix_by_style("BOND_HISTORY");
+  int n_histories = histories.size();
+
   // break bonds
   // if both atoms list each other as winning bond partner
   // and probability constraint is satisfied
@@ -295,7 +301,13 @@ void FixBondBreak::post_integrate()
         for (k = m; k < num_bond[i]-1; k++) {
           bond_atom[i][k] = bond_atom[i][k+1];
           bond_type[i][k] = bond_type[i][k+1];
+          if (n_histories > 0)
+            for (auto &ihistory: histories)
+              ((FixBondHistory *) ihistory)->shift_bond(i,k,k+1);
         }
+        if (n_histories > 0)
+          for (auto &ihistory: histories)
+            ((FixBondHistory *) ihistory)->delete_bond(i,num_bond[i]-1);
         num_bond[i]--;
         break;
       }

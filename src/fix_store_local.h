@@ -41,6 +41,7 @@ class FixStoreLocal : public Fix {
   double **array;
 
   int ncount;
+  int nreset;
 
   void reallocate(int);
 };

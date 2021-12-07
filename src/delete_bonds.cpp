@@ -19,8 +19,10 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
+#include "fix_bond_history.h"
 #include "force.h"
 #include "group.h"
+#include "modify.h"
 #include "special.h"
 
 #include <cstring>
@@ -115,6 +117,10 @@ void DeleteBonds::command(int narg, char **arg)
     else error->all(FLERR,"Illegal delete_bonds command");
     iarg++;
   }
+
+  // find instances of bond history to delete data
+  auto histories = modify->get_fix_by_style("BOND_HISTORY");
+  int n_histories = histories.size();
 
   // border swap to insure type and mask is current for off-proc atoms
   // enforce PBC before in case atoms are outside box
@@ -331,6 +337,9 @@ void DeleteBonds::command(int narg, char **arg)
               n = atom->num_bond[i];
               atom->bond_type[i][m] = atom->bond_type[i][n-1];
               atom->bond_atom[i][m] = atom->bond_atom[i][n-1];
+              if (n_histories > 0)
+                for (auto &ihistory: histories)
+                  ((FixBondHistory *) ihistory)->delete_bond(i,m);
               atom->num_bond[i]--;
             } else m++;
           } else m++;

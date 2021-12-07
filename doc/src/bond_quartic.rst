@@ -67,7 +67,8 @@ local maximum.  If a bond length ever becomes :math:`> R_c`, LAMMPS "breaks"
 the bond, which means two things.  First, the bond potential is turned
 off by setting its type to 0, and is no longer computed.  Second, a
 pairwise interaction between the two atoms is turned on, since they
-are no longer bonded.
+are no longer bonded. See the :doc:`Howto <Howto_broken_bonds>` page
+on broken bonds for more information.
 
 LAMMPS does the second task via a computational sleight-of-hand.  It
 subtracts the pairwise interaction as part of the bond computation.

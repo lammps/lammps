@@ -97,7 +97,7 @@ Miscellaneous tools
    * :ref:`singularity <singularity_tool>`
    * :ref:`SWIG interface <swig>`
    * :ref:`vim <vim>`
-   * :ref:`VSCODE Extension <lammps_vscode>`
+   * :ref:`Visual Studio Code Extension <lammps_vscode>`
 
 ----------
 

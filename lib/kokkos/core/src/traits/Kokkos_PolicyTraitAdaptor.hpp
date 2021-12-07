@@ -73,7 +73,7 @@ namespace Impl {
 // something that we can default to in the unspecialized case, just like we
 // do for AnalyzeExecPolicy
 template <class TraitSpec, class Trait, class Enable = void>
-struct PolicyTraitMatcher;
+struct PolicyTraitMatcher : std::false_type {};
 
 template <class TraitSpec, class Trait>
 struct PolicyTraitMatcher<

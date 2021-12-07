@@ -78,7 +78,7 @@ struct TestIncrAtomic {
   }
 };
 
-TEST(TEST_CATEGORY, IncrTest_01_AtomicExchange) {
+TEST(TEST_CATEGORY, IncrTest_02_AtomicExchange) {
   TestIncrAtomic test;
   test.testExchange();
 }

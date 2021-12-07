@@ -601,7 +601,8 @@ TEST(TEST_CATEGORY, mathematical_functions_power_functions) {
   do_test_math_binary_function<TEST_EXECSPACE, kk_hypot>(2.f, 3.f);
   do_test_math_binary_function<TEST_EXECSPACE, kk_hypot>(2., 3.);
 #ifdef MATHEMATICAL_FUNCTIONS_HAVE_LONG_DOUBLE_OVERLOADS
-#if !(defined(KOKKOS_ARCH_POWER8) || defined(KOKKOS_ARCH_POWER9))  // FIXME
+// FIXME: fails with gcc on Power platforms
+#if !(defined(KOKKOS_ARCH_POWER8) || defined(KOKKOS_ARCH_POWER9))
   do_test_math_binary_function<TEST_EXECSPACE, kk_hypot>(2.l, 3.l);
 #endif
 #endif
@@ -668,7 +669,13 @@ TEST(TEST_CATEGORY, mathematical_functions_exponential_functions) {
   TEST_MATH_FUNCTION(log10)({1234.l, 567.l, 89.l, .003l});
 #endif
 
+// FIXME_OPENMPTARGET FIXME_AMD
+#if defined(KOKKOS_ENABLE_OPENMPTARGET) &&                           \
+    (defined(KOKKOS_ARCH_VEGA906) || defined(KOKKOS_ARCH_VEGA908) || \
+     defined(KOKKOS_ARCH_VEGA90A))
+
   TEST_MATH_FUNCTION(log2)({1, 23, 456, 7890});
+#endif
   TEST_MATH_FUNCTION(log2)({1l, 23l, 456l, 7890l});
   TEST_MATH_FUNCTION(log2)({1ll, 23ll, 456ll, 7890ll});
   TEST_MATH_FUNCTION(log2)({1u, 23u, 456u, 7890u});
@@ -868,4 +875,70 @@ TEST(TEST_CATEGORY,
   TEST_MATH_FUNCTION(nearbyint)({12.3l, 4.56l, 789.l});
 #endif
 #endif
+}
+
+template <class Space>
+struct TestAbsoluteValueFunction {
+  TestAbsoluteValueFunction() { run(); }
+  void run() const {
+    int errors = 0;
+    Kokkos::parallel_reduce(Kokkos::RangePolicy<Space>(0, 1), *this, errors);
+    ASSERT_EQ(errors, 0);
+  }
+  KOKKOS_FUNCTION void operator()(int, int& e) const {
+    using Kokkos::Experimental::abs;
+    if (abs(1) != 1 || abs(-1) != 1) {
+      ++e;
+      KOKKOS_IMPL_DO_NOT_USE_PRINTF("failed abs(int)\n");
+    }
+    if (abs(2l) != 2l || abs(-2l) != 2l) {
+      ++e;
+      KOKKOS_IMPL_DO_NOT_USE_PRINTF("failed abs(long int)\n");
+    }
+    if (abs(3ll) != 3ll || abs(-3ll) != 3ll) {
+      ++e;
+      KOKKOS_IMPL_DO_NOT_USE_PRINTF("failed abs(long long int)\n");
+    }
+    if (abs(4.f) != 4.f || abs(-4.f) != 4.f) {
+      ++e;
+      KOKKOS_IMPL_DO_NOT_USE_PRINTF("failed abs(float)\n");
+    }
+    if (abs(5.) != 5. || abs(-5.) != 5.) {
+      ++e;
+      KOKKOS_IMPL_DO_NOT_USE_PRINTF("failed abs(double)\n");
+    }
+#ifdef MATHEMATICAL_FUNCTIONS_HAVE_LONG_DOUBLE_OVERLOADS
+    if (abs(6.l) != 6.l || abs(-6.l) != 6.l) {
+      ++e;
+      KOKKOS_IMPL_DO_NOT_USE_PRINTF("failed abs(long double)\n");
+    }
+#endif
+    // special values
+    using Kokkos::Experimental::isinf;
+    using Kokkos::Experimental::isnan;
+    if (abs(-0.) != 0.
+    // WORKAROUND icpx changing default FP model when optimization level is >= 1
+    // using -fp-model=precise works too
+#ifndef __INTEL_LLVM_COMPILER
+        || !isinf(abs(-INFINITY)) || !isnan(abs(-NAN))
+#endif
+    ) {
+      ++e;
+      KOKKOS_IMPL_DO_NOT_USE_PRINTF(
+          "failed abs(floating_point) special values\n");
+    }
+
+    static_assert(std::is_same<decltype(abs(1)), int>::value, "");
+    static_assert(std::is_same<decltype(abs(2l)), long>::value, "");
+    static_assert(std::is_same<decltype(abs(3ll)), long long>::value, "");
+    static_assert(std::is_same<decltype(abs(4.f)), float>::value, "");
+    static_assert(std::is_same<decltype(abs(5.)), double>::value, "");
+#ifdef MATHEMATICAL_FUNCTIONS_HAVE_LONG_DOUBLE_OVERLOADS
+    static_assert(std::is_same<decltype(abs(6.l)), long double>::value, "");
+#endif
+  }
+};
+
+TEST(TEST_CATEGORY, mathematical_functions_absolute_value) {
+  TestAbsoluteValueFunction<TEST_EXECSPACE>();
 }

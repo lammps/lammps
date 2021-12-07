@@ -601,7 +601,7 @@ example:
 The 3 atoms are ordered linearly within the angle.  Thus the central
 atom (around which the angle is computed) is the atom2 in the list.
 E.g. H,O,H for a water molecule.  The *Angles* section must appear
-after the *Atoms* section.  
+after the *Atoms* section.
 
 All values in this section must be integers (1, not 1.0).  However,
 the type can be a numeric value or an alphanumeric label.  The latter
@@ -1130,7 +1130,7 @@ labels can be used.
        12 4 17 29 30 21
 
 The 4 atoms are ordered linearly within the dihedral.  The *Dihedrals*
-section must appear after the *Atoms* section.  
+section must appear after the *Atoms* section.
 
 All values in this section must be integers (1, not 1.0).  However,
 the type can be a numeric value or an alphanumeric label.  The latter

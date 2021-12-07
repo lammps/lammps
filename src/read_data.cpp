@@ -2105,7 +2105,7 @@ void ReadData::typelabels(int mode)
   char *buf = new char[lntypes*MAXLINE];
   int eof = utils::read_lines_from_file(fp,lntypes,MAXLINE,buf,me,world);
   if (eof) error->all(FLERR,"Unexpected end of data file");
-  
+
   char *next;
   char *original = buf;
   char *typelabel = new char[MAXLINE];
@@ -2114,7 +2114,7 @@ void ReadData::typelabels(int mode)
     *next = '\0';
     int rv = sscanf(buf,"%*d %s",typelabel);
     if (rv != 1) error->all(FLERR,"Invalid data file section: Type Labels");
-    if (isdigit(typelabel[0])) 
+    if (isdigit(typelabel[0]))
       error->all(FLERR,"Type labels cannot start with a number");
     (*labels)[i] = typelabel;
     (*labels_map)[typelabel] = i + 1;

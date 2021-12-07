@@ -126,23 +126,23 @@ void LabelMap::merge_lmap(LabelMap *lmap2, int mode)
   switch (mode)
   {
   case Atom::ATOM:
-    for (auto &it : lmap2->typelabel) 
+    for (auto &it : lmap2->typelabel)
       find_or_create(it,typelabel,typelabel_map);
     break;
   case Atom::BOND:
-    for (auto &it : lmap2->btypelabel) 
+    for (auto &it : lmap2->btypelabel)
       find_or_create(it,btypelabel,btypelabel_map);
     break;
   case Atom::ANGLE:
-    for (auto &it : lmap2->atypelabel) 
+    for (auto &it : lmap2->atypelabel)
       find_or_create(it,atypelabel,atypelabel_map);
     break;
   case Atom::DIHEDRAL:
-    for (auto &it : lmap2->dtypelabel) 
+    for (auto &it : lmap2->dtypelabel)
       find_or_create(it,dtypelabel,dtypelabel_map);
     break;
   case Atom::IMPROPER:
-    for (auto &it : lmap2->itypelabel) 
+    for (auto &it : lmap2->itypelabel)
       find_or_create(it,itypelabel,itypelabel_map);
     break;
   }
@@ -269,7 +269,7 @@ int LabelMap::is_complete(int mode)
     return static_cast<int>(typelabel_map.size()) == natomtypes;
     break;
   case Atom::BOND:
-    if (force->bond) 
+    if (force->bond)
       return static_cast<int>(btypelabel_map.size()) == nbondtypes;
     break;
   case Atom::ANGLE:

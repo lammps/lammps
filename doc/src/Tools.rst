@@ -97,6 +97,7 @@ Miscellaneous tools
    * :ref:`singularity <singularity_tool>`
    * :ref:`SWIG interface <swig>`
    * :ref:`vim <vim>`
+   * :ref:`VSCODE Extension <lammps_vscode>`
 
 ----------
 
@@ -1141,3 +1142,28 @@ simulation.
 See the README file for details.
 
 These files were provided by Vikas Varshney (vv0210 at gmail.com)
+
+----------
+
+.. _lammps_vscode:
+
+Extension for vscode
+--------------------
+
+An extension for the `vscode <https://code.visualstudio.com/>`_ editor is provided 
+through the editors embedded extension system, or alternatively through the 
+`vs-marketplace <https://marketplace.visualstudio.com/items?itemName=thfriedrich.lammps>`_ 
+or `GitHub <https://github.com/ThFriedrich/lammps_vscode/releases>`_.
+
+The extension features: 
+
+* Keywords/Syntax highlighting 
+* Embedded offline documentation pages
+* Autocompletion suggestions
+* Hover information
+* Task provider for running LAMMPS simulations in the editors terminal
+* Runs some checks on the input files (e.g. syntax, missing files, etc.)
+* Dashboard for interactive plots of logs and atomic dumps
+  
+See `https://thfriedrich.github.io/lammps_vscode/ <https://thfriedrich.github.io/lammps_vscode/>`_ 
+for more details

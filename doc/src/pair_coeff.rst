@@ -40,7 +40,7 @@ or both of the types in the I,J pair can be a type label, which is an
 alphanumeric string defined by the :doc:`labelmap <labelmap>` command
 or in a section of a data file read by the :doc:`read_data
 <read_data>` command, and which converts internally to a numeric type.
-Interally, LAMMPS will set coefficients for the symmetric J,I
+Internally, LAMMPS will set coefficients for the symmetric J,I
 interaction to the same values as the I <= J interaction.
 
 For numeric values only, a wildcard asterisk can be used in place of

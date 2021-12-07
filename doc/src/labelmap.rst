@@ -41,7 +41,7 @@ label maps by use of the mapID keyword.
 
 The default label maps can also be defined by the :doc:`read_data <read_data>`
 command when it reads these sections in a data file: Atom Type Labels,
-Bond Type Lables, etc.  See the :doc:`Howto type labels
+Bond Type Labels, etc.  See the :doc:`Howto type labels
 <Howto_type_labels>` doc page for a general discussion of how type
 labels can be used.
 

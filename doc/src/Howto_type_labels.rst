@@ -46,7 +46,7 @@ There are two ways to define label maps.  One is via the
 keyword to allow creation of type labels in either a default map or an
 additional map with a mapID.  The other is via the :doc:`read_data
 <read_data>` command.  A data file can have sections such as Atom Type
-Labels, Bond Type Lables, etc, which associate type labels with
+Labels, Bond Type Labels, etc, which associate type labels with
 numeric types.  Only the default label map can be defined in this
 manner.
 

@@ -36,13 +36,14 @@ class Output : protected Pointers {
   int ndump;               // # of Dumps defined
   int max_dump;            // max size of Dump list
   bigint next_dump_any;    // next timestep for any Dump
-  int *time_dump;          // 0/1 if write every N timesteps or Delta in sim time
-  int *every_dump;         // write every this many timesteps, 0 if var
-  double *delta_dump;      // write every this delta sim time, 0.0 if var
-  bigint *next_dump;       // next timestep to do each Dump
+  int *mode_dump;          // 0/1 if write every N timesteps or Delta in sim time
+  int *every_dump;         // dump every this many timesteps, 0 if variable
+  double *delta_dump;      // dump every this delta sim time, 0.0 if variable
+  bigint *next_dump;       // next timestep to perform dump
+  double *next_time_dump;  // next simulation time to perform dump (mode = 1)
   bigint *last_dump;       // last timestep each snapshot was output
-  char **var_dump;         // variable name for dump frequency (steps or sim time)
-  int *ivar_dump;          // variable index for dump frequency
+  char **var_dump;         // variable name for next dump (steps or sim time)
+  int *ivar_dump;          // variable index of var_dump name
   Dump **dump;             // list of defined Dumps
 
   int restart_flag;               // 1 if any restart files are written
@@ -89,6 +90,7 @@ class Output : protected Pointers {
 
  private:
   template <typename T> static Dump *dump_creator(LAMMPS *, int, char **);
+  void calculate_next_dump(int, int, bigint);
 };
 
 }    // namespace LAMMPS_NS

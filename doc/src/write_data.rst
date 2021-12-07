@@ -118,8 +118,10 @@ Angle Type Labels, etc.  See the :doc:`Howto type labels
 and a general discussion of how type labels can be used.
 
 Use of the *nolabelmap* keyword means that even if the default type
-label map exists for Atoms, Bonds, Angles, etc., type labels are not
-written to the data file.  By default, they are written if they exist.
+labels exist for a given type-kind (Atoms, Bonds, Angles, etc.), type
+labels are not written to the data file.  By default, they are written
+if they exist.  A type label must be defined for every numeric type
+(within a given type-kind) to be written to the data file.
 
 The *types* keyword determines how atom types, bond types, angle
 types, etc are written into these data file sections: Atoms, Bonds,

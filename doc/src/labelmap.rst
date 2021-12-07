@@ -28,7 +28,7 @@ Examples
    labelmap atom 3 carbon
    labelmap bond 1 [c1][c2] 2 [c1][hc]
    labelmap bond 1 [c1][c2] 2 [c1][hc] mapID myMap
-   labelmap atom $(label(carbon)) C // change type label from 'carbon' to 'C'
+   labelmap atom $(label(carbon)) C  # change type label from 'carbon' to 'C'
 
 Description
 """""""""""
@@ -55,9 +55,10 @@ A *labelmap* command can only modify the label map for one type-kind
 (atom types, bond types, etc).  Any number of numeric-type/type-label
 pairs may follow.  If a type label already exists for a given numeric
 type, it will be overwritten.  Type labels must be unique; assigning
-the same type label to multiple numeric types is not allowed.  Note
-that there is no requirement that a type label be defined for every
-numeric type.
+the same type label to multiple numeric types is not allowed.  In some
+cases, such as when reading and writing data files, it is required
+that a type label be defined for every numeric type (within a given
+type-kind).
 
 It may sometimes be useful to define multiple label maps.  This can be
 done using the *mapID* keyword.  The specified *name* is the mapID

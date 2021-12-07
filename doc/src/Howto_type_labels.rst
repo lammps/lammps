@@ -17,11 +17,13 @@ files read by the :doc:`molecule <molecule>` command, etc.),
 particularly if a force field uses alphanumeric atom types. See a list
 of other commands below which can use label types in interesting ways.
 
-A collection of type labels for all interaction types (atom types,
-bond types, etc) is stored as a "label map" which is simply a list of
+A collection of type labels for all type-kinds (atom types, bond
+types, etc.) is stored as a "label map" which is simply a list of
 numeric types and associated type labels.  Within a map, each type
 label must be unique.  It can be assigned to only one numeric type.
-Not all numeric types need have a type label assigned.
+To read and write the default type labels to data files for a given
+type-kind, all associated numeric types need have a type label
+assigned.
 
 There can be multiple label maps defined.  There is a default label
 map which has no mapID.  Additional label maps each have a mapID,

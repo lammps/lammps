@@ -59,7 +59,9 @@ Output::Output(LAMMPS *lmp) : Pointers(lmp)
 
   ndump = 0;
   max_dump = 0;
+  time_dump = nullptr;
   every_dump = nullptr;
+  delta_dump = nullptr;
   next_dump = nullptr;
   last_dump = nullptr;
   var_dump = nullptr;
@@ -92,7 +94,9 @@ Output::~Output()
   if (thermo) delete thermo;
   delete [] var_thermo;
 
+  memory->destroy(time_dump);
   memory->destroy(every_dump);
+  memory->destroy(delta_dump);
   memory->destroy(next_dump);
   memory->destroy(last_dump);
   for (int i = 0; i < ndump; i++) delete [] var_dump[i];
@@ -126,12 +130,13 @@ void Output::init()
 
   for (int i = 0; i < ndump; i++) dump[i]->init();
   for (int i = 0; i < ndump; i++)
-    if (every_dump[i] == 0) {
+    if ((time_dump[i] == 0 && every_dump[i] == 0) ||
+        (time_dump[i] == 1 && delta_dump[i] == 0.0)} {
       ivar_dump[i] = input->variable->find(var_dump[i]);
       if (ivar_dump[i] < 0)
-        error->all(FLERR,"Variable name for dump every does not exist");
+        error->all(FLERR,"Variable name for dump every or delta does not exist");
       if (!input->variable->equalstyle(ivar_dump[i]))
-        error->all(FLERR,"Variable for dump every is invalid style");
+        error->all(FLERR,"Variable for dump every or delta is invalid style");
     }
 
   if (restart_flag_single && restart_every_single == 0) {
@@ -176,7 +181,7 @@ void Output::setup(int memflag)
 
   if (ndump && update->restrict_output == 0) {
     for (int idump = 0; idump < ndump; idump++) {
-      if (dump[idump]->clearstep || every_dump[idump] == 0)
+      if (dump[idump]->clearstep || var_dump[idump])
         modify->clearstep_compute();
       writeflag = 0;
       if (every_dump[idump] && ntimestep % every_dump[idump] == 0 &&
@@ -187,6 +192,7 @@ void Output::setup(int memflag)
         dump[idump]->write();
         last_dump[idump] = ntimestep;
       }
+
       if (every_dump[idump])
         next_dump[idump] =
           (ntimestep/every_dump[idump])*every_dump[idump] + every_dump[idump];
@@ -197,7 +203,8 @@ void Output::setup(int memflag)
           error->all(FLERR,"Dump every variable returned a bad timestep");
         next_dump[idump] = nextdump;
       }
-      if (dump[idump]->clearstep || every_dump[idump] == 0) {
+
+      if (dump[idump]->clearstep || var_dump[idump]) {
         if (writeflag) modify->addstep_compute(next_dump[idump]);
         else modify->addstep_compute_all(next_dump[idump]);
       }
@@ -287,21 +294,35 @@ void Output::write(bigint ntimestep)
   if (next_dump_any == ntimestep) {
     for (int idump = 0; idump < ndump; idump++) {
       if (next_dump[idump] == ntimestep) {
-        if (dump[idump]->clearstep || every_dump[idump] == 0)
+        if (dump[idump]->clearstep || var_dump[idump])
           modify->clearstep_compute();
         if (last_dump[idump] != ntimestep) {
           dump[idump]->write();
           last_dump[idump] = ntimestep;
         }
-        if (every_dump[idump]) next_dump[idump] += every_dump[idump];
-        else {
-          bigint nextdump = static_cast<bigint>
-            (input->variable->compute_equal(ivar_dump[idump]));
-          if (nextdump <= ntimestep)
-            error->all(FLERR,"Dump every variable returned a bad timestep");
-          next_dump[idump] = nextdump;
+
+        if (time_dump[idump] == 0) {
+          if (every_dump[idump]) next_dump[idump] += every_dump[idump];
+          else {
+            bigint nextdump = static_cast<bigint>
+              (input->variable->compute_equal(ivar_dump[idump]));
+            if (nextdump <= ntimestep)
+              error->all(FLERR,"Dump every variable returned a bad timestep");
+            next_dump[idump] = nextdump;
+          }
+        } else {
+          if (delta_dump[idump] > 0.0) {
+            bigint nextstep = 
+            next_dump[idump] += every_dump[idump];
+          } else {
+            double nexttime = input->variable->compute_equal(ivar_dump[idump]);
+            if (nexttime <= current_time)  // NOTE: what is current time
+              error->all(FLERR,"Dump delta variable returned a bad time");
+            next_dump[idump] = nextdump;
+          }
         }
-        if (dump[idump]->clearstep || every_dump[idump] == 0)
+
+        if (dump[idump]->clearstep || var_dump[idump])
           modify->addstep_compute(next_dump[idump]);
       }
       if (idump) next_dump_any = MIN(next_dump_any,next_dump[idump]);
@@ -547,20 +568,15 @@ void Output::add_dump(int narg, char **arg)
     max_dump += DELTA;
     dump = (Dump **)
       memory->srealloc(dump,max_dump*sizeof(Dump *),"output:dump");
+    memory->grow(time_dump,max_dump,"output:time_dump");
     memory->grow(every_dump,max_dump,"output:every_dump");
+    memory->grow(delta_dump,max_dump,"output:delta_dump");
     memory->grow(next_dump,max_dump,"output:next_dump");
     memory->grow(last_dump,max_dump,"output:last_dump");
     var_dump = (char **)
       memory->srealloc(var_dump,max_dump*sizeof(char *),"output:var_dump");
     memory->grow(ivar_dump,max_dump,"output:ivar_dump");
   }
-
-  // initialize per-dump data to suitable default values
-
-  every_dump[ndump] = 0;
-  last_dump[ndump] = -1;
-  var_dump[ndump] = nullptr;
-  ivar_dump[ndump] = -1;
 
   // create the Dump
 
@@ -569,10 +585,16 @@ void Output::add_dump(int narg, char **arg)
     dump[ndump] = dump_creator(lmp, narg, arg);
   } else error->all(FLERR,utils::check_packages_for_style("dump",arg[2],lmp));
 
+  // initialize per-dump data to suitable default values
+
+  time_dump[ndump] = 0;
   every_dump[ndump] = utils::inumeric(FLERR,arg[3],false,lmp);
   if (every_dump[ndump] <= 0) error->all(FLERR,"Illegal dump command");
+  delta_dump[ndump] = 0.0;
   last_dump[ndump] = -1;
   var_dump[ndump] = nullptr;
+  ivar_dump[ndump] = -1;
+
   ndump++;
 }
 
@@ -624,7 +646,9 @@ void Output::delete_dump(char *id)
 
   for (int i = idump+1; i < ndump; i++) {
     dump[i-1] = dump[i];
+    time_dump[i-1] = time_dump[i];
     every_dump[i-1] = every_dump[i];
+    delta_dump[i-1] = delta_dump[i];
     next_dump[i-1] = next_dump[i];
     last_dump[i-1] = last_dump[i];
     var_dump[i-1] = var_dump[i];

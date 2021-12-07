@@ -36,10 +36,12 @@ class Output : protected Pointers {
   int ndump;               // # of Dumps defined
   int max_dump;            // max size of Dump list
   bigint next_dump_any;    // next timestep for any Dump
-  int *every_dump;         // write freq for each Dump, 0 if var
+  int *time_dump;          // 0/1 if write every N timesteps or Delta in sim time
+  int *every_dump;         // write every this many timesteps, 0 if var
+  double *delta_dump;      // write every this delta sim time, 0.0 if var
   bigint *next_dump;       // next timestep to do each Dump
   bigint *last_dump;       // last timestep each snapshot was output
-  char **var_dump;         // variable name for dump frequency
+  char **var_dump;         // variable name for dump frequency (steps or sim time)
   int *ivar_dump;          // variable index for dump frequency
   Dump **dump;             // list of defined Dumps
 

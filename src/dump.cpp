@@ -937,7 +937,26 @@ void Dump::modify_params(int narg, char **arg)
         n = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
         if (n <= 0) error->all(FLERR,"Illegal dump_modify command");
       }
+      output->time_dump[idump] = 0;
       output->every_dump[idump] = n;
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"delta") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      int idump;
+      for (idump = 0; idump < output->ndump; idump++)
+        if (strcmp(id,output->dump[idump]->id) == 0) break;
+      double delta;
+      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
+        delete [] output->var_dump[idump];
+        output->var_dump[idump] = utils::strdup(&arg[iarg+1][2]);
+        delta = 0.0;
+      } else {
+        delta = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+        if (delta <= 0.0) error->all(FLERR,"Illegal dump_modify command");
+      }
+      output->time_dump[idump] = 1;
+      output->delta_dump[idump] = delta;
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"fileper") == 0) {

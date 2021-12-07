@@ -133,5 +133,12 @@ using wildcards to further increase the portability of reaction
 templates, as well as automatically inferring the types of newly
 created bond, angle, etc. interactions.
 
-pair_style kim
-other?
+LAMMPS label types will be used in a planned extension of OpenKIM to
+support bonded force fields (FFs) (such as CHARMM, AMBER, IFF, etc.).
+Users will be able to use a bonded FF, packaged as an OpenKIM
+Simulator Model (SM), using the `kim init` command. The SM will
+include all required interaction parameters (pair, bond, angle,
+dihedral, improper) defined in terms of the standard atom type labels
+for that FF. Molecular configurations can then be defined within a
+LAMMPS script or read in from a data file by defining the mapping from
+standard LAMMPS integer atom type integers to the new label types.

@@ -223,6 +223,11 @@ E: All variables in next command must have same style
 
 UNDOCUMENTED
 
+E: Invalid type label in variable formula
+
+Argument of a labelmap function must be a valid type label that has
+been assigned to a numeric type.
+
 E: Invalid variable style with next command
 
 Variable styles {equal} and {world} cannot be used in a next

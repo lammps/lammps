@@ -367,6 +367,12 @@ E: Invalid data file section: EndBondTorsion Coeffs
 
 Atom style does not allow dihedrals.
 
+E: Label map is incomplete: all types must be assigned a unique type label
+
+For a given type-kind (atom types, bond types, etc.) to be written to
+the data file, all associated types must be assigned a type label, and
+each type label can be assigned to only one numeric type.
+
 E: Must define dihedral_style before EndBondTorsion Coeffs
 
 Must use a dihedral_style command before reading a data file that

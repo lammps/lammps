@@ -19,10 +19,10 @@ of other commands below which can use label types in interesting ways.
 
 A collection of type labels for all type-kinds (atom types, bond
 types, etc.) is stored as a "label map" which is simply a list of
-numeric types and associated type labels.  Within a map, each type
-label must be unique.  It can be assigned to only one numeric type.
-To read and write the default type labels to data files for a given
-type-kind, all associated numeric types need have a type label
+numeric types and associated type labels.  Within a type-kind, each
+type label must be unique.  It can be assigned to only one numeric
+type. To read and write the default type labels to data files for a
+given type-kind, all associated numeric types need have a type label
 assigned.
 
 There can be multiple label maps defined.  There is a default label
@@ -45,19 +45,19 @@ a C-H bond with a type label "[C][H]".
 
 There are two ways to define label maps.  One is via the
 :doc:`labelmap <labelmap>` command, which has an optional *mapID*
-keyword to allow creation of type labels in either a default map or an
-additional map with a mapID.  The other is via the :doc:`read_data
+keyword to allow creation of type labels in either the default map or
+an additional map with a mapID.  The other is via the :doc:`read_data
 <read_data>` command.  A data file can have sections such as Atom Type
 Labels, Bond Type Labels, etc, which associate type labels with
 numeric types.  Only the default label map can be defined in this
 manner.
 
 If defined, the default label map can be written out to data files by
-the :doc:`write_data <write_data>` command.  They are also written to
-and read from restart files, by the :doc:`write_restart <write_restart>`
-and :doc:`read_restart <read_restart>` commands. Label maps with
-mapIDs cannot be written to either data or restart files by these
-commands.
+the :doc:`write_data <write_data>` command.  This  map is also written
+to and read from restart files, by the :doc:`write_restart
+<write_restart>` and :doc:`read_restart <read_restart>` commands.
+Label maps with mapIDs cannot be written to either data or restart
+files by these commands.
 
 ----------
 
@@ -135,12 +135,12 @@ using wildcards to further increase the portability of reaction
 templates, as well as automatically inferring the types of newly
 created bond, angle, etc. interactions.
 
-LAMMPS label types will be used in a planned extension of OpenKIM to
+LAMMPS type labels will be used in a planned extension of OpenKIM to
 support bonded force fields (FFs) (such as CHARMM, AMBER, IFF, etc.).
 Users will be able to use a bonded FF, packaged as an OpenKIM
-Simulator Model (SM), using the `kim init` command. The SM will
+Simulator Model (SM), using the `kim init` command.  The SM will
 include all required interaction parameters (pair, bond, angle,
-dihedral, improper) defined in terms of the standard atom type labels
-for that FF. Molecular configurations can then be defined within a
-LAMMPS script or read in from a data file by defining the mapping from
-standard LAMMPS integer atom type integers to the new label types.
+dihedral, improper) defined in terms of the standard atom types for
+that FF.  Molecular configurations can then be specified within a
+LAMMPS script or read in from a data file by using type labels that
+match the atom types for that FF.

@@ -329,6 +329,11 @@ E: KSpace style has not yet been set
 
 Cannot use kspace_modify command until a kspace style is set.
 
+E: Labelmap command before simulation box is defined
+
+The labelmap command cannot be used before a read_data, read_restart,
+or create_box command.
+
 E: Mass command before simulation box is defined
 
 The mass command cannot be used before a read_data, read_restart, or

@@ -5446,6 +5446,10 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Mass command must set a type from 1-N where N is the number of atom
    types.
 
+*Invalid type label in variable formula*
+   Argument of a labelmap function must be a valid type label that has
+   been assigned to a numeric type.
+
 *Invalid use of library file() function*
    This function is called through the library interface.  This
    error should not occur.  Contact the developers if it does.
@@ -5578,8 +5582,17 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *LJ6 off not supported in pair_style buck/long/coul/long*
    Self-explanatory.
 
+*Label map is incomplete: all types must be assigned a unique type label*
+   For a given type-kind (atom types, bond types, etc.) to be written to
+   the data file, all associated types must be assigned a type label, and
+   each type label can be assigned to only one numeric type.
+
 *Label wasn't found in input script*
    Self-explanatory.
+
+*Labelmap command before simulation box is defined*
+   The labelmap command cannot be used before a read_data,
+   read_restart, or create_box command.
 
 *Lattice orient vectors are not orthogonal*
    The three specified lattice orientation vectors must be mutually
@@ -7860,6 +7873,10 @@ keyword to allow for additional bonds to be formed
    Number of local atoms times number of columns must fit in a 32-bit
    integer for dump.
 
+*Topology type exceeds system topology type*
+   The number of bond, angle, etc types exceeds the system setting. See
+   the create_box or read_data command for how to specify these values.
+
 *Tree structure in joint connections*
    Fix poems cannot (yet) work with coupled bodies whose joints connect
    the bodies in a tree structure.
@@ -7882,6 +7899,13 @@ keyword to allow for additional bonds to be formed
    it in different ways.
 
 *Two groups cannot be the same in fix spring couple*
+   Self-explanatory.
+
+*Type label already exists: type labels must be unique*
+   For a given type-kind (atom types, bond types, etc.), a given type
+   label can be assigned to only one numeric type.
+
+*Type labels cannot start with a number*
    Self-explanatory.
 
 *Unable to initialize accelerator for use*

@@ -1200,7 +1200,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
       if (mol_offset) molecule[nlocal-1] += mol_offset;
       if (!isdigit(typestr[0])) {
         if (!atom->labelmapflag) error->one(FLERR,"Invalid Atoms section in data file");
-        type[nlocal-1] = atom->find_label(typestr,Atom::ATOM);
+        type[nlocal-1] = find_label(typestr,Atom::ATOM);
         if (type[nlocal-1] == -1) error->one(FLERR,"Invalid Atoms section in data file");
       } else {
         type[nlocal-1] = utils::inumeric(FLERR,typestr.c_str(),true,lmp);
@@ -1294,7 +1294,7 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
     typestr = typechar;
     if (!isdigit(typestr[0])) {
       if (!atom->labelmapflag) error->one(FLERR,"Invalid Bonds section in data file");
-      itype = atom->find_label(typestr,Atom::BOND);
+      itype = find_label(typestr,Atom::BOND);
       if (itype == -1) error->one(FLERR,"Invalid Bonds section in data file");
     } else {
       itype = utils::inumeric(FLERR,typechar,true,lmp);
@@ -1363,7 +1363,7 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
     typestr = typechar;
     if (!isdigit(typestr[0])) {
       if (!atom->labelmapflag) error->one(FLERR,"Invalid Angles section in data file");
-      itype = atom->find_label(typestr,Atom::ANGLE);
+      itype = find_label(typestr,Atom::ANGLE);
       if (itype == -1) error->one(FLERR,"Invalid Angles section in data file");
     } else {
       itype = utils::inumeric(FLERR,typechar,true,lmp);
@@ -1448,7 +1448,7 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
     typestr = typechar;
     if (!isdigit(typestr[0])) {
       if (!atom->labelmapflag) error->one(FLERR,"Invalid Dihedrals section in data file");
-      itype = atom->find_label(typestr,Atom::DIHEDRAL);
+      itype = find_label(typestr,Atom::DIHEDRAL);
       if (itype == -1) error->one(FLERR,"Invalid Dihedrals section in data file");
     } else {
       itype = utils::inumeric(FLERR,typechar,true,lmp);
@@ -1550,7 +1550,7 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
     typestr = typechar;
     if (!isdigit(typestr[0])) {
       if (!atom->labelmapflag) error->one(FLERR,"Invalid Impropers section in data file");
-      itype = atom->find_label(typestr,Atom::IMPROPER);
+      itype = find_label(typestr,Atom::IMPROPER);
       if (itype == -1) error->one(FLERR,"Invalid Impropers section in data file");
     } else {
       itype = utils::inumeric(FLERR,typechar,true,lmp);
@@ -1851,7 +1851,8 @@ void Atom::set_mass(const char *file, int line, int /*narg*/, char **arg)
 
   if (!isdigit(arg[0][0]) && arg[0][0] != '*') {
     std::string typestr(arg[0]);
-    int itype = atom->find_label(typestr,Atom::ATOM);
+    int itype = find_label(typestr,Atom::ATOM);
+    if (itype == -1) error->all(file,line,"Invalid type for mass set");
     mass[itype] = utils::numeric(FLERR,arg[1],false,lmp);
     mass_setflag[itype] = 1;
 

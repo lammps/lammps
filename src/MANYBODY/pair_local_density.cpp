@@ -86,9 +86,8 @@ PairLocalDensity::PairLocalDensity(LAMMPS *lmp) : Pair(lmp)
   fp = nullptr;
   localrho = nullptr;
 
-  // set comm size needed by this pair
-  comm_forward = 1;
-  comm_reverse = 1;
+  // comm sizes needed by this pair style
+  comm_forward = comm_reverse = atom->ntypes*atom->ntypes;
 
   // cite publication
   if (lmp->citeme) lmp->citeme->add(cite_pair_local_density);
@@ -687,6 +686,10 @@ void PairLocalDensity::parse_file(char *filename) {
   MPI_Bcast(&nLD,1,MPI_INT,0,world);
   MPI_Bcast(&nrho,1,MPI_INT,0,world);
 
+  if ((me == 0) && (nLD != atom->ntypes*atom->ntypes))
+    error->warning(FLERR, "Expected {} local density potentials but got {}",
+                   atom->ntypes*atom->ntypes, nLD);
+
   // setting up all arrays to be read from files and broadcasted
   memory->create(uppercut, nLD, "pairLD:uppercut");
   memory->create(lowercut, nLD, "pairLD:lowercut");
@@ -820,7 +823,7 @@ int PairLocalDensity::pack_comm(int n, int *list, double *buf,
     }
   }
 
-  return nLD;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -851,7 +854,7 @@ int PairLocalDensity::pack_reverse_comm(int n, int first, double *buf) {
       buf[m++] = localrho[k][i];
     }
   }
-  return nLD;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */

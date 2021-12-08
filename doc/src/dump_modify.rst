@@ -17,7 +17,7 @@ Syntax
 * one or more keyword/value pairs may be appended
 
 * these keywords apply to various dump styles
-* keyword = *append* or *at* or *buffer* or *delay* or *element* or *every* or *fileper* or *first* or *flush* or *format* or *header* or *image* or *label* or *maxfiles* or *nfile* or *pad* or *pbc* or *precision* or *region* or *refresh* or *scale* or *sfactor* or *sort* or *tfactor* or *thermo* or *thresh* or *time* or *units* or *unwrap*
+* keyword = *append* or *at* or *buffer* or *delay* or *element* or *every* or *every/time* or *fileper* or *first* or *flush* or *format* or *header* or *image* or *label* or *maxfiles* or *nfile* or *pad* or *pbc* or *precision* or *region* or *refresh* or *scale* or *sfactor* or *sort* or *tfactor* or *thermo* or *thresh* or *time* or *units* or *unwrap*
 
   .. parsed-literal::
 
@@ -32,6 +32,9 @@ Syntax
        *every* arg = N
          N = dump every this many timesteps
          N can be a variable (see below)
+       *every/time* arg = Delta
+         Delta = dump every this interval in simulation time (time units)
+         Delta can be a variable (see below)
        *fileper* arg = Np
          Np = write one file for every this many processors
        *first* arg = *yes* or *no*
@@ -197,11 +200,18 @@ will be accepted.
 
 ----------
 
-The *every* keyword changes the dump frequency originally specified by
-the :doc:`dump <dump>` command to a new value.  The every keyword can be
-specified in one of two ways.  It can be a numeric value in which case
-it must be > 0.  Or it can be an :doc:`equal-style variable <variable>`,
-which should be specified as v_name, where name is the variable name.
+The *every* keyword does two things.  It specifies that the interval
+between dump snapshots will be specified in timesteps, which is the
+default if the *every* or *every/time* keywords are not used.  See the
+*every/time* keyword for how to specify the interval in simulation
+time, i.e. in time units of the :doc:`units <units>` command.  This
+command also sets the interval value, which overrides the dump
+frequency originally specified by the :doc:`dump <dump>` command.
+
+The every keyword can be specified in one of two ways.  It can be a
+numeric value in which case it must be > 0.  Or it can be an
+:doc:`equal-style variable <variable>`, which should be specified as
+v_name, where name is the variable name.
 
 In this case, the variable is evaluated at the beginning of a run to
 determine the next timestep at which a dump snapshot will be written
@@ -210,11 +220,12 @@ determine the next timestep, etc.  Thus the variable should return
 timestep values.  See the stagger() and logfreq() and stride() math
 functions for :doc:`equal-style variables <variable>`, as examples of
 useful functions to use in this context.  Other similar math functions
-could easily be added as options for :doc:`equal-style variables <variable>`.  Also see the next() function, which allows
-use of a file-style variable which reads successive values from a
-file, each time the variable is evaluated.  Used with the *every*
-keyword, if the file contains a list of ascending timesteps, you can
-output snapshots whenever you wish.
+could easily be added as options for :doc:`equal-style variables
+<variable>`.  Also see the next() function, which allows use of a
+file-style variable which reads successive values from a file, each
+time the variable is evaluated.  Used with the *every* keyword, if the
+file contains a list of ascending timesteps, you can output snapshots
+whenever you wish.
 
 Note that when using the variable option with the *every* keyword, you
 need to use the *first* option if you want an initial snapshot written
@@ -255,13 +266,94 @@ in file tmp.times:
 
 ----------
 
+The *every/time* keyword does two things.  It specifies that the
+interval between dump snapshots will be specified in simulation time,
+i.e. in time units of the :doc:`units <units>` command.  This can be
+useful when the timestep size varies during a simulation run, e.g. by
+use of the :doc:`fix dt/reset <fix_dt_reset>` command.  The default is
+to specify the interval in timesteps; see the *every* keyword.  This
+command also sets the interval value.
+
+Note that since snapshots are output on simulation steps, each
+snapshot will be written on the first timestep whose associated
+simulation time is >= the exact snapshot time value.
+
+As with the *every* option, the *Delta* value can be specified in one
+of two ways.  It can be a numeric value in which case it must be >
+0.0.  Or it can be an :doc:`equal-style variable <variable>`, which
+should be specified as v_name, where name is the variable name.
+
+In this case, the variable is evaluated at the beginning of a run to
+determine the next simulation time at which a dump snapshot will be
+written out.  On that timestep the variable will be evaluated again to
+determine the next simulation time, etc.  Thus the variable should
+return values in time units.  Note the current timestep or simulation
+time can be used in an :doc:`equal-style variables <variable>` since
+they are both thermodynamic keywords.  Also see the next() function,
+which allows use of a file-style variable which reads successive
+values from a file, each time the variable is evaluated.  Used with
+the *every/time* keyword, if the file contains a list of ascending
+simulation times, you can output snapshots whenever you wish.
+
+Note that when using the variable option with the *every/time*
+keyword, you need to use the *first* option if you want an initial
+snapshot written to the dump file.  The *every/time* keyword cannot be
+used with the dump *dcd* style.
+
+For example, the following commands will write snapshots at successive
+simulation times which grow by a factor of 1.5 with each interval.
+The dt value used in the variable is to avoid a zero result when the
+initial simulation time is 0.0.
+
+.. code-block:: LAMMPS
+
+   variable        increase equal 1.5*(time+dt)
+   dump            1 all atom 100 tmp.dump
+   dump_modify     1 every/time v_increase first yes
+
+The following commands would write snapshots at the times listed in
+file tmp.times:
+
+.. code-block:: LAMMPS
+
+   variable        f file tmp.times
+   variable        s equal next(f)
+   dump            1 all atom 100 tmp.dump
+   dump_modify     1 every/time v_s
+
+.. note::
+
+   When using a file-style variable with the *every* keyword, the file
+   of timesteps must list a first times that is beyond the time
+   associated with the current timestep (e.g. it cannot be 0.0).  And
+   it must list one or more times beyond the length of the run you
+   perform.  This is because the dump command will generate an error
+   if the next time it reads from the file is not a value greater than
+   the current time.  Thus if you wanted output at times 0,15,100 of a
+   run of length 100 in simulation time, the file should contain the
+   values 15,100,101 and you should also use the dump_modify first
+   command.  Any final value > 100 could be used in place of 101.
+
+----------
+
 The *first* keyword determines whether a dump snapshot is written on
 the very first timestep after the dump command is invoked.  This will
-always occur if the current timestep is a multiple of N, the frequency
-specified in the :doc:`dump <dump>` command, including timestep 0.  But
-if this is not the case, a dump snapshot will only be written if the
-setting of this keyword is *yes*\ .  If it is *no*, which is the
+always occur if the current timestep is a multiple of $N$, the
+frequency specified in the :doc:`dump <dump>` command or
+:doc:`dump_modify every <dump_modify>` command, including timestep 0.
+It will also always occur if the current simulation time is a multiple
+of *Delta*, the time interval specified in the doc:`dump_modify every/time
+<dump_modify>` command.
+
+But if this is not the case, a dump snapshot will only be written if
+the setting of this keyword is *yes*\ .  If it is *no*, which is the
 default, then it will not be written.
+
+Note that if the argument to the :doc:`dump_modify every
+<dump_modify>` doc:`dump_modify every/time <dump_modify>` commands is
+a variable and not a numeric value, then specifying *first yes* is the
+only way to write a dump snapshot on the first timestep after the dump
+command is invoked.
 
 ----------
 
@@ -342,10 +434,10 @@ The *fileper* keyword is documented below with the *nfile* keyword.
 
 ----------
 
-The *header* keyword toggles whether the dump file will include a header.
-Excluding a header will reduce the size of the dump file for fixes such as
-:doc:`fix pair/tracker <fix_pair_tracker>` which do not require the information
-typically written to the header.
+The *header* keyword toggles whether the dump file will include a
+header.  Excluding a header will reduce the size of the dump file for
+fixes such as :doc:`fix pair/tracker <fix_pair_tracker>` which do not
+require the information typically written to the header.
 
 ----------
 

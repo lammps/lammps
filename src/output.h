@@ -37,8 +37,8 @@ class Output : protected Pointers {
   int max_dump;            // max size of Dump list
   bigint next_dump_any;    // next timestep for any Dump
   int *mode_dump;          // 0/1 if write every N timesteps or Delta in sim time
-  int *every_dump;         // dump every this many timesteps, 0 if variable
-  double *delta_dump;      // dump every this delta sim time, 0.0 if variable
+  int *every_dump;         // dump every N timesteps, 0 if variable
+  double *every_time_dump; // dump every Delta of sim time, 0.0 if variable
   bigint *next_dump;       // next timestep to perform dump
   double *next_time_dump;  // next simulation time to perform dump (mode = 1)
   bigint *last_dump;       // last timestep each snapshot was output
@@ -75,7 +75,8 @@ class Output : protected Pointers {
   void write(bigint);             // output for current timestep
   void write_dump(bigint);        // force output of dump snapshots
   void write_restart(bigint);     // force output of a restart file
-  void reset_timestep(bigint);    // reset next timestep for all output
+  void reset_timestep(bigint);    // reset output which depeneds on timestep
+  void reset_dt();                // reset output which depends on dt
 
   void add_dump(int, char **);       // add a Dump to Dump list
   void modify_dump(int, char **);    // modify a Dump

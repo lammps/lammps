@@ -197,12 +197,15 @@ void FixDtReset::end_of_step()
 
   laststep = update->ntimestep;
 
+  // calls to other classes that need to know timestep size changed
+
   update->update_time();
   update->dt = dt;
   update->dt_default = 0;
   if (respaflag) update->integrate->reset_dt();
   if (force->pair) force->pair->reset_dt();
   for (int i = 0; i < modify->nfix; i++) modify->fix[i]->reset_dt();
+  output->reset_dt();
 }
 
 /* ---------------------------------------------------------------------- */

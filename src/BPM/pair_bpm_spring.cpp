@@ -112,7 +112,6 @@ void PairBPMSpring::compute(int eflag, int vflag)
 
         rinv = 1.0/r;
         fpair = k[itype][jtype]*(cut[itype][jtype]-r);
-        if (eflag) evdwl = -0.5 * fpair * (cut[itype][jtype]-r) * factor_lj;
 
         smooth = rsq/cutsq[itype][jtype];
         smooth *= smooth;
@@ -125,6 +124,7 @@ void PairBPMSpring::compute(int eflag, int vflag)
         fpair -= gamma[itype][jtype]*dot*smooth*rinv;
 
         fpair *= factor_lj*rinv;
+        if (eflag) evdwl = 0.0;
 
         f[i][0] += delx*fpair;
         f[i][1] += dely*fpair;
@@ -307,7 +307,7 @@ double PairBPMSpring::single(int i, int j, int itype, int jtype, double rsq,
                             double factor_coul, double factor_lj,
                             double &fforce)
 {
-  double fpair,philj,r,rinv;
+  double fpair,r,rinv;
   double delx, dely, delz, delvx, delvy, delvz, dot, smooth;
 
   if(rsq > cutsq[itype][jtype]) return 0.0;
@@ -319,7 +319,6 @@ double PairBPMSpring::single(int i, int j, int itype, int jtype, double rsq,
   rinv = 1.0/r;
 
   fpair = k[itype][jtype]*(cut[itype][jtype]-r);
-  philj = -0.5*k[itype][jtype]*(cut[itype][jtype]-r)*(cut[itype][jtype]-r);
 
   smooth = rsq/cutsq[itype][jtype];
   smooth *= smooth;
@@ -336,5 +335,5 @@ double PairBPMSpring::single(int i, int j, int itype, int jtype, double rsq,
   fpair *= factor_lj;
   fforce = fpair;
 
-  return philj;
+  return 0.0;
 }

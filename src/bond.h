@@ -23,6 +23,8 @@ class Bond : protected Pointers {
   friend class FixOMP;
 
  public:
+  static int instance_total; // # of Bond classes ever instantiated
+
   int allocated;
   int *setflag;
   int partial_flag;          // 1 if bond type can be set to 0 and deleted
@@ -68,6 +70,7 @@ class Bond : protected Pointers {
   void write_file(int, char **);
 
  protected:
+  int instance_me;    // which Bond class instantiation I am
   int suffix_flag;    // suffix compatibility flag
 
   int evflag;

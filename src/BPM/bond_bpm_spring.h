@@ -31,6 +31,7 @@ class BondBPMSpring : public BondBPM {
   virtual void compute(int, int);
   void coeff(int, char **);
   void init_style();
+  void settings(int, char **);
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_data(FILE *);

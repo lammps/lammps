@@ -40,6 +40,7 @@ class FixPropertyAtom : public Fix {
 
   virtual void grow_arrays(int);
   void copy_arrays(int, int, int);
+  void set_arrays(int);
   int pack_border(int, int *, double *);
   int unpack_border(int, int, double *);
   int pack_exchange(int, double *);

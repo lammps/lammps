@@ -31,6 +31,7 @@ class BondBPMRotational : public BondBPM {
   virtual void compute(int, int);
   void coeff(int, char **);
   void init_style();
+  void settings(int, char **);
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_data(FILE *);
@@ -40,6 +41,11 @@ class BondBPMRotational : public BondBPM {
   double *Kr, *Ks, *Kt, *Kb, *gnorm, *gslide, *groll, *gtwist;
   double *Fcr, *Fcs, *Tct, *Tcb;
   double acos_limit(double);
+
+  double elastic_forces(int, int, int, double &, double, double, double,
+     double*, double*, double*, double*, double*, double*);
+  void damping_forces(int, int, int, double &, double*, double*, double*,
+     double*, double*);
 
   void allocate();
   void store_data();

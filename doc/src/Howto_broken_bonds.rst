@@ -31,7 +31,9 @@ page.
 
 Bonds can also be broken by fixes which change bond topology, including
 :doc:`fix bond/break <fix_bond_break>` and
-:doc:`fix bond/react <fix_bond_react>`.
+:doc:`fix bond/react <fix_bond_react>`. These fixes will automatically
+trigger a rebuild of the neighbor list and update special bond data structures
+when bonds are broken.
 
 Note that when bonds are dumped to a file via the :doc:`dump local <dump>` command, bonds with type 0 are not included.  The
 :doc:`delete_bonds <delete_bonds>` command can also be used to query the

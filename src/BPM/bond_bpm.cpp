@@ -25,6 +25,9 @@
 #include "modify.h"
 #include "update.h"
 
+#include <string>
+#include <vector>
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -49,7 +52,7 @@ BondBPM::BondBPM(LAMMPS *lmp) : Bond(lmp)
   // create dummy fix as placeholder for FixUpdateSpecialBonds
   // this is so final order of Modify:fix will conform to input script
 
-  id_fix_dummy = utils::strdup("BPM_DUMMY");
+  id_fix_dummy = utils::strdup("BPM_DUMMY" + std::to_string(instance_me));
   modify->add_fix(fmt::format("{} all DUMMY ", id_fix_dummy));
 }
 
@@ -58,14 +61,16 @@ BondBPM::BondBPM(LAMMPS *lmp) : Bond(lmp)
 BondBPM::~BondBPM()
 {
   delete [] pack_choice;
-  delete [] id_fix_store_local;
-  delete [] id_fix_prop_atom;
 
   if (id_fix_dummy) modify->delete_fix(id_fix_dummy);
   if (id_fix_update) modify->delete_fix(id_fix_update);
+  if (id_fix_store_local) modify->delete_fix(id_fix_store_local);
+  if (id_fix_prop_atom) modify->delete_fix(id_fix_prop_atom);
 
   delete [] id_fix_dummy;
   delete [] id_fix_update;
+  delete [] id_fix_store_local;
+  delete [] id_fix_prop_atom;
 
   memory->destroy(output_data);
 }
@@ -110,7 +115,7 @@ void BondBPM::init_style()
       error->all(FLERR,"Without overlay/pair, BPM bond sytles requires special Coulomb weights = 1,1,1");
 
     if (id_fix_dummy) {
-      id_fix_update = utils::strdup("BPM_update_special_bonds");
+      id_fix_update = utils::strdup("BPM_update_special_bonds" + std::to_string(instance_me));
       fix_update_special_bonds = (FixUpdateSpecialBonds *) modify->replace_fix(id_fix_dummy,
         fmt::format("{} all UPDATE_SPECIAL_BONDS", id_fix_update),1);
       delete [] id_fix_dummy;
@@ -141,11 +146,14 @@ void BondBPM::init_style()
 
 void BondBPM::settings(int narg, char **arg)
 {
+  leftover_args.clear();
+
+  int local_freq;
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "store/local") == 0) {
-      id_fix_store_local = utils::strdup(arg[iarg+1]);
       nvalues = 0;
+      local_freq = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
       pack_choice = new FnPtrPack[narg - iarg - 1];
       iarg += 2;
       while (iarg < narg) {
@@ -179,31 +187,44 @@ void BondBPM::settings(int narg, char **arg)
       overlay_flag = 1;
       iarg ++;
     } else {
-      error->all(FLERR, "Illegal pair_style command");
+      leftover_args.push_back(iarg);
+      iarg ++;
     }
   }
 
-  if (id_fix_store_local) {
+  if (nvalues != 0 && !id_fix_store_local) {
+    //Todo, assign ID and create fix id_fix_store_local = utils::strdup(arg[iarg+1]);
+
     if (nvalues == 0) error->all(FLERR,
         "Bond style bpm/rotational must include at least one value to output");
     memory->create(output_data, nvalues, "bond/bpm:output_data");
 
     // Use store property to save reference positions as it can transfer to ghost atoms
+    // This won't work for instances where bonds are added (e.g. fix pour) but in those cases
+    // a reference state isn't well defined
     if (prop_atom_flag == 1) {
 
-      id_fix_prop_atom = utils::strdup("BPM_property_atom");
+      id_fix_prop_atom = utils::strdup("BPM_property_atom" + std::to_string(instance_me));
       int ifix = modify->find_fix(id_fix_prop_atom);
+
+      char *x_ref_id = utils::strdup("BPM_X_REF" + std::to_string(instance_me));
+      char *y_ref_id = utils::strdup("BPM_Y_REF" + std::to_string(instance_me));
+      char *z_ref_id = utils::strdup("BPM_Z_REF" + std::to_string(instance_me));
       if (ifix < 0) {
-        modify->add_fix(fmt::format("{} all property/atom "
-            "d_BPM_X_REF d_BPM_Y_REF d_BPM_Z_REF ghost yes", id_fix_prop_atom));
+        modify->add_fix(fmt::format("{} all property/atom {} {} {} ghost yes",
+          id_fix_prop_atom, x_ref_id, y_ref_id, z_ref_id));
         ifix = modify->find_fix(id_fix_prop_atom);
       }
 
       int type_flag;
       int col_flag;
-      index_x_ref = atom->find_custom("BPM_X_REF", type_flag, col_flag);
-      index_y_ref = atom->find_custom("BPM_Y_REF", type_flag, col_flag);
-      index_z_ref = atom->find_custom("BPM_Z_REF", type_flag, col_flag);
+      index_x_ref = atom->find_custom(x_ref_id, type_flag, col_flag);
+      index_y_ref = atom->find_custom(y_ref_id, type_flag, col_flag);
+      index_z_ref = atom->find_custom(z_ref_id, type_flag, col_flag);
+
+      delete [] x_ref_id;
+      delete [] y_ref_id;
+      delete [] z_ref_id;
 
       if (modify->fix[ifix]->restart_reset) {
           modify->fix[ifix]->restart_reset = 0;

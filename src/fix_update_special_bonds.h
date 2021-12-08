@@ -22,7 +22,7 @@ FixStyle(UPDATE_SPECIAL_BONDS,FixUpdateSpecialBonds)
 
 #include "fix.h"
 
-#include <set>
+#include <vector>
 #include <utility>
 
 namespace LAMMPS_NS {
@@ -34,16 +34,14 @@ class FixUpdateSpecialBonds : public Fix {
   int setmask();
   void setup(int);
   void pre_exchange();
-  void pre_force(int);
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);  
+  void pre_force(int); 
   void add_broken_bond(int,int);
 
  protected:
-  std::set <std::pair<tagint, tagint>> broken_pairs;
-  inline int sbmask(int j) const {
-    return j >> SBBITS & 3;
-  }
+  // Create two arrays to store bonds broken this timestep (new)
+  // and since the last neighbor list build
+  std::vector <std::pair<tagint, tagint>> new_broken_pairs;
+  std::vector <std::pair<tagint, tagint>> broken_pairs;
 };
 
 }    // namespace LAMMPS_NS

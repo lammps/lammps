@@ -16,6 +16,8 @@
 
 #include "bond.h"
 
+#include <vector>
+
 namespace LAMMPS_NS {
 
 class BondBPM : public Bond {
@@ -35,6 +37,8 @@ class BondBPM : public Bond {
  protected:
   double r0_max_estimate;
   double max_stretch;
+
+  std::vector<int> leftover_args;
 
   char *id_fix_dummy, *id_fix_update;
   char *id_fix_store_local, *id_fix_prop_atom;

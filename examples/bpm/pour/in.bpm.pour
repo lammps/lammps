@@ -4,7 +4,7 @@ boundary        m m m
 atom_style      sphere/bpm
 special_bonds   lj 0.0 1.0 1.0 coul 1.0 1.0 1.0
 newton          on off
-comm_modify     vel yes cutoff 3.3 
+comm_modify     vel yes cutoff 3.3
 region          box block -15 15 -15 15 0 60.0
 create_box      1 box bond/types 1 extra/bond/per/atom 15 extra/special/per/atom 50
 

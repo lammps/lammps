@@ -24,7 +24,7 @@
 #include "pair.h"
 
 #include <cstring>
-#include <set>
+#include <vector>
 #include <utility>
 
 using namespace LAMMPS_NS;
@@ -36,7 +36,6 @@ FixUpdateSpecialBonds::FixUpdateSpecialBonds(LAMMPS *lmp, int narg, char **arg) 
   Fix(lmp, narg, arg)
 {
   if (narg != 3) error->all(FLERR,"Illegal fix update/special/bonds command");
-  comm_forward = 1+atom->maxspecial;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -76,6 +75,7 @@ void FixUpdateSpecialBonds::setup(int /*vflag*/)
       force->special_coul[3] != 1.0)
     error->all(FLERR,"Fix update/special/bonds requires special Coulomb weights = 1,1,1");
 
+  new_broken_pairs.clear();
   broken_pairs.clear();
 }
 
@@ -86,7 +86,7 @@ void FixUpdateSpecialBonds::setup(int /*vflag*/)
 void FixUpdateSpecialBonds::pre_exchange()
 {
   int i, j, key, m, n1, n3;
-  tagint min_tag, max_tag;
+  tagint tagi, tagj;
   int nlocal = atom->nlocal;
 
   tagint *tag = atom->tag;
@@ -94,19 +94,19 @@ void FixUpdateSpecialBonds::pre_exchange()
   int **nspecial = atom->nspecial;
   tagint **special = atom->special;
 
-  for (auto const &key : broken_pairs) {
-    min_tag = key.first;
-    max_tag = key.second;
+  for (auto const &it : broken_pairs) {
+    tagi = it.first;
+    tagj = it.second;
 
-    i = atom->map(min_tag);
-    j = atom->map(max_tag);
+    i = atom->map(tagi);
+    j = atom->map(tagj);
 
     // remove i from special bond list for atom j and vice versa
     if (i < nlocal) {
       slist = special[i];
       n1 = nspecial[i][0];
       for (m = 0; m < n1; m++)
-        if (slist[m] == max_tag) break;
+        if (slist[m] == tagj) break;
       n3 = nspecial[i][2];
       for (; m < n3-1; m++) slist[m] = slist[m+1];
       nspecial[i][0]--;
@@ -118,7 +118,7 @@ void FixUpdateSpecialBonds::pre_exchange()
       slist = special[j];
       n1 = nspecial[j][0];
       for (m = 0; m < n1; m++)
-        if (slist[m] == min_tag) break;
+        if (slist[m] == tagi) break;
       n3 = nspecial[j][2];
       for (; m < n3-1; m++) slist[m] = slist[m+1];
       nspecial[j][0]--;
@@ -126,9 +126,6 @@ void FixUpdateSpecialBonds::pre_exchange()
       nspecial[j][2]--;
     }
   }
-
-  // Forward updated special bond list
-  comm->forward_comm_fix(this);
 
   broken_pairs.clear();
 }
@@ -139,82 +136,51 @@ void FixUpdateSpecialBonds::pre_exchange()
 
 void FixUpdateSpecialBonds::pre_force(int /*vflag*/)
 {
-  int i,j,n,m,ii,jj,inum,jnum;
-  int *ilist,*jlist,*numneigh,**firstneigh;
-  tagint min_tag, max_tag;
-  std::pair <tagint, tagint> key;
+  int i1,i2,j,jj,jnum;
+  int *jlist,*numneigh,**firstneigh;
+  tagint tag1, tag2;
 
-  int **bond_type = atom->bond_type;
-  int *num_bond = atom->num_bond;
-  tagint **bond_atom = atom->bond_atom;
   int nlocal = atom->nlocal;
 
   tagint *tag = atom->tag;
-  NeighList *list = force->pair->list;
-  inum = list->inum;
-  ilist = list->ilist;
+  NeighList *list = force->pair->list; // may need to be generalized to work with pair hybrid*
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  for (ii = 0; ii < inum; ii++) {
-    i = ilist[ii];
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
+  // In theory could communicate a list of broken bonds to neighboring processors here
+  // to remove restriction that users use Newton bond off
 
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      j &= NEIGHMASK;
-
-      min_tag = tag[i];
-      max_tag = tag[j];
-      if (max_tag < min_tag) {
-        min_tag = tag[j];
-        max_tag = tag[i];
+  for (auto const &it : new_broken_pairs) {
+    tag1 = it.first;
+    tag2 = it.second;
+    i1 = atom->map(tag1);
+    i2 = atom->map(tag2);
+    
+    // Loop through atoms of owned atoms i j
+    if (i1 < nlocal) {
+      jlist = firstneigh[i1];
+      jnum = numneigh[i1];    
+      for (jj = 0; jj < jnum; jj++) {
+        j = jlist[jj];
+        j &= SPECIALMASK; // Clear special bond bits
+        if (tag[j] == tag2)
+          jlist[jj] = j;
       }
-      key = std::make_pair(min_tag, max_tag);
+    }
 
-      if (broken_pairs.find(key) != broken_pairs.end())
-        jlist[jj] = j; // Clear special bond bits
+    if (i2 < nlocal) {
+      jlist = firstneigh[i2];
+      jnum = numneigh[i2];
+      for (jj = 0; jj < jnum; jj++) {
+        j = jlist[jj];
+        j &= SPECIALMASK; // Clear special bond bits
+        if (tag[j] == tag1)
+          jlist[jj] = j;
+      }
     }
   }
-}
 
-/* ---------------------------------------------------------------------- */
-
-int FixUpdateSpecialBonds::pack_forward_comm(int n, int *list, double *buf,
-                                    int /*pbc_flag*/, int * /*pbc*/)
-{
-  int i,j,k,m,ns;
-  int **nspecial = atom->nspecial;
-  tagint **special = atom->special;
-
-  m = 0;
-  for (i = 0; i < n; i++) {
-    j = list[i];
-    ns = nspecial[j][0];
-    buf[m++] = ubuf(ns).d;
-    for (k = 0; k < ns; k++)
-      buf[m++] = ubuf(special[j][k]).d;
-  }
-  return m;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixUpdateSpecialBonds::unpack_forward_comm(int n, int first, double *buf)
-{
-  int i,j,m,ns,last;
-  int **nspecial = atom->nspecial;
-  tagint **special = atom->special;
-
-  m = 0;
-  last = first + n;
-  for (i = first; i < last; i++) {
-    ns = (int) ubuf(buf[m++]).i;
-    nspecial[i][0] = ns;
-    for (j = 0; j < ns; j++)
-      special[i][j] = (tagint) ubuf(buf[m++]).i;
-  }
+  new_broken_pairs.clear();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -222,14 +188,8 @@ void FixUpdateSpecialBonds::unpack_forward_comm(int n, int first, double *buf)
 void FixUpdateSpecialBonds::add_broken_bond(int i, int j)
 {
   tagint *tag = atom->tag;
+  std::pair <tagint, tagint> tag_pair = std::make_pair(tag[i],tag[j]);
 
-  tagint min_tag = tag[i];
-  tagint max_tag = tag[j];
-  if (max_tag < min_tag) {
-    min_tag = tag[j];
-    max_tag = tag[i];
-  }
-  std::pair <tagint, tagint> key = std::make_pair(min_tag, max_tag);
-
-  broken_pairs.insert(key);
+  new_broken_pairs.push_back(tag_pair);
+  broken_pairs.push_back(tag_pair);
 }

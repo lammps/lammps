@@ -150,12 +150,17 @@ status of broken bonds or permanently delete them, e.g.:
 
 ----------
 
-Restart
+Restart and other info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This bond style writes the reference state of each bond to
 :doc:`binary restart files <restart>`. Loading a restart file will
 properly resume bonds.
+
+The single() function of these pair styles returns 0.0 for the energy
+of a pairwise interaction, since energy is not conserved in these
+dissipative potentials.  It also returns only the normal component of
+the pairwise interaction force.
 
 Restrictions
 """"""""""""

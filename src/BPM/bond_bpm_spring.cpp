@@ -136,7 +136,7 @@ void BondBPMSpring::compute(int eflag, int vflag)
 
   int i1,i2,itmp,m,n,type,itype,jtype;
   double delx, dely, delz, delvx, delvy, delvz;
-  double e, rsq, r, r0, rinv, smooth, fbond, ebond, dot;
+  double e, rsq, r, r0, rinv, smooth, fbond, dot;
 
   ev_init(eflag,vflag);
 
@@ -190,7 +190,6 @@ void BondBPMSpring::compute(int eflag, int vflag)
 
     rinv = 1.0/r;
     fbond = k[type]*(r0-r);
-    if (eflag) ebond = -0.5*fbond*(r0-r);
 
     delvx = v[i1][0] - v[i2][0];
     delvy = v[i1][1] - v[i2][1];
@@ -218,7 +217,7 @@ void BondBPMSpring::compute(int eflag, int vflag)
       f[i2][2] -= delz*fbond;
     }
 
-    if (evflag) ev_tally(i1,i2,nlocal,newton_bond,ebond,fbond,delx,dely,delz);
+    if (evflag) ev_tally(i1,i2,nlocal,newton_bond,0.0,fbond,delx,dely,delz);
   }
 }
 
@@ -280,7 +279,18 @@ void BondBPMSpring::init_style()
 
   if (!fix_bond_history)
     fix_bond_history = (FixBondHistory *) modify->add_fix(
-         "BOND_HISTORY_BPM_SPRING all BOND_HISTORY 0 1");
+         "HISTORY_BPM_SPRING_" + std::to_string(instance_me) + " all BOND_HISTORY 0 1");
+}
+
+/* ---------------------------------------------------------------------- */
+
+void BondBPMSpring::settings(int narg, char **arg)
+{
+  BondBPM::settings(narg, arg);
+
+  for (int iarg : leftover_args) {
+    error->all(FLERR, "Illegal bond_style command");
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -329,13 +339,37 @@ void BondBPMSpring::write_data(FILE *fp)
 double BondBPMSpring::single(int type, double rsq, int i, int j,
                            double &fforce)
 {
-  // Not yet enabled
   if (type <= 0) return 0.0;
 
-  //double r0;
-  //for (int n = 0; n < atom->num_bond[i]; n ++) {
-  //  if (atom->bond_atom[i][n] == atom->tag[j]) {
-  //    r0 = fix_bond_history->get_atom_value(i, n, 0);
-  //  }
-  //}
+  double r0;
+  for (int n = 0; n < atom->num_bond[i]; n ++) {
+    if (atom->bond_atom[i][n] == atom->tag[j]) {
+      r0 = fix_bond_history->get_atom_value(i, n, 0);
+    }
+  }
+
+  double r = sqrt(rsq);
+  double rinv = 1.0/r;
+  double e = (r - r0)/r0;
+  fforce = k[type]*(r0-r);
+
+  double **x = atom->x;
+  double **v = atom->v;
+  double delx = x[i][0] - x[j][0];
+  double dely = x[i][1] - x[j][1];
+  double delz = x[i][2] - x[j][2];
+  double delvx = v[i][0] - v[j][0];
+  double delvy = v[i][1] - v[j][1];
+  double delvz = v[i][2] - v[j][2];
+  double dot = delx*delvx + dely*delvy + delz*delvz;
+  fforce -= gamma[type]*dot*rinv;
+
+  double smooth = (r-r0)/(r0*ecrit[type]);
+  smooth *= smooth;
+  smooth *= smooth;
+  smooth *= smooth;
+  smooth = 1 - smooth;
+
+  fforce *= rinv*smooth;
+  return 0.0;
 }

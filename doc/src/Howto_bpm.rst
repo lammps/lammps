@@ -3,7 +3,7 @@ Bonded particle models
 
 The BPM package implements bonded particle models which can be used to
 simulate mesoscale solids.  Solids are constructed as a collection of
-                                                              
+
 particles which each represent a coarse-grained region of space much
 larger than the atomistic scale. Particles within a solid region are
 then connected by a network of bonds to provide solid elasticity.
@@ -24,7 +24,7 @@ Bonds can be created using a :doc:`read data <read_data>` or
 :doc:`create bond <create_bond>` command. Alternatively, a
 :doc:`molecule <molecule>` template with bonds can be used with
 :doc:`fix deposit <fix_deposit>` or :doc:`fix pour <fix_pour>` to
-create solid grains.  
+create solid grains.
 
 In this implementation, bonds store their reference state when they are
 first computed in the setup of the first simulation run. Data is then
@@ -47,7 +47,7 @@ this, LAMMPS requires :doc:`newton <newton>` bond off such that all
 processors containing an atom know when a bond breaks. Additionally,
 one must do either (A) or (B).
 
-(A) 
+(A)
 
 Use the following special bond settings
 
@@ -64,7 +64,7 @@ charges in BPM models, setting a nonzero coul weight for 1-2 bonds
 ensures all bonded neighbors are still included in the neighbor list
 in case bonds break between neighbor list builds.
 
-(B) 
+(B)
 
 Alternatively, one can simply overlay pair interactions such that all
 bonded particles also feel pair interactions. This can be accomplished
@@ -109,13 +109,14 @@ velocity damping as its sister bond style.
 
 ----------
 
-While LAMMPS has many untilites to create and delete bonds, only a
-select few are compatible with BPM bond styles. They include:
+While LAMMPS has many untilites to create and delete bonds, the
+following are currently compatible with BPM bond styles:
 
 * :doc:`create_bonds <create_bonds>`
 * :doc:`delete_bonds <delete_bonds>`
 * :doc:`fix bond/create <fix_bond_create>`
 * :doc:`fix bond/break <fix_bond_break>`
+* :doc:`fix bond/swap <fix_bond_swap>`
 
 Note :doc:`bond_create <bond_create>` requires certain special_bonds settings.
 To subtract pair interactions, one will need to switch between different

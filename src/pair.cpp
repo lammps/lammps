@@ -67,6 +67,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   finitecutflag = 0;
   ghostneigh = 0;
   unit_convert_flag = utils::NOCONVERT;
+  did_mix = false;
 
   nextra = 0;
   pvector = nullptr;

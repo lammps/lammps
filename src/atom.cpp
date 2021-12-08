@@ -1849,15 +1849,24 @@ void Atom::set_mass(const char *file, int line, int /*narg*/, char **arg)
 {
   if (mass == nullptr) error->all(file,line,"Cannot set mass for this atom style");
 
-  int lo,hi;
-  utils::bounds(file,line,arg[0],1,ntypes,lo,hi,error);
-  if (lo < 1 || hi > ntypes) error->all(file,line,"Invalid type for mass set");
-
-  for (int itype = lo; itype <= hi; itype++) {
+  if (!isdigit(arg[0][0]) && arg[0][0] != '*') {
+    std::string typestr(arg[0]);
+    int itype = atom->find_label(typestr,Atom::ATOM);
     mass[itype] = utils::numeric(FLERR,arg[1],false,lmp);
     mass_setflag[itype] = 1;
 
     if (mass[itype] <= 0.0) error->all(file,line,"Invalid mass value");
+  } else {
+    int lo,hi;
+    utils::bounds(file,line,arg[0],1,ntypes,lo,hi,error);
+    if (lo < 1 || hi > ntypes) error->all(file,line,"Invalid type for mass set");
+
+    for (int itype = lo; itype <= hi; itype++) {
+      mass[itype] = utils::numeric(FLERR,arg[1],false,lmp);
+      mass_setflag[itype] = 1;
+
+      if (mass[itype] <= 0.0) error->all(file,line,"Invalid mass value");
+    }
   }
 }
 

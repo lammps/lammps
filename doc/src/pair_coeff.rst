@@ -26,6 +26,10 @@ Examples
    pair_coeff * 3 morse.table ENTRY1
    pair_coeff 1 2 lj/cut 1.0 1.0 2.5 (for pair_style hybrid)
 
+   labelmap atom 1 C
+   labelmap atom 2 H
+   pair_coeff C H 1.0 1.0 2.5
+
 Description
 """""""""""
 
@@ -41,7 +45,7 @@ alphanumeric string defined by the :doc:`labelmap <labelmap>` command
 or in a section of a data file read by the :doc:`read_data
 <read_data>` command, and which converts internally to a numeric type.
 Internally, LAMMPS will set coefficients for the symmetric J,I
-interaction to the same values as the I <= J interaction.
+interaction to the same values as the I,J interaction.
 
 For numeric values only, a wildcard asterisk can be used in place of
 or in conjunction with the I,J arguments to set the coefficients for

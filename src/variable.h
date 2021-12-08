@@ -457,7 +457,7 @@ A variable is referenced incorrectly or an atom-style variable that
 produces per-atom values is used in an equal-style variable
 formula.
 
-U: Invalid math/group/special function in variable formula
+U: Invalid math/group/special/labelmap function in variable formula
 
 Self-explanatory.
 

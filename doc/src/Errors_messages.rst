@@ -5286,7 +5286,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Invalid math function in variable formula*
    Self-explanatory.
 
-*Invalid math/group/special function in variable formula*
+*Invalid math/group/special/labelmap function in variable formula*
    Self-explanatory.
 
 *Invalid option in lattice command for non-custom style*

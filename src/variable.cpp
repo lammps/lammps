@@ -1972,7 +1972,7 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
                                "variable formula",ivar);
 
       // ----------------
-      // math/group/special function or atom value/vector or
+      // math/group/special/labelmap function or atom value/vector or
       // constant or thermo keyword
       // ----------------
 

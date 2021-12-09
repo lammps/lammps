@@ -515,9 +515,9 @@ void Output::write_dump(bigint ntimestep)
       // do not re-evaulate variable for which = 2, leave nexttime as-is
       // unless next_time_dump < 0.0, which means variable never yet evaluated
 
-      if (which < 2 || next_time_dump[idump] < 0.0)
+      if (which < 2 || next_time_dump[idump] < 0.0) {
         nexttime = input->variable->compute_equal(ivar_dump[idump]);
-      else 
+      } else 
         nexttime = next_time_dump[idump];
 
       if (nexttime <= tcurrent)
@@ -671,17 +671,20 @@ void Output::reset_dt()
 {
   next_dump_any = MAXBIGINT;
 
+  bigint ntimestep = update->ntimestep;
+
   for (int idump = 0; idump < ndump; idump++) {
     if (mode_dump[idump] == 1) {
 
       // reset next_dump for unchanged next_time_dump, 2 arg for reset_dt()
-
-      calculate_next_dump(2,idump,update->ntimestep);
-
+      // do not invoke for a dump already scheduled for this step
       // use compute_all() b/c don't know what computes will be needed
 
-      if (dump[idump]->clearstep || var_dump[idump])
-        modify->addstep_compute_all(next_dump[idump]);
+      if (next_dump[idump] != ntimestep) {
+        calculate_next_dump(2,idump,update->ntimestep);
+        if (dump[idump]->clearstep || var_dump[idump])
+          modify->addstep_compute_all(next_dump[idump]);
+      }
     }
 
     next_dump_any = MIN(next_dump_any,next_dump[idump]);

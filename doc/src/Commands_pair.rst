@@ -262,6 +262,7 @@ OPT.
    * :doc:`spin/neel <pair_spin_neel>`
    * :doc:`srp <pair_srp>`
    * :doc:`sw (giko) <pair_sw>`
+   * :doc:`sw/mod (o) <pair_sw>`
    * :doc:`table (gko) <pair_table>`
    * :doc:`table/rx (k) <pair_table_rx>`
    * :doc:`tdpd <pair_mesodpd>`

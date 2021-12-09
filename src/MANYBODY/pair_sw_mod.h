@@ -13,52 +13,28 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(sw,PairSW);
+PairStyle(sw/mod,PairSWMOD);
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_SW_H
-#define LMP_PAIR_SW_H
+#ifndef LMP_PAIR_SW_MOD_H
+#define LMP_PAIR_SW_MOD_H
 
-#include "pair.h"
+#include "pair_sw.h"
 
 namespace LAMMPS_NS {
 
-class PairSW : public Pair {
+class PairSWMOD : public PairSW {
  public:
-  PairSW(class LAMMPS *);
-  virtual ~PairSW();
-  virtual void compute(int, int);
-  virtual void coeff(int, char **);
-  virtual double init_one(int, int);
-  virtual void init_style();
-
-  static constexpr int NPARAMS_PER_LINE = 14;
-
-  struct Param {
-    double epsilon, sigma;
-    double littlea, lambda, gamma, costheta;
-    double biga, bigb;
-    double powerp, powerq;
-    double tol;
-    double cut, cutsq;
-    double sigma_gamma, lambda_epsilon, lambda_epsilon2;
-    double c1, c2, c3, c4, c5, c6;
-    int ielement, jelement, kelement;
-  };
+  PairSWMOD(class LAMMPS *);
+  virtual ~PairSWMOD() {}
 
  protected:
-  double cutmax;      // max cutoff for all elements
-  Param *params;      // parameter set for an I-J-K interaction
-  int maxshort;       // size of short neighbor list array
-  int *neighshort;    // short neighbor list array
+  double delta1;
+  double delta2;
 
-  virtual void settings(int, char **);
-  virtual void allocate();
-  void read_file(char *);
-  virtual void setup_params();
-  void twobody(Param *, double, double &, int, double &);
-  virtual void threebody(Param *, Param *, Param *, double, double, double *, double *, double *, double *,
+  void settings(int, char **);
+  void threebody(Param *, Param *, Param *, double, double, double *, double *, double *, double *,
                  int, double &);
 };
 

@@ -40,7 +40,7 @@ Example input scripts available: examples/PACKAGES/drude
 Description
 """""""""""
 
-Apply two Langevin thermostats as described in :ref:`(Jiang) <Jiang1>` for
+Apply two Langevin thermostats as described in :ref:`(Jiang1) <Jiang1>` for
 thermalizing the reduced degrees of freedom of Drude oscillators.
 This link describes how to use the :doc:`thermalized Drude oscillator model <Howto_drude>` in LAMMPS and polarizable models in LAMMPS
 are discussed on the :doc:`Howto polarizable <Howto_polarizable>` doc
@@ -300,5 +300,5 @@ The option defaults are zero = no.
 
 .. _Jiang1:
 
-**(Jiang)** Jiang, Hardy, Phillips, MacKerell, Schulten, and Roux, J
+**(Jiang1)** Jiang, Hardy, Phillips, MacKerell, Schulten, and Roux, J
 Phys Chem Lett, 2, 87-92 (2011).

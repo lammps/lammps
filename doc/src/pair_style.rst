@@ -327,6 +327,7 @@ accelerated styles exist.
 * :doc:`spin/neel <pair_spin_neel>` -
 * :doc:`srp <pair_srp>` -
 * :doc:`sw <pair_sw>` - Stillinger-Weber 3-body potential
+* :doc:`sw/mod <pair_sw>` - modified Stillinger-Weber 3-body potential
 * :doc:`table <pair_table>` - tabulated pair potential
 * :doc:`table/rx <pair_table_rx>` -
 * :doc:`tdpd <pair_mesodpd>` - tDPD particle interactions

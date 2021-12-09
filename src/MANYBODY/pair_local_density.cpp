@@ -811,8 +811,8 @@ void PairLocalDensity::parse_file(char *filename) {
    communication routines
 ------------------------------------------------------------------------- */
 
-int PairLocalDensity::pack_comm(int n, int *list, double *buf,
-                                int /* pbc_flag */, int * /* pbc */) {
+int PairLocalDensity::pack_forward_comm(int n, int *list, double *buf,
+                                        int /* pbc_flag */, int * /* pbc */) {
   int i,j,k;
   int m;
 
@@ -829,7 +829,7 @@ int PairLocalDensity::pack_comm(int n, int *list, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
-void PairLocalDensity::unpack_comm(int n, int first, double *buf) {
+void PairLocalDensity::unpack_forward_comm(int n, int first, double *buf) {
 
   int i,k,m,last;
 

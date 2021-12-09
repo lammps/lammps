@@ -580,11 +580,8 @@ void FixAveHisto::end_of_step()
   int i,j,m;
 
   // skip if not step which requires doing something
-  // error check if timestep was reset in an invalid manner
 
   bigint ntimestep = update->ntimestep;
-  if (ntimestep < nvalid_last || ntimestep > nvalid)
-    error->all(FLERR,"Invalid timestep reset for fix ave/histo");
   if (ntimestep != nvalid) return;
   nvalid_last = nvalid;
 

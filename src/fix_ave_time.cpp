@@ -56,6 +56,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   global_freq = nfreq;
 
   dynamic_group_allow = 1;
+  time_depend = 1;
 
   // scan values to count them
   // then read options so know mode = SCALAR/VECTOR before re-reading values

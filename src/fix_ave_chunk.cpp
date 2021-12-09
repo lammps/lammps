@@ -61,6 +61,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
 
   global_freq = nfreq;
   no_change_box = 1;
+  time_depend = 1;
 
   char * group = arg[1];
 

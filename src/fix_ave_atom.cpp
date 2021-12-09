@@ -41,6 +41,7 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   nrepeat = utils::inumeric(FLERR,arg[4],false,lmp);
   peratom_freq = utils::inumeric(FLERR,arg[5],false,lmp);
+  time_depend = 1;
 
   nvalues = narg - 6;
 

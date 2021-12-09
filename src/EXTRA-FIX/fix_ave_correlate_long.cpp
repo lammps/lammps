@@ -70,6 +70,7 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS * lmp, int narg, char **arg):
 
   restart_global = 1;
   global_freq = nfreq;
+  time_depend = 1;
 
   // parse values until one isn't recognized
 

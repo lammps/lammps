@@ -61,6 +61,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   size_array_cols = 3;
   extarray = 0;
   dynamic_group_allow = 1;
+  time_depend = 1;
 
   lo = utils::numeric(FLERR,arg[6],false,lmp);
   hi = utils::numeric(FLERR,arg[7],false,lmp);

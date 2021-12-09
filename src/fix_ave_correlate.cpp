@@ -52,6 +52,7 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS * lmp, int narg, char **arg):
   nrepeat = utils::inumeric(FLERR,arg[4],false,lmp);
   nfreq = utils::inumeric(FLERR,arg[5],false,lmp);
 
+  time_depend = 1;
   global_freq = nfreq;
 
   // expand args if any have wildcard character "*"

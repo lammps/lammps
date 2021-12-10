@@ -692,6 +692,7 @@ diblock
 dichalcogenide
 Dickel
 diel
+Dietz
 differentiable
 diffusively
 diffusivity
@@ -1311,6 +1312,7 @@ hotpink
 Houlle
 howto
 Howto
+Hoy
 Hoyt
 Hs
 hstyle

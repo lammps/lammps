@@ -10,6 +10,8 @@
 #   -nopbc = non-periodic system (default)
 #   -pbc xhi yhi zhi = periodic system from 0 to hi in each dimension (optional)
 
+# Author: Steve Plimpton
+
 import sys,os,math
 path = os.environ["LAMMPS_PYTHON_TOOLS"]
 sys.path.append(path)
@@ -105,6 +107,7 @@ class PRMfile:
     self.angleparams = self.angles()
     self.bondangleparams = self.bondangles()
     self.torsionparams = self.torsions()
+    self.opbendparams = self.opbend()
     self.ntypes = len(self.masses)
 
   def force_field_definition(self):
@@ -280,6 +283,8 @@ class PRMfile:
       iline += 1
     return params
 
+  # Dihedral interactions
+  
   def torsions(self):
     params = []
     iline = self.find_section("Torsional Parameters")
@@ -316,6 +321,28 @@ class PRMfile:
             oneparams += [lmp1,lmp2,lmp3]
             
           params.append(oneparams)
+      iline += 1
+    return params
+
+  # Improper or out-of-plane bend interactions
+  
+  def opbend(self):
+    params = []
+    iline = self.find_section("Out-of-Plane Bend Parameters")
+    if iline < 0: return params
+    iline += 3
+    while iline < self.nlines:
+      words = self.lines[iline].split()
+      if len(words):
+        if words[0].startswith("###########"): break
+        if words[0] == "opbend":
+          class1 = int(words[1])
+          class2 = int(words[2])
+          class3 = int(words[3])
+          class4 = int(words[4])
+          value1 = float(words[5])
+          lmp1 = value1
+          params.append((class1,class2,class3,class4,lmp1))
       iline += 1
     return params
     
@@ -522,8 +549,30 @@ for atom2 in id:
         dlist.append((atom1,atom2,atom3,atom4))
         ddict[(atom1,atom2,atom3,atom4)] = 1
 
+# create olist = list of out-of-plane impropers
+# generate topology by triple loop over bonds of center atom2
+# atom2 must have 3 or more bonds to be part of an improper
+# avoid double counting by requiring atom3 < atom4
+# this is since in Tinker the final 2 atoms in the improper are interchangeable
+
+id = xyz.id
+type = xyz.type
+bonds = xyz.bonds
+
+olist = []
+
+for atom2 in id:
+  if len(bonds[atom2-1]) < 3: continue
+  for atom1 in bonds[atom2-1]:
+    for atom3 in bonds[atom2-1]:
+      for atom4 in bonds[atom2-1]:
+        if atom1 == atom3: continue
+        if atom1 == atom4: continue
+        if atom3 >= atom4: continue
+        olist.append((atom1,atom2,atom3,atom4))
+
 # ----------------------------------------
-# create lists of bond/angle/dihedral types
+# create lists of bond/angle/dihedral/improper types
 # ----------------------------------------
 
 # generate btype = LAMMPS type of each bond
@@ -697,7 +746,7 @@ for atom1,atom2,atom3 in alist:
 # flags[i] = which LAMMPS dihedral type (1-N) the Tinker FF file dihedral I is
 #        0 = none
 # convert prm.torsionparams to a dictionary for efficient searching
-# key = (class1,class2)
+# key = (class1,class2,class3,class4)
 # value = (M,params) where M is index into prm.torsionparams
 
 id = xyz.id
@@ -734,6 +783,54 @@ for atom1,atom2,atom3,atom4 in dlist:
     flags[m] = len(dparams)
   dtype.append(flags[m])
 
+# generate otype = LAMMPS type of each out-of-plane improper
+# generate oparams = LAMMPS params for each improper type
+# flags[i] = which LAMMPS improper type (1-N) the Tinker FF file improper I is
+#        0 = none
+# convert prm.opbendparams to a dictionary for efficient searching
+# key = (class1,class2)
+# value = (M,params) where M is index into prm.opbendparams
+
+id = xyz.id
+type = xyz.type
+classes = prm.classes
+
+odict = {}
+for m,params in enumerate(prm.opbendparams):
+  odict[(params[0],params[1])] = (m,params)
+
+flags = len(prm.opbendparams)*[0]
+otype = []
+oparams = []
+olist_reduced = []
+
+for atom1,atom2,atom3,atom4 in olist:
+  type1 = type[atom1-1]
+  type2 = type[atom2-1]
+  type3 = type[atom3-1]
+  type4 = type[atom4-1]
+  c1 = classes[type1-1]
+  c2 = classes[type2-1]
+  c3 = classes[type3-1]
+  c4 = classes[type4-1]
+
+  # 4-tuple is only an improper if matches an entry in PRM file
+  # olist_reduced = list of just these 4-tuples
+  
+  if (c1,c2) in odict:
+    m,params = odict[(c1,c2)]
+    olist_reduced.append((atom1,atom2,atom3,atom4))
+    
+    if not flags[m]:
+      oneparams = params[4:]
+      oparams.append(oneparams)
+      flags[m] = len(oparams)
+    otype.append(flags[m])
+
+# replace original olist with reduced version
+
+olist = olist_reduced
+    
 # ----------------------------------------
 # assign each atom to a Tinker group
 # NOTE: doing this inside LAMMPS now
@@ -787,6 +884,7 @@ ttype = xyz.type
 nbonds = len(blist)
 nangles = len(alist)
 ndihedrals = len(dlist)
+nimpropers = len(olist)
 
 # data file header values
 
@@ -885,6 +983,23 @@ if ndihedrals:
     lines.append(line+'\n')
   d.sections["Dihedrals"] = lines
 
+if nimpropers:
+  d.headers["impropers"] = len(olist)
+  d.headers["improper types"] = len(oparams)
+  
+  lines = []
+  for i,one in enumerate(oparams):
+    strone = [str(single) for single in one]
+    line = "%d %s" % (i+1,' '.join(strone))
+    lines.append(line+'\n')
+  d.sections["Improper Coeffs"] = lines
+
+  lines = [] 
+  for i,one in enumerate(olist):
+    line = "%d %d %d %d %d %d" % (i+1,otype[i],one[0],one[1],one[2],one[3])
+    lines.append(line+'\n')
+  d.sections["Impropers"] = lines
+
 d.write(datafile)
 
 # print stats to screen
@@ -898,6 +1013,8 @@ print "Nmol =",nmol
 print "Nbonds =",len(blist)
 print "Nangles =",len(alist)
 print "Ndihedrals =",len(dlist)
+print "Nimpropers =",len(olist)
 print "Nbondtypes =",len(bparams)
 print "Nangletypes =",len(aparams)
 print "Ndihedraltypes =",len(dparams)
+print "Nimpropertypes =",len(oparams)

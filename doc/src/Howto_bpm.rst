@@ -97,10 +97,10 @@ This also requires a unique integrator :doc:`fix nve/sphere/bpm
 to :doc:`fix nve/asphere <fix_nve_asphere>`.
 
 To monitor the fracture of bonds in the system, all BPM bond styles
-can be associated with an instance of :doc:`fix store/local
-<fix_store_local>` to record all instances of bond breakage for
-output. Additionally, one can use :doc:`compute nbond/atom
-<compute_nbond_atom>` to tally the current number of bonds per atom.
+have the ability to record instances of bond breakage to output using
+the :doc:`dump local <dump_local>` command. Additionally, one can use
+:doc:`compute nbond/atom <compute_nbond_atom>` to tally the current
+number of bonds per atom.
 
 In addition to bond styles, a new pair style :doc:`pair bpm/spring
 <pair_bpm_spring>` was added to accompany the bpm/spring bond

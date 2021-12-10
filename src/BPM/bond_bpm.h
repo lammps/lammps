@@ -37,10 +37,12 @@ class BondBPM : public Bond {
  protected:
   double r0_max_estimate;
   double max_stretch;
+  int store_local_freq;
 
   std::vector<int> leftover_args;
 
-  char *id_fix_dummy, *id_fix_update;
+  char *id_fix_dummy, *id_fix_dummy2;
+  char *id_fix_update, *id_fix_bond_history;
   char *id_fix_store_local, *id_fix_prop_atom;
   class FixStoreLocal *fix_store_local;
   class FixBondHistory *fix_bond_history;

@@ -52,11 +52,12 @@ PairTracker::PairTracker(LAMMPS *lmp) :
 
   // create dummy fix as placeholder for FixNeighHistory
   // this is so final order of Modify:fix will conform to input script
+  id_fix_dummy = utils::strdup("TRACKER_DUMMY_" + std::to_string(instance_me));
+  modify->add_fix(fmt::format("{} all DUMMY ", id_fix_dummy));
 
-  fix_history = nullptr;
-  modify->add_fix("NEIGH_HISTORY_TRACK_DUMMY all DUMMY");
-  fix_dummy = (FixDummy *) modify->fix[modify->nfix - 1];
-
+  id_fix_history = nullptr;
+  id_fix_store_local = nullptr;
+  fix_history = nullptr;  
   fix_store_local = nullptr;
 
   output_data = nullptr;
@@ -68,10 +69,9 @@ PairTracker::PairTracker(LAMMPS *lmp) :
 
 PairTracker::~PairTracker()
 {
-  if (!fix_history)
-    modify->delete_fix("NEIGH_HISTORY_TRACK_DUMMY");
-  else
-    modify->delete_fix("NEIGH_HISTORY_TRACK");
+  if (id_fix_dummy) modify->delete_fix(id_fix_dummy);
+  if (fix_history) modify->delete_fix(id_fix_history);
+  if (id_fix_store_local) modify->delete_fix(id_fix_store_local);
 
   if (allocated) {
     memory->destroy(setflag);
@@ -86,7 +86,10 @@ PairTracker::~PairTracker()
 
   delete[] pack_choice;
 
+  delete[] id_fix_dummy;
+  delete[] id_fix_history;
   delete[] id_fix_store_local;
+
   memory->destroy(output_data);
   memory->destroy(type_filter);
 }
@@ -229,15 +232,16 @@ void PairTracker::allocate()
 
 void PairTracker::settings(int narg, char **arg)
 {
-  if (narg < 1) error->all(FLERR, "Illegal pair_style command");
+  if (narg < 2) error->all(FLERR, "Illegal pair_style command");
 
   id_fix_store_local = utils::strdup(arg[0]);
+  store_local_freq = utils::inumeric(FLERR, arg[1], false, lmp);
 
   // If optional arguments included, this will be oversized
   pack_choice = new FnPtrPack[narg - 1];
 
   nvalues = 0;
-  int iarg = 1;
+  int iarg = 2;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "finite") == 0) {
       finitecutflag = 1;
@@ -306,6 +310,14 @@ void PairTracker::settings(int narg, char **arg)
 
   if (nvalues == 0) error->all(FLERR, "Must request at least one value to output");
   memory->create(output_data, nvalues, "pair/tracker:output_data");
+
+  int ifix = modify->find_fix(id_fix_store_local);
+  if (ifix < 0) {
+    modify->add_fix(fmt::format("{} all STORE_LOCAL {} {}",
+      id_fix_store_local, store_local_freq, nvalues));
+    ifix = modify->find_fix(id_fix_store_local);
+  }
+  fix_store_local = (FixStoreLocal *) modify->fix[ifix];
 }
 
 /* ----------------------------------------------------------------------
@@ -343,7 +355,7 @@ void PairTracker::coeff(int narg, char **arg)
 
 void PairTracker::init_style()
 {
-  int i;
+  int i, ifix;
   // error and warning checks
 
   if (!atom->radius_flag && finitecutflag)
@@ -363,17 +375,22 @@ void PairTracker::init_style()
   // it replaces FixDummy, created in the constructor
   // this is so its order in the fix list is preserved
 
-  if (fix_history == nullptr) {
-    modify->replace_fix("NEIGH_HISTORY_TRACK_DUMMY",
-        fmt::format("NEIGH_HISTORY_TRACK all NEIGH_HISTORY {}", size_history), 1);
-    int ifix = modify->find_fix("NEIGH_HISTORY_TRACK");
-    fix_history = (FixNeighHistory *) modify->fix[ifix];
+  if (id_fix_dummy) {
+    id_fix_history = utils::strdup("TRACKER_NEIGH_HIST_" + std::to_string(instance_me));
+    fix_history = (FixNeighHistory *) modify->replace_fix(id_fix_dummy,
+        fmt::format("{} all NEIGH_HISTORY {}", id_fix_history, size_history), 1);
     fix_history->pair = this;
     fix_history->use_bit_flag = 0;
+
+    delete [] id_fix_dummy;
+    id_fix_dummy = nullptr;
+  } else {
+    ifix = modify->find_fix(id_fix_history);
+    if (ifix < 0) error->all(FLERR, "Could not find pair fix neigh history ID");
+    fix_history = (FixNeighHistory *) modify->fix[ifix];    
   }
 
   if (finitecutflag) {
-
     if (force->pair->beyond_contact)
       error->all(FLERR,
         "Pair tracker incompatible with granular pairstyles that extend beyond contact");
@@ -425,18 +442,6 @@ void PairTracker::init_style()
     MPI_Allreduce(&onerad_dynamic[1], &maxrad_dynamic[1], atom->ntypes, MPI_DOUBLE, MPI_MAX, world);
     MPI_Allreduce(&onerad_frozen[1], &maxrad_frozen[1], atom->ntypes, MPI_DOUBLE, MPI_MAX, world);
   }
-
-  int ifix = modify->find_fix("NEIGH_HISTORY_TRACK");
-  if (ifix < 0) error->all(FLERR, "Could not find pair fix neigh history ID");
-  fix_history = (FixNeighHistory *) modify->fix[ifix];
-
-  ifix = modify->find_fix(id_fix_store_local);
-  if (ifix < 0) error->all(FLERR, "Cannot find fix store/local");
-  if (strcmp(modify->fix[ifix]->style, "store/local") != 0)
-      error->all(FLERR, "Incorrect fix style matched, not store/local");
-  fix_store_local = (FixStoreLocal *) modify->fix[ifix];
-  if (fix_store_local->nvalues != nvalues)
-    error->all(FLERR, "Inconsistent number of output variables in fix store/local");
 }
 
 /* ----------------------------------------------------------------------

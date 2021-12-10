@@ -34,7 +34,10 @@ using namespace LAMMPS_NS;
 
 BondBPM::BondBPM(LAMMPS *lmp) : Bond(lmp)
 {
+  id_fix_dummy =  nullptr;
+  id_fix_dummy2 =  nullptr;
   id_fix_store_local = nullptr;
+  id_fix_bond_history = nullptr;
   id_fix_prop_atom = nullptr;
   id_fix_update = nullptr;
   fix_store_local = nullptr;
@@ -49,11 +52,15 @@ BondBPM::BondBPM(LAMMPS *lmp) : Bond(lmp)
   r0_max_estimate = 0.0;
   max_stretch = 1.0;
 
-  // create dummy fix as placeholder for FixUpdateSpecialBonds
+  // create dummy fix as placeholder for FixUpdateSpecialBonds & BondHistory
   // this is so final order of Modify:fix will conform to input script
+  // BondHistory technically only needs this if updateflag = 1
 
-  id_fix_dummy = utils::strdup("BPM_DUMMY" + std::to_string(instance_me));
+  id_fix_dummy = utils::strdup("BPM_DUMMY_" + std::to_string(instance_me));
   modify->add_fix(fmt::format("{} all DUMMY ", id_fix_dummy));
+
+  id_fix_dummy2 = utils::strdup("BPM_DUMMY2_" + std::to_string(instance_me));
+  modify->add_fix(fmt::format("{} all DUMMY ", id_fix_dummy2));  
 }
 
 /* ---------------------------------------------------------------------- */
@@ -63,12 +70,16 @@ BondBPM::~BondBPM()
   delete [] pack_choice;
 
   if (id_fix_dummy) modify->delete_fix(id_fix_dummy);
+  if (id_fix_dummy2) modify->delete_fix(id_fix_dummy2);
   if (id_fix_update) modify->delete_fix(id_fix_update);
+  if (id_fix_bond_history) modify->delete_fix(id_fix_bond_history);
   if (id_fix_store_local) modify->delete_fix(id_fix_store_local);
   if (id_fix_prop_atom) modify->delete_fix(id_fix_prop_atom);
 
   delete [] id_fix_dummy;
+  delete [] id_fix_dummy2;
   delete [] id_fix_update;
+  delete [] id_fix_bond_history;
   delete [] id_fix_store_local;
   delete [] id_fix_prop_atom;
 
@@ -83,7 +94,7 @@ void BondBPM::init_style()
   if (id_fix_store_local) {
     ifix = modify->find_fix(id_fix_store_local);
     if (ifix < 0) error->all(FLERR, "Cannot find fix store/local");
-    if (strcmp(modify->fix[ifix]->style, "store/local") != 0)
+    if (strcmp(modify->fix[ifix]->style, "STORE_LOCAL") != 0)
       error->all(FLERR, "Incorrect fix style matched, not store/local");
     fix_store_local = (FixStoreLocal *) modify->fix[ifix];
     fix_store_local->nvalues = nvalues;
@@ -115,7 +126,7 @@ void BondBPM::init_style()
       error->all(FLERR,"Without overlay/pair, BPM bond sytles requires special Coulomb weights = 1,1,1");
 
     if (id_fix_dummy) {
-      id_fix_update = utils::strdup("BPM_update_special_bonds" + std::to_string(instance_me));
+      id_fix_update = utils::strdup("BPM_UPDATE_SPECIAL_BONDS_" + std::to_string(instance_me));
       fix_update_special_bonds = (FixUpdateSpecialBonds *) modify->replace_fix(id_fix_dummy,
         fmt::format("{} all UPDATE_SPECIAL_BONDS", id_fix_update),1);
       delete [] id_fix_dummy;
@@ -148,14 +159,14 @@ void BondBPM::settings(int narg, char **arg)
 {
   leftover_args.clear();
 
-  int local_freq;
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "store/local") == 0) {
       nvalues = 0;
-      local_freq = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
+      id_fix_store_local = utils::strdup(arg[iarg+1]);
+      store_local_freq = utils::inumeric(FLERR, arg[iarg+2], false, lmp);
       pack_choice = new FnPtrPack[narg - iarg - 1];
-      iarg += 2;
+      iarg += 3;
       while (iarg < narg) {
         if (strcmp(arg[iarg], "id1") == 0) {
           pack_choice[nvalues++] = &BondBPM::pack_id1;
@@ -181,7 +192,7 @@ void BondBPM::settings(int narg, char **arg)
         } else {
           break;
         }
-      iarg ++;
+        iarg ++;
       }
     } else if (strcmp(arg[iarg], "overlay/pair") == 0) {
       overlay_flag = 1;
@@ -192,24 +203,31 @@ void BondBPM::settings(int narg, char **arg)
     }
   }
 
-  if (nvalues != 0 && !id_fix_store_local) {
-    //Todo, assign ID and create fix id_fix_store_local = utils::strdup(arg[iarg+1]);
+  if (id_fix_store_local) {
 
     if (nvalues == 0) error->all(FLERR,
         "Bond style bpm/rotational must include at least one value to output");
     memory->create(output_data, nvalues, "bond/bpm:output_data");
 
-    // Use store property to save reference positions as it can transfer to ghost atoms
+    int ifix = modify->find_fix(id_fix_store_local);
+    if (ifix < 0) {
+      modify->add_fix(fmt::format("{} all STORE_LOCAL {} {}",
+        id_fix_store_local, store_local_freq, nvalues));
+      ifix = modify->find_fix(id_fix_store_local);
+    }
+    fix_store_local = (FixStoreLocal *) modify->fix[ifix];
+
+    // Use property/atom to save reference positions as it can transfer to ghost atoms
     // This won't work for instances where bonds are added (e.g. fix pour) but in those cases
     // a reference state isn't well defined
     if (prop_atom_flag == 1) {
 
       id_fix_prop_atom = utils::strdup("BPM_property_atom" + std::to_string(instance_me));
-      int ifix = modify->find_fix(id_fix_prop_atom);
-
       char *x_ref_id = utils::strdup("BPM_X_REF" + std::to_string(instance_me));
       char *y_ref_id = utils::strdup("BPM_Y_REF" + std::to_string(instance_me));
       char *z_ref_id = utils::strdup("BPM_Z_REF" + std::to_string(instance_me));
+
+      ifix = modify->find_fix(id_fix_prop_atom);
       if (ifix < 0) {
         modify->add_fix(fmt::format("{} all property/atom {} {} {} ghost yes",
           id_fix_prop_atom, x_ref_id, y_ref_id, z_ref_id));

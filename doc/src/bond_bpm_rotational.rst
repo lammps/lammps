@@ -14,12 +14,15 @@ Syntax
 
   .. parsed-literal::
 
-       *store/local* values = ID of associated fix store/local followed by one or more attributes
+       *store/local* values = fix_ID N attributes ...
+          * fix_ID = ID of associated internal fix to store data
+          * N = prepare data for output every this many timesteps
+          * attributes = zero or more of the below attributes may be appended
 
-          *id1, id2* = IDs of 2 atoms in the bond
-          *time* = the timestep the bond broke
-          *x, y, z* = the center of mass position of the 2 atoms when the bond broke (distance units)
-          *x/ref, y/ref, z/ref* = the initial center of mass position of the 2 atoms (distance units)
+            *id1, id2* = IDs of 2 atoms in the bond
+            *time* = the timestep the bond broke
+            *x, y, z* = the center of mass position of the 2 atoms when the bond broke (distance units)
+            *x/ref, y/ref, z/ref* = the initial center of mass position of the 2 atoms (distance units)
 
        *overlay/pair* value = none
           bonded particles will still interact with pair forces
@@ -32,7 +35,7 @@ Examples
    bond_style bpm/rotational
    bond_coeff 1 1.0 0.2 0.02 0.02 0.20 0.04 0.04 0.04 0.1 0.02 0.002 0.002
 
-   bond_style bpm/rotational myfix time id1 id2
+   bond_style bpm/rotational myfix 1000 time id1 id2
    fix myfix all store/local 1000 3
    dump 1 all local 1000 dump.broken f_myfix[1] f_myfix[2] f_myfix[3]
    dump_modify 1 write_header no
@@ -132,15 +135,33 @@ the *overlay/pair* keyword. These settings require specific
 restrictions.  Further details can be found in the `:doc: how to
 <Howto_BPM>` page on BPMs.
 
-This bond style tracks broken bonds and can record them using an
-instance of :doc:`fix store/local <fix_store_local>` if the
-*store/local* keyword is used followed by the ID of the fix and then a
-series of bond attributes.
+If the *store/local* keyword is used, this fix will track bonds that
+break during the simulation. Whenever a bond breaks, data is processed
+and transferred to an internal fix labeled *fix_ID*. This allows the
+local data to be accessed by other LAMMPS commands.
 
-Note that when bonds are dumped to a file via the :doc:`dump local <dump>`
-command, bonds with type 0 (broken bonds) are not included.  The
-:doc:`delete_bonds <delete_bonds>` command can also be used to query the
-status of broken bonds or permanently delete them, e.g.:
+Following any optional keyword/value arguments, a list of one or more
+attributes is specified.  These include the IDs of the two atoms in
+the bond. The other attributes for the two atoms include the timestep
+during which the bond broke and the current/initial center of mass
+position of the two atoms.
+
+This bond style tracks broken bonds and records the requested attributes.
+Data is continuously accumulated over intervals of *N*
+timesteps. At the end of each interval, all of the saved accumulated
+data is deleted to make room for new data. Individual datum may
+therefore persist anywhere between *1* to *N* timesteps depending on
+when they are saved. This data can be accessed using the *fix_ID* and a
+:doc:`dump local <dump_local>` command. To ensure all data is output,
+the dump frequency should correspond to the same interval of *N*
+timesteps. A dump frequency of an integer multiple of *N* can be used
+to regularly output a sample of the accumulated data.
+
+Note that when unbroken bonds are dumped to a file via the
+:doc:`dump local <dump>` command, bonds with type 0 (broken bonds)
+are not included.
+The :doc:`delete_bonds <delete_bonds>` command can also be used to
+query the status of broken bonds or permanently delete them, e.g.:
 
 .. code-block:: LAMMPS
 
@@ -161,6 +182,22 @@ The single() function of these pair styles returns 0.0 for the energy
 of a pairwise interaction, since energy is not conserved in these
 dissipative potentials.  It also returns only the normal component of
 the pairwise interaction force.
+
+The accumulated data is not written to restart files and should be
+output before a restart file is written to avoid missing data.
+
+The internal fix calculates a local vector or local array depending on the
+number of input values.  The length of the vector or number of rows in
+the array is the number of recorded, lost interactions.  If a single
+input is specified, a local vector is produced.  If two or more inputs
+are specified, a local array is produced where the number of columns =
+the number of inputs.  The vector or array can be accessed by any
+command that uses local values from a compute as input.  See the
+:doc:`Howto output <Howto_output>` page for an overview of LAMMPS
+output options.
+
+The vector or array will be floating point values that correspond to
+the specified attribute.
 
 Restrictions
 """"""""""""
@@ -189,8 +226,7 @@ The *bpm/rotational* style requires :doc:`atom style sphere/bpm <atom_style>`.
 Related commands
 """"""""""""""""
 
-:doc:`bond_coeff <bond_coeff>`, :doc:`fix store/local <fix_store_local>`,
-:doc:`fix nve/sphere/bpm <fix_nve_sphere_bpm>`
+:doc:`bond_coeff <bond_coeff>`, :doc:`fix nve/sphere/bpm <fix_nve_sphere_bpm>`
 
 Default
 """""""

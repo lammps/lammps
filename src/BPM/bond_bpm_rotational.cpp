@@ -44,8 +44,6 @@ BondBPMRotational::BondBPMRotational(LAMMPS *lmp) : BondBPM(lmp)
 
 BondBPMRotational::~BondBPMRotational()
 {
-  if (fix_bond_history) modify->delete_fix("BOND_HISTORY_BPM_ROTATIONAL");
-
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(Kr);
@@ -641,9 +639,13 @@ void BondBPMRotational::init_style()
   if(domain->dimension == 2)
     error->warning(FLERR, "Bond style bpm/rotational not intended for 2d use");
 
-  if (!fix_bond_history)
-    fix_bond_history = (FixBondHistory *) modify->add_fix(
-         "HISTORY_BPM_ROTATIONAL" + std::to_string(instance_me) + " all BOND_HISTORY 0 4");
+  if (!id_fix_bond_history) {
+    id_fix_bond_history = utils::strdup("HISTORY_BPM_ROTATIONAL" + std::to_string(instance_me));
+    fix_bond_history = (FixBondHistory *) modify->replace_fix(id_fix_dummy2,
+        fmt::format("{} all BOND_HISTORY 0 4", id_fix_bond_history),1);
+    delete [] id_fix_dummy2;
+    id_fix_dummy2 = nullptr;
+  }
 }
 
 /* ---------------------------------------------------------------------- */

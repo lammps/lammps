@@ -26,7 +26,6 @@ pair_style      bpm/spring
 pair_coeff      1 1 1.0 1.0 1.0
 
 fix             1 all nve
-fix             2 all store/local 100 3
 
 create_bonds    many plate plate 1 0.0 1.5
 create_bonds    many projectile projectile 2 0.0 1.5
@@ -34,7 +33,7 @@ create_bonds    many projectile projectile 2 0.0 1.5
 neighbor        0.3 bin
 special_bonds   lj 0.0 1.0 1.0 coul 1.0 1.0 1.0
 
-bond_style      bpm/spring store/local 2 time id1 id2
+bond_style      bpm/spring store/local brkbond 100 time id1 id2
 bond_coeff      1 1.0 0.04 1.0
 bond_coeff      2 1.0 0.20 1.0
 
@@ -48,7 +47,7 @@ thermo          100
 thermo_modify   lost ignore lost/bond ignore
 #dump            1 all custom 100 atomDump id x y z c_nbond
 
-dump            2 all local 100 brokenDump f_2[1] f_2[2] f_2[3]
+dump            2 all local 100 brokenDump f_brkbond[1] f_brkbond[2] f_brkbond[3]
 dump_modify     2 header no
 
 run             7500

@@ -139,14 +139,12 @@ If the *store/local* keyword is used, this fix will track bonds that
 break during the simulation. Whenever a bond breaks, data is processed
 and transferred to an internal fix labeled *fix_ID*. This allows the
 local data to be accessed by other LAMMPS commands.
-
 Following any optional keyword/value arguments, a list of one or more
 attributes is specified.  These include the IDs of the two atoms in
 the bond. The other attributes for the two atoms include the timestep
 during which the bond broke and the current/initial center of mass
 position of the two atoms.
 
-This bond style tracks broken bonds and records the requested attributes.
 Data is continuously accumulated over intervals of *N*
 timesteps. At the end of each interval, all of the saved accumulated
 data is deleted to make room for new data. Individual datum may

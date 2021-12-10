@@ -24,6 +24,7 @@ General howto
    Howto_couple
    Howto_client_server
    Howto_mdi
+   Howto_broken_bonds
 
 Settings howto
 ==============

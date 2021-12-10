@@ -985,9 +985,17 @@ int FixChargeRegulation::insert_particle(int ptype, double charge, double rd, do
     modify->create_attribute(m);
 
   }
-  atom->nghost = 0;
-  comm->borders();
   atom->natoms++;
+  atom->nghost = 0;
+  if (atom->tag_enable) {
+    if (atom->tag_enable) {
+      atom->tag_extend();
+      if (atom->map_style != Atom::MAP_NONE) atom->map_init();
+    }
+  }
+  if (triclinic) domain->x2lamda(atom->nlocal);
+  comm->borders();
+  if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
   return m;
 }
 
@@ -1174,6 +1182,61 @@ double FixChargeRegulation::compute_vector(int n) {
     return particle_number(anion_type, salt_charge[1]);
   }
   return 0.0;
+}
+
+
+/* ----------------------------------------------------------------------
+   pack entire state of Fix into one write
+------------------------------------------------------------------------- */
+
+void FixChargeRegulation::write_restart(FILE *fp)
+{
+  int n = 0;
+  double list[10];
+  list[n++] = random_equal->state();
+  list[n++] = random_unequal->state();
+  list[n++] = nacid_attempts;
+  list[n++] = nacid_successes;
+  list[n++] = nbase_attempts;
+  list[n++] = nbase_successes;
+  list[n++] = nsalt_attempts;
+  list[n++] = nsalt_successes;
+  list[n++] = ubuf(next_reneighbor).d;
+  list[n++] = ubuf(update->ntimestep).d;
+
+  if (comm->me == 0) {
+    int size = (int) sizeof(list);
+    fwrite(&size,sizeof(int),1,fp);
+    fwrite(list,sizeof(list),1,fp);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   use state info from restart file to restart the Fix
+------------------------------------------------------------------------- */
+
+void FixChargeRegulation::restart(char *buf)
+{
+  int n = 0;
+  double *list = (double *) buf;
+
+  seed = static_cast<int> (list[n++]);
+  random_equal->reset(seed);
+
+  seed = static_cast<int> (list[n++]);
+  random_unequal->reset(seed);
+
+  nacid_attempts  = list[n++];
+  nacid_successes = list[n++];
+  nbase_attempts  = list[n++];
+  nbase_successes = list[n++];
+  nsalt_attempts  = list[n++];
+  nsalt_successes = list[n++];
+
+  next_reneighbor = (bigint) ubuf(list[n++]).i;
+  bigint ntimestep_restart = (bigint) ubuf(list[n++]).i;
+  if (ntimestep_restart != update->ntimestep)
+    error->all(FLERR,"Must not reset timestep when restarting fix gcmc");
 }
 
 void FixChargeRegulation::setThermoTemperaturePointer() {

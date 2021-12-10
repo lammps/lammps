@@ -33,7 +33,7 @@ KOKKOS_DEBUG ?= "no"
 KOKKOS_USE_TPLS ?= ""
 # Options: c++14,c++1y,c++17,c++1z,c++2a
 KOKKOS_CXX_STANDARD ?= "c++14"
-# Options: aggressive_vectorization,disable_profiling,enable_large_mem_tests,disable_complex_align,disable_deprecated_code,enable_deprecation_warnings
+# Options: aggressive_vectorization,disable_profiling,enable_large_mem_tests,disable_complex_align,disable_deprecated_code,enable_deprecation_warnings,enable_desul_atomics
 KOKKOS_OPTIONS ?= "enable_desul_atomics"
 KOKKOS_CMAKE ?= "no"
 KOKKOS_TRIBITS ?= "no"

@@ -252,6 +252,8 @@ void Verlet::run(int n)
     ntimestep = ++update->ntimestep;
     ev_set(ntimestep);
 
+    printf("VERLET %ld: %d %d\n",ntimestep,eflag,vflag);
+
     // initial time integration
 
     timer->stamp();

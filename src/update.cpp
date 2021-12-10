@@ -491,6 +491,7 @@ void Update::reset_timestep(bigint newstep)
   }
 
   // changes to output that depend on timestep
+  // no active dumps allowed
 
   output->reset_timestep(ntimestep);
 

@@ -565,42 +565,22 @@ void Output::write_restart(bigint ntimestep)
 
 /* ----------------------------------------------------------------------
    timestep is being changed, called by update->reset_timestep()
-   reset next output values for dumps, restart, thermo output
+   for dumps, require that no dump is "active"
+     meaning that a snapshot has already been output
+   reset next output values restart and thermo output
    reset to smallest value >= new timestep
    if next timestep set by variable evaluation,
      eval for ntimestep-1, so current ntimestep can be returned if needed
      no guarantee that variable can be evaluated for ntimestep-1
-       if it depends on computes, but live with that rare case for now
+     e.g. if it depends on computes, but live with that rare case for now
 ------------------------------------------------------------------------- */
 
 void Output::reset_timestep(bigint ntimestep)
 {
   next_dump_any = MAXBIGINT;
-  for (int idump = 0; idump < ndump; idump++) {
-    if (every_dump[idump]) {
-      next_dump[idump] = (ntimestep/every_dump[idump])*every_dump[idump];
-      if (next_dump[idump] < ntimestep) next_dump[idump] += every_dump[idump];
-    } else {
-      // ivar_dump may not be initialized
-      if (ivar_dump[idump] < 0) {
-        ivar_dump[idump] = input->variable->find(var_dump[idump]);
-        if (ivar_dump[idump] < 0)
-          error->all(FLERR,"Variable name for dump every does not exist");
-        if (!input->variable->equalstyle(ivar_dump[idump]))
-          error->all(FLERR,"Variable for dump every is invalid style");
-      }
-      modify->clearstep_compute();
-      update->ntimestep--;
-      bigint nextdump = static_cast<bigint>
-        (input->variable->compute_equal(ivar_dump[idump]));
-      if (nextdump < ntimestep)
-        error->all(FLERR,"Dump every variable returned a bad timestep");
-      update->ntimestep++;
-      next_dump[idump] = nextdump;
-      modify->addstep_compute(next_dump[idump]);
-    }
-    next_dump_any = MIN(next_dump_any,next_dump[idump]);
-  }
+  for (int idump = 0; idump < ndump; idump++)
+    if (last_dump[idump] >= 0)
+      error->all("Cannot reset timestep with active dump - must undump first");
 
   if (restart_flag_single) {
     if (restart_every_single) {
@@ -669,21 +649,30 @@ void Output::reset_timestep(bigint ntimestep)
 
 void Output::reset_dt()
 {
-  next_dump_any = MAXBIGINT;
-
   bigint ntimestep = update->ntimestep;
+
+  next_dump_any = MAXBIGINT;
 
   for (int idump = 0; idump < ndump; idump++) {
     if (mode_dump[idump] == 1) {
 
-      // reset next_dump for unchanged next_time_dump, 2 arg for reset_dt()
+      // reset next_dump but do not change next_time_dump, 2 arg for reset_dt()
       // do not invoke for a dump already scheduled for this step
       // use compute_all() b/c don't know what computes will be needed
 
       if (next_dump[idump] != ntimestep) {
         calculate_next_dump(2,idump,update->ntimestep);
-        if (dump[idump]->clearstep || var_dump[idump])
-          modify->addstep_compute_all(next_dump[idump]);
+
+        // NOTE: think I should not do this here
+        // for time dumps, calc_next_dump should calc the next timestep
+        //   as one less and not add it to computes
+        // then on that step, write() should not actually write the dump
+        //   but trigger it on next step and addstep_compute_all for that step
+        // b/c when write() is called, the next-step timestep is set
+        // unless run every timestep is invoked in-between!
+
+        //if (dump[idump]->clearstep || var_dump[idump])
+        //  modify->addstep_compute_all(next_dump[idump]);
       }
     }
 

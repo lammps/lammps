@@ -1836,8 +1836,24 @@ void Input::timer_command()
 void Input::timestep()
 {
   if (narg != 1) error->all(FLERR,"Illegal timestep command");
+
+  update->update_time();
   update->dt = utils::numeric(FLERR,arg[0],false,lmp);
   update->dt_default = 0;
+
+  if (update->first_update == 0) return;
+
+  // calls to other classes that need to know timestep size changed
+  // similar logic is in FixDtReset::end_of_step()
+  // only if a run has already occurred
+
+  int respaflag = 0;
+  if (utils::strmatch(update->integrate_style, "^respa")) respaflag = 1;
+  if (respaflag) update->integrate->reset_dt();
+
+  if (force->pair) force->pair->reset_dt();
+  for (int i = 0; i < modify->nfix; i++) modify->fix[i]->reset_dt();
+  output->reset_dt();
 }
 
 /* ---------------------------------------------------------------------- */

@@ -198,6 +198,7 @@ void FixDtReset::end_of_step()
   laststep = update->ntimestep;
 
   // calls to other classes that need to know timestep size changed
+  // similar logic is in Input::timestep()
 
   update->update_time();
   update->dt = dt;

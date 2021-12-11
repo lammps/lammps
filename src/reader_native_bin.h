@@ -38,14 +38,16 @@ class ReaderNativeBin : public ReaderNative {
   bigint read_header(double[3][3], int &, int &, int, int, int *, char **, int, int, int &, int &,
                      int &, int &);
   void read_atoms(int, int, double **);
+  void open_file(const std::string &);
 
  private:
   int revision;
   char *magic_string;
   char *unit_style;
-  int size_one;
-  int maxbuf = 1;
+
+  int size_one;    // number of double for one atom
   double *buf;
+  int maxbuf = 1;    // maximum buffer size
 
   void read_buf(void *, size_t, size_t);
   void read_double_chunk(size_t);

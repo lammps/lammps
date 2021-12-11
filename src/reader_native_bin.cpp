@@ -44,6 +44,23 @@ ReaderNativeBin::~ReaderNativeBin()
 }
 
 /* ----------------------------------------------------------------------
+   overload the open_file function to open the binary file
+------------------------------------------------------------------------- */
+void ReaderNativeBin::open_file(const std::string &file)
+{
+  if (fp != nullptr) close_file();
+
+  if (platform::has_compress_extension(file)) {
+    error->one(FLERR,"Compressed binary files are not supported");
+  } else {
+    compressed = 0;
+    fp = fopen(file.c_str(), "rb");
+  }
+
+  if (!fp) error->one(FLERR,"Cannot open file {}: {}", file, utils::getsyserror());
+}
+
+/* ----------------------------------------------------------------------
    read and return time stamp from dump file
    if first read reaches end-of-file, return 1 so caller can open next file
    only called by proc 0

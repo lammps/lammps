@@ -15,7 +15,7 @@
 
 #ifdef READER_CLASS
 // clang-format off
-ReaderStyle(native_bin,ReaderNative);
+ReaderStyle(native_bin,ReaderNativeBin);
 // clang-format on
 #else
 
@@ -40,21 +40,14 @@ class ReaderNativeBin : public ReaderNative {
   void read_atoms(int, int, double **);
 
  private:
-  char *line;    // line read from dump file
-
-  int nwords;         // # of per-atom columns in dump file
-  int *fieldindex;    //
-
-  int endian;
   int revision;
   char *magic_string;
   char *unit_style;
   int size_one;
-  int maxbuf = 0;
-  double *buf = nullptr;
+  int maxbuf = 1;
+  double *buf;
 
-  int find_label(const std::string &label, const std::map<std::string, int> &labels);
-  void read_lines(int);
+  void read_buf(void *, size_t, size_t);
 };
 
 }    // namespace LAMMPS_NS

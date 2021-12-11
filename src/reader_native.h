@@ -42,11 +42,12 @@ class ReaderNative : public Reader {
                    std::map<std::string, int> labels);
   void read_atoms(int, int, double **);
 
+ protected:
+  int *fieldindex;    //
  private:
   char *line;    // line read from dump file
 
-  int nwords;         // # of per-atom columns in dump file
-  int *fieldindex;    //
+  int nwords;    // # of per-atom columns in dump file
 
   int find_label(const std::string &label, const std::map<std::string, int> &labels);
   void read_lines(int);

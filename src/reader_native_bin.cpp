@@ -23,10 +23,6 @@
 
 using namespace LAMMPS_NS;
 
-#define MAXLINE 1024        // max line length in dump file
-
-// also in read_dump.cpp
-
 enum{ID,TYPE,X,Y,Z,VX,VY,VZ,Q,IX,IY,IZ,FX,FY,FZ};
 enum{UNSET,NOSCALE_NOWRAP,NOSCALE_WRAP,SCALE_NOWRAP,SCALE_WRAP};
 
@@ -34,7 +30,6 @@ enum{UNSET,NOSCALE_NOWRAP,NOSCALE_WRAP,SCALE_NOWRAP,SCALE_WRAP};
 
 ReaderNativeBin::ReaderNativeBin(LAMMPS *lmp) : ReaderNative(lmp)
 {
-  line = new char[MAXLINE];
   fieldindex = nullptr;
 }
 
@@ -42,7 +37,6 @@ ReaderNativeBin::ReaderNativeBin(LAMMPS *lmp) : ReaderNative(lmp)
 
 ReaderNativeBin::~ReaderNativeBin()
 {
-  delete [] line;
   memory->destroy(fieldindex);
 }
 
@@ -55,7 +49,7 @@ ReaderNativeBin::~ReaderNativeBin()
 int ReaderNativeBin::read_time(bigint &ntimestep)
 {
 
-  endian = 0x0001;
+  int endian = 0x0001;
   revision = 0x0001;
   magic_string = nullptr;
   unit_style = nullptr;
@@ -72,17 +66,17 @@ int ReaderNativeBin::read_time(bigint &ntimestep)
 
     delete[] magic_string;
     magic_string = new char[magic_string_len + 1];
-    fread(magic_string, sizeof(char), magic_string_len, fp);
+    read_buf(magic_string, sizeof(char), magic_string_len);
     magic_string[magic_string_len] = '\0';
 
     // read endian flag
-    fread(&endian, sizeof(int), 1, fp);
+    read_buf(&endian, sizeof(int), 1);
 
     // read revision number
-    fread(&revision, sizeof(int), 1, fp);
+    read_buf(&revision, sizeof(int), 1);
 
     // read the real ntimestep
-    fread(&ntimestep, sizeof(bigint), 1, fp);
+    read_buf(&ntimestep, sizeof(bigint), 1);
   }
 
   return 0;
@@ -96,14 +90,17 @@ int ReaderNativeBin::read_time(bigint &ntimestep)
 void ReaderNativeBin::skip()
 {
   int nchunk;
-  fread(&nchunk, sizeof(int), 1, fp);
+  read_buf(&nchunk, sizeof(int), 1);
   if (feof(fp)) {
     error->one(FLERR,"Unexpected end of dump file");
   }
+
+  double *buf = new double[maxbuf];
+
   for (int i = 0; i < nchunk; i++) {
 
     int n;
-    fread(&n, sizeof(int), 1, fp);
+    read_buf(&n, sizeof(int), 1);
 
     // extend buffer to fit chunk size
 
@@ -113,12 +110,13 @@ void ReaderNativeBin::skip()
       maxbuf = n;
     }
     // read chunk and write as size_one values per line
-    fread(buf, sizeof(double), n, fp);
+    read_buf(buf, sizeof(double), n);
     if (feof(fp)) {
       error->one(FLERR,"Unexpected end of dump file");
     }
   }
 
+  delete[] buf;
   delete[] magic_string;
   delete[] unit_style;
   magic_string = nullptr;
@@ -148,31 +146,31 @@ bigint ReaderNativeBin::read_header(double box[3][3], int &boxinfo, int &triclin
 {
   bigint natoms;
 
-  fread(&natoms, sizeof(bigint), 1, fp);
+  read_buf(&natoms, sizeof(bigint), 1);
 
   boxinfo = 1;
   triclinic = 0;
   box[0][2] = box[1][2] = box[2][2] = 0.0;
 
   int boundary[3][2];
-  fread(&triclinic, sizeof(int), 1, fp);
-  fread(&boundary[0][0], 6 * sizeof(int), 1, fp);
-  fread(&box[0][0], sizeof(double), 1, fp);
-  fread(&box[0][1], sizeof(double), 1, fp);
-  fread(&box[1][0], sizeof(double), 1, fp);
-  fread(&box[1][1], sizeof(double), 1, fp);
-  fread(&box[2][0], sizeof(double), 1, fp);
-  fread(&box[2][1], sizeof(double), 1, fp);
+  read_buf(&triclinic, sizeof(int), 1);
+  read_buf(&boundary[0][0], 6 * sizeof(int), 1);
+  read_buf(&box[0][0], sizeof(double), 1);
+  read_buf(&box[0][1], sizeof(double), 1);
+  read_buf(&box[1][0], sizeof(double), 1);
+  read_buf(&box[1][1], sizeof(double), 1);
+  read_buf(&box[2][0], sizeof(double), 1);
+  read_buf(&box[2][1], sizeof(double), 1);
   if (triclinic) {
-    fread(&box[0][2], sizeof(double), 1, fp);
-    fread(&box[1][2], sizeof(double), 1, fp);
-    fread(&box[2][2], sizeof(double), 1, fp);
+    read_buf(&box[0][2], sizeof(double), 1);
+    read_buf(&box[1][2], sizeof(double), 1);
+    read_buf(&box[2][2], sizeof(double), 1);
   }
 
   if (!fieldinfo) return natoms;
 
   // exatract column labels and match to requested fields
-  fread(&size_one, sizeof(int), 1, fp);
+  read_buf(&size_one, sizeof(int), 1);
 
   int len = 0;
   char *labelline;
@@ -180,33 +178,33 @@ bigint ReaderNativeBin::read_header(double box[3][3], int &boxinfo, int &triclin
   if (magic_string && revision > 0x0001) {
     // newer format includes units string, columns string
     // and time
-    fread(&len, sizeof(int), 1, fp);
+    read_buf(&len, sizeof(int), 1);
     labelline = new char[len + 1];
 
     if (len > 0) {
       // has units
       delete[] unit_style;
       unit_style = new char[len + 1];
-      fread(unit_style, sizeof(char), len, fp);
+      read_buf(unit_style, sizeof(char), len);
       unit_style[len] = '\0';
     }
 
     char flag = 0;
-    fread(&flag, sizeof(char), 1, fp);
+    read_buf(&flag, sizeof(char), 1);
 
     if (flag) {
       double time;
-      fread(&time, sizeof(double), 1, fp);
+      read_buf(&time, sizeof(double), 1);
     }
 
-    fread(&len, sizeof(int), 1, fp);
-    fread(labelline, sizeof(char), len, fp);
+    read_buf(&len, sizeof(int), 1);
+    read_buf(labelline, sizeof(char), len);
     labelline[len] = '\0';
   }
 
   std::map<std::string, int> labels;
   Tokenizer tokens(labelline);
-  nwords = 0;
+  int nwords = 0;
 
   while (tokens.has_next()) {
     labels[tokens.next()] = nwords++;
@@ -234,12 +232,13 @@ void ReaderNativeBin::read_atoms(int n, int nfield, double **fields)
     error->one(FLERR,"Unexpected end of dump file");
   }
 
+  double *buf = new double[maxbuf];
   int i_atom = 0;
   int nchunk;
-  fread(&nchunk, sizeof(int), 1, fp);
+  read_buf(&nchunk, sizeof(int), 1);
   for (int i = 0; i < nchunk; i++) {
 
-    fread(&n, sizeof(int), 1, fp);
+    read_buf(&n, sizeof(int), 1);
 
     // extend buffer to fit chunk size
 
@@ -251,7 +250,7 @@ void ReaderNativeBin::read_atoms(int n, int nfield, double **fields)
 
     // read chunk and write as size_one values per line
 
-    fread(buf, sizeof(double), n, fp);
+    read_buf(buf, sizeof(double), n);
     n /= size_one;
     int m = 0;
     for (int j = 0; j < n; j++)
@@ -264,8 +263,17 @@ void ReaderNativeBin::read_atoms(int n, int nfield, double **fields)
     }
   }
 
+  delete[] buf;
   delete[] magic_string;
   delete[] unit_style;
   magic_string = nullptr;
   unit_style = nullptr;
+}
+
+void ReaderNativeBin::read_buf(void * ptr, size_t size, size_t count)
+{
+  fread(ptr, size, count, fp);
+
+  // detect end-of-file
+  if (feof(fp)) error->one(FLERR,"Unexpected end of dump file");
 }

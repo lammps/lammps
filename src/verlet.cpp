@@ -99,8 +99,6 @@ void Verlet::setup(int flag)
     }
   }
 
-  printf("Hello, world! A\n");
-
   if (lmp->kokkos)
     error->all(FLERR,"KOKKOS package requires run_style verlet/kk");
 
@@ -128,8 +126,6 @@ void Verlet::setup(int flag)
   modify->setup_post_neighbor();
   neighbor->ncalls = 0;
 
-  printf("Hello, world! B\n");
-
   // compute all forces
 
   force->setup();
@@ -137,8 +133,6 @@ void Verlet::setup(int flag)
   force_clear();
   modify->setup_pre_force(vflag);
 
-  printf("Hello, world!\n");
-  
   if (pair_compute_flag) force->pair->compute(eflag,vflag);
   else if (force->pair) force->pair->compute_dummy(eflag,vflag);
 

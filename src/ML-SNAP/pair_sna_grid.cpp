@@ -68,8 +68,8 @@ void PairSNAGrid::init_style()
   snaptr = new SNA(lmp, rfac0, twojmax,
                    rmin0, switchflag, bzeroflag,
                    chemflag, bnormflag, wselfallflag, nelements);  
-  ndesc = ndesc_base + snaptr->ncoeff;
-  printf("ndesc = %d\n", ndesc);
+  ncoeff = snaptr->ncoeff;
+  ndesc = ndesc_base + ncoeff;
   snaptr->init();
 
 }
@@ -85,6 +85,7 @@ void PairSNAGrid::init_list(int /*id*/, NeighList *ptr)
 
 void PairSNAGrid::compute(int eflag, int vflag)
 {
+  ev_init(eflag,vflag);
 
   // compute sna for each gridpoint
 
@@ -165,6 +166,8 @@ void PairSNAGrid::compute(int eflag, int vflag)
 	  }
 	}
       }
+
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 
@@ -231,14 +234,11 @@ void PairSNAGrid::settings(int narg, char ** arg)
     }
   }
 
-  printf("settings cutmax = %g \n",cutmax);
-  
   // process optional args
 
   int iarg = nargmin;
 
   while (iarg < narg) {
-    printf("%d %d %d %s\n",iarg,narg,nargbase,arg[iarg]);
     if (strcmp(arg[iarg],"rmin0") == 0) {
       if (iarg+2 > narg)
         error->all(FLERR,"Illegal pair sna/grid command");

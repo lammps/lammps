@@ -1,8 +1,5 @@
-# Demonstrate bispectrum computes
+# Demonstrate pair style base on sna/grid
 
-# CORRECTNESS: thermo output for c_mygrid[*][1] and c_mygrid[*][8] should
-# match the values in dump_b: 108.173 3.21778 0.712238 7.06634 1.04273 
-  
 # Initialize simulation
 
 variable nsteps index 0
@@ -58,6 +55,7 @@ pair_style sna/grid grid ${ngrid} ${ngrid} ${ngrid} &
 	quadraticflag ${quad} switchflag ${switch}
 pair_coeff * * Al
 
+thermo_style    custom step temp epair emol etotal press
 neighbor	0.0 nsq
 
-run 0
+run 10

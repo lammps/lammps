@@ -60,18 +60,11 @@ PairGrid::~PairGrid()
 
 void PairGrid::setup()
 {
-  printf("Inside PairGrid::setup()\n");
-  printf("Hello, world! C\n");  
-  //  deallocate_grid();
-  printf("Hello, world! D\n");  
+  deallocate_grid();
   set_grid_global();
-  printf("Hello, world! E\n");  
   set_grid_local();
-  printf("Hello, world! F\n");  
   allocate_grid();
-  printf("Hello, world! G\n");  
-  //  assign_coords();
-  printf("Hello, world! H\n");  
+  assign_coords();
 }
 
 /* ----------------------------------------------------------------------
@@ -95,7 +88,6 @@ void PairGrid::allocate_grid()
 {
   if (nxlo <= nxhi && nylo <= nyhi && nzlo <= nzhi) {
     gridlocal_allocated = 1;
-    printf("ngridlocal = %d ndesc = %d\n",ngridlocal, ndesc);
     memory->create4d_offset(gridlocal,ndesc,nzlo,nzhi,nylo,nyhi,
 			    nxlo,nxhi,"pair/grid:gridlocal");
     memory->create(alocal, ngridlocal, ndesc, "pair/grid:alocal");
@@ -209,7 +201,6 @@ void PairGrid::set_grid_local()
 
 void PairGrid::assign_coords()
 {
-  printf("nxhi/lo = %d %d nyhi/lo = %d %d  nzhi/lo = %d %d\n",nxlo,nxhi,nylo,nyhi,nzlo,nzhi);
   int igrid = 0;
   for (int iz = nzlo; iz <= nzhi; iz++)
     for (int iy = nylo; iy <= nyhi; iy++)
@@ -273,7 +264,6 @@ void PairGrid::allocate()
 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
   map = new int[n+1];
-  printf("Allocated!\n");
 }
 
 /* ----------------------------------------------------------------------
@@ -318,10 +308,7 @@ void PairGrid::coeff(int narg, char **arg)
 
 double PairGrid::init_one(int i, int j)
 {
-  printf("Inside PairGrid::init_one()\n");
-  printf("i = %d j = %d setflag = %d\n", i, j, setflag[i][j]);
   if (setflag[i][j] == 0) error->all(FLERR,"All pair coeffs are not set");
-  printf("PairGrid cutmax = %g\n",cutmax);
   return cutmax;
 }
 

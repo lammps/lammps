@@ -10,36 +10,33 @@
 
    See the README file in the top-level LAMMPS directory.
 
-   Contributed by Timothy Sirk
+   Contributed by Lixin Sun
 ------------------------------------------------------------------------- */
 
 #ifdef READER_CLASS
 // clang-format off
-ReaderStyle(native,ReaderNative);
+ReaderStyle(native_bin,ReaderNative);
 // clang-format on
 #else
 
-#ifndef LMP_READER_NATIVE_H
-#define LMP_READER_NATIVE_H
+#ifndef LMP_READER_NATIVE_BIN_H
+#define LMP_READER_NATIVE_BIN_H
 
-#include "reader.h"
+#include "reader_native.h"
 
 #include <map>
 
 namespace LAMMPS_NS {
 
-class ReaderNative : public Reader {
+class ReaderNativeBin : public ReaderNative {
  public:
-  ReaderNative(class LAMMPS *);
-  ~ReaderNative();
+  ReaderNativeBin(class LAMMPS *);
+  ~ReaderNativeBin();
 
   int read_time(bigint &);
   void skip();
   bigint read_header(double[3][3], int &, int &, int, int, int *, char **, int, int, int &, int &,
                      int &, int &);
-  void match_field(int nfield, int &xflag, int &yflag, int &zflag, int *fieldtype,
-                   char **fieldlabel, int scaleflag, int wrapflag, int &fieldflag,
-                   std::map<std::string, int> labels);
   void read_atoms(int, int, double **);
 
  private:
@@ -47,6 +44,14 @@ class ReaderNative : public Reader {
 
   int nwords;         // # of per-atom columns in dump file
   int *fieldindex;    //
+
+  int endian;
+  int revision;
+  char *magic_string;
+  char *unit_style;
+  int size_one;
+  int maxbuf = 0;
+  double *buf = nullptr;
 
   int find_label(const std::string &label, const std::map<std::string, int> &labels);
   void read_lines(int);

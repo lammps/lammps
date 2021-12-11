@@ -67,18 +67,21 @@ int main(int narg, char **arg)
   int maxbuf = 0;
   double *buf = nullptr;
 
-  if (narg == 1) {
+  if (narg == 1)
+  {
     printf("Syntax: binary2txt file1 file2 ...\n");
     return 1;
   }
 
   // loop over files
 
-  for (int iarg = 1; iarg < narg; iarg++) {
+  for (int iarg = 1; iarg < narg; iarg++)
+  {
     printf("%s:", arg[iarg]);
     fflush(stdout);
     FILE *fp = fopen(arg[iarg], "rb");
-    if (!fp) {
+    if (!fp)
+    {
       printf("ERROR: Could not open %s\n", arg[iarg]);
       return 1;
     }
@@ -97,7 +100,8 @@ int main(int narg, char **arg)
 
     // loop over snapshots in file
 
-    while (true) {
+    while (true)
+    {
       int endian = 0x0001;
       int revision = 0x0001;
 
@@ -105,14 +109,16 @@ int main(int narg, char **arg)
 
       // detect end-of-file
 
-      if (feof(fp)) {
+      if (feof(fp))
+      {
         fclose(fp);
         fclose(fptxt);
         break;
       }
 
       // detect newer format
-      if (ntimestep < 0) {
+      if (ntimestep < 0)
+      {
         // first bigint encodes negative format name length
         bigint magic_string_len = -ntimestep;
 
@@ -140,20 +146,23 @@ int main(int narg, char **arg)
       fread(&yhi, sizeof(double), 1, fp);
       fread(&zlo, sizeof(double), 1, fp);
       fread(&zhi, sizeof(double), 1, fp);
-      if (triclinic) {
+      if (triclinic)
+      {
         fread(&xy, sizeof(double), 1, fp);
         fread(&xz, sizeof(double), 1, fp);
         fread(&yz, sizeof(double), 1, fp);
       }
       fread(&size_one, sizeof(int), 1, fp);
 
-      if (magic_string && revision > 0x0001) {
+      if (magic_string && revision > 0x0001)
+      {
         // newer format includes units string, columns string
         // and time
         int len = 0;
         fread(&len, sizeof(int), 1, fp);
 
-        if (len > 0) {
+        if (len > 0)
+        {
           // has units
           delete[] unit_style;
           unit_style = new char[len + 1];
@@ -166,7 +175,8 @@ int main(int narg, char **arg)
         char flag = 0;
         fread(&flag, sizeof(char), 1, fp);
 
-        if (flag) {
+        if (flag)
+        {
           double time;
           fread(&time, sizeof(double), 1, fp);
           fprintf(fptxt, "ITEM: TIME\n%.16g\n", time);
@@ -187,8 +197,10 @@ int main(int narg, char **arg)
       fprintf(fptxt, BIGINT_FORMAT "\n", natoms);
 
       m = 0;
-      for (int idim = 0; idim < 3; idim++) {
-        for (int iside = 0; iside < 2; iside++) {
+      for (int idim = 0; idim < 3; idim++)
+      {
+        for (int iside = 0; iside < 2; iside++)
+        {
           if (boundary[idim][iside] == 0)
             boundstr[m++] = 'p';
           else if (boundary[idim][iside] == 1)
@@ -202,12 +214,15 @@ int main(int narg, char **arg)
       }
       boundstr[8] = '\0';
 
-      if (!triclinic) {
+      if (!triclinic)
+      {
         fprintf(fptxt, "ITEM: BOX BOUNDS %s\n", boundstr);
         fprintf(fptxt, "%-1.16e %-1.16e\n", xlo, xhi);
         fprintf(fptxt, "%-1.16e %-1.16e\n", ylo, yhi);
         fprintf(fptxt, "%-1.16e %-1.16e\n", zlo, zhi);
-      } else {
+      }
+      else
+      {
         fprintf(fptxt, "ITEM: BOX BOUNDS xy xz yz %s\n", boundstr);
         fprintf(fptxt, "%-1.16e %-1.16e %-1.16e\n", xlo, xhi, xy);
         fprintf(fptxt, "%-1.16e %-1.16e %-1.16e\n", ylo, yhi, xz);
@@ -221,13 +236,17 @@ int main(int narg, char **arg)
 
       // loop over processor chunks in file
 
-      for (i = 0; i < nchunk; i++) {
+      for (i = 0; i < nchunk; i++)
+      {
+
         fread(&n, sizeof(int), 1, fp);
 
         // extend buffer to fit chunk size
 
-        if (n > maxbuf) {
-          if (buf) delete[] buf;
+        if (n > maxbuf)
+        {
+          if (buf)
+            delete[] buf;
           buf = new double[n];
           maxbuf = n;
         }
@@ -237,11 +256,17 @@ int main(int narg, char **arg)
         fread(buf, sizeof(double), n, fp);
         n /= size_one;
         m = 0;
-        for (j = 0; j < n; j++) {
-          for (k = 0; k < size_one; k++) {
-            if (k + 1 < size_one) {
+        std::string line = "";
+        for (j = 0; j < n; j++)
+        {
+          for (k = 0; k < size_one; k++)
+          {
+            if (k + 1 < size_one)
+            {
               fprintf(fptxt, "%g ", buf[m++]);
-            } else {
+            }
+            else
+            {
               fprintf(fptxt, "%g", buf[m++]);
             }
           }
@@ -261,6 +286,7 @@ int main(int narg, char **arg)
     unit_style = nullptr;
   }
 
-  if (buf) delete[] buf;
+  if (buf)
+    delete[] buf;
   return 0;
 }

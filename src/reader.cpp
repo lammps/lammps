@@ -16,6 +16,8 @@
 
 #include "error.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 
 // only proc 0 calls methods of this class, except for constructor/destructor
@@ -42,7 +44,18 @@ void Reader::open_file(const std::string &file)
     if (!fp) error->one(FLERR,"Cannot open compressed file for reading");
   } else {
     compressed = 0;
-    fp = fopen(file.c_str(),"r");
+
+    // leleslx: if there is .bin ending
+    std::size_t dot = file.find_last_of('.');
+    char reading_mode[3] = "r"; 
+    if (dot != std::string::npos) {
+      const std::string ext = file.substr(dot + 1);
+      if ("bin" == ext){
+        sprintf(reading_mode, "rb");
+      }
+    }
+
+    fp = fopen(file.c_str(), reading_mode);
   }
 
   if (!fp) error->one(FLERR,"Cannot open file {}: {}", file, utils::getsyserror());

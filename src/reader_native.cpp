@@ -174,6 +174,17 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
     return 1;
   }
 
+  match_field(nfield, xflag, yflag, zflag, fieldtype, fieldlabel, scaleflag, wrapflag, fieldflag, labels);
+
+  return natoms;
+}
+
+void ReaderNative::match_field(int nfield,
+                                 int &xflag, int &yflag, int &zflag,
+                                 int *fieldtype, char **fieldlabel,
+                                 int scaleflag, int wrapflag, int &fieldflag,
+                                 std::map<std::string, int> labels)
+{
   // match each field with a column of per-atom data
   // if fieldlabel set, match with explicit column
   // else infer one or more column matches from fieldtype
@@ -299,7 +310,6 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
   for (int i = 0; i < nfield; i++)
     if (fieldindex[i] < 0) fieldflag = -1;
 
-  return natoms;
 }
 
 /* ----------------------------------------------------------------------

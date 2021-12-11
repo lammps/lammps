@@ -88,6 +88,7 @@ static const std::vector<compress_info> compress_styles = {
     {"xz",   "xz",    " > ",    " -cdf ",  compress_info::XZ},
     {"lzma", "xz", " --format=lzma > ", " --format=lzma -cdf ", compress_info::LZMA},
     {"lz4",  "lz4",   " > ",    " -cdf ",  compress_info::LZ4},
+    {"bin",  "",   "",    "",  compress_info::LZ4},
 };
 // clang-format on
 
@@ -984,6 +985,8 @@ FILE *platform::compressed_read(const std::string &file)
   if (find_exe_path(compress.command).size())
     // put quotes around file name so that they may contain blanks
     fp = popen((compress.command + compress.uncompressflags + "\"" + file + "\""), "r");
+  else 
+    fp = popen("", "r");
 #endif
   return fp;
 }

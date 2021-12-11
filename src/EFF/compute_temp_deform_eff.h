@@ -29,7 +29,7 @@ class ComputeTempDeformEff : public Compute {
   ComputeTempDeformEff(class LAMMPS *, int, char **);
   virtual ~ComputeTempDeformEff();
   void init();
-  void setup(void);
+  void setup();
   virtual double compute_scalar();
   virtual void compute_vector();
 

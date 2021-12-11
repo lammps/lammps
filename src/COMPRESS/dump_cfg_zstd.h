@@ -33,7 +33,7 @@ namespace LAMMPS_NS {
 class DumpCFGZstd : public DumpCFG {
  public:
   DumpCFGZstd(class LAMMPS *, int, char **);
-  virtual ~DumpCFGZstd();
+  virtual ~DumpCFGZstd() = default;
 
  protected:
   ZstdFileWriter writer;

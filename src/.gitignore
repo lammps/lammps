@@ -393,6 +393,8 @@
 /bond_fene.h
 /bond_fene_expand.cpp
 /bond_fene_expand.h
+/bond_fene_nm.cpp
+/bond_fene_nm.h
 /bond_gaussian.cpp
 /bond_gaussian.h
 /bond_gromos.cpp
@@ -609,6 +611,8 @@
 /fft3d_wrap.h
 /fix_accelerate_cos.cpp
 /fix_accelerate_cos.h
+/fix_acks2_reaxff.cpp
+/fix_acks2_reaxff.h
 /fix_adapt_fep.cpp
 /fix_adapt_fep.h
 /fix_addtorque.cpp
@@ -1165,6 +1169,8 @@
 /pair_nm_cut_coul_cut.h
 /pair_nm_cut_coul_long.cpp
 /pair_nm_cut_coul_long.h
+/pait_nm_cut_split.cpp
+/pait_nm_cut_split.h
 /pair_oxdna_*.cpp
 /pair_oxdna_*.h
 /pair_oxdna2_*.cpp
@@ -1172,6 +1178,8 @@
 /pair_oxrna2_*.cpp
 /pair_oxrna2_*.h
 /mf_oxdna.h
+/pair_peri.cpp
+/pair_peri.h
 /pair_peri_eps.cpp
 /pair_peri_eps.h
 /pair_peri_lps.cpp
@@ -1204,6 +1212,8 @@
 /pair_sph_taitwater_morris.h
 /pair_sw.cpp
 /pair_sw.h
+/pair_sw_mod.cpp
+/pair_sw_mod.h
 /pair_tersoff.cpp
 /pair_tersoff.h
 /pair_tersoff_mod.cpp
@@ -1393,6 +1403,8 @@
 /fix_drude_transform.h
 /fix_langevin_drude.cpp
 /fix_langevin_drude.h
+/fix_mol_swap.cpp
+/fix_mol_swap.h
 /fix_pimd.cpp
 /fix_pimd.h
 /fix_qbmsst.cpp

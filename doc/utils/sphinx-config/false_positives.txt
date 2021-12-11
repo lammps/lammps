@@ -19,6 +19,7 @@ accuracies
 ach
 ackland
 Ackland
+acks
 acolor
 acos
 Acta
@@ -77,6 +78,7 @@ allocators
 allosws
 AlO
 Alonso
+Alperen
 alphak
 alphashrink
 amap
@@ -306,6 +308,7 @@ boolean
 boostostat
 boostostatting
 Boresch
+borophene
 Botero
 Botu
 Bouguet
@@ -685,8 +688,11 @@ diagonalized
 diagonalizers
 diagonalizing
 Diallo
+diblock
+dichalcogenide
 Dickel
 diel
+Dietz
 differentiable
 diffusively
 diffusivity
@@ -1122,6 +1128,7 @@ gaussian
 gaussians
 Gaussians
 Gavhane
+Gawlik
 gayberne
 gcc
 gcmc
@@ -1135,6 +1142,7 @@ Germann
 Germano
 gerolf
 Gerolf
+getrusage
 Gershgorin
 getter
 gettimeofday
@@ -1222,6 +1230,7 @@ Guo
 gw
 gyromagnetic
 gz
+gzip
 gzipped
 Haak
 Hafskjold
@@ -1252,6 +1261,7 @@ hbond
 hcp
 hdnnp
 HDNNP
+Hearn
 heatconduction
 Hebbeker
 Hebenstreit
@@ -1278,6 +1288,7 @@ hgrid
 hhmrr
 Hibbs
 Higdon
+hiID
 Hijazi
 Hilger
 Hinestrosa
@@ -1301,6 +1312,7 @@ hotpink
 Houlle
 howto
 Howto
+Hoy
 Hoyt
 Hs
 hstyle
@@ -1476,6 +1488,7 @@ Izz
 Jacobsen
 Jadhao
 Jadhav
+Jagielski
 jagreat
 Jahn
 Jalalvand
@@ -1602,6 +1615,7 @@ Koslowski
 Kosovan
 Koster
 Kosztin
+Koziol
 Kp
 kradius
 Kraker
@@ -1774,6 +1788,7 @@ Loewen
 logfile
 logfreq
 logicals
+loID
 Lomdahl
 Lond
 lookup
@@ -1809,6 +1824,7 @@ lyon
 Lysogorskiy
 Lyulin
 lz
+lzma
 Maaravi
 MACHDYN
 machdyn
@@ -1986,6 +2002,7 @@ minimizer
 minimizers
 minneigh
 minorder
+MinSizeRel
 minSteps
 mintcream
 Mintmire
@@ -2377,6 +2394,7 @@ ohenrich
 ok
 Okabe
 Okamoto
+O'Hearn
 O'Keefe
 OKeefe
 oldlace
@@ -2762,6 +2780,7 @@ REAXFF
 ReaxFF
 reaxff
 rebo
+recurse
 recursing
 Ree
 refactored
@@ -2774,6 +2793,7 @@ relink
 relres
 relTol
 relu
+RelWithDebInfo
 remappings
 remd
 Ren
@@ -3063,6 +3083,7 @@ snav
 Snodin
 Sodani
 Soderlind
+Solida
 solvated
 solvation
 someuser
@@ -3076,6 +3097,7 @@ Spearot
 specular
 spellcheck
 Spellmeyer
+Speybroeck
 sph
 SPH
 Spickermann
@@ -3441,6 +3463,7 @@ usec
 uSemiParallel
 userguide
 username
+usleep
 usr
 util
 utils
@@ -3488,6 +3511,7 @@ Verlag
 verlet
 Verlet
 versa
+Verstraelen
 ves
 vflag
 vhi
@@ -3554,6 +3578,7 @@ vzcm
 vzi
 Waals
 Wadley
+Waroquier
 wallstyle
 walltime
 Waltham

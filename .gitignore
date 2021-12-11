@@ -37,8 +37,8 @@ vgcore.*
 .Trashes
 ehthumbs.db
 Thumbs.db
-.clang-format
 .lammps_history
+.vs
 
 #cmake
 /build*
@@ -49,3 +49,8 @@ Thumbs.db
 /Testing
 /cmake_install.cmake
 /lmp
+out/Debug
+out/RelWithDebInfo
+out/Release
+out/x86
+out/x64

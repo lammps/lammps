@@ -35,10 +35,6 @@ DumpCFGZstd::DumpCFGZstd(LAMMPS *lmp, int narg, char **arg) : DumpCFG(lmp, narg,
   if (!compressed) error->all(FLERR, "Dump cfg/zstd only writes compressed files");
 }
 
-/* ---------------------------------------------------------------------- */
-
-DumpCFGZstd::~DumpCFGZstd() {}
-
 /* ----------------------------------------------------------------------
    generic opening of a dump file
    ASCII or binary or compressed

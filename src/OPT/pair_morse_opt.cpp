@@ -192,7 +192,7 @@ void PairMorseOpt::eval()
     ff[i].z += tmpfz;
   }
 
-  free(fast_alpha); fast_alpha = 0;
+  free(fast_alpha); fast_alpha = nullptr;
 
   if (vflag_fdotr) virial_fdotr_compute();
 }

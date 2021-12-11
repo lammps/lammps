@@ -43,8 +43,6 @@ class FixSAEDVTK : public Fix {
   int nrows;
 
   int ave, nwindow, nsum, startstep;
-  int overwrite;
-  long filepos;
 
   int norm, iwindow, window_limit;
   double *vector;

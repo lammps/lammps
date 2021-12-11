@@ -321,9 +321,7 @@ following settings:
 
       .. code-block:: make
 
-         LMP_INC = -DLAMMPS_JPEG
-         LMP_INC = -DLAMMPS_PNG
-         LMP_INC = -DLAMMPS_FFMPEG
+         LMP_INC = -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_FFMPEG  <other LMP_INC settings>
 
          JPG_INC = -I/usr/local/include   # path to jpeglib.h, png.h, zlib.h header files if make cannot find them
          JPG_PATH = -L/usr/lib            # paths to libjpeg.a, libpng.a, libz.a (.so) files if make cannot find them
@@ -354,8 +352,10 @@ Read or write compressed files
 -----------------------------------------
 
 If this option is enabled, large files can be read or written with
-gzip compression by several LAMMPS commands, including
-:doc:`read_data <read_data>`, :doc:`rerun <rerun>`, and :doc:`dump <dump>`.
+compression by ``gzip`` or similar tools by several LAMMPS commands,
+including :doc:`read_data <read_data>`, :doc:`rerun <rerun>`, and
+:doc:`dump <dump>`.  Currently supported compression tools are:
+``gzip``, ``bzip2``, ``zstd``, and ``lzma``.
 
 .. tabs::
 
@@ -364,23 +364,23 @@ gzip compression by several LAMMPS commands, including
       .. code-block:: bash
 
          -D WITH_GZIP=value       # yes or no
-                                  # default is yes if CMake can find gzip, else no
-         -D GZIP_EXECUTABLE=path  # path to gzip executable if CMake cannot find it
+                                  # default is yes if CMake can find the gzip program, else no
 
    .. tab:: Traditional make
 
       .. code-block:: make
 
-         LMP_INC = -DLAMMPS_GZIP
+         LMP_INC = -DLAMMPS_GZIP   <other LMP_INC settings>
 
-This option requires that your operating system fully supports the "popen()"
-function in the standard runtime library and that a ``gzip`` executable can be
-found by LAMMPS during a run.
+This option requires that your operating system fully supports the
+"popen()" function in the standard runtime library and that a ``gzip``
+or other executable can be found by LAMMPS in the standard search path
+during a run.
 
 .. note::
 
-   On some clusters with high-speed networks, using the "fork()" library
-   call (required by "popen()") can interfere with the fast communication
+   On clusters with high-speed networks, using the "fork()" library call
+   (required by "popen()") can interfere with the fast communication
    library and lead to simulations using compressed output or input to
    hang or crash. For selected operations, compressed file I/O is also
    available using a compression library instead, which is what the
@@ -452,7 +452,7 @@ those systems:
 
       .. code-block:: make
 
-         LMP_INC = -DLAMMPS_LONGLONG_TO_LONG
+         LMP_INC = -DLAMMPS_LONGLONG_TO_LONG  <other LMP_INC settings>
 
 ----------
 
@@ -479,7 +479,7 @@ e.g. to Python. Of course, the calling code has to be set up to
 
       .. code-block:: make
 
-         LMP_INC = -DLAMMPS_EXCEPTIONS
+         LMP_INC = -DLAMMPS_EXCEPTIONS   <other LMP_INC settings>
 
 .. note::
 
@@ -520,7 +520,7 @@ executable, not the library.
 
       .. code-block:: make
 
-         LMP_INC = -DLAMMPS_TRAP_FPE
+         LMP_INC = -DLAMMPS_TRAP_FPE  <other LMP_INC settings>
 
 After compilation with this flag set, the LAMMPS executable will stop
 and produce a core dump when a division by zero, overflow, illegal math

@@ -28,6 +28,7 @@
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
+#include "potential_file_reader.h"
 
 #include <cstring>
 
@@ -86,9 +87,8 @@ PairLocalDensity::PairLocalDensity(LAMMPS *lmp) : Pair(lmp)
   fp = nullptr;
   localrho = nullptr;
 
-  // set comm size needed by this pair
-  comm_forward = 1;
-  comm_reverse = 1;
+  // comm sizes needed by this pair style will be set when reading the potential file
+  comm_forward = comm_reverse = 0;
 
   // cite publication
   if (lmp->citeme) lmp->citeme->add(cite_pair_local_density);
@@ -657,35 +657,37 @@ void PairLocalDensity::interpolate_cbspl(int n, double delta,
 
 void PairLocalDensity::parse_file(char *filename) {
 
-  int k, n;
-  int me = comm->me;
-  FILE *fptr;
-  char line[MAXLINE];
-  double ratio, lc2, uc2, denom;
+  // parse potential file header
+  if (comm->me == 0) {
+    PotentialFileReader reader(lmp, filename, "local/density");
 
-  if (me == 0) {
-    fptr = fopen(filename, "r");
-    if (fptr == nullptr)
-      error->one(FLERR,"Cannot open Local Density potential file {}: {}",filename,utils::getsyserror());
+    try {
+
+      // ignore first 2 comment lines
+      reader.skip_line();
+      reader.skip_line();
+
+      // extract number of potentials and number of (frho, rho) points
+      ValueTokenizer values = reader.next_values(2);
+      nLD = values.next_int();
+      nrho = values.next_int();
+
+      const int numld = atom->ntypes*atom->ntypes;
+      if (nLD != numld)
+        error->warning(FLERR, "Expected {} local density potentials but got {}",numld, nLD);
+
+    } catch (TokenizerException &e) {
+      error->one(FLERR, e.what());
+    }
   }
 
-  double *ftmp; // tmp var to extract the complete 2D frho array from file
-
-  // broadcast number of LD potentials and number of (rho,frho) pairs
-  if (me == 0) {
-
-    // first 2 comment lines ignored
-    utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
-    utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
-
-    // extract number of potentials and number of (frho, rho) points
-    utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
-    sscanf(line, "%d %d", &nLD, &nrho);
-    utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
-  }
+  // broadcast number of LD potentials and number of (rho,frho) pairs and allocate storage
 
   MPI_Bcast(&nLD,1,MPI_INT,0,world);
   MPI_Bcast(&nrho,1,MPI_INT,0,world);
+  comm_forward = comm_reverse = nLD;
+
+  double *ftmp; // tmp var to extract the complete 2D frho array from file
 
   // setting up all arrays to be read from files and broadcasted
   memory->create(uppercut, nLD, "pairLD:uppercut");
@@ -704,54 +706,65 @@ void PairLocalDensity::parse_file(char *filename) {
   // setting up central and neighbor atom filters
   memory->create(a, nLD, atom->ntypes+1 , "pairLD:a");
   memory->create(b, nLD, atom->ntypes+1, "pairLD:b");
-  if (me == 0) {
-    for (n = 1; n <= atom->ntypes; n++) {
-        for (k = 0; k < nLD; k++) {
-            a[k][n] = 0;
-            b[k][n] = 0;
-        }
+  for (int k = 0; k < nLD; k++) {
+    for (int n = 1; n <= atom->ntypes; n++) {
+      a[k][n] = 0;
+      b[k][n] = 0;
     }
   }
 
- // read file block by block
+  // parse potential file body
+  if (comm->me == 0) {
+    PotentialFileReader reader(lmp, filename, "local/density");
 
-  if (me == 0) {
-    for (k = 0; k < nLD; k++) {
+    try {
+      double ratio, lc2, uc2, denom;
+      ValueTokenizer values("");
+
+      // ignore first 4 lines already processed
+
+      reader.skip_line();
+      reader.skip_line();
+      reader.skip_line();
+      reader.skip_line();
+
+      for (int k = 0; k < nLD; k++) {
 
         // parse upper and lower cut values
-        if (fgets(line,MAXLINE,fptr)==nullptr) break;
-        sscanf(line, "%lf %lf", &lowercut[k], &uppercut[k]);
+        values = reader.next_values(2);
+        lowercut[k] = values.next_double();
+        uppercut[k] = values.next_double();
 
-        // parse and broadcast central atom filter
-        utils::sfgets(FLERR,line, MAXLINE, fptr,filename,error);
-        char *tmp = strtok(line, " /t/n/r/f");
-        while (tmp != nullptr) {
-            a[k][atoi(tmp)] = 1;
-            tmp = strtok(nullptr, " /t/n/r/f");
+        // parse central atom filter
+        values = ValueTokenizer(reader.next_line());
+        while (values.has_next()) {
+          int atype = values.next_int();
+          if ((atype < 1) || (atype > atom->ntypes))
+            throw TokenizerException("Invalid atom type filter value",std::to_string(atype));
+          a[k][atype] = 1;
         }
 
         // parse neighbor atom filter
-        utils::sfgets(FLERR,line, MAXLINE, fptr,filename,error);
-        tmp = strtok(line, " /t/n/r/f");
-        while (tmp != nullptr) {
-            b[k][atoi(tmp)] = 1;
-            tmp = strtok(nullptr, " /t/n/r/f");
+        values = ValueTokenizer(reader.next_line());
+        while (values.has_next()) {
+          int btype = values.next_int();
+          if ((btype < 1) || (btype > atom->ntypes))
+            throw TokenizerException("Invalid atom type filter value",std::to_string(btype));
+          b[k][btype] = 1;
         }
 
         // parse min, max and delta rho values
-        utils::sfgets(FLERR,line, MAXLINE, fptr,filename,error);
-        sscanf(line, "%lf %lf %lf", &rho_min[k], &rho_max[k], &delta_rho[k]);
+        values = reader.next_values(3);
+        rho_min[k] = values.next_double();
+        rho_max[k] = values.next_double();
         // recompute delta_rho from scratch for precision
         delta_rho[k] = (rho_max[k] - rho_min[k]) / (nrho - 1);
 
         // parse tabulated frho values from each line into temporary array
-        for (n = 0; n < nrho; n++) {
-          utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
-            sscanf(line, "%lf", &ftmp[k*nrho + n]);
-        }
+        reader.next_dvector(ftmp+k*nrho, nrho);
 
         // ignore blank line at the end of every block
-        utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
+        reader.skip_line();
 
         // set coefficients for local density indicator function
         uc2 = uppercut[k] * uppercut[k];
@@ -766,6 +779,10 @@ void PairLocalDensity::parse_file(char *filename) {
         c4[k] = -(3.0 + 3.0*ratio) / (uc2*uc2 * denom);
         c6[k] = 2.0 / (uc2*uc2*uc2 * denom);
       }
+
+    } catch (TokenizerException &e) {
+      error->one(FLERR, e.what());
+    }
   }
 
   // Broadcast all parsed arrays
@@ -777,7 +794,7 @@ void PairLocalDensity::parse_file(char *filename) {
   MPI_Bcast(&c2[0], nLD, MPI_DOUBLE, 0, world);
   MPI_Bcast(&c4[0], nLD, MPI_DOUBLE, 0, world);
   MPI_Bcast(&c6[0], nLD, MPI_DOUBLE, 0, world);
-  for (k = 0; k < nLD; k++) {
+  for (int k = 0; k < nLD; k++) {
       MPI_Bcast(&a[k][1], atom->ntypes, MPI_INT, 0, world);
       MPI_Bcast(&b[k][1], atom->ntypes, MPI_INT, 0, world);
   }
@@ -786,14 +803,12 @@ void PairLocalDensity::parse_file(char *filename) {
   MPI_Bcast(&delta_rho[0], nLD, MPI_DOUBLE, 0, world);
   MPI_Bcast(&ftmp[0], nLD*nrho, MPI_DOUBLE, 0, world);
 
-  if (me == 0) fclose(fptr);
-
   // set up rho and frho arrays
   memory->create(rho, nLD, nrho, "pairLD:rho");
   memory->create(frho, nLD, nrho, "pairLD:frho");
 
-  for (k = 0; k < nLD; k++) {
-    for (n = 0; n < nrho; n++) {
+  for (int k = 0; k < nLD; k++) {
+    for (int n = 0; n < nrho; n++) {
         rho[k][n] = rho_min[k] + n*delta_rho[k];
         frho[k][n] = ftmp[k*nrho + n];
     }
@@ -807,8 +822,8 @@ void PairLocalDensity::parse_file(char *filename) {
    communication routines
 ------------------------------------------------------------------------- */
 
-int PairLocalDensity::pack_comm(int n, int *list, double *buf,
-                                int /* pbc_flag */, int * /* pbc */) {
+int PairLocalDensity::pack_forward_comm(int n, int *list, double *buf,
+                                        int /* pbc_flag */, int * /* pbc */) {
   int i,j,k;
   int m;
 
@@ -820,12 +835,12 @@ int PairLocalDensity::pack_comm(int n, int *list, double *buf,
     }
   }
 
-  return nLD;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void PairLocalDensity::unpack_comm(int n, int first, double *buf) {
+void PairLocalDensity::unpack_forward_comm(int n, int first, double *buf) {
 
   int i,k,m,last;
 
@@ -851,7 +866,7 @@ int PairLocalDensity::pack_reverse_comm(int n, int first, double *buf) {
       buf[m++] = localrho[k][i];
     }
   }
-  return nLD;
+  return m;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -881,4 +896,3 @@ double PairLocalDensity::memory_usage()
   bytes += (double)2 * (nmax*nLD) * sizeof(double);
   return bytes;
 }
-

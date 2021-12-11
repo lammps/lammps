@@ -270,7 +270,7 @@ void Bond::write_file(int narg, char **arg)
     //   write out a line with "DATE:" and "UNITS:" tags
     // - if the file already exists, print a message about appending
     //   while printing the date and check that units are consistent.
-    if (utils::file_is_readable(table_file)) {
+    if (platform::file_is_readable(table_file)) {
       std::string units = utils::get_potential_units(table_file,"table");
       if (!units.empty() && (units != update->unit_style)) {
         error->one(FLERR,"Trying to append to a table file with UNITS: {} while units are {}",

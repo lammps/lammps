@@ -340,191 +340,6 @@ class CudaTeamMember {
 #endif
   }
 
-  //--------------------------------------------------------------------------
-  /**\brief  Global reduction across all blocks
-   *
-   *  Return !0 if reducer contains the final value
-   */
-  template <typename ReducerType>
-  KOKKOS_INLINE_FUNCTION static
-      typename std::enable_if<is_reducer<ReducerType>::value, int>::type
-      global_reduce(ReducerType const& reducer, int* const global_scratch_flags,
-                    void* const global_scratch_space, void* const shmem,
-                    int const shmem_size) {
-#ifdef __CUDA_ARCH__
-
-    using value_type   = typename ReducerType::value_type;
-    using pointer_type = value_type volatile*;
-
-    // Number of shared memory entries for the reduction:
-    const int nsh = shmem_size / sizeof(value_type);
-
-    // Number of CUDA threads in the block, rank within the block
-    const int nid = blockDim.x * blockDim.y * blockDim.z;
-    const int tid =
-        threadIdx.x + blockDim.x * (threadIdx.y + blockDim.y * threadIdx.z);
-
-    // Reduces within block using all available shared memory
-    // Contributes if it is the root "vector lane"
-
-    // wn == number of warps in the block
-    // wx == which lane within the warp
-    // wy == which warp within the block
-
-    const int wn =
-        (nid + CudaTraits::WarpIndexMask) >> CudaTraits::WarpIndexShift;
-    const int wx = tid & CudaTraits::WarpIndexMask;
-    const int wy = tid >> CudaTraits::WarpIndexShift;
-
-    //------------------------
-    {  // Intra warp shuffle reduction from contributing CUDA threads
-
-      value_type tmp(reducer.reference());
-
-      for (int i = CudaTraits::WarpSize; (int)blockDim.x <= (i >>= 1);) {
-        Impl::in_place_shfl_down(reducer.reference(), tmp, i,
-                                 CudaTraits::WarpSize);
-
-        // Root of each vector lane reduces "thread" contribution
-        if (0 == threadIdx.x && wx < i) {
-          reducer.join(&tmp, reducer.data());
-        }
-      }
-
-      // Reduce across warps using shared memory.
-      // Number of warps may not be power of two.
-
-      __syncthreads();  // Wait before shared data write
-
-      // Number of shared memory entries for the reduction
-      // is at most one per warp
-      const int nentry = wn < nsh ? wn : nsh;
-
-      if (0 == wx && wy < nentry) {
-        // Root thread of warp 'wy' has warp's value to contribute
-        ((value_type*)shmem)[wy] = tmp;
-      }
-
-      __syncthreads();  // Wait for write to be visible to block
-
-      // When more warps than shared entries
-      // then warps must take turns joining their contribution
-      // to the designated shared memory entry.
-      for (int i = nentry; i < wn; i += nentry) {
-        const int k = wy - i;
-
-        if (0 == wx && i <= wy && k < nentry) {
-          // Root thread of warp 'wy' has warp's value to contribute
-          reducer.join(((value_type*)shmem) + k, &tmp);
-        }
-
-        __syncthreads();  // Wait for write to be visible to block
-      }
-
-      // One warp performs the inter-warp reduction:
-
-      if (0 == wy) {
-        // Start fan-in at power of two covering nentry
-
-        for (int i = (1 << (32 - __clz(nentry - 1))); (i >>= 1);) {
-          const int k = wx + i;
-          if (wx < i && k < nentry) {
-            reducer.join(((pointer_type)shmem) + wx, ((pointer_type)shmem) + k);
-            __threadfence_block();  // Wait for write to be visible to warp
-          }
-        }
-      }
-    }
-    //------------------------
-    {  // Write block's value to global_scratch_memory
-
-      int last_block = 0;
-
-      if (0 == wx) {
-        reducer.copy(((pointer_type)global_scratch_space) +
-                         blockIdx.x * reducer.length(),
-                     reducer.data());
-
-        __threadfence();  // Wait until global write is visible.
-
-        last_block = (int)gridDim.x ==
-                     1 + Kokkos::atomic_fetch_add(global_scratch_flags, 1);
-
-        // If last block then reset count
-        if (last_block) *global_scratch_flags = 0;
-      }
-
-      last_block = __syncthreads_or(last_block);
-
-      if (!last_block) return 0;
-    }
-    //------------------------
-    // Last block reads global_scratch_memory into shared memory.
-
-    const int nentry = nid < gridDim.x ? (nid < nsh ? nid : nsh)
-                                       : (gridDim.x < nsh ? gridDim.x : nsh);
-
-    // nentry = min( nid , nsh , gridDim.x )
-
-    // whole block reads global memory into shared memory:
-
-    if (tid < nentry) {
-      const int offset = tid * reducer.length();
-
-      reducer.copy(((pointer_type)shmem) + offset,
-                   ((pointer_type)global_scratch_space) + offset);
-
-      for (int i = nentry + tid; i < (int)gridDim.x; i += nentry) {
-        reducer.join(
-            ((pointer_type)shmem) + offset,
-            ((pointer_type)global_scratch_space) + i * reducer.length());
-      }
-    }
-
-    __syncthreads();  // Wait for writes to be visible to block
-
-    if (0 == wy) {
-      // Iterate to reduce shared memory to single warp fan-in size
-
-      const int nreduce =
-          CudaTraits::WarpSize < nentry ? CudaTraits::WarpSize : nentry;
-
-      // nreduce = min( CudaTraits::WarpSize , nsh , gridDim.x )
-
-      if (wx < nreduce && nreduce < nentry) {
-        for (int i = nreduce + wx; i < nentry; i += nreduce) {
-          reducer.join(((pointer_type)shmem) + wx, ((pointer_type)shmem) + i);
-        }
-        __threadfence_block();  // Wait for writes to be visible to warp
-      }
-
-      // Start fan-in at power of two covering nentry
-
-      for (int i = (1 << (32 - __clz(nreduce - 1))); (i >>= 1);) {
-        const int k = wx + i;
-        if (wx < i && k < nreduce) {
-          reducer.join(((pointer_type)shmem) + wx, ((pointer_type)shmem) + k);
-          __threadfence_block();  // Wait for writes to be visible to warp
-        }
-      }
-
-      if (0 == wx) {
-        reducer.copy(reducer.data(), (pointer_type)shmem);
-        return 1;
-      }
-    }
-    return 0;
-
-#else
-    (void)reducer;
-    (void)global_scratch_flags;
-    (void)global_scratch_space;
-    (void)shmem;
-    (void)shmem_size;
-    return 0;
-#endif
-  }
-
   //----------------------------------------
   // Private for the driver
 
@@ -533,7 +348,7 @@ class CudaTeamMember {
                  void* scratch_level_1_ptr, const int scratch_level_1_size,
                  const int arg_league_rank, const int arg_league_size)
       : m_team_reduce(shared),
-        m_team_shared(((char*)shared) + shared_begin, shared_size,
+        m_team_shared(static_cast<char*>(shared) + shared_begin, shared_size,
                       scratch_level_1_ptr, scratch_level_1_size),
         m_team_reduce_size(shared_begin),
         m_league_rank(arg_league_rank),
@@ -854,14 +669,10 @@ KOKKOS_INLINE_FUNCTION void parallel_for(
        i += blockDim.x) {
     closure(i);
   }
-#ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
-  KOKKOS_IMPL_CUDA_SYNCWARP_MASK(
-      blockDim.x == 32 ? 0xffffffff
-                       : ((1 << blockDim.x) - 1)
-                             << (threadIdx.y % (32 / blockDim.x)) * blockDim.x);
-#else
-  KOKKOS_IMPL_CUDA_SYNCWARP;
-#endif
+  __syncwarp(blockDim.x == 32
+                 ? 0xffffffff
+                 : ((1 << blockDim.x) - 1)
+                       << (threadIdx.y % (32 / blockDim.x)) * blockDim.x);
 #endif
 }
 
@@ -1100,14 +911,10 @@ KOKKOS_INLINE_FUNCTION void single(
   (void)lambda;
 #ifdef __CUDA_ARCH__
   if (threadIdx.x == 0) lambda();
-#ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
-  KOKKOS_IMPL_CUDA_SYNCWARP_MASK(
-      blockDim.x == 32 ? 0xffffffff
-                       : ((1 << blockDim.x) - 1)
-                             << (threadIdx.y % (32 / blockDim.x)) * blockDim.x);
-#else
-  KOKKOS_IMPL_CUDA_SYNCWARP;
-#endif
+  __syncwarp(blockDim.x == 32
+                 ? 0xffffffff
+                 : ((1 << blockDim.x) - 1)
+                       << (threadIdx.y % (32 / blockDim.x)) * blockDim.x);
 #endif
 }
 
@@ -1118,14 +925,10 @@ KOKKOS_INLINE_FUNCTION void single(
   (void)lambda;
 #ifdef __CUDA_ARCH__
   if (threadIdx.x == 0 && threadIdx.y == 0) lambda();
-#ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
-  KOKKOS_IMPL_CUDA_SYNCWARP_MASK(
-      blockDim.x == 32 ? 0xffffffff
-                       : ((1 << blockDim.x) - 1)
-                             << (threadIdx.y % (32 / blockDim.x)) * blockDim.x);
-#else
-  KOKKOS_IMPL_CUDA_SYNCWARP;
-#endif
+  __syncwarp(blockDim.x == 32
+                 ? 0xffffffff
+                 : ((1 << blockDim.x) - 1)
+                       << (threadIdx.y % (32 / blockDim.x)) * blockDim.x);
 #endif
 }
 

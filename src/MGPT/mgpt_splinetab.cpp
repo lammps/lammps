@@ -105,7 +105,7 @@ void evalspline(int n,double x0,double x1,double C[][4],
   xhat = xhat - idx;
   p = C[idx];
 
-  if (0) {
+  if (false) {
     *y = p[0] + xhat*(p[1] + xhat*(p[2] + xhat*p[3]));
 
     *dy = p[1] + xhat*(2*p[2] + xhat*3*p[3]);

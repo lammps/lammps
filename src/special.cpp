@@ -56,7 +56,7 @@ Special::~Special()
 void Special::build()
 {
   MPI_Barrier(world);
-  double time1 = MPI_Wtime();
+  double time1 = platform::walltime();
 
   if (me == 0) {
     const double * const special_lj   = force->special_lj;
@@ -1290,9 +1290,8 @@ int Special::rendezvous_pairs(int n, char *inbuf, int &flag, int *&proclist,
 
 void Special::fix_alteration()
 {
-  for (int ifix = 0; ifix < modify->nfix; ifix++)
-    if (modify->fix[ifix]->special_alter_flag)
-      modify->fix[ifix]->rebuild_special();
+  for (const auto &ifix : modify->get_fix_list())
+    if (ifix->special_alter_flag) ifix->rebuild_special();
 }
 
 /* ----------------------------------------------------------------------
@@ -1303,5 +1302,5 @@ void Special::timer_output(double time1)
 {
   if (comm->me == 0)
     utils::logmesg(lmp,"  special bonds CPU = {:.3f} seconds\n",
-                   MPI_Wtime()-time1);
+                   platform::walltime()-time1);
 }

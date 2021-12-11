@@ -108,21 +108,22 @@ TEST_F(LAMMPS_plain, TestStyles)
     const char *found;
 
     const char *atom_styles[] = {"atomic", "body",   "charge", "ellipsoid", "hybrid",
-                                 "line",   "sphere", "tri",    NULL};
-    for (int i = 0; atom_styles[i] != NULL; ++i) {
+                                 "line",   "sphere", "tri",    nullptr};
+    for (int i = 0; atom_styles[i] != nullptr; ++i) {
         found = lmp->match_style("atom", atom_styles[i]);
-        EXPECT_STREQ(found, NULL);
+        EXPECT_STREQ(found, nullptr);
     }
 
-    const char *molecule_atom_styles[] = {"angle", "bond", "full", "molecular", "template", NULL};
-    for (int i = 0; molecule_atom_styles[i] != NULL; ++i) {
+    const char *molecule_atom_styles[] = {"angle",     "bond",     "full",
+                                          "molecular", "template", nullptr};
+    for (int i = 0; molecule_atom_styles[i] != nullptr; ++i) {
         found = lmp->match_style("atom", molecule_atom_styles[i]);
         EXPECT_STREQ(found, "MOLECULE");
     }
 
     const char *kokkos_atom_styles[] = {"angle/kk",     "bond/kk",   "full/kk",
-                                        "molecular/kk", "hybrid/kk", NULL};
-    for (int i = 0; kokkos_atom_styles[i] != NULL; ++i) {
+                                        "molecular/kk", "hybrid/kk", nullptr};
+    for (int i = 0; kokkos_atom_styles[i] != nullptr; ++i) {
         found = lmp->match_style("atom", kokkos_atom_styles[i]);
         EXPECT_STREQ(found, "KOKKOS");
     }
@@ -149,7 +150,7 @@ TEST_F(LAMMPS_plain, TestStyles)
     found = lmp->match_style("atom", "sph");
     EXPECT_STREQ(found, "SPH");
     found = lmp->match_style("atom", "i_don't_exist");
-    EXPECT_STREQ(found, NULL);
+    EXPECT_STREQ(found, nullptr);
 }
 
 // test fixture for OpenMP with 2 threads
@@ -325,7 +326,7 @@ TEST_F(LAMMPS_kokkos, InitMembers)
 TEST(LAMMPS_init, OpenMP)
 {
     if (!LAMMPS::is_installed_pkg("OPENMP")) GTEST_SKIP();
-    if (Info::get_openmp_info() == "OpenMP not enabled") GTEST_SKIP();
+    if (platform::openmp_standard() == "OpenMP not enabled") GTEST_SKIP();
 
     FILE *fp = fopen("in.lammps_empty", "w");
     fputs("\n", fp);
@@ -362,11 +363,7 @@ TEST(LAMMPS_init, NoOpenMP)
     FILE *fp = fopen("in.lammps_class_noomp", "w");
     fputs("\n", fp);
     fclose(fp);
-#if defined(__WIN32)
-    _putenv("OMP_NUM_THREADS");
-#else
-    unsetenv("OMP_NUM_THREADS");
-#endif
+    platform::unsetenv("OMP_NUM_THREADS");
 
     const char *args[] = {"LAMMPS_init", "-in", "in.lammps_class_noomp", "-log", "none", "-nocite"};
     char **argv        = (char **)args;

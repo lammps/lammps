@@ -191,48 +191,28 @@ __device__ bool cuda_inter_block_reduction(
         value_type tmp = Kokkos::shfl_down(value, 1, 32);
         if (id + 1 < int(gridDim.x)) join(value, tmp);
       }
-#ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
-      unsigned int mask = KOKKOS_IMPL_CUDA_ACTIVEMASK;
-      int active        = KOKKOS_IMPL_CUDA_BALLOT_MASK(mask, 1);
-#else
-      int active = KOKKOS_IMPL_CUDA_BALLOT(1);
-#endif
+      unsigned int mask = __activemask();
+      int active        = __ballot_sync(mask, 1);
       if (int(blockDim.x * blockDim.y) > 2) {
         value_type tmp = Kokkos::shfl_down(value, 2, 32);
         if (id + 2 < int(gridDim.x)) join(value, tmp);
       }
-#ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
-      active += KOKKOS_IMPL_CUDA_BALLOT_MASK(mask, 1);
-#else
-      active += KOKKOS_IMPL_CUDA_BALLOT(1);
-#endif
+      active += __ballot_sync(mask, 1);
       if (int(blockDim.x * blockDim.y) > 4) {
         value_type tmp = Kokkos::shfl_down(value, 4, 32);
         if (id + 4 < int(gridDim.x)) join(value, tmp);
       }
-#ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
-      active += KOKKOS_IMPL_CUDA_BALLOT_MASK(mask, 1);
-#else
-      active += KOKKOS_IMPL_CUDA_BALLOT(1);
-#endif
+      active += __ballot_sync(mask, 1);
       if (int(blockDim.x * blockDim.y) > 8) {
         value_type tmp = Kokkos::shfl_down(value, 8, 32);
         if (id + 8 < int(gridDim.x)) join(value, tmp);
       }
-#ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
-      active += KOKKOS_IMPL_CUDA_BALLOT_MASK(mask, 1);
-#else
-      active += KOKKOS_IMPL_CUDA_BALLOT(1);
-#endif
+      active += __ballot_sync(mask, 1);
       if (int(blockDim.x * blockDim.y) > 16) {
         value_type tmp = Kokkos::shfl_down(value, 16, 32);
         if (id + 16 < int(gridDim.x)) join(value, tmp);
       }
-#ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
-      active += KOKKOS_IMPL_CUDA_BALLOT_MASK(mask, 1);
-#else
-      active += KOKKOS_IMPL_CUDA_BALLOT(1);
-#endif
+      active += __ballot_sync(mask, 1);
     }
   }
   // The last block has in its thread=0 the global reduction value through
@@ -388,48 +368,28 @@ __device__ inline
         value_type tmp = Kokkos::shfl_down(value, 1, 32);
         if (id + 1 < int(gridDim.x)) reducer.join(value, tmp);
       }
-#ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
-      unsigned int mask = KOKKOS_IMPL_CUDA_ACTIVEMASK;
-      int active        = KOKKOS_IMPL_CUDA_BALLOT_MASK(mask, 1);
-#else
-      int active = KOKKOS_IMPL_CUDA_BALLOT(1);
-#endif
+      unsigned int mask = __activemask();
+      int active        = __ballot_sync(mask, 1);
       if (int(blockDim.x * blockDim.y) > 2) {
         value_type tmp = Kokkos::shfl_down(value, 2, 32);
         if (id + 2 < int(gridDim.x)) reducer.join(value, tmp);
       }
-#ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
-      active += KOKKOS_IMPL_CUDA_BALLOT_MASK(mask, 1);
-#else
-      active += KOKKOS_IMPL_CUDA_BALLOT(1);
-#endif
+      active += __ballot_sync(mask, 1);
       if (int(blockDim.x * blockDim.y) > 4) {
         value_type tmp = Kokkos::shfl_down(value, 4, 32);
         if (id + 4 < int(gridDim.x)) reducer.join(value, tmp);
       }
-#ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
-      active += KOKKOS_IMPL_CUDA_BALLOT_MASK(mask, 1);
-#else
-      active += KOKKOS_IMPL_CUDA_BALLOT(1);
-#endif
+      active += __ballot_sync(mask, 1);
       if (int(blockDim.x * blockDim.y) > 8) {
         value_type tmp = Kokkos::shfl_down(value, 8, 32);
         if (id + 8 < int(gridDim.x)) reducer.join(value, tmp);
       }
-#ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
-      active += KOKKOS_IMPL_CUDA_BALLOT_MASK(mask, 1);
-#else
-      active += KOKKOS_IMPL_CUDA_BALLOT(1);
-#endif
+      active += __ballot_sync(mask, 1);
       if (int(blockDim.x * blockDim.y) > 16) {
         value_type tmp = Kokkos::shfl_down(value, 16, 32);
         if (id + 16 < int(gridDim.x)) reducer.join(value, tmp);
       }
-#ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
-      active += KOKKOS_IMPL_CUDA_BALLOT_MASK(mask, 1);
-#else
-      active += KOKKOS_IMPL_CUDA_BALLOT(1);
-#endif
+      active += __ballot_sync(mask, 1);
     }
   }
 
@@ -573,23 +533,17 @@ struct CudaReductionsFunctor<FunctorType, ArgTag, false, false> {
                                // part of the reduction
       const int width)         // How much of the warp participates
   {
-#ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
     unsigned mask =
         width == 32
             ? 0xffffffff
             : ((1 << width) - 1)
                   << ((threadIdx.y * blockDim.x + threadIdx.x) / width) * width;
-#endif
     const int lane_id = (threadIdx.y * blockDim.x + threadIdx.x) % 32;
     for (int delta = skip_vector ? blockDim.x : 1; delta < width; delta *= 2) {
       if (lane_id + delta < 32) {
         ValueJoin::join(functor, value, value + delta);
       }
-#ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
-      KOKKOS_IMPL_CUDA_SYNCWARP_MASK(mask);
-#else
-      KOKKOS_IMPL_CUDA_SYNCWARP;
-#endif
+      __syncwarp(mask);
     }
     *value = *(value - lane_id);
   }
@@ -612,17 +566,18 @@ struct CudaReductionsFunctor<FunctorType, ArgTag, false, false> {
       const unsigned int delta = (threadIdx.y * blockDim.x + threadIdx.x) * 32;
       if (delta < blockDim.x * blockDim.y)
         *my_shared_team_buffer_element = shared_team_buffer_element[delta];
-      KOKKOS_IMPL_CUDA_SYNCWARP;
+      __syncwarp(0xffffffff);
       scalar_intra_warp_reduction(functor, my_shared_team_buffer_element, false,
                                   blockDim.x * blockDim.y / 32);
       if (threadIdx.x + threadIdx.y == 0) *result = *shared_team_buffer_element;
     }
   }
 
+  template <class SizeType = Cuda::size_type>
   __device__ static inline bool scalar_inter_block_reduction(
       const FunctorType& functor, const Cuda::size_type /*block_id*/,
-      const Cuda::size_type block_count, Cuda::size_type* const shared_data,
-      Cuda::size_type* const global_data, Cuda::size_type* const global_flags) {
+      const Cuda::size_type block_count, SizeType* const shared_data,
+      SizeType* const global_data, Cuda::size_type* const global_flags) {
     Scalar* const global_team_buffer_element = ((Scalar*)global_data);
     Scalar* const my_global_team_buffer_element =
         global_team_buffer_element + blockIdx.x;
@@ -713,17 +668,17 @@ __device__ void cuda_intra_block_reduce_scan(
   const pointer_type tdata_intra = base_data + value_count * threadIdx.y;
 
   {  // Intra-warp reduction:
-    KOKKOS_IMPL_CUDA_SYNCWARP;
+    __syncwarp(0xffffffff);
     BLOCK_REDUCE_STEP(rtid_intra, tdata_intra, 0)
-    KOKKOS_IMPL_CUDA_SYNCWARP;
+    __syncwarp(0xffffffff);
     BLOCK_REDUCE_STEP(rtid_intra, tdata_intra, 1)
-    KOKKOS_IMPL_CUDA_SYNCWARP;
+    __syncwarp(0xffffffff);
     BLOCK_REDUCE_STEP(rtid_intra, tdata_intra, 2)
-    KOKKOS_IMPL_CUDA_SYNCWARP;
+    __syncwarp(0xffffffff);
     BLOCK_REDUCE_STEP(rtid_intra, tdata_intra, 3)
-    KOKKOS_IMPL_CUDA_SYNCWARP;
+    __syncwarp(0xffffffff);
     BLOCK_REDUCE_STEP(rtid_intra, tdata_intra, 4)
-    KOKKOS_IMPL_CUDA_SYNCWARP;
+    __syncwarp(0xffffffff);
   }
 
   __syncthreads();  // Wait for all warps to reduce
@@ -732,57 +687,31 @@ __device__ void cuda_intra_block_reduce_scan(
     const unsigned rtid_inter = (threadIdx.y ^ BlockSizeMask)
                                 << CudaTraits::WarpIndexShift;
 
-#ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
-    unsigned inner_mask =
-        KOKKOS_IMPL_CUDA_BALLOT_MASK(0xffffffff, (rtid_inter < blockDim.y));
-#endif
+    unsigned inner_mask = __ballot_sync(0xffffffff, (rtid_inter < blockDim.y));
     if (rtid_inter < blockDim.y) {
       const pointer_type tdata_inter =
           base_data + value_count * (rtid_inter ^ BlockSizeMask);
 
-#ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
       if ((1 << 5) < BlockSizeMask) {
-        KOKKOS_IMPL_CUDA_SYNCWARP_MASK(inner_mask);
+        __syncwarp(inner_mask);
         BLOCK_REDUCE_STEP(rtid_inter, tdata_inter, 5)
       }
       if ((1 << 6) < BlockSizeMask) {
-        KOKKOS_IMPL_CUDA_SYNCWARP_MASK(inner_mask);
+        __syncwarp(inner_mask);
         BLOCK_REDUCE_STEP(rtid_inter, tdata_inter, 6)
       }
       if ((1 << 7) < BlockSizeMask) {
-        KOKKOS_IMPL_CUDA_SYNCWARP_MASK(inner_mask);
+        __syncwarp(inner_mask);
         BLOCK_REDUCE_STEP(rtid_inter, tdata_inter, 7)
       }
       if ((1 << 8) < BlockSizeMask) {
-        KOKKOS_IMPL_CUDA_SYNCWARP_MASK(inner_mask);
+        __syncwarp(inner_mask);
         BLOCK_REDUCE_STEP(rtid_inter, tdata_inter, 8)
       }
       if ((1 << 9) < BlockSizeMask) {
-        KOKKOS_IMPL_CUDA_SYNCWARP_MASK(inner_mask);
+        __syncwarp(inner_mask);
         BLOCK_REDUCE_STEP(rtid_inter, tdata_inter, 9)
       }
-#else
-      if ((1 << 5) < BlockSizeMask) {
-        KOKKOS_IMPL_CUDA_SYNCWARP;
-        BLOCK_REDUCE_STEP(rtid_inter, tdata_inter, 5)
-      }
-      if ((1 << 6) < BlockSizeMask) {
-        KOKKOS_IMPL_CUDA_SYNCWARP;
-        BLOCK_REDUCE_STEP(rtid_inter, tdata_inter, 6)
-      }
-      if ((1 << 7) < BlockSizeMask) {
-        KOKKOS_IMPL_CUDA_SYNCWARP;
-        BLOCK_REDUCE_STEP(rtid_inter, tdata_inter, 7)
-      }
-      if ((1 << 8) < BlockSizeMask) {
-        KOKKOS_IMPL_CUDA_SYNCWARP;
-        BLOCK_REDUCE_STEP(rtid_inter, tdata_inter, 8)
-      }
-      if ((1 << 9) < BlockSizeMask) {
-        KOKKOS_IMPL_CUDA_SYNCWARP;
-        BLOCK_REDUCE_STEP(rtid_inter, tdata_inter, 9)
-      }
-#endif
 
       if (DoScan) {
         int n =
@@ -795,25 +724,14 @@ __device__ void cuda_intra_block_reduce_scan(
 
         if (!(rtid_inter + n < blockDim.y)) n = 0;
 
-#ifdef KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
-        KOKKOS_IMPL_CUDA_SYNCWARP_MASK(inner_mask);
+        __syncwarp(inner_mask);
         BLOCK_SCAN_STEP(tdata_inter, n, 8)
-        KOKKOS_IMPL_CUDA_SYNCWARP_MASK(inner_mask);
+        __syncwarp(inner_mask);
         BLOCK_SCAN_STEP(tdata_inter, n, 7)
-        KOKKOS_IMPL_CUDA_SYNCWARP_MASK(inner_mask);
+        __syncwarp(inner_mask);
         BLOCK_SCAN_STEP(tdata_inter, n, 6)
-        KOKKOS_IMPL_CUDA_SYNCWARP_MASK(inner_mask);
+        __syncwarp(inner_mask);
         BLOCK_SCAN_STEP(tdata_inter, n, 5)
-#else
-        KOKKOS_IMPL_CUDA_SYNCWARP;
-        BLOCK_SCAN_STEP(tdata_inter, n, 8)
-        KOKKOS_IMPL_CUDA_SYNCWARP;
-        BLOCK_SCAN_STEP(tdata_inter, n, 7)
-        KOKKOS_IMPL_CUDA_SYNCWARP;
-        BLOCK_SCAN_STEP(tdata_inter, n, 6)
-        KOKKOS_IMPL_CUDA_SYNCWARP;
-        BLOCK_SCAN_STEP(tdata_inter, n, 5)
-#endif
       }
     }
   }
@@ -832,17 +750,17 @@ __device__ void cuda_intra_block_reduce_scan(
                                               : ((rtid_intra & 16) ? 16 : 0))));
 
     if (!(rtid_intra + n < blockDim.y)) n = 0;
-    KOKKOS_IMPL_CUDA_SYNCWARP;
+    __syncwarp(0xffffffff);
     BLOCK_SCAN_STEP(tdata_intra, n, 4) __threadfence_block();
-    KOKKOS_IMPL_CUDA_SYNCWARP;
+    __syncwarp(0xffffffff);
     BLOCK_SCAN_STEP(tdata_intra, n, 3) __threadfence_block();
-    KOKKOS_IMPL_CUDA_SYNCWARP;
+    __syncwarp(0xffffffff);
     BLOCK_SCAN_STEP(tdata_intra, n, 2) __threadfence_block();
-    KOKKOS_IMPL_CUDA_SYNCWARP;
+    __syncwarp(0xffffffff);
     BLOCK_SCAN_STEP(tdata_intra, n, 1) __threadfence_block();
-    KOKKOS_IMPL_CUDA_SYNCWARP;
+    __syncwarp(0xffffffff);
     BLOCK_SCAN_STEP(tdata_intra, n, 0) __threadfence_block();
-    KOKKOS_IMPL_CUDA_SYNCWARP;
+    __syncwarp(0xffffffff);
   }
 
 #undef BLOCK_SCAN_STEP
@@ -858,12 +776,13 @@ __device__ void cuda_intra_block_reduce_scan(
  *  Global reduce result is in the last threads' 'shared_data' location.
  */
 
-template <bool DoScan, class FunctorType, class ArgTag>
+template <bool DoScan, class FunctorType, class ArgTag,
+          class SizeType = Cuda::size_type>
 __device__ bool cuda_single_inter_block_reduce_scan2(
     const FunctorType& functor, const Cuda::size_type block_id,
-    const Cuda::size_type block_count, Cuda::size_type* const shared_data,
-    Cuda::size_type* const global_data, Cuda::size_type* const global_flags) {
-  using size_type   = Cuda::size_type;
+    const Cuda::size_type block_count, SizeType* const shared_data,
+    SizeType* const global_data, Cuda::size_type* const global_flags) {
+  using size_type   = SizeType;
   using ValueTraits = FunctorValueTraits<FunctorType, ArgTag>;
   using ValueJoin   = FunctorValueJoin<FunctorType, ArgTag>;
   using ValueInit   = FunctorValueInit<FunctorType, ArgTag>;
@@ -953,11 +872,12 @@ __device__ bool cuda_single_inter_block_reduce_scan2(
   return is_last_block;
 }
 
-template <bool DoScan, class FunctorType, class ArgTag>
+template <bool DoScan, class FunctorType, class ArgTag,
+          class SizeType = Cuda::size_type>
 __device__ bool cuda_single_inter_block_reduce_scan(
     const FunctorType& functor, const Cuda::size_type block_id,
-    const Cuda::size_type block_count, Cuda::size_type* const shared_data,
-    Cuda::size_type* const global_data, Cuda::size_type* const global_flags) {
+    const Cuda::size_type block_count, SizeType* const shared_data,
+    SizeType* const global_data, Cuda::size_type* const global_flags) {
   using ValueTraits = FunctorValueTraits<FunctorType, ArgTag>;
   if (!DoScan && ValueTraits::StaticValueSize > 0)
     return Kokkos::Impl::CudaReductionsFunctor<

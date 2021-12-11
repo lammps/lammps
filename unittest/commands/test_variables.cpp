@@ -59,8 +59,8 @@ protected:
     void TearDown() override
     {
         LAMMPSTest::TearDown();
-        unlink("test_variable.file");
-        unlink("test_variable.atomfile");
+        platform::unlink("test_variable.file");
+        platform::unlink("test_variable.atomfile");
     }
 
     void atomic_system()
@@ -165,7 +165,7 @@ TEST_F(VariableTest, CreateDelete)
     fputs(" ", fp);
     fclose(fp);
     ASSERT_THAT(variable->retrieve("file"), StrEq("1"));
-    unlink("MYFILE");
+    platform::unlink("MYFILE");
     ASSERT_THAT(variable->retrieve("file"), StrEq("0"));
 
     BEGIN_HIDE_OUTPUT();
@@ -317,7 +317,7 @@ TEST_F(VariableTest, Expressions)
     ASSERT_TRUE(variable->equalstyle(ivar));
     ASSERT_DOUBLE_EQ(variable->compute_equal(ivar), 2.0);
     ASSERT_DOUBLE_EQ(variable->compute_equal("v_three"), 3.0);
-    ASSERT_FLOAT_EQ(variable->compute_equal("v_four"), MY_PI);
+    ASSERT_NEAR(variable->compute_equal("v_four"), MY_PI,1.0e-14);
     ASSERT_GE(variable->compute_equal("v_five"), 20210310);
     ASSERT_DOUBLE_EQ(variable->compute_equal("v_seven"), -1);
     ASSERT_DOUBLE_EQ(variable->compute_equal("v_eight"), 2.5);
@@ -517,7 +517,7 @@ int main(int argc, char **argv)
     MPI_Init(&argc, &argv);
     ::testing::InitGoogleMock(&argc, argv);
 
-    if (Info::get_mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
+    if (platform::mpi_vendor() == "Open MPI" && !LAMMPS_NS::Info::has_exceptions())
         std::cout << "Warning: using OpenMPI without exceptions. "
                      "Death tests will be skipped\n";
 

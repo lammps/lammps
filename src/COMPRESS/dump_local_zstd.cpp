@@ -33,13 +33,9 @@ DumpLocalZstd::DumpLocalZstd(LAMMPS *lmp, int narg, char **arg) : DumpLocal(lmp,
   if (!compressed) error->all(FLERR, "Dump local/zstd only writes compressed files");
 }
 
-/* ---------------------------------------------------------------------- */
-
-DumpLocalZstd::~DumpLocalZstd() {}
-
 /* ----------------------------------------------------------------------
    generic opening of a dump file
-   ASCII or binary or gzipped
+   ASCII or binary or compressed
    some derived classes override this function
 ------------------------------------------------------------------------- */
 

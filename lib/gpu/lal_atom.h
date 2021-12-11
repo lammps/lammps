@@ -475,7 +475,7 @@ class Atom {
   UCL_Vector<numtyp,numtyp> v;
 
   #ifdef GPU_CAST
-  UCL_Vector<double,double> x_cast;
+  UCL_Vector<numtyp,numtyp> x_cast;
   UCL_Vector<int,int> type_cast;
   #endif
 

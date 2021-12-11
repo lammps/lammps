@@ -49,8 +49,8 @@ class PairTlsph : public Pair {
   void write_restart_settings(FILE *) {}
   void read_restart_settings(FILE *) {}
   virtual double memory_usage();
-  void compute_shape_matrix(void);
-  void material_model(void);
+  void compute_shape_matrix();
+  void material_model();
   void *extract(const char *, int &);
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);

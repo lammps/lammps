@@ -125,12 +125,13 @@ screen.0 by default; see the :doc:`-plog and -pscreen command-line switches <Run
 for the second partition will not contain thermodynamic output beyond the
 first timestep of the run.
 
-See the :doc:`Speed packages <Speed_packages>` page for performance
-details of the speed-up offered by the *verlet/split* style.  One
-important performance consideration is the assignment of logical
-processors in the 2 partitions to the physical cores of a parallel
-machine.  The :doc:`processors <processors>` command has options to
-support this, and strategies are discussed in :doc:`Section 5 <Speed>` of the manual.
+See the :doc:`Accelerator packages <Speed_packages>` page for
+performance details of the speed-up offered by the *verlet/split*
+style.  One important performance consideration is the assignment of
+logical processors in the 2 partitions to the physical cores of a
+parallel machine.  The :doc:`processors <processors>` command has
+options to support this, and strategies are discussed in :doc:`Section
+5 <Speed>` of the manual.
 
 ----------
 
@@ -295,10 +296,10 @@ except for round-off and precision issues.
 
 You can specify *respa/omp* explicitly in your input script, or you
 can use the :doc:`-suffix command-line switch <Run_options>` when you
-invoke LAMMPS, or you can use the :doc:`suffix <suffix>` command in your
-input script.
+invoke LAMMPS, or you can use the :doc:`suffix <suffix>` command in
+your input script.
 
-See the :doc:`Speed packages <Speed_packages>` page for more
+See the :doc:`Accelerator packages <Speed_packages>` page for more
 instructions on how to use the accelerated styles effectively.
 
 ----------
@@ -308,7 +309,8 @@ Restrictions
 
 The *verlet/split* style can only be used if LAMMPS was built with the
 REPLICA package. Correspondingly the *respa/omp* style is available
-only if the OPENMP package was included. See the :doc:`Build package <Build_package>` page for more info.
+only if the OPENMP package was included. See the :doc:`Build package
+<Build_package>` page for more info.
 
 Whenever using rRESPA, the user should experiment with trade-offs in
 speed and accuracy for their system, and verify that they are

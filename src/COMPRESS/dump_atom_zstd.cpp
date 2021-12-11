@@ -33,10 +33,6 @@ DumpAtomZstd::DumpAtomZstd(LAMMPS *lmp, int narg, char **arg) : DumpAtom(lmp, na
   if (!compressed) error->all(FLERR, "Dump atom/zstd only writes compressed files");
 }
 
-/* ---------------------------------------------------------------------- */
-
-DumpAtomZstd::~DumpAtomZstd() {}
-
 /* ----------------------------------------------------------------------
    generic opening of a dump file
    ASCII or binary or compressed

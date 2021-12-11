@@ -127,9 +127,9 @@ void PairLJSFDipoleSFGPU::compute(int eflag, int vflag)
     error->one(FLERR,"Insufficient memory on accelerator");
 
   if (host_start<inum) {
-    cpu_time = MPI_Wtime();
+    cpu_time = platform::walltime();
     cpu_compute(host_start, inum, eflag, vflag, ilist, numneigh, firstneigh);
-    cpu_time = MPI_Wtime() - cpu_time;
+    cpu_time = platform::walltime() - cpu_time;
   }
 }
 
@@ -142,8 +142,6 @@ void PairLJSFDipoleSFGPU::init_style()
   if (!atom->q_flag || !atom->mu_flag || !atom->torque_flag)
     error->all(FLERR,"Pair dipole/sf/gpu requires atom attributes q, mu, torque");
 
-  if (force->newton_pair)
-    error->all(FLERR,"Pair style dipole/sf/gpu requires newton pair off");
 
   if (strcmp(update->unit_style,"electron") == 0)
     error->all(FLERR,"Cannot (yet) use 'electron' units with dipoles");

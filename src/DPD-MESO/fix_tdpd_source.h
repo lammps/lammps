@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class FixTDPDSource : public Fix {
  public:
   FixTDPDSource(class LAMMPS *, int, char **);
-  ~FixTDPDSource();
+  ~FixTDPDSource() = default;
   int setmask();
   void init();
   void post_force(int);

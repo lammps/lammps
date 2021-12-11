@@ -25,6 +25,7 @@ FixStyle(efield,FixEfield);
 namespace LAMMPS_NS {
 
 class FixEfield : public Fix {
+  friend class FixQEqReaxFF;
  public:
   FixEfield(class LAMMPS *, int, char **);
   ~FixEfield();
@@ -39,7 +40,9 @@ class FixEfield : public Fix {
   double compute_scalar();
   double compute_vector(int);
 
- private:
+  enum { NONE, CONSTANT, EQUAL, ATOM };
+
+ protected:
   double ex, ey, ez;
   int varflag, iregion;
   char *xstr, *ystr, *zstr, *estr;
@@ -49,7 +52,7 @@ class FixEfield : public Fix {
   double qe2f;
   int qflag, muflag;
 
-  int maxatom;
+  int maxatom, maxatom_energy;
   double **efield;
 
   int force_flag;

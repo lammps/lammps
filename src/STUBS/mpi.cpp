@@ -21,7 +21,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#if defined(_WIN32)
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#else
 #include <sys/time.h>
+#endif
 
 /* data structure for double/int */
 
@@ -167,7 +173,7 @@ int MPI_Finalize()
 
 double MPI_Wtime()
 {
-#if defined(_MSC_VER)
+#if defined(_WIN32)
   double t;
 
   t = GetTickCount();

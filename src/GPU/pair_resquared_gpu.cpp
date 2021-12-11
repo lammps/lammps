@@ -147,9 +147,9 @@ void PairRESquaredGPU::compute(int eflag, int vflag)
     error->one(FLERR,"Insufficient memory on accelerator");
 
   if (host_start < inum) {
-    cpu_time = MPI_Wtime();
+    cpu_time = platform::walltime();
     cpu_compute(host_start, inum, eflag, vflag, ilist, numneigh, firstneigh);
-    cpu_time = MPI_Wtime() - cpu_time;
+    cpu_time = platform::walltime() - cpu_time;
   }
 }
 
@@ -159,8 +159,6 @@ void PairRESquaredGPU::compute(int eflag, int vflag)
 
 void PairRESquaredGPU::init_style()
 {
-  if (force->newton_pair)
-    error->all(FLERR,"Pair style resquared/gpu requires newton pair off");
   if (!atom->ellipsoid_flag)
     error->all(FLERR,"Pair resquared/gpu requires atom style ellipsoid");
 

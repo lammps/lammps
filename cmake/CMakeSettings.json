@@ -1,0 +1,111 @@
+﻿{
+  "configurations": [
+    {
+      "name": "x64-Debug-MSVC",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "buildRoot": "${workspaceRoot}\\build\\${name}",
+      "installRoot": "${workspaceRoot}\\install\\${name}",
+      "cmakeCommandArgs": "-S ${workspaceRoot}\\cmake -C ${workspaceRoot}\\cmake\\presets\\windows.cmake -DENABLE_TESTING=on",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "variables": [
+        {
+          "name": "BUILD_SHARED_LIBS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_TOOLS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "LAMMPS_EXCEPTIONS",
+          "value": "True",
+          "type": "BOOL"
+        }
+      ]
+    },
+    {
+      "name": "x64-Debug-Clang",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "buildRoot": "${workspaceRoot}\\build\\${name}",
+      "installRoot": "${workspaceRoot}\\install\\${name}",
+      "cmakeCommandArgs": "-S ${workspaceRoot}\\cmake -C ${workspaceRoot}\\cmake\\presets\\windows.cmake -DENABLE_TESTING=on",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "clang_cl_x64" ],
+      "variables": [
+        {
+          "name": "BUILD_TOOLS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "LAMMPS_EXCEPTIONS",
+          "value": "True",
+          "type": "BOOL"
+        }
+      ]
+    },
+    {
+      "name": "x64-Debug-OneAPI",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "buildRoot": "${workspaceRoot}\\build\\${name}",
+      "installRoot": "${workspaceRoot}\\install\\${name}",
+      "cmakeCommandArgs": "-S ${workspaceRoot}\\cmake -C ${workspaceRoot}\\cmake\\presets\\windows.cmake -DENABLE_TESTING=on -DCMAKE_CXX_COMPILER=icx -DCMAKE_C_COMPILER=icx -DBUILD_MPI=off",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "variables": [
+        {
+          "name": "BUILD_SHARED_LIBS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_TOOLS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "LAMMPS_EXCEPTIONS",
+          "value": "True",
+          "type": "BOOL"
+        }
+      ]
+    },
+    {
+      "name": "x64-Debug-Intel",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "buildRoot": "${workspaceRoot}\\build\\${name}",
+      "installRoot": "${workspaceRoot}\\install\\${name}",
+      "cmakeCommandArgs": "-S ${workspaceRoot}\\cmake -C ${workspaceRoot}\\cmake\\presets\\windows.cmake -DENABLE_TESTING=off -DCMAKE_CXX_COMPILER=icl -DCMAKE_C_COMPILER=icl -DCMAKE_Fortran_COMPILER=ifort -DBUILD_MPI=off",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "variables": [
+        {
+          "name": "BUILD_SHARED_LIBS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_TOOLS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "LAMMPS_EXCEPTIONS",
+          "value": "True",
+          "type": "BOOL"
+        }
+      ]
+    }
+  ]
+}

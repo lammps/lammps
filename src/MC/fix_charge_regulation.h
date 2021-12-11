@@ -53,6 +53,8 @@ class FixChargeRegulation : public Fix {
   void options(int, char **);
   void setThermoTemperaturePointer();
   double memory_usage();
+  void write_restart(FILE *);
+  void restart(char *);
 
  private:
   int exclusion_group, exclusion_group_bit;

@@ -36,7 +36,6 @@
 
 #include <cmath>
 #include <cstring>
-#include <unistd.h>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -71,6 +70,7 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS * lmp, int narg, char **arg):
 
   restart_global = 1;
   global_freq = nfreq;
+  time_depend = 1;
 
   // parse values until one isn't recognized
 
@@ -260,11 +260,11 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS * lmp, int narg, char **arg):
             fprintf(fp," %s*%s",arg[5+i],arg[5+j]);
       fprintf(fp,"\n");
     }
-    filepos = ftell(fp);
+    filepos = platform::ftell(fp);
   }
 
-  delete [] title1;
-  delete [] title2;
+  delete[] title1;
+  delete[] title2;
 
   // allocate and initialize memory for calculated values and correlators
 
@@ -319,11 +319,11 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS * lmp, int narg, char **arg):
 
 FixAveCorrelateLong::~FixAveCorrelateLong()
 {
-  delete [] which;
-  delete [] argindex;
-  delete [] value2index;
-  for (int i = 0; i < nvalues; i++) delete [] ids[i];
-  delete [] ids;
+  delete[] which;
+  delete[] argindex;
+  delete[] value2index;
+  for (int i = 0; i < nvalues; i++) delete[] ids[i];
+  delete[] ids;
 
   memory->destroy(values);
   memory->destroy(shift);
@@ -401,11 +401,8 @@ void FixAveCorrelateLong::end_of_step()
   double scalar;
 
   // skip if not step which requires doing something
-  // error check if timestep was reset in an invalid manner
 
   bigint ntimestep = update->ntimestep;
-  if (ntimestep < nvalid_last || ntimestep > nvalid)
-    error->all(FLERR,"Invalid timestep reset for fix ave/correlate/long");
   if (ntimestep != nvalid) return;
   nvalid_last = nvalid;
 
@@ -467,7 +464,7 @@ void FixAveCorrelateLong::end_of_step()
   evaluate();
 
   if (fp && me == 0) {
-    if (overwrite) fseek(fp,filepos,SEEK_SET);
+    if (overwrite) platform::fseek(fp,filepos);
     fprintf(fp,"# Timestep: " BIGINT_FORMAT "\n", ntimestep);
     for (unsigned int i=0;i<npcorr;++i) {
       fprintf(fp, "%lg ", t[i]*update->dt*nevery);
@@ -478,9 +475,9 @@ void FixAveCorrelateLong::end_of_step()
     }
     fflush(fp);
     if (overwrite) {
-      long fileend = ftell(fp);
-      if ((fileend > 0) && (ftruncate(fileno(fp),fileend)))
-        perror("Error while tuncating output");
+      bigint fileend = platform::ftell(fp);
+      if ((fileend > 0) && (platform::ftruncate(fp,fileend)))
+        error->warning(FLERR,"Error while tuncating output: {}", utils::getsyserror());
     }
   }
 

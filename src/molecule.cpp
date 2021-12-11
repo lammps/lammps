@@ -412,7 +412,7 @@ void Molecule::read(int flag)
   // skip blank lines or lines that start with "#"
   // stop when read an unrecognized line
 
-  while (1) {
+  while (true) {
 
     readline(line);
 
@@ -2035,7 +2035,7 @@ std::string Molecule::parse_keyword(int flag, char *line)
 
     MPI_Bcast(&eof,1,MPI_INT,0,world);
     if (eof) {
-      return std::string("");
+      return {""};
     }
 
     // bcast keyword line to all procs

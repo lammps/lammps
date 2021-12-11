@@ -37,9 +37,8 @@ class ReaderNative : public Reader {
   void skip();
   bigint read_header(double[3][3], int &, int &, int, int, int *, char **, int, int, int &, int &,
                      int &, int &);
-  void match_field(int nfield, int &xflag, int &yflag, int &zflag, int *fieldtype,
-                   char **fieldlabel, int scaleflag, int wrapflag, int &fieldflag,
-                   std::map<std::string, int> labels);
+  void match_field(int, int &, int &, int &, int *, char **, int, int, int &,
+                   std::map<std::string, int>);
   void read_atoms(int, int, double **);
 
  protected:

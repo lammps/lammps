@@ -385,7 +385,7 @@ namespace platform {
    *  \param  file  name of the file to open
    *  \return  FILE pointer to pipe using for reading the compressed file. */
 
-  FILE *compressed_read(const std::string &file);
+  FILE *compressed_read(const std::string &file, bool binary = false);
 
   /*! Open pipe to compressed text file for writing
    *

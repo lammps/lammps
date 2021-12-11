@@ -72,11 +72,11 @@
 struct compress_info {
   /// identifier for the different compression algorithms
   enum styles { NONE, GZIP, BZIP2, ZSTD, XZ, LZMA, LZ4 };
-  const std::string extension;     ///< filename extension for the current algorithm
-  const std::string command;       ///< command to perform compression or decompression
+  const std::string extension;          ///< filename extension for the current algorithm
+  const std::string command;            ///< command to perform compression or decompression
   const std::string compressflags;      ///< flags to append to compress from stdin to stdout
   const std::string uncompressflags;    ///< flags to decompress file to stdout
-  const int style;                 ///< compression style flag
+  const int style;                      ///< compression style flag
 };
 
 // clang-format off
@@ -230,16 +230,16 @@ std::string platform::os_info()
 
   if (platform::file_is_readable("/etc/os-release")) {
     try {
-        TextFileReader reader("/etc/os-release","");
-        while (true) {
-          auto words = reader.next_values(0,"=");
-          if ((words.count() > 1) && (words.next_string() == "PRETTY_NAME")) {
-            buf += " " + utils::trim(words.next_string());
-            break;
-          }
+      TextFileReader reader("/etc/os-release", "");
+      while (true) {
+        auto words = reader.next_values(0, "=");
+        if ((words.count() > 1) && (words.next_string() == "PRETTY_NAME")) {
+          buf += " " + utils::trim(words.next_string());
+          break;
         }
+      }
     } catch (std::exception &e) {
-      ; // EOF but keyword not found
+      ;    // EOF but keyword not found
     }
   }
 
@@ -427,11 +427,11 @@ std::string platform::compress_info()
   std::string buf = "Available compression formats:\n\n";
   bool none_found = true;
   for (const auto &cmpi : compress_styles) {
-     if (cmpi.style == ::compress_info::NONE) continue;
-     if (find_exe_path(cmpi.command).size()) {
-       none_found = false;
-       buf += fmt::format("Extension: .{:6} Command: {}\n", cmpi.extension, cmpi.command);
-     }
+    if (cmpi.style == ::compress_info::NONE) continue;
+    if (find_exe_path(cmpi.command).size()) {
+      none_found = false;
+      buf += fmt::format("Extension: .{:6} Command: {}\n", cmpi.extension, cmpi.command);
+    }
   }
   if (none_found) buf += "None\n";
   return buf;
@@ -450,7 +450,7 @@ int platform::putenv(const std::string &vardef)
   if (found == std::string::npos)
     return _putenv_s(vardef.c_str(), "1");
   else
-    return _putenv_s(vardef.substr(0, found).c_str(), vardef.substr(found+1).c_str());
+    return _putenv_s(vardef.substr(0, found).c_str(), vardef.substr(found + 1).c_str());
 #else
   if (found == std::string::npos)
     return setenv(vardef.c_str(), "", 1);
@@ -472,7 +472,7 @@ int platform::unsetenv(const std::string &variable)
   const char *ptr = getenv(variable.c_str());
   if (!ptr) return -1;
   // empty _putenv_s() definition deletes variable
-  return _putenv_s(variable.c_str(),"");
+  return _putenv_s(variable.c_str(), "");
 #else
   return ::unsetenv(variable.c_str());
 #endif
@@ -579,8 +579,10 @@ void *platform::dlopen(const std::string &fname)
 std::string platform::dlerror()
 {
   const char *errmesg = ::dlerror();
-  if (errmesg) return {errmesg};
-  else return {""};
+  if (errmesg)
+    return {errmesg};
+  else
+    return {""};
 }
 
 // close a shared object
@@ -973,7 +975,7 @@ bool platform::has_compress_extension(const std::string &file)
    open pipe to read a compressed file
 ------------------------------------------------------------------------- */
 
-FILE *platform::compressed_read(const std::string &file)
+FILE *platform::compressed_read(const std::string &file, bool binary)
 {
   FILE *fp = nullptr;
 
@@ -981,9 +983,13 @@ FILE *platform::compressed_read(const std::string &file)
   auto compress = find_compress_type(file);
   if (compress.style == ::compress_info::NONE) return nullptr;
 
-  if (find_exe_path(compress.command).size())
+  if (find_exe_path(compress.command).size()) {
     // put quotes around file name so that they may contain blanks
-    fp = popen((compress.command + compress.uncompressflags + "\"" + file + "\""), "r");
+    if (binary)
+      fp = popen((compress.command + compress.uncompressflags + "\"" + file + "\""), "rb");
+    else
+      fp = popen((compress.command + compress.uncompressflags + "\"" + file + "\""), "r");
+  }
 #endif
   return fp;
 }

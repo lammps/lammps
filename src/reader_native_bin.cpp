@@ -51,7 +51,8 @@ void ReaderNativeBin::open_file(const std::string &file)
   if (fp != nullptr) close_file();
 
   if (platform::has_compress_extension(file)) {
-    error->one(FLERR,"Compressed binary files are not supported");
+    fp = platform::compressed_read(file, true);
+    if (!fp) error->one(FLERR,"Cannot open compressed file for reading");
   } else {
     compressed = 0;
     fp = fopen(file.c_str(), "rb");

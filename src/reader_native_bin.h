@@ -15,7 +15,7 @@
 
 #ifdef READER_CLASS
 // clang-format off
-ReaderStyle(native_bin,ReaderNativeBin);
+ReaderStyle(native/bin,ReaderNativeBin);
 // clang-format on
 #else
 

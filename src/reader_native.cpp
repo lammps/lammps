@@ -174,7 +174,7 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
     return 1;
   }
 
-  match_field(nfield, xflag, yflag, zflag, fieldtype, fieldlabel, scaleflag, wrapflag, fieldflag, labels);
+  match_fields(nfield, xflag, yflag, zflag, fieldtype, fieldlabel, scaleflag, wrapflag, fieldflag, labels);
 
   return natoms;
 }
@@ -186,7 +186,7 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
   xyz flag set by scaleflag + wrapflag (if fieldlabel set) or column label
 ------------------------------------------------------------------------- */
 
-void ReaderNative::match_field(int nfield,
+void ReaderNative::match_fields(int nfield,
                                  int &xflag, int &yflag, int &zflag,
                                  int *fieldtype, char **fieldlabel,
                                  int scaleflag, int wrapflag, int &fieldflag,

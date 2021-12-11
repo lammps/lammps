@@ -41,8 +41,8 @@ class ReaderNative : public Reader {
 
  protected:
   int *fieldindex;    //
-  void match_field(int, int &, int &, int &, int *, char **, int, int, int &,
-                   std::map<std::string, int>);
+  void match_fields(int, int &, int &, int &, int *, char **, int, int, int &,
+                    std::map<std::string, int>);
 
  private:
   char *line;    // line read from dump file

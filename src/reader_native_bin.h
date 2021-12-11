@@ -48,6 +48,9 @@ class ReaderNativeBin : public ReaderNative {
   double *buf;
 
   void read_buf(void *, size_t, size_t);
+  void read_double_chunk(size_t);
+  void skip_buf(size_t);
+  void skip_reading_magic_str();
 };
 
 }    // namespace LAMMPS_NS

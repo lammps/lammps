@@ -973,7 +973,7 @@ bool platform::has_compress_extension(const std::string &file)
    open pipe to read a compressed file
 ------------------------------------------------------------------------- */
 
-FILE *platform::compressed_read(const std::string &file, bool binary)
+FILE *platform::compressed_read(const std::string &file)
 {
   FILE *fp = nullptr;
 
@@ -982,13 +982,8 @@ FILE *platform::compressed_read(const std::string &file, bool binary)
   if (compress.style == ::compress_info::NONE) return nullptr;
 
   if (find_exe_path(compress.command).size())
-  {
     // put quotes around file name so that they may contain blanks
-    if (binary)
-      fp = popen((compress.command + compress.uncompressflags + "\"" + file + "\""), "rb");
-    else
-      fp = popen((compress.command + compress.uncompressflags + "\"" + file + "\""), "r");
-  }
+    fp = popen((compress.command + compress.uncompressflags + "\"" + file + "\""), "r");
 #endif
   return fp;
 }

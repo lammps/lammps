@@ -26,23 +26,25 @@ Examples
 Description
 """""""""""
 
-The local density (LD) potential is a mean-field manybody potential, and, in some
-sense,a generalization of embedded atom models (EAM). The name "local density
-potential" arises from the fact that it assigns an energy to an atom depending
-on the number of neighboring atoms of given type around it within a predefined
-spherical volume (i.e., within a cutoff). The bottom-up coarse-graining (CG)
-literature suggests that such potentials can be widely useful  in capturing
-effective multibody forces in a computationally efficient manner so as to
-improve the quality of CG models of implicit solvation:ref:`(Sanyal1) <Sanyal1>` and
-phase-segregation in liquid mixtures:ref:`(Sanyal2) <Sanyal2>`, and provide guidelines
-to determine the extent of manybody correlations present in a CG
-model.:ref:`(Rosenberger) <Rosenberger>` The LD potential in LAMMPS is primarily
-intended to be used as a corrective potential over traditional pair potentials
-in bottom-up CG models, i.e., as a hybrid pair style with
-other explicit pair interaction terms (e.g., table spline, Lennard Jones, etc.).
-Because the LD potential is not a pair potential per se,  it is implemented
-simply as a single auxiliary file with all specifications that will be read
-upon initialization.
+The local density (LD) potential is a mean-field manybody potential,
+and, in some way, a generalization of embedded atom models (EAM).  The
+name "local density potential" arises from the fact that it assigns an
+energy to an atom depending on the number of neighboring atoms of a
+given type around it within a predefined spherical volume (i.e., within
+the cutoff).  The bottom-up coarse-graining (CG) literature suggests
+that such potentials can be widely useful in capturing effective
+multibody forces in a computationally efficient manner and thus improve
+the quality of CG models of implicit solvation :ref:`(Sanyal1)
+<Sanyal1>` and phase-segregation in liquid mixtures :ref:`(Sanyal2)
+<Sanyal2>`, and provide guidelines to determine the extent of manybody
+correlations present in a CG model :ref:`(Rosenberger) <Rosenberger>`.
+The LD potential in LAMMPS is primarily intended to be used as a
+corrective potential over traditional pair potentials in bottom-up CG
+models via :doc:`hybrid/overlay pair style <pair_hybrid>` with other
+explicit pair interaction terms (e.g., tabulated, Lennard-Jones, Morse
+etc.).  Because the LD potential is not a pair potential per se, it is
+implemented simply as a single auxiliary file with all specifications
+that will be read upon initialization.
 
 .. note::
 

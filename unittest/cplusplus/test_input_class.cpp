@@ -77,8 +77,8 @@ TEST_F(Input_commands, from_file)
     lmp->input->file(cont_file);
     EXPECT_EQ(lmp->atom->natoms, 2);
 
-    unlink(demo_file);
-    unlink(cont_file);
+    platform::unlink(demo_file);
+    platform::unlink(cont_file);
 };
 
 TEST_F(Input_commands, from_line)

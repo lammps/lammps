@@ -11,7 +11,7 @@
 
 # Initialize simulation box
 dimension       3
-boundary        p p p 
+boundary        p p p
 units           real
 atom_style      molecular
 
@@ -32,7 +32,7 @@ pair_coeff          *     *    local/density  benzene_water.localdensity.table
 fix recentering all recenter 0.0 0.0 0.0 units box
 
 # Thermostat & time integration
-timestep        2.0 
+timestep        2.0
 thermo          100
 thermo_style    custom temp ke pe etotal ebond eangle edihed evdwl
 
@@ -49,14 +49,14 @@ run             5000
 
 # Turn off recentering during production phase
 unfix recentering
+reset_timestep  0
 
 # Setup trajectory output
-dump            myDump all custom 100 benzene_water.lammpstrj.gz id type x y z element
-dump_modify     myDump element B W
-dump_modify     myDump sort id
+#dump            myDump all custom 100 benzene_water.lammpstrj.gz id type x y z element
+#dump_modify     myDump element B W
+#dump_modify     myDump sort id
 
 # Production (for realistic results, run for 10000000 steps)
-reset_timestep  0
-run             1000             
+run             1000
 
 

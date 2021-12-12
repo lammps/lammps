@@ -53,9 +53,6 @@ class ReaderNative : public Reader {
   int size_one;                 // number of double for one atom
   int maxbuf;                   // maximum buffer size
 
-  void match_fields(int, int &, int &, int &, int *, char **, int, int, int &,
-                    std::map<std::string, int>);
-
   int find_label(const std::string &label, const std::map<std::string, int> &labels);
   void read_lines(int);
 

@@ -138,7 +138,7 @@ void ReaderNative::skip()
     int n;
     for (int i = 0; i < nchunk; i++) {
       read_buf(&n, sizeof(int), 1);
-      read_double_chunk(n);
+      skip_buf(n*sizeof(double));
     }
 
     delete[] magic_string;

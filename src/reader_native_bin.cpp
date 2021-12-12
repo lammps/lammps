@@ -316,6 +316,7 @@ void ReaderNativeBin::read_double_chunk(size_t count)
 
 void ReaderNativeBin::skip_buf(size_t size)
 {
-      char tmp[size];
-      read_buf(tmp, 1, size);
+  fseek(fp, size, SEEK_CUR);
+  // detect end-of-file
+  if (feof(fp)) error->one(FLERR,"Unexpected end of dump file");
 }

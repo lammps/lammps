@@ -41,7 +41,6 @@ Syntax
        *wrapped* value = *yes* or *no* = coords in dump file are wrapped/unwrapped
        *format* values = format of dump file, must be last keyword if used
          *native* = native LAMMPS dump file
-         *native/bin* = native LAMMPS dump file in binary format
          *xyz* = XYZ file
          *adios* [*timeout* value] = dump file written by the :doc:`dump adios <dump_adios>` command
            *timeout* = specify waiting time for the arrival of the timestep when running concurrently.
@@ -114,8 +113,8 @@ to tell LAMMPS how many parallel files exist, via its specified
 
 The format of the dump file is selected through the *format* keyword.
 If specified, it must be the last keyword used, since all remaining
-arguments are passed on to the dump reader.  The *native* and *native/bin"
-format is for native LAMMPS dump files, written with a :doc:`dump atom <dump>`
+arguments are passed on to the dump reader.  The *native* format is
+for native LAMMPS dump files, written with a :doc:`dump atom <dump>`
 or :doc:`dump custom <dump>` command.  The *xyz* format is for generic XYZ
 formatted dump files.  These formats take no additional values.
 

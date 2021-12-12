@@ -31,7 +31,7 @@ Reader::Reader(LAMMPS *lmp) : Pointers(lmp)
 
 /* ----------------------------------------------------------------------
    try to open given file
-   generic version for ASCII files that may be compressed or native binary dumps
+   generic version for ASCII files with optional compression or for native binary dumps
 ------------------------------------------------------------------------- */
 
 void Reader::open_file(const std::string &file)

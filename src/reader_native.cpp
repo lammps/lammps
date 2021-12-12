@@ -304,7 +304,7 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
 
     labelline = &line[strlen("ITEM: ATOMS ")];
   }
-  
+
   std::map<std::string, int> labels;
   Tokenizer tokens(labelline);
   nwords = 0;
@@ -319,7 +319,7 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
 
   match_fields(nfield, xflag, yflag, zflag, fieldtype, fieldlabel,
                scaleflag, wrapflag, fieldflag, labels);
-  
+
   return natoms;
 }
 

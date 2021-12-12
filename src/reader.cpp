@@ -25,11 +25,13 @@ using namespace LAMMPS_NS;
 Reader::Reader(LAMMPS *lmp) : Pointers(lmp)
 {
   fp = nullptr;
+  binary = false;
+  compressed = false;
 }
 
 /* ----------------------------------------------------------------------
    try to open given file
-   generic version for ASCII files that may be compressed
+   generic version for ASCII files that may be compressed or native binary dumps
 ------------------------------------------------------------------------- */
 
 void Reader::open_file(const std::string &file)
@@ -37,12 +39,18 @@ void Reader::open_file(const std::string &file)
   if (fp != nullptr) close_file();
 
   if (platform::has_compress_extension(file)) {
-    compressed = 1;
+    compressed = true;
     fp = platform::compressed_read(file);
     if (!fp) error->one(FLERR,"Cannot open compressed file for reading");
   } else {
-    compressed = 0;
-    fp = fopen(file.c_str(),"r");
+    compressed = false;
+    if (utils::strmatch(file, "\\.bin$")) {
+      binary = true;
+      fp = fopen(file.c_str(),"rb");
+    } else {
+      fp = fopen(file.c_str(),"r");
+      binary = false;
+    }
   }
 
   if (!fp) error->one(FLERR,"Cannot open file {}: {}", file, utils::getsyserror());

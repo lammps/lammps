@@ -36,14 +36,17 @@ ReaderNative::ReaderNative(LAMMPS *lmp) : Reader(lmp)
 {
   line = new char[MAXLINE];
   fieldindex = nullptr;
+  maxbuf = 0;
+  databuf = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
 ReaderNative::~ReaderNative()
 {
-  delete [] line;
+  delete[] line;
   memory->destroy(fieldindex);
+  memory->destroy(databuf);
 }
 
 /* ----------------------------------------------------------------------
@@ -54,25 +57,56 @@ ReaderNative::~ReaderNative()
 
 int ReaderNative::read_time(bigint &ntimestep)
 {
-  char *eof = fgets(line,MAXLINE,fp);
-  if (eof == nullptr) return 1;
+  if (binary) {
+    int endian = 0x0001;
+    revision = 0x0001;
+    magic_string = nullptr;
+    unit_style = nullptr;
 
-  // skip over unit and time information, if present.
+    fread(&ntimestep, sizeof(bigint), 1, fp);
 
-  if (utils::strmatch(line,"^\\s*ITEM: UNITS\\s*$"))
-    read_lines(2);
+    // detect end-of-file
+    if (feof(fp)) return 1;
 
-  if (utils::strmatch(line,"^\\s*ITEM: TIME\\s*$"))
-    read_lines(2);
+    // detect newer format
+    if (ntimestep < 0) {
+      // first bigint encodes negative format name length
+      bigint magic_string_len = -ntimestep;
 
-  if (!utils::strmatch(line,"^\\s*ITEM: TIMESTEP\\s*$"))
-    error->one(FLERR,"Dump file is incorrectly formatted");
+      delete[] magic_string;
+      magic_string = new char[magic_string_len + 1];
+      read_buf(magic_string, sizeof(char), magic_string_len);
+      magic_string[magic_string_len] = '\0';
 
-  read_lines(1);
-  int rv = sscanf(line,BIGINT_FORMAT,&ntimestep);
-  if (rv != 1)
-    error->one(FLERR,"Dump file is incorrectly formatted");
+      // read endian flag
+      read_buf(&endian, sizeof(int), 1);
 
+      // read revision number
+      read_buf(&revision, sizeof(int), 1);
+
+      // read the real ntimestep
+      read_buf(&ntimestep, sizeof(bigint), 1);
+    }
+  } else {
+    char *eof = fgets(line,MAXLINE,fp);
+    if (eof == nullptr) return 1;
+
+    // skip over unit and time information, if present.
+
+    if (utils::strmatch(line,"^\\s*ITEM: UNITS\\s*$"))
+      read_lines(2);
+
+    if (utils::strmatch(line,"^\\s*ITEM: TIME\\s*$"))
+      read_lines(2);
+
+    if (!utils::strmatch(line,"^\\s*ITEM: TIMESTEP\\s*$"))
+      error->one(FLERR,"Dump file is incorrectly formatted");
+
+    read_lines(1);
+    int rv = sscanf(line,BIGINT_FORMAT,&ntimestep);
+    if (rv != 1)
+      error->one(FLERR,"Dump file is incorrectly formatted");
+  }
   return 0;
 }
 
@@ -83,22 +117,73 @@ int ReaderNative::read_time(bigint &ntimestep)
 
 void ReaderNative::skip()
 {
-  read_lines(2);
-  bigint natoms;
-  int rv = sscanf(line,BIGINT_FORMAT,&natoms);
-  if (rv != 1)
-    error->one(FLERR,"Dump file is incorrectly formatted");
+  if (binary) {
+    bigint natoms;
+    int triclinic;
+    skip_buf(sizeof(bigint));
+    read_buf(&triclinic, sizeof(int), 1);
+    skip_buf((sizeof(int)+sizeof(double))*6);
+    if (triclinic) {
+      skip_buf(sizeof(double)*3);
+    }
+    skip_buf(sizeof(int));
 
-  read_lines(5);
+    skip_reading_magic_str();
 
-  // invoke read_lines() in chunks no larger than MAXSMALLINT
+    // read chunk and skip them
 
-  int nchunk;
-  bigint nremain = natoms;
-  while (nremain) {
-    nchunk = MIN(nremain,MAXSMALLINT);
-    read_lines(nchunk);
-    nremain -= nchunk;
+    int nchunk;
+    read_buf(&nchunk, sizeof(int), 1);
+
+    int n;
+    for (int i = 0; i < nchunk; i++) {
+      read_buf(&n, sizeof(int), 1);
+      read_double_chunk(n);
+    }
+
+    delete[] magic_string;
+    delete[] unit_style;
+  } else {
+    read_lines(2);
+    bigint natoms;
+    int rv = sscanf(line,BIGINT_FORMAT,&natoms);
+    if (rv != 1)
+      error->one(FLERR,"Dump file is incorrectly formatted");
+
+    read_lines(5);
+
+    // invoke read_lines() in chunks no larger than MAXSMALLINT
+
+    int nchunk;
+    bigint nremain = natoms;
+    while (nremain) {
+      nchunk = MIN(nremain,MAXSMALLINT);
+      read_lines(nchunk);
+      nremain -= nchunk;
+    }
+  }
+}
+
+void ReaderNative::skip_reading_magic_str()
+{
+  if (magic_string && revision > 0x0001) {
+    int len;
+    read_buf(&len, sizeof(int), 1);
+
+    if (len > 0) {
+      // has units
+      skip_buf(sizeof(char)*len);
+    }
+
+    char flag = 0;
+    read_buf(&flag, sizeof(char), 1);
+
+    if (flag) {
+      skip_buf(sizeof(double));
+    }
+
+    read_buf(&len, sizeof(int), 1);
+    skip_buf(sizeof(char)*len);
   }
 }
 
@@ -123,45 +208,103 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
                                  int scaleflag, int wrapflag, int &fieldflag,
                                  int &xflag, int &yflag, int &zflag)
 {
-  bigint natoms;
-  int rv;
+  bigint natoms = 0;
+  int len = 0;
+  char *labelline;
 
-  read_lines(2);
-  rv = sscanf(line,BIGINT_FORMAT,&natoms);
-  if (rv != 1)
-    error->one(FLERR,"Dump file is incorrectly formatted");
+  if (binary) {
+    read_buf(&natoms, sizeof(bigint), 1);
 
-  boxinfo = 1;
-  triclinic = 0;
-  box[0][2] = box[1][2] = box[2][2] = 0.0;
-  read_lines(1);
-  if (line[strlen("ITEM: BOX BOUNDS ")] == 'x') triclinic = 1;
+    boxinfo = 1;
+    triclinic = 0;
+    box[0][2] = box[1][2] = box[2][2] = 0.0;
 
-  read_lines(1);
-  if (!triclinic) rv = 2 - sscanf(line,"%lg %lg",&box[0][0],&box[0][1]);
-  else rv = 3 - sscanf(line,"%lg %lg %lg",&box[0][0],&box[0][1],&box[0][2]);
-  if (rv != 0) error->one(FLERR,"Dump file is incorrectly formatted");
+    int boundary[3][2];
+    read_buf(&triclinic, sizeof(int), 1);
+    read_buf(&boundary[0][0], sizeof(int), 6);
+    read_buf(box[0], sizeof(double), 2);
+    read_buf(box[1], sizeof(double), 2);
+    read_buf(box[2], sizeof(double), 2);
+    if (triclinic) {
+      read_buf(&box[0][2], sizeof(double), 1);
+      read_buf(&box[1][2], sizeof(double), 1);
+      read_buf(&box[2][2], sizeof(double), 1);
+    }
 
-  read_lines(1);
-  if (!triclinic) rv = 2 - sscanf(line,"%lg %lg",&box[1][0],&box[1][1]);
-  else rv = 3 - sscanf(line,"%lg %lg %lg",&box[1][0],&box[1][1],&box[1][2]);
-  if (rv != 0) error->one(FLERR,"Dump file is incorrectly formatted");
+    // extract column labels and match to requested fields
+    read_buf(&size_one, sizeof(int), 1);
 
-  read_lines(1);
-  if (!triclinic) rv = 2 - sscanf(line,"%lg %lg",&box[2][0],&box[2][1]);
-  else rv = 3 - sscanf(line,"%lg %lg %lg",&box[2][0],&box[2][1],&box[2][2]);
-  if (rv != 0) error->one(FLERR,"Dump file is incorrectly formatted");
+    if (!fieldinfo) {
+      skip_reading_magic_str();
+      return natoms;
+    }
 
-  read_lines(1);
+    if (magic_string && revision > 0x0001) {
+      // newer format includes units string, columns string
+      // and time
+      read_buf(&len, sizeof(int), 1);
+      labelline = new char[len + 1];
 
-  // if no field info requested, just return
+      if (len > 0) {
+        // has units
+        delete[] unit_style;
+        unit_style = new char[len + 1];
+        read_buf(unit_style, sizeof(char), len);
+        unit_style[len] = '\0';
+      }
 
-  if (!fieldinfo) return natoms;
+      char flag = 0;
+      read_buf(&flag, sizeof(char), 1);
 
-  // exatract column labels and match to requested fields
+      if (flag) {
+        double time;
+        read_buf(&time, sizeof(double), 1);
+      }
 
-  char *labelline = &line[strlen("ITEM: ATOMS ")];
+      read_buf(&len, sizeof(int), 1);
+      read_buf(labelline, sizeof(char), len);
+      labelline[len] = '\0';
+    }
+  } else {
+    int rv;
 
+    read_lines(2);
+    rv = sscanf(line,BIGINT_FORMAT,&natoms);
+    if (rv != 1)
+      error->one(FLERR,"Dump file is incorrectly formatted");
+
+    boxinfo = 1;
+    triclinic = 0;
+    box[0][2] = box[1][2] = box[2][2] = 0.0;
+    read_lines(1);
+    if (line[strlen("ITEM: BOX BOUNDS ")] == 'x') triclinic = 1;
+
+    read_lines(1);
+    if (!triclinic) rv = 2 - sscanf(line,"%lg %lg",&box[0][0],&box[0][1]);
+    else rv = 3 - sscanf(line,"%lg %lg %lg",&box[0][0],&box[0][1],&box[0][2]);
+    if (rv != 0) error->one(FLERR,"Dump file is incorrectly formatted");
+
+    read_lines(1);
+    if (!triclinic) rv = 2 - sscanf(line,"%lg %lg",&box[1][0],&box[1][1]);
+    else rv = 3 - sscanf(line,"%lg %lg %lg",&box[1][0],&box[1][1],&box[1][2]);
+    if (rv != 0) error->one(FLERR,"Dump file is incorrectly formatted");
+
+    read_lines(1);
+    if (!triclinic) rv = 2 - sscanf(line,"%lg %lg",&box[2][0],&box[2][1]);
+    else rv = 3 - sscanf(line,"%lg %lg %lg",&box[2][0],&box[2][1],&box[2][2]);
+    if (rv != 0) error->one(FLERR,"Dump file is incorrectly formatted");
+
+    read_lines(1);
+
+    // if no field info requested, just return
+
+    if (!fieldinfo) return natoms;
+
+    // extract column labels and match to requested fields
+
+    labelline = &line[strlen("ITEM: ATOMS ")];
+  }
+  
   std::map<std::string, int> labels;
   Tokenizer tokens(labelline);
   nwords = 0;
@@ -174,8 +317,9 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
     return 1;
   }
 
-  match_fields(nfield, xflag, yflag, zflag, fieldtype, fieldlabel, scaleflag, wrapflag, fieldflag, labels);
-
+  match_fields(nfield, xflag, yflag, zflag, fieldtype, fieldlabel,
+               scaleflag, wrapflag, fieldflag, labels);
+  
   return natoms;
 }
 
@@ -323,22 +467,52 @@ void ReaderNative::match_fields(int nfield,
 
 void ReaderNative::read_atoms(int n, int nfield, double **fields)
 {
-  int i,m;
-  char *eof;
+  if (binary) {
+    if (feof(fp)) {
+      error->one(FLERR,"Unexpected end of dump file");
+    }
 
-  for (i = 0; i < n; i++) {
-    eof = fgets(line,MAXLINE,fp);
-    if (eof == nullptr) error->one(FLERR,"Unexpected end of dump file");
+    int i_atom = 0;
+    int nchunk;
+    read_buf(&nchunk, sizeof(int), 1);
+    for (int i = 0; i < nchunk; i++) {
 
-    // tokenize the line
-    std::vector<std::string> words = Tokenizer(line).as_vector();
+      read_buf(&n, sizeof(int), 1);
 
-    if ((int)words.size() < nwords) error->one(FLERR,"Insufficient columns in dump file");
+      // read chunk and write as size_one values per line
+      read_double_chunk(n);
+      n /= size_one;
+      int m = 0;
+      for (int j = 0; j < n; j++)
+        {
+          double *words = &databuf[m];
+          for (int k = 0; k < nfield; k++)
+            fields[i_atom][k] = words[fieldindex[k]];
+          i_atom += 1;
+          m+=size_one;
+        }
+    }
+    delete[] magic_string;
+    delete[] unit_style;
 
-    // convert selected fields to floats
+  } else {
+    int i,m;
+    char *eof;
 
-    for (m = 0; m < nfield; m++)
-      fields[i][m] = atof(words[fieldindex[m]].c_str());
+    for (i = 0; i < n; i++) {
+      eof = fgets(line,MAXLINE,fp);
+      if (eof == nullptr) error->one(FLERR,"Unexpected end of dump file");
+
+      // tokenize the line
+      std::vector<std::string> words = Tokenizer(line).as_vector();
+
+      if ((int)words.size() < nwords) error->one(FLERR,"Insufficient columns in dump file");
+
+      // convert selected fields to floats
+
+      for (m = 0; m < nfield; m++)
+        fields[i][m] = atof(words[fieldindex[m]].c_str());
+    }
   }
 }
 
@@ -368,4 +542,29 @@ void ReaderNative::read_lines(int n)
   if (n <= 0) return;
   for (int i = 0; i < n; i++) eof = fgets(line,MAXLINE,fp);
   if (eof == nullptr) error->one(FLERR,"Unexpected end of dump file");
+}
+
+void ReaderNative::read_buf(void * ptr, size_t size, size_t count)
+{
+  fread(ptr, size, count, fp);
+
+  // detect end-of-file
+  if (feof(fp)) error->one(FLERR,"Unexpected end of dump file");
+}
+
+void ReaderNative::read_double_chunk(size_t count)
+{
+  // extend buffer to fit chunk size
+  if (count > maxbuf) {
+    memory->grow(databuf,count,"reader:databuf");
+    maxbuf = count;
+  }
+  read_buf(databuf, sizeof(double), count);
+}
+
+void ReaderNative::skip_buf(size_t size)
+{
+  bigint pos = platform::ftell(fp);
+  pos += size;
+  platform::fseek(fp,pos);
 }

@@ -64,6 +64,8 @@ int ReaderNative::read_time(bigint &ntimestep)
   if (binary) {
     int endian = 0x0001;
     revision = 0x0001;
+    delete[] magic_string;
+    delete[] unit_style;
     magic_string = nullptr;
     unit_style = nullptr;
 

@@ -147,6 +147,8 @@ void ReaderNative::skip()
 
     delete[] magic_string;
     delete[] unit_style;
+    magic_string = nullptr;
+    unit_style = nullptr;
   } else {
     read_lines(2);
     bigint natoms;

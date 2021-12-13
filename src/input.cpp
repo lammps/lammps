@@ -783,6 +783,19 @@ int Input::execute_command()
 
   // invoke commands added via style_command.h
 
+  if (lmp && lmp->suffix_enable && utils::strmatch(command,"^dynamical_matrix")) {
+    if (utils::strmatch(lmp->suffix, "^kk")) {
+      std::string cstyle = command + std::string("/") + lmp->suffix;
+      if (command_map->find(command) != command_map->end()) {
+        CommandCreator &command_creator = (*command_map)[cstyle];
+        Command *cmd = command_creator(lmp);
+        cmd->command(narg, arg);
+        delete cmd;
+        return 0;
+      }
+    }
+  }
+
   if (command_map->find(command) != command_map->end()) {
     CommandCreator &command_creator = (*command_map)[command];
     Command *cmd = command_creator(lmp);

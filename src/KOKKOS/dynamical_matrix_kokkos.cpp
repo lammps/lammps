@@ -135,6 +135,13 @@ void DynamicalMatrixKokkos::setup()
   update->setupflag = 0;
 
   lmp->kokkos->auto_sync = 0;
+
+  //if all then skip communication groupmap population
+  if (gcount == atom->natoms)
+    for (bigint i=0; i<atom->natoms; i++)
+      groupmap[i] = i;
+  else
+    create_groupmap();
 }
 
 /* ----------------------------------------------------------------------
@@ -155,6 +162,7 @@ void DynamicalMatrixKokkos::update_force()
 
   f_merge_copy = DAT::t_f_array("DynamicalMatrixKokkos::f_merge_copy",atomKK->k_f.extent(0));
 
+  atomKK->modified(Host,X_MASK);
   atomKK->sync(Device,X_MASK);
 
   force_clear();
@@ -305,8 +313,10 @@ void DynamicalMatrixKokkos::update_force()
   }
   // force modifications
 
-  if (n_post_force) modify->post_force(vflag);
-  timer->stamp(Timer::MODIFY);
+  if (n_post_force) {
+    modify->post_force(vflag);
+    timer->stamp(Timer::MODIFY);
+  }
 
   atomKK->sync(Host,F_MASK);
   lmp->kokkos->auto_sync = 1;

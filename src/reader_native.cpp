@@ -487,6 +487,8 @@ void ReaderNative::read_atoms(int n, int nfield, double **fields)
     }
     delete[] magic_string;
     delete[] unit_style;
+    magic_string = nullptr;
+    unit_style = nullptr;
 
   } else {
     int i,m;

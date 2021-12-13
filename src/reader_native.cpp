@@ -79,7 +79,6 @@ int ReaderNative::read_time(bigint &ntimestep)
       // first bigint encodes negative format name length
       bigint magic_string_len = -ntimestep;
 
-      delete[] magic_string;
       magic_string = new char[magic_string_len + 1];
       read_buf(magic_string, sizeof(char), magic_string_len);
       magic_string[magic_string_len] = '\0';
@@ -147,10 +146,6 @@ void ReaderNative::skip()
       skip_buf(n*sizeof(double));
     }
 
-    delete[] magic_string;
-    delete[] unit_style;
-    magic_string = nullptr;
-    unit_style = nullptr;
   } else {
     read_lines(2);
     bigint natoms;
@@ -255,7 +250,6 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
 
       if (len > 0) {
         // has units
-        delete[] unit_style;
         unit_style = new char[len + 1];
         read_buf(unit_style, sizeof(char), len);
         unit_style[len] = '\0';
@@ -487,10 +481,6 @@ void ReaderNative::read_atoms(int n, int nfield, double **fields)
           m+=size_one;
         }
     }
-    delete[] magic_string;
-    delete[] unit_style;
-    magic_string = nullptr;
-    unit_style = nullptr;
 
   } else {
     int i,m;

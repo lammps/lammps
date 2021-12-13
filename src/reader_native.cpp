@@ -38,6 +38,8 @@ ReaderNative::ReaderNative(LAMMPS *lmp) : Reader(lmp)
   fieldindex = nullptr;
   maxbuf = 0;
   databuf = nullptr;
+  magic_string = nullptr;
+  unit_style = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

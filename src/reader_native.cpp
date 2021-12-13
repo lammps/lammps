@@ -47,6 +47,8 @@ ReaderNative::ReaderNative(LAMMPS *lmp) : Reader(lmp)
 ReaderNative::~ReaderNative()
 {
   delete[] line;
+  delete[] magic_string;
+  delete[] unit_style;
   memory->destroy(fieldindex);
   memory->destroy(databuf);
 }

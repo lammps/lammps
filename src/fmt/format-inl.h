@@ -1780,11 +1780,13 @@ inline bool divisible_by_power_of_5(uint64_t x, int exp) FMT_NOEXCEPT {
          data::divtest_table_for_pow5_64[exp].max_quotient;
 }
 
+#define LAMMPS_WORKAROUND_FOR_DPCXX 1
 // Replaces n by floor(n / pow(5, N)) returning true if and only if n is
 // divisible by pow(5, N).
 // Precondition: n <= 2 * pow(5, N + 1).
 template <int N>
 bool check_divisibility_and_divide_by_pow5(uint32_t& n) FMT_NOEXCEPT {
+#if defined(LAMMPS_WORKAROUND_FOR_DPCXX)
   struct infos1 {
     uint32_t magic_number;
     int bits_for_comparison;
@@ -1792,6 +1794,14 @@ bool check_divisibility_and_divide_by_pow5(uint32_t& n) FMT_NOEXCEPT {
     int shift_amount;
   };
   static constexpr infos1 infos[] = {{0xcccd, 16, 0x3333, 18}, {0xa429, 8, 0x0a, 20}};
+#else
+  static constexpr struct {
+    uint32_t magic_number;
+    int bits_for_comparison;
+    uint32_t threshold;
+    int shift_amount;
+  } infos[] = {{0xcccd, 16, 0x3333, 18}, {0xa429, 8, 0x0a, 20}};
+#endif
   constexpr auto info = infos[N - 1];
   n *= info.magic_number;
   const uint32_t comparison_mask = (1u << info.bits_for_comparison) - 1;
@@ -1803,12 +1813,20 @@ bool check_divisibility_and_divide_by_pow5(uint32_t& n) FMT_NOEXCEPT {
 // Computes floor(n / pow(10, N)) for small n and N.
 // Precondition: n <= pow(10, N + 1).
 template <int N> uint32_t small_division_by_pow10(uint32_t n) FMT_NOEXCEPT {
+#if defined(LAMMPS_WORKAROUND_FOR_DPCXX)
   struct infos2 {
     uint32_t magic_number;
     int shift_amount;
     uint32_t divisor_times_10;
   };
   static constexpr infos2 infos[] = {{0xcccd, 19, 100}, {0xa3d8, 22, 1000}};
+#else
+  static constexpr struct {
+    uint32_t magic_number;
+    int shift_amount;
+    uint32_t divisor_times_10;
+  } infos[] = {{0xcccd, 19, 100}, {0xa3d8, 22, 1000}};
+#endif
   constexpr auto info = infos[N - 1];
   FMT_ASSERT(n <= info.divisor_times_10, "n is too large");
   return n * info.magic_number >> info.shift_amount;

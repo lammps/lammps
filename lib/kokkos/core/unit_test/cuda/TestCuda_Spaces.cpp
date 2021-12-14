@@ -181,37 +181,33 @@ TEST(cuda, space_access) {
   //--------------------------------------
 
   static_assert(
-      !Kokkos::Impl::SpaceAccessibility<Kokkos::Cuda,
-                                        Kokkos::HostSpace>::accessible,
+      !Kokkos::SpaceAccessibility<Kokkos::Cuda, Kokkos::HostSpace>::accessible,
       "");
 
-  static_assert(Kokkos::Impl::SpaceAccessibility<Kokkos::Cuda,
-                                                 Kokkos::CudaSpace>::accessible,
+  static_assert(
+      Kokkos::SpaceAccessibility<Kokkos::Cuda, Kokkos::CudaSpace>::accessible,
+      "");
+
+  static_assert(Kokkos::SpaceAccessibility<Kokkos::Cuda,
+                                           Kokkos::CudaUVMSpace>::accessible,
                 "");
 
   static_assert(
-      Kokkos::Impl::SpaceAccessibility<Kokkos::Cuda,
-                                       Kokkos::CudaUVMSpace>::accessible,
+      Kokkos::SpaceAccessibility<Kokkos::Cuda,
+                                 Kokkos::CudaHostPinnedSpace>::accessible,
       "");
 
-  static_assert(
-      Kokkos::Impl::SpaceAccessibility<Kokkos::Cuda,
-                                       Kokkos::CudaHostPinnedSpace>::accessible,
-      "");
+  static_assert(!Kokkos::SpaceAccessibility<Kokkos::HostSpace,
+                                            Kokkos::CudaSpace>::accessible,
+                "");
+
+  static_assert(Kokkos::SpaceAccessibility<Kokkos::HostSpace,
+                                           Kokkos::CudaUVMSpace>::accessible,
+                "");
 
   static_assert(
-      !Kokkos::Impl::SpaceAccessibility<Kokkos::HostSpace,
-                                        Kokkos::CudaSpace>::accessible,
-      "");
-
-  static_assert(
-      Kokkos::Impl::SpaceAccessibility<Kokkos::HostSpace,
-                                       Kokkos::CudaUVMSpace>::accessible,
-      "");
-
-  static_assert(
-      Kokkos::Impl::SpaceAccessibility<Kokkos::HostSpace,
-                                       Kokkos::CudaHostPinnedSpace>::accessible,
+      Kokkos::SpaceAccessibility<Kokkos::HostSpace,
+                                 Kokkos::CudaHostPinnedSpace>::accessible,
       "");
 
   static_assert(std::is_same<Kokkos::Impl::HostMirror<Kokkos::CudaSpace>::Space,
@@ -235,23 +231,23 @@ TEST(cuda, space_access) {
                                             Kokkos::CudaUVMSpace>>::value,
                 "");
 
-  static_assert(Kokkos::Impl::SpaceAccessibility<
-                    Kokkos::Impl::HostMirror<Kokkos::Cuda>::Space,
-                    Kokkos::HostSpace>::accessible,
-                "");
+  static_assert(
+      Kokkos::SpaceAccessibility<Kokkos::Impl::HostMirror<Kokkos::Cuda>::Space,
+                                 Kokkos::HostSpace>::accessible,
+      "");
 
-  static_assert(Kokkos::Impl::SpaceAccessibility<
+  static_assert(Kokkos::SpaceAccessibility<
                     Kokkos::Impl::HostMirror<Kokkos::CudaSpace>::Space,
                     Kokkos::HostSpace>::accessible,
                 "");
 
-  static_assert(Kokkos::Impl::SpaceAccessibility<
+  static_assert(Kokkos::SpaceAccessibility<
                     Kokkos::Impl::HostMirror<Kokkos::CudaUVMSpace>::Space,
                     Kokkos::HostSpace>::accessible,
                 "");
 
   static_assert(
-      Kokkos::Impl::SpaceAccessibility<
+      Kokkos::SpaceAccessibility<
           Kokkos::Impl::HostMirror<Kokkos::CudaHostPinnedSpace>::Space,
           Kokkos::HostSpace>::accessible,
       "");
@@ -265,8 +261,8 @@ TEST(cuda, space_access) {
 
 TEST(cuda, uvm) {
   if (Kokkos::CudaUVMSpace::available()) {
-    int *uvm_ptr = (int *)Kokkos::kokkos_malloc<Kokkos::CudaUVMSpace>(
-        "uvm_ptr", sizeof(int));
+    int *uvm_ptr = static_cast<int *>(
+        Kokkos::kokkos_malloc<Kokkos::CudaUVMSpace>("uvm_ptr", sizeof(int)));
 
     *uvm_ptr = 42;
 

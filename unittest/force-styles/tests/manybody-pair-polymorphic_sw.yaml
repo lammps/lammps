@@ -1,7 +1,8 @@
 ---
 lammps_version: 10 Feb 2021
 date_generated: Fri Feb 26 23:09:17 2021
-epsilon: 1.5e-13
+tags: unstable
+epsilon: 2.5e-12
 prerequisites: ! |
   pair polymorphic
 pre_commands: ! |

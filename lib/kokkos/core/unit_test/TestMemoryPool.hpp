@@ -50,7 +50,7 @@
 #include <cmath>
 #include <algorithm>
 
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 
 namespace TestMemoryPool {
 

@@ -50,9 +50,12 @@
 #include <Kokkos_Macros.hpp>
 #include <Kokkos_Tuners.hpp>
 #include <impl/Kokkos_Profiling_Interface.hpp>
+#include <memory>
+#include <unordered_map>
 #include <map>
 #include <string>
 #include <type_traits>
+#include <mutex>
 namespace Kokkos {
 
 // forward declaration
@@ -135,6 +138,71 @@ Kokkos_Profiling_SpaceHandle make_space_handle(const char* space_name);
 
 namespace Experimental {
 
+namespace Impl {
+struct DirectFenceIDHandle {
+  uint32_t value;
+};
+//
+template <typename Space>
+uint32_t idForInstance(const uintptr_t instance) {
+  static std::mutex instance_mutex;
+  const std::lock_guard<std::mutex> lock(instance_mutex);
+  /** Needed to be a ptr due to initialization order problems*/
+  using map_type = std::map<uintptr_t, uint32_t>;
+
+  static std::shared_ptr<map_type> map;
+  if (map.get() == nullptr) {
+    map = std::make_shared<map_type>(map_type());
+  }
+
+  static uint32_t value = 0;
+  constexpr const uint32_t offset =
+      Kokkos::Tools::Experimental::NumReservedDeviceIDs;
+
+  auto find = map->find(instance);
+  if (find == map->end()) {
+    auto ret         = offset + value++;
+    (*map)[instance] = ret;
+    return ret;
+  }
+
+  return find->second;
+}
+
+template <typename Space, typename FencingFunctor>
+void profile_fence_event(const std::string& name, DirectFenceIDHandle devIDTag,
+                         const FencingFunctor& func) {
+  uint64_t handle = 0;
+  Kokkos::Tools::beginFence(
+      name,
+      Kokkos::Tools::Experimental::device_id_root<Space>() + devIDTag.value,
+      &handle);
+  func();
+  Kokkos::Tools::endFence(handle);
+}
+
+inline uint32_t int_for_synchronization_reason(
+    Kokkos::Tools::Experimental::SpecialSynchronizationCases reason) {
+  switch (reason) {
+    case GlobalDeviceSynchronization: return 0;
+    case DeepCopyResourceSynchronization: return 0x00ffffff;
+  }
+  return 0;
+}
+
+template <typename Space, typename FencingFunctor>
+void profile_fence_event(
+    const std::string& name,
+    Kokkos::Tools::Experimental::SpecialSynchronizationCases reason,
+    const FencingFunctor& func) {
+  uint64_t handle = 0;
+  Kokkos::Tools::beginFence(
+      name, device_id_root<Space>() + int_for_synchronization_reason(reason),
+      &handle);  // TODO: correct ID
+  func();
+  Kokkos::Tools::endFence(handle);
+}
+}  // namespace Impl
 void set_init_callback(initFunction callback);
 void set_finalize_callback(finalizeFunction callback);
 void set_parse_args_callback(parseArgsFunction callback);

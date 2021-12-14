@@ -53,11 +53,12 @@
  *  KOKKOS_ENABLE_HPX                 Kokkos::Experimental::HPX execution space
  *  KOKKOS_ENABLE_OPENMP              Kokkos::OpenMP execution space
  *  KOKKOS_ENABLE_OPENMPTARGET        Kokkos::Experimental::OpenMPTarget
- * execution space KOKKOS_ENABLE_HWLOC               HWLOC library is available.
+ *                                    execution space
+ *  KOKKOS_ENABLE_HIP                 Kokkos::Experimental::HIP execution space
+ *  KOKKOS_ENABLE_SYCL                Kokkos::Experimental::SYCL execution space
+ *  KOKKOS_ENABLE_HWLOC               HWLOC library is available.
  *  KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK  Insert array bounds checks, is expensive!
- *  KOKKOS_ENABLE_MPI                 Negotiate MPI/execution space
- * interactions. KOKKOS_ENABLE_CUDA_UVM            Use CUDA UVM for Cuda memory
- * space.
+ *  KOKKOS_ENABLE_CUDA_UVM            Use CUDA UVM for Cuda memory space.
  */
 
 #ifndef KOKKOS_DONT_INCLUDE_CORE_CONFIG_H
@@ -211,6 +212,11 @@
 #define KOKKOS_ENABLE_PRAGMA_SIMD 1
 #endif
 
+// FIXME Workaround for ICE with intel 17,18,19 in Trilinos
+#if (KOKKOS_COMPILER_INTEL <= 1900)
+#define KOKKOS_IMPL_WORKAROUND_ICE_IN_TRILINOS_WITH_OLD_INTEL_COMPILERS
+#endif
+
 // FIXME_SYCL
 #if !defined(KOKKOS_ENABLE_SYCL)
 #define KOKKOS_ENABLE_PRAGMA_IVDEP 1
@@ -220,10 +226,18 @@
 #define KOKKOS_MEMORY_ALIGNMENT 64
 #endif
 
+#if defined(_WIN32)
+#define KOKKOS_RESTRICT __restrict
+#else
 #define KOKKOS_RESTRICT __restrict__
+#endif
 
 #ifndef KOKKOS_IMPL_ALIGN_PTR
+#if defined(_WIN32)
+#define KOKKOS_IMPL_ALIGN_PTR(size) __declspec(align_value(size))
+#else
 #define KOKKOS_IMPL_ALIGN_PTR(size) __attribute__((align_value(size)))
+#endif
 #endif
 
 #if (1700 > KOKKOS_COMPILER_INTEL)
@@ -507,24 +521,44 @@
 #if defined(KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE)
 #define KOKKOS_ENABLE_TASKDAG
 #endif
+// FIXME_SYCL Tasks not implemented
 #elif !defined(KOKKOS_ENABLE_HIP) && !defined(KOKKOS_ENABLE_SYCL)
 #define KOKKOS_ENABLE_TASKDAG
-#endif
-
-#if defined(KOKKOS_ENABLE_CUDA)
-#define KOKKOS_IMPL_CUDA_VERSION_9_WORKAROUND
-#if (__CUDA_ARCH__)
-#define KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
-#endif
 #endif
 
 #define KOKKOS_INVALID_INDEX (~std::size_t(0))
 
 #define KOKKOS_IMPL_CTOR_DEFAULT_ARG KOKKOS_INVALID_INDEX
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
 #define KOKKOS_CONSTEXPR_14 constexpr
-#define KOKKOS_DEPRECATED [[deprecated]]
 #define KOKKOS_DEPRECATED_TRAILING_ATTRIBUTE
+#endif
+
+// Guard intel compiler version <= 1900
+// intel error #2651: attribute does not apply to any entity
+// using <deprecated_type> KOKKOS_DEPRECATED = ...
+#if defined(KOKKOS_ENABLE_DEPRECATION_WARNINGS) && !defined(__NVCC__) && \
+    (KOKKOS_COMPILER_INTEL > 1900)
+#define KOKKOS_DEPRECATED [[deprecated]]
+#define KOKKOS_DEPRECATED_WITH_COMMENT(comment) [[deprecated(comment)]]
+#else
+#define KOKKOS_DEPRECATED
+#define KOKKOS_DEPRECATED_WITH_COMMENT(comment)
+#endif
+
+#define KOKKOS_IMPL_STRINGIFY(x) #x
+#define KOKKOS_IMPL_TOSTRING(x) KOKKOS_IMPL_STRINGIFY(x)
+
+#ifdef _MSC_VER
+#define KOKKOS_IMPL_DO_PRAGMA(x) __pragma(x)
+#define KOKKOS_IMPL_WARNING(desc) \
+  KOKKOS_IMPL_DO_PRAGMA(message(  \
+      __FILE__ "(" KOKKOS_IMPL_TOSTRING(__LINE__) ") : warning: " #desc))
+#else
+#define KOKKOS_IMPL_DO_PRAGMA(x) _Pragma(#x)
+#define KOKKOS_IMPL_WARNING(desc) KOKKOS_IMPL_DO_PRAGMA(message(#desc))
+#endif
 
 // DJS 05/28/2019: Bugfix: Issue 2155
 // Use KOKKOS_ENABLE_CUDA_LDG_INTRINSIC to avoid memory leak in RandomAccess
@@ -541,7 +575,7 @@
 
 #if (defined(KOKKOS_COMPILER_GNU) || defined(KOKKOS_COMPILER_CLANG) ||  \
      defined(KOKKOS_COMPILER_INTEL) || defined(KOKKOS_COMPILER_PGI)) && \
-    !defined(KOKKOS_COMPILER_MSVC)
+    !defined(_WIN32)
 #define KOKKOS_IMPL_ENABLE_STACKTRACE
 #define KOKKOS_IMPL_ENABLE_CXXABI
 #endif
@@ -553,7 +587,8 @@
 #undef __CUDA_ARCH__
 #endif
 
-#if defined(KOKKOS_COMPILER_MSVC) && !defined(KOKKOS_COMPILER_CLANG)
+#if (defined(KOKKOS_COMPILER_MSVC) && !defined(KOKKOS_COMPILER_CLANG)) || \
+    (defined(KOKKOS_COMPILER_INTEL) && defined(_WIN32))
 #define KOKKOS_THREAD_LOCAL __declspec(thread)
 #else
 #define KOKKOS_THREAD_LOCAL __thread

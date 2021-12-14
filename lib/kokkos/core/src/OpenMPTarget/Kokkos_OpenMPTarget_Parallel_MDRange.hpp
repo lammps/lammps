@@ -91,7 +91,7 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
 
 #pragma omp target teams distribute map(to : functor) num_teams(end - begin)
     {
-      for (ptrdiff_t tile_idx = begin; tile_idx < end; tile_idx++) {
+      for (ptrdiff_t tile_idx = begin; tile_idx < end; ++tile_idx) {
 
 #pragma omp parallel
         {
@@ -117,31 +117,6 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
   }
 
   template <int Rank>
-  inline typename std::enable_if<Rank == 1>::type execute_tile(
-      typename Policy::point_type offset, const FunctorType& functor,
-      const Policy& policy) const {
-#ifdef KOKKOS_IMPL_MDRANGE_USE_NO_TILES
-    (void)offset;
-    const auto begin_0 = policy.m_lower[0];
-
-    const auto end_0 = policy.m_upper[0];
-
-#pragma omp target teams distribute parallel for map(to : functor)
-    for (ptrdiff_t i0 = begin_0; i0 < end_0; i0++) {
-      functor(i0);
-    }
-#else
-    const ptrdiff_t begin_0 = offset[0];
-    ptrdiff_t end_0         = begin_0 + policy.m_tile[0];
-    end_0 = end_0 < policy.m_upper[0] ? end_0 : policy.m_upper[0];
-#pragma omp for
-    for (ptrdiff_t i0 = begin_0; i0 < end_0; i0++) {
-      functor(i0);
-    }
-#endif
-  }
-
-  template <int Rank>
   inline typename std::enable_if<Rank == 2>::type execute_tile(
       typename Policy::point_type offset, const FunctorType& functor,
       const Policy& policy) const {
@@ -154,8 +129,8 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
     const auto end_1 = policy.m_upper[1];
 
 #pragma omp target teams distribute parallel for collapse(2) map(to : functor)
-    for (auto i0 = begin_0; i0 < end_0; i0++) {
-      for (auto i1 = begin_1; i1 < end_1; i1++) {
+    for (auto i0 = begin_0; i0 < end_0; ++i0) {
+      for (auto i1 = begin_1; i1 < end_1; ++i1) {
         if constexpr (std::is_same<typename Policy::work_tag, void>::value)
           functor(i0, i1);
         else
@@ -172,8 +147,8 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
     end_1 = end_1 < policy.m_upper[1] ? end_1 : policy.m_upper[1];
 
 #pragma omp for collapse(2)
-    for (ptrdiff_t i0 = begin_0; i0 < end_0; i0++)
-      for (ptrdiff_t i1 = begin_1; i1 < end_1; i1++) {
+    for (ptrdiff_t i0 = begin_0; i0 < end_0; ++i0)
+      for (ptrdiff_t i1 = begin_1; i1 < end_1; ++i1) {
         if constexpr (std::is_same<typename Policy::work_tag, void>::value)
           functor(i0, i1);
         else
@@ -197,9 +172,9 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
     const auto end_2 = policy.m_upper[2];
 
 #pragma omp target teams distribute parallel for collapse(3) map(to : functor)
-    for (auto i0 = begin_0; i0 < end_0; i0++) {
-      for (auto i1 = begin_1; i1 < end_1; i1++) {
-        for (auto i2 = begin_2; i2 < end_2; i2++) {
+    for (auto i0 = begin_0; i0 < end_0; ++i0) {
+      for (auto i1 = begin_1; i1 < end_1; ++i1) {
+        for (auto i2 = begin_2; i2 < end_2; ++i2) {
           if constexpr (std::is_same<typename Policy::work_tag, void>::value)
             functor(i0, i1, i2);
           else
@@ -221,9 +196,9 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
     end_2 = end_2 < policy.m_upper[2] ? end_2 : policy.m_upper[2];
 
 #pragma omp for collapse(3)
-    for (ptrdiff_t i0 = begin_0; i0 < end_0; i0++)
-      for (ptrdiff_t i1 = begin_1; i1 < end_1; i1++)
-        for (ptrdiff_t i2 = begin_2; i2 < end_2; i2++) {
+    for (ptrdiff_t i0 = begin_0; i0 < end_0; ++i0)
+      for (ptrdiff_t i1 = begin_1; i1 < end_1; ++i1)
+        for (ptrdiff_t i2 = begin_2; i2 < end_2; ++i2) {
           if constexpr (std::is_same<typename Policy::work_tag, void>::value)
             functor(i0, i1, i2);
           else
@@ -249,10 +224,10 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
     const auto end_3 = policy.m_upper[3];
 
 #pragma omp target teams distribute parallel for collapse(4) map(to : functor)
-    for (auto i0 = begin_0; i0 < end_0; i0++) {
-      for (auto i1 = begin_1; i1 < end_1; i1++) {
-        for (auto i2 = begin_2; i2 < end_2; i2++) {
-          for (auto i3 = begin_3; i3 < end_3; i3++) {
+    for (auto i0 = begin_0; i0 < end_0; ++i0) {
+      for (auto i1 = begin_1; i1 < end_1; ++i1) {
+        for (auto i2 = begin_2; i2 < end_2; ++i2) {
+          for (auto i3 = begin_3; i3 < end_3; ++i3) {
             if constexpr (std::is_same<typename Policy::work_tag, void>::value)
               functor(i0, i1, i2, i3);
             else
@@ -279,10 +254,10 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
     end_3 = end_3 < policy.m_upper[3] ? end_3 : policy.m_upper[3];
 
 #pragma omp for collapse(4)
-    for (ptrdiff_t i0 = begin_0; i0 < end_0; i0++)
-      for (ptrdiff_t i1 = begin_1; i1 < end_1; i1++)
-        for (ptrdiff_t i2 = begin_2; i2 < end_2; i2++)
-          for (ptrdiff_t i3 = begin_3; i3 < end_3; i3++) {
+    for (ptrdiff_t i0 = begin_0; i0 < end_0; ++i0)
+      for (ptrdiff_t i1 = begin_1; i1 < end_1; ++i1)
+        for (ptrdiff_t i2 = begin_2; i2 < end_2; ++i2)
+          for (ptrdiff_t i3 = begin_3; i3 < end_3; ++i3) {
             if constexpr (std::is_same<typename Policy::work_tag, void>::value)
               functor(i0, i1, i2, i3);
             else
@@ -310,11 +285,11 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
     const auto end_4 = policy.m_upper[4];
 
 #pragma omp target teams distribute parallel for collapse(5) map(to : functor)
-    for (auto i0 = begin_0; i0 < end_0; i0++) {
-      for (auto i1 = begin_1; i1 < end_1; i1++) {
-        for (auto i2 = begin_2; i2 < end_2; i2++) {
-          for (auto i3 = begin_3; i3 < end_3; i3++) {
-            for (auto i4 = begin_4; i4 < end_4; i4++) {
+    for (auto i0 = begin_0; i0 < end_0; ++i0) {
+      for (auto i1 = begin_1; i1 < end_1; ++i1) {
+        for (auto i2 = begin_2; i2 < end_2; ++i2) {
+          for (auto i3 = begin_3; i3 < end_3; ++i3) {
+            for (auto i4 = begin_4; i4 < end_4; ++i4) {
               if constexpr (std::is_same<typename Policy::work_tag,
                                          void>::value)
                 functor(i0, i1, i2, i3, i4);
@@ -347,11 +322,11 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
     end_4 = end_4 < policy.m_upper[4] ? end_4 : policy.m_upper[4];
 
 #pragma omp for collapse(5)
-    for (ptrdiff_t i0 = begin_0; i0 < end_0; i0++)
-      for (ptrdiff_t i1 = begin_1; i1 < end_1; i1++)
-        for (ptrdiff_t i2 = begin_2; i2 < end_2; i2++)
-          for (ptrdiff_t i3 = begin_3; i3 < end_3; i3++)
-            for (ptrdiff_t i4 = begin_4; i4 < end_4; i4++) {
+    for (ptrdiff_t i0 = begin_0; i0 < end_0; ++i0)
+      for (ptrdiff_t i1 = begin_1; i1 < end_1; ++i1)
+        for (ptrdiff_t i2 = begin_2; i2 < end_2; ++i2)
+          for (ptrdiff_t i3 = begin_3; i3 < end_3; ++i3)
+            for (ptrdiff_t i4 = begin_4; i4 < end_4; ++i4) {
               if constexpr (std::is_same<typename Policy::work_tag,
                                          void>::value)
                 functor(i0, i1, i2, i3, i4);
@@ -382,12 +357,12 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
     const auto end_5 = policy.m_upper[5];
 
 #pragma omp target teams distribute parallel for collapse(6) map(to : functor)
-    for (auto i0 = begin_0; i0 < end_0; i0++) {
-      for (auto i1 = begin_1; i1 < end_1; i1++) {
-        for (auto i2 = begin_2; i2 < end_2; i2++) {
-          for (auto i3 = begin_3; i3 < end_3; i3++) {
-            for (auto i4 = begin_4; i4 < end_4; i4++) {
-              for (auto i5 = begin_5; i5 < end_5; i5++) {
+    for (auto i0 = begin_0; i0 < end_0; ++i0) {
+      for (auto i1 = begin_1; i1 < end_1; ++i1) {
+        for (auto i2 = begin_2; i2 < end_2; ++i2) {
+          for (auto i3 = begin_3; i3 < end_3; ++i3) {
+            for (auto i4 = begin_4; i4 < end_4; ++i4) {
+              for (auto i5 = begin_5; i5 < end_5; ++i5) {
                 {
                   if constexpr (std::is_same<typename Policy::work_tag,
                                              void>::value)
@@ -428,207 +403,18 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
     end_5 = end_5 < policy.m_upper[5] ? end_5 : policy.m_upper[5];
 
 #pragma omp for collapse(6)
-    for (ptrdiff_t i0 = begin_0; i0 < end_0; i0++)
-      for (ptrdiff_t i1 = begin_1; i1 < end_1; i1++)
-        for (ptrdiff_t i2 = begin_2; i2 < end_2; i2++)
-          for (ptrdiff_t i3 = begin_3; i3 < end_3; i3++)
-            for (ptrdiff_t i4 = begin_4; i4 < end_4; i4++)
-              for (ptrdiff_t i5 = begin_5; i5 < end_5; i5++) {
+    for (ptrdiff_t i0 = begin_0; i0 < end_0; ++i0)
+      for (ptrdiff_t i1 = begin_1; i1 < end_1; ++i1)
+        for (ptrdiff_t i2 = begin_2; i2 < end_2; ++i2)
+          for (ptrdiff_t i3 = begin_3; i3 < end_3; ++i3)
+            for (ptrdiff_t i4 = begin_4; i4 < end_4; ++i4)
+              for (ptrdiff_t i5 = begin_5; i5 < end_5; ++i5) {
                 if constexpr (std::is_same<typename Policy::work_tag,
                                            void>::value)
                   functor(i0, i1, i2, i3, i4, i5);
                 else
                   functor(typename Policy::work_tag(), i0, i1, i2, i3, i4, i5);
               }
-#endif
-  }
-
-  template <int Rank>
-  inline typename std::enable_if<Rank == 7>::type execute_tile(
-      typename Policy::point_type offset, const FunctorType& functor,
-      const Policy& policy) const {
-#ifdef KOKKOS_IMPL_MDRANGE_USE_NO_TILES
-    (void)offset;
-    const int begin_0 = policy.m_lower[0];
-    const int begin_1 = policy.m_lower[1];
-    const int begin_2 = policy.m_lower[2];
-    const int begin_3 = policy.m_lower[3];
-    const int begin_4 = policy.m_lower[4];
-    const int begin_5 = policy.m_lower[5];
-    const int begin_6 = policy.m_lower[6];
-
-    const int end_0 = policy.m_upper[0];
-    const int end_1 = policy.m_upper[1];
-    const int end_2 = policy.m_upper[2];
-    const int end_3 = policy.m_upper[3];
-    const int end_4 = policy.m_upper[4];
-    const int end_5 = policy.m_upper[5];
-    const int end_6 = policy.m_upper[6];
-
-#pragma omp target teams distribute parallel for collapse(7) map(to : functor)
-    for (ptrdiff_t i0 = begin_0; i0 < end_0; i0++) {
-      for (ptrdiff_t i1 = begin_1; i1 < end_1; i1++) {
-        for (ptrdiff_t i2 = begin_2; i2 < end_2; i2++) {
-          for (ptrdiff_t i3 = begin_3; i3 < end_3; i3++) {
-            for (ptrdiff_t i4 = begin_4; i4 < end_4; i4++) {
-              for (ptrdiff_t i5 = begin_5; i5 < end_5; i5++) {
-                for (ptrdiff_t i6 = begin_6; i6 < end_6; i6++) {
-                  if constexpr (std::is_same<typename Policy::work_tag,
-                                             void>::value)
-                    functor(i0, i1, i2, i3, i4, i5, i6);
-                  else
-                    functor(typename Policy::work_tag(), i0, i1, i2, i3, i4, i5,
-                            i6);
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-#else
-    const ptrdiff_t begin_0 = offset[0];
-    ptrdiff_t end_0         = begin_0 + policy.m_tile[0];
-    end_0 = end_0 < policy.m_upper[0] ? end_0 : policy.m_upper[0];
-
-    const ptrdiff_t begin_1 = offset[1];
-    ptrdiff_t end_1         = begin_1 + policy.m_tile[1];
-    end_1 = end_1 < policy.m_upper[1] ? end_1 : policy.m_upper[1];
-
-    const ptrdiff_t begin_2 = offset[2];
-    ptrdiff_t end_2         = begin_2 + policy.m_tile[2];
-    end_2 = end_2 < policy.m_upper[2] ? end_2 : policy.m_upper[2];
-
-    const ptrdiff_t begin_3 = offset[3];
-    ptrdiff_t end_3         = begin_3 + policy.m_tile[3];
-    end_3 = end_3 < policy.m_upper[3] ? end_3 : policy.m_upper[3];
-
-    const ptrdiff_t begin_4 = offset[4];
-    ptrdiff_t end_4         = begin_4 + policy.m_tile[4];
-    end_4 = end_4 < policy.m_upper[4] ? end_4 : policy.m_upper[4];
-
-    const ptrdiff_t begin_5 = offset[5];
-    ptrdiff_t end_5         = begin_5 + policy.m_tile[5];
-    end_5 = end_5 < policy.m_upper[5] ? end_5 : policy.m_upper[5];
-
-    const ptrdiff_t begin_6 = offset[6];
-    ptrdiff_t end_6         = begin_6 + policy.m_tile[6];
-    end_6 = end_6 < policy.m_upper[6] ? end_6 : policy.m_upper[6];
-
-#pragma omp for collapse(7)
-    for (ptrdiff_t i0 = begin_0; i0 < end_0; i0++)
-      for (ptrdiff_t i1 = begin_1; i1 < end_1; i1++)
-        for (ptrdiff_t i2 = begin_2; i2 < end_2; i2++)
-          for (ptrdiff_t i3 = begin_3; i3 < end_3; i3++)
-            for (ptrdiff_t i4 = begin_4; i4 < end_4; i4++)
-              for (ptrdiff_t i5 = begin_5; i5 < end_5; i5++)
-                for (ptrdiff_t i6 = begin_6; i6 < end_6; i6++) {
-                  if constexpr (std::is_same<typename Policy::work_tag,
-                                             void>::value)
-                    functor(i0, i1, i2, i3, i4, i5, i6);
-                  else
-                    functor(typename Policy::work_tag(), i0, i1, i2, i3, i4, i5,
-                            i6);
-                }
-#endif
-  }
-
-  template <int Rank>
-  inline typename std::enable_if<Rank == 8>::type execute_tile(
-      typename Policy::point_type offset, const FunctorType& functor,
-      const Policy& policy) const {
-#ifdef KOKKOS_IMPL_MDRANGE_USE_NO_TILES
-    (void)offset;
-    const int begin_0 = policy.m_lower[0];
-    const int begin_1 = policy.m_lower[1];
-    const int begin_2 = policy.m_lower[2];
-    const int begin_3 = policy.m_lower[3];
-    const int begin_4 = policy.m_lower[4];
-    const int begin_5 = policy.m_lower[5];
-    const int begin_6 = policy.m_lower[6];
-    const int begin_7 = policy.m_lower[7];
-
-    const int end_0 = policy.m_upper[0];
-    const int end_1 = policy.m_upper[1];
-    const int end_2 = policy.m_upper[2];
-    const int end_3 = policy.m_upper[3];
-    const int end_4 = policy.m_upper[4];
-    const int end_5 = policy.m_upper[5];
-    const int end_6 = policy.m_upper[6];
-    const int end_7 = policy.m_upper[7];
-
-#pragma omp target teams distribute parallel for collapse(8) map(to : functor)
-    for (ptrdiff_t i0 = begin_0; i0 < end_0; i0++) {
-      for (ptrdiff_t i1 = begin_1; i1 < end_1; i1++) {
-        for (ptrdiff_t i2 = begin_2; i2 < end_2; i2++) {
-          for (ptrdiff_t i3 = begin_3; i3 < end_3; i3++) {
-            for (ptrdiff_t i4 = begin_4; i4 < end_4; i4++) {
-              for (ptrdiff_t i5 = begin_5; i5 < end_5; i5++) {
-                for (ptrdiff_t i6 = begin_6; i6 < end_6; i6++) {
-                  for (ptrdiff_t i7 = begin_7; i7 < end_7; i7++) {
-                    if constexpr (std::is_same<typename Policy::work_tag,
-                                               void>::value)
-                      functor(i0, i1, i2, i3, i4, i5, i6, i7);
-                    else
-                      functor(typename Policy::work_tag(), i0, i1, i2, i3, i4,
-                              i5, i6, i7);
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-#else
-    const ptrdiff_t begin_0 = offset[0];
-    ptrdiff_t end_0         = begin_0 + policy.m_tile[0];
-    end_0 = end_0 < policy.m_upper[0] ? end_0 : policy.m_upper[0];
-
-    const ptrdiff_t begin_1 = offset[1];
-    ptrdiff_t end_1         = begin_1 + policy.m_tile[1];
-    end_1 = end_1 < policy.m_upper[1] ? end_1 : policy.m_upper[1];
-
-    const ptrdiff_t begin_2 = offset[2];
-    ptrdiff_t end_2         = begin_2 + policy.m_tile[2];
-    end_2 = end_2 < policy.m_upper[2] ? end_2 : policy.m_upper[2];
-
-    const ptrdiff_t begin_3 = offset[3];
-    ptrdiff_t end_3         = begin_3 + policy.m_tile[3];
-    end_3 = end_3 < policy.m_upper[3] ? end_3 : policy.m_upper[3];
-
-    const ptrdiff_t begin_4 = offset[4];
-    ptrdiff_t end_4         = begin_4 + policy.m_tile[4];
-    end_4 = end_4 < policy.m_upper[4] ? end_4 : policy.m_upper[4];
-
-    const ptrdiff_t begin_5 = offset[5];
-    ptrdiff_t end_5         = begin_5 + policy.m_tile[5];
-    end_5 = end_5 < policy.m_upper[5] ? end_5 : policy.m_upper[5];
-
-    const ptrdiff_t begin_6 = offset[6];
-    ptrdiff_t end_6         = begin_6 + policy.m_tile[6];
-    end_6 = end_6 < policy.m_upper[6] ? end_6 : policy.m_upper[6];
-
-    const ptrdiff_t begin_7 = offset[7];
-    ptrdiff_t end_7         = begin_7 + policy.m_tile[7];
-    end_7 = end_7 < policy.m_upper[7] ? end_7 : policy.m_upper[7];
-
-#pragma omp for collapse(8)
-    for (ptrdiff_t i0 = begin_0; i0 < end_0; i0++)
-      for (ptrdiff_t i1 = begin_1; i1 < end_1; i1++)
-        for (ptrdiff_t i2 = begin_2; i2 < end_2; i2++)
-          for (ptrdiff_t i3 = begin_3; i3 < end_3; i3++)
-            for (ptrdiff_t i4 = begin_4; i4 < end_4; i4++)
-              for (ptrdiff_t i5 = begin_5; i5 < end_5; i5++)
-                for (ptrdiff_t i6 = begin_6; i6 < end_6; i6++)
-                  for (ptrdiff_t i7 = begin_7; i7 < end_7; i7++) {
-                    if constexpr (std::is_same<typename Policy::work_tag,
-                                               void>::value)
-                      functor(i0, i1, i2, i3, i4, i5, i6, i7);
-                    else
-                      functor(typename Policy::work_tag(), i0, i1, i2, i3, i4,
-                              i5, i6, i7);
-                  }
 #endif
   }
 
@@ -652,112 +438,6 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>,
 namespace Kokkos {
 namespace Impl {
 
-template <class FunctorType, class ReducerType, class PointerType,
-          class ValueType, class... PolicyArgs>
-struct ParallelReduceSpecialize<FunctorType,
-                                Kokkos::MDRangePolicy<PolicyArgs...>,
-                                ReducerType, PointerType, ValueType, 0, 0> {
-  using PolicyType = Kokkos::RangePolicy<PolicyArgs...>;
-  template <class TagType>
-  inline static
-      typename std::enable_if<std::is_same<TagType, void>::value>::type
-      execute_impl(const FunctorType& f, const PolicyType& p,
-                   PointerType result_ptr) {
-    OpenMPTargetExec::verify_is_process(
-        "Kokkos::Experimental::OpenMPTarget parallel_for");
-    OpenMPTargetExec::verify_initialized(
-        "Kokkos::Experimental::OpenMPTarget parallel_for");
-    const typename PolicyType::member_type begin = p.begin();
-    const typename PolicyType::member_type end   = p.end();
-
-    ValueType result = ValueType();
-#pragma omp target teams distribute parallel for num_teams(512) map(to:f) map(tofrom:result) reduction(+: result)
-    for (int i = begin; i < end; i++) f(i, result);
-
-    *result_ptr = result;
-  }
-
-  template <class TagType>
-  inline static
-      typename std::enable_if<!std::is_same<TagType, void>::value>::type
-      execute_impl(const FunctorType& f, const PolicyType& p,
-                   PointerType result_ptr) {
-    OpenMPTargetExec::verify_is_process(
-        "Kokkos::Experimental::OpenMPTarget parallel_for");
-    OpenMPTargetExec::verify_initialized(
-        "Kokkos::Experimental::OpenMPTarget parallel_for");
-    const typename PolicyType::member_type begin = p.begin();
-    const typename PolicyType::member_type end   = p.end();
-
-    ValueType result = ValueType();
-#pragma omp target teams distribute parallel for num_teams(512) map(to:f) map(tofrom: result) reduction(+: result)
-    for (int i = begin; i < end; i++) f(TagType(), i, result);
-
-    *result_ptr = result;
-  }
-
-  inline static void execute(const FunctorType& f, const PolicyType& p,
-                             PointerType ptr) {
-    execute_impl<typename PolicyType::work_tag>(f, p, ptr);
-  }
-};
-/*
-template<class FunctorType, class PolicyType, class ReducerType, class
-PointerType, class ValueType> struct ParallelReduceSpecialize<FunctorType,
-PolicyType, ReducerType, PointerType, ValueType, 0,1> {
-
-  #pragma omp declare reduction(custom: ValueType : ReducerType::join(omp_out,
-omp_in)) initializer ( ReducerType::init(omp_priv) )
-
-  template< class TagType >
-  inline static
-  typename std::enable_if< std::is_same< TagType , void >::value >::type
-  execute_impl(const FunctorType& f, const PolicyType& p, PointerType
-result_ptr)
-    {
-      OpenMPTargetExec::verify_is_process("Kokkos::Experimental::OpenMPTarget
-parallel_for");
-      OpenMPTargetExec::verify_initialized("Kokkos::Experimental::OpenMPTarget
-parallel_for"); const typename PolicyType::member_type begin = p.begin(); const
-typename PolicyType::member_type end = p.end();
-
-      ValueType result = ValueType();
-      #pragma omp target teams distribute parallel for num_teams(512) map(to:f)
-map(tofrom:result) reduction(custom: result) for(int i=begin; i<end; i++)
-        f(i,result);
-
-      *result_ptr=result;
-    }
-
-
-  template< class TagType >
-  inline static
-  typename std::enable_if< ! std::is_same< TagType , void >::value >::type
-  execute_impl(const FunctorType& f, const PolicyType& p, PointerType
-result_ptr)
-    {
-      OpenMPTargetExec::verify_is_process("Kokkos::Experimental::OpenMPTarget
-parallel_for");
-      OpenMPTargetExec::verify_initialized("Kokkos::Experimental::OpenMPTarget
-parallel_for"); const typename PolicyType::member_type begin = p.begin(); const
-typename PolicyType::member_type end = p.end();
-
-      ValueType result = ValueType();
-      #pragma omp target teams distribute parallel for num_teams(512) map(to:f)
-map(tofrom: result) reduction(custom: result) for(int i=begin; i<end; i++)
-        f(TagType(),i,result);
-
-      *result_ptr=result;
-    }
-
-
-    inline static
-    void execute(const FunctorType& f, const PolicyType& p, PointerType ptr) {
-      execute_impl<typename PolicyType::work_tag>(f,p,ptr);
-    }
-};
-
-
 template <class FunctorType, class ReducerType, class... Traits>
 class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
                      Kokkos::Experimental::OpenMPTarget> {
@@ -765,42 +445,38 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
   using Policy = Kokkos::MDRangePolicy<Traits...>;
 
   using WorkTag = typename Policy::work_tag;
-  using WorkRange = typename Policy::WorkRange;
-  using Member = typename Policy::member_type;
+  using Member  = typename Policy::member_type;
 
   using ReducerConditional =
-      Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
-                         FunctorType, ReducerType>;
+      std::conditional<std::is_same<InvalidType, ReducerType>::value,
+                       FunctorType, ReducerType>;
   using ReducerTypeFwd = typename ReducerConditional::type;
   using WorkTagFwd =
-      typename Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
-                                               WorkTag, void>::type;
-
-  // Static Assert WorkTag void if ReducerType not InvalidType
+      std::conditional_t<std::is_same<InvalidType, ReducerType>::value, WorkTag,
+                         void>;
 
   using ValueTraits =
       Kokkos::Impl::FunctorValueTraits<ReducerTypeFwd, WorkTagFwd>;
-  using ValueInit = Kokkos::Impl::FunctorValueInit<ReducerTypeFwd, WorkTagFwd>;
-  using ValueJoin = Kokkos::Impl::FunctorValueJoin<ReducerTypeFwd, WorkTagFwd>;
+
+  using pointer_type   = typename ValueTraits::pointer_type;
+  using reference_type = typename ValueTraits::reference_type;
 
   enum { HasJoin = ReduceFunctorHasJoin<FunctorType>::value };
   enum { UseReducer = is_reducer_type<ReducerType>::value };
 
-  using pointer_type = typename ValueTraits::pointer_type;
-  using reference_type = typename ValueTraits::reference_type;
-
-  using ParForSpecialize = ParallelReduceSpecialize<
-      FunctorType, Policy, ReducerType, pointer_type,
-      typename ValueTraits::value_type, HasJoin, UseReducer>;
-
+  const pointer_type m_result_ptr;
   const FunctorType m_functor;
   const Policy m_policy;
   const ReducerType m_reducer;
-  const pointer_type m_result_ptr;
+
+  using ParReduceCommon = ParallelReduceCommon<pointer_type>;
+
+  bool m_result_ptr_on_device;
 
  public:
   inline void execute() const {
-    ParForSpecialize::execute(m_functor, m_policy, m_result_ptr);
+    execute_tile<Policy::rank, typename ValueTraits::value_type>(
+        m_functor, m_policy, m_result_ptr);
   }
 
   template <class ViewType>
@@ -810,35 +486,345 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
       typename std::enable_if<Kokkos::is_view<ViewType>::value &&
                                   !Kokkos::is_reducer_type<ReducerType>::value,
                               void*>::type = NULL)
-      : m_functor(arg_functor),
+      : m_result_ptr(arg_result_view.data()),
+        m_functor(arg_functor),
         m_policy(arg_policy),
         m_reducer(InvalidType()),
-        m_result_ptr(arg_result_view.data()) {
-    //static_assert( std::is_same< typename ViewType::memory_space
-    //                                , Kokkos::HostSpace >::value
-    //  , "Reduction result on Kokkos::Experimental::OpenMPTarget must be a
-    //  Kokkos::View in HostSpace" );
-  }
+        m_result_ptr_on_device(
+            MemorySpaceAccess<Kokkos::Experimental::OpenMPTargetSpace,
+                              typename ViewType::memory_space>::accessible) {}
 
   inline ParallelReduce(const FunctorType& arg_functor, Policy arg_policy,
                         const ReducerType& reducer)
-      : m_functor(arg_functor),
+      : m_result_ptr(reducer.view().data()),
+        m_functor(arg_functor),
         m_policy(arg_policy),
         m_reducer(reducer),
-        m_result_ptr(reducer.view().data()) {
-    //static_assert( std::is_same< typename ViewType::memory_space
-    //                                , Kokkos::HostSpace >::value
-    //  , "Reduction result on Kokkos::Experimental::OpenMPTarget must be a
-    //  Kokkos::View in HostSpace" );
+        m_result_ptr_on_device(
+            MemorySpaceAccess<Kokkos::Experimental::OpenMPTargetSpace,
+                              typename ReducerType::result_view_type::
+                                  memory_space>::accessible) {}
+
+  template <int Rank, class ValueType>
+  inline typename std::enable_if<Rank == 2>::type execute_tile(
+      const FunctorType& functor, const Policy& policy,
+      pointer_type ptr) const {
+    const auto begin_0 = policy.m_lower[0];
+    const auto begin_1 = policy.m_lower[1];
+
+    const auto end_0 = policy.m_upper[0];
+    const auto end_1 = policy.m_upper[1];
+
+    ValueType result = ValueType();
+
+    // FIXME_OPENMPTARGET: Unable to separate directives and their companion
+    // loops which leads to code duplication for different reduction types.
+    if constexpr (UseReducer) {
+#pragma omp declare reduction(                                         \
+    custom:ValueType                                                   \
+    : OpenMPTargetReducerWrapper <ReducerType>::join(omp_out, omp_in)) \
+    initializer(OpenMPTargetReducerWrapper <ReducerType>::init(omp_priv))
+
+#pragma omp target teams distribute parallel for collapse(2) map(to         \
+                                                                 : functor) \
+    reduction(custom                                                        \
+              : result)
+      for (auto i0 = begin_0; i0 < end_0; ++i0) {
+        for (auto i1 = begin_1; i1 < end_1; ++i1) {
+          if constexpr (std::is_same<typename Policy::work_tag, void>::value)
+            functor(i0, i1, result);
+          else
+            functor(typename Policy::work_tag(), i0, i1, result);
+        }
+      }
+    } else {
+#pragma omp target teams distribute parallel for collapse(2) map(to : functor) \
+reduction(+:result)
+      for (auto i0 = begin_0; i0 < end_0; ++i0) {
+        for (auto i1 = begin_1; i1 < end_1; ++i1) {
+          if constexpr (std::is_same<typename Policy::work_tag, void>::value)
+            functor(i0, i1, result);
+          else
+            functor(typename Policy::work_tag(), i0, i1, result);
+        }
+      }
+    }
+
+    ParReduceCommon::memcpy_result(ptr, &result, sizeof(ValueType),
+                                   m_result_ptr_on_device);
   }
-  // TODO DZP: based on a conversation with Christian, we're using 256 as a
-heuristic
-  // here. We need something better once we can query these kinds of properties
-  template<typename Policy, typename Functor>
-static int max_tile_size_product(const Policy&, const Functor&) {
+
+  template <int Rank, class ValueType>
+  inline typename std::enable_if<Rank == 3>::type execute_tile(
+      const FunctorType& functor, const Policy& policy,
+      pointer_type ptr) const {
+    const auto begin_0 = policy.m_lower[0];
+    const auto begin_1 = policy.m_lower[1];
+    const auto begin_2 = policy.m_lower[2];
+
+    const auto end_0 = policy.m_upper[0];
+    const auto end_1 = policy.m_upper[1];
+    const auto end_2 = policy.m_upper[2];
+
+    ValueType result = ValueType();
+
+    // FIXME_OPENMPTARGET: Unable to separate directives and their companion
+    // loops which leads to code duplication for different reduction types.
+    if constexpr (UseReducer) {
+#pragma omp declare reduction(                                         \
+    custom:ValueType                                                   \
+    : OpenMPTargetReducerWrapper <ReducerType>::join(omp_out, omp_in)) \
+    initializer(OpenMPTargetReducerWrapper <ReducerType>::init(omp_priv))
+
+#pragma omp target teams distribute parallel for collapse(3) map(to         \
+                                                                 : functor) \
+    reduction(custom                                                        \
+              : result)
+      for (auto i0 = begin_0; i0 < end_0; ++i0) {
+        for (auto i1 = begin_1; i1 < end_1; ++i1) {
+          for (auto i2 = begin_2; i2 < end_2; ++i2) {
+            if constexpr (std::is_same<typename Policy::work_tag, void>::value)
+              functor(i0, i1, i2, result);
+            else
+              functor(typename Policy::work_tag(), i0, i1, i2, result);
+          }
+        }
+      }
+    } else {
+#pragma omp target teams distribute parallel for collapse(3) map(to : functor) \
+reduction(+:result)
+      for (auto i0 = begin_0; i0 < end_0; ++i0) {
+        for (auto i1 = begin_1; i1 < end_1; ++i1) {
+          for (auto i2 = begin_2; i2 < end_2; ++i2) {
+            if constexpr (std::is_same<typename Policy::work_tag, void>::value)
+              functor(i0, i1, i2, result);
+            else
+              functor(typename Policy::work_tag(), i0, i1, i2, result);
+          }
+        }
+      }
+    }
+
+    ParReduceCommon::memcpy_result(ptr, &result, sizeof(ValueType),
+                                   m_result_ptr_on_device);
+  }
+
+  template <int Rank, class ValueType>
+  inline typename std::enable_if<Rank == 4>::type execute_tile(
+      const FunctorType& functor, const Policy& policy,
+      pointer_type ptr) const {
+    const auto begin_0 = policy.m_lower[0];
+    const auto begin_1 = policy.m_lower[1];
+    const auto begin_2 = policy.m_lower[3];
+    const auto begin_3 = policy.m_lower[2];
+
+    const auto end_0 = policy.m_upper[0];
+    const auto end_1 = policy.m_upper[1];
+    const auto end_2 = policy.m_upper[2];
+    const auto end_3 = policy.m_upper[3];
+
+    ValueType result = ValueType();
+
+    // FIXME_OPENMPTARGET: Unable to separate directives and their companion
+    // loops which leads to code duplication for different reduction types.
+    if constexpr (UseReducer) {
+#pragma omp declare reduction(                                         \
+    custom:ValueType                                                   \
+    : OpenMPTargetReducerWrapper <ReducerType>::join(omp_out, omp_in)) \
+    initializer(OpenMPTargetReducerWrapper <ReducerType>::init(omp_priv))
+
+#pragma omp target teams distribute parallel for collapse(4) map(to         \
+                                                                 : functor) \
+    reduction(custom                                                        \
+              : result)
+      for (auto i0 = begin_0; i0 < end_0; ++i0) {
+        for (auto i1 = begin_1; i1 < end_1; ++i1) {
+          for (auto i2 = begin_2; i2 < end_2; ++i2) {
+            for (auto i3 = begin_3; i3 < end_3; ++i3) {
+              if constexpr (std::is_same<typename Policy::work_tag,
+                                         void>::value)
+                functor(i0, i1, i2, i3, result);
+              else
+                functor(typename Policy::work_tag(), i0, i1, i2, i3, result);
+            }
+          }
+        }
+      }
+    } else {
+#pragma omp target teams distribute parallel for collapse(4) map(to : functor) \
+reduction(+:result)
+      for (auto i0 = begin_0; i0 < end_0; ++i0) {
+        for (auto i1 = begin_1; i1 < end_1; ++i1) {
+          for (auto i2 = begin_2; i2 < end_2; ++i2) {
+            for (auto i3 = begin_3; i3 < end_3; ++i3) {
+              if constexpr (std::is_same<typename Policy::work_tag,
+                                         void>::value)
+                functor(i0, i1, i2, i3, result);
+              else
+                functor(typename Policy::work_tag(), i0, i1, i2, i3, result);
+            }
+          }
+        }
+      }
+    }
+
+    ParReduceCommon::memcpy_result(ptr, &result, sizeof(ValueType),
+                                   m_result_ptr_on_device);
+  }
+
+  template <int Rank, class ValueType>
+  inline typename std::enable_if<Rank == 5>::type execute_tile(
+      const FunctorType& functor, const Policy& policy,
+      pointer_type ptr) const {
+    const auto begin_0 = policy.m_lower[0];
+    const auto begin_1 = policy.m_lower[1];
+    const auto begin_2 = policy.m_lower[2];
+    const auto begin_3 = policy.m_lower[3];
+    const auto begin_4 = policy.m_lower[4];
+
+    const auto end_0 = policy.m_upper[0];
+    const auto end_1 = policy.m_upper[1];
+    const auto end_2 = policy.m_upper[2];
+    const auto end_3 = policy.m_upper[3];
+    const auto end_4 = policy.m_upper[4];
+
+    ValueType result = ValueType();
+
+    // FIXME_OPENMPTARGET: Unable to separate directives and their companion
+    // loops which leads to code duplication for different reduction types.
+    if constexpr (UseReducer) {
+#pragma omp declare reduction(                                         \
+    custom:ValueType                                                   \
+    : OpenMPTargetReducerWrapper <ReducerType>::join(omp_out, omp_in)) \
+    initializer(OpenMPTargetReducerWrapper <ReducerType>::init(omp_priv))
+
+#pragma omp target teams distribute parallel for collapse(5) map(to         \
+                                                                 : functor) \
+    reduction(custom                                                        \
+              : result)
+      for (auto i0 = begin_0; i0 < end_0; ++i0) {
+        for (auto i1 = begin_1; i1 < end_1; ++i1) {
+          for (auto i2 = begin_2; i2 < end_2; ++i2) {
+            for (auto i3 = begin_3; i3 < end_3; ++i3) {
+              for (auto i4 = begin_4; i4 < end_4; ++i4) {
+                if constexpr (std::is_same<typename Policy::work_tag,
+                                           void>::value)
+                  functor(i0, i1, i2, i3, i4, result);
+                else
+                  functor(typename Policy::work_tag(), i0, i1, i2, i3, i4,
+                          result);
+              }
+            }
+          }
+        }
+      }
+    } else {
+#pragma omp target teams distribute parallel for collapse(5) map(to : functor) \
+reduction(+:result)
+      for (auto i0 = begin_0; i0 < end_0; ++i0) {
+        for (auto i1 = begin_1; i1 < end_1; ++i1) {
+          for (auto i2 = begin_2; i2 < end_2; ++i2) {
+            for (auto i3 = begin_3; i3 < end_3; ++i3) {
+              for (auto i4 = begin_4; i4 < end_4; ++i4) {
+                if constexpr (std::is_same<typename Policy::work_tag,
+                                           void>::value)
+                  functor(i0, i1, i2, i3, i4, result);
+                else
+                  functor(typename Policy::work_tag(), i0, i1, i2, i3, i4,
+                          result);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    ParReduceCommon::memcpy_result(ptr, &result, sizeof(ValueType),
+                                   m_result_ptr_on_device);
+  }
+
+  template <int Rank, class ValueType>
+  inline typename std::enable_if<Rank == 6>::type execute_tile(
+      const FunctorType& functor, const Policy& policy,
+      pointer_type ptr) const {
+    const auto begin_0 = policy.m_lower[0];
+    const auto begin_1 = policy.m_lower[1];
+    const auto begin_2 = policy.m_lower[2];
+    const auto begin_3 = policy.m_lower[3];
+    const auto begin_4 = policy.m_lower[4];
+    const auto begin_5 = policy.m_lower[5];
+
+    const auto end_0 = policy.m_upper[0];
+    const auto end_1 = policy.m_upper[1];
+    const auto end_2 = policy.m_upper[2];
+    const auto end_3 = policy.m_upper[3];
+    const auto end_4 = policy.m_upper[4];
+    const auto end_5 = policy.m_upper[5];
+
+    ValueType result = ValueType();
+
+    // FIXME_OPENMPTARGET: Unable to separate directives and their companion
+    // loops which leads to code duplication for different reduction types.
+    if constexpr (UseReducer) {
+#pragma omp declare reduction(                                         \
+    custom:ValueType                                                   \
+    : OpenMPTargetReducerWrapper <ReducerType>::join(omp_out, omp_in)) \
+    initializer(OpenMPTargetReducerWrapper <ReducerType>::init(omp_priv))
+
+#pragma omp target teams distribute parallel for collapse(6) map(to         \
+                                                                 : functor) \
+    reduction(custom                                                        \
+              : result)
+      for (auto i0 = begin_0; i0 < end_0; ++i0) {
+        for (auto i1 = begin_1; i1 < end_1; ++i1) {
+          for (auto i2 = begin_2; i2 < end_2; ++i2) {
+            for (auto i3 = begin_3; i3 < end_3; ++i3) {
+              for (auto i4 = begin_4; i4 < end_4; ++i4) {
+                for (auto i5 = begin_5; i5 < end_5; ++i5) {
+                  if constexpr (std::is_same<typename Policy::work_tag,
+                                             void>::value)
+                    functor(i0, i1, i2, i3, i4, i5, result);
+                  else
+                    functor(typename Policy::work_tag(), i0, i1, i2, i3, i4, i5,
+                            result);
+                }
+              }
+            }
+          }
+        }
+      }
+    } else {
+#pragma omp target teams distribute parallel for collapse(6) map(to : functor) \
+reduction(+:result)
+      for (auto i0 = begin_0; i0 < end_0; ++i0) {
+        for (auto i1 = begin_1; i1 < end_1; ++i1) {
+          for (auto i2 = begin_2; i2 < end_2; ++i2) {
+            for (auto i3 = begin_3; i3 < end_3; ++i3) {
+              for (auto i4 = begin_4; i4 < end_4; ++i4) {
+                for (auto i5 = begin_5; i5 < end_5; ++i5) {
+                  if constexpr (std::is_same<typename Policy::work_tag,
+                                             void>::value)
+                    functor(i0, i1, i2, i3, i4, i5, result);
+                  else
+                    functor(typename Policy::work_tag(), i0, i1, i2, i3, i4, i5,
+                            result);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    ParReduceCommon::memcpy_result(ptr, &result, sizeof(ValueType),
+                                   m_result_ptr_on_device);
+  }
+
+  template <typename Policy, typename Functor>
+  static int max_tile_size_product(const Policy&, const Functor&) {
     return 256;
   }
-};*/
+};
 
 }  // namespace Impl
 }  // namespace Kokkos

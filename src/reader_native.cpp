@@ -486,10 +486,9 @@ void ReaderNative::read_atoms(int n, int nfield, double **fields)
 
       iatom_chunk++;
 
-      // hit the end of current chunk 
-      if (iatom_chunk == natom_chunk) 
-      {
-        iatom_chunk = 0; 
+      // hit the end of current chunk
+      if (iatom_chunk == natom_chunk) {
+        iatom_chunk = 0;
         ichunk++;
       }
     }

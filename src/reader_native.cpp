@@ -469,12 +469,10 @@ void ReaderNative::read_atoms(int n, int nfield, double **fields)
 
     // read chunk and write as size_one values per line 
     // until end of timestep or end of the reading buffer
-    int i_atom = 0;
-    int m;
-    bool continue_reading = true;
-    bool continue_chunks = true;
-    while (continue_reading && continue_chunks){
-
+    int m=size_one*iatom_chunk;
+    bool continue_reading = (n>0);
+    bool continue_chunks = (ichunk<nchunk);
+    for (int i = 0; i < n; i++){
       // if the last chunk has finished
       if (iatom_chunk == 0) {
           read_buf(&natom_chunk, sizeof(int), 1);
@@ -485,12 +483,12 @@ void ReaderNative::read_atoms(int n, int nfield, double **fields)
 
       // read one line of atom
       double *words = &databuf[m];
+
       for (int k = 0; k < nfield; k++)
-        fields[i_atom][k] = words[fieldindex[k]];
+        fields[i][k] = words[fieldindex[k]];
       m+=size_one;
 
       iatom_chunk++;
-      i_atom++;
 
       // hit the end of current chunk 
       if (iatom_chunk == natom_chunk) 
@@ -498,14 +496,7 @@ void ReaderNative::read_atoms(int n, int nfield, double **fields)
         iatom_chunk = 0; 
         ichunk++;
       }
-
-      // hit the end of atom block
-      if (ichunk == nchunk) continue_chunks = false; 
-
-      // hit the end of the reading buffer
-      if (i_atom == n) continue_reading = false;
     }
-
   } else {
     int i,m;
     char *eof;
@@ -565,6 +556,7 @@ void ReaderNative::read_buf(void * ptr, size_t size, size_t count)
 
 void ReaderNative::read_double_chunk(size_t count)
 {
+  if (count < 0) return;
   // extend buffer to fit chunk size
   if (count > maxbuf) {
     memory->grow(databuf,count,"reader:databuf");

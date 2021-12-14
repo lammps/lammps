@@ -13,7 +13,7 @@
    ----------------------------------------------------------------------- */
 
 //
-// Created by charlie sievers on 6/21/18.
+// Contributing author: Charlie Sievers, UC Davis (charliesievers at cox.net)
 //
 
 #include "dynamical_matrix.h"

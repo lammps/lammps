@@ -13,7 +13,7 @@
    ----------------------------------------------------------------------- */
 
 //
-// Created by charlie sievers on 7/5/18.
+// Contributing author: Charlie Sievers, UC Davis (charliesievers at cox.net)
 //
 
 #include "third_order.h"

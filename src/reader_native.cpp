@@ -92,6 +92,7 @@ int ReaderNative::read_time(bigint &ntimestep)
       // read the real ntimestep
       read_buf(&ntimestep, sizeof(bigint), 1);
     }
+
   } else {
     char *eof = fgets(line,MAXLINE,fp);
     if (eof == nullptr) return 1;
@@ -123,7 +124,6 @@ int ReaderNative::read_time(bigint &ntimestep)
 void ReaderNative::skip()
 {
   if (binary) {
-    bigint natoms;
     int triclinic;
     skip_buf(sizeof(bigint));
     read_buf(&triclinic, sizeof(int), 1);
@@ -137,7 +137,6 @@ void ReaderNative::skip()
 
     // read chunk and skip them
 
-    int nchunk;
     read_buf(&nchunk, sizeof(int), 1);
 
     int n;
@@ -267,6 +266,10 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
       read_buf(labelline, sizeof(char), len);
       labelline[len] = '\0';
     }
+
+    read_buf(&nchunk, sizeof(int), 1);
+    ichunk = 0;
+    iatom_chunk = 0;
   } else {
     int rv;
 
@@ -461,27 +464,34 @@ void ReaderNative::read_atoms(int n, int nfield, double **fields)
       error->one(FLERR,"Unexpected end of dump file");
     }
 
-    int i_atom = 0;
-    int nchunk;
-    read_buf(&nchunk, sizeof(int), 1);
-    for (int i = 0; i < nchunk; i++) {
+    // read chunks until n atoms have been read
+    int m = size_one*iatom_chunk;
 
-      read_buf(&n, sizeof(int), 1);
+    for (int i = 0; i < n; i++) {
+      // if the last chunk has finished
+      if (iatom_chunk == 0) {
+          read_buf(&natom_chunk, sizeof(int), 1);
+          read_double_chunk(natom_chunk);
+          natom_chunk /= size_one;
+          m = 0;
+      }
 
-      // read chunk and write as size_one values per line
-      read_double_chunk(n);
-      n /= size_one;
-      int m = 0;
-      for (int j = 0; j < n; j++)
-        {
-          double *words = &databuf[m];
-          for (int k = 0; k < nfield; k++)
-            fields[i_atom][k] = words[fieldindex[k]];
-          i_atom += 1;
-          m+=size_one;
-        }
+      // read one line of atom
+      double *words = &databuf[m];
+
+      for (int k = 0; k < nfield; k++)
+        fields[i][k] = words[fieldindex[k]];
+
+      m += size_one;
+
+      iatom_chunk++;
+
+      // hit the end of current chunk
+      if (iatom_chunk == natom_chunk) {
+        iatom_chunk = 0;
+        ichunk++;
+      }
     }
-
   } else {
     int i,m;
     char *eof;
@@ -541,6 +551,7 @@ void ReaderNative::read_buf(void * ptr, size_t size, size_t count)
 
 void ReaderNative::read_double_chunk(size_t count)
 {
+  if (count < 0) return;
   // extend buffer to fit chunk size
   if (count > maxbuf) {
     memory->grow(databuf,count,"reader:databuf");

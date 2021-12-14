@@ -144,13 +144,7 @@ void ReaderNative::skip()
     int n;
     for (int i = 0; i < nchunk; i++) {
       read_buf(&n, sizeof(int), 1);
-      int nremain = n;
-      int nbuf;
-      while (nremain){
-        nbuf = MIN(nremain,MAXSMALLINT);
-        skip_buf(nbuf*sizeof(double));
-        nremain -= nbuf;
-      }
+      skip_buf(n*sizeof(double));
     }
 
   } else {

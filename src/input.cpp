@@ -782,22 +782,21 @@ int Input::execute_command()
   if (flag) return 0;
 
   // invoke commands added via style_command.h
+  // try suffixed version first
 
-  if (lmp && lmp->suffix_enable && utils::strmatch(command,"^dynamical_matrix")) {
-    if (utils::strmatch(lmp->suffix, "^kk")) {
-      std::string cstyle = command + std::string("/") + lmp->suffix;
-      if (command_map->find(command) != command_map->end()) {
-        CommandCreator &command_creator = (*command_map)[cstyle];
-        Command *cmd = command_creator(lmp);
-        cmd->command(narg, arg);
-        delete cmd;
-        return 0;
-      }
+  std::string mycmd = command;
+  if (lmp->suffix_enable) {
+    mycmd = command + std::string("/") + lmp->suffix;
+    if (command_map->find(mycmd) == command_map->end()) {
+      if (lmp->suffix2) {
+        mycmd = command + std::string("/") + lmp->suffix2;
+        if (command_map->find(mycmd) == command_map->end())
+          mycmd = command;
+      } else mycmd = command;
     }
   }
-
-  if (command_map->find(command) != command_map->end()) {
-    CommandCreator &command_creator = (*command_map)[command];
+  if (command_map->find(mycmd) != command_map->end()) {
+    CommandCreator &command_creator = (*command_map)[mycmd];
     Command *cmd = command_creator(lmp);
     cmd->command(narg,arg);
     delete cmd;

@@ -274,6 +274,7 @@ accelerated styles exist.
 * :doc:`nm/cut <pair_nm>` - N-M potential
 * :doc:`nm/cut/coul/cut <pair_nm>` - N-M potential with cutoff Coulomb
 * :doc:`nm/cut/coul/long <pair_nm>` - N-M potential with long-range Coulomb
+* :doc:`nm/cut/split <pair_nm>` - Split 12-6 Lennard-Jones and N-M potential
 * :doc:`oxdna/coaxstk <pair_oxdna>` -
 * :doc:`oxdna/excv <pair_oxdna>` -
 * :doc:`oxdna/hbond <pair_oxdna>` -
@@ -327,6 +328,7 @@ accelerated styles exist.
 * :doc:`spin/neel <pair_spin_neel>` -
 * :doc:`srp <pair_srp>` -
 * :doc:`sw <pair_sw>` - Stillinger-Weber 3-body potential
+* :doc:`sw/mod <pair_sw>` - modified Stillinger-Weber 3-body potential
 * :doc:`table <pair_table>` - tabulated pair potential
 * :doc:`table/rx <pair_table_rx>` -
 * :doc:`tdpd <pair_mesodpd>` - tDPD particle interactions

@@ -71,6 +71,8 @@ TEST(TEST_CATEGORY, atomic_operations_unsigned) {
                  unsigned int, TEST_EXECSPACE>(start, end - i, 11)));
     ASSERT_TRUE((TestAtomicOperations::AtomicOperationsTestIntegralType<
                  unsigned int, TEST_EXECSPACE>(start, end - i, 12)));
+    ASSERT_TRUE((TestAtomicOperations::AtomicOperationsTestIntegralType<
+                 unsigned int, TEST_EXECSPACE>(start, end - i, 13)));
   }
 }
 }  // namespace Test

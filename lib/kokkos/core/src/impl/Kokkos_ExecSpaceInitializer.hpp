@@ -55,6 +55,7 @@ class ExecSpaceInitializerBase {
   virtual void initialize(const InitArguments &args)                     = 0;
   virtual void finalize(const bool all_spaces)                           = 0;
   virtual void fence()                                                   = 0;
+  virtual void fence(const std::string &)                                = 0;
   virtual void print_configuration(std::ostream &msg, const bool detail) = 0;
   ExecSpaceInitializerBase()          = default;
   virtual ~ExecSpaceInitializerBase() = default;

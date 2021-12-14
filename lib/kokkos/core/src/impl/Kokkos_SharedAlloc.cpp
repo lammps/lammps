@@ -259,6 +259,9 @@ SharedAllocationRecord<void, void>* SharedAllocationRecord<
     while ((root_next = Kokkos::atomic_exchange(&arg_record->m_root->m_next,
                                                 zero)) == nullptr)
       ;
+    // We need a memory_fence() here so that the following update
+    // is properly sequenced
+    Kokkos::memory_fence();
 
     arg_record->m_next->m_prev = arg_record->m_prev;
 

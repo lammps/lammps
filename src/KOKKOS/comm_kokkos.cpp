@@ -627,7 +627,7 @@ struct BuildExchangeListFunctor {
   KOKKOS_INLINE_FUNCTION
   void operator() (int i) const {
     if (_x(i,_dim) < _lo || _x(i,_dim) >= _hi) {
-      const int mysend=Kokkos::atomic_fetch_add(&_nsend(),1);
+      const int mysend = Kokkos::atomic_fetch_add(&_nsend(),1);
       if (mysend < (int)_sendlist.extent(0)) {
         _sendlist(mysend) = i;
         _sendflag(i) = 1;

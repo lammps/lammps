@@ -54,7 +54,6 @@
 
 #include <Kokkos_HIP_Space.hpp>
 #include <Kokkos_Parallel.hpp>
-#include <impl/Kokkos_Tags.hpp>
 
 #include <HIP/Kokkos_HIP_Instance.hpp>
 #include <HIP/Kokkos_HIP_MDRangePolicy.hpp>

@@ -98,8 +98,7 @@ command, after the dump snapshot is read.
 ----------
 
 If the dump filename specified as *file* ends with ".gz", the dump
-file is read in gzipped format.  You cannot (yet) read a dump file
-that was written in binary format with a ".bin" suffix.
+file is read in gzipped format.
 
 You can read dump files that were written (in parallel) to multiple
 files via the "%" wild-card character in the dump file name.  If any
@@ -115,8 +114,8 @@ to tell LAMMPS how many parallel files exist, via its specified
 The format of the dump file is selected through the *format* keyword.
 If specified, it must be the last keyword used, since all remaining
 arguments are passed on to the dump reader.  The *native* format is
-for native LAMMPS dump files, written with a :doc:`dump atom <dump>` or
-:doc:`dump custom <dump>` command.  The *xyz* format is for generic XYZ
+for native LAMMPS dump files, written with a :doc:`dump atom <dump>`
+or :doc:`dump custom <dump>` command.  The *xyz* format is for generic XYZ
 formatted dump files.  These formats take no additional values.
 
 The *molfile* format supports reading data through using the `VMD <vmd_>`_
@@ -369,8 +368,6 @@ needed to generate absolute, unscaled coordinates.
 
 Restrictions
 """"""""""""
-
-The *native* dump file reader does not support binary .bin dump files.
 
 To read gzipped dump files, you must compile LAMMPS with the
 -DLAMMPS_GZIP option.  See the :doc:`Build settings <Build_settings>`

@@ -46,12 +46,16 @@ class ReaderNative : public Reader {
   char *unit_style;
   int *fieldindex;
 
-  char *line;                   // line read from dump file
-  double *databuf;              // buffer for binary data
-  int nwords;                   // # of per-atom columns in dump file
+  char *line;         // line read from dump file
+  double *databuf;    // buffer for binary data
+  int nwords;         // # of per-atom columns in dump file
 
-  int size_one;                 // number of double for one atom
-  int maxbuf;                   // maximum buffer size
+  int size_one;       // number of double for one atom
+  int maxbuf;         // maximum buffer size
+  int nchunk;         // number of chunks in the binary file
+  int ichunk;         // index of current reading chunk
+  int natom_chunk;    // number of atoms in the current chunks
+  int iatom_chunk;    // index of current atom in the current chunk
 
   int find_label(const std::string &label, const std::map<std::string, int> &labels);
   void read_lines(int);

@@ -68,6 +68,8 @@ int ReaderNative::read_time(bigint &ntimestep)
     delete[] unit_style;
     magic_string = nullptr;
     unit_style = nullptr;
+    ichunk = 0;
+    iatom_chunk = 0;
 
     fread(&ntimestep, sizeof(bigint), 1, fp);
 
@@ -92,6 +94,7 @@ int ReaderNative::read_time(bigint &ntimestep)
       // read the real ntimestep
       read_buf(&ntimestep, sizeof(bigint), 1);
     }
+
   } else {
     char *eof = fgets(line,MAXLINE,fp);
     if (eof == nullptr) return 1;
@@ -125,7 +128,7 @@ void ReaderNative::skip()
   if (binary) {
     bigint natoms;
     int triclinic;
-    skip_buf(sizeof(bigint));
+    read_buf(&natoms, sizeof(bigint), 1);
     read_buf(&triclinic, sizeof(int), 1);
     skip_buf((sizeof(int)+sizeof(double))*6);
     if (triclinic) {
@@ -137,7 +140,6 @@ void ReaderNative::skip()
 
     // read chunk and skip them
 
-    int nchunk;
     read_buf(&nchunk, sizeof(int), 1);
 
     int n;
@@ -461,25 +463,47 @@ void ReaderNative::read_atoms(int n, int nfield, double **fields)
       error->one(FLERR,"Unexpected end of dump file");
     }
 
+    // if this is the beginning of the atom block
+    if (ichunk == 0 && iatom_chunk == 0)
+        read_buf(&nchunk, sizeof(int), 1);
+
+    // read chunk and write as size_one values per line 
+    // until end of timestep or end of the reading buffer
     int i_atom = 0;
-    int nchunk;
-    read_buf(&nchunk, sizeof(int), 1);
-    for (int i = 0; i < nchunk; i++) {
+    int m;
+    bool continue_reading = true;
+    bool continue_chunks = true;
+    while (continue_reading && continue_chunks){
 
-      read_buf(&n, sizeof(int), 1);
+      // if the last chunk has finished
+      if (iatom_chunk == 0) {
+          read_buf(&natom_chunk, sizeof(int), 1);
+          read_double_chunk(natom_chunk);
+          natom_chunk /= size_one;
+          m = 0;
+      }
 
-      // read chunk and write as size_one values per line
-      read_double_chunk(n);
-      n /= size_one;
-      int m = 0;
-      for (int j = 0; j < n; j++)
-        {
-          double *words = &databuf[m];
-          for (int k = 0; k < nfield; k++)
-            fields[i_atom][k] = words[fieldindex[k]];
-          i_atom += 1;
-          m+=size_one;
-        }
+      // read one line of atom
+      double *words = &databuf[m];
+      for (int k = 0; k < nfield; k++)
+        fields[i_atom][k] = words[fieldindex[k]];
+      m+=size_one;
+
+      iatom_chunk++;
+      i_atom++;
+
+      // hit the end of current chunk 
+      if (iatom_chunk == natom_chunk) 
+      {
+        iatom_chunk = 0; 
+        ichunk++;
+      }
+
+      // hit the end of atom block
+      if (ichunk == nchunk) continue_chunks = false; 
+
+      // hit the end of the reading buffer
+      if (i_atom == n) continue_reading = false;
     }
 
   } else {

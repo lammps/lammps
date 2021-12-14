@@ -68,8 +68,6 @@ int ReaderNative::read_time(bigint &ntimestep)
     delete[] unit_style;
     magic_string = nullptr;
     unit_style = nullptr;
-    ichunk = 0;
-    iatom_chunk = 0;
 
     fread(&ntimestep, sizeof(bigint), 1, fp);
 
@@ -268,6 +266,10 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
       read_buf(labelline, sizeof(char), len);
       labelline[len] = '\0';
     }
+
+    read_buf(&nchunk, sizeof(int), 1);
+    ichunk = 0;
+    iatom_chunk = 0;
   } else {
     int rv;
 
@@ -462,16 +464,10 @@ void ReaderNative::read_atoms(int n, int nfield, double **fields)
       error->one(FLERR,"Unexpected end of dump file");
     }
 
-    // if this is the beginning of the atom block
-    if (ichunk == 0 && iatom_chunk == 0)
-        read_buf(&nchunk, sizeof(int), 1);
+    // read chunks until n atoms have been read
+    int m = size_one*iatom_chunk;
 
-    // read chunk and write as size_one values per line 
-    // until end of timestep or end of the reading buffer
-    int m=size_one*iatom_chunk;
-    bool continue_reading = (n>0);
-    bool continue_chunks = (ichunk<nchunk);
-    for (int i = 0; i < n; i++){
+    for (int i = 0; i < n; i++) {
       // if the last chunk has finished
       if (iatom_chunk == 0) {
           read_buf(&natom_chunk, sizeof(int), 1);
@@ -485,7 +481,8 @@ void ReaderNative::read_atoms(int n, int nfield, double **fields)
 
       for (int k = 0; k < nfield; k++)
         fields[i][k] = words[fieldindex[k]];
-      m+=size_one;
+
+      m += size_one;
 
       iatom_chunk++;
 

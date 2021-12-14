@@ -338,8 +338,10 @@ void DeleteBonds::command(int narg, char **arg)
               atom->bond_type[i][m] = atom->bond_type[i][n-1];
               atom->bond_atom[i][m] = atom->bond_atom[i][n-1];
               if (n_histories > 0)
-                for (auto &ihistory: histories)
-                  ((FixBondHistory *) ihistory)->delete_bond(i,m);
+                for (auto &ihistory: histories) {
+                  ((FixBondHistory *) ihistory)->shift_history(i,m,n-1);
+                  ((FixBondHistory *) ihistory)->delete_history(i,n-1);
+                }
               atom->num_bond[i]--;
             } else m++;
           } else m++;

@@ -334,7 +334,8 @@ void BondBPM::process_broken(int i, int j)
         n = num_bond[i];
         bond_type[i][m] = bond_type[i][n-1];
         bond_atom[i][m] = bond_atom[i][n-1];
-        fix_bond_history->delete_bond(i, m);
+        fix_bond_history->shift_history(i, m, n-1);
+        fix_bond_history->delete_history(i, n-1);
         num_bond[i]--;
         break;
       }
@@ -348,7 +349,8 @@ void BondBPM::process_broken(int i, int j)
         n = num_bond[j];
         bond_type[j][m] = bond_type[j][n-1];
         bond_atom[j][m] = bond_atom[j][n-1];
-        fix_bond_history->delete_bond(j, m);
+        fix_bond_history->shift_history(j, m, n-1);
+        fix_bond_history->delete_history(j, n-1);
         num_bond[j]--;
         break;
       }

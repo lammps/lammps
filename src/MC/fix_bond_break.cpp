@@ -303,11 +303,11 @@ void FixBondBreak::post_integrate()
           bond_type[i][k] = bond_type[i][k+1];
           if (n_histories > 0)
             for (auto &ihistory: histories)
-              ((FixBondHistory *) ihistory)->shift_bond(i,k,k+1);
+              ((FixBondHistory *) ihistory)->shift_history(i,k,k+1);
         }
         if (n_histories > 0)
           for (auto &ihistory: histories)
-            ((FixBondHistory *) ihistory)->delete_bond(i,num_bond[i]-1);
+            ((FixBondHistory *) ihistory)->delete_history(i,num_bond[i]-1);
         num_bond[i]--;
         break;
       }

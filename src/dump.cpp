@@ -920,7 +920,7 @@ void Dump::modify_params(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"header") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
-      header_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      write_header_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"every") == 0) {

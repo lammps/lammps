@@ -24,6 +24,7 @@ Contributing Author: Jacob Gissinger (jacob.r.gissinger@gmail.com)
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
+#include "fix_bond_history.h"
 #include "force.h"
 #include "group.h"
 #include "input.h"
@@ -3091,6 +3092,10 @@ void FixBondReact::update_everything()
     // next let's update bond info
     // cool thing is, newton_bond issues are already taken care of in templates
     // same with class2 improper issues, which is why this fix started in the first place
+    // also need to find any instances of bond history to update histories
+    auto histories = modify->get_fix_by_style("BOND_HISTORY");
+    int n_histories = histories.size();
+
     for (int i = 0; i < update_num_mega; i++) {
       rxnID = update_mega_glove[0][i];
       twomol = atom->molecules[reacted_mol[rxnID]];
@@ -3100,6 +3105,14 @@ void FixBondReact::update_everything()
         if (atom->map(update_mega_glove[jj+1][i]) < nlocal && atom->map(update_mega_glove[jj+1][i]) >= 0) {
           if (landlocked_atoms[j][rxnID] == 1) {
             delta_bonds -= num_bond[atom->map(update_mega_glove[jj+1][i])];
+            // If deleting all bonds, first cache then remove all histories
+            if (n_histories > 0)
+              for (auto &ihistory: histories) {
+                for (int n = 0; n < num_bond[atom->map(update_mega_glove[jj+1][i])]; n++)
+                  ((FixBondHistory *) ihistory)->cache_history(atom->map(update_mega_glove[jj+1][i]), n);
+                for (int n = 0; n < num_bond[atom->map(update_mega_glove[jj+1][i])]; n++)
+                  ((FixBondHistory *) ihistory)->delete_history(atom->map(update_mega_glove[jj+1][i]), 0);
+              }
             num_bond[atom->map(update_mega_glove[jj+1][i])] = 0;
           }
           if (landlocked_atoms[j][rxnID] == 0) {
@@ -3107,10 +3120,21 @@ void FixBondReact::update_everything()
               for (int n = 0; n < twomol->natoms; n++) {
                 int nn = equivalences[n][1][rxnID]-1;
                 if (n!=j && bond_atom[atom->map(update_mega_glove[jj+1][i])][p] == update_mega_glove[nn+1][i] && landlocked_atoms[n][rxnID] == 1) {
+                  // Cache history information, shift history, then delete final element
+                  if (n_histories > 0)
+                    for (auto &ihistory: histories)
+                      ((FixBondHistory *) ihistory)->cache_history(atom->map(update_mega_glove[jj+1][i]), p);
                   for (int m = p; m < num_bond[atom->map(update_mega_glove[jj+1][i])]-1; m++) {
                     bond_type[atom->map(update_mega_glove[jj+1][i])][m] = bond_type[atom->map(update_mega_glove[jj+1][i])][m+1];
                     bond_atom[atom->map(update_mega_glove[jj+1][i])][m] = bond_atom[atom->map(update_mega_glove[jj+1][i])][m+1];
+                    if (n_histories > 0)
+                      for (auto &ihistory: histories)
+                        ((FixBondHistory *) ihistory)->shift_history(atom->map(update_mega_glove[jj+1][i]),m,m+1);
                   }
+                  if (n_histories > 0)
+                    for (auto &ihistory: histories)
+                      ((FixBondHistory *) ihistory)->delete_history(atom->map(update_mega_glove[jj+1][i]),
+                                                                 num_bond[atom->map(update_mega_glove[jj+1][i])]-1);
                   num_bond[atom->map(update_mega_glove[jj+1][i])]--;
                   delta_bonds--;
                 }
@@ -3129,6 +3153,10 @@ void FixBondReact::update_everything()
             for (int p = 0; p < twomol->num_bond[j]; p++) {
               bond_type[atom->map(update_mega_glove[jj+1][i])][p] = twomol->bond_type[j][p];
               bond_atom[atom->map(update_mega_glove[jj+1][i])][p] = update_mega_glove[equivalences[twomol->bond_atom[j][p]-1][1][rxnID]][i];
+              // Check cached history data to see if bond regenerated
+              if (n_histories > 0)
+                for (auto &ihistory: histories)
+                  ((FixBondHistory *) ihistory)->check_cache(atom->map(update_mega_glove[jj+1][i]), p);
             }
           }
           if (landlocked_atoms[j][rxnID] == 0) {
@@ -3137,6 +3165,10 @@ void FixBondReact::update_everything()
                 insert_num = num_bond[atom->map(update_mega_glove[jj+1][i])];
                 bond_type[atom->map(update_mega_glove[jj+1][i])][insert_num] = twomol->bond_type[j][p];
                 bond_atom[atom->map(update_mega_glove[jj+1][i])][insert_num] = update_mega_glove[equivalences[twomol->bond_atom[j][p]-1][1][rxnID]][i];
+                // Check cached history data to see if bond regenerated
+                if (n_histories > 0)
+                  for (auto &ihistory: histories)
+                    ((FixBondHistory *) ihistory)->check_cache(atom->map(update_mega_glove[jj+1][i]), insert_num);
                 num_bond[atom->map(update_mega_glove[jj+1][i])]++;
                 if (num_bond[atom->map(update_mega_glove[jj+1][i])] > atom->bond_per_atom)
                   error->one(FLERR,"Bond/react topology/atom exceed system topology/atom");
@@ -3147,6 +3179,10 @@ void FixBondReact::update_everything()
         }
       }
     }
+
+    if (n_histories > 0)
+      for (auto &ihistory: histories)
+        ((FixBondHistory *) ihistory)->clear_cache();
 
     // Angles! First let's delete all angle info:
     if (force->angle && twomol->angleflag) {

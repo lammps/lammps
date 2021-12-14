@@ -22,6 +22,10 @@ FixStyle(BOND_HISTORY,FixBondHistory)
 
 #include "fix.h"
 
+#include <map>
+#include <utility>
+#include <vector>
+
 namespace LAMMPS_NS {
 
 class FixBondHistory : public Fix {
@@ -41,8 +45,19 @@ class FixBondHistory : public Fix {
 
   void update_atom_value(int, int, int, double);
   double get_atom_value(int, int, int);
-  void delete_bond(int,int);
-  void shift_bond(int,int,int);
+
+  // methods to reorder/delete elements of atom->bond_atom
+  void delete_history(int,int);
+  void shift_history(int,int,int);
+  void cache_history(int,int);
+  void check_cache(int,int);
+  void clear_cache();
+
+  // if data is temporarily stored while the bond_atom array
+  // is being reordered, use map of vectors with pairs for keys
+  // to enable quick look up
+  std::map<std::pair<tagint, tagint>, std::vector <double>> cached_histories;
+
   double **bondstore;
   int stored_flag;
 

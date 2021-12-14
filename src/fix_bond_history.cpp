@@ -17,15 +17,15 @@
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
-#include "force.h"
 #include "group.h"
 #include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
-#include "string.h"
 
-#include <cstring>
-#include <mpi.h>
+#include <map>
+#include <string>
+#include <utility>
+#include <vector>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -284,28 +284,80 @@ void FixBondHistory::set_arrays(int i)
 }
 
 /* ----------------------------------------------------------------------
-   Remove all data for row by compressing data - moving last element
+   Delete bond by zeroing data
 ------------------------------------------------------------------------- */
 
-void FixBondHistory::delete_bond(int i, int m)
+void FixBondHistory::delete_history(int i, int m)
 {
   double **stored = atom->darray[index];
-  int n = atom->num_bond[i];
-  if (m != n-1) shift_bond(i, m, n-1);
-
   for (int idata = 0; idata < ndata; idata ++)
-    stored[i][(n-1)*ndata+idata] = 0.0;
+    stored[i][m*ndata+idata] = 0.0;
 }
 
 /* ----------------------------------------------------------------------
    Shift bond data to a new location
-   Used by some fixes that delete bonds which don't move last element
 ------------------------------------------------------------------------- */
 
-void FixBondHistory::shift_bond(int i, int m, int k)
+void FixBondHistory::shift_history(int i, int m, int k)
 {
+  if (m == k) return;
+
   double **stored = atom->darray[index];
   int n = atom->num_bond[i];
   for (int idata = 0; idata < ndata; idata ++)
     stored[i][m*ndata+idata] = stored[i][k*ndata+idata];
+}
+
+/* ----------------------------------------------------------------------
+   Temporarily caches history for a deleted bond which
+   could be recreated before the cache is emptied
+   NOTE: the cache methods still need to be tested, need an example first
+------------------------------------------------------------------------- */
+
+void FixBondHistory::cache_history(int i, int m)
+{
+  // Order tags to create a unique key pair
+  tagint max_tag = MAX(atom->tag[i], atom->bond_atom[i][m]);
+  tagint min_tag = MIN(atom->tag[i], atom->bond_atom[i][m]);
+  std::pair<tagint, tagint> key = std::make_pair(min_tag, max_tag);
+
+  // Copy data to vector
+  double **stored = atom->darray[index];
+  std::vector <double> data;
+  for (int idata = 0; idata < ndata; idata ++)
+    data.push_back(stored[i][m*ndata+idata]);
+
+  // Add data to cache
+  cached_histories.insert(std::make_pair(key,data));
+}
+
+/* ----------------------------------------------------------------------
+   Checks to see if a newly created bond has cached history
+------------------------------------------------------------------------- */
+
+void FixBondHistory::check_cache(int i, int m)
+{
+  // Order tags to create a unique key pair
+  tagint max_tag = MAX(atom->tag[i], atom->bond_atom[i][m]);
+  tagint min_tag = MIN(atom->tag[i], atom->bond_atom[i][m]);
+  std::pair<tagint, tagint> key = std::make_pair(min_tag, max_tag);
+
+  // Check if it exists, if so, copy data
+  double **stored = atom->darray[index];
+  std::vector <double> data;
+  auto pos = cached_histories.find(key);
+  if (pos != cached_histories.end()) {
+    data = pos->second;
+    for (int idata = 0; idata < ndata; idata ++)
+      stored[i][m*ndata+idata] = data[idata];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   Delete saved memory
+------------------------------------------------------------------------- */
+
+void FixBondHistory::clear_cache()
+{
+  cached_histories.clear();
 }

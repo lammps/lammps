@@ -126,9 +126,8 @@ int ReaderNative::read_time(bigint &ntimestep)
 void ReaderNative::skip()
 {
   if (binary) {
-    bigint natoms;
     int triclinic;
-    read_buf(&natoms, sizeof(bigint), 1);
+    skip_buf(sizeof(bigint));
     read_buf(&triclinic, sizeof(int), 1);
     skip_buf((sizeof(int)+sizeof(double))*6);
     if (triclinic) {
@@ -145,7 +144,13 @@ void ReaderNative::skip()
     int n;
     for (int i = 0; i < nchunk; i++) {
       read_buf(&n, sizeof(int), 1);
-      skip_buf(n*sizeof(double));
+      int nremain = n;
+      int nbuf;
+      while (nremain){
+        nbuf = MIN(nremain,MAXSMALLINT);
+        skip_buf(nbuf*sizeof(double));
+        nremain -= nbuf;
+      }
     }
 
   } else {

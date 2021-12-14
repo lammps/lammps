@@ -19,8 +19,8 @@ class ThirdOrder : public Command {
  public:
   ThirdOrder(class LAMMPS *);
   virtual ~ThirdOrder();
-  void command(int, char **);
-  void setup();
+  virtual void command(int, char **);
+  virtual void setup();
 
  protected:
   int eflag,vflag;            // flags for energy/virial computation
@@ -35,12 +35,12 @@ class ThirdOrder : public Command {
 
   int nvec;    // local atomic dof = length of xvec
 
-  void update_force();
-  void force_clear();
+  virtual void update_force();
+  virtual void force_clear();
   virtual void openfile(const char* filename);
 
 
- private:
+ protected:
   void options(int, char **);
   void create_groupmap();
   void calculateMatrix();

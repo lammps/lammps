@@ -117,7 +117,7 @@ An alphabetic list of all general LAMMPS commands.
    * :doc:`thermo <thermo>`
    * :doc:`thermo_modify <thermo_modify>`
    * :doc:`thermo_style <thermo_style>`
-   * :doc:`third_order <third_order>`
+   * :doc:`third_order (k) <third_order>`
    * :doc:`timer <timer>`
    * :doc:`timestep <timestep>`
    * :doc:`uncompute <uncompute>`

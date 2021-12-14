@@ -498,8 +498,16 @@ void ThirdOrder::displace_atom(int local_idx, int direction, int magnitude)
 
 void ThirdOrder::update_force()
 {
+  neighbor->decide(); // needed for intel potentials to work
   force_clear();
   int n_post_force = modify->n_post_force;
+  int n_pre_force = modify->n_pre_force;
+  int n_pre_reverse = modify->n_pre_reverse;
+
+  if (n_pre_force) {
+    modify->pre_force(vflag);
+    timer->stamp(Timer::MODIFY);
+  }
 
   if (pair_compute_flag) {
     force->pair->compute(eflag,vflag);
@@ -516,6 +524,10 @@ void ThirdOrder::update_force()
     force->kspace->compute(eflag,vflag);
     timer->stamp(Timer::KSPACE);
   }
+  if (n_pre_reverse) {
+    modify->pre_reverse(eflag,vflag);
+    timer->stamp(Timer::MODIFY);
+  }
   if (force->newton) {
     comm->reverse_comm();
     timer->stamp(Timer::COMM);
@@ -523,8 +535,10 @@ void ThirdOrder::update_force()
 
   // force modifications
 
-  if (n_post_force) modify->post_force(vflag);
-  timer->stamp(Timer::MODIFY);
+  if (n_post_force) {
+    modify->post_force(vflag);
+    timer->stamp(Timer::MODIFY);
+  }
 
   ++ update->nsteps;
 }

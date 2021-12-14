@@ -312,6 +312,8 @@ action remap_kokkos.cpp remap.cpp
 action remap_kokkos.h remap.h
 action sna_kokkos.h sna.h
 action sna_kokkos_impl.h sna.cpp
+action third_order_kokkos.cpp dynamical_matrix.cpp
+action third_order_kokkos.h dynamical_matrix.h
 action verlet_kokkos.cpp
 action verlet_kokkos.h
 

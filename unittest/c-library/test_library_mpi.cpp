@@ -167,7 +167,6 @@ TEST(MPI, split_comm)
 
 TEST(MPI, multi_partition)
 {
-    FILE *fp;
     int nprocs, me;
     lammps_mpi_init();
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);

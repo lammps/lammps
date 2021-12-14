@@ -51,10 +51,6 @@
 #ifndef KOKKOS_ATOMIC_COMPARE_EXCHANGE_WEAK_HPP
 #define KOKKOS_ATOMIC_COMPARE_EXCHANGE_WEAK_HPP
 
-#if defined(KOKKOS_ENABLE_CUDA)
-#include <Cuda/Kokkos_Cuda_Version_9_8_Compatibility.hpp>
-#endif
-
 namespace Kokkos {
 
 //----------------------------------------------------------------------------

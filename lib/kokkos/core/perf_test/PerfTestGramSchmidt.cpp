@@ -231,7 +231,7 @@ void run_test_gramschmidt(int exp_beg, int exp_end, int num_trials,
 
     std::cout << label_gramschmidt << " , " << parallel_work_length << " , "
               << min_seconds << " , " << (min_seconds / parallel_work_length)
-              << std::endl;
+              << ", " << avg_seconds << std::endl;
   }
 }
 

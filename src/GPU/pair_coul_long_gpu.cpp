@@ -147,8 +147,6 @@ void PairCoulLongGPU::init_style()
 
   if (!atom->q_flag)
     error->all(FLERR,"Pair style coul/long/gpu requires atom attribute q");
-  if (force->newton_pair)
-    error->all(FLERR,"Pair style coul/long/gpu requires newton pair off");
 
   // Call init_one calculation make sure scale is correct
   for (int i = 1; i <= atom->ntypes; i++) {

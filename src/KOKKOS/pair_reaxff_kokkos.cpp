@@ -1273,9 +1273,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFComputeLJCoulomb<NEIGHFL
   fxtmp = fytmp = fztmp = 0.0;
 #ifdef HIP_OPT_PAIRREAXLJCOULOMB_BLOCKING
 
-  unsigned short int BLK_SZ=80;
+  const unsigned short int BLK_SZ=64;
   unsigned short int nnz;
-  unsigned short int selected_jj[80];
+  unsigned short int selected_jj[BLK_SZ];
   int jj_current = 0;
 
   while (jj_current < jnum) {
@@ -1416,7 +1416,11 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFComputeLJCoulomb<NEIGHFL
            // Coulomb energy/force
            const F_FLOAT shld = paramstwbp(itype,jtype).gamma;
            const F_FLOAT denom1 = rij * rij * rij + shld;
+           #ifdef HIP_OPT_USE_LESS_MATH
+           const F_FLOAT denom3 = cbrt(denom1);
+           #else
            const F_FLOAT denom3 = pow(denom1,0.3333333333333);
+           #endif
            const F_FLOAT ecoul = C_ele * qi*qj*Tap/denom3;
            const F_FLOAT fcoul = C_ele * qi*qj*(dTap-Tap*rij/denom1)/denom3;
 
@@ -2068,9 +2072,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxBuildListsHalf<NEIGHFLAG>,
 
   #ifdef HIP_OPT_PAIRREAXBUILDLISTSHALF_BLOCKING
 
-  unsigned short int BLK_SZ=80;
+  const unsigned short int BLK_SZ=64;
   unsigned short int nnz;
-  unsigned short int selected_jj[80];
+  unsigned short int selected_jj[BLK_SZ];
   unsigned short int jj_current = 0;
 
 
@@ -3698,9 +3702,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFComputeTorsion_with_BLOC
   F_FLOAT CdDelta_i = 0.0;
 
 
-  unsigned char BLK_SZ=1;
-  unsigned char nnz_jj;
-  unsigned char selected_jj[1];
+  const unsigned short int BLK_SZ=8;
+  unsigned short int nnz_jj;
+  unsigned short int selected_jj[BLK_SZ];
   #ifdef HIP_OPT_TORSION_PREVIEW
   unsigned int jj_current = jj_start;
   #else
@@ -3788,9 +3792,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxFFComputeTorsion_with_BLOC
       for(int k = 0; k < 3; k++) fjtmp[k] = 0.0;
       F_FLOAT CdDelta_j = 0.0;
 
-      unsigned char nnz_kk;
-
-      unsigned char selected_kk[1];
+      unsigned short int nnz_kk;
+      unsigned short int selected_kk[BLK_SZ];
       #ifdef HIP_OPT_TORSION_PREVIEW
       unsigned int kk_current = kk_start;
       #else

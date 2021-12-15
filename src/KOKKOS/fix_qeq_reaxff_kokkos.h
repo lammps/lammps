@@ -38,8 +38,13 @@ struct TagSparseMatvec1 {};
 struct TagSparseMatvec1Vector {};
 struct TagSparseMatvec2 {};
 struct TagSparseMatvec2Vector {};
+struct TagSparseMatvec2Fused {};
+struct TagSparseMatvec2FusedVector {};
 struct TagSparseMatvec3 {};
 struct TagSparseMatvec3Vector {};
+// fused operators
+struct TagSparseMatvec13 {};
+struct TagSparseMatvec13Vector {};
 struct TagZeroQGhosts{};
 struct TagFixQEqReaxFFPackForwardComm {};
 struct TagFixQEqReaxFFUnpackForwardComm {};
@@ -84,12 +89,22 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void sparse22_item(int) const;
 
+  #ifdef HIP_OPT_CG_SOLVE_FUSED
+  KOKKOS_INLINE_FUNCTION
+  void sparse22_fused_item(int) const;
+  #endif
+
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
   void sparse23_item(int) const;
 
   KOKKOS_INLINE_FUNCTION
   void sparse32_item(int) const;
+
+  #ifdef HIP_OPT_CG_SOLVE_FUSED
+  KOKKOS_INLINE_FUNCTION
+  void sparse12_32_item(int) const;
+  #endif
 
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -111,6 +126,16 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void operator() (TagSparseMatvec2Vector, const membertype2vec &team) const;
 
+  typedef typename Kokkos::TeamPolicy <DeviceType, TagSparseMatvec2Fused> ::member_type membertype2fused;
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagSparseMatvec2Fused, const membertype2fused &team) const;
+
+#ifdef HIP_OPT_CG_SOLVE_FUSED
+  typedef typename Kokkos::TeamPolicy <DeviceType, TagSparseMatvec2FusedVector> ::member_type membertype2fusedvec;
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagSparseMatvec2FusedVector, const membertype2fusedvec &team) const;
+#endif
+
   typedef typename Kokkos::TeamPolicy <DeviceType, TagSparseMatvec3> ::member_type membertype3;
   KOKKOS_INLINE_FUNCTION
   void operator() (TagSparseMatvec3, const membertype3 &team) const;
@@ -119,11 +144,26 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void operator() (TagSparseMatvec3Vector, const membertype3vec &team) const;
 
+#ifdef HIP_OPT_CG_SOLVE_FUSED
+  typedef typename Kokkos::TeamPolicy <DeviceType, TagSparseMatvec13> ::member_type membertype13;
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagSparseMatvec13, const membertype13 &team) const;
+
+  typedef typename Kokkos::TeamPolicy <DeviceType, TagSparseMatvec13Vector> ::member_type membertype13vec;
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagSparseMatvec13Vector, const membertype13vec &team) const;
+#endif
+
   KOKKOS_INLINE_FUNCTION
   void operator()(TagZeroQGhosts, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
   void vecsum2_item(int) const;
+
+#ifdef HIP_OPT_CG_SOLVE_FUSED
+  KOKKOS_INLINE_FUNCTION
+  void vecsum2_fused_item(int) const;
+#endif
 
   KOKKOS_INLINE_FUNCTION
   double norm1_item(int) const;
@@ -131,11 +171,26 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   double norm2_item(int) const;
 
+#ifdef HIP_OPT_CG_SOLVE_FUSED
+  // fused operator
+  KOKKOS_INLINE_FUNCTION
+  void norm12_item(int, F_FLOAT2&) const;
+#endif
+
   KOKKOS_INLINE_FUNCTION
   double dot1_item(int) const;
 
   KOKKOS_INLINE_FUNCTION
   double dot2_item(int) const;
+
+#ifdef HIP_OPT_CG_SOLVE_FUSED
+  // fused operators
+  KOKKOS_INLINE_FUNCTION
+  void dot11_item(int, F_FLOAT2&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void dot22_item(int, F_FLOAT2&) const;
+#endif
 
   KOKKOS_INLINE_FUNCTION
   void precon1_item(int) const;
@@ -143,8 +198,19 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void precon2_item(int) const;
 
+#ifdef HIP_OPT_CG_SOLVE_FUSED
+  // fused operator
+  KOKKOS_INLINE_FUNCTION
+  void precon12_item(int) const;
+#endif
+
   KOKKOS_INLINE_FUNCTION
   double precon_item(int) const;
+
+#ifdef HIP_OPT_CG_SOLVE_FUSED
+  KOKKOS_INLINE_FUNCTION
+  void precon_fused_item(int, F_FLOAT2&) const;
+#endif
 
   KOKKOS_INLINE_FUNCTION
   double vecacc1_item(int) const;
@@ -224,6 +290,15 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   DAT::tdual_ffloat_1d k_o, k_d;
   typename AT::t_ffloat_1d d_p, d_o, d_r, d_d;
   HAT::t_ffloat_1d h_o, h_d;
+
+#ifdef HIP_OPT_CG_SOLVE_FUSED
+  // fused arrays
+  DAT::tdual_ffloat2_1d k_o_fused, k_d_fused;
+  typename AT::t_ffloat2_1d d_p_fused, d_o_fused, d_r_fused, d_d_fused;
+  HAT::t_ffloat2_1d h_o_fused, h_d_fused;
+  int converged = 0;
+#endif
+
   typename AT::t_ffloat_1d_randomread r_p, r_o, r_r, r_d;
 
   DAT::tdual_ffloat_2d k_shield, k_s_hist, k_t_hist;
@@ -245,12 +320,21 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   void allocate_array();
   int cg_solve1();
   int cg_solve2();
+  #ifdef HIP_OPT_CG_SOLVE_FUSED
+  int cg_solve_fused();
+  #endif
   void calculate_q();
 
   int neighflag, pack_flag;
   int nlocal,nall,nmax,newton_pair;
   int count, isuccess;
-  double alpha, beta, delta, cutsq;
+#ifdef HIP_OPT_CG_SOLVE_FUSED
+  F_FLOAT alpha[2];
+  F_FLOAT beta[2];
+#else
+  double alpha, beta;
+#endif
+  double delta, cutsq;
 
   void grow_arrays(int);
   void copy_arrays(int, int, int);
@@ -385,6 +469,21 @@ struct FixQEqReaxFFKokkosSparse22Functor  {
   }
 };
 
+#ifdef HIP_OPT_CG_SOLVE_FUSED
+template <class DeviceType>
+struct FixQEqReaxFFKokkosSparse22FusedFunctor  {
+  typedef DeviceType  device_type ;
+  FixQEqReaxFFKokkos<DeviceType> c;
+  FixQEqReaxFFKokkosSparse22FusedFunctor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+    c.cleanup_copy();
+  };
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int ii) const {
+    c.sparse22_fused_item(ii);
+  }
+};
+#endif
+
 template <class DeviceType,int NEIGHFLAG>
 struct FixQEqReaxFFKokkosSparse23Functor  {
   typedef DeviceType  device_type ;
@@ -411,6 +510,21 @@ struct FixQEqReaxFFKokkosSparse32Functor  {
   }
 };
 
+#ifdef HIP_OPT_CG_SOLVE_FUSED
+template <class DeviceType>
+struct FixQEqReaxFFKokkosSparse12_32Functor  {
+  typedef DeviceType  device_type ;
+  FixQEqReaxFFKokkos<DeviceType> c;
+  FixQEqReaxFFKokkosSparse12_32Functor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+    c.cleanup_copy();
+  };
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int ii) const {
+    c.sparse12_32_item(ii);
+  }
+};
+#endif
+
 template <class DeviceType,int NEIGHFLAG>
 struct FixQEqReaxFFKokkosSparse33Functor  {
   typedef DeviceType  device_type ;
@@ -436,6 +550,21 @@ struct FixQEqReaxFFKokkosVecSum2Functor  {
     c.vecsum2_item(ii);
   }
 };
+
+#ifdef HIP_OPT_CG_SOLVE_FUSED
+template <class DeviceType>
+struct FixQEqReaxFFKokkosVecSum2FusedFunctor  {
+  typedef DeviceType  device_type ;
+  FixQEqReaxFFKokkos<DeviceType> c;
+  FixQEqReaxFFKokkosVecSum2FusedFunctor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+    c.cleanup_copy();
+  };
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int ii) const {
+    c.vecsum2_fused_item(ii);
+  }
+};
+#endif
 
 template <class DeviceType>
 struct FixQEqReaxFFKokkosNorm1Functor  {
@@ -465,6 +594,23 @@ struct FixQEqReaxFFKokkosNorm2Functor  {
   }
 };
 
+#ifdef HIP_OPT_CG_SOLVE_FUSED
+// fused operator
+template <class DeviceType>
+struct FixQEqReaxFFKokkosNorm12Functor  {
+  typedef DeviceType  device_type ;
+  FixQEqReaxFFKokkos<DeviceType> c;
+  typedef F_FLOAT2 value_type;
+  FixQEqReaxFFKokkosNorm12Functor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+    c.cleanup_copy();
+  };
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int ii, value_type &tmp) const {
+    c.norm12_item(ii, tmp);
+  }
+};
+#endif
+
 template <class DeviceType>
 struct FixQEqReaxFFKokkosDot1Functor  {
   typedef DeviceType  device_type ;
@@ -493,6 +639,37 @@ struct FixQEqReaxFFKokkosDot2Functor  {
   }
 };
 
+#ifdef HIP_OPT_CG_SOLVE_FUSED
+// fused operators
+template <class DeviceType>
+struct FixQEqReaxFFKokkosDot11Functor  {
+  typedef DeviceType  device_type ;
+  FixQEqReaxFFKokkos<DeviceType> c;
+  typedef F_FLOAT2 value_type;
+  FixQEqReaxFFKokkosDot11Functor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+    c.cleanup_copy();
+  };
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int ii, value_type &tmp) const {
+    c.dot11_item(ii, tmp);
+  }
+};
+
+template <class DeviceType>
+struct FixQEqReaxFFKokkosDot22Functor  {
+  typedef DeviceType  device_type ;
+  FixQEqReaxFFKokkos<DeviceType> c;
+  typedef F_FLOAT2 value_type;
+  FixQEqReaxFFKokkosDot22Functor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+    c.cleanup_copy();
+  };
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int ii, value_type &tmp) const {
+    c.dot22_item(ii, tmp);
+  }
+};
+#endif
+
 template <class DeviceType>
 struct FixQEqReaxFFKokkosPrecon1Functor  {
   typedef DeviceType  device_type ;
@@ -519,6 +696,21 @@ struct FixQEqReaxFFKokkosPrecon2Functor  {
   }
 };
 
+#ifdef HIP_OPT_CG_SOLVE_FUSED
+template <class DeviceType>
+struct FixQEqReaxFFKokkosPrecon12Functor  {
+  typedef DeviceType  device_type ;
+  FixQEqReaxFFKokkos<DeviceType> c;
+  FixQEqReaxFFKokkosPrecon12Functor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+    c.cleanup_copy();
+  };
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int ii) const {
+    c.precon12_item(ii);
+  }
+};
+#endif
+
 template <class DeviceType>
 struct FixQEqReaxFFKokkosPreconFunctor  {
   typedef DeviceType  device_type ;
@@ -532,6 +724,22 @@ struct FixQEqReaxFFKokkosPreconFunctor  {
     tmp += c.precon_item(ii);
   }
 };
+
+#ifdef HIP_OPT_CG_SOLVE_FUSED
+template <class DeviceType>
+struct FixQEqReaxFFKokkosPreconFusedFunctor  {
+  typedef DeviceType  device_type ;
+  FixQEqReaxFFKokkos<DeviceType> c;
+  typedef F_FLOAT2 value_type;
+  FixQEqReaxFFKokkosPreconFusedFunctor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
+    c.cleanup_copy();
+  };
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int ii, value_type &tmp) const {
+    c.precon_fused_item(ii, tmp);
+  }
+};
+#endif
 
 template <class DeviceType>
 struct FixQEqReaxFFKokkosVecAcc1Functor  {
@@ -573,8 +781,18 @@ struct FixQEqReaxFFKokkosCalculateQFunctor  {
     c.calculate_q_item(ii);
   }
 };
-
 }
+
+#ifdef HIP_OPT_CG_SOLVE_FUSED
+namespace Kokkos { //reduction identity must be defined in Kokkos namespace
+   template<>
+   struct reduction_identity< F_FLOAT2 > {
+      KOKKOS_FORCEINLINE_FUNCTION static F_FLOAT2 sum() {
+         return F_FLOAT2();
+      }
+   };
+}
+#endif
 
 #endif
 #endif

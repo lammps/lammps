@@ -501,6 +501,41 @@ struct s_FEV_FLOAT {
 };
 typedef struct s_FEV_FLOAT<6,3> FEV_FLOAT;
 
+struct s_FLOAT2 {
+  F_FLOAT v[2];
+
+  KOKKOS_INLINE_FUNCTION
+  s_FLOAT2() {
+    init();
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  s_FLOAT2(const s_FLOAT2 & rhs) {
+    for (int i = 0; i < 2; i++){
+      v[i] = rhs.v[i];
+    }
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator+=(const s_FLOAT2 &rhs) {
+    v[0] += rhs.v[0];
+    v[1] += rhs.v[1];
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator+=(const volatile s_FLOAT2 &rhs) volatile {
+    v[0] += rhs.v[0];
+    v[1] += rhs.v[1];
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void init() {
+    v[0] = 0;
+    v[1] = 0;
+  }
+};
+typedef struct s_FLOAT2 F_FLOAT2;
+
 #ifndef PREC_POS
 #define PREC_POS PRECISION
 #endif
@@ -731,6 +766,14 @@ typedef tdual_ffloat_1d::t_dev_const t_ffloat_1d_const;
 typedef tdual_ffloat_1d::t_dev_um t_ffloat_1d_um;
 typedef tdual_ffloat_1d::t_dev_const_um t_ffloat_1d_const_um;
 typedef tdual_ffloat_1d::t_dev_const_randomread t_ffloat_1d_randomread;
+
+// 1d F_FLOAT2 array n
+typedef Kokkos::DualView<F_FLOAT*[2], Kokkos::LayoutRight, LMPDeviceType> tdual_ffloat2_1d;
+typedef tdual_ffloat2_1d::t_dev t_ffloat2_1d;
+typedef tdual_ffloat2_1d::t_dev_const t_ffloat2_1d_const;
+typedef tdual_ffloat2_1d::t_dev_um t_ffloat2_1d_um;
+typedef tdual_ffloat2_1d::t_dev_const_um t_ffloat2_1d_const_um;
+typedef tdual_ffloat2_1d::t_dev_const_randomread t_ffloat2_1d_randomread;
 
 //2d F_FLOAT array n*m
 
@@ -1001,6 +1044,14 @@ typedef tdual_ffloat_1d::t_host_const t_ffloat_1d_const;
 typedef tdual_ffloat_1d::t_host_um t_ffloat_1d_um;
 typedef tdual_ffloat_1d::t_host_const_um t_ffloat_1d_const_um;
 typedef tdual_ffloat_1d::t_host_const_randomread t_ffloat_1d_randomread;
+
+// 1d F_FLOAT2 array n
+typedef Kokkos::DualView<F_FLOAT*[2], Kokkos::LayoutRight, LMPDeviceType> tdual_ffloat2_1d;
+typedef tdual_ffloat2_1d::t_host t_ffloat2_1d;
+typedef tdual_ffloat2_1d::t_host_const t_ffloat2_1d_const;
+typedef tdual_ffloat2_1d::t_host_um t_ffloat2_1d_um;
+typedef tdual_ffloat2_1d::t_host_const_um t_ffloat2_1d_const_um;
+typedef tdual_ffloat2_1d::t_host_const_randomread t_ffloat2_1d_randomread;
 
 //2d F_FLOAT array n*m
 typedef Kokkos::DualView<F_FLOAT**, Kokkos::LayoutRight, LMPDeviceType> tdual_ffloat_2d;

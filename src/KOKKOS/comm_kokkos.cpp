@@ -531,7 +531,6 @@ void CommKokkos::forward_comm_pair_device(Pair *pair)
   }
 }
 
-
 void CommKokkos::grow_buf_pair(int n) {
   max_buf_pair = n * BUFFACTOR;
   k_buf_send_pair.resize(max_buf_pair);

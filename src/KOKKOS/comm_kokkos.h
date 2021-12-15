@@ -17,7 +17,6 @@
 
 #include "comm_brick.h"
 #include "kokkos_type.h"
-#include "kokkos_base.h"
 
 namespace LAMMPS_NS {
 
@@ -85,7 +84,6 @@ class CommKokkos : public CommBrick {
   DAT::tdual_xfloat_1d k_buf_recv_pair, k_buf_recv_fix;
   void grow_buf_pair(int);
   void grow_buf_fix(int);
-
 
   void grow_send(int, int);
   void grow_recv(int);

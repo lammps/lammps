@@ -212,7 +212,7 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
 {
   bigint natoms = 0;
   int len = 0;
-  char *labelline;
+  char *labelline = nullptr;
 
   if (binary) {
     read_buf(&natoms, sizeof(bigint), 1);
@@ -245,7 +245,6 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
       // newer format includes units string, columns string
       // and time
       read_buf(&len, sizeof(int), 1);
-      labelline = new char[len + 1];
 
       if (len > 0) {
         // has units
@@ -263,6 +262,7 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
       }
 
       read_buf(&len, sizeof(int), 1);
+      labelline = new char[len + 1];
       read_buf(labelline, sizeof(char), len);
       labelline[len] = '\0';
     }

@@ -1,7 +1,7 @@
 ---
 lammps_version: 10 Feb 2021
 date_generated: Wed Feb 24 19:35:15 202
-epsilon: 2e-11
+epsilon: 5e-11
 prerequisites: ! |
   atom full
   improper harmonic

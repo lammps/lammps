@@ -40,13 +40,30 @@ class ReaderNative : public Reader {
   void read_atoms(int, int, double **);
 
  private:
-  char *line;    // line read from dump file
+  int revision;
 
+  char *magic_string;
+  char *unit_style;
+  int *fieldindex;
+
+  char *line;         // line read from dump file
+  double *databuf;    // buffer for binary data
   int nwords;         // # of per-atom columns in dump file
-  int *fieldindex;    //
+
+  int size_one;       // number of double for one atom
+  int maxbuf;         // maximum buffer size
+  int nchunk;         // number of chunks in the binary file
+  int ichunk;         // index of current reading chunk
+  int natom_chunk;    // number of atoms in the current chunks
+  int iatom_chunk;    // index of current atom in the current chunk
 
   int find_label(const std::string &label, const std::map<std::string, int> &labels);
   void read_lines(int);
+
+  void read_buf(void *, size_t, size_t);
+  void read_double_chunk(size_t);
+  void skip_buf(size_t);
+  void skip_reading_magic_str();
 };
 
 }    // namespace LAMMPS_NS

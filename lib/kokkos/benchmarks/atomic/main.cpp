@@ -1,12 +1,12 @@
 #include <Kokkos_Core.hpp>
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 #include <Kokkos_Random.hpp>
 
 template <class Scalar>
 double test_atomic(int L, int N, int M, int K, int R,
                    Kokkos::View<const int*> offsets) {
   Kokkos::View<Scalar*> output("Output", N);
-  Kokkos::Impl::Timer timer;
+  Kokkos::Timer timer;
 
   for (int r = 0; r < R; r++)
     Kokkos::parallel_for(
@@ -28,7 +28,7 @@ template <class Scalar>
 double test_no_atomic(int L, int N, int M, int K, int R,
                       Kokkos::View<const int*> offsets) {
   Kokkos::View<Scalar*> output("Output", N);
-  Kokkos::Impl::Timer timer;
+  Kokkos::Timer timer;
   for (int r = 0; r < R; r++)
     Kokkos::parallel_for(
         L, KOKKOS_LAMBDA(const int& i) {

@@ -190,9 +190,9 @@ struct ViewTraits<void, void, Prop...> {
 };
 
 template <class ArrayLayout, class... Prop>
-struct ViewTraits<typename std::enable_if<
-                      Kokkos::Impl::is_array_layout<ArrayLayout>::value>::type,
-                  ArrayLayout, Prop...> {
+struct ViewTraits<
+    typename std::enable_if<Kokkos::is_array_layout<ArrayLayout>::value>::type,
+    ArrayLayout, Prop...> {
   // Specify layout, keep subsequent space and memory traits arguments
 
   using execution_space = typename ViewTraits<void, Prop...>::execution_space;
@@ -204,9 +204,8 @@ struct ViewTraits<typename std::enable_if<
 };
 
 template <class Space, class... Prop>
-struct ViewTraits<
-    typename std::enable_if<Kokkos::Impl::is_space<Space>::value>::type, Space,
-    Prop...> {
+struct ViewTraits<typename std::enable_if<Kokkos::is_space<Space>::value>::type,
+                  Space, Prop...> {
   // Specify Space, memory traits should be the only subsequent argument.
 
   static_assert(
@@ -230,8 +229,8 @@ struct ViewTraits<
 };
 
 template <class MemoryTraits, class... Prop>
-struct ViewTraits<typename std::enable_if<Kokkos::Impl::is_memory_traits<
-                      MemoryTraits>::value>::type,
+struct ViewTraits<typename std::enable_if<
+                      Kokkos::is_memory_traits<MemoryTraits>::value>::type,
                   MemoryTraits, Prop...> {
   // Specify memory trait, should not be any subsequent arguments
 
@@ -1543,7 +1542,8 @@ class View : public ViewTraits<DataType, Properties...> {
     // to avoid incomplete type errors from using Kokkos::Cuda directly.
     if (std::is_same<Kokkos::CudaUVMSpace,
                      typename traits::device_type::memory_space>::value) {
-      typename traits::device_type::memory_space::execution_space().fence();
+      typename traits::device_type::memory_space::execution_space().fence(
+          "Kokkos::View<...>::View: fence before allocating UVM");
     }
 #endif
     //------------------------------------------------------------
@@ -1555,7 +1555,8 @@ class View : public ViewTraits<DataType, Properties...> {
 #if defined(KOKKOS_ENABLE_CUDA)
     if (std::is_same<Kokkos::CudaUVMSpace,
                      typename traits::device_type::memory_space>::value) {
-      typename traits::device_type::memory_space::execution_space().fence();
+      typename traits::device_type::memory_space::execution_space().fence(
+          "Kokkos::View<...>::View: fence after allocating UVM");
     }
 #endif
     //------------------------------------------------------------

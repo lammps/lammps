@@ -204,7 +204,7 @@ TEST_F(GroupTest, SelectRestart)
     command("write_restart group.restart");
     command("clear");
     command("read_restart group.restart");
-    unlink("group.restart");
+    platform::unlink("group.restart");
     END_HIDE_OUTPUT();
     group = lmp->group;
     ASSERT_EQ(group->count(group->find("one")), 16);
@@ -246,7 +246,7 @@ TEST_F(GroupTest, Molecular)
     ASSERT_DOUBLE_EQ(group->mass(group->find("half")), 40);
     ASSERT_DOUBLE_EQ(group->mass(group->find("half"), domain->find_region("top")), 10);
     ASSERT_NEAR(group->charge(group->find("top")), 0, 1.0e-14);
-    ASSERT_DOUBLE_EQ(group->charge(group->find("right"), domain->find_region("top")), 0);
+    ASSERT_NEAR(group->charge(group->find("right"), domain->find_region("top")), 0, 1.0e-14);
 
     TEST_FAILURE(".*ERROR: Illegal group command.*", command("group three include xxx"););
 }

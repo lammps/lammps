@@ -1,3 +1,4 @@
+//
 // clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
@@ -112,6 +113,7 @@ void ThirdOrderKokkos::setup()
   if (triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
   domain->reset_box();
+  comm->setup();
   if (neighbor->style) neighbor->setup_bins();
   comm->exchange();
   comm->borders();

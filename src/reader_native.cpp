@@ -38,8 +38,6 @@ ReaderNative::ReaderNative(LAMMPS *lmp) : Reader(lmp)
   fieldindex = nullptr;
   maxbuf = 0;
   databuf = nullptr;
-  magic_string = nullptr;
-  unit_style = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -47,8 +45,6 @@ ReaderNative::ReaderNative(LAMMPS *lmp) : Reader(lmp)
 ReaderNative::~ReaderNative()
 {
   delete[] line;
-  delete[] magic_string;
-  delete[] unit_style;
   memory->destroy(fieldindex);
   memory->destroy(databuf);
 }
@@ -64,10 +60,8 @@ int ReaderNative::read_time(bigint &ntimestep)
   if (binary) {
     int endian = 0x0001;
     revision = 0x0001;
-    delete[] magic_string;
-    delete[] unit_style;
-    magic_string = nullptr;
-    unit_style = nullptr;
+    magic_string = "";
+    unit_style = "";
 
     fread(&ntimestep, sizeof(bigint), 1, fp);
 
@@ -79,9 +73,7 @@ int ReaderNative::read_time(bigint &ntimestep)
       // first bigint encodes negative format name length
       bigint magic_string_len = -ntimestep;
 
-      magic_string = new char[magic_string_len + 1];
-      read_buf(magic_string, sizeof(char), magic_string_len);
-      magic_string[magic_string_len] = '\0';
+      magic_string = read_binary_str(magic_string_len);
 
       // read endian flag
       read_buf(&endian, sizeof(int), 1);
@@ -168,7 +160,7 @@ void ReaderNative::skip()
 
 void ReaderNative::skip_reading_magic_str()
 {
-  if (magic_string && revision > 0x0001) {
+  if (is_known_magic_str() && revision > 0x0001) {
     int len;
     read_buf(&len, sizeof(int), 1);
 
@@ -212,7 +204,7 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
 {
   bigint natoms = 0;
   int len = 0;
-  char *labelline;
+  std::string labelline;
 
   if (binary) {
     read_buf(&natoms, sizeof(bigint), 1);
@@ -241,17 +233,15 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
       return natoms;
     }
 
-    if (magic_string && revision > 0x0001) {
+
+    if (is_known_magic_str() && revision > 0x0001) {
       // newer format includes units string, columns string
       // and time
       read_buf(&len, sizeof(int), 1);
-      labelline = new char[len + 1];
 
       if (len > 0) {
         // has units
-        unit_style = new char[len + 1];
-        read_buf(unit_style, sizeof(char), len);
-        unit_style[len] = '\0';
+        unit_style = read_binary_str(len);
       }
 
       char flag = 0;
@@ -263,8 +253,9 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
       }
 
       read_buf(&len, sizeof(int), 1);
-      read_buf(labelline, sizeof(char), len);
-      labelline[len] = '\0';
+      labelline = read_binary_str(len);
+    } else {
+      error->one(FLERR, "Unsupported old binary dump format");
     }
 
     read_buf(&nchunk, sizeof(int), 1);
@@ -310,13 +301,14 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
     labelline = &line[strlen("ITEM: ATOMS ")];
   }
 
-  std::map<std::string, int> labels;
   Tokenizer tokens(labelline);
+  std::map<std::string, int> labels;
   nwords = 0;
 
   while (tokens.has_next()) {
     labels[tokens.next()] = nwords++;
   }
+
 
   if (nwords == 0) {
     return 1;
@@ -549,6 +541,13 @@ void ReaderNative::read_buf(void * ptr, size_t size, size_t count)
   if (feof(fp)) error->one(FLERR,"Unexpected end of dump file");
 }
 
+std::string ReaderNative::read_binary_str(size_t size)
+{
+  std::string str(size, '\0');
+  read_buf(&str[0], sizeof(char), size);
+  return str;
+}
+
 void ReaderNative::read_double_chunk(size_t count)
 {
   if (count < 0) return;
@@ -565,4 +564,9 @@ void ReaderNative::skip_buf(size_t size)
   bigint pos = platform::ftell(fp);
   pos += size;
   platform::fseek(fp,pos);
+}
+
+bool ReaderNative::is_known_magic_str() const
+{
+  return magic_string == "DUMPATOM" || magic_string == "DUMPCUSTOM";
 }

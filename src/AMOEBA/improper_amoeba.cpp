@@ -272,16 +272,12 @@ void ImproperAmoeba::init_style()
   Pair *pair = force->pair_match("amoeba",1,0);
   if (!pair) pair = force->pair_match("hippo",1,0);
   if (!pair) error->all(FLERR,"Improper amoeba could not find pair amoega");
-
   
   int dim;
   opbend_cubic = *(double *) pair->extract("opbend_cubic",dim);
   opbend_quartic = *(double *) pair->extract("opbend_quartic",dim);
   opbend_pentic = *(double *) pair->extract("opbend_pentic",dim);
   opbend_sextic = *(double *) pair->extract("opbend_sextic",dim);
-
-  printf("OPBEND %g %g %g %g\n",
-         opbend_cubic,opbend_quartic,opbend_pentic,opbend_sextic);
 }
 
 /* ----------------------------------------------------------------------
@@ -301,9 +297,8 @@ void ImproperAmoeba::read_restart(FILE *fp)
 {
   allocate();
 
-  if (comm->me == 0) {
+  if (comm->me == 0)
     utils::sfread(FLERR,&k[1],sizeof(double),atom->nimpropertypes,fp,nullptr,error);
-  }
   MPI_Bcast(&k[1],atom->nimpropertypes,MPI_DOUBLE,0,world);
 
   for (int i = 1; i <= atom->nimpropertypes; i++) setflag[i] = 1;

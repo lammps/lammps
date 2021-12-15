@@ -169,8 +169,9 @@ void AngleAmoeba::compute(int eflag, int vflag)
     f3[1] = a22*dely2 + a12*dely1;
     f3[2] = a22*delz2 + a12*delz1;
 
-    if (eflag) eangle = k2[type]*dtheta2 + k3[type]*dtheta3 + 
-                 k4[type]*dtheta4 + k5[type]*dtheta5 + k6[type]*dtheta6;
+    //if (eflag) eangle = k2[type]*dtheta2 + k3[type]*dtheta3 + 
+    //             k4[type]*dtheta4 + k5[type]*dtheta5 + k6[type]*dtheta6;
+    eangle = 0.0;
 
     // force & energy for bond-angle term
     // bond-stretch cross term in Tinker
@@ -215,6 +216,9 @@ void AngleAmoeba::compute(int eflag, int vflag)
     f3[2] -= vz21 + b2*delz2 + vz22;
 
     if (eflag) eangle += ba_k1[type]*dr1*dtheta + ba_k2[type]*dr2*dtheta;
+
+    printf("Stretch-Bend: %ld %d %d: eng %g\n",
+           atom->tag[i1],atom->tag[i2],atom->tag[i3],eangle);
 
     // apply force to each of 3 atoms
 
@@ -445,6 +449,9 @@ void AngleAmoeba::allocate()
   memory->create(ba_r2,n+1,"angle:ba_r2");
 
   memory->create(setflag,n+1,"angle:setflag");
+  memory->create(setflag_a,n+1,"angle:setflag");
+  memory->create(setflag_ba,n+1,"angle:setflag");
+
   for (int i = 1; i <= n; i++) setflag[i] = setflag_a[i] = setflag_ba[i] = 0;
 }
 
@@ -500,6 +507,7 @@ void AngleAmoeba::coeff(int narg, char **arg)
       k4[i] = k4_one;
       k5[i] = k5_one;
       k6[i] = k6_one;
+      setflag_a[i] = 1;
       count++;
     }
   }

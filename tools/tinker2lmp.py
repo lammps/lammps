@@ -36,7 +36,7 @@ def error(txt=""):
     print "  -nopbc"
     print "  -pbc xhi yhi zhi"
   else: print "ERROR:",txt
-  sys.exit()
+  #sys.exit()
 
 # read and store values from a Tinker xyz file
 
@@ -251,13 +251,13 @@ class PRMfile:
   
   def bondangles(self):
     params = []
-    iline = self.find_section("Stretch Bend Parameters")
+    iline = self.find_section("Stretch-Bend Parameters")
     if iline < 0: return params
     iline += 3
 
     bdict = {}
-    for m,params in enumerate(self.bondparams):
-      bdict[(params[0],params[1])] = params[2]
+    for m,bparams in enumerate(self.bondparams):
+      bdict[(bparams[0],bparams[1])] = bparams[2]
     
     while iline < self.nlines:
       words = self.lines[iline].split()
@@ -271,14 +271,27 @@ class PRMfile:
           value2 = float(words[5])
           lmp1 = value1
           lmp2 = value2
-          lmp3 = lmp4 = 0.0
-          if (class2,class1) in bdict: lmp3 = bdict[(class2,class1)]
-          if (class1,class2) in bdict: lmp3 = bdict[(class1,class2)]
-          if (class2,class3) in bdict: lmp4 = bdict[(class2,class3)]
-          if (class3,class2) in bdict: lmp4 = bdict[(class3,class2)]
-          if lmp3 == 0.0 or lmp4 == 0.0:
-            print "Bond in BondAngle term not found",class1,class2,class3
-            sys.exit()
+          
+          if (class1,class2) in bdict:
+            lmp3 = bdict[(class1,class2)]
+          elif (class2,class1) in bdict:
+            lmp3 = bdict[(class2,class1)]
+          else:
+            error("1st bond in BondAngle term not found: %d %d %d" % \
+                  (class1,class2,class3))
+            # NOTE: just for debugging
+            lmp3 = 0.0
+
+          if (class2,class3) in bdict:
+            lmp4 = bdict[(class2,class3)]
+          elif (class3,class2) in bdict:
+            lmp4 = bdict[(class3,class2)]
+          else:
+            error("2nd bond in BondAngle term not found: %d %d %d" % \
+                  (class1,class2,class3))
+            # NOTE: just for debugging
+            lmp4 = 0.0
+            
           params.append((class1,class2,class3,lmp1,lmp2,lmp3,lmp4))
       iline += 1
     return params
@@ -301,12 +314,11 @@ class PRMfile:
           class4 = int(words[4])
           
           if len(words) <= 5:
-            print "Torsion has no params",class1,class2,class3,class4
-            sys.exit()
+            error("Torsion has no params: %d %d %d %d" % \
+                  (class1,class2,class3,class4))
           if (len(words)-5) % 3: 
-            print "Torsion does not have triplets of params", \
-              class1,class2,class3,class4
-            sys.exit()
+            error("Torsion does not have triplets of params: %d %d %d %d" % \
+                  (class1,class2,class3,class4))
 
           mfourier = (len(words)-5) / 3
           oneparams = [class1,class2,class3,class4,mfourier]
@@ -603,9 +615,7 @@ for atom1,atom2 in blist:
   
   if (c1,c2) in bdict: m,params = bdict[(c1,c2)]
   elif (c2,c1) in bdict: m,params = bdict[(c2,c1)]
-  else:
-    print "Bond not found",atom1,atom2,c1,c2
-    sys.exit()
+  else: error("Bond not found: %d %d: %d %d" % (atom1,atom2,c1,c2))
     
   if not flags[m]:
     v1,v2,v3,v4 = params[2:]
@@ -615,7 +625,6 @@ for atom1,atom2 in blist:
 
 # generate atype = LAMMPS type of each angle
 # generate aparams = LAMMPS params for each angle type
-# generate baparams = LAMMPS bond-angle params for each angle type
 # flags[i] = which LAMMPS angle type (1-N) the Tinker FF file angle I is
 #        0 = none
 # Tinker FF file angle entries can have 1, 2, or 3 options
@@ -636,12 +645,11 @@ for m,params in enumerate(prm.angleparams):
   noptions += n
   
 flags = noptions*[0]
-#baflags = len(baprm)*[0]
 atype = []
 aparams = []
-baparams = []
 
-for atom1,atom2,atom3 in alist:
+for i,one in enumerate(alist):
+  atom1,atom2,atom3 = one
   type1 = type[atom1-1]
   type2 = type[atom2-1]
   type3 = type[atom3-1]
@@ -651,8 +659,19 @@ for atom1,atom2,atom3 in alist:
 
   if (c1,c2,c3) in adict or (c3,c2,c1) in adict:
     if (c1,c2,c3) in adict: m,params = adict[(c1,c2,c3)]
-    if (c3,c2,c1) in adict: m,params = adict[(c3,c2,c1)]
+
+    # IMPORTANT subtlety
+    # flip order of 3 atoms in alist if the angle
+    #   matches Angle Bending section of PRM file in reverse order
+    # necessary b/c BondAngle coeffs will be generated with r1,r2 params
+    #   from Bond Stretching section of PRM file
+    # since in general r1 != r2, the LAMMPS AngleAmoeba class requires
+    #   the 3 atoms in the angle be in the order that matches r1 and r2
     
+    if (c3,c2,c1) in adict:
+      m,params = adict[(c3,c2,c1)]
+      alist[i] = (atom3,atom2,atom1)
+      
     # params is a sequence of 1 or 2 or 3 options
     # which = which of 1,2,3 options this atom triplet matches
     # for which = 2 or 3, increment m to index correct position in flags
@@ -679,7 +698,7 @@ for atom1,atom2,atom3 in alist:
         print "  angle atom classes:",c1,c2,c3
         print "  Tinker FF file param options:",len(params[3])
         print "  Nbonds and hydrogen count:",nbonds,hcount
-        #sys.exit()      // NOTE: allow this for now
+        #sys.exit()      NOTE: allow this for now
 
       if hcount == 0: which = 1
       elif hcount == 1:
@@ -702,7 +721,7 @@ for atom1,atom2,atom3 in alist:
         print "  angle atom classes:",c1,c2,c3
         print "  Tinker FF file param options:",len(params[3])
         print "  Nbonds and hydrogen count:",nbonds,hcount
-        #sys.exit()     // NOTE: allow this for now
+        #sys.exit()     NOTE: allow this for now
         
       if hcount == 0: which = 1
       elif hcount == 1:
@@ -713,8 +732,7 @@ for atom1,atom2,atom3 in alist:
         m += 2
 
   else:
-    print "Angle not found",atom1,atom2,atom3,c1,c2,c3
-    sys.exit()
+    error("Angle not found: %d %d %d: %d %d %d" % (atom1,atom2,atom3,c1,c2,c3))
     
   if not flags[m]:
     pflag,v1,v2,v3,v4,v5,v6 = params[3][which-1]
@@ -722,24 +740,36 @@ for atom1,atom2,atom3 in alist:
     flags[m] = len(aparams)
   atype.append(flags[m])
 
-  # NOTE: baparams may need to be flipped if match is 3,2,1 instead of 1,2,3
-  
-  # NOTE: mismatch between angle and bondangle params may not be handled right
-  # should be a new LAMMPS type if either angle or bondangle params do not match?
-  #for m,params in enumerate(baprm):
-  #  c1,c2,c3,v1,v2,v3,v4 = params
-  #  if (c1 == class1 and c2 == class2 and c3 == class3) or \
-  #     (c1 == class3 and c2 == class2 and c3 == class1):
-  #    found += 1
-  #    if baflags[m]:
-  #      continue
-  #      #atype.append(baflags[m])
-  #    else:
-  #      baparams.append((v1,v2,v3,v4))
-  #      baflags[m] = len(baparams)
-  #      #atype.append(baflags[m])
-  #    break
-  #  if found != 1: print "Not found",atom1,atom2,atom3,class1,class2,class3
+# augment the aparams with bond-angle cross terms from bondangleparams
+# generate baparams = LAMMPS bond-angle params for each angle type
+# sbdict = dictionary for angle tuples in bongangleparams
+
+sbdict = {}
+for v1,v2,v3,v4,v5,v6,v7 in prm.bondangleparams:
+  if (v1,v2,v3) in sbdict: continue
+  sbdict[(v1,v2,v3)] = (v4,v5,v6,v7)
+
+baparams = []
+
+for itype in range(len(aparams)):
+  iangle = atype.index(itype+1) 
+  atom1,atom2,atom3 = alist[iangle]
+  type1 = type[atom1-1]
+  type2 = type[atom2-1]
+  type3 = type[atom3-1]
+  c1 = classes[type1-1]
+  c2 = classes[type2-1]
+  c3 = classes[type3-1]
+
+  if (c1,c2,c3) in sbdict:
+    n1,n2,r1,r2 = sbdict[(c1,c2,c3)]
+  elif (c3,c2,c1) in sbdict:
+    n1,n2,r1,r2 = sbdict[(c3,c2,c1)]
+  else:
+    print "Bond-stretch angle triplet not found: %d %d %d" % (c1,c2,c3)
+    n1,n2,r1,r2 = 4*[0.0]
+    
+  baparams.append((n1,n2,r1,r2))
 
 # generate dtype = LAMMPS type of each dihedral
 # generate dparams = LAMMPS params for each dihedral type
@@ -774,8 +804,8 @@ for atom1,atom2,atom3,atom4 in dlist:
   if (c1,c2,c3,c4) in ddict: m,params = ddict[(c1,c2,c3,c4)]
   elif (c4,c3,c2,c1) in ddict: m,params = ddict[(c4,c3,c2,c1)]
   else:
-    print "Dihedral not found",atom1,atom2,atom3,atom4,c1,c2,c3,c4
-    sys.exit()
+    error("Dihedral not found: %d %d %d %d: %d %d %d %d" % \
+          (atom1,atom2,atom3,atom4,c1,c2,c3,c4))
 
   if not flags[m]:
     oneparams = params[4:]
@@ -948,17 +978,12 @@ if nangles:
     lines.append(line+'\n')
   d.sections["Angle Coeffs"] = lines
 
-  #lines = []
-  #for i,one in enumerate(aparams):
-  #  line = "%d %g %g %g" % (i+1,0.0,0.0,0.0)
-  #  lines.append(line+'\n')
-  #d.sections["BondBond Coeffs"] = lines
-
-  #lines = []
-  #for i,one in enumerate(aparams):
-  #  line = "%d %g %g %g %g" % (i+1,0.0,0.0,0.0,0.0)
-  #  lines.append(line+'\n')
-  # d.sections["BondAngle Coeffs"] = lines
+  lines = []
+  for i,one in enumerate(baparams):
+    strone = [str(single) for single in one]
+    line = "%d %s" % (i+1,' '.join(strone))
+    lines.append(line+'\n')
+  d.sections["BondAngle Coeffs"] = lines
 
   lines = [] 
   for i,one in enumerate(alist):

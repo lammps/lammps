@@ -394,16 +394,15 @@ typedef float E_FLOAT;
 typedef double E_FLOAT;
 #endif
 
-template<int vsize>
 struct s_EV_FLOAT {
   E_FLOAT evdwl;
   E_FLOAT ecoul;
-  E_FLOAT v[vsize];
+  E_FLOAT v[6];
   KOKKOS_INLINE_FUNCTION
   s_EV_FLOAT() {
     evdwl = 0;
     ecoul = 0;
-    for (int i = 0; i < vsize; ++i)
+    for (int i = 0; i < 6; ++i)
       v[i] = 0;
   }
 
@@ -411,7 +410,7 @@ struct s_EV_FLOAT {
   void operator+=(const s_EV_FLOAT &rhs) {
     evdwl += rhs.evdwl;
     ecoul += rhs.ecoul;
-    for (int i = 0; i < vsize; ++i)
+    for (int i = 0; i < 6; ++i)
       v[i] += rhs.v[i];
   }
 
@@ -419,25 +418,24 @@ struct s_EV_FLOAT {
   void operator+=(const volatile s_EV_FLOAT &rhs) volatile {
     evdwl += rhs.evdwl;
     ecoul += rhs.ecoul;
-    for (int i = 0; i < vsize; ++i)
+    for (int i = 0; i < 6; ++i)
       v[i] += rhs.v[i];
   }
 };
-typedef struct s_EV_FLOAT<6> EV_FLOAT;
+typedef struct s_EV_FLOAT EV_FLOAT;
 
-template<int vsize, int esize>
 struct s_EV_FLOAT_REAX {
   E_FLOAT evdwl;
   E_FLOAT ecoul;
-  E_FLOAT v[vsize];
-  E_FLOAT ereax[esize];
+  E_FLOAT v[6];
+  E_FLOAT ereax[9];
   KOKKOS_INLINE_FUNCTION
   s_EV_FLOAT_REAX() {
     evdwl = 0;
     ecoul = 0;
-    for (int i = 0; i < vsize; ++i)
+    for (int i = 0; i < 6; ++i)
       v[i] = 0;
-    for (int i = 0; i < esize; ++i)
+    for (int i = 0; i < 9; ++i)
       ereax[i] = 0;
   }
 
@@ -445,9 +443,9 @@ struct s_EV_FLOAT_REAX {
   void operator+=(const s_EV_FLOAT_REAX &rhs) {
     evdwl += rhs.evdwl;
     ecoul += rhs.ecoul;
-    for (int i = 0; i < vsize; ++i)
+    for (int i = 0; i < 6; ++i)
       v[i] += rhs.v[i];
-    for (int i = 0; i < esize; ++i)
+    for (int i = 0; i < 9; ++i)
       ereax[i] += rhs.ereax[i];
   }
 
@@ -455,27 +453,26 @@ struct s_EV_FLOAT_REAX {
   void operator+=(const volatile s_EV_FLOAT_REAX &rhs) volatile {
     evdwl += rhs.evdwl;
     ecoul += rhs.ecoul;
-    for (int i = 0; i < vsize; ++i)
+    for (int i = 0; i < 6; ++i)
       v[i] += rhs.v[i];
-    for (int i = 0; i < esize; ++i)
+    for (int i = 0; i < 9; ++i)
       ereax[i] += rhs.ereax[i];
   }
 };
-typedef struct s_EV_FLOAT_REAX<6,9> EV_FLOAT_REAX;
+typedef struct s_EV_FLOAT_REAX EV_FLOAT_REAX;
 
-template<int vsize, int fsize>
 struct s_FEV_FLOAT {
-  F_FLOAT f[fsize];
+  F_FLOAT f[3];
   E_FLOAT evdwl;
   E_FLOAT ecoul;
-  E_FLOAT v[vsize];
+  E_FLOAT v[6];
   KOKKOS_INLINE_FUNCTION
   s_FEV_FLOAT() {
     evdwl = 0;
     ecoul = 0;
-    for (int i = 0; i < vsize; ++i)
+    for (int i = 0; i < 6; ++i)
       v[i] = 0;
-    for (int i = 0; i < fsize; ++i)
+    for (int i = 0; i < 3; ++i)
       f[i] = 0;
   }
 
@@ -483,9 +480,9 @@ struct s_FEV_FLOAT {
   void operator+=(const s_FEV_FLOAT &rhs) {
     evdwl += rhs.evdwl;
     ecoul += rhs.ecoul;
-    for (int i = 0; i < vsize; ++i)
+    for (int i = 0; i < 6; ++i)
       v[i] += rhs.v[i];
-    for (int i = 0; i < fsize; ++i)
+    for (int i = 0; i < 3; ++i)
       f[i] += rhs.f[i];
   }
 
@@ -493,13 +490,13 @@ struct s_FEV_FLOAT {
   void operator+=(const volatile s_FEV_FLOAT &rhs) volatile {
     evdwl += rhs.evdwl;
     ecoul += rhs.ecoul;
-    for (int i = 0; i < vsize; ++i)
+    for (int i = 0; i < 6; ++i)
       v[i] += rhs.v[i];
-    for (int i = 0; i < fsize; ++i)
+    for (int i = 0; i < 3; ++i)
       f[i] += rhs.f[i];
   }
 };
-typedef struct s_FEV_FLOAT<6,3> FEV_FLOAT;
+typedef struct s_FEV_FLOAT FEV_FLOAT;
 
 struct s_FLOAT2 {
   F_FLOAT v[2];

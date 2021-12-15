@@ -57,6 +57,8 @@ class PairAmoeba : public Pair {
   void pack_reverse_grid(int, void *, int, int *);
   void unpack_reverse_grid(int, void *, int, int *);
 
+  void *extract(const char *, int &);
+
  protected:
   int me,nprocs;
   int nmax;        // allocation for owned+ghost

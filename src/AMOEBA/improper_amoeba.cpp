@@ -17,9 +17,10 @@
 #include <cmath>
 #include "atom.h"
 #include "comm.h"
+#include "update.h"
 #include "neighbor.h"
 #include "force.h"
-#include "update.h"
+#include "pair.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
@@ -56,7 +57,13 @@ void ImproperAmoeba::compute(int eflag, int vflag)
   double xab,yab,zab,xcb,ycb,zcb,xdb,ydb,zdb,xad,yad,zad,xcd,ycd,zcd;
   double rad2,rcd2,rdb2,dot,cc,ee;
   double sine,angle;
-  double eimproper,f1[3],f2[3],f3[3],f4[3];
+  double dt,dt2,dt3,dt4,e;
+  double deddt,sign,dedcos,term;
+  double dccdxia,dccdyia,dccdzia,dccdxic,dccdyic,dccdzic;
+  double dccdxid,dccdyid,dccdzid;
+  double deedxia,deedyia,deedzia,deedxic,deedyic,deedzic;
+  double deedxid,deedyid,deedzid;
+  double eimproper,fa[3],fb[3],fc[3],fd[3];
 
   eimproper = 0.0;
   ev_init(eflag,vflag);
@@ -129,48 +136,91 @@ void ImproperAmoeba::compute(int eflag, int vflag)
 
     sine = fabs(ee) / sqrt(cc*rdb2);
     sine = MIN(1.0,sine);
-    angle = asin(sine) * MY_PI/180.0;
+    angle = 180.0/MY_PI * asin(sine);   // angle = degrees
 
-    //dt = angle;
-    //dt2 = dt * dt;
-    //dt3 = dt2 * dt;
-    //dt4 = dt2 * dt2;
-    //e = opbunit * force * dt2 * (1.0d0+copb*dt+qopb*dt2+popb*dt3+sopb*dt4);
-    //deddt = opbunit * force * dt * radian * 
-    // (2.0d0 + 3.0d0*copb*dt + 4.0d0*qopb*dt2 + 5.0d0*popb*dt3 + 6.0d0*sopb*dt4);
-    //dedcos = -deddt * sign(1.0d0,ee) / sqrt(cc*rdb2-ee*ee);
+    dt = angle;
+    dt2 = dt * dt;
+    dt3 = dt2 * dt;
+    dt4 = dt2 * dt2;
+    double prefactor = 1.0 / (180.0/MY_PI) / (180.0/MY_PI);
+    e = prefactor * k[type] * dt2 * (1.0 + opbend_cubic*dt + opbend_quartic*dt2 + 
+                         opbend_pentic*dt3 + opbend_sextic*dt4);
+    eimproper += e;
 
-    /*
+    deddt = k[type] * dt * 
+      (2.0 + 3.0*opbend_cubic*dt + 4.0*opbend_quartic*dt2 + 
+       5.0*opbend_pentic*dt3 + 6.0*opbend_sextic*dt4);
+    sign = (ee >= 0.0) ? 1.0 : -1.0;
+    dedcos = -deddt * sign / sqrt(cc*rdb2 - ee*ee);
+
+    // chain rule terms for first derivative components
+
+    term = ee / cc;
+    dccdxia = (xad*rcd2-xcd*dot) * term;
+    dccdyia = (yad*rcd2-ycd*dot) * term;
+    dccdzia = (zad*rcd2-zcd*dot) * term;
+    dccdxic = (xcd*rad2-xad*dot) * term;
+    dccdyic = (ycd*rad2-yad*dot) * term;
+    dccdzic = (zcd*rad2-zad*dot) * term;
+    dccdxid = -dccdxia - dccdxic;
+    dccdyid = -dccdyia - dccdyic;
+    dccdzid = -dccdzia - dccdzic;
+
+    term = ee / rdb2;
+    deedxia = ydb*zcb - zdb*ycb;
+    deedyia = zdb*xcb - xdb*zcb;
+    deedzia = xdb*ycb - ydb*xcb;
+    deedxic = yab*zdb - zab*ydb;
+    deedyic = zab*xdb - xab*zdb;
+    deedzic = xab*ydb - yab*xdb;
+    deedxid = ycb*zab - zcb*yab + xdb*term;
+    deedyid = zcb*xab - xcb*zab + ydb*term;
+    deedzid = xcb*yab - ycb*xab + zdb*term;
+
+    //  compute first derivative components for this angle
+
+    fa[0] = dedcos * (dccdxia+deedxia);
+    fa[1] = dedcos * (dccdyia+deedyia);
+    fa[2] = dedcos * (dccdzia+deedzia);
+    fc[0] = dedcos * (dccdxic+deedxic);
+    fc[1] = dedcos * (dccdyic+deedyic);
+    fc[2] = dedcos * (dccdzic+deedzic);
+    fd[0] = dedcos * (dccdxid+deedxid);
+    fd[1] = dedcos * (dccdyid+deedyid);
+    fd[2] = dedcos * (dccdzid+deedzid);
+    fb[0] = -fa[0] - fc[0] - fd[0];
+    fb[1] = -fa[1] - fc[1] - fd[1];
+    fb[2] = -fa[1] - fc[2] - fd[2];
+
     // apply force to each of 4 atoms
 
-    if (newton_bond || i1 < nlocal) {
-      f[i1][0] += f1[0];
-      f[i1][1] += f1[1];
-      f[i1][2] += f1[2];
+    if (newton_bond || id < nlocal) {
+      f[id][0] += fd[0];
+      f[id][1] += fd[1];
+      f[id][2] += fd[2];
     }
 
-    if (newton_bond || i2 < nlocal) {
-      f[i2][0] += f2[0];
-      f[i2][1] += f2[1];
-      f[i2][2] += f2[2];
+    if (newton_bond || ib < nlocal) {
+      f[ib][0] += fb[0];
+      f[ib][1] += fb[1];
+      f[ib][2] += fb[2];
     }
 
-    if (newton_bond || i3 < nlocal) {
-      f[i3][0] += f3[0];
-      f[i3][1] += f3[1];
-      f[i3][2] += f3[2];
+    if (newton_bond || ia < nlocal) {
+      f[ia][0] += fa[0];
+      f[ia][1] += fa[1];
+      f[ia][2] += fa[2];
     }
 
-    if (newton_bond || i4 < nlocal) {
-      f[i4][0] += f4[0];
-      f[i4][1] += f4[1];
-      f[i4][2] += f4[2];
+    if (newton_bond || ic < nlocal) {
+      f[ic][0] += fc[0];
+      f[ic][1] += fc[1];
+      f[ic][2] += fc[2];
     }
 
     if (evflag)
-      ev_tally(i1,i2,i3,i4,nlocal,newton_bond,eimproper,f1,f3,f4,
-               vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z);
-    */
+      ev_tally(id,ib,ia,ic,nlocal,newton_bond,e,fd,fa,fc,
+               xdb,ydb,zdb,xab,yab,zab,xic-xia,yic-yia,zic-zia);
   }
 }
 
@@ -211,6 +261,27 @@ void ImproperAmoeba::coeff(int narg, char **arg)
   }
 
   if (count == 0) error->all(FLERR,"Incorrect args for improper coefficients");
+}
+
+/* ----------------------------------------------------------------------
+   set opbend higher-order term weights from PairAmoeba
+------------------------------------------------------------------------- */
+
+void ImproperAmoeba::init_style()
+{
+  Pair *pair = force->pair_match("amoeba",1,0);
+  if (!pair) pair = force->pair_match("hippo",1,0);
+  if (!pair) error->all(FLERR,"Improper amoeba could not find pair amoega");
+
+  
+  int dim;
+  opbend_cubic = *(double *) pair->extract("opbend_cubic",dim);
+  opbend_quartic = *(double *) pair->extract("opbend_quartic",dim);
+  opbend_pentic = *(double *) pair->extract("opbend_pentic",dim);
+  opbend_sextic = *(double *) pair->extract("opbend_sextic",dim);
+
+  printf("OPBEND %g %g %g %g\n",
+         opbend_cubic,opbend_quartic,opbend_pentic,opbend_sextic);
 }
 
 /* ----------------------------------------------------------------------

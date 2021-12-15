@@ -2107,6 +2107,18 @@ void PairAmoeba::zero_energy_force_virial()
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
+void *PairAmoeba::extract(const char *str, int &dim)
+{
+  dim = 0;
+  if (strcmp(str,"opbend_cubic") == 0) return (void *) &opbend_cubic;
+  if (strcmp(str,"opbend_quartic") == 0) return (void *) &opbend_quartic;
+  if (strcmp(str,"opbend_pentic") == 0) return (void *) &opbend_pentic;
+  if (strcmp(str,"opbend_sextic") == 0) return (void *) &opbend_sextic;
+  return nullptr;
+}
+
 /* ----------------------------------------------------------------------
   grow local vectors and arrays if necessary
   keep them atom->nmax in length

@@ -41,6 +41,11 @@ AngleAmoeba::AngleAmoeba(LAMMPS *lmp) : Angle(lmp)
   k4 = nullptr;
   k5 = nullptr;
   k6 = nullptr;
+
+  ba_k1 = nullptr;
+  ba_k2 = nullptr;
+  ba_r1 = nullptr;
+  ba_r2 = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -51,6 +56,8 @@ AngleAmoeba::~AngleAmoeba()
 
   if (allocated) {
     memory->destroy(setflag);
+    memory->destroy(setflag_a);
+    memory->destroy(setflag_ba);
 
     memory->destroy(pflag);
     memory->destroy(theta0);
@@ -59,6 +66,11 @@ AngleAmoeba::~AngleAmoeba()
     memory->destroy(k4);
     memory->destroy(k5);
     memory->destroy(k6);
+
+    memory->destroy(ba_k1);
+    memory->destroy(ba_k2);
+    memory->destroy(ba_r1);
+    memory->destroy(ba_r2);
   }
 }
 
@@ -72,6 +84,7 @@ void AngleAmoeba::compute(int eflag, int vflag)
   double dtheta,dtheta2,dtheta3,dtheta4,dtheta5,dtheta6,de_angle;
   double dr1,dr2,tk1,tk2,aa1,aa2,aa11,aa12,aa21,aa22;
   double rsq1,rsq2,r1,r2,c,s,a,a11,a12,a22,b1,b2;
+  double vx11,vx12,vy11,vy12,vz11,vz12,vx21,vx22,vy21,vy22,vz21,vz22;
 
   eangle = 0.0;
   ev_init(eflag,vflag);
@@ -158,6 +171,50 @@ void AngleAmoeba::compute(int eflag, int vflag)
 
     if (eflag) eangle = k2[type]*dtheta2 + k3[type]*dtheta3 + 
                  k4[type]*dtheta4 + k5[type]*dtheta5 + k6[type]*dtheta6;
+
+    // force & energy for bond-angle term
+    // bond-stretch cross term in Tinker
+
+    dr1 = r1 - ba_r1[type];
+    dr2 = r2 - ba_r2[type];
+
+    aa1 = s * dr1 * ba_k1[type];
+    aa2 = s * dr2 * ba_k2[type];
+
+    aa11 = aa1 * c / rsq1;
+    aa12 = -aa1 / (r1 * r2);
+    aa21 = aa2 * c / rsq1;
+    aa22 = -aa2 / (r1 * r2);
+
+    vx11 = (aa11 * delx1) + (aa12 * delx2);
+    vx12 = (aa21 * delx1) + (aa22 * delx2);
+    vy11 = (aa11 * dely1) + (aa12 * dely2);
+    vy12 = (aa21 * dely1) + (aa22 * dely2);
+    vz11 = (aa11 * delz1) + (aa12 * delz2);
+    vz12 = (aa21 * delz1) + (aa22 * delz2);
+
+    aa11 = aa1 * c / rsq2;
+    aa21 = aa2 * c / rsq2;
+
+    vx21 = (aa11 * delx2) + (aa12 * delx1);
+    vx22 = (aa21 * delx2) + (aa22 * delx1);
+    vy21 = (aa11 * dely2) + (aa12 * dely1);
+    vy22 = (aa21 * dely2) + (aa22 * dely1);
+    vz21 = (aa11 * delz2) + (aa12 * delz1);
+    vz22 = (aa21 * delz2) + (aa22 * delz1);
+
+    b1 = ba_k1[type] * dtheta / r1;
+    b2 = ba_k2[type] * dtheta / r2;
+
+    f1[0] -= vx11 + b1*delx1 + vx12;
+    f1[1] -= vy11 + b1*dely1 + vy12;
+    f1[2] -= vz11 + b1*delz1 + vz12;
+
+    f3[0] -= vx21 + b2*delx2 + vx22;
+    f3[1] -= vy21 + b2*dely2 + vy22;
+    f3[2] -= vz21 + b2*delz2 + vz22;
+
+    if (eflag) eangle += ba_k1[type]*dr1*dtheta + ba_k2[type]*dr2*dtheta;
 
     // apply force to each of 3 atoms
 
@@ -382,8 +439,13 @@ void AngleAmoeba::allocate()
   memory->create(k5,n+1,"angle:k5");
   memory->create(k6,n+1,"angle:k6");
 
+  memory->create(ba_k1,n+1,"angle:ba_k1");
+  memory->create(ba_k2,n+1,"angle:ba_k2");
+  memory->create(ba_r1,n+1,"angle:ba_r1");
+  memory->create(ba_r2,n+1,"angle:ba_r2");
+
   memory->create(setflag,n+1,"angle:setflag");
-  for (int i = 1; i <= n; i++) setflag[i] = 0;
+  for (int i = 1; i <= n; i++) setflag[i] = setflag_a[i] = setflag_ba[i] = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -392,6 +454,7 @@ void AngleAmoeba::allocate()
 
 void AngleAmoeba::coeff(int narg, char **arg)
 {
+  if (narg < 2) error->all(FLERR,"Incorrect args for angle coefficients");
   if (!allocated) allocate();
 
   int ilo,ihi;
@@ -399,32 +462,52 @@ void AngleAmoeba::coeff(int narg, char **arg)
 
   int count = 0;
   
-  if (narg != 8) error->all(FLERR,"Incorrect args for angle coefficients");
+  if (strcmp(arg[1],"ba") == 0) {
+    if (narg != 6) error->all(FLERR,"Incorrect args for angle coefficients");
 
-  int pflag_one = utils::inumeric(FLERR,arg[1],false,lmp);
-  double theta0_one = utils::numeric(FLERR,arg[2],false,lmp);
-  double k2_one = utils::numeric(FLERR,arg[3],false,lmp);
-  double k3_one = utils::numeric(FLERR,arg[4],false,lmp);
-  double k4_one = utils::numeric(FLERR,arg[5],false,lmp);
-  double k5_one = utils::numeric(FLERR,arg[6],false,lmp);
-  double k6_one = utils::numeric(FLERR,arg[7],false,lmp);
+    double ba_k1_one = utils::numeric(FLERR,arg[2],false,lmp);
+    double ba_k2_one = utils::numeric(FLERR,arg[3],false,lmp);
+    double ba_r1_one = utils::numeric(FLERR,arg[4],false,lmp);
+    double ba_r2_one = utils::numeric(FLERR,arg[5],false,lmp);
 
-  // convert theta0 from degrees to radians
+    for (int i = ilo; i <= ihi; i++) {
+      ba_k1[i] = ba_k1_one;
+      ba_k2[i] = ba_k2_one;
+      ba_r1[i] = ba_r1_one;
+      ba_r2[i] = ba_r2_one;
+      setflag_ba[i] = 1;
+      count++;
+    }
+
+  } else { 
+    if (narg != 8) error->all(FLERR,"Incorrect args for angle coefficients");
+
+    int pflag_one = utils::inumeric(FLERR,arg[1],false,lmp);
+    double theta0_one = utils::numeric(FLERR,arg[2],false,lmp);
+    double k2_one = utils::numeric(FLERR,arg[3],false,lmp);
+    double k3_one = utils::numeric(FLERR,arg[4],false,lmp);
+    double k4_one = utils::numeric(FLERR,arg[5],false,lmp);
+    double k5_one = utils::numeric(FLERR,arg[6],false,lmp);
+    double k6_one = utils::numeric(FLERR,arg[7],false,lmp);
+
+    // convert theta0 from degrees to radians
   
-  for (int i = ilo; i <= ihi; i++) {
-    pflag[i] = pflag_one;
-    theta0[i] = theta0_one/180.0 * MY_PI;
-    k2[i] = k2_one;
-    k3[i] = k3_one;
-    k4[i] = k4_one;
-    k5[i] = k5_one;
-    k6[i] = k6_one;
-    count++;
+    for (int i = ilo; i <= ihi; i++) {
+      pflag[i] = pflag_one;
+      theta0[i] = theta0_one/180.0 * MY_PI;
+      k2[i] = k2_one;
+      k3[i] = k3_one;
+      k4[i] = k4_one;
+      k5[i] = k5_one;
+      k6[i] = k6_one;
+      count++;
+    }
   }
 
   if (count == 0) error->all(FLERR,"Incorrect args for angle coefficients");
 
-  for (int i = ilo; i <= ihi; i++) setflag[i] = 1;
+  for (int i = ilo; i <= ihi; i++)
+    if (setflag_a[i] == 1 && setflag_ba[i] == 1) setflag[i] = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -447,6 +530,11 @@ void AngleAmoeba::write_restart(FILE *fp)
   fwrite(&k4[1],sizeof(double),atom->nangletypes,fp);
   fwrite(&k5[1],sizeof(double),atom->nangletypes,fp);
   fwrite(&k6[1],sizeof(double),atom->nangletypes,fp);
+
+  fwrite(&ba_k1[1],sizeof(double),atom->nangletypes,fp);
+  fwrite(&ba_k2[1],sizeof(double),atom->nangletypes,fp);
+  fwrite(&ba_r1[1],sizeof(double),atom->nangletypes,fp);
+  fwrite(&ba_r2[1],sizeof(double),atom->nangletypes,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -465,6 +553,11 @@ void AngleAmoeba::read_restart(FILE *fp)
     utils::sfread(FLERR,&k4[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
     utils::sfread(FLERR,&k5[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
     utils::sfread(FLERR,&k6[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+
+    utils::sfread(FLERR,&ba_k1[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&ba_k2[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&ba_r1[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
+    utils::sfread(FLERR,&ba_r2[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
   }
 
   MPI_Bcast(&pflag[1],atom->nangletypes,MPI_INT,0,world);
@@ -474,6 +567,11 @@ void AngleAmoeba::read_restart(FILE *fp)
   MPI_Bcast(&k4[1],atom->nangletypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&k5[1],atom->nangletypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&k6[1],atom->nangletypes,MPI_DOUBLE,0,world);
+
+  MPI_Bcast(&ba_k1[1],atom->nangletypes,MPI_DOUBLE,0,world);
+  MPI_Bcast(&ba_k2[1],atom->nangletypes,MPI_DOUBLE,0,world);
+  MPI_Bcast(&ba_r1[1],atom->nangletypes,MPI_DOUBLE,0,world);
+  MPI_Bcast(&ba_r2[1],atom->nangletypes,MPI_DOUBLE,0,world);
 
   for (int i = 1; i <= atom->nangletypes; i++) setflag[i] = 1;
 }
@@ -487,6 +585,10 @@ void AngleAmoeba::write_data(FILE *fp)
   for (int i = 1; i <= atom->nangletypes; i++)
     fprintf(fp,"%d %d %g %g %g %g %g %g\n",
             i,pflag[i],theta0[i]/MY_PI*180.0,k2[i],k3[i],k4[i],k5[i],k6[i]);
+
+  fprintf(fp,"\nBondAngle Coeffs\n\n");
+  for (int i = 1; i <= atom->nangletypes; i++)
+    fprintf(fp,"%d %g %g %g %g\n",i,ba_k1[i],ba_k2[i],ba_r1[i],ba_r2[i]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -525,6 +627,10 @@ double AngleAmoeba::single(int type, int i1, int i2, int i3)
 
   double energy = k2[type]*dtheta2 + k3[type]*dtheta3 + k4[type]*dtheta4
            + k5[type]*dtheta5 + k6[type]*dtheta6;
+
+  double dr1 = r1 - ba_r1[type];
+  double dr2 = r2 - ba_r2[type];
+  energy += ba_k1[type]*dr1*dtheta + ba_k2[type]*dr2*dtheta;
 
   return energy;
 }

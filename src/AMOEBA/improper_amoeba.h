@@ -30,11 +30,13 @@ class ImproperAmoeba : public Improper {
   ~ImproperAmoeba();
   void compute(int, int);
   void coeff(int, char **);
+  void init_style();
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_data(FILE *);
 
  protected:
+  double opbend_cubic,opbend_quartic,opbend_pentic,opbend_sextic;
   double *k;
 
   virtual void allocate();

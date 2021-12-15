@@ -39,6 +39,8 @@ class AngleAmoeba : public Angle {
  protected:
   int *pflag;
   double *theta0, *k2, *k3, *k4, *k5, *k6;
+  double *ba_k1, *ba_k2, *ba_r1, *ba_r2;
+  int *setflag_a, *setflag_ba;
 
   void anglep(int, int, int, int, int);
   void allocate();

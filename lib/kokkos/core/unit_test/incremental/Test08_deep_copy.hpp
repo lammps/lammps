@@ -61,17 +61,17 @@ const int M      = 10;
 template <class ExecSpace>
 struct TestMDRangePolicy {
   // 2D View
-  using View_2D      = typename Kokkos::View<value_type **, ExecSpace>;
+  using View_2D      = Kokkos::View<value_type **, ExecSpace>;
   using Host_View_2D = typename View_2D::HostMirror;
   Host_View_2D hostDataView_2D;
 
   // 3D View
-  using View_3D      = typename Kokkos::View<value_type ***, ExecSpace>;
+  using View_3D      = Kokkos::View<value_type ***, ExecSpace>;
   using Host_View_3D = typename View_3D::HostMirror;
   Host_View_3D hostDataView_3D;
 
   // 4D View
-  using View_4D      = typename Kokkos::View<value_type ****, ExecSpace>;
+  using View_4D      = Kokkos::View<value_type ****, ExecSpace>;
   using Host_View_4D = typename View_4D::HostMirror;
   Host_View_4D hostDataView_4D;
 
@@ -83,16 +83,16 @@ struct TestMDRangePolicy {
   using int_index = Kokkos::IndexType<int>;
 
   // An MDRangePolicy for 2 nested loops
-  using MDPolicyType_2D = typename Kokkos::Experimental::MDRangePolicy<
-      ExecSpace, Kokkos::Experimental::Rank<2>, int_index>;
+  using MDPolicyType_2D =
+      Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>, int_index>;
 
   // An MDRangePolicy for 3 nested loops
-  using MDPolicyType_3D = typename Kokkos::Experimental::MDRangePolicy<
-      ExecSpace, Kokkos::Experimental::Rank<3>, int_index>;
+  using MDPolicyType_3D =
+      Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<3>, int_index>;
 
   // An MDRangePolicy for 4 nested loops
-  using MDPolicyType_4D = typename Kokkos::Experimental::MDRangePolicy<
-      ExecSpace, Kokkos::Experimental::Rank<4>, int_index>;
+  using MDPolicyType_4D =
+      Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<4>, int_index>;
 
   // compare and equal
   void compare_equal_2D() {

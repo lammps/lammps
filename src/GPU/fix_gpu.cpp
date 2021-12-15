@@ -206,13 +206,15 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   #endif
 
   // set newton pair flag
-  // require newtonflag = 0 since currently required by all GPU pair styles
-
-  if (newtonflag == 1) error->all(FLERR,"Illegal package gpu command");
 
   force->newton_pair = newtonflag;
   if (force->newton_pair || force->newton_bond) force->newton = 1;
   else force->newton = 0;
+
+  // require newton pair off if _particle_split < 1
+
+  if (force->newton_pair == 1 && _particle_split < 1)
+    error->all(FLERR,"Cannot use newton pair on for split less than 1 for now");
 
   if (pair_only_flag) {
     lmp->suffixp = lmp->suffix;
@@ -335,7 +337,6 @@ void FixGPU::post_force(int /* vflag */)
   force->pair->virial[4] += lvirial[4];
   force->pair->virial[5] += lvirial[5];
 
-  if (force->pair->vflag_fdotr) force->pair->virial_fdotr_compute();
   timer->stamp(Timer::PAIR);
 }
 

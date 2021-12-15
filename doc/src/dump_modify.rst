@@ -710,7 +710,9 @@ default and it can be disabled with the :code:`checksum` keyword.
 
 Restrictions
 """"""""""""
- none
+
+Not all *dump_modify* options can be applied to all dump styles.
+Details are in the discussions of the individual options.
 
 Related commands
 """"""""""""""""

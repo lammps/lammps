@@ -834,7 +834,7 @@ class ScatterView<DataType, Layout, DeviceType, Op, ScatterNonDuplicated,
     static_assert(std::is_same<typename dest_type::array_layout, Layout>::value,
                   "ScatterView contribute destination has different layout");
     static_assert(
-        Kokkos::Impl::SpaceAccessibility<
+        Kokkos::SpaceAccessibility<
             execution_space, typename dest_type::memory_space>::accessible,
         "ScatterView contribute destination memory space not accessible");
     if (dest.data() == internal_view.data()) return;
@@ -1061,7 +1061,7 @@ class ScatterView<DataType, Kokkos::LayoutRight, DeviceType, Op,
                                Kokkos::LayoutRight>::value,
                   "ScatterView deep_copy destination has different layout");
     static_assert(
-        Kokkos::Impl::SpaceAccessibility<
+        Kokkos::SpaceAccessibility<
             execution_space, typename dest_type::memory_space>::accessible,
         "ScatterView deep_copy destination memory space not accessible");
     bool is_equal = (dest.data() == internal_view.data());
@@ -1290,7 +1290,7 @@ class ScatterView<DataType, Kokkos::LayoutLeft, DeviceType, Op,
                                Kokkos::LayoutLeft>::value,
                   "ScatterView deep_copy destination has different layout");
     static_assert(
-        Kokkos::Impl::SpaceAccessibility<
+        Kokkos::SpaceAccessibility<
             execution_space, typename dest_type::memory_space>::accessible,
         "ScatterView deep_copy destination memory space not accessible");
     auto extent   = internal_view.extent(internal_view_type::rank - 1);

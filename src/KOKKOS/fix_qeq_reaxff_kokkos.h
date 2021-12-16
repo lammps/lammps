@@ -239,11 +239,15 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
 
   // There should be a better way to do this for other backends
 #if defined(KOKKOS_ENABLE_CUDA)
+  static constexpr int spmv_teamsize = 8;
   static constexpr int vectorsize = 32;
 #elif defined(KOKKOS_ENABLE_HIP)
+  static constexpr int spmv_teamsize = 16;
   static constexpr int vectorsize = 64;
 #else
-  static constexpr int vectorsize = 1;
+  // dummy values, to be updated
+  static constexpr int spmv_teamsize = 4;
+  static constexpr int vectorsize = 32;
 #endif
 
  private:

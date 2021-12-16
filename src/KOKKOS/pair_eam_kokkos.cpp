@@ -183,9 +183,9 @@ void PairEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     // compute kernel AB
 
     if (eflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelAB<1>>(0,inum),*this,ev);
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelAB<1> >(0,inum),*this,ev);
     else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelAB<0>>(0,inum),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelAB<0> >(0,inum),*this);
   }
 
   if (eflag) {
@@ -204,41 +204,41 @@ void PairEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (evflag) {
     if (neighflag == HALF) {
       if (newton_pair) {
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<HALF,1,1>>(0,inum),*this,ev);
+        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<HALF,1,1> >(0,inum),*this,ev);
       } else {
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<HALF,0,1>>(0,inum),*this,ev);
+        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<HALF,0,1> >(0,inum),*this,ev);
       }
     } else if (neighflag == HALFTHREAD) {
       if (newton_pair) {
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<HALFTHREAD,1,1>>(0,inum),*this,ev);
+        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<HALFTHREAD,1,1> >(0,inum),*this,ev);
       } else {
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<HALFTHREAD,0,1>>(0,inum),*this,ev);
+        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<HALFTHREAD,0,1> >(0,inum),*this,ev);
       }
     } else if (neighflag == FULL) {
       if (newton_pair) {
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<FULL,1,1>>(0,inum),*this,ev);
+        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<FULL,1,1> >(0,inum),*this,ev);
       } else {
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<FULL,0,1>>(0,inum),*this,ev);
+        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<FULL,0,1> >(0,inum),*this,ev);
       }
     }
   } else {
     if (neighflag == HALF) {
       if (newton_pair) {
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<HALF,1,0>>(0,inum),*this);
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<HALF,1,0> >(0,inum),*this);
       } else {
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<HALF,0,0>>(0,inum),*this);
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<HALF,0,0> >(0,inum),*this);
       }
     } else if (neighflag == HALFTHREAD) {
       if (newton_pair) {
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<HALFTHREAD,1,0>>(0,inum),*this);
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<HALFTHREAD,1,0> >(0,inum),*this);
       } else {
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<HALFTHREAD,0,0>>(0,inum),*this);
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<HALFTHREAD,0,0> >(0,inum),*this);
       }
     } else if (neighflag == FULL) {
       if (newton_pair) {
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<FULL,1,0>>(0,inum),*this);
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<FULL,1,0> >(0,inum),*this);
       } else {
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<FULL,0,0>>(0,inum),*this);
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairEAMKernelC<FULL,0,0> >(0,inum),*this);
       }
     }
   }
@@ -640,23 +640,6 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelAB<EFLAG>, const int 
   // rho = density at each atom
   // loop over neighbors of my atoms
 
-
-#if defined(HIP_OPT_EAM_SHARED) && (defined(__HIP_DEVICE_COMPILE__)  || defined(__CUDA_ARCH__))
-   __shared__ F_FLOAT  A[500][7];
-   const int m_max = d_rhor_spline.extent_int(1);
-   const int d_rhor_spline_cached = m_max > 500 ? 0 : 1;
-
-   if (d_rhor_spline_cached){
-     for (int i = threadIdx.y; i < m_max*7; i+=blockDim.y){
-        int j = i%7;
-        int m = i/7;
-        A[m][j] = d_rhor_spline(0,m,j);
-     }
-    __syncthreads();
-   }
-#endif
-
-
   const int i = d_ilist[ii];
   const X_FLOAT xtmp = x(i,0);
   const X_FLOAT ytmp = x(i,1);
@@ -683,18 +666,8 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelAB<EFLAG>, const int 
       p -= m;
       p = MIN(p,1.0);
       const int d_type2rhor_ji = d_type2rhor(jtype,itype);
-      #if defined(HIP_OPT_EAM_SHARED) && (defined(__HIP_DEVICE_COMPILE__)  || defined(__CUDA_ARCH__))
-       if (d_type2rhor_ji == 0 && d_rhor_spline_cached == 1){
-         rhotmp += ( (A[m][3]*p + A[m][4])*p +
-                      A[m][5] )*p + A[m][6];
-      }
-      else
-        rhotmp += ( (d_rhor_spline(d_type2rhor_ji,m,3)*p + d_rhor_spline(d_type2rhor_ji,m,4))*p +
-                      d_rhor_spline(d_type2rhor_ji,m,5))*p + d_rhor_spline(d_type2rhor_ji,m,6);
-      #else
-         rhotmp += ( (d_rhor_spline(d_type2rhor_ji,m,3)*p + d_rhor_spline(d_type2rhor_ji,m,4))*p +
-                      d_rhor_spline(d_type2rhor_ji,m,5))*p + d_rhor_spline(d_type2rhor_ji,m,6);
-      #endif
+      rhotmp += ((d_rhor_spline(d_type2rhor_ji,m,3)*p + d_rhor_spline(d_type2rhor_ji,m,4))*p +
+                  d_rhor_spline(d_type2rhor_ji,m,5))*p + d_rhor_spline(d_type2rhor_ji,m,6);
     }
 
   }
@@ -739,26 +712,6 @@ KOKKOS_INLINE_FUNCTION
 void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
 
   // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
-
-
-//#ifdef KOKKOS_ENABLE_HIP
-//#ifdef __HIP_DEVICE_COMPILE__
-#if defined(HIP_OPT_EAM_SHARED) && (defined(__HIP_DEVICE_COMPILE__)  || defined(__CUDA_ARCH__))
-
-   __shared__ F_FLOAT  A[500][7]; //LG assuming second dimension of d_z2r_spline is 500 or less;
-                                 //if more then shared memory is not used
-
-   const int m_max = d_z2r_spline.extent_int(1);
-   const int d_z2r_spline_cached = m_max > 500 ? 0 : 1;
-
-   for (int i = threadIdx.y; i < m_max*7; i+=blockDim.y){
-      int j = i%7;
-      int m = i/7;
-      A[m][j] = d_z2r_spline(0,m,j);
-   }
-    __syncthreads();
-#endif
-
 
   auto v_f = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
@@ -805,33 +758,21 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PA
       const int d_type2rhor_ij = d_type2rhor(itype,jtype);
       const F_FLOAT rhoip = (d_rhor_spline(d_type2rhor_ij,m,0)*p + d_rhor_spline(d_type2rhor_ij,m,1))*p +
                              d_rhor_spline(d_type2rhor_ij,m,2);
-      int d_type2rhor_ji = d_type2rhor_ij;
-      F_FLOAT rhojp = rhoip;
-      if (itype != jtype) {
-        d_type2rhor_ji = d_type2rhor(jtype,itype);
-        rhojp = (d_rhor_spline(d_type2rhor_ji,m,0)*p + d_rhor_spline(d_type2rhor_ji,m,1))*p +
+      const int d_type2rhor_ji = d_type2rhor(jtype,itype);
+      const F_FLOAT rhojp = (d_rhor_spline(d_type2rhor_ji,m,0)*p + d_rhor_spline(d_type2rhor_ji,m,1))*p +
                              d_rhor_spline(d_type2rhor_ji,m,2);
-      }
-
       const int d_type2z2r_ij = d_type2z2r(itype,jtype);
 
-      #if defined(HIP_OPT_EAM_SHARED) && (defined(__HIP_DEVICE_COMPILE__)  || defined(__CUDA_ARCH__))
-      const auto have_cache = (d_z2r_spline_cached == 1) && (0 == d_type2z2r_ij);
-      const auto z2r_spline_3 = (have_cache) ? A[m][3] : d_z2r_spline(d_type2z2r_ij,m,3);
-      const auto z2r_spline_4 = (have_cache) ? A[m][4] : d_z2r_spline(d_type2z2r_ij,m,4);
-      const auto z2r_spline_5 = (have_cache) ? A[m][5] : d_z2r_spline(d_type2z2r_ij,m,5);
-      const auto z2r_spline_6 = (have_cache) ? A[m][6] : d_z2r_spline(d_type2z2r_ij,m,6);
-      #else
       const auto z2r_spline_3 = d_z2r_spline(d_type2z2r_ij,m,3);
       const auto z2r_spline_4 = d_z2r_spline(d_type2z2r_ij,m,4);
       const auto z2r_spline_5 = d_z2r_spline(d_type2z2r_ij,m,5);
       const auto z2r_spline_6 = d_z2r_spline(d_type2z2r_ij,m,6);
-      #endif
 
       const F_FLOAT z2p = (3.0*rdr*z2r_spline_3*p + 2.0*rdr*z2r_spline_4)*p +
                            rdr*z2r_spline_5; // the rdr and the factors of 3.0 and 2.0 come out of the interpolate function
       const F_FLOAT z2 = ((z2r_spline_3*p + z2r_spline_4)*p +
                            z2r_spline_5)*p + z2r_spline_6;
+
       const F_FLOAT recip = 1.0/r;
       const F_FLOAT phi = z2*recip;
       const F_FLOAT phip = z2p*recip - phi*recip;
@@ -852,6 +793,7 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PA
         if (eflag) {
           ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<nlocal)))?1.0:0.5)*phi;
         }
+
         if (vflag_either || eflag_atom) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,phi,fpair,delx,dely,delz);
       }
 

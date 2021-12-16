@@ -2,6 +2,7 @@
 
 units           real
 boundary        p p p
+atom_modify     sort 0 0.0
 
 atom_style amoeba
 

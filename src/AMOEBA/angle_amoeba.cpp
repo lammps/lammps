@@ -111,114 +111,124 @@ void AngleAmoeba::compute(int eflag, int vflag)
 
     if (tflag && nspecial[i2][0] == 3) {
       anglep(i1,i2,i3,type,eflag);
-      continue;
+
+    } else {
+
+      // 1st bond
+
+      delx1 = x[i1][0] - x[i2][0];
+      dely1 = x[i1][1] - x[i2][1];
+      delz1 = x[i1][2] - x[i2][2];
+
+      rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
+      r1 = sqrt(rsq1);
+
+      // 2nd bond
+
+      delx2 = x[i3][0] - x[i2][0];
+      dely2 = x[i3][1] - x[i2][1];
+      delz2 = x[i3][2] - x[i2][2];
+
+      rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
+      r2 = sqrt(rsq2);
+
+      // angle (cos and sin)
+
+      c = delx1*delx2 + dely1*dely2 + delz1*delz2;
+      c /= r1*r2;
+
+      if (c > 1.0) c = 1.0;
+      if (c < -1.0) c = -1.0;
+
+      s = sqrt(1.0 - c*c);
+      if (s < SMALL) s = SMALL;
+      s = 1.0/s;
+
+      // force & energy for angle term
+
+      dtheta = acos(c) - theta0[type];
+      dtheta2 = dtheta*dtheta;
+      dtheta3 = dtheta2*dtheta;
+      dtheta4 = dtheta3*dtheta;
+      dtheta5 = dtheta4*dtheta;
+      dtheta6 = dtheta5*dtheta;
+
+      de_angle = 2.0*k2[type]*dtheta + 3.0*k3[type]*dtheta2 +
+        4.0*k4[type]*dtheta3 + 5.0*k5[type]*dtheta4 + 6.0*k6[type]*dtheta5;
+
+      a = -de_angle*s;
+      a11 = a*c / rsq1;
+      a12 = -a / (r1*r2);
+      a22 = a*c / rsq2;
+      
+      f1[0] = a11*delx1 + a12*delx2;
+      f1[1] = a11*dely1 + a12*dely2;
+      f1[2] = a11*delz1 + a12*delz2;
+      
+      f3[0] = a22*delx2 + a12*delx1;
+      f3[1] = a22*dely2 + a12*dely1;
+      f3[2] = a22*delz2 + a12*delz1;
+
+      //if (eflag) eangle = k2[type]*dtheta2 + k3[type]*dtheta3 + 
+      //             k4[type]*dtheta4 + k5[type]*dtheta5 + k6[type]*dtheta6;
     }
-
-    // 1st bond
-
-    delx1 = x[i1][0] - x[i2][0];
-    dely1 = x[i1][1] - x[i2][1];
-    delz1 = x[i1][2] - x[i2][2];
-
-    rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
-    r1 = sqrt(rsq1);
-
-    // 2nd bond
-
-    delx2 = x[i3][0] - x[i2][0];
-    dely2 = x[i3][1] - x[i2][1];
-    delz2 = x[i3][2] - x[i2][2];
-
-    rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
-    r2 = sqrt(rsq2);
-
-    // angle (cos and sin)
-
-    c = delx1*delx2 + dely1*dely2 + delz1*delz2;
-    c /= r1*r2;
-
-    if (c > 1.0) c = 1.0;
-    if (c < -1.0) c = -1.0;
-
-    s = sqrt(1.0 - c*c);
-    if (s < SMALL) s = SMALL;
-    s = 1.0/s;
-
-    // force & energy for angle term
-
-    dtheta = acos(c) - theta0[type];
-    dtheta2 = dtheta*dtheta;
-    dtheta3 = dtheta2*dtheta;
-    dtheta4 = dtheta3*dtheta;
-    dtheta5 = dtheta4*dtheta;
-    dtheta6 = dtheta5*dtheta;
-
-    de_angle = 2.0*k2[type]*dtheta + 3.0*k3[type]*dtheta2 +
-      4.0*k4[type]*dtheta3 + 5.0*k5[type]*dtheta4 + 6.0*k6[type]*dtheta5;
-
-    a = -de_angle*s;
-    a11 = a*c / rsq1;
-    a12 = -a / (r1*r2);
-    a22 = a*c / rsq2;
-
-    f1[0] = a11*delx1 + a12*delx2;
-    f1[1] = a11*dely1 + a12*dely2;
-    f1[2] = a11*delz1 + a12*delz2;
-
-    f3[0] = a22*delx2 + a12*delx1;
-    f3[1] = a22*dely2 + a12*dely1;
-    f3[2] = a22*delz2 + a12*delz1;
-
-    //if (eflag) eangle = k2[type]*dtheta2 + k3[type]*dtheta3 + 
-    //             k4[type]*dtheta4 + k5[type]*dtheta5 + k6[type]*dtheta6;
-    eangle = 0.0;
 
     // force & energy for bond-angle term
     // bond-stretch cross term in Tinker
 
-    dr1 = r1 - ba_r1[type];
-    dr2 = r2 - ba_r2[type];
+    if (ba_k1[type] > 0.0) {
 
-    aa1 = s * dr1 * ba_k1[type];
-    aa2 = s * dr2 * ba_k2[type];
 
-    aa11 = aa1 * c / rsq1;
-    aa12 = -aa1 / (r1 * r2);
-    aa21 = aa2 * c / rsq1;
-    aa22 = -aa2 / (r1 * r2);
 
-    vx11 = (aa11 * delx1) + (aa12 * delx2);
-    vx12 = (aa21 * delx1) + (aa22 * delx2);
-    vy11 = (aa11 * dely1) + (aa12 * dely2);
-    vy12 = (aa21 * dely1) + (aa22 * dely2);
-    vz11 = (aa11 * delz1) + (aa12 * delz2);
-    vz12 = (aa21 * delz1) + (aa22 * delz2);
+    //NOTE: depends on r1,r2,c,s,rsq1,rsq2,delxyz1,delxyz2,dtheta
 
-    aa11 = aa1 * c / rsq2;
-    aa21 = aa2 * c / rsq2;
 
-    vx21 = (aa11 * delx2) + (aa12 * delx1);
-    vx22 = (aa21 * delx2) + (aa22 * delx1);
-    vy21 = (aa11 * dely2) + (aa12 * dely1);
-    vy22 = (aa21 * dely2) + (aa22 * dely1);
-    vz21 = (aa11 * delz2) + (aa12 * delz1);
-    vz22 = (aa21 * delz2) + (aa22 * delz1);
 
-    b1 = ba_k1[type] * dtheta / r1;
-    b2 = ba_k2[type] * dtheta / r2;
+      dr1 = r1 - ba_r1[type];
+      dr2 = r2 - ba_r2[type];
 
-    f1[0] -= vx11 + b1*delx1 + vx12;
-    f1[1] -= vy11 + b1*dely1 + vy12;
-    f1[2] -= vz11 + b1*delz1 + vz12;
+      aa1 = s * dr1 * ba_k1[type];
+      aa2 = s * dr2 * ba_k2[type];
 
-    f3[0] -= vx21 + b2*delx2 + vx22;
-    f3[1] -= vy21 + b2*dely2 + vy22;
-    f3[2] -= vz21 + b2*delz2 + vz22;
+      aa11 = aa1 * c / rsq1;
+      aa12 = -aa1 / (r1 * r2);
+      aa21 = aa2 * c / rsq1;
+      aa22 = -aa2 / (r1 * r2);
 
-    if (eflag) eangle += ba_k1[type]*dr1*dtheta + ba_k2[type]*dr2*dtheta;
+      vx11 = (aa11 * delx1) + (aa12 * delx2);
+      vx12 = (aa21 * delx1) + (aa22 * delx2);
+      vy11 = (aa11 * dely1) + (aa12 * dely2);
+      vy12 = (aa21 * dely1) + (aa22 * dely2);
+      vz11 = (aa11 * delz1) + (aa12 * delz2);
+      vz12 = (aa21 * delz1) + (aa22 * delz2);
 
-    printf("Stretch-Bend: %ld %d %d: eng %g\n",
-           atom->tag[i1],atom->tag[i2],atom->tag[i3],eangle);
+      aa11 = aa1 * c / rsq2;
+      aa21 = aa2 * c / rsq2;
+
+      vx21 = (aa11 * delx2) + (aa12 * delx1);
+      vx22 = (aa21 * delx2) + (aa22 * delx1);
+      vy21 = (aa11 * dely2) + (aa12 * dely1);
+      vy22 = (aa21 * dely2) + (aa22 * dely1);
+      vz21 = (aa11 * delz2) + (aa12 * delz1);
+      vz22 = (aa21 * delz2) + (aa22 * delz1);
+
+      b1 = ba_k1[type] * dtheta / r1;
+      b2 = ba_k2[type] * dtheta / r2;
+
+      f1[0] -= vx11 + b1*delx1 + vx12;
+      f1[1] -= vy11 + b1*dely1 + vy12;
+      f1[2] -= vz11 + b1*delz1 + vz12;
+
+      f3[0] -= vx21 + b2*delx2 + vx22;
+      f3[1] -= vy21 + b2*dely2 + vy22;
+      f3[2] -= vz21 + b2*delz2 + vz22;
+
+      //if (eflag) eangle += ba_k1[type]*dr1*dtheta + ba_k2[type]*dr2*dtheta;
+      if (eflag) eangle = ba_k1[type]*dr1*dtheta + ba_k2[type]*dr2*dtheta;
+
+      printf("Stretch-Bend: %ld %d %d: eng %g\n",
+             atom->tag[i1],atom->tag[i2],atom->tag[i3],eangle);
+    }
 
     // apply force to each of 3 atoms
 
@@ -350,8 +360,8 @@ void AngleAmoeba::anglep(int i1, int i2, int i3, int type, int eflag)
   deddt = 2.0*k2[type]*dtheta + 3.0*k3[type]*dtheta2 +
     4.0*k4[type]*dtheta3 + 5.0*k5[type]*dtheta4 + 6.0*k6[type]*dtheta5;
 
-  if (eflag) eangle = k2[type]*dtheta2 + k3[type]*dtheta3 + 
-               k4[type]*dtheta4 + k5[type]*dtheta5 + k6[type]*dtheta6;
+  //if (eflag) eangle = k2[type]*dtheta2 + k3[type]*dtheta3 + 
+  //             k4[type]*dtheta4 + k5[type]*dtheta5 + k6[type]*dtheta6;
 
   // chain rule terms for first derivative components
 

@@ -197,7 +197,7 @@ void TILD::settings(int narg, char **arg)
 TILD::~TILD(){
 
   delete [] factors;
-  deallocate();
+  TILD::deallocate();
   memory->destroy(part2grid);
   part2grid = nullptr;
 

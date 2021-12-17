@@ -61,7 +61,7 @@ class DumpNetCDFMPIIO : public DumpCustom {
 
   int *thermovar;    // NetCDF variables for thermo output
 
-  bool double_precision;    // write everything as double precision
+  int type_nc_real;         // netcdf type to use for real variables: float or double
   bool thermo;              // write thermo output to netcdf file
 
   bigint n_buffer;          // size of buffer

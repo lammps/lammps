@@ -179,7 +179,7 @@ DumpNetCDFMPIIO::DumpNetCDFMPIIO(LAMMPS *lmp, int narg, char **arg) :
   int_buffer = nullptr;
   double_buffer = nullptr;
 
-  double_precision = false;
+  type_nc_real = NC_FLOAT;
 
   thermo = false;
   thermovar = nullptr;
@@ -382,14 +382,14 @@ void DumpNetCDFMPIIO::openfile()
     NCERRX( ncmpi_def_var(ncid, NC_CELL_ANGULAR_STR, NC_CHAR, 2, dims, &cell_angular_var), NC_CELL_ANGULAR_STR );
 
     dims[0] = frame_dim;
-    NCERRX( ncmpi_def_var(ncid, NC_TIME_STR, NC_DOUBLE, 1, dims, &time_var), NC_TIME_STR);
+    NCERRX( ncmpi_def_var(ncid, NC_TIME_STR, type_nc_real, 1, dims, &time_var), NC_TIME_STR);
     dims[0] = frame_dim;
     dims[1] = cell_spatial_dim;
-    NCERRX( ncmpi_def_var(ncid, NC_CELL_ORIGIN_STR, NC_DOUBLE, 2, dims, &cell_origin_var), NC_CELL_ORIGIN_STR );
-    NCERRX( ncmpi_def_var(ncid, NC_CELL_LENGTHS_STR, NC_DOUBLE, 2, dims, &cell_lengths_var), NC_CELL_LENGTHS_STR );
+    NCERRX( ncmpi_def_var(ncid, NC_CELL_ORIGIN_STR, type_nc_real, 2, dims, &cell_origin_var), NC_CELL_ORIGIN_STR );
+    NCERRX( ncmpi_def_var(ncid, NC_CELL_LENGTHS_STR, type_nc_real, 2, dims, &cell_lengths_var), NC_CELL_LENGTHS_STR );
     dims[0] = frame_dim;
     dims[1] = cell_angular_dim;
-    NCERRX( ncmpi_def_var(ncid, NC_CELL_ANGLES_STR, NC_DOUBLE, 2, dims, &cell_angles_var), NC_CELL_ANGLES_STR );
+    NCERRX( ncmpi_def_var(ncid, NC_CELL_ANGLES_STR, type_nc_real, 2, dims, &cell_angles_var), NC_CELL_ANGLES_STR );
 
     // variables specified in the input file
     dims[0] = frame_dim;
@@ -405,10 +405,7 @@ void DumpNetCDFMPIIO::openfile()
       } else if (vtype[perat[i].field[0]] == Dump::BIGINT) {
         xtype = NC_INT64;
       } else {
-        if (double_precision)
-          xtype = NC_DOUBLE;
-        else
-          xtype = NC_FLOAT;
+        xtype = type_nc_real;
       }
 
       if (perat[i].dims == 1) {
@@ -425,7 +422,7 @@ void DumpNetCDFMPIIO::openfile()
       Thermo *th = output->thermo;
       for (int i = 0; i < th->nfield; i++) {
         if (th->vtype[i] == Thermo::FLOAT) {
-          NCERRX( ncmpi_def_var(ncid, th->keyword[i], NC_DOUBLE, 1, dims, &thermovar[i]), th->keyword[i] );
+          NCERRX( ncmpi_def_var(ncid, th->keyword[i], type_nc_real, 1, dims, &thermovar[i]), th->keyword[i] );
         } else if (th->vtype[i] == Thermo::INT) {
           NCERRX( ncmpi_def_var(ncid, th->keyword[i], NC_INT, 1, dims, &thermovar[i]), th->keyword[i] );
         } else if (th->vtype[i] == Thermo::BIGINT) {
@@ -867,7 +864,12 @@ int DumpNetCDFMPIIO::modify_param(int narg, char **arg)
   if (strcmp(arg[iarg],"double") == 0) {
     iarg++;
     if (iarg >= narg) error->all(FLERR,"expected 'yes' or 'no' after 'double' keyword.");
-    double_precision = utils::logical(FLERR,arg[iarg],false,lmp) == 1;
+
+    if (utils::logical(FLERR,arg[iarg],false,lmp) == 1)
+      type_nc_real = NC_DOUBLE;
+    else
+      type_nc_real = NC_FLOAT;
+
     iarg++;
     return 2;
   } else if (strcmp(arg[iarg],"at") == 0) {

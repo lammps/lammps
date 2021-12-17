@@ -373,10 +373,10 @@ void DumpNetCDF::openfile()
       }
 
       // default variables
-      dims[0] = 0;
+      dims[0] = vector_dim[3];
       NCERRX( nc_def_var(ncid, NC_SPATIAL_STR, NC_CHAR, 1, dims, &spatial_var), NC_SPATIAL_STR );
       NCERRX( nc_def_var(ncid, NC_CELL_SPATIAL_STR, NC_CHAR, 1, dims, &cell_spatial_var), NC_CELL_SPATIAL_STR );
-      dims[0] = 0;
+      dims[0] = vector_dim[3];
       dims[1] = label_dim;
       NCERRX( nc_def_var(ncid, NC_CELL_ANGULAR_STR, NC_CHAR, 2, dims, &cell_angular_var), NC_CELL_ANGULAR_STR );
 

@@ -542,7 +542,6 @@ std::string ReaderNative::read_binary_str(size_t size)
 
 void ReaderNative::read_double_chunk(size_t count)
 {
-  if (count < 0) return;
   // extend buffer to fit chunk size
   if (count > maxbuf) {
     memory->grow(databuf,count,"reader:databuf");

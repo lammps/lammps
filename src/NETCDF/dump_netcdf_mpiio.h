@@ -40,12 +40,26 @@ class DumpNetCDFMPIIO : public DumpCustom {
   virtual void write();
 
  private:
+   // type of quantity for per-atom values (used to get the unit)
+   enum Quantity {
+      Unknown = 0,
+
+      Time,
+      Distance,
+      Velocity,
+      Force,
+      DipoleMoment,
+   };
+   // get the name of the unit for the given quantity
+   std::string unit_of(Quantity quantity);
+
   // per-atoms quantities (positions, velocities, etc.)
   struct nc_perat_t {
     int dims;                              // number of dimensions
     int field[DUMP_NC_MPIIO_MAX_DIMS];     // field indices corresponding to the dim.
     char name[NC_MPIIO_FIELD_NAME_MAX];    // field name
     int var;                               // NetCDF variable
+    Quantity quantity;                     // type of the quantity
   };
 
   typedef void (DumpNetCDFMPIIO::*funcptr_t)(void *);

@@ -102,6 +102,7 @@ DumpNetCDFMPIIO::DumpNetCDFMPIIO(LAMMPS *lmp, int narg, char **arg) :
     int ndims = 1;
     std::string mangled = earg[i];
     bool constant = false;
+    Quantity quantity = Quantity::Unknown;
 
     // name mangling
     // in the AMBER specification
@@ -109,26 +110,32 @@ DumpNetCDFMPIIO::DumpNetCDFMPIIO(LAMMPS *lmp, int narg, char **arg) :
       idim = mangled[0] - 'x';
       ndims = 3;
       mangled = "coordinates";
+      quantity = Quantity::Distance;
     } else if ((mangled == "vx") || (mangled == "vy") || (mangled == "vz")) {
       idim = mangled[1] - 'x';
       ndims = 3;
       mangled = "velocities";
+      quantity = Quantity::Velocity;
     } else if ((mangled == "xs") || (mangled == "ys") || (mangled == "zs")) {
       idim = mangled[0] - 'x';
       ndims = 3;
       mangled = "scaled_coordinates";
+      // no quantity for scaled_coordinates
     } else if ((mangled == "xu") || (mangled == "yu") || (mangled == "zu")) {
       idim = mangled[0] - 'x';
       ndims = 3;
       mangled = "unwrapped_coordinates";
+      quantity = Quantity::Distance;
     } else if ((mangled == "fx") || (mangled == "fy") || (mangled == "fz")) {
       idim = mangled[1] - 'x';
       ndims = 3;
       mangled = "forces";
+      quantity = Quantity::Force;
     } else if ((mangled == "mux") || (mangled == "muy") || (mangled == "muz")) {
       idim = mangled[2] - 'x';
       ndims = 3;
       mangled = "mu";
+      quantity = Quantity::DipoleMoment;
     } else if (utils::strmatch(mangled, "^c_")) {
       std::size_t found = mangled.find('[');
       if (found != std::string::npos) {
@@ -173,6 +180,7 @@ DumpNetCDFMPIIO::DumpNetCDFMPIIO(LAMMPS *lmp, int narg, char **arg) :
     }
 
     perat[inc].field[idim] = i;
+    perat[inc].quantity = quantity;
   }
 
   n_buffer = 0;
@@ -414,6 +422,11 @@ void DumpNetCDFMPIIO::openfile()
         dims[2] = vector_dim[perat[i].dims];
         NCERRX( ncmpi_def_var(ncid, perat[i].name, xtype, 3, dims, &perat[i].var), perat[i].name );
       }
+
+      std::string unit = this->unit_of(perat[i].quantity);
+      if (!unit.empty()) {
+        NCERR( ncmpi_put_att_text(ncid, perat[i].var, NC_UNITS_STR, unit.size(), unit.c_str()) );
+      }
     }
 
     // perframe variables
@@ -441,43 +454,18 @@ void DumpNetCDFMPIIO::openfile()
     NCERR( ncmpi_put_att_text(ncid, NC_GLOBAL, "program", 6, "LAMMPS") );
     NCERR( ncmpi_put_att_text(ncid, NC_GLOBAL, "programVersion", strlen(lmp->version), lmp->version) );
 
-    // units
-    if (!strcmp(update->unit_style, "lj")) {
-      NCERR( ncmpi_put_att_text(ncid, time_var, NC_UNITS_STR, 2, "lj") );
-      NCERR( ncmpi_put_att_text(ncid, cell_origin_var, NC_UNITS_STR, 2, "lj") );
-      NCERR( ncmpi_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR, 2, "lj") );
-    } else if (!strcmp(update->unit_style, "real")) {
-      NCERR( ncmpi_put_att_text(ncid, time_var, NC_UNITS_STR, 11, "femtosecond") );
-      NCERR( ncmpi_put_att_text(ncid, cell_origin_var, NC_UNITS_STR, 8, "Angstrom") );
-      NCERR( ncmpi_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR, 8, "Angstrom") );
-    } else if (!strcmp(update->unit_style, "metal")) {
-      NCERR( ncmpi_put_att_text(ncid, time_var, NC_UNITS_STR, 10, "picosecond") );
-      NCERR( ncmpi_put_att_text(ncid, cell_origin_var, NC_UNITS_STR, 8, "Angstrom") );
-      NCERR( ncmpi_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR, 8, "Angstrom") );
-    } else if (!strcmp(update->unit_style, "si")) {
-      NCERR( ncmpi_put_att_text(ncid, time_var, NC_UNITS_STR, 6, "second") );
-      NCERR( ncmpi_put_att_text(ncid, cell_origin_var, NC_UNITS_STR, 5, "meter") );
-      NCERR( ncmpi_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR, 5, "meter") );
-    } else if (!strcmp(update->unit_style, "cgs")) {
-      NCERR( ncmpi_put_att_text(ncid, time_var, NC_UNITS_STR, 6, "second") );
-      NCERR( ncmpi_put_att_text(ncid, cell_origin_var, NC_UNITS_STR, 10, "centimeter") );
-      NCERR( ncmpi_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR, 10, "centimeter") );
-    } else if (!strcmp(update->unit_style, "electron")) {
-      NCERR( ncmpi_put_att_text(ncid, time_var, NC_UNITS_STR, 11, "femtosecond") );
-      NCERR( ncmpi_put_att_text(ncid, cell_origin_var, NC_UNITS_STR, 4, "Bohr") );
-      NCERR( ncmpi_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR, 4, "Bohr") );
-    } else {
-      error->all(FLERR,"Unsupported unit style: {}", update->unit_style);
-    }
+    // units & scale
+    std::string unit = this->unit_of(Quantity::Time);
+    NCERR( ncmpi_put_att_text(ncid, time_var, NC_UNITS_STR, unit.size(), unit.c_str()) );
+
+    unit = this->unit_of(Quantity::Distance);
+    NCERR( ncmpi_put_att_text(ncid, cell_origin_var, NC_UNITS_STR, unit.size(), unit.c_str()) );
+    NCERR( ncmpi_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR, unit.size(), unit.c_str()) );
 
     NCERR( ncmpi_put_att_text(ncid, cell_angles_var, NC_UNITS_STR, 6, "degree") );
 
-    d[0] = update->dt;
-    NCERR( ncmpi_put_att_float(ncid, time_var, NC_SCALE_FACTOR_STR, NC_FLOAT, 1, d) );
-    d[0] = 1.0;
-    NCERR( ncmpi_put_att_float(ncid, cell_origin_var, NC_SCALE_FACTOR_STR, NC_FLOAT, 1, d) );
-    d[0] = 1.0;
-    NCERR( ncmpi_put_att_float(ncid, cell_lengths_var, NC_SCALE_FACTOR_STR, NC_FLOAT, 1, d) );
+    float scale[1] = {static_cast<float>(update->dt)};
+    NCERR( ncmpi_put_att_float(ncid, time_var, NC_SCALE_FACTOR_STR, NC_FLOAT, 1, scale) );
 
     /*
      * Finished with definition
@@ -898,6 +886,86 @@ void DumpNetCDFMPIIO::ncerr(int err, const char *descr, int line)
     else error->one(FLERR,"NetCDF failed with error '{}' in line {} of {}.",
                     ncmpi_strerror(err), line, __FILE__);
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+std::string DumpNetCDF::unit_of(Quantity quantity) {
+  if (quantity == Quantity::Unknown) {
+    return "";
+  }
+
+  if (!strcmp(update->unit_style, "lj")) {
+    return "lj";
+  } else if (!strcmp(update->unit_style, "real")) {
+    switch (quantity) {
+    case Quantity::Time:
+      return "femtosecond";
+    case Quantity::Distance:
+      return "Angstrom";
+    case Quantity::Velocity:
+      return "Angstrom/femtosecond";
+    case Quantity::Force:
+      return "(Kcal/mol)/Angstrom)";
+    case Quantity::DipoleMoment:
+      return "e * Angstrom";
+    }
+  } else if (!strcmp(update->unit_style, "metal")) {
+    switch (quantity) {
+    case Quantity::Time:
+      return "picosecond";
+    case Quantity::Distance:
+      return "Angstrom";
+    case Quantity::Velocity:
+      return "Angstrom/picosecond";
+    case Quantity::Force:
+      return "eV/Angstrom";
+    case Quantity::DipoleMoment:
+      return "e * Angstrom";
+    }
+  } else if (!strcmp(update->unit_style, "si")) {
+    switch (quantity) {
+    case Quantity::Time:
+      return "second";
+    case Quantity::Distance:
+      return "meter";
+    case Quantity::Velocity:
+      return "meter/second";
+    case Quantity::Force:
+      return "Newton";
+    case Quantity::DipoleMoment:
+      return "Coulomb * meter";
+    }
+  } else if (!strcmp(update->unit_style, "cgs")) {
+    switch (quantity) {
+    case Quantity::Time:
+      return "second";
+    case Quantity::Distance:
+      return "centimeter";
+    case Quantity::Velocity:
+      return "centimeter/second";
+    case Quantity::Force:
+      return "dynes";
+    case Quantity::DipoleMoment:
+      return "statcoul * cm";
+    }
+  } else if (!strcmp(update->unit_style, "electron")) {
+    switch (quantity) {
+    case Quantity::Time:
+      return "second";
+    case Quantity::Distance:
+      return "centimeter";
+    case Quantity::Velocity:
+      return "centimeter/second";
+    case Quantity::Force:
+      return "Hartrees/Bohr";
+    case Quantity::DipoleMoment:
+      return "Debye";
+    }
+  }
+
+  error->all(FLERR, "Unsupported unit style: {}", update->unit_style);
+  return "";
 }
 
 #endif /* defined(LMP_HAS_PNETCDF) */

@@ -276,7 +276,6 @@ void DumpNetCDFMPIIO::openfile()
       error->all(FLERR, "cannot append to non-existent file {}", filecurrent);
 
     MPI_Offset index[NC_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];
-    double d[1];
 
     if (singlefile_opened) return;
     singlefile_opened = 1;
@@ -342,7 +341,7 @@ void DumpNetCDFMPIIO::openfile()
 
     int dims[NC_MAX_VAR_DIMS];
     MPI_Offset index[NC_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];
-    double d[1];
+    float d[1];
 
     if (singlefile_opened) return;
     singlefile_opened = 1;
@@ -474,11 +473,11 @@ void DumpNetCDFMPIIO::openfile()
     NCERR( ncmpi_put_att_text(ncid, cell_angles_var, NC_UNITS_STR, 6, "degree") );
 
     d[0] = update->dt;
-    NCERR( ncmpi_put_att_double(ncid, time_var, NC_SCALE_FACTOR_STR, NC_DOUBLE, 1, d) );
+    NCERR( ncmpi_put_att_float(ncid, time_var, NC_SCALE_FACTOR_STR, NC_FLOAT, 1, d) );
     d[0] = 1.0;
-    NCERR( ncmpi_put_att_double(ncid, cell_origin_var, NC_SCALE_FACTOR_STR, NC_DOUBLE, 1, d) );
+    NCERR( ncmpi_put_att_float(ncid, cell_origin_var, NC_SCALE_FACTOR_STR, NC_FLOAT, 1, d) );
     d[0] = 1.0;
-    NCERR( ncmpi_put_att_double(ncid, cell_lengths_var, NC_SCALE_FACTOR_STR, NC_DOUBLE, 1, d) );
+    NCERR( ncmpi_put_att_float(ncid, cell_lengths_var, NC_SCALE_FACTOR_STR, NC_FLOAT, 1, d) );
 
     /*
      * Finished with definition

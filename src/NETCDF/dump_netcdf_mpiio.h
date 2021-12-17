@@ -29,6 +29,7 @@ DumpStyle(netcdf/mpiio,DumpNetCDFMPIIO);
 #include "dump_custom.h"
 
 namespace LAMMPS_NS {
+enum class Quantity;
 
 const int NC_MPIIO_FIELD_NAME_MAX = 100;
 const int DUMP_NC_MPIIO_MAX_DIMS = 100;
@@ -40,19 +41,6 @@ class DumpNetCDFMPIIO : public DumpCustom {
   virtual void write();
 
  private:
-   // type of quantity for per-atom values (used to get the unit)
-   enum Quantity {
-      Unknown = 0,
-
-      Time,
-      Distance,
-      Velocity,
-      Force,
-      DipoleMoment,
-   };
-   // get the name of the unit for the given quantity
-   std::string unit_of(Quantity quantity);
-
   // per-atoms quantities (positions, velocities, etc.)
   struct nc_perat_t {
     int dims;                              // number of dimensions

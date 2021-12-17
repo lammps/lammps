@@ -19,6 +19,7 @@
 #if defined(LMP_HAS_NETCDF)
 
 #include "dump_netcdf.h"
+#include "netcdf_units.h"
 
 #include "atom.h"
 #include "comm.h"
@@ -101,7 +102,7 @@ DumpNetCDF::DumpNetCDF(LAMMPS *lmp, int narg, char **arg) :
     int idim = 0;
     int ndims = 1;
     std::string mangled = earg[i];
-    Quantity quantity = Quantity::Unknown;
+    Quantity quantity = Quantity::UNKNOWN;
     bool constant = false;
 
     // name mangling
@@ -110,12 +111,12 @@ DumpNetCDF::DumpNetCDF(LAMMPS *lmp, int narg, char **arg) :
       idim = mangled[0] - 'x';
       ndims = 3;
       mangled = "coordinates";
-      quantity = Quantity::Distance;
+      quantity = Quantity::DISTANCE;
     } else if ((mangled == "vx") || (mangled == "vy") || (mangled == "vz")) {
       idim = mangled[1] - 'x';
       ndims = 3;
       mangled = "velocities";
-      quantity = Quantity::Velocity;
+      quantity = Quantity::VELOCITY;
     } else if ((mangled == "xs") || (mangled == "ys") || (mangled == "zs")) {
       idim = mangled[0] - 'x';
       ndims = 3;
@@ -125,17 +126,17 @@ DumpNetCDF::DumpNetCDF(LAMMPS *lmp, int narg, char **arg) :
       idim = mangled[0] - 'x';
       ndims = 3;
       mangled = "unwrapped_coordinates";
-      quantity = Quantity::Distance;
+      quantity = Quantity::DISTANCE;
     } else if ((mangled == "fx") || (mangled == "fy") || (mangled == "fz")) {
       idim = mangled[1] - 'x';
       ndims = 3;
       mangled = "forces";
-      quantity = Quantity::Force;
+      quantity = Quantity::FORCE;
     } else if ((mangled == "mux") || (mangled == "muy") || (mangled == "muz")) {
       idim = mangled[2] - 'x';
       ndims = 3;
       mangled = "mu";
-      quantity = Quantity::DipoleMoment;
+      quantity = Quantity::DIPOLE_MOMENT;
     } else if (utils::strmatch(mangled, "^c_")) {
       std::size_t found = mangled.find('[');
       if (found != std::string::npos) {
@@ -434,7 +435,7 @@ void DumpNetCDF::openfile()
           }
         }
 
-        std::string unit = this->unit_of(perat[i].quantity);
+        std::string unit = get_unit_for(update->unit_style, perat[i].quantity, error);
         if (!unit.empty()) {
           NCERR( nc_put_att_text(ncid, perat[i].var, NC_UNITS_STR, unit.size(), unit.c_str()) );
         }
@@ -470,10 +471,10 @@ void DumpNetCDF::openfile()
       NCERR( nc_put_att_text(ncid, NC_GLOBAL, "programVersion",strlen(lmp->version), lmp->version) );
 
       // units & scale
-      std::string unit = this->unit_of(Quantity::Time);
+      std::string unit = get_unit_for(update->unit_style, Quantity::TIME, error);
       NCERR( nc_put_att_text(ncid, time_var, NC_UNITS_STR, unit.size(), unit.c_str()) );
 
-      unit = this->unit_of(Quantity::Distance);
+      unit = get_unit_for(update->unit_style, Quantity::DISTANCE, error);
       NCERR( nc_put_att_text(ncid, cell_origin_var, NC_UNITS_STR, unit.size(), unit.c_str()) );
       NCERR( nc_put_att_text(ncid, cell_lengths_var, NC_UNITS_STR, unit.size(), unit.c_str()) );
 
@@ -890,96 +891,6 @@ void DumpNetCDF::ncerr(int err, const char *descr, int line)
     else error->one(FLERR,"NetCDF failed with error '{}' in line {} of {}.",
                     nc_strerror(err), line, __FILE__);
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-std::string DumpNetCDF::unit_of(Quantity quantity) {
-  if (!strcmp(update->unit_style, "lj")) {
-    if (quantity == Quantity::Unknown) {
-      return "";
-    } else {
-      return "lj";
-    }
-  } else if (!strcmp(update->unit_style, "real")) {
-    switch (quantity) {
-    case Quantity::Unknown:
-      return "";
-    case Quantity::Time:
-      return "femtosecond";
-    case Quantity::Distance:
-      return "Angstrom";
-    case Quantity::Velocity:
-      return "Angstrom/femtosecond";
-    case Quantity::Force:
-      return "(Kcal/mol)/Angstrom)";
-    case Quantity::DipoleMoment:
-      return "e * Angstrom";
-    }
-  } else if (!strcmp(update->unit_style, "metal")) {
-    switch (quantity) {
-    case Quantity::Unknown:
-      return "";
-    case Quantity::Time:
-      return "picosecond";
-    case Quantity::Distance:
-      return "Angstrom";
-    case Quantity::Velocity:
-      return "Angstrom/picosecond";
-    case Quantity::Force:
-      return "eV/Angstrom";
-    case Quantity::DipoleMoment:
-      return "e * Angstrom";
-    }
-  } else if (!strcmp(update->unit_style, "si")) {
-    switch (quantity) {
-    case Quantity::Unknown:
-      return "";
-    case Quantity::Time:
-      return "second";
-    case Quantity::Distance:
-      return "meter";
-    case Quantity::Velocity:
-      return "meter/second";
-    case Quantity::Force:
-      return "Newton";
-    case Quantity::DipoleMoment:
-      return "Coulomb * meter";
-    }
-  } else if (!strcmp(update->unit_style, "cgs")) {
-    switch (quantity) {
-    case Quantity::Unknown:
-      return "";
-    case Quantity::Time:
-      return "second";
-    case Quantity::Distance:
-      return "centimeter";
-    case Quantity::Velocity:
-      return "centimeter/second";
-    case Quantity::Force:
-      return "dynes";
-    case Quantity::DipoleMoment:
-      return "statcoul * cm";
-    }
-  } else if (!strcmp(update->unit_style, "electron")) {
-    switch (quantity) {
-    case Quantity::Unknown:
-      return "";
-    case Quantity::Time:
-      return "second";
-    case Quantity::Distance:
-      return "centimeter";
-    case Quantity::Velocity:
-      return "centimeter/second";
-    case Quantity::Force:
-      return "Hartrees/Bohr";
-    case Quantity::DipoleMoment:
-      return "Debye";
-    }
-  }
-
-  error->all(FLERR, "Unsupported unit style: {}", update->unit_style);
-  return "";
 }
 
 #endif /* defined(LMP_HAS_NETCDF) */

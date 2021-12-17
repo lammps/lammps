@@ -18,13 +18,15 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_sdk_coul_msm.h"
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
+#include "error.h"
 #include "force.h"
 #include "kspace.h"
 #include "neigh_list.h"
-#include "error.h"
+
+#include <cmath>
+#include <cstring>
 
 #include "lj_sdk_common.h"
 

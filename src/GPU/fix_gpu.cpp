@@ -17,16 +17,13 @@
 #include "atom.h"
 #include "citeme.h"
 #include "comm.h"
-#include "domain.h"
 #include "error.h"
 #include "force.h"
 #include "gpu_extra.h"
-#include "input.h"
 #include "modify.h"
 #include "neighbor.h"
 #include "pair.h"
 #include "pair_hybrid.h"
-#include "pair_hybrid_overlay.h"
 #include "respa.h"
 #include "timer.h"
 #include "universe.h"
@@ -50,12 +47,10 @@ extern int lmp_init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
                            const int ocl_platform, char *device_type_flags,
                            const int block_pair);
 extern void lmp_clear_device();
-extern double lmp_gpu_forces(double **f, double **tor, double *eatom,
-                             double **vatom, double *virial, double &ecoul,
-                             int &err_flag);
-extern double lmp_gpu_update_bin_size(const double subx, const double suby,
-                                      const double subz, const int nlocal,
-                                      const double cut);
+extern double lmp_gpu_forces(double **f, double **tor, double *eatom, double **vatom,
+                             double *virial, double &ecoul, int &err_flag);
+extern double lmp_gpu_update_bin_size(const double subx, const double suby, const double subz,
+                                      const int nlocal, const double cut);
 
 static const char cite_gpu_package[] =
   "GPU package (short-range, long-range and three-body potentials):\n\n"
@@ -141,16 +136,17 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"neigh") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
-      if (strcmp(arg[iarg+1],"yes") == 0) _gpu_mode = GPU_NEIGH;
-      else if (strcmp(arg[iarg+1],"no") == 0) _gpu_mode = GPU_FORCE;
-      else if (strcmp(arg[iarg+1],"hybrid") == 0) _gpu_mode = GPU_HYB_NEIGH;
+      const std::string modearg = arg[iarg+1];
+      if ((modearg == "yes") || (modearg == "on") || (modearg == "true"))
+        _gpu_mode = GPU_NEIGH;
+      else if ((modearg == "no") || (modearg == "off") || (modearg == "false"))
+        _gpu_mode = GPU_FORCE;
+      else if (modearg == "hybrid") _gpu_mode = GPU_HYB_NEIGH;
       else error->all(FLERR,"Illegal package gpu command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"newton") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
-      if (strcmp(arg[iarg+1],"off") == 0) newtonflag = 0;
-      else if (strcmp(arg[iarg+1],"on") == 0) newtonflag = 1;
-      else error->all(FLERR,"Illegal package gpu command");
+      newtonflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"binsize") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
@@ -190,9 +186,7 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"pair/only") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
-      if (strcmp(arg[iarg+1],"off") == 0) pair_only_flag = 0;
-      else if (strcmp(arg[iarg+1],"on") == 0) pair_only_flag = 1;
-      else error->all(FLERR,"Illegal package gpu command");
+      pair_only_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"ocl_args") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package gpu command");
@@ -203,7 +197,7 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
 
   #if (LAL_USE_OMP == 0)
   if (nthreads > 1)
-    error->all(FLERR,"No OpenMP support compiled in");
+    error->all(FLERR,"No OpenMP support compiled into the GPU package");
   #else
   if (nthreads > 0) {
     omp_set_num_threads(nthreads);
@@ -212,13 +206,15 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   #endif
 
   // set newton pair flag
-  // require newtonflag = 0 since currently required by all GPU pair styles
-
-  if (newtonflag == 1) error->all(FLERR,"Illegal package gpu command");
 
   force->newton_pair = newtonflag;
   if (force->newton_pair || force->newton_bond) force->newton = 1;
   else force->newton = 0;
+
+  // require newton pair off if _particle_split < 1
+
+  if (force->newton_pair == 1 && _particle_split < 1)
+    error->all(FLERR,"Cannot use newton pair on for split less than 1 for now");
 
   if (pair_only_flag) {
     lmp->suffixp = lmp->suffix;
@@ -326,15 +322,12 @@ void FixGPU::post_force(int /* vflag */)
   timer->stamp();
   double lvirial[6];
   for (int i = 0; i < 6; i++) lvirial[i] = 0.0;
-  int err_flag;
-  double my_eng = lmp_gpu_forces(atom->f, atom->torque, force->pair->eatom,
-                                 force->pair->vatom, lvirial,
-                                 force->pair->eng_coul, err_flag);
-  if (err_flag) {
-    if (err_flag==1)
-      error->one(FLERR,
-        "Too many neighbors on GPU. Use neigh_modify one to increase limit.");
-  }
+  int err_flag = 0;
+  double my_eng = lmp_gpu_forces(atom->f, atom->torque, force->pair->eatom, force->pair->vatom,
+                                 lvirial, force->pair->eng_coul, err_flag);
+  if (err_flag==1)
+    error->one(FLERR,"Neighbor list problem on the GPU. Try increasing the value of 'neigh_modify one' "
+               "or the GPU neighbor list 'binsize'.");
 
   force->pair->eng_vdwl += my_eng;
   force->pair->virial[0] += lvirial[0];
@@ -344,7 +337,6 @@ void FixGPU::post_force(int /* vflag */)
   force->pair->virial[4] += lvirial[4];
   force->pair->virial[5] += lvirial[5];
 
-  if (force->pair->vflag_fdotr) force->pair->virial_fdotr_compute();
   timer->stamp(Timer::PAIR);
 }
 

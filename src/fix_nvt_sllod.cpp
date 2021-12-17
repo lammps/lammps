@@ -22,7 +22,6 @@
 #include "compute.h"
 #include "domain.h"
 #include "error.h"
-#include "fix.h"
 #include "fix_deform.h"
 #include "group.h"
 #include "math_extra.h"

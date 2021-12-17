@@ -17,6 +17,7 @@
 #include "info.h"
 #include "input.h"
 #include "lammps.h"
+#include "platform.h"
 #include "variable.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -36,7 +37,7 @@ using ::testing::MatchesRegex;
         auto mesg = ::testing::internal::GetCapturedStdout();                                   \
         ASSERT_THAT(mesg, MatchesRegex(errmsg));                                                \
     } else {                                                                                    \
-        if (Info::get_mpi_vendor() != "Open MPI") {                                             \
+        if (platform::mpi_vendor() != "Open MPI") {                                             \
             ::testing::internal::CaptureStdout();                                               \
             ASSERT_DEATH({__VA_ARGS__}, "");                                                    \
             auto mesg = ::testing::internal::GetCapturedStdout();                               \

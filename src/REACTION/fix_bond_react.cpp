@@ -49,6 +49,7 @@ Contributing Author: Jacob Gissinger (jacob.r.gissinger@gmail.com)
 #include <cstring>
 
 #include <algorithm>
+#include <random>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -154,7 +155,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   master_group = (char *) "bond_react_MASTER_group";
 
   // by using fixed group names, only one instance of fix bond/react is allowed.
-  if (modify->find_fix_by_style("^bond/react") != -1)
+  if (modify->get_fix_by_style("^bond/react").size() != 0)
     error->all(FLERR,"Only one instance of fix bond/react allowed at a time");
 
   // let's find number of reactions specified
@@ -179,24 +180,20 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   int num_common_keywords = 2;
   for (int m = 0; m < num_common_keywords; m++) {
     if (strcmp(arg[iarg],"stabilization") == 0) {
-      if (strcmp(arg[iarg+1],"no") == 0) {
-        if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
-                                      "'stabilization' keyword has too few arguments");
-        iarg += 2;
-      }
-      if (strcmp(arg[iarg+1],"yes") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
+                                    "'stabilization' keyword has too few arguments");
+      stabilization_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      if (stabilization_flag) {
         if (iarg+4 > narg) error->all(FLERR,"Illegal fix bond/react command:"
                                       "'stabilization' keyword has too few arguments");
         exclude_group = utils::strdup(arg[iarg+2]);
-        stabilization_flag = 1;
         nve_limit_xmax = arg[iarg+3];
         iarg += 4;
-      }
+      } else iarg += 2;
     } else if (strcmp(arg[iarg],"reset_mol_ids") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/react command: "
                                     "'reset_mol_ids' keyword has too few arguments");
-      if (strcmp(arg[iarg+1],"yes") == 0) reset_mol_ids_flag = 1; // default
-      if (strcmp(arg[iarg+1],"no") == 0) reset_mol_ids_flag = 0;
+      reset_mol_ids_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"react") == 0) {
       break;
@@ -914,7 +911,8 @@ void FixBondReact::post_integrate()
 
   int j;
   for (rxnID = 0; rxnID < nreacts; rxnID++) {
-    if (max_rxn[rxnID] <= reaction_count_total[rxnID]) continue;
+    if ((update->ntimestep % nevery[rxnID]) ||
+        (max_rxn[rxnID] <= reaction_count_total[rxnID])) continue;
     for (int ii = 0; ii < nall; ii++) {
       partner[ii] = 0;
       finalpartner[ii] = 0;
@@ -1383,6 +1381,10 @@ void FixBondReact::superimpose_algorithm()
 
   if (!rxnflag) return;
 
+  // C++11 and later compatible version of Park pRNG
+  std::random_device rnd;
+  std::minstd_rand park_rng(rnd());
+
   // check if we overstepped our reaction limit
   for (int i = 0; i < nreacts; i++) {
     if (reaction_count_total[i] > max_rxn[i]) {
@@ -1403,7 +1405,7 @@ void FixBondReact::superimpose_algorithm()
         for (int j = 0; j < nprocs; j++)
           for (int k = 0; k < local_rxncounts[j]; k++)
             rxn_by_proc[itemp++] = j;
-        std::random_shuffle(&rxn_by_proc[0],&rxn_by_proc[delta_rxn]);
+        std::shuffle(&rxn_by_proc[0],&rxn_by_proc[delta_rxn], park_rng);
         for (int j = 0; j < nprocs; j++)
           all_localskips[j] = 0;
         nghostlyskips[i] = 0;
@@ -2237,8 +2239,7 @@ double FixBondReact::custom_constraint(std::string varstr)
   }
   evlstr.push_back(varstr.substr(prev3+1));
 
-  for (int i = 0; i < evlstr.size(); i++)
-    evlcat += evlstr[i];
+  for (auto & evl : evlstr) evlcat += evl;
 
   char *cstr = utils::strdup(evlcat);
   val = input->variable->compute_equal(cstr);
@@ -3761,7 +3762,7 @@ void FixBondReact::read(int myrxn)
   // stop when read an unrecognized line
 
   ncreate = 0;
-  while (1) {
+  while (true) {
 
     readline(line);
 

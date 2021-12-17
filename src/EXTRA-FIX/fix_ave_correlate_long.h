@@ -66,7 +66,7 @@ class FixAveCorrelateLong : public Fix {
   FILE *fp;
 
   int type, startstep, overwrite;
-  long filepos;
+  bigint filepos;
 
   int npair;    // number of correlation pairs to calculate
   double *values;

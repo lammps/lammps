@@ -139,12 +139,12 @@ void PairLJSDKCoulLongGPU::compute(int eflag, int vflag)
     error->one(FLERR,"Insufficient memory on accelerator");
 
   if (host_start<inum) {
-    cpu_time = MPI_Wtime();
+    cpu_time = platform::walltime();
     if (evflag) {
       if (eflag) cpu_compute<1,1>(host_start, inum, ilist, numneigh, firstneigh);
       else cpu_compute<1,0>(host_start, inum, ilist, numneigh, firstneigh);
     } else cpu_compute<0,0>(host_start, inum, ilist, numneigh, firstneigh);
-    cpu_time = MPI_Wtime() - cpu_time;
+    cpu_time = platform::walltime() - cpu_time;
   }
 }
 
@@ -156,8 +156,6 @@ void PairLJSDKCoulLongGPU::init_style()
 {
   if (!atom->q_flag)
     error->all(FLERR,"Pair style lj/sdk/coul/long/gpu requires atom attribute q");
-  if (force->newton_pair)
-    error->all(FLERR,"Pair style lj/sdk/coul/long/gpu requires newton pair off");
 
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;

@@ -79,7 +79,9 @@ class ParallelFor<FunctorType, Kokkos::WorkGraphPolicy<Traits...>,
  public:
   void execute() const {
     dispatch_execute_task(this, m_policy.space());
-    m_policy.space().fence();
+    m_policy.space().fence(
+        "Kokkos::Experimental::Impl::HPX::ParallelFor<WorkGraphPolicy>: fence "
+        "after kernel execution");
   }
 
   void execute_task() const {

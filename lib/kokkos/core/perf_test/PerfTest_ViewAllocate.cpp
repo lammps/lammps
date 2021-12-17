@@ -120,7 +120,8 @@ void run_allocateview_tests(int N, int R) {
   {
     Kokkos::Timer timer;
     for (int r = 0; r < R; r++) {
-      double* a_ptr = (double*)Kokkos::kokkos_malloc("A", sizeof(double) * N8);
+      double* a_ptr =
+          static_cast<double*>(Kokkos::kokkos_malloc("A", sizeof(double) * N8));
       Kokkos::parallel_for(
           N8, KOKKOS_LAMBDA(const int& i) { a_ptr[i] = 0.0; });
       Kokkos::fence();

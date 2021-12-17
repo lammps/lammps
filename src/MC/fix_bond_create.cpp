@@ -166,7 +166,7 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
   // bondcount values will be initialized in setup()
 
   bondcount = nullptr;
-  grow_arrays(atom->nmax);
+  FixBondCreate::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
   countflag = 0;
 
@@ -1430,7 +1430,7 @@ double FixBondCreate::memory_usage()
 {
   int nmax = atom->nmax;
   double bytes = (double)nmax * sizeof(int);
-  bytes = 2*nmax * sizeof(tagint);
+  bytes += 2*nmax * sizeof(tagint);
   bytes += (double)nmax * sizeof(double);
   return bytes;
 }

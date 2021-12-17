@@ -20,7 +20,7 @@ namespace LAMMPS_NS {
 
 class PythonInterface {
  public:
-  virtual ~PythonInterface();
+  virtual ~PythonInterface() = default;
   virtual void command(int, char **) = 0;
   virtual void invoke_function(int, char *) = 0;
   virtual int find(const char *) = 0;

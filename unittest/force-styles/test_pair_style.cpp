@@ -858,6 +858,13 @@ TEST(PairStyle, gpu)
     if (!Info::has_gpu_device()) GTEST_SKIP();
     if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
 
+    // when testing PPPM styles with GPUs and GPU support is compiled with single precision
+    // we also must have single precision FFTs; otherwise skip since the test would abort
+    if (utils::strmatch(test_config.basename, ".*pppm.*") &&
+        (Info::has_accelerator_feature("GPU", "precision", "single")) &&
+        (!Info::has_fft_single_support()))
+        GTEST_SKIP();
+
     const char *args_neigh[]   = {"PairStyle", "-log",    "none", "-echo",
                                 "screen",    "-nocite", "-sf",  "gpu"};
     const char *args_noneigh[] = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite", "-sf",
@@ -1252,7 +1259,7 @@ TEST(PairStyle, single)
     int argc    = sizeof(args) / sizeof(char *);
 
     // need to add this dependency
-    test_config.prerequisites.push_back(std::make_pair("atom", "full"));
+    test_config.prerequisites.emplace_back("atom", "full");
 
     // create a LAMMPS instance with standard settings to detect the number of atom types
     if (!verbose) ::testing::internal::CaptureStdout();
@@ -1502,7 +1509,7 @@ TEST(PairStyle, extract)
     if (!lmp) {
         std::cerr << "One or more prerequisite styles are not available "
                      "in this LAMMPS configuration:\n";
-        for (auto prerequisite : test_config.prerequisites) {
+        for (const auto &prerequisite : test_config.prerequisites) {
             std::cerr << prerequisite.first << "_style " << prerequisite.second << "\n";
         }
         GTEST_SKIP();

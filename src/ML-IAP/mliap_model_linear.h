@@ -21,7 +21,7 @@ namespace LAMMPS_NS {
 class MLIAPModelLinear : public MLIAPModelSimple {
  public:
   MLIAPModelLinear(LAMMPS *, char * = nullptr);
-  ~MLIAPModelLinear();
+  ~MLIAPModelLinear() = default;
   virtual int get_nparams();
   virtual int get_gamma_nnz(class MLIAPData *);
   virtual void compute_gradients(class MLIAPData *);

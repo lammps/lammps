@@ -35,7 +35,6 @@ under
 #include <algorithm>
 #include <cmath>
 #include <cstring>
-#include <vector>
 
 #include "ptm_constants.h"
 #include "ptm_functions.h"

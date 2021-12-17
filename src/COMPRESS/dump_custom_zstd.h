@@ -28,14 +28,13 @@ DumpStyle(custom/zstd,DumpCustomZstd);
 
 #include "dump_custom.h"
 #include "zstd_file_writer.h"
-#include <stdio.h>
 
 namespace LAMMPS_NS {
 
 class DumpCustomZstd : public DumpCustom {
  public:
   DumpCustomZstd(class LAMMPS *, int, char **);
-  virtual ~DumpCustomZstd();
+  virtual ~DumpCustomZstd() = default;
 
  protected:
   ZstdFileWriter writer;

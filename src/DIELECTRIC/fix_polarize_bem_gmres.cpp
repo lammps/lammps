@@ -41,11 +41,9 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
-#include "group.h"
 #include "kspace.h"
 #include "math_const.h"
 #include "memory.h"
-#include "modify.h"
 #include "msm_dielectric.h"
 #include "pair_coul_cut_dielectric.h"
 #include "pair_coul_long_dielectric.h"
@@ -54,7 +52,6 @@
 #include "pair_lj_cut_coul_msm_dielectric.h"
 #include "pppm_dielectric.h"
 #include "random_park.h"
-#include "timer.h"
 #include "update.h"
 
 #include <cmath>
@@ -69,8 +66,8 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 FixPolarizeBEMGMRES::FixPolarizeBEMGMRES(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), q_backup(NULL), c(NULL), g(NULL), h(NULL), r(NULL), s(NULL), v(NULL),
-    y(NULL)
+    Fix(lmp, narg, arg), q_backup(nullptr), c(nullptr), g(nullptr), h(nullptr), r(nullptr), s(nullptr), v(nullptr),
+    y(nullptr)
 {
   if (narg < 5) error->all(FLERR, "Illegal fix polarize/bem/gmres command");
 
@@ -110,7 +107,7 @@ FixPolarizeBEMGMRES::FixPolarizeBEMGMRES(LAMMPS *lmp, int narg, char **arg) :
   if (atom->torque_flag) torqueflag = 1;
   if (atom->avec->forceclearflag) extraflag = 1;
 
-  grow_arrays(atom->nmax);
+  FixPolarizeBEMGMRES::grow_arrays(atom->nmax);
   atom->add_callback(0);    // to ensure to work with atom->sort()
 
   // output the residual and actual number of iterations
@@ -133,7 +130,7 @@ FixPolarizeBEMGMRES::~FixPolarizeBEMGMRES()
   memory->destroy(mat2tag);
   memory->destroy(tag2mat);
 
-  if (allocated) deallocate();
+  if (allocated) FixPolarizeBEMGMRES::deallocate();
   atom->delete_callback(id, 0);
 }
 
@@ -799,12 +796,7 @@ int FixPolarizeBEMGMRES::modify_param(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg], "kspace") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix_modify command");
-      if (strcmp(arg[iarg + 1], "yes") == 0)
-        kspaceflag = 1;
-      else if (strcmp(arg[iarg + 1], "no") == 0)
-        kspaceflag = 0;
-      else
-        error->all(FLERR, "Illegal fix_modify command for fix polarize");
+      kspaceflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "dielectrics") == 0) {
       if (iarg + 6 > narg) error->all(FLERR, "Illegal fix_modify command");

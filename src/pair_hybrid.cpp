@@ -476,7 +476,7 @@ void PairHybrid::coeff(int narg, char **arg)
   // 4th arg = pair sub-style index if name used multiple times
   // allow for "none" as valid sub-style name
 
-  int multflag;
+  int multflag = 0;
   int m;
 
   for (m = 0; m < nstyles; m++) {
@@ -512,13 +512,16 @@ void PairHybrid::coeff(int narg, char **arg)
   // then unset setflag/map assigned to that style before setting it below
   // in case pair coeff for this sub-style is being called for 2nd time
 
-  if (!none && styles[m]->one_coeff)
+  if (!none && styles[m]->one_coeff) {
+    if ((strcmp(arg[0],"*") != 0) || (strcmp(arg[1],"*") != 0))
+      error->all(FLERR,"Incorrect args for pair coefficients");
     for (int i = 1; i <= atom->ntypes; i++)
       for (int j = i; j <= atom->ntypes; j++)
         if (nmap[i][j] && map[i][j][0] == m) {
           setflag[i][j] = 0;
           nmap[i][j] = 0;
         }
+  }
 
   // set setflag and which type pairs map to which sub-style
   // if sub-style is none: set hybrid setflag, wipe out map
@@ -703,11 +706,10 @@ double PairHybrid::init_one(int i, int j)
   for (int k = 0; k < nmap[i][j]; k++) {
     map[j][i][k] = map[i][j][k];
     double cut = styles[map[i][j][k]]->init_one(i,j);
-    styles[map[i][j][k]]->cutsq[i][j] =
-      styles[map[i][j][k]]->cutsq[j][i] = cut*cut;
+    if (styles[map[i][j][k]]->did_mix) did_mix = true;
+    styles[map[i][j][k]]->cutsq[i][j] = styles[map[i][j][k]]->cutsq[j][i] = cut*cut;
     if (styles[map[i][j][k]]->ghostneigh)
-      cutghost[i][j] = cutghost[j][i] =
-        MAX(cutghost[i][j],styles[map[i][j][k]]->cutghost[i][j]);
+      cutghost[i][j] = cutghost[j][i] = MAX(cutghost[i][j],styles[map[i][j][k]]->cutghost[i][j]);
     if (tail_flag) {
       etail_ij += styles[map[i][j][k]]->etail_ij;
       ptail_ij += styles[map[i][j][k]]->ptail_ij;
@@ -918,8 +920,7 @@ void PairHybrid::modify_params(int narg, char **arg)
 again:
 
     if (iarg < narg && strcmp(arg[iarg],"special") == 0) {
-      if (narg < iarg+5)
-        error->all(FLERR,"Illegal pair_modify special command");
+      if (narg < iarg+5) error->all(FLERR,"Illegal pair_modify special command");
       modify_special(m,narg-iarg,&arg[iarg+1]);
       iarg += 5;
       goto again;
@@ -929,13 +930,8 @@ again:
     // set flag to register TALLY computes accordingly
 
     if (iarg < narg && strcmp(arg[iarg],"compute/tally") == 0) {
-      if (narg < iarg+2)
-        error->all(FLERR,"Illegal pair_modify compute/tally command");
-      if (strcmp(arg[iarg+1],"yes") == 0) {
-        compute_tally[m] = 1;
-      } else if (strcmp(arg[iarg+1],"no") == 0) {
-        compute_tally[m] = 0;
-      } else error->all(FLERR,"Illegal pair_modify compute/tally command");
+      if (narg < iarg+2) error->all(FLERR,"Illegal pair_modify compute/tally command");
+      compute_tally[m] = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
       goto again;
     }

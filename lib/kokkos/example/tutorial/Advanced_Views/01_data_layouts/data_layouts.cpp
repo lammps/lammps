@@ -43,7 +43,7 @@
 */
 
 #include <Kokkos_Core.hpp>
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 #include <cstdio>
 
 // These two View types are both 2-D arrays of double.  However, they

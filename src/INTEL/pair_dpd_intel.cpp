@@ -18,6 +18,7 @@
 
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
 #include "modify.h"
@@ -28,6 +29,9 @@
 
 #include <cmath>
 
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
 using namespace LAMMPS_NS;
 
 #define LMP_MKL_RNG VSL_BRNG_MT19937

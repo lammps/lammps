@@ -324,8 +324,7 @@ void PairBodyNparticle::compute(int eflag, int vflag)
         }
       }
 
-      if (evflag) ev_tally(i,j,nlocal,newton_pair,
-                           evdwl,0.0,fpair,delx,dely,delz);
+      if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,fpair,delx,dely,delz);
     }
   }
 

@@ -118,9 +118,7 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
       iarg += 2;
     } else if (strcmp(arg[iarg], "ghost") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
-      if (strcmp(arg[iarg+1],"yes") == 0) _offload_ghost = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) _offload_ghost = 0;
-      else error->all(FLERR,"Illegal package intel command");
+      _offload_ghost = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "tpc") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
@@ -135,9 +133,7 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
       iarg++;
     } else if (strcmp(arg[iarg], "lrt") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
-      if (strcmp(arg[iarg+1],"yes") == 0) _lrt = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) _lrt = 0;
-      else error->all(FLERR,"Illegal package intel command");
+      _lrt = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     }
 
@@ -915,7 +911,7 @@ template <class ft, class acc_t>
 void FixIntel::add_off_results(const ft * _noalias const f_in,
                                const acc_t * _noalias const ev_global) {
   if (_offload_balance < 0.0)
-    _balance_other_time = MPI_Wtime() - _balance_other_time;
+    _balance_other_time = platform::walltime() - _balance_other_time;
 
   start_watch(TIME_OFFLOAD_WAIT);
   #ifdef _LMP_INTEL_OFFLOAD

@@ -195,14 +195,12 @@ void PairLJExpandCoulLong::compute(int eflag, int vflag)
           } else ecoul = 0.0;
 
           if (rsq < cut_ljsq[itype][jtype]) {
-            evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
-              offset[itype][jtype];
+            evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) - offset[itype][jtype];
             evdwl *= factor_lj;
           } else evdwl = 0.0;
         }
 
-        if (evflag) ev_tally(i,j,nlocal,newton_pair,
-                             evdwl,ecoul,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,ecoul,fpair,delx,dely,delz);
       }
     }
   }
@@ -980,8 +978,7 @@ double PairLJExpandCoulLong::single(int i, int j, int itype, int jtype,
   }
 
   if (rsq < cut_ljsq[itype][jtype]) {
-    philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) -
-      offset[itype][jtype];
+    philj = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]) - offset[itype][jtype];
     eng += factor_lj*philj;
   }
 

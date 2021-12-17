@@ -49,7 +49,7 @@
 // the mesh.
 
 #include <Kokkos_Core.hpp>
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 #include <cstdio>
 
 using mesh_type = Kokkos::View<double***, Kokkos::LayoutRight>;

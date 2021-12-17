@@ -51,7 +51,7 @@ class WriteData : public Command {
   void dihedrals();
   void impropers();
   void bonus(int);
-  void fix(int, int);
+  void fix(class Fix *, int);
 };
 
 }    // namespace LAMMPS_NS

@@ -103,6 +103,7 @@ if (test $1 = "KSPACE") then
   depend INTEL
   depend PHONON
   depend FEP
+  depend TILD
 fi
 
 if (test $1 = "MANYBODY") then

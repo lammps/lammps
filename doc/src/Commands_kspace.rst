@@ -42,4 +42,4 @@ OPT.
    * :doc:`pppm/tip4p (o) <kspace_style>`
    * :doc:`pppm/dielectric <kspace_style>`
    * :doc:`scafacos <kspace_style>`
-   * :doc:`tild (not Coloumbic) <kspace_style>`
+   * :doc:`tild (not Coloumbic) <kspace_tild>`

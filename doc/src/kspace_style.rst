@@ -33,6 +33,9 @@
 kspace_style command
 ====================
 
+:doc:`kspace_style tild <kspace_tild>` command
+====================================================
+
 Syntax
 """"""
 
@@ -40,7 +43,7 @@ Syntax
 
    kspace_style style value
 
-* style = *none* or *ewald* or *ewald/dipole* or *ewald/dipole/spin* or *ewald/disp* or *ewald/disp/dipole* or *ewald/omp* or *pppm* or *pppm/cg* or *pppm/disp* or *pppm/tip4p* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/intel* or *pppm/disp/intel* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/disp/tip4p/omp* or *pppm/tip4p/omp* or *pppm/dielectic* or *pppm/disp/dielectric* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *msm/dielectric* or *scafacos*
+* style = *none* or *ewald* or *ewald/dipole* or *ewald/dipole/spin* or *ewald/disp* or *ewald/disp/dipole* or *ewald/omp* or *pppm* or *pppm/cg* or *pppm/disp* or *pppm/tip4p* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/intel* or *pppm/disp/intel* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/disp/tip4p/omp* or *pppm/tip4p/omp* or *pppm/dielectic* or *pppm/disp/dielectric* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *msm/dielectric* or *scafacos* or *tild*
 
   .. parsed-literal::
 
@@ -112,7 +115,8 @@ Syntax
        *scafacos* values = method accuracy
          method = fmm or p2nfft or p3m or ewald or direct
          accuracy = desired relative error in forces
-       *tild* value = grid_resolution
+       *tild* value = gridsize (distance units)
+         See :doc:`tild <kspace_tild>` for more information
 
 Examples
 """"""""
@@ -138,7 +142,7 @@ Description
 Define a long-range solver for LAMMPS to use each timestep to compute
 long-range Coulombic interactions or long-range :math:`1/r^6` interactions.
 Most of the long-range solvers perform their computation in K-space,
-hence the name of this command.
+hence the name of this command. The *tild* style is the exception: *tild* computes non-bonded forces between particles on a grid similar to the PM component of the PPPM solver below. A deeper discussion can be found on the :doc:`kspace_style tild <kspace_tild>` doc page.
 
 When such a solver is used in conjunction with an appropriate pair
 style, the cutoff for Coulombic or :math:`1/r^N` interactions is effectively
@@ -362,37 +366,6 @@ other ScaFaCoS options currently exposed to LAMMPS.
 
 ----------
 
-The *tild* style is an implementation of 'theoretically informed Langevin Dynamics' method (previously known as `Dynamical Mean Field Theory`) :ref:`Chao <Chao>`: :ref:`Fredrickson<Fredrickson>`: :ref:`Grzetic<Grzetic>`. This interaction potential uses a particle-mesh scheme to calculate non-bonded pairwise forces indirectly through a gridded density representation. *tild* assigns a potentials for each simulation particle type, defined with :doc:`kspace_modify tild <kspace_modify>`. This potential does NOT calculate any Coulombic interactions. 
-
-.. note::
-
-   Unlike other KSpace solvers in LAMMPS, the kspace TILD accounts for
-   non-bonded interactions, both short-range and long-range interactions through
-   a "short-ranged" potentital. Therefore, there is no accompanying short range
-   pair-style required. To fully implement the TILD methodology, use :doc:`fix
-   langevin<fix_langevin>` with *tild*. 
-
-The specified *grid resolution* is different from the accuracy setting for other
-LAMMPS KSpace styles in that there is no Green's function being solved. Instead,
-the grid resolution should be smaller than the shortest interaction range for
-the Gaussian interaction or the width of the erfc function. If a `mesh` is not
-specified, the grid points are chosen to be less than the specified grid
-resolution (box length/grid points) while using the least factorable number. 
-
-Because the implementation of TILD does not have a single Green's function to
-rely on, the amount of grid points are set by the user, either directly using
-`kspace_modify mesh` or by setting accuracy via `kspace_style tild accuracy`.
-The accuracy specified by the user should be at the largest the smallest length
-scale parameters of the system. If the system has a smallest Gaussian
-interaction width :math:`a=0.5`, then the smallest the resolution should be in
-any direction is 0.5. Please see :doc:`kspace_modify tild <kspace_modify>` for
-more information. 
-
-The :doc:`kspace_modify tild <kspace_modify>` command explains further the
-options and requirements for setting up the TILD framework. 
-
-----------
-
 The specified *accuracy* determines the relative RMS error in per-atom
 forces calculated by the long-range solver.  It is set as a
 dimensionless number, relative to the force that two unit point
@@ -518,7 +491,7 @@ virial, so this contribution is not included.
 Related commands
 """"""""""""""""
 
-:doc:`kspace_modify <kspace_modify>`, :doc:`pair_style lj/cut/coul/long <pair_lj_cut_coul>`, :doc:`pair_style lj/charmm/coul/long <pair_charmm>`, :doc:`pair_style lj/long/coul/long <pair_lj_long>`, :doc:`pair_style buck/coul/long <pair_buck>`
+:doc:`kspace_modify <kspace_modify>`, :doc:`pair_style lj/cut/coul/long <pair_lj_cut_coul>`, :doc:`pair_style lj/charmm/coul/long <pair_charmm>`, :doc:`pair_style lj/long/coul/long <pair_lj_long>`, :doc:`pair_style buck/coul/long <pair_buck>`, :doc:`kspace_style tild <kspace_tild>`
 
 Default
 """""""

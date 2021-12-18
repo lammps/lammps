@@ -3,6 +3,9 @@
 kspace_modify command
 =====================
 
+:doc:`kspace_modify tild <kspace_tild>` command
+=====================================================
+
 Syntax
 """"""
 
@@ -11,7 +14,7 @@ Syntax
    kspace_modify keyword value ...
 
 * one or more keyword/value pairs may be listed
-* keyword = *collective* or *compute* or *cutoff/adjust* or *diff* or *disp/auto* or *fftbench* or *force/disp/kspace* or *force/disp/real* or *force* or *gewald/disp* or *gewald* or *kmax/ewald* or *mesh* or *minorder* or *mix/disp* or *order/disp* or *order* or *overlap* or *scafacos* or *slab* or *splittol*
+* keyword = *collective* or *compute* or *cutoff/adjust* or *diff* or *disp/auto* or *fftbench* or *force/disp/kspace* or *force/disp/real* or *force* or *gewald/disp* or *gewald* or *kmax/ewald* or *mesh* or *minorder* or *mix/disp* or *order/disp* or *order* or *overlap* or *scafacos* or *slab* or *splittol* or *tild*
 
   .. parsed-literal::
 
@@ -54,26 +57,7 @@ Syntax
          *nozforce* turns off kspace forces in the z direction
        *splittol* value = tol
          tol = relative size of two eigenvalues (see discussion below)
-       *tild/shape* values = itype itype SHAPE parameters
-         SHAPE = *gaussian* or *erfc* or *none*
-         parameters = parameters for each function (see discussion below)
-       *tild/prefactor* values = itype jtype prefactor
-         prefactor = magnitude of the function 
-       *tild/cross-interaction* values = itype jtype interaction_shape parameters
-         interaction_shape = *gaussian* or *gaussian-erfc* or *erfc*
-         parameters = parameters for each function (see discussion below)
-       *tild/set_rho0* value = rho0
-         rho0 = total density of TILD particles
-       *tild/subtract_rho0* value = *yes* or *no*
-       *tild/normalize_by_rho0* value = *yes* or *no*
-       *tild/write_grid_data* values = freq filename
-         freq = frequency of output. 0 or less disables output
-         filename = name of file to output time averages to
-       *tild/ave/grid* values = Nevery Nrepeat Nfreq filename 
-         Nevery = use input values every this many timesteps
-         Nrepeat = # of times to use input values for calculating averages
-         Nfreq = calculate averages every this many timesteps
-         filename = name of file to output time averages to
+       *tild* args = discussed on :doc:`tild <kspace_tild>` doc page
 
        
 
@@ -434,100 +418,6 @@ slab correction has also been extended to point dipole interactions
 
 ----------
 
-The *tild/shape* keywords specifies the shape potential of a given molecule
-type. This is used to automatically generate interaction potentials between
-particles of different types. There are two currently supported types:
-`gaussian` and `erfc`. A `none` type is supported particles that do not have a
-corresponding shape function. For interactions between two Gaussian particles,
-we analytically convolve the two shape potentials together; for all other
-interactions, we do a numerical convolution to get the proper convolved
-interactions. 
-
-The current shpae function styles used in *tild/shape* are
-.. math::
-
-   U_{g} = & \frac{A}{\rho_0 (2\pi \sigma^2)^{3/2}} \exp(-r^2/2\sigma^2) \\
-         = & \frac{A}{\rho_0} u_G (r) \\
-   U_{erfc} = & - \frac{A}{\rho_0} \text{erfc} \left(\frac{\vert r \vert - R_p}{\xi}\right) \\ 
-   U_{g-erfc} = & \frac{A}{\rho_0} u_G (r) * \text{erfc}
-   \left(\frac{\vert r \vert - R_p}{\xi}\right)
-
-where :math:`A` is the value set by `tild/prefactor`\, :math:`\rho_0` is the total density of the TILD particles, :math:`\sigma`\ is the gaussian width, :math:`R_p` is the erfc particle radius and :math:`xi` is the erfc width.
-
-The first required keyword for the *tild/shape* option is the model. 
-Currently supported options for shape function models
-and their required arguments are:
-
-1. *gaussian* : :math:`\sigma` (distance units)
-2. *erfc* : :math:`R_p`, :math:`\xi` (both in distance units)
-
-----------
-
-The *tild/prefactor* keyword sets the prefactor in front of a given shape. For
-typical polymer represented by Gaussian monomers, the prefactors represents the
-Flory-Higgins prefactor :math:`\chi` \ . See the :math:`A` prefactors in the
-*tild/shape* potentials.
-
-----------
-
-The *tild/set_rho0* keyword is used when particles with a `tild/shape` of `erfc`
-exist within the simulation box and are used to ensure that the overall TILD
-density of the box is the same as the user's input. Please note if the box
-contains only `gaussian` shapes, this has no effect on the simulation. 
-
-----------
-
-The *tild/normalize_by_rho0* keyword will divide the interactions by the
-calcualted TILD :math:`\rho_0`\, the total density of the TILD particles. Please note this division will divide the
-prefactors specified in `tild/prefactor`\ .
-
-----------
-
-The *tild/cross-interaction* keyword is used to override any specified interaction
-from `tild/shape`. At this time, we currently only support three non-zero
-interaction styles (`gaussian`, `erfc`, `gaussian-erfc`), which model the
-interactions between two gaussian potentials, two erfc potentials, or the
-interaction between a gaussian particle and an erfc particle. There is also a
-`none` style to force no-interactions between certain particle types and also a
-`delete` command to remove any previously entered `tild/cross-interaction`\ .
-
-The current interaction styles used in *tild/cross-interaction* are
-.. math::
-
-   U_{g} = & \frac{A}{\rho_0 (2\pi \sigma^2)^{3/2}} \exp(-r^2/2\sigma^2) \\
-         = & \frac{A}{\rho_0} u_G (r) \\
-   U_{erfc} = & - \frac{A}{\rho_0} \text{erfc} \left(\frac{\vert r \vert - R_p}{\xi}\right) \\ 
-   U_{g-erfc} = & \frac{A}{\rho_0} u_G (r) * \text{erfc}
-   \left(\frac{\vert r \vert - R_p}{\xi}\right)
-
-where :math:`A` is the value set by `tild/prefactor`\ , :math:`\rho_0` is the total density of the TILD particles, :math:`\sigma` is the gaussian width, :math:`R_p` is the erfc particle radius and :math:`\xi` is the erfc width.
-
-The first required keyword for the *tild/cross-interaction* option is the interaction model. 
-Currently supported options for interaction models
-and their required arguments are:
-
-1. *gaussian* : :math:`\sigma` (distance units)
-2. *gaussian-erfc* : :math:`\sigma`\ , :math:`R_p`, :math:`\xi` (all in distance units)
-3. *erfc* : :math:`R_p`\ , :math:`\xi` (both in distance units)
-
-----------
-
-The *tild/write_grid_data* writes the instantaneous gridded density to *filename*. Every $freq$ timesteps, the density is overwritte. 
-
-----------
-
-The *tild/ave/grid* keywords determines how freuently the density grids are averaged and 
-output. The *Nevery*, *Nrepeat*, and *Nfreq* arguments specify on what
-timesteps the input values will be used in order to contribute to the average.
-The final averaged quantities are generated on timesteps that are a multiple of
-*Nfreq*. The average is over *Nrepeat* quantities, computed in the preceding
-portion of the simulation every *Nevery* timesteps. *Nfreq* must be a multiple
-of *Nevery* and *Nevery* must be non-zero even if *Nrepeat* is 1. Also, the
-timesteps contributing to the average value cannot overlap, i.e. Nrepeat*Nevery
-can not exceed Nfreq.
-
-----------
-
 The *force/disp/real* and *force/disp/kspace* keywords set the force
 accuracy for the real and reciprocal space computations for the dispersion
 part of pppm/disp. As shown in :ref:`(Isele-Holder) <Isele-Holder1>`,
@@ -555,7 +445,8 @@ none
 Related commands
 """"""""""""""""
 
-:doc:`kspace_style <kspace_style>`, :doc:`boundary <boundary>`
+:doc:`kspace_style <kspace_style>`, :doc:`boundary <boundary>`,
+:doc:`kspace_style tild <kspace_tild>`
 
 Default
 """""""
@@ -565,8 +456,7 @@ The option defaults are mesh = mesh/disp = 0 0 0, order = order/disp =
 gewald = gewald/disp = 0.0, slab = 1.0, compute = yes, cutoff/adjust =
 yes (MSM), pressure/scalar = yes (MSM), fftbench = no (PPPM), diff =
 ik (PPPM), mix/disp = pair, force/disp/real = -1.0, force/disp/kspace
-= -1.0, split = 0, tol = 1.0e-6, tild/mix = convolution,
-tild/subtract_rho0 = yes, tild/normalize_by_rho0 = yes and disp/auto = no. 
+= -1.0, split = 0, tol = 1.0e-6, and disp/auto = no. 
 For pppm/intel, order = order/disp = 7.  For scafacos settings, the scafacos 
 tolerance option depends on the method chosen, as documented above.  The
 scafacos fmm_tuning default = 0.
@@ -610,21 +500,3 @@ Chem Theory Comput, 9, 5412 (2013).
 
 **(Wennberg)** Wennberg, Murtola, Hess, Lindahl, J Chem Theory Comput,
 9, 3527 (2013).
-
-.. _Chao:
-
-**(Chao)** Chao, H., Koski, J. & Riggleman, R. (2017)
-"Solvent vapor annealing in block copolymer nanocomposite films: 
-a dynamic mean field approach" Soft Matter, 13(1) 239-249.
-
-.. _Fredrickson:
-
-**(Fredrickson)** Fredrickson, G. H. and Orland, H.  (2017)
-"Dynamics of polymers: A mean-field theory" The Journal of Chemical Physics 
-140, 084902 (2014) https://doi.org/10.1063/1.4865911
-
-.. _Grzetic:
-
-**(Grzetic)** Grzetic, D. J., Wickman, R. A., and Shi, A.-C., "Statistical
-dynamics of classical systems: A self-consistent field approach", The Journal of
-Chemical Physics 140, 244907 (2014) https://doi.org/10.1063/1.4884825

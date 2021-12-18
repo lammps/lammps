@@ -111,6 +111,7 @@ page gives those details.
    * :ref:`SPIN <PKG-SPIN>`
    * :ref:`SRD <PKG-SRD>`
    * :ref:`TALLY <PKG-TALLY>`
+   * :ref:`TILD<PKG-TILD>`
    * :ref:`UEF <PKG-UEF>`
    * :ref:`VORONOI <PKG-VORONOI>`
    * :ref:`VTK <PKG-VTK>`
@@ -2672,6 +2673,26 @@ stress, etc) about individual interactions.
 * src/TALLY/README
 * :doc:`compute \*/tally <compute_tally>`
 * examples/PACKAGES/tally
+
+----------
+
+.. _PKG-TILD:
+
+TILD package
+------------------
+
+**Contents:**
+
+The *tild* style is an implementation of 'theoretically informed Langevin Dynamics' method (previously known as `Dynamical Mean Field Theory`) :ref:`Chao <Chao>`: :ref:`Fredrickson<Fredrickson>`: :ref:`Grzetic<Grzetic>`. This interaction potential uses a particle-mesh scheme to calculate non-bonded pairwise forces indirectly through a gridded density representation. *tild* assigns a potentials for each simulation particle type, defined with :doc:`kspace_modify tild <kspace_modify>`. This potential does NOT calculate any Coulombic interactions.  Please see the :doc:`tild <kspace_tild>` doc page for a longer discussion about TILD. 
+
+**Authors:** Christian Tabedzki (Penn), Andrew P. Santos (Sandia), and Zachariah Vicars (Penn)
+
+**Supporting info:**
+
+* src/TILD: filenames -> commands
+* src/TALLY/README
+* :doc:`kspace_style tild <kspace_tild>`
+* examples/PACKAGES/tild
 
 ----------
 

@@ -453,6 +453,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`compute XXX/tally <compute_tally>`
      - PACKAGES/tally
      - no
+   * - :ref:`TILD <PKG-TILD>`
+     - Grid-based solver for non-bonded interactions (not Coulombics)
+     - :doc:`kspace_style tild <kspace_tild>`
+     - PACKAGES/tild
+     - no
    * - :ref:`UEF <PKG-UEF>`
      - extensional flow
      - :doc:`fix nvt/uef <fix_nh_uef>`

@@ -9,4 +9,5 @@ By default, LAMMPS uses the KISS library with other options available.
 More information can be found at https://docs.lammps.org/Build_settings.html#fft-library
 
 For questions about TILD, please contact:
-cat159@scarletmail.rutgers.edu or a.p.santos11@gmail.com
+Christian Tabedzki cat159@scarletmail.rutgers.edu or
+Andrew P. Santos a.p.santos11@gmail.com

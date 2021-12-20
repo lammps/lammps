@@ -241,6 +241,8 @@ void AngleClass2Kokkos<DeviceType>::operator()(TagAngleClass2Compute<NEWTON_BOND
 
   // force & energy for bond-angle term
 
+  const F_FLOAT dr1 = r1 - d_ba_r1[type];
+  const F_FLOAT dr2 = r2 - d_ba_r2[type];
   const F_FLOAT aa1 = s * dr1 * d_ba_k1[type];
   const F_FLOAT aa2 = s * dr2 * d_ba_k2[type];
 

@@ -42,7 +42,9 @@ class AngleAmoeba : public Angle {
   double *ba_k1, *ba_k2, *ba_r1, *ba_r2;
   int *setflag_a, *setflag_ba;
 
-  void anglep(int, int, int, int, int);
+  void tinker_angle(int, int, int, int, int);
+  void tinker_anglep(int, int, int, int, int);
+  void tinker_bondangle(int, int, int, int, int);
   void allocate();
 };
 

@@ -330,8 +330,6 @@ void Dump::write()
 
   if (delay_flag && update->ntimestep < delaystep) return;
 
-  printf("DUMP %ld\n",update->ntimestep);
-
   // if file per timestep, open new file
 
   if (multifile) openfile();

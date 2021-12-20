@@ -580,7 +580,8 @@ void Output::reset_timestep(bigint ntimestep)
   next_dump_any = MAXBIGINT;
   for (int idump = 0; idump < ndump; idump++)
     if (last_dump[idump] >= 0)
-      error->all("Cannot reset timestep with active dump - must undump first");
+      error->all(FLERR,
+                 "Cannot reset timestep with active dump - must undump first");
 
   if (restart_flag_single) {
     if (restart_every_single) {

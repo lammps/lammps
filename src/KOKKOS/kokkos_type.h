@@ -239,6 +239,8 @@ typedef Kokkos::Experimental::HIPHostPinnedSpace LMPPinnedHostType;
 typedef Kokkos::Experimental::SYCLHostUSMSpace LMPPinnedHostType;
 #elif defined(KOKKOS_ENABLE_OPENMPTARGET)
 typedef Kokkos::Serial LMPPinnedHostType;
+#else
+typedef LMPHostType LMPPinnedHostType;
 #endif
 
 // create simple LMPDeviceSpace typedef for non CUDA-, HIP-, or SYCL-specific

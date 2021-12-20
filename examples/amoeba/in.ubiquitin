@@ -4,7 +4,7 @@ units           real
 boundary        p p p
 atom_modify     sort 0 0.0
 
-atom_style amoeba
+atom_style      amoeba
 
 bond_style      class2
 angle_style     amoeba
@@ -43,4 +43,4 @@ fix             fqxfer all store/state 0 fx fy fz
 
 # zero step run
 
-run             0
+run              0

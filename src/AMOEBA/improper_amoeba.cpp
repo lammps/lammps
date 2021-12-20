@@ -75,6 +75,11 @@ void ImproperAmoeba::compute(int eflag, int vflag)
   int nlocal = atom->nlocal;
   int newton_bond = force->newton_bond;
 
+  // conversion factors for radians to degrees and vice versa
+
+  double rad2degree = 180.0/MY_PI;
+  double prefactor = 1.0 / (rad2degree*rad2degree);
+
   for (n = 0; n < nimproperlist; n++) {
 
     // in Tinker code, atom1 = D, atom2 = B, atom3 = A, atom4 = C
@@ -136,13 +141,15 @@ void ImproperAmoeba::compute(int eflag, int vflag)
 
     sine = fabs(ee) / sqrt(cc*rdb2);
     sine = MIN(1.0,sine);
-    angle = 180.0/MY_PI * asin(sine);   // angle = degrees
 
+    // angle needs to be in degrees for Tinker formulas
+    // b/c opbend_3456 coeffs are in mixed units
+
+    angle = rad2degree * asin(sine);
     dt = angle;
     dt2 = dt * dt;
     dt3 = dt2 * dt;
     dt4 = dt2 * dt2;
-    double prefactor = 1.0 / (180.0/MY_PI) / (180.0/MY_PI);
     e = prefactor * k[type] * dt2 * (1.0 + opbend_cubic*dt + opbend_quartic*dt2 + 
                          opbend_pentic*dt3 + opbend_sextic*dt4);
     eimproper += e;

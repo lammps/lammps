@@ -239,15 +239,34 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
 
   // There should be a better way to do this for other backends
 #if defined(KOKKOS_ENABLE_CUDA)
-  static constexpr int spmv_teamsize = 8;
+
+  // warp length
   static constexpr int vectorsize = 32;
+
+  // team size for sparse mat-vec operations
+  static constexpr int spmv_teamsize = 8;
+
+  // custom values for FixQEqReaxFFKokkosComputeHFunctor
+  static constexpr int compute_h_vectorsize = vectorsize;
+  static constexpr int compute_h_teamsize = 4;
 #elif defined(KOKKOS_ENABLE_HIP)
-  static constexpr int spmv_teamsize = 16;
+
+  // wavefront length
   static constexpr int vectorsize = 64;
+
+  // team size for sparse mat-vec operations
+  static constexpr int spmv_teamsize = 16;
+
+  // custom values for FixQEqReaxFFKokkosComputeHFunctor
+  static constexpr int compute_h_vectorsize = 8; // not a typo, intentionally sub-wavefront
+  static constexpr int compute_h_teamsize = 64;
 #else
   // dummy values, to be updated
   static constexpr int spmv_teamsize = 4;
   static constexpr int vectorsize = 32;
+
+  static constexpr int compute_h_vectorsize = 1;
+  static constexpr int compute_h_teamsize = 32;
 #endif
 
  private:

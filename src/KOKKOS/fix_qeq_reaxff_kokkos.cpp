@@ -238,16 +238,8 @@ void FixQEqReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
   } else { // GPU, use teams
     Kokkos::deep_copy(d_mfill_offset,0);
 
-    int atoms_per_team = 32;
-    int vector_length = 1;
-#ifdef KOKKOS_ENABLE_CUDA
-    atoms_per_team = 4;
-    vector_length = 32;
-#endif
-#ifdef KOKKOS_ENABLE_HIP
-    atoms_per_team = 64;
-    vector_length = 8;
-#endif
+    int atoms_per_team = FixQEqReaxFFKokkos<DeviceType>::compute_h_teamsize;
+    int vector_length = FixQEqReaxFFKokkos<DeviceType>::compute_h_vectorsize;
 
     int num_teams = inum / atoms_per_team + (inum % atoms_per_team ? 1 : 0);
 
@@ -798,7 +790,7 @@ int FixQEqReaxFFKokkos<DeviceType>::cg_solve_fused()
   }
   else {
     #ifdef HIP_OPT_SPMV
-    teamsize = 16;
+    teamsize = FixQEqReaxFFKokkos<DeviceType>::spmv_teamsize;
     vectorsize = FixQEqReaxFFKokkos<DeviceType>::vectorsize;
     leaguesize = (inum + teamsize - 1) / (teamsize);
     #else
@@ -1100,7 +1092,7 @@ int FixQEqReaxFFKokkos<DeviceType>::cg_solve2()
   }
   else {
     #ifdef HIP_OPT_SPMV
-    teamsize = 16;
+    teamsize = FixQEqReaxFFKokkos<DeviceType>::spmv_teamsize;
     vectorsize = FixQEqReaxFFKokkos<DeviceType>::vectorsize;
     leaguesize = (inum + teamsize - 1) / (teamsize);
     #else

@@ -116,7 +116,6 @@ void ComputePhaseAtomKokkos<DeviceType>::compute_peratom()
   atomKK->sync(execution_space,X_MASK|V_MASK|TYPE_MASK|MASK_MASK);
   x = atomKK->k_x.view<DeviceType>();
   v = atomKK->k_v.view<DeviceType>();
-  type = atomKK->k_type.view<DeviceType>();
   mask = atomKK->k_mask.view<DeviceType>();
 
   Kokkos::deep_copy(d_phase,0.0);

@@ -46,7 +46,6 @@ class ComputePhaseAtomKokkos : public ComputePhaseAtom {
  private:
   typename AT::t_x_array_randomread x;
   typename AT::t_v_array_randomread v;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread type;
   typename ArrayTypes<DeviceType>::t_int_1d mask;
 
   typename AT::t_neighbors_2d d_neighbors;

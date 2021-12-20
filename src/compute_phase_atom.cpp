@@ -131,7 +131,6 @@ void ComputePhaseAtom::compute_peratom()
 
   double **x = atom->x;
   double **v = atom->v;
-  int *type = atom->type;
   int *mask = atom->mask;
 
   for (ii = 0; ii < inum; ii++) {

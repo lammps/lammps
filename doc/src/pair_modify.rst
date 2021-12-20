@@ -71,21 +71,23 @@ The *mix* keyword affects pair coefficients for interactions between
 atoms of type I and J, when I != J and the coefficients are not
 explicitly set in the input script.  Note that coefficients for I = J
 must be set explicitly, either in the input script via the
-:doc:`pair_coeff <pair_coeff>` command or in the "Pair Coeffs" section of the
-:doc:`data file <read_data>`.  For some pair styles it is not
+:doc:`pair_coeff <pair_coeff>` command or in the "Pair Coeffs" or "PairIJ Coeffs"
+sections of the :doc:`data file <read_data>`.  For some pair styles it is not
 necessary to specify coefficients when I != J, since a "mixing" rule
 will create them from the I,I and J,J settings.  The pair_modify
 *mix* value determines what formulas are used to compute the mixed
 coefficients.  In each case, the cutoff distance is mixed the same way
 as sigma.
 
-Note that not all pair styles support mixing and some mix options
-are not available for certain pair styles. Also, there are additional
-restrictions when using :doc:`pair style hybrid or hybrid/overlay <pair_hybrid>`.
-See the page for individual pair styles for those restrictions.  Note also that the
-:doc:`pair_coeff <pair_coeff>` command also can be used to directly set
-coefficients for a specific I != J pairing, in which case no mixing is
-performed.
+Note that not all pair styles support mixing and some mix options are
+not available for certain pair styles. Also, there are additional
+restrictions when using :doc:`pair style hybrid or hybrid/overlay
+<pair_hybrid>`.  See the page for individual pair styles for those
+restrictions.  Note also that the :doc:`pair_coeff <pair_coeff>` command
+also can be used to directly set coefficients for a specific I != J
+pairing, in which case no mixing is performed.  If possible, LAMMPS will
+print an informational message about how many of the mixed pair
+coefficients were generated and which mixing rule was applied.
 
 - mix *geometric*
 

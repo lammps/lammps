@@ -317,7 +317,7 @@ TEST_F(VariableTest, Expressions)
     ASSERT_TRUE(variable->equalstyle(ivar));
     ASSERT_DOUBLE_EQ(variable->compute_equal(ivar), 2.0);
     ASSERT_DOUBLE_EQ(variable->compute_equal("v_three"), 3.0);
-    ASSERT_FLOAT_EQ(variable->compute_equal("v_four"), MY_PI);
+    ASSERT_NEAR(variable->compute_equal("v_four"), MY_PI,1.0e-14);
     ASSERT_GE(variable->compute_equal("v_five"), 20210310);
     ASSERT_DOUBLE_EQ(variable->compute_equal("v_seven"), -1);
     ASSERT_DOUBLE_EQ(variable->compute_equal("v_eight"), 2.5);

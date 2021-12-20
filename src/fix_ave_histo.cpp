@@ -61,6 +61,7 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   size_array_cols = 3;
   extarray = 0;
   dynamic_group_allow = 1;
+  time_depend = 1;
 
   lo = utils::numeric(FLERR,arg[6],false,lmp);
   hi = utils::numeric(FLERR,arg[7],false,lmp);
@@ -579,11 +580,8 @@ void FixAveHisto::end_of_step()
   int i,j,m;
 
   // skip if not step which requires doing something
-  // error check if timestep was reset in an invalid manner
 
   bigint ntimestep = update->ntimestep;
-  if (ntimestep < nvalid_last || ntimestep > nvalid)
-    error->all(FLERR,"Invalid timestep reset for fix ave/histo");
   if (ntimestep != nvalid) return;
   nvalid_last = nvalid;
 

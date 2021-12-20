@@ -2,6 +2,7 @@
 
 #include "lammps.h"
 #include "library.h"
+#include "platform.h"
 #include <string>
 
 #include "gmock/gmock.h"
@@ -76,8 +77,8 @@ TEST_F(LibraryCommands, from_file)
     if (!verbose) ::testing::internal::GetCapturedStdout();
     EXPECT_EQ(lammps_get_natoms(lmp), 2);
 
-    unlink(demo_file);
-    unlink(cont_file);
+    LAMMPS_NS::platform::unlink(demo_file);
+    LAMMPS_NS::platform::unlink(cont_file);
 };
 
 TEST_F(LibraryCommands, from_line)

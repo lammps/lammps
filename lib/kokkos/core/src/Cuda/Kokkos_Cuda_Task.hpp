@@ -54,10 +54,26 @@
 #include <Kokkos_Core_fwd.hpp>
 
 #include <impl/Kokkos_TaskBase.hpp>
-#include <Cuda/Kokkos_Cuda_Error.hpp>  // CUDA_SAFE_CALL
+#include <Cuda/Kokkos_Cuda_Error.hpp>  // KOKKOS_IMPL_CUDA_SAFE_CALL
 #include <impl/Kokkos_TaskTeamMember.hpp>
 
 //----------------------------------------------------------------------------
+
+#if defined(__CUDA_ARCH__)
+#define KOKKOS_IMPL_CUDA_SYNCWARP_OR_RETURN(MSG)                           \
+  {                                                                        \
+    __syncwarp();                                                          \
+    const unsigned b = __activemask();                                     \
+    if (b != 0xffffffff) {                                                 \
+      printf(" SYNCWARP AT %s (%d,%d,%d) (%d,%d,%d) failed %x\n", MSG,     \
+             blockIdx.x, blockIdx.y, blockIdx.z, threadIdx.x, threadIdx.y, \
+             threadIdx.z, b);                                              \
+      return;                                                              \
+    }                                                                      \
+  }
+#else
+#define KOKKOS_IMPL_CUDA_SYNCWARP_OR_RETURN(MSG)
+#endif
 
 namespace Kokkos {
 namespace Impl {
@@ -138,13 +154,13 @@ class TaskQueueSpecialization<SimpleTaskScheduler<Kokkos::Cuda, QueueType>> {
       // Broadcast task pointer:
 
       // Sync before the broadcast
-      KOKKOS_IMPL_CUDA_SYNCWARP;
+      __syncwarp(0xffffffff);
 
       // pretend it's an int* for shuffle purposes
       ((int*)&current_task)[0] =
-          KOKKOS_IMPL_CUDA_SHFL(((int*)&current_task)[0], 0, 32);
+          __shfl_sync(0xffffffff, ((int*)&current_task)[0], 0, 32);
       ((int*)&current_task)[1] =
-          KOKKOS_IMPL_CUDA_SHFL(((int*)&current_task)[1], 0, 32);
+          __shfl_sync(0xffffffff, ((int*)&current_task)[1], 0, 32);
 
       if (current_task) {
         KOKKOS_ASSERT(!current_task->as_runnable_task().get_respawn_flag());
@@ -168,7 +184,7 @@ class TaskQueueSpecialization<SimpleTaskScheduler<Kokkos::Cuda, QueueType>> {
 
         // Synchronize threads of the warp and insure memory
         // writes are visible to all threads in the warp.
-        KOKKOS_IMPL_CUDA_SYNCWARP;
+        __syncwarp(0xffffffff);
 
         if (shared_memory_task_copy->is_team_runnable()) {
           // Thread Team Task
@@ -182,7 +198,7 @@ class TaskQueueSpecialization<SimpleTaskScheduler<Kokkos::Cuda, QueueType>> {
         // Synchronize threads of the warp and insure memory
         // writes are visible to all threads in the warp.
 
-        KOKKOS_IMPL_CUDA_SYNCWARP;
+        __syncwarp(0xffffffff);
 
         // if(warp_lane < b % CudaTraits::WarpSize) b += CudaTraits::WarpSize;
         // b -= b % CudaTraits::WarpSize;
@@ -196,7 +212,7 @@ class TaskQueueSpecialization<SimpleTaskScheduler<Kokkos::Cuda, QueueType>> {
         // writes are visible to root thread of the warp for
         // respawn or completion.
 
-        KOKKOS_IMPL_CUDA_SYNCWARP;
+        __syncwarp(0xffffffff);
 
         if (warp_lane == 0) {
           // If respawn requested copy respawn data back to main memory
@@ -249,12 +265,14 @@ class TaskQueueSpecialization<SimpleTaskScheduler<Kokkos::Cuda, QueueType>> {
 
     auto& queue = scheduler.queue();
 
-    CUDA_SAFE_CALL(cudaDeviceSynchronize());
+    Impl::cuda_device_synchronize(
+        "Kokkos::Impl::TaskQueueSpecialization<SimpleTaskScheduler<Kokkos::"
+        "Cuda>::execute: Pre Task Execution");
 
     // Query the stack size, in bytes:
 
     size_t previous_stack_size = 0;
-    CUDA_SAFE_CALL(
+    KOKKOS_IMPL_CUDA_SAFE_CALL(
         cudaDeviceGetLimit(&previous_stack_size, cudaLimitStackSize));
 
     // If not large enough then set the stack size, in bytes:
@@ -262,18 +280,21 @@ class TaskQueueSpecialization<SimpleTaskScheduler<Kokkos::Cuda, QueueType>> {
     const size_t larger_stack_size = 1 << 11;
 
     if (previous_stack_size < larger_stack_size) {
-      CUDA_SAFE_CALL(cudaDeviceSetLimit(cudaLimitStackSize, larger_stack_size));
+      KOKKOS_IMPL_CUDA_SAFE_CALL(
+          cudaDeviceSetLimit(cudaLimitStackSize, larger_stack_size));
     }
 
     cuda_task_queue_execute<<<grid, block, shared_total, stream>>>(
         scheduler, shared_per_warp);
 
-    CUDA_SAFE_CALL(cudaGetLastError());
+    KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGetLastError());
 
-    CUDA_SAFE_CALL(cudaDeviceSynchronize());
+    Impl::cuda_device_synchronize(
+        "Kokkos::Impl::TaskQueueSpecialization<SimpleTaskScheduler<Kokkos::"
+        "Cuda>::execute: Post Task Execution");
 
     if (previous_stack_size < larger_stack_size) {
-      CUDA_SAFE_CALL(
+      KOKKOS_IMPL_CUDA_SAFE_CALL(
           cudaDeviceSetLimit(cudaLimitStackSize, previous_stack_size));
     }
   }
@@ -295,13 +316,17 @@ class TaskQueueSpecialization<SimpleTaskScheduler<Kokkos::Cuda, QueueType>> {
     destroy_type* dtor_ptr =
         (destroy_type*)((char*)storage + sizeof(function_type));
 
-    CUDA_SAFE_CALL(cudaDeviceSynchronize());
+    Impl::cuda_device_synchronize(
+        "Kokkos::Impl::TaskQueueSpecialization<SimpleTaskScheduler<Kokkos::"
+        "Cuda>::execute: Pre Get Function Pointer for Tasks");
 
     set_cuda_task_base_apply_function_pointer<TaskType>
         <<<1, 1>>>(ptr_ptr, dtor_ptr);
 
-    CUDA_SAFE_CALL(cudaGetLastError());
-    CUDA_SAFE_CALL(cudaDeviceSynchronize());
+    KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGetLastError());
+    Impl::cuda_device_synchronize(
+        "Kokkos::Impl::TaskQueueSpecialization<SimpleTaskScheduler<Kokkos::"
+        "Cuda>::execute: Post Get Function Pointer for Tasks");
 
     ptr  = *ptr_ptr;
     dtor = *dtor_ptr;
@@ -372,23 +397,20 @@ class TaskQueueSpecializationConstrained<
           // count of 0 also. Otherwise, returns a task from another queue
           // or `end` if one couldn't be popped
           task_ptr = team_queue.attempt_to_steal_task();
-#if 0
-          if(task != no_more_tasks_sentinel && task != end) {
-            std::printf("task stolen on rank %d\n", team_exec.league_rank());
-          }
-#endif
         }
       }
 
       // Synchronize warp with memory fence before broadcasting task pointer:
 
       // KOKKOS_IMPL_CUDA_SYNCWARP_OR_RETURN( "A" );
-      KOKKOS_IMPL_CUDA_SYNCWARP;
+      __syncwarp(0xffffffff);
 
       // Broadcast task pointer:
 
-      ((int*)&task_ptr)[0] = KOKKOS_IMPL_CUDA_SHFL(((int*)&task_ptr)[0], 0, 32);
-      ((int*)&task_ptr)[1] = KOKKOS_IMPL_CUDA_SHFL(((int*)&task_ptr)[1], 0, 32);
+      ((int*)&task_ptr)[0] =
+          __shfl_sync(0xffffffff, ((int*)&task_ptr)[0], 0, 32);
+      ((int*)&task_ptr)[1] =
+          __shfl_sync(0xffffffff, ((int*)&task_ptr)[1], 0, 32);
 
 #if defined(KOKKOS_ENABLE_DEBUG)
       KOKKOS_IMPL_CUDA_SYNCWARP_OR_RETURN("TaskQueue CUDA task_ptr");
@@ -418,7 +440,7 @@ class TaskQueueSpecializationConstrained<
         // writes are visible to all threads in the warp.
 
         // KOKKOS_IMPL_CUDA_SYNCWARP_OR_RETURN( "B" );
-        KOKKOS_IMPL_CUDA_SYNCWARP;
+        __syncwarp(0xffffffff);
 
         if (task_root_type::TaskTeam == task_shmem->m_task_type) {
           // Thread Team Task
@@ -432,7 +454,7 @@ class TaskQueueSpecializationConstrained<
         // writes are visible to all threads in the warp.
 
         // KOKKOS_IMPL_CUDA_SYNCWARP_OR_RETURN( "C" );
-        KOKKOS_IMPL_CUDA_SYNCWARP;
+        __syncwarp(0xffffffff);
 
         // copy task closure from shared to global memory:
 
@@ -445,7 +467,7 @@ class TaskQueueSpecializationConstrained<
         // respawn or completion.
 
         // KOKKOS_IMPL_CUDA_SYNCWARP_OR_RETURN( "D" );
-        KOKKOS_IMPL_CUDA_SYNCWARP;
+        __syncwarp(0xffffffff);
 
         // If respawn requested copy respawn data back to main memory
 
@@ -475,12 +497,14 @@ class TaskQueueSpecializationConstrained<
     auto& queue = scheduler.queue();
     queue.initialize_team_queues(warps_per_block * grid.x);
 
-    CUDA_SAFE_CALL(cudaDeviceSynchronize());
+    Impl::cuda_device_synchronize(
+        "Kokkos::Impl::TaskQueueSpecializationConstrained<SimpleTaskScheduler<"
+        "Kokkos::Cuda>::execute: Pre Execute Task");
 
     // Query the stack size, in bytes:
 
     size_t previous_stack_size = 0;
-    CUDA_SAFE_CALL(
+    KOKKOS_IMPL_CUDA_SAFE_CALL(
         cudaDeviceGetLimit(&previous_stack_size, cudaLimitStackSize));
 
     // If not large enough then set the stack size, in bytes:
@@ -488,18 +512,21 @@ class TaskQueueSpecializationConstrained<
     const size_t larger_stack_size = 2048;
 
     if (previous_stack_size < larger_stack_size) {
-      CUDA_SAFE_CALL(cudaDeviceSetLimit(cudaLimitStackSize, larger_stack_size));
+      KOKKOS_IMPL_CUDA_SAFE_CALL(
+          cudaDeviceSetLimit(cudaLimitStackSize, larger_stack_size));
     }
 
     cuda_task_queue_execute<<<grid, block, shared_total, stream>>>(
         scheduler, shared_per_warp);
 
-    CUDA_SAFE_CALL(cudaGetLastError());
+    KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGetLastError());
 
-    CUDA_SAFE_CALL(cudaDeviceSynchronize());
+    Impl::cuda_device_synchronize(
+        "Kokkos::Impl::TaskQueueSpecializationConstrained<SimpleTaskScheduler<"
+        "Kokkos::Cuda>::execute: Post Execute Task");
 
     if (previous_stack_size < larger_stack_size) {
-      CUDA_SAFE_CALL(
+      KOKKOS_IMPL_CUDA_SAFE_CALL(
           cudaDeviceSetLimit(cudaLimitStackSize, previous_stack_size));
     }
   }
@@ -516,13 +543,17 @@ class TaskQueueSpecializationConstrained<
     destroy_type* dtor_ptr =
         (destroy_type*)((char*)storage + sizeof(function_type));
 
-    CUDA_SAFE_CALL(cudaDeviceSynchronize());
+    Impl::cuda_device_synchronize(
+        "Kokkos::Impl::TaskQueueSpecializationConstrained<SimpleTaskScheduler<"
+        "Kokkos::Cuda>::get_function_pointer: Pre Get Function Pointer");
 
     set_cuda_task_base_apply_function_pointer<TaskType>
         <<<1, 1>>>(ptr_ptr, dtor_ptr);
 
-    CUDA_SAFE_CALL(cudaGetLastError());
-    CUDA_SAFE_CALL(cudaDeviceSynchronize());
+    KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGetLastError());
+    Impl::cuda_device_synchronize(
+        "Kokkos::Impl::TaskQueueSpecializationConstrained<SimpleTaskScheduler<"
+        "Kokkos::Cuda>::get_function_pointer: Post Get Function Pointer");
 
     ptr  = *ptr_ptr;
     dtor = *dtor_ptr;
@@ -609,7 +640,7 @@ class TaskExec<Kokkos::Cuda, Scheduler> {
 
   __device__ void team_barrier() const {
     if (1 < m_team_size) {
-      KOKKOS_IMPL_CUDA_SYNCWARP;
+      __syncwarp(0xffffffff);
     }
   }
 
@@ -1204,6 +1235,8 @@ KOKKOS_INLINE_FUNCTION void single(
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
+
+#undef KOKKOS_IMPL_CUDA_SYNCWARP_OR_RETURN
 
 #endif /* #if defined( KOKKOS_ENABLE_TASKDAG ) */
 #endif /* #ifndef KOKKOS_IMPL_CUDA_TASK_HPP */

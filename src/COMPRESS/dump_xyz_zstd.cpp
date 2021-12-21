@@ -96,15 +96,20 @@ void DumpXYZZstd::openfile()
   if (multifile) delete[] filecurrent;
 }
 
+/* ---------------------------------------------------------------------- */
+
 void DumpXYZZstd::write_header(bigint ndump)
 {
   if (me == 0) {
     std::string header = fmt::format("{}\n", ndump);
-    if (time_flag)
-      header += fmt::format("Atoms. Timestep: {} Time: {:.6f}\n", 
-                            update->ntimestep, update->atime);
-    else
-      header += fmt::format("Atoms. Timestep: {}\n", update->ntimestep);
+    if (time_flag) {
+      double tcurrent = update->atime + 
+        (update->ntimestep-update->atimestep) + update->dt;
+      fprintf(fp,"Atoms. Timestep: " BIGINT_FORMAT " Time: %f\n",
+              update->ntimestep, tcurrent);
+    } else {
+      fprintf(fp,"Atoms. Timestep: " BIGINT_FORMAT "\n",update->ntimestep);
+    }
     writer.write(header.c_str(), header.length());
   }
 }

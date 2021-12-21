@@ -131,11 +131,14 @@ void DumpXYZ::write_header(bigint n)
 {
   if (me == 0) {
     fprintf(fp,BIGINT_FORMAT "\n",n);
-    if (time_flag)
+    if (time_flag) {
+      double tcurrent = update->atime + 
+        (update->ntimestep-update->atimestep) + update->dt;
       fprintf(fp,"Atoms. Timestep: " BIGINT_FORMAT " Time: %f\n",
-              update->ntimestep, update->atime);
-    else
+              update->ntimestep, tcurrent);
+    } else {
       fprintf(fp,"Atoms. Timestep: " BIGINT_FORMAT "\n",update->ntimestep);
+    }
   }
 }
 

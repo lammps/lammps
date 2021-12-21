@@ -26,7 +26,7 @@ class Dump : protected Pointers {
   int igroup, groupbit;    // group that Dump is performed on
 
   int first_flag;    // 0 if no initial dump, 1 if yes initial dump
-  int clearstep;     // 1 if dump invokes computes, 0 if not
+  int clearstep;     // 1 if dump can invoke computes, 0 if not
 
   int comm_forward;    // size of forward communication (0 if none)
   int comm_reverse;    // size of reverse communication (0 if none)
@@ -75,7 +75,7 @@ class Dump : protected Pointers {
   int sortcol;              // 0 to sort on ID, 1-N on columns
   int sortcolm1;            // sortcol - 1
   int sortorder;            // ASCEND or DESCEND
-  int time_flag;            // 1 if output accumulated time
+  int time_flag;            // 1 if output simulation time
   int unit_flag;            // 1 if dump should contain unit information
   int unit_count;           // # of times the unit information was written
   int delay_flag;           // 1 if delay output until delaystep

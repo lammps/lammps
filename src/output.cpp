@@ -12,6 +12,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing author: Michal Kanski (Jagiellonian U) for simulation time dumps
+------------------------------------------------------------------------- */
+
 #include "output.h"
 #include "style_dump.h"         // IWYU pragma: keep
 
@@ -177,6 +181,8 @@ void Output::setup(int memflag)
   // decide whether to write snapshot and/or calculate next step for dump
 
   if (ndump && update->restrict_output == 0) {
+    next_time_dump_any = MAXBIGINT;
+
     for (int idump = 0; idump < ndump; idump++) {
 
       // wrap step dumps that invoke computes or do variable eval with clear/add
@@ -237,6 +243,8 @@ void Output::setup(int memflag)
         else modify->addstep_compute_all(next_dump[idump]);
       }
 
+      if (mode_dump[idump] && (dump[idump]->clearstep || var_dump[idump]))
+        next_time_dump_any = MIN(next_time_dump_any,next_dump[idump]);
       if (idump) next_dump_any = MIN(next_dump_any,next_dump[idump]);
       else next_dump_any = next_dump[0];
     }
@@ -326,6 +334,9 @@ void Output::setup(int memflag)
    // set next_dump_any to smallest next_dump
    // wrap step dumps that invoke computes or do variable eval with clear/add
    // NOTE:
+   //   not wrapping time dumps means that Integrate::ev_set()
+   //     needs to trigger all per-atom eng/virial computes
+   //     on a timestep where any time dump will be output
    //   could wrap time dumps as well, if timestep size did not vary
    //   if wrap when timestep size varies frequently,
    //     then can do many unneeded addstep() --> inefficient
@@ -336,7 +347,10 @@ void Output::setup(int memflag)
    int writeflag;
 
    if (next_dump_any == ntimestep) {
+
      for (int idump = 0; idump < ndump; idump++) {
+       next_time_dump_any = MAXBIGINT;
+
        if (next_dump[idump] == ntimestep) {
          if (last_dump[idump] == ntimestep) continue;
 
@@ -356,6 +370,8 @@ void Output::setup(int memflag)
            modify->addstep_compute(next_dump[idump]);
        }
 
+       if (mode_dump[idump] && (dump[idump]->clearstep || var_dump[idump]))
+         next_time_dump_any = MIN(next_time_dump_any,next_dump[idump]);
        if (idump) next_dump_any = MIN(next_dump_any,next_dump[idump]);
        else next_dump_any = next_dump[0];
      }
@@ -680,23 +696,23 @@ void Output::reset_dt()
 {
   bigint ntimestep = update->ntimestep;
 
-  next_dump_any = MAXBIGINT;
+  next_time_dump_any = MAXBIGINT;
 
   for (int idump = 0; idump < ndump; idump++) {
-    if (mode_dump[idump] == 1) {
+    if (mode_dump[idump] == 0) continue;
 
-      // reset next_dump but do not change next_time_dump, 2 arg for reset_dt()
-      // do not invoke for a dump already scheduled for this step
-      //   since timestep change affects next step
+    // reset next_dump but do not change next_time_dump, 2 arg for reset_dt()
+    // do not invoke for a dump already scheduled for this step
+    //   since timestep change affects next step
+    
+    if (next_dump[idump] != ntimestep)
+      calculate_next_dump(2,idump,update->ntimestep);
 
-      if (next_dump[idump] != ntimestep) {
-        calculate_next_dump(2,idump,update->ntimestep);
-      }
-    }
-
-    next_dump_any = MIN(next_dump_any,next_dump[idump]);
+    if (dump[idump]->clearstep || var_dump[idump])
+      next_time_dump_any = MIN(next_time_dump_any,next_dump[idump]);
   }
 
+  next_dump_any = MIN(next_dump_any,next_time_dump_any);
   next = MIN(next_dump_any,next_restart);
   next = MIN(next,next_thermo);
 }

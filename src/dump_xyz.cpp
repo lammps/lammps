@@ -131,7 +131,11 @@ void DumpXYZ::write_header(bigint n)
 {
   if (me == 0) {
     fprintf(fp,BIGINT_FORMAT "\n",n);
-    fprintf(fp,"Atoms. Timestep: " BIGINT_FORMAT "\n",update->ntimestep);
+    if (time_flag)
+      fprintf(fp,"Atoms. Timestep: " BIGINT_FORMAT " Time: %f\n",
+              update->ntimestep, update->atime);
+    else
+      fprintf(fp,"Atoms. Timestep: " BIGINT_FORMAT "\n",update->ntimestep);
   }
 }
 
@@ -158,7 +162,6 @@ void DumpXYZ::pack(tagint *ids)
       if (ids) ids[n++] = tag[i];
     }
 }
-
 
 /* ----------------------------------------------------------------------
    convert mybuf of doubles to one big formatted string in sbuf

@@ -118,11 +118,10 @@ void Integrate::ev_setup()
    set eflag,vflag for current iteration
    based on
      (1) computes that need energy/virial info on this timestep
-     (2) time dumps that need unknown per-atom info on this timestep
-     NOTE: could not check time dumps if timestep size is not varying
+     (2) time dumps that may need per-atom compute info on this timestep
+     NOTE: inefficient to add all per-atom eng/virial computes
+             but don't know which ones the dump needs 
            see NOTE in output.cpp
-           also inefficient to add all per-atom eng/virial computes
-           but don't know which ones the dump needs
    invoke matchstep() on all timestep-dependent computes to clear their arrays
    eflag: set any or no bits
      ENERGY_GLOBAL bit for global energy
@@ -141,8 +140,8 @@ void Integrate::ev_set(bigint ntimestep)
   int i,flag;
 
   int tdflag = 0;
-  if (output->any_time_dumps) 
-    tdflag = output->check_time_dumps(ntimestep);
+  if (output->any_time_dumps && 
+      output->next_time_dump_any == ntimestep) tdflag = 1;
 
   flag = 0;
   int eflag_global = 0;

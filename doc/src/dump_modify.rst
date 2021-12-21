@@ -200,15 +200,16 @@ will be accepted.
 
 ----------
 
-The *every* keyword does two things.  It specifies that the interval
-between dump snapshots will be specified in timesteps, which is the
-default if the *every* or *every/time* keywords are not used.  See the
+The *every* keyword can be used with any dump style except the *dcd*
+and *xtc* styles.  It does two things.  It specifies that the interval
+between dump snapshots will be set in timesteps, which is the default
+if the *every* or *every/time* keywords are not used.  See the
 *every/time* keyword for how to specify the interval in simulation
-time, i.e. in time units of the :doc:`units <units>` command.  This
-command also sets the interval value, which overrides the dump
+time, i.e. in time units of the :doc:`units <units>` command.  The
+*every* keyword also sets the interval value, which overrides the dump
 frequency originally specified by the :doc:`dump <dump>` command.
 
-The every keyword can be specified in one of two ways.  It can be a
+The *every* keyword can be specified in one of two ways.  It can be a
 numeric value in which case it must be > 0.  Or it can be an
 :doc:`equal-style variable <variable>`, which should be specified as
 v_name, where name is the variable name.
@@ -266,13 +267,21 @@ in file tmp.times:
 
 ----------
 
-The *every/time* keyword does two things.  It specifies that the
-interval between dump snapshots will be specified in simulation time,
+The *every/time* keyword can be used with any dump style except the
+*dcd* and *xtc* styles.  It does two things.  It specifies that the
+interval between dump snapshots will be set in simulation time,
 i.e. in time units of the :doc:`units <units>` command.  This can be
 useful when the timestep size varies during a simulation run, e.g. by
 use of the :doc:`fix dt/reset <fix_dt_reset>` command.  The default is
-to specify the interval in timesteps; see the *every* keyword.  This
-command also sets the interval value.
+to specify the interval in timesteps; see the *every* keyword.  The
+*every/time* command also sets the interval value.
+
+.. note::
+
+   If you wish dump styles *atom*, *custom*, *local*, or *xyz* to
+   include the simulation time as a field in the header portion of
+   each snapshot, you also need to use the dump_modify *time* keyword
+   with a setting of *yes*.  See its documentation below.
 
 Note that since snapshots are output on simulation steps, each
 snapshot will be written on the first timestep whose associated
@@ -323,8 +332,8 @@ file tmp.times:
 
 .. note::
 
-   When using a file-style variable with the *every* keyword, the file
-   of timesteps must list a first times that is beyond the time
+   When using a file-style variable with the *every/time* keyword, the
+   file of timesteps must list a first time that is beyond the time
    associated with the current timestep (e.g. it cannot be 0.0).  And
    it must list one or more times beyond the length of the run you
    perform.  This is because the dump command will generate an error
@@ -342,8 +351,8 @@ always occur if the current timestep is a multiple of $N$, the
 frequency specified in the :doc:`dump <dump>` command or
 :doc:`dump_modify every <dump_modify>` command, including timestep 0.
 It will also always occur if the current simulation time is a multiple
-of *Delta*, the time interval specified in the doc:`dump_modify every/time
-<dump_modify>` command.
+of *Delta*, the time interval specified in the doc:`dump_modify
+every/time <dump_modify>` command.
 
 But if this is not the case, a dump snapshot will only be written if
 the setting of this keyword is *yes*\ .  If it is *no*, which is the
@@ -731,15 +740,19 @@ threshold criterion is met.  Otherwise it is not met.
 
 ----------
 
-The *time* keyword only applies to the dump *atom*, *custom*, and
-*local* styles (and their COMPRESS package versions *atom/gz*,
-*custom/gz* and *local/gz*\ ). If set to *yes*, each frame will will
-contain two extra lines before the "ITEM: TIMESTEP" entry:
+The *time* keyword only applies to the dump *atom*, *custom*, *local*,
+and *xyz* styles (and their COMPRESS package versions *atom/gz*,
+*custom/gz* and *local/gz*\ ).  For the first 3 styles, if set to
+*yes*, each frame will will contain two extra lines before the "ITEM:
+TIMESTEP" entry:
 
 .. parsed-literal::
 
    ITEM: TIME
    \<elapsed time\>
+
+For the *xyz* style, the simulation time is included on the same line
+as the timestep value.
 
 This will output the current elapsed simulation time in current
 time units equivalent to the :doc:`thermo keyword <thermo_style>` *time*\ .

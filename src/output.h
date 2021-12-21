@@ -35,7 +35,8 @@ class Output : protected Pointers {
 
   int ndump;               // # of Dumps defined
   int max_dump;            // max size of Dump list
-  bigint next_dump_any;    // next timestep for any Dump
+  bigint next_dump_any;    // next timestep for any dump
+  bigint next_time_dump_any; // next timestep for any time dump with computes
   int any_time_dumps;      // 1 if any time dump defined
   int *mode_dump;          // 0/1 if write every N timesteps or Delta in sim time
   int *every_dump;         // dump every N timesteps, 0 if variable

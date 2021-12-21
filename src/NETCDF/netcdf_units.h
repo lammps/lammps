@@ -26,21 +26,21 @@ namespace LAMMPS_NS {
 class Error;
 
 namespace NetCDFUnits {
-// type of quantity for per-atom values (used to get the unit)
-enum Quantity : int {
+  // type of quantity for per-atom values (used to get the unit)
+  enum Quantity : int {
     UNKNOWN = 0,
     TIME,
     DISTANCE,
     VELOCITY,
     FORCE,
     DIPOLE_MOMENT,
-};
+  };
 
-// get the name of the unit for the given `quantity` in the given LAMMPS
-// `unit_style` any error will be reported through `error`
-std::string get_unit_for(const char* unit_style, Quantity quantity, Error* error);
-}
-}
+  // get the name of the unit for the given `quantity` in the given LAMMPS
+  // `unit_style` any error will be reported through `error`
+  std::string get_unit_for(const char *unit_style, Quantity quantity, Error *error);
+}    // namespace NetCDFUnits
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

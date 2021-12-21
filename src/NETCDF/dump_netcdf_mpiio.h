@@ -29,7 +29,9 @@ DumpStyle(netcdf/mpiio,DumpNetCDFMPIIO);
 #include "dump_custom.h"
 
 namespace LAMMPS_NS {
-namespace NetCDFUnits {enum Quantity : int;} // forward declaration
+namespace NetCDFUnits {
+  enum Quantity : int;
+}    // namespace NetCDFUnits
 
 const int NC_MPIIO_FIELD_NAME_MAX = 100;
 const int DUMP_NC_MPIIO_MAX_DIMS = 100;
@@ -63,8 +65,8 @@ class DumpNetCDFMPIIO : public DumpCustom {
 
   int *thermovar;    // NetCDF variables for thermo output
 
-  int type_nc_real;         // netcdf type to use for real variables: float or double
-  bool thermo;              // write thermo output to netcdf file
+  int type_nc_real;    // netcdf type to use for real variables: float or double
+  bool thermo;         // write thermo output to netcdf file
 
   bigint n_buffer;          // size of buffer
   bigint *int_buffer;       // buffer for passing data to netcdf

@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "compute_phase_atom_kokkos.h"
+#include "compute_ave_sphere_atom_kokkos.h"
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"
@@ -37,8 +37,8 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-ComputePhaseAtomKokkos<DeviceType>::ComputePhaseAtomKokkos(LAMMPS *lmp, int narg, char **arg) :
-  ComputePhaseAtom(lmp, narg, arg)
+ComputeAveSphereAtomKokkos<DeviceType>::ComputeAveSphereAtomKokkos(LAMMPS *lmp, int narg, char **arg) :
+  ComputeAveSphereAtom(lmp, narg, arg)
 {
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
@@ -50,19 +50,19 @@ ComputePhaseAtomKokkos<DeviceType>::ComputePhaseAtomKokkos(LAMMPS *lmp, int narg
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-ComputePhaseAtomKokkos<DeviceType>::~ComputePhaseAtomKokkos()
+ComputeAveSphereAtomKokkos<DeviceType>::~ComputeAveSphereAtomKokkos()
 {
   if (copymode) return;
 
-  memoryKK->destroy_kokkos(k_phase,phase);
+  memoryKK->destroy_kokkos(k_result,result);
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void ComputePhaseAtomKokkos<DeviceType>::init()
+void ComputeAveSphereAtomKokkos<DeviceType>::init()
 {
-  ComputePhaseAtom::init();
+  ComputeAveSphereAtom::init();
 
   // need an occasional full neighbor list
 
@@ -80,18 +80,18 @@ void ComputePhaseAtomKokkos<DeviceType>::init()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void ComputePhaseAtomKokkos<DeviceType>::compute_peratom()
+void ComputeAveSphereAtomKokkos<DeviceType>::compute_peratom()
 {
   invoked_peratom = update->ntimestep;
 
-  // grow phase array if necessary
+  // grow result array if necessary
 
   if (atom->nmax > nmax) {
-    memoryKK->destroy_kokkos(k_phase,phase);
+    memoryKK->destroy_kokkos(k_result,result);
     nmax = atom->nmax;
-    memoryKK->create_kokkos(k_phase,phase,nmax,2,"phase/atom:phase");
-    d_phase = k_phase.view<DeviceType>();
-    array_atom = phase;
+    memoryKK->create_kokkos(k_result,result,nmax,2,"ave/sphere/atom:result");
+    d_result = k_result.view<DeviceType>();
+    array_atom = result;
   }
 
   // need velocities of ghost atoms
@@ -110,7 +110,7 @@ void ComputePhaseAtomKokkos<DeviceType>::compute_peratom()
   d_neighbors = k_list->d_neighbors;
   d_ilist = k_list->d_ilist;
 
-  // compute phase for each atom in group
+  // compute properties for each atom in group
   // use full neighbor list to count atoms less than cutoff
 
   atomKK->sync(execution_space,X_MASK|V_MASK|TYPE_MASK|MASK_MASK);
@@ -118,20 +118,20 @@ void ComputePhaseAtomKokkos<DeviceType>::compute_peratom()
   v = atomKK->k_v.view<DeviceType>();
   mask = atomKK->k_mask.view<DeviceType>();
 
-  Kokkos::deep_copy(d_phase,0.0);
+  Kokkos::deep_copy(d_result,0.0);
 
   copymode = 1;
-  typename Kokkos::RangePolicy<DeviceType, TagComputePhaseAtom> policy(0,inum);
-  Kokkos::parallel_for("ComputePhaseAtom",policy,*this);
+  typename Kokkos::RangePolicy<DeviceType, TagComputeAveSphereAtom> policy(0,inum);
+  Kokkos::parallel_for("ComputeAveSphereAtom",policy,*this);
   copymode = 0;
 
-  k_phase.modify<DeviceType>();
-  k_phase.sync_host();
+  k_result.modify<DeviceType>();
+  k_result.sync_host();
 }
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void ComputePhaseAtomKokkos<DeviceType>::operator()(TagComputePhaseAtom, const int &ii) const
+void ComputeAveSphereAtomKokkos<DeviceType>::operator()(TagComputeAveSphereAtom, const int &ii) const
 {
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
@@ -196,14 +196,14 @@ void ComputePhaseAtomKokkos<DeviceType>::operator()(TagComputePhaseAtom, const i
     }
     double density = count/sphere_vol;
     double temp = ke_sum/3.0/count;
-    d_phase(i,0) = density;
-    d_phase(i,1) = temp;
+    d_result(i,0) = density;
+    d_result(i,1) = temp;
   }
 }
 
 namespace LAMMPS_NS {
-template class ComputePhaseAtomKokkos<LMPDeviceType>;
+template class ComputeAveSphereAtomKokkos<LMPDeviceType>;
 #ifdef LMP_KOKKOS_GPU
-template class ComputePhaseAtomKokkos<LMPHostType>;
+template class ComputeAveSphereAtomKokkos<LMPHostType>;
 #endif
 }

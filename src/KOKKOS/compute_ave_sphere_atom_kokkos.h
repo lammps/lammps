@@ -13,35 +13,35 @@
 
 #ifdef COMPUTE_CLASS
 
-ComputeStyle(phase/atom/kk,ComputePhaseAtomKokkos<LMPDeviceType>)
-ComputeStyle(phase/atom/kk/device,ComputePhaseAtomKokkos<LMPDeviceType>)
-ComputeStyle(phase/atom/kk/host,ComputePhaseAtomKokkos<LMPHostType>)
+ComputeStyle(ave/sphere/atom/kk,ComputeAveSphereAtomKokkos<LMPDeviceType>)
+ComputeStyle(ave/sphere/atom/kk/device,ComputeAveSphereAtomKokkos<LMPDeviceType>)
+ComputeStyle(ave/sphere/atom/kk/host,ComputeAveSphereAtomKokkos<LMPHostType>)
 
 #else
 
-#ifndef LMP_COMPUTE_PHASE_KOKKOS_ATOM_H
-#define LMP_COMPUTE_PHASE_KOKKOS_ATOM_H
+#ifndef LMP_COMPUTE_AVE_SPHERE_ATOM_KOKKOS_H
+#define LMP_COMPUTE_AVE_SPHERE_ATOM_KOKKOS_H
 
-#include "compute_phase_atom.h"
+#include "compute_ave_sphere_atom.h"
 #include "kokkos_type.h"
 
 namespace LAMMPS_NS {
 
-struct TagComputePhaseAtom{};
+struct TagComputeAveSphereAtom{};
 
 template<class DeviceType>
-class ComputePhaseAtomKokkos : public ComputePhaseAtom {
+class ComputeAveSphereAtomKokkos : public ComputeAveSphereAtom {
  public:
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
 
-  ComputePhaseAtomKokkos(class LAMMPS *, int, char **);
-  virtual ~ComputePhaseAtomKokkos();
+  ComputeAveSphereAtomKokkos(class LAMMPS *, int, char **);
+  virtual ~ComputeAveSphereAtomKokkos();
   void init();
   void compute_peratom();
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagComputePhaseAtom, const int&) const;
+  void operator()(TagComputeAveSphereAtom, const int&) const;
 
  private:
   typename AT::t_x_array_randomread x;
@@ -52,8 +52,8 @@ class ComputePhaseAtomKokkos : public ComputePhaseAtom {
   typename AT::t_int_1d_randomread d_ilist;
   typename AT::t_int_1d_randomread d_numneigh;
 
-  DAT::tdual_float_2d k_phase;
-  typename AT::t_float_2d d_phase;
+  DAT::tdual_float_2d k_result;
+  typename AT::t_float_2d d_result;
 };
 
 }

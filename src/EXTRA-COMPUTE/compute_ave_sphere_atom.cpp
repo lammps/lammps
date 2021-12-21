@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "compute_phase_atom.h"
+#include "compute_ave_sphere_atom.h"
 
 #include "atom.h"
 #include "comm.h"
@@ -36,11 +36,11 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-ComputePhaseAtom::ComputePhaseAtom(LAMMPS *lmp, int narg, char **arg) :
+ComputeAveSphereAtom::ComputeAveSphereAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  phase(nullptr)
+  result(nullptr)
 {
-  if (narg < 3 || narg > 5) error->all(FLERR,"Illegal compute phase/atom command");
+  if (narg < 3 || narg > 5) error->all(FLERR,"Illegal compute ave/sphere/atom command");
 
   // process optional args
 
@@ -49,11 +49,11 @@ ComputePhaseAtom::ComputePhaseAtom(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 3;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"cutoff") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal compute phase/atom command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute ave/sphere/atom command");
       cutoff = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      if (cutoff <= 0.0) error->all(FLERR,"Illegal compute phase/atom command");
+      if (cutoff <= 0.0) error->all(FLERR,"Illegal compute ave/sphere/atom command");
       iarg += 2;
-    } else error->all(FLERR,"Illegal compute phase/atom command");
+    } else error->all(FLERR,"Illegal compute ave/sphere/atom command");
   }
 
   peratom_flag = 1;
@@ -65,19 +65,19 @@ ComputePhaseAtom::ComputePhaseAtom(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-ComputePhaseAtom::~ComputePhaseAtom()
+ComputeAveSphereAtom::~ComputeAveSphereAtom()
 {
   if (copymode) return;
 
-  memory->destroy(phase);
+  memory->destroy(result);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePhaseAtom::init()
+void ComputeAveSphereAtom::init()
 {
   if (!force->pair && cutoff == 0.0)
-    error->all(FLERR,"Compute phase/atom requires a cutoff be specified "
+    error->all(FLERR,"Compute ave/sphere/atom requires a cutoff be specified "
                "or a pair style be defined");
 
   double skin = neighbor->skin;
@@ -89,7 +89,7 @@ void ComputePhaseAtom::init()
       cutghost = comm->cutghostuser;
 
     if (cutoff > cutghost)
-      error->all(FLERR,"Compute phase/atom cutoff exceeds ghost atom range - "
+      error->all(FLERR,"Compute ave/sphere/atom cutoff exceeds ghost atom range - "
                  "use comm_modify cutoff command");
   }
 
@@ -120,14 +120,14 @@ void ComputePhaseAtom::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePhaseAtom::init_list(int /*id*/, NeighList *ptr)
+void ComputeAveSphereAtom::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePhaseAtom::compute_peratom()
+void ComputeAveSphereAtom::compute_peratom()
 {
   int i,j,ii,jj,inum,jnum;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
@@ -137,13 +137,13 @@ void ComputePhaseAtom::compute_peratom()
 
   invoked_peratom = update->ntimestep;
 
-  // grow phase array if necessary
+  // grow result array if necessary
 
   if (atom->nmax > nmax) {
-    memory->destroy(phase);
+    memory->destroy(result);
     nmax = atom->nmax;
-    memory->create(phase,nmax,2,"phase/atom:phase");
-    array_atom = phase;
+    memory->create(result,nmax,2,"ave/sphere/atom:result");
+    array_atom = result;
   }
 
   // need velocities of ghost atoms
@@ -159,7 +159,7 @@ void ComputePhaseAtom::compute_peratom()
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  // compute phase for each atom in group
+  // compute properties for each atom in group
   // use full neighbor list to count atoms less than cutoff
 
   double **x = atom->x;
@@ -229,15 +229,15 @@ void ComputePhaseAtom::compute_peratom()
       }
       double density = count/sphere_vol;
       double temp = ke_sum/3.0/count;
-      phase[i][0] = density;
-      phase[i][1] = temp;
+      result[i][0] = density;
+      result[i][1] = temp;
     }
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-int ComputePhaseAtom::pack_forward_comm(int n, int *list, double *buf,
+int ComputeAveSphereAtom::pack_forward_comm(int n, int *list, double *buf,
                                         int /*pbc_flag*/, int * /*pbc*/)
 {
   double **v = atom->v;
@@ -254,7 +254,7 @@ int ComputePhaseAtom::pack_forward_comm(int n, int *list, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePhaseAtom::unpack_forward_comm(int n, int first, double *buf)
+void ComputeAveSphereAtom::unpack_forward_comm(int n, int first, double *buf)
 {
   double **v = atom->v;
 
@@ -271,7 +271,7 @@ void ComputePhaseAtom::unpack_forward_comm(int n, int first, double *buf)
    memory usage of local atom-based array
 ------------------------------------------------------------------------- */
 
-double ComputePhaseAtom::memory_usage()
+double ComputeAveSphereAtom::memory_usage()
 {
   double bytes = (double)2*nmax * sizeof(double);
   return bytes;

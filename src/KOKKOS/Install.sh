@@ -88,12 +88,12 @@ action comm_kokkos.cpp
 action comm_kokkos.h
 action comm_tiled_kokkos.cpp
 action comm_tiled_kokkos.h
+action compute_ave_sphere_atom_kokkos.cpp
+action compute_ave_sphere_atom_kokkos.h
 action compute_coord_atom_kokkos.cpp
 action compute_coord_atom_kokkos.h
 action compute_orientorder_atom_kokkos.cpp
 action compute_orientorder_atom_kokkos.h
-action compute_phase_atom_kokkos.cpp
-action compute_phase_atom_kokkos.h
 action compute_temp_kokkos.cpp
 action compute_temp_kokkos.h
 action compute_temp_deform_kokkos.cpp

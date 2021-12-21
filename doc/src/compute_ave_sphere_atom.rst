@@ -1,20 +1,20 @@
-.. index:: compute phase/atom
-.. index:: compute phase/atom/kk
+.. index:: compute ave/sphere/atom
+.. index:: compute ave/sphere/atom/kk
 
-compute phase/atom command
+compute ave/sphere/atom command
 ================================
 
-Accelerator Variants: *phase/atom/kk*
+Accelerator Variants: *ave/sphere/atom/kk*
 
 Syntax
 """"""
 
 .. parsed-literal::
 
-   compute ID group-ID phase/atom keyword values ...
+   compute ID group-ID ave/sphere/atom keyword values ...
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
-* phase/atom = style name of this compute command
+* ave/sphere/atom = style name of this compute command
 * one or more keyword/value pairs may be appended
 
   .. parsed-literal::
@@ -27,9 +27,9 @@ Examples
 
 .. code-block:: LAMMPS
 
-   compute 1 all phase/atom
+   compute 1 all ave/sphere/atom
 
-   compute 1 all phase/atom cutoff 5.0
+   compute 1 all ave/sphere/atom cutoff 5.0
    comm_modify cutoff 5.0
 
 Description
@@ -86,7 +86,8 @@ page for an overview of LAMMPS output options.
 Restrictions
 """"""""""""
 
-none
+This compute is part of the EXTRA-COMPUTE package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

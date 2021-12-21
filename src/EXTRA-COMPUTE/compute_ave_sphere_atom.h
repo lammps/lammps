@@ -13,21 +13,21 @@
 
 #ifdef COMPUTE_CLASS
 
-ComputeStyle(phase/atom,ComputePhaseAtom)
+ComputeStyle(ave/sphere/atom,ComputeAveSphereAtom)
 
 #else
 
-#ifndef LMP_COMPUTE_PHASE_ATOM_H
-#define LMP_COMPUTE_PHASE_ATOM_H
+#ifndef LMP_COMPUTE_AVE_SPHERE_ATOM_H
+#define LMP_COMPUTE_AVE_SPHERE_ATOM_H
 
 #include "compute.h"
 
 namespace LAMMPS_NS {
 
-class ComputePhaseAtom : public Compute {
+class ComputeAveSphereAtom : public Compute {
  public:
-  ComputePhaseAtom(class LAMMPS *, int, char **);
-  virtual ~ComputePhaseAtom();
+  ComputeAveSphereAtom(class LAMMPS *, int, char **);
+  virtual ~ComputeAveSphereAtom();
   virtual void init();
   void init_list(int, class NeighList *);
   virtual void compute_peratom();
@@ -40,7 +40,7 @@ class ComputePhaseAtom : public Compute {
   double cutoff,cutsq,sphere_vol;
   class NeighList *list;
 
-  double **phase;
+  double **result;
 };
 
 }
@@ -56,11 +56,11 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Compute phase/atom requires a cutoff be specified or a pair style be defined
+E: Compute ave/sphere/atom requires a cutoff be specified or a pair style be defined
 
 Self-explanatory.
 
-E: Compute phase/atom cutoff exceeds ghost atom range - use comm_modify cutoff command
+E: Compute ave/sphere/atom cutoff exceeds ghost atom range - use comm_modify cutoff command
 
 Self-explanatory.
 

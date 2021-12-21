@@ -130,7 +130,8 @@ class Domain : protected Pointers {
   void remap(double *, imageint &);
   void remap(double *);
   void remap_near(double *, double *);
-  void unmap(double *, imageint &);
+  void unmap_inv(double *x, imageint);
+  void unmap(double *, imageint);
   void unmap(const double *, imageint, double *);
   void image_flip(int, int, int);
   int ownatom(int, double *, imageint *, int);

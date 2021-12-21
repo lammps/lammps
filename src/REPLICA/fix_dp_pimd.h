@@ -37,7 +37,6 @@ class FixDPPimd : public Fix {
   void setup(int);
   void post_force(int);
   void initial_integrate(int);
-  void post_integrate();
   void final_integrate();
   void end_of_step();
 
@@ -53,6 +52,7 @@ class FixDPPimd : public Fix {
   int barostat;
   int integrator;
   int ensemble;
+  int mapflag;
   int removecomflag;
   void remove_com_motion(); double masstotal;
 
@@ -169,7 +169,7 @@ class FixDPPimd : public Fix {
 
   /* potential energy and total energy of the extended system */
   double pote, tote, totke;
-  double ke_bead;
+  double ke_bead, pe_bead, pot_energy_partition;
   
   void compute_totke();
   void compute_pote();

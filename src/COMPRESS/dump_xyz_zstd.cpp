@@ -102,14 +102,11 @@ void DumpXYZZstd::write_header(bigint ndump)
 {
   if (me == 0) {
     std::string header = fmt::format("{}\n", ndump);
-    if (time_flag) {
-      double tcurrent = update->atime + 
-        (update->ntimestep-update->atimestep) + update->dt;
+    if (time_flag)
       fprintf(fp,"Atoms. Timestep: " BIGINT_FORMAT " Time: %f\n",
-              update->ntimestep, tcurrent);
-    } else {
+              update->ntimestep, compute_time());
+    else
       fprintf(fp,"Atoms. Timestep: " BIGINT_FORMAT "\n",update->ntimestep);
-    }
     writer.write(header.c_str(), header.length());
   }
 }

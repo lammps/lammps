@@ -1132,6 +1132,7 @@ double Dump::compute_time()
 {
   return update->atime + (update->ntimestep - update->atimestep)*update->dt;
 }
+
 /* ----------------------------------------------------------------------
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */

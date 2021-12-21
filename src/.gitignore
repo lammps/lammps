@@ -429,6 +429,8 @@
 /commgrid.h
 /compute_ackland_atom.cpp
 /compute_ackland_atom.h
+/compute_ave_sphere_atom.cpp
+/compute_ave_sphere_atom.h
 /compute_basal_atom.cpp
 /compute_basal_atom.h
 /compute_body_local.cpp

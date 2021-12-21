@@ -291,7 +291,7 @@ void NeighBondKokkos<DeviceType>::operator()(TagNeighBondBondAll, const int &i, 
     if (newton_bond || i < atom1) {
       const int nbondlist = Kokkos::atomic_fetch_add(&d_nlist(),1);
       if (nbondlist >= maxbond && !d_fail_flag())
-        Kokkos::atomic_fetch_add(&d_fail_flag(),1);
+        d_fail_flag() = 1;
       if (d_fail_flag()) continue;
       v_bondlist(nbondlist,0) = i;
       v_bondlist(nbondlist,1) = atom1;
@@ -379,7 +379,7 @@ void NeighBondKokkos<DeviceType>::operator()(TagNeighBondBondPartial, const int 
     if (newton_bond || i < atom1) {
       const int nbondlist = Kokkos::atomic_fetch_add(&d_nlist(),1);
       if (nbondlist >= maxbond && !d_fail_flag())
-        Kokkos::atomic_fetch_add(&d_fail_flag(),1);
+        d_fail_flag() = 1;
       if (d_fail_flag()) continue;
       v_bondlist(nbondlist,0) = i;
       v_bondlist(nbondlist,1) = atom1;
@@ -495,7 +495,7 @@ void NeighBondKokkos<DeviceType>::operator()(TagNeighBondAngleAll, const int &i,
     if (newton_bond || (i <= atom1 && i <= atom2 && i <= atom3)) {
       const int nanglelist = Kokkos::atomic_fetch_add(&d_nlist(),1);
       if (nanglelist >= maxangle && !d_fail_flag())
-        Kokkos::atomic_fetch_add(&d_fail_flag(),1);
+        d_fail_flag() = 1;
       if (d_fail_flag()) continue;
       v_anglelist(nanglelist,0) = atom1;
       v_anglelist(nanglelist,1) = atom2;
@@ -590,7 +590,7 @@ void NeighBondKokkos<DeviceType>::operator()(TagNeighBondAnglePartial, const int
     if (newton_bond || (i <= atom1 && i <= atom2 && i <= atom3)) {
       const int nanglelist = Kokkos::atomic_fetch_add(&d_nlist(),1);
       if (nanglelist >= maxangle && !d_fail_flag())
-        Kokkos::atomic_fetch_add(&d_fail_flag(),1);
+        d_fail_flag() = 1;
       if (d_fail_flag()) continue;
       v_anglelist(nanglelist,0) = atom1;
       v_anglelist(nanglelist,1) = atom2;
@@ -725,7 +725,7 @@ void NeighBondKokkos<DeviceType>::operator()(TagNeighBondDihedralAll, const int 
         (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4)) {
       const int ndihedrallist = Kokkos::atomic_fetch_add(&d_nlist(),1);
       if (ndihedrallist >= maxdihedral && !d_fail_flag())
-        Kokkos::atomic_fetch_add(&d_fail_flag(),1);
+        d_fail_flag() = 1;
       if (d_fail_flag()) continue;
       v_dihedrallist(ndihedrallist,0) = atom1;
       v_dihedrallist(ndihedrallist,1) = atom2;
@@ -825,7 +825,7 @@ void NeighBondKokkos<DeviceType>::operator()(TagNeighBondDihedralPartial, const 
         (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4)) {
       const int ndihedrallist = Kokkos::atomic_fetch_add(&d_nlist(),1);
       if (ndihedrallist >= maxdihedral && !d_fail_flag())
-        Kokkos::atomic_fetch_add(&d_fail_flag(),1);
+        d_fail_flag() = 1;
       if (d_fail_flag()) continue;
       v_dihedrallist(ndihedrallist,0) = atom1;
       v_dihedrallist(ndihedrallist,1) = atom2;
@@ -979,7 +979,7 @@ void NeighBondKokkos<DeviceType>::operator()(TagNeighBondImproperAll, const int 
         (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4)) {
       const int nimproperlist = Kokkos::atomic_fetch_add(&d_nlist(),1);
       if (nimproperlist >= maximproper && !d_fail_flag())
-        Kokkos::atomic_fetch_add(&d_fail_flag(),1);
+        d_fail_flag() = 1;
       if (d_fail_flag()) continue;
       v_improperlist(nimproperlist,0) = atom1;
       v_improperlist(nimproperlist,1) = atom2;
@@ -1079,7 +1079,7 @@ void NeighBondKokkos<DeviceType>::operator()(TagNeighBondImproperPartial, const 
         (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4)) {
       const int nimproperlist = Kokkos::atomic_fetch_add(&d_nlist(),1);
       if (nimproperlist >= maximproper && !d_fail_flag())
-        Kokkos::atomic_fetch_add(&d_fail_flag(),1);
+        d_fail_flag() = 1;
       if (d_fail_flag()) continue;
       v_improperlist(nimproperlist,0) = atom1;
       v_improperlist(nimproperlist,1) = atom2;

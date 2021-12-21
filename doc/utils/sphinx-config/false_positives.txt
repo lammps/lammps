@@ -308,6 +308,7 @@ boolean
 boostostat
 boostostatting
 Boresch
+borophene
 Botero
 Botu
 Bouguet
@@ -688,8 +689,10 @@ diagonalizers
 diagonalizing
 Diallo
 diblock
+dichalcogenide
 Dickel
 diel
+Dietz
 differentiable
 diffusively
 diffusivity
@@ -1309,6 +1312,7 @@ hotpink
 Houlle
 howto
 Howto
+Hoy
 Hoyt
 Hs
 hstyle
@@ -2390,6 +2394,7 @@ ohenrich
 ok
 Okabe
 Okamoto
+O'Hearn
 O'Keefe
 OKeefe
 oldlace
@@ -3078,6 +3083,7 @@ snav
 Snodin
 Sodani
 Soderlind
+Solida
 solvated
 solvation
 someuser

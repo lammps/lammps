@@ -885,10 +885,10 @@ void Atom::tag_check()
   MPI_Allreduce(&min,&minall,1,MPI_LMP_TAGINT,MPI_MIN,world);
   MPI_Allreduce(&max,&maxall,1,MPI_LMP_TAGINT,MPI_MAX,world);
 
-  if (minall < 0) error->all(FLERR,"One or more Atom IDs is negative");
-  if (maxall >= MAXTAGINT) error->all(FLERR,"One or more atom IDs is too big");
+  if (minall < 0) error->all(FLERR,"One or more Atom IDs are negative");
+  if (maxall >= MAXTAGINT) error->all(FLERR,"One or more atom IDs are too big");
   if (maxall > 0 && minall == 0)
-    error->all(FLERR,"One or more atom IDs is zero");
+    error->all(FLERR,"One or more atom IDs are zero");
   if (maxall > 0 && tag_enable == 0)
     error->all(FLERR,"Non-zero atom IDs with atom_modify id = no");
   if (maxall == 0 && natoms && tag_enable)

@@ -46,7 +46,7 @@
 #define KOKKOS_TEST_SCATTER_VIEW_HPP
 
 #include <Kokkos_ScatterView.hpp>
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 
 namespace Perf {
 

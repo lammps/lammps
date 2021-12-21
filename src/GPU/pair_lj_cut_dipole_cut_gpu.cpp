@@ -143,8 +143,6 @@ void PairLJCutDipoleCutGPU::init_style()
   if (!atom->q_flag || !atom->mu_flag || !atom->torque_flag)
     error->all(FLERR,"Pair dipole/cut/gpu requires atom attributes q, mu, torque");
 
-  if (force->newton_pair)
-    error->all(FLERR,"Pair style dipole/cut/gpu requires newton pair off");
 
   if (strcmp(update->unit_style,"electron") == 0)
     error->all(FLERR,"Cannot (yet) use 'electron' units with dipoles");

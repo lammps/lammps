@@ -51,6 +51,8 @@ namespace Kokkos {
 namespace Experimental {
 namespace Impl {
 
+enum class openmp_fence_is_static { yes, no };
+
 class OpenMPTargetInternal {
  private:
   OpenMPTargetInternal()                            = default;
@@ -58,7 +60,9 @@ class OpenMPTargetInternal {
   OpenMPTargetInternal& operator=(const OpenMPTargetInternal&) = default;
 
  public:
-  void fence();
+  void fence(openmp_fence_is_static is_static = openmp_fence_is_static::no);
+  void fence(const std::string& name,
+             openmp_fence_is_static is_static = openmp_fence_is_static::no);
 
   /** \brief  Return the maximum amount of concurrency.  */
   int concurrency();
@@ -73,14 +77,16 @@ class OpenMPTargetInternal {
 
   //! Has been initialized
   int impl_is_initialized();
-
+  uint32_t impl_get_instance_id() const noexcept;
   //! Initialize, telling the CUDA run-time library which device to use.
   void impl_initialize();
 
   static OpenMPTargetInternal* impl_singleton();
 
  private:
-  bool m_is_initialized = false;
+  bool m_is_initialized  = false;
+  uint32_t m_instance_id = Kokkos::Tools::Experimental::Impl::idForInstance<
+      Kokkos::Experimental::OpenMPTarget>(reinterpret_cast<uintptr_t>(this));
 };
 }  // Namespace Impl
 }  // Namespace Experimental

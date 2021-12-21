@@ -68,7 +68,7 @@ struct TeamScratch {
 
     Kokkos::parallel_for(
         "Team",
-        policy_t(pN, Kokkos::AUTO)
+        policy_t(pN, Kokkos::AUTO, 1)
             .set_scratch_size(scratch_level, Kokkos::PerTeam(scratchSize)),
         KOKKOS_LAMBDA(const team_t &team) {
           // Allocate and use scratch pad memory
@@ -77,11 +77,20 @@ struct TeamScratch {
 
           Kokkos::parallel_for(
               Kokkos::TeamThreadRange(team, sX), [&](const int m) {
+      // FIXME_SYCL This deadlocks in the subgroup_barrier
+      // when running on CUDA devices.
+#ifdef KOKKOS_ENABLE_SYCL
+                for (int k = 0; k < sY; ++k) {
+                  v_S(m, k) =
+                      v_S.extent(0) * v_S.extent(1) * n + v_S.extent(1) * m + k;
+                }
+#else
                 Kokkos::parallel_for(
                     Kokkos::ThreadVectorRange(team, sY), [&](const int k) {
                       v_S(m, k) = v_S.extent(0) * v_S.extent(1) * n +
                                   v_S.extent(1) * m + k;
                     });
+#endif
               });
 
           team.team_barrier();

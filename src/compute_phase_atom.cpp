@@ -82,15 +82,13 @@ void ComputePhaseAtom::init()
 
   double skin = neighbor->skin;
   if (cutoff != 0.0) {
-    double mycutneigh = cutoff + skin;
-
     double cutghost;            // as computed by Neighbor and Comm
     if (force->pair)
       cutghost = MAX(force->pair->cutforce+skin,comm->cutghostuser);
     else
       cutghost = comm->cutghostuser;
 
-    if (mycutneigh > cutghost)
+    if (cutoff > cutghost)
       error->all(FLERR,"Compute phase/atom cutoff exceeds ghost atom range - "
                  "use comm_modify cutoff command");
   }

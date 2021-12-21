@@ -888,10 +888,10 @@ int DumpNetCDF::modify_param(int narg, char **arg)
 void DumpNetCDF::ncerr(int err, const char *descr, int line)
 {
   if (err != NC_NOERR) {
-    if (descr) error->one(FLERR,"NetCDF failed with error '{}' (while accessing '{}') "
-                          " in line {} of {}.", nc_strerror(err), descr, line, __FILE__);
-    else error->one(FLERR,"NetCDF failed with error '{}' in line {} of {}.",
-                    nc_strerror(err), line, __FILE__);
+    if (descr) error->one(__FILE__, line, "NetCDF failed with error '{}' (while accessing '{}') ",
+                          nc_strerror(err), descr, line);
+    else error->one(__FILE__, line,"NetCDF failed with error '{}' in line {} of {}.",
+                    nc_strerror(err));
   }
 }
 

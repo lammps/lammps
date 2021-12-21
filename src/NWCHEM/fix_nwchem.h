@@ -50,8 +50,8 @@ class FixNWChem : public Fix {
 
   int nmax, newsystem;
   double *qpotential;
-  double **flatte;
-  double latte_energy;
+  double **nwchem_force;
+  double nwchem_energy;
 
   class NeighList *list;
   class Compute *c_pe;
@@ -64,15 +64,15 @@ class FixNWChem : public Fix {
 
 /* ERROR/WARNING messages:
 
-E: Must use units metal with fix latte command
+E: Must use units metal with fix nwchem command
 
 UNDOCUMENTED
 
-E: Fix latte currently runs only in serial
+E: Fix nwchem currently runs only in serial
 
 UNDOCUMENTED
 
-E: LAMMPS is linked against incompatible LATTE library
+E: LAMMPS is linked against incompatible NWChem library
 
 UNDOCUMENTED
 
@@ -82,35 +82,35 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Fix latte does not yet support a LAMMPS calculation of a Coulomb potential
+E: Fix nwchem does not yet support a LAMMPS calculation of a Coulomb potential
 
 UNDOCUMENTED
 
-E: Could not find fix latte compute ID
+E: Could not find fix nwchem compute ID
 
 UNDOCUMENTED
 
-E: Fix latte compute ID does not compute pe/atom
+E: Fix nwchem compute ID does not compute pe/atom
 
 UNDOCUMENTED
 
-E: Fix latte requires 3d problem
+E: Fix nwchem requires 3d problem
 
 UNDOCUMENTED
 
-E: Fix latte cannot compute Coulomb potential
+E: Fix nwchem cannot compute Coulomb potential
 
 UNDOCUMENTED
 
-E: Fix latte requires 3d simulation
+E: Fix nwchem requires 3d simulation
 
 UNDOCUMENTED
 
-W: Fix latte should come after all other integration fixes
+W: Fix nwchem should come after all other integration fixes
 
 UNDOCUMENTED
 
-E: Internal LATTE problem
+E: Internal NWChem problem
 
 UNDOCUMENTED
 

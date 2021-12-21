@@ -35,12 +35,13 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-extern "C" {
-  void latte(int *, int *, double *, int *, int *,
-             double *, double *, double *, double *,
-             double *, double *, double *, int *,
-             double *, double *, double *, double *, int * , bool *);
-  int latte_abiversion();
+namespace pwdft {
+using namespace pwdft;
+extern char *util_date();
+extern void seconds(double *);
+extern int pspw_geovib(MPI_Comm, std::string&);
+extern int pspw_minimizer(MPI_Comm, std::string&);
+extern int nwchem_abiversion();
 }
 
 // the ABIVERSION number here must be kept consistent
@@ -96,9 +97,9 @@ FixNWChem::FixNWChem(LAMMPS *lmp, int narg, char **arg) :
 
   nmax = 0;
   qpotential = nullptr;
-  flatte = nullptr;
+  nwchem_force = nullptr;
 
-  nchem_energy = 0.0;
+  nwchem_energy = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -107,7 +108,7 @@ FixNWChem::~FixNWChem()
 {
   delete [] id_pe;
   memory->destroy(qpotential);
-  memory->destroy(fnwchem);
+  memory->destroy(nwchem_force);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -291,22 +292,24 @@ void FixNWChem::post_force(int vflag)
   else forces = &atom->f[0][0];
   int maxiter = -1;
 
-  latte(flags,&natoms,coords,type,&ntypes,mass,boxlo,boxhi,&domain->xy,
-        &domain->xz,&domain->yz,forces,&maxiter,&latte_energy,
-        &atom->v[0][0],&update->dt,virial,&newsystem,&latteerror);
+  int nwerr = pwdft::pspw_minimizer(MPI_COMM_WORLD,nwinput);
 
-  if (latteerror) error->all(FLERR,"Internal LATTE problem");
+  //latte(flags,&natoms,coords,type,&ntypes,mass,boxlo,boxhi,&domain->xy,
+  //      &domain->xz,&domain->yz,forces,&maxiter,&latte_energy,
+  //      &atom->v[0][0],&update->dt,virial,&newsystem,&latteerror);
 
-  // sum LATTE forces to LAMMPS forces
+  if (nwerr) error->all(FLERR,"Internal NWChem problem");
+
+  // sum NWChem forces to LAMMPS forces
   // e.g. LAMMPS may compute Coulombics at some point
 
   if (coulomb) {
     double **f = atom->f;
     int nlocal = atom->nlocal;
     for (int i = 0; i < nlocal; i++) {
-      f[i][0] += flatte[i][0];
-      f[i][1] += flatte[i][1];
-      f[i][2] += flatte[i][2];
+      f[i][0] += nwchem_force[i][0];
+      f[i][1] += nwchem_force[i][1];
+      f[i][2] += nwchem_force[i][2];
     }
   }
 }

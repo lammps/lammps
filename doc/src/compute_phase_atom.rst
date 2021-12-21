@@ -40,9 +40,11 @@ for each atom and neighbors inside a spherical cutoff.
 
 The optional keyword *cutoff* defines the distance cutoff
 used when searching for neighbors. The default value is the cutoff
-specified by the pair style. If the specified cutoff is larger than
-that of the pair_style plus neighbor skin, the *comm_modify cutoff*
-option must also be set to match the specified cutoff.
+specified by the pair style. If no pair style is defined, then a cutoff
+must be defined using this keyword. If the specified cutoff is larger than
+that of the pair_style plus neighbor skin (or no pair style is defined),
+the *comm_modify cutoff* option must also be set to match that of the
+*cutoff* keyword.
 
 The neighbor list needed to compute this quantity is constructed each
 time the calculation is performed (i.e. each time a snapshot of atoms

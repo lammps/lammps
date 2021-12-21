@@ -40,15 +40,24 @@ ComputePhaseAtom::ComputePhaseAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
   phase(nullptr)
 {
-  if (narg != 4) error->all(FLERR,"Illegal compute phase/atom command");
+  if (narg < 3 || narg > 5) error->all(FLERR,"Illegal compute phase/atom command");
 
-  cutoff = utils::numeric(FLERR,arg[3],false,lmp);
-  cutsq = cutoff*cutoff;
-  sphere_vol = 4.0/3.0*MY_PI*cutsq*cutoff;
+  // process optional args
+
+  cutoff = 0.0;
+
+  int iarg = 3;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"cutoff") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute phase/atom command");
+      cutoff = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      if (cutoff <= 0.0) error->all(FLERR,"Illegal compute phase/atom command");
+      iarg += 2;
+    } else error->all(FLERR,"Illegal compute phase/atom command");
+  }
 
   peratom_flag = 1;
   size_peratom_cols = 2;
-
   comm_forward = 3;
 
   nmax = 0;
@@ -67,9 +76,35 @@ ComputePhaseAtom::~ComputePhaseAtom()
 
 void ComputePhaseAtom::init()
 {
+  if (!force->pair && cutoff == 0.0)
+    error->all(FLERR,"Compute phase/atom requires a cutoff be specified "
+               "or a pair style be defined");
+
+  double skin = neighbor->skin;
+  if (cutoff != 0.0) {
+    double mycutneigh = cutoff + skin;
+
+    double cutghost;            // as computed by Neighbor and Comm
+    if (force->pair)
+      cutghost = MAX(force->pair->cutforce+skin,comm->cutghostuser);
+    else
+      cutghost = comm->cutghostuser;
+
+    if (mycutneigh > cutghost)
+      error->all(FLERR,"Compute phase/atom cutoff exceeds ghost atom range - "
+                 "use comm_modify cutoff command");
+  }
+
   int cutflag = 1;
-  if (force->pair && sqrt(cutsq) <= force->pair->cutforce)
-    cutflag = 0;
+  if (force->pair) {
+    if (cutoff == 0.0) {
+      cutoff = force->pair->cutforce;
+    }
+    if (cutoff <= force->pair->cutforce+skin) cutflag = 0;
+  }
+
+  cutsq = cutoff*cutoff;
+  sphere_vol = 4.0/3.0*MY_PI*cutsq*cutoff;
 
   // need an occasional full neighbor list
 

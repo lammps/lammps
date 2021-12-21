@@ -130,10 +130,10 @@ int DumpXYZ::modify_param(int narg, char **arg)
 void DumpXYZ::write_header(bigint n)
 {
   if (me == 0) {
-    if (time_flag && (update->whichflag == 1))
-      fmt::print(fp,"{}\n Atoms. Timestep: {} Time: {:.6f}\n", update->ntimestep, update->atime);
-    else
-      fmt::print(fp,"{}\n Atoms. Timestep: {}\n", update->ntimestep);
+    if (time_flag && (update->whichflag == 1)) {
+      double tcurrent = update->atime + (update->ntimestep-update->atimestep) + update->dt;
+      fmt::print(fp,"{}\n Atoms. Timestep: {} Time: {:.6f}\n", n, update->ntimestep, tcurrent);
+    } else fmt::print(fp,"{}\n Atoms. Timestep: {}\n", n, update->ntimestep);
   }
 }
 

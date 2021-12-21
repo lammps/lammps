@@ -58,13 +58,20 @@ struct PairReaxFFComputePolar{};
 template<int NEIGHFLAG, int EVFLAG>
 struct PairReaxFFComputeLJCoulomb{};
 
+struct PairReaxFFComputeLJCoulombShortNeigh{};
+
 template<int NEIGHFLAG, int EVFLAG>
 struct PairReaxFFComputeTabulatedLJCoulomb{};
 
 struct PairReaxBuildListsFull{};
 
+#ifdef HIP_OPT_PAIRREAXBUILDLISTSHALF_BLOCKING
+template<int NEIGHFLAG>
+struct PairReaxBuildListsHalfBlocking{};
+#else
 template<int NEIGHFLAG>
 struct PairReaxBuildListsHalf{};
+#endif
 
 struct PairReaxZero{};
 
@@ -96,14 +103,15 @@ struct PairReaxFFComputeMulti2{};
 template<int NEIGHFLAG, int EVFLAG>
 struct PairReaxFFComputeAngular{};
 
-//LG sorting atoms for processing in PairReaxFFComputeTorsion
-struct PairReaxFFComputeTorsion_preview{};
+struct PairReaxFFComputeTorsionPreview{};
 
+#ifdef HIP_OPT_TORSION_PREVIEW_BLOCKING
+template<int NEIGHFLAG, int EVFLAG>
+struct PairReaxFFComputeTorsionBlocking{};
+#else
 template<int NEIGHFLAG, int EVFLAG>
 struct PairReaxFFComputeTorsion{};
-
-template<int NEIGHFLAG, int EVFLAG>
-struct PairReaxFFComputeTorsion_with_BLOCKING{};
+#endif
 
 template<int NEIGHFLAG, int EVFLAG>
 struct PairReaxFFComputeHydrogen{};
@@ -123,6 +131,16 @@ class PairReaxFFKokkos : public PairReaxFF {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   typedef EV_FLOAT_REAX value_type;
+
+  // "Blocking" factors to improve convergence within some kernels
+  using blocking_t = unsigned short int;
+  
+  // "PairReaxFFComputeTorsionBlocking"
+  static constexpr int compute_torsion_blocksize = 8;
+
+  // "PairReaxBuildListsHalfBlocking"
+  static constexpr int build_lists_half_blocksize = 64;
+
 
   PairReaxFFKokkos(class LAMMPS *);
   virtual ~PairReaxFFKokkos();
@@ -160,11 +178,20 @@ class PairReaxFFKokkos : public PairReaxFF {
   void operator()(PairReaxFFComputeTabulatedLJCoulomb<NEIGHFLAG,EVFLAG>, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
+  void operator()(PairReaxFFComputeLJCoulombShortNeigh, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
   void operator()(PairReaxBuildListsFull, const int&) const;
 
+#ifdef HIP_OPT_PAIRREAXBUILDLISTSHALF_BLOCKING
+  template<int NEIGHFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(PairReaxBuildListsHalfBlocking<NEIGHFLAG>, const int&) const;
+#else
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
   void operator()(PairReaxBuildListsHalf<NEIGHFLAG>, const int&) const;
+#endif
 
   KOKKOS_INLINE_FUNCTION
   void operator()(PairReaxZero, const int&) const;
@@ -224,24 +251,26 @@ class PairReaxFFKokkos : public PairReaxFF {
   KOKKOS_INLINE_FUNCTION
   void operator()(PairReaxFFComputeAngular<NEIGHFLAG,EVFLAG>, const int&) const;
 
+  KOKKOS_INLINE_FUNCTION
+  void operator()(PairReaxFFComputeTorsionPreview, const int&) const;
+
+#ifdef HIP_OPT_TORSION_PREVIEW_BLOCKING
+  template<int NEIGHFLAG, int EVFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(PairReaxFFComputeTorsionBlocking<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
+
+  template<int NEIGHFLAG, int EVFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(PairReaxFFComputeTorsionBlocking<NEIGHFLAG,EVFLAG>, const int&) const;
+#else
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
   void operator()(PairReaxFFComputeTorsion<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFComputeTorsion_with_BLOCKING<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFComputeTorsion_preview, const int&) const;
-
-  template<int NEIGHFLAG, int EVFLAG>
-  KOKKOS_INLINE_FUNCTION
   void operator()(PairReaxFFComputeTorsion<NEIGHFLAG,EVFLAG>, const int&) const;
-
-  template<int NEIGHFLAG, int EVFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFComputeTorsion_with_BLOCKING<NEIGHFLAG,EVFLAG>, const int&) const;
+#endif
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -358,10 +387,6 @@ class PairReaxFFKokkos : public PairReaxFF {
   void Deallocate_Lookup_Tables();
   void LR_vdW_Coulomb(int i, int j, double r_ij, ReaxFF::LR_data *lr);
 
-  int *counters;
-  int *counters_jj_min, *counters_jj_max,*counters_kk_min,*counters_kk_max;
-  int inum_store;
-
   typedef Kokkos::DualView<int*,DeviceType> tdual_int_1d;
   Kokkos::DualView<params_sing*,typename DeviceType::array_layout,DeviceType> k_params_sing;
   typename Kokkos::DualView<params_sing*,typename DeviceType::array_layout,DeviceType>::t_dev_const paramssing;
@@ -476,6 +501,17 @@ class PairReaxFFKokkos : public PairReaxFF {
 
   typename AT::t_ffloat_1d d_buf;
   DAT::tdual_int_scalar k_nbuf_local;
+
+  // for fast ComputeTorsion preprocessor kernel
+  typedef Kokkos::View<int*, LMPPinnedHostType> t_hostpinned_int_1d;
+
+  int inum_store;
+  t_hostpinned_int_1d counters;
+  t_hostpinned_int_1d counters_jj_min;
+  t_hostpinned_int_1d counters_jj_max;
+  t_hostpinned_int_1d counters_kk_min;
+  t_hostpinned_int_1d counters_kk_max;
+
 };
 
 template <class DeviceType>

@@ -835,10 +835,17 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     // zero
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxZero>(0,nmax),*this);
 
+#ifdef HIP_OPT_PAIRREAXBUILDLISTSHALF_BLOCKING
+    if (neighflag == HALF)
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBuildListsHalfBlocking<HALF>>(0,ignum),*this);
+    else if (neighflag == HALFTHREAD)
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBuildListsHalfBlocking<HALFTHREAD>>(0,ignum),*this);
+#else
     if (neighflag == HALF)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBuildListsHalf<HALF>>(0,ignum),*this);
     else if (neighflag == HALFTHREAD)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, PairReaxBuildListsHalf<HALFTHREAD>>(0,ignum),*this);
+#endif
 
     k_resize_bo.modify<DeviceType>();
     k_resize_bo.sync<LMPHostType>();
@@ -1795,7 +1802,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxBuildListsHalfBlocking<NEI
 
   int nnz;
   blocking_t selected_jj[blocksize];
-  int jj_current = jj_start;
+  int jj_current = 0;
 
   while (jj_current < jnum) {
      nnz=0;

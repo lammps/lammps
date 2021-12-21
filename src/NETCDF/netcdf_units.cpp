@@ -22,7 +22,9 @@
 
 #include "error.h"
 
-std::string LAMMPS_NS::get_unit_for(const char* unit_style, Quantity quantity, Error* error) {
+using namespace LAMMPS_NS;
+
+std::string NetCDFUnits::get_unit_for(const char* unit_style, Quantity quantity, Error* error) {
   if (!strcmp(unit_style, "lj")) {
     if (quantity == Quantity::UNKNOWN) {
       return "";

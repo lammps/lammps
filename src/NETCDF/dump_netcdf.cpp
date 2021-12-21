@@ -44,6 +44,8 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using NetCDFUnits::Quantity;
+using NetCDFUnits::get_unit_for;
 
 static const char NC_FRAME_STR[]         = "frame";
 static const char NC_SPATIAL_STR[]       = "spatial";

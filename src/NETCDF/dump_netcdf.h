@@ -29,7 +29,7 @@ DumpStyle(netcdf,DumpNetCDF);
 #include "dump_custom.h"
 
 namespace LAMMPS_NS {
-enum class Quantity;
+namespace NetCDFUnits {enum Quantity : int;} // forward declaration
 
 const int NC_FIELD_NAME_MAX = 100;
 const int DUMP_NC_MAX_DIMS = 100;
@@ -47,7 +47,7 @@ class DumpNetCDF : public DumpCustom {
     int field[DUMP_NC_MAX_DIMS];     // field indices corresponding to the dim.
     char name[NC_FIELD_NAME_MAX];    // field name
     int var;                         // NetCDF variable
-    Quantity quantity;               // type of the quantity
+    NetCDFUnits::Quantity quantity;  // type of the quantity
 
     bool constant;    // is this property per file (not per frame)
     int ndumped;      // number of enties written for this prop.

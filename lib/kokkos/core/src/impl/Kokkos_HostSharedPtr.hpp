@@ -47,6 +47,7 @@
 
 #include <Kokkos_Macros.hpp>
 #include <Kokkos_Atomic.hpp>
+#include <impl/Kokkos_Error.hpp>
 
 #include <functional>
 
@@ -92,6 +93,8 @@ class HostSharedPtr {
     // FIXME_OPENMPTARGET requires something like KOKKOS_IMPL_IF_ON_HOST
 #ifdef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
     if (m_control) Kokkos::atomic_add(&(m_control->m_counter), 1);
+#else
+    m_control = nullptr;
 #endif
   }
 
@@ -115,6 +118,8 @@ class HostSharedPtr {
       // FIXME_OPENMPTARGET
 #ifdef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
       if (m_control) Kokkos::atomic_add(&(m_control->m_counter), 1);
+#else
+      m_control = nullptr;
 #endif
     }
     return *this;
@@ -154,6 +159,9 @@ class HostSharedPtr {
     // object pointed to by m_counter and m_element_ptr.
     if (m_control) {
       int const count = Kokkos::atomic_fetch_sub(&(m_control->m_counter), 1);
+      // atomic_fetch_sub might have memory order relaxed so we need to force
+      // synchronization to avoid multiple threads doing the cleanup.
+      Kokkos::memory_fence();
       if (count == 1) {
         (m_control->m_deleter)(m_element_ptr);
         m_element_ptr = nullptr;

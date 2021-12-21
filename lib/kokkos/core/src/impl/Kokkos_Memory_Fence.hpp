@@ -48,7 +48,7 @@
 namespace Kokkos {
 
 //----------------------------------------------------------------------------
-
+#ifndef KOKKOS_ENABLE_IMPL_DESUL_ATOMICS
 KOKKOS_FORCEINLINE_FUNCTION
 void memory_fence() {
 #if defined(__CUDA_ARCH__)
@@ -75,6 +75,7 @@ void memory_fence() {
 #error "Error: memory_fence() not defined"
 #endif
 }
+#endif
 
 //////////////////////////////////////////////////////
 // store_fence()

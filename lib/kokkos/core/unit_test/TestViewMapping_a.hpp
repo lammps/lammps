@@ -768,8 +768,8 @@ void test_view_mapping() {
 
     ASSERT_EQ(vr1.extent(0), N);
 
-    if (Kokkos::Impl::SpaceAccessibility<
-            Kokkos::HostSpace, typename Space::memory_space>::accessible) {
+    if (Kokkos::SpaceAccessibility<Kokkos::HostSpace,
+                                   typename Space::memory_space>::accessible) {
       for (int i = 0; i < N; ++i) data[i] = i + 1;
       for (int i = 0; i < N; ++i) ASSERT_EQ(vr1[i], i + 1);
       for (int i = 0; i < N; ++i) ASSERT_EQ(cr1[i], i + 1);
@@ -815,8 +815,8 @@ void test_view_mapping() {
 
     ASSERT_EQ(vr1.extent(0), N);
 
-    if (Kokkos::Impl::SpaceAccessibility<
-            Kokkos::HostSpace, typename Space::memory_space>::accessible) {
+    if (Kokkos::SpaceAccessibility<Kokkos::HostSpace,
+                                   typename Space::memory_space>::accessible) {
       for (int i = 0; i < N; ++i) vr1(i) = i + 1;
       for (int i = 0; i < N; ++i) ASSERT_EQ(vr1[i], i + 1);
       for (int i = 0; i < N; ++i) ASSERT_EQ(cr1[i], i + 1);

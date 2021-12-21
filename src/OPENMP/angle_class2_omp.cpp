@@ -175,6 +175,8 @@ void AngleClass2OMP::eval(int nfrom, int nto, ThrData * const thr)
 
     // force & energy for bond-angle term
 
+    dr1 = r1 - ba_r1[type];
+    dr2 = r2 - ba_r2[type];
     aa1 = s * dr1 * ba_k1[type];
     aa2 = s * dr2 * ba_k2[type];
 

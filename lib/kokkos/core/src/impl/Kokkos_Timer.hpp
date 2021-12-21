@@ -45,8 +45,13 @@
 #ifndef KOKKOS_IMPLWALLTIME_HPP
 #define KOKKOS_IMPLWALLTIME_HPP
 
+#include <Kokkos_Macros.hpp>
+
+KOKKOS_IMPL_WARNING("This file is deprecated. Use <Kokkos_Timer.hpp> instead.")
+
 #include <Kokkos_Timer.hpp>
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
 namespace Kokkos {
 namespace Impl {
 
@@ -54,10 +59,11 @@ namespace Impl {
  *   Timer promoted from Impl to Kokkos ns
  *   This file included for backwards compatibility
  */
-
-using Kokkos::Timer;
+using Timer KOKKOS_DEPRECATED_WITH_COMMENT("Use Kokkos::Timer instead!") =
+    Kokkos::Timer;
 
 }  // namespace Impl
 }  // namespace Kokkos
+#endif
 
 #endif /* #ifndef KOKKOS_IMPLWALLTIME_HPP */

@@ -22,13 +22,13 @@ Syntax
 
    pair_style style args
 
-* style = *vashishta* or *vashishta/table* or *vashishta/omp* or *vashishta/table/omp*
+* style = *vashishta* or *vashishta/table*
 * args = list of arguments for a particular style
 
 .. parsed-literal::
 
-     *vashishta* or *vashishta/omp* args = none
-     *vashishta/table* or *vashishta/table/omp* args = Ntable cutinner
+     *vashishta* args = none
+     *vashishta/table* args = Ntable cutinner
        Ntable = # of tabulation points
        cutinner = tablulate from cutinner to cutoff
 

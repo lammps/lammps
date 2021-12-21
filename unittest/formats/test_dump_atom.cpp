@@ -521,6 +521,32 @@ TEST_F(DumpAtomTest, rerun)
     delete_file(dump_file);
 }
 
+TEST_F(DumpAtomTest, rerun_bin)
+{
+    auto dump_file = binary_dump_filename("rerun");
+    HIDE_OUTPUT([&] {
+        command("fix 1 all nve");
+    });
+    generate_dump(dump_file, "", 1);
+    double pe_1, pe_2, pe_rerun;
+    lmp->output->thermo->evaluate_keyword("pe", &pe_1);
+    ASSERT_FILE_EXISTS(dump_file);
+    continue_dump(1);
+    lmp->output->thermo->evaluate_keyword("pe", &pe_2);
+    ASSERT_FILE_EXISTS(dump_file);
+    HIDE_OUTPUT([&] {
+        command(fmt::format("rerun {} first 1 last 1 every 1 post no dump x y z", dump_file));
+    });
+    lmp->output->thermo->evaluate_keyword("pe", &pe_rerun);
+    ASSERT_NEAR(pe_1, pe_rerun,1.0e-14);
+    HIDE_OUTPUT([&] {
+        command(fmt::format("rerun {} first 2 last 2 every 1 post yes dump x y z", dump_file));
+    });
+    lmp->output->thermo->evaluate_keyword("pe", &pe_rerun);
+    ASSERT_NEAR(pe_2, pe_rerun,1.0e-14);
+    delete_file(dump_file);
+}
+
 TEST_F(DumpAtomTest, multi_file_run1)
 {
     auto dump_file = dump_filename("run1_*");

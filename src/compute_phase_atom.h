@@ -56,33 +56,12 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Could not find compute phase/atom compute ID
-
-UNDOCUMENTED
-
-E: Compute phase/atom compute ID is not orientorder/atom
-
-UNDOCUMENTED
-
-E: Compute phase/atom threshold not between -1 and 1
-
-UNDOCUMENTED
-
-E: Invalid cstyle in compute phase/atom
-
-UNDOCUMENTED
-
-E: Compute phase/atom requires components option in compute orientorder/atom
-
-UNDOCUMENTED
-
-E: Compute phase/atom requires a pair style be defined
+E: Compute phase/atom requires a cutoff be specified or a pair style be defined
 
 Self-explanatory.
 
-E: Compute phase/atom cutoff is longer than pairwise cutoff
+E: Compute phase/atom cutoff exceeds ghost atom range - use comm_modify cutoff command
 
-Cannot compute phase at distances longer than the pair cutoff,
-since those atoms are not in the neighbor list.
+Self-explanatory.
 
 */

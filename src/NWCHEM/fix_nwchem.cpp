@@ -52,6 +52,8 @@ extern int nwchem_abiversion();
 
 #define NWCHEM_ABIVERSION 20180622
 
+// NOTE: change 1-proc restriction later
+
 /* ---------------------------------------------------------------------- */
 
 FixNWChem::FixNWChem(LAMMPS *lmp, int narg, char **arg) :
@@ -72,34 +74,23 @@ FixNWChem::FixNWChem(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extscalar = 1;
   energy_global_flag = 1;
-  virial_global_flag = 1;
-  thermo_energy = thermo_virial = 1;
+  thermo_energy = 1;
 
-  // store ID of compute pe/atom used to generate Coulomb potential for NWChem
-  // null pointer means NWChem will compute Coulombic potential
+  // store ID of compute pe/atom used to trigger per-atom energy computations
 
-  coulomb = 0;
-  id_pe = nullptr;
-
-  if (strcmp(arg[3],"NULL") != 0) {
-    coulomb = 1;
-    error->all(FLERR,"Fix nwchem does not yet support a NWChem calculation "
-               "of a Coulomb potential");
-
-    id_pe = utils::strdup(arg[3]);
-    int ipe = modify->find_compute(id_pe);
-    if (ipe < 0) error->all(FLERR,"Could not find fix nwchem compute ID");
-    if (modify->compute[ipe]->peatomflag == 0)
-      error->all(FLERR,"Fix nwchem compute ID does not compute pe/atom");
-  }
+  id_pe = utils::strdup(arg[3]);
+  int ipe = modify->find_compute(id_pe);
+  if (ipe < 0) error->all(FLERR,"Could not find fix nwchem compute ID");
+  if (modify->compute[ipe]->peatomflag == 0)
+    error->all(FLERR,"Fix nwchem compute ID does not compute pe/atom");
 
   // initializations
 
-  nmax = 0;
+  nqm = 0;
   qpotential = nullptr;
-  nwchem_force = nullptr;
+  qmforce = nullptr;
 
-  nwchem_energy = 0.0;
+  qmenergy = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -108,7 +99,7 @@ FixNWChem::~FixNWChem()
 {
   delete [] id_pe;
   memory->destroy(qpotential);
-  memory->destroy(nwchem_force);
+  memory->destroy(qmforce);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -116,7 +107,6 @@ FixNWChem::~FixNWChem()
 int FixNWChem::setmask()
 {
   int mask = 0;
-  mask |= PRE_REVERSE;
   mask |= POST_FORCE;
   mask |= MIN_POST_FORCE;
   return mask;
@@ -131,70 +121,48 @@ void FixNWChem::init()
   if (domain->dimension == 2)
     error->all(FLERR,"Fix nwchem requires 3d problem");
 
-  if (coulomb) {
-    if (atom->q_flag == 0 || force->pair == nullptr || force->kspace == nullptr)
-      error->all(FLERR,"Fix nwchem cannot compute Coulomb potential");
-
-    int ipe = modify->find_compute(id_pe);
-    if (ipe < 0) error->all(FLERR,"Could not find fix nwchem compute ID");
-    c_pe = modify->compute[ipe];
-  }
-
-  // must be fully periodic or fully non-periodic
-
   if (domain->nonperiodic == 0) pbcflag = 1;
   else if (!domain->xperiodic && !domain->yperiodic && !domain->zperiodic)
     pbcflag = 0;
-  else error->all(FLERR,"Fix nwchem requires 3d simulation");
+  else error->all(FLERR,"Fix nwchem requires fully periodic or "
+                  "fully non-periodic system");
+  
+  if (atom->q_flag == 0 || force->pair == nullptr || force->kspace == nullptr)
+    error->all(FLERR,"Fix nwchem cannot compute Coulomb potential");
 
-  // create qpotential & flatte if needed
-  // for now, assume nlocal will never change
+  // c_pe = instance of compute pe/atom
 
-  if (coulomb && qpotential == nullptr) {
-    memory->create(qpotential,atom->nlocal,"latte:qpotential");
-    memory->create(fnwchem,atom->nlocal,3,"nwchem:fnwchem");
+  int ipe = modify->find_compute(id_pe);
+  if (ipe < 0) error->all(FLERR,"Could not find fix nwchem compute ID");
+  c_pe = modify->compute[ipe];
+
+  // fix group = QM atoms
+  // one-time initialization of qmIDs
+  // NOTE: need to sort in ascending order to match NWChem ?
+  // NOTE: make nqm an int, check that group count is not 0 or > MAXBIGINT
+  
+  if (nqm == 0) {
+    nqm = group->count(igroup);
+    memory->create(qmIDs,nqm,"nwchem:qmIDs");
+    memory->create(qpotential,nqm,"nwchem:qpotential");
+    memory->create(qmforce,nqm,3,"nwchem:qmforce");
+    memory->create(qm2lmp,nqm,"nwchem:qm2lmp");
+
+    bigint *tag = atom->tag;
+    int *mask = atom->mask;
+    int nlocal = atom->nlocal;
+
+    nqm = 0;
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) qmIDs[nqm++] = tag[i];
   }
-
-  /*
-  // warn if any integrate fix comes after this one
-  // is it actually necessary for q(n) update to come after x,v update ??
-
-  int after = 0;
-  int flag = 0;
-  for (int i = 0; i < modify->nfix; i++) {
-    if (strcmp(id,modify->fix[i]->id) == 0) after = 1;
-    else if ((modify->fmask[i] & INITIAL_INTEGRATE) && after) flag = 1;
-  }
-  if (flag && comm->me == 0)
-    error->warning(FLERR,"Fix latte should come after all other "
-                   "integration fixes");
-  */
-
-  /*
-  // need a full neighbor list
-  // could we use a half list?
-  // perpetual list, built whenever re-neighboring occurs
-
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->fix = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  */
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixNWChem::init_list(int /*id*/, NeighList * /*ptr*/)
-{
-  // list = ptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixNWChem::setup(int vflag)
 {
-  newsystem = 1;
+  //newsystem = 1;
   post_force(vflag);
   newsystem = 0;
 }
@@ -203,115 +171,72 @@ void FixNWChem::setup(int vflag)
 
 void FixNWChem::min_setup(int vflag)
 {
-  newsystem = 1;
+  //newsystem = 1;
   post_force(vflag);
   newsystem = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixNWChem::setup_pre_reverse(int eflag, int vflag)
-{
-  pre_reverse(eflag,vflag);
-}
-
-/* ----------------------------------------------------------------------
-   integrate electronic degrees of freedom
-------------------------------------------------------------------------- */
-
-void FixNWChem::initial_integrate(int /*vflag*/) {}
-
-/* ----------------------------------------------------------------------
-   store eflag, so can use it in post_force to tally per-atom energies
-------------------------------------------------------------------------- */
-
-void FixNWChem::pre_reverse(int eflag, int /*vflag*/)
-{
-  eflag_caller = eflag;
-}
-
-/* ---------------------------------------------------------------------- */
-
 void FixNWChem::post_force(int vflag)
 {
-  int eflag = eflag_caller;
-  ev_init(eflag,vflag);
+  int ilocal;
 
-  // compute Coulombic potential = pe[i]/q[i]
-  // invoke compute pe/atom
-  // wrap with clear/add and trigger pe/atom calculation every step
+  // on reneigh step, reset qm2lmp vector for indices of QM atoms
 
-  if (coulomb) {
-    modify->clearstep_compute();
+  if (neighbor->ago == 0)
+    for (int i = 0; i < nqm; i++)
+      qm2lmp[i] = atom->map[qmIDs[i]);
 
-    if (!(c_pe->invoked_flag & Compute::INVOKED_PERATOM)) {
-      c_pe->compute_peratom();
-      c_pe->invoked_flag |= Compute::INVOKED_PERATOM;
-    }
+  // compute Coulomb potential for each QM atom
+  // start with eatom from pair_coul + kspace
+  // subtract off
 
-    modify->addstep_compute(update->ntimestep+1);
+  double *q = atom->q;
+  double *eatom_pair = pair_coul->eatom;
+  double *eatom_kspace = force->kspace->eatom;
 
-    double *pe = c_pe->vector_atom;
-    double *q = atom->q;
-    int nlocal = atom->nlocal;
+  for (int i = 0; i < nqm; i++) {
+    ilocal = qm2lmp[i];
 
-    for (int i = 0; i < nlocal; i++)
-      if (q[i]) qpotential[i] = pe[i]/q[i];
-      else qpotential[i] = 0.0;
+    if (
+    qpotential[i] = (eatom_pair[ilocal] + eatom_kspace[ilocal]) / q[ilocal];
   }
 
-  // hardwire these unsupported flags for now
+  double *pe = c_pe->vector_atom;
+  double *q = atom->q;
+  int nlocal = atom->nlocal;
 
-  int coulombflag = 0;
-  neighflag = 0;
+  for (int i = 0; i < nlocal; i++)
+    if (q[i]) qpotential[i] = pe[i]/q[i];
+    else qpotential[i] = 0.0;
 
-  // set flags used by LATTE
-  // NOTE: LATTE does not compute per-atom energies or virials
+  // call to NWChem
+  // inputs = x and potential
+  // outputs = force and charge
+  // input/outputs are only for QM atoms
 
-  int flags[6];
-
-  flags[0] = pbcflag;         // 1 for fully periodic, 0 for fully non-periodic
-  flags[1] = coulombflag;     // 1 for LAMMPS computes Coulombics, 0 for LATTE
-  flags[2] = eflag_atom;      // 1 to return per-atom energies, 0 for no
-  flags[3] = vflag_global && thermo_virial;    // 1 to return global/per-atom
-  flags[4] = vflag_atom && thermo_virial;      //   virial, 0 for no
-  flags[5] = neighflag;       // 1 to pass neighbor list to LATTE, 0 for no
-
-  // setup LATTE arguments
-
-  int natoms = atom->nlocal;
-  double *coords = &atom->x[0][0];
-  int *type = atom->type;
-  int ntypes = atom->ntypes;
-  double *mass = &atom->mass[1];
-  double *boxlo = domain->boxlo;
-  double *boxhi = domain->boxhi;
-  double *forces;
-  bool latteerror = 0;
-  if (coulomb) forces = &flatte[0][0];
-  else forces = &atom->f[0][0];
-  int maxiter = -1;
-
+  nwinput = nullptr;
   int nwerr = pwdft::pspw_minimizer(MPI_COMM_WORLD,nwinput);
+  if (nwerr) error->all(FLERR,"Internal NWChem problem");
 
   //latte(flags,&natoms,coords,type,&ntypes,mass,boxlo,boxhi,&domain->xy,
   //      &domain->xz,&domain->yz,forces,&maxiter,&latte_energy,
   //      &atom->v[0][0],&update->dt,virial,&newsystem,&latteerror);
 
-  if (nwerr) error->all(FLERR,"Internal NWChem problem");
+  // sum QM forces to LAMMPS forces
 
-  // sum NWChem forces to LAMMPS forces
-  // e.g. LAMMPS may compute Coulombics at some point
-
-  if (coulomb) {
-    double **f = atom->f;
-    int nlocal = atom->nlocal;
-    for (int i = 0; i < nlocal; i++) {
-      f[i][0] += nwchem_force[i][0];
-      f[i][1] += nwchem_force[i][1];
-      f[i][2] += nwchem_force[i][2];
-    }
+  double **f = atom->f;
+  int nlocal = atom->nlocal;
+  for (int i = 0; i < nlocal; i++) {
+    f[i][0] += qmforce[i][0];
+    f[i][1] += qmforce[i][1];
+    f[i][2] += qmforce[i][2];
   }
+
+  // force per-atom energy computation on next timestep by pair/kspace
+
+  c_pe->addstep(update->ntimestep+1);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -322,36 +247,10 @@ void FixNWChem::min_post_force(int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   integrate electronic degrees of freedom
-------------------------------------------------------------------------- */
-
-void FixNWChem::final_integrate() {}
-
-/* ---------------------------------------------------------------------- */
-
-void FixNWChem::reset_dt()
-{
-  //dtv = update->dt;
-  //dtf = 0.5 * update->dt * force->ftm2v;
-}
-
-/* ----------------------------------------------------------------------
-   DFTB energy from LATTE
+   QM energy from NWChem
 ------------------------------------------------------------------------- */
 
 double FixNWChem::compute_scalar()
 {
-  return latte_energy;
-}
-
-/* ----------------------------------------------------------------------
-   memory usage of local arrays
-------------------------------------------------------------------------- */
-
-double FixNWChem::memory_usage()
-{
-  double bytes = 0.0;
-  if (coulomb) bytes += (double)nmax * sizeof(double);
-  if (coulomb) bytes += (double)nmax*3 * sizeof(double);
-  return bytes;
+  return qmenergy;
 }

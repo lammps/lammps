@@ -120,7 +120,7 @@ void Integrate::ev_setup()
      (1) computes that need energy/virial info on this timestep
      (2) time dumps that may need per-atom compute info on this timestep
      NOTE: inefficient to add all per-atom eng/virial computes
-             but don't know which ones the dump needs 
+             but don't know which ones the dump needs
            see NOTE in output.cpp
    invoke matchstep() on all timestep-dependent computes to clear their arrays
    eflag: set any or no bits
@@ -140,7 +140,7 @@ void Integrate::ev_set(bigint ntimestep)
   int i,flag;
 
   int tdflag = 0;
-  if (output->any_time_dumps && 
+  if (output->any_time_dumps &&
       output->next_time_dump_any == ntimestep) tdflag = 1;
 
   flag = 0;

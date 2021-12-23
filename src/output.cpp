@@ -199,9 +199,9 @@ void Output::setup(int memflag)
       // (2) and (3) only apply for non-variable dump intervals
       // finally, do not write if same snapshot written previously,
       //   i.e. on last timestep of previous run
-      
+
       int writeflag = 0;
-      
+
       if (last_dump[idump] < 0 && dump[idump]->first_flag == 1) writeflag = 1;
 
       if (mode_dump[idump] == 0) {
@@ -209,7 +209,7 @@ void Output::setup(int memflag)
           writeflag = 1;
       } else {
         if (every_time_dump[idump] > 0.0) {
-          double tcurrent = update->atime + 
+          double tcurrent = update->atime +
             (ntimestep - update->atimestep) * update->dt;
           double remainder = fmod(tcurrent,every_time_dump[idump]);
           if ((remainder < EPSDT*update->dt) ||
@@ -234,7 +234,7 @@ void Output::setup(int memflag)
       if (writeflag || last_dump[idump] < 0)
         calculate_next_dump(0,idump,ntimestep);
 
-      // if dump not written now, use addstep_compute_all() 
+      // if dump not written now, use addstep_compute_all()
       // since don't know what computes the dump will invoke
 
       if (mode_dump[idump] == 0 &&
@@ -354,7 +354,7 @@ void Output::setup(int memflag)
        if (next_dump[idump] == ntimestep) {
          if (last_dump[idump] == ntimestep) continue;
 
-         if (mode_dump[idump] == 0 && 
+         if (mode_dump[idump] == 0 &&
              (dump[idump]->clearstep || var_dump[idump]))
            modify->clearstep_compute();
 
@@ -365,7 +365,7 @@ void Output::setup(int memflag)
          last_dump[idump] = ntimestep;
          calculate_next_dump(1,idump,ntimestep);
 
-         if (mode_dump[idump] == 0 && 
+         if (mode_dump[idump] == 0 &&
              (dump[idump]->clearstep || var_dump[idump]))
            modify->addstep_compute(next_dump[idump]);
        }
@@ -490,7 +490,7 @@ void Output::setup(int memflag)
        if (which == 0)
          next_dump[idump] =
            (ntimestep/every_dump[idump])*every_dump[idump] + every_dump[idump];
-       else if (which == 1) 
+       else if (which == 1)
          next_dump[idump] += every_dump[idump];
 
      } else {
@@ -507,7 +507,7 @@ void Output::setup(int memflag)
 
      bigint nextdump;
      double nexttime;
-     double tcurrent = update->atime + 
+     double tcurrent = update->atime +
        (ntimestep - update->atimestep) * update->dt;
 
      if (every_time_dump[idump] > 0.0) {
@@ -517,27 +517,27 @@ void Output::setup(int memflag)
        // which = 2: no change to previous nexttime (only timestep has changed)
 
        if (which == 0)
-         nexttime = static_cast<bigint> (tcurrent/every_time_dump[idump]) * 
+         nexttime = static_cast<bigint> (tcurrent/every_time_dump[idump]) *
            every_time_dump[idump] + every_time_dump[idump];
-       else if (which == 1) 
+       else if (which == 1)
          nexttime = next_time_dump[idump] + every_time_dump[idump];
        else if (which == 2)
          nexttime = next_time_dump[idump];
 
-       nextdump = ntimestep + 
-         static_cast<bigint> ((nexttime - tcurrent - EPSDT*update->dt) / 
+       nextdump = ntimestep +
+         static_cast<bigint> ((nexttime - tcurrent - EPSDT*update->dt) /
                               update->dt) + 1;
 
        // if delta is too small to reach next timestep, use multiple of delta
 
        if (nextdump == ntimestep) {
-         double tnext = update->atime + 
+         double tnext = update->atime +
            (ntimestep+1 - update->atimestep) * update->dt;
-         int multiple = static_cast<int> 
+         int multiple = static_cast<int>
            ((tnext - nexttime) / every_time_dump[idump]);
          nexttime = nexttime + (multiple+1)*every_time_dump[idump];
-         nextdump = ntimestep + 
-           static_cast<bigint> ((nexttime - tcurrent - EPSDT*update->dt) / 
+         nextdump = ntimestep +
+           static_cast<bigint> ((nexttime - tcurrent - EPSDT*update->dt) /
                                 update->dt) + 1;
        }
 
@@ -548,14 +548,14 @@ void Output::setup(int memflag)
 
        if (which < 2 || next_time_dump[idump] < 0.0) {
          nexttime = input->variable->compute_equal(ivar_dump[idump]);
-       } else 
+       } else
          nexttime = next_time_dump[idump];
 
        if (nexttime <= tcurrent)
          error->all(FLERR,"Dump every/time variable returned a bad time");
 
-       nextdump = ntimestep + 
-         static_cast<bigint> ((nexttime - tcurrent - EPSDT*update->dt) / 
+       nextdump = ntimestep +
+         static_cast<bigint> ((nexttime - tcurrent - EPSDT*update->dt) /
                               update->dt) + 1;
        if (nextdump <= ntimestep)
          error->all(FLERR,"Dump every/time variable too small for next timestep");
@@ -704,7 +704,7 @@ void Output::reset_dt()
     // reset next_dump but do not change next_time_dump, 2 arg for reset_dt()
     // do not invoke for a dump already scheduled for this step
     //   since timestep change affects next step
-    
+
     if (next_dump[idump] != ntimestep)
       calculate_next_dump(2,idump,update->ntimestep);
 

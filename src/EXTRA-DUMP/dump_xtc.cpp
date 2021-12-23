@@ -128,7 +128,7 @@ void DumpXTC::init_style()
     int idump;
     for (idump = 0; idump < output->ndump; idump++)
       if (strcmp(id,output->dump[idump]->id) == 0) break;
-    
+
     if (output->mode_dump[idump] == 1)
       error->all(FLERR,"Cannot use every/time setting for dump xtc");
 

@@ -137,7 +137,6 @@ void DumpXYZ::write_header(bigint n)
     else
       fprintf(fp,"Atoms. Timestep: " BIGINT_FORMAT "\n",update->ntimestep);
   }
-  }
 }
 
 /* ---------------------------------------------------------------------- */

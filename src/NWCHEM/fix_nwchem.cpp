@@ -21,16 +21,17 @@
 #include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "update.h"
-#include "neighbor.h"
+#include "group.h"
 #include "domain.h"
+#include "neighbor.h"
 #include "force.h"
-#include "neigh_request.h"
-#include "neigh_list.h"
+#include "pair.h"
+#include "kspace.h"
 #include "modify.h"
 #include "compute.h"
 #include "memory.h"
 #include "error.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -40,7 +41,7 @@ using namespace pwdft;
 extern char *util_date();
 extern void seconds(double *);
 extern int pspw_geovib(MPI_Comm, std::string&);
-extern int pspw_minimizer(MPI_Comm, std::string&);
+extern int pspw_minimizer(MPI_Comm, double *, double *, double *, double *);
 extern int nwchem_abiversion();
 }
 
@@ -65,7 +66,7 @@ FixNWChem::FixNWChem(LAMMPS *lmp, int narg, char **arg) :
   if (comm->nprocs != 1)
     error->all(FLERR,"Fix nwchem currently runs only in serial");
 
-  if (NWCHEM_ABIVERSION != nwchem_abiversion())
+  if (NWCHEM_ABIVERSION != pwdft::nwchem_abiversion())
     error->all(FLERR,"LAMMPS is linked against incompatible NWChem library");
 
   if (narg != 4) error->all(FLERR,"Illegal fix nwchem command");
@@ -87,8 +88,10 @@ FixNWChem::FixNWChem(LAMMPS *lmp, int narg, char **arg) :
   // initializations
 
   nqm = 0;
-  qpotential = nullptr;
-  qmforce = nullptr;
+  qmIDs = nullptr;
+  xqm = fqm = nullptr;
+  qpotential = qqm = nullptr;
+  qm2lmp = nullptr;
 
   qmenergy = 0.0;
 }
@@ -98,8 +101,12 @@ FixNWChem::FixNWChem(LAMMPS *lmp, int narg, char **arg) :
 FixNWChem::~FixNWChem()
 {
   delete [] id_pe;
+  memory->destroy(qmIDs);
+  memory->destroy(xqm);
   memory->destroy(qpotential);
-  memory->destroy(qmforce);
+  memory->destroy(fqm);
+  memory->destroy(qqm);
+  memory->destroy(qm2lmp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -144,11 +151,13 @@ void FixNWChem::init()
   if (nqm == 0) {
     nqm = group->count(igroup);
     memory->create(qmIDs,nqm,"nwchem:qmIDs");
+    memory->create(xqm,nqm,3,"nwchem:xqm");
     memory->create(qpotential,nqm,"nwchem:qpotential");
-    memory->create(qmforce,nqm,3,"nwchem:qmforce");
+    memory->create(fqm,nqm,3,"nwchem:fqm");
+    memory->create(qqm,nqm,"nwchem:qqm");
     memory->create(qm2lmp,nqm,"nwchem:qm2lmp");
 
-    bigint *tag = atom->tag;
+    tagint *tag = atom->tag;
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
 
@@ -164,7 +173,7 @@ void FixNWChem::setup(int vflag)
 {
   //newsystem = 1;
   post_force(vflag);
-  newsystem = 0;
+  //newsystem = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -173,25 +182,28 @@ void FixNWChem::min_setup(int vflag)
 {
   //newsystem = 1;
   post_force(vflag);
-  newsystem = 0;
+  //newsystem = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixNWChem::post_force(int vflag)
 {
-  int ilocal;
+  int ilocal,jlocal;
+  double delx,dely,delz,rsq;
 
   // on reneigh step, reset qm2lmp vector for indices of QM atoms
+  // NOTE: if in parallel, do this differently
 
   if (neighbor->ago == 0)
     for (int i = 0; i < nqm; i++)
-      qm2lmp[i] = atom->map[qmIDs[i]);
+      qm2lmp[i] = atom->map(qmIDs[i]);
 
-  // compute Coulomb potential for each QM atom
-  // start with eatom from pair_coul + kspace
-  // subtract off
-
+  // create 2 NWChem inputs: xqm and qpotential (Coulomb potential)
+  // qpotential[i] = (eatom[i] from pair_coul + kspace) / Qi
+  // subtract off Qj/Rij for QM I interacting with all other QM J atoms
+ 
+  double **x = atom->x;
   double *q = atom->q;
   double *eatom_pair = pair_coul->eatom;
   double *eatom_kspace = force->kspace->eatom;
@@ -199,42 +211,70 @@ void FixNWChem::post_force(int vflag)
   for (int i = 0; i < nqm; i++) {
     ilocal = qm2lmp[i];
 
-    if (
-    qpotential[i] = (eatom_pair[ilocal] + eatom_kspace[ilocal]) / q[ilocal];
+    // NOTE: what if LAMMPS atom moves via PBC to other side of LAMMPS box ?
+    xqm[i][0] = x[ilocal][0];
+    xqm[i][1] = x[ilocal][1];
+    xqm[i][2] = x[ilocal][2];
+
+    if (q[i] == 0.0) qpotential[i] = 0.0;
+    else qpotential[i] = (eatom_pair[ilocal] + eatom_kspace[ilocal]) / q[ilocal];
+
+    for (int j = 0; j < nqm; j++) {
+      if (j == i) continue;
+      jlocal = qm2lmp[j];
+      // NOTE: apply PBC
+      delx = x[i][0] - x[j][0];
+      dely = x[i][1] - x[j][1];
+      delz = x[i][2] - x[j][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+      qpotential[i] -= q[j] / sqrt(rsq);
+    }
   }
 
-  double *pe = c_pe->vector_atom;
-  double *q = atom->q;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++)
-    if (q[i]) qpotential[i] = pe[i]/q[i];
-    else qpotential[i] = 0.0;
-
   // call to NWChem
-  // inputs = x and potential
-  // outputs = force and charge
   // input/outputs are only for QM atoms
+  // inputs = xqm and qpotential
+  // outputs = fqm and qqm
 
-  nwinput = nullptr;
-  int nwerr = pwdft::pspw_minimizer(MPI_COMM_WORLD,nwinput);
-  if (nwerr) error->all(FLERR,"Internal NWChem problem");
+  int nwerr = pwdft::pspw_minimizer(world,&xqm[0][0],qpotential,&fqm[0][0],qqm);
+  if (nwerr) error->all(FLERR,"Internal NWChem error");
 
   //latte(flags,&natoms,coords,type,&ntypes,mass,boxlo,boxhi,&domain->xy,
   //      &domain->xz,&domain->yz,forces,&maxiter,&latte_energy,
   //      &atom->v[0][0],&update->dt,virial,&newsystem,&latteerror);
 
-  // sum QM forces to LAMMPS forces
+  // reset Q of QM atoms
 
-  double **f = atom->f;
-  int nlocal = atom->nlocal;
-  for (int i = 0; i < nlocal; i++) {
-    f[i][0] += qmforce[i][0];
-    f[i][1] += qmforce[i][1];
-    f[i][2] += qmforce[i][2];
+  for (int i = 0; i < nqm; i++) {
+    ilocal = qm2lmp[i];
+    q[ilocal] = qqm[i];
   }
 
-  // force per-atom energy computation on next timestep by pair/kspace
+  // calculate eatom[i] again with new Q values via pair_coul and KSpace
+  // NOTE: how to zero f array w/out wiping out forces I need to keep
+  // NOTE: need to comm ghost forces (serial or parallel)
+  // NOTE: how to have final f array = total force, including LJ
+  
+  //fhold = f - pair_coul(f) - kspace(f);
+  //f = 0;
+
+  pair_coul->compute(2,0);
+  force->kspace->compute(2,0);
+
+  //f += fhold;
+
+  // add NWChem QM forces to QM atoms
+
+  double **f = atom->f;
+
+  for (int i = 0; i < nqm; i++) {
+    ilocal = qm2lmp[i];
+    f[ilocal][0] += fqm[i][0];
+    f[ilocal][1] += fqm[i][1];
+    f[ilocal][2] += fqm[i][2];
+  }
+
+  // trigger per-atom energy computation on next timestep by pair/kspace
 
   c_pe->addstep(update->ntimestep+1);
 }

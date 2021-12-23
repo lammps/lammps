@@ -27,34 +27,28 @@ namespace LAMMPS_NS {
 class FixNWChem : public Fix {
  public:
   FixNWChem(class LAMMPS *, int, char **);
-  virtual ~FixLatte();
+  virtual ~FixNWChem();
   int setmask();
   void init();
-  void init_list(int, class NeighList *);
   void setup(int);
   void min_setup(int);
-  void setup_pre_reverse(int, int);
-  void initial_integrate(int);
-  void pre_reverse(int, int);
   void post_force(int);
   void min_post_force(int);
-  void final_integrate();
-  void reset_dt();
   double compute_scalar();
-  double memory_usage();
 
  protected:
   char *id_pe;
-  int coulomb, pbcflag, pe_peratom, virial_global, virial_peratom, neighflag;
-  int eflag_caller;
+  int pbcflag;
 
-  int nmax, newsystem;
-  double *qpotential;
-  double **nwchem_force;
-  double nwchem_energy;
-
-  class NeighList *list;
+  bigint nqm;
+  tagint *qmIDs;
+  double **xqm,**fqm;
+  double *qpotential,*qqm;
+  int *qm2lmp;
+  double qmenergy;
+  
   class Compute *c_pe;
+  class Pair *pair_coul;
 };
 
 }    // namespace LAMMPS_NS

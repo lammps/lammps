@@ -2,10 +2,14 @@
 
 # Initialize simulation
 
-variable nsteps index 0
+variable dt index 0.5e-5
+variable nthermo index 100
+variable nsteps index 10000
 variable nrep index 3
-variable a index 3.316
+variable a index 3.0
 variable ngrid index 2
+variable t index 300
+variable del index 0.1
 
 units		metal
 
@@ -31,7 +35,7 @@ lattice		custom $a &
 region		box block 0 ${nx} 0 ${ny} 0 ${nz}
 create_box	1 box
 create_atoms	1 box
-
+displace_atoms  all random ${del} ${del} ${del} 12345 
 mass 1 180.88
 
 write_dump all custom test.dump id type x y z
@@ -56,6 +60,17 @@ pair_style sna/grid grid ${ngrid} ${ngrid} ${ngrid} &
 pair_coeff * * Al
 
 thermo_style    custom step temp epair emol etotal press
-neighbor	0.0 nsq
+thermo ${nthermo}
+thermo_modify norm yes
 
-run 10
+# Set up NVE run
+
+timestep ${dt}
+neighbor 1.0 bin
+neigh_modify once no every 1 delay 0 check yes
+
+# Run MD
+
+velocity all create $t 4928459 loop geom
+fix 1 all nve
+run ${nsteps}

@@ -23,12 +23,14 @@
 #include "error.h"
 #include "comm.h"
 
+#define BETA_CONST 1.0e-2
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 PairGrid::PairGrid(LAMMPS *lmp) :
-  Pair(lmp), gridlocal(nullptr), alocal(nullptr)
+  Pair(lmp), gridlocal(nullptr), alocal(nullptr), beta(nullptr)
 {
   single_enable = 0;
   restartinfo = 0;
@@ -50,9 +52,6 @@ PairGrid::PairGrid(LAMMPS *lmp) :
 PairGrid::~PairGrid()
 {
   if (copymode) return;
-
-  memory->destroy(beta);
-
   deallocate_grid();
 }
 
@@ -91,6 +90,7 @@ void PairGrid::allocate_grid()
     memory->create4d_offset(gridlocal,ndesc,nzlo,nzhi,nylo,nyhi,
 			    nxlo,nxhi,"pair/grid:gridlocal");
     memory->create(alocal, ngridlocal, ndesc, "pair/grid:alocal");
+    memory->create(beta, ngridlocal, ndesc-ndesc_base, "pair/grid:beta");
   }
 }
 
@@ -104,6 +104,7 @@ void PairGrid::deallocate_grid()
     gridlocal_allocated = 0;
     memory->destroy4d_offset(gridlocal,nzlo,nylo,nxlo);
     memory->destroy(alocal);
+    memory->destroy(beta);
   }
 }
 
@@ -234,8 +235,12 @@ void PairGrid::copy_gridlocal_to_local_array()
 }
 
 /* ----------------------------------------------------------------------
-   get beta from someplace
+   calculate beta
 ------------------------------------------------------------------------- */
+
+  // this is a proxy for a call to the energy model
+  // beta is dE/dB^i, the derivative of the total
+  // energy w.r.t. to descriptors of grid point i
 
 void PairGrid::compute_beta()
 {
@@ -243,8 +248,8 @@ void PairGrid::compute_beta()
   for (int iz = nzlo; iz <= nzhi; iz++)
     for (int iy = nylo; iy <= nyhi; iy++)
       for (int ix = nxlo; ix <= nxhi; ix++) {
-	for (int icol = ndesc_base; icol < ndesc; icol++)
-	  beta[igrid][icol] = 1.0;
+	for (int icol = 0; icol < ndesc-ndesc_base; icol++)
+	  beta[igrid][icol] = BETA_CONST;
 	igrid++;
       }
 }

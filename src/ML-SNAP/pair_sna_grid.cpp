@@ -85,19 +85,25 @@ void PairSNAGrid::init_list(int /*id*/, NeighList *ptr)
 
 void PairSNAGrid::compute(int eflag, int vflag)
 {
+  double fij[3];
+  
   ev_init(eflag,vflag);
 
   // compute sna for each gridpoint
 
   double** const x = atom->x;
+  double **f = atom->f;
   const int* const mask = atom->mask;
   int * const type = atom->type;
   const int ntotal = atom->nlocal + atom->nghost;
 
-  // insure rij, inside, and typej are of size jnum
+  // insure rij, inside, and typej are of size ntotal
   
   snaptr->grow_rij(ntotal);
 
+  // first generate fingerprint,
+  // which allows calculation of beta
+  
   for (int iz = nzlo; iz <= nzhi; iz++)
     for (int iy = nylo; iy <= nyhi; iy++)
       for (int ix = nxlo; ix <= nxhi; ix++) {
@@ -153,6 +159,7 @@ void PairSNAGrid::compute(int eflag, int vflag)
 	    snaptr->blist[icoeff];
 
 	// quadratic contributions
+	// untested
 
 	if (quadraticflag) {
 	  int ncount = ncoeff;
@@ -167,7 +174,123 @@ void PairSNAGrid::compute(int eflag, int vflag)
 	}
       }
 
+  // this is a proxy for a call to the energy model
+  // beta is dE/dB^i, the derivative of the total
+  // energy w.r.t. to descriptors of grid point i
+  
+  compute_beta();
+  
+  // second compute forces using beta
+  
+  int igrid = 0;
+  for (int iz = nzlo; iz <= nzhi; iz++)
+    for (int iy = nylo; iy <= nyhi; iy++)
+      for (int ix = nxlo; ix <= nxhi; ix++) {
+	double xgrid[3];
+	grid2x(ix, iy, iz, xgrid);
+	const double xtmp = xgrid[0];
+	const double ytmp = xgrid[1];
+	const double ztmp = xgrid[2];
+
+	// currently, all grid points are type 1
+	
+	const int itype = 1;
+	int ielem = 0;
+	if (chemflag)
+	  ielem = map[itype];
+	const double radi = radelem[itype];
+
+	// rij[][3] = displacements between atom I and those neighbors
+	// inside = indices of neighbors of I within cutoff
+	// typej = types of neighbors of I within cutoff
+
+	int ninside = 0;
+	for (int j = 0; j < ntotal; j++) {
+
+	  const double delx = xtmp - x[j][0];
+	  const double dely = ytmp - x[j][1];
+	  const double delz = ztmp - x[j][2];
+	  const double rsq = delx*delx + dely*dely + delz*delz;
+	  int jtype = type[j];
+	  int jelem = 0;
+	  if (chemflag)
+	    jelem = map[jtype];
+	  if (rsq < cutsq[jtype][jtype] && rsq > 1e-20) {
+	    snaptr->rij[ninside][0] = delx;
+	    snaptr->rij[ninside][1] = dely;
+	    snaptr->rij[ninside][2] = delz;
+	    snaptr->inside[ninside] = j;
+	    snaptr->wj[ninside] = wjelem[jtype];
+	    snaptr->rcutij[ninside] = 2.0*radelem[jtype]*rcutfac;
+	    snaptr->element[ninside] = jelem; // element index for multi-element snap
+	    ninside++;
+	  }
+	}
+
+	// compute Ui, Yi for atom I
+	
+	if (chemflag)
+	  snaptr->compute_ui(ninside, ielem);
+	else
+	  snaptr->compute_ui(ninside, 0);
+
+	// for neighbors of I within cutoff:
+	// compute Fij = dEi/dRj = -dEi/dRi
+	// add to Fi, subtract from Fj
+	// scaling is that for type I
+
+	snaptr->compute_yi(beta[igrid]);
+
+	for (int jj = 0; jj < ninside; jj++) {
+	  int j = snaptr->inside[jj];
+	  if (chemflag)
+	    snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
+				   snaptr->rcutij[jj],jj, snaptr->element[jj]);
+	  else
+	    snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
+				   snaptr->rcutij[jj],jj, 0);
+
+	  snaptr->compute_deidrj(fij);
+
+	  f[j][0] -= fij[0];
+	  f[j][1] -= fij[1];
+	  f[j][2] -= fij[2];
+
+	  // tally per-atom virial contribution
+
+	  if (vflag)
+	    ev_tally_xyz(-1,j,atom->nlocal,force->newton_pair,0.0,0.0,
+			 fij[0],fij[1],fij[2],
+			 -snaptr->rij[jj][0],-snaptr->rij[jj][1],
+			 -snaptr->rij[jj][2]);
+	}
+
+	// tally energy contribution
+
+	if (eflag) {
+
+	  // get descriptors again
+
+	  snaptr->compute_zi();
+	  snaptr->compute_bi(ielem);
+	  
+	  // evdwl = energy of atom I, sum over coeffs_k * Bi_k
+
+	  double evdwl = 0.0;
+
+	  // E = beta.B 
+
+	  for (int icoeff = 0; icoeff < ncoeff; icoeff++)
+	    evdwl += beta[igrid][icoeff]*snaptr->blist[icoeff];
+	  
+	  ev_tally_full(-1,2.0*evdwl,0.0,0.0,0.0,0.0,0.0);
+
+	}
+	igrid++;
+      }
+
   if (vflag_fdotr) virial_fdotr_compute();
+  
 }
 
 

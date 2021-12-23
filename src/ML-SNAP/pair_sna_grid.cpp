@@ -252,9 +252,9 @@ void PairSNAGrid::compute(int eflag, int vflag)
 
 	  snaptr->compute_deidrj(fij);
 
-	  f[j][0] -= fij[0];
-	  f[j][1] -= fij[1];
-	  f[j][2] -= fij[2];
+	  f[j][0] += fij[0];
+	  f[j][1] += fij[1];
+	  f[j][2] += fij[2];
 
 	  // tally per-atom virial contribution
 

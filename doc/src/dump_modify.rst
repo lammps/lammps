@@ -561,7 +561,9 @@ The dump *local* style cannot be sorted by atom ID, since there are
 typically multiple lines of output per atom.  Some dump styles, such
 as *dcd* and *xtc*, require sorting by atom ID to format the output
 file correctly.  If multiple processors are writing the dump file, via
-the "%" wildcard in the dump filename, then sorting cannot be
+the "%" wildcard in the dump filename and the *nfile* or *fileper*
+keywords are set to non-default values (i.e. the number of dump file
+pieces is not equal to the number of procs), then sorting cannot be
 performed.
 
 .. note::

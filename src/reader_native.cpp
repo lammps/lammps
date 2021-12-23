@@ -63,10 +63,10 @@ int ReaderNative::read_time(bigint &ntimestep)
     magic_string = "";
     unit_style = "";
 
-    fread(&ntimestep, sizeof(bigint), 1, fp);
+    auto ret = fread(&ntimestep, sizeof(bigint), 1, fp);
 
     // detect end-of-file
-    if (feof(fp)) return 1;
+    if (ret != 1 || feof(fp)) return 1;
 
     // detect newer format
     if (ntimestep < 0) {
@@ -485,12 +485,8 @@ void ReaderNative::read_atoms(int n, int nfield, double **fields)
       }
     }
   } else {
-    int i,m;
-    char *eof;
-
-    for (i = 0; i < n; i++) {
-      eof = fgets(line,MAXLINE,fp);
-      if (eof == nullptr) error->one(FLERR,"Unexpected end of dump file");
+    for (int i = 0; i < n; i++) {
+      utils::sfgets(FLERR, line, MAXLINE, fp, nullptr, error);
 
       // tokenize the line
       std::vector<std::string> words = Tokenizer(line).as_vector();
@@ -499,7 +495,7 @@ void ReaderNative::read_atoms(int n, int nfield, double **fields)
 
       // convert selected fields to floats
 
-      for (m = 0; m < nfield; m++)
+      for (int m = 0; m < nfield; m++)
         fields[i][m] = atof(words[fieldindex[m]].c_str());
     }
   }
@@ -527,18 +523,14 @@ int ReaderNative::find_label(const std::string &label, const std::map<std::strin
 
 void ReaderNative::read_lines(int n)
 {
-  char *eof = nullptr;
-  if (n <= 0) return;
-  for (int i = 0; i < n; i++) eof = fgets(line,MAXLINE,fp);
-  if (eof == nullptr) error->one(FLERR,"Unexpected end of dump file");
+  for (int i = 0; i < n; i++) {
+    utils::sfgets(FLERR, line, MAXLINE, fp, nullptr, error);
+  }
 }
 
 void ReaderNative::read_buf(void * ptr, size_t size, size_t count)
 {
-  fread(ptr, size, count, fp);
-
-  // detect end-of-file
-  if (feof(fp)) error->one(FLERR,"Unexpected end of dump file");
+  utils::sfread(FLERR, ptr, size, count, fp, nullptr, error);
 }
 
 std::string ReaderNative::read_binary_str(size_t size)
@@ -550,7 +542,6 @@ std::string ReaderNative::read_binary_str(size_t size)
 
 void ReaderNative::read_double_chunk(size_t count)
 {
-  if (count < 0) return;
   // extend buffer to fit chunk size
   if (count > maxbuf) {
     memory->grow(databuf,count,"reader:databuf");

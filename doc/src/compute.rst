@@ -174,6 +174,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`angle <compute_angle>` - energy of each angle sub-style
 * :doc:`angle/local <compute_angle_local>` - theta and energy of each angle
 * :doc:`angmom/chunk <compute_angmom_chunk>` - angular momentum for each chunk
+* :doc:`ave/sphere/atom <compute_ave_sphere_atom>` - compute local density and temperature around each atom
 * :doc:`basal/atom <compute_basal_atom>` - calculates the hexagonal close-packed "c" lattice vector of each atom
 * :doc:`body/local <compute_body_local>` - attributes of body sub-particles
 * :doc:`bond <compute_bond>` - energy of each bond sub-style

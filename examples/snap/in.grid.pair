@@ -1,10 +1,16 @@
 # Demonstrate pair style base on sna/grid
+# Test energy conservation
+# Choose dtfac in the range [0.01,Infinity]
+# Large dtfac means small timestep, while
+# keeping trajectory output interval fixed
+# Variable etotdelta measures change in (PE+KE)/natoms
 
 # Initialize simulation
 
-variable dt index 0.5e-5
-variable nthermo index 100
-variable nsteps index 10000
+variable dtfac index 1
+variable dt equal 0.5e-3/${dtfac}
+variable nthermo equal 1000*${dtfac}
+variable nsteps equal 1000*${dtfac}
 variable nrep index 3
 variable a index 3.0
 variable ngrid index 2
@@ -35,8 +41,9 @@ lattice		custom $a &
 region		box block 0 ${nx} 0 ${ny} 0 ${nz}
 create_box	1 box
 create_atoms	1 box
-displace_atoms  all random ${del} ${del} ${del} 12345 
 mass 1 180.88
+displace_atoms  all random ${del} ${del} ${del} 12345 
+velocity all create $t 4928459 loop geom
 
 write_dump all custom test.dump id type x y z
 
@@ -59,7 +66,16 @@ pair_style sna/grid grid ${ngrid} ${ngrid} ${ngrid} &
 	quadraticflag ${quad} switchflag ${switch}
 pair_coeff * * Al
 
-thermo_style    custom step temp epair emol etotal press
+thermo ${nthermo}
+thermo_modify norm yes
+
+run 0
+
+variable etot0 equal etotal
+variable etotdelta equal abs(etotal-${etot0})/atoms
+fix avede all ave/time 1 ${nthermo} ${nthermo} v_etotdelta
+
+thermo_style    custom step temp epair ke etotal press v_etotdelta f_avede 
 thermo ${nthermo}
 thermo_modify norm yes
 
@@ -71,6 +87,5 @@ neigh_modify once no every 1 delay 0 check yes
 
 # Run MD
 
-velocity all create $t 4928459 loop geom
 fix 1 all nve
 run ${nsteps}

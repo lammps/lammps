@@ -228,7 +228,7 @@ void Dump::init()
   if (sort_flag) {
     if (multiproc > 1)
       error->all(FLERR,
-                 "Cannot dump sort when multiple dump files are written");
+                 "Cannot dump sort when 'nfile' or 'fileper' keywords are set to non-default values");
     if (sortcol == 0 && atom->tag_enable == 0)
       error->all(FLERR,"Cannot dump sort on atom IDs with no atom IDs defined");
     if (sortcol && sortcol > size_one)
@@ -237,8 +237,6 @@ void Dump::init()
       irregular = new Irregular(lmp);
 
     bigint size = group->count(igroup);
-    if (size > MAXSMALLINT) error->all(FLERR,"Too many atoms to dump sort");
-    int isize = static_cast<int> (size);
 
     // set reorderflag = 1 if can simply reorder local atoms rather than sort
     // criteria: sorting by ID, atom IDs are consecutive from 1 to Natoms
@@ -268,7 +266,7 @@ void Dump::init()
       MPI_Allreduce(&min,&minall,1,MPI_LMP_TAGINT,MPI_MIN,world);
       MPI_Allreduce(&max,&maxall,1,MPI_LMP_TAGINT,MPI_MAX,world);
 
-      if (maxall-minall+1 == isize) {
+      if (maxall-minall+1 == size) {
         reorderflag = 1;
         double range = maxall-minall + EPSILON;
         idlo = static_cast<tagint> (range*me/nprocs + minall);
@@ -284,7 +282,7 @@ void Dump::init()
         else if (me+1 != hi) idhi++;
 
         nme_reorder = idhi-idlo;
-        ntotal_reorder = isize;
+        ntotal_reorder = size;
       }
     }
   }
@@ -369,16 +367,6 @@ void Dump::write()
   if (multiproc != nprocs) MPI_Allreduce(&nme,&nmax,1,MPI_INT,MPI_MAX,world);
   else nmax = nme;
 
-  // write timestep header
-  // for multiproc,
-  //   nheader = # of lines in this file via Allreduce on clustercomm
-
-  bigint nheader = ntotal;
-  if (multiproc)
-    MPI_Allreduce(&bnme,&nheader,1,MPI_LMP_BIGINT,MPI_SUM,clustercomm);
-
-  if (filewriter && write_header_flag) write_header(nheader);
-
   // insure buf is sized for packing and communicating
   // use nmax to insure filewriter proc can receive info from others
   // limit nmax*size_one to int since used as arg in MPI calls
@@ -430,6 +418,19 @@ void Dump::write()
   if (sort_flag && sortcol == 0) pack(ids);
   else pack(nullptr);
   if (sort_flag) sort();
+
+  // write timestep header
+  // for multiproc,
+  //   nheader = # of lines in this file via Allreduce on clustercomm
+  //   must come after sort, which can change nme
+
+  bigint nheader = ntotal;
+  if (multiproc) {
+    bnme = nme;
+    MPI_Allreduce(&bnme,&nheader,1,MPI_LMP_BIGINT,MPI_SUM,clustercomm);
+  }
+
+  if (filewriter && write_header_flag) write_header(nheader);
 
   // if buffering, convert doubles into strings
   // insure sbuf is sized for communicating

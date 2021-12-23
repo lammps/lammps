@@ -7772,9 +7772,6 @@ keyword to allow for additional bonds to be formed
    The system size must fit in a 32-bit integer to use this dump
    style.
 
-*Too many atoms to dump sort*
-   Cannot sort when running with more than 2\^31 atoms.
-
 *Too many elements extracted from MEAM library.*
    Increase 'maxelt' in meam.h and recompile.
 

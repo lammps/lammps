@@ -66,7 +66,6 @@ static const char NC_SCALE_FACTOR_STR[]  = "scale_factor";
 static constexpr int THIS_IS_A_FIX      = -1;
 static constexpr int THIS_IS_A_COMPUTE  = -2;
 static constexpr int THIS_IS_A_VARIABLE = -3;
-static constexpr int THIS_IS_A_BIGINT   = -4;
 
 /* ---------------------------------------------------------------------- */
 
@@ -104,8 +103,7 @@ DumpNetCDFMPIIO::DumpNetCDFMPIIO(LAMMPS *lmp, int narg, char **arg) :
     int idim = 0;
     int ndims = 1;
     std::string mangled = earg[i];
-    bool constant = false;
-    Quantity quantity = Quantity::UNKNOWN;
+    int quantity = Quantity::UNKNOWN;
 
     // name mangling
     // in the AMBER specification
@@ -123,7 +121,7 @@ DumpNetCDFMPIIO::DumpNetCDFMPIIO(LAMMPS *lmp, int narg, char **arg) :
       idim = mangled[0] - 'x';
       ndims = 3;
       mangled = "scaled_coordinates";
-      // no quantity for scaled_coordinates
+      // no unit for scaled coordinates
     } else if ((mangled == "xu") || (mangled == "yu") || (mangled == "zu")) {
       idim = mangled[0] - 'x';
       ndims = 3;
@@ -222,8 +220,7 @@ void DumpNetCDFMPIIO::openfile()
     char *ptr = strchr(filestar,'*');
     *ptr = '\0';
     if (padflag == 0)
-      sprintf(filecurrent,"%s" BIGINT_FORMAT "%s",
-              filestar,update->ntimestep,ptr+1);
+      sprintf(filecurrent,"%s" BIGINT_FORMAT "%s", filestar,update->ntimestep,ptr+1);
     else {
       char bif[8],pad[16];
       strcpy(bif,BIGINT_FORMAT);
@@ -285,8 +282,6 @@ void DumpNetCDFMPIIO::openfile()
     // data structure standard.
     if (!platform::file_is_readable(filecurrent))
       error->all(FLERR, "cannot append to non-existent file {}", filecurrent);
-
-    MPI_Offset index[NC_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];
 
     if (singlefile_opened) return;
     singlefile_opened = 1;
@@ -352,7 +347,6 @@ void DumpNetCDFMPIIO::openfile()
 
     int dims[NC_MAX_VAR_DIMS];
     MPI_Offset index[NC_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];
-    float d[1];
 
     if (singlefile_opened) return;
     singlefile_opened = 1;
@@ -367,18 +361,18 @@ void DumpNetCDFMPIIO::openfile()
     NCERRX( ncmpi_def_dim(ncid, NC_LABEL_STR, 10, &label_dim), NC_LABEL_STR );
 
     for (int i = 0; i < n_perat; i++) {
-      int dims = perat[i].dims;
-      if (vector_dim[dims] < 0) {
+      int dim = perat[i].dims;
+      if (vector_dim[dim] < 0) {
         char dimstr[1024];
-        if (dims == 3) {
+        if (dim == 3) {
           strcpy(dimstr, NC_SPATIAL_STR);
-        } else if (dims == 6) {
+        } else if (dim == 6) {
           strcpy(dimstr, NC_VOIGT_STR);
         } else {
-          sprintf(dimstr, "vec%i", dims);
+          sprintf(dimstr, "vec%i", dim);
         }
-        if (dims != 1) {
-          NCERRX( ncmpi_def_dim(ncid, dimstr, dims, &vector_dim[dims]), dimstr );
+        if (dim != 1) {
+          NCERRX( ncmpi_def_dim(ncid, dimstr, dim, &vector_dim[dim]), dimstr );
         }
       }
     }
@@ -489,16 +483,13 @@ void DumpNetCDFMPIIO::openfile()
       index[1] = 0;
       count[0] = 1;
       count[1] = 5;
-      NCERR( ncmpi_put_vara_text(ncid, cell_angular_var, index, count,
-                                 "alpha") );
+      NCERR( ncmpi_put_vara_text(ncid, cell_angular_var, index, count, "alpha") );
       index[0] = 1;
       count[1] = 4;
-      NCERR( ncmpi_put_vara_text(ncid, cell_angular_var, index, count,
-                                 "beta") );
+      NCERR( ncmpi_put_vara_text(ncid, cell_angular_var, index, count, "beta") );
       index[0] = 2;
       count[1] = 5;
-      NCERR( ncmpi_put_vara_text(ncid, cell_angular_var, index, count,
-                                 "gamma") );
+      NCERR( ncmpi_put_vara_text(ncid, cell_angular_var, index, count, "gamma") );
     }
 
     NCERR( ncmpi_end_indep_data(ncid) );
@@ -886,8 +877,7 @@ void DumpNetCDFMPIIO::ncerr(int err, const char *descr, int line)
   if (err != NC_NOERR) {
     if (descr) error->one(__FILE__, line, "NetCDF failed with error '{}' (while accessing '{}') ",
                           ncmpi_strerror(err), descr);
-    else error->one(__FILE__, line,"NetCDF failed with error '{}' in line {} of {}.",
-                    ncmpi_strerror(err));
+    else error->one(__FILE__, line,"NetCDF failed with error '{}'.", ncmpi_strerror(err));
   }
 }
 

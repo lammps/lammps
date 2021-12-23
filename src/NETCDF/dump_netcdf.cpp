@@ -66,7 +66,6 @@ static const char NC_SCALE_FACTOR_STR[]  = "scale_factor";
 static constexpr int THIS_IS_A_FIX      = -1;
 static constexpr int THIS_IS_A_COMPUTE  = -2;
 static constexpr int THIS_IS_A_VARIABLE = -3;
-static constexpr int THIS_IS_A_BIGINT   = -4;
 
 /* ---------------------------------------------------------------------- */
 
@@ -104,8 +103,8 @@ DumpNetCDF::DumpNetCDF(LAMMPS *lmp, int narg, char **arg) :
     int idim = 0;
     int ndims = 1;
     std::string mangled = earg[i];
-    Quantity quantity = Quantity::UNKNOWN;
     bool constant = false;
+    int quantity = Quantity::UNKNOWN;
 
     // name mangling
     // in the AMBER specification
@@ -889,7 +888,7 @@ void DumpNetCDF::ncerr(int err, const char *descr, int line)
 {
   if (err != NC_NOERR) {
     if (descr) error->one(__FILE__, line, "NetCDF failed with error '{}' (while accessing '{}') ",
-                          nc_strerror(err), descr, line);
+                          nc_strerror(err), descr);
     else error->one(__FILE__, line,"NetCDF failed with error '{}' in line {} of {}.",
                     nc_strerror(err));
   }

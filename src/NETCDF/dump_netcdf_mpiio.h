@@ -29,12 +29,6 @@ DumpStyle(netcdf/mpiio,DumpNetCDFMPIIO);
 #include "dump_custom.h"
 
 namespace LAMMPS_NS {
-namespace NetCDFUnits {
-  enum Quantity : int;
-}    // namespace NetCDFUnits
-
-const int NC_MPIIO_FIELD_NAME_MAX = 100;
-const int DUMP_NC_MPIIO_MAX_DIMS = 100;
 
 class DumpNetCDFMPIIO : public DumpCustom {
  public:
@@ -43,16 +37,17 @@ class DumpNetCDFMPIIO : public DumpCustom {
   virtual void write();
 
  private:
+  static constexpr int NC_MPIIO_FIELD_NAME_MAX = 100;
+  static constexpr int DUMP_NC_MPIIO_MAX_DIMS = 100;
+
   // per-atoms quantities (positions, velocities, etc.)
   struct nc_perat_t {
     int dims;                              // number of dimensions
     int field[DUMP_NC_MPIIO_MAX_DIMS];     // field indices corresponding to the dim.
     char name[NC_MPIIO_FIELD_NAME_MAX];    // field name
     int var;                               // NetCDF variable
-    NetCDFUnits::Quantity quantity;        // type of the quantity
+    int quantity;                          // type of the quantity
   };
-
-  typedef void (DumpNetCDFMPIIO::*funcptr_t)(void *);
 
   int framei;    // current frame index
   int blocki;    // current block index

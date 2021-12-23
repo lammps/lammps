@@ -782,12 +782,12 @@ void Output::create_restart(int narg, char **arg)
   }
 
   int mpiioflag;
-  if (strstr(arg[1],".mpi")) mpiioflag = 1;
+  if (utils::strmatch(arg[1],"\\.mpiio$")) mpiioflag = 1;
   else mpiioflag = 0;
   if (nfile == 2) {
-    if (mpiioflag && !strstr(arg[2],".mpi"))
+    if (mpiioflag && !utils::strmatch(arg[2],"\\.mpiio$"))
       error->all(FLERR,"Both restart files must use MPI-IO or neither");
-    if (!mpiioflag && strstr(arg[2],".mpi"))
+    if (!mpiioflag && utils::strmatch(arg[2],"\\.mpiio$"))
       error->all(FLERR,"Both restart files must use MPI-IO or neither");
   }
 

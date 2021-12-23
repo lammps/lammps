@@ -137,7 +137,7 @@ Examples
    dump myDump all atom/gz 100 dump.atom.gz
    dump myDump all atom/zstd 100 dump.atom.zst
    dump 2 subgroup atom 50 dump.run.bin
-   dump 2 subgroup atom 50 dump.run.mpiio.bin
+   dump 2 subgroup atom/mpiio 50 dump.run.mpiio.bin
    dump 4a all custom 100 dump.myforce.* id type x y vx fx
    dump 4b flow custom 100 dump.%.myforce id type c_myF[3] v_ke
    dump 4b flow custom 100 dump.%.myforce id type c_myF[*] v_ke
@@ -218,6 +218,11 @@ parallel via the MPI-IO library.  For the remainder of this doc page,
 you should thus consider the *atom* and *atom/mpiio* styles (etc) to
 be inter-changeable.  The one exception is how the filename is
 specified for the MPI-IO styles, as explained below.
+
+.. warning::
+
+   The MPIIO package is currently unmaintained and has become
+   unreliable. Use with caution.
 
 The precision of values output to text-based dump files can be
 controlled by the :doc:`dump_modify format <dump_modify>` command and
@@ -451,6 +456,11 @@ counterparts.  This means you can write a dump file using MPI-IO and
 use the :doc:`read_dump <read_dump>` command or perform other
 post-processing, just as if the dump file was not written using
 MPI-IO.
+
+.. warning::
+
+   The MPIIO package is currently unmaintained and has become
+   unreliable. Use with caution.
 
 Note that MPI-IO dump files are one large file which all processors
 write to.  You thus cannot use the "%" wildcard character described

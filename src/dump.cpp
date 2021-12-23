@@ -128,8 +128,7 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
   char *ptr;
   if ((ptr = strchr(filename,'%'))) {
     if (strstr(style,"mpiio"))
-      error->all(FLERR,
-                 "Dump file MPI-IO output not allowed with % in filename");
+      error->all(FLERR,"Dump file MPI-IO output not allowed with % in filename");
     multiproc = 1;
     nclusterprocs = 1;
     filewriter = 1;
@@ -919,11 +918,6 @@ void Dump::modify_params(int narg, char **arg)
       else delay_flag = 0;
       iarg += 2;
 
-    } else if (strcmp(arg[iarg],"header") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
-      header_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
-      iarg += 2;
-
     } else if (strcmp(arg[iarg],"every") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
       int idump;
@@ -938,7 +932,26 @@ void Dump::modify_params(int narg, char **arg)
         n = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
         if (n <= 0) error->all(FLERR,"Illegal dump_modify command");
       }
+      output->mode_dump[idump] = 0;
       output->every_dump[idump] = n;
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"every/time") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      int idump;
+      for (idump = 0; idump < output->ndump; idump++)
+        if (strcmp(id,output->dump[idump]->id) == 0) break;
+      double delta;
+      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
+        delete [] output->var_dump[idump];
+        output->var_dump[idump] = utils::strdup(&arg[iarg+1][2]);
+        delta = 0.0;
+      } else {
+        delta = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+        if (delta <= 0.0) error->all(FLERR,"Illegal dump_modify command");
+      }
+      output->mode_dump[idump] = 1;
+      output->every_time_dump[idump] = delta;
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"fileper") == 0) {
@@ -1007,6 +1020,11 @@ void Dump::modify_params(int narg, char **arg)
         if (n == 0) error->all(FLERR,"Illegal dump_modify command");
         iarg += n;
       }
+
+    } else if (strcmp(arg[iarg],"header") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      header_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
 
     } else if (strcmp(arg[iarg],"maxfiles") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
@@ -1114,6 +1132,7 @@ double Dump::compute_time()
 {
   return update->atime + (update->ntimestep - update->atimestep)*update->dt;
 }
+
 /* ----------------------------------------------------------------------
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */

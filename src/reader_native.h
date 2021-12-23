@@ -52,7 +52,7 @@ class ReaderNative : public Reader {
   int nwords;         // # of per-atom columns in dump file
 
   int size_one;       // number of double for one atom
-  int maxbuf;         // maximum buffer size
+  size_t maxbuf;      // maximum buffer size
   int nchunk;         // number of chunks in the binary file
   int ichunk;         // index of current reading chunk
   int natom_chunk;    // number of atoms in the current chunks

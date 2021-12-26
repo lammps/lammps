@@ -36,6 +36,9 @@ namespace NetCDFUnits {
     DIPOLE_MOMENT,
   };
 
+  // for compatibility with older NetCDF versions
+  static constexpr int LMP_MAX_VAR_DIMS = 1024;
+
   // get the name of the unit for the given `quantity` in the given LAMMPS
   // `unit_style` any error will be reported through `error`
   std::string get_unit_for(const char *unit_style, int quantity, Error *error);

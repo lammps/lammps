@@ -46,6 +46,7 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using NetCDFUnits::Quantity;
 using NetCDFUnits::get_unit_for;
+using NetCDFUnits::LMP_MAX_VAR_DIMS;
 
 static const char NC_FRAME_STR[]         = "frame";
 static const char NC_SPATIAL_STR[]       = "spatial";
@@ -203,7 +204,7 @@ DumpNetCDFMPIIO::~DumpNetCDFMPIIO()
   closefile();
 
   delete[] perat;
-  if (thermovar) delete[] thermovar;
+  delete[] thermovar;
 
   if (int_buffer) memory->sfree(int_buffer);
   if (double_buffer) memory->sfree(double_buffer);
@@ -231,7 +232,7 @@ void DumpNetCDFMPIIO::openfile()
   }
 
   if (thermo && !singlefile_opened) {
-    if (thermovar)  delete[] thermovar;
+    delete[] thermovar;
     thermovar = new int[output->thermo->nfield];
   }
 
@@ -296,18 +297,18 @@ void DumpNetCDFMPIIO::openfile()
     NCERRX( ncmpi_inq_dimid(ncid, NC_LABEL_STR, &label_dim), NC_LABEL_STR );
 
     for (int i = 0; i < n_perat; i++) {
-      int dims = perat[i].dims;
-      if (vector_dim[dims] < 0) {
+      int dim = perat[i].dims;
+      if (vector_dim[dim] < 0) {
         char dimstr[1024];
-        if (dims == 3) {
+        if (dim == 3) {
           strcpy(dimstr, NC_SPATIAL_STR);
-        } else if (dims == 6) {
+        } else if (dim == 6) {
           strcpy(dimstr, NC_VOIGT_STR);
         } else {
-          sprintf(dimstr, "vec%i", dims);
+          sprintf(dimstr, "vec%i", dim);
         }
-        if (dims != 1) {
-          NCERRX( ncmpi_inq_dimid(ncid, dimstr, &vector_dim[dims]), dimstr );
+        if (dim != 1) {
+          NCERRX( ncmpi_inq_dimid(ncid, dimstr, &vector_dim[dim]), dimstr );
         }
       }
     }
@@ -345,8 +346,8 @@ void DumpNetCDFMPIIO::openfile()
     if (framei != 0 && !multifile)
       error->all(FLERR,"at keyword requires use of 'append yes'");
 
-    int dims[NC_MAX_VAR_DIMS];
-    MPI_Offset index[NC_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];
+    int dims[LMP_MAX_VAR_DIMS];
+    MPI_Offset index[LMP_MAX_VAR_DIMS], count[LMP_MAX_VAR_DIMS];
 
     if (singlefile_opened) return;
     singlefile_opened = 1;
@@ -359,6 +360,11 @@ void DumpNetCDFMPIIO::openfile()
     NCERRX( ncmpi_def_dim(ncid, NC_CELL_SPATIAL_STR, 3, &cell_spatial_dim), NC_CELL_SPATIAL_STR );
     NCERRX( ncmpi_def_dim(ncid, NC_CELL_ANGULAR_STR, 3, &cell_angular_dim), NC_CELL_ANGULAR_STR );
     NCERRX( ncmpi_def_dim(ncid, NC_LABEL_STR, 10, &label_dim), NC_LABEL_STR );
+
+    if (vector_dim[3] < 0)
+      NCERRX( ncmpi_def_dim(ncid, NC_SPATIAL_STR, 3, &vector_dim[3]), NC_SPATIAL_STR );
+    if (vector_dim[6] < 0)
+      NCERRX( ncmpi_def_dim(ncid, NC_VOIGT_STR, 6, &vector_dim[6]), NC_VOIGT_STR );
 
     for (int i = 0; i < n_perat; i++) {
       int dim = perat[i].dims;
@@ -384,7 +390,6 @@ void DumpNetCDFMPIIO::openfile()
     dims[0] = vector_dim[3];
     dims[1] = label_dim;
     NCERRX( ncmpi_def_var(ncid, NC_CELL_ANGULAR_STR, NC_CHAR, 2, dims, &cell_angular_var), NC_CELL_ANGULAR_STR );
-
     dims[0] = frame_dim;
     NCERRX( ncmpi_def_var(ncid, NC_TIME_STR, type_nc_real, 1, dims, &time_var), NC_TIME_STR);
     dims[0] = frame_dim;
@@ -731,8 +736,7 @@ void DumpNetCDFMPIIO::write_time_and_cell()
 
 void DumpNetCDFMPIIO::write_data(int n, double *mybuf)
 {
-  MPI_Offset start[NC_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];
-  MPI_Offset stride[NC_MAX_VAR_DIMS];
+  MPI_Offset start[LMP_MAX_VAR_DIMS], count[LMP_MAX_VAR_DIMS], stride[LMP_MAX_VAR_DIMS];
 
   if (!int_buffer) {
     n_buffer = std::max(1, n);

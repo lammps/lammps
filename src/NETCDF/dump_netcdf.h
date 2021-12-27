@@ -37,16 +37,16 @@ class DumpNetCDF : public DumpCustom {
   virtual void write();
 
  private:
-   static constexpr int NC_FIELD_NAME_MAX = 100;
-   static constexpr int DUMP_NC_MAX_DIMS = 100;
+  static constexpr int NC_FIELD_NAME_MAX = 100;
+  static constexpr int DUMP_NC_MAX_DIMS = 100;
 
   // per-atoms quantities (positions, velocities, etc.)
   struct nc_perat_t {
-    int dims;                          // number of dimensions
-    int field[DUMP_NC_MAX_DIMS];       // field indices corresponding to the dim.
-    char name[NC_FIELD_NAME_MAX];      // field name
-    int var;                           // NetCDF variable
-    int quantity;                      // type of the quantity
+    int dims;                        // number of dimensions
+    int field[DUMP_NC_MAX_DIMS];     // field indices corresponding to the dim.
+    char name[NC_FIELD_NAME_MAX];    // field name
+    int var;                         // NetCDF variable
+    int quantity;                    // type of the quantity
 
     bool constant;    // is this property per file (not per frame)
     int ndumped;      // number of enties written for this prop.

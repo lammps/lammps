@@ -13,7 +13,7 @@ endif
 
 NVCC = nvcc
 
-# obsolete hardware. not supported by current drivers anymore.
+# obsolete hardware. not supported by current drivers and toolkits anymore.
 #CUDA_ARCH = -arch=sm_13
 #CUDA_ARCH = -arch=sm_10 -DCUDA_PRE_THREE
 
@@ -28,11 +28,11 @@ NVCC = nvcc
 #CUDA_ARCH = -arch=sm_37
 
 # Maxwell hardware
-CUDA_ARCH = -arch=sm_50
+#CUDA_ARCH = -arch=sm_50
 #CUDA_ARCH = -arch=sm_52
 
 # Pascal hardware
-#CUDA_ARCH = -arch=sm_60
+CUDA_ARCH = -arch=sm_60
 #CUDA_ARCH = -arch=sm_61
 
 # Volta hardware
@@ -70,7 +70,7 @@ LIB_DIR = ./
 AR = ar
 BSH = /bin/sh
 
-# GPU binning not recommended with modern GPUs
+# GPU binning not recommended for most modern GPUs
 CUDPP_OPT = #-DUSE_CUDPP -Icudpp_mini
 
 include Nvidia.makefile

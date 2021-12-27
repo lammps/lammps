@@ -117,11 +117,13 @@ add_test(NAME DumpLocal COMMAND test_dump_local WORKING_DIRECTORY ${CMAKE_CURREN
 set_tests_properties(DumpLocal PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
 
 if(PKG_NETCDF)
-  find_program(NCDUMP NAMES ncdump REQUIRED)
+  find_program(NCDUMP NAMES ncdump ncdump.exe)
   add_executable(test_dump_netcdf test_dump_netcdf.cpp)
   target_link_libraries(test_dump_netcdf PRIVATE lammps GTest::GMock)
   add_test(NAME DumpNetCDF COMMAND test_dump_netcdf WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-  set_tests_properties(DumpNetCDF PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};NCDUMP_BINARY=${NCDUMP}")
+  if(NOT (NCDUMP STREQUAL "NCDUMP-NOTFOUND"))
+    set_tests_properties(DumpNetCDF PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR};NCDUMP_BINARY=${NCDUMP}")
+  endif()
 endif()
 
 if(BUILD_TOOLS)

@@ -13,6 +13,24 @@ endif
 
 NVCC = nvcc
 
+# obsolete hardware. not supported by current drivers anymore.
+#CUDA_ARCH = -arch=sm_13
+#CUDA_ARCH = -arch=sm_10 -DCUDA_PRE_THREE
+
+# Fermi hardware
+#CUDA_ARCH = -arch=sm_20
+#CUDA_ARCH = -arch=sm_21
+
+# Kepler hardware
+#CUDA_ARCH = -arch=sm_30
+#CUDA_ARCH = -arch=sm_32
+#CUDA_ARCH = -arch=sm_35
+#CUDA_ARCH = -arch=sm_37
+
+# Maxwell hardware
+#CUDA_ARCH = -arch=sm_50
+#CUDA_ARCH = -arch=sm_52
+
 # Pascal hardware
 CUDA_ARCH = -arch=sm_60
 #CUDA_ARCH = -arch=sm_61

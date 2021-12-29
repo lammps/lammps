@@ -504,7 +504,7 @@ void FixDPPimd::setup(int vflag)
   compute_p_cv();
   //compute_p_vir();
   end_of_step();
-  printf("after end of step\n");
+  printf("me = %d, after end of step\n", universe->me);
   //fprintf(stdout, "virial=%.8e.\n", virial[0]+virial[4]+virial[8]);
   //fprintf(stdout, "vir=%.8e.\n", vir);
   c_pe->addstep(update->ntimestep+1); 
@@ -538,7 +538,7 @@ void FixDPPimd::setup(int vflag)
   }
   // printf("\n");
 */
-  if(universe->me==0) printf("Successfully set up!\n");
+  printf("me = %d, Successfully set up!\n", universe->me);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1299,7 +1299,7 @@ void FixDPPimd::comm_init()
     x_last = 1; x_next = 0;
   }
   else
-  {
+  {    
     int ncomms = comm->nprocs;
     size_plan = universe->nprocs - ncomms;
     plan_send = new int [size_plan];
@@ -1366,6 +1366,29 @@ void FixDPPimd::comm_init()
 
   x_scaled = new double* [np];
   for(int i=0; i<np; i++) x_scaled[i] = nullptr;
+
+  printf("trying to allocate!\n");
+  int nlocal = atom->nlocal;
+  max_nlocal = nlocal+300;
+  max_nsend = nlocal+300;
+  int size = sizeof(double) * max_nlocal * 3;
+
+  buf_beads = new double*[np];
+  for(int i=0; i<np; i++)
+  {
+    // buf_beads[i] = (double*) memory->smalloc(size, "FixDPPimd:buf_beads[i]");
+    buf_beads[i] = new double[max_nlocal];
+  }
+
+  buf_send = (double*) memory->smalloc(sizeof(double)*max_nlocal*3, "FixDPPimd:buf_send");
+  buf_recv = (double*) memory->smalloc(sizeof(double)*max_nlocal*3, "FixDPPimd:buf_recv");
+
+  tag_search = (tagint*) memory->smalloc(sizeof(tagint)*max_nsend, "FixDPPimd:tag_search");
+  tag_send = (tagint*) memory->smalloc(sizeof(tagint)*max_nsend, "FixDPPimd:tag_send");    
+  tag_recv = (tagint*) memory->smalloc(sizeof(tagint)*max_nsend, "FixDPPimd:tag_recv");    
+
+  printf("me = %d, comm allocated!\n", universe->me);
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1379,12 +1402,21 @@ void FixDPPimd::comm_exec(double **ptr)
     max_nlocal = nlocal+200;
     int size = sizeof(double) * max_nlocal * 3;
 
+    // printf("let's print buf_beads!\n");
     for(int i=0; i<np; i++)
-      buf_beads[i] = (double*) memory->srealloc(buf_beads[i], size, "FixDPPimd:buf_beads[i]");
+    // {
+    //   for(int j=0; j<nlocal; j++)
+    //   {
+    //     printf("%.4e %.4e %.4e\n", buf_beads[i][3*j], buf_beads[i][3*j+1], buf_beads[i][3*j+2]);
+    //   }
+    // }
+    buf_beads[i] = (double*) memory->srealloc(buf_beads[i], size, "FixDPPimd:buf_beads[i]");
   }
 
+  // printf("copying!\n");
   // copy the local positions
-  memcpy(buf_beads[universe->iworld], &(ptr[0][0]), sizeof(double)*nlocal*3);
+  memcpy(&(buf_beads[universe->iworld][0]), &(ptr[0][0]), sizeof(double)*nlocal*3);
+  // printf("copyed!\n");
 
   // printf("going over comm plans\n");
   // go over comm plans
@@ -1401,7 +1433,7 @@ void FixDPPimd::comm_exec(double **ptr)
     // allocate arrays
     if(nsearch > max_nsend)
     {
-      // printf("nsearch = %d\n", nsearch);
+      printf("nsearch = %d\n", nsearch);
       max_nsend = nsearch+200;
       tag_search = (tagint*) memory->srealloc(tag_search, sizeof(tagint)*max_nsend, "FixDPPimd:tag_search");
       tag_send = (tagint*) memory->srealloc(tag_send, sizeof(tagint)*max_nsend, "FixDPPimd:tag_send");    
@@ -1414,7 +1446,7 @@ void FixDPPimd::comm_exec(double **ptr)
       atom->tag, nlocal, MPI_LMP_TAGINT, plan_send[iplan], 0, tag_search,  nsearch,  MPI_LMP_TAGINT, plan_recv[iplan], 0, universe->uworld, MPI_STATUS_IGNORE
                   );
 
-    // printf("tags sent\n");
+    // printf("me = %d, tags sent\n", universe->me);
 
     // wrap positions
     // double *wrap_ptr = buf_send;
@@ -1440,8 +1472,13 @@ void FixDPPimd::comm_exec(double **ptr)
     // printf("me = %d, nsend = %d, nrecv = %d\n", universe->me, nsend, nrecv);
 
     // allocate tag_recv and buf_recv
-    tag_recv = (tagint*) memory->srealloc(tag_recv, sizeof(tagint)*nrecv, "FixDPPimd:tag_recv");
-    buf_recv = (double*) memory->srealloc(buf_recv, sizeof(double)*nrecv*3, "FixDPPimd:buf_recv");
+    if(nrecv > nlocal)
+    {
+      printf("me = %d, need to reallocated rev!\n", universe->me);
+      int max_nrecv = nrecv + 200;
+    tag_recv = (tagint*) memory->srealloc(tag_recv, sizeof(tagint)*max_nrecv, "FixDPPimd:tag_recv");
+    buf_recv = (double*) memory->srealloc(buf_recv, sizeof(double)*max_nrecv*3, "FixDPPimd:buf_recv");
+    }
 
     // sendrecv the tags of the found atoms
     MPI_Sendrecv(

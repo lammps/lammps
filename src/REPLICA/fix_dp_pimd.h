@@ -71,11 +71,10 @@ class FixDPPimd : public Fix {
   /* inter-partition communication */
 
   int max_nsend;
-  tagint* tag_send;
-  double *buf_send;
+  tagint *tag_search, *tag_send, *tag_recv;
+  double *buf_send, *buf_recv, **buf_beads;
 
   int max_nlocal;
-  double *buf_recv, **buf_beads;
 
   int size_plan;
   int *plan_send, *plan_recv;
@@ -85,7 +84,7 @@ class FixDPPimd : public Fix {
   void comm_exec(double **);
 
   double **coords, **forces;
-  int nsend, nrecv;
+  int nsearch, nfound, nsend, nrecv;
   tagint* tags_send;
   double *coords_send, *coords_recv;
   double *forces_send, *forces_recv;

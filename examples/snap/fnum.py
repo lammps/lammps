@@ -12,7 +12,7 @@ for fdelta in fdeltalist:
     cmdlist = ["-screen","none","-var","fdelta",f'{fdelta}']
     lmp = lammps.lammps(cmdargs = cmdlist)
     lmp.file(infile)
-    natoms = lmp.get_natoms()
+    nlocal = lmp.extract_global("nlocal")
 
     f = lmp.extract_atom("f")
     fnum = lmp.extract_fix("fnum", lammps.LMP_STYLE_ATOM, lammps.LMP_TYPE_ARRAY)
@@ -20,5 +20,5 @@ for fdelta in fdeltalist:
     sumsq = 0
     for i in range(nlocal):
         sumsq += sqerr(fnum[i],f[i])
-    rmse = (sumsq/natoms)**0.5
+    rmse = (sumsq/nlocal)**0.5
     print(f"{fdelta} {rmse}")

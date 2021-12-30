@@ -1732,7 +1732,7 @@ void AtomVec::data_atom(double *coord, imageint imagetmp, const std::vector<std:
     if (datatype == Atom::DOUBLE) {
       if (cols == 0) {
         double *vec = *((double **) pdata);
-        vec[nlocal] = utils::numeric(FLERR,values[ivalue++].c_str(),true,lmp);
+        vec[nlocal] = utils::numeric(FLERR,values[ivalue++],true,lmp);
       } else {
         double **array = *((double ***) pdata);
         if (array == atom->x) {      // x was already set by coord arg
@@ -1740,25 +1740,25 @@ void AtomVec::data_atom(double *coord, imageint imagetmp, const std::vector<std:
           continue;
         }
         for (m = 0; m < cols; m++)
-          array[nlocal][m] = utils::numeric(FLERR,values[ivalue++].c_str(),true,lmp);
+          array[nlocal][m] = utils::numeric(FLERR,values[ivalue++],true,lmp);
       }
     } else if (datatype == Atom::INT) {
       if (cols == 0) {
         int *vec = *((int **) pdata);
-        vec[nlocal] = utils::inumeric(FLERR,values[ivalue++].c_str(),true,lmp);
+        vec[nlocal] = utils::inumeric(FLERR,values[ivalue++],true,lmp);
       } else {
         int **array = *((int ***) pdata);
         for (m = 0; m < cols; m++)
-          array[nlocal][m] = utils::inumeric(FLERR,values[ivalue++].c_str(),true,lmp);
+          array[nlocal][m] = utils::inumeric(FLERR,values[ivalue++],true,lmp);
       }
     } else if (datatype == Atom::BIGINT) {
       if (cols == 0) {
         bigint *vec = *((bigint **) pdata);
-        vec[nlocal] = utils::bnumeric(FLERR,values[ivalue++].c_str(),true,lmp);
+        vec[nlocal] = utils::bnumeric(FLERR,values[ivalue++],true,lmp);
       } else {
         bigint **array = *((bigint ***) pdata);
         for (m = 0; m < cols; m++)
-          array[nlocal][m] = utils::bnumeric(FLERR,values[ivalue++].c_str(),true,lmp);
+          array[nlocal][m] = utils::bnumeric(FLERR,values[ivalue++],true,lmp);
       }
     }
   }

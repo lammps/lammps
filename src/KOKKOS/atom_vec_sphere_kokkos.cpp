@@ -2543,7 +2543,8 @@ void AtomVecSphereKokkos::create_atom(int itype, double *coord)
    initialize other atom quantities
 ------------------------------------------------------------------------- */
 
-void AtomVecSphereKokkos::data_atom(double *coord, imageint imagetmp, char **values)
+void AtomVecSphereKokkos::data_atom(double *coord, imageint imagetmp,
+                                    const std::vector<std::string> &values)
 {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
@@ -2590,13 +2591,14 @@ void AtomVecSphereKokkos::data_atom(double *coord, imageint imagetmp, char **val
    initialize other atom quantities for this sub-style
 ------------------------------------------------------------------------- */
 
-int AtomVecSphereKokkos::data_atom_hybrid(int nlocal, char **values)
+int AtomVecSphereKokkos::data_atom_hybrid(int nlocal, const std::vector<std::string> &values,
+                                          int offset)
 {
-  radius[nlocal] = 0.5 * utils::numeric(FLERR,values[0],true,lmp);
+  radius[nlocal] = 0.5 * utils::numeric(FLERR,values[offset],true,lmp);
   if (radius[nlocal] < 0.0)
     error->one(FLERR,"Invalid radius in Atoms section of data file");
 
-  double density = utils::numeric(FLERR,values[1],true,lmp);
+  double density = utils::numeric(FLERR,values[offset+1],true,lmp);
   if (density <= 0.0)
     error->one(FLERR,"Invalid density in Atoms section of data file");
 

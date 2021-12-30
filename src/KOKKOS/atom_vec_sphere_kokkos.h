@@ -58,8 +58,8 @@ class AtomVecSphereKokkos : public AtomVecKokkos {
   int pack_restart(int, double *);
   int unpack_restart(double *);
   void create_atom(int, double *);
-  void data_atom(double *, imageint, char **);
-  int data_atom_hybrid(int, char **);
+  void data_atom(double *, imageint, const std::vector<std::string> &);
+  int data_atom_hybrid(int, const std::vector<std::string> &, int);
   void data_vel(int, char **);
   int data_vel_hybrid(int, char **);
   void pack_data(double **);

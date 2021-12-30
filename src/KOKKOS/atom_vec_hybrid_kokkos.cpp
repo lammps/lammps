@@ -970,7 +970,8 @@ void AtomVecHybridKokkos::create_atom(int itype, double *coord)
    grow() occurs here so arrays for all sub-styles are grown
 ------------------------------------------------------------------------- */
 
-void AtomVecHybridKokkos::data_atom(double *coord, imageint imagetmp, char **values)
+void AtomVecHybridKokkos::data_atom(double *coord, imageint imagetmp,
+                                    const std::vector<std::string> &values)
 {
   atomKK->sync(Host,X_MASK|TAG_MASK|TYPE_MASK|IMAGE_MASK|MASK_MASK|V_MASK|OMEGA_MASK/*|ANGMOM_MASK*/);
 
@@ -1009,7 +1010,7 @@ void AtomVecHybridKokkos::data_atom(double *coord, imageint imagetmp, char **val
 
   int m = 5;
   for (int k = 0; k < nstyles; k++)
-    m += styles[k]->data_atom_hybrid(nlocal,&values[m]);
+    m += styles[k]->data_atom_hybrid(nlocal,values,m);
 
   atom->nlocal++;
 }

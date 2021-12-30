@@ -1058,6 +1058,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
   double *coord;
   char *next;
 
+  // use the first line to detect and validate the number of words/tokens per line
   next = strchr(buf,'\n');
   *next = '\0';
   int nwords = utils::trim_and_count_words(buf);
@@ -1065,8 +1066,6 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
 
   if (nwords != avec->size_data_atom && nwords != avec->size_data_atom + 3)
     error->all(FLERR,"Incorrect atom format in data file");
-
-  char **values = new char*[nwords];
 
   // set bounds for my proc
   // if periodic and I am lo/hi proc, adjust bounds by EPSILON
@@ -1138,21 +1137,16 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
-
-    for (m = 0; m < nwords; m++) {
-      buf += strspn(buf," \t\n\r\f");
-      buf[strcspn(buf," \t\n\r\f")] = '\0';
-      if (strlen(buf) == 0)
-        error->all(FLERR,"Incorrect atom format in data file");
-      values[m] = buf;
-      buf += strlen(buf)+1;
-    }
+    *next = '\0';
+    auto values = Tokenizer(utils::trim_comment(buf)).as_vector();
+    if (values.size() != nwords)
+      error->all(FLERR, "Incorrect atom format in data file: {}", utils::trim(buf));
 
     int imx = 0, imy = 0, imz = 0;
     if (imageflag) {
-      imx = utils::inumeric(FLERR,values[iptr],false,lmp);
-      imy = utils::inumeric(FLERR,values[iptr+1],false,lmp);
-      imz = utils::inumeric(FLERR,values[iptr+2],false,lmp);
+      imx = utils::inumeric(FLERR,values[iptr].c_str(),false,lmp);
+      imy = utils::inumeric(FLERR,values[iptr+1].c_str(),false,lmp);
+      imz = utils::inumeric(FLERR,values[iptr+2].c_str(),false,lmp);
       if ((domain->dimension == 2) && (imz != 0))
         error->all(FLERR,"Z-direction image flag must be 0 for 2d-systems");
       if ((!domain->xperiodic) && (imx != 0)) { reset_image_flag[0] = true; imx = 0; }
@@ -1163,9 +1157,9 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
         (((imageint) (imy + IMGMAX) & IMGMASK) << IMGBITS) |
         (((imageint) (imz + IMGMAX) & IMGMASK) << IMG2BITS);
 
-    xdata[0] = utils::numeric(FLERR,values[xptr],false,lmp);
-    xdata[1] = utils::numeric(FLERR,values[xptr+1],false,lmp);
-    xdata[2] = utils::numeric(FLERR,values[xptr+2],false,lmp);
+    xdata[0] = utils::numeric(FLERR,values[xptr].c_str(),false,lmp);
+    xdata[1] = utils::numeric(FLERR,values[xptr+1].c_str(),false,lmp);
+    xdata[2] = utils::numeric(FLERR,values[xptr+2].c_str(),false,lmp);
     if (shiftflag) {
       xdata[0] += shift[0];
       xdata[1] += shift[1];
@@ -1193,7 +1187,6 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
 
     buf = next + 1;
   }
-  delete [] values;
 }
 
 /* ----------------------------------------------------------------------

@@ -29,6 +29,7 @@
 #include "modify.h"
 #include "molecule.h"
 #include "neighbor.h"
+#include "tokenizer.h"
 #include "update.h"
 #include "variable.h"
 
@@ -1252,18 +1253,25 @@ void Atom::data_vels(int n, char *buf, tagint id_offset)
 void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
                       int type_offset)
 {
-  int m,tmp,itype,rv;
+  int m,itype;
   tagint atom1,atom2;
   char *next;
   int newton_bond = force->newton_bond;
+  const std::string errtxt = "Bonds section of data file: ";
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    rv = sscanf(buf,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT,
-                &tmp,&itype,&atom1,&atom2);
-    if (rv != 4)
-      error->one(FLERR,"Incorrect format of Bonds section in data file");
+    try {
+      ValueTokenizer values(utils::trim_comment(buf));
+      values.next_int();
+      itype = values.next_int();
+      atom1 = values.next_tagint();
+      atom2 = values.next_tagint();
+      if (values.has_next()) throw TokenizerException("Too many tokens","");
+    } catch (TokenizerException &e) {
+      error->one(FLERR,e.what() + std::string(" in ") + errtxt + utils::trim(buf));
+    }
     if (id_offset) {
       atom1 += id_offset;
       atom2 += id_offset;
@@ -1272,9 +1280,9 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
 
     if ((atom1 <= 0) || (atom1 > map_tag_max) ||
         (atom2 <= 0) || (atom2 > map_tag_max) || (atom1 == atom2))
-      error->one(FLERR,"Invalid atom ID in Bonds section of data file");
+      error->one(FLERR,"Invalid atom ID in " + errtxt + utils::trim(buf));
     if (itype <= 0 || itype > nbondtypes)
-      error->one(FLERR,"Invalid bond type in Bonds section of data file");
+      error->one(FLERR,"Invalid bond type in " + errtxt + utils::trim(buf));
     if ((m = map(atom1)) >= 0) {
       if (count) count[m]++;
       else {
@@ -1309,18 +1317,26 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
 void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
                        int type_offset)
 {
-  int m,tmp,itype,rv;
+  int m,itype;
   tagint atom1,atom2,atom3;
   char *next;
   int newton_bond = force->newton_bond;
+  const std::string errtxt = "Angles section of data file: ";
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    rv = sscanf(buf,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
-                &tmp,&itype,&atom1,&atom2,&atom3);
-    if (rv != 5)
-      error->one(FLERR,"Incorrect format of Angles section in data file");
+    try {
+      ValueTokenizer values(utils::trim_comment(buf));
+      values.next_int();
+      itype = values.next_int();
+      atom1 = values.next_tagint();
+      atom2 = values.next_tagint();
+      atom3 = values.next_tagint();
+      if (values.has_next()) throw TokenizerException("Too many tokens","");
+    } catch (TokenizerException &e) {
+      error->one(FLERR,e.what() + std::string(" in ") + errtxt + utils::trim(buf));
+    }
     if (id_offset) {
       atom1 += id_offset;
       atom2 += id_offset;
@@ -1332,9 +1348,9 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
         (atom2 <= 0) || (atom2 > map_tag_max) ||
         (atom3 <= 0) || (atom3 > map_tag_max) ||
         (atom1 == atom2) || (atom1 == atom3) || (atom2 == atom3))
-      error->one(FLERR,"Invalid atom ID in Angles section of data file");
+      error->one(FLERR,"Invalid atom ID in " + errtxt + utils::trim(buf));
     if (itype <= 0 || itype > nangletypes)
-      error->one(FLERR,"Invalid angle type in Angles section of data file");
+      error->one(FLERR,"Invalid angle type in " + errtxt + utils::trim(buf));
     if ((m = map(atom2)) >= 0) {
       if (count) count[m]++;
       else {
@@ -1381,19 +1397,27 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
 void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
                           int type_offset)
 {
-  int m,tmp,itype,rv;
+  int m,itype;
   tagint atom1,atom2,atom3,atom4;
   char *next;
   int newton_bond = force->newton_bond;
+  const std::string errtxt = "Dihedrals section of data file: ";
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    rv = sscanf(buf,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT
-                " " TAGINT_FORMAT " " TAGINT_FORMAT,
-                &tmp,&itype,&atom1,&atom2,&atom3,&atom4);
-    if (rv != 6)
-      error->one(FLERR,"Incorrect format of Dihedrals section in data file");
+    try {
+      ValueTokenizer values(utils::trim_comment(buf));
+      values.next_int();
+      itype = values.next_int();
+      atom1 = values.next_tagint();
+      atom2 = values.next_tagint();
+      atom3 = values.next_tagint();
+      atom4 = values.next_tagint();
+      if (values.has_next()) throw TokenizerException("Too many tokens","");
+    } catch (TokenizerException &e) {
+      error->one(FLERR,e.what() + std::string(" in ") + errtxt + utils::trim(buf));
+    }
     if (id_offset) {
       atom1 += id_offset;
       atom2 += id_offset;
@@ -1408,10 +1432,9 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
         (atom4 <= 0) || (atom4 > map_tag_max) ||
         (atom1 == atom2) || (atom1 == atom3) || (atom1 == atom4) ||
         (atom2 == atom3) || (atom2 == atom4) || (atom3 == atom4))
-      error->one(FLERR,"Invalid atom ID in Dihedrals section of data file");
+      error->one(FLERR, "Invalid atom ID in " + errtxt + utils::trim(buf));
     if (itype <= 0 || itype > ndihedraltypes)
-      error->one(FLERR,
-                 "Invalid dihedral type in Dihedrals section of data file");
+      error->one(FLERR, "Invalid dihedral type in " + errtxt + utils::trim(buf));
     if ((m = map(atom2)) >= 0) {
       if (count) count[m]++;
       else {
@@ -1472,19 +1495,27 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
 void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
                           int type_offset)
 {
-  int m,tmp,itype,rv;
+  int m,itype;
   tagint atom1,atom2,atom3,atom4;
   char *next;
   int newton_bond = force->newton_bond;
+  const std::string errtxt = "Impropers section of data file: ";
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    rv = sscanf(buf,"%d %d "
-                TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
-                &tmp,&itype,&atom1,&atom2,&atom3,&atom4);
-    if (rv != 6)
-      error->one(FLERR,"Incorrect format of Impropers section in data file");
+    try {
+      ValueTokenizer values(utils::trim_comment(buf));
+      values.next_int();
+      itype = values.next_int();
+      atom1 = values.next_tagint();
+      atom2 = values.next_tagint();
+      atom3 = values.next_tagint();
+      atom4 = values.next_tagint();
+      if (values.has_next()) throw TokenizerException("Too many tokens","");
+    } catch (TokenizerException &e) {
+      error->one(FLERR,e.what() + std::string(" in ") + errtxt + utils::trim(buf));
+    }
     if (id_offset) {
       atom1 += id_offset;
       atom2 += id_offset;
@@ -1499,10 +1530,9 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
         (atom4 <= 0) || (atom4 > map_tag_max) ||
         (atom1 == atom2) || (atom1 == atom3) || (atom1 == atom4) ||
         (atom2 == atom3) || (atom2 == atom4) || (atom3 == atom4))
-      error->one(FLERR,"Invalid atom ID in Impropers section of data file");
+      error->one(FLERR, "Invalid atom ID in " + errtxt + utils::trim(buf));
     if (itype <= 0 || itype > nimpropertypes)
-      error->one(FLERR,
-                 "Invalid improper type in Impropers section of data file");
+      error->one(FLERR, "Invalid improper type in " + errtxt + utils::trim(buf));
     if ((m = map(atom2)) >= 0) {
       if (count) count[m]++;
       else {

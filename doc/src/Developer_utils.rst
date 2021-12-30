@@ -56,11 +56,11 @@ String to number conversions with validity check
 
 These functions should be used to convert strings to numbers. They are
 are strongly preferred over C library calls like ``atoi()`` or
-``atof()`` since they check if the **entire** provided string is a valid
+``atof()`` since they check if the **entire** string is a valid
 (floating-point or integer) number, and will error out instead of
 silently returning the result of a partial conversion or zero in cases
-where the string is not a valid number.  This behavior allows to more
-easily detect typos or issues when processing input files.
+where the string is not a valid number.  This behavior improves
+detecting typos or issues when processing input files.
 
 Similarly the :cpp:func:`logical() <LAMMPS_NS::utils::logical>` function
 will convert a string into a boolean and will only accept certain words.
@@ -76,19 +76,34 @@ strings for compliance without conversion.
 
 ----------
 
-.. doxygenfunction:: numeric
+.. doxygenfunction:: numeric(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp)
    :project: progguide
 
-.. doxygenfunction:: inumeric
+.. doxygenfunction:: numeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
    :project: progguide
 
-.. doxygenfunction:: bnumeric
+.. doxygenfunction:: inumeric(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp)
    :project: progguide
 
-.. doxygenfunction:: tnumeric
+.. doxygenfunction:: inumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
    :project: progguide
 
-.. doxygenfunction:: logical
+.. doxygenfunction:: bnumeric(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp)
+   :project: progguide
+
+.. doxygenfunction:: bnumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+   :project: progguide
+
+.. doxygenfunction:: tnumeric(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp)
+   :project: progguide
+
+.. doxygenfunction:: tnumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+   :project: progguide
+
+.. doxygenfunction:: logical(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp)
+   :project: progguide
+
+.. doxygenfunction:: logical(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
    :project: progguide
 
 

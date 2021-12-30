@@ -18,7 +18,7 @@ for fdelta in fdeltalist:
     fnum = lmp.extract_fix("fnum", lammps.LMP_STYLE_ATOM, lammps.LMP_TYPE_ARRAY)
 
     sumsq = 0
-    for i in range(natoms):
+    for i in range(nlocal):
         sumsq += sqerr(fnum[i],f[i])
     rmse = (sumsq/natoms)**0.5
     print(f"{fdelta} {rmse}")

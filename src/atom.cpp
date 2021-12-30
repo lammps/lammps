@@ -1773,17 +1773,20 @@ void Atom::set_mass(const char *file, int line, const char *str, int type_offset
 
   int itype;
   double mass_one;
-  int n = sscanf(str,"%d %lg",&itype,&mass_one);
-  if (n != 2) error->all(file,line,"Invalid mass line in data file");
-  itype += type_offset;
+  try {
+    ValueTokenizer values(utils::trim_comment(str));
+    itype = values.next_int() + type_offset;
+    mass_one = values.next_double();
+    if (values.has_next()) throw TokenizerException("Too many tokens", "");
 
-  if (itype < 1 || itype > ntypes)
-    error->all(file,line,"Invalid type for mass set");
+    if (itype < 1 || itype > ntypes) throw TokenizerException("Invalid atom type", "");
+    if (mass_one <= 0.0) throw TokenizerException("Invalid mass value", "");
+  } catch (TokenizerException &e) {
+    error->all(file,line,"{} in Masses section of data file: {}", e.what(), utils::trim(str));
+  }
 
   mass[itype] = mass_one;
   mass_setflag[itype] = 1;
-
-  if (mass[itype] <= 0.0) error->all(file,line,"Invalid mass value");
 }
 
 /* ----------------------------------------------------------------------

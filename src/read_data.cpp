@@ -35,6 +35,7 @@
 #include "molecule.h"
 #include "pair.h"
 #include "special.h"
+#include "tokenizer.h"
 #include "update.h"
 
 #include <cctype>
@@ -1658,12 +1659,12 @@ void ReadData::bonus(bigint nbonus, AtomVec *ptr, const char *type)
    read all body data
    variable amount of info per body, described by ninteger and ndouble
    to find atoms, must build atom map if not a molecular system
-   if not firstpass, just read past data, but no processing of data
+   if not firstpass, just read past body data and only process body header
 ------------------------------------------------------------------------- */
 
 void ReadData::bodies(int firstpass, AtomVec *ptr)
 {
-  int m,nchunk,nline,nmax,ninteger,ndouble,nword,ncount,onebody,tmp,rv;
+  int m,nchunk,nline,nmax,ninteger,ndouble,nword,ncount,onebody;
   char *eof;
 
   int mapflag = 0;
@@ -1690,11 +1691,25 @@ void ReadData::bodies(int firstpass, AtomVec *ptr)
 
       while (nchunk < nmax && nline <= CHUNK-MAXBODY) {
         eof = utils::fgets_trunc(&buffer[m],MAXLINE,fp);
+        const char *buf = &buffer[m];
         if (eof == nullptr) error->one(FLERR,"Unexpected end of data file");
-        rv = sscanf(&buffer[m],"%d %d %d",&tmp,&ninteger,&ndouble);
-        if (rv != 3)
-          error->one(FLERR,"Incorrect format in Bodies section of data file");
-        m += strlen(&buffer[m]);
+        try {
+          auto values = ValueTokenizer(utils::trim_comment(buf));
+          tagint tagdata = values.next_tagint() + id_offset;
+          ninteger = values.next_int();
+          ndouble = values.next_double();
+          if (tagdata <= 0 || tagdata > atom->map_tag_max)
+            throw TokenizerException("Invalid atom ID in body header", utils::trim(buf));
+          if (ninteger < 0)
+            throw TokenizerException("Invalid number of integers", utils::trim(buf));
+          if (ndouble < 0)
+            throw TokenizerException("Invalid number of doubles", utils::trim(buf));
+          if (values.has_next())
+            throw TokenizerException("Too many tokens in body header", utils::trim(buf));
+        } catch (TokenizerException &e) {
+          error->one(FLERR,std::string(e.what()) + " while reading Bodies section of data file");
+        }
+        m += strlen(buf);
 
         // read lines one at a time into buffer and count words
         // count to ninteger and ndouble until have enough lines

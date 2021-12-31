@@ -1643,18 +1643,10 @@ void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
     ninteger = utils::inumeric(FLERR,values[1],false,lmp);
     ndouble = utils::inumeric(FLERR,values[2],false,lmp);
 
-    if (tagdata <= 0 || tagdata > map_tag_max)
-      error->one(FLERR,"Invalid atom ID in Bodies section of data file");
-
     if (unique_tags->find(tagdata) == unique_tags->end())
       unique_tags->insert(tagdata);
     else
       error->one(FLERR,"Duplicate atom ID in Bodies section of data file");
-
-    if (ninteger < 0)
-      error->one(FLERR,"Invalid number of integers in Bodies section of data file");
-    if (ndouble < 0)
-      error->one(FLERR,"Invalid number of doubles in Bodies section of data file");
 
     buf = next + 1;
     m = map(tagdata);

@@ -226,7 +226,7 @@ namespace utils {
    *  \param lmp      pointer to top-level LAMMPS class instance
    *  \return         double precision floating point number */
 
-  double inumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp);
+  int inumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp);
 
   /*! Convert a string to an integer number while checking
    *  if it is a valid integer number (bigint)
@@ -249,7 +249,7 @@ namespace utils {
    *  \param lmp      pointer to top-level LAMMPS class instance
    *  \return         double precision floating point number */
 
-  double bnumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp);
+  bigint bnumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp);
 
   /*! Convert a string to an integer number while checking
    *  if it is a valid integer number (tagint)
@@ -272,7 +272,7 @@ namespace utils {
    *  \param lmp      pointer to top-level LAMMPS class instance
    *  \return         double precision floating point number */
 
-  double tnumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp);
+  tagint tnumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp);
 
   /*! Compute index bounds derived from a string with a possible wildcard
    *

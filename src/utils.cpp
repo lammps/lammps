@@ -422,7 +422,7 @@ int utils::inumeric(const char *file, int line, const std::string &str, bool do_
    wrapper for inumeric() that accepts a char pointer instead of a string
 ------------------------------------------------------------------------- */
 
-double utils::inumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+int utils::inumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
 {
   if (str)
     return inumeric(file, line, std::string(str), do_abort, lmp);
@@ -467,7 +467,7 @@ bigint utils::bnumeric(const char *file, int line, const std::string &str, bool 
    wrapper for bnumeric() that accepts a char pointer instead of a string
 ------------------------------------------------------------------------- */
 
-double utils::bnumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+bigint utils::bnumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
 {
   if (str)
     return bnumeric(file, line, std::string(str), do_abort, lmp);
@@ -512,7 +512,7 @@ tagint utils::tnumeric(const char *file, int line, const std::string &str, bool 
    wrapper for tnumeric() that accepts a char pointer instead of a string
 ------------------------------------------------------------------------- */
 
-double utils::tnumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+tagint utils::tnumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
 {
   if (str)
     return tnumeric(file, line, std::string(str), do_abort, lmp);

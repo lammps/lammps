@@ -1198,7 +1198,6 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
 void Atom::data_vels(int n, char *buf, tagint id_offset)
 {
   int j,m;
-  tagint tagdata;
   char *next;
 
   next = strchr(buf,'\n');
@@ -1220,7 +1219,7 @@ void Atom::data_vels(int n, char *buf, tagint id_offset)
     if (values.size() != nwords)
       error->all(FLERR, "Incorrect atom format in data file: {}", utils::trim(buf));
 
-    tagdata = utils::tnumeric(FLERR,values[0],false,lmp) + id_offset;
+    tagint tagdata = utils::tnumeric(FLERR,values[0],false,lmp) + id_offset;
     if (tagdata <= 0 || tagdata > map_tag_max)
       error->one(FLERR,"Invalid atom ID in Velocities section of data file");
     if ((m = map(tagdata)) >= 0) avec->data_vel(m,values);
@@ -1577,7 +1576,7 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
 
 void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus, tagint id_offset)
 {
-  int j,m,tagdata;
+  int j,m;
   char *next;
 
   next = strchr(buf,'\n');
@@ -1588,35 +1587,28 @@ void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus, tagint id_offset)
   if (nwords != avec_bonus->size_data_bonus)
     error->all(FLERR,"Incorrect bonus data format in data file");
 
-  char **values = new char*[nwords];
-
   // loop over lines of bonus atom data
   // tokenize the line into values
   // if I own atom tag, unpack its values
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
+    *next = '\0';
+    auto values = Tokenizer(utils::trim_comment(buf)).as_vector();
+    if (values.size() != nwords)
+      error->all(FLERR, "Incorrect atom format in data file: {}", utils::trim(buf));
 
-    for (j = 0; j < nwords; j++) {
-      buf += strspn(buf," \t\n\r\f");
-      buf[strcspn(buf," \t\n\r\f")] = '\0';
-      values[j] = buf;
-      buf += strlen(buf)+1;
-    }
-
-    tagdata = ATOTAGINT(values[0]) + id_offset;
+    tagint tagdata = utils::tnumeric(FLERR,values[0],false,lmp) + id_offset;
     if (tagdata <= 0 || tagdata > map_tag_max)
       error->one(FLERR,"Invalid atom ID in Bonus section of data file");
 
     // ok to call child's data_atom_bonus() method thru parent avec_bonus,
     // since data_bonus() was called with child ptr, and method is virtual
 
-    if ((m = map(tagdata)) >= 0) avec_bonus->data_atom_bonus(m,&values[1]);
+    if ((m = map(tagdata)) >= 0) avec_bonus->data_atom_bonus(m,values);
 
     buf = next + 1;
   }
-
-  delete [] values;
 }
 
 /* ----------------------------------------------------------------------
@@ -1628,12 +1620,13 @@ void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus, tagint id_offset)
 
 void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
 {
-  int j,m,nvalues,tagdata,ninteger,ndouble;
+  int j,m,nvalues,ninteger,ndouble;
 
   int maxint = 0;
   int maxdouble = 0;
   int *ivalues = nullptr;
   double *dvalues = nullptr;
+  char *next;
 
   if (!unique_tags) unique_tags = new std::set<tagint>;
 
@@ -1642,10 +1635,13 @@ void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
   // else skip values
 
   for (int i = 0; i < n; i++) {
-    buf += strspn(buf," \t\n\r\f");
-    buf[strcspn(buf," \t\n\r\f")] = '\0';
-    tagdata = utils::tnumeric(FLERR,buf,false,lmp) + id_offset;
-    buf += strlen(buf)+1;
+    next = strchr(buf,'\n');
+    *next = '\0';
+
+    auto values = Tokenizer(utils::trim_comment(buf)).as_vector();
+    tagint tagdata = utils::tnumeric(FLERR,values[0],false,lmp) + id_offset;
+    ninteger = utils::inumeric(FLERR,values[1],false,lmp);
+    ndouble = utils::inumeric(FLERR,values[2],false,lmp);
 
     if (tagdata <= 0 || tagdata > map_tag_max)
       error->one(FLERR,"Invalid atom ID in Bodies section of data file");
@@ -1655,24 +1651,21 @@ void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
     else
       error->one(FLERR,"Duplicate atom ID in Bodies section of data file");
 
-    buf += strspn(buf," \t\n\r\f");
-    buf[strcspn(buf," \t\n\r\f")] = '\0';
-    ninteger = utils::inumeric(FLERR,buf,false,lmp);
-    buf += strlen(buf)+1;
+    if (ninteger < 0)
+      error->one(FLERR,"Invalid number of integers in Bodies section of data file");
+    if (ndouble < 0)
+      error->one(FLERR,"Invalid number of doubles in Bodies section of data file");
 
-    buf += strspn(buf," \t\n\r\f");
-    buf[strcspn(buf," \t\n\r\f")] = '\0';
-    ndouble = utils::inumeric(FLERR,buf,false,lmp);
-    buf += strlen(buf)+1;
-
-    if ((m = map(tagdata)) >= 0) {
+    buf = next + 1;
+    m = map(tagdata);
+    if (m >= 0) {
       if (ninteger > maxint) {
-        delete [] ivalues;
+        delete[] ivalues;
         maxint = ninteger;
         ivalues = new int[maxint];
       }
       if (ndouble > maxdouble) {
-        delete [] dvalues;
+        delete[] dvalues;
         maxdouble = ndouble;
         dvalues = new double[maxdouble];
       }
@@ -1703,8 +1696,8 @@ void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
     }
   }
 
-  delete [] ivalues;
-  delete [] dvalues;
+  delete[] ivalues;
+  delete[] dvalues;
 }
 
 /* ----------------------------------------------------------------------

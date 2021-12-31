@@ -1677,11 +1677,11 @@ void ReadData::bodies(int firstpass, AtomVec *ptr)
   // nchunk = actual # read
 
   bigint nread = 0;
-  bigint natoms = nbodies;
+  bigint nblocks = nbodies;
 
-  while (nread < natoms) {
-    if (natoms-nread > CHUNK) nmax = CHUNK;
-    else nmax = natoms-nread;
+  while (nread < nblocks) {
+    if (nblocks-nread > CHUNK) nmax = CHUNK;
+    else nmax = nblocks-nread;
 
     if (me == 0) {
       nchunk = 0;
@@ -1754,7 +1754,7 @@ void ReadData::bodies(int firstpass, AtomVec *ptr)
   }
 
   if (me == 0 && firstpass)
-    utils::logmesg(lmp,"  {} bodies\n",natoms);
+    utils::logmesg(lmp,"  {} bodies\n",nblocks);
 }
 
 /* ---------------------------------------------------------------------- */

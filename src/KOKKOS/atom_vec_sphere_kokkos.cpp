@@ -2617,15 +2617,16 @@ int AtomVecSphereKokkos::data_atom_hybrid(int nlocal, const std::vector<std::str
    unpack one line from Velocities section of data file
 ------------------------------------------------------------------------- */
 
-void AtomVecSphereKokkos::data_vel(int m, char **values)
+void AtomVecSphereKokkos::data_vel(int m, const std::vector<std::string> &values)
 {
+  int ivalue = 1;
   atomKK->sync(Host,V_MASK|OMEGA_MASK);
-  h_v(m,0) = utils::numeric(FLERR,values[0],true,lmp);
-  h_v(m,1) = utils::numeric(FLERR,values[1],true,lmp);
-  h_v(m,2) = utils::numeric(FLERR,values[2],true,lmp);
-  h_omega(m,0) = utils::numeric(FLERR,values[3],true,lmp);
-  h_omega(m,1) = utils::numeric(FLERR,values[4],true,lmp);
-  h_omega(m,2) = utils::numeric(FLERR,values[5],true,lmp);
+  h_v(m,0) = utils::numeric(FLERR,values[ivalue++],true,lmp);
+  h_v(m,1) = utils::numeric(FLERR,values[ivalue++],true,lmp);
+  h_v(m,2) = utils::numeric(FLERR,values[ivalue++],true,lmp);
+  h_omega(m,0) = utils::numeric(FLERR,values[ivalue++],true,lmp);
+  h_omega(m,1) = utils::numeric(FLERR,values[ivalue++],true,lmp);
+  h_omega(m,2) = utils::numeric(FLERR,values[ivalue++],true,lmp);
   atomKK->modified(Host,V_MASK|OMEGA_MASK);
 }
 
@@ -2633,12 +2634,13 @@ void AtomVecSphereKokkos::data_vel(int m, char **values)
    unpack hybrid quantities from one line in Velocities section of data file
 ------------------------------------------------------------------------- */
 
-int AtomVecSphereKokkos::data_vel_hybrid(int m, char **values)
+int AtomVecSphereKokkos::data_vel_hybrid(int m, const std::vector<std::string> &values,
+                                         int offset)
 {
   atomKK->sync(Host,OMEGA_MASK);
-  omega[m][0] = utils::numeric(FLERR,values[0],true,lmp);
-  omega[m][1] = utils::numeric(FLERR,values[1],true,lmp);
-  omega[m][2] = utils::numeric(FLERR,values[2],true,lmp);
+  omega[m][0] = utils::numeric(FLERR,values[offset],true,lmp);
+  omega[m][1] = utils::numeric(FLERR,values[offset+1],true,lmp);
+  omega[m][2] = utils::numeric(FLERR,values[offset+2],true,lmp);
   atomKK->modified(Host,OMEGA_MASK);
   return 3;
 }

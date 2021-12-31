@@ -136,7 +136,7 @@ class AtomVec : protected Pointers {
   virtual void pack_data_pre(int) {}
   virtual void pack_data_post(int) {}
 
-  virtual void data_vel(int, char **);
+  virtual void data_vel(int, const std::vector<std::string> &);
   virtual void pack_vel(double **);
   virtual void write_vel(FILE *, int, double **);
 
@@ -167,7 +167,7 @@ class AtomVec : protected Pointers {
   virtual int pack_border_hybrid(int, int *, double *) { return 0; }
   virtual int unpack_border_hybrid(int, int, double *) { return 0; }
   virtual int data_atom_hybrid(int, const std::vector<std::string> &, int) { return 0; }
-  virtual int data_vel_hybrid(int, char **) { return 0; }
+  virtual int data_vel_hybrid(int, const std::vector<std::string> &, int) { return 0; }
   virtual int pack_data_hybrid(int, double *) { return 0; }
   virtual int write_data_hybrid(FILE *, double *) { return 0; }
   virtual int pack_vel_hybrid(int, double *) { return 0; }

@@ -1209,31 +1209,24 @@ void Atom::data_vels(int n, char *buf, tagint id_offset)
   if (nwords != avec->size_data_vel)
     error->all(FLERR,"Incorrect velocity format in data file");
 
-  char **values = new char*[nwords];
-
   // loop over lines of atom velocities
   // tokenize the line into values
   // if I own atom tag, unpack its values
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
+    *next = '\0';
+    auto values = Tokenizer(utils::trim_comment(buf)).as_vector();
+    if (values.size() != nwords)
+      error->all(FLERR, "Incorrect atom format in data file: {}", utils::trim(buf));
 
-    for (j = 0; j < nwords; j++) {
-      buf += strspn(buf," \t\n\r\f");
-      buf[strcspn(buf," \t\n\r\f")] = '\0';
-      values[j] = buf;
-      buf += strlen(buf)+1;
-    }
-
-    tagdata = ATOTAGINT(values[0]) + id_offset;
+    tagdata = utils::tnumeric(FLERR,values[0],false,lmp) + id_offset;
     if (tagdata <= 0 || tagdata > map_tag_max)
       error->one(FLERR,"Invalid atom ID in Velocities section of data file");
-    if ((m = map(tagdata)) >= 0) avec->data_vel(m,&values[1]);
+    if ((m = map(tagdata)) >= 0) avec->data_vel(m,values);
 
     buf = next + 1;
   }
-
-  delete [] values;
 }
 
 /* ----------------------------------------------------------------------

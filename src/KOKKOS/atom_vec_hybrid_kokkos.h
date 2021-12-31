@@ -59,7 +59,7 @@ class AtomVecHybridKokkos : public AtomVecKokkos {
   void create_atom(int, double *);
   void data_atom(double *, imageint, const std::vector<std::string> &);
   int data_atom_hybrid(int, const std::vector<std::string> &, int) {return 0;}
-  void data_vel(int, char **);
+  void data_vel(int, const std::vector<std::string> &);
   void pack_data(double **);
   void write_data(FILE *, int, double **);
   void pack_vel(double **);

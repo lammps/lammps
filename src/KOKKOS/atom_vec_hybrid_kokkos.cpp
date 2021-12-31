@@ -1019,21 +1019,21 @@ void AtomVecHybridKokkos::data_atom(double *coord, imageint imagetmp,
    unpack one line from Velocities section of data file
 ------------------------------------------------------------------------- */
 
-void AtomVecHybridKokkos::data_vel(int m, char **values)
+void AtomVecHybridKokkos::data_vel(int m, const std::vector<std::string> &values)
 {
   atomKK->sync(Host,V_MASK);
 
-  h_v(m,0) = utils::numeric(FLERR,values[0],true,lmp);
-  h_v(m,1) = utils::numeric(FLERR,values[1],true,lmp);
-  h_v(m,2) = utils::numeric(FLERR,values[2],true,lmp);
+  int ivalue = 1;
+  h_v(m,0) = utils::numeric(FLERR,values[ivalue++],true,lmp);
+  h_v(m,1) = utils::numeric(FLERR,values[ivalue++],true,lmp);
+  h_v(m,2) = utils::numeric(FLERR,values[ivalue++],true,lmp);
 
   atomKK->modified(Host,V_MASK);
 
   // each sub-style parses sub-style specific values
 
-  int n = 3;
   for (int k = 0; k < nstyles; k++)
-    n += styles[k]->data_vel_hybrid(m,&values[n]);
+    ivalue += styles[k]->data_vel_hybrid(m,values,ivalue);
 }
 
 /* ----------------------------------------------------------------------

@@ -1694,6 +1694,7 @@ void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
         buf += strlen(buf)+1;
       }
     }
+    buf += strspn(buf," \t\n\r\f");
   }
 
   delete[] ivalues;

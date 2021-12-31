@@ -1089,37 +1089,32 @@ void ReadData::header(int firstpass)
     } else if (utils::strmatch(line,"^\\s*\\d+\\s+atom\\s+types\\s")) {
       rv = sscanf(line,"%d",&ntypes);
       if (rv != 1)
-        error->all(FLERR,"Could not parse 'atom types' line "
-                   "in data file header");
+        error->all(FLERR,"Could not parse 'atom types' line in data file header");
       if (addflag == NONE) atom->ntypes = ntypes + extra_atom_types;
 
     } else if (utils::strmatch(line,"\\s*\\d+\\s+bond\\s+types\\s")) {
       rv = sscanf(line,"%d",&nbondtypes);
       if (rv != 1)
-        error->all(FLERR,"Could not parse 'bond types' line "
-                   "in data file header");
+        error->all(FLERR,"Could not parse 'bond types' line in data file header");
       if (addflag == NONE) atom->nbondtypes = nbondtypes + extra_bond_types;
 
     } else if (utils::strmatch(line,"^\\s*\\d+\\s+angle\\s+types\\s")) {
       rv = sscanf(line,"%d",&nangletypes);
       if (rv != 1)
-        error->all(FLERR,"Could not parse 'angle types' line "
-                   "in data file header");
+        error->all(FLERR,"Could not parse 'angle types' line in data file header");
       if (addflag == NONE) atom->nangletypes = nangletypes + extra_angle_types;
 
     } else if (utils::strmatch(line,"^\\s*\\d+\\s+dihedral\\s+types\\s")) {
       rv = sscanf(line,"%d",&ndihedraltypes);
       if (rv != 1)
-        error->all(FLERR,"Could not parse 'dihedral types' line "
-                   "in data file header");
+        error->all(FLERR,"Could not parse 'dihedral types' line in data file header");
       if (addflag == NONE)
         atom->ndihedraltypes = ndihedraltypes + extra_dihedral_types;
 
     } else if (utils::strmatch(line,"^\\s*\\d+\\s+improper\\s+types\\s")) {
       rv = sscanf(line,"%d",&nimpropertypes);
       if (rv != 1)
-        error->all(FLERR,"Could not parse 'improper types' line "
-                   "in data file header");
+        error->all(FLERR,"Could not parse 'improper types' line in data file header");
       if (addflag == NONE)
         atom->nimpropertypes = nimpropertypes + extra_improper_types;
 

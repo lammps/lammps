@@ -629,7 +629,7 @@ endif()
 # and after everything else that is compiled locally
 ######################################################################
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-  target_link_libraries(lammps PRIVATE "wsock32;psapi")
+  target_link_libraries(lammps PRIVATE "wsock32;psapi;ucrt")
 endif()
 
 ######################################################

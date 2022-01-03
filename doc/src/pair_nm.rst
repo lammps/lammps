@@ -195,4 +195,4 @@ none
 
 .. _Dietz:
 
-**(Dietz)** Dietz and Hoy, J. Chem. Phys. 156, 014103 (2022).
+**(Dietz)** Dietz and Hoy, J. Chem Phys, 156, 014103 (2022).

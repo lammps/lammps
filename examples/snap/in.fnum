@@ -54,10 +54,8 @@ pair_style sna/grid grid ${ngrid} ${ngrid} ${ngrid} &
 pair_coeff * * Al
 
 fix fnum all numdiff 1 ${fdelta}
-variable fz1 equal fz[1]
-variable fnumz1 equal f_fnum[1][3]
-variable ferrz1 equal f_fnum[1][3]-fz[1]
-thermo_style custom v_fz1 v_fnumz1 v_ferrz1
-thermo_modify norm yes
+variable ferrsq atom (fx-f_fnum[1])^2+(fy-f_fnum[2])^2+(fz-f_fnum[3])^2
+compute faverrsq all reduce ave v_ferrsq
+thermo_style custom c_faverrsq
 
 run 0

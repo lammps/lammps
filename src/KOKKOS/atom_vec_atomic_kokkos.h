@@ -44,7 +44,7 @@ class AtomVecAtomicKokkos : public AtomVecKokkos {
   int pack_restart(int, double *);
   int unpack_restart(double *);
   void create_atom(int, double *);
-  void data_atom(double *, tagint, char **);
+  void data_atom(double *, imageint, const std::vector<std::string> &);
   void pack_data(double **);
   void write_data(FILE *, int, double **);
   double memory_usage();

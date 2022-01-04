@@ -47,6 +47,8 @@ class FixNWChem : public Fix {
   int *qm2lmp;
   double qmenergy;
   
+  double lmp2qm_distance,lmp2qm_energy,qm2lmp_force;
+
   class Compute *c_pe;
   class Pair *pair_coul;
 };

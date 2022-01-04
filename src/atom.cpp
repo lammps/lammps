@@ -1620,13 +1620,8 @@ void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus, tagint id_offset)
 
 void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
 {
-  int j,m,nvalues,ninteger,ndouble;
-
-  int maxint = 0;
-  int maxdouble = 0;
-  int *ivalues = nullptr;
-  double *dvalues = nullptr;
-  char *next;
+  std::vector<int> ivalues;
+  std::vector<double> dvalues;
 
   if (!unique_tags) unique_tags = new std::set<tagint>;
 
@@ -1635,13 +1630,13 @@ void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
   // else skip values
 
   for (int i = 0; i < n; i++) {
-    next = strchr(buf,'\n');
+    char *next = strchr(buf,'\n');
     *next = '\0';
 
     auto values = Tokenizer(utils::trim_comment(buf)).as_vector();
     tagint tagdata = utils::tnumeric(FLERR,values[0],false,lmp) + id_offset;
-    ninteger = utils::inumeric(FLERR,values[1],false,lmp);
-    ndouble = utils::inumeric(FLERR,values[2],false,lmp);
+    int ninteger = utils::inumeric(FLERR,values[1],false,lmp);
+    int ndouble = utils::inumeric(FLERR,values[2],false,lmp);
 
     if (unique_tags->find(tagdata) == unique_tags->end())
       unique_tags->insert(tagdata);
@@ -1649,38 +1644,30 @@ void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
       error->one(FLERR,"Duplicate atom ID in Bodies section of data file");
 
     buf = next + 1;
-    m = map(tagdata);
+    int m = map(tagdata);
     if (m >= 0) {
-      if (ninteger > maxint) {
-        delete[] ivalues;
-        maxint = ninteger;
-        ivalues = new int[maxint];
-      }
-      if (ndouble > maxdouble) {
-        delete[] dvalues;
-        maxdouble = ndouble;
-        dvalues = new double[maxdouble];
-      }
+      ivalues.resize(ninteger);
+      dvalues.resize(ndouble);
 
-      for (j = 0; j < ninteger; j++) {
+      for (int j = 0; j < ninteger; j++) {
         buf += strspn(buf," \t\n\r\f");
         buf[strcspn(buf," \t\n\r\f")] = '\0';
         ivalues[j] = utils::inumeric(FLERR,buf,false,lmp);
         buf += strlen(buf)+1;
       }
 
-      for (j = 0; j < ndouble; j++) {
+      for (int j = 0; j < ndouble; j++) {
         buf += strspn(buf," \t\n\r\f");
         buf[strcspn(buf," \t\n\r\f")] = '\0';
         dvalues[j] = utils::numeric(FLERR,buf,false,lmp);
         buf += strlen(buf)+1;
       }
 
-      avec_body->data_body(m,ninteger,ndouble,ivalues,dvalues);
+      avec_body->data_body(m,ninteger,ndouble,ivalues.data(),dvalues.data());
 
     } else {
-      nvalues = ninteger + ndouble;    // number of values to skip
-      for (j = 0; j < nvalues; j++) {
+      int nvalues = ninteger + ndouble;    // number of values to skip
+      for (int j = 0; j < nvalues; j++) {
         buf += strspn(buf," \t\n\r\f");
         buf[strcspn(buf," \t\n\r\f")] = '\0';
         buf += strlen(buf)+1;
@@ -1688,9 +1675,6 @@ void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
     }
     buf += strspn(buf," \t\n\r\f");
   }
-
-  delete[] ivalues;
-  delete[] dvalues;
 }
 
 /* ----------------------------------------------------------------------

@@ -490,19 +490,28 @@ void PairEAMCD::read_h_coeff(char *filename)
     // Open potential file
 
     FILE *fptr;
-    char line[2][MAXLINE];
-    int convert_flag = unit_convert_flag, toggle = 0;
+    int convert_flag = unit_convert_flag;
     fptr = utils::open_potential(filename, lmp, &convert_flag);
     if (fptr == nullptr)
       error->one(FLERR,"Cannot open EAMCD potential file {}", filename);
 
     // h coefficients are stored at the end of the file.
-    // Skip to last line of file.
+    // Seek to end of file, read last part into a buffer and
+    // then skip over lines in buffer until reaching the end.
 
-    while (fgets(line[toggle], MAXLINE, fptr) != nullptr)
-      toggle = !toggle;
+    platform::fseek(fptr, platform::END_OF_FILE);
+    platform::fseek(fptr, platform::ftell(fptr) - MAXLINE);
+    char *buf = new char[MAXLINE+1];
+    fread(buf, 1, MAXLINE, fptr);
+    buf[MAXLINE] = '\0';        // must 0-terminate buffer for string processing
+    Tokenizer lines(buf, "\n");
+    delete[] buf;
 
-    ValueTokenizer values(line[!toggle]);
+    std::string lastline;
+    while (lines.has_next())
+      lastline = lines.next();
+
+    ValueTokenizer values(lastline);
     int degree = values.next_int();
     nhcoeff = degree+1;
 

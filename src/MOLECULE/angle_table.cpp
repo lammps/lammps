@@ -578,7 +578,7 @@ void AngleTable::spline(double *x, double *y, int n,
   double p,qn,sig,un;
   double *u = new double[n];
 
-  if (yp1 > 0.99e30) y2[0] = u[0] = 0.0;
+  if (yp1 > 0.99e300) y2[0] = u[0] = 0.0;
   else {
     y2[0] = -0.5;
     u[0] = (3.0/(x[1]-x[0])) * ((y[1]-y[0]) / (x[1]-x[0]) - yp1);
@@ -590,7 +590,7 @@ void AngleTable::spline(double *x, double *y, int n,
     u[i] = (y[i+1]-y[i]) / (x[i+1]-x[i]) - (y[i]-y[i-1]) / (x[i]-x[i-1]);
     u[i] = (6.0*u[i] / (x[i+1]-x[i-1]) - sig*u[i-1]) / p;
   }
-  if (ypn > 0.99e30) qn = un = 0.0;
+  if (ypn > 0.99e300) qn = un = 0.0;
   else {
     qn = 0.5;
     un = (3.0/(x[n-1]-x[n-2])) * (ypn - (y[n-1]-y[n-2]) / (x[n-1]-x[n-2]));

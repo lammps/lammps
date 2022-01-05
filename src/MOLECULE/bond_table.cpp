@@ -581,8 +581,7 @@ double BondTable::splint(double *xa, double *ya, double *y2a, int n, double x)
   h = xa[khi]-xa[klo];
   a = (xa[khi]-x) / h;
   b = (x-xa[klo]) / h;
-  y = a*ya[klo] + b*ya[khi] +
-    ((a*a*a-a)*y2a[klo] + (b*b*b-b)*y2a[khi]) * (h*h)/6.0;
+  y = a*ya[klo] + b*ya[khi] + ((a*a*a-a)*y2a[klo] + (b*b*b-b)*y2a[khi]) * (h*h)/6.0;
   return y;
 }
 
@@ -601,11 +600,9 @@ void BondTable::uf_lookup(int type, double x, double &u, double &f)
   const Table *tb = &tables[tabindex[type]];
   const int itable = static_cast<int> ((x - tb->lo) * tb->invdelta);
   if (itable < 0)
-    error->one(FLERR,"Bond length < table inner cutoff: "
-               "type {} length {:.8}",type,x);
+    error->one(FLERR,"Bond length < table inner cutoff: type {} length {:.8}",type,x);
   else if (itable >= tablength)
-    error->one(FLERR,"Bond length > table outer cutoff: "
-               "type {} length {:.8}",type,x);
+    error->one(FLERR,"Bond length > table outer cutoff: type {} length {:.8}",type,x);
 
   if (tabstyle == LINEAR) {
     fraction = (x - tb->r[itable]) * tb->invdelta;
@@ -617,10 +614,8 @@ void BondTable::uf_lookup(int type, double x, double &u, double &f)
     b = (x - tb->r[itable]) * tb->invdelta;
     a = 1.0 - b;
     u = a * tb->e[itable] + b * tb->e[itable+1] +
-      ((a*a*a-a)*tb->e2[itable] + (b*b*b-b)*tb->e2[itable+1]) *
-      tb->deltasq6;
+      ((a*a*a-a)*tb->e2[itable] + (b*b*b-b)*tb->e2[itable+1]) * tb->deltasq6;
     f = a * tb->f[itable] + b * tb->f[itable+1] +
-      ((a*a*a-a)*tb->f2[itable] + (b*b*b-b)*tb->f2[itable+1]) *
-      tb->deltasq6;
+      ((a*a*a-a)*tb->f2[itable] + (b*b*b-b)*tb->f2[itable+1]) * tb->deltasq6;
   }
 }

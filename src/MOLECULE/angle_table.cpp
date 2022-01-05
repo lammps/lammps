@@ -470,9 +470,9 @@ void AngleTable::compute_table(Table *tb)
 
   memory->create(tb->ang,tablength,"angle:ang");
   memory->create(tb->e,tablength,"angle:e");
-  memory->create(tb->de,tlm1,"angle:de");
+  memory->create(tb->de,tablength,"angle:de");
   memory->create(tb->f,tablength,"angle:f");
-  memory->create(tb->df,tlm1,"angle:df");
+  memory->create(tb->df,tablength,"angle:df");
   memory->create(tb->e2,tablength,"angle:e2");
   memory->create(tb->f2,tablength,"angle:f2");
 
@@ -488,6 +488,9 @@ void AngleTable::compute_table(Table *tb)
     tb->de[i] = tb->e[i+1] - tb->e[i];
     tb->df[i] = tb->f[i+1] - tb->f[i];
   }
+  // get final elements from linear extrapolation
+  tb->de[tlm1] = 2.0*tb->de[tlm1-1] - tb->de[tlm1-2];
+  tb->df[tlm1] = 2.0*tb->df[tlm1-1] - tb->df[tlm1-2];
 
   double ep0 = - tb->f[0];
   double epn = - tb->f[tlm1];

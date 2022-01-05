@@ -85,7 +85,9 @@ class FixRigidSmall : public Fix {
 
   struct Body {
     double mass;           // total mass of body
+    int natoms;            // total number of atoms in body
     double xcm[3];         // COM position
+    double xgc[3];         // geometric center position
     double vcm[3];         // COM velocity
     double fcm[3];         // force on COM
     double torque[3];      // torque around COM
@@ -94,6 +96,7 @@ class FixRigidSmall : public Fix {
     double ex_space[3];    // principal axes in space coords
     double ey_space[3];
     double ez_space[3];
+    double xgc_body[3];    // geometric center relative to xcm in body coords
     double angmom[3];    // space-frame angular momentum of body
     double omega[3];     // space-frame omega of body
     double conjqm[4];    // conjugate quaternion momentum

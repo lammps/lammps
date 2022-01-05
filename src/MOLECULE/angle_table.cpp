@@ -635,7 +635,7 @@ void AngleTable::uf_lookup(int type, double x, double &u, double &f)
   int itable = static_cast<int> (x * tb->invdelta);
 
   if (itable < 0) itable = 0;
-  if (itable >= tablength) itable = tablength-1;
+  if (itable >= tablength-1) itable = tablength-2;
 
   if (tabstyle == LINEAR) {
     fraction = (x - tb->ang[itable]) * tb->invdelta;
@@ -670,7 +670,7 @@ void AngleTable::u_lookup(int type, double x, double &u)
   int itable = static_cast<int> ( x * tb->invdelta);
 
   if (itable < 0) itable = 0;
-  if (itable >= tablength) itable = tablength-1;
+  if (itable >= tablength-1) itable = tablength-2;
 
   if (tabstyle == LINEAR) {
     fraction = (x - tb->ang[itable]) * tb->invdelta;

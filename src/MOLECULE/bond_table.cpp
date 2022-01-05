@@ -435,9 +435,9 @@ void BondTable::compute_table(Table *tb)
 
   memory->create(tb->r,tablength,"bond:r");
   memory->create(tb->e,tablength,"bond:e");
-  memory->create(tb->de,tlm1,"bond:de");
+  memory->create(tb->de,tablength,"bond:de");
   memory->create(tb->f,tablength,"bond:f");
-  memory->create(tb->df,tlm1,"bond:df");
+  memory->create(tb->df,tablength,"bond:df");
   memory->create(tb->e2,tablength,"bond:e2");
   memory->create(tb->f2,tablength,"bond:f2");
 
@@ -453,6 +453,9 @@ void BondTable::compute_table(Table *tb)
     tb->de[i] = tb->e[i+1] - tb->e[i];
     tb->df[i] = tb->f[i+1] - tb->f[i];
   }
+  // get final elements from linear extrapolation
+  tb->de[tlm1] = 2.0*tb->de[tlm1-1] - tb->de[tlm1-2];
+  tb->df[tlm1] = 2.0*tb->df[tlm1-1] - tb->df[tlm1-2];
 
   double ep0 = - tb->f[0];
   double epn = - tb->f[tlm1];

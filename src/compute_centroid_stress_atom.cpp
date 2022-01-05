@@ -16,6 +16,7 @@
 #include "angle.h"
 #include "atom.h"
 #include "bond.h"
+#include "citeme.h"
 #include "comm.h"
 #include "dihedral.h"
 #include "error.h"
@@ -33,6 +34,36 @@
 using namespace LAMMPS_NS;
 
 enum { NOBIAS, BIAS };
+
+static const char cite_centroid_angle_improper_dihedral[] =
+    "compute centroid/stress/atom for angles, impropers and dihedrals:\n\n"
+    "@article{PhysRevE.99.051301,\n"
+    " title = {Application of atomic stress to compute heat flux via molecular dynamics for "
+    "systems with many-body interactions},\n"
+    " author = {Surblys, Donatas and Matsubara, Hiroki and Kikugawa, Gota and Ohara, Taku},\n"
+    " journal = {Physical Review E},\n"
+    " volume = {99},\n"
+    " issue = {5},\n"
+    " pages = {051301},\n"
+    " year = {2019},\n"
+    " doi = {10.1103/PhysRevE.99.051301},\n"
+    " url = {https://link.aps.org/doi/10.1103/PhysRevE.99.051301}\n"
+    "}\n\n";
+
+static const char cite_centroid_shake_rigid[] =
+    "compute centroid/stress/atom for constrained dynamics:\n\n"
+    "@article{doi:10.1063/5.0070930,\n"
+    " author = {Surblys, Donatas and Matsubara, Hiroki and Kikugawa, Gota and Ohara, Taku},\n"
+    " journal = {Journal of Applied Physics},\n"
+    " title = {Methodology and meaning of computing heat flux via atomic stress in systems with "
+    "constraint dynamics},\n"
+    " volume = {130},\n"
+    " number = {21},\n"
+    " pages = {215104},\n"
+    " year = {2021},\n"
+    " doi = {10.1063/5.0070930},\n"
+    " url = {https://doi.org/10.1063/5.0070930},\n"
+    "}\n\n";
 
 /* ---------------------------------------------------------------------- */
 
@@ -105,6 +136,12 @@ ComputeCentroidStressAtom::ComputeCentroidStressAtom(LAMMPS *lmp, int narg, char
   }
 
   nmax = 0;
+
+  if (lmp->citeme) {
+    if (angleflag || dihedralflag || improperflag)
+      lmp->citeme->add(cite_centroid_angle_improper_dihedral);
+    if (fixflag) lmp->citeme->add(cite_centroid_shake_rigid);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

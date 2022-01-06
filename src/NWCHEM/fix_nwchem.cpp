@@ -21,10 +21,11 @@
 #include <cstring>
 #include "atom.h"
 #include "comm.h"
-#include "group.h"
 #include "domain.h"
-#include "neighbor.h"
 #include "force.h"
+#include "group.h"
+#include "integrate.h"
+#include "neighbor.h"
 #include "pair.h"
 #include "kspace.h"
 #include "modify.h"
@@ -38,11 +39,11 @@ using namespace FixConst;
 
 namespace pwdft {
 using namespace pwdft;
-extern char *util_date();
-extern void seconds(double *);
-extern int pspw_geovib(MPI_Comm, std::string&);
-extern int pspw_minimizer(MPI_Comm, double *, double *, double *, double *);
-extern int nwchem_abiversion();
+  //extern char *util_date();
+  //extern void seconds(double *);
+  //extern int pspw_geovib(MPI_Comm, std::string&);
+  //extern int pspw_minimizer(MPI_Comm, double *, double *, double *, double *);
+  //extern int nwchem_abiversion();
 }
 
 // the ABIVERSION number here must be kept consistent
@@ -73,8 +74,8 @@ FixNWChem::FixNWChem(LAMMPS *lmp, int narg, char **arg) :
   if (comm->nprocs != 1)
     error->all(FLERR,"Fix nwchem currently runs only in serial");
 
-  if (NWCHEM_ABIVERSION != pwdft::nwchem_abiversion())
-    error->all(FLERR,"LAMMPS is linked against incompatible NWChem library");
+  //if (NWCHEM_ABIVERSION != pwdft::nwchem_abiversion())
+  //  error->all(FLERR,"LAMMPS is linked against incompatible NWChem library");
 
   if (narg != 4) error->all(FLERR,"Illegal fix nwchem command");
 
@@ -139,7 +140,7 @@ void FixNWChem::init()
   // error checks
 
   if (domain->dimension == 2)
-    error->all(FLERR,"Fix nwchem requires 3d problem");
+    error->all(FLERR,"Fix nwchem requires 3d simulation");
 
   if (domain->nonperiodic == 0) pbcflag = 1;
   else if (!domain->xperiodic && !domain->yperiodic && !domain->zperiodic)
@@ -151,10 +152,11 @@ void FixNWChem::init()
     error->all(FLERR,"Fix nwchem cannot compute Coulomb potential");
 
   // c_pe = instance of compute pe/atom
-
-  int ipe = modify->find_compute(id_pe);
-  if (ipe < 0) error->all(FLERR,"Could not find fix nwchem compute ID");
-  c_pe = modify->compute[ipe];
+  // NOTE: is this needed ?
+  
+  //int ipe = modify->find_compute(id_pe);
+  //if (ipe < 0) error->all(FLERR,"Could not find fix nwchem compute ID");
+  //c_pe = modify->compute[ipe];
 
   // pair_coul = hybrid pair style that computes short-range Coulombics
   // NOTE: could be another coul like coul/msm ?
@@ -172,10 +174,14 @@ void FixNWChem::init()
   // fix group = QM atoms
   // one-time initialization of qmIDs
   // NOTE: need to sort in ascending order to match NWChem ?
-  // NOTE: make nqm an int, check that group count is not 0 or > MAXBIGINT
   
   if (nqm == 0) {
-    nqm = group->count(igroup);
+    bigint ngroup = group->count(igroup);
+    if (ngroup == 0) error->all(FLERR,"Fix nwchem has no atoms in quantum group");
+    if (ngroup > MAXSMALLINT) 
+      error->all(FLERR,"Fix nwchem quantum group has too many atoms");
+    nqm = ngroup;
+    
     memory->create(qmIDs,nqm,"nwchem:qmIDs");
     memory->create(xqm,nqm,3,"nwchem:xqm");
     memory->create(qpotential,nqm,"nwchem:qpotential");
@@ -228,11 +234,11 @@ void FixNWChem::pre_force(int vflag)
 
   double *eatom_kspace = nullptr;
   if (force->kspace) {
-    kspace->compute(2,0);
+    force->kspace->compute(2,0);
     eatom_kspace = force->kspace->eatom;
   }
 
-  // on reneigh step, reset qm2lmp = indices of QM atoms
+  // on reneighbor step, reset qm2lmp = indices of QM atoms
 
   if (neighbor->ago == 0)
     for (int i = 0; i < nqm; i++)
@@ -290,7 +296,8 @@ void FixNWChem::pre_force(int vflag)
   // inputs = xqm and qpotential
   // outputs = fqm and qqm
 
-  int nwerr = pwdft::pspw_minimizer(world,&xqm[0][0],qpotential,&fqm[0][0],qqm);
+  int nwerr = pspw_minimizer(world,nqm,
+                             &xqm[0][0],qpotential,&fqm[0][0],qqm);
   if (nwerr) error->all(FLERR,"Internal NWChem error");
 
   //latte(flags,&natoms,coords,type,&ntypes,mass,boxlo,boxhi,&domain->xy,
@@ -334,8 +341,12 @@ void FixNWChem::min_pre_force(int vflag)
 
 void FixNWChem::post_force(int vflag)
 {
-  // subtract out Qj/Rij^2 force for QM I interacting with all other QM J atoms
-  // cannot just use xqm b/c it has been rescaled by lmp2qm_distance
+  int ilocal,jlocal;
+  double rsq,r2inv,rinv,fpair;
+  double delta[3];
+
+  // subtract QiQj/Rij energy for pairwise interactions between QM atoms
+  // subtract QiQj/Rij^2 force for pairwise interactions between QM atoms
 
   double **x = atom->x;
   double **f = atom->f;
@@ -344,18 +355,30 @@ void FixNWChem::post_force(int vflag)
 
   for (int i = 0; i < nqm; i++) {
     ilocal = qm2lmp[i];
+    xqm[i][0] = x[ilocal][0];
+    xqm[i][1] = x[ilocal][1];
+    xqm[i][2] = x[ilocal][2];
+    qqm[i] = q[ilocal];
+  }
 
+  qmenergy = 0.0;
+  
+  for (int i = 0; i < nqm; i++) {
+    ilocal = qm2lmp[i];
     for (int j = i+1; j < nqm; j++) {
       jlocal = qm2lmp[j];
-      delta[0] = x[ilocal][0] - x[jlocal][0];
-      delta[1] = x[ilocal][1] - x[jloca;][1];
-      delta[2] = x[ilocal][2] - x[jlocal][2];
+      
+      delta[0] = xqm[i][0] - xqm[j][0];
+      delta[1] = xqm[i][1] - xqm[j][1];
+      delta[2] = xqm[i][2] - xqm[j][2];
       domain->minimum_image_once(delta);
       rsq = delta[0]*delta[0] + delta[1]*delta[1] + delta[2]*delta[2];
 
+      qmenergy -= qqrd2e * qqm[i]*qqm[j]*rinv;
+
       r2inv = 1.0/rsq;
       rinv = sqrt(r2inv);
-      forcecoul = qqrd2e * q[ilocal]*q[jlocal]*rinv*r2inv;
+      fpair = qqrd2e * qqm[i]*qqm[j]*rinv*r2inv;
 
       f[ilocal][0] -= delta[0]*fpair;
       f[ilocal][1] -= delta[1]*fpair;
@@ -375,16 +398,15 @@ void FixNWChem::post_force(int vflag)
     f[ilocal][2] += fqm[i][2];
   }
 
-  // NOTE: what is qmenergy for contrib of this fix to system eng
-  //       how to compute it
-  //       do I need to subtract it from pair/Kspace energy as in preforce
-
+  // add NWChem energy for QM atoms
+  // NOTE: what is this quantity
+  
   // trigger per-atom energy computation on next step by pair/kspace
   // NOTE: is this needed ?
   //       only if needed for this fix to calc per-atom forces
   //       or needed for this fix to output global (or per-atom) energy
 
-  c_pe->addstep(update->ntimestep+1);
+  //c_pe->addstep(update->ntimestep+1);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -401,4 +423,44 @@ void FixNWChem::min_post_force(int vflag)
 double FixNWChem::compute_scalar()
 {
   return qmenergy;
+}
+
+/* ----------------------------------------------------------------------
+   dummy version of NWChem pwdft_minimezer()
+   NOTE: quantities are in NWChem units, not LAMMPS units
+------------------------------------------------------------------------- */
+
+void FixNWChem::pspw_minimizer(MPI_Comm nwworld, int n, 
+                               double *x, double *qp, double *f, double *q)
+{
+  double delta[3];
+
+  double qmeng = 0.0;
+  
+  for (int i = 0; i < n; i++) {
+    for (int j = i+1; j < n; j++) {
+      delta[0] = x[3*i+0] - x[3*j+0];
+      delta[1] = x[3*i+1] - x[3*j+1];
+      delta[2] = x[3*i+2] - x[3*j+2];
+      domain->minimum_image_once(delta);
+      rsq = delta[0]*delta[0] + delta[1]*delta[1] + delta[2]*delta[2];
+
+      // NOTE: this line is not write, needs to be just Q
+      qmeng += qqm[i]*qqm[j]*rinv;
+
+      r2inv = 1.0/rsq;
+      rinv = sqrt(r2inv);
+      forcecoul = qqm[i]*qqm[j]*rinv*r2inv;
+
+      f[3*i+0] += delta[0]*fpair;
+      f[3*i+1] += delta[1]*fpair;
+      f[3*i+2] += delta[2]*fpair;
+      f[3*j+0] -= delta[0]*fpair;
+      f[3*j+1] -= delta[1]*fpair;
+      f[3*j+2] -= delta[2]*fpair;
+    }
+  }
+
+  
+  return 0;
 }

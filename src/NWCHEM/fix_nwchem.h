@@ -32,6 +32,7 @@ class FixNWChem : public Fix {
   void init();
   void setup(int);
   void min_setup(int);
+  void pre_force(int);
   void post_force(int);
   void min_post_force(int);
   double compute_scalar();
@@ -40,7 +41,7 @@ class FixNWChem : public Fix {
   char *id_pe;
   int pbcflag;
 
-  bigint nqm;
+  int nqm;
   tagint *qmIDs;
   double **xqm,**fqm;
   double *qpotential,*qqm;
@@ -51,6 +52,8 @@ class FixNWChem : public Fix {
 
   class Compute *c_pe;
   class Pair *pair_coul;
+
+  int pspw_minimizer(MPI_Comm, int, double *, double *, double *, double *);
 };
 
 }    // namespace LAMMPS_NS

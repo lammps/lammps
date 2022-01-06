@@ -107,6 +107,7 @@ PACKAGE = \
 	mpiio \
 	mscg \
 	netcdf \
+	nwchem \
 	openmp \
 	opt \
 	orient \

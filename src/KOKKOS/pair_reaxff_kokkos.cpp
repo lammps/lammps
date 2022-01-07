@@ -1775,7 +1775,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxBuildListsHalf<NEIGHFLAG>,
         const int jj_index = j_index - hb_first_i;
 
         if (jj_index >= maxhb)
-          d_resize_hb() = MAX(d_resize_hb(),jj_index);
+          d_resize_hb() = MAX(d_resize_hb(),jj_index+1);
         else
           d_hb_list[j_index] = j;
       } else if (j < nlocal && ihb == 2 && jhb == 1) {
@@ -1789,7 +1789,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxBuildListsHalf<NEIGHFLAG>,
         const int ii_index = i_index - d_hb_first[j];
 
         if (ii_index >= maxhb)
-          d_resize_hb() = MAX(d_resize_hb(),ii_index);
+          d_resize_hb() = MAX(d_resize_hb(),ii_index+1);
         else
           d_hb_list[i_index] = i;
       }
@@ -1844,7 +1844,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxBuildListsHalf<NEIGHFLAG>,
     const int ii_index = i_index - d_bo_first[j];
 
     if (jj_index >= maxbo || ii_index >= maxbo) {
-      const int max_val = MAX(ii_index,jj_index);
+      const int max_val = MAX(ii_index+1,jj_index+1);
       d_resize_bo() = MAX(d_resize_bo(),max_val);
     } else {
       d_bo_list[j_index] = j;

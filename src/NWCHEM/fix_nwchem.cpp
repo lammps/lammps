@@ -25,6 +25,7 @@
 #include "force.h"
 #include "group.h"
 #include "integrate.h"
+#include "min.h"
 #include "neighbor.h"
 #include "pair.h"
 #include "kspace.h"
@@ -297,7 +298,7 @@ void FixNWChem::pre_force(int vflag)
   // outputs = fqm and qqm
 
   int nwerr = pspw_minimizer(world,nqm,
-                             &xqm[0][0],qpotential,&fqm[0][0],qqm);
+                             &xqm[0][0],qpotential,&fqm[0][0],qqm,qmenergy);
   if (nwerr) error->all(FLERR,"Internal NWChem error");
 
   //latte(flags,&natoms,coords,type,&ntypes,mass,boxlo,boxhi,&domain->xy,
@@ -321,13 +322,12 @@ void FixNWChem::pre_force(int vflag)
 
   // reset LAMMPS forces to zero
   // NOTE: what about check in force_clear() for external_force_clear = OPENMP ?
-  // NOTE: should rRESPA be not allowed for this fix ?
   // NOTE: what will whichflag be for single snapshot compute of QM forces?
 
   if (update->whichflag == 1) 
     update->integrate->force_clear();  
   else if (update->whichflag == 2) 
-    update->min->force_clear();  
+    update->minimize->force_clear();  
 }
 
 /* ---------------------------------------------------------------------- */
@@ -389,7 +389,7 @@ void FixNWChem::post_force(int vflag)
     }
   }
 
-  // add NWChem QM forces to QM atoms
+  // add QM forces from NWChem to QM atoms
 
   for (int i = 0; i < nqm; i++) {
     ilocal = qm2lmp[i];
@@ -398,9 +398,10 @@ void FixNWChem::post_force(int vflag)
     f[ilocal][2] += fqm[i][2];
   }
 
-  // add NWChem energy for QM atoms
-  // NOTE: what is this quantity
-  
+  // add QM energy from NWChem
+  // NOTE: how to calculate this quantity
+  // NOTE: for now, just letting dummy method return it as qmenergy
+
   // trigger per-atom energy computation on next step by pair/kspace
   // NOTE: is this needed ?
   //       only if needed for this fix to calc per-atom forces
@@ -428,14 +429,19 @@ double FixNWChem::compute_scalar()
 /* ----------------------------------------------------------------------
    dummy version of NWChem pwdft_minimezer()
    NOTE: quantities are in NWChem units, not LAMMPS units
+   NOTE: could test restting some Q values ?
 ------------------------------------------------------------------------- */
 
-void FixNWChem::pspw_minimizer(MPI_Comm nwworld, int n, 
-                               double *x, double *qp, double *f, double *q)
+int FixNWChem::pspw_minimizer(MPI_Comm nwworld, 
+                              int n, double *x, double *qp, 
+                              double *f, double *q, double &eqm)
 {
+  double rsq,r2inv,rinv,fpair;
   double delta[3];
 
-  double qmeng = 0.0;
+  double qqrd2e = force->qqrd2e;
+
+  eqm = 0.0;
   
   for (int i = 0; i < n; i++) {
     for (int j = i+1; j < n; j++) {
@@ -444,13 +450,11 @@ void FixNWChem::pspw_minimizer(MPI_Comm nwworld, int n,
       delta[2] = x[3*i+2] - x[3*j+2];
       domain->minimum_image_once(delta);
       rsq = delta[0]*delta[0] + delta[1]*delta[1] + delta[2]*delta[2];
-
-      // NOTE: this line is not write, needs to be just Q
-      qmeng += qqm[i]*qqm[j]*rinv;
-
       r2inv = 1.0/rsq;
       rinv = sqrt(r2inv);
-      forcecoul = qqm[i]*qqm[j]*rinv*r2inv;
+
+      eqm += qqrd2e * qqm[i]*qqm[j]*rinv;
+      fpair = qqrd2e * qqm[i]*qqm[j]*rinv*r2inv;
 
       f[3*i+0] += delta[0]*fpair;
       f[3*i+1] += delta[1]*fpair;
@@ -460,7 +464,6 @@ void FixNWChem::pspw_minimizer(MPI_Comm nwworld, int n,
       f[3*j+2] -= delta[2]*fpair;
     }
   }
-
   
   return 0;
 }

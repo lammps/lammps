@@ -100,13 +100,17 @@ void DumpDCD::init_style()
   if (sort_flag == 0 || sortcol != 0)
     error->all(FLERR,"Dump dcd requires sorting by atom ID");
 
-  // check that dump frequency has not changed and is not a variable
-  // but only when not being called from the "write_dump" command.
+  // check that dump modify settings are compatible with dcd
+  // but only when not being called from the "write_dump" command
 
   if (strcmp(id,"WRITE_DUMP") != 0) {
     int idump;
     for (idump = 0; idump < output->ndump; idump++)
       if (strcmp(id,output->dump[idump]->id) == 0) break;
+
+    if (output->mode_dump[idump] == 1)
+      error->all(FLERR,"Cannot use every/time setting for dump dcd");
+
     if (output->every_dump[idump] == 0)
       error->all(FLERR,"Cannot use variable every setting for dump dcd");
 

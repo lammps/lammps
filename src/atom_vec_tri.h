@@ -50,7 +50,7 @@ class AtomVecTri : public AtomVec {
   int size_restart_bonus();
   int pack_restart_bonus(int, double *);
   int unpack_restart_bonus(int, double *);
-  void data_atom_bonus(int, char **);
+  void data_atom_bonus(int, const std::vector<std::string> &);
   double memory_usage_bonus();
 
   void create_atom_post(int);

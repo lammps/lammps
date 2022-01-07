@@ -78,7 +78,7 @@ FixNWChem::FixNWChem(LAMMPS *lmp, int narg, char **arg) :
   //if (NWCHEM_ABIVERSION != pwdft::nwchem_abiversion())
   //  error->all(FLERR,"LAMMPS is linked against incompatible NWChem library");
 
-  if (narg != 4) error->all(FLERR,"Illegal fix nwchem command");
+  if (narg != 3) error->all(FLERR,"Illegal fix nwchem command");
 
   scalar_flag = 1;
   global_freq = 1;
@@ -113,7 +113,6 @@ FixNWChem::FixNWChem(LAMMPS *lmp, int narg, char **arg) :
 
 FixNWChem::~FixNWChem()
 {
-  delete [] id_pe;
   memory->destroy(qmIDs);
   memory->destroy(xqm);
   memory->destroy(qpotential);
@@ -127,6 +126,8 @@ FixNWChem::~FixNWChem()
 int FixNWChem::setmask()
 {
   int mask = 0;
+  mask |= POST_NEIGHBOR;
+  mask |= MIN_POST_NEIGHBOR;
   mask |= PRE_FORCE;
   mask |= MIN_PRE_FORCE;
   mask |= POST_FORCE;
@@ -152,21 +153,16 @@ void FixNWChem::init()
   if (atom->q_flag == 0 || force->pair == nullptr || force->kspace == nullptr)
     error->all(FLERR,"Fix nwchem cannot compute Coulomb potential");
 
-  // c_pe = instance of compute pe/atom
   // NOTE: is this needed ?
+  // c_pe = instance of compute pe/atom
   
   //int ipe = modify->find_compute(id_pe);
   //if (ipe < 0) error->all(FLERR,"Could not find fix nwchem compute ID");
   //c_pe = modify->compute[ipe];
 
-  // pair_coul = hybrid pair style that computes short-range Coulombics
-  // NOTE: could be another coul like coul/msm ?
+  // NOTE: could be another coul pair style like coul/msm ?
   
   if (!force->pair) error->all(FLERR,"Fix nwchem requires a pair style");
-
-  pair_coul = force->pair_match("hybrid/overlay",1,0);
-  if (!pair_coul) 
-    error->all(FLERR,"Fix nwchem requires pair style hybrid/overlay");
 
   pair_coul = force->pair_match("coul/long",1,0);
   if (!pair_coul) 
@@ -195,8 +191,9 @@ void FixNWChem::init()
     int nlocal = atom->nlocal;
 
     nqm = 0;
-    for (int i = 0; i < nlocal; i++)
+    for (int i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) qmIDs[nqm++] = tag[i];
+    }
   }
 }
 
@@ -204,18 +201,29 @@ void FixNWChem::init()
 
 void FixNWChem::setup(int vflag)
 {
-  //newsystem = 1;
   post_force(vflag);
-  //newsystem = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixNWChem::min_setup(int vflag)
+void FixNWChem::setup_post_neighbor()
 {
-  //newsystem = 1;
-  post_force(vflag);
-  //newsystem = 0;
+  post_neighbor();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixNWChem::setup_pre_force(int vflag)
+{
+  pre_force(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixNWChem::post_neighbor()
+{
+  for (int i = 0; i < nqm; i++)
+    qm2lmp[i] = atom->map(qmIDs[i]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -238,12 +246,6 @@ void FixNWChem::pre_force(int vflag)
     force->kspace->compute(2,0);
     eatom_kspace = force->kspace->eatom;
   }
-
-  // on reneighbor step, reset qm2lmp = indices of QM atoms
-
-  if (neighbor->ago == 0)
-    for (int i = 0; i < nqm; i++)
-      qm2lmp[i] = atom->map(qmIDs[i]);
 
   // create 2 NWChem inputs: xqm and qpotential (Coulomb potential)
   // qpotential[i] = (eatom[i] from pair_coul + kspace) / Qi
@@ -284,18 +286,23 @@ void FixNWChem::pre_force(int vflag)
   }
 
   // unit conversion from LAMMPS to NWChem
+  // NOTE: comment out for dummy test
 
+  /*
   for (int i = 0; i < nqm; i++) {
     xqm[i][0] *= lmp2qm_distance;
     xqm[i][1] *= lmp2qm_distance;
     xqm[i][2] *= lmp2qm_distance;
     qpotential[i] *= lmp2qm_energy;
   }
+  */
 
   // call to NWChem
   // input/outputs are only for QM atoms
   // inputs = xqm and qpotential
   // outputs = fqm and qqm
+  // NOTE: extra args for dummy test = nqm,qmenergy
+  // NOTE: is QM eng returned by NWChem, or needs to be computed by LAMMPS?
 
   int nwerr = pspw_minimizer(world,nqm,
                              &xqm[0][0],qpotential,&fqm[0][0],qqm,qmenergy);
@@ -306,12 +313,15 @@ void FixNWChem::pre_force(int vflag)
   //      &atom->v[0][0],&update->dt,virial,&newsystem,&latteerror);
 
   // unit conversion from NWChem to LAMMPS
+  // NOTE: comment out for dummy test
 
+  /*
   for (int i = 0; i < nqm; i++) {
     fqm[i][0] *= qm2lmp_force;
     fqm[i][1] *= qm2lmp_force;
     fqm[i][2] *= qm2lmp_force;
   }
+  */
 
   // reset Q of QM atoms
 
@@ -328,13 +338,6 @@ void FixNWChem::pre_force(int vflag)
     update->integrate->force_clear();  
   else if (update->whichflag == 2) 
     update->minimize->force_clear();  
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixNWChem::min_pre_force(int vflag)
-{
-  pre_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -373,11 +376,10 @@ void FixNWChem::post_force(int vflag)
       delta[2] = xqm[i][2] - xqm[j][2];
       domain->minimum_image_once(delta);
       rsq = delta[0]*delta[0] + delta[1]*delta[1] + delta[2]*delta[2];
-
-      qmenergy -= qqrd2e * qqm[i]*qqm[j]*rinv;
-
       r2inv = 1.0/rsq;
       rinv = sqrt(r2inv);
+
+      qmenergy -= qqrd2e * qqm[i]*qqm[j]*rinv;
       fpair = qqrd2e * qqm[i]*qqm[j]*rinv*r2inv;
 
       f[ilocal][0] -= delta[0]*fpair;
@@ -412,6 +414,27 @@ void FixNWChem::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
+void FixNWChem::min_setup(int vflag)
+{
+  post_force(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixNWChem::min_post_neighbor()
+{
+  post_neighbor();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixNWChem::min_pre_force(int vflag)
+{
+  pre_force(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixNWChem::min_post_force(int vflag)
 {
   post_force(vflag);
@@ -428,8 +451,7 @@ double FixNWChem::compute_scalar()
 
 /* ----------------------------------------------------------------------
    dummy version of NWChem pwdft_minimezer()
-   NOTE: quantities are in NWChem units, not LAMMPS units
-   NOTE: could test restting some Q values ?
+   NOTE: for dummy test, quantities are in LAMMPS units, not NWChem units
 ------------------------------------------------------------------------- */
 
 int FixNWChem::pspw_minimizer(MPI_Comm nwworld, 
@@ -439,9 +461,18 @@ int FixNWChem::pspw_minimizer(MPI_Comm nwworld,
   double rsq,r2inv,rinv,fpair;
   double delta[3];
 
+  // no change to charge in dummy test
+  // NOTE: could test changing of charges
+
+  for (int i = 0; i < nqm; i++) {
+    int ilocal = qm2lmp[i];
+    q[i] = atom->q[ilocal];
+  }
+
   double qqrd2e = force->qqrd2e;
 
   eqm = 0.0;
+  for (int i = 0; i < 3*nqm; i++) f[i] = 0.0;
   
   for (int i = 0; i < n; i++) {
     for (int j = i+1; j < n; j++) {
@@ -455,7 +486,7 @@ int FixNWChem::pspw_minimizer(MPI_Comm nwworld,
 
       eqm += qqrd2e * qqm[i]*qqm[j]*rinv;
       fpair = qqrd2e * qqm[i]*qqm[j]*rinv*r2inv;
-
+      
       f[3*i+0] += delta[0]*fpair;
       f[3*i+1] += delta[1]*fpair;
       f[3*i+2] += delta[2]*fpair;

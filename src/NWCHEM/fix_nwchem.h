@@ -31,9 +31,13 @@ class FixNWChem : public Fix {
   int setmask();
   void init();
   void setup(int);
-  void min_setup(int);
+  void setup_post_neighbor();
+  void setup_pre_force(int);
+  void post_neighbor();
   void pre_force(int);
   void post_force(int);
+  void min_setup(int);
+  void min_post_neighbor();
   void min_pre_force(int);
   void min_post_force(int);
   double compute_scalar();

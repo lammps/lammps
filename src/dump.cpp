@@ -371,16 +371,6 @@ void Dump::write()
   if (multiproc != nprocs) MPI_Allreduce(&nme,&nmax,1,MPI_INT,MPI_MAX,world);
   else nmax = nme;
 
-  // write timestep header
-  // for multiproc,
-  //   nheader = # of lines in this file via Allreduce on clustercomm
-
-  bigint nheader = ntotal;
-  if (multiproc)
-    MPI_Allreduce(&bnme,&nheader,1,MPI_LMP_BIGINT,MPI_SUM,clustercomm);
-
-  if (filewriter && write_header_flag) write_header(nheader);
-
   // insure buf is sized for packing and communicating
   // use nmax to insure filewriter proc can receive info from others
   // limit nmax*size_one to int since used as arg in MPI calls
@@ -432,6 +422,19 @@ void Dump::write()
   if (sort_flag && sortcol == 0) pack(ids);
   else pack(nullptr);
   if (sort_flag) sort();
+
+  // write timestep header
+  // for multiproc,
+  //   nheader = # of lines in this file via Allreduce on clustercomm
+  //   must come after sort, which can change nme
+
+  bigint nheader = ntotal;
+  if (multiproc) {
+    bnme = nme;
+    MPI_Allreduce(&bnme,&nheader,1,MPI_LMP_BIGINT,MPI_SUM,clustercomm);
+  }
+
+  if (filewriter && write_header_flag) write_header(nheader);
 
   // if buffering, convert doubles into strings
   // insure sbuf is sized for communicating

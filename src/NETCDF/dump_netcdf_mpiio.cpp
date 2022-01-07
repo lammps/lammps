@@ -65,6 +65,10 @@ static constexpr int THIS_IS_A_COMPUTE  = -2;
 static constexpr int THIS_IS_A_VARIABLE = -3;
 static constexpr int THIS_IS_A_BIGINT   = -4;
 
+// to be used instead of NC_MAX_VAR_DIMS which was expected
+// to be no larger than 1024 but that is not guaranteed anymore.
+static constexpr int LMP_MAX_VAR_DIMS = 1024;
+
 /* ---------------------------------------------------------------------- */
 
 #define NCERR(x) ncerr(x, nullptr, __LINE__)
@@ -275,7 +279,7 @@ void DumpNetCDFMPIIO::openfile()
     if (not utils::file_is_readable(filecurrent))
       error->all(FLERR, "cannot append to non-existent file {}", filecurrent);
 
-    MPI_Offset index[NC_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];
+    MPI_Offset index[LMP_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];
     double d[1];
 
     if (singlefile_opened) return;
@@ -340,8 +344,8 @@ void DumpNetCDFMPIIO::openfile()
     if (framei != 0 && !multifile)
       error->all(FLERR,"at keyword requires use of 'append yes'");
 
-    int dims[NC_MAX_VAR_DIMS];
-    MPI_Offset index[NC_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];
+    int dims[LMP_MAX_VAR_DIMS];
+    MPI_Offset index[LMP_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];
     double d[1];
 
     if (singlefile_opened) return;
@@ -753,8 +757,8 @@ void DumpNetCDFMPIIO::write_time_and_cell()
 
 void DumpNetCDFMPIIO::write_data(int n, double *mybuf)
 {
-  MPI_Offset start[NC_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];
-  MPI_Offset stride[NC_MAX_VAR_DIMS];
+  MPI_Offset start[LMP_MAX_VAR_DIMS], count[NC_MAX_VAR_DIMS];
+  MPI_Offset stride[LMP_MAX_VAR_DIMS];
 
   if (!int_buffer) {
     n_buffer = std::max(1, n);

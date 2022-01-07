@@ -120,6 +120,7 @@ class PairEAMCD : public PairEAMAlloy {
     index.p = r * rdr + 1.0;
     index.m = static_cast<int>(index.p);
     index.m = index.m <= (nr - 1) ? index.m : (nr - 1);
+    index.m = index.m > 1 ? index.m : 1;
     index.p -= index.m;
     index.p = index.p <= 1.0 ? index.p : 1.0;
     return index;
@@ -132,6 +133,7 @@ class PairEAMCD : public PairEAMAlloy {
     index.p = rho * rdrho + 1.0;
     index.m = static_cast<int>(index.p);
     index.m = index.m <= (nrho - 1) ? index.m : (nrho - 1);
+    index.m = index.m > 1 ? index.m : 1;
     index.p -= index.m;
     index.p = index.p <= 1.0 ? index.p : 1.0;
     return index;

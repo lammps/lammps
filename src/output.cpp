@@ -344,8 +344,6 @@ void Output::setup(int memflag)
    //   can't remove an uneeded addstep from a compute, b/c don't know
    //     what other command may have added it
 
-   int writeflag;
-
    if (next_dump_any == ntimestep) {
 
      for (int idump = 0; idump < ndump; idump++) {

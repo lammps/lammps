@@ -36,7 +36,6 @@ class PairMesoCNT : public Pair {
 
  protected:
   int uinf_points, gamma_points, phi_points, usemi_points;
-  int nlocal_size, reduced_neigh_size;
   int *reduced_nlist, *numchainlist;
   int **reduced_neighlist, **nchainlist, **endlist;
   int ***chainlist;

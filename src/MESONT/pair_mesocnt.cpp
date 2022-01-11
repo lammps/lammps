@@ -73,8 +73,6 @@ PairMesoCNT::~PairMesoCNT()
     memory->destroy(phi_coeff);
     memory->destroy(usemi_coeff);
 
-    memory->destroy(reduced_neighlist);
-    memory->destroy(reduced_nlist);
     memory->destroy(numchainlist);
     memory->destroy(nchainlist);
     memory->destroy(endlist);
@@ -388,8 +386,7 @@ void PairMesoCNT::allocate()
 {
   allocated = 1;
   int ntypes = atom->ntypes;
-  nlocal_size = 512;
-  reduced_neigh_size = 64;
+  int init_size = 64;
 
   memory->create(cutsq,ntypes+1,ntypes+1,"pair:cutsq");
   memory->create(setflag,ntypes+1,ntypes+1,"pair:setflag");
@@ -402,21 +399,17 @@ void PairMesoCNT::allocate()
   memory->create(phi_coeff,phi_points,phi_points,4,4,"pair:phi_coeff");
   memory->create(usemi_coeff,usemi_points,usemi_points,4,4,"pair:usemi_coeff");
 
-  memory->create(reduced_nlist,nlocal_size,"pair:reduced_nlist");
-  memory->create(numchainlist,nlocal_size,"pair:numchainlist");
+  memory->create(numchainlist,init_size,"pair:numchainlist");
+  memory->create(nchainlist,init_size,init_size,"pair:nchainlist");
+  memory->create(endlist,init_size,init_size,"pair:endlist");
+  memory->create(chainlist,init_size,
+                init_size,init_size,"pair:chainlist");
 
-  memory->create(reduced_neighlist,
-                nlocal_size,reduced_neigh_size,"pair:reduced_neighlist");
-  memory->create(nchainlist,nlocal_size,reduced_neigh_size,"pair:nchainlist");
-  memory->create(endlist,nlocal_size,reduced_neigh_size,"pair:endlist");
-  memory->create(chainlist,nlocal_size,
-                reduced_neigh_size,reduced_neigh_size,"pair:chainlist");
-
-  memory->create(w,reduced_neigh_size,"pair:w");
-  memory->create(wnode,reduced_neigh_size,"pair:wnode");
-  memory->create(dq_w,reduced_neigh_size,3,"pair:dq_w");
-  memory->create(q1_dq_w,reduced_neigh_size,3,3,"pair:q1_dq_w");
-  memory->create(q2_dq_w,reduced_neigh_size,3,3,"pair:q2_dq_w");
+  memory->create(w,init_size,"pair:w");
+  memory->create(wnode,init_size,"pair:wnode");
+  memory->create(dq_w,init_size,3,"pair:dq_w");
+  memory->create(q1_dq_w,init_size,3,3,"pair:q1_dq_w");
+  memory->create(q2_dq_w,init_size,3,3,"pair:q2_dq_w");
 
   memory->create(param,7,"pair:param");
 
@@ -528,11 +521,6 @@ void PairMesoCNT::bond_neigh()
   int nbondlist = neighbor->nbondlist;
   int nlocal = atom->nlocal;
 
-  int update_memory = 0;
-  if (nbondlist > nlocal_size) {
-    nlocal_size = 2 * nbondlist;
-    update_memory = 1;
-  }
   int *numneigh = list->numneigh;
   int numneigh_max = 0;
   for (int i = 0; i < nbondlist; i++) {
@@ -547,49 +535,46 @@ void PairMesoCNT::bond_neigh()
     int numneigh_max_local = numneigh1 + numneigh2;
     if (numneigh_max_local > numneigh_max) numneigh_max = numneigh_max_local;
   }
-  if (numneigh_max > reduced_neigh_size) {
-    reduced_neigh_size = 2 * numneigh_max;
-    update_memory = 1;
-  }
 
-  // grow arrays if necessary
+  // create temporary arrays for chain creation
+  
+  memory->create(reduced_nlist,nbondlist,"pair:reduced_nlist");
+  memory->create(reduced_neighlist,
+                nbondlist,numneigh_max,"pair:reduced_neighlist");
+    
+  // reduce neighbors to common list and find longest common list size
 
-  if (update_memory) {
-    memory->destroy(reduced_neighlist);
-    memory->destroy(numchainlist);
-    memory->destroy(reduced_nlist);
-    memory->destroy(nchainlist);
-    memory->destroy(endlist);
-    memory->destroy(chainlist);
-
-    memory->create(reduced_nlist,nlocal_size,"pair:reduced_nlist");
-    memory->create(numchainlist,nlocal_size,"pair:numchainlist");
-    memory->create(reduced_neighlist,
-                  nlocal_size,reduced_neigh_size,"pair:reduced_neighlist");
-    memory->create(nchainlist,nlocal_size,reduced_neigh_size,"pair:nchainlist");
-    memory->create(endlist,nlocal_size,reduced_neigh_size,"pair:endlist");
-    memory->create(chainlist,nlocal_size,
-                  reduced_neigh_size,reduced_neigh_size,"pair:chainlist");
-
-    memory->grow(w,reduced_neigh_size,"pair:w");
-    memory->grow(wnode,reduced_neigh_size,"pair:wnode");
-    memory->grow(dq_w,reduced_neigh_size,3,"pair:dq_w");
-    memory->grow(q1_dq_w,reduced_neigh_size,3,3,"pair:q1_dq_w");
-    memory->grow(q2_dq_w,reduced_neigh_size,3,3,"pair:q2_dq_w");
-  }
-
+  numneigh_max = 0;
   for (int i = 0; i < nbondlist; i++) {
     int i1 = bondlist[i][0];
     int i2 = bondlist[i][1];
 
     int *reduced_neigh = reduced_neighlist[i];
+    neigh_common(i1,i2,reduced_nlist[i],reduced_neigh);
+
+    if (numneigh_max < reduced_nlist[i])
+      numneigh_max = reduced_nlist[i];
+  }
+
+  // resize chain arrays
+
+  memory->destroy(numchainlist);
+  memory->destroy(nchainlist);
+  memory->destroy(endlist);
+  memory->destroy(chainlist);
+
+  memory->create(numchainlist,nbondlist,"pair:numchainlist");
+  memory->create(nchainlist,nbondlist,numneigh_max,"pair:nchainlist");
+  memory->create(endlist,nbondlist,numneigh_max,"pair:endlist");
+  memory->create(chainlist,nbondlist,
+                numneigh_max,numneigh_max,"pair:chainlist");
+
+  int nchain_max = 0;
+  for (int i = 0; i < nbondlist; i++) {
+    int *reduced_neigh = reduced_neighlist[i];
     int *end = endlist[i];
     int *nchain = nchainlist[i];
     int **chain = chainlist[i];
-
-    // reduce neighbors to common list
-
-    neigh_common(i1,i2,reduced_nlist[i],reduced_neigh);
 
     // sort list according to atom-id
 
@@ -599,7 +584,28 @@ void PairMesoCNT::bond_neigh()
 
     chain_split(reduced_neigh,
                   reduced_nlist[i],numchainlist[i],chain,nchain,end);
+  
+    // find longest chain
+
+    for (int j = 0; j < numchainlist[i]; j++)
+      if (nchain_max < nchain[j])
+        nchain_max = nchain[j];
   }
+
+  // resize potential arrays
+
+  memory->grow(w,nchain_max,"pair:w");
+  memory->grow(wnode,nchain_max,"pair:wnode");
+  memory->grow(dq_w,nchain_max,3,"pair:dq_w");
+  memory->grow(q1_dq_w,nchain_max,3,3,"pair:q1_dq_w");
+  memory->grow(q2_dq_w,nchain_max,3,3,"pair:q2_dq_w");
+
+
+  // destroy temporary arrays for chain creation
+
+  memory->destroy(reduced_neighlist);
+  memory->destroy(reduced_nlist);
+
 }
 
 /* ----------------------------------------------------------------------

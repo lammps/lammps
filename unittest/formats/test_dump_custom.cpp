@@ -73,6 +73,13 @@ public:
         END_HIDE_OUTPUT();
     }
 
+    void close_dump()
+    {
+        BEGIN_HIDE_OUTPUT();
+        command("undump id");
+        END_HIDE_OUTPUT();
+    }
+
     void generate_text_and_binary_dump(std::string text_file, std::string binary_file,
                                        std::string fields, std::string dump_modify_options,
                                        int ntimesteps)
@@ -330,6 +337,7 @@ TEST_F(DumpCustomTest, rerun)
     ASSERT_FILE_EXISTS(dump_file);
     ASSERT_EQ(count_lines(dump_file), 82);
     continue_dump(1);
+    close_dump();
     lmp->output->thermo->evaluate_keyword("pe", &pe_2);
     ASSERT_FILE_EXISTS(dump_file);
     ASSERT_EQ(count_lines(dump_file), 123);
@@ -338,6 +346,7 @@ TEST_F(DumpCustomTest, rerun)
     });
     lmp->output->thermo->evaluate_keyword("pe", &pe_rerun);
     ASSERT_DOUBLE_EQ(pe_1, pe_rerun);
+    
     HIDE_OUTPUT([&] {
         command(fmt::format("rerun {} first 2 last 2 every 1 post yes dump x y z", dump_file));
     });
@@ -359,6 +368,7 @@ TEST_F(DumpCustomTest, rerun_bin)
     lmp->output->thermo->evaluate_keyword("pe", &pe_1);
     ASSERT_FILE_EXISTS(dump_file);
     continue_dump(1);
+    close_dump();
     lmp->output->thermo->evaluate_keyword("pe", &pe_2);
     ASSERT_FILE_EXISTS(dump_file);
     HIDE_OUTPUT([&] {

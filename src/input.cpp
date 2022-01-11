@@ -27,9 +27,11 @@
 #include "dihedral.h"
 #include "domain.h"
 #include "error.h"
+#include "fix.h"
 #include "force.h"
 #include "group.h"
 #include "improper.h"
+#include "integrate.h"
 #include "kspace.h"
 #include "memory.h"
 #include "min.h"
@@ -1836,8 +1838,25 @@ void Input::timer_command()
 void Input::timestep()
 {
   if (narg != 1) error->all(FLERR,"Illegal timestep command");
+
+  update->update_time();
   update->dt = utils::numeric(FLERR,arg[0],false,lmp);
   update->dt_default = 0;
+
+  // timestep command can be invoked between runs or by run every
+  // calls to other classes that need to know timestep size changed
+  // similar logic is in FixDtReset::end_of_step()
+  // only need to do this if a run has already occurred
+
+  if (update->first_update == 0) return;
+
+  int respaflag = 0;
+  if (utils::strmatch(update->integrate_style, "^respa")) respaflag = 1;
+  if (respaflag) update->integrate->reset_dt();
+
+  if (force->pair) force->pair->reset_dt();
+  for (int i = 0; i < modify->nfix; i++) modify->fix[i]->reset_dt();
+  output->reset_dt();
 }
 
 /* ---------------------------------------------------------------------- */

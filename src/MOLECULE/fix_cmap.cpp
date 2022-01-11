@@ -1072,10 +1072,10 @@ void FixCMAP::read_data_header(char *line)
    store CMAP interactions as if newton_bond = OFF, even if actually ON
 ------------------------------------------------------------------------- */
 
-void FixCMAP::read_data_section(char *keyword, int n, char *buf,
+void FixCMAP::read_data_section(char * /*keyword*/, int /*n*/, char *buf,
                                  tagint id_offset)
 {
-  int m,tmp,itype;
+  int m,itype;
   tagint atom1,atom2,atom3,atom4,atom5;
 
   auto lines = utils::split_lines(buf);

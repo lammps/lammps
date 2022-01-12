@@ -298,12 +298,9 @@ std::string utils::check_packages_for_style(const std::string &style, const std:
    called by various commands to check validity of their arguments
 ------------------------------------------------------------------------- */
 
-int utils::logical(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+int utils::logical(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp)
 {
-  int n = 0;
-
-  if (str) n = strlen(str);
-  if (n == 0) {
+  if (str.empty()) {
     const char msg[] = "Expected boolean parameter instead of NULL or empty string "
                        "in input script or data file";
     if (do_abort)
@@ -333,17 +330,27 @@ int utils::logical(const char *file, int line, const char *str, bool do_abort, L
 }
 
 /* ----------------------------------------------------------------------
+   wrapper for logical() that accepts a char pointer instead of a string
+------------------------------------------------------------------------- */
+
+int utils::logical(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+{
+  if (str)
+    return logical(file, line, std::string(str), do_abort, lmp);
+  else
+    return logical(file, line, std::string(""), do_abort, lmp);
+}
+
+/* ----------------------------------------------------------------------
    read a floating point value from a string
    generate an error if not a legitimate floating point value
    called by various commands to check validity of their arguments
 ------------------------------------------------------------------------- */
 
-double utils::numeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+double utils::numeric(const char *file, int line, const std::string &str, bool do_abort,
+                      LAMMPS *lmp)
 {
-  int n = 0;
-
-  if (str) n = strlen(str);
-  if (n == 0) {
+  if (str.empty()) {
     const char msg[] = "Expected floating point parameter instead of"
                        " NULL or empty string in input script or data file";
     if (do_abort)
@@ -368,17 +375,26 @@ double utils::numeric(const char *file, int line, const char *str, bool do_abort
 }
 
 /* ----------------------------------------------------------------------
+   wrapper for numeric() that accepts a char pointer instead of a string
+------------------------------------------------------------------------- */
+
+double utils::numeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+{
+  if (str)
+    return numeric(file, line, std::string(str), do_abort, lmp);
+  else
+    return numeric(file, line, std::string(""), do_abort, lmp);
+}
+
+/* ----------------------------------------------------------------------
    read an integer value from a string
    generate an error if not a legitimate integer value
    called by various commands to check validity of their arguments
 ------------------------------------------------------------------------- */
 
-int utils::inumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+int utils::inumeric(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp)
 {
-  int n = 0;
-
-  if (str) n = strlen(str);
-  if (n == 0) {
+  if (str.empty()) {
     const char msg[] = "Expected integer parameter instead of"
                        " NULL or empty string in input script or data file";
     if (do_abort)
@@ -403,17 +419,27 @@ int utils::inumeric(const char *file, int line, const char *str, bool do_abort, 
 }
 
 /* ----------------------------------------------------------------------
+   wrapper for inumeric() that accepts a char pointer instead of a string
+------------------------------------------------------------------------- */
+
+int utils::inumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+{
+  if (str)
+    return inumeric(file, line, std::string(str), do_abort, lmp);
+  else
+    return inumeric(file, line, std::string(""), do_abort, lmp);
+}
+
+/* ----------------------------------------------------------------------
    read a big integer value from a string
    generate an error if not a legitimate integer value
    called by various commands to check validity of their arguments
 ------------------------------------------------------------------------- */
 
-bigint utils::bnumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+bigint utils::bnumeric(const char *file, int line, const std::string &str, bool do_abort,
+                       LAMMPS *lmp)
 {
-  int n = 0;
-
-  if (str) n = strlen(str);
-  if (n == 0) {
+  if (str.empty()) {
     const char msg[] = "Expected integer parameter instead of"
                        " NULL or empty string in input script or data file";
     if (do_abort)
@@ -438,17 +464,27 @@ bigint utils::bnumeric(const char *file, int line, const char *str, bool do_abor
 }
 
 /* ----------------------------------------------------------------------
+   wrapper for bnumeric() that accepts a char pointer instead of a string
+------------------------------------------------------------------------- */
+
+bigint utils::bnumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+{
+  if (str)
+    return bnumeric(file, line, std::string(str), do_abort, lmp);
+  else
+    return bnumeric(file, line, std::string(""), do_abort, lmp);
+}
+
+/* ----------------------------------------------------------------------
    read a tag integer value from a string
    generate an error if not a legitimate integer value
    called by various commands to check validity of their arguments
 ------------------------------------------------------------------------- */
 
-tagint utils::tnumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+tagint utils::tnumeric(const char *file, int line, const std::string &str, bool do_abort,
+                       LAMMPS *lmp)
 {
-  int n = 0;
-
-  if (str) n = strlen(str);
-  if (n == 0) {
+  if (str.empty()) {
     const char msg[] = "Expected integer parameter instead of"
                        " NULL or empty string in input script or data file";
     if (do_abort)
@@ -470,6 +506,18 @@ tagint utils::tnumeric(const char *file, int line, const char *str, bool do_abor
   }
 
   return ATOTAGINT(buf.c_str());
+}
+
+/* ----------------------------------------------------------------------
+   wrapper for tnumeric() that accepts a char pointer instead of a string
+------------------------------------------------------------------------- */
+
+tagint utils::tnumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
+{
+  if (str)
+    return tnumeric(file, line, std::string(str), do_abort, lmp);
+  else
+    return tnumeric(file, line, std::string(""), do_abort, lmp);
 }
 
 /* ----------------------------------------------------------------------

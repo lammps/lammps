@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -63,9 +62,9 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
   MPI_Comm_size(world,&nprocs);
   ntypes = atom->ntypes;
 
-  nevery = atoi(arg[3]);
-  nrepeat = atoi(arg[4]);
-  global_freq = nfreq = atoi(arg[5]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  nrepeat = utils::inumeric(FLERR,arg[4],false,lmp);
+  global_freq = nfreq = utils::inumeric(FLERR,arg[5],false,lmp);
 
   comm_forward = 4;
 
@@ -155,9 +154,9 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
     // set BO cutoff
     if (strcmp(arg[iarg],"cutoff") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix reaxff/species command");
-      itype = atoi(arg[iarg+1]);
-      jtype = atoi(arg[iarg+2]);
-      bo_cut = atof(arg[iarg+3]);
+      itype = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      jtype = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
+      bo_cut = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       if (itype > ntypes || jtype > ntypes)
         error->all(FLERR,"Illegal fix reaxff/species command");
       if (itype <= 0 || jtype <= 0)
@@ -187,7 +186,7 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"position") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix reaxff/species command");
       posflag = 1;
-      posfreq = atoi(arg[iarg+1]);
+      posfreq = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (posfreq < nfreq || (posfreq%nfreq != 0))
         error->all(FLERR,"Illegal fix reaxff/species command");
 
@@ -247,8 +246,8 @@ FixReaxFFSpecies::~FixReaxFFSpecies()
     if (posflag && multipos_opened) fclose(pos);
   }
 
-  modify->delete_compute("SPECATOM");
-  modify->delete_fix("SPECBOND");
+  modify->delete_compute(fmt::format("SPECATOM_{}",id));
+  modify->delete_fix(fmt::format("SPECBOND_{}",id));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -288,22 +287,16 @@ void FixReaxFFSpecies::init()
   if (nvalid != update->ntimestep)
     nvalid = update->ntimestep+nfreq;
 
-  // check if this fix has been called twice
-  int count = 0;
-  for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"reaxff/species") == 0) count++;
-  if (count > 1 && comm->me == 0)
-    error->warning(FLERR,"More than one fix reaxff/species");
-
   if (!setupflag) {
     // create a compute to store properties
-    modify->add_compute("SPECATOM all SPEC/ATOM q x y z vx vy vz abo01 abo02 abo03 abo04 "
-                        "abo05 abo06 abo07 abo08 abo09 abo10 abo11 abo12 abo13 abo14 "
-                        "abo15 abo16 abo17 abo18 abo19 abo20 abo21 abo22 abo23 abo24");
+    modify->add_compute(fmt::format("SPECATOM_{} all SPEC/ATOM q x y z vx vy vz abo01 abo02 "
+                                    "abo03 abo04 abo05 abo06 abo07 abo08 abo09 abo10 abo11 "
+                                    "abo12 abo13 abo14 abo15 abo16 abo17 abo18 abo19 abo20 "
+                                    "abo21 abo22 abo23 abo24",id));
 
     // create a fix to point to fix_ave_atom for averaging stored properties
-    auto fixcmd = fmt::format("SPECBOND all ave/atom {} {} {}",nevery,nrepeat,nfreq);
-    for (int i = 1; i < 32; ++i) fixcmd += " c_SPECATOM[" + std::to_string(i) + "]";
+    auto fixcmd = fmt::format("SPECBOND_{} all ave/atom {} {} {}",id,nevery,nrepeat,nfreq);
+    for (int i = 1; i < 32; ++i) fixcmd += fmt::format(" c_SPECATOM_{}[{}]",id,i);
     f_SPECBOND = (FixAveAtom *) modify->add_fix(fixcmd);
     setupflag = 1;
   }

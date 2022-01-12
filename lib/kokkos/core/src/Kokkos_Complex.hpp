@@ -77,7 +77,7 @@ class
 
   //! Default constructor (initializes both real and imaginary parts to zero).
   KOKKOS_DEFAULTED_FUNCTION
-  complex() noexcept = default;
+  complex() = default;
 
   //! Copy constructor.
   KOKKOS_DEFAULTED_FUNCTION
@@ -150,11 +150,11 @@ class
 
   //! The imaginary part of this complex number.
   KOKKOS_INLINE_FUNCTION
-  KOKKOS_CONSTEXPR_14 RealType& imag() noexcept { return im_; }
+  constexpr RealType& imag() noexcept { return im_; }
 
   //! The real part of this complex number.
   KOKKOS_INLINE_FUNCTION
-  KOKKOS_CONSTEXPR_14 RealType& real() noexcept { return re_; }
+  constexpr RealType& real() noexcept { return re_; }
 
   //! The imaginary part of this complex number.
   KOKKOS_INLINE_FUNCTION
@@ -166,41 +166,39 @@ class
 
   //! Set the imaginary part of this complex number.
   KOKKOS_INLINE_FUNCTION
-  KOKKOS_CONSTEXPR_14
-  void imag(RealType v) noexcept { im_ = v; }
+  constexpr void imag(RealType v) noexcept { im_ = v; }
 
   //! Set the real part of this complex number.
   KOKKOS_INLINE_FUNCTION
-  KOKKOS_CONSTEXPR_14
-  void real(RealType v) noexcept { re_ = v; }
+  constexpr void real(RealType v) noexcept { re_ = v; }
 
-  KOKKOS_CONSTEXPR_14 KOKKOS_INLINE_FUNCTION complex& operator+=(
+  constexpr KOKKOS_INLINE_FUNCTION complex& operator+=(
       const complex<RealType>& src) noexcept {
     re_ += src.re_;
     im_ += src.im_;
     return *this;
   }
 
-  KOKKOS_CONSTEXPR_14 KOKKOS_INLINE_FUNCTION complex& operator+=(
+  constexpr KOKKOS_INLINE_FUNCTION complex& operator+=(
       const RealType& src) noexcept {
     re_ += src;
     return *this;
   }
 
-  KOKKOS_CONSTEXPR_14 KOKKOS_INLINE_FUNCTION complex& operator-=(
+  constexpr KOKKOS_INLINE_FUNCTION complex& operator-=(
       const complex<RealType>& src) noexcept {
     re_ -= src.re_;
     im_ -= src.im_;
     return *this;
   }
 
-  KOKKOS_CONSTEXPR_14 KOKKOS_INLINE_FUNCTION complex& operator-=(
+  constexpr KOKKOS_INLINE_FUNCTION complex& operator-=(
       const RealType& src) noexcept {
     re_ -= src;
     return *this;
   }
 
-  KOKKOS_CONSTEXPR_14 KOKKOS_INLINE_FUNCTION complex& operator*=(
+  constexpr KOKKOS_INLINE_FUNCTION complex& operator*=(
       const complex<RealType>& src) noexcept {
     const RealType realPart = re_ * src.re_ - im_ * src.im_;
     const RealType imagPart = re_ * src.im_ + im_ * src.re_;
@@ -209,7 +207,7 @@ class
     return *this;
   }
 
-  KOKKOS_CONSTEXPR_14 KOKKOS_INLINE_FUNCTION complex& operator*=(
+  constexpr KOKKOS_INLINE_FUNCTION complex& operator*=(
       const RealType& src) noexcept {
     re_ *= src;
     im_ *= src;
@@ -217,7 +215,7 @@ class
   }
 
   // Conditional noexcept, just in case RType throws on divide-by-zero
-  KOKKOS_CONSTEXPR_14 KOKKOS_INLINE_FUNCTION complex& operator/=(
+  constexpr KOKKOS_INLINE_FUNCTION complex& operator/=(
       const complex<RealType>& y) noexcept(noexcept(RealType{} / RealType{})) {
     using Kokkos::Experimental::fabs;
     // Scale (by the "1-norm" of y) to avoid unwarranted overflow.
@@ -244,8 +242,7 @@ class
     return *this;
   }
 
-  KOKKOS_CONSTEXPR_14
-  KOKKOS_INLINE_FUNCTION complex& operator/=(
+  constexpr KOKKOS_INLINE_FUNCTION complex& operator/=(
       const std::complex<RealType>& y) noexcept(noexcept(RealType{} /
                                                          RealType{})) {
     using Kokkos::Experimental::fabs;
@@ -272,7 +269,7 @@ class
     return *this;
   }
 
-  KOKKOS_CONSTEXPR_14 KOKKOS_INLINE_FUNCTION complex& operator/=(
+  constexpr KOKKOS_INLINE_FUNCTION complex& operator/=(
       const RealType& src) noexcept(noexcept(RealType{} / RealType{})) {
     re_ /= src;
     im_ /= src;
@@ -688,10 +685,22 @@ KOKKOS_INLINE_FUNCTION RealType imag(const complex<RealType>& x) noexcept {
   return x.imag();
 }
 
+template <class ArithmeticType>
+KOKKOS_INLINE_FUNCTION constexpr Impl::promote_t<ArithmeticType> imag(
+    ArithmeticType) {
+  return ArithmeticType();
+}
+
 //! Real part of a complex number.
 template <class RealType>
 KOKKOS_INLINE_FUNCTION RealType real(const complex<RealType>& x) noexcept {
   return x.real();
+}
+
+template <class ArithmeticType>
+KOKKOS_INLINE_FUNCTION constexpr Impl::promote_t<ArithmeticType> real(
+    ArithmeticType x) {
+  return x;
 }
 
 //! Constructs a complex number from magnitude and phase angle
@@ -732,36 +741,6 @@ KOKKOS_INLINE_FUNCTION complex<T> pow(const complex<T>& x,
 
   return x == T() ? T() : exp(y * log(x));
 }
-
-namespace Impl {
-// NOTE promote would also be useful for math functions
-template <class T, bool = std::is_integral<T>::value>
-struct promote {
-  using type = double;
-};
-template <class T>
-struct promote<T, false> {};
-template <>
-struct promote<long double> {
-  using type = long double;
-};
-template <>
-struct promote<double> {
-  using type = double;
-};
-template <>
-struct promote<float> {
-  using type = float;
-};
-template <class T>
-using promote_t = typename promote<T>::type;
-template <class T, class U>
-struct promote_2 {
-  using type = decltype(promote_t<T>() + promote_t<U>());
-};
-template <class T, class U>
-using promote_2_t = typename promote_2<T, U>::type;
-}  // namespace Impl
 
 template <class T, class U,
           class = std::enable_if_t<std::is_arithmetic<T>::value>>
@@ -814,6 +793,13 @@ template <class RealType>
 KOKKOS_INLINE_FUNCTION complex<RealType> conj(
     const complex<RealType>& x) noexcept {
   return complex<RealType>(real(x), -imag(x));
+}
+
+template <class ArithmeticType>
+KOKKOS_INLINE_FUNCTION constexpr complex<Impl::promote_t<ArithmeticType>> conj(
+    ArithmeticType x) {
+  using type = Impl::promote_t<ArithmeticType>;
+  return complex<type>(x, -type());
 }
 
 //! Exponential of a complex number.

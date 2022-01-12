@@ -128,8 +128,7 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
   char *ptr;
   if ((ptr = strchr(filename,'%'))) {
     if (strstr(style,"mpiio"))
-      error->all(FLERR,
-                 "Dump file MPI-IO output not allowed with % in filename");
+      error->all(FLERR,"Dump file MPI-IO output not allowed with % in filename");
     multiproc = 1;
     nclusterprocs = 1;
     filewriter = 1;
@@ -228,7 +227,7 @@ void Dump::init()
   if (sort_flag) {
     if (multiproc > 1)
       error->all(FLERR,
-                 "Cannot dump sort when multiple dump files are written");
+                 "Cannot dump sort when 'nfile' or 'fileper' keywords are set to non-default values");
     if (sortcol == 0 && atom->tag_enable == 0)
       error->all(FLERR,"Cannot dump sort on atom IDs with no atom IDs defined");
     if (sortcol && sortcol > size_one)
@@ -237,8 +236,6 @@ void Dump::init()
       irregular = new Irregular(lmp);
 
     bigint size = group->count(igroup);
-    if (size > MAXSMALLINT) error->all(FLERR,"Too many atoms to dump sort");
-    int isize = static_cast<int> (size);
 
     // set reorderflag = 1 if can simply reorder local atoms rather than sort
     // criteria: sorting by ID, atom IDs are consecutive from 1 to Natoms
@@ -268,7 +265,7 @@ void Dump::init()
       MPI_Allreduce(&min,&minall,1,MPI_LMP_TAGINT,MPI_MIN,world);
       MPI_Allreduce(&max,&maxall,1,MPI_LMP_TAGINT,MPI_MAX,world);
 
-      if (maxall-minall+1 == isize) {
+      if (maxall-minall+1 == size) {
         reorderflag = 1;
         double range = maxall-minall + EPSILON;
         idlo = static_cast<tagint> (range*me/nprocs + minall);
@@ -284,7 +281,7 @@ void Dump::init()
         else if (me+1 != hi) idhi++;
 
         nme_reorder = idhi-idlo;
-        ntotal_reorder = isize;
+        ntotal_reorder = size;
       }
     }
   }
@@ -369,16 +366,6 @@ void Dump::write()
   if (multiproc != nprocs) MPI_Allreduce(&nme,&nmax,1,MPI_INT,MPI_MAX,world);
   else nmax = nme;
 
-  // write timestep header
-  // for multiproc,
-  //   nheader = # of lines in this file via Allreduce on clustercomm
-
-  bigint nheader = ntotal;
-  if (multiproc)
-    MPI_Allreduce(&bnme,&nheader,1,MPI_LMP_BIGINT,MPI_SUM,clustercomm);
-
-  if (filewriter && write_header_flag) write_header(nheader);
-
   // insure buf is sized for packing and communicating
   // use nmax to insure filewriter proc can receive info from others
   // limit nmax*size_one to int since used as arg in MPI calls
@@ -430,6 +417,19 @@ void Dump::write()
   if (sort_flag && sortcol == 0) pack(ids);
   else pack(nullptr);
   if (sort_flag) sort();
+
+  // write timestep header
+  // for multiproc,
+  //   nheader = # of lines in this file via Allreduce on clustercomm
+  //   must come after sort, which can change nme
+
+  bigint nheader = ntotal;
+  if (multiproc) {
+    bnme = nme;
+    MPI_Allreduce(&bnme,&nheader,1,MPI_LMP_BIGINT,MPI_SUM,clustercomm);
+  }
+
+  if (filewriter && write_header_flag) write_header(nheader);
 
   // if buffering, convert doubles into strings
   // insure sbuf is sized for communicating
@@ -918,11 +918,6 @@ void Dump::modify_params(int narg, char **arg)
       else delay_flag = 0;
       iarg += 2;
 
-    } else if (strcmp(arg[iarg],"header") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
-      write_header_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
-      iarg += 2;
-
     } else if (strcmp(arg[iarg],"every") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
       int idump;
@@ -937,7 +932,26 @@ void Dump::modify_params(int narg, char **arg)
         n = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
         if (n <= 0) error->all(FLERR,"Illegal dump_modify command");
       }
+      output->mode_dump[idump] = 0;
       output->every_dump[idump] = n;
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"every/time") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      int idump;
+      for (idump = 0; idump < output->ndump; idump++)
+        if (strcmp(id,output->dump[idump]->id) == 0) break;
+      double delta;
+      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
+        delete [] output->var_dump[idump];
+        output->var_dump[idump] = utils::strdup(&arg[iarg+1][2]);
+        delta = 0.0;
+      } else {
+        delta = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+        if (delta <= 0.0) error->all(FLERR,"Illegal dump_modify command");
+      }
+      output->mode_dump[idump] = 1;
+      output->every_time_dump[idump] = delta;
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"fileper") == 0) {
@@ -1006,6 +1020,11 @@ void Dump::modify_params(int narg, char **arg)
         if (n == 0) error->all(FLERR,"Illegal dump_modify command");
         iarg += n;
       }
+
+    } else if (strcmp(arg[iarg],"header") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      write_header_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
 
     } else if (strcmp(arg[iarg],"maxfiles") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
@@ -1113,6 +1132,7 @@ double Dump::compute_time()
 {
   return update->atime + (update->ntimestep - update->atimestep)*update->dt;
 }
+
 /* ----------------------------------------------------------------------
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */

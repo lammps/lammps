@@ -504,8 +504,7 @@ void FixGCMC::init()
     int flagall;
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
     if (flagall && comm->me == 0)
-      error->all(FLERR,
-       "Fix gcmc cannot exchange individual atoms belonging to a molecule");
+      error->all(FLERR, "Fix gcmc cannot exchange individual atoms belonging to a molecule");
   }
 
   // if molecules are exchanged or moved, check for unset mol IDs
@@ -520,16 +519,13 @@ void FixGCMC::init()
     int flagall;
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
     if (flagall && comm->me == 0)
-      error->all(FLERR,
-       "All mol IDs should be set for fix gcmc group atoms");
+      error->all(FLERR, "All mol IDs should be set for fix gcmc group atoms");
   }
 
   if (exchmode == EXCHMOL || movemode == MOVEMOL)
     if (atom->molecule_flag == 0 || !atom->tag_enable
         || (atom->map_style == Atom::MAP_NONE))
-      error->all(FLERR,
-       "Fix gcmc molecule command requires that "
-       "atoms have molecule attributes");
+      error->all(FLERR, "Fix gcmc molecule command requires that atoms have molecule attributes");
 
   // if rigidflag defined, check for rigid/small fix
   // its molecule template must be same as this one
@@ -541,9 +537,7 @@ void FixGCMC::init()
     fixrigid = modify->fix[ifix];
     int tmp;
     if (&onemols[imol] != (Molecule **) fixrigid->extract("onemol",tmp))
-      error->all(FLERR,
-                 "Fix gcmc and fix rigid/small not using "
-                 "same molecule template ID");
+      error->all(FLERR, "Fix gcmc and fix rigid/small not using same molecule template ID");
   }
 
   // if shakeflag defined, check for SHAKE fix

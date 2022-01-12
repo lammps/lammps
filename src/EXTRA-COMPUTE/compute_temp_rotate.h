@@ -43,7 +43,6 @@ class ComputeTempRotate : public Compute {
   double memory_usage();
 
  private:
-  int fix_dof;
   double tfactor, masstotal;
   double **vbiasall;    // stored velocity bias for all atoms
   int maxbias;          // size of vbiasall array

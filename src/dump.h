@@ -26,7 +26,7 @@ class Dump : protected Pointers {
   int igroup, groupbit;    // group that Dump is performed on
 
   int first_flag;    // 0 if no initial dump, 1 if yes initial dump
-  int clearstep;     // 1 if dump invokes computes, 0 if not
+  int clearstep;     // 1 if dump can invoke computes, 0 if not
 
   int comm_forward;    // size of forward communication (0 if none)
   int comm_reverse;    // size of reverse communication (0 if none)
@@ -75,7 +75,7 @@ class Dump : protected Pointers {
   int sortcol;              // 0 to sort on ID, 1-N on columns
   int sortcolm1;            // sortcol - 1
   int sortorder;            // ASCEND or DESCEND
-  int time_flag;            // 1 if output accumulated time
+  int time_flag;            // 1 if output simulation time
   int unit_flag;            // 1 if dump should contain unit information
   int unit_count;           // # of times the unit information was written
   int delay_flag;           // 1 if delay output until delaystep
@@ -116,7 +116,7 @@ class Dump : protected Pointers {
 
   bigint ntotal;         // total # of per-atom lines in snapshot
   int reorderflag;       // 1 if OK to reorder instead of sort
-  int ntotal_reorder;    // # of atoms that must be in snapshot
+  bigint ntotal_reorder;    // # of atoms that must be in snapshot
   int nme_reorder;       // # of atoms I must own in snapshot
   tagint idlo;           // lowest ID I own when reordering
 
@@ -173,10 +173,9 @@ E: Dump file MPI-IO output not allowed with % in filename
 This is because a % signifies one file per processor and MPI-IO
 creates one large file for all processors.
 
-E: Cannot dump sort when multiple dump files are written
+E: Cannot dump sort when 'nfile' or 'fileper' keywords are set to non-default values
 
-In this mode, each processor dumps its atoms to a file, so
-no sorting is allowed.
+Can only dump sort when the number of dump file pieces using % in filename equals the number of processors
 
 E: Cannot dump sort on atom IDs with no atom IDs defined
 
@@ -185,10 +184,6 @@ Self-explanatory.
 E: Dump sort column is invalid
 
 Self-explanatory.
-
-E: Too many atoms to dump sort
-
-Cannot sort when running with more than 2^31 atoms.
 
 E: Dump could not find refresh compute ID
 

@@ -1,5 +1,5 @@
 # /* ----------------------------------------------------------------------   
-#  Generic Linux Makefile for CUDA 
+#  Generic Linux Makefile for CUDA without MPI libraries
 #     - Change CUDA_ARCH for your GPU
 # ------------------------------------------------------------------------- */
 
@@ -28,11 +28,11 @@ NVCC = nvcc
 #CUDA_ARCH = -arch=sm_37
 
 # Maxwell hardware
-CUDA_ARCH = -arch=sm_50
+#CUDA_ARCH = -arch=sm_50
 #CUDA_ARCH = -arch=sm_52
 
 # Pascal hardware
-#CUDA_ARCH = -arch=sm_60
+CUDA_ARCH = -arch=sm_60
 #CUDA_ARCH = -arch=sm_61
 
 # Volta hardware
@@ -40,6 +40,10 @@ CUDA_ARCH = -arch=sm_50
 
 # Turing hardware
 #CUDA_ARCH = -arch=sm_75
+
+# Ampere hardware
+#CUDA_ARCH = -arch=sm_80
+#CUDA_ARCH = -arch=sm_86
 
 # this setting should match LAMMPS Makefile
 # one of LAMMPS_SMALLBIG (default), LAMMPS_BIGBIG and LAMMPS_SMALLSMALL

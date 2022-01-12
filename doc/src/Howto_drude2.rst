@@ -491,11 +491,6 @@ NPT ensemble using Nose-Hoover thermostat:
 **(Schroeder)**  Schroeder and Steinhauser, J Chem Phys, 133,
 154511 (2010).
 
-.. _Jiang2:
-
-**(Jiang)** Jiang, Hardy, Phillips, MacKerell, Schulten, and Roux,
- J Phys Chem Lett, 2, 87-92 (2011).
-
 .. _Thole2:
 
 **(Thole)** Chem Phys, 59, 341 (1981).

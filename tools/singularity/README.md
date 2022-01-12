@@ -15,7 +15,7 @@ built CentOS 7.x singularity container.
 
 ```
 cd some/work/directory
-git clone --depth 500  git://github.com/lammps/lammps.git lammps
+git clone --depth 500  https://github.com/lammps/lammps.git lammps
 mkdir build-centos7
 cd build-centos7
 sudo singularity build centos7.sif ../tools/singularity/centos7.def

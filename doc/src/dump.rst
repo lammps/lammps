@@ -137,7 +137,7 @@ Examples
    dump myDump all atom/gz 100 dump.atom.gz
    dump myDump all atom/zstd 100 dump.atom.zst
    dump 2 subgroup atom 50 dump.run.bin
-   dump 2 subgroup atom 50 dump.run.mpiio.bin
+   dump 2 subgroup atom/mpiio 50 dump.run.mpiio.bin
    dump 4a all custom 100 dump.myforce.* id type x y vx fx
    dump 4b flow custom 100 dump.%.myforce id type c_myF[3] v_ke
    dump 4b flow custom 100 dump.%.myforce id type c_myF[*] v_ke
@@ -169,11 +169,12 @@ or multiple smaller files).
 
 .. note::
 
-   Because periodic boundary conditions are enforced only on
-   timesteps when neighbor lists are rebuilt, the coordinates of an atom
-   written to a dump file may be slightly outside the simulation box.
-   Re-neighbor timesteps will not typically coincide with the timesteps
-   dump snapshots are written.  See the :doc:`dump_modify pbc <dump_modify>` command if you with to force coordinates to be
+   Because periodic boundary conditions are enforced only on timesteps
+   when neighbor lists are rebuilt, the coordinates of an atom written
+   to a dump file may be slightly outside the simulation box.
+   Re-neighbor timesteps will not typically coincide with the
+   timesteps dump snapshots are written.  See the :doc:`dump_modify
+   pbc <dump_modify>` command if you with to force coordinates to be
    strictly inside the simulation box.
 
 .. note::
@@ -189,20 +190,21 @@ or multiple smaller files).
    multiple processors, each of which owns a subset of the atoms.
 
 For the *atom*, *custom*, *cfg*, and *local* styles, sorting is off by
-default.  For the *dcd*, *xtc*, *xyz*, and *molfile* styles, sorting by
-atom ID is on by default. See the :doc:`dump_modify <dump_modify>` doc
-page for details.
+default.  For the *dcd*, *xtc*, *xyz*, and *molfile* styles, sorting
+by atom ID is on by default. See the :doc:`dump_modify <dump_modify>`
+doc page for details.
 
-The *atom/gz*, *cfg/gz*, *custom/gz*, *local/gz*, and *xyz/gz* styles are identical
-in command syntax to the corresponding styles without "gz", however,
-they generate compressed files using the zlib library. Thus the filename
-suffix ".gz" is mandatory. This is an alternative approach to writing
-compressed files via a pipe, as done by the regular dump styles, which
-may be required on clusters where the interface to the high-speed network
-disallows using the fork() library call (which is needed for a pipe).
-For the remainder of this doc page, you should thus consider the *atom*
-and *atom/gz* styles (etc) to be inter-changeable, with the exception
-of the required filename suffix.
+The *atom/gz*, *cfg/gz*, *custom/gz*, *local/gz*, and *xyz/gz* styles
+are identical in command syntax to the corresponding styles without
+"gz", however, they generate compressed files using the zlib
+library. Thus the filename suffix ".gz" is mandatory. This is an
+alternative approach to writing compressed files via a pipe, as done
+by the regular dump styles, which may be required on clusters where
+the interface to the high-speed network disallows using the fork()
+library call (which is needed for a pipe).  For the remainder of this
+doc page, you should thus consider the *atom* and *atom/gz* styles
+(etc) to be inter-changeable, with the exception of the required
+filename suffix.
 
 Similarly, the *atom/zstd*, *cfg/zstd*, *custom/zstd*, *local/zstd*,
 and *xyz/zstd* styles are identical to the gz styles, but use the Zstd
@@ -218,6 +220,11 @@ parallel via the MPI-IO library.  For the remainder of this doc page,
 you should thus consider the *atom* and *atom/mpiio* styles (etc) to
 be inter-changeable.  The one exception is how the filename is
 specified for the MPI-IO styles, as explained below.
+
+.. warning::
+
+   The MPIIO package is currently unmaintained and has become
+   unreliable. Use with caution.
 
 The precision of values output to text-based dump files can be
 controlled by the :doc:`dump_modify format <dump_modify>` command and
@@ -275,10 +282,11 @@ This bounding box is convenient for many visualization programs.  The
 meaning of the 6 character flags for "xx yy zz" is the same as above.
 
 Note that the first two numbers on each line are now xlo_bound instead
-of xlo, etc, since they represent a bounding box.  See the :doc:`Howto triclinic <Howto_triclinic>` page for a geometric description
-of triclinic boxes, as defined by LAMMPS, simple formulas for how the
-6 bounding box extents (xlo_bound,xhi_bound,etc) are calculated from
-the triclinic parameters, and how to transform those parameters to and
+of xlo, etc, since they represent a bounding box.  See the :doc:`Howto
+triclinic <Howto_triclinic>` page for a geometric description of
+triclinic boxes, as defined by LAMMPS, simple formulas for how the 6
+bounding box extents (xlo_bound,xhi_bound,etc) are calculated from the
+triclinic parameters, and how to transform those parameters to and
 from other commonly used triclinic representations.
 
 The "ITEM: ATOMS" line in each snapshot lists column descriptors for
@@ -310,23 +318,24 @@ written to the dump file.  This local data is typically calculated by
 each processor based on the atoms it owns, but there may be zero or
 more entities per atom, e.g. a list of bond distances.  An explanation
 of the possible dump local attributes is given below.  Note that by
-using input from the :doc:`compute property/local <compute_property_local>` command with dump local,
-it is possible to generate information on bonds, angles, etc that can
-be cut and pasted directly into a data file read by the
-:doc:`read_data <read_data>` command.
+using input from the :doc:`compute property/local
+<compute_property_local>` command with dump local, it is possible to
+generate information on bonds, angles, etc that can be cut and pasted
+directly into a data file read by the :doc:`read_data <read_data>`
+command.
 
 Style *cfg* has the same command syntax as style *custom* and writes
-extended CFG format files, as used by the
-`AtomEye <http://li.mit.edu/Archive/Graphics/A/>`_ visualization
-package.  Since the extended CFG format uses a single snapshot of the
-system per file, a wildcard "\*" must be included in the filename, as
-discussed below.  The list of atom attributes for style *cfg* must
-begin with either "mass type xs ys zs" or "mass type xsu ysu zsu"
-since these quantities are needed to write the CFG files in the
-appropriate format (though the "mass" and "type" fields do not appear
-explicitly in the file).  Any remaining attributes will be stored as
-"auxiliary properties" in the CFG files.  Note that you will typically
-want to use the :doc:`dump_modify element <dump_modify>` command with
+extended CFG format files, as used by the `AtomEye
+<http://li.mit.edu/Archive/Graphics/A/>`_ visualization package.
+Since the extended CFG format uses a single snapshot of the system per
+file, a wildcard "\*" must be included in the filename, as discussed
+below.  The list of atom attributes for style *cfg* must begin with
+either "mass type xs ys zs" or "mass type xsu ysu zsu" since these
+quantities are needed to write the CFG files in the appropriate format
+(though the "mass" and "type" fields do not appear explicitly in the
+file).  Any remaining attributes will be stored as "auxiliary
+properties" in the CFG files.  Note that you will typically want to
+use the :doc:`dump_modify element <dump_modify>` command with
 CFG-formatted files, to associate element names with atom types, so
 that AtomEye can render atoms appropriately. When unwrapped
 coordinates *xsu*, *ysu*, and *zsu* are requested, the nominal AtomEye
@@ -451,6 +460,11 @@ counterparts.  This means you can write a dump file using MPI-IO and
 use the :doc:`read_dump <read_dump>` command or perform other
 post-processing, just as if the dump file was not written using
 MPI-IO.
+
+.. warning::
+
+   The MPIIO package is currently unmaintained and has become
+   unreliable. Use with caution.
 
 Note that MPI-IO dump files are one large file which all processors
 write to.  You thus cannot use the "%" wildcard character described
@@ -708,8 +722,9 @@ are part of the MPIIO package.  They are only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
-The *xtc* style is part of the MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+The *xtc* and *dcd* styles are part of the EXTRA-DUMP package.  They
+are only enabled if LAMMPS was built with that package.  See the
+:doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

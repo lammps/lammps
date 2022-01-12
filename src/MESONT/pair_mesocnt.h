@@ -58,10 +58,13 @@ class PairMesoCNT : public Pair {
 
   char *file;
 
+  int count_chains(int *, int);
+
   void allocate();
   void bond_neigh();
   void neigh_common(int, int, int &, int *);
-  void chain_split(int *, int, int &, int **, int *, int *);
+  void chain_lengths(int *, int, int *);
+  void chain_split(int *, int, int *, int **, int *);
   void sort(int *, int);
   void read_file();
   void read_data(FILE *, double *, double &, double &, int);

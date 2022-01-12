@@ -226,10 +226,38 @@ class Memory : protected Pointers {
   }
 
   template <typename TYPE>
-  TYPE ***create_ragged(TYPE ***& /*array*/, int /*n1*/, int * /*n2*/, const char *name)
+  TYPE ***create_ragged(TYPE ***& array, int n1, int *n2, int **n3, const char *name)
   {
-    fail(name);
-    return nullptr;
+    bigint size, nbytes;
+    int i, j;
+
+    size = 0;
+    for (i = 0; i < n1; i++)
+      for (j = 0; j < n2[i]; j++)
+        size += n3[i][j];
+    nbytes = ((bigint) sizeof(TYPE)) * size;
+    TYPE *data = (TYPE *) smalloc(nbytes, name);
+    
+    size = 0;
+    for (i = 0; i < n1; i++) size += n2[i];
+    nbytes = ((bigint) sizeof(TYPE *)) * size;
+    TYPE **plane = (TYPE **) smalloc(nbytes, name);
+
+    nbytes = ((bigint) sizeof(TYPE **)) * n1;
+    array = (TYPE ***) smalloc(nbytes, name);
+
+    bigint m = 0;
+    bigint n = 0;
+    for (i = 0; i < n1; i++) {
+      array[i] = &plane[m];
+      for (j = 0; j < n2[i]; j++) {
+        plane[m + j] = &data[n];
+        n += n3[i][j];
+      }
+      m += n2[i];
+    }
+
+    return array;
   }
 
 /* ----------------------------------------------------------------------

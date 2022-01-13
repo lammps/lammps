@@ -1553,6 +1553,7 @@ void PairMesoCNT::geometry(const double *r1, const double *r2,
   sub3(pbar,rbar,delrbar);
 
   double h = len3(delrbar);
+  if (h*ang_inv < SMALL) h = SMALL * ang;
 
   copy3(delrbar,ex);
   copy3(l,ez);

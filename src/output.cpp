@@ -475,7 +475,7 @@ void Output::setup(int memflag)
       RESET_DT = from reset_dt() called from fix dt/reset when it changes timestep size
  ------------------------------------------------------------------------- */
 
-  void Output::calculate_next_dump(int which, int idump, bigint ntimestep)
+void Output::calculate_next_dump(int which, int idump, bigint ntimestep)
  {
    // dump mode is by timestep
    // just set next_dump

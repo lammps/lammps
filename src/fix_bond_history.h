@@ -68,8 +68,8 @@ class FixBondHistory : public Fix {
   int update_flag;
   int nbond, maxbond, ndata;
   int index;
-  char *new_fix_id;
-  char *array_id;
+  char *id_fix;
+  char *id_array;
 };
 
 }    // namespace LAMMPS_NS

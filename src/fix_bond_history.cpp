@@ -54,17 +54,17 @@ FixBondHistory::FixBondHistory(LAMMPS *lmp, int narg, char **arg) :
   maxbond = 0;
   allocate();
 
-  new_fix_id = nullptr;
-  array_id = nullptr;
+  id_fix = nullptr;
+  id_array = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
 FixBondHistory::~FixBondHistory()
 {
-  if (new_fix_id && modify->nfix) modify->delete_fix(new_fix_id);
-  delete [] new_fix_id;
-  delete [] array_id;
+  if (id_fix && modify->nfix) modify->delete_fix(id_fix);
+  delete [] id_fix;
+  delete [] id_array;
 
   memory->destroy(bondstore);
 }
@@ -85,8 +85,8 @@ void FixBondHistory::post_constructor()
 {
   // Store saved bond quantities for each atom using fix property atom
 
-  char *id_fix = utils::strdup(id + std::string("_FIX_PROP_ATOM"));
-  char *id_array = utils::strdup(std::string("d2_") + id);
+  id_fix = utils::strdup(id + std::string("_FIX_PROP_ATOM"));
+  id_array = utils::strdup(std::string("d2_") + id);
   modify->add_fix(fmt::format("{} {} property/atom {} {}",
                                 id_fix, group->names[igroup], id_array, nbond*ndata));
   int tmp1, tmp2;

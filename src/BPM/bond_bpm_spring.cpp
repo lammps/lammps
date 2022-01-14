@@ -276,7 +276,7 @@ void BondBPMSpring::init_style()
     error->all(FLERR,"Bond bpm/spring requires ghost atoms store velocity");
 
   if (!id_fix_bond_history) {
-    id_fix_bond_history = utils::strdup("HISTORY_BPM_ROTATIONAL" + std::to_string(instance_me));
+    id_fix_bond_history = utils::strdup("HISTORY_BPM_SPRING" + std::to_string(instance_me));
     fix_bond_history = (FixBondHistory *) modify->replace_fix(id_fix_dummy2,
         fmt::format("{} all BOND_HISTORY 0 1", id_fix_bond_history),1);
     delete [] id_fix_dummy2;

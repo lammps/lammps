@@ -219,6 +219,8 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
   ndeletion_successes = 0.0;
   ninsertion_attempts = 0.0;
   ninsertion_successes = 0.0;
+  ndisplacement_attempts = 0.0;
+  ndisplacement_successes = 0.0;
 
   gcmc_nmax = 0;
   local_gas_list = nullptr;
@@ -239,6 +241,7 @@ void FixGCMC::options(int narg, char **arg)
   patomtrans = 0.0;
   pmoltrans = 0.0;
   pmolrotate = 0.0;
+  pmoldisplace = 0.0;
   pmctot = 0.0;
   max_rotation_angle = 10*MY_PI/180;
   regionflag = 0;
@@ -272,6 +275,21 @@ void FixGCMC::options(int narg, char **arg)
   overlap_flag = 0;
   min_ngas = -1;
   max_ngas = INT_MAX;
+  catomtrans = 0.0;
+  cmoltrans = 0.0;
+  cmolrotate = 0.0;
+  cmctot = 0.0;
+  translation_target = 0.45;
+  rotation_target = 0.45;
+  displacement_target = 0.45;
+  natt_moltrans = 0.0;
+  natt_molrotate = 0.0;
+  totmoltrans = 0.0; 
+  totmolrotate = 0.0;
+  natt_attrans = 0.0;
+  natt_atrotate = 0.0;
+  totattrans = 0.0;
+  probattrans = 0.0;
 
   int iarg = 0;
   while (iarg < narg) {
@@ -288,16 +306,21 @@ void FixGCMC::options(int narg, char **arg)
       nmol = onemols[imol]->nset;
       iarg += 2;
   } else if (strcmp(arg[iarg],"mcmoves") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix gcmc command");
+      if (iarg+5 > narg) error->all(FLERR,"Illegal fix gcmc command");
       patomtrans = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       pmoltrans = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       pmolrotate = utils::numeric(FLERR,arg[iarg+3],false,lmp);
-      if (patomtrans < 0 || pmoltrans < 0 || pmolrotate < 0)
+      pmoldisplace = utils::numeric(FLERR,arg[iarg+4],false,lmp);
+      npatomtrans = patomtrans;
+      npmoltrans = pmoltrans;
+      npmolrotate = pmolrotate;
+      npmoldisplace = pmoldisplace;
+      if (patomtrans < 0 || pmoltrans < 0 || pmolrotate < 0 || pmoldisplace < 0)
         error->all(FLERR,"Illegal fix gcmc command");
-      pmctot = patomtrans + pmoltrans + pmolrotate;
+      pmctot = patomtrans + pmoltrans + pmolrotate + pmoldisplace;
       if (pmctot <= 0)
         error->all(FLERR,"Illegal fix gcmc command");
-      iarg += 4;
+      iarg += 5;
     } else if (strcmp(arg[iarg],"region") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
       iregion = domain->find_region(arg[iarg+1]);
@@ -389,6 +412,20 @@ void FixGCMC::options(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
       max_ngas = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"cfreq") == 0) {
+      if (iarg+5 > narg) error->all(FLERR,"Illegal fix gcmc command");
+      catomtrans = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      cmoltrans = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      cmolrotate = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      cmoldisplace = utils::numeric(FLERR,arg[iarg+4],false,lmp);
+      ncatomtrans = catomtrans;
+      ncmoltrans = cmoltrans;
+      ncmolrotate = cmolrotate;
+      ncmoldisplace = cmoldisplace;
+      if (catomtrans < 0 || cmoltrans < 0 || cmolrotate < 0 || cmoldisplace < 0)
+        error->all(FLERR,"Illegal fix gcmc command");
+      cmctot = catomtrans + cmoltrans + cmolrotate + cmoldisplace;
+      iarg += 5;
     } else error->all(FLERR,"Illegal fix gcmc command");
   }
 }
@@ -458,15 +495,48 @@ void FixGCMC::init()
       patomtrans = 0.0;
       pmoltrans = 0.5;
       pmolrotate = 0.5;
+      pmoldisplace = 0.0;
    }
   else {
-    if (pmoltrans == 0.0 && pmolrotate == 0.0)
+    if (pmoltrans == 0.0 && pmolrotate == 0.0 && pmoldisplace == 0.0)
       movemode = MOVEATOM;
     else
       movemode = MOVEMOL;
-    patomtrans /= pmctot;
-    pmoltrans /= pmctot;
-    pmolrotate /= pmctot;
+      patomtrans = npatomtrans;
+      pmoltrans = npmoltrans;
+      pmolrotate = npmolrotate;
+      pmoldisplace = npmoldisplace;
+      patomtrans /= pmctot;
+      pmoltrans /= pmctot;
+      pmolrotate /= pmctot;
+      pmoldisplace /= pmctot;
+    }
+  
+  // set counters for re-evaluation of move parameters
+
+  if (cmctot == 0.0)
+  {
+    catomtrans = ceil(patomtrans * nmcmoves / 2);
+    cmoltrans = ceil(pmoltrans * nmcmoves / 2);
+    cmolrotate = ceil(pmolrotate * nmcmoves / 2);
+    cmoldisplace = ceil(pmoldisplace * nmcmoves / 2);
+    error->warning(FLERR,"Fix gcmc using default cycle frequencies for re-evaluation of move parameters");
+  }
+  else{
+    catomtrans = ncatomtrans;
+    cmoltrans = ncmoltrans;
+    cmolrotate = ncmolrotate;
+    cmoldisplace = ncmoldisplace;
+
+    catomtrans /= cmctot;
+    cmoltrans /= cmctot;
+    cmolrotate /= cmctot;
+    cmoldisplace /= cmctot;
+
+    catomtrans = ceil(catomtrans * patomtrans * nmcmoves);
+    cmoltrans = ceil(cmoltrans * pmoltrans * nmcmoves);
+    cmolrotate = ceil(cmolrotate * pmolrotate * nmcmoves);
+    cmoldisplace = ceil(cmoldisplace * pmoldisplace * nmcmoves);
   }
 
   // decide whether to switch to the full_energy option
@@ -504,7 +574,8 @@ void FixGCMC::init()
     int flagall;
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
     if (flagall && comm->me == 0)
-      error->all(FLERR, "Fix gcmc cannot exchange individual atoms belonging to a molecule");
+      error->all(FLERR,
+       "Fix gcmc cannot exchange individual atoms belonging to a molecule");
   }
 
   // if molecules are exchanged or moved, check for unset mol IDs
@@ -519,13 +590,16 @@ void FixGCMC::init()
     int flagall;
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
     if (flagall && comm->me == 0)
-      error->all(FLERR, "All mol IDs should be set for fix gcmc group atoms");
+      error->all(FLERR,
+       "All mol IDs should be set for fix gcmc group atoms");
   }
 
   if (exchmode == EXCHMOL || movemode == MOVEMOL)
     if (atom->molecule_flag == 0 || !atom->tag_enable
         || (atom->map_style == Atom::MAP_NONE))
-      error->all(FLERR, "Fix gcmc molecule command requires that atoms have molecule attributes");
+      error->all(FLERR,
+       "Fix gcmc molecule command requires that "
+       "atoms have molecule attributes");
 
   // if rigidflag defined, check for rigid/small fix
   // its molecule template must be same as this one
@@ -537,7 +611,9 @@ void FixGCMC::init()
     fixrigid = modify->fix[ifix];
     int tmp;
     if (&onemols[imol] != (Molecule **) fixrigid->extract("onemol",tmp))
-      error->all(FLERR, "Fix gcmc and fix rigid/small not using same molecule template ID");
+      error->all(FLERR,
+                 "Fix gcmc and fix rigid/small not using "
+                 "same molecule template ID");
   }
 
   // if shakeflag defined, check for SHAKE fix
@@ -707,6 +783,9 @@ void FixGCMC::pre_exchange()
   yhi = domain->boxhi[1];
   zlo = domain->boxlo[2];
   zhi = domain->boxhi[2];
+  displace_limit = fmin((xhi-xlo)/2, (yhi-ylo)/2);
+  displace_limit = fmin((zhi-zlo)/2, displace_limit);
+
   if (triclinic) {
     sublo = domain->sublo_lamda;
     subhi = domain->subhi_lamda;
@@ -738,7 +817,8 @@ void FixGCMC::pre_exchange()
         double xmcmove = random_equal->uniform();
         if (xmcmove < patomtrans) attempt_atomic_translation_full();
         else if (xmcmove < patomtrans+pmoltrans) attempt_molecule_translation_full();
-        else attempt_molecule_rotation_full();
+        else if (xmcmove < patomtrans+pmoltrans+pmolrotate) attempt_molecule_rotation_full();
+        else attempt_molecule_displacement_full();
       } else {
         double xgcmc = random_equal->uniform();
         if (exchmode == EXCHATOM) {
@@ -765,7 +845,8 @@ void FixGCMC::pre_exchange()
         double xmcmove = random_equal->uniform();
         if (xmcmove < patomtrans) attempt_atomic_translation();
         else if (xmcmove < patomtrans+pmoltrans) attempt_molecule_translation();
-        else attempt_molecule_rotation();
+        else if (xmcmove < patomtrans+pmoltrans+pmolrotate) attempt_molecule_rotation();
+        else attempt_molecule_displacement();
       } else {
         double xgcmc = random_equal->uniform();
         if (exchmode == EXCHATOM) {
@@ -830,10 +911,11 @@ void FixGCMC::attempt_atomic_translation()
       error->one(FLERR,"Fix gcmc put atom outside box");
 
     double energy_after = energy(i,ngcmc_type,-1,coord);
+    probattrans = exp(beta*(energy_before - energy_after));
+    totattrans += probattrans;
 
     if (energy_after < MAXENERGYTEST &&
-        random_unequal->uniform() <
-        exp(beta*(energy_before - energy_after))) {
+        random_unequal->uniform() < probattrans) {
       x[i][0] = coord[0];
       x[i][1] = coord[1];
       x[i][2] = coord[2];
@@ -853,6 +935,13 @@ void FixGCMC::attempt_atomic_translation()
     if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
     update_gas_atoms_list();
     ntranslation_successes += 1.0;
+  }
+  natt_attrans += 1.0;
+  if (natt_attrans >= catomtrans){
+    double avgprobattrans = totmoltrans / natt_attrans;
+    displace = success_target(avgprobattrans, translation_target , 1);
+    natt_attrans = 0.0;
+    totattrans = 0.0;
   }
 }
 
@@ -1085,10 +1174,11 @@ void FixGCMC::attempt_molecule_translation()
 
   double energy_after_sum = 0.0;
   MPI_Allreduce(&energy_after,&energy_after_sum,1,MPI_DOUBLE,MPI_SUM,world);
+  probmoltrans = exp(beta*(energy_before_sum - energy_after_sum));
+  totmoltrans += probmoltrans;
 
   if (energy_after_sum < MAXENERGYTEST &&
-      random_equal->uniform() <
-      exp(beta*(energy_before_sum - energy_after_sum))) {
+      random_equal->uniform() < probmoltrans) {
     for (int i = 0; i < atom->nlocal; i++) {
       if (atom->molecule[i] == translation_molecule) {
         x[i][0] += com_displace[0];
@@ -1104,6 +1194,13 @@ void FixGCMC::attempt_molecule_translation()
     if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
     update_gas_atoms_list();
     ntranslation_successes += 1.0;
+  }
+  natt_moltrans += 1.0;
+  if (natt_moltrans >= cmoltrans){
+    double avgprobmoltrans = totmoltrans / natt_moltrans;
+    displace = success_target(avgprobmoltrans, translation_target , 1);
+    natt_moltrans = 0.0;
+    totmoltrans = 0.0;
   }
 }
 
@@ -1187,10 +1284,11 @@ void FixGCMC::attempt_molecule_rotation()
 
   double energy_after_sum = 0.0;
   MPI_Allreduce(&energy_after,&energy_after_sum,1,MPI_DOUBLE,MPI_SUM,world);
+  probmolrotate = exp(beta*(energy_before_sum - energy_after_sum));
+  totmolrotate += probmolrotate;
 
   if (energy_after_sum < MAXENERGYTEST &&
-      random_equal->uniform() <
-      exp(beta*(energy_before_sum - energy_after_sum))) {
+      random_equal->uniform() < probmolrotate) {
     int n = 0;
     for (int i = 0; i < atom->nlocal; i++) {
       if (mask[i] & molecule_group_bit) {
@@ -1210,6 +1308,13 @@ void FixGCMC::attempt_molecule_rotation()
     if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
     update_gas_atoms_list();
     nrotation_successes += 1.0;
+  }
+  natt_molrotate += 1.0;
+  if (natt_molrotate >= cmolrotate){
+    double avgprobmolrotate = totmolrotate / natt_molrotate;
+    max_rotation_angle = success_target(avgprobmolrotate, rotation_target , 2);
+    natt_molrotate = 0.0;
+    totmolrotate = 0.0;
   }
 }
 
@@ -1448,6 +1553,77 @@ void FixGCMC::attempt_molecule_insertion()
 
 /* ----------------------------------------------------------------------
 ------------------------------------------------------------------------- */
+void FixGCMC::attempt_molecule_displacement()
+{
+
+  ndisplacement_attempts += 1.0;
+
+  if (ngas == 0) return;
+
+  tagint displacement_molecule = pick_random_gas_molecule();
+  if (displacement_molecule == -1) return;
+
+  double energy_before_sum = molecule_energy(displacement_molecule);
+  if (overlap_flag && energy_before_sum > MAXENERGYTEST)
+    error->warning(FLERR,"Energy of old configuration in "
+                   "fix gcmc is > MAXENERGYTEST.");
+
+  double **x = atom->x;
+  double rx,ry,rz;
+  double com_displace[3],coord[3];
+  double rsq = 1.1;
+  while (rsq > 1.0) {
+    rx = 2*random_equal->uniform() - 1.0;
+    ry = 2*random_equal->uniform() - 1.0;
+    rz = 2*random_equal->uniform() - 1.0;
+    rsq = rx*rx + ry*ry + rz*rz;
+  }
+  com_displace[0] = (xhi-xlo)*rx;
+  com_displace[1] = (yhi-ylo)*ry;
+  com_displace[2] = (zhi-zlo)*rz;
+
+  if (domain->xperiodic == 1 && com_displace[0] > domain->xprd) com_displace[0] = com_displace[0] - domain->xprd * lround(com_displace[0]/domain->xprd);
+  if (domain->yperiodic == 1 && com_displace[1] > domain->yprd) com_displace[1] = com_displace[1] - domain->yprd * lround(com_displace[1]/domain->yprd);
+  if (domain->zperiodic == 1 && com_displace[2] > domain->zprd) com_displace[2] = com_displace[2] - domain->zprd * lround(com_displace[2]/domain->zprd);
+
+  double energy_after = 0.0;
+  for (int i = 0; i < atom->nlocal; i++) {
+    if (atom->molecule[i] == displacement_molecule) {
+      coord[0] = x[i][0] + com_displace[0];
+      coord[1] = x[i][1] + com_displace[1];
+      coord[2] = x[i][2] + com_displace[2];
+      if (!domain->inside_nonperiodic(coord))
+        error->one(FLERR,"Fix gcmc put atom outside box");
+      energy_after += energy(i,atom->type[i],displacement_molecule,coord);
+    }
+  }
+
+  double energy_after_sum = 0.0;
+  MPI_Allreduce(&energy_after,&energy_after_sum,1,MPI_DOUBLE,MPI_SUM,world);
+
+  if (energy_after_sum < MAXENERGYTEST &&
+      random_equal->uniform() <
+      exp(beta*(energy_before_sum - energy_after_sum))) {
+    for (int i = 0; i < atom->nlocal; i++) {
+      if (atom->molecule[i] == displacement_molecule) {
+        x[i][0] += com_displace[0];
+        x[i][1] += com_displace[1];
+        x[i][2] += com_displace[2];
+      }
+    }
+    if (triclinic) domain->x2lamda(atom->nlocal);
+    domain->pbc();
+    comm->exchange();
+    atom->nghost = 0;
+    comm->borders();
+    if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+    update_gas_atoms_list();
+    ndisplacement_successes += 1.0;
+  }
+}
+
+/* ----------------------------------------------------------------------
+------------------------------------------------------------------------- */
 
 void FixGCMC::attempt_atomic_translation_full()
 {
@@ -1508,10 +1684,11 @@ void FixGCMC::attempt_atomic_translation_full()
   }
 
   double energy_after = energy_full();
+  probattrans = exp(beta*(energy_before - energy_after));
+  totattrans += probattrans;
 
   if (energy_after < MAXENERGYTEST &&
-      random_equal->uniform() <
-      exp(beta*(energy_before - energy_after))) {
+      random_equal->uniform() < probattrans) {
     energy_stored = energy_after;
     ntranslation_successes += 1.0;
   } else {
@@ -1530,6 +1707,13 @@ void FixGCMC::attempt_atomic_translation_full()
       }
     }
     energy_stored = energy_before;
+  }
+  natt_attrans += 1.0;
+  if (natt_attrans >= catomtrans){
+    double avgprobattrans = totmoltrans / natt_attrans;
+    displace = success_target(avgprobattrans, translation_target , 1);
+    natt_attrans = 0.0;
+    totattrans = 0.0;
   }
   update_gas_atoms_list();
 }
@@ -1765,10 +1949,11 @@ void FixGCMC::attempt_molecule_translation_full()
   }
 
   double energy_after = energy_full();
+  probmoltrans = exp(beta*(energy_before - energy_after));
+  totmoltrans += probmoltrans;
 
   if (energy_after < MAXENERGYTEST &&
-      random_equal->uniform() <
-      exp(beta*(energy_before - energy_after))) {
+      random_equal->uniform() < probmoltrans) {
     ntranslation_successes += 1.0;
     energy_stored = energy_after;
   } else {
@@ -1780,6 +1965,18 @@ void FixGCMC::attempt_molecule_translation_full()
         x[i][2] -= com_displace[2];
       }
     }
+  }
+  natt_moltrans += 1.0;
+  if (natt_moltrans >= cmoltrans){
+    double avgprobmoltrans = totmoltrans / natt_moltrans;
+    displace = success_target(avgprobmoltrans, translation_target , 1);
+    FILE* h = fopen("func.dat", "a");
+    fprintf(h, "printing from line %d \n",__LINE__);
+    fprintf(h, "natt_moltrans, totmoltrans, avgprobmoltrans, translation_target, displace, displace_limit \n");
+    fprintf(h, "%4.2f %4.2f, %4.2f, %4.2f, %25.15e, %25.15e \n", natt_moltrans, totmoltrans, avgprobmoltrans, translation_target, displace, displace_limit);
+    fclose(h);
+    natt_moltrans = 0.0;
+    totmoltrans = 0.0;
   }
   update_gas_atoms_list();
 }
@@ -1861,10 +2058,11 @@ void FixGCMC::attempt_molecule_rotation_full()
   }
 
   double energy_after = energy_full();
+  probmolrotate = exp(beta*(energy_before - energy_after));
+  totmolrotate += probmolrotate;
 
   if (energy_after < MAXENERGYTEST &&
-      random_equal->uniform() <
-      exp(beta*(energy_before - energy_after))) {
+      random_equal->uniform() < probmolrotate) {
     nrotation_successes += 1.0;
     energy_stored = energy_after;
   } else {
@@ -1880,6 +2078,85 @@ void FixGCMC::attempt_molecule_rotation_full()
       }
     }
   }
+  natt_molrotate += 1.0;
+  if (natt_molrotate >= cmolrotate){
+    double avgprobmolrotate = totmolrotate / natt_molrotate;
+    max_rotation_angle = success_target(avgprobmolrotate, rotation_target , 2);
+    FILE* h = fopen("rfunc.dat", "a");
+    fprintf(h, "printing from line %d \n",__LINE__);
+    fprintf(h, "natt_molrotate, totmolrotate, avgprobmolrotate, rotation_target, max_rotation_angle \n");
+    fprintf(h, "%4.2f %4.2f, %4.2f, %4.2f, %4.2f \n", natt_molrotate, totmolrotate, avgprobmolrotate, rotation_target, max_rotation_angle*180/MY_PI);
+    fclose(h);
+    natt_molrotate = 0.0;
+    totmolrotate = 0.0;
+  }
+  update_gas_atoms_list();
+}
+
+/* ----------------------------------------------------------------------
+------------------------------------------------------------------------- */
+void FixGCMC::attempt_molecule_displacement_full()
+{
+
+  ndisplacement_attempts += 1.0;
+
+  if (ngas == 0) return;
+
+  tagint displacement_molecule = pick_random_gas_molecule();
+  if (displacement_molecule == -1) return;
+
+  double energy_before = energy_stored;
+
+  double **x = atom->x;
+  double rx,ry,rz;
+  double com_displace[3],coord[3];
+  double rsq = 1.1;
+  while (rsq > 1.0) {
+    rx = 2*random_equal->uniform() - 1.0;
+    ry = 2*random_equal->uniform() - 1.0;
+    rz = 2*random_equal->uniform() - 1.0;
+    rsq = rx*rx + ry*ry + rz*rz;
+  }
+  com_displace[0] = (xhi-xlo)*rx;
+  com_displace[1] = (yhi-ylo)*ry;
+  com_displace[2] = (zhi-zlo)*rz;
+
+  if (domain->xperiodic == 1 && com_displace[0] > domain->xprd) com_displace[0] = com_displace[0] - domain->xprd * lround(com_displace[0]/domain->xprd);
+  if (domain->yperiodic == 1 && com_displace[1] > domain->yprd) com_displace[1] = com_displace[1] - domain->yprd * lround(com_displace[1]/domain->yprd);
+  if (domain->zperiodic == 1 && com_displace[2] > domain->zprd) com_displace[2] = com_displace[2] - domain->zprd * lround(com_displace[2]/domain->zprd);
+
+  for (int i = 0; i < atom->nlocal; i++) {
+  if (atom->molecule[i] == displacement_molecule) {
+      x[i][0] += com_displace[0];
+      x[i][1] += com_displace[1];
+      x[i][2] += com_displace[2];
+      if (!domain->inside_nonperiodic(x[i]))
+        error->one(FLERR,"Fix gcmc put atom outside box");
+    }
+  }
+
+  double energy_after = energy_full();
+
+  if (energy_after < MAXENERGYTEST &&
+      random_equal->uniform() <
+      exp(beta*(energy_before - energy_after))) {
+    ndisplacement_successes += 1.0;
+    energy_stored = energy_after;
+  } else {
+    energy_stored = energy_before;
+    for (int i = 0; i < atom->nlocal; i++) {
+      if (atom->molecule[i] == displacement_molecule) {
+        x[i][0] -= com_displace[0];
+        x[i][1] -= com_displace[1];
+        x[i][2] -= com_displace[2];
+      }
+    }
+  }
+  FILE* h = fopen("displace.dat", "a");
+    fprintf(h, "printing from line %d \n",__LINE__);
+    fprintf(h, "ndisplacement_attempts, ndisplacement_successes, pmoldisplace \n");
+    fprintf(h, "%4.2f %4.2f, %4.2f %4.2f \n", ndisplacement_attempts, ndisplacement_successes, ndisplacement_successes/ndisplacement_attempts ,pmoldisplace);
+    fclose(h);
   update_gas_atoms_list();
 }
 
@@ -2166,6 +2443,38 @@ void FixGCMC::attempt_molecule_insertion_full()
     if (force->pair->tail_flag) force->pair->reinit();
   }
   update_gas_atoms_list();
+}
+
+/* -------------------------------------------------------------------
+   modify trial move parameters to meet intended target success ratio
+---------------------------------------------------------------------- */
+
+double FixGCMC::success_target(double move_target, double avgprob, int trial_type)
+{
+  double mod_factor = 0.0;
+  if (trial_type == 1)
+  {
+    if (avgprob >= move_target) {
+      displace *=1.05;
+      displace = fmin(displace, displace_limit);
+    }
+    if (avgprob < move_target){
+      displace *= 0.95;
+    }
+    mod_factor = displace;
+  }
+  else if (trial_type == 2)
+  {
+    if (avgprob >= move_target) {
+      max_rotation_angle *=1.05;
+    }
+    if (avgprob < move_target){
+      max_rotation_angle *= 0.95;
+    }
+    mod_factor = max_rotation_angle;
+  }
+
+  return mod_factor;
 }
 
 /* ----------------------------------------------------------------------

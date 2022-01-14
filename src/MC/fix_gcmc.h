@@ -38,6 +38,7 @@ class FixGCMC : public Fix {
   void attempt_molecule_rotation();
   void attempt_molecule_deletion();
   void attempt_molecule_insertion();
+  void attempt_molecule_displacement();
   void attempt_atomic_translation_full();
   void attempt_atomic_deletion_full();
   void attempt_atomic_insertion_full();
@@ -45,6 +46,8 @@ class FixGCMC : public Fix {
   void attempt_molecule_rotation_full();
   void attempt_molecule_deletion_full();
   void attempt_molecule_insertion_full();
+  void attempt_molecule_displacement_full();
+  double success_target(double , double, int);
   double energy(int, int, tagint, double *);
   double molecule_energy(tagint);
   double energy_full();
@@ -64,7 +67,14 @@ class FixGCMC : public Fix {
   int exclusion_group, exclusion_group_bit;
   int ngcmc_type, nevery, seed;
   int ncycles, nexchanges, nmcmoves;
-  double patomtrans, pmoltrans, pmolrotate, pmctot;
+  double patomtrans, pmoltrans, pmolrotate, pmoldisplace, pmctot;
+  double npatomtrans, npmoltrans, npmoldisplace, npmolrotate;
+  double ncatomtrans, ncmoltrans, ncmoldisplace, ncmolrotate;
+  double catomtrans, cmoltrans, cmolrotate, cmoldisplace, cmctot;
+  double totmoltrans, totmolrotate, totmoldisplace;
+  double probmoltrans, probmolrotate, probmoldisplace;
+  double totattrans;
+  double probattrans;
   int ngas;              // # of gas atoms on all procs
   int ngas_local;        // # of gas atoms on this proc
   int ngas_before;       // # of gas atoms on procs < this proc
@@ -95,6 +105,17 @@ class FixGCMC : public Fix {
   double ndeletion_successes;
   double ninsertion_attempts;
   double ninsertion_successes;
+  double ndisplacement_attempts;
+  double ndisplacement_successes;
+
+  double translation_target;     // success percentage for translation moves
+  double rotation_target;        // success percentage for rotation moves
+  double displacement_target;    // success percentage for displacement moves
+  double displace_limit;         // upper bound for applicable translation distance 
+  double natt_moltrans;
+  double natt_molrotate;
+  double natt_attrans;
+  double natt_atrotate;
 
   int gcmc_nmax;
   int max_region_attempts;

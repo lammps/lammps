@@ -499,10 +499,13 @@ void PairEAMCD::read_h_coeff(char *filename)
     // Seek to end of file, read last part into a buffer and
     // then skip over lines in buffer until reaching the end.
 
-    platform::fseek(fptr, platform::END_OF_FILE);
-    platform::fseek(fptr, platform::ftell(fptr) - MAXLINE);
+    if ( (platform::fseek(fptr, platform::END_OF_FILE) < 0)
+         || (platform::fseek(fptr, platform::ftell(fptr) - MAXLINE) < 0))
+      error->one(FLERR,"Failure to seek to end-of-file for reading h(x) coeffs: {}",
+                 utils::getsyserror());
+
     char *buf = new char[MAXLINE+1];
-    fread(buf, 1, MAXLINE, fptr);
+    utils::sfread(FLERR, buf, 1, MAXLINE, fptr, filename, error);
     buf[MAXLINE] = '\0';        // must 0-terminate buffer for string processing
     Tokenizer lines(buf, "\n");
     delete[] buf;

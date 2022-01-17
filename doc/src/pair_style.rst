@@ -183,6 +183,7 @@ accelerated styles exist.
 * :doc:`gran/hooke/history <pair_gran>` - granular potential without history effects
 * :doc:`gw <pair_gw>` - Gao-Weber potential
 * :doc:`gw/zbl <pair_gw>` - Gao-Weber potential with a repulsive ZBL core
+* :doc:`harmonic/cut <pair_harmonic_cut>` - repulsive-only harmonic potential
 * :doc:`hbond/dreiding/lj <pair_hbond_dreiding>` - DREIDING hydrogen bonding LJ potential
 * :doc:`hbond/dreiding/morse <pair_hbond_dreiding>` - DREIDING hydrogen bonding Morse potential
 * :doc:`hdnnp <pair_hdnnp>` - High-dimensional neural network potential

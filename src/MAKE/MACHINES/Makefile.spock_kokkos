@@ -1,4 +1,4 @@
-# summit_kokkos = KOKKOS/CUDA, V100 GPU and Power9, IBM Spectrum MPI, nvcc compiler with gcc
+# spock_kokkos = KOKKOS/HIP, AMD MI100 GPU and AMD EPYC 7662 “Rome” CPU, Cray MPICH, hipcc compiler
 
 SHELL = /bin/sh
 

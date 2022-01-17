@@ -1,4 +1,4 @@
-# summit_kokkos = KOKKOS/CUDA, V100 GPU and Power9, IBM Spectrum MPI, nvcc compiler with gcc
+# crusher_kokkos = KOKKOS/HIP, AMD MI250X GPU and AMD EPYC 7A53 “Optimized 3rd Gen EPYC” CPU, Cray MPICH, hipcc compiler
 
 SHELL = /bin/sh
 

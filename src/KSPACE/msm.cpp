@@ -116,7 +116,7 @@ void MSM::settings(int narg, char **arg)
 
 MSM::~MSM()
 {
-  delete [] factors;
+  delete[] factors;
   deallocate();
   if (peratom_allocate_flag) deallocate_peratom();
   deallocate_levels();
@@ -867,57 +867,57 @@ void MSM::deallocate_levels()
     }
   }
 
-  delete [] ngrid;
+  delete[] ngrid;
   ngrid = nullptr;
 
   memory->destroy(procneigh_levels);
-  delete [] world_levels;
-  delete [] active_flag;
+  delete[] world_levels;
+  delete[] active_flag;
 
-  delete [] gc;
-  delete [] gc_buf1;
-  delete [] gc_buf2;
-  delete [] ngc_buf1;
-  delete [] ngc_buf2;
+  delete[] gc;
+  delete[] gc_buf1;
+  delete[] gc_buf2;
+  delete[] ngc_buf1;
+  delete[] ngc_buf2;
 
-  delete [] alpha;
-  delete [] betax;
-  delete [] betay;
-  delete [] betaz;
+  delete[] alpha;
+  delete[] betax;
+  delete[] betay;
+  delete[] betaz;
 
-  delete [] nx_msm;
-  delete [] ny_msm;
-  delete [] nz_msm;
+  delete[] nx_msm;
+  delete[] ny_msm;
+  delete[] nz_msm;
 
-  delete [] nxlo_in;
-  delete [] nylo_in;
-  delete [] nzlo_in;
+  delete[] nxlo_in;
+  delete[] nylo_in;
+  delete[] nzlo_in;
 
-  delete [] nxhi_in;
-  delete [] nyhi_in;
-  delete [] nzhi_in;
+  delete[] nxhi_in;
+  delete[] nyhi_in;
+  delete[] nzhi_in;
 
-  delete [] nxlo_out;
-  delete [] nylo_out;
-  delete [] nzlo_out;
+  delete[] nxlo_out;
+  delete[] nylo_out;
+  delete[] nzlo_out;
 
-  delete [] nxhi_out;
-  delete [] nyhi_out;
-  delete [] nzhi_out;
+  delete[] nxhi_out;
+  delete[] nyhi_out;
+  delete[] nzhi_out;
 
-  delete [] delxinv;
-  delete [] delyinv;
-  delete [] delzinv;
+  delete[] delxinv;
+  delete[] delyinv;
+  delete[] delzinv;
 
-  delete [] qgrid;
-  delete [] egrid;
+  delete[] qgrid;
+  delete[] egrid;
 
-  delete [] v0grid;
-  delete [] v1grid;
-  delete [] v2grid;
-  delete [] v3grid;
-  delete [] v4grid;
-  delete [] v5grid;
+  delete[] v0grid;
+  delete[] v1grid;
+  delete[] v2grid;
+  delete[] v3grid;
+  delete[] v4grid;
+  delete[] v5grid;
 
   world_levels = nullptr;
   active_flag = nullptr;

@@ -1044,8 +1044,7 @@ void MSM::set_grid_global()
   }
 
   if (flag && gridflag && me == 0)
-    error->warning(FLERR,
-                   "Number of MSM mesh points changed to be a multiple of 2");
+    error->warning(FLERR, "Number of MSM mesh points changed to be a multiple of 2");
 
   // adjust Coulombic cutoff to give desired error (if requested)
 
@@ -1071,8 +1070,7 @@ void MSM::set_grid_global()
     *p_cutoff = cutoff;
 
     if (me == 0)
-      error->warning(FLERR,"Adjusting Coulombic cutoff for "
-                     "MSM, new cutoff = {:.8}", cutoff);
+      error->warning(FLERR,"Adjusting Coulombic cutoff for MSM, new cutoff = {:.8}", cutoff);
   }
 
   if (triclinic == 0) {

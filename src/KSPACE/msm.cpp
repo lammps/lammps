@@ -67,33 +67,7 @@ MSM::MSM(LAMMPS *lmp)
   factors[0] = 2;
 
   MPI_Comm_rank(world,&me);
-
-  phi1d = dphi1d = nullptr;
-
   nmax = 0;
-  part2grid = nullptr;
-
-  g_direct = nullptr;
-  g_direct_top = nullptr;
-
-  v0_direct = v1_direct = v2_direct = nullptr;
-  v3_direct = v4_direct = v5_direct = nullptr;
-
-  v0_direct_top = v1_direct_top = v2_direct_top = nullptr;
-  v3_direct_top = v4_direct_top = v5_direct_top = nullptr;
-
-  ngrid = nullptr;
-
-  alpha = betax = betay = betaz = nullptr;
-  nx_msm = ny_msm = nz_msm = nullptr;
-  nxlo_in = nylo_in = nzlo_in = nullptr;
-  nxhi_in = nyhi_in = nzhi_in = nullptr;
-  nxlo_out = nylo_out = nzlo_out = nullptr;
-  nxhi_out = nyhi_out = nzhi_out = nullptr;
-  delxinv = delyinv = delzinv = nullptr;
-  qgrid = nullptr;
-  egrid = nullptr;
-  v0grid = v1grid = v2grid = v3grid = v4grid = v5grid = nullptr;
 
   peratom_allocate_flag = 0;
   scalar_pressure_flag = 1;

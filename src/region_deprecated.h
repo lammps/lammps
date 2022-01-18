@@ -28,11 +28,11 @@ namespace LAMMPS_NS {
 class RegionDeprecated : public Region {
  public:
   RegionDeprecated(class LAMMPS *, int, char **);
-  ~RegionDeprecated() {}
-  virtual void init() {}
-  virtual int inside(double, double, double) { return 0; }
-  virtual int surface_interior(double *, double) { return 0; }
-  virtual int surface_exterior(double *, double) { return 0; }
+  ~RegionDeprecated() override {}
+  void init() override {}
+  int inside(double, double, double) override { return 0; }
+  int surface_interior(double *, double) override { return 0; }
+  int surface_exterior(double *, double) override { return 0; }
 };
 
 }    // namespace LAMMPS_NS

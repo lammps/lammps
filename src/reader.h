@@ -23,7 +23,7 @@ namespace LAMMPS_NS {
 class Reader : protected Pointers {
  public:
   Reader(class LAMMPS *);
-  virtual ~Reader() {}
+  ~Reader() override {}
 
   virtual void settings(int, char **);
 

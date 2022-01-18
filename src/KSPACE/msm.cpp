@@ -626,15 +626,19 @@ void MSM::allocate()
 
   gcall->setup(ngcall_buf1,ngcall_buf2);
   npergrid = 1;
+  memory->destroy(gcall_buf1);
+  memory->destroy(gcall_buf2);
   memory->create(gcall_buf1,npergrid*ngcall_buf1,"msm:gcall_buf1");
   memory->create(gcall_buf2,npergrid*ngcall_buf2,"msm:gcall_buf2");
 
   // allocate memory for each grid level
 
   for (int n=0; n<levels; n++) {
+    memory->destroy3d_offset(qgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
     memory->create3d_offset(qgrid[n],nzlo_out[n],nzhi_out[n],
             nylo_out[n],nyhi_out[n],nxlo_out[n],nxhi_out[n],"msm:qgrid");
 
+    memory->destroy3d_offset(egrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
     memory->create3d_offset(egrid[n],nzlo_out[n],nzhi_out[n],
             nylo_out[n],nyhi_out[n],nxlo_out[n],nxhi_out[n],"msm:egrid");
 
@@ -654,6 +658,8 @@ void MSM::allocate()
 
       gc[n]->setup(ngc_buf1[n],ngc_buf2[n]);
       npergrid = 1;
+      memory->destroy(gc_buf1[n]);
+      memory->destroy(gc_buf2[n]);
       memory->create(gc_buf1[n],npergrid*ngc_buf1[n],"msm:gc_buf1");
       memory->create(gc_buf2[n],npergrid*ngc_buf2[n],"msm:gc_buf2");
     } else {
@@ -835,11 +841,15 @@ void MSM::deallocate_levels()
 {
   if (world_levels) {
     for (int n=0; n < levels; ++n) {
-      if (qgrid[n])
+      if (qgrid[n]) {
         memory->destroy3d_offset(qgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
+        qgrid[n] = nullptr;
+      }
 
-      if (egrid[n])
+      if (egrid[n]) {
         memory->destroy3d_offset(egrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
+        egrid[n] = nullptr;
+      }
 
       if (gc) {
         if (gc[n]) {

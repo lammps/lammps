@@ -19,6 +19,7 @@
 namespace LAMMPS_NS {
 
 class Dump : protected Pointers {
+ friend class Output;
  public:
   char *id;                // user-defined name of Dump
   char *style;             // style of Dump

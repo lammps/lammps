@@ -1,4 +1,5 @@
 .. index:: pair_style nm/cut
+.. index:: pair_style nm/cut/split
 .. index:: pair_style nm/cut/coul/cut
 .. index:: pair_style nm/cut/coul/long
 .. index:: pair_style nm/cut/omp
@@ -9,6 +10,9 @@ pair_style nm/cut command
 =========================
 
 Accelerator Variants: *nm/cut/omp*
+
+pair_style nm/cut/split command
+===============================
 
 pair_style nm/cut/coul/cut command
 ==================================
@@ -27,12 +31,14 @@ Syntax
 
    pair_style style args
 
-* style = *nm/cut* or *nm/cut/coul/cut* or *nm/cut/coul/long*
+* style = *nm/cut* or *nm/cut/split* or *nm/cut/coul/cut* or *nm/cut/coul/long*
 * args = list of arguments for a particular style
 
   .. parsed-literal::
 
        *nm/cut* args = cutoff
+         cutoff = global cutoff for Pair interactions (distance units)
+       *nm/cut/split* args = cutoff
          cutoff = global cutoff for Pair interactions (distance units)
        *nm/cut/coul/cut* args = cutoff (cutoff2)
          cutoff = global cutoff for Pair (and Coulombic if only 1 arg) (distance units)
@@ -49,6 +55,10 @@ Examples
    pair_style nm/cut 12.0
    pair_coeff * * 0.01 5.4 8.0 7.0
    pair_coeff 1 1 0.01 4.4 7.0 6.0
+
+   pair_style nm/cut/split 1.12246
+   pair_coeff 1 1 1.0 1.1246 12 6
+   pair_coeff * * 1.0 1.1246 11 6
 
    pair_style nm/cut/coul/cut 12.0 15.0
    pair_coeff * * 0.01 5.4 8.0 7.0
@@ -71,7 +81,15 @@ interaction has the following form:
    E = \frac{E_0}{(n-m)} \left[ m \left(\frac{r_0}{r}\right)^n - n
    \left(\frac{r_0}{r}\right)^m \right] \qquad r < r_c
 
-where :math:`r_c` is the cutoff.
+where :math:`r_c` is the cutoff and :math:`r_0` is the minimum of the
+potential.  Please note that this differs from the convention used for
+other Lennard-Jones potentials in LAMMPS where :math:`\sigma` represents
+the location where the energy is zero.
+
+Style *nm/cut/split* applies the standard LJ (12-6) potential above
+:math:`r_0 = 2^\frac{1}{6}\sigma`.  Style *nm/cut/split* is employed in
+polymer equilibration protocols that combine core-softening approaches
+with topology-changing moves :ref:`Dietz <Dietz>`.
 
 Style *nm/cut/coul/cut* adds a Coulombic pairwise interaction given by
 
@@ -155,7 +173,6 @@ the :doc:`run_style respa <run_style>` command.  They do not support the
 
 Restrictions
 """"""""""""
-
 These pair styles are part of the EXTRA-PAIR package.  They are only enabled if
 LAMMPS was built with that package.  See the
 :doc:`Build package <Build_package>` page for more info.
@@ -163,7 +180,7 @@ LAMMPS was built with that package.  See the
 Related commands
 """"""""""""""""
 
-:doc:`pair_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair style lj/cut <pair_lj>`, :doc:`bond style fene/nm <bond_fene>`
 
 Default
 """""""
@@ -175,3 +192,7 @@ none
 .. _Clarke:
 
 **(Clarke)** Clarke and Smith, J Chem Phys, 84, 2290 (1986).
+
+.. _Dietz:
+
+**(Dietz)** Dietz and Hoy, J. Chem Phys, 156, 014103 (2022).

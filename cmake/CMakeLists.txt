@@ -339,7 +339,6 @@ pkg_depends(ML-IAP ML-SNAP)
 pkg_depends(MPIIO MPI)
 pkg_depends(ATC MANYBODY)
 pkg_depends(LATBOLTZ MPI)
-pkg_depends(PHONON KSPACE)
 pkg_depends(SCAFACOS MPI)
 pkg_depends(DIELECTRIC KSPACE)
 pkg_depends(DIELECTRIC EXTRA-PAIR)
@@ -609,7 +608,7 @@ endif()
 # packages which selectively include variants based on enabled styles
 # e.g. accelerator packages
 ######################################################################
-foreach(PKG_WITH_INCL CORESHELL QEQ OPENMP DPD-SMOOTH KOKKOS OPT INTEL GPU)
+foreach(PKG_WITH_INCL CORESHELL DPD-SMOOTH PHONON QEQ OPENMP KOKKOS OPT INTEL GPU)
   if(PKG_${PKG_WITH_INCL})
     include(Packages/${PKG_WITH_INCL})
   endif()

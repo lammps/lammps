@@ -47,6 +47,8 @@
 
 #include <Kokkos_Macros.hpp>
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
+
 namespace Kokkos {
 namespace Experimental {
 
@@ -71,5 +73,7 @@ class MasterLock;
 
 }  // namespace Experimental
 }  // namespace Kokkos
+
+#endif
 
 #endif  // KOKKOS_MASTER_LOCK_HPP

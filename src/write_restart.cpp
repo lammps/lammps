@@ -73,8 +73,11 @@ void WriteRestart::command(int narg, char **arg)
 
   if (strchr(arg[0],'%')) multiproc = nprocs;
   else multiproc = 0;
-  if (strstr(arg[0],".mpiio")) mpiioflag = 1;
+  if (utils::strmatch(arg[0],"\\.mpiio$")) mpiioflag = 1;
   else mpiioflag = 0;
+
+  if ((comm->me == 0) && mpiioflag)
+    error->warning(FLERR,"MPI-IO output is unmaintained and unreliable. Use with caution.");
 
   // setup output style and process optional args
   // also called by Output class for periodic restart files

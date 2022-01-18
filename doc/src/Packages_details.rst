@@ -1880,6 +1880,12 @@ MPIIO library.  It adds :doc:`dump styles <dump>` with a "mpiio" in
 their style name.  Restart files with an ".mpiio" suffix are also
 written and read in parallel.
 
+.. warning::
+
+   The MPIIO package is currently unmaintained and has become
+   unreliable. Use with caution.
+
+
 **Install:**
 
 The MPIIO package requires that LAMMPS is build in :ref:`MPI parallel mode <serial>`.

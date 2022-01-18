@@ -439,11 +439,11 @@ struct TestReduceCombinatoricalInstantiation {
                        Test::ReduceCombinatorical::AddPlus<double>(value));
     if ((Kokkos::DefaultExecutionSpace::concurrency() > 1) &&
         (ExecSpace::concurrency() > 1) && (expected_result > 0)) {
-      ASSERT_TRUE(expected_result < value);
+      ASSERT_LT(expected_result, value);
     } else if (((Kokkos::DefaultExecutionSpace::concurrency() > 1) ||
                 (ExecSpace::concurrency() > 1)) &&
                (expected_result > 0)) {
-      ASSERT_TRUE(expected_result <= value);
+      ASSERT_LE(expected_result, value);
     } else {
       ASSERT_EQ(expected_result, value);
     }
@@ -453,11 +453,11 @@ struct TestReduceCombinatoricalInstantiation {
     CallParallelReduce(args..., add);
     if ((Kokkos::DefaultExecutionSpace::concurrency() > 1) &&
         (ExecSpace::concurrency() > 1) && (expected_result > 0)) {
-      ASSERT_TRUE(expected_result < value);
+      ASSERT_LT(expected_result, value);
     } else if (((Kokkos::DefaultExecutionSpace::concurrency() > 1) ||
                 (ExecSpace::concurrency() > 1)) &&
                (expected_result > 0)) {
-      ASSERT_TRUE(expected_result <= value);
+      ASSERT_LE(expected_result, value);
     } else {
       ASSERT_EQ(expected_result, value);
     }

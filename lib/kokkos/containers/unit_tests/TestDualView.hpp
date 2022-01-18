@@ -49,7 +49,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <cstdio>
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 #include <Kokkos_DualView.hpp>
 
 namespace Test {

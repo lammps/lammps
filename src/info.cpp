@@ -1059,8 +1059,9 @@ static void print_columns(FILE *fp, std::map<std::string, ValueType> *styles)
   for (typename std::map<std::string, ValueType>::iterator it = styles->begin(); it != styles->end(); ++it) {
     const std::string &style_name = it->first;
 
-    // skip "secret" styles
-    if (isupper(style_name[0])) continue;
+    // skip "internal" styles
+    if (isupper(style_name[0]) || utils::strmatch(style_name,"/kk/host$")
+        || utils::strmatch(style_name,"/kk/device$")) continue;
 
     int len = style_name.length();
     if (pos + len > 80) {

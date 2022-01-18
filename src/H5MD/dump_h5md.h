@@ -90,6 +90,11 @@ E: Dump h5md requires sorting by atom ID
 
 Use the dump_modify sort command to enable this.
 
+E: Too many atoms for dump h5md
+
+The system size must fit in a 32-bit integer to use this dump
+style.
+
 E: Cannot use variable every setting for dump xtc
 
 The format of this file requires snapshots at regular intervals.

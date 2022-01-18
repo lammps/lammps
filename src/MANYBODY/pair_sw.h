@@ -29,7 +29,6 @@ class PairSW : public Pair {
   PairSW(class LAMMPS *);
   virtual ~PairSW();
   virtual void compute(int, int);
-  void settings(int, char **);
   virtual void coeff(int, char **);
   virtual double init_one(int, int);
   virtual void init_style();
@@ -54,11 +53,12 @@ class PairSW : public Pair {
   int maxshort;       // size of short neighbor list array
   int *neighshort;    // short neighbor list array
 
+  virtual void settings(int, char **);
   virtual void allocate();
   void read_file(char *);
   virtual void setup_params();
   void twobody(Param *, double, double &, int, double &);
-  void threebody(Param *, Param *, Param *, double, double, double *, double *, double *, double *,
+  virtual void threebody(Param *, Param *, Param *, double, double, double *, double *, double *, double *,
                  int, double &);
 };
 

@@ -62,7 +62,7 @@ IF(KOKKOS_ENABLE_OPENMP)
       COMPILER_ID KOKKOS_CXX_HOST_COMPILER_ID
       Clang      -Xcompiler ${ClangOpenMPFlag}
       IntelLLVM  -Xcompiler -fiopenmp
-      PGI        -Xcompiler -mp
+      NVHPC      -Xcompiler -mp
       Cray       NO-VALUE-SPECIFIED
       XL         -Xcompiler -qsmp=omp
       DEFAULT    -Xcompiler -fopenmp
@@ -72,7 +72,7 @@ IF(KOKKOS_ENABLE_OPENMP)
       Clang      ${ClangOpenMPFlag}
       IntelLLVM  -fiopenmp
       AppleClang -Xpreprocessor -fopenmp
-      PGI        -mp
+      NVHPC      -mp
       Cray       NO-VALUE-SPECIFIED
       XL         -qsmp=omp
       DEFAULT    -fopenmp
@@ -94,7 +94,7 @@ IF (KOKKOS_ENABLE_OPENMPTARGET)
     Clang      ${ClangOpenMPFlag} -Wno-openmp-mapping
     IntelLLVM  -fiopenmp -Wno-openmp-mapping
     XL         -qsmp=omp -qoffload -qnoeh
-    PGI        -mp=gpu
+    NVHPC      -mp=gpu
     DEFAULT    -fopenmp
   )
   COMPILER_SPECIFIC_DEFS(

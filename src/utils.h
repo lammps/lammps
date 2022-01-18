@@ -169,10 +169,32 @@ namespace utils {
    *  \param lmp      pointer to top-level LAMMPS class instance
    *  \return         1 if string resolves to "true", otherwise 0 */
 
+  int logical(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp);
+
+  /*! \overload
+   *
+   *  \param file     name of source file for error message
+   *  \param line     line number in source file for error message
+   *  \param str      string to be converted to logical
+   *  \param do_abort determines whether to call Error::one() or Error::all()
+   *  \param lmp      pointer to top-level LAMMPS class instance
+   *  \return         1 if string resolves to "true", otherwise 0 */
+
   int logical(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp);
 
   /*! Convert a string to a floating point number while checking
    *  if it is a valid floating point or integer number
+   *
+   *  \param file     name of source file for error message
+   *  \param line     line number in source file for error message
+   *  \param str      string to be converted to number
+   *  \param do_abort determines whether to call Error::one() or Error::all()
+   *  \param lmp      pointer to top-level LAMMPS class instance
+   *  \return         double precision floating point number */
+
+  double numeric(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp);
+
+  /*! \overload
    *
    *  \param file     name of source file for error message
    *  \param line     line number in source file for error message
@@ -193,6 +215,17 @@ namespace utils {
    *  \param lmp      pointer to top-level LAMMPS class instance
    *  \return         integer number (regular int)  */
 
+  int inumeric(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp);
+
+  /*! \overload
+   *
+   *  \param file     name of source file for error message
+   *  \param line     line number in source file for error message
+   *  \param str      string to be converted to number
+   *  \param do_abort determines whether to call Error::one() or Error::all()
+   *  \param lmp      pointer to top-level LAMMPS class instance
+   *  \return         double precision floating point number */
+
   int inumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp);
 
   /*! Convert a string to an integer number while checking
@@ -205,6 +238,17 @@ namespace utils {
    *  \param lmp      pointer to top-level LAMMPS class instance
    *  \return         integer number (bigint) */
 
+  bigint bnumeric(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp);
+
+  /*! \overload
+   *
+   *  \param file     name of source file for error message
+   *  \param line     line number in source file for error message
+   *  \param str      string to be converted to number
+   *  \param do_abort determines whether to call Error::one() or Error::all()
+   *  \param lmp      pointer to top-level LAMMPS class instance
+   *  \return         double precision floating point number */
+
   bigint bnumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp);
 
   /*! Convert a string to an integer number while checking
@@ -216,6 +260,17 @@ namespace utils {
    * \param do_abort determines whether to call Error::one() or Error::all()
    * \param lmp      pointer to top-level LAMMPS class instance
    * \return         integer number (tagint) */
+
+  tagint tnumeric(const char *file, int line, const std::string &str, bool do_abort, LAMMPS *lmp);
+
+  /*! \overload
+   *
+   *  \param file     name of source file for error message
+   *  \param line     line number in source file for error message
+   *  \param str      string to be converted to number
+   *  \param do_abort determines whether to call Error::one() or Error::all()
+   *  \param lmp      pointer to top-level LAMMPS class instance
+   *  \return         double precision floating point number */
 
   tagint tnumeric(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp);
 

@@ -1,5 +1,165 @@
 # Change Log
 
+## [3.5.00](https://github.com/kokkos/kokkos/tree/3.5.00) (2021-10-19)
+[Full Changelog](https://github.com/kokkos/kokkos/compare/3.4.01...3.5.00)
+
+### Features:
+
+- Add support for quad-precision math functions/traits [\#4098](https://github.com/kokkos/kokkos/pull/4098)
+- Adding ExecutionSpace partitioning function [\#4096](https://github.com/kokkos/kokkos/pull/4096)
+- Improve Python Interop Capabilities [\#4065](https://github.com/kokkos/kokkos/pull/4065)
+- Add half_t Kokkos::rand specialization [\#3922](https://github.com/kokkos/kokkos/pull/3922)
+- Add math special functions: erf, erfcx, expint1, Bessel functions, Hankel functions [\#3920](https://github.com/kokkos/kokkos/pull/3920)
+- Add missing common mathematical functions [\#4043](https://github.com/kokkos/kokkos/pull/4043) [\#4036](https://github.com/kokkos/kokkos/pull/4036) [\#4034](https://github.com/kokkos/kokkos/pull/4034)
+- Let the numeric traits be SFINAE-friendly [\#4038](https://github.com/kokkos/kokkos/pull/4038)
+- Add Desul atomics - enabling memory-order and memory-scope parameters [\#3247](https://github.com/kokkos/kokkos/pull/3247)
+- Add detection idiom from the C++ standard library extension version 2 [\#3980](https://github.com/kokkos/kokkos/pull/3980)
+- Fence Profiling Support in all backends [\#3966](https://github.com/kokkos/kokkos/pull/3966) [\#4304](https://github.com/kokkos/kokkos/pull/4304) [\#4258](https://github.com/kokkos/kokkos/pull/4258) [\#4232](https://github.com/kokkos/kokkos/pull/4232)
+- Significant SYCL enhancements (see below)
+
+### Deprecations:
+
+- Deprecate CUDA_SAFE_CALL and HIP_SAFE_CALL [\#4249](https://github.com/kokkos/kokkos/pull/4249)
+- Deprecate Kokkos::Impl::Timer (Kokkos::Timer has been available for a long time) [\#4201](https://github.com/kokkos/kokkos/pull/4201)
+- Deprecate Experimental::MasterLock [\#4094](https://github.com/kokkos/kokkos/pull/4094)
+- Deprecate Kokkos_TaskPolicy.hpp (headers got reorganized, doesn't remove functionality) [\#4011](https://github.com/kokkos/kokkos/pull/4011)
+- Deprecate backward compatibility features [\#3978](https://github.com/kokkos/kokkos/pull/3978)
+- Update and deprecate is_space::host_memory/execution/mirror_space [\#3973](https://github.com/kokkos/kokkos/pull/3973)
+
+
+### Backends and Archs Enhancements:
+
+- Enabling constbitset constructors in kernels [\#4296](https://github.com/kokkos/kokkos/pull/4296)
+- Use ZeroMemset in View constructor to improve performance [\#4226](https://github.com/kokkos/kokkos/pull/4226)
+- Use memset in deep_copy [\#3944](https://github.com/kokkos/kokkos/pull/3944)
+- Add missing fence() calls in resize(View) that effectively do deep_copy(resized, orig) [\#4212](https://github.com/kokkos/kokkos/pull/4212)
+- Avoid allocations in resize and realloc [\#4207](https://github.com/kokkos/kokkos/pull/4207)
+- StaticCsrGraph: use device type instead of execution space to construct views [\#3991](https://github.com/kokkos/kokkos/pull/3991)
+- Consider std::sort when view is accessible from host [\#3929](https://github.com/kokkos/kokkos/pull/3929)
+- Fix CPP20 warnings except for volatile [\#4312](https://github.com/kokkos/kokkos/pull/4312)
+
+#### SYCL:
+- Introduce SYCLHostUSMSpace [\#4268](https://github.com/kokkos/kokkos/pull/4268)
+- Implement SYCL TeamPolicy for vector_size > 1 [\#4183](https://github.com/kokkos/kokkos/pull/4183)
+- Enable 64bit ranges for SYCL [\#4211](https://github.com/kokkos/kokkos/pull/4211)
+- Don't print SYCL device info in execution space intialization [\#4168](https://github.com/kokkos/kokkos/pull/4168)
+- Improve SYCL MDRangePolicy performance [\#4161](https://github.com/kokkos/kokkos/pull/4161)
+- Use sub_groups in SYCL parallel_scan [\#4147](https://github.com/kokkos/kokkos/pull/4147)
+- Implement subgroup reduction for SYCL RangePolicy parallel_reduce [\#3940](https://github.com/kokkos/kokkos/pull/3940)
+- Use DPC++ broadcast extension in SYCL team_broadcast [\#4103](https://github.com/kokkos/kokkos/pull/4103)
+- Only fence in SYCL parallel_reduce for non-device-accessible result_ptr [\#4089](https://github.com/kokkos/kokkos/pull/4089)
+- Improve fencing behavior in SYCL backend [\#4088](https://github.com/kokkos/kokkos/pull/4088)
+- Fence all registered SYCL queues before deallocating memory [\#4086](https://github.com/kokkos/kokkos/pull/4086)
+- Implement SYCL::print_configuration [\#3992](https://github.com/kokkos/kokkos/pull/3992)
+- Reuse scratch memory in parallel_scan and TeamPolicy (decreases memory footprint) [\#3899](https://github.com/kokkos/kokkos/pull/3899) [\#3889](https://github.com/kokkos/kokkos/pull/3889)
+
+#### CUDA:
+- Cuda improve heuristic for blocksize [\#4271](https://github.com/kokkos/kokkos/pull/4271)
+- Don't use [[deprecated]] for nvcc [\#4229](https://github.com/kokkos/kokkos/pull/4229)
+- Improve error message for NVHPC as host compiler [\#4227](https://github.com/kokkos/kokkos/pull/4227)
+- Update support for cuda reductions to work with types < 4bytes [\#4156](https://github.com/kokkos/kokkos/pull/4156)
+- Fix incompatible team size deduction in rare cases parallel_reduce [\#4142](https://github.com/kokkos/kokkos/pull/4142)
+- Remove UVM usage in DynamicView [\#4129](https://github.com/kokkos/kokkos/pull/4129)
+- Remove dependency between core and containers [\#4114](https://github.com/kokkos/kokkos/pull/4114)
+- Adding opt-in CudaMallocSync support when using CUDA version >= 11.2 [\#4026](https://github.com/kokkos/kokkos/pull/4026) [\#4233](https://github.com/kokkos/kokkos/pull/4233)
+- Fix a potential race condition in the CUDA backend [\#3999](https://github.com/kokkos/kokkos/pull/3999)
+
+#### HIP:
+- Implement new blocksize deduction method for HIP Backend [\#3953](https://github.com/kokkos/kokkos/pull/3953)
+- Add multiple LaunchMechanism [\#3820](https://github.com/kokkos/kokkos/pull/3820)
+- Make HIP backend thread-safe [\#4170](https://github.com/kokkos/kokkos/pull/4170)
+
+#### Serial:
+- Refactor Serial backend and fix thread-safety issue [\#4053](https://github.com/kokkos/kokkos/pull/4053)
+
+#### OpenMPTarget:
+- OpenMPTarget: support array reductions in RangePolicy [\#4040](https://github.com/kokkos/kokkos/pull/4040)
+- OpenMPTarget: add MDRange parallel_reduce [\#4032](https://github.com/kokkos/kokkos/pull/4032)
+- OpenMPTarget: Fix bug in for the case of a reducer. [\#4044](https://github.com/kokkos/kokkos/pull/4044)
+- OpenMPTarget: verify process fix [\#4041](https://github.com/kokkos/kokkos/pull/4041)
+
+### Implemented enhancements BuildSystem
+
+#### Important BuildSystem Updates:
+- Use hipcc architecture autodetection when Kokkos_ARCH is not set [\#3941](https://github.com/kokkos/kokkos/pull/3941)
+- Introduce Kokkos_ENABLE_DEPRECATION_WARNINGS and remove deprecated code with Kokkos_ENABLE_DEPRECATED_CODE_3 [\#4106](https://github.com/kokkos/kokkos/pull/4106) [\#3855](https://github.com/kokkos/kokkos/pull/3855)
+
+#### Other Improvements:
+- Add allow-unsupported-compiler flag to nvcc-wrapper [\#4298](https://github.com/kokkos/kokkos/pull/4298)
+- nvcc_wrapper: fix errors in argument handling [\#3993](https://github.com/kokkos/kokkos/pull/3993)
+- Adds support for -time=<file> and -time <file> in nvcc_wrapper [\#4015](https://github.com/kokkos/kokkos/pull/4015)
+- nvcc_wrapper: suppress duplicates of GPU architecture and RDC flags [\#3968](https://github.com/kokkos/kokkos/pull/3968)
+- Fix TMPDIR support in nvcc_wrapper [\#3792](https://github.com/kokkos/kokkos/pull/3792)
+- NVHPC: update PGI compiler arch flags [\#4133](https://github.com/kokkos/kokkos/pull/4133)
+- Replace PGI with NVHPC (works for both) [\#4196](https://github.com/kokkos/kokkos/pull/4196)
+- Make sure that KOKKOS_CXX_HOST_COMPILER_ID is defined [\#4235](https://github.com/kokkos/kokkos/pull/4235)
+- Add options to Makefile builds for deprecated code and warnings [\#4215](https://github.com/kokkos/kokkos/pull/4215)
+- Use KOKKOS_CXX_HOST_COMPILER_ID for identifying CPU arch flags [\#4199](https://github.com/kokkos/kokkos/pull/4199)
+- Added support for Cray Clang to Makefile.kokkos [\#4176](https://github.com/kokkos/kokkos/pull/4176)
+- Add XLClang as compiler [\#4120](https://github.com/kokkos/kokkos/pull/4120)
+- Keep quoted compiler flags when passing to Trilinos [\#3987](https://github.com/kokkos/kokkos/pull/3987)
+- Add support for AMD Zen3 CPU architecture [\#3972](https://github.com/kokkos/kokkos/pull/3972)
+- Rename IntelClang to IntelLLVM [\#3945](https://github.com/kokkos/kokkos/pull/3945)
+- Add cppcoreguidelines-pro-type-cstyle-cast to clang-tidy [\#3522](https://github.com/kokkos/kokkos/pull/3522)
+- Add sve bit size definition for A64FX [\#3947](https://github.com/kokkos/kokkos/pull/3947) [\#3946](https://github.com/kokkos/kokkos/pull/3946)
+- Remove KOKKOS_ENABLE_DEBUG_PRINT_KERNEL_NAMES [\#4150](https://github.com/kokkos/kokkos/pull/4150)
+
+### Other Changes:
+
+#### Tool Enhancements:
+
+- Retrieve original value from a point in a MultidimensionalSparseTuningProblem [\#3977](https://github.com/kokkos/kokkos/pull/3977)
+- Allow extension of built-in tuners with additional tuning axes [\#3961](https://github.com/kokkos/kokkos/pull/3961)
+- Added a categorical tuner [\#3955](https://github.com/kokkos/kokkos/pull/3955)
+
+
+#### Miscellaneous:
+
+- hpcbind: Use double quotes around $@ when invoking user command [\#4284](https://github.com/kokkos/kokkos/pull/4284)
+- Add file and line to error message [\#3985](https://github.com/kokkos/kokkos/pull/3985)
+- Fix compiler warnings when compiling with nvc++ [\#4198](https://github.com/kokkos/kokkos/pull/4198)
+- Add OpenMPTarget CI build on AMD GPUs [\#4055](https://github.com/kokkos/kokkos/pull/4055)
+- CI: icpx is now part of intel container [\#4002](https://github.com/kokkos/kokkos/pull/4002)
+
+### Incompatibilities:
+
+- Remove pre CUDA 9 KOKKOS_IMPL_CUDA_* macros [\#4138](https://github.com/kokkos/kokkos/pull/4138)
+
+### Bug Fixes:
+- UnorderedMap::clear() should zero the size() [\#4130](https://github.com/kokkos/kokkos/pull/4130)
+- Add memory fence for HostSharedPtr::cleanup() [\#4144](https://github.com/kokkos/kokkos/pull/4144)
+- SYCL: Fix race conditions in TeamPolicy::parallel_reduce [\#4418](https://github.com/kokkos/kokkos/pull/4418)
+- Adding missing memory fence to serial exec space fence. [\#4292](https://github.com/kokkos/kokkos/pull/4292)
+- Fix using external SYCL queues in tests [\#4291](https://github.com/kokkos/kokkos/pull/4291)
+- Fix digits10 bug [\#4281](https://github.com/kokkos/kokkos/pull/4281)
+- Fixes constexpr errors with frounding-math on gcc < 10. [\#4278](https://github.com/kokkos/kokkos/pull/4278)
+- Fix compiler flags for PGI/NVHPC [\#4264](https://github.com/kokkos/kokkos/pull/4264)
+- Fix Zen2/3 also implying Zen Arch with Makefiles [\#4260](https://github.com/kokkos/kokkos/pull/4260)
+- Kokkos_Cuda.hpp: Fix shadow warning with cuda/11.0 [\#4252](https://github.com/kokkos/kokkos/pull/4252)
+- Fix issue w/ static initialization of function attributes [\#4242](https://github.com/kokkos/kokkos/pull/4242)
+- Disable long double hypot test on Power systems [\#4221](https://github.com/kokkos/kokkos/pull/4221)
+- Fix false sharing in random pool [\#4218](https://github.com/kokkos/kokkos/pull/4218)
+- Fix a missing memory_fence for debug shared alloc code [\#4216](https://github.com/kokkos/kokkos/pull/4216)
+- Fix two xl issues [\#4179](https://github.com/kokkos/kokkos/pull/4179)
+- Makefile.kokkos: fix (standard_in) 1: syntax error [\#4173](https://github.com/kokkos/kokkos/pull/4173)
+- Fixes for query_device example [\#4172](https://github.com/kokkos/kokkos/pull/4172)
+- Fix a bug when using HIP atomic with Kokkos::Complex [\#4159](https://github.com/kokkos/kokkos/pull/4159)
+- Fix mistaken logic in pthread creation [\#4157](https://github.com/kokkos/kokkos/pull/4157)
+- Define KOKKOS_ENABLE_AGGRESSIVE_VECTORIZATION when requesting Kokkos_ENABLE_AGGRESSIVE_VECTORIZATION=ON [\#4107](https://github.com/kokkos/kokkos/pull/4107)
+- Fix compilation with latest MSVC version [\#4102](https://github.com/kokkos/kokkos/pull/4102)
+- Fix incorrect macro definitions when compiling with Intel compiler on Windows [\#4087](https://github.com/kokkos/kokkos/pull/4087)
+- Fixup global buffer overflow in hand rolled string manipulation [\#4070](https://github.com/kokkos/kokkos/pull/4070)
+- Fixup heap buffer overflow in cmd line args parsing unit tests [\#4069](https://github.com/kokkos/kokkos/pull/4069)
+- Only add quotes in compiler flags for Trilinos if necessary [\#4067](https://github.com/kokkos/kokkos/pull/4067)
+- Fixed invocation of tools init callbacks [\#4061](https://github.com/kokkos/kokkos/pull/4061)
+- Work around SYCL JIT compiler issues with static variables [\#4013](https://github.com/kokkos/kokkos/pull/4013)
+- Fix TestDetectionIdiom.cpp test inclusion for Trilinos/TriBITS [\#4010](https://github.com/kokkos/kokkos/pull/4010)
+- Fixup allocation headers with OpenMPTarget backend [\#4003](https://github.com/kokkos/kokkos/pull/4003)
+- Add missing specialization for OMPT to Kokkos Random [\#3967](https://github.com/kokkos/kokkos/pull/3967)
+- Disable hypot long double test on power arches [\#3962](https://github.com/kokkos/kokkos/pull/3962)
+- Use different EBO workaround for MSVC (rebased) [\#3924](https://github.com/kokkos/kokkos/pull/3924)
+- Fix SYCL Kokkos::Profiling::(de)allocateData calls [\#3928](https://github.com/kokkos/kokkos/pull/3928)
+
 ## [3.4.01](https://github.com/kokkos/kokkos/tree/3.4.01) (2021-05-19)
 [Full Changelog](https://github.com/kokkos/kokkos/compare/3.4.00...3.4.01)
 

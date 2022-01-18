@@ -28,13 +28,13 @@ namespace LAMMPS_NS {
 class RespaOMP : public Respa, public ThrOMP {
  public:
   RespaOMP(class LAMMPS *, int, char **);
-  virtual ~RespaOMP() {}
-  virtual void init();
-  virtual void setup(int);
-  virtual void setup_minimal(int);
+  ~RespaOMP() override = default;
+  void init() override;
+  void setup(int) override;
+  void setup_minimal(int) override;
 
  protected:
-  virtual void recurse(int);
+  void recurse(int) override;
 };
 
 }    // namespace LAMMPS_NS

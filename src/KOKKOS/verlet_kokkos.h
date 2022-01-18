@@ -31,10 +31,10 @@ namespace LAMMPS_NS {
 class VerletKokkos : public Verlet {
  public:
   VerletKokkos(class LAMMPS *, int, char **);
-  ~VerletKokkos() {}
-  void setup(int);
-  void setup_minimal(int);
-  void run(int);
+  ~VerletKokkos() override = default;
+  void setup(int) override;
+  void setup_minimal(int) override;
+  void run(int) override;
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int& i) const {

@@ -24,6 +24,7 @@
 #include "lattice.h"
 #include "modify.h"
 #include "output.h"
+#include "update.h"
 
 #include <cmath>
 #include <cstring>
@@ -201,8 +202,11 @@ void ChangeBox::command(int narg, char **arg)
     scale[0] = domain->lattice->xlattice;
     scale[1] = domain->lattice->ylattice;
     scale[2] = domain->lattice->zlattice;
-  }
-  else scale[0] = scale[1] = scale[2] = 1.0;
+  } else scale[0] = scale[1] = scale[2] = 1.0;
+
+  // enforce initialization if there has not one before
+
+  if (!update->first_update) lmp->init();
 
   // perform sequence of operations
   // first insure atoms are in current box & update box via shrink-wrap
@@ -282,9 +286,7 @@ void ChangeBox::command(int narg, char **arg)
     } else if (ops[m].style == BOUNDARY) {
       domain->set_boundary(3,&arg[ops[m].boundindex],1);
       if (domain->dimension == 2 && domain->zperiodic == 0)
-        error->all(FLERR,
-                   "Cannot change box z boundary to "
-                   "non-periodic for a 2d simulation");
+        error->all(FLERR, "Cannot change box z boundary to non-periodic for a 2d simulation");
       domain->set_initial_box();
       domain->set_global_box();
       domain->set_local_box();

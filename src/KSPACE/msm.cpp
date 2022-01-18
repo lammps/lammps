@@ -285,6 +285,11 @@ double MSM::estimate_total_error()
 
 void MSM::setup()
 {
+  // change_box may trigger MSM::setup() before MSM::init() was called
+  // error out and request full initialization.
+
+  if (!delxinv) error->all(FLERR, "MSM must be fully initialized for this operation");
+
   double *prd;
   double a = cutoff;
 

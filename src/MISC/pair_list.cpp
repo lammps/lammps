@@ -283,7 +283,7 @@ void PairList::settings(int narg, char **arg)
   }
   MPI_Bcast(&npairs, 1, MPI_INT, 0, world);
   if (comm->me != 0) memory->create(params,npairs,"pair_list:params");
-  MPI_Bcast(params, npairs*sizeof(list_param), MPI_CHAR, 0, world);
+  MPI_Bcast(params, npairs*sizeof(list_param), MPI_BYTE, 0, world);
 }
 
 /* ----------------------------------------------------------------------

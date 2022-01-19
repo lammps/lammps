@@ -1,4 +1,4 @@
-# spock_kokkos = KOKKOS/HIP, AMD MI100 GPU and AMD EPYC 7662 “Rome” CPU, Cray MPICH, hipcc compiler
+# spock_kokkos = KOKKOS/HIP, AMD MI100 GPU and AMD EPYC 7662 "Rome" CPU, Cray MPICH, hipcc compiler
 
 SHELL = /bin/sh
 

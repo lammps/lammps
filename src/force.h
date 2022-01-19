@@ -117,7 +117,7 @@ class Force : protected Pointers {
   int special_extra;         // extra space for added bonds
 
   Force(class LAMMPS *);
-  ~Force();
+  ~Force() override;
   void init();
   void setup();
 

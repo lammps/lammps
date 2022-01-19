@@ -47,7 +47,7 @@ class VerletKokkos : public Verlet {
  protected:
   DAT::t_f_array f_merge_copy,f;
 
-  void force_clear();
+  void force_clear() override;
 };
 
 }

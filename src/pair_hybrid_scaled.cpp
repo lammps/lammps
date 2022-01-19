@@ -524,7 +524,7 @@ void PairHybridScaled::write_restart(FILE *fp)
 
   int n = scalevars.size();
   fwrite(&n, sizeof(int), 1, fp);
-  for (auto var : scalevars) {
+  for (auto &var : scalevars) {
     n = var.size() + 1;
     fwrite(&n, sizeof(int), 1, fp);
     fwrite(var.c_str(), sizeof(char), n, fp);

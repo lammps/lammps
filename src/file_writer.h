@@ -39,9 +39,9 @@ class FileWriterException : public std::exception {
  public:
   FileWriterException(const std::string &msg) : message(msg) {}
 
-  ~FileWriterException() noexcept {}
+  ~FileWriterException() noexcept override {}
 
-  virtual const char *what() const noexcept { return message.c_str(); }
+  const char *what() const noexcept override { return message.c_str(); }
 };
 
 }    // namespace LAMMPS_NS

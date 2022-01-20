@@ -28,7 +28,7 @@ namespace LAMMPS_NS {
 class DumpXTC : public Dump {
  public:
   DumpXTC(class LAMMPS *, int, char **);
-  virtual ~DumpXTC();
+  ~DumpXTC() override;
 
  private:
   int natoms, ntotal;
@@ -39,13 +39,13 @@ class DumpXTC : public Dump {
   double sfactor, tfactor;    // scaling factors for positions and time unit
   XDR xd;
 
-  void init_style();
-  int modify_param(int, char **);
-  void openfile();
-  void write_header(bigint);
-  void pack(tagint *);
-  void write_data(int, double *);
-  double memory_usage();
+  void init_style() override;
+  int modify_param(int, char **) override;
+  void openfile() override;
+  void write_header(bigint) override;
+  void pack(tagint *) override;
+  void write_data(int, double *) override;
+  double memory_usage() override;
 
   void write_frame();
 };

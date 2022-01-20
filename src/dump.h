@@ -37,7 +37,7 @@ class Dump : protected Pointers {
 #endif
 
   Dump(class LAMMPS *, int, char **);
-  virtual ~Dump();
+  ~Dump() override;
   void init();
   virtual void write();
 

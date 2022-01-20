@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class MinQuickMin : public Min {
  public:
   MinQuickMin(class LAMMPS *);
-  ~MinQuickMin() override = default;
+
   void init() override;
   void setup_style() override;
   void reset_vectors() override;

@@ -31,7 +31,7 @@ namespace LAMMPS_NS {
 class AtomVecChargeKokkos : public AtomVecKokkos {
  public:
   AtomVecChargeKokkos(class LAMMPS *);
-  ~AtomVecChargeKokkos() override = default;
+
   void grow(int) override;
   void copy(int, int, int) override;
   int pack_border(int, int *, double *, int, int *) override;

@@ -30,7 +30,7 @@ namespace LAMMPS_NS {
 class AtomVecBondKokkos : public AtomVecKokkos {
  public:
   AtomVecBondKokkos(class LAMMPS *);
-  ~AtomVecBondKokkos() override = default;
+
   void grow(int) override;
   void copy(int, int, int) override;
   int pack_border(int, int *, double *, int, int *) override;

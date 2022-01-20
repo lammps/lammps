@@ -36,7 +36,7 @@ union d_ubuf {
 class AtomVecKokkos : public AtomVec {
  public:
   AtomVecKokkos(class LAMMPS *);
-  ~AtomVecKokkos() override = default;
+
   bigint roundup(bigint) override;
   int pack_comm(int, int *, double *, int, int *) override;
   int pack_comm_vel(int, int *, double *, int, int *) override;

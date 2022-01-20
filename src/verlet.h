@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class Verlet : public Integrate {
  public:
   Verlet(class LAMMPS *, int, char **);
-  ~Verlet() override = default;
+
   void init() override;
   void setup(int flag) override;
   void setup_minimal(int) override;

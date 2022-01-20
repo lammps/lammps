@@ -44,7 +44,7 @@ class Timer : protected Pointers {
   enum tlevel { OFF = 0, LOOP, NORMAL, FULL };
 
   Timer(class LAMMPS *);
-  ~Timer() override = default;
+
   void init();
 
   // inline function to reduce overhead if we want no detailed timings

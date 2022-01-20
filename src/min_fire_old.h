@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class MinFireOld : public Min {
  public:
   MinFireOld(class LAMMPS *);
-  ~MinFireOld() override = default;
+
   void init() override;
   void setup_style() override;
   void reset_vectors() override;

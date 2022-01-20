@@ -27,7 +27,6 @@ namespace LAMMPS_NS {
 class AtomVecOxdna : public AtomVec {
  public:
   AtomVecOxdna(class LAMMPS *);
-  ~AtomVecOxdna() override = default;
 
   void grow_pointers() override;
   void data_atom_post(int) override;

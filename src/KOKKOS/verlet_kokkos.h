@@ -31,7 +31,7 @@ namespace LAMMPS_NS {
 class VerletKokkos : public Verlet {
  public:
   VerletKokkos(class LAMMPS *, int, char **);
-  ~VerletKokkos() override = default;
+
   void setup(int) override;
   void setup_minimal(int) override;
   void run(int) override;

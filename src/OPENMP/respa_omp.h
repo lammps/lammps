@@ -28,7 +28,7 @@ namespace LAMMPS_NS {
 class RespaOMP : public Respa, public ThrOMP {
  public:
   RespaOMP(class LAMMPS *, int, char **);
-  ~RespaOMP() override = default;
+
   void init() override;
   void setup(int) override;
   void setup_minimal(int) override;

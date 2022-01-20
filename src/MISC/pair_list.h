@@ -39,8 +39,6 @@ class PairList : public Pair {
  protected:
   void allocate();
 
-  enum { NONE = 0, HARM, MORSE, LJ126 };
-
   // potential specific parameters
   struct harm_p {
     double k, r0;
@@ -52,23 +50,23 @@ class PairList : public Pair {
     double epsilon, sigma;
   };
 
-  union parm_u {
-    struct harm_p harm;
-    struct morse_p morse;
-    struct lj126_p lj126;
+  union param_u {
+    harm_p harm;
+    morse_p morse;
+    lj126_p lj126;
   };
 
-  typedef struct {
+  struct list_param {
+    int style;            // potential style indicator
     tagint id1, id2;      // global atom ids
     double cutsq;         // cutoff**2 for this pair
     double offset;        // energy offset
-    union parm_u parm;    // parameters for style
-  } list_parm_t;
+    union param_u param;  // parameters for style
+  };
 
  protected:
   double cut_global;      // global cutoff distance
-  int *style;             // list of styles for pair interactions
-  list_parm_t *params;    // lisf of pair interaction parameters
+  list_param *params;     // lisf of pair interaction parameters
   int npairs;             // # of atom pairs in global list
   int check_flag;         // 1 if checking for missing pairs
 };

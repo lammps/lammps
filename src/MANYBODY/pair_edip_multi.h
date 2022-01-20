@@ -34,6 +34,8 @@ class PairEDIPMulti : public Pair {
   double init_one(int, int);
   void init_style();
 
+  static constexpr int NPARAMS_PER_LINE = 20;
+
  protected:
   struct Param {
     double A, B;              // coefficients for pair interaction I-J
@@ -48,7 +50,7 @@ class PairEDIPMulti : public Pair {
     double mu, Q0;            // coefficients for function Q(Z)
     double u1, u2, u3, u4;    // coefficients for function tau(Z)
     double cutsq;
-    int ielement, jelement, kelement;
+    int ielement, jelement, kelement, dummy; // dummy added for better alignment
   };
 
   double *preForceCoord;
@@ -63,12 +65,12 @@ class PairEDIPMulti : public Pair {
   void read_file(char *);
   void setup();
 
-  void edip_pair(double, double, Param *, double &, double &, double &);
-  void edip_fc(double, Param *, double &, double &);
-  void edip_fcut2(double, Param *, double &, double &);
-  void edip_tau(double, Param *, double &, double &);
-  void edip_h(double, double, Param *, double &, double &, double &);
-  void edip_fcut3(double, Param *, double &, double &);
+  void edip_pair(double, double, const Param &, double &, double &, double &);
+  void edip_fc(double, const Param &, double &, double &);
+  void edip_fcut2(double, const Param &, double &, double &);
+  void edip_tau(double, const Param &, double &, double &);
+  void edip_h(double, double, const Param &, double &, double &, double &);
+  void edip_fcut3(double, const Param &, double &, double &);
 };
 
 }    // namespace LAMMPS_NS

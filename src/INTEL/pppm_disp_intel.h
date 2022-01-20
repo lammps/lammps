@@ -33,9 +33,9 @@ namespace LAMMPS_NS {
 class PPPMDispIntel : public PPPMDisp {
  public:
   PPPMDispIntel(class LAMMPS *);
-  virtual ~PPPMDispIntel();
-  virtual void init();
-  virtual void compute(int, int);
+  ~PPPMDispIntel() override;
+  void init() override;
+  void compute(int, int) override;
 
 #ifdef _LMP_INTEL_OFFLOAD
   int use_base();

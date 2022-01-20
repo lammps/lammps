@@ -26,7 +26,7 @@ class GridComm : protected Pointers {
            int, int, int);
   GridComm(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int, int, int, int,
            int, int, int, int, int, int, int, int, int, int);
-  virtual ~GridComm();
+  ~GridComm() override;
   void setup(int &, int &);
   int ghost_adjacent();
   void forward_comm(int, void *, int, int, int, void *, void *, MPI_Datatype);

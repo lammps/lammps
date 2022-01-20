@@ -27,8 +27,8 @@ namespace LAMMPS_NS {
 class NEBSpin : public Command {
  public:
   NEBSpin(class LAMMPS *);
-  ~NEBSpin();
-  void command(int, char **);    // process neb/spin command
+  ~NEBSpin() override;
+  void command(int, char **) override;    // process neb/spin command
   void run();                    // run NEBSpin
 
   double ebf, ebr;    // forward and reverse energy barriers

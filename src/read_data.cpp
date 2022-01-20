@@ -885,23 +885,28 @@ void ReadData::command(int narg, char **arg)
   // restore old styles, when reading with nocoeff flag given
 
   if (coeffflag == 0) {
-    if (force->pair) delete force->pair;
+    delete force->pair;
+    delete[] force->pair_style;
     force->pair = saved_pair;
     force->pair_style = saved_pair_style;
 
-    if (force->bond) delete force->bond;
+    delete force->bond;
+    delete[] force->bond_style;
     force->bond = saved_bond;
     force->bond_style = saved_bond_style;
 
-    if (force->angle) delete force->angle;
+    delete force->angle;
+    delete[] force->angle_style;
     force->angle = saved_angle;
     force->angle_style = saved_angle_style;
 
-    if (force->dihedral) delete force->dihedral;
+    delete force->dihedral;
+    delete[] force->dihedral_style;
     force->dihedral = saved_dihedral;
     force->dihedral_style = saved_dihedral_style;
 
-    if (force->improper) delete force->improper;
+    delete force->improper;
+    delete[] force->improper_style;
     force->improper = saved_improper;
     force->improper_style = saved_improper_style;
 

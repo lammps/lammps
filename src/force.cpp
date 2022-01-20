@@ -229,7 +229,7 @@ void Force::create_pair(const std::string &style, int trysuffix)
 
   int sflag;
   pair = new_pair(style,trysuffix,sflag);
-  store_style(pair_style,style,sflag);
+  pair_style = store_style(style,sflag);
 }
 
 /* ----------------------------------------------------------------------
@@ -350,7 +350,7 @@ void Force::create_bond(const std::string &style, int trysuffix)
 
   int sflag;
   bond = new_bond(style,trysuffix,sflag);
-  store_style(bond_style,style,sflag);
+  bond_style = store_style(style,sflag);
 }
 
 /* ----------------------------------------------------------------------
@@ -427,7 +427,7 @@ void Force::create_angle(const std::string &style, int trysuffix)
 
   int sflag;
   angle = new_angle(style,trysuffix,sflag);
-  store_style(angle_style,style,sflag);
+  angle_style = store_style(style,sflag);
 }
 
 /* ----------------------------------------------------------------------
@@ -504,7 +504,7 @@ void Force::create_dihedral(const std::string &style, int trysuffix)
 
   int sflag;
   dihedral = new_dihedral(style,trysuffix,sflag);
-  store_style(dihedral_style,style,sflag);
+  dihedral_style = store_style(style,sflag);
 }
 
 /* ----------------------------------------------------------------------
@@ -581,7 +581,7 @@ void Force::create_improper(const std::string &style, int trysuffix)
 
   int sflag;
   improper = new_improper(style,trysuffix,sflag);
-  store_style(improper_style,style,sflag);
+  improper_style = store_style(style,sflag);
 }
 
 /* ----------------------------------------------------------------------
@@ -658,7 +658,7 @@ void Force::create_kspace(const std::string &style, int trysuffix)
 
   int sflag;
   kspace = new_kspace(style,trysuffix,sflag);
-  store_style(kspace_style,style,sflag);
+  kspace_style = store_style(style,sflag);
 }
 
 /* ----------------------------------------------------------------------
@@ -729,14 +729,14 @@ KSpace *Force::kspace_match(const std::string &word, int exact)
    if sflag = 1/2/3, append suffix or suffix2 or suffixp to style
 ------------------------------------------------------------------------- */
 
-void Force::store_style(char *&str, const std::string &style, int sflag)
+char *Force::store_style(const std::string &style, int sflag)
 {
   std::string estyle = style;
 
   if (sflag == 1) estyle += std::string("/") + lmp->suffix;
   else if (sflag == 2) estyle += std::string("/") + lmp->suffix2;
   else if (sflag == 3) estyle += std::string("/") + lmp->suffixp;
-  str = utils::strdup(estyle);
+  return utils::strdup(estyle);
 }
 
 /* ----------------------------------------------------------------------

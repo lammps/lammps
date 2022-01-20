@@ -322,7 +322,7 @@ void PairHybrid::settings(int narg, char **arg)
       error->all(FLERR,"Pair style hybrid cannot have none as an argument");
 
     styles[nstyles] = force->new_pair(arg[iarg],1,dummy);
-    force->store_style(keywords[nstyles],arg[iarg],0);
+    keywords[nstyles] = force->store_style(arg[iarg],0);
     special_lj[nstyles] = special_coul[nstyles] = nullptr;
     compute_tally[nstyles] = 1;
 

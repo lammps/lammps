@@ -133,14 +133,14 @@ void _noopt Force::create_factories()
 
 Force::~Force()
 {
-  delete [] pair_style;
-  delete [] bond_style;
-  delete [] angle_style;
-  delete [] dihedral_style;
-  delete [] improper_style;
-  delete [] kspace_style;
+  delete[] pair_style;
+  delete[] bond_style;
+  delete[] angle_style;
+  delete[] dihedral_style;
+  delete[] improper_style;
+  delete[] kspace_style;
 
-  delete [] pair_restart;
+  delete[] pair_restart;
 
   if (pair) delete pair;
   if (bond) delete bond;
@@ -220,9 +220,9 @@ void Force::setup()
 
 void Force::create_pair(const std::string &style, int trysuffix)
 {
-  delete [] pair_style;
+  delete[] pair_style;
   if (pair) delete pair;
-  if (pair_restart) delete [] pair_restart;
+  if (pair_restart) delete[] pair_restart;
   pair_style = nullptr;
   pair = nullptr;
   pair_restart = nullptr;
@@ -345,7 +345,7 @@ char *Force::pair_match_ptr(Pair *ptr)
 
 void Force::create_bond(const std::string &style, int trysuffix)
 {
-  delete [] bond_style;
+  delete[] bond_style;
   if (bond) delete bond;
 
   int sflag;
@@ -422,7 +422,7 @@ Bond *Force::bond_match(const std::string &style)
 
 void Force::create_angle(const std::string &style, int trysuffix)
 {
-  delete [] angle_style;
+  delete[] angle_style;
   if (angle) delete angle;
 
   int sflag;
@@ -499,7 +499,7 @@ Angle *Force::angle_match(const std::string &style)
 
 void Force::create_dihedral(const std::string &style, int trysuffix)
 {
-  delete [] dihedral_style;
+  delete[] dihedral_style;
   if (dihedral) delete dihedral;
 
   int sflag;
@@ -576,7 +576,7 @@ Dihedral *Force::dihedral_match(const std::string &style)
 
 void Force::create_improper(const std::string &style, int trysuffix)
 {
-  delete [] improper_style;
+  delete[] improper_style;
   if (improper) delete improper;
 
   int sflag;
@@ -653,7 +653,7 @@ Improper *Force::improper_match(const std::string &style)
 
 void Force::create_kspace(const std::string &style, int trysuffix)
 {
-  delete [] kspace_style;
+  delete[] kspace_style;
   if (kspace) delete kspace;
 
   int sflag;

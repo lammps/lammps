@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class ImproperFourier : public Improper {
  public:
   ImproperFourier(class LAMMPS *);
-  ~ImproperFourier();
-  void compute(int, int);
-  void coeff(int, char **);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_data(FILE *);
+  ~ImproperFourier() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
 
  protected:
   double *k, *C0, *C1, *C2;

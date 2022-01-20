@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class ImproperHarmonic : public Improper {
  public:
   ImproperHarmonic(class LAMMPS *);
-  virtual ~ImproperHarmonic();
-  virtual void compute(int, int);
-  virtual void coeff(int, char **);
-  void write_restart(FILE *);
-  virtual void read_restart(FILE *);
-  void write_data(FILE *);
+  ~ImproperHarmonic() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
 
  protected:
   double *k, *chi;

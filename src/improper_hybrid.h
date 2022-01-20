@@ -31,14 +31,14 @@ class ImproperHybrid : public Improper {
   char **keywords;      // keyword for each improper style
 
   ImproperHybrid(class LAMMPS *);
-  ~ImproperHybrid();
-  void init_style();
-  void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  double memory_usage();
+  ~ImproperHybrid() override;
+  void init_style() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  double memory_usage() override;
 
  private:
   int *map;    // which style each improper type points to

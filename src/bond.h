@@ -30,6 +30,7 @@ class Bond : protected Pointers {
   double virial[6];          // accumulated virial: xx,yy,zz,xy,xz,yz
   double *eatom, **vatom;    // accumulated per-atom energy/virial
 
+  int born_enable;
   int reinitflag;    // 1 if compatible with fix adapt and alike
 
   // KOKKOS host/device flag and data masks
@@ -55,6 +56,12 @@ class Bond : protected Pointers {
   virtual double memory_usage();
   virtual void *extract(const char *, int &) { return nullptr; }
   virtual void reinit();
+
+  virtual void born(int/*btype*/, double/*rsq*/, int/*at1*/, int/*at2*/, double& du, double& du2)
+  {
+    du = 0.0;
+    du2 = 0.0;
+  }
 
   void write_file(int, char **);
 

@@ -35,6 +35,7 @@ Angle::Angle(LAMMPS *lmp) : Pointers(lmp)
 
   allocated = 0;
   suffix_flag = Suffix::NONE;
+  born_enable = 0;
 
   maxeatom = maxvatom = maxcvatom = 0;
   eatom = nullptr;

@@ -27,14 +27,14 @@ namespace LAMMPS_NS {
 class AngleCosineShift : public Angle {
  public:
   AngleCosineShift(class LAMMPS *);
-  virtual ~AngleCosineShift();
-  virtual void compute(int, int);
-  void coeff(int, char **);
-  double equilibrium_angle(int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_data(FILE *);
-  double single(int, int, int, int);
+  ~AngleCosineShift() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  double equilibrium_angle(int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
+  double single(int, int, int, int) override;
 
  protected:
   double *k;

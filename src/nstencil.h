@@ -48,7 +48,7 @@ class NStencil : protected Pointers {
   int **bin_collection_multi;    // what collection to use for bin information
 
   NStencil(class LAMMPS *);
-  virtual ~NStencil();
+  ~NStencil() override;
   void post_constructor(class NeighRequest *);
   void copy_neighbor_info();
   virtual void create_setup();

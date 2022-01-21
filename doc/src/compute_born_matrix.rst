@@ -1,24 +1,24 @@
-.. index:: compute born
+.. index:: compute born/matrix
 
-compute born command
-====================
+compute born/matrix command
+===========================
 
 Syntax
 """"""
 
 .. parsed-literal::
 
-   compute ID group-ID born
+   compute ID group-ID born/matrix
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
-* born = style name of this compute command
+* born/matrix = style name of this compute command
 
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-   compute 1 all born
+   compute 1 all born/matrix
 
 Description
 """""""""""
@@ -49,7 +49,7 @@ as a 6x6 symmetric matrix:
 In the above expression, :math:`\sigma` stands for the virial stress
 tensor, :math:`\delta` is the Kronecker delta and the usual notation apply for
 the number of particle, the temperature and volume respectively :math:`N`,
-:math:`T` and :math:`V`. :math `k_{B}` is the Boltzmann constant.
+:math:`T` and :math:`V`. :math:`k_{B}` is the Boltzmann constant.
 
 The Born term is a symmetric 6x6 matrix by construction and as such can be
 expressed as 21 independent terms. The terms are ordered corresponding to the
@@ -75,7 +75,7 @@ The output can be accessed using usual Lammps routines:
 
 .. code-block:: LAMMPS
 
-   compute 1 all born
+   compute 1 all born/matrix
    compute 2 all pressure NULL virial
    variable S1 equal -c_2[1]
    variable S2 equal -c_2[2]
@@ -112,9 +112,10 @@ Restrictions
 The Born term can be decomposed as a product of two terms. The first one
 is a general term which depends on the configuration. The second one is
 specific to every interaction composing your forcefield (non-bonded,
-bonds, angle...). Currently not all interaction implement the born
-method giving first and second order derivatives and an error will
-be raised if you try to use this compute with such interactions.
+bonds, angle...). Currently not all interaction implement the *born_matrix*
+method giving first and second order derivatives and a warning will
+be raised if you try to use this compute with such interactions. The returned
+values of this forcefield component is currently zero.
 
 Default
 """""""

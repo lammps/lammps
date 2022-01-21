@@ -51,7 +51,7 @@ class Pair : protected Pointers {
   int comm_reverse_off;    // size of reverse comm even if newton off
 
   int single_enable;              // 1 if single() routine exists
-  int born_enable;                // 1 if born() routine exists
+  int born_matrix_enable;         // 1 if born_matrix() routine exists
   int single_hessian_enable;      // 1 if single_hessian() routine exists
   int restartinfo;                // 1 if pair style writes restart info
   int respa_enable;               // 1 if inner/middle/outer rRESPA routines
@@ -159,7 +159,7 @@ class Pair : protected Pointers {
     return 0.0;
   }
 
-  virtual void born(int /*i*/, int /*j*/, int /*itype*/, int /*jtype*/, double /*rsq*/,
+  virtual void born_matrix(int /*i*/, int /*j*/, int /*itype*/, int /*jtype*/, double /*rsq*/,
                     double /*factor_coul*/, double /*factor_lj*/, double& du, double& du2)
   {
     du = 0.0;

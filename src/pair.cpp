@@ -58,7 +58,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   comm_forward = comm_reverse = comm_reverse_off = 0;
 
   single_enable = 1;
-  born_enable = 0;
+  born_matrix_enable = 0;
   single_hessian_enable = 0;
   restartinfo = 1;
   respa_enable = 0;

@@ -12,42 +12,90 @@
    ------------------------------------------------------------------------- */
 
 /*------------------------------------------------------------------------
-  Contributing Authors : Germain Clavier (UCA)
+  Contributing Authors : Germain Clavier (TUe)
   --------------------------------------------------------------------------*/
 
-#include "compute_born.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+#include "compute_born_matrix.h"
 
+#include "angle.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "update.h"
-#include "domain.h"
-#include "neighbor.h"
-#include "force.h"
-#include "pair.h"
 #include "bond.h"
-#include "angle.h"
+#include "comm.h"
 #include "dihedral.h"
-#include "improper.h"
-#include "molecule.h"
-#include "neigh_request.h"
-#include "neigh_list.h"
+#include "domain.h"
 #include "error.h"
+#include "force.h"
+#include "improper.h"
 #include "memory.h"
+#include "molecule.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "update.h"
+#include "universe.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 #define BIG 1000000000
 
+static int const albe[21][2] = {
+    {0, 0},    // C11
+    {1, 1},    // C22
+    {2, 2},    // C33
+    {1, 2},    // C44
+    {0, 2},    // C55
+    {0, 1},    // C66
+    {0, 1},    // C12
+    {0, 2},    // C13
+    {0, 3},    // C14
+    {0, 4},    // C15
+    {0, 5},    // C16
+    {1, 2},    // C23
+    {1, 3},    // C24
+    {1, 4},    // C25
+    {1, 5},    // C26
+    {2, 3},    // C34
+    {2, 4},    // C35
+    {2, 5},    // C36
+    {3, 4},    // C45
+    {3, 5},    // C46
+    {4, 5}     // C56
+};
+
+static int const albemunu[21][4] = {
+    {0, 0, 0, 0},    // C11
+    {1, 1, 1, 1},    // C22
+    {2, 2, 2, 2},    // C33
+    {1, 2, 1, 2},    // C44
+    {0, 2, 0, 2},    // C55
+    {0, 1, 0, 1},    // C66
+    {0, 0, 1, 1},    // C12
+    {0, 0, 2, 2},    // C13
+    {0, 0, 1, 2},    // C14
+    {0, 0, 0, 2},    // C15
+    {0, 0, 0, 1},    // C16
+    {1, 1, 2, 2},    // C23
+    {1, 1, 1, 2},    // C24
+    {1, 1, 0, 2},    // C25
+    {1, 1, 0, 1},    // C26
+    {2, 2, 1, 2},    // C34
+    {2, 2, 0, 2},    // C35
+    {2, 2, 0, 1},    // C36
+    {1, 2, 0, 2},    // C45
+    {1, 2, 0, 1},    // C46
+    {0, 1, 0, 2}     // C56
+};
 
 /* ---------------------------------------------------------------------- */
 
-ComputeBorn::ComputeBorn(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+ComputeBornMatrix::ComputeBornMatrix(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, arg)
 {
-  MPI_Comm_rank(world,&me);
+  MPI_Comm_rank(world, &me);
 
   // For now the matrix can be computed as a 21 element vector
 
@@ -57,26 +105,25 @@ ComputeBorn::ComputeBorn(LAMMPS *lmp, int narg, char **arg) :
 
   // Initialize some variables
 
-  values_local = values_global = vector = NULL;
+  values_local = values_global = vector = nullptr;
 
   // this fix produces a global vector
 
-  memory->create(vector,nvalues,"born:vector");
-  memory->create(values_local,nvalues,"born:values_local");
-  memory->create(values_global,nvalues,"born:values_global");
+  memory->create(vector, nvalues, "born_matrix:vector");
+  memory->create(values_local, nvalues, "born_matrix:values_local");
+  memory->create(values_global, nvalues, "born_matrix:values_global");
   size_vector = nvalues;
 
   vector_flag = 1;
   extvector = 0;
-
 }
 
 /* ---------------------------------------------------------------------- */
 
-ComputeBorn::~ComputeBorn()
+ComputeBornMatrix::~ComputeBornMatrix()
 {
 
- // delete [] which;
+  // delete [] which;
 
   memory->destroy(values_local);
   memory->destroy(values_global);
@@ -85,7 +132,7 @@ ComputeBorn::~ComputeBorn()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeBorn::init()
+void ComputeBornMatrix::init()
 {
 
   // Timestep Value
@@ -96,55 +143,35 @@ void ComputeBorn::init()
   angleflag = 0;
   dihedflag = 0;
   impflag = 0;
+  kspaceflag = 0;
+
+  if (force->pair) pairflag = 1;
+  if (force->bond) bondflag = 1;
+  if (force->angle) angleflag = 1;
+  if (force->dihedral) dihedflag = 1;
+  if (force->improper) impflag = 1;
+  if (force->kspace) kspaceflag = 1;
 
   // Error check
 
-  // For now this compute requires at least a pair style with pair_born method
-  // implemented
-
-  if (force->pair == NULL)
-    error->all(FLERR,"No pair style is defined for compute born");
-  if (force->pair->born_enable == 0) {
-    error->all(FLERR,"Pair style does not support compute born");
-    pairflag = 0;
-  } else {
-    pairflag = 1;
-  }
-
-  // Throws an error for now?
-  if (force->bond != NULL) {
-    if (force->bond->born_enable == 0) {
-      error->warning(FLERR, "Bond style does not support compute born");
-      bondflag = 0;
-    } else {
-      bondflag = 1;
+  if (comm->me == 0) {
+    if (pairflag && (force->pair->born_matrix_enable == 0)) {
+      error->all(FLERR, "Pair style does not support compute born/matrix");
     }
-  }
-
-  if (force->angle != NULL) {
-    if (force->angle->born_enable == 0) {
-      error->warning(FLERR, "Angle style does not support compute born");
-      angleflag = 0;
-    } else {
-      angleflag = 1;
+    if (bondflag && (force->bond->born_matrix_enable == 0)) {
+      error->warning(FLERR, "Bond style does not support compute born/matrix");
     }
-  }
-
-  if (force->dihedral != NULL) {
-    if (force->dihedral->born_enable == 0) {
-      error->warning(FLERR, "Dihedral style does not support compute born");
-      dihedflag = 0;
-    } else {
-      dihedflag = 1;
+    if (angleflag && (force->angle->born_matrix_enable == 0)) {
+      error->warning(FLERR, "Angle style does not support compute born/matrix");
     }
-  }
-
-  if (force->improper != NULL) {
-    if (force->improper->born_enable == 0) {
-      error->warning(FLERR, "Improper style does not support compute born");
-      impflag = 0;
-    } else {
-      impflag = 1;
+    if (dihedflag && (force->dihedral->born_matrix_enable == 0)) {
+      error->warning(FLERR, "Dihedral style does not support compute born/matrix");
+    }
+    if (impflag && (force->improper->born_matrix_enable == 0)) {
+      error->warning(FLERR, "Improper style does not support compute born/matrix");
+    }
+    if (kspaceflag) {
+      error->warning(FLERR, "KSPACE contribution not supported by compute born/matrix");
     }
   }
 
@@ -157,7 +184,7 @@ void ComputeBorn::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeBorn::init_list(int /* id */, NeighList *ptr)
+void ComputeBornMatrix::init_list(int /* id */, NeighList *ptr)
 {
   list = ptr;
 }
@@ -166,7 +193,7 @@ void ComputeBorn::init_list(int /* id */, NeighList *ptr)
    compute output vector
    ------------------------------------------------------------------------- */
 
-void ComputeBorn::compute_vector()
+void ComputeBornMatrix::compute_vector()
 {
   invoked_array = update->ntimestep;
 
@@ -177,12 +204,9 @@ void ComputeBorn::compute_vector()
 
   // Compute Born contribution
   if (pairflag) compute_pairs();
-
   // For now these functions are commented
   if (bondflag) compute_bonds();
-
   if (angleflag) compute_angles();
-
   if (dihedflag) compute_dihedrals();
 
   // Even if stated in Voyatzis-2012, improper and dihedrals
@@ -193,28 +217,23 @@ void ComputeBorn::compute_vector()
   // if (impflag) compute_impropers();
 
   // sum Born contributions over all procs
-  MPI_Allreduce(values_local,values_global,nvalues,
-                MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(values_local, values_global, nvalues, MPI_DOUBLE, MPI_SUM, world);
 
   int m;
-  for (m=0; m<nvalues; m++) {
-    vector[m] = values_global[m];
-  }
+  for (m = 0; m < nvalues; m++) { vector[m] = values_global[m]; }
 }
-
 
 /*------------------------------------------------------------------------
   compute Born contribution of local proc
   -------------------------------------------------------------------------*/
 
-void ComputeBorn::compute_pairs()
+void ComputeBornMatrix::compute_pairs()
 
 {
-  int i,j,m,ii,jj,inum,jnum,itype,jtype;
-  double delx,dely,delz;
-  double rsq,factor_coul,factor_lj;
-  double dupair,du2pair,rinv;
-  int *ilist,*jlist,*numneigh,**firstneigh;
+  int i, j, m, ii, jj, inum, jnum, itype, jtype;
+  double rsq, factor_coul, factor_lj;
+  double dupair, du2pair, rinv;
+  int *ilist, *jlist, *numneigh, **firstneigh;
 
   int *type = atom->type;
   int *mask = atom->mask;
@@ -238,72 +257,69 @@ void ComputeBorn::compute_pairs()
 
   // Declares born values
 
-  int a,b,c,d;
-  double xi[3];
-  double fi[3];
-  double xj[3];
+  int a, b, c, d;
+  double xi1, xi2, xi3;
+  double fi1, fi2, fi3;
+  double xj1, xj2, xj3;
   double rij[3];
   double pair_pref;
   double r2inv;
 
-
   m = 0;
-  while (m<nvalues) {
-      for (ii = 0; ii < inum; ii++) {
-        i = ilist[ii];
-        if (!(mask[i] & groupbit)) continue;
+  while (m < nvalues) {
+    for (ii = 0; ii < inum; ii++) {
+      i = ilist[ii];
+      if (!(mask[i] & groupbit)) continue;
 
-        xi[0] = atom->x[i][0];
-        xi[1] = atom->x[i][1];
-        xi[2] = atom->x[i][2];
-        itype = type[i];
-        jlist = firstneigh[i];
-        jnum = numneigh[i];
+      xi1 = atom->x[i][0];
+      xi2 = atom->x[i][1];
+      xi3 = atom->x[i][2];
+      itype = type[i];
+      jlist = firstneigh[i];
+      jnum = numneigh[i];
 
-        for (jj = 0; jj < jnum; jj++) {
-          j = jlist[jj];
-          factor_lj = special_lj[sbmask(j)];
-          factor_coul = special_coul[sbmask(j)];
-          j &= NEIGHMASK;
+      for (jj = 0; jj < jnum; jj++) {
+        j = jlist[jj];
+        factor_lj = special_lj[sbmask(j)];
+        factor_coul = special_coul[sbmask(j)];
+        j &= NEIGHMASK;
 
-          if (!(mask[j] & groupbit)) continue;
+        if (!(mask[j] & groupbit)) continue;
 
-          xj[0] = atom->x[j][0];
-          xj[1] = atom->x[j][1];
-          xj[2] = atom->x[j][2];
-          delx = xi[0] - xj[0];
-          dely = xi[1] - xj[1];
-          delz = xi[2] - xj[2];
-          rij[0] = xj[0]-xi[0];
-          rij[1] = xj[1]-xi[1];
-          rij[2] = xj[2]-xi[2];
-          rsq = delx*delx + dely*dely + delz*delz;
-          r2inv = 1.0/rsq;
-          jtype = type[j];
+        xj1 = atom->x[j][0];
+        xj2 = atom->x[j][1];
+        xj3 = atom->x[j][2];
+        rij[0] = xj1 - xi1;
+        rij[1] = xj2 - xi2;
+        rij[2] = xj3 - xi3;
+        rsq = rij[0] * rij[0] + rij[1] * rij[1] + rij[2] * rij[2];
+        r2inv = 1.0 / rsq;
+        rinv = sqrt(r2inv);
+        jtype = type[j];
 
-          if (rsq >= cutsq[itype][jtype]) continue;
+        if (rsq >= cutsq[itype][jtype]) continue;
 
-          if (newton_pair || j < nlocal) {
-            // Add contribution to Born tensor
+        if (newton_pair || j < nlocal) {
+          // Add contribution to Born tensor
 
-            pair->born(i,j,itype,jtype,rsq,factor_coul,factor_lj,dupair,du2pair);
-            pair_pref = du2pair - dupair*rinv;
+          pair->born_matrix(i, j, itype, jtype, rsq, factor_coul, factor_lj, dupair, du2pair);
+          pair_pref = du2pair - dupair * rinv;
 
-            // See albemunu in compute_born.h for indices order.
-            a = 0;
-            b = 0;
-            c = 0;
-            d = 0;
-            for (i = 0; i<21; i++) {
-              a = albemunu[i][0];
-              b = albemunu[i][1];
-              c = albemunu[i][2];
-              d = albemunu[i][3];
-              values_local[m+i] += pair_pref*rij[a]*rij[b]*rij[c]*rij[d]*r2inv;
-            }
+          // See albemunu in compute_born_matrix.h for indices order.
+          a = 0;
+          b = 0;
+          c = 0;
+          d = 0;
+          for (i = 0; i < 21; i++) {
+            a = albemunu[i][0];
+            b = albemunu[i][1];
+            c = albemunu[i][2];
+            d = albemunu[i][3];
+            values_local[m + i] += pair_pref * rij[a] * rij[b] * rij[c] * rij[d] * r2inv;
           }
         }
       }
+    }
     m += 21;
   }
 }
@@ -317,9 +333,9 @@ void ComputeBorn::compute_pairs()
    do not count or count contribution
    COMMENTED FOR NOW
 ---------------------------------------------------------------------- */
-void ComputeBorn::compute_bonds()
+void ComputeBornMatrix::compute_bonds()
 {
-/* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
   int i,m,n,nb,atom1,atom2,imol,iatom,btype,ivar;
   tagint tagprev;
   double dx,dy,dz,rsq;
@@ -392,7 +408,7 @@ void ComputeBorn::compute_bonds()
         pair_pref = 0.0;
         dupair = 0.0;
         du2pair = 0.0;
-        bond->born(btype,rsq,atom1,atom2,dupair,du2pair);
+        bond->born_matrix(btype,rsq,atom1,atom2,dupair,du2pair);
         pair_pref = du2pair - dupair*rinv;
 
         a = 0;
@@ -413,7 +429,6 @@ void ComputeBorn::compute_bonds()
 ------------------------------------------------------------------------- */
 }
 
-
 /* ----------------------------------------------------------------------
    count angles and compute angle info on this proc
    only count if 2nd atom is the one storing the angle
@@ -423,9 +438,9 @@ void ComputeBorn::compute_bonds()
    do not count or count contribution
    COMMENTED FOR NOW
 ---------------------------------------------------------------------- */
-void ComputeBorn::compute_angles()
+void ComputeBornMatrix::compute_angles()
 {
-/* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
   int i,m,n,na,atom1,atom2,atom3,imol,iatom,atype,ivar;
   tagint tagprev;
   double delx1,dely1,delz1,delx2,dely2,delz2;
@@ -543,7 +558,7 @@ void ComputeBorn::compute_angles()
         // Use the chain rule if needed:
         // dU(t)/de = dt/dcos(t)*dU(t)/dt*dcos(t)/de
         // with dt/dcos(t) = -1/sin(t)
-        angle->born(atype,atom1,atom2,atom3,duang,du2ang);
+        angle->born_matrix(atype,atom1,atom2,atom3,duang,du2ang);
 
         // Voigt notation
         // 1 = 11, 2 = 22, 3 = 33
@@ -589,9 +604,9 @@ void ComputeBorn::compute_angles()
    COMMENTED FOR NOW
 ------------------------------------------------------------------------- */
 
-void ComputeBorn::compute_dihedrals()
+void ComputeBornMatrix::compute_dihedrals()
 {
-/* ----------------------------------------------------------------------
+  /* ----------------------------------------------------------------------
   int i,m,n,nd,atom1,atom2,atom3,atom4,imol,iatom,dtype,ivar;
   tagint tagprev;
   double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,vb2xm,vb2ym,vb2zm;
@@ -695,7 +710,7 @@ void ComputeBorn::compute_dihedrals()
         // dU(t)/de = dt/dcos(t)*dU(t)/dt*dcos(t)/de
         // with dt/dcos(t) = -1/sin(t)
 
-        dihedral->born(nd,atom1,atom2,atom3,atom4,dudih,du2dih);
+        dihedral->born_matrix(nd,atom1,atom2,atom3,atom4,dudih,du2dih);
 
         vb1x = x[atom1][0] - x[atom2][0];
         vb1y = x[atom1][1] - x[atom2][1];

@@ -40,7 +40,7 @@ using namespace MathConst;
 PairLJCut::PairLJCut(LAMMPS *lmp) : Pair(lmp)
 {
   respa_enable = 1;
-  born_enable = 1;
+  born_matrix_enable = 1;
   writedata = 1;
 }
 
@@ -681,7 +681,7 @@ double PairLJCut::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCut::born(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
+void PairLJCut::born_matrix(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
                          double /*factor_coul*/, double factor_lj,
                          double &dupair, double &du2pair)
 {

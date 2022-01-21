@@ -296,9 +296,7 @@ void IntelBuffers<flt_t, acc_t>::free_list_ptrs()
 /* ---------------------------------------------------------------------- */
 
 template <class flt_t, class acc_t>
-void IntelBuffers<flt_t, acc_t>::grow_data3(NeighList *list,
-                                            int *&numneighhalf,
-                                            int *&cnumneigh)
+void IntelBuffers<flt_t, acc_t>::grow_data3(NeighList *list, int *&numneighhalf, int *&cnumneigh)
 {
   const int size = list->get_maxlocal();
   int list_num;
@@ -321,10 +319,8 @@ void IntelBuffers<flt_t, acc_t>::grow_data3(NeighList *list,
       lmp->memory->destroy(_neigh_list_ptrs[list_num].cnumneigh);
       lmp->memory->destroy(_neigh_list_ptrs[list_num].numneighhalf);
     }
-    lmp->memory->create(_neigh_list_ptrs[list_num].cnumneigh, size,
-                        "_cnumneigh");
-    lmp->memory->create(_neigh_list_ptrs[list_num].numneighhalf, size,
-                        "_cnumneigh");
+    lmp->memory->create(_neigh_list_ptrs[list_num].cnumneigh, size, "_cnumneigh");
+    lmp->memory->create(_neigh_list_ptrs[list_num].numneighhalf, size, "_cnumneigh");
     _neigh_list_ptrs[list_num].size = size;
   }
   numneighhalf = _neigh_list_ptrs[list_num].numneighhalf;
@@ -334,8 +330,7 @@ void IntelBuffers<flt_t, acc_t>::grow_data3(NeighList *list,
 /* ---------------------------------------------------------------------- */
 
 template <class flt_t, class acc_t>
-void IntelBuffers<flt_t, acc_t>::_grow_list_local(NeighList *list,
-                                                  const int three_body,
+void IntelBuffers<flt_t, acc_t>::_grow_list_local(NeighList *list, const int three_body,
                                                   const int offload_end)
 {
   free_list_local();

@@ -383,7 +383,7 @@ multiple groups, its weight is the product of the weight factors.
 
 This weight style is useful in combination with pair style
 :doc:`hybrid <pair_hybrid>`, e.g. when combining a more costly many-body
-potential with a fast pair-wise potential.  It is also useful when
+potential with a fast pairwise potential.  It is also useful when
 using :doc:`run_style respa <run_style>` where some portions of the
 system have many bonded interactions and others none.  It assumes that
 the computational cost for each group remains constant over time.

@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class FixAppendAtoms : public Fix {
  public:
   FixAppendAtoms(class LAMMPS *, int, char **);
-  ~FixAppendAtoms();
-  int setmask();
-  void setup(int);
-  void pre_exchange();
-  void initial_integrate(int);
-  void post_force(int);
+  ~FixAppendAtoms() override;
+  int setmask() override;
+  void setup(int) override;
+  void pre_exchange() override;
+  void initial_integrate(int) override;
+  void post_force(int) override;
 
  private:
   int get_spatial();

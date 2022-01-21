@@ -28,8 +28,8 @@ class FixNVESphereOMP : public FixNVESphere {
  public:
   FixNVESphereOMP(class LAMMPS *lmp, int narg, char **arg) : FixNVESphere(lmp, narg, arg){};
 
-  virtual void initial_integrate(int);
-  virtual void final_integrate();
+  void initial_integrate(int) override;
+  void final_integrate() override;
 };
 
 }    // namespace LAMMPS_NS

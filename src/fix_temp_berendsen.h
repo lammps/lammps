@@ -27,16 +27,16 @@ namespace LAMMPS_NS {
 class FixTempBerendsen : public Fix {
  public:
   FixTempBerendsen(class LAMMPS *, int, char **);
-  ~FixTempBerendsen();
-  int setmask();
-  void init();
-  void end_of_step();
-  int modify_param(int, char **);
-  void reset_target(double);
-  double compute_scalar();
-  void write_restart(FILE *);
-  void restart(char *buf);
-  virtual void *extract(const char *, int &);
+  ~FixTempBerendsen() override;
+  int setmask() override;
+  void init() override;
+  void end_of_step() override;
+  int modify_param(int, char **) override;
+  void reset_target(double) override;
+  double compute_scalar() override;
+  void write_restart(FILE *) override;
+  void restart(char *buf) override;
+  void *extract(const char *, int &) override;
 
  private:
   int which;

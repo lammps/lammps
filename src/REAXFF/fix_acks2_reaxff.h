@@ -28,11 +28,11 @@ namespace LAMMPS_NS {
 class FixACKS2ReaxFF : public FixQEqReaxFF {
  public:
   FixACKS2ReaxFF(class LAMMPS *, int, char **);
-  virtual ~FixACKS2ReaxFF();
-  void post_constructor();
-  virtual void init();
-  void init_storage();
-  virtual void pre_force(int);
+  ~FixACKS2ReaxFF() override;
+  void post_constructor() override;
+  void init() override;
+  void init_storage() override;
+  void pre_force(int) override;
 
   double *get_s() { return s; }
 
@@ -49,39 +49,39 @@ class FixACKS2ReaxFF : public FixQEqReaxFF {
   //BiCGStab storage
   double *g, *q_hat, *r_hat, *y, *z;
 
-  void pertype_parameters(char *);
+  void pertype_parameters(char *) override;
   void init_bondcut();
-  void allocate_storage();
-  void deallocate_storage();
-  void allocate_matrix();
-  void deallocate_matrix();
+  void allocate_storage() override;
+  void deallocate_storage() override;
+  void allocate_matrix() override;
+  void deallocate_matrix() override;
 
-  void init_matvec();
+  void init_matvec() override;
   void compute_X();
   double calculate_X(double, double);
-  void calculate_Q();
+  void calculate_Q() override;
 
   int BiCGStab(double *, double *);
   void sparse_matvec_acks2(sparse_matrix *, sparse_matrix *, double *, double *);
 
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
   void more_forward_comm(double *);
   void more_reverse_comm(double *);
-  double memory_usage();
-  virtual void grow_arrays(int);
-  virtual void copy_arrays(int, int, int);
-  virtual int pack_exchange(int, double *);
-  virtual int unpack_exchange(int, double *);
+  double memory_usage() override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
 
-  double parallel_norm(double *, int);
-  double parallel_dot(double *, double *, int);
-  double parallel_vector_acc(double *, int);
+  double parallel_norm(double *, int) override;
+  double parallel_dot(double *, double *, int) override;
+  double parallel_vector_acc(double *, int) override;
 
-  void vector_sum(double *, double, double *, double, double *, int);
-  void vector_add(double *, double, double *, int);
+  void vector_sum(double *, double, double *, double, double *, int) override;
+  void vector_add(double *, double, double *, int) override;
   void vector_copy(double *, double *, int);
 };
 

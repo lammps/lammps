@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class FixLineForce : public Fix {
  public:
   FixLineForce(class LAMMPS *, int, char **);
-  int setmask();
-  void setup(int);
-  void min_setup(int);
-  void post_force(int);
-  void post_force_respa(int, int, int);
-  void min_post_force(int);
+  int setmask() override;
+  void setup(int) override;
+  void min_setup(int) override;
+  void post_force(int) override;
+  void post_force_respa(int, int, int) override;
+  void min_post_force(int) override;
 
  private:
   double xdir, ydir, zdir;

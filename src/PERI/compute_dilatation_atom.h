@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class ComputeDilatationAtom : public Compute {
  public:
   ComputeDilatationAtom(class LAMMPS *, int, char **);
-  ~ComputeDilatationAtom();
-  void init();
-  void compute_peratom();
-  double memory_usage();
+  ~ComputeDilatationAtom() override;
+  void init() override;
+  void compute_peratom() override;
+  double memory_usage() override;
 
  private:
   int nmax;

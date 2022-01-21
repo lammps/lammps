@@ -27,24 +27,24 @@ namespace LAMMPS_NS {
 class ComputeTempChunk : public Compute {
  public:
   ComputeTempChunk(class LAMMPS *, int, char **);
-  ~ComputeTempChunk();
-  void init();
-  double compute_scalar();
-  void compute_vector();
-  void compute_array();
+  ~ComputeTempChunk() override;
+  void init() override;
+  double compute_scalar() override;
+  void compute_vector() override;
+  void compute_array() override;
 
-  void remove_bias(int, double *);
-  void remove_bias_all();
-  void restore_bias(int, double *);
-  void restore_bias_all();
+  void remove_bias(int, double *) override;
+  void remove_bias_all() override;
+  void restore_bias(int, double *) override;
+  void restore_bias_all() override;
 
-  void lock_enable();
-  void lock_disable();
-  int lock_length();
-  void lock(class Fix *, bigint, bigint);
-  void unlock(class Fix *);
+  void lock_enable() override;
+  void lock_disable() override;
+  int lock_length() override;
+  void lock(class Fix *, bigint, bigint) override;
+  void unlock(class Fix *) override;
 
-  double memory_usage();
+  double memory_usage() override;
 
  private:
   int nchunk, maxchunk, comflag, biasflag;

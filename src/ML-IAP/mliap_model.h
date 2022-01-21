@@ -44,7 +44,7 @@ class MLIAPModel : protected Pointers {
 class MLIAPModelSimple : public MLIAPModel {
  public:
   MLIAPModelSimple(LAMMPS *, char *);
-  ~MLIAPModelSimple() override{};
+
   double memory_usage() override;
 
  protected:

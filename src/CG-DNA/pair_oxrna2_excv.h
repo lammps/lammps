@@ -27,8 +27,8 @@ namespace LAMMPS_NS {
 class PairOxrna2Excv : public PairOxdnaExcv {
  public:
   PairOxrna2Excv(class LAMMPS *lmp) : PairOxdnaExcv(lmp) {}
-  virtual ~PairOxrna2Excv() {}
-  virtual void compute_interaction_sites(double *, double *, double *, double *, double *);
+
+  void compute_interaction_sites(double *, double *, double *, double *, double *) override;
 };
 
 }    // namespace LAMMPS_NS

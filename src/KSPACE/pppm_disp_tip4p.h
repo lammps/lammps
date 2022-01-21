@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class PPPMDispTIP4P : public PPPMDisp {
  public:
   PPPMDispTIP4P(class LAMMPS *);
-  ~PPPMDispTIP4P() override{};
+
   void init() override;
 
  protected:

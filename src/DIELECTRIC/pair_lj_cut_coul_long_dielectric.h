@@ -28,10 +28,10 @@ class PairLJCutCoulLongDielectric : public PairLJCutCoulLong {
 
  public:
   PairLJCutCoulLongDielectric(class LAMMPS *);
-  virtual ~PairLJCutCoulLongDielectric();
-  virtual void compute(int, int);
-  virtual void init_style();
-  virtual double single(int, int, int, int, double, double, double, double &);
+  ~PairLJCutCoulLongDielectric() override;
+  void compute(int, int) override;
+  void init_style() override;
+  double single(int, int, int, int, double, double, double, double &) override;
 
   double **efield;
   double *epot;

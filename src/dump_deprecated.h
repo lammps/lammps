@@ -28,7 +28,7 @@ namespace LAMMPS_NS {
 class DumpDeprecated : public Dump {
  public:
   DumpDeprecated(class LAMMPS *, int, char **);
-  ~DumpDeprecated() override {}
+
   void init_style() override {}
   void write_header(bigint) override {}
   void pack(tagint *) override {}

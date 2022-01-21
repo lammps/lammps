@@ -39,8 +39,6 @@ class FileWriterException : public std::exception {
  public:
   FileWriterException(const std::string &msg) : message(msg) {}
 
-  ~FileWriterException() noexcept override {}
-
   const char *what() const noexcept override { return message.c_str(); }
 };
 

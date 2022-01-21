@@ -34,8 +34,8 @@ class PairLJSFDipoleSFOMP : public PairLJSFDipoleSF, public ThrOMP {
  public:
   PairLJSFDipoleSFOMP(class LAMMPS *);
 
-  virtual void compute(int, int);
-  virtual double memory_usage();
+  void compute(int, int) override;
+  double memory_usage() override;
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR>

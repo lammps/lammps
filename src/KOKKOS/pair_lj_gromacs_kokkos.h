@@ -37,13 +37,13 @@ class PairLJGromacsKokkos : public PairLJGromacs {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   PairLJGromacsKokkos(class LAMMPS *);
-  ~PairLJGromacsKokkos();
+  ~PairLJGromacsKokkos() override;
 
-  void compute(int, int);
+  void compute(int, int) override;
 
-  void settings(int, char **);
-  void init_style();
-  double init_one(int, int);
+  void settings(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
   struct params_lj{
     KOKKOS_INLINE_FUNCTION
@@ -113,7 +113,7 @@ class PairLJGromacsKokkos : public PairLJGromacs {
   double special_lj[4];
   double qqrd2e;
 
-  void allocate();
+  void allocate() override;
 
   friend struct PairComputeFunctor<PairLJGromacsKokkos,FULL,true,CoulLongTable<1> >;
   friend struct PairComputeFunctor<PairLJGromacsKokkos,HALF,true,CoulLongTable<1> >;

@@ -27,14 +27,14 @@ namespace LAMMPS_NS {
 class PairList : public Pair {
  public:
   PairList(class LAMMPS *);
-  virtual ~PairList();
+  ~PairList() override;
 
-  virtual void compute(int, int);
-  virtual void settings(int, char **);
-  virtual void coeff(int, char **);
-  virtual void init_style();
-  virtual double init_one(int, int);
-  virtual double memory_usage();
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  double memory_usage() override;
 
  protected:
   void allocate();

@@ -62,8 +62,6 @@ class TokenizerException : public std::exception {
    * \param  token  String of the token/word that caused the error */
   explicit TokenizerException(const std::string &msg, const std::string &token);
 
-  ~TokenizerException() noexcept override {}
-
   /** Retrieve message describing the thrown exception
    * \return string with error message */
   const char *what() const noexcept override { return message.c_str(); }

@@ -28,7 +28,7 @@ namespace LAMMPS_NS {
 class RegionDeprecated : public Region {
  public:
   RegionDeprecated(class LAMMPS *, int, char **);
-  ~RegionDeprecated() override {}
+
   void init() override {}
   int inside(double, double, double) override { return 0; }
   int surface_interior(double *, double) override { return 0; }

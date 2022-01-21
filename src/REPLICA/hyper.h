@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class Hyper : public Command {
  public:
   Hyper(class LAMMPS *);
-  ~Hyper() override {}
+
   void command(int, char **) override;
 
  private:

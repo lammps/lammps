@@ -469,27 +469,28 @@ void FixIntel::pair_init_check(const bool cdmessage)
   #endif
 
   if (_print_pkg_info && comm->me == 0) {
-    if (screen) {
-      fprintf(screen,
-              "----------------------------------------------------------\n");
-      if (_offload_balance != 0.0) {
-        fprintf(screen,"Using Intel Coprocessor with %d threads per core, ",
-                _offload_tpc);
-        fprintf(screen,"%d threads per task\n",_offload_threads);
-      } else {
-        fprintf(screen,"Using Intel Package without Coprocessor.\n");
-      }
-      fprintf(screen,"Precision: %s\n",kmode);
-      if (cdmessage) {
-        #ifdef LMP_USE_AVXCD
-        fprintf(screen,"AVX512 CD Optimizations: Enabled\n");
-        #else
-        fprintf(screen,"AVX512 CD Optimizations: Disabled\n");
-        #endif
-      }
-      fprintf(screen,
-              "----------------------------------------------------------\n");
+    utils::logmesg(lmp, "----------------------------------------------------------\n");
+    if (_offload_balance != 0.0) {
+      utils::logmesg(lmp,"Using Intel Coprocessor with {} threads per core, "
+                     "{} threads per task\n",_offload_tpc, _offload_threads);
+    } else {
+      utils::logmesg(lmp,"Using INTEL Package without Coprocessor.\n");
     }
+    utils::logmesg(lmp,"Compiler: {}\n",platform::compiler_info());
+    #ifdef LMP_SIMD_COMPILER
+    utils::logmesg(lmp,"SIMD compiler directives: Enabled\n");
+    #else
+    utils::logmesg(lmp,"SIMD compiler directives: Disabled\n");
+    #endif
+    utils::logmesg(lmp,"Precision: {}\n",kmode);
+    if (cdmessage) {
+      #ifdef LMP_USE_AVXCD
+      utils::logmesg(lmp,"AVX512 CD Optimizations: Enabled\n");
+      #else
+      utils::logmesg(lmp,"AVX512 CD Optimizations: Disabled\n");
+      #endif
+    }
+    utils::logmesg(lmp, "----------------------------------------------------------\n");
   }
   _print_pkg_info = 0;
 }

@@ -31,8 +31,7 @@ using namespace LAMMPS_NS;
 NPairIntel::NPairIntel(LAMMPS *lmp) : NPair(lmp) {
   int ifix = modify->find_fix("package_intel");
   if (ifix < 0)
-    error->all(FLERR,
-               "The 'package intel' command is required for /intel styles");
+    error->all(FLERR,"The 'package intel' command is required for /intel styles");
   _fix = static_cast<FixIntel *>(modify->fix[ifix]);
   #ifdef _LMP_INTEL_OFFLOAD
   _cop = _fix->coprocessor_number();
@@ -657,6 +656,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
           ns += n2 - pack_offset - maxnbors;
 
           #ifdef LMP_INTEL_3BODY_FAST
+          int alln = n;
           n = lane;
           for (int u = pack_offset; u < alln; u++) {
             neighptr[n] = neighptr2[u];

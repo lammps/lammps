@@ -21,7 +21,7 @@ namespace LAMMPS_NS {
 class ProcMap : protected Pointers {
  public:
   ProcMap(class LAMMPS *);
-  ~ProcMap() {}
+
   void onelevel_grid(int, int *, int *, int, int, int *, int *);
   void twolevel_grid(int, int *, int *, int, int *, int *, int, int, int *, int *);
   void numa_grid(int, int *, int *, int *);

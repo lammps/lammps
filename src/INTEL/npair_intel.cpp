@@ -310,7 +310,6 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
       flt_t * _noalias const tz = ncachez + toffs;
       int * _noalias const tj = ncachej + toffs;
       int * _noalias const tjtype = ncachejtype + toffs;
-      tagint * _noalias const ttag = ncachetag + toffs;
 
       flt_t * _noalias itx;
       flt_t * _noalias ity;
@@ -367,7 +366,6 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
             ty[u] = x[j].y;
             tz[u] = x[j].z;
             tjtype[u] = x[j].w;
-            if (THREE && ttag) ttag[u] = tag[j];
           }
 
           if (FULL == 0 && TRI != 1) {
@@ -515,7 +513,7 @@ void NPairIntel::bin_newton(const int offload, NeighList *list,
           }
 
           if (THREE) {
-            const tagint jtag = ttag ? ttag[u] : tag[j];
+            const tagint jtag = tag[j];
             int flist = 0;
             if (itag > jtag) {
               if (((itag+jtag) & 1) == 0) flist = 1;

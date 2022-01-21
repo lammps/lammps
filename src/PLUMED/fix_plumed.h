@@ -32,18 +32,18 @@ namespace LAMMPS_NS {
 class FixPlumed : public Fix {
  public:
   FixPlumed(class LAMMPS *, int, char **);
-  ~FixPlumed();
-  int setmask();
-  void init();
-  void setup(int);
-  void min_setup(int);
-  void post_force(int);
-  void post_force_respa(int, int, int);
-  void min_post_force(int);
-  double compute_scalar();
-  void reset_dt();
-  int modify_param(int narg, char **arg);
-  double memory_usage();
+  ~FixPlumed() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void min_setup(int) override;
+  void post_force(int) override;
+  void post_force_respa(int, int, int) override;
+  void min_post_force(int) override;
+  double compute_scalar() override;
+  void reset_dt() override;
+  int modify_param(int narg, char **arg) override;
+  double memory_usage() override;
 
  private:
   PLMD::Plumed *p;           // pointer to plumed object

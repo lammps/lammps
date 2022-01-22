@@ -57,14 +57,14 @@ following matrix element:
 
 .. math::
 
-    \matrix{
+    \begin{matrix}
        C_{1}  & C_{7}   & C_{8}  & C_{9}  & C_{10} & C_{11} \\
        C_{7}  & C_{2}   & C_{12} & C_{13} & C_{14} & C_{15} \\
        \vdots & C_{12}  & C_{3}  & C_{16} & C_{17} & C_{18} \\
        \vdots & C_{13}  & C_{16} & C_{4}  & C_{19} & C_{20} \\
        \vdots & \vdots  & \vdots & C_{19} & C_{5}  & C_{21} \\
        \vdots & \vdots  & \vdots & \vdots & C_{21} & C_{6}
-       }
+    \end{matrix}
 
 in this matrix the indices of :math:`C_{k}` value are the corresponding index
 :math:`k` in the compute output. Each term comes from the sum of every
@@ -124,6 +124,8 @@ Default
 """""""
 
 none
+
+----------
 
 .. _VanWorkum:
 

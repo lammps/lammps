@@ -51,19 +51,19 @@ namespace user_manifold {
    public:
     enum { NPARAMS = 4 };
     manifold_gaussian_bump(class LAMMPS *, int, char **);
-    virtual ~manifold_gaussian_bump();
+    ~manifold_gaussian_bump() override;
 
-    virtual double g(const double *);
-    virtual void n(const double *, double *);
+    double g(const double *) override;
+    void n(const double *, double *) override;
 
     // Variant of g that computes n at the same time.
-    virtual double g_and_n(const double *x, double *nn);
+    double g_and_n(const double *x, double *nn) override;
 
     static const char *type() { return "gaussian_bump"; }
-    virtual const char *id() { return type(); }
+    const char *id() override { return type(); }
 
-    virtual int nparams() { return NPARAMS; }
-    virtual void post_param_init();
+    int nparams() override { return NPARAMS; }
+    void post_param_init() override;
 
    private:
     // Some private constants:

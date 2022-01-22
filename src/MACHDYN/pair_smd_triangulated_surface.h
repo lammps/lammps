@@ -39,19 +39,19 @@ namespace LAMMPS_NS {
 class PairTriSurf : public Pair {
  public:
   PairTriSurf(class LAMMPS *);
-  virtual ~PairTriSurf();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  void init_style();
-  void init_list(int, class NeighList *);
-  virtual double memory_usage();
+  ~PairTriSurf() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void init_style() override;
+  void init_list(int, class NeighList *) override;
+  double memory_usage() override;
   void PointTriangleDistance(const Eigen::Vector3d P, const Eigen::Vector3d TRI1,
                              const Eigen::Vector3d TRI2, const Eigen::Vector3d TRI3,
                              Eigen::Vector3d &CP, double &dist);
   double clamp(const double a, const double min, const double max);
-  void *extract(const char *, int &);
+  void *extract(const char *, int &) override;
 
  protected:
   double **bulkmodulus;

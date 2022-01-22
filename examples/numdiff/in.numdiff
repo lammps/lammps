@@ -20,7 +20,7 @@ neighbor 1.0 bin
 timestep 0.001
 
 fix numforce all numdiff 100 0.0001
-fix numstress all numdiff/stress 100 0.0001
+fix numstress all numdiff/stress 100 1.0e-2
 fix nve all nve
 
 variable errx atom fx-f_numforce[1]

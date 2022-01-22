@@ -70,8 +70,6 @@ FixNumDiffStress::FixNumDiffStress(LAMMPS *lmp, int narg, char **arg) :
   // zero numdiff_forces since a variable may access it before first run
 
   reallocate();
-  stress_clear();
-
 
   // set fixed-point to default = center of cell
 
@@ -204,15 +202,11 @@ void FixNumDiffStress::calculate_stress()
   int nall = nlocal + atom->nghost;
 
   for (int i = 0; i < nall; i++)
-    for (int j = 0; j < 3; j++) {
-      temp_x[i][j] = x[i][j];
-      temp_f[i][j] = f[i][j];
+    for (int k = 0; k < 3; k++) {
+      temp_x[i][k] = x[i][k];
+      temp_f[i][k] = f[i][k];
     }
   
-  // initialize numerical stress to zero
-
-  stress_clear();
-
   // loop over 6 strain directions
   // compute a finite difference force in each dimension
 
@@ -220,12 +214,12 @@ void FixNumDiffStress::calculate_stress()
   double nktv2p = force->nktv2p;
   double inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
 
-  double denominator = 0.5 / delta * inv_volume * nktv2p;
+  double denominator = -0.5 / delta * inv_volume * nktv2p;
 
   for (int idir = 0; idir < NDIR_STRESS; idir++) {
     displace_atoms(nall, idir, 1.0);
     energy = update_energy();
-    stress[idir] += energy;
+    stress[idir] = energy;
     displace_atoms(nall, idir,-1.0);
     energy = update_energy();
     stress[idir] -= energy;
@@ -236,8 +230,8 @@ void FixNumDiffStress::calculate_stress()
   // restore original forces for owned and ghost atoms
   
   for (int i = 0; i < nall; i++)
-    for (int j = 0; j < 3; j++)
-      f[i][j] = temp_f[i][j];
+    for (int k = 0; k < 3; k++)
+      f[i][k] = temp_f[i][k];
   
 }
 
@@ -262,9 +256,9 @@ void FixNumDiffStress::displace_atoms(int nall, int idir, double magnitude)
 void FixNumDiffStress::restore_atoms(int nall, int idir)
 {
   double **x = atom->x;
-  int j = dirlist[idir][0]; 
+  int k = dirlist[idir][0]; 
   for (int i = 0; i < nall; i++) {
-    x[i][j] = temp_x[i][j];
+    x[i][k] = temp_x[i][k];
   }
 }
 

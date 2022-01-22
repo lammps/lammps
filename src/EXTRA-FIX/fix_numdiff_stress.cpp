@@ -219,7 +219,7 @@ void FixNumDiffStress::calculate_stress()
   int flag,allflag;
   double denominator = 0.5 / delta;
 
-  for (int idir = 0; idir <= NDIR_STRESS; idir++) {
+  for (int idir = 0; idir < NDIR_STRESS; idir++) {
     displace_atoms(nall, idir, 1.0);
     energy = update_energy();
     stress[idir] += energy;

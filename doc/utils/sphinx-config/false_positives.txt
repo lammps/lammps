@@ -3550,6 +3550,7 @@ Voronoi
 VORONOI
 Vorselaars
 Voth
+Voyiatzis
 vpz
 vratio
 Vries
@@ -3614,6 +3615,7 @@ Wittmaack
 wn
 Wolde
 workflow
+Workum
 Worley
 Wriggers
 Wuppertal

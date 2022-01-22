@@ -32,7 +32,7 @@ tensor :math:`\varepsilon` elements. These values are related to:
 
     C^{B}_{i,j}=\frac{1}{V}\frac{\partial{}^2U}{\partial{}\varepsilon_{i}\partial\varepsilon_{j}}
 
-also called the Born term of elastic contants in the stress-stress fluctuation
+also called the Born term of elastic constants in the stress-stress fluctuation
 formalism.  This quantity can be used to compute the elastic constant tensor.
 Using the symmetric Voigt notation, the elastic constant tensor can be written
 as a 6x6 symmetric matrix:
@@ -114,11 +114,11 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 
 The Born term can be decomposed as a product of two terms. The first one
 is a general term which depends on the configuration. The second one is
-specific to every interaction composing your forcefield (non-bonded,
+specific to every interaction composing your force field (non-bonded,
 bonds, angle...). Currently not all interaction implement the *born_matrix*
 method giving first and second order derivatives and a warning will
 be raised if you try to use this compute with such interactions. The returned
-values of this forcefield component is currently zero.
+values of this force field component is currently zero.
 
 Default
 """""""

@@ -217,7 +217,10 @@ void FixNumDiffStress::calculate_stress()
   // compute a finite difference force in each dimension
 
   int flag,allflag;
-  double denominator = 0.5 / delta;
+  double nktv2p = force->nktv2p;
+  double inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
+
+  double denominator = 0.5 / delta * inv_volume * nktv2p;
 
   for (int idir = 0; idir < NDIR_STRESS; idir++) {
     displace_atoms(nall, idir, 1.0);

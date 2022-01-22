@@ -31,9 +31,8 @@ dump errors all custom 100 force_error.dump v_errx v_erry v_errz
 
 variable 	ferrsq atom (fx-f_numforce[1])^2+(fy-f_numforce[2])^2+(fz-f_numforce[3])^2
 compute 	faverrsq all reduce ave v_ferrsq
-fix 		avfaverrsq all ave/time 100 1 100 c_faverrsq ave running
 compute 	myvirial all pressure NULL virial
-
-thermo_style 	custom step temp pe press c_faverrsq f_avfaverrsq c_myvirial[1] f_numstress[1]
+variable	ratio11 equal f_numstress[1]/c_myvirial[1]
+thermo_style 	custom step temp pe press c_faverrsq c_myvirial[*] f_numstress[*] v_ratio11
 thermo 100
 run 500

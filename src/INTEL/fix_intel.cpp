@@ -43,7 +43,7 @@ using namespace FixConst;
 
 #ifdef __INTEL_OFFLOAD
 #ifndef _LMP_INTEL_OFFLOAD
-#warning "Not building Intel package with Xeon Phi offload support."
+#warning "Not building INTEL package with Xeon Phi offload support."
 #endif
 #endif
 
@@ -303,7 +303,7 @@ void FixIntel::init()
   if (force->pair_match("^hybrid", 0) != nullptr) {
     _pair_hybrid_flag = 1;
     if (force->newton_pair != 0 && force->pair->no_virial_fdotr_compute)
-      error->all(FLERR,"Intel package requires fdotr virial with newton on.");
+      error->all(FLERR,"INTEL package requires fdotr virial with newton on.");
   } else
     _pair_hybrid_flag = 0;
 
@@ -354,12 +354,12 @@ void FixIntel::init()
 void FixIntel::setup(int vflag)
 {
   if (neighbor->style != Neighbor::BIN)
-    error->all(FLERR,"Currently, neighbor style BIN must be used with Intel package.");
+    error->all(FLERR,"Currently, neighbor style BIN must be used with INTEL package.");
   if (vflag > 3)
-   error->all(FLERR,"Cannot currently get per-atom virials with Intel package.");
+   error->all(FLERR,"Cannot currently get per-atom virials with INTEL package.");
   #ifdef _LMP_INTEL_OFFLOAD
   if (neighbor->exclude_setting() != 0)
-    error->all(FLERR,"Currently, cannot use neigh_modify exclude with Intel package offload.");
+    error->all(FLERR,"Currently, cannot use neigh_modify exclude with INTEL package offload.");
   post_force(vflag);
   #endif
 }
@@ -512,8 +512,7 @@ void FixIntel::bond_init_check()
   }
 
   if (intel_pair == 0)
-    error->all(FLERR,"Intel styles for bond/angle/dihedral/improper "
-      "require intel pair style.");
+    error->all(FLERR,"Intel styles for bond/angle/dihedral/improper require intel pair style.");
 }
 
 /* ---------------------------------------------------------------------- */

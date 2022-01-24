@@ -661,10 +661,11 @@ order.
 
 In a parallel run, the per-processor dump file pieces can have
 significant imbalance in number of lines of per-atom info. The *balance*
-keyword determines whether lines of per-atom output for each processor
-snapshot in a parallel run are balanced to be nearly the same. A balance
-value of *no* means no balancing will be done, while *yes* means
-balancing will be performed. For a serial run, this option is ignored.
+keyword determines whether the number of lines in each processor
+snapshot are balanced to be nearly the same. A balance value of *no*
+means no balancing will be done, while *yes* means balancing will be
+performed.  For a serial run, this option is ignored since the output is
+already balanced. Dump sorting must be enabled to use balancing.
 
 The dump *local* style cannot be sorted by atom ID, since there are
 typically multiple lines of output per atom.  Some dump styles, such

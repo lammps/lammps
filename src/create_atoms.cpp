@@ -793,6 +793,7 @@ void CreateAtoms::add_random()
     }
 
     // if triclinic, coord is now in lamda units
+    
     if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
         coord[1] >= sublo[1] && coord[1] < subhi[1] &&
         coord[2] >= sublo[2] && coord[2] < subhi[2]) {
@@ -968,12 +969,18 @@ void CreateAtoms::loop_lattice(int action)
           x[1] = j + basis[m][1];
           x[2] = k + basis[m][2];
 
+          // convert from lattice coords to box coords
+          
           domain->lattice->lattice2box(x[0],x[1],x[2]);
+          
+          // if a region was specified, test if atom is in it
 
           if (style == REGION &&
-              !domain->regions[nregion]->match(xone[0],xone[1],xone[2]))
+              !domain->regions[nregion]->match(x[0],x[1],x[2]))
             continue;
 
+          // if variable test specified, eval variable
+          
           if (varflag && vartest(x) == 0)
             continue;
 
@@ -985,6 +992,7 @@ void CreateAtoms::loop_lattice(int action)
             }
           }
 
+          // test if atom/molecule position is in my subbox
           if (excludeflag) {
             if (mode == ATOM) {
               //TODO check fox x... if not OK: continue;
@@ -1007,7 +1015,7 @@ void CreateAtoms::loop_lattice(int action)
           }
 
           if (triclinic) {
-            domain->x2lamda(xone,lamda);
+            domain->x2lamda(x,lamda);
             coord = lamda;
           } else coord = x;
 

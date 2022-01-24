@@ -223,9 +223,6 @@ void Dump::init()
     ids = idsort = nullptr;
     index = proclist = nullptr;
     irregular = nullptr;
-
-    if (balance_flag)
-      error->all(FLERR,"Cannot balance dump output without sorting enabled");
   }
 
   if (sort_flag) {

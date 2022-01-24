@@ -659,14 +659,6 @@ atom ID.  A sort value of N or -N means sort the output by the value
 in the Nth column of per-atom info in either ascending or descending
 order.
 
-In a parallel run, the per-processor dump file pieces can have
-significant imbalance in number of lines of per-atom info. The *balance*
-keyword determines whether the number of lines in each processor
-snapshot are balanced to be nearly the same. A balance value of *no*
-means no balancing will be done, while *yes* means balancing will be
-performed.  For a serial run, this option is ignored since the output is
-already balanced. Dump sorting must be enabled to use balancing.
-
 The dump *local* style cannot be sorted by atom ID, since there are
 typically multiple lines of output per atom.  Some dump styles, such
 as *dcd* and *xtc*, require sorting by atom ID to format the output
@@ -675,6 +667,14 @@ the "%" wildcard in the dump filename and the *nfile* or *fileper*
 keywords are set to non-default values (i.e. the number of dump file
 pieces is not equal to the number of procs), then sorting cannot be
 performed.
+
+In a parallel run, the per-processor dump file pieces can have
+significant imbalance in number of lines of per-atom info. The *balance*
+keyword determines whether the number of lines in each processor
+snapshot are balanced to be nearly the same. A balance value of *no*
+means no balancing will be done, while *yes* means balancing will be
+performed.  For a serial run, this option is ignored since the output is
+already balanced. 
 
 .. note::
 

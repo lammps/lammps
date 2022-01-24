@@ -75,6 +75,7 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
 
   clearstep = 0;
   sort_flag = 0;
+  balance_flag = 0;
   append_flag = 0;
   buffer_allow = 0;
   buffer_flag = 0;
@@ -222,6 +223,9 @@ void Dump::init()
     ids = idsort = nullptr;
     index = proclist = nullptr;
     irregular = nullptr;
+
+    if (balance_flag)
+      error->all(FLERR,"Cannot balance dump output without sorting enabled");
   }
 
   if (sort_flag) {
@@ -417,6 +421,7 @@ void Dump::write()
   if (sort_flag && sortcol == 0) pack(ids);
   else pack(nullptr);
   if (sort_flag) sort();
+  if (balance_flag) balance();
 
   // write timestep header
   // for multiproc,
@@ -889,6 +894,161 @@ int Dump::bufcompare_reverse(const int i, const int j, void *ptr)
 #endif
 
 /* ----------------------------------------------------------------------
+   parallel load balance of buf across all procs
+   must come after sort
+------------------------------------------------------------------------- */
+
+void Dump::balance()
+{
+  bigint *proc_offsets,*proc_new_offsets;
+  memory->create(proc_offsets,nprocs+1,"dump:proc_offsets");
+  memory->create(proc_new_offsets,nprocs+1,"dump:proc_new_offsets");
+
+  // compute atom offset for this proc
+
+  bigint offset;
+  bigint bnme = nme;
+  MPI_Scan(&bnme,&offset,1,MPI_LMP_BIGINT,MPI_SUM,world);
+
+  // gather atom offsets for all procs
+
+  MPI_Allgather(&offset,1,MPI_LMP_BIGINT,&proc_offsets[1],1,MPI_LMP_BIGINT,world);
+
+  proc_offsets[0] = 0;
+
+  // how many atoms should I own after balance
+
+  int nme_balance = static_cast<int>(ntotal/nprocs);
+
+  // include remainder atoms on first procs
+
+  int remainder = ntotal % nprocs;
+  if (me < remainder) nme_balance += 1;
+
+  // compute new atom offset for this proc
+
+  bigint offset_balance;
+  bigint bnme_balance = nme_balance;
+  MPI_Scan(&bnme_balance,&offset_balance,1,MPI_LMP_BIGINT,MPI_SUM,world);
+
+  // gather new atom offsets for all procs
+
+  MPI_Allgather(&offset_balance,1,MPI_LMP_BIGINT,&proc_new_offsets[1],1,MPI_LMP_BIGINT,world);
+
+  proc_new_offsets[0] = 0;
+
+  bigint start = proc_new_offsets[me];
+  bigint end = proc_new_offsets[me+1];
+
+  // reset buf size to largest of any post-balance nme values
+  // this insures proc 0 can receive everyone's info
+
+  int nmax;
+  MPI_Allreduce(&nme_balance,&nmax,1,MPI_INT,MPI_MAX,world);
+
+  // allocate a second buffer for balanced data
+
+  double* buf_balance;
+  memory->create(buf_balance,nmax*size_one,"dump:buf_balance");
+
+  // compute from which procs I am receiving atoms
+  // post recvs first
+
+  int nswap = 0;
+  MPI_Request *request = new MPI_Request[nprocs];
+  int procstart = start;
+  int iproc = me;
+  int iproc_prev;
+
+  for (bigint i = start; i < end; i++) {
+
+    // find which proc this atom belongs to
+
+    while (i < proc_offsets[iproc]) iproc--;
+    while (i > proc_offsets[iproc+1]-1) iproc++;
+
+    if (i != start && (iproc != iproc_prev || i == end-1)) {
+
+      // finished with proc
+
+      int procrecv = iproc;
+      if (iproc != iproc_prev) procrecv = iproc_prev;
+
+      int procnrecv = i - procstart + 1;
+      if (iproc != iproc_prev) procnrecv--;
+
+      // post receive for this proc
+
+      if (iproc_prev != me)
+        MPI_Irecv(&buf_balance[(procstart - start)*size_one],procnrecv*size_one,MPI_DOUBLE,
+                  procrecv,0,world,&request[nswap++]);
+
+      procstart = i;
+    }
+
+    iproc_prev = iproc;
+  }
+
+  // compute which atoms I am sending and to which procs
+
+  procstart = 0;
+  iproc = me;
+  for (int i = 0; i < nme; i++) {
+
+    // find which proc this atom should belong to
+
+    while (proc_offsets[me] + i < proc_new_offsets[iproc]) iproc--;
+    while (proc_offsets[me] + i > proc_new_offsets[iproc+1] - 1) iproc++;
+
+    if (i != 0 && (iproc != iproc_prev || i == nme - 1)) {
+
+      // finished with proc
+
+      int procsend = iproc;
+      if (iproc != iproc_prev) procsend = iproc_prev;
+
+      int procnsend = i - procstart + 1;
+      if (iproc != iproc_prev) procnsend--;
+
+      // send for this proc
+
+      if (iproc_prev != me) {
+	MPI_Send(&buf[procstart*size_one],procnsend*size_one,MPI_DOUBLE,procsend,0,world);
+      } else {
+
+        // sending to self, copy buffers
+
+	int offset_me = proc_offsets[me] - start;
+	memcpy(&buf_balance[(offset_me + procstart)*size_one],&buf[procstart*size_one],procnsend*size_one*sizeof(double));
+      }
+
+      procstart = i;
+    }
+
+    iproc_prev = iproc;
+  }
+
+  // wait for all recvs
+
+  for (int n = 0; n < nswap; n++)
+    MPI_Wait(&request[n],MPI_STATUS_IGNORE);
+
+  nme = nme_balance;
+
+  // swap buffers
+
+  double *tmp = buf;
+  buf = buf_balance;
+
+  // cleanup
+
+  memory->destroy(tmp);
+  memory->destroy(proc_offsets);
+  memory->destroy(proc_new_offsets);
+  delete [] request;
+}
+
+/* ----------------------------------------------------------------------
    process params common to all dumps here
    if unknown param, call modify_param specific to the dump
 ------------------------------------------------------------------------- */
@@ -1106,6 +1266,11 @@ void Dump::modify_params(int narg, char **arg)
         }
         sortcolm1 = sortcol - 1;
       }
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"balance") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
+      balance_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"time") == 0) {

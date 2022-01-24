@@ -1270,7 +1270,8 @@ void Dump::modify_params(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"balance") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal dump_modify command");
-      balance_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      if (nprocs > 1)
+        balance_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"time") == 0) {

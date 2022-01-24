@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,73 +12,86 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "fix_halt.h"
-#include "update.h"
-#include "force.h"
-#include "update.h"
-#include "input.h"
-#include "variable.h"
+
+#include "arg_info.h"
 #include "atom.h"
-#include "neighbor.h"
-#include "modify.h"
 #include "comm.h"
-#include "timer.h"
 #include "error.h"
+#include "input.h"
+#include "modify.h"
+#include "neighbor.h"
+#include "timer.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{BONDMAX,TLIMIT,VARIABLE};
+enum{BONDMAX,TLIMIT,DISKFREE,VARIABLE};
 enum{LT,LE,GT,GE,EQ,NEQ,XOR};
 enum{HARD,SOFT,CONTINUE};
-enum{NOMSG,YESMSG};
+enum{NOMSG=0,YESMSG=1};
 
 /* ---------------------------------------------------------------------- */
 
 FixHalt::FixHalt(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), idvar(NULL)
+  Fix(lmp, narg, arg), idvar(nullptr), dlimit_path(nullptr)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix halt command");
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix halt command");
 
   // comparison args
 
-  idvar = NULL;
+  idvar = nullptr;
+  int iarg = 4;
 
-  if (strcmp(arg[4],"tlimit") == 0) attribute = TLIMIT;
-  else if (strcmp(arg[4],"bondmax") == 0) attribute = BONDMAX;
-  else if (strncmp(arg[4],"v_",2) == 0) {
+  if (strcmp(arg[iarg],"tlimit") == 0) {
+    attribute = TLIMIT;
+  } else if (strcmp(arg[iarg],"diskfree") == 0) {
+    attribute = DISKFREE;
+    dlimit_path = utils::strdup(".");
+  } else if (strcmp(arg[iarg],"bondmax") == 0) {
+    attribute = BONDMAX;
+  } else {
+    ArgInfo argi(arg[iarg],ArgInfo::VARIABLE);
+
+    if ((argi.get_type() == ArgInfo::UNKNOWN)
+        || (argi.get_type() == ArgInfo::NONE)
+        || (argi.get_dim() != 0))
+      error->all(FLERR,"Invalid fix halt attribute");
+
     attribute = VARIABLE;
-    int n = strlen(arg[4]);
-    idvar = new char[n];
-    strcpy(idvar,&arg[4][2]);
+    idvar = argi.copy_name();
     ivar = input->variable->find(idvar);
+
     if (ivar < 0) error->all(FLERR,"Could not find fix halt variable name");
     if (input->variable->equalstyle(ivar) == 0)
       error->all(FLERR,"Fix halt variable is not equal-style variable");
-  } else error->all(FLERR,"Invalid fix halt attribute");
+  }
 
-  if (strcmp(arg[5],"<") == 0) operation = LT;
-  else if (strcmp(arg[5],"<=") == 0) operation = LE;
-  else if (strcmp(arg[5],">") == 0) operation = GT;
-  else if (strcmp(arg[5],">=") == 0) operation = GE;
-  else if (strcmp(arg[5],"==") == 0) operation = EQ;
-  else if (strcmp(arg[5],"!=") == 0) operation = NEQ;
-  else if (strcmp(arg[5],"|^") == 0) operation = XOR;
+  ++iarg;
+  if (strcmp(arg[iarg],"<") == 0) operation = LT;
+  else if (strcmp(arg[iarg],"<=") == 0) operation = LE;
+  else if (strcmp(arg[iarg],">") == 0) operation = GT;
+  else if (strcmp(arg[iarg],">=") == 0) operation = GE;
+  else if (strcmp(arg[iarg],"==") == 0) operation = EQ;
+  else if (strcmp(arg[iarg],"!=") == 0) operation = NEQ;
+  else if (strcmp(arg[iarg],"|^") == 0) operation = XOR;
   else error->all(FLERR,"Invalid fix halt operator");
 
-  value = force->numeric(FLERR,arg[6]);
+  ++iarg;
+  value = utils::numeric(FLERR,arg[iarg],false,lmp);
 
   // parse optional args
 
   eflag = SOFT;
   msgflag = YESMSG;
-
-  int iarg = 7;
+  ++iarg;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"error") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix halt command");
@@ -88,10 +102,21 @@ FixHalt::FixHalt(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"message") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix halt command");
-      if (strcmp(arg[iarg+1],"no") == 0) msgflag = NOMSG;
-      else if (strcmp(arg[iarg+1],"yes") == 0) msgflag = YESMSG;
-      else error->all(FLERR,"Illegal fix halt command");
+      msgflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"path") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix halt command");
+      ++iarg;
+      int len = strlen(arg[iarg])+1;
+      delete[] dlimit_path;
+      dlimit_path = new char[len];
+      // strip off quotes, if present
+      if ( ((arg[iarg][0] == '"') || (arg[iarg][0] == '\''))
+           && (arg[iarg][0] == arg[iarg][len-2])) {
+        strcpy(dlimit_path,&arg[iarg][1]);
+        dlimit_path[len-3] = '\0';
+      } else strcpy(dlimit_path,arg[iarg]);
+      ++iarg;
     } else error->all(FLERR,"Illegal fix halt command");
   }
 
@@ -110,6 +135,7 @@ FixHalt::FixHalt(LAMMPS *lmp, int narg, char **arg) :
 FixHalt::~FixHalt()
 {
   delete [] idvar;
+  delete [] dlimit_path;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -141,6 +167,13 @@ void FixHalt::init()
   nextstep = (update->ntimestep/nevery)*nevery + nevery;
   thisstep = -1;
   tratio = 0.5;
+
+  // check if disk limit is supported
+
+  if (attribute == DISKFREE) {
+    if (diskfree() < 0.0)
+      error->all(FLERR,"Disk limit not supported by OS or illegal path");
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -163,6 +196,8 @@ void FixHalt::end_of_step()
   if (attribute == TLIMIT) {
     if (update->ntimestep != nextstep) return;
     attvalue = tlimit();
+  } else if (attribute == DISKFREE) {
+    attvalue = diskfree();
   } else if (attribute == BONDMAX) {
     attvalue = bondmax();
   } else {
@@ -194,14 +229,13 @@ void FixHalt::end_of_step()
   // soft/continue halt -> trigger timer to break from run loop
   // print message with ID of fix halt in case multiple instances
 
-  char str[128];
-  sprintf(str,"Fix halt %s condition met on step " BIGINT_FORMAT " with value %g",
-          id,update->ntimestep,attvalue);
-
+  std::string message = fmt::format("Fix halt condition for fix-id {} met on "
+                                    "step {} with value {}",
+                                    id, update->ntimestep, attvalue);
   if (eflag == HARD) {
-    error->all(FLERR,str);
+    error->all(FLERR,message);
   } else if (eflag == SOFT || eflag == CONTINUE) {
-    if (comm->me == 0 && msgflag == YESMSG) error->message(FLERR,str);
+    if (comm->me == 0 && msgflag == YESMSG) error->message(FLERR,message);
     timer->force_timeout();
   }
 }
@@ -270,4 +304,36 @@ double FixHalt::tlimit()
   }
 
   return cpu;
+}
+
+/* ----------------------------------------------------------------------
+   determine available disk space, if supported. Return -1 if not.
+------------------------------------------------------------------------- */
+#if defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__DragonFly__) || defined(__OpenBSD__) || defined(__NetBSD__)
+#include <sys/statvfs.h>
+#endif
+double FixHalt::diskfree()
+{
+#if defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__DragonFly__) || defined(__OpenBSD__) || defined(__NetBSD__)
+  struct statvfs fs;
+  double disk_free = -1.0;
+
+  if (dlimit_path) {
+    disk_free = 1.0e100;
+    int rv = statvfs(dlimit_path,&fs);
+    if (rv == 0) {
+#if defined(__linux__)
+      disk_free = fs.f_bavail*fs.f_bsize/1048576.0;
+#elif defined(__APPLE__) || defined(__FreeBSD__) || defined(__DragonFly__) || defined(__OpenBSD__) || defined(__NetBSD__)
+      disk_free = fs.f_bavail*fs.f_frsize/1048576.0;
+#endif
+    } else
+      disk_free = -1.0;
+
+    MPI_Bcast(&disk_free,1,MPI_DOUBLE,0,world);
+  }
+  return disk_free;
+#else
+  return -1.0;
+#endif
 }

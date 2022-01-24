@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,26 +17,29 @@
                          Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
-#include <cmath>
 #include "compute_orientorder_atom.h"
+
 #include "atom.h"
-#include "update.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "math_const.h"
+#include "math_special.h"
+#include "memory.h"
 #include "modify.h"
-#include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "force.h"
+#include "neighbor.h"
 #include "pair.h"
-#include "comm.h"
-#include "memory.h"
-#include "error.h"
-#include "math_const.h"
+#include "update.h"
+
+#include <cstring>
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using namespace std;
+using namespace MathSpecial;
+
 
 #ifdef DBL_EPSILON
   #define MY_EPSILON (10.0*DBL_EPSILON)
@@ -43,12 +47,14 @@ using namespace std;
   #define MY_EPSILON (10.0*2.220446049250313e-16)
 #endif
 
+#define QEPSILON 1.0e-6
+
 /* ---------------------------------------------------------------------- */
 
 ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  qlist(NULL), distsq(NULL), nearest(NULL), rlist(NULL),
-  qnarray(NULL), qnm_r(NULL), qnm_i(NULL)
+  qlist(nullptr), distsq(nullptr), nearest(nullptr), rlist(nullptr),
+  qnarray(nullptr), qnm_r(nullptr), qnm_i(nullptr), cglist(nullptr)
 {
   if (narg < 3 ) error->all(FLERR,"Illegal compute orientorder/atom command");
 
@@ -56,7 +62,10 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
 
   nnn = 12;
   cutsq = 0.0;
+  wlflag = 0;
+  wlhatflag = 0;
   qlcompflag = 0;
+  chunksize = 16384;
 
   // specify which orders to request
 
@@ -74,64 +83,68 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
   int iarg = 3;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"nnn") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute orientorder/atom command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute orientorder/atom command");
       if (strcmp(arg[iarg+1],"NULL") == 0) {
         nnn = 0;
       } else {
-        nnn = force->numeric(FLERR,arg[iarg+1]);
-        if (nnn <= 0)
-          error->all(FLERR,"Illegal compute orientorder/atom command");
+        nnn = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+        if (nnn <= 0) error->all(FLERR,"Illegal compute orientorder/atom command");
       }
       iarg += 2;
     } else if (strcmp(arg[iarg],"degrees") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute orientorder/atom command");
-      nqlist = force->numeric(FLERR,arg[iarg+1]);
-      if (nqlist <= 0)
-        error->all(FLERR,"Illegal compute orientorder/atom command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute orientorder/atom command");
+      nqlist = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      if (nqlist <= 0) error->all(FLERR,"Illegal compute orientorder/atom command");
       memory->destroy(qlist);
       memory->create(qlist,nqlist,"orientorder/atom:qlist");
       iarg += 2;
-      if (iarg+nqlist > narg)
-        error->all(FLERR,"Illegal compute orientorder/atom command");
+      if (iarg+nqlist > narg) error->all(FLERR,"Illegal compute orientorder/atom command");
       qmax = 0;
-      for (int iw = 0; iw < nqlist; iw++) {
-        qlist[iw] = force->numeric(FLERR,arg[iarg+iw]);
-        if (qlist[iw] < 0)
-          error->all(FLERR,"Illegal compute orientorder/atom command");
-        if (qlist[iw] > qmax) qmax = qlist[iw];
+      for (int il = 0; il < nqlist; il++) {
+        qlist[il] = utils::numeric(FLERR,arg[iarg+il],false,lmp);
+        if (qlist[il] < 0) error->all(FLERR,"Illegal compute orientorder/atom command");
+        if (qlist[il] > qmax) qmax = qlist[il];
       }
       iarg += nqlist;
+    } else if (strcmp(arg[iarg],"wl") == 0) {
+      if (iarg+2 > narg)
+        error->all(FLERR,"Illegal compute orientorder/atom command");
+      wlflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"wl/hat") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute orientorder/atom command");
+      wlhatflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
     } else if (strcmp(arg[iarg],"components") == 0) {
       qlcompflag = 1;
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute orientorder/atom command");
-      qlcomp = force->numeric(FLERR,arg[iarg+1]);
-      if (qlcomp <= 0)
-        error->all(FLERR,"Illegal compute orientorder/atom command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute orientorder/atom command");
+      qlcomp = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iqlcomp = -1;
-      for (int iw = 0; iw < nqlist; iw++)
-        if (qlcomp == qlist[iw]) {
-          iqlcomp = iw;
+      for (int il = 0; il < nqlist; il++)
+        if (qlcomp == qlist[il]) {
+          iqlcomp = il;
           break;
         }
-      if (iqlcomp < 0)
-        error->all(FLERR,"Illegal compute orientorder/atom command");
+      if (iqlcomp == -1) error->all(FLERR,"Illegal compute orientorder/atom command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"cutoff") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute orientorder/atom command");
-      double cutoff = force->numeric(FLERR,arg[iarg+1]);
-      if (cutoff <= 0.0)
-        error->all(FLERR,"Illegal compute orientorder/atom command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute orientorder/atom command");
+      double cutoff = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      if (cutoff <= 0.0) error->all(FLERR,"Illegal compute orientorder/atom command");
       cutsq = cutoff*cutoff;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"chunksize") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute orientorder/atom command");
+      chunksize = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      if (chunksize <= 0) error->all(FLERR,"Illegal compute orientorder/atom command");
       iarg += 2;
     } else error->all(FLERR,"Illegal compute orientorder/atom command");
   }
 
-  if (qlcompflag) ncol = nqlist + 2*(2*qlcomp+1);
-  else ncol = nqlist;
+  ncol = nqlist;
+  if (wlflag) ncol += nqlist;
+  if (wlhatflag) ncol += nqlist;
+  if (qlcompflag) ncol += 2*(2*qlcomp+1);
 
   peratom_flag = 1;
   size_peratom_cols = ncol;
@@ -144,6 +157,8 @@ ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg
 
 ComputeOrientOrderAtom::~ComputeOrientOrderAtom()
 {
+  if (copymode) return;
+
   memory->destroy(qnarray);
   memory->destroy(distsq);
   memory->destroy(rlist);
@@ -151,14 +166,14 @@ ComputeOrientOrderAtom::~ComputeOrientOrderAtom()
   memory->destroy(qlist);
   memory->destroy(qnm_r);
   memory->destroy(qnm_i);
-
+  memory->destroy(cglist);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void ComputeOrientOrderAtom::init()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Compute orientorder/atom requires a "
                "pair style be defined");
   if (cutsq == 0.0) cutsq = force->pair->cutforce * force->pair->cutforce;
@@ -166,8 +181,10 @@ void ComputeOrientOrderAtom::init()
     error->all(FLERR,"Compute orientorder/atom cutoff is "
                "longer than pairwise cutoff");
 
-  memory->create(qnm_r,qmax,2*qmax+1,"orientorder/atom:qnm_r");
-  memory->create(qnm_i,qmax,2*qmax+1,"orientorder/atom:qnm_i");
+  memory->destroy(qnm_r);
+  memory->destroy(qnm_i);
+  memory->create(qnm_r,nqlist,2*qmax+1,"orientorder/atom:qnm_r");
+  memory->create(qnm_i,nqlist,2*qmax+1,"orientorder/atom:qnm_i");
 
   // need an occasional full neighbor list
 
@@ -183,6 +200,8 @@ void ComputeOrientOrderAtom::init()
     if (strcmp(modify->compute[i]->style,"orientorder/atom") == 0) count++;
   if (count > 1 && comm->me == 0)
     error->warning(FLERR,"More than one compute orientorder/atom");
+
+  if (wlflag || wlhatflag) init_clebsch_gordan();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -225,6 +244,7 @@ void ComputeOrientOrderAtom::compute_peratom()
 
   double **x = atom->x;
   int *mask = atom->mask;
+  memset(&qnarray[0][0],0,sizeof(double)*nmax*ncol);
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -274,8 +294,8 @@ void ComputeOrientOrderAtom::compute_peratom()
       // if not nnn neighbors, order parameter = 0;
 
       if ((ncount == 0) || (ncount < nnn)) {
-        for (int iw = 0; iw < nqlist; iw++)
-          qn[iw] = 0.0;
+        for (jj = 0; jj < ncol; jj++)
+          qn[jj] = 0.0;
         continue;
       }
 
@@ -297,9 +317,9 @@ void ComputeOrientOrderAtom::compute_peratom()
 
 double ComputeOrientOrderAtom::memory_usage()
 {
-  double bytes = ncol*nmax * sizeof(double);
-  bytes += (qmax*(2*qmax+1)+maxneigh*4) * sizeof(double);
-  bytes += (nqlist+maxneigh) * sizeof(int);
+  double bytes = (double)ncol*nmax * sizeof(double);
+  bytes += (double)(qmax*(2*qmax+1)+maxneigh*4) * sizeof(double);
+  bytes += (double)(nqlist+maxneigh) * sizeof(int);
   return bytes;
 }
 
@@ -313,17 +333,17 @@ double ComputeOrientOrderAtom::memory_usage()
 
 #define SWAP(a,b) do {       \
     tmp = a; a = b; b = tmp; \
-  } while(0)
+  } while (0)
 
 #define ISWAP(a,b) do {        \
     itmp = a; a = b; b = itmp; \
-  } while(0)
+  } while (0)
 
 #define SWAP3(a,b) do {                  \
     tmp = a[0]; a[0] = b[0]; b[0] = tmp; \
     tmp = a[1]; a[1] = b[1]; b[1] = tmp; \
     tmp = a[2]; a[2] = b[2]; b[2] = tmp; \
-  } while(0)
+  } while (0)
 
 /* ---------------------------------------------------------------------- */
 
@@ -403,20 +423,19 @@ void ComputeOrientOrderAtom::select3(int k, int n, double *arr, int *iarr, doubl
 void ComputeOrientOrderAtom::calc_boop(double **rlist,
                                        int ncount, double qn[],
                                        int qlist[], int nqlist) {
-  for (int iw = 0; iw < nqlist; iw++) {
-    int n = qlist[iw];
 
-    qn[iw] = 0.0;
-    for(int m = 0; m < 2*n+1; m++) {
-      qnm_r[iw][m] = 0.0;
-      qnm_i[iw][m] = 0.0;
+  for (int il = 0; il < nqlist; il++) {
+    int l = qlist[il];
+    for (int m = 0; m < 2*l+1; m++) {
+      qnm_r[il][m] = 0.0;
+      qnm_i[il][m] = 0.0;
     }
   }
 
-  for(int ineigh = 0; ineigh < ncount; ineigh++) {
+  for (int ineigh = 0; ineigh < ncount; ineigh++) {
     const double * const r = rlist[ineigh];
     double rmag = dist(r);
-    if(rmag <= MY_EPSILON) {
+    if (rmag <= MY_EPSILON) {
       return;
     }
 
@@ -424,7 +443,7 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
     double expphi_r = r[0];
     double expphi_i = r[1];
     double rxymag = sqrt(expphi_r*expphi_r+expphi_i*expphi_i);
-    if(rxymag <= MY_EPSILON) {
+    if (rxymag <= MY_EPSILON) {
       expphi_r = 1.0;
       expphi_i = 0.0;
     } else {
@@ -433,24 +452,29 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
       expphi_i *= rxymaginv;
     }
 
-    for (int iw = 0; iw < nqlist; iw++) {
-      int n = qlist[iw];
+    for (int il = 0; il < nqlist; il++) {
+      int l = qlist[il];
 
-      qnm_r[iw][n] += polar_prefactor(n, 0, costheta);
+      // calculate spherical harmonics
+      // Ylm, -l <= m <= l
+      // sign convention: sign(Yll(0,0)) = (-1)^l
+
+      qnm_r[il][l] += polar_prefactor(l, 0, costheta);
       double expphim_r = expphi_r;
       double expphim_i = expphi_i;
-      for(int m = 1; m <= +n; m++) {
-        double prefactor = polar_prefactor(n, m, costheta);
-        double c_r = prefactor * expphim_r;
-        double c_i = prefactor * expphim_i;
-        qnm_r[iw][m+n] += c_r;
-        qnm_i[iw][m+n] += c_i;
-        if(m & 1) {
-          qnm_r[iw][-m+n] -= c_r;
-          qnm_i[iw][-m+n] += c_i;
+      for (int m = 1; m <= +l; m++) {
+
+        double prefactor = polar_prefactor(l, m, costheta);
+        double ylm_r = prefactor * expphim_r;
+        double ylm_i = prefactor * expphim_i;
+        qnm_r[il][m+l] += ylm_r;
+        qnm_i[il][m+l] += ylm_i;
+        if (m & 1) {
+          qnm_r[il][-m+l] -= ylm_r;
+          qnm_i[il][-m+l] += ylm_i;
         } else {
-          qnm_r[iw][-m+n] += c_r;
-          qnm_i[iw][-m+n] -= c_i;
+          qnm_r[il][-m+l] += ylm_r;
+          qnm_i[il][-m+l] -= ylm_i;
         }
         double tmp_r = expphim_r*expphi_r - expphim_i*expphi_i;
         double tmp_i = expphim_r*expphi_i + expphim_i*expphi_r;
@@ -461,30 +485,96 @@ void ComputeOrientOrderAtom::calc_boop(double **rlist,
     }
   }
 
-  double fac = sqrt(MY_4PI) / ncount;
-  double normfac = 0.0;
-  for (int iw = 0; iw < nqlist; iw++) {
-    int n = qlist[iw];
-    double qm_sum = 0.0;
-    for(int m = 0; m < 2*n+1; m++) {
-      qm_sum += qnm_r[iw][m]*qnm_r[iw][m] + qnm_i[iw][m]*qnm_i[iw][m];
-      //      printf("Ylm^2 = %d %d %g\n",n,m,
-      //     qnm_r[iw][m]*qnm_r[iw][m] + qnm_i[iw][m]*qnm_i[iw][m]);
-    }
-    qn[iw] = fac * sqrt(qm_sum / (2*n+1));
-    if (qlcompflag && iqlcomp == iw) normfac = 1.0/sqrt(qm_sum);
+  // convert sums to averages
 
+  double facn = 1.0 / ncount;
+  for (int il = 0; il < nqlist; il++) {
+    int l = qlist[il];
+    for (int m = 0; m < 2*l+1; m++) {
+      qnm_r[il][m] *= facn;
+      qnm_i[il][m] *= facn;
+    }
   }
 
-  // output of the complex vector
+  // calculate Q_l
+  // NOTE: optional W_l_hat and components of Q_qlcomp use these stored Q_l values
+
+  int jj = 0;
+  for (int il = 0; il < nqlist; il++) {
+    int l = qlist[il];
+    double qnormfac = sqrt(MY_4PI/(2*l+1));
+    double qm_sum = 0.0;
+    for (int m = 0; m < 2*l+1; m++)
+      qm_sum += qnm_r[il][m]*qnm_r[il][m] + qnm_i[il][m]*qnm_i[il][m];
+    qn[jj++] = qnormfac * sqrt(qm_sum);
+  }
+
+  // calculate W_l
+
+  if (wlflag) {
+    int idxcg_count = 0;
+    for (int il = 0; il < nqlist; il++) {
+      int l = qlist[il];
+      double wlsum = 0.0;
+      for (int m1 = 0; m1 < 2*l+1; m1++) {
+        for (int m2 = MAX(0,l-m1); m2 < MIN(2*l+1,3*l-m1+1); m2++) {
+          int m = m1 + m2 - l;
+          double qm1qm2_r = qnm_r[il][m1]*qnm_r[il][m2] - qnm_i[il][m1]*qnm_i[il][m2];
+          double qm1qm2_i = qnm_r[il][m1]*qnm_i[il][m2] + qnm_i[il][m1]*qnm_r[il][m2];
+          wlsum += (qm1qm2_r*qnm_r[il][m] + qm1qm2_i*qnm_i[il][m])*cglist[idxcg_count];
+          idxcg_count++;
+        }
+      }
+      qn[jj++] = wlsum/sqrt(2*l+1);
+    }
+  }
+
+  // calculate W_l_hat
+
+  if (wlhatflag) {
+    int idxcg_count = 0;
+    for (int il = 0; il < nqlist; il++) {
+      int l = qlist[il];
+      double wlsum = 0.0;
+      for (int m1 = 0; m1 < 2*l+1; m1++) {
+        for (int m2 = MAX(0,l-m1); m2 < MIN(2*l+1,3*l-m1+1); m2++) {
+          int m = m1 + m2 - l;
+          double qm1qm2_r = qnm_r[il][m1]*qnm_r[il][m2] - qnm_i[il][m1]*qnm_i[il][m2];
+          double qm1qm2_i = qnm_r[il][m1]*qnm_i[il][m2] + qnm_i[il][m1]*qnm_r[il][m2];
+          wlsum += (qm1qm2_r*qnm_r[il][m] + qm1qm2_i*qnm_i[il][m])*cglist[idxcg_count];
+          idxcg_count++;
+        }
+      }
+      if (qn[il] < QEPSILON)
+        qn[jj++] = 0.0;
+      else {
+        double qnormfac = sqrt(MY_4PI/(2*l+1));
+        double qnfac = qnormfac/qn[il];
+        qn[jj++] = wlsum/sqrt(2*l+1)*(qnfac*qnfac*qnfac);
+      }
+    }
+  }
+
+  // Calculate components of Q_l/|Q_l|, for l=qlcomp
 
   if (qlcompflag) {
-    int j = nqlist;
-    for(int m = 0; m < 2*qlcomp+1; m++) {
-      qn[j++] = qnm_r[iqlcomp][m] * normfac;
-      qn[j++] = qnm_i[iqlcomp][m] * normfac;
+    int il = iqlcomp;
+    int l = qlcomp;
+    if (qn[il] < QEPSILON)
+      for (int m = 0; m < 2*l+1; m++) {
+        qn[jj++] = 0.0;
+        qn[jj++] = 0.0;
+      }
+    else {
+      double qnormfac = sqrt(MY_4PI/(2*l+1));
+      double qnfac = qnormfac/qn[il];
+      for (int m = 0; m < 2*l+1; m++) {
+        qn[jj++] = qnm_r[il][m] * qnfac;
+        qn[jj++] = qnm_i[il][m] * qnfac;
+      }
     }
   }
+
 }
 
 /* ----------------------------------------------------------------------
@@ -519,6 +609,7 @@ double ComputeOrientOrderAtom::polar_prefactor(int l, int m, double costheta)
 
 /* ----------------------------------------------------------------------
    associated legendre polynomial
+   sign convention: P(l,l) = (2l-1)!!(-sqrt(1-x^2))^l
 ------------------------------------------------------------------------- */
 
 double ComputeOrientOrderAtom::associated_legendre(int l, int m, double x)
@@ -528,9 +619,9 @@ double ComputeOrientOrderAtom::associated_legendre(int l, int m, double x)
   double p(1.0), pm1(0.0), pm2(0.0);
 
   if (m != 0) {
-    const double sqx = sqrt(1.0-x*x);
+    const double msqx = -sqrt(1.0-x*x);
     for (int i=1; i < m+1; ++i)
-      p *= static_cast<double>(2*i-1) * sqx;
+      p *= static_cast<double>(2*i-1) * msqx;
   }
 
   for (int i=m+1; i < l+1; ++i) {
@@ -541,4 +632,69 @@ double ComputeOrientOrderAtom::associated_legendre(int l, int m, double x)
   }
 
   return p;
+}
+
+/* ----------------------------------------------------------------------
+   assign Clebsch-Gordan coefficients
+   using the quasi-binomial formula VMK 8.2.1(3)
+   specialized for case j1=j2=j=l
+------------------------------------------------------------------------- */
+
+void ComputeOrientOrderAtom::init_clebsch_gordan()
+{
+  double sum,dcg,sfaccg, sfac1, sfac2;
+  int m, aa2, bb2, cc2;
+  int ifac, idxcg_count;
+
+  idxcg_count = 0;
+  for (int il = 0; il < nqlist; il++) {
+    int l = qlist[il];
+    for (int m1 = 0; m1 < 2*l+1; m1++)
+      for (int m2 = MAX(0,l-m1); m2 < MIN(2*l+1,3*l-m1+1); m2++)
+        idxcg_count++;
+  }
+  idxcg_max = idxcg_count;
+  memory->destroy(cglist);
+  memory->create(cglist, idxcg_max, "computeorientorderatom:cglist");
+
+  idxcg_count = 0;
+  for (int il = 0; il < nqlist; il++) {
+    int l = qlist[il];
+    for (int m1 = 0; m1 < 2*l+1; m1++) {
+        aa2 = m1 - l;
+        for (int m2 = MAX(0,l-m1); m2 < MIN(2*l+1,3*l-m1+1); m2++) {
+          bb2 = m2 - l;
+          m = aa2 + bb2 + l;
+
+          sum = 0.0;
+          for (int z = MAX(0, MAX(-aa2, bb2));
+               z <= MIN(l, MIN(l - aa2, l + bb2)); z++) {
+            ifac = z % 2 ? -1 : 1;
+            sum += ifac /
+              (factorial(z) *
+               factorial(l - z) *
+               factorial(l - aa2 - z) *
+               factorial(l + bb2 - z) *
+               factorial(aa2 + z) *
+               factorial(-bb2 + z));
+          }
+
+          cc2 = m - l;
+          sfaccg = sqrt(factorial(l + aa2) *
+                        factorial(l - aa2) *
+                        factorial(l + bb2) *
+                        factorial(l - bb2) *
+                        factorial(l + cc2) *
+                        factorial(l - cc2) *
+                        (2*l + 1));
+
+          sfac1 = factorial(3*l + 1);
+          sfac2 = factorial(l);
+          dcg = sqrt(sfac2*sfac2*sfac2 / sfac1);
+
+          cglist[idxcg_count] = sum * dcg * sfaccg;
+          idxcg_count++;
+        }
+      }
+  }
 }

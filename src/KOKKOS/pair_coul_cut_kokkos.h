@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(coul/cut/kk,PairCoulCutKokkos<LMPDeviceType>)
-PairStyle(coul/cut/kk/device,PairCoulCutKokkos<LMPDeviceType>)
-PairStyle(coul/cut/kk/host,PairCoulCutKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(coul/cut/kk,PairCoulCutKokkos<LMPDeviceType>);
+PairStyle(coul/cut/kk/device,PairCoulCutKokkos<LMPDeviceType>);
+PairStyle(coul/cut/kk/host,PairCoulCutKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_COUL_CUT_KOKKOS_H
 #define LMP_PAIR_COUL_CUT_KOKKOS_H
 
@@ -46,21 +47,17 @@ class PairCoulCutKokkos : public PairCoulCut {
 
   struct params_coul{
     KOKKOS_INLINE_FUNCTION
-    params_coul(){cutsq=0,scale=0;};
+    params_coul() {cutsq=0,scale=0;};
     KOKKOS_INLINE_FUNCTION
-    params_coul(int i){cutsq=0,scale=0;};
+    params_coul(int /*i*/) {cutsq=0,scale=0;};
     F_FLOAT cutsq, scale;
   };
 
  protected:
-  void cleanup_copy();
-
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
-                        const int& itype, const int& jtype) const {
-    return 0.0;
-  }
+  F_FLOAT compute_fpair(const F_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/,
+                        const int& /*itype*/, const int& /*jtype*/) const { return 0.0; }
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
@@ -69,10 +66,8 @@ class PairCoulCutKokkos : public PairCoulCut {
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-    F_FLOAT compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j,
-                          const int& itype, const int& jtype) const{
-    return 0;
-  }
+  F_FLOAT compute_evdwl(const F_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/,
+                        const int& /*itype*/, const int& /*jtype*/) const { return 0; }
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
@@ -117,12 +112,12 @@ class PairCoulCutKokkos : public PairCoulCut {
   double qqrd2e;
 
   void allocate();
-  friend class PairComputeFunctor<PairCoulCutKokkos,FULL,true>;
-  friend class PairComputeFunctor<PairCoulCutKokkos,HALF,true>;
-  friend class PairComputeFunctor<PairCoulCutKokkos,HALFTHREAD,true>;
-  friend class PairComputeFunctor<PairCoulCutKokkos,FULL,false>;
-  friend class PairComputeFunctor<PairCoulCutKokkos,HALF,false>;
-  friend class PairComputeFunctor<PairCoulCutKokkos,HALFTHREAD,false>;
+  friend struct PairComputeFunctor<PairCoulCutKokkos,FULL,true>;
+  friend struct PairComputeFunctor<PairCoulCutKokkos,HALF,true>;
+  friend struct PairComputeFunctor<PairCoulCutKokkos,HALFTHREAD,true>;
+  friend struct PairComputeFunctor<PairCoulCutKokkos,FULL,false>;
+  friend struct PairComputeFunctor<PairCoulCutKokkos,HALF,false>;
+  friend struct PairComputeFunctor<PairCoulCutKokkos,HALFTHREAD,false>;
   friend EV_FLOAT pair_compute_neighlist<PairCoulCutKokkos,FULL,void>(PairCoulCutKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairCoulCutKokkos,HALF,void>(PairCoulCutKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairCoulCutKokkos,HALFTHREAD,void>(PairCoulCutKokkos*,NeighListKokkos<DeviceType>*);

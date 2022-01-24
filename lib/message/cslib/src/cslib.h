@@ -17,6 +17,10 @@
 
 #include <stdint.h>
 
+#if defined(LAMMPS_BIGBIG)
+#error CSlib is not compatible with -DLAMMPS_BIGBIG
+#endif
+
 namespace CSLIB_NS {
 
 class CSlib {
@@ -48,7 +52,7 @@ class CSlib {
   void unpack_parallel(int, int, int *, int, void *);
 
   int extract(int);
-  
+
  private:
   uint64_t myworld;    // really MPI_Comm, but avoids use of mpi.h in this file
                        // so apps can include this file w/ no MPI on system

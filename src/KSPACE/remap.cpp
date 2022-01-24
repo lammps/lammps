@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,9 +12,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstdlib>
 #include "remap.h"
+
+#include <cstdlib>
 
 #define PACK_DATA FFT_SCALAR
 
@@ -241,7 +242,7 @@ struct remap_plan_3d *remap_3d_create_plan(
   struct remap_plan_3d *plan;
   struct extent_3d *inarray, *outarray;
   struct extent_3d in,out,overlap;
-  int i,iproc,nsend,nrecv,ibuf,size,me,nprocs;
+  int i,j,iproc,nsend,nrecv,ibuf,size,me,nprocs;
 
   // query MPI info
 
@@ -251,7 +252,7 @@ struct remap_plan_3d *remap_3d_create_plan(
   // allocate memory for plan data struct
 
   plan = (struct remap_plan_3d *) malloc(sizeof(struct remap_plan_3d));
-  if (plan == NULL) return NULL;
+  if (plan == nullptr) return nullptr;
   plan->usecollective = usecollective;
 
   // store parameters in local data structs
@@ -283,10 +284,10 @@ struct remap_plan_3d *remap_3d_create_plan(
   // combine output extents across all procs
 
   inarray = (struct extent_3d *) malloc(nprocs*sizeof(struct extent_3d));
-  if (inarray == NULL) return NULL;
+  if (inarray == nullptr) return nullptr;
 
   outarray = (struct extent_3d *) malloc(nprocs*sizeof(struct extent_3d));
-  if (outarray == NULL) return NULL;
+  if (outarray == nullptr) return nullptr;
 
   MPI_Allgather(&out,sizeof(struct extent_3d),MPI_BYTE,
                 outarray,sizeof(struct extent_3d),MPI_BYTE,comm);
@@ -312,8 +313,8 @@ struct remap_plan_3d *remap_3d_create_plan(
     plan->packplan = (struct pack_plan_3d *)
       malloc(nsend*sizeof(struct pack_plan_3d));
 
-    if (plan->send_offset == NULL || plan->send_size == NULL ||
-        plan->send_proc == NULL || plan->packplan == NULL) return NULL;
+    if (plan->send_offset == nullptr || plan->send_size == nullptr ||
+        plan->send_proc == nullptr || plan->packplan == nullptr) return nullptr;
   }
 
   // store send info, with self as last entry
@@ -394,9 +395,9 @@ struct remap_plan_3d *remap_3d_create_plan(
     plan->unpackplan = (struct pack_plan_3d *)
       malloc(nrecv*sizeof(struct pack_plan_3d));
 
-    if (plan->recv_offset == NULL || plan->recv_size == NULL ||
-        plan->recv_proc == NULL || plan->recv_bufloc == NULL ||
-        plan->request == NULL || plan->unpackplan == NULL) return NULL;
+    if (plan->recv_offset == nullptr || plan->recv_size == nullptr ||
+        plan->recv_proc == nullptr || plan->recv_bufloc == nullptr ||
+        plan->request == nullptr || plan->unpackplan == nullptr) return nullptr;
   }
 
   // store recv info, with self as last entry
@@ -455,7 +456,7 @@ struct remap_plan_3d *remap_3d_create_plan(
   // create sub-comm rank list
 
   if (plan->usecollective) {
-    plan->commringlist = NULL;
+    plan->commringlist = nullptr;
 
     // merge recv and send rank lists
     // ask Steve Plimpton about method to more accurately determine
@@ -465,14 +466,14 @@ struct remap_plan_3d *remap_3d_create_plan(
     int *commringlist = (int *) malloc(maxcommsize*sizeof(int));
     int commringlen = 0;
 
-    for (int i = 0; i < nrecv; i++) {
+    for (i = 0; i < nrecv; i++) {
       commringlist[i] = plan->recv_proc[i];
       commringlen++;
     }
 
-    for (int i = 0; i < nsend; i++) {
+    for (i = 0; i < nsend; i++) {
       int foundentry = 0;
-      for (int j=0;j<commringlen;j++)
+      for (j = 0; j < commringlen;j++)
         if (commringlist[j] == plan->send_proc[i]) foundentry = 1;
       if (!foundentry) {
         commringlist[commringlen] = plan->send_proc[i];
@@ -483,12 +484,12 @@ struct remap_plan_3d *remap_3d_create_plan(
     // sort initial commringlist
 
     int swap = 0;
-    for (int c = 0 ; c < (commringlen - 1); c++) {
-      for (int d = 0 ; d < commringlen - c - 1; d++) {
-        if (commringlist[d] > commringlist[d+1]) {
-          swap = commringlist[d];
-          commringlist[d]   = commringlist[d+1];
-          commringlist[d+1] = swap;
+    for (i = 0 ; i < (commringlen - 1); i++) {
+      for (j = 0 ; j < commringlen - i - 1; j++) {
+        if (commringlist[j] > commringlist[j+1]) {
+          swap = commringlist[j];
+          commringlist[j]   = commringlist[j+1];
+          commringlist[j+1] = swap;
         }
       }
     }
@@ -502,12 +503,12 @@ struct remap_plan_3d *remap_3d_create_plan(
     while (commringappend) {
       int newcommringlen = commringlen;
       commringappend = 0;
-      for (int i=0;i<commringlen;i++) {
-        for (int j=0;j<nprocs;j++) {
+      for (i = 0; i < commringlen; i++) {
+        for (j = 0; j < nprocs; j++) {
           if (remap_3d_collide(&inarray[commringlist[i]],
                                &outarray[j],&overlap)) {
             int alreadyinlist = 0;
-            for (int k=0;k<newcommringlen;k++) {
+            for (int k = 0; k < newcommringlen; k++) {
               if (commringlist[k] == j) {
                 alreadyinlist = 1;
               }
@@ -520,7 +521,7 @@ struct remap_plan_3d *remap_3d_create_plan(
           if (remap_3d_collide(&outarray[commringlist[i]],
                                &inarray[j],&overlap)) {
             int alreadyinlist = 0;
-            for (int k=0;k<newcommringlen;k++) {
+            for (int k = 0 ; k < newcommringlen; k++) {
               if (commringlist[k] == j) alreadyinlist = 1;
             }
             if (!alreadyinlist) {
@@ -535,12 +536,12 @@ struct remap_plan_3d *remap_3d_create_plan(
 
     // sort the final commringlist
 
-    for (int c = 0 ; c < ( commringlen - 1 ); c++) {
-      for (int d = 0 ; d < commringlen - c - 1; d++) {
-        if (commringlist[d] > commringlist[d+1]) {
-          swap = commringlist[d];
-          commringlist[d]   = commringlist[d+1];
-          commringlist[d+1] = swap;
+    for (i = 0 ; i < ( commringlen - 1 ); i++) {
+      for (j = 0 ; j < commringlen - i - 1; j++) {
+        if (commringlist[j] > commringlist[j+1]) {
+          swap = commringlist[j];
+          commringlist[j]   = commringlist[j+1];
+          commringlist[j+1] = swap;
         }
       }
     }
@@ -577,7 +578,7 @@ struct remap_plan_3d *remap_3d_create_plan(
 
   // find biggest send message (not including self) and malloc space for it
 
-  plan->sendbuf = NULL;
+  plan->sendbuf = nullptr;
 
   size = 0;
   for (nsend = 0; nsend < plan->nsend; nsend++)
@@ -585,20 +586,20 @@ struct remap_plan_3d *remap_3d_create_plan(
 
   if (size) {
     plan->sendbuf = (FFT_SCALAR *) malloc(size*sizeof(FFT_SCALAR));
-    if (plan->sendbuf == NULL) return NULL;
+    if (plan->sendbuf == nullptr) return nullptr;
   }
 
   // if requested, allocate internal scratch space for recvs,
   // only need it if I will receive any data (including self)
 
-  plan->scratch = NULL;
+  plan->scratch = nullptr;
 
   if (memory == 1) {
     if (nrecv > 0) {
       plan->scratch =
-        (FFT_SCALAR *) malloc(nqty*out.isize*out.jsize*out.ksize *
+        (FFT_SCALAR *) malloc((size_t)nqty*out.isize*out.jsize*out.ksize *
                               sizeof(FFT_SCALAR));
-      if (plan->scratch == NULL) return NULL;
+      if (plan->scratch == nullptr) return nullptr;
     }
   }
 
@@ -642,7 +643,7 @@ void remap_3d_destroy_plan(struct remap_plan_3d *plan)
     MPI_Comm_free(&plan->comm);
 
   if (plan->usecollective) {
-    if (plan->commringlist != NULL)
+    if (plan->commringlist != nullptr)
       free(plan->commringlist);
   }
 

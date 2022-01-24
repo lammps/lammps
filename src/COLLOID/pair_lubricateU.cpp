@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,30 +16,26 @@
    Contributing authors: Amit Kumar and Michael Bybee (UIUC)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_lubricateU.h"
+
+#include <cmath>
+#include <cstring>
 #include "atom.h"
-#include "atom_vec.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "domain.h"
 #include "update.h"
 #include "math_const.h"
 #include "modify.h"
 #include "fix.h"
-#include "fix_deform.h"
 #include "fix_wall.h"
 #include "input.h"
 #include "variable.h"
 #include "memory.h"
 #include "error.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -62,10 +59,10 @@ PairLubricateU::PairLubricateU(LAMMPS *lmp) : Pair(lmp)
   no_virial_fdotr_compute = 1;
 
   nmax = 0;
-  fl = Tl = xl = NULL;
+  fl = Tl = xl = nullptr;
 
   cgmax = 0;
-  bcg = xcg = rcg = rcg1 = pcg = RU =  NULL;
+  bcg = xcg = rcg = rcg1 = pcg = RU =  nullptr;
 
   // set comm size needed by this Pair
 
@@ -116,8 +113,7 @@ void PairLubricateU::compute(int eflag, int vflag)
   int nghost = atom->nghost;
   int nall = nlocal + nghost;
 
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   // skip compute() if called from integrate::setup()
   // this is b/c do not want compute() to update velocities twice on a restart
@@ -163,8 +159,8 @@ void PairLubricateU::compute(int eflag, int vflag)
 
   // store back the saved forces and torques in original arrays
 
-  for(i=0;i<nlocal+nghost;i++) {
-    for(j=0;j<3;j++) {
+  for (i=0;i<nlocal+nghost;i++) {
+    for (j=0;j<3;j++) {
       f[i][j] = fl[i][j];
       torque[i][j] = Tl[i][j];
     }
@@ -228,7 +224,7 @@ void PairLubricateU::stage_one()
   // Find the right hand side= -ve of all forces/torques
   // b = 6*Npart in overall size
 
-  for(ii = 0; ii < inum; ii++) {
+  for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     for (j = 0; j < 3; j++) {
       bcg[6*ii+j] = -f[i][j];
@@ -412,7 +408,7 @@ void PairLubricateU::stage_two(double **x)
   // Find the right hand side= -ve of all forces/torques
   // b = 6*Npart in overall size
 
-  for(ii = 0; ii < inum; ii++) {
+  for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     for (j = 0; j < 3; j++) {
       bcg[6*ii+j] = -f[i][j];
@@ -586,20 +582,20 @@ void PairLubricateU::compute_Fh(double **x)
 
   double dims[3], wallcoord;
   if (flagVF) // Flag for volume fraction corrections
-    if (flagdeform || flagwall == 2){ // Possible changes in volume fraction
+    if (flagdeform || flagwall == 2) { // Possible changes in volume fraction
       if (flagdeform && !flagwall)
         for (j = 0; j < 3; j++)
           dims[j] = domain->prd[j];
-      else if (flagwall == 2 || (flagdeform && flagwall == 1)){
+      else if (flagwall == 2 || (flagdeform && flagwall == 1)) {
          double wallhi[3], walllo[3];
-         for (int j = 0; j < 3; j++){
+         for (int j = 0; j < 3; j++) {
            wallhi[j] = domain->prd[j];
            walllo[j] = 0;
          }
-         for (int m = 0; m < wallfix->nwall; m++){
+         for (int m = 0; m < wallfix->nwall; m++) {
            int dim = wallfix->wallwhich[m] / 2;
            int side = wallfix->wallwhich[m] % 2;
-           if (wallfix->xstyle[m] == VARIABLE){
+           if (wallfix->xstyle[m] == VARIABLE) {
              wallcoord = input->variable->compute_equal(wallfix->xindex[m]);
            }
            else wallcoord = wallfix->coord0[m];
@@ -818,291 +814,20 @@ void PairLubricateU::compute_RU()
 
   double dims[3], wallcoord;
   if (flagVF) // Flag for volume fraction corrections
-    if (flagdeform || flagwall == 2){ // Possible changes in volume fraction
+    if (flagdeform || flagwall == 2) { // Possible changes in volume fraction
       if (flagdeform && !flagwall)
         for (j = 0; j < 3; j++)
           dims[j] = domain->prd[j];
-      else if (flagwall == 2 || (flagdeform && flagwall == 1)){
+      else if (flagwall == 2 || (flagdeform && flagwall == 1)) {
          double wallhi[3], walllo[3];
-         for (int j = 0; j < 3; j++){
+         for (int j = 0; j < 3; j++) {
            wallhi[j] = domain->prd[j];
            walllo[j] = 0;
          }
-         for (int m = 0; m < wallfix->nwall; m++){
+         for (int m = 0; m < wallfix->nwall; m++) {
            int dim = wallfix->wallwhich[m] / 2;
            int side = wallfix->wallwhich[m] % 2;
-           if (wallfix->xstyle[m] == VARIABLE){
-             wallcoord = input->variable->compute_equal(wallfix->xindex[m]);
-           }
-           else wallcoord = wallfix->coord0[m];
-           if (side == 0) walllo[dim] = wallcoord;
-           else wallhi[dim] = wallcoord;
-         }
-         for (int j = 0; j < 3; j++)
-           dims[j] = wallhi[j] - walllo[j];
-      }
-      double vol_T = dims[0]*dims[1]*dims[2];
-      double vol_f = vol_P/vol_T;
-      if (flaglog == 0) {
-        R0  = 6*MY_PI*mu*rad*(1.0 + 2.16*vol_f);
-        RT0 = 8*MY_PI*mu*pow(rad,3.0);
-        //        RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
-      } else {
-        R0  = 6*MY_PI*mu*rad*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
-        RT0 = 8*MY_PI*mu*pow(rad,3.0)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f);
-        //        RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
-      }
-    }
-
-  // end of R0 adjustment code
-
-  // Initialize f to zero
-  for (i=0;i<nlocal+nghost;i++)
-    for (j=0;j<3;j++) {
-      f[i][j] = 0.0;
-      torque[i][j] = 0.0;
-    }
-
-  for (ii = 0; ii < inum; ii++) {
-    i = ilist[ii];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-    itype = type[i];
-    radi = radius[i];
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
-
-    // Find angular velocity
-
-    wi[0] = omega[i][0];
-    wi[1] = omega[i][1];
-    wi[2] = omega[i][2];
-
-    // Contribution due to the isotropic terms
-
-    f[i][0] += -vxmu2f*R0*v[i][0];
-    f[i][1] += -vxmu2f*R0*v[i][1];
-    f[i][2] += -vxmu2f*R0*v[i][2];
-
-    torque[i][0] += -vxmu2f*RT0*wi[0];
-    torque[i][1] += -vxmu2f*RT0*wi[1];
-    torque[i][2] += -vxmu2f*RT0*wi[2];
-
-    if (!flagHI) continue;
-
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      j &= NEIGHMASK;
-
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
-      jtype = type[j];
-
-      if (rsq < cutsq[itype][jtype]) {
-        r = sqrt(rsq);
-
-        // Use omega directly if it exists, else angmom
-        // angular momentum = I*omega = 2/5 * M*R^2 * omega
-
-        wj[0] = omega[j][0];
-        wj[1] = omega[j][1];
-        wj[2] = omega[j][2];
-
-        // loc of the point of closest approach on particle i from its center
-
-        xl[0] = -delx/r*radi;
-        xl[1] = -dely/r*radi;
-        xl[2] = -delz/r*radi;
-
-        // velocity at the point of closest approach on both particles
-        // v = v + omega_cross_xl
-
-        // particle i
-
-        vi[0] = v[i][0] + (wi[1]*xl[2] - wi[2]*xl[1]);
-        vi[1] = v[i][1] + (wi[2]*xl[0] - wi[0]*xl[2]);
-        vi[2] = v[i][2] + (wi[0]*xl[1] - wi[1]*xl[0]);
-
-        // particle j
-
-        vj[0] = v[j][0] - (wj[1]*xl[2] - wj[2]*xl[1]);
-        vj[1] = v[j][1] - (wj[2]*xl[0] - wj[0]*xl[2]);
-        vj[2] = v[j][2] - (wj[0]*xl[1] - wj[1]*xl[0]);
-
-        // Find the scalar resistances a_sq and a_sh
-
-        h_sep = r - 2.0*radi;
-
-        // If less than the minimum gap use the minimum gap instead
-
-        if (r < cut_inner[itype][jtype])
-          h_sep = cut_inner[itype][jtype] - 2.0*radi;
-
-        // Scale h_sep by radi
-
-        h_sep = h_sep/radi;
-
-        // Scalar resistances
-
-        if (flaglog) {
-          a_sq = 6.0*MY_PI*mu*radi*(1.0/4.0/h_sep + 9.0/40.0*log(1.0/h_sep));
-          a_sh = 6.0*MY_PI*mu*radi*(1.0/6.0*log(1.0/h_sep));
-          a_pu = 8.0*MY_PI*mu*pow(radi,3.0)*(3.0/160.0*log(1.0/h_sep));
-        } else
-          a_sq = 6.0*MY_PI*mu*radi*(1.0/4.0/h_sep);
-
-        // Relative  velocity at the point of closest approach
-
-        vr1 = vi[0] - vj[0];
-        vr2 = vi[1] - vj[1];
-        vr3 = vi[2] - vj[2];
-
-        // Normal component (vr.n)n
-
-        vnnr = (vr1*delx + vr2*dely + vr3*delz)/r;
-        vn1 = vnnr*delx/r;
-        vn2 = vnnr*dely/r;
-        vn3 = vnnr*delz/r;
-
-        // Tangential component vr - (vr.n)n
-
-        vt1 = vr1 - vn1;
-        vt2 = vr2 - vn2;
-        vt3 = vr3 - vn3;
-
-        // Find force due to squeeze type motion
-
-        fx  = a_sq*vn1;
-        fy  = a_sq*vn2;
-        fz  = a_sq*vn3;
-
-        // Find force due to all shear kind of motions
-
-        if (flaglog) {
-          fx = fx + a_sh*vt1;
-          fy = fy + a_sh*vt2;
-          fz = fz + a_sh*vt3;
-        }
-
-        // Scale forces to obtain in appropriate units
-
-        fx = vxmu2f*fx;
-        fy = vxmu2f*fy;
-        fz = vxmu2f*fz;
-
-        // Add to the total forc
-
-        f[i][0] -= fx;
-        f[i][1] -= fy;
-        f[i][2] -= fz;
-
-        if (newton_pair || j < nlocal) {
-          f[j][0] += fx;
-          f[j][1] += fy;
-          f[j][2] += fz;
-        }
-
-        // Find torque due to this force
-
-        if (flaglog) {
-          tx = xl[1]*fz - xl[2]*fy;
-          ty = xl[2]*fx - xl[0]*fz;
-          tz = xl[0]*fy - xl[1]*fx;
-
-          // Why a scale factor ?
-
-          torque[i][0] -= vxmu2f*tx;
-          torque[i][1] -= vxmu2f*ty;
-          torque[i][2] -= vxmu2f*tz;
-
-          if(newton_pair || j < nlocal) {
-            torque[j][0] -= vxmu2f*tx;
-            torque[j][1] -= vxmu2f*ty;
-            torque[j][2] -= vxmu2f*tz;
-          }
-
-          // Torque due to a_pu
-
-          wdotn = ((wi[0]-wj[0])*delx +
-                   (wi[1]-wj[1])*dely + (wi[2]-wj[2])*delz)/r;
-          wt1 = (wi[0]-wj[0]) - wdotn*delx/r;
-          wt2 = (wi[1]-wj[1]) - wdotn*dely/r;
-          wt3 = (wi[2]-wj[2]) - wdotn*delz/r;
-
-          tx = a_pu*wt1;
-          ty = a_pu*wt2;
-          tz = a_pu*wt3;
-
-          // add to total
-
-          torque[i][0] -= vxmu2f*tx;
-          torque[i][1] -= vxmu2f*ty;
-          torque[i][2] -= vxmu2f*tz;
-
-          if (newton_pair || j < nlocal) {
-            torque[j][0] += vxmu2f*tx;
-            torque[j][1] += vxmu2f*ty;
-            torque[j][2] += vxmu2f*tz;
-          }
-        }
-      }
-    }
-  }
-}
-
-/* ----------------------------------------------------------------------
-  computes R_FU * U
----------------------------------------------------------------------- */
-
-void PairLubricateU::compute_RU(double **x)
-{
-  int i,j,ii,jj,inum,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz,fx,fy,fz,tx,ty,tz;
-  double rsq,r,h_sep,radi;
-  double vr1,vr2,vr3,vnnr,vn1,vn2,vn3;
-  double vt1,vt2,vt3,wdotn,wt1,wt2,wt3;
-  int *ilist,*jlist,*numneigh,**firstneigh;
-
-  double **v = atom->v;
-  double **f = atom->f;
-  double **omega = atom->omega;
-  double **torque = atom->torque;
-  double *radius = atom->radius;
-  int *type = atom->type;
-  int nlocal = atom->nlocal;
-  int nghost = atom->nghost;
-  int newton_pair = force->newton_pair;
-
-  double vxmu2f = force->vxmu2f;
-  double vi[3],vj[3],wi[3],wj[3],xl[3],a_sq,a_sh,a_pu;
-
-  inum = list->inum;
-  ilist = list->ilist;
-  numneigh = list->numneigh;
-  firstneigh = list->firstneigh;
-
-  // This section of code adjusts R0/RT0/RS0 if necessary due to changes
-  // in the volume fraction as a result of fix deform or moving walls
-
-  double dims[3], wallcoord;
-  if (flagVF) // Flag for volume fraction corrections
-    if (flagdeform || flagwall == 2){ // Possible changes in volume fraction
-      if (flagdeform && !flagwall)
-        for (j = 0; j < 3; j++)
-          dims[j] = domain->prd[j];
-      else if (flagwall == 2 || (flagdeform && flagwall == 1)){
-         double wallhi[3], walllo[3];
-         for (int j = 0; j < 3; j++){
-           wallhi[j] = domain->prd[j];
-           walllo[j] = 0;
-         }
-         for (int m = 0; m < wallfix->nwall; m++){
-           int dim = wallfix->wallwhich[m] / 2;
-           int side = wallfix->wallwhich[m] % 2;
-           if (wallfix->xstyle[m] == VARIABLE){
+           if (wallfix->xstyle[m] == VARIABLE) {
              wallcoord = input->variable->compute_equal(wallfix->xindex[m]);
            }
            else wallcoord = wallfix->coord0[m];
@@ -1289,7 +1014,278 @@ void PairLubricateU::compute_RU(double **x)
           torque[i][1] -= vxmu2f*ty;
           torque[i][2] -= vxmu2f*tz;
 
-          if(newton_pair || j < nlocal) {
+          if (newton_pair || j < nlocal) {
+            torque[j][0] -= vxmu2f*tx;
+            torque[j][1] -= vxmu2f*ty;
+            torque[j][2] -= vxmu2f*tz;
+          }
+
+          // Torque due to a_pu
+
+          wdotn = ((wi[0]-wj[0])*delx +
+                   (wi[1]-wj[1])*dely + (wi[2]-wj[2])*delz)/r;
+          wt1 = (wi[0]-wj[0]) - wdotn*delx/r;
+          wt2 = (wi[1]-wj[1]) - wdotn*dely/r;
+          wt3 = (wi[2]-wj[2]) - wdotn*delz/r;
+
+          tx = a_pu*wt1;
+          ty = a_pu*wt2;
+          tz = a_pu*wt3;
+
+          // add to total
+
+          torque[i][0] -= vxmu2f*tx;
+          torque[i][1] -= vxmu2f*ty;
+          torque[i][2] -= vxmu2f*tz;
+
+          if (newton_pair || j < nlocal) {
+            torque[j][0] += vxmu2f*tx;
+            torque[j][1] += vxmu2f*ty;
+            torque[j][2] += vxmu2f*tz;
+          }
+        }
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+  computes R_FU * U
+---------------------------------------------------------------------- */
+
+void PairLubricateU::compute_RU(double **x)
+{
+  int i,j,ii,jj,inum,jnum,itype,jtype;
+  double xtmp,ytmp,ztmp,delx,dely,delz,fx,fy,fz,tx,ty,tz;
+  double rsq,r,h_sep,radi;
+  double vr1,vr2,vr3,vnnr,vn1,vn2,vn3;
+  double vt1,vt2,vt3,wdotn,wt1,wt2,wt3;
+  int *ilist,*jlist,*numneigh,**firstneigh;
+
+  double **v = atom->v;
+  double **f = atom->f;
+  double **omega = atom->omega;
+  double **torque = atom->torque;
+  double *radius = atom->radius;
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+  int nghost = atom->nghost;
+  int newton_pair = force->newton_pair;
+
+  double vxmu2f = force->vxmu2f;
+  double vi[3],vj[3],wi[3],wj[3],xl[3],a_sq,a_sh,a_pu;
+
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
+
+  // This section of code adjusts R0/RT0/RS0 if necessary due to changes
+  // in the volume fraction as a result of fix deform or moving walls
+
+  double dims[3], wallcoord;
+  if (flagVF) // Flag for volume fraction corrections
+    if (flagdeform || flagwall == 2) { // Possible changes in volume fraction
+      if (flagdeform && !flagwall)
+        for (j = 0; j < 3; j++)
+          dims[j] = domain->prd[j];
+      else if (flagwall == 2 || (flagdeform && flagwall == 1)) {
+         double wallhi[3], walllo[3];
+         for (int j = 0; j < 3; j++) {
+           wallhi[j] = domain->prd[j];
+           walllo[j] = 0;
+         }
+         for (int m = 0; m < wallfix->nwall; m++) {
+           int dim = wallfix->wallwhich[m] / 2;
+           int side = wallfix->wallwhich[m] % 2;
+           if (wallfix->xstyle[m] == VARIABLE) {
+             wallcoord = input->variable->compute_equal(wallfix->xindex[m]);
+           }
+           else wallcoord = wallfix->coord0[m];
+           if (side == 0) walllo[dim] = wallcoord;
+           else wallhi[dim] = wallcoord;
+         }
+         for (int j = 0; j < 3; j++)
+           dims[j] = wallhi[j] - walllo[j];
+      }
+      double vol_T = dims[0]*dims[1]*dims[2];
+      double vol_f = vol_P/vol_T;
+      if (flaglog == 0) {
+        R0  = 6*MY_PI*mu*rad*(1.0 + 2.16*vol_f);
+        RT0 = 8*MY_PI*mu*pow(rad,3.0);
+        //        RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
+      } else {
+        R0  = 6*MY_PI*mu*rad*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
+        RT0 = 8*MY_PI*mu*pow(rad,3.0)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f);
+        //        RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
+      }
+    }
+
+  // end of R0 adjustment code
+
+  // Initialize f to zero
+  for (i=0;i<nlocal+nghost;i++)
+    for (j=0;j<3;j++) {
+      f[i][j] = 0.0;
+      torque[i][j] = 0.0;
+    }
+
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    xtmp = x[i][0];
+    ytmp = x[i][1];
+    ztmp = x[i][2];
+    itype = type[i];
+    radi = radius[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+
+    // Find angular velocity
+
+    wi[0] = omega[i][0];
+    wi[1] = omega[i][1];
+    wi[2] = omega[i][2];
+
+    // Contribution due to the isotropic terms
+
+    f[i][0] += -vxmu2f*R0*v[i][0];
+    f[i][1] += -vxmu2f*R0*v[i][1];
+    f[i][2] += -vxmu2f*R0*v[i][2];
+
+    torque[i][0] += -vxmu2f*RT0*wi[0];
+    torque[i][1] += -vxmu2f*RT0*wi[1];
+    torque[i][2] += -vxmu2f*RT0*wi[2];
+
+    if (!flagHI) continue;
+
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      j &= NEIGHMASK;
+
+      delx = xtmp - x[j][0];
+      dely = ytmp - x[j][1];
+      delz = ztmp - x[j][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+      jtype = type[j];
+
+      if (rsq < cutsq[itype][jtype]) {
+        r = sqrt(rsq);
+
+        // Use omega directly if it exists, else angmom
+        // angular momentum = I*omega = 2/5 * M*R^2 * omega
+
+        wj[0] = omega[j][0];
+        wj[1] = omega[j][1];
+        wj[2] = omega[j][2];
+
+        // loc of the point of closest approach on particle i from its center
+
+        xl[0] = -delx/r*radi;
+        xl[1] = -dely/r*radi;
+        xl[2] = -delz/r*radi;
+
+        // velocity at the point of closest approach on both particles
+        // v = v + omega_cross_xl
+
+        // particle i
+
+        vi[0] = v[i][0] + (wi[1]*xl[2] - wi[2]*xl[1]);
+        vi[1] = v[i][1] + (wi[2]*xl[0] - wi[0]*xl[2]);
+        vi[2] = v[i][2] + (wi[0]*xl[1] - wi[1]*xl[0]);
+
+        // particle j
+
+        vj[0] = v[j][0] - (wj[1]*xl[2] - wj[2]*xl[1]);
+        vj[1] = v[j][1] - (wj[2]*xl[0] - wj[0]*xl[2]);
+        vj[2] = v[j][2] - (wj[0]*xl[1] - wj[1]*xl[0]);
+
+        // Find the scalar resistances a_sq and a_sh
+
+        h_sep = r - 2.0*radi;
+
+        // If less than the minimum gap use the minimum gap instead
+
+        if (r < cut_inner[itype][jtype])
+          h_sep = cut_inner[itype][jtype] - 2.0*radi;
+
+        // Scale h_sep by radi
+
+        h_sep = h_sep/radi;
+
+        // Scalar resistances
+
+        if (flaglog) {
+          a_sq = 6.0*MY_PI*mu*radi*(1.0/4.0/h_sep + 9.0/40.0*log(1.0/h_sep));
+          a_sh = 6.0*MY_PI*mu*radi*(1.0/6.0*log(1.0/h_sep));
+          a_pu = 8.0*MY_PI*mu*pow(radi,3.0)*(3.0/160.0*log(1.0/h_sep));
+        } else
+          a_sq = 6.0*MY_PI*mu*radi*(1.0/4.0/h_sep);
+
+        // Relative  velocity at the point of closest approach
+
+        vr1 = vi[0] - vj[0];
+        vr2 = vi[1] - vj[1];
+        vr3 = vi[2] - vj[2];
+
+        // Normal component (vr.n)n
+
+        vnnr = (vr1*delx + vr2*dely + vr3*delz)/r;
+        vn1 = vnnr*delx/r;
+        vn2 = vnnr*dely/r;
+        vn3 = vnnr*delz/r;
+
+        // Tangential component vr - (vr.n)n
+
+        vt1 = vr1 - vn1;
+        vt2 = vr2 - vn2;
+        vt3 = vr3 - vn3;
+
+        // Find force due to squeeze type motion
+
+        fx  = a_sq*vn1;
+        fy  = a_sq*vn2;
+        fz  = a_sq*vn3;
+
+        // Find force due to all shear kind of motions
+
+        if (flaglog) {
+          fx = fx + a_sh*vt1;
+          fy = fy + a_sh*vt2;
+          fz = fz + a_sh*vt3;
+        }
+
+        // Scale forces to obtain in appropriate units
+
+        fx = vxmu2f*fx;
+        fy = vxmu2f*fy;
+        fz = vxmu2f*fz;
+
+        // Add to the total force
+
+        f[i][0] -= fx;
+        f[i][1] -= fy;
+        f[i][2] -= fz;
+
+        if (newton_pair || j < nlocal) {
+          f[j][0] += fx;
+          f[j][1] += fy;
+          f[j][2] += fz;
+        }
+
+        // Find torque due to this force
+
+        if (flaglog) {
+          tx = xl[1]*fz - xl[2]*fy;
+          ty = xl[2]*fx - xl[0]*fz;
+          tz = xl[0]*fy - xl[1]*fx;
+
+          // Why a scale factor ?
+
+          torque[i][0] -= vxmu2f*tx;
+          torque[i][1] -= vxmu2f*ty;
+          torque[i][2] -= vxmu2f*tz;
+
+          if (newton_pair || j < nlocal) {
             torque[j][0] -= vxmu2f*tx;
             torque[j][1] -= vxmu2f*ty;
             torque[j][2] -= vxmu2f*tz;
@@ -1454,7 +1450,7 @@ void PairLubricateU::compute_RE()
         fy = vxmu2f*fy;
         fz = vxmu2f*fz;
 
-        // Add to the total forc
+        // Add to the total force
 
         f[i][0] -= fx;
         f[i][1] -= fy;
@@ -1619,7 +1615,7 @@ void PairLubricateU::compute_RE(double **x)
         fy = vxmu2f*fy;
         fz = vxmu2f*fz;
 
-        // Add to the total forc
+        // Add to the total force
 
         f[i][0] -= fx;
         f[i][1] -= fy;
@@ -1684,16 +1680,16 @@ void PairLubricateU::settings(int narg, char **arg)
 {
   if (narg != 5 && narg != 7) error->all(FLERR,"Illegal pair_style command");
 
-  mu = force->numeric(FLERR,arg[0]);
-  flaglog = force->inumeric(FLERR,arg[1]);
-  cut_inner_global = force->numeric(FLERR,arg[2]);
-  cut_global = force->numeric(FLERR,arg[3]);
-  gdot =  force->numeric(FLERR,arg[4]);
+  mu = utils::numeric(FLERR,arg[0],false,lmp);
+  flaglog = utils::inumeric(FLERR,arg[1],false,lmp);
+  cut_inner_global = utils::numeric(FLERR,arg[2],false,lmp);
+  cut_global = utils::numeric(FLERR,arg[3],false,lmp);
+  gdot =  utils::numeric(FLERR,arg[4],false,lmp);
 
   flagHI = flagVF = 1;
   if (narg == 7) {
-    flagHI = force->inumeric(FLERR,arg[5]);
-    flagVF = force->inumeric(FLERR,arg[6]);
+    flagHI = utils::inumeric(FLERR,arg[5],false,lmp);
+    flagVF = utils::inumeric(FLERR,arg[6],false,lmp);
   }
 
   if (flaglog == 1 && flagHI == 0) {
@@ -1739,14 +1735,14 @@ void PairLubricateU::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   double cut_inner_one = cut_inner_global;
   double cut_one = cut_global;
   if (narg == 4) {
-    cut_inner_one = force->numeric(FLERR,arg[2]);
-    cut_one = force->numeric(FLERR,arg[3]);
+    cut_inner_one = utils::numeric(FLERR,arg[2],false,lmp);
+    cut_one = utils::numeric(FLERR,arg[3],false,lmp);
   }
 
   int count = 0;
@@ -1796,10 +1792,10 @@ void PairLubricateU::init_style()
   // are re-calculated at every step.
 
   flagdeform = flagwall = 0;
-  for (int i = 0; i < modify->nfix; i++){
+  for (int i = 0; i < modify->nfix; i++) {
     if (strcmp(modify->fix[i]->style,"deform") == 0)
       flagdeform = 1;
-    else if (strstr(modify->fix[i]->style,"wall") != NULL) {
+    else if (strstr(modify->fix[i]->style,"wall") != nullptr) {
       if (flagwall)
         error->all(FLERR,
                    "Cannot use multiple fix wall commands with "
@@ -1816,14 +1812,14 @@ void PairLubricateU::init_style()
     if (!flagwall) vol_T = domain->xprd*domain->yprd*domain->zprd;
   else {
     double wallhi[3], walllo[3];
-    for (int j = 0; j < 3; j++){
+    for (int j = 0; j < 3; j++) {
       wallhi[j] = domain->prd[j];
       walllo[j] = 0;
     }
-    for (int m = 0; m < wallfix->nwall; m++){
+    for (int m = 0; m < wallfix->nwall; m++) {
       int dim = wallfix->wallwhich[m] / 2;
       int side = wallfix->wallwhich[m] % 2;
-      if (wallfix->xstyle[m] == VARIABLE){
+      if (wallfix->xstyle[m] == VARIABLE) {
         wallfix->xindex[m] = input->variable->find(wallfix->xstr[m]);
         //Since fix->wall->init happens after pair->init_style
         wallcoord = input->variable->compute_equal(wallfix->xindex[m]);
@@ -1914,12 +1910,12 @@ void PairLubricateU::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) fread(&setflag[i][j],sizeof(int),1,fp);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          fread(&cut_inner[i][j],sizeof(double),1,fp);
-          fread(&cut[i][j],sizeof(double),1,fp);
+          utils::sfread(FLERR,&cut_inner[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&cut_inner[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
@@ -1951,14 +1947,14 @@ void PairLubricateU::read_restart_settings(FILE *fp)
 {
   int me = comm->me;
   if (me == 0) {
-    fread(&mu,sizeof(double),1,fp);
-    fread(&flaglog,sizeof(int),1,fp);
-    fread(&cut_inner_global,sizeof(double),1,fp);
-    fread(&cut_global,sizeof(double),1,fp);
-    fread(&offset_flag,sizeof(int),1,fp);
-    fread(&mix_flag,sizeof(int),1,fp);
-    fread(&flagHI,sizeof(int),1,fp);
-    fread(&flagVF,sizeof(int),1,fp);
+    utils::sfread(FLERR,&mu,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&flaglog,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_inner_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&flagHI,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&flagVF,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&mu,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&flaglog,1,MPI_INT,0,world);

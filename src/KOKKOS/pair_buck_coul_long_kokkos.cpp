@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,28 +16,22 @@
    Contributing author: Ray Shan (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_buck_coul_long_kokkos.h"
+#include <cmath>
+#include <cstring>
 #include "kokkos.h"
 #include "atom_kokkos.h"
-#include "comm.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "update.h"
-#include "integrate.h"
 #include "respa.h"
-#include "math_const.h"
 #include "memory_kokkos.h"
 #include "error.h"
 #include "atom_masks.h"
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 #define KOKKOS_CUDA_MAX_THREADS 256
 #define KOKKOS_CUDA_MIN_BLOCKS 8
@@ -57,14 +52,11 @@ PairBuckCoulLongKokkos<DeviceType>::PairBuckCoulLongKokkos(LAMMPS *lmp):PairBuck
 {
   respa_enable = 0;
 
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
-  cutsq = NULL;
-  cut_ljsq = NULL;
-  cut_coulsq = 0.0;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -72,33 +64,14 @@ PairBuckCoulLongKokkos<DeviceType>::PairBuckCoulLongKokkos(LAMMPS *lmp):PairBuck
 template<class DeviceType>
 PairBuckCoulLongKokkos<DeviceType>::~PairBuckCoulLongKokkos()
 {
-  if (!copymode) {
+  if (copymode) return;
+
+  if (allocated) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    k_cutsq = DAT::tdual_ffloat_2d();
-    k_cut_ljsq = DAT::tdual_ffloat_2d();
-    k_cut_coulsq = DAT::tdual_ffloat_2d();
-    memory->sfree(cutsq);
-    memory->sfree(cut_ljsq);
-    //memory->sfree(cut_coulsq);
-    eatom = NULL;
-    vatom = NULL;
-    cutsq = NULL;
-    cut_ljsq = NULL;
-    //cut_coulsq = NULL;
+    memoryKK->destroy_kokkos(k_cutsq,cutsq);
+    memoryKK->destroy_kokkos(k_cut_ljsq,cut_ljsq);
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PairBuckCoulLongKokkos<DeviceType>::cleanup_copy() {
-  allocated = 0;
-  cutsq = NULL;
-  cut_ljsq = NULL;
-  eatom = NULL;
-  vatom = NULL;
-  ftable = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -111,8 +84,7 @@ void PairBuckCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (neighflag == FULL) no_virial_fdotr_compute = 1;
 
-  if (eflag || vflag) ev_setup(eflag,vflag,0);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag,0);
 
   // reallocate per-atom arrays if necessary
 
@@ -123,14 +95,13 @@ void PairBuckCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"pair:vatom");
     d_vatom = k_vatom.view<DeviceType>();
   }
 
   atomKK->sync(execution_space,datamask_read);
   k_cutsq.template sync<DeviceType>();
   k_cut_ljsq.template sync<DeviceType>();
-  k_cut_coulsq.template sync<DeviceType>();
   k_params.template sync<DeviceType>();
   if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
   else atomKK->modified(execution_space,F_MASK);
@@ -158,7 +129,7 @@ void PairBuckCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   copymode = 1;
 
   EV_FLOAT ev;
-  if(ncoultablebits)
+  if (ncoultablebits)
     ev = pair_compute<PairBuckCoulLongKokkos<DeviceType>,CoulLongTable<1> >
       (this,(NeighListKokkos<DeviceType>*)list);
   else
@@ -191,7 +162,8 @@ template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairBuckCoulLongKokkos<DeviceType>::
-compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
+compute_fpair(const F_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
+              const int& itype, const int& jtype) const {
   const F_FLOAT r2inv = 1.0/rsq;
   const F_FLOAT r6inv = r2inv*r2inv*r2inv;
   const F_FLOAT r = sqrt(rsq);
@@ -211,7 +183,8 @@ template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairBuckCoulLongKokkos<DeviceType>::
-compute_evdwl(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
+compute_evdwl(const F_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
+              const int& itype, const int& jtype) const {
   const F_FLOAT r2inv = 1.0/rsq;
   const F_FLOAT r6inv = r2inv*r2inv*r2inv;
   const F_FLOAT r = sqrt(rsq);
@@ -230,9 +203,10 @@ template<class DeviceType>
 template<bool STACKPARAMS,  class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairBuckCoulLongKokkos<DeviceType>::
-compute_fcoul(const F_FLOAT& rsq, const int& i, const int&j,
-              const int& itype, const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
-  if(Specialisation::DoTable && rsq > tabinnersq) {
+compute_fcoul(const F_FLOAT& rsq, const int& /*i*/, const int&j,
+              const int& /*itype*/, const int& /*jtype*/,
+              const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
+  if (Specialisation::DoTable && rsq > tabinnersq) {
     union_int_float_t rsq_lookup;
     rsq_lookup.f = rsq;
     const int itable = (rsq_lookup.i & ncoulmask) >> ncoulshiftbits;
@@ -268,9 +242,10 @@ template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 F_FLOAT PairBuckCoulLongKokkos<DeviceType>::
-compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j,
-              const int& itype, const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
-  if(Specialisation::DoTable && rsq > tabinnersq) {
+compute_ecoul(const F_FLOAT& rsq, const int& /*i*/, const int&j,
+              const int& /*itype*/, const int& /*jtype*/,
+              const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
+  if (Specialisation::DoTable && rsq > tabinnersq) {
     union_int_float_t rsq_lookup;
     rsq_lookup.f = rsq;
     const int itable = (rsq_lookup.i & ncoulmask) >> ncoulshiftbits;
@@ -315,8 +290,7 @@ void PairBuckCoulLongKokkos<DeviceType>::allocate()
   memoryKK->create_kokkos(k_cut_ljsq,cut_ljsq,n+1,n+1,"pair:cut_ljsq");
   d_cut_ljsq = k_cut_ljsq.template view<DeviceType>();
 
-  memoryKK->create_kokkos(k_cut_coulsq,n+1,n+1,"pair:cut_coulsq");
-  d_cut_coulsq = k_cut_coulsq.template view<DeviceType>();
+  d_cut_coulsq = typename AT::t_ffloat_2d("pair:cut_coulsq",n+1,n+1);
 
   k_params = Kokkos::DualView<params_buck_coul**,Kokkos::LayoutRight,DeviceType>("PairBuckCoulLong::params",n+1,n+1);
   params = k_params.template view<DeviceType>();
@@ -338,7 +312,7 @@ void PairBuckCoulLongKokkos<DeviceType>::init_tables(double cut_coul, double *cu
   {
   host_table_type h_table("HostTable",ntable);
   table_type d_table("DeviceTable",ntable);
-  for(int i = 0; i < ntable; i++) {
+  for (int i = 0; i < ntable; i++) {
     h_table(i) = rtable[i];
   }
   Kokkos::deep_copy(d_table,h_table);
@@ -348,7 +322,7 @@ void PairBuckCoulLongKokkos<DeviceType>::init_tables(double cut_coul, double *cu
   {
   host_table_type h_table("HostTable",ntable);
   table_type d_table("DeviceTable",ntable);
-  for(int i = 0; i < ntable; i++) {
+  for (int i = 0; i < ntable; i++) {
     h_table(i) = drtable[i];
   }
   Kokkos::deep_copy(d_table,h_table);
@@ -360,7 +334,7 @@ void PairBuckCoulLongKokkos<DeviceType>::init_tables(double cut_coul, double *cu
   table_type d_table("DeviceTable",ntable);
 
   // Copy ftable and dftable
-  for(int i = 0; i < ntable; i++) {
+  for (int i = 0; i < ntable; i++) {
     h_table(i) = ftable[i];
   }
   Kokkos::deep_copy(d_table,h_table);
@@ -371,7 +345,7 @@ void PairBuckCoulLongKokkos<DeviceType>::init_tables(double cut_coul, double *cu
   host_table_type h_table("HostTable",ntable);
   table_type d_table("DeviceTable",ntable);
 
-  for(int i = 0; i < ntable; i++) {
+  for (int i = 0; i < ntable; i++) {
     h_table(i) = dftable[i];
   }
   Kokkos::deep_copy(d_table,h_table);
@@ -383,7 +357,7 @@ void PairBuckCoulLongKokkos<DeviceType>::init_tables(double cut_coul, double *cu
   table_type d_table("DeviceTable",ntable);
 
   // Copy ctable and dctable
-  for(int i = 0; i < ntable; i++) {
+  for (int i = 0; i < ntable; i++) {
     h_table(i) = ctable[i];
   }
   Kokkos::deep_copy(d_table,h_table);
@@ -394,7 +368,7 @@ void PairBuckCoulLongKokkos<DeviceType>::init_tables(double cut_coul, double *cu
   host_table_type h_table("HostTable",ntable);
   table_type d_table("DeviceTable",ntable);
 
-  for(int i = 0; i < ntable; i++) {
+  for (int i = 0; i < ntable; i++) {
     h_table(i) = dctable[i];
   }
   Kokkos::deep_copy(d_table,h_table);
@@ -406,7 +380,7 @@ void PairBuckCoulLongKokkos<DeviceType>::init_tables(double cut_coul, double *cu
   table_type d_table("DeviceTable",ntable);
 
   // Copy etable and detable
-  for(int i = 0; i < ntable; i++) {
+  for (int i = 0; i < ntable; i++) {
     h_table(i) = etable[i];
   }
   Kokkos::deep_copy(d_table,h_table);
@@ -417,7 +391,7 @@ void PairBuckCoulLongKokkos<DeviceType>::init_tables(double cut_coul, double *cu
   host_table_type h_table("HostTable",ntable);
   table_type d_table("DeviceTable",ntable);
 
-  for(int i = 0; i < ntable; i++) {
+  for (int i = 0; i < ntable; i++) {
     h_table(i) = detable[i];
   }
   Kokkos::deep_copy(d_table,h_table);
@@ -447,9 +421,11 @@ void PairBuckCoulLongKokkos<DeviceType>::init_style()
 {
   PairBuckCoulLong::init_style();
 
+  Kokkos::deep_copy(d_cut_coulsq,cut_coulsq);
+
   // error if rRESPA with inner levels
 
-  if (update->whichflag == 1 && strstr(update->integrate_style,"respa")) {
+  if (update->whichflag == 1 && utils::strmatch(update->integrate_style,"^respa")) {
     int respa = 0;
     if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
     if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
@@ -463,10 +439,10 @@ void PairBuckCoulLongKokkos<DeviceType>::init_style()
   int irequest = neighbor->nrequest - 1;
 
   neighbor->requests[irequest]->
-    kokkos_host = Kokkos::Impl::is_same<DeviceType,LMPHostType>::value &&
-    !Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
+    !std::is_same<DeviceType,LMPDeviceType>::value;
   neighbor->requests[irequest]->
-    kokkos_device = Kokkos::Impl::is_same<DeviceType,LMPDeviceType>::value;
+    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
 
   if (neighflag == FULL) {
     neighbor->requests[irequest]->full = 1;
@@ -488,7 +464,6 @@ double PairBuckCoulLongKokkos<DeviceType>::init_one(int i, int j)
 {
   double cutone = PairBuckCoulLong::init_one(i,j);
   double cut_ljsqm = cut_ljsq[i][j];
-  double cut_coulsqm = cut_coulsq;
 
   k_params.h_view(i,j).a = a[i][j];
   k_params.h_view(i,j).c = c[i][j];
@@ -497,32 +472,28 @@ double PairBuckCoulLongKokkos<DeviceType>::init_one(int i, int j)
   k_params.h_view(i,j).buck2 = buck2[i][j];
   k_params.h_view(i,j).offset = offset[i][j];
   k_params.h_view(i,j).cut_ljsq = cut_ljsqm;
-  k_params.h_view(i,j).cut_coulsq = cut_coulsqm;
+  k_params.h_view(i,j).cut_coulsq = cut_coulsq;
 
   k_params.h_view(j,i) = k_params.h_view(i,j);
-  if(i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
+  if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
     m_params[i][j] = m_params[j][i] = k_params.h_view(i,j);
     m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
     m_cut_ljsq[j][i] = m_cut_ljsq[i][j] = cut_ljsqm;
-    m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = cut_coulsqm;
+    m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = cut_coulsq;
   }
 
   k_cutsq.h_view(i,j) = cutone*cutone;
   k_cutsq.template modify<LMPHostType>();
   k_cut_ljsq.h_view(i,j) = cut_ljsqm;
   k_cut_ljsq.template modify<LMPHostType>();
-  k_cut_coulsq.h_view(i,j) = cut_coulsqm;
-  k_cut_coulsq.template modify<LMPHostType>();
   k_params.template modify<LMPHostType>();
 
   return cutone;
-
 }
-
 
 namespace LAMMPS_NS {
 template class PairBuckCoulLongKokkos<LMPDeviceType>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class PairBuckCoulLongKokkos<LMPHostType>;
 #endif
 }

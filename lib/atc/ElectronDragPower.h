@@ -11,7 +11,7 @@
 namespace ATC {
 
   /**
-   *  @class  ElectronDragPower 
+   *  @class  ElectronDragPower
    *  @brief  Base class for defining the lattice drag power from electrons
    */
 
@@ -21,9 +21,9 @@ namespace ATC {
     ElectronDragPower() {};
     virtual ~ElectronDragPower() {};
     /** computes drag power */
-    virtual bool electron_drag_power(const FIELD_MATS &fields,
-                                     const GRAD_FIELD_MATS &gradFields,
-                                           DENS_MAT & flux)
+    virtual bool electron_drag_power(const FIELD_MATS & /* fields */,
+                                     const GRAD_FIELD_MATS & /* gradFields */,
+                                     DENS_MAT & /* flux */)
     {
       return false;
     };
@@ -35,12 +35,12 @@ namespace ATC {
     };
   };
   //-------------------------------------------------------------------
-  
+
   /**
    *  @class  ElectronDragPowerLinear
    *  @brief  Class for electron drag that linearly depends on the difference between the electron and lattice velocities
-   */  
-  
+   */
+
   class ElectronDragPowerLinear : public ElectronDragPower
   {
     public:
@@ -66,6 +66,6 @@ namespace ATC {
   };
 }
 
-#endif 
+#endif
 
 

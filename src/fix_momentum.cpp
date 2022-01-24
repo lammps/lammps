@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,14 +12,15 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "fix_momentum.h"
+
 #include "atom.h"
 #include "domain.h"
-#include "group.h"
 #include "error.h"
-#include "force.h"
+#include "group.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -33,7 +35,7 @@ FixMomentum::FixMomentum(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix momentum command");
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix momentum command");
 
   dynamic = linear = angular = rescale = 0;
@@ -43,9 +45,9 @@ FixMomentum::FixMomentum(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"linear") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix momentum command");
       linear = 1;
-      xflag = force->inumeric(FLERR,arg[iarg+1]);
-      yflag = force->inumeric(FLERR,arg[iarg+2]);
-      zflag = force->inumeric(FLERR,arg[iarg+3]);
+      xflag = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      yflag = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
+      zflag = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
       iarg += 4;
     } else if (strcmp(arg[iarg],"angular") == 0) {
       angular = 1;
@@ -94,8 +96,11 @@ void FixMomentum::init()
 
 void FixMomentum::end_of_step()
 {
+  double **x = atom->x;
   double **v = atom->v;
   int *mask = atom->mask;
+  imageint *image = atom->image;
+
   const int nlocal = atom->nlocal;
   double ekin_old,ekin_new;
   ekin_old = ekin_new = 0.0;
@@ -155,12 +160,6 @@ void FixMomentum::end_of_step()
     // adjust velocities to zero omega
     // vnew_i = v_i - w x r_i
     // must use unwrapped coords to compute r_i correctly
-
-    double **x = atom->x;
-    double **v = atom->v;
-    int *mask = atom->mask;
-    imageint *image = atom->image;
-    int nlocal = atom->nlocal;
 
     double dx,dy,dz;
     double unwrap[3];

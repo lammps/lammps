@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,20 +16,21 @@
    Contributing author: Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstring>
-#include <cstdlib>
 #include "fix_box_relax.h"
+
 #include "atom.h"
-#include "domain.h"
-#include "update.h"
 #include "comm.h"
+#include "compute.h"
+#include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "kspace.h"
-#include "modify.h"
-#include "compute.h"
-#include "error.h"
 #include "math_extra.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -42,7 +44,7 @@ enum{ISO,ANISO,TRICLINIC};
 
 FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  id_temp(NULL), id_press(NULL), tflag(0), pflag(0)
+  id_temp(nullptr), id_press(nullptr), tflag(0), pflag(0)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix box/relax command");
 
@@ -89,7 +91,7 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"iso") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
       pcouple = XYZ;
-      p_target[0] = p_target[1] = p_target[2] = force->numeric(FLERR,arg[iarg+1]);
+      p_target[0] = p_target[1] = p_target[2] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (dimension == 2) {
         p_target[2] = 0.0;
@@ -99,7 +101,7 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"aniso") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
       pcouple = NONE;
-      p_target[0] = p_target[1] = p_target[2] = force->numeric(FLERR,arg[iarg+1]);
+      p_target[0] = p_target[1] = p_target[2] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       if (dimension == 2) {
         p_target[2] = 0.0;
@@ -110,7 +112,7 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
       pcouple = NONE;
       scalexy = scalexz = scaleyz = 0;
-      p_target[0] = p_target[1] = p_target[2] = force->numeric(FLERR,arg[iarg+1]);
+      p_target[0] = p_target[1] = p_target[2] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       p_flag[0] = p_flag[1] = p_flag[2] = 1;
       p_target[3] = p_target[4] = p_target[5] = 0.0;
       p_flag[3] = p_flag[4] = p_flag[5] = 1;
@@ -122,19 +124,19 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"x") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
-      p_target[0] = force->numeric(FLERR,arg[iarg+1]);
+      p_target[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       p_flag[0] = 1;
       deviatoric_flag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"y") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
-      p_target[1] = force->numeric(FLERR,arg[iarg+1]);
+      p_target[1] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       p_flag[1] = 1;
       deviatoric_flag = 1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"z") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
-      p_target[2] = force->numeric(FLERR,arg[iarg+1]);
+      p_target[2] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       p_flag[2] = 1;
       deviatoric_flag = 1;
       iarg += 2;
@@ -143,7 +145,7 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"yz") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
-      p_target[3] = force->numeric(FLERR,arg[iarg+1]);
+      p_target[3] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       p_flag[3] = 1;
       deviatoric_flag = 1;
       scaleyz = 0;
@@ -152,7 +154,7 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Invalid fix box/relax command for a 2d simulation");
     } else if (strcmp(arg[iarg],"xz") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
-      p_target[4] = force->numeric(FLERR,arg[iarg+1]);
+      p_target[4] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       p_flag[4] = 1;
       deviatoric_flag = 1;
       scalexz = 0;
@@ -161,7 +163,7 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Invalid fix box/relax command for a 2d simulation");
     } else if (strcmp(arg[iarg],"xy") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
-      p_target[5] = force->numeric(FLERR,arg[iarg+1]);
+      p_target[5] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       p_flag[5] = 1;
       deviatoric_flag = 1;
       scalexy = 0;
@@ -185,42 +187,41 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"vmax") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
-      vmax = force->numeric(FLERR,arg[iarg+1]);
+      vmax = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"nreset") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
-      nreset_h0 = force->inumeric(FLERR,arg[iarg+1]);
+      nreset_h0 = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nreset_h0 < 0) error->all(FLERR,"Illegal fix box/relax command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"scalexy") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
-      if (strcmp(arg[iarg+1],"yes") == 0) scalexy = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) scalexy = 0;
-      else error->all(FLERR,"Illegal fix box/relax command");
+      scalexy = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"scalexz") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
-      if (strcmp(arg[iarg+1],"yes") == 0) scalexz = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) scalexz = 0;
-      else error->all(FLERR,"Illegal fix box/relax command");
+      scalexz = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"scaleyz") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix box/relax command");
-      if (strcmp(arg[iarg+1],"yes") == 0) scaleyz = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) scaleyz = 0;
-      else error->all(FLERR,"Illegal fix box/relax command");
+      scaleyz = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"fixedpoint") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix box/relax command");
-      fixedpoint[0] = force->numeric(FLERR,arg[iarg+1]);
-      fixedpoint[1] = force->numeric(FLERR,arg[iarg+2]);
-      fixedpoint[2] = force->numeric(FLERR,arg[iarg+3]);
+      fixedpoint[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      fixedpoint[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      fixedpoint[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       iarg += 4;
     } else error->all(FLERR,"Illegal fix box/relax command");
   }
 
-  if (p_flag[0] || p_flag[1] || p_flag[2]) box_change_size = 1;
-  if (p_flag[3] || p_flag[4] || p_flag[5]) box_change_shape = 1;
+  if (p_flag[0]) box_change |= BOX_CHANGE_X;
+  if (p_flag[1]) box_change |= BOX_CHANGE_Y;
+  if (p_flag[2]) box_change |= BOX_CHANGE_Z;
+  if (p_flag[3]) box_change |= BOX_CHANGE_YZ;
+  if (p_flag[4]) box_change |= BOX_CHANGE_XZ;
+  if (p_flag[5]) box_change |= BOX_CHANGE_XY;
+
   if (allremap == 0) restart_pbc = 1;
 
   // error checks
@@ -313,41 +314,21 @@ FixBoxRelax::FixBoxRelax(LAMMPS *lmp, int narg, char **arg) :
   // compute group = all since pressure is always global (group all)
   //   and thus its KE/temperature contribution should use group all
 
-  int n = strlen(id) + 6;
-  id_temp = new char[n];
-  strcpy(id_temp,id);
-  strcat(id_temp,"_temp");
-
-  char **newarg = new char*[3];
-  newarg[0] = id_temp;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "temp";
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  id_temp = utils::strdup(std::string(id) + "_temp");
+  modify->add_compute(fmt::format("{} all temp",id_temp));
   tflag = 1;
 
   // create a new compute pressure style (virial only)
   // id = fix-ID + press, compute group = all
   // pass id_temp as 4th arg to pressure constructor
 
-  n = strlen(id) + 7;
-  id_press = new char[n];
-  strcpy(id_press,id);
-  strcat(id_press,"_press");
-
-  newarg = new char*[5];
-  newarg[0] = id_press;
-  newarg[1] = (char *) "all";
-  newarg[2] = (char *) "pressure";
-  newarg[3] = id_temp;
-  newarg[4] = (char *) "virial";
-  modify->add_compute(5,newarg);
-  delete [] newarg;
+  id_press = utils::strdup(std::string(id) + "_press");
+  modify->add_compute(fmt::format("{} all pressure {} virial",id_press, id_temp));
   pflag = 1;
 
   dimension = domain->dimension;
   nrigid = 0;
-  rfix = 0;
+  rfix = nullptr;
 
   current_lifo = 0;
 }
@@ -401,7 +382,7 @@ void FixBoxRelax::init()
 
   delete [] rfix;
   nrigid = 0;
-  rfix = NULL;
+  rfix = nullptr;
 
   for (int i = 0; i < modify->nfix; i++)
     if (modify->fix[i]->rigid_flag) nrigid++;
@@ -741,12 +722,18 @@ void FixBoxRelax::couple()
     p_current[2] = tensor[2];
   }
 
-  // switch order from xy-xz-yz to Voigt
+  if (!std::isfinite(p_current[0]) || !std::isfinite(p_current[1]) || !std::isfinite(p_current[2]))
+    error->all(FLERR,"Non-numeric pressure - simulation unstable");
+
+  // switch order from xy-xz-yz to Voigt ordering
 
   if (pstyle == TRICLINIC) {
     p_current[3] = tensor[5];
     p_current[4] = tensor[4];
     p_current[5] = tensor[3];
+
+    if (!std::isfinite(p_current[3]) || !std::isfinite(p_current[4]) || !std::isfinite(p_current[5]))
+      error->all(FLERR,"Non-numeric pressure - simulation unstable");
   }
 }
 
@@ -761,9 +748,7 @@ int FixBoxRelax::modify_param(int narg, char **arg)
       tflag = 0;
     }
     delete [] id_temp;
-    int n = strlen(arg[1]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[1]);
+    id_temp = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
     if (icompute < 0)
@@ -792,9 +777,7 @@ int FixBoxRelax::modify_param(int narg, char **arg)
       pflag = 0;
     }
     delete [] id_press;
-    int n = strlen(arg[1]) + 1;
-    id_press = new char[n];
-    strcpy(id_press,arg[1]);
+    id_press = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
     if (icompute < 0) error->all(FLERR,"Could not find fix_modify pressure ID");

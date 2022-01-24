@@ -3,21 +3,12 @@
 // -------------------------------------------------------------
 // $Revision$
 // $Date$
-// ------------------------------------------------------------- 
+// -------------------------------------------------------------
 // This source code is distributed under the terms of license.txt
 // in the root directory of this source distribution.
-// ------------------------------------------------------------- 
+// -------------------------------------------------------------
 #include "cudpp_maximal_launch.h"
- 
-inline size_t min(size_t x, size_t y)
-{
-    return (x <= y) ? x : y;
-}
-
-inline size_t max(size_t x, size_t y)
-{
-    return (x >= y) ? x : y;
-}
+#include <algorithm>
 
 // computes next highest multiple of f from x
 inline size_t multiple(size_t x, size_t f)
@@ -34,12 +25,12 @@ inline size_t ceiling(size_t x, size_t f)
 }
 
 extern "C"
-size_t maxBlocks(cudaFuncAttributes &attribs, 
-                 cudaDeviceProp &devprop, 
+size_t maxBlocks(cudaFuncAttributes &attribs,
+                 cudaDeviceProp &devprop,
                  size_t bytesDynamicSharedMem,
                  size_t threadsPerBlock)
 {
-    
+
     // Determine the maximum number of CTAs that can be run simultaneously for each kernel
     // This is equivalent to the calculation done in the CUDA Occupancy Calculator spreadsheet
     const unsigned int regAllocationUnit = (devprop.major < 2 && devprop.minor < 2) ? 256 : 512; // in registers
@@ -57,7 +48,7 @@ size_t maxBlocks(cudaFuncAttributes &attribs,
     size_t regsPerCTA = attribs.numRegs * devprop.warpSize * numWarps;
     // Round up to multiple of register allocation unit size
     regsPerCTA = ceiling(regsPerCTA, regAllocationUnit);
-    
+
     size_t smemBytes  = attribs.sharedSizeBytes + bytesDynamicSharedMem;
     size_t smemPerCTA = ceiling(smemBytes, smemAllocationUnit);
 
@@ -65,11 +56,11 @@ size_t maxBlocks(cudaFuncAttributes &attribs,
     size_t ctaLimitSMem    = smemPerCTA > 0 ? devprop.sharedMemPerBlock / smemPerCTA : maxBlocksPerSM;
     size_t ctaLimitThreads =                  maxThreadsPerSM           / threadsPerBlock;
 
-    return devprop.multiProcessorCount * min(ctaLimitRegs, min(ctaLimitSMem, min(ctaLimitThreads, maxBlocksPerSM)));
+    return devprop.multiProcessorCount * std::min(ctaLimitRegs, std::min(ctaLimitSMem, std::min(ctaLimitThreads, (size_t)maxBlocksPerSM)));
 }
 
 extern "C"
-size_t maxBlocksFromPointer(void*  kernel, 
+size_t maxBlocksFromPointer(void*  kernel,
                             size_t bytesDynamicSharedMem,
                             size_t threadsPerBlock)
 {
@@ -80,15 +71,15 @@ size_t maxBlocksFromPointer(void*  kernel,
     {
         err = cudaGetDeviceProperties(&devprop, deviceID);
         if (err != cudaSuccess)
-            return -1;
+            return (size_t)-1;
 
         cudaFuncAttributes attr;
         err = cudaFuncGetAttributes(&attr, (const char*)kernel);
         if (err != cudaSuccess)
-            return -1;
+            return (size_t)-1;
 
         return maxBlocks(attr, devprop, bytesDynamicSharedMem, threadsPerBlock);
     }
 
-    return -1;    
+    return (size_t)-1;
 }

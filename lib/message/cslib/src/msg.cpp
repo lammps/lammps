@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    CSlib - Client/server library for code coupling
-   http://cslib.sandia.gov, Sandia National Laboratories
+   https://cslib.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright 2018 National Technology & Engineering Solutions of
@@ -12,7 +12,11 @@
    See the README file in the top-level CSlib directory.
 ------------------------------------------------------------------------- */
 
+#ifdef MPI_YES
 #include <mpi.h>
+#else
+#include <mpi_dummy.h>
+#endif
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>
@@ -76,9 +80,9 @@ void Msg::allocate(int nheader, int &maxheader, int *&header,
 
 void *Msg::smalloc(int nbytes)
 {
-  if (nbytes == 0) return NULL;
+  if (nbytes == 0) return nullptr;
   void *ptr = (void *) malloc(nbytes);
-  if (ptr == NULL) {
+  if (ptr == nullptr) {
     char str[128];
     sprintf(str,"Failed to allocate %d bytes",nbytes);
   }
@@ -89,7 +93,7 @@ void *Msg::smalloc(int nbytes)
 
 void Msg::sfree(void *ptr)
 {
-  if (ptr == NULL) return;
+  if (ptr == nullptr) return;
   free(ptr);
 }
 

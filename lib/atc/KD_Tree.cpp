@@ -3,8 +3,8 @@
 
 using std::vector;
 
-KD_Tree *KD_Tree::create_KD_tree(const int nNodesPerElem, const int nNodes, 
-                                 const DENS_MAT *nodalCoords, const int nElems, 
+KD_Tree *KD_Tree::create_KD_tree(const int nNodesPerElem, const int nNodes,
+                                 const DENS_MAT *nodalCoords, const int nElems,
                                  const Array2D<int> &conn) {
   vector<Node> *points = new vector<Node>(); // Initialize an empty list of Nodes
   for (int node = 0; node < nNodes; node++) { // Insert all nodes into list
@@ -30,7 +30,7 @@ KD_Tree::~KD_Tree() {
   delete rightChild_;
 }
 
-KD_Tree::KD_Tree(vector<Node> *points, vector<Elem> *elements, 
+KD_Tree::KD_Tree(vector<Node> *points, vector<Elem> *elements,
                  int dimension)
   : candElems_(elements) {
   // Set up comparison functions
@@ -44,14 +44,14 @@ KD_Tree::KD_Tree(vector<Node> *points, vector<Elem> *elements,
   }
 
   // Sort points by their coordinate in the current dimension
-  sort(points->begin(), points->end(), compare); 
+  sort(points->begin(), points->end(), compare);
   sortedPts_ = points;
 
   // Pick the median point as the root of the tree
   size_t nNodes = points->size();
   size_t med = nNodes/2;
   value_ = (*sortedPts_)[med];
-  
+
   // Recursively construct the left sub-tree
   vector<Node> *leftPts   = new vector<Node>;
   vector<Elem> *leftElems = new vector<Elem>;
@@ -83,17 +83,17 @@ KD_Tree::KD_Tree(vector<Node> *points, vector<Elem> *elements,
     if (foundElemRight) rightElems->push_back(*elit);
   }
 
-  // Create child tree, or NULL if there's nothing to create
+  // Create child tree, or nullptr if there's nothing to create
   if (candElems_->size() - leftElems->size() < 4 || leftElems->size() == 0) {
-    leftChild_ = NULL;
+    leftChild_ = nullptr;
     delete leftPts;
     delete leftElems;
   } else {
     leftChild_ = new KD_Tree(leftPts, leftElems, (dimension+1) % 3);
   }
-  // Create child tree, or NULL if there's nothing to create
+  // Create child tree, or nullptr if there's nothing to create
   if (candElems_->size() - rightElems->size() < 4 || rightElems->size() == 0) {
-    rightChild_ = NULL;
+    rightChild_ = nullptr;
     delete rightPts;
     delete rightElems;
   } else {
@@ -103,13 +103,13 @@ KD_Tree::KD_Tree(vector<Node> *points, vector<Elem> *elements,
 
 vector<int> KD_Tree::find_nearest_elements(Node query, int dimension) {
   // if the root coordinate is less than the query coordinate
-  
- 
+
+
   // If the query point is less that the value (split) point of this
   // tree, either recurse to the left or return this node's elements
   // if there is no left child.
   if (query.lessThanInDimension(value_, dimension)) {
-    if (leftChild_ == NULL) {
+    if (leftChild_ == nullptr) {
       vector<int> result = vector<int>();
       for (vector<Elem>::iterator elem = candElems_->begin();
            elem != candElems_->end(); elem++) {
@@ -119,7 +119,7 @@ vector<int> KD_Tree::find_nearest_elements(Node query, int dimension) {
     }
     return leftChild_->find_nearest_elements(query, (dimension+1) % 3);
   } else {
-    if (rightChild_ == NULL) {
+    if (rightChild_ == nullptr) {
       vector<int> result = vector<int>();
       for (vector<Elem>::iterator elem = candElems_->begin();
            elem != candElems_->end(); elem++) {
@@ -132,10 +132,10 @@ vector<int> KD_Tree::find_nearest_elements(Node query, int dimension) {
 }
 
 vector<vector<int> > KD_Tree::getElemIDs(int depth) {
-  
+
   vector<vector<int> > result;
   vector<vector<int> > temp;
-  
+
   assert(depth >= 0 );
   if (depth == 0) {
     vector<int> candElemIDs;
@@ -147,7 +147,7 @@ vector<vector<int> > KD_Tree::getElemIDs(int depth) {
     sort(candElemIDs.begin(), candElemIDs.end());
     result.push_back(candElemIDs);
 
-  } else if (leftChild_ == NULL || rightChild_ == NULL) {
+  } else if (leftChild_ == nullptr || rightChild_ == nullptr) {
     // Insert all nodes at this level once,
     // then insert a bunch of empty vectors.
     temp = this->getElemIDs(0);
@@ -164,6 +164,6 @@ vector<vector<int> > KD_Tree::getElemIDs(int depth) {
     temp = rightChild_->getElemIDs(depth);
     result.insert(result.end(), temp.begin(), temp.end());
   }
-  
+
   return result;
 }

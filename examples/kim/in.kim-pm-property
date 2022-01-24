@@ -1,0 +1,91 @@
+# kim property example
+#
+# For detailed information of this example please refer to:
+# `https://openkim.org/doc/evaluation/tutorial-lammps/`
+#
+# Description:
+#
+# This example is designed to calculate the cohesive energy corresponding to
+# the equilibrium FCC lattice constant for
+# `LJ_Shifted_Bernardes_1958MedCutoff_Ar__MO_126566794224_004` model for
+# argon. The material properties computed in LAMMPS are represented as a
+# standard KIM property instance format. (See
+# `https://openkim.org/doc/schema/properties-framework/` and
+# `https://docs.lammps.org/kim_commands.html` for further details).
+# Then the created property instance is written to a file named `results.edn`
+# using the `kim property dump` command.
+#
+# Requirement:
+#
+# This example requires LAMMPS built with the Python 3.6 or later package
+# installed. See the `https://docs.lammps.org/python.html` doc page for
+# more info on building LAMMPS with the version of Python on your system.
+# After successfully building LAMMPS with Python, you need to install the
+# kim-property Python package, See the
+# `https://docs.lammps.org/Build_extras.html#kim` doc page for
+# further details.
+#
+# This example requires that the KIM Portable Model (PM)
+# `LJ_Shifted_Bernardes_1958MedCutoff_Ar__MO_126566794224_004`
+# is installed.  This can be done with the command
+#   kim-api-collections-management install user LJ_Shifted_Bernardes_1958MedCutoff_Ar__MO_126566794224_004
+# If this command does not work, you may need to setup your PATH to find the utility.
+# If you installed the kim-api using the LAMMPS CMake build, you can do the following
+# (where the current working directory is assumed to be the LAMMPS build directory)
+#   source ./kim_build-prefix/bin/kim-api-activate
+# If you installed the kim-api using the LAMMPS Make build, you can do the following
+# (where the current working directory is assumed to be the LAMMPS src directory)
+#   source ../lib/kim/installed-kim-api-X.Y.Z/bin/kim-api-activate
+# (where you should relplace X.Y.Z with the appropriate kim-api version number).
+#
+# Or, see `https://openkim.org/doc/obtaining-models` for alternative options.
+#
+
+# Initialize interatomic potential (KIM model) and units
+atom_style atomic
+
+# Set the OpenKIM model that will be used
+kim init LJ_Shifted_Bernardes_1958MedCutoff_Ar__MO_126566794224_004 metal
+
+# the equilibrium lattice constant for the fcc structure
+variable lattice_constant equal 5.248509056866169
+
+# Periodic boundary conditions along all three dimensions
+boundary p p p
+
+# Create an FCC lattice with the lattice spacing
+# using a single conventional (orthogonal) unit cell
+lattice      fcc ${lattice_constant}
+region box   block 0 1 0 1 0 1 units lattice
+create_box   1 box
+create_atoms 1 box
+mass         1 39.948
+
+# Specify the KIM interactions
+kim interactions Ar
+
+# Compute energy
+run 0
+
+# Get cohesive energy
+variable natoms       equal "count(all)"
+variable ecohesive    equal "-pe/v_natoms"
+
+# Create a property instance
+kim property create 1 cohesive-potential-energy-cubic-crystal
+
+# Set all the key-value pairs for this property instance
+kim property modify 1 key short-name source-value 1 fcc                          &
+                      key species source-value 1 Ar                              &
+                      key a source-value ${lattice_constant}                     &
+                            source-unit angstrom                                 &
+                      key basis-atom-coordinates source-value 1 1:3 0.0 0.0 0.0  &
+                                                 source-value 2 1:3 0.0 0.5 0.5  &
+                                                 source-value 3 1:3 0.5 0.0 0.5  &
+                                                 source-value 4 1:3 0.5 0.5 0.0  &
+                      key space-group source-value Fm-3m                         &
+                      key cohesive-potential-energy source-value ${ecohesive}    &
+                                                    source-unit eV
+
+# Dump the results in a file
+kim property dump "results.edn"

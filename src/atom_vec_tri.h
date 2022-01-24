@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ATOM_CLASS
-
-AtomStyle(tri,AtomVecTri)
-
+// clang-format off
+AtomStyle(tri,AtomVecTri);
+// clang-format on
 #else
 
 #ifndef LMP_ATOM_VEC_TRI_H
@@ -28,7 +28,7 @@ class AtomVecTri : public AtomVec {
  public:
   struct Bonus {
     double quat[4];
-    double c1[3],c2[3],c3[3];
+    double c1[3], c2[3], c3[3];
     double inertia[3];
     int ilocal;
   };
@@ -37,71 +37,50 @@ class AtomVecTri : public AtomVec {
   AtomVecTri(class LAMMPS *);
   ~AtomVecTri();
   void init();
-  void grow(int);
-  void grow_reset();
-  void copy(int, int, int);
-  int pack_comm(int, int *, double *, int, int *);
-  int pack_comm_vel(int, int *, double *, int, int *);
-  int pack_comm_hybrid(int, int *, double *);
-  void unpack_comm(int, int, double *);
-  void unpack_comm_vel(int, int, double *);
-  int unpack_comm_hybrid(int, int, double *);
-  int pack_reverse(int, int, double *);
-  int pack_reverse_hybrid(int, int, double *);
-  void unpack_reverse(int, int *, double *);
-  int unpack_reverse_hybrid(int, int *, double *);
-  int pack_border(int, int *, double *, int, int *);
-  int pack_border_vel(int, int *, double *, int, int *);
-  int pack_border_hybrid(int, int *, double *);
-  void unpack_border(int, int, double *);
-  void unpack_border_vel(int, int, double *);
-  int unpack_border_hybrid(int, int, double *);
-  int pack_exchange(int, double *);
-  int unpack_exchange(double *);
-  int size_restart();
-  int pack_restart(int, double *);
-  int unpack_restart(double *);
-  void create_atom(int, double *);
-  void data_atom(double *, imageint, char **);
-  int data_atom_hybrid(int, char **);
-  void data_vel(int, char **);
-  int data_vel_hybrid(int, char **);
-  void pack_data(double **);
-  int pack_data_hybrid(int, double *);
-  void write_data(FILE *, int, double **);
-  int write_data_hybrid(FILE *, double *);
-  void pack_vel(double **);
-  int pack_vel_hybrid(int, double *);
-  void write_vel(FILE *, int, double **);
-  int write_vel_hybrid(FILE *, double *);
-  bigint memory_usage();
 
-  // manipulate Bonus data structure for extra atom info
-
+  void grow_pointers();
+  void copy_bonus(int, int, int);
   void clear_bonus();
-  void data_atom_bonus(int, char **);
+  int pack_comm_bonus(int, int *, double *);
+  void unpack_comm_bonus(int, int, double *);
+  int pack_border_bonus(int, int *, double *);
+  int unpack_border_bonus(int, int, double *);
+  int pack_exchange_bonus(int, double *);
+  int unpack_exchange_bonus(int, double *);
+  int size_restart_bonus();
+  int pack_restart_bonus(int, double *);
+  int unpack_restart_bonus(int, double *);
+  void data_atom_bonus(int, const std::vector<std::string> &);
+  double memory_usage_bonus();
+
+  void create_atom_post(int);
+  void data_atom_post(int);
+  void pack_data_pre(int);
+  void pack_data_post(int);
+
+  int pack_data_bonus(double *, int);
+  void write_data_bonus(FILE *, int, double *, int);
 
   // unique to AtomVecTri
 
   void set_equilateral(int, double);
 
- private:
-  tagint *tag;
-  int *type,*mask;
-  imageint *image;
-  double **x,**v,**f;
-  tagint *molecule;
-  double *rmass,*radius;
-  double **omega,**angmom,**torque;
-  int *tri;
+  int nlocal_bonus;
 
-  int nlocal_bonus,nghost_bonus,nmax_bonus;
+ private:
+  int *tri;
+  double *radius, *rmass;
+  double **omega, **angmom;
+
+  int nghost_bonus, nmax_bonus;
+  int tri_flag;
+  double rmass_one;
 
   void grow_bonus();
-  void copy_bonus(int, int);
+  void copy_bonus_all(int, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,21 +12,20 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
-#include <unistd.h>
 #include "write_coeff.h"
-#include "pair.h"
-#include "bond.h"
+
 #include "angle.h"
-#include "dihedral.h"
-#include "improper.h"
+#include "bond.h"
 #include "comm.h"
-#include "force.h"
-#include "universe.h"
-#include "error.h"
+#include "dihedral.h"
 #include "domain.h"
-#include "utils.h"
+#include "error.h"
+#include "force.h"
+#include "improper.h"
+#include "pair.h"
+
+#include <cctype>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -42,23 +42,18 @@ void WriteCoeff::command(int narg, char **arg)
 
   if (narg != 1) error->all(FLERR,"Illegal write_coeff command");
 
-  int n = strlen(arg[0]) + 5;
-  char *file = new char[n];
-
-  strcpy(file,"tmp.");
-  strcat(file,arg[0]);
+  char *file = utils::strdup(fmt::format("tmp.{}",arg[0]));
 
   // initialize relevant styles
-  force->init();
+  lmp->init();
 
   if (comm->me == 0) {
     char str[256], coeff[256];
     FILE *one = fopen(file,"wb+");
 
-    if (one == NULL) {
-      snprintf(str,256,"Cannot open coeff file %s",file);
-      error->one(FLERR,str);
-    }
+    if (one == nullptr)
+      error->one(FLERR,"Cannot open coeff file {}: {}",
+                                   file, utils::getsyserror());
 
     if (force->pair && force->pair->writedata) {
       fprintf(one,"# pair_style %s\npair_coeff\n",force->pair_style);
@@ -90,31 +85,31 @@ void WriteCoeff::command(int narg, char **arg)
     rewind(one);
 
     FILE *two = fopen(file+4,"w");
-    if (two == NULL) {
-      snprintf(str,256,"Cannot open coeff file %s",file+4);
-      error->one(FLERR,str);
-    }
-    fprintf(two,"# LAMMPS coeff file via write_coeff, version %s\n",
-            universe->version);
+    if (two == nullptr)
+      error->one(FLERR,"Cannot open coeff file {}: {}",
+                                   file+4, utils::getsyserror());
 
-    while(1) {
+    fprintf(two,"# LAMMPS coeff file via write_coeff, version %s\n",
+            lmp->version);
+
+    while (true) {
       int coeff_mode = REGULAR_MODE;
-      if (fgets(str,256,one) == NULL) break;
+      if (fgets(str,256,one) == nullptr) break;
 
       // some coeffs need special treatment
-      if (strstr(str,"class2") != NULL) {
-        if (strstr(str,"angle_style") != NULL)
+      if (strstr(str,"class2") != nullptr) {
+        if (strstr(str,"angle_style") != nullptr)
           coeff_mode = CLASS2_MODE;
-        else if (strstr(str,"dihedral_style") != NULL)
+        else if (strstr(str,"dihedral_style") != nullptr)
           coeff_mode = CLASS2_MODE;
-        else if (strstr(str,"improper_style") != NULL)
+        else if (strstr(str,"improper_style") != nullptr)
           coeff_mode = CLASS2_MODE;
       }
 
       const char *section = (const char *)"";
       fputs(str,two);      // style
       utils::sfgets(FLERR,str,256,one,file,error);  // coeff
-      n = strlen(str);
+      int n = strlen(str);
       strcpy(coeff,str);
       coeff[n-1] = '\0';
       utils::sfgets(FLERR,str,256,one,file,error);
@@ -174,8 +169,8 @@ void WriteCoeff::command(int narg, char **arg)
     }
     fclose(one);
     fclose(two);
-    unlink(file);
+    platform::unlink(file);
   }
 
-  delete [] file;
+  delete[] file;
 }

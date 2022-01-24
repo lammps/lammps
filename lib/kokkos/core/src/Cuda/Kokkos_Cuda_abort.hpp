@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -47,7 +48,7 @@
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 #include <Kokkos_Macros.hpp>
-#if defined( __CUDACC__ ) && defined( KOKKOS_ENABLE_CUDA )
+#if defined(KOKKOS_ENABLE_CUDA)
 
 #include <cuda.h>
 
@@ -55,35 +56,46 @@ extern "C" {
 /*  Cuda runtime function, declared in <crt/device_runtime.h>
  *  Requires capability 2.x or better.
  */
-extern __device__ void __assertfail(
-  const void  *message,
-  const void  *file,
-  unsigned int line,
-  const void  *function,
-  size_t       charsize);
+extern __device__ void __assertfail(const void *message, const void *file,
+                                    unsigned int line, const void *function,
+                                    size_t charsize);
 }
 
 namespace Kokkos {
 namespace Impl {
 
-__device__ inline
-void cuda_abort( const char * const message )
-{
-#ifndef __APPLE__
-  const char empty[] = "" ;
+#if !defined(__APPLE__)
+// required to workaround failures in random number generator unit tests with
+// pre-volta architectures
+#if defined(KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK)
+__device__ inline void cuda_abort(const char *const message) {
+#else
+[[noreturn]] __device__ inline void cuda_abort(const char *const message) {
+#endif
+  const char empty[] = "";
 
-  __assertfail( (const void *) message ,
-                (const void *) empty ,
-                (unsigned int) 0 ,
-                (const void *) empty ,
-                sizeof(char) );
+  __assertfail((const void *)message, (const void *)empty, (unsigned int)0,
+               (const void *)empty, sizeof(char));
+
+  // This loop is never executed. It's intended to suppress warnings that the
+  // function returns, even though it does not. This is necessary because
+  // __assertfail is not marked as [[noreturn]], even though it does not return.
+  //  Disable with KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK to workaround failures
+  //  in random number generator unit tests with pre-volta architectures
+#if !defined(KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK)
+  while (true)
+    ;
 #endif
 }
+#else
+__device__ inline void cuda_abort(const char *const message) {
+  // __assertfail is not supported on MAC
+}
+#endif
 
-} // namespace Impl
-} // namespace Kokkos
+}  // namespace Impl
+}  // namespace Kokkos
 #else
 void KOKKOS_CORE_SRC_CUDA_ABORT_PREVENT_LINK_ERROR() {}
-#endif /* #if defined(__CUDACC__) && defined( KOKKOS_ENABLE_CUDA ) */
+#endif /* #if defined( KOKKOS_ENABLE_CUDA ) */
 #endif /* #ifndef KOKKOS_CUDA_ABORT_HPP */
-

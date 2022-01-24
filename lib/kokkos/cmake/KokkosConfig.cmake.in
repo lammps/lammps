@@ -1,18 +1,62 @@
-# - Config file for the Kokkos package
-# It defines the following variables
-#  Kokkos_INCLUDE_DIRS - include directories for Kokkos
-#  Kokkos_LIBRARIES    - libraries to link against
+# No need for policy push/pop. CMake also manages a new entry for scripts
+# loaded by include() and find_package() commands except when invoked with
+# the NO_POLICY_SCOPE option
+# CMP0057 + NEW -> IN_LIST operator in IF(...)
+CMAKE_POLICY(SET CMP0057 NEW)
 
 # Compute paths
-GET_FILENAME_COMPONENT(Kokkos_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
-SET(Kokkos_INCLUDE_DIRS "@CONF_INCLUDE_DIRS@")
+@PACKAGE_INIT@
 
-# Our library dependencies (contains definitions for IMPORTED targets)
-IF(NOT TARGET kokkos AND NOT Kokkos_BINARY_DIR)
-  INCLUDE("${Kokkos_CMAKE_DIR}/KokkosTargets.cmake")
+#Find dependencies
+INCLUDE(CMakeFindDependencyMacro)
+
+#This needs to go above the KokkosTargets in case
+#the Kokkos targets depend in some way on the TPL imports
+@KOKKOS_TPL_EXPORTS@
+
+GET_FILENAME_COMPONENT(Kokkos_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+INCLUDE("${Kokkos_CMAKE_DIR}/KokkosTargets.cmake")
+INCLUDE("${Kokkos_CMAKE_DIR}/KokkosConfigCommon.cmake")
+UNSET(Kokkos_CMAKE_DIR)
+
+# check for conflicts
+IF("launch_compiler" IN_LIST Kokkos_FIND_COMPONENTS AND
+    "separable_compilation" IN_LIST Kokkos_FIND_COMPONENTS)
+    MESSAGE(STATUS "'launch_compiler' implies global redirection of targets depending on Kokkos to appropriate compiler.")
+    MESSAGE(STATUS "'separable_compilation' implies explicitly defining where redirection occurs via 'kokkos_compilation(PROJECT|TARGET|SOURCE|DIRECTORY ...)'")
+    MESSAGE(FATAL_ERROR "Conflicting COMPONENTS: 'launch_compiler' and 'separable_compilation'")
 ENDIF()
 
-# These are IMPORTED targets created by KokkosTargets.cmake
-SET(Kokkos_LIBRARY_DIRS @INSTALL_LIB_DIR@)
-SET(Kokkos_LIBRARIES @Kokkos_LIBRARIES_NAMES@)
-SET(Kokkos_TPL_LIBRARIES @KOKKOS_LIBS@)
+IF("launch_compiler" IN_LIST Kokkos_FIND_COMPONENTS)
+    #
+    # if find_package(Kokkos COMPONENTS launch_compiler) then rely on the
+    # RULE_LAUNCH_COMPILE and RULE_LAUNCH_LINK to always redirect to the
+    # appropriate compiler for Kokkos
+    #
+
+    MESSAGE(STATUS "kokkos_launch_compiler is enabled globally. C++ compiler commands with -DKOKKOS_DEPENDENCE will be redirected to the appropriate compiler for Kokkos")
+    kokkos_compilation(
+        GLOBAL
+        CHECK_CUDA_COMPILES)
+
+ELSEIF(@Kokkos_ENABLE_CUDA@ AND NOT "separable_compilation" IN_LIST Kokkos_FIND_COMPONENTS)
+    #
+    # if CUDA was enabled, separable compilation was not specified, and current compiler
+    # cannot compile CUDA, then set the RULE_LAUNCH_COMPILE and RULE_LAUNCH_LINK globally and
+    # kokkos_launch_compiler will re-direct to the compiler used to compile CUDA code during installation.
+    # kokkos_launch_compiler will re-direct if ${CMAKE_CXX_COMPILER} and -DKOKKOS_DEPENDENCE is present,
+    # otherwise, the original command will be executed
+    #
+
+    # run test to see if CMAKE_CXX_COMPILER=nvcc_wrapper
+    kokkos_compiler_is_nvcc(IS_NVCC ${CMAKE_CXX_COMPILER})
+
+    # if not nvcc_wrapper and Kokkos_LAUNCH_COMPILER was not set to OFF
+    IF(NOT IS_NVCC AND (NOT DEFINED Kokkos_LAUNCH_COMPILER OR Kokkos_LAUNCH_COMPILER))
+        MESSAGE(STATUS "kokkos_launch_compiler is enabled globally. C++ compiler commands with -DKOKKOS_DEPENDENCE will be redirected to the appropriate compiler for Kokkos")
+        kokkos_compilation(GLOBAL)
+    ENDIF()
+
+    # be mindful of the environment, pollution is bad
+    UNSET(IS_NVCC)
+ENDIF()

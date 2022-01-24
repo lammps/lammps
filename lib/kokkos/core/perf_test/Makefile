@@ -30,6 +30,7 @@ TARGETS =
 #
 
 OBJ_PERF = PerfTestMain.o gtest-all.o
+OBJ_PERF += PerfTest_ExecSpacePartitioning.o
 OBJ_PERF += PerfTestGramSchmidt.o
 OBJ_PERF += PerfTestHexGrad.o
 OBJ_PERF += PerfTest_CustomReduction.o
@@ -52,7 +53,6 @@ TEST_TARGETS += test-atomic
 
 #
 
-ifneq ($(KOKKOS_INTERNAL_USE_ROCM), 1)
 OBJ_MEMPOOL = test_mempool.o 
 TARGETS += KokkosCore_PerformanceTest_Mempool
 TEST_TARGETS += test-mempool
@@ -62,7 +62,12 @@ TEST_TARGETS += test-mempool
 OBJ_TASKDAG = test_taskdag.o 
 TARGETS += KokkosCore_PerformanceTest_TaskDAG
 TEST_TARGETS += test-taskdag
-endif
+
+#
+
+OBJ_ATOMICS_MINMAX = test_atomic_minmax_simple.o
+TARGETS += KokkosCore_PerformanceTest_Atomics_MinMax
+TEST_TARGETS += test-atomic-minmax
 
 #
 
@@ -78,6 +83,9 @@ KokkosCore_PerformanceTest_Mempool: $(OBJ_MEMPOOL) $(KOKKOS_LINK_DEPENDS)
 KokkosCore_PerformanceTest_TaskDAG: $(OBJ_TASKDAG) $(KOKKOS_LINK_DEPENDS)
 	$(LINK) $(KOKKOS_LDFLAGS) $(LDFLAGS) $(EXTRA_PATH) $(OBJ_TASKDAG) $(KOKKOS_LIBS) $(LIB) -o KokkosCore_PerformanceTest_TaskDAG
 
+KokkosCore_PerformanceTest_Atomics_MinMax: $(OBJ_ATOMICS_MINMAX) $(KOKKOS_LINK_DEPENDS)
+	$(LINK) $(EXTRA_PATH) $(OBJ_ATOMICS_MINMAX) $(KOKKOS_LIBS) $(LIB) $(KOKKOS_LDFLAGS) $(LDFLAGS) -o KokkosCore_PerformanceTest_Atomics_MinMax
+
 test-performance: KokkosCore_PerformanceTest
 	./KokkosCore_PerformanceTest
 
@@ -89,6 +97,9 @@ test-mempool: KokkosCore_PerformanceTest_Mempool
 
 test-taskdag: KokkosCore_PerformanceTest_TaskDAG
 	./KokkosCore_PerformanceTest_TaskDAG
+
+test-atomic-minmax: KokkosCore_PerformanceTest_Atomics_MinMax
+	./KokkosCore_PerformanceTest_Atomics_MinMax
 
 build_all: $(TARGETS)
 

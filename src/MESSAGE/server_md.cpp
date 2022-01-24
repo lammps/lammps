@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,21 +12,22 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstring>
 #include "server_md.h"
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "update.h"
-#include "integrate.h"
-#include "kspace.h"
-#include "force.h"
-#include "pair.h"
-#include "neighbor.h"
 #include "comm.h"
 #include "domain.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "integrate.h"
+#include "kspace.h"
+#include "memory.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "update.h"
+
+#include <cstring>
 
 // CSlib interface
 
@@ -46,9 +48,9 @@ ServerMD::ServerMD(LAMMPS *lmp) : Pointers(lmp)
   if (domain->box_exist == 0)
     error->all(FLERR,"Server command before simulation box is defined");
 
-  if (!atom->map_style) error->all(FLERR,"Server md requires atom map");
+  if (atom->map_style == Atom::MAP_NONE) error->all(FLERR,"Server md requires atom map");
   if (atom->tag_enable == 0) error->all(FLERR,"Server md requires atom IDs");
-  if (sizeof(tagint) != 4) error->all(FLERR,"Server md requires 4-byte atom IDs");
+  if (sizeof(tagint) != 4) error->all(FLERR,"Server md requires 32-bit atom IDs");
 
   if (strcmp(update->unit_style,"real") == 0) units = REAL;
   else if (strcmp(update->unit_style,"metal") == 0) units = METAL;
@@ -64,7 +66,7 @@ ServerMD::ServerMD(LAMMPS *lmp) : Pointers(lmp)
     pconvert = 1.0 / 0.986923;               // atmospheres -> bars
   }
 
-  fcopy = NULL;
+  fcopy = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -78,7 +80,7 @@ ServerMD::~ServerMD()
 
 void ServerMD::loop()
 {
-  int i,j,m;
+  int j,m;
 
   // cs = instance of CSlib
 
@@ -107,15 +109,15 @@ void ServerMD::loop()
     if (msgID == SETUP) {
 
       int dim = 0;
-      int *periodicity = NULL;
+      int *periodicity = nullptr;
       int natoms = -1;
       int ntypes = -1;
-      double *origin = NULL;
-      double *box = NULL;
-      int *types = NULL;
-      double *coords = NULL;
-      char *unit_style = NULL;
-      double *charge = NULL;
+      double *origin = nullptr;
+      double *box = nullptr;
+      int *types = nullptr;
+      double *coords = nullptr;
+      char *unit_style = nullptr;
+      double *charge = nullptr;
 
       for (int ifield = 0; ifield < nfield; ifield++) {
         if (fieldID[ifield] == DIM) {
@@ -185,7 +187,7 @@ void ServerMD::loop()
 
       int nlocal = 0;
       for (int i = 0; i < natoms; i++) {
-        if (!domain->ownatom(i+1,&coords[3*i],NULL,0)) continue;
+        if (!domain->ownatom(i+1,&coords[3*i],nullptr,0)) continue;
         atom->avec->create_atom(types[i],&coords[3*i]);
         atom->tag[nlocal] = i+1;
         if (charge) atom->q[nlocal] = charge[i];
@@ -226,9 +228,9 @@ void ServerMD::loop()
 
     } else if (msgID == STEP) {
 
-      double *coords = NULL;
-      double *origin = NULL;
-      double *box = NULL;
+      double *coords = nullptr;
+      double *origin = nullptr;
+      double *box = nullptr;
 
       for (int ifield = 0; ifield < nfield; ifield++) {
         if (fieldID[ifield] == COORDS) {
@@ -314,7 +316,7 @@ void ServerMD::loop()
   // clean up
 
   delete cs;
-  lmp->cslib = NULL;
+  lmp->cslib = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -349,7 +351,7 @@ void ServerMD::send_fev(int msgID)
 
   cs->send(msgID,3);
 
-  double *forces = NULL;
+  double *forces = nullptr;
   if (atom->nlocal) {
     if (units != REAL) forces = &atom->f[0][0];
     else {

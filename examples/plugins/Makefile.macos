@@ -1,0 +1,6 @@
+CXX=mpicxx
+CXXFLAGS=-I../../src -Wall -Wextra -O3 -fPIC -I../../src/OPENMP
+LD=$(CXX) -bundle -rdynamic -Wl,-undefined,dynamic_lookup
+DSOEXT=.dylib
+
+include Makefile.common

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,22 +16,21 @@
    Contributing author: Xiaowang Zhou (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_eim.h"
+
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "tokenizer.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
-
-#define MAXLINE 1024
 
 /* ---------------------------------------------------------------------- */
 
@@ -40,26 +40,24 @@ PairEIM::PairEIM(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
+  unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
 
-  setfl = NULL;
+  setfl = nullptr;
   nmax = 0;
-  rho = NULL;
-  fp = NULL;
-  map = NULL;
+  rho = nullptr;
+  fp = nullptr;
 
-  nelements = 0;
-  elements = NULL;
+  negativity = nullptr;
+  q0 = nullptr;
+  cutforcesq = nullptr;
+  Fij = nullptr;
+  Gij = nullptr;
+  phiij = nullptr;
 
-  negativity = NULL;
-  q0 = NULL;
-  cutforcesq = NULL;
-  Fij = NULL;
-  Gij = NULL;
-  phiij = NULL;
-
-  Fij_spline = NULL;
-  Gij_spline = NULL;
-  phiij_spline = NULL;
+  Fij_spline = nullptr;
+  Gij_spline = nullptr;
+  phiij_spline = nullptr;
 
   // set comm size needed by this Pair
 
@@ -79,14 +77,10 @@ PairEIM::~PairEIM()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    delete [] map;
     memory->destroy(type2Fij);
     memory->destroy(type2Gij);
     memory->destroy(type2phiij);
   }
-
-  for (int i = 0; i < nelements; i++) delete [] elements[i];
-  delete [] elements;
 
   deallocate_setfl();
 
@@ -113,8 +107,7 @@ void PairEIM::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
+  ev_init(eflag,vflag);
 
   // grow energy array if necessary
 
@@ -238,7 +231,6 @@ void PairEIM::compute(int eflag, int vflag)
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    itype = type[i];
     if (eflag) {
       phi = 0.5*rho[i]*fp[i];
       if (eflag_global) eng_vdwl += phi;
@@ -353,8 +345,6 @@ void PairEIM::settings(int narg, char **/*arg*/)
 
 void PairEIM::coeff(int narg, char **arg)
 {
-  int i,j,m,n;
-
   if (!allocated) allocate();
 
   if (narg < 5) error->all(FLERR,"Incorrect args for pair coefficients");
@@ -364,23 +354,8 @@ void PairEIM::coeff(int narg, char **arg)
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
-  // read EIM element names before filename
-  // nelements = # of EIM elements to read from file
-  // elements = list of unique element names
-
-  if (nelements) {
-    for (i = 0; i < nelements; i++) delete [] elements[i];
-    delete [] elements;
-  }
-  nelements = narg - 3 - atom->ntypes;
-  if (nelements < 1) error->all(FLERR,"Incorrect args for pair coefficients");
-  elements = new char*[nelements];
-
-  for (i = 0; i < nelements; i++) {
-    n = strlen(arg[i+2]) + 1;
-    elements[i] = new char[n];
-    strcpy(elements[i],arg[i+2]);
-  }
+  const int ntypes = atom->ntypes;
+  map_element2type(ntypes,arg+(narg-ntypes));
 
   // read EIM file
 
@@ -388,38 +363,12 @@ void PairEIM::coeff(int narg, char **arg)
   setfl = new Setfl();
   read_file(arg[2+nelements]);
 
-  // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // set per-type atomic masses
 
-  for (i = 3 + nelements; i < narg; i++) {
-    m = i - (3+nelements) + 1;
-    for (j = 0; j < nelements; j++)
-      if (strcmp(arg[i],elements[j]) == 0) break;
-    if (j < nelements) map[m] = j;
-    else if (strcmp(arg[i],"NULL") == 0) map[m] = -1;
-    else error->all(FLERR,"Incorrect args for pair coefficients");
-  }
-
-  // clear setflag since coeff() called once with I,J = * *
-
-  n = atom->ntypes;
-  for (i = 1; i <= n; i++)
-    for (j = i; j <= n; j++)
-      setflag[i][j] = 0;
-
-  // set setflag i,j for type pairs where both are mapped to elements
-  // set mass of atom type if i = j
-
-  int count = 0;
-  for (i = 1; i <= n; i++)
-    for (j = i; j <= n; j++)
-      if (map[i] >= 0 && map[j] >= 0) {
-        setflag[i][j] = 1;
+  for (int i = 1; i <= ntypes; i++)
+    for (int j = i; j <= ntypes; j++)
+      if ((map[i] >= 0) && (map[j] >= 0))
         if (i == j) atom->set_mass(FLERR,i,setfl->mass[map[i]]);
-        count++;
-      }
-
-  if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
 }
 
 /* ----------------------------------------------------------------------
@@ -452,20 +401,6 @@ double PairEIM::init_one(int i, int j)
 
 void PairEIM::read_file(char *filename)
 {
-  // open potential file
-
-  int me = comm->me;
-  FILE *fptr;
-
-  if (me == 0) {
-    fptr = force->open_potential(filename);
-    if (fptr == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open EIM potential file %s",filename);
-      error->one(FLERR,str);
-    }
-  }
-
   int npair = nelements*(nelements+1)/2;
   setfl->ielement = new int[nelements];
   setfl->mass = new double[nelements];
@@ -489,51 +424,54 @@ void PairEIM::read_file(char *filename)
   setfl->rs = new double[npair];
   setfl->tp = new int[npair];
 
-  if (me == 0)
-    if (!grabglobal(fptr))
-      error->one(FLERR,"Could not grab global entry from EIM potential file");
-  MPI_Bcast(&setfl->division,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&setfl->rbig,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&setfl->rsmall,1,MPI_DOUBLE,0,world);
+  // read potential file
+  if ( comm->me == 0) {
+    EIMPotentialFileReader reader(lmp, filename, unit_convert_flag);
 
-  for (int i = 0; i < nelements; i++) {
-    if (me == 0)
-      if (!grabsingle(fptr,i))
-        error->one(FLERR,"Could not grab element entry from EIM potential file");
-    MPI_Bcast(&setfl->ielement[i],1,MPI_INT,0,world);
-    MPI_Bcast(&setfl->mass[i],1,MPI_DOUBLE,0,world);
-    MPI_Bcast(&setfl->negativity[i],1,MPI_DOUBLE,0,world);
-    MPI_Bcast(&setfl->ra[i],1,MPI_DOUBLE,0,world);
-    MPI_Bcast(&setfl->ri[i],1,MPI_DOUBLE,0,world);
-    MPI_Bcast(&setfl->Ec[i],1,MPI_DOUBLE,0,world);
-    MPI_Bcast(&setfl->q0[i],1,MPI_DOUBLE,0,world);
-  }
+    reader.get_global(setfl);
 
-  for (int i = 0; i < nelements; i++) {
-    for (int j = i; j < nelements; j++) {
-      int ij;
-      if (i == j) ij = i;
-      else if (i < j) ij = nelements*(i+1) - (i+1)*(i+2)/2 + j;
-      else ij = nelements*(j+1) - (j+1)*(j+2)/2 + i;
-      if (me == 0)
-        if (grabpair(fptr,i,j) == 0)
-          error->one(FLERR,"Could not grab pair entry from EIM potential file");
-      MPI_Bcast(&setfl->rcutphiA[ij],1,MPI_DOUBLE,0,world);
-      MPI_Bcast(&setfl->rcutphiR[ij],1,MPI_DOUBLE,0,world);
-      MPI_Bcast(&setfl->Eb[ij],1,MPI_DOUBLE,0,world);
-      MPI_Bcast(&setfl->r0[ij],1,MPI_DOUBLE,0,world);
-      MPI_Bcast(&setfl->alpha[ij],1,MPI_DOUBLE,0,world);
-      MPI_Bcast(&setfl->beta[ij],1,MPI_DOUBLE,0,world);
-      MPI_Bcast(&setfl->rcutq[ij],1,MPI_DOUBLE,0,world);
-      MPI_Bcast(&setfl->Asigma[ij],1,MPI_DOUBLE,0,world);
-      MPI_Bcast(&setfl->rq[ij],1,MPI_DOUBLE,0,world);
-      MPI_Bcast(&setfl->rcutsigma[ij],1,MPI_DOUBLE,0,world);
-      MPI_Bcast(&setfl->Ac[ij],1,MPI_DOUBLE,0,world);
-      MPI_Bcast(&setfl->zeta[ij],1,MPI_DOUBLE,0,world);
-      MPI_Bcast(&setfl->rs[ij],1,MPI_DOUBLE,0,world);
-      MPI_Bcast(&setfl->tp[ij],1,MPI_INT,0,world);
+    for (int i = 0; i < nelements; i++) {
+      reader.get_element(setfl, i, elements[i]);
+    }
+
+    for (int i = 0; i < nelements; i++) {
+      for (int j = i; j < nelements; j++) {
+        int ij;
+        if (i == j) ij = i;
+        else if (i < j) ij = nelements*(i+1) - (i+1)*(i+2)/2 + j;
+        else ij = nelements*(j+1) - (j+1)*(j+2)/2 + i;
+        reader.get_pair(setfl, ij, elements[i], elements[j]);
+      }
     }
   }
+
+  // broadcast potential information to other procs
+  MPI_Bcast(&setfl->division, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&setfl->rbig, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&setfl->rsmall, 1, MPI_DOUBLE, 0, world);
+
+  MPI_Bcast(setfl->ielement, nelements, MPI_INT, 0, world);
+  MPI_Bcast(setfl->mass, nelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(setfl->negativity, nelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(setfl->ra, nelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(setfl->ri, nelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(setfl->Ec, nelements, MPI_DOUBLE, 0, world);
+  MPI_Bcast(setfl->q0, nelements, MPI_DOUBLE, 0, world);
+
+  MPI_Bcast(setfl->rcutphiA, npair, MPI_DOUBLE, 0, world);
+  MPI_Bcast(setfl->rcutphiR, npair, MPI_DOUBLE, 0, world);
+  MPI_Bcast(setfl->Eb, npair, MPI_DOUBLE, 0, world);
+  MPI_Bcast(setfl->r0, npair, MPI_DOUBLE, 0, world);
+  MPI_Bcast(setfl->alpha, npair, MPI_DOUBLE, 0, world);
+  MPI_Bcast(setfl->beta, npair, MPI_DOUBLE, 0, world);
+  MPI_Bcast(setfl->rcutq, npair, MPI_DOUBLE, 0, world);
+  MPI_Bcast(setfl->Asigma, npair, MPI_DOUBLE, 0, world);
+  MPI_Bcast(setfl->rq, npair, MPI_DOUBLE, 0, world);
+  MPI_Bcast(setfl->rcutsigma, npair, MPI_DOUBLE, 0, world);
+  MPI_Bcast(setfl->Ac, npair, MPI_DOUBLE, 0, world);
+  MPI_Bcast(setfl->zeta, npair, MPI_DOUBLE, 0, world);
+  MPI_Bcast(setfl->rs, npair, MPI_DOUBLE, 0, world);
+  MPI_Bcast(setfl->tp, npair, MPI_INT, 0, world);
 
   setfl->nr = 5000;
   setfl->cut = 0.0;
@@ -603,10 +541,6 @@ void PairEIM::read_file(char *filename)
         }
       }
     }
-
-  // close the potential file
-
-  if (me == 0) fclose(fptr);
 }
 
 /* ----------------------------------------------------------------------
@@ -657,7 +591,7 @@ void PairEIM::file2array()
 
   delete [] negativity;
   delete [] q0;
-  delete [] cutforcesq;
+  memory->destroy(cutforcesq);
   negativity = new double[ntypes+1];
   q0 = new double[ntypes+1];
   memory->create(cutforcesq,ntypes+1,ntypes+1,"pair:cutforcesq");
@@ -881,114 +815,6 @@ void PairEIM::interpolate(int n, double delta, double *f,
 }
 
 /* ----------------------------------------------------------------------
-   grab global line from file and store info in setfl
-   return 0 if error
-------------------------------------------------------------------------- */
-
-int PairEIM::grabglobal(FILE *fptr)
-{
-  char line[MAXLINE];
-
-  char *pch = NULL, *data = NULL;
-  while (pch == NULL) {
-    if (fgets(line,MAXLINE,fptr) == NULL) break;
-    pch = strstr(line,"global");
-    if (pch != NULL) {
-      data = strtok (line," \t\n\r\f");
-      data = strtok (NULL,"?");
-      sscanf(data,"%lg %lg %lg",&setfl->division,&setfl->rbig,&setfl->rsmall);
-    }
-  }
-  if (pch == NULL) return 0;
-  return 1;
-}
-
-/* ----------------------------------------------------------------------
-   grab elemental line from file and store info in setfl
-   return 0 if error
-------------------------------------------------------------------------- */
-
-int PairEIM::grabsingle(FILE *fptr, int i)
-{
-  char line[MAXLINE];
-
-  rewind(fptr);
-
-  char *pch1 = NULL, *pch2 = NULL, *data = NULL;
-  while (pch1 == NULL || pch2 == NULL) {
-    if (fgets(line,MAXLINE,fptr) == NULL) break;
-    pch1 = strtok (line," \t\n\r\f");
-    pch1 = strstr(pch1,"element:");
-    if (pch1 != NULL) {
-      pch2 = strtok(NULL, " \t\n\r\f");
-      if (pch2 != NULL) {
-        data = strtok (NULL, "?");
-        if (strcmp(pch2,elements[i]) == 0) {
-          sscanf(data,"%d %lg %lg %lg %lg %lg %lg",&setfl->ielement[i],
-            &setfl->mass[i],&setfl->negativity[i],&setfl->ra[i],
-            &setfl->ri[i],&setfl->Ec[i],&setfl->q0[i]);
-        } else pch2 = NULL;
-      }
-    }
-  }
-  if (pch1 == NULL || pch2 == NULL) return 0;
-  return 1;
-}
-
-/* ----------------------------------------------------------------------
-   grab pair line from file and store info in setfl
-   return 0 if error
-------------------------------------------------------------------------- */
-
-int PairEIM::grabpair(FILE *fptr, int i, int j)
-{
-  char line[MAXLINE];
-
-  rewind(fptr);
-
-  int ij;
-  if (i == j) ij = i;
-  else if (i < j) ij = nelements*(i+1) - (i+1)*(i+2)/2 + j;
-  else ij = nelements*(j+1) - (j+1)*(j+2)/2 + i;
-
-  char *pch1 = NULL, *pch2 = NULL, *pch3 = NULL, *data = NULL;
-  while (pch1 == NULL || pch2 == NULL || pch3 == NULL) {
-    if (fgets(line,MAXLINE,fptr) == NULL) break;
-    pch1 = strtok (line," \t\n\r\f");
-    pch1 = strstr(pch1,"pair:");
-    if (pch1 != NULL) {
-      pch2 = strtok (NULL, " \t\n\r\f");
-      if (pch2 != NULL) pch3 = strtok (NULL, " \t\n\r\f");
-      if (pch3 != NULL) data = strtok (NULL, "?");
-      if ((pch2 != NULL) && (pch3 != NULL)) {
-        if ((strcmp(pch2,elements[i]) == 0 &&
-          strcmp(pch3,elements[j]) == 0) ||
-          (strcmp(pch2,elements[j]) == 0 &&
-          strcmp(pch3,elements[i]) == 0)) {
-          sscanf(data,"%lg %lg %lg %lg %lg",
-            &setfl->rcutphiA[ij],&setfl->rcutphiR[ij],
-            &setfl->Eb[ij],&setfl->r0[ij],&setfl->alpha[ij]);
-          fgets(line,MAXLINE,fptr);
-          sscanf(line,"%lg %lg %lg %lg %lg",
-            &setfl->beta[ij],&setfl->rcutq[ij],&setfl->Asigma[ij],
-            &setfl->rq[ij],&setfl->rcutsigma[ij]);
-          fgets(line,MAXLINE,fptr);
-          sscanf(line,"%lg %lg %lg %d",
-            &setfl->Ac[ij],&setfl->zeta[ij],&setfl->rs[ij],
-            &setfl->tp[ij]);
-        } else {
-          pch1 = NULL;
-          pch2 = NULL;
-          pch3 = NULL;
-        }
-      }
-    }
-  }
-  if (pch1 == NULL || pch2 == NULL || pch3 == NULL) return 0;
-  return 1;
-}
-
-/* ----------------------------------------------------------------------
    cutoff function
 ------------------------------------------------------------------------- */
 
@@ -1167,8 +993,226 @@ void PairEIM::unpack_reverse_comm(int n, int *list, double *buf)
 
 double PairEIM::memory_usage()
 {
-  double bytes = maxeatom * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
-  bytes += 2 * nmax * sizeof(double);
+  double bytes = (double)maxeatom * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
+  bytes += (double)2 * nmax * sizeof(double);
   return bytes;
+}
+
+EIMPotentialFileReader::EIMPotentialFileReader(LAMMPS *lmp,
+                                               const std::string &filename,
+                                               const int auto_convert) :
+  Pointers(lmp), filename(filename)
+{
+  if (comm->me != 0) {
+    error->one(FLERR, "EIMPotentialFileReader should only be called by proc 0!");
+  }
+
+  int unit_convert = auto_convert;
+  FILE *fp = utils::open_potential(filename, lmp, &unit_convert);
+  conversion_factor = utils::get_conversion_factor(utils::ENERGY,unit_convert);
+
+  if (fp == nullptr) {
+    error->one(FLERR,"cannot open eim potential file {}", filename);
+  }
+
+  parse(fp);
+
+  fclose(fp);
+}
+
+std::pair<std::string, std::string> EIMPotentialFileReader::get_pair(const std::string &a, const std::string &b) {
+  if (a < b) {
+    return std::make_pair(a, b);
+  }
+  return std::make_pair(b, a);
+}
+
+char *EIMPotentialFileReader::next_line(FILE * fp) {
+  // concatenate lines if they end with '&'
+  // strip comments after '#'
+  int n = 0;
+  int nwords = 0;
+  bool concat = false;
+
+  char *ptr = fgets(line, MAXLINE, fp);
+
+  if (ptr == nullptr) {
+    // EOF
+    return nullptr;
+  }
+
+  // strip comment
+  if ((ptr = strchr(line, '#'))) *ptr = '\0';
+
+  // strip ampersand
+  if ((ptr = strrchr(line, '&'))) {
+    concat = true;
+    *ptr = '\0';
+  }
+
+  nwords = utils::count_words(line);
+
+  if (nwords > 0) {
+    n = strlen(line);
+  }
+
+  while (n == 0 || concat) {
+    ptr = fgets(&line[n], MAXLINE - n, fp);
+
+    if (ptr == nullptr) {
+      // EOF
+      return line;
+    }
+
+    // strip comment
+    if ((ptr = strchr(line, '#'))) *ptr = '\0';
+
+    // strip ampersand
+    if ((ptr = strrchr(line, '&'))) {
+      concat = true;
+      *ptr = '\0';
+    } else {
+      concat = false;
+    }
+
+    nwords += utils::count_words(&line[n]);
+
+    // skip line if blank
+    if (nwords > 0) {
+      n = strlen(line);
+    }
+  }
+
+  return line;
+}
+
+void EIMPotentialFileReader::parse(FILE * fp)
+{
+  char *line = nullptr;
+  bool found_global = false;
+
+  while ((line = next_line(fp))) {
+    ValueTokenizer values(line);
+    std::string type = values.next_string();
+
+    if (type == "global:") {
+      if (values.count() != 4) {
+        error->one(FLERR, "Invalid global line in EIM potential file");
+      }
+
+      division = values.next_double();
+      rbig     = values.next_double();
+      rsmall   = values.next_double();
+
+      found_global = true;
+    } else if (type == "element:") {
+      if (values.count() != 9) {
+        error->one(FLERR, "Invalid element line in EIM potential file");
+      }
+
+      std::string name = values.next_string();
+
+      ElementData data;
+      data.ielement   = values.next_int();
+      data.mass       = values.next_double();
+      data.negativity = values.next_double();
+      data.ra         = values.next_double();
+      data.ri         = values.next_double();
+      data.Ec         = values.next_double();
+      data.q0         = values.next_double();
+
+      if (elements.find(name) == elements.end()) {
+        elements[name] = data;
+      } else {
+        error->one(FLERR, "Duplicate pair line in EIM potential file");
+      }
+
+    } else if (type == "pair:") {
+      if (values.count() != 17) {
+        error->one(FLERR, "Invalid element line in EIM potential file");
+      }
+
+      std::string elementA = values.next_string();
+      std::string elementB = values.next_string();
+
+      PairData data;
+      data.rcutphiA  = values.next_double();
+      data.rcutphiR  = values.next_double();
+      data.Eb        = values.next_double() * conversion_factor;
+      data.r0        = values.next_double();
+      data.alpha     = values.next_double();
+      data.beta      = values.next_double();
+      data.rcutq     = values.next_double();
+      data.Asigma    = values.next_double();
+      data.rq        = values.next_double();
+      data.rcutsigma = values.next_double();
+      data.Ac        = values.next_double() * conversion_factor;
+      data.zeta      = values.next_double();
+      data.rs        = values.next_double();
+
+      // should be next_int, but since existing potential files have 1.0000e+00 format
+      // we're doing this instead to keep compatibility
+      data.tp       = (int)values.next_double();
+
+      auto p = get_pair(elementA, elementB);
+
+      if (pairs.find(p) == pairs.end()) {
+        pairs[p] = data;
+      } else {
+        error->one(FLERR, "Duplicate pair line in EIM potential file");
+      }
+    }
+  }
+
+  if (!found_global) {
+    error->one(FLERR, "Missing global line in EIM potential file");
+  }
+}
+
+void EIMPotentialFileReader::get_global(PairEIM::Setfl *setfl) {
+  setfl->division  = division;
+  setfl->rbig      = rbig;
+  setfl->rsmall    = rsmall;
+}
+
+void EIMPotentialFileReader::get_element(PairEIM::Setfl *setfl, int i,
+                                         const std::string &name) {
+  if (elements.find(name) == elements.end())
+    error->one(FLERR,"Element " + name + " not defined in EIM potential file");
+
+  ElementData &data = elements[name];
+  setfl->ielement[i] = data.ielement;
+  setfl->mass[i] = data.mass;
+  setfl->negativity[i] = data.negativity;
+  setfl->ra[i] = data.ra;
+  setfl->ri[i] = data.ri;
+  setfl->Ec[i] = data.Ec;
+  setfl->q0[i] = data.q0;
+}
+
+void EIMPotentialFileReader::get_pair(PairEIM::Setfl *setfl, int ij,
+                                      const std::string &elemA,
+                                      const std::string &elemB) {
+  auto p = get_pair(elemA, elemB);
+
+  if (pairs.find(p) == pairs.end())
+    error->one(FLERR,"Element pair (" + elemA + ", " + elemB
+               + ") is not defined in EIM potential file");
+
+  PairData &data = pairs[p];
+  setfl->rcutphiA[ij] = data.rcutphiA;
+  setfl->rcutphiR[ij] = data.rcutphiR;
+  setfl->Eb[ij] = data.Eb;
+  setfl->r0[ij] = data.r0;
+  setfl->alpha[ij] = data.alpha;
+  setfl->beta[ij] = data.beta;
+  setfl->rcutq[ij] = data.rcutq;
+  setfl->Asigma[ij] = data.Asigma;
+  setfl->rq[ij] = data.rq;
+  setfl->rcutsigma[ij] = data.rcutsigma;
+  setfl->Ac[ij] = data.Ac;
+  setfl->zeta[ij] = data.zeta;
+  setfl->rs[ij] = data.rs;
+  setfl->tp[ij] = data.tp;
 }

@@ -23,7 +23,7 @@ const char *table=0;
 
 #include "lal_table.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define TableT Table<numtyp, acctyp>
 
 #define LOOKUP 0
@@ -69,6 +69,20 @@ int TableT::init(const int ntypes,
   k_pair_spline_fast.set_function(*(this->pair_program),"k_table_spline_fast");
   k_pair_bitmap.set_function(*(this->pair_program),"k_table_bitmap");
   k_pair_bitmap_fast.set_function(*(this->pair_program),"k_table_bitmap_fast");
+
+  #if defined(LAL_OCL_EV_JIT)
+  k_pair_linear_noev.set_function(*(this->pair_program_noev),
+                                  "k_table_linear_fast");
+  k_pair_spline_noev.set_function(*(this->pair_program_noev),
+                                  "k_table_spline_fast");
+  k_pair_bitmap_noev.set_function(*(this->pair_program_noev),
+                                  "k_table_bitmap_fast");
+  #else
+  k_pair_linear_sel = &k_pair_linear_fast;
+  k_pair_spline_sel = &k_pair_spline_fast;
+  k_pair_bitmap_sel = &k_pair_bitmap_fast;
+  #endif
+
   _compiled_styles = true;
 
   // If atom type constants fit in shared memory use fast kernel
@@ -228,6 +242,11 @@ void TableT::clear() {
     k_pair_spline.clear();
     k_pair_bitmap_fast.clear();
     k_pair_bitmap.clear();
+    #if defined(LAL_OCL_EV_JIT)
+    k_pair_linear_noev.clear();
+    k_pair_spline_noev.clear();
+    k_pair_bitmap_noev.clear();
+    #endif
     _compiled_styles=false;
   }
 
@@ -243,19 +262,22 @@ double TableT::host_memory_usage() const {
 // Calculate energies, forces, and torques
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void TableT::loop(const bool _eflag, const bool _vflag) {
+int TableT::loop(const int eflag, const int vflag) {
   // Compute the block size and grid size to keep all cores busy
   const int BX=this->block_size();
-  int eflag, vflag;
-  if (_eflag)
-    eflag=1;
-  else
-    eflag=0;
 
-  if (_vflag)
-    vflag=1;
-  else
-    vflag=0;
+  #if defined(LAL_OCL_EV_JIT)
+  if (eflag || vflag) {
+    k_pair_linear_sel = &k_pair_linear_fast;
+    k_pair_spline_sel = &k_pair_spline_fast;
+    k_pair_bitmap_sel = &k_pair_bitmap_fast;
+  } else {
+    k_pair_linear_sel = &k_pair_linear_noev;
+    k_pair_spline_sel = &k_pair_spline_noev;
+    k_pair_bitmap_sel = &k_pair_bitmap_noev;
+  }
+  #endif
+
 
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                                (BX/this->_threads_per_atom)));
@@ -265,37 +287,37 @@ void TableT::loop(const bool _eflag, const bool _vflag) {
   this->time_pair.start();
   if (shared_types) {
     if (_tabstyle == LOOKUP) {
-      this->k_pair_fast.set_size(GX,BX);
-      this->k_pair_fast.run(&this->atom->x, &tabindex, &coeff2, &coeff3,
+      this->k_pair_sel->set_size(GX,BX);
+      this->k_pair_sel->run(&this->atom->x, &tabindex, &coeff2, &coeff3,
                             &coeff4, &cutsq, &sp_lj, &this->nbor->dev_nbor,
                             &this->_nbor_data->begin(), &this->ans->force,
                             &this->ans->engv, &eflag, &vflag, &ainum,
                             &nbor_pitch, &this->_threads_per_atom, &_tablength);
     } else if (_tabstyle == LINEAR) {
-      this->k_pair_linear_fast.set_size(GX,BX);
-      this->k_pair_linear_fast.run(&this->atom->x, &tabindex, &coeff2,
-                                   &coeff3, &coeff4, &cutsq, &sp_lj,
-                                   &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                                   &this->ans->force, &this->ans->engv,
-                                   &eflag, &vflag, &ainum, &nbor_pitch,
-                                   &this->_threads_per_atom, &_tablength);
+      k_pair_linear_sel->set_size(GX,BX);
+      k_pair_linear_sel->run(&this->atom->x, &tabindex, &coeff2,
+                             &coeff3, &coeff4, &cutsq, &sp_lj,
+                             &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+                             &this->ans->force, &this->ans->engv,
+                             &eflag, &vflag, &ainum, &nbor_pitch,
+                             &this->_threads_per_atom, &_tablength);
     } else if (_tabstyle == SPLINE) {
-      this->k_pair_spline_fast.set_size(GX,BX);
-      this->k_pair_spline_fast.run(&this->atom->x, &tabindex, &coeff2,
-                                   &coeff3, &coeff4, &cutsq, &sp_lj,
-                                   &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                                   &this->ans->force, &this->ans->engv,
-                                   &eflag, &vflag, &ainum, &nbor_pitch,
-                                   &this->_threads_per_atom, &_tablength);
+      k_pair_spline_sel->set_size(GX,BX);
+      k_pair_spline_sel->run(&this->atom->x, &tabindex, &coeff2,
+                             &coeff3, &coeff4, &cutsq, &sp_lj,
+                             &this->nbor->dev_nbor, &this->_nbor_data->begin(),
+                             &this->ans->force, &this->ans->engv,
+                             &eflag, &vflag, &ainum, &nbor_pitch,
+                             &this->_threads_per_atom, &_tablength);
     } else if (_tabstyle == BITMAP) {
-      this->k_pair_bitmap_fast.set_size(GX,BX);
-      this->k_pair_bitmap_fast.run(&this->atom->x, &tabindex, &nshiftbits,
-                                   &nmask, &coeff2, &coeff3, &coeff4, &cutsq,
-                                   &sp_lj, &this->nbor->dev_nbor,
-                                   &this->_nbor_data->begin(), &this->ans->force,
-                                   &this->ans->engv, &eflag, &vflag,
-                                   &ainum, &nbor_pitch,
-                                   &this->_threads_per_atom, &_tablength);
+      k_pair_bitmap_sel->set_size(GX,BX);
+      k_pair_bitmap_sel->run(&this->atom->x, &tabindex, &nshiftbits,
+                             &nmask, &coeff2, &coeff3, &coeff4, &cutsq,
+                             &sp_lj, &this->nbor->dev_nbor,
+                             &this->_nbor_data->begin(), &this->ans->force,
+                             &this->ans->engv, &eflag, &vflag,
+                             &ainum, &nbor_pitch,
+                             &this->_threads_per_atom, &_tablength);
     }
   } else {
     if (_tabstyle == LOOKUP) {
@@ -334,6 +356,8 @@ void TableT::loop(const bool _eflag, const bool _vflag) {
     }
   }
   this->time_pair.stop();
+  return GX;
 }
 
 template class Table<PRECISION,ACC_PRECISION>;
+}

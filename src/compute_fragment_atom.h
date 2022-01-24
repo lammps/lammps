@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(fragment/atom,ComputeFragmentAtom)
-
+// clang-format off
+ComputeStyle(fragment/atom,ComputeFragmentAtom);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_FRAGMENT_ATOM_H
@@ -32,16 +32,15 @@ class ComputeFragmentAtom : public Compute {
   void compute_peratom();
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
   double memory_usage();
 
  private:
-  int nmax,commflag;
+  int nmax, commflag, singleflag;
+  int *stack, *clist, *markflag;
   double *fragmentID;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

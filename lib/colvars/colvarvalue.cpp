@@ -2,7 +2,7 @@
 
 // This file is part of the Collective Variables module (Colvars).
 // The original version of Colvars and its updates are located at:
-// https://github.com/colvars/colvars
+// https://github.com/Colvars/colvars
 // Please update all Colvars source files before making any changes.
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
@@ -144,10 +144,10 @@ void colvarvalue::apply_constraints()
   case colvarvalue::type_quaternionderiv:
     break;
   case colvarvalue::type_unit3vector:
-    rvector_value /= std::sqrt(rvector_value.norm2());
+    rvector_value /= cvm::sqrt(rvector_value.norm2());
     break;
   case colvarvalue::type_quaternion:
-    quaternion_value /= std::sqrt(quaternion_value.norm2());
+    quaternion_value /= cvm::sqrt(quaternion_value.norm2());
     break;
   case colvarvalue::type_vector:
     if (elem_types.size() > 0) {
@@ -224,7 +224,7 @@ void colvarvalue::is_derivative()
 
 
 colvarvalue::colvarvalue(colvarvalue const &x)
-  : value_type(x.type())
+  : value_type(x.type()), real_value(0.0)
 {
   switch (x.type()) {
   case type_scalar:
@@ -252,6 +252,7 @@ colvarvalue::colvarvalue(colvarvalue const &x)
 
 
 colvarvalue::colvarvalue(cvm::vector1d<cvm::real> const &v, Type vti)
+  : real_value(0.0)
 {
   if ((vti != type_vector) && (v.size() != num_dimensions(vti))) {
     cvm::error("Error: trying to initialize a variable of type \""+type_desc(vti)+
@@ -579,16 +580,7 @@ colvarvalue colvarvalue::dist2_grad(colvarvalue const &x2) const
       cvm::rvector const &v1 = this->rvector_value;
       cvm::rvector const &v2 = x2.rvector_value;
       cvm::real const cos_t = v1 * v2;
-      cvm::real const sin_t = std::sqrt(1.0 - cos_t*cos_t);
-      return colvarvalue( 2.0 * sin_t *
-                          cvm::rvector((-1.0) * sin_t * v2.x +
-                                       cos_t/sin_t * (v1.x - cos_t*v2.x),
-                                       (-1.0) * sin_t * v2.y +
-                                       cos_t/sin_t * (v1.y - cos_t*v2.y),
-                                       (-1.0) * sin_t * v2.z +
-                                       cos_t/sin_t * (v1.z - cos_t*v2.z)
-                                       ),
-                          colvarvalue::type_unit3vectorderiv );
+      return colvarvalue(2.0 * (cos_t * v1 - v2), colvarvalue::type_unit3vectorderiv);
     }
   case colvarvalue::type_quaternion:
   case colvarvalue::type_quaternionderiv:
@@ -630,7 +622,7 @@ colvarvalue const colvarvalue::interpolate(colvarvalue const &x1,
     break;
   case colvarvalue::type_unit3vector:
   case colvarvalue::type_quaternion:
-    if (interp.norm()/std::sqrt(d2) < 1.0e-6) {
+    if (interp.norm()/cvm::sqrt(d2) < 1.0e-6) {
       cvm::error("Error: interpolation between "+cvm::to_str(x1)+" and "+
                  cvm::to_str(x2)+" with lambda = "+cvm::to_str(lambda)+
                  " is undefined: result = "+cvm::to_str(interp)+"\n",

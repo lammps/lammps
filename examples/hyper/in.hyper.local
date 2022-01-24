@@ -13,14 +13,14 @@ variable        cutevent index 1.1
 variable        alpha index 200.0
 variable        boost index 4000.0
 variable        ghostcut index 12.0
-variable        steps index 1500
+variable        steps index 2000
 variable        nevent index 100
-variable        nx index 8
-variable        ny index 8
+variable        nx index 2
+variable        ny index 2
 variable        zoom index 1.8
-variable        seed index 826626413
+variable        seed index 3875984
 variable        tol index 1.0e-15
-variable        add index 37K
+variable        add index 50
 
 units           metal
 atom_style	atomic

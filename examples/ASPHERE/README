@@ -10,7 +10,7 @@ systems.  Some of the directories include a Python script, which can
 be used with the Pizza.py tool to create the data file, e.g. for
 collections of rigid bodies.
 
-The web site for Pizza.py is http://pizza.sandia.gov
+The web site for Pizza.py is https://pizza.sandia.gov
 
 For example, If you have Pizza.py installed you can type "pizza.py -f
 box.py", which creates the data.box data file in the box dir.
@@ -18,7 +18,7 @@ box.py", which creates the data.box data file in the box dir.
 If you uncomment the dump or dump image lines in the input scripts the
 runs will produce dump files or JPG images which you can view or
 animate.  See the Movies page of the LAMMPS web site
-(http://lammps.sandia.gov/movies.html), for animations of these
+(https://www.lammps.org/movies.html), for animations of these
 scripts.  Most were done using the dump image command.  A few were
 done using the gl tool in Pizza.py; the Pizza.py scripts that do the
 animation are given in the directory, e.g. as line.viz.py.

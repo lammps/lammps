@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,15 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(qeq/comb,FixQEQComb)
-
+// clang-format off
+FixStyle(qeq/comb,FixQEQComb);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_QEQ_COMB_H
 #define LMP_FIX_QEQ_COMB_H
 
-#include <cstdio>
 #include "fix.h"
 
 namespace LAMMPS_NS {
@@ -33,15 +32,15 @@ class FixQEQComb : public Fix {
   virtual void init();
   void setup(int);
   virtual void post_force(int);
-  void post_force_respa(int,int,int);
+  void post_force_respa(int, int, int);
   double memory_usage();
-  int pack_forward_comm(int , int *, double *, int, int *);
-  void unpack_forward_comm(int , int , double *);
+  int pack_forward_comm(int, int *, double *, int, int *);
+  void unpack_forward_comm(int, int, double *);
 
   void min_post_force(int);
 
  protected:
-  int me,firstflag;
+  int me, firstflag;
   double precision;
   int ilevel_respa;
   bigint ngroup;
@@ -50,10 +49,10 @@ class FixQEQComb : public Fix {
   class PairComb *comb;
   class PairComb3 *comb3;
   int nmax;
-  double *qf,*q1,*q2;
+  double *qf, *q1, *q2;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

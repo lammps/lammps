@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -25,6 +26,7 @@ class ModifyKokkos : public Modify {
   void setup(int);
   void setup_pre_exchange();
   void setup_pre_neighbor();
+  void setup_post_neighbor();
   void setup_pre_force(int);
   void setup_pre_reverse(int, int);
   void initial_integrate(int);
@@ -32,12 +34,15 @@ class ModifyKokkos : public Modify {
   void pre_decide();
   void pre_exchange();
   void pre_neighbor();
+  void post_neighbor();
   void pre_force(int);
   void pre_reverse(int,int);
   void post_force(int);
   void final_integrate();
   void end_of_step();
-  double thermo_energy();
+  double energy_couple();
+  double energy_global();
+  void energy_atom(int, double *);
   void post_run();
 
   void setup_pre_force_respa(int, int);
@@ -49,6 +54,7 @@ class ModifyKokkos : public Modify {
 
   void min_pre_exchange();
   void min_pre_neighbor();
+  void min_post_neighbor();
   void min_pre_force(int);
   void min_pre_reverse(int,int);
   void min_post_force(int);

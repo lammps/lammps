@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,14 +12,13 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "fix_store_force.h"
+
 #include "atom.h"
-#include "update.h"
-#include "group.h"
-#include "respa.h"
-#include "memory.h"
 #include "error.h"
+#include "memory.h"
+#include "respa.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -27,7 +27,7 @@ using namespace FixConst;
 
 FixStoreForce::FixStoreForce(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  foriginal(NULL)
+  foriginal(nullptr)
 {
   if (narg < 3) error->all(FLERR,"Illegal fix store/coord command");
 
@@ -69,7 +69,7 @@ int FixStoreForce::setmask()
 
 void FixStoreForce::init()
 {
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 }
 
@@ -77,7 +77,7 @@ void FixStoreForce::init()
 
 void FixStoreForce::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
@@ -136,6 +136,6 @@ void FixStoreForce::min_post_force(int vflag)
 
 double FixStoreForce::memory_usage()
 {
-  double bytes = atom->nmax*3 * sizeof(double);
+  double bytes = (double)atom->nmax*3 * sizeof(double);
   return bytes;
 }

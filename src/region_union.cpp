@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,12 +12,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "region_union.h"
+
 #include "domain.h"
 #include "error.h"
-#include "force.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -25,11 +26,11 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 RegUnion::RegUnion(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg),
-  idsub(NULL)
+  idsub(nullptr)
 {
   nregion = 0;
   if (narg < 5) error->all(FLERR,"Illegal region command");
-  int n = force->inumeric(FLERR,arg[2]);
+  int n = utils::inumeric(FLERR,arg[2],false,lmp);
   if (n < 2) error->all(FLERR,"Illegal region command");
   options(narg-(n+3),&arg[n+3]);
 
@@ -40,12 +41,9 @@ RegUnion::RegUnion(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg),
   list = new int[n];
   nregion = 0;
 
-  int m,iregion;
   for (int iarg = 0; iarg < n; iarg++) {
-    m = strlen(arg[iarg+3]) + 1;
-    idsub[nregion] = new char[m];
-    strcpy(idsub[nregion],arg[iarg+3]);
-    iregion = domain->find_region(idsub[nregion]);
+    idsub[nregion] = utils::strdup(arg[iarg+3]);
+    int iregion = domain->find_region(idsub[nregion]);
     if (iregion == -1)
       error->all(FLERR,"Region union region ID does not exist");
     list[nregion++] = iregion;
@@ -117,9 +115,8 @@ void RegUnion::init()
   // re-build list of sub-regions in case other regions were deleted
   // error if a sub-region was deleted
 
-  int iregion;
   for (int ilist = 0; ilist < nregion; ilist++) {
-    iregion = domain->find_region(idsub[ilist]);
+    int iregion = domain->find_region(idsub[ilist]);
     if (iregion == -1)
       error->all(FLERR,"Region union region ID does not exist");
     list[ilist] = iregion;

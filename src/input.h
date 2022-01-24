@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -14,17 +14,18 @@
 #ifndef LMP_INPUT_H
 #define LMP_INPUT_H
 
-#include <cstdio>
 #include "pointers.h"
+
 #include <map>
-#include <string>
 
 namespace LAMMPS_NS {
+class Command;
 
 class Input : protected Pointers {
   friend class Info;
   friend class Error;
   friend class Deprecated;
+  friend class SimpleCommandsTest_Echo_Test;
 
  public:
   int narg;                    // # of command args
@@ -33,47 +34,47 @@ class Input : protected Pointers {
 
   Input(class LAMMPS *, int, char **);
   ~Input();
-  void file();                   // process all input
-  void file(const char *);       // process an input script
-  char *one(const char *);       // process a single command
+  void file();                       // process all input
+  void file(const char *);           // process an input script
+  char *one(const std::string &);    // process a single command
   void substitute(char *&, char *&, int &, int &, int);
-                                 // substitute for variables in a string
-  int expand_args(int, char **, int, char **&);  // expand args due to wildcard
+  // substitute for variables in a string
+  void write_echo(const std::string &);    // send text to active echo file pointers
 
  protected:
-  char *command;               // ptr to current command
+  char *command;      // ptr to current command
+  int echo_screen;    // 0 = no, 1 = yes
+  int echo_log;       // 0 = no, 1 = yes
 
  private:
-  int me;                      // proc ID
-  int maxarg;                  // max # of args in arg
-  char *line,*copy,*work;      // input line & copy and work string
-  int maxline,maxcopy,maxwork; // max lengths of char strings
-  int echo_screen;             // 0 = no, 1 = yes
-  int echo_log;                // 0 = no, 1 = yes
-  int nfile,maxfile;           // current # and max # of open input files
-  int label_active;            // 0 = no label, 1 = looking for label
-  char *labelstr;              // label string being looked for
-  int jump_skip;               // 1 if skipping next jump, 0 otherwise
-  int ifthenelse_flag;         // 1 if executing commands inside an if-then-else
+  int me;                           // proc ID
+  int maxarg;                       // max # of args in arg
+  char *line, *copy, *work;         // input line & copy and work string
+  int maxline, maxcopy, maxwork;    // max lengths of char strings
+  int nfile, maxfile;               // current # and max # of open input files
+  int label_active;                 // 0 = no label, 1 = looking for label
+  char *labelstr;                   // label string being looked for
+  int jump_skip;                    // 1 if skipping next jump, 0 otherwise
+  bool utf8_warn;                   // true if need to warn about UTF-8 chars
 
-  FILE **infiles;              // list of open input files
+  FILE **infiles;    // list of open input files
 
  public:
-  typedef void (*CommandCreator)(LAMMPS *, int, char **);
-  typedef std::map<std::string,CommandCreator> CommandCreatorMap;
+  typedef Command *(*CommandCreator)(LAMMPS *);
+  typedef std::map<std::string, CommandCreator> CommandCreatorMap;
   CommandCreatorMap *command_map;
 
  protected:
-  template <typename T> static void command_creator(LAMMPS *, int, char **);
+  template <typename T> static Command *command_creator(LAMMPS *);
 
  private:
-  void parse();                          // parse an input text line
-  char *nextword(char *, char **);       // find next word in string with quotes
-  int numtriple(char *);                 // count number of triple quotes
-  void reallocate(char *&, int &, int);  // reallocate a char string
-  int execute_command();                 // execute a single command
+  void parse();                            // parse an input text line
+  char *nextword(char *, char **);         // find next word in string with quotes
+  int numtriple(char *);                   // count number of triple quotes
+  void reallocate(char *&, int &, int);    // reallocate a char string
+  int execute_command();                   // execute a single command
 
-  void clear();                 // input script commands
+  void clear();    // input script commands
   void echo();
   void ifthenelse();
   void include();
@@ -82,13 +83,14 @@ class Input : protected Pointers {
   void log();
   void next_command();
   void partition();
+  void plugin();
   void print();
   void python();
   void quit();
   void shell();
   void variable_command();
 
-  void angle_coeff();           // LAMMPS commands
+  void angle_coeff();    // LAMMPS commands
   void angle_style();
   void atom_modify();
   void atom_style();
@@ -145,7 +147,7 @@ class Input : protected Pointers {
   void units();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 
@@ -172,6 +174,11 @@ E: Unbalanced quotes in input line
 
 No matching end double quote was found following a leading double
 quote.
+
+E: Incorrect conversion in format string
+
+An immediate variable with format suffix was not using
+either a %f, a %g, or a %e conversion in the format suffix.
 
 E: Input line quote not followed by white-space
 
@@ -350,14 +357,14 @@ E: Package kokkos command without KOKKOS package enabled
 The KOKKOS package must be installed via "make yes-kokkos" before
 LAMMPS is built, and the "-k on" must be used to enable the package.
 
-E: Package omp command without USER-OMP package installed
+E: Package omp command without OPENMP package installed
 
-The USER-OMP package must be installed via "make yes-user-omp" before
+The OPENMP package must be installed via "make yes-openmp" before
 LAMMPS is built.
 
-E: Package intel command without USER-INTEL package installed
+E: Package intel command without INTEL package installed
 
-The USER-INTEL package must be installed via "make yes-user-intel"
+The INTEL package must be installed via "make yes-intel"
 before LAMMPS is built.
 
 E: Pair_coeff command before simulation box is defined

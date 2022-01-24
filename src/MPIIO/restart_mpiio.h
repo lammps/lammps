@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,24 +18,24 @@
 
 namespace LAMMPS_NS {
 
-class RestartMPIIO  : protected Pointers {
+class RestartMPIIO : protected Pointers {
  private:
-   MPI_File mpifh;
-   int nprocs, myrank;
+  MPI_File mpifh;
+  int nprocs, myrank;
 
  public:
   int mpiio_exists;
 
   RestartMPIIO(class LAMMPS *);
   ~RestartMPIIO() {}
-  void openForRead(char *);
-  void openForWrite(char *);
+  void openForRead(const char *);
+  void openForWrite(const char *);
   void write(MPI_Offset, int, double *);
   void read(MPI_Offset, bigint, double *);
   void close();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 

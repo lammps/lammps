@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,21 +12,21 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
 #include "fix_addforce.h"
+
 #include "atom.h"
 #include "atom_masks.h"
-#include "update.h"
-#include "modify.h"
 #include "domain.h"
+#include "error.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
 #include "region.h"
 #include "respa.h"
-#include "input.h"
+#include "update.h"
 #include "variable.h"
-#include "memory.h"
-#include "error.h"
-#include "force.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -36,8 +37,8 @@ enum{NONE,CONSTANT,EQUAL,ATOM};
 
 FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  xstr(NULL), ystr(NULL), zstr(NULL), estr(NULL), idregion(NULL), sforce(NULL)
-
+  xstr(nullptr), ystr(nullptr), zstr(nullptr), estr(nullptr),
+  idregion(nullptr), sforce(nullptr)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix addforce command");
 
@@ -48,34 +49,29 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extscalar = 1;
   extvector = 1;
+  energy_global_flag = 1;
+  virial_global_flag = virial_peratom_flag = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
-  virial_flag = 1;
 
-  xstr = ystr = zstr = NULL;
+  xstr = ystr = zstr = nullptr;
 
-  if (strstr(arg[3],"v_") == arg[3]) {
-    int n = strlen(&arg[3][2]) + 1;
-    xstr = new char[n];
-    strcpy(xstr,&arg[3][2]);
+  if (utils::strmatch(arg[3],"^v_")) {
+    xstr = utils::strdup(arg[3]+2);
   } else {
-    xvalue = force->numeric(FLERR,arg[3]);
+    xvalue = utils::numeric(FLERR,arg[3],false,lmp);
     xstyle = CONSTANT;
   }
-  if (strstr(arg[4],"v_") == arg[4]) {
-    int n = strlen(&arg[4][2]) + 1;
-    ystr = new char[n];
-    strcpy(ystr,&arg[4][2]);
+  if (utils::strmatch(arg[4],"^v_")) {
+    ystr = utils::strdup(arg[4]+2);
   } else {
-    yvalue = force->numeric(FLERR,arg[4]);
+    yvalue = utils::numeric(FLERR,arg[4],false,lmp);
     ystyle = CONSTANT;
   }
-  if (strstr(arg[5],"v_") == arg[5]) {
-    int n = strlen(&arg[5][2]) + 1;
-    zstr = new char[n];
-    strcpy(zstr,&arg[5][2]);
+  if (utils::strmatch(arg[5],"^v_")) {
+    zstr = utils::strdup(arg[5]+2);
   } else {
-    zvalue = force->numeric(FLERR,arg[5]);
+    zvalue = utils::numeric(FLERR,arg[5],false,lmp);
     zstyle = CONSTANT;
   }
 
@@ -88,7 +84,7 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"every") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix addforce command");
-      nevery = atoi(arg[iarg+1]);
+      nevery = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nevery <= 0) error->all(FLERR,"Illegal fix addforce command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"region") == 0) {
@@ -96,16 +92,12 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
       iregion = domain->find_region(arg[iarg+1]);
       if (iregion == -1)
         error->all(FLERR,"Region ID for fix addforce does not exist");
-      int n = strlen(arg[iarg+1]) + 1;
-      idregion = new char[n];
-      strcpy(idregion,arg[iarg+1]);
+      idregion = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"energy") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix addforce command");
-      if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
-        int n = strlen(&arg[iarg+1][2]) + 1;
-        estr = new char[n];
-        strcpy(estr,&arg[iarg+1][2]);
+      if (utils::strmatch(arg[iarg+1],"^v_")) {
+        estr = utils::strdup(arg[iarg+1]+2);
       } else error->all(FLERR,"Illegal fix addforce command");
       iarg += 2;
     } else error->all(FLERR,"Illegal fix addforce command");
@@ -138,7 +130,6 @@ int FixAddForce::setmask()
 
   int mask = 0;
   mask |= POST_FORCE;
-  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
   return mask;
@@ -203,7 +194,7 @@ void FixAddForce::init()
       update->whichflag == 2 && estyle == NONE)
     error->all(FLERR,"Must use variable energy with fix addforce");
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
@@ -213,7 +204,7 @@ void FixAddForce::init()
 
 void FixAddForce::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
@@ -242,10 +233,9 @@ void FixAddForce::post_force(int vflag)
 
   if (update->ntimestep % nevery) return;
 
-  // energy and virial setup
+  // virial setup
 
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  v_init(vflag);
 
   if (lmp->kokkos)
     atom->sync_modify(Host, (unsigned int) (F_MASK | MASK_MASK),
@@ -253,7 +243,7 @@ void FixAddForce::post_force(int vflag)
 
   // update region if necessary
 
-  Region *region = NULL;
+  Region *region = nullptr;
   if (iregion >= 0) {
     region = domain->regions[iregion];
     region->prematch();
@@ -352,7 +342,7 @@ void FixAddForce::post_force(int vflag)
           v[3] = xstyle ? xvalue*unwrap[1] : 0.0;
           v[4] = xstyle ? xvalue*unwrap[2] : 0.0;
           v[5] = ystyle ? yvalue*unwrap[2] : 0.0;
-          v_tally(i, v);
+          v_tally(i,v);
         }
       }
     }

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,21 +16,22 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "fix_heat.h"
+
 #include "atom.h"
 #include "domain.h"
-#include "region.h"
-#include "group.h"
-#include "force.h"
-#include "update.h"
-#include "modify.h"
-#include "input.h"
-#include "variable.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "group.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "region.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -39,7 +41,7 @@ enum{CONSTANT,EQUAL,ATOM};
 /* ---------------------------------------------------------------------- */
 
 FixHeat::FixHeat(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
-idregion(NULL), hstr(NULL), vheat(NULL), vscale(NULL)
+idregion(nullptr), hstr(nullptr), vheat(nullptr), vscale(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix heat command");
 
@@ -47,17 +49,15 @@ idregion(NULL), hstr(NULL), vheat(NULL), vscale(NULL)
   global_freq = 1;
   extscalar = 0;
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix heat command");
 
-  hstr = NULL;
+  hstr = nullptr;
 
-  if (strstr(arg[4],"v_") == arg[4]) {
-    int n = strlen(&arg[4][2]) + 1;
-    hstr = new char[n];
-    strcpy(hstr,&arg[4][2]);
+  if (utils::strmatch(arg[4],"^v_")) {
+    hstr = utils::strdup(arg[4]+2);
   } else {
-    heat_input = force->numeric(FLERR,arg[4]);
+    heat_input = utils::numeric(FLERR,arg[4],false,lmp);
     hstyle = CONSTANT;
   }
 
@@ -72,9 +72,7 @@ idregion(NULL), hstr(NULL), vheat(NULL), vscale(NULL)
       iregion = domain->find_region(arg[iarg+1]);
       if (iregion == -1)
         error->all(FLERR,"Region ID for fix heat does not exist");
-      int n = strlen(arg[iarg+1]) + 1;
-      idregion = new char[n];
-      strcpy(idregion,arg[iarg+1]);
+      idregion = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix heat command");
   }
@@ -192,7 +190,7 @@ void FixHeat::end_of_step()
   // vsub = velocity subtracted from each atom to preserve momentum
   // overall KE cannot go negative
 
-  Region *region = NULL;
+  Region *region = nullptr;
   if (iregion >= 0) {
     region = domain->regions[iregion];
     region->prematch();
@@ -216,7 +214,7 @@ void FixHeat::end_of_step()
           v[i][2] = scale*v[i][2] - vsub[2];
         }
     } else {
-      for (int i = 0; i < nlocal; i++)
+      for (i = 0; i < nlocal; i++)
         if (mask[i] & groupbit && region->match(x[i][0],x[i][1],x[i][2])) {
           v[i][0] = scale*v[i][0] - vsub[0];
           v[i][1] = scale*v[i][1] - vsub[1];
@@ -300,6 +298,7 @@ double FixHeat::compute_scalar()
 {
   double average_scale = scale;
   if (hstyle == ATOM) {
+    if (!vscale) return 1.0;
     double scale_sum = 0.0;
     int ncount = 0;
     int *mask = atom->mask;

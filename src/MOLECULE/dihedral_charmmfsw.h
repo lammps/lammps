@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,15 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
-DihedralStyle(charmmfsw,DihedralCharmmfsw)
-
+// clang-format off
+DihedralStyle(charmmfsw,DihedralCharmmfsw);
+// clang-format on
 #else
 
 #ifndef LMP_DIHEDRAL_CHARMMFSW_H
 #define LMP_DIHEDRAL_CHARMMFSW_H
 
-#include <cstdio>
 #include "dihedral.h"
 
 namespace LAMMPS_NS {
@@ -37,19 +36,19 @@ class DihedralCharmmfsw : public Dihedral {
   void write_data(FILE *);
 
  protected:
-  int implicit,weightflag,dihedflag;
-  double cut_lj_inner14,cut_lj14,cut_coul14;
-  double evdwl14_12,evdwl14_6,cut_coulinv14;
-  double cut_lj_inner3inv,cut_lj_inner6inv,cut_lj3inv,cut_lj6inv;
+  int implicit, weightflag, dihedflag;
+  double cut_lj_inner14, cut_lj14, cut_coul14;
+  double evdwl14_12, evdwl14_6, cut_coulinv14;
+  double cut_lj_inner3inv, cut_lj_inner6inv, cut_lj3inv, cut_lj6inv;
 
-  double *k,*weight,*cos_shift,*sin_shift;
-  int *multiplicity,*shift;
-  double **lj14_1,**lj14_2,**lj14_3,**lj14_4;
+  double *k, *weight, *cos_shift, *sin_shift;
+  int *multiplicity, *shift;
+  double **lj14_1, **lj14_2, **lj14_3, **lj14_4;
 
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

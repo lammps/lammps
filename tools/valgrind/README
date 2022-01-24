@@ -1,0 +1,18 @@
+These files contain additional suppressions for LAMMPS when using valgrind's
+memcheck tool to search for memory access violations and memory leaks.
+These will suppress known false positives and thus help to focus finding
+and fixing real issues. When using CMake, these are automatically included
+when running "ctest -T memcheck". To manually add them to do a memory check
+on running LAMMPS, use a command line like following:
+
+valgrind --show-leak-kinds=all --track-origins=yes \
+   --suppressions=/path/to/lammps/tools/valgrind/OpenMP.supp \
+   --suppressions=/path/to/lammps/tools/valgrind/OpenMPI.supp \
+   --suppressions=/path/to/lammps/tools/valgrind/Python3.supp \
+   --suppressions=/path/to/lammps/tools/valgrind/GTest.supp \
+   --suppressions=/path/to/lammps/tools/valgrind/FlexiBLAS.supp \
+   --suppressions=/path/to/lammps/tools/valgrind/readline.supp \
+    lmp -in in.melt
+
+Last update: 2021-08-04
+

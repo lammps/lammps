@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,23 +12,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "comm_tiled_kokkos.h"
-#include "comm_brick.h"
+
 #include "atom_kokkos.h"
-#include "atom_vec.h"
-#include "domain.h"
-#include "force.h"
-#include "pair.h"
-#include "neighbor.h"
-#include "modify.h"
-#include "fix.h"
-#include "compute.h"
-#include "output.h"
-#include "dump.h"
-#include "memory_kokkos.h"
-#include "error.h"
 #include "atom_masks.h"
+#include "atom_vec.h"
 
 using namespace LAMMPS_NS;
 
@@ -113,7 +102,7 @@ void CommTiledKokkos::reverse_comm()
    atoms exchanged with procs that touch sub-box in each of 3 dims
    send out atoms that have left my box, receive ones entering my box
    atoms will be lost if not inside a touching proc's box
-     can happen if atom moves outside of non-periodic bounary
+     can happen if atom moves outside of non-periodic boundary
      or if atom moves more than one proc away
    this routine called before every reneighboring
    for triclinic, atoms must be in lamda coords (0-1) before exchange is called

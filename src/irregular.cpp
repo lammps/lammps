@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,15 +12,17 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstdlib>
-#include <cstring>
 #include "irregular.h"
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "domain.h"
 #include "comm.h"
+#include "domain.h"
+#include "fix.h"
 #include "memory.h"
+#include "modify.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -29,14 +32,13 @@ using namespace LAMMPS_NS;
 int *Irregular::proc_recv_copy;
 static int compare_standalone(const void *, const void *);
 #else
-#include "mergesort.h"
 // prototype for non-class function
 static int compare_standalone(const int, const int, void *);
 #endif
 
 #define BUFFACTOR 1.5
-#define BUFMIN 1000
-#define BUFEXTRA 1000
+#define BUFMIN 1024
+#define BUFEXTRA 1024
 
 /* ---------------------------------------------------------------------- */
 
@@ -51,15 +53,15 @@ Irregular::Irregular(LAMMPS *lmp) : Pointers(lmp)
   // migrate work vectors
 
   maxlocal = 0;
-  mproclist = NULL;
-  msizes = NULL;
+  mproclist = nullptr;
+  msizes = nullptr;
 
   // send buffers
 
   maxdbuf = 0;
-  dbuf = NULL;
+  dbuf = nullptr;
   maxbuf = 0;
-  buf = NULL;
+  buf = nullptr;
 
   // universal work vectors
 
@@ -69,9 +71,10 @@ Irregular::Irregular(LAMMPS *lmp) : Pointers(lmp)
   // initialize buffers for migrate atoms, not used for datum comm
   // these can persist for multiple irregular operations
 
-  maxsend = BUFMIN;
-  memory->create(buf_send,maxsend+BUFEXTRA,"comm:buf_send");
-  maxrecv = BUFMIN;
+  buf_send = buf_recv = nullptr;
+  maxsend = maxrecv = BUFMIN;
+  bufextra = BUFEXTRA;
+  grow_send(maxsend,2);
   memory->create(buf_recv,maxrecv,"comm:buf_recv");
 }
 
@@ -103,12 +106,19 @@ Irregular::~Irregular()
 
 void Irregular::migrate_atoms(int sortflag, int preassign, int *procassign)
 {
+  // check if buf_send needs to be extended due to atom style or per-atom fixes
+  // same as in Comm::exchange()
+
+  int bufextra_old = bufextra;
+  init_exchange();
+  if (bufextra > bufextra_old) grow_send(maxsend+bufextra,2);
+
   // clear global->local map since atoms move to new procs
   // clear old ghosts so map_set() at end will operate only on local atoms
   // exchange() doesn't need to clear ghosts b/c borders()
   //   is called right after and it clears ghosts and calls map_set()
 
-  if (map_style) atom->map_clear();
+  if (map_style != Atom::MAP_NONE) atom->map_clear();
   atom->nghost = 0;
   atom->avec->clear_bonus();
 
@@ -431,7 +441,7 @@ int Irregular::create_atom(int n, int *sizes, int *proclist, int sortflag)
     proc_recv_copy = proc_recv;
     qsort(order,nrecv_proc,sizeof(int),compare_standalone);
 #else
-    merge_sort(order,nrecv_proc,(void *)proc_recv,compare_standalone);
+    utils::merge_sort(order,nrecv_proc,(void *)proc_recv,compare_standalone);
 #endif
 
     int j;
@@ -501,7 +511,8 @@ int compare_standalone(const int i, const int j, void *ptr)
 
 void Irregular::exchange_atom(double *sendbuf, int *sizes, double *recvbuf)
 {
-  int i,m,n,offset,count;
+  int i,m,n,count;
+  bigint offset;
 
   // post all receives
 
@@ -621,6 +632,7 @@ int Irregular::create_data(int n, int *proclist, int sortflag)
   num_send = new int[nsend_proc];
   index_send = new int[n-work1[me]];
   index_self = new int[work1[me]];
+  maxindex = n;
 
   // proc_send = procs I send to
   // num_send = # of datums I send to each proc
@@ -678,8 +690,8 @@ int Irregular::create_data(int n, int *proclist, int sortflag)
 
   // receive incoming messages
   // proc_recv = procs I recv from
-  // num_recv = total size of message each proc sends me
-  // nrecvdatum = total size of data I recv
+  // num_recv = # of datums each proc sends me
+  // nrecvdatum = total # of datums I recv
 
   int nrecvdatum = 0;
   for (i = 0; i < nrecv_proc; i++) {
@@ -703,10 +715,183 @@ int Irregular::create_data(int n, int *proclist, int sortflag)
     proc_recv_copy = proc_recv;
     qsort(order,nrecv_proc,sizeof(int),compare_standalone);
 #else
-    merge_sort(order,nrecv_proc,(void *)proc_recv,compare_standalone);
+    utils::merge_sort(order,nrecv_proc,(void *)proc_recv,compare_standalone);
 #endif
 
     int j;
+    for (i = 0; i < nrecv_proc; i++) {
+      j = order[i];
+      proc_recv_ordered[i] = proc_recv[j];
+      num_recv_ordered[i] = num_recv[j];
+    }
+
+    memcpy(proc_recv,proc_recv_ordered,nrecv_proc*sizeof(int));
+    memcpy(num_recv,num_recv_ordered,nrecv_proc*sizeof(int));
+    delete [] order;
+    delete [] proc_recv_ordered;
+    delete [] num_recv_ordered;
+  }
+
+  // barrier to insure all MPI_ANY_SOURCE messages are received
+  // else another proc could proceed to exchange_data() and send to me
+
+  MPI_Barrier(world);
+
+  // return # of datums I will receive
+
+  return nrecvdatum;
+}
+
+/* ----------------------------------------------------------------------
+   create communication plan based on list of datums of uniform size
+   n = # of datums to send
+   procs = how many datums to send to each proc, must include self
+   sort = flag for sorting order of received messages by proc ID
+   return total # of datums I will recv, including any to self
+------------------------------------------------------------------------- */
+
+int Irregular::create_data_grouped(int n, int *procs, int sortflag)
+{
+  int i,j,k,m;
+
+  // setup for collective comm
+  // work1 = # of datums I send to each proc, set self to 0
+  // work2 = 1 for all procs, used for ReduceScatter
+
+  for (i = 0; i < nprocs; i++) {
+    work1[i] = procs[i];
+    work2[i] = 1;
+  }
+  work1[me] = 0;
+
+  // nrecv_proc = # of procs I receive messages from, not including self
+  // options for performing ReduceScatter operation
+  // some are more efficient on some machines at big sizes
+
+#ifdef LAMMPS_RS_ALLREDUCE_INPLACE
+  MPI_Allreduce(MPI_IN_PLACE,work1,nprocs,MPI_INT,MPI_SUM,world);
+  nrecv_proc = work1[me];
+#else
+#ifdef LAMMPS_RS_ALLREDUCE
+  MPI_Allreduce(work1,work2,nprocs,MPI_INT,MPI_SUM,world);
+  nrecv_proc = work2[me];
+#else
+  MPI_Reduce_scatter(work1,&nrecv_proc,work2,MPI_INT,MPI_SUM,world);
+#endif
+#endif
+
+  // allocate receive arrays
+
+  proc_recv = new int[nrecv_proc];
+  num_recv = new int[nrecv_proc];
+  request = new MPI_Request[nrecv_proc];
+  status = new MPI_Status[nrecv_proc];
+
+  // work1 = # of datums I send to each proc, including self
+  // nsend_proc = # of procs I send messages to, not including self
+
+  for (i = 0; i < nprocs; i++) work1[i] = procs[i];
+
+  nsend_proc = 0;
+  for (i = 0; i < nprocs; i++)
+    if (work1[i]) nsend_proc++;
+  if (work1[me]) nsend_proc--;
+
+  // allocate send and self arrays
+
+  proc_send = new int[nsend_proc];
+  num_send = new int[nsend_proc];
+  index_send = new int[n-work1[me]];
+  index_self = new int[work1[me]];
+  maxindex = n;
+
+  // proc_send = procs I send to
+  // num_send = # of datums I send to each proc
+  // num_self = # of datums I copy to self
+  // to balance pattern of send messages:
+  //   each proc begins with iproc > me, continues until iproc = me
+  // reset work1 to store which send message each proc corresponds to
+
+  int iproc = me;
+  int isend = 0;
+  for (i = 0; i < nprocs; i++) {
+    iproc++;
+    if (iproc == nprocs) iproc = 0;
+    if (iproc == me) {
+      num_self = work1[iproc];
+      work1[iproc] = 0;
+    } else if (work1[iproc] > 0) {
+      proc_send[isend] = iproc;
+      num_send[isend] = work1[iproc];
+      work1[iproc] = isend;
+      isend++;
+    }
+  }
+
+  // work2 = offsets into index_send for each proc I send to
+  // m = ptr into index_self
+  // index_send = list of which datums to send to each proc
+  //   1st N1 values are datum indices for 1st proc,
+  //   next N2 values are datum indices for 2nd proc, etc
+  // index_self = list of which datums to copy to self
+
+  work2[0] = 0;
+  for (i = 1; i < nsend_proc; i++) work2[i] = work2[i-1] + num_send[i-1];
+
+  m = 0;
+  i = 0;
+  for (iproc = 0; iproc < nprocs; iproc++) {
+    k = procs[iproc];
+    for (j = 0; j < k; j++) {
+      if (iproc == me) index_self[m++] = i++;
+      else {
+        isend = work1[iproc];
+        index_send[work2[isend]++] = i++;
+      }
+    }
+  }
+
+  // tell receivers how much data I send
+  // sendmax_proc = largest # of datums I send in a single message
+
+  sendmax_proc = 0;
+  for (i = 0; i < nsend_proc; i++) {
+    MPI_Request tmpReq; // Use non-blocking send to avoid possible deadlock
+    MPI_Isend(&num_send[i],1,MPI_INT,proc_send[i],0,world,&tmpReq);
+    MPI_Request_free(&tmpReq); // the MPI_Barrier below marks completion
+    sendmax_proc = MAX(sendmax_proc,num_send[i]);
+  }
+
+  // receive incoming messages
+  // proc_recv = procs I recv from
+  // num_recv = # of datums each proc sends me
+  // nrecvdatum = total # of datums I recv
+
+  int nrecvdatum = 0;
+  for (i = 0; i < nrecv_proc; i++) {
+    MPI_Recv(&num_recv[i],1,MPI_INT,MPI_ANY_SOURCE,0,world,status);
+    proc_recv[i] = status->MPI_SOURCE;
+    nrecvdatum += num_recv[i];
+  }
+  nrecvdatum += num_self;
+
+  // sort proc_recv and num_recv by proc ID if requested
+  // useful for debugging to insure reproducible ordering of received datums
+
+  if (sortflag) {
+    int *order = new int[nrecv_proc];
+    int *proc_recv_ordered = new int[nrecv_proc];
+    int *num_recv_ordered = new int[nrecv_proc];
+
+    for (i = 0; i < nrecv_proc; i++) order[i] = i;
+
+#if defined(LMP_QSORT)
+    proc_recv_copy = proc_recv;
+    qsort(order,nrecv_proc,sizeof(int),compare_standalone);
+#else
+    utils::merge_sort(order,nrecv_proc,(void *)proc_recv,compare_standalone);
+#endif
+
     for (i = 0; i < nrecv_proc; i++) {
       j = order[i];
       proc_recv_ordered[i] = proc_recv[j];
@@ -739,15 +924,17 @@ int Irregular::create_data(int n, int *proclist, int sortflag)
 
 void Irregular::exchange_data(char *sendbuf, int nbytes, char *recvbuf)
 {
-  int i,m,n,offset,count;
+  int i,n,count;
+  bigint m;       // these 2 lines enable send/recv buf to be larger than 2 GB
+  char *dest;
 
   // post all receives, starting after self copies
 
-  offset = num_self*nbytes;
+  bigint offset = (bigint)num_self*(bigint)nbytes;
   for (int irecv = 0; irecv < nrecv_proc; irecv++) {
     MPI_Irecv(&recvbuf[offset],num_recv[irecv]*nbytes,MPI_CHAR,
               proc_recv[irecv],0,world,&request[irecv]);
-    offset += num_recv[irecv]*nbytes;
+    offset += (bigint)num_recv[irecv]*nbytes;
   }
 
   // reallocate buf for largest send if necessary
@@ -765,18 +952,22 @@ void Irregular::exchange_data(char *sendbuf, int nbytes, char *recvbuf)
   n = 0;
   for (int isend = 0; isend < nsend_proc; isend++) {
     count = num_send[isend];
+    dest = buf;
     for (i = 0; i < count; i++) {
       m = index_send[n++];
-      memcpy(&buf[i*nbytes],&sendbuf[m*nbytes],nbytes);
+      memcpy(dest,&sendbuf[m*nbytes],nbytes);
+      dest += nbytes;
     }
     MPI_Send(buf,count*nbytes,MPI_CHAR,proc_send[isend],0,world);
   }
 
   // copy datums to self, put at beginning of recvbuf
 
+  dest = recvbuf;
   for (i = 0; i < num_self; i++) {
     m = index_self[i];
-    memcpy(&recvbuf[i*nbytes],&sendbuf[m*nbytes],nbytes);
+    memcpy(dest,&sendbuf[m*nbytes],nbytes);
+    dest += nbytes;
   }
 
   // wait on all incoming messages
@@ -801,24 +992,52 @@ void Irregular::destroy_data()
 }
 
 /* ----------------------------------------------------------------------
-   realloc the size of the send buffer as needed with BUFFACTOR & BUFEXTRA
-   if flag = 1, realloc
-   if flag = 0, don't need to realloc with copy, just free/malloc
+   set bufextra based on AtomVec and fixes
+   similar to Comm::init_exchange()
+------------------------------------------------------------------------- */
+
+void Irregular::init_exchange()
+{
+  int nfix = modify->nfix;
+  Fix **fix = modify->fix;
+
+  int onefix;
+  int maxexchange_fix = 0;
+  for (int i = 0; i < nfix; i++) {
+    onefix = fix[i]->maxexchange;
+    maxexchange_fix = MAX(maxexchange_fix,onefix);
+  }
+
+  int maxexchange = atom->avec->maxexchange + maxexchange_fix;
+  bufextra = maxexchange + BUFEXTRA;
+}
+
+/* ----------------------------------------------------------------------
+   realloc the size of the send buffer as needed with BUFFACTOR and bufextra
+   flag = 0, don't need to realloc with copy, just free/malloc w/ BUFFACTOR
+   flag = 1, realloc with BUFFACTOR
+   flag = 2, free/malloc w/out BUFFACTOR
+   same as Comm::grow_send()
 ------------------------------------------------------------------------- */
 
 void Irregular::grow_send(int n, int flag)
 {
-  maxsend = static_cast<int> (BUFFACTOR * n);
-  if (flag)
-    memory->grow(buf_send,maxsend+BUFEXTRA,"comm:buf_send");
-  else {
+  if (flag == 0) {
+    maxsend = static_cast<int> (BUFFACTOR * n);
     memory->destroy(buf_send);
-    memory->create(buf_send,maxsend+BUFEXTRA,"comm:buf_send");
+    memory->create(buf_send,maxsend+bufextra,"comm:buf_send");
+  } else if (flag == 1) {
+    maxsend = static_cast<int> (BUFFACTOR * n);
+    memory->grow(buf_send,maxsend+bufextra,"comm:buf_send");
+  } else {
+    memory->destroy(buf_send);
+    memory->grow(buf_send,maxsend+bufextra,"comm:buf_send");
   }
 }
 
 /* ----------------------------------------------------------------------
    free/malloc the size of the recv buffer as needed with BUFFACTOR
+   same as Comm::grow_recv()
 ------------------------------------------------------------------------- */
 
 void Irregular::grow_recv(int n)
@@ -832,14 +1051,14 @@ void Irregular::grow_recv(int n)
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-bigint Irregular::memory_usage()
+double Irregular::memory_usage()
 {
-  bigint bytes = 0;
-  bytes += maxsend*sizeof(double);   // buf_send
-  bytes += maxrecv*sizeof(double);   // buf_recv
-  bytes += maxdbuf*sizeof(double);   // dbuf
-  bytes += maxbuf;                   // buf
-  bytes += 2*maxlocal*sizeof(int);   // mproclist,msizes
-  bytes += 2*nprocs*sizeof(int);     // work1,work2
+  double bytes = 0;
+  bytes += (double)maxsend*sizeof(double);   // buf_send
+  bytes += (double)maxrecv*sizeof(double);   // buf_recv
+  bytes += (double)maxdbuf*sizeof(double);   // dbuf
+  bytes += (double)maxbuf;                   // buf
+  bytes += (double)2*maxlocal*sizeof(int);   // mproclist,msizes
+  bytes += (double)2*nprocs*sizeof(int);     // work1,work2
   return bytes;
 }

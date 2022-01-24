@@ -26,6 +26,7 @@
 
 #include "nvd_device.h"
 #include <fstream>
+#include <cstdio>
 
 namespace ucl_cudadr {
 
@@ -41,7 +42,7 @@ class UCL_Program {
  public:
   inline UCL_Program(UCL_Device &device) { _cq=device.cq(); }
   inline UCL_Program(UCL_Device &device, const void *program,
-                     const char *flags="", std::string *log=NULL) {
+                     const char *flags="", std::string *log=nullptr) {
     _cq=device.cq();
     init(device);
     load_string(program,flags,log);
@@ -58,7 +59,7 @@ class UCL_Program {
 
   /// Load a program from a file and compile with flags
   inline int load(const char *filename, const char *flags="",
-                  std::string *log=NULL) {
+                  std::string *log=nullptr) {
     std::ifstream in(filename);
     if (!in || in.is_open()==false) {
       #ifndef UCL_NO_EXIT
@@ -77,7 +78,7 @@ class UCL_Program {
 
   /// Load a program from a string and compile with flags
   inline int load_string(const void *program, const char *flags="",
-                         std::string *log=NULL) {
+                         std::string *log=nullptr, FILE* foutput=nullptr) {
     if (std::string(flags)=="BINARY")
       return load_binary((const char *)program);
     const unsigned int num_opts=2;
@@ -95,17 +96,27 @@ class UCL_Program {
     CUresult err=cuModuleLoadDataEx(&_module,program,num_opts,
                                     options,(void **)values);
 
-    if (log!=NULL)
+    if (log!=nullptr)
       *log=std::string(clog);
 
     if (err != CUDA_SUCCESS) {
       #ifndef UCL_NO_EXIT
-      std::cerr << std::endl
+      std::cerr << std::endl << std::endl
                 << "----------------------------------------------------------\n"
                 << " UCL Error: Error compiling PTX Program...\n"
                 << "----------------------------------------------------------\n";
-      std::cerr << log << std::endl;
+      std::cerr << log << std::endl
+                << "----------------------------------------------------------\n\n";
       #endif
+      if (foutput != nullptr) {
+        fprintf(foutput,"\n\n");
+        fprintf(foutput, "----------------------------------------------------------\n");
+        fprintf(foutput, " UCL Error: Error compiling PTX Program...\n");
+        fprintf(foutput, "----------------------------------------------------------\n");
+        fprintf(foutput, "%s\n",log->c_str());
+        fprintf(foutput, "----------------------------------------------------------\n");
+        fprintf(foutput,"\n\n");
+      }
       return UCL_COMPILE_ERROR;
     }
 
@@ -139,11 +150,15 @@ class UCL_Program {
     return UCL_SUCCESS;
   }
 
+  /// Return the default command queue/stream associated with this data
+  inline command_queue & cq() { return _cq; }
+
   friend class UCL_Kernel;
  private:
   CUmodule _module;
   CUstream _cq;
   friend class UCL_Texture;
+  friend class UCL_Const;
 };
 
 /// Class for dealing with CUDA Driver kernels
@@ -244,7 +259,7 @@ class UCL_Kernel {
   template <class dtype>
   inline void add_arg(const dtype* const arg) {
     #if CUDA_VERSION >= 4000
-    _kernel_args[_num_args]=const_cast<dtype * const>(arg);
+    _kernel_args[_num_args]=const_cast<dtype *>(arg);
     #else
     _param_size = (_param_size+__alignof(dtype)-1) & ~(__alignof(dtype)-1);
     CU_SAFE_CALL(cuParamSetv(_kernel,_param_size,(void*)arg,sizeof(dtype)));
@@ -361,7 +376,7 @@ class UCL_Kernel {
     #if CUDA_VERSION >= 4000
     CU_SAFE_CALL(cuLaunchKernel(_kernel,_num_blocks[0],_num_blocks[1],
                                 _num_blocks[2],_block_size[0],_block_size[1],
-                                _block_size[2],0,_cq,_kernel_args,NULL));
+                                _block_size[2],0,_cq,_kernel_args,nullptr));
     #else
     CU_SAFE_CALL(cuParamSetSize(_kernel,_param_size));
     CU_SAFE_CALL(cuLaunchGridAsync(_kernel,_num_blocks[0],_num_blocks[1],_cq));

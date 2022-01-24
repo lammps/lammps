@@ -3,7 +3,7 @@
  *      POEMS: PARALLELIZABLE OPEN SOURCE EFFICIENT MULTIBODY SOFTWARE     *
  *      DESCRIPTION: SEE READ-ME                                           *
  *      FILE NAME: vect6.cpp                                               *
- *      AUTHORS: See Author List                                           * 
+ *      AUTHORS: See Author List                                           *
  *      GRANTS: See Grants List                                            *
  *      COPYRIGHT: (C) 2005 by Authors as listed in Author's List          *
  *      LICENSE: Please see License Agreement                              *
@@ -11,7 +11,7 @@
  *      ADMINISTRATOR: Prof. Kurt Anderson                                 *
  *                     Computational Dynamics Lab                          *
  *                     Rensselaer Polytechnic Institute                    *
- *                     110 8th St. Troy NY 12180                           * 
+ *                     110 8th St. Troy NY 12180                           *
  *      CONTACT:        anderk5@rpi.edu                                    *
  *_________________________________________________________________________*/
 
@@ -22,8 +22,6 @@ using namespace std;
 
 Vect6::Vect6(){
   numrows = 6; numcols = 1;
-}
-Vect6::~Vect6(){
 }
 
 Vect6::Vect6(const Vect6& A){  // copy constructor
@@ -51,11 +49,11 @@ Vect6::Vect6(const VirtualMatrix& A){  // copy constructor
 }
 
 double& Vect6::operator_1int (int i){ // array access
-	if(i<1 || i>6){
-		cerr << "matrix index invalid in operator ()" << endl;
-		exit(1);
-	}
-	return elements[i-1];
+  if(i<1 || i>6){
+    cerr << "matrix index invalid in operator ()" << endl;
+    exit(1);
+  }
+  return elements[i-1];
 }
 
 double Vect6::Get_1int(int i) const{

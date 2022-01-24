@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,15 +12,15 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(hybrid/kk,PairHybridKokkos)
-
+// clang-format off
+PairStyle(hybrid/kk,PairHybridKokkos);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_HYBRID_KOKKOS_H
 #define LMP_PAIR_HYBRID_KOKKOS_H
 
-#include <cstdio>
 #include "pair_hybrid.h"
 #include "pair_kokkos.h"
 #include "kokkos_type.h"

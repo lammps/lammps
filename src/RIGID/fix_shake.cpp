@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,33 +12,34 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
-#include <cstdio>
 #include "fix_shake.h"
-#include "fix_rattle.h"
+
+#include "angle.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "molecule.h"
-#include "update.h"
-#include "respa.h"
-#include "modify.h"
-#include "domain.h"
-#include "force.h"
 #include "bond.h"
-#include "angle.h"
 #include "comm.h"
-#include "group.h"
+#include "domain.h"
+#include "error.h"
 #include "fix_respa.h"
+#include "force.h"
+#include "group.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "molecule.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cmath>
+#include <cctype>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
+
+#define RVOUS 1   // 0 for irregular, 1 for all2all
 
 #define BIG 1.0e20
 #define MASSDELTA 0.1
@@ -45,44 +47,46 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), bond_flag(NULL), angle_flag(NULL),
-  type_flag(NULL), mass_list(NULL), bond_distance(NULL), angle_distance(NULL),
-  loop_respa(NULL), step_respa(NULL), x(NULL), v(NULL), f(NULL), ftmp(NULL),
-  vtmp(NULL), mass(NULL), rmass(NULL), type(NULL), shake_flag(NULL),
-  shake_atom(NULL), shake_type(NULL), xshake(NULL), nshake(NULL),
-  list(NULL), b_count(NULL), b_count_all(NULL), b_ave(NULL), b_max(NULL),
-  b_min(NULL), b_ave_all(NULL), b_max_all(NULL), b_min_all(NULL),
-  a_count(NULL), a_count_all(NULL), a_ave(NULL), a_max(NULL), a_min(NULL),
-  a_ave_all(NULL), a_max_all(NULL), a_min_all(NULL), atommols(NULL),
-  onemols(NULL)
+  Fix(lmp, narg, arg), bond_flag(nullptr), angle_flag(nullptr),
+  type_flag(nullptr), mass_list(nullptr), bond_distance(nullptr), angle_distance(nullptr),
+  loop_respa(nullptr), step_respa(nullptr), x(nullptr), v(nullptr), f(nullptr), ftmp(nullptr),
+  vtmp(nullptr), mass(nullptr), rmass(nullptr), type(nullptr), shake_flag(nullptr),
+  shake_atom(nullptr), shake_type(nullptr), xshake(nullptr), nshake(nullptr),
+  list(nullptr), b_count(nullptr), b_count_all(nullptr), b_ave(nullptr), b_max(nullptr),
+  b_min(nullptr), b_ave_all(nullptr), b_max_all(nullptr), b_min_all(nullptr),
+  a_count(nullptr), a_count_all(nullptr), a_ave(nullptr), a_max(nullptr), a_min(nullptr),
+  a_ave_all(nullptr), a_max_all(nullptr), a_min_all(nullptr), atommols(nullptr),
+  onemols(nullptr)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  virial_flag = 1;
+  virial_global_flag = virial_peratom_flag = 1;
   thermo_virial = 1;
   create_attribute = 1;
   dof_flag = 1;
+  stores_ids = 1;
+  centroidstressflag = CENTROID_AVAIL;
 
   // error check
 
   molecular = atom->molecular;
-  if (molecular == 0)
+  if (molecular == Atom::ATOMIC)
     error->all(FLERR,"Cannot use fix shake with non-molecular system");
 
   // perform initial allocation of atom-based arrays
   // register with Atom class
 
-  shake_flag = NULL;
-  shake_atom = NULL;
-  shake_type = NULL;
-  xshake = NULL;
+  shake_flag = nullptr;
+  shake_atom = nullptr;
+  shake_type = nullptr;
+  xshake = nullptr;
 
-  ftmp = NULL;
-  vtmp = NULL;
+  ftmp = nullptr;
+  vtmp = nullptr;
 
-  grow_arrays(atom->nmax);
-  atom->add_callback(0);
+  FixShake::grow_arrays(atom->nmax);
+  atom->add_callback(Atom::GROW);
 
   // set comm size needed by this fix
 
@@ -92,9 +96,9 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
 
   if (narg < 8) error->all(FLERR,"Illegal fix shake command");
 
-  tolerance = force->numeric(FLERR,arg[3]);
-  max_iter = force->inumeric(FLERR,arg[4]);
-  output_every = force->inumeric(FLERR,arg[5]);
+  tolerance = utils::numeric(FLERR,arg[3],false,lmp);
+  max_iter = utils::inumeric(FLERR,arg[4],false,lmp);
+  output_every = utils::inumeric(FLERR,arg[5],false,lmp);
 
   // parse SHAKE args for bond and angle types
   // will be used by find_clusters
@@ -128,25 +132,25 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
     // read numeric args of b,a,t,m
 
     else if (mode == 'b') {
-      int i = force->inumeric(FLERR,arg[next]);
+      int i = utils::inumeric(FLERR,arg[next],false,lmp);
       if (i < 1 || i > atom->nbondtypes)
         error->all(FLERR,"Invalid bond type index for fix shake");
       bond_flag[i] = 1;
 
     } else if (mode == 'a') {
-      int i = force->inumeric(FLERR,arg[next]);
+      int i = utils::inumeric(FLERR,arg[next],false,lmp);
       if (i < 1 || i > atom->nangletypes)
         error->all(FLERR,"Invalid angle type index for fix shake");
       angle_flag[i] = 1;
 
     } else if (mode == 't') {
-      int i = force->inumeric(FLERR,arg[next]);
+      int i = utils::inumeric(FLERR,arg[next],false,lmp);
       if (i < 1 || i > atom->ntypes)
         error->all(FLERR,"Invalid atom type index for fix shake");
       type_flag[i] = 1;
 
     } else if (mode == 'm') {
-      double massone = force->numeric(FLERR,arg[next]);
+      double massone = utils::numeric(FLERR,arg[next],false,lmp);
       if (massone == 0.0) error->all(FLERR,"Invalid atom mass for fix shake");
       if (nmass == atom->ntypes)
         error->all(FLERR,"Too many masses for fix shake");
@@ -158,7 +162,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
 
   // parse optional args
 
-  onemols = NULL;
+  onemols = nullptr;
 
   int iarg = next;
   while (iarg < narg) {
@@ -219,44 +223,53 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
 
   // identify all SHAKE clusters
 
+  double time1 = platform::walltime();
+
   find_clusters();
+
+  if (comm->me == 0)
+    utils::logmesg(lmp,"  find clusters CPU = {:.3f} seconds\n",
+                   platform::walltime()-time1);
 
   // initialize list of SHAKE clusters to constrain
 
   maxlist = 0;
-  list = NULL;
+  list = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
 FixShake::~FixShake()
 {
+  if (copymode) return;
+
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::GROW);
 
   // set bond_type and angle_type back to positive for SHAKE clusters
   // must set for all SHAKE bonds and angles stored by each atom
 
   int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++) {
-    if (shake_flag[i] == 0) continue;
-    else if (shake_flag[i] == 1) {
-      bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);
-      bondtype_findset(i,shake_atom[i][0],shake_atom[i][2],1);
-      angletype_findset(i,shake_atom[i][1],shake_atom[i][2],1);
-    } else if (shake_flag[i] == 2) {
-      bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);
-    } else if (shake_flag[i] == 3) {
-      bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);
-      bondtype_findset(i,shake_atom[i][0],shake_atom[i][2],1);
-    } else if (shake_flag[i] == 4) {
-      bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);
-      bondtype_findset(i,shake_atom[i][0],shake_atom[i][2],1);
-      bondtype_findset(i,shake_atom[i][0],shake_atom[i][3],1);
+  if (shake_flag)
+    for (int i = 0; i < nlocal; i++) {
+      if (shake_flag[i] == 0) continue;
+      else if (shake_flag[i] == 1) {
+        bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);
+        bondtype_findset(i,shake_atom[i][0],shake_atom[i][2],1);
+        angletype_findset(i,shake_atom[i][1],shake_atom[i][2],1);
+      } else if (shake_flag[i] == 2) {
+        bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);
+      } else if (shake_flag[i] == 3) {
+        bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);
+        bondtype_findset(i,shake_atom[i][0],shake_atom[i][2],1);
+      } else if (shake_flag[i] == 4) {
+        bondtype_findset(i,shake_atom[i][0],shake_atom[i][1],1);
+        bondtype_findset(i,shake_atom[i][0],shake_atom[i][2],1);
+        bondtype_findset(i,shake_atom[i][0],shake_atom[i][3],1);
+      }
     }
-  }
 
   // delete locally stored arrays
 
@@ -349,17 +362,22 @@ void FixShake::init()
   // could have changed locations in fix list since created
   // set ptrs to rRESPA variables
 
-  if (strstr(update->integrate_style,"respa")) {
-    for (i = 0; i < modify->nfix; i++)
-      if (strcmp(modify->fix[i]->style,"RESPA") == 0) ifix_respa = i;
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
-    loop_respa = ((Respa *) update->integrate)->loop;
-    step_respa = ((Respa *) update->integrate)->step;
+  fix_respa = nullptr;
+  if (utils::strmatch(update->integrate_style,"^respa")) {
+    if (update->whichflag > 0) {
+      auto fixes = modify->get_fix_by_style("^RESPA");
+      if (fixes.size() > 0) fix_respa = (FixRespa *) fixes.front();
+      else error->all(FLERR,"Run style respa did not create fix RESPA");
+    }
+    Respa *respa_style = (Respa *) update->integrate;
+    nlevels_respa = respa_style->nlevels;
+    loop_respa = respa_style->loop;
+    step_respa = respa_style->step;
   }
 
   // set equilibrium bond distances
 
-  if (force->bond == NULL)
+  if (force->bond == nullptr)
     error->all(FLERR,"Bond potential must be defined for SHAKE");
   for (i = 1; i <= atom->nbondtypes; i++)
     bond_distance[i] = force->bond->equilibrium_distance(i);
@@ -370,7 +388,7 @@ void FixShake::init()
 
   for (i = 1; i <= atom->nangletypes; i++) {
     if (angle_flag[i] == 0) continue;
-    if (force->angle == NULL)
+    if (force->angle == nullptr)
       error->all(FLERR,"Angle potential must be defined for SHAKE");
 
     // scan all atoms for a SHAKE angle cluster
@@ -447,7 +465,7 @@ void FixShake::setup(int vflag)
 
   // set respa to 0 if verlet is used and to 1 otherwise
 
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     respa = 0;
   else
     respa = 1;
@@ -513,44 +531,31 @@ void FixShake::pre_neighbor()
       if (shake_flag[i] == 2) {
         atom1 = atom->map(shake_atom[i][0]);
         atom2 = atom->map(shake_atom[i][1]);
-        if (atom1 == -1 || atom2 == -1) {
-          char str[128];
-          sprintf(str,"Shake atoms " TAGINT_FORMAT " " TAGINT_FORMAT
-                  " missing on proc %d at step " BIGINT_FORMAT,
-                  shake_atom[i][0],shake_atom[i][1],me,update->ntimestep);
-          error->one(FLERR,str);
-        }
+        if (atom1 == -1 || atom2 == -1)
+          error->one(FLERR,"Shake atoms {} {} missing on proc "
+                                       "{} at step {}",shake_atom[i][0],
+                                       shake_atom[i][1],me,update->ntimestep);
         if (i <= atom1 && i <= atom2) list[nlist++] = i;
       } else if (shake_flag[i] % 2 == 1) {
         atom1 = atom->map(shake_atom[i][0]);
         atom2 = atom->map(shake_atom[i][1]);
         atom3 = atom->map(shake_atom[i][2]);
-        if (atom1 == -1 || atom2 == -1 || atom3 == -1) {
-          char str[128];
-          sprintf(str,"Shake atoms "
-                  TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT
-                  " missing on proc %d at step " BIGINT_FORMAT,
-                  shake_atom[i][0],shake_atom[i][1],shake_atom[i][2],
-                  me,update->ntimestep);
-          error->one(FLERR,str);
-        }
+        if (atom1 == -1 || atom2 == -1 || atom3 == -1)
+          error->one(FLERR,"Shake atoms {} {} {} missing on proc "
+                                       "{} at step {}",shake_atom[i][0],
+                                       shake_atom[i][1],shake_atom[i][2],
+                                       me,update->ntimestep);
         if (i <= atom1 && i <= atom2 && i <= atom3) list[nlist++] = i;
       } else {
         atom1 = atom->map(shake_atom[i][0]);
         atom2 = atom->map(shake_atom[i][1]);
         atom3 = atom->map(shake_atom[i][2]);
         atom4 = atom->map(shake_atom[i][3]);
-        if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1) {
-          char str[128];
-          sprintf(str,"Shake atoms "
-                  TAGINT_FORMAT " " TAGINT_FORMAT " "
-                  TAGINT_FORMAT " " TAGINT_FORMAT
-                  " missing on proc %d at step " BIGINT_FORMAT,
-                  shake_atom[i][0],shake_atom[i][1],
-                  shake_atom[i][2],shake_atom[i][3],
-                  me,update->ntimestep);
-          error->one(FLERR,str);
-        }
+        if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1)
+          error->one(FLERR,"Shake atoms {} {} {} {} missing on "
+                                       "proc {} at step {}",shake_atom[i][0],
+                                       shake_atom[i][1],shake_atom[i][2],
+                                       shake_atom[i][3],me,update->ntimestep);
         if (i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4)
           list[nlist++] = i;
       }
@@ -573,8 +578,7 @@ void FixShake::post_force(int vflag)
 
   // virial setup
 
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  v_init(vflag);
 
   // loop over clusters to add constraint forces
 
@@ -620,7 +624,7 @@ void FixShake::post_force_respa(int vflag, int ilevel, int iloop)
   //   and if pressure is requested
   // virial accumulation happens via evflag at last iteration of each level
 
-  if (ilevel == 0 && iloop == loop_respa[ilevel]-1 && vflag) v_setup(vflag);
+  if (ilevel == 0 && iloop == loop_respa[ilevel]-1 && vflag) v_init(vflag);
   if (iloop == loop_respa[ilevel]-1) evflag = 1;
   else evflag = 0;
 
@@ -681,16 +685,14 @@ int FixShake::dof(int igroup)
 void FixShake::find_clusters()
 {
   int i,j,m,n,imol,iatom;
-  int flag,flag_all,nbuf,size;
+  int flag,flag_all;
   tagint tagprev;
   double massone;
-  tagint *buf;
 
-  if (me == 0 && screen) {
-    if (!rattle) fprintf(screen,"Finding SHAKE clusters ...\n");
-    else fprintf(screen,"Finding RATTLE clusters ...\n");
+  if ((me == 0) && screen) {
+    if (!rattle) fputs("Finding SHAKE clusters ...\n",screen);
+    else fputs("Finding RATTLE clusters ...\n",screen);
   }
-
   atommols = atom->avec->onemols;
 
   tagint *tag = atom->tag;
@@ -707,13 +709,6 @@ void FixShake::find_clusters()
   int nlocal = atom->nlocal;
   int angles_allow = atom->avec->angles_allow;
 
-  // setup ring of procs
-
-  int next = me + 1;
-  int prev = me -1;
-  if (next == nprocs) next = 0;
-  if (prev < 0) prev = nprocs - 1;
-
   // -----------------------------------------------------
   // allocate arrays for self (1d) and bond partners (2d)
   // max = max # of bond partners for owned atoms = 2nd dim of partner arrays
@@ -729,7 +724,7 @@ void FixShake::find_clusters()
   // -----------------------------------------------------
 
   int max = 0;
-  if (molecular == 1) {
+  if (molecular == Atom::MOLECULAR) {
     for (i = 0; i < nlocal; i++) max = MAX(max,nspecial[i][0]);
   } else {
     for (i = 0; i < nlocal; i++) {
@@ -755,11 +750,15 @@ void FixShake::find_clusters()
   memory->create(partner_shake,nlocal,max,"shake:partner_shake");
   memory->create(partner_nshake,nlocal,max,"shake:partner_nshake");
 
+  // setup atomIDs and procowner vectors in rendezvous decomposition
+
+  atom_owners();
+
   // -----------------------------------------------------
   // set npartner and partner_tag from special arrays
   // -----------------------------------------------------
 
-  if (molecular == 1) {
+  if (molecular == Atom::MOLECULAR) {
     for (i = 0; i < nlocal; i++) {
       npartner[i] = nspecial[i][0];
       for (j = 0; j < npartner[i]; j++)
@@ -778,86 +777,13 @@ void FixShake::find_clusters()
   }
 
   // -----------------------------------------------------
-  // set partner_mask, partner_type, partner_massflag, partner_bondtype
-  //   for bonded partners
-  // requires communication for off-proc partners
+  // set partner_mask, partner_type, partner_massflag,
+  //   partner_bondtype for all my bonded partners
+  // requires rendezvous communication for off-proc partners
   // -----------------------------------------------------
 
-  // fill in mask, type, massflag, bondtype if own bond partner
-  // info to store in buf for each off-proc bond = nper = 6
-  //   2 atoms IDs in bond, space for mask, type, massflag, bondtype
-  // nbufmax = largest buffer needed to hold info from any proc
-
-  int nper = 6;
-
-  nbuf = 0;
-  for (i = 0; i < nlocal; i++) {
-    for (j = 0; j < npartner[i]; j++) {
-      partner_mask[i][j] = 0;
-      partner_type[i][j] = 0;
-      partner_massflag[i][j] = 0;
-      partner_bondtype[i][j] = 0;
-
-      m = atom->map(partner_tag[i][j]);
-      if (m >= 0 && m < nlocal) {
-        partner_mask[i][j] = mask[m];
-        partner_type[i][j] = type[m];
-        if (nmass) {
-          if (rmass) massone = rmass[m];
-          else massone = mass[type[m]];
-          partner_massflag[i][j] = masscheck(massone);
-        }
-        n = bondtype_findset(i,tag[i],partner_tag[i][j],0);
-        if (n) partner_bondtype[i][j] = n;
-        else {
-          n = bondtype_findset(m,tag[i],partner_tag[i][j],0);
-          if (n) partner_bondtype[i][j] = n;
-        }
-      } else nbuf += nper;
-    }
-  }
-
-  memory->create(buf,nbuf,"shake:buf");
-
-  // fill buffer with info
-
-  size = 0;
-  for (i = 0; i < nlocal; i++) {
-    for (j = 0; j < npartner[i]; j++) {
-      m = atom->map(partner_tag[i][j]);
-      if (m < 0 || m >= nlocal) {
-        buf[size] = tag[i];
-        buf[size+1] = partner_tag[i][j];
-        buf[size+2] = 0;
-        buf[size+3] = 0;
-        buf[size+4] = 0;
-        n = bondtype_findset(i,tag[i],partner_tag[i][j],0);
-        if (n) buf[size+5] = n;
-        else buf[size+5] = 0;
-        size += nper;
-      }
-    }
-  }
-
-  // cycle buffer around ring of procs back to self
-
-  comm->ring(size,sizeof(tagint),buf,1,ring_bonds,buf,(void *)this);
-
-  // store partner info returned to me
-
-  m = 0;
-  while (m < size) {
-    i = atom->map(buf[m]);
-    for (j = 0; j < npartner[i]; j++)
-      if (buf[m+1] == partner_tag[i][j]) break;
-    partner_mask[i][j] = buf[m+2];
-    partner_type[i][j] = buf[m+3];
-    partner_massflag[i][j] = buf[m+4];
-    partner_bondtype[i][j] = buf[m+5];
-    m += nper;
-  }
-
-  memory->destroy(buf);
+  partner_info(npartner,partner_tag,partner_mask,partner_type,
+               partner_massflag,partner_bondtype);
 
   // error check for unfilled partner info
   // if partner_type not set, is an error
@@ -868,12 +794,13 @@ void FixShake::find_clusters()
   // else it's an error
 
   flag = 0;
+  int flag2 = 0;
   for (i = 0; i < nlocal; i++)
     for (j = 0; j < npartner[i]; j++) {
-      if (partner_type[i][j] == 0) flag = 1;
+      if (partner_type[i][j] == 0) flag++;
       if (!(mask[i] & groupbit)) continue;
       if (!(partner_mask[i][j] & groupbit)) continue;
-      if (partner_bondtype[i][j] == 0) flag = 1;
+      if (partner_bondtype[i][j] == 0) flag2++;
     }
 
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
@@ -931,55 +858,10 @@ void FixShake::find_clusters()
 
   // -----------------------------------------------------
   // set partner_nshake for bonded partners
-  // requires communication for off-proc partners
+  // requires rendezvous communication for off-proc partners
   // -----------------------------------------------------
 
-  // fill in partner_nshake if own bond partner
-  // info to store in buf for each off-proc bond =
-  //   2 atoms IDs in bond, space for nshake value
-  // nbufmax = largest buffer needed to hold info from any proc
-
-  nbuf = 0;
-  for (i = 0; i < nlocal; i++) {
-    for (j = 0; j < npartner[i]; j++) {
-      m = atom->map(partner_tag[i][j]);
-      if (m >= 0 && m < nlocal) partner_nshake[i][j] = nshake[m];
-      else nbuf += 3;
-    }
-  }
-
-  memory->create(buf,nbuf,"shake:buf");
-
-  // fill buffer with info
-
-  size = 0;
-  for (i = 0; i < nlocal; i++) {
-    for (j = 0; j < npartner[i]; j++) {
-      m = atom->map(partner_tag[i][j]);
-      if (m < 0 || m >= nlocal) {
-        buf[size] = tag[i];
-        buf[size+1] = partner_tag[i][j];
-        size += 3;
-      }
-    }
-  }
-
-  // cycle buffer around ring of procs back to self
-
-  comm->ring(size,sizeof(tagint),buf,2,ring_nshake,buf,(void *)this);
-
-  // store partner info returned to me
-
-  m = 0;
-  while (m < size) {
-    i = atom->map(buf[m]);
-    for (j = 0; j < npartner[i]; j++)
-      if (buf[m+1] == partner_tag[i][j]) break;
-    partner_nshake[i][j] = buf[m+2];
-    m += 3;
-  }
-
-  memory->destroy(buf);
+  nshake_info(npartner,partner_tag,partner_nshake);
 
   // -----------------------------------------------------
   // error checks
@@ -988,7 +870,7 @@ void FixShake::find_clusters()
   // -----------------------------------------------------
 
   flag = 0;
-  for (i = 0; i < nlocal; i++) if (nshake[i] > 3) flag = 1;
+  for (i = 0; i < nlocal; i++) if (nshake[i] > 3) flag++;
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
   if (flag_all) error->all(FLERR,"Shake cluster of more than 4 atoms");
 
@@ -996,7 +878,7 @@ void FixShake::find_clusters()
   for (i = 0; i < nlocal; i++) {
     if (nshake[i] <= 1) continue;
     for (j = 0; j < npartner[i]; j++)
-      if (partner_shake[i][j] && partner_nshake[i][j] > 1) flag = 1;
+      if (partner_shake[i][j] && partner_nshake[i][j] > 1) flag++;
   }
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
   if (flag_all) error->all(FLERR,"Shake clusters are connected");
@@ -1064,67 +946,17 @@ void FixShake::find_clusters()
 
   // -----------------------------------------------------
   // set shake_flag,shake_atom,shake_type for non-central atoms
-  // requires communication for off-proc atoms
+  // requires rendezvous communication for off-proc atoms
   // -----------------------------------------------------
 
-  // fill in shake arrays for each bond partner I own
-  // info to store in buf for each off-proc bond =
-  //   all values from shake_flag, shake_atom, shake_type
-  // nbufmax = largest buffer needed to hold info from any proc
-
-  nbuf = 0;
-  for (i = 0; i < nlocal; i++) {
-    if (shake_flag[i] == 0) continue;
-    for (j = 0; j < npartner[i]; j++) {
-      if (partner_shake[i][j] == 0) continue;
-      m = atom->map(partner_tag[i][j]);
-      if (m >= 0 && m < nlocal) {
-        shake_flag[m] = shake_flag[i];
-        shake_atom[m][0] = shake_atom[i][0];
-        shake_atom[m][1] = shake_atom[i][1];
-        shake_atom[m][2] = shake_atom[i][2];
-        shake_atom[m][3] = shake_atom[i][3];
-        shake_type[m][0] = shake_type[i][0];
-        shake_type[m][1] = shake_type[i][1];
-        shake_type[m][2] = shake_type[i][2];
-      } else nbuf += 9;
-    }
-  }
-
-  memory->create(buf,nbuf,"shake:buf");
-
-  // fill buffer with info
-
-  size = 0;
-  for (i = 0; i < nlocal; i++) {
-    if (shake_flag[i] == 0) continue;
-    for (j = 0; j < npartner[i]; j++) {
-      if (partner_shake[i][j] == 0) continue;
-      m = atom->map(partner_tag[i][j]);
-      if (m < 0 || m >= nlocal) {
-        buf[size] = partner_tag[i][j];
-        buf[size+1] = shake_flag[i];
-        buf[size+2] = shake_atom[i][0];
-        buf[size+3] = shake_atom[i][1];
-        buf[size+4] = shake_atom[i][2];
-        buf[size+5] = shake_atom[i][3];
-        buf[size+6] = shake_type[i][0];
-        buf[size+7] = shake_type[i][1];
-        buf[size+8] = shake_type[i][2];
-        size += 9;
-      }
-    }
-  }
-
-  // cycle buffer around ring of procs back to self
-
-  comm->ring(size,sizeof(tagint),buf,3,ring_shake,NULL,(void *)this);
-
-  memory->destroy(buf);
+  shake_info(npartner,partner_tag,partner_shake);
 
   // -----------------------------------------------------
   // free local memory
   // -----------------------------------------------------
+
+  memory->destroy(atomIDs);
+  memory->destroy(procowner);
 
   memory->destroy(npartner);
   memory->destroy(nshake);
@@ -1183,114 +1015,557 @@ void FixShake::find_clusters()
   MPI_Allreduce(&tmp,&count4,1,MPI_INT,MPI_SUM,world);
 
   if (me == 0) {
-    if (screen) {
-      fprintf(screen,"  %d = # of size 2 clusters\n",count2/2);
-      fprintf(screen,"  %d = # of size 3 clusters\n",count3/3);
-      fprintf(screen,"  %d = # of size 4 clusters\n",count4/4);
-      fprintf(screen,"  %d = # of frozen angles\n",count1/3);
-    }
-    if (logfile) {
-      fprintf(logfile,"  %d = # of size 2 clusters\n",count2/2);
-      fprintf(logfile,"  %d = # of size 3 clusters\n",count3/3);
-      fprintf(logfile,"  %d = # of size 4 clusters\n",count4/4);
-      fprintf(logfile,"  %d = # of frozen angles\n",count1/3);
-    }
+    utils::logmesg(lmp,"{:>8} = # of size 2 clusters\n"
+                   "{:>8} = # of size 3 clusters\n"
+                   "{:>8} = # of size 4 clusters\n"
+                   "{:>8} = # of frozen angles\n",
+                   count2/2,count3/3,count4/4,count1/3);
   }
 }
 
 /* ----------------------------------------------------------------------
-   when receive buffer, scan bond partner IDs for atoms I own
-   if I own partner:
-     fill in mask and type and massflag
-     search for bond with 1st atom and fill in bondtype
+   setup atomIDs and procowner
 ------------------------------------------------------------------------- */
 
-void FixShake::ring_bonds(int ndatum, char *cbuf, void *ptr)
+void FixShake::atom_owners()
 {
-  FixShake *fsptr = (FixShake *)ptr;
-  Atom *atom = fsptr->atom;
+  tagint *tag = atom->tag;
+  int nlocal = atom->nlocal;
+
+  int *proclist;
+  memory->create(proclist,nlocal,"shake:proclist");
+  IDRvous *idbuf = (IDRvous *)
+    memory->smalloc((bigint) nlocal*sizeof(IDRvous),"shake:idbuf");
+
+  // setup input buf to rendezvous comm
+  // input datums = pairs of bonded atoms
+  // owning proc for each datum = random hash of atomID
+  // one datum for each owned atom: datum = owning proc, atomID
+
+  for (int i = 0; i < nlocal; i++) {
+    proclist[i] = tag[i] % nprocs;
+    idbuf[i].me = me;
+    idbuf[i].atomID = tag[i];
+  }
+
+  // perform rendezvous operation
+  // each proc assigned every 1/Pth atom
+
+  char *buf;
+  comm->rendezvous(RVOUS,nlocal,(char *) idbuf,sizeof(IDRvous),
+                   0,proclist,
+                   rendezvous_ids,0,buf,0,(void *) this);
+
+  memory->destroy(proclist);
+  memory->sfree(idbuf);
+}
+
+/* ----------------------------------------------------------------------
+   setup partner_mask, partner_type, partner_massflag, partner_bondtype
+------------------------------------------------------------------------- */
+
+void FixShake::partner_info(int *npartner, tagint **partner_tag,
+                            int **partner_mask, int **partner_type,
+                            int **partner_massflag, int **partner_bondtype)
+{
+  int i,j,m,n;
+  int nlocal = atom->nlocal;
+
+  // nsend = # of my datums to send
+  // one datum for every off-processor partner
+
+  int nsend = 0;
+  for (i = 0; i < nlocal; i++) {
+    for (j = 0; j < npartner[i]; j++) {
+      m = atom->map(partner_tag[i][j]);
+      if (m < 0 || m >= nlocal) nsend++;
+    }
+  }
+
+  int *proclist;
+  memory->create(proclist,nsend,"special:proclist");
+  PartnerInfo *inbuf = (PartnerInfo *)
+    memory->smalloc((bigint) nsend*sizeof(PartnerInfo),"special:inbuf");
+
+  // set values in 4 partner arrays for all partner atoms I own
+  // also setup input buf to rendezvous comm
+  // input datums = pair of bonded atoms where I do not own partner
+  // owning proc for each datum = partner_tag % nprocs
+  // datum: atomID = partner_tag (off-proc), partnerID = tag (on-proc)
+  //        4 values for my owned atom
+
   double *rmass = atom->rmass;
   double *mass = atom->mass;
-  int *mask = atom->mask;
   int *type = atom->type;
-  int nlocal = atom->nlocal;
-  int nmass = fsptr->nmass;
+  int *mask = atom->mask;
+  tagint *tag = atom->tag;
 
-  tagint *buf = (tagint *) cbuf;
-  int m,n;
   double massone;
 
-  for (int i = 0; i < ndatum; i += 6) {
-    m = atom->map(buf[i+1]);
-    if (m >= 0 && m < nlocal) {
-      buf[i+2] = mask[m];
-      buf[i+3] = type[m];
-      if (nmass) {
-        if (rmass) massone = rmass[m];
-        else massone = mass[type[m]];
-        buf[i+4] = fsptr->masscheck(massone);
-      }
-      if (buf[i+5] == 0) {
-        n = fsptr->bondtype_findset(m,buf[i],buf[i+1],0);
-        if (n) buf[i+5] = n;
+  nsend = 0;
+  for (i = 0; i < nlocal; i++) {
+    for (j = 0; j < npartner[i]; j++) {
+      partner_mask[i][j] = 0;
+      partner_type[i][j] = 0;
+      partner_massflag[i][j] = 0;
+      partner_bondtype[i][j] = 0;
+
+      m = atom->map(partner_tag[i][j]);
+
+      if (m >= 0 && m < nlocal) {
+        partner_mask[i][j] = mask[m];
+        partner_type[i][j] = type[m];
+        if (nmass) {
+          if (rmass) massone = rmass[m];
+          else massone = mass[type[m]];
+          partner_massflag[i][j] = masscheck(massone);
+        }
+        n = bondtype_findset(i,tag[i],partner_tag[i][j],0);
+        if (n) partner_bondtype[i][j] = n;
+        else {
+          n = bondtype_findset(m,tag[i],partner_tag[i][j],0);
+          if (n) partner_bondtype[i][j] = n;
+        }
+
+      } else {
+        proclist[nsend] = partner_tag[i][j] % nprocs;
+        inbuf[nsend].atomID = partner_tag[i][j];
+        inbuf[nsend].partnerID = tag[i];
+        inbuf[nsend].mask = mask[i];
+        inbuf[nsend].type = type[i];
+        if (nmass) {
+          if (rmass) massone = rmass[i];
+          else massone = mass[type[i]];
+          inbuf[nsend].massflag = masscheck(massone);
+        } else inbuf[nsend].massflag = 0;
+
+        // my atom may own bond, in which case set partner_bondtype
+        // else receiver of this datum will own the bond and return the value
+
+        n = bondtype_findset(i,tag[i],partner_tag[i][j],0);
+        if (n) {
+          partner_bondtype[i][j] = n;
+          inbuf[nsend].bondtype = n;
+        } else inbuf[nsend].bondtype = 0;
+
+        nsend++;
       }
     }
   }
-}
 
-/* ----------------------------------------------------------------------
-   when receive buffer, scan bond partner IDs for atoms I own
-   if I own partner, fill in nshake value
-------------------------------------------------------------------------- */
+  // perform rendezvous operation
+  // each proc owns random subset of atoms
+  // receives all data needed to populate un-owned partner 4 values
 
-void FixShake::ring_nshake(int ndatum, char *cbuf, void *ptr)
-{
-  FixShake *fsptr = (FixShake *)ptr;
-  Atom *atom = fsptr->atom;
-  int nlocal = atom->nlocal;
+  char *buf;
+  int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(PartnerInfo),
+                                 0,proclist,
+                                 rendezvous_partners_info,
+                                 0,buf,sizeof(PartnerInfo),
+                                 (void *) this);
+  PartnerInfo *outbuf = (PartnerInfo *) buf;
 
-  int *nshake = fsptr->nshake;
+  memory->destroy(proclist);
+  memory->sfree(inbuf);
 
-  tagint *buf = (tagint *) cbuf;
-  int m;
+  // set partner 4 values for un-onwed partners based on output info
+  // outbuf.atomID = my owned atom, outbuf.partnerID = partner the info is for
 
-  for (int i = 0; i < ndatum; i += 3) {
-    m = atom->map(buf[i+1]);
-    if (m >= 0 && m < nlocal) buf[i+2] = nshake[m];
+  for (m = 0; m < nreturn; m++) {
+    i = atom->map(outbuf[m].atomID);
+    for (j = 0; j < npartner[i]; j++)
+      if (partner_tag[i][j] == outbuf[m].partnerID) break;
+    partner_mask[i][j] = outbuf[m].mask;
+    partner_type[i][j] = outbuf[m].type;
+    partner_massflag[i][j] = outbuf[m].massflag;
+
+    // only set partner_bondtype if my atom did not set it
+    //   when setting up rendezvous
+    // if this proc set it, then sender of this datum set outbuf.bondtype = 0
+
+    if (partner_bondtype[i][j] == 0)
+      partner_bondtype[i][j] = outbuf[m].bondtype;
   }
+
+  memory->sfree(outbuf);
 }
 
 /* ----------------------------------------------------------------------
-   when receive buffer, scan bond partner IDs for atoms I own
-   if I own partner, fill in nshake value
+   setup partner_nshake
 ------------------------------------------------------------------------- */
 
-void FixShake::ring_shake(int ndatum, char *cbuf, void *ptr)
+void FixShake::nshake_info(int *npartner, tagint **partner_tag,
+                           int **partner_nshake)
 {
-  FixShake *fsptr = (FixShake *)ptr;
-  Atom *atom = fsptr->atom;
+  int i,j,m;
   int nlocal = atom->nlocal;
 
-  int *shake_flag = fsptr->shake_flag;
-  tagint **shake_atom = fsptr->shake_atom;
-  int **shake_type = fsptr->shake_type;
+  // nsend = # of my datums to send
+  // one datum for every off-processor partner
 
-  tagint *buf = (tagint *) cbuf;
-  int m;
-
-  for (int i = 0; i < ndatum; i += 9) {
-    m = atom->map(buf[i]);
-    if (m >= 0 && m < nlocal) {
-      shake_flag[m] = buf[i+1];
-      shake_atom[m][0] = buf[i+2];
-      shake_atom[m][1] = buf[i+3];
-      shake_atom[m][2] = buf[i+4];
-      shake_atom[m][3] = buf[i+5];
-      shake_type[m][0] = buf[i+6];
-      shake_type[m][1] = buf[i+7];
-      shake_type[m][2] = buf[i+8];
+  int nsend = 0;
+  for (i = 0; i < nlocal; i++) {
+    for (j = 0; j < npartner[i]; j++) {
+      m = atom->map(partner_tag[i][j]);
+      if (m < 0 || m >= nlocal) nsend++;
     }
   }
+
+  int *proclist;
+  memory->create(proclist,nsend,"special:proclist");
+  NShakeInfo *inbuf = (NShakeInfo *)
+    memory->smalloc((bigint) nsend*sizeof(NShakeInfo),"special:inbuf");
+
+  // set partner_nshake for all partner atoms I own
+  // also setup input buf to rendezvous comm
+  // input datums = pair of bonded atoms where I do not own partner
+  // owning proc for each datum = partner_tag % nprocs
+  // datum: atomID = partner_tag (off-proc), partnerID = tag (on-proc)
+  //        nshake value for my owned atom
+
+  tagint *tag = atom->tag;
+
+  nsend = 0;
+  for (i = 0; i < nlocal; i++) {
+    for (j = 0; j < npartner[i]; j++) {
+      partner_nshake[i][j] = 0;
+      m = atom->map(partner_tag[i][j]);
+      if (m >= 0 && m < nlocal) {
+        partner_nshake[i][j] = nshake[m];
+      } else {
+        proclist[nsend] = partner_tag[i][j] % nprocs;
+        inbuf[nsend].atomID = partner_tag[i][j];
+        inbuf[nsend].partnerID = tag[i];
+        inbuf[nsend].nshake = nshake[i];
+        nsend++;
+      }
+    }
+  }
+
+  // perform rendezvous operation
+  // each proc owns random subset of atoms
+  // receives all data needed to populate un-owned partner nshake
+
+  char *buf;
+  int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(NShakeInfo),
+                                 0,proclist,
+                                 rendezvous_nshake,0,buf,sizeof(NShakeInfo),
+                                 (void *) this);
+  NShakeInfo *outbuf = (NShakeInfo *) buf;
+
+  memory->destroy(proclist);
+  memory->sfree(inbuf);
+
+  // set partner nshake for un-onwed partners based on output info
+  // outbuf.atomID = my owned atom, outbuf.partnerID = partner the info is for
+
+  for (m = 0; m < nreturn; m++) {
+    i = atom->map(outbuf[m].atomID);
+    for (j = 0; j < npartner[i]; j++)
+      if (partner_tag[i][j] == outbuf[m].partnerID) break;
+    partner_nshake[i][j] = outbuf[m].nshake;
+  }
+
+  memory->sfree(outbuf);
+}
+
+/* ----------------------------------------------------------------------
+   setup shake_flag, shake_atom, shake_type
+------------------------------------------------------------------------- */
+
+void FixShake::shake_info(int *npartner, tagint **partner_tag,
+                          int **partner_shake)
+{
+  int i,j,m;
+  int nlocal = atom->nlocal;
+
+  // nsend = # of my datums to send
+  // one datum for every off-processor partner
+
+  int nsend = 0;
+  for (i = 0; i < nlocal; i++) {
+    for (j = 0; j < npartner[i]; j++) {
+      m = atom->map(partner_tag[i][j]);
+      if (m < 0 || m >= nlocal) nsend++;
+    }
+  }
+
+  int *proclist;
+  memory->create(proclist,nsend,"special:proclist");
+  ShakeInfo *inbuf = (ShakeInfo *)
+    memory->smalloc((bigint) nsend*sizeof(ShakeInfo),"special:inbuf");
+
+  // set 3 shake arrays for all partner atoms I own
+  // also setup input buf to rendezvous comm
+  // input datums = partner atom where I do not own partner
+  // owning proc for each datum = partner_tag % nprocs
+  // datum: atomID = partner_tag (off-proc)
+  //        values in 3 shake arrays
+
+  nsend = 0;
+  for (i = 0; i < nlocal; i++) {
+    if (shake_flag[i] == 0) continue;
+    for (j = 0; j < npartner[i]; j++) {
+      if (partner_shake[i][j] == 0) continue;
+      m = atom->map(partner_tag[i][j]);
+
+      if (m >= 0 && m < nlocal) {
+        shake_flag[m] = shake_flag[i];
+        shake_atom[m][0] = shake_atom[i][0];
+        shake_atom[m][1] = shake_atom[i][1];
+        shake_atom[m][2] = shake_atom[i][2];
+        shake_atom[m][3] = shake_atom[i][3];
+        shake_type[m][0] = shake_type[i][0];
+        shake_type[m][1] = shake_type[i][1];
+        shake_type[m][2] = shake_type[i][2];
+
+      } else {
+        proclist[nsend] = partner_tag[i][j] % nprocs;
+        inbuf[nsend].atomID = partner_tag[i][j];
+        inbuf[nsend].shake_flag = shake_flag[i];
+        inbuf[nsend].shake_atom[0] = shake_atom[i][0];
+        inbuf[nsend].shake_atom[1] = shake_atom[i][1];
+        inbuf[nsend].shake_atom[2] = shake_atom[i][2];
+        inbuf[nsend].shake_atom[3] = shake_atom[i][3];
+        inbuf[nsend].shake_type[0] = shake_type[i][0];
+        inbuf[nsend].shake_type[1] = shake_type[i][1];
+        inbuf[nsend].shake_type[2] = shake_type[i][2];
+        nsend++;
+      }
+    }
+  }
+
+  // perform rendezvous operation
+  // each proc owns random subset of atoms
+  // receives all data needed to populate un-owned shake info
+
+  char *buf;
+  int nreturn = comm->rendezvous(RVOUS,nsend,(char *) inbuf,sizeof(ShakeInfo),
+                                 0,proclist,
+                                 rendezvous_shake,0,buf,sizeof(ShakeInfo),
+                                 (void *) this);
+  ShakeInfo *outbuf = (ShakeInfo *) buf;
+
+  memory->destroy(proclist);
+  memory->sfree(inbuf);
+
+  // set shake info for un-onwed partners based on output info
+
+  for (m = 0; m < nreturn; m++) {
+    i = atom->map(outbuf[m].atomID);
+    shake_flag[i] = outbuf[m].shake_flag;
+    shake_atom[i][0] = outbuf[m].shake_atom[0];
+    shake_atom[i][1] = outbuf[m].shake_atom[1];
+    shake_atom[i][2] = outbuf[m].shake_atom[2];
+    shake_atom[i][3] = outbuf[m].shake_atom[3];
+    shake_type[i][0] = outbuf[m].shake_type[0];
+    shake_type[i][1] = outbuf[m].shake_type[1];
+    shake_type[i][2] = outbuf[m].shake_type[2];
+  }
+
+  memory->sfree(outbuf);
+}
+
+/* ----------------------------------------------------------------------
+   process data for atoms assigned to me in rendezvous decomposition
+   inbuf = list of N IDRvous datums
+   no outbuf
+------------------------------------------------------------------------- */
+
+int FixShake::rendezvous_ids(int n, char *inbuf,
+                             int &flag, int *& /*proclist*/, char *& /*outbuf*/,
+                             void *ptr)
+{
+  FixShake *fsptr = (FixShake *) ptr;
+  Memory *memory = fsptr->memory;
+
+  tagint *atomIDs;
+  int *procowner;
+
+  memory->create(atomIDs,n,"special:atomIDs");
+  memory->create(procowner,n,"special:procowner");
+
+  IDRvous *in = (IDRvous *) inbuf;
+
+  for (int i = 0; i < n; i++) {
+    atomIDs[i] = in[i].atomID;
+    procowner[i] = in[i].me;
+  }
+
+  // store rendezvous data in FixShake class
+
+  fsptr->nrvous = n;
+  fsptr->atomIDs = atomIDs;
+  fsptr->procowner = procowner;
+
+  // flag = 0: no second comm needed in rendezvous
+
+  flag = 0;
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
+   process data for atoms assigned to me in rendezvous decomposition
+   inbuf = list of N PairRvous datums
+   outbuf = same list of N PairRvous datums, routed to different procs
+------------------------------------------------------------------------- */
+
+int FixShake::rendezvous_partners_info(int n, char *inbuf,
+                                       int &flag, int *&proclist, char *&outbuf,
+                                       void *ptr)
+{
+  int i,m;
+
+  FixShake *fsptr = (FixShake *) ptr;
+  Atom *atom = fsptr->atom;
+  Memory *memory = fsptr->memory;
+
+  // clear atom map so it can be here as a hash table
+  // faster than an STL map for large atom counts
+
+  atom->map_clear();
+
+  // hash atom IDs stored in rendezvous decomposition
+
+  int nrvous = fsptr->nrvous;
+  tagint *atomIDs = fsptr->atomIDs;
+
+  for (i = 0; i < nrvous; i++)
+    atom->map_one(atomIDs[i],i);
+
+  // proclist = owner of atomID in caller decomposition
+  // outbuf = info about owned atomID = 4 values
+
+  PartnerInfo *in = (PartnerInfo *) inbuf;
+  int *procowner = fsptr->procowner;
+  memory->create(proclist,n,"shake:proclist");
+
+  for (i = 0; i < n; i++) {
+    m = atom->map(in[i].atomID);
+    proclist[i] = procowner[m];
+  }
+
+  outbuf = inbuf;
+
+  // re-create atom map
+
+  atom->map_init(0);
+  atom->nghost = 0;
+  atom->map_set();
+
+  // flag = 1: outbuf = inbuf
+
+  flag = 1;
+  return n;
+}
+
+/* ----------------------------------------------------------------------
+   process data for atoms assigned to me in rendezvous decomposition
+   inbuf = list of N NShakeInfo datums
+   outbuf = same list of N NShakeInfo datums, routed to different procs
+------------------------------------------------------------------------- */
+
+int FixShake::rendezvous_nshake(int n, char *inbuf,
+                                int &flag, int *&proclist, char *&outbuf,
+                                void *ptr)
+{
+  int i,m;
+
+  FixShake *fsptr = (FixShake *) ptr;
+  Atom *atom = fsptr->atom;
+  Memory *memory = fsptr->memory;
+
+  // clear atom map so it can be here as a hash table
+  // faster than an STL map for large atom counts
+
+  atom->map_clear();
+
+  // hash atom IDs stored in rendezvous decomposition
+
+  int nrvous = fsptr->nrvous;
+  tagint *atomIDs = fsptr->atomIDs;
+
+  for (i = 0; i < nrvous; i++)
+    atom->map_one(atomIDs[i],i);
+
+  // proclist = owner of atomID in caller decomposition
+  // outbuf = info about owned atomID
+
+  NShakeInfo *in = (NShakeInfo *) inbuf;
+  int *procowner = fsptr->procowner;
+  memory->create(proclist,n,"shake:proclist");
+
+  for (i = 0; i < n; i++) {
+    m = atom->map(in[i].atomID);
+    proclist[i] = procowner[m];
+  }
+
+  outbuf = inbuf;
+
+  // re-create atom map
+
+  atom->map_init(0);
+  atom->nghost = 0;
+  atom->map_set();
+
+  // flag = 1: outbuf = inbuf
+
+  flag = 1;
+  return n;
+}
+/* ----------------------------------------------------------------------
+   process data for atoms assigned to me in rendezvous decomposition
+   inbuf = list of N PairRvous datums
+   outbuf = same list of N PairRvous datums, routed to different procs
+------------------------------------------------------------------------- */
+
+int FixShake::rendezvous_shake(int n, char *inbuf,
+                               int &flag, int *&proclist, char *&outbuf,
+                               void *ptr)
+{
+  int i,m;
+
+  FixShake *fsptr = (FixShake *) ptr;
+  Atom *atom = fsptr->atom;
+  Memory *memory = fsptr->memory;
+
+  // clear atom map so it can be here as a hash table
+  // faster than an STL map for large atom counts
+
+  atom->map_clear();
+
+  // hash atom IDs stored in rendezvous decomposition
+
+  int nrvous = fsptr->nrvous;
+  tagint *atomIDs = fsptr->atomIDs;
+
+  for (i = 0; i < nrvous; i++)
+    atom->map_one(atomIDs[i],i);
+
+  // proclist = owner of atomID in caller decomposition
+  // outbuf = info about owned atomID
+
+  ShakeInfo *in = (ShakeInfo *) inbuf;
+  int *procowner = fsptr->procowner;
+  memory->create(proclist,n,"shake:proclist");
+
+  for (i = 0; i < n; i++) {
+    m = atom->map(in[i].atomID);
+    proclist[i] = procowner[m];
+  }
+
+  outbuf = inbuf;
+
+  // re-create atom map
+
+  atom->map_init(0);
+  atom->nghost = 0;
+  atom->map_set();
+
+  // flag = 1: outbuf = inbuf;
+
+  flag = 1;
+  return n;
 }
 
 /* ----------------------------------------------------------------------
@@ -1351,7 +1626,7 @@ void FixShake::unconstrained_update_respa(int ilevel)
   // x + dt0 (v + dtN/m fN + 1/2 dt(N-1)/m f(N-1) + ... + 1/2 dt0/m f0)
   // also set dtfsq = dt0*dtN so that shake,shake3,etc can use it
 
-  double ***f_level = ((FixRespa *) modify->fix[ifix_respa])->f_level;
+  double ***f_level = fix_respa->f_level;
   dtfsq = dtf_inner * step_respa[ilevel];
 
   double invmass,dtfmsq;
@@ -1449,7 +1724,7 @@ void FixShake::shake(int m)
 
   double determ = b*b - 4.0*a*c;
   if (determ < 0.0) {
-    error->warning(FLERR,"Shake determinant < 0.0",0);
+    error->warning(FLERR,"Shake determinant < 0.0");
     determ = 0.0;
   }
 
@@ -1490,7 +1765,10 @@ void FixShake::shake(int m)
     v[4] = lamda*r01[0]*r01[2];
     v[5] = lamda*r01[1]*r01[2];
 
-    v_tally(nlist,list,2.0,v);
+    double fpairlist[] = {lamda};
+    double dellist[][3]  = {{r01[0], r01[1], r01[2]}};
+    int pairlist[][2] = {{i0,i1}};
+    v_tally(nlist,list,2.0,v,nlocal,1,pairlist,fpairlist,dellist);
   }
 }
 
@@ -1663,7 +1941,11 @@ void FixShake::shake3(int m)
     v[4] = lamda01*r01[0]*r01[2] + lamda02*r02[0]*r02[2];
     v[5] = lamda01*r01[1]*r01[2] + lamda02*r02[1]*r02[2];
 
-    v_tally(nlist,list,3.0,v);
+    double fpairlist[] = {lamda01, lamda02};
+    double dellist[][3]  = {{r01[0], r01[1], r01[2]},
+                            {r02[0], r02[1], r02[2]}};
+    int pairlist[][2] = {{i0,i1}, {i0,i2}};
+    v_tally(nlist,list,3.0,v,nlocal,2,pairlist,fpairlist,dellist);
   }
 }
 
@@ -1915,7 +2197,12 @@ void FixShake::shake4(int m)
     v[4] = lamda01*r01[0]*r01[2]+lamda02*r02[0]*r02[2]+lamda03*r03[0]*r03[2];
     v[5] = lamda01*r01[1]*r01[2]+lamda02*r02[1]*r02[2]+lamda03*r03[1]*r03[2];
 
-    v_tally(nlist,list,4.0,v);
+    double fpairlist[] = {lamda01, lamda02, lamda03};
+    double dellist[][3]  = {{r01[0], r01[1], r01[2]},
+                            {r02[0], r02[1], r02[2]},
+                            {r03[0], r03[1], r03[2]}};
+    int pairlist[][2] = {{i0,i1}, {i0,i2}, {i0,i3}};
+    v_tally(nlist,list,4.0,v,nlocal,3,pairlist,fpairlist,dellist);
   }
 }
 
@@ -2158,7 +2445,12 @@ void FixShake::shake3angle(int m)
     v[4] = lamda01*r01[0]*r01[2]+lamda02*r02[0]*r02[2]+lamda12*r12[0]*r12[2];
     v[5] = lamda01*r01[1]*r01[2]+lamda02*r02[1]*r02[2]+lamda12*r12[1]*r12[2];
 
-    v_tally(nlist,list,3.0,v);
+    double fpairlist[] = {lamda01, lamda02, lamda12};
+    double dellist[][3]  = {{r01[0], r01[1], r01[2]},
+                            {r02[0], r02[1], r02[2]},
+                            {r12[0], r12[1], r12[2]}};
+    int pairlist[][2] = {{i0,i1}, {i0,i2}, {i1,i2}};
+    v_tally(nlist,list,3.0,v,nlocal,3,pairlist,fpairlist,dellist);
   }
 }
 
@@ -2267,34 +2559,21 @@ void FixShake::stats()
   // print stats only for non-zero counts
 
   if (me == 0) {
-
-    if (screen) {
-      fprintf(screen,
-              "SHAKE stats (type/ave/delta) on step " BIGINT_FORMAT "\n",
-              update->ntimestep);
-      for (i = 1; i < nb; i++)
-        if (b_count_all[i])
-          fprintf(screen,"  %d %g %g %d\n",i,
-                  b_ave_all[i]/b_count_all[i],b_max_all[i]-b_min_all[i],
-                  b_count_all[i]);
-      for (i = 1; i < na; i++)
-        if (a_count_all[i])
-          fprintf(screen,"  %d %g %g\n",i,
-                  a_ave_all[i]/a_count_all[i],a_max_all[i]-a_min_all[i]);
+    auto mesg = fmt::format("SHAKE stats (type/ave/delta/count) on step {}\n",
+                            update->ntimestep);
+    for (i = 1; i < nb; i++) {
+      const auto bcnt = b_count_all[i]/2;
+      if (bcnt)
+        mesg += fmt::format("{:>6d}   {:<9.6} {:<11.6} {:>8d}\n",i,
+                            b_ave_all[i]/bcnt/2.0,b_max_all[i]-b_min_all[i],bcnt);
     }
-    if (logfile) {
-      fprintf(logfile,
-              "SHAKE stats (type/ave/delta) on step " BIGINT_FORMAT "\n",
-              update->ntimestep);
-      for (i = 0; i < nb; i++)
-        if (b_count_all[i])
-          fprintf(logfile,"  %d %g %g\n",i,
-                  b_ave_all[i]/b_count_all[i],b_max_all[i]-b_min_all[i]);
-      for (i = 0; i < na; i++)
-        if (a_count_all[i])
-          fprintf(logfile,"  %d %g %g\n",i,
-                  a_ave_all[i]/a_count_all[i],a_max_all[i]-a_min_all[i]);
+    for (i = 1; i < na; i++) {
+      const auto acnt = a_count_all[i]/3;
+      if (acnt)
+        mesg += fmt::format("{:>6d}   {:<9.6} {:<11.6} {:>8d}\n",i,
+                            a_ave_all[i]/acnt/3.0,a_max_all[i]-a_min_all[i],acnt);
     }
+    utils::logmesg(lmp,mesg);
   }
 
   // next timestep for stats
@@ -2315,7 +2594,7 @@ int FixShake::bondtype_findset(int i, tagint n1, tagint n2, int setflag)
   int m,nbonds;
   int *btype;
 
-  if (molecular == 1) {
+  if (molecular == Atom::MOLECULAR) {
     tagint *tag = atom->tag;
     tagint **bond_atom = atom->bond_atom;
     nbonds = atom->num_bond[i];
@@ -2342,10 +2621,10 @@ int FixShake::bondtype_findset(int i, tagint n1, tagint n2, int setflag)
 
   if (m < nbonds) {
     if (setflag == 0) {
-      if (molecular == 1) return atom->bond_type[i][m];
+      if (molecular == Atom::MOLECULAR) return atom->bond_type[i][m];
       else return btype[m];
     }
-    if (molecular == 1) {
+    if (molecular == Atom::MOLECULAR) {
       if ((setflag < 0 && atom->bond_type[i][m] > 0) ||
           (setflag > 0 && atom->bond_type[i][m] < 0))
         atom->bond_type[i][m] = -atom->bond_type[i][m];
@@ -2371,7 +2650,7 @@ int FixShake::angletype_findset(int i, tagint n1, tagint n2, int setflag)
   int m,nangles;
   int *atype;
 
-  if (molecular == 1) {
+  if (molecular == Atom::MOLECULAR) {
     tagint **angle_atom1 = atom->angle_atom1;
     tagint **angle_atom3 = atom->angle_atom3;
     nangles = atom->num_angle[i];
@@ -2399,10 +2678,10 @@ int FixShake::angletype_findset(int i, tagint n1, tagint n2, int setflag)
 
   if (m < nangles) {
     if (setflag == 0) {
-      if (molecular == 1) return atom->angle_type[i][m];
+      if (molecular == Atom::MOLECULAR) return atom->angle_type[i][m];
       else return atype[m];
     }
-    if (molecular == 1) {
+    if (molecular == Atom::MOLECULAR) {
       if ((setflag < 0 && atom->angle_type[i][m] > 0) ||
           (setflag > 0 && atom->angle_type[i][m] < 0))
         atom->angle_type[i][m] = -atom->angle_type[i][m];
@@ -2422,11 +2701,11 @@ int FixShake::angletype_findset(int i, tagint n1, tagint n2, int setflag)
 double FixShake::memory_usage()
 {
   int nmax = atom->nmax;
-  double bytes = nmax * sizeof(int);
-  bytes += nmax*4 * sizeof(int);
-  bytes += nmax*3 * sizeof(int);
-  bytes += nmax*3 * sizeof(double);
-  bytes += maxvatom*6 * sizeof(double);
+  double bytes = (double)nmax * sizeof(int);
+  bytes += (double)nmax*4 * sizeof(int);
+  bytes += (double)nmax*3 * sizeof(int);
+  bytes += (double)nmax*3 * sizeof(double);
+  bytes += (double)maxvatom*6 * sizeof(double);
   return bytes;
 }
 
@@ -2703,7 +2982,7 @@ void FixShake::unpack_forward_comm(int n, int first, double *buf)
 
 void FixShake::reset_dt()
 {
-  if (strstr(update->integrate_style,"verlet")) {
+  if (utils::strmatch(update->integrate_style,"^verlet")) {
     dtv = update->dt;
     if (rattle) dtfsq   = 0.5 * update->dt * update->dt * force->ftm2v;
     else dtfsq = update->dt * update->dt * force->ftm2v;
@@ -2723,7 +3002,7 @@ void *FixShake::extract(const char *str, int &dim)
 {
   dim = 0;
   if (strcmp(str,"onemol") == 0) return onemols;
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -2769,7 +3048,7 @@ void FixShake::correct_velocities() {}
 void FixShake::correct_coordinates(int vflag) {
 
   // save current forces and velocities so that you
-  // initialise them to zero such that FixShake::unconstrained_coordinate_update has no effect
+  // initialize them to zero such that FixShake::unconstrained_coordinate_update has no effect
 
   for (int j=0; j<nlocal; j++) {
     for (int k=0; k<3; k++) {
@@ -2792,7 +3071,7 @@ void FixShake::correct_coordinates(int vflag) {
   dtfsq   = 0.5 * update->dt * update->dt * force->ftm2v;
   FixShake::post_force(vflag);
 
-  // integrate coordiantes: x' = xnp1 + dt^2/2m_i * f, where f is the constraining force
+  // integrate coordinates: x' = xnp1 + dt^2/2m_i * f, where f is the constraining force
   // NOTE: After this command, the coordinates geometry of the molecules will be correct!
 
   double dtfmsq;

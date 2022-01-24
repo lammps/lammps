@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,14 +12,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstring>
 #include "compute_temp.h"
+
 #include "atom.h"
 #include "update.h"
 #include "force.h"
 #include "domain.h"
-#include "comm.h"
 #include "group.h"
 #include "error.h"
 
@@ -37,7 +36,7 @@ ComputeTemp::ComputeTemp(LAMMPS *lmp, int narg, char **arg) :
   extvector = 1;
   tempflag = 1;
 
-  vector = new double[6];
+  vector = new double[size_vector];
 }
 
 /* ---------------------------------------------------------------------- */

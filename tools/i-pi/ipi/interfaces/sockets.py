@@ -108,7 +108,7 @@ class DriverSocket(socket.socket):
    """Deals with communication between the client and driver code.
 
    Deals with sending and receiving the data from the driver code. Keeps track
-   of the status of the driver. Initialises the driver forcefield, sends the
+   of the status of the driver. Initializes the driver forcefield, sends the
    position and cell data, and receives the force data.
 
    Attributes:
@@ -119,7 +119,7 @@ class DriverSocket(socket.socket):
    """
 
    def __init__(self, socket):
-      """Initialises DriverSocket.
+      """Initializes DriverSocket.
 
       Args:
          socket: A socket through which the communication should be done.
@@ -378,7 +378,7 @@ class InterfaceSocket(object):
    """
 
    def __init__(self, address="localhost", port=31415, slots=4, mode="unix", latency=1e-3, timeout=1.0, dopbc=True):
-      """Initialises interface.
+      """Initializes interface.
 
       Args:
          address: An optional string giving the name of the host server.
@@ -556,7 +556,7 @@ class InterfaceSocket(object):
 
       Deals with maintaining the jobs list. Gets data from drivers that have
       finished their calculation and removes that job from the list of running
-      jobs, adds jobs to free clients and initialises the forcefields of new
+      jobs, adds jobs to free clients and initializes the forcefields of new
       clients.
       """
 

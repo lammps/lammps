@@ -1,0 +1,10 @@
+image:
+  - Visual Studio 2019
+clone_folder: c:\projects\source
+build_script:
+- cmd: >-
+    mkdir build &&
+    cd build &&
+    cmake c:\projects\source -DKokkos_ENABLE_TESTS=ON -DCMAKE_CXX_FLAGS="/W0 /EHsc" -DKokkos_ENABLE_DEPRECATED_CODE_3=ON -DKokkos_ENABLE_DEPRECATION_WARNINGS=OFF &&
+    cmake --build . --target install &&
+    ctest -C Debug --output-on-failure

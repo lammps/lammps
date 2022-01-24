@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,15 +16,12 @@
    Contributing author: Tod A Pascal (Caltech)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_hbond_dreiding_lj.h"
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "atom_vec.h"
 #include "molecule.h"
-#include "comm.h"
 #include "force.h"
 #include "neighbor.h"
 #include "neigh_request.h"
@@ -33,6 +31,7 @@
 #include "math_special.h"
 #include "memory.h"
 #include "error.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -52,7 +51,7 @@ PairHbondDreidingLJ::PairHbondDreidingLJ(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
 
   nparams = maxparam = 0;
-  params = NULL;
+  params = nullptr;
 
   nextra = 2;
   pvector = new double[2];
@@ -91,8 +90,7 @@ void PairHbondDreidingLJ::compute(int eflag, int vflag)
   tagint *klist;
 
   evdwl = ehbond = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -121,7 +119,7 @@ void PairHbondDreidingLJ::compute(int eflag, int vflag)
     i = ilist[ii];
     itype = type[i];
     if (!donor[itype]) continue;
-    if (molecular == 1) {
+    if (molecular == Atom::MOLECULAR) {
       klist = special[i];
       knum = nspecial[i][0];
     } else {
@@ -149,7 +147,7 @@ void PairHbondDreidingLJ::compute(int eflag, int vflag)
       rsq = delx*delx + dely*dely + delz*delz;
 
       for (kk = 0; kk < knum; kk++) {
-        if (molecular == 1) k = atom->map(klist[kk]);
+        if (molecular == Atom::MOLECULAR) k = atom->map(klist[kk]);
         else k = atom->map(klist[kk]+tagprev);
         if (k < 0) continue;
         ktype = type[k];
@@ -304,10 +302,10 @@ void PairHbondDreidingLJ::settings(int narg, char **arg)
 {
   if (narg != 4) error->all(FLERR,"Illegal pair_style command");
 
-  ap_global = force->inumeric(FLERR,arg[0]);
-  cut_inner_global = force->numeric(FLERR,arg[1]);
-  cut_outer_global = force->numeric(FLERR,arg[2]);
-  cut_angle_global = force->numeric(FLERR,arg[3]) * MY_PI/180.0;
+  ap_global = utils::inumeric(FLERR,arg[0],false,lmp);
+  cut_inner_global = utils::numeric(FLERR,arg[1],false,lmp);
+  cut_outer_global = utils::numeric(FLERR,arg[2],false,lmp);
+  cut_angle_global = utils::numeric(FLERR,arg[3],false,lmp) * MY_PI/180.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -321,36 +319,41 @@ void PairHbondDreidingLJ::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi,klo,khi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
-  force->bounds(FLERR,arg[2],atom->ntypes,klo,khi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
+  utils::bounds(FLERR,arg[2],1,atom->ntypes,klo,khi,error);
 
   int donor_flag;
   if (strcmp(arg[3],"i") == 0) donor_flag = 0;
   else if (strcmp(arg[3],"j") == 0) donor_flag = 1;
   else error->all(FLERR,"Incorrect args for pair coefficients");
 
-  double epsilon_one = force->numeric(FLERR,arg[4]);
-  double sigma_one = force->numeric(FLERR,arg[5]);
+  double epsilon_one = utils::numeric(FLERR,arg[4],false,lmp);
+  double sigma_one = utils::numeric(FLERR,arg[5],false,lmp);
 
   int ap_one = ap_global;
-  if (narg > 6) ap_one = force->inumeric(FLERR,arg[6]);
+  if (narg > 6) ap_one = utils::inumeric(FLERR,arg[6],false,lmp);
   double cut_inner_one = cut_inner_global;
   double cut_outer_one = cut_outer_global;
   if (narg > 8) {
-    cut_inner_one = force->numeric(FLERR,arg[7]);
-    cut_outer_one = force->numeric(FLERR,arg[8]);
+    cut_inner_one = utils::numeric(FLERR,arg[7],false,lmp);
+    cut_outer_one = utils::numeric(FLERR,arg[8],false,lmp);
   }
   if (cut_inner_one>cut_outer_one)
     error->all(FLERR,"Pair inner cutoff >= Pair outer cutoff");
   double cut_angle_one = cut_angle_global;
-  if (narg == 10) cut_angle_one = force->numeric(FLERR,arg[9]) * MY_PI/180.0;
+  if (narg == 10) cut_angle_one = utils::numeric(FLERR,arg[9],false,lmp) * MY_PI/180.0;
   // grow params array if necessary
 
   if (nparams == maxparam) {
     maxparam += CHUNK;
     params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
                                         "pair:params");
+
+    // make certain all addional allocated storage is initialized
+    // to avoid false positives when checking with valgrind
+
+    memset(params + nparams, 0, CHUNK*sizeof(Param));
   }
 
   params[nparams].epsilon = epsilon_one;
@@ -392,11 +395,11 @@ void PairHbondDreidingLJ::init_style()
   // pair newton on required since are looping over D atoms
   //   and computing forces on A,H which may be on different procs
 
-  if (atom->molecular == 0)
+  if (atom->molecular == Atom::ATOMIC)
     error->all(FLERR,"Pair style hbond/dreiding requires molecular system");
   if (atom->tag_enable == 0)
     error->all(FLERR,"Pair style hbond/dreiding requires atom IDs");
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Pair style hbond/dreiding requires an atom map, "
                "see atom_modify");
   if (force->newton_pair == 0)
@@ -492,7 +495,7 @@ double PairHbondDreidingLJ::single(int i, int j, int itype, int jtype,
   if (!acceptor[jtype]) return 0.0;
 
   int molecular = atom->molecular;
-  if (molecular == 1) {
+  if (molecular == Atom::MOLECULAR) {
     klist = atom->special[i];
     knum = atom->nspecial[i][0];
   } else {
@@ -508,7 +511,7 @@ double PairHbondDreidingLJ::single(int i, int j, int itype, int jtype,
   factor_hb = special_lj[sbmask(j)];
 
   for (kk = 0; kk < knum; kk++) {
-    if (molecular == 1) k = atom->map(klist[kk]);
+    if (molecular == Atom::MOLECULAR) k = atom->map(klist[kk]);
     else k = atom->map(klist[kk]+tagprev);
 
     if (k < 0) continue;

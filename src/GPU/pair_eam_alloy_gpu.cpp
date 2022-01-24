@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,45 +16,46 @@
    Contributing authors: Trung Dac Nguyen (ORNL), W. Michael Brown (ORNL)
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_eam_alloy_gpu.h"
-#include "atom.h"
-#include "force.h"
-#include "comm.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
-#include "neigh_request.h"
-#include "gpu_extra.h"
-#include "domain.h"
-#include "utils.h"
 
+#include "atom.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "gpu_extra.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "potential_file_reader.h"
+#include "suffix.h"
+#include "tokenizer.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
-
-#define MAXLINE 1024
 
 // External functions from cuda library for atom decomposition
 
 int eam_alloy_gpu_init(const int ntypes, double host_cutforcesq,
-                 int **host_type2rhor, int **host_type2z2r,
-                 int *host_type2frho, double ***host_rhor_spline,
-                 double ***host_z2r_spline, double ***host_frho_spline,
-                 double rdr, double rdrho, double rhomax,
-                 int nrhor, int nrho, int nz2r, int nfrho, int nr,
-                 const int nlocal, const int nall, const int max_nbors,
-                 const int maxspecial, const double cell_size, int &gpu_mode,
-                 FILE *screen, int &fp_size);
+                       int **host_type2rhor, int **host_type2z2r,
+                       int *host_type2frho, double ***host_rhor_spline,
+                       double ***host_z2r_spline, double ***host_frho_spline,
+                       double** host_cutsq, double rdr, double rdrho, double rhomax,
+                       int nrhor, int nrho, int nz2r, int nfrho, int nr,
+                       const int nlocal, const int nall, const int max_nbors,
+                       const int maxspecial, const double cell_size,
+                       int &gpu_mode, FILE *screen, int &fp_size);
 void eam_alloy_gpu_clear();
-int** eam_alloy_gpu_compute_n(const int ago, const int inum_full, const int nall,
-                        double **host_x, int *host_type, double *sublo,
-                        double *subhi, tagint *tag, int **nspecial, tagint **special,
-                        const bool eflag, const bool vflag, const bool eatom,
-                        const bool vatom, int &host_start, int **ilist,
-                        int **jnum,  const double cpu_time, bool &success,
+int** eam_alloy_gpu_compute_n(const int ago, const int inum_full,
+                        const int nall, double **host_x, int *host_type,
+                        double *sublo, double *subhi, tagint *tag,
+                        int **nspecial, tagint **special, const bool eflag,
+                        const bool vflag, const bool eatom, const bool vatom,
+                        int &host_start, int **ilist, int **jnum,
+                        const double cpu_time, bool &success,
                         int &inum, void **fp_ptr);
 void eam_alloy_gpu_compute(const int ago, const int inum_full, const int nlocal,
                      const int nall,double **host_x, int *host_type,
@@ -69,9 +71,11 @@ double eam_alloy_gpu_bytes();
 
 PairEAMAlloyGPU::PairEAMAlloyGPU(LAMMPS *lmp) : PairEAM(lmp), gpu_mode(GPU_FORCE)
 {
+  one_coeff = 1;
   respa_enable = 0;
   reinitflag = 0;
   cpu_time = 0.0;
+  suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
 
@@ -94,8 +98,7 @@ double PairEAMAlloyGPU::memory_usage()
 
 void PairEAMAlloyGPU::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = eflag_global = eflag_atom = 0;
+  ev_init(eflag,vflag);
 
   // compute density on each atom on GPU
 
@@ -106,9 +109,20 @@ void PairEAMAlloyGPU::compute(int eflag, int vflag)
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
   if (gpu_mode != GPU_FORCE) {
+    double sublo[3],subhi[3];
+    if (domain->triclinic == 0) {
+      sublo[0] = domain->sublo[0];
+      sublo[1] = domain->sublo[1];
+      sublo[2] = domain->sublo[2];
+      subhi[0] = domain->subhi[0];
+      subhi[1] = domain->subhi[1];
+      subhi[2] = domain->subhi[2];
+    } else {
+      domain->bbox(domain->sublo_lamda,domain->subhi_lamda,sublo,subhi);
+    }
     inum = atom->nlocal;
     firstneigh = eam_alloy_gpu_compute_n(neighbor->ago, inum, nall, atom->x,
-                                   atom->type, domain->sublo, domain->subhi,
+                                   atom->type, sublo, subhi,
                                    atom->tag, atom->nspecial, atom->special,
                                    eflag, vflag, eflag_atom, vflag_atom,
                                    host_start, &ilist, &numneigh, cpu_time,
@@ -132,7 +146,7 @@ void PairEAMAlloyGPU::compute(int eflag, int vflag)
 
   // compute forces on each atom on GPU
   if (gpu_mode != GPU_FORCE)
-    eam_alloy_gpu_compute_force(NULL, eflag, vflag, eflag_atom, vflag_atom);
+    eam_alloy_gpu_compute_force(nullptr, eflag, vflag, eflag_atom, vflag_atom);
   else
     eam_alloy_gpu_compute_force(ilist, eflag, vflag, eflag_atom, vflag_atom);
 }
@@ -143,8 +157,6 @@ void PairEAMAlloyGPU::compute(int eflag, int vflag)
 
 void PairEAMAlloyGPU::init_style()
 {
-  if (force->newton_pair)
-    error->all(FLERR,"Cannot use newton pair with eam/alloy/gpu pair style");
 
   // convert read-in file(s) to arrays and spline them
 
@@ -169,13 +181,14 @@ void PairEAMAlloyGPU::init_style()
   double cell_size = sqrt(maxcut) + neighbor->skin;
 
   int maxspecial=0;
-  if (atom->molecular)
+  if (atom->molecular != Atom::ATOMIC)
     maxspecial=atom->maxspecial;
   int fp_size;
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = eam_alloy_gpu_init(atom->ntypes+1, cutforcesq, type2rhor, type2z2r,
                              type2frho, rhor_spline, z2r_spline, frho_spline,
-                             rdr, rdrho, rhomax, nrhor, nrho, nz2r, nfrho, nr,
-                             atom->nlocal, atom->nlocal+atom->nghost, 300,
+                             cutsq, rdr, rdrho, rhomax, nrhor, nrho, nz2r, nfrho, nr,
+                             atom->nlocal, atom->nlocal+atom->nghost, mnf,
                              maxspecial, cell_size, gpu_mode, screen, fp_size);
   GPU_EXTRA::check_flag(success,error,world);
 
@@ -184,11 +197,12 @@ void PairEAMAlloyGPU::init_style()
     neighbor->requests[irequest]->half = 0;
     neighbor->requests[irequest]->full = 1;
   }
-
   if (fp_size == sizeof(double))
     fp_single = false;
   else
     fp_single = true;
+
+  embedstep = -1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -301,7 +315,7 @@ void PairEAMAlloyGPU::coeff(int narg, char **arg)
   if (setfl) {
     for (i = 0; i < setfl->nelements; i++) delete [] setfl->elements[i];
     delete [] setfl->elements;
-    delete [] setfl->mass;
+    memory->destroy(setfl->mass);
     memory->destroy(setfl->frho);
     memory->destroy(setfl->rhor);
     memory->destroy(setfl->z2r);
@@ -311,7 +325,7 @@ void PairEAMAlloyGPU::coeff(int narg, char **arg)
   read_file(arg[2]);
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
 
   for (i = 3; i < narg; i++) {
     if (strcmp(arg[i],"NULL") == 0) {
@@ -342,6 +356,7 @@ void PairEAMAlloyGPU::coeff(int narg, char **arg)
         if (i == j) atom->set_mass(FLERR,i,setfl->mass[map[i]]);
         count++;
       }
+      scale[i][j] = 1.0;
     }
   }
 
@@ -356,94 +371,116 @@ void PairEAMAlloyGPU::read_file(char *filename)
 {
   Setfl *file = setfl;
 
-  // open potential file
+  // read potential file
+  if (comm->me == 0) {
+    PotentialFileReader reader(PairEAM::lmp, filename, "eam/alloy", unit_convert_flag);
 
-  int me = comm->me;
-  FILE *fptr;
-  char line[MAXLINE];
+    // transparently convert units for supported conversions
 
-  if (me == 0) {
-    fptr = fopen(filename,"r");
-    if (fptr == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open EAM potential file %s",filename);
-      error->one(FLERR,str);
+    int unit_convert = reader.get_unit_convert();
+    double conversion_factor = utils::get_conversion_factor(utils::ENERGY,
+                                                            unit_convert);
+    try {
+      reader.skip_line();
+      reader.skip_line();
+      reader.skip_line();
+
+      // extract element names from nelements line
+      ValueTokenizer values = reader.next_values(1);
+      file->nelements = values.next_int();
+
+      if ((int)values.count() != file->nelements + 1)
+        error->one(FLERR,"Incorrect element names in EAM potential file");
+
+      file->elements = new char*[file->nelements];
+      for (int i = 0; i < file->nelements; i++)
+        file->elements[i] = utils::strdup(values.next_string());
+
+      //
+
+      values = reader.next_values(5);
+      file->nrho = values.next_int();
+      file->drho = values.next_double();
+      file->nr   = values.next_int();
+      file->dr   = values.next_double();
+      file->cut  = values.next_double();
+
+      if ((file->nrho <= 0) || (file->nr <= 0) || (file->dr <= 0.0))
+        error->one(FLERR,"Invalid EAM potential file");
+
+      memory->create(file->mass, file->nelements, "pair:mass");
+      memory->create(file->frho, file->nelements, file->nrho + 1, "pair:frho");
+      memory->create(file->rhor, file->nelements, file->nr + 1, "pair:rhor");
+      memory->create(file->z2r, file->nelements, file->nelements, file->nr + 1, "pair:z2r");
+
+      for (int i = 0; i < file->nelements; i++) {
+        values = reader.next_values(2);
+        values.next_int(); // ignore
+        file->mass[i] = values.next_double();
+
+        reader.next_dvector(&file->frho[i][1], file->nrho);
+        reader.next_dvector(&file->rhor[i][1], file->nr);
+        if (unit_convert) {
+          for (int j = 1; j < file->nrho; ++j)
+            file->frho[i][j] *= conversion_factor;
+        }
+      }
+
+      for (int i = 0; i < file->nelements; i++) {
+        for (int j = 0; j <= i; j++) {
+          reader.next_dvector(&file->z2r[i][j][1], file->nr);
+          if (unit_convert) {
+            for (int k = 1; k < file->nr; ++k)
+              file->z2r[i][j][k] *= conversion_factor;
+          }
+        }
+      }
+    } catch (TokenizerException &e) {
+      error->one(FLERR, e.what());
     }
   }
 
-  // read and broadcast header
-  // extract element names from nelements line
+  // broadcast potential information
+  MPI_Bcast(&file->nelements, 1, MPI_INT, 0, world);
 
-  int n;
-  if (me == 0) {
-    utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
-    utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
-    utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
-    utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
-    n = strlen(line) + 1;
+  MPI_Bcast(&file->nrho, 1, MPI_INT, 0, world);
+  MPI_Bcast(&file->drho, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&file->nr, 1, MPI_INT, 0, world);
+  MPI_Bcast(&file->dr, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&file->cut, 1, MPI_DOUBLE, 0, world);
+
+  // allocate memory on other procs
+  if (comm->me != 0) {
+    file->elements = new char*[file->nelements];
+    for (int i = 0; i < file->nelements; i++) file->elements[i] = nullptr;
+    memory->create(file->mass, file->nelements, "pair:mass");
+    memory->create(file->frho, file->nelements, file->nrho + 1, "pair:frho");
+    memory->create(file->rhor, file->nelements, file->nr + 1, "pair:rhor");
+    memory->create(file->z2r, file->nelements, file->nelements, file->nr + 1, "pair:z2r");
   }
-  MPI_Bcast(&n,1,MPI_INT,0,world);
-  MPI_Bcast(line,n,MPI_CHAR,0,world);
 
-  sscanf(line,"%d",&file->nelements);
-  int nwords = atom->count_words(line);
-  if (nwords != file->nelements + 1)
-    error->all(FLERR,"Incorrect element names in EAM potential file");
-
-  char **words = new char*[file->nelements+1];
-  nwords = 0;
-  strtok(line," \t\n\r\f");
-  while ( (words[nwords++] = strtok(NULL," \t\n\r\f")) ) continue;
-
-  file->elements = new char*[file->nelements];
+  // broadcast file->elements string array
   for (int i = 0; i < file->nelements; i++) {
-    n = strlen(words[i]) + 1;
-    file->elements[i] = new char[n];
-    strcpy(file->elements[i],words[i]);
-  }
-  delete [] words;
-
-  if (me == 0) {
-    utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
-    sscanf(line,"%d %lg %d %lg %lg",
-           &file->nrho,&file->drho,&file->nr,&file->dr,&file->cut);
+    int n;
+    if (comm->me == 0) n = strlen(file->elements[i]) + 1;
+    MPI_Bcast(&n, 1, MPI_INT, 0, world);
+    if (comm->me != 0) file->elements[i] = new char[n];
+    MPI_Bcast(file->elements[i], n, MPI_CHAR, 0, world);
   }
 
-  MPI_Bcast(&file->nrho,1,MPI_INT,0,world);
-  MPI_Bcast(&file->drho,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&file->nr,1,MPI_INT,0,world);
-  MPI_Bcast(&file->dr,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&file->cut,1,MPI_DOUBLE,0,world);
+  // broadcast file->mass, frho, rhor
+  for (int i = 0; i < file->nelements; i++) {
+    MPI_Bcast(&file->mass[i], 1, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&file->frho[i][1], file->nrho, MPI_DOUBLE, 0, world);
+    MPI_Bcast(&file->rhor[i][1], file->nr, MPI_DOUBLE, 0, world);
+  }
 
-  file->mass = new double[file->nelements];
-  memory->create(file->frho,file->nelements,file->nrho+1,"pair:frho");
-  memory->create(file->rhor,file->nelements,file->nr+1,"pair:rhor");
-  memory->create(file->z2r,file->nelements,file->nelements,file->nr+1,
-                 "pair:z2r");
-
-  int i,j,tmp;
-  for (i = 0; i < file->nelements; i++) {
-    if (me == 0) {
-      utils::sfgets(FLERR,line,MAXLINE,fptr,filename,error);
-      sscanf(line,"%d %lg",&tmp,&file->mass[i]);
+  // broadcast file->z2r
+  for (int i = 0; i < file->nelements; i++) {
+    for (int j = 0; j <= i; j++) {
+      MPI_Bcast(&file->z2r[i][j][1], file->nr, MPI_DOUBLE, 0, world);
     }
-    MPI_Bcast(&file->mass[i],1,MPI_DOUBLE,0,world);
-
-    if (me == 0) grab(fptr,file->nrho,&file->frho[i][1]);
-    MPI_Bcast(&file->frho[i][1],file->nrho,MPI_DOUBLE,0,world);
-    if (me == 0) grab(fptr,file->nr,&file->rhor[i][1]);
-    MPI_Bcast(&file->rhor[i][1],file->nr,MPI_DOUBLE,0,world);
   }
-
-  for (i = 0; i < file->nelements; i++)
-    for (j = 0; j <= i; j++) {
-      if (me == 0) grab(fptr,file->nr,&file->z2r[i][j][1]);
-      MPI_Bcast(&file->z2r[i][j][1],file->nr,MPI_DOUBLE,0,world);
-    }
-
-  // close the potential file
-
-  if (me == 0) fclose(fptr);
 }
 
 /* ----------------------------------------------------------------------

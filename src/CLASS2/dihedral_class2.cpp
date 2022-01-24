@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,19 +16,18 @@
    Contributing author: Eric Simon (Cray)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstring>
-#include <cstdlib>
 #include "dihedral_class2.h"
+
 #include "atom.h"
-#include "neighbor.h"
-#include "update.h"
-#include "domain.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neighbor.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -118,8 +118,7 @@ void DihedralClass2::compute(int eflag, int vflag)
   double fabcd[4][3];
 
   edihedral = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -183,6 +182,11 @@ void DihedralClass2::compute(int eflag, int vflag)
     costh13 = c0;
     costh23 = (vb2xm*vb3x + vb2ym*vb3y + vb2zm*vb3z) * r12c2;
 
+    costh12 = MAX(MIN(costh12, 1.0), -1.0);
+    costh13 = MAX(MIN(costh13, 1.0), -1.0);
+    costh23 = MAX(MIN(costh23, 1.0), -1.0);
+    c0 = costh13;
+
     // cos and sin of 2 angles and final c
 
     sin2 = MAX(1.0 - costh12*costh12,0.0);
@@ -202,27 +206,8 @@ void DihedralClass2::compute(int eflag, int vflag)
 
     // error check
 
-    if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) {
-      int me;
-      MPI_Comm_rank(world,&me);
-      if (screen) {
-        char str[128];
-        sprintf(str,"Dihedral problem: %d " BIGINT_FORMAT " "
-                TAGINT_FORMAT " " TAGINT_FORMAT " "
-                TAGINT_FORMAT " " TAGINT_FORMAT,
-                me,update->ntimestep,
-                atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-        error->warning(FLERR,str,0);
-        fprintf(screen,"  1st atom: %d %g %g %g\n",
-                me,x[i1][0],x[i1][1],x[i1][2]);
-        fprintf(screen,"  2nd atom: %d %g %g %g\n",
-                me,x[i2][0],x[i2][1],x[i2][2]);
-        fprintf(screen,"  3rd atom: %d %g %g %g\n",
-                me,x[i3][0],x[i3][1],x[i3][2]);
-        fprintf(screen,"  4th atom: %d %g %g %g\n",
-                me,x[i4][0],x[i4][1],x[i4][2]);
-      }
-    }
+    if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE))
+      problem(FLERR, i1, i2, i3, i4);
 
     if (c > 1.0) c = 1.0;
     if (c < -1.0) c = -1.0;
@@ -642,17 +627,17 @@ void DihedralClass2::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->ndihedraltypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->ndihedraltypes,ilo,ihi,error);
 
   int count = 0;
 
   if (strcmp(arg[1],"mbt") == 0) {
     if (narg != 6) error->all(FLERR,"Incorrect args for dihedral coefficients");
 
-    double f1_one = force->numeric(FLERR,arg[2]);
-    double f2_one = force->numeric(FLERR,arg[3]);
-    double f3_one = force->numeric(FLERR,arg[4]);
-    double r0_one = force->numeric(FLERR,arg[5]);
+    double f1_one = utils::numeric(FLERR,arg[2],false,lmp);
+    double f2_one = utils::numeric(FLERR,arg[3],false,lmp);
+    double f3_one = utils::numeric(FLERR,arg[4],false,lmp);
+    double r0_one = utils::numeric(FLERR,arg[5],false,lmp);
 
     for (int i = ilo; i <= ihi; i++) {
       mbt_f1[i] = f1_one;
@@ -667,14 +652,14 @@ void DihedralClass2::coeff(int narg, char **arg)
     if (narg != 10)
       error->all(FLERR,"Incorrect args for dihedral coefficients");
 
-    double f1_1_one = force->numeric(FLERR,arg[2]);
-    double f2_1_one = force->numeric(FLERR,arg[3]);
-    double f3_1_one = force->numeric(FLERR,arg[4]);
-    double f1_2_one = force->numeric(FLERR,arg[5]);
-    double f2_2_one = force->numeric(FLERR,arg[6]);
-    double f3_2_one = force->numeric(FLERR,arg[7]);
-    double r0_1_one = force->numeric(FLERR,arg[8]);
-    double r0_2_one = force->numeric(FLERR,arg[9]);
+    double f1_1_one = utils::numeric(FLERR,arg[2],false,lmp);
+    double f2_1_one = utils::numeric(FLERR,arg[3],false,lmp);
+    double f3_1_one = utils::numeric(FLERR,arg[4],false,lmp);
+    double f1_2_one = utils::numeric(FLERR,arg[5],false,lmp);
+    double f2_2_one = utils::numeric(FLERR,arg[6],false,lmp);
+    double f3_2_one = utils::numeric(FLERR,arg[7],false,lmp);
+    double r0_1_one = utils::numeric(FLERR,arg[8],false,lmp);
+    double r0_2_one = utils::numeric(FLERR,arg[9],false,lmp);
 
     for (int i = ilo; i <= ihi; i++) {
       ebt_f1_1[i] = f1_1_one;
@@ -693,14 +678,14 @@ void DihedralClass2::coeff(int narg, char **arg)
     if (narg != 10)
       error->all(FLERR,"Incorrect args for dihedral coefficients");
 
-    double f1_1_one = force->numeric(FLERR,arg[2]);
-    double f2_1_one = force->numeric(FLERR,arg[3]);
-    double f3_1_one = force->numeric(FLERR,arg[4]);
-    double f1_2_one = force->numeric(FLERR,arg[5]);
-    double f2_2_one = force->numeric(FLERR,arg[6]);
-    double f3_2_one = force->numeric(FLERR,arg[7]);
-    double theta0_1_one = force->numeric(FLERR,arg[8]);
-    double theta0_2_one = force->numeric(FLERR,arg[9]);
+    double f1_1_one = utils::numeric(FLERR,arg[2],false,lmp);
+    double f2_1_one = utils::numeric(FLERR,arg[3],false,lmp);
+    double f3_1_one = utils::numeric(FLERR,arg[4],false,lmp);
+    double f1_2_one = utils::numeric(FLERR,arg[5],false,lmp);
+    double f2_2_one = utils::numeric(FLERR,arg[6],false,lmp);
+    double f3_2_one = utils::numeric(FLERR,arg[7],false,lmp);
+    double theta0_1_one = utils::numeric(FLERR,arg[8],false,lmp);
+    double theta0_2_one = utils::numeric(FLERR,arg[9],false,lmp);
 
     // convert theta0's from degrees to radians
 
@@ -720,9 +705,9 @@ void DihedralClass2::coeff(int narg, char **arg)
   } else if (strcmp(arg[1],"aat") == 0) {
     if (narg != 5) error->all(FLERR,"Incorrect args for dihedral coefficients");
 
-    double k_one = force->numeric(FLERR,arg[2]);
-    double theta0_1_one = force->numeric(FLERR,arg[3]);
-    double theta0_2_one = force->numeric(FLERR,arg[4]);
+    double k_one = utils::numeric(FLERR,arg[2],false,lmp);
+    double theta0_1_one = utils::numeric(FLERR,arg[3],false,lmp);
+    double theta0_2_one = utils::numeric(FLERR,arg[4],false,lmp);
 
     // convert theta0's from degrees to radians
 
@@ -737,9 +722,9 @@ void DihedralClass2::coeff(int narg, char **arg)
   } else if (strcmp(arg[1],"bb13") == 0) {
     if (narg != 5) error->all(FLERR,"Incorrect args for dihedral coefficients");
 
-    double k_one = force->numeric(FLERR,arg[2]);
-    double r10_one = force->numeric(FLERR,arg[3]);
-    double r30_one = force->numeric(FLERR,arg[4]);
+    double k_one = utils::numeric(FLERR,arg[2],false,lmp);
+    double r10_one = utils::numeric(FLERR,arg[3],false,lmp);
+    double r30_one = utils::numeric(FLERR,arg[4],false,lmp);
 
     for (int i = ilo; i <= ihi; i++) {
       bb13t_k[i] = k_one;
@@ -752,12 +737,12 @@ void DihedralClass2::coeff(int narg, char **arg)
   } else {
     if (narg != 7) error->all(FLERR,"Incorrect args for dihedral coefficients");
 
-    double k1_one = force->numeric(FLERR,arg[1]);
-    double phi1_one = force->numeric(FLERR,arg[2]);
-    double k2_one = force->numeric(FLERR,arg[3]);
-    double phi2_one = force->numeric(FLERR,arg[4]);
-    double k3_one = force->numeric(FLERR,arg[5]);
-    double phi3_one = force->numeric(FLERR,arg[6]);
+    double k1_one = utils::numeric(FLERR,arg[1],false,lmp);
+    double phi1_one = utils::numeric(FLERR,arg[2],false,lmp);
+    double k2_one = utils::numeric(FLERR,arg[3],false,lmp);
+    double phi2_one = utils::numeric(FLERR,arg[4],false,lmp);
+    double k3_one = utils::numeric(FLERR,arg[5],false,lmp);
+    double phi3_one = utils::numeric(FLERR,arg[6],false,lmp);
 
     // convert phi's from degrees to radians
 
@@ -837,45 +822,45 @@ void DihedralClass2::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&k1[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&k2[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&k3[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&phi1[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&phi2[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&phi3[1],sizeof(double),atom->ndihedraltypes,fp);
+    utils::sfread(FLERR,&k1[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&k2[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&k3[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&phi1[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&phi2[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&phi3[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
 
-    fread(&mbt_f1[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&mbt_f2[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&mbt_f3[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&mbt_r0[1],sizeof(double),atom->ndihedraltypes,fp);
+    utils::sfread(FLERR,&mbt_f1[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&mbt_f2[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&mbt_f3[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&mbt_r0[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
 
-    fread(&ebt_f1_1[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&ebt_f2_1[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&ebt_f3_1[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&ebt_r0_1[1],sizeof(double),atom->ndihedraltypes,fp);
+    utils::sfread(FLERR,&ebt_f1_1[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&ebt_f2_1[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&ebt_f3_1[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&ebt_r0_1[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
 
-    fread(&ebt_f1_2[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&ebt_f2_2[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&ebt_f3_2[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&ebt_r0_2[1],sizeof(double),atom->ndihedraltypes,fp);
+    utils::sfread(FLERR,&ebt_f1_2[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&ebt_f2_2[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&ebt_f3_2[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&ebt_r0_2[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
 
-    fread(&at_f1_1[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&at_f2_1[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&at_f3_1[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&at_theta0_1[1],sizeof(double),atom->ndihedraltypes,fp);
+    utils::sfread(FLERR,&at_f1_1[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&at_f2_1[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&at_f3_1[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&at_theta0_1[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
 
-    fread(&at_f1_2[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&at_f2_2[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&at_f3_2[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&at_theta0_2[1],sizeof(double),atom->ndihedraltypes,fp);
+    utils::sfread(FLERR,&at_f1_2[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&at_f2_2[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&at_f3_2[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&at_theta0_2[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
 
-    fread(&aat_k[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&aat_theta0_1[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&aat_theta0_2[1],sizeof(double),atom->ndihedraltypes,fp);
+    utils::sfread(FLERR,&aat_k[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&aat_theta0_1[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&aat_theta0_2[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
 
-    fread(&bb13t_k[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&bb13t_r10[1],sizeof(double),atom->ndihedraltypes,fp);
-    fread(&bb13t_r30[1],sizeof(double),atom->ndihedraltypes,fp);
+    utils::sfread(FLERR,&bb13t_k[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&bb13t_r10[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&bb13t_r30[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
   }
 
   MPI_Bcast(&k1[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);

@@ -1,6 +1,6 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(rx/kk,FixRxKokkos<LMPDeviceType>)
-FixStyle(rx/kk/device,FixRxKokkos<LMPDeviceType>)
-FixStyle(rx/kk/host,FixRxKokkos<LMPHostType>)
-
+// clang-format off
+FixStyle(rx/kk,FixRxKokkos<LMPDeviceType>);
+FixStyle(rx/kk/device,FixRxKokkos<LMPDeviceType>);
+FixStyle(rx/kk/host,FixRxKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_FIX_RX_KOKKOS_H
 #define LMP_FIX_RX_KOKKOS_H
 
@@ -71,7 +72,7 @@ struct s_CounterType
 };
 typedef struct s_CounterType CounterType;
 
-template <typename DeviceType>
+template <class DeviceType>
 class FixRxKokkos : public FixRX {
  public:
   typedef ArrayTypes<DeviceType> AT;
@@ -121,7 +122,7 @@ class FixRxKokkos : public FixRX {
     value_type *m_data;
 
     KOKKOS_INLINE_FUNCTION
-    StridedArrayType() : m_data(NULL) {}
+    StridedArrayType() : m_data(nullptr) {}
     KOKKOS_INLINE_FUNCTION
     StridedArrayType(value_type *ptr) : m_data(ptr) {}
 
@@ -195,7 +196,7 @@ class FixRxKokkos : public FixRX {
                   double& h0, VectorType& y, VectorType& rwk, UserDataType& userData) const;
 
   //!< ODE Solver diagnostics.
-  void odeDiagnostics(void);
+  void odeDiagnostics();
 
   //!< Special counters per-ode.
   int *diagnosticCounterPerODEnSteps;
@@ -230,7 +231,7 @@ class FixRxKokkos : public FixRX {
 
   bool update_kinetics_data;
 
-  void create_kinetics_data(void);
+  void create_kinetics_data();
 
   // Need a dual-view and device-view for dpdThetaLocal and sumWeights since they're used in several callbacks.
   DAT::tdual_efloat_1d k_dpdThetaLocal, k_sumWeights;

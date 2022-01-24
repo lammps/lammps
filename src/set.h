@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,34 +12,35 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
-CommandStyle(set,Set)
-
+// clang-format off
+CommandStyle(set,Set);
+// clang-format on
 #else
 
 #ifndef LMP_SET_H
 #define LMP_SET_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class Set : protected Pointers {
+class Set : public Command {
  public:
-  Set(class LAMMPS *lmp) : Pointers(lmp) {};
+  Set(class LAMMPS *lmp) : Command(lmp){};
   void command(int, char **);
 
  private:
   char *id;
   int *select;
-  int style,ivalue,newtype,count,index_custom;
-  int ximage,yimage,zimage,ximageflag,yimageflag,zimageflag;
-  double dvalue,xvalue,yvalue,zvalue,wvalue,fraction;
+  int style, ivalue, newtype, count, index_custom, icol_custom;
+  int ximage, yimage, zimage, ximageflag, yimageflag, zimageflag;
   int cc_index;
+  bigint nsubset;
+  double dvalue, xvalue, yvalue, zvalue, wvalue, fraction;
 
-  int varflag,varflag1,varflag2,varflag3,varflag4;
-  int ivar1,ivar2,ivar3,ivar4;
-  double *vec1,*vec2,*vec3,*vec4;
+  int varflag, varflag1, varflag2, varflag3, varflag4;
+  int ivar1, ivar2, ivar3, ivar4;
+  double *vec1, *vec2, *vec3, *vec4;
 
   int discflag;
 
@@ -47,10 +48,10 @@ class Set : protected Pointers {
   void set(int);
   void setrandom(int);
   void topology(int);
-  void varparse(char *, int);
+  void varparse(const char *, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,15 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
-DihedralStyle(opls,DihedralOPLS)
-
+// clang-format off
+DihedralStyle(opls,DihedralOPLS);
+// clang-format on
 #else
 
 #ifndef LMP_DIHEDRAL_OPLS_H
 #define LMP_DIHEDRAL_OPLS_H
 
-#include <cstdio>
 #include "dihedral.h"
 
 namespace LAMMPS_NS {
@@ -36,12 +35,12 @@ class DihedralOPLS : public Dihedral {
   void write_data(FILE *);
 
  protected:
-  double *k1,*k2,*k3,*k4;
+  double *k1, *k2, *k3, *k4;
 
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,15 +12,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "fix_viscous.h"
+
 #include "atom.h"
-#include "update.h"
-#include "respa.h"
 #include "error.h"
-#include "force.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -28,13 +28,13 @@ using namespace FixConst;
 
 FixViscous::FixViscous(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  gamma(NULL)
+  gamma(nullptr)
 {
   dynamic_group_allow = 1;
 
   if (narg < 4) error->all(FLERR,"Illegal fix viscous command");
 
-  double gamma_one = force->numeric(FLERR,arg[3]);
+  double gamma_one = utils::numeric(FLERR,arg[3],false,lmp);
   gamma = new double[atom->ntypes+1];
   for (int i = 1; i <= atom->ntypes; i++) gamma[i] = gamma_one;
 
@@ -44,8 +44,8 @@ FixViscous::FixViscous(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"scale") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal fix viscous command");
-      int itype = force->inumeric(FLERR,arg[iarg+1]);
-      double scale = force->numeric(FLERR,arg[iarg+2]);
+      int itype = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      double scale = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       if (itype <= 0 || itype > atom->ntypes)
         error->all(FLERR,"Illegal fix viscous command");
       gamma[itype] = gamma_one * scale;
@@ -81,7 +81,7 @@ void FixViscous::init()
 {
   int max_respa = 0;
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = max_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,max_respa);
   }
@@ -91,7 +91,7 @@ void FixViscous::init()
 
 void FixViscous::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,6 +14,7 @@
 
 #include "server_mc.h"
 #include "atom.h"
+#include "domain.h"
 #include "update.h"
 #include "integrate.h"
 #include "input.h"
@@ -37,22 +39,22 @@ ServerMC::ServerMC(LAMMPS *lmp) : Pointers(lmp) {}
 
 void ServerMC::loop()
 {
-  int i,j,m;
-  double xold[3],xnew[3];
+  int m;
+  double xold[3];
   tagint atomid;
 
   CSlib *cs = (CSlib *) lmp->cslib;
 
-  // require atom map
+  if (domain->box_exist == 0)
+    error->all(FLERR,"Server command before simulation box is defined");
 
-  if (!atom->map_style) error->all(FLERR,"Server mode requires atom map");
+  if (atom->map_style == Atom::MAP_NONE) error->all(FLERR,"Server mc requires atom map");
+  if (atom->tag_enable == 0) error->all(FLERR,"Server mc requires atom IDs");
+  if (sizeof(tagint) != 4) error->all(FLERR,"Server mc requires 32-bit atom IDs");
 
   // initialize LAMMPS for dynamics
 
   input->one("run 0");
-
-  //update->whichflag = 1;
-  //lmp->init();
 
   // loop on messages
   // receive a message, process it, send return message if necessary
@@ -76,7 +78,7 @@ void ServerMC::loop()
 
       cs->send(msgID,2);
       cs->pack_double(1,dval);
-      double *coords = NULL;
+      double *coords = nullptr;
       if (atom->nlocal) coords = &atom->x[0][0];
       cs->pack_parallel(2,4,atom->nlocal,atom->tag,3,coords);
 
@@ -123,8 +125,6 @@ void ServerMC::loop()
 
       int nsteps = cs->unpack_int(1);
 
-      //input->one("run 100");
-
       update->nsteps = nsteps;
       update->firststep = update->ntimestep;
       update->laststep = update->ntimestep + nsteps;
@@ -144,5 +144,5 @@ void ServerMC::loop()
   // clean up
 
   delete cs;
-  lmp->cslib = NULL;
+  lmp->cslib = nullptr;
 }

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,15 +12,13 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstdlib>
-#include <cstring>
 #include "compute_temp_ramp.h"
+
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "force.h"
 #include "group.h"
-#include "fix.h"
 #include "domain.h"
 #include "lattice.h"
 #include "memory.h"
@@ -73,14 +72,14 @@ ComputeTempRamp::ComputeTempRamp(LAMMPS *lmp, int narg, char **arg) :
   else error->all(FLERR,"Illegal compute temp/ramp command");
 
   if (v_dim == 0) {
-    v_lo = xscale*force->numeric(FLERR,arg[4]);
-    v_hi = xscale*force->numeric(FLERR,arg[5]);
+    v_lo = xscale*utils::numeric(FLERR,arg[4],false,lmp);
+    v_hi = xscale*utils::numeric(FLERR,arg[5],false,lmp);
   } else if (v_dim == 1) {
-    v_lo = yscale*force->numeric(FLERR,arg[4]);
-    v_hi = yscale*force->numeric(FLERR,arg[5]);
+    v_lo = yscale*utils::numeric(FLERR,arg[4],false,lmp);
+    v_hi = yscale*utils::numeric(FLERR,arg[5],false,lmp);
   } else if (v_dim == 2) {
-    v_lo = zscale*force->numeric(FLERR,arg[4]);
-    v_hi = zscale*force->numeric(FLERR,arg[5]);
+    v_lo = zscale*utils::numeric(FLERR,arg[4],false,lmp);
+    v_hi = zscale*utils::numeric(FLERR,arg[5],false,lmp);
   }
 
   if (strcmp(arg[6],"x") == 0) coord_dim = 0;
@@ -89,19 +88,19 @@ ComputeTempRamp::ComputeTempRamp(LAMMPS *lmp, int narg, char **arg) :
   else error->all(FLERR,"Illegal compute temp/ramp command");
 
   if (coord_dim == 0) {
-    coord_lo = xscale*force->numeric(FLERR,arg[7]);
-    coord_hi = xscale*force->numeric(FLERR,arg[8]);
+    coord_lo = xscale*utils::numeric(FLERR,arg[7],false,lmp);
+    coord_hi = xscale*utils::numeric(FLERR,arg[8],false,lmp);
   } else if (coord_dim == 1) {
-    coord_lo = yscale*force->numeric(FLERR,arg[7]);
-    coord_hi = yscale*force->numeric(FLERR,arg[8]);
+    coord_lo = yscale*utils::numeric(FLERR,arg[7],false,lmp);
+    coord_hi = yscale*utils::numeric(FLERR,arg[8],false,lmp);
   } else if (coord_dim == 2) {
-    coord_lo = zscale*force->numeric(FLERR,arg[7]);
-    coord_hi = zscale*force->numeric(FLERR,arg[8]);
+    coord_lo = zscale*utils::numeric(FLERR,arg[7],false,lmp);
+    coord_hi = zscale*utils::numeric(FLERR,arg[8],false,lmp);
   }
 
   maxbias = 0;
-  vbiasall = NULL;
-  vector = new double[6];
+  vbiasall = nullptr;
+  vector = new double[size_vector];
 }
 
 /* ---------------------------------------------------------------------- */

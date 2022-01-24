@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ATOM_CLASS
-
-AtomStyle(bond/kk,AtomVecBondKokkos)
-AtomStyle(bond/kk/device,AtomVecBondKokkos)
-AtomStyle(bond/kk/host,AtomVecBondKokkos)
-
+// clang-format off
+AtomStyle(bond/kk,AtomVecBondKokkos);
+AtomStyle(bond/kk/device,AtomVecBondKokkos);
+AtomStyle(bond/kk/host,AtomVecBondKokkos);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_ATOM_VEC_BOND_KOKKOS_H
 #define LMP_ATOM_VEC_BOND_KOKKOS_H
 
@@ -44,15 +45,15 @@ class AtomVecBondKokkos : public AtomVecKokkos {
   int pack_restart(int, double *);
   int unpack_restart(double *);
   void create_atom(int, double *);
-  void data_atom(double *, tagint, char **);
-  int data_atom_hybrid(int, char **);
+  void data_atom(double *, imageint, const std::vector<std::string> &);
+  int data_atom_hybrid(int, const std::vector<std::string> &, int);
   void pack_data(double **);
   int pack_data_hybrid(int, double *);
   void write_data(FILE *, int, double **);
   int write_data_hybrid(FILE *, double *);
-  bigint memory_usage();
+  double memory_usage();
 
-  void grow_reset();
+  void grow_pointers();
   int pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist,
                          DAT::tdual_xfloat_2d buf,int iswap,
                          int pbc_flag, int *pbc, ExecutionSpace space);

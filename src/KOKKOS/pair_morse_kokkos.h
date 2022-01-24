@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(morse/kk,PairMorseKokkos<LMPDeviceType>)
-PairStyle(morse/kk/device,PairMorseKokkos<LMPDeviceType>)
-PairStyle(morse/kk/host,PairMorseKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(morse/kk,PairMorseKokkos<LMPDeviceType>);
+PairStyle(morse/kk/device,PairMorseKokkos<LMPDeviceType>);
+PairStyle(morse/kk/host,PairMorseKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_MORSE_KOKKOS_H
 #define LMP_PAIR_MORSE_KOKKOS_H
 
@@ -31,7 +32,7 @@ namespace LAMMPS_NS {
 template<class DeviceType>
 class PairMorseKokkos : public PairMorse {
  public:
-  enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF|N2};
+  enum {EnabledNeighFlags=FULL|HALFTHREAD|HALF};
   enum {COUL_FLAG=0};
   typedef DeviceType device_type;
   PairMorseKokkos(class LAMMPS *);
@@ -45,15 +46,13 @@ class PairMorseKokkos : public PairMorse {
 
   struct params_morse{
     KOKKOS_INLINE_FUNCTION
-    params_morse(){cutsq=0,d0=0;alpha=0;r0=0;offset=0;}
+    params_morse() {cutsq=0,d0=0;alpha=0;r0=0;offset=0;}
     KOKKOS_INLINE_FUNCTION
-    params_morse(int i){cutsq=0,d0=0;alpha=0;r0=0;offset=0;}
+    params_morse(int /*i*/) {cutsq=0,d0=0;alpha=0;r0=0;offset=0;}
     F_FLOAT cutsq,d0,alpha,r0,offset;
   };
 
  protected:
-  void cleanup_copy();
-
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
   F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
@@ -64,9 +63,8 @@ class PairMorseKokkos : public PairMorse {
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
-    return 0;
-  }
+  F_FLOAT compute_ecoul(const F_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/,
+                        const int& /*itype*/, const int& /*jtype*/) const { return 0; }
 
 
   Kokkos::DualView<params_morse**,Kokkos::LayoutRight,DeviceType> k_params;
@@ -95,18 +93,15 @@ class PairMorseKokkos : public PairMorse {
   int nlocal,nall,eflag,vflag;
 
   void allocate();
-  friend class PairComputeFunctor<PairMorseKokkos,FULL,true>;
-  friend class PairComputeFunctor<PairMorseKokkos,HALF,true>;
-  friend class PairComputeFunctor<PairMorseKokkos,HALFTHREAD,true>;
-  friend class PairComputeFunctor<PairMorseKokkos,N2,true>;
-  friend class PairComputeFunctor<PairMorseKokkos,FULL,false>;
-  friend class PairComputeFunctor<PairMorseKokkos,HALF,false>;
-  friend class PairComputeFunctor<PairMorseKokkos,HALFTHREAD,false>;
-  friend class PairComputeFunctor<PairMorseKokkos,N2,false>;
+  friend struct PairComputeFunctor<PairMorseKokkos,FULL,true>;
+  friend struct PairComputeFunctor<PairMorseKokkos,HALF,true>;
+  friend struct PairComputeFunctor<PairMorseKokkos,HALFTHREAD,true>;
+  friend struct PairComputeFunctor<PairMorseKokkos,FULL,false>;
+  friend struct PairComputeFunctor<PairMorseKokkos,HALF,false>;
+  friend struct PairComputeFunctor<PairMorseKokkos,HALFTHREAD,false>;
   friend EV_FLOAT pair_compute_neighlist<PairMorseKokkos,FULL,void>(PairMorseKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairMorseKokkos,HALF,void>(PairMorseKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairMorseKokkos,HALFTHREAD,void>(PairMorseKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairMorseKokkos,N2,void>(PairMorseKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute<PairMorseKokkos,void>(PairMorseKokkos*,NeighListKokkos<DeviceType>*);
   friend void pair_virial_fdotr_compute<PairMorseKokkos>(PairMorseKokkos*);
 };

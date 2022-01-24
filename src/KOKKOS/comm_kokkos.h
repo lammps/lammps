@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -25,6 +26,8 @@ class CommKokkos : public CommBrick {
 
   bool exchange_comm_classic;
   bool forward_comm_classic;
+  bool forward_pair_comm_classic;
+  bool forward_fix_comm_classic;
   bool reverse_comm_classic;
   bool exchange_comm_on_host;
   bool forward_comm_on_host;
@@ -48,9 +51,12 @@ class CommKokkos : public CommBrick {
   void forward_comm_dump(class Dump *);    // forward comm from a Dump
   void reverse_comm_dump(class Dump *);    // reverse comm from a Dump
 
+  void forward_comm_array(int, double **);            // forward comm of array
+
   template<class DeviceType> void forward_comm_device(int dummy);
   template<class DeviceType> void reverse_comm_device();
   template<class DeviceType> void forward_comm_pair_device(Pair *pair);
+  template<class DeviceType> void forward_comm_fix_device(Fix *fix, int size=0);
   template<class DeviceType> void exchange_device();
   template<class DeviceType> void borders_device();
 
@@ -58,15 +64,26 @@ class CommKokkos : public CommBrick {
   DAT::tdual_int_2d k_sendlist;
   DAT::tdual_int_scalar k_total_send;
   DAT::tdual_xfloat_2d k_buf_send,k_buf_recv;
+  DAT::tdual_int_2d k_exchange_lists;
   DAT::tdual_int_1d k_exchange_sendlist,k_exchange_copylist,k_sendflag;
   DAT::tdual_int_scalar k_count;
   //double *buf_send;                 // send buffer for all comm
   //double *buf_recv;                 // recv buffer for all comm
 
-  int max_buf_pair;
-  DAT::tdual_xfloat_1d k_buf_send_pair;
-  DAT::tdual_xfloat_1d k_buf_recv_pair;
+  DAT::tdual_int_2d k_swap;
+  DAT::tdual_int_2d k_swap2;
+  DAT::tdual_int_2d k_pbc;
+  DAT::tdual_int_1d k_pbc_flag;
+  DAT::tdual_int_1d k_g2l;
+  DAT::tdual_int_1d k_firstrecv;
+  DAT::tdual_int_1d k_sendnum_scan;
+  int totalsend;
+
+  int max_buf_pair,max_buf_fix;
+  DAT::tdual_xfloat_1d k_buf_send_pair, k_buf_send_fix;
+  DAT::tdual_xfloat_1d k_buf_recv_pair, k_buf_recv_fix;
   void grow_buf_pair(int);
+  void grow_buf_fix(int);
 
   void grow_send(int, int);
   void grow_recv(int);
@@ -74,6 +91,7 @@ class CommKokkos : public CommBrick {
   void grow_recv_kokkos(int, ExecutionSpace space = Host);
   void grow_list(int, int);
   void grow_swap(int);
+  void copy_swap_info();
 };
 
 }

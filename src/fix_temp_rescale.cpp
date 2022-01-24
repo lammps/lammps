@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,22 +12,21 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
-#include <cstdlib>
-#include <cmath>
 #include "fix_temp_rescale.h"
+
 #include "atom.h"
-#include "force.h"
-#include "group.h"
-#include "update.h"
-#include "domain.h"
-#include "region.h"
 #include "comm.h"
-#include "input.h"
-#include "variable.h"
-#include "modify.h"
 #include "compute.h"
 #include "error.h"
+#include "force.h"
+#include "group.h"
+#include "input.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -38,48 +38,39 @@ enum{CONSTANT,EQUAL};
 
 FixTempRescale::FixTempRescale(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  tstr(NULL), id_temp(NULL), tflag(0)
+  tstr(nullptr), id_temp(nullptr), tflag(0)
 {
   if (narg < 8) error->all(FLERR,"Illegal fix temp/rescale command");
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix temp/rescale command");
 
+  restart_global = 1;
   scalar_flag = 1;
   global_freq = nevery;
   extscalar = 1;
+  ecouple_flag = 1;
   dynamic_group_allow = 1;
 
-  tstr = NULL;
-  if (strstr(arg[4],"v_") == arg[4]) {
-    int n = strlen(&arg[4][2]) + 1;
-    tstr = new char[n];
-    strcpy(tstr,&arg[4][2]);
+  tstr = nullptr;
+  if (utils::strmatch(arg[4],"^v_")) {
+    tstr = utils::strdup(arg[4]+2);
     tstyle = EQUAL;
   } else {
-    t_start = force->numeric(FLERR,arg[4]);
+    t_start = utils::numeric(FLERR,arg[4],false,lmp);
     t_target = t_start;
     tstyle = CONSTANT;
   }
 
-  t_stop = force->numeric(FLERR,arg[5]);
-  t_window = force->numeric(FLERR,arg[6]);
-  fraction = force->numeric(FLERR,arg[7]);
+  t_stop = utils::numeric(FLERR,arg[5],false,lmp);
+  t_window = utils::numeric(FLERR,arg[6],false,lmp);
+  fraction = utils::numeric(FLERR,arg[7],false,lmp);
 
   // create a new compute temp
   // id = fix-ID + temp, compute group = fix group
 
-  int n = strlen(id) + 6;
-  id_temp = new char[n];
-  strcpy(id_temp,id);
-  strcat(id_temp,"_temp");
-
-  char **newarg = new char*[6];
-  newarg[0] = id_temp;
-  newarg[1] = group->names[igroup];
-  newarg[2] = (char *) "temp";
-  modify->add_compute(3,newarg);
-  delete [] newarg;
+  id_temp = utils::strdup(std::string(id) + "_temp");
+  modify->add_compute(fmt::format("{} {} temp",id_temp,group->names[igroup]));
   tflag = 1;
 
   energy = 0.0;
@@ -103,7 +94,6 @@ int FixTempRescale::setmask()
 {
   int mask = 0;
   mask |= END_OF_STEP;
-  mask |= THERMO_ENERGY;
   return mask;
 }
 
@@ -211,9 +201,7 @@ int FixTempRescale::modify_param(int narg, char **arg)
       tflag = 0;
     }
     delete [] id_temp;
-    int n = strlen(arg[1]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[1]);
+    id_temp = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(id_temp);
     if (icompute < 0)
@@ -245,6 +233,35 @@ double FixTempRescale::compute_scalar()
 }
 
 /* ----------------------------------------------------------------------
+   pack entire state of Fix into one write
+------------------------------------------------------------------------- */
+
+void FixTempRescale::write_restart(FILE *fp)
+{
+  int n = 0;
+  double list[1];
+  list[n++] = energy;
+
+  if (comm->me == 0) {
+    int size = n * sizeof(double);
+    fwrite(&size,sizeof(int),1,fp);
+    fwrite(list,sizeof(double),n,fp);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   use state info from restart file to restart the Fix
+------------------------------------------------------------------------- */
+
+void FixTempRescale::restart(char *buf)
+{
+  int n = 0;
+  double *list = (double *) buf;
+
+  energy = list[n++];
+}
+
+/* ----------------------------------------------------------------------
    extract thermostat properties
 ------------------------------------------------------------------------- */
 
@@ -254,5 +271,5 @@ void *FixTempRescale::extract(const char *str, int &dim)
     dim = 0;
     return &t_target;
   }
-  return NULL;
+  return nullptr;
 }

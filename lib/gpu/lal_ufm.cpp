@@ -10,7 +10,7 @@
     This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
  __________________________________________________________________________
 
-    begin                : 
+    begin                :
     email                : pl.rodolfo@gmail.com
                            dekoning@ifi.unicamp.br
  ***************************************************************************/
@@ -25,7 +25,7 @@ const char *ufm=0;
 
 #include "lal_ufm.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define UFMT UFM<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -38,7 +38,7 @@ template <class numtyp, class acctyp>
 UFMT::~UFM() {
   clear();
 }
- 
+
 template <class numtyp, class acctyp>
 int UFMT::bytes_per_atom(const int max_nbors) const {
   return this->bytes_per_atom_atomic(max_nbors);
@@ -46,9 +46,9 @@ int UFMT::bytes_per_atom(const int max_nbors) const {
 
 template <class numtyp, class acctyp>
 int UFMT::init(const int ntypes,
-                          double **host_cutsq, double **host_uf1, 
-                          double **host_uf2, double **host_uf3, 
-                          double **host_uf4, double **host_offset, 
+                          double **host_cutsq, double **host_uf1,
+                          double **host_uf2, double **host_uf3,
+                          double **host_offset,
                           double *host_special_lj, const int nlocal,
                           const int nall, const int max_nbors,
                           const int maxspecial, const double cell_size,
@@ -78,11 +78,11 @@ int UFMT::init(const int ntypes,
 
   uf1.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,uf1,host_write,host_uf1,host_uf2,
-			 host_cutsq);
+                         host_cutsq);
 
   uf3.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
-  this->atom->type_pack4(ntypes,lj_types,uf3,host_write,host_uf3,host_uf4,
-		         host_offset);
+  this->atom->type_pack4(ntypes,lj_types,uf3,host_write,host_uf3,host_uf2,
+                         host_offset);
 
   UCL_H_Vec<double> dview;
   sp_lj.alloc(4,*(this->ucl_device),UCL_READ_ONLY);
@@ -96,18 +96,17 @@ int UFMT::init(const int ntypes,
 
 template <class numtyp, class acctyp>
 void UFMT::reinit(const int ntypes, double **host_cutsq, double **host_uf1,
-                 double **host_uf2, double **host_uf3,
-                 double **host_uf4, double **host_offset) {
+                 double **host_uf2, double **host_uf3, double **host_offset) {
   // Allocate a host write buffer for data initialization
   UCL_H_Vec<numtyp> host_write(_lj_types*_lj_types*32,*(this->ucl_device),
                                UCL_WRITE_ONLY);
-  
+
   for (int i=0; i<_lj_types*_lj_types; i++)
     host_write[i]=0.0;
-  
+
   this->atom->type_pack4(ntypes,_lj_types,uf1,host_write,host_uf1,host_uf2,
                          host_cutsq);
-  this->atom->type_pack4(ntypes,_lj_types,uf3,host_write,host_uf3,host_uf4,
+  this->atom->type_pack4(ntypes,_lj_types,uf3,host_write,host_uf3,host_uf2,
                          host_offset);
 }
 
@@ -132,20 +131,9 @@ double UFMT::host_memory_usage() const {
 // Calculate energies, forces, and torques
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void UFMT::loop(const bool _eflag, const bool _vflag) {
+int UFMT::loop(const int eflag, const int vflag) {
   // Compute the block size and grid size to keep all cores busy
   const int BX=this->block_size();
-  int eflag, vflag;
-  if (_eflag)
-    eflag=1;
-  else
-    eflag=0;
-
-  if (_vflag)
-    vflag=1;
-  else
-    vflag=0;
-  
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                                (BX/this->_threads_per_atom)));
 
@@ -153,20 +141,22 @@ void UFMT::loop(const bool _eflag, const bool _vflag) {
   int nbor_pitch=this->nbor->nbor_pitch();
   this->time_pair.start();
   if (shared_types) {
-    this->k_pair_fast.set_size(GX,BX);
-    this->k_pair_fast.run(&this->atom->x, &uf1, &uf3, &sp_lj,
+    this->k_pair_sel->set_size(GX,BX);
+    this->k_pair_sel->run(&this->atom->x, &uf1, &uf3, &sp_lj,
                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                           &this->ans->force, &this->ans->engv, &eflag,
-                          &vflag, &ainum, &nbor_pitch, 
+                          &vflag, &ainum, &nbor_pitch,
                           &this->_threads_per_atom);
   } else {
     this->k_pair.set_size(GX,BX);
     this->k_pair.run(&this->atom->x, &uf1, &uf3, &_lj_types, &sp_lj,
-                     &this->nbor->dev_nbor, &this->_nbor_data->begin(), 
+                     &this->nbor->dev_nbor, &this->_nbor_data->begin(),
                      &this->ans->force, &this->ans->engv, &eflag, &vflag,
                      &ainum, &nbor_pitch, &this->_threads_per_atom);
   }
   this->time_pair.stop();
+  return GX;
 }
 
 template class UFM<PRECISION,ACC_PRECISION>;
+}

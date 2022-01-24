@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,18 +16,17 @@
    Contributing authors: Chris Lorenz and Mark Stevens (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "bond_quartic.h"
+
+#include <cmath>
 #include "atom.h"
 #include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
-#include "update.h"
 #include "force.h"
 #include "pair.h"
 #include "memory.h"
 #include "error.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -60,12 +60,11 @@ void BondQuartic::compute(int eflag, int vflag)
   double r,rsq,dr,r2,ra,rb,sr2,sr6;
 
   ebond = evdwl = sr6 = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   // insure pair->ev_tally() will use 1-4 virial contribution
 
-  if (vflag_global == 2)
+  if (vflag_global == VIRIAL_FDOTR)
     force->pair->vflag_either = force->pair->vflag_global = 1;
 
   double **cutsq = force->pair->cutsq;
@@ -203,13 +202,13 @@ void BondQuartic::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nbondtypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nbondtypes,ilo,ihi,error);
 
-  double k_one = force->numeric(FLERR,arg[1]);
-  double b1_one = force->numeric(FLERR,arg[2]);
-  double b2_one = force->numeric(FLERR,arg[3]);
-  double rc_one = force->numeric(FLERR,arg[4]);
-  double u0_one = force->numeric(FLERR,arg[5]);
+  double k_one = utils::numeric(FLERR,arg[1],false,lmp);
+  double b1_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double b2_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double rc_one = utils::numeric(FLERR,arg[4],false,lmp);
+  double u0_one = utils::numeric(FLERR,arg[5],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -231,12 +230,12 @@ void BondQuartic::coeff(int narg, char **arg)
 
 void BondQuartic::init_style()
 {
-  if (force->pair == NULL || force->pair->single_enable == 0)
+  if (force->pair == nullptr || force->pair->single_enable == 0)
     error->all(FLERR,"Pair style does not support bond_style quartic");
   if (force->angle || force->dihedral || force->improper)
     error->all(FLERR,
                "Bond style quartic cannot be used with 3,4-body interactions");
-  if (atom->molecular == 2)
+  if (atom->molecular == Atom::TEMPLATE)
     error->all(FLERR,
                "Bond style quartic cannot be used with atom style template");
 
@@ -278,11 +277,11 @@ void BondQuartic::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&k[1],sizeof(double),atom->nbondtypes,fp);
-    fread(&b1[1],sizeof(double),atom->nbondtypes,fp);
-    fread(&b2[1],sizeof(double),atom->nbondtypes,fp);
-    fread(&rc[1],sizeof(double),atom->nbondtypes,fp);
-    fread(&u0[1],sizeof(double),atom->nbondtypes,fp);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
+    utils::sfread(FLERR,&b1[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
+    utils::sfread(FLERR,&b2[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
+    utils::sfread(FLERR,&rc[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
+    utils::sfread(FLERR,&u0[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
   }
   MPI_Bcast(&k[1],atom->nbondtypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&b1[1],atom->nbondtypes,MPI_DOUBLE,0,world);

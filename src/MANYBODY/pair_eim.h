@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,16 +12,18 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(eim,PairEIM)
-
+// clang-format off
+PairStyle(eim,PairEIM);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_EIM_H
 #define LMP_PAIR_EIM_H
 
-#include <cstdio>
 #include "pair.h"
+
+#include <map>
+#include <utility>
 
 namespace LAMMPS_NS {
 
@@ -41,49 +43,42 @@ class PairEIM : public Pair {
   void unpack_reverse_comm(int, int *, double *);
   double memory_usage();
 
- protected:
-  double **cutforcesq,cutmax;
-  int nmax;
-  double *rho,*fp;
-  int rhofp;
-  int *map;                   // which element each atom type maps to
-
-  int nelements;              // # of elements to read from potential file
-  char **elements;            // element names
-
   struct Setfl {
-    double division,rbig,rsmall;
+    double division, rbig, rsmall;
     int nr;
-    int *ielement,*tp;
-    double *mass,*negativity,*ra,*ri,*Ec,*q0;
-    double *rcutphiA,*rcutphiR,*Eb,*r0,*alpha,*beta,
-           *rcutq,*Asigma,*rq,*rcutsigma,*Ac,*zeta,
-           *rs;
-    double dr,cut;
-    double ***Fij,***Gij,***phiij;
+    int *ielement, *tp;
+    double *mass, *negativity, *ra, *ri, *Ec, *q0;
+    double *rcutphiA, *rcutphiR, *Eb, *r0, *alpha, *beta, *rcutq, *Asigma, *rq, *rcutsigma, *Ac,
+        *zeta, *rs;
+    double dr, cut;
+    double ***Fij, ***Gij, ***phiij;
     double **cuts;
   };
+
+ protected:
+  double **cutforcesq, cutmax;
+  int nmax;
+  double *rho, *fp;
+  int rhofp;
+
   Setfl *setfl;
 
   // potentials as array data
 
   int nr;
-  int nFij,nGij,nphiij;
-  double **Fij,**Gij,**phiij;
-  int **type2Fij,**type2Gij,**type2phiij;
+  int nFij, nGij, nphiij;
+  double **Fij, **Gij, **phiij;
+  int **type2Fij, **type2Gij, **type2phiij;
 
   // potentials in spline form used for force computation
 
-  double dr,rdr;
-  double *negativity,*q0;
-  double ***Fij_spline,***Gij_spline,***phiij_spline;
+  double dr, rdr;
+  double *negativity, *q0;
+  double ***Fij_spline, ***Gij_spline, ***phiij_spline;
 
   void allocate();
   void array2spline();
   void interpolate(int, double, double *, double **, double);
-  int grabglobal(FILE *);
-  int grabsingle(FILE *, int);
-  int grabpair(FILE *, int, int);
 
   double funccutoff(double, double, double);
   double funcphi(int, int, double);
@@ -95,7 +90,62 @@ class PairEIM : public Pair {
   void file2array();
 };
 
-}
+class EIMPotentialFileReader : protected Pointers {
+  std::string filename;
+  static const int MAXLINE = 1024;
+  char line[MAXLINE];
+  double conversion_factor;
+
+  void parse(FILE *fp);
+  char *next_line(FILE *fp);
+  std::pair<std::string, std::string> get_pair(const std::string &a, const std::string &b);
+
+ public:
+  EIMPotentialFileReader(class LAMMPS *lmp, const std::string &filename,
+                         const int auto_convert = 0);
+
+  void get_global(PairEIM::Setfl *setfl);
+  void get_element(PairEIM::Setfl *setfl, int i, const std::string &name);
+  void get_pair(PairEIM::Setfl *setfl, int ij, const std::string &elemA, const std::string &elemB);
+
+ private:
+  // potential parameters
+  double division;
+  double rbig;
+  double rsmall;
+
+  struct ElementData {
+    int ielement;
+    double mass;
+    double negativity;
+    double ra;
+    double ri;
+    double Ec;
+    double q0;
+  };
+
+  struct PairData {
+    double rcutphiA;
+    double rcutphiR;
+    double Eb;
+    double r0;
+    double alpha;
+    double beta;
+    double rcutq;
+    double Asigma;
+    double rq;
+    double rcutsigma;
+    double Ac;
+    double zeta;
+    double rs;
+    int tp;
+  };
+
+  std::map<std::string, ElementData> elements;
+  std::map<std::pair<std::string, std::string>, PairData> pairs;
+};
+
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

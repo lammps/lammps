@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    CSlib - Client/server library for code coupling
-   http://cslib.sandia.gov, Sandia National Laboratories
+   https://cslib.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright 2018 National Technology & Engineering Solutions of
@@ -12,7 +12,11 @@
    See the README file in the top-level CSlib directory.
 ------------------------------------------------------------------------- */
 
+#ifdef MPI_YES
 #include <mpi.h>
+#else
+#include <mpi_dummy.h>
+#endif
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -36,14 +40,14 @@ CSlib::CSlib(int csflag, const char *mode, const void *ptr, const void *pcomm)
   else myworld = 0;
 
 #ifdef MPI_NO
-  if (pcomm) 
+  if (pcomm)
     error_all("constructor(): CSlib invoked with MPI_Comm "
               "but built w/out MPI support");
 #endif
 #ifdef MPI_YES              // NOTE: this could be OK to allow ??
                             // would allow a parallel app to invoke CSlib
                             //   in parallel and/or in serial
-  if (!pcomm) 
+  if (!pcomm)
     error_all("constructor(): CSlib invoked w/out MPI_Comm "
               "but built with MPI support");
 #endif
@@ -53,13 +57,13 @@ CSlib::CSlib(int csflag, const char *mode, const void *ptr, const void *pcomm)
   else if (csflag == 1) server = 1;
   else error_all("constructor(): Invalid client/server arg");
 
-  if (pcomm == NULL) {
+  if (pcomm == nullptr) {
     me = 0;
     nprocs = 1;
 
     if (strcmp(mode,"file") == 0) msg = new MsgFile(csflag,ptr);
     else if (strcmp(mode,"zmq") == 0) msg = new MsgZMQ(csflag,ptr);
-    else if (strcmp(mode,"mpi/one") == 0) 
+    else if (strcmp(mode,"mpi/one") == 0)
       error_all("constructor(): No mpi/one mode for serial lib usage");
     else if (strcmp(mode,"mpi/two") == 0)
       error_all("constructor(): No mpi/two mode for serial lib usage");
@@ -78,20 +82,20 @@ CSlib::CSlib(int csflag, const char *mode, const void *ptr, const void *pcomm)
   }
 
   maxfield = 0;
-  fieldID = fieldtype = fieldlen = fieldoffset = NULL;
+  fieldID = fieldtype = fieldlen = fieldoffset = nullptr;
   maxheader = 0;
-  header = NULL;
+  header = nullptr;
   maxbuf = 0;
-  buf = NULL;
+  buf = nullptr;
 
-  recvcounts = displs = NULL;
+  recvcounts = displs = nullptr;
   maxglobal = 0;
-  allids = NULL;
+  allids = nullptr;
   maxfieldbytes = 0;
-  fielddata = NULL;
-  
-  pad = "\0\0\0\0\0\0\0";    // just length 7 since will have trailing NULL
-  
+  fielddata = nullptr;
+
+  pad = "\0\0\0\0\0\0\0";    // just length 7 since will have trailing nullptr
+
   nsend = nrecv = 0;
 }
 
@@ -102,7 +106,7 @@ CSlib::~CSlib()
   deallocate_fields();
   sfree(header);
   sfree(buf);
-  
+
   sfree(recvcounts);
   sfree(displs);
   sfree(allids);
@@ -123,7 +127,7 @@ void CSlib::send(int msgID_caller, int nfield_caller)
 
   fieldcount = 0;
   nbuf = 0;
-  
+
   if (fieldcount == nfield) send_message();
 }
 
@@ -170,7 +174,7 @@ void CSlib::pack(int id, int ftype, int flen, void *data)
     error_all("pack(): Reuse of field ID");
   if (ftype < 1 || ftype > MAXTYPE) error_all("pack(): Invalid ftype");
   if (flen < 0) error_all("pack(): Invalid flen");
-    
+
   fieldID[fieldcount] = id;
   fieldtype[fieldcount] = ftype;
   fieldlen[fieldcount] = flen;
@@ -181,7 +185,7 @@ void CSlib::pack(int id, int ftype, int flen, void *data)
   memcpy(&buf[nbuf],data,nbytes);
   memcpy(&buf[nbuf+nbytes],pad,nbytesround-nbytes);
   nbuf += nbytesround;
-  
+
   fieldcount++;
   if (fieldcount == nfield) send_message();
 }
@@ -189,7 +193,7 @@ void CSlib::pack(int id, int ftype, int flen, void *data)
 /* ---------------------------------------------------------------------- */
 
 void CSlib::pack_parallel(int id, int ftype,
-			  int nlocal, int *ids, int nper, void *data)
+                          int nlocal, int *ids, int nper, void *data)
 {
   int i,j,k,m;
 
@@ -210,11 +214,11 @@ void CSlib::pack_parallel(int id, int ftype,
   fieldID[fieldcount] = id;
   fieldtype[fieldcount] = ftype;
   fieldlen[fieldcount] = flen;
-  
+
   // nlocal datums, each of nper length, from all procs
   // final data in buf = datums for all natoms, ordered by ids
 
-  if (recvcounts == NULL) {
+  if (recvcounts == nullptr) {
     recvcounts = (int *) smalloc(nprocs*sizeof(int));
     displs = (int *) smalloc(nprocs*sizeof(int));
   }
@@ -234,7 +238,7 @@ void CSlib::pack_parallel(int id, int ftype,
 
   MPI_Allgatherv(ids,nlocal,MPI_INT,allids,
                  recvcounts,displs,MPI_INT,world);
-  
+
   int nlocalsize = nper*nlocal;
   MPI_Allgather(&nlocalsize,1,MPI_INT,recvcounts,1,MPI_INT,world);
 
@@ -250,22 +254,22 @@ void CSlib::pack_parallel(int id, int ftype,
     if (ids) {
       if (nbytes > maxfieldbytes) {
         sfree(fielddata);
-        maxfieldbytes = nbytes;   
+        maxfieldbytes = nbytes;
         fielddata = (char *) smalloc(maxfieldbytes);
       }
       alldata = (int *) fielddata;
     } else alldata = (int *) &buf[nbuf];
     MPI_Allgatherv(data,nlocalsize,MPI_INT,alldata,
-		   recvcounts,displs,MPI_INT,world);
+                   recvcounts,displs,MPI_INT,world);
     if (ids) {
       int *bufptr = (int *) &buf[nbuf];
       m = 0;
       for (i = 0; i < nglobal; i++) {
-	j = (allids[i]-1) * nper;
-	if (nper == 1) bufptr[j] = alldata[m++];
-	else
-	  for (k = 0; k < nper; k++)
-	    bufptr[j++] = alldata[m++];
+        j = (allids[i]-1) * nper;
+        if (nper == 1) bufptr[j] = alldata[m++];
+        else
+          for (k = 0; k < nper; k++)
+            bufptr[j++] = alldata[m++];
       }
     }
 
@@ -274,32 +278,32 @@ void CSlib::pack_parallel(int id, int ftype,
     if (ids) {
       if (nbytes > maxfieldbytes) {
         sfree(fielddata);
-        maxfieldbytes = nbytes;   
+        maxfieldbytes = nbytes;
         fielddata = (char *) smalloc(maxfieldbytes);
       }
       alldata = (int64_t *) fielddata;
     } else alldata = (int64_t *) &buf[nbuf];
     // NOTE: may be just MPI_LONG on some machines
     MPI_Allgatherv(data,nlocalsize,MPI_LONG_LONG,alldata,
-		   recvcounts,displs,MPI_LONG_LONG,world);
+                   recvcounts,displs,MPI_LONG_LONG,world);
     if (ids) {
       int64_t *bufptr = (int64_t *) &buf[nbuf];
       m = 0;
       for (i = 0; i < nglobal; i++) {
-	j = (allids[i]-1) * nper;
-	if (nper == 1) bufptr[j] = alldata[m++];
-	else
-	  for (k = 0; k < nper; k++)
-	    bufptr[j++] = alldata[m++];
+        j = (allids[i]-1) * nper;
+        if (nper == 1) bufptr[j] = alldata[m++];
+        else
+          for (k = 0; k < nper; k++)
+            bufptr[j++] = alldata[m++];
       }
     }
-    
+
   } else if (ftype == 3) {
     float *alldata;
     if (ids) {
       if (nbytes > maxfieldbytes) {
         sfree(fielddata);
-        maxfieldbytes = nbytes;   
+        maxfieldbytes = nbytes;
         fielddata = (char *) smalloc(maxfieldbytes);
       }
       alldata = (float *) fielddata;
@@ -310,11 +314,11 @@ void CSlib::pack_parallel(int id, int ftype,
       float *bufptr = (float *) &buf[nbuf];
       m = 0;
       for (i = 0; i < nglobal; i++) {
-	j = (allids[i]-1) * nper;
-	if (nper == 1) bufptr[j] = alldata[m++];
-	else
-	  for (k = 0; k < nper; k++)
-	    bufptr[j++] = alldata[m++];
+        j = (allids[i]-1) * nper;
+        if (nper == 1) bufptr[j] = alldata[m++];
+        else
+          for (k = 0; k < nper; k++)
+            bufptr[j++] = alldata[m++];
       }
     }
 
@@ -323,7 +327,7 @@ void CSlib::pack_parallel(int id, int ftype,
     if (ids) {
       if (nbytes > maxfieldbytes) {
         sfree(fielddata);
-        maxfieldbytes = nbytes;   
+        maxfieldbytes = nbytes;
         fielddata = (char *) smalloc(maxfieldbytes);
       }
       alldata = (double *) fielddata;
@@ -334,11 +338,11 @@ void CSlib::pack_parallel(int id, int ftype,
       double *bufptr = (double *) &buf[nbuf];
       m = 0;
       for (i = 0; i < nglobal; i++) {
-	j = (allids[i]-1) * nper;
-	if (nper == 1) bufptr[j] = alldata[m++];
-	else
-	  for (k = 0; k < nper; k++)
-	    bufptr[j++] = alldata[m++];
+        j = (allids[i]-1) * nper;
+        if (nper == 1) bufptr[j] = alldata[m++];
+        else
+          for (k = 0; k < nper; k++)
+            bufptr[j++] = alldata[m++];
       }
     }
 
@@ -348,7 +352,7 @@ void CSlib::pack_parallel(int id, int ftype,
     if (ids) {
       if (nbytes > maxfieldbytes) {
         sfree(fielddata);
-        maxfieldbytes = nbytes;   
+        maxfieldbytes = nbytes;
         fielddata = (char *) smalloc(maxfieldbytes);
       }
       alldata = (char *) fielddata;
@@ -359,9 +363,9 @@ void CSlib::pack_parallel(int id, int ftype,
       char *bufptr = (char *) &buf[nbuf];
       m = 0;
       for (i = 0; i < nglobal; i++) {
-	j = (allids[i]-1) * nper;
-	memcpy(&bufptr[j],&alldata[m],nper);
-	m += nper;
+        j = (allids[i]-1) * nper;
+        memcpy(&bufptr[j],&alldata[m],nper);
+        m += nper;
       }
     }
     */
@@ -395,14 +399,14 @@ void CSlib::send_message()
 
 /* ---------------------------------------------------------------------- */
 
-int CSlib::recv(int &nfield_caller, int *&fieldID_caller, 
-		int *&fieldtype_caller, int *&fieldlen_caller)
+int CSlib::recv(int &nfield_caller, int *&fieldID_caller,
+                int *&fieldtype_caller, int *&fieldlen_caller)
 {
   msg->recv(maxheader,header,maxbuf,buf);
   nrecv++;
 
   // unpack header message
-  
+
   int m = 0;
   msgID = header[m++];
   nfield = header[m++];
@@ -419,7 +423,7 @@ int CSlib::recv(int &nfield_caller, int *&fieldID_caller,
     onefield(fieldtype[ifield],fieldlen[ifield],nbytes,nbytesround);
     nbuf += nbytesround;
   }
-  
+
   // return message parameters
 
   nfield_caller = nfield;
@@ -509,7 +513,7 @@ void CSlib::unpack(int id, void *data)
 {
   int ifield = find_field(id,nfield);
   if (ifield < 0) error_all("unpack(): Unknown field ID");
-  
+
   int ftype = fieldtype[ifield];
   int nbytes = fieldlen[ifield];
   if (ftype == 1) nbytes *= sizeof(int);
@@ -537,7 +541,7 @@ void CSlib::unpack_parallel(int id, int nlocal, int *ids, int nper, void *data)
     MPI_Scan(&nlocal,&upto,1,MPI_INT,MPI_SUM,world);
     upto -= nlocal;
   }
-  
+
   if (fieldtype[ifield] == 1) {
     int *local = (int *) data;
     int *global = (int *) &buf[fieldoffset[ifield]];
@@ -545,13 +549,13 @@ void CSlib::unpack_parallel(int id, int nlocal, int *ids, int nper, void *data)
     else {
       m = 0;
       for (i = 0; i < nlocal; i++) {
-	j = (ids[i]-1) * nper;
-	if (nper == 1) local[m++] = global[j];
-	else
-	  for (k = 0; k < nper; k++)
-	    local[m++] = global[j++];
+        j = (ids[i]-1) * nper;
+        if (nper == 1) local[m++] = global[j];
+        else
+          for (k = 0; k < nper; k++)
+            local[m++] = global[j++];
       }
-    } 
+    }
 
   } else if (fieldtype[ifield] == 2) {
     int64_t *local = (int64_t *) data;
@@ -560,11 +564,11 @@ void CSlib::unpack_parallel(int id, int nlocal, int *ids, int nper, void *data)
     else {
       m = 0;
       for (i = 0; i < nlocal; i++) {
-	j = (ids[i]-1) * nper;
-	if (nper == 1) local[m++] = global[j];
-	else
-	  for (k = 0; k < nper; k++)
-	    local[m++] = global[j++];
+        j = (ids[i]-1) * nper;
+        if (nper == 1) local[m++] = global[j];
+        else
+          for (k = 0; k < nper; k++)
+            local[m++] = global[j++];
       }
     }
 
@@ -575,14 +579,14 @@ void CSlib::unpack_parallel(int id, int nlocal, int *ids, int nper, void *data)
     else {
       m = 0;
       for (i = 0; i < nlocal; i++) {
-	j = (ids[i]-1) * nper;
-	if (nper == 1) local[m++] = global[j];
-	else
-	  for (k = 0; k < nper; k++)
-	    local[m++] = global[j++];
+        j = (ids[i]-1) * nper;
+        if (nper == 1) local[m++] = global[j];
+        else
+          for (k = 0; k < nper; k++)
+            local[m++] = global[j++];
       }
     }
-    
+
   } else if (fieldtype[ifield] == 4) {
     double *local = (double *) data;
     double *global = (double *) &buf[fieldoffset[ifield]];
@@ -590,14 +594,14 @@ void CSlib::unpack_parallel(int id, int nlocal, int *ids, int nper, void *data)
     else {
       m = 0;
       for (i = 0; i < nlocal; i++) {
-	j = (ids[i]-1) * nper;
-	if (nper == 1) local[m++] = global[j];
-	else
-	  for (k = 0; k < nper; k++)
-	    local[m++] = global[j++];
+        j = (ids[i]-1) * nper;
+        if (nper == 1) local[m++] = global[j];
+        else
+          for (k = 0; k < nper; k++)
+            local[m++] = global[j++];
       }
     }
-    
+
     /* eventually ftype = BYTE, but not yet
   } else if (fieldtype[ifield] == 5) {
     char *local = (char *) data;
@@ -606,9 +610,9 @@ void CSlib::unpack_parallel(int id, int nlocal, int *ids, int nper, void *data)
     else {
       m = 0;
       for (i = 0; i < nlocal; i++) {
-	j = (ids[i]-1) * nper;
-	memcpy(&local[m],&global[j],nper);
-	m += nper;
+        j = (ids[i]-1) * nper;
+        memcpy(&local[m],&global[j],nper);
+        m += nper;
       }
     }
     */
@@ -631,12 +635,13 @@ void CSlib::onefield(int ftype, int flen, int &nbytes, int &nbytesround)
 {
   int64_t bigbytes,bigbytesround;
   int64_t biglen = flen;
-  
+
   if (ftype == 1) bigbytes = biglen * sizeof(int);
   else if (ftype == 2) bigbytes = biglen * sizeof(int64_t);
   else if (ftype == 3) bigbytes = biglen * sizeof(float);
   else if (ftype == 4) bigbytes = biglen * sizeof(double);
   else if (ftype == 5) bigbytes = biglen * sizeof(char);
+  else bigbytes = 0;
   bigbytesround = roundup(bigbytes,8);
 
   if (nbuf + bigbytesround > INT_MAX)
@@ -670,7 +675,7 @@ void CSlib::allocate_fields()
 
   nheader = 2;
   nheader += 3 * nfield;
-  
+
   if (nfield > maxfield) {
     deallocate_fields();
     maxfield = nfield;
@@ -679,7 +684,7 @@ void CSlib::allocate_fields()
     fieldlen = new int[maxfield];
     fieldoffset = new int[maxfield];
   }
-  
+
   if (nheader > maxheader) {
     sfree(header);
     maxheader = nheader;
@@ -701,9 +706,9 @@ void CSlib::deallocate_fields()
 
 void *CSlib::smalloc(int nbytes)
 {
-  if (nbytes == 0) return NULL;
+  if (nbytes == 0) return nullptr;
   void *ptr = malloc(nbytes);
-  if (ptr == NULL) {
+  if (ptr == nullptr) {
     char str[128];
     sprintf(str,"malloc(): Failed to allocate %d bytes",nbytes);
     error_one(str);
@@ -717,11 +722,11 @@ void *CSlib::srealloc(void *ptr, int nbytes)
 {
   if (nbytes == 0) {
     sfree(ptr);
-    return NULL;
+    return nullptr;
   }
-  
+
   ptr = realloc(ptr,nbytes);
-  if (ptr == NULL) {
+  if (ptr == nullptr) {
     char str[128];
     sprintf(str,"realloc(): Failed to reallocate %d bytes",nbytes);
     error_one(str);
@@ -733,7 +738,7 @@ void *CSlib::srealloc(void *ptr, int nbytes)
 
 void CSlib::sfree(void *ptr)
 {
-  if (ptr == NULL) return;
+  if (ptr == nullptr) return;
   free(ptr);
 }
 

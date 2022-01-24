@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,13 +12,13 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cstring>
 #include "region_block.h"
-#include "force.h"
+
 #include "domain.h"
-#include "math_extra.h"
 #include "error.h"
+#include "math_extra.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -35,7 +36,7 @@ RegBlock::RegBlock(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
     if (strcmp(arg[2],"INF") == 0) xlo = -BIG;
     else if (domain->triclinic == 0) xlo = domain->boxlo[0];
     else xlo = domain->boxlo_bound[0];
-  } else xlo = xscale*force->numeric(FLERR,arg[2]);
+  } else xlo = xscale*utils::numeric(FLERR,arg[2],false,lmp);
 
   if (strcmp(arg[3],"INF") == 0 || strcmp(arg[3],"EDGE") == 0) {
     if (domain->box_exist == 0)
@@ -43,7 +44,7 @@ RegBlock::RegBlock(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
     if (strcmp(arg[3],"INF") == 0) xhi = BIG;
     else if (domain->triclinic == 0) xhi = domain->boxhi[0];
     else xhi = domain->boxhi_bound[0];
-  } else xhi = xscale*force->numeric(FLERR,arg[3]);
+  } else xhi = xscale*utils::numeric(FLERR,arg[3],false,lmp);
 
   if (strcmp(arg[4],"INF") == 0 || strcmp(arg[4],"EDGE") == 0) {
     if (domain->box_exist == 0)
@@ -51,7 +52,7 @@ RegBlock::RegBlock(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
     if (strcmp(arg[4],"INF") == 0) ylo = -BIG;
     else if (domain->triclinic == 0) ylo = domain->boxlo[1];
     else ylo = domain->boxlo_bound[1];
-  } else ylo = yscale*force->numeric(FLERR,arg[4]);
+  } else ylo = yscale*utils::numeric(FLERR,arg[4],false,lmp);
 
   if (strcmp(arg[5],"INF") == 0 || strcmp(arg[5],"EDGE") == 0) {
     if (domain->box_exist == 0)
@@ -59,7 +60,7 @@ RegBlock::RegBlock(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
     if (strcmp(arg[5],"INF") == 0) yhi = BIG;
     else if (domain->triclinic == 0) yhi = domain->boxhi[1];
     else yhi = domain->boxhi_bound[1];
-  } else yhi = yscale*force->numeric(FLERR,arg[5]);
+  } else yhi = yscale*utils::numeric(FLERR,arg[5],false,lmp);
 
   if (strcmp(arg[6],"INF") == 0 || strcmp(arg[6],"EDGE") == 0) {
     if (domain->box_exist == 0)
@@ -67,7 +68,7 @@ RegBlock::RegBlock(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
     if (strcmp(arg[6],"INF") == 0) zlo = -BIG;
     else if (domain->triclinic == 0) zlo = domain->boxlo[2];
     else zlo = domain->boxlo_bound[2];
-  } else zlo = zscale*force->numeric(FLERR,arg[6]);
+  } else zlo = zscale*utils::numeric(FLERR,arg[6],false,lmp);
 
   if (strcmp(arg[7],"INF") == 0 || strcmp(arg[7],"EDGE") == 0) {
     if (domain->box_exist == 0)
@@ -75,7 +76,7 @@ RegBlock::RegBlock(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg)
     if (strcmp(arg[7],"INF") == 0) zhi = BIG;
     else if (domain->triclinic == 0) zhi = domain->boxhi[2];
     else zhi = domain->boxhi_bound[2];
-  } else zhi = zscale*force->numeric(FLERR,arg[7]);
+  } else zhi = zscale*utils::numeric(FLERR,arg[7],false,lmp);
 
   // error check
 
@@ -320,7 +321,7 @@ int RegBlock::surface_exterior(double *x, double cutoff)
     else zp = x[2];
   } else {
     mindist = BIG;
-    for (int i = 0; i < 6; i++){
+    for (int i = 0; i < 6; i++) {
       if (open_faces[i]) continue;
       dist = find_closest_point(i,x,xc,yc,zc);
       if (dist < mindist) {
@@ -361,7 +362,7 @@ double RegBlock::find_closest_point(int i, double *x,
 
   // check if point projects inside of face
 
-  if (inside_face(xproj, i)){
+  if (inside_face(xproj, i)) {
     d2 = d2min = dot*dot;
     xc = xproj[0] + corners[i][0][0];
     yc = xproj[1] + corners[i][0][1];

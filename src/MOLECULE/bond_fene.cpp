@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,26 +12,22 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
 #include "bond_fene.h"
+
 #include "atom.h"
-#include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
-#include "update.h"
-#include "force.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "math_const.h"
+#include "memory.h"
+#include "neighbor.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
-
-/* ---------------------------------------------------------------------- */
-
-BondFENE::BondFENE(LAMMPS *lmp) : Bond(lmp)
-{
-  TWO_1_3 = pow(2.0,(1.0/3.0));
-}
+using MathConst::MY_CUBEROOT2;
 
 /* ---------------------------------------------------------------------- */
 
@@ -54,8 +51,7 @@ void BondFENE::compute(int eflag, int vflag)
   double rsq,r0sq,rlogarg,sr2,sr6;
 
   ebond = sr6 = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -84,11 +80,8 @@ void BondFENE::compute(int eflag, int vflag)
     // if r > 2*r0 something serious is wrong, abort
 
     if (rlogarg < 0.1) {
-      char str[128];
-      sprintf(str,"FENE bond too long: " BIGINT_FORMAT " "
-              TAGINT_FORMAT " " TAGINT_FORMAT " %g",
-              update->ntimestep,atom->tag[i1],atom->tag[i2],sqrt(rsq));
-      error->warning(FLERR,str,0);
+      error->warning(FLERR,"FENE bond too long: {} {} {} {}",
+                     update->ntimestep,atom->tag[i1],atom->tag[i2],sqrt(rsq));
       if (rlogarg <= -3.0) error->one(FLERR,"Bad FENE bond");
       rlogarg = 0.1;
     }
@@ -97,7 +90,7 @@ void BondFENE::compute(int eflag, int vflag)
 
     // force from LJ term
 
-    if (rsq < TWO_1_3*sigma[type]*sigma[type]) {
+    if (rsq < MY_CUBEROOT2*sigma[type]*sigma[type]) {
       sr2 = sigma[type]*sigma[type]/rsq;
       sr6 = sr2*sr2*sr2;
       fbond += 48.0*epsilon[type]*sr6*(sr6-0.5)/rsq;
@@ -107,7 +100,7 @@ void BondFENE::compute(int eflag, int vflag)
 
     if (eflag) {
       ebond = -0.5 * k[type]*r0sq*log(rlogarg);
-      if (rsq < TWO_1_3*sigma[type]*sigma[type])
+      if (rsq < MY_CUBEROOT2*sigma[type]*sigma[type])
         ebond += 4.0*epsilon[type]*sr6*(sr6-1.0) + epsilon[type];
     }
 
@@ -154,12 +147,12 @@ void BondFENE::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nbondtypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nbondtypes,ilo,ihi,error);
 
-  double k_one = force->numeric(FLERR,arg[1]);
-  double r0_one = force->numeric(FLERR,arg[2]);
-  double epsilon_one = force->numeric(FLERR,arg[3]);
-  double sigma_one = force->numeric(FLERR,arg[4]);
+  double k_one = utils::numeric(FLERR,arg[1],false,lmp);
+  double r0_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double epsilon_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double sigma_one = utils::numeric(FLERR,arg[4],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -217,10 +210,10 @@ void BondFENE::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&k[1],sizeof(double),atom->nbondtypes,fp);
-    fread(&r0[1],sizeof(double),atom->nbondtypes,fp);
-    fread(&epsilon[1],sizeof(double),atom->nbondtypes,fp);
-    fread(&sigma[1],sizeof(double),atom->nbondtypes,fp);
+    utils::sfread(FLERR,&k[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
+    utils::sfread(FLERR,&r0[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
+    utils::sfread(FLERR,&epsilon[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
+    utils::sfread(FLERR,&sigma[1],sizeof(double),atom->nbondtypes,fp,nullptr,error);
   }
   MPI_Bcast(&k[1],atom->nbondtypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&r0[1],atom->nbondtypes,MPI_DOUBLE,0,world);
@@ -253,17 +246,15 @@ double BondFENE::single(int type, double rsq, int /*i*/, int /*j*/,
   // if r > 2*r0 something serious is wrong, abort
 
   if (rlogarg < 0.1) {
-    char str[128];
-    sprintf(str,"FENE bond too long: " BIGINT_FORMAT " %g",
-            update->ntimestep,sqrt(rsq));
-    error->warning(FLERR,str,0);
+    error->warning(FLERR,"FENE bond too long: {} {:.8}",
+                   update->ntimestep,sqrt(rsq));
     if (rlogarg <= -3.0) error->one(FLERR,"Bad FENE bond");
     rlogarg = 0.1;
   }
 
   double eng = -0.5 * k[type]*r0sq*log(rlogarg);
   fforce = -k[type]/rlogarg;
-  if (rsq < TWO_1_3*sigma[type]*sigma[type]) {
+  if (rsq < MY_CUBEROOT2*sigma[type]*sigma[type]) {
     double sr2,sr6;
     sr2 = sigma[type]*sigma[type]/rsq;
     sr6 = sr2*sr2*sr2;
@@ -272,4 +263,14 @@ double BondFENE::single(int type, double rsq, int /*i*/, int /*j*/,
   }
 
   return eng;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *BondFENE::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str,"kappa")==0) return (void*) k;
+  if (strcmp(str,"r0")==0) return (void*) r0;
+  return nullptr;
 }

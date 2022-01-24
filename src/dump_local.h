@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DUMP_CLASS
-
-DumpStyle(local,DumpLocal)
-
+// clang-format off
+DumpStyle(local,DumpLocal);
+// clang-format on
 #else
 
 #ifndef LMP_DUMP_LOCAL_H
@@ -29,58 +29,58 @@ class DumpLocal : public Dump {
   DumpLocal(LAMMPS *, int, char **);
   virtual ~DumpLocal();
 
- private:
-  int nevery;                // dump frequency to check Fix against
-  char *label;               // string for dump file header
+ protected:
+  int nevery;     // dump frequency to check Fix against
+  char *label;    // string for dump file header
 
-  int nmine;                 // # of lines I am dumping
-  int *vtype;                // type of each vector (INT, DOUBLE)
-  char **vformat;            // format string for each vector element
+  int nmine;         // # of lines I am dumping
+  int *vtype;        // type of each vector (INT, DOUBLE)
+  char **vformat;    // format string for each vector element
 
-  char *columns;             // column labels
+  char *columns;    // column labels
 
-  int nfield;                // # of keywords listed by user
+  int nfield;    // # of keywords listed by user
 
-  int *field2index;          // which compute,fix,variable calcs this field
-  int *argindex;             // index into compute,fix scalar_atom,vector_atom
-                             // 0 for scalar_atom, 1-N for vector_atom values
+  int *field2index;    // which compute,fix,variable calcs this field
+  int *argindex;       // index into compute,fix scalar_atom,vector_atom
+                       // 0 for scalar_atom, 1-N for vector_atom values
 
-  int ncompute;              // # of Compute objects used by dump
-  char **id_compute;         // their IDs
-  class Compute **compute;   // list of ptrs to the Compute objects
+  int ncompute;               // # of Compute objects used by dump
+  char **id_compute;          // their IDs
+  class Compute **compute;    // list of ptrs to the Compute objects
 
-  int nfix;                  // # of Fix objects used by dump
-  char **id_fix;             // their IDs
-  class Fix **fix;           // list of ptrs to the Fix objects
+  int nfix;           // # of Fix objects used by dump
+  char **id_fix;      // their IDs
+  class Fix **fix;    // list of ptrs to the Fix objects
 
   void init_style();
   int modify_param(int, char **);
-  void write_header(bigint);
+  virtual void write_header(bigint);
   int count();
   void pack(tagint *);
   int convert_string(int, double *);
-  void write_data(int, double *);
+  virtual void write_data(int, double *);
 
   void parse_fields(int, char **);
-  int add_compute(char *);
-  int add_fix(char *);
+  int add_compute(const char *);
+  int add_fix(const char *);
 
   typedef void (DumpLocal::*FnPtrWrite)(int, double *);
-  FnPtrWrite write_choice;             // ptr to write data functions
+  FnPtrWrite write_choice;    // ptr to write data functions
   void write_string(int, double *);
   void write_lines(int, double *);
 
   // customize by adding a method prototype
 
   typedef void (DumpLocal::*FnPtrPack)(int);
-  FnPtrPack *pack_choice;              // ptrs to pack functions
+  FnPtrPack *pack_choice;    // ptrs to pack functions
 
   void pack_index(int);
   void pack_compute(int);
   void pack_fix(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

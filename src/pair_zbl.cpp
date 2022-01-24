@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,34 +16,31 @@
    Contributing authors: Stephen Foiles, Aidan Thompson (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_zbl.h"
+
+#include <cmath>
+
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
+#include "memory.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
-#include "update.h"
-#include "integrate.h"
-#include "respa.h"
-#include "math_const.h"
-#include "memory.h"
-#include "error.h"
+
+#include "pair_zbl_const.h"
 
 // From J.F. Zeigler, J. P. Biersack and U. Littmark,
 // "The Stopping and Range of Ions in Matter" volume 1, Pergamon, 1985.
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 using namespace PairZBLConstants;
 
 /* ---------------------------------------------------------------------- */
 
-PairZBL::PairZBL(LAMMPS *lmp) : Pair(lmp) {}
+PairZBL::PairZBL(LAMMPS *lmp) : Pair(lmp) {
+  writedata = 1;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -78,8 +76,7 @@ void PairZBL::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -190,8 +187,8 @@ void PairZBL::settings(int narg, char **arg)
 {
   if (narg != 2) error->all(FLERR,"Illegal pair_style command");
 
-  cut_inner = force->numeric(FLERR,arg[0]);
-  cut_global = force->numeric(FLERR,arg[1]);
+  cut_inner = utils::numeric(FLERR,arg[0],false,lmp);
+  cut_global = utils::numeric(FLERR,arg[1],false,lmp);
 
   if (cut_inner <= 0.0 )
     error->all(FLERR,"Illegal pair_style command");
@@ -213,13 +210,13 @@ void PairZBL::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
 
   int jlo,jhi;
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  z_one = force->numeric(FLERR,arg[2]);
-  z_two = force->numeric(FLERR,arg[3]);
+  z_one = utils::numeric(FLERR,arg[2],false,lmp);
+  z_two = utils::numeric(FLERR,arg[3],false,lmp);
 
   // set flag for each i-j pair
   // set z-parameter only for i-i pairs
@@ -263,6 +260,101 @@ double PairZBL::init_one(int i, int j)
     set_coeff(i, j, z[i], z[j]);
 
   return cut_global;
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to restart file
+------------------------------------------------------------------------- */
+
+void PairZBL::write_restart(FILE *fp)
+{
+  write_restart_settings(fp);
+
+  int i;
+  for (i = 1; i <= atom->ntypes; i++) {
+    fwrite(&setflag[i][i],sizeof(int),1,fp);
+    if (setflag[i][i]) fwrite(&z[i],sizeof(double),1,fp);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 reads from restart file, bcasts
+------------------------------------------------------------------------- */
+
+void PairZBL::read_restart(FILE *fp)
+{
+  read_restart_settings(fp);
+  allocate();
+
+  int i,j;
+  int me = comm->me;
+  for (i = 1; i <= atom->ntypes; i++) {
+    if (me == 0) utils::sfread(FLERR,&setflag[i][i],sizeof(int),1,fp,nullptr,error);
+    MPI_Bcast(&setflag[i][i],1,MPI_INT,0,world);
+    if (setflag[i][i]) {
+      if (me == 0) utils::sfread(FLERR,&z[i],sizeof(double),1,fp,nullptr,error);
+      MPI_Bcast(&z[i],1,MPI_DOUBLE,0,world);
+    }
+  }
+
+  for (i = 1; i <= atom->ntypes; i++)
+    for (j = 1; j <= atom->ntypes; j++)
+      set_coeff(i,j,z[i],z[j]);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to restart file
+------------------------------------------------------------------------- */
+
+void PairZBL::write_restart_settings(FILE *fp)
+{
+  fwrite(&cut_global,sizeof(double),1,fp);
+  fwrite(&cut_inner,sizeof(double),1,fp);
+  fwrite(&offset_flag,sizeof(int),1,fp);
+  fwrite(&mix_flag,sizeof(int),1,fp);
+  fwrite(&tail_flag,sizeof(int),1,fp);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 reads from restart file, bcasts
+------------------------------------------------------------------------- */
+
+void PairZBL::read_restart_settings(FILE *fp)
+{
+  int me = comm->me;
+  if (me == 0) {
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_inner,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,nullptr,error);
+  }
+  MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&cut_inner,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
+  MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
+  MPI_Bcast(&tail_flag,1,MPI_INT,0,world);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void PairZBL::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    fprintf(fp,"%d %g %g\n",i,z[i],z[i]);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes all pairs to data file
+------------------------------------------------------------------------- */
+
+void PairZBL::write_data_all(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = i; j <= atom->ntypes; j++)
+      fprintf(fp,"%d %d %g %g\n",i,j,z[i],z[j]);
 }
 
 /* ---------------------------------------------------------------------- */

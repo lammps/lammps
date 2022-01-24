@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,79 +12,80 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NPAIR_CLASS
-
+// clang-format off
 typedef NPairKokkos<LMPHostType,0,0,0,0> NPairKokkosFullBinHost;
 NPairStyle(full/bin/kk/host,
            NPairKokkosFullBinHost,
-           NP_FULL | NP_BIN | NP_KOKKOS_HOST | NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI)
+           NP_FULL | NP_BIN | NP_KOKKOS_HOST | NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
 typedef NPairKokkos<LMPDeviceType,0,0,0,0> NPairKokkosFullBinDevice;
 NPairStyle(full/bin/kk/device,
            NPairKokkosFullBinDevice,
-           NP_FULL | NP_BIN | NP_KOKKOS_DEVICE | NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI)
+           NP_FULL | NP_BIN | NP_KOKKOS_DEVICE | NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
 typedef NPairKokkos<LMPHostType,0,1,0,0> NPairKokkosFullBinGhostHost;
 NPairStyle(full/bin/ghost/kk/host,
            NPairKokkosFullBinGhostHost,
-           NP_FULL | NP_BIN | NP_KOKKOS_HOST | NP_NEWTON | NP_NEWTOFF | NP_GHOST | NP_ORTHO | NP_TRI)
+           NP_FULL | NP_BIN | NP_KOKKOS_HOST | NP_NEWTON | NP_NEWTOFF | NP_GHOST | NP_ORTHO | NP_TRI);
 
 typedef NPairKokkos<LMPDeviceType,0,1,0,0> NPairKokkosFullBinGhostDevice;
 NPairStyle(full/bin/ghost/kk/device,
            NPairKokkosFullBinGhostDevice,
-           NP_FULL | NP_BIN | NP_KOKKOS_DEVICE | NP_NEWTON | NP_NEWTOFF | NP_GHOST | NP_ORTHO | NP_TRI)
+           NP_FULL | NP_BIN | NP_KOKKOS_DEVICE | NP_NEWTON | NP_NEWTOFF | NP_GHOST | NP_ORTHO | NP_TRI);
 
 typedef NPairKokkos<LMPHostType,1,0,0,0> NPairKokkosHalfBinHost;
 NPairStyle(half/bin/kk/host,
            NPairKokkosHalfBinHost,
-           NP_HALF | NP_BIN | NP_KOKKOS_HOST | NP_NEWTON | NP_NEWTOFF | NP_ORTHO)
+           NP_HALF | NP_BIN | NP_KOKKOS_HOST | NP_NEWTON | NP_NEWTOFF | NP_ORTHO);
 
 typedef NPairKokkos<LMPDeviceType,1,0,0,0> NPairKokkosHalfBinDevice;
 NPairStyle(half/bin/kk/device,
            NPairKokkosHalfBinDevice,
-           NP_HALF | NP_BIN | NP_KOKKOS_DEVICE | NP_NEWTON | NP_NEWTOFF | NP_ORTHO)
+           NP_HALF | NP_BIN | NP_KOKKOS_DEVICE | NP_NEWTON | NP_NEWTOFF | NP_ORTHO);
 
 typedef NPairKokkos<LMPHostType,1,0,1,0> NPairKokkosHalfBinHostTri;
 NPairStyle(half/bin/kk/host,
            NPairKokkosHalfBinHostTri,
-           NP_HALF | NP_BIN | NP_KOKKOS_HOST | NP_NEWTON | NP_NEWTOFF | NP_TRI)
+           NP_HALF | NP_BIN | NP_KOKKOS_HOST | NP_NEWTON | NP_NEWTOFF | NP_TRI);
 
 typedef NPairKokkos<LMPDeviceType,1,0,1,0> NPairKokkosHalfBinDeviceTri;
 NPairStyle(half/bin/kk/device,
            NPairKokkosHalfBinDeviceTri,
-           NP_HALF | NP_BIN | NP_KOKKOS_DEVICE | NP_NEWTON | NP_NEWTOFF | NP_TRI)
+           NP_HALF | NP_BIN | NP_KOKKOS_DEVICE | NP_NEWTON | NP_NEWTOFF | NP_TRI);
 
 typedef NPairKokkos<LMPHostType,1,1,0,0> NPairKokkosHalfBinGhostHost;
 NPairStyle(half/bin/ghost/kk/host,
            NPairKokkosHalfBinGhostHost,
-           NP_HALF | NP_BIN | NP_KOKKOS_HOST | NP_NEWTON | NP_NEWTOFF | NP_GHOST | NP_ORTHO | NP_TRI)
+           NP_HALF | NP_BIN | NP_KOKKOS_HOST | NP_NEWTON | NP_NEWTOFF | NP_GHOST | NP_ORTHO | NP_TRI);
 
 typedef NPairKokkos<LMPDeviceType,1,1,0,0> NPairKokkosHalfBinGhostDevice;
 NPairStyle(half/bin/ghost/kk/device,
            NPairKokkosHalfBinGhostDevice,
-           NP_HALF | NP_BIN | NP_KOKKOS_DEVICE | NP_NEWTON | NP_NEWTOFF | NP_GHOST | NP_ORTHO | NP_TRI)
+           NP_HALF | NP_BIN | NP_KOKKOS_DEVICE | NP_NEWTON | NP_NEWTOFF | NP_GHOST | NP_ORTHO | NP_TRI);
 
 typedef NPairKokkos<LMPHostType,1,0,0,1> NPairKokkosHalfSizeBinHost;
 NPairStyle(half/size/bin/kk/host,
            NPairKokkosHalfSizeBinHost,
-           NP_HALF | NP_SIZE | NP_BIN | NP_KOKKOS_HOST | NP_NEWTON | NP_NEWTOFF | NP_ORTHO)
+           NP_HALF | NP_SIZE | NP_BIN | NP_KOKKOS_HOST | NP_NEWTON | NP_NEWTOFF | NP_ORTHO);
 
 typedef NPairKokkos<LMPDeviceType,1,0,0,1> NPairKokkosHalfSizeBinDevice;
 NPairStyle(half/size/bin/kk/device,
            NPairKokkosHalfSizeBinDevice,
-           NP_HALF | NP_SIZE | NP_BIN | NP_KOKKOS_DEVICE | NP_NEWTON | NP_NEWTOFF | NP_ORTHO)
+           NP_HALF | NP_SIZE | NP_BIN | NP_KOKKOS_DEVICE | NP_NEWTON | NP_NEWTOFF | NP_ORTHO);
 
 typedef NPairKokkos<LMPHostType,1,0,1,1> NPairKokkosHalfSizeBinHostTri;
 NPairStyle(half/size/bin/kk/host,
            NPairKokkosHalfSizeBinHostTri,
-           NP_HALF | NP_SIZE | NP_BIN | NP_KOKKOS_HOST | NP_NEWTON | NP_NEWTOFF | NP_TRI)
+           NP_HALF | NP_SIZE | NP_BIN | NP_KOKKOS_HOST | NP_NEWTON | NP_NEWTOFF | NP_TRI);
 
 typedef NPairKokkos<LMPDeviceType,1,0,1,1> NPairKokkosHalfSizeBinDeviceTri;
 NPairStyle(half/size/bin/kk/device,
            NPairKokkosHalfSizeBinDeviceTri,
-           NP_HALF | NP_SIZE | NP_BIN | NP_KOKKOS_DEVICE | NP_NEWTON | NP_NEWTOFF | NP_TRI)
-
+           NP_HALF | NP_SIZE | NP_BIN | NP_KOKKOS_DEVICE | NP_NEWTON | NP_NEWTOFF | NP_TRI);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_NPAIR_KOKKOS_H
 #define LMP_NPAIR_KOKKOS_H
 
@@ -95,6 +96,8 @@ namespace LAMMPS_NS {
 
 template<class DeviceType, int HALF_NEIGH, int GHOST, int TRI, int SIZE>
 class NPairKokkos : public NPair {
+  typedef ArrayTypes<DeviceType> AT;
+
  public:
   NPairKokkos(class LAMMPS *);
   ~NPairKokkos() {}
@@ -105,6 +108,12 @@ class NPairKokkos : public NPair {
 
  private:
   int newton_pair;
+  typename AT::t_int_1d d_scalars;
+  HAT::t_int_1d h_scalars;
+  typename AT::t_int_scalar d_resize;
+  typename AT::t_int_scalar d_new_maxneighs;
+  HAT::t_int_scalar h_resize;
+  HAT::t_int_scalar h_new_maxneighs;
 
   // data from Neighbor class
 
@@ -165,6 +174,7 @@ class NeighborKokkosExecute
 
   // data from NBin class
 
+  const int mbins;
   const typename AT::t_int_1d bincount;
   const typename AT::t_int_1d_const c_bincount;
   typename AT::t_int_2d bins;
@@ -218,7 +228,7 @@ class NeighborKokkosExecute
                         const typename AT::t_int_1d &_bincount,
                         const typename AT::t_int_2d &_bins,
                         const typename AT::t_int_1d &_atom2bin,
-                        const int _nstencil,
+                        const int _mbins,const int _nstencil,
                         const typename AT::t_int_1d &_d_stencil,
                         const typename AT::t_int_1d_3 &_d_stencilxyz,
                         const int _nlocal,
@@ -251,28 +261,31 @@ class NeighborKokkosExecute
                         const X_FLOAT *_bboxhi, const X_FLOAT* _bboxlo,
                         const int & _xperiodic, const int & _yperiodic, const int & _zperiodic,
                         const int & _xprd_half, const int & _yprd_half, const int & _zprd_half,
-                        const X_FLOAT _skin):
-    neigh_list(_neigh_list), cutneighsq(_cutneighsq),
+                        const X_FLOAT _skin,
+                        const typename AT::t_int_scalar _resize,
+                        const typename ArrayTypes<LMPHostType>::t_int_scalar _h_resize,
+                        const typename AT::t_int_scalar _new_maxneighs,
+                        const typename ArrayTypes<LMPHostType>::t_int_scalar _h_new_maxneighs):
+    neigh_list(_neigh_list), cutneighsq(_cutneighsq),exclude(_exclude),
+    nex_type(_nex_type),ex1_type(_ex1_type),ex2_type(_ex2_type),
+    ex_type(_ex_type),nex_group(_nex_group),ex1_group(_ex1_group),
+    ex2_group(_ex2_group),ex1_bit(_ex1_bit),ex2_bit(_ex2_bit),
+    nex_mol(_nex_mol),ex_mol_group(_ex_mol_group),ex_mol_bit(_ex_mol_bit),
+    ex_mol_intra(_ex_mol_intra),mbins(_mbins),
     bincount(_bincount),c_bincount(_bincount),bins(_bins),c_bins(_bins),
     atom2bin(_atom2bin),c_atom2bin(_atom2bin),
     nstencil(_nstencil),d_stencil(_d_stencil),d_stencilxyz(_d_stencilxyz),
-    nlocal(_nlocal),
     x(_x),radius(_radius),type(_type),mask(_mask),molecule(_molecule),
     tag(_tag),special(_special),nspecial(_nspecial),molecular(_molecular),
     nbinx(_nbinx),nbiny(_nbiny),nbinz(_nbinz),
     mbinx(_mbinx),mbiny(_mbiny),mbinz(_mbinz),
     mbinxlo(_mbinxlo),mbinylo(_mbinylo),mbinzlo(_mbinzlo),
     bininvx(_bininvx),bininvy(_bininvy),bininvz(_bininvz),
-    exclude(_exclude),nex_type(_nex_type),
-    ex1_type(_ex1_type),ex2_type(_ex2_type),ex_type(_ex_type),
-    nex_group(_nex_group),
-    ex1_group(_ex1_group),ex2_group(_ex2_group),
-    ex1_bit(_ex1_bit),ex2_bit(_ex2_bit),nex_mol(_nex_mol),
-    ex_mol_group(_ex_mol_group),ex_mol_bit(_ex_mol_bit),
-    ex_mol_intra(_ex_mol_intra),
+    nlocal(_nlocal),
     xperiodic(_xperiodic),yperiodic(_yperiodic),zperiodic(_zperiodic),
     xprd_half(_xprd_half),yprd_half(_yprd_half),zprd_half(_zprd_half),
-    skin(_skin) {
+    skin(_skin),resize(_resize),h_resize(_h_resize),
+    new_maxneighs(_new_maxneighs),h_new_maxneighs(_h_new_maxneighs) {
 
     if (molecular == 2) moltemplate = 1;
     else moltemplate = 0;
@@ -280,20 +293,7 @@ class NeighborKokkosExecute
     bboxlo[0] = _bboxlo[0]; bboxlo[1] = _bboxlo[1]; bboxlo[2] = _bboxlo[2];
     bboxhi[0] = _bboxhi[0]; bboxhi[1] = _bboxhi[1]; bboxhi[2] = _bboxhi[2];
 
-    resize = typename AT::t_int_scalar("NeighborKokkosFunctor::resize");
-#ifndef KOKKOS_USE_CUDA_UVM
-    h_resize = Kokkos::create_mirror_view(resize);
-#else
-    h_resize = resize;
-#endif
     h_resize() = 1;
-    new_maxneighs = typename AT::
-      t_int_scalar("NeighborKokkosFunctor::new_maxneighs");
-#ifndef KOKKOS_USE_CUDA_UVM
-    h_new_maxneighs = Kokkos::create_mirror_view(new_maxneighs);
-#else
-    h_new_maxneighs = new_maxneighs;
-#endif
     h_new_maxneighs() = neigh_list.maxneighs;
   };
 
@@ -311,14 +311,16 @@ class NeighborKokkosExecute
   KOKKOS_FUNCTION
   void build_ItemSize(const int &i) const;
 
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef LMP_KOKKOS_GPU
   template<int HalfNeigh, int Newton, int Tri>
-  __device__ inline
-  void build_ItemCuda(typename Kokkos::TeamPolicy<DeviceType>::member_type dev) const;
+  LAMMPS_DEVICE_FUNCTION inline
+  void build_ItemGPU(typename Kokkos::TeamPolicy<DeviceType>::member_type dev,
+                     size_t sharedsize) const;
 
   template<int HalfNeigh, int Newton, int Tri>
-  __device__ inline
-  void build_ItemSizeCuda(typename Kokkos::TeamPolicy<DeviceType>::member_type dev) const;
+  LAMMPS_DEVICE_FUNCTION inline
+  void build_ItemSizeGPU(typename Kokkos::TeamPolicy<DeviceType>::member_type dev,
+                         size_t sharedsize) const;
 #endif
 
   KOKKOS_INLINE_FUNCTION
@@ -378,23 +380,22 @@ struct NPairKokkosBuildFunctor {
   typedef DeviceType device_type;
 
   const NeighborKokkosExecute<DeviceType> c;
-  const size_t sharedsize;
+  size_t sharedsize;
 
   NPairKokkosBuildFunctor(const NeighborKokkosExecute<DeviceType> &_c,
-                             const size_t _sharedsize):c(_c),
-                             sharedsize(_sharedsize) {};
+                             size_t _sharedsize):c(_c),
+                             sharedsize(_sharedsize) {}
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int & i) const {
     c.template build_Item<HALF_NEIGH,GHOST_NEWTON,TRI>(i);
   }
-#ifdef KOKKOS_HAVE_CUDA
-  __device__ inline
-
+#ifdef LMP_KOKKOS_GPU
+  LAMMPS_DEVICE_FUNCTION inline
   void operator() (typename Kokkos::TeamPolicy<DeviceType>::member_type dev) const {
-    c.template build_ItemCuda<HALF_NEIGH,GHOST_NEWTON,TRI>(dev);
+    c.template build_ItemGPU<HALF_NEIGH,GHOST_NEWTON,TRI>(dev, sharedsize);
   }
-  size_t shmem_size(const int team_size) const { (void) team_size; return sharedsize; }
+  size_t team_shmem_size(const int team_size) const { (void) team_size; return sharedsize; }
 #endif
 };
 
@@ -403,18 +404,18 @@ struct NPairKokkosBuildFunctor<LMPHostType,HALF_NEIGH,GHOST_NEWTON,TRI> {
   typedef LMPHostType device_type;
 
   const NeighborKokkosExecute<LMPHostType> c;
-  const size_t sharedsize;
+  size_t sharedsize;
 
   NPairKokkosBuildFunctor(const NeighborKokkosExecute<LMPHostType> &_c,
-                             const size_t _sharedsize):c(_c),
-                             sharedsize(_sharedsize) {};
+                             size_t _sharedsize):c(_c),
+                             sharedsize(_sharedsize) {}
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int & i) const {
     c.template build_Item<HALF_NEIGH,GHOST_NEWTON,TRI>(i);
   }
 
-  void operator() (typename Kokkos::TeamPolicy<LMPHostType>::member_type dev) const {} // Should error out
+  void operator() (typename Kokkos::TeamPolicy<LMPHostType>::member_type /*dev*/) const {} // Should error out
 };
 
 template<class DeviceType,int HALF_NEIGH>
@@ -422,11 +423,8 @@ struct NPairKokkosBuildFunctorGhost {
   typedef DeviceType device_type;
 
   const NeighborKokkosExecute<DeviceType> c;
-  const size_t sharedsize;
 
-  NPairKokkosBuildFunctorGhost(const NeighborKokkosExecute<DeviceType> &_c,
-                             const size_t _sharedsize):c(_c),
-                             sharedsize(_sharedsize) {};
+  NPairKokkosBuildFunctorGhost(const NeighborKokkosExecute<DeviceType> &_c):c(_c) {}
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int & i) const {
@@ -439,22 +437,22 @@ struct NPairKokkosBuildFunctorSize {
   typedef DeviceType device_type;
 
   const NeighborKokkosExecute<DeviceType> c;
-  const size_t sharedsize;
+  size_t sharedsize;
 
   NPairKokkosBuildFunctorSize(const NeighborKokkosExecute<DeviceType> &_c,
-			      const size_t _sharedsize): c(_c), sharedsize(_sharedsize) {};
+                              size_t _sharedsize): c(_c), sharedsize(_sharedsize) {}
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int & i) const {
     c.template build_ItemSize<HALF_NEIGH,GHOST_NEWTON,TRI>(i);
   }
 
-#ifdef KOKKOS_HAVE_CUDA
-  __device__ inline
+#ifdef LMP_KOKKOS_GPU
+  LAMMPS_DEVICE_FUNCTION inline
   void operator() (typename Kokkos::TeamPolicy<DeviceType>::member_type dev) const {
-    c.template build_ItemSizeCuda<HALF_NEIGH,GHOST_NEWTON,TRI>(dev);
+    c.template build_ItemSizeGPU<HALF_NEIGH,GHOST_NEWTON,TRI>(dev, sharedsize);
   }
-  size_t shmem_size(const int team_size) const { (void) team_size; return sharedsize; }
+  size_t team_shmem_size(const int team_size) const { (void) team_size; return sharedsize; }
 #endif
 };
 
@@ -463,17 +461,17 @@ struct NPairKokkosBuildFunctorSize<LMPHostType,HALF_NEIGH,GHOST_NEWTON,TRI> {
   typedef LMPHostType device_type;
 
   const NeighborKokkosExecute<LMPHostType> c;
-  const size_t sharedsize;
+  size_t sharedsize;
 
   NPairKokkosBuildFunctorSize(const NeighborKokkosExecute<LMPHostType> &_c,
-			      const size_t _sharedsize): c(_c), sharedsize(_sharedsize) {};
+                              size_t _sharedsize): c(_c), sharedsize(_sharedsize) {}
 
   KOKKOS_INLINE_FUNCTION
   void operator() (const int & i) const {
     c.template build_ItemSize<HALF_NEIGH,GHOST_NEWTON,TRI>(i);
   }
 
-  void operator() (typename Kokkos::TeamPolicy<LMPHostType>::member_type dev) const {} // Should error out
+  void operator() (typename Kokkos::TeamPolicy<LMPHostType>::member_type /*dev*/) const {} // Should error out
 };
 
 }

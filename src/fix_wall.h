@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -23,7 +23,7 @@ class FixWall : public Fix {
   int nwall;
   int wallwhich[6];
   double coord0[6];
-  int xflag;           // 1 if any wall position is a variable
+  int xflag;    // 1 if any wall position is a variable
   int xstyle[6];
   int xindex[6];
   char *xstr[6];
@@ -45,19 +45,19 @@ class FixWall : public Fix {
   virtual void wall_particle(int, int, double) = 0;
 
  protected:
-  double epsilon[6],sigma[6],cutoff[6];
-  double ewall[7],ewall_all[7];
-  double xscale,yscale,zscale;
-  int estyle[6],sstyle[6],wstyle[6];
-  int eindex[6],sindex[6];
-  char *estr[6],*sstr[6];
-  int varflag;                // 1 if any wall position,epsilon,sigma is a var
-  int eflag;                  // per-wall flag for energy summation
+  double epsilon[6], sigma[6], alpha[6], cutoff[6];
+  double ewall[7], ewall_all[7];
+  double xscale, yscale, zscale;
+  int estyle[6], sstyle[6], astyle[6], wstyle[6];
+  int eindex[6], sindex[6];
+  char *estr[6], *sstr[6], *astr[6];
+  int varflag;    // 1 if any wall position,epsilon,sigma is a var
+  int eflag;      // per-wall flag for energy summation
   int ilevel_respa;
   int fldflag;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(spin/exchange,PairSpinExchange)
-
+// clang-format off
+PairStyle(spin/exchange,PairSpinExchange);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_SPIN_EXCHANGE_H
@@ -30,7 +30,6 @@ class PairSpinExchange : public PairSpin {
   virtual ~PairSpinExchange();
   void settings(int, char **);
   void coeff(int, char **);
-  void init_style();
   double init_one(int, int);
   void *extract(const char *, int &);
 
@@ -39,27 +38,26 @@ class PairSpinExchange : public PairSpin {
 
   void compute_exchange(int, int, double, double *, double *);
   void compute_exchange_mech(int, int, double, double *, double *, double *, double *);
+  double compute_energy(int, int, double, double *, double *);
 
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_restart_settings(FILE *);
   void read_restart_settings(FILE *);
 
-  double cut_spin_exchange_global;	// global exchange cutoff distance
+  double cut_spin_exchange_global;    // global exchange cutoff distance
 
  protected:
-  double **J1_mag;			// exchange coeffs in eV
-  double **J1_mech;			// mech exchange coeffs in
-  double **J2, **J3;                    // J1 in eV, J2 adim, J3 in Ang
-  double **cut_spin_exchange;		// cutoff distance exchange
-
-  int lattice_flag; 			// flag for mech force computation
-  class FixNVESpin *lockfixnvespin;	// ptr to FixNVESpin for setups
+  int e_offset;                  // apply energy offset
+  double **J1_mag;               // exchange coeffs in eV
+  double **J1_mech;              // mech exchange coeffs in
+  double **J2, **J3;             // J1 in eV, J2 adim, J3 in Ang
+  double **cut_spin_exchange;    // cutoff distance exchange
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

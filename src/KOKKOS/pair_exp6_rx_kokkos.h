@@ -1,6 +1,6 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(exp6/rx/kk,PairExp6rxKokkos<LMPDeviceType>)
-PairStyle(exp6/rx/kk/device,PairExp6rxKokkos<LMPDeviceType>)
-PairStyle(exp6/rx/kk/host,PairExp6rxKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(exp6/rx/kk,PairExp6rxKokkos<LMPDeviceType>);
+PairStyle(exp6/rx/kk/device,PairExp6rxKokkos<LMPDeviceType>);
+PairStyle(exp6/rx/kk/host,PairExp6rxKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_EXP6_RX_KOKKOS_H
 #define LMP_PAIR_EXP6_RX_KOKKOS_H
 
@@ -44,11 +45,8 @@ struct PairExp6ParamDataTypeKokkos
           epsilonOld2, alphaOld2, rmOld2, mixWtSite2old;
 
    // Default constructor -- nullify everything.
-   PairExp6ParamDataTypeKokkos<DeviceType>(void)
-      : n(0), epsilon1(NULL), alpha1(NULL), rm1(NULL), mixWtSite1(NULL),
-              epsilon2(NULL), alpha2(NULL), rm2(NULL), mixWtSite2(NULL),
-              epsilonOld1(NULL), alphaOld1(NULL), rmOld1(NULL), mixWtSite1old(NULL),
-              epsilonOld2(NULL), alphaOld2(NULL), rmOld2(NULL), mixWtSite2old(NULL)
+   PairExp6ParamDataTypeKokkos()
+      : n(0)
    {}
 };
 
@@ -65,13 +63,7 @@ struct PairExp6ParamDataTypeKokkosVect
                            nTotalold;
 
    // Default constructor -- nullify everything.
-   PairExp6ParamDataTypeKokkosVect<DeviceType>(void)
-      : epsilon(NULL), rm3(NULL), alpha(NULL), xMolei(NULL), epsilon_old(NULL), rm3_old(NULL),
-        alpha_old(NULL), xMolei_old(NULL), fractionOFA(NULL), fraction1(NULL),
-        fraction2(NULL), nMoleculesOFA(NULL), nMolecules1(NULL), nMolecules2(NULL),
-        nTotal(NULL), fractionOFAold(NULL), fractionOld1(NULL), fractionOld2(NULL),
-        nMoleculesOFAold(NULL), nMoleculesOld1(NULL), nMoleculesOld2(NULL),
-        nTotalold(NULL)
+   PairExp6ParamDataTypeKokkosVect()
    {}
 };
 
@@ -145,7 +137,7 @@ class PairExp6rxKokkos : public PairExp6rx {
   int eflag,vflag;
   int nlocal,newton_pair,neighflag;
   double special_lj[4];
-  int num_threads,ntypes;
+  int nthreads,ntypes;
 
   typename AT::t_x_array_randomread x;
   typename AT::t_f_array f;

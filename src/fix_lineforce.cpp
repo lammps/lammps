@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,15 +12,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstring>
-#include <cstdlib>
 #include "fix_lineforce.h"
+
 #include "atom.h"
-#include "update.h"
-#include "respa.h"
 #include "error.h"
-#include "force.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -32,9 +32,9 @@ FixLineForce::FixLineForce(LAMMPS *lmp, int narg, char **arg) :
   dynamic_group_allow = 1;
 
   if (narg != 6) error->all(FLERR,"Illegal fix lineforce command");
-  xdir = force->numeric(FLERR,arg[3]);
-  ydir = force->numeric(FLERR,arg[4]);
-  zdir = force->numeric(FLERR,arg[5]);
+  xdir = utils::numeric(FLERR,arg[3],false,lmp);
+  ydir = utils::numeric(FLERR,arg[4],false,lmp);
+  zdir = utils::numeric(FLERR,arg[5],false,lmp);
 
   double len = sqrt(xdir*xdir + ydir*ydir + zdir*zdir);
   if (len == 0.0) error->all(FLERR,"Illegal fix lineforce command");
@@ -59,7 +59,7 @@ int FixLineForce::setmask()
 
 void FixLineForce::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     int nlevels_respa = ((Respa *) update->integrate)->nlevels;

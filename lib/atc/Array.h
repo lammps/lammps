@@ -12,8 +12,8 @@
 namespace ATC_matrix {
 
   /**
-   *  @class  Array 
-   *  @brief  Base class for creating, sizing and operating on 1-D arrays of data 
+   *  @class  Array
+   *  @brief  Base class for creating, sizing and operating on 1-D arrays of data
    */
 
 template<typename T>
@@ -24,7 +24,7 @@ public:
    Array(const Array<T>& A);
    virtual ~Array();
 
-   // Resize and reinitialize the array 
+   // Resize and reinitialize the array
    virtual void reset(int len);
    //* resizes the matrix, copy what fits default to OFF
    virtual void resize(int len, bool copy=false);
@@ -38,17 +38,17 @@ public:
    int size() const;
    // Do I have this element?
    bool has_member(T val) const;
-   // range 
+   // range
    bool check_range(T min, T max) const;
    void range(T & min, T & max) const;
    // search an ordered array
    int index(T& val) const;
    // Return pointer to internal data
-   const T* data() const; 
+   const T* data() const;
    T* ptr() const;
    // print
    void print(std::string name = "") const;
-   // Dump templated type to disk; operation not safe for all types   
+   // Dump templated type to disk; operation not safe for all types
    void write_restart(FILE *f) const;
 
 protected:
@@ -66,7 +66,7 @@ public:
    virtual ~AliasArray();
    virtual AliasArray<T>& operator= (const Array<T> &other);
    virtual AliasArray<T>& operator= (const T &value);
-   
+
    const T&  operator() (int i) const;
    int size() const;
    T* ptr() const;
@@ -78,7 +78,7 @@ protected:
 template<typename T>
 Array<T>::Array(void) {
    len_  = 0;
-   data_ = NULL;
+   data_ = nullptr;
 }
 
 template<typename T>
@@ -90,8 +90,8 @@ Array<T>::Array(int len) {
 template<typename T>
 Array<T>::Array(const Array<T>& A) {
    len_ = A.len_;
-   if (A.data_==NULL)
-      data_ = NULL;
+   if (A.data_==nullptr)
+      data_ = nullptr;
    else {
       data_  = new T[len_];
       for(int i=0;i<len_;i++)
@@ -101,7 +101,7 @@ Array<T>::Array(const Array<T>& A) {
 
 template<typename T>
 Array<T>::~Array() {
-  if (data_ != NULL) delete[] data_;
+  if (data_ != nullptr) delete[] data_;
 }
 
 template<typename T>
@@ -111,12 +111,12 @@ void Array<T>::reset(int len) {
    }
    else { // size change, realloc memory
       len_ = len;
-      if (data_ != NULL)
+      if (data_ != nullptr)
         delete[] data_;
       if (len_ > 0)
         data_ = new T[len_];
       else {
-        data_ = NULL;
+        data_ = nullptr;
         len_  = 0;
       }
    }
@@ -130,22 +130,22 @@ void Array<T>::resize(int len, bool copy) {
    else { // size change, realloc memory
       len_ = len;
       if (len_ > 0) {
-        if (copy && data_ != NULL) {
+        if (copy && data_ != nullptr) {
           Array<T> temp(*this);
           delete[] data_;
           data_ = new T[len_];
           for (int i = 0 ; i < len_; i++) {
-            if (i < temp.size()) 
-              data_[i] = temp.data_[i];  
+            if (i < temp.size())
+              data_[i] = temp.data_[i];
           }
         }
         else {
-          if (data_ != NULL) delete[] data_;
+          if (data_ != nullptr) delete[] data_;
           data_ = new T[len_];
         }
       }
       else {
-        data_ = NULL;
+        data_ = nullptr;
         len_  = 0;
       }
    }
@@ -158,10 +158,10 @@ T& Array<T>::operator() (int i) {
 
 template<typename T>
 Array<T>& Array<T>::operator= (const Array<T> &other) {
-  if (data_ == NULL) { // initialize my internal storage to match LHS
+  if (data_ == nullptr) { // initialize my internal storage to match LHS
      len_  = other.len_;
-     if (other.data_==NULL)
-        data_ = NULL;
+     if (other.data_==nullptr)
+        data_ = nullptr;
      else
         data_ = new T[len_];
   }
@@ -250,7 +250,7 @@ T* Array<T>::ptr() const {
 template<typename T>
 void Array<T>::print(std::string name) const {
   std::cout << "------- Begin "<<name<<" -----------------\n";
-  if (data_ != NULL) {
+  if (data_ != nullptr) {
     for(int i=0;i<len_;i++) std::cout << data_[i] << " ";
     std::cout << "\n";
   }
@@ -269,7 +269,7 @@ AliasArray<T>::AliasArray(const AliasArray<T> & other) {
 
 // for a mem continguous slice
 template<typename T>
-AliasArray<T>::AliasArray(int len, T * ptr) { 
+AliasArray<T>::AliasArray(int len, T * ptr) {
   len_  = len;
   data_ = ptr;
 }
@@ -281,9 +281,9 @@ AliasArray<T>::AliasArray(const Array<T>& A) {
 }
 
 template<typename T>
-AliasArray<T>::~AliasArray(void) { 
-  len_  = 0; 
-  data_ = NULL; // trick base class into not deleting parent data
+AliasArray<T>::~AliasArray(void) {
+  len_  = 0;
+  data_ = nullptr; // trick base class into not deleting parent data
 }
 
 template<typename T>

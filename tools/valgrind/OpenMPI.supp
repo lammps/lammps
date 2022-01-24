@@ -1,0 +1,237 @@
+{
+   OpenMPI_MPI_init1
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   fun:malloc
+   obj:*
+   ...
+   fun:ompi_mpi_init
+   fun:PMPI_Init
+   fun:main
+}
+{
+   OpenMPI_MPI_init2
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   ...
+   fun:mca_pml_base_select
+}
+{
+   OpenMPI_MPI_init3
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   fun:malloc
+   ...
+   fun:mca_pml_base_select
+}
+{
+   OpenMPI_MPI_init3
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:?alloc
+   ...
+   fun:ompi_mpi_init
+   fun:PMPI_Init
+   fun:main
+}
+{
+   OpenMPI_MPI_init4
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:?alloc
+   ...
+   fun:ompi_mpi_init
+   fun:PMPI_Init
+   fun:main
+}
+{
+   OpenMPI_MPI_init5
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:?alloc
+   obj:*/libopen-pal.so.*
+   fun:mca_base_framework_components_open
+   fun:mca_base_framework_open
+   ...
+   fun:ompi_mpi_init
+   fun:PMPI_Init
+}
+{
+   OpenMPI_MPI_init6
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:realloc
+   obj:*/libopen-pal.so.*
+   ...
+   fun:opal_progress
+   fun:ompi_mpi_init
+   fun:PMPI_Init
+   fun:main
+}
+{
+   OpenMPI_MPI_init7
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:realloc
+   obj:*/libopen-pal.so.*
+   ...
+   fun:orte_init
+   fun:ompi_mpi_init
+}
+{
+   OpenMPI_MPI_init8
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:?alloc
+   ...
+   fun:orte_init
+   fun:ompi_mpi_init
+}
+{
+   OpenMPI_MPI_init9
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   ...
+   fun:orte_init
+   fun:ompi_mpi_init
+   fun:PMPI_Init
+}
+{
+   OpenMPI_MPI_init10
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   fun:malloc
+   ...
+   fun:ompi_mpi_init
+   fun:PMPI_Init
+}
+{
+   OpenMPI_MPI_init11
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   fun:ompi_mpi_init
+   fun:PMPI_Init
+}
+{
+   OpenMPI_MPI_init12
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   ...
+   fun:ompi_mpi_init
+   fun:PMPI_Init
+}
+{
+   OpenMPI_MPI_thread1
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:?alloc
+   ...
+   fun:start_thread
+   fun:clone
+}
+{
+   OpenMPI_MPI_thread2
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:?alloc
+   ...
+   fun:start_thread
+   fun:clone
+}
+{
+   OpenMPI_comm_init1
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:?alloc
+   ...
+   fun:ompi_comm_enable
+   fun:mca_topo_base_cart_create
+   fun:PMPI_Cart_create
+}
+{
+   OpenMPI_comm_init2
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:?alloc
+   ...
+   fun:ompi_comm_enable
+   fun:mca_topo_base_cart_create
+   fun:PMPI_Cart_create
+}
+{
+   OpenMPI_comm_init3
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:realloc
+   ...
+   fun:mca_topo_base_comm_select
+   fun:PMPI_Cart_create
+}
+{
+   OpenMPI_comm_init4
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:?alloc
+   ...
+   fun:mca_topo_base_comm_select
+   fun:PMPI_Cart_create
+}
+{
+   OpenMPI_dlopen_strdup1
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:strdup
+   ...
+   fun:dlopen*
+}
+{
+   OpenMPI_dlopen_strdup2
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   fun:strdup
+   ...
+   fun:dl_open_worker
+}
+{
+   OpenMPI_dlopen_strdup3
+   Memcheck:Leak
+   match-leak-kinds: indirect
+   fun:malloc
+   fun:strdup
+   ...
+   fun:event_base_loop
+   ...
+   fun:clone
+}
+{
+   OpenMPI_dlerror1
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:malloc
+   ...
+   fun:_dl_init
+   fun:_dl_catch_exception
+   ...
+   fun:_dlerror_run
+}
+{
+   OpenMPI_dlerror2
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   ...
+   fun:_dl_init
+   fun:_dl_catch_exception
+   ...
+   fun:dl_open_worker
+   fun:_dl_catch_exception
+}

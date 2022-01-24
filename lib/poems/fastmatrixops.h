@@ -3,7 +3,7 @@
  *      POEMS: PARALLELIZABLE OPEN SOURCE EFFICIENT MULTIBODY SOFTWARE     *
  *      DESCRIPTION: SEE READ-ME                                           *
  *      FILE NAME: fastmatrixops.h                                         *
- *      AUTHORS: See Author List                                           * 
+ *      AUTHORS: See Author List                                           *
  *      GRANTS: See Grants List                                            *
  *      COPYRIGHT: (C) 2005 by Authors as listed in Author's List          *
  *      LICENSE: Please see License Agreement                              *
@@ -11,7 +11,7 @@
  *      ADMINISTRATOR: Prof. Kurt Anderson                                 *
  *                     Computational Dynamics Lab                          *
  *                     Rensselaer Polytechnic Institute                    *
- *                     110 8th St. Troy NY 12180                           * 
+ *                     110 8th St. Troy NY 12180                           *
  *      CONTACT:        anderk5@rpi.edu                                    *
  *_________________________________________________________________________*/
 
@@ -38,7 +38,7 @@ void FastLUSubs(Mat3x3& LU, Matrix& B, Matrix& C, int *indx); // Appropriate For
 void FastLUSubs(Mat4x4& LU, Matrix& B, Matrix& C, int *indx); // Appropriate Forward and Back Substitution
 void FastLUSubs(Mat6x6& LU, Matrix& B, Matrix& C, int *indx); // Appropriate Forward and Back Substitution
 // The following LUSubsLH routine is incomplete at the moment.
-void FastLUSubsLH(Matrix& B, Matrix& LU, Matrix& C, int *indx); // Appropriate Forward and Back Subsitution
+void FastLUSubsLH(Matrix& B, Matrix& LU, Matrix& C, int *indx); // Appropriate Forward and Back Substitution
 void FastTripleSum(Vect3& a, Vect3& b, Vect3& c, Vect3& d); // d = a+b+c
 void FastTripleSumPPM(Vect3& a, Vect3& b, Vect3& c, Vect3& d); // d = a+b-c
 

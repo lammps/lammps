@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,12 +16,12 @@
    Contributing authors: Amalie Frischknecht and Ahmed Ismail (SNL)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
 #include "pppm_tip4p.h"
+#include <mpi.h>
+#include <cmath>
 #include "atom.h"
 #include "domain.h"
 #include "force.h"
-#include "memory.h"
 #include "error.h"
 #include "math_const.h"
 
@@ -322,12 +323,11 @@ void PPPMTIP4P::fieldforce_ad()
         }
       }
     }
-
     ekx *= hx_inv;
     eky *= hy_inv;
     ekz *= hz_inv;
 
-    // convert E-field to force and substract self forces
+    // convert E-field to force and subtract self forces
 
     const double qfactor = qqrd2e * scale;
 
@@ -500,11 +500,18 @@ void PPPMTIP4P::find_M(int i, int &iH1, int &iH2, double *xM)
     // since local atoms are in lambda coordinates, but ghosts are not.
 
     int *sametag = atom->sametag;
-    double xo[3],xh1[3],xh2[3];
+    double xo[3],xh1[3],xh2[3],xm[3];
+    const int nlocal = atom->nlocal;
 
-    domain->lamda2x(x[i],xo);
-    domain->lamda2x(x[iH1],xh1);
-    domain->lamda2x(x[iH2],xh2);
+    for (int ii = 0; ii < 3; ++ii) {
+      xo[ii] = x[i][ii];
+      xh1[ii] = x[iH1][ii];
+      xh2[ii] = x[iH2][ii];
+    }
+
+    if (i < nlocal) domain->lamda2x(x[i],xo);
+    if (iH1 < nlocal) domain->lamda2x(x[iH1],xh1);
+    if (iH2 < nlocal) domain->lamda2x(x[iH2],xh2);
 
     double delx = xo[0] - xh1[0];
     double dely = xo[1] - xh1[1];
@@ -512,6 +519,8 @@ void PPPMTIP4P::find_M(int i, int &iH1, int &iH2, double *xM)
     double rsqmin = delx*delx + dely*dely + delz*delz;
     double rsq;
     int closest = iH1;
+
+    // no need to run lamda2x() here -> ghost atoms
 
     while (sametag[iH1] >= 0) {
       iH1 = sametag[iH1];
@@ -561,13 +570,13 @@ void PPPMTIP4P::find_M(int i, int &iH1, int &iH2, double *xM)
     double dely2 = xh2[1] - xo[1];
     double delz2 = xh2[2] - xo[2];
 
-    xM[0] = xo[0] + alpha * 0.5 * (delx1 + delx2);
-    xM[1] = xo[1] + alpha * 0.5 * (dely1 + dely2);
-    xM[2] = xo[2] + alpha * 0.5 * (delz1 + delz2);
+    xm[0] = xo[0] + alpha * 0.5 * (delx1 + delx2);
+    xm[1] = xo[1] + alpha * 0.5 * (dely1 + dely2);
+    xm[2] = xo[2] + alpha * 0.5 * (delz1 + delz2);
 
     // ... and convert M to lamda space for PPPM
 
-    domain->x2lamda(xM,xM);
+    domain->x2lamda(xm,xM);
 
   } else {
 

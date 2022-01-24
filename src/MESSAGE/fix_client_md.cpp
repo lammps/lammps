@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,16 +12,17 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstring>
 #include "fix_client_md.h"
-#include "update.h"
+
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "error.h"
+#include "update.h"
+
+#include <cstring>
 
 // CSlib interface
 
@@ -42,10 +44,11 @@ FixClientMD::FixClientMD(LAMMPS *lmp, int narg, char **arg) :
 {
   if (lmp->clientserver != 1)
     error->all(FLERR,"Fix client/md requires LAMMPS be running as a client");
-  if (!atom->map_style) error->all(FLERR,"Fix client/md requires atom map");
+  if (atom->map_style == Atom::MAP_NONE)
+    error->all(FLERR,"Fix client/md requires atom map");
 
   if (sizeof(tagint) != 4)
-    error->all(FLERR,"Fix client/md requires 4-byte atom IDs");
+    error->all(FLERR,"Fix client/md only supports 32-bit atom IDs");
 
   if (strcmp(update->unit_style,"real") == 0) units = REAL;
   else if (strcmp(update->unit_style,"metal") == 0) units = METAL;
@@ -54,15 +57,15 @@ FixClientMD::FixClientMD(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   global_freq = 1;
   extscalar = 1;
-  virial_flag = 1;
-  thermo_virial = 1;
+  energy_global_flag = virial_global_flag = 1;
+  thermo_energy = thermo_virial = 1;
 
   inv_nprocs = 1.0 / comm->nprocs;
   if (domain->dimension == 2)
     box[0][2] = box[1][2] = box[2][0] = box[2][1] = box[2][2] = 0.0;
 
   maxatom = 0;
-  xpbc = NULL;
+  xpbc = nullptr;
 
   // unit conversion factors for REAL
   // otherwise not needed
@@ -80,21 +83,6 @@ FixClientMD::FixClientMD(LAMMPS *lmp, int narg, char **arg) :
 FixClientMD::~FixClientMD()
 {
   memory->destroy(xpbc);
-
-  CSlib *cs = (CSlib *) lmp->cslib;
-
-  // all-done message to server
-
-  cs->send(-1,0);
-
-  int nfield;
-  int *fieldID,*fieldtype,*fieldlen;
-  int msgID = cs->recv(nfield,fieldID,fieldtype,fieldlen);
-
-  // clean-up
-
-  delete cs;
-  lmp->cslib = NULL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -104,7 +92,6 @@ int FixClientMD::setmask()
   int mask = 0;
   mask |= POST_FORCE;
   mask |= MIN_POST_FORCE;
-  mask |= THERMO_ENERGY;
   return mask;
 }
 
@@ -173,12 +160,9 @@ void FixClientMD::min_setup(int vflag)
 
 void FixClientMD::post_force(int vflag)
 {
-  int i,j,m;
+  // virial setup
 
-  // energy and virial setup
-
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
+  v_init(vflag);
 
   // STEP send every step
   // required fields: COORDS
@@ -286,7 +270,7 @@ void FixClientMD::receive_fev(int vflag)
   int nfield;
   int *fieldID,*fieldtype,*fieldlen;
 
-  int msgID = cs->recv(nfield,fieldID,fieldtype,fieldlen);
+  cs->recv(nfield,fieldID,fieldtype,fieldlen);
 
   double *forces = (double *) cs->unpack(FORCES);
   double **f = atom->f;

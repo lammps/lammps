@@ -1,0 +1,30 @@
+--- src/Makefile.orig	2020-05-03 03:50:23.501557199 -0400
++++ src/Makefile	2020-05-03 03:53:32.147681674 -0400
+@@ -10,10 +10,10 @@
+ # List of the common source files
+ objs=cell.o common.o container.o unitcell.o v_compute.o c_loops.o \
+      v_base.o wall.o pre_container.o container_prd.o
+-src=$(patsubst %.o,%.cc,$(objs))
++src=$(objs:.o=.cc)
+ 
+ # Makefile rules
+-all: libvoro++.a voro++
++all: depend libvoro++.a voro++
+ 
+ depend:
+ 	$(CXX) -MM $(src) >Makefile.dep
+@@ -22,12 +22,12 @@
+ 
+ libvoro++.a: $(objs)
+ 	rm -f libvoro++.a
+-	ar rs libvoro++.a $^
++	$(AR) rs libvoro++.a $(objs)
+ 
+ voro++: libvoro++.a cmd_line.cc
+ 	$(CXX) $(CFLAGS) -L. -o voro++ cmd_line.cc -lvoro++
+ 
+-%.o: %.cc
++.cc.o:
+ 	$(CXX) $(CFLAGS) -c $<
+ 
+ help: Doxyfile $(SOURCE)

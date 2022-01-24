@@ -12,7 +12,7 @@
 
 using namespace std;
 
-/** @file wpmd.h 
+/** @file wpmd.h
     @brief Classes to handle Gaussian Wave Packets. */
 
 // Constants
@@ -24,7 +24,7 @@ class WavePacket;
 ///\en Template for v=der operation in \ref Wavepacket::int2phys_der()
 template<class Type>
 struct eq_second : public binary_function <Type, Type, Type> {
-  Type operator()(const Type& _Left, const Type& _Right) const{
+  Type operator()(const Type& /* _Left */, const Type& _Right) const{
     return _Right;
   }
 };
@@ -32,7 +32,7 @@ struct eq_second : public binary_function <Type, Type, Type> {
 ///\en Template for v=-der operation in \ref Wavepacket::int2phys_der()
 template<class Type>
 struct eq_minus_second : public binary_function <Type, Type, Type> {
-  Type operator()(const Type& _Left, const Type& _Right) const{
+  Type operator()(const Type& /* _Left */, const Type& _Right) const{
     return -_Right;
   }
 };
@@ -89,7 +89,7 @@ public:
   WavePacket operator*(const WavePacket& other) const {
     return WavePacket(a+other.a,b+other.b,lz+other.lz);
   }
- 
+
   /// returns the integral of w(x) over 3D space
   cdouble integral() const {
     cdouble z = lz + b.norm2()/(4.*a);
@@ -168,13 +168,13 @@ public:
     return imag(b) - real(b)*(imag(a)/real(a));
   }
 
-  ///\en Transforms derivatives of a function whith respect to WP parameters
+  ///\en Transforms derivatives of a function with respect to WP parameters
   ///    from internal into physical representation, i. e.:\n
   ///    from df/d{are,aim,b0re,b0im,b1re,b1im,b2re,b2im} (8 values accessed by input iterator d_it in the given order)\n
-  ///    to   df/d{x0,x1,x2}, df/d{p0,p1,p2}, df/dw, df/dpw 
+  ///    to   df/d{x0,x1,x2}, df/d{p0,p1,p2}, df/dw, df/dpw
   ///    The supplied inputs (val) are modified by op: val=op(val,phys_der).
   ///    Use operation=eq_second for the supplied inputs to be replaced by new physical derivative values.
-  ///    The inpput and output locations may coinside, an internal buffer is used for transformation.
+  ///    The input and output locations may coinside, an internal buffer is used for transformation.
   template<template<class A> class operation, class d_it, class dfdx_it, class dfdp_it, class dfdw_it, class dfdpw_it>
   void int2phys_der(d_it dfdi_,dfdx_it dfdx, dfdp_it dfdp,  dfdw_it dfdw, dfdpw_it dfdpw, double h_p=h_plank) const {
     operation<double> op;
@@ -189,7 +189,7 @@ public:
     for(int i=0;i<3;i++){
       dfn[i]= 2*real(a)*dfdi[2+2*i]+2*imag(a)*dfdi[2+2*i+1];
       dfn[3+i]= dfdi[2+2*i+1]*(/*m_electron*/1./h_p) ; //*(h_plank/m_electron);
-      dfn[7]+=-(r[i]*dfdi[2+2*i+1]/w)/h_p;  
+      dfn[7]+=-(r[i]*dfdi[2+2*i+1]/w)/h_p;
       dfn[6]+=-2*r[i]*(t*dfdi[2+2*i]+imag(a)*dfdi[2+2*i+1]/w);
     }
     int i=0;
@@ -201,7 +201,7 @@ public:
     *dfdpw=op(*dfdpw,dfn[i++]);
   }
 
-  
+
   ///\en Compares the wave packet to another on a per component basis.
   ///    \return  \retval 0 if all component differences are 0 within tolerance \a tol (EQUAL),
   ///             \retval -1 for LESS
@@ -229,7 +229,7 @@ public:
           for(int i=0;i<3;i++){
             fe_x[ic1+k1][i]+= -2*real(wk.a)*E_der[s1][indw1+8*k1+2+2*i]-2*imag(wk.a)*E_der[s1][indw1+8*k1+2+2*i+1];
             fe_p[ic1+k1][i]+= (-E_der[s1][indw1+8*k1+2+2*i+1])*(m_electron/h_plank); //*(h_plank/m_electron);
-            fe_pw[ic1+k1]+=(r[i]*E_der[s1][indw1+8*k1+2+2*i+1]/w)/h_plank;  
+            fe_pw[ic1+k1]+=(r[i]*E_der[s1][indw1+8*k1+2+2*i+1]/w)/h_plank;
             fe_w[ic1+k1]+=2*r[i]*(t*E_der[s1][indw1+8*k1+2+2*i]+imag(wk.a)*E_der[s1][indw1+8*k1+2+2*i+1]/w);
           }
 #endif

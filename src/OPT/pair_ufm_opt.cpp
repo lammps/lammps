@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,9 +18,9 @@
             Maurice de Koning (Unicamp/Brazil) - dekoning@ifi.unicamp.br
  ------------------------------------------------------------------------- */
 
-#include <cstdlib>
-#include <cmath>
 #include "pair_ufm_opt.h"
+
+#include <cmath>
 #include "atom.h"
 #include "force.h"
 #include "neigh_list.h"
@@ -34,8 +35,7 @@ PairUFMOpt::PairUFMOpt(LAMMPS *lmp) : PairUFM(lmp) {}
 
 void PairUFMOpt::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   if (evflag) {
     if (eflag) {
@@ -59,7 +59,7 @@ void PairUFMOpt::eval()
   typedef struct { double x,y,z; } vec3_t;
 
   typedef struct {
-    double cutsq,uf1,uf2,uf3,uf4,scale,offset;
+    double cutsq,uf1,uf2,uf3,scale,offset;
     double _pad[2];
   } fast_alpha_t;
 
@@ -92,7 +92,6 @@ void PairUFMOpt::eval()
     a.uf1 = uf1[i+1][j+1];
     a.uf2 = uf2[i+1][j+1];
     a.uf3 = uf3[i+1][j+1];
-    a.uf4 = uf4[i+1][j+1];
     a.scale = scale[i+1][j+1];
     a.offset = offset[i+1][j+1];
   }
@@ -192,7 +191,7 @@ void PairUFMOpt::eval()
     ff[i].z += tmpfz;
   }
 
-  free(fast_alpha); fast_alpha = 0;
+  free(fast_alpha); fast_alpha = nullptr;
 
   if (vflag_fdotr) virial_fdotr_compute();
 }

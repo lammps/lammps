@@ -1,0 +1,46 @@
+# 3d Lennard-Jones melt
+#
+# This example requires that the KIM Portable Model (PM)
+# `SW_StillingerWeber_1985_Si__MO_405512056662_005`
+# is installed.  This can be done with the command
+#   kim-api-collections-management install user SW_StillingerWeber_1985_Si__MO_405512056662_005
+# If this command does not work, you may need to setup your PATH to find the utility.
+# If you installed the kim-api using the LAMMPS CMake build, you can do the following
+# (where the current working directory is assumed to be the LAMMPS build directory)
+#   source ./kim_build-prefix/bin/kim-api-activate
+# If you installed the kim-api using the LAMMPS Make build, you can do the following
+# (where the current working directory is assumed to be the LAMMPS src directory)
+#   source ../lib/kim/installed-kim-api-X.Y.Z/bin/kim-api-activate
+# (where you should relplace X.Y.Z with the appropriate kim-api version number).
+#
+# Or, see `https://openkim.org/doc/obtaining-models` for alternative options.
+#
+
+variable     x index 1
+variable     y index 1
+variable     z index 1
+
+variable     xx equal 20*$x
+variable     yy equal 20*$y
+variable     zz equal 20*$z
+
+kim          init SW_StillingerWeber_1985_Si__MO_405512056662_005 real
+kim          query a0 get_lattice_constant_cubic crystal=["fcc"] species=["Si"] units=["angstrom"]
+
+lattice      fcc ${a0}
+region       box block 0 ${xx} 0 ${yy} 0 ${zz}
+create_box   1 box
+create_atoms 1 box
+
+kim          interactions Si
+
+mass         1 39.95
+velocity     all create 200.0 232345 loop geom
+
+neighbor     0.3 bin
+neigh_modify delay 0 every 1 check yes
+
+fix          1 all nve
+#fix         1 all npt temp 1.0 1.0 1.0 iso 1.0 1.0 3.0
+
+run          100

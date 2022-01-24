@@ -11,9 +11,9 @@
 //
 //    begin                : Fri May 06 2011
 //    email                : brownw@ornl.gov
-// ***************************************************************************/
+// ***************************************************************************
 
-#ifdef NV_KERNEL
+#if defined(NV_KERNEL) || defined(USE_HIP)
 #include "lal_ellipsoid_extra.h"
 #endif
 
@@ -51,33 +51,30 @@ __kernel void k_resquared(const __global numtyp4 *restrict x_,
   atom_info(t_per_atom,ii,tid,offset);
 
   __local numtyp sp_lj[4];
+  int n_stride;
+  local_allocate_store_ellipse();
+
   sp_lj[0]=splj[0];
   sp_lj[1]=splj[1];
   sp_lj[2]=splj[2];
   sp_lj[3]=splj[3];
 
-  __local numtyp b_alpha, cr60;
-  b_alpha=(numtyp)45.0/(numtyp)56.0;
-  cr60=ucl_cbrt((numtyp)60.0);
+  const numtyp b_alpha=(numtyp)45.0/(numtyp)56.0;
+  const numtyp cr60=ucl_cbrt((numtyp)60.0);
 
-  acctyp energy=(acctyp)0;
-  acctyp4 f;
-  f.x=(acctyp)0;
-  f.y=(acctyp)0;
-  f.z=(acctyp)0;
-  acctyp4 tor;
-  tor.x=(acctyp)0;
-  tor.y=(acctyp)0;
-  tor.z=(acctyp)0;
-  acctyp virial[6];
-  for (int i=0; i<6; i++)
-    virial[i]=(acctyp)0;
+  acctyp4 f, tor;
+  f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
+  tor.x=(acctyp)0; tor.y=(acctyp)0; tor.z=(acctyp)0;
+  acctyp energy, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    for (int i=0; i<6; i++) virial[i]=(acctyp)0;
+  }
 
   if (ii<inum) {
     int nbor, nbor_end;
     int i, numj;
-    __local int n_stride;
-    nbor_info_e(dev_nbor,stride,t_per_atom,ii,offset,i,numj,
+    nbor_info_p(dev_nbor,stride,t_per_atom,ii,offset,i,numj,
                 n_stride,nbor_end,nbor);
 
     numtyp4 ix; fetch4(ix,i,pos_tex);
@@ -349,17 +346,17 @@ __kernel void k_resquared(const __global numtyp4 *restrict x_,
         numtyp force=dUr*Ur+dUa*Ua;
         if (i==0) {
           f.x+=force;
-          if (vflag>0)
+          if (EVFLAG && vflag)
             virial[0]+=-r[0]*force;
         } else if (i==1) {
           f.y+=force;
-          if (vflag>0) {
+          if (EVFLAG && vflag) {
             virial[1]+=-r[1]*force;
             virial[3]+=-r[0]*force;
           }
         } else {
           f.z+=force;
-          if (vflag>0) {
+          if (EVFLAG && vflag) {
             virial[2]+=-r[2]*force;
             virial[4]+=-r[0]*force;
             virial[5]+=-r[1]*force;
@@ -452,8 +449,7 @@ __kernel void k_resquared(const __global numtyp4 *restrict x_,
       }
 
     } // for nbor
-    store_answers_t(f,tor,energy,virial,ii,astride,tid,t_per_atom,offset,eflag,
-                    vflag,ans,engv);
   } // if ii
+  store_answers_t(f,tor,energy,virial,ii,astride,tid,t_per_atom,offset,eflag,
+                  vflag,ans,engv,inum);
 }
-

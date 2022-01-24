@@ -33,7 +33,7 @@ void ParSparseMatrix<double>::MultMv(const Vector<double>& v,
 #ifdef DISABLE_PAR_HEURISTICS
   // Use much more lenient heuristics to exercise parallel code
   if (numProcs == 1 ||  _size < 300) {
-#else  
+#else
   // These are simple heuristics to perform multiplication in serial if
   //   parallel will be slower. They were determined experimentally.
   if ( numProcs == 1 ||
@@ -45,7 +45,7 @@ void ParSparseMatrix<double>::MultMv(const Vector<double>& v,
     SparseMatrix<double>::MultMv(v, c);
     return;
   }
- 
+
 
   SparseMatrix<double>::compress(*this);
   GCK(*this, v, this->nCols() != v.size(), "ParSparseMatrix * Vector")
@@ -233,8 +233,8 @@ DenseMatrix<double> ParSparseMatrix<double>::transMat(
  SparseMatrix<double> C_local = ((SparseMatrix<double>)A_local) * B;
 
  // destroy newA intelligently
- A_local._val = NULL;
- A_local._ja = NULL;
+ A_local._val = nullptr;
+ A_local._ja = nullptr;
 
  // Add all the result vectors together on each processor.
  sumSparse(C_local, C);
@@ -285,8 +285,8 @@ void ParSparseMatrix<double>::partition(
 // Prepare an A_local matrix for deletion after it has been loaded with
 //   data members from another matrix.
 void ParSparseMatrix<double>::finalize() {
-  _val = NULL;
-  _ja = NULL;
+  _val = nullptr;
+  _ja = nullptr;
 }
 
 void ParSparseMatrix<double>::operator=(const SparseMatrix<double> &source)

@@ -1,0 +1,58 @@
+** The objective of the test problems in this directory 
+   is the following twofold: 
+- verify the implementation of the LAMMPS' SPIN package by 
+  comparing its results to well-known analytic results, or 
+  to simple test problems,
+- provide users with simple comparisons, allowing them to 
+  better understand what is implemented in the code.
+
+The LAMMPS input file (test-*) can be modified, as well as the
+associated python script, in order to try different comparisons.
+
+All scripts can be run by executing the shell script from its
+directory. Example:
+./run-test-exchange.sh from the validation_damped_exchange/
+directory. 
+
+** Below a brief description of the different validation 
+   problems:
+
+- validation_damped_precession:
+  simulates the damped precession of a single spin in a magnetic
+  field. 
+  Run as: ./run-test-prec.sh
+  Output: x, y and z components of the magnetization, and
+  magnetic energy.
+
+- validation_damped_exchange:
+  simulates two spins interacting through the exchange
+  interaction. The parameters in the LAMMPS input script
+  (test-spin-precession.in) are calibrated to match the
+  exchange definition in the python script (llg_exchange.py). 
+  Run as: ./run-test-exchange.sh
+  Output: average magnetization resulting from the damped 
+  precession of the two interacting spins. Also plots the 
+  evolution of the magnetic energy.
+  
+- validation_langevin_precession:
+  simulates a single spin in a magnetic field and in contact
+  with a thermal bath, and compares the statistical averages of 
+  the output to the analytical result of the Langevin function. 
+  Run as: ./run-test-prec.sh
+  Output: statistical average of the z-component of the
+  magnetization (along the applied field) and of the magnetic
+  energy versus temperature. Comparison to the Langevin function
+  results (computed by the python script).
+  Note: This example is a reworked version of a test problem 
+  provided by Martin Kroger (ETHZ).  
+
+- validation_nve:
+  simulates a small assembly of magnetic atoms (54). The atoms are 
+  coupled by an exchange interaction and a mechanical potential 
+  (EAM here). 
+  This example represents an NVE run: the total energy of the 
+  system is preserved, whereas the spin and lattice energy 
+  reservoirs are exchanging energy.
+  Run as: ./run-test-nve.sh
+  Output: res_lammps.dat contains the data. The results are displayed
+  by nve_spin_lattice.pdf. 

@@ -96,7 +96,7 @@ C clear data array.
           
 
 c--------------------------------------------------------------------
-c-------This section writes each ts to a seperate .cfg file----------
+c-------This section writes each ts to a separate .cfg file----------
       ciframe='.cfg'
       write(snapshot,'(i5.5,a4)')iframe,ciframe
       open(unit=iframe+20,file=snapshot,status='new',

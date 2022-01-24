@@ -3,8 +3,11 @@
 #
 # Copyright (2005) Sandia Corporation.  Under the terms of Contract
 # DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
-# certain rights in this software.  This software is distributed under 
+# certain rights in this software.  This software is distributed under
 # the GNU General Public License.
+
+# for python3 compatibility
+from __future__ import print_function
 
 # gnu tool
 
@@ -13,7 +16,7 @@ oneline = "Create plots via GnuPlot plotting program"
 docstr = """
 g = gnu()		       start up GnuPlot
 g.stop()		       shut down GnuPlot process
-    
+
 g.plot(a)                      plot vector A against linear index
 g.plot(a,b)	 	       plot B against A
 g.plot(a,b,c,d,...)	       plot B against A, D against C, etc
@@ -32,14 +35,14 @@ g("plot 'file.dat' using 2:3 with lines")      execute string in GnuPlot
 g.enter()	   	                enter GnuPlot shell
 gnuplot> plot sin(x) with lines         type commands directly to GnuPlot
 gnuplot> exit, quit	      	        exit GnuPlot shell
-    
+
 g.export("data",range(100),a,...)       create file with columns of numbers
 
   all vectors must be of equal length
   could plot from file with GnuPlot command: plot 'data' using 1:2 with lines
 
 g.select(N)  	               figure N becomes the current plot
-  
+
   subsequent commands apply to this plot
 
 g.hide(N)  	               delete window for figure N
@@ -84,17 +87,18 @@ g.curve(N,'r')                 set color of curve N
 
 # Imports and external programs
 
-import types, os
+import os
+import sys
 
 try: from DEFAULTS import PIZZA_GNUPLOT
-except: PIZZA_GNUPLOT = "gnuplot"
+except ImportError: PIZZA_GNUPLOT = "gnuplot -p"
 try: from DEFAULTS import PIZZA_GNUTERM
-except: PIZZA_GNUTERM = "x11"
+except ImportError: PIZZA_GNUTERM = "x11"
 
 # Class definition
 
 class gnu:
-  
+
   # --------------------------------------------------------------------
 
   def __init__(self):
@@ -102,7 +106,7 @@ class gnu:
     self.file = "tmp.gnu"
     self.figures = []
     self.select(1)
-              
+
   # --------------------------------------------------------------------
 
   def stop(self):
@@ -114,12 +118,15 @@ class gnu:
   def __call__(self,command):
     self.GNUPLOT.write(command + '\n')
     self.GNUPLOT.flush()
-    
+
   # --------------------------------------------------------------------
 
   def enter(self):
     while 1:
-      command = raw_input("gnuplot> ")
+      if sys.version_info[0] == 3:
+        command = input("gnuplot> ")
+      else:
+        command = raw_input("gnuplot> ")
       if command == "quit" or command == "exit": return
       self.__call__(command)
 
@@ -133,7 +140,7 @@ class gnu:
       self.export(file,linear,vectors[0])
       self.figures[self.current-1].ncurves = 1
     else:
-      if len(vectors) % 2: raise StandardError,"vectors must come in pairs"
+      if len(vectors) % 2: raise Exception("vectors must come in pairs")
       for i in range(0,len(vectors),2):
         file = self.file + ".%d.%d" % (self.current,i/2+1)
         self.export(file,vectors[i],vectors[i+1])
@@ -152,7 +159,7 @@ class gnu:
         if i: partial_vecs.append(vec[:i])
         else: partial_vecs.append([0])
       self.plot(*partial_vecs)
-      
+
       if n < 10:     newfile = file + "000" + str(n)
       elif n < 100:  newfile = file + "00" + str(n)
       elif n < 1000: newfile = file + "0" + str(n)
@@ -160,20 +167,20 @@ class gnu:
 
       self.save(newfile)
       n += 1
-  
+
   # --------------------------------------------------------------------
   # write list of equal-length vectors to filename
 
   def export(self,filename,*vectors):
     n = len(vectors[0])
     for vector in vectors:
-      if len(vector) != n: raise StandardError,"vectors must be same length"
+      if len(vector) != n: raise Exception("vectors must be same length")
     f = open(filename,'w')
     nvec = len(vectors)
-    for i in xrange(n):
-      for j in xrange(nvec):
-        print >>f,vectors[j][i],
-      print >>f
+    for i in range(n):
+      for j in range(nvec):
+        print(str(vectors[j][i])+" ",file=f,end='')
+      print ("",file=f)
     f.close()
 
   # --------------------------------------------------------------------
@@ -201,7 +208,7 @@ class gnu:
   # do not continue until plot file is written out
   #   else script could go forward and change data file
   #   use tmp.done as semaphore to indicate plot is finished
-  
+
   def save(self,file):
     self.__call__("set terminal postscript enhanced solid lw 2 color portrait")
     cmd = "set output '%s.eps'" % file
@@ -212,7 +219,7 @@ class gnu:
     while not os.path.exists("tmp.done"): continue
     self.__call__("set output")
     self.select(self.current)
-  
+
   # --------------------------------------------------------------------
   # restore default attributes by creating a new fig object
 
@@ -221,7 +228,7 @@ class gnu:
     fig.ncurves = self.figures[self.current-1].ncurves
     self.figures[self.current-1] = fig
     self.draw()
-  
+
   # --------------------------------------------------------------------
 
   def aspect(self,value):
@@ -245,12 +252,12 @@ class gnu:
     else:
       self.figures[self.current-1].ylimit = (values[0],values[1])
     self.draw()
-    	    
+
   # --------------------------------------------------------------------
 
   def label(self,x,y,text):
     self.figures[self.current-1].labels.append((x,y,text))
-    self.figures[self.current-1].nlabels += 1  	    
+    self.figures[self.current-1].nlabels += 1
     self.draw()
 
   # --------------------------------------------------------------------
@@ -259,7 +266,7 @@ class gnu:
     self.figures[self.current-1].nlabel = 0
     self.figures[self.current-1].labels = []
     self.draw()
-      
+
   # --------------------------------------------------------------------
 
   def title(self,*strings):
@@ -276,13 +283,13 @@ class gnu:
   def xtitle(self,label):
     self.figures[self.current-1].xtitle = label
     self.draw()
-    
+
   # --------------------------------------------------------------------
 
   def ytitle(self,label):
     self.figures[self.current-1].ytitle = label
     self.draw()
-    
+
   # --------------------------------------------------------------------
 
   def xlog(self):
@@ -291,7 +298,7 @@ class gnu:
     else:
       self.figures[self.current-1].xlog = 1
     self.draw()
- 
+
   # --------------------------------------------------------------------
 
   def ylog(self):
@@ -300,7 +307,7 @@ class gnu:
     else:
       self.figures[self.current-1].ylog = 1
     self.draw()
-  
+
   # --------------------------------------------------------------------
 
   def curve(self,num,color):
@@ -316,10 +323,10 @@ class gnu:
   def draw(self):
     fig = self.figures[self.current-1]
     if not fig.ncurves: return
-    
+
     cmd = 'set size ratio ' + str(1.0/float(fig.aspect))
     self.__call__(cmd)
-      
+
     cmd = 'set title ' + '"' + fig.title + '"'
     self.__call__(cmd)
     cmd = 'set xlabel ' + '"' + fig.xtitle + '"'
@@ -331,11 +338,11 @@ class gnu:
     else: self.__call__("unset logscale x")
     if fig.ylog: self.__call__("set logscale y")
     else: self.__call__("unset logscale y")
-    if fig.xlimit: 
+    if fig.xlimit:
       cmd = 'set xr [' + str(fig.xlimit[0]) + ':' + str(fig.xlimit[1]) + ']'
       self.__call__(cmd)
     else: self.__call__("set xr [*:*]")
-    if fig.ylimit: 
+    if fig.ylimit:
       cmd = 'set yr [' + str(fig.ylimit[0]) + ':' + str(fig.ylimit[1]) + ']'
       self.__call__(cmd)
     else: self.__call__("set yr [*:*]")
@@ -350,7 +357,7 @@ class gnu:
 
     self.__call__("set key off")
     cmd = 'plot '
-    for i in range(fig.ncurves):
+    for i in range(int(fig.ncurves)):
       file = self.file + ".%d.%d" % (self.current,i+1)
       if len(fig.colors) > i and fig.colors[i]:
         cmd += "'" + file + "' using 1:2 with line %d, " % fig.colors[i]
@@ -365,7 +372,7 @@ class figure:
 
   def __init__(self):
     self.ncurves = 0
-    self.colors  = []    
+    self.colors  = []
     self.title   = ""
     self.xtitle  = ""
     self.ytitle  = ""

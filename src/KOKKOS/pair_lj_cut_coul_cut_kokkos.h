@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/cut/coul/cut/kk,PairLJCutCoulCutKokkos<LMPDeviceType>)
-PairStyle(lj/cut/coul/cut/kk/device,PairLJCutCoulCutKokkos<LMPDeviceType>)
-PairStyle(lj/cut/coul/cut/kk/host,PairLJCutCoulCutKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(lj/cut/coul/cut/kk,PairLJCutCoulCutKokkos<LMPDeviceType>);
+PairStyle(lj/cut/coul/cut/kk/device,PairLJCutCoulCutKokkos<LMPDeviceType>);
+PairStyle(lj/cut/coul/cut/kk/host,PairLJCutCoulCutKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_LJ_CUT_COUL_CUT_KOKKOS_H
 #define LMP_PAIR_LJ_CUT_COUL_CUT_KOKKOS_H
 
@@ -45,8 +46,6 @@ class PairLJCutCoulCutKokkos : public PairLJCutCoulCut {
   double init_one(int, int);
 
  protected:
-  void cleanup_copy();
-
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
   F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
@@ -105,12 +104,12 @@ class PairLJCutCoulCutKokkos : public PairLJCutCoulCut {
   double qqrd2e;
 
   void allocate();
-  friend class PairComputeFunctor<PairLJCutCoulCutKokkos,FULL,true>;
-  friend class PairComputeFunctor<PairLJCutCoulCutKokkos,HALF,true>;
-  friend class PairComputeFunctor<PairLJCutCoulCutKokkos,HALFTHREAD,true>;
-  friend class PairComputeFunctor<PairLJCutCoulCutKokkos,FULL,false>;
-  friend class PairComputeFunctor<PairLJCutCoulCutKokkos,HALF,false>;
-  friend class PairComputeFunctor<PairLJCutCoulCutKokkos,HALFTHREAD,false>;
+  friend struct PairComputeFunctor<PairLJCutCoulCutKokkos,FULL,true>;
+  friend struct PairComputeFunctor<PairLJCutCoulCutKokkos,HALF,true>;
+  friend struct PairComputeFunctor<PairLJCutCoulCutKokkos,HALFTHREAD,true>;
+  friend struct PairComputeFunctor<PairLJCutCoulCutKokkos,FULL,false>;
+  friend struct PairComputeFunctor<PairLJCutCoulCutKokkos,HALF,false>;
+  friend struct PairComputeFunctor<PairLJCutCoulCutKokkos,HALFTHREAD,false>;
   friend EV_FLOAT pair_compute_neighlist<PairLJCutCoulCutKokkos,FULL,void>(PairLJCutCoulCutKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairLJCutCoulCutKokkos,HALF,void>(PairLJCutCoulCutKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairLJCutCoulCutKokkos,HALFTHREAD,void>(PairLJCutCoulCutKokkos*,NeighListKokkos<DeviceType>*);

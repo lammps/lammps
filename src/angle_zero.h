@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,15 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
-AngleStyle(zero,AngleZero)
-
+// clang-format off
+AngleStyle(zero,AngleZero);
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_ZERO_H
 #define LMP_ANGLE_ZERO_H
 
-#include <cstdio>
 #include "angle.h"
 
 namespace LAMMPS_NS {
@@ -47,7 +46,7 @@ class AngleZero : public Angle {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

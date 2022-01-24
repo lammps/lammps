@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
-ImproperStyle(class2/kk,ImproperClass2Kokkos<LMPDeviceType>)
-ImproperStyle(class2/kk/device,ImproperClass2Kokkos<LMPDeviceType>)
-ImproperStyle(class2/kk/host,ImproperClass2Kokkos<LMPHostType>)
-
+// clang-format off
+ImproperStyle(class2/kk,ImproperClass2Kokkos<LMPDeviceType>);
+ImproperStyle(class2/kk/device,ImproperClass2Kokkos<LMPDeviceType>);
+ImproperStyle(class2/kk/host,ImproperClass2Kokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_IMPROPER_CLASS2_KOKKOS_H
 #define LMP_IMPROPER_CLASS2_KOKKOS_H
 
@@ -75,7 +76,7 @@ class ImproperClass2Kokkos : public ImproperClass2 {
   class NeighborKokkos *neighborKK;
 
   typename AT::t_x_array_randomread x;
-  typename Kokkos::View<double*[3],typename AT::t_f_array::array_layout,DeviceType,Kokkos::MemoryTraits<Kokkos::Atomic> > f;
+  typename Kokkos::View<double*[3],typename AT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic> > f;
   typename AT::t_int_2d improperlist;
 
   DAT::tdual_efloat_1d k_eatom;

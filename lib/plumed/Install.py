@@ -6,7 +6,7 @@ used to automate the steps described in the README file in this dir
 """
 
 from __future__ import print_function
-import sys, os, subprocess, shutil
+import sys, os, platform, subprocess, shutil
 from argparse import ArgumentParser
 
 sys.path.append('..')
@@ -17,7 +17,7 @@ parser = ArgumentParser(prog='Install.py',
 
 # settings
 
-version = "2.4.4"
+version = "2.7.1"
 mode = "static"
 
 # help message
@@ -43,6 +43,19 @@ checksums = { \
         '2.4.3' : 'b1be7c48971627febc11c61b70767fc5', \
         '2.4.4' : '71ed465bdc7c2059e282dbda8d564e71', \
         '2.5.0' : '6224cd089493661e19ceacccd35cf911', \
+        '2.5.1' : 'c2a7b519e32197a120cdf47e0f194f81', \
+        '2.5.2' : 'bd2f18346c788eb54e1e52f4f6acf41a', \
+        '2.5.3' : 'de30d6e7c2dcc0973298e24a6da24286', \
+        '2.5.4' : 'f31b7d16a4be2e30aa7d5c19c3d37853', \
+        '2.5.7' : '1ca36226fdb8110b1009aa61d615d4e5', \
+        '2.6.0' : '204d2edae58d9b10ba3ad460cad64191', \
+        '2.6.1' : '89a9a450fc6025299fe16af235957163', \
+        '2.6.3' : 'a9f8028fd74528c2024781ea1fdefeee', \
+        '2.6.5' : 'b67356f027e5c2747823b0422c3b0ec2', \
+        '2.7.0' : '95f29dd0c067577f11972ff90dfc7d12', \
+        '2.7.1' : '4eac6a462ec84dfe0cec96c82421b8e8', \
+        '2.7.2' : 'cfa0b4dd90a81c25d3302e8d97bfeaea', \
+        '2.7.3' : 'f00cc82edfefe6bb3df934911dbe32fb', \
         }
 
 # parse and process arguments
@@ -67,6 +80,7 @@ if not args.build and not args.path:
 buildflag = args.build
 pathflag = args.path is not None
 plumedpath = args.path
+mode = args.mode
 
 homepath = fullpath('.')
 homedir = "%s/plumed2" % (homepath)
@@ -75,6 +89,8 @@ if pathflag:
     if not os.path.isdir(plumedpath):
       sys.exit("Plumed2 path %s does not exist" % plumedpath)
     homedir = fullpath(plumedpath)
+    if not os.path.isdir(os.path.join(homedir, 'include', 'plumed', 'core')):
+      sys.exit("No Plumed2 installation found at %s" % plumedpath)
 
 # download and unpack plumed2 tarball
 
@@ -125,9 +141,12 @@ if os.path.isfile("Makefile.lammps.%s" % mode):
   print("Creating Makefile.lammps")
   plumedinc = os.path.join('liblink', 'plumed', 'src', 'lib', 'Plumed.inc.' + mode)
   lines1 = open(plumedinc, 'r').readlines()
-  lines2 = open("Makefile.lammps.%s" % mode, 'r').readlines()
+  if (platform.system() == 'Darwin' and os.path.isfile("Makefile.lammps.%s.macosx" % mode)):
+    lines2 = open("Makefile.lammps.%s.macosx" % mode, 'r').readlines()
+  else:
+    lines2 = open("Makefile.lammps.%s" % mode, 'r').readlines()
   fp = open("Makefile.lammps", 'w')
-  fp.write(os.path.join("PLUMED_LIBDIR=", homedir, "lib\n"))
+  fp.write("PLUMED_LIBDIR=" + os.path.join(homedir, "lib\n"))
   for line in lines1:
     fp.write(line)
   for line in lines2:

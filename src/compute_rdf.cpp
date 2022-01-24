@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,11 +16,10 @@
    Contributing authors: Paul Crozier (SNL), Jeff Greathouse (SNL)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "compute_rdf.h"
+
+#include <cmath>
+#include <cstring>
 #include "atom.h"
 #include "update.h"
 #include "force.h"
@@ -34,6 +34,7 @@
 #include "error.h"
 #include "comm.h"
 
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
@@ -41,16 +42,16 @@ using namespace MathConst;
 
 ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  rdfpair(NULL), nrdfpair(NULL), ilo(NULL), ihi(NULL), jlo(NULL), jhi(NULL),
-  hist(NULL), histall(NULL), typecount(NULL), icount(NULL), jcount(NULL),
-  duplicates(NULL)
+  rdfpair(nullptr), nrdfpair(nullptr), ilo(nullptr), ihi(nullptr), jlo(nullptr), jhi(nullptr),
+  hist(nullptr), histall(nullptr), typecount(nullptr), icount(nullptr), jcount(nullptr),
+  duplicates(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute rdf command");
 
   array_flag = 1;
   extarray = 0;
 
-  nbin = force->inumeric(FLERR,arg[3]);
+  nbin = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nbin < 1) error->all(FLERR,"Illegal compute rdf command");
 
   // optional args
@@ -67,7 +68,7 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"cutoff") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute rdf command");
-      cutoff_user = force->numeric(FLERR,arg[iarg+1]);
+      cutoff_user = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (cutoff_user <= 0.0) cutflag = 0;
       else cutflag = 1;
       iarg += 2;
@@ -99,8 +100,8 @@ ComputeRDF::ComputeRDF(LAMMPS *lmp, int narg, char **arg) :
   } else {
     iarg = 4;
     for (int ipair = 0; ipair < npairs; ipair++) {
-      force->bounds(FLERR,arg[iarg],atom->ntypes,ilo[ipair],ihi[ipair]);
-      force->bounds(FLERR,arg[iarg+1],atom->ntypes,jlo[ipair],jhi[ipair]);
+      utils::bounds(FLERR,arg[iarg],1,atom->ntypes,ilo[ipair],ihi[ipair],error);
+      utils::bounds(FLERR,arg[iarg+1],1,atom->ntypes,jlo[ipair],jhi[ipair],error);
       if (ilo[ipair] > ihi[ipair] || jlo[ipair] > jhi[ipair])
         error->all(FLERR,"Illegal compute rdf command");
       iarg += 2;

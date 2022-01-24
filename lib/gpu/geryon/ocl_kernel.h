@@ -2,6 +2,7 @@
                                 ocl_kernel.h
                              -------------------
                                W. Michael Brown
+                            Nitin Dhamankar (Intel)
 
   Utilities for dealing with OpenCL kernels
 
@@ -26,6 +27,7 @@
 
 #include "ocl_device.h"
 #include <fstream>
+#include <cstdio>
 
 namespace ucl_opencl {
 
@@ -42,7 +44,7 @@ class UCL_Program {
   inline UCL_Program() : _init_done(false) {}
   inline UCL_Program(UCL_Device &device) : _init_done(false) { init(device); }
   inline UCL_Program(UCL_Device &device, const void *program,
-                     const char *flags="", std::string *log=NULL) :
+                     const char *flags="", std::string *log=nullptr) :
       _init_done(false) {
     init(device);
     load_string(program,flags,log);
@@ -74,7 +76,7 @@ class UCL_Program {
 
   /// Load a program from a file and compile with flags
   inline int load(const char *filename, const char *flags="",
-                  std::string *log=NULL) {
+                  std::string *log=nullptr) {
     std::ifstream in(filename);
     if (!in || in.is_open()==false) {
       #ifndef UCL_NO_EXIT
@@ -93,40 +95,79 @@ class UCL_Program {
 
   /// Load a program from a string and compile with flags
   inline int load_string(const void *program, const char *flags="",
-                         std::string *log=NULL) {
+                         std::string *log=nullptr, FILE* foutput=nullptr) {
     cl_int error_flag;
     const char *prog=(const char *)program;
-    _program=clCreateProgramWithSource(_context,1,&prog,NULL,&error_flag);
+    _program=clCreateProgramWithSource(_context,1,&prog,nullptr,&error_flag);
     CL_CHECK_ERR(error_flag);
-    error_flag = clBuildProgram(_program,1,&_device,flags,NULL,NULL);
+    error_flag = clBuildProgram(_program,1,&_device,flags,nullptr,nullptr);
     if (error_flag!=-11)
       CL_CHECK_ERR(error_flag);
     cl_build_status build_status;
     CL_SAFE_CALL(clGetProgramBuildInfo(_program,_device,
                                        CL_PROGRAM_BUILD_STATUS,
                                        sizeof(cl_build_status),&build_status,
-                                       NULL));
+                                       nullptr));
+
+    #ifdef GERYON_KERNEL_DUMP
+    {
+      size_t ms;
+      CL_SAFE_CALL(clGetProgramBuildInfo(_program,_device,CL_PROGRAM_BUILD_LOG,
+                                         0,NULL,&ms));
+      char *build_log = new char[ms];
+      CL_SAFE_CALL(clGetProgramBuildInfo(_program,_device,CL_PROGRAM_BUILD_LOG,
+                                         ms,build_log, NULL));
+      std::cout << std::endl << std::endl
+                << "--------------------------------------------------------\n"
+                << "   UCL PROGRAM DUMP\n"
+                << "--------------------------------------------------------\n"
+                << flags << std::endl
+                << "--------------------------------------------------------\n"
+                << prog << std::endl
+                << "--------------------------------------------------------\n"
+                << build_log
+                << "--------------------------------------------------------\n"
+                << std::endl << std::endl;
+    }
+    #endif
 
     if (build_status != CL_SUCCESS || log!=NULL) {
       size_t ms;
-      CL_SAFE_CALL(clGetProgramBuildInfo(_program,_device,CL_PROGRAM_BUILD_LOG,0,
-                                         NULL, &ms));
+      CL_SAFE_CALL(clGetProgramBuildInfo(_program,_device,CL_PROGRAM_BUILD_LOG,
+                                         0,NULL,&ms));
       char *build_log = new char[ms];
-      CL_SAFE_CALL(clGetProgramBuildInfo(_program,_device,CL_PROGRAM_BUILD_LOG,ms,
-                                         build_log, NULL));
+      CL_SAFE_CALL(clGetProgramBuildInfo(_program,_device,CL_PROGRAM_BUILD_LOG,
+                                         ms,build_log, NULL));
 
-      if (log!=NULL)
+      if (log!=nullptr)
         *log=std::string(build_log);
 
       if (build_status != CL_SUCCESS) {
         #ifndef UCL_NO_EXIT
-        std::cerr << std::endl
-                  << "----------------------------------------------------------\n"
-                  << " UCL Error: Error compiling OpenCL Program ("
-                  << build_status << ") ...\n"
-                  << "----------------------------------------------------------\n";
+        std::cerr << std::endl << std::endl
+          << "----------------------------------------------------------\n"
+          << " UCL Error: Error compiling OpenCL Program ("
+          << build_status << ") ...\n"
+          << "----------------------------------------------------------\n";
         std::cerr << build_log << std::endl;
+        std::cerr <<
+          "----------------------------------------------------------\n"
+          << std::endl << std::endl;
         #endif
+        if (foutput != NULL) {
+          fprintf(foutput,"\n\n");
+          fprintf(foutput,
+            "----------------------------------------------------------\n");
+          fprintf(foutput,
+                  " UCL Error: Error compiling OpenCL Program (%d) ...\n",
+                  build_status);
+          fprintf(foutput,
+            "----------------------------------------------------------\n");
+          fprintf(foutput,"%s\n",build_log);
+          fprintf(foutput,
+            "----------------------------------------------------------\n");
+          fprintf(foutput,"\n\n");
+        }
         delete[] build_log;
         return UCL_COMPILE_ERROR;
       } else delete[] build_log;
@@ -141,6 +182,7 @@ class UCL_Program {
   inline void cq(command_queue &cq_in) { _cq=cq_in; }
 
   friend class UCL_Kernel;
+  friend class UCL_Const;
  private:
   bool _init_done;
   cl_program _program;
@@ -322,9 +364,45 @@ class UCL_Kernel {
   inline void cq(command_queue &cq_in) { _cq=cq_in; }
   #include "ucl_arg_kludge.h"
 
+  #if defined(CL_VERSION_2_1) || defined(CL_VERSION_3_0)
+  inline size_t max_subgroup_size(const size_t block_size_x) {
+    size_t block_size = block_size_x;
+    CL_SAFE_CALL(clGetKernelSubGroupInfo(_kernel, _device,
+                                         CL_KERNEL_MAX_SUB_GROUP_SIZE_FOR_NDRANGE,
+                                         sizeof(block_size), (void *) &block_size,
+                                         sizeof(size_t), (void *) &_mx_subgroup_sz,
+                                         NULL));
+    return _mx_subgroup_sz;
+  }
+
+  inline size_t max_subgroup_size(const size_t block_size_x,
+                                  const size_t block_size_y) {
+    size_t block_size[2] { block_size_x, block_size_y };
+    CL_SAFE_CALL(clGetKernelSubGroupInfo(_kernel, _device,
+                                         CL_KERNEL_MAX_SUB_GROUP_SIZE_FOR_NDRANGE,
+                                         sizeof(block_size), (void *) &block_size,
+                                         sizeof(size_t), (void *) &_mx_subgroup_sz,
+                                         NULL));
+    return _mx_subgroup_sz;
+  }
+
+  inline size_t max_subgroup_size(const size_t block_size_x,
+                                  const size_t block_size_y,
+                                  const size_t block_size_z) {
+    size_t block_size[3] { block_size_x, block_size_y, block_size_z };
+    CL_SAFE_CALL(clGetKernelSubGroupInfo(_kernel, _device,
+                                         CL_KERNEL_MAX_SUB_GROUP_SIZE_FOR_NDRANGE,
+                                         sizeof(block_size), (void *) &block_size,
+                                         sizeof(size_t), (void *) &_mx_subgroup_sz,
+                                         NULL));
+    return _mx_subgroup_sz;
+  }
+  #endif
+
  private:
   cl_kernel _kernel;
   cl_program _program;
+  cl_device_id _device;
   cl_uint _dimensions;
   size_t _block_size[3];
   size_t _num_blocks[3];
@@ -338,6 +416,11 @@ class UCL_Kernel {
   unsigned _kernel_info_nargs;
   //std::string _kernel_info_args[256];
   #endif
+
+  #ifdef CL_VERSION_2_1
+  size_t _mx_subgroup_sz;      // Maximum sub-group size for this kernel
+  #endif
+
 };
 
 inline int UCL_Kernel::set_function(UCL_Program &program, const char *function) {
@@ -347,6 +430,7 @@ inline int UCL_Kernel::set_function(UCL_Program &program, const char *function) 
   CL_SAFE_CALL(clRetainCommandQueue(_cq));
   _program=program._program;
   CL_SAFE_CALL(clRetainProgram(_program));
+  _device=program._device;
   cl_int error_flag;
   _kernel=clCreateKernel(program._program,function,&error_flag);
 
@@ -363,7 +447,7 @@ inline int UCL_Kernel::set_function(UCL_Program &program, const char *function) 
   _kernel_info_name=function;
   cl_uint nargs;
   CL_SAFE_CALL(clGetKernelInfo(_kernel,CL_KERNEL_NUM_ARGS,sizeof(cl_uint),
-                               &nargs,NULL));
+                               &nargs,nullptr));
   _kernel_info_nargs=nargs;
   #ifdef NOT_TEST_CL_VERSION_1_2
   char tname[256];
@@ -382,6 +466,9 @@ inline int UCL_Kernel::set_function(UCL_Program &program, const char *function) 
 void UCL_Kernel::run() {
   CL_SAFE_CALL(clEnqueueNDRangeKernel(_cq,_kernel,_dimensions,NULL,
                                       _num_blocks,_block_size,0,NULL,NULL));
+  #ifdef GERYON_OCL_FLUSH
+  ucl_flush(_cq);
+  #endif
 }
 
 } // namespace

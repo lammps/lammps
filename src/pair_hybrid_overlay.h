@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(hybrid/overlay,PairHybridOverlay)
-
+// clang-format off
+PairStyle(hybrid/overlay,PairHybridOverlay);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_HYBRID_OVERLAY_H
@@ -29,9 +29,12 @@ class PairHybridOverlay : public PairHybrid {
   PairHybridOverlay(class LAMMPS *);
   virtual ~PairHybridOverlay() {}
   void coeff(int, char **);
+
+  void init_svector();
+  void copy_svector(int, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

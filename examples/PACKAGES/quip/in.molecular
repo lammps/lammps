@@ -1,0 +1,47 @@
+units metal
+atom_style full
+boundary p p p
+timestep 0.0001 # 0.1 fs
+
+read_data methane-box-8.data
+
+# DISCLAIMER: This potential mixes parameters from methane and silane
+# potentials and is NOT intended to be a realistic representation of either
+# system.  It is meant to demonstrate the use of hybrid QUIP/LAMMPS potentials,
+# including the use of separate 'special_bonds' settings.
+
+pair_style hybrid/overlay lj/cut 8.0 quip
+
+# exclusion setting for quip; cannot be exactly 1.0 1.0 1.0,
+# since that would not flag 1-2, 1-3, and 1-4 pairs in lj/cut
+special_bonds lj/coul 0.999999999 0.999999999 0.999999999
+
+# Intermolecular: OPLS (JACS 118 (45), p. 11225 (1996))
+# Coulomb interactions omitted for simplicity
+pair_coeff 1 1 lj/cut 0.0028619844 3.5 # CT
+pair_coeff 2 2 lj/cut 0.0013009018 2.5 # HC
+pair_coeff 1 2 lj/cut 0.0019295487 2.95
+pair_modify shift no
+# change exclusion settings for lj/cut only: exclude bonded pairs
+pair_modify pair lj/cut special lj/coul 0.0 0.0 0.0
+
+# Intramolecular
+# Tell QUIP to pretend this is silane (which is covered by the parameter file)
+pair_coeff * * quip sw_example.xml "IP SW" 14 1
+bond_style none
+angle_style none
+
+fix 1 all nve
+
+# Include diagnostics that allow us to compare to a pure QUIP run
+compute equip all pair quip
+compute evdw all pair lj/cut
+compute vir all pressure NULL virial
+
+thermo_style custom step epair ke etotal temp press c_vir c_evdw c_equip
+thermo 1
+
+# dump 1 all custom 1 dump.molecular id type x y z fx fy fz
+# dump_modify 1 sort id
+
+run 10

@@ -55,7 +55,7 @@ int table_gpu_init(const int ntypes, double **cutsq, double ***table_coeffs,
   int init_ok=0;
   if (world_me==0)
     init_ok=TBMF.init(ntypes, cutsq, table_coeffs, table_data,
-                      special_lj, inum, nall, 300, maxspecial, cell_size,
+                      special_lj, inum, nall, max_nbors, maxspecial, cell_size,
                       gpu_split, screen, tabstyle, ntables, tablength);
 
   TBMF.device->world_barrier();
@@ -73,7 +73,7 @@ int table_gpu_init(const int ntypes, double **cutsq, double ***table_coeffs,
     }
     if (gpu_rank==i && world_me!=0)
       init_ok=TBMF.init(ntypes, cutsq, table_coeffs, table_data,
-                      special_lj, inum, nall, 300, maxspecial, cell_size,
+                      special_lj, inum, nall, max_nbors, maxspecial, cell_size,
                       gpu_split, screen, tabstyle, ntables, tablength);
 
     TBMF.device->gpu_barrier();

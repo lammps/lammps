@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,15 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
-AngleStyle(table,AngleTable)
-
+// clang-format off
+AngleStyle(table,AngleTable);
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_TABLE_H
 #define LMP_ANGLE_TABLE_H
 
-#include <cstdio>
 #include "angle.h"
 
 namespace LAMMPS_NS {
@@ -35,19 +34,21 @@ class AngleTable : public Angle {
   double equilibrium_angle(int);
   void write_restart(FILE *);
   void read_restart(FILE *);
+  void write_restart_settings(FILE *);
+  void read_restart_settings(FILE *);
   double single(int, int, int, int);
 
  protected:
-  int tabstyle,tablength;
+  int tabstyle, tablength;
   double *theta0;
 
   struct Table {
-    int ninput,fpflag;
-    double fplo,fphi,theta0;
-    double *afile,*efile,*ffile;
-    double *e2file,*f2file;
-    double delta,invdelta,deltasq6;
-    double *ang,*e,*de,*f,*df,*e2,*f2;
+    int ninput, fpflag;
+    double fplo, fphi, theta0;
+    double *afile, *efile, *ffile;
+    double *e2file, *f2file;
+    double delta, invdelta, deltasq6;
+    double *ang, *e, *de, *f, *df, *e2, *f2;
   };
 
   int ntables;
@@ -70,7 +71,7 @@ class AngleTable : public Angle {
   void u_lookup(int, double, double &);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

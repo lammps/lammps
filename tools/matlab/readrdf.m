@@ -1,5 +1,5 @@
 function varargout = readrdf(varargin)
-% Function to read Radial Distribution Funtion output from LAMMPS
+% Function to read Radial Distribution Function output from LAMMPS
 % Input
 % 'bin'       --> number of bins in rdf histogram
 % 'runtime'   --> Run length of each of the run commands

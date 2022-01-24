@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,19 +12,19 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
-CommandStyle(velocity,Velocity)
-
+// clang-format off
+CommandStyle(velocity,Velocity);
+// clang-format on
 #else
 
 #ifndef LMP_VELOCITY_H
 #define LMP_VELOCITY_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class Velocity : protected Pointers {
+class Velocity : public Command {
  public:
   Velocity(class LAMMPS *);
   void command(int, char **);
@@ -33,11 +33,12 @@ class Velocity : protected Pointers {
   void create(double, int);
 
  private:
-  int igroup,groupbit;
+  int igroup, groupbit;
   int style;
-  int dist_flag,sum_flag,momentum_flag,rotation_flag;
-  int bias_flag,loop_flag,scale_flag,rfix;
-  double xscale,yscale,zscale;
+  int dist_flag, sum_flag, momentum_flag, rotation_flag;
+  int bias_flag, loop_flag, scale_flag;
+  double xscale, yscale, zscale;
+  class Fix *rigid_fix;
   class Compute *temperature;
 
   void set(int, char **);
@@ -50,7 +51,7 @@ class Velocity : protected Pointers {
   void zero_rotation();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

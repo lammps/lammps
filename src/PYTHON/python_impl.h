@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -14,34 +14,33 @@
 #ifndef LMP_PYTHON_IMPL_H
 #define LMP_PYTHON_IMPL_H
 
+#include "lmppython.h"
 #include "pointers.h"
 
 namespace LAMMPS_NS {
 
 class PythonImpl : protected Pointers, public PythonInterface {
- public:
-  bool external_interpreter;
 
+ public:
   PythonImpl(class LAMMPS *);
   ~PythonImpl();
   void command(int, char **);
   void invoke_function(int, char *);
-  int find(char *);
-  int variable_match(char *, char *, int);
+  int find(const char *);
+  int variable_match(const char *, const char *, int);
   char *long_string(int);
   int execute_string(char *);
   int execute_file(char *);
+  bool has_minimum_version(int major, int minor);
+  static void finalize();
 
  private:
-  int ninput,noutput,length_longstr;
-  char **istr;
-  char *ostr,*format;
   void *pyMain;
 
   struct PyFunc {
     char *name;
-    int ninput,noutput;
-    int *itype,*ivarflag;
+    int ninput, noutput;
+    int *itype, *ivarflag;
     int *ivalue;
     double *dvalue;
     char **svalue;
@@ -55,11 +54,11 @@ class PythonImpl : protected Pointers, public PythonInterface {
   PyFunc *pfuncs;
   int nfunc;
 
-  int create_entry(char *);
+  int create_entry(char *, int, int, int, char **, char *, char *);
   void deallocate(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 

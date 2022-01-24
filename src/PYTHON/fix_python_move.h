@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 
    Pair zero is a dummy pair interaction useful for requiring a
-   force cutoff distance in the absense of pair-interactions or
+   force cutoff distance in the absence of pair-interactions or
    with hybrid/overlay if a larger force cutoff distance is required.
 
    This can be used in conjunction with bond/create to create bonds
@@ -22,9 +22,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(python/move,FixPythonMove)
-
+// clang-format off
+FixStyle(python/move,FixPythonMove);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_PYTHON_MOVE_H
@@ -48,10 +48,10 @@ class FixPythonMove : public Fix {
   virtual void reset_dt();
 
  protected:
-  void * py_move;
+  void *py_move;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

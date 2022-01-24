@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,9 +12,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstdio>
-#include <cstring>
 #include "reader.h"
+
 #include "error.h"
 
 using namespace LAMMPS_NS;
@@ -24,43 +24,36 @@ using namespace LAMMPS_NS;
 
 Reader::Reader(LAMMPS *lmp) : Pointers(lmp)
 {
-  fp = NULL;
+  fp = nullptr;
+  binary = false;
+  compressed = false;
 }
 
 /* ----------------------------------------------------------------------
    try to open given file
-   generic version for ASCII files that may be compressed
+   generic version for ASCII files with optional compression or for native binary dumps
 ------------------------------------------------------------------------- */
 
-void Reader::open_file(const char *file)
+void Reader::open_file(const std::string &file)
 {
-  if (fp != NULL) close_file();
+  if (fp != nullptr) close_file();
 
-  compressed = 0;
-  const char *suffix = file + strlen(file) - 3;
-  if (suffix > file && strcmp(suffix,".gz") == 0) compressed = 1;
-  if (!compressed) fp = fopen(file,"r");
-  else {
-#ifdef LAMMPS_GZIP
-    char gunzip[1024];
-    snprintf(gunzip,1024,"gzip -c -d %s",file);
-
-#ifdef _WIN32
-    fp = _popen(gunzip,"rb");
-#else
-    fp = popen(gunzip,"r");
-#endif
-
-#else
-    error->one(FLERR,"Cannot open gzipped file");
-#endif
+  if (platform::has_compress_extension(file)) {
+    compressed = true;
+    fp = platform::compressed_read(file);
+    if (!fp) error->one(FLERR,"Cannot open compressed file for reading");
+  } else {
+    compressed = false;
+    if (utils::strmatch(file, "\\.bin$")) {
+      binary = true;
+      fp = fopen(file.c_str(),"rb");
+    } else {
+      fp = fopen(file.c_str(),"r");
+      binary = false;
+    }
   }
 
-  if (fp == NULL) {
-    char str[128];
-    snprintf(str,128,"Cannot open file %s",file);
-    error->one(FLERR,str);
-  }
+  if (!fp) error->one(FLERR,"Cannot open file {}: {}", file, utils::getsyserror());
 }
 
 /* ----------------------------------------------------------------------
@@ -70,8 +63,18 @@ void Reader::open_file(const char *file)
 
 void Reader::close_file()
 {
-  if (fp == NULL) return;
-  if (compressed) pclose(fp);
+  if (fp == nullptr) return;
+  if (compressed) platform::pclose(fp);
   else fclose(fp);
-  fp = NULL;
+  fp = nullptr;
+}
+
+/* ----------------------------------------------------------------------
+   detect unused arguments
+------------------------------------------------------------------------- */
+
+void Reader::settings(int narg, char** /*args*/)
+{
+  if (narg > 0)
+    error->all(FLERR,"Illegal read_dump command");
 }

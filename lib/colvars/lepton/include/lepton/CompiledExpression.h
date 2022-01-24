@@ -9,7 +9,7 @@
  * Biological Structures at Stanford, funded under the NIH Roadmap for        *
  * Medical Research, grant U54 GM072970. See https://simtk.org.               *
  *                                                                            *
- * Portions copyright (c) 2013-2016 Stanford University and the Authors.      *
+ * Portions copyright (c) 2013-2019 Stanford University and the Authors.      *
  * Authors: Peter Eastman                                                     *
  * Contributors:                                                              *
  *                                                                            *
@@ -52,9 +52,9 @@ class ParsedExpression;
  * A CompiledExpression is a highly optimized representation of an expression for cases when you want to evaluate
  * it many times as quickly as possible.  You should treat it as an opaque object; none of the internal representation
  * is visible.
- * 
+ *
  * A CompiledExpression is created by calling createCompiledExpression() on a ParsedExpression.
- * 
+ *
  * WARNING: CompiledExpression is NOT thread safe.  You should never access a CompiledExpression from two threads at
  * the same time.
  */
@@ -99,10 +99,11 @@ private:
     mutable std::vector<double> workspace;
     mutable std::vector<double> argValues;
     std::map<std::string, double> dummyVariables;
-    void* jitCode;
+    double (*jitCode)();
 #ifdef LEPTON_USE_JIT
     void generateJitCode();
-    void generateSingleArgCall(asmjit::X86Compiler& c, asmjit::X86XmmVar& dest, asmjit::X86XmmVar& arg, double (*function)(double));
+    void generateSingleArgCall(asmjit::X86Compiler& c, asmjit::X86Xmm& dest, asmjit::X86Xmm& arg, double (*function)(double));
+    void generateTwoArgCall(asmjit::X86Compiler& c, asmjit::X86Xmm& dest, asmjit::X86Xmm& arg1, asmjit::X86Xmm& arg2, double (*function)(double, double));
     std::vector<double> constants;
     asmjit::JitRuntime runtime;
 #endif

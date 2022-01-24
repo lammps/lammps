@@ -1,0 +1,40 @@
+variable	sname index ch4
+
+units 		electron
+newton		on
+boundary        f f f
+
+atom_style	electron
+
+read_data  	data.${sname}
+
+pair_style      eff/cut 100.0
+pair_coeff	* *
+
+comm_modify	vel yes	
+
+# Minimize
+min_style       cg
+compute         1 all property/atom spin eradius
+dump            1 all custom 1 ${sname}.min.lammpstrj id type q c_1[1] c_1[2] x y z
+min_modify      line quadratic dmax 0.1
+minimize        0 1.0e-6 1000 10000
+
+# Dynamics
+
+compute		effTemp all temp/eff
+
+thermo		1000
+thermo_style	custom step pe temp press 
+thermo_modify	temp effTemp
+
+velocity	all create 300.0 4928459 dist gaussian rot yes mom yes
+
+timestep 	0.005
+fix 		1 all nve/eff
+
+# the custom dump includes the radii
+dump            2 all custom 1000 ${sname}.nve.lammpstrj id type q c_1[1] c_1[2] x y z
+dump		3 all xyz 1000 ${sname}.nve.xyz 
+
+run 		100000

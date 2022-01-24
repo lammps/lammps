@@ -23,7 +23,7 @@ const char *tersoff_zbl=0;
 
 #include "lal_tersoff_zbl.h"
 #include <cassert>
-using namespace LAMMPS_AL;
+namespace LAMMPS_AL {
 #define TersoffZT TersoffZBL<numtyp, acctyp>
 
 extern Device<PRECISION,ACC_PRECISION> device;
@@ -39,7 +39,7 @@ TersoffZT::~TersoffZBL() {
 
 template <class numtyp, class acctyp>
 int TersoffZT::bytes_per_atom(const int max_nbors) const {
-  return this->bytes_per_atom_atomic(max_nbors);
+  return this->bytes_per_atom_atomic(max_nbors)+max_nbors*sizeof(acctyp)*4;
 }
 
 template <class numtyp, class acctyp>
@@ -59,33 +59,72 @@ int TersoffZT::init(const int ntypes, const int nlocal, const int nall,
                     const double global_a_0, const double global_epsilon_0,
                     const double* host_cutsq)
 {
+  int oldparam=-1;
+  int onetype=-1;
+  int onetype3=0;
+  int spq=1;
+  int mtypes=0;
+  #ifdef USE_OPENCL
+  for (int ii=1; ii<ntypes; ii++) {
+    const int i=host_map[ii];
+    for (int jj=1; jj<ntypes; jj++) {
+      const int j=host_map[jj];
+      for (int kk=1; kk<ntypes; kk++) {
+        const int k=host_map[kk];
+        if (i<0 || j<0 || k<0) continue;
+        const int ijkparam = host_elem2param[i][j][k];
+        if (oldparam!=ijkparam) {
+          oldparam=ijkparam;
+          onetype=ntypes*ii+jj;
+          onetype3=ijkparam;
+          mtypes++;
+        }
+      }
+    }
+  }
+  if (mtypes>1) onetype=-1;
+  #endif
+
   int success;
   success=this->init_three(nlocal,nall,max_nbors,0,cell_size,gpu_split,
                            _screen,tersoff_zbl,"k_tersoff_zbl_repulsive",
-                           "k_tersoff_zbl_three_center", "k_tersoff_zbl_three_end",
-                           "k_tersoff_zbl_short_nbor");
+                           "k_tersoff_zbl_three_center",
+                           "k_tersoff_zbl_three_end",
+                           "k_tersoff_zbl_short_nbor",onetype,onetype3,0,1);
   if (success!=0)
     return success;
 
   int ef_nall=nall;
   if (ef_nall==0)
     ef_nall=2000;
-  _zetaij.alloc(ef_nall*max_nbors,*(this->ucl_device),UCL_READ_WRITE);
+  if (this->nbor->max_nbors())
+    _zetaij.alloc(ef_nall*this->nbor->max_nbors(),*(this->ucl_device),
+                 UCL_READ_WRITE);
 
   k_zeta.set_function(*(this->pair_program),"k_tersoff_zbl_zeta");
+  #if defined(LAL_OCL_EV_JIT)
+  k_zeta_noev.set_function(*(this->pair_program_noev),"k_tersoff_zbl_zeta");
+  #else
+  k_zeta_selt = &k_zeta;
+  #endif
 
-  // If atom type constants fit in shared memory use fast kernel
-  int lj_types=ntypes;
-  shared_types=false;
-  int max_shared_types=this->device->max_shared_types();
-  if (lj_types<=max_shared_types && this->_block_size>=max_shared_types) {
-    lj_types=max_shared_types;
-    shared_types=true;
-  }
-  _lj_types=lj_types;
-
+  _ntypes = ntypes;
   _nparams = nparams;
   _nelements = nelements;
+
+  _cutsq_max=0.0;
+  for (int ii=1; ii<ntypes; ii++) {
+    const int i=host_map[ii];
+    for (int jj=1; jj<ntypes; jj++) {
+      const int j=host_map[jj];
+      for (int kk=1; kk<ntypes; kk++) {
+        const int k=host_map[kk];
+        if (i<0 || j<0 || k<0) continue;
+        const int ijkparam = host_elem2param[i][j][k];
+        if (host_cutsq[ijkparam]>_cutsq_max) _cutsq_max=host_cutsq[ijkparam];
+      }
+    }
+  }
 
   UCL_H_Vec<numtyp4> dview(nparams,*(this->ucl_device),
                            UCL_WRITE_ONLY);
@@ -108,8 +147,6 @@ int TersoffZT::init(const int ntypes, const int nlocal, const int nall,
   }
 
   ucl_copy(ts1,dview,false);
-  ts1_tex.get_texture(*(this->pair_program),"ts1_tex");
-  ts1_tex.bind_float(ts1,4);
 
   ts2.alloc(nparams,*(this->ucl_device),UCL_READ_ONLY);
 
@@ -121,8 +158,6 @@ int TersoffZT::init(const int ntypes, const int nlocal, const int nall,
   }
 
   ucl_copy(ts2,dview,false);
-  ts2_tex.get_texture(*(this->pair_program),"ts2_tex");
-  ts2_tex.bind_float(ts2,4);
 
   ts3.alloc(nparams,*(this->ucl_device),UCL_READ_ONLY);
 
@@ -134,8 +169,6 @@ int TersoffZT::init(const int ntypes, const int nlocal, const int nall,
   }
 
   ucl_copy(ts3,dview,false);
-  ts3_tex.get_texture(*(this->pair_program),"ts3_tex");
-  ts3_tex.bind_float(ts3,4);
 
   ts4.alloc(nparams,*(this->ucl_device),UCL_READ_ONLY);
 
@@ -147,8 +180,6 @@ int TersoffZT::init(const int ntypes, const int nlocal, const int nall,
   }
 
   ucl_copy(ts4,dview,false);
-  ts4_tex.get_texture(*(this->pair_program),"ts4_tex");
-  ts4_tex.bind_float(ts4,4);
 
   ts5.alloc(nparams,*(this->ucl_device),UCL_READ_ONLY);
 
@@ -160,8 +191,6 @@ int TersoffZT::init(const int ntypes, const int nlocal, const int nall,
   }
 
   ucl_copy(ts5,dview,false);
-  ts5_tex.get_texture(*(this->pair_program),"ts5_tex");
-  ts5_tex.bind_float(ts5,4);
 
   ts6.alloc(nparams,*(this->ucl_device),UCL_READ_ONLY);
 
@@ -173,20 +202,6 @@ int TersoffZT::init(const int ntypes, const int nlocal, const int nall,
   }
 
   ucl_copy(ts6,dview,false);
-  ts6_tex.get_texture(*(this->pair_program),"ts6_tex");
-  ts6_tex.bind_float(ts6,4);
-
-  UCL_H_Vec<numtyp> cutsq_view(nparams,*(this->ucl_device),
-                               UCL_WRITE_ONLY);
-  double cutsqmax = 0.0;
-  for (int i=0; i<nparams; i++) {
-    cutsq_view[i]=static_cast<numtyp>(host_cutsq[i]);
-    if (cutsqmax < host_cutsq[i]) cutsqmax = host_cutsq[i];
-  }
-  cutsq.alloc(nparams,*(this->ucl_device),UCL_READ_ONLY);
-  ucl_copy(cutsq,cutsq_view,false);
-
-  _cutshortsq = static_cast<numtyp>(cutsqmax);
 
   UCL_H_Vec<int> dview_elem2param(nelements*nelements*nelements,
                            *(this->ucl_device), UCL_WRITE_ONLY);
@@ -203,11 +218,11 @@ int TersoffZT::init(const int ntypes, const int nlocal, const int nall,
 
   ucl_copy(elem2param,dview_elem2param,false);
 
-  UCL_H_Vec<int> dview_map(lj_types, *(this->ucl_device), UCL_WRITE_ONLY);
+  UCL_H_Vec<int> dview_map(ntypes, *(this->ucl_device), UCL_WRITE_ONLY);
   for (int i = 0; i < ntypes; i++)
     dview_map[i] = host_map[i];
 
-  map.alloc(lj_types,*(this->ucl_device), UCL_READ_ONLY);
+  map.alloc(ntypes,*(this->ucl_device), UCL_READ_ONLY);
   ucl_copy(map,dview_map,false);
 
   _global_e = global_e;
@@ -216,8 +231,8 @@ int TersoffZT::init(const int ntypes, const int nlocal, const int nall,
 
   _allocated=true;
   this->_max_bytes=ts1.row_bytes()+ts2.row_bytes()+ts3.row_bytes()+
-    ts4.row_bytes()+ts5.row_bytes()+cutsq.row_bytes()+
-    map.row_bytes()+elem2param.row_bytes()+_zetaij.row_bytes();
+    ts4.row_bytes()+ts5.row_bytes()+map.row_bytes()+elem2param.row_bytes()+
+    _zetaij.row_bytes();
   return 0;
 }
 
@@ -233,12 +248,14 @@ void TersoffZT::clear() {
   ts4.clear();
   ts5.clear();
   ts6.clear();
-  cutsq.clear();
   map.clear();
   elem2param.clear();
   _zetaij.clear();
 
   k_zeta.clear();
+  #if defined(LAL_OCL_EV_JIT)
+  k_zeta_noev.clear();
+  #endif
 
   this->clear_atomic();
 }
@@ -254,76 +271,54 @@ double TersoffZT::host_memory_usage() const {
 // Calculate energies, forces, and torques
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void TersoffZT::loop(const bool _eflag, const bool _vflag, const int evatom) {
-  // Compute the block size and grid size to keep all cores busy
-  int BX=this->block_pair();
-  int eflag, vflag;
-  if (_eflag)
-    eflag=1;
-  else
-    eflag=0;
-
-  if (_vflag)
-    vflag=1;
-  else
-    vflag=0;
-
-  // build the short neighbor list
-  int ainum=this->_ainum;
-  int nbor_pitch=this->nbor->nbor_pitch();
-  int GX=static_cast<int>(ceil(static_cast<double>(ainum)/
-                               (BX/this->_threads_per_atom)));
-
-  this->k_short_nbor.set_size(GX,BX);
-  this->k_short_nbor.run(&this->atom->x, &cutsq, &map,
-                 &elem2param, &_nelements, &_nparams,
-                 &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                 &this->dev_short_nbor, &ainum,
-                 &nbor_pitch, &this->_threads_per_atom);
+int TersoffZT::loop(const int eflag, const int vflag, const int evatom,
+                    bool &success) {
+  const int nbor_pitch=this->nbor->nbor_pitch();
 
   // re-allocate zetaij if necessary
   int nall = this->_nall;
-  if (nall*this->_max_nbors > _zetaij.cols()) {
+  if (nall*this->nbor->max_nbors() > _zetaij.cols()) {
     int _nmax=static_cast<int>(static_cast<double>(nall)*1.10);
-    _zetaij.resize(this->_max_nbors*_nmax);
+    _zetaij.clear();
+    success = success && (_zetaij.alloc(this->nbor->max_nbors()*_nmax,
+                                        *(this->ucl_device),
+                                        UCL_READ_WRITE) == UCL_SUCCESS);
+    if (!success) return 0;
   }
 
-  nbor_pitch=this->nbor->nbor_pitch();
-  GX=static_cast<int>(ceil(static_cast<double>(this->_ainum)/
-                               (BX/(JTHREADS*KTHREADS))));
-
-  this->k_zeta.set_size(GX,BX);
-  this->k_zeta.run(&this->atom->x, &ts1, &ts2, &ts3, &ts4, &ts5, &ts6, &cutsq,
-                   &map, &elem2param, &_nelements, &_nparams, &_zetaij,
-                   &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                   &this->dev_short_nbor,
-                   &eflag, &this->_ainum, &nbor_pitch, &this->_threads_per_atom);
-
-  ainum=this->ans->inum();
-  nbor_pitch=this->nbor->nbor_pitch();
-  GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
-                               (BX/this->_threads_per_atom)));
-
+  // build the short neighbor list
+  int ainum=this->_ainum;
   this->time_pair.start();
-  this->k_pair.set_size(GX,BX);
-  this->k_pair.run(&this->atom->x, &ts1, &ts2, &ts6,
-                   &_global_e, &_global_a_0, &_global_epsilon_0, &cutsq,
-                   &map, &elem2param, &_nelements, &_nparams,
-                   &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                   &this->dev_short_nbor,
-                   &this->ans->force, &this->ans->engv,
-                   &eflag, &vflag, &ainum, &nbor_pitch,
+
+  int BX=this->block_pair();
+  int GX=static_cast<int>(ceil(static_cast<double>(ainum)/BX));
+  this->k_short_nbor.set_size(GX,BX);
+  this->k_short_nbor.run(&this->atom->x, &_cutsq_max, &_ntypes,
+                         &this->nbor->dev_nbor, &this->nbor->dev_packed,
+                         &ainum, &nbor_pitch, &this->_threads_per_atom);
+
+  #if defined(LAL_OCL_EV_JIT)
+  if (eflag || vflag) k_zeta_selt = &k_zeta;
+  else k_zeta_selt = &k_zeta_noev;
+  #endif
+
+  GX=static_cast<int>(ceil(static_cast<double>(this->_ainum)/
+                           (BX/(JTHREADS*KTHREADS))));
+  k_zeta_selt->set_size(GX,BX);
+  k_zeta_selt->run(&this->atom->x, &ts1, &ts2, &ts3, &ts4, &ts5, &ts6,
+                   &map, &elem2param, &_nelements, &_nparams, &_zetaij,
+                   &this->nbor->dev_nbor, &eflag, &this->_ainum, &nbor_pitch,
                    &this->_threads_per_atom);
 
+  ainum=this->ans->inum();
   BX=this->block_size();
   GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                            (BX/(KTHREADS*JTHREADS))));
-  this->k_three_center.set_size(GX,BX);
-  this->k_three_center.run(&this->atom->x, &ts1, &ts2, &ts4, &cutsq,
-                           &map, &elem2param, &_nelements, &_nparams, &_zetaij,
-                           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                           &this->dev_short_nbor,
-                           &this->ans->force, &this->ans->engv, &eflag, &vflag, &ainum,
+  this->k_3center_sel->set_size(GX,BX);
+  this->k_3center_sel->run(&this->atom->x, &ts1, &ts2, &ts4, &map,
+                           &elem2param, &_nelements, &_nparams, &_zetaij,
+                           &this->nbor->dev_nbor, &this->ans->force,
+                           &this->ans->engv, &eflag, &vflag, &ainum,
                            &nbor_pitch, &this->_threads_per_atom, &evatom);
 
   Answer<numtyp,acctyp> *end_ans;
@@ -334,25 +329,36 @@ void TersoffZT::loop(const bool _eflag, const bool _vflag, const int evatom) {
   #endif
   if (evatom!=0) {
     this->k_three_end_vatom.set_size(GX,BX);
-    this->k_three_end_vatom.run(&this->atom->x, &ts1, &ts2, &ts4, &cutsq,
+    this->k_three_end_vatom.run(&this->atom->x, &ts1, &ts2, &ts4,
                           &map, &elem2param, &_nelements, &_nparams, &_zetaij,
-                          &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                          &this->nbor->dev_ilist, &this->dev_short_nbor,
-                          &end_ans->force, &end_ans->engv, &eflag, &vflag, &ainum,
-                          &nbor_pitch, &this->_threads_per_atom, &this->_gpu_nbor);
+                          &this->nbor->dev_nbor, &this->nbor->three_ilist,
+                          &end_ans->force, &end_ans->engv, &eflag, &vflag,
+                          &ainum, &nbor_pitch, &this->_threads_per_atom,
+                          &this->_gpu_nbor);
 
   } else {
-    this->k_three_end.set_size(GX,BX);
-    this->k_three_end.run(&this->atom->x, &ts1, &ts2, &ts4, &cutsq,
-                          &map, &elem2param, &_nelements, &_nparams, &_zetaij,
-                          &this->nbor->dev_nbor, &this->_nbor_data->begin(),
-                          &this->nbor->dev_ilist, &this->dev_short_nbor,
-                          &end_ans->force, &end_ans->engv, &eflag, &vflag, &ainum,
-                          &nbor_pitch, &this->_threads_per_atom, &this->_gpu_nbor);
+    this->k_3end_sel->set_size(GX,BX);
+    this->k_3end_sel->run(&this->atom->x, &ts1, &ts2, &ts4, &map,
+                          &elem2param, &_nelements, &_nparams, &_zetaij,
+                          &this->nbor->dev_nbor, &this->nbor->three_ilist,
+                          &end_ans->force, &end_ans->engv, &eflag, &vflag,
+                          &ainum, &nbor_pitch, &this->_threads_per_atom,
+                          &this->_gpu_nbor);
   }
 
+  BX=this->block_pair();
+  int GXT=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
+                           (BX/this->_threads_per_atom)));
+  this->k_sel->set_size(GXT,BX);
+  this->k_sel->run(&this->atom->x, &ts1, &ts2, &ts6, &_global_e, &_global_a_0,
+                   &_global_epsilon_0, &map, &elem2param, &_nelements,
+                   &_nparams, &this->nbor->dev_nbor, &this->ans->force,
+                   &this->ans->engv, &eflag, &vflag, &ainum, &nbor_pitch,
+                   &this->_threads_per_atom, &GX);
+
   this->time_pair.stop();
+  return GX;
 }
 
 template class TersoffZBL<PRECISION,ACC_PRECISION>;
-
+}

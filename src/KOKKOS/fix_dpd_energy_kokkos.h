@@ -1,6 +1,6 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(dpd/energy/kk,FixDPDenergyKokkos<LMPDeviceType>)
-FixStyle(dpd/energy/kk/device,FixDPDenergyKokkos<LMPDeviceType>)
-FixStyle(dpd/energy/kk/host,FixDPDenergyKokkos<LMPHostType>)
-
+// clang-format off
+FixStyle(dpd/energy/kk,FixDPDenergyKokkos<LMPDeviceType>);
+FixStyle(dpd/energy/kk/device,FixDPDenergyKokkos<LMPDeviceType>);
+FixStyle(dpd/energy/kk/host,FixDPDenergyKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_FIX_DPDE_KOKKOS_H
 #define LMP_FIX_DPDE_KOKKOS_H
 
@@ -27,7 +28,7 @@ FixStyle(dpd/energy/kk/host,FixDPDenergyKokkos<LMPHostType>)
 
 namespace LAMMPS_NS {
 
-template <typename DeviceType>
+template <class DeviceType>
 class FixDPDenergyKokkos : public FixDPDenergy {
  public:
   FixDPDenergyKokkos(class LAMMPS *, int, char **);

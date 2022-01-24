@@ -18,7 +18,7 @@ namespace ATC {
    */
 
   class AtomTimeIntegrator {
-  
+
   public:
 
     // constructor
@@ -29,15 +29,15 @@ namespace ATC {
 
     /** create and get necessary transfer operators */
     virtual void construct_transfers(){};
-        
+
    /** Predictor phase, Verlet first step for velocity */
-    virtual void init_integrate_velocity(double dt){};
+    virtual void init_integrate_velocity(double /* dt */){};
 
     /** Predictor phase, Verlet first step for position */
-    virtual void init_integrate_position(double dt){};
+    virtual void init_integrate_position(double /* dt */){};
 
     /** Corrector phase, Verlet second step for velocity */
-    virtual void final_integrate(double dt){};
+    virtual void final_integrate(double /* dt */){};
 
   };
 
@@ -47,7 +47,7 @@ namespace ATC {
    */
 
   class AtomTimeIntegratorType : public AtomTimeIntegrator {
-  
+
   public:
 
     // constructor
@@ -58,7 +58,7 @@ namespace ATC {
 
     /** create and get necessary transfer operators */
     virtual void construct_transfers();
-        
+
    /** Predictor phase, Verlet first step for velocity */
     virtual void init_integrate_velocity(double dt);
 
@@ -102,9 +102,9 @@ namespace ATC {
    *  @class  TimeIntegrator
    *  @brief  Base class for various time integrators for FE quantities
    */
-  
+
   class TimeIntegrator {
-  
+
   public:
 
     /** types of time integration */
@@ -119,16 +119,16 @@ namespace ATC {
       CRANK_NICOLSON,
       DIRECT
     };
-      
+
     // constructor
     TimeIntegrator(ATC_Coupling * atc,
                    TimeIntegrationType timeIntegrationType = STEADY);
-        
+
     // destructor
     virtual ~TimeIntegrator();
-        
+
     /** parser/modifier */
-    virtual bool modify(int narg, char **arg){return false;};
+    virtual bool modify(int /* narg */, char ** /* arg */){return false;};
 
     /** create objects to implement requested numerical method */
     virtual void construct_methods() = 0;
@@ -141,7 +141,7 @@ namespace ATC {
 
     /** flag if reset is needed */
     bool need_reset() const {return needReset_;};
-        
+
     // time step methods, corresponding to ATC_Coupling
     /** first part of pre_initial_integrate */
     virtual void pre_initial_integrate1(double dt);
@@ -152,12 +152,12 @@ namespace ATC {
     virtual void post_initial_integrate1(double dt);
     /** second part of post_initial_integrate */
     virtual void post_initial_integrate2(double dt);
-        
+
     /** first part of pre_final_integrate */
     virtual void pre_final_integrate1(double dt);
     /** second part of pre_final_integrate */
     virtual void pre_final_integrate2(double dt);
-        
+
     /** first part of post_final_integrate */
     virtual void post_final_integrate1(double dt);
     /** second part of post_final_integrate */
@@ -206,19 +206,19 @@ namespace ATC {
 
     /** pointer to time integrator method */
     TimeIntegrationMethod * timeIntegrationMethod_;
-        
+
     /** pointer to access ATC methods */
     ATC_Coupling * atc_;
-        
+
     /** time filter for specific updates */
     TimeFilter * timeFilter_;
 
     /** time filter manager for getting time filtering info */
     TimeFilterManager * timeFilterManager_;
-        
+
     /** type of integration scheme being used */
     TimeIntegrationType timeIntegrationType_;
-  
+
     /** flat to reset data */
     bool needReset_;
 
@@ -235,12 +235,12 @@ namespace ATC {
    */
 
   class TimeIntegrationMethod {
-  
+
   public:
-  
+
     // constructor
     TimeIntegrationMethod(TimeIntegrator * timeIntegrator);
-        
+
     // destructor
     virtual ~TimeIntegrationMethod(){};
 
@@ -248,29 +248,29 @@ namespace ATC {
     virtual void construct_transfers(){};
     /** pre time integration */
     virtual void initialize(){};
-        
+
     // time step methods, corresponding to ATC_Coupling and TimeIntegrator
     /** first part of pre_initial_integrate */
-    virtual void pre_initial_integrate1(double dt){};
+    virtual void pre_initial_integrate1(double /* dt */){};
     /** second part of pre_initial_integrate */
-    virtual void pre_initial_integrate2(double dt){};
+    virtual void pre_initial_integrate2(double /* dt */){};
 
     /** first part of post_initial_integrate */
-    virtual void post_initial_integrate1(double dt){};
+    virtual void post_initial_integrate1(double /* dt */){};
     /** second part of post_initial_integrate */
-    virtual void post_initial_integrate2(double dt){};
-        
+    virtual void post_initial_integrate2(double /* dt */){};
+
     /** first part of pre_final_integrate */
-    virtual void pre_final_integrate1(double dt){};
+    virtual void pre_final_integrate1(double /* dt */){};
     /** second part of pre_final_integrate */
-    virtual void pre_final_integrate2(double dt){};
-        
+    virtual void pre_final_integrate2(double /* dt */){};
+
     /** first part of post_final_integrate */
-    virtual void post_final_integrate1(double dt){};
+    virtual void post_final_integrate1(double /* dt */){};
     /** second part of post_final_integrate */
-    virtual void post_final_integrate2(double dt){};
+    virtual void post_final_integrate2(double /* dt */){};
     /** third part of post_final_integrate */
-    virtual void post_final_integrate3(double dt){};
+    virtual void post_final_integrate3(double /* dt */){};
 
     /** checks to see if first RHS computation is needed */
     virtual bool has_final_predictor() {return false;};
@@ -282,13 +282,13 @@ namespace ATC {
     /** post processing step */
     virtual void post_process(){};
     /** add output data */
-    virtual void output(OUTPUT_LIST & outputData){};
+    virtual void output(OUTPUT_LIST & /* outputData */){};
     /** pack persistent fields */
-    virtual void pack_fields(RESTART_LIST & data){};
+    virtual void pack_fields(RESTART_LIST & /* data */){};
 
     /** finalize any states */
     virtual void finish(){};
-        
+
   protected:
 
     /** owning time integrator */
@@ -358,11 +358,11 @@ namespace ATC {
     dot_f  = dot_f  + (1./dt)*R_f;
     ddot_f = ddot_f + (1./dt/dt)*R_f;
   };
-  
+
   inline void explicit_1(MATRIX & f,
                          const MATRIX & dot_f,
                          double dt)
-  // 1rst order explict ODE update
+  // 1rst order explicit ODE update
   {
     f = f + dt*dot_f;
   };
@@ -371,7 +371,7 @@ namespace ATC {
                          const MATRIX & dot_f,
                          const MATRIX & ddot_f,
                          double dt)
-  // 2nd order explict ODE update
+  // 2nd order explicit ODE update
   {
     f = f + dt*dot_f + .5*dt*dt*ddot_f;
   };

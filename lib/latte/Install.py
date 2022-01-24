@@ -17,7 +17,7 @@ parser = ArgumentParser(prog='Install.py',
 
 # settings
 
-version = '1.2.1'
+version = '1.2.2'
 suffix = 'gfortran'
 
 # known checksums for different LATTE versions. used to validate the download.
@@ -25,6 +25,7 @@ checksums = { \
         '1.1.0' : '533635721ee222d0ed2925a18fb5b294', \
         '1.2.0' : '68bf0db879da5e068a71281020239ae7', \
         '1.2.1' : '85ac414fdada2d04619c8f936344df14', \
+        '1.2.2' : '820e73a457ced178c08c71389a385de7', \
         }
 
 # help message
@@ -33,12 +34,12 @@ HELP = """
 Syntax from src dir: make lib-latte args="-b"
                  or: make lib-latte args="-p /usr/local/latte"
                  or: make lib-latte args="-m gfortran"
-                 or: make lib-latte args="-b -v 1.2.1"
+                 or: make lib-latte args="-b -v 1.2.2"
 
 Syntax from lib dir: python Install.py -b
                  or: python Install.py -p /usr/local/latte
                  or: python Install.py -m gfortran
-                 or: python Install.py -v 1.2.1 -b
+                 or: python Install.py -v 1.2.2 -b
 
 Example:
 

@@ -39,57 +39,80 @@ class Device {
 
   /// Initialize the device for use by this process
   /** Sets up a per-device MPI communicator for load balancing and initializes
-    * the device (>=first_gpu and <=last_gpu) that this proc will be using
+    * the device (ngpu starting at first_gpu_id) that this proc will be using
     * Returns:
-    * -  0 if successfull
+    * -  0 if successful
     * - -2 if GPU not found
     * - -4 if GPU library not compiled for GPU
     * - -6 if GPU could not be initialized for use
     * - -7 if accelerator sharing is not currently allowed on system
-    * - -11 if vendor_string has the wrong number of parameters **/
-  int init_device(MPI_Comm world, MPI_Comm replica, const int first_gpu,
-                  const int last_gpu, const int gpu_mode,
-                  const double particle_split, const int nthreads,
-                  const int t_per_atom, const double cell_size,
-                  char *vendor_string, const int block_pair);
+    * - -11 if config_string has the wrong number of parameters **/
+  int init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
+                  const int first_gpu_id, const int gpu_mode,
+                  const double particle_split, const int t_per_atom,
+                  const double user_cell_size, char *config_string,
+                  const int ocl_platform, char *device_type_flags,
+                  const int block_pair);
 
-  /// Initialize the device for Atom and Neighbor storage
-  /** \param rot True if quaternions need to be stored
+  /// Initialize the device for Atom storage
+  /** \param charge True if charges need to be stored
+    * \param rot True if quaternions need to be stored
     * \param nlocal Total number of local particles to allocate memory for
-    * \param host_nlocal Initial number of host particles to allocate memory for
     * \param nall Total number of local+ghost particles
-    * \param gpu_host 0 if host will not perform force calculations,
-    *                 1 if gpu_nbor is true, and host needs a half nbor list,
-    *                 2 if gpu_nbor is true, and host needs a full nbor list
-    * \param max_nbors Initial number of rows in the neighbor matrix
-    * \param cell_size cutoff+skin
-    * \param pre_cut True if cutoff test will be performed in separate kernel
-    *                than the force kernel
-    * \param threads_per_atom value to be used by the neighbor list only
+    * \param maxspecial Maximum mumber of special bonded atoms per atom
+    * \param vel True if velocities need to be stored
     *
     * Returns:
-    * -  0 if successfull
+    * -  0 if successful
     * - -1 if fix gpu not found
     * - -3 if there is an out of memory error
     * - -4 if the GPU library was not compiled for GPU
     * - -5 Double precision is not supported on card **/
-  int init(Answer<numtyp,acctyp> &a, const bool charge, const bool rot,
-           const int nlocal, const int host_nlocal, const int nall,
-           Neighbor *nbor, const int maxspecial, const int gpu_host,
-           const int max_nbors, const double cell_size, const bool pre_cut,
-           const int threads_per_atom, const bool vel=false);
+  int init(Answer<numtyp,acctyp> &ans, const bool charge, const bool rot,
+           const int nlocal, const int nall, const int maxspecial,
+           const bool vel=false);
 
   /// Initialize the device for Atom storage only
   /** \param nlocal Total number of local particles to allocate memory for
     * \param nall Total number of local+ghost particles
     *
     * Returns:
-    * -  0 if successfull
+    * -  0 if successful
     * - -1 if fix gpu not found
     * - -3 if there is an out of memory error
     * - -4 if the GPU library was not compiled for GPU
     * - -5 Double precision is not supported on card **/
   int init(Answer<numtyp,acctyp> &ans, const int nlocal, const int nall);
+
+  /// Initialize the neighbor list storage
+  /** \param charge True if charges need to be stored
+    * \param rot True if quaternions need to be stored
+    * \param nlocal Total number of local particles to allocate memory for
+    * \param host_nlocal Initial number of host particles to allocate memory for
+    * \param nall Total number of local+ghost particles
+    * \param maxspecial Maximum mumber of special bonded atoms per atom
+    * \param gpu_host 0 if host will not perform force calculations,
+    *                 1 if gpu_nbor is true, and host needs a half nbor list,
+    *                 2 if gpu_nbor is true, and host needs a full nbor list
+    * \param max_nbors Initial number of rows in the neighbor matrix
+    * \param cutoff cutoff+skin
+    * \param pre_cut True if cutoff test will be performed in separate kernel
+    *                than the force kernel
+    * \param threads_per_atom value to be used by the neighbor list only
+    * \param ilist_map true if ilist mapping data structures used (3-body)
+    *
+    * Returns:
+    * -  0 if successful
+    * - -1 if fix gpu not found
+    * - -3 if there is an out of memory error
+    * - -4 if the GPU library was not compiled for GPU
+    * - -5 Double precision is not supported on card **/
+  int init_nbor(Neighbor *nbor, const int nlocal,
+                const int host_nlocal, const int nall,
+                const int maxspecial, const int gpu_host,
+                const int max_nbors, const double cutoff,
+                const bool pre_cut, const int threads_per_atom,
+                const bool ilist_map = false);
 
   /// Output a message for pair_style acceleration with device stats
   void init_message(FILE *screen, const char *name,
@@ -140,14 +163,15 @@ class Device {
     { ans_queue.push(ans); }
 
   /// Add "answers" (force,energies,etc.) into LAMMPS structures
-  inline double fix_gpu(double **f, double **tor, double *eatom,
-                        double **vatom, double *virial, double &ecoul) {
+  inline double fix_gpu(double **f, double **tor, double *eatom, double **vatom,
+                        double *virial, double &ecoul, int &error_flag) {
+    error_flag=0;
     atom.data_unavail();
     if (ans_queue.empty()==false) {
       stop_host_timer();
       double evdw=0.0;
       while (ans_queue.empty()==false) {
-        evdw+=ans_queue.front()->get_answers(f,tor,eatom,vatom,virial,ecoul);
+        evdw += ans_queue.front()->get_answers(f,tor,eatom,vatom,virial,ecoul,error_flag);
         ans_queue.pop();
       }
       return evdw;
@@ -173,10 +197,8 @@ class Device {
   /// Return host memory usage in bytes
   double host_memory_usage() const;
 
-  /// Return the number of procs sharing a device (size of device commincator)
+  /// Return the number of procs sharing a device (size of device communicator)
   inline int procs_per_gpu() const { return _procs_per_gpu; }
-  /// Return the number of threads per proc
-  inline int num_threads() const { return _nthreads; }
   /// My rank within all processes
   inline int world_me() const { return _world_me; }
   /// Total number of processes
@@ -208,45 +230,49 @@ class Device {
   /// True if device is being timed
   inline bool time_device() const { return _time_device; }
 
+  /// Accelerator device configuration id
+  inline int config_id() const { return _config_id; }
+  /// Number of threads executing concurrently on same multiproc
+  inline int simd_size() const { return _simd_size; }
   /// Return the number of threads accessing memory simulatenously
   inline int num_mem_threads() const { return _num_mem_threads; }
+  /// 1 if horizontal vector operations enabled, 0 otherwise
+  inline int shuffle_avail() const { return _shuffle_avail; }
+  /// For OpenCL, 0 if fast-math options disabled, 1 enabled
+  inline int fast_math() const { return _fast_math; }
+
   /// Return the number of threads per atom for pair styles
   inline int threads_per_atom() const { return _threads_per_atom; }
   /// Return the number of threads per atom for pair styles using charge
   inline int threads_per_charge() const { return _threads_per_charge; }
+  /// Return the number of threads per atom for 3-body pair styles
+  inline int threads_per_three() const { return _threads_per_three; }
+
   /// Return the min of the pair block size or the device max block size
   inline int pair_block_size() const { return _block_pair; }
-  /// Return the maximum number of atom types that can be used with shared mem
-  inline int max_shared_types() const { return _max_shared_types; }
-  /// Return the maximum order for PPPM splines
-  inline int pppm_max_spline() const { return _pppm_max_spline; }
-  /// Return the block size for PPPM kernels
-  inline int pppm_block() const { return _pppm_block; }
-  /// Return the block size for neighbor binning
-  inline int block_cell_2d() const { return _block_cell_2d; }
-  /// Return the block size for atom mapping for neighbor builds
-  inline int block_cell_id() const { return _block_cell_id; }
-  /// Return the block size for neighbor build kernel
-  inline int block_nbor_build() const { return _block_nbor_build; }
   /// Return the block size for "bio" pair styles
   inline int block_bio_pair() const { return _block_bio_pair; }
   /// Return the block size for "ellipse" pair styles
   inline int block_ellipse() const { return _block_ellipse; }
+  /// Return the block size for PPPM kernels
+  inline int pppm_block() const { return _pppm_block; }
+  /// Return the block size for neighbor build kernel
+  inline int block_nbor_build() const { return _block_nbor_build; }
+  /// Return the block size for neighbor binning
+  inline int block_cell_2d() const { return _block_cell_2d; }
+  /// Return the block size for atom mapping for neighbor builds
+  inline int block_cell_id() const { return _block_cell_id; }
+
+  /// Return the maximum number of atom types that can be used with shared mem
+  inline int max_shared_types() const { return _max_shared_types; }
   /// Return the maximum number of atom types for shared mem with "bio" styles
   inline int max_bio_shared_types() const { return _max_bio_shared_types; }
+  /// Return the maximum order for PPPM splines
+  inline int pppm_max_spline() const { return _pppm_max_spline; }
+
   /// Architecture gpu code compiled for (returns 0 for OpenCL)
   inline double ptx_arch() const { return _ptx_arch; }
-  /// Number of threads executing concurrently on same multiproc
-  inline int warp_size() const { return _warp_size; }
-
-  // -------------------- SHARED DEVICE ROUTINES --------------------
-  // Perform asynchronous zero of integer array
-  void zero(UCL_D_Vec<int> &mem, const int numel) {
-    int num_blocks=static_cast<int>(ceil(static_cast<double>(numel)/
-                                    _block_pair));
-    k_zero.set_size(num_blocks,_block_pair);
-    k_zero.run(&mem,&numel);
-  }
+  inline void set_simd_size(int simd_sz) { _simd_size = simd_sz; }
 
   // -------------------------- DEVICE DATA -------------------------
 
@@ -260,12 +286,12 @@ class Device {
   /// Atom Data
   Atom<numtyp,acctyp> atom;
 
-  // --------------------------- NBOR DATA ----------------------------
+  // --------------------------- NBOR SHARED KERNELS ----------------
 
-  /// Neighbor Data
+  /// Shared kernels for neighbor lists
   NeighborShared _neighbor_shared;
 
-  // ------------------------ LONG RANGE DATA -------------------------
+  // ------------------------ LONG RANGE DATA -----------------------
 
   // Long Range Data
   int _long_range_precompute;
@@ -284,35 +310,8 @@ class Device {
   }
 
   inline std::string compile_string() { return _ocl_compile_string; }
-
- private:
-  std::queue<Answer<numtyp,acctyp> *> ans_queue;
-  int _init_count;
-  bool _device_init, _host_timer_started, _time_device;
-  MPI_Comm _comm_world, _comm_replica, _comm_gpu;
-  int _procs_per_gpu, _gpu_rank, _world_me, _world_size, _replica_me,
-      _replica_size;
-  int _gpu_mode, _first_device, _last_device, _platform_id, _nthreads;
-  double _particle_split;
-  double _cpu_full;
-  double _ptx_arch;
-  double _cell_size; // -1 if the cutoff is used
-
-  int _num_mem_threads, _warp_size, _threads_per_atom, _threads_per_charge;
-  int _pppm_max_spline, _pppm_block;
-  int _block_pair, _block_ellipse, _max_shared_types;
-  int _block_cell_2d, _block_cell_id, _block_nbor_build;
-  int _block_bio_pair, _max_bio_shared_types;
-
-  UCL_Program *dev_program;
-  UCL_Kernel k_zero, k_info;
-  bool _compiled;
-  int compile_kernels();
-
-  int _data_in_estimate, _data_out_estimate;
-
-  std::string _ocl_vendor_name, _ocl_vendor_string, _ocl_compile_string;
-  int set_ocl_params(char *);
+  std::string compile_string_nofast();
+  inline std::string ocl_config_name() { return _ocl_config_name; }
 
   template <class t>
   inline std::string toa(const t& in) {
@@ -322,6 +321,34 @@ class Device {
     return o.str();
   }
 
+ private:
+  std::queue<Answer<numtyp,acctyp> *> ans_queue;
+  int _init_count;
+  bool _device_init, _host_timer_started, _time_device;
+  MPI_Comm _comm_world, _comm_replica, _comm_gpu;
+  int _procs_per_gpu, _gpu_rank, _world_me, _world_size, _replica_me,
+      _replica_size;
+  int _gpu_mode, _first_device, _last_device, _platform_id;
+  double _particle_split;
+  double _cpu_full;
+  double _ptx_arch;
+  double _user_cell_size; // -1 if the cutoff is used
+
+  int _config_id, _simd_size, _num_mem_threads, _shuffle_avail, _fast_math;
+  int _threads_per_atom, _threads_per_charge, _threads_per_three;
+  int _block_pair, _block_bio_pair, _block_ellipse;
+  int _pppm_block, _block_nbor_build, _block_cell_2d, _block_cell_id;
+  int _max_shared_types, _max_bio_shared_types, _pppm_max_spline;
+
+  UCL_Program *dev_program;
+  UCL_Kernel k_zero, k_info;
+  bool _compiled;
+  int compile_kernels();
+
+  int _data_in_estimate, _data_out_estimate;
+
+  std::string _ocl_config_name, _ocl_config_string, _ocl_compile_string;
+  int set_ocl_params(std::string, const std::string &);
 };
 
 }

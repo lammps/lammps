@@ -1,0 +1,52 @@
+# Initialization
+units           metal
+boundary        p p p
+atom_style      full
+processors      * * 1     # domain decomposition over x and y
+
+# System and atom definition
+# we use different molecule ids for each layer of hBN
+# so that inter- and intra-layer
+# interactions can be specified separately
+
+read_data       Bi_gr_AB_stack_2L_noH.data
+mass            1 12.0107   # carbon mass (g/mole) | membrane
+mass            2 12.0107   # carbon mass (g/mole) | adsorbate
+# Separate atom groups
+group		layer1 molecule 1
+group		layer2 molecule 2
+
+######################## Potential defition ########################
+pair_style  hybrid/overlay  rebo  kolmogorov/crespi/full 16.0 1
+####################################################################
+pair_coeff  * * rebo               	 CH.rebo      C  C  # chemical
+pair_coeff  * * kolmogorov/crespi/full   CH_taper.KC  C  C  # long range
+####################################################################
+# Neighbor update settings
+neighbor        2.0 bin
+neigh_modify    every 1
+neigh_modify    delay 0
+neigh_modify    check yes
+
+#### Simulation settings ####
+timestep	0.001
+velocity	all create 300.0 12345
+
+compute   	0 all pair rebo
+compute  	1 all pair kolmogorov/crespi/full
+variable  	REBO  equal c_0     # REBO energy
+variable  	KC    equal c_1     # total interlayer energy
+variable  	Evdw  equal c_1[1]  # attractive energy
+variable 	Erep  equal c_1[2]  # repulsive  energy
+
+############################
+
+# Output
+thermo          100
+thermo_style    custom step cpu etotal pe ke v_REBO v_KC v_Erep v_Evdw temp
+thermo_modify   line one format float %.16f
+thermo_modify   flush yes norm no lost warn
+
+###### Run molecular dynamics ######
+fix       	thermostat all nve
+run 	  	1000

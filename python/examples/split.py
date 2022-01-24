@@ -57,7 +57,7 @@ if color == 0:
   lmp.scatter_atoms("x",1,3,x)
   lmp.command("run 1");
 
-  f = lmp.extract_atom("f",3)
+  f = lmp.extract_atom("f")
   print("Force on 1 atom via extract_atom: ",f[0][0])
 
   fx = lmp.extract_variable("fx","all",1)

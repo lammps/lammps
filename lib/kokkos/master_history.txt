@@ -16,3 +16,13 @@ tag:  2.6.00     date: 03:07:2018    master: 62e760fa    develop: d1ba7d71
 tag:  2.7.00     date: 05:24:2018    master: e01945d0    develop: 2d13f608
 tag:  2.7.24     date: 11:04:2018    master: d3a94192    develop: 7a06fc81
 tag:  2.8.00     date: 02:05:2019    master: 34931a36    develop: d1659d1d
+tag:  2.9.00     date: 06:24:2019    master: 5d6e7fb3    develop: 4c6cb80a
+tag:  3.0.00     date: 01:31:2020    master: 2983b80d    release-candidate-3.0: fdc904a6
+tag:  3.1.00     date: 04:14:2020    master: cd1b1d0a    develop: fd90af43
+tag:  3.1.01     date: 05:04:2020    master: 785d19f2    release: 2be028bc
+tag:  3.2.00     date: 08:19:2020    master: 3b2fdc7e    release: 5dc6d303
+tag:  3.3.00     date: 12:16:2020    master: 734f577a    release: 1535ba5c
+tag:  3.3.01     date: 01:06:2021    master: 6d65b5a3    release: 4d23839c
+tag:  3.4.00     date: 04:26:2021    master: 1fb0c284    release: 5d7738d6
+tag:  3.4.01     date: 05:20:2021    master: 4b97a22f    release: 410b15c8
+tag:  3.5.00     date: 11:19:2021    master: c28a8b03    release: 21b879e4

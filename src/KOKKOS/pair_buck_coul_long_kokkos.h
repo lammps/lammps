@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(buck/coul/long/kk,PairBuckCoulLongKokkos<LMPDeviceType>)
-PairStyle(buck/coul/long/kk/device,PairBuckCoulLongKokkos<LMPDeviceType>)
-PairStyle(buck/coul/long/kk/host,PairBuckCoulLongKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(buck/coul/long/kk,PairBuckCoulLongKokkos<LMPDeviceType>);
+PairStyle(buck/coul/long/kk/device,PairBuckCoulLongKokkos<LMPDeviceType>);
+PairStyle(buck/coul/long/kk/host,PairBuckCoulLongKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_BUCK_COUL_LONG_KOKKOS_H
 #define LMP_PAIR_BUCK_COUL_LONG_KOKKOS_H
 
@@ -47,15 +48,13 @@ class PairBuckCoulLongKokkos : public PairBuckCoulLong {
 
   struct params_buck_coul{
     KOKKOS_INLINE_FUNCTION
-    params_buck_coul(){cut_ljsq=0;cut_coulsq=0;a=0;c=0;rhoinv=0;buck1=0;buck2=0;offset=0;};
+    params_buck_coul() {cut_ljsq=0;cut_coulsq=0;a=0;c=0;rhoinv=0;buck1=0;buck2=0;offset=0;};
     KOKKOS_INLINE_FUNCTION
-    params_buck_coul(int i){cut_ljsq=0;cut_coulsq=0;a=0;c=0;rhoinv=0;buck1=0;buck2=0;offset=0;};
+    params_buck_coul(int /*i*/) {cut_ljsq=0;cut_coulsq=0;a=0;c=0;rhoinv=0;buck1=0;buck2=0;offset=0;};
     F_FLOAT cut_ljsq,cut_coulsq,a,c,rhoinv,buck1,buck2,offset;
   };
 
  protected:
-  void cleanup_copy();
-
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
   F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
@@ -102,7 +101,6 @@ class PairBuckCoulLongKokkos : public PairBuckCoulLong {
   typename AT::t_ffloat_2d d_cutsq;
   typename AT::tdual_ffloat_2d k_cut_ljsq;
   typename AT::t_ffloat_2d d_cut_ljsq;
-  typename AT::tdual_ffloat_2d k_cut_coulsq;
   typename AT::t_ffloat_2d d_cut_coulsq;
 
   typename AT::t_ffloat_1d_randomread
@@ -117,23 +115,23 @@ class PairBuckCoulLongKokkos : public PairBuckCoulLong {
 
   void allocate();
 
-  friend class PairComputeFunctor<PairBuckCoulLongKokkos,FULL,true,CoulLongTable<1> >;
-  friend class PairComputeFunctor<PairBuckCoulLongKokkos,HALF,true,CoulLongTable<1> >;
-  friend class PairComputeFunctor<PairBuckCoulLongKokkos,HALFTHREAD,true,CoulLongTable<1> >;
-  friend class PairComputeFunctor<PairBuckCoulLongKokkos,FULL,false,CoulLongTable<1> >;
-  friend class PairComputeFunctor<PairBuckCoulLongKokkos,HALF,false,CoulLongTable<1> >;
-  friend class PairComputeFunctor<PairBuckCoulLongKokkos,HALFTHREAD,false,CoulLongTable<1> >;
+  friend struct PairComputeFunctor<PairBuckCoulLongKokkos,FULL,true,CoulLongTable<1> >;
+  friend struct PairComputeFunctor<PairBuckCoulLongKokkos,HALF,true,CoulLongTable<1> >;
+  friend struct PairComputeFunctor<PairBuckCoulLongKokkos,HALFTHREAD,true,CoulLongTable<1> >;
+  friend struct PairComputeFunctor<PairBuckCoulLongKokkos,FULL,false,CoulLongTable<1> >;
+  friend struct PairComputeFunctor<PairBuckCoulLongKokkos,HALF,false,CoulLongTable<1> >;
+  friend struct PairComputeFunctor<PairBuckCoulLongKokkos,HALFTHREAD,false,CoulLongTable<1> >;
   friend EV_FLOAT pair_compute_neighlist<PairBuckCoulLongKokkos,FULL,CoulLongTable<1> >(PairBuckCoulLongKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairBuckCoulLongKokkos,HALF,CoulLongTable<1> >(PairBuckCoulLongKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairBuckCoulLongKokkos,HALFTHREAD,CoulLongTable<1> >(PairBuckCoulLongKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute<PairBuckCoulLongKokkos,CoulLongTable<1> >(PairBuckCoulLongKokkos*,
                                                             NeighListKokkos<DeviceType>*);
-  friend class PairComputeFunctor<PairBuckCoulLongKokkos,FULL,true,CoulLongTable<0> >;
-  friend class PairComputeFunctor<PairBuckCoulLongKokkos,HALF,true,CoulLongTable<0> >;
-  friend class PairComputeFunctor<PairBuckCoulLongKokkos,HALFTHREAD,true,CoulLongTable<0> >;
-  friend class PairComputeFunctor<PairBuckCoulLongKokkos,FULL,false,CoulLongTable<0> >;
-  friend class PairComputeFunctor<PairBuckCoulLongKokkos,HALF,false,CoulLongTable<0> >;
-  friend class PairComputeFunctor<PairBuckCoulLongKokkos,HALFTHREAD,false,CoulLongTable<0> >;
+  friend struct PairComputeFunctor<PairBuckCoulLongKokkos,FULL,true,CoulLongTable<0> >;
+  friend struct PairComputeFunctor<PairBuckCoulLongKokkos,HALF,true,CoulLongTable<0> >;
+  friend struct PairComputeFunctor<PairBuckCoulLongKokkos,HALFTHREAD,true,CoulLongTable<0> >;
+  friend struct PairComputeFunctor<PairBuckCoulLongKokkos,FULL,false,CoulLongTable<0> >;
+  friend struct PairComputeFunctor<PairBuckCoulLongKokkos,HALF,false,CoulLongTable<0> >;
+  friend struct PairComputeFunctor<PairBuckCoulLongKokkos,HALFTHREAD,false,CoulLongTable<0> >;
   friend EV_FLOAT pair_compute_neighlist<PairBuckCoulLongKokkos,FULL,CoulLongTable<0> >(PairBuckCoulLongKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairBuckCoulLongKokkos,HALF,CoulLongTable<0> >(PairBuckCoulLongKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairBuckCoulLongKokkos,HALFTHREAD,CoulLongTable<0> >(PairBuckCoulLongKokkos*,NeighListKokkos<DeviceType>*);

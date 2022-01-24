@@ -1,6 +1,7 @@
-/* ----------------------------------------------------------------------
+// clang-format off
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -26,7 +27,7 @@ struct RandWrap {
 
   KOKKOS_INLINE_FUNCTION
   RandWrap() {
-    rng = NULL;
+    rng = nullptr;
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -50,7 +51,7 @@ class RandPoolWrap : protected Pointers {
   KOKKOS_INLINE_FUNCTION
   RandWrap get_state() const
   {
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef LMP_KOKKOS_GPU
     error->all(FLERR,"Cannot use Marsaglia RNG with GPUs");
 #endif
 

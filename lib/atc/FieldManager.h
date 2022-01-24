@@ -17,7 +17,7 @@ namespace ATC {
                       PROLONGED_VELOCITY};
   typedef PerAtomQuantity<double> PAQ;
   /**
-   *  @class  FieldManager 
+   *  @class  FieldManager
    *  @brief  Manager for constructing fields from atomic data
    */
   class FieldManager{
@@ -26,7 +26,7 @@ namespace ATC {
     FieldManager(ATC_Method * atc);
     virtual ~FieldManager(void){};
     /** this function returns a (density) field derived from atomic data */
-    DENS_MAN * nodal_atomic_field(FieldName fieldName, 
+    DENS_MAN * nodal_atomic_field(FieldName fieldName,
                                   std::string name = "default") {
       switch (fieldName) {
       case CHARGE_DENSITY:        return charge_density(name);
@@ -47,21 +47,21 @@ namespace ATC {
       case SPECIES_FLUX:          return species_flux(name);
       case INTERNAL_ENERGY:       return internal_energy(name);
       case ENERGY:                return energy(name);
-      default: throw ATC_Error("FieldManager:: unknown field"); return NULL;
+      default: throw ATC_Error("FieldManager:: unknown field"); return nullptr;
       }
     }
     CanonicalName string_to_canonical_name(std::string name){
-       if      (name == "AtomicTwiceFluctuatingKineticEnergy") 
+       if      (name == "AtomicTwiceFluctuatingKineticEnergy")
          return ATOMIC_TWICE_FLUCTUATING_KINETIC_ENERGY;
-       else if (name == "AtomicTwiceKineticEnergy") 
+       else if (name == "AtomicTwiceKineticEnergy")
          return ATOMIC_TWICE_KINETIC_ENERGY;
-       else if (name == "AtomicTwiceKineticEnergy") 
+       else if (name == "AtomicTwiceKineticEnergy")
          return ATOMIC_TWICE_KINETIC_ENERGY;
-       else if (name == "AtomicFluctuatingVelocity") 
+       else if (name == "AtomicFluctuatingVelocity")
          return ATOMIC_FLUCTUATING_VELOCITY;
        else if (name == "AtomicChargeVelocity") // ionic current
          return ATOMIC_CHARGE_VELOCITY;
-       else if (name == "AtomicSpeciesVelocity") // per species momentum 
+       else if (name == "AtomicSpeciesVelocity") // per species momentum
          return ATOMIC_SPECIES_VELOCITY;
        else if (name == field_to_prolongation_name(VELOCITY))
          return PROLONGED_VELOCITY;
@@ -70,11 +70,11 @@ namespace ATC {
     }
     PAQ * per_atom_quantity(std::string name) {
       switch (string_to_canonical_name(name)) {
-      case ATOMIC_TWICE_FLUCTUATING_KINETIC_ENERGY: 
+      case ATOMIC_TWICE_FLUCTUATING_KINETIC_ENERGY:
         return atomic_twice_fluctuating_kinetic_energy();
-      case ATOMIC_TWICE_KINETIC_ENERGY: 
+      case ATOMIC_TWICE_KINETIC_ENERGY:
         return atomic_twice_kinetic_energy();
-      case ATOMIC_FLUCTUATING_VELOCITY: 
+      case ATOMIC_FLUCTUATING_VELOCITY:
         return atomic_fluctuating_velocity();
       case ATOMIC_CHARGE_VELOCITY:
         return atomic_charge_velocity();
@@ -82,12 +82,12 @@ namespace ATC {
         return atomic_species_velocity();
       case PROLONGED_VELOCITY:
         return prolonged_field(VELOCITY);
-      default: 
-        throw ATC_Error("FieldManager:: unknown PAQ"); return NULL;
+      default:
+        throw ATC_Error("FieldManager:: unknown PAQ"); return nullptr;
       }
     }
     /** this function returns a restriction of atomic data */
-    DENS_MAN * restricted_atom_quantity(FieldName field, std::string name = "default", PAQ * atomi = NULL);
+    DENS_MAN * restricted_atom_quantity(FieldName field, std::string name = "default", PAQ * atomi = nullptr);
   protected:
     ATC_Method * atc_;
     InterscaleManager & interscaleManager_;
@@ -120,10 +120,10 @@ namespace ATC {
     PAQ * atomic_species_vector();
 
     // internal functions
-    DENS_MAN * projected_atom_quantity(FieldName field,std::string name, PAQ * atomic,  DIAG_MAN * normalization = NULL);
-    DENS_MAN * scaled_projected_atom_quantity(FieldName field,std::string name, PAQ * atomic, double scale, DIAG_MAN * normalization = NULL);
-    DENS_MAN * referenced_projected_atom_quantity(FieldName field, std::string name, PAQ * atomic, DENS_MAN * reference, DIAG_MAN * normalization = NULL);
-    DENS_MAN * inferred_atom_quantity(FieldName field, std::string name, PAQ * atomic){return NULL;};
+    DENS_MAN * projected_atom_quantity(FieldName field,std::string name, PAQ * atomic,  DIAG_MAN * normalization = nullptr);
+    DENS_MAN * scaled_projected_atom_quantity(FieldName field,std::string name, PAQ * atomic, double scale, DIAG_MAN * normalization = nullptr);
+    DENS_MAN * referenced_projected_atom_quantity(FieldName field, std::string name, PAQ * atomic, DENS_MAN * reference, DIAG_MAN * normalization = nullptr);
+    DENS_MAN * inferred_atom_quantity(FieldName /* field */, std::string /* name */, PAQ * /* atomic */){return nullptr;};
     PAQ * prolonged_field(FieldName field);
   private:
     FieldManager(void);

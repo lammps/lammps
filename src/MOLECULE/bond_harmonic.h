@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,15 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
-BondStyle(harmonic,BondHarmonic)
-
+// clang-format off
+BondStyle(harmonic,BondHarmonic);
+// clang-format on
 #else
 
 #ifndef LMP_BOND_HARMONIC_H
 #define LMP_BOND_HARMONIC_H
 
-#include <cstdio>
 #include "bond.h"
 
 namespace LAMMPS_NS {
@@ -36,15 +35,15 @@ class BondHarmonic : public Bond {
   virtual void read_restart(FILE *);
   void write_data(FILE *);
   double single(int, double, int, int, double &);
-  virtual void *extract(char *, int &);
+  virtual void *extract(const char *, int &);
 
  protected:
-  double *k,*r0;
+  double *k, *r0;
 
   virtual void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

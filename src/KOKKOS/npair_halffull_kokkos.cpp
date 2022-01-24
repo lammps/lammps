@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,15 +13,14 @@
 ------------------------------------------------------------------------- */
 
 #include "npair_halffull_kokkos.h"
-#include "neighbor.h"
-#include "neigh_list_kokkos.h"
+
 #include "atom_kokkos.h"
-#include "atom_vec.h"
-#include "molecule.h"
-#include "domain.h"
-#include "my_page.h"
-#include "error.h"
 #include "atom_masks.h"
+#include "atom_vec.h"
+#include "domain.h"
+#include "neigh_list_kokkos.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -68,12 +68,12 @@ void NPairHalffullKokkos<DeviceType,NEWTON>::build(NeighList *list)
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagNPairHalffullCompute>(0,inum_full),*this);
+  copymode = 0;
 
   list->inum = k_list_full->inum;
   list->gnum = k_list_full->gnum;
-  k_list->k_ilist.template modify<DeviceType>();
 
-  copymode = 0;
+  k_list->k_ilist.template modify<DeviceType>();
 }
 
 template<class DeviceType, int NEWTON>
@@ -121,7 +121,7 @@ void NPairHalffullKokkos<DeviceType,NEWTON>::operator()(TagNPairHalffullCompute,
 namespace LAMMPS_NS {
 template class NPairHalffullKokkos<LMPDeviceType,0>;
 template class NPairHalffullKokkos<LMPDeviceType,1>;
-#ifdef KOKKOS_HAVE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class NPairHalffullKokkos<LMPHostType,0>;
 template class NPairHalffullKokkos<LMPHostType,1>;
 #endif

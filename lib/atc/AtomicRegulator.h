@@ -44,7 +44,7 @@ namespace ATC {
   //--------------------------------------------------------
 
   class AtomicRegulator {
-  
+
   public:
 
     /** linear solver types */
@@ -68,14 +68,14 @@ namespace ATC {
       GHOST_FLUX,
       FIXED
     };
-  
+
     // constructor
     AtomicRegulator(ATC_Coupling * atc,
                     const std::string & regulatorPrefix = "");
-        
+
     // destructor
     virtual ~AtomicRegulator();
-        
+
     /** parser/modifier */
     virtual bool modify(int narg, char **arg);
 
@@ -87,11 +87,11 @@ namespace ATC {
 
     /** initialization of method data */
     virtual void initialize();
-        
+
     /** add output information */
     virtual void output(OUTPUT_LIST & outputData) const;
-    virtual double compute_vector(int n) const {return 0;}
-    
+    virtual double compute_vector(int /* n */) const {return 0;}
+
     /** final work at the end of a run */
     virtual void finish();
 
@@ -101,7 +101,7 @@ namespace ATC {
     /** set up atom to material identification */
     virtual void reset_atom_materials(const Array<int> & elementToMaterialMap,
                                       const MatrixDependencyManager<DenseMatrix, int> * atomElement);
-        
+
     // application steps
     /** apply the regulator in the pre-predictor phase */
     virtual void apply_pre_predictor(double dt, int timeStep);
@@ -123,26 +123,27 @@ namespace ATC {
     virtual void pack_fields(RESTART_LIST & data);
 
     /** thermo output */
-    virtual int size_vector(int s) const {return 0;};
+    virtual int size_vector(int /* s */) const {return 0;};
 
     // coupling to FE state
     /** FE state variable regulator is applied to */
     virtual RegulatorTargetType regulator_target() const {return regulatorTarget_;};
     /** type of boundary coupling */
     //TEMP_JAT field variable should be removed
-    virtual RegulatorCouplingType coupling_mode(const FieldName field=NUM_TOTAL_FIELDS) const {return couplingMode_;};
+    virtual RegulatorCouplingType coupling_mode(const FieldName /* field */) const {return couplingMode_;};
+    virtual RegulatorCouplingType coupling_mode() const {return couplingMode_;};
     /** compute the thermal boundary flux, must be consistent with regulator */
     virtual void compute_boundary_flux(FIELDS & fields);
     /** add contributions (if any) to the finite element right-hand side */
     virtual void add_to_rhs(FIELDS & rhs);
-        
+
     // data access, intended for method objects
     /** returns a pointer to the DENS_MAN associated with the tag, creates a new data member if necessary */
     DENS_MAN * regulator_data(const std::string tag, int nCols);
     /** can externally set regulator dynamic contributions */
-    virtual void reset_lambda_contribution(const DENS_MAT & target, const FieldName field) {};
+    virtual void reset_lambda_contribution(const DENS_MAT & /* target */, const FieldName /* field */) {};
     virtual void reset_lambda_contribution(const DENS_MAT & target) { reset_lambda_contribution(target,NUM_TOTAL_FIELDS); }
-    /** returns a const pointer to the DENS_MAN associated with the tag, or NULL */
+    /** returns a const pointer to the DENS_MAN associated with the tag, or nullptr */
     const DENS_MAN * regulator_data(const std::string tag) const;
     /** return the maximum number of iterations */
     int max_iterations() {return maxIterations_;};
@@ -157,7 +158,7 @@ namespace ATC {
     /** access for number of spatial dimensions */
     int nsd() {return nsd_;};
     /** access for number of local atoms */
-    int nlocal() {return nLocal_;}; 
+    int nlocal() {return nLocal_;};
     /** access for boundary integration methods */
     BoundaryIntegrationType boundary_integration_type()
       {return boundaryIntegrationType_;};
@@ -175,7 +176,7 @@ namespace ATC {
     /** check to see if this direction is being used */
     bool apply_in_direction(int i) const {return applyInDirection_[i];};
 
-    
+
     /** checks if there are any fixed nodes in the MD region */
     bool md_fixed_nodes(FieldName fieldName = NUM_TOTAL_FIELDS) const;
 
@@ -184,7 +185,7 @@ namespace ATC {
 
     /** returns prefix tag for regulator */
     const std::string & regulator_prefix() const {return regulatorPrefix_;};
-        
+
   protected:
 
     // methods
@@ -199,11 +200,11 @@ namespace ATC {
 
     /** sets all data to be used */
     void set_all_data_to_used();
-        
+
     // data
     /** point to atc_transfer object */
     ATC_Coupling * atc_;
-        
+
     /** how often in number of time steps regulator is applied */
     int howOften_;
 
@@ -226,7 +227,7 @@ namespace ATC {
     RegulatorTargetType regulatorTarget_;
     /** regulator fe coupling type flag */
     RegulatorCouplingType couplingMode_;
-                
+
     /** number of nodes */
     int nNodes_;
     /** number of spatial dimensions */
@@ -240,7 +241,7 @@ namespace ATC {
 
     /** restrict application in certain directions */
     std::vector<bool> applyInDirection_;
-        
+
     // method pointers
     /** time filtering object */
     TimeFilter * timeFilter_;
@@ -255,30 +256,30 @@ namespace ATC {
     const std::string regulatorPrefix_;
 
   private:
-    
+
     // DO NOT define this
     AtomicRegulator();
-        
+
   };
 
   /**
    *  @class  RegulatorMethod
    *  @brief  Base class for implementation of control algorithms
    */
-  
+
   //--------------------------------------------------------
   //--------------------------------------------------------
   //  Class RegulatorMethod
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   class RegulatorMethod {
-  
+
   public:
-  
+
     RegulatorMethod(AtomicRegulator * atomicRegulator,
                     const std::string & regulatorPrefix = "");
-        
+
     virtual ~RegulatorMethod(){};
 
     /** instantiate all needed data */
@@ -291,29 +292,29 @@ namespace ATC {
     virtual void reset_nlocal(){};
 
     /** set up atom to material identification */
-    virtual void reset_atom_materials(const Array<int> & elementToMaterialMap,
-                                      const MatrixDependencyManager<DenseMatrix, int> * atomElement){};
-        
+    virtual void reset_atom_materials(const Array<int> & /* elementToMaterialMap */,
+                                      const MatrixDependencyManager<DenseMatrix, int> * /* atomElement */){};
+
     /** applies regulator to atoms in the pre-predictor phase */
-    virtual void apply_pre_predictor(double dt){};
+    virtual void apply_pre_predictor(double /* dt */){};
 
     /** applies regulator to atoms in the mid-predictor phase */
-    virtual void apply_mid_predictor(double dt){};
+    virtual void apply_mid_predictor(double /* dt */){};
 
     /** applies regulator to atoms in the post-predictor phase */
-    virtual void apply_post_predictor(double dt){};
+    virtual void apply_post_predictor(double /* dt */){};
 
     /** applies regulator to atoms in the pre-corrector phase */
-    virtual void apply_pre_corrector(double dt){};
+    virtual void apply_pre_corrector(double /* dt */){};
 
     /** applies regulator to atoms in the post-corrector phase */
-    virtual void apply_post_corrector(double dt){};
+    virtual void apply_post_corrector(double /* dt */){};
 
     /** applies regulator to atoms in the pre-corrector phase */
-    virtual void apply_pre_force(double dt){};
+    virtual void apply_pre_force(double /* dt */){};
 
     /** applies regulator to atoms in the post-corrector phase */
-    virtual void apply_post_force(double dt){};
+    virtual void apply_post_force(double /* dt */){};
 
     /** applies regulator in pre-force phase */
     virtual void pre_force(){};
@@ -328,18 +329,18 @@ namespace ATC {
     virtual void compute_boundary_flux(FIELDS & fields);
 
     /** add contributions (if any) to the finite element right-hand side */
-    virtual void add_to_rhs(FIELDS & rhs){};
+    virtual void add_to_rhs(FIELDS & /* rhs */){};
 
     /** get data for output */
-    virtual void output(OUTPUT_LIST & outputData){};
-    virtual double compute_vector(int n) const {return 0;}
+    virtual void output(OUTPUT_LIST & /* outputData */){};
+    virtual double compute_vector(int /* n */) const {return 0;}
 
     /** final work at the end of a run */
     virtual void finish(){};
 
     /** pack fields for restart */
-    virtual void pack_fields(RESTART_LIST & data){};
-        
+    virtual void pack_fields(RESTART_LIST & /* data */){};
+
   protected:
 
     //data
@@ -371,7 +372,7 @@ namespace ATC {
 
     // DO NOT define this
     RegulatorMethod();
-  
+
   };
 
   /**
@@ -388,14 +389,14 @@ namespace ATC {
   //    of N^T w N lambda = rhs
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   class RegulatorShapeFunction : public RegulatorMethod {
-  
+
   public:
-  
+
     RegulatorShapeFunction(AtomicRegulator * atomicRegulator,
                            const std::string & regulatorPrefix = "");
-        
+
     virtual ~RegulatorShapeFunction();
 
     /** instantiate all needed data */
@@ -523,18 +524,18 @@ namespace ATC {
   //  Class LambdaMatrixSolver
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   class LambdaMatrixSolver {
-  
+
   public:
-        
+
     LambdaMatrixSolver(SPAR_MAN & matrixTemplate, SPAR_MAN * shapeFunctionMatrix, int maxIterations, double tolerance);
-        
+
     virtual ~LambdaMatrixSolver(){};
 
     /** assemble the matrix */
     virtual void assemble_matrix(DIAG_MAT & weights);
-        
+
     /** execute the solver */
     virtual void execute(VECTOR & rhs, VECTOR & lambda)=0;
 
@@ -548,7 +549,7 @@ namespace ATC {
 
     /** matrix used to solve for lambda */
     SPAR_MAT lambdaMatrix_;
-        
+
     /** maximum number of iterations */
     int maxIterations_;
 
@@ -559,7 +560,7 @@ namespace ATC {
 
     // DO NOT define this
     LambdaMatrixSolver();
-  
+
   };
 
   //--------------------------------------------------------
@@ -567,24 +568,24 @@ namespace ATC {
   //  Class LambdaMatrixSolverLumped
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   class LambdaMatrixSolverLumped : public LambdaMatrixSolver {
-  
+
   public:
-        
+
     LambdaMatrixSolverLumped(SPAR_MAN & matrixTemplate, SPAR_MAN * shapeFunctionMatrix, int maxIterations, double tolerance, const SetDependencyManager<int> * applicationNodes, const NodeToSubset * nodeToOverlapMap);
-        
+
     virtual ~LambdaMatrixSolverLumped(){};
 
     /** assemble the matrix */
     virtual void assemble_matrix(DIAG_MAT & weights);
-        
+
     /** execute the solver */
-    virtual void execute(VECTOR & rhs, VECTOR & lambda); 
-        
+    virtual void execute(VECTOR & rhs, VECTOR & lambda);
+
   protected:
 
-    /** lumped version of the matrix governing lamda */
+    /** lumped version of the matrix governing lambda */
     DIAG_MAT lumpedMatrix_;
 
     /** set of regulated nodes */
@@ -597,7 +598,7 @@ namespace ATC {
 
     // DO NOT define this
     LambdaMatrixSolverLumped();
-  
+
   };
 
   //--------------------------------------------------------
@@ -605,18 +606,18 @@ namespace ATC {
   //  Class LambdaMatrixSolverCg
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   class LambdaMatrixSolverCg : public LambdaMatrixSolver {
-  
+
   public:
-        
+
     LambdaMatrixSolverCg(SPAR_MAN & matrixTemplate, SPAR_MAN * shapeFunctionMatrix, int maxIterations, double tolerance);
-        
+
     virtual ~LambdaMatrixSolverCg(){};
-        
+
     /** execute the solver */
-    virtual void execute(VECTOR & rhs, VECTOR & lambda); 
-        
+    virtual void execute(VECTOR & rhs, VECTOR & lambda);
+
   protected:
 
 
@@ -624,7 +625,7 @@ namespace ATC {
 
     // DO NOT define this
     LambdaMatrixSolverCg();
-  
+
   };
 
 };

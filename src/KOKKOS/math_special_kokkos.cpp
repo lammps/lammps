@@ -1,7 +1,8 @@
+// clang-format off
 
+#include "math_special_kokkos.h"
 #include <cmath>
 #include <cstdint>
-#include "math_special_kokkos.h"
 
 using namespace LAMMPS_NS;
 
@@ -44,7 +45,7 @@ using namespace LAMMPS_NS;
  *   Joachim Wuttke, Forschungszentrum Jülich, 2013, package maintainer
  *
  * Website:
- *   http://apps.jcns.fz-juelich.de/libcerf
+ *   https://jugit.fz-juelich.de/mlz/libcerf
  *
  * Revision history:
  *   ../CHANGELOG

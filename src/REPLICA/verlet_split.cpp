@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,7 +16,6 @@
    Contributing authors: Yuxing Peng and Chris Knight (U Chicago)
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "verlet_split.h"
 #include "universe.h"
 #include "neighbor.h"
@@ -43,7 +43,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 VerletSplit::VerletSplit(LAMMPS *lmp, int narg, char **arg) :
-  Verlet(lmp, narg, arg), qsize(NULL), qdisp(NULL), xsize(NULL), xdisp(NULL), f_kspace(NULL)
+  Verlet(lmp, narg, arg), qsize(nullptr), qdisp(nullptr), xsize(nullptr), xdisp(nullptr), f_kspace(nullptr)
 {
   // error checks on partitions
 
@@ -195,7 +195,7 @@ VerletSplit::VerletSplit(LAMMPS *lmp, int narg, char **arg) :
   // allocate dummy version for Kspace partition
 
   maxatom = 0;
-  f_kspace = NULL;
+  f_kspace = nullptr;
   if (!master) memory->create(f_kspace,1,1,"verlet/split:f_kspace");
 }
 
@@ -290,7 +290,7 @@ void VerletSplit::run(int n)
 
   Fix *fix_omp;
   int ifix = modify->find_fix("package_omp");
-  if (ifix < 0) fix_omp = NULL;
+  if (ifix < 0) fix_omp = nullptr;
   else fix_omp = modify->fix[ifix];
 
   // flags for timestepping iterations
@@ -368,7 +368,7 @@ void VerletSplit::run(int n)
         timer->stamp(Timer::PAIR);
       }
 
-      if (atom->molecular) {
+      if (atom->molecular != Atom::ATOMIC) {
         if (force->bond) force->bond->compute(eflag,vflag);
         if (force->angle) force->angle->compute(eflag,vflag);
         if (force->dihedral) force->dihedral->compute(eflag,vflag);
@@ -581,8 +581,8 @@ void VerletSplit::k2r_comm()
    memory usage of Kspace force array on master procs
 ------------------------------------------------------------------------- */
 
-bigint VerletSplit::memory_usage()
+double VerletSplit::memory_usage()
 {
-  bigint bytes = maxatom*3 * sizeof(double);
+  double bytes = (double)maxatom*3 * sizeof(double);
   return bytes;
 }

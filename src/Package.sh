@@ -45,9 +45,8 @@ elif (test $2 = "installed") then
 # perform a re-install, but only if the package is already installed
 
 elif (test $2 = "update") then
-  echo "Updating src files from $1 package files"
   if (test $installed = 1) then
-    echo "  updating package $1"
+     echo "Updating src files from $1 package files"
     if (test -e Install.sh) then
       /bin/sh Install.sh 2
     else
@@ -55,16 +54,14 @@ elif (test $2 = "update") then
     fi
     cd ..
     /bin/sh Depend.sh $1
-  else
-    echo "  $1 package is not installed"
   fi
 
 # overwrite, only if installed
 # overwrite package file with src file, if the two are different
 
 elif (test $2 = "overwrite") then
-  echo "Overwriting $1 package files with src files"
   if (test $installed = 1) then
+     echo "Overwriting $1 package files with src files"
     for file in *.cpp *.h; do
       if (test ! -e ../$file) then
         continue
@@ -91,7 +88,7 @@ elif (test $2 = "diff") then
         echo "************************************************"
         echo "diff -u $1/$file src/$file "
         echo "************************************************"
-	diff -u $file  ../$file 
+        diff -u $file  ../$file
       fi
     done
   fi

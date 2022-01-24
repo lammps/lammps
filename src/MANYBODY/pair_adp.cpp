@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,11 +17,11 @@
                          Chandra Veer Singh (Cornell)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_adp.h"
+
+#include <cmath>
+
+#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
@@ -28,11 +29,11 @@
 #include "neigh_list.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
+#include "tokenizer.h"
+#include "potential_file_reader.h"
 
 using namespace LAMMPS_NS;
-
-#define MAXLINE 1024
 
 /* ---------------------------------------------------------------------- */
 
@@ -41,25 +42,24 @@ PairADP::PairADP(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
 
   nmax = 0;
-  rho = NULL;
-  fp = NULL;
-  mu = NULL;
-  lambda = NULL;
-  map = NULL;
+  rho = nullptr;
+  fp = nullptr;
+  mu = nullptr;
+  lambda = nullptr;
 
-  setfl = NULL;
+  setfl = nullptr;
 
-  frho = NULL;
-  rhor = NULL;
-  z2r = NULL;
-  u2r = NULL;
-  w2r = NULL;
+  frho = nullptr;
+  rhor = nullptr;
+  z2r = nullptr;
+  u2r = nullptr;
+  w2r = nullptr;
 
-  frho_spline = NULL;
-  rhor_spline = NULL;
-  z2r_spline = NULL;
-  u2r_spline = NULL;
-  w2r_spline = NULL;
+  frho_spline = nullptr;
+  rhor_spline = nullptr;
+  z2r_spline = nullptr;
+  u2r_spline = nullptr;
+  w2r_spline = nullptr;
 
   // set comm size needed by this Pair
 
@@ -69,6 +69,7 @@ PairADP::PairADP(LAMMPS *lmp) : Pair(lmp)
   single_enable = 0;
   one_coeff = 1;
   manybody_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
 }
 
 /* ----------------------------------------------------------------------
@@ -85,7 +86,6 @@ PairADP::~PairADP()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    delete [] map;
     delete [] type2frho;
     memory->destroy(type2rhor);
     memory->destroy(type2z2r);
@@ -96,7 +96,7 @@ PairADP::~PairADP()
   if (setfl) {
     for (int i = 0; i < setfl->nelements; i++) delete [] setfl->elements[i];
     delete [] setfl->elements;
-    delete [] setfl->mass;
+    memory->destroy(setfl->mass);
     memory->destroy(setfl->frho);
     memory->destroy(setfl->rhor);
     memory->destroy(setfl->z2r);
@@ -133,8 +133,7 @@ void PairADP::compute(int eflag, int vflag)
   double sumlamxx,sumlamyy,sumlamzz,sumlamyz,sumlamxz,sumlamxy;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   // grow local arrays if necessary
   // need to be atom->nmax in length
@@ -454,7 +453,7 @@ void PairADP::coeff(int narg, char **arg)
   if (setfl) {
     for (i = 0; i < setfl->nelements; i++) delete [] setfl->elements[i];
     delete [] setfl->elements;
-    delete [] setfl->mass;
+    memory->destroy(setfl->mass);
     memory->destroy(setfl->frho);
     memory->destroy(setfl->rhor);
     memory->destroy(setfl->z2r);
@@ -466,7 +465,7 @@ void PairADP::coeff(int narg, char **arg)
   read_file(arg[2]);
 
   // read args that map atom types to elements in potential file
-  // map[i] = which element the Ith atom type is, -1 if NULL
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
 
   for (i = 3; i < narg; i++) {
     if (strcmp(arg[i],"NULL") == 0) {
@@ -542,110 +541,125 @@ void PairADP::read_file(char *filename)
 {
   Setfl *file = setfl;
 
-  // open potential file
+  // read potential file
+  if (comm->me == 0) {
+    PotentialFileReader reader(lmp, filename, "adp");
 
-  int me = comm->me;
-  FILE *fp;
-  char line[MAXLINE];
+    try {
+      reader.skip_line();
+      reader.skip_line();
+      reader.skip_line();
 
-  if (me == 0) {
-    fp = force->open_potential(filename);
-    if (fp == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open ADP potential file %s",filename);
-      error->one(FLERR,str);
+      // extract element names from nelements line
+      ValueTokenizer values = reader.next_values(1);
+      file->nelements = values.next_int();
+
+      if ((int)values.count() != file->nelements + 1)
+        error->one(FLERR,"Incorrect element names in ADP potential file");
+
+      file->elements = new char*[file->nelements];
+      for (int i = 0; i < file->nelements; i++) {
+        const std::string word = values.next_string();
+        const int n = word.length() + 1;
+        file->elements[i] = new char[n];
+        strcpy(file->elements[i], word.c_str());
+      }
+
+      //
+
+      values = reader.next_values(5);
+      file->nrho = values.next_int();
+      file->drho = values.next_double();
+      file->nr   = values.next_int();
+      file->dr   = values.next_double();
+      file->cut  = values.next_double();
+
+      if ((file->nrho <= 0) || (file->nr <= 0) || (file->dr <= 0.0))
+        error->one(FLERR,"Invalid EAM potential file");
+
+      memory->create(file->mass, file->nelements, "pair:mass");
+      memory->create(file->frho, file->nelements, file->nrho + 1, "pair:frho");
+      memory->create(file->rhor, file->nelements, file->nr + 1, "pair:rhor");
+      memory->create(file->z2r, file->nelements, file->nelements, file->nr + 1, "pair:z2r");
+      memory->create(file->u2r, file->nelements, file->nelements, file->nr + 1, "pair:u2r");
+      memory->create(file->w2r, file->nelements, file->nelements, file->nr + 1, "pair:w2r");
+
+      for (int i = 0; i < file->nelements; i++) {
+        values = reader.next_values(2);
+        values.next_int(); // ignore
+        file->mass[i] = values.next_double();
+
+        reader.next_dvector(&file->frho[i][1], file->nrho);
+        reader.next_dvector(&file->rhor[i][1], file->nr);
+      }
+
+      for (int i = 0; i < file->nelements; i++) {
+        for (int j = 0; j <= i; j++) {
+          reader.next_dvector(&file->z2r[i][j][1], file->nr);
+        }
+      }
+
+      for (int i = 0; i < file->nelements; i++) {
+        for (int j = 0; j <= i; j++) {
+          reader.next_dvector(&file->u2r[i][j][1], file->nr);
+        }
+      }
+
+      for (int i = 0; i < file->nelements; i++) {
+        for (int j = 0; j <= i; j++) {
+          reader.next_dvector(&file->w2r[i][j][1], file->nr);
+        }
+      }
+    } catch (TokenizerException &e) {
+      error->one(FLERR, e.what());
     }
   }
 
-  // read and broadcast header
-  // extract element names from nelements line
+  // broadcast potential information
+  MPI_Bcast(&file->nelements, 1, MPI_INT, 0, world);
 
-  int n;
-  if (me == 0) {
-    utils::sfgets(FLERR,line,MAXLINE,fp,filename,error);
-    utils::sfgets(FLERR,line,MAXLINE,fp,filename,error);
-    utils::sfgets(FLERR,line,MAXLINE,fp,filename,error);
-    utils::sfgets(FLERR,line,MAXLINE,fp,filename,error);
-    n = strlen(line) + 1;
+  MPI_Bcast(&file->nrho, 1, MPI_INT, 0, world);
+  MPI_Bcast(&file->drho, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&file->nr, 1, MPI_INT, 0, world);
+  MPI_Bcast(&file->dr, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&file->cut, 1, MPI_DOUBLE, 0, world);
+
+  // allocate memory on other procs
+  if (comm->me != 0) {
+    file->elements = new char*[file->nelements];
+    for (int i = 0; i < file->nelements; i++) file->elements[i] = nullptr;
+    memory->create(file->mass, file->nelements, "pair:mass");
+    memory->create(file->frho, file->nelements, file->nrho + 1, "pair:frho");
+    memory->create(file->rhor, file->nelements, file->nr + 1, "pair:rhor");
+    memory->create(file->z2r, file->nelements, file->nelements, file->nr + 1, "pair:z2r");
+    memory->create(file->u2r, file->nelements, file->nelements, file->nr + 1, "pair:u2r");
+    memory->create(file->w2r, file->nelements, file->nelements, file->nr + 1, "pair:w2r");
   }
-  MPI_Bcast(&n,1,MPI_INT,0,world);
-  MPI_Bcast(line,n,MPI_CHAR,0,world);
 
-  sscanf(line,"%d",&file->nelements);
-  int nwords = atom->count_words(line);
-  if (nwords != file->nelements + 1)
-    error->all(FLERR,"Incorrect element names in ADP potential file");
-
-  char **words = new char*[file->nelements+1];
-  nwords = 0;
-  strtok(line," \t\n\r\f");
-  while ((words[nwords++] = strtok(NULL," \t\n\r\f"))) continue;
-
-  file->elements = new char*[file->nelements];
+  // broadcast file->elements string array
   for (int i = 0; i < file->nelements; i++) {
-    n = strlen(words[i]) + 1;
-    file->elements[i] = new char[n];
-    strcpy(file->elements[i],words[i]);
-  }
-  delete [] words;
-
-  if (me == 0) {
-    utils::sfgets(FLERR,line,MAXLINE,fp,filename,error);
-    sscanf(line,"%d %lg %d %lg %lg",
-           &file->nrho,&file->drho,&file->nr,&file->dr,&file->cut);
+    int n;
+    if (comm->me == 0) n = strlen(file->elements[i]) + 1;
+    MPI_Bcast(&n, 1, MPI_INT, 0, world);
+    if (comm->me != 0) file->elements[i] = new char[n];
+    MPI_Bcast(file->elements[i], n, MPI_CHAR, 0, world);
   }
 
-  MPI_Bcast(&file->nrho,1,MPI_INT,0,world);
-  MPI_Bcast(&file->drho,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&file->nr,1,MPI_INT,0,world);
-  MPI_Bcast(&file->dr,1,MPI_DOUBLE,0,world);
-  MPI_Bcast(&file->cut,1,MPI_DOUBLE,0,world);
-
-  file->mass = new double[file->nelements];
-  memory->create(file->frho,file->nelements,file->nrho+1,"pair:frho");
-  memory->create(file->rhor,file->nelements,file->nr+1,"pair:rhor");
-  memory->create(file->z2r,file->nelements,file->nelements,file->nr+1,
-                 "pair:z2r");
-  memory->create(file->u2r,file->nelements,file->nelements,file->nr+1,
-                 "pair:u2r");
-  memory->create(file->w2r,file->nelements,file->nelements,file->nr+1,
-                 "pair:w2r");
-
-  int i,j,tmp;
-  for (i = 0; i < file->nelements; i++) {
-    if (me == 0) {
-      utils::sfgets(FLERR,line,MAXLINE,fp,filename,error);
-      sscanf(line,"%d %lg",&tmp,&file->mass[i]);
-    }
+  // broadcast file->mass, frho, rhor
+  for (int i = 0; i < file->nelements; i++) {
     MPI_Bcast(&file->mass[i],1,MPI_DOUBLE,0,world);
-
-    if (me == 0) grab(fp,filename,file->nrho,&file->frho[i][1]);
     MPI_Bcast(&file->frho[i][1],file->nrho,MPI_DOUBLE,0,world);
-    if (me == 0) grab(fp,filename,file->nr,&file->rhor[i][1]);
     MPI_Bcast(&file->rhor[i][1],file->nr,MPI_DOUBLE,0,world);
   }
 
-  for (i = 0; i < file->nelements; i++)
-    for (j = 0; j <= i; j++) {
-      if (me == 0) grab(fp,filename,file->nr,&file->z2r[i][j][1]);
+  // broadcast file->z2r, u2r, w2r
+  for (int i = 0; i < file->nelements; i++) {
+    for (int j = 0; j <= i; j++) {
       MPI_Bcast(&file->z2r[i][j][1],file->nr,MPI_DOUBLE,0,world);
-    }
-
-  for (i = 0; i < file->nelements; i++)
-    for (j = 0; j <= i; j++) {
-      if (me == 0) grab(fp,filename,file->nr,&file->u2r[i][j][1]);
       MPI_Bcast(&file->u2r[i][j][1],file->nr,MPI_DOUBLE,0,world);
-    }
-
-  for (i = 0; i < file->nelements; i++)
-    for (j = 0; j <= i; j++) {
-      if (me == 0) grab(fp,filename,file->nr,&file->w2r[i][j][1]);
       MPI_Bcast(&file->w2r[i][j][1],file->nr,MPI_DOUBLE,0,world);
     }
-
-  // close the potential file
-
-  if (me == 0) fclose(fp);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -913,26 +927,6 @@ void PairADP::interpolate(int n, double delta, double *f, double **spline)
   }
 }
 
-/* ----------------------------------------------------------------------
-   grab n values from file fp and put them in list
-   values can be several to a line
-   only called by proc 0
-------------------------------------------------------------------------- */
-
-void PairADP::grab(FILE *fp, char *filename, int n, double *list)
-{
-  char *ptr;
-  char line[MAXLINE];
-
-  int i = 0;
-  while (i < n) {
-    utils::sfgets(FLERR,line,MAXLINE,fp,filename,error);
-    ptr = strtok(line," \t\n\r\f");
-    list[i++] = atof(ptr);
-    while ((ptr = strtok(NULL," \t\n\r\f"))) list[i++] = atof(ptr);
-  }
-}
-
 /* ---------------------------------------------------------------------- */
 
 int PairADP::pack_forward_comm(int n, int *list, double *buf,
@@ -1031,6 +1025,6 @@ void PairADP::unpack_reverse_comm(int n, int *list, double *buf)
 double PairADP::memory_usage()
 {
   double bytes = Pair::memory_usage();
-  bytes += 21 * nmax * sizeof(double);
+  bytes += (double)21 * nmax * sizeof(double);
   return bytes;
 }

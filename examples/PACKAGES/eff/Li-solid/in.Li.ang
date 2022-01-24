@@ -1,0 +1,57 @@
+variable        sname index Li.ang
+
+units           real
+newton          on
+boundary        p p p
+dielectric	1.0
+
+atom_style      electron
+
+read_data       data.${sname}
+#read_restart	${sname}.min.restart
+
+pair_style      eff/cut 11.049221 limit/eradius pressure/evirials
+pair_coeff      * *
+
+comm_modify	vel yes
+
+neigh_modify	one 2000 page 20000
+
+compute         peratom all stress/atom NULL
+compute         p all reduce sum c_peratom[1] c_peratom[2] c_peratom[3]
+variable        press equal -(c_p[1]+c_p[2]+c_p[3])/(3*vol)
+
+compute         effTemp all temp/eff
+compute         effPress all pressure effTemp
+
+compute         energies all pair eff/cut
+variable        eke equal c_energies[1]
+variable        epauli equal c_energies[2]
+variable        ecoul equal c_energies[3]
+variable        erres equal c_energies[4]
+
+thermo          100
+thermo_style    custom step etotal pe ke v_eke v_epauli v_ecoul v_erres press v_press temp
+thermo_modify	temp effTemp press effPress flush yes	
+
+#min_style	cg
+#minimize	0 1e-6 100 1000
+#write_restart	${sname}.min.restart
+
+timestep	0.005
+
+velocity        all create 10.0 4928459 rot yes mom yes dist gaussian
+fix 		0 all temp/rescale/eff 1 10.0 3000.0 0.05 1.0
+#fix		0 all langevin/eff 3000.0 3000.0 10.0 699483
+fix		1 all nve/eff
+
+run		200
+unfix		0
+unfix		1
+
+fix		1 all nvt/eff temp 3000.0 3000.0 100.0
+compute         1 all property/atom spin eradius ervel
+dump            1 all custom 500 ${sname}.nvt.lammpstrj id type q c_1[1] c_1[2] x y z vx vy vz c_1[3]
+
+run 		500
+

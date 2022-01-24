@@ -2,10 +2,11 @@
 //@HEADER
 // ************************************************************************
 //
-//                        Kokkos v. 2.0
-//              Copyright (2014) Sandia Corporation
+//                        Kokkos v. 3.0
+//       Copyright (2020) National Technology & Engineering
+//               Solutions of Sandia, LLC (NTESS).
 //
-// Under the terms of Contract DE-AC04-94AL85000 with Sandia Corporation,
+// Under the terms of Contract DE-NA0003525 with NTESS,
 // the U.S. Government retains certain rights in this software.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -23,10 +24,10 @@
 // contributors may be used to endorse or promote products derived from
 // this software without specific prior written permission.
 //
-// THIS SOFTWARE IS PROVIDED BY SANDIA CORPORATION "AS IS" AND ANY
+// THIS SOFTWARE IS PROVIDED BY NTESS "AS IS" AND ANY
 // EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL SANDIA CORPORATION OR THE
+// PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL NTESS OR THE
 // CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
 // EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 // PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
@@ -41,31 +42,29 @@
 //@HEADER
 */
 
-#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
+#if defined(KOKKOS_ENABLE_RFO_PREFETCH)
 #include <xmmintrin.h>
 #endif
 
 #include <Kokkos_Macros.hpp>
-#if defined( KOKKOS_ATOMIC_HPP) && ! defined( KOKKOS_ATOMIC_INCREMENT_HPP )
+#if defined(KOKKOS_ATOMIC_HPP) && !defined(KOKKOS_ATOMIC_INCREMENT_HPP)
 #define KOKKOS_ATOMIC_INCREMENT_HPP
 
 namespace Kokkos {
 
 // Atomic increment
-template<>
-KOKKOS_INLINE_FUNCTION
-void atomic_increment<char>(volatile char* a) {
-#if defined( KOKKOS_ENABLE_ASM ) && defined( KOKKOS_ENABLE_ISA_X86_64 ) && ! defined(_WIN32) && ! defined(__CUDA_ARCH__)
-#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
-  _mm_prefetch( (const char*) a, _MM_HINT_ET0 );
+template <>
+KOKKOS_INLINE_FUNCTION void atomic_increment<char>(volatile char* a) {
+#if defined(KOKKOS_ENABLE_ASM) && defined(KOKKOS_ENABLE_ISA_X86_64) && \
+    !defined(_WIN32) && !defined(__CUDA_ARCH__)
+#if defined(KOKKOS_ENABLE_RFO_PREFETCH)
+  _mm_prefetch((const char*)a, _MM_HINT_ET0);
 #endif
-  __asm__ __volatile__(
-      "lock incb %0"
-      : /* no output registers */
-      : "m" (a[0])
-      : "memory"
-    );
-#elif defined( KOKKOS_ENABLE_SERIAL_ATOMICS )
+  __asm__ __volatile__("lock incb %0"
+                       : /* no output registers */
+                       : "m"(a[0])
+                       : "memory");
+#elif defined(KOKKOS_ENABLE_SERIAL_ATOMICS)
   char* a_nv = const_cast<char*>(a);
   ++(*a_nv);
 #else
@@ -73,20 +72,18 @@ void atomic_increment<char>(volatile char* a) {
 #endif
 }
 
-template<>
-KOKKOS_INLINE_FUNCTION
-void atomic_increment<short>(volatile short* a) {
-#if defined( KOKKOS_ENABLE_ASM ) && defined( KOKKOS_ENABLE_ISA_X86_64 ) && ! defined(_WIN32) && ! defined(__CUDA_ARCH__)
-#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
-  _mm_prefetch( (const char*) a, _MM_HINT_ET0 );
+template <>
+KOKKOS_INLINE_FUNCTION void atomic_increment<short>(volatile short* a) {
+#if defined(KOKKOS_ENABLE_ASM) && defined(KOKKOS_ENABLE_ISA_X86_64) && \
+    !defined(_WIN32) && !defined(__CUDA_ARCH__)
+#if defined(KOKKOS_ENABLE_RFO_PREFETCH)
+  _mm_prefetch((const char*)a, _MM_HINT_ET0);
 #endif
-  __asm__ __volatile__(
-      "lock incw %0"
-      : /* no output registers */
-      : "m" (a[0])
-      : "memory"
-    );
-#elif defined( KOKKOS_ENABLE_SERIAL_ATOMICS )
+  __asm__ __volatile__("lock incw %0"
+                       : /* no output registers */
+                       : "m"(a[0])
+                       : "memory");
+#elif defined(KOKKOS_ENABLE_SERIAL_ATOMICS)
   short* a_nv = const_cast<short*>(a);
   ++(*a_nv);
 #else
@@ -94,60 +91,57 @@ void atomic_increment<short>(volatile short* a) {
 #endif
 }
 
-template<>
-KOKKOS_INLINE_FUNCTION
-void atomic_increment<int>(volatile int* a) {
-#if defined( KOKKOS_ENABLE_ASM ) && defined( KOKKOS_ENABLE_ISA_X86_64 ) && ! defined(_WIN32) && ! defined(__CUDA_ARCH__)
-#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
-  _mm_prefetch( (const char*) a, _MM_HINT_ET0 );
+#ifndef _WIN32
+template <>
+KOKKOS_INLINE_FUNCTION void atomic_increment<int>(volatile int* a) {
+#if defined(KOKKOS_ENABLE_ASM) && defined(KOKKOS_ENABLE_ISA_X86_64) && \
+    !defined(_WIN32) && !defined(__CUDA_ARCH__)
+#if defined(KOKKOS_ENABLE_RFO_PREFETCH)
+  _mm_prefetch((const char*)a, _MM_HINT_ET0);
 #endif
-  __asm__ __volatile__(
-      "lock incl %0"
-      : /* no output registers */
-      : "m" (a[0])
-      : "memory"
-    );
-#elif defined( KOKKOS_ENABLE_SERIAL_ATOMICS )
+  __asm__ __volatile__("lock incl %0"
+                       : /* no output registers */
+                       : "m"(a[0])
+                       : "memory");
+#elif defined(KOKKOS_ENABLE_SERIAL_ATOMICS)
   int* a_nv = const_cast<int*>(a);
   ++(*a_nv);
 #else
-  Kokkos::atomic_fetch_add(a,int(1));
+  Kokkos::atomic_fetch_add(a, int(1));
 #endif
 }
-
-template<>
-KOKKOS_INLINE_FUNCTION
-void atomic_increment<long long int>(volatile long long int* a) {
-#if defined( KOKKOS_ENABLE_ASM ) && defined( KOKKOS_ENABLE_ISA_X86_64 ) && ! defined(_WIN32) && ! defined(__CUDA_ARCH__)
-#if defined( KOKKOS_ENABLE_RFO_PREFETCH )
-  _mm_prefetch( (const char*) a, _MM_HINT_ET0 );
 #endif
-  __asm__ __volatile__(
-      "lock incq %0"
-      : /* no output registers */
-      : "m" (a[0])
-      : "memory"
-    );
-#elif defined( KOKKOS_ENABLE_SERIAL_ATOMICS )
+
+template <>
+KOKKOS_INLINE_FUNCTION void atomic_increment<long long int>(
+    volatile long long int* a) {
+#if defined(KOKKOS_ENABLE_ASM) && defined(KOKKOS_ENABLE_ISA_X86_64) && \
+    !defined(_WIN32) && !defined(__CUDA_ARCH__)
+#if defined(KOKKOS_ENABLE_RFO_PREFETCH)
+  _mm_prefetch((const char*)a, _MM_HINT_ET0);
+#endif
+  __asm__ __volatile__("lock incq %0"
+                       : /* no output registers */
+                       : "m"(a[0])
+                       : "memory");
+#elif defined(KOKKOS_ENABLE_SERIAL_ATOMICS)
   long long int* a_nv = const_cast<long long int*>(a);
   ++(*a_nv);
 #else
   using T = long long int;
-  Kokkos::atomic_fetch_add(a,T(1));
+  Kokkos::atomic_fetch_add(a, T(1));
 #endif
 }
 
-template<typename T>
-KOKKOS_INLINE_FUNCTION
-void atomic_increment(volatile T* a) {
-#if defined( KOKKOS_ENABLE_SERIAL_ATOMICS )
+template <typename T>
+KOKKOS_INLINE_FUNCTION void atomic_increment(volatile T* a) {
+#if defined(KOKKOS_ENABLE_SERIAL_ATOMICS)
   T* a_nv = const_cast<T*>(a);
   ++(*a_nv);
 #else
-  Kokkos::atomic_fetch_add(a,T(1));
+  Kokkos::atomic_fetch_add(a, T(1));
 #endif
 }
 
-} // End of namespace Kokkos
+}  // End of namespace Kokkos
 #endif
-

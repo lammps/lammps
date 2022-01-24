@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(hyper/local,FixHyperLocal)
-
+// clang-format off
+FixStyle(hyper/local,FixHyperLocal);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_HYPER_LOCAL_H
@@ -23,6 +23,8 @@ FixStyle(hyper/local,FixHyperLocal)
 #include "fix_hyper.h"
 
 namespace LAMMPS_NS {
+// forward declaration. struct HyperOneCoeff is defined in my_page.h
+struct HyperOneCoeff;
 
 class FixHyperLocal : public FixHyper {
  public:
@@ -43,12 +45,8 @@ class FixHyperLocal : public FixHyper {
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);
   int pack_reverse_comm(int, int, double *);
+  int pack_reverse_comm_size(int, int);
   void unpack_reverse_comm(int, int *, double *);
-
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
 
   double memory_usage();
 
@@ -59,100 +57,150 @@ class FixHyperLocal : public FixHyper {
 
  private:
   int me;
-  double cutbond,qfactor,vmax,tequil,dcut;
-  double alpha_user;         // timescale to apply boostostat (time units)
-  double alpha;              // unitless dt/alpha_user
-  double boosttarget;        // target value of boost
-  int histoflag;
-  int lostbond,lostbond_partner;
-  double lostbond_coeff;
-  int checkbias,checkbias_every,checkbias_flag,checkbias_count;
-  int checkcoeff,checkcoeff_every,checkcoeff_flag,checkcoeff_count;
 
-  int setupflag;             // 1 during setup, 0 during run
-  int firstflag;             // set for first time bond_build takes place
-  int nostrainyet;           // 1 until maxstrain is first computed
+  // inputs and derived quantities
 
-  int nboost_running,nobias_running;
-  int nbondbuild;
-  double time_bondbuild;
-  bigint starttime;
-  double sumboostcoeff;  // sum of aveboost at every timestep
-  int allbonds;          // sum of bond count on this step
-  double allboost;       // sum of boostcoeff on all bonds on this step
+  double cutbond, qfactor, vmax, tequil, dcut;
+  double alpha_user;            // timescale to apply boostostat (time units)
+  double alpha;                 // unitless dt/alpha_user
+  double boost_target;          // target value of boost
+  int checkghost, checkbias;    // flags for optional stats
+  int checkbias_every;
+  int checkbias_flag;
+  int boundflag, resetfreq;    // bias coeff bounding and reset settings
+  double boundfrac;
 
-  int nnewbond;              // running tally of number of new bonds created
-  int maxbondperatom;        // max # of bonds any atom ever has
-  int commflag;              // flag for communication mode
-  int nevent;                // # of events that trigger bond rebuild
-  int nevent_atom;           // # of atoms that experienced an event
-  double cutbondsq,dcutsq;
-  double beta,invqfactorsq;
-  double mybias;
-  double maxbondlen;         // cummulative max length of any bond
-  double maxdriftsq;         // max distance any atom drifts from original pos
-  double maxboostcoeff;      // cummulative max boost coeff for any bond
-  double minboostcoeff;      // cummulative min boost coeff for any bond
-  double rmaxever,rmaxeverbig;
-  int ghost_toofar;
+  bigint groupatoms;    // # of atoms in fix group
+  double cutbondsq, dcutsq;
+  double beta, invvmax, invqfactorsq;
+
+  // two DEBUG quantities
+  // double myboost;
+  // int overcount;
+
+  // flags
+
+  int setupflag;       // 1 during setup, 0 during run
+  int firstflag;       // set for first time bond_build takes place
+  int nostrainyet;     // 1 until maxstrain is first compute
+  bigint starttime;    // timestep when this fix was invoked
+  int commflag;        // flag for communication mode
+
+  // bias coeff bounds and reset
+
+  double bound_lower, bound_upper;
+  bigint lastreset;
+
+  // stats
+
+  int nbondbuild;           // # of rebuilds of bond list
+  double time_bondbuild;    // CPU time for bond builds
+
+  bigint allbonds;       // current total # of bonds
+  int maxbondperatom;    // max # of bonds any atom ever has
+  int nevent;            // # of events that trigger bond rebuild
+  int nevent_atom;       // # of atoms that experienced an event
+
+  bigint nnewbond;             // running tally of # of new bonds created
+  bigint nbias_running;        // running count of biased bonds
+  bigint nobias_running;       // ditto for bonds with bias = 0, b/c too long
+  bigint negstrain_running;    // ditto for bonds with negative strain
+
+  double mybias;        // sum of bias potentials for biased bonds
+  double maxbondlen;    // cummulative max length of any bond
+  double maxdriftsq;    // max distance any bond atom drifts from quenched x
+
+  double sumboost;                       // sum of all bond boosts at each timestep
+  double aveboost_running;               // cummulative sumboost/allbonds across steps
+  double aveboost_running_output;        // most recent output of ab_running
+  double sumbiascoeff;                   // sum of all bond bias coeffs at each timestep
+  double avebiascoeff_running;           // cummulative sumbiascoeff/allbonds across steps
+  double avebiascoeff_running_output;    // most recent output of abc_running
+  double minbiascoeff;                   // min bias coeff on this step for my bonds
+  double maxbiascoeff;                   // max bias coeff on this step for my bonds
+  double minbiascoeff_running;           // cummulative min bias coeff for any bond
+  double maxbiascoeff_running;           // cummulative max bias coeff for any bond
+
+  double rmaxever, rmaxeverbig;
+  int ghost_toofar;       // # of ghost atoms not found in Dcut neigh list
+  int checkbias_count;    // count of too-close biased bonds
+
+  // 2 neighbor lists
+
+  class NeighList *listfull;    // full neigh list up to Dcut distance
+  class NeighList *listhalf;    // half neigh list up to pair distance
+                                // both created only when bonds are rebuilt
+
+  // list of my owned bonds and bias coeffs
+  // persists on a proc from one event until the next
+
+  struct OneBond {     // single IJ bond, atom I is owner
+    int i, j;          // current local indices of 2 bond atoms
+    int iold, jold;    // local indices when bonds were formed
+    double r0;         // relaxed bond length
+  };
+
+  OneBond *blist;       // list of owned bonds
+  double *biascoeff;    // bias coefficient Cij for each bond
+  int nblocal;          // # of owned bonds
+  int maxbond;          // allocated size of blist
+
+  // old data from last timestep bonds were formed
+  // persists on a proc from one event until the next
+  // first set of vectors are maxlocal in length
+  // second set of vectors are maxall in length
+
+  int nlocal_old;    // nlocal for old atoms
+  int nall_old;      // nlocal+nghost for old atoms
+  int maxlocal;      // allocated size of old local atom vecs
+  int maxall;        // allocated size of old all atom vecs
+
+  int *numbond;             // # of bonds owned by old owned atoms
+  int *maxhalf;             // bond index for maxstrain bond of old atoms
+  int *eligible;            // 0/1 flag for bias on one of old atom's bonds
+  double *maxhalfstrain;    // strain value for maxstrain bond of old atoms
+
+  int *old2now;      // o2n[i] = current local index of old atom I
+                     // may be -1 if ghost atom has drifted
+  tagint *tagold;    // IDs of atoms when bonds were formed
+                     // 0 if a ghost atom is not in Dcut neigh list
+  double **xold;     // coords of atoms when bonds were formed
+
+  // vectors used to find maxstrain bonds within a local domain
+
+  int maxatom;    // size of these vectors, nlocal + nghost
+
+  double *maxstrain;           // max-strain of any bond atom I is part of
+                               //   for owned and ghost atoms
+  double *maxstrain_domain;    // max-strain of any neighbor atom J of atom I
+                               //   for owned and ghost atoms
+  tagint *biasflag;            // atoms in biased bonds marked with bond partner
+                               //   for owned and ghost atoms
+
+  // list of biased bonds this proc owns
+
+  int maxbias;    // allocated size of bias list
+  int nbias;      // # of biased bonds I own
+  int *bias;      // index of biased bonds in my bond list
+
+  // data structs for persisting bias coeffs when bond list is reformed
+
+  MyPage<HyperOneCoeff> *cpage;    // pages of OneCoeff datums for clist
+  HyperOneCoeff **clist;           // ptrs to vectors of bias coeffs for each atom
+  int *numcoeff;                   // # of bias coeffs per atom (one per bond)
+  int maxcoeff;                    // allocate sized of clist and numcoeff
 
   // extra timers
 
   //double timefirst,timesecond,timethird,timefourth;
   //double timefifth,timesixth,timeseventh,timetotal;
 
-  // data structs for per-atom and per-bond info
-  // all of these are for current owned and ghost atoms
-  // except list and old2now are for atom indices at time of last bond build
+  // private methods
 
-  class NeighList *list;       // full neigh list up to Dcut distance
-                               // created only when bonds are rebuilt
-
-  int *old2now;                // o2n[i] = current local index of old atom i
-                               //   stored for old owned and ghost atoms
-                               //   I = old index when bonds were last created
-                               //   old indices are stored in old neighbor list
-
-  double **xold;               // coords of owned+ghost atoms when bonds created
-  tagint *tagold;              // global IDs of owned+ghost atoms when b created
-
-  int maxold;                  // allocated size of old2now
-  int maxbond;                 // allocated size of bonds
-  int old_nall;                // nlocal+nghost when old2now was last setup
-
-  struct OneBond {             // single IJ bond, atom I is owner
-    double r0;                 // original relaxed bond length
-    double boostcoeff;         // boost coefficient
-    tagint jtag;               // global index of J atom in bond IJ
-    int j;                     // local index of J atom in bond IJ
-  };
-
-  struct OneBond **bonds;      // 2d array of bonds for owned atoms
-  int *numbond;                // number of bonds for each owned atom
-
-  double *maxstrain;           // max-strain of any bond atom I is part of
-                               //   for owned and ghost atoms
-  double *maxstrain_region;    // max-strain of any neighbor atom J of atom I
-                               //   for owned and ghost atoms
-  int *maxstrain_bondindex;    // index of max-strain bond of each atom I
-                               //   just for owned atoms
-  tagint *biasflag;            // atoms in biased bonds marked with bond partner
-                               //   for owned and ghost atoms
-
-  // list of boosted bonds that this proc will bias
-
-  int maxboost;                // allocated size of boost list
-  int nboost;                  // # of boosted bonds I own
-  int *boost;                  // index of atom I in each boosted bond
-
-  // histogramming of bond boost cooeficients
-
-  int histo_every,histo_count,histo_print,histo_steps;
-  double histo_delta,invhisto_delta,histo_lo;
-  bigint *histo,*allhisto;
+  void grow_bond();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

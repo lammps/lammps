@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,18 +12,17 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "fix_nve_limit.h"
+
 #include "atom.h"
-#include "force.h"
-#include "update.h"
-#include "respa.h"
-#include "modify.h"
 #include "comm.h"
 #include "error.h"
+#include "force.h"
+#include "modify.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -40,7 +40,7 @@ FixNVELimit::FixNVELimit(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
   dynamic_group_allow = 1;
 
-  xlimit = force->numeric(FLERR,arg[3]);
+  xlimit = utils::numeric(FLERR,arg[3],false,lmp);
 
   ncount = 0;
 }
@@ -66,14 +66,14 @@ void FixNVELimit::init()
   vlimitsq = (xlimit/dtv) * (xlimit/dtv);
   ncount = 0;
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     step_respa = ((Respa *) update->integrate)->step;
 
   // warn if using fix shake, which will lead to invalid constraint forces
 
   for (int i = 0; i < modify->nfix; i++)
-    if ((strcmp(modify->fix[i]->style,"shake") == 0)
-        || (strcmp(modify->fix[i]->style,"rattle") == 0)) {
+    if (utils::strmatch(modify->fix[i]->style,"^shake")
+        || utils::strmatch(modify->fix[i]->style,"^rattle")) {
       if (comm->me == 0)
         error->warning(FLERR,"Should not use fix nve/limit with fix shake or fix rattle");
     }

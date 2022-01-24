@@ -32,3 +32,4 @@ fix_modify      2 energy yes
 thermo          1
 run		3
 
+message         quit

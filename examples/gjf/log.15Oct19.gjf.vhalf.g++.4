@@ -1,0 +1,125 @@
+LAMMPS (19 Sep 2019)
+  using 1 OpenMP thread(s) per MPI task
+# GJF-2GJ thermostat
+
+units   	metal
+atom_style      full
+
+boundary 	p p p
+read_data argon.lmp
+  orthogonal box = (0 0 0) to (32.146 32.146 32.146)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  864 atoms
+  0 = max # of 1-2 neighbors
+  0 = max # of 1-3 neighbors
+  0 = max # of 1-4 neighbors
+  1 = max # of special neighbors
+  special bonds CPU = 0.000315903 secs
+  read_data CPU = 0.0653752 secs
+
+include ff-argon.lmp
+#############################
+#Atoms types - mass - charge#
+#############################
+#@ 1 atom types #!THIS LINE IS NECESSARY DON'T SPEND HOURS FINDING THAT OUT!#
+
+variable Ar equal 1
+
+#############
+#Atom Masses#
+#############
+
+mass ${Ar}      39.903
+mass 1      39.903
+
+###########################
+#Pair Potentials - Tersoff#
+###########################
+
+pair_style      lj/cubic
+pair_coeff      * * 0.0102701 3.42
+
+
+velocity all create 10 2357 mom yes dist gaussian
+
+neighbor 1 bin
+
+timestep 0.1
+
+fix lang all langevin 10 10 1 26488 gjf vhalf
+fix nve all nve
+
+thermo 200
+run 5000
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 6.94072
+  ghost atom cutoff = 6.94072
+  binsize = 3.47036, bins = 10 10 10
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cubic, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 6.433 | 6.433 | 6.433 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0    11.080228   -56.207655            0   -54.971639    37.215541 
+     200    9.8046716   -55.127334            0   -54.033608    329.70647 
+     400    10.174622    -55.09236            0   -53.957366    340.49331 
+     600    9.9812299   -55.073136            0   -53.959714    345.56477 
+     800    10.512874   -55.133382            0   -53.960655     330.4996 
+    1000    9.9587885   -55.118463            0   -54.007545    332.24728 
+    1200    10.236607   -55.126297            0   -53.984388    330.94998 
+    1400    10.134679   -55.123075            0   -53.992537    332.15441 
+    1600    9.8934078   -55.153799            0   -54.050174    323.80795 
+    1800    10.064966   -55.116698            0   -53.993936    333.59644 
+    2000    9.6736107   -55.155825            0   -54.076719     321.5129 
+    2200    10.264537   -55.083943            0   -53.938918    343.02135 
+    2400    9.5640032   -55.044816            0   -53.977937    351.23099 
+    2600    9.6581077   -55.069404            0   -53.992028    344.99996 
+    2800    9.9622575   -55.084151            0   -53.972846     342.6574 
+    3000    9.8724909   -55.110296            0   -54.009005    334.68094 
+    3200    10.032027   -55.123576            0   -54.004488    331.89534 
+    3400    10.221132   -55.128925            0   -53.988742    330.24082 
+    3600    10.085802   -55.129861            0   -54.004774    330.63601 
+    3800    10.098545   -55.099093            0   -53.972585    339.61905 
+    4000    10.000257   -55.117782            0   -54.002238    333.24569 
+    4200     10.20477   -55.135792            0   -53.997435    329.17565 
+    4400    10.545132   -55.096369            0   -53.920044    341.04725 
+    4600    10.376108   -55.127213            0   -53.969743    331.92825 
+    4800    10.247392   -55.163395            0   -54.020283    322.15219 
+    5000    9.7753102   -55.073756            0   -53.983305    343.64146 
+Loop time of 1.19785 on 4 procs for 5000 steps with 864 atoms
+
+Performance: 36064.674 ns/day, 0.001 hours/ns, 4174.152 timesteps/s
+88.6% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.36387    | 0.38652    | 0.44086    |   5.1 | 32.27
+Bond    | 0.00028847 | 0.00030833 | 0.000338   |   0.0 |  0.03
+Neigh   | 0.033934   | 0.034959   | 0.036917   |   0.6 |  2.92
+Comm    | 0.39292    | 0.47821    | 0.52198    |   7.3 | 39.92
+Output  | 0.00050343 | 0.0012343  | 0.0023338  |   1.9 |  0.10
+Modify  | 0.1605     | 0.17963    | 0.19457    |   2.9 | 15.00
+Other   |            | 0.117      |            |       |  9.77
+
+Nlocal:    216 ave 216 max 216 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:    888.75 ave 899 max 876 min
+Histogram: 1 0 1 0 0 0 0 0 0 2
+Neighs:    4536 ave 4737 max 4335 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 18144
+Ave neighs/atom = 21
+Ave special neighs/atom = 0
+Neighbor list builds = 178
+Dangerous builds = 11
+
+
+Total wall time: 0:00:01

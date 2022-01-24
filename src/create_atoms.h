@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,55 +12,67 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
-CommandStyle(create_atoms,CreateAtoms)
-
+// clang-format off
+CommandStyle(create_atoms,CreateAtoms);
+// clang-format on
 #else
 
 #ifndef LMP_CREATE_ATOMS_H
 #define LMP_CREATE_ATOMS_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class CreateAtoms : protected Pointers {
+class CreateAtoms : public Command {
  public:
   CreateAtoms(class LAMMPS *);
   void command(int, char **);
 
  private:
-  int ntype,style,mode,nregion,nbasis,nrandom,seed;
-  int *basistype;
-  double xone[3],quatone[4];
+  int me, nprocs;
+  int ntype, style, mode, nregion, nbasis, nrandom, seed;
   int remapflag;
   int rotateflag;
-
   int maxtries;
   int excludeflag;
   double exclude_cutoff;
+  int subsetflag;
+  bigint nsubset;
+  double subsetfrac;
+  int *basistype;
+  double xone[3], quatone[4];
 
-  int varflag,vvar,xvar,yvar,zvar;
-  char *vstr,*xstr,*ystr,*zstr;
-  char *xstr_copy,*ystr_copy,*zstr_copy;
+  int varflag, vvar, xvar, yvar, zvar;
+  char *vstr, *xstr, *ystr, *zstr;
+  char *xstr_copy, *ystr_copy, *zstr_copy;
+
+  int ilo, ihi, jlo, jhi, klo, khi;
+
+  int nlatt;             // number of owned lattice sites
+  int nlatt_overflow;    // 1 if local nlatt exceeds a 32-bit int
+
+  int *flag;    // flag subset of particles to insert on lattice
+  int *next;
 
   class Molecule *onemol;
   class RanMars *ranmol;
+  class RanMars *ranlatt;
   double **temp_mol_coords;
 
   int triclinic;
-  double sublo[3],subhi[3];   // epsilon-extended proc sub-box for adding atoms
+  double sublo[3], subhi[3];    // epsilon-extended proc sub-box for adding atoms
 
   void add_single();
   void add_random();
   void add_lattice();
-
-  void gen_mol_coords(double *, double * = NULL);
+  void loop_lattice(int);
+  void gen_mol_coords(double *, double * = nullptr);
   void create_mol();
-  int vartest(double *);        // evaluate a variable with new atom position
+  int vartest(double *);    // evaluate a variable with new atom position
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
@@ -157,6 +169,14 @@ E: Too many total atoms
 See the setting for bigint in the src/lmptype.h file.
 
 E: No overlap of box and region for create_atoms
+
+Self-explanatory.
+
+E: Attempting to insert more particles than available lattice points
+
+Self-explanatory.
+
+W: Specifying an 'subset' value of '0' is equivalent to no 'subset' keyword
 
 Self-explanatory.
 

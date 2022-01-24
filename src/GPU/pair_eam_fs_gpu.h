@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(eam/fs/gpu,PairEAMFSGPU)
-
+// clang-format off
+PairStyle(eam/fs/gpu,PairEAMFSGPU);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_EAM_FS_GPU_H
@@ -25,7 +25,7 @@ PairStyle(eam/fs/gpu,PairEAMFSGPU)
 namespace LAMMPS_NS {
 
 class PairEAMFSGPU : public PairEAM {
-public:
+ public:
   PairEAMFSGPU(class LAMMPS *);
   virtual ~PairEAMFSGPU();
   void coeff(int, char **);
@@ -33,12 +33,12 @@ public:
   void init_style();
   double single(int, int, int, int, double, double, double, double &);
   double memory_usage();
-  void *extract(const char *, int &) { return NULL; }
+  void *extract(const char *, int &) { return nullptr; }
 
   int pack_forward_comm(int, int *, double *, int, int *);
   void unpack_forward_comm(int, int, double *);
 
- enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
+  enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
  protected:
   void read_file(char *);
@@ -50,7 +50,7 @@ public:
   bool fp_single;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,21 +16,13 @@
    Contributing author: Anders Hafreager (UiO), andershaf@gmail.com
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair_vashishta_table.h"
+
 #include "atom.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "force.h"
-#include "comm.h"
-#include "memory.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
 
 using namespace LAMMPS_NS;
 
@@ -37,8 +30,8 @@ using namespace LAMMPS_NS;
 
 PairVashishtaTable::PairVashishtaTable(LAMMPS *lmp) : PairVashishta(lmp)
 {
-  forceTable = NULL;
-  potentialTable = NULL;
+  forceTable = nullptr;
+  potentialTable = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -64,8 +57,7 @@ void PairVashishtaTable::compute(int eflag, int vflag)
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = vflag_fdotr = 0;
+  ev_init(eflag,vflag);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -128,7 +120,7 @@ void PairVashishtaTable::compute(int eflag, int vflag)
       }
 
       jtype = map[type[j]];
-      ijparam = elem2param[itype][jtype][jtype];
+      ijparam = elem3param[itype][jtype][jtype];
       if (rsq >= params[ijparam].cutsq) continue;
 
       twobody_table(params[ijparam],rsq,fpair,eflag,evdwl);
@@ -149,7 +141,7 @@ void PairVashishtaTable::compute(int eflag, int vflag)
     for (jj = 0; jj < jnumm1; jj++) {
       j = neighshort[jj];
       jtype = map[type[j]];
-      ijparam = elem2param[itype][jtype][jtype];
+      ijparam = elem3param[itype][jtype][jtype];
       delr1[0] = x[j][0] - xtmp;
       delr1[1] = x[j][1] - ytmp;
       delr1[2] = x[j][2] - ztmp;
@@ -162,8 +154,8 @@ void PairVashishtaTable::compute(int eflag, int vflag)
       for (kk = jj+1; kk < numshort; kk++) {
         k = neighshort[kk];
         ktype = map[type[k]];
-        ikparam = elem2param[itype][ktype][ktype];
-        ijkparam = elem2param[itype][jtype][ktype];
+        ikparam = elem3param[itype][ktype][ktype];
+        ijkparam = elem3param[itype][jtype][ktype];
 
         delr2[0] = x[k][0] - xtmp;
         delr2[1] = x[k][1] - ytmp;
@@ -238,8 +230,8 @@ void PairVashishtaTable::settings(int narg, char **arg)
 {
   if (narg != 2) error->all(FLERR,"Illegal pair_style command");
 
-  ntable = force->inumeric(FLERR,arg[0]);
-  tabinner = force->numeric(FLERR,arg[1]);
+  ntable = utils::inumeric(FLERR,arg[0],false,lmp);
+  tabinner = utils::numeric(FLERR,arg[1],false,lmp);
 
   if (tabinner <= 0.0)
     error->all(FLERR,"Illegal inner cutoff for tabulation");
@@ -260,8 +252,8 @@ void PairVashishtaTable::create_tables()
 {
   memory->destroy(forceTable);
   memory->destroy(potentialTable);
-  forceTable = NULL;
-  potentialTable = NULL;
+  forceTable = nullptr;
+  potentialTable = nullptr;
 
   tabinnersq = tabinner*tabinner;
 
@@ -280,7 +272,7 @@ void PairVashishtaTable::create_tables()
 
   for (i = 0; i < nelements; i++) {
     for (j = 0; j < nelements; j++) {
-      int ijparam = elem2param[i][j][j];
+      int ijparam = elem3param[i][j][j];
       for (idx = 0; idx <= ntable; idx++) {
         rsq = tabinnersq + idx*deltaR2;
         PairVashishta::twobody(&params[ijparam],rsq,fpair,1,eng);
@@ -297,6 +289,5 @@ void PairVashishtaTable::create_tables()
 
 double PairVashishtaTable::memory_usage()
 {
-  double bytes = 2*nelements*nelements*sizeof(double)*ntable;
-  return bytes;
+  return (double)2*nelements*nelements*sizeof(double)*ntable;
 }

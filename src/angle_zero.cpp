@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,16 +16,15 @@
    Contributing author: Carsten Svaneborg (SDU)
 ------------------------------------------------------------------------- */
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "angle_zero.h"
+
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -47,8 +47,7 @@ AngleZero::~AngleZero()
 
 void AngleZero::compute(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -88,11 +87,11 @@ void AngleZero::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nangletypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
 
   double theta0_one = 0.0;
   if (coeffflag && (narg == 2))
-    theta0_one = force->numeric(FLERR,arg[1]);
+    theta0_one = utils::numeric(FLERR,arg[1],false,lmp);
 
   // convert theta0 from degrees to radians
 
@@ -130,7 +129,7 @@ void AngleZero::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    fread(&theta0[1],sizeof(double),atom->nangletypes,fp);
+    utils::sfread(FLERR,&theta0[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
   }
   MPI_Bcast(&theta0[1],atom->nangletypes,MPI_DOUBLE,0,world);
 

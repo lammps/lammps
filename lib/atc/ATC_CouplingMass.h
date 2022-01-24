@@ -32,20 +32,20 @@ namespace ATC {
   class ATC_CouplingMass : public ATC_Coupling {
 
   public:
-  
+
     // constructor
-    ATC_CouplingMass(std::string groupName, 
+    ATC_CouplingMass(std::string groupName,
                      double **& perAtomArray,
                      LAMMPS_NS::Fix * thisFix,
                      std::string matParamFile,
                      ExtrinsicModelType extrinsic = NO_MODEL);
-      
+
     // destructor
     virtual ~ATC_CouplingMass();
 
     /** parser/modifier */
     virtual bool modify(int narg, char **arg);
-  
+
     /** pre time integration */
     virtual void initialize();
 
@@ -78,8 +78,8 @@ namespace ATC {
 
     bool resetNlocal_;
 
-    
-    
+
+
     //      i.e. we only need the correct shape function matrix for restriction
   };
 

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,25 +12,25 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
-CommandStyle(write_dump,WriteDump)
-
+// clang-format off
+CommandStyle(write_dump,WriteDump);
+// clang-format on
 #else
 
 #ifndef LMP_WRITE_DUMP_H
 #define LMP_WRITE_DUMP_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class WriteDump : protected Pointers {
+class WriteDump : public Command {
  public:
-  WriteDump(class LAMMPS *lmp) : Pointers(lmp) {};
+  WriteDump(class LAMMPS *lmp) : Command(lmp){};
   void command(int, char **);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
@@ -43,7 +43,7 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Unknown dump style
+E: Unrecognized dump style
 
 The choice of dump style is unknown.
 

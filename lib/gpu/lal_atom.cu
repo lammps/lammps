@@ -11,14 +11,14 @@
 //
 //    begin                :
 //    email                : brownw@ornl.gov
-// ***************************************************************************/
+// ***************************************************************************
 
-#ifdef NV_KERNEL
+#if defined(NV_KERNEL) || defined(USE_HIP)
 #include "lal_preprocessor.h"
 #endif
 
 __kernel void kernel_cast_x(__global numtyp4 *restrict x_type,
-                            const __global double *restrict x,
+                            const __global numtyp *restrict x,
                             const __global int *restrict type,
                             const int nall) {
   int ii=GLOBAL_ID_X;

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,24 +12,23 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
-DihedralStyle(hybrid,DihedralHybrid)
-
+// clang-format off
+DihedralStyle(hybrid,DihedralHybrid);
+// clang-format on
 #else
 
 #ifndef LMP_DIHEDRAL_HYBRID_H
 #define LMP_DIHEDRAL_HYBRID_H
 
-#include <cstdio>
 #include "dihedral.h"
 
 namespace LAMMPS_NS {
 
 class DihedralHybrid : public Dihedral {
  public:
-  int nstyles;                  // # of different dihedral styles
-  Dihedral **styles;            // class list for each Dihedral style
-  char **keywords;              // keyword for each dihedral style
+  int nstyles;          // # of different dihedral styles
+  Dihedral **styles;    // class list for each Dihedral style
+  char **keywords;      // keyword for each dihedral style
 
   DihedralHybrid(class LAMMPS *);
   ~DihedralHybrid();
@@ -42,16 +41,16 @@ class DihedralHybrid : public Dihedral {
   double memory_usage();
 
  private:
-  int *map;                     // which style each dihedral type points to
+  int *map;    // which style each dihedral type points to
 
-  int *ndihedrallist;           // # of dihedrals in sub-style dihedrallists
-  int *maxdihedral;             // max # of dihedrals sub-style lists can store
-  int ***dihedrallist;          // dihedrallist for each sub-style
+  int *ndihedrallist;     // # of dihedrals in sub-style dihedrallists
+  int *maxdihedral;       // max # of dihedrals sub-style lists can store
+  int ***dihedrallist;    // dihedrallist for each sub-style
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

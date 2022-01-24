@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,15 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ATOM_CLASS
-
-AtomStyle(hybrid,AtomVecHybrid)
-
+// clang-format off
+AtomStyle(hybrid,AtomVecHybrid);
+// clang-format on
 #else
 
 #ifndef LMP_ATOM_VEC_HYBRID_H
 #define LMP_ATOM_VEC_HYBRID_H
 
-#include <cstdio>
 #include "atom_vec.h"
 
 namespace LAMMPS_NS {
@@ -35,53 +34,58 @@ class AtomVecHybrid : public AtomVec {
   ~AtomVecHybrid();
   void process_args(int, char **);
   void init();
-  void grow(int);
-  void grow_reset();
-  void copy(int, int, int);
-  void clear_bonus();
+
+  void grow_pointers();
   void force_clear(int, size_t);
-  int pack_comm(int, int *, double *, int, int *);
-  int pack_comm_vel(int, int *, double *, int, int *);
-  void unpack_comm(int, int, double *);
-  void unpack_comm_vel(int, int, double *);
-  int pack_reverse(int, int, double *);
-  void unpack_reverse(int, int *, double *);
-  int pack_border(int, int *, double *, int, int *);
-  int pack_border_vel(int, int *, double *, int, int *);
-  void unpack_border(int, int, double *);
-  void unpack_border_vel(int, int, double *);
-  int pack_exchange(int, double *);
-  int unpack_exchange(double *);
-  int size_restart();
-  int pack_restart(int, double *);
-  int unpack_restart(double *);
-  void create_atom(int, double *);
-  void data_atom(double *, imageint, char **);
-  int data_atom_hybrid(int, char **) {return 0;}
-  void data_vel(int, char **);
-  void pack_data(double **);
-  void write_data(FILE *, int, double **);
-  void pack_vel(double **);
-  void write_vel(FILE *, int, double **);
+  void copy_bonus(int, int, int);
+  void clear_bonus();
+  int pack_comm_bonus(int, int *, double *);
+  void unpack_comm_bonus(int, int, double *);
+  int pack_border_bonus(int, int *, double *);
+  int unpack_border_bonus(int, int, double *);
+  int pack_exchange_bonus(int, double *);
+  int unpack_exchange_bonus(int, double *);
+  int size_restart_bonus();
+  int pack_restart_bonus(int, double *);
+  int unpack_restart_bonus(int, double *);
+  double memory_usage_bonus();
+
+  void pack_restart_pre(int);
+  void pack_restart_post(int);
+  void unpack_restart_init(int);
+  void create_atom_post(int);
+  void data_atom_post(int);
+
+  void data_bonds_post(int, int, tagint, tagint, tagint);
+
+  void pack_data_pre(int);
+  void pack_data_post(int);
+
+  int pack_data_bonus(double *, int);
+  void write_data_bonus(FILE *, int, double *, int);
+
   int property_atom(char *);
   void pack_property_atom(int, double *, int, int);
-  bigint memory_usage();
 
  private:
-  tagint *tag;
-  int *type,*mask;
-  imageint *image;
-  double **x,**v,**f;
-  double **omega,**angmom;
-
   int nallstyles;
   char **allstyles;
+  int fields_allocated;
 
+  struct FieldStrings {
+    char **fstr;
+  };
+  FieldStrings *fieldstrings;
+
+  int nstyles_bonus;
+  class AtomVec **styles_bonus;
+
+  char *merge_fields(int, char *, int, char *&);
   void build_styles();
   int known_style(char *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

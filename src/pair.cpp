@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,35 +16,32 @@
    Contributing author: Paul Crozier (SNL)
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cctype>
-#include <cfloat>
-#include <climits>
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
 #include "pair.h"
+
 #include "atom.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "domain.h"
+#include "atom_masks.h"
 #include "comm.h"
+#include "compute.h"
+#include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "kspace.h"
-#include "update.h"
-#include "modify.h"
-#include "compute.h"
-#include "suffix.h"
-#include "atom_masks.h"
-#include "memory.h"
 #include "math_const.h"
-#include "error.h"
+#include "memory.h"
+#include "neighbor.h"
+#include "suffix.h"
+#include "update.h"
+
+#include <cfloat>    // IWYU pragma: keep
+#include <climits>   // IWYU pragma: keep
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
 enum{NONE,RLINEAR,RSQ,BMP};
+static const std::string mixing_rule_names[Pair::SIXTHPOWER+1] = {"geometric", "arithmetic", "sixthpower" };
 
 // allocate space for static class instance variable and initialize it
 
@@ -60,20 +58,28 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   comm_forward = comm_reverse = comm_reverse_off = 0;
 
   single_enable = 1;
+  single_hessian_enable = 0;
   restartinfo = 1;
   respa_enable = 0;
   one_coeff = 0;
   no_virial_fdotr_compute = 0;
   writedata = 0;
+  finitecutflag = 0;
   ghostneigh = 0;
+  unit_convert_flag = utils::NOCONVERT;
+  did_mix = false;
 
   nextra = 0;
-  pvector = NULL;
+  pvector = nullptr;
   single_extra = 0;
-  svector = NULL;
+  svector = nullptr;
 
-  ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = dipoleflag = 0;
+  setflag = nullptr;
+  cutsq = nullptr;
+
+  ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = dipoleflag = spinflag = 0;
   reinitflag = 1;
+  centroidstressflag = CENTROID_SAME;
 
   // pair_modify settings
 
@@ -81,24 +87,36 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   manybody_flag = 0;
   offset_flag = 0;
   mix_flag = GEOMETRIC;
+  mixed_flag = 1;
   tail_flag = 0;
   etail = ptail = etail_ij = ptail_ij = 0.0;
   ncoultablebits = 12;
   ndisptablebits = 12;
   tabinner = sqrt(2.0);
   tabinner_disp = sqrt(2.0);
-  ftable = NULL;
-  fdisptable = NULL;
+  ftable = nullptr;
+  fdisptable = nullptr;
 
   allocated = 0;
   suffix_flag = Suffix::NONE;
 
-  maxeatom = maxvatom = 0;
-  eatom = NULL;
-  vatom = NULL;
+  maxeatom = maxvatom = maxcvatom = 0;
+  eatom = nullptr;
+  vatom = nullptr;
+  cvatom = nullptr;
 
   num_tally_compute = 0;
-  list_tally_compute = NULL;
+  list_tally_compute = nullptr;
+
+  nelements = nparams = maxparam = 0;
+  elements = nullptr;
+  elem1param = nullptr;
+  elem2param = nullptr;
+  elem3param = nullptr;
+  map = nullptr;
+
+  nondefault_history_transfer = 0;
+  beyond_contact = 0;
 
   // KOKKOS per-fix data masks
 
@@ -106,6 +124,7 @@ Pair::Pair(LAMMPS *lmp) : Pointers(lmp)
   datamask_read = ALL_MASK;
   datamask_modify = ALL_MASK;
 
+  kokkosable = 0;
   copymode = 0;
 }
 
@@ -115,12 +134,18 @@ Pair::~Pair()
 {
   num_tally_compute = 0;
   memory->sfree((void *) list_tally_compute);
-  list_tally_compute = NULL;
+  list_tally_compute = nullptr;
 
   if (copymode) return;
 
+  if (elements)
+    for (int i = 0; i < nelements; i++) delete[] elements[i];
+  delete[] elements;
+
+  delete[] map;
   memory->destroy(eatom);
   memory->destroy(vatom);
+  memory->destroy(cvatom);
 }
 
 /* ----------------------------------------------------------------------
@@ -144,42 +169,39 @@ void Pair::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"shift") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) offset_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) offset_flag = 0;
-      else error->all(FLERR,"Illegal pair_modify command");
+      offset_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"table") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
-      ncoultablebits = force->inumeric(FLERR,arg[iarg+1]);
+      ncoultablebits = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (ncoultablebits > (int)sizeof(float)*CHAR_BIT)
         error->all(FLERR,"Too many total bits for bitmapped lookup table");
       iarg += 2;
     } else if (strcmp(arg[iarg],"table/disp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
-      ndisptablebits = force->inumeric(FLERR,arg[iarg+1]);
+      ndisptablebits = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (ndisptablebits > (int)sizeof(float)*CHAR_BIT)
         error->all(FLERR,"Too many total bits for bitmapped lookup table");
       iarg += 2;
     } else if (strcmp(arg[iarg],"tabinner") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
-      tabinner = force->numeric(FLERR,arg[iarg+1]);
+      tabinner = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"tabinner/disp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
-      tabinner_disp = force->numeric(FLERR,arg[iarg+1]);
+      tabinner_disp = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"tail") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) tail_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) tail_flag = 0;
-      else error->all(FLERR,"Illegal pair_modify command");
+      tail_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"compute") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_modify command");
-      if (strcmp(arg[iarg+1],"yes") == 0) compute_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) compute_flag = 0;
-      else error->all(FLERR,"Illegal pair_modify command");
+      compute_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"nofdotr") == 0) {
+      no_virial_fdotr_compute = 1;
+      ++iarg;
     } else error->all(FLERR,"Illegal pair_modify command");
   }
 }
@@ -197,16 +219,14 @@ void Pair::init()
   if (tail_flag && domain->nonperiodic && comm->me == 0)
     error->warning(FLERR,"Using pair tail corrections with non-periodic system");
   if (!compute_flag && tail_flag && comm->me == 0)
-    error->warning(FLERR,"Using pair tail corrections with "
-                   "pair_modify compute no");
+    error->warning(FLERR,"Using pair tail corrections with pair_modify compute no");
   if (!compute_flag && offset_flag && comm->me == 0)
-    error->warning(FLERR,"Using pair potential shift with "
-                   "pair_modify compute no");
+    error->warning(FLERR,"Using pair potential shift with pair_modify compute no");
 
   // for manybody potentials
   // check if bonded exclusions could invalidate the neighbor list
 
-  if (manybody_flag && atom->molecular) {
+  if (manybody_flag && (atom->molecular != Atom::ATOMIC)) {
     int flag = 0;
     if (atom->nbonds > 0 && force->special_lj[1] == 0.0 &&
         force->special_coul[1] == 0.0) flag = 1;
@@ -237,13 +257,20 @@ void Pair::init()
 
   cutforce = 0.0;
   etail = ptail = 0.0;
+  mixed_flag = 1;
   double cut;
+  int mixed_count = 0;
 
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
+      did_mix = false;
       cut = init_one(i,j);
       cutsq[i][j] = cutsq[j][i] = cut*cut;
       cutforce = MAX(cutforce,cut);
+      if (i != j) {
+        if (setflag[i][j]) mixed_flag = 0;
+        if (did_mix) ++mixed_count;
+      }
       if (tail_flag) {
         etail += etail_ij;
         ptail += ptail_ij;
@@ -253,6 +280,12 @@ void Pair::init()
         }
       }
     }
+
+  if (!manybody_flag && (comm->me == 0)) {
+    const int num_mixed_pairs = atom->ntypes * (atom->ntypes - 1) / 2;
+    utils::logmesg(lmp,"  generated {} of {} mixed pair_coeff terms from {} mixing rule\n",
+                   mixed_count, num_mixed_pairs, mixing_rule_names[mix_flag]);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -316,7 +349,7 @@ void Pair::init_tables(double cut_coul, double *cut_respa)
   double r,grij,expm2,derfc,egamma,fgamma,rsw;
   double qqrd2e = force->qqrd2e;
 
-  if (force->kspace == NULL)
+  if (force->kspace == nullptr)
     error->all(FLERR,"Pair style requires a KSpace style");
   double g_ewald = force->kspace->g_ewald;
 
@@ -344,8 +377,8 @@ void Pair::init_tables(double cut_coul, double *cut_respa)
   memory->create(dctable,ntable,"pair:dctable");
   memory->create(detable,ntable,"pair:detable");
 
-  if (cut_respa == NULL) {
-    vtable = ptable = dvtable = dptable = NULL;
+  if (cut_respa == nullptr) {
+    vtable = ptable = dvtable = dptable = nullptr;
   } else {
     memory->create(vtable,ntable,"pair:vtable");
     memory->create(ptable,ntable,"pair:ptable");
@@ -376,7 +409,7 @@ void Pair::init_tables(double cut_coul, double *cut_respa)
       expm2 = exp(-grij*grij);
       derfc = erfc(grij);
     }
-    if (cut_respa == NULL) {
+    if (cut_respa == nullptr) {
       rtable[i] = rsq_lookup.f;
       ctable[i] = qqrd2e/r;
       if (msmflag) {
@@ -473,7 +506,7 @@ void Pair::init_tables(double cut_coul, double *cut_respa)
       expm2 = exp(-grij*grij);
       derfc = erfc(grij);
     }
-    if (cut_respa == NULL) {
+    if (cut_respa == nullptr) {
       c_tmp = qqrd2e/r;
       if (msmflag) {
         f_tmp = qqrd2e/r * fgamma;
@@ -659,6 +692,7 @@ void Pair::free_disp_tables()
 
 double Pair::mix_energy(double eps1, double eps2, double sig1, double sig2)
 {
+  did_mix = true;
   if (mix_flag == GEOMETRIC)
     return sqrt(eps1*eps2);
   else if (mix_flag == ARITHMETIC)
@@ -666,7 +700,8 @@ double Pair::mix_energy(double eps1, double eps2, double sig1, double sig2)
   else if (mix_flag == SIXTHPOWER)
     return (2.0 * sqrt(eps1*eps2) *
       pow(sig1,3.0) * pow(sig2,3.0) / (pow(sig1,6.0) + pow(sig2,6.0)));
-  else return 0.0;
+  else did_mix = false;
+  return 0.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -688,8 +723,7 @@ double Pair::mix_distance(double sig1, double sig2)
 
 void Pair::compute_dummy(int eflag, int vflag)
 {
-  if (eflag || vflag) ev_setup(eflag,vflag);
-  else evflag = 0;
+  ev_init(eflag,vflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -729,8 +763,7 @@ void Pair::add_tally_callback(Compute *ptr)
   if (found < 0) {
     found = num_tally_compute;
     ++num_tally_compute;
-    void *p = memory->srealloc((void *)list_tally_compute,
-                               sizeof(Compute *) * num_tally_compute,
+    void *p = memory->srealloc((void *)list_tally_compute, sizeof(Compute *) * num_tally_compute,
                                "pair:list_tally_compute");
     list_tally_compute = (Compute **) p;
     list_tally_compute[num_tally_compute-1] = ptr;
@@ -760,24 +793,110 @@ void Pair::del_tally_callback(Compute *ptr)
   }
 }
 
+/* -------------------------------------------------------------------
+   build element to atom type mapping for manybody potentials
+   also clear and reset setflag[][] array and check missing entries
+---------------------------------------------------------------------- */
+
+void Pair::map_element2type(int narg, char **arg, bool update_setflag)
+{
+  int i,j;
+  const int ntypes = atom->ntypes;
+
+  // read args that map atom types to elements in potential file
+  // map[i] = which element the Ith atom type is, -1 if "NULL"
+  // nelements = # of unique elements
+  // elements = list of element names
+
+  if (narg != ntypes)
+    error->all(FLERR,"Incorrect args for pair coefficients");
+
+  if (elements) {
+    for (i = 0; i < nelements; i++) delete[] elements[i];
+    delete[] elements;
+  }
+  elements = new char*[ntypes];
+  for (i = 0; i < ntypes; i++) elements[i] = nullptr;
+
+  nelements = 0;
+  map[0] = -1;
+  for (i = 1; i <= narg; i++) {
+    std::string entry = arg[i-1];
+    if (entry == "NULL") {
+      map[i] = -1;
+      continue;
+    }
+    for (j = 0; j < nelements; j++)
+      if (entry == elements[j]) break;
+    map[i] = j;
+    if (j == nelements) {
+      elements[j] = utils::strdup(entry);
+      nelements++;
+    }
+  }
+
+  // if requested, clear setflag[i][j] and set it for type pairs
+  // where both are mapped to elements in map.
+
+  if (update_setflag) {
+
+    int count = 0;
+    for (i = 1; i <= ntypes; i++) {
+      for (j = i; j <= ntypes; j++) {
+        setflag[i][j] = 0;
+        if ((map[i] >= 0) && (map[j] >= 0)) {
+          setflag[i][j] = 1;
+          count++;
+        }
+      }
+    }
+
+    if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients");
+  }
+}
+
 /* ----------------------------------------------------------------------
    setup for energy, virial computation
-   see integrate::ev_set() for values of eflag (0-3) and vflag (0-6)
+   see integrate::ev_set() for bitwise settings of eflag/vflag
+   set the following flags, values are otherwise set to 0:
+     eflag_global != 0 if ENERGY_GLOBAL bit of eflag set
+     eflag_atom   != 0 if ENERGY_ATOM bit of eflag set
+     eflag_either != 0 if eflag_global or eflag_atom is set
+     vflag_global != 0 if VIRIAL_PAIR bit of vflag set, OR
+                       if VIRIAL_FDOTR bit of vflag is set but no_virial_fdotr = 1
+     vflag_fdotr  != 0 if VIRIAL_FDOTR bit of vflag set and no_virial_fdotr = 0
+     vflag_atom   != 0 if VIRIAL_ATOM bit of vflag set, OR
+                       if VIRIAL_CENTROID bit of vflag set
+                       and centroidstressflag != CENTROID_AVAIL
+     cvflag_atom  != 0 if VIRIAL_CENTROID bit of vflag set
+                       and centroidstressflag = CENTROID_AVAIL
+     vflag_either != 0 if any of vflag_global, vflag_atom, cvflag_atom is set
+     evflag       != 0 if eflag_either or vflag_either is set
+   centroidstressflag is set by the pair style to one of these values:
+     CENTROID_SAME = same as two-body stress
+     CENTROID_AVAIL = different and implemented
+     CENTROID_NOTAVAIL = different but not yet implemented
 ------------------------------------------------------------------------- */
 
 void Pair::ev_setup(int eflag, int vflag, int alloc)
 {
   int i,n;
 
-  evflag = 1;
-
   eflag_either = eflag;
-  eflag_global = eflag % 2;
-  eflag_atom = eflag / 2;
+  eflag_global = eflag & ENERGY_GLOBAL;
+  eflag_atom = eflag & ENERGY_ATOM;
 
-  vflag_either = vflag;
-  vflag_global = vflag % 4;
-  vflag_atom = vflag / 4;
+  vflag_global = vflag & VIRIAL_PAIR;
+  if (vflag & VIRIAL_FDOTR && no_virial_fdotr_compute == 1) vflag_global = 1;
+  vflag_fdotr = 0;
+  if (vflag & VIRIAL_FDOTR && no_virial_fdotr_compute == 0) vflag_fdotr = 1;
+  vflag_atom = vflag & VIRIAL_ATOM;
+  if (vflag & VIRIAL_CENTROID && centroidstressflag != CENTROID_AVAIL) vflag_atom = 1;
+  cvflag_atom = 0;
+  if (vflag & VIRIAL_CENTROID && centroidstressflag == CENTROID_AVAIL) cvflag_atom = 1;
+  vflag_either = vflag_global || vflag_atom || cvflag_atom;
+
+  evflag = eflag_either || vflag_either;
 
   // reallocate per-atom arrays if necessary
 
@@ -795,13 +914,20 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
       memory->create(vatom,comm->nthreads*maxvatom,6,"pair:vatom");
     }
   }
+  if (cvflag_atom && atom->nmax > maxcvatom) {
+    maxcvatom = atom->nmax;
+    if (alloc) {
+      memory->destroy(cvatom);
+      memory->create(cvatom,comm->nthreads*maxcvatom,9,"pair:cvatom");
+    }
+  }
 
   // zero accumulators
   // use force->newton instead of newton_pair
   //   b/c some bonds/dihedrals call pair::ev_tally with pairwise info
 
   if (eflag_global) eng_vdwl = eng_coul = 0.0;
-  if (vflag_global) for (i = 0; i < 6; i++) virial[i] = 0.0;
+  if (vflag_global || vflag_fdotr) for (i = 0; i < 6; i++) virial[i] = 0.0;
   if (eflag_atom && alloc) {
     n = atom->nlocal;
     if (force->newton) n += atom->nghost;
@@ -819,20 +945,24 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
       vatom[i][5] = 0.0;
     }
   }
+  if (cvflag_atom && alloc) {
+    n = atom->nlocal;
+    if (force->newton) n += atom->nghost;
+    for (i = 0; i < n; i++) {
+      cvatom[i][0] = 0.0;
+      cvatom[i][1] = 0.0;
+      cvatom[i][2] = 0.0;
+      cvatom[i][3] = 0.0;
+      cvatom[i][4] = 0.0;
+      cvatom[i][5] = 0.0;
+      cvatom[i][6] = 0.0;
+      cvatom[i][7] = 0.0;
+      cvatom[i][8] = 0.0;
+      cvatom[i][9] = 0.0;
+    }
+  }
 
-  // if vflag_global = 2 and pair::compute() calls virial_fdotr_compute()
-  // compute global virial via (F dot r) instead of via pairwise summation
-  // unset other flags as appropriate
-
-  if (vflag_global == 2 && no_virial_fdotr_compute == 0) {
-    vflag_fdotr = 1;
-    vflag_global = 0;
-    if (vflag_atom == 0) vflag_either = 0;
-    if (vflag_either == 0 && eflag_either == 0) evflag = 0;
-  } else vflag_fdotr = 0;
-
-
-  // run ev_setup option for USER-TALLY computes
+  // run ev_setup option for TALLY computes
 
   if (num_tally_compute > 0) {
     for (int k=0; k < num_tally_compute; ++k) {
@@ -859,11 +989,12 @@ void Pair::ev_unset()
   vflag_either = 0;
   vflag_global = 0;
   vflag_atom = 0;
+  cvflag_atom = 0;
   vflag_fdotr = 0;
 }
 
 /* ----------------------------------------------------------------------
-   tally eng_vdwl and virial into global and per-atom accumulators
+   tally eng_vdwl and virial into global or per-atom accumulators
    need i < nlocal test since called by bond_quartic and dihedral_charmm
 ------------------------------------------------------------------------- */
 
@@ -964,7 +1095,7 @@ void Pair::ev_tally(int i, int j, int nlocal, int newton_pair,
 }
 
 /* ----------------------------------------------------------------------
-   tally eng_vdwl and virial into global and per-atom accumulators
+   tally eng_vdwl and virial into global or per-atom accumulators
    can use this version with full neighbor lists
 ------------------------------------------------------------------------- */
 
@@ -1010,7 +1141,7 @@ void Pair::ev_tally_full(int i, double evdwl, double ecoul, double fpair,
 }
 
 /* ----------------------------------------------------------------------
-   tally eng_vdwl and virial into global and per-atom accumulators
+   tally eng_vdwl and virial into global or per-atom accumulators
    for virial, have delx,dely,delz and fx,fy,fz
 ------------------------------------------------------------------------- */
 
@@ -1104,7 +1235,7 @@ void Pair::ev_tally_xyz(int i, int j, int nlocal, int newton_pair,
 }
 
 /* ----------------------------------------------------------------------
-   tally eng_vdwl and virial into global and per-atom accumulators
+   tally eng_vdwl and virial into global or per-atom accumulators
    for virial, have delx,dely,delz and fx,fy,fz
    called when using full neighbor lists
 ------------------------------------------------------------------------- */
@@ -1157,7 +1288,7 @@ void Pair::ev_tally_xyz_full(int i, double evdwl, double ecoul,
 }
 
 /* ----------------------------------------------------------------------
-   tally eng_vdwl and virial into global and per-atom accumulators
+   tally eng_vdwl and virial into global or per-atom accumulators
    called by SW and hbond potentials, newton_pair is always on
    virial = riFi + rjFj + rkFk = (rj-ri) Fj + (rk-ri) Fk = drji*fj + drki*fk
  ------------------------------------------------------------------------- */
@@ -1214,7 +1345,7 @@ void Pair::ev_tally3(int i, int j, int k, double evdwl, double ecoul,
 }
 
 /* ----------------------------------------------------------------------
-   tally eng_vdwl and virial into global and per-atom accumulators
+   tally eng_vdwl and virial into global or per-atom accumulators
    called by AIREBO potential, newton_pair is always on
  ------------------------------------------------------------------------- */
 
@@ -1235,22 +1366,40 @@ void Pair::ev_tally4(int i, int j, int k, int m, double evdwl,
     }
   }
 
-  if (vflag_atom) {
-    v[0] = 0.25 * (drim[0]*fi[0] + drjm[0]*fj[0] + drkm[0]*fk[0]);
-    v[1] = 0.25 * (drim[1]*fi[1] + drjm[1]*fj[1] + drkm[1]*fk[1]);
-    v[2] = 0.25 * (drim[2]*fi[2] + drjm[2]*fj[2] + drkm[2]*fk[2]);
-    v[3] = 0.25 * (drim[0]*fi[1] + drjm[0]*fj[1] + drkm[0]*fk[1]);
-    v[4] = 0.25 * (drim[0]*fi[2] + drjm[0]*fj[2] + drkm[0]*fk[2]);
-    v[5] = 0.25 * (drim[1]*fi[2] + drjm[1]*fj[2] + drkm[1]*fk[2]);
+  if (vflag_either) {
+    v[0] = (drim[0]*fi[0] + drjm[0]*fj[0] + drkm[0]*fk[0]);
+    v[1] = (drim[1]*fi[1] + drjm[1]*fj[1] + drkm[1]*fk[1]);
+    v[2] = (drim[2]*fi[2] + drjm[2]*fj[2] + drkm[2]*fk[2]);
+    v[3] = (drim[0]*fi[1] + drjm[0]*fj[1] + drkm[0]*fk[1]);
+    v[4] = (drim[0]*fi[2] + drjm[0]*fj[2] + drkm[0]*fk[2]);
+    v[5] = (drim[1]*fi[2] + drjm[1]*fj[2] + drkm[1]*fk[2]);
 
-    vatom[i][0] += v[0]; vatom[i][1] += v[1]; vatom[i][2] += v[2];
-    vatom[i][3] += v[3]; vatom[i][4] += v[4]; vatom[i][5] += v[5];
-    vatom[j][0] += v[0]; vatom[j][1] += v[1]; vatom[j][2] += v[2];
-    vatom[j][3] += v[3]; vatom[j][4] += v[4]; vatom[j][5] += v[5];
-    vatom[k][0] += v[0]; vatom[k][1] += v[1]; vatom[k][2] += v[2];
-    vatom[k][3] += v[3]; vatom[k][4] += v[4]; vatom[k][5] += v[5];
-    vatom[m][0] += v[0]; vatom[m][1] += v[1]; vatom[m][2] += v[2];
-    vatom[m][3] += v[3]; vatom[m][4] += v[4]; vatom[m][5] += v[5];
+    if (vflag_global) {
+      virial[0] += v[0];
+      virial[1] += v[1];
+      virial[2] += v[2];
+      virial[3] += v[3];
+      virial[4] += v[4];
+      virial[5] += v[5];
+    }
+
+    if (vflag_atom) {
+      v[0] *= 0.25;
+      v[1] *= 0.25;
+      v[2] *= 0.25;
+      v[3] *= 0.25;
+      v[4] *= 0.25;
+      v[5] *= 0.25;
+
+      vatom[i][0] += v[0]; vatom[i][1] += v[1]; vatom[i][2] += v[2];
+      vatom[i][3] += v[3]; vatom[i][4] += v[4]; vatom[i][5] += v[5];
+      vatom[j][0] += v[0]; vatom[j][1] += v[1]; vatom[j][2] += v[2];
+      vatom[j][3] += v[3]; vatom[j][4] += v[4]; vatom[j][5] += v[5];
+      vatom[k][0] += v[0]; vatom[k][1] += v[1]; vatom[k][2] += v[2];
+      vatom[k][3] += v[3]; vatom[k][4] += v[4]; vatom[k][5] += v[5];
+      vatom[m][0] += v[0]; vatom[m][1] += v[1]; vatom[m][2] += v[2];
+      vatom[m][3] += v[3]; vatom[m][4] += v[4]; vatom[m][5] += v[5];
+    }
   }
 }
 
@@ -1341,28 +1490,40 @@ void Pair::ev_tally_tip4p(int key, int *list, double *v,
 }
 
 /* ----------------------------------------------------------------------
-   tally virial into per-atom accumulators
-   called by REAX/C potential, newton_pair is always on
-   fi is magnitude of force on atom i
+   tally virial into global or per-atom accumulators
+   called by ReaxFF potential, newton_pair is always on
+   fi is magnitude of force on atom i, deli is the direction
+   note that the other atom (j) is not updated, due to newton on
 ------------------------------------------------------------------------- */
 
-void Pair::v_tally(int i, double *fi, double *deli)
+void Pair::v_tally2_newton(int i, double *fi, double *deli)
 {
   double v[6];
 
-  v[0] = 0.5*deli[0]*fi[0];
-  v[1] = 0.5*deli[1]*fi[1];
-  v[2] = 0.5*deli[2]*fi[2];
-  v[3] = 0.5*deli[0]*fi[1];
-  v[4] = 0.5*deli[0]*fi[2];
-  v[5] = 0.5*deli[1]*fi[2];
+  v[0] = deli[0]*fi[0];
+  v[1] = deli[1]*fi[1];
+  v[2] = deli[2]*fi[2];
+  v[3] = deli[0]*fi[1];
+  v[4] = deli[0]*fi[2];
+  v[5] = deli[1]*fi[2];
 
-  vatom[i][0] += v[0]; vatom[i][1] += v[1]; vatom[i][2] += v[2];
-  vatom[i][3] += v[3]; vatom[i][4] += v[4]; vatom[i][5] += v[5];
+  if (vflag_global) {
+    virial[0] += v[0];
+    virial[1] += v[1];
+    virial[2] += v[2];
+    virial[3] += v[3];
+    virial[4] += v[4];
+    virial[5] += v[5];
+  }
+
+  if (vflag_atom) {
+    vatom[i][0] += v[0]; vatom[i][1] += v[1]; vatom[i][2] += v[2];
+    vatom[i][3] += v[3]; vatom[i][4] += v[4]; vatom[i][5] += v[5];
+  }
 }
 
 /* ----------------------------------------------------------------------
-   tally virial into per-atom accumulators
+   tally virial into global or per-atom accumulators
    called by AIREBO potential, newton_pair is always on
    fpair is magnitude of force on atom I
 ------------------------------------------------------------------------- */
@@ -1371,47 +1532,80 @@ void Pair::v_tally2(int i, int j, double fpair, double *drij)
 {
   double v[6];
 
-  v[0] = 0.5 * drij[0]*drij[0]*fpair;
-  v[1] = 0.5 * drij[1]*drij[1]*fpair;
-  v[2] = 0.5 * drij[2]*drij[2]*fpair;
-  v[3] = 0.5 * drij[0]*drij[1]*fpair;
-  v[4] = 0.5 * drij[0]*drij[2]*fpair;
-  v[5] = 0.5 * drij[1]*drij[2]*fpair;
+  v[0] = drij[0]*drij[0]*fpair;
+  v[1] = drij[1]*drij[1]*fpair;
+  v[2] = drij[2]*drij[2]*fpair;
+  v[3] = drij[0]*drij[1]*fpair;
+  v[4] = drij[0]*drij[2]*fpair;
+  v[5] = drij[1]*drij[2]*fpair;
 
-  vatom[i][0] += v[0]; vatom[i][1] += v[1]; vatom[i][2] += v[2];
-  vatom[i][3] += v[3]; vatom[i][4] += v[4]; vatom[i][5] += v[5];
-  vatom[j][0] += v[0]; vatom[j][1] += v[1]; vatom[j][2] += v[2];
-  vatom[j][3] += v[3]; vatom[j][4] += v[4]; vatom[j][5] += v[5];
+  if (vflag_global) {
+    virial[0] += v[0];
+    virial[1] += v[1];
+    virial[2] += v[2];
+    virial[3] += v[3];
+    virial[4] += v[4];
+    virial[5] += v[5];
+  }
+
+  if (vflag_atom) {
+    v[0] *= 0.5;
+    v[1] *= 0.5;
+    v[2] *= 0.5;
+    v[3] *= 0.5;
+    v[4] *= 0.5;
+    v[5] *= 0.5;
+    vatom[i][0] += v[0]; vatom[i][1] += v[1]; vatom[i][2] += v[2];
+    vatom[i][3] += v[3]; vatom[i][4] += v[4]; vatom[i][5] += v[5];
+    vatom[j][0] += v[0]; vatom[j][1] += v[1]; vatom[j][2] += v[2];
+    vatom[j][3] += v[3]; vatom[j][4] += v[4]; vatom[j][5] += v[5];
+  }
 }
 
 /* ----------------------------------------------------------------------
    tally virial into per-atom accumulators
-   called by AIREBO and Tersoff potential, newton_pair is always on
+   called by AIREBO and Tersoff potentials, newton_pair is always on
 ------------------------------------------------------------------------- */
 
-void Pair::v_tally3(int i, int j, int k,
-                    double *fi, double *fj, double *drik, double *drjk)
+void Pair::v_tally3(int i, int j, int k, double *fi, double *fj, double *drik, double *drjk)
 {
   double v[6];
 
-  v[0] = THIRD * (drik[0]*fi[0] + drjk[0]*fj[0]);
-  v[1] = THIRD * (drik[1]*fi[1] + drjk[1]*fj[1]);
-  v[2] = THIRD * (drik[2]*fi[2] + drjk[2]*fj[2]);
-  v[3] = THIRD * (drik[0]*fi[1] + drjk[0]*fj[1]);
-  v[4] = THIRD * (drik[0]*fi[2] + drjk[0]*fj[2]);
-  v[5] = THIRD * (drik[1]*fi[2] + drjk[1]*fj[2]);
+  v[0] = (drik[0]*fi[0] + drjk[0]*fj[0]);
+  v[1] = (drik[1]*fi[1] + drjk[1]*fj[1]);
+  v[2] = (drik[2]*fi[2] + drjk[2]*fj[2]);
+  v[3] = (drik[0]*fi[1] + drjk[0]*fj[1]);
+  v[4] = (drik[0]*fi[2] + drjk[0]*fj[2]);
+  v[5] = (drik[1]*fi[2] + drjk[1]*fj[2]);
 
-  vatom[i][0] += v[0]; vatom[i][1] += v[1]; vatom[i][2] += v[2];
-  vatom[i][3] += v[3]; vatom[i][4] += v[4]; vatom[i][5] += v[5];
-  vatom[j][0] += v[0]; vatom[j][1] += v[1]; vatom[j][2] += v[2];
-  vatom[j][3] += v[3]; vatom[j][4] += v[4]; vatom[j][5] += v[5];
-  vatom[k][0] += v[0]; vatom[k][1] += v[1]; vatom[k][2] += v[2];
-  vatom[k][3] += v[3]; vatom[k][4] += v[4]; vatom[k][5] += v[5];
+  if (vflag_global) {
+      virial[0] += v[0];
+      virial[1] += v[1];
+      virial[2] += v[2];
+      virial[3] += v[3];
+      virial[4] += v[4];
+      virial[5] += v[5];
+  }
+
+  if (vflag_atom) {
+    v[0] *= THIRD;
+    v[1] *= THIRD;
+    v[2] *= THIRD;
+    v[3] *= THIRD;
+    v[4] *= THIRD;
+    v[5] *= THIRD;
+    vatom[i][0] += v[0]; vatom[i][1] += v[1]; vatom[i][2] += v[2];
+    vatom[i][3] += v[3]; vatom[i][4] += v[4]; vatom[i][5] += v[5];
+    vatom[j][0] += v[0]; vatom[j][1] += v[1]; vatom[j][2] += v[2];
+    vatom[j][3] += v[3]; vatom[j][4] += v[4]; vatom[j][5] += v[5];
+    vatom[k][0] += v[0]; vatom[k][1] += v[1]; vatom[k][2] += v[2];
+    vatom[k][3] += v[3]; vatom[k][4] += v[4]; vatom[k][5] += v[5];
+  }
 }
 
 /* ----------------------------------------------------------------------
-   tally virial into per-atom accumulators
-   called by AIREBO potential, newton_pair is always on
+   tally virial into global or per-atom accumulators
+   called by AIREBO potential, Tersoff, ReaxFF potentials, newton_pair is always on
 ------------------------------------------------------------------------- */
 
 void Pair::v_tally4(int i, int j, int k, int m,
@@ -1420,25 +1614,42 @@ void Pair::v_tally4(int i, int j, int k, int m,
 {
   double v[6];
 
-  v[0] = 0.25 * (drim[0]*fi[0] + drjm[0]*fj[0] + drkm[0]*fk[0]);
-  v[1] = 0.25 * (drim[1]*fi[1] + drjm[1]*fj[1] + drkm[1]*fk[1]);
-  v[2] = 0.25 * (drim[2]*fi[2] + drjm[2]*fj[2] + drkm[2]*fk[2]);
-  v[3] = 0.25 * (drim[0]*fi[1] + drjm[0]*fj[1] + drkm[0]*fk[1]);
-  v[4] = 0.25 * (drim[0]*fi[2] + drjm[0]*fj[2] + drkm[0]*fk[2]);
-  v[5] = 0.25 * (drim[1]*fi[2] + drjm[1]*fj[2] + drkm[1]*fk[2]);
+  v[0] = (drim[0]*fi[0] + drjm[0]*fj[0] + drkm[0]*fk[0]);
+  v[1] = (drim[1]*fi[1] + drjm[1]*fj[1] + drkm[1]*fk[1]);
+  v[2] = (drim[2]*fi[2] + drjm[2]*fj[2] + drkm[2]*fk[2]);
+  v[3] = (drim[0]*fi[1] + drjm[0]*fj[1] + drkm[0]*fk[1]);
+  v[4] = (drim[0]*fi[2] + drjm[0]*fj[2] + drkm[0]*fk[2]);
+  v[5] = (drim[1]*fi[2] + drjm[1]*fj[2] + drkm[1]*fk[2]);
 
-  vatom[i][0] += v[0]; vatom[i][1] += v[1]; vatom[i][2] += v[2];
-  vatom[i][3] += v[3]; vatom[i][4] += v[4]; vatom[i][5] += v[5];
-  vatom[j][0] += v[0]; vatom[j][1] += v[1]; vatom[j][2] += v[2];
-  vatom[j][3] += v[3]; vatom[j][4] += v[4]; vatom[j][5] += v[5];
-  vatom[k][0] += v[0]; vatom[k][1] += v[1]; vatom[k][2] += v[2];
-  vatom[k][3] += v[3]; vatom[k][4] += v[4]; vatom[k][5] += v[5];
-  vatom[m][0] += v[0]; vatom[m][1] += v[1]; vatom[m][2] += v[2];
-  vatom[m][3] += v[3]; vatom[m][4] += v[4]; vatom[m][5] += v[5];
+  if (vflag_global) {
+      virial[0] += v[0];
+      virial[1] += v[1];
+      virial[2] += v[2];
+      virial[3] += v[3];
+      virial[4] += v[4];
+      virial[5] += v[5];
+  }
+
+  if (vflag_atom) {
+    v[0] *= 0.25;
+    v[1] *= 0.25;
+    v[2] *= 0.25;
+    v[3] *= 0.25;
+    v[4] *= 0.25;
+    v[5] *= 0.25;
+    vatom[i][0] += v[0]; vatom[i][1] += v[1]; vatom[i][2] += v[2];
+    vatom[i][3] += v[3]; vatom[i][4] += v[4]; vatom[i][5] += v[5];
+    vatom[j][0] += v[0]; vatom[j][1] += v[1]; vatom[j][2] += v[2];
+    vatom[j][3] += v[3]; vatom[j][4] += v[4]; vatom[j][5] += v[5];
+    vatom[k][0] += v[0]; vatom[k][1] += v[1]; vatom[k][2] += v[2];
+    vatom[k][3] += v[3]; vatom[k][4] += v[4]; vatom[k][5] += v[5];
+    vatom[m][0] += v[0]; vatom[m][1] += v[1]; vatom[m][2] += v[2];
+    vatom[m][3] += v[3]; vatom[m][4] += v[4]; vatom[m][5] += v[5];
+  }
 }
 
 /* ----------------------------------------------------------------------
-   tally virial into global and per-atom accumulators
+   tally virial into global or per-atom accumulators
    called by pair lubricate potential with 6 tensor components
 ------------------------------------------------------------------------- */
 
@@ -1570,12 +1781,12 @@ void Pair::write_file(int narg, char **arg)
 
   // parse arguments
 
-  int itype = force->inumeric(FLERR,arg[0]);
-  int jtype = force->inumeric(FLERR,arg[1]);
+  int itype = utils::inumeric(FLERR,arg[0],false,lmp);
+  int jtype = utils::inumeric(FLERR,arg[1],false,lmp);
   if (itype < 1 || itype > atom->ntypes || jtype < 1 || jtype > atom->ntypes)
     error->all(FLERR,"Invalid atom types in pair_write command");
 
-  int n = force->inumeric(FLERR,arg[2]);
+  int n = utils::inumeric(FLERR,arg[2],false,lmp);
 
   int style = NONE;
   if (strcmp(arg[3],"r") == 0) style = RLINEAR;
@@ -1583,20 +1794,43 @@ void Pair::write_file(int narg, char **arg)
   else if (strcmp(arg[3],"bitmap") == 0) style = BMP;
   else error->all(FLERR,"Invalid style in pair_write command");
 
-  double inner = force->numeric(FLERR,arg[4]);
-  double outer = force->numeric(FLERR,arg[5]);
+  double inner = utils::numeric(FLERR,arg[4],false,lmp);
+  double outer = utils::numeric(FLERR,arg[5],false,lmp);
   if (inner <= 0.0 || inner >= outer)
     error->all(FLERR,"Invalid cutoffs in pair_write command");
 
-  // open file in append mode
+  // open file in append mode if exists
+  // add line with DATE: and UNITS: tag when creating new file
   // print header in format used by pair_style table
 
-  int me;
-  MPI_Comm_rank(world,&me);
-  FILE *fp;
-  if (me == 0) {
-    fp = fopen(arg[6],"a");
-    if (fp == NULL) error->one(FLERR,"Cannot open pair_write file");
+  FILE *fp = nullptr;
+  if (comm->me == 0) {
+    std::string table_file = arg[6];
+
+    // units sanity check:
+    // - if this is the first time we write to this potential file,
+    //   write out a line with "DATE:" and "UNITS:" tags
+    // - if the file already exists, print a message about appending
+    //   while printing the date and check that units are consistent.
+    if (platform::file_is_readable(table_file)) {
+      std::string units = utils::get_potential_units(table_file,"table");
+      if (!units.empty() && (units != update->unit_style)) {
+        error->one(FLERR,"Trying to append to a table file "
+                                     "with UNITS: {} while units are {}",
+                                     units, update->unit_style);
+      }
+      std::string date = utils::get_potential_date(table_file,"table");
+      utils::logmesg(lmp,"Appending to table file {} with DATE: {}\n", table_file, date);
+      fp = fopen(table_file.c_str(),"a");
+    } else {
+      utils::logmesg(lmp,"Creating table file {} with DATE: {}\n",
+                     table_file, utils::current_date());
+      fp = fopen(table_file.c_str(),"w");
+      if (fp) fmt::print(fp,"# DATE: {} UNITS: {} Created by pair_write\n",
+                         utils::current_date(), update->unit_style);
+    }
+    if (fp == nullptr)
+      error->one(FLERR,"Cannot open pair_write file {}: {}",table_file, utils::getsyserror());
     fprintf(fp,"# Pair potential %s for atom types %d %d: i,r,energy,force\n",
             force->pair_style,itype,jtype);
     if (style == RLINEAR)
@@ -1621,14 +1855,16 @@ void Pair::write_file(int narg, char **arg)
 
   Pair *epair = force->pair_match("^eam",0);
   if (epair) epair->swap_eam(eamfp,&eamfp_hold);
+  if ((comm->me == 0) && (epair))
+    error->warning(FLERR,"EAM pair style. Table will not include embedding term");
 
   // if atom style defines charge, swap in dummy q vec
 
   double q[2];
   q[0] = q[1] = 1.0;
   if (narg == 10) {
-    q[0] = force->numeric(FLERR,arg[8]);
-    q[1] = force->numeric(FLERR,arg[9]);
+    q[0] = utils::numeric(FLERR,arg[8],false,lmp);
+    q[1] = utils::numeric(FLERR,arg[9],false,lmp);
   }
   double *q_hold;
 
@@ -1643,7 +1879,7 @@ void Pair::write_file(int narg, char **arg)
   if (style == BMP) {
     init_bitmap(inner,outer,n,masklo,maskhi,nmask,nshiftbits);
     int ntable = 1 << n;
-    if (me == 0)
+    if (comm->me == 0)
       fprintf(fp,"\n%s\nN %d BITMAP %.15g %.15g\n\n",arg[7],ntable,inner,outer);
     n = ntable;
   }
@@ -1673,7 +1909,7 @@ void Pair::write_file(int narg, char **arg)
       e = single(0,1,itype,jtype,rsq,1.0,1.0,f);
       f *= r;
     } else e = f = 0.0;
-    if (me == 0) fprintf(fp,"%d %.15g %.15g %.15g\n",i+1,r,e,f);
+    if (comm->me == 0) fprintf(fp,"%d %.15g %.15g %.15g\n",i+1,r,e,f);
   }
 
   // restore original vecs that were swapped in for
@@ -1682,7 +1918,7 @@ void Pair::write_file(int narg, char **arg)
   if (epair) epair->swap_eam(eamfp_hold,&tmp);
   if (atom->q) atom->q = q_hold;
 
-  if (me == 0) fclose(fp);
+  if (comm->me == 0) fclose(fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -1740,10 +1976,23 @@ void Pair::init_bitmap(double inner, double outer, int ntablebits,
 
 /* ---------------------------------------------------------------------- */
 
+void Pair::hessian_twobody(double fforce, double dfac, double delr[3], double phiTensor[6]) {
+  int m = 0;
+  for (int k=0; k<3; k++) {
+    phiTensor[m] = fforce;
+    for (int l=k; l<3; l++) {
+      if (l>k) phiTensor[m] = 0;
+      phiTensor[m++] += delr[k]*delr[l] * dfac;
+    }
+  }
+}
+/* ---------------------------------------------------------------------- */
+
 double Pair::memory_usage()
 {
-  double bytes = comm->nthreads*maxeatom * sizeof(double);
-  bytes += comm->nthreads*maxvatom*6 * sizeof(double);
+  double bytes = (double)comm->nthreads*maxeatom * sizeof(double);
+  bytes += (double)comm->nthreads*maxvatom*6 * sizeof(double);
+  bytes += (double)comm->nthreads*maxcvatom*9 * sizeof(double);
   return bytes;
 }
 

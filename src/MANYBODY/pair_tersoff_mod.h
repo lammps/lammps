@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(tersoff/mod,PairTersoffMOD)
-
+// clang-format off
+PairStyle(tersoff/mod,PairTersoffMOD);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_TERSOFF_MOD_H
@@ -30,6 +30,8 @@ class PairTersoffMOD : public PairTersoff {
   PairTersoffMOD(class LAMMPS *);
   ~PairTersoffMOD() {}
 
+  static constexpr int NPARAMS_PER_LINE = 20;
+
  protected:
   virtual void read_file(char *);
   virtual void setup_params();
@@ -39,42 +41,42 @@ class PairTersoffMOD : public PairTersoff {
   double ters_fc_d(double, Param *);
   double ters_bij(double, Param *);
   double ters_bij_d(double, Param *);
-  void ters_zetaterm_d(double, double *, double, double *, double,
-                               double *, double *, double *, Param *);
+  void ters_zetaterm_d(double, double *, double, double, double *, double, double, double *,
+                       double *, double *, Param *);
 
   // inlined functions for efficiency
   // these replace but do not override versions in PairTersoff
   // since overriding virtual inlined functions is best avoided
 
-  inline double ters_gijk_mod(const double costheta,
-                              const Param * const param) const {
+  inline double ters_gijk_mod(const double costheta, const Param *const param) const
+  {
     const double ters_c1 = param->c1;
     const double ters_c2 = param->c2;
     const double ters_c3 = param->c3;
     const double ters_c4 = param->c4;
     const double ters_c5 = param->c5;
-    const double tmp_h = (param->h - costheta)*(param->h - costheta);
+    const double tmp_h = (param->h - costheta) * (param->h - costheta);
 
-    return ters_c1 + (ters_c2*tmp_h/(ters_c3 + tmp_h)) *
-      (1.0 + ters_c4*exp(-ters_c5*tmp_h));
+    return ters_c1 +
+        (ters_c2 * tmp_h / (ters_c3 + tmp_h)) * (1.0 + ters_c4 * exp(-ters_c5 * tmp_h));
   }
 
-  inline double ters_gijk_d_mod(const double costheta,
-                                const Param * const param) const {
+  inline double ters_gijk_d_mod(const double costheta, const Param *const param) const
+  {
     const double ters_c2 = param->c2;
     const double ters_c3 = param->c3;
     const double ters_c4 = param->c4;
     const double ters_c5 = param->c5;
-    const double tmp_h = (param->h - costheta)*(param->h - costheta);
-    const double g1 = (param->h - costheta)/(ters_c3 + tmp_h);
-    const double g2 = exp(-ters_c5*tmp_h);
+    const double tmp_h = (param->h - costheta) * (param->h - costheta);
+    const double g1 = (param->h - costheta) / (ters_c3 + tmp_h);
+    const double g2 = exp(-ters_c5 * tmp_h);
 
-    return -2.0*ters_c2*g1*((1 + ters_c4*g2)*(1 + g1*(costheta - param->h)) -
-                            tmp_h*ters_c4*ters_c5*g2);
+    return -2.0 * ters_c2 * g1 *
+        ((1 + ters_c4 * g2) * (1 + g1 * (costheta - param->h)) - tmp_h * ters_c4 * ters_c5 * g2);
   }
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

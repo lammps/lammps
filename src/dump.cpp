@@ -937,9 +937,6 @@ void Dump::balance()
 
   proc_new_offsets[0] = 0;
 
-  bigint start = proc_new_offsets[me];
-  bigint end = proc_new_offsets[me+1];
-
   // reset buf size to largest of any post-balance nme values
   // this insures proc 0 can receive everyone's info
 
@@ -956,18 +953,18 @@ void Dump::balance()
 
   int nswap = 0;
   MPI_Request *request = new MPI_Request[nprocs];
-  int procstart = start;
+  int procstart = 0;
   int iproc = me;
   int iproc_prev;
 
-  for (bigint i = start; i < end; i++) {
+  for (int i = 0; i < nme_balance; i++) {
 
     // find which proc this atom belongs to
 
-    while (i < proc_offsets[iproc]) iproc--;
-    while (i > proc_offsets[iproc+1]-1) iproc++;
+    while (proc_new_offsets[me] + i < proc_offsets[iproc]) iproc--;
+    while (proc_new_offsets[me] + i > proc_offsets[iproc+1]-1) iproc++;
 
-    if (i != start && (iproc != iproc_prev || i == end-1)) {
+    if (i != 0 && (iproc != iproc_prev || i == nme_balance - 1)) {
 
       // finished with proc
 
@@ -980,7 +977,7 @@ void Dump::balance()
       // post receive for this proc
 
       if (iproc_prev != me)
-        MPI_Irecv(&buf_balance[(procstart - start)*size_one],procnrecv*size_one,MPI_DOUBLE,
+        MPI_Irecv(&buf_balance[procstart*size_one],procnrecv*size_one,MPI_DOUBLE,
                   procrecv,0,world,&request[nswap++]);
 
       procstart = i;
@@ -1018,7 +1015,7 @@ void Dump::balance()
 
         // sending to self, copy buffers
 
-	int offset_me = proc_offsets[me] - start;
+	int offset_me = proc_offsets[me] - proc_new_offsets[me];
 	memcpy(&buf_balance[(offset_me + procstart)*size_one],&buf[procstart*size_one],procnsend*size_one*sizeof(double));
       }
 

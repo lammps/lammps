@@ -159,6 +159,7 @@ class FixDPPimd : public Fix {
   double f_omega, mtk_term1;
   void press_v_step();
   void v_press_step();
+  void x_press_step();
   void press_remap();
   //void press_x_step();
   void qc_step();

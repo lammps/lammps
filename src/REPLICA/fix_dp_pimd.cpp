@@ -327,16 +327,16 @@ FixDPPimd::FixDPPimd(LAMMPS *lmp, int narg, char **arg) :
   modify->add_compute(5, newarg);
   delete [] newarg;
   
-  id_press2 = new char[10];
-  strcpy(id_press2, "pi_press");
-  newarg = new char*[4];
-  newarg[0] = id_press2;
-  newarg[1] = (char*) "all";
-  newarg[2] = (char*) "pressure";
-  // newarg[3] = (char*) "thermo_temp";
-  newarg[3] = id_temp;
-  modify->add_compute(4, newarg);
-  delete [] newarg;
+  // id_press2 = new char[10];
+  // strcpy(id_press2, "pi_press");
+  // newarg = new char*[4];
+  // newarg[0] = id_press2;
+  // newarg[1] = (char*) "all";
+  // newarg[2] = (char*) "pressure";
+  // // newarg[3] = (char*) "thermo_temp";
+  // newarg[3] = id_temp;
+  // modify->add_compute(4, newarg);
+  // delete [] newarg;
 
   domain->set_global_box();
 
@@ -511,10 +511,10 @@ void FixDPPimd::init()
     for(int i=0; i<3; i++) omega_dot[i] = 0.0;
   }
 
-  int itemp = modify->find_compute(id_temp);
-  if (itemp < 0)
-    error->all(FLERR,"Temperature ID for fix nvt/npt does not exist");
-  c_temp = modify->compute[itemp];
+  // int itemp = modify->find_compute(id_temp);
+  // if (itemp < 0)
+  //   error->all(FLERR,"Temperature ID for fix nvt/npt does not exist");
+  // c_temp = modify->compute[itemp];
 
   // initialize compute pe 
   int ipe = modify->find_compute(id_pe);
@@ -524,8 +524,8 @@ void FixDPPimd::init()
   int ipress = modify->find_compute(id_press);
   c_press = modify->compute[ipress];
 
-  int ipress2 = modify->find_compute(id_press2);
-  c_press2 = modify->compute[ipress2];
+  // int ipress2 = modify->find_compute(id_press2);
+  // c_press2 = modify->compute[ipress2];
 
   t_prim = t_vir = t_cv = p_prim = p_vir = p_cv = 0.0;
 
@@ -536,17 +536,17 @@ void FixDPPimd::init()
 
 void FixDPPimd::setup(int vflag)
 {
-  t_current = c_temp->compute_scalar();
-  tdof = c_temp->dof;
+  // t_current = c_temp->compute_scalar();
+  // tdof = c_temp->dof;
   // printf("setup, m = %.4e\n", mass[1]);
   compute_xc();
   update_x_unwrap();
   // printf("setting up %d\n", vflag);
     if(method==NMPIMD)
     {
-      // nmpimd_fill(atom->v);
-      // comm_exec(atom->v);
-      // nmpimd_transform(buf_beads, atom->v, M_x2xp[universe->iworld]);
+      nmpimd_fill(atom->v);
+      comm_exec(atom->v);
+      nmpimd_transform(buf_beads, atom->v, M_x2xp[universe->iworld]);
     }
   if(universe->me==0 && screen) fprintf(screen,"Setting up Path-Integral ...\n");
   if(universe->me==0) printf("Setting up Path-Integral ...\n");
@@ -600,7 +600,7 @@ void FixDPPimd::setup(int vflag)
 void FixDPPimd::initial_integrate(int /*vflag*/)
 {
 
-  t_current = c_temp->compute_scalar();
+  // t_current = c_temp->compute_scalar();
   // printf("me = %d, initial\n", universe->me);
   // unmap the atom coordinates and image flags so that the ring polymer is not wrapped
   int nlocal = atom->nlocal;
@@ -668,9 +668,9 @@ void FixDPPimd::initial_integrate(int /*vflag*/)
     b_step();
     if(method==NMPIMD)
     {
-      // nmpimd_fill(atom->x);
-      // comm_exec(atom->x);
-      // nmpimd_transform(buf_beads, atom->x, M_x2xp[universe->iworld]);
+      nmpimd_fill(atom->x);
+      comm_exec(atom->x);
+      nmpimd_transform(buf_beads, atom->x, M_x2xp[universe->iworld]);
     }
 
     // vnorm1 = vnorm1a = vnorm2 = 0.0;
@@ -707,6 +707,7 @@ void FixDPPimd::initial_integrate(int /*vflag*/)
 
     if(pextflag) 
     {
+      x_press_step();
       press_remap();
 
     // xnorm1 = xnorm1a = xnorm2 = 0.0;
@@ -726,7 +727,8 @@ void FixDPPimd::initial_integrate(int /*vflag*/)
     // printf("xnorm2: %.30e\n", xnorm2);
     }
     qc_step();
-    // a_step();
+    a_step();
+    a_step();
 
     // xnorm1 = xnorm1a = xnorm2 = 0.0;
     // for(int i=0; i<atom->nlocal; i++)
@@ -746,6 +748,7 @@ void FixDPPimd::initial_integrate(int /*vflag*/)
     // a_step();
     if(pextflag) 
     {
+      x_press_step();
       press_remap();
     }
 
@@ -798,7 +801,7 @@ void FixDPPimd::initial_integrate(int /*vflag*/)
 
     if(method==NMPIMD)
     {
-      // nmpimd_fill(atom->x);
+      nmpimd_fill(atom->x);
 
       // printf("me = %d\n", universe->me);
       // for(int i=0; i<2; i++)
@@ -811,7 +814,7 @@ void FixDPPimd::initial_integrate(int /*vflag*/)
       //   printf("\n");
       // }
 
-      // comm_exec(atom->x);
+      comm_exec(atom->x);
 
       // printf("me = %d, buf_beads:\n", universe->me);
 
@@ -831,7 +834,7 @@ void FixDPPimd::initial_integrate(int /*vflag*/)
       //   printf("\n");
       // }
 
-      // nmpimd_transform(buf_beads, atom->x, M_xp2x[universe->iworld]);
+      nmpimd_transform(buf_beads, atom->x, M_xp2x[universe->iworld]);
     }
     // printf("computing xc\n");
     // compute_xc();
@@ -855,12 +858,15 @@ void FixDPPimd::initial_integrate(int /*vflag*/)
 void FixDPPimd::final_integrate()
 {
   b_step();
-  t_current = c_temp->compute_scalar();
-  c_temp->compute_scalar();
-  v_press_step();
-  compute_totke();
-  compute_p_cv();
-  if(pextflag) press_v_step();
+  // t_current = c_temp->compute_scalar();
+  // c_temp->compute_scalar();
+
+  if(pextflag) {
+    v_press_step();
+    compute_totke();
+    compute_p_cv();
+    press_v_step();
+  }
 
   if(integrator==obabo)
   {
@@ -947,9 +953,9 @@ void FixDPPimd::post_force(int /*flag*/)
   // transform the forces into normal mode representation
   if(method==NMPIMD)
   {
-    // nmpimd_fill(atom->f);
-    // comm_exec(atom->f);
-    // nmpimd_transform(buf_beads, atom->f, M_x2xp[universe->iworld]);
+    nmpimd_fill(atom->f);
+    comm_exec(atom->f);
+    nmpimd_transform(buf_beads, atom->f, M_x2xp[universe->iworld]);
   }
   c_pe->addstep(update->ntimestep+1); 
   c_press->addstep(update->ntimestep+1); 
@@ -1093,13 +1099,14 @@ void FixDPPimd::b_step()
 }
 
 /* ---------------------------------------------------------------------- */
+
 void FixDPPimd::v_press_step(){
-  double expv = exp(-0.25 * dtv * vw * (1 + 1. / atom->natoms));
   // printf("vw = %.30e\nfactor = %.30e\n", vw, vw * (1 + 1. / atom->natoms));
   int nlocal = atom->nlocal;
   double **v = atom->v;
   if(universe->iworld == 0)
   {
+    double expv = exp(-0.25 * dtv * vw * (1 + 1. / atom->natoms));
     for(int i=0; i<nlocal; i++)
     {
       for(int j=0; j<3; j++)
@@ -1112,16 +1119,34 @@ void FixDPPimd::v_press_step(){
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
+void FixDPPimd::x_press_step(){
+  if(universe->iworld == 0)
+  {
+    int nlocal = atom->nlocal;
+    double **x = atom->x;
+    double expq = exp(0.5 * dtv * vw);
+    for(int i=0; i<nlocal; i++)
+    {
+      for(int j=0; j<3; j++)
+      {
+        x[i][j] = expq * x[i][j];
+      } 
+    }       
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixDPPimd::press_remap(){
-  int nlocal = atom->nlocal;
-  double **x = atom->x;
     double expq = exp(0.5 * dtv * vw);
     // if(universe->iworld==0) printf("\nin qc_step, expq = %.15e\n\n", expq);
     //double expv = exp(-(1. + 1./atom->natoms) * dtv * vw);
     // double expv = exp(-dtv * vw);
     if(universe->iworld == 0)
     {
-      domain->x2lamda(nlocal);
+      // domain->x2lamda(nlocal);
       // if(barostat == BZP)
       // {
       //   for(int i=0; i<nlocal; i++)
@@ -1136,15 +1161,8 @@ void FixDPPimd::press_remap(){
       // else if(barostat == MTTK)
       // {
 
-        // for(int i=0; i<nlocal; i++)
-        // {
-        //   for(int j=0; j<3; j++)
-        //   {
         //     // x[i][j] = expq * x[i][j] + (expq - expv) / 2. / vw * v[i][j];
         //     // v[i][j] = exp(-dtv * vw * (1 + 1. / atom->natoms)) * v[i][j];
-        //     x[i][j] = expq * x[i][j];
-        //   } 
-        // }       
 
       // }
 
@@ -1177,7 +1195,7 @@ void FixDPPimd::press_remap(){
 
     if(universe->iworld == 0)
     {
-      domain->lamda2x(nlocal);
+      // domain->lamda2x(nlocal);
     }
 
 }
@@ -1234,15 +1252,15 @@ void FixDPPimd::qc_step(){
   // printf("\n");
   // }
 
-  double vnorm1 = 0.0, vnorm2 = 0.0; 
-  for(int i=0; i<atom->nlocal; i++)
-  {
-    for(int j=0; j<3; j++)
-    {
-      vnorm1 += atom->v[i][j];
-      vnorm2 += atom->v[i][j] * atom->v[i][j];
-    }
-  }
+  // double vnorm1 = 0.0, vnorm2 = 0.0; 
+  // for(int i=0; i<atom->nlocal; i++)
+  // {
+  //   for(int j=0; j<3; j++)
+  //   {
+  //     vnorm1 += atom->v[i][j];
+  //     vnorm2 += atom->v[i][j] * atom->v[i][j];
+  //   }
+  // }
 
   // printf("end qc_step, v:\n");
   // printf("vnorm1: %.16e\n", vnorm1);
@@ -1379,7 +1397,7 @@ void FixDPPimd::press_v_step()
     {
       // printf("start vw = %.30e\n", vw);
       mtk_term1 = 1. / atom->natoms * tdof * t_current / 3;
-      f_omega = (volume * np * (p_cv_ - Pext) + mtk_term1) / W;
+      f_omega = (volume * np * (p_cv - Pext) + mtk_term1) / W;
       // f_omega = volume * (p_cv - Pext) / W + mtk_term1 / W;
       vw += 0.5 * dtv * f_omega;
       // printf("p_current = %.30e p_hydro = %.30e vol = %.30e \nW = %.30e mtk_term1 = %.30e \nf_omega = %.30e ", p_cv, Pext, volume, W, mtk_term1, f_omega);
@@ -1393,9 +1411,13 @@ void FixDPPimd::press_v_step()
 
 void FixDPPimd::press_o_step()
 {
-  r1 = random->gaussian();
+  if(universe->iworld==0)
+  {
+    r1 = random->gaussian();
   // r1 = 0.0;
-  vw = c1 * vw + c2 * sqrt(1. / W / beta_np) * r1;
+    vw = c1 * vw + c2 * sqrt(1. / W / beta_np) * r1;
+  }
+  MPI_Bcast(&vw, 1, MPI_DOUBLE, 0, universe->uworld);
 }
 
 void FixDPPimd::o_step()
@@ -1808,6 +1830,8 @@ void FixDPPimd::compute_xc()
   } 
 }
 
+/* ---------------------------------------------------------------------- */
+
 void FixDPPimd::compute_fc()
 {
   int nlocal = atom->nlocal;
@@ -1827,6 +1851,8 @@ void FixDPPimd::compute_fc()
   } 
 }
 
+/* ---------------------------------------------------------------------- */
+
 void FixDPPimd::compute_vir_()
 {
   compute_xc();
@@ -1845,6 +1871,8 @@ void FixDPPimd::compute_vir_()
   MPI_Allreduce(&xf, &vir_, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
   MPI_Allreduce(&xcf, &centroid_vir, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
 }
+
+/* ---------------------------------------------------------------------- */
 
 void FixDPPimd::compute_vir()
 {
@@ -1883,6 +1911,7 @@ void FixDPPimd::compute_vir()
   MPI_Allreduce(&vir,&vir,1,MPI_DOUBLE,MPI_SUM,universe->uworld);
   //printf("iworld=%d, vir=%.4e.\n", universe->iworld, vir);
 }
+
 /* ---------------------------------------------------------------------- */
 
 void FixDPPimd::compute_xscaled()
@@ -1939,11 +1968,11 @@ void FixDPPimd::compute_p_cv()
   //p_cv = 2. / 3.  * inv_volume / np * totke - 1. / 3. / np * inv_volume * centroid_vir; 
   if(universe->iworld == 0)
   {
-    t_current = c_temp->compute_scalar();
-    p_cv = c_press2->compute_scalar();
-    c_press2->addstep(update->ntimestep+1);
+    // t_current = c_temp->compute_scalar();
+    // p_cv = c_press2->compute_scalar();
+    // c_press2->addstep(update->ntimestep+1);
     // p_cv_ = 1. / 3.  * inv_volume  * (2. * ke_bead - 1. * centroid_vir + 1. * vir) / force->nktv2p / np; 
-    p_cv_ = 1. / 3.  * inv_volume  * (2. * ke_bead + 1. * vir) / force->nktv2p / np; 
+    p_cv = 1. / 3.  * inv_volume  * (2. * ke_bead - 1. * centroid_vir + 1. * vir) / force->nktv2p / np; 
     // p_cv = 1. / 3.  * inv_volume  * (tdof * t_current - 1. * centroid_vir + 1. * vir) / force->nktv2p / np; 
     // printf("ke = %.30e\n", tdof*t_current/2);
     // printf("in compute_p_cv, p_cv = %.30e\n", p_cv);
@@ -2093,8 +2122,8 @@ double FixDPPimd::compute_vector(int n)
   //if(n==6) { return domain->yprd; }
   if(n==5) { return t_vir; }
   if(n==6) { return t_cv; }
-  // if(n==7) { return p_prim; }
-  if(n==7) { return p_cv - p_cv_; }
+  if(n==7) { return p_prim; }
+  // if(n==7) { return p_cv - p_cv_; }
   // if(n==8) { return p_vir; }
   if(n==8) { return p_cv; }
   if(n==9) { return 1.5*W*vw*vw; }

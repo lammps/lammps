@@ -939,11 +939,14 @@ void Dump::balance()
 
   int nmax;
   MPI_Allreduce(&nme_balance,&nmax,1,MPI_INT,MPI_MAX,world);
+  if (nmax > maxbuf) {
+    maxbuf = nmax;
+  }
 
   // allocate a second buffer for balanced data
 
   double* buf_balance;
-  memory->create(buf_balance,nmax*size_one,"dump:buf_balance");
+  memory->create(buf_balance,maxbuf*size_one,"dump:buf_balance");
 
   // compute from which procs I am receiving atoms
   // post recvs first

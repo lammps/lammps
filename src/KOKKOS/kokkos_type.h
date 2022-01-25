@@ -197,6 +197,15 @@ public:
 #endif
 };
 
+// Helpers for readability
+
+using KKScatterSum = Kokkos::Experimental::ScatterSum;
+using KKScatterDuplicated = Kokkos::Experimental::ScatterDuplicated;
+using KKScatterNonDuplicated = Kokkos::Experimental::ScatterNonDuplicated;
+
+template<typename DataType, typename Layout, typename Device, typename... Args>
+using KKScatterView = Kokkos::Experimental::ScatterView<DataType, Layout, Device, Args...>;
+
 
 // set ExecutionSpace stuct with variable "space"
 

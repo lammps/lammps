@@ -936,12 +936,11 @@ void Dump::balance()
 
   // reset buf size to largest of any post-balance nme values
   // this insures proc 0 can receive everyone's info
+  // cannot shrink buf to nme_balance, must use previous maxbuf value
 
   int nmax;
   MPI_Allreduce(&nme_balance,&nmax,1,MPI_INT,MPI_MAX,world);
-  if (nmax > maxbuf) {
-    maxbuf = nmax;
-  }
+  if (nmax > maxbuf) maxbuf = nmax;
 
   // allocate a second buffer for balanced data
 

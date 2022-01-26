@@ -220,7 +220,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"infile") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid/small command");
-      delete [] inpfile;
+      delete[] inpfile;
       inpfile = utils::strdup(arg[iarg+1]);
       restart_file = 1;
       reinitflag = 0;
@@ -327,7 +327,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg+1],"all") == 0) allremap = 1;
       else {
         allremap = 0;
-        delete [] id_dilate;
+        delete[] id_dilate;
         id_dilate = utils::strdup(arg[iarg+1]);
         int idilate = group->find(id_dilate);
         if (idilate == -1)
@@ -354,7 +354,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"gravity") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid/small command");
-      delete [] id_gravity;
+      delete[] id_gravity;
       id_gravity = utils::strdup(arg[iarg+1]);
       iarg += 2;
 
@@ -395,7 +395,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   double time1 = platform::walltime();
 
   create_bodies(bodyID);
-  if (customflag) delete [] bodyID;
+  if (customflag) delete[] bodyID;
 
   if (comm->me == 0)
     utils::logmesg(lmp,"  create bodies CPU = {:.3f} seconds\n",
@@ -501,9 +501,9 @@ FixRigidSmall::~FixRigidSmall()
   memory->destroy(dorient);
 
   delete random;
-  delete [] inpfile;
-  delete [] id_dilate;
-  delete [] id_gravity;
+  delete[] inpfile;
+  delete[] id_dilate;
+  delete[] id_gravity;
 
   memory->destroy(langextra);
   memory->destroy(mass_body);
@@ -2578,8 +2578,8 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
 
   if (me == 0) fclose(fp);
 
-  delete [] buffer;
-  delete [] values;
+  delete[] buffer;
+  delete[] values;
 }
 
 /* ----------------------------------------------------------------------

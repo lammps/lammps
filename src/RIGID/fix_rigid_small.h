@@ -84,8 +84,9 @@ class FixRigidSmall : public Fix {
   double maxextent;    // furthest distance from body owner to body atom
 
   struct Body {
-    double mass;           // total mass of body
     int natoms;            // total number of atoms in body
+    int ilocal;            // index of owning atom
+    double mass;           // total mass of body
     double xcm[3];         // COM position
     double xgc[3];         // geometric center position
     double vcm[3];         // COM velocity
@@ -97,12 +98,12 @@ class FixRigidSmall : public Fix {
     double ey_space[3];
     double ez_space[3];
     double xgc_body[3];    // geometric center relative to xcm in body coords
-    double angmom[3];    // space-frame angular momentum of body
-    double omega[3];     // space-frame omega of body
-    double conjqm[4];    // conjugate quaternion momentum
-    imageint image;      // image flags of xcm
-    int remapflag[4];    // PBC remap flags
-    int ilocal;          // index of owning atom
+    double angmom[3];      // space-frame angular momentum of body
+    double omega[3];       // space-frame omega of body
+    double conjqm[4];      // conjugate quaternion momentum
+    int remapflag[4];      // PBC remap flags
+    imageint image;        // image flags of xcm
+    imageint dummy;        // dummy entry for better alignment
   };
 
   Body *body;         // list of rigid bodies, owned and ghost

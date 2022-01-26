@@ -409,6 +409,8 @@
 /bond_mm3.h
 /bond_morse.cpp
 /bond_morse.h
+/bond_morse_lattice.cpp
+/bond_morse_lattice.h
 /bond_nonlinear.cpp
 /bond_nonlinear.h
 /bond_oxdna_fene.cpp

@@ -61,7 +61,7 @@ Restrictions
 This compute currently calculates the pressure tensor contributions
 for pair styles only (i.e. no bond, angle, dihedral, etc. contributions
 and in the presence of bonded interactions, the result will be incorrect
-due to exclusions for special bonds)  and requires pair-wise force
+due to exclusions for special bonds)  and requires pairwise force
 calculations not available for most many-body pair styles. K-space
 calculations are also excluded. Note that this pressure compute outputs
 the configurational terms only; the kinetic contribution is not included

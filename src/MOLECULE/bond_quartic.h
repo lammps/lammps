@@ -38,7 +38,6 @@ class BondQuartic : public Bond {
   double single(int, double, int, int, double &);
 
  protected:
-  double TWO_1_3;
   double *k, *b1, *b2, *rc, *u0;
 
   void allocate();

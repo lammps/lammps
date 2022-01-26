@@ -1,4 +1,4 @@
-# kokkos_mpi_only = KOKKOS package, no threading, MPI with its default compiler
+# spock_kokkos = KOKKOS/HIP, AMD MI100 GPU and AMD EPYC 7662 "Rome" CPU, Cray MPICH, hipcc compiler
 
 SHELL = /bin/sh
 
@@ -6,12 +6,14 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		mpicxx
+KOKKOS_ABSOLUTE_PATH = $(shell cd $(KOKKOS_PATH); pwd)
+
+CC =		hipcc
 CCFLAGS =	-g -O3 -DNDEBUG
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
-LINK =		mpicxx
+LINK =		hipcc
 LINKFLAGS =	-g -O3
 LIB = 
 SIZE =		size
@@ -19,7 +21,8 @@ SIZE =		size
 ARCHIVE =	ar
 ARFLAGS =	-rc
 SHLIBFLAGS =	-shared
-KOKKOS_DEVICES = Serial
+KOKKOS_DEVICES = HIP
+KOKKOS_ARCH = Zen2,Vega908
 
 # ---------------------------------------------------------------------
 # LAMMPS-specific settings, all OPTIONAL
@@ -40,9 +43,9 @@ LMP_INC =	-DLAMMPS_GZIP
 # PATH = path for MPI library
 # LIB = name of MPI library
 
-MPI_INC =       -DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1
-MPI_PATH =
-MPI_LIB =
+MPI_INC =       -DMPICH_SKIP_MPICXX -DOMPI_SKIP_MPICXX=1 -I${MPICH_DIR}/include
+MPI_PATH = 
+MPI_LIB = -L${MPICH_DIR}/lib -lmpi -L${CRAY_MPICH_ROOTDIR}/gtl/lib -lmpi_gtl_hsa
 
 # FFT library
 # see discussion in Section 3.5.2 of manual
@@ -66,11 +69,6 @@ JPG_INC =
 JPG_PATH =
 JPG_LIB =
 
-#  library for loading shared objects (defaults to -ldl, should be empty on Windows)
-# uncomment to change the default
-
-# override DYN_LIB =
-
 # ---------------------------------------------------------------------
 # build rules and dependencies
 # do not edit this section
@@ -80,7 +78,7 @@ include Makefile.package
 
 EXTRA_INC = $(LMP_INC) $(PKG_INC) $(MPI_INC) $(FFT_INC) $(JPG_INC) $(PKG_SYSINC)
 EXTRA_PATH = $(PKG_PATH) $(MPI_PATH) $(FFT_PATH) $(JPG_PATH) $(PKG_SYSPATH)
-EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(JPG_LIB) $(PKG_SYSLIB) $(DYN_LIB)
+EXTRA_LIB = $(PKG_LIB) $(MPI_LIB) $(FFT_LIB) $(JPG_LIB) $(PKG_SYSLIB)
 EXTRA_CPP_DEPENDS = $(PKG_CPP_DEPENDS)
 EXTRA_LINK_DEPENDS = $(PKG_LINK_DEPENDS)
 

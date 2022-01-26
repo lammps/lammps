@@ -164,7 +164,7 @@ Following the *LJCutMelt* example, here are the two functions:
 .. note::
 
    The evaluation of scripted python code will slow down the
-   computation pair-wise interactions quite significantly. However, this
+   computation pairwise interactions quite significantly. However, this
    can be largely worked around through using the python pair style not
    for the actual simulation, but to generate tabulated potentials on the
    fly using the :doc:`pair_write <pair_write>` command. Please see below

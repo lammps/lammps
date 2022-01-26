@@ -122,6 +122,9 @@ class lammps(object):
                   for f in os.listdir(winpath)]):
       lib_ext = ".dll"
       modpath = winpath
+    elif any([f.startswith('liblammps') and f.endswith('.so')
+              for f in os.listdir(modpath)]):
+      lib_ext = ".so"
     else:
       import platform
       if platform.system() == "Darwin":

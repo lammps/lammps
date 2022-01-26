@@ -29,7 +29,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondFENENM::BondFENENM(LAMMPS *lmp) : BondFENE(lmp) {}
+BondFENENM::BondFENENM(LAMMPS *lmp) : BondFENE(lmp), nn(nullptr), mm(nullptr) {}
 
 /* ---------------------------------------------------------------------- */
 

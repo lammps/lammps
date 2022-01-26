@@ -176,6 +176,33 @@ TEST_F(MoleculeFileTest, minimal)
     ASSERT_THAT(output, MatchesRegex(".*Read molecule template.*1 molecules.*1 atoms.*0 bonds.*"));
 }
 
+TEST_F(MoleculeFileTest, notype)
+{
+    BEGIN_CAPTURE_OUTPUT();
+    command("atom_style atomic");
+    command("region box block 0 1 0 1 0 1");
+    command("create_box 1 box");
+    run_mol_cmd(test_name, "", "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n");
+    auto output = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(output, MatchesRegex(".*Read molecule template.*1 molecules.*1 atoms.*0 bonds.*"));
+    TEST_FAILURE(".*ERROR: Create_atoms molecule must have atom types.*",
+                 command("create_atoms 0 single 0.0 0.0 0.0 mol notype 542465"););
+  }
+
+TEST_F(MoleculeFileTest, extramass)
+{
+    BEGIN_CAPTURE_OUTPUT();
+    command("atom_style atomic");
+    command("region box block 0 1 0 1 0 1");
+    command("create_box 1 box");
+    run_mol_cmd(test_name, "", "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"
+                " Types\n\n 1 1\n Masses\n\n 1 1.0\n");
+    command("create_atoms 0 single 0.0 0.0 0.0 mol extramass 73546");
+    auto output = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(output, MatchesRegex(".*WARNING: Molecule attributes do not match "
+                                     "system attributes.*"));
+}
+
 TEST_F(MoleculeFileTest, twomols)
 {
     BEGIN_CAPTURE_OUTPUT();

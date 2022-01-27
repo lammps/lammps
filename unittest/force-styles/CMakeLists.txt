@@ -48,8 +48,6 @@ target_include_directories(style_tests PRIVATE ${LAMMPS_SOURCE_DIR})
 target_link_libraries(style_tests PUBLIC gmock Yaml::Yaml lammps)
 if(BUILD_MPI)
   target_link_libraries(style_tests PUBLIC MPI::MPI_CXX)
-else()
-  target_link_libraries(style_tests PUBLIC mpi_stubs)
 endif()
 # propagate sanitizer options to test tools
 if(ENABLE_SANITIZER AND (NOT (ENABLE_SANITIZER STREQUAL "none")))

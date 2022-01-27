@@ -424,8 +424,8 @@ RegisterFixStyle(${GPU_SOURCES_DIR}/fix_gpu.h)
 get_property(GPU_SOURCES GLOBAL PROPERTY GPU_SOURCES)
 
 if(NOT BUILD_MPI)
-  # mpistubs is aliased to MPI::MPI_CXX, but older versions of cmake won't work forward the include path
-  target_link_libraries(gpu PRIVATE mpi_stubs)
+  # add include include path to MPI STUBS for non-MPI build
+  target_include_directories(gpu PRIVATE ${LAMMPS_SOURCE_DIR}/STUBS)
 else()
   target_link_libraries(gpu PRIVATE MPI::MPI_CXX)
 endif()

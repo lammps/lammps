@@ -90,14 +90,14 @@ TEST_F(LAMMPS_plain, InitMembers)
     EXPECT_EQ(lmp->memoryKK, nullptr);
     EXPECT_NE(lmp->python, nullptr);
     EXPECT_EQ(lmp->citeme, nullptr);
-    if (LAMMPS::has_git_info) {
-        EXPECT_STRNE(LAMMPS::git_commit, "");
-        EXPECT_STRNE(LAMMPS::git_branch, "");
-        EXPECT_STRNE(LAMMPS::git_descriptor, "");
+    if (LAMMPS::has_git_info()) {
+        EXPECT_STRNE(LAMMPS::git_commit(), "");
+        EXPECT_STRNE(LAMMPS::git_branch(), "");
+        EXPECT_STRNE(LAMMPS::git_descriptor(), "");
     } else {
-        EXPECT_STREQ(LAMMPS::git_commit, "(unknown)");
-        EXPECT_STREQ(LAMMPS::git_branch, "(unknown)");
-        EXPECT_STREQ(LAMMPS::git_descriptor, "(unknown)");
+        EXPECT_STREQ(LAMMPS::git_commit(), "(unknown)");
+        EXPECT_STREQ(LAMMPS::git_branch(), "(unknown)");
+        EXPECT_STREQ(LAMMPS::git_descriptor(), "(unknown)");
     }
 }
 
@@ -225,14 +225,14 @@ TEST_F(LAMMPS_omp, InitMembers)
     EXPECT_EQ(lmp->memoryKK, nullptr);
     EXPECT_NE(lmp->python, nullptr);
     EXPECT_NE(lmp->citeme, nullptr);
-    if (LAMMPS::has_git_info) {
-        EXPECT_STRNE(LAMMPS::git_commit, "");
-        EXPECT_STRNE(LAMMPS::git_branch, "");
-        EXPECT_STRNE(LAMMPS::git_descriptor, "");
+    if (LAMMPS::has_git_info()) {
+        EXPECT_STRNE(LAMMPS::git_commit(), "");
+        EXPECT_STRNE(LAMMPS::git_branch(), "");
+        EXPECT_STRNE(LAMMPS::git_descriptor(), "");
     } else {
-        EXPECT_STREQ(LAMMPS::git_commit, "(unknown)");
-        EXPECT_STREQ(LAMMPS::git_branch, "(unknown)");
-        EXPECT_STREQ(LAMMPS::git_descriptor, "(unknown)");
+        EXPECT_STREQ(LAMMPS::git_commit(), "(unknown)");
+        EXPECT_STREQ(LAMMPS::git_branch(), "(unknown)");
+        EXPECT_STREQ(LAMMPS::git_descriptor(), "(unknown)");
     }
 }
 
@@ -312,14 +312,14 @@ TEST_F(LAMMPS_kokkos, InitMembers)
     EXPECT_NE(lmp->memoryKK, nullptr);
     EXPECT_NE(lmp->python, nullptr);
     EXPECT_NE(lmp->citeme, nullptr);
-    if (LAMMPS::has_git_info) {
-        EXPECT_STRNE(LAMMPS::git_commit, "");
-        EXPECT_STRNE(LAMMPS::git_branch, "");
-        EXPECT_STRNE(LAMMPS::git_descriptor, "");
+    if (LAMMPS::has_git_info()) {
+        EXPECT_STRNE(LAMMPS::git_commit(), "");
+        EXPECT_STRNE(LAMMPS::git_branch(), "");
+        EXPECT_STRNE(LAMMPS::git_descriptor(), "");
     } else {
-        EXPECT_STREQ(LAMMPS::git_commit, "(unknown)");
-        EXPECT_STREQ(LAMMPS::git_branch, "(unknown)");
-        EXPECT_STREQ(LAMMPS::git_descriptor, "(unknown)");
+        EXPECT_STREQ(LAMMPS::git_commit(), "(unknown)");
+        EXPECT_STREQ(LAMMPS::git_branch(), "(unknown)");
+        EXPECT_STREQ(LAMMPS::git_descriptor(), "(unknown)");
     }
 }
 

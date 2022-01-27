@@ -40,3 +40,8 @@ add_test(FmtLib test_fmtlib)
 add_executable(test_math_eigen_impl test_math_eigen_impl.cpp)
 target_include_directories(test_math_eigen_impl PRIVATE ${LAMMPS_SOURCE_DIR})
 add_test(MathEigen test_math_eigen_impl 10 5)
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+  set_tests_properties(Tokenizer MemPool ArgUtils Utils Platform FmtLib MathEigen PROPERTIES
+    ENVIRONMENT "PATH=${CMAKE_BINARY_DIR}:$ENV{PATH}")
+endif()

@@ -30,6 +30,9 @@ class PairHybridOverlayKokkos : public PairHybridKokkos {
   PairHybridOverlayKokkos(class LAMMPS *);
   virtual ~PairHybridOverlayKokkos() {}
   void coeff(int, char **);
+
+  void init_svector() override;
+  void copy_svector(int, int) override;
 };
 
 }

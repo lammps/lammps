@@ -1293,24 +1293,24 @@ void TILD::calc_cross_work(const Interaction& intrxn){
   if (intrxn.type == GAUSSIAN){
     for (int nn = 0; nn < 2*nfft; nn += 2) {
       temp = -work1[nn+1] * work1[nn+1] + work1[nn] * work1[nn];
-      work1[nn+1] = (work1[nn+1] * work1[nn] + work1[nn] * work1[nn+1]) * scale_inv;
-      work1[nn] = temp * scale_inv;
+      work1[nn+1] = (work1[nn+1] * work1[nn] + work1[nn] * work1[nn+1]) * scale_inv * scale_inv;
+      work1[nn] = temp * scale_inv * scale_inv;
       potent_hat[loc][nn] = work1[nn];
       potent_hat[loc][nn+1] = work1[nn+1];
     }
   } else if (intrxn.type == ERFC){
     for (int nn = 0; nn < 2*nfft; nn += 2) {
       temp = -work1[nn+1] * work1[nn+1] + work1[nn] * work1[nn];
-      work1[nn+1] = (work1[nn+1] * work1[nn] + work1[nn] * work1[nn+1]) * scale_inv;
-      work1[nn] = temp * scale_inv;
+      work1[nn+1] = (work1[nn+1] * work1[nn] + work1[nn] * work1[nn+1]) * scale_inv * scale_inv;
+      work1[nn] = temp * scale_inv * scale_inv;
       potent_hat[loc][nn] = work1[nn];
       potent_hat[loc][nn+1] = work1[nn+1];
     }
   } else if (intrxn.type == GAUSSIAN_ERFC){
     for (int nn = 0; nn < 2*nfft; nn += 2) {
       temp = work2[nn] * work1[nn] - work1[nn+1] * work2[nn+1] ;
-      work1[nn+1] = (work1[nn+1] * work2[nn] + work1[nn] * work2[nn+1]) * scale_inv;
-      work1[nn] = temp * scale_inv;
+      work1[nn+1] = (work1[nn+1] * work2[nn] + work1[nn] * work2[nn+1]) * scale_inv * scale_inv;
+      work1[nn] = temp * scale_inv * scale_inv;
       potent_hat[loc][nn] = work1[nn];
       potent_hat[loc][nn+1] = work1[nn+1];
     }
@@ -2486,7 +2486,6 @@ void TILD::ev_calculation(const int loc, const int itype, const int jtype) {
       // diagonal IGEOS/chain-ruled on-diagonal part is called by including the kinetic energy term
     }
   }
-  
 }
 
 /* ----------------------------------------------------------------------
@@ -2525,7 +2524,7 @@ double TILD::calculate_rho0(){
 
   double vole = domain->xprd * domain->yprd * domain->zprd;
 
-  for ( int itype = 1; itype <= ntypes; itype++) {
+  for (int itype = 1; itype <= ntypes; itype++) {
     // gaussian potential, has no radius
     if (potent_type_map[1][itype][itype] == 1) {
       lmass += count_per_type[itype];

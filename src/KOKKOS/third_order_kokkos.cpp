@@ -123,9 +123,12 @@ void ThirdOrderKokkos::setup()
   neighbor->build(1);
 
   // compute all forces
-  if (!modify->get_fix_by_id("package_omp")) external_force_clear = 1;
+  // if (!modify->get_fix_by_id("package_omp")) external_force_clear = 1;
   eflag=0;
   vflag=0;
+  if (force->kspace) {
+    force->kspace->setup();
+  }
   update_force();
 
   if (pair_compute_flag) {
@@ -170,8 +173,9 @@ void ThirdOrderKokkos::update_force()
 
   force_clear();
 
-  neighbor->decide(); // needed for intel potentials to work
-
+  neighbor->ago = 0;
+  if ((modify->get_fix_by_id("package_intel")) ? true : false)
+    neighbor->decide();
 
   if (n_pre_force) {
     modify->pre_force(vflag);

@@ -97,6 +97,9 @@ void ThirdOrder::setup()
   external_force_clear = 0;
   eflag=0;
   vflag=0;
+  if (force->kspace) {
+    force->kspace->setup();
+  }
   update_force();
 
   modify->setup(vflag);
@@ -498,7 +501,9 @@ void ThirdOrder::displace_atom(int local_idx, int direction, int magnitude)
 
 void ThirdOrder::update_force()
 {
-  neighbor->decide(); // needed for intel potentials to work
+  neighbor->ago = 0;
+  if ((modify->get_fix_by_id("package_intel")) ? true : false)
+    neighbor->decide();
   force_clear();
   int n_post_force = modify->n_post_force;
   int n_pre_force = modify->n_pre_force;

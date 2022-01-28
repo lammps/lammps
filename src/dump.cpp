@@ -1015,7 +1015,7 @@ void Dump::balance()
         // sending to self, copy buffers
 
         int offset_me = proc_offsets[me] - proc_new_offsets[me];
-        memcpy(&buf_balance[(offset_me + procstart)*size_one],&buf[procstart*size_one],procnsend*size_one*sizeof(double));
+        memcpy(&buf_balance[(offset_me + procstart)*size_one],&buf[procstart*size_one],sizeof(double)*procnsend*size_one);
       }
 
       procstart = i;

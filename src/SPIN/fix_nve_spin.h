@@ -29,11 +29,11 @@ class FixNVESpin : public Fix {
 
  public:
   FixNVESpin(class LAMMPS *, int, char **);
-  virtual ~FixNVESpin();
-  int setmask();
-  void init();
-  virtual void initial_integrate(int);
-  virtual void final_integrate();
+  ~FixNVESpin() override;
+  int setmask() override;
+  void init() override;
+  void initial_integrate(int) override;
+  void final_integrate() override;
 
   void ComputeInteractionsSpin(int);    // compute and advance single spin functions
   void AdvanceSingleSpin(int);
@@ -41,8 +41,8 @@ class FixNVESpin : public Fix {
   void sectoring();    // sectoring operation functions
   int coords2sector(double *);
 
-  void setup_pre_neighbor();
-  void pre_neighbor();
+  void setup_pre_neighbor() override;
+  void pre_neighbor() override;
 
   int lattice_flag;    // lattice_flag = 0 if spins only
                        // lattice_flag = 1 if spin-lattice calc.

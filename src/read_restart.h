@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class ReadRestart : public Command {
  public:
   ReadRestart(class LAMMPS *);
-  void command(int, char **);
+  void command(int, char **) override;
 
  private:
   int me, nprocs;

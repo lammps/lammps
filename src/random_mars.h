@@ -21,7 +21,7 @@ namespace LAMMPS_NS {
 class RanMars : protected Pointers {
  public:
   RanMars(class LAMMPS *, int);
-  ~RanMars();
+  ~RanMars() override;
   double uniform();
   double gaussian();
   double gaussian(double mu, double sigma);

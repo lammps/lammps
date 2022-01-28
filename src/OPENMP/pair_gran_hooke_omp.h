@@ -34,8 +34,8 @@ class PairGranHookeOMP : public PairGranHooke, public ThrOMP {
  public:
   PairGranHookeOMP(class LAMMPS *);
 
-  virtual void compute(int, int);
-  virtual double memory_usage();
+  void compute(int, int) override;
+  double memory_usage() override;
 
  private:
   template <int EVFLAG, int NEWTON_PAIR> void eval(int ifrom, int ito, ThrData *const thr);

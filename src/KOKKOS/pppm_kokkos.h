@@ -121,15 +121,15 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   typedef FFTArrayTypes<DeviceType> FFT_AT;
 
   PPPMKokkos(class LAMMPS *);
-  virtual ~PPPMKokkos();
-  virtual void init();
-  virtual void setup();
-  void setup_grid();
-  virtual void settings(int, char **);
-  virtual void compute(int, int);
-  virtual int timing_1d(int, double &);
-  virtual int timing_3d(int, double &);
-  virtual double memory_usage();
+  ~PPPMKokkos() override;
+  void init() override;
+  void setup() override;
+  void setup_grid() override;
+  void settings(int, char **) override;
+  void compute(int, int) override;
+  int timing_1d(int, double &) override;
+  int timing_3d(int, double &) override;
+  double memory_usage() override;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPPPM_setup1, const int&) const;
@@ -398,49 +398,49 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   //double *boxlo;
   double boxlo[3];
 
-  void set_grid_global();
+  void set_grid_global() override;
   void set_grid_local();
   void adjust_gewald();
-  double newton_raphson_f();
+  double newton_raphson_f() override;
   double derivf();
   double final_accuracy();
 
-  virtual void allocate();
-  virtual void allocate_peratom();
-  virtual void deallocate();
-  virtual void deallocate_peratom();
+  void allocate() override;
+  void allocate_peratom() override;
+  void deallocate() override;
+  void deallocate_peratom() override;
   int factorable(int);
   double compute_df_kspace();
   double estimate_ik_error(double, double, bigint);
-  virtual void compute_gf_denom();
-  virtual void compute_gf_ik();
+  void compute_gf_denom() override;
+  void compute_gf_ik() override;
 
-  virtual void particle_map();
-  virtual void make_rho();
-  virtual void brick2fft();
+  void particle_map() override;
+  void make_rho() override;
+  void brick2fft() override;
 
-  virtual void poisson();
-  virtual void poisson_ik();
+  void poisson() override;
+  void poisson_ik() override;
 
-  virtual void fieldforce();
-  virtual void fieldforce_ik();
+  void fieldforce() override;
+  void fieldforce_ik() override;
 
-  virtual void poisson_peratom();
-  virtual void fieldforce_peratom();
+  void poisson_peratom() override;
+  void fieldforce_peratom() override;
   void procs2grid2d(int,int,int,int *, int*);
 
   KOKKOS_INLINE_FUNCTION
   void compute_rho1d(const int i, const FFT_SCALAR &, const FFT_SCALAR &,
                      const FFT_SCALAR &) const;
   void compute_rho_coeff();
-  void slabcorr();
+  void slabcorr() override;
 
   // grid communication
 
-  void pack_forward_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int);
-  void unpack_forward_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, int, DAT::tdual_int_2d &, int);
-  void pack_reverse_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int);
-  void unpack_reverse_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, int, DAT::tdual_int_2d &, int);
+  void pack_forward_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int) override;
+  void unpack_forward_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, int, DAT::tdual_int_2d &, int) override;
+  void pack_reverse_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d &, int) override;
+  void unpack_reverse_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, int, DAT::tdual_int_2d &, int) override;
 
   // triclinic
 

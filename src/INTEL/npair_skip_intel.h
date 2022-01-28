@@ -43,9 +43,9 @@ namespace LAMMPS_NS {
 class NPairSkipIntel : public NPair {
  public:
   NPairSkipIntel(class LAMMPS *);
-  ~NPairSkipIntel();
-  virtual void copy_neighbor_info();
-  void build(class NeighList *);
+  ~NPairSkipIntel() override;
+  void copy_neighbor_info() override;
+  void build(class NeighList *) override;
 
  protected:
   FixIntel *_fix;

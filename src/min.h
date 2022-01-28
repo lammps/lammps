@@ -29,7 +29,7 @@ class Min : protected Pointers {
   int searchflag;    // 0 if damped dynamics, 1 if sub-cycles on local search
 
   Min(class LAMMPS *);
-  virtual ~Min();
+  ~Min() override;
   virtual void init();
   virtual void setup(int flag = 1);
   virtual void setup_minimal(int);

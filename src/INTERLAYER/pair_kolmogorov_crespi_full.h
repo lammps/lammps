@@ -27,18 +27,18 @@ namespace LAMMPS_NS {
 class PairKolmogorovCrespiFull : public Pair {
  public:
   PairKolmogorovCrespiFull(class LAMMPS *);
-  virtual ~PairKolmogorovCrespiFull();
+  ~PairKolmogorovCrespiFull() override;
 
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  void init_style();
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void init_style() override;
   void KC_neigh();
   void calc_normal();
   void calc_FRep(int, int);
   void calc_FvdW(int, int);
-  double single(int, int, int, int, double, double, double, double &);
+  double single(int, int, int, int, double, double, double, double &) override;
 
   static constexpr int NPARAMS_PER_LINE = 12;
 

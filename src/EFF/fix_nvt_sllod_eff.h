@@ -27,13 +27,12 @@ namespace LAMMPS_NS {
 class FixNVTSllodEff : public FixNHEff {
  public:
   FixNVTSllodEff(class LAMMPS *, int, char **);
-  ~FixNVTSllodEff() {}
-  void init();
+  void init() override;
 
  private:
   int nondeformbias;
 
-  void nh_v_temp();
+  void nh_v_temp() override;
 };
 
 }    // namespace LAMMPS_NS

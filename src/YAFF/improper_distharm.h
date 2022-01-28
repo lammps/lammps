@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class ImproperDistHarm : public Improper {
  public:
   ImproperDistHarm(class LAMMPS *);
-  ~ImproperDistHarm();
-  void compute(int, int);
-  void coeff(int, char **);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
+  ~ImproperDistHarm() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
 
  private:
   double *k, *chi;

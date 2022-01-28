@@ -35,8 +35,7 @@ template<class DeviceType>
 class NPairCopyKokkos : public NPair {
  public:
   NPairCopyKokkos(class LAMMPS *);
-  ~NPairCopyKokkos() {}
-  void build(class NeighList *);
+  void build(class NeighList *) override;
  private:
   void copy_to_kokkos(class NeighList *);
   void copy_to_cpu(class NeighList *);

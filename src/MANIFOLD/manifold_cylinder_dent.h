@@ -24,13 +24,12 @@ namespace user_manifold {
    public:
     manifold_cylinder_dent(LAMMPS *lmp, int, char **);
     enum { NPARAMS = 3 };    // Number of parameters.
-    virtual ~manifold_cylinder_dent() {}
-    virtual double g(const double *x);
-    virtual void n(const double *x, double *n);
+    double g(const double *x) override;
+    void n(const double *x, double *n) override;
     static const char *type() { return "cylinder/dent"; }
-    virtual const char *id() { return type(); }
+    const char *id() override { return type(); }
     static int expected_argc() { return NPARAMS; }
-    virtual int nparams() { return NPARAMS; }
+    int nparams() override { return NPARAMS; }
   };
 }    // namespace user_manifold
 

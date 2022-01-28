@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class DihedralFourier : public Dihedral {
  public:
   DihedralFourier(class LAMMPS *);
-  virtual ~DihedralFourier();
-  virtual void compute(int, int);
-  void coeff(int, char **);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_data(FILE *);
+  ~DihedralFourier() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
 
  protected:
   double **k, **cos_shift, **sin_shift, **shift;

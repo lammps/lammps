@@ -29,12 +29,12 @@ namespace LAMMPS_NS {
 class PairEAMAlloyOMP : virtual public PairEAMOMP {
  public:
   PairEAMAlloyOMP(class LAMMPS *);
-  virtual ~PairEAMAlloyOMP() {}
-  void coeff(int, char **);
+
+  void coeff(int, char **) override;
 
  protected:
-  void read_file(char *);
-  void file2array();
+  void read_file(char *) override;
+  void file2array() override;
 };
 
 }    // namespace LAMMPS_NS

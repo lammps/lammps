@@ -34,9 +34,9 @@ class PairBuckIntel : public PairBuck {
 
  public:
   PairBuckIntel(class LAMMPS *);
-  virtual ~PairBuckIntel();
-  virtual void compute(int, int);
-  void init_style();
+  ~PairBuckIntel() override;
+  void compute(int, int) override;
+  void init_style() override;
   typedef struct {
     float x, y, z;
     int w;

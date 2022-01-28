@@ -39,10 +39,10 @@ class AtomVecSMD : public AtomVec {
  public:
   AtomVecSMD(class LAMMPS *);
 
-  void grow_pointers();
-  void force_clear(int, size_t);
-  void create_atom_post(int);
-  void data_atom_post(int);
+  void grow_pointers() override;
+  void force_clear(int, size_t) override;
+  void create_atom_post(int) override;
+  void data_atom_post(int) override;
 
  private:
   tagint *molecule;

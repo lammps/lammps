@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class ComputeBodyLocal : public Compute {
  public:
   ComputeBodyLocal(class LAMMPS *, int, char **);
-  ~ComputeBodyLocal();
-  void init();
-  void compute_local();
-  double memory_usage();
+  ~ComputeBodyLocal() override;
+  void init() override;
+  void compute_local() override;
+  double memory_usage() override;
 
  private:
   int nvalues;

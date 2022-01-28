@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class DihedralCosineShiftExp : public Dihedral {
  public:
   DihedralCosineShiftExp(class LAMMPS *);
-  virtual ~DihedralCosineShiftExp();
-  virtual void compute(int, int);
-  void coeff(int, char **);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_data(FILE *);
+  ~DihedralCosineShiftExp() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
 
  protected:
   bool *doExpansion;

@@ -27,15 +27,15 @@ namespace LAMMPS_NS {
 class ComputeHMA : public Compute {
  public:
   ComputeHMA(class LAMMPS *, int, char **);
-  ~ComputeHMA();
-  void setup();
-  void init();
-  void init_list(int, class NeighList *);
-  void compute_vector();
-  void set_arrays(int);
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  double memory_usage();
+  ~ComputeHMA() override;
+  void setup() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void compute_vector() override;
+  void set_arrays(int) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  double memory_usage() override;
 
  private:
   int nmax;

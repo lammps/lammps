@@ -27,8 +27,7 @@ namespace LAMMPS_NS {
 class BondOxdna2Fene : public BondOxdnaFene {
  public:
   BondOxdna2Fene(class LAMMPS *lmp) : BondOxdnaFene(lmp) {}
-  virtual ~BondOxdna2Fene() {}
-  virtual void compute_interaction_sites(double *, double *, double *, double *) const;
+  void compute_interaction_sites(double *, double *, double *, double *) const override;
 };
 
 }    // namespace LAMMPS_NS

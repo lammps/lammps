@@ -30,19 +30,19 @@ enum { ODE_LAMMPS_RK4, ODE_LAMMPS_RKF45 };
 class FixRX : public Fix {
  public:
   FixRX(class LAMMPS *, int, char **);
-  ~FixRX();
-  int setmask();
-  void post_constructor();
-  virtual void init();
-  void init_list(int, class NeighList *);
-  virtual void setup_pre_force(int);
-  virtual void pre_force(int);
+  ~FixRX() override;
+  int setmask() override;
+  void post_constructor() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void setup_pre_force(int) override;
+  void pre_force(int) override;
 
  protected:
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
 
   class NeighList *list;
 

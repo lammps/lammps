@@ -27,25 +27,25 @@ namespace LAMMPS_NS {
 class FixLbRigidPCSphere : public Fix {
  public:
   FixLbRigidPCSphere(class LAMMPS *, int, char **);
-  virtual ~FixLbRigidPCSphere();
-  virtual int setmask();
-  virtual void init();
-  virtual void setup(int);
-  virtual void initial_integrate(int);
-  virtual void final_integrate();
-  virtual double compute_scalar();
+  ~FixLbRigidPCSphere() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void initial_integrate(int) override;
+  void final_integrate() override;
+  double compute_scalar() override;
 
-  double memory_usage();
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  void set_arrays(int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
+  double memory_usage() override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  void set_arrays(int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
 
-  void pre_neighbor();
-  int dof(int);
-  void reset_dt();
-  double compute_array(int, int);
+  void pre_neighbor() override;
+  int dof(int) override;
+  void reset_dt() override;
+  double compute_array(int, int) override;
 
  private:
   double **up;

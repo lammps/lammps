@@ -27,13 +27,13 @@ namespace LAMMPS_NS {
 class FixNVEEff : public Fix {
  public:
   FixNVEEff(class LAMMPS *, int, char **);
-  int setmask();
-  virtual void init();
-  virtual void initial_integrate(int);
-  virtual void final_integrate();
-  void initial_integrate_respa(int, int, int);
-  void final_integrate_respa(int, int);
-  void reset_dt();
+  int setmask() override;
+  void init() override;
+  void initial_integrate(int) override;
+  void final_integrate() override;
+  void initial_integrate_respa(int, int, int) override;
+  void final_integrate_respa(int, int) override;
+  void reset_dt() override;
 
  protected:
   double dtv, dtf;

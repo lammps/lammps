@@ -27,13 +27,13 @@ namespace LAMMPS_NS {
 class ComputeMLIAP : public Compute {
  public:
   ComputeMLIAP(class LAMMPS *, int, char **);
-  ~ComputeMLIAP();
-  void init();
-  void init_list(int, class NeighList *);
-  void compute_array();
+  ~ComputeMLIAP() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void compute_array() override;
   void generate_neigharrays();
   void grow_neigharrays();
-  double memory_usage();
+  double memory_usage() override;
 
  private:
   double **mliaparray, **mliaparrayall;

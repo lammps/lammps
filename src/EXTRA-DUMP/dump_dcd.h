@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class DumpDCD : public Dump {
  public:
   DumpDCD(LAMMPS *, int, char **);
-  virtual ~DumpDCD();
+  ~DumpDCD() override;
 
  private:
   int natoms, ntotal;
@@ -36,13 +36,13 @@ class DumpDCD : public Dump {
   float *coords, *xf, *yf, *zf;
   int unwrap_flag;    // 1 if atom coords are unwrapped, 0 if no
 
-  void init_style();
-  void openfile();
-  void write_header(bigint);
-  void pack(tagint *);
-  void write_data(int, double *);
-  int modify_param(int, char **);
-  double memory_usage();
+  void init_style() override;
+  void openfile() override;
+  void write_header(bigint) override;
+  void pack(tagint *) override;
+  void write_data(int, double *) override;
+  int modify_param(int, char **) override;
+  double memory_usage() override;
 
   void write_frame();
   void write_dcd_header(const char *);

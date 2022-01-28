@@ -76,8 +76,8 @@ namespace LAMMPS_NS {
 class NPairIntel : public NPair {
  public:
   NPairIntel(class LAMMPS *);
-  ~NPairIntel();
-  virtual void copy_neighbor_info();
+  ~NPairIntel() override;
+  void copy_neighbor_info() override;
 
   #ifdef _LMP_INTEL_OFFLOAD
   void grow_stencil();

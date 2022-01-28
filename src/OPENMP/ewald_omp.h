@@ -28,12 +28,12 @@ namespace LAMMPS_NS {
 class EwaldOMP : public Ewald, public ThrOMP {
  public:
   EwaldOMP(class LAMMPS *);
-  virtual ~EwaldOMP(){};
-  virtual void allocate();
-  virtual void compute(int, int);
+
+  void allocate() override;
+  void compute(int, int) override;
 
  protected:
-  virtual void eik_dot_r();
+  void eik_dot_r() override;
   virtual void eik_dot_r_triclinic();
 };
 

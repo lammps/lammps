@@ -28,21 +28,21 @@ namespace LAMMPS_NS {
 class BodyNparticle : public Body {
  public:
   BodyNparticle(class LAMMPS *, int, char **);
-  ~BodyNparticle();
+  ~BodyNparticle() override;
   int nsub(struct AtomVecBody::Bonus *);
   double *coords(struct AtomVecBody::Bonus *);
 
-  int pack_border_body(struct AtomVecBody::Bonus *, double *);
-  int unpack_border_body(struct AtomVecBody::Bonus *, double *);
-  void data_body(int, int, int, int *, double *);
-  int pack_data_body(tagint, int, double *);
-  int write_data_body(FILE *, double *);
-  double radius_body(int, int, int *, double *);
+  int pack_border_body(struct AtomVecBody::Bonus *, double *) override;
+  int unpack_border_body(struct AtomVecBody::Bonus *, double *) override;
+  void data_body(int, int, int, int *, double *) override;
+  int pack_data_body(tagint, int, double *) override;
+  int write_data_body(FILE *, double *) override;
+  double radius_body(int, int, int *, double *) override;
 
-  int noutrow(int);
-  int noutcol();
-  void output(int, int, double *);
-  int image(int, double, double, int *&, double **&);
+  int noutrow(int) override;
+  int noutcol() override;
+  void output(int, int, double *) override;
+  int image(int, double, double, int *&, double **&) override;
 
  private:
   int *imflag;

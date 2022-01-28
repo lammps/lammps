@@ -35,7 +35,7 @@ class Image : protected Pointers {
   int background[3];          // RGB values of background
 
   Image(class LAMMPS *, int);
-  ~Image();
+  ~Image() override;
   void buffers();
   void clear();
   void merge();
@@ -150,7 +150,7 @@ class ColorMap : protected Pointers {
   int dynamic;    // 0/1 if lo/hi bounds are static/dynamic
 
   ColorMap(class LAMMPS *, class Image *);
-  ~ColorMap();
+  ~ColorMap() override;
   int reset(int, char **);
   int minmax(double, double);
   double *value2color(double);

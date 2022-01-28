@@ -112,7 +112,7 @@ class NeighRequest : protected Pointers {
   // methods
 
   NeighRequest(class LAMMPS *);
-  ~NeighRequest();
+  ~NeighRequest() override;
   void archive();
   int identical(NeighRequest *);
   int same_skip(NeighRequest *);

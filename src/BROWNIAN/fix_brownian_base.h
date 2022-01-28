@@ -21,10 +21,10 @@ namespace LAMMPS_NS {
 class FixBrownianBase : public Fix {
  public:
   FixBrownianBase(class LAMMPS *, int, char **);
-  virtual ~FixBrownianBase();
-  void init();
-  int setmask();
-  void reset_dt();
+  ~FixBrownianBase() override;
+  void init() override;
+  int setmask() override;
+  void reset_dt() override;
 
  protected:
   int seed;                  // RNG seed

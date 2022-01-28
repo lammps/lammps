@@ -39,8 +39,8 @@ class FixNVTSllodKokkos : public FixNHKokkos<DeviceType> {
   typedef ArrayTypes<DeviceType> AT;
 
   FixNVTSllodKokkos(class LAMMPS *, int, char **);
-  ~FixNVTSllodKokkos() {}
-  void init();
+
+  void init() override;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixNVTSllod_temp1, const int& i) const;
@@ -51,7 +51,7 @@ class FixNVTSllodKokkos : public FixNHKokkos<DeviceType> {
  private:
   int nondeformbias;
 
-  void nh_v_temp();
+  void nh_v_temp() override;
 
  protected:
   typename AT::t_x_array x;

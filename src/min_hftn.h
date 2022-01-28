@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class MinHFTN : public Min {
  public:
   MinHFTN(LAMMPS *);
-  ~MinHFTN();
-  void init();
-  void setup_style();
-  void reset_vectors();
-  int iterate(int);
+  ~MinHFTN() override;
+  void init() override;
+  void setup_style() override;
+  void reset_vectors() override;
+  int iterate(int) override;
 
  private:
   //---- THE ALGORITHM NEEDS TO STORE THIS MANY ATOM-BASED VECTORS,

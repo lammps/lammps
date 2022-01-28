@@ -27,8 +27,8 @@ namespace LAMMPS_NS {
 class Temper : public Command {
  public:
   Temper(class LAMMPS *);
-  ~Temper();
-  void command(int, char **);
+  ~Temper() override;
+  void command(int, char **) override;
 
  private:
   int me, me_universe;                  // my proc ID in world and universe

@@ -27,18 +27,18 @@ namespace LAMMPS_NS {
 class FixTMD : public Fix {
  public:
   FixTMD(class LAMMPS *, int, char **);
-  ~FixTMD();
-  int setmask();
-  void init();
-  void initial_integrate(int);
-  void initial_integrate_respa(int, int, int);
+  ~FixTMD() override;
+  int setmask() override;
+  void init() override;
+  void initial_integrate(int) override;
+  void initial_integrate_respa(int, int, int) override;
 
-  double memory_usage();
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
-  void reset_dt();
+  double memory_usage() override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  void reset_dt() override;
 
  private:
   int me;

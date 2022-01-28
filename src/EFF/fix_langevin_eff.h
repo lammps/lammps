@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class FixLangevinEff : public FixLangevin {
  public:
   FixLangevinEff(class LAMMPS *, int, char **);
-  ~FixLangevinEff();
-  void end_of_step();
-  double compute_scalar();
-  void post_force(int);
+  ~FixLangevinEff() override;
+  void end_of_step() override;
+  double compute_scalar() override;
+  void post_force(int) override;
 
  private:
   double *erforcelangevin;

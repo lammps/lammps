@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class ComputeTempDrude : public Compute {
  public:
   ComputeTempDrude(class LAMMPS *, int, char **);
-  ~ComputeTempDrude();
-  void init();
-  void setup();
-  void compute_vector();
-  double compute_scalar();
+  ~ComputeTempDrude() override;
+  void init() override;
+  void setup() override;
+  void compute_vector() override;
+  double compute_scalar() override;
   int modify_param(int, char **);
 
  private:

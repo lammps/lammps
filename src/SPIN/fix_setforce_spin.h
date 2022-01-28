@@ -27,8 +27,8 @@ namespace LAMMPS_NS {
 class FixSetForceSpin : public FixSetForce {
  public:
   FixSetForceSpin(class LAMMPS *, int, char **);
-  virtual void post_force(int);
-  void post_force_respa(int, int, int);
+  void post_force(int) override;
+  void post_force_respa(int, int, int) override;
   void single_setforce_spin(int, double *);
 };
 

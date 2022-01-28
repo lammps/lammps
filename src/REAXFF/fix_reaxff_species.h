@@ -35,13 +35,13 @@ typedef struct {
 class FixReaxFFSpecies : public Fix {
  public:
   FixReaxFFSpecies(class LAMMPS *, int, char **);
-  virtual ~FixReaxFFSpecies();
-  int setmask();
-  virtual void init();
-  void init_list(int, class NeighList *);
-  void setup(int);
-  void post_integrate();
-  double compute_vector(int);
+  ~FixReaxFFSpecies() override;
+  int setmask() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void setup(int) override;
+  void post_integrate() override;
+  double compute_vector(int) override;
 
  protected:
   int me, nprocs, nmax, nlocal, ntypes, ntotal;
@@ -68,11 +68,11 @@ class FixReaxFFSpecies : public Fix {
   int CheckExistence(int, int);
 
   int nint(const double &);
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
   void OpenPos();
   void WritePos(int, int);
-  double memory_usage();
+  double memory_usage() override;
 
   bigint nvalid;
 

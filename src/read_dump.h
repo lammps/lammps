@@ -29,8 +29,8 @@ namespace LAMMPS_NS {
 class ReadDump : public Command {
  public:
   ReadDump(class LAMMPS *);
-  ~ReadDump();
-  void command(int, char **);
+  ~ReadDump() override;
+  void command(int, char **) override;
 
   void store_files(int, char **);
   void setup_reader(int, char **);

@@ -66,18 +66,18 @@ class FixNVEManifoldRattle : public Fix {
   };
 
   FixNVEManifoldRattle(LAMMPS *, int &, char **, int = 1);
-  virtual ~FixNVEManifoldRattle();
+  ~FixNVEManifoldRattle() override;
   // All this stuff is interface, so you DO need to implement them.
   // Just delegate them to the workhorse classes.
-  virtual int setmask();
-  virtual void initial_integrate(int);
-  virtual void final_integrate();
-  virtual void init();
-  virtual void reset_dt();
-  virtual void end_of_step();
-  virtual int dof(int);
-  virtual void setup(int) {}    // Not needed for fixNVE but is for fixNVT
-  virtual double memory_usage();
+  int setmask() override;
+  void initial_integrate(int) override;
+  void final_integrate() override;
+  void init() override;
+  void reset_dt() override;
+  void end_of_step() override;
+  int dof(int) override;
+  void setup(int) override {}    // Not needed for fixNVE but is for fixNVT
+  double memory_usage() override;
 
  protected:
   int nevery, next_output;

@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class MinSpinLBFGS : public Min {
  public:
   MinSpinLBFGS(class LAMMPS *);
-  virtual ~MinSpinLBFGS();
-  void init();
-  void setup_style();
-  int modify_param(int, char **);
-  void reset_vectors();
-  int iterate(int);
+  ~MinSpinLBFGS() override;
+  void init() override;
+  void setup_style() override;
+  int modify_param(int, char **) override;
+  void reset_vectors() override;
+  int iterate(int) override;
 
  private:
   int local_iter;            // for neb

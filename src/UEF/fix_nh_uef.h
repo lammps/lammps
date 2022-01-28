@@ -27,28 +27,28 @@ namespace UEF_utils {
 class FixNHUef : public FixNH {
  public:
   FixNHUef(class LAMMPS *, int, char **);
-  virtual ~FixNHUef();
-  virtual int setmask();
-  virtual void init();
-  virtual void setup(int);
-  virtual void pre_exchange();
-  virtual int pack_restart_data(double *);
-  virtual void restart(char *);
-  virtual void end_of_step();
-  virtual void initial_integrate(int);
-  virtual void final_integrate();
-  virtual void initial_integrate_respa(int, int, int);
-  virtual void final_integrate_respa(int, int);
-  virtual void post_run();
+  ~FixNHUef() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void pre_exchange() override;
+  int pack_restart_data(double *) override;
+  void restart(char *) override;
+  void end_of_step() override;
+  void initial_integrate(int) override;
+  void final_integrate() override;
+  void initial_integrate_respa(int, int, int) override;
+  void final_integrate_respa(int, int) override;
+  void post_run() override;
   void get_rot(double[3][3]);
   void get_ext_flags(bool *);
   void get_box(double[3][3]);
 
  protected:
-  virtual void remap();
-  virtual int size_restart_global();
-  virtual void nve_x();
-  virtual void nve_v();
+  void remap() override;
+  int size_restart_global() override;
+  void nve_x() override;
+  void nve_v() override;
   void rotate_x(double[3][3]);
   void inv_rotate_x(double[3][3]);
   void rotate_v(double[3][3]);

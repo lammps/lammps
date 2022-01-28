@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class ComputeAngleLocal : public Compute {
  public:
   ComputeAngleLocal(class LAMMPS *, int, char **);
-  ~ComputeAngleLocal();
-  void init();
-  void compute_local();
-  double memory_usage();
+  ~ComputeAngleLocal() override;
+  void init() override;
+  void compute_local() override;
+  double memory_usage() override;
 
  private:
   int nvalues, nvar, ncount, setflag, tflag;

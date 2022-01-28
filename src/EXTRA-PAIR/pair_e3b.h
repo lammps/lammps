@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class PairE3B : public Pair {
  public:
   PairE3B(class LAMMPS *);
-  virtual ~PairE3B();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  virtual void coeff(int, char **);
-  virtual double init_one(int, int);
-  virtual void init_style();
+  ~PairE3B() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void init_style() override;
 
  protected:
   //potential parameters

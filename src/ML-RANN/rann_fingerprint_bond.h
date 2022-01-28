@@ -39,20 +39,20 @@ namespace RANN {
   class Fingerprint_bond : public Fingerprint {
    public:
     Fingerprint_bond(PairRANN *);
-    ~Fingerprint_bond();
-    bool parse_values(std::string, std::vector<std::string>);
-    void write_values(FILE *);
-    void init(int *, int);
-    void allocate();
+    ~Fingerprint_bond() override;
+    bool parse_values(std::string, std::vector<std::string>) override;
+    void write_values(FILE *) override;
+    void init(int *, int) override;
+    void allocate() override;
     void compute_fingerprint(double *, double *, double *, double *, int, int, double *, double *,
-                             double *, int *, int, int *);
+                             double *, int *, int, int *) override;
     void do3bodyfeatureset_doubleneighborloop(double *, double *, double *, double *, int, int,
                                               double *, double *, double *, int *, int, int *);
     void do3bodyfeatureset_singleneighborloop(double *, double *, double *, double *, int, int,
                                               double *, double *, double *, int *, int, int *);
     void generate_exp_cut_table();
     void generate_coefficients();
-    int get_length();
+    int get_length() override;
 
     double *expcuttable;
     double *dfctable;

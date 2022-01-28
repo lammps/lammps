@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class ComputeChunkSpreadAtom : public Compute {
  public:
   ComputeChunkSpreadAtom(class LAMMPS *, int, char **);
-  ~ComputeChunkSpreadAtom();
-  void init();
-  void compute_peratom();
-  double memory_usage();
+  ~ComputeChunkSpreadAtom() override;
+  void init() override;
+  void compute_peratom() override;
+  double memory_usage() override;
 
  protected:
   int mode, nvalues;

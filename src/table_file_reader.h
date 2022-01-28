@@ -25,7 +25,6 @@ class TableFileReader : public PotentialFileReader {
  public:
   TableFileReader(class LAMMPS *lmp, const std::string &filename, const std::string &type,
                   const int auto_convert = 0);
-  virtual ~TableFileReader() = default;
 
   char *find_section_start(const std::string &keyword);
 };

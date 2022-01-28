@@ -62,11 +62,9 @@ class TokenizerException : public std::exception {
    * \param  token  String of the token/word that caused the error */
   explicit TokenizerException(const std::string &msg, const std::string &token);
 
-  ~TokenizerException() noexcept {}
-
   /** Retrieve message describing the thrown exception
    * \return string with error message */
-  virtual const char *what() const noexcept { return message.c_str(); }
+  const char *what() const noexcept override { return message.c_str(); }
 };
 
 class InvalidIntegerException : public TokenizerException {

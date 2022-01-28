@@ -37,12 +37,12 @@ namespace LAMMPS_NS {
 class PairPython : public Pair {
  public:
   PairPython(class LAMMPS *);
-  virtual ~PairPython();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  double single(int, int, int, int, double, double, double, double &);
+  ~PairPython() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  double single(int, int, int, int, double, double, double, double &) override;
 
  protected:
   double cut_global;

@@ -91,7 +91,7 @@ class Pointers {
     atomKK(ptr->atomKK),
     memoryKK(ptr->memoryKK),
     python(ptr->python) {}
-  virtual ~Pointers() {}
+  virtual ~Pointers() = default;
 
   // remove default members execept for the copy constructor
 

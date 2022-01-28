@@ -124,13 +124,13 @@ public:
   using SnapAoSoATeamPolicy = typename Kokkos::TeamPolicy<Device, Kokkos::LaunchBounds<vector_length * num_teams>, TagPairSNAP>;
 
   PairSNAPKokkos(class LAMMPS *);
-  ~PairSNAPKokkos();
+  ~PairSNAPKokkos() override;
 
-  void coeff(int, char**);
-  void init_style();
-  double init_one(int, int);
-  void compute(int, int);
-  double memory_usage();
+  void coeff(int, char**) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  void compute(int, int) override;
+  double memory_usage() override;
 
   template<class TagStyle>
   void check_team_size_for(int, int&);
@@ -249,7 +249,7 @@ protected:
 
   int eflag,vflag;
 
-  void allocate();
+  void allocate() override;
   //void read_files(char *, char *);
   /*template<class DeviceType>
 inline int equal(double* x,double* y);
@@ -326,11 +326,11 @@ public:
 
   PairSNAPKokkosDevice(class LAMMPS *);
 
-  void coeff(int, char**);
-  void init_style();
-  double init_one(int, int);
-  void compute(int, int);
-  double memory_usage();
+  void coeff(int, char**) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  void compute(int, int) override;
+  double memory_usage() override;
 
 };
 

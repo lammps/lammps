@@ -29,14 +29,14 @@ class FixGravity : public Fix {
 
  public:
   FixGravity(class LAMMPS *, int, char **);
-  virtual ~FixGravity();
-  int setmask();
-  void init();
-  void setup(int);
-  virtual void post_force(int);
-  virtual void post_force_respa(int, int, int);
-  double compute_scalar();
-  void *extract(const char *, int &);
+  ~FixGravity() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void post_force(int) override;
+  void post_force_respa(int, int, int) override;
+  double compute_scalar() override;
+  void *extract(const char *, int &) override;
   enum { CONSTANT, EQUAL };
 
  protected:

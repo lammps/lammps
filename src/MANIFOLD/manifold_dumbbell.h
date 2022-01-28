@@ -25,15 +25,14 @@ namespace user_manifold {
    public:
     enum { NPARAMS = 4 };    // Number of parameters.
     manifold_dumbbell(LAMMPS *lmp, int, char **);
-    virtual ~manifold_dumbbell() {}
-    virtual double g(const double *x);
-    virtual void n(const double *x, double *nn);
+    double g(const double *x) override;
+    void n(const double *x, double *nn) override;
 
     static const char *type() { return "dumbbell"; }
-    virtual const char *id() { return type(); }
+    const char *id() override { return type(); }
 
     static int expected_argc() { return NPARAMS; }
-    virtual int nparams() { return NPARAMS; }
+    int nparams() override { return NPARAMS; }
   };
 }    // namespace user_manifold
 

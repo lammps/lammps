@@ -27,21 +27,21 @@ namespace LAMMPS_NS {
 class PairLubricate : public Pair {
  public:
   PairLubricate(class LAMMPS *);
-  virtual ~PairLubricate();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  virtual void init_style();
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
+  ~PairLubricate() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void init_style() override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
   int pre_adapt(char *, int, int, int, int);
   void adapt(int, int, int, int, int, double);
 
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
 
  protected:
   double mu, cut_inner_global, cut_global;

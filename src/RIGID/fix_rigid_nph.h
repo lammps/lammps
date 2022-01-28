@@ -27,7 +27,6 @@ namespace LAMMPS_NS {
 class FixRigidNPH : public FixRigidNH {
  public:
   FixRigidNPH(class LAMMPS *, int, char **);
-  ~FixRigidNPH() {}
 };
 
 }    // namespace LAMMPS_NS

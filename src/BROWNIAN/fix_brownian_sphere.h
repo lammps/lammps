@@ -27,9 +27,9 @@ namespace LAMMPS_NS {
 class FixBrownianSphere : public FixBrownianBase {
  public:
   FixBrownianSphere(class LAMMPS *, int, char **);
-  virtual ~FixBrownianSphere(){};
-  void init();
-  void initial_integrate(int);
+
+  void init() override;
+  void initial_integrate(int) override;
 
  private:
   template <int Tp_UNIFORM, int Tp_GAUSS, int Tp_2D> void initial_integrate_templated();

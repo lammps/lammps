@@ -27,7 +27,6 @@ namespace LAMMPS_NS {
 class PairTersoffZBL : public PairTersoff {
  public:
   PairTersoffZBL(class LAMMPS *);
-  ~PairTersoffZBL() {}
 
   static constexpr int NPARAMS_PER_LINE = 21;
 
@@ -36,11 +35,11 @@ class PairTersoffZBL : public PairTersoff {
   double global_epsilon_0;    // permittivity of vacuum for Coulomb repulsion
   double global_e;            // proton charge (negative of electron charge)
 
-  void read_file(char *);
-  void repulsive(Param *, double, double &, int, double &);
+  void read_file(char *) override;
+  void repulsive(Param *, double, double &, int, double &) override;
 
-  double ters_fa(double, Param *);
-  double ters_fa_d(double, Param *);
+  double ters_fa(double, Param *) override;
+  double ters_fa_d(double, Param *) override;
 
   double F_fermi(double, Param *);
   double F_fermi_d(double, Param *);

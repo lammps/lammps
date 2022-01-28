@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class FixMSCG : public Fix {
  public:
   FixMSCG(class LAMMPS *, int, char **);
-  ~FixMSCG();
-  int setmask();
-  void post_constructor();
-  void init();
-  void end_of_step();
-  void post_run();
+  ~FixMSCG() override;
+  int setmask() override;
+  void post_constructor() override;
+  void init() override;
+  void end_of_step() override;
+  void post_run() override;
 
  private:
   int range_flag, name_flag, me, nprocs;

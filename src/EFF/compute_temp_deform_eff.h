@@ -27,17 +27,17 @@ namespace LAMMPS_NS {
 class ComputeTempDeformEff : public Compute {
  public:
   ComputeTempDeformEff(class LAMMPS *, int, char **);
-  virtual ~ComputeTempDeformEff();
-  void init();
-  void setup();
-  virtual double compute_scalar();
-  virtual void compute_vector();
+  ~ComputeTempDeformEff() override;
+  void init() override;
+  void setup() override;
+  double compute_scalar() override;
+  void compute_vector() override;
 
-  void remove_bias(int, double *);
-  void remove_bias_all();
-  void restore_bias(int, double *);
-  void restore_bias_all();
-  double memory_usage();
+  void remove_bias(int, double *) override;
+  void remove_bias_all() override;
+  void restore_bias(int, double *) override;
+  void restore_bias_all() override;
+  double memory_usage() override;
 
  protected:
   double tfactor;

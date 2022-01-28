@@ -29,7 +29,7 @@ namespace LAMMPS_NS {
 class Info : public Command {
  public:
   Info(class LAMMPS *lmp) : Command(lmp){};
-  void command(int, char **);
+  void command(int, char **) override;
 
   bool is_active(const char *, const char *);
   bool is_defined(const char *, const char *);

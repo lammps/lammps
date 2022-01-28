@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class FixWallBodyPolyhedron : public Fix {
  public:
   FixWallBodyPolyhedron(class LAMMPS *, int, char **);
-  virtual ~FixWallBodyPolyhedron();
-  int setmask();
-  void init();
-  void setup(int);
-  virtual void post_force(int);
-  void reset_dt();
+  ~FixWallBodyPolyhedron() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void post_force(int) override;
+  void reset_dt() override;
 
   struct Contact {
     int ibody, jbody;     // body (i.e. atom) indices (not tags)

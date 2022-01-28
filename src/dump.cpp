@@ -1009,13 +1009,13 @@ void Dump::balance()
       // send for this proc
 
       if (iproc_prev != me) {
-	MPI_Send(&buf[procstart*size_one],procnsend*size_one,MPI_DOUBLE,procsend,0,world);
+        MPI_Send(&buf[procstart*size_one],procnsend*size_one,MPI_DOUBLE,procsend,0,world);
       } else {
 
         // sending to self, copy buffers
 
-	int offset_me = proc_offsets[me] - proc_new_offsets[me];
-	memcpy(&buf_balance[(offset_me + procstart)*size_one],&buf[procstart*size_one],procnsend*size_one*sizeof(double));
+        int offset_me = proc_offsets[me] - proc_new_offsets[me];
+        memcpy(&buf_balance[(offset_me + procstart)*size_one],&buf[procstart*size_one],procnsend*size_one*sizeof(double));
       }
 
       procstart = i;

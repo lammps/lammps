@@ -48,27 +48,19 @@ class PairOxdnaHbond : public Pair {
   double **epsilon_hb, **a_hb, **cut_hb_0, **cut_hb_c, **cut_hb_lo, **cut_hb_hi;
   double **cut_hb_lc, **cut_hb_hc, **b_hb_lo, **b_hb_hi, **shift_hb;
   double **cutsq_hb_hc;
-
   double **a_hb1, **theta_hb1_0, **dtheta_hb1_ast;
   double **b_hb1, **dtheta_hb1_c;
-
   double **a_hb2, **theta_hb2_0, **dtheta_hb2_ast;
   double **b_hb2, **dtheta_hb2_c;
-
   double **a_hb3, **theta_hb3_0, **dtheta_hb3_ast;
   double **b_hb3, **dtheta_hb3_c;
-
   double **a_hb4, **theta_hb4_0, **dtheta_hb4_ast;
   double **b_hb4, **dtheta_hb4_c;
-
   double **a_hb7, **theta_hb7_0, **dtheta_hb7_ast;
   double **b_hb7, **dtheta_hb7_c;
-
   double **a_hb8, **theta_hb8_0, **dtheta_hb8_ast;
   double **b_hb8, **dtheta_hb8_c;
-
   double **nx_xtrct, **ny_xtrct, **nz_xtrct; // per-atom arrays for local unit vectors
-
   int seqdepflag;
 
   virtual void allocate();

@@ -46,23 +46,16 @@ class PairOxdna2Coaxstk : public Pair {
   double **k_cxst, **cut_cxst_0, **cut_cxst_c, **cut_cxst_lo, **cut_cxst_hi;
   double **cut_cxst_lc, **cut_cxst_hc, **b_cxst_lo, **b_cxst_hi;
   double **cutsq_cxst_hc;
-
   double **a_cxst1, **theta_cxst1_0, **dtheta_cxst1_ast;
   double **b_cxst1, **dtheta_cxst1_c;
-
   double **a_cxst4, **theta_cxst4_0, **dtheta_cxst4_ast;
   double **b_cxst4, **dtheta_cxst4_c;
-
   double **a_cxst5, **theta_cxst5_0, **dtheta_cxst5_ast;
   double **b_cxst5, **dtheta_cxst5_c;
-
   double **a_cxst6, **theta_cxst6_0, **dtheta_cxst6_ast;
   double **b_cxst6, **dtheta_cxst6_c;
-
   double **AA_cxst1, **BB_cxst1;
-
-  // per-atom arrays for local unit vectors
-  double **nx_xtrct, **nz_xtrct;
+  double **nx_xtrct, **nz_xtrct; // per-atom arrays for local unit vectors
 
   virtual void allocate();
 };

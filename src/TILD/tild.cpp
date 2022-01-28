@@ -1667,7 +1667,7 @@ int TILD::modify_param(int narg, char** arg)
 
           auto it = cross_iter.begin();
           int idx = 0;
-          while (it != cross_iter.end()){
+          while (it != cross_iter.end()) {
             if ((it->i == i-1) && (it->j == j-1))
               cross_iter[idx] = temp; 
             it++;
@@ -2005,7 +2005,7 @@ void TILD::set_grid_local()
 
   nlo = static_cast<int> ((sublo[0]-dist[0]-boxlo[0]) *
                             nx_tild/xprd + shift) - OFFSET;
-  nhi = static_cast<int> ((subhi[0]+dist[0]-boxlo[0]) *
+  nhi = static_cast<int> ((subhi[0] + dist[0]-boxlo[0]) *
                             nx_tild/xprd + shift) - OFFSET;
   nxlo_out = nlo + nlower;
   nxhi_out = nhi + nupper;

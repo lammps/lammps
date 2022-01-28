@@ -5220,23 +5220,19 @@ TEST_F(AtomStyleTest, oxdna)
     ASSERT_EQ(bond_type[GETIDX(2)][0], 1);
     ASSERT_EQ(bond_type[GETIDX(3)][0], 1);
     ASSERT_EQ(bond_type[GETIDX(4)][0], 1);
-    ASSERT_EQ(bond_type[GETIDX(5)][0], 0);
     ASSERT_EQ(bond_type[GETIDX(6)][0], 1);
     ASSERT_EQ(bond_type[GETIDX(7)][0], 1);
     ASSERT_EQ(bond_type[GETIDX(8)][0], 1);
     ASSERT_EQ(bond_type[GETIDX(9)][0], 1);
-    ASSERT_EQ(bond_type[GETIDX(10)][0], 0);
 
     ASSERT_EQ(bond_atom[GETIDX(1)][0], 2);
     ASSERT_EQ(bond_atom[GETIDX(2)][0], 3);
     ASSERT_EQ(bond_atom[GETIDX(3)][0], 4);
     ASSERT_EQ(bond_atom[GETIDX(4)][0], 5);
-    ASSERT_EQ(bond_atom[GETIDX(5)][0], 0);
     ASSERT_EQ(bond_atom[GETIDX(6)][0], 7);
     ASSERT_EQ(bond_atom[GETIDX(7)][0], 8);
     ASSERT_EQ(bond_atom[GETIDX(8)][0], 9);
     ASSERT_EQ(bond_atom[GETIDX(9)][0], 10);
-    ASSERT_EQ(bond_atom[GETIDX(10)][0], 0);
 
     ASSERT_EQ(id5p[GETIDX(1)], 2);
     ASSERT_EQ(id5p[GETIDX(2)], 3);

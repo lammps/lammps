@@ -18,9 +18,9 @@ namespace LAMMPS_NS {
 class DynamicalMatrix : public Command {
  public:
   DynamicalMatrix(class LAMMPS *);
-  virtual ~DynamicalMatrix();
-  virtual void command(int, char **);
-  virtual void setup();
+  ~DynamicalMatrix();
+  void command(int, char **);
+  void setup();
 
  protected:
   int eflag, vflag;            // flags for energy/virial computation

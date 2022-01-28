@@ -123,7 +123,6 @@ void ThirdOrderKokkos::setup()
   neighbor->build(1);
 
   // compute all forces
-  // if (!modify->get_fix_by_id("package_omp")) external_force_clear = 1;
   eflag=0;
   vflag=0;
   if (force->kspace) {

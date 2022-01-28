@@ -30,7 +30,7 @@ namespace LAMMPS_NS {
 class DynamicalMatrixKokkos : public DynamicalMatrix {
  public:
   DynamicalMatrixKokkos(class LAMMPS *);
-  virtual ~DynamicalMatrixKokkos();
+  ~DynamicalMatrixKokkos();
   void command(int, char **);
   void setup();
 

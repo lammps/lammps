@@ -88,7 +88,6 @@ void DynamicalMatrix::setup()
   neighbor->build(1);
 
   // compute all forces
-  // if (!modify->get_fix_by_id("package_omp")) external_force_clear = 1;
   eflag=0;
   vflag=0;
   if (force->kspace) {
@@ -97,8 +96,6 @@ void DynamicalMatrix::setup()
   update_force();
 
 
-  // if (pair_compute_flag) force->pair->compute(eflag,vflag);
-  // else if (force->pair) force->pair->compute_dummy(eflag,vflag);
   update->setupflag = 0;
 
   //if all then skip communication groupmap population

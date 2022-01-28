@@ -18,9 +18,9 @@ namespace LAMMPS_NS {
 class ThirdOrder : public Command {
  public:
   ThirdOrder(class LAMMPS *);
-  virtual ~ThirdOrder();
-  virtual void command(int, char **);
-  virtual void setup();
+  ~ThirdOrder();
+  void command(int, char **);
+  void setup();
 
  protected:
   int eflag,vflag;            // flags for energy/virial computation

@@ -2492,7 +2492,7 @@ void TILD::ev_calculation(const int loc, const int itype, const int jtype) {
   Calculates the rho0 needed for this system instead of the rho0 that 
   comes from the particle densities. 
   Each Gaussian particle particle contributes a 1/V and erfc particles 
-    contributes 4*pi*r^3/V.
+    contributes 4/3*pi*r^3/V.
 ------------------------------------------------------------------------- */
 
 double TILD::calculate_rho0(){
@@ -2503,6 +2503,8 @@ double TILD::calculate_rho0(){
   vector<int> count_per_type (ntypes+1,0);
   double lmass = 0, lmass_all = 0;
   int tild_particles_non_gaussian = 0;
+  int particles_gaussian = 0;
+  double rho = 0;
 
   for (int i = 0; i < nlocal; i++) {
     if ( potent_type_map[0][type[i]][type[i]] == 1) {
@@ -2533,6 +2535,8 @@ double TILD::calculate_rho0(){
 
   MPI_Allreduce(&lmass, &lmass, 1, MPI_DOUBLE, MPI_SUM, world);
 
+  particles_gaussian = lmass;
+
   double total_sphere_vol = 0;
     for ( int itype = 1; itype <= ntypes; itype++) {
       if (potent_type_map[2][itype][itype] == 1) {
@@ -2557,26 +2561,55 @@ double TILD::calculate_rho0(){
 
   MPI_Allreduce(&lmass, &lmass_all, 1, MPI_DOUBLE, MPI_SUM, world);
 
-  rho0 = lmass_all / vole;
+  rho = lmass_all / vole;
   if (comm->me == 0) {
     std::string mesg = 
       fmt::format("  Found {} particles without a TILD potential\n", particles_not_tild);
-    mesg += fmt::format("  User set rho0 = {:.6f}; actual rho0 = {:.6f} for TILD potential.\n",
-      set_rho0, rho0);
-    utils::logmesg(lmp,mesg);
+    mesg += fmt::format("  Calculated rho = {:.6f}; user set rho0 = {:.6f} for TILD potential.\n",
+                        rho, set_rho0);
+
+    utils::logmesg(lmp, mesg);
+    mesg.clear();
+
+    if (set_rho0 > 0) {
+
+      // If TILD particles are only Gaussian and a user shape is defined.
+      if ((particles_gaussian == lmass && particles_gaussian > 0)) {
+        mesg +=
+            fmt::format("  For pure Gaussian shapes and a user_defined rho0, adopting user_rho0 "
+                        "= {:.6f} for TILD potential.\n",
+                        set_rho0);
+        rho = set_rho0;
+      } else if (total_sphere_vol > 0 && set_rho0 > 0) {
+        if (modified_rho0 != 0.f) {
+          std::string mesg_mod = fmt::format(
+              "Modified NP rho to {:.6f} to achieve user specified rho.\n", modified_rho0);
+          error->warning(FLERR, mesg_mod);
+          if (modified_rho0 < 0) {
+            std::string mesg_mod = fmt::format("Modified NP rho is below zero and is unphysical.\n");
+            error->all(FLERR, mesg_mod);
+          }
+        }
+      }
+      utils::logmesg(lmp, mesg);
+      mesg.clear();
     }
 
-  if (rho0 <= 0.f){
-    error->warning(FLERR,"Calculated rho0 <= 0; using user specificed rho0");
-    std::string mesg = 
-      fmt::format("  Found {} particles without a TILD potential\n", particles_not_tild);
-    mesg += fmt::format("  User set rho0 = {:.6f}; used rho0 = {:.6f} for TILD potential.\n",
-      set_rho0, set_rho0);
-    utils::logmesg(lmp,mesg);
-  return set_rho0;
+
+    if (rho <= 0.f) {
+      if (set_rho0 <= 0.f) {
+        mesg += fmt::format("  Both densities are not positive. Aborting run.");
+        error->all(FLERR, mesg);
+      } else {
+        error->warning(FLERR, "Calculated rho <= 0; using user specificed rho0");
+        mesg += fmt::format("  Using user set rho0 = {:.6f} for TILD potential.\n", set_rho0);
+        utils::logmesg(lmp, mesg);
+        rho = set_rho0;
+      }
+    }
   }
 
-  return rho0;
+  return rho;
 }
 
 /* ----------------------------------------------------------------------

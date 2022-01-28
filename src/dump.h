@@ -19,6 +19,7 @@
 namespace LAMMPS_NS {
 
 class Dump : protected Pointers {
+ friend class Output;
  public:
   char *id;                // user-defined name of Dump
   char *style;             // style of Dump
@@ -66,6 +67,7 @@ class Dump : protected Pointers {
   int header_flag;          // 0 = item, 2 = xyz
   int flush_flag;           // 0 if no flush, 1 if flush every dump
   int sort_flag;            // 1 if sorted output
+  int balance_flag;         // 1 if load balanced output
   int append_flag;          // 1 if open file in append mode, 0 if not
   int buffer_allow;         // 1 if style allows for buffer_flag, 0 if not
   int buffer_flag;          // 1 if buffer output as one big string, 0 if not
@@ -160,6 +162,7 @@ class Dump : protected Pointers {
   static int bufcompare(const int, const int, void *);
   static int bufcompare_reverse(const int, const int, void *);
 #endif
+  void balance();
 };
 
 }    // namespace LAMMPS_NS

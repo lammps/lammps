@@ -9,7 +9,7 @@ SHELL = /bin/sh
 KOKKOS_ABSOLUTE_PATH = $(shell cd $(KOKKOS_PATH); pwd)
 
 CC =		$(KOKKOS_ABSOLUTE_PATH)/bin/nvcc_wrapper
-CCFLAGS =	-g -O3
+CCFLAGS =	-g -O3 -DNDEBUG
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 

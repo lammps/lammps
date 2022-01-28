@@ -29,7 +29,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondFENENM::BondFENENM(LAMMPS *lmp) : BondFENE(lmp) {}
+BondFENENM::BondFENENM(LAMMPS *lmp) : BondFENE(lmp), nn(nullptr), mm(nullptr) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -47,7 +47,7 @@ void BondFENENM::compute(int eflag, int vflag)
 {
   int i1, i2, n, type;
   double delx, dely, delz, ebond, fbond;
-  double rsq, r0sq, rlogarg, sr2, sr6;
+  double rsq, r0sq, rlogarg, sr6;
   double r;
 
   ebond = sr6 = 0.0;

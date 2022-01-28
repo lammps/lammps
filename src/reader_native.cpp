@@ -38,8 +38,6 @@ ReaderNative::ReaderNative(LAMMPS *lmp) : Reader(lmp)
   fieldindex = nullptr;
   maxbuf = 0;
   databuf = nullptr;
-  magic_string = nullptr;
-  unit_style = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -47,8 +45,6 @@ ReaderNative::ReaderNative(LAMMPS *lmp) : Reader(lmp)
 ReaderNative::~ReaderNative()
 {
   delete[] line;
-  delete[] magic_string;
-  delete[] unit_style;
   memory->destroy(fieldindex);
   memory->destroy(databuf);
 }
@@ -64,24 +60,20 @@ int ReaderNative::read_time(bigint &ntimestep)
   if (binary) {
     int endian = 0x0001;
     revision = 0x0001;
-    delete[] magic_string;
-    delete[] unit_style;
-    magic_string = nullptr;
-    unit_style = nullptr;
+    magic_string = "";
+    unit_style = "";
 
-    fread(&ntimestep, sizeof(bigint), 1, fp);
+    auto ret = fread(&ntimestep, sizeof(bigint), 1, fp);
 
     // detect end-of-file
-    if (feof(fp)) return 1;
+    if (ret != 1 || feof(fp)) return 1;
 
     // detect newer format
     if (ntimestep < 0) {
       // first bigint encodes negative format name length
       bigint magic_string_len = -ntimestep;
 
-      magic_string = new char[magic_string_len + 1];
-      read_buf(magic_string, sizeof(char), magic_string_len);
-      magic_string[magic_string_len] = '\0';
+      magic_string = read_binary_str(magic_string_len);
 
       // read endian flag
       read_buf(&endian, sizeof(int), 1);
@@ -92,6 +84,7 @@ int ReaderNative::read_time(bigint &ntimestep)
       // read the real ntimestep
       read_buf(&ntimestep, sizeof(bigint), 1);
     }
+
   } else {
     char *eof = fgets(line,MAXLINE,fp);
     if (eof == nullptr) return 1;
@@ -123,7 +116,6 @@ int ReaderNative::read_time(bigint &ntimestep)
 void ReaderNative::skip()
 {
   if (binary) {
-    bigint natoms;
     int triclinic;
     skip_buf(sizeof(bigint));
     read_buf(&triclinic, sizeof(int), 1);
@@ -137,8 +129,8 @@ void ReaderNative::skip()
 
     // read chunk and skip them
 
-    int nchunk;
     read_buf(&nchunk, sizeof(int), 1);
+    if (nchunk < 0) error->one(FLERR,"Dump file is invalid or corrupted");
 
     int n;
     for (int i = 0; i < nchunk; i++) {
@@ -150,8 +142,7 @@ void ReaderNative::skip()
     read_lines(2);
     bigint natoms;
     int rv = sscanf(line,BIGINT_FORMAT,&natoms);
-    if (rv != 1)
-      error->one(FLERR,"Dump file is incorrectly formatted");
+    if (rv != 1) error->one(FLERR,"Dump file is incorrectly formatted");
 
     read_lines(5);
 
@@ -169,23 +160,20 @@ void ReaderNative::skip()
 
 void ReaderNative::skip_reading_magic_str()
 {
-  if (magic_string && revision > 0x0001) {
+  if (is_known_magic_str() && revision > 0x0001) {
     int len;
     read_buf(&len, sizeof(int), 1);
+    if (len < 0) error->one(FLERR,"Dump file is invalid or corrupted");
 
-    if (len > 0) {
-      // has units
-      skip_buf(sizeof(char)*len);
-    }
+    // has units
+    if (len > 0) skip_buf(sizeof(char)*len);
 
     char flag = 0;
     read_buf(&flag, sizeof(char), 1);
-
-    if (flag) {
-      skip_buf(sizeof(double));
-    }
+    if (flag) skip_buf(sizeof(double));
 
     read_buf(&len, sizeof(int), 1);
+    if (len < 0) error->one(FLERR,"Dump file is invalid or corrupted");
     skip_buf(sizeof(char)*len);
   }
 }
@@ -213,7 +201,7 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
 {
   bigint natoms = 0;
   int len = 0;
-  char *labelline;
+  std::string labelline;
 
   if (binary) {
     read_buf(&natoms, sizeof(bigint), 1);
@@ -242,17 +230,15 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
       return natoms;
     }
 
-    if (magic_string && revision > 0x0001) {
+
+    if (is_known_magic_str() && revision > 0x0001) {
       // newer format includes units string, columns string
       // and time
       read_buf(&len, sizeof(int), 1);
-      labelline = new char[len + 1];
 
       if (len > 0) {
         // has units
-        unit_style = new char[len + 1];
-        read_buf(unit_style, sizeof(char), len);
-        unit_style[len] = '\0';
+        unit_style = read_binary_str(len);
       }
 
       char flag = 0;
@@ -264,9 +250,14 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
       }
 
       read_buf(&len, sizeof(int), 1);
-      read_buf(labelline, sizeof(char), len);
-      labelline[len] = '\0';
+      labelline = read_binary_str(len);
+    } else {
+      error->one(FLERR, "Unsupported old binary dump format");
     }
+
+    read_buf(&nchunk, sizeof(int), 1);
+    ichunk = 0;
+    iatom_chunk = 0;
   } else {
     int rv;
 
@@ -307,13 +298,14 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
     labelline = &line[strlen("ITEM: ATOMS ")];
   }
 
-  std::map<std::string, int> labels;
   Tokenizer tokens(labelline);
+  std::map<std::string, int> labels;
   nwords = 0;
 
   while (tokens.has_next()) {
     labels[tokens.next()] = nwords++;
   }
+
 
   if (nwords == 0) {
     return 1;
@@ -461,34 +453,37 @@ void ReaderNative::read_atoms(int n, int nfield, double **fields)
       error->one(FLERR,"Unexpected end of dump file");
     }
 
-    int i_atom = 0;
-    int nchunk;
-    read_buf(&nchunk, sizeof(int), 1);
-    for (int i = 0; i < nchunk; i++) {
+    // read chunks until n atoms have been read
+    int m = size_one*iatom_chunk;
 
-      read_buf(&n, sizeof(int), 1);
+    for (int i = 0; i < n; i++) {
+      // if the last chunk has finished
+      if (iatom_chunk == 0) {
+          read_buf(&natom_chunk, sizeof(int), 1);
+          read_double_chunk(natom_chunk);
+          natom_chunk /= size_one;
+          m = 0;
+      }
 
-      // read chunk and write as size_one values per line
-      read_double_chunk(n);
-      n /= size_one;
-      int m = 0;
-      for (int j = 0; j < n; j++)
-        {
-          double *words = &databuf[m];
-          for (int k = 0; k < nfield; k++)
-            fields[i_atom][k] = words[fieldindex[k]];
-          i_atom += 1;
-          m+=size_one;
-        }
+      // read one line of atom
+      double *words = &databuf[m];
+
+      for (int k = 0; k < nfield; k++)
+        fields[i][k] = words[fieldindex[k]];
+
+      m += size_one;
+
+      iatom_chunk++;
+
+      // hit the end of current chunk
+      if (iatom_chunk == natom_chunk) {
+        iatom_chunk = 0;
+        ichunk++;
+      }
     }
-
   } else {
-    int i,m;
-    char *eof;
-
-    for (i = 0; i < n; i++) {
-      eof = fgets(line,MAXLINE,fp);
-      if (eof == nullptr) error->one(FLERR,"Unexpected end of dump file");
+    for (int i = 0; i < n; i++) {
+      utils::sfgets(FLERR, line, MAXLINE, fp, nullptr, error);
 
       // tokenize the line
       std::vector<std::string> words = Tokenizer(line).as_vector();
@@ -497,7 +492,7 @@ void ReaderNative::read_atoms(int n, int nfield, double **fields)
 
       // convert selected fields to floats
 
-      for (m = 0; m < nfield; m++)
+      for (int m = 0; m < nfield; m++)
         fields[i][m] = atof(words[fieldindex[m]].c_str());
     }
   }
@@ -525,18 +520,21 @@ int ReaderNative::find_label(const std::string &label, const std::map<std::strin
 
 void ReaderNative::read_lines(int n)
 {
-  char *eof = nullptr;
-  if (n <= 0) return;
-  for (int i = 0; i < n; i++) eof = fgets(line,MAXLINE,fp);
-  if (eof == nullptr) error->one(FLERR,"Unexpected end of dump file");
+  for (int i = 0; i < n; i++) {
+    utils::sfgets(FLERR, line, MAXLINE, fp, nullptr, error);
+  }
 }
 
 void ReaderNative::read_buf(void * ptr, size_t size, size_t count)
 {
-  fread(ptr, size, count, fp);
+  utils::sfread(FLERR, ptr, size, count, fp, nullptr, error);
+}
 
-  // detect end-of-file
-  if (feof(fp)) error->one(FLERR,"Unexpected end of dump file");
+std::string ReaderNative::read_binary_str(size_t size)
+{
+  std::string str(size, '\0');
+  read_buf(&str[0], sizeof(char), size);
+  return str;
 }
 
 void ReaderNative::read_double_chunk(size_t count)
@@ -554,4 +552,9 @@ void ReaderNative::skip_buf(size_t size)
   bigint pos = platform::ftell(fp);
   pos += size;
   platform::fseek(fp,pos);
+}
+
+bool ReaderNative::is_known_magic_str() const
+{
+  return magic_string == "DUMPATOM" || magic_string == "DUMPCUSTOM";
 }

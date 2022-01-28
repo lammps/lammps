@@ -121,17 +121,24 @@ void DumpXTC::init_style()
 
   if (flush_flag) error->all(FLERR,"Cannot set dump_modify flush for dump xtc");
 
-  // check that dump frequency has not changed and is not a variable
+  // check that dump modify settings are compatible with xtc
+  // but only when not being called from the "write_dump" command
 
-  int idump;
-  for (idump = 0; idump < output->ndump; idump++)
-    if (strcmp(id,output->dump[idump]->id) == 0) break;
-  if (output->every_dump[idump] == 0)
-    error->all(FLERR,"Cannot use variable every setting for dump xtc");
+  if (strcmp(id,"WRITE_DUMP") != 0) {
+    int idump;
+    for (idump = 0; idump < output->ndump; idump++)
+      if (strcmp(id,output->dump[idump]->id) == 0) break;
 
-  if (nevery_save == 0) nevery_save = output->every_dump[idump];
-  else if (nevery_save != output->every_dump[idump])
-    error->all(FLERR,"Cannot change dump_modify every for dump xtc");
+    if (output->mode_dump[idump] == 1)
+      error->all(FLERR,"Cannot use every/time setting for dump xtc");
+
+    if (output->every_dump[idump] == 0)
+      error->all(FLERR,"Cannot use every variable setting for dump xtc");
+
+    if (nevery_save == 0) nevery_save = output->every_dump[idump];
+    else if (nevery_save != output->every_dump[idump])
+      error->all(FLERR,"Cannot change dump_modify every for dump xtc");
+  }
 }
 
 /* ---------------------------------------------------------------------- */

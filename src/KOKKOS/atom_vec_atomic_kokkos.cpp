@@ -821,8 +821,8 @@ void AtomVecAtomicKokkos::create_atom(int itype, double *coord)
    initialize other atom quantities
 ------------------------------------------------------------------------- */
 
-void AtomVecAtomicKokkos::data_atom(double *coord, tagint imagetmp,
-                                    char **values)
+void AtomVecAtomicKokkos::data_atom(double *coord, imageint imagetmp,
+                                    const std::vector<std::string> &values)
 {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);

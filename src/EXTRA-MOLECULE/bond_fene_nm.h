@@ -38,7 +38,6 @@ class BondFENENM : public BondFENE {
   virtual void *extract(const char *, int &);
 
  protected:
-  double TWO_1_3;
   double *nn, *mm;
 
   virtual void allocate();

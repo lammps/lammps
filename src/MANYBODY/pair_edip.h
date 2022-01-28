@@ -34,14 +34,23 @@ class PairEDIP : public Pair {
   double init_one(int, int);
   void init_style();
 
+  static constexpr int NPARAMS_PER_LINE = 20;
+
  protected:
   struct Param {
-    double A, B;
-    double cutoffA, cutoffC, cutsq;
-    double alpha, beta;
-    double eta, gamm, lambda, mu, rho, sigma, Q0;
-    double u1, u2, u3, u4;
-    int ielement, jelement, kelement;
+    double A, B;              // coefficients for pair interaction I-J
+    double cutoffA;           // cut-off distance for pair interaction I-J
+    double cutoffC;           // lower cut-off distance for calculating Z_I
+    double alpha;             // coefficient for calculating Z_I
+    double beta;              // attractive term for pair I-J
+    double sigma;             // cut-off coefficient for pair I-J
+    double rho;               // pair I-J
+    double gamma;             // coefficient for three-body interaction I-J-K
+    double eta, lambda;       // coefficients for function h(l,Z)
+    double mu, Q0;            // coefficients for function Q(Z)
+    double u1, u2, u3, u4;    // coefficients for function tau(Z)
+    double cutsq;
+    int ielement, jelement, kelement, dummy; // dummy added for better alignment
   };
 
   double *preInvR_ij;

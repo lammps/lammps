@@ -50,7 +50,6 @@ class PairE3B : public Pair {
   int **pairO, ***pairH;       // pair lists
   double ***exps, ****del3, ***fpair3, *sumExp;
   int maxID;        //size of global sumExp array
-  size_t nbytes;    //size of sumExp array in bytes
   int natoms;       //to make sure number of atoms is constant
 
   virtual void allocate();

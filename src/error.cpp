@@ -196,7 +196,7 @@ void Error::one(const std::string &file, int line, const std::string &str)
   MPI_Comm_rank(world,&me);
 
   if (input && input->line) lastcmd = input->line;
-  std::string mesg = fmt::format("ERROR on proc {}: {} ({}:{})\n",
+  std::string mesg = fmt::format("ERROR on proc {}: {} ({}:{})\nLast command: {}\n",
                                  me,str,truncpath(file),line,lastcmd);
   utils::logmesg(lmp,mesg);
 

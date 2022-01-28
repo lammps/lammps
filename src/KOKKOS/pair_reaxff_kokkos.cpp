@@ -843,12 +843,12 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     k_resize_bo.modify<DeviceType>();
     k_resize_bo.sync<LMPHostType>();
     int resize_bo = k_resize_bo.h_view();
-    if (resize_bo) maxbo = MAX(maxbo+1,resize_bo);
+    if (resize_bo) maxbo = MAX(maxbo+MAX(1,maxbo*0.1),resize_bo);
 
     k_resize_hb.modify<DeviceType>();
     k_resize_hb.sync<LMPHostType>();
     int resize_hb = k_resize_hb.h_view();
-    if (resize_hb) maxhb = MAX(maxhb+1,resize_hb);
+    if (resize_hb) maxhb = MAX(maxhb+MAX(1,maxhb*0.1),resize_hb);
 
     resize = resize_bo || resize_hb;
     if (resize) {

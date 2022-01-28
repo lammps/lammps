@@ -449,6 +449,7 @@ void TILD::vir_func_init() {
   double delz = zprd/nz_tild;
   int ntypes = atom->ntypes;
 
+  // Initializating for shape defined interactions
   int loc = -1;
   for (int itype = 1; itype <= ntypes; itype++) {
     for (int jtype = itype; jtype <= ntypes; jtype++) {
@@ -506,6 +507,7 @@ void TILD::vir_func_init() {
     }
   }
   
+  // Initializating for user-defined cross-interactions
   for (auto& potential: cross_iter){
     int i_index = min(potential.i,potential.j);
     int j_index = max(potential.i,potential.j);
@@ -1084,8 +1086,10 @@ void TILD::init_cross_potentials(){
           n += 2;
         }
 
+        // Inverse fourier transform
         fft1->compute(ktmp2, ktmp, FFT3d::BACKWARD);
 
+        // Storing the real space result
         n = 0;
         for (int j = 0; j < nfft; j++){
           potent[loc][j] = ktmp[n];
@@ -1594,8 +1598,12 @@ int TILD::modify_param(int narg, char** arg)
     if (narg < 3) error->all(FLERR, "Illegal kspace_modify tild command");
 
     int ilo,ihi,jlo,jhi;
+
+    //Read in types 1 and 2
     utils::bounds(FLERR,arg[1],1,ntypes,ilo,ihi,error);
     utils::bounds(FLERR,arg[2],1,ntypes,jlo,jhi,error);
+
+    //Obtain Gaussian width parameter
     if (strcmp(arg[3], "gaussian") == 0) {
       if (narg < 4) error->all(FLERR, "Illegal kspace_modify tild command");
 
@@ -1608,6 +1616,8 @@ int TILD::modify_param(int narg, char** arg)
         }
       }
     } else if (strcmp(arg[3], "erfc") == 0) {
+
+    //Obtain Erfc Radius, width, and density for Erf
       if (narg < 5) error->all(FLERR, "Illegal kspace_modify tild command");
       double rp_one = utils::numeric(FLERR,arg[4],false,lmp);
       double xi_one = utils::numeric(FLERR,arg[5],false,lmp);

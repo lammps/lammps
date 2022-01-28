@@ -122,7 +122,7 @@ where the fix will attempt to charge :math:`\mathrm{B}` (discharge
 insert (delete) a hydroxyl ion :math:`\mathrm{OH}^-` of atom type 3.
 
 
-Dissociated ions and salt ions can be combined into a single particle type, which reduces the number of necessary MC moves and increases sampling performance, see :ref:`(Curk1) <Curk1>`. The :math:`\mathrm{H}^+` and monovalent salt cation (:math:`\mathrm{S}^+`) are combined into a single particle type, :math:`\mathrm{X}^+ = \{\mathrm{H}^+, \mathrm{S}^+\}`. In this case "pIp" refers to the effective concentration of the combined cation type :math:`\mathrm{X}^+` and its value is determined by :math:`10^{-\mathrm{pIp}} = 10^{-\mathrm{pH}} + 10^{-\mathrm{pSp}}`, where :math:`10^{-\mathrm{pSp}}` is the effective concentration of salt cations. For example, at pH=7 and pSp=6 we would find pIp~5.958 and the command that performs reactions with combined ions could read, 
+Dissociated ions and salt ions can be combined into a single particle type, which reduces the number of necessary MC moves and increases sampling performance, see :ref:`(Curk1) <Curk1>`. The :math:`\mathrm{H}^+` and monovalent salt cation (:math:`\mathrm{S}^+`) are combined into a single particle type, :math:`\mathrm{X}^+ = \{\mathrm{H}^+, \mathrm{S}^+\}`. In this case "pIp" refers to the effective concentration of the combined cation type :math:`\mathrm{X}^+` and its value is determined by :math:`10^{-\mathrm{pIp}} = 10^{-\mathrm{pH}} + 10^{-\mathrm{pSp}}`, where :math:`10^{-\mathrm{pSp}}` is the effective concentration of salt cations. For example, at pH=7 and pSp=6 we would find pIp~5.958 and the command that performs reactions with combined ions could read,
 
 .. code-block:: LAMMPS
 
@@ -138,7 +138,7 @@ If neither the acid or the base type is specified, for example,
 
 the fix simply inserts or deletes an ion pair of a free cation (atom
 type 4) and a free anion (atom type 5) as done in a conventional
-grand-canonical MC simulation. Multivalent ions can be inserted (deleted) by using the *onlysalt* keyword.    
+grand-canonical MC simulation. Multivalent ions can be inserted (deleted) by using the *onlysalt* keyword.
 
 
 The fix is compatible with LAMMPS sub-packages such as *molecule* or

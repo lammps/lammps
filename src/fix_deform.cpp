@@ -45,7 +45,7 @@ enum{ONE_FROM_ONE,ONE_FROM_TWO,TWO_FROM_ONE};
 /* ---------------------------------------------------------------------- */
 
 FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
-rfix(nullptr), irregular(nullptr), set(nullptr)
+irregular(nullptr), set(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix deform command");
 
@@ -127,8 +127,8 @@ rfix(nullptr), irregular(nullptr), set(nullptr)
           error->all(FLERR,"Illegal fix deform command");
         if (strstr(arg[iarg+3],"v_") != arg[iarg+3])
           error->all(FLERR,"Illegal fix deform command");
-        delete [] set[index].hstr;
-        delete [] set[index].hratestr;
+        delete[] set[index].hstr;
+        delete[] set[index].hratestr;
         set[index].hstr = utils::strdup(&arg[iarg+2][2]);
         set[index].hratestr = utils::strdup(&arg[iarg+3][2]);
         iarg += 4;
@@ -185,8 +185,8 @@ rfix(nullptr), irregular(nullptr), set(nullptr)
           error->all(FLERR,"Illegal fix deform command");
         if (strstr(arg[iarg+3],"v_") != arg[iarg+3])
           error->all(FLERR,"Illegal fix deform command");
-        delete [] set[index].hstr;
-        delete [] set[index].hratestr;
+        delete[] set[index].hstr;
+        delete[] set[index].hratestr;
         set[index].hstr = utils::strdup(&arg[iarg+2][2]);
         set[index].hratestr = utils::strdup(&arg[iarg+3][2]);
         iarg += 4;
@@ -344,7 +344,6 @@ rfix(nullptr), irregular(nullptr), set(nullptr)
     force_reneighbor = 1;
   next_reneighbor = -1;
 
-  nrigid = 0;
   flip = 0;
 
   if (force_reneighbor) irregular = new Irregular(lmp);
@@ -359,12 +358,11 @@ FixDeform::~FixDeform()
 {
   if (set) {
     for (int i = 0; i < 6; i++) {
-      delete [] set[i].hstr;
-      delete [] set[i].hratestr;
+      delete[] set[i].hstr;
+      delete[] set[i].hratestr;
     }
   }
-  delete [] set;
-  delete [] rfix;
+  delete[] set;
 
   delete irregular;
 
@@ -396,9 +394,8 @@ void FixDeform::init()
   // domain, fix nvt/sllod, compute temp/deform only work on single h_rate
 
   int count = 0;
-  for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"deform") == 0) count++;
-  if (count > 1) error->all(FLERR,"More than one fix deform");
+  if (modify->get_fix_by_style("deform").size() > 1)
+    error->all(FLERR,"More than one fix deform");
 
   // Kspace setting
 
@@ -609,20 +606,12 @@ void FixDeform::init()
   }
 
   // detect if any rigid fixes exist so rigid bodies can be rescaled
-  // rfix[] = indices to each fix rigid
+  // rfix[] = vector with pointers to each fix rigid
 
-  delete [] rfix;
-  nrigid = 0;
-  rfix = nullptr;
+  rfix.clear();
 
-  for (int i = 0; i < modify->nfix; i++)
-    if (modify->fix[i]->rigid_flag) nrigid++;
-  if (nrigid) {
-    rfix = new int[nrigid];
-    nrigid = 0;
-    for (int i = 0; i < modify->nfix; i++)
-      if (modify->fix[i]->rigid_flag) rfix[nrigid++] = i;
-  }
+  for (auto ifix : modify->get_fix_list())
+    if (ifix->rigid_flag) rfix.push_back(ifix);
 }
 
 /* ----------------------------------------------------------------------
@@ -894,9 +883,8 @@ void FixDeform::end_of_step()
       if (mask[i] & groupbit)
         domain->x2lamda(x[i],x[i]);
 
-    if (nrigid)
-      for (i = 0; i < nrigid; i++)
-        modify->fix[rfix[i]]->deform(0);
+    for (auto ifix : rfix)
+      ifix->deform(0);
   }
 
   // reset global and local box to new size/shape
@@ -934,9 +922,8 @@ void FixDeform::end_of_step()
       if (mask[i] & groupbit)
         domain->lamda2x(x[i],x[i]);
 
-    if (nrigid)
-      for (i = 0; i < nrigid; i++)
-        modify->fix[rfix[i]]->deform(1);
+    for (auto ifix : rfix)
+      ifix->deform(1);
   }
 
   // redo KSpace coeffs since box has changed

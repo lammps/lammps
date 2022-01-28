@@ -46,9 +46,7 @@ else()
 endif()
 target_include_directories(style_tests PRIVATE ${LAMMPS_SOURCE_DIR})
 target_link_libraries(style_tests PUBLIC gmock Yaml::Yaml lammps)
-if(BUILD_MPI)
-  target_link_libraries(style_tests PUBLIC MPI::MPI_CXX)
-endif()
+
 # propagate sanitizer options to test tools
 if(ENABLE_SANITIZER AND (NOT (ENABLE_SANITIZER STREQUAL "none")))
   if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.13)

@@ -423,13 +423,8 @@ RegisterFixStyle(${GPU_SOURCES_DIR}/fix_gpu.h)
 
 get_property(GPU_SOURCES GLOBAL PROPERTY GPU_SOURCES)
 
-if(NOT BUILD_MPI)
-  # add include include path to MPI STUBS for non-MPI build
-  target_include_directories(gpu PRIVATE ${LAMMPS_SOURCE_DIR}/STUBS)
-else()
-  target_link_libraries(gpu PRIVATE MPI::MPI_CXX)
-endif()
 target_compile_definitions(gpu PRIVATE -DLAMMPS_${LAMMPS_SIZES})
 set_target_properties(gpu PROPERTIES OUTPUT_NAME lammps_gpu${LAMMPS_MACHINE})
 target_sources(lammps PRIVATE ${GPU_SOURCES})
 target_include_directories(lammps PRIVATE ${GPU_SOURCES_DIR})
+target_link_libraries(gpu PRIVATE MPI::MPI_CXX)

@@ -669,6 +669,7 @@ Derlet
 Deserno
 Destree
 destructor
+destructors
 detils
 Devanathan
 devel

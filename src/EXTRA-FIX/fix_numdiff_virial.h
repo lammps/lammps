@@ -38,9 +38,9 @@ class FixNumDiffVirial : public Fix {
   double memory_usage() override;
 
  private:
-  static const int NDIR_VIRIAL = 6;    // dimension of virial and strain vectors
-  double delta;                        // strain magnitude
-  int maxatom;                         // allocated size of atom arrays
+  static constexpr int NDIR_VIRIAL = 6;    // dimension of virial and strain vectors
+  double delta;                            // strain magnitude
+  int maxatom;                             // allocated size of atom arrays
   int ilevel_respa;
 
   int pair_compute_flag;      // 0 if pair->compute is skipped

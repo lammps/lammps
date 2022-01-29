@@ -12,10 +12,10 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Charles Sievers (UC Davis)
+   Contributing author: Aidan Thompson (Sandia)
 ------------------------------------------------------------------------- */
 
-#include "fix_numdiff.h"
+#include "fix_numdiff_virial.h"
 
 #include "angle.h"
 #include "atom.h"
@@ -40,15 +40,18 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixNumDiff::FixNumDiff(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), id_pe(nullptr), numdiff_forces(nullptr), temp_x(nullptr), temp_f(nullptr)
+FixNumDiffVirial::FixNumDiffVirial(LAMMPS *lmp, int narg, char **arg) :
+    Fix(lmp, narg, arg), id_pe(nullptr), temp_x(nullptr), temp_f(nullptr)
 {
-  if (narg < 5) error->all(FLERR, "Illegal fix numdiff command");
+  if (narg < 5) error->all(FLERR, "Illegal fix numdiff/virial command");
+  if (igroup) error->all(FLERR, "Compute numdiff/virial must use group all");
 
-  peratom_flag = 1;
   peratom_freq = nevery;
-  size_peratom_cols = 3;
   respa_level_support = 1;
+  vector_flag = 1;
+  size_vector = NDIR_VIRIAL;
+  extvector = 0;
+  maxatom = 0;
 
   nevery = utils::inumeric(FLERR, arg[3], false, lmp);
   delta = utils::numeric(FLERR, arg[4], false, lmp);
@@ -56,28 +59,42 @@ FixNumDiff::FixNumDiff(LAMMPS *lmp, int narg, char **arg) :
 
   std::string cmd = id + std::string("_pe");
   id_pe = utils::strdup(cmd);
-
   cmd += " all pe";
   modify->add_compute(cmd);
-
-  maxatom = 0;
-
-  if (atom->map_style == Atom::MAP_NONE)
-    error->all(FLERR, "Fix numdiff requires an atom map, see atom_modify");
 
   // perform initial allocation of atom-based arrays
   // zero numdiff_forces since dump may access it on timestep 0
   // zero numdiff_forces since a variable may access it before first run
 
   reallocate();
-  force_clear(numdiff_forces);
+
+  // set fixed-point to default = center of cell
+
+  fixedpoint[0] = 0.5 * (domain->boxlo[0] + domain->boxhi[0]);
+  fixedpoint[1] = 0.5 * (domain->boxlo[1] + domain->boxhi[1]);
+  fixedpoint[2] = 0.5 * (domain->boxlo[2] + domain->boxhi[2]);
+
+  // define the cartesian indices for each strain (Voigt order)
+
+  dirlist[0][0] = 0;
+  dirlist[0][1] = 0;
+  dirlist[1][0] = 1;
+  dirlist[1][1] = 1;
+  dirlist[2][0] = 2;
+  dirlist[2][1] = 2;
+
+  dirlist[3][0] = 1;
+  dirlist[3][1] = 2;
+  dirlist[4][0] = 0;
+  dirlist[4][1] = 2;
+  dirlist[5][0] = 0;
+  dirlist[5][1] = 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
-FixNumDiff::~FixNumDiff()
+FixNumDiffVirial::~FixNumDiffVirial()
 {
-  memory->destroy(numdiff_forces);
   memory->destroy(temp_x);
   memory->destroy(temp_f);
 
@@ -87,7 +104,7 @@ FixNumDiff::~FixNumDiff()
 
 /* ---------------------------------------------------------------------- */
 
-int FixNumDiff::setmask()
+int FixNumDiffVirial::setmask()
 {
   datamask_read = datamask_modify = 0;
 
@@ -100,13 +117,8 @@ int FixNumDiff::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNumDiff::init()
+void FixNumDiffVirial::init()
 {
-  // require consecutive atom IDs
-
-  if (!atom->tag_enable || !atom->tag_consecutive())
-    error->all(FLERR, "Fix numdiff requires consecutive atom IDs");
-
   // check for PE compute
 
   int icompute = modify->find_compute(id_pe);
@@ -130,7 +142,7 @@ void FixNumDiff::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNumDiff::setup(int vflag)
+void FixNumDiffVirial::setup(int vflag)
 {
   if (utils::strmatch(update->integrate_style, "^verlet"))
     post_force(vflag);
@@ -143,41 +155,40 @@ void FixNumDiff::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixNumDiff::min_setup(int vflag)
+void FixNumDiffVirial::min_setup(int vflag)
 {
   post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixNumDiff::post_force(int /* vflag */)
+void FixNumDiffVirial::post_force(int /* vflag */)
 {
   if (update->ntimestep % nevery) return;
 
-  calculate_forces();
+  calculate_virial();
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixNumDiff::post_force_respa(int vflag, int ilevel, int /*iloop*/)
+void FixNumDiffVirial::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == ilevel_respa) post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixNumDiff::min_post_force(int vflag)
+void FixNumDiffVirial::min_post_force(int vflag)
 {
   post_force(vflag);
 }
 
 /* ----------------------------------------------------------------------
-   compute finite difference forces
+   compute finite difference virial stress tensor
 ------------------------------------------------------------------------- */
 
-void FixNumDiff::calculate_forces()
+void FixNumDiffVirial::calculate_virial()
 {
-  int i, j, ilocal;
   double energy;
 
   // grow arrays if necessary
@@ -188,50 +199,33 @@ void FixNumDiff::calculate_forces()
 
   double **x = atom->x;
   double **f = atom->f;
-  int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
+  int nall = atom->nlocal + atom->nghost;
 
-  for (i = 0; i < nall; i++)
-    for (j = 0; j < 3; j++) {
-      temp_x[i][j] = x[i][j];
-      temp_f[i][j] = f[i][j];
+  for (int i = 0; i < nall; i++)
+    for (int k = 0; k < 3; k++) {
+      temp_x[i][k] = x[i][k];
+      temp_f[i][k] = f[i][k];
     }
 
-  // initialize numerical forces to zero
-
-  force_clear(numdiff_forces);
-
-  // loop over all atoms in system
+  // loop over 6 strain directions
   // compute a finite difference force in each dimension
 
   int flag, allflag;
-  double denominator = 0.5 / delta;
+  double nktv2p = force->nktv2p;
+  double inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
 
-  int *mask = atom->mask;
-  int ntotal = static_cast<tagint>(atom->natoms);
-  int dimension = domain->dimension;
+  double denominator = -0.5 / delta * inv_volume * nktv2p;
 
-  for (tagint m = 1; m <= ntotal; m++) {
-    ilocal = atom->map(m);
-    flag = 0;
-    if ((ilocal >= 0 && ilocal < nlocal) && (mask[ilocal] & groupbit)) flag = 1;
-    MPI_Allreduce(&flag, &allflag, 1, MPI_INT, MPI_SUM, world);
-    if (!allflag) continue;
-
-    for (int idim = 0; idim < dimension; idim++) {
-      displace_atoms(ilocal, idim, 1);
-      energy = update_energy();
-      if (ilocal >= 0 && ilocal < nlocal) numdiff_forces[ilocal][idim] -= energy;
-
-      displace_atoms(ilocal, idim, -2);
-      energy = update_energy();
-      if (ilocal >= 0 && ilocal < nlocal) {
-        numdiff_forces[ilocal][idim] += energy;
-        numdiff_forces[ilocal][idim] *= denominator;
-      }
-
-      restore_atoms(ilocal, idim);
-    }
+  for (int idir = 0; idir < NDIR_VIRIAL; idir++) {
+    displace_atoms(nall, idir, 1.0);
+    energy = update_energy();
+    virial[idir] = energy;
+    restore_atoms(nall, idir);
+    displace_atoms(nall, idir, -1.0);
+    energy = update_energy();
+    virial[idir] -= energy;
+    virial[idir] *= denominator;
+    restore_atoms(nall, idir);
   }
 
   // recompute energy so all contributions are as before
@@ -240,46 +234,32 @@ void FixNumDiff::calculate_forces()
 
   // restore original forces for owned and ghost atoms
 
-  for (i = 0; i < nall; i++)
-    for (j = 0; j < 3; j++) { f[i][j] = temp_f[i][j]; }
+  for (int i = 0; i < nall; i++)
+    for (int k = 0; k < 3; k++) f[i][k] = temp_f[i][k];
 }
 
 /* ----------------------------------------------------------------------
-   displace position of all owned and ghost copies of ilocal
+   displace position of all owned and ghost atoms
 ---------------------------------------------------------------------- */
 
-void FixNumDiff::displace_atoms(int ilocal, int idim, int magnitude)
+void FixNumDiffVirial::displace_atoms(int nall, int idir, double magnitude)
 {
-  if (ilocal < 0) return;
-
   double **x = atom->x;
-  int *sametag = atom->sametag;
-  int j = ilocal;
-  x[ilocal][idim] += delta * magnitude;
-
-  while (sametag[j] >= 0) {
-    j = sametag[j];
-    x[j][idim] += delta * magnitude;
-  }
+  int k = dirlist[idir][0];
+  int l = dirlist[idir][1];
+  for (int i = 0; i < nall; i++)
+    x[i][k] = temp_x[i][k] + delta * magnitude * (temp_x[i][l] - fixedpoint[l]);
 }
 
 /* ----------------------------------------------------------------------
-   restore position of all owned and ghost copies of ilocal
+   restore position of all owned and ghost atoms
 ---------------------------------------------------------------------- */
 
-void FixNumDiff::restore_atoms(int ilocal, int idim)
+void FixNumDiffVirial::restore_atoms(int nall, int idir)
 {
-  if (ilocal < 0) return;
-
   double **x = atom->x;
-  int *sametag = atom->sametag;
-  int j = ilocal;
-  x[ilocal][idim] = temp_x[ilocal][idim];
-
-  while (sametag[j] >= 0) {
-    j = sametag[j];
-    x[j][idim] = temp_x[j][idim];
-  }
+  int k = dirlist[idir][0];
+  for (int i = 0; i < nall; i++) { x[i][k] = temp_x[i][k]; }
 }
 
 /* ----------------------------------------------------------------------
@@ -287,10 +267,8 @@ void FixNumDiff::restore_atoms(int ilocal, int idim)
    same logic as in Verlet
 ------------------------------------------------------------------------- */
 
-double FixNumDiff::update_energy()
+double FixNumDiffVirial::update_energy()
 {
-  force_clear(atom->f);
-
   int eflag = 1;
 
   if (pair_compute_flag) force->pair->compute(eflag, 0);
@@ -309,39 +287,34 @@ double FixNumDiff::update_energy()
 }
 
 /* ----------------------------------------------------------------------
-   clear forces needed
+   return Ith vector value, assume in range of size_vector
 ------------------------------------------------------------------------- */
 
-void FixNumDiff::force_clear(double **forces)
+double FixNumDiffVirial::compute_vector(int i)
 {
-  size_t nbytes = sizeof(double) * atom->nlocal;
-  if (force->newton) nbytes += sizeof(double) * atom->nghost;
-  if (nbytes) memset(&forces[0][0], 0, 3 * nbytes);
+  return virial[i];
 }
 
 /* ----------------------------------------------------------------------
    reallocated local per-atoms arrays
 ------------------------------------------------------------------------- */
 
-void FixNumDiff::reallocate()
+void FixNumDiffVirial::reallocate()
 {
-  memory->destroy(numdiff_forces);
   memory->destroy(temp_x);
   memory->destroy(temp_f);
   maxatom = atom->nmax;
-  memory->create(numdiff_forces, maxatom, 3, "numdiff:numdiff_force");
-  memory->create(temp_x, maxatom, 3, "numdiff:temp_x");
-  memory->create(temp_f, maxatom, 3, "numdiff:temp_f");
-  array_atom = numdiff_forces;
+  memory->create(temp_x, maxatom, 3, "numdiff/virial:temp_x");
+  memory->create(temp_f, maxatom, 3, "numdiff/virial:temp_f");
 }
 
 /* ----------------------------------------------------------------------
    memory usage of local atom-based arrays
 ------------------------------------------------------------------------- */
 
-double FixNumDiff::memory_usage()
+double FixNumDiffVirial::memory_usage()
 {
   double bytes = 0.0;
-  bytes += (double) 3 * maxatom * 3 * sizeof(double);
+  bytes += (double) 2 * maxatom * 3 * sizeof(double);
   return bytes;
 }

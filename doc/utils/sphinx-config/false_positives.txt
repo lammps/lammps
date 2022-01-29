@@ -194,6 +194,7 @@ Baczewski
 Bagchi
 Bagi
 Bagnold
+Baig
 Bajaj
 Bkappa
 Bal
@@ -668,6 +669,7 @@ Derlet
 Deserno
 Destree
 destructor
+destructors
 detils
 Devanathan
 devel
@@ -1569,6 +1571,7 @@ ke
 KE
 Keblinski
 Keefe
+Keffer
 keflag
 Keir
 Kelchner

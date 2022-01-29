@@ -1,23 +1,23 @@
 
 add_executable(test_tokenizer test_tokenizer.cpp)
 target_link_libraries(test_tokenizer PRIVATE lammps GTest::GMockMain)
-add_test(NAME Tokenizer COMMAND test_tokenizer WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_test(NAME Tokenizer COMMAND test_tokenizer)
 
 add_executable(test_mempool test_mempool.cpp)
 target_link_libraries(test_mempool PRIVATE lammps GTest::GMockMain)
-add_test(NAME MemPool COMMAND test_mempool WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_test(NAME MemPool COMMAND test_mempool)
 
 add_executable(test_argutils test_argutils.cpp)
 target_link_libraries(test_argutils PRIVATE lammps GTest::GMockMain)
-add_test(NAME ArgUtils COMMAND test_argutils WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_test(NAME ArgUtils COMMAND test_argutils)
 
 add_executable(test_utils test_utils.cpp)
 target_link_libraries(test_utils PRIVATE lammps GTest::GMockMain)
-add_test(NAME Utils COMMAND test_utils WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_test(NAME Utils COMMAND test_utils)
 
 add_executable(test_platform test_platform.cpp)
 target_link_libraries(test_platform PRIVATE lammps GTest::GMockMain)
-add_test(NAME Platform COMMAND test_platform WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_test(NAME Platform COMMAND test_platform)
 
 set_tests_properties(Utils Platform PROPERTIES
   ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
@@ -36,8 +36,8 @@ endif()
 
 add_executable(test_fmtlib test_fmtlib.cpp)
 target_link_libraries(test_fmtlib PRIVATE lammps GTest::GMockMain)
-add_test(NAME FmtLib COMMAND test_fmtlib WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_test(NAME FmtLib COMMAND test_fmtlib)
 
 add_executable(test_math_eigen_impl test_math_eigen_impl.cpp)
 target_include_directories(test_math_eigen_impl PRIVATE ${LAMMPS_SOURCE_DIR})
-add_test(NAME MathEigen COMMAND test_math_eigen_impl 10 5 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+add_test(NAME MathEigen COMMAND test_math_eigen_impl 10 5)

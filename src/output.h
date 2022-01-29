@@ -71,7 +71,7 @@ class Output : protected Pointers {
   DumpCreatorMap *dump_map;
 
   Output(class LAMMPS *);
-  ~Output();
+  ~Output() override;
   void init();
   void setup(int memflag = 1);    // initial output before run/min
   void write(bigint);             // output for current timestep

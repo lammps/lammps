@@ -49,31 +49,31 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   typedef ArrayTypes<DeviceType> AT;
 
   FixShakeKokkos(class LAMMPS *, int, char **);
-  virtual ~FixShakeKokkos();
-  void init();
-  void pre_neighbor();
-  void post_force(int);
+  ~FixShakeKokkos() override;
+  void init() override;
+  void pre_neighbor() override;
+  void post_force(int) override;
 
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  void set_arrays(int);
-  void update_arrays(int, int);
-  void set_molecule(int, tagint, int, double *, double *, double *);
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  void set_arrays(int) override;
+  void update_arrays(int, int) override;
+  void set_molecule(int, tagint, int, double *, double *, double *) override;
 
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
   int pack_forward_comm_fix_kokkos(int, DAT::tdual_int_2d, int, DAT::tdual_xfloat_1d&,
-                       int, int *);
-  void unpack_forward_comm_fix_kokkos(int, int, DAT::tdual_xfloat_1d&);
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
+                       int, int *) override;
+  void unpack_forward_comm_fix_kokkos(int, int, DAT::tdual_xfloat_1d&) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
 
-  void shake_end_of_step(int vflag);
-  void correct_coordinates(int vflag);
+  void shake_end_of_step(int vflag) override;
+  void correct_coordinates(int vflag) override;
 
-  int dof(int);
+  int dof(int) override;
 
-  void unconstrained_update();
+  void unconstrained_update() override;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION

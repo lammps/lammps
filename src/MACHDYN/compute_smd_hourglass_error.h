@@ -38,10 +38,10 @@ namespace LAMMPS_NS {
 class ComputeSMDHourglassError : public Compute {
  public:
   ComputeSMDHourglassError(class LAMMPS *, int, char **);
-  ~ComputeSMDHourglassError();
-  void init();
-  void compute_peratom();
-  double memory_usage();
+  ~ComputeSMDHourglassError() override;
+  void init() override;
+  void compute_peratom() override;
+  double memory_usage() override;
 
  private:
   int nmax;

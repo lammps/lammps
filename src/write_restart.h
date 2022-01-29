@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class WriteRestart : public Command {
  public:
   WriteRestart(class LAMMPS *);
-  void command(int, char **);
+  void command(int, char **) override;
   void multiproc_options(int, int, int, char **);
   void write(const std::string &);
 

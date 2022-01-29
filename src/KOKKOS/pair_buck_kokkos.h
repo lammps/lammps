@@ -37,12 +37,12 @@ class PairBuckKokkos : public PairBuck {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   PairBuckKokkos(class LAMMPS *);
-  ~PairBuckKokkos();
+  ~PairBuckKokkos() override;
 
-  void compute(int, int);
+  void compute(int, int) override;
 
-  void init_style();
-  double init_one(int, int);
+  void init_style() override;
+  double init_one(int, int) override;
 
   struct params_buck{
     KOKKOS_INLINE_FUNCTION
@@ -91,7 +91,7 @@ class PairBuckKokkos : public PairBuck {
   int neighflag;
   int nlocal,nall,eflag,vflag;
 
-  void allocate();
+  void allocate() override;
   friend struct PairComputeFunctor<PairBuckKokkos,FULL,true>;
   friend struct PairComputeFunctor<PairBuckKokkos,HALF,true>;
   friend struct PairComputeFunctor<PairBuckKokkos,HALFTHREAD,true>;

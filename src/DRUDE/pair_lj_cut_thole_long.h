@@ -28,19 +28,19 @@ class PairLJCutTholeLong : public Pair {
 
  public:
   PairLJCutTholeLong(class LAMMPS *);
-  virtual ~PairLJCutTholeLong();
-  virtual void compute(int, int);
-  virtual void settings(int, char **);
-  void coeff(int, char **);
-  virtual void init_style();
-  virtual double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  virtual void write_restart_settings(FILE *);
-  virtual void read_restart_settings(FILE *);
-  void write_data(FILE *);
-  void write_data_all(FILE *);
-  virtual void *extract(const char *, int &);
+  ~PairLJCutTholeLong() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
+  void write_data(FILE *) override;
+  void write_data_all(FILE *) override;
+  void *extract(const char *, int &) override;
 
  protected:
   double cut_lj_global;

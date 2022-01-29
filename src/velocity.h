@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class Velocity : public Command {
  public:
   Velocity(class LAMMPS *);
-  void command(int, char **);
+  void command(int, char **) override;
   void init_external(const char *);
   void options(int, char **);
   void create(double, int);

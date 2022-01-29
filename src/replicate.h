@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class Replicate : public Command {
  public:
   Replicate(class LAMMPS *);
-  void command(int, char **);
+  void command(int, char **) override;
 };
 
 }    // namespace LAMMPS_NS

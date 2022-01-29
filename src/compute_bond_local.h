@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class ComputeBondLocal : public Compute {
  public:
   ComputeBondLocal(class LAMMPS *, int, char **);
-  ~ComputeBondLocal();
-  void init();
-  void compute_local();
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  double memory_usage();
+  ~ComputeBondLocal() override;
+  void init() override;
+  void compute_local() override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  double memory_usage() override;
 
  private:
   int nvalues, nvar, ncount, setflag;

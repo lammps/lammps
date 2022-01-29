@@ -29,31 +29,31 @@ struct HyperOneCoeff;
 class FixHyperLocal : public FixHyper {
  public:
   FixHyperLocal(class LAMMPS *, int, char **);
-  ~FixHyperLocal();
-  int setmask();
-  void init();
-  void init_list(int, class NeighList *);
-  void setup_pre_neighbor();
-  void setup_pre_reverse(int, int);
-  void pre_neighbor();
-  void pre_reverse(int, int);
-  void min_pre_neighbor();
-  double compute_scalar();
-  double compute_vector(int);
-  double query(int);
+  ~FixHyperLocal() override;
+  int setmask() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void setup_pre_neighbor() override;
+  void setup_pre_reverse(int, int) override;
+  void pre_neighbor() override;
+  void pre_reverse(int, int) override;
+  void min_pre_neighbor() override;
+  double compute_scalar() override;
+  double compute_vector(int) override;
+  double query(int) override;
 
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  int pack_reverse_comm(int, int, double *);
-  int pack_reverse_comm_size(int, int);
-  void unpack_reverse_comm(int, int *, double *);
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  int pack_reverse_comm_size(int, int) override;
+  void unpack_reverse_comm(int, int *, double *) override;
 
-  double memory_usage();
+  double memory_usage() override;
 
   // extra methods visible to callers
 
-  void init_hyper();
-  void build_bond_list(int);
+  void init_hyper() override;
+  void build_bond_list(int) override;
 
  private:
   int me;

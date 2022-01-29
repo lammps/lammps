@@ -49,10 +49,10 @@ class PairSWKokkos : public PairSW {
   typedef EV_FLOAT value_type;
 
   PairSWKokkos(class LAMMPS *);
-  virtual ~PairSWKokkos();
-  virtual void compute(int, int);
-  virtual void coeff(int, char **);
-  virtual void init_style();
+  ~PairSWKokkos() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void init_style() override;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -112,7 +112,7 @@ class PairSWKokkos : public PairSW {
 
   t_param_1d d_params;
 
-  virtual void setup_params();
+  void setup_params() override;
 
   KOKKOS_INLINE_FUNCTION
   void twobody(const Param&, const F_FLOAT&, F_FLOAT&, const int&, F_FLOAT&) const;

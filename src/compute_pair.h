@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class ComputePair : public Compute {
  public:
   ComputePair(class LAMMPS *, int, char **);
-  ~ComputePair();
-  void init();
-  double compute_scalar();
-  void compute_vector();
+  ~ComputePair() override;
+  void init() override;
+  double compute_scalar() override;
+  void compute_vector() override;
 
  private:
   int evalue, npair, nsub;

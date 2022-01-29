@@ -30,11 +30,11 @@ class FixNEB : public Fix {
   int rclimber;
 
   FixNEB(class LAMMPS *, int, char **);
-  ~FixNEB();
-  int setmask();
-  void init();
-  void min_setup(int);
-  void min_post_force(int);
+  ~FixNEB() override;
+  int setmask() override;
+  void init() override;
+  void min_setup(int) override;
+  void min_post_force(int) override;
 
  private:
   int me, nprocs, nprocs_universe;

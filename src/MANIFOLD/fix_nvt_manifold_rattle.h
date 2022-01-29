@@ -53,15 +53,15 @@ namespace LAMMPS_NS {
 class FixNVTManifoldRattle : public FixNVEManifoldRattle {
  public:
   FixNVTManifoldRattle(LAMMPS *, int, char **, int = 1);
-  virtual ~FixNVTManifoldRattle();
+  ~FixNVTManifoldRattle() override;
 
-  virtual void initial_integrate(int);
-  virtual void final_integrate();
-  virtual void init();
-  virtual void reset_dt();
-  virtual int setmask();
-  virtual void setup(int);    // Not needed for fixNVE but is for fixNVT
-  virtual double memory_usage();
+  void initial_integrate(int) override;
+  void final_integrate() override;
+  void init() override;
+  void reset_dt() override;
+  int setmask() override;
+  void setup(int) override;    // Not needed for fixNVE but is for fixNVT
+  double memory_usage() override;
 
  protected:
   void compute_temp_target();

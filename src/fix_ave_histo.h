@@ -27,13 +27,13 @@ namespace LAMMPS_NS {
 class FixAveHisto : public Fix {
  public:
   FixAveHisto(class LAMMPS *, int, char **);
-  virtual ~FixAveHisto();
-  int setmask();
-  void init();
-  void setup(int);
-  virtual void end_of_step();
-  double compute_vector(int);
-  double compute_array(int, int);
+  ~FixAveHisto() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void end_of_step() override;
+  double compute_vector(int) override;
+  double compute_array(int, int) override;
 
  protected:
   int me, nvalues;

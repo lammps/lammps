@@ -34,10 +34,10 @@ class PairLJCharmmCoulLongIntel : public PairLJCharmmCoulLong {
 
  public:
   PairLJCharmmCoulLongIntel(class LAMMPS *);
-  virtual ~PairLJCharmmCoulLongIntel();
+  ~PairLJCharmmCoulLongIntel() override;
 
-  virtual void compute(int, int);
-  void init_style();
+  void compute(int, int) override;
+  void init_style() override;
 
   typedef struct {
     float x, y, z;

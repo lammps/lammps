@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class EwaldDipoleSpin : public EwaldDipole {
  public:
   EwaldDipoleSpin(class LAMMPS *);
-  virtual ~EwaldDipoleSpin() = default;
-  void init();
-  void setup();
-  void compute(int, int);
+
+  void init() override;
+  void setup() override;
+  void compute(int, int) override;
 
  protected:
   double hbar;            // reduced Planck's constant
@@ -40,7 +40,7 @@ class EwaldDipoleSpin : public EwaldDipole {
   double mub2mu0hbinv;    // prefactor for mag force
 
   void spsum_musq();
-  virtual void eik_dot_r();
+  void eik_dot_r() override;
   void slabcorr();
 };
 

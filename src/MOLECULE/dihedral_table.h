@@ -30,14 +30,14 @@ namespace LAMMPS_NS {
 class DihedralTable : public Dihedral {
  public:
   DihedralTable(class LAMMPS *);
-  virtual ~DihedralTable();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  virtual void coeff(int, char **);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
+  ~DihedralTable() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
   double single(int type, int i1, int i2, int i3, int i4);
 
  protected:

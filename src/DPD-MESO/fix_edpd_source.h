@@ -27,10 +27,9 @@ namespace LAMMPS_NS {
 class FixEDPDSource : public Fix {
  public:
   FixEDPDSource(class LAMMPS *, int, char **);
-  ~FixEDPDSource() = default;
-  int setmask();
-  void init();
-  void post_force(int);
+  int setmask() override;
+  void init() override;
+  void post_force(int) override;
 
  protected:
   int option;

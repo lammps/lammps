@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class PairLJLongCoulLongDielectric : public PairLJLongCoulLong {
  public:
   PairLJLongCoulLongDielectric(class LAMMPS *);
-  virtual ~PairLJLongCoulLongDielectric();
-  virtual void compute(int, int);
-  void init_style();
-  double single(int, int, int, int, double, double, double, double &);
+  ~PairLJLongCoulLongDielectric() override;
+  void compute(int, int) override;
+  void init_style() override;
+  double single(int, int, int, int, double, double, double, double &) override;
 
   double **efield;
   double *epot;

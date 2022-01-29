@@ -17,13 +17,14 @@ Syntax
 * one or more keyword/value pairs may be appended
 
 * these keywords apply to various dump styles
-* keyword = *append* or *at* or *buffer* or *delay* or *element* or *every* or *every/time* or *fileper* or *first* or *flush* or *format* or *header* or *image* or *label* or *maxfiles* or *nfile* or *pad* or *pbc* or *precision* or *region* or *refresh* or *scale* or *sfactor* or *sort* or *tfactor* or *thermo* or *thresh* or *time* or *units* or *unwrap*
+* keyword = *append* or *at* or *balance* or *buffer* or *delay* or *element* or *every* or *every/time* or *fileper* or *first* or *flush* or *format* or *header* or *image* or *label* or *maxfiles* or *nfile* or *pad* or *pbc* or *precision* or *region* or *refresh* or *scale* or *sfactor* or *sort* or *tfactor* or *thermo* or *thresh* or *time* or *units* or *unwrap*
 
   .. parsed-literal::
 
        *append* arg = *yes* or *no*
        *at* arg = N
          N = index of frame written upon first dump
+       *balance* arg = *yes* or *no*
        *buffer* arg = *yes* or *no*
        *delay* arg = Dstep
          Dstep = delay output until this timestep
@@ -667,6 +668,14 @@ keywords are set to non-default values (i.e. the number of dump file
 pieces is not equal to the number of procs), then sorting cannot be
 performed.
 
+In a parallel run, the per-processor dump file pieces can have
+significant imbalance in number of lines of per-atom info. The *balance*
+keyword determines whether the number of lines in each processor
+snapshot are balanced to be nearly the same. A balance value of *no*
+means no balancing will be done, while *yes* means balancing will be
+performed. This balancing preserves dump sorting order. For a serial
+run, this option is ignored since the output is already balanced.
+
 .. note::
 
    Unless it is required by the dump style, sorting dump file
@@ -832,6 +841,7 @@ Default
 The option defaults are
 
 * append = no
+* balance = no
 * buffer = yes for dump styles *atom*, *custom*, *loca*, and *xyz*
 * element = "C" for every atom type
 * every = whatever it was set to via the :doc:`dump <dump>` command

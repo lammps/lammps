@@ -35,7 +35,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairHarmonicCut::PairHarmonicCut(LAMMPS *lmp) : Pair(lmp)
+PairHarmonicCut::PairHarmonicCut(LAMMPS *lmp) : Pair(lmp), k(nullptr), cut(nullptr)
 {
   writedata = 1;
 }

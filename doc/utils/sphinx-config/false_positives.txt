@@ -2649,6 +2649,7 @@ pscreen
 pscrozi
 pseudodynamics
 pseudopotential
+pSp
 Pstart
 Pstop
 pstyle
@@ -2927,6 +2928,7 @@ Runge
 runtime
 Rutuparna
 rx
+rxd
 rxnave
 rxnsum
 ry

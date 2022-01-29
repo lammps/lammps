@@ -36,7 +36,7 @@ class SNA : protected Pointers {
   SNA(LAMMPS *, double, int, double, int, int, int, int, int, int);
 
   SNA(LAMMPS *lmp) : Pointers(lmp){};
-  ~SNA();
+  ~SNA() override;
   void build_indexlist();
   void init();
   double memory_usage();

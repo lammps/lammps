@@ -161,10 +161,8 @@ void NBinIntel::bin_atoms(IntelBuffers<flt_t,acc_t> * buffers) {
     const flt_t dx = (INTEL_BIGP - bboxhi[0]);
     const flt_t dy = (INTEL_BIGP - bboxhi[1]);
     const flt_t dz = (INTEL_BIGP - bboxhi[2]);
-    if (dx * dx + dy * dy + dz * dz <
-        static_cast<flt_t>(neighbor->cutneighmaxsq))
-      error->one(FLERR,
-        "Intel package expects no atoms within cutoff of {1e15,1e15,1e15}.");
+    if (dx * dx + dy * dy + dz * dz < static_cast<flt_t>(neighbor->cutneighmaxsq))
+      error->one(FLERR,"INTEL package expects no atoms within cutoff of (1e15,1e15,1e15).");
   }
 
   // ---------- Grow and cast/pack buffers -------------

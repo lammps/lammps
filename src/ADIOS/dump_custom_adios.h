@@ -29,12 +29,12 @@ class DumpCustomADIOSInternal;
 class DumpCustomADIOS : public DumpCustom {
  public:
   DumpCustomADIOS(class LAMMPS *, int, char **);
-  virtual ~DumpCustomADIOS();
+  ~DumpCustomADIOS() override;
 
  protected:
-  virtual void openfile();
-  virtual void write();
-  virtual void init_style();
+  void openfile() override;
+  void write() override;
+  void init_style() override;
 
  private:
   DumpCustomADIOSInternal *internal;

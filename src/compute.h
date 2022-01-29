@@ -104,7 +104,7 @@ class Compute : protected Pointers {
   int copymode, kokkosable;
 
   Compute(class LAMMPS *, int, char **);
-  virtual ~Compute();
+  ~Compute() override;
   void modify_params(int, char **);
   void reset_extra_dof();
 

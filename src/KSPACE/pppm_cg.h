@@ -27,23 +27,23 @@ namespace LAMMPS_NS {
 class PPPMCG : public PPPM {
  public:
   PPPMCG(class LAMMPS *);
-  virtual ~PPPMCG();
-  virtual void settings(int, char **);
-  virtual void compute(int, int);
-  virtual double memory_usage();
+  ~PPPMCG() override;
+  void settings(int, char **) override;
+  void compute(int, int) override;
+  double memory_usage() override;
 
  protected:
   int num_charged;
   int *is_charged;
   double smallq;
 
-  virtual void particle_map();
-  virtual void make_rho();
-  virtual void fieldforce_ik();
-  virtual void fieldforce_ad();
-  virtual void fieldforce_peratom();
-  virtual void slabcorr();
-  virtual void make_rho_groups(int, int, int);
+  void particle_map() override;
+  void make_rho() override;
+  void fieldforce_ik() override;
+  void fieldforce_ad() override;
+  void fieldforce_peratom() override;
+  void slabcorr() override;
+  void make_rho_groups(int, int, int) override;
 };
 
 }    // namespace LAMMPS_NS

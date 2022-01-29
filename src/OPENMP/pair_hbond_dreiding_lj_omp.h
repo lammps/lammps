@@ -33,10 +33,10 @@ class PairHbondDreidingLJOMP : public PairHbondDreidingLJ, public ThrOMP {
 
  public:
   PairHbondDreidingLJOMP(class LAMMPS *);
-  virtual ~PairHbondDreidingLJOMP();
+  ~PairHbondDreidingLJOMP() override;
 
-  virtual void compute(int, int);
-  virtual double memory_usage();
+  void compute(int, int) override;
+  double memory_usage() override;
 
  protected:
   double *hbcount_thr, *hbeng_thr;

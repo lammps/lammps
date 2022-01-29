@@ -277,10 +277,13 @@ int ComputePairLocal::compute_pairs(int flag)
             break;
           case DX:
             ptr[n] = delx*directionCorrection;
+            break;
           case DY:
             ptr[n] = dely*directionCorrection;
+            break;
           case DZ:
             ptr[n] = delz*directionCorrection;
+            break;
           case ENG:
             ptr[n] = eng;
             break;

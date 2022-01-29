@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class MSMCGOMP : public MSMOMP {
  public:
   MSMCGOMP(class LAMMPS *);
-  virtual ~MSMCGOMP();
-  virtual void settings(int, char **);
-  virtual void compute(int, int);
-  virtual double memory_usage();
+  ~MSMCGOMP() override;
+  void settings(int, char **) override;
+  void compute(int, int) override;
+  double memory_usage() override;
 
  protected:
   int num_charged;

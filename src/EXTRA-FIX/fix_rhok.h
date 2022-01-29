@@ -27,32 +27,31 @@ class FixRhok : public Fix {
   // Constructor: all the parameters to this fix specified in
   // the LAMMPS input get passed in
   FixRhok(LAMMPS *inLMP, int inArgc, char **inArgv);
-  virtual ~FixRhok(){};
 
   // Methods that this fix implements
   // --------------------------------
 
   // Tells LAMMPS where this fix should act
-  int setmask();
+  int setmask() override;
 
   // Initializes the fix at the beginning of a run
-  void init();
+  void init() override;
 
   // Initial application of the fix to a system (when doing MD / minimization)
-  void setup(int inVFlag);
-  void min_setup(int inVFlag);
+  void setup(int inVFlag) override;
+  void min_setup(int inVFlag) override;
 
   // Modify the forces calculated in the main force loop, either when
   // doing usual MD, RESPA MD or minimization
-  void post_force(int inVFlag);
-  void post_force_respa(int inVFlag, int inILevel, int inILoop);
-  void min_post_force(int inVFlag);
+  void post_force(int inVFlag) override;
+  void post_force_respa(int inVFlag, int inILevel, int inILoop) override;
+  void min_post_force(int inVFlag) override;
 
   // Compute the change in the potential energy induced by this fix
-  double compute_scalar();
+  double compute_scalar() override;
 
   // Compute the ith component of the vector associated with this fix
-  double compute_vector(int inI);
+  double compute_vector(int inI) override;
 
  private:
   // RESPA boilerplate

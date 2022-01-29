@@ -45,9 +45,9 @@ class PairGranHookeHistoryKokkos : public PairGranHookeHistory {
   typedef EV_FLOAT value_type;
 
   PairGranHookeHistoryKokkos(class LAMMPS *);
-  virtual ~PairGranHookeHistoryKokkos();
-  virtual void compute(int, int);
-  void init_style();
+  ~PairGranHookeHistoryKokkos() override;
+  void compute(int, int) override;
+  void init_style() override;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairGranHookeHistoryReduce, const int ii) const;

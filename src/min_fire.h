@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class MinFire : public Min {
  public:
   MinFire(class LAMMPS *);
-  ~MinFire() {}
-  void init();
-  void setup_style();
-  void reset_vectors();
-  int iterate(int);
+
+  void init() override;
+  void setup_style() override;
+  void reset_vectors() override;
+  int iterate(int) override;
 
  private:
   double dt, dtmax, dtmin;

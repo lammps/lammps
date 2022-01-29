@@ -9,14 +9,14 @@
 static int find_improper_body_data(char [][5],struct FrcFieldItem,int *);
 static void rearrange_improper(int,int);
 static int find_trigonal_body_data(char [][5],struct FrcFieldItem);
-static int find_angleangle_data(char [][5],struct FrcFieldItem,int[]);
+static int find_angleangle_data(char [][5],struct FrcFieldItem,int[3]);
 static int find_match(int, char [][5],struct FrcFieldItem,int *);
 static int match_types(int,int,char [][5],char [][5],int *);
 static double get_r0(int,int);
 static double get_t0(int,int,int);
 static int quo_cp();
 static void get_equivs(int,char [][5],char[][5]);
-static int find_equiv_type(char[]);
+static int find_equiv_type(char[5]);
 
 /**********************************************************************/
 /*                                                                    */

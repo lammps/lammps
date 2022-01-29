@@ -38,30 +38,30 @@ class FixNumDiffVirial : public Fix {
   double memory_usage() override;
 
  private:
-  static const int NDIR_VIRIAL = 6; // dimension of virial and strain vectors 
-  double delta;              // strain magnitude
-  int maxatom;               // allocated size of atom arrays
+  static const int NDIR_VIRIAL = 6;    // dimension of virial and strain vectors
+  double delta;                        // strain magnitude
+  int maxatom;                         // allocated size of atom arrays
   int ilevel_respa;
 
   int pair_compute_flag;      // 0 if pair->compute is skipped
   int kspace_compute_flag;    // 0 if kspace->compute is skipped
 
-  char *id_pe;                // name of energy compute 
-  class Compute *pe;          // pointer to energy compute
+  char *id_pe;          // name of energy compute
+  class Compute *pe;    // pointer to energy compute
 
-  double virial[NDIR_VIRIAL]; // finite diff virial components (Voigt order)
-  double **temp_x;            // original coords
-  double **temp_f;            // original forces
-  double fixedpoint[3];       // define displacement field origin
-  int dirlist[NDIR_VIRIAL][2];// strain cartesian indices (Voigt order)
-  
-  double compute_vector(int) override;  // access function for virial
-  void calculate_virial();              // virial calculation
-  void displace_atoms(int, int, double);// apply displacement field
-  void restore_atoms(int, int);         // restore original positions
-  double update_energy();               // calculate new energy
-  void virial_clear();                  // set virial to zero
-  void reallocate();                    // grow the atom arrays
+  double virial[NDIR_VIRIAL];     // finite diff virial components (Voigt order)
+  double **temp_x;                // original coords
+  double **temp_f;                // original forces
+  double fixedpoint[3];           // define displacement field origin
+  int dirlist[NDIR_VIRIAL][2];    // strain cartesian indices (Voigt order)
+
+  double compute_vector(int) override;      // access function for virial
+  void calculate_virial();                  // virial calculation
+  void displace_atoms(int, int, double);    // apply displacement field
+  void restore_atoms(int, int);             // restore original positions
+  double update_energy();                   // calculate new energy
+  void virial_clear();                      // set virial to zero
+  void reallocate();                        // grow the atom arrays
 };
 
 }    // namespace LAMMPS_NS

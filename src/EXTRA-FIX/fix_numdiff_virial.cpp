@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -18,22 +17,23 @@
 
 #include "fix_numdiff_virial.h"
 
-#include <cstring>
-#include "atom.h"
-#include "domain.h"
-#include "update.h"
-#include "modify.h"
-#include "compute.h"
-#include "respa.h"
-#include "force.h"
-#include "pair.h"
-#include "bond.h"
 #include "angle.h"
+#include "atom.h"
+#include "bond.h"
+#include "compute.h"
 #include "dihedral.h"
+#include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "improper.h"
 #include "kspace.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "pair.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -41,28 +41,24 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixNumDiffVirial::FixNumDiffVirial(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), id_pe(nullptr),
-  temp_x(nullptr), temp_f(nullptr)
+    Fix(lmp, narg, arg), id_pe(nullptr), temp_x(nullptr), temp_f(nullptr)
 {
-  if (narg < 5) error->all(FLERR,"Illegal fix numdiff/virial command");
-  if (igroup) error->all(FLERR,"Compute numdiff/virial must use group all");
+  if (narg < 5) error->all(FLERR, "Illegal fix numdiff/virial command");
+  if (igroup) error->all(FLERR, "Compute numdiff/virial must use group all");
 
   peratom_freq = nevery;
   respa_level_support = 1;
   vector_flag = 1;
   size_vector = NDIR_VIRIAL;
   extvector = 0;
-  
   maxatom = 0;
-  
-  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
-  delta = utils::numeric(FLERR,arg[4],false,lmp);
-  if (nevery <= 0 || delta <= 0.0)
-    error->all(FLERR,"Illegal fix numdiff command");
+
+  nevery = utils::inumeric(FLERR, arg[3], false, lmp);
+  delta = utils::numeric(FLERR, arg[4], false, lmp);
+  if (nevery <= 0 || delta <= 0.0) error->all(FLERR, "Illegal fix numdiff command");
 
   std::string cmd = id + std::string("_pe");
   id_pe = utils::strdup(cmd);
-
   cmd += " all pe";
   modify->add_compute(cmd);
 
@@ -74,9 +70,9 @@ FixNumDiffVirial::FixNumDiffVirial(LAMMPS *lmp, int narg, char **arg) :
 
   // set fixed-point to default = center of cell
 
-  fixedpoint[0] = 0.5*(domain->boxlo[0]+domain->boxhi[0]);
-  fixedpoint[1] = 0.5*(domain->boxlo[1]+domain->boxhi[1]);
-  fixedpoint[2] = 0.5*(domain->boxlo[2]+domain->boxhi[2]);
+  fixedpoint[0] = 0.5 * (domain->boxlo[0] + domain->boxhi[0]);
+  fixedpoint[1] = 0.5 * (domain->boxlo[1] + domain->boxhi[1]);
+  fixedpoint[2] = 0.5 * (domain->boxlo[2] + domain->boxhi[2]);
 
   // define the cartesian indices for each strain (Voigt order)
 
@@ -86,7 +82,7 @@ FixNumDiffVirial::FixNumDiffVirial(LAMMPS *lmp, int narg, char **arg) :
   dirlist[1][1] = 1;
   dirlist[2][0] = 2;
   dirlist[2][1] = 2;
-  
+
   dirlist[3][0] = 1;
   dirlist[3][1] = 2;
   dirlist[4][0] = 0;
@@ -126,17 +122,21 @@ void FixNumDiffVirial::init()
   // check for PE compute
 
   int icompute = modify->find_compute(id_pe);
-  if (icompute < 0) error->all(FLERR,"Compute ID for fix numdiff does not exist");
+  if (icompute < 0) error->all(FLERR, "Compute ID for fix numdiff does not exist");
   pe = modify->compute[icompute];
 
-  if (force->pair && force->pair->compute_flag) pair_compute_flag = 1;
-  else pair_compute_flag = 0;
-  if (force->kspace && force->kspace->compute_flag) kspace_compute_flag = 1;
-  else kspace_compute_flag = 0;
+  if (force->pair && force->pair->compute_flag)
+    pair_compute_flag = 1;
+  else
+    pair_compute_flag = 0;
+  if (force->kspace && force->kspace->compute_flag)
+    kspace_compute_flag = 1;
+  else
+    kspace_compute_flag = 0;
 
-  if (utils::strmatch(update->integrate_style,"^respa")) {
-    ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
-    if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
+  if (utils::strmatch(update->integrate_style, "^respa")) {
+    ilevel_respa = ((Respa *) update->integrate)->nlevels - 1;
+    if (respa_level >= 0) ilevel_respa = MIN(respa_level, ilevel_respa);
   }
 }
 
@@ -144,11 +144,11 @@ void FixNumDiffVirial::init()
 
 void FixNumDiffVirial::setup(int vflag)
 {
-  if (utils::strmatch(update->integrate_style,"^verlet"))
+  if (utils::strmatch(update->integrate_style, "^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
-    post_force_respa(vflag,ilevel_respa,0);
+    post_force_respa(vflag, ilevel_respa, 0);
     ((Respa *) update->integrate)->copy_f_flevel(ilevel_respa);
   }
 }
@@ -206,11 +206,11 @@ void FixNumDiffVirial::calculate_virial()
       temp_x[i][k] = x[i][k];
       temp_f[i][k] = f[i][k];
     }
-  
+
   // loop over 6 strain directions
   // compute a finite difference force in each dimension
 
-  int flag,allflag;
+  int flag, allflag;
   double nktv2p = force->nktv2p;
   double inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
 
@@ -228,16 +228,14 @@ void FixNumDiffVirial::calculate_virial()
     restore_atoms(nall, idir);
   }
 
-  // recompute energy so all contributions are as before 
+  // recompute energy so all contributions are as before
 
   energy = update_energy();
 
   // restore original forces for owned and ghost atoms
-  
+
   for (int i = 0; i < nall; i++)
-    for (int k = 0; k < 3; k++)
-      f[i][k] = temp_f[i][k];
-  
+    for (int k = 0; k < 3; k++) f[i][k] = temp_f[i][k];
 }
 
 /* ----------------------------------------------------------------------
@@ -247,11 +245,10 @@ void FixNumDiffVirial::calculate_virial()
 void FixNumDiffVirial::displace_atoms(int nall, int idir, double magnitude)
 {
   double **x = atom->x;
-  int k = dirlist[idir][0]; 
-  int l = dirlist[idir][1]; 
+  int k = dirlist[idir][0];
+  int l = dirlist[idir][1];
   for (int i = 0; i < nall; i++)
-    x[i][k] = temp_x[i][k] + delta*magnitude*
-      (temp_x[i][l]-fixedpoint[l]);
+    x[i][k] = temp_x[i][k] + delta * magnitude * (temp_x[i][l] - fixedpoint[l]);
 }
 
 /* ----------------------------------------------------------------------
@@ -261,10 +258,8 @@ void FixNumDiffVirial::displace_atoms(int nall, int idir, double magnitude)
 void FixNumDiffVirial::restore_atoms(int nall, int idir)
 {
   double **x = atom->x;
-  int k = dirlist[idir][0]; 
-  for (int i = 0; i < nall; i++) {
-    x[i][k] = temp_x[i][k];
-  }
+  int k = dirlist[idir][0];
+  for (int i = 0; i < nall; i++) { x[i][k] = temp_x[i][k]; }
 }
 
 /* ----------------------------------------------------------------------
@@ -276,16 +271,16 @@ double FixNumDiffVirial::update_energy()
 {
   int eflag = 1;
 
-  if (pair_compute_flag) force->pair->compute(eflag,0);
+  if (pair_compute_flag) force->pair->compute(eflag, 0);
 
   if (atom->molecular != Atom::ATOMIC) {
-    if (force->bond) force->bond->compute(eflag,0);
-    if (force->angle) force->angle->compute(eflag,0);
-    if (force->dihedral) force->dihedral->compute(eflag,0);
-    if (force->improper) force->improper->compute(eflag,0);
+    if (force->bond) force->bond->compute(eflag, 0);
+    if (force->angle) force->angle->compute(eflag, 0);
+    if (force->dihedral) force->dihedral->compute(eflag, 0);
+    if (force->improper) force->improper->compute(eflag, 0);
   }
 
-  if (kspace_compute_flag) force->kspace->compute(eflag,0);
+  if (kspace_compute_flag) force->kspace->compute(eflag, 0);
 
   double energy = pe->compute_scalar();
   return energy;
@@ -309,8 +304,8 @@ void FixNumDiffVirial::reallocate()
   memory->destroy(temp_x);
   memory->destroy(temp_f);
   maxatom = atom->nmax;
-  memory->create(temp_x,maxatom,3,"numdiff/virial:temp_x");
-  memory->create(temp_f,maxatom,3,"numdiff/virial:temp_f");
+  memory->create(temp_x, maxatom, 3, "numdiff/virial:temp_x");
+  memory->create(temp_f, maxatom, 3, "numdiff/virial:temp_f");
 }
 
 /* ----------------------------------------------------------------------
@@ -320,6 +315,6 @@ void FixNumDiffVirial::reallocate()
 double FixNumDiffVirial::memory_usage()
 {
   double bytes = 0.0;
-  bytes += (double)2 * maxatom*3 * sizeof(double);
+  bytes += (double) 2 * maxatom * 3 * sizeof(double);
   return bytes;
 }

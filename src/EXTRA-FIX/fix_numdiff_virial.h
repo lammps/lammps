@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class FixNumDiffVirial : public Fix {
  public:
   FixNumDiffVirial(class LAMMPS *, int, char **);
-  ~FixNumDiffVirial();
+  ~FixNumDiffVirial() override;
   int setmask() override;
   void init() override;
   void setup(int) override;

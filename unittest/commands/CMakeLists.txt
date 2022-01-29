@@ -11,7 +11,7 @@ endif()
 target_link_libraries(test_simple_commands PRIVATE lammps GTest::GMock)
 add_test(NAME SimpleCommands COMMAND test_simple_commands WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set_tests_properties(SimpleCommands PROPERTIES
-          ENVIRONMENT "LAMMPS_PLUGIN_BIN_DIR=${CMAKE_BINARY_DIR}/build-plugins")
+          ENVIRONMENT "LAMMPS_PLUGIN_BIN_DIR=${CMAKE_BINARY_DIR}")
 
 add_executable(test_lattice_region test_lattice_region.cpp)
 target_link_libraries(test_lattice_region PRIVATE lammps GTest::GMock)

@@ -59,7 +59,7 @@ endif()
 add_executable(test_error_stats test_error_stats.cpp)
 target_include_directories(test_error_stats PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${LAMMPS_SOURCE_DIR})
 target_link_libraries(test_error_stats PRIVATE gtest_main)
-add_test(NAME ErrorStats COMMAND test_error_stats)
+add_test(NAME ErrorStats COMMAND test_error_stats WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 # pair style tester
 add_executable(test_pair_style test_pair_style.cpp)

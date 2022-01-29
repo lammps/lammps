@@ -1,26 +1,26 @@
 
 add_executable(test_library_open test_library_open.cpp test_main.cpp)
 target_link_libraries(test_library_open PRIVATE lammps GTest::GMock)
-add_test(LibraryOpen test_library_open)
+add_test(NAME LibraryOpen COMMAND test_library_open WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(test_library_commands test_library_commands.cpp test_main.cpp)
 target_link_libraries(test_library_commands PRIVATE lammps GTest::GMock)
-add_test(LibraryCommands test_library_commands)
+add_test(NAME LibraryCommands COMMAND test_library_commands WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(test_library_external test_library_external.cpp test_main.cpp)
 target_link_libraries(test_library_external PRIVATE lammps GTest::GMock)
-add_test(LibraryExternal test_library_external)
+add_test(NAME LibraryExternal COMMAND test_library_external WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(test_library_properties test_library_properties.cpp test_main.cpp)
 target_link_libraries(test_library_properties PRIVATE lammps GTest::GMock)
 target_compile_definitions(test_library_properties PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
-add_test(LibraryProperties test_library_properties)
+add_test(NAME LibraryProperties COMMAND test_library_properties WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set_tests_properties(LibraryProperties PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
 
 add_executable(test_library_scatter_gather test_library_scatter_gather.cpp test_main.cpp)
 target_link_libraries(test_library_scatter_gather PRIVATE lammps GTest::GMock)
 target_compile_definitions(test_library_scatter_gather PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
-add_test(LibraryScatterGather test_library_scatter_gather)
+add_test(NAME LibraryScatterGather COMMAND test_library_scatter_gather WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set_tests_properties(LibraryScatterGather PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
 
 set(TEST_CONFIG_DEFS "-DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR};-DLAMMPS_${LAMMPS_SIZES}")
@@ -65,9 +65,9 @@ endforeach()
 add_executable(test_library_config test_library_config.cpp test_main.cpp)
 target_link_libraries(test_library_config PRIVATE lammps GTest::GMock)
 target_compile_definitions(test_library_config PRIVATE ${TEST_CONFIG_DEFS})
-add_test(LibraryConfig test_library_config)
+add_test(NAME LibraryConfig COMMAND test_library_config WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
 add_executable(test_library_mpi test_library_mpi.cpp)
 target_link_libraries(test_library_mpi PRIVATE lammps GTest::GMock)
 target_compile_definitions(test_library_mpi PRIVATE ${TEST_CONFIG_DEFS})
-add_mpi_test(NAME LibraryMPI NUM_PROCS 4 COMMAND $<TARGET_FILE:test_library_mpi>)
+add_mpi_test(NAME LibraryMPI NUM_PROCS 4 COMMAND $<TARGET_FILE:test_library_mpi> WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})

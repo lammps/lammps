@@ -26,11 +26,11 @@ if(CMAKE_Fortran_COMPILER)
 
   add_executable(test_fortran_create wrap_create.cpp test_fortran_create.f90)
   target_link_libraries(test_fortran_create PRIVATE flammps lammps MPI::MPI_Fortran GTest::GTestMain)
-  add_test(FortranOpen test_fortran_create)
+  add_test(NAME FortranOpen COMMAND test_fortran_create WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
   add_executable(test_fortran_commands wrap_commands.cpp test_fortran_commands.f90)
   target_link_libraries(test_fortran_commands PRIVATE flammps lammps MPI::MPI_Fortran GTest::GTestMain)
-  add_test(FortranCommands test_fortran_commands)
+  add_test(NAME FortranCommands COMMAND test_fortran_commands WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 else()
   message(STATUS "Skipping Tests for the LAMMPS Fortran Module: no Fortran compiler")
 endif()

@@ -26,7 +26,7 @@
 
 using namespace LAMMPS_NS;
 
-using testing::MatchesRegex;
+using testing::ContainsRegex;
 using testing::StrEq;
 
 using utils::split_words;
@@ -173,7 +173,7 @@ TEST_F(MoleculeFileTest, minimal)
     BEGIN_CAPTURE_OUTPUT();
     run_mol_cmd(test_name, "", "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n");
     auto output = END_CAPTURE_OUTPUT();
-    ASSERT_THAT(output, MatchesRegex(".*Read molecule template.*1 molecules.*1 atoms.*0 bonds.*"));
+    ASSERT_THAT(output, ContainsRegex(".*Read molecule template.*1 molecules.*1 atoms.*0 bonds.*"));
 }
 
 TEST_F(MoleculeFileTest, notype)
@@ -184,7 +184,7 @@ TEST_F(MoleculeFileTest, notype)
     command("create_box 1 box");
     run_mol_cmd(test_name, "", "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n");
     auto output = END_CAPTURE_OUTPUT();
-    ASSERT_THAT(output, MatchesRegex(".*Read molecule template.*1 molecules.*1 atoms.*0 bonds.*"));
+    ASSERT_THAT(output, ContainsRegex(".*Read molecule template.*1 molecules.*1 atoms.*0 bonds.*"));
     TEST_FAILURE(".*ERROR: Create_atoms molecule must have atom types.*",
                  command("create_atoms 0 single 0.0 0.0 0.0 mol notype 542465"););
   }
@@ -199,7 +199,7 @@ TEST_F(MoleculeFileTest, extramass)
                 " Types\n\n 1 1\n Masses\n\n 1 1.0\n");
     command("create_atoms 0 single 0.0 0.0 0.0 mol extramass 73546");
     auto output = END_CAPTURE_OUTPUT();
-    ASSERT_THAT(output, MatchesRegex(".*WARNING: Molecule attributes do not match "
+    ASSERT_THAT(output, ContainsRegex(".*WARNING: Molecule attributes do not match "
                                      "system attributes.*"));
 }
 
@@ -211,7 +211,7 @@ TEST_F(MoleculeFileTest, twomols)
                 " Coords\n\n 1 0.0 0.0 0.0\n 2 0.0 0.0 1.0\n"
                 " Molecules\n\n 1 1\n 2 2\n\n Types\n\n 1 1\n 2 2\n\n");
     auto output = END_CAPTURE_OUTPUT();
-    ASSERT_THAT(output, MatchesRegex(".*Read molecule template.*2 molecules.*2 atoms "
+    ASSERT_THAT(output, ContainsRegex(".*Read molecule template.*2 molecules.*2 atoms "
                                      "with max type 2.*0 bonds.*"));
 }
 
@@ -220,7 +220,7 @@ TEST_F(MoleculeFileTest, twofiles)
     BEGIN_CAPTURE_OUTPUT();
     command("molecule twomols moltest.h2o.mol moltest.co2.mol offset 2 1 1 0 0");
     auto output = END_CAPTURE_OUTPUT();
-    ASSERT_THAT(output, MatchesRegex(".*Read molecule template twomols:.*1 molecules.*3 atoms "
+    ASSERT_THAT(output, ContainsRegex(".*Read molecule template twomols:.*1 molecules.*3 atoms "
                                      "with max type 2.*2 bonds with max type 1.*"
                                      "1 angles with max type 1.*0 dihedrals.*"
                                      ".*Read molecule template twomols:.*1 molecules.*3 atoms "
@@ -254,14 +254,14 @@ TEST_F(MoleculeFileTest, bonds)
                 " 1 1 1 2\n"
                 " 2 2 1 3\n\n");
     auto output = END_CAPTURE_OUTPUT();
-    ASSERT_THAT(output, MatchesRegex(".*Read molecule template.*1 molecules.*4 atoms.*type.*2.*"
+    ASSERT_THAT(output, ContainsRegex(".*Read molecule template.*1 molecules.*4 atoms.*type.*2.*"
                                      "2 bonds.*type.*2.*0 angles.*"));
 
     BEGIN_CAPTURE_OUTPUT();
     command("mass * 2.0");
     command("create_atoms 0 single 0.5 0.5 0.5 mol bonds 67235");
     output = END_CAPTURE_OUTPUT();
-    ASSERT_THAT(output, MatchesRegex(".*Created 4 atoms.*"));
+    ASSERT_THAT(output, ContainsRegex(".*Created 4 atoms.*"));
 
     BEGIN_HIDE_OUTPUT();
     Molecule *mol = lmp->atom->molecules[0];

@@ -29,7 +29,6 @@
 
 using namespace LAMMPS_NS;
 
-using testing::MatchesRegex;
 using testing::StrEq;
 
 using utils::read_lines_from_file;

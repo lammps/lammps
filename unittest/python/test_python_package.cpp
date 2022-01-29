@@ -45,7 +45,7 @@ using LAMMPS_NS::utils::split_words;
 namespace LAMMPS_NS {
 using ::testing::Eq;
 using ::testing::HasSubstr;
-using ::testing::MatchesRegex;
+using ::testing::ContainsRegex;
 using ::testing::StrEq;
 
 class PythonPackageTest : public LAMMPSTest {
@@ -238,7 +238,7 @@ TEST_F(PythonPackageTest, python_variable)
     std::string output = CAPTURE_OUTPUT([&] {
         command("print \"${sq}\"");
     });
-    ASSERT_THAT(output, MatchesRegex("print.*2.25.*"));
+    ASSERT_THAT(output, ContainsRegex("print.*2.25.*"));
 }
 
 TEST_F(PythonPackageTest, InlineFunction)

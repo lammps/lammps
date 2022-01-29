@@ -37,7 +37,7 @@ using LAMMPS_NS::utils::split_words;
 
 namespace LAMMPS_NS {
 using ::testing::ExitedWithCode;
-using ::testing::MatchesRegex;
+using ::testing::ContainsRegex;
 using ::testing::StrEq;
 
 class VariableTest : public LAMMPSTest {
@@ -394,58 +394,58 @@ TEST_F(VariableTest, IfCommand)
     BEGIN_CAPTURE_OUTPUT();
     command("if 1>0 then 'print \"bingo!\"'");
     auto text = END_CAPTURE_OUTPUT();
-    ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
+    ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
     BEGIN_CAPTURE_OUTPUT();
     command("if 1>2 then 'print \"bingo!\"' else 'print \"nope?\"'");
     text = END_CAPTURE_OUTPUT();
-    ASSERT_THAT(text, MatchesRegex(".*nope\?.*"));
+    ASSERT_THAT(text, ContainsRegex(".*nope\?.*"));
 
     BEGIN_CAPTURE_OUTPUT();
     command("if (1<=0) then 'print \"bingo!\"' else 'print \"nope?\"'");
     text = END_CAPTURE_OUTPUT();
-    ASSERT_THAT(text, MatchesRegex(".*nope\?.*"));
+    ASSERT_THAT(text, ContainsRegex(".*nope\?.*"));
 
     BEGIN_CAPTURE_OUTPUT();
     command("if (-1.0e-1<0.0E+0)|^(1<0) then 'print \"bingo!\"'");
     text = END_CAPTURE_OUTPUT();
-    ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
+    ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
     BEGIN_CAPTURE_OUTPUT();
     command("if (${one}==1.0)&&(2>=1) then 'print \"bingo!\"'");
     text = END_CAPTURE_OUTPUT();
-    ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
+    ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
     BEGIN_CAPTURE_OUTPUT();
     command("if !((${one}!=1.0)||(2|^1)) then 'print \"missed\"' else 'print \"bingo!\"'");
     text = END_CAPTURE_OUTPUT();
-    ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
+    ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
     BEGIN_CAPTURE_OUTPUT();
     command("if (1>=2)&&(0&&1) then 'print \"missed\"' else 'print \"bingo!\"'");
     text = END_CAPTURE_OUTPUT();
-    ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
+    ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
     BEGIN_CAPTURE_OUTPUT();
     command("if !1 then 'print \"missed\"' else 'print \"bingo!\"'");
     text = END_CAPTURE_OUTPUT();
-    ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
+    ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
     BEGIN_CAPTURE_OUTPUT();
     command("if !(a==b) then 'print \"bingo!\"'");
     text = END_CAPTURE_OUTPUT();
-    ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
+    ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
     BEGIN_CAPTURE_OUTPUT();
     command("if x==x|^1==0 then 'print \"bingo!\"'");
     text = END_CAPTURE_OUTPUT();
-    ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
+    ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
     BEGIN_CAPTURE_OUTPUT();
     command("if x!=x|^a!=b then 'print \"bingo!\"'");
     text = END_CAPTURE_OUTPUT();
 
-    ASSERT_THAT(text, MatchesRegex(".*bingo!.*"));
+    ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
     TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
                  command("if () then 'print \"bingo!\"'"););

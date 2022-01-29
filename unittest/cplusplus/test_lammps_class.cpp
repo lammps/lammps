@@ -11,7 +11,7 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
-using ::testing::MatchesRegex;
+using ::testing::ContainsRegex;
 using ::testing::StartsWith;
 
 namespace LAMMPS_NS {
@@ -339,7 +339,7 @@ TEST(LAMMPS_init, OpenMP)
     ::testing::internal::CaptureStdout();
     LAMMPS *lmp        = new LAMMPS(argc, argv, MPI_COMM_WORLD);
     std::string output = ::testing::internal::GetCapturedStdout();
-    EXPECT_THAT(output, MatchesRegex(".*using 2 OpenMP thread.*per MPI task.*"));
+    EXPECT_THAT(output, ContainsRegex(".*using 2 OpenMP thread.*per MPI task.*"));
 
     if (LAMMPS_NS::Info::has_accelerator_feature("OPENMP", "api", "openmp"))
         EXPECT_EQ(lmp->comm->nthreads, 2);
@@ -373,7 +373,7 @@ TEST(LAMMPS_init, NoOpenMP)
     LAMMPS *lmp        = new LAMMPS(argc, argv, MPI_COMM_WORLD);
     std::string output = ::testing::internal::GetCapturedStdout();
     EXPECT_THAT(output,
-                MatchesRegex(".*OMP_NUM_THREADS environment is not set.*Defaulting to 1 thread.*"));
+                ContainsRegex(".*OMP_NUM_THREADS environment is not set.*Defaulting to 1 thread.*"));
     EXPECT_EQ(lmp->comm->nthreads, 1);
     ::testing::internal::CaptureStdout();
     delete lmp;

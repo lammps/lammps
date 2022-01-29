@@ -32,7 +32,6 @@ bool verbose = false;
 using LAMMPS_NS::utils::split_words;
 
 namespace LAMMPS_NS {
-using ::testing::MatchesRegex;
 
 #define GETIDX(i) lmp->atom->map(i)
 

@@ -37,7 +37,6 @@
 #include <vector>
 
 using namespace LAMMPS_NS;
-using ::testing::MatchesRegex;
 using utils::split_words;
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).

@@ -1,38 +1,74 @@
-# Numerical difference calculation of error in forces
+# Numerical difference calculation
+# of error in forces and virial stress
 
-units   	metal
-atom_style      atomic
+# adjustable parameters
 
-atom_modify map yes
-lattice fcc 5.358000
-region box block 0 3 0 3 0 3
-create_box 1 box
-create_atoms 1 box
-mass 1 39.903
+variable    nsteps index 500    # length of run
+variable    nthermo index 10    # thermo output interval 
+variable    ndump index 500     # dump output interval
+variable    nlat index 3        # size of box
+variable    fdelta index 1.0e-4 # displacement size
+variable    vdelta index 1.0e-6 # strain size 
+variable    temp index 10.0     # temperature
 
-velocity all create 10 2357 mom yes dist gaussian
+units  	    metal
+atom_style  atomic
 
-pair_style lj/cubic
-pair_coeff * * 0.0102701 3.42
+atom_modify	map yes
+lattice 	fcc 5.358000
+region 		box block 0 ${nlat} 0 ${nlat} 0 ${nlat}
+create_box  	1 box
+create_atoms 	1 box
+mass 		1 39.903
 
-neighbor 1.0 bin
+velocity     all create ${temp} 2357 mom yes dist gaussian
 
-timestep 0.001
+pair_style   lj/cubic
+pair_coeff   * * 0.0102701 3.42
 
-fix numforce all numdiff 100 0.0001
-fix numstress all numdiff/stress 100 1.0e-2
-fix nve all nve
+neighbor     0.0 bin
+neigh_modify every 1 delay 0 check no
 
-variable errx atom fx-f_numforce[1]
-variable erry atom fy-f_numforce[2]
-variable errz atom fz-f_numforce[3]
+timestep     0.001
+fix	     nve all nve
 
-dump errors all custom 100 force_error.dump v_errx v_erry v_errz
+# define numerical force calculation
 
-variable 	ferrsq atom (fx-f_numforce[1])^2+(fy-f_numforce[2])^2+(fz-f_numforce[3])^2
-compute 	faverrsq all reduce ave v_ferrsq
+fix	     numforce all numdiff ${nthermo} ${fdelta}
+variable     ferrx atom f_numforce[1]-fx
+variable     ferry atom f_numforce[2]-fy
+variable     ferrz atom f_numforce[3]-fz
+variable     ferrsq atom v_ferrx^2+v_ferry^2+v_ferrz^2
+compute	     faverrsq all reduce ave v_ferrsq
+variable     fsq atom fx^2+fy^2+fz^2
+compute      favsq all reduce ave v_fsq
+variable     frelerr equal sqrt(c_faverrsq/c_favsq)
+dump errors  all custom ${ndump} force_error.dump v_ferrx v_ferry v_ferrz
+
+# define numerical virial stress tensor calculation
+
 compute 	myvirial all pressure NULL virial
-variable	ratio11 equal f_numstress[1]/c_myvirial[1]
-thermo_style 	custom step temp pe press c_faverrsq c_myvirial[*] f_numstress[*] v_ratio11
-thermo 100
-run 500
+fix 		numvirial all numdiff/virial ${nthermo} ${vdelta}
+variable 	errxx equal f_numvirial[1]-c_myvirial[1]
+variable 	erryy equal f_numvirial[2]-c_myvirial[2]
+variable 	errzz equal f_numvirial[3]-c_myvirial[3]
+variable 	erryz equal f_numvirial[4]-c_myvirial[6]
+variable 	errxz equal f_numvirial[5]-c_myvirial[5]
+variable 	errxy equal f_numvirial[6]-c_myvirial[4]
+variable 	verrsq equal "v_errxx^2 + &
+                              v_erryy^2 + &
+                              v_errzz^2 + &
+                              v_erryz^2 + &
+                              v_errxz^2 + &
+                              v_errxy^2"
+variable 	vsq equal "c_myvirial[1]^2 + &
+                           c_myvirial[3]^2 + &
+                           c_myvirial[3]^2 + &
+		           c_myvirial[4]^2 + &
+                           c_myvirial[5]^2 + &
+                           c_myvirial[6]^2"
+variable     	vrelerr equal sqrt(v_verrsq/v_vsq)
+
+thermo_style 	custom step temp pe etotal press v_frelerr v_vrelerr
+thermo 		${nthermo}
+run 		${nsteps}

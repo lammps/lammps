@@ -233,12 +233,17 @@ void FixNumDiff::calculate_forces()
     }
   }
 
+  // recompute energy so all contributions are as before 
+
+  energy = update_energy();
+
   // restore original forces for owned and ghost atoms
 
   for (i = 0; i < nall; i++)
     for (j = 0; j < 3; j++) {
       f[i][j] = temp_f[i][j];
     }
+
 }
 
 /* ----------------------------------------------------------------------

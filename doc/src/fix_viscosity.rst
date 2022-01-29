@@ -108,7 +108,9 @@ fluid, in appropriate units.  See the :ref:`Muller-Plathe paper <Muller-Plathe2>
 
 An alternative method for calculating a viscosity is to run a NEMD
 simulation, as described on the :doc:`Howto nemd <Howto_nemd>` doc page.
-NEMD simulations deform the simulation box via the :doc:`fix deform <fix_deform>` command.  Thus they cannot be run on a charged
+NEMD simulations deform the simulation box via the :doc:`fix deform <fix_deform>` command.
+
+Thus they cannot be run on a charged
 system using a :doc:`PPPM solver <kspace_style>` since PPPM does not
 currently support non-orthogonal boxes.  Using fix viscosity keeps the
 box orthogonal; thus it does not suffer from this limitation.

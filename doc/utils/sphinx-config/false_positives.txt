@@ -194,6 +194,7 @@ Baczewski
 Bagchi
 Bagi
 Bagnold
+Baig
 Bajaj
 Bkappa
 Bal
@@ -1569,6 +1570,7 @@ ke
 KE
 Keblinski
 Keefe
+Keffer
 keflag
 Keir
 Kelchner

@@ -16,7 +16,7 @@
    Contributing author: Aidan Thompson (Sandia)
 ------------------------------------------------------------------------- */
 
-#include "fix_numdiff_stress.h"
+#include "fix_numdiff_virial.h"
 
 #include <cstring>
 #include "atom.h"
@@ -40,16 +40,17 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixNumDiffStress::FixNumDiffStress(LAMMPS *lmp, int narg, char **arg) :
+FixNumDiffVirial::FixNumDiffVirial(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), id_pe(nullptr),
   temp_x(nullptr), temp_f(nullptr)
 {
-  if (narg < 5) error->all(FLERR,"Illegal fix numdiff/stress command");
+  if (narg < 5) error->all(FLERR,"Illegal fix numdiff/virial command");
+  if (igroup) error->all(FLERR,"Compute numdiff/virial must use group all");
 
   peratom_freq = nevery;
   respa_level_support = 1;
   vector_flag = 1;
-  size_vector = NDIR_STRESS;
+  size_vector = NDIR_VIRIAL;
   extvector = 0;
   
   maxatom = 0;
@@ -96,7 +97,7 @@ FixNumDiffStress::FixNumDiffStress(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-FixNumDiffStress::~FixNumDiffStress()
+FixNumDiffVirial::~FixNumDiffVirial()
 {
   memory->destroy(temp_x);
   memory->destroy(temp_f);
@@ -107,7 +108,7 @@ FixNumDiffStress::~FixNumDiffStress()
 
 /* ---------------------------------------------------------------------- */
 
-int FixNumDiffStress::setmask()
+int FixNumDiffVirial::setmask()
 {
   datamask_read = datamask_modify = 0;
 
@@ -120,7 +121,7 @@ int FixNumDiffStress::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNumDiffStress::init()
+void FixNumDiffVirial::init()
 {
   // check for PE compute
 
@@ -141,7 +142,7 @@ void FixNumDiffStress::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixNumDiffStress::setup(int vflag)
+void FixNumDiffVirial::setup(int vflag)
 {
   if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
@@ -154,39 +155,39 @@ void FixNumDiffStress::setup(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixNumDiffStress::min_setup(int vflag)
+void FixNumDiffVirial::min_setup(int vflag)
 {
   post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixNumDiffStress::post_force(int /* vflag */)
+void FixNumDiffVirial::post_force(int /* vflag */)
 {
   if (update->ntimestep % nevery) return;
 
-  calculate_stress();
+  calculate_virial();
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixNumDiffStress::post_force_respa(int vflag, int ilevel, int /*iloop*/)
+void FixNumDiffVirial::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == ilevel_respa) post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixNumDiffStress::min_post_force(int vflag)
+void FixNumDiffVirial::min_post_force(int vflag)
 {
   post_force(vflag);
 }
 
 /* ----------------------------------------------------------------------
-   compute finite difference stress tensor
+   compute finite difference virial stress tensor
 ------------------------------------------------------------------------- */
 
-void FixNumDiffStress::calculate_stress()
+void FixNumDiffVirial::calculate_virial()
 {
   double energy;
 
@@ -198,8 +199,7 @@ void FixNumDiffStress::calculate_stress()
 
   double **x = atom->x;
   double **f = atom->f;
-  int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
+  int nall = atom->nlocal + atom->nghost;
 
   for (int i = 0; i < nall; i++)
     for (int k = 0; k < 3; k++) {
@@ -216,16 +216,21 @@ void FixNumDiffStress::calculate_stress()
 
   double denominator = -0.5 / delta * inv_volume * nktv2p;
 
-  for (int idir = 0; idir < NDIR_STRESS; idir++) {
+  for (int idir = 0; idir < NDIR_VIRIAL; idir++) {
     displace_atoms(nall, idir, 1.0);
     energy = update_energy();
-    stress[idir] = energy;
-    displace_atoms(nall, idir,-1.0);
+    virial[idir] = energy;
+    restore_atoms(nall, idir);
+    displace_atoms(nall, idir, -1.0);
     energy = update_energy();
-    stress[idir] -= energy;
-    stress[idir] *= denominator;
+    virial[idir] -= energy;
+    virial[idir] *= denominator;
     restore_atoms(nall, idir);
   }
+
+  // recompute energy so all contributions are as before 
+
+  energy = update_energy();
 
   // restore original forces for owned and ghost atoms
   
@@ -239,13 +244,13 @@ void FixNumDiffStress::calculate_stress()
    displace position of all owned and ghost atoms
 ---------------------------------------------------------------------- */
 
-void FixNumDiffStress::displace_atoms(int nall, int idir, double magnitude)
+void FixNumDiffVirial::displace_atoms(int nall, int idir, double magnitude)
 {
   double **x = atom->x;
   int k = dirlist[idir][0]; 
   int l = dirlist[idir][1]; 
   for (int i = 0; i < nall; i++)
-    x[i][k] += temp_x[i][k] + delta*magnitude*
+    x[i][k] = temp_x[i][k] + delta*magnitude*
       (temp_x[i][l]-fixedpoint[l]);
 }
 
@@ -253,7 +258,7 @@ void FixNumDiffStress::displace_atoms(int nall, int idir, double magnitude)
    restore position of all owned and ghost atoms
 ---------------------------------------------------------------------- */
 
-void FixNumDiffStress::restore_atoms(int nall, int idir)
+void FixNumDiffVirial::restore_atoms(int nall, int idir)
 {
   double **x = atom->x;
   int k = dirlist[idir][0]; 
@@ -267,7 +272,7 @@ void FixNumDiffStress::restore_atoms(int nall, int idir)
    same logic as in Verlet
 ------------------------------------------------------------------------- */
 
-double FixNumDiffStress::update_energy()
+double FixNumDiffVirial::update_energy()
 {
   int eflag = 1;
 
@@ -287,42 +292,32 @@ double FixNumDiffStress::update_energy()
 }
 
 /* ----------------------------------------------------------------------
-   clear forces needed
-------------------------------------------------------------------------- */
-
-void FixNumDiffStress::stress_clear()
-{
-  size_t nbytes = sizeof(double) * size_vector;
-  memset(&stress[0],0,nbytes);
-}
-
-/* ----------------------------------------------------------------------
    return Ith vector value, assume in range of size_vector
 ------------------------------------------------------------------------- */
 
-double FixNumDiffStress::compute_vector(int i)
+double FixNumDiffVirial::compute_vector(int i)
 {
-  return stress[i];
+  return virial[i];
 }
 
 /* ----------------------------------------------------------------------
    reallocated local per-atoms arrays
 ------------------------------------------------------------------------- */
 
-void FixNumDiffStress::reallocate()
+void FixNumDiffVirial::reallocate()
 {
   memory->destroy(temp_x);
   memory->destroy(temp_f);
   maxatom = atom->nmax;
-  memory->create(temp_x,maxatom,3,"numdiff/stress:temp_x");
-  memory->create(temp_f,maxatom,3,"numdiff/stress:temp_f");
+  memory->create(temp_x,maxatom,3,"numdiff/virial:temp_x");
+  memory->create(temp_f,maxatom,3,"numdiff/virial:temp_f");
 }
 
 /* ----------------------------------------------------------------------
    memory usage of local atom-based arrays
 ------------------------------------------------------------------------- */
 
-double FixNumDiffStress::memory_usage()
+double FixNumDiffVirial::memory_usage()
 {
   double bytes = 0.0;
   bytes += (double)2 * maxatom*3 * sizeof(double);

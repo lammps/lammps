@@ -271,7 +271,8 @@ accelerated styles exist.
 * :doc:`npt/eff <fix_nh_eff>` - NPT for  nuclei and electrons in the electron force field model
 * :doc:`npt/sphere <fix_npt_sphere>` - NPT for spherical particles
 * :doc:`npt/uef <fix_nh_uef>` - NPT style time integration with diagonal flow
-* :doc:`numdiff <fix_numdiff>` - compute derivatives of per-atom data from finite differences
+* :doc:`numdiff <fix_numdiff>` - numerically approximate atomic forces using finite energy differences
+* :doc:`numdiff/virial <fix_numdiff_virial>` - numerically approximate virial stress tensor using finite energy differences
 * :doc:`nve <fix_nve>` - constant NVE time integration
 * :doc:`nve/asphere <fix_nve_asphere>` - NVE for aspherical particles
 * :doc:`nve/asphere/noforce <fix_nve_asphere_noforce>` - NVE for aspherical particles without forces

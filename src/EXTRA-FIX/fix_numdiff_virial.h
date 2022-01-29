@@ -13,21 +13,21 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(numdiff/stress,FixNumDiffStress);
+FixStyle(numdiff/virial,FixNumDiffVirial);
 // clang-format on
 #else
 
-#ifndef LMP_FIX_NUMDIFF_STRESS_H
-#define LMP_FIX_NUMDIFF_STRESS_H
+#ifndef LMP_FIX_NUMDIFF_VIRIAL_H
+#define LMP_FIX_NUMDIFF_VIRIAL_H
 
 #include "fix.h"
 
 namespace LAMMPS_NS {
 
-class FixNumDiffStress : public Fix {
+class FixNumDiffVirial : public Fix {
  public:
-  FixNumDiffStress(class LAMMPS *, int, char **);
-  ~FixNumDiffStress();
+  FixNumDiffVirial(class LAMMPS *, int, char **);
+  ~FixNumDiffVirial();
   int setmask() override;
   void init() override;
   void setup(int) override;
@@ -38,7 +38,7 @@ class FixNumDiffStress : public Fix {
   double memory_usage() override;
 
  private:
-  static const int NDIR_STRESS = 6; // dimension of stress and strain vectors 
+  static const int NDIR_VIRIAL = 6; // dimension of virial and strain vectors 
   double delta;              // strain magnitude
   int maxatom;               // allocated size of atom arrays
   int ilevel_respa;
@@ -49,18 +49,18 @@ class FixNumDiffStress : public Fix {
   char *id_pe;                // name of energy compute 
   class Compute *pe;          // pointer to energy compute
 
-  double stress[NDIR_STRESS]; // finite diff stress components (Voigt order)
+  double virial[NDIR_VIRIAL]; // finite diff virial components (Voigt order)
   double **temp_x;            // original coords
   double **temp_f;            // original forces
   double fixedpoint[3];       // define displacement field origin
-  int dirlist[NDIR_STRESS][2];// strain cartesian indices (Voigt order)
+  int dirlist[NDIR_VIRIAL][2];// strain cartesian indices (Voigt order)
   
-  double compute_vector(int) override;  // access function for stress
-  void calculate_stress();              // stress calculation
+  double compute_vector(int) override;  // access function for virial
+  void calculate_virial();              // virial calculation
   void displace_atoms(int, int, double);// apply displacement field
   void restore_atoms(int, int);         // restore original positions
   double update_energy();               // calculate new energy
-  void stress_clear();                  // set stress to zero
+  void virial_clear();                  // set virial to zero
   void reallocate();                    // grow the atom arrays
 };
 
@@ -77,8 +77,13 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: Compute ID for fix numdiff/stress does not exist
+E: Compute ID for fix numdiff/virial does not exist
 
 Self-explanatory.
+
+E: Fix numdiff/virial must use group all
+
+Virial contributions computed by this fix are
+computed on all atoms.
 
 */

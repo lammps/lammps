@@ -35,8 +35,8 @@ bool verbose = false;
 using LAMMPS_NS::utils::split_words;
 
 namespace LAMMPS_NS {
-using ::testing::ExitedWithCode;
 using ::testing::ContainsRegex;
+using ::testing::ExitedWithCode;
 using ::testing::StrEq;
 
 class LatticeRegionTest : public LAMMPSTest {

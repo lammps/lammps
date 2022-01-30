@@ -43,9 +43,9 @@ bool verbose = false;
 using LAMMPS_NS::utils::split_words;
 
 namespace LAMMPS_NS {
+using ::testing::ContainsRegex;
 using ::testing::Eq;
 using ::testing::HasSubstr;
-using ::testing::ContainsRegex;
 using ::testing::StrEq;
 
 class PythonPackageTest : public LAMMPSTest {

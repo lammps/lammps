@@ -39,8 +39,8 @@ bool verbose = false;
 using LAMMPS_NS::utils::split_words;
 
 namespace LAMMPS_NS {
-using ::testing::ExitedWithCode;
 using ::testing::ContainsRegex;
+using ::testing::ExitedWithCode;
 using ::testing::StrEq;
 
 class SimpleCommandsTest : public LAMMPSTest {
@@ -412,14 +412,14 @@ TEST_F(SimpleCommandsTest, Plugin)
     text = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << text;
     ASSERT_THAT(text, ContainsRegex(".*1: command style plugin hello"
-                                   ".*2: fix style plugin nve2.*"));
+                                    ".*2: fix style plugin nve2.*"));
 
     ::testing::internal::CaptureStdout();
     lmp->input->one(fmt::format(loadfmt, "hello"));
     text = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << text;
     ASSERT_THAT(text, ContainsRegex(".*Ignoring load of command style hello: "
-                                   "must unload existing hello plugin.*"));
+                                    "must unload existing hello plugin.*"));
 
     ::testing::internal::CaptureStdout();
     lmp->input->one("plugin unload command hello");
@@ -479,7 +479,8 @@ TEST_F(SimpleCommandsTest, Shell)
     test_var = getenv("TEST_VARIABLE");
     ASSERT_NE(test_var, nullptr);
 #if defined(_WIN32)
-    // we cannot create empty environment variables on Windows so platform::putenv() sets their value to "1"
+    // we cannot create empty environment variables on Windows so platform::putenv() sets their
+    // value to "1"
     ASSERT_THAT(test_var, StrEq("1"));
 #else
     ASSERT_THAT(test_var, StrEq(""));
@@ -501,7 +502,8 @@ TEST_F(SimpleCommandsTest, CiteMe)
 
     // find the two unique citations, but not the third
     ASSERT_THAT(text, ContainsRegex("test citation one.\n.*test citation two.*"));
-    ASSERT_THAT(text, Not(ContainsRegex("test citation one.\n.*test citation two.*\n.*test citation one.*")));
+    ASSERT_THAT(text, Not(ContainsRegex(
+                          "test citation one.\n.*test citation two.*\n.*test citation one.*")));
 
     BEGIN_CAPTURE_OUTPUT();
     lmp->citeme->add("test citation one:\n 0\n");

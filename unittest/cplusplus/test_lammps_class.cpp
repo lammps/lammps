@@ -372,8 +372,8 @@ TEST(LAMMPS_init, NoOpenMP)
     ::testing::internal::CaptureStdout();
     LAMMPS *lmp        = new LAMMPS(argc, argv, MPI_COMM_WORLD);
     std::string output = ::testing::internal::GetCapturedStdout();
-    EXPECT_THAT(output,
-                ContainsRegex(".*OMP_NUM_THREADS environment is not set.*Defaulting to 1 thread.*"));
+    EXPECT_THAT(output, ContainsRegex(
+                            ".*OMP_NUM_THREADS environment is not set.*Defaulting to 1 thread.*"));
     EXPECT_EQ(lmp->comm->nthreads, 1);
     ::testing::internal::CaptureStdout();
     delete lmp;

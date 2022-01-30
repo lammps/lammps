@@ -1,0 +1,36 @@
+# Numerical difference calculation
+# of Born matrix
+
+# adjustable parameters
+
+variable    nsteps index 50    # length of run
+variable    nthermo index 10    # thermo output interval 
+variable    nlat index 3        # size of box
+variable    delta index 1.0e-6  # strain size 
+variable    temp index 0.3      # temperature
+
+units		lj
+atom_style	atomic
+
+lattice		fcc 0.8442
+region		box block 0 ${nlat} 0 ${nlat} 0 ${nlat}
+create_box	1 box
+create_atoms	1 box
+mass		1 1.0
+
+velocity	all create ${temp} 87287 loop geom
+
+pair_style	lj/cut 2.5
+pair_coeff	1 1 1.0 1.0
+
+neighbor     	0.0 bin
+neigh_modify 	every 1 delay 0 check no
+
+fix		1 all nve
+
+compute 	born all born/matrix
+thermo		${nthermo}
+thermo_style 	custom step temp pe press c_born[*]
+
+run		${nsteps}
+

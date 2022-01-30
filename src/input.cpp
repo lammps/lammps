@@ -966,10 +966,15 @@ void Input::include()
     if (nfile == maxfile)
       error->one(FLERR,"Too many nested levels of input scripts");
 
-    infile = fopen(arg[0],"r");
+    // expand variables
+    int n = strlen(arg[0]) + 1;
+    if (n > maxline) reallocate(line,maxline,n);
+    strcpy(line,arg[0]);
+    substitute(line,work,maxline,maxwork,0);
+
+    infile = fopen(line,"r");
     if (infile == nullptr)
-      error->one(FLERR,"Cannot open input script {}: {}",
-                                   arg[0], utils::getsyserror());
+      error->one(FLERR,"Cannot open input script {}: {}", line, utils::getsyserror());
 
     infiles[nfile++] = infile;
   }

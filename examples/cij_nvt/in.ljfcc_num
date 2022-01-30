@@ -35,3 +35,4 @@ thermo_style 	custom step temp pe press c_born[*]
 
 run		${nsteps}
 
+

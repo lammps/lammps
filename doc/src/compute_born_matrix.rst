@@ -12,13 +12,19 @@ Syntax
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * born/matrix = style name of this compute command
+* the keyword *numdiff* may be appended
 
+    .. parsed-literal::
+
+       *numdiff* values = delta virial-ID
+  
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
    compute 1 all born/matrix
+   compute 1 all born/matrix numdiff 1.0e-4 myvirial
 
 Description
 """""""""""
@@ -96,6 +102,20 @@ solid the virial stress can have large variations between timesteps and average
 values can be slow to converge. This term is better computed using
 instantaneous values.
 
+The *numdiff* keyword uses finite differences of energy to numerically
+approximate the derivative. This is useful when using interaction styles
+for which the analytical derivatives have not been implemented.
+The keyword requirs the additional values *delta* and *virial-ID*
+giving the size of the applied strain and the ID of the pressure compute
+that provides the virial tensor, requiring that it use the virial
+keyword e.g.
+
+.. code-block:: LAMMPS
+
+   compute myvirial all pressure NULL virial
+   compute 1 all born/matrix numdiff 1.0e-4 myvirial
+
+
 **Output info:**
 
 This compute calculates a global array with the number of rows=21.
@@ -110,15 +130,17 @@ Restrictions
 """"""""""""
 
 This compute is part of the EXTRA-COMPUTE package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+LAMMPS was built with that package.  See the
+:doc:`Build package <Build_package>` page for more info.
 
 The Born term can be decomposed as a product of two terms. The first one
 is a general term which depends on the configuration. The second one is
 specific to every interaction composing your force field (non-bonded,
-bonds, angle...). Currently not all interaction implement the *born_matrix*
-method giving first and second order derivatives and a warning will
-be raised if you try to use this compute with such interactions. The returned
-values of this force field component is currently zero.
+bonds, angle...). Currently not all LAMMPS interaction styles
+implement the *born_matrix*
+method giving first and second order derivatives and LAMMPS will
+exit with an error if this compute is used with such interactions,
+unless the *numdiff* option is also used.
 
 Default
 """""""

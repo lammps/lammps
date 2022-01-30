@@ -89,7 +89,7 @@ TEST_F(PythonPackageTest, InvokeFunctionFromFile)
     auto output = CAPTURE_OUTPUT([&]() {
         command("python printnum invoke");
     });
-    ASSERT_THAT(output, HasSubstr("2.25\n"));
+    ASSERT_THAT(output, HasSubstr("2.25"));
 }
 
 #if defined(TEST_HAVE_PYTHON_DEVELOPMENT)
@@ -210,7 +210,7 @@ TEST_F(PythonPackageTest, InvokeOtherFunctionFromFile)
     auto output = CAPTURE_OUTPUT([&] {
         command("python printtxt invoke");
     });
-    ASSERT_THAT(output, HasSubstr("sometext\n"));
+    ASSERT_THAT(output, HasSubstr("sometext"));
 }
 
 TEST_F(PythonPackageTest, InvokeFunctionThatUsesLAMMPSModule)
@@ -224,7 +224,7 @@ TEST_F(PythonPackageTest, InvokeFunctionThatUsesLAMMPSModule)
     auto output = CAPTURE_OUTPUT([&] {
         command("python getidxvar invoke");
     });
-    ASSERT_THAT(output, HasSubstr("2.25\n"));
+    ASSERT_THAT(output, HasSubstr("2.25"));
 }
 
 TEST_F(PythonPackageTest, python_variable)
@@ -238,7 +238,7 @@ TEST_F(PythonPackageTest, python_variable)
     std::string output = CAPTURE_OUTPUT([&] {
         command("print \"${sq}\"");
     });
-    ASSERT_THAT(output, ContainsRegex("print.*2.25.*"));
+    ASSERT_THAT(output, ContainsRegex("print.*\n.*2.25.*"));
 }
 
 TEST_F(PythonPackageTest, InlineFunction)
@@ -309,7 +309,7 @@ TEST_F(FixPythonInvokeTest, end_of_step)
     auto output = CAPTURE_OUTPUT([&] {
         command("run 50");
     });
-
+    fprintf(stderr,"lines: %s\n",output.c_str());
     auto lines = utils::split_lines(output);
     int count  = 0;
 

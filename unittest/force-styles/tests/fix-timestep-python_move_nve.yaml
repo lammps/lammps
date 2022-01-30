@@ -1,7 +1,6 @@
 ---
 lammps_version: 10 Mar 2021
 date_generated: Wed Mar 24 18:57:26 2021
-tags: noWindows
 skip_tests: static
 epsilon: 9e-12
 prerequisites: ! |

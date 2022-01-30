@@ -17,7 +17,9 @@ Syntax
     .. parsed-literal::
 
        *numdiff* values = delta virial-ID
-  
+         delta = magnitude of strain fields (dimensionless)
+         virial-ID = ID of pressure compute for virial (string)
+
 Examples
 """"""""
 
@@ -103,12 +105,42 @@ values can be slow to converge. This term is better computed using
 instantaneous values.
 
 The *numdiff* keyword uses finite differences of energy to numerically
-approximate the derivative. This is useful when using interaction styles
-for which the analytical derivatives have not been implemented.
-The keyword requirs the additional values *delta* and *virial-ID*
-giving the size of the applied strain and the ID of the pressure compute
-that provides the virial tensor, requiring that it use the virial
-keyword e.g.
+approximate the second derivatives. This is useful when using interaction styles
+for which the analytical second derivatives have not been implemented.
+In this cases, the compute applies linear strain fields of magnitude
+*delta* to all the
+atoms relative to a point at the center of the box.  The
+strain fields are in six different directions, corresponding to the
+six Cartesian components of the stress tensor defined by LAMMPS.
+For each direction it applies the strain field in both the positive
+and negative senses, and the new stress virial tensor of the entire system
+is calculated after each. The difference in these two virials
+divided by two times *delta*, approximates the corresponding
+components of the second derivative, after applying
+a suitable unit conversion.
+
+.. note::
+
+   It is important to choose a suitable value for delta, the magnitude of
+   strains that are used to generate finite difference
+   approximations to the exact virial stress.  For typical systems, a value in
+   the range of 1 part in 1e5 to 1e6 will be sufficient.
+   However, the best value will depend on a multitude of factors
+   including the stiffness of the interatomic potential, the thermodynamic
+   state of the material being probed, and so on. The only way to be sure
+   that you have made a good choice is to do a sensitivity study on a
+   representative atomic configuration, sweeping over a wide range of
+   values of delta.  If delta is too small, the output values will vary
+   erratically due to truncation effects. If delta is increased beyond a
+   certain point, the output values will start to vary smoothly with
+   delta, due to growing contributions from higher order derivatives. In
+   between these two limits, the numerical virial values should be largely
+   independent of delta.
+
+The keyword requires the additional arguments *delta* and *virial-ID*.
+*delta* gives the size of the applied strains. *virial-ID* gives
+the ID string of the pressure compute that provides the virial stress tensor,
+requiring that it use the virial keyword e.g.
 
 .. code-block:: LAMMPS
 

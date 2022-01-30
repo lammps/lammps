@@ -174,7 +174,7 @@ TEST_F(MoleculeFileTest, minimal)
     run_mol_cmd(test_name, "", "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n");
     auto output = END_CAPTURE_OUTPUT();
     ASSERT_THAT(output, ContainsRegex(".*Read molecule template.*\n.*1 molecules.*\n"
-                                      ".*1 atoms.*\n.*0 bonds.*"));
+                                      ".*0 fragments.*\n.*1 atoms.*\n.*0 bonds.*"));
 }
 
 TEST_F(MoleculeFileTest, notype)
@@ -186,7 +186,7 @@ TEST_F(MoleculeFileTest, notype)
     run_mol_cmd(test_name, "", "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n");
     auto output = END_CAPTURE_OUTPUT();
     ASSERT_THAT(output, ContainsRegex(".*Read molecule template.*\n.*1 molecules.*\n"
-                                      ".*1 atoms.*\n.*0 bonds.*"));
+                                      ".*0 fragments.*\n.*1 atoms.*\n.*0 bonds.*"));
     TEST_FAILURE(".*ERROR: Create_atoms molecule must have atom types.*",
                  command("create_atoms 0 single 0.0 0.0 0.0 mol notype 542465"););
   }
@@ -214,7 +214,7 @@ TEST_F(MoleculeFileTest, twomols)
                 " Molecules\n\n 1 1\n 2 2\n\n Types\n\n 1 1\n 2 2\n\n");
     auto output = END_CAPTURE_OUTPUT();
     ASSERT_THAT(output, ContainsRegex(".*Read molecule template.*\n.*2 molecules.*\n"
-                                      ".*2 atoms with max type 2.*\n.*0 bonds.*"));
+                                      ".*0 fragments.*\n.*2 atoms with max type 2.*\n.*0 bonds.*"));
 }
 
 TEST_F(MoleculeFileTest, twofiles)
@@ -223,10 +223,10 @@ TEST_F(MoleculeFileTest, twofiles)
     command("molecule twomols moltest.h2o.mol moltest.co2.mol offset 2 1 1 0 0");
     auto output = END_CAPTURE_OUTPUT();
     ASSERT_THAT(output, ContainsRegex(".*Read molecule template twomols:.*\n.*1 molecules.*\n"
-                                      ".*3 atoms with max type 2.*\n.*2 bonds with max type 1.*\n"
-                                      ".*1 angles with max type 1.*\n.*0 dihedrals.*\n"
+                                      ".*0 fragments.*\n.*3 atoms with max type 2.*\n.*2 bonds with max type 1.*\n"
+                                      ".*1 angles with max type 1.*\n.*0 dihedrals.*\n.*0 impropers.*\n"
                                       ".*Read molecule template twomols:.*\n.*1 molecules.*\n"
-                                      ".*3 atoms with max type 4.*\n.*2 bonds with max type 2.*\n"
+                                      ".*0 fragments.*\n.*3 atoms with max type 4.*\n.*2 bonds with max type 2.*\n"
                                       ".*1 angles with max type 2.*\n.*0 dihedrals.*"));
 }
 
@@ -257,7 +257,7 @@ TEST_F(MoleculeFileTest, bonds)
                 " 2 2 1 3\n\n");
     auto output = END_CAPTURE_OUTPUT();
     ASSERT_THAT(output, ContainsRegex(".*Read molecule template.*\n.*1 molecules.*\n"
-                                      ".*4 atoms.*type.*2.*\n"
+                                      ".*0 fragments.*\n.*4 atoms.*type.*2.*\n"
                                       ".*2 bonds.*type.*2.*\n.*0 angles.*"));
 
     BEGIN_CAPTURE_OUTPUT();

@@ -478,7 +478,12 @@ TEST_F(SimpleCommandsTest, Shell)
 
     test_var = getenv("TEST_VARIABLE");
     ASSERT_NE(test_var, nullptr);
+#if defined(_WIN32)
+    // we cannot create empty environment variables on Windows so platform::putenv() sets their value to "1"
+    ASSERT_THAT(test_var, StrEq("1"));
+#else
     ASSERT_THAT(test_var, StrEq(""));
+#endif
 }
 
 TEST_F(SimpleCommandsTest, CiteMe)
@@ -495,8 +500,8 @@ TEST_F(SimpleCommandsTest, CiteMe)
     std::string text = END_CAPTURE_OUTPUT();
 
     // find the two unique citations, but not the third
-    ASSERT_THAT(text, ContainsRegex(".*one.*two.*"));
-    ASSERT_THAT(text, Not(ContainsRegex(".*one.*two.*one.*")));
+    ASSERT_THAT(text, ContainsRegex("test citation one.\n.*test citation two.*"));
+    ASSERT_THAT(text, Not(ContainsRegex("test citation one.\n.*test citation two.*\n.*test citation one.*")));
 
     BEGIN_CAPTURE_OUTPUT();
     lmp->citeme->add("test citation one:\n 0\n");
@@ -507,8 +512,8 @@ TEST_F(SimpleCommandsTest, CiteMe)
     text = END_CAPTURE_OUTPUT();
 
     // find the forth (only differs in long citation) and sixth added citation
-    ASSERT_THAT(text, ContainsRegex(".*one.*three.*"));
-    ASSERT_THAT(text, Not(ContainsRegex(".*two.*")));
+    ASSERT_THAT(text, ContainsRegex("test citation one.*\n.*test citation three.*"));
+    ASSERT_THAT(text, Not(ContainsRegex("test_citation two.*\n")));
 
     BEGIN_CAPTURE_OUTPUT();
     lmp->citeme->add("test citation one:\n 1\n");

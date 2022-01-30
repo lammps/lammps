@@ -276,6 +276,8 @@ else()
   option(BUILD_MPI "Build MPI version" OFF)
 endif()
 
+# configure MPI related settings and define an MPI::ANY_CXX alias target
+# which will point to either the imported MPI library or the STUBS lib
 if(BUILD_MPI)
   # do not include the (obsolete) MPI C++ bindings which makes
   # for leaner object files and avoids namespace conflicts
@@ -289,6 +291,9 @@ if(BUILD_MPI)
     if(LAMMPS_LONGLONG_TO_LONG)
       target_compile_definitions(lammps PRIVATE -DLAMMPS_LONGLONG_TO_LONG)
     endif()
+  endif()
+  if(CMAKE_VERSION VERSION_GREATER 3.11)
+    set_property(TARGET MPI::MPI_CXX PROPERTY IMPORTED_GOBAL TRUE)
   endif()
   add_library(MPI::ANY_CXX ALIAS MPI::MPI_CXX)
 else()

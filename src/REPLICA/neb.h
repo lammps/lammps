@@ -28,8 +28,8 @@ class NEB : public Command {
  public:
   NEB(class LAMMPS *);
   NEB(class LAMMPS *, double, double, int, int, int, double *, double *);
-  ~NEB();
-  void command(int, char **);    // process neb command
+  ~NEB() override;
+  void command(int, char **) override;    // process neb command
   void run();                    // run NEB
 
   double ebf, ebr;    // forward and reverse energy barriers

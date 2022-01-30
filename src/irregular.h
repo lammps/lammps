@@ -27,7 +27,7 @@ class Irregular : protected Pointers {
 #endif
 
   Irregular(class LAMMPS *);
-  ~Irregular();
+  ~Irregular() override;
   void migrate_atoms(int sortflag = 0, int preassign = 0, int *procassign = nullptr);
   int migrate_check();
   int create_data(int, int *, int sortflag = 0);

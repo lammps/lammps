@@ -28,19 +28,19 @@ namespace LAMMPS_NS {
 class PairOxdnaHbond : public Pair {
  public:
   PairOxdnaHbond(class LAMMPS *);
-  virtual ~PairOxdnaHbond();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_list(int, class NeighList *);
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  void write_data(FILE *);
-  void write_data_all(FILE *);
-  void *extract(const char *, int &);
+  ~PairOxdnaHbond() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_list(int, class NeighList *) override;
+  double init_one(int, int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
+  void write_data(FILE *) override;
+  void write_data_all(FILE *) override;
+  void *extract(const char *, int &) override;
 
  protected:
   // h-bonding interaction

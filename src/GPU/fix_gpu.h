@@ -27,15 +27,15 @@ namespace LAMMPS_NS {
 class FixGPU : public Fix {
  public:
   FixGPU(class LAMMPS *, int, char **);
-  ~FixGPU();
-  int setmask();
-  void init();
-  void setup(int);
-  void min_setup(int);
-  void post_force(int);
-  void min_post_force(int);
-  void post_force_respa(int, int, int);
-  double memory_usage();
+  ~FixGPU() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void min_setup(int) override;
+  void post_force(int) override;
+  void min_post_force(int) override;
+  void post_force_respa(int, int, int) override;
+  double memory_usage() override;
 
   double binsize(const double subx, const double suby, const double subz, const int nlocal,
                  const double cut);

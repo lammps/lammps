@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class FixNVESphere : public FixNVE {
  public:
   FixNVESphere(class LAMMPS *, int, char **);
-  virtual ~FixNVESphere() {}
-  void init();
-  virtual void initial_integrate(int);
-  virtual void final_integrate();
+
+  void init() override;
+  void initial_integrate(int) override;
+  void final_integrate() override;
 
  protected:
   double inertia;

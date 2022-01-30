@@ -27,15 +27,14 @@ namespace LAMMPS_NS {
 class AngleDeprecated : public Angle {
  public:
   AngleDeprecated(class LAMMPS *lmp) : Angle(lmp) {}
-  virtual ~AngleDeprecated() {}
 
-  virtual void compute(int, int) {}
-  virtual void settings(int, char **);
-  virtual void coeff(int, char **) {}
-  virtual double equilibrium_angle(int) { return 0.0; }
-  virtual void write_restart(FILE *) {}
-  virtual void read_restart(FILE *) {}
-  virtual double single(int, int, int, int) { return 0.0; }
+  void compute(int, int) override {}
+  void settings(int, char **) override;
+  void coeff(int, char **) override {}
+  double equilibrium_angle(int) override { return 0.0; }
+  void write_restart(FILE *) override {}
+  void read_restart(FILE *) override {}
+  double single(int, int, int, int) override { return 0.0; }
 };
 
 }    // namespace LAMMPS_NS

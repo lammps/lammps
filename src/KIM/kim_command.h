@@ -69,7 +69,7 @@ namespace LAMMPS_NS {
 class KimCommand : public Command {
  public:
   KimCommand(class LAMMPS *lmp) : Command(lmp){};
-  void command(int, char **);
+  void command(int, char **) override;
 };
 
 }    // namespace LAMMPS_NS

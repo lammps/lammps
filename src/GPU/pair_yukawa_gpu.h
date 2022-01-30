@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class PairYukawaGPU : public PairYukawa {
  public:
   PairYukawaGPU(LAMMPS *lmp);
-  ~PairYukawaGPU();
+  ~PairYukawaGPU() override;
   void cpu_compute(int, int, int, int, int *, int *, int **);
-  void compute(int, int);
-  void init_style();
-  double memory_usage();
+  void compute(int, int) override;
+  void init_style() override;
+  double memory_usage() override;
 
   enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 

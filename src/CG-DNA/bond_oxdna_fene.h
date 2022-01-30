@@ -27,16 +27,16 @@ namespace LAMMPS_NS {
 class BondOxdnaFene : public Bond {
  public:
   BondOxdnaFene(class LAMMPS *lmp) : Bond(lmp) {}
-  virtual ~BondOxdnaFene();
+  ~BondOxdnaFene() override;
   virtual void compute_interaction_sites(double *, double *, double *, double *) const;
-  virtual void compute(int, int);
-  void coeff(int, char **);
-  void init_style();
-  double equilibrium_distance(int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_data(FILE *);
-  double single(int, double, int, int, double &);
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double equilibrium_distance(int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
+  double single(int, double, int, int, double &) override;
 
  protected:
   double *k, *Delta, *r0;    // FENE

@@ -27,28 +27,28 @@ namespace LAMMPS_NS {
 class FixMove : public Fix {
  public:
   FixMove(class LAMMPS *, int, char **);
-  ~FixMove();
-  int setmask();
-  void init();
-  void initial_integrate(int);
-  void final_integrate();
-  void initial_integrate_respa(int, int, int);
-  void final_integrate_respa(int, int);
+  ~FixMove() override;
+  int setmask() override;
+  void init() override;
+  void initial_integrate(int) override;
+  void final_integrate() override;
+  void initial_integrate_respa(int, int, int) override;
+  void final_integrate_respa(int, int) override;
 
-  double memory_usage();
-  void write_restart(FILE *);
-  void restart(char *);
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  void set_arrays(int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
-  int pack_restart(int, double *);
-  void unpack_restart(int, int);
-  int maxsize_restart();
-  int size_restart(int);
+  double memory_usage() override;
+  void write_restart(FILE *) override;
+  void restart(char *) override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  void set_arrays(int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  int pack_restart(int, double *) override;
+  void unpack_restart(int, int) override;
+  int maxsize_restart() override;
+  int size_restart(int) override;
 
-  void reset_dt();
+  void reset_dt() override;
 
  private:
   char *xvarstr, *yvarstr, *zvarstr, *vxvarstr, *vyvarstr, *vzvarstr;

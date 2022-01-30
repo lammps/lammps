@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class PairLineLJ : public Pair {
  public:
   PairLineLJ(class LAMMPS *);
-  virtual ~PairLineLJ();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  virtual void init_style();
-  double init_one(int, int);
+  ~PairLineLJ() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
  protected:
   double cut_global;

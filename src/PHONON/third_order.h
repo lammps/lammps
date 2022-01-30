@@ -18,8 +18,8 @@ namespace LAMMPS_NS {
 class ThirdOrder : public Command {
  public:
   ThirdOrder(class LAMMPS *);
-  virtual ~ThirdOrder();
-  void command(int, char **);
+  ~ThirdOrder() override;
+  void command(int, char **) override;
   void setup();
 
  protected:

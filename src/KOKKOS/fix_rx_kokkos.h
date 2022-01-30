@@ -78,12 +78,12 @@ class FixRxKokkos : public FixRX {
   typedef ArrayTypes<DeviceType> AT;
 
   FixRxKokkos(class LAMMPS *, int, char **);
-  virtual ~FixRxKokkos();
-  virtual void init();
-  void init_list(int, class NeighList *);
-  void post_constructor();
-  virtual void setup_pre_force(int);
-  virtual void pre_force(int);
+  ~FixRxKokkos() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void post_constructor() override;
+  void setup_pre_force(int) override;
+  void pre_force(int) override;
 
   // Define a value_type here for the reduction operator on CounterType.
   typedef CounterType value_type;
@@ -263,10 +263,10 @@ class FixRxKokkos : public FixRX {
   template <int WT_FLAG, int LOCAL_TEMP_FLAG, bool NEWTON_PAIR, int NEIGHFLAG>
   void computeLocalTemperature();
 
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
-  int pack_forward_comm(int , int *, double *, int, int *);
-  void unpack_forward_comm(int , int , double *);
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  int pack_forward_comm(int , int *, double *, int, int *) override;
+  void unpack_forward_comm(int , int , double *) override;
 
  //private: // replicate a few from FixRX
   int my_restartFlag;

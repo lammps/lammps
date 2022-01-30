@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class FixTFMC : public Fix {
  public:
   FixTFMC(class LAMMPS *, int, char **);
-  ~FixTFMC();
-  int setmask();
-  void init();
-  void initial_integrate(int);
+  ~FixTFMC() override;
+  int setmask() override;
+  void init() override;
+  void initial_integrate(int) override;
 
  private:
   double d_max;

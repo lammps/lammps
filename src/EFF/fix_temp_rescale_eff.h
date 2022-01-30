@@ -27,13 +27,13 @@ namespace LAMMPS_NS {
 class FixTempRescaleEff : public Fix {
  public:
   FixTempRescaleEff(class LAMMPS *, int, char **);
-  virtual ~FixTempRescaleEff();
-  int setmask();
-  void init();
-  virtual void end_of_step();
-  int modify_param(int, char **);
-  void reset_target(double);
-  double compute_scalar();
+  ~FixTempRescaleEff() override;
+  int setmask() override;
+  void init() override;
+  void end_of_step() override;
+  int modify_param(int, char **) override;
+  void reset_target(double) override;
+  double compute_scalar() override;
 
  protected:
   int which;

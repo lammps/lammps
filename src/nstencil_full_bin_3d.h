@@ -29,8 +29,7 @@ namespace LAMMPS_NS {
 class NStencilFullBin3d : public NStencil {
  public:
   NStencilFullBin3d(class LAMMPS *);
-  ~NStencilFullBin3d() {}
-  void create();
+  void create() override;
 };
 
 }    // namespace LAMMPS_NS

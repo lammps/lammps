@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class MinSpin : public Min {
  public:
   MinSpin(class LAMMPS *);
-  ~MinSpin() {}
-  void init();
-  void setup_style();
-  int modify_param(int, char **);
-  void reset_vectors();
-  int iterate(int);
+
+  void init() override;
+  void setup_style() override;
+  int modify_param(int, char **) override;
+  void reset_vectors() override;
+  int iterate(int) override;
   double evaluate_dt();
   void advance_spins(double);
 

@@ -33,15 +33,15 @@ namespace LAMMPS_NS {
 class ComputeVoronoi : public Compute {
  public:
   ComputeVoronoi(class LAMMPS *, int, char **);
-  ~ComputeVoronoi();
-  void init();
-  void compute_peratom();
-  void compute_vector();
-  void compute_local();
-  double memory_usage();
+  ~ComputeVoronoi() override;
+  void init() override;
+  void compute_peratom() override;
+  void compute_vector() override;
+  void compute_local() override;
+  double memory_usage() override;
 
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
 
  private:
   voro::container *con_mono;

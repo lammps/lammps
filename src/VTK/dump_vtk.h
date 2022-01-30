@@ -57,9 +57,9 @@ namespace LAMMPS_NS {
 class DumpVTK : public DumpCustom {
  public:
   DumpVTK(class LAMMPS *, int, char **);
-  virtual ~DumpVTK();
+  ~DumpVTK() override;
 
-  virtual void write();
+  void write() override;
 
  protected:
   char *label;    // string for dump file header
@@ -72,12 +72,12 @@ class DumpVTK : public DumpCustom {
 
   // private methods
 
-  virtual void init_style();
-  virtual void write_header(bigint);
-  int count();
-  void pack(tagint *);
-  virtual void write_data(int, double *);
-  double memory_usage();
+  void init_style() override;
+  void write_header(bigint) override;
+  int count() override;
+  void pack(tagint *) override;
+  void write_data(int, double *) override;
+  double memory_usage() override;
 
   int parse_fields(int, char **);
   void identify_vectors();
@@ -85,7 +85,7 @@ class DumpVTK : public DumpCustom {
   int add_fix(const char *);
   int add_variable(const char *);
   int add_custom(const char *, int);
-  virtual int modify_param(int, char **);
+  int modify_param(int, char **) override;
 
   typedef void (DumpVTK::*FnPtrHeader)(bigint);
   FnPtrHeader header_choice;    // ptr to write header functions

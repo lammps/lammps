@@ -33,8 +33,8 @@ class Balance : public Command {
   int outflag;                 // 1 for output of balance results to file
 
   Balance(class LAMMPS *);
-  ~Balance();
-  void command(int, char **);
+  ~Balance() override;
+  void command(int, char **) override;
   void options(int, int, char **);
   void weight_storage(char *);
   void init_imbalance(int);

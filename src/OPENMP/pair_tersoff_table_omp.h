@@ -28,17 +28,17 @@ class PairTersoffTableOMP : public PairTersoffTable, public ThrOMP {
 
  public:
   PairTersoffTableOMP(class LAMMPS *);
-  virtual ~PairTersoffTableOMP();
+  ~PairTersoffTableOMP() override;
 
-  virtual void compute(int, int);
-  virtual double memory_usage();
+  void compute(int, int) override;
+  double memory_usage() override;
 
  protected:
   double ***thrGtetaFunction, ***thrGtetaFunctionDerived;
   double **thrCutoffFunction, **thrCutoffFunctionDerived;
 
-  void allocatePreLoops();
-  void deallocatePreLoops();
+  void allocatePreLoops() override;
+  void deallocatePreLoops() override;
 
  private:
   template <int EVFLAG, int VFLAG_ATOM> void eval(int ifrom, int ito, ThrData *const thr);

@@ -34,9 +34,9 @@ class PairBuckCoulLongIntel : public PairBuckCoulLong {
 
  public:
   PairBuckCoulLongIntel(class LAMMPS *);
-  virtual ~PairBuckCoulLongIntel();
-  virtual void compute(int, int);
-  void init_style();
+  ~PairBuckCoulLongIntel() override;
+  void compute(int, int) override;
+  void init_style() override;
   typedef struct {
     float x, y, z;
     int w;

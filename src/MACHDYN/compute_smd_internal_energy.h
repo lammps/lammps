@@ -38,10 +38,10 @@ namespace LAMMPS_NS {
 class ComputeSMDInternalEnergy : public Compute {
  public:
   ComputeSMDInternalEnergy(class LAMMPS *, int, char **);
-  ~ComputeSMDInternalEnergy();
-  void init();
-  void compute_peratom();
-  double memory_usage();
+  ~ComputeSMDInternalEnergy() override;
+  void init() override;
+  void compute_peratom() override;
+  double memory_usage() override;
 
  private:
   int nmax;

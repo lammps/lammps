@@ -25,13 +25,12 @@ namespace user_manifold {
    public:
     enum { NPARAMS = 6 };    // Number of parameters.
     manifold_plane(LAMMPS *lmp, int, char **);
-    virtual ~manifold_plane() {}
-    virtual double g(const double *x);
-    virtual void n(const double *x, double *n);
+    double g(const double *x) override;
+    void n(const double *x, double *n) override;
     static const char *type() { return "plane"; }
-    virtual const char *id() { return type(); }
+    const char *id() override { return type(); }
     static int expected_argc() { return NPARAMS; }
-    virtual int nparams() { return NPARAMS; }
+    int nparams() override { return NPARAMS; }
   };
 }    // namespace user_manifold
 

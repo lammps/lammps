@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class ComputePressureCyl : public Compute {
  public:
   ComputePressureCyl(class LAMMPS *, int, char **);
-  ~ComputePressureCyl();
-  void init();
-  void init_list(int, class NeighList *);
-  void compute_array();
-  double memory_usage();
+  ~ComputePressureCyl() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void compute_array() override;
+  double memory_usage() override;
 
  private:
   int nbins, nphi, nzbins;

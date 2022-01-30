@@ -3,12 +3,12 @@ name: "Native Windows Compilation"
 
 on:
   push:
-    branches: [develop]
+    branches: [mpi-stubs-simplify]
 
 jobs:
   build:
     name: Windows Compilation Test
-    if: ${{ github.repository == 'lammps/lammps' }}
+    if: ${{ github.repository == 'akohlmey/lammps' }}
     runs-on: windows-latest
 
     steps:

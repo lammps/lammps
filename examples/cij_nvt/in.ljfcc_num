@@ -6,7 +6,7 @@
 variable    nsteps index 50    # length of run
 variable    nthermo index 10    # thermo output interval 
 variable    nlat index 3        # size of box
-variable    delta index 1.0e-6  # strain size 
+variable    delta index 1.0e-4  # strain size 
 variable    temp index 0.3      # temperature
 
 units		lj

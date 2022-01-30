@@ -51,9 +51,9 @@ static int constexpr albe[21][2] = {
     {0, 0},    // C11
     {1, 1},    // C22
     {2, 2},    // C33
-    {1, 2},    // C44
-    {0, 2},    // C55
-    {0, 1},    // C66
+    {3, 3},    // C44
+    {4, 4},    // C55
+    {5, 5},    // C66
     {0, 1},    // C12
     {0, 2},    // C13
     {0, 3},    // C14
@@ -97,7 +97,9 @@ static int constexpr albemunu[21][4] = {
 
 /* ---------------------------------------------------------------------- */
 
-ComputeBornMatrix::ComputeBornMatrix(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, arg)
+ComputeBornMatrix::ComputeBornMatrix(LAMMPS *lmp, int narg, char **arg) : 
+    Compute(lmp, narg, arg), id_virial(nullptr), temp_x(nullptr), 
+    temp_f(nullptr)
 {
   if (narg < 3) error->all(FLERR,"Illegal compute born/matrix command");
 
@@ -112,6 +114,7 @@ ComputeBornMatrix::ComputeBornMatrix(LAMMPS *lmp, int narg, char **arg) : Comput
       if (iarg+3 > narg) error->all(FLERR,"Illegal compute born/matrix command");
       numflag = 1;
       numdelta = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      if (numdelta <= 0.0) error->all(FLERR, "Illegal compute born/matrix command");
       id_virial = utils::strdup(arg[iarg+2]);
       int icompute = modify->find_compute(id_virial);
       if (icompute < 0) error->all(FLERR,"Could not find compute born/matrix pressure ID");
@@ -184,7 +187,6 @@ ComputeBornMatrix::~ComputeBornMatrix()
   } else {
     memory->destroy(temp_x);
     memory->destroy(temp_f);
-    modify->delete_compute(id_virial);
     delete[] id_virial;
   }
     
@@ -258,6 +260,13 @@ void ComputeBornMatrix::init()
       revalbe[b][a] = m;
     }
 
+    for (int a = 0; a < NDIR_VIRIAL; a++) {
+      for (int b = 0; b < NDIR_VIRIAL; b++) {
+	printf("%d ",revalbe[a][b]);
+      }
+      printf("\n");
+    }
+
     // voigt3VtoM notation in normal physics sense,
     // 3x3 matrix and vector indexing
     //  i-j:      (1-1), (2-2), (3-3), (2-3), (1-3), (1-2)
@@ -291,6 +300,14 @@ void ComputeBornMatrix::init()
     virialMtoV[1][0]=3;    virialMtoV[1][1]=1;    virialMtoV[1][2]=5;
     virialMtoV[2][0]=4;    virialMtoV[2][1]=5;    virialMtoV[2][2]=2;       
   
+    // the following is for 6x6 matrix and vector indexing converter                                                        
+    int indcounter = 0;
+    for(int row = 0; row < NDIR_VIRIAL; row++)
+      for(int col = row; col< NDIR_VIRIAL; col++) {
+	voigt6MtoV[row][col] = voigt6MtoV[col][row] = indcounter;
+	indcounter++;
+      }
+
     // set up 3x3 kronecker deltas
 
     for(int row = 0; row < NXYZ_VIRIAL; row++)
@@ -314,7 +331,7 @@ void ComputeBornMatrix::init_list(int /* id */, NeighList *ptr)
 
 void ComputeBornMatrix::compute_vector()
 {
-  invoked_array = update->ntimestep;
+  invoked_vector = update->ntimestep;
 
   if (!numflag) {
 
@@ -457,13 +474,13 @@ void ComputeBornMatrix::compute_numdiff()
   
   // grow arrays if necessary
 
-  if (atom->nlocal + atom->nghost > maxatom) reallocate();
+  int nall = atom->nlocal + atom->nghost;
+  if (nall > maxatom) reallocate();
 
   // store copy of current forces for owned and ghost atoms
 
   double **x = atom->x;
   double **f = atom->f;
-  int nall = atom->nlocal + atom->nghost;
 
   for (int i = 0; i < nall; i++)
     for (int k = 0; k < 3; k++) {
@@ -496,7 +513,15 @@ void ComputeBornMatrix::compute_numdiff()
     restore_atoms(nall, idir);
   }
 
+  // apply derivative factor 
+
+  double nktv2p = force->nktv2p;
+  double inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
+  //  double denominator = -0.5 / numdelta * inv_volume * nktv2p;
+  double denominator = -0.5 / numdelta;
+
   // recompute virial so all virial and energy contributions are as before
+  // also needed for virial stress addon contributions to Born matrix
   // this will possibly break compute stress/atom, need to test
   
   update_virial();
@@ -506,11 +531,6 @@ void ComputeBornMatrix::compute_numdiff()
   for (int i = 0; i < nall; i++)
     for (int k = 0; k < 3; k++)
       f[i][k] = temp_f[i][k];
-
-  double nktv2p = force->nktv2p;
-  double inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
-  //  double denominator = -0.5 / numdelta * inv_volume * nktv2p;
-  double denominator = -0.5 / numdelta;
 
   for (int m = 0; m < nvalues; m++) values_global[m] *= denominator;
 
@@ -549,9 +569,9 @@ void ComputeBornMatrix::restore_atoms(int nall, int idir)
 void ComputeBornMatrix::update_virial()
 {
   int eflag = 0;
-  int vflag = 1;
+  int vflag = VIRIAL_FDOTR; // Need to generalize this 
 
-  if (pairflag) force->pair->compute(eflag, vflag);
+  if (force->pair) force->pair->compute(eflag, vflag);
 
   if (atom->molecular != Atom::ATOMIC) {
     if (force->bond) force->bond->compute(eflag, vflag);
@@ -560,16 +580,16 @@ void ComputeBornMatrix::update_virial()
     if (force->improper) force->improper->compute(eflag, vflag);
   }
 
-  if (kspaceflag) force->kspace->compute(eflag, vflag);
+  if (force->kspace) force->kspace->compute(eflag, vflag);
 
   compute_virial->compute_vector();
 }
 
 
 /* ----------------------------------------------------------------------
-   calculate extra virial terms
-   following code of Dr. Yubao Zhen
-   Comp. Phys. Comm. 183 (2012) 261-265
+   calculate virial stress addon terms to the Born matrix
+   this is based on original code of Dr. Yubao Zhen
+   described here: Comp. Phys. Comm. 183 (2012) 261-265
 ------------------------------------------------------------------------- */
 
 void ComputeBornMatrix::virial_addon()
@@ -591,23 +611,26 @@ void ComputeBornMatrix::virial_addon()
   double* sigv = compute_virial->vector;
   
   for (int idir = 0; idir < NDIR_VIRIAL; idir++) {
-    int ijvgt = idir;   // this is it.
+    int ijvgt = idir; // this is it.
     double addon;
 
-    id  = voigt3VtoM[idir][0];     // extract the two indicies composing the voigt reprensentation                    
+    // extract the two indicies composing the voigt reprensentation
+
+    id  = voigt3VtoM[idir][0];
     jd  = voigt3VtoM[idir][1];
-   
+
     int SHEAR = 0;
     if( id != jd) SHEAR = 1;
 
-    // note BornVec must be cleared before.
-
     for (int knvgt=ijvgt; knvgt < NDIR_VIRIAL; knvgt++) {
-      kd= voigt3VtoM[knvgt][0];
-      nd= voigt3VtoM[knvgt][1];
-      addon  =  kronecker[id][nd]*sigv[virialMtoV[jd][kd]]  + kronecker[id][kd]*sigv[virialMtoV[jd][nd]]; 
-   if(SHEAR)
-      addon = addon + kronecker[jd][nd]*sigv[virialMtoV[id][kd]]  + kronecker[jd][kd]*sigv[virialMtoV[id][nd]];
+      kd = voigt3VtoM[knvgt][0];
+      nd = voigt3VtoM[knvgt][1];
+      addon =  kronecker[id][nd]*sigv[virialMtoV[jd][kd]] + 
+	kronecker[id][kd]*sigv[virialMtoV[jd][nd]]; 
+      if(SHEAR)
+	addon += kronecker[jd][nd]*sigv[virialMtoV[id][kd]] + 
+	  kronecker[jd][kd]*sigv[virialMtoV[id][nd]];
+      values_global[voigt6MtoV[ijvgt][knvgt]] += addon;
     }
   }
 }

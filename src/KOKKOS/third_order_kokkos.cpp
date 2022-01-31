@@ -1,4 +1,3 @@
-//
 // clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
@@ -11,11 +10,11 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
-   ----------------------------------------------------------------------- */
+------------------------------------------------------------------------- */
 
-//
-// Contributing author: Charlie Sievers UC Davis (charliesievers at cox.net)
-//
+/* ----------------------------------------------------------------------
+   Contributing author: Charlie Sievers (UC Davis), charliesievers at cox.net
+------------------------------------------------------------------------- */
 
 #include "third_order_kokkos.h"
 

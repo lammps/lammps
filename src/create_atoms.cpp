@@ -14,7 +14,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing author (ratio and subset) : Jake Gissinger (U Colorado)
-   Contributing author (exclude) : Eugen Rozic (Institute Ruder Boskovic)
+   Contributing author (exclude and maxtries) : Eugen Rozic (IRB, Zagreb)
 ------------------------------------------------------------------------- */
 
 #include "create_atoms.h"
@@ -46,6 +46,7 @@ using namespace MathConst;
 #define BIG 1.0e30
 #define EPSILON 1.0e-6
 #define LB_FACTOR 1.1
+#define DEFAULT_MAXTRIES 1000
 
 enum{BOX,REGION,SINGLE,RANDOM};
 enum{ATOM,MOLECULE};
@@ -140,7 +141,7 @@ void CreateAtoms::command(int narg, char **arg)
   subsetflag = NONE;
   int subsetseed;
   excludeflag = 0;
-  maxtries = 1;
+  maxtries = DEFAULT_MAXTRIES;
 
   nbasis = domain->lattice->nbasis;
   basistype = new int[nbasis];
@@ -178,6 +179,8 @@ void CreateAtoms::command(int narg, char **arg)
       else error->all(FLERR,"Illegal create_atoms command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"var") == 0) {
+      if (style == SINGLE) error->all(FLERR,"Illegal create_atoms command: "
+          "can't combine 'var' keyword with 'single' style!");
       if (iarg+2 > narg) error->all(FLERR,"Illegal create_atoms command");
       delete [] vstr;
       vstr = utils::strdup(arg[iarg+1]);
@@ -228,11 +231,22 @@ void CreateAtoms::command(int narg, char **arg)
         error->all(FLERR,"Illegal create_atoms command");
       iarg += 3;
     } else if (strcmp(arg[iarg],"exclude") == 0) {
-      if (iarg+3 > narg) error->all(FLERR,"Illegal create_atoms command");
+      if (style != RANDOM) error->all(FLERR,"Illegal create_atoms command: "
+          "'exclude' can only be combined with 'random' style!");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal create_atoms command");
       exclude_cutoff = force->numeric(FLERR,arg[iarg+1]);
-      maxtries = force->numeric(FLERR,arg[iarg+2]);
+      if (exclude_cutoff <= 0)
+        error->all(FLERR,"Illegal create_atoms command");
       excludeflag = 1;
-      iarg += 3;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"maxtries") == 0) {
+      if (style != RANDOM) error->all(FLERR,"Illegal create_atoms command: "
+          "'maxtries' can only be combined with 'random' style!");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal create_atoms command");
+      maxtries = force->numeric(FLERR,arg[iarg+1]);
+      if (maxtries <= 0)
+        error->all(FLERR,"Illegal create_atoms command");
+      iarg += 2;
     } else error->all(FLERR,"Illegal create_atoms command");
   }
 
@@ -634,8 +648,6 @@ void CreateAtoms::add_single()
     }
     coord = lamda;
   } else coord = xone;
-
-  //TODO varflag ??
 
   // if atom/molecule is in my subbox, create it
 

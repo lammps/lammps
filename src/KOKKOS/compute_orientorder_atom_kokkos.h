@@ -67,9 +67,9 @@ class ComputeOrientOrderAtomKokkos : public ComputeOrientOrderAtom {
   typedef int value_type;
 
   ComputeOrientOrderAtomKokkos(class LAMMPS *, int, char **);
-  ~ComputeOrientOrderAtomKokkos();
-  void init();
-  void compute_peratom();
+  ~ComputeOrientOrderAtomKokkos() override;
+  void init() override;
+  void compute_peratom() override;
   t_sna_1i d_qlist;
 
   template<class TagStyle>
@@ -127,7 +127,7 @@ class ComputeOrientOrderAtomKokkos : public ComputeOrientOrderAtom {
   KOKKOS_INLINE_FUNCTION
   double associated_legendre(int, int, double) const;
 
-  void init_clebsch_gordan();
+  void init_clebsch_gordan() override;
   t_sna_1d d_cglist;                     // Clebsch-Gordan coeffs
 };
 

@@ -39,7 +39,7 @@ class PotentialFileReader : protected Pointers {
   PotentialFileReader(class LAMMPS *lmp, const std::string &filename,
                       const std::string &potential_name, const std::string &name_suffix,
                       const int auto_convert = 0);
-  virtual ~PotentialFileReader();
+  ~PotentialFileReader() override;
 
   void ignore_comments(bool value);
 

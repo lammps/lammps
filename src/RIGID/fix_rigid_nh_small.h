@@ -21,17 +21,17 @@ namespace LAMMPS_NS {
 class FixRigidNHSmall : public FixRigidSmall {
  public:
   FixRigidNHSmall(class LAMMPS *, int, char **);
-  virtual ~FixRigidNHSmall();
-  virtual int setmask();
-  virtual void init();
-  virtual void setup(int);
-  virtual void initial_integrate(int);
-  virtual void final_integrate();
-  virtual double compute_scalar();
-  int modify_param(int, char **);
-  void write_restart(FILE *);
-  void restart(char *buf);
-  void reset_target(double);
+  ~FixRigidNHSmall() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void initial_integrate(int) override;
+  void final_integrate() override;
+  double compute_scalar() override;
+  int modify_param(int, char **) override;
+  void write_restart(FILE *) override;
+  void restart(char *buf) override;
+  void reset_target(double) override;
 
  protected:
   double boltz, nktv2p, mvv2e;    // boltzman constant, conversion factors

@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class ImproperClass2 : public Improper {
  public:
   ImproperClass2(class LAMMPS *);
-  virtual ~ImproperClass2();
-  virtual void compute(int, int);
-  virtual void coeff(int, char **);
-  void write_restart(FILE *);
-  virtual void read_restart(FILE *);
-  void write_data(FILE *);
+  ~ImproperClass2() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
 
  protected:
   double *k0, *chi0;

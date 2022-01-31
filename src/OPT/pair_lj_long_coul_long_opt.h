@@ -27,8 +27,8 @@ namespace LAMMPS_NS {
 class PairLJLongCoulLongOpt : public PairLJLongCoulLong {
  public:
   PairLJLongCoulLongOpt(class LAMMPS *);
-  virtual void compute(int, int);
-  virtual void compute_outer(int, int);
+  void compute(int, int) override;
+  void compute_outer(int, int) override;
 
  protected:
   template <const int EVFLAG, const int EFLAG, const int NEWTON_PAIR, const int CTABLE,

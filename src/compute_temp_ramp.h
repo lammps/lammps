@@ -27,19 +27,19 @@ namespace LAMMPS_NS {
 class ComputeTempRamp : public Compute {
  public:
   ComputeTempRamp(class LAMMPS *, int, char **);
-  ~ComputeTempRamp();
-  void init() {}
-  void setup();
-  double compute_scalar();
-  void compute_vector();
+  ~ComputeTempRamp() override;
+  void init() override {}
+  void setup() override;
+  double compute_scalar() override;
+  void compute_vector() override;
 
-  void remove_bias(int, double *);
-  void remove_bias_all();
-  void remove_bias_thr(int, double *, double *);
-  void restore_bias(int, double *);
-  void restore_bias_thr(int, double *, double *);
-  void restore_bias_all();
-  double memory_usage();
+  void remove_bias(int, double *) override;
+  void remove_bias_all() override;
+  void remove_bias_thr(int, double *, double *) override;
+  void restore_bias(int, double *) override;
+  void restore_bias_thr(int, double *, double *) override;
+  void restore_bias_all() override;
+  double memory_usage() override;
 
  private:
   int coord_dim;

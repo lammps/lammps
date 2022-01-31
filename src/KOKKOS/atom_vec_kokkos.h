@@ -36,17 +36,17 @@ union d_ubuf {
 class AtomVecKokkos : public AtomVec {
  public:
   AtomVecKokkos(class LAMMPS *);
-  virtual ~AtomVecKokkos() {}
-  bigint roundup(bigint);
-  virtual int pack_comm(int, int *, double *, int, int *);
-  virtual int pack_comm_vel(int, int *, double *, int, int *);
-  virtual void unpack_comm(int, int, double *);
-  virtual void unpack_comm_vel(int, int, double *);
-  virtual int pack_reverse(int, int, double *);
-  virtual void unpack_reverse(int, int *, double *);
-  virtual void data_vel(int, char **);
-  virtual void pack_vel(double **);
-  virtual void write_vel(FILE *, int, double **);
+
+  bigint roundup(bigint) override;
+  int pack_comm(int, int *, double *, int, int *) override;
+  int pack_comm_vel(int, int *, double *, int, int *) override;
+  void unpack_comm(int, int, double *) override;
+  void unpack_comm_vel(int, int, double *) override;
+  int pack_reverse(int, int, double *) override;
+  void unpack_reverse(int, int *, double *) override;
+  void data_vel(int, const std::vector<std::string> &) override;
+  void pack_vel(double **) override;
+  void write_vel(FILE *, int, double **) override;
 
   virtual void sync(ExecutionSpace space, unsigned int mask) = 0;
   virtual void modified(ExecutionSpace space, unsigned int mask) = 0;

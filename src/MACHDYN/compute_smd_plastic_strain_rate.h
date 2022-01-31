@@ -38,10 +38,10 @@ namespace LAMMPS_NS {
 class ComputeSMDPlasticStrainRate : public Compute {
  public:
   ComputeSMDPlasticStrainRate(class LAMMPS *, int, char **);
-  ~ComputeSMDPlasticStrainRate();
-  void init();
-  void compute_peratom();
-  double memory_usage();
+  ~ComputeSMDPlasticStrainRate() override;
+  void init() override;
+  void compute_peratom() override;
+  double memory_usage() override;
 
  private:
   int nmax;

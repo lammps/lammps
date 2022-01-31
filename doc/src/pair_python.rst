@@ -126,11 +126,11 @@ and *compute_energy*, which both take 3 numerical arguments:
 * itype = the (numerical) type of the first atom
 * jtype = the (numerical) type of the second atom
 
-This functions need to compute the force and the energy, respectively,
-and use the result as return value. The functions need to use the
-*pmap* dictionary to convert the LAMMPS atom type number to the symbolic
-value of the internal potential parameter data structure. Following
-the *LJCutMelt* example, here are the two functions:
+This functions need to compute the (scaled) force and the energy,
+respectively, and use the result as return value. The functions need
+to use the *pmap* dictionary to convert the LAMMPS atom type number
+to the symbolic value of the internal potential parameter data structure.
+Following the *LJCutMelt* example, here are the two functions:
 
 .. code-block:: python
 
@@ -154,17 +154,17 @@ the *LJCutMelt* example, here are the two functions:
 
    for consistency with the C++ pair styles in LAMMPS, the
    *compute_force* function follows the conventions of the Pair::single()
-   methods and does not return the full force, but the force scaled by
-   the distance between the two atoms, so this value only needs to be
-   multiplied by delta x, delta y, and delta z to conveniently obtain the
-   three components of the force vector between these two atoms.
+   methods and does not return the pairwise force directly, but the force
+   divided by the distance between the two atoms, so this value only needs
+   to be  multiplied by delta x, delta y, and delta z to conveniently obtain
+   the three components of the force vector between these two atoms.
 
 ----------
 
 .. note::
 
    The evaluation of scripted python code will slow down the
-   computation pair-wise interactions quite significantly. However, this
+   computation pairwise interactions quite significantly. However, this
    can be largely worked around through using the python pair style not
    for the actual simulation, but to generate tabulated potentials on the
    fly using the :doc:`pair_write <pair_write>` command. Please see below

@@ -1224,6 +1224,9 @@ ifeq ($(KOKKOS_INTERNAL_USE_HIP), 1)
 
 
   KOKKOS_SRC += $(wildcard $(KOKKOS_PATH)/core/src/HIP/*.cpp)
+  ifeq ($(KOKKOS_INTERNAL_ENABLE_DESUL_ATOMICS), 1)
+    KOKKOS_SRC += $(KOKKOS_PATH)/core/src/desul/src/Lock_Array_HIP.cpp
+  endif
   KOKKOS_HEADERS += $(wildcard $(KOKKOS_PATH)/core/src/HIP/*.hpp)
 
   KOKKOS_CXXFLAGS+=$(KOKKOS_INTERNAL_HIP_ARCH_FLAG)

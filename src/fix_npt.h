@@ -27,7 +27,6 @@ namespace LAMMPS_NS {
 class FixNPT : public FixNH {
  public:
   FixNPT(class LAMMPS *, int, char **);
-  ~FixNPT() {}
 };
 
 }    // namespace LAMMPS_NS

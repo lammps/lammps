@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class ComputeSlice : public Compute {
  public:
   ComputeSlice(class LAMMPS *, int, char **);
-  virtual ~ComputeSlice();
-  void init();
-  void compute_vector();
-  void compute_array();
+  ~ComputeSlice() override;
+  void init() override;
+  void compute_vector() override;
+  void compute_array() override;
 
  private:
   int me;

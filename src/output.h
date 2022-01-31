@@ -35,12 +35,17 @@ class Output : protected Pointers {
 
   int ndump;               // # of Dumps defined
   int max_dump;            // max size of Dump list
-  bigint next_dump_any;    // next timestep for any Dump
-  int *every_dump;         // write freq for each Dump, 0 if var
-  bigint *next_dump;       // next timestep to do each Dump
+  bigint next_dump_any;    // next timestep for any dump
+  bigint next_time_dump_any; // next timestep for any time dump with computes
+  int any_time_dumps;      // 1 if any time dump defined
+  int *mode_dump;          // 0/1 if write every N timesteps or Delta in sim time
+  int *every_dump;         // dump every N timesteps, 0 if variable
+  double *every_time_dump; // dump every Delta of sim time, 0.0 if variable
+  bigint *next_dump;       // next timestep to perform dump
+  double *next_time_dump;  // next simulation time to perform dump (mode = 1)
   bigint *last_dump;       // last timestep each snapshot was output
-  char **var_dump;         // variable name for dump frequency
-  int *ivar_dump;          // variable index for dump frequency
+  char **var_dump;         // variable name for next dump (steps or sim time)
+  int *ivar_dump;          // variable index of var_dump name
   Dump **dump;             // list of defined Dumps
 
   int restart_flag;               // 1 if any restart files are written
@@ -66,18 +71,20 @@ class Output : protected Pointers {
   DumpCreatorMap *dump_map;
 
   Output(class LAMMPS *);
-  ~Output();
+  ~Output() override;
   void init();
   void setup(int memflag = 1);    // initial output before run/min
   void write(bigint);             // output for current timestep
   void write_dump(bigint);        // force output of dump snapshots
   void write_restart(bigint);     // force output of a restart file
-  void reset_timestep(bigint);    // reset next timestep for all output
+  void reset_timestep(bigint);    // reset output which depends on timestep
+  void reset_dt();                // reset output which depends on timestep size
 
   void add_dump(int, char **);       // add a Dump to Dump list
   void modify_dump(int, char **);    // modify a Dump
   void delete_dump(char *);          // delete a Dump from Dump list
   int find_dump(const char *);       // find a Dump ID
+  int check_time_dumps(bigint);      // check if any time dump is output now
 
   void set_thermo(int, char **);        // set thermo output freqquency
   void create_thermo(int, char **);     // create a thermo style
@@ -87,6 +94,7 @@ class Output : protected Pointers {
 
  private:
   template <typename T> static Dump *dump_creator(LAMMPS *, int, char **);
+  void calculate_next_dump(int, int, bigint);
 };
 
 }    // namespace LAMMPS_NS

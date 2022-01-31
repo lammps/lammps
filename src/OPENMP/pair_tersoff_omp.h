@@ -29,8 +29,8 @@ class PairTersoffOMP : public PairTersoff, public ThrOMP {
  public:
   PairTersoffOMP(class LAMMPS *);
 
-  virtual void compute(int, int);
-  virtual double memory_usage();
+  void compute(int, int) override;
+  double memory_usage() override;
 
  private:
   template <int SHIFT_FLAG, int EVFLAG, int EFLAG, int VFLAG_ATOM>

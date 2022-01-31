@@ -27,8 +27,8 @@ namespace LAMMPS_NS {
 class ReadData : public Command {
  public:
   ReadData(class LAMMPS *);
-  ~ReadData();
-  void command(int, char **);
+  ~ReadData() override;
+  void command(int, char **) override;
   static bool is_data_section(const std::string &);
 
  private:

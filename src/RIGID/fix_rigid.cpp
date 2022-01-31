@@ -68,6 +68,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   create_attribute = 1;
   dof_flag = 1;
   enforce2d_flag = 1;
+  centroidstressflag = CENTROID_NOTAVAIL;
 
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);

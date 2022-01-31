@@ -470,22 +470,23 @@ int AtomVecTri::unpack_restart_bonus(int ilocal, double *buf)
    unpack one line from Tris section of data file
 ------------------------------------------------------------------------- */
 
-void AtomVecTri::data_atom_bonus(int m, char **values)
+void AtomVecTri::data_atom_bonus(int m, const std::vector<std::string> &values)
 {
   if (tri[m]) error->one(FLERR,"Assigning tri parameters to non-tri atom");
 
   if (nlocal_bonus == nmax_bonus) grow_bonus();
 
   double c1[3],c2[3],c3[3];
-  c1[0] = utils::numeric(FLERR,values[0],true,lmp);
-  c1[1] = utils::numeric(FLERR,values[1],true,lmp);
-  c1[2] = utils::numeric(FLERR,values[2],true,lmp);
-  c2[0] = utils::numeric(FLERR,values[3],true,lmp);
-  c2[1] = utils::numeric(FLERR,values[4],true,lmp);
-  c2[2] = utils::numeric(FLERR,values[5],true,lmp);
-  c3[0] = utils::numeric(FLERR,values[6],true,lmp);
-  c3[1] = utils::numeric(FLERR,values[7],true,lmp);
-  c3[2] = utils::numeric(FLERR,values[8],true,lmp);
+  int ivalue = 1;
+  c1[0] = utils::numeric(FLERR,values[ivalue++],true,lmp);
+  c1[1] = utils::numeric(FLERR,values[ivalue++],true,lmp);
+  c1[2] = utils::numeric(FLERR,values[ivalue++],true,lmp);
+  c2[0] = utils::numeric(FLERR,values[ivalue++],true,lmp);
+  c2[1] = utils::numeric(FLERR,values[ivalue++],true,lmp);
+  c2[2] = utils::numeric(FLERR,values[ivalue++],true,lmp);
+  c3[0] = utils::numeric(FLERR,values[ivalue++],true,lmp);
+  c3[1] = utils::numeric(FLERR,values[ivalue++],true,lmp);
+  c3[2] = utils::numeric(FLERR,values[ivalue++],true,lmp);
 
   // check for duplicate points
 

@@ -58,12 +58,12 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   FixQEqReaxFFKokkos(class LAMMPS *, int, char **);
-  ~FixQEqReaxFFKokkos();
+  ~FixQEqReaxFFKokkos() override;
 
   void cleanup_copy();
-  void init();
-  void setup_pre_force(int);
-  void pre_force(int);
+  void init() override;
+  void setup_pre_force(int) override;
+  void pre_force(int) override;
 
   KOKKOS_INLINE_FUNCTION
   void num_neigh_item(int, int&) const;
@@ -229,13 +229,13 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   };
 
   int pack_forward_comm_fix_kokkos(int, DAT::tdual_int_2d, int, DAT::tdual_xfloat_1d&,
-                       int, int *);
-  void unpack_forward_comm_fix_kokkos(int, int, DAT::tdual_xfloat_1d&);
-  virtual int pack_forward_comm(int, int *, double *, int, int *);
-  virtual void unpack_forward_comm(int, int, double *);
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
-  double memory_usage();
+                       int, int *) override;
+  void unpack_forward_comm_fix_kokkos(int, int, DAT::tdual_xfloat_1d&) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  double memory_usage() override;
 
   // There should be a better way to do this for other backends
 #if defined(KOKKOS_ENABLE_CUDA)
@@ -337,7 +337,7 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
 
   void init_shielding_k();
   void init_hist();
-  void allocate_matrix();
+  void allocate_matrix() override;
   void allocate_array();
 
 #ifdef HIP_OPT_CG_SOLVE_FUSED
@@ -360,11 +360,11 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
 
   double delta, cutsq;
 
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
-  void get_chi_field();
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  void get_chi_field() override;
 };
 
 template <class DeviceType>

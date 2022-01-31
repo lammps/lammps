@@ -38,10 +38,10 @@ namespace LAMMPS_NS {
 class ComputeSMDRho : public Compute {
  public:
   ComputeSMDRho(class LAMMPS *, int, char **);
-  ~ComputeSMDRho();
-  void init();
-  void compute_peratom();
-  double memory_usage();
+  ~ComputeSMDRho() override;
+  void init() override;
+  void compute_peratom() override;
+  double memory_usage() override;
 
  private:
   int nmax;

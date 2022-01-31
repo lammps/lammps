@@ -21,12 +21,11 @@ namespace LAMMPS_NS {
 class FixNHEff : public FixNH {
  public:
   FixNHEff(class LAMMPS *, int, char **);
-  virtual ~FixNHEff() {}
 
  protected:
-  void nve_v();
-  void nve_x();
-  virtual void nh_v_temp();
+  void nve_v() override;
+  void nve_x() override;
+  void nh_v_temp() override;
 };
 
 }    // namespace LAMMPS_NS

@@ -273,7 +273,7 @@ class voronoicell_neighbor : public voronoicell_base {
                  * face that is clockwise from the jth edge. */
                 int **ne;
                 voronoicell_neighbor();
-                ~voronoicell_neighbor();
+                ~voronoicell_neighbor() override;
                 void operator=(voronoicell_neighbor &c);
                 /** Cuts the Voronoi cell by a particle whose center is at a
                  * separation of (x,y,z) from the cell center. The value of rsq
@@ -321,7 +321,7 @@ class voronoicell_neighbor : public voronoicell_base {
                 }
                 void init(double xmin,double xmax,double ymin,double ymax,double zmin,double zmax);
                 void check_facets();
-                virtual void neighbors(std::vector<int> &v);
+                void neighbors(std::vector<int> &v) override;
 
         private:
                 int *paux1;

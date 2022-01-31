@@ -27,8 +27,7 @@ namespace LAMMPS_NS {
 class NTopoImproperAll : public NTopo {
  public:
   NTopoImproperAll(class LAMMPS *);
-  ~NTopoImproperAll() {}
-  void build();
+  void build() override;
 };
 
 }    // namespace LAMMPS_NS

@@ -49,6 +49,15 @@ TEST_F(InputConvertTest, logical)
     EXPECT_EQ(utils::logical(FLERR, "off", false, lmp), 0);
     EXPECT_EQ(utils::logical(FLERR, "0", false, lmp), 0);
 
+    EXPECT_EQ(utils::logical(FLERR, std::string("yes"), false, lmp), 1);
+    EXPECT_EQ(utils::logical(FLERR, std::string("true"), false, lmp), 1);
+    EXPECT_EQ(utils::logical(FLERR, std::string("on"), false, lmp), 1);
+    EXPECT_EQ(utils::logical(FLERR, std::string("1"), false, lmp), 1);
+    EXPECT_EQ(utils::logical(FLERR, std::string("no"), false, lmp), 0);
+    EXPECT_EQ(utils::logical(FLERR, std::string("false"), false, lmp), 0);
+    EXPECT_EQ(utils::logical(FLERR, std::string("off"), false, lmp), 0);
+    EXPECT_EQ(utils::logical(FLERR, std::string("0"), false, lmp), 0);
+
     TEST_FAILURE(".*ERROR: Expected boolean parameter instead of.*",
                  utils::logical(FLERR, "YES", false, lmp););
     TEST_FAILURE(".*ERROR: Expected boolean parameter instead of.*",
@@ -94,6 +103,15 @@ TEST_F(InputConvertTest, numeric)
     EXPECT_DOUBLE_EQ(utils::numeric(FLERR, "10000000000", false, lmp), 1e10);
     EXPECT_DOUBLE_EQ(utils::numeric(FLERR, "2.56E+3", false, lmp), 2560);
 
+    EXPECT_DOUBLE_EQ(utils::numeric(FLERR, std::string("0"), false, lmp), 0);
+    EXPECT_DOUBLE_EQ(utils::numeric(FLERR, std::string("0.1"), false, lmp), 0.1);
+    EXPECT_DOUBLE_EQ(utils::numeric(FLERR, std::string("-.232"), false, lmp), -0.232);
+    EXPECT_DOUBLE_EQ(utils::numeric(FLERR, std::string(".2e5"), false, lmp), 20000.0);
+    EXPECT_DOUBLE_EQ(utils::numeric(FLERR, std::string("2.5e-10"), false, lmp), 2.5e-10);
+    EXPECT_DOUBLE_EQ(utils::numeric(FLERR, std::string("+0.3"), false, lmp), 0.3);
+    EXPECT_DOUBLE_EQ(utils::numeric(FLERR, std::string("10000000000"), false, lmp), 1e10);
+    EXPECT_DOUBLE_EQ(utils::numeric(FLERR, std::string("2.56E+3"), false, lmp), 2560);
+
     TEST_FAILURE(".*ERROR: Expected floating point.*", utils::numeric(FLERR, "yay", false, lmp););
     TEST_FAILURE(".*ERROR: Expected floating point.*", utils::numeric(FLERR, "", false, lmp););
     TEST_FAILURE(".*ERROR: Expected floating point.*", utils::numeric(FLERR, nullptr, false, lmp););
@@ -109,6 +127,13 @@ TEST_F(InputConvertTest, inumeric)
     EXPECT_EQ(utils::inumeric(FLERR, "-532410", false, lmp), -532410);
     EXPECT_EQ(utils::inumeric(FLERR, "-0", false, lmp), 0);
     EXPECT_EQ(utils::inumeric(FLERR, "0100", false, lmp), 100);
+
+    EXPECT_EQ(utils::inumeric(FLERR, std::string("0"), false, lmp), 0);
+    EXPECT_EQ(utils::inumeric(FLERR, std::string("-1"), false, lmp), -1);
+    EXPECT_EQ(utils::inumeric(FLERR, std::string("10000"), false, lmp), 10000);
+    EXPECT_EQ(utils::inumeric(FLERR, std::string("-532410"), false, lmp), -532410);
+    EXPECT_EQ(utils::inumeric(FLERR, std::string("-0"), false, lmp), 0);
+    EXPECT_EQ(utils::inumeric(FLERR, std::string("0100"), false, lmp), 100);
 
     TEST_FAILURE(".*ERROR: Expected integer.*", utils::inumeric(FLERR, "yay", false, lmp););
     TEST_FAILURE(".*ERROR: Expected integer.*", utils::inumeric(FLERR, "0.1", false, lmp););
@@ -128,6 +153,13 @@ TEST_F(InputConvertTest, bnumeric)
     EXPECT_EQ(utils::bnumeric(FLERR, "-0", false, lmp), 0);
     EXPECT_EQ(utils::bnumeric(FLERR, "0100", false, lmp), 100);
 
+    EXPECT_EQ(utils::bnumeric(FLERR, std::string("0"), false, lmp), 0);
+    EXPECT_EQ(utils::bnumeric(FLERR, std::string("-1"), false, lmp), -1);
+    EXPECT_EQ(utils::bnumeric(FLERR, std::string("10000"), false, lmp), 10000);
+    EXPECT_EQ(utils::bnumeric(FLERR, std::string("-532410"), false, lmp), -532410);
+    EXPECT_EQ(utils::bnumeric(FLERR, std::string("-0"), false, lmp), 0);
+    EXPECT_EQ(utils::bnumeric(FLERR, std::string("0100"), false, lmp), 100);
+
     TEST_FAILURE(".*ERROR: Expected integer.*", utils::bnumeric(FLERR, "yay", false, lmp););
     TEST_FAILURE(".*ERROR: Expected integer.*", utils::bnumeric(FLERR, "0.1", false, lmp););
     TEST_FAILURE(".*ERROR: Expected integer.*", utils::bnumeric(FLERR, "1.1", false, lmp););
@@ -145,6 +177,13 @@ TEST_F(InputConvertTest, tnumeric)
     EXPECT_EQ(utils::tnumeric(FLERR, "-532410", false, lmp), -532410);
     EXPECT_EQ(utils::tnumeric(FLERR, "-0", false, lmp), 0);
     EXPECT_EQ(utils::tnumeric(FLERR, "0100", false, lmp), 100);
+
+    EXPECT_EQ(utils::tnumeric(FLERR, std::string("0"), false, lmp), 0);
+    EXPECT_EQ(utils::tnumeric(FLERR, std::string("-1"), false, lmp), -1);
+    EXPECT_EQ(utils::tnumeric(FLERR, std::string("10000"), false, lmp), 10000);
+    EXPECT_EQ(utils::tnumeric(FLERR, std::string("-532410"), false, lmp), -532410);
+    EXPECT_EQ(utils::tnumeric(FLERR, std::string("-0"), false, lmp), 0);
+    EXPECT_EQ(utils::tnumeric(FLERR, std::string("0100"), false, lmp), 100);
 
     TEST_FAILURE(".*ERROR: Expected integer.*", utils::tnumeric(FLERR, "yay", false, lmp););
     TEST_FAILURE(".*ERROR: Expected integer.*", utils::tnumeric(FLERR, "0.1", false, lmp););

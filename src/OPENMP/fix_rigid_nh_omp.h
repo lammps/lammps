@@ -21,10 +21,9 @@ namespace LAMMPS_NS {
 class FixRigidNHOMP : public FixRigidNH {
  public:
   FixRigidNHOMP(class LAMMPS *lmp, int narg, char **args) : FixRigidNH(lmp, narg, args) {}
-  virtual ~FixRigidNHOMP() {}
 
-  virtual void initial_integrate(int);
-  virtual void final_integrate();
+  void initial_integrate(int) override;
+  void final_integrate() override;
   virtual void remap();
 
  protected:

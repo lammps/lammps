@@ -30,12 +30,12 @@ class DumpAtomADIOS : public DumpAtom {
 
  public:
   DumpAtomADIOS(class LAMMPS *, int, char **);
-  virtual ~DumpAtomADIOS();
+  ~DumpAtomADIOS() override;
 
  protected:
-  virtual void openfile();
-  virtual void write();
-  virtual void init_style();
+  void openfile() override;
+  void write() override;
+  void init_style() override;
 
  private:
   DumpAtomADIOSInternal *internal;

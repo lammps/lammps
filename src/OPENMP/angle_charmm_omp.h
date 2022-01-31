@@ -33,7 +33,7 @@ class AngleCharmmOMP : public AngleCharmm, public ThrOMP {
 
  public:
   AngleCharmmOMP(class LAMMPS *lmp);
-  virtual void compute(int, int);
+  void compute(int, int) override;
 
  private:
   template <int EVFLAG, int EFLAG, int NEWTON_BOND>

@@ -130,8 +130,10 @@ int DumpXYZ::modify_param(int narg, char **arg)
 void DumpXYZ::write_header(bigint n)
 {
   if (me == 0) {
-    fprintf(fp,BIGINT_FORMAT "\n",n);
-    fprintf(fp,"Atoms. Timestep: " BIGINT_FORMAT "\n",update->ntimestep);
+    if (time_flag) {
+      double tcurrent = update->atime + (update->ntimestep-update->atimestep) + update->dt;
+      fmt::print(fp,"{}\n Atoms. Timestep: {} Time: {:.6f}\n", n, update->ntimestep, tcurrent);
+    } else fmt::print(fp,"{}\n Atoms. Timestep: {}\n", n, update->ntimestep);
   }
 }
 
@@ -158,7 +160,6 @@ void DumpXYZ::pack(tagint *ids)
       if (ids) ids[n++] = tag[i];
     }
 }
-
 
 /* ----------------------------------------------------------------------
    convert mybuf of doubles to one big formatted string in sbuf

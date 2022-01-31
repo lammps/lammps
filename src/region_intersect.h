@@ -27,18 +27,18 @@ namespace LAMMPS_NS {
 class RegIntersect : public Region {
  public:
   RegIntersect(class LAMMPS *, int, char **);
-  ~RegIntersect();
-  void init();
-  int inside(double, double, double);
-  int surface_interior(double *, double);
-  int surface_exterior(double *, double);
-  void shape_update();
-  void pretransform();
-  void set_velocity();
-  void length_restart_string(int &);
-  void write_restart(FILE *);
-  int restart(char *, int &);
-  void reset_vel();
+  ~RegIntersect() override;
+  void init() override;
+  int inside(double, double, double) override;
+  int surface_interior(double *, double) override;
+  int surface_exterior(double *, double) override;
+  void shape_update() override;
+  void pretransform() override;
+  void set_velocity() override;
+  void length_restart_string(int &) override;
+  void write_restart(FILE *) override;
+  int restart(char *, int &) override;
+  void reset_vel() override;
 
  private:
   char **idsub;

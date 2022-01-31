@@ -1056,7 +1056,7 @@ void AtomVecSpinKokkos::create_atom(int itype, double *coord)
 ------------------------------------------------------------------------- */
 
 void AtomVecSpinKokkos::data_atom(double *coord, imageint imagetmp,
-                                    char **values)
+                                  const std::vector<std::string> &values)
 {
   int nlocal = atom->nlocal;
   if (nlocal == nmax) grow(0);
@@ -1098,12 +1098,13 @@ void AtomVecSpinKokkos::data_atom(double *coord, imageint imagetmp,
    initialize other atom quantities for this sub-style
 ------------------------------------------------------------------------- */
 
-int AtomVecSpinKokkos::data_atom_hybrid(int nlocal, char **values)
+int AtomVecSpinKokkos::data_atom_hybrid(int nlocal, const std::vector<std::string> &values,
+                                        int offset)
 {
-  h_sp(nlocal,3) = utils::numeric(FLERR,values[0],true,lmp);
-  h_sp(nlocal,0) = utils::numeric(FLERR,values[1],true,lmp);
-  h_sp(nlocal,1) = utils::numeric(FLERR,values[2],true,lmp);
-  h_sp(nlocal,2) = utils::numeric(FLERR,values[3],true,lmp);
+  h_sp(nlocal,3) = utils::numeric(FLERR,values[offset],true,lmp);
+  h_sp(nlocal,0) = utils::numeric(FLERR,values[offset+1],true,lmp);
+  h_sp(nlocal,1) = utils::numeric(FLERR,values[offset+2],true,lmp);
+  h_sp(nlocal,2) = utils::numeric(FLERR,values[offset+3],true,lmp);
   double inorm = 1.0/sqrt(sp[nlocal][0]*sp[nlocal][0] +
                           sp[nlocal][1]*sp[nlocal][1] +
                           sp[nlocal][2]*sp[nlocal][2]);

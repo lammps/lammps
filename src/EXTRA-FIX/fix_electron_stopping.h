@@ -32,12 +32,12 @@ namespace LAMMPS_NS {
 class FixElectronStopping : public Fix {
  public:
   FixElectronStopping(class LAMMPS *, int, char **);
-  ~FixElectronStopping();
-  int setmask();
-  void init();
-  void post_force(int);
-  void init_list(int, class NeighList *);
-  double compute_scalar();
+  ~FixElectronStopping() override;
+  int setmask() override;
+  void init() override;
+  void post_force(int) override;
+  void init_list(int, class NeighList *) override;
+  double compute_scalar() override;
 
  private:
   void read_table(const char *);

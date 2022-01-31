@@ -31,14 +31,14 @@ class DihedralHybrid : public Dihedral {
   char **keywords;      // keyword for each dihedral style
 
   DihedralHybrid(class LAMMPS *);
-  ~DihedralHybrid();
-  void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  double memory_usage();
+  ~DihedralHybrid() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  double memory_usage() override;
 
  private:
   int *map;    // which style each dihedral type points to

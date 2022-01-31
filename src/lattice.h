@@ -30,7 +30,7 @@ class Lattice : protected Pointers {
                                           // within unit cell (0 <= coord < 1)
 
   Lattice(class LAMMPS *, int, char **);
-  ~Lattice();
+  ~Lattice() override;
   void lattice2box(double &, double &, double &);
   void box2lattice(double &, double &, double &);
   void bbox(int, double, double, double, double &, double &, double &, double &, double &,

@@ -27,8 +27,8 @@ namespace LAMMPS_NS {
 class MDIEngine : public Command {
  public:
   MDIEngine(LAMMPS *lmp) : Command(lmp) {}
-  virtual ~MDIEngine() {}
-  void command(int, char **);
+
+  void command(int, char **) override;
 
  private:
   class FixMDIEngine *mdi_fix;

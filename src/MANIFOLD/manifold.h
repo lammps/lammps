@@ -47,7 +47,7 @@ namespace user_manifold {
   class manifold : protected Pointers {
    public:
     manifold(class LAMMPS *lmp) : Pointers(lmp), params(nullptr) {}
-    virtual ~manifold() { delete[] params; }
+    ~manifold() override { delete[] params; }
     virtual double g(const double *) = 0;
     virtual void n(const double *, double *) = 0;
 

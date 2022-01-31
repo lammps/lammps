@@ -38,11 +38,11 @@ const int NUM_CUBIC_SPLINE_COLUMNS = 5;     // cubic spline columns passed to co
 class ComputePressureBocs : public Compute {
  public:
   ComputePressureBocs(class LAMMPS *, int, char **);
-  virtual ~ComputePressureBocs();
-  virtual void init();
-  virtual double compute_scalar();
-  virtual void compute_vector();
-  void reset_extra_compute_fix(const char *);
+  ~ComputePressureBocs() override;
+  void init() override;
+  double compute_scalar() override;
+  void compute_vector() override;
+  void reset_extra_compute_fix(const char *) override;
 
   double compute_cg_scalar();
   double get_cg_p_corr(int, double *, int, double, double);

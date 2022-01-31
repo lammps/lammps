@@ -33,31 +33,31 @@ class AtomVecLine : public AtomVec {
   struct Bonus *bonus;
 
   AtomVecLine(class LAMMPS *);
-  ~AtomVecLine();
-  void init();
+  ~AtomVecLine() override;
+  void init() override;
 
-  void grow_pointers();
-  void copy_bonus(int, int, int);
-  void clear_bonus();
-  int pack_comm_bonus(int, int *, double *);
-  void unpack_comm_bonus(int, int, double *);
-  int pack_border_bonus(int, int *, double *);
-  int unpack_border_bonus(int, int, double *);
-  int pack_exchange_bonus(int, double *);
-  int unpack_exchange_bonus(int, double *);
-  int size_restart_bonus();
-  int pack_restart_bonus(int, double *);
-  int unpack_restart_bonus(int, double *);
-  void data_atom_bonus(int, const std::vector<std::string> &);
-  double memory_usage_bonus();
+  void grow_pointers() override;
+  void copy_bonus(int, int, int) override;
+  void clear_bonus() override;
+  int pack_comm_bonus(int, int *, double *) override;
+  void unpack_comm_bonus(int, int, double *) override;
+  int pack_border_bonus(int, int *, double *) override;
+  int unpack_border_bonus(int, int, double *) override;
+  int pack_exchange_bonus(int, double *) override;
+  int unpack_exchange_bonus(int, double *) override;
+  int size_restart_bonus() override;
+  int pack_restart_bonus(int, double *) override;
+  int unpack_restart_bonus(int, double *) override;
+  void data_atom_bonus(int, const std::vector<std::string> &) override;
+  double memory_usage_bonus() override;
 
-  void create_atom_post(int);
-  void data_atom_post(int);
-  void pack_data_pre(int);
-  void pack_data_post(int);
+  void create_atom_post(int) override;
+  void data_atom_post(int) override;
+  void pack_data_pre(int) override;
+  void pack_data_post(int) override;
 
-  int pack_data_bonus(double *, int);
-  void write_data_bonus(FILE *, int, double *, int);
+  int pack_data_bonus(double *, int) override;
+  void write_data_bonus(FILE *, int, double *, int) override;
 
   // unique to AtomVecLine
 

@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class ComputeMomentum : public Compute {
  public:
   ComputeMomentum(class LAMMPS *, int, char **);
-  virtual ~ComputeMomentum();
+  ~ComputeMomentum() override;
 
-  virtual void init();
-  virtual void compute_vector();
+  void init() override;
+  void compute_vector() override;
 };
 
 }    // namespace LAMMPS_NS

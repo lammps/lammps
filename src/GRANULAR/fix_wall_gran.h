@@ -30,24 +30,24 @@ class FixWallGran : public Fix {
   enum { NORMAL_NONE, NORMAL_HOOKE, NORMAL_HERTZ, HERTZ_MATERIAL, DMT, JKR };
 
   FixWallGran(class LAMMPS *, int, char **);
-  virtual ~FixWallGran();
-  int setmask();
-  virtual void init();
-  void setup(int);
-  virtual void post_force(int);
-  virtual void post_force_respa(int, int, int);
+  ~FixWallGran() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void post_force(int) override;
+  void post_force_respa(int, int, int) override;
 
-  virtual double memory_usage();
-  virtual void grow_arrays(int);
-  virtual void copy_arrays(int, int, int);
-  virtual void set_arrays(int);
-  virtual int pack_exchange(int, double *);
-  virtual int unpack_exchange(int, double *);
-  virtual int pack_restart(int, double *);
-  virtual void unpack_restart(int, int);
-  virtual int size_restart(int);
-  virtual int maxsize_restart();
-  void reset_dt();
+  double memory_usage() override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  void set_arrays(int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  int pack_restart(int, double *) override;
+  void unpack_restart(int, int) override;
+  int size_restart(int) override;
+  int maxsize_restart() override;
+  void reset_dt() override;
 
   void hooke(double, double, double, double, double *, double *, double *, double *, double *,
              double, double, double *);

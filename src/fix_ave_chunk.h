@@ -27,13 +27,13 @@ namespace LAMMPS_NS {
 class FixAveChunk : public Fix {
  public:
   FixAveChunk(class LAMMPS *, int, char **);
-  ~FixAveChunk();
-  int setmask();
-  void init();
-  void setup(int);
-  void end_of_step();
-  double compute_array(int, int);
-  double memory_usage();
+  ~FixAveChunk() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void end_of_step() override;
+  double compute_array(int, int) override;
+  double memory_usage() override;
 
  private:
   int nvalues;

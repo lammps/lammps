@@ -39,31 +39,31 @@ class PairHybrid : public Pair {
 
  public:
   PairHybrid(class LAMMPS *);
-  virtual ~PairHybrid();
-  virtual void compute(int, int);
-  virtual void settings(int, char **);
-  virtual void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
-  void setup();
-  virtual void write_restart(FILE *);
-  virtual void read_restart(FILE *);
-  virtual double single(int, int, int, int, double, double, double, double &);
-  void modify_params(int narg, char **arg);
-  double memory_usage();
+  ~PairHybrid() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  void setup() override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  double single(int, int, int, int, double, double, double, double &) override;
+  void modify_params(int narg, char **arg) override;
+  double memory_usage() override;
 
-  void compute_inner();
-  void compute_middle();
-  void compute_outer(int, int);
-  void *extract(const char *, int &);
-  void reset_dt();
+  void compute_inner() override;
+  void compute_middle() override;
+  void compute_outer(int, int) override;
+  void *extract(const char *, int &) override;
+  void reset_dt() override;
 
   int check_ijtype(int, int, char *);
 
-  virtual void add_tally_callback(class Compute *);
-  virtual void del_tally_callback(class Compute *);
-  double atom2cut(int);
-  double radii2cut(double, double);
+  void add_tally_callback(class Compute *) override;
+  void del_tally_callback(class Compute *) override;
+  double atom2cut(int) override;
+  double radii2cut(double, double) override;
 
  protected:
   int nstyles;        // # of sub-styles

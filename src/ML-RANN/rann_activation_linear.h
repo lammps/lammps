@@ -38,9 +38,9 @@ namespace RANN {
   class Activation_linear : public Activation {
    public:
     Activation_linear(class PairRANN *);
-    double activation_function(double);
-    double dactivation_function(double);
-    double ddactivation_function(double);
+    double activation_function(double) override;
+    double dactivation_function(double) override;
+    double ddactivation_function(double) override;
   };
 
   Activation_linear::Activation_linear(PairRANN *_pair) : Activation(_pair)

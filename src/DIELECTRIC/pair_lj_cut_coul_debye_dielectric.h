@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class PairLJCutCoulDebyeDielectric : public PairLJCutCoulDebye {
  public:
   PairLJCutCoulDebyeDielectric(class LAMMPS *);
-  virtual ~PairLJCutCoulDebyeDielectric();
-  virtual void compute(int, int);
-  virtual double single(int, int, int, int, double, double, double, double &);
-  void init_style();
+  ~PairLJCutCoulDebyeDielectric() override;
+  void compute(int, int) override;
+  double single(int, int, int, int, double, double, double, double &) override;
+  void init_style() override;
 
   double **efield;
   double *epot;

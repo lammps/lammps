@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class ComputeCentroAtom : public Compute {
  public:
   ComputeCentroAtom(class LAMMPS *, int, char **);
-  ~ComputeCentroAtom();
-  void init();
-  void init_list(int, class NeighList *);
-  void compute_peratom();
-  double memory_usage();
+  ~ComputeCentroAtom() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void compute_peratom() override;
+  double memory_usage() override;
 
  private:
   int nmax, maxneigh, nnn;

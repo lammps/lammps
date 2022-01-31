@@ -29,8 +29,7 @@ namespace LAMMPS_NS {
 class NPairFullMulti : public NPair {
  public:
   NPairFullMulti(class LAMMPS *);
-  ~NPairFullMulti() {}
-  void build(class NeighList *);
+  void build(class NeighList *) override;
 };
 
 }    // namespace LAMMPS_NS

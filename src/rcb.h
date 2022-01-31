@@ -39,7 +39,7 @@ class RCB : protected Pointers {
   int *sendindex;    // index of dot in receiver's nfinal list
 
   RCB(class LAMMPS *);
-  ~RCB();
+  ~RCB() override;
   void compute(int, int, double **, double *, double *, double *);
   void compute_old(int, int, double **, double *, double *, double *);
   void invert(int sortflag = 0);

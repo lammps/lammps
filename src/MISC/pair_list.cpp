@@ -232,6 +232,7 @@ void PairList::settings(int narg, char **arg)
       while ((line = reader.next_line())) {
         ValueTokenizer values(line);
         list_param oneparam;
+        oneparam.offset = 0.0;
         oneparam.id1 = values.next_tagint();
         oneparam.id2 = values.next_tagint();
         oneparam.style = stylename[values.next_string()];

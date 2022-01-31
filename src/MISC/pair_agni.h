@@ -28,12 +28,12 @@ class PairAGNI : public Pair {
  public:
   enum { AGNI_VERSION_UNKNOWN, AGNI_VERSION_1, AGNI_VERSION_2 };
   PairAGNI(class LAMMPS *);
-  virtual ~PairAGNI();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  virtual void coeff(int, char **);
-  virtual double init_one(int, int);
-  virtual void init_style();
+  ~PairAGNI() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void init_style() override;
 
   struct Param {
     double cut, cutsq;

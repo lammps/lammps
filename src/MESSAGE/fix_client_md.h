@@ -27,14 +27,14 @@ namespace LAMMPS_NS {
 class FixClientMD : public Fix {
  public:
   FixClientMD(class LAMMPS *, int, char **);
-  ~FixClientMD();
-  int setmask();
-  void init();
-  void setup(int);
-  void min_setup(int);
-  void post_force(int);
-  void min_post_force(int);
-  double compute_scalar();
+  ~FixClientMD() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void min_setup(int) override;
+  void post_force(int) override;
+  void min_post_force(int) override;
+  double compute_scalar() override;
 
  private:
   int maxatom, units, server_error;

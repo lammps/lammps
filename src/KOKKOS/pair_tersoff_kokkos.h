@@ -50,9 +50,9 @@ class PairTersoffKokkos : public PairTersoff {
   typedef EV_FLOAT value_type;
 
   PairTersoffKokkos(class LAMMPS *);
-  virtual ~PairTersoffKokkos();
-  virtual void compute(int, int);
-  void init_style();
+  ~PairTersoffKokkos() override;
+  void compute(int, int) override;
+  void init_style() override;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -177,8 +177,8 @@ class PairTersoffKokkos : public PairTersoff {
   void v_tally3_atom(EV_FLOAT &ev, const int &i, const int &j, const int &k,
                 F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *drji, F_FLOAT *drjk) const;
 
-  void allocate();
-  void setup_params();
+  void allocate() override;
+  void setup_params() override;
 
  protected:
   typedef Kokkos::DualView<int***,DeviceType> tdual_int_3d;

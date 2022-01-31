@@ -28,7 +28,6 @@ namespace LAMMPS_NS {
 class PairEAMFSOpt : public PairEAMFS, public PairEAMOpt {
  public:
   PairEAMFSOpt(class LAMMPS *);
-  virtual ~PairEAMFSOpt() {}
 };
 
 }    // namespace LAMMPS_NS

@@ -27,18 +27,18 @@ namespace LAMMPS_NS {
 class PairMDPD : public Pair {
  public:
   PairMDPD(class LAMMPS *);
-  virtual ~PairMDPD();
-  virtual void compute(int, int);
-  virtual void settings(int, char **);
-  virtual void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
-  virtual void write_restart(FILE *);
-  virtual void read_restart(FILE *);
-  virtual void write_restart_settings(FILE *);
-  virtual void read_restart_settings(FILE *);
-  virtual void write_data(FILE *);
-  virtual void write_data_all(FILE *);
+  ~PairMDPD() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
+  void write_data(FILE *) override;
+  void write_data_all(FILE *) override;
 
  protected:
   double cut_global, temperature;

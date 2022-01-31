@@ -26,16 +26,15 @@ namespace LAMMPS_NS {
 class PairTersoffZBLOMP : public PairTersoffOMP {
  public:
   PairTersoffZBLOMP(class LAMMPS *);
-  virtual ~PairTersoffZBLOMP() {}
 
  protected:
   double global_a_0;          // Bohr radius for Coulomb repulsion
   double global_epsilon_0;    // permittivity of vacuum for Coulomb repulsion
   double global_e;            // proton charge (negative of electron charge)
 
-  virtual void read_file(char *);
-  virtual void repulsive(Param *, double, double &, int, double &);
-  virtual void force_zeta(Param *, double, double, double &, double &, int, double &);
+  void read_file(char *) override;
+  void repulsive(Param *, double, double &, int, double &) override;
+  void force_zeta(Param *, double, double, double &, double &, int, double &) override;
 };
 
 }    // namespace LAMMPS_NS

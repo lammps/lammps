@@ -37,13 +37,13 @@ class PairLJCutCoulCutKokkos : public PairLJCutCoulCut {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   PairLJCutCoulCutKokkos(class LAMMPS *);
-  ~PairLJCutCoulCutKokkos();
+  ~PairLJCutCoulCutKokkos() override;
 
-  void compute(int, int);
+  void compute(int, int) override;
 
-  void settings(int, char **);
-  void init_style();
-  double init_one(int, int);
+  void settings(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
  protected:
   template<bool STACKPARAMS, class Specialisation>
@@ -103,7 +103,7 @@ class PairLJCutCoulCutKokkos : public PairLJCutCoulCut {
   double special_lj[4];
   double qqrd2e;
 
-  void allocate();
+  void allocate() override;
   friend struct PairComputeFunctor<PairLJCutCoulCutKokkos,FULL,true>;
   friend struct PairComputeFunctor<PairLJCutCoulCutKokkos,HALF,true>;
   friend struct PairComputeFunctor<PairLJCutCoulCutKokkos,HALFTHREAD,true>;

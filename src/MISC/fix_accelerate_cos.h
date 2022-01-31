@@ -31,11 +31,11 @@ namespace LAMMPS_NS {
 class FixAccelerateCos : public Fix {
  public:
   FixAccelerateCos(class LAMMPS *, int, char **);
-  virtual ~FixAccelerateCos(){};
-  int setmask();
-  virtual void init(){};
-  void setup(int);
-  virtual void post_force(int);
+
+  int setmask() override;
+  void init() override{};
+  void setup(int) override;
+  void post_force(int) override;
 
  protected:
   double acceleration;

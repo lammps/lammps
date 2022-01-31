@@ -22,7 +22,6 @@ namespace LAMMPS_NS {
 class Imbalance : protected Pointers {
  public:
   Imbalance(class LAMMPS *);
-  virtual ~Imbalance(){};
 
   // parse options. return number of arguments consumed (required)
   virtual int options(int, char **) = 0;

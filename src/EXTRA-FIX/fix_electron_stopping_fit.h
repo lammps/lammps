@@ -32,13 +32,13 @@ namespace LAMMPS_NS {
 class FixElectronStoppingFit : public Fix {
  public:
   FixElectronStoppingFit(class LAMMPS *, int, char **);
-  ~FixElectronStoppingFit();
-  int setmask();
-  void init();
-  void setup(int);
-  void post_force(int);
-  void post_force_respa(int, int, int);
-  double compute_scalar();
+  ~FixElectronStoppingFit() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void post_force(int) override;
+  void post_force_respa(int, int, int) override;
+  double compute_scalar() override;
 
  private:
   double *energy_coh_in, *v_min_sq, *v_max_sq, *drag_fac_in_1, *drag_fac_in_2, *drag_fac_1,

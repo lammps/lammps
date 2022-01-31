@@ -27,17 +27,17 @@ namespace LAMMPS_NS {
 class ComputeInertiaChunk : public Compute {
  public:
   ComputeInertiaChunk(class LAMMPS *, int, char **);
-  ~ComputeInertiaChunk();
-  void init();
-  void compute_array();
+  ~ComputeInertiaChunk() override;
+  void init() override;
+  void compute_array() override;
 
-  void lock_enable();
-  void lock_disable();
-  int lock_length();
-  void lock(class Fix *, bigint, bigint);
-  void unlock(class Fix *);
+  void lock_enable() override;
+  void lock_disable() override;
+  int lock_length() override;
+  void lock(class Fix *, bigint, bigint) override;
+  void unlock(class Fix *) override;
 
-  double memory_usage();
+  double memory_usage() override;
 
  private:
   int nchunk, maxchunk;

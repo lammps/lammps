@@ -29,18 +29,18 @@ namespace LAMMPS_NS {
 class PairMESONTTPM : public Pair {
  public:
   PairMESONTTPM(class LAMMPS *);
-  virtual ~PairMESONTTPM();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  void write_data(FILE *);
-  void write_data_all(FILE *);
-  virtual void init_style();
+  ~PairMESONTTPM() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
+  void write_data(FILE *) override;
+  void write_data_all(FILE *) override;
+  void init_style() override;
 
   double energy_s;                        // accumulated energies for stretching
   double energy_b;                        // accumulated energies for bending
@@ -57,7 +57,7 @@ class PairMESONTTPM : public Pair {
   int nmax;
 
   virtual void allocate();
-  virtual void *extract(const char *, int &);
+  void *extract(const char *, int &) override;
 };
 
 }    // namespace LAMMPS_NS

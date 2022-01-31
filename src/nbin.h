@@ -50,7 +50,7 @@ class NBin : protected Pointers {
   int **binhead_multi;
 
   NBin(class LAMMPS *);
-  ~NBin();
+  ~NBin() override;
   void post_constructor(class NeighRequest *);
   virtual void copy_neighbor_info();
 

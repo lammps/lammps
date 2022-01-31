@@ -39,14 +39,14 @@ namespace RANN {
   class Fingerprint_radial : public Fingerprint {
    public:
     Fingerprint_radial(PairRANN *);
-    ~Fingerprint_radial();
-    bool parse_values(std::string, std::vector<std::string>);
-    void write_values(FILE *);
-    void init(int *, int);
-    void allocate();
+    ~Fingerprint_radial() override;
+    bool parse_values(std::string, std::vector<std::string>) override;
+    void write_values(FILE *) override;
+    void init(int *, int) override;
+    void allocate() override;
     void compute_fingerprint(double *, double *, double *, double *, int, int, double *, double *,
-                             double *, int *, int, int *);
-    int get_length();
+                             double *, int *, int, int *) override;
+    int get_length() override;
 
     double *radialtable;
     double *dfctable;

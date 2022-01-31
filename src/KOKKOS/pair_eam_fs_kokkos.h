@@ -58,11 +58,11 @@ class PairEAMFSKokkos : public PairEAM, public KokkosBase {
   typedef EV_FLOAT value_type;
 
   PairEAMFSKokkos(class LAMMPS *);
-  virtual ~PairEAMFSKokkos();
-  void compute(int, int);
-  void init_style();
-  void *extract(const char *, int &) { return nullptr; }
-  void coeff(int, char **);
+  ~PairEAMFSKokkos() override;
+  void compute(int, int) override;
+  void init_style() override;
+  void *extract(const char *, int &) override { return nullptr; }
+  void coeff(int, char **) override;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairEAMFSPackForwardComm, const int&) const;
@@ -108,12 +108,12 @@ class PairEAMFSKokkos : public PairEAM, public KokkosBase {
                   const F_FLOAT &dely, const F_FLOAT &delz) const;
 
   int pack_forward_comm_kokkos(int, DAT::tdual_int_2d, int, DAT::tdual_xfloat_1d&,
-                       int, int *);
-  void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d&);
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
+                       int, int *) override;
+  void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d&) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
 
  protected:
   typename AT::t_x_array x;
@@ -165,11 +165,11 @@ class PairEAMFSKokkos : public PairEAM, public KokkosBase {
   t_ffloat_2d_n7 d_rhor_spline;
   t_ffloat_2d_n7 d_z2r_spline;
 
-  void file2array();
+  void file2array() override;
   void file2array_fs();
-  void array2spline();
+  void array2spline() override;
   void interpolate(int, double, double *, t_host_ffloat_2d_n7, int);
-  void read_file(char *);
+  void read_file(char *) override;
 
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d d_ilist;

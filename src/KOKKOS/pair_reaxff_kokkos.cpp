@@ -843,12 +843,12 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     k_resize_bo.modify<DeviceType>();
     k_resize_bo.sync<LMPHostType>();
     int resize_bo = k_resize_bo.h_view();
-    if (resize_bo) maxbo++;
+    if (resize_bo) maxbo = MAX(maxbo+MAX(1,maxbo*0.1),resize_bo);
 
     k_resize_hb.modify<DeviceType>();
     k_resize_hb.sync<LMPHostType>();
     int resize_hb = k_resize_hb.h_view();
-    if (resize_hb) maxhb++;
+    if (resize_hb) maxhb = MAX(maxhb+MAX(1,maxhb*0.1),resize_hb);
 
     resize = resize_bo || resize_hb;
     if (resize) {
@@ -1711,9 +1711,6 @@ template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(PairReaxBuildListsHalf<NEIGHFLAG>, const int &ii) const {
 
-  if (d_resize_bo() || d_resize_hb())
-    return;
-
   auto v_dDeltap_self = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_dDeltap_self),decltype(ndup_dDeltap_self)>::get(dup_dDeltap_self,ndup_dDeltap_self);
   auto a_dDeltap_self = v_dDeltap_self.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
 
@@ -1777,12 +1774,10 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxBuildListsHalf<NEIGHFLAG>,
 
         const int jj_index = j_index - hb_first_i;
 
-        if (jj_index >= maxhb) {
-          d_resize_hb() = 1;
-          return;
-        }
-
-        d_hb_list[j_index] = j;
+        if (jj_index >= maxhb)
+          d_resize_hb() = MAX(d_resize_hb(),jj_index+1);
+        else
+          d_hb_list[j_index] = j;
       } else if (j < nlocal && ihb == 2 && jhb == 1) {
         if (NEIGHFLAG == HALF) {
           i_index = d_hb_first[j] + d_hb_num[j];
@@ -1793,12 +1788,10 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxBuildListsHalf<NEIGHFLAG>,
 
         const int ii_index = i_index - d_hb_first[j];
 
-        if (ii_index >= maxhb) {
-          d_resize_hb() = 1;
-          return;
-        }
-
-        d_hb_list[i_index] = i;
+        if (ii_index >= maxhb)
+          d_resize_hb() = MAX(d_resize_hb(),ii_index+1);
+        else
+          d_hb_list[i_index] = i;
       }
     }
 
@@ -1851,68 +1844,68 @@ void PairReaxFFKokkos<DeviceType>::operator()(PairReaxBuildListsHalf<NEIGHFLAG>,
     const int ii_index = i_index - d_bo_first[j];
 
     if (jj_index >= maxbo || ii_index >= maxbo) {
-      d_resize_bo() = 1;
-      return;
+      const int max_val = MAX(ii_index+1,jj_index+1);
+      d_resize_bo() = MAX(d_resize_bo(),max_val);
+    } else {
+      d_bo_list[j_index] = j;
+      d_bo_list[i_index] = i;
+
+      // from BondOrder1
+
+      d_BO(i,jj_index) = BO;
+      d_BO_s(i,jj_index) = BO_s;
+      d_BO_pi(i,jj_index) = BO_pi;
+      d_BO_pi2(i,jj_index) = BO_pi2;
+
+      d_BO(j,ii_index) = BO;
+      d_BO_s(j,ii_index) = BO_s;
+      d_BO_pi(j,ii_index) = BO_pi;
+      d_BO_pi2(j,ii_index) = BO_pi2;
+
+      F_FLOAT Cln_BOp_s = p_bo2 * C12 / rij / rij;
+      F_FLOAT Cln_BOp_pi = p_bo4 * C34 / rij / rij;
+      F_FLOAT Cln_BOp_pi2 = p_bo6 * C56 / rij / rij;
+
+      if (nlocal == 0)
+	Cln_BOp_s = Cln_BOp_pi = Cln_BOp_pi2 = 0.0;
+
+      for (int d = 0; d < 3; d++) dln_BOp_pi_i[d] = -(BO_pi*Cln_BOp_pi)*delij[d];
+      for (int d = 0; d < 3; d++) dln_BOp_pi2_i[d] = -(BO_pi2*Cln_BOp_pi2)*delij[d];
+      for (int d = 0; d < 3; d++) dBOp_i[d] = -(BO_s*Cln_BOp_s+BO_pi*Cln_BOp_pi+BO_pi2*Cln_BOp_pi2)*delij[d];
+      for (int d = 0; d < 3; d++) a_dDeltap_self(i,d) += dBOp_i[d];
+      for (int d = 0; d < 3; d++) a_dDeltap_self(j,d) += -dBOp_i[d];
+
+      d_dln_BOp_pix(i,jj_index) = dln_BOp_pi_i[0];
+      d_dln_BOp_piy(i,jj_index) = dln_BOp_pi_i[1];
+      d_dln_BOp_piz(i,jj_index) = dln_BOp_pi_i[2];
+
+      d_dln_BOp_pix(j,ii_index) = -dln_BOp_pi_i[0];
+      d_dln_BOp_piy(j,ii_index) = -dln_BOp_pi_i[1];
+      d_dln_BOp_piz(j,ii_index) = -dln_BOp_pi_i[2];
+
+      d_dln_BOp_pi2x(i,jj_index) = dln_BOp_pi2_i[0];
+      d_dln_BOp_pi2y(i,jj_index) = dln_BOp_pi2_i[1];
+      d_dln_BOp_pi2z(i,jj_index) = dln_BOp_pi2_i[2];
+
+      d_dln_BOp_pi2x(j,ii_index) = -dln_BOp_pi2_i[0];
+      d_dln_BOp_pi2y(j,ii_index) = -dln_BOp_pi2_i[1];
+      d_dln_BOp_pi2z(j,ii_index) = -dln_BOp_pi2_i[2];
+
+      d_dBOpx(i,jj_index) = dBOp_i[0];
+      d_dBOpy(i,jj_index) = dBOp_i[1];
+      d_dBOpz(i,jj_index) = dBOp_i[2];
+
+      d_dBOpx(j,ii_index) = -dBOp_i[0];
+      d_dBOpy(j,ii_index) = -dBOp_i[1];
+      d_dBOpz(j,ii_index) = -dBOp_i[2];
+
+      d_BO(i,jj_index) -= bo_cut;
+      d_BO(j,ii_index) -= bo_cut;
+      d_BO_s(i,jj_index) -= bo_cut;
+      d_BO_s(j,ii_index) -= bo_cut;
+      total_bo += d_BO(i,jj_index);
+      a_total_bo[j] += d_BO(j,ii_index);
     }
-
-    d_bo_list[j_index] = j;
-    d_bo_list[i_index] = i;
-
-    // from BondOrder1
-
-    d_BO(i,jj_index) = BO;
-    d_BO_s(i,jj_index) = BO_s;
-    d_BO_pi(i,jj_index) = BO_pi;
-    d_BO_pi2(i,jj_index) = BO_pi2;
-
-    d_BO(j,ii_index) = BO;
-    d_BO_s(j,ii_index) = BO_s;
-    d_BO_pi(j,ii_index) = BO_pi;
-    d_BO_pi2(j,ii_index) = BO_pi2;
-
-    F_FLOAT Cln_BOp_s = p_bo2 * C12 / rij / rij;
-    F_FLOAT Cln_BOp_pi = p_bo4 * C34 / rij / rij;
-    F_FLOAT Cln_BOp_pi2 = p_bo6 * C56 / rij / rij;
-
-    if (nlocal == 0)
-      Cln_BOp_s = Cln_BOp_pi = Cln_BOp_pi2 = 0.0;
-
-    for (int d = 0; d < 3; d++) dln_BOp_pi_i[d] = -(BO_pi*Cln_BOp_pi)*delij[d];
-    for (int d = 0; d < 3; d++) dln_BOp_pi2_i[d] = -(BO_pi2*Cln_BOp_pi2)*delij[d];
-    for (int d = 0; d < 3; d++) dBOp_i[d] = -(BO_s*Cln_BOp_s+BO_pi*Cln_BOp_pi+BO_pi2*Cln_BOp_pi2)*delij[d];
-    for (int d = 0; d < 3; d++) a_dDeltap_self(i,d) += dBOp_i[d];
-    for (int d = 0; d < 3; d++) a_dDeltap_self(j,d) += -dBOp_i[d];
-
-    d_dln_BOp_pix(i,jj_index) = dln_BOp_pi_i[0];
-    d_dln_BOp_piy(i,jj_index) = dln_BOp_pi_i[1];
-    d_dln_BOp_piz(i,jj_index) = dln_BOp_pi_i[2];
-
-    d_dln_BOp_pix(j,ii_index) = -dln_BOp_pi_i[0];
-    d_dln_BOp_piy(j,ii_index) = -dln_BOp_pi_i[1];
-    d_dln_BOp_piz(j,ii_index) = -dln_BOp_pi_i[2];
-
-    d_dln_BOp_pi2x(i,jj_index) = dln_BOp_pi2_i[0];
-    d_dln_BOp_pi2y(i,jj_index) = dln_BOp_pi2_i[1];
-    d_dln_BOp_pi2z(i,jj_index) = dln_BOp_pi2_i[2];
-
-    d_dln_BOp_pi2x(j,ii_index) = -dln_BOp_pi2_i[0];
-    d_dln_BOp_pi2y(j,ii_index) = -dln_BOp_pi2_i[1];
-    d_dln_BOp_pi2z(j,ii_index) = -dln_BOp_pi2_i[2];
-
-    d_dBOpx(i,jj_index) = dBOp_i[0];
-    d_dBOpy(i,jj_index) = dBOp_i[1];
-    d_dBOpz(i,jj_index) = dBOp_i[2];
-
-    d_dBOpx(j,ii_index) = -dBOp_i[0];
-    d_dBOpy(j,ii_index) = -dBOp_i[1];
-    d_dBOpz(j,ii_index) = -dBOp_i[2];
-
-    d_BO(i,jj_index) -= bo_cut;
-    d_BO(j,ii_index) -= bo_cut;
-    d_BO_s(i,jj_index) -= bo_cut;
-    d_BO_s(j,ii_index) -= bo_cut;
-    total_bo += d_BO(i,jj_index);
-    a_total_bo[j] += d_BO(j,ii_index);
   }
   a_total_bo[i] += total_bo;
 

@@ -130,7 +130,7 @@ class Fix : protected Pointers {
   unsigned int datamask_read, datamask_modify;
 
   Fix(class LAMMPS *, int, char **);
-  virtual ~Fix();
+  ~Fix() override;
   void modify_params(int, char **);
 
   virtual int setmask() = 0;

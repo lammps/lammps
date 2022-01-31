@@ -56,10 +56,10 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
   typedef EV_FLOAT value_type;
 
   PairEAMKokkos(class LAMMPS *);
-  virtual ~PairEAMKokkos();
-  void compute(int, int);
-  void init_style();
-  void *extract(const char *, int &) { return nullptr; }
+  ~PairEAMKokkos() override;
+  void compute(int, int) override;
+  void init_style() override;
+  void *extract(const char *, int &) override { return nullptr; }
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairEAMPackForwardComm, const int&) const;
@@ -105,12 +105,12 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
                   const F_FLOAT &dely, const F_FLOAT &delz) const;
 
   int pack_forward_comm_kokkos(int, DAT::tdual_int_2d, int, DAT::tdual_xfloat_1d&,
-                       int, int *);
-  void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d&);
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
+                       int, int *) override;
+  void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d&) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
 
  protected:
   typename AT::t_x_array x;
@@ -153,8 +153,8 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
   t_ffloat_2d_n7 d_z2r_spline;
   void interpolate(int, double, double *, t_host_ffloat_2d_n7, int);
 
-  void file2array();
-  void array2spline();
+  void file2array() override;
+  void array2spline() override;
 
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d d_ilist;

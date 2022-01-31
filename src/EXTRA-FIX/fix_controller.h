@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class FixController : public Fix {
  public:
   FixController(class LAMMPS *, int, char **);
-  ~FixController();
-  int setmask();
-  void init();
-  void end_of_step();
-  void reset_dt();
-  double compute_vector(int);
+  ~FixController() override;
+  int setmask() override;
+  void init() override;
+  void end_of_step() override;
+  void reset_dt() override;
+  double compute_vector(int) override;
 
  private:
   double kp, ki, kd, alpha, tau;

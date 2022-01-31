@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class Message : public Command {
  public:
   Message(class LAMMPS *lmp) : Command(lmp){};
-  void command(int, char **);
+  void command(int, char **) override;
 
  private:
   void quit();

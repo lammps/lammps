@@ -328,7 +328,7 @@ void PairHybridScaled::settings(int narg, char **arg)
       error->all(FLERR, "Pair style hybrid/scaled cannot have none as an argument");
 
     styles[nstyles] = force->new_pair(arg[iarg], 1, dummy);
-    force->store_style(keywords[nstyles], arg[iarg], 0);
+    keywords[nstyles] = force->store_style(arg[iarg], 0);
     special_lj[nstyles] = special_coul[nstyles] = nullptr;
     compute_tally[nstyles] = 1;
 
@@ -524,7 +524,7 @@ void PairHybridScaled::write_restart(FILE *fp)
 
   int n = scalevars.size();
   fwrite(&n, sizeof(int), 1, fp);
-  for (auto var : scalevars) {
+  for (auto &var : scalevars) {
     n = var.size() + 1;
     fwrite(&n, sizeof(int), 1, fp);
     fwrite(var.c_str(), sizeof(char), n, fp);

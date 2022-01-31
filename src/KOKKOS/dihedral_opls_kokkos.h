@@ -39,10 +39,10 @@ class DihedralOPLSKokkos : public DihedralOPLS {
   typedef ArrayTypes<DeviceType> AT;
 
   DihedralOPLSKokkos(class LAMMPS *);
-  virtual ~DihedralOPLSKokkos();
-  void compute(int, int);
-  void coeff(int, char **);
-  void read_restart(FILE *);
+  ~DihedralOPLSKokkos() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void read_restart(FILE *) override;
 
   template<int NEWTON_BOND, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -90,7 +90,7 @@ class DihedralOPLSKokkos : public DihedralOPLS {
   typename AT::t_ffloat_1d d_k3;
   typename AT::t_ffloat_1d d_k4;
 
-  void allocate();
+  void allocate() override;
 };
 
 }

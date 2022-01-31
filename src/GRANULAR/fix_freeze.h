@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class FixFreeze : public Fix {
  public:
   FixFreeze(class LAMMPS *, int, char **);
-  int setmask();
-  void init();
-  void setup(int);
-  virtual void post_force(int);
-  void post_force_respa(int, int, int);
-  double compute_vector(int);
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void post_force(int) override;
+  void post_force_respa(int, int, int) override;
+  double compute_vector(int) override;
 
  protected:
   int force_flag;

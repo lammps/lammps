@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class ComputeRDF : public Compute {
  public:
   ComputeRDF(class LAMMPS *, int, char **);
-  ~ComputeRDF();
-  void init();
-  void init_list(int, class NeighList *);
-  void compute_array();
+  ~ComputeRDF() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void compute_array() override;
 
  private:
   int nbin;                // # of rdf bins

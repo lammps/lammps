@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class ImproperDistance : public Improper {
  public:
   ImproperDistance(class LAMMPS *);
-  ~ImproperDistance();
-  void compute(int, int);
-  void coeff(int, char **);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_data(FILE *);
+  ~ImproperDistance() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
 
  private:
   double *k, *chi;

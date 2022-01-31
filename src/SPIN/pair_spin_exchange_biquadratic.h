@@ -27,23 +27,23 @@ namespace LAMMPS_NS {
 class PairSpinExchangeBiquadratic : public PairSpin {
  public:
   PairSpinExchangeBiquadratic(class LAMMPS *);
-  virtual ~PairSpinExchangeBiquadratic();
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  void *extract(const char *, int &);
+  ~PairSpinExchangeBiquadratic() override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void *extract(const char *, int &) override;
 
-  void compute(int, int);
-  void compute_single_pair(int, double *);
+  void compute(int, int) override;
+  void compute_single_pair(int, double *) override;
 
   void compute_exchange(int, int, double, double *, double *, double *);
   void compute_exchange_mech(int, int, double, double *, double *, double *, double *);
   double compute_energy(int, int, double, double *, double *);
 
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
 
   double cut_spin_exchange_global;    // global exchange cutoff distance
 
@@ -57,7 +57,7 @@ class PairSpinExchangeBiquadratic : public PairSpin {
   double **K2, **K3;             // K1 in eV, K2 Ang-1, K3 in Ang
   double **cut_spin_exchange;    // cutoff distance exchange
 
-  void allocate();
+  void allocate() override;
 };
 
 }    // namespace LAMMPS_NS

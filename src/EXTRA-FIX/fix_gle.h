@@ -27,30 +27,30 @@ namespace LAMMPS_NS {
 class FixGLE : public Fix {
  public:
   FixGLE(class LAMMPS *, int, char **);
-  virtual ~FixGLE();
-  int setmask();
-  void init();
-  void setup(int);
+  ~FixGLE() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
   void gle_integrate();
-  void initial_integrate_respa(int vflag, int ilevel, int iloop);
-  void final_integrate_respa(int ilevel, int iloop);
-  void initial_integrate(int vflag);
-  void final_integrate();
-  double compute_scalar();
-  void reset_target(double);
-  virtual void reset_dt();
+  void initial_integrate_respa(int vflag, int ilevel, int iloop) override;
+  void final_integrate_respa(int ilevel, int iloop) override;
+  void initial_integrate(int vflag) override;
+  void final_integrate() override;
+  double compute_scalar() override;
+  void reset_target(double) override;
+  void reset_dt() override;
 
-  double memory_usage();
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
-  int pack_restart(int, double *);
-  void unpack_restart(int, int);
-  int size_restart(int);
-  int maxsize_restart();
+  double memory_usage() override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  int pack_restart(int, double *) override;
+  void unpack_restart(int, int) override;
+  int size_restart(int) override;
+  int maxsize_restart() override;
 
-  virtual void *extract(const char *, int &);
+  void *extract(const char *, int &) override;
 
   void init_gle();
   void init_gles();

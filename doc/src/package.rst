@@ -460,7 +460,7 @@ using *neigh/thread* *on*, a full neighbor list must also be used. Using
 is turned on by default only when there are 16K atoms or less owned by
 an MPI rank and when using a full neighbor list. Not all KOKKOS-enabled
 potentials support this keyword yet, and only thread over atoms. Many
-simple pair-wise potentials such as Lennard-Jones do support threading
+simple pairwise potentials such as Lennard-Jones do support threading
 over both atoms and neighbors.
 
 The *newton* keyword sets the Newton flags for pairwise and bonded

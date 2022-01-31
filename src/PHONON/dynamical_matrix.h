@@ -18,8 +18,8 @@ namespace LAMMPS_NS {
 class DynamicalMatrix : public Command {
  public:
   DynamicalMatrix(class LAMMPS *);
-  virtual ~DynamicalMatrix();
-  void command(int, char **);
+  ~DynamicalMatrix() override;
+  void command(int, char **) override;
   void setup();
 
  protected:

@@ -85,6 +85,19 @@ public:
   using complex = SNAComplex<real_type>;
 
   // Static team/tile sizes for device offload
+
+#ifdef KOKKOS_ENABLE_HIP
+  static constexpr int team_size_compute_neigh = 2;
+  static constexpr int tile_size_compute_ck = 2;
+  static constexpr int tile_size_pre_ui = 2;
+  static constexpr int team_size_compute_ui = 2;
+  static constexpr int tile_size_transform_ui = 2;
+  static constexpr int tile_size_compute_zi = 2;
+  static constexpr int tile_size_compute_bi = 2;
+  static constexpr int tile_size_transform_bi = 2;
+  static constexpr int tile_size_compute_yi = 2;
+  static constexpr int team_size_compute_fused_deidrj = 2;
+#else
   static constexpr int team_size_compute_neigh = 4;
   static constexpr int tile_size_compute_ck = 4;
   static constexpr int tile_size_pre_ui = 4;
@@ -95,6 +108,7 @@ public:
   static constexpr int tile_size_transform_bi = 4;
   static constexpr int tile_size_compute_yi = 8;
   static constexpr int team_size_compute_fused_deidrj = sizeof(real_type) == 4 ? 4 : 2;
+#endif
 
   // Custom MDRangePolicy, Rank3, to reduce verbosity of kernel launches
   // This hides the Kokkos::IndexType<int> and Kokkos::Rank<3...>
@@ -110,13 +124,13 @@ public:
   using SnapAoSoATeamPolicy = typename Kokkos::TeamPolicy<Device, Kokkos::LaunchBounds<vector_length * num_teams>, TagPairSNAP>;
 
   PairSNAPKokkos(class LAMMPS *);
-  ~PairSNAPKokkos();
+  ~PairSNAPKokkos() override;
 
-  void coeff(int, char**);
-  void init_style();
-  double init_one(int, int);
-  void compute(int, int);
-  double memory_usage();
+  void coeff(int, char**) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  void compute(int, int) override;
+  double memory_usage() override;
 
   template<class TagStyle>
   void check_team_size_for(int, int&);
@@ -235,7 +249,7 @@ protected:
 
   int eflag,vflag;
 
-  void allocate();
+  void allocate() override;
   //void read_files(char *, char *);
   /*template<class DeviceType>
 inline int equal(double* x,double* y);
@@ -312,11 +326,11 @@ public:
 
   PairSNAPKokkosDevice(class LAMMPS *);
 
-  void coeff(int, char**);
-  void init_style();
-  double init_one(int, int);
-  void compute(int, int);
-  double memory_usage();
+  void coeff(int, char**) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  void compute(int, int) override;
+  double memory_usage() override;
 
 };
 

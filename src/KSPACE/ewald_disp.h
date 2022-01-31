@@ -36,12 +36,12 @@ namespace LAMMPS_NS {
 class EwaldDisp : public KSpace {
  public:
   EwaldDisp(class LAMMPS *);
-  ~EwaldDisp();
-  void init();
-  void setup();
-  void settings(int, char **);
-  void compute(int, int);
-  double memory_usage() { return bytes; }
+  ~EwaldDisp() override;
+  void init() override;
+  void setup() override;
+  void settings(int, char **) override;
+  void compute(int, int) override;
+  double memory_usage() override { return bytes; }
 
  private:
   double unit[6];

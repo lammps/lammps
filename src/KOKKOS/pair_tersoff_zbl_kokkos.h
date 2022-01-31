@@ -50,9 +50,9 @@ class PairTersoffZBLKokkos : public PairTersoffZBL {
   typedef EV_FLOAT value_type;
 
   PairTersoffZBLKokkos(class LAMMPS *);
-  virtual ~PairTersoffZBLKokkos();
-  virtual void compute(int, int);
-  void init_style();
+  ~PairTersoffZBLKokkos() override;
+  void compute(int, int) override;
+  void init_style() override;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -176,8 +176,8 @@ class PairTersoffZBLKokkos : public PairTersoffZBL {
   void v_tally3_atom(EV_FLOAT &ev, const int &i, const int &j, const int &k,
     F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *drji, F_FLOAT *drjk) const;
 
-  void allocate();
-  void setup_params();
+  void allocate() override;
+  void setup_params() override;
 
   KOKKOS_INLINE_FUNCTION
   double fermi_k(const int &i, const int &j, const int &k, const F_FLOAT &r) const;

@@ -29,9 +29,9 @@ class ComputeGyrationShape : public Compute {
   char *id_gyration;    // fields accessed by other classes
 
   ComputeGyrationShape(class LAMMPS *, int, char **);
-  ~ComputeGyrationShape();
-  void init();
-  void compute_vector();
+  ~ComputeGyrationShape() override;
+  void init() override;
+  void compute_vector() override;
 
  private:
   class Compute *c_gyration;

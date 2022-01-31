@@ -27,7 +27,6 @@ namespace LAMMPS_NS {
 class AtomVecAtomic : public AtomVec {
  public:
   AtomVecAtomic(class LAMMPS *);
-  ~AtomVecAtomic() {}
 };
 
 }    // namespace LAMMPS_NS

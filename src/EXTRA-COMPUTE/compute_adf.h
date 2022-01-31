@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class ComputeADF : public Compute {
  public:
   ComputeADF(class LAMMPS *, int, char **);
-  ~ComputeADF();
-  void init();
-  void init_list(int, class NeighList *);
-  void compute_array();
+  ~ComputeADF() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void compute_array() override;
 
  private:
   int nbin;                    // # of adf bins

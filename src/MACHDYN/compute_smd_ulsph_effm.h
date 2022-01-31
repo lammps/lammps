@@ -38,10 +38,10 @@ namespace LAMMPS_NS {
 class ComputeSMD_Ulsph_Effm : public Compute {
  public:
   ComputeSMD_Ulsph_Effm(class LAMMPS *, int, char **);
-  ~ComputeSMD_Ulsph_Effm();
-  void init();
-  void compute_peratom();
-  double memory_usage();
+  ~ComputeSMD_Ulsph_Effm() override;
+  void init() override;
+  void compute_peratom() override;
+  double memory_usage() override;
 
  private:
   int nmax;

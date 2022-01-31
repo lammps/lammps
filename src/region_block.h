@@ -29,10 +29,10 @@ class RegBlock : public Region {
 
  public:
   RegBlock(class LAMMPS *, int, char **);
-  ~RegBlock();
-  int inside(double, double, double);
-  int surface_interior(double *, double);
-  int surface_exterior(double *, double);
+  ~RegBlock() override;
+  int inside(double, double, double) override;
+  int surface_interior(double *, double) override;
+  int surface_exterior(double *, double) override;
 
  protected:
   double xlo, xhi, ylo, yhi, zlo, zhi;

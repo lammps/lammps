@@ -26,9 +26,7 @@ class LAMMPSException : public std::exception {
 
   LAMMPSException(const std::string &msg) : message(msg) {}
 
-  ~LAMMPSException() noexcept {}
-
-  virtual const char *what() const noexcept { return message.c_str(); }
+  const char *what() const noexcept override { return message.c_str(); }
 };
 
 class LAMMPSAbortException : public LAMMPSException {

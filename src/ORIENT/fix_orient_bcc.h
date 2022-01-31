@@ -44,17 +44,17 @@ class FixOrientBCC : public Fix {
   };
 
   FixOrientBCC(class LAMMPS *, int, char **);
-  ~FixOrientBCC();
-  int setmask();
-  void init();
-  void init_list(int, class NeighList *);
-  void setup(int);
-  void post_force(int);
-  void post_force_respa(int, int, int);
-  double compute_scalar();
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  double memory_usage();
+  ~FixOrientBCC() override;
+  int setmask() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void setup(int) override;
+  void post_force(int) override;
+  void post_force_respa(int, int, int) override;
+  double compute_scalar() override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  double memory_usage() override;
 
  private:
   int me;

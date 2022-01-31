@@ -29,16 +29,16 @@ class DumpCFG : public DumpCustom {
   int multifile_override;    // used by write_dump command
 
   DumpCFG(class LAMMPS *, int, char **);
-  virtual ~DumpCFG();
+  ~DumpCFG() override;
 
  protected:
   char **auxname;    // name strings of auxiliary properties
   int unwrapflag;    // 1 if unwrapped coordinates are requested
 
-  void init_style();
-  virtual void write_header(bigint);
-  int convert_string(int, double *);
-  virtual void write_data(int, double *);
+  void init_style() override;
+  void write_header(bigint) override;
+  int convert_string(int, double *) override;
+  void write_data(int, double *) override;
 
   typedef void (DumpCFG::*FnPtrWrite)(int, double *);
   FnPtrWrite write_choice;    // ptr to write data functions

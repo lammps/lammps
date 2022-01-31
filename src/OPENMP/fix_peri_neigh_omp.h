@@ -28,7 +28,7 @@ class FixPeriNeighOMP : public FixPeriNeigh {
 
  public:
   FixPeriNeighOMP(class LAMMPS *lmp, int narg, char **argv) : FixPeriNeigh(lmp, narg, argv){};
-  virtual void init();
+  void init() override;
 };
 
 }    // namespace LAMMPS_NS

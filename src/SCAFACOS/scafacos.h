@@ -28,13 +28,13 @@ namespace LAMMPS_NS {
 class Scafacos : public KSpace {
  public:
   Scafacos(class LAMMPS *);
-  ~Scafacos();
-  void init();
-  void setup() {}
-  void settings(int, char **);
-  void compute(int, int);
-  int modify_param(int, char **);
-  double memory_usage();
+  ~Scafacos() override;
+  void init() override;
+  void setup() override {}
+  void settings(int, char **) override;
+  void compute(int, int) override;
+  int modify_param(int, char **) override;
+  double memory_usage() override;
 
  private:
   int me;

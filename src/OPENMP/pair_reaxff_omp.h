@@ -29,9 +29,9 @@ namespace LAMMPS_NS {
 class PairReaxFFOMP : public PairReaxFF, public ThrOMP {
  public:
   PairReaxFFOMP(class LAMMPS *);
-  ~PairReaxFFOMP();
-  virtual void compute(int, int);
-  virtual void init_style();
+  ~PairReaxFFOMP() override;
+  void compute(int, int) override;
+  void init_style() override;
 
   inline FixOMP *getFixOMP() { return fix; };
 
@@ -98,7 +98,7 @@ class PairReaxFFOMP : public PairReaxFF, public ThrOMP {
   }
 
  protected:
-  virtual void setup();
+  void setup() override;
   virtual void write_reax_atoms();
   virtual int estimate_reax_lists();
   virtual int write_reax_lists();

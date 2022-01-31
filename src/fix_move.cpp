@@ -522,7 +522,7 @@ void FixMove::initial_integrate(int /*vflag*/)
       }
     }
 
-  // for wiggle: X = X0 + A sin(w*dt)
+    // for wiggle: X = X0 + A sin(w*dt)
 
   } else if (mstyle == WIGGLE) {
     double arg = omega_rotate * delta;
@@ -578,19 +578,19 @@ void FixMove::initial_integrate(int /*vflag*/)
       }
     }
 
-  // for rotate by right-hand rule around omega:
-  // P = point = vector = point of rotation
-  // R = vector = axis of rotation
-  // w = omega of rotation (from period)
-  // X0 = xoriginal = initial coord of atom
-  // R0 = runit = unit vector for R
-  // D = X0 - P = vector from P to X0
-  // C = (D dot R0) R0 = projection of atom coord onto R line
-  // A = D - C = vector from R line to X0
-  // B = R0 cross A = vector perp to A in plane of rotation
-  // A,B define plane of circular rotation around R line
-  // X = P + C + A cos(w*dt) + B sin(w*dt)
-  // V = w R0 cross (A cos(w*dt) + B sin(w*dt))
+    // for rotate by right-hand rule around omega:
+    // P = point = vector = point of rotation
+    // R = vector = axis of rotation
+    // w = omega of rotation (from period)
+    // X0 = xoriginal = initial coord of atom
+    // R0 = runit = unit vector for R
+    // D = X0 - P = vector from P to X0
+    // C = (D dot R0) R0 = projection of atom coord onto R line
+    // A = D - C = vector from R line to X0
+    // B = R0 cross A = vector perp to A in plane of rotation
+    // A,B define plane of circular rotation around R line
+    // X = P + C + A cos(w*dt) + B sin(w*dt)
+    // V = w R0 cross (A cos(w*dt) + B sin(w*dt))
 
   } else if (mstyle == ROTATE) {
     double arg = omega_rotate * delta;
@@ -707,10 +707,10 @@ void FixMove::initial_integrate(int /*vflag*/)
       }
     }
 
-  // for variable: compute x,v from variables
-  // NOTE: also allow for changes to extra attributes?
-  //       omega, angmom, theta, quat
-  //       only necessary if prescribed motion involves rotation
+    // for variable: compute x,v from variables
+    // NOTE: also allow for changes to extra attributes?
+    //       omega, angmom, theta, quat
+    //       only necessary if prescribed motion involves rotation
 
   } else if (mstyle == VARIABLE) {
 
@@ -778,21 +778,16 @@ void FixMove::initial_integrate(int /*vflag*/)
         } else if (vxvarstr) {
           if (vxvarstyle == EQUAL) v[i][0] = vx;
           else v[i][0] = velocity[i][0];
-          if (rmass) {
-            x[i][0] += dtv * v[i][0];
-          } else {
-            x[i][0] += dtv * v[i][0];
-          }
+          x[i][0] += dtv * v[i][0];
         } else {
           if (rmass) {
             dtfm = dtf / rmass[i];
             v[i][0] += dtfm * f[i][0];
-            x[i][0] += dtv * v[i][0];
           } else {
             dtfm = dtf / mass[type[i]];
             v[i][0] += dtfm * f[i][0];
-            x[i][0] += dtv * v[i][0];
           }
+          x[i][0] += dtv * v[i][0];
         }
 
         if (yvarstr && vyvarstr) {
@@ -806,21 +801,16 @@ void FixMove::initial_integrate(int /*vflag*/)
         } else if (vyvarstr) {
           if (vyvarstyle == EQUAL) v[i][1] = vy;
           else v[i][1] = velocity[i][1];
-          if (rmass) {
-            x[i][1] += dtv * v[i][1];
-          } else {
-            x[i][1] += dtv * v[i][1];
-          }
+          x[i][1] += dtv * v[i][1];
         } else {
           if (rmass) {
             dtfm = dtf / rmass[i];
             v[i][1] += dtfm * f[i][1];
-            x[i][1] += dtv * v[i][1];
           } else {
             dtfm = dtf / mass[type[i]];
             v[i][1] += dtfm * f[i][1];
-            x[i][1] += dtv * v[i][1];
           }
+          x[i][1] += dtv * v[i][1];
         }
 
         if (zvarstr && vzvarstr) {
@@ -834,21 +824,16 @@ void FixMove::initial_integrate(int /*vflag*/)
         } else if (vzvarstr) {
           if (vzvarstyle == EQUAL) v[i][2] = vz;
           else v[i][2] = velocity[i][2];
-          if (rmass) {
-            x[i][2] += dtv * v[i][2];
-          } else {
-            x[i][2] += dtv * v[i][2];
-          }
+          x[i][2] += dtv * v[i][2];
         } else {
           if (rmass) {
             dtfm = dtf / rmass[i];
             v[i][2] += dtfm * f[i][2];
-            x[i][2] += dtv * v[i][2];
           } else {
             dtfm = dtf / mass[type[i]];
             v[i][2] += dtfm * f[i][2];
-            x[i][2] += dtv * v[i][2];
           }
+          x[i][2] += dtv * v[i][2];
         }
 
         domain->remap_near(x[i],xold);

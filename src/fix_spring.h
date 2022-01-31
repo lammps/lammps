@@ -27,16 +27,16 @@ namespace LAMMPS_NS {
 class FixSpring : public Fix {
  public:
   FixSpring(class LAMMPS *, int, char **);
-  ~FixSpring();
-  int setmask();
-  void init();
-  void setup(int);
-  void min_setup(int);
-  void post_force(int);
-  void post_force_respa(int, int, int);
-  void min_post_force(int);
-  double compute_scalar();
-  double compute_vector(int);
+  ~FixSpring() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void min_setup(int) override;
+  void post_force(int) override;
+  void post_force_respa(int, int, int) override;
+  void min_post_force(int) override;
+  double compute_scalar() override;
+  double compute_vector(int) override;
 
  private:
   double xc, yc, zc, r0;

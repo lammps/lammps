@@ -339,7 +339,7 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeHalf<NEIGHFLAG,EVFLAG>
 
       if (rsq2 >= d_params[ikparam].cutsq) continue;
 
-      threebody(d_params[ijparam],d_params[ikparam],d_params[ijkparam],
+      threebody_kk(d_params[ijparam],d_params[ikparam],d_params[ijkparam],
                 rsq1,rsq2,delr1,delr2,fj,fk,eflag,evdwl);
 
       fxtmpi -= fj[0] + fk[0];
@@ -457,7 +457,7 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeFullA<NEIGHFLAG,EVFLAG
 
       if (rsq2 >= d_params[ikparam].cutsq) continue;
 
-      threebody(d_params[ijparam],d_params[ikparam],d_params[ijkparam],
+      threebody_kk(d_params[ijparam],d_params[ikparam],d_params[ijkparam],
                 rsq1,rsq2,delr1,delr2,fj,fk,eflag,evdwl);
 
       fxtmpi -= fj[0] + fk[0];
@@ -542,7 +542,7 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeFullB<NEIGHFLAG,EVFLAG
       if (rsq2 >= d_params[jkparam].cutsq) continue;
 
       if (vflag_atom)
-        threebody(d_params[jiparam],d_params[jkparam],d_params[jikparam],
+        threebody_kk(d_params[jiparam],d_params[jkparam],d_params[jikparam],
                   rsq1,rsq2,delr1,delr2,fj,fk,eflag,evdwl);
       else
         threebodyj(d_params[jiparam],d_params[jkparam],d_params[jikparam],
@@ -686,7 +686,7 @@ void PairSWKokkos<DeviceType>::twobody(const Param& param, const F_FLOAT& rsq, F
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairSWKokkos<DeviceType>::threebody(const Param& paramij, const Param& paramik, const Param& paramijk,
+void PairSWKokkos<DeviceType>::threebody_kk(const Param& paramij, const Param& paramik, const Param& paramijk,
                        const F_FLOAT& rsq1, const F_FLOAT& rsq2,
                        F_FLOAT *delr1, F_FLOAT *delr2,
                        F_FLOAT *fj, F_FLOAT *fk, const int& eflag, F_FLOAT& eng) const

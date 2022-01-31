@@ -14,6 +14,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing author (ratio and subset) : Jake Gissinger (U Colorado)
+   Contributing author (exclude) : Eugen Rozic (Institute Ruder Boskovic)
 ------------------------------------------------------------------------- */
 
 #include "create_atoms.h"
@@ -45,7 +46,6 @@ using namespace MathConst;
 #define BIG 1.0e30
 #define EPSILON 1.0e-6
 #define LB_FACTOR 1.1
-#define MAX_RANDOM_TRIES 1000
 
 enum{BOX,REGION,SINGLE,RANDOM};
 enum{ATOM,MOLECULE};
@@ -113,7 +113,9 @@ void CreateAtoms::command(int narg, char **arg)
     style = RANDOM;
     if (narg < 5) error->all(FLERR,"Illegal create_atoms command");
     nrandom = utils::inumeric(FLERR,arg[2],false,lmp);
+    if (nrandom < 0) error->all(FLERR,"Illegal create_atoms command");
     seed = utils::inumeric(FLERR,arg[3],false,lmp);
+    if (seed <= 0) error->all(FLERR,"Illegal create_atoms command");
     if (strcmp(arg[4],"NULL") == 0) nregion = -1;
     else {
       nregion = domain->find_region(arg[4]);
@@ -129,19 +131,16 @@ void CreateAtoms::command(int narg, char **arg)
 
   int scaleflag = 1;
   remapflag = 0;
-  rotateflag = 0;
   mode = ATOM;
   int molseed;
+  ranmol = nullptr;
   varflag = 0;
   vstr = xstr = ystr = zstr = nullptr;
-  quatone[0] = quatone[1] = quatone[2] = 0.0;
+  quatone[0] = quatone[1] = quatone[2] = quatone[3] = 0.0;
   subsetflag = NONE;
   int subsetseed;
   excludeflag = 0;
-  if (style == RANDOM)
-    maxtries = MAX_RANDOM_TRIES;
-  else
-    maxtries = 1;
+  maxtries = 1;
 
   nbasis = domain->lattice->nbasis;
   basistype = new int[nbasis];
@@ -184,15 +183,6 @@ void CreateAtoms::command(int narg, char **arg)
       vstr = utils::strdup(arg[iarg+1]);
       varflag = 1;
       iarg += 2;
-    } else if (strcmp(arg[iarg],"exclude") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal create_atoms command");
-      exclude_cutoff = force->numeric(FLERR,arg[iarg+1]);
-      excludeflag = 1;
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"maxtries") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal create_atoms command");
-      maxtries = force->numeric(FLERR,arg[iarg+1]);
-      iarg += 2;
     } else if (strcmp(arg[iarg],"set") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal create_atoms command");
       if (strcmp(arg[iarg+1],"x") == 0) {
@@ -207,8 +197,6 @@ void CreateAtoms::command(int narg, char **arg)
       } else error->all(FLERR,"Illegal create_atoms command");
       iarg += 3;
     } else if (strcmp(arg[iarg],"rotate") == 0) {
-      if (style == RANDOM)
-        error->all(FLERR,"Cannot use create_atoms rotate with random style");
       if (iarg+5 > narg) error->all(FLERR,"Illegal create_atoms command");
       double thetaone;
       double axisone[3];
@@ -222,7 +210,6 @@ void CreateAtoms::command(int narg, char **arg)
         error->all(FLERR,"Invalid create_atoms rotation vector for 2d model");
       MathExtra::norm3(axisone);
       MathExtra::axisangle_to_quat(axisone,thetaone,quatone);
-      rotateflag = 1;
       iarg += 5;
     } else if (strcmp(arg[iarg],"ratio") == 0) {
       if (iarg+3 > narg) error->all(FLERR,"Illegal create_atoms command");
@@ -240,23 +227,21 @@ void CreateAtoms::command(int narg, char **arg)
       if (nsubset <= 0 || subsetseed <= 0)
         error->all(FLERR,"Illegal create_atoms command");
       iarg += 3;
+    } else if (strcmp(arg[iarg],"exclude") == 0) {
+      if (iarg+3 > narg) error->all(FLERR,"Illegal create_atoms command");
+      exclude_cutoff = force->numeric(FLERR,arg[iarg+1]);
+      maxtries = force->numeric(FLERR,arg[iarg+2]);
+      excludeflag = 1;
+      iarg += 3;
     } else error->all(FLERR,"Illegal create_atoms command");
   }
 
-  // error checks
+  // error checks and further setup for mode = MOLECULE
 
-  if (mode == ATOM && (ntype <= 0 || ntype > atom->ntypes))
-    error->all(FLERR,"Invalid atom type in create_atoms command");
-
-  if (style == RANDOM) {
-    if (nrandom < 0) error->all(FLERR,"Illegal create_atoms command");
-    if (seed <= 0) error->all(FLERR,"Illegal create_atoms command");
-  }
-
-  // error check and further setup for mode = MOLECULE
-
-  ranmol = nullptr;
-  if (mode == MOLECULE) {
+  if (mode == ATOM) {
+    if (ntype <= 0 || ntype > atom->ntypes))
+      error->all(FLERR,"Invalid atom type in create_atoms command");
+  } else if (mode == MOLECULE) {
     if (onemol->xflag == 0)
       error->all(FLERR,"Create_atoms molecule must have coordinates");
     if (onemol->typeflag == 0)
@@ -268,16 +253,13 @@ void CreateAtoms::command(int narg, char **arg)
                  "Create_atoms molecule has atom IDs, but system does not");
     onemol->check_attributes(0);
 
-    // create_atoms uses geoemetric center of molecule for insertion
-
+    // create_atoms uses geometric center of molecule for insertion
     onemol->compute_center();
 
     // molecule random number generator, different for each proc
+    ranmol = new RanMars(lmp, molseed+me);
 
-    ranmol = new RanMars(lmp,molseed+me);
-
-    // a bit of memory for molecule creation tries
-
+    // a bit of memory for tries to create molecules (if exclude/maxtries)
     memory->create(temp_mol_coords, natoms, 3, "create_atoms:temp_mol_coords");
   }
 
@@ -605,7 +587,6 @@ void CreateAtoms::command(int narg, char **arg)
     if (atom->molecular == Atom::MOLECULAR && onemol->bondflag && !onemol->specialflag) {
       Special special(lmp);
       special.build();
-
     }
   }
 
@@ -656,35 +637,6 @@ void CreateAtoms::add_single()
 
   //TODO varflag ??
 
-  if (mode == MOLECULE) {
-    if (rotateflag) {
-      gen_mol_coords(xone, quatone);
-    } else {
-      gen_mol_coords(xone); //random rotation
-    }
-  }
-
-  if (excludeflag) {
-    if (mode == ATOM) {
-      //TODO check for xone...
-      // if not OK:
-      // error->all(FLERR, "Couldn't create atom at the given coordinates")
-    } else {
-      int tries = 1;
-      if (rotateflag)
-        tries = maxtries; //because nothing will change in subsequent tries
-      while (1) {
-        //TODO check for each temp_mol_coord...
-        // if OK: break;
-        // else: tries++;
-        if (tries > maxtries)
-          error->all(FLERR, "Couldn't create molecule at the given coordinates")
-        else
-          gen_mol_coords(xone);
-      }
-    }
-  }
-
   // if atom/molecule is in my subbox, create it
 
   if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
@@ -693,6 +645,7 @@ void CreateAtoms::add_single()
     if (mode == ATOM) {
       atom->avec->create_atom(ntype, xone);
     } else {
+      gen_mol_coords(xone, quatone);
       create_mol();
     }
   }
@@ -769,7 +722,7 @@ void CreateAtoms::add_random()
         continue;
 
       if (mode == MOLECULE)
-        gen_mol_coords(xone); //"rotate" is incompatible with "random"
+        gen_mol_coords(xone, quatone);
 
       if (excludeflag) {
         if (mode == ATOM) {
@@ -984,36 +937,6 @@ void CreateAtoms::loop_lattice(int action)
           if (varflag && vartest(x) == 0)
             continue;
 
-          if (mode == MOLECULE) {
-            if (rotateflag) {
-              gen_mol_coords(x, quatone); //give all mols in lattice the same orientation
-            } else {
-              gen_mol_coords(x); //random orientation
-            }
-          }
-
-          // test if atom/molecule position is in my subbox
-          if (excludeflag) {
-            if (mode == ATOM) {
-              //TODO check fox x... if not OK: continue;
-            } else {
-              int tries = 1;
-              if (rotateflag)
-                tries = maxtries; //because nothing will change in subsequent tries
-              while (1) {
-                //TODO check for each temp_mol_coord...
-                // if OK: break;
-                // else: tries++;
-                if (tries > maxtries)
-                  break;
-                else
-                  gen_mol_coords(x);
-              }
-              if (tries > maxtries)
-                continue;
-            }
-          }
-
           if (triclinic) {
             domain->x2lamda(x,lamda);
             coord = lamda;
@@ -1031,6 +954,7 @@ void CreateAtoms::loop_lattice(int action)
             if (mode == ATOM) {
               atom->avec->create_atom(basistype[m],x);
             } else {
+              gen_mol_coords(x, quatone);
               create_mol();
             }
           } else if (action == COUNT) {
@@ -1039,6 +963,7 @@ void CreateAtoms::loop_lattice(int action)
             if (mode == ATOM) {
               atom->avec->create_atom(basistype[m],x);
             } else {
+              gen_mol_coords(x, quatone);
               create_mol();
             }
           }
@@ -1058,12 +983,16 @@ void CreateAtoms::loop_lattice(int action)
 void CreateAtoms::gen_mol_coords(double *center, double *quat_user)
 {
   double quat[4], rotmat[3][3];
+  int randrot = 1;
   if (quat_user) {
-    quat[0] = quat_user[0];
-    quat[1] = quat_user[1];
-    quat[2] = quat_user[2];
-    quat[3] = quat_user[3];
-  } else {
+    for (int i=0; i<4; i++) {
+      if (quat_user[i] != 0) {
+        randrot = 0;
+        break;
+      }
+    }
+  }
+  if (randrot) {
     if (domain->dimension == 3) {
       r[0] = ranmol->uniform() - 0.5;
       r[1] = ranmol->uniform() - 0.5;
@@ -1075,6 +1004,11 @@ void CreateAtoms::gen_mol_coords(double *center, double *quat_user)
     }
     double theta = ranmol->uniform() * MY_2PI;
     MathExtra::axisangle_to_quat(r, theta, quat);
+  } else {
+    quat[0] = quat_user[0];
+    quat[1] = quat_user[1];
+    quat[2] = quat_user[2];
+    quat[3] = quat_user[3];
   }
   onemol->quat_external = quat;
   MathExtra::quat_to_mat(quat, rotmat);

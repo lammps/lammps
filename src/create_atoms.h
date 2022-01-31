@@ -33,7 +33,6 @@ class CreateAtoms : public Command {
   int me, nprocs;
   int ntype, style, mode, nregion, nbasis, nrandom, seed;
   int remapflag;
-  int rotateflag;
   int maxtries;
   int excludeflag;
   double exclude_cutoff;

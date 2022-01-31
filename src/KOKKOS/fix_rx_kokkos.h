@@ -61,13 +61,12 @@ struct s_CounterType
   }
 
   KOKKOS_INLINE_FUNCTION
-  volatile s_CounterType& operator+=(const volatile s_CounterType &rhs) volatile
+  void operator+=(const volatile s_CounterType &rhs) volatile
   {
     nSteps += rhs.nSteps;
     nIters += rhs.nIters;
     nFuncs += rhs.nFuncs;
     nFails += rhs.nFails;
-    return *this;
   }
 };
 typedef struct s_CounterType CounterType;

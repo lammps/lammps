@@ -975,7 +975,7 @@ void Dump::balance()
 
       // post receive for this proc
 
-      if (iproc_prev != me)
+      if (procrecv != me)
         MPI_Irecv(&buf_balance[procstart*size_one],procnrecv*size_one,MPI_DOUBLE,
                   procrecv,0,world,&request[nswap++]);
 
@@ -1008,7 +1008,7 @@ void Dump::balance()
 
       // send for this proc
 
-      if (iproc_prev != me) {
+      if (procsend != me) {
         MPI_Send(&buf[procstart*size_one],procnsend*size_one,MPI_DOUBLE,procsend,0,world);
       } else {
 

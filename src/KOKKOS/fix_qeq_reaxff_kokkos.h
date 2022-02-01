@@ -280,21 +280,21 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   Kokkos::DualView<params_qeq*,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_qeq*, Kokkos::LayoutRight,DeviceType>::t_dev_const params;
 
-  typename ArrayTypes<DeviceType>::t_x_array x;
-  typename ArrayTypes<DeviceType>::t_v_array v;
-  typename ArrayTypes<DeviceType>::t_f_array_const f;
-  //typename ArrayTypes<DeviceType>::t_float_1d_randomread mass, q;
-  typename ArrayTypes<DeviceType>::t_float_1d_randomread mass;
-  typename ArrayTypes<DeviceType>::t_float_1d q;
-  typename ArrayTypes<DeviceType>::t_int_1d type, mask;
-  typename ArrayTypes<DeviceType>::t_tagint_1d tag;
+  typename AT::t_x_array x;
+  typename AT::t_v_array v;
+  typename AT::t_f_array_const f;
+  //typename AT::t_float_1d_randomread mass, q;
+  typename AT::t_float_1d_randomread mass;
+  typename AT::t_float_1d q;
+  typename AT::t_int_1d type, mask;
+  typename AT::t_tagint_1d tag;
 
   DAT::tdual_float_1d k_q;
   typename AT::t_float_1d d_q;
   HAT::t_float_1d h_q;
 
-  typename ArrayTypes<DeviceType>::t_neighbors_2d d_neighbors;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread d_ilist, d_numneigh;
+  typename AT::t_neighbors_2d d_neighbors;
+  typename AT::t_int_1d_randomread d_ilist, d_numneigh;
 
   DAT::tdual_ffloat_1d k_tap;
   typename AT::t_ffloat_1d d_tap;
@@ -318,9 +318,6 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   DAT::tdual_ffloat_1d k_o, k_d;
   typename AT::t_ffloat_1d d_p, d_o, d_r, d_d;
   HAT::t_ffloat_1d h_o, h_d;
-
-  Kokkos::Experimental::ScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout, typename KKDevice<DeviceType>::value, Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated> dup_o;
-  Kokkos::Experimental::ScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout, typename KKDevice<DeviceType>::value, Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated> ndup_o;
 #endif
 
   typename AT::t_ffloat_1d_randomread r_p, r_o, r_r, r_d;
@@ -329,6 +326,17 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   typename AT::t_ffloat_2d d_shield, d_s_hist, d_t_hist;
   HAT::t_ffloat_2d h_s_hist, h_t_hist;
   typename AT::t_ffloat_2d_randomread r_s_hist, r_t_hist;
+
+  using KKDeviceType = typename KKDevice<DeviceType>::value;
+
+  template<typename DataType, typename Layout>
+  using DupScatterView = KKScatterView<DataType, Layout, KKDeviceType, KKScatterSum, KKScatterDuplicated>;
+
+  template<typename DataType, typename Layout>
+  using NonDupScatterView = KKScatterView<DataType, Layout, KKDeviceType, KKScatterSum, KKScatterNonDuplicated>;
+
+  DupScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout> dup_o;
+  NonDupScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout> ndup_o;
 
   int iswap;
   int first;

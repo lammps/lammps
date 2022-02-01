@@ -197,6 +197,15 @@ public:
 #endif
 };
 
+// Helpers for readability
+
+using KKScatterSum = Kokkos::Experimental::ScatterSum;
+using KKScatterDuplicated = Kokkos::Experimental::ScatterDuplicated;
+using KKScatterNonDuplicated = Kokkos::Experimental::ScatterNonDuplicated;
+
+template<typename DataType, typename Layout, typename Device, typename... Args>
+using KKScatterView = Kokkos::Experimental::ScatterView<DataType, Layout, Device, Args...>;
+
 
 // set ExecutionSpace stuct with variable "space"
 
@@ -276,6 +285,9 @@ struct AtomicDup {
   using value = Kokkos::Experimental::ScatterNonAtomic;
 };
 
+template<int NEIGHFLAG, class DeviceType>
+using AtomicDup_v = typename AtomicDup<NEIGHFLAG, DeviceType>::value;
+
 #ifdef KOKKOS_ENABLE_CUDA
 template<>
 struct AtomicDup<HALFTHREAD,Kokkos::Cuda> {
@@ -323,6 +335,9 @@ template<int NEIGHFLAG, class DeviceType>
 struct NeedDup {
   using value = Kokkos::Experimental::ScatterNonDuplicated;
 };
+
+template<int NEIGHFLAG, class DeviceType>
+using NeedDup_v = typename NeedDup<NEIGHFLAG,DeviceType>::value;
 
 #ifndef LMP_KOKKOS_USE_ATOMICS
 

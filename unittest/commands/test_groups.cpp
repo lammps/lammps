@@ -34,7 +34,6 @@ using LAMMPS_NS::utils::split_words;
 
 namespace LAMMPS_NS {
 using ::testing::ExitedWithCode;
-using ::testing::MatchesRegex;
 using ::testing::StrEq;
 
 class GroupTest : public LAMMPSTest {

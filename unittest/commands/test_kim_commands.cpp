@@ -33,7 +33,6 @@ bool verbose = false;
 using LAMMPS_NS::utils::split_words;
 
 namespace LAMMPS_NS {
-using ::testing::MatchesRegex;
 using ::testing::StrEq;
 
 class KimCommandsTest : public LAMMPSTest {

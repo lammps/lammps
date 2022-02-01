@@ -329,9 +329,11 @@ void PythonImpl::invoke_function(int ifunc, char *result)
   if (pfuncs[ifunc].noutput) {
     int otype = pfuncs[ifunc].otype;
     if (otype == INT) {
-      sprintf(result, "%ld", PY_INT_AS_LONG(pValue));
+      auto value = fmt::format("{}", PY_INT_AS_LONG(pValue));
+      strncpy(result, value.c_str(), Variable::VALUELENGTH - 1);
     } else if (otype == DOUBLE) {
-      sprintf(result, "%.15g", PyFloat_AsDouble(pValue));
+      auto value = fmt::format("{:.15g}", PyFloat_AsDouble(pValue));
+      strncpy(result, value.c_str(), Variable::VALUELENGTH - 1);
     } else if (otype == STRING) {
       const char *pystr = PY_STRING_AS_STRING(pValue);
       if (pfuncs[ifunc].longstr)

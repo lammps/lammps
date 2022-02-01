@@ -9,7 +9,7 @@ MODULE MPI
       mpi_comm_split
 
 CONTAINS
-  
+
   SUBROUTINE mpi_comm_split(comm,color,key,newcomm,ierr)
     INTEGER, INTENT(in)  :: comm,color,key
     INTEGER, INTENT(out) :: newcomm,ierr

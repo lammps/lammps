@@ -2123,7 +2123,7 @@ TEST_F(AtomStyleTest, body_nparticle)
                              "12.0 0.0 12.0 0.0 0.0 0.0\n"
                              "0.0 1.0 0.0\n"
                              "0.0 -3.0 0.0\n";
-    FILE *fp = fopen("input_atom_styles.data", "w");
+    FILE *fp               = fopen("input_atom_styles.data", "w");
     fputs(data_file, fp);
     fclose(fp);
     BEGIN_HIDE_OUTPUT();

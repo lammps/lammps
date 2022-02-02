@@ -27,13 +27,13 @@ namespace LAMMPS_NS {
 class PairHbondDreidingLJ : public Pair {
  public:
   PairHbondDreidingLJ(class LAMMPS *);
-  virtual ~PairHbondDreidingLJ();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  virtual void coeff(int, char **);
-  virtual void init_style();
-  double init_one(int, int);
-  virtual double single(int, int, int, int, double, double, double, double &);
+  ~PairHbondDreidingLJ() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  double single(int, int, int, int, double, double, double, double &) override;
 
  protected:
   double cut_inner_global, cut_outer_global, cut_angle_global;

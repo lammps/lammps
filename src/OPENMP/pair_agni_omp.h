@@ -34,8 +34,8 @@ class PairAGNIOMP : public PairAGNI, public ThrOMP {
  public:
   PairAGNIOMP(class LAMMPS *);
 
-  virtual void compute(int, int);
-  virtual double memory_usage();
+  void compute(int, int) override;
+  double memory_usage() override;
 
  private:
   template <int ATOMIC_FEATURE_VERSION, int EVFLAG>

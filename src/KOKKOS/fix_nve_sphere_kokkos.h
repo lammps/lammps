@@ -32,11 +32,11 @@ template<class DeviceType>
 class FixNVESphereKokkos : public FixNVESphere {
   public:
     FixNVESphereKokkos(class LAMMPS *, int, char **);
-    virtual ~FixNVESphereKokkos() {}
+
     void cleanup_copy();
-    void init();
-    void initial_integrate(int);
-    void final_integrate();
+    void init() override;
+    void initial_integrate(int) override;
+    void final_integrate() override;
 
     KOKKOS_INLINE_FUNCTION
     void initial_integrate_item(const int i) const;

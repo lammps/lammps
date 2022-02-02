@@ -21,12 +21,12 @@ namespace LAMMPS_NS {
 class FixNHSphereOMP : public FixNHOMP {
  public:
   FixNHSphereOMP(class LAMMPS *, int, char **);
-  virtual ~FixNHSphereOMP() {}
-  virtual void init();
+
+  void init() override;
 
  protected:
-  virtual void nve_v();
-  virtual void nh_v_temp();
+  void nve_v() override;
+  void nh_v_temp() override;
 };
 
 }    // namespace LAMMPS_NS

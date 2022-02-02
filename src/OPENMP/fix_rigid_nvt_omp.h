@@ -27,7 +27,6 @@ namespace LAMMPS_NS {
 class FixRigidNVTOMP : public FixRigidNHOMP {
  public:
   FixRigidNVTOMP(class LAMMPS *, int, char **);
-  ~FixRigidNVTOMP() {}
 };
 
 }    // namespace LAMMPS_NS

@@ -102,7 +102,7 @@ class NeighList : protected Pointers {
   // methods
 
   NeighList(class LAMMPS *);
-  virtual ~NeighList();
+  ~NeighList() override;
   void post_constructor(class NeighRequest *);
   void setup_pages(int, int);    // setup page data structures
   void grow(int, int);           // grow all data structs

@@ -27,8 +27,8 @@ namespace LAMMPS_NS {
 class ComputeERotateAsphere : public Compute {
  public:
   ComputeERotateAsphere(class LAMMPS *, int, char **);
-  void init();
-  double compute_scalar();
+  void init() override;
+  double compute_scalar() override;
 
  private:
   double pfactor;

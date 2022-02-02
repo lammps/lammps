@@ -27,14 +27,14 @@ namespace LAMMPS_NS {
 class AngleFourier : public Angle {
  public:
   AngleFourier(class LAMMPS *);
-  virtual ~AngleFourier();
-  virtual void compute(int, int);
-  void coeff(int, char **);
-  double equilibrium_angle(int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_data(FILE *);
-  virtual double single(int, int, int, int);
+  ~AngleFourier() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  double equilibrium_angle(int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
+  double single(int, int, int, int) override;
 
  protected:
   double *k, *C0, *C1, *C2;

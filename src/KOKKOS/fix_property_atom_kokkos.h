@@ -28,9 +28,8 @@ namespace LAMMPS_NS {
 class FixPropertyAtomKokkos : public FixPropertyAtom {
  public:
   FixPropertyAtomKokkos(class LAMMPS *, int, char **);
-  virtual ~FixPropertyAtomKokkos() {}
 
-  void grow_arrays(int);
+  void grow_arrays(int) override;
 };
 
 }

@@ -23,7 +23,7 @@ protected:
     void *lmp;
     std::string INPUT_DIR = STRINGIFY(TEST_INPUT_FOLDER);
 
-    GatherProperties() = default;
+    GatherProperties()           = default;
     ~GatherProperties() override = default;
 
     void SetUp() override

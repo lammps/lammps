@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class PairEDIPMulti : public Pair {
  public:
   PairEDIPMulti(class LAMMPS *);
-  virtual ~PairEDIPMulti();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  void init_style();
+  ~PairEDIPMulti() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void init_style() override;
 
   static constexpr int NPARAMS_PER_LINE = 20;
 
@@ -63,7 +63,7 @@ class PairEDIPMulti : public Pair {
   void deallocatePreLoops();
 
   void read_file(char *);
-  void setup();
+  void setup() override;
 
   void edip_pair(double, double, const Param &, double &, double &, double &);
   void edip_fc(double, const Param &, double &, double &);

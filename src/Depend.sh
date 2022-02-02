@@ -135,6 +135,10 @@ if (test $1 = "PYTHON") then
   depend ML-IAP
 fi
 
+if (test $1 = "PHONON") then
+  depend KOKKOS
+fi
+
 if (test $1 = "RIGID") then
   depend KOKKOS
   depend OPENMP

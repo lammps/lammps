@@ -32,12 +32,12 @@ namespace LAMMPS_NS {
 class FixNVEIntel : public FixNVE {
  public:
   FixNVEIntel(class LAMMPS *, int, char **);
-  virtual ~FixNVEIntel();
-  virtual void setup(int);
-  virtual void initial_integrate(int);
-  virtual void final_integrate();
-  virtual void reset_dt();
-  virtual double memory_usage();
+  ~FixNVEIntel() override;
+  void setup(int) override;
+  void initial_integrate(int) override;
+  void final_integrate() override;
+  void reset_dt() override;
+  double memory_usage() override;
 
  protected:
   double *_dtfm;

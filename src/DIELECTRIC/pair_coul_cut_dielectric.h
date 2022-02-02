@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class PairCoulCutDielectric : public PairCoulCut {
  public:
   PairCoulCutDielectric(class LAMMPS *);
-  virtual ~PairCoulCutDielectric();
-  virtual void compute(int, int);
-  virtual double single(int, int, int, int, double, double, double, double &);
-  void init_style();
+  ~PairCoulCutDielectric() override;
+  void compute(int, int) override;
+  double single(int, int, int, int, double, double, double, double &) override;
+  void init_style() override;
 
   double **efield;
 

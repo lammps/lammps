@@ -27,22 +27,22 @@ namespace LAMMPS_NS {
 class PairSpinDmi : public PairSpin {
  public:
   PairSpinDmi(LAMMPS *lmp) : PairSpin(lmp) {}
-  virtual ~PairSpinDmi();
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  void *extract(const char *, int &);
+  ~PairSpinDmi() override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void *extract(const char *, int &) override;
 
-  void compute(int, int);
-  void compute_single_pair(int, double *);
+  void compute(int, int) override;
+  void compute_single_pair(int, double *) override;
 
   void compute_dmi(int, int, double *, double *, double *);
   void compute_dmi_mech(int, int, double, double *, double *, double *, double *);
 
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
 
   double cut_spin_dmi_global;    // short range pair cutoff
 
@@ -52,7 +52,7 @@ class PairSpinDmi : public PairSpin {
   double **vmech_dmx, **vmech_dmy, **vmech_dmz;    // dmi mech direction
   double **cut_spin_dmi;                           // cutoff distance dmi
 
-  void allocate();
+  void allocate() override;
 };
 
 }    // namespace LAMMPS_NS

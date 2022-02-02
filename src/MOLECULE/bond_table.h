@@ -27,16 +27,16 @@ namespace LAMMPS_NS {
 class BondTable : public Bond {
  public:
   BondTable(class LAMMPS *);
-  virtual ~BondTable();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  double equilibrium_distance(int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  double single(int, double, int, int, double &);
+  ~BondTable() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double equilibrium_distance(int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
+  double single(int, double, int, int, double &) override;
 
  protected:
   int tabstyle, tablength;

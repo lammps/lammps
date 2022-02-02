@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class FixEOStable : public Fix {
  public:
   FixEOStable(class LAMMPS *, int, char **);
-  virtual ~FixEOStable();
-  int setmask();
-  virtual void init();
-  virtual void post_integrate();
-  virtual void end_of_step();
+  ~FixEOStable() override;
+  int setmask() override;
+  void init() override;
+  void post_integrate() override;
+  void end_of_step() override;
   void energy_lookup(double, double &);
   void temperature_lookup(double, double &);
 

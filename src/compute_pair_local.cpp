@@ -226,13 +226,13 @@ int ComputePairLocal::compute_pairs(int flag)
       factor_lj = special_lj[sbmask(j)];
       factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
+      jtag = tag[j];
 
       if (!(mask[j] & groupbit)) continue;
 
       // itag = jtag is possible for long cutoffs that include images of self
 
       if (newton_pair == 0 && j >= nlocal) {
-        jtag = tag[j];
         if (itag > jtag) {
           if ((itag+jtag) % 2 == 0) continue;
         } else if (itag < jtag) {
@@ -277,10 +277,13 @@ int ComputePairLocal::compute_pairs(int flag)
             break;
           case DX:
             ptr[n] = delx*directionCorrection;
+            break;
           case DY:
             ptr[n] = dely*directionCorrection;
+            break;
           case DZ:
             ptr[n] = delz*directionCorrection;
+            break;
           case ENG:
             ptr[n] = eng;
             break;

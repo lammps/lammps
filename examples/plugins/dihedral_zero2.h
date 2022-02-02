@@ -25,14 +25,14 @@ namespace LAMMPS_NS {
 class DihedralZero2 : public Dihedral {
  public:
   DihedralZero2(class LAMMPS *);
-  virtual ~DihedralZero2();
-  virtual void compute(int, int);
-  virtual void coeff(int, char **);
-  virtual void settings(int, char **);
+  ~DihedralZero2() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void settings(int, char **) override;
 
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_data(FILE *);
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
 
  protected:
   int coeffflag;

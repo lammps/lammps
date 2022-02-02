@@ -27,7 +27,7 @@ class RestartMPIIO : protected Pointers {
   int mpiio_exists;
 
   RestartMPIIO(class LAMMPS *);
-  ~RestartMPIIO() {}
+
   void openForRead(const char *);
   void openForWrite(const char *);
   void write(MPI_Offset, int, double *);

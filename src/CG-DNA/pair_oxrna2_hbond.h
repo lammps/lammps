@@ -27,7 +27,6 @@ namespace LAMMPS_NS {
 class PairOxrna2Hbond : public PairOxdnaHbond {
  public:
   PairOxrna2Hbond(class LAMMPS *);
-  virtual ~PairOxrna2Hbond() {}
 };
 
 }    // namespace LAMMPS_NS

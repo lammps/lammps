@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class ComputeEntropyAtom : public Compute {
  public:
   ComputeEntropyAtom(class LAMMPS *, int, char **);
-  ~ComputeEntropyAtom();
-  void init();
-  void init_list(int, class NeighList *);
-  void compute_peratom();
-  double memory_usage();
+  ~ComputeEntropyAtom() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void compute_peratom() override;
+  double memory_usage() override;
 
  private:
   int nmax, maxneigh, nbin;

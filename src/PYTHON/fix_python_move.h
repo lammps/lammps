@@ -37,15 +37,15 @@ namespace LAMMPS_NS {
 class FixPythonMove : public Fix {
  public:
   FixPythonMove(LAMMPS *lmp, int narg, char **arg);
-  virtual ~FixPythonMove();
+  ~FixPythonMove() override;
 
-  int setmask();
-  virtual void init();
-  virtual void initial_integrate(int);
-  virtual void final_integrate();
-  virtual void initial_integrate_respa(int, int, int);
-  virtual void final_integrate_respa(int, int);
-  virtual void reset_dt();
+  int setmask() override;
+  void init() override;
+  void initial_integrate(int) override;
+  void final_integrate() override;
+  void initial_integrate_respa(int, int, int) override;
+  void final_integrate_respa(int, int) override;
+  void reset_dt() override;
 
  protected:
   void *py_move;

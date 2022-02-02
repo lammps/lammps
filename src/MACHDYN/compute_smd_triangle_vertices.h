@@ -38,10 +38,10 @@ namespace LAMMPS_NS {
 class ComputeSMDTriangleVertices : public Compute {
  public:
   ComputeSMDTriangleVertices(class LAMMPS *, int, char **);
-  ~ComputeSMDTriangleVertices();
-  void init();
-  void compute_peratom();
-  double memory_usage();
+  ~ComputeSMDTriangleVertices() override;
+  void init() override;
+  void compute_peratom() override;
+  double memory_usage() override;
 
  private:
   int nmax;

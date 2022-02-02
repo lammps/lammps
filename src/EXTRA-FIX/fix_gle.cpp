@@ -211,6 +211,8 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
   S  = new double[ns1sq];
   TT = new double[ns1sq];
   ST = new double[ns1sq];
+  memset(A,0,sizeof(double)*ns1sq);
+  memset(C,0,sizeof(double)*ns1sq);
 
   // start temperature (t ramp)
   t_start = utils::numeric(FLERR,arg[4],false,lmp);
@@ -223,7 +225,6 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
 
   // LOADING A matrix
   char *fname = arg[7];
-  memset(A, ns1sq, sizeof(double));
   if (comm->me == 0) {
     PotentialFileReader reader(lmp,fname,"fix gle A matrix");
     try {
@@ -256,14 +257,12 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
   if (fnoneq == 0) {
     t_target=t_start;
     const double kT = t_target * force->boltz / force->mvv2e;
-    memset(C,0,sizeof(double)*ns1sq);
     for (int i=0; i<ns1sq; i+=(ns+2))
       C[i]=kT;
 
   } else {
 
     // LOADING C matrix
-    memset(C, ns1sq, sizeof(double));
     if (comm->me == 0) {
       PotentialFileReader reader(lmp,fname,"fix gle C matrix");
       try {

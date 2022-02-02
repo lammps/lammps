@@ -29,10 +29,10 @@ class PairCombOMP : public PairComb, public ThrOMP {
  public:
   PairCombOMP(class LAMMPS *);
 
-  virtual void compute(int, int);
-  virtual double memory_usage();
+  void compute(int, int) override;
+  double memory_usage() override;
 
-  virtual double yasu_char(double *, int &);
+  double yasu_char(double *, int &) override;
 
  private:
   template <int EVFLAG, int EFLAG, int VFLAG_ATOM>

@@ -51,13 +51,13 @@ class PairRANN : public Pair {
  public:
   //inherited functions
   PairRANN(class LAMMPS *);
-  ~PairRANN();
-  void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
-  void init_list(int, NeighList *);
+  ~PairRANN() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  void init_list(int, NeighList *) override;
   void errorf(const char *, int, const char *);
   int factorial(int);
 

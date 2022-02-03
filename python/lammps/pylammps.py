@@ -34,7 +34,7 @@ from .core import lammps
 class OutputCapture(object):
   """ Utility class to capture LAMMPS library output """
   def __init__(self):
-    self.stdout_fd = sys.stdout.fileno()
+    self.stdout_fd = 1
     self.captured_output = ""
 
   def __enter__(self):

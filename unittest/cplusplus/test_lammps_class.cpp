@@ -266,7 +266,7 @@ protected:
             ::testing::internal::CaptureStdout();
             lmp                = new LAMMPS(argc, argv, MPI_COMM_WORLD);
             std::string output = ::testing::internal::GetCapturedStdout();
-            if (LAMMPS::Info::has_accelerator_feature("KOKKOS", "api", "openmp"))
+            if (Info::has_accelerator_feature("KOKKOS", "api", "openmp"))
                 EXPECT_THAT(output, StartsWith("Kokkos::OpenMP::"));
         } else
             GTEST_SKIP();

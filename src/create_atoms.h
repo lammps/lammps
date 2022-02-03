@@ -35,7 +35,7 @@ class CreateAtoms : public Command {
   int remapflag;
   int maxtries;
   int excludeflag;
-  double exclude_cutoff;
+  double exclude_radius;
   int subsetflag;
   bigint nsubset;
   double subsetfrac;

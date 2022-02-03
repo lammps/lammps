@@ -14,7 +14,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing author (ratio and subset) : Jake Gissinger (U Colorado)
-   Contributing author (exclude and maxtries) : Eugen Rozic (IRB, Zagreb)
+   Contributing author (maxtries & exclude) : Eugen Rozic (IRB, Zagreb)
 ------------------------------------------------------------------------- */
 
 #include "create_atoms.h"
@@ -230,15 +230,6 @@ void CreateAtoms::command(int narg, char **arg)
       if (nsubset <= 0 || subsetseed <= 0)
         error->all(FLERR,"Illegal create_atoms command");
       iarg += 3;
-    } else if (strcmp(arg[iarg],"exclude") == 0) {
-      if (style != RANDOM) error->all(FLERR,"Illegal create_atoms command: "
-          "'exclude' can only be combined with 'random' style!");
-      if (iarg+2 > narg) error->all(FLERR,"Illegal create_atoms command");
-      exclude_cutoff = force->numeric(FLERR,arg[iarg+1]);
-      if (exclude_cutoff <= 0)
-        error->all(FLERR,"Illegal create_atoms command");
-      excludeflag = 1;
-      iarg += 2;
     } else if (strcmp(arg[iarg],"maxtries") == 0) {
       if (style != RANDOM) error->all(FLERR,"Illegal create_atoms command: "
           "'maxtries' can only be combined with 'random' style!");
@@ -246,6 +237,15 @@ void CreateAtoms::command(int narg, char **arg)
       maxtries = force->numeric(FLERR,arg[iarg+1]);
       if (maxtries <= 0)
         error->all(FLERR,"Illegal create_atoms command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"exclude") == 0) {
+      if (style != RANDOM) error->all(FLERR,"Illegal create_atoms command: "
+          "'exclude' can only be combined with 'random' style!");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal create_atoms command");
+      exclude_radius = force->numeric(FLERR,arg[iarg+1]);
+      if (exclude_radius <= 0)
+        error->all(FLERR,"Illegal create_atoms command");
+      excludeflag = 1;
       iarg += 2;
     } else error->all(FLERR,"Illegal create_atoms command");
   }
@@ -673,6 +673,17 @@ void CreateAtoms::add_random()
   double lamda[3],*coord;
   double *boxlo,*boxhi;
 
+  if (excludeflag) {
+    int nlocal = atom->nlocal;
+    double **x = atom->x;
+    double delx, dely, delz, distsq;
+    double excut = exclude_radius;
+    // exclude option takes into account the radius of the molecule
+    // but not the radius of a single atom (even if it is defined)
+    if (mode == MOLECULE) excut += onemol->molradius;
+    double excutsq = exclude_radius*exclude_radius;
+  }
+
   // random number generator, same for all procs
   // warm up the generator 30x to avoid correlations in first-particle
   // positions if runs are repeated with consecutive seeds
@@ -708,7 +719,9 @@ void CreateAtoms::add_random()
   }
 
   // generate random positions for each new atom/molecule within bounding box
-  // iterate until atom is within region, variable, and triclinic simulation box
+  // iterate until atom is within region, variable, triclinic simulation box
+  // and outside the exclusion area of other atoms, or if maximum number
+  // of attempts (maxtries) have been exceeded for any atom/molecule.
   // if final atom position is in my subbox, create it
 
   if (xlo > xhi || ylo > yhi || zlo > zhi)
@@ -737,11 +750,18 @@ void CreateAtoms::add_random()
         gen_mol_coords(xone, quatone);
 
       if (excludeflag) {
-        if (mode == ATOM) {
-          //TODO check fox xone... if not OK: continue;
-        } else {
-          //TODO check for each temp_mol_coord... if not OK: continue;
+        int reject = 0;
+        for (int i = 0; i < nlocal; i++){
+          delx = xone[0] - x[i][0];
+          dely = xone[1] - x[i][1];
+          delz = xone[2] - x[i][2];
+          distsq = delx*delx + dely*dely + delz*delz;
+          if (distsq < excutsq){
+            reject = 1;
+            break;
+          }
         }
+        if (reject) continue;
       }
 
       if (triclinic) {

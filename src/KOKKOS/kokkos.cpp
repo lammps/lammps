@@ -600,7 +600,8 @@ void KokkosLMP::my_signal_handler(int sig)
 {
   if (sig == SIGSEGV) {
 #if defined(_WIN32)
-    kill(_getpid(),SIGABRT);
+    // there is no kill() function on Windows
+    exit(1);
 #else
     kill(getpid(),SIGABRT);
 #endif

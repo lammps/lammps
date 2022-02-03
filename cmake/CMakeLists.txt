@@ -364,6 +364,7 @@ if(BUILD_OMP)
     target_compile_definitions(lammps PRIVATE -DLAMMPS_OMP_COMPAT=3)
   endif()
   target_link_libraries(lammps PRIVATE OpenMP::OpenMP_CXX)
+  target_link_libraries(lmp PRIVATE OpenMP::OpenMP_CXX)
 endif()
 
 if(PKG_MSCG OR PKG_ATC OR PKG_AWPMD OR PKG_ML-QUIP OR PKG_LATTE)

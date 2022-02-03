@@ -11,8 +11,14 @@ if(Kokkos_ENABLE_CUDA)
 endif()
 # Adding OpenMP compiler flags without the checks done for
 # BUILD_OMP can result in compile failures. Enforce consistency.
-if(Kokkos_ENABLE_OPENMP AND NOT BUILD_OMP)
-  message(FATAL_ERROR "Must enable BUILD_OMP with Kokkos_ENABLE_OPENMP")
+if(Kokkos_ENABLE_OPENMP)
+  if(NOT BUILD_OMP)
+    message(FATAL_ERROR "Must enable BUILD_OMP with Kokkos_ENABLE_OPENMP")
+  else()
+    if(LAMMPS_OMP_COMPAT_LEVEL LESS 4)
+      message(FATAL_ERROR "Compiler must support OpenMP 4.0 or later with Kokkos_ENABLE_OPENMP")
+    endif()
+  endif()
 endif()
 ########################################################################
 

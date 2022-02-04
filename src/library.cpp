@@ -5449,11 +5449,7 @@ to simplify capturing output from LAMMPS library calls.
  * \param  handle    pointer to a previously created LAMMPS instance cast to ``void *``.
  */
 void lammps_flush_buffers(void *handle) {
-  LAMMPS *lmp = (LAMMPS *) handle;
-  if (lmp->screen) fflush(lmp->screen);
-  if (lmp->logfile) fflush(lmp->logfile);
-  if (lmp->universe->uscreen)  fflush(lmp->universe->uscreen);
-  if (lmp->universe->ulogfile) fflush(lmp->universe->ulogfile);
+  utils::flush_buffers((LAMMPS *) handle);
 }
 
 /* ---------------------------------------------------------------------- */

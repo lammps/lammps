@@ -1052,18 +1052,10 @@ void TILD::init_cross_potentials(){
         const double* p = &a2_mix;
         init_potential(potent[loc], 1, p);
 
-        int j = 0;
-        for (int i = 0; i < nfft; i++) {
-          ktmp[j++] = potent[loc][i];
-          ktmp[j++] = ZEROF;
-        }
-  
-        fft1->compute(ktmp, ktmp2, FFT3d::FORWARD);
+        init_potential_ft(potent_hat[loc], 1, p);
 
-        for (int i = 0; i < 2 * nfft; i++) {
-          ktmp2[i] *= scale_inv;
-          potent_hat[loc][i] = ktmp2[i];
-        }
+  
+
       } 
       // Computational Convolution
       else {
@@ -1271,12 +1263,15 @@ void TILD::calc_cross_work(const Interaction& intrxn){
           work1[n++] = ZEROF;
         } else if (intrxn.type == GAUSSIAN_ERFC){
           // We define both work1 and work2 at the same time so only one has to update at a given time. 
-          pref = vole / (pow( sqrt(2.0 * MY_PI * (intrxn.parameters[0]) ), Dim));
-          work1[n] = exp(-mdr2 * 0.5 / intrxn.parameters[0]) * pref; 
-          work1[n+1] = ZEROF;
-          work2[n] = rho0 * 0.5 * (1.0 - erf((sqrt(mdr2) - intrxn.parameters[1])/intrxn.parameters[2])) * vole;
-          work2[n+1] = ZEROF;
-          n+=2;
+          // init_potential(work1,1, intrxn.parameters.data());
+
+
+          // pref = vole / (pow( sqrt(2.0 * MY_PI * (intrxn.parameters[0]) ), Dim));
+          // work1[n] = exp(-mdr2 * 0.5 / intrxn.parameters[0]) * pref; 
+          // work1[n+1] = ZEROF;
+          // work2[n] = 0.5 * (1.0 - erf((sqrt(mdr2) - intrxn.parameters[1])/intrxn.parameters[2])) * vole;
+          // work2[n+1] = ZEROF;
+          // n+=2;
         }
 
       }
@@ -1290,8 +1285,36 @@ void TILD::calc_cross_work(const Interaction& intrxn){
   } else if (intrxn.type == ERFC){
     fft1->compute(work1, work1, FFT3d::FORWARD);
   } else if (intrxn.type == GAUSSIAN_ERFC){
-    fft1->compute(work1, work1, FFT3d::FORWARD);
-    fft1->compute(work2, work2, FFT3d::FORWARD);
+    
+    init_potential_ft(ktmp2,1, intrxn.parameters.data());
+
+    vector<double> params;
+    params.push_back(intrxn.parameters[1]);
+    params.push_back(intrxn.parameters[2]);
+    params.push_back(1);
+
+    init_potential(tmp, 2, params.data());
+
+    int j = 0;
+    for (int i = 0; i < nfft; i++) {
+      ktmp[j++] = tmp[i];
+      ktmp[j++] = ZEROF;
+    }
+
+
+    fft1->compute(ktmp, work2, FFT3d::FORWARD);
+    for (int i = 0; i < 2 * nfft; i++) {
+      ktmp[i] = work2[i] * scale_inv;
+    }
+
+    // Convolution of potentials
+    n = 0;
+    for (int i = 0; i < nfft; i++) {
+      complex_multiply(ktmp, ktmp2, work1, n);
+      potent_hat[loc][n] = work1[n];
+      potent_hat[loc][n + 1] = work1[n + 1];
+      n += 2;
+    }
   }
 
   FFT_SCALAR temp;
@@ -1307,15 +1330,11 @@ void TILD::calc_cross_work(const Interaction& intrxn){
     }
   } else if (intrxn.type == GAUSSIAN_ERFC){
     for (int nn = 0; nn < 2*nfft; nn += 2) {
-      temp = work2[nn] * work1[nn] - work1[nn+1] * work2[nn+1] ;
-      work1[nn+1] = (work1[nn+1] * work2[nn] + work1[nn] * work2[nn+1]) * scale_inv * scale_inv;
-      work1[nn] = temp * scale_inv * scale_inv;
-      potent_hat[loc][nn] = work1[nn];
-      potent_hat[loc][nn+1] = work1[nn+1];
     }
   }
 
   if (intrxn.type != GAUSSIAN) {
+    fft1->compute(work1, work1, FFT3d::BACKWARD);
   n = 0;
   for (int j = 0; j < nfft; j++){
     potent[loc][j] = work1[n];

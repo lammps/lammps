@@ -28,11 +28,11 @@ class PairDPDExt : public Pair {
  public:
   PairDPDExt(class LAMMPS *);
   ~PairDPDExt() override;
-  void compute(int, int) override;
+  virtual void compute(int, int) override;
   void settings(int, char **) override;
   void coeff(int, char **) override;
-  void init_style() override;
-  double init_one(int, int) override;
+  virtual void init_style() override;
+  virtual double init_one(int, int) override;
   void write_restart(FILE *) override;
   void read_restart(FILE *) override;
   void write_restart_settings(FILE *) override;
@@ -50,7 +50,7 @@ class PairDPDExt : public Pair {
   double **ws, **wsT;
   class RanMars *random;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

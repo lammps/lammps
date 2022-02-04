@@ -230,6 +230,8 @@ action pair_coul_long_kokkos.cpp pair_coul_long.cpp
 action pair_coul_long_kokkos.h pair_coul_long.h
 action pair_coul_wolf_kokkos.cpp
 action pair_coul_wolf_kokkos.h
+action pair_dpd_ext_kokkos.cpp pair_dpd_ext.cpp
+action pair_dpd_ext_kokkos.h pair_dpd_ext.h
 action pair_dpd_fdt_energy_kokkos.cpp pair_dpd_fdt_energy.cpp
 action pair_dpd_fdt_energy_kokkos.h pair_dpd_fdt_energy.h
 action pair_eam_kokkos.cpp pair_eam.cpp

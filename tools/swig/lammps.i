@@ -156,6 +156,8 @@ extern int    lammps_is_running(void *handle);
 extern void   lammps_force_timeout(void *handle);
 extern int    lammps_has_error(void *handle);
 extern int    lammps_get_last_error_message(void *handle, char *buffer, int buf_size);
+
+extern void   lammps_flush_buffers(void *ptr);
 %}
 
 enum _LMP_DATATYPE_CONST {
@@ -287,4 +289,6 @@ extern void   lammps_force_timeout(void *handle);
 extern int    lammps_has_error(void *handle);
 extern int    lammps_get_last_error_message(void *handle, char *buffer, int buf_size);
 
-/* last revised on 21 July 2021 */
+extern void   lammps_flush_buffers(void *ptr);
+
+/* last revised on 4 February 2022 */

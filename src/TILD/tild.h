@@ -121,7 +121,6 @@ class TILD : public KSpace{
   int group_allocate_flag;
 
   double rms(int, double, bigint, double);
-  // virtual void eik_dot_r();
   virtual void allocate();
   void deallocate();
   void init_potential(FFT_SCALAR*, const int, const double*);

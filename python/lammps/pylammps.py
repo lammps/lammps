@@ -857,10 +857,12 @@ class PyLammps(object):
     """
     def handler(*args, **kwargs):
       cmd_args = [name] + [str(x) for x in args]
+      self.lmp.flush_buffers()
 
       with OutputCapture() as capture:
         cmd = ' '.join(cmd_args)
         self.command(cmd)
+        self.lmp.flush_buffers()
         output = capture.output
 
       comm = self.lmp.get_mpi_comm()

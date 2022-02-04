@@ -14,7 +14,7 @@
 variable    nsteps index 50     # length of run
 variable    nthermo index 10    # thermo output interval 
 variable    nlat index 3        # size of box
-variable    delta index 1.0e-6  # strain size 
+variable    delta index 1.0e-8  # strain size 
 variable    temp index 0.3      # temperature
 variable    rho index 0.8442    # reduced density
 
@@ -40,30 +40,11 @@ fix		1 all nve
 compute         myvirial all pressure NULL virial
 compute 	bornnum all born/matrix numdiff ${delta} myvirial
 compute 	born all born/matrix
-variable	bornrel01 equal 1.0-c_born[1]/c_bornnum[1]
-variable	bornrel02 equal 1.0-c_born[2]/c_bornnum[2]
-variable	bornrel03 equal 1.0-c_born[3]/c_bornnum[3]
-variable	bornrel04 equal 1.0-c_born[4]/c_bornnum[4]
-variable	bornrel05 equal 1.0-c_born[5]/c_bornnum[5]
-variable	bornrel06 equal 1.0-c_born[6]/c_bornnum[6]
-variable	bornrel07 equal 1.0-c_born[7]/c_bornnum[7]
-variable	bornrel08 equal 1.0-c_born[8]/c_bornnum[8]
-variable	bornrel09 equal 1.0-c_born[9]/c_bornnum[9]
-variable	bornrel10 equal 1.0-c_born[10]/c_bornnum[10]
-variable	bornrel11 equal 1.0-c_born[11]/c_bornnum[11]
-variable	bornrel12 equal 1.0-c_born[12]/c_bornnum[12]
-variable	bornrel13 equal 1.0-c_born[13]/c_bornnum[13]
-variable	bornrel14 equal 1.0-c_born[14]/c_bornnum[14]
-variable	bornrel15 equal 1.0-c_born[15]/c_bornnum[15]
-variable	bornrel16 equal 1.0-c_born[16]/c_bornnum[16]
-variable	bornrel17 equal 1.0-c_born[17]/c_bornnum[17]
-variable	bornrel18 equal 1.0-c_born[18]/c_bornnum[18]
-variable	bornrel19 equal 1.0-c_born[19]/c_bornnum[19]
-variable	bornrel20 equal 1.0-c_born[20]/c_bornnum[20]
-variable	bornrel21 equal 1.0-c_born[21]/c_bornnum[21]
+variable	bornrel vector 1.0-c_bornnum/c_born
+
 thermo		${nthermo}
-thermo_style 	custom step temp pe press v_bornrel01 v_bornrel02 v_bornrel03 v_bornrel04 v_bornrel05 v_bornrel06 v_bornrel07 v_bornrel08 &
-v_bornrel09 v_bornrel10 v_bornrel11 v_bornrel12 v_bornrel13 v_bornrel14 v_bornrel15 v_bornrel16 v_bornrel17 v_bornrel18 v_bornrel19 v_bornrel20 v_bornrel21
+thermo_style 	custom step temp pe press &
+v_bornrel[1] v_bornrel[2] v_bornrel[3] v_bornrel[4] v_bornrel[5] v_bornrel[6] v_bornrel[7] v_bornrel[8] v_bornrel[9] v_bornrel[10] v_bornrel[11] v_bornrel[12] v_bornrel[13] v_bornrel[14] v_bornrel[15] v_bornrel[16] v_bornrel[17] v_bornrel[18] v_bornrel[19] v_bornrel[20] v_bornrel[21]
 
 run		${nsteps}
 

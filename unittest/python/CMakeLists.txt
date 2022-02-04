@@ -98,14 +98,10 @@ if(Python_EXECUTABLE)
            WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
   set_tests_properties(PythonCapabilities PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-  message(STATUS "Skipping Tests for PyLammps Module: not yet ported to Windows")
-else()
   add_test(NAME PythonPyLammps
            COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-pylammps.py -v
            WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
   set_tests_properties(PythonPyLammps PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
-endif()
 
   add_test(NAME PythonFormats
            COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-formats.py -v

@@ -5439,6 +5439,25 @@ void lammps_fix_external_set_vector(void *handle, const char *id, int idx, doubl
 
 /* ---------------------------------------------------------------------- */
 
+/** Flush output buffers
+
+\verbatim embed:rst
+This function can be used to force output to be written to screen and logfiles
+to simplify capturing output from LAMMPS library calls.
+\endverbatim
+ *
+ * \param  handle    pointer to a previously created LAMMPS instance cast to ``void *``.
+ */
+void lammps_flush_buffers(void *handle) {
+  LAMMPS *lmp = (LAMMPS *) handle;
+  if (lmp->screen) fflush(lmp->screen);
+  if (lmp->logfile) fflush(lmp->logfile);
+  if (lmp->universe->uscreen)  fflush(lmp->universe->uscreen);
+  if (lmp->universe->ulogfile) fflush(lmp->universe->ulogfile);
+}
+
+/* ---------------------------------------------------------------------- */
+
 /** Free memory buffer allocated by LAMMPS.
  *
 \verbatim embed:rst

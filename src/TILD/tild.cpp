@@ -707,6 +707,7 @@ void TILD::compute(int eflag, int vflag){
   if (vflag_global) {
     double virial_all[6];
     MPI_Allreduce(virial,virial_all,6,MPI_DOUBLE,MPI_SUM,world);
+    if (normalize_by_rho0 == 1)
     for (int i = 0; i < 6; i++) {
       // change number density to tild density for this contribution to virial
       virial[i] = virial_all[i] / rho0 * atom->natoms; 

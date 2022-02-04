@@ -1266,9 +1266,6 @@ void TILD::calc_cross_work(const Interaction& intrxn){
         mdr2 = xper * xper + yper * yper + zper * zper;
 
         if (intrxn.type == GAUSSIAN){
-          pref = vole / (pow( sqrt(2.0 * MY_PI * (intrxn.parameters[0]) ), Dim));
-          work1[n++] = exp(-mdr2 * 0.5 / intrxn.parameters[0]) * pref;
-          work1[n++] = ZEROF;
         } else if (intrxn.type == ERFC){
           work1[n++] = 0.5 * (1.0 - erf((sqrt(mdr2) - intrxn.parameters[0])/intrxn.parameters[1])) * vole;
           work1[n++] = ZEROF;
@@ -1287,7 +1284,9 @@ void TILD::calc_cross_work(const Interaction& intrxn){
   }
 
   if (intrxn.type == GAUSSIAN){
-    fft1->compute(work1, work1, FFT3d::FORWARD);
+    init_potential(potent[loc],1, intrxn.parameters.data());
+    init_potential_ft(potent_hat[loc], 1, intrxn.parameters.data());
+    
   } else if (intrxn.type == ERFC){
     fft1->compute(work1, work1, FFT3d::FORWARD);
   } else if (intrxn.type == GAUSSIAN_ERFC){
@@ -1297,13 +1296,7 @@ void TILD::calc_cross_work(const Interaction& intrxn){
 
   FFT_SCALAR temp;
   if (intrxn.type == GAUSSIAN){
-    for (int nn = 0; nn < 2*nfft; nn += 2) {
-      temp = -work1[nn+1] * work1[nn+1] + work1[nn] * work1[nn];
-      work1[nn+1] = (work1[nn+1] * work1[nn] + work1[nn] * work1[nn+1]) * scale_inv * scale_inv;
-      work1[nn] = temp * scale_inv * scale_inv;
-      potent_hat[loc][nn] = work1[nn];
-      potent_hat[loc][nn+1] = work1[nn+1];
-    }
+
   } else if (intrxn.type == ERFC){
     for (int nn = 0; nn < 2*nfft; nn += 2) {
       temp = -work1[nn+1] * work1[nn+1] + work1[nn] * work1[nn];
@@ -1322,13 +1315,14 @@ void TILD::calc_cross_work(const Interaction& intrxn){
     }
   }
 
-  fft1->compute(work1, work1, FFT3d::BACKWARD);
+  if (intrxn.type != GAUSSIAN) {
   n = 0;
   for (int j = 0; j < nfft; j++){
     potent[loc][j] = work1[n];
     n += 2;
   }
  
+  }
 }
 
 /* ----------------------------------------------------------------------

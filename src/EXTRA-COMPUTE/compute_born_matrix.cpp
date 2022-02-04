@@ -561,8 +561,12 @@ void ComputeBornMatrix::displace_atoms(int nall, int idir, double magnitude)
 {
   double **x = atom->x;
 
-  int k = dirlist[idir][0];
-  int l = dirlist[idir][1];
+  // this works for 7,8,9,12,14,18, and 15,16,17
+  int k = dirlist[idir][1];
+  int l = dirlist[idir][0];
+  // this works for 7,8,9,12,14,18, and 10,11,13
+  // int k = dirlist[idir][0];
+  // int l = dirlist[idir][1];
   for (int i = 0; i < nall; i++)
     x[i][k] = temp_x[i][k] + numdelta * magnitude * (temp_x[i][l] - fixedpoint[l]);
 }

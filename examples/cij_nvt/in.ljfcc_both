@@ -40,30 +40,30 @@ fix		1 all nve
 compute         myvirial all pressure NULL virial
 compute 	bornnum all born/matrix numdiff ${delta} myvirial
 compute 	born all born/matrix
-variable	bornerr01 equal c_born[1]-c_bornnum[1]
-variable	bornerr02 equal c_born[2]-c_bornnum[2]
-variable	bornerr03 equal c_born[3]-c_bornnum[3]
-variable	bornerr04 equal c_born[4]-c_bornnum[4]
-variable	bornerr05 equal c_born[5]-c_bornnum[5]
-variable	bornerr06 equal c_born[6]-c_bornnum[6]
-variable	bornerr07 equal c_born[7]-c_bornnum[7]
-variable	bornerr08 equal c_born[8]-c_bornnum[8]
-variable	bornerr09 equal c_born[9]-c_bornnum[9]
-variable	bornerr10 equal c_born[10]-c_bornnum[10]
-variable	bornerr11 equal c_born[11]-c_bornnum[11]
-variable	bornerr12 equal c_born[12]-c_bornnum[12]
-variable	bornerr13 equal c_born[13]-c_bornnum[13]
-variable	bornerr14 equal c_born[14]-c_bornnum[14]
-variable	bornerr15 equal c_born[15]-c_bornnum[15]
-variable	bornerr16 equal c_born[16]-c_bornnum[16]
-variable	bornerr17 equal c_born[17]-c_bornnum[17]
-variable	bornerr18 equal c_born[18]-c_bornnum[18]
-variable	bornerr19 equal c_born[19]-c_bornnum[19]
-variable	bornerr20 equal c_born[20]-c_bornnum[20]
-variable	bornerr21 equal c_born[21]-c_bornnum[21]
+variable	bornrel01 equal 1.0-c_born[1]/c_bornnum[1]
+variable	bornrel02 equal 1.0-c_born[2]/c_bornnum[2]
+variable	bornrel03 equal 1.0-c_born[3]/c_bornnum[3]
+variable	bornrel04 equal 1.0-c_born[4]/c_bornnum[4]
+variable	bornrel05 equal 1.0-c_born[5]/c_bornnum[5]
+variable	bornrel06 equal 1.0-c_born[6]/c_bornnum[6]
+variable	bornrel07 equal 1.0-c_born[7]/c_bornnum[7]
+variable	bornrel08 equal 1.0-c_born[8]/c_bornnum[8]
+variable	bornrel09 equal 1.0-c_born[9]/c_bornnum[9]
+variable	bornrel10 equal 1.0-c_born[10]/c_bornnum[10]
+variable	bornrel11 equal 1.0-c_born[11]/c_bornnum[11]
+variable	bornrel12 equal 1.0-c_born[12]/c_bornnum[12]
+variable	bornrel13 equal 1.0-c_born[13]/c_bornnum[13]
+variable	bornrel14 equal 1.0-c_born[14]/c_bornnum[14]
+variable	bornrel15 equal 1.0-c_born[15]/c_bornnum[15]
+variable	bornrel16 equal 1.0-c_born[16]/c_bornnum[16]
+variable	bornrel17 equal 1.0-c_born[17]/c_bornnum[17]
+variable	bornrel18 equal 1.0-c_born[18]/c_bornnum[18]
+variable	bornrel19 equal 1.0-c_born[19]/c_bornnum[19]
+variable	bornrel20 equal 1.0-c_born[20]/c_bornnum[20]
+variable	bornrel21 equal 1.0-c_born[21]/c_bornnum[21]
 thermo		${nthermo}
-thermo_style 	custom step temp pe press v_bornerr01 v_bornerr02 v_bornerr03 v_bornerr04 v_bornerr05 v_bornerr06 v_bornerr07 v_bornerr08 &
-v_bornerr09 v_bornerr10 v_bornerr11 v_bornerr12 v_bornerr13 v_bornerr14 v_bornerr15 v_bornerr16 v_bornerr17 v_bornerr18 v_bornerr19 v_bornerr20 v_bornerr21
+thermo_style 	custom step temp pe press v_bornrel01 v_bornrel02 v_bornrel03 v_bornrel04 v_bornrel05 v_bornrel06 v_bornrel07 v_bornrel08 &
+v_bornrel09 v_bornrel10 v_bornrel11 v_bornrel12 v_bornrel13 v_bornrel14 v_bornrel15 v_bornrel16 v_bornrel17 v_bornrel18 v_bornrel19 v_bornrel20 v_bornrel21
 
 run		${nsteps}
 

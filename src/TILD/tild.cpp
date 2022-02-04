@@ -23,30 +23,31 @@
     previously known as Dynamical Mean Field Theory. 
 -------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cstdlib>
-#include <cstdio>
-#include <cstring>
-#include <cmath>
 #include "tild.h"
 #include "atom.h"
 #include "comm.h"
-#include "gridcomm.h"
-#include "force.h"
-#include "pair.h"
 #include "domain.h"
+#include "error.h"
+#include "fft3d_wrap.h"
+#include "force.h"
+#include "gridcomm.h"
+#include "group.h"
 #include "math_const.h"
 #include "memory.h"
-#include "remap_wrap.h"
-#include "error.h"
-#include <iostream>
-#include <fstream>
-#include "fft3d_wrap.h"
-#include "update.h"
-#include "group.h"
 #include "neighbor.h"
 #include "output.h"
+#include "pair.h"
+#include "remap_wrap.h"
 #include "thermo.h"
+#include "update.h"
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <fstream>
+#include <iostream>
+#include <mpi.h>
+#include <tuple>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

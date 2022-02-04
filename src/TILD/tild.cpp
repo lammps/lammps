@@ -1270,7 +1270,7 @@ void TILD::calc_cross_work(const Interaction& intrxn){
           work1[n++] = exp(-mdr2 * 0.5 / intrxn.parameters[0]) * pref;
           work1[n++] = ZEROF;
         } else if (intrxn.type == ERFC){
-          work1[n++] = rho0 * 0.5 * (1.0 - erf((sqrt(mdr2) - intrxn.parameters[0])/intrxn.parameters[1])) * vole;
+          work1[n++] = 0.5 * (1.0 - erf((sqrt(mdr2) - intrxn.parameters[0])/intrxn.parameters[1])) * vole;
           work1[n++] = ZEROF;
         } else if (intrxn.type == GAUSSIAN_ERFC){
           // We define both work1 and work2 at the same time so only one has to update at a given time. 

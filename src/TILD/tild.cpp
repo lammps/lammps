@@ -1236,6 +1236,84 @@ void TILD::calc_cross_work(const Interaction& intrxn){
 
   double pref;
 
+  if (intrxn.type == GAUSSIAN){
+
+    init_potential(potent[loc],1, intrxn.parameters.data());
+    init_potential_ft(potent_hat[loc], 1, intrxn.parameters.data());
+
+  } else if (intrxn.type == ERFC){
+    vector<double> params;
+    params.push_back(intrxn.parameters[0]);
+    params.push_back(intrxn.parameters[1]);
+    params.push_back(1);
+
+    init_potential(tmp, 2, params.data());
+
+    int j = 0;
+    for (int i = 0; i < nfft; i++) {
+      ktmp[j++] = tmp[i];
+      ktmp[j++] = ZEROF;
+    }
+
+    fft1->compute(ktmp, work1, FFT3d::FORWARD);
+
+    FFT_SCALAR temp;
+    for (int nn = 0; nn < 2*nfft; nn += 2) {
+      temp = -work1[nn+1] * work1[nn+1] + work1[nn] * work1[nn];
+      work1[nn+1] = (work1[nn+1] * work1[nn] + work1[nn] * work1[nn+1]) * scale_inv * scale_inv;
+      work1[nn] = temp * scale_inv * scale_inv;
+      potent_hat[loc][nn] = work1[nn];
+      potent_hat[loc][nn+1] = work1[nn+1];
+    }
+
+    fft1->compute(work1, work1, FFT3d::BACKWARD);
+
+    n = 0;
+    for (int j = 0; j < nfft; j++){
+      potent[loc][j] = work1[n];
+      n += 2;
+    }
+
+  } else if (intrxn.type == GAUSSIAN_ERFC){
+
+    init_potential_ft(ktmp2,1, intrxn.parameters.data());
+    
+    vector<double> params;
+    params.push_back(intrxn.parameters[1]);
+    params.push_back(intrxn.parameters[2]);
+    params.push_back(1);
+
+    init_potential(tmp, 2, params.data());
+
+    int j = 0;
+    for (int i = 0; i < nfft; i++) {
+      ktmp[j++] = tmp[i];
+      ktmp[j++] = ZEROF;
+    }
+
+    fft1->compute(ktmp, work2, FFT3d::FORWARD);
+    for (int i = 0; i < 2 * nfft; i++) {
+      ktmp[i] = work2[i] * scale_inv;
+    }
+
+    // Convolution of potentials
+    n = 0;
+    for (int i = 0; i < nfft; i++) {
+      complex_multiply(ktmp, ktmp2, work1, n);
+      potent_hat[loc][n] = work1[n];
+      potent_hat[loc][n + 1] = work1[n + 1];
+      n += 2;
+    }
+
+    fft1->compute(work1, work1, FFT3d::BACKWARD);
+
+    n = 0;
+    for (int j = 0; j < nfft; j++){
+      potent[loc][j] = work1[n];
+      n += 2;
+    }
+  }
+
 }
 
 /* ----------------------------------------------------------------------

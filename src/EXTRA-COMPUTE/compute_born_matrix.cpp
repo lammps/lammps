@@ -287,7 +287,8 @@ void ComputeBornMatrix::init()
     
     // to convert to vector indexing:
     // matrix index to vector index, double -> single index
-  
+    // this is not used at all
+    
     voigt3MtoV[0][0]=0;    voigt3MtoV[0][1]=5;    voigt3MtoV[0][2]=4;   
     voigt3MtoV[1][0]=5;    voigt3MtoV[1][1]=1;    voigt3MtoV[1][2]=3;
     voigt3MtoV[2][0]=4;    voigt3MtoV[2][1]=3;    voigt3MtoV[2][2]=2;       
@@ -299,8 +300,19 @@ void ComputeBornMatrix::init()
     virialMtoV[0][0]=0;    virialMtoV[0][1]=3;    virialMtoV[0][2]=4;   
     virialMtoV[1][0]=3;    virialMtoV[1][1]=1;    virialMtoV[1][2]=5;
     virialMtoV[2][0]=4;    virialMtoV[2][1]=5;    virialMtoV[2][2]=2;       
-  
-    // the following is for 6x6 matrix and vector indexing converter                                                        
+
+    // reorder LAMMPS virial vector to Voigt order
+
+    virialVtoV[0] = 0;   
+    virialVtoV[1] = 1;   
+    virialVtoV[2] = 2;   
+    virialVtoV[3] = 5;   
+    virialVtoV[4] = 4;   
+    virialVtoV[5] = 3;
+    
+    // the following is for 6x6 matrix and vector indexing converter                                                     // this is clearly different order form albe[][] and revalbe[]
+    // should not be used
+    
     int indcounter = 0;
     for(int row = 0; row < NDIR_VIRIAL; row++)
       for(int col = row; col< NDIR_VIRIAL; col++) {
@@ -351,6 +363,13 @@ void ComputeBornMatrix::compute_vector()
 
     MPI_Allreduce(values_local, values_global, nvalues, MPI_DOUBLE, MPI_SUM, world);
 
+    // convert to pressure units
+    
+    double nktv2p = force->nktv2p;
+    double inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
+    for (int m = 0; m < nvalues; m++) { values_global[m] *=
+	(nktv2p * inv_volume); }
+    
   } else {
 
     // calculate Born matrix using stress finite differences
@@ -358,9 +377,9 @@ void ComputeBornMatrix::compute_vector()
     compute_numdiff();
     
   }
-  
-  for (int m = 0; m < nvalues; m++) { vector[m] = values_global[m]; }
-  
+
+  for (int m = 0; m < nvalues; m++) vector[m] = values_global[m];
+
 }
 
 /* ----------------------------------------------------------------------
@@ -443,7 +462,8 @@ void ComputeBornMatrix::compute_pairs()
 	// Add contribution to Born tensor
 
 	pair->born_matrix(i, j, itype, jtype, rsq, factor_coul, factor_lj, dupair, du2pair);
-	pair_pref = du2pair - dupair * rinv;
+	//	pair_pref = du2pair - dupair * rinv;
+	pair_pref = du2pair;
 
 	// See albemunu in compute_born_matrix.h for indices order.
 	  
@@ -489,7 +509,7 @@ void ComputeBornMatrix::compute_numdiff()
     }
 
   // loop over 6 strain directions
-  // compute a finite difference force in each dimension
+  // compute stress finite difference in each direction
 
   int flag, allflag;
 
@@ -499,26 +519,24 @@ void ComputeBornMatrix::compute_numdiff()
     update_virial();
     for (int jdir = 0; jdir < NDIR_VIRIAL; jdir++) {
       m = revalbe[idir][jdir];
-      values_global[m] = compute_virial->vector[jdir];
+      values_global[m] = compute_virial->vector[virialVtoV[jdir]];
     }
-    
     restore_atoms(nall, idir);
+    
     displace_atoms(nall, idir, -1.0);
     force_clear(nall);
     update_virial();
     for (int jdir = 0; jdir < NDIR_VIRIAL; jdir++) {
       m = revalbe[idir][jdir];
-      values_global[m] -= compute_virial->vector[jdir];
+      values_global[m] -= compute_virial->vector[virialVtoV[jdir]];
     }
     restore_atoms(nall, idir);
   }
 
   // apply derivative factor 
 
-  double nktv2p = force->nktv2p;
-  double inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
-  //  double denominator = -0.5 / numdelta * inv_volume * nktv2p;
   double denominator = -0.5 / numdelta;
+  for (int m = 0; m < nvalues; m++) values_global[m] *= denominator;
 
   // recompute virial so all virial and energy contributions are as before
   // also needed for virial stress addon contributions to Born matrix
@@ -526,15 +544,14 @@ void ComputeBornMatrix::compute_numdiff()
   
   update_virial();
 
+  //  virial_addon();
+
   // restore original forces for owned and ghost atoms
 
   for (int i = 0; i < nall; i++)
     for (int k = 0; k < 3; k++)
       f[i][k] = temp_f[i][k];
 
-  for (int m = 0; m < nvalues; m++) values_global[m] *= denominator;
-
-  virial_addon();
 }
 
 /* ----------------------------------------------------------------------
@@ -544,6 +561,7 @@ void ComputeBornMatrix::compute_numdiff()
 void ComputeBornMatrix::displace_atoms(int nall, int idir, double magnitude)
 {
   double **x = atom->x;
+
   int k = dirlist[idir][0];
   int l = dirlist[idir][1];
   for (int i = 0; i < nall; i++)
@@ -556,9 +574,13 @@ void ComputeBornMatrix::displace_atoms(int nall, int idir, double magnitude)
 
 void ComputeBornMatrix::restore_atoms(int nall, int idir)
 {
+
+  // reset all coords, just to be safe, ignore idir
+  
   double **x = atom->x;
-  int k = dirlist[idir][0];
-  for (int i = 0; i < nall; i++) { x[i][k] = temp_x[i][k]; }
+  for (int i = 0; i < nall; i++)
+    for (int k = 0; k < 3; k++)
+      x[i][k] = temp_x[i][k];
 }
 
 /* ----------------------------------------------------------------------
@@ -584,7 +606,6 @@ void ComputeBornMatrix::update_virial()
 
   compute_virial->compute_vector();
 }
-
 
 /* ----------------------------------------------------------------------
    calculate virial stress addon terms to the Born matrix
@@ -630,7 +651,8 @@ void ComputeBornMatrix::virial_addon()
       if(SHEAR)
 	addon += kronecker[jd][nd]*sigv[virialMtoV[id][kd]] + 
 	  kronecker[jd][kd]*sigv[virialMtoV[id][nd]];
-      values_global[voigt6MtoV[ijvgt][knvgt]] += addon;
+      //      values_global[voigt6MtoV[ijvgt][knvgt]] += addon;
+      values_global[revalbe[ijvgt][knvgt]] += addon;
     }
   }
 }

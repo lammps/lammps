@@ -462,8 +462,7 @@ void ComputeBornMatrix::compute_pairs()
 	// Add contribution to Born tensor
 
 	pair->born_matrix(i, j, itype, jtype, rsq, factor_coul, factor_lj, dupair, du2pair);
-	//	pair_pref = du2pair - dupair * rinv;
-	pair_pref = du2pair;
+	pair_pref = du2pair - dupair * rinv;
 
 	// See albemunu in compute_born_matrix.h for indices order.
 	  
@@ -544,7 +543,7 @@ void ComputeBornMatrix::compute_numdiff()
   
   update_virial();
 
-  //  virial_addon();
+  virial_addon();
 
   // restore original forces for owned and ghost atoms
 
@@ -635,10 +634,10 @@ void ComputeBornMatrix::virial_addon()
     int ijvgt = idir; // this is it.
     double addon;
 
-    // extract the two indicies composing the voigt reprensentation
+    // extract the two indices composing the voigt reprensentation
 
-    id  = voigt3VtoM[idir][0];
-    jd  = voigt3VtoM[idir][1];
+    id  = voigt3VtoM[ijvgt][0];
+    jd  = voigt3VtoM[ijvgt][1];
 
     int SHEAR = 0;
     if( id != jd) SHEAR = 1;
@@ -646,12 +645,11 @@ void ComputeBornMatrix::virial_addon()
     for (int knvgt=ijvgt; knvgt < NDIR_VIRIAL; knvgt++) {
       kd = voigt3VtoM[knvgt][0];
       nd = voigt3VtoM[knvgt][1];
-      addon =  kronecker[id][nd]*sigv[virialMtoV[jd][kd]] + 
+      addon = kronecker[id][nd]*sigv[virialMtoV[jd][kd]] + 
 	kronecker[id][kd]*sigv[virialMtoV[jd][nd]]; 
       if(SHEAR)
 	addon += kronecker[jd][nd]*sigv[virialMtoV[id][kd]] + 
 	  kronecker[jd][kd]*sigv[virialMtoV[id][nd]];
-      //      values_global[voigt6MtoV[ijvgt][knvgt]] += addon;
       values_global[revalbe[ijvgt][knvgt]] += addon;
     }
   }

@@ -232,6 +232,7 @@ void ThirdOrder::options(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR, "Illegal third_order command");
       filename = arg[iarg + 1];
       file_flag = 1;
+      iarg += 2;
     } else if (strcmp(arg[iarg],"fold") == 0) {
       if (iarg+2 > narg) error->all(FLERR, "Illegal Third Order command");
       if (strcmp(arg[iarg+1],"yes") == 0) {

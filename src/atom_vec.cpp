@@ -1534,16 +1534,16 @@ int AtomVec::pack_restart(int i, double *buf)
    unpack data for one atom from restart file including extra quantities
 ------------------------------------------------------------------------- */
 
-int AtomVec::unpack_restart(double *buf)
+int AtomVec::unpack_restart(double *buf, Atom *&thisatom)
 {
   int mm,nn,datatype,cols,collength,ncols;
   void *pdata,*plength;
 
-  int nlocal = atom->nlocal;
+  int nlocal = thisatom->nlocal;
   if (nlocal == nmax) {
     grow(0);
-    if (atom->nextra_store)
-      memory->grow(atom->extra,nmax,atom->nextra_store,"atom:extra");
+    if (thisatom->nextra_store)
+      memory->grow(thisatom->extra,nmax,thisatom->nextra_store,"atom:extra");
   }
 
   int m = 1;
@@ -1624,13 +1624,13 @@ int AtomVec::unpack_restart(double *buf)
 
   // store extra restart info which fixes can unpack when instantiated
 
-  double **extra = atom->extra;
-  if (atom->nextra_store) {
+  double **extra = thisatom->extra;
+  if (thisatom->nextra_store) {
     int size = static_cast<int> (buf[0]) - m;
     for (int i = 0; i < size; i++) extra[nlocal][i] = buf[m++];
   }
 
-  atom->nlocal++;
+  thisatom->nlocal++;
   return m;
 }
 

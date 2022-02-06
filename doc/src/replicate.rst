@@ -12,11 +12,12 @@ Syntax
 
 nx,ny,nz = replication factors in each dimension
 
-* optional *keyword* = *bbox*
+* optional *keyword* = *bbox* or *bondlist*
 
   .. parsed-literal::
 
        *bbox* = only check atoms in replicas that overlap with a processor's sub-domain
+       *bondlist* = use a generalized algorithm that correctly replicates periodic loops
 
 Examples
 """"""""
@@ -59,6 +60,33 @@ does require temporary use of more memory, specifically that each
 processor can store all atoms in the entire system before it is
 replicated.
 
+The optional keyword *bondlist* correctly treats molecules that span
+the box and are bonded to themselves across a periodic boundary, by
+relying on self-consistent nearest-image assumptions (rather than
+using image flags).  Therefore, the *bondlist* keyword can also be
+used in general for systems that may not have consistent image flags.
+The *bondlist* algorithm builds off the *bbox* algorithm, so it is
+fast when using a large number of processors, but does require
+temporary use of more memory.  Specifically, each processor must be
+able to store arrays for all atoms in the entire system before it is
+replicated.
+
+.. note::
+
+   For systems that contain a molecule that spans the box and is
+   bonded to itself across a periodic boundary (so that the molecule
+   is effectively a loop), the *bondlist* keyword must be used.  A
+   simple example would be a linear polymer chain that spans the
+   simulation box and bonds back to itself across the periodic
+   boundary.  More realistic examples would be a CNT (meant to be an
+   infinitely long CNT) or a graphene sheet or a bulk periodic crystal
+   where there are explicit bonds specified between near neighbors.
+   (Note that this restriction only applies to systems that have
+   permanent bonds as specified in the data file.  A CNT that is just
+   atoms modeled with the :doc:`AIREBO potential <pair_airebo>` has no
+   such permanent bonds, so it can be replicated without the
+   *bondlist* keyword.)
+
 Restrictions
 """"""""""""
 
@@ -67,29 +95,6 @@ A 2d simulation cannot be replicated in the z dimension.
 If a simulation is non-periodic in a dimension, care should be used
 when replicating it in that dimension, as it may put atoms nearly on
 top of each other.
-
-.. note::
-
-   You cannot use the replicate command on a system which has a
-   molecule that spans the box and is bonded to itself across a periodic
-   boundary, so that the molecule is effectively a loop.  A simple
-   example would be a linear polymer chain that spans the simulation box
-   and bonds back to itself across the periodic boundary.  More realistic
-   examples would be a CNT (meant to be an infinitely long CNT) or a
-   graphene sheet or a bulk periodic crystal where there are explicit
-   bonds specified between near neighbors.  (Note that this only applies
-   to systems that have permanent bonds as specified in the data file.  A
-   CNT that is just atoms modeled with the :doc:`AIREBO potential <pair_airebo>` has no such permanent bonds, so it can be
-   replicated.)  The reason replication does not work with those systems
-   is that the image flag settings described above cannot be made
-   consistent.  I.e. it is not possible to define images flags so that
-   when every pair of bonded atoms is unwrapped (using the image flags),
-   they will be close to each other.  The only way the replicate command
-   could work in this scenario is for it to break a bond, insert more
-   atoms, and re-connect the loop for the larger simulation box.  But it
-   is not clever enough to do this.  So you will have to construct a
-   larger version of your molecule as a pre-processing step and input a
-   new data file to LAMMPS.
 
 If the current simulation was read in from a restart file (before a
 run is performed), there must not be any fix information stored in

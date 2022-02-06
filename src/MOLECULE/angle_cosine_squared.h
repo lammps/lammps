@@ -35,6 +35,7 @@ class AngleCosineSquared : public Angle {
   void read_restart(FILE *);
   void write_data(FILE *);
   virtual double single(int, int, int, int);
+  void born_matrix(int type, int i1, int i2, int i3, double& du, double& du2);
 
  protected:
   double *k, *theta0;

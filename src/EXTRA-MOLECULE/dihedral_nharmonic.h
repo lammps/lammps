@@ -33,6 +33,7 @@ class DihedralNHarmonic : public Dihedral {
   void write_restart(FILE *);
   void read_restart(FILE *);
   void write_data(FILE *);
+  void born_matrix(int /*dtype*/, int, int, int, int, double&, double&);
 
  protected:
   int *nterms;

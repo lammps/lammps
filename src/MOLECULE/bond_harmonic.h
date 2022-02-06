@@ -35,6 +35,7 @@ class BondHarmonic : public Bond {
   virtual void read_restart(FILE *);
   void write_data(FILE *);
   double single(int, double, int, int, double &);
+  void born_matrix(int, double, int, int, double &, double &);
   virtual void *extract(const char *, int &);
 
  protected:

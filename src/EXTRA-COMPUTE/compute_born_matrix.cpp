@@ -43,13 +43,26 @@ using namespace LAMMPS_NS;
 
 #define BIG 1000000000
 
-static int const albe[21][2] = {
+// This table is used to pick the 3d rij vector indices used to
+// compute the 6 indices long Voigt stress vector
+static int const sigma_albe[6][2] = {
+    {0, 0},    // s11
+    {1, 1},    // s22
+    {2, 2},    // s33
+    {1, 2},    // s44
+    {0, 2},    // s55
+    {0, 1},    // s66
+};
+
+// This table is used to pick the correct indices from the Voigt
+// stress vector to compute the Cij matrix (21 terms, see doc) contribution
+static int const C_albe[21][2] = {
     {0, 0},    // C11
     {1, 1},    // C22
     {2, 2},    // C33
-    {1, 2},    // C44
-    {0, 2},    // C55
-    {0, 1},    // C66
+    {3, 3},    // C44
+    {4, 4},    // C55
+    {5, 5},    // C66
     {0, 1},    // C12
     {0, 2},    // C13
     {0, 3},    // C14
@@ -67,6 +80,8 @@ static int const albe[21][2] = {
     {4, 5}     // C56
 };
 
+// This table is used to pick the 3d rij vector indices used to
+// compute the 21 indices long Cij matrix
 static int const albemunu[21][4] = {
     {0, 0, 0, 0},    // C11
     {1, 1, 1, 1},    // C22
@@ -103,6 +118,75 @@ ComputeBornMatrix::ComputeBornMatrix(LAMMPS *lmp, int narg, char **arg) : Comput
 
   // Error check
 
+  if (narg < 3) error->all(FLERR,"Illegal compute pressure command");
+
+  pairflag = 0;
+  bondflag = 0;
+  angleflag = 0;
+  dihedflag = 0;
+  impflag = 0;
+  kspaceflag = 0;
+  if (narg == 3) {
+    pairflag = 1;
+    bondflag = 1;
+    angleflag = 1;
+    dihedflag = 1;
+    impflag = 1;
+    kspaceflag = 1;
+  } else {
+    int iarg = 3;
+    while (iarg < narg) {
+      if (strcmp(arg[iarg],"pair") == 0) pairflag = 1;
+      else if (strcmp(arg[iarg],"bond") == 0) bondflag = 1;
+      else if (strcmp(arg[iarg],"angle") == 0) angleflag = 1;
+      else if (strcmp(arg[iarg],"dihedral") == 0) dihedflag = 1;
+      else if (strcmp(arg[iarg],"improper") == 0) impflag = 1;
+      else if (strcmp(arg[iarg],"kspace") == 0) kspaceflag = 1;
+      else error->all(FLERR,"Illegal compute pressure command");
+      ++iarg;
+    }
+  }
+
+  // Error check
+
+  if (pairflag) {
+    if (force->pair) {
+      if (force->pair->born_matrix_enable == 0) {
+        if (comm->me == 0) error->warning(FLERR, "Pair style does not support compute born/matrix");
+      }
+    }
+  }
+  if (bondflag) {
+    if (force->bond) {
+      if (force->bond->born_matrix_enable == 0) {
+        if (comm->me == 0) error->warning(FLERR, "Bond style does not support compute born/matrix");
+      }
+    }
+  }
+  if (angleflag) {
+    if (force->angle) {
+      if (force->angle->born_matrix_enable == 0) {
+        if (comm->me == 0) error->warning(FLERR, "Angle style does not support compute born/matrix");
+      }
+    }
+  }
+  if (dihedflag) {
+    if (force->dihedral) {
+     if (force->dihedral->born_matrix_enable == 0) {
+       if (comm->me == 0) error->warning(FLERR, "Dihedral style does not support compute born/matrix");
+     }
+    }
+  }
+  if (impflag) {
+    if (force->improper) {
+      if (force->improper->born_matrix_enable == 0) {
+        if (comm->me == 0) error->warning(FLERR, "Improper style does not support compute born/matrix");
+      }
+    }
+  }
+  if (kspaceflag) {
+    error->warning(FLERR, "KSPACE contribution not supported by compute born/matrix");
+  }
   // Initialize some variables
 
   values_local = values_global = vector = nullptr;
@@ -138,42 +222,16 @@ void ComputeBornMatrix::init()
   // Timestep Value
   dt = update->dt;
 
-  pairflag = 0;
-  bondflag = 0;
-  angleflag = 0;
-  dihedflag = 0;
-  impflag = 0;
-  kspaceflag = 0;
+  // IF everything works fine,
+  // this is to be removed
+  //
+  // if (force->pair) pairflag = 1;
+  // if (force->bond) bondflag = 1;
+  // if (force->angle) angleflag = 1;
+  // if (force->dihedral) dihedflag = 1;
+  // if (force->improper) impflag = 1;
+  // if (force->kspace) kspaceflag = 1;
 
-  if (force->pair) pairflag = 1;
-  if (force->bond) bondflag = 1;
-  if (force->angle) angleflag = 1;
-  if (force->dihedral) dihedflag = 1;
-  if (force->improper) impflag = 1;
-  if (force->kspace) kspaceflag = 1;
-
-  // Error check
-
-  if (comm->me == 0) {
-    if (pairflag && (force->pair->born_matrix_enable == 0)) {
-      error->all(FLERR, "Pair style does not support compute born/matrix");
-    }
-    if (bondflag && (force->bond->born_matrix_enable == 0)) {
-      error->warning(FLERR, "Bond style does not support compute born/matrix");
-    }
-    if (angleflag && (force->angle->born_matrix_enable == 0)) {
-      error->warning(FLERR, "Angle style does not support compute born/matrix");
-    }
-    if (dihedflag && (force->dihedral->born_matrix_enable == 0)) {
-      error->warning(FLERR, "Dihedral style does not support compute born/matrix");
-    }
-    if (impflag && (force->improper->born_matrix_enable == 0)) {
-      error->warning(FLERR, "Improper style does not support compute born/matrix");
-    }
-    if (kspaceflag) {
-      error->warning(FLERR, "KSPACE contribution not supported by compute born/matrix");
-    }
-  }
 
   // need an occasional half neighbor list
   int irequest = neighbor->request((void *) this);
@@ -204,7 +262,6 @@ void ComputeBornMatrix::compute_vector()
 
   // Compute Born contribution
   if (pairflag) compute_pairs();
-  // For now these functions are commented
   if (bondflag) compute_bonds();
   if (angleflag) compute_angles();
   if (dihedflag) compute_dihedrals();
@@ -331,11 +388,9 @@ void ComputeBornMatrix::compute_pairs()
    all atoms in interaction must be known to proc
    if bond is deleted or turned off (type <= 0)
    do not count or count contribution
-   COMMENTED FOR NOW
 ---------------------------------------------------------------------- */
 void ComputeBornMatrix::compute_bonds()
 {
-  /* ----------------------------------------------------------------------
   int i,m,n,nb,atom1,atom2,imol,iatom,btype,ivar;
   tagint tagprev;
   double dx,dy,dz,rsq;
@@ -426,7 +481,6 @@ void ComputeBornMatrix::compute_bonds()
     }
     m += 21;
   }
-------------------------------------------------------------------------- */
 }
 
 /* ----------------------------------------------------------------------
@@ -436,11 +490,9 @@ void ComputeBornMatrix::compute_bonds()
    all atoms in interaction must be known to proc
    if bond is deleted or turned off (type <= 0)
    do not count or count contribution
-   COMMENTED FOR NOW
 ---------------------------------------------------------------------- */
 void ComputeBornMatrix::compute_angles()
 {
-  /* ----------------------------------------------------------------------
   int i,m,n,na,atom1,atom2,atom3,imol,iatom,atype,ivar;
   tagint tagprev;
   double delx1,dely1,delz1,delx2,dely2,delz2;
@@ -568,8 +620,8 @@ void ComputeBornMatrix::compute_angles()
         c = 0;
         d = 0;
         for (i = 0; i<6; i++) {
-          a = albe[i][0];
-          b = albe[i][1];
+          a = sigma_albe[i][0];
+          b = sigma_albe[i][1];
           dcos[i] = cost*(del1[a]*del2[b]+del1[b]*del2[a]*r1r2inv -
                           del1[a]*del1[b]*rsq1inv - del2[a]*del2[b]*rsq2inv);
         }
@@ -578,8 +630,8 @@ void ComputeBornMatrix::compute_angles()
           b = albemunu[i][1];
           c = albemunu[i][2];
           d = albemunu[i][3];
-          e = albe[i][0];
-          f = albe[i][1];
+          e = C_albe[i][0];
+          f = C_albe[i][1];
           d2lncos[i] = 2*(del1[a]*del1[b]*del1[c]*del1[d]*rsq1inv*rsq1inv +
                           del2[a]*del2[b]*del2[c]*del2[d]*rsq2inv*rsq2inv) -
                          (del1[a]*del2[b]+del1[b]*del2[a]) *
@@ -592,7 +644,6 @@ void ComputeBornMatrix::compute_angles()
     }
   m+=21;
   }
-------------------------------------------------------------------------- */
 }
 
 /* ----------------------------------------------------------------------
@@ -601,12 +652,10 @@ void ComputeBornMatrix::compute_angles()
    all atoms in interaction must be in group
    all atoms in interaction must be known to proc
    if flag is set, compute requested info about dihedral
-   COMMENTED FOR NOW
 ------------------------------------------------------------------------- */
 
 void ComputeBornMatrix::compute_dihedrals()
 {
-  /* ----------------------------------------------------------------------
   int i,m,n,nd,atom1,atom2,atom3,atom4,imol,iatom,dtype,ivar;
   tagint tagprev;
   double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,vb2xm,vb2ym,vb2zm;
@@ -781,8 +830,8 @@ void ComputeBornMatrix::compute_dihedrals()
         e = 0;
         f = 0;
         for (i = 0; i<6; i++) {
-          a = albe[i][0];
-          b = albe[i][1];
+          a = sigma_albe[i][0];
+          b = sigma_albe[i][1];
           dmm[i] = 2*(b2sq*b1[a]*b1[b]+b1sq*b2[a]*b2[b] - b1b2*(b1[a]*b2[b]+b1[b]*b2[a]));
           dnn[i] = 2*(b3sq*b2[a]*b2[b]+b2sq*b3[a]*b3[b] - b2b3*(b2[a]*b3[b]+b2[b]*b3[a]));
           dmn[i] = b1b2*(b2[a]*b3[b]+b2[b]*b3[a]) + b2b3*(b1[a]*b2[b]+b1[b]*b2[a])
@@ -794,8 +843,8 @@ void ComputeBornMatrix::compute_dihedrals()
           b = albemunu[i][1];
           c = albemunu[i][2];
           d = albemunu[i][3];
-          e = albe[i][0];
-          f = albe[i][1];
+          e = C_albe[i][0];
+          f = C_albe[i][1];
           d2mm[i] = 4*(b1[a]*b1[b]*b2[c]*b2[d] + b1[c]*b1[d]*b2[a]*b2[b])
                   - 8*(b1[a]*b2[b]+b1[b]*b2[a])*(b1[c]*b2[d]+b1[d]*b2[c]);
           d2nn[i] = 4*(b2[a]*b2[b]*b3[c]*b3[d] + b2[c]*b2[d]*b3[a]*b3[b])
@@ -810,12 +859,11 @@ void ComputeBornMatrix::compute_dihedrals()
                   + ra2inv*ra2inv*dmm[e]*dmm[f]
                   - ra2inv*d2mm[i]
                   + rb2inv*rb2inv*dnn[e]*dnn[f]
-                  - rb2inv*d2nn[i] );
+                  - rb2inv*d2nn[i]);
           values_local[m+i] += dudih*d2cos[i] + du2dih*dcos[e]*dcos[f];
         }
       }
     }
   m+=21;
   }
-------------------------------------------------------------------------- */
 }

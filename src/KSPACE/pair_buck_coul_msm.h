@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class PairBuckCoulMSM : public PairBuckCoulLong {
  public:
   PairBuckCoulMSM(class LAMMPS *);
-  virtual ~PairBuckCoulMSM();
-  virtual void compute(int, int);
-  virtual double single(int, int, int, int, double, double, double, double &);
-  virtual void *extract(const char *, int &);
+  ~PairBuckCoulMSM() override;
+  void compute(int, int) override;
+  double single(int, int, int, int, double, double, double, double &) override;
+  void *extract(const char *, int &) override;
 
  protected:
   int nmax;

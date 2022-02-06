@@ -44,7 +44,7 @@ class Improper : protected Pointers {
   int copymode;
 
   Improper(class LAMMPS *);
-  virtual ~Improper();
+  ~Improper() override;
   virtual void init();
   virtual void init_style() {}
   virtual void compute(int, int) = 0;

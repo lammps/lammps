@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class FixSAEDVTK : public Fix {
  public:
   FixSAEDVTK(class LAMMPS *, int, char **);
-  ~FixSAEDVTK();
-  int setmask();
-  void init();
-  void setup(int);
-  void end_of_step();
-  double compute_vector(int);
+  ~FixSAEDVTK() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void end_of_step() override;
+  double compute_vector(int) override;
   void reset_timestep(bigint);
 
  private:

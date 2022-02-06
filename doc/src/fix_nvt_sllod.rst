@@ -66,7 +66,10 @@ equivalent to Newton's equations of motion for shear flow by
 :ref:`(Evans and Morriss) <Evans3>`. They were later shown to generate
 the desired velocity gradient and the correct production of work by
 stresses for all forms of homogeneous flow by :ref:`(Daivis and Todd)
-<Daivis>`.  As implemented in LAMMPS, they are coupled to a
+<Daivis>`.
+The LAMMPS implementation corresponds to the p-SLLOD variant
+of SLLOD. :ref:`(Edwards) <Edwards>`.
+The equations of motion are coupled to a
 Nose/Hoover chain thermostat in a velocity Verlet formulation, closely
 following the implementation used for the :doc:`fix nvt <fix_nh>`
 command.
@@ -179,6 +182,10 @@ Same as :doc:`fix nvt <fix_nh>`, except tchain = 1.
 .. _Daivis:
 
 **(Daivis and Todd)** Daivis and Todd, J Chem Phys, 124, 194103 (2006).
+
+.. _Edwards:
+
+**(Edwards)** Edwards, Baig, and Keffer, J Chem Phys 124, 194104 (2006).
 
 .. _Daivis-sllod:
 

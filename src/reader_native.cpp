@@ -130,6 +130,7 @@ void ReaderNative::skip()
     // read chunk and skip them
 
     read_buf(&nchunk, sizeof(int), 1);
+    if (nchunk < 0) error->one(FLERR,"Dump file is invalid or corrupted");
 
     int n;
     for (int i = 0; i < nchunk; i++) {
@@ -141,8 +142,7 @@ void ReaderNative::skip()
     read_lines(2);
     bigint natoms;
     int rv = sscanf(line,BIGINT_FORMAT,&natoms);
-    if (rv != 1)
-      error->one(FLERR,"Dump file is incorrectly formatted");
+    if (rv != 1) error->one(FLERR,"Dump file is incorrectly formatted");
 
     read_lines(5);
 
@@ -163,20 +163,17 @@ void ReaderNative::skip_reading_magic_str()
   if (is_known_magic_str() && revision > 0x0001) {
     int len;
     read_buf(&len, sizeof(int), 1);
+    if (len < 0) error->one(FLERR,"Dump file is invalid or corrupted");
 
-    if (len > 0) {
-      // has units
-      skip_buf(sizeof(char)*len);
-    }
+    // has units
+    if (len > 0) skip_buf(sizeof(char)*len);
 
     char flag = 0;
     read_buf(&flag, sizeof(char), 1);
-
-    if (flag) {
-      skip_buf(sizeof(double));
-    }
+    if (flag) skip_buf(sizeof(double));
 
     read_buf(&len, sizeof(int), 1);
+    if (len < 0) error->one(FLERR,"Dump file is invalid or corrupted");
     skip_buf(sizeof(char)*len);
   }
 }

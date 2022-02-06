@@ -30,11 +30,11 @@ class ComputeReduce : public Compute {
   enum { PERATOM, LOCAL };
 
   ComputeReduce(class LAMMPS *, int, char **);
-  virtual ~ComputeReduce();
-  void init();
-  double compute_scalar();
-  void compute_vector();
-  double memory_usage();
+  ~ComputeReduce() override;
+  void init() override;
+  double compute_scalar() override;
+  void compute_vector() override;
+  double memory_usage() override;
 
  protected:
   int me;

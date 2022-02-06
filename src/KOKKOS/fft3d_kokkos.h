@@ -80,7 +80,7 @@ class FFT3dKokkos : protected Pointers {
   FFT3dKokkos(class LAMMPS *, MPI_Comm,
         int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,
         int,int,int *,int,int);
-  ~FFT3dKokkos();
+  ~FFT3dKokkos() override;
   void compute(typename FFT_AT::t_FFT_SCALAR_1d, typename FFT_AT::t_FFT_SCALAR_1d, int);
   void timing1d(typename FFT_AT::t_FFT_SCALAR_1d, int, int);
 

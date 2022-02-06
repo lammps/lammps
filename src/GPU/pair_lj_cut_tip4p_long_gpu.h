@@ -31,10 +31,10 @@ namespace LAMMPS_NS {
 class PairLJCutTIP4PLongGPU : public PairLJCutTIP4PLong {
  public:
   PairLJCutTIP4PLongGPU(LAMMPS *lmp);
-  ~PairLJCutTIP4PLongGPU();
-  void compute(int, int);
-  void init_style();
-  double memory_usage();
+  ~PairLJCutTIP4PLongGPU() override;
+  void compute(int, int) override;
+  void init_style() override;
+  double memory_usage() override;
 
   enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 

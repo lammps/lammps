@@ -38,10 +38,10 @@ namespace LAMMPS_NS {
 class ComputeSMDDamage : public Compute {
  public:
   ComputeSMDDamage(class LAMMPS *, int, char **);
-  ~ComputeSMDDamage();
-  void init();
-  void compute_peratom();
-  double memory_usage();
+  ~ComputeSMDDamage() override;
+  void init() override;
+  void compute_peratom() override;
+  double memory_usage() override;
 
  private:
   int nmax;

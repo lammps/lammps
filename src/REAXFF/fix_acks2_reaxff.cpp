@@ -429,7 +429,7 @@ void FixACKS2ReaxFF::compute_X()
   double **x = atom->x;
   int *mask = atom->mask;
 
-  memset(X_diag,0.0,atom->nmax*sizeof(double));
+  memset(X_diag,0,atom->nmax*sizeof(double));
 
   // fill in the X matrix
   m_fill = 0;

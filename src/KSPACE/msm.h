@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class MSM : public KSpace {
  public:
   MSM(class LAMMPS *);
-  virtual ~MSM();
-  void init();
-  void setup();
-  virtual void settings(int, char **);
-  virtual void compute(int, int);
-  virtual double memory_usage();
+  ~MSM() override;
+  void init() override;
+  void setup() override;
+  void settings(int, char **) override;
+  void compute(int, int) override;
+  double memory_usage() override;
 
  protected:
   int me, nprocs;
@@ -100,7 +100,7 @@ class MSM : public KSpace {
   void set_grid_global();
   void set_proc_grid(int);
   void set_grid_local();
-  void setup_grid();
+  void setup_grid() override;
   double estimate_1d_error(double, double);
   double estimate_3d_error();
   double estimate_total_error();
@@ -134,10 +134,10 @@ class MSM : public KSpace {
 
   // grid communication
 
-  void pack_forward_grid(int, void *, int, int *);
-  void unpack_forward_grid(int, void *, int, int *);
-  void pack_reverse_grid(int, void *, int, int *);
-  void unpack_reverse_grid(int, void *, int, int *);
+  void pack_forward_grid(int, void *, int, int *) override;
+  void unpack_forward_grid(int, void *, int, int *) override;
+  void pack_reverse_grid(int, void *, int, int *) override;
+  void unpack_reverse_grid(int, void *, int, int *) override;
 };
 
 }    // namespace LAMMPS_NS

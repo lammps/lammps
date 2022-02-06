@@ -18,18 +18,18 @@
 
 #include "pair_gayberne.h"
 
-#include <cmath>
-#include "math_extra.h"
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
-#include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
 #include "citeme.h"
-#include "memory.h"
+#include "comm.h"
 #include "error.h"
+#include "force.h"
+#include "math_extra.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 
+#include <cmath>
 
 using namespace LAMMPS_NS;
 

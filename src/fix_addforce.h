@@ -27,17 +27,17 @@ namespace LAMMPS_NS {
 class FixAddForce : public Fix {
  public:
   FixAddForce(class LAMMPS *, int, char **);
-  ~FixAddForce();
-  int setmask();
-  void init();
-  void setup(int);
-  void min_setup(int);
-  void post_force(int);
-  void post_force_respa(int, int, int);
-  void min_post_force(int);
-  double compute_scalar();
-  double compute_vector(int);
-  double memory_usage();
+  ~FixAddForce() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void min_setup(int) override;
+  void post_force(int) override;
+  void post_force_respa(int, int, int) override;
+  void min_post_force(int) override;
+  double compute_scalar() override;
+  double compute_vector(int) override;
+  double memory_usage() override;
 
  private:
   double xvalue, yvalue, zvalue;

@@ -38,11 +38,11 @@ namespace LAMMPS_NS {
 class ComputeSMDVol : public Compute {
  public:
   ComputeSMDVol(class LAMMPS *, int, char **);
-  ~ComputeSMDVol();
-  void init();
-  void compute_peratom();
-  double compute_scalar();
-  double memory_usage();
+  ~ComputeSMDVol() override;
+  void init() override;
+  void compute_peratom() override;
+  double compute_scalar() override;
+  double memory_usage() override;
 
  private:
   int nmax;

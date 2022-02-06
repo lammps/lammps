@@ -31,12 +31,12 @@ namespace LAMMPS_NS {
 class FixNVEGPU : public FixNVE {
  public:
   FixNVEGPU(class LAMMPS *, int, char **);
-  virtual ~FixNVEGPU();
-  virtual void setup(int);
-  virtual void initial_integrate(int);
-  virtual void final_integrate();
-  virtual void reset_dt();
-  virtual double memory_usage();
+  ~FixNVEGPU() override;
+  void setup(int) override;
+  void initial_integrate(int) override;
+  void final_integrate() override;
+  void reset_dt() override;
+  double memory_usage() override;
 
  protected:
   void reset_dt_omp(const int, const int, const int);

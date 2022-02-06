@@ -30,8 +30,7 @@ namespace LAMMPS_NS {
 class NPairFullBinAtomonly : public NPair {
  public:
   NPairFullBinAtomonly(class LAMMPS *);
-  ~NPairFullBinAtomonly() {}
-  void build(class NeighList *);
+  void build(class NeighList *) override;
 };
 
 }    // namespace LAMMPS_NS

@@ -27,15 +27,15 @@ namespace LAMMPS_NS {
 class FixAveCorrelateLong : public Fix {
  public:
   FixAveCorrelateLong(class LAMMPS *, int, char **);
-  ~FixAveCorrelateLong();
-  int setmask();
-  void init();
-  void setup(int);
-  void end_of_step();
+  ~FixAveCorrelateLong() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void end_of_step() override;
 
-  void write_restart(FILE *);
-  void restart(char *);
-  double memory_usage();
+  void write_restart(FILE *) override;
+  void restart(char *) override;
+  double memory_usage() override;
 
   double *t;     // Time steps for result arrays
   double **f;    // Result arrays

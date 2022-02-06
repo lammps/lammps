@@ -53,6 +53,7 @@ class Pair : protected Pointers {
   int single_enable;              // 1 if single() routine exists
   int born_matrix_enable;         // 1 if born_matrix() routine exists
   int single_hessian_enable;      // 1 if single_hessian() routine exists
+  int born_matrix_enable;         // 1 if born_matrix() routine exists
   int restartinfo;                // 1 if pair style writes restart info
   int respa_enable;               // 1 if inner/middle/outer rRESPA routines
   int one_coeff;                  // 1 if allows only one coeff * * call
@@ -124,7 +125,7 @@ class Pair : protected Pointers {
   int kokkosable;    // 1 if Kokkos pair
 
   Pair(class LAMMPS *);
-  virtual ~Pair();
+  ~Pair() override;
 
   // top-level Pair methods
 
@@ -174,6 +175,13 @@ class Pair : protected Pointers {
     fforce = 0.0;
     for (int i = 0; i < 6; i++) d2u[i] = 0;
     return 0.0;
+  }
+
+  virtual void born_matrix(int /*i*/, int /*j*/, int /*itype*/, int /*jtype*/, double /*rsq*/,
+			   double /*factor_coul*/, double /*factor_lj*/, double& du, double& du2)
+  {
+    du = 0.0;
+    du2 = 0.0;
   }
 
   virtual void settings(int, char **) = 0;

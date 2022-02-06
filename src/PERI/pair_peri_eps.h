@@ -27,15 +27,14 @@ namespace LAMMPS_NS {
 class PairPeriEPS : public PairPeri {
  public:
   PairPeriEPS(class LAMMPS *);
-  virtual ~PairPeriEPS() = default;
 
-  virtual void compute(int, int);
-  void coeff(int, char **);
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *) {}
-  void read_restart_settings(FILE *) {}
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override {}
+  void read_restart_settings(FILE *) override {}
   double compute_DeviatoricForceStateNorm(int);
 };
 

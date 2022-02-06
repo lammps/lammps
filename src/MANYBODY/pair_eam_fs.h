@@ -29,12 +29,12 @@ namespace LAMMPS_NS {
 class PairEAMFS : virtual public PairEAM {
  public:
   PairEAMFS(class LAMMPS *);
-  virtual ~PairEAMFS() {}
-  void coeff(int, char **);
+
+  void coeff(int, char **) override;
 
  protected:
-  void read_file(char *);
-  void file2array();
+  void read_file(char *) override;
+  void file2array() override;
   int he_flag;
 };
 

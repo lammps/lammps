@@ -60,7 +60,7 @@ class Update : protected Pointers {
   MinimizeCreatorMap *minimize_map;
 
   Update(class LAMMPS *);
-  ~Update();
+  ~Update() override;
   void init();
   void set_units(const char *);
   void create_integrate(int, char **, int);

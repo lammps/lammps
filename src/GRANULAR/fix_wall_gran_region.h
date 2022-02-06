@@ -27,22 +27,22 @@ namespace LAMMPS_NS {
 class FixWallGranRegion : public FixWallGran {
  public:
   FixWallGranRegion(class LAMMPS *, int, char **);
-  ~FixWallGranRegion();
-  void post_force(int);
-  void write_restart(FILE *);
-  void restart(char *);
-  void init();
+  ~FixWallGranRegion() override;
+  void post_force(int) override;
+  void write_restart(FILE *) override;
+  void restart(char *) override;
+  void init() override;
 
-  double memory_usage();
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  void set_arrays(int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
-  int pack_restart(int, double *);
-  void unpack_restart(int, int);
-  int size_restart(int);
-  int maxsize_restart();
+  double memory_usage() override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  void set_arrays(int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  int pack_restart(int, double *) override;
+  void unpack_restart(int, int) override;
+  int size_restart(int) override;
+  int maxsize_restart() override;
 
  private:
   class Region *region;

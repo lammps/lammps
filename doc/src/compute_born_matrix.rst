@@ -8,10 +8,19 @@ Syntax
 
 .. parsed-literal::
 
-   compute ID group-ID born/matrix
+   compute ID group-ID born/matrix keyword value ...
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * born/matrix = style name of this compute command
+* one or more keyword/value pairs may be appended
+
+    .. parsed-literal::
+
+       *numdiff* values = delta virial-ID
+         delta = magnitude of strain fields (dimensionless)
+         virial-ID = ID of pressure compute for virial (string)
+
+       *pair* or *bond* or *angle* or *dihedral* values = none
 
 Examples
 """"""""
@@ -19,6 +28,8 @@ Examples
 .. code-block:: LAMMPS
 
    compute 1 all born/matrix
+   compute 1 all born/matrix bond angle
+   compute 1 all born/matrix numdiff 1.0e-4 myvirial
 
 Description
 """""""""""
@@ -33,7 +44,7 @@ tensor :math:`\varepsilon` elements. These values are related to:
     C^{B}_{i,j}=\frac{1}{V}\frac{\partial{}^2U}{\partial{}\varepsilon_{i}\partial\varepsilon_{j}}
 
 also called the Born term of elastic constants in the stress-stress fluctuation
-formalism.  This quantity can be used to compute the elastic constant tensor.
+formalism. This quantity can be used to compute the elastic constant tensor.
 Using the symmetric Voigt notation, the elastic constant tensor can be written
 as a 6x6 symmetric matrix:
 
@@ -96,6 +107,58 @@ solid the virial stress can have large variations between timesteps and average
 values can be slow to converge. This term is better computed using
 instantaneous values.
 
+Two different computation methods are implemented in this compute and are
+mutually exclusive.
+
+The first one is a direct computation from the analytical formula from the
+different terms of the potential used for the simulations (see :ref: `(Vorkum)
+<_VanWorkum>`). However, the implementation of such derivations must be done
+for every potential form. This has not been done yet and can be very
+complicated for sophisticated potentials. At the moment a warning message is
+displayed for every term that is not supporting the compute at the moment.
+This method is the default for now.
+
+The second method uses finite differences of energy to numerically approximate
+the second derivatives (see :ref: `(Zhen) <_Zhen>`). This is useful when using
+interaction styles for which the analytical second derivatives have not been
+implemented. In this cases, the compute applies linear strain fields of
+magnitude *delta* to all the atoms relative to a point at the center of the
+box. The strain fields are in six different directions, corresponding to the
+six Cartesian components of the stress tensor defined by LAMMPS. For each
+direction it applies the strain field in both the positive and negative senses,
+and the new stress virial tensor of the entire system is calculated after each.
+The difference in these two virials divided by two times *delta*, approximates
+the corresponding components of the second derivative, after applying a
+suitable unit conversion.
+
+.. note::
+
+   It is important to choose a suitable value for delta, the magnitude of
+   strains that are used to generate finite difference
+   approximations to the exact virial stress.  For typical systems, a value in
+   the range of 1 part in 1e5 to 1e6 will be sufficient.
+   However, the best value will depend on a multitude of factors
+   including the stiffness of the interatomic potential, the thermodynamic
+   state of the material being probed, and so on. The only way to be sure
+   that you have made a good choice is to do a sensitivity study on a
+   representative atomic configuration, sweeping over a wide range of
+   values of delta. If delta is too small, the output values will vary
+   erratically due to truncation effects. If delta is increased beyond a
+   certain point, the output values will start to vary smoothly with
+   delta, due to growing contributions from higher order derivatives. In
+   between these two limits, the numerical virial values should be largely
+   independent of delta.
+
+The keyword requires the additional arguments *delta* and *virial-ID*.
+*delta* gives the size of the applied strains. *virial-ID* gives
+the ID string of the pressure compute that provides the virial stress tensor,
+requiring that it use the virial keyword e.g.
+
+.. code-block:: LAMMPS
+
+   compute myvirial all pressure NULL virial
+   compute 1 all born/matrix numdiff 1.0e-4 myvirial
+
 **Output info:**
 
 This compute calculates a global array with the number of rows=21.
@@ -110,15 +173,18 @@ Restrictions
 """"""""""""
 
 This compute is part of the EXTRA-COMPUTE package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.  LAMMPS was built with that package.  See
+the :doc:`Build package <Build_package>` page for more info.
 
-The Born term can be decomposed as a product of two terms. The first one
-is a general term which depends on the configuration. The second one is
-specific to every interaction composing your force field (non-bonded,
-bonds, angle...). Currently not all interaction implement the *born_matrix*
-method giving first and second order derivatives and a warning will
-be raised if you try to use this compute with such interactions. The returned
-values of this force field component is currently zero.
+The Born term can be decomposed as a product of two terms. The first one is a
+general term which depends on the configuration. The second one is specific to
+every interaction composing your force field (non-bonded, bonds, angle...).
+Currently not all LAMMPS interaction styles implement the *born_matrix* method
+giving first and second order derivatives and LAMMPS will exit with an error if
+this compute is used with such interactions unless the *numdiff* option is
+also used. The *numdiff* option cannot be used with any other keyword. In this
+situation, LAMMPS will also exit with an error.
 
 Default
 """""""
@@ -134,3 +200,7 @@ none
 .. _Voyiatzis:
 
 **(Voyiatzis)** E. Voyiatzis, Computer Physics Communications 184(2013)27-33
+
+.. _Zhen:
+
+**(Zhen)** Y. Zhen, C. Chu, Computer Physics Communications 183(2012)261-265

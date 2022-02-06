@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class FixViscosity : public Fix {
  public:
   FixViscosity(class LAMMPS *, int, char **);
-  ~FixViscosity();
-  int setmask();
-  void init();
-  void end_of_step();
-  double compute_scalar();
+  ~FixViscosity() override;
+  int setmask() override;
+  void init() override;
+  void end_of_step() override;
+  double compute_scalar() override;
 
  private:
   int me;

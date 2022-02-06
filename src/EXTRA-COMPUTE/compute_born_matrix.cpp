@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -9,11 +10,11 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
-   ------------------------------------------------------------------------- */
+------------------------------------------------------------------------- */
 
-/*------------------------------------------------------------------------
-  Contributing Authors : Germain Clavier (TUe)
-  --------------------------------------------------------------------------*/
+/* ----------------------------------------------------------------------
+  Contributing Authors : Germain Clavier (TUe), Aidan Thompson (Sandia)
+------------------------------------------------------------------------- */
 
 #include "compute_born_matrix.h"
 
@@ -22,12 +23,15 @@
 #include "atom_vec.h"
 #include "bond.h"
 #include "comm.h"
+#include "compute.h"
 #include "dihedral.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
 #include "improper.h"
+#include "kspace.h"
 #include "memory.h"
+#include "modify.h"
 #include "molecule.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -45,7 +49,7 @@ using namespace LAMMPS_NS;
 
 // This table is used to pick the 3d rij vector indices used to
 // compute the 6 indices long Voigt stress vector
-static int const sigma_albe[6][2] = {
+static int constexpr sigma_albe[6][2] = {
     {0, 0},    // s11
     {1, 1},    // s22
     {2, 2},    // s33
@@ -56,7 +60,7 @@ static int const sigma_albe[6][2] = {
 
 // This table is used to pick the correct indices from the Voigt
 // stress vector to compute the Cij matrix (21 terms, see doc) contribution
-static int const C_albe[21][2] = {
+static int constexpr C_albe[21][2] = {
     {0, 0},    // C11
     {1, 1},    // C22
     {2, 2},    // C33
@@ -82,7 +86,7 @@ static int const C_albe[21][2] = {
 
 // This table is used to pick the 3d rij vector indices used to
 // compute the 21 indices long Cij matrix
-static int const albemunu[21][4] = {
+static int constexpr albemunu[21][4] = {
     {0, 0, 0, 0},    // C11
     {1, 1, 1, 1},    // C22
     {2, 2, 2, 2},    // C33
@@ -108,48 +112,60 @@ static int const albemunu[21][4] = {
 
 /* ---------------------------------------------------------------------- */
 
-ComputeBornMatrix::ComputeBornMatrix(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, arg)
+ComputeBornMatrix::ComputeBornMatrix(LAMMPS *lmp, int narg, char **arg) : 
+    Compute(lmp, narg, arg), id_virial(nullptr), temp_x(nullptr), 
+    temp_f(nullptr)
 {
-  MPI_Comm_rank(world, &me);
+  if (narg < 3) error->all(FLERR,"Illegal compute born/matrix command");
 
+  MPI_Comm_rank(world, &me);
   // For now the matrix can be computed as a 21 element vector
 
   nvalues = 21;
 
   // Error check
 
-  if (narg < 3) error->all(FLERR,"Illegal compute pressure command");
+  numflag = 0;
+  numdelta = 0.0;
 
   pairflag = 0;
   bondflag = 0;
   angleflag = 0;
   dihedflag = 0;
   impflag = 0;
-  kspaceflag = 0;
   if (narg == 3) {
     pairflag = 1;
     bondflag = 1;
     angleflag = 1;
     dihedflag = 1;
     impflag = 1;
-    kspaceflag = 1;
   } else {
     int iarg = 3;
     while (iarg < narg) {
-      if (strcmp(arg[iarg],"pair") == 0) pairflag = 1;
+      if (strcmp(arg[iarg],"numdiff") == 0) {
+        if (iarg+3 > narg) error->all(FLERR,"Illegal compute born/matrix command");
+        numflag = 1;
+        numdelta = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+        if (numdelta <= 0.0) error->all(FLERR, "Illegal compute born/matrix command");
+        id_virial = utils::strdup(arg[iarg+2]);
+        int icompute = modify->find_compute(id_virial);
+        if (icompute < 0) error->all(FLERR,"Could not find compute born/matrix pressure ID");
+        compute_virial = modify->compute[icompute];
+        if (compute_virial->pressflag == 0)
+        error->all(FLERR,"Compute born/matrix pressure ID does not compute pressure");
+        iarg += 3;
+      } else if (strcmp(arg[iarg],"pair") == 0) pairflag = 1;
       else if (strcmp(arg[iarg],"bond") == 0) bondflag = 1;
       else if (strcmp(arg[iarg],"angle") == 0) angleflag = 1;
       else if (strcmp(arg[iarg],"dihedral") == 0) dihedflag = 1;
       else if (strcmp(arg[iarg],"improper") == 0) impflag = 1;
-      else if (strcmp(arg[iarg],"kspace") == 0) kspaceflag = 1;
-      else error->all(FLERR,"Illegal compute pressure command");
+      else error->all(FLERR,"Illegal compute born/matrix command");
       ++iarg;
     }
   }
 
-  // Error check
-
   if (pairflag) {
+    if (numflag) error->all(FLERR, "Illegal compute born/matrix command");
     if (force->pair) {
       if (force->pair->born_matrix_enable == 0) {
         if (comm->me == 0) error->warning(FLERR, "Pair style does not support compute born/matrix");
@@ -157,6 +173,7 @@ ComputeBornMatrix::ComputeBornMatrix(LAMMPS *lmp, int narg, char **arg) : Comput
     }
   }
   if (bondflag) {
+    if (numflag) error->all(FLERR, "Illegal compute born/matrix command");
     if (force->bond) {
       if (force->bond->born_matrix_enable == 0) {
         if (comm->me == 0) error->warning(FLERR, "Bond style does not support compute born/matrix");
@@ -164,6 +181,7 @@ ComputeBornMatrix::ComputeBornMatrix(LAMMPS *lmp, int narg, char **arg) : Comput
     }
   }
   if (angleflag) {
+    if (numflag) error->all(FLERR, "Illegal compute born/matrix command");
     if (force->angle) {
       if (force->angle->born_matrix_enable == 0) {
         if (comm->me == 0) error->warning(FLERR, "Angle style does not support compute born/matrix");
@@ -171,6 +189,7 @@ ComputeBornMatrix::ComputeBornMatrix(LAMMPS *lmp, int narg, char **arg) : Comput
     }
   }
   if (dihedflag) {
+    if (numflag) error->all(FLERR, "Illegal compute born/matrix command");
     if (force->dihedral) {
      if (force->dihedral->born_matrix_enable == 0) {
        if (comm->me == 0) error->warning(FLERR, "Dihedral style does not support compute born/matrix");
@@ -178,14 +197,15 @@ ComputeBornMatrix::ComputeBornMatrix(LAMMPS *lmp, int narg, char **arg) : Comput
     }
   }
   if (impflag) {
+    if (numflag) error->all(FLERR, "Illegal compute born/matrix command");
     if (force->improper) {
       if (force->improper->born_matrix_enable == 0) {
         if (comm->me == 0) error->warning(FLERR, "Improper style does not support compute born/matrix");
       }
     }
   }
-  if (kspaceflag) {
-    error->warning(FLERR, "KSPACE contribution not supported by compute born/matrix");
+  if (force->kspace) {
+    if (!numflag) error->warning(FLERR, "KSPACE contribution not supported by compute born/matrix");
   }
   // Initialize some variables
 
@@ -194,50 +214,159 @@ ComputeBornMatrix::ComputeBornMatrix(LAMMPS *lmp, int narg, char **arg) : Comput
   // this fix produces a global vector
 
   memory->create(vector, nvalues, "born_matrix:vector");
-  memory->create(values_local, nvalues, "born_matrix:values_local");
   memory->create(values_global, nvalues, "born_matrix:values_global");
   size_vector = nvalues;
 
   vector_flag = 1;
   extvector = 0;
+  maxatom = 0;
+
+  if (!numflag) {
+    memory->create(values_local, nvalues, "born_matrix:values_local");
+  } else {
+
+    reallocate();
+
+    // set fixed-point to default = center of cell
+
+    fixedpoint[0] = 0.5 * (domain->boxlo[0] + domain->boxhi[0]);
+    fixedpoint[1] = 0.5 * (domain->boxlo[1] + domain->boxhi[1]);
+    fixedpoint[2] = 0.5 * (domain->boxlo[2] + domain->boxhi[2]);
+
+    // define the cartesian indices for each strain (Voigt order)
+
+    dirlist[0][0] = 0;
+    dirlist[0][1] = 0;
+    dirlist[1][0] = 1;
+    dirlist[1][1] = 1;
+    dirlist[2][0] = 2;
+    dirlist[2][1] = 2;
+
+    dirlist[3][0] = 1;
+    dirlist[3][1] = 2;
+    dirlist[4][0] = 0;
+    dirlist[4][1] = 2;
+    dirlist[5][0] = 0;
+    dirlist[5][1] = 1;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 ComputeBornMatrix::~ComputeBornMatrix()
 {
-
-  // delete [] which;
-
-  memory->destroy(values_local);
   memory->destroy(values_global);
   memory->destroy(vector);
+  if (!numflag) {
+    memory->destroy(values_local);
+  } else {
+    memory->destroy(temp_x);
+    memory->destroy(temp_f);
+    delete[] id_virial;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 void ComputeBornMatrix::init()
 {
-
-  // Timestep Value
+  //Timestep value
   dt = update->dt;
 
-  // IF everything works fine,
-  // this is to be removed
-  //
-  // if (force->pair) pairflag = 1;
-  // if (force->bond) bondflag = 1;
-  // if (force->angle) angleflag = 1;
-  // if (force->dihedral) dihedflag = 1;
-  // if (force->improper) impflag = 1;
-  // if (force->kspace) kspaceflag = 1;
+  if (!numflag) {
 
+    // need an occasional half neighbor list
+    int irequest = neighbor->request((void *) this);
+    neighbor->requests[irequest]->pair = 0;
+    neighbor->requests[irequest]->compute = 1;
+    neighbor->requests[irequest]->occasional = 1;
 
-  // need an occasional half neighbor list
-  int irequest = neighbor->request((void *) this);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->compute = 1;
-  neighbor->requests[irequest]->occasional = 1;
+  } else {
+
+    // check for virial compute
+
+    int icompute = modify->find_compute(id_virial);
+    if (icompute < 0) error->all(FLERR, "Virial compute ID for compute born/matrix does not exist");
+    compute_virial = modify->compute[icompute];
+
+    // set up reverse index lookup
+
+    for (int m = 0; m < nvalues; m++) {
+      int a = albe[m][0];
+      int b = albe[m][1];
+      revalbe[a][b] = m;
+      revalbe[b][a] = m;
+    }
+
+    for (int a = 0; a < NDIR_VIRIAL; a++) {
+      for (int b = 0; b < NDIR_VIRIAL; b++) {
+        printf("%d ",revalbe[a][b]);
+      }
+      printf("\n");
+    }
+
+    // voigt3VtoM notation in normal physics sense,
+    // 3x3 matrix and vector indexing
+    //  i-j:      (1-1), (2-2), (3-3), (2-3), (1-3), (1-2)
+    //  voigt3VtoM: 1      2      3      4      5      6
+
+    voigt3VtoM[0][0]=0;  //  for 1
+    voigt3VtoM[0][1]=0;
+    voigt3VtoM[1][0]=1;  //  for 2
+    voigt3VtoM[1][1]=1;
+    voigt3VtoM[2][0]=2;  //  for 3
+    voigt3VtoM[2][1]=2;
+    voigt3VtoM[3][0]=1;  //  for 4 
+    voigt3VtoM[3][1]=2;
+    voigt3VtoM[4][0]=0;  //  for 5 
+    voigt3VtoM[4][1]=2;
+    voigt3VtoM[5][0]=0;  //  for 6 
+    voigt3VtoM[5][1]=1;
+
+    // to convert to vector indexing:
+    // matrix index to vector index, double -> single index
+    // this is not used at all
+
+    voigt3MtoV[0][0]=0;    voigt3MtoV[0][1]=5;    voigt3MtoV[0][2]=4;
+    voigt3MtoV[1][0]=5;    voigt3MtoV[1][1]=1;    voigt3MtoV[1][2]=3;
+    voigt3MtoV[2][0]=4;    voigt3MtoV[2][1]=3;    voigt3MtoV[2][2]=2;
+
+    // this is just for the virial.
+    // since they use the xx,yy,zz,xy,xz,yz
+    // order not the ordinary voigt
+
+    virialMtoV[0][0]=0;    virialMtoV[0][1]=3;    virialMtoV[0][2]=4;
+    virialMtoV[1][0]=3;    virialMtoV[1][1]=1;    virialMtoV[1][2]=5;
+    virialMtoV[2][0]=4;    virialMtoV[2][1]=5;    virialMtoV[2][2]=2;
+
+    // reorder LAMMPS virial vector to Voigt order
+
+    virialVtoV[0] = 0;
+    virialVtoV[1] = 1;
+    virialVtoV[2] = 2;
+    virialVtoV[3] = 5;
+    virialVtoV[4] = 4;
+    virialVtoV[5] = 3;
+
+    // the following is for 6x6 matrix and vector indexing converter
+    // this is clearly different order form albe[][] and revalbe[]
+    // should not be used
+
+    int indcounter = 0;
+    for(int row = 0; row < NDIR_VIRIAL; row++)
+      for(int col = row; col< NDIR_VIRIAL; col++) {
+        voigt6MtoV[row][col] = voigt6MtoV[col][row] = indcounter;
+        indcounter++;
+      }
+
+    // set up 3x3 kronecker deltas
+
+    for(int row = 0; row < NXYZ_VIRIAL; row++)
+      for(int col = 0; col < NXYZ_VIRIAL; col++)
+        kronecker[row][col] = 0;
+    for(int row = 0; row < NXYZ_VIRIAL; row++)
+      kronecker[row][row] = 1;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -249,45 +378,57 @@ void ComputeBornMatrix::init_list(int /* id */, NeighList *ptr)
 
 /* ----------------------------------------------------------------------
    compute output vector
-   ------------------------------------------------------------------------- */
+------------------------------------------------------------------------- */
 
 void ComputeBornMatrix::compute_vector()
 {
-  invoked_array = update->ntimestep;
+  invoked_vector = update->ntimestep;
 
-  // zero out arrays for one sample
+  if (!numflag) {
 
-  int i;
-  for (i = 0; i < nvalues; i++) values_local[i] = 0.0;
+    // zero out arrays for one sample
 
-  // Compute Born contribution
-  if (pairflag) compute_pairs();
-  if (bondflag) compute_bonds();
-  if (angleflag) compute_angles();
-  if (dihedflag) compute_dihedrals();
+    for (int m = 0; m < nvalues; m++) values_local[m] = 0.0;
 
-  // Even if stated in Voyatzis-2012, improper and dihedrals
-  // are not exactly the same in lammps. Atoms order can depend
-  // on the forcefield/improper interaction used. As such,
-  // writing a general routine to compute improper contribution
-  // might be more tricky than expected.
-  // if (impflag) compute_impropers();
+    // Compute Born contribution
 
-  // sum Born contributions over all procs
-  MPI_Allreduce(values_local, values_global, nvalues, MPI_DOUBLE, MPI_SUM, world);
+    if (pairflag) compute_pairs();
+    if (bondflag) compute_bonds();
+    if (angleflag) compute_angles();
+    if (dihedflag) compute_dihedrals();
 
-  int m;
-  for (m = 0; m < nvalues; m++) { vector[m] = values_global[m]; }
+    // sum Born contributions over all procs
+
+    MPI_Allreduce(values_local, values_global, nvalues, MPI_DOUBLE, MPI_SUM, world);
+
+    // convert to pressure units
+    // As discussed, it might be better to keep it as energy units.
+    // but this is to be defined
+
+    // double nktv2p = force->nktv2p;
+    // double inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
+    // for (int m = 0; m < nvalues; m++) {
+    //   values_global[m] *= (nktv2p * inv_volume);
+    // }
+  } else {
+
+    // calculate Born matrix using stress finite differences
+    compute_numdiff();
+
+  }
+
+  for (int m = 0; m < nvalues; m++) vector[m] = values_global[m];
+
 }
 
-/*------------------------------------------------------------------------
+/* ----------------------------------------------------------------------
   compute Born contribution of local proc
-  -------------------------------------------------------------------------*/
+------------------------------------------------------------------------- */
 
 void ComputeBornMatrix::compute_pairs()
 
 {
-  int i, j, m, ii, jj, inum, jnum, itype, jtype;
+  int i, j, ii, jj, inum, jnum, itype, jtype;
   double rsq, factor_coul, factor_lj;
   double dupair, du2pair, rinv;
   int *ilist, *jlist, *numneigh, **firstneigh;
@@ -322,67 +463,277 @@ void ComputeBornMatrix::compute_pairs()
   double pair_pref;
   double r2inv;
 
-  m = 0;
-  while (m < nvalues) {
-    for (ii = 0; ii < inum; ii++) {
-      i = ilist[ii];
-      if (!(mask[i] & groupbit)) continue;
+  for (ii = 0; ii < inum; ii++) {
+    i = ilist[ii];
+    if (!(mask[i] & groupbit)) continue;
 
-      xi1 = atom->x[i][0];
-      xi2 = atom->x[i][1];
-      xi3 = atom->x[i][2];
-      itype = type[i];
-      jlist = firstneigh[i];
-      jnum = numneigh[i];
+    xi1 = atom->x[i][0];
+    xi2 = atom->x[i][1];
+    xi3 = atom->x[i][2];
+    itype = type[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
 
-      for (jj = 0; jj < jnum; jj++) {
-        j = jlist[jj];
-        factor_lj = special_lj[sbmask(j)];
-        factor_coul = special_coul[sbmask(j)];
-        j &= NEIGHMASK;
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      factor_lj = special_lj[sbmask(j)];
+      factor_coul = special_coul[sbmask(j)];
+      j &= NEIGHMASK;
 
-        if (!(mask[j] & groupbit)) continue;
+      if (!(mask[j] & groupbit)) continue;
 
-        xj1 = atom->x[j][0];
-        xj2 = atom->x[j][1];
-        xj3 = atom->x[j][2];
-        rij[0] = xj1 - xi1;
-        rij[1] = xj2 - xi2;
-        rij[2] = xj3 - xi3;
-        rsq = rij[0] * rij[0] + rij[1] * rij[1] + rij[2] * rij[2];
-        r2inv = 1.0 / rsq;
-        rinv = sqrt(r2inv);
-        jtype = type[j];
+      xj1 = atom->x[j][0];
+      xj2 = atom->x[j][1];
+      xj3 = atom->x[j][2];
+      rij[0] = xj1 - xi1;
+      rij[1] = xj2 - xi2;
+      rij[2] = xj3 - xi3;
+      rsq = rij[0] * rij[0] + rij[1] * rij[1] + rij[2] * rij[2];
+      r2inv = 1.0 / rsq;
+      rinv = sqrt(r2inv);
+      jtype = type[j];
 
-        if (rsq >= cutsq[itype][jtype]) continue;
+      if (rsq >= cutsq[itype][jtype]) continue;
 
-        if (newton_pair || j < nlocal) {
-          // Add contribution to Born tensor
+      if (newton_pair || j < nlocal) {
 
-          pair->born_matrix(i, j, itype, jtype, rsq, factor_coul, factor_lj, dupair, du2pair);
-          pair_pref = du2pair - dupair * rinv;
+        // Add contribution to Born tensor
 
-          // See albemunu in compute_born_matrix.h for indices order.
-          a = 0;
-          b = 0;
-          c = 0;
-          d = 0;
-          for (i = 0; i < 21; i++) {
-            a = albemunu[i][0];
-            b = albemunu[i][1];
-            c = albemunu[i][2];
-            d = albemunu[i][3];
-            values_local[m + i] += pair_pref * rij[a] * rij[b] * rij[c] * rij[d] * r2inv;
-          }
+        pair->born_matrix(i, j, itype, jtype, rsq, factor_coul, factor_lj, dupair, du2pair);
+        pair_pref = du2pair - dupair * rinv;
+
+        // See albemunu in compute_born_matrix.h for indices order.
+
+        a = 0;
+        b = 0;
+        c = 0;
+        d = 0;
+        for (int m = 0; m < nvalues; m++) {
+          a = albemunu[m][0];
+          b = albemunu[m][1];
+          c = albemunu[m][2];
+          d = albemunu[m][3];
+          values_local[m] += pair_pref * rij[a] * rij[b] * rij[c] * rij[d] * r2inv;
         }
       }
     }
-    m += 21;
   }
 }
 
 /* ----------------------------------------------------------------------
-   count bonds and compute bond info on this proc
+  compute Born matrix using virial stress finite differences
+------------------------------------------------------------------------- */
+
+void ComputeBornMatrix::compute_numdiff()
+{
+  double energy;
+  int m;
+
+  // grow arrays if necessary
+
+  int nall = atom->nlocal + atom->nghost;
+  if (nall > maxatom) reallocate();
+
+  // store copy of current forces for owned and ghost atoms
+
+  double **x = atom->x;
+  double **f = atom->f;
+
+  for (int i = 0; i < nall; i++)
+    for (int k = 0; k < 3; k++) {
+      temp_x[i][k] = x[i][k];
+      temp_f[i][k] = f[i][k];
+    }
+
+  // loop over 6 strain directions
+  // compute stress finite difference in each direction
+
+  int flag, allflag;
+
+  for (int idir = 0; idir < NDIR_VIRIAL; idir++) {
+    displace_atoms(nall, idir, 1.0);
+    force_clear(nall);
+    update_virial();
+    for (int jdir = 0; jdir < NDIR_VIRIAL; jdir++) {
+      m = revalbe[idir][jdir];
+      values_global[m] = compute_virial->vector[virialVtoV[jdir]];
+    }
+    restore_atoms(nall, idir);
+
+    displace_atoms(nall, idir, -1.0);
+    force_clear(nall);
+    update_virial();
+    for (int jdir = 0; jdir < NDIR_VIRIAL; jdir++) {
+      m = revalbe[idir][jdir];
+      values_global[m] -= compute_virial->vector[virialVtoV[jdir]];
+    }
+    restore_atoms(nall, idir);
+  }
+
+  // apply derivative factor
+
+  double denominator = -0.5 / numdelta;
+  for (int m = 0; m < nvalues; m++) values_global[m] *= denominator;
+
+  // recompute virial so all virial and energy contributions are as before
+  // also needed for virial stress addon contributions to Born matrix
+  // this will possibly break compute stress/atom, need to test
+
+  update_virial();
+
+  virial_addon();
+
+  // restore original forces for owned and ghost atoms
+
+  for (int i = 0; i < nall; i++)
+    for (int k = 0; k < 3; k++)
+      f[i][k] = temp_f[i][k];
+}
+
+/* ----------------------------------------------------------------------
+   displace position of all owned and ghost atoms
+------------------------------------------------------------------------- */
+
+void ComputeBornMatrix::displace_atoms(int nall, int idir, double magnitude)
+{
+  double **x = atom->x;
+
+  // this works for 7,8,9,12,14,18, and 15,16,17
+  int k = dirlist[idir][1];
+  int l = dirlist[idir][0];
+  // this works for 7,8,9,12,14,18, and 10,11,13
+  // int k = dirlist[idir][0];
+  // int l = dirlist[idir][1];
+  for (int i = 0; i < nall; i++)
+    x[i][k] = temp_x[i][k] + numdelta * magnitude * (temp_x[i][l] - fixedpoint[l]);
+}
+
+/* ----------------------------------------------------------------------
+   restore position of all owned and ghost atoms
+------------------------------------------------------------------------- */
+
+void ComputeBornMatrix::restore_atoms(int nall, int idir)
+{
+
+  // reset all coords, just to be safe, ignore idir
+
+  double **x = atom->x;
+  for (int i = 0; i < nall; i++)
+    for (int k = 0; k < 3; k++)
+      x[i][k] = temp_x[i][k];
+}
+
+/* ----------------------------------------------------------------------
+   evaluate potential forces and virial
+   same logic as in Verlet
+------------------------------------------------------------------------- */
+
+void ComputeBornMatrix::update_virial()
+{
+  int eflag = 0;
+  int vflag = VIRIAL_FDOTR; // Need to generalize this 
+
+  if (force->pair) force->pair->compute(eflag, vflag);
+
+  if (atom->molecular != Atom::ATOMIC) {
+    if (force->bond) force->bond->compute(eflag, vflag);
+    if (force->angle) force->angle->compute(eflag, vflag);
+    if (force->dihedral) force->dihedral->compute(eflag, vflag);
+    if (force->improper) force->improper->compute(eflag, vflag);
+  }
+
+  if (force->kspace) force->kspace->compute(eflag, vflag);
+
+  compute_virial->compute_vector();
+}
+
+/* ----------------------------------------------------------------------
+   calculate virial stress addon terms to the Born matrix
+   this is based on original code of Dr. Yubao Zhen
+   described here: Comp. Phys. Comm. 183 (2012) 261-265
+------------------------------------------------------------------------- */
+
+void ComputeBornMatrix::virial_addon()
+{
+  // compute the contribution due to perturbation
+  // here the addon parts are put into born
+  // delta_il sigv_jk +  delta_ik sigv_jl +
+  // delta_jl sigv_ik +  delta_jk sigv_il
+  // Note: in calculation kl is all there from 0 to 6, and ij=(id,jd)
+  //       each time there are six numbers passed for (Dijkl+Djikl)
+  //       and the term I need should be div by 2.
+  //       Job is to arrange the 6 numbers with ij indexing to the 21 element data structure.
+  // the sigv is the virial stress at current time. It is never touched.
+  // Note the symmetry of (i-j), (k-n), and (ij, kn)
+  // so we only need to evaluate 6x6 matrix with symmetry
+
+  int kd, nd, id, jd;
+
+  double* sigv = compute_virial->vector;
+
+  for (int idir = 0; idir < NDIR_VIRIAL; idir++) {
+    int ijvgt = idir; // this is it.
+    double addon;
+
+    // extract the two indices composing the voigt representation
+
+    id  = voigt3VtoM[ijvgt][0];
+    jd  = voigt3VtoM[ijvgt][1];
+
+    int SHEAR = 0;
+    if( id != jd) SHEAR = 1;
+
+    for (int knvgt=ijvgt; knvgt < NDIR_VIRIAL; knvgt++) {
+      kd = voigt3VtoM[knvgt][0];
+      nd = voigt3VtoM[knvgt][1];
+      addon = kronecker[id][nd]*sigv[virialMtoV[jd][kd]] +
+              kronecker[id][kd]*sigv[virialMtoV[jd][nd]];
+      if(SHEAR)
+      addon += kronecker[jd][nd]*sigv[virialMtoV[id][kd]] +
+               kronecker[jd][kd]*sigv[virialMtoV[id][nd]];
+
+      values_global[revalbe[ijvgt][knvgt]] += addon;
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   clear forces needed
+------------------------------------------------------------------------- */
+
+void ComputeBornMatrix::force_clear(int nall)
+{
+  double **forces = atom->f;
+  size_t nbytes = 3 * sizeof(double) * nall;
+  if (nbytes) memset(&forces[0][0], 0, nbytes);
+}
+
+/* ----------------------------------------------------------------------
+   reallocated local per-atoms arrays
+------------------------------------------------------------------------- */
+
+void ComputeBornMatrix::reallocate()
+{
+  memory->destroy(temp_x);
+  memory->destroy(temp_f);
+  maxatom = atom->nmax;
+  memory->create(temp_x, maxatom, 3, "born/matrix:temp_x");
+  memory->create(temp_f, maxatom, 3, "born/matrix:temp_f");
+}
+
+/* ----------------------------------------------------------------------
+   memory usage of local atom-based arrays
+------------------------------------------------------------------------- */
+
+double ComputeBornMatrix::memory_usage()
+{
+  double bytes = 0.0;
+  bytes += (double) 2 * maxatom * 3 * sizeof(double);
+  return bytes;
+}
+
+/* ----------------------------------------------------------------------
+   Count bonds and compute bond info on this proc
    only count bond once if newton_bond is off
    all atoms in interaction must be in group
    all atoms in interaction must be known to proc
@@ -490,6 +841,7 @@ void ComputeBornMatrix::compute_bonds()
    all atoms in interaction must be known to proc
    if bond is deleted or turned off (type <= 0)
    do not count or count contribution
+<<<<<<< HEAD
 ---------------------------------------------------------------------- */
 void ComputeBornMatrix::compute_angles()
 {

@@ -30,26 +30,26 @@ namespace LAMMPS_NS {
 class FixBocs : public Fix {
  public:
   FixBocs(class LAMMPS *, int, char **);    // MRD NJD
-  virtual ~FixBocs();                       // MRD NJD
-  int setmask();
-  virtual void init();
-  virtual void setup(int);
-  virtual void initial_integrate(int);
-  virtual void final_integrate();
-  void initial_integrate_respa(int, int, int);
-  void pre_force_respa(int, int, int);
-  void final_integrate_respa(int, int);
-  virtual void pre_exchange();
-  double compute_scalar();
-  virtual double compute_vector(int);
-  void write_restart(FILE *);
+  ~FixBocs() override;                       // MRD NJD
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void initial_integrate(int) override;
+  void final_integrate() override;
+  void initial_integrate_respa(int, int, int) override;
+  void pre_force_respa(int, int, int) override;
+  void final_integrate_respa(int, int) override;
+  void pre_exchange() override;
+  double compute_scalar() override;
+  double compute_vector(int) override;
+  void write_restart(FILE *) override;
   virtual int pack_restart_data(double *);    // pack restart data
-  virtual void restart(char *);
-  int modify_param(int, char **);
-  void reset_target(double);
-  void reset_dt();
-  virtual void *extract(const char *, int &);
-  double memory_usage();
+  void restart(char *) override;
+  int modify_param(int, char **) override;
+  void reset_target(double) override;
+  void reset_dt() override;
+  void *extract(const char *, int &) override;
+  double memory_usage() override;
 
  protected:
   int dimension, which;

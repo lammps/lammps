@@ -39,10 +39,10 @@ class BondFENEKokkos : public BondFENE {
   typedef ArrayTypes<DeviceType> AT;
 
   BondFENEKokkos(class LAMMPS *);
-  virtual ~BondFENEKokkos();
-  void compute(int, int);
-  void coeff(int, char **);
-  void read_restart(FILE *);
+  ~BondFENEKokkos() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void read_restart(FILE *) override;
 
   template<int NEWTON_BOND, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -92,7 +92,7 @@ class BondFENEKokkos : public BondFENE {
   typename AT::t_ffloat_1d d_epsilon;
   typename AT::t_ffloat_1d d_sigma;
 
-  void allocate();
+  void allocate() override;
 };
 
 }

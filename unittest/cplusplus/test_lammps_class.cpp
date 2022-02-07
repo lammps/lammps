@@ -261,13 +261,13 @@ protected:
         int argc           = sizeof(args) / sizeof(char *);
 
         // only run this test fixture with kk suffix if KOKKOS package is installed
-        // also need to figure out a way to find which parallelizations are enabled
 
         if (LAMMPS::is_installed_pkg("KOKKOS")) {
             ::testing::internal::CaptureStdout();
             lmp                = new LAMMPS(argc, argv, MPI_COMM_WORLD);
             std::string output = ::testing::internal::GetCapturedStdout();
-            EXPECT_THAT(output, StartsWith("Kokkos::OpenMP::"));
+            if (Info::has_accelerator_feature("KOKKOS", "api", "openmp"))
+                EXPECT_THAT(output, StartsWith("Kokkos::OpenMP::"));
         } else
             GTEST_SKIP();
     }

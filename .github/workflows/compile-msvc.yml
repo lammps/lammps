@@ -21,6 +21,7 @@ jobs:
       shell: bash
       run: |
         cmake -C cmake/presets/windows.cmake \
+              -D PKG_PYTHON=on \
               -S cmake -B build \
               -D BUILD_SHARED_LIBS=on \
               -D LAMMPS_EXCEPTIONS=on \

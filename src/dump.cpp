@@ -952,76 +952,67 @@ void Dump::balance()
 
   int nswap = 0;
   MPI_Request *request = new MPI_Request[nprocs];
-  int procstart = 0;
-  int iproc = me;
-  int iproc_prev;
 
-  for (int i = 0; i < nme_balance; i++) {
+  // find which proc starting atom belongs to
 
-    // find which proc this atom belongs to
+  int startproc = me;
+  while (proc_new_offsets[me] < proc_offsets[startproc]) startproc--;
+  while (proc_new_offsets[me] > proc_offsets[startproc+1]-1) startproc++;
 
-    while (proc_new_offsets[me] + i < proc_offsets[iproc]) iproc--;
-    while (proc_new_offsets[me] + i > proc_offsets[iproc+1]-1) iproc++;
+  // find which proc ending atom belongs to
 
-    if (i != 0 && (iproc != iproc_prev || i == nme_balance - 1)) {
+  int endproc = me;
+  while (proc_new_offsets[me] + nme_balance-1 < proc_offsets[endproc]) endproc--;
+  while (proc_new_offsets[me] + nme_balance-1 > proc_offsets[endproc+1]-1) endproc++;
 
-      // finished with proc
+  // loop over procs
 
-      int procrecv = iproc;
-      if (iproc != iproc_prev) procrecv = iproc_prev;
+  for (int iproc = startproc; iproc <= endproc; iproc++) {
+    int istart = MAX(0, proc_offsets[iproc] - proc_new_offsets[me]);
+    int iend = MIN(nme_balance-1, proc_offsets[iproc+1]-1 - proc_new_offsets[me]);
+    int nrecv = iend - istart + 1;
+    if (nrecv == 0) continue;
 
-      int procnrecv = i - procstart + 1;
-      if (iproc != iproc_prev) procnrecv--;
+    // post receive for this proc
 
-      // post receive for this proc
-
-      if (iproc_prev != me)
-        MPI_Irecv(&buf_balance[procstart*size_one],procnrecv*size_one,MPI_DOUBLE,
-                  procrecv,0,world,&request[nswap++]);
-
-      procstart = i;
-    }
-
-    iproc_prev = iproc;
+    if (iproc != me)
+      MPI_Irecv(&buf_balance[istart*size_one],nrecv*size_one,MPI_DOUBLE,
+                iproc,0,world,&request[nswap++]);
   }
 
   // compute which atoms I am sending and to which procs
 
-  procstart = 0;
-  iproc = me;
-  for (int i = 0; i < nme; i++) {
+  // find which proc starting atom belongs to
 
-    // find which proc this atom should belong to
+  startproc = me;
+  while (proc_offsets[me] < proc_new_offsets[startproc]) startproc--;
+  while (proc_offsets[me] > proc_new_offsets[startproc+1]-1) startproc++;
 
-    while (proc_offsets[me] + i < proc_new_offsets[iproc]) iproc--;
-    while (proc_offsets[me] + i > proc_new_offsets[iproc+1] - 1) iproc++;
+  // find which proc ending atom belongs to
 
-    if (i != 0 && (iproc != iproc_prev || i == nme - 1)) {
+  endproc = me;
+  while (proc_offsets[me] + nme-1 < proc_new_offsets[endproc]) endproc--;
+  while (proc_offsets[me] + nme-1 > proc_new_offsets[endproc+1]-1) endproc++;
 
-      // finished with proc
+  // loop over procs
 
-      int procsend = iproc;
-      if (iproc != iproc_prev) procsend = iproc_prev;
+  for (int iproc = startproc; iproc <= endproc; iproc++) {
+    int istart = MAX(0,proc_new_offsets[iproc] - proc_offsets[me]);
+    int iend = MIN(nme-1,proc_new_offsets[iproc+1]-1 - proc_offsets[me]);
+    int nsend = iend - istart + 1;
+    if (nsend == 0) continue;
 
-      int procnsend = i - procstart + 1;
-      if (iproc != iproc_prev) procnsend--;
+    // send for this proc
 
-      // send for this proc
+    if (iproc != me) {
+      MPI_Send(&buf[istart*size_one],nsend*size_one,MPI_DOUBLE,iproc,0,world);
+    } else {
 
-      if (iproc_prev != me) {
-        MPI_Send(&buf[procstart*size_one],procnsend*size_one,MPI_DOUBLE,procsend,0,world);
-      } else {
+      // sending to self, copy buffers
 
-        // sending to self, copy buffers
-
-        int offset_me = proc_offsets[me] - proc_new_offsets[me];
-        memcpy(&buf_balance[(offset_me + procstart)*size_one],&buf[procstart*size_one],sizeof(double)*procnsend*size_one);
-      }
-
-      procstart = i;
+      int offset_me = proc_offsets[me] - proc_new_offsets[me];
+      memcpy(&buf_balance[(offset_me + istart)*size_one],&buf[istart*size_one],sizeof(double)*nsend*size_one);
     }
-
-    iproc_prev = iproc;
   }
 
   // wait for all recvs

@@ -213,8 +213,7 @@ void Error::one(const std::string &file, int line, const std::string &str)
 
   throw LAMMPSAbortException(mesg, world);
 #else
-  if (screen) fflush(screen);
-  if (logfile) fflush(logfile);
+  utils::flush_buffers(lmp);
   KokkosLMP::finalize();
   MPI_Abort(world,1);
   exit(1); // to trick "smart" compilers into believing this does not return

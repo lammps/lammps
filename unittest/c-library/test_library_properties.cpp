@@ -25,7 +25,7 @@ protected:
     void *lmp;
     std::string INPUT_DIR = STRINGIFY(TEST_INPUT_FOLDER);
 
-    LibraryProperties() = default;
+    LibraryProperties()           = default;
     ~LibraryProperties() override = default;
 
     void SetUp() override
@@ -438,8 +438,10 @@ class AtomProperties : public ::testing::Test {
 protected:
     void *lmp;
 
-    AtomProperties()= default;;
-    ~AtomProperties() override= default;;
+    AtomProperties() = default;
+    ;
+    ~AtomProperties() override = default;
+    ;
 
     void SetUp() override
     {

@@ -285,7 +285,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     // run_stress
     stress = lmp->force->bond->virial;
     block  = fmt::format("{:23.16e} {:23.16e} {:23.16e} {:23.16e} {:23.16e} {:23.16e}", stress[0],
-                        stress[1], stress[2], stress[3], stress[4], stress[5]);
+                         stress[1], stress[2], stress[3], stress[4], stress[5]);
     writer.emit_block("run_stress", block);
 
     block.clear();

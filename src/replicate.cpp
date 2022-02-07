@@ -860,7 +860,7 @@ void Replicate::command(int narg, char **arg)
    reassign bond if > old boxlength / 2
 ------------------------------------------------------------------------- */
 
-void Replicate::newtag(int atom0tag, int &tag2bond, double shiftsign[]) {
+void Replicate::newtag(tagint atom0tag, tagint &tag2bond, double shiftsign[]) {
   double del[3];
   int rep2bond[3], repshift[3] = {0, 0, 0};
   int atom0 = old->map(atom0tag);

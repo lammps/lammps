@@ -167,16 +167,13 @@ int DumpCFG::convert_string(int n, double *mybuf)
           offset += sprintf(&sbuf[offset],"%s \n",typenames[(int) mybuf[m]]);
         } else if (j >= 2) {
           if (vtype[j] == Dump::INT)
-            offset +=
-              sprintf(&sbuf[offset],vformat[j],static_cast<int> (mybuf[m]));
+            offset += sprintf(&sbuf[offset],vformat[j],static_cast<int> (mybuf[m]));
           else if (vtype[j] == Dump::DOUBLE)
             offset += sprintf(&sbuf[offset],vformat[j],mybuf[m]);
           else if (vtype[j] == Dump::STRING)
-            offset +=
-              sprintf(&sbuf[offset],vformat[j],typenames[(int) mybuf[m]]);
+            offset += sprintf(&sbuf[offset],vformat[j],typenames[(int) mybuf[m]]);
           else if (vtype[j] == Dump::BIGINT)
-            offset +=
-              sprintf(&sbuf[offset],vformat[j],static_cast<bigint> (mybuf[m]));
+            offset += sprintf(&sbuf[offset],vformat[j],static_cast<bigint> (mybuf[m]));
         }
         m++;
       }

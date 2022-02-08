@@ -246,6 +246,8 @@ void lammps_fix_external_set_virial_peratom(void *handle, const char *id, double
 void lammps_fix_external_set_vector_length(void *handle, const char *id, int len);
 void lammps_fix_external_set_vector(void *handle, const char *id, int idx, double val);
 
+void lammps_flush_buffers(void *ptr);
+
 void lammps_free(void *ptr);
 
 int lammps_is_running(void *handle);

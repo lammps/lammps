@@ -45,6 +45,7 @@ class PairOxdna2Dh : public Pair {
  protected:
   double **qeff_dh_pf, **kappa_dh;
   double **b_dh, **cut_dh_ast, **cutsq_dh_ast, **cut_dh_c, **cutsq_dh_c;
+  double **nx_xtrct, **ny_xtrct, **nz_xtrct; // per-atom arrays for local unit vectors
 
   virtual void allocate();
 };

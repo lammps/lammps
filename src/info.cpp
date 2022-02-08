@@ -278,9 +278,9 @@ void Info::command(int narg, char **arg)
     fmt::print(out,"\nLAMMPS version: {} / {}\n",
                lmp->version, lmp->num_ver);
 
-    if (lmp->has_git_info)
+    if (lmp->has_git_info())
       fmt::print(out,"Git info: {} / {} / {}\n",
-                 lmp->git_branch, lmp->git_descriptor,lmp->git_commit);
+                 lmp->git_branch(), lmp->git_descriptor(),lmp->git_commit());
 
     fmt::print(out,"\nOS information: {}\n\n",platform::os_info());
 

@@ -2,7 +2,7 @@
 lammps_version: 10 Feb 2021
 date_generated: Fri Feb 26 23:09:21 2021
 epsilon: 5e-11
-skip_tests: gpu intel
+skip_tests: gpu intel kokkos_omp
 prerequisites: ! |
   pair tersoff/zbl
 pre_commands: ! |

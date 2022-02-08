@@ -72,7 +72,7 @@ TEST_F(TextFileReaderTest, permissions)
 {
     platform::unlink("text_reader_noperms.file");
     FILE *fp = fopen("text_reader_noperms.file", "w");
-    ASSERT_NE(fp,nullptr);
+    ASSERT_NE(fp, nullptr);
     fputs("word\n", fp);
     fclose(fp);
     chmod("text_reader_noperms.file", 0);

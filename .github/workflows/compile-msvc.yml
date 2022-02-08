@@ -1,5 +1,5 @@
 # GitHub action to build LAMMPS on Windows with Visual C++
-name: "Native Windows Compilation"
+name: "Native Windows Compilation and Unit Tests"
 
 on:
   push:
@@ -21,9 +21,11 @@ jobs:
       shell: bash
       run: |
         cmake -C cmake/presets/windows.cmake \
+              -D PKG_PYTHON=on \
               -S cmake -B build \
               -D BUILD_SHARED_LIBS=on \
-              -D LAMMPS_EXCEPTIONS=on
+              -D LAMMPS_EXCEPTIONS=on \
+              -D ENABLE_TESTING=on
         cmake --build build --config Release
 
     - name: Run LAMMPS executable
@@ -31,3 +33,8 @@ jobs:
       run: |
         ./build/Release/lmp.exe -h
         ./build/Release/lmp.exe -in bench/in.lj
+
+    - name: Run Unit Tests
+      working-directory: build
+      shell: bash
+      run: ctest -V -C Release

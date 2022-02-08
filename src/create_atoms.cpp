@@ -234,7 +234,7 @@ void CreateAtoms::command(int narg, char **arg)
       if (style != RANDOM) error->all(FLERR,"Illegal create_atoms command: "
           "'maxtries' can only be combined with 'random' style!");
       if (iarg+2 > narg) error->all(FLERR,"Illegal create_atoms command");
-      maxtries = force->numeric(FLERR,arg[iarg+1]);
+      maxtries = utils::inumeric(FLERR,arg[iarg+1],false, lmp);
       if (maxtries <= 0)
         error->all(FLERR,"Illegal create_atoms command");
       iarg += 2;
@@ -242,7 +242,7 @@ void CreateAtoms::command(int narg, char **arg)
       if (style != RANDOM) error->all(FLERR,"Illegal create_atoms command: "
           "'exclude' can only be combined with 'random' style!");
       if (iarg+2 > narg) error->all(FLERR,"Illegal create_atoms command");
-      exclude_radius = force->numeric(FLERR,arg[iarg+1]);
+      exclude_radius = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (exclude_radius <= 0)
         error->all(FLERR,"Illegal create_atoms command");
       excludeflag = 1;
@@ -253,7 +253,7 @@ void CreateAtoms::command(int narg, char **arg)
   // error checks and further setup for mode = MOLECULE
 
   if (mode == ATOM) {
-    if (ntype <= 0 || ntype > atom->ntypes))
+    if (ntype <= 0 || ntype > atom->ntypes)
       error->all(FLERR,"Invalid atom type in create_atoms command");
   } else if (mode == MOLECULE) {
     if (onemol->xflag == 0)
@@ -274,7 +274,7 @@ void CreateAtoms::command(int narg, char **arg)
     ranmol = new RanMars(lmp, molseed+me);
 
     // a bit of memory for tries to create molecules (if exclude/maxtries)
-    memory->create(temp_mol_coords, natoms, 3, "create_atoms:temp_mol_coords");
+    memory->create(temp_mol_coords, onemol->natoms, 3, "create_atoms:temp_mol_coords");
   }
 
   ranlatt = nullptr;
@@ -673,15 +673,17 @@ void CreateAtoms::add_random()
   double lamda[3],*coord;
   double *boxlo,*boxhi;
 
+  // stuff needed for the exclude option
+  int nlocal = atom->nlocal;
+  double **x = atom->x;
+  double delx, dely, delz, distsq;
+  double excut, excutsq;
   if (excludeflag) {
-    int nlocal = atom->nlocal;
-    double **x = atom->x;
-    double delx, dely, delz, distsq;
-    double excut = exclude_radius;
+    excut = exclude_radius;
     // exclude option takes into account the radius of the molecule
     // but not the radius of a single atom (even if it is defined)
     if (mode == MOLECULE) excut += onemol->molradius;
-    double excutsq = exclude_radius*exclude_radius;
+    excutsq = excut*excut;
   }
 
   // random number generator, same for all procs
@@ -1014,7 +1016,7 @@ void CreateAtoms::loop_lattice(int action)
 ------------------------------------------------------------------------- */
 void CreateAtoms::gen_mol_coords(double *center, double *quat_user)
 {
-  double quat[4], rotmat[3][3];
+  double r[3], quat[4], rotmat[3][3];
   int randrot = 1;
   if (quat_user) {
     for (int i=0; i<4; i++) {
@@ -1062,7 +1064,7 @@ void CreateAtoms::create_mol()
   // reset in caller after all molecules created by all procs
   // pass add_molecule_atom an offset of 0 since don't know
   // max tag of atoms in previous molecules at this point
-  int natoms = onemol->natoms;
+  int n, natoms = onemol->natoms;
   for (int m = 0; m < natoms; m++) {
     atom->avec->create_atom(ntype+onemol->type[m], temp_mol_coords[m]);
     n = atom->nlocal - 1;

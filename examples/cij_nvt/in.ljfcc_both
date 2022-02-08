@@ -11,41 +11,44 @@
 
 # adjustable parameters
 
-variable    nsteps index 50     # length of run
-variable    nthermo index 10    # thermo output interval 
-variable    nlat index 3        # size of box
-variable    delta index 1.0e-8  # strain size 
-variable    temp index 0.3      # temperature
-variable    rho index 0.8442    # reduced density
+variable        nsteps index  200    # length of run
+variable        nthermo index 10    # thermo output interval 
+variable        nlat index 3        # size of box
+variable        delta index 1.0e-8  # strain size 
+variable        temp index 0.3      # temperature
+variable        rho index 0.8442    # reduced density
 
-units		lj
-atom_style	atomic
+units           lj
+atom_style      atomic
 
-lattice		fcc ${rho}
-region		box block 0 ${nlat} 0 ${nlat} 0 ${nlat}
-create_box	1 box
-create_atoms	1 box
-mass		1 1.0
+lattice         fcc ${rho}
+region          box block 0 ${nlat} 0 ${nlat} 0 ${nlat}
+create_box      1 box
+create_atoms    1 box
+mass            1 1.0
 
-velocity	all create ${temp} 87287 loop geom
+velocity        all create ${temp} 87287 loop geom
 
-pair_style	lj/cut 2.5
-pair_coeff	1 1 1.0 1.0
+pair_style      lj/cut 2.5
+pair_coeff      1 1 1.0 1.0
 
-neighbor     	0.0 bin
-neigh_modify 	every 1 delay 0 check no
+neighbor        0.0 bin
+neigh_modify    every 1 delay 0 check no
 
-fix		1 all nve
+fix             1 all nvt temp ${temp} ${temp} 0.1
 
+variable        vol equal vol
 compute         myvirial all pressure NULL virial
-compute 	bornnum all born/matrix numdiff ${delta} myvirial
-compute 	born all born/matrix
-variable	bornrel vector 1.0-c_bornnum/c_born
+compute         bornnum all born/matrix numdiff ${delta} myvirial
+compute         born all born/matrix
+variable        bornrel vector 1.0-c_bornnum/c_born*v_vol
+fix             bornrel all ave/time 1 1 ${nthermo} v_bornrel mode vector ave running
 
-thermo		${nthermo}
-thermo_style 	custom step temp pe press &
+thermo          ${nthermo}
+thermo_style    custom step temp pe press &
 v_bornrel[1] v_bornrel[2] v_bornrel[3] v_bornrel[4] v_bornrel[5] v_bornrel[6] v_bornrel[7] v_bornrel[8] v_bornrel[9] v_bornrel[10] v_bornrel[11] v_bornrel[12] v_bornrel[13] v_bornrel[14] v_bornrel[15] v_bornrel[16] v_bornrel[17] v_bornrel[18] v_bornrel[19] v_bornrel[20] v_bornrel[21]
+thermo_modify   line multi
 
-run		${nsteps}
+run             ${nsteps}
 
 

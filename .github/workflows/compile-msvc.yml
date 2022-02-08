@@ -28,11 +28,11 @@ jobs:
               -D ENABLE_TESTING=on
         cmake --build build --config Release
 
-    - name: Run LAMMPS executable
-      shell: bash
-      run: |
-        ./build/Release/lmp.exe -h
-        ./build/Release/lmp.exe -in bench/in.lj
+#    - name: Run LAMMPS executable
+#      shell: bash
+#      run: |
+#        ./build/Release/lmp.exe -h
+#        ./build/Release/lmp.exe -in bench/in.lj
 
     - name: Run Unit Tests
       working-directory: build

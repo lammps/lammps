@@ -17,9 +17,15 @@ jobs:
       with:
         fetch-depth: 2
 
+    - name: Select Python version
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.10'
+
     - name: Building LAMMPS via CMake
       shell: bash
       run: |
+        python3 -m pip install numpy
         cmake -C cmake/presets/windows.cmake \
               -D PKG_PYTHON=on \
               -S cmake -B build \
@@ -28,11 +34,11 @@ jobs:
               -D ENABLE_TESTING=on
         cmake --build build --config Release
 
-#    - name: Run LAMMPS executable
-#      shell: bash
-#      run: |
-#        ./build/Release/lmp.exe -h
-#        ./build/Release/lmp.exe -in bench/in.lj
+    - name: Run LAMMPS executable
+      shell: bash
+      run: |
+        ./build/Release/lmp.exe -h
+        ./build/Release/lmp.exe -in bench/in.lj
 
     - name: Run Unit Tests
       working-directory: build

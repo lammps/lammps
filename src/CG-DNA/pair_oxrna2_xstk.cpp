@@ -121,8 +121,8 @@ void PairOxrna2Xstk::compute(int eflag, int vflag)
   double ra_chb[3],rb_chb[3];
 
   // Cartesian unit vectors in lab frame
-  double ax[3],ay[3],az[3];
-  double bx[3],by[3],bz[3];
+  double ax[3],az[3];
+  double bx[3],bz[3];
 
   double **x = atom->x;
   double **f = atom->f;

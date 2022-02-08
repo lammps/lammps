@@ -209,7 +209,6 @@ void FixNumDiffVirial::calculate_virial()
   // loop over 6 strain directions
   // compute a finite difference force in each dimension
 
-  int flag, allflag;
   double nktv2p = force->nktv2p;
   double inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
 

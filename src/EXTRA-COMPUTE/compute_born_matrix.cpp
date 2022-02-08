@@ -165,48 +165,59 @@ ComputeBornMatrix::ComputeBornMatrix(LAMMPS *lmp, int narg, char **arg) :
   }
 
   if (pairflag) {
-    if (numflag) error->all(FLERR, "Illegal compute born/matrix command");
+    if (numflag) error->all(FLERR, "Illegal compute born/matrix command: cannot mix numflag and other flags");
     if (force->pair) {
       if (force->pair->born_matrix_enable == 0) {
         if (comm->me == 0) error->warning(FLERR, "Pair style does not support compute born/matrix");
       }
+    } else {
+      pairflag = 0;
     }
   }
   if (bondflag) {
-    if (numflag) error->all(FLERR, "Illegal compute born/matrix command");
+    if (numflag) error->all(FLERR, "Illegal compute born/matrix command: cannot mix numflag and other flags");
     if (force->bond) {
       if (force->bond->born_matrix_enable == 0) {
         if (comm->me == 0) error->warning(FLERR, "Bond style does not support compute born/matrix");
       }
+    } else {
+      bondflag = 0;
     }
   }
   if (angleflag) {
-    if (numflag) error->all(FLERR, "Illegal compute born/matrix command");
+    if (numflag) error->all(FLERR, "Illegal compute born/matrix command: cannot mix numflag and other flags");
     if (force->angle) {
       if (force->angle->born_matrix_enable == 0) {
         if (comm->me == 0) error->warning(FLERR, "Angle style does not support compute born/matrix");
       }
+    } else {
+      angleflag = 0;
     }
   }
   if (dihedflag) {
-    if (numflag) error->all(FLERR, "Illegal compute born/matrix command");
+    if (numflag) error->all(FLERR, "Illegal compute born/matrix command: cannot mix numflag and other flags");
     if (force->dihedral) {
      if (force->dihedral->born_matrix_enable == 0) {
        if (comm->me == 0) error->warning(FLERR, "Dihedral style does not support compute born/matrix");
      }
+    } else {
+      dihedflag = 0;
     }
   }
   if (impflag) {
-    if (numflag) error->all(FLERR, "Illegal compute born/matrix command");
+    if (numflag) error->all(FLERR, "Illegal compute born/matrix command: cannot mix numflag and other flags");
     if (force->improper) {
       if (force->improper->born_matrix_enable == 0) {
         if (comm->me == 0) error->warning(FLERR, "Improper style does not support compute born/matrix");
       }
+    } else {
+      impflag = 0;
     }
   }
   if (force->kspace) {
     if (!numflag) error->warning(FLERR, "KSPACE contribution not supported by compute born/matrix");
   }
+
   // Initialize some variables
 
   values_local = values_global = vector = nullptr;
@@ -292,18 +303,18 @@ void ComputeBornMatrix::init()
     // set up reverse index lookup
 
     for (int m = 0; m < nvalues; m++) {
-      int a = albe[m][0];
-      int b = albe[m][1];
+      int a = C_albe[m][0];
+      int b = C_albe[m][1];
       revalbe[a][b] = m;
       revalbe[b][a] = m;
     }
 
-    for (int a = 0; a < NDIR_VIRIAL; a++) {
-      for (int b = 0; b < NDIR_VIRIAL; b++) {
-        printf("%d ",revalbe[a][b]);
-      }
-      printf("\n");
-    }
+    // for (int a = 0; a < NDIR_VIRIAL; a++) {
+    //   for (int b = 0; b < NDIR_VIRIAL; b++) {
+    //     printf("%d ",revalbe[a][b]);
+    //   }
+    //   printf("\n");
+    // }
 
     // voigt3VtoM notation in normal physics sense,
     // 3x3 matrix and vector indexing
@@ -358,6 +369,13 @@ void ComputeBornMatrix::init()
         voigt6MtoV[row][col] = voigt6MtoV[col][row] = indcounter;
         indcounter++;
       }
+    // printf("Voigt6MtoV:\n");
+    // for (int a = 0; a < NDIR_VIRIAL; a++) {
+    //   for (int b = 0; b < NDIR_VIRIAL; b++) {
+    //     printf("%d ", voigt6MtoV[a][b]);
+    //   }
+    //   printf("\n");
+    // }
 
     // set up 3x3 kronecker deltas
 
@@ -414,6 +432,13 @@ void ComputeBornMatrix::compute_vector()
 
     // calculate Born matrix using stress finite differences
     compute_numdiff();
+
+    // for consistency this is returned in energy units
+    double inv_nktv2p = 1.0/force->nktv2p;
+    double volume = domain->xprd * domain->yprd * domain->zprd;
+    for (int m = 0; m < nvalues; m++) {
+      values_global[m] *= inv_nktv2p * volume;
+    }
 
   }
 
@@ -527,7 +552,7 @@ void ComputeBornMatrix::compute_pairs()
 void ComputeBornMatrix::compute_numdiff()
 {
   double energy;
-  int m;
+  int vec_indice;
 
   // grow arrays if necessary
 
@@ -547,6 +572,10 @@ void ComputeBornMatrix::compute_numdiff()
 
   // loop over 6 strain directions
   // compute stress finite difference in each direction
+  // It must be noted that, as stated in Yoshimoto's eq. 15, eq 16.
+  // and eq. A3, this tensor is NOT the true Cijkl tensor.
+  // We have the relationship
+  // C_ijkl=1./4.(\hat{C}_ijkl+\hat{C}_jikl+\hat{C}_ijlk+\hat{C}_jilk)
 
   int flag, allflag;
 
@@ -555,8 +584,8 @@ void ComputeBornMatrix::compute_numdiff()
     force_clear(nall);
     update_virial();
     for (int jdir = 0; jdir < NDIR_VIRIAL; jdir++) {
-      m = revalbe[idir][jdir];
-      values_global[m] = compute_virial->vector[virialVtoV[jdir]];
+      vec_indice = revalbe[idir][jdir];
+      values_global[vec_indice] = compute_virial->vector[virialVtoV[jdir]];
     }
     restore_atoms(nall, idir);
 
@@ -564,9 +593,11 @@ void ComputeBornMatrix::compute_numdiff()
     force_clear(nall);
     update_virial();
     for (int jdir = 0; jdir < NDIR_VIRIAL; jdir++) {
-      m = revalbe[idir][jdir];
-      values_global[m] -= compute_virial->vector[virialVtoV[jdir]];
+      vec_indice = revalbe[idir][jdir];
+      values_global[vec_indice] -= compute_virial->vector[virialVtoV[jdir]];
     }
+
+    // End of the strain
     restore_atoms(nall, idir);
   }
 
@@ -588,6 +619,7 @@ void ComputeBornMatrix::compute_numdiff()
   for (int i = 0; i < nall; i++)
     for (int k = 0; k < 3; k++)
       f[i][k] = temp_f[i][k];
+
 }
 
 /* ----------------------------------------------------------------------
@@ -598,14 +630,22 @@ void ComputeBornMatrix::displace_atoms(int nall, int idir, double magnitude)
 {
   double **x = atom->x;
 
-  // this works for 7,8,9,12,14,18, and 15,16,17
+  // A.T.
+  // this works for vector indices  7,  8,  9, 12, 14, 18 and 15, 16, 17
+  // corresponding i,j indices     12, 13, 14, 23, 25, 36 and 26, 34, 35
   int k = dirlist[idir][1];
   int l = dirlist[idir][0];
-  // this works for 7,8,9,12,14,18, and 10,11,13
+
+  // A.T.
+  // this works for vector indices  7,  8,  9, 12, 14, 18 and 10, 11, 13
+  // corresponding i,j indices     12, 13, 14, 23, 25, 36 and 15, 16, 24
+  // G.C.:
+  // I see no difference with a 0 step simulation between both
+  // methods.
   // int k = dirlist[idir][0];
   // int l = dirlist[idir][1];
   for (int i = 0; i < nall; i++)
-    x[i][k] = temp_x[i][k] + numdelta * magnitude * (temp_x[i][l] - fixedpoint[l]);
+      x[i][k] = temp_x[i][k] + numdelta * magnitude * (temp_x[i][l] - fixedpoint[l]);
 }
 
 /* ----------------------------------------------------------------------
@@ -631,7 +671,8 @@ void ComputeBornMatrix::restore_atoms(int nall, int idir)
 void ComputeBornMatrix::update_virial()
 {
   int eflag = 0;
-  int vflag = VIRIAL_FDOTR; // Need to generalize this 
+  // int vflag = VIRIAL_FDOTR; // Need to generalize this 
+  int vflag = 1;
 
   if (force->pair) force->pair->compute(eflag, vflag);
 
@@ -662,14 +703,17 @@ void ComputeBornMatrix::virial_addon()
   // Note: in calculation kl is all there from 0 to 6, and ij=(id,jd)
   //       each time there are six numbers passed for (Dijkl+Djikl)
   //       and the term I need should be div by 2.
-  //       Job is to arrange the 6 numbers with ij indexing to the 21 element data structure.
+  //       Job is to arrange the 6 numbers with ij indexing to the 21
+  //       element data structure.
   // the sigv is the virial stress at current time. It is never touched.
   // Note the symmetry of (i-j), (k-n), and (ij, kn)
   // so we only need to evaluate 6x6 matrix with symmetry
 
   int kd, nd, id, jd;
+  int m;
 
   double* sigv = compute_virial->vector;
+  double modefactor[6] = {1.0, 1.0, 1.0, 0.5, 0.5, 0.5};
 
   for (int idir = 0; idir < NDIR_VIRIAL; idir++) {
     int ijvgt = idir; // this is it.
@@ -680,19 +724,18 @@ void ComputeBornMatrix::virial_addon()
     id  = voigt3VtoM[ijvgt][0];
     jd  = voigt3VtoM[ijvgt][1];
 
-    int SHEAR = 0;
-    if( id != jd) SHEAR = 1;
-
     for (int knvgt=ijvgt; knvgt < NDIR_VIRIAL; knvgt++) {
       kd = voigt3VtoM[knvgt][0];
       nd = voigt3VtoM[knvgt][1];
       addon = kronecker[id][nd]*sigv[virialMtoV[jd][kd]] +
               kronecker[id][kd]*sigv[virialMtoV[jd][nd]];
-      if(SHEAR)
+      if(id != jd)
       addon += kronecker[jd][nd]*sigv[virialMtoV[id][kd]] +
                kronecker[jd][kd]*sigv[virialMtoV[id][nd]];
 
-      values_global[revalbe[ijvgt][knvgt]] += addon;
+      m = revalbe[ijvgt][knvgt];
+
+      values_global[revalbe[ijvgt][knvgt]] += 0.5*modefactor[idir]*addon;
     }
   }
 }
@@ -841,7 +884,6 @@ void ComputeBornMatrix::compute_bonds()
    all atoms in interaction must be known to proc
    if bond is deleted or turned off (type <= 0)
    do not count or count contribution
-<<<<<<< HEAD
 ---------------------------------------------------------------------- */
 void ComputeBornMatrix::compute_angles()
 {

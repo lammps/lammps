@@ -124,7 +124,6 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   avg_density_brick_types = nullptr;
   density_fft_types = nullptr;
   density_hat_fft_types = nullptr;
-  //gradWtype = nullptr;
   gradWtypex = nullptr;
   gradWtypey = nullptr;
   gradWtypez = nullptr;
@@ -165,7 +164,7 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   memory->create(potent_type_map,nstyles+1,ntypes+1,ntypes+1,"tild:potent_type_map");  
   memory->create(density_flags,ntypes+1,"tild:density_flags");  // determines if to pass data types or not
 
-  memory->create(chi,ntypes+1,ntypes+1,"tild:chi");
+  memory->create(chi,ntypes+1,ntypes+1,"tild:chi"); // interaction parameters
   memory->create(a2,ntypes+1,ntypes+1,"tild:a2"); // gaussian parameter
   memory->create(xi,ntypes+1,ntypes+1,"tild:xi"); // erfc parameter
   memory->create(rp,ntypes+1,ntypes+1,"tild:rp"); // erfc parameter
@@ -322,7 +321,6 @@ void TILD::init()
   allocate();
   rho0 = calculate_rho0();
 
-  // // change number density to tild density 
   double volume = domain->xprd * domain->yprd * domain->zprd;
 
   compute_rho_coeff();
@@ -638,11 +636,7 @@ void TILD::compute(int eflag, int vflag){
     domain->x2lamda(atom->nlocal);
   }
 
-  // convert atoms from box to lamda coords
-  
   ev_init(eflag,vflag);
-
-  // extend size of per-atom arrays if necessary
 
   if (atom->nmax > nmax) {
 
@@ -661,7 +655,6 @@ void TILD::compute(int eflag, int vflag){
   //   to fully sum contribution in their 3d bricks
   // remap from 3d decomposition to FFT decomposition
 
-  // cg->reverse_comm(this, REVERSE_RHO_NONE);
   int ntypes = atom->ntypes;
   gc->reverse_comm(GridComm::KSPACE,this,(ntypes+1)*3,sizeof(FFT_SCALAR),REVERSE_RHO_NONE,
                           gc_buf1,gc_buf2,MPI_FFT_SCALAR);
@@ -689,7 +682,8 @@ void TILD::compute(int eflag, int vflag){
   fieldforce_param();
 
   // check whether grid densities should be written out at this time 
-  // Serious question abotu whether this should be a fix instead of this 
+  // Serious question about whether this should be a fix instead of this 
+  // Answer: This should be a fix. That being said, currently easier to implement here.
 
   if ( write_grid_flag == 1 ) {
     if ( (update->ntimestep % grid_data_output_freq) ==  0) {
@@ -703,8 +697,7 @@ void TILD::compute(int eflag, int vflag){
   if (eflag_global){
     double energy_all;
     MPI_Allreduce(&energy,&energy_all,1,MPI_DOUBLE,MPI_SUM,world);
-    //double volume = domain->xprd * domain->yprd * domain->zprd;
-    energy = energy_all; // * volume;
+    energy = energy_all; 
   }
 
   if (vflag_global) {
@@ -717,9 +710,6 @@ void TILD::compute(int eflag, int vflag){
     }
   }
 
-  // convert atoms back from lamda to box coords
-
-  if (triclinic) domain->lamda2x(atom->nlocal);
 }
 
 /* ----------------------------------------------------------------------
@@ -753,7 +743,6 @@ double TILD::memory_usage()
   // rho1d, rho_coeff, drho_coeff
   bytes += (double) 3 * (order+1) * sizeof(FFT_SCALAR);
 
-  // if (triclinic) bytes += 3 * nfft_both * sizeof(double);
   bytes += (double) nfft_both * 2 * 8 * sizeof(FFT_SCALAR); // all works, ktmps
   bytes += (double) nfft * sizeof(FFT_SCALAR); // just the tmp
 
@@ -816,11 +805,6 @@ void TILD::allocate()
   memory->create(potent_hat,ntypecross+1,2*nfft_both,"tild:potent_hat");
   memory->create(grad_potent,ntypecross+1,domain->dimension,nfft_both,"tild:grad_potent");
   memory->create(grad_potent_hat,ntypecross+1,domain->dimension,2*nfft_both,"tild:grad_potent_hat");
-
-  // determine if a type has a density function description
-
-  // defines whether atom type has an associated density descripion 
-
 
   if (triclinic == 0) {
     memory->create1d_offset(fkx,nxlo_fft,nxhi_fft,"tild:fkx");
@@ -1458,7 +1442,7 @@ int TILD::factorable(int n)
 
 /* ----------------------------------------------------------------------
    Get the kspace version of the inputted function/potential
-   return the grid point in k-space
+   return the grid points in k-space
 ------------------------------------------------------------------------- */
 
 void TILD::get_k_alias(FFT_SCALAR* wk1, FFT_SCALAR **out){

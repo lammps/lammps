@@ -253,10 +253,8 @@ void TILD::init()
     error->all(FLERR,"TILD order cannot be < 2 or > {}",MAXORDER);
 
 
-  // triclinic = domain->triclinic;
-  // pair_check();
-
-  
+  triclinic = domain->triclinic;
+  pair_check();
 
   // free all arrays previously allocated
   deallocate();

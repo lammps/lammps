@@ -2496,11 +2496,13 @@ void TILD::ev_calculation(const int loc, const int itype, const int jtype) {
 ------------------------------------------------------------------------- */
 
 double TILD::calculate_rho0(){
+  MPI_Bcast(&set_rho0, 1, MPI_DOUBLE, 0, world);
   int nlocal = atom->nlocal;
   int *type = atom->type;
   int ntypes = atom->ntypes;
   int particles_not_tild = 0;
   vector<int> count_per_type (ntypes+1,0);
+  vector<int> count_per_type_local (ntypes+1,0);
   double lmass = 0, lmass_all = 0;
   int tild_particles_non_gaussian = 0;
   int particles_gaussian = 0;
@@ -2510,19 +2512,20 @@ double TILD::calculate_rho0(){
     if ( potent_type_map[0][type[i]][type[i]] == 1) {
       particles_not_tild++;
     } else {
-      count_per_type[type[i]]++;
+      count_per_type_local[type[i]]++;
       if (potent_type_map[1][type[i]][type[i]] != 1 ){
         tild_particles_non_gaussian++;
       }
     }
   }
 
-  MPI_Allreduce(&tild_particles_non_gaussian, &tild_particles_non_gaussian, 1, MPI_DOUBLE, MPI_SUM, world);
-  MPI_Allreduce(&particles_not_tild, &particles_not_tild, 1, MPI_DOUBLE, MPI_SUM, world);
+  int temp_int;
+  MPI_Allreduce(&tild_particles_non_gaussian, &temp_int, 1, MPI_INT, MPI_SUM, world);
+  tild_particles_non_gaussian = temp_int;
+  MPI_Allreduce(&particles_not_tild, &temp_int, 1, MPI_INT, MPI_SUM, world);
+  particles_not_tild = temp_int;
 
-  for ( int itype = 1; itype <= ntypes; itype++) {
-    MPI_Allreduce(&count_per_type[itype], &count_per_type[itype], 1, MPI_DOUBLE, MPI_SUM, world);
-  }
+  MPI_Allreduce(count_per_type_local.data(), count_per_type.data(), ntypes + 1, MPI_INT, MPI_SUM, world);
 
   double vole = domain->xprd * domain->yprd * domain->zprd;
 
@@ -2533,7 +2536,9 @@ double TILD::calculate_rho0(){
     } 
   }
 
-  MPI_Allreduce(&lmass, &lmass, 1, MPI_DOUBLE, MPI_SUM, world);
+  double temp_double;
+  MPI_Allreduce(&lmass, &temp_double, 1, MPI_DOUBLE, MPI_SUM, world);
+  lmass = temp_double;
 
   particles_gaussian = lmass;
 
@@ -2551,6 +2556,8 @@ double TILD::calculate_rho0(){
       }
     }
   } else {
+    MPI_Allreduce(&total_sphere_vol, &temp_double, 1, MPI_DOUBLE, MPI_SUM, world);
+    total_sphere_vol = temp_double;
     modified_rho0 = (set_rho0 * vole - lmass) /total_sphere_vol;
     for ( int itype = 1; itype <= ntypes; itype++) {
       if (potent_type_map[2][itype][itype] == 1) {
@@ -2608,7 +2615,7 @@ double TILD::calculate_rho0(){
       }
     }
   }
-
+  MPI_Bcast(&rho, 1, MPI_DOUBLE, 0, world);
   return rho;
 }
 

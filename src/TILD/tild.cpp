@@ -164,6 +164,7 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
 
   int ntypes = atom->ntypes;
   memory->create(potent_type_map,nstyles+1,ntypes+1,ntypes+1,"tild:potent_type_map");  
+  memory->create(density_flags,ntypes+1,"tild:density_flags");  // determines if to pass data types or not
 
   memory->create(chi,ntypes+1,ntypes+1,"tild:chi");
   memory->create(a2,ntypes+1,ntypes+1,"tild:a2"); // gaussian parameter
@@ -183,6 +184,7 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
       rp[i][j] = 0;
       np_rho[i][j] = 0;
     }
+    density_flags[i] = 0;
   }
 };
 
@@ -210,12 +212,14 @@ TILD::~TILD(){
   triclinic = domain->triclinic;
   pair_check();
   memory->destroy(potent_type_map);
+  memory->destroy(density_flags);
   memory->destroy(chi);
   memory->destroy(a2);
   memory->destroy(rp);
   memory->destroy(xi);
 
   potent_type_map = nullptr;
+  density_flags = nullptr;
   chi = nullptr;
   a2 = nullptr;
   rp = nullptr;
@@ -340,8 +344,6 @@ void TILD::setup(){
   }
 
 
-  fix_manual_flags();
-
   double *prd;
 
   // volume-dependent factors
@@ -425,6 +427,7 @@ void TILD::setup(){
     }
   }
 
+  fix_manual_flags();
   rho0 = calculate_rho0();
   init_cross_potentials();
   vir_func_init();
@@ -607,6 +610,7 @@ void TILD::precompute_density_hat_fft() {
   int ntypes = atom->ntypes;
 
   for ( int ktype = 1; ktype <= ntypes; ktype++) {
+    if (density_flags[ktype] != 1) continue;
     n = 0;
     for (int k = 0; k < nfft; k++) {
       work1[n++] = density_fft_types[ktype][k];
@@ -729,6 +733,7 @@ double TILD::memory_usage()
   int ntypecross = ((ntypes + 1)*ntypes);
   int Dim = domain->dimension;
   double bytes = (ntypes + 1) * (ntypes + 1) * (nstyles + 1) * sizeof(int); // potent_type_map
+  bytes += (ntypes + 1) * (nstyles + 1) * sizeof(int); // density_flags
 
   // parameters and chis of the sim, may need to be changed if new potential are added
   bytes += (double) (ntypes + 1) * (ntypes + 1) * 4 * sizeof(double); 
@@ -1053,8 +1058,6 @@ void TILD::init_cross_potentials(){
         init_potential(potent[loc], 1, p);
 
         init_potential_ft(potent_hat[loc], 1, p);
-
-  
 
       } 
       // Computational Convolution
@@ -1672,11 +1675,6 @@ int TILD::modify_param(int narg, char** arg)
 
           if (it == cross_iter.end()) 
             cross_iter.emplace_back(temp);
-          // Turn on type for volume calculation
-          // potent_type_map[1][i][i] = potent_type_map[1][j][j] = 1;
-          // Turning off the skip flag if the interactions are now valid.
-          // potent_type_map[0][i][i] = potent_type_map[0][j][j] = 0;
-          // potent_type_map[0][j][i] = potent_type_map[0][i][j] = 0;
         }
       }
     } else {
@@ -1685,9 +1683,6 @@ int TILD::modify_param(int narg, char** arg)
           auto it = cross_iter.begin();
           while (it != cross_iter.end()){
             if ((it->i == ii-1) && (it->j == jj-1)) {
-              // turn on skip flag
-              // potent_type_map[0][ii][jj] = potent_type_map[0][jj][ii] = 1;
-              // potent_type_map[it->type][ii][jj] = potent_type_map[it->type][jj][ii] = 0;
               cross_iter.erase(it--);
             }
             it++;
@@ -1757,6 +1752,7 @@ void TILD::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 
   if (flag == FORWARD_NONE){
     for (int ktype = 1; ktype <= atom->ntypes; ktype++) {
+      if ( density_flags[ktype] != 1 ) continue;
       //for (int j = 0; j < Dim; j++) {
       FFT_SCALAR *xsrc = &gradWtypex[ktype][nzlo_out][nylo_out][nxlo_out];
       FFT_SCALAR *ysrc = &gradWtypey[ktype][nzlo_out][nylo_out][nxlo_out];
@@ -1769,6 +1765,7 @@ void TILD::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
     }
   } else if (flag == FORWARD_GRID_DEN){
     for (int ktype = 1; ktype <= atom->ntypes; ktype++) {
+      if ( density_flags[ktype] != 1 ) continue;
       FFT_SCALAR *srcx = &density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
       FFT_SCALAR *srcy = &density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
       FFT_SCALAR *srcz = &density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
@@ -1780,6 +1777,7 @@ void TILD::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
     }
   } else if (flag == FORWARD_AVG_GRID_DEN){
     for (int ktype = 1; ktype <= atom->ntypes; ktype++) {
+      if ( density_flags[ktype] != 1 ) continue;
       FFT_SCALAR *srcx = &avg_density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
       FFT_SCALAR *srcy = &avg_density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
       FFT_SCALAR *srcz = &avg_density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
@@ -1806,6 +1804,7 @@ void TILD::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 
   if (flag == FORWARD_NONE){
     for (int ktype = 1; ktype <= atom->ntypes; ktype++) {
+      if ( density_flags[ktype] != 1 ) continue;
       FFT_SCALAR *destx = &gradWtypex[ktype][nzlo_out][nylo_out][nxlo_out];
       FFT_SCALAR *desty = &gradWtypey[ktype][nzlo_out][nylo_out][nxlo_out];
       FFT_SCALAR *destz = &gradWtypez[ktype][nzlo_out][nylo_out][nxlo_out];
@@ -1817,6 +1816,7 @@ void TILD::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
     }
   } else if (flag == FORWARD_GRID_DEN){
     for (int ktype = 1; ktype <= atom->ntypes; ktype++) {
+      if ( density_flags[ktype] != 1 ) continue;
       FFT_SCALAR *destx = &density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
       FFT_SCALAR *desty = &density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
       FFT_SCALAR *destz = &density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
@@ -1828,6 +1828,7 @@ void TILD::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
     }
   } else if (flag == FORWARD_AVG_GRID_DEN){
     for (int ktype = 1; ktype <= atom->ntypes; ktype++) {
+      if ( density_flags[ktype] != 1 ) continue;
       FFT_SCALAR *destx = &avg_density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
       FFT_SCALAR *desty = &avg_density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
       FFT_SCALAR *destz = &avg_density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
@@ -1850,6 +1851,7 @@ void TILD::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list) {
   int n = 0;
   if (flag == REVERSE_RHO_NONE) {
     for (int ktype = 1; ktype <= atom->ntypes; ktype++) {
+      if ( density_flags[ktype] != 1 ) continue;
       FFT_SCALAR *src = &density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
       for (int i = 0; i < nlist; i++)
         buf[n++] = src[list[i]];
@@ -1867,6 +1869,7 @@ void TILD::unpack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
   int n = 0;
   if (flag == REVERSE_RHO_NONE) {
     for (int ktype = 1; ktype <= atom->ntypes; ktype++) {
+      if ( density_flags[ktype] != 1 ) continue;
       FFT_SCALAR *dest = &density_brick_types[ktype][nzlo_out][nylo_out][nxlo_out];
       for (int i = 0; i < nlist; i++)
         dest[list[i]] += buf[n++];
@@ -2119,7 +2122,7 @@ void TILD::make_rho()
   for (int i = 0; i < nlocal; i++) {
     
     // Skip if the particle type has no TILD interaction
-    if (potent_type_map[0][type[i]][type[i]] == 1) continue;
+    if (density_flags[type[i]] != 1) continue;
 
     // do the following for all grids
     nx = part2grid[i][0];
@@ -2835,16 +2838,28 @@ void TILD::ave_grid()
 
 void TILD::fix_manual_flags(){
 
+  int ntypes = atom->ntypes;
+  for (int i = 0; i <= ntypes; i++){
+    density_flags[i] = 0;
+  }
+
+  for (int i = 0; i <= ntypes; i++){
+    for (int j = i; j <= ntypes; j++){
+      for (int sty = 1; sty < nstyles; sty++){
+        if (potent_type_map[sty][i][j] != 0){
+          density_flags[i] = density_flags [j] = 1;
+        }
+      }
+    }
+  }
+
+
   std::vector<int> manual_flag_check;
   for (auto& intrxn : cross_iter) {
     if (intrxn.type != NONE ){
+      density_flags[intrxn.i+1] = density_flags[intrxn.j+1] = 1;
       potent_type_map[0][intrxn.i+1][intrxn.j+1] = potent_type_map[0][intrxn.j+1][intrxn.i+1] = 0;
       potent_type_map[nstyles][intrxn.i+1][intrxn.j+1] = potent_type_map[nstyles][intrxn.j+1][intrxn.i+1] = 1;
-      if (std::find(manual_flag_check.begin(), manual_flag_check.end(), intrxn.i+1) != manual_flag_check.end())
-        manual_flag_check.push_back(intrxn.i+1);
-      if (std::find(manual_flag_check.begin(), manual_flag_check.end(), intrxn.j+1) != manual_flag_check.end())
-        manual_flag_check.push_back(intrxn.j+1);
     }
   }
-  for (auto part_type: manual_flag_check) potent_type_map[0][part_type][part_type] = 0;
 }

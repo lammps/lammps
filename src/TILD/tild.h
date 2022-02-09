@@ -64,6 +64,7 @@ class TILD : public KSpace{
   // For future kspace_hybrid
   int nstyles;                  // # of sub-styles For future kspace_hybrid
   int **setflag;                 // 0/1 = whether each i,j has been set
+  int *density_flags; 
 
   int nfactors;
   int *factors;

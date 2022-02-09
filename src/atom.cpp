@@ -1052,7 +1052,7 @@ void Atom::deallocate_topology()
 void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
                       int type_offset, int shiftflag, double *shift)
 {
-  int m,xptr,iptr;
+  int xptr,iptr;
   imageint imagedata;
   double xdata[3],lamda[3];
   double *coord;
@@ -1197,7 +1197,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
 
 void Atom::data_vels(int n, char *buf, tagint id_offset)
 {
-  int j,m;
+  int m;
   char *next;
 
   next = strchr(buf,'\n');
@@ -1576,7 +1576,7 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
 
 void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus, tagint id_offset)
 {
-  int j,m;
+  int m;
   char *next;
 
   next = strchr(buf,'\n');

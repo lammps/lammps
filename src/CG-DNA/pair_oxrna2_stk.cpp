@@ -245,9 +245,9 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
   double ra_cs[3],ra_cst[3];
   double rb_cs[3],rb_cst[3];
 
-  // quaternions and Cartesian unit vectors in lab frame
-  double *qa,ax[3],ay[3],az[3];
-  double *qb,bx[3],by[3],bz[3];
+  // Cartesian unit vectors in lab frame
+  double ax[3],ay[3],az[3];
+  double bx[3],by[3],bz[3];
 
   double **x = atom->x;
   double **f = atom->f;
@@ -274,6 +274,12 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
   evdwl = 0.0;
   ev_init(eflag,vflag);
 
+  // n(x/y/z)_xtrct = extracted local unit vectors from oxdna_excv
+  int dim;
+  nx_xtrct = (double **) force->pair->extract("nx",dim);
+  ny_xtrct = (double **) force->pair->extract("ny",dim);
+  nz_xtrct = (double **) force->pair->extract("nz",dim);
+
   // loop over stacking interaction neighbors using bond topology
 
   for (in = 0; in < nbondlist; in++) {
@@ -290,12 +296,26 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
 
     }
 
-   // a now in 3' direction, b in 5' direction
+    // a now in 3' direction, b in 5' direction
 
-    qa=bonus[ellipsoid[a]].quat;
-    MathExtra::q_to_exyz(qa,ax,ay,az);
-    qb=bonus[ellipsoid[b]].quat;
-    MathExtra::q_to_exyz(qb,bx,by,bz);
+    ax[0] = nx_xtrct[a][0];
+    ax[1] = nx_xtrct[a][1];
+    ax[2] = nx_xtrct[a][2];
+    ay[0] = ny_xtrct[a][0];
+    ay[1] = ny_xtrct[a][1];
+    ay[2] = ny_xtrct[a][2];
+    az[0] = nz_xtrct[a][0];
+    az[1] = nz_xtrct[a][1];
+    az[2] = nz_xtrct[a][2];
+    bx[0] = nx_xtrct[b][0];
+    bx[1] = nx_xtrct[b][1];
+    bx[2] = nx_xtrct[b][2];
+    by[0] = ny_xtrct[b][0];
+    by[1] = ny_xtrct[b][1];
+    by[2] = ny_xtrct[b][2];
+    bz[0] = nz_xtrct[b][0];
+    bz[1] = nz_xtrct[b][1];
+    bz[2] = nz_xtrct[b][2];
 
     // vector COM a - 5'-stacking site a
     ra_cst[0] = d_cst_x_5p*ax[0] + d_cst_y_5p*ay[0];

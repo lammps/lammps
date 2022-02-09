@@ -346,7 +346,7 @@ TEST_F(DumpCustomTest, rerun)
     });
     lmp->output->thermo->evaluate_keyword("pe", &pe_rerun);
     ASSERT_DOUBLE_EQ(pe_1, pe_rerun);
-    
+
     HIDE_OUTPUT([&] {
         command(fmt::format("rerun {} first 2 last 2 every 1 post yes dump x y z", dump_file));
     });
@@ -375,12 +375,12 @@ TEST_F(DumpCustomTest, rerun_bin)
         command(fmt::format("rerun {} first 1 last 1 every 1 post no dump x y z", dump_file));
     });
     lmp->output->thermo->evaluate_keyword("pe", &pe_rerun);
-    ASSERT_NEAR(pe_1, pe_rerun,1.0e-14);
+    ASSERT_NEAR(pe_1, pe_rerun, 1.0e-14);
     HIDE_OUTPUT([&] {
         command(fmt::format("rerun {} first 2 last 2 every 1 post yes dump x y z", dump_file));
     });
     lmp->output->thermo->evaluate_keyword("pe", &pe_rerun);
-    ASSERT_NEAR(pe_2, pe_rerun,1.0e-14);
+    ASSERT_NEAR(pe_2, pe_rerun, 1.0e-14);
     delete_file(dump_file);
 }
 

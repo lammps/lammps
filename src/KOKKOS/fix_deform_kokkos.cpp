@@ -319,7 +319,7 @@ void FixDeformKokkos::end_of_step()
     //  if (mask[i] & groupbit)
     //    domain->x2lamda(x[i],x[i]);
 
-    if (nrigid)
+    if (rfix.size() > 0)
       error->all(FLERR,"Cannot (yet) use rigid bodies with fix deform and Kokkos");
       //for (i = 0; i < nrigid; i++)
       //  modify->fix[rfix[i]]->deform(0);

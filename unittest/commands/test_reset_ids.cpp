@@ -32,7 +32,6 @@ bool verbose = false;
 using LAMMPS_NS::utils::split_words;
 
 namespace LAMMPS_NS {
-using ::testing::MatchesRegex;
 
 #define GETIDX(i) lmp->atom->map(i)
 
@@ -47,8 +46,8 @@ protected:
         LAMMPSTest::SetUp();
         if (info->has_style("atom", "full")) {
             BEGIN_HIDE_OUTPUT();
-            command("variable input_dir index " STRINGIFY(TEST_INPUT_FOLDER));
-            command("include ${input_dir}/in.fourmol");
+            command("variable input_dir index \"" STRINGIFY(TEST_INPUT_FOLDER) "\"");
+            command("include \"${input_dir}/in.fourmol\"");
             END_HIDE_OUTPUT();
         }
     }

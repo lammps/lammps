@@ -74,6 +74,14 @@ namespace utils {
 
   void logmesg(LAMMPS *lmp, const std::string &mesg);
 
+  /*! Flush output buffers
+   *
+   *  This function calls fflush on screen and logfile FILE pointers
+   *  if available
+   */
+
+  void flush_buffers(LAMMPS *lmp);
+
   /*! Return a string representing the current system error status
    *
    *  This is a wrapper around calling strerror(errno).

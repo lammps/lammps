@@ -3,6 +3,7 @@
 #include "lammps.h"
 #include "library.h"
 #include "lmptype.h"
+#include "platform.h"
 #include <string>
 
 #include "gmock/gmock.h"
@@ -13,6 +14,7 @@
 #define STRINGIFY(val) XSTR(val)
 #define XSTR(val) #val
 
+using ::LAMMPS_NS::platform::path_join;
 using ::LAMMPS_NS::bigint;
 using ::LAMMPS_NS::tagint;
 using ::testing::HasSubstr;
@@ -23,7 +25,7 @@ protected:
     void *lmp;
     std::string INPUT_DIR = STRINGIFY(TEST_INPUT_FOLDER);
 
-    GatherProperties() = default;
+    GatherProperties()           = default;
     ~GatherProperties() override = default;
 
     void SetUp() override
@@ -55,7 +57,7 @@ protected:
 TEST_F(GatherProperties, gather_bonds_newton_on)
 {
     if (!lammps_has_style(lmp, "atom", "full")) GTEST_SKIP();
-    std::string input = INPUT_DIR + PATH_SEP + "in.fourmol";
+    std::string input = path_join(INPUT_DIR, "in.fourmol");
     if (!verbose) ::testing::internal::CaptureStdout();
     lammps_command(lmp, "newton on on");
     lammps_file(lmp, input.c_str());
@@ -95,7 +97,7 @@ TEST_F(GatherProperties, gather_bonds_newton_on)
 TEST_F(GatherProperties, gather_bonds_newton_off)
 {
     if (!lammps_has_style(lmp, "atom", "full")) GTEST_SKIP();
-    std::string input = INPUT_DIR + PATH_SEP + "in.fourmol";
+    std::string input = path_join(INPUT_DIR, "in.fourmol");
     if (!verbose) ::testing::internal::CaptureStdout();
     lammps_command(lmp, "newton off off");
     lammps_file(lmp, input.c_str());

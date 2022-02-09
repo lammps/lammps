@@ -1149,9 +1149,9 @@ void _noopt LAMMPS::help()
 
   // general help message about command line and flags
 
-  if (has_git_info) {
+  if (has_git_info()) {
     fprintf(fp,"\nLarge-scale Atomic/Molecular Massively Parallel Simulator - "
-            LAMMPS_VERSION UPDATE_STRING "\nGit info (%s / %s)\n\n",git_branch, git_descriptor);
+            LAMMPS_VERSION UPDATE_STRING "\nGit info (%s / %s)\n\n",git_branch(), git_descriptor());
   } else {
     fprintf(fp,"\nLarge-scale Atomic/Molecular Massively Parallel Simulator - "
             LAMMPS_VERSION UPDATE_STRING "\n\n");
@@ -1305,12 +1305,14 @@ void _noopt LAMMPS::help()
 
 /* ----------------------------------------------------------------------
    print style names in columns
-   skip any style that starts with upper-case letter, since internal
+   skip any internal style that starts with an upper-case letter
+   also skip "redundant" KOKKOS styles ending in kk/host or kk/device
 ------------------------------------------------------------------------- */
 
 void print_style(FILE *fp, const char *str, int &pos)
 {
-  if (isupper(str[0])) return;
+  if (isupper(str[0]) || utils::strmatch(str,"/kk/host$")
+      || utils::strmatch(str,"/kk/device$")) return;
 
   int len = strlen(str);
   if (pos+len > 80) {

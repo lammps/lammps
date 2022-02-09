@@ -28,7 +28,7 @@ class NPair : protected Pointers {
   double cutoff_custom;    // cutoff set by requestor
 
   NPair(class LAMMPS *);
-  virtual ~NPair();
+  ~NPair() override;
   void post_constructor(class NeighRequest *);
   virtual void copy_neighbor_info();
   void build_setup();

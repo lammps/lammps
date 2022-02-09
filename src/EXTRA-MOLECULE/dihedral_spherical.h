@@ -27,13 +27,13 @@ namespace LAMMPS_NS {
 class DihedralSpherical : public Dihedral {
  public:
   DihedralSpherical(class LAMMPS *);
-  virtual ~DihedralSpherical();
-  virtual void compute(int, int);
+  ~DihedralSpherical() override;
+  void compute(int, int) override;
   double CalcGeneralizedForces(int, double, double, double, double *, double *, double *);
-  void coeff(int, char **);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_data(FILE *);
+  void coeff(int, char **) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
 
  protected:
   int *nterms;

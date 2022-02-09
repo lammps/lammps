@@ -133,14 +133,14 @@ void _noopt Force::create_factories()
 
 Force::~Force()
 {
-  delete [] pair_style;
-  delete [] bond_style;
-  delete [] angle_style;
-  delete [] dihedral_style;
-  delete [] improper_style;
-  delete [] kspace_style;
+  delete[] pair_style;
+  delete[] bond_style;
+  delete[] angle_style;
+  delete[] dihedral_style;
+  delete[] improper_style;
+  delete[] kspace_style;
 
-  delete [] pair_restart;
+  delete[] pair_restart;
 
   if (pair) delete pair;
   if (bond) delete bond;
@@ -220,16 +220,16 @@ void Force::setup()
 
 void Force::create_pair(const std::string &style, int trysuffix)
 {
-  delete [] pair_style;
+  delete[] pair_style;
   if (pair) delete pair;
-  if (pair_restart) delete [] pair_restart;
+  if (pair_restart) delete[] pair_restart;
   pair_style = nullptr;
   pair = nullptr;
   pair_restart = nullptr;
 
   int sflag;
   pair = new_pair(style,trysuffix,sflag);
-  store_style(pair_style,style,sflag);
+  pair_style = store_style(style,sflag);
 }
 
 /* ----------------------------------------------------------------------
@@ -345,12 +345,12 @@ char *Force::pair_match_ptr(Pair *ptr)
 
 void Force::create_bond(const std::string &style, int trysuffix)
 {
-  delete [] bond_style;
+  delete[] bond_style;
   if (bond) delete bond;
 
   int sflag;
   bond = new_bond(style,trysuffix,sflag);
-  store_style(bond_style,style,sflag);
+  bond_style = store_style(style,sflag);
 }
 
 /* ----------------------------------------------------------------------
@@ -422,12 +422,12 @@ Bond *Force::bond_match(const std::string &style)
 
 void Force::create_angle(const std::string &style, int trysuffix)
 {
-  delete [] angle_style;
+  delete[] angle_style;
   if (angle) delete angle;
 
   int sflag;
   angle = new_angle(style,trysuffix,sflag);
-  store_style(angle_style,style,sflag);
+  angle_style = store_style(style,sflag);
 }
 
 /* ----------------------------------------------------------------------
@@ -499,12 +499,12 @@ Angle *Force::angle_match(const std::string &style)
 
 void Force::create_dihedral(const std::string &style, int trysuffix)
 {
-  delete [] dihedral_style;
+  delete[] dihedral_style;
   if (dihedral) delete dihedral;
 
   int sflag;
   dihedral = new_dihedral(style,trysuffix,sflag);
-  store_style(dihedral_style,style,sflag);
+  dihedral_style = store_style(style,sflag);
 }
 
 /* ----------------------------------------------------------------------
@@ -576,12 +576,12 @@ Dihedral *Force::dihedral_match(const std::string &style)
 
 void Force::create_improper(const std::string &style, int trysuffix)
 {
-  delete [] improper_style;
+  delete[] improper_style;
   if (improper) delete improper;
 
   int sflag;
   improper = new_improper(style,trysuffix,sflag);
-  store_style(improper_style,style,sflag);
+  improper_style = store_style(style,sflag);
 }
 
 /* ----------------------------------------------------------------------
@@ -653,12 +653,12 @@ Improper *Force::improper_match(const std::string &style)
 
 void Force::create_kspace(const std::string &style, int trysuffix)
 {
-  delete [] kspace_style;
+  delete[] kspace_style;
   if (kspace) delete kspace;
 
   int sflag;
   kspace = new_kspace(style,trysuffix,sflag);
-  store_style(kspace_style,style,sflag);
+  kspace_style = store_style(style,sflag);
 }
 
 /* ----------------------------------------------------------------------
@@ -729,14 +729,14 @@ KSpace *Force::kspace_match(const std::string &word, int exact)
    if sflag = 1/2/3, append suffix or suffix2 or suffixp to style
 ------------------------------------------------------------------------- */
 
-void Force::store_style(char *&str, const std::string &style, int sflag)
+char *Force::store_style(const std::string &style, int sflag)
 {
   std::string estyle = style;
 
   if (sflag == 1) estyle += std::string("/") + lmp->suffix;
   else if (sflag == 2) estyle += std::string("/") + lmp->suffix2;
   else if (sflag == 3) estyle += std::string("/") + lmp->suffixp;
-  str = utils::strdup(estyle);
+  return utils::strdup(estyle);
 }
 
 /* ----------------------------------------------------------------------

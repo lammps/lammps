@@ -47,12 +47,12 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   FixQEqReaxFFKokkos(class LAMMPS *, int, char **);
-  ~FixQEqReaxFFKokkos();
+  ~FixQEqReaxFFKokkos() override;
 
   void cleanup_copy();
-  void init();
-  void setup_pre_force(int);
-  void pre_force(int);
+  void init() override;
+  void setup_pre_force(int) override;
+  void pre_force(int) override;
 
   KOKKOS_INLINE_FUNCTION
   void num_neigh_item(int, int&) const;
@@ -158,13 +158,13 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   };
 
   int pack_forward_comm_fix_kokkos(int, DAT::tdual_int_2d, int, DAT::tdual_xfloat_1d&,
-                       int, int *);
-  void unpack_forward_comm_fix_kokkos(int, int, DAT::tdual_xfloat_1d&);
-  virtual int pack_forward_comm(int, int *, double *, int, int *);
-  virtual void unpack_forward_comm(int, int, double *);
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
-  double memory_usage();
+                       int, int *) override;
+  void unpack_forward_comm_fix_kokkos(int, int, DAT::tdual_xfloat_1d&) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  double memory_usage() override;
 
  private:
   int inum,ignum;
@@ -177,21 +177,21 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   Kokkos::DualView<params_qeq*,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_qeq*, Kokkos::LayoutRight,DeviceType>::t_dev_const params;
 
-  typename ArrayTypes<DeviceType>::t_x_array x;
-  typename ArrayTypes<DeviceType>::t_v_array v;
-  typename ArrayTypes<DeviceType>::t_f_array_const f;
-  //typename ArrayTypes<DeviceType>::t_float_1d_randomread mass, q;
-  typename ArrayTypes<DeviceType>::t_float_1d_randomread mass;
-  typename ArrayTypes<DeviceType>::t_float_1d q;
-  typename ArrayTypes<DeviceType>::t_int_1d type, mask;
-  typename ArrayTypes<DeviceType>::t_tagint_1d tag;
+  typename AT::t_x_array x;
+  typename AT::t_v_array v;
+  typename AT::t_f_array_const f;
+  //typename AT::t_float_1d_randomread mass, q;
+  typename AT::t_float_1d_randomread mass;
+  typename AT::t_float_1d q;
+  typename AT::t_int_1d type, mask;
+  typename AT::t_tagint_1d tag;
 
   DAT::tdual_float_1d k_q;
   typename AT::t_float_1d d_q;
   HAT::t_float_1d h_q;
 
-  typename ArrayTypes<DeviceType>::t_neighbors_2d d_neighbors;
-  typename ArrayTypes<DeviceType>::t_int_1d_randomread d_ilist, d_numneigh;
+  typename AT::t_neighbors_2d d_neighbors;
+  typename AT::t_int_1d_randomread d_ilist, d_numneigh;
 
   DAT::tdual_ffloat_1d k_tap;
   typename AT::t_ffloat_1d d_tap;
@@ -216,8 +216,16 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   HAT::t_ffloat_2d h_s_hist, h_t_hist;
   typename AT::t_ffloat_2d_randomread r_s_hist, r_t_hist;
 
-  Kokkos::Experimental::ScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout, typename KKDevice<DeviceType>::value, Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated> dup_o;
-  Kokkos::Experimental::ScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout, typename KKDevice<DeviceType>::value, Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated> ndup_o;
+  using KKDeviceType = typename KKDevice<DeviceType>::value;
+
+  template<typename DataType, typename Layout>
+  using DupScatterView = KKScatterView<DataType, Layout, KKDeviceType, KKScatterSum, KKScatterDuplicated>;
+
+  template<typename DataType, typename Layout>
+  using NonDupScatterView = KKScatterView<DataType, Layout, KKDeviceType, KKScatterSum, KKScatterNonDuplicated>;
+
+  DupScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout> dup_o;
+  NonDupScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout> ndup_o;
 
   int iswap;
   int first;
@@ -226,7 +234,7 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
 
   void init_shielding_k();
   void init_hist();
-  void allocate_matrix();
+  void allocate_matrix() override;
   void allocate_array();
   int cg_solve1();
   int cg_solve2();
@@ -237,11 +245,11 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   int count, isuccess;
   double alpha, beta, delta, cutsq;
 
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
-  void get_chi_field();
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  void get_chi_field() override;
 };
 
 template <class DeviceType>

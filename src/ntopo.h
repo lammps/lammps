@@ -24,7 +24,7 @@ class NTopo : protected Pointers {
   int **bondlist, **anglelist, **dihedrallist, **improperlist;
 
   NTopo(class LAMMPS *);
-  virtual ~NTopo();
+  ~NTopo() override;
 
   virtual void build() = 0;
 

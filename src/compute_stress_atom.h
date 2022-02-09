@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class ComputeStressAtom : public Compute {
  public:
   ComputeStressAtom(class LAMMPS *, int, char **);
-  ~ComputeStressAtom();
-  void init();
-  void compute_peratom();
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
-  double memory_usage();
+  ~ComputeStressAtom() override;
+  void init() override;
+  void compute_peratom() override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  double memory_usage() override;
 
  private:
   int keflag, pairflag, bondflag, angleflag, dihedralflag, improperflag;

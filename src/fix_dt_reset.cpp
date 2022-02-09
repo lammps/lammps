@@ -121,14 +121,6 @@ void FixDtReset::init()
   respaflag = 0;
   if (utils::strmatch(update->integrate_style, "^respa")) respaflag = 1;
 
-  // check for DCD or XTC dumps
-
-  for (int i = 0; i < output->ndump; i++)
-    if ((strcmp(output->dump[i]->style, "dcd") == 0 ||
-         strcmp(output->dump[i]->style, "xtc") == 0) &&
-        comm->me == 0)
-      error->warning(FLERR, "Dump dcd/xtc timestamp may be wrong with fix dt/reset");
-
   ftm2v = force->ftm2v;
   mvv2e = force->mvv2e;
   dt = update->dt;
@@ -197,12 +189,16 @@ void FixDtReset::end_of_step()
 
   laststep = update->ntimestep;
 
+  // calls to other classes that need to know timestep size changed
+  // similar logic is in Input::timestep()
+
   update->update_time();
   update->dt = dt;
   update->dt_default = 0;
   if (respaflag) update->integrate->reset_dt();
   if (force->pair) force->pair->reset_dt();
   for (int i = 0; i < modify->nfix; i++) modify->fix[i]->reset_dt();
+  output->reset_dt();
 }
 
 /* ---------------------------------------------------------------------- */

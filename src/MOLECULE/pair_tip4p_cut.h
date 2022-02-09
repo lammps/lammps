@@ -27,17 +27,17 @@ namespace LAMMPS_NS {
 class PairTIP4PCut : public Pair {
  public:
   PairTIP4PCut(class LAMMPS *);
-  virtual ~PairTIP4PCut();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
-  virtual void write_restart_settings(FILE *);
-  virtual void read_restart_settings(FILE *);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  double memory_usage();
+  ~PairTIP4PCut() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  double memory_usage() override;
 
  protected:
   double cut_coul_global;

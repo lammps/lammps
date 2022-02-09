@@ -470,9 +470,9 @@ void AngleTable::compute_table(Table *tb)
 
   memory->create(tb->ang,tablength,"angle:ang");
   memory->create(tb->e,tablength,"angle:e");
-  memory->create(tb->de,tlm1,"angle:de");
+  memory->create(tb->de,tablength,"angle:de");
   memory->create(tb->f,tablength,"angle:f");
-  memory->create(tb->df,tlm1,"angle:df");
+  memory->create(tb->df,tablength,"angle:df");
   memory->create(tb->e2,tablength,"angle:e2");
   memory->create(tb->f2,tablength,"angle:f2");
 
@@ -488,6 +488,9 @@ void AngleTable::compute_table(Table *tb)
     tb->de[i] = tb->e[i+1] - tb->e[i];
     tb->df[i] = tb->f[i+1] - tb->f[i];
   }
+  // get final elements from linear extrapolation
+  tb->de[tlm1] = 2.0*tb->de[tlm1-1] - tb->de[tlm1-2];
+  tb->df[tlm1] = 2.0*tb->df[tlm1-1] - tb->df[tlm1-2];
 
   double ep0 = - tb->f[0];
   double epn = - tb->f[tlm1];
@@ -575,7 +578,7 @@ void AngleTable::spline(double *x, double *y, int n,
   double p,qn,sig,un;
   double *u = new double[n];
 
-  if (yp1 > 0.99e30) y2[0] = u[0] = 0.0;
+  if (yp1 > 0.99e300) y2[0] = u[0] = 0.0;
   else {
     y2[0] = -0.5;
     u[0] = (3.0/(x[1]-x[0])) * ((y[1]-y[0]) / (x[1]-x[0]) - yp1);
@@ -587,7 +590,7 @@ void AngleTable::spline(double *x, double *y, int n,
     u[i] = (y[i+1]-y[i]) / (x[i+1]-x[i]) - (y[i]-y[i-1]) / (x[i]-x[i-1]);
     u[i] = (6.0*u[i] / (x[i+1]-x[i-1]) - sig*u[i-1]) / p;
   }
-  if (ypn > 0.99e30) qn = un = 0.0;
+  if (ypn > 0.99e300) qn = un = 0.0;
   else {
     qn = 0.5;
     un = (3.0/(x[n-1]-x[n-2])) * (ypn - (y[n-1]-y[n-2]) / (x[n-1]-x[n-2]));
@@ -615,8 +618,7 @@ double AngleTable::splint(double *xa, double *ya, double *y2a, int n, double x)
   h = xa[khi]-xa[klo];
   a = (xa[khi]-x) / h;
   b = (x-xa[klo]) / h;
-  y = a*ya[klo] + b*ya[khi] +
-    ((a*a*a-a)*y2a[klo] + (b*b*b-b)*y2a[khi]) * (h*h)/6.0;
+  y = a*ya[klo] + b*ya[khi] + ((a*a*a-a)*y2a[klo] + (b*b*b-b)*y2a[khi]) * (h*h)/6.0;
   return y;
 }
 
@@ -632,8 +634,9 @@ void AngleTable::uf_lookup(int type, double x, double &u, double &f)
 
   double fraction,a,b;
   const Table *tb = &tables[tabindex[type]];
-  int itable = static_cast<int> (x * tb->invdelta);
 
+  // invdelta is based on tablength-1
+  int itable = static_cast<int> (x * tb->invdelta);
   if (itable < 0) itable = 0;
   if (itable >= tablength) itable = tablength-1;
 
@@ -647,11 +650,9 @@ void AngleTable::uf_lookup(int type, double x, double &u, double &f)
     b = (x - tb->ang[itable]) * tb->invdelta;
     a = 1.0 - b;
     u = a * tb->e[itable] + b * tb->e[itable+1] +
-      ((a*a*a-a)*tb->e2[itable] + (b*b*b-b)*tb->e2[itable+1]) *
-      tb->deltasq6;
+      ((a*a*a-a)*tb->e2[itable] + (b*b*b-b)*tb->e2[itable+1]) * tb->deltasq6;
     f = a * tb->f[itable] + b * tb->f[itable+1] +
-      ((a*a*a-a)*tb->f2[itable] + (b*b*b-b)*tb->f2[itable+1]) *
-      tb->deltasq6;
+      ((a*a*a-a)*tb->f2[itable] + (b*b*b-b)*tb->f2[itable+1]) * tb->deltasq6;
   }
 }
 
@@ -681,7 +682,6 @@ void AngleTable::u_lookup(int type, double x, double &u)
     b = (x - tb->ang[itable]) * tb->invdelta;
     a = 1.0 - b;
     u = a * tb->e[itable] + b * tb->e[itable+1] +
-      ((a*a*a-a)*tb->e2[itable] + (b*b*b-b)*tb->e2[itable+1]) *
-      tb->deltasq6;
+      ((a*a*a-a)*tb->e2[itable] + (b*b*b-b)*tb->e2[itable+1]) * tb->deltasq6;
   }
 }

@@ -43,23 +43,23 @@ class FixColvars : public Fix {
 
  public:
   FixColvars(class LAMMPS *, int, char **);
-  virtual ~FixColvars();
+  ~FixColvars() override;
 
-  virtual int setmask();
-  virtual void init();
-  virtual void setup(int);
-  virtual int modify_param(int, char **);
-  virtual void min_setup(int vflag) { setup(vflag); };
-  virtual void min_post_force(int);
-  virtual void post_force(int);
-  virtual void post_force_respa(int, int, int);
-  virtual void end_of_step();
-  virtual void post_run();
-  virtual double compute_scalar();
-  virtual double memory_usage();
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  int modify_param(int, char **) override;
+  void min_setup(int vflag) override { setup(vflag); };
+  void min_post_force(int) override;
+  void post_force(int) override;
+  void post_force_respa(int, int, int) override;
+  void end_of_step() override;
+  void post_run() override;
+  double compute_scalar() override;
+  double memory_usage() override;
 
-  virtual void write_restart(FILE *);
-  virtual void restart(char *);
+  void write_restart(FILE *) override;
+  void restart(char *) override;
 
  protected:
   colvarproxy_lammps *proxy;    // pointer to the colvars proxy class

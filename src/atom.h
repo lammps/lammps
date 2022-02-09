@@ -284,7 +284,7 @@ class Atom : protected Pointers {
   // functions
 
   Atom(class LAMMPS *);
-  virtual ~Atom();
+  ~Atom() override;
 
   void settings(class Atom *);
   void peratom_create();

@@ -23,8 +23,7 @@ class FixHyper : public Fix {
   bigint ntimestep_initial;
 
   FixHyper(class LAMMPS *, int, char **);
-  virtual ~FixHyper() {}
-  void *extract(const char *, int &);
+  void *extract(const char *, int &) override;
 
   // must be provided by child class
 

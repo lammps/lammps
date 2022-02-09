@@ -29,13 +29,13 @@ namespace LAMMPS_NS {
 class ComputeMesoNT : public Compute {
  public:
   ComputeMesoNT(class LAMMPS *, int, char **);
-  ~ComputeMesoNT();
-  void init() {}
-  void compute_peratom();
-  double compute_scalar();
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
-  double memory_usage();
+  ~ComputeMesoNT() override;
+  void init() override {}
+  void compute_peratom() override;
+  double compute_scalar() override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  double memory_usage() override;
 
  private:
   int nmax;

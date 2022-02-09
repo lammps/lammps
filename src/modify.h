@@ -53,7 +53,7 @@ class Modify : protected Pointers {
   Compute **compute;    // list of computes
 
   Modify(class LAMMPS *);
-  virtual ~Modify();
+  ~Modify() override;
   virtual void init();
   virtual void setup(int);
   virtual void setup_pre_exchange();

@@ -23,7 +23,7 @@ class Remap : protected Pointers {
  public:
   Remap(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int, int, int, int, int,
         int, int, int, int);
-  ~Remap();
+  ~Remap() override;
   void perform(FFT_SCALAR *, FFT_SCALAR *, FFT_SCALAR *);
 
  private:

@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class ComputeSnap : public Compute {
  public:
   ComputeSnap(class LAMMPS *, int, char **);
-  ~ComputeSnap();
-  void init();
-  void init_list(int, class NeighList *);
-  void compute_array();
-  double memory_usage();
+  ~ComputeSnap() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void compute_array() override;
+  double memory_usage() override;
 
  private:
   int natoms, nmax, size_peratom, lastcol;

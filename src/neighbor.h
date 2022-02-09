@@ -117,7 +117,7 @@ class Neighbor : protected Pointers {
   // public methods
 
   Neighbor(class LAMMPS *);
-  virtual ~Neighbor();
+  ~Neighbor() override;
   virtual void init();
   int request(void *, int instance = 0);
   int decide();                     // decide whether to build or not

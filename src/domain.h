@@ -110,7 +110,7 @@ class Domain : protected Pointers {
   RegionCreatorMap *region_map;
 
   Domain(class LAMMPS *);
-  virtual ~Domain();
+  ~Domain() override;
   virtual void init();
   void set_initial_box(int expandflag = 1);
   virtual void set_global_box();

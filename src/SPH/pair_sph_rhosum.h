@@ -27,15 +27,15 @@ namespace LAMMPS_NS {
 class PairSPHRhoSum : public Pair {
  public:
   PairSPHRhoSum(class LAMMPS *);
-  virtual ~PairSPHRhoSum();
-  void init_style();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  virtual double init_one(int, int);
-  virtual double single(int, int, int, int, double, double, double, double &);
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
+  ~PairSPHRhoSum() override;
+  void init_style() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  double single(int, int, int, int, double, double, double, double &) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
 
  protected:
   double **cut;

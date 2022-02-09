@@ -202,7 +202,7 @@ elements are the same.  Thus the two-body parameters for Si
 interacting with C, comes from the SiCC entry.  The three-body
 parameters can in principle be specific to the three elements of the
 configuration. In the literature, however, the three-body parameters
-are usually defined by simple formulas involving two sets of pair-wise
+are usually defined by simple formulas involving two sets of pairwise
 parameters, corresponding to the ij and ik pairs, where i is the
 center atom. The user must ensure that the correct combining rule is
 used to calculate the values of the three-body parameters for

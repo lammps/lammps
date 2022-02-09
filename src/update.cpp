@@ -458,7 +458,7 @@ Min *Update::minimize_creator(LAMMPS *lmp)
 }
 
 /* ----------------------------------------------------------------------
-   reset timestep as called from input script
+   reset timestep called from input script
 ------------------------------------------------------------------------- */
 
 void Update::reset_timestep(int narg, char **arg)
@@ -470,23 +470,32 @@ void Update::reset_timestep(int narg, char **arg)
 
 /* ----------------------------------------------------------------------
    reset timestep
-   called from rerun command and input script (indirectly)
+   called from input script (indirectly) or rerun command
 ------------------------------------------------------------------------- */
 
 void Update::reset_timestep(bigint newstep)
 {
+  if (newstep < 0) error->all(FLERR,"Timestep must be >= 0");
+
+  bigint oldstep = ntimestep;
   ntimestep = newstep;
-  if (ntimestep < 0) error->all(FLERR,"Timestep must be >= 0");
 
-  // set atimestep to new timestep
-  // so future update_time() calls will be correct
+  // if newstep >= oldstep, update simulation time accordingly
+  // if newstep < oldstep, zero simulation time
 
-  atimestep = ntimestep;
+  if (newstep >= oldstep) update_time();
 
-  // trigger reset of timestep for output
-  // do not allow any timestep-dependent fixes to be already defined
+  if (newstep < oldstep) {
+    atime = 0.0;
+    atimestep = newstep;
+  }
+
+  // changes to output that depend on timestep
+  // no active dumps allowed
 
   output->reset_timestep(ntimestep);
+
+  // do not allow timestep-dependent fixes to be defined
 
   for (const auto &ifix : modify->get_fix_list())
     if (ifix->time_depend)
@@ -508,7 +517,7 @@ void Update::reset_timestep(bigint newstep)
     if (icompute->timeflag) icompute->clearstep();
   }
 
-  // Neighbor Bin/Stencil/Pair classes store timestamps that need to be cleared
+  // neighbor Bin/Stencil/Pair classes store timestamps that need to be cleared
 
   neighbor->reset_timestep(ntimestep);
 }

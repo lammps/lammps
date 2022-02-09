@@ -88,6 +88,8 @@ action comm_kokkos.cpp
 action comm_kokkos.h
 action comm_tiled_kokkos.cpp
 action comm_tiled_kokkos.h
+action compute_ave_sphere_atom_kokkos.cpp compute_ave_sphere_atom.cpp
+action compute_ave_sphere_atom_kokkos.h compute_ave_sphere_atom.h
 action compute_coord_atom_kokkos.cpp
 action compute_coord_atom_kokkos.h
 action compute_orientorder_atom_kokkos.cpp
@@ -106,6 +108,8 @@ action dihedral_opls_kokkos.cpp dihedral_opls.cpp
 action dihedral_opls_kokkos.h dihedral_opls.h
 action domain_kokkos.cpp
 action domain_kokkos.h
+action dynamical_matrix_kokkos.cpp dynamical_matrix.cpp
+action dynamical_matrix_kokkos.h dynamical_matrix.h
 action fftdata_kokkos.h fft3d.h
 action fft3d_kokkos.cpp fft3d.cpp
 action fft3d_kokkos.h fft3d.h
@@ -310,6 +314,8 @@ action remap_kokkos.cpp remap.cpp
 action remap_kokkos.h remap.h
 action sna_kokkos.h sna.h
 action sna_kokkos_impl.h sna.cpp
+action third_order_kokkos.cpp dynamical_matrix.cpp
+action third_order_kokkos.h dynamical_matrix.h
 action verlet_kokkos.cpp
 action verlet_kokkos.h
 

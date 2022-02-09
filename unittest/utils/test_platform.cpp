@@ -68,10 +68,10 @@ TEST(Platform, putenv_unsetenv)
 
     ASSERT_EQ(platform::unsetenv(""), -1);
     ASSERT_EQ(platform::unsetenv("UNITTEST_VAR3=two"), -1);
-    var    = getenv("UNITTEST_VAR1");
+    var = getenv("UNITTEST_VAR1");
     ASSERT_NE(var, nullptr);
     ASSERT_EQ(platform::unsetenv("UNITTEST_VAR1"), 0);
-    var    = getenv("UNITTEST_VAR1");
+    var = getenv("UNITTEST_VAR1");
     ASSERT_EQ(var, nullptr);
 }
 

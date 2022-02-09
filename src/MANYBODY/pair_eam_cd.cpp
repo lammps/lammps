@@ -20,9 +20,6 @@
 
 #include "pair_eam_cd.h"
 
-#include <cmath>
-
-#include <cstring>
 #include "atom.h"
 #include "force.h"
 #include "comm.h"
@@ -31,11 +28,11 @@
 #include "error.h"
 #include "tokenizer.h"
 
-
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
-#define ASSERT(cond)
 #define MAXLINE 1024        // This sets the maximum line length in EAM input files.
 
 PairEAMCD::PairEAMCD(LAMMPS *lmp, int _cdeamVersion)
@@ -298,7 +295,7 @@ void PairEAMCD::compute(int eflag, int vflag)
     // It will be replaced by the concentration at site i if atom i is either A or B.
 
     double x_i = -1.0;
-    double D_i, h_prime_i;
+    double D_i = 0.0, h_prime_i;
 
     // This if-clause is only required for ternary alloys.
 
@@ -307,7 +304,6 @@ void PairEAMCD::compute(int eflag, int vflag)
       // Compute local concentration at site i.
 
       x_i = rhoB[i]/rho[i];
-      ASSERT(x_i >= 0 && x_i<=1.0);
 
       if (cdeamVersion == 1) {
 
@@ -317,8 +313,6 @@ void PairEAMCD::compute(int eflag, int vflag)
         D_i = D_values[i] * h_prime_i / (2.0 * rho[i] * rho[i]);
       } else if (cdeamVersion == 2) {
         D_i = D_values[i];
-      } else {
-        ASSERT(false);
       }
     }
 
@@ -354,14 +348,11 @@ void PairEAMCD::compute(int eflag, int vflag)
 
         // This code line is required for ternary alloy.
 
-        if (jtype == speciesA || jtype == speciesB) {
-          ASSERT(rho[i] != 0.0);
-          ASSERT(rho[j] != 0.0);
+        if ((jtype == speciesA || jtype == speciesB) && rho[j] != 0.0) {
 
           // Compute local concentration at site j.
 
           x_j = rhoB[j]/rho[j];
-          ASSERT(x_j >= 0 && x_j<=1.0);
 
           double D_j=0.0;
           if (cdeamVersion == 1) {
@@ -372,8 +363,6 @@ void PairEAMCD::compute(int eflag, int vflag)
             D_j = D_values[j] * h_prime_j / (2.0 * rho[j] * rho[j]);
           } else if (cdeamVersion == 2) {
             D_j = D_values[j];
-          } else {
-            ASSERT(false);
           }
           double t2 = -rhoB[j];
           if (itype == speciesB) t2 += rho[j];
@@ -422,8 +411,6 @@ void PairEAMCD::compute(int eflag, int vflag)
             // Calculate h(x_ij) polynomial function.
 
             h = evalH(x_ij);
-          } else {
-            ASSERT(false);
           }
           fpair += h * phip;
           phi *= h;
@@ -460,7 +447,8 @@ void PairEAMCD::coeff(int narg, char **arg)
   // Make sure the EAM file is a CD-EAM binary alloy.
 
   if (setfl->nelements < 2)
-    error->all(FLERR,"The EAM file must contain at least 2 elements to be used with the eam/cd pair style.");
+    error->all(FLERR,"The EAM file must contain at least 2 elements to be "
+                    "used with the eam/cd pair style.");
 
   // Read in the coefficients of the h polynomial from the end of the EAM file.
 
@@ -502,22 +490,33 @@ void PairEAMCD::read_h_coeff(char *filename)
     // Open potential file
 
     FILE *fptr;
-    char line[MAXLINE];
-    char nextline[MAXLINE];
     int convert_flag = unit_convert_flag;
     fptr = utils::open_potential(filename, lmp, &convert_flag);
     if (fptr == nullptr)
-      error->one(FLERR,"Cannot open EAMCD potential file {}",
-                                   filename);
+      error->one(FLERR,"Cannot open EAMCD potential file {}", filename);
 
     // h coefficients are stored at the end of the file.
-    // Skip to last line of file.
+    // Seek to end of file, read last part into a buffer and
+    // then skip over lines in buffer until reaching the end.
 
-    while (fgets(nextline, MAXLINE, fptr) != nullptr) {
-      strcpy(line, nextline);
-    }
+    if ( (platform::fseek(fptr, platform::END_OF_FILE) < 0)
+         || (platform::fseek(fptr, platform::ftell(fptr) - MAXLINE) < 0))
+      error->one(FLERR,"Failure to seek to end-of-file for reading h(x) coeffs: {}",
+                 utils::getsyserror());
 
-    ValueTokenizer values(line);
+    char *buf = new char[MAXLINE+1];
+    auto rv = fread(buf,1,MAXLINE,fptr);
+    if (rv == 0) error->one(FLERR,"Failure to read h(x) coeffs: {}", utils::getsyserror());
+    buf[rv] = '\0';        // must 0-terminate buffer for string processing
+
+    Tokenizer lines(buf, "\n");
+    delete[] buf;
+
+    std::string lastline;
+    while (lines.has_next())
+      lastline = lines.next();
+
+    ValueTokenizer values(lastline);
     int degree = values.next_int();
     nhcoeff = degree+1;
 
@@ -527,10 +526,8 @@ void PairEAMCD::read_h_coeff(char *filename)
     delete[] hcoeff;
     hcoeff = new double[nhcoeff];
 
-    int i = 0;
-    while (values.has_next()) {
-      hcoeff[i++] = values.next_double();
-    }
+    for (int i = 0; i < nhcoeff; ++i)
+      hcoeff[i] = values.next_double();
 
     // Close the potential file.
 
@@ -544,7 +541,6 @@ void PairEAMCD::read_h_coeff(char *filename)
   }
   MPI_Bcast(hcoeff, nhcoeff, MPI_DOUBLE, 0, world);
 }
-
 
 /* ---------------------------------------------------------------------- */
 
@@ -572,7 +568,7 @@ int PairEAMCD::pack_forward_comm(int n, int *list, double *buf,
         buf[m++] = rhoB[j];
       }
       return m;
-    } else { ASSERT(false); return 0; }
+    } else return 0;
   } else if (communicationStage == 4) {
     for (i = 0; i < n; i++) {
       j = list[i];
@@ -604,8 +600,6 @@ void PairEAMCD::unpack_forward_comm(int n, int first, double *buf)
         rho[i] = buf[m++];
         rhoB[i] = buf[m++];
       }
-    } else {
-      ASSERT(false);
     }
   } else if (communicationStage == 4) {
     for (i = first; i < last; i++) {
@@ -636,7 +630,7 @@ int PairEAMCD::pack_reverse_comm(int n, int first, double *buf)
         buf[m++] = rhoB[i];
       }
       return m;
-    } else { ASSERT(false); return 0; }
+    } else return 0;
   } else if (communicationStage == 3) {
     for (i = first; i < last; i++) {
       buf[m++] = D_values[i];
@@ -666,8 +660,6 @@ void PairEAMCD::unpack_reverse_comm(int n, int *list, double *buf)
         rho[j] += buf[m++];
         rhoB[j] += buf[m++];
       }
-    } else {
-      ASSERT(false);
     }
   } else if (communicationStage == 3) {
     for (i = 0; i < n; i++) {

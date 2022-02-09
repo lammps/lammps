@@ -34,24 +34,24 @@ class CommKokkos : public CommBrick {
   bool reverse_comm_on_host;
 
   CommKokkos(class LAMMPS *);
-  ~CommKokkos();
-  void init();
+  ~CommKokkos() override;
+  void init() override;
 
-  void forward_comm(int dummy = 0);    // forward comm of atom coords
-  void reverse_comm();                 // reverse comm of atom coords
-  void exchange();                     // move atoms to new procs
-  void borders();                      // setup list of atoms to comm
+  void forward_comm(int dummy = 0) override;    // forward comm of atom coords
+  void reverse_comm() override;                 // reverse comm of atom coords
+  void exchange() override;                     // move atoms to new procs
+  void borders() override;                      // setup list of atoms to comm
 
-  void forward_comm_pair(class Pair *);    // forward comm from a Pair
-  void reverse_comm_pair(class Pair *);    // reverse comm from a Pair
-  void forward_comm_fix(class Fix *, int size=0);      // forward comm from a Fix
-  void reverse_comm_fix(class Fix *, int size=0);      // reverse comm from a Fix
-  void forward_comm_compute(class Compute *);  // forward from a Compute
-  void reverse_comm_compute(class Compute *);  // reverse from a Compute
-  void forward_comm_dump(class Dump *);    // forward comm from a Dump
-  void reverse_comm_dump(class Dump *);    // reverse comm from a Dump
+  void forward_comm_pair(class Pair *) override;    // forward comm from a Pair
+  void reverse_comm_pair(class Pair *) override;    // reverse comm from a Pair
+  void forward_comm_fix(class Fix *, int size=0) override;      // forward comm from a Fix
+  void reverse_comm_fix(class Fix *, int size=0) override;      // reverse comm from a Fix
+  void forward_comm_compute(class Compute *) override;  // forward from a Compute
+  void reverse_comm_compute(class Compute *) override;  // reverse from a Compute
+  void forward_comm_dump(class Dump *) override;    // forward comm from a Dump
+  void reverse_comm_dump(class Dump *) override;    // reverse comm from a Dump
 
-  void forward_comm_array(int, double **);            // forward comm of array
+  void forward_comm_array(int, double **) override;            // forward comm of array
 
   template<class DeviceType> void forward_comm_device(int dummy);
   template<class DeviceType> void reverse_comm_device();
@@ -85,12 +85,12 @@ class CommKokkos : public CommBrick {
   void grow_buf_pair(int);
   void grow_buf_fix(int);
 
-  void grow_send(int, int);
-  void grow_recv(int);
+  void grow_send(int, int) override;
+  void grow_recv(int) override;
   void grow_send_kokkos(int, int, ExecutionSpace space = Host);
   void grow_recv_kokkos(int, ExecutionSpace space = Host);
-  void grow_list(int, int);
-  void grow_swap(int);
+  void grow_list(int, int) override;
+  void grow_swap(int) override;
   void copy_swap_info();
 };
 

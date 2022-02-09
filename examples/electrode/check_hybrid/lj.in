@@ -1,0 +1,36 @@
+variable tag string lj
+log log.lammps_${tag}
+atom_style full
+units real
+bond_style harmonic
+angle_style harmonic
+
+#include "p3m3dc.settings"
+boundary p p f
+pair_style 	lj/cut 16
+#processors * * 2
+
+read_data "cap.data"
+
+pair_modify mix arithmetic
+pair_coeff 1 1 0.61185 4.38
+pair_coeff 2 2 0.08604 3.41
+pair_coeff 3 3 0.43738 5.04
+pair_coeff 4 4 1.12572 5.06
+pair_coeff 5 5 0.05497 3.37
+
+include "cgil.settings"
+
+#dump alldump all custom 1000 all_${tag}.lammpstrj id mol type x y z q
+fix            fxnvt electrolyte nvt temp 500.0 500.0 100.
+variable       q atom q
+compute        qtop top reduce sum v_q
+compute        qbot bot reduce sum v_q
+compute        qall ele reduce sum v_q
+compute        ctemp electrolyte temp
+
+fix print all print 10 "$(step:%8.3g) $(c_qtop:%20.15e) $(c_qbot:%20.15e)" file ${tag}.csv screen no title "#Fix electrode equal-style variable test  setting = lj"
+
+thermo 10
+thermo_style custom step c_ctemp epair etotal c_qtop c_qbot c_qall
+run 50

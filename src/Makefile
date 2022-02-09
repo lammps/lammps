@@ -70,6 +70,7 @@ PACKAGE = \
 	dpd-smooth \
 	drude \
 	eff \
+	electrode \
 	extra-compute \
 	extra-dump \
 	extra-fix \

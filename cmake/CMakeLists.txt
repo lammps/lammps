@@ -184,6 +184,7 @@ set(STANDARD_PACKAGES
   DPD-SMOOTH
   DRUDE
   EFF
+  ELECTRODE
   EXTRA-COMPUTE
   EXTRA-DUMP
   EXTRA-FIX
@@ -344,6 +345,7 @@ pkg_depends(DIELECTRIC KSPACE)
 pkg_depends(DIELECTRIC EXTRA-PAIR)
 pkg_depends(CG-DNA MOLECULE)
 pkg_depends(CG-DNA ASPHERE)
+pkg_depends(ELECTRODE KSPACE)
 
 # detect if we may enable OpenMP support by default
 set(BUILD_OMP_DEFAULT OFF)
@@ -379,7 +381,7 @@ if(BUILD_OMP)
   target_link_libraries(lammps PRIVATE OpenMP::OpenMP_CXX)
 endif()
 
-if(PKG_MSCG OR PKG_ATC OR PKG_AWPMD OR PKG_ML-QUIP OR PKG_LATTE)
+if(PKG_MSCG OR PKG_ATC OR PKG_AWPMD OR PKG_ML-QUIP OR PKG_LATTE OR PKG_ELECTRODE)
   enable_language(C)
   find_package(LAPACK)
   find_package(BLAS)
@@ -581,6 +583,10 @@ foreach(PKG_LIB POEMS ATC AWPMD H5MD MESONT)
     endif()
   endif()
 endforeach()
+
+if(PKG_ELECTRODE)
+  target_link_libraries(lammps PRIVATE ${LAPACK_LIBRARIES})
+endif()
 
 if(PKG_AWPMD)
   target_link_libraries(awpmd PRIVATE ${LAPACK_LIBRARIES})

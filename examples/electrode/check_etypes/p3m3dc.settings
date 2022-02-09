@@ -1,0 +1,5 @@
+kspace_style  pppm/electrode 1.0e-7
+#kspace_modify gewald 0.2311815 
+kspace_modify slab 3.0 amat onestep # default
+#kspace_modify mesh 24 24 210  
+#kspace_modify order 5

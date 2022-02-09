@@ -1,0 +1,4 @@
+kspace_style  ewald/electrode 1.0e-6
+kspace_modify gewald 0.2311815 
+kspace_modify kmax/ewald 10 10 88
+kspace_modify slab 3.0

@@ -1,0 +1,6 @@
+include charged.settings
+
+kspace_modify amat onestep
+
+fix fxupdate ele electrode/conp 0.0 1.805 write_mat onestep.csv 
+run 0

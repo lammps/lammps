@@ -1,0 +1,131 @@
+
+# Thermopotentiostat example calculation for nano-confined water
+# between two electrodes (Ne) with applied voltage. Simulation
+# can be performed with unmodified version of LAMMPS. Run as:
+#
+# lmp -in control.inp
+#
+# Output files:
+#   temp.dat          temperature
+#   md.xyz            trajectory
+#   final.inp         final configuration for restarting
+#
+# F. Deissenbeck, C. Freysoldt, M. Todorova, J. Neugebauer, S. Wippermann,
+# wippermann@mpie.de, 12.08.2020
+
+
+units real
+dimension 3
+atom_style full
+processors * * 2
+
+kspace_style pppm/electrode 1.0e-5
+kspace_modify slab 4.0   # non-periodic electrostatic boundary conditions in z-direction
+kspace_modify gewald 0.2311815
+boundary p p f
+
+read_data ../sample.inp
+include ../potential.inp
+neighbor 2.0 bin
+neigh_modify one 3000
+
+
+
+# input parameters
+# ----------------
+
+variable dt        equal 0.967553728                 # time step [fs],
+                                                     # 0.483776864 fs = 20 Hartree a.u.
+variable dumpsteps equal 1000                        # dump trajectory every ${dumpsteps} steps
+
+
+
+group moving_particles type 1 2
+group electrodes type 3 4
+
+group Ne_left type 3
+group Ne_right type 4
+
+
+
+
+# NVE section (+ explicit thermostat if desired)
+# ----------------------------------------------
+
+timestep ${dt}
+
+# init velocities to setup new claculation,
+# not needed here since sample.inp is already equilibrated (at Phi0 = 0 V)
+
+#velocity moving_particles create 350.0 4928459 rot yes dist gaussian
+
+
+# apply explicit thermostat if desired,
+# also not needed here since electrode charge distribution
+# of thermopotentiostat has an explicit temperature (charge fluctuations)
+# that actively controls the kinetic temperature
+
+#fix 1 moving_particles temp/csvr 350.0 350.0 ${th_time} 54324
+#fix 1 moving_particles langevin 350.0 350.0 ${th_time} 699483
+
+
+# integrate Hamiltonian equations of motion -> pure NVE ensemble
+
+fix 2 moving_particles nve
+
+
+# ensure electrodes are not moving
+
+fix freeze1 Ne_left setforce 0.0 0.0 0.0
+fix freeze2 Ne_right setforce 0.0 0.0 0.0
+
+
+
+# thermopotentiostat section
+# --------------------------
+
+fix conpid Ne_left electrode/conp 1.0  1.805132 couple Ne_right -1.0 symm on write_mat mat.csv
+
+# output section
+# --------------
+
+dump 5 all custom ${dumpsteps} md.xyz id element xu yu zu q
+dump_modify 5 format float %20.15g element H O Ne_a Ne_b sort id
+
+
+# compute temperature
+
+compute myTemp moving_particles temp
+compute movppe moving_particles pe/atom
+compute myPe moving_particles reduce sum c_movppe
+compute myKe moving_particles ke
+fix 6 moving_particles ave/time 1 1 1 c_myTemp c_myPe c_myKe file temp.dat format '%20.16f'
+
+# compute charges
+compute        q electrodes property/atom q                                                                                                                                                                              
+compute        q_left Ne_left reduce sum c_q 
+compute        q_right Ne_right reduce sum c_q 
+compute        q_all electrodes reduce sum c_q 
+
+thermo_style custom step etotal c_myTemp c_q_left c_q_right c_q_all f_conpid[1] f_conpid[2]
+thermo 100
+
+
+
+fix 3 moving_particles shake 0.0001 20 0 b 1 a 1
+
+
+
+# run simulation and write final configuration for restart
+# --------------------------------------------------------
+
+# total number of timesteps
+
+run 100000
+
+
+# write final coordinates and velocities,
+# nocoeff needed, or LAMMPS will not be able to restart from final.inp
+
+write_data final.inp nocoeff
+

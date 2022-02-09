@@ -1289,6 +1289,41 @@ be built for the most part with all major versions of the C++ language.
 
 ----------
 
+.. _electrode:
+
+ELECTRODE package 
+-----------------
+
+This package depends on the KSPACE package.
+
+.. tabs::
+
+   .. tab:: CMake build
+
+      No additional settings are needed besides ``-D PKG_KSPACE=yes`` and ``-D
+      PKG_ELECTRODE=yes``.
+
+   .. tab:: Traditional make
+
+      The package is activated with ``make yes-KSPACE`` and ``make
+      yes-ELECTRODE``
+
+
+      Note that the ``Makefile.lammps`` file has settings for the BLAS and
+      LAPACK linear algebra libraries.  As explained in ``lib/awpmd/README``
+      these can either exist on your system, or you can use the files provided
+      in ``lib/linalg``.  In the latter case you also need to build the library
+      in ``lib/linalg`` with a command like these:
+
+      .. code-block:: bash
+
+         $ make lib-linalg                     # print help message
+         $ make lib-linalg args="-m serial"    # build with GNU Fortran compiler (settings as with "make serial")
+         $ make lib-linalg args="-m mpi"       # build with default MPI Fortran compiler (settings as with "make mpi")
+         $ make lib-linalg args="-m gfortran"  # build with GNU Fortran compiler
+
+----------
+
 .. _ml-pace:
 
 ML-PACE package

@@ -1,0 +1,17 @@
+#Roy-Maroncelli BMI-PF6 + carbon
+bond_coeff 1 200 2.7076
+bond_coeff 2 200 3.8213
+angle_coeff 1 200 116.035
+
+group BMI type 1 2 3
+fix fx_rattle_BMI BMI shake 1e-4 20 0 b 1 2 a 1
+
+group bot molecule 641
+group top molecule 642
+group ele union bot top
+group electrolyte type 1 2 3 4
+
+set group bot charge 0
+set group top charge 0
+fix            fxupdate bot electrode/conp -1.0 1.979 couple top 1.0 symm on
+

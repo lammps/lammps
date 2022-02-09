@@ -1,0 +1,260 @@
+
+# Thermopotentiostat example calculation for nano-confined water
+# between two electrodes (Ne) with applied voltage. Simulation
+# can be performed with unmodified version of LAMMPS. Run as:
+#
+# lmp -in control.inp
+#
+# Output files:
+#   temp.dat          temperature
+#   traj_Phi.dat      potential
+#   traj_n.dat        charge
+#   md.xyz            trajectory
+#   final.inp         final configuration for restarting
+#
+# F. Deissenbeck, C. Freysoldt, M. Todorova, J. Neugebauer, S. Wippermann,
+# wippermann@mpie.de, 12.08.2020
+
+
+units real
+dimension 3
+atom_style full
+
+kspace_style pppm/electrode 1.0e-5
+kspace_modify slab 4.0   # non-periodic electrostatic boundary conditions in z-direction
+kspace_modify gewald  0.2311815
+boundary p p f
+
+read_data ../sample.inp
+include ../potential.inp
+neighbor 2.0 bin
+neigh_modify one 3000
+
+
+
+# input parameters
+# ----------------
+
+variable dt        equal 0.967553728                 # time step [fs],
+                                                     # 0.483776864 fs = 20 Hartree a.u.
+
+variable th_temp   equal 350.0                       # temperature [K]
+
+variable phi0      equal 2.0                         # external applied potential [V]
+variable po_time   equal 100.0                       # relaxation time potentiostat [fs]
+
+variable dumpsteps equal 1000                        # dump trajectory every ${dumpsteps} steps
+
+
+
+# constants
+# ---------
+
+variable eps0      equal 0.005526349358057108        # [e-/(V Angstrom)]
+variable kB        equal 8.617333262145E-5           # [eV/K]
+variable C         equal v_eps0*v_Area/v_distance    # [e-/V]
+
+
+
+# setup - do not change (unless lowest electrode is not at z=2.0)
+# ---------------------------------------------------------------
+
+variable Area equal ($(xhi)-$(xlo))*($(yhi)-$(ylo))  # [A**2]
+
+group moving_particles type 1 2
+group electrodes type 3 4
+
+group Ne_left type 3
+group Ne_right type 4
+variable Neatoms equal count(Ne_left) 
+
+
+# get electrode distance (to compute C) and
+# one electrode atom (Ne) id (to update charge during simulation)
+
+variable r atom gmask(Ne_right)*sqrt((z-10.0)*(z-10.0))
+compute computedis all reduce max v_r                     # max dist between electrodes
+compute ne_left_id Ne_left property/atom id
+compute one_id_neleft Ne_left reduce min c_ne_left_id     # get minimum id
+thermo_style custom c_computedis c_one_id_neleft          # dump to check
+
+run 0
+
+variable distance equal c_computedis
+variable id_of_neleft equal c_one_id_neleft
+
+
+
+# ----------------------- #
+# | simulation protocol | #
+# ----------------------- #
+
+# compute dipole moments
+# ----------------------
+
+# total dipole
+
+compute waterNe all chunk/atom bin/1d z lower $(zhi)
+compute dip_tot all dipole/chunk waterNe
+fix 5 all ave/time 1 1 1 c_dip_tot[*] file dipole_total.dat mode vector
+
+
+# water-only dipole
+
+compute onlywater moving_particles chunk/atom bin/1d z lower $(zhi)
+compute dip_water all dipole/chunk onlywater
+fix 43 all ave/time 1 1 1 c_dip_water[*] file dipole_water.dat mode vector
+
+
+# electrode-only dipole, needed to compute electrode charge without recursion
+
+compute elcharge electrodes chunk/atom bin/1d z lower $(zhi)
+compute dip_elec all dipole/chunk elcharge
+fix 83 all ave/time 1 1 1 c_dip_elec[*] file dipole_electrode.dat mode vector
+
+
+
+# NVE section (+ explicit thermostat if desired)
+# ----------------------------------------------
+
+timestep ${dt}
+
+# init velocities to setup new claculation,
+# not needed here since sample.inp is already equilibrated (at Phi0 = 0 V)
+
+#velocity moving_particles create 350.0 4928459 rot yes dist gaussian
+
+
+# apply explicit thermostat if desired,
+# also not needed here since electrode charge distribution
+# of thermopotentiostat has an explicit temperature (charge fluctuations)
+# that actively controls the kinetic temperature
+
+# integrate Hamiltonian equations of motion -> pure NVE ensemble
+
+fix 2 moving_particles nve
+
+
+# ensure electrodes are not moving
+
+fix freeze1 Ne_left setforce 0.0 0.0 0.0
+fix freeze2 Ne_right setforce 0.0 0.0 0.0
+
+
+
+# thermopotentiostat section
+# --------------------------
+
+# calculate electrode charge n from electrode-only dipole moment,
+# done in this way in order to avoid a recursive loop due to lammps
+# functional scripting language
+
+variable charge_t1 equal -1*(c_dip_elec[1][3])/v_distance
+
+
+# obtain voltage Phi from total dipole moment
+# phi = -dip[3] / (eps0 * Area)
+
+variable phi equal -1*c_dip_tot[1][3]/(v_eps0*v_Area)
+
+# Ohm's Law potentiostat,
+# dissipative term of Eq. 7 without fluctuation, cools system,
+# only for testing purposes and by default deactivated
+
+#variable phi_new equal v_phi0+(v_phi-v_phi0)*exp(-1*v_dt/v_po_time)
+
+
+# CANONICAL SAMPLING BY STOCHASTIC THERMOPOTENTIOSTAT,
+# equivalent to Eq. 7, just using Phi as the basic variable here,
+# phi_new = phi0 + (phi - phi0) * np.exp(-dt/po_time) \
+#         + np.sqrt(kB*th_temp/C) * np.sqrt(1-np.exp(-2*dt/po_time))*np.random.normal(0.0,1.0),
+# random number is read from file here to ensure reproducibility
+# iterate random number every timestep with dummy fix
+
+variable random file ../random.inp
+variable phi_new equal v_phi0+(v_phi-v_phi0)*exp(-1*v_dt/v_po_time)+sqrt((v_kB*v_th_temp/v_C)*(1.0-exp(-2*v_dt/v_po_time)))*v_random
+variable dummy equal next(random)
+fix fxdummy all ave/time 1 1 1 v_dummy
+
+# compute new charges on left and right electrodes
+# dq = C * (phi_new - phi), q = q + dq
+# performed specifically in this way to access the charge and hence phi_new only once,
+# lammps scripting is functional, not imperative, and hence "reading" phi_new twice
+# would also evaluate phi_new twice with different random numbers N and update charges on left electrode -> must avoid!
+
+variable c equal (v_charge_t1+v_C*(v_phi_new-v_phi))
+variable charge equal v_c/(1.0*v_Neatoms)
+variable charge_2 equal -1.0*q[v_id_of_neleft]
+
+
+# set charges on left and right electrodes,
+# warning about unit cell being not charge-neutral can be ignored:
+# after adapting left electrode first, unit cell is indeed non-neutral,
+# after adapting right electrode subsequently it is neutral again
+
+fix potentio_left Ne_left adapt 1 atom charge v_charge
+fix potentio_right Ne_right adapt 1 atom charge v_charge_2
+
+
+
+# output section
+# --------------
+
+dump 5 all custom ${dumpsteps} md.xyz id element xu yu zu q
+dump_modify 5 format float %20.15g element H O Ne_a Ne_b sort id
+fix potential all ave/time 1 1 1 v_phi file traj_Phi.dat
+fix rho all ave/time 1 1 1 v_charge_t1 file traj_n.dat
+
+
+# compute temperature
+
+compute myTemp moving_particles temp
+compute movppe moving_particles pe/atom
+compute myPe moving_particles reduce sum c_movppe
+compute myKe moving_particles ke
+fix 6 moving_particles ave/time 1 1 1 c_myTemp c_myPe c_myKe file temp.dat format '%20.16f'
+
+# compute charges
+compute        q electrodes property/atom q                                                                                                                                                                              
+compute        q_left Ne_left reduce sum c_q 
+compute        q_right Ne_right reduce sum c_q 
+compute        q_all electrodes reduce sum c_q 
+
+thermo_style custom step etotal c_myTemp c_q_left c_q_right c_q_all
+thermo 100
+
+
+# compute temperature individually for H and O atoms if desired
+
+#group movingH type 1
+#group movingO type 2
+#compute myTempH movingH temp
+#compute myTempO movingO temp
+#fix 7 moving_particles ave/time 1 1 1 c_myTempH c_myTempO file tempOH.dat format '%20.16f'
+
+
+
+# rigid water => use shake-algorithm
+# ----------------------------------
+
+# must be at end of input file,
+# if deactivating shake remember to choose smaller timestep,
+# i.e. dt = 0.5 fs (or 20 Hartree atomic units) works fine
+
+fix 3 moving_particles shake 0.0001 20 0 b 1 a 1
+
+
+
+# run simulation and write final configuration for restart
+# --------------------------------------------------------
+
+# total number of timesteps
+
+run 100000
+
+
+# write final coordinates and velocities,
+# nocoeff needed, or LAMMPS will not be able to restart from final.inp
+
+write_data final.inp nocoeff
+

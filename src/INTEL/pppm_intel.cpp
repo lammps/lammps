@@ -1155,3 +1155,16 @@ int PPPMIntel::use_base() {
   return _use_base;
 }
 #endif
+
+/* ----------------------------------------------------------------------
+   allows usage in derived classes (pppm/electrode/intel)
+------------------------------------------------------------------------- */
+template void PPPMIntel::particle_map<float,double>(IntelBuffers<float,double> *buffers); 
+template void PPPMIntel::particle_map<double,double>(IntelBuffers<double,double> *buffers);
+template void PPPMIntel::particle_map<float,float>(IntelBuffers<float,float> *buffers);
+template void PPPMIntel::make_rho<float,double,0>(IntelBuffers<float,double> *buffers); 
+template void PPPMIntel::make_rho<double,double,0>(IntelBuffers<double,double> *buffers);
+template void PPPMIntel::make_rho<float,float,0>(IntelBuffers<float,float> *buffers);
+template void PPPMIntel::make_rho<float,double,1>(IntelBuffers<float,double> *buffers); 
+template void PPPMIntel::make_rho<double,double,1>(IntelBuffers<double,double> *buffers);
+template void PPPMIntel::make_rho<float,float,1>(IntelBuffers<float,float> *buffers);

@@ -209,6 +209,9 @@ accelerated styles exist.
 * :doc:`edpd/source <fix_dpd_source>` - add heat source to eDPD simulations
 * :doc:`efield <fix_efield>` - impose electric field on system
 * :doc:`ehex <fix_ehex>` - enhanced heat exchange algorithm
+* :doc:`electrode/conp <fix_electrode_conp>` - impose electric potential
+* :doc:`electrode/conq <fix_electrode_conq>` - impose total electric charge
+* :doc:`electrode/thermo <fix_electrode_thermo>` - apply thermo-potentiostat
 * :doc:`electron/stopping <fix_electron_stopping>` - electronic stopping power as a friction force
 * :doc:`electron/stopping/fit <fix_electron_stopping>` - electronic stopping power as a friction force
 * :doc:`enforce2d <fix_enforce2d>` - zero out z-dimension velocity and force

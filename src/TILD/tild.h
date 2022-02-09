@@ -131,7 +131,7 @@ class TILD : public KSpace{
   void init_cross_potentials();
   double get_k_alias(int, double*);
   void get_k_alias(FFT_SCALAR *, FFT_SCALAR **);
-  void fix_manual_flags();
+  void manually_flip_density_flags();
 
   int me,nprocs;
   double cutoff;

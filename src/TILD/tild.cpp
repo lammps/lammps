@@ -82,7 +82,6 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
   peratom_allocate_flag = 0;
   group_allocate_flag = 0;
   
-  nstyles = 2;
   nstyles = 3;
 
   pppmflag = 0;
@@ -427,7 +426,7 @@ void TILD::setup(){
     }
   }
 
-  fix_manual_flags();
+  manually_flip_density_flags();
   rho0 = calculate_rho0();
   init_cross_potentials();
   vir_func_init();
@@ -2843,7 +2842,7 @@ void TILD::ave_grid()
 }
 
 
-void TILD::fix_manual_flags(){
+void TILD::manually_flip_density_flags(){
 
   int ntypes = atom->ntypes;
   for (int i = 0; i <= ntypes; i++){
@@ -2860,8 +2859,6 @@ void TILD::fix_manual_flags(){
     }
   }
 
-
-  std::vector<int> manual_flag_check;
   for (auto& intrxn : cross_iter) {
     if (intrxn.type != NONE ){
       density_flags[intrxn.i+1] = density_flags[intrxn.j+1] = 1;

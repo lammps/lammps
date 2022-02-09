@@ -278,15 +278,19 @@ eam database tool
 -----------------------------
 
 The tools/eam_database directory contains a Fortran program that will
-generate EAM alloy setfl potential files for any combination of 16
+generate EAM alloy setfl potential files for any combination of 17
 elements: Cu, Ag, Au, Ni, Pd, Pt, Al, Pb, Fe, Mo, Ta, W, Mg, Co, Ti,
-Zr.  The files can then be used with the :doc:`pair_style eam/alloy <pair_eam>` command.
+Zr, Cr.  The files can then be used with the :doc:`pair_style eam/alloy <pair_eam>` command.
 
 The tool is authored by Xiaowang Zhou (Sandia), xzhou at sandia.gov,
-and is based on his paper:
+with updates from Lucas Hale (NIST) lucas.hale at nist.gov and is based on his paper:
 
 X. W. Zhou, R. A. Johnson, and H. N. G. Wadley, Phys. Rev. B, 69,
 144113 (2004).
+
+The parameters for Cr were taken from:
+
+Lin Z B, Johnson R A and Zhigilei L V, Phys. Rev. B 77 214108 (2008).
 
 ----------
 

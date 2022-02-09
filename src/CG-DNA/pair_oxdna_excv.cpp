@@ -143,7 +143,7 @@ void PairOxdnaExcv::compute(int eflag, int vflag)
   AtomVecEllipsoid::Bonus *bonus = avec->bonus;
   int *ellipsoid = atom->ellipsoid;
 
-  int n,a,b,in,ia,ib,anum,bnum,atype,btype;
+  int a,b,in,ia,ib,anum,bnum,atype,btype;
 
   evdwl = 0.0;
   ev_init(eflag,vflag);

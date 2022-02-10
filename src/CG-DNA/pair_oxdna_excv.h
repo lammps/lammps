@@ -41,8 +41,8 @@ class PairOxdnaExcv : public Pair {
   void write_data(FILE *) override;
   void write_data_all(FILE *) override;
   void *extract(const char *, int &) override;
-  virtual int pack_forward_comm(int, int *, double *, int, int *);
-  virtual void unpack_forward_comm(int, int, double *);
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
 
  protected:
   // s=sugar-phosphate backbone site, b=base site, st=stacking site

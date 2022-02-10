@@ -226,7 +226,6 @@ void PairReaxFFOMP::setup()
 
 void PairReaxFFOMP::compute(int eflag, int vflag)
 {
-  double evdwl,ecoul;
 
   // communicate num_bonds once every reneighboring
   // 2 num arrays stored by fix, grab ptr to them
@@ -235,7 +234,6 @@ void PairReaxFFOMP::compute(int eflag, int vflag)
   int *num_bonds = fix_reaxff->num_bonds;
   int *num_hbonds = fix_reaxff->num_hbonds;
 
-  evdwl = ecoul = 0.0;
   ev_init(eflag,vflag);
 
   api->system->n = atom->nlocal; // my atoms
@@ -304,20 +302,6 @@ void PairReaxFFOMP::compute(int eflag, int vflag)
   // energies and pressure
 
   if (eflag_global) {
-    evdwl += api->data->my_en.e_bond;
-    evdwl += api->data->my_en.e_ov;
-    evdwl += api->data->my_en.e_un;
-    evdwl += api->data->my_en.e_lp;
-    evdwl += api->data->my_en.e_ang;
-    evdwl += api->data->my_en.e_pen;
-    evdwl += api->data->my_en.e_coa;
-    evdwl += api->data->my_en.e_hb;
-    evdwl += api->data->my_en.e_tor;
-    evdwl += api->data->my_en.e_con;
-    evdwl += api->data->my_en.e_vdW;
-
-    ecoul += api->data->my_en.e_ele;
-    ecoul += api->data->my_en.e_pol;
 
     // Store the different parts of the energy
     // in a list for output by compute pair command

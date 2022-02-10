@@ -1182,6 +1182,10 @@ void MSM::set_grid_local()
 
   for (int n=0; n<levels; n++) {
 
+    // deleted and nullify grid arrays since the number or offset of gridpoints may change
+    memory->destroy3d_offset(qgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
+    memory->destroy3d_offset(egrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
+
     // partition global grid across procs
     // n xyz lo/hi in[] = lower/upper bounds of global grid this proc owns
     // indices range from 0 to N-1 inclusive in each dim

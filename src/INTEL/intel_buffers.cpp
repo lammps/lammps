@@ -27,7 +27,7 @@ using namespace LAMMPS_NS;
 template <class flt_t, class acc_t>
 IntelBuffers<flt_t, acc_t>::IntelBuffers(class LAMMPS *lmp_in) :
     lmp(lmp_in), _x(0), _q(0), _quat(0), _f(0), _off_threads(0),
-    _buf_size(0), _buf_local_size(0), _n_list_ptrs(1), _max_list_ptrs(4) {
+    _n_list_ptrs(1), _max_list_ptrs(4), _buf_size(0), _buf_local_size(0) {
   _neigh_list_ptrs = new IntelNeighListPtrs[_max_list_ptrs];
   _neigh_list_ptrs[0].cnumneigh = 0;
   _list_alloc_atoms = 0;

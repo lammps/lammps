@@ -633,8 +633,8 @@ void ComputeBornMatrix::displace_atoms(int nall, int idir, double magnitude)
   // A.T.
   // this works for vector indices  7,  8,  9, 12, 14, 18 and 15, 16, 17
   // corresponding i,j indices     12, 13, 14, 23, 25, 36 and 26, 34, 35
-  int k = dirlist[idir][1];
-  int l = dirlist[idir][0];
+  // int k = dirlist[idir][1];
+  // int l = dirlist[idir][0];
 
   // A.T.
   // this works for vector indices  7,  8,  9, 12, 14, 18 and 10, 11, 13
@@ -642,8 +642,8 @@ void ComputeBornMatrix::displace_atoms(int nall, int idir, double magnitude)
   // G.C.:
   // I see no difference with a 0 step simulation between both
   // methods.
-  // int k = dirlist[idir][0];
-  // int l = dirlist[idir][1];
+  int k = dirlist[idir][0];
+  int l = dirlist[idir][1];
   for (int i = 0; i < nall; i++)
       x[i][k] = temp_x[i][k] + numdelta * magnitude * (temp_x[i][l] - fixedpoint[l]);
 }
@@ -715,29 +715,61 @@ void ComputeBornMatrix::virial_addon()
   double* sigv = compute_virial->vector;
   double modefactor[6] = {1.0, 1.0, 1.0, 0.5, 0.5, 0.5};
 
-  for (int idir = 0; idir < NDIR_VIRIAL; idir++) {
-    int ijvgt = idir; // this is it.
-    double addon;
+  // Back to the ugly way
+  // You can compute these factor by looking at
+  // every Dijkl terms and adding the proper virials
+  // Take into account the symmetries. For example:
+  // B2323 = s33+D2323; B3232= s22+D3232;
+  // but D3232=D2323 (computed in compute_numdiff)
+  // and Cijkl = (Bijkl+Bjikl+Bijlk+Bjilk)/4. = (Bijkl+Bjilk)/2.
+  // see Yoshimoto eq 15.and eq A3.
+  values_global[0]  += 2.0*sigv[0];
+  values_global[1]  += 2.0*sigv[1];
+  values_global[2]  += 2.0*sigv[2];
+  values_global[3]  += 0.5*(sigv[1]+sigv[2]);
+  values_global[4]  += 0.5*(sigv[0]+sigv[2]);
+  values_global[5]  += 0.5*(sigv[0]+sigv[1]);
+  values_global[6]  += 0.0;
+  values_global[7]  += 0.0;
+  values_global[8]  += 0.0;
+  values_global[9]  += sigv[4];
+  values_global[10] += sigv[3];
+  values_global[11] += 0.0;
+  values_global[12] += sigv[5];
+  values_global[13] += 0.0;
+  values_global[14] += sigv[3];
+  values_global[15] += sigv[5];
+  values_global[16] += sigv[4];
+  values_global[17] += 0.0;
+  values_global[18] += 0.0;
+  values_global[19] += sigv[4];
+  values_global[20] += sigv[5];
 
-    // extract the two indices composing the voigt representation
+  // This loop is actually bogus.
+  //
+  // for (int idir = 0; idir < NDIR_VIRIAL; idir++) {
+  //   int ijvgt = idir; // this is it.
+  //   double addon;
 
-    id  = voigt3VtoM[ijvgt][0];
-    jd  = voigt3VtoM[ijvgt][1];
+  //   // extract the two indices composing the voigt representation
 
-    for (int knvgt=ijvgt; knvgt < NDIR_VIRIAL; knvgt++) {
-      kd = voigt3VtoM[knvgt][0];
-      nd = voigt3VtoM[knvgt][1];
-      addon = kronecker[id][nd]*sigv[virialMtoV[jd][kd]] +
-              kronecker[id][kd]*sigv[virialMtoV[jd][nd]];
-      if(id != jd)
-      addon += kronecker[jd][nd]*sigv[virialMtoV[id][kd]] +
-               kronecker[jd][kd]*sigv[virialMtoV[id][nd]];
+  //   id  = voigt3VtoM[ijvgt][0];
+  //   jd  = voigt3VtoM[ijvgt][1];
 
-      m = revalbe[ijvgt][knvgt];
+  //   for (int knvgt=ijvgt; knvgt < NDIR_VIRIAL; knvgt++) {
+  //     kd = voigt3VtoM[knvgt][0];
+  //     nd = voigt3VtoM[knvgt][1];
+  //     addon = kronecker[id][nd]*sigv[virialMtoV[jd][kd]] +
+  //             kronecker[id][kd]*sigv[virialMtoV[jd][nd]];
+  //     if(id != jd)
+  //     addon += kronecker[jd][nd]*sigv[virialMtoV[id][kd]] +
+  //              kronecker[jd][kd]*sigv[virialMtoV[id][nd]];
 
-      values_global[revalbe[ijvgt][knvgt]] += 0.5*modefactor[idir]*addon;
-    }
-  }
+  //     m = revalbe[ijvgt][knvgt];
+
+  //     values_global[revalbe[ijvgt][knvgt]] += 0.5*modefactor[idir]*addon;
+  //   }
+  // }
 }
 
 /* ----------------------------------------------------------------------

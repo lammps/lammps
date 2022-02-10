@@ -11,7 +11,7 @@
 
 variable        nsteps index 50     # length of run
 variable        nthermo index 10    # thermo output interval 
-variable        nlat index 3        # size of box
+variable        nlat index 5        # size of box
 variable        delta index 1.0e-6  # strain size 
 variable        temp index 0.3      # temperature
 variable        rho index 0.8442    # reduced density
@@ -38,10 +38,9 @@ fix             1 all nvt temp ${temp} ${temp} 0.1
 run 100
 
 compute         born all born/matrix
-variable        born vector c_born/vol
 thermo          ${nthermo}
-thermo_style    custom step temp pe press v_born[1] v_born[2] v_born[3] v_born[4] v_born[5] v_born[6] v_born[7] v_born[8] v_born[9] v_born[10] v_born[11] v_born[12] v_born[13] v_born[14] v_born[15] v_born[16] v_born[17] v_born[18] v_born[19] v_born[20] v_born[21]
-thermo_modify line multi
+thermo_style    custom step temp pe press c_born[*]
+thermo_modify  line multi
 
 run         ${nsteps}
 

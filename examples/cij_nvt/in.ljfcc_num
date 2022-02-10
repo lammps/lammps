@@ -13,7 +13,7 @@
 
 variable        nsteps index 50     # length of run
 variable        nthermo index 10    # thermo output interval 
-variable        nlat index 3        # size of box
+variable        nlat index 5        # size of box
 variable        delta index 1.0e-6  # strain size 
 variable        temp index 0.3      # temperature
 variable        rho index 0.8442    # reduced density

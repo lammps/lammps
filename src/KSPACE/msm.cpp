@@ -1108,8 +1108,7 @@ void MSM::set_grid_global()
     levels = xlevels = ylevels = zlevels = 2;
     nx_max = ny_max = nz_max = 2;
     if (gridflag)
-      error->warning(FLERR,
-             "MSM mesh too small, increasing to 2 points in each direction");
+      error->warning(FLERR,"MSM mesh too small, increasing to 2 points in each direction");
   }
 
   // omit top grid level for periodic systems
@@ -1142,33 +1141,19 @@ void MSM::set_grid_global()
     error->all(FLERR,"MSM grid is too large");
 
   // compute number of extra grid points needed for non-periodic boundary conditions
+  // need to always do this, so we can handle the case of switching from periodic
+  // to non-periodic.
 
-  if (domain->nonperiodic) {
-    alpha[0] = -(order/2 - 1);
-    betax[0] = nx_msm[0] + (order/2 - 1);
-    betay[0] = ny_msm[0] + (order/2 - 1);
-    betaz[0] = nz_msm[0] + (order/2 - 1);
-    for (int n = 1; n < levels; n++) {
-      alpha[n] = -((-alpha[n-1]+1)/2) - (order/2 - 1);
-      betax[n] = ((betax[n-1]+1)/2) + (order/2 - 1);
-      betay[n] = ((betay[n-1]+1)/2) + (order/2 - 1);
-      betaz[n] = ((betaz[n-1]+1)/2) + (order/2 - 1);
-    }
+  alpha[0] = -(order/2 - 1);
+  betax[0] = nx_msm[0] + (order/2 - 1);
+  betay[0] = ny_msm[0] + (order/2 - 1);
+  betaz[0] = nz_msm[0] + (order/2 - 1);
+  for (int n = 1; n < levels; n++) {
+    alpha[n] = -((-alpha[n-1]+1)/2) - (order/2 - 1);
+    betax[n] = ((betax[n-1]+1)/2) + (order/2 - 1);
+    betay[n] = ((betay[n-1]+1)/2) + (order/2 - 1);
+    betaz[n] = ((betaz[n-1]+1)/2) + (order/2 - 1);
   }
-
-  if (domain->nonperiodic) {
-    alpha[0] = -(order/2 - 1);
-    betax[0] = nx_msm[0] + (order/2 - 1);
-    betay[0] = ny_msm[0] + (order/2 - 1);
-    betaz[0] = nz_msm[0] + (order/2 - 1);
-    for (int n = 1; n < levels; n++) {
-      alpha[n] = -((-alpha[n-1]+1)/2) - (order/2 - 1);
-      betax[n] = ((betax[n-1]+1)/2) + (order/2 - 1);
-      betay[n] = ((betay[n-1]+1)/2) + (order/2 - 1);
-      betaz[n] = ((betaz[n-1]+1)/2) + (order/2 - 1);
-    }
-  }
-
 }
 
 /* ----------------------------------------------------------------------
@@ -3272,7 +3257,7 @@ void MSM::get_g_direct_top(int n)
 
   int nmax_top = 8*(nx+1)*(ny*1)*(nz+1);
 
-  if (g_direct_top) memory->destroy(g_direct_top);
+  memory->destroy(g_direct_top);
   memory->create(g_direct_top,nmax_top,"msm:g_direct_top");
 
   double a = cutoff;

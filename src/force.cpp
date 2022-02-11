@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -25,8 +24,8 @@
 #include "bond_hybrid.h"
 #include "dihedral_hybrid.h"
 #include "improper_hybrid.h"
-#include "pair_hybrid.h"
 #include "kspace.h"
+#include "pair_hybrid.h"
 
 #include "atom.h"
 #include "comm.h"
@@ -57,8 +56,8 @@ Force::Force(LAMMPS *lmp) : Pointers(lmp)
   special_extra = 0;
 
   dielectric = 1.0;
-  qqr2e_lammps_real = 332.06371;          // these constants are toggled
-  qqr2e_charmm_real = 332.0716;           // by new CHARMM pair styles
+  qqr2e_lammps_real = 332.06371;    // these constants are toggled
+  qqr2e_charmm_real = 332.0716;     // by new CHARMM pair styles
 
   pair = nullptr;
   bond = nullptr;
@@ -85,54 +84,48 @@ void _noopt Force::create_factories()
   pair_map = new PairCreatorMap();
 
 #define PAIR_CLASS
-#define PairStyle(key,Class) \
-  (*pair_map)[#key] = &style_creator<Pair, Class>;
-#include "style_pair.h"  // IWYU pragma: keep
+#define PairStyle(key, Class) (*pair_map)[#key] = &style_creator<Pair, Class>;
+#include "style_pair.h"    // IWYU pragma: keep
 #undef PairStyle
 #undef PAIR_CLASS
 
   bond_map = new BondCreatorMap();
 
 #define BOND_CLASS
-#define BondStyle(key,Class) \
-  (*bond_map)[#key] = &style_creator<Bond, Class>;
-#include "style_bond.h"  // IWYU pragma: keep
+#define BondStyle(key, Class) (*bond_map)[#key] = &style_creator<Bond, Class>;
+#include "style_bond.h"    // IWYU pragma: keep
 #undef BondStyle
 #undef BOND_CLASS
 
   angle_map = new AngleCreatorMap();
 
 #define ANGLE_CLASS
-#define AngleStyle(key,Class) \
-  (*angle_map)[#key] = &style_creator<Angle, Class>;
-#include "style_angle.h"  // IWYU pragma: keep
+#define AngleStyle(key, Class) (*angle_map)[#key] = &style_creator<Angle, Class>;
+#include "style_angle.h"    // IWYU pragma: keep
 #undef AngleStyle
 #undef ANGLE_CLASS
 
   dihedral_map = new DihedralCreatorMap();
 
 #define DIHEDRAL_CLASS
-#define DihedralStyle(key,Class) \
-  (*dihedral_map)[#key] = &style_creator<Dihedral, Class>;
-#include "style_dihedral.h"  // IWYU pragma: keep
+#define DihedralStyle(key, Class) (*dihedral_map)[#key] = &style_creator<Dihedral, Class>;
+#include "style_dihedral.h"    // IWYU pragma: keep
 #undef DihedralStyle
 #undef DIHEDRAL_CLASS
 
   improper_map = new ImproperCreatorMap();
 
 #define IMPROPER_CLASS
-#define ImproperStyle(key,Class) \
-  (*improper_map)[#key] = &style_creator<Improper, Class>;
-#include "style_improper.h"  // IWYU pragma: keep
+#define ImproperStyle(key, Class) (*improper_map)[#key] = &style_creator<Improper, Class>;
+#include "style_improper.h"    // IWYU pragma: keep
 #undef ImproperStyle
 #undef IMPROPER_CLASS
 
   kspace_map = new KSpaceCreatorMap();
 
 #define KSPACE_CLASS
-#define KSpaceStyle(key,Class) \
-  (*kspace_map)[#key] = &style_creator<KSpace, Class>;
-#include "style_kspace.h"  // IWYU pragma: keep
+#define KSpaceStyle(key, Class) (*kspace_map)[#key] = &style_creator<KSpace, Class>;
+#include "style_kspace.h"    // IWYU pragma: keep
 #undef KSpaceStyle
 #undef KSPACE_CLASS
 }
@@ -176,17 +169,17 @@ Force::~Force()
 
 void Force::init()
 {
-  qqrd2e = qqr2e/dielectric;
+  qqrd2e = qqr2e / dielectric;
 
   // check if pair style must be specified after restart
   if (pair_restart) {
     if (!pair)
-      error->all(FLERR,"Must re-specify non-restarted pair style "
-                                   "({}) after read_restart", pair_restart);
+      error->all(FLERR, "Must re-specify non-restarted pair style ({}) after read_restart",
+                 pair_restart);
   }
 
-  if (kspace) kspace->init();         // kspace must come before pair
-  if (pair) pair->init();             // so g_ewald is defined
+  if (kspace) kspace->init();    // kspace must come before pair
+  if (pair) pair->init();        // so g_ewald is defined
   if (bond) bond->init();
   if (angle) angle->init();
   if (dihedral) dihedral->init();
@@ -196,22 +189,22 @@ void Force::init()
 
   if (comm->me == 0) {
     if (!bond && (atom->nbonds > 0)) {
-      error->warning(FLERR,"Bonds are defined but no bond style is set");
+      error->warning(FLERR, "Bonds are defined but no bond style is set");
       if ((special_lj[1] != 1.0) || (special_coul[1] != 1.0))
-        error->warning(FLERR,"Likewise 1-2 special neighbor interactions != 1.0");
+        error->warning(FLERR, "Likewise 1-2 special neighbor interactions != 1.0");
     }
     if (!angle && (atom->nangles > 0)) {
-      error->warning(FLERR,"Angles are defined but no angle style is set");
+      error->warning(FLERR, "Angles are defined but no angle style is set");
       if ((special_lj[2] != 1.0) || (special_coul[2] != 1.0))
-        error->warning(FLERR,"Likewise 1-3 special neighbor interactions != 1.0");
+        error->warning(FLERR, "Likewise 1-3 special neighbor interactions != 1.0");
     }
     if (!dihedral && (atom->ndihedrals > 0)) {
-      error->warning(FLERR,"Dihedrals are defined but no dihedral style is set");
+      error->warning(FLERR, "Dihedrals are defined but no dihedral style is set");
       if ((special_lj[3] != 1.0) || (special_coul[3] != 1.0))
-        error->warning(FLERR,"Likewise 1-4 special neighbor interactions != 1.0");
+        error->warning(FLERR, "Likewise 1-4 special neighbor interactions != 1.0");
     }
     if (!improper && (atom->nimpropers > 0))
-      error->warning(FLERR,"Impropers are defined but no improper style is set");
+      error->warning(FLERR, "Impropers are defined but no improper style is set");
   }
 }
 
@@ -236,8 +229,8 @@ void Force::create_pair(const std::string &style, int trysuffix)
   pair_restart = nullptr;
 
   int sflag;
-  pair = new_pair(style,trysuffix,sflag);
-  pair_style = store_style(style,sflag);
+  pair = new_pair(style, trysuffix, sflag);
+  pair_style = store_style(style, sflag);
 }
 
 /* ----------------------------------------------------------------------
@@ -283,7 +276,7 @@ Pair *Force::new_pair(const std::string &style, int trysuffix, int &sflag)
     return pair_creator(lmp);
   }
 
-  error->all(FLERR,utils::check_packages_for_style("pair",style,lmp));
+  error->all(FLERR, utils::check_packages_for_style("pair", style, lmp));
 
   return nullptr;
 }
@@ -298,16 +291,18 @@ Pair *Force::new_pair(const std::string &style, int trysuffix, int &sflag)
 
 Pair *Force::pair_match(const std::string &word, int exact, int nsub)
 {
-  int iwhich,count;
+  int iwhich, count;
 
-  if (exact && (word == pair_style)) return pair;
-  else if (!exact && utils::strmatch(pair_style,word)) return pair;
-  else if (utils::strmatch(pair_style,"^hybrid")) {
+  if (exact && (word == pair_style))
+    return pair;
+  else if (!exact && utils::strmatch(pair_style, word))
+    return pair;
+  else if (utils::strmatch(pair_style, "^hybrid")) {
     PairHybrid *hybrid = (PairHybrid *) pair;
     count = 0;
     for (int i = 0; i < hybrid->nstyles; i++)
       if ((exact && (word == hybrid->keywords[i])) ||
-          (!exact && utils::strmatch(hybrid->keywords[i],word))) {
+          (!exact && utils::strmatch(hybrid->keywords[i], word))) {
         iwhich = i;
         count++;
         if (nsub == count) return hybrid->styles[iwhich];
@@ -328,7 +323,7 @@ char *Force::pair_match_ptr(Pair *ptr)
 {
   if (ptr == pair) return pair_style;
 
-  if (utils::strmatch(pair_style,"^hybrid")) {
+  if (utils::strmatch(pair_style, "^hybrid")) {
     PairHybrid *hybrid = (PairHybrid *) pair;
     for (int i = 0; i < hybrid->nstyles; i++)
       if (ptr == hybrid->styles[i]) return hybrid->keywords[i];
@@ -347,8 +342,8 @@ void Force::create_bond(const std::string &style, int trysuffix)
   if (bond) delete bond;
 
   int sflag;
-  bond = new_bond(style,trysuffix,sflag);
-  bond_style = store_style(style,sflag);
+  bond = new_bond(style, trysuffix, sflag);
+  bond_style = store_style(style, sflag);
 }
 
 /* ----------------------------------------------------------------------
@@ -384,7 +379,7 @@ Bond *Force::new_bond(const std::string &style, int trysuffix, int &sflag)
     return bond_creator(lmp);
   }
 
-  error->all(FLERR,utils::check_packages_for_style("bond",style,lmp));
+  error->all(FLERR, utils::check_packages_for_style("bond", style, lmp));
 
   return nullptr;
 }
@@ -395,8 +390,9 @@ Bond *Force::new_bond(const std::string &style, int trysuffix, int &sflag)
 
 Bond *Force::bond_match(const std::string &style)
 {
-  if (style == bond_style) return bond;
-  else if (strcmp(bond_style,"hybrid") == 0) {
+  if (style == bond_style)
+    return bond;
+  else if (strcmp(bond_style, "hybrid") == 0) {
     BondHybrid *hybrid = (BondHybrid *) bond;
     for (int i = 0; i < hybrid->nstyles; i++)
       if (style == hybrid->keywords[i]) return hybrid->styles[i];
@@ -414,8 +410,8 @@ void Force::create_angle(const std::string &style, int trysuffix)
   if (angle) delete angle;
 
   int sflag;
-  angle = new_angle(style,trysuffix,sflag);
-  angle_style = store_style(style,sflag);
+  angle = new_angle(style, trysuffix, sflag);
+  angle_style = store_style(style, sflag);
 }
 
 /* ----------------------------------------------------------------------
@@ -451,7 +447,7 @@ Angle *Force::new_angle(const std::string &style, int trysuffix, int &sflag)
     return angle_creator(lmp);
   }
 
-  error->all(FLERR,utils::check_packages_for_style("angle",style,lmp));
+  error->all(FLERR, utils::check_packages_for_style("angle", style, lmp));
 
   return nullptr;
 }
@@ -462,8 +458,9 @@ Angle *Force::new_angle(const std::string &style, int trysuffix, int &sflag)
 
 Angle *Force::angle_match(const std::string &style)
 {
-  if (style == angle_style) return angle;
-  else if (utils::strmatch(angle_style,"^hybrid")) {
+  if (style == angle_style)
+    return angle;
+  else if (utils::strmatch(angle_style, "^hybrid")) {
     AngleHybrid *hybrid = (AngleHybrid *) angle;
     for (int i = 0; i < hybrid->nstyles; i++)
       if (style == hybrid->keywords[i]) return hybrid->styles[i];
@@ -481,8 +478,8 @@ void Force::create_dihedral(const std::string &style, int trysuffix)
   if (dihedral) delete dihedral;
 
   int sflag;
-  dihedral = new_dihedral(style,trysuffix,sflag);
-  dihedral_style = store_style(style,sflag);
+  dihedral = new_dihedral(style, trysuffix, sflag);
+  dihedral_style = store_style(style, sflag);
 }
 
 /* ----------------------------------------------------------------------
@@ -518,7 +515,7 @@ Dihedral *Force::new_dihedral(const std::string &style, int trysuffix, int &sfla
     return dihedral_creator(lmp);
   }
 
-  error->all(FLERR,utils::check_packages_for_style("dihedral",style,lmp));
+  error->all(FLERR, utils::check_packages_for_style("dihedral", style, lmp));
 
   return nullptr;
 }
@@ -529,8 +526,9 @@ Dihedral *Force::new_dihedral(const std::string &style, int trysuffix, int &sfla
 
 Dihedral *Force::dihedral_match(const std::string &style)
 {
-  if (style == dihedral_style) return dihedral;
-  else if (utils::strmatch(dihedral_style,"^hybrid")) {
+  if (style == dihedral_style)
+    return dihedral;
+  else if (utils::strmatch(dihedral_style, "^hybrid")) {
     DihedralHybrid *hybrid = (DihedralHybrid *) dihedral;
     for (int i = 0; i < hybrid->nstyles; i++)
       if (style == hybrid->keywords[i]) return hybrid->styles[i];
@@ -548,8 +546,8 @@ void Force::create_improper(const std::string &style, int trysuffix)
   if (improper) delete improper;
 
   int sflag;
-  improper = new_improper(style,trysuffix,sflag);
-  improper_style = store_style(style,sflag);
+  improper = new_improper(style, trysuffix, sflag);
+  improper_style = store_style(style, sflag);
 }
 
 /* ----------------------------------------------------------------------
@@ -585,7 +583,7 @@ Improper *Force::new_improper(const std::string &style, int trysuffix, int &sfla
     return improper_creator(lmp);
   }
 
-  error->all(FLERR,utils::check_packages_for_style("improper",style,lmp));
+  error->all(FLERR, utils::check_packages_for_style("improper", style, lmp));
 
   return nullptr;
 }
@@ -596,8 +594,9 @@ Improper *Force::new_improper(const std::string &style, int trysuffix, int &sfla
 
 Improper *Force::improper_match(const std::string &style)
 {
-  if (style == improper_style) return improper;
-  else if (utils::strmatch(improper_style,"^hybrid")) {
+  if (style == improper_style)
+    return improper;
+  else if (utils::strmatch(improper_style, "^hybrid")) {
     ImproperHybrid *hybrid = (ImproperHybrid *) improper;
     for (int i = 0; i < hybrid->nstyles; i++)
       if (style == hybrid->keywords[i]) return hybrid->styles[i];
@@ -615,8 +614,8 @@ void Force::create_kspace(const std::string &style, int trysuffix)
   if (kspace) delete kspace;
 
   int sflag;
-  kspace = new_kspace(style,trysuffix,sflag);
-  kspace_style = store_style(style,sflag);
+  kspace = new_kspace(style, trysuffix, sflag);
+  kspace_style = store_style(style, sflag);
 }
 
 /* ----------------------------------------------------------------------
@@ -652,7 +651,7 @@ KSpace *Force::new_kspace(const std::string &style, int trysuffix, int &sflag)
     return kspace_creator(lmp);
   }
 
-  error->all(FLERR,utils::check_packages_for_style("kspace",style,lmp));
+  error->all(FLERR, utils::check_packages_for_style("kspace", style, lmp));
 
   return nullptr;
 }
@@ -666,8 +665,10 @@ KSpace *Force::new_kspace(const std::string &style, int trysuffix, int &sflag)
 
 KSpace *Force::kspace_match(const std::string &word, int exact)
 {
-  if (exact && (word == kspace_style)) return kspace;
-  else if (!exact && utils::strmatch(kspace_style,word)) return kspace;
+  if (exact && (word == kspace_style))
+    return kspace;
+  else if (!exact && utils::strmatch(kspace_style, word))
+    return kspace;
   return nullptr;
 }
 
@@ -681,9 +682,12 @@ char *Force::store_style(const std::string &style, int sflag)
 {
   std::string estyle = style;
 
-  if (sflag == 1) estyle += std::string("/") + lmp->suffix;
-  else if (sflag == 2) estyle += std::string("/") + lmp->suffix2;
-  else if (sflag == 3) estyle += std::string("/") + lmp->suffixp;
+  if (sflag == 1)
+    estyle += std::string("/") + lmp->suffix;
+  else if (sflag == 2)
+    estyle += std::string("/") + lmp->suffix2;
+  else if (sflag == 3)
+    estyle += std::string("/") + lmp->suffixp;
   return utils::strdup(estyle);
 }
 
@@ -693,7 +697,7 @@ char *Force::store_style(const std::string &style, int sflag)
 
 void Force::set_special(int narg, char **arg)
 {
-  if (narg == 0) error->all(FLERR,"Illegal special_bonds command");
+  if (narg == 0) error->all(FLERR, "Illegal special_bonds command");
 
   // defaults, but do not reset special_extra
 
@@ -703,17 +707,17 @@ void Force::set_special(int narg, char **arg)
 
   int iarg = 0;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"amber") == 0) {
-      if (iarg+1 > narg) error->all(FLERR,"Illegal special_bonds command");
+    if (strcmp(arg[iarg], "amber") == 0) {
+      if (iarg + 1 > narg) error->all(FLERR, "Illegal special_bonds command");
       special_lj[1] = 0.0;
       special_lj[2] = 0.0;
       special_lj[3] = 0.5;
       special_coul[1] = 0.0;
       special_coul[2] = 0.0;
-      special_coul[3] = 5.0/6.0;
+      special_coul[3] = 5.0 / 6.0;
       iarg += 1;
-    } else if (strcmp(arg[iarg],"charmm") == 0) {
-      if (iarg+1 > narg) error->all(FLERR,"Illegal special_bonds command");
+    } else if (strcmp(arg[iarg], "charmm") == 0) {
+      if (iarg + 1 > narg) error->all(FLERR, "Illegal special_bonds command");
       special_lj[1] = 0.0;
       special_lj[2] = 0.0;
       special_lj[3] = 0.0;
@@ -721,8 +725,8 @@ void Force::set_special(int narg, char **arg)
       special_coul[2] = 0.0;
       special_coul[3] = 0.0;
       iarg += 1;
-    } else if (strcmp(arg[iarg],"dreiding") == 0) {
-      if (iarg+1 > narg) error->all(FLERR,"Illegal special_bonds command");
+    } else if (strcmp(arg[iarg], "dreiding") == 0) {
+      if (iarg + 1 > narg) error->all(FLERR, "Illegal special_bonds command");
       special_lj[1] = 0.0;
       special_lj[2] = 0.0;
       special_lj[3] = 1.0;
@@ -730,8 +734,8 @@ void Force::set_special(int narg, char **arg)
       special_coul[2] = 0.0;
       special_coul[3] = 1.0;
       iarg += 1;
-    } else if (strcmp(arg[iarg],"fene") == 0) {
-      if (iarg+1 > narg) error->all(FLERR,"Illegal special_bonds command");
+    } else if (strcmp(arg[iarg], "fene") == 0) {
+      if (iarg + 1 > narg) error->all(FLERR, "Illegal special_bonds command");
       special_lj[1] = 0.0;
       special_lj[2] = 1.0;
       special_lj[3] = 1.0;
@@ -739,39 +743,40 @@ void Force::set_special(int narg, char **arg)
       special_coul[2] = 1.0;
       special_coul[3] = 1.0;
       iarg += 1;
-    } else if (strcmp(arg[iarg],"lj/coul") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal special_bonds command");
-      special_lj[1] = special_coul[1] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      special_lj[2] = special_coul[2] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      special_lj[3] = special_coul[3] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+    } else if (strcmp(arg[iarg], "lj/coul") == 0) {
+      if (iarg + 4 > narg) error->all(FLERR, "Illegal special_bonds command");
+      special_lj[1] = special_coul[1] = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      special_lj[2] = special_coul[2] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      special_lj[3] = special_coul[3] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       iarg += 4;
-    } else if (strcmp(arg[iarg],"lj") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal special_bonds command");
-      special_lj[1] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      special_lj[2] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      special_lj[3] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+    } else if (strcmp(arg[iarg], "lj") == 0) {
+      if (iarg + 4 > narg) error->all(FLERR, "Illegal special_bonds command");
+      special_lj[1] = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      special_lj[2] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      special_lj[3] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       iarg += 4;
-    } else if (strcmp(arg[iarg],"coul") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal special_bonds command");
-      special_coul[1] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      special_coul[2] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      special_coul[3] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+    } else if (strcmp(arg[iarg], "coul") == 0) {
+      if (iarg + 4 > narg) error->all(FLERR, "Illegal special_bonds command");
+      special_coul[1] = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      special_coul[2] = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      special_coul[3] = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
       iarg += 4;
-    } else if (strcmp(arg[iarg],"angle") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal special_bonds command");
-      special_angle = utils::logical(FLERR,arg[iarg+1],false,lmp);
+    } else if (strcmp(arg[iarg], "angle") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal special_bonds command");
+      special_angle = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg],"dihedral") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal special_bonds command");
-      special_dihedral = utils::logical(FLERR,arg[iarg+1],false,lmp);
+    } else if (strcmp(arg[iarg], "dihedral") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal special_bonds command");
+      special_dihedral = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else error->all(FLERR,"Illegal special_bonds command");
+    } else
+      error->all(FLERR, "Illegal special_bonds command");
   }
 
   for (int i = 1; i <= 3; i++)
-    if (special_lj[i] < 0.0 || special_lj[i] > 1.0 ||
-        special_coul[i] < 0.0 || special_coul[i] > 1.0)
-      error->all(FLERR,"Illegal special_bonds command");
+    if (special_lj[i] < 0.0 || special_lj[i] > 1.0 || special_coul[i] < 0.0 ||
+        special_coul[i] > 1.0)
+      error->all(FLERR, "Illegal special_bonds command");
 }
 
 /* ----------------------------------------------------------------------

@@ -36,35 +36,10 @@
 
 using namespace LAMMPS_NS;
 
-// templates for factory functions:
-// there will be one instance for each style keyword in the style_xxx.h file
+// template for factory functions:
+// there will be one instance for each style keyword in the respective style_xxx.h files
 
-template <typename T> static Pair *pair_creator(LAMMPS *lmp)
-{
-  return new T(lmp);
-}
-
-template <typename T> static Bond *bond_creator(LAMMPS *lmp)
-{
-  return new T(lmp);
-}
-
-template <typename T> static Angle *angle_creator(LAMMPS *lmp)
-{
-  return new T(lmp);
-}
-
-template <typename T> static Dihedral *dihedral_creator(LAMMPS *lmp)
-{
-  return new T(lmp);
-}
-
-template <typename T> static Improper *improper_creator(LAMMPS *lmp)
-{
-  return new T(lmp);
-}
-
-template <typename T> static KSpace *kspace_creator(LAMMPS *lmp)
+template <typename S, typename T> static S *style_creator(LAMMPS *lmp)
 {
   return new T(lmp);
 }
@@ -111,7 +86,7 @@ void _noopt Force::create_factories()
 
 #define PAIR_CLASS
 #define PairStyle(key,Class) \
-  (*pair_map)[#key] = &pair_creator<Class>;
+  (*pair_map)[#key] = &style_creator<Pair, Class>;
 #include "style_pair.h"  // IWYU pragma: keep
 #undef PairStyle
 #undef PAIR_CLASS
@@ -120,7 +95,7 @@ void _noopt Force::create_factories()
 
 #define BOND_CLASS
 #define BondStyle(key,Class) \
-  (*bond_map)[#key] = &bond_creator<Class>;
+  (*bond_map)[#key] = &style_creator<Bond, Class>;
 #include "style_bond.h"  // IWYU pragma: keep
 #undef BondStyle
 #undef BOND_CLASS
@@ -129,7 +104,7 @@ void _noopt Force::create_factories()
 
 #define ANGLE_CLASS
 #define AngleStyle(key,Class) \
-  (*angle_map)[#key] = &angle_creator<Class>;
+  (*angle_map)[#key] = &style_creator<Angle, Class>;
 #include "style_angle.h"  // IWYU pragma: keep
 #undef AngleStyle
 #undef ANGLE_CLASS
@@ -138,7 +113,7 @@ void _noopt Force::create_factories()
 
 #define DIHEDRAL_CLASS
 #define DihedralStyle(key,Class) \
-  (*dihedral_map)[#key] = &dihedral_creator<Class>;
+  (*dihedral_map)[#key] = &style_creator<Dihedral, Class>;
 #include "style_dihedral.h"  // IWYU pragma: keep
 #undef DihedralStyle
 #undef DIHEDRAL_CLASS
@@ -147,7 +122,7 @@ void _noopt Force::create_factories()
 
 #define IMPROPER_CLASS
 #define ImproperStyle(key,Class) \
-  (*improper_map)[#key] = &improper_creator<Class>;
+  (*improper_map)[#key] = &style_creator<Improper, Class>;
 #include "style_improper.h"  // IWYU pragma: keep
 #undef ImproperStyle
 #undef IMPROPER_CLASS
@@ -156,7 +131,7 @@ void _noopt Force::create_factories()
 
 #define KSPACE_CLASS
 #define KSpaceStyle(key,Class) \
-  (*kspace_map)[#key] = &kspace_creator<Class>;
+  (*kspace_map)[#key] = &style_creator<KSpace, Class>;
 #include "style_kspace.h"  // IWYU pragma: keep
 #undef KSpaceStyle
 #undef KSPACE_CLASS

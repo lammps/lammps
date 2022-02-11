@@ -37,15 +37,10 @@ using namespace FixConst;
 #define DELTA 4
 #define BIG 1.0e20
 
-// templates for factory functions:
-// there will be one instance for each style keyword in the style_xxx.h file
+// template for factory function:
+// there will be one instance for each style keyword in the respective style_xxx.h files
 
-template <typename T> static Fix *fix_creator(LAMMPS *lmp, int narg, char **arg)
-{
-  return new T(lmp,narg,arg);
-}
-
-template <typename T> static Compute *compute_creator(LAMMPS *lmp, int narg, char **arg)
+template <typename S, typename T> static S *style_creator(LAMMPS *lmp, int narg, char **arg)
 {
   return new T(lmp,narg,arg);
 }
@@ -106,7 +101,7 @@ void _noopt Modify::create_factories()
 
 #define FIX_CLASS
 #define FixStyle(key,Class) \
-  (*fix_map)[#key] = &fix_creator<Class>;
+  (*fix_map)[#key] = &style_creator<Fix, Class>;
 #include "style_fix.h"  // IWYU pragma: keep
 #undef FixStyle
 #undef FIX_CLASS
@@ -117,7 +112,7 @@ void _noopt Modify::create_factories()
 
 #define COMPUTE_CLASS
 #define ComputeStyle(key,Class) \
-  (*compute_map)[#key] = &compute_creator<Class>;
+  (*compute_map)[#key] = &style_creator<Compute, Class>;
 #include "style_compute.h"  // IWYU pragma: keep
 #undef ComputeStyle
 #undef COMPUTE_CLASS

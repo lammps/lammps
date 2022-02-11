@@ -93,7 +93,6 @@ class Output : protected Pointers {
   void memory_usage();    // print out memory usage
 
  private:
-  template <typename T> static Dump *dump_creator(LAMMPS *, int, char **);
   void calculate_next_dump(int, int, bigint);
 };
 

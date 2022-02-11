@@ -44,6 +44,15 @@ using namespace LAMMPS_NS;
 enum {SETUP, WRITE, RESET_DT};
 
 /* ----------------------------------------------------------------------
+   one instance per dump style in style_dump.h
+------------------------------------------------------------------------- */
+
+template <typename T> static Dump *dump_creator(LAMMPS *lmp, int narg, char ** arg)
+{
+  return new T(lmp, narg, arg);
+}
+
+/* ----------------------------------------------------------------------
    initialize all output
 ------------------------------------------------------------------------- */
 
@@ -782,16 +791,6 @@ void Output::add_dump(int narg, char **arg)
   ivar_dump[ndump] = -1;
 
   ndump++;
-}
-
-/* ----------------------------------------------------------------------
-   one instance per dump style in style_dump.h
-------------------------------------------------------------------------- */
-
-template <typename T>
-Dump *Output::dump_creator(LAMMPS *lmp, int narg, char ** arg)
-{
-  return new T(lmp, narg, arg);
 }
 
 /* ----------------------------------------------------------------------

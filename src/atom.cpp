@@ -54,6 +54,15 @@ using namespace MathConst;
 #define DELTA_PERATOM 64
 #define EPSILON 1.0e-6
 
+/* ----------------------------------------------------------------------
+   one instance per AtomVec style in style_atom.h
+------------------------------------------------------------------------- */
+
+template <typename T> static AtomVec *avec_creator(LAMMPS *lmp)
+{
+  return new T(lmp);
+}
+
 /* ---------------------------------------------------------------------- */
 
 /** \class LAMMPS_NS::Atom
@@ -741,16 +750,6 @@ AtomVec *Atom::new_avec(const std::string &style, int trysuffix, int &sflag)
 
   error->all(FLERR,utils::check_packages_for_style("atom",style,lmp));
   return nullptr;
-}
-
-/* ----------------------------------------------------------------------
-   one instance per AtomVec style in style_atom.h
-------------------------------------------------------------------------- */
-
-template <typename T>
-AtomVec *Atom::avec_creator(LAMMPS *lmp)
-{
-  return new T(lmp);
 }
 
 /* ---------------------------------------------------------------------- */

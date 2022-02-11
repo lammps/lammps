@@ -57,6 +57,15 @@ using namespace LAMMPS_NS;
 #define DELTALINE 256
 #define DELTA 4
 
+/* ----------------------------------------------------------------------
+   one instance per command in style_command.h
+------------------------------------------------------------------------- */
+
+template <typename T> static Command *command_creator(LAMMPS *lmp)
+{
+  return new T(lmp);
+}
+
 /* ---------------------------------------------------------------------- */
 
 /** \class LAMMPS_NS::Input
@@ -808,16 +817,6 @@ int Input::execute_command()
   // unrecognized command
 
   return -1;
-}
-
-/* ----------------------------------------------------------------------
-   one instance per command in style_command.h
-------------------------------------------------------------------------- */
-
-template <typename T>
-Command *Input::command_creator(LAMMPS *lmp)
-{
-  return new T(lmp);
 }
 
 /* ---------------------------------------------------------------------- */

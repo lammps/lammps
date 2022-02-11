@@ -3408,6 +3408,7 @@ typeI
 typeJ
 typeN
 typeargs
+typedefs
 Tz
 Tzou
 ub

@@ -820,15 +820,8 @@ void MSM::deallocate_levels()
 {
   if (world_levels) {
     for (int n=0; n < levels; ++n) {
-      if (qgrid[n]) {
-        memory->destroy3d_offset(qgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
-        qgrid[n] = nullptr;
-      }
-
-      if (egrid[n]) {
-        memory->destroy3d_offset(egrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
-        egrid[n] = nullptr;
-      }
+      memory->destroy3d_offset(qgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
+      memory->destroy3d_offset(egrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
 
       if (gc) {
         if (gc[n]) {

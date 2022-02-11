@@ -419,9 +419,9 @@ void ComputeBornMatrix::compute_vector()
 
     MPI_Allreduce(values_local, values_global, nvalues, MPI_DOUBLE, MPI_SUM, world);
 
-    // convert to pressure units
-    // As discussed, it might be better to keep it as energy units.
-    // but this is to be defined
+    // // convert to pressure units
+    // // As discussed, it might be better to keep it as energy units.
+    // // but this is to be defined
 
     // double nktv2p = force->nktv2p;
     // double inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
@@ -726,23 +726,33 @@ void ComputeBornMatrix::virial_addon()
   values_global[0]  += 2.0*sigv[0];
   values_global[1]  += 2.0*sigv[1];
   values_global[2]  += 2.0*sigv[2];
-  values_global[3]  += 0.5*(sigv[1]+sigv[2]);
-  values_global[4]  += 0.5*(sigv[0]+sigv[2]);
-  values_global[5]  += 0.5*(sigv[0]+sigv[1]);
+  // values_global[3]  += 0.5*(sigv[1]+sigv[2]);
+  // values_global[4]  += 0.5*(sigv[0]+sigv[2]);
+  // values_global[5]  += 0.5*(sigv[0]+sigv[1]);
+  values_global[3]  += sigv[2];
+  values_global[4]  += sigv[2];
+  values_global[5]  += sigv[1];
   values_global[6]  += 0.0;
   values_global[7]  += 0.0;
   values_global[8]  += 0.0;
-  values_global[9]  += sigv[4];
-  values_global[10] += sigv[3];
+  //  values_global[9]  += sigv[4];
+  values_global[9]  += 2.0*sigv[4];
+  //  values_global[10] += sigv[3];
+  values_global[10] += 2.0*sigv[3];
   values_global[11] += 0.0;
-  values_global[12] += sigv[5];
+  //  values_global[12] += sigv[5];
+  values_global[12] += 2.0*sigv[5];
   values_global[13] += 0.0;
-  values_global[14] += sigv[3];
-  values_global[15] += sigv[5];
-  values_global[16] += sigv[4];
+  //  values_global[14] += sigv[3];
+  values_global[14] += 0.0;
+  //  values_global[15] += sigv[5];
+  values_global[15] += 0.0;
+  //  values_global[16] += sigv[4];
+  values_global[16] += 0.0;
   values_global[17] += 0.0;
   values_global[18] += 0.0;
-  values_global[19] += sigv[4];
+  //  values_global[19] += sigv[4];
+  values_global[19] += 0.0;
   values_global[20] += sigv[5];
 
   // This loop is actually bogus.

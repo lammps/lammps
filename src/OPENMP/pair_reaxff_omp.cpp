@@ -115,18 +115,12 @@ void PairReaxFFOMP::init_style()
 
   api->system->n = atom->nlocal; // my atoms
   api->system->N = atom->nlocal + atom->nghost; // mine + ghosts
-  api->system->bigN = static_cast<int> (atom->natoms);  // all atoms in the system
   api->system->wsize = comm->nprocs;
 
   if (atom->tag_enable == 0)
     error->all(FLERR,"Pair style reaxff/omp requires atom IDs");
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style reaxff/omp requires newton pair on");
-
-  // because system->bigN is an int, we cannot have more atoms than MAXSMALLINT
-
-  if (atom->natoms > MAXSMALLINT)
-    error->all(FLERR,"Too many atoms for pair style reaxff/omp");
 
   // need a half neighbor list w/ Newton off and ghost neighbors
   // built whenever re-neighboring occurs
@@ -157,7 +151,6 @@ void PairReaxFFOMP::setup()
   api->system->n = atom->nlocal; // my atoms
   api->system->N = atom->nlocal + atom->nghost; // mine + ghosts
   oldN = api->system->N;
-  api->system->bigN = static_cast<int> (atom->natoms);  // all atoms in the system
 
   if (api->system->N > nmax) {
     memory->destroy(num_nbrs_offset);
@@ -238,7 +231,6 @@ void PairReaxFFOMP::compute(int eflag, int vflag)
 
   api->system->n = atom->nlocal; // my atoms
   api->system->N = atom->nlocal + atom->nghost; // mine + ghosts
-  api->system->bigN = static_cast<int> (atom->natoms);  // all atoms in the system
   const int nall = api->system->N;
 
 #if defined(_OPENMP)

@@ -251,6 +251,7 @@ void PairList::settings(int narg, char **arg)
 
     style[npairs] = NONE;
     list_parm_t &par = params[npairs];
+    par.offset = 0.0;
     par.id1 = id1;
     par.id2 = id2;
 

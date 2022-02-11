@@ -37,6 +37,19 @@ using namespace FixConst;
 #define DELTA 4
 #define BIG 1.0e20
 
+// templates for factory functions:
+// there will be one instance for each style keyword in the style_xxx.h file
+
+template <typename T> static Fix *fix_creator(LAMMPS *lmp, int narg, char **arg)
+{
+  return new T(lmp,narg,arg);
+}
+
+template <typename T> static Compute *compute_creator(LAMMPS *lmp, int narg, char **arg)
+{
+  return new T(lmp,narg,arg);
+}
+
 /* ---------------------------------------------------------------------- */
 
 Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
@@ -1025,16 +1038,6 @@ Fix *Modify::replace_fix(const std::string &oldfix, const std::string &fixcmd, i
 }
 
 /* ----------------------------------------------------------------------
-   one instance per fix in style_fix.h
-------------------------------------------------------------------------- */
-
-template <typename T>
-Fix *Modify::fix_creator(LAMMPS *lmp, int narg, char **arg)
-{
-  return new T(lmp,narg,arg);
-}
-
-/* ----------------------------------------------------------------------
    modify a Fix's parameters
 ------------------------------------------------------------------------- */
 
@@ -1308,17 +1311,6 @@ Compute *Modify::add_compute(const std::string &computecmd, int trysuffix)
     newarg[i++] = (char *)arg.c_str();
   }
   return add_compute(args.size(),newarg.data(),trysuffix);
-}
-
-
-/* ----------------------------------------------------------------------
-   one instance per compute in style_compute.h
-------------------------------------------------------------------------- */
-
-template <typename T>
-Compute *Modify::compute_creator(LAMMPS *lmp, int narg, char **arg)
-{
-  return new T(lmp,narg,arg);
 }
 
 /* ----------------------------------------------------------------------

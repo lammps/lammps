@@ -36,6 +36,39 @@
 
 using namespace LAMMPS_NS;
 
+// templates for factory functions:
+// there will be one instance for each style keyword in the style_xxx.h file
+
+template <typename T> static Pair *pair_creator(LAMMPS *lmp)
+{
+  return new T(lmp);
+}
+
+template <typename T> static Bond *bond_creator(LAMMPS *lmp)
+{
+  return new T(lmp);
+}
+
+template <typename T> static Angle *angle_creator(LAMMPS *lmp)
+{
+  return new T(lmp);
+}
+
+template <typename T> static Dihedral *dihedral_creator(LAMMPS *lmp)
+{
+  return new T(lmp);
+}
+
+template <typename T> static Improper *improper_creator(LAMMPS *lmp)
+{
+  return new T(lmp);
+}
+
+template <typename T> static KSpace *kspace_creator(LAMMPS *lmp)
+{
+  return new T(lmp);
+}
+
 /* ---------------------------------------------------------------------- */
 
 Force::Force(LAMMPS *lmp) : Pointers(lmp)
@@ -281,16 +314,6 @@ Pair *Force::new_pair(const std::string &style, int trysuffix, int &sflag)
 }
 
 /* ----------------------------------------------------------------------
-   one instance per pair style in style_pair.h
-------------------------------------------------------------------------- */
-
-template <typename T>
-Pair *Force::pair_creator(LAMMPS *lmp)
-{
-  return new T(lmp);
-}
-
-/* ----------------------------------------------------------------------
    return ptr to Pair class if matches word or matches hybrid sub-style
    if exact, then style name must be exact match to word
    if not exact, style name must contain word
@@ -392,16 +415,6 @@ Bond *Force::new_bond(const std::string &style, int trysuffix, int &sflag)
 }
 
 /* ----------------------------------------------------------------------
-   one instance per bond style in style_bond.h
-------------------------------------------------------------------------- */
-
-template <typename T>
-Bond *Force::bond_creator(LAMMPS *lmp)
-{
-  return new T(lmp);
-}
-
-/* ----------------------------------------------------------------------
    return ptr to current bond class or hybrid sub-class if matches style
 ------------------------------------------------------------------------- */
 
@@ -466,16 +479,6 @@ Angle *Force::new_angle(const std::string &style, int trysuffix, int &sflag)
   error->all(FLERR,utils::check_packages_for_style("angle",style,lmp));
 
   return nullptr;
-}
-
-/* ----------------------------------------------------------------------
-   one instance per angle style in style_angle.h
-------------------------------------------------------------------------- */
-
-template <typename T>
-Angle *Force::angle_creator(LAMMPS *lmp)
-{
-  return new T(lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -546,16 +549,6 @@ Dihedral *Force::new_dihedral(const std::string &style, int trysuffix, int &sfla
 }
 
 /* ----------------------------------------------------------------------
-   one instance per dihedral style in style_dihedral.h
-------------------------------------------------------------------------- */
-
-template <typename T>
-Dihedral *Force::dihedral_creator(LAMMPS *lmp)
-{
-  return new T(lmp);
-}
-
-/* ----------------------------------------------------------------------
    return ptr to current angle class or hybrid sub-class if matches style
 ------------------------------------------------------------------------- */
 
@@ -623,16 +616,6 @@ Improper *Force::new_improper(const std::string &style, int trysuffix, int &sfla
 }
 
 /* ----------------------------------------------------------------------
-   one instance per improper style in style_improper.h
-------------------------------------------------------------------------- */
-
-template <typename T>
-Improper *Force::improper_creator(LAMMPS *lmp)
-{
-  return new T(lmp);
-}
-
-/* ----------------------------------------------------------------------
    return ptr to current improper class or hybrid sub-class if matches style
 ------------------------------------------------------------------------- */
 
@@ -697,16 +680,6 @@ KSpace *Force::new_kspace(const std::string &style, int trysuffix, int &sflag)
   error->all(FLERR,utils::check_packages_for_style("kspace",style,lmp));
 
   return nullptr;
-}
-
-/* ----------------------------------------------------------------------
-   one instance per kspace style in style_kspace.h
-------------------------------------------------------------------------- */
-
-template <typename T>
-KSpace *Force::kspace_creator(LAMMPS *lmp)
-{
-  return new T(lmp);
 }
 
 /* ----------------------------------------------------------------------

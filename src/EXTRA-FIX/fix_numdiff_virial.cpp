@@ -41,7 +41,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixNumDiffVirial::FixNumDiffVirial(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), id_pe(nullptr), temp_x(nullptr), temp_f(nullptr)
+    Fix(lmp, narg, arg), id_pe(nullptr), pe(nullptr), temp_x(nullptr), temp_f(nullptr)
 {
   if (narg < 5) error->all(FLERR, "Illegal fix numdiff/virial command");
   if (igroup) error->all(FLERR, "Compute numdiff/virial must use group all");
@@ -121,9 +121,8 @@ void FixNumDiffVirial::init()
 {
   // check for PE compute
 
-  int icompute = modify->find_compute(id_pe);
-  if (icompute < 0) error->all(FLERR, "Compute ID for fix numdiff does not exist");
-  pe = modify->compute[icompute];
+  pe = modify->get_compute_by_id(id_pe);
+  if (!pe) error->all(FLERR, "PE compute ID for fix numdiff/virial does not exist");
 
   if (force->pair && force->pair->compute_flag)
     pair_compute_flag = 1;
@@ -210,7 +209,6 @@ void FixNumDiffVirial::calculate_virial()
   // loop over 6 strain directions
   // compute a finite difference force in each dimension
 
-  int flag, allflag;
   double nktv2p = force->nktv2p;
   double inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
 

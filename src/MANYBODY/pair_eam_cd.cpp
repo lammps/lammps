@@ -505,8 +505,10 @@ void PairEAMCD::read_h_coeff(char *filename)
                  utils::getsyserror());
 
     char *buf = new char[MAXLINE+1];
-    utils::sfread(FLERR, buf, 1, MAXLINE, fptr, filename, error);
-    buf[MAXLINE] = '\0';        // must 0-terminate buffer for string processing
+    auto rv = fread(buf,1,MAXLINE,fptr);
+    if (rv == 0) error->one(FLERR,"Failure to read h(x) coeffs: {}", utils::getsyserror());
+    buf[rv] = '\0';        // must 0-terminate buffer for string processing
+
     Tokenizer lines(buf, "\n");
     delete[] buf;
 

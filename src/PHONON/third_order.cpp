@@ -232,6 +232,7 @@ void ThirdOrder::options(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR, "Illegal third_order command");
       filename = arg[iarg + 1];
       file_flag = 1;
+      iarg += 2;
     } else if (strcmp(arg[iarg],"fold") == 0) {
       if (iarg+2 > narg) error->all(FLERR, "Illegal Third Order command");
       if (strcmp(arg[iarg+1],"yes") == 0) {
@@ -300,11 +301,11 @@ void ThirdOrder::calculateMatrix()
   getNeighbortags();
 
   if (comm->me == 0 && screen) {
-    fprintf(screen, "Calculating Third Order ...\n");
-    fprintf(screen, "  Total # of atoms = " BIGINT_FORMAT "\n", natoms);
-    fprintf(screen, "  Atoms in group = " BIGINT_FORMAT "\n", gcount);
-    fprintf(screen, "  Total third order elements = "
-            BIGINT_FORMAT "\n", (dynlen * dynlen * dynlen));
+    fputs("Calculating Third Order ...\n", screen);
+    fmt::print(screen,"  Total # of atoms = {}\n"
+                      "  Atoms in group = {}\n"
+                      "  Total third order elements = {}\n",
+                      natoms, gcount, dynlen*dynlen*dynlen);
   }
 
   update->nsteps = 0;
@@ -436,31 +437,19 @@ void ThirdOrder::writeMatrix(double *dynmat, bigint i, int a, bigint j, int b)
     clearerr(fp);
     if (folded){
       for (int k = 0; k < atom->natoms; k++){
-        norm = square(dynmat[k*3])+
-          square(dynmat[k*3+1])+
-          square(dynmat[k*3+2]);
+        norm = square(dynmat[k*3])+square(dynmat[k*3+1])+square(dynmat[k*3+2]);
         if (norm > 1.0e-16)
-          fprintf(fp,
-                  BIGINT_FORMAT " %d " BIGINT_FORMAT " %d " BIGINT_FORMAT
-                  " %7.8f %7.8f %7.8f\n",
-                  i+1, a + 1, j+1, b + 1, k+1,
-                  dynmat[k*3] * conversion,
-                  dynmat[k*3+1] * conversion,
-                  dynmat[k*3+2] * conversion);
+          fmt::print(fp, "{} {} {} {} {} {:17.8f} {:17.8f} {:17.8f}\n",
+                     i+1, a+1, j+1, b+1, k+1, dynmat[k*3] * conversion,
+                     dynmat[k*3+1] * conversion, dynmat[k*3+2] * conversion);
       }
     } else {
       for (int k = 0; k < gcount; k++){
-        norm = square(dynmat[k*3])+
-          square(dynmat[k*3+1])+
-          square(dynmat[k*3+2]);
+        norm = square(dynmat[k*3])+square(dynmat[k*3+1])+square(dynmat[k*3+2]);
         if (norm > 1.0e-16)
-          fprintf(fp,
-                  BIGINT_FORMAT " %d " BIGINT_FORMAT " %d " BIGINT_FORMAT
-                  " %7.8f %7.8f %7.8f\n",
-                  i+1, a + 1, j+1, b + 1, groupmap[k]+1,
-                  dynmat[k*3] * conversion,
-                  dynmat[k*3+1] * conversion,
-                  dynmat[k*3+2] * conversion);
+          fmt::print(fp, "{} {} {} {} {} {:17.8f} {:17.8f} {:17.8f}\n",
+                     i+1, a+1, j+1, b+1, groupmap[k]+1, dynmat[k*3] * conversion,
+                     dynmat[k*3+1] * conversion, dynmat[k*3+2] * conversion);
       }
     }
   } else if (binaryflag && fp) {
@@ -672,8 +661,7 @@ void ThirdOrder::create_groupmap()
   }
 
   //combine subgroup maps into total temporary groupmap
-  MPI_Allgatherv(sub_groupmap,gid,MPI_LMP_BIGINT,
-                 temp_groupmap,recv,displs,MPI_LMP_BIGINT,world);
+  MPI_Allgatherv(sub_groupmap,gid,MPI_LMP_BIGINT,temp_groupmap,recv,displs,MPI_LMP_BIGINT,world);
   std::sort(temp_groupmap,temp_groupmap+gcount);
 
   //populate member groupmap based on temp groupmap

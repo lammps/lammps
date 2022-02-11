@@ -45,8 +45,7 @@ class FixDeform : public Fix {
   double *h_rate, *h_ratelo;
   int varflag;                   // 1 if VARIABLE option is used, 0 if not
   int kspace_flag;               // 1 if KSpace invoked, 0 if not
-  int nrigid;                    // number of rigid fixes
-  int *rfix;                     // indices of rigid fixes
+  std::vector<Fix *> rfix;       // pointers to rigid fixes
   class Irregular *irregular;    // for migrating atoms after box flips
 
   double TWOPI;

@@ -148,10 +148,9 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
   double d_chb=+0.4;
   // vectors COM-h-bonding site in lab frame
   double ra_chb[3],rb_chb[3];
-
-  // quaternions and Cartesian unit vectors in lab frame
-  double *qa,ax[3],ay[3],az[3];
-  double *qb,bx[3],by[3],bz[3];
+  // Cartesian unit vectors in lab frame
+  double ax[3],az[3];
+  double bx[3],bz[3];
 
   double **x = atom->x;
   double **f = atom->f;
@@ -180,6 +179,12 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
+  // n(x/y/z)_xtrct = extracted local unit vectors from oxdna_excv
+  int dim;
+  nx_xtrct = (double **) force->pair->extract("nx",dim);
+  ny_xtrct = (double **) force->pair->extract("ny",dim);
+  nz_xtrct = (double **) force->pair->extract("nz",dim);
+
   // loop over pair interaction neighbors of my atoms
 
   for (ia = 0; ia < anum; ia++) {
@@ -187,8 +192,9 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
     a = alist[ia];
     atype = type[a];
 
-    qa=bonus[ellipsoid[a]].quat;
-    MathExtra::q_to_exyz(qa,ax,ay,az);
+    ax[0] = nx_xtrct[a][0];
+    ax[1] = nx_xtrct[a][1];
+    ax[2] = nx_xtrct[a][2];
 
     ra_chb[0] = d_chb*ax[0];
     ra_chb[1] = d_chb*ax[1];
@@ -205,8 +211,9 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
 
       btype = type[b];
 
-      qb=bonus[ellipsoid[b]].quat;
-      MathExtra::q_to_exyz(qb,bx,by,bz);
+      bx[0] = nx_xtrct[b][0];
+      bx[1] = nx_xtrct[b][1];
+      bx[2] = nx_xtrct[b][2];
 
       rb_chb[0] = d_chb*bx[0];
       rb_chb[1] = d_chb*bx[1];
@@ -264,6 +271,13 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
 
       // early rejection criterium
       if (f4t3) {
+
+      az[0] = nz_xtrct[a][0];
+      az[1] = nz_xtrct[a][1];
+      az[2] = nz_xtrct[a][2];
+      bz[0] = nz_xtrct[b][0];
+      bz[1] = nz_xtrct[b][1];
+      bz[2] = nz_xtrct[b][2];
 
       cost4 = MathExtra::dot3(az,bz);
       if (cost4 >  1.0) cost4 =  1.0;

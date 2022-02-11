@@ -374,7 +374,7 @@ void TestConfigReader::tags(const yaml_event_t &event)
 {
     std::stringstream data((char *)event.data.scalar.value);
     config.tags.clear();
-    for (std::string tag; std::getline(data, tag, ','); ) {
+    for (std::string tag; std::getline(data, tag, ',');) {
         config.tags.push_back(trim(tag));
     }
 }

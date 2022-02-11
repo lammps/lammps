@@ -118,9 +118,9 @@ void PairOxdna2Coaxstk::compute(int eflag, int vflag)
   double ra_cs[3],ra_cst[3];
   double rb_cs[3],rb_cst[3];
 
-  // quaternions and Cartesian unit vectors in lab frame
-  double *qa,ax[3],ay[3],az[3];
-  double *qb,bx[3],by[3],bz[3];
+  // Cartesian unit vectors in lab frame
+  double ax[3],az[3];
+  double bx[3],bz[3];
 
   double **x = atom->x;
   double **f = atom->f;
@@ -149,6 +149,11 @@ void PairOxdna2Coaxstk::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
+  // n(x/z)_xtrct = extracted local unit vectors from oxdna_excv
+  int dim;
+  nx_xtrct = (double **) force->pair->extract("nx",dim);
+  nz_xtrct = (double **) force->pair->extract("nz",dim);
+
   // loop over pair interaction neighbors of my atoms
 
   for (ia = 0; ia < anum; ia++) {
@@ -156,8 +161,9 @@ void PairOxdna2Coaxstk::compute(int eflag, int vflag)
     a = alist[ia];
     atype = type[a];
 
-    qa=bonus[ellipsoid[a]].quat;
-    MathExtra::q_to_exyz(qa,ax,ay,az);
+    ax[0] = nx_xtrct[a][0];
+    ax[1] = nx_xtrct[a][1];
+    ax[2] = nx_xtrct[a][2];
 
     // vector COM a - stacking site a
     ra_cst[0] = d_cst*ax[0];
@@ -180,8 +186,9 @@ void PairOxdna2Coaxstk::compute(int eflag, int vflag)
 
       btype = type[b];
 
-      qb=bonus[ellipsoid[b]].quat;
-      MathExtra::q_to_exyz(qb,bx,by,bz);
+      bx[0] = nx_xtrct[b][0];
+      bx[1] = nx_xtrct[b][1];
+      bx[2] = nx_xtrct[b][2];
 
       // vector COM b - stacking site b
       rb_cst[0] = d_cst*bx[0];
@@ -231,6 +238,13 @@ void PairOxdna2Coaxstk::compute(int eflag, int vflag)
 
       // early rejection criterium
       if (f4f6t1) {
+
+      az[0] = nz_xtrct[a][0];
+      az[1] = nz_xtrct[a][1];
+      az[2] = nz_xtrct[a][2];
+      bz[0] = nz_xtrct[b][0];
+      bz[1] = nz_xtrct[b][1];
+      bz[2] = nz_xtrct[b][2];
 
       cost4 = MathExtra::dot3(az,bz);
       if (cost4 >  1.0) cost4 =  1.0;
@@ -306,7 +320,7 @@ void PairOxdna2Coaxstk::compute(int eflag, int vflag)
               DF4(theta6p, a_cxst6[atype][btype], theta_cxst6_0[atype][btype], dtheta_cxst6_ast[atype][btype],
               b_cxst6[atype][btype], dtheta_cxst6_c[atype][btype])*rsint;
 
-     // force, torque and virial contribution for forces between stacking sites
+      // force, torque and virial contribution for forces between stacking sites
 
       fpair = 0.0;
 

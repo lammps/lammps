@@ -59,7 +59,8 @@ static const char cite_ilp[] =
 
 /* ---------------------------------------------------------------------- */
 
-PairILPGrapheneHBN::PairILPGrapheneHBN(LAMMPS *lmp) : Pair(lmp)
+PairILPGrapheneHBN::PairILPGrapheneHBN(LAMMPS *lmp)
+  : Pair(lmp), variant(ILP_GrhBN)
 {
   restartinfo = 0;
   one_coeff = 1;
@@ -87,6 +88,14 @@ PairILPGrapheneHBN::PairILPGrapheneHBN(LAMMPS *lmp) : Pair(lmp)
   dnormal = nullptr;
   dnormdri = nullptr;
 
+  // for ilp/tmd
+  dnn = nullptr;
+  vect = nullptr;
+  pvet = nullptr;
+  dpvet1 = nullptr;
+  dpvet2 = nullptr;
+  dNave = nullptr;
+
   // always compute energy offset
   offset_flag = 1;
 
@@ -105,6 +114,13 @@ PairILPGrapheneHBN::~PairILPGrapheneHBN()
   memory->destroy(normal);
   memory->destroy(dnormal);
   memory->destroy(dnormdri);
+  // adds for ilp/tmd
+  memory->destroy(dnn);
+  memory->destroy(vect);
+  memory->destroy(pvet);
+  memory->destroy(dpvet1);
+  memory->destroy(dpvet2);
+  memory->destroy(dNave);
 
   if (allocated) {
     memory->destroy(setflag);
@@ -195,7 +211,24 @@ void PairILPGrapheneHBN::read_file(char *filename)
   // open file on proc 0
 
   if (comm->me == 0) {
-    PotentialFileReader reader(lmp, filename, "ilp/graphene/hbn", unit_convert_flag);
+    std::string potential_name;
+    switch (variant) {
+    case ILP_GrhBN:
+      potential_name = "ilp/graphene/hbn";
+      break;
+
+    case ILP_TMD:
+      potential_name = "ilp/tmd";
+      break;
+
+    case SAIP_METAL:
+      potential_name = "saip/metal";
+      break;
+
+    default:
+      error->one(FLERR,"Unknown ILP style variant {}",variant);
+    }
+    PotentialFileReader reader(lmp, filename, potential_name, unit_convert_flag);
     char *line;
 
     // transparently convert units for supported conversions
@@ -311,9 +344,9 @@ void PairILPGrapheneHBN::read_file(char *filename)
 void PairILPGrapheneHBN::init_style()
 {
   if (force->newton_pair == 0)
-    error->all(FLERR, "Pair style ilp/graphene/hbn requires newton pair on");
+    error->all(FLERR, "Pair style ilp/* requires newton pair on");
   if (!atom->molecule_flag)
-    error->all(FLERR, "Pair style ilp/graphene/hbn requires atom attribute molecule");
+    error->all(FLERR, "Pair style ilp/* requires atom attribute molecule");
 
   // need a full neighbor list, including neighbors of ghosts
 

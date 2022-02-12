@@ -103,12 +103,17 @@ def write_file(attypes, filename, Fr, rhor, z2r, nrho, drho, nr, dr, rc):
 
 def main():
 
-    parser = ap.ArgumentParser(description="Script to make EAM alloy file inputs.")
-    parser.add_argument("-n", "--names", dest="names", nargs="+", help="Atom names.")
+    parser = ap.ArgumentParser(description="Script to create EAM alloy potential files.")
+
+    parser.add_argument("-n", "--names", dest="name", nargs="+", help="Element names.")
     parser.add_argument("-nr", dest="nr", type=int, default=2000, help="Number of point in r space [default 2000].")
     parser.add_argument("-nrho", dest="nrho", type=int, default=2000, help="Number of point in rho space [default 2000].")
     args = parser.parse_args()
-    atnames = args.names
+    if not args.name:
+        parser.print_help()
+        sys.exit("")
+
+    atnames = args.name
     nr = args.nr
     nrho = args.nrho
 
@@ -116,8 +121,8 @@ def main():
         try:
             Database[n]
         except KeyError:
-            output = "Atom {} not found.\n".format(n)
-            valid = "Valid inputs are: {}".format(" ".join(Database.keys()))
+            output = "Element {} not found in database.\n".format(n)
+            valid = "Supported elements are: {}".format(" ".join(Database.keys()))
             sys.exit("".join([output, valid]))
 
     ntypes = len(atnames)

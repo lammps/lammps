@@ -102,8 +102,8 @@ class FixDPPimd : public Fix {
   void compute_fc();
   void compute_vir();
   void compute_vir_();
-  double xf, vir, xcfc, centroid_vir, t_vir, t_cv, p_vir, p_cv, p_cv_;
-  double vir_, xcf;
+  double xf, vir, xcfc, centroid_vir, t_vir, t_cv, p_vir, p_cv, p_cv_, p_md;
+  double vir_, xcf, vir2;
   
   void compute_t_vir();  // centroid-virial kinetic energy estimator
   void compute_p_cv();  // centroid-virial pressure estimator

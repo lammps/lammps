@@ -64,9 +64,6 @@ class Input : protected Pointers {
   typedef std::map<std::string, CommandCreator> CommandCreatorMap;
   CommandCreatorMap *command_map;
 
- protected:
-  template <typename T> static Command *command_creator(LAMMPS *);
-
  private:
   void parse();                            // parse an input text line
   char *nextword(char *, char **);         // find next word in string with quotes

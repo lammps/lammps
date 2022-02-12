@@ -243,11 +243,14 @@ ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
       outfile = outfile(1:index(outfile,' ')-1)//'.eam.alloy'
       open(unit=1,file=outfile)
       call date_and_time(DATE=date)
-      write(1,*) ' DATE: ',date(1:4),'-',date(5:6),'-',date(7:8),'  ',
+      write(1,*) '# DATE: ',date(1:4),'-',date(5:6),'-',date(7:8),'  ',
+     *   'UNITS: metal ',
      *   'CONTRIBUTOR: Xiaowang Zhou xzhou@sandia.gov and ',
      *   'Lucas Hale lucas.hale@nist.gov ',
      *   'CITATION: X. W. Zhou, R. A. Johnson, ',
      *   'H. N. G. Wadley, Phys. Rev. B, 69, 144113(2004)'
+      write(1,*) '# created by create.f'
+      write(1,*) '#'
       write(1,8)ntypes,outelem
 8     format(i5,' ',a24)
       write(1,9)nrho,drho,nr,dr,rc

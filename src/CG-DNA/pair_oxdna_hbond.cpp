@@ -18,7 +18,6 @@
 #include "pair_oxdna_hbond.h"
 
 #include "atom.h"
-#include "atom_vec_ellipsoid.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"
@@ -135,7 +134,7 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
 {
 
   double delf[3],delta[3],deltb[3]; // force, torque increment;
-  double evdwl,fpair,finc,tpair,factor_lj;
+  double evdwl,finc,tpair,factor_lj;
   double delr_hb[3],delr_hb_norm[3],rsq_hb,r_hb,rinv_hb;
   double theta1,t1dir[3],cost1;
   double theta2,t2dir[3],cost2;
@@ -161,10 +160,6 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
   int newton_pair = force->newton_pair;
   int *alist,*blist,*numneigh,**firstneigh;
   double *special_lj = force->special_lj;
-
-  AtomVecEllipsoid *avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  AtomVecEllipsoid::Bonus *bonus = avec->bonus;
-  int *ellipsoid = atom->ellipsoid;
 
   int a,b,ia,ib,anum,bnum,atype,btype;
 
@@ -338,8 +333,6 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
 
       // force, torque and virial contribution for forces between h-bonding sites
 
-      fpair = 0.0;
-
       delf[0] = 0.0;
       delf[1] = 0.0;
       delf[2] = 0.0;
@@ -354,7 +347,6 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
 
       // radial force
       finc  = -df1 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8 * factor_lj;
-      fpair += finc;
 
       delf[0] += delr_hb[0] * finc;
       delf[1] += delr_hb[1] * finc;
@@ -364,7 +356,6 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
       if (theta2) {
 
         finc  = -f1 * f4t1 * df4t2 * f4t3 * f4t4 * f4t7 * f4t8 * rinv_hb * factor_lj;
-        fpair += finc;
 
         delf[0] += (delr_hb_norm[0]*cost2 + ax[0]) * finc;
         delf[1] += (delr_hb_norm[1]*cost2 + ax[1]) * finc;
@@ -376,7 +367,6 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
       if (theta3) {
 
         finc  = -f1 * f4t1 * f4t2 * df4t3 * f4t4 * f4t7 * f4t8 * rinv_hb * factor_lj;
-        fpair += finc;
 
         delf[0] += (delr_hb_norm[0]*cost3 - bx[0]) * finc;
         delf[1] += (delr_hb_norm[1]*cost3 - bx[1]) * finc;
@@ -388,7 +378,6 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
       if (theta7) {
 
         finc  = -f1 * f4t1 * f4t2 * f4t3 * f4t4 * df4t7 * f4t8 * rinv_hb * factor_lj;
-        fpair += finc;
 
         delf[0] += (delr_hb_norm[0]*cost7 + az[0]) * finc;
         delf[1] += (delr_hb_norm[1]*cost7 + az[1]) * finc;
@@ -400,7 +389,6 @@ void PairOxdnaHbond::compute(int eflag, int vflag)
       if (theta8) {
 
         finc  = -f1 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * df4t8 * rinv_hb * factor_lj;
-        fpair += finc;
 
         delf[0] += (delr_hb_norm[0]*cost8 - bz[0]) * finc;
         delf[1] += (delr_hb_norm[1]*cost8 - bz[1]) * finc;

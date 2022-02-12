@@ -183,7 +183,6 @@ PACKMOST = \
 	orient \
 	peri \
 	plugin \
-	poems \
 	qeq \
 	reaction \
 	reaxff \

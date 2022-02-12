@@ -13,7 +13,7 @@ import sys
 import argparse as ap
 import numpy as np
 from eamDatabase import Database
-
+from datetime import date
 
 def prof(at, r):
     atom = Database[at]
@@ -69,7 +69,7 @@ def embed(at, rho):
 def write_file(attypes, filename, Fr, rhor, z2r, nrho, drho, nr, dr, rc):
     struc = "fcc"
     with open(filename, "w") as f:
-        f.write("DATE: 2022-02-11")
+        f.write("DATE: " + date.today().strftime("%Y-%m-%d"))
         f.write(" CONTRIBUTORS: Xiaowang Zhou xzhou@sandia.gov and")
         f.write(" Lucas Hale lucas.hale@nist.gov")
         f.write(" Germain Clavier g.m.g.c.clavier@tue.nl/germain.clavier@gmail.com\n")

@@ -121,7 +121,7 @@ def main():
             sys.exit("".join([output, valid]))
 
     ntypes = len(atnames)
-    outfilename = "".join([*atnames, ".set"])
+    outfilename = "".join([*atnames, ".eam.alloy"])
     rhor = {}
     Fr = {}
 

@@ -29,8 +29,8 @@ Syntax
   .. parsed-literal::
 
        *maxdelcs* value = delta1 delta2 (optional)
-         delta1 = The minimum thershold for cosine of three-body angle
-         delta2 = The maximum threshold for cosine of three-body angle
+         delta1 = The minimum thershold for the variation of cosine of three-body angle
+         delta2 = The maximum threshold for the variation of cosine of three-body angle
 
 Examples
 """"""""

@@ -689,20 +689,14 @@ void FixRX::pre_force(int /*vflag*/)
 
   // Zero the counters for the ODE solvers.
   int nSteps = 0;
-  int nIters = 0;
   int nFuncs = 0;
   int nFails = 0;
 
-  if (odeIntegrationFlag == ODE_LAMMPS_RKF45 && diagnosticFrequency == 1)
-  {
+  if (odeIntegrationFlag == ODE_LAMMPS_RKF45 && diagnosticFrequency == 1) {
     memory->create( diagnosticCounterPerODE[StepSum], nlocal, "FixRX::diagnosticCounterPerODE");
     memory->create( diagnosticCounterPerODE[FuncSum], nlocal, "FixRX::diagnosticCounterPerODE");
   }
 
-#if 0
-  #pragma omp parallel \
-     reduction(+: nSteps, nIters, nFuncs, nFails )
-#endif
   {
     double *rwork = new double[8*nspecies];
 
@@ -712,11 +706,8 @@ void FixRX::pre_force(int /*vflag*/)
 
     int ode_counter[4] = { 0 };
 
-    //#pragma omp for schedule(runtime)
-    for (int i = 0; i < nlocal; i++)
-    {
-      if (mask[i] & groupbit)
-      {
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) {
         double theta;
         if (localTempFlag)
           theta = dpdThetaLocal[i];
@@ -735,7 +726,6 @@ void FixRX::pre_force(int /*vflag*/)
     }
 
     nSteps += ode_counter[0];
-    nIters += ode_counter[1];
     nFuncs += ode_counter[2];
     nFails += ode_counter[3];
 

@@ -153,12 +153,6 @@ class Force : protected Pointers {
 
  private:
   void create_factories();
-  template <typename T> static Pair *pair_creator(LAMMPS *);
-  template <typename T> static Bond *bond_creator(LAMMPS *);
-  template <typename T> static Angle *angle_creator(LAMMPS *);
-  template <typename T> static Dihedral *dihedral_creator(LAMMPS *);
-  template <typename T> static Improper *improper_creator(LAMMPS *);
-  template <typename T> static KSpace *kspace_creator(LAMMPS *);
 };
 
 }    // namespace LAMMPS_NS

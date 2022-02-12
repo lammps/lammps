@@ -231,10 +231,6 @@ class Neighbor : protected Pointers {
   int choose_stencil(class NeighRequest *);
   int choose_pair(class NeighRequest *);
 
-  template <typename T> static NBin *bin_creator(class LAMMPS *);
-  template <typename T> static NStencil *stencil_creator(class LAMMPS *);
-  template <typename T> static NPair *pair_creator(class LAMMPS *);
-
   // dummy functions provided by NeighborKokkos, called in init()
   // otherwise NeighborKokkos would have to overwrite init()
 

@@ -146,7 +146,7 @@ void PairHarmonicCut::allocate()
    global settings
 ------------------------------------------------------------------------- */
 
-void PairHarmonicCut::settings(int narg, char **arg)
+void PairHarmonicCut::settings(int narg, char ** /*arg*/)
 {
   if (narg > 0) error->all(FLERR, "Illegal pair_style command");
 }

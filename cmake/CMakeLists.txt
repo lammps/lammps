@@ -359,11 +359,13 @@ if(BUILD_OMP)
       ((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.0)))
     # GCC 9.x and later plus Clang 10.x and later implement strict OpenMP 4.0 semantics for consts.
     # Intel 18.0 was tested to support both, so we switch to OpenMP 4+ from 19.x onward to be safe.
-    target_compile_definitions(lammps PRIVATE -DLAMMPS_OMP_COMPAT=4)
+    set(LAMMPS_OMP_COMPAT_LEVEL 4)
   else()
-    target_compile_definitions(lammps PRIVATE -DLAMMPS_OMP_COMPAT=3)
+    set(LAMMPS_OMP_COMPAT_LEVEL 3)
   endif()
+  target_compile_definitions(lammps PRIVATE -DLAMMPS_OMP_COMPAT=${LAMMPS_OMP_COMPAT_LEVEL})
   target_link_libraries(lammps PRIVATE OpenMP::OpenMP_CXX)
+  target_link_libraries(lmp PRIVATE OpenMP::OpenMP_CXX)
 endif()
 
 if(PKG_MSCG OR PKG_ATC OR PKG_AWPMD OR PKG_ML-QUIP OR PKG_LATTE)
@@ -738,7 +740,7 @@ install(
 if(BUILD_SHARED_LIBS)
   if(CMAKE_VERSION VERSION_LESS 3.12)
     # adjust so we find Python 3 versions before Python 2 on old systems with old CMake
-    set(Python_ADDITIONAL_VERSIONS 3.10 3.9 3.8 3.7 3.6 3.5)
+    set(Python_ADDITIONAL_VERSIONS 3.12 3.11 3.10 3.9 3.8 3.7 3.6)
     find_package(PythonInterp) # Deprecated since version 3.12
     if(PYTHONINTERP_FOUND)
         set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})

@@ -118,7 +118,7 @@ void Replicate::command(int narg, char **arg)
   _imagehi[1] = 0;
   _imagehi[2] = 0;
 
-  if (bbox_flag) {
+  if (bbox_flag || bondlist_flag) {
 
     for (i=0; i<atom->nlocal; ++i) {
       imageint image = atom->image[i];

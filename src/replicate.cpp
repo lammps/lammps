@@ -437,11 +437,13 @@ void Replicate::command(int narg, char **arg)
     // let's repurpose the old atom class to allow atom->map for all atoms
     // tag and x for the whole system (before replication) stored in 'old'
 
-    m = 0;
-    old->nlocal = 0;
-    while (m < size_buf_all) m += old_avec->unpack_restart(&buf_all[m],old);
-    old->map_init();
-    old->map_set();
+    if (bondlist_flag) {
+      m = 0;
+      old->nlocal = 0;
+      while (m < size_buf_all) m += old_avec->unpack_restart(&buf_all[m],old);
+      old->map_init();
+      old->map_set();
+    }
 
     for (ix = 0; ix < nx; ix++) {
       for (iy = 0; iy < ny; iy++) {

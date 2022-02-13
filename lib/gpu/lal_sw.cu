@@ -658,6 +658,7 @@ __kernel void k_sw_three_end(const __global numtyp4 *restrict x_,
         #ifndef ONETYPE
         const int ktype=kx.w;
         const int mtypek=jtype*ntypes+ktype;
+        const numtyp sw_cut_ik=cut_sig_gamma[mtypek].x;
         #endif
 
         numtyp delr2x = kx.x - jx.x;
@@ -665,20 +666,21 @@ __kernel void k_sw_three_end(const __global numtyp4 *restrict x_,
         numtyp delr2z = kx.z - jx.z;
         numtyp rsq2 = delr2x*delr2x + delr2y*delr2y + delr2z*delr2z;
 
+        if (!(rsq2>(numtyp)0 && rsq2<sw_cut_ik*sw_cut_ik)) continue;
+
         #ifndef ONETYPE
-        const numtyp sw_cut_ik=cut_sig_gamma[mtypek].x;
         const numtyp sw_sigma_gamma_ik=cut_sig_gamma[mtypek].y;
         const int mtypejik=jtype*ntypes*ntypes+itype+ktype;
         const numtyp sw_lambda_epsilon_ijk=sw_pre3[mtypejik].x;
         const numtyp sw_costheta_ijk=sw_pre3[mtypejik].y;
         #endif
-
+       
         numtyp fjx, fjy, fjz;
         threebody_half(delr1x,delr1y,delr1z,delr2x,delr2y,delr2z);
-
+       
         f.x += fjx;
         f.y += fjy;
-        f.z += fjz;
+        f.z += fjz;        
       }
     } // for nbor
   } // if ii
@@ -775,6 +777,7 @@ __kernel void k_sw_three_end_vatom(const __global numtyp4 *restrict x_,
         #ifndef ONETYPE
         const int ktype=kx.w;
         const int mtypek=jtype*ntypes+ktype;
+        const numtyp sw_cut_ik=cut_sig_gamma[mtypek].x;
         #endif
 
         numtyp delr2x = kx.x - jx.x;
@@ -782,8 +785,9 @@ __kernel void k_sw_three_end_vatom(const __global numtyp4 *restrict x_,
         numtyp delr2z = kx.z - jx.z;
         numtyp rsq2 = delr2x*delr2x + delr2y*delr2y + delr2z*delr2z;
 
+        if (!(rsq2>(numtyp)0 && rsq2<sw_cut_ik*sw_cut_ik)) continue;
+
         #ifndef ONETYPE
-        const numtyp sw_cut_ik=cut_sig_gamma[mtypek].x;
         const numtyp sw_sigma_gamma_ik=cut_sig_gamma[mtypek].y;
         const int mtypejik=jtype*ntypes*ntypes+itype+ktype;
         const numtyp sw_lambda_epsilon_ijk=sw_pre3[mtypejik].x;

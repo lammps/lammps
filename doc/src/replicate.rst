@@ -63,13 +63,13 @@ replicated.
 The optional keyword *bondlist* correctly treats molecules that span
 the box and are bonded to themselves across a periodic boundary, by
 relying on self-consistent nearest-image assumptions (rather than
-using image flags).  Therefore, the *bondlist* keyword can also be
-used in general for systems that may not have consistent image flags.
-The *bondlist* algorithm builds off the *bbox* algorithm, so it is
-fast when using a large number of processors, but does require
-temporary use of more memory.  Specifically, each processor must be
-able to store arrays for all atoms in the entire system before it is
-replicated.
+using image flags).  The *bondlist* option resets all image flags to
+zero.  Therefore, the *bondlist* keyword can also be used in general
+for systems that may not have consistent image flags.  The *bondlist*
+algorithm builds off the *bbox* algorithm, so it is fast when using a
+large number of processors, but does require temporary use of more
+memory.  Specifically, each processor must be able to store arrays for
+all atoms in the entire system before it is replicated.
 
 .. note::
 

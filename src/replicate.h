@@ -29,12 +29,12 @@ class Replicate : public Command {
   Replicate(class LAMMPS *);
   void command(int, char **) override;
 
-  private:
-    Atom *old;
-    double old_prd_half[3];
-    tagint maxtag;
-    int thisrep[3], allnrep[3];
-    void newtag(tagint, tagint &, double[3]);
+ private:
+  Atom *old;
+  double old_prd_half[3];
+  tagint maxtag;
+  int thisrep[3], allnrep[3];
+  void newtag(tagint, tagint &, double[3]);
 };
 
 }    // namespace LAMMPS_NS

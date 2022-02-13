@@ -240,7 +240,6 @@ void Replicate::command(int narg, char **arg)
   double old_xprd = domain->xprd;
   double old_yprd = domain->yprd;
   double old_zprd = domain->zprd;
-  double old_center[3];
   for (i = 0; i < 3; i++) {
     old_prd_half[i] = domain->prd_half[i];
     old_center[i] = 0.5*(domain->boxlo[i]+domain->boxhi[i]);
@@ -598,10 +597,6 @@ void Replicate::command(int narg, char **arg)
 
             m = 0;
             while (m < size_buf_all) {
-              for (j = 0; j < 3; j++) {
-                if (buf_all[m+j+1] > old_center[j]) shiftsign[j] = 1;
-                else shiftsign[j] = -1;
-              }
               image = ((imageint) IMGMAX << IMG2BITS) |
                 ((imageint) IMGMAX << IMGBITS) | IMGMAX;
               if (triclinic == 0) {
@@ -646,15 +641,15 @@ void Replicate::command(int narg, char **arg)
                     if (atom->avec->bonds_allow)
                       for (j = 0; j < atom->num_bond[i]; j++) {
                         if (bondlist_flag)
-                          newtag(atom0tag,atom->bond_atom[i][j],shiftsign);
+                          newtag(atom0tag,atom->bond_atom[i][j]);
                         else atom->bond_atom[i][j] += atom_offset;
                       }
                     if (atom->avec->angles_allow)
                       for (j = 0; j < atom->num_angle[i]; j++) {
                         if (bondlist_flag) {
-                          newtag(atom0tag,atom->angle_atom1[i][j],shiftsign);
-                          newtag(atom0tag,atom->angle_atom2[i][j],shiftsign);
-                          newtag(atom0tag,atom->angle_atom3[i][j],shiftsign);
+                          newtag(atom0tag,atom->angle_atom1[i][j]);
+                          newtag(atom0tag,atom->angle_atom2[i][j]);
+                          newtag(atom0tag,atom->angle_atom3[i][j]);
                         } else {
                           atom->angle_atom1[i][j] += atom_offset;
                           atom->angle_atom2[i][j] += atom_offset;
@@ -664,10 +659,10 @@ void Replicate::command(int narg, char **arg)
                     if (atom->avec->dihedrals_allow)
                       for (j = 0; j < atom->num_dihedral[i]; j++) {
                         if (bondlist_flag) {
-                          newtag(atom0tag,atom->dihedral_atom1[i][j],shiftsign);
-                          newtag(atom0tag,atom->dihedral_atom2[i][j],shiftsign);
-                          newtag(atom0tag,atom->dihedral_atom3[i][j],shiftsign);
-                          newtag(atom0tag,atom->dihedral_atom4[i][j],shiftsign);
+                          newtag(atom0tag,atom->dihedral_atom1[i][j]);
+                          newtag(atom0tag,atom->dihedral_atom2[i][j]);
+                          newtag(atom0tag,atom->dihedral_atom3[i][j]);
+                          newtag(atom0tag,atom->dihedral_atom4[i][j]);
                         } else {
                           atom->dihedral_atom1[i][j] += atom_offset;
                           atom->dihedral_atom2[i][j] += atom_offset;
@@ -678,10 +673,10 @@ void Replicate::command(int narg, char **arg)
                     if (atom->avec->impropers_allow)
                       for (j = 0; j < atom->num_improper[i]; j++) {
                         if (bondlist_flag) {
-                          newtag(atom0tag,atom->improper_atom1[i][j],shiftsign);
-                          newtag(atom0tag,atom->improper_atom2[i][j],shiftsign);
-                          newtag(atom0tag,atom->improper_atom3[i][j],shiftsign);
-                          newtag(atom0tag,atom->improper_atom4[i][j],shiftsign);
+                          newtag(atom0tag,atom->improper_atom1[i][j]);
+                          newtag(atom0tag,atom->improper_atom2[i][j]);
+                          newtag(atom0tag,atom->improper_atom3[i][j]);
+                          newtag(atom0tag,atom->improper_atom4[i][j]);
                         } else {
                           atom->improper_atom1[i][j] += atom_offset;
                           atom->improper_atom2[i][j] += atom_offset;
@@ -867,15 +862,18 @@ void Replicate::command(int narg, char **arg)
    reassign bond if > old boxlength / 2
 ------------------------------------------------------------------------- */
 
-void Replicate::newtag(tagint atom0tag, tagint &tag2bond, double shiftsign[]) {
-  double del[3];
-  int rep2bond[3], repshift[3] = {0, 0, 0};
+void Replicate::newtag(tagint atom0tag, tagint &tag2bond) {
+  double del;
+  int repshift,rep2bond[3];
   int atom0 = old->map(atom0tag);
   int atom2bond = old->map(tag2bond);
   for (int i = 0; i < 3; i++) {
-    del[i] = fabs(old->x[atom0][i] - old->x[atom2bond][i]);
-    if (del[i] > old_prd_half[i]) repshift[i] = shiftsign[i];
-    rep2bond[i] = thisrep[i] + repshift[i];
+    del = fabs(old->x[atom0][i] - old->x[atom2bond][i]);
+    if (del > old_prd_half[i]) {
+      if (old->x[atom0][i] > old_center[i]) repshift = 1;
+      else repshift = -1;
+    } else repshift = 0;
+    rep2bond[i] = thisrep[i] + repshift;
     if (rep2bond[i] >= allnrep[i]) rep2bond[i] = 0;
     if (rep2bond[i] < 0) rep2bond[i] = allnrep[i]-1;
   }

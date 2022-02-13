@@ -31,10 +31,10 @@ class Replicate : public Command {
 
  private:
   Atom *old;
-  double old_prd_half[3];
+  double old_prd_half[3], old_center[3];
   tagint maxtag;
   int thisrep[3], allnrep[3];
-  void newtag(tagint, tagint &, double[3]);
+  void newtag(tagint, tagint &);
 };
 
 }    // namespace LAMMPS_NS

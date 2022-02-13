@@ -51,7 +51,6 @@ standard input or the provided input file) until the end.  And the third
 line deletes that instance again.  The remainder of the main.cpp file
 are for error handling, MPI configuration and other special features.
 
-
 In the constructor of the LAMMPS class instance the basic LAMMPS class hierarchy
 is created as shown in :ref:`class-topology`.  While processing the input further
 class instances are created, or deleted, or replaced and specific member functions
@@ -151,9 +150,10 @@ the same scope, that is ``Base::call()`` will always call
 virtual member function will be dispatched to ``Derived::poly()``
 instead.  This mechanism allows to always call functions within the
 scope of the class type that was used to create the class instance, even
-if they are assigned to a pointer using the type of a base class.
-Thanks to dynamic dispatch, LAMMPS can even use styles that are loaded
-at runtime from a shared object file with the :doc:`plugin command <plugin>`.
+if they are assigned to a pointer using the type of a base class. This
+is the desired behavior, and thanks to dynamic dispatch, LAMMPS can even
+use styles that are loaded at runtime from a shared object file with the
+:doc:`plugin command <plugin>`.
 
 A special case of virtual functions are so-called pure functions. These
 are virtual functions that are initialized to 0 in the class declaration
@@ -170,9 +170,10 @@ This has the effect that it will no longer be possible to create an instance
 of the base class and that derived classes **must** implement these classes.
 Many of the functions listed with the various styles in the section :doc:`Modify`
 are such pure functions. The motivation for this is to define the interface
-or API of functions.
+or API of functions but defer the implementation of those functionality to
+the derived classes.
 
-However, there are downsides to this. For example, calls virtual functions
+However, there are downsides to this. For example, calls to virtual functions
 from within a constructor, will not be in the scope of the derived class and thus
 it is good practice to either avoid calling them or to provide an explicit scope like
 in ``Base::poly()``.  Furthermore, any destructors in classes containing
@@ -185,7 +186,9 @@ in the expected order before types are removed from dynamic dispatch.
    behavior already at compile time, it is crucial that all member functions
    that are intended to replace a virtual or pure function use the ``override``
    property keyword.  For the same reason it should be avoided to use overloads
-   or default arguments for virtual functions.
+   or default arguments for virtual functions as they lead to confusion over
+   which function is supposed to override which and which arguments need to be
+   declared.
 
 Style Factories
 ===============
@@ -198,10 +201,51 @@ To associate the factory function with the style keyword, an ``std::map``
 class is used in which function pointers are indexed by their keyword
 (for example "lj/cut" for ``PairLJCut`` and "morse" ``PairMorse``).
 A couple of typedefs help to keep the code readable and a template function
-is used to implement the actual factory functions for the individual classes.   
+is used to implement the actual factory functions for the individual classes.
 
 I/O and output formatting
 ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+C-style stdio versus C++ style iostreams
+========================================
+
+LAMMPS chooses to use the "stdio" library of the standard C library for
+reading from and writing to files and console instead of "iostreams" that were
+introduced with C++.  This is mainly motivated by the better performance,
+better control over formatting, and less effort to achieve specific formatting.
+
+Since mixing "stdio" and "iostreams" can lead to unexpected behavior using
+the latter is strongly discouraged.  Also output to the screen should not
+use the predefined ``stdout`` FILE pointer, but rather the ``screen`` and
+``logfile`` FILE pointers managed by the LAMMPS class.  Furthermore, output
+should only be done by MPI rank 0 (``comm->me == 0``) and output that is
+send to both ``screen`` and ``logfile`` should use the
+:cpp:func:`utils::logmesg() convenience function <LAMMPS_NS::utils::logmesg>`.
+
+Formatting with the {fmt} library
+===================================
+
+The LAMMPS source code includes a copy of the `{fmt} library
+<https://fmt.dev>`_ which is preferred over formatting with the
+"printf()" family of functions.  The primary reason is that it allows a
+typesafe default format for any type of supported data.  This is
+particularly useful for formatting integers of a given size (32-bit or
+64-bit) which may require different format strings depending on compile
+time settings or compilers/operating systems.  Furthermore, {fmt} gives
+better performance, has more functionality, a familiar formatting syntax
+that has similarities to ``format()`` in Python, and provides a facility
+that can be used to integrate format strings and a variable number of
+arguments into custom functions in a much simpler way that the varargs
+mechanism of the C library.  Finally, {fmt} has been included into the
+C++20 language standard, so changes to adopt it are future proof.
+
+Formatted strings are most commonly created by calling the
+``fmt::format()`` function which will return a string as ``std::string``
+class instance.  In contrast to the ``%`` placeholder in ``printf()``,
+the {fmt} library uses ``{}`` to embed format descriptors.  In the
+simplest case, no additional characters are needed as {fmt} will choose
+the default format based on the data type of the argument.
+
 
 Memory management
 ^^^^^^^^^^^^^^^^^

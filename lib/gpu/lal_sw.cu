@@ -666,8 +666,8 @@ __kernel void k_sw_three_end(const __global numtyp4 *restrict x_,
         numtyp delr2z = kx.z - jx.z;
         numtyp rsq2 = delr2x*delr2x + delr2y*delr2y + delr2z*delr2z;
 
-        // still need this check because j and k can be ghost atoms
-        //   and short neighbor lists are built for local atoms only
+        // still need this check because this loop apparently iterates
+        //   over neighbors of j that are not intended
         const numtyp cutsq_jk=sw_cut_ik*sw_cut_ik;
         if (!(rsq2>(numtyp)0 && rsq2<cutsq_jk)) continue;
         
@@ -788,8 +788,8 @@ __kernel void k_sw_three_end_vatom(const __global numtyp4 *restrict x_,
         numtyp delr2z = kx.z - jx.z;
         numtyp rsq2 = delr2x*delr2x + delr2y*delr2y + delr2z*delr2z;
 
-        // still need this check because j and k can be ghost atoms
-        //   and short neighbor lists are built for local atoms only
+        // still need this check because this loop apparently iterates
+        //   over neighbors of j that are not intended
         const numtyp cutsq_jk=sw_cut_ik*sw_cut_ik;
         if (!(rsq2>(numtyp)0 && rsq2<cutsq_jk)) continue;
 

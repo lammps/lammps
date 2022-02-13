@@ -24,12 +24,11 @@
 #include "force.h"
 #include "memory.h"
 #include "text_file_reader.h"
-#include "tokenizer.h"
 
 #include <cstring>
 #include <cmath>
+#include <exception>
 #include <map>
-#include <vector>
 
 using namespace LAMMPS_NS;
 

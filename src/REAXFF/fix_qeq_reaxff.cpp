@@ -30,6 +30,7 @@
 #include "force.h"
 #include "group.h"
 #include "memory.h"
+#include "modify.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
@@ -45,7 +46,6 @@
 #include <cmath>
 #include <cstring>
 #include <exception>
-#include <string>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

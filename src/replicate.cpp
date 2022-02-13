@@ -621,7 +621,7 @@ void Replicate::command(int narg, char **arg)
                   coord[1] >= sublo[1] && coord[1] < subhi[1] &&
                   coord[2] >= sublo[2] && coord[2] < subhi[2]) {
 
-                m += avec->unpack_restart(&buf_all[m],atom);
+                m += avec->unpack_restart(&buf_all[m]);
 
                 i = atom->nlocal - 1;
                 if (tag_enable)
@@ -746,7 +746,7 @@ void Replicate::command(int narg, char **arg)
                   coord[1] >= sublo[1] && coord[1] < subhi[1] &&
                   coord[2] >= sublo[2] && coord[2] < subhi[2]) {
 
-                m += avec->unpack_restart(&buf[m],atom);
+                m += avec->unpack_restart(&buf[m]);
 
                 i = atom->nlocal - 1;
                 if (tag_enable)

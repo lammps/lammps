@@ -195,7 +195,7 @@ void ReadRestart::command(int narg, char **arg)
     }
 
     m = 0;
-    while (m < assignedChunkSize) m += avec->unpack_restart(&buf[m],atom);
+    while (m < assignedChunkSize) m += avec->unpack_restart(&buf[m]);
   }
 
   // input of single native file
@@ -247,7 +247,7 @@ void ReadRestart::command(int narg, char **arg)
         if (coord[0] >= sublo[0] && coord[0] < subhi[0] &&
             coord[1] >= sublo[1] && coord[1] < subhi[1] &&
             coord[2] >= sublo[2] && coord[2] < subhi[2]) {
-          m += avec->unpack_restart(&buf[m],atom);
+          m += avec->unpack_restart(&buf[m]);
         } else m += static_cast<int> (buf[m]);
       }
     }
@@ -292,7 +292,7 @@ void ReadRestart::command(int narg, char **arg)
         utils::sfread(FLERR,buf,sizeof(double),n,fp,nullptr,error);
 
         m = 0;
-        while (m < n) m += avec->unpack_restart(&buf[m],atom);
+        while (m < n) m += avec->unpack_restart(&buf[m]);
       }
 
       fclose(fp);
@@ -385,7 +385,7 @@ void ReadRestart::command(int narg, char **arg)
 
       if (i % nclusterprocs == me - fileproc) {
         m = 0;
-        while (m < n) m += avec->unpack_restart(&buf[m],atom);
+        while (m < n) m += avec->unpack_restart(&buf[m]);
       }
     }
 

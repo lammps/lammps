@@ -107,6 +107,11 @@ void Replicate::command(int narg, char **arg)
     maxmol = maxmol_all;
   }
 
+  // reset image flags for bondlist option
+  if (bondlist_flag)
+    for (i=0; i<atom->nlocal; ++i)
+      atom->image[i] = 0;
+
   // check image flags maximum extent
   // only efficient small image flags compared to new system
 

@@ -1531,6 +1531,14 @@ int AtomVec::pack_restart(int i, double *buf)
 }
 
 /* ----------------------------------------------------------------------
+   standard unpack_restart function using default atom instance
+------------------------------------------------------------------------- */
+int AtomVec::unpack_restart(double *buf)
+{
+  return unpack_restart(buf, atom);
+}
+
+/* ----------------------------------------------------------------------
    unpack data for one atom from restart file including extra quantities
 ------------------------------------------------------------------------- */
 

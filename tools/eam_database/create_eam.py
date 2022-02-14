@@ -98,7 +98,7 @@ def write_file(attypes, filename, Fr, rhor, z2r, nrho, drho, nr, dr, rc):
                     if not (i + 1) % 5:
                         f.write("\n")
 
-def main():
+def create_eam(argv=None):
     parser = ap.ArgumentParser(description="Script to create EAM alloy potential files.")
 
     parser.add_argument("-n", "--names", dest="name", nargs="+",
@@ -107,7 +107,7 @@ def main():
                         help="Number of point in r space [default 2000]")
     parser.add_argument("-nrho", dest="nrho", type=int, default=2000,
                         help="Number of point in rho space [default 2000]")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     if not args.name:
         parser.print_help()
         sys.exit("")
@@ -160,6 +160,6 @@ def main():
 
 if __name__ == "__main__":
     try:
-        main()
+        create_eam(sys.argv[1:])
     except KeyboardInterrupt as exc:
         raise SystemExit("User interruption.") from exc

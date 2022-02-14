@@ -5,9 +5,11 @@ This section discusses some of the code design choices in LAMMPS and
 overall strategy in order to assist developers to write new code that
 will fit well with the remaining code.  Please see the section on
 :doc:`Requirements for contributed code <Modify_style>` for more
-specific recommendations and guidelines.  Here the focus is on overall
-strategy and discussion of some relevant C++ programming language
-constructs.
+specific recommendations and guidelines.  While that section is
+organized more in the form of a checklist for code contributors, the
+focus here is on overall code design strategy, choices made between
+possible alternatives, and to discuss of some relevant C++ programming
+language constructs.
 
 Historically, the basic design philosophy of the LAMMPS C++ code was
 that of a "C with classes" style.  The was motivated by the desire to
@@ -28,6 +30,17 @@ C++ standard library or as custom classes or function, in order to
 improve readability of the code and to increase code reuse through
 abstraction of commonly used functionality.
 
+.. note::
+
+   Please note that as of spring 2022 there is still a sizable chunk of
+   legacy code in LAMMPS that has not yet been refactored to reflect these
+   style conventions in full.  LAMMPS has a large code base and many
+   different contributors and there also is a hierarchy of precedence
+   in which the code is adapted.  Highest priority has the code in the
+   ``src`` folder, followed by code in packages in order of their popularity
+   and complexity (simpler code is adapted sooner), followed by code
+   in the ``lib`` folder.  Source code that is downloaded during compilation
+   is not subject to the conventions discussed here.
 
 Object oriented code
 ^^^^^^^^^^^^^^^^^^^^
@@ -210,9 +223,9 @@ C-style stdio versus C++ style iostreams
 ========================================
 
 LAMMPS chooses to use the "stdio" library of the standard C library for
-reading from and writing to files and console instead of "iostreams" that were
-introduced with C++.  This is mainly motivated by the better performance,
-better control over formatting, and less effort to achieve specific formatting.
+reading from and writing to files and console instead of C++
+"iostreams".  This is mainly motivated by the better performance, better
+control over formatting, and less effort to achieve specific formatting.
 
 Since mixing "stdio" and "iostreams" can lead to unexpected behavior using
 the latter is strongly discouraged.  Also output to the screen should not
@@ -221,6 +234,11 @@ use the predefined ``stdout`` FILE pointer, but rather the ``screen`` and
 should only be done by MPI rank 0 (``comm->me == 0``) and output that is
 send to both ``screen`` and ``logfile`` should use the
 :cpp:func:`utils::logmesg() convenience function <LAMMPS_NS::utils::logmesg>`.
+
+We also discourage the use for stringstreams as the bundled {fmt} library
+and the customized tokenizer classes can provide the same functionality
+in a cleaner way with better performance. This will also help to retain
+a consistent programming style despite the many different contributors.
 
 Formatting with the {fmt} library
 ===================================
@@ -295,6 +313,15 @@ throw an exception. Some format string examples are given below:
    utils::logmesg(lmp,"Lattice spacing in x,y,z = {:.8} {:.8} {:.8}\n",
                   xlattice,ylattice,zlattice);
 
+which will create the following output lines:
+
+.. parsed-literal::
+
+     CPU time:    0:02:16
+     Pair    | 2.0133     | 2.0133     | 2.0133     |   0.0 | 84.21
+          4 = max # of 1-2 neighbors
+     Lattice spacing in x,y,z = 1.6795962 1.6795962 1.6795962
+
 A special feature of the {fmt} library is that format parameters like
 the width or the precision may be also provided as arguments. In that
 case a nested format is used where a pair of curly braces (with an
@@ -308,3 +335,36 @@ documentation <https://fmt.dev/latest/syntax.html>`_ website.
 
 Memory management
 ^^^^^^^^^^^^^^^^^
+
+Dynamical allocation of data and objects should be done with either the
+C++ commands "new" and "delete/delete[]" or using member functions of
+the ``Memory`` class, most commonly, ``Memory::create()``,
+``Memory::grow()``, and ``Memory::destroy()``.  The use of ``malloc()``,
+``calloc()``, ``realloc()`` and ``free()`` directly is strongly
+discouraged.  To simplify adapting legacy code into the LAMMPS code base
+the member functions ``Memory::smalloc()``, ``Memory::srealloc()``, and
+``Memory::sfree()`` are available.
+
+Using those custom memory allocation functions is motivated by the
+following considerations:
+
+- memory allocation failures on *any* MPI rank during a parallel run will trigger
+  an immediate abort of the entire parallel calculation instead of stalling it
+- a failing "new" will trigger an exception which is also captured by LAMMPS and
+  triggers a global abort
+- allocation of multi-dimensional arrays will be done in a C compatible fashion
+  but so that the storage of the actual data is stored in one large consecutive block
+  and thus when MPI communication is needed, only this storage needs to be
+  communicated (similar to Fortran arrays)
+- the "destroy()" and "sfree()" functions may safely be called on NULL pointers
+- the "destroy()" functions will nullify the pointer variables making
+  "use after free" errors easy to detect
+- it is possible to use a large than default memory alignment (not on all operating
+  systems, since the allocated storage pointers must be compatible with ``free()``
+  for technical reasons)
+
+In the practical implementation of code this means that any pointer variables
+that are class members should be initialized to a ``nullptr`` value in their
+respective constructors.  That way it would be safe to call ``Memory::destroy()``
+or ``delete[]`` on them before *any* allocation outside the constructor.
+This helps to prevent memory leaks.

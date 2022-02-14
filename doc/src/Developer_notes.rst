@@ -7,6 +7,57 @@ typically document what a variable stores, what a small section of
 code does, or what a function does and its input/outputs.  The topics
 on this page are intended to document code functionality at a higher level.
 
+Reading and parsing of text and text files
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+It is frequently required for a class in LAMMPS to read in additional
+data from a file, most commonly potential parameters from a potential
+file for manybody potentials.  LAMMPS provides several custom classes
+and convenience functions to simplify the process.  This offers the
+following benefits:
+
+- better code reuse and fewer lines of code needed to implement reading
+  and parsing data from a file
+- better detection of format errors, incompatible data, and better error messages
+- exit with an error message instead of silently converting only part of the
+  text to a number or returning a 0 on unrecognized text and thus reading incorrect values
+- re-entrant code through avoiding global static variables (as used by ``strtok()``)
+- transparent support for translating unsupported UTF-8 characters to their ASCII equivalents
+  (the text to value conversion functions **only** accept ASCII characters)
+
+In most cases (e.g. potential files) the same data is needed on all MPI
+ranks.  Then it is best to do the reading and parsing only on MPI rank
+0, and communicate the data later with one or more ``MPI_Bcast()``
+calls.  For reading generic text and potential parameter files the
+custom classes :cpp:class:`TextFileReader <LAMMPS_NS::TextFileReader>`
+and :cpp:class:`PotentialFileReader <LAMMPS_NS::PotentialFileReader>`
+are available. Those classes allow to read the file as individual lines
+for which they can return a tokenizer class (see below) for parsing the
+line, or they can return blocks of numbers as a vector directly.  The
+documentation on `File reader classes <file-reader-classes>`_ contains
+an example for a typical case.
+
+When reading per-atom data, the data in the file usually needs include
+an atom ID so it can be associated with a particular atom.  In that case
+the data can be read in multi-line chunks and broadcast to all MPI ranks
+with :cpp:func:`utils::read_lines_from_file()
+<LAMMPS_NS::utils::read_lines_from_file>`.  Those chunks are then
+split into lines, parsed, and applied only to atoms the MPI rank
+"owns".
+
+For splitting a string (incrementally) into words and optionally
+converting those to numbers, the :cpp:class:`Tokenizer
+<LAMMPS_NS::Tokenizer>` and :cpp:class:`ValueTokenizer
+<LAMMPS_NS::ValueTokenizer>` can be used.  Those provide a superset
+of the functionality of ``strtok()`` from the C-library and the latter
+also includes conversion to different types.  Any errors while processing
+the string in those classes will result in an exception, which can
+be caught and the error processed as needed.  Unlike C-library functions
+like ``atoi()``, ``atof()``, ``strtol()``, or ``strtod()`` the
+conversion to numbers first checks of the string is a valid number
+and thus will not silently return an unexpected or incorrect value.
+
+
 Fix contributions to instantaneous energy, virial, and cumulative energy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

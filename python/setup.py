@@ -1,9 +1,8 @@
 # this only installs the LAMMPS python package
 # it assumes the LAMMPS shared library is already installed
-from distutils.core import setup
+from setuptools import setup
 from sys import version_info
 import os,time
-
 LAMMPS_PYTHON_DIR = os.path.dirname(os.path.realpath(__file__))
 LAMMPS_DIR = os.path.dirname(LAMMPS_PYTHON_DIR)
 LAMMPS_SOURCE_DIR = os.path.join(LAMMPS_DIR, 'src')

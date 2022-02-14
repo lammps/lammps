@@ -239,12 +239,71 @@ arguments into custom functions in a much simpler way that the varargs
 mechanism of the C library.  Finally, {fmt} has been included into the
 C++20 language standard, so changes to adopt it are future proof.
 
-Formatted strings are most commonly created by calling the
+Formatted strings are frequently created by calling the
 ``fmt::format()`` function which will return a string as ``std::string``
 class instance.  In contrast to the ``%`` placeholder in ``printf()``,
 the {fmt} library uses ``{}`` to embed format descriptors.  In the
 simplest case, no additional characters are needed as {fmt} will choose
-the default format based on the data type of the argument.
+the default format based on the data type of the argument. Alternatively
+The ``fmt::print()`` function may be used instead of ``printf()`` or
+``fprintf()``.  In addition, several LAMMPS output functions, that
+originally accepted a single string as arguments have been overloaded to
+accept a format string with optional arguments as well (e.g.
+``Error::all()``, ``Error::one()``, ``utils::logmesg()``).
+
+Summary of the {fmt} format syntax
+==================================
+
+The syntax of the format string is "{[<argument id>][:<format spec>]}",
+where either the argument id or the format spec (separated by a colon
+':') is optional.  The argument id is usually a number starting from 0
+that is the index to the arguments following the format string.  By
+default these are assigned in order (i.e. 0, 1, 2, 3, 4 etc.).  The most
+common case for using argument id would be to use the same argument in
+multiple places in the format string without having to provide it as an
+argument multiple times. In LAMMPS the argument id is rarely used.
+
+More common is the use of the format specifier, which starts with a
+colon.  This may optionally be followed by a fill character (default is
+' '). If provided, the fill character **must** be followed by an
+alignment character ('<', '^', '>' for left, centered, or right
+alignment (default)). The alignment character may be used without a fill
+character. The next important format parameter would be the minimum
+width, which may be followed by a dot '.'  and a precision for floating
+point numbers. The final character in the format string would be an
+indicator for the "presentation", i.e. 'd' for decimal presentation of
+integers, 'x' for hexadecimal, 'o' for octal, 'c' for character
+etc. This mostly follows the "printf()" scheme but without requiring an
+additional length parameter to distinguish between different integer
+widths. The {fmt} library will detect those and adapt the formatting
+accordingly.  For floating point numbers there are correspondingly, 'g'
+for generic presentation, 'e' for exponential presentation, and 'f' for
+fixed point presentation.
+
+Thus "{:8}" would represent *any* type argument using at least 8
+characters; "{:<8}" would do this as left aligned, "{:^8}" as centered,
+"{:>8}" as right aligned.  If a specific presentation is selected, the
+argument type must be compatible or else the {fmt} formatting code will
+throw an exception. Some format string examples are given below:
+
+.. code-block:: C
+
+   auto mesg = fmt::format("  CPU time: {:4d}:{:02d}:{:02d}\n", cpuh, cpum, cpus);
+   mesg = fmt::format("{:<8s}| {:<10.5g} | {:<10.5g} | {:<10.5g} |{:6.1f} |{:6.2f}\n",
+                      label, time_min, time, time_max, time_sq, tmp);
+   utils::logmesg(lmp,"{:>6} = max # of 1-2 neighbors\n",maxall);
+   utils::logmesg(lmp,"Lattice spacing in x,y,z = {:.8} {:.8} {:.8}\n",
+                  xlattice,ylattice,zlattice);
+
+A special feature of the {fmt} library is that format parameters like
+the width or the precision may be also provided as arguments. In that
+case a nested format is used where a pair of curly braces (with an
+optional argument id) "{}" are used instead of the value, for example
+"{:{}d}" will consume two integer arguments, the first will be the value
+shown and the second the minimum width.
+
+For more details and examples, please consult the `{fmt} syntax
+documentation <https://fmt.dev/latest/syntax.html>`_ website.
 
 
 Memory management

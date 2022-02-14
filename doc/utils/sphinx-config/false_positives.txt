@@ -3015,6 +3015,7 @@ Setmask
 setpoint
 setvel
 sfftw
+sfree
 Sg
 Shan
 Shanno
@@ -3174,6 +3175,7 @@ Streiz
 strerror
 strided
 strietz
+stringstreams
 strmatch
 strncmp
 strstr

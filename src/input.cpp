@@ -50,7 +50,6 @@
 #include <cstring>
 #include <cerrno>
 #include <cctype>
-#include <sys/stat.h>
 
 using namespace LAMMPS_NS;
 

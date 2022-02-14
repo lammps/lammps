@@ -22,11 +22,9 @@
 #include "memory.h"
 #include "modify.h"
 #include "text_file_reader.h"
-#include "tokenizer.h"
 #include "update.h"
 #include "universe.h"
 
-#include <algorithm>
 #include <cctype>
 #include <cerrno>
 #include <cstring>

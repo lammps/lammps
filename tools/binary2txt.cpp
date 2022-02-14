@@ -29,7 +29,6 @@
 //   g++ -g -DLAMMPS_BIGBIG binarytxt.o -o binary2txt
 //   again -DLAMMPS_SMALLBIG is the default
 
-#include <cstdint>
 #define __STDC_FORMAT_MACROS
 #include <cinttypes>
 

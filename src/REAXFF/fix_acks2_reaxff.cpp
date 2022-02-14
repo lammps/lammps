@@ -22,20 +22,14 @@
 #include "citeme.h"
 #include "comm.h"
 #include "error.h"
-#include "fix_efield.h"
 #include "force.h"
-#include "group.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
-#include "neighbor.h"
 #include "pair.h"
 #include "pair_reaxff.h"
 #include "reaxff_api.h"
-#include "respa.h"
 #include "text_file_reader.h"
 #include "update.h"
-#include "utils.h"
 
 #include <cmath>
 #include <cstring>

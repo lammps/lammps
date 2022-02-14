@@ -1,0 +1,36 @@
+LAMMPS (7 Jan 2022)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+units metal
+boundary p p p
+atom_style atomic
+
+lattice bcc 5.4
+Lattice spacing in x,y,z = 5.4 5.4 5.4
+region Myreg block 0 1 0 1 0 1 units lattice
+
+create_box 2 Myreg
+Created orthogonal box = (0 0 0) to (5.4 5.4 5.4)
+  1 by 1 by 1 MPI processor grid
+create_atoms 1 box
+Created 2 atoms
+  using lattice units in orthogonal box = (0 0 0) to (5.4 5.4 5.4)
+  create_atoms CPU = 0.000 seconds
+
+set atom 2 type 2
+Setting atom values ...
+  1 settings made for type
+
+mass * 1.
+
+replicate 5 5 5
+Replicating atoms ...
+  orthogonal box = (0 0 0) to (27 27 27)
+  1 by 1 by 1 MPI processor grid
+  250 atoms
+  replicate CPU = 0.000 seconds
+
+write_data data.lmp
+System init for write_data ...
+WARNING: Communication cutoff is 0.0. No ghost atoms will be generated. Atoms may get lost. (src/comm_brick.cpp:209)
+Total wall time: 0:00:00

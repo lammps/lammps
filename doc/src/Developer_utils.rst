@@ -343,11 +343,11 @@ This code example should produce the following output:
 
 .. doxygenclass:: LAMMPS_NS::InvalidIntegerException
    :project: progguide
-   :members: what
+   :members:
 
 .. doxygenclass:: LAMMPS_NS::InvalidFloatException
    :project: progguide
-   :members: what
+   :members:
 
 ----------
 

@@ -48,15 +48,19 @@ split into lines, parsed, and applied only to atoms the MPI rank
 For splitting a string (incrementally) into words and optionally
 converting those to numbers, the :cpp:class:`Tokenizer
 <LAMMPS_NS::Tokenizer>` and :cpp:class:`ValueTokenizer
-<LAMMPS_NS::ValueTokenizer>` can be used.  Those provide a superset
-of the functionality of ``strtok()`` from the C-library and the latter
-also includes conversion to different types.  Any errors while processing
-the string in those classes will result in an exception, which can
-be caught and the error processed as needed.  Unlike C-library functions
-like ``atoi()``, ``atof()``, ``strtol()``, or ``strtod()`` the
-conversion to numbers first checks of the string is a valid number
-and thus will not silently return an unexpected or incorrect value.
-
+<LAMMPS_NS::ValueTokenizer>` can be used.  Those provide a superset of
+the functionality of ``strtok()`` from the C-library and the latter also
+includes conversion to different types.  Any errors while processing the
+string in those classes will result in an exception, which can be caught
+and the error processed as needed.  Unlike the C-library functions
+``atoi()``, ``atof()``, ``strtol()``, or ``strtod()`` the conversion
+will check if the converted text is a valid integer of floating point
+number and will not silently return an unexpected or incorrect value.
+For example, ``atoi()`` will return 12 when converting "12.5" while the
+ValueTokenizer class will throw an :cpp:class:`InvalidIntegerException
+<LAMMPS_NS::InvalidIntegerException>` if
+:cpp:func:`ValueTokenizer::next_int()
+<LAMMPS_NS::ValueTokenizer::next_int>` is called on the same string.
 
 Fix contributions to instantaneous energy, virial, and cumulative energy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

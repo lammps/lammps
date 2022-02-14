@@ -52,10 +52,15 @@ class Tokenizer {
   std::vector<std::string> as_vector();
 };
 
+/** General Tokenizer exception class */
+
 class TokenizerException : public std::exception {
   std::string message;
 
  public:
+  // remove unused default constructor
+  TokenizerException() = delete;
+
   /** Thrown during retrieving or skipping tokens
    *
    * \param  msg    String with error message
@@ -67,7 +72,10 @@ class TokenizerException : public std::exception {
   const char *what() const noexcept override { return message.c_str(); }
 };
 
+/** Exception thrown by ValueTokenizer when trying to convert an invalid integer string */
+
 class InvalidIntegerException : public TokenizerException {
+
  public:
   /** Thrown during converting string to integer number
    *
@@ -77,6 +85,8 @@ class InvalidIntegerException : public TokenizerException {
   {
   }
 };
+
+/** Exception thrown by ValueTokenizer when trying to convert an floating point string */
 
 class InvalidFloatException : public TokenizerException {
  public:

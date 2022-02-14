@@ -14,7 +14,7 @@
 
 /* ----------------------------------------------------------------------
    Contributing author (ratio and subset) : Jake Gissinger (U Colorado)
-   Contributing author (maxtries & exclude) : Eugen Rozic (IRB, Zagreb)
+   Contributing author (maxtries & overlap) : Eugen Rozic (IRB, Zagreb)
 ------------------------------------------------------------------------- */
 
 #include "create_atoms.h"
@@ -140,7 +140,7 @@ void CreateAtoms::command(int narg, char **arg)
   quatone[0] = quatone[1] = quatone[2] = quatone[3] = 0.0;
   subsetflag = NONE;
   int subsetseed;
-  excludeflag = 0;
+  overlapflag = 0;
   maxtries = DEFAULT_MAXTRIES;
 
   nbasis = domain->lattice->nbasis;
@@ -238,14 +238,14 @@ void CreateAtoms::command(int narg, char **arg)
       if (maxtries <= 0)
         error->all(FLERR,"Illegal create_atoms command");
       iarg += 2;
-    } else if (strcmp(arg[iarg],"exclude") == 0) {
+    } else if (strcmp(arg[iarg],"overlap") == 0) {
       if (style != RANDOM) error->all(FLERR,"Illegal create_atoms command: "
-          "'exclude' can only be combined with 'random' style!");
+          "'overlap' can only be combined with 'random' style!");
       if (iarg+2 > narg) error->all(FLERR,"Illegal create_atoms command");
-      exclude_radius = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      if (exclude_radius <= 0)
+      overlap_radius = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      if (overlap_radius <= 0)
         error->all(FLERR,"Illegal create_atoms command");
-      excludeflag = 1;
+      overlapflag = 1;
       iarg += 2;
     } else error->all(FLERR,"Illegal create_atoms command");
   }
@@ -273,7 +273,7 @@ void CreateAtoms::command(int narg, char **arg)
     // molecule random number generator, different for each proc
     ranmol = new RanMars(lmp, molseed+me);
 
-    // a bit of memory for tries to create molecules (if exclude/maxtries)
+    // a bit of memory for tries to create molecules (if overlap/maxtries)
     memory->create(temp_mol_coords, onemol->natoms, 3, "create_atoms:temp_mol_coords");
   }
 
@@ -673,17 +673,17 @@ void CreateAtoms::add_random()
   double lamda[3],*coord;
   double *boxlo,*boxhi;
 
-  // stuff needed for the exclude option
+  // stuff needed for the overlap option
   int nlocal = atom->nlocal;
   double **x = atom->x;
   double delx, dely, delz, distsq;
-  double excut, excutsq;
-  if (excludeflag) {
-    excut = exclude_radius;
-    // exclude option takes into account the radius of the molecule
+  double ocut, ocutsq;
+  if (overlapflag) {
+    ocut = overlap_radius;
+    // overlap option takes into account the radius of the molecule
     // but not the radius of a single atom (even if it is defined)
-    if (mode == MOLECULE) excut += onemol->molradius;
-    excutsq = excut*excut;
+    if (mode == MOLECULE) ocut += onemol->molradius;
+    ocutsq = ocut*ocut;
   }
 
   // random number generator, same for all procs
@@ -751,14 +751,14 @@ void CreateAtoms::add_random()
       if (mode == MOLECULE)
         gen_mol_coords(xone, quatone);
 
-      if (excludeflag) {
+      if (overlapflag) {
         int reject = 0;
         for (int i = 0; i < nlocal; i++){
           delx = xone[0] - x[i][0];
           dely = xone[1] - x[i][1];
           delz = xone[2] - x[i][2];
           distsq = delx*delx + dely*dely + delz*delz;
-          if (distsq < excutsq){
+          if (distsq < ocutsq){
             reject = 1;
             break;
           }

@@ -34,8 +34,8 @@ class CreateAtoms : public Command {
   int ntype, style, mode, nregion, nbasis, nrandom, seed;
   int remapflag;
   int maxtries;
-  int excludeflag;
-  double exclude_radius;
+  int overlapflag;
+  double overlap_radius;
   int subsetflag;
   bigint nsubset;
   double subsetfrac;
@@ -176,6 +176,10 @@ E: Attempting to insert more particles than available lattice points
 Self-explanatory.
 
 W: Specifying an 'subset' value of '0' is equivalent to no 'subset' keyword
+
+Self-explanatory.
+
+E: Exceeded max number of tries in create_atoms
 
 Self-explanatory.
 

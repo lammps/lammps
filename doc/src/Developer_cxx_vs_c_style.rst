@@ -77,22 +77,24 @@ LAMMPS makes extensive use of the object oriented programming (OOP)
 principles of *compositing* and *inheritance*. Classes like the
 ``LAMMPS`` class are a **composite** containing pointers to instances of
 other classes like ``Atom``, ``Comm``, ``Force``, ``Neighbor``,
-``Modify``, and so on. Each of these classes implement certain
+``Modify``, and so on.  Each of these classes implement certain
 functionality by storing and manipulating data related to the simulation
 and providing member functions that trigger certain actions.  Some of
-those classes like ``Force`` and a composite again containing instances
+those classes like ``Force`` are a composite again containing instances
 of classes describing the force interactions or ``Modify`` containing
-and calling fixes and computes. In most cases there is only one instance
-of those member classes allowed, but in a few cases there can also be
-multiple instances and the parent class is maintaining a list of the
-pointers of instantiated classes.
+and calling fixes and computes.  In most cases (e.g. ``AtomVec``, ``Comm``,
+``Pair``, or ``Bond``) there is only one instance of those member classes
+allowed, but in a few cases (e.g. ``Region``, ``Fix``, ``Compute``, or
+``Dump``) there can be multiple instances and the parent class is
+maintaining a list of the pointers of instantiated classes instead
+of a single pointer.
 
-Changing behavior or adjusting how LAMMPS handles the simulation is
+Changing behavior or adjusting how LAMMPS handles a simulation is
 implemented via **inheritance** where different variants of the
 functionality are realized by creating *derived* classes that can share
 common functionality in their base class and provide a consistent
 interface where the derived classes replace (dummy or pure) functions in
-the base class. The higher level classes can then call those methods of
+the base class.  The higher level classes can then call those methods of
 the instantiated classes without having to know which specific derived
 class variant was instantiated.  In the LAMMPS documentation those
 derived classes are usually referred to a "styles", e.g.  pair styles,
@@ -107,6 +109,15 @@ classes.  Whenever a new :doc:`pair_style` or :doc:`bond_style` or
 :doc:`comm_style` or similar command is processed in the LAMMPS input
 any existing class instance is deleted and a new instance created in
 it place.
+
+Classes derived from ``Fix`` or ``Compute`` represent a different facet
+of LAMMPS' flexibility as there can be multiple instances of them an
+their member functions will be called at different phases of the time
+integration process (as explained in `Developer_flow`).  This way
+multiple manipulations of the entire or parts of the system can be
+programmed (with fix styles) or different computations can be performed
+and accessed and further processed or output through a common interface
+(with compute styles).
 
 Further code sharing is possible by creating derived classes from the
 derived classes (for instance to implement an accelerated version of a
@@ -179,19 +190,20 @@ are virtual functions that are initialized to 0 in the class declaration
     virtual void pure() = 0;
    };
 
-This has the effect that it will no longer be possible to create an instance
-of the base class and that derived classes **must** implement these classes.
-Many of the functions listed with the various styles in the section :doc:`Modify`
-are such pure functions. The motivation for this is to define the interface
-or API of functions but defer the implementation of those functionality to
-the derived classes.
+This has the effect that it will no longer be possible to create an
+instance of the base class and that derived classes **must** implement
+these functions.  Many of the functions listed with the various class
+styles in the section :doc:`Modify` are such pure functions.  The
+motivation for this is to define the interface or API of the functions
+but defer the implementation to the derived classes.
 
-However, there are downsides to this. For example, calls to virtual functions
-from within a constructor, will not be in the scope of the derived class and thus
-it is good practice to either avoid calling them or to provide an explicit scope like
-in ``Base::poly()``.  Furthermore, any destructors in classes containing
-virtual functions should be declared virtual, too, so they are processed
-in the expected order before types are removed from dynamic dispatch.
+However, there are downsides to this. For example, calls to virtual
+functions from within a constructor, will not be in the scope of the
+derived class and thus it is good practice to either avoid calling them
+or to provide an explicit scope like in ``Base::poly()``.  Furthermore,
+any destructors in classes containing virtual functions should be
+declared virtual, too, so they are processed in the expected order
+before types are removed from dynamic dispatch.
 
 .. admonition:: Important Notes
 
@@ -348,20 +360,22 @@ the member functions ``Memory::smalloc()``, ``Memory::srealloc()``, and
 Using those custom memory allocation functions is motivated by the
 following considerations:
 
-- memory allocation failures on *any* MPI rank during a parallel run will trigger
-  an immediate abort of the entire parallel calculation instead of stalling it
-- a failing "new" will trigger an exception which is also captured by LAMMPS and
-  triggers a global abort
-- allocation of multi-dimensional arrays will be done in a C compatible fashion
-  but so that the storage of the actual data is stored in one large consecutive block
-  and thus when MPI communication is needed, only this storage needs to be
-  communicated (similar to Fortran arrays)
-- the "destroy()" and "sfree()" functions may safely be called on NULL pointers
+- memory allocation failures on *any* MPI rank during a parallel run
+  will trigger an immediate abort of the entire parallel calculation
+  instead of stalling it
+- a failing "new" will trigger an exception which is also captured by
+  LAMMPS and triggers a global abort
+- allocation of multi-dimensional arrays will be done in a C compatible
+  fashion but so that the storage of the actual data is stored in one
+  large consecutive block and thus when MPI communication is needed,
+  only this storage needs to be communicated (similar to Fortran arrays)
+- the "destroy()" and "sfree()" functions may safely be called on NULL
+  pointers
 - the "destroy()" functions will nullify the pointer variables making
   "use after free" errors easy to detect
-- it is possible to use a large than default memory alignment (not on all operating
-  systems, since the allocated storage pointers must be compatible with ``free()``
-  for technical reasons)
+- it is possible to use a larger than default memory alignment (not on
+  all operating systems, since the allocated storage pointers must be
+  compatible with ``free()`` for technical reasons)
 
 In the practical implementation of code this means that any pointer variables
 that are class members should be initialized to a ``nullptr`` value in their

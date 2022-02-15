@@ -5,7 +5,6 @@ mark_as_advanced(OPENCL_LOADER_URL)
 mark_as_advanced(OPENCL_LOADER_MD5)
 
 set(INSTALL_LIBOPENCL OFF CACHE BOOL "" FORCE)
-set(BUILD_SHARED_LIBS OFF)
 include(ExternalCMakeProject)
 ExternalCMakeProject(opencl_loader ${OPENCL_LOADER_URL} ${OPENCL_LOADER_MD5} opencl-loader . "")
 

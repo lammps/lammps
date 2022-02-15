@@ -207,7 +207,10 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     error->all(FLERR,"Kokkos has been compiled for CUDA, HIP, or SYCL but no GPUs are requested");
 #endif
 
-#ifndef KOKKOS_ENABLE_SERIAL
+#ifdef KOKKOS_ENABLE_SERIAL
+  if (nthreads > 1)
+    error->all(FLERR,"Cannot use multiple threads with the Kokkos Serial backend");
+#else
   if (nthreads == 1 && me == 0)
     error->warning(FLERR,"When using a single thread, the Kokkos Serial backend "
                          "(i.e. Makefile.kokkos_mpi_only) gives better performance "

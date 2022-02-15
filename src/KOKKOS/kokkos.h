@@ -104,6 +104,15 @@ E: Kokkos has been compiled for CUDA, HIP, or SYCL but no GPUs are requested
 
 One or more GPUs must be used when Kokkos is compiled for CUDA/HIP/SYCL.
 
+E: Cannot use multiple threads with the Kokkos Serial backend
+
+Must use the Kokkos OpenMP backend instead.
+
+W: When using a single thread, the Kokkos Serial backend (i.e. Makefile.kokkos_mpi_only)
+gives better performance than the OpenMP backend
+
+Self-expanatory.
+
 W: Kokkos package already initalized, cannot reinitialize with different parameters
 
 Self-explanatory.

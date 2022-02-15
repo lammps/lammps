@@ -2,7 +2,7 @@
 lammps_version: 8 Apr 2021
 date_generated: Mon Apr 19 08:49:07 2021
 epsilon: 5e-14
-skip_tests: gpu intel omp
+skip_tests: gpu intel omp kokkos_omp
 prerequisites: ! |
   atom full
   pair lj/cut

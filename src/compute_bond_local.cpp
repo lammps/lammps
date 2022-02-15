@@ -34,7 +34,7 @@ using namespace LAMMPS_NS;
 #define DELTA 10000
 #define EPSILON 1.0e-12
 
-enum{DIST,VELVIB,OMEGA,ENGTRANS,ENGVIB,ENGROT,ENGPOT,FORCE,FX,FY,FZ,VARIABLE};
+enum{DIST,DX,DY,DZ,VELVIB,OMEGA,ENGTRANS,ENGVIB,ENGROT,ENGPOT,FORCE,FX,FY,FZ,VARIABLE};
 
 /* ---------------------------------------------------------------------- */
 
@@ -63,6 +63,9 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
   int iarg;
   for (iarg = 3; iarg < narg; iarg++) {
     if (strcmp(arg[iarg],"dist") == 0) bstyle[nvalues++] = DIST;
+    else if (strcmp(arg[iarg],"dx") == 0) bstyle[nvalues++] = DX;
+    else if (strcmp(arg[iarg],"dy") == 0) bstyle[nvalues++] = DY;
+    else if (strcmp(arg[iarg],"dz") == 0) bstyle[nvalues++] = DZ;
     else if (strcmp(arg[iarg],"engpot") == 0) bstyle[nvalues++] = ENGPOT;
     else if (strcmp(arg[iarg],"force") == 0) bstyle[nvalues++] = FORCE;
     else if (strcmp(arg[iarg],"fx") == 0) bstyle[nvalues++] = FX;
@@ -384,10 +387,22 @@ int ComputeBondLocal::compute_bonds(int flag)
           if (dstr) input->variable->internal_set(dvar,sqrt(rsq));
         }
 
+        // to make sure dx, dy and dz are always from the lower to the higher id
+        double directionCorrection = tag[atom1] > tag[atom2] ? -1.0 : 1.0;
+
         for (int n = 0; n < nvalues; n++) {
           switch (bstyle[n]) {
           case DIST:
             ptr[n] = sqrt(rsq);
+            break;
+          case DX:
+            ptr[n] = dx*directionCorrection;
+            break;
+          case DY:
+            ptr[n] = dy*directionCorrection;
+            break;
+          case DZ:
+            ptr[n] = dz*directionCorrection;
             break;
           case ENGPOT:
             ptr[n] = engpot;

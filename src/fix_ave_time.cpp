@@ -56,6 +56,7 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   global_freq = nfreq;
 
   dynamic_group_allow = 1;
+  time_depend = 1;
 
   // scan values to count them
   // then read options so know mode = SCALAR/VECTOR before re-reading values
@@ -243,10 +244,8 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   if (any_variable_length &&
       (nrepeat > 1 || ave == RUNNING || ave == WINDOW)) {
     for (int i = 0; i < nvalues; i++)
-      if (varlen[i] && which[i] == ArgInfo::COMPUTE) {
-        int icompute = modify->find_compute(ids[i]);
-        modify->compute[icompute]->lock_enable();
-      }
+      if (varlen[i] && which[i] == ArgInfo::COMPUTE)
+        modify->get_compute_by_id(ids[i])->lock_enable();
     lockforever = 0;
   }
 
@@ -525,11 +524,8 @@ void FixAveTime::setup(int /*vflag*/)
 void FixAveTime::end_of_step()
 {
   // skip if not step which requires doing something
-  // error check if timestep was reset in an invalid manner
 
   bigint ntimestep = update->ntimestep;
-  if (ntimestep < nvalid_last || ntimestep > nvalid)
-    error->all(FLERR,"Invalid timestep reset for fix ave/time");
   if (ntimestep != nvalid) return;
   nvalid_last = nvalid;
 

@@ -52,7 +52,10 @@ enum{LT,LE,GT,GE,EQ,NEQ};
 /* ---------------------------------------------------------------------- */
 
 DumpXYZMPIIO::DumpXYZMPIIO(LAMMPS *lmp, int narg, char **arg) :
-  DumpXYZ(lmp, narg, arg) {}
+  DumpXYZ(lmp, narg, arg) {
+  if (me == 0)
+    error->warning(FLERR,"MPI-IO output is unmaintained and unreliable. Use with caution.");
+}
 
 /* ---------------------------------------------------------------------- */
 

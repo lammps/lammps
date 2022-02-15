@@ -42,8 +42,8 @@ int ufml_gpu_init(const int ntypes, double **cutsq, double **host_uf1,
                   const int nall, const int max_nbors, const int maxspecial,
                   const double cell_size, int &gpu_mode, FILE *screen);
 
-int ufml_gpu_reinit(const int ntypes, double **cutsq, double **host_uf1,
-                    double **host_uf2, double **host_uf3, double **offset);
+void ufml_gpu_reinit(const int ntypes, double **cutsq, double **host_uf1,
+                     double **host_uf2, double **host_uf3, double **offset);
 
 void ufml_gpu_clear();
 int ** ufml_gpu_compute_n(const int ago, const int inum, const int nall,
@@ -136,8 +136,6 @@ void PairUFMGPU::init_style()
 {
 //  cut_respa = nullptr;
 
-  if (force->newton_pair)
-    error->all(FLERR,"Pair style ufm/gpu requires newton pair off");
 
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;

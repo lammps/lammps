@@ -29,7 +29,9 @@ of code in the header before include guards:
 .. code-block:: c
 
    #ifdef FIX_CLASS
-   FixStyle(print/vel,FixPrintVel)
+   // clang-format off
+   FixStyle(print/vel,FixPrintVel);
+   // clang-format on
    #else
    /* the definition of the FixPrintVel class comes here */
    ...
@@ -53,7 +55,7 @@ of each timestep. First of all, implement a constructor:
      if (narg < 4)
        error->all(FLERR,"Illegal fix print/vel command");
 
-     nevery = force->inumeric(FLERR,arg[3]);
+     nevery = utils::inumeric(FLERR,arg[3],false,lmp);
      if (nevery <= 0)
        error->all(FLERR,"Illegal fix print/vel command");
    }

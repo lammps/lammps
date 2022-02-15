@@ -30,6 +30,7 @@
 #include "force.h"
 #include "group.h"
 #include "memory.h"
+#include "modify.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
@@ -48,13 +49,6 @@
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-
-class parser_error : public std::exception {
-  std::string message;
-public:
-  parser_error(const std::string &mesg) { message = mesg; }
-  const char *what() const noexcept { return message.c_str(); }
-};
 
 static constexpr double EV_TO_KCAL_PER_MOL = 14.4;
 static constexpr double SMALL = 1.0e-14;
@@ -241,15 +235,16 @@ void FixQEqReaxFF::pertype_parameters(char *arg)
       for (int i = 1; i <= ntypes; i++) {
         const char *line = reader.next_line();
         if (!line)
-          throw parser_error("Invalid param file for fix qeq/reaxff");
+          throw TokenizerException("Fix qeq/reaxff: Invalid param file format","");
         ValueTokenizer values(line);
 
         if (values.count() != 4)
-          throw parser_error("Fix qeq/reaxff: Incorrect format of param file");
+          throw TokenizerException("Fix qeq/reaxff: Incorrect format of param file","");
 
         int itype = values.next_int();
         if ((itype < 1) || (itype > ntypes))
-          throw parser_error("Fix qeq/reaxff: invalid atom type in param file");
+          throw TokenizerException("Fix qeq/reaxff: invalid atom type in param file",
+                                   std::to_string(itype));
 
         chi[itype] = values.next_double();
         eta[itype] = values.next_double();
@@ -385,18 +380,13 @@ void FixQEqReaxFF::init()
   if (group->count(igroup) == 0)
     error->all(FLERR,"Fix {} group has no atoms", style);
 
-  // there may be only one instance of fix efield
-
-  int num_efield = 0;
-  for (int ifix = 0; ifix < modify->nfix; ++ifix) {
-    if (utils::strmatch(modify->fix[ifix]->style, "^efield")) ++num_efield;
-  }
-  if (num_efield > 1)
-    error->all(FLERR, "There may be only one fix efield instance used with fix {}", style);
+  // get pointer to fix efield if present. there may be at most one instance of fix efield in use.
 
   efield = nullptr;
-  int ifix = modify->find_fix_by_style("^efield");
-  if (ifix >= 0) efield = (FixEfield *) modify->fix[ifix];
+  auto fixes = modify->get_fix_by_style("^efield");
+  if (fixes.size() == 1) efield = (FixEfield *) fixes.front();
+  else if (fixes.size() > 1)
+    error->all(FLERR, "There may be only one fix efield instance used with fix {}", style);
 
   // ensure that fix efield is properly initialized before accessing its data and check some settings
   if (efield) {
@@ -1094,7 +1084,7 @@ void FixQEqReaxFF::vector_add(double* dest, double c, double* v, int k)
 
 void FixQEqReaxFF::get_chi_field()
 {
-  memset(&chi_field[0],0.0,atom->nmax*sizeof(double));
+  memset(&chi_field[0],0,atom->nmax*sizeof(double));
   if (!efield) return;
 
   const double * const *x = (const double * const *)atom->x;

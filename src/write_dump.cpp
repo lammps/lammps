@@ -57,7 +57,7 @@ void WriteDump::command(int narg, char **arg)
   for (int i = 2; i < modindex; ++i)
     dumpargs[i+2] = arg[i];
 
-  if (0) {
+  if (false) {
     return;         // dummy line to enable else-if macro expansion
 
 #define DUMP_CLASS
@@ -68,6 +68,7 @@ void WriteDump::command(int narg, char **arg)
 #undef DUMP_CLASS
 
   } else error->all(FLERR,utils::check_packages_for_style("dump",arg[1],lmp));
+  delete[] dumpargs;
 
   if (modindex < narg) dump->modify_params(narg-modindex-1,&arg[modindex+1]);
 
@@ -89,5 +90,4 @@ void WriteDump::command(int narg, char **arg)
   // delete the Dump instance and local storage
 
   delete dump;
-  delete [] dumpargs;
 }

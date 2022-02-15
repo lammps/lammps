@@ -21,7 +21,7 @@ namespace LAMMPS_NS {
 class MLIAPDescriptor : protected Pointers {
  public:
   MLIAPDescriptor(LAMMPS *);
-  virtual ~MLIAPDescriptor();
+  ~MLIAPDescriptor() override;
   virtual void compute_descriptors(class MLIAPData *) = 0;
   virtual void compute_forces(class MLIAPData *) = 0;
   virtual void compute_force_gradients(class MLIAPData *) = 0;

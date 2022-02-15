@@ -52,14 +52,17 @@ using Kokkos::Impl::HostSharedPtr;
 namespace {
 
 class Data {
-  Kokkos::Array<char, 64> d;
+  char d[64];
 
  public:
-  KOKKOS_FUNCTION void write(char const* c) {
-    for (int i = 0; i < 64 && c; ++i, ++c) {
-      d[i] = *c;
-    }
+  // Because strncpy is not supported within device code
+  static KOKKOS_FUNCTION void my_strncpy(char* dst, const char* src,
+                                         size_t cnt) {
+    while (cnt-- > 0 && (*dst++ = *src++) != '\0')
+      ;
+    while (cnt-- > 0) *dst++ = '\0';
   }
+  KOKKOS_FUNCTION void write(char const* s) { my_strncpy(d, s, sizeof(d)); }
 };
 
 template <class SmartPtr>
@@ -154,3 +157,135 @@ TEST(TEST_CATEGORY, host_shared_ptr_special_members_on_device) {
   check_special_members_on_device(device_ptr);
 }
 #endif
+
+// FIXME_OPENMPTARGET
+#if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA) && \
+    !defined(KOKKOS_ENABLE_OPENMPTARGET)
+namespace {
+
+struct Bar {
+  double val;
+};
+
+struct Foo {
+  Foo(bool allocate = false) : ptr(allocate ? new Bar : nullptr) {}
+  Kokkos::Impl::HostSharedPtr<Bar> ptr;
+  int use_count() { return ptr.use_count(); }
+};
+
+template <class DevMemSpace, class HostMemSpace>
+void host_shared_ptr_test_reference_counting() {
+  using ExecSpace = typename DevMemSpace::execution_space;
+  bool is_gpu =
+      !Kokkos::SpaceAccessibility<ExecSpace, Kokkos::HostSpace>::accessible;
+
+  // Create two tracked instances
+  Foo f1(true), f2(true);
+  // Scope Views
+  {
+    Foo* fp_d_ptr =
+        static_cast<Foo*>(Kokkos::kokkos_malloc<DevMemSpace>(sizeof(Foo)));
+    Kokkos::View<Foo, DevMemSpace> fp_d(fp_d_ptr);
+    // If using UVM or on the CPU don't make an extra HostCopy
+    Foo* fp_h_ptr = std::is_same<DevMemSpace, HostMemSpace>::value
+                        ? fp_d_ptr
+                        : static_cast<Foo*>(
+                              Kokkos::kokkos_malloc<HostMemSpace>(sizeof(Foo)));
+    Kokkos::View<Foo, HostMemSpace> fp_h(fp_h_ptr);
+    ASSERT_EQ(1, f1.use_count());
+    ASSERT_EQ(1, f2.use_count());
+
+    // Just for the sake of it initialize the data of the host copy
+    new (fp_h.data()) Foo();
+    // placement new in kernel
+    //  if on GPU: should not increase use_count, fp_d will not be tracked
+    //  if on Host: refcount will increase fp_d is tracked
+    Kokkos::parallel_for(
+        Kokkos::RangePolicy<ExecSpace>(0, 1),
+        KOKKOS_LAMBDA(int) { new (fp_d.data()) Foo(f1); });
+    Kokkos::fence();
+    Kokkos::deep_copy(fp_h, fp_d);
+
+    if (is_gpu)
+      ASSERT_EQ(1, f1.use_count());
+    else
+      ASSERT_EQ(2, f1.use_count());
+    ASSERT_EQ(1, f2.use_count());
+
+    // assignment operator on host, will increase f2 use_count
+    //   if default device is GPU: fp_h was untracked
+    //   if default device is CPU: fp_h was tracked and use_count was 2 for
+    //   aliasing f1, in which case use_count will be decreased here
+    fp_h() = f2;
+    ASSERT_EQ(1, f1.use_count());
+    ASSERT_EQ(2, f2.use_count());
+
+    Kokkos::deep_copy(fp_d, fp_h);
+    ASSERT_EQ(1, f1.use_count());
+    ASSERT_EQ(2, f2.use_count());
+
+    // assignment in kernel:
+    //  If on GPU: should not increase use_count of f1 and fp_d will not be
+    //  tracked.
+    //  If on Host: use_count will increase of f1, fp_d is tracked,
+    //  use_count of f2 goes down.
+    //  Since we are messing with the use count on the device: make host copy
+    //  untracked first. Note if fp_d and fp_h alias each other (e.g. compiling
+    //  for CPU only) that means fp_d() will be untracked too during assignemnt
+    fp_h() = Foo();
+    Kokkos::parallel_for(
+        Kokkos::RangePolicy<ExecSpace>(0, 1),
+        KOKKOS_LAMBDA(int) { fp_d() = f1; });
+    Kokkos::fence();
+    Kokkos::deep_copy(fp_h, fp_d);
+
+    if (is_gpu)
+      ASSERT_EQ(1, f1.use_count());
+    else
+      ASSERT_EQ(2, f1.use_count());
+    ASSERT_EQ(1, f2.use_count());
+
+    // Assign non-tracked ptr
+    //   if  if_gpu will not change use_count
+    //   if !is_gpu will decrease use_count of f1
+    fp_h() = Foo();
+    ASSERT_EQ(1, f1.use_count());
+    ASSERT_EQ(1, f2.use_count());
+    fp_h() = f2;
+    ASSERT_EQ(1, f1.use_count());
+    ASSERT_EQ(2, f2.use_count());
+
+    // before deleting host version make sure its not tracked
+    fp_h() = Foo();
+    if (fp_h_ptr != fp_d_ptr) Kokkos::kokkos_free<HostMemSpace>(fp_h_ptr);
+    Kokkos::kokkos_free<DevMemSpace>(fp_d_ptr);
+  }
+
+  ASSERT_EQ(1, f1.use_count());
+  ASSERT_EQ(1, f2.use_count());
+}
+}  // namespace
+
+TEST(TEST_CATEGORY, host_shared_ptr_tracking) {
+  host_shared_ptr_test_reference_counting<typename TEST_EXECSPACE::memory_space,
+                                          Kokkos::HostSpace>();
+#ifdef KOKKOS_ENABLE_CUDA
+  if (std::is_same<TEST_EXECSPACE, Kokkos::Cuda>::value)
+    host_shared_ptr_test_reference_counting<Kokkos::CudaUVMSpace,
+                                            Kokkos::CudaUVMSpace>();
+#endif
+#ifdef KOKKOS_ENABLE_SYCL
+  if (std::is_same<TEST_EXECSPACE, Kokkos::Experimental::SYCL>::value)
+    host_shared_ptr_test_reference_counting<
+        Kokkos::Experimental::SYCLSharedUSMSpace,
+        Kokkos::Experimental::SYCLSharedUSMSpace>();
+#endif
+#ifdef KOKKOS_ENABLE_HIP
+  if (std::is_same<TEST_EXECSPACE, Kokkos::Experimental::HIP>::value)
+    host_shared_ptr_test_reference_counting<
+        Kokkos::Experimental::HIPHostPinnedSpace,
+        Kokkos::Experimental::HIPHostPinnedSpace>();
+#endif
+}
+
+#endif  // KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA

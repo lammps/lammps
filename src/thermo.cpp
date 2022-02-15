@@ -267,23 +267,20 @@ void Thermo::init()
 
   // find current ptr for each Compute ID
 
-  int icompute;
   for (i = 0; i < ncompute; i++) {
-    icompute = modify->find_compute(id_compute[i]);
-    if (icompute < 0) error->all(FLERR,"Could not find thermo compute ID");
-    computes[i] = modify->compute[icompute];
+    computes[i] = modify->get_compute_by_id(id_compute[i]);
+    if (!computes[i]) error->all(FLERR,"Could not find thermo compute with ID {}",id_compute[i]);
   }
 
   // find current ptr for each Fix ID
   // check that fix frequency is acceptable with thermo output frequency
 
-  int ifix;
   for (i = 0; i < nfix; i++) {
-    ifix = modify->find_fix(id_fix[i]);
-    if (ifix < 0) error->all(FLERR,"Could not find thermo fix ID");
-    fixes[i] = modify->fix[ifix];
+    fixes[i] = modify->get_fix_by_id(id_fix[i]);
+    if (!fixes[i]) error->all(FLERR,"Could not find thermo fix ID {}",id_fix[i]);
+
     if (output->thermo_every % fixes[i]->global_freq)
-      error->all(FLERR,"Thermo and fix not computed at compatible times");
+      error->all(FLERR,"Thermo and fix {} not computed at compatible times",id_fix[i]);
   }
 
   // find current ptr for each Variable ID
@@ -378,8 +375,7 @@ void Thermo::compute(int flag)
 
   if (me == 0) {
     utils::logmesg(lmp,line);
-    if (screen && flushflag) fflush(screen);
-    if (logfile && flushflag) fflush(logfile);
+    if (flushflag) utils::flush_buffers(lmp);
   }
 
   // set to 1, so that subsequent invocations of CPU time will be non-zero
@@ -467,36 +463,33 @@ void Thermo::modify_params(int narg, char **arg)
     if (strcmp(arg[iarg],"temp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal thermo_modify command");
       if (index_temp < 0) error->all(FLERR,"Thermo style does not use temp");
-      delete [] id_compute[index_temp];
+      delete[] id_compute[index_temp];
       id_compute[index_temp] = utils::strdup(arg[iarg+1]);
 
-      int icompute = modify->find_compute(arg[iarg+1]);
-      if (icompute < 0)
-        error->all(FLERR,"Could not find thermo_modify temperature ID");
-      temperature = modify->compute[icompute];
+      temperature = modify->get_compute_by_id(arg[iarg+1]);
+      if (!temperature)
+        error->all(FLERR,"Could not find thermo_modify temperature compute {}",arg[iarg+1]);
 
       if (temperature->tempflag == 0)
-        error->all(FLERR,"Thermo_modify temperature ID does not "
-                   "compute temperature");
+        error->all(FLERR,"Thermo_modify compute {} does not compute temperature",arg[iarg+1]);
       if (temperature->igroup != 0 && comm->me == 0)
-        error->warning(FLERR,
-                       "Temperature for thermo pressure is not for group all");
+        error->warning(FLERR,"Temperature for thermo pressure is not for group all");
 
       // reset id_temp of pressure to new temperature ID
       // either pressure currently being used by thermo or "thermo_press"
 
+      Compute *pcompute;
       if (index_press_scalar >= 0) {
-        icompute = modify->find_compute(id_compute[index_press_scalar]);
-        if (icompute < 0) error->all(FLERR,
-                                     "Pressure ID for thermo does not exist");
+        pcompute = modify->get_compute_by_id(id_compute[index_press_scalar]);
+        if (!pcompute) error->all(FLERR, "Pressure compute {} for thermo output does not exist",
+                                  id_compute[index_press_scalar]);
       } else if (index_press_vector >= 0) {
-        icompute = modify->find_compute(id_compute[index_press_vector]);
-        if (icompute < 0) error->all(FLERR,
-                                     "Pressure ID for thermo does not exist");
-      } else icompute = modify->find_compute("thermo_press");
+        pcompute = modify->get_compute_by_id(id_compute[index_press_vector]);
+        if (!pcompute) error->all(FLERR,"Pressure compute {} for thermo output does not exist",
+                                  id_compute[index_press_vector]);
+      } else pcompute = modify->get_compute_by_id("thermo_press");
 
-      modify->compute[icompute]->reset_extra_compute_fix(arg[iarg+1]);
-
+      pcompute->reset_extra_compute_fix(arg[iarg+1]);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"press") == 0) {
@@ -513,13 +506,12 @@ void Thermo::modify_params(int narg, char **arg)
         id_compute[index_press_vector] = utils::strdup(arg[iarg+1]);
       }
 
-      int icompute = modify->find_compute(arg[iarg+1]);
-      if (icompute < 0) error->all(FLERR,
-                                   "Could not find thermo_modify pressure ID");
-      pressure = modify->compute[icompute];
+      pressure = modify->get_compute_by_id(arg[iarg+1]);
+      if (!pressure)
+        error->all(FLERR,"Could not find thermo_modify pressure compute {}",arg[iarg+1]);
 
       if (pressure->pressflag == 0)
-        error->all(FLERR,"Thermo_modify pressure ID does not compute pressure");
+        error->all(FLERR,"Thermo_modify compute {} does not compute pressure",arg[iarg+1]);
 
       iarg += 2;
 
@@ -912,24 +904,24 @@ void Thermo::parse_fields(char *str)
       argindex2[nfield] = (argi.get_dim() > 1) ? argi.get_index2() : 0;
 
       if (argi.get_type() == ArgInfo::COMPUTE) {
-        int n = modify->find_compute(argi.get_name());
-        if (n < 0) error->all(FLERR,"Could not find thermo custom compute ID");
-        if (argindex1[nfield] == 0 && modify->compute[n]->scalar_flag == 0)
+        auto icompute = modify->get_compute_by_id(argi.get_name());
+        if (!icompute) error->all(FLERR,"Could not find thermo custom compute ID");
+        if (argindex1[nfield] == 0 && icompute->scalar_flag == 0)
           error->all(FLERR,"Thermo compute does not compute scalar");
         if (argindex1[nfield] > 0 && argindex2[nfield] == 0) {
-          if (modify->compute[n]->vector_flag == 0)
+          if (icompute->vector_flag == 0)
             error->all(FLERR,"Thermo compute does not compute vector");
-          if (argindex1[nfield] > modify->compute[n]->size_vector &&
-              modify->compute[n]->size_vector_variable == 0)
+          if (argindex1[nfield] > icompute->size_vector &&
+              icompute->size_vector_variable == 0)
             error->all(FLERR,"Thermo compute vector is accessed out-of-range");
         }
         if (argindex1[nfield] > 0 && argindex2[nfield] > 0) {
-          if (modify->compute[n]->array_flag == 0)
+          if (icompute->array_flag == 0)
             error->all(FLERR,"Thermo compute does not compute array");
-          if (argindex1[nfield] > modify->compute[n]->size_array_rows &&
-              modify->compute[n]->size_array_rows_variable == 0)
+          if (argindex1[nfield] > icompute->size_array_rows &&
+              icompute->size_array_rows_variable == 0)
             error->all(FLERR,"Thermo compute array is accessed out-of-range");
-          if (argindex2[nfield] > modify->compute[n]->size_array_cols)
+          if (argindex2[nfield] > icompute->size_array_cols)
             error->all(FLERR,"Thermo compute array is accessed out-of-range");
         }
 
@@ -942,24 +934,24 @@ void Thermo::parse_fields(char *str)
         addfield(word.c_str(), &Thermo::compute_compute, FLOAT);
 
       } else if (argi.get_type() == ArgInfo::FIX) {
-        int n = modify->find_fix(argi.get_name());
-        if (n < 0) error->all(FLERR,"Could not find thermo custom fix ID");
-        if (argindex1[nfield] == 0 && modify->fix[n]->scalar_flag == 0)
+        auto ifix = modify->get_fix_by_id(argi.get_name());
+        if (!ifix) error->all(FLERR,"Could not find thermo custom fix ID");
+        if (argindex1[nfield] == 0 && ifix->scalar_flag == 0)
           error->all(FLERR,"Thermo fix does not compute scalar");
         if (argindex1[nfield] > 0 && argindex2[nfield] == 0) {
-          if (modify->fix[n]->vector_flag == 0)
+          if (ifix->vector_flag == 0)
             error->all(FLERR,"Thermo fix does not compute vector");
-          if (argindex1[nfield] > modify->fix[n]->size_vector &&
-              modify->fix[n]->size_vector_variable == 0)
+          if (argindex1[nfield] > ifix->size_vector &&
+              ifix->size_vector_variable == 0)
             error->all(FLERR,"Thermo fix vector is accessed out-of-range");
         }
         if (argindex1[nfield] > 0 && argindex2[nfield] > 0) {
-          if (modify->fix[n]->array_flag == 0)
+          if (ifix->array_flag == 0)
             error->all(FLERR,"Thermo fix does not compute array");
-          if (argindex1[nfield] > modify->fix[n]->size_array_rows &&
-              modify->fix[n]->size_array_rows_variable == 0)
+          if (argindex1[nfield] > ifix->size_array_rows &&
+              ifix->size_array_rows_variable == 0)
             error->all(FLERR,"Thermo fix array is accessed out-of-range");
-          if (argindex2[nfield] > modify->fix[n]->size_array_cols)
+          if (argindex2[nfield] > ifix->size_array_cols)
             error->all(FLERR,"Thermo fix array is accessed out-of-range");
         }
 
@@ -971,11 +963,9 @@ void Thermo::parse_fields(char *str)
         if (n < 0)
           error->all(FLERR,"Could not find thermo custom variable name");
         if (argindex1[nfield] == 0 && input->variable->equalstyle(n) == 0)
-          error->all(FLERR,
-                     "Thermo custom variable is not equal-style variable");
+          error->all(FLERR,"Thermo custom variable is not equal-style variable");
         if (argindex1[nfield] && input->variable->vectorstyle(n) == 0)
-          error->all(FLERR,
-                     "Thermo custom variable is not vector-style variable");
+          error->all(FLERR,"Thermo custom variable is not vector-style variable");
         if (argindex2[nfield])
           error->all(FLERR,"Thermo custom variable cannot have two indices");
 

@@ -783,7 +783,7 @@ void PPPMDipole::set_grid_global()
 
     h = h_x = h_y = h_z = 4.0/g_ewald;
     int count = 0;
-    while (1) {
+    while (true) {
 
       // set grid dimension
 

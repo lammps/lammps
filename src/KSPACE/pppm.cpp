@@ -197,11 +197,9 @@ void PPPM::init()
     error->all(FLERR,"Must redefine kspace_style after changing to triclinic box");
 
   if (domain->triclinic && differentiation_flag == 1)
-    error->all(FLERR,"Cannot (yet) use PPPM with triclinic box "
-               "and kspace_modify diff ad");
+    error->all(FLERR,"Cannot (yet) use PPPM with triclinic box and kspace_modify diff ad");
   if (domain->triclinic && slabflag)
-    error->all(FLERR,"Cannot (yet) use PPPM with triclinic box and "
-               "slab correction");
+    error->all(FLERR,"Cannot (yet) use PPPM with triclinic box and slab correction");
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use PPPM with 2d simulation");
 
@@ -983,7 +981,7 @@ void PPPM::set_grid_global()
 
       h = h_x = h_y = h_z = 4.0/g_ewald;
       int count = 0;
-      while (1) {
+      while (true) {
 
         // set grid dimensions
 

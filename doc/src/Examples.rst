@@ -80,7 +80,7 @@ Lowercase directories
 +-------------+------------------------------------------------------------------+
 | friction    | frictional contact of spherical asperities between 2d surfaces   |
 +-------------+------------------------------------------------------------------+
-| gcmc        | Grand Canonical Monte Carlo (GCMC) via the fix gcmc command      |
+| mc          | Monte Carlo features via fix gcmc, widom and other commands      |
 +-------------+------------------------------------------------------------------+
 | granregion  | use of fix wall/region/gran as boundary on granular particles    |
 +-------------+------------------------------------------------------------------+
@@ -205,7 +205,7 @@ Uppercase directories
 +------------+--------------------------------------------------------------------------------------------------+
 | KAPPA      | compute thermal conductivity via several methods                                                 |
 +------------+--------------------------------------------------------------------------------------------------+
-| MC         | using LAMMPS in a Monte Carlo mode to relax the energy of a system                               |
+| MC-LOOP    | using LAMMPS in a Monte Carlo mode to relax the energy of a system in a input script loop        |
 +------------+--------------------------------------------------------------------------------------------------+
 | PACKAGES   | examples for specific packages and contributed commands                                          |
 +------------+--------------------------------------------------------------------------------------------------+

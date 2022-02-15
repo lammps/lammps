@@ -27,12 +27,11 @@ namespace LAMMPS_NS {
 class PairSW : public Pair {
  public:
   PairSW(class LAMMPS *);
-  virtual ~PairSW();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  virtual void coeff(int, char **);
-  virtual double init_one(int, int);
-  virtual void init_style();
+  ~PairSW() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void init_style() override;
 
   static constexpr int NPARAMS_PER_LINE = 14;
 
@@ -54,11 +53,12 @@ class PairSW : public Pair {
   int maxshort;       // size of short neighbor list array
   int *neighshort;    // short neighbor list array
 
+  void settings(int, char **) override;
   virtual void allocate();
   void read_file(char *);
   virtual void setup_params();
   void twobody(Param *, double, double &, int, double &);
-  void threebody(Param *, Param *, Param *, double, double, double *, double *, double *, double *,
+  virtual void threebody(Param *, Param *, Param *, double, double, double *, double *, double *, double *,
                  int, double &);
 };
 

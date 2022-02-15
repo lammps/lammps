@@ -76,17 +76,17 @@ struct CombinedReducerValueItemImpl {
       CombinedReducerValueItemImpl const&) = default;
   KOKKOS_DEFAULTED_FUNCTION constexpr CombinedReducerValueItemImpl(
       CombinedReducerValueItemImpl&&) = default;
-  KOKKOS_DEFAULTED_FUNCTION KOKKOS_CONSTEXPR_14 CombinedReducerValueItemImpl&
-  operator=(CombinedReducerValueItemImpl const&) = default;
-  KOKKOS_DEFAULTED_FUNCTION KOKKOS_CONSTEXPR_14 CombinedReducerValueItemImpl&
-  operator=(CombinedReducerValueItemImpl&&) = default;
+  KOKKOS_DEFAULTED_FUNCTION constexpr CombinedReducerValueItemImpl& operator=(
+      CombinedReducerValueItemImpl const&) = default;
+  KOKKOS_DEFAULTED_FUNCTION constexpr CombinedReducerValueItemImpl& operator=(
+      CombinedReducerValueItemImpl&&) = default;
   KOKKOS_DEFAULTED_FUNCTION
   ~CombinedReducerValueItemImpl() = default;
   explicit KOKKOS_FUNCTION CombinedReducerValueItemImpl(value_type arg_value)
       : m_value(std::move(arg_value)) {}
 
   KOKKOS_FORCEINLINE_FUNCTION
-  KOKKOS_CONSTEXPR_14 value_type& ref() & noexcept { return m_value; }
+  constexpr value_type& ref() & noexcept { return m_value; }
   KOKKOS_FORCEINLINE_FUNCTION
   constexpr value_type const& ref() const& noexcept { return m_value; }
   KOKKOS_FORCEINLINE_FUNCTION
@@ -112,11 +112,11 @@ struct CombinedReducerValueImpl<std::integer_sequence<size_t, Idxs...>,
   KOKKOS_DEFAULTED_FUNCTION
   constexpr CombinedReducerValueImpl(CombinedReducerValueImpl&&) = default;
   KOKKOS_DEFAULTED_FUNCTION
-  KOKKOS_CONSTEXPR_14 CombinedReducerValueImpl& operator=(
+  constexpr CombinedReducerValueImpl& operator=(
       CombinedReducerValueImpl const&) = default;
   KOKKOS_DEFAULTED_FUNCTION
-  KOKKOS_CONSTEXPR_14 CombinedReducerValueImpl& operator=(
-      CombinedReducerValueImpl&&) = default;
+  constexpr CombinedReducerValueImpl& operator=(CombinedReducerValueImpl&&) =
+      default;
   KOKKOS_DEFAULTED_FUNCTION
   ~CombinedReducerValueImpl() = default;
 
@@ -165,20 +165,19 @@ struct CombinedReducerStorageImpl {
   // model Reducer
 
   KOKKOS_INLINE_FUNCTION
-  KOKKOS_CONSTEXPR_14 _fold_comma_emulation_return
-  _init(value_type& val) const {
+  constexpr _fold_comma_emulation_return _init(value_type& val) const {
     m_reducer.init(val);
     return _fold_comma_emulation_return{};
   }
 
-  KOKKOS_INLINE_FUNCTION KOKKOS_CONSTEXPR_14 _fold_comma_emulation_return
-  _join(value_type& dest, value_type const& src) const {
+  KOKKOS_INLINE_FUNCTION constexpr _fold_comma_emulation_return _join(
+      value_type& dest, value_type const& src) const {
     m_reducer.join(dest, src);
     return _fold_comma_emulation_return{};
   }
 
-  KOKKOS_INLINE_FUNCTION KOKKOS_CONSTEXPR_14 _fold_comma_emulation_return
-  _join(value_type volatile& dest, value_type const volatile& src) const {
+  KOKKOS_INLINE_FUNCTION constexpr _fold_comma_emulation_return _join(
+      value_type volatile& dest, value_type const volatile& src) const {
     m_reducer.join(dest, src);
     return _fold_comma_emulation_return{};
   }
@@ -242,10 +241,10 @@ struct CombinedReducerImpl<std::integer_sequence<size_t, Idxs...>, Space,
   KOKKOS_DEFAULTED_FUNCTION constexpr CombinedReducerImpl(
       CombinedReducerImpl const&) = default;
   KOKKOS_DEFAULTED_FUNCTION constexpr CombinedReducerImpl(
-      CombinedReducerImpl&&) = default;
-  KOKKOS_DEFAULTED_FUNCTION KOKKOS_CONSTEXPR_14 CombinedReducerImpl& operator=(
+      CombinedReducerImpl&&)                                       = default;
+  KOKKOS_DEFAULTED_FUNCTION constexpr CombinedReducerImpl& operator=(
       CombinedReducerImpl const&) = default;
-  KOKKOS_DEFAULTED_FUNCTION KOKKOS_CONSTEXPR_14 CombinedReducerImpl& operator=(
+  KOKKOS_DEFAULTED_FUNCTION constexpr CombinedReducerImpl& operator=(
       CombinedReducerImpl&&) = default;
 
   KOKKOS_DEFAULTED_FUNCTION ~CombinedReducerImpl() = default;
@@ -257,9 +256,8 @@ struct CombinedReducerImpl<std::integer_sequence<size_t, Idxs...>, Space,
                                                        reducers)...,
         m_value_view(&value) {}
 
-  KOKKOS_FUNCTION KOKKOS_CONSTEXPR_14 void join(value_type& dest,
-                                                value_type const& src) const
-      noexcept {
+  KOKKOS_FUNCTION constexpr void join(value_type& dest,
+                                      value_type const& src) const noexcept {
     emulate_fold_comma_operator(
         this->CombinedReducerStorageImpl<Idxs, Reducers>::_join(
             dest.template get<Idxs, typename Reducers::value_type>(),
@@ -274,8 +272,7 @@ struct CombinedReducerImpl<std::integer_sequence<size_t, Idxs...>, Space,
             src.template get<Idxs, typename Reducers::value_type>())...);
   }
 
-  KOKKOS_FUNCTION KOKKOS_CONSTEXPR_14 void init(value_type& dest) const
-      noexcept {
+  KOKKOS_FUNCTION constexpr void init(value_type& dest) const noexcept {
     emulate_fold_comma_operator(
         this->CombinedReducerStorageImpl<Idxs, Reducers>::_init(
             dest.template get<Idxs, typename Reducers::value_type>())...);
@@ -298,7 +295,7 @@ struct CombinedReducerImpl<std::integer_sequence<size_t, Idxs...>, Space,
   }
 
   KOKKOS_FUNCTION
-  KOKKOS_CONSTEXPR_14 static void write_value_back_to_original_references(
+  constexpr static void write_value_back_to_original_references(
       value_type const& value,
       Reducers const&... reducers_that_reference_original_values) noexcept {
     emulate_fold_comma_operator(
@@ -360,10 +357,10 @@ struct CombinedReductionFunctorWrapperImpl<
   constexpr CombinedReductionFunctorWrapperImpl(
       CombinedReductionFunctorWrapperImpl&&) = default;
   KOKKOS_DEFAULTED_FUNCTION
-  KOKKOS_CONSTEXPR_14 CombinedReductionFunctorWrapperImpl& operator=(
+  constexpr CombinedReductionFunctorWrapperImpl& operator=(
       CombinedReductionFunctorWrapperImpl const&) = default;
   KOKKOS_DEFAULTED_FUNCTION
-  KOKKOS_CONSTEXPR_14 CombinedReductionFunctorWrapperImpl& operator=(
+  constexpr CombinedReductionFunctorWrapperImpl& operator=(
       CombinedReductionFunctorWrapperImpl&&) = default;
   KOKKOS_DEFAULTED_FUNCTION
   ~CombinedReductionFunctorWrapperImpl() = default;
@@ -551,7 +548,7 @@ auto parallel_reduce(std::string const& label, PolicyType const& policy,
                      ReturnType2&& returnType2,
                      ReturnTypes&&... returnTypes) noexcept ->
     typename std::enable_if<
-        Kokkos::Impl::is_execution_policy<PolicyType>::value>::type {
+        Kokkos::is_execution_policy<PolicyType>::value>::type {
   //----------------------------------------
   // Since we don't support asynchronous combined reducers yet for various
   // reasons, we actually just want to work with the pointers and references
@@ -581,8 +578,11 @@ auto parallel_reduce(std::string const& label, PolicyType const& policy,
 
   reduce_adaptor_t::execute(label, policy, combined_functor, combined_reducer);
   Impl::ParallelReduceFence<typename PolicyType::execution_space,
-                            combined_reducer_type>::fence(policy.space(),
-                                                          combined_reducer);
+                            combined_reducer_type>::
+      fence(
+          policy.space(),
+          "Kokkos::parallel_reduce: fence due to result being value, not view",
+          combined_reducer);
   combined_reducer.write_value_back_to_original_references(
       value, Impl::_make_reducer_from_arg<space_type>(returnType1),
       Impl::_make_reducer_from_arg<space_type>(returnType2),
@@ -596,7 +596,7 @@ auto parallel_reduce(PolicyType const& policy, Functor const& functor,
                      ReturnType1&& returnType1, ReturnType2&& returnType2,
                      ReturnTypes&&... returnTypes) noexcept ->
     typename std::enable_if<
-        Kokkos::Impl::is_execution_policy<PolicyType>::value>::type {
+        Kokkos::is_execution_policy<PolicyType>::value>::type {
   //----------------------------------------
   Kokkos::parallel_reduce("", policy, functor,
                           std::forward<ReturnType1>(returnType1),

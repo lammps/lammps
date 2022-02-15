@@ -22,33 +22,20 @@
 #include "citeme.h"
 #include "comm.h"
 #include "error.h"
-#include "fix_efield.h"
 #include "force.h"
-#include "group.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
-#include "neighbor.h"
 #include "pair.h"
 #include "pair_reaxff.h"
 #include "reaxff_api.h"
-#include "respa.h"
 #include "text_file_reader.h"
 #include "update.h"
-#include "utils.h"
 
 #include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-
-class parser_error : public std::exception {
-  std::string message;
-public:
-  parser_error(const std::string &mesg) { message = mesg; }
-  const char *what() const noexcept { return message.c_str(); }
-};
 
 static const char cite_fix_acks2_reax[] =
   "fix acks2/reaxff command:\n\n"
@@ -173,26 +160,27 @@ void FixACKS2ReaxFF::pertype_parameters(char *arg)
 
       const char *line = reader.next_line();
       if (!line)
-        throw parser_error("Invalid parameter file for fix acks2/reaxff");
+        throw TokenizerException("Invalid parameter file for fix acks2/reaxff","");
       ValueTokenizer values(line);
 
       if (values.count() != 1)
-        throw parser_error("Fix acks2/reaxff: Incorrect format of parameter file");
+        throw TokenizerException("Fix acks2/reaxff: Incorrect parameter file format","");
 
       bond_softness = values.next_double();
 
       for (int i = 1; i <= ntypes; i++) {
         const char *line = reader.next_line();
         if (!line)
-          throw parser_error("Invalid parameter file for fix acks2/reaxff");
+          throw TokenizerException("Fix acks2/reaxff: Incorrect parameter file format","");
         ValueTokenizer values(line);
 
         if (values.count() != 5)
-          throw parser_error("Fix acks2/reaxff: Incorrect format of parameter file");
+          throw TokenizerException("Fix acks2/reaxff: Incorrect parameter file format","");
 
         int itype = values.next_int();
         if ((itype < 1) || (itype > ntypes))
-          throw parser_error("Fix acks2/reaxff: invalid atom type in parameter file");
+          throw TokenizerException("Fix acks2/reaxff: invalid atom type in parameter file",
+                                   std::to_string(itype));
 
         chi[itype] = values.next_double();
         eta[itype] = values.next_double();
@@ -435,7 +423,7 @@ void FixACKS2ReaxFF::compute_X()
   double **x = atom->x;
   int *mask = atom->mask;
 
-  memset(X_diag,0.0,atom->nmax*sizeof(double));
+  memset(X_diag,0,atom->nmax*sizeof(double));
 
   // fill in the X matrix
   m_fill = 0;
@@ -640,9 +628,10 @@ void FixACKS2ReaxFF::sparse_matvec_acks2(sparse_matrix *H, sparse_matrix *X, dou
 
   for (ii = nn; ii < NN; ++ii) {
     i = ilist[ii];
-    if (atom->mask[i] & groupbit)
+    if (atom->mask[i] & groupbit) {
       b[i] = 0;
       b[NN + i] = 0;
+    }
   }
   // last two rows
   b[2*NN] = 0;

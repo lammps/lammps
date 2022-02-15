@@ -121,8 +121,10 @@ void FixWallEES::wall_particle(int m, int which, double coord)
       double* shape = bonus[ellipsoid[i]].shape;;
       MathExtra::quat_to_mat(bonus[ellipsoid[i]].quat,A);
       MathExtra::transpose_matvec(A,nhat,tempvec);
-      for (int k = 0; k<3; k++) tempvec[k] *= shape[k];
-      for (int k = 0; k<3 ; k++) sigman2 += tempvec[k]*tempvec[k];
+      for (int k = 0; k<3; k++) {
+         tempvec[k] *= shape[k];
+         sigman2 += tempvec[k]*tempvec[k];
+      }
       sigman = sqrt(sigman2);
 
       if (delta <= sigman) {

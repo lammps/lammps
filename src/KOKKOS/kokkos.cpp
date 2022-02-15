@@ -44,7 +44,7 @@
 #define GPU_AWARE_UNKNOWN static int have_gpu_aware = -1;
 
 // TODO HIP: implement HIP-aware MPI support (UCX) detection
-#if defined(KOKKOS_ENABLE_HIP) || defined(KOKKOS_ENABLE_SYCL)
+#if defined(KOKKOS_ENABLE_HIP) || defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_OPENMPTARGET)
 GPU_AWARE_UNKNOWN
 #elif defined(KOKKOS_ENABLE_CUDA)
 
@@ -121,7 +121,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     } else if (strcmp(arg[iarg],"g") == 0 ||
                strcmp(arg[iarg],"gpus") == 0) {
 #ifndef LMP_KOKKOS_GPU
-      error->all(FLERR,"GPUs are requested but Kokkos has not been compiled for CUDA, HIP, or SYCL");
+      error->all(FLERR,"GPUs are requested but Kokkos has not been compiled using a GPU-enabled backend");
 #endif
       if (iarg+2 > narg) error->all(FLERR,"Invalid Kokkos command-line args");
       ngpus = atoi(arg[iarg+1]);
@@ -162,7 +162,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
       if (ngpus > 1 && !set_flag)
         error->all(FLERR,"Could not determine local MPI rank for multiple "
-                           "GPUs with Kokkos CUDA, HIP, or SYCL because MPI library not recognized");
+                           "GPUs with Kokkos because MPI library not recognized");
 
     } else if (strcmp(arg[iarg],"t") == 0 ||
                strcmp(arg[iarg],"threads") == 0) {
@@ -204,7 +204,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
 #ifdef LMP_KOKKOS_GPU
   if (ngpus <= 0)
-    error->all(FLERR,"Kokkos has been compiled for CUDA, HIP, or SYCL but no GPUs are requested");
+    error->all(FLERR,"Kokkos has been compiled with GPU-enabled backend but no GPUs are requested");
 #endif
 
 #ifdef KOKKOS_ENABLE_SERIAL
@@ -314,7 +314,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
         error->warning(FLERR,"Detected MPICH. Disabling GPU-aware MPI");
 #else
   if (me == 0)
-    error->warning(FLERR,"Kokkos with CUDA, HIP, or SYCL assumes CUDA-aware MPI is available,"
+    error->warning(FLERR,"Kokkos with GPU-enabled backend assumes GPU-aware MPI is available,"
                    " but cannot determine if this is the case\n         try"
                    " '-pk kokkos gpu/aware off' if getting segmentation faults");
 
@@ -603,7 +603,8 @@ void KokkosLMP::my_signal_handler(int sig)
 {
   if (sig == SIGSEGV) {
 #if defined(_WIN32)
-    kill(_getpid(),SIGABRT);
+    // there is no kill() function on Windows
+    exit(1);
 #else
     kill(getpid(),SIGABRT);
 #endif

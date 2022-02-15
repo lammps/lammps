@@ -29,7 +29,7 @@ namespace LAMMPS_NS {
 class Info : public Command {
  public:
   Info(class LAMMPS *lmp) : Command(lmp){};
-  void command(int, char **);
+  void command(int, char **) override;
 
   bool is_active(const char *, const char *);
   bool is_defined(const char *, const char *);
@@ -42,6 +42,7 @@ class Info : public Command {
   static bool has_png_support();
   static bool has_jpeg_support();
   static bool has_ffmpeg_support();
+  static bool has_fft_single_support();
   static bool has_exceptions();
   static bool has_package(const std::string &);
   static bool has_accelerator_feature(const std::string &, const std::string &,

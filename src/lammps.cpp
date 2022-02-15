@@ -51,6 +51,10 @@
 #include "update.h"
 #include "version.h"
 
+#if defined(LMP_PLUGIN)
+#include "plugin.h"
+#endif
+
 #include <cctype>
 #include <cmath>
 #include <cstring>
@@ -58,6 +62,12 @@
 
 #include "lmpinstalledpkgs.h"
 #include "lmpgitversion.h"
+
+#if defined(LAMMPS_UPDATE)
+#define UPDATE_STRING " - " LAMMPS_UPDATE
+#else
+#define UPDATE_STRING ""
+#endif
 
 static void print_style(FILE *fp, const char *str, int &pos);
 
@@ -509,7 +519,7 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     }
 
     if ((universe->me == 0) && !helpflag)
-      utils::logmesg(this,fmt::format("LAMMPS ({})\n",version));
+      utils::logmesg(this,fmt::format("LAMMPS ({}{})\n",version,UPDATE_STRING));
 
   // universe is one or more worlds, as setup by partition switch
   // split universe communicator into separate world communicators
@@ -903,6 +913,10 @@ void LAMMPS::init()
 
 void LAMMPS::destroy()
 {
+  // must wipe out all plugins first, if configured
+#if defined(LMP_PLUGIN)
+  plugin_clear(this);
+#endif
   delete update;
   update = nullptr;
 
@@ -1135,12 +1149,12 @@ void _noopt LAMMPS::help()
 
   // general help message about command line and flags
 
-  if (has_git_info) {
+  if (has_git_info()) {
     fprintf(fp,"\nLarge-scale Atomic/Molecular Massively Parallel Simulator - "
-            LAMMPS_VERSION "\nGit info (%s / %s)\n\n",git_branch, git_descriptor);
+            LAMMPS_VERSION UPDATE_STRING "\nGit info (%s / %s)\n\n",git_branch(), git_descriptor());
   } else {
     fprintf(fp,"\nLarge-scale Atomic/Molecular Massively Parallel Simulator - "
-            LAMMPS_VERSION "\n\n");
+            LAMMPS_VERSION UPDATE_STRING "\n\n");
   }
   fprintf(fp,
           "Usage example: %s -var t 300 -echo screen -in in.alloy\n\n"
@@ -1291,12 +1305,14 @@ void _noopt LAMMPS::help()
 
 /* ----------------------------------------------------------------------
    print style names in columns
-   skip any style that starts with upper-case letter, since internal
+   skip any internal style that starts with an upper-case letter
+   also skip "redundant" KOKKOS styles ending in kk/host or kk/device
 ------------------------------------------------------------------------- */
 
 void print_style(FILE *fp, const char *str, int &pos)
 {
-  if (isupper(str[0])) return;
+  if (isupper(str[0]) || utils::strmatch(str,"/kk/host$")
+      || utils::strmatch(str,"/kk/device$")) return;
 
   int len = strlen(str);
   if (pos+len > 80) {
@@ -1348,6 +1364,7 @@ void LAMMPS::print_config(FILE *fp)
   if (Info::has_png_support()) fputs("-DLAMMPS_PNG\n",fp);
   if (Info::has_jpeg_support()) fputs("-DLAMMPS_JPEG\n",fp);
   if (Info::has_ffmpeg_support()) fputs("-DLAMMPS_FFMPEG\n",fp);
+  if (Info::has_fft_single_support()) fputs("-DFFT_SINGLE\n",fp);
   if (Info::has_exceptions()) fputs("-DLAMMPS_EXCEPTIONS\n",fp);
 #if defined(LAMMPS_BIGBIG)
   fputs("-DLAMMPS_BIGBIG\n",fp);
@@ -1363,6 +1380,8 @@ void LAMMPS::print_config(FILE *fp)
              "sizeof(bigint):   {}-bit\n",
              sizeof(smallint)*8, sizeof(imageint)*8,
              sizeof(tagint)*8, sizeof(bigint)*8);
+
+  if (Info::has_gzip_support()) fmt::print(fp,"\n{}\n",platform::compress_info());
 
   fputs("\nInstalled packages:\n\n",fp);
   for (int i = 0; nullptr != (pkg = installed_packages[i]); ++i) {

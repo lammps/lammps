@@ -341,6 +341,18 @@ minutes to hours) to build.  Of course you only need to do that once.)
          $ make lib-kim args="-p /usr/local" # use an existing KIM API installation at the provided location
          $ make lib-kim args="-p /usr/local -a EAM_Dynamo_Ackland_W__MO_141627196590_002" # ditto but add one model or driver
 
+      When using the "-b " option, the KIM library is built using its native
+      cmake build system.  The ``lib/kim/Install.py`` script supports a
+      ``CMAKE`` environment variable if the cmake executable is named other
+      than ``cmake`` on your system.  Additional environment variables may be
+      provided on the command line for use by cmake.  For example, to use the
+      ``cmake3`` executable and tell it to use the gnu version 11 compilers
+      to build KIM, one could use the following command line.
+
+      .. code-block:: bash
+
+         $ CMAKE=cmake3 CXX=g++-11 CC=gcc-11 FC=gfortran-11 make lib-kim args="-b "  # (re-)install KIM API lib using cmake3 and gnu v11 compilers with only example models
+
       Settings for debugging OpenKIM web queries discussed below need to
       be applied by adding them to the ``LMP_INC`` variable through
       editing the ``Makefile.machine`` you are using.  For example:
@@ -560,11 +572,26 @@ They must be specified in uppercase.
    *  - VEGA908
       - GPU
       - AMD GPU MI100 GFX908
-   *  - INTEL_GEN
+   *  - VEGA90A
       - GPU
-      - Intel GPUs Gen9+
+      - AMD GPU
+   *  - INTEL_DG1
+      - GPU
+      - Intel Iris XeMAX GPU
+   *  - INTEL_GEN9
+      - GPU
+      - Intel GPU Gen9
+   *  - INTEL_GEN11
+      - GPU
+      - Intel GPU Gen11
+   *  - INTEL_GEN12LP
+      - GPU
+      - Intel GPU Gen12LP
+   *  - INTEL_XEHP
+      - GPU
+      - Intel GPUs Xe-HP
 
-This list was last updated for version 3.4.1 of the Kokkos library.
+This list was last updated for version 3.5.0 of the Kokkos library.
 
 .. tabs::
 

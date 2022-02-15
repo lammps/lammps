@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class ComputeSPHRhoAtom : public Compute {
  public:
   ComputeSPHRhoAtom(class LAMMPS *, int, char **);
-  ~ComputeSPHRhoAtom();
-  void init();
-  void compute_peratom();
-  double memory_usage();
+  ~ComputeSPHRhoAtom() override;
+  void init() override;
+  void compute_peratom() override;
+  double memory_usage() override;
 
  private:
   int nmax;

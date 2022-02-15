@@ -66,6 +66,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   create_attribute = 1;
   dof_flag = 1;
   stores_ids = 1;
+  centroidstressflag = CENTROID_AVAIL;
 
   // error check
 
@@ -361,11 +362,17 @@ void FixShake::init()
   // could have changed locations in fix list since created
   // set ptrs to rRESPA variables
 
+  fix_respa = nullptr;
   if (utils::strmatch(update->integrate_style,"^respa")) {
-    ifix_respa = modify->find_fix_by_style("^RESPA");
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
-    loop_respa = ((Respa *) update->integrate)->loop;
-    step_respa = ((Respa *) update->integrate)->step;
+    if (update->whichflag > 0) {
+      auto fixes = modify->get_fix_by_style("^RESPA");
+      if (fixes.size() > 0) fix_respa = (FixRespa *) fixes.front();
+      else error->all(FLERR,"Run style respa did not create fix RESPA");
+    }
+    Respa *respa_style = (Respa *) update->integrate;
+    nlevels_respa = respa_style->nlevels;
+    loop_respa = respa_style->loop;
+    step_respa = respa_style->step;
   }
 
   // set equilibrium bond distances
@@ -1619,7 +1626,7 @@ void FixShake::unconstrained_update_respa(int ilevel)
   // x + dt0 (v + dtN/m fN + 1/2 dt(N-1)/m f(N-1) + ... + 1/2 dt0/m f0)
   // also set dtfsq = dt0*dtN so that shake,shake3,etc can use it
 
-  double ***f_level = ((FixRespa *) modify->fix[ifix_respa])->f_level;
+  double ***f_level = fix_respa->f_level;
   dtfsq = dtf_inner * step_respa[ilevel];
 
   double invmass,dtfmsq;
@@ -1758,7 +1765,10 @@ void FixShake::shake(int m)
     v[4] = lamda*r01[0]*r01[2];
     v[5] = lamda*r01[1]*r01[2];
 
-    v_tally(nlist,list,2.0,v);
+    double fpairlist[] = {lamda};
+    double dellist[][3]  = {{r01[0], r01[1], r01[2]}};
+    int pairlist[][2] = {{i0,i1}};
+    v_tally(nlist,list,2.0,v,nlocal,1,pairlist,fpairlist,dellist);
   }
 }
 
@@ -1931,7 +1941,11 @@ void FixShake::shake3(int m)
     v[4] = lamda01*r01[0]*r01[2] + lamda02*r02[0]*r02[2];
     v[5] = lamda01*r01[1]*r01[2] + lamda02*r02[1]*r02[2];
 
-    v_tally(nlist,list,3.0,v);
+    double fpairlist[] = {lamda01, lamda02};
+    double dellist[][3]  = {{r01[0], r01[1], r01[2]},
+                            {r02[0], r02[1], r02[2]}};
+    int pairlist[][2] = {{i0,i1}, {i0,i2}};
+    v_tally(nlist,list,3.0,v,nlocal,2,pairlist,fpairlist,dellist);
   }
 }
 
@@ -2183,7 +2197,12 @@ void FixShake::shake4(int m)
     v[4] = lamda01*r01[0]*r01[2]+lamda02*r02[0]*r02[2]+lamda03*r03[0]*r03[2];
     v[5] = lamda01*r01[1]*r01[2]+lamda02*r02[1]*r02[2]+lamda03*r03[1]*r03[2];
 
-    v_tally(nlist,list,4.0,v);
+    double fpairlist[] = {lamda01, lamda02, lamda03};
+    double dellist[][3]  = {{r01[0], r01[1], r01[2]},
+                            {r02[0], r02[1], r02[2]},
+                            {r03[0], r03[1], r03[2]}};
+    int pairlist[][2] = {{i0,i1}, {i0,i2}, {i0,i3}};
+    v_tally(nlist,list,4.0,v,nlocal,3,pairlist,fpairlist,dellist);
   }
 }
 
@@ -2426,7 +2445,12 @@ void FixShake::shake3angle(int m)
     v[4] = lamda01*r01[0]*r01[2]+lamda02*r02[0]*r02[2]+lamda12*r12[0]*r12[2];
     v[5] = lamda01*r01[1]*r01[2]+lamda02*r02[1]*r02[2]+lamda12*r12[1]*r12[2];
 
-    v_tally(nlist,list,3.0,v);
+    double fpairlist[] = {lamda01, lamda02, lamda12};
+    double dellist[][3]  = {{r01[0], r01[1], r01[2]},
+                            {r02[0], r02[1], r02[2]},
+                            {r12[0], r12[1], r12[2]}};
+    int pairlist[][2] = {{i0,i1}, {i0,i2}, {i1,i2}};
+    v_tally(nlist,list,3.0,v,nlocal,3,pairlist,fpairlist,dellist);
   }
 }
 

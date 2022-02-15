@@ -31,12 +31,12 @@ class AtomVecDielectric : public AtomVec {
  public:
   AtomVecDielectric(class LAMMPS *);
 
-  void grow_pointers();
-  void create_atom_post(int);
-  void data_atom_post(int);
-  void unpack_restart_init(int);
-  int property_atom(char *);
-  void pack_property_atom(int, double *, int, int);
+  void grow_pointers() override;
+  void create_atom_post(int) override;
+  void data_atom_post(int) override;
+  void unpack_restart_init(int) override;
+  int property_atom(char *) override;
+  void pack_property_atom(int, double *, int, int) override;
 
  protected:
   int *num_bond, *num_angle, *num_dihedral, *num_improper;

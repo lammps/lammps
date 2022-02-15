@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class FixThermalConductivity : public Fix {
  public:
   FixThermalConductivity(class LAMMPS *, int, char **);
-  ~FixThermalConductivity();
-  int setmask();
-  void init();
-  void end_of_step();
-  double compute_scalar();
+  ~FixThermalConductivity() override;
+  int setmask() override;
+  void init() override;
+  void end_of_step() override;
+  double compute_scalar() override;
 
  private:
   int me;

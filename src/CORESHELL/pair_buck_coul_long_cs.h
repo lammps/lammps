@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class PairBuckCoulLongCS : public PairBuckCoulLong {
  public:
   PairBuckCoulLongCS(class LAMMPS *);
-  virtual void compute(int, int);
+  void compute(int, int) override;
 };
 
 }    // namespace LAMMPS_NS

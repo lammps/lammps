@@ -27,7 +27,6 @@ namespace LAMMPS_NS {
 class FixNPTAsphere : public FixNHAsphere {
  public:
   FixNPTAsphere(class LAMMPS *, int, char **);
-  ~FixNPTAsphere() {}
 };
 
 }    // namespace LAMMPS_NS

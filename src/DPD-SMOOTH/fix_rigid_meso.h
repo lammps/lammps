@@ -27,13 +27,13 @@ namespace LAMMPS_NS {
 class FixRigidMeso : public FixRigid {
  public:
   FixRigidMeso(class LAMMPS *, int, char **);
-  ~FixRigidMeso();
-  int setmask();
-  void setup(int);
-  void initial_integrate(int);
-  void final_integrate();
-  double compute_scalar() { return 0.0; }
-  double compute_array(int, int);
+  ~FixRigidMeso() override;
+  int setmask() override;
+  void setup(int) override;
+  void initial_integrate(int) override;
+  void final_integrate() override;
+  double compute_scalar() override { return 0.0; }
+  double compute_array(int, int) override;
 
  protected:
   void set_xv();

@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class PairCoulLongGPU : public PairCoulLong {
  public:
   PairCoulLongGPU(LAMMPS *lmp);
-  ~PairCoulLongGPU();
+  ~PairCoulLongGPU() override;
   void cpu_compute(int, int, int, int, int *, int *, int **);
-  void compute(int, int);
-  void init_style();
-  void reinit();
-  double memory_usage();
+  void compute(int, int) override;
+  void init_style() override;
+  void reinit() override;
+  double memory_usage() override;
 
   enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 

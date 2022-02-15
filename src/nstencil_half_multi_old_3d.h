@@ -28,8 +28,7 @@ namespace LAMMPS_NS {
 class NStencilHalfMultiOld3d : public NStencil {
  public:
   NStencilHalfMultiOld3d(class LAMMPS *);
-  ~NStencilHalfMultiOld3d() {}
-  void create();
+  void create() override;
 };
 
 }    // namespace LAMMPS_NS

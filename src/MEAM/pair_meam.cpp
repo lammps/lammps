@@ -28,7 +28,6 @@
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "potential_file_reader.h"
-#include "tokenizer.h"
 
 #include <cstring>
 #include <memory>
@@ -517,7 +516,7 @@ void PairMEAM::read_user_meam_file(const std::string &userfile)
   char * line = nullptr;
   char buffer[MAXLINE];
 
-  while (1) {
+  while (true) {
     int which;
     int nindex, index[3];
     double value;

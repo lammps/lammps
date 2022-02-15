@@ -85,7 +85,8 @@ PairULSPH::PairULSPH(LAMMPS *lmp) :
 
 PairULSPH::~PairULSPH() {
         if (allocated) {
-                //printf("... deallocating\n");
+                memory->destroy(setflag);
+                memory->destroy(cutsq);
                 memory->destroy(Q1);
                 memory->destroy(rho0);
                 memory->destroy(eos);

@@ -1290,9 +1290,8 @@ int Special::rendezvous_pairs(int n, char *inbuf, int &flag, int *&proclist,
 
 void Special::fix_alteration()
 {
-  for (int ifix = 0; ifix < modify->nfix; ifix++)
-    if (modify->fix[ifix]->special_alter_flag)
-      modify->fix[ifix]->rebuild_special();
+  for (const auto &ifix : modify->get_fix_list())
+    if (ifix->special_alter_flag) ifix->rebuild_special();
 }
 
 /* ----------------------------------------------------------------------

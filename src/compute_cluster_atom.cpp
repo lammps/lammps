@@ -164,11 +164,11 @@ void ComputeClusterAtom::compute_peratom()
 
   int change,done,anychange;
 
-  while (1) {
+  while (true) {
     comm->forward_comm_compute(this);
 
     change = 0;
-    while (1) {
+    while (true) {
       done = 1;
       for (ii = 0; ii < inum; ii++) {
         i = ilist[ii];

@@ -42,12 +42,14 @@ using namespace FixConst;
 
 #define MAXLINE 1024
 
-class parser_error : public std::exception {
-  std::string message;
-public:
-  parser_error(const std::string &mesg) { message = mesg; }
-  const char *what() const noexcept { return message.c_str(); }
-};
+namespace {
+  class qeq_parser_error : public std::exception {
+    std::string message;
+  public:
+    explicit qeq_parser_error(const std::string &mesg) { message = mesg; }
+    const char *what() const noexcept override { return message.c_str(); }
+  };
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -302,7 +304,7 @@ void FixQEq::init()
   ngroup = group->count(igroup);
   if (ngroup == 0) error->all(FLERR,"Fix {} group has no atoms", style);
 
-  if ((comm->me == 0) && (modify->find_fix_by_style("^efield") >= 0))
+  if ((comm->me == 0) && (modify->get_fix_by_style("^efield").size() > 0))
     error->warning(FLERR,"Fix efield is ignored during charge equilibration");
 
   if (utils::strmatch(update->integrate_style,"^respa"))
@@ -759,21 +761,21 @@ void FixQEq::read_file(char *file)
 
       FILE *fp = utils::open_potential(file,lmp,nullptr);
       if (fp == nullptr)
-        throw parser_error(fmt::format("Cannot open fix qeq parameter file {}:"
-                                       " {}", file,utils::getsyserror()));
+        throw qeq_parser_error(fmt::format("Cannot open fix qeq parameter file {}: {}",
+                                           file,utils::getsyserror()));
       TextFileReader reader(fp, "qeq parameter");
 
-      while (1) {
+      while (true) {
         auto values = reader.next_values(0);
 
         if (values.count() == 0) continue;
         if (values.count() < 6)
-          throw parser_error("Invalid qeq parameter file");
+          throw qeq_parser_error("Invalid qeq parameter file");
 
         auto word = values.next_string();
         utils::bounds(FLERR,word,1,ntypes,nlo,nhi,nullptr);
         if ((nlo < 0) || (nhi < 0))
-          throw parser_error("Invalid atom type range");
+          throw qeq_parser_error(fmt::format("Invalid atom type range: {}",word));
 
         val = values.next_double();
         for (int n=nlo; n <= nhi; ++n) chi[n] = val;

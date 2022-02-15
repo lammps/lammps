@@ -38,9 +38,9 @@ class ComputeCoordAtomKokkos : public ComputeCoordAtom {
   typedef ArrayTypes<DeviceType> AT;
 
   ComputeCoordAtomKokkos(class LAMMPS *, int, char **);
-  virtual ~ComputeCoordAtomKokkos();
-  void init();
-  void compute_peratom();
+  ~ComputeCoordAtomKokkos() override;
+  void init() override;
+  void compute_peratom() override;
   enum {NONE,CUTOFF,ORIENT};
 
   template<int CSTYLE, int NCOL>

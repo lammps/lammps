@@ -26,18 +26,17 @@ namespace user_manifold {
    public:
     enum { NPARAMS = 3 };
     manifold_thylakoid(LAMMPS *lmp, int, char **);
-    virtual ~manifold_thylakoid();
+    ~manifold_thylakoid() override;
 
-    virtual double g(const double *x);
-    virtual void n(const double *x, double *n);
+    double g(const double *x) override;
+    void n(const double *x, double *n) override;
 
     static const char *type() { return "thylakoid"; }
-    virtual const char *id() { return type(); }
+    const char *id() override { return type(); }
     static int expected_argc() { return NPARAMS; }
-    virtual int nparams() { return NPARAMS; }
+    int nparams() override { return NPARAMS; }
 
-    virtual void post_param_init();
-    virtual void checkup();    // Some diagnostics...
+    void post_param_init() override;
    private:
     void init_domains();
 

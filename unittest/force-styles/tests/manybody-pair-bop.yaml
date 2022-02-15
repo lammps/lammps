@@ -1,7 +1,8 @@
 ---
 lammps_version: 8 Apr 2021
+tags: slow, unstable
 date_generated: Wed May  5 11:50:15 2021
-epsilon: 5e-13
+epsilon: 5e-12
 prerequisites: ! |
   pair bop
 pre_commands: ! |

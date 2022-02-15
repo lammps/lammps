@@ -693,7 +693,7 @@ void CreateAtoms::add_random()
 
   int valid;
   for (int i = 0; i < nrandom; i++) {
-    while (1) {
+    while (true) {
       xone[0] = xlo + random->uniform() * (xhi-xlo);
       xone[1] = ylo + random->uniform() * (yhi-ylo);
       xone[2] = zlo + random->uniform() * (zhi-zlo);

@@ -549,12 +549,9 @@ void FixShardlow::initial_integrate(int /*vflag*/)
     error->all(FLERR,"Fix shardlow does not yet support triclinic geometries");
 
   if (rcut >= bbx || rcut >= bby || rcut>= bbz )
-  {
-    char fmt[] = {"Shardlow algorithm requires sub-domain length > 2*(rcut+skin). Either reduce the number of processors requested, or change the cutoff/skin: rcut= %e bbx= %e bby= %e bbz= %e\n"};
-    char *msg = (char *) malloc(sizeof(fmt) + 4*15);
-    sprintf(msg, fmt, rcut, bbx, bby, bbz);
-    error->one(FLERR, msg);
-  }
+    error->one(FLERR,"Shardlow algorithm requires sub-domain length > 2*(rcut+skin). "
+                    "Either reduce the number of processors requested, or change the cutoff/skin: "
+                    "rcut= {} bbx= {} bby= {} bbz= {}\n", rcut, bbx, bby, bbz);
 
   NPairHalfBinNewtonSSA *np_ssa = dynamic_cast<NPairHalfBinNewtonSSA*>(list->np);
   if (!np_ssa) error->one(FLERR, "NPair wasn't a NPairHalfBinNewtonSSA object");

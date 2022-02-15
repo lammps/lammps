@@ -74,9 +74,15 @@ struct ThreadScratch {
     for (int i = 0; i < sY; ++i) v_S(i) = 0;
 
     Kokkos::parallel_for(Kokkos::TeamThreadRange(team, sX), [&](const int m) {
+    // FIXME_SYCL This deadlocks in the subgroup_barrier when running on CUDA
+    // devices.
+#ifdef KOKKOS_ENABLE_SYCL
+      for (int k = 0; k < sY; ++k) v_S(k) += sX * sY * n + sY * m + k;
+#else
       Kokkos::parallel_for(
           Kokkos::ThreadVectorRange(team, sY),
           [&](const int k) { v_S(k) += sX * sY * n + sY * m + k; });
+#endif
     });
 
     team.team_barrier();
@@ -93,7 +99,7 @@ struct ThreadScratch {
     int scratchSize = scratch_t::shmem_size(sY);
     // So this works with deprecated code enabled:
     policy_t policy =
-        policy_t(pN, Kokkos::AUTO)
+        policy_t(pN, Kokkos::AUTO, 1)
             .set_scratch_size(scratch_level, Kokkos::PerThread(scratchSize));
 
     int max_team_size = policy.team_size_max(*this, Kokkos::ParallelForTag());

@@ -18,6 +18,7 @@
 
 #include "lmptype.h"
 
+#include <cstdio>
 #include <string>
 #include <vector>
 
@@ -109,12 +110,28 @@ namespace platform {
 
   std::string mpi_info(int &major, int &minor);
 
+  /*! Return string with list of available compression types and executables
+   *
+   * This function tests which of the supported compression executables
+   * are available for reading or writing compressed files where supported.
+   *
+   *  \return  string with list of available compression tools */
+
+  std::string compress_info();
+
   /*! Add variable to the environment
    *
    * \param  vardef  variable name or variable definition (NAME=value)
    * \return -1 if failure otherwise 0 */
 
   int putenv(const std::string &vardef);
+
+  /*! Delete variable from the environment
+   *
+   * \param  variable  variable name
+   * \return -1 if failure otherwise 0 */
+
+  int unsetenv(const std::string &variable);
 
   /*! Get list of entries in a path environment variable
    *
@@ -262,18 +279,18 @@ namespace platform {
 
   /*! Delete a directory
    *
-   * \param  path  directory path
-   * \return -1 if unsuccessful, otherwise >= 0  */
-
-  int rmdir(const std::string &path);
-
-  /*! Delete a directory and its contents
-   *
    * Unlike the the ``rmdir()`` or ``_rmdir()`` function of the
    * C library, this function will check for the contents of the
    * folder and recurse into any sub-folders, if necessary and
    * delete all contained folders and their contents before
    * deleting the folder *path*.
+   *
+   * \param  path  directory path
+   * \return -1 if unsuccessful, otherwise >= 0  */
+
+  int rmdir(const std::string &path);
+
+  /*! Delete a file
    *
    *  \param   path    path to file to be deleted
    *  \return  0 on success, -1 on error */

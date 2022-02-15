@@ -26,20 +26,20 @@ namespace LAMMPS_NS {
 class FixNHIntel : public FixNH {
  public:
   FixNHIntel(class LAMMPS *, int, char **);
-  virtual ~FixNHIntel();
-  virtual void setup(int vflag);
-  void reset_dt();
-  virtual double memory_usage();
+  ~FixNHIntel() override;
+  void setup(int vflag) override;
+  void reset_dt() override;
+  double memory_usage() override;
 
  protected:
   double *_dtfm;
   int _nlocal3, _nlocal_max;
 
-  virtual void remap();
-  virtual void nve_x();
-  virtual void nve_v();
-  virtual void nh_v_press();
-  virtual void nh_v_temp();
+  void remap() override;
+  void nve_x() override;
+  void nve_v() override;
+  void nh_v_press() override;
+  void nh_v_temp() override;
 };
 
 }

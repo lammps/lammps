@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class DumpLocal : public Dump {
  public:
   DumpLocal(LAMMPS *, int, char **);
-  virtual ~DumpLocal();
+  ~DumpLocal() override;
 
  protected:
   int nevery;     // dump frequency to check Fix against
@@ -53,13 +53,13 @@ class DumpLocal : public Dump {
   char **id_fix;      // their IDs
   class Fix **fix;    // list of ptrs to the Fix objects
 
-  void init_style();
-  int modify_param(int, char **);
-  virtual void write_header(bigint);
-  int count();
-  void pack(tagint *);
-  int convert_string(int, double *);
-  virtual void write_data(int, double *);
+  void init_style() override;
+  int modify_param(int, char **) override;
+  void write_header(bigint) override;
+  int count() override;
+  void pack(tagint *) override;
+  int convert_string(int, double *) override;
+  void write_data(int, double *) override;
 
   void parse_fields(int, char **);
   int add_compute(const char *);

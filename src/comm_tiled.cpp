@@ -1884,7 +1884,7 @@ void CommTiled::box_drop_brick(int idim, double *lo, double *hi, int &indexme)
   if (index < 0 || index > procgrid[idim])
     error->one(FLERR,"Comm tiled invalid index in box drop brick");
 
-  while (1) {
+  while (true) {
     lower = boxlo[idim] + prd[idim]*split[index];
     if (index < procgrid[idim]-1)
       upper = boxlo[idim] + prd[idim]*split[index+1];

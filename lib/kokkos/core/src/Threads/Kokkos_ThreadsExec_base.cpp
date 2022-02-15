@@ -100,8 +100,8 @@ bool ThreadsExec::spawn() {
 
   pthread_attr_t attr;
 
-  if (0 == pthread_attr_init(&attr) ||
-      0 == pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM) ||
+  if (0 == pthread_attr_init(&attr) &&
+      0 == pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM) &&
       0 == pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED)) {
     pthread_t pt;
 

@@ -71,8 +71,8 @@ namespace LAMMPS_NS {
 class FixStoreKIM : public Fix {
  public:
   FixStoreKIM(class LAMMPS *, int, char **);
-  ~FixStoreKIM();
-  int setmask();
+  ~FixStoreKIM() override;
+  int setmask() override;
 
   void setptr(const std::string &, void *);
   void *getptr(const std::string &);

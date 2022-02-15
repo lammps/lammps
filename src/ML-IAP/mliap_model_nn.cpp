@@ -19,7 +19,6 @@
 #include "mliap_model_nn.h"
 
 #include "mliap_data.h"
-#include "pair_mliap.h"
 
 #include "comm.h"
 #include "error.h"
@@ -125,7 +124,7 @@ void MLIAPModelNN::read_coeffs(char *coefffilename)
   int ielem = 0;
   int l = 0;
 
-  while (1) {
+  while (true) {
     if (comm->me == 0) {
       ptr = fgets(line,MAXLINE,fpcoeff);
       if (ptr == nullptr) {

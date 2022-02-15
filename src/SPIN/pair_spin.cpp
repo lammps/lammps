@@ -79,10 +79,8 @@ void PairSpin::init_style()
 
   // checking if nve/spin or neb/spin is a listed fix
 
-  bool have_fix = ((modify->find_fix_by_style("^nve/spin") != -1)
-                   || (modify->find_fix_by_style("^neb/spin") != -1));
-
-  if (!have_fix && (comm->me == 0))
+  if ((comm->me == 0) && ((modify->get_fix_by_style("^nve/spin").size()
+                           + modify->get_fix_by_style("^neb/spin").size()) == 0))
     error->warning(FLERR,"Using spin pair style without nve/spin or neb/spin");
 
   // check if newton pair is on
@@ -98,9 +96,11 @@ void PairSpin::init_style()
 
   // get the lattice_flag from nve/spin
 
-  int ifix = modify->find_fix_by_style("^nve/spin");
-  if (ifix >=0)
-    lattice_flag = ((FixNVESpin *) modify->fix[ifix])->lattice_flag;
+  auto fixes = modify->get_fix_by_style("^nve/spin");
+  if (fixes.size() == 1)
+    lattice_flag = ((FixNVESpin *) fixes.front())->lattice_flag;
+  else if (fixes.size() > 1)
+    error->warning(FLERR,"Using multiple instances of fix nve/spin or neb/spin");
 
   // init. size of energy stacking lists
 

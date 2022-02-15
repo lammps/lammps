@@ -92,7 +92,7 @@ void WriteCoeff::command(int narg, char **arg)
     fprintf(two,"# LAMMPS coeff file via write_coeff, version %s\n",
             lmp->version);
 
-    while (1) {
+    while (true) {
       int coeff_mode = REGULAR_MODE;
       if (fgets(str,256,one) == nullptr) break;
 

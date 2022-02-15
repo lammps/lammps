@@ -27,17 +27,17 @@ namespace LAMMPS_NS {
 class FixBalance : public Fix {
  public:
   FixBalance(class LAMMPS *, int, char **);
-  ~FixBalance();
-  int setmask();
-  void post_constructor();
-  void init();
-  void setup(int);
-  void setup_pre_exchange();
-  void pre_exchange();
-  void pre_neighbor();
-  double compute_scalar();
-  double compute_vector(int);
-  double memory_usage();
+  ~FixBalance() override;
+  int setmask() override;
+  void post_constructor() override;
+  void init() override;
+  void setup(int) override;
+  void setup_pre_exchange() override;
+  void pre_exchange() override;
+  void pre_neighbor() override;
+  double compute_scalar() override;
+  double compute_vector(int) override;
+  double memory_usage() override;
 
  private:
   int nevery, lbstyle, nitermax;

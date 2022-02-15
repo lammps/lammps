@@ -37,13 +37,13 @@ class PairLJCharmmCoulLongKokkos : public PairLJCharmmCoulLong {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   PairLJCharmmCoulLongKokkos(class LAMMPS *);
-  ~PairLJCharmmCoulLongKokkos();
+  ~PairLJCharmmCoulLongKokkos() override;
 
-  void compute(int, int);
+  void compute(int, int) override;
 
-  void init_tables(double cut_coul, double *cut_respa);
-  void init_style();
-  double init_one(int, int);
+  void init_tables(double cut_coul, double *cut_respa) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
  protected:
   template<bool STACKPARAMS, class Specialisation>
@@ -104,7 +104,7 @@ class PairLJCharmmCoulLongKokkos : public PairLJCharmmCoulLong {
   double special_lj[4];
   double qqrd2e;
 
-  void allocate();
+  void allocate() override;
 
   friend struct PairComputeFunctor<PairLJCharmmCoulLongKokkos,FULL,true,CoulLongTable<1> >;
   friend struct PairComputeFunctor<PairLJCharmmCoulLongKokkos,HALF,true,CoulLongTable<1> >;

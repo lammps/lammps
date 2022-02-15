@@ -676,16 +676,11 @@ void FixPIMD::comm_exec(double **ptr)
       int index = atom->map(tag_send[i]);
 
       if (index < 0) {
-        char error_line[256];
-
-        sprintf(error_line,
-                "Atom " TAGINT_FORMAT " is missing at world [%d] "
-                "rank [%d] required by  rank [%d] (" TAGINT_FORMAT ", " TAGINT_FORMAT
-                ", " TAGINT_FORMAT ").\n",
-                tag_send[i], universe->iworld, comm->me, plan_recv[iplan], atom->tag[0],
-                atom->tag[1], atom->tag[2]);
-
-        error->universe_one(FLERR, error_line);
+        auto mesg = fmt::format("Atom {} is missing at world [{}] rank [{}] "
+                                "required by rank [{}] ({}, {}, {}).\n",
+                                tag_send[i], universe->iworld, comm->me,
+                                plan_recv[iplan], atom->tag[0], atom->tag[1], atom->tag[2]);
+        error->universe_one(FLERR, mesg);
       }
 
       memcpy(wrap_ptr, ptr[index], ncpy);

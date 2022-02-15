@@ -33,10 +33,10 @@ class PairLubricateOMP : public PairLubricate, public ThrOMP {
 
  public:
   PairLubricateOMP(class LAMMPS *);
-  virtual ~PairLubricateOMP() = default;
+  ~PairLubricateOMP() override = default;
 
-  virtual void compute(int, int);
-  virtual double memory_usage();
+  void compute(int, int) override;
+  double memory_usage() override;
 
  private:
   template <int LOGFLAG, int EVFLAG, int NEWTON_PAIR>

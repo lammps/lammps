@@ -43,11 +43,11 @@ using LAMMPS_NS::utils::uppercase;
 
 namespace ReaxFF {
 
-  class parser_error : public std::exception {
+  class ffield_parser_error : public std::exception {
     std::string message;
   public:
-    parser_error(const std::string &mesg) { message = mesg; }
-    const char *what() const noexcept { return message.c_str(); }
+    explicit ffield_parser_error(const std::string &mesg) { message = mesg; }
+    const char *what() const noexcept override { return message.c_str(); }
   };
 
   void Read_Force_Field(const char *filename, reax_interaction *reax,
@@ -61,7 +61,7 @@ namespace ReaxFF {
     // read and parse the force field only on rank 0
 
 #define THROW_ERROR(txt)                                                \
-    throw parser_error(fmt::format("{}:{}: {}",filename,lineno,txt))
+    throw ffield_parser_error(fmt::format("{}:{}: {}",filename,lineno,txt))
 
     if (control->me == 0) {
       FILE *fp = LAMMPS_NS::utils::open_potential(filename, lmp, nullptr);
@@ -163,7 +163,7 @@ namespace ReaxFF {
 
           // copy element symbol in uppercase and truncate stored element symbol if necessary
           auto element = uppercase(values.next_string());
-          strncpy(sbp[i].name,element.c_str(),4);
+          strncpy(sbp[i].name,element.c_str(),3);
           sbp[i].name[3] = '\0';
 
           sbp[i].r_s        = values.next_double();
@@ -583,6 +583,7 @@ namespace ReaxFF {
       } catch (std::exception &e) {
         error->one(FLERR,e.what());
       }
+      fclose(fp);
     }
 
     // broadcast global parameters and allocate list on ranks != 0

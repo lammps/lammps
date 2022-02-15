@@ -1433,7 +1433,7 @@ void FixSRD::collisions_multi()
     jlast = -1;
     dt = dt_big;
 
-    while (1) {
+    while (true) {
       nbig = nbinbig[ibin];
       if (ibounce == 0) ncheck += nbig;
 
@@ -2263,7 +2263,7 @@ void FixSRD::slip(double *vs, double *vb, double *xb, Big *big, double *xsurf, d
   double tangent[3], vsurf[3];
   double *omega = big->omega;
 
-  while (1) {
+  while (true) {
     r1 = sigma * random->gaussian();
     r2 = sigma * random->gaussian();
     vnmag = sqrt(r1 * r1 + r2 * r2);
@@ -2319,7 +2319,7 @@ void FixSRD::slip_wall(double *vs, int iwall, double *norm, double *vsnew)
   tangent2[1] = norm[2] * tangent1[0] - norm[0] * tangent1[2];
   tangent2[2] = norm[0] * tangent1[1] - norm[1] * tangent1[0];
 
-  while (1) {
+  while (true) {
     r1 = sigma * random->gaussian();
     r2 = sigma * random->gaussian();
     vnmag = sqrt(r1 * r1 + r2 * r2);
@@ -2370,7 +2370,7 @@ void FixSRD::noslip(double *vs, double *vb, double *xb, Big *big, int iwall, dou
   tangent2[1] = norm[2] * tangent1[0] - norm[0] * tangent1[2];
   tangent2[2] = norm[0] * tangent1[1] - norm[1] * tangent1[0];
 
-  while (1) {
+  while (true) {
     r1 = sigma * random->gaussian();
     r2 = sigma * random->gaussian();
     vnmag = sqrt(r1 * r1 + r2 * r2);

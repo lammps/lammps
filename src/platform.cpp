@@ -19,9 +19,8 @@
 #include "text_file_reader.h"
 #include "utils.h"
 
-#if HAVE_MPI
 #include <mpi.h>
-#endif
+#include <exception>
 
 ////////////////////////////////////////////////////////////////////////
 // include system headers and tweak system settings
@@ -50,7 +49,6 @@
 #include <dlfcn.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
-#include <sys/time.h>
 #include <sys/types.h>
 #include <sys/utsname.h>
 #include <unistd.h>
@@ -231,7 +229,7 @@ std::string platform::os_info()
   if (platform::file_is_readable("/etc/os-release")) {
     try {
         TextFileReader reader("/etc/os-release","");
-        while (1) {
+        while (true) {
           auto words = reader.next_values(0,"=");
           if ((words.count() > 1) && (words.next_string() == "PRETTY_NAME")) {
             buf += " " + utils::trim(words.next_string());
@@ -419,6 +417,24 @@ std::string platform::mpi_info(int &major, int &minor)
 }
 
 /* ----------------------------------------------------------------------
+   collect available compression tool info
+------------------------------------------------------------------------- */
+
+std::string platform::compress_info()
+{
+  std::string buf = "Available compression formats:\n\n";
+  bool none_found = true;
+  for (const auto &cmpi : compress_styles) {
+     if (cmpi.style == ::compress_info::NONE) continue;
+     if (find_exe_path(cmpi.command).size()) {
+       none_found = false;
+       buf += fmt::format("Extension: .{:6} Command: {}\n", cmpi.extension, cmpi.command);
+     }
+  }
+  if (none_found) buf += "None\n";
+  return buf;
+}
+/* ----------------------------------------------------------------------
    set environment variable
 ------------------------------------------------------------------------- */
 
@@ -428,11 +444,11 @@ int platform::putenv(const std::string &vardef)
 
   auto found = vardef.find_first_of('=');
 #ifdef _WIN32
-  // must assign a value to variable with _putenv()
+  // must assign a value to variable with _putenv_s()
   if (found == std::string::npos)
-    return _putenv(utils::strdup(vardef + "=1"));
+    return _putenv_s(vardef.c_str(), "1");
   else
-    return _putenv(utils::strdup(vardef));
+    return _putenv_s(vardef.substr(0, found).c_str(), vardef.substr(found+1).c_str());
 #else
   if (found == std::string::npos)
     return setenv(vardef.c_str(), "", 1);
@@ -440,6 +456,24 @@ int platform::putenv(const std::string &vardef)
     return setenv(vardef.substr(0, found).c_str(), vardef.substr(found + 1).c_str(), 1);
 #endif
   return -1;
+}
+
+/* ----------------------------------------------------------------------
+   unset environment variable
+------------------------------------------------------------------------- */
+
+int platform::unsetenv(const std::string &variable)
+{
+  if (variable.size() == 0) return -1;
+#ifdef _WIN32
+  // emulate POSIX semantics by returning -1 on trying to unset non-existing variable
+  const char *ptr = getenv(variable.c_str());
+  if (!ptr) return -1;
+  // empty _putenv_s() definition deletes variable
+  return _putenv_s(variable.c_str(),"");
+#else
+  return ::unsetenv(variable.c_str());
+#endif
 }
 
 /* ----------------------------------------------------------------------
@@ -930,7 +964,7 @@ bool platform::file_is_readable(const std::string &path)
 
 bool platform::has_compress_extension(const std::string &file)
 {
-  return find_compress_type(file).style != compress_info::NONE;
+  return find_compress_type(file).style != ::compress_info::NONE;
 }
 
 /* ----------------------------------------------------------------------
@@ -943,7 +977,7 @@ FILE *platform::compressed_read(const std::string &file)
 
 #if defined(LAMMPS_GZIP)
   auto compress = find_compress_type(file);
-  if (compress.style == compress_info::NONE) return nullptr;
+  if (compress.style == ::compress_info::NONE) return nullptr;
 
   if (find_exe_path(compress.command).size())
     // put quotes around file name so that they may contain blanks
@@ -962,7 +996,7 @@ FILE *platform::compressed_write(const std::string &file)
 
 #if defined(LAMMPS_GZIP)
   auto compress = find_compress_type(file);
-  if (compress.style == compress_info::NONE) return nullptr;
+  if (compress.style == ::compress_info::NONE) return nullptr;
 
   if (find_exe_path(compress.command).size())
     // put quotes around file name so that they may contain blanks

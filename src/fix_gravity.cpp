@@ -32,7 +32,6 @@ using namespace FixConst;
 using namespace MathConst;
 
 enum{CHUTE,SPHERICAL,VECTOR};
-enum{CONSTANT,EQUAL};          // same as FixPour
 
 /* ---------------------------------------------------------------------- */
 

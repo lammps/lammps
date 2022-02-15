@@ -150,7 +150,7 @@ void ComputeFragmentAtom::compute_peratom()
 
   int iteration = 0;
 
-  while (1) {
+  while (true) {
     iteration++;
 
     comm->forward_comm_compute(this);

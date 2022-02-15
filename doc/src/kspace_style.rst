@@ -310,7 +310,7 @@ Forschungszentrum Juelich.
 
 The library is available for download at "http://scafacos.de" or can
 be cloned from the git-repository
-"git://github.com/scafacos/scafacos.git".
+"https://github.com/scafacos/scafacos.git".
 
 In order to use this KSpace style, you must download and build the
 ScaFaCoS library, then build LAMMPS with the SCAFACOS package

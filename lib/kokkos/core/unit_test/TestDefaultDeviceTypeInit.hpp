@@ -79,7 +79,7 @@ char** init_kokkos_args(bool do_threads, bool do_numa, bool do_device,
   int numa_idx    = (do_other ? 3 : 0) + (do_threads ? 1 : 0);
   int device_idx =
       (do_other ? 3 : 0) + (do_threads ? 1 : 0) + (do_numa ? 1 : 0);
-  int tune_idx = (do_other ? 3 : 0) + (do_threads ? 1 : 0) + (do_numa ? 1 : 0) +
+  int tune_idx = (do_other ? 4 : 0) + (do_threads ? 1 : 0) + (do_numa ? 1 : 0) +
                  (do_device ? 1 : 0);
 
   if (do_threads) {

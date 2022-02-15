@@ -27,16 +27,16 @@ namespace LAMMPS_NS {
 class FixAtomSwap : public Fix {
  public:
   FixAtomSwap(class LAMMPS *, int, char **);
-  ~FixAtomSwap();
-  int setmask();
-  void init();
-  void pre_exchange();
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  double compute_vector(int);
-  double memory_usage();
-  void write_restart(FILE *);
-  void restart(char *);
+  ~FixAtomSwap() override;
+  int setmask() override;
+  void init() override;
+  void pre_exchange() override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  double compute_vector(int) override;
+  double memory_usage() override;
+  void write_restart(FILE *) override;
+  void restart(char *) override;
 
  private:
   int nevery, seed;

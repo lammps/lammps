@@ -291,16 +291,12 @@ void ChangeBox::command(int narg, char **arg)
 
     } else if (ops[m].style == ORTHO) {
       if (domain->xy != 0.0 || domain->yz != 0.0 || domain->xz != 0.0)
-        error->all(FLERR,
-                   "Cannot change box to orthogonal when tilt is non-zero");
+        error->all(FLERR,"Cannot change box to orthogonal when tilt is non-zero");
       if (output->ndump)
-        error->all(FLERR,
-                   "Cannot change box ortho/triclinic with dumps defined");
-      for (i = 0; i < modify->nfix; i++)
-        if (modify->fix[i]->no_change_box)
-          error->all(FLERR,
-                     "Cannot change box ortho/triclinic with "
-                     "certain fixes defined");
+        error->all(FLERR,"Cannot change box ortho/triclinic with dumps defined");
+      for (const auto &fix : modify->get_fix_list())
+        if (fix->no_change_box)
+          error->all(FLERR,"Cannot change box ortho/triclinic with certain fixes defined");
       domain->triclinic = 0;
       domain->set_initial_box();
       domain->set_global_box();
@@ -309,13 +305,10 @@ void ChangeBox::command(int narg, char **arg)
 
     } else if (ops[m].style == TRICLINIC) {
       if (output->ndump)
-        error->all(FLERR,
-                   "Cannot change box ortho/triclinic with dumps defined");
-      for (i = 0; i < modify->nfix; i++)
-        if (modify->fix[i]->no_change_box)
-          error->all(FLERR,
-                     "Cannot change box ortho/triclinic with "
-                     "certain fixes defined");
+        error->all(FLERR,"Cannot change box ortho/triclinic with dumps defined");
+      for (const auto &fix : modify->get_fix_list())
+        if (fix->no_change_box)
+          error->all(FLERR,"Cannot change box ortho/triclinic with certain fixes defined");
       domain->triclinic = 1;
       domain->set_lamda_box();
       domain->set_initial_box();

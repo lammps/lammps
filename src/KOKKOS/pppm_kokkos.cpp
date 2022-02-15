@@ -2711,10 +2711,9 @@ void PPPMKokkos<DeviceType>::compute_rho_coeff()
 {
   int j,k,l,m;
   FFT_SCALAR s;
-
-  //FFT_SCALAR **a;
-  //memory->create2d_offset(a,order,-order,order,"pppm:a");
-  FFT_SCALAR a[order][2*order+1];
+  FFT_SCALAR **a = new FFT_SCALAR *[order];
+  for (int i = 0; i < order; ++i)
+    a[i] = new FFT_SCALAR[2*order+1];
 
   for (k = 0; k <= 2*order; k++)
     for (l = 0; l < order; l++)
@@ -2744,7 +2743,9 @@ void PPPMKokkos<DeviceType>::compute_rho_coeff()
       h_rho_coeff(l,m-(1-order)/2) = a[l][k+order];
     m++;
   }
-  //memory->destroy2d_offset(a,-order);
+  for (int i = 0; i < order; ++i)
+    delete[] a[i];
+  delete[] a;
 }
 
 /* ----------------------------------------------------------------------

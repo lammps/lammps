@@ -40,10 +40,10 @@ class BondClass2Kokkos : public BondClass2 {
   typedef EV_FLOAT value_type;
 
   BondClass2Kokkos(class LAMMPS *);
-  virtual ~BondClass2Kokkos();
-  void compute(int, int);
-  void coeff(int, char **);
-  void read_restart(FILE *);
+  ~BondClass2Kokkos() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void read_restart(FILE *) override;
 
   template<int NEWTON_BOND, int EVFLAG>
   KOKKOS_INLINE_FUNCTION

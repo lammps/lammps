@@ -174,6 +174,8 @@ void AngleClass2P6::compute(int eflag, int vflag)
 
     // force & energy for bond-angle term
 
+    dr1 = r1 - ba_r1[type];
+    dr2 = r2 - ba_r2[type];
     aa1 = s * dr1 * ba_k1[type];
     aa2 = s * dr2 * ba_k2[type];
 
@@ -479,6 +481,9 @@ double AngleClass2P6::single(int type, int i1, int i2, int i3)
   double dr2 = r2 - bb_r2[type];
   energy += bb_k[type]*dr1*dr2;
 
+  dr1 = r1 - ba_r1[type];
+  dr2 = r2 - ba_r2[type];
   energy += ba_k1[type]*dr1*dtheta + ba_k2[type]*dr2*dtheta;
+
   return energy;
 }

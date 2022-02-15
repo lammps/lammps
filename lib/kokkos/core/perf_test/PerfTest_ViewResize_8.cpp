@@ -47,10 +47,18 @@
 namespace Test {
 
 TEST(default_exec, ViewResize_Rank8) {
+// FIXME_SYCL Avoid running out of resources on the CUDA GPU used in the CI
+#ifdef KOKKOS_ENABLE_SYCL
+  printf("Resize View Performance for LayoutLeft:\n");
+  run_resizeview_tests8<Kokkos::LayoutLeft>(9, 1);
+  printf("Resize View Performance for LayoutRight:\n");
+  run_resizeview_tests8<Kokkos::LayoutRight>(9, 1);
+#else
   printf("Resize View Performance for LayoutLeft:\n");
   run_resizeview_tests8<Kokkos::LayoutLeft>(10, 1);
   printf("Resize View Performance for LayoutRight:\n");
   run_resizeview_tests8<Kokkos::LayoutRight>(10, 1);
+#endif
 }
 
 }  // namespace Test

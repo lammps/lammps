@@ -54,7 +54,7 @@ class KokkosLMP : protected Pointers {
   static int init_ngpus;
 
   KokkosLMP(class LAMMPS *, int, char **);
-  ~KokkosLMP();
+  ~KokkosLMP() override;
   static void initialize(Kokkos::InitArguments, Error *);
   static void finalize();
   void accelerator(int, char **);
@@ -87,7 +87,7 @@ E: Invalid Kokkos command-line args
 
 Self-explanatory.  See Section 2.7 of the manual for details.
 
-E: Could not determine local MPI rank for multiple GPUs with Kokkos CUDA
+E: Could not determine local MPI rank for multiple GPUs with Kokkos
 because MPI library not recognized
 
 The local MPI rank was not found in one of four supported environment variables.
@@ -96,13 +96,13 @@ E: Invalid number of threads requested for Kokkos: must be 1 or greater
 
 Self-explanatory.
 
-E: GPUs are requested but Kokkos has not been compiled for CUDA
+E: GPUs are requested but Kokkos has not been compiled using GPU-enabled backend
 
-Recompile Kokkos with CUDA support to use GPUs.
+Recompile Kokkos with GPU-enabled backend to use GPUs.
 
-E: Kokkos has been compiled for CUDA, HIP, or SYCL but no GPUs are requested
+E: Kokkos has been compiled with GPU-enabled backend but no GPUs are requested
 
-One or more GPUs must be used when Kokkos is compiled for CUDA/HIP/SYCL.
+One or more GPUs must be used when Kokkos is compiled for CUDA/HIP/SYCL/OpenMPTarget.
 
 E: Cannot use multiple threads with the Kokkos Serial backend
 

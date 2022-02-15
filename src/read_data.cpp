@@ -40,7 +40,6 @@
 
 #include <cctype>
 #include <cstring>
-#include <string>
 #include <unordered_set>
 
 using namespace LAMMPS_NS;

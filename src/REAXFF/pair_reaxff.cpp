@@ -90,7 +90,6 @@ PairReaxFF::PairReaxFF(LAMMPS *lmp) : Pair(lmp)
   api->system->num_nbrs = 0;
   api->system->n = 0;                // my atoms
   api->system->N = 0;                // mine + ghosts
-  api->system->bigN = 0;             // all atoms in the system
   api->system->local_cap = 0;
   api->system->total_cap = 0;
   api->system->my_atoms = nullptr;
@@ -348,18 +347,12 @@ void PairReaxFF::init_style()
 
   api->system->n = atom->nlocal; // my atoms
   api->system->N = atom->nlocal + atom->nghost; // mine + ghosts
-  api->system->bigN = static_cast<int> (atom->natoms);  // all atoms in the system
   api->system->wsize = comm->nprocs;
 
   if (atom->tag_enable == 0)
     error->all(FLERR,"Pair style reaxff requires atom IDs");
   if (force->newton_pair == 0)
     error->all(FLERR,"Pair style reaxff requires newton pair on");
-
-  // because system->bigN is an int, we cannot have more atoms than MAXSMALLINT
-
-  if (atom->natoms > MAXSMALLINT)
-    error->all(FLERR,"Too many atoms for pair style reaxff");
 
   // need a half neighbor list w/ Newton off and ghost neighbors
   // built whenever re-neighboring occurs
@@ -388,7 +381,6 @@ void PairReaxFF::setup()
   api->system->n = atom->nlocal; // my atoms
   api->system->N = atom->nlocal + atom->nghost; // mine + ghosts
   oldN = api->system->N;
-  api->system->bigN = static_cast<int> (atom->natoms);  // all atoms in the system
 
   if (setup_flag == 0) {
 
@@ -455,8 +447,6 @@ double PairReaxFF::init_one(int i, int j)
 
 void PairReaxFF::compute(int eflag, int vflag)
 {
-  double evdwl,ecoul;
-
   // communicate num_bonds once every reneighboring
   // 2 num arrays stored by fix, grab ptr to them
 
@@ -464,12 +454,10 @@ void PairReaxFF::compute(int eflag, int vflag)
   int *num_bonds = fix_reaxff->num_bonds;
   int *num_hbonds = fix_reaxff->num_hbonds;
 
-  evdwl = ecoul = 0.0;
   ev_init(eflag,vflag);
 
   api->system->n = atom->nlocal; // my atoms
   api->system->N = atom->nlocal + atom->nghost; // mine + ghosts
-  api->system->bigN = static_cast<int> (atom->natoms);  // all atoms in the system
 
   if (api->system->acks2_flag) {
     auto ifix = modify->get_fix_by_style("^acks2/reax").front();
@@ -496,20 +484,6 @@ void PairReaxFF::compute(int eflag, int vflag)
   // energies and pressure
 
   if (eflag_global) {
-    evdwl += api->data->my_en.e_bond;
-    evdwl += api->data->my_en.e_ov;
-    evdwl += api->data->my_en.e_un;
-    evdwl += api->data->my_en.e_lp;
-    evdwl += api->data->my_en.e_ang;
-    evdwl += api->data->my_en.e_pen;
-    evdwl += api->data->my_en.e_coa;
-    evdwl += api->data->my_en.e_hb;
-    evdwl += api->data->my_en.e_tor;
-    evdwl += api->data->my_en.e_con;
-    evdwl += api->data->my_en.e_vdW;
-
-    ecoul += api->data->my_en.e_ele;
-    ecoul += api->data->my_en.e_pol;
 
     // Store the different parts of the energy
     // in a list for output by compute pair command

@@ -111,8 +111,8 @@ class MSM : public KSpace {
   void allocate_levels();
   void deallocate_levels();
   int factorable(int, int &, int &);
-  void particle_map();
-  void make_rho();
+  virtual void particle_map();
+  virtual void make_rho();
   virtual void direct(int);
   void direct_peratom(int);
   void direct_top(int);
@@ -121,8 +121,8 @@ class MSM : public KSpace {
   void prolongation(int);
   void grid_swap_forward(int, double ***&);
   void grid_swap_reverse(int, double ***&);
-  void fieldforce();
-  void fieldforce_peratom();
+  virtual void fieldforce();
+  virtual void fieldforce_peratom();
   void compute_phis(const double &, const double &, const double &);
   void compute_phis_and_dphis(const double &, const double &, const double &);
   inline double compute_phi(const double &);

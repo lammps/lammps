@@ -248,7 +248,7 @@ double AnswerT::energy_virial(double *eatom, double **vatom,
     return energy_virial(eatom,vatom,virial);
 
   double evdwl=0.0;
-  int ii, vstart=0, iend=_ev_stride;
+  int vstart=0, iend=_ev_stride;
   if (_eflag) {
     iend=_ev_stride*2;
     #if (LAL_USE_OMP_SIMD == 1)

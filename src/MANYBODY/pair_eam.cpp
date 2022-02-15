@@ -18,20 +18,18 @@
 
 #include "pair_eam.h"
 
-#include <cmath>
-
-#include <cstring>
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
+#include "potential_file_reader.h"
 #include "update.h"
 
-#include "tokenizer.h"
-#include "potential_file_reader.h"
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

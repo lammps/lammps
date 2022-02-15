@@ -393,7 +393,6 @@ void FixDeform::init()
   // error if more than one fix deform
   // domain, fix nvt/sllod, compute temp/deform only work on single h_rate
 
-  int count = 0;
   if (modify->get_fix_by_style("deform").size() > 1)
     error->all(FLERR,"More than one fix deform");
 

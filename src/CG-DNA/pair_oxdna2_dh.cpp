@@ -18,7 +18,6 @@
 #include "pair_oxdna2_dh.h"
 
 #include "atom.h"
-#include "atom_vec_ellipsoid.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"
@@ -100,10 +99,6 @@ void PairOxdna2Dh::compute(int eflag, int vflag)
   int newton_pair = force->newton_pair;
   int *alist,*blist,*numneigh,**firstneigh;
   double *special_lj = force->special_lj;
-
-  AtomVecEllipsoid *avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  AtomVecEllipsoid::Bonus *bonus = avec->bonus;
-  int *ellipsoid = atom->ellipsoid;
 
   int a,b,ia,ib,anum,bnum,atype,btype;
 

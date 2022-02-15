@@ -41,7 +41,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixNumDiff::FixNumDiff(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), id_pe(nullptr), numdiff_forces(nullptr), temp_x(nullptr), temp_f(nullptr)
+    Fix(lmp, narg, arg), id_pe(nullptr), pe(nullptr), numdiff_forces(nullptr), temp_x(nullptr), temp_f(nullptr)
 {
   if (narg < 5) error->all(FLERR, "Illegal fix numdiff command");
 
@@ -109,9 +109,8 @@ void FixNumDiff::init()
 
   // check for PE compute
 
-  int icompute = modify->find_compute(id_pe);
-  if (icompute < 0) error->all(FLERR, "Compute ID for fix numdiff does not exist");
-  pe = modify->compute[icompute];
+  pe = modify->get_compute_by_id(id_pe);
+  if (!pe) error->all(FLERR, "PE compute ID for fix numdiff does not exist");
 
   if (force->pair && force->pair->compute_flag)
     pair_compute_flag = 1;

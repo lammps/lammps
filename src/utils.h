@@ -76,8 +76,10 @@ namespace utils {
 
   /*! Flush output buffers
    *
-   *  This function calls fflush on screen and logfile FILE pointers
-   *  if available
+   *  This function calls fflush() on screen and logfile FILE pointers
+   *  if available and thus tells the operating system to output all
+   *  currently buffered data. This is local operation and independent
+   *  from buffering by a file system or an MPI library.
    */
 
   void flush_buffers(LAMMPS *lmp);

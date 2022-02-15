@@ -14,7 +14,7 @@
 #ifndef LMP_NBIN_H
 #define LMP_NBIN_H
 
-#include "pointers.h"
+#include "pointers.h"    // IWYU pragma: keep
 
 namespace LAMMPS_NS {
 

@@ -207,10 +207,12 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     error->all(FLERR,"Kokkos has been compiled with GPU-enabled backend but no GPUs are requested");
 #endif
 
-#ifdef KOKKOS_ENABLE_SERIAL
+#if !defined(KOKKOS_ENABLE_OPENMP) && !defined(KOKKOS_ENABLE_THREADS)
   if (nthreads > 1)
-    error->all(FLERR,"Cannot use multiple threads with the Kokkos Serial backend");
-#else
+    error->all(FLERR,"Multiple CPU threads are requested but Kokkos has not been compiled using a threading-enabled backend");
+#endif
+
+#ifndef KOKKOS_ENABLE_SERIAL
   if (nthreads == 1 && me == 0)
     error->warning(FLERR,"When using a single thread, the Kokkos Serial backend "
                          "(i.e. Makefile.kokkos_mpi_only) gives better performance "

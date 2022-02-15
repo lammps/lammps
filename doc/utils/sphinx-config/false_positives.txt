@@ -1145,6 +1145,7 @@ Geier
 gencode
 georg
 Georg
+germain
 Germann
 Germano
 gerolf
@@ -1816,6 +1817,7 @@ lsfftw
 ltbbmalloc
 Lua
 lubricateU
+lucas
 lucy
 Luding
 Luijten

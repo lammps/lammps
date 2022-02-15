@@ -175,9 +175,6 @@ class Domain : protected Pointers {
 
  protected:
   double small[3];    // fractions of box lengths
-
- private:
-  template <typename T> static Region *region_creator(LAMMPS *, int, char **);
 };
 
 }    // namespace LAMMPS_NS

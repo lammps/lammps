@@ -48,6 +48,15 @@ using namespace LAMMPS_NS;
 #define BONDSTRETCH 1.1
 
 /* ----------------------------------------------------------------------
+   one instance per region style in style_region.h
+------------------------------------------------------------------------- */
+
+template <typename T> static Region *region_creator(LAMMPS *lmp, int narg, char ** arg)
+{
+  return new T(lmp, narg, arg);
+}
+
+/* ----------------------------------------------------------------------
    default is periodic
 ------------------------------------------------------------------------- */
 
@@ -1795,16 +1804,6 @@ void Domain::add_region(int narg, char **arg)
 
   regions[nregion]->init();
   nregion++;
-}
-
-/* ----------------------------------------------------------------------
-   one instance per region style in style_region.h
-------------------------------------------------------------------------- */
-
-template <typename T>
-Region *Domain::region_creator(LAMMPS *lmp, int narg, char ** arg)
-{
-  return new T(lmp, narg, arg);
 }
 
 /* ----------------------------------------------------------------------

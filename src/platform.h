@@ -18,6 +18,7 @@
 
 #include "lmptype.h"
 
+#include <cstdio>
 #include <string>
 #include <vector>
 

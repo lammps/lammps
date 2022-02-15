@@ -19,7 +19,6 @@
 #include "mliap_model_nn.h"
 
 #include "mliap_data.h"
-#include "pair_mliap.h"
 
 #include "comm.h"
 #include "error.h"

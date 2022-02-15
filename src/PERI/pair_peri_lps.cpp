@@ -27,7 +27,6 @@
 #include "lattice.h"
 #include "math_const.h"
 #include "memory.h"
-#include "modify.h"
 #include "neigh_list.h"
 #include "neighbor.h"
 

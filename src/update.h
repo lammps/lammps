@@ -73,9 +73,6 @@ class Update : protected Pointers {
  private:
   void new_integrate(char *, int, char **, int, int &);
   void new_minimize(char *, int, char **, int, int &);
-
-  template <typename T> static Integrate *integrate_creator(LAMMPS *, int, char **);
-  template <typename T> static Min *minimize_creator(LAMMPS *);
 };
 
 }    // namespace LAMMPS_NS

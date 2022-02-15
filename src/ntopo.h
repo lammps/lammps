@@ -14,7 +14,7 @@
 #ifndef LMP_NTOPO_H
 #define LMP_NTOPO_H
 
-#include "pointers.h"
+#include "pointers.h"    // IWYU pragma: keep
 
 namespace LAMMPS_NS {
 

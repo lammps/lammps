@@ -34,6 +34,7 @@
 #include "reaxff_defs.h"
 
 #include <cstring>
+#include <exception>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

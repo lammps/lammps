@@ -1,9 +1,11 @@
 EAM database tool
-Xiaowang Zhou (Sandia), xzhou at sandia.gov
 
-Revised version including fixes from https://www.ctcms.nist.gov/potentials/entry/2004--Zhou-X-W-Johnson-R-A-Wadley-H-N-G--Al/
+Fortran version (create.f) by Xiaowang Zhou (Sandia), xzhou at sandia.gov
+with revisions by Lucas Hale lucas.hale at nist.gov from https://www.ctcms.nist.gov/potentials/entry/2004--Zhou-X-W-Johnson-R-A-Wadley-H-N-G--Al/
 
-based on this paper:
+Python version (create_eam.py) by Germain Clavier germain.clavier at gmail.com
+
+Most parameters based on this paper:
 
 X. W. Zhou, R. A. Johnson, and H. N. G. Wadley, Phys. Rev. B, 69,
 144113 (2004).
@@ -26,10 +28,25 @@ alloys.  Thus any potential files created with this tool should be used
 with care and test calculations (e.g. on multiple binary mixtures) performed
 to gauge the error.
 
-Steps:
+Steps (create.f):
 
 1) compile create.f -> a.out  (e.g. gfortran create.f)
 2) edit the input file EAM.input to list 2 or more desired elements to include
 3) a.out < EAM.input will create an *.eam.alloy potential file
-4) in DYNAMO or LAMMPS context this file is referred to as a setfl file
-   that can be used with the LAMMPS pair_style eam/alloy command
+
+Steps (create_eam.py):
+
+Usage: create_eam.py [-h] [-n NAME [NAME ...]] [-nr NR] [-nrho NRHO]
+
+options:
+  -n NAME [NAME ...], --names NAME [NAME ...]
+                        Element names
+  -nr NR                Number of point in r space [default 2000]
+  -nrho NRHO            Number of point in rho space [default 2000]
+
+1) you must have numpy installed
+2) run "python create_eam.py -n Ta Cu" with the list of desired elements
+3) this will create an *.eam.alloy potential file
+
+in DYNAMO or LAMMPS context the created file is referred to as a setfl file
+  that can be used with the LAMMPS pair_style eam/alloy command

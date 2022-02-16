@@ -29,10 +29,10 @@ class PairILPTMD : public PairILPGrapheneHBN {
   PairILPTMD(class LAMMPS *);
 
  protected:
-  void settings(int, char **);
-  void ILP_neigh();
-  void calc_normal();
-  void calc_FRep(int, int);
+  void settings(int, char **) override;
+  void ILP_neigh() override;
+  void calc_normal() override;
+  void calc_FRep(int, int) override;
 
   /**************************************************************/
   /*       modulo operation with cycling around range           */

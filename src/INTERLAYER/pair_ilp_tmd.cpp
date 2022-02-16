@@ -59,6 +59,7 @@ static const char cite_ilp_tmd[] = "ilp/tmd potential doi/10.1021/acs.jctc.1c007
 PairILPTMD::PairILPTMD(LAMMPS *lmp) : PairILPGrapheneHBN(lmp)
 {
   variant = ILP_TMD;
+  single_enable = 0;
 
   // for TMD, each atom have six neighbors
   Nnei = 6;
@@ -228,7 +229,7 @@ void PairILPTMD::calc_FRep(int eflag, int /* vflag */)
 }
 
 /* ----------------------------------------------------------------------
-   create ILP neighbor list from main neighbor list to calcualte normals
+   create ILP neighbor list from main neighbor list to calculate normals
 ------------------------------------------------------------------------- */
 
 void PairILPTMD::ILP_neigh()

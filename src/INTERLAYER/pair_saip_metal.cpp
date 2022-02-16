@@ -55,6 +55,7 @@ static const char cite_saip[] =
 PairSAIPMETAL::PairSAIPMETAL(LAMMPS *lmp) : PairILPGrapheneHBN(lmp)
 {
   variant = SAIP_METAL;
+  single_enable = 0;
   if (lmp->citeme) lmp->citeme->add(cite_saip);
 }
 

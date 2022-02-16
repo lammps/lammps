@@ -29,8 +29,8 @@ class PairSAIPMETAL : public PairILPGrapheneHBN {
   PairSAIPMETAL(class LAMMPS *);
 
  protected:
-  void settings(int, char **);
-  void calc_FRep(int, int);
+  void settings(int, char **) override;
+  void calc_FRep(int, int) override;
 };
 
 }    // namespace LAMMPS_NS

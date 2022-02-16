@@ -30,8 +30,8 @@ Description
 """""""""""
 
 The *ilp/tmd* style computes the registry-dependent interlayer
-potential (ILP) potential for itransition metal dichalcogenide (TMD)
-as described in :ref:`(Ouyang3) <Ouyang3>`.
+potential (ILP) potential for transition metal dichalcogenides (TMD)
+as described in :ref:`(Ouyang7) <Ouyang7>`.
 
 .. math::
 
@@ -58,11 +58,11 @@ calculating the normals.
 .. note::
 
    Since each MX2 (M = Mo, W and X = S, Se Te) layer contains two
-   sublayers of X atoms and one sublayer of M atoms, the definition of the
+   sub-layers of X atoms and one sub-layer of M atoms, the definition of the
    normal vectors used for graphene and h-BN is no longer valid for TMDs.
-   In :ref:`(Ouyang3) <Ouyang3>`, a new definition is proposed, where for
+   In :ref:`(Ouyang7) <Ouyang7>`, a new definition is proposed, where for
    each atom `i`, its six nearest neighboring atoms belonging to the same
-   sublayer are chosen to define the normal vector `{\bf n}_i`.
+   sub-layer are chosen to define the normal vector `{\bf n}_i`.
 
 The parameter file (e.g. TMD.ILP), is intended for use with *metal*
 :doc:`units <units>`, with energies in meV. Two additional parameters,
@@ -72,14 +72,14 @@ list for calculating the normals for each atom pair.
 
 .. note::
 
-   The parameters presented in the parameter file (e.g. BNCH.ILP),
+   The parameters presented in the parameter file (e.g. TMD.ILP),
    are fitted with taper function by setting the cutoff equal to 16.0
    Angstrom.  Using different cutoff or taper function should be careful.
    These parameters provide a good description in both short- and long-range
    interaction regimes. This feature is essential for simulations in high pressure
    regime (i.e., the interlayer distance is smaller than the equilibrium
    distance). The benchmark tests and comparison of these parameters can
-   be found in :ref:`(Ouyang3) <Ouyang3>`.
+   be found in :ref:`(Ouyang7) <Ouyang7>`.
 
 This potential must be used in combination with hybrid/overlay.
 Other interactions can be set to zero using pair_style *none*\ .
@@ -152,6 +152,6 @@ tap_flag = 1
 
 ----------
 
-.. _Ouyang3:
+.. _Ouyang7:
 
-**(Ouyang3)** W. Ouyang, et al., J. Chem. Theory Comput. 17, 7237 (2021).
+**(Ouyang7)** W. Ouyang, et al., J. Chem. Theory Comput. 17, 7237 (2021).

@@ -69,7 +69,7 @@ and K of atom I within a cutoff distance :math:`a `\sigma`.
 
 The *sw/mod* style is designed for simulations of materials when
 distinguishing three-body angles are necessary, such as borophene
-and transition metal dichalcogenide, which cannot be described
+and transition metal dichalcogenides, which cannot be described
 by the original code for the Stillinger-Weber potential.
 For instance, there are several types of angles around each Mo atom in `MoS_2`,
 and some unnecessary angle types should be excluded in the three-body interaction.
@@ -99,7 +99,7 @@ This smoothly turns off the energy and force contributions for :math:`\left| \de
 It is suggested that :math:`\delta 1` and :math:`\delta_2` to be the value around
 :math:`0.5 \left| \cos \theta_1 - \cos \theta_2 \right|`, with
 :math:`\theta_1` and :math:`\theta_2` as the different types of angles around an atom.
-For borophene and transition metal dichalcogenide, :math:`\delta_1 = 0.25` and :math:`\delta_2 = 0.35`.
+For borophene and transition metal dichalcogenides, :math:`\delta_1 = 0.25` and :math:`\delta_2 = 0.35`.
 This value enables the cut-off function to exclude unnecessary angles in the three-body SW terms.
 
 .. note::

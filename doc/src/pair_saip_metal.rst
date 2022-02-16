@@ -30,8 +30,8 @@ Description
 """""""""""
 
 The *saip/metal* style computes the registry-dependent interlayer
-potential (ILP) potential for heterojunctions formed with hexagonal
-2D materials and metal surfaces, as described in :ref:`(Ouyang4) <Ouyang4>`.
+potential (ILP) potential for hetero-junctions formed with hexagonal
+2D materials and metal surfaces, as described in :ref:`(Ouyang6) <Ouyang6>`.
 
 .. math::
 
@@ -63,9 +63,9 @@ calculating the normals.
    assumption is suitable for many bulk material surfaces, for
    example, for systems possessing s-type valence orbitals or
    metallic surfaces, whose valence electrons are mostly
-   delocalized, such that their Pauli repulsions with the electrons
+   delocalized, such that their Pauli repulsion with the electrons
    of adjacent surfaces are isotropic. Caution should be used in
-   the case of very small gold contacts, for example, nanoclusters,
+   the case of very small gold contacts, for example, nano-clusters,
    where edge effects may become relevant.
 
 The parameter file (e.g. CHAu.ILP), is intended for use with *metal*
@@ -151,6 +151,6 @@ tap_flag = 1
 
 ----------
 
-.. _Ouyang4:
+.. _Ouyang6:
 
-**(Ouyang4)** W. Ouyang, O. Hod, and R. Guerra, J. Chem. Theory Comput. 17, 7215 (2021).
+**(Ouyang6)** W. Ouyang, O. Hod, and R. Guerra, J. Chem. Theory Comput. 17, 7215 (2021).

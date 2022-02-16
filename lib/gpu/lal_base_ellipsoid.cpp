@@ -69,7 +69,7 @@ BaseEllipsoidT::~BaseEllipsoid() {
 }
 
 template <class numtyp, class acctyp>
-int BaseEllipsoidT::bytes_per_atom(const int max_nbors) const {
+int BaseEllipsoidT::bytes_per_atom_ellipsoid(const int max_nbors) const {
   return device->atom.bytes_per_atom()+ans->bytes_per_atom()+
          nbor->bytes_per_atom(max_nbors);
 }

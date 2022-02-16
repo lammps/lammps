@@ -22,7 +22,6 @@
 #include "atom.h"
 #include "bond.h"
 #include "comm.h"
-#include "compute.h"
 #include "dihedral.h"
 #include "domain.h"
 #include "error.h"

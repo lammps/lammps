@@ -410,6 +410,10 @@ class lammps(object):
         pythonapi.PyCObject_AsVoidPtr.argtypes = [py_object]
         self.lmp = c_void_p(pythonapi.PyCObject_AsVoidPtr(ptr))
 
+    # check if library initilialization failed
+    if not self.lmp:
+      raise(RuntimeError("Failed to initialize LAMMPS object"))
+
     # optional numpy support (lazy loading)
     self._numpy = None
 

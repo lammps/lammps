@@ -40,7 +40,6 @@
 #include "pair.h"
 #include "pair_hybrid.h"
 #include "region.h"
-#include "text_file_reader.h"
 #include "update.h"
 #include "variable.h"
 #include "fmt/chrono.h"
@@ -49,7 +48,6 @@
 #include <cmath>
 #include <cstring>
 #include <ctime>
-#include <exception>
 #include <map>
 
 #ifdef _WIN32
@@ -62,7 +60,6 @@
 #include <psapi.h>
 #else
 #include <sys/resource.h>
-#include <sys/utsname.h>
 #endif
 
 #if defined(__linux__)

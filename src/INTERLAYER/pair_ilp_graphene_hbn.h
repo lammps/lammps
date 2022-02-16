@@ -68,8 +68,8 @@ class PairILPGrapheneHBN : public Pair {
   double ***dnormdri;
   double ****dnormal;
 
-// adds for ilp/tmd
-  int Nnei;         // max # of nearest neighbors for one atom
+  // adds for ilp/tmd
+  int Nnei;    // max # of nearest neighbors for one atom
   double **dnn;
   double **vect;
   double **pvet;

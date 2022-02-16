@@ -43,7 +43,6 @@ class PairILPTMD : public PairILPGrapheneHBN {
     return k % range;
   }
   /**************************************************************/
-
 };
 
 }    // namespace LAMMPS_NS

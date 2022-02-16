@@ -30,7 +30,7 @@ Description
 """""""""""
 
 The *ilp/tmd* style computes the registry-dependent interlayer
-potential (ILP) potential for itransition metal dichalcogenide (TMD) 
+potential (ILP) potential for itransition metal dichalcogenide (TMD)
 as described in :ref:`(Ouyang3) <Ouyang3>`.
 
 .. math::
@@ -57,11 +57,11 @@ calculating the normals.
 
 .. note::
 
-   Since each MX2 (M = Mo, W and X = S, Se Te) layer contains two 
+   Since each MX2 (M = Mo, W and X = S, Se Te) layer contains two
    sublayers of X atoms and one sublayer of M atoms, the definition of the
    normal vectors used for graphene and h-BN is no longer valid for TMDs.
-   In :ref:`(Ouyang3) <Ouyang3>`, a new definition is proposed, where for 
-   each atom `i`, its six nearest neighboring atoms belonging to the same 
+   In :ref:`(Ouyang3) <Ouyang3>`, a new definition is proposed, where for
+   each atom `i`, its six nearest neighboring atoms belonging to the same
    sublayer are chosen to define the normal vector `{\bf n}_i`.
 
 The parameter file (e.g. TMD.ILP), is intended for use with *metal*
@@ -75,7 +75,7 @@ list for calculating the normals for each atom pair.
    The parameters presented in the parameter file (e.g. BNCH.ILP),
    are fitted with taper function by setting the cutoff equal to 16.0
    Angstrom.  Using different cutoff or taper function should be careful.
-   These parameters provide a good description in both short- and long-range 
+   These parameters provide a good description in both short- and long-range
    interaction regimes. This feature is essential for simulations in high pressure
    regime (i.e., the interlayer distance is smaller than the equilibrium
    distance). The benchmark tests and comparison of these parameters can

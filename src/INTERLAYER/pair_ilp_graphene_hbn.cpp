@@ -58,8 +58,7 @@ static const char cite_ilp[] =
 
 /* ---------------------------------------------------------------------- */
 
-PairILPGrapheneHBN::PairILPGrapheneHBN(LAMMPS *lmp)
-  : Pair(lmp), variant(ILP_GrhBN)
+PairILPGrapheneHBN::PairILPGrapheneHBN(LAMMPS *lmp) : Pair(lmp), variant(ILP_GrhBN)
 {
   restartinfo = 0;
   one_coeff = 1;
@@ -212,20 +211,20 @@ void PairILPGrapheneHBN::read_file(char *filename)
   if (comm->me == 0) {
     std::string potential_name;
     switch (variant) {
-    case ILP_GrhBN:
-      potential_name = "ilp/graphene/hbn";
-      break;
+      case ILP_GrhBN:
+        potential_name = "ilp/graphene/hbn";
+        break;
 
-    case ILP_TMD:
-      potential_name = "ilp/tmd";
-      break;
+      case ILP_TMD:
+        potential_name = "ilp/tmd";
+        break;
 
-    case SAIP_METAL:
-      potential_name = "saip/metal";
-      break;
+      case SAIP_METAL:
+        potential_name = "saip/metal";
+        break;
 
-    default:
-      error->one(FLERR,"Unknown ILP style variant {}",variant);
+      default:
+        error->one(FLERR, "Unknown ILP style variant {}", variant);
     }
     PotentialFileReader reader(lmp, filename, potential_name, unit_convert_flag);
     char *line;
@@ -342,10 +341,8 @@ void PairILPGrapheneHBN::read_file(char *filename)
 
 void PairILPGrapheneHBN::init_style()
 {
-  if (force->newton_pair == 0)
-    error->all(FLERR, "Pair style ilp/* requires newton pair on");
-  if (!atom->molecule_flag)
-    error->all(FLERR, "Pair style ilp/* requires atom attribute molecule");
+  if (force->newton_pair == 0) error->all(FLERR, "Pair style ilp/* requires newton pair on");
+  if (!atom->molecule_flag) error->all(FLERR, "Pair style ilp/* requires atom attribute molecule");
 
   // need a full neighbor list, including neighbors of ghosts
 

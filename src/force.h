@@ -17,6 +17,7 @@
 #include "pointers.h"
 
 #include <map>
+#include <functional>
 
 namespace LAMMPS_NS {
 class Angle;
@@ -86,7 +87,7 @@ class Force : protected Pointers {
   KSpace *kspace;
   char *kspace_style;
 
-  typedef Pair *(*PairCreator)(LAMMPS *);
+  typedef std::function<Pair*(LAMMPS *)> PairCreator;
   typedef Bond *(*BondCreator)(LAMMPS *);
   typedef Angle *(*AngleCreator)(LAMMPS *);
   typedef Dihedral *(*DihedralCreator)(LAMMPS *);

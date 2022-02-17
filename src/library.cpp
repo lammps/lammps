@@ -50,6 +50,7 @@
 #include "universe.h"
 #include "update.h"
 #include "variable.h"
+#include "pair_foreign.h"
 
 #include <cstring>
 
@@ -5561,6 +5562,19 @@ int lammps_get_last_error_message(void *handle, char *buffer, int buf_size) {
   }
 #endif
   return 0;
+}
+
+int lammps_foreign_add_pair_style(void *handle, const char *_name) {
+  LAMMPS *lmp = (LAMMPS *) handle;
+  std::string name = _name;
+  auto &pair_map = *lmp->force->pair_map;
+
+  auto it = pair_map.find(name);
+  if (it != pair_map.end()) {
+    return 1;
+  }
+  // Issue: Can't capture things
+  pair_map[name] = [](LAMMPS * lmp) -> Pair* { return new PairForeign(lmp); };
 }
 
 // Local Variables:

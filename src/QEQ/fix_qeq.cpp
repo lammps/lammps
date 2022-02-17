@@ -40,7 +40,6 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-static constexpr int MAXLINE = 1024;
 static constexpr double QSUMSMALL = 0.00001;
 
 namespace {

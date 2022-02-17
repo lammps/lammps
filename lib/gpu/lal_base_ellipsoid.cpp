@@ -29,8 +29,7 @@ const char *ellipsoid_nbor=0;
 extern Device<PRECISION,ACC_PRECISION> global_device;
 
 template <class numtyp, class acctyp>
-BaseEllipsoidT::BaseEllipsoid() : _compiled(false), _max_bytes(0),
-                                  host_olist_size(0) {
+BaseEllipsoidT::BaseEllipsoid() : host_olist_size(0), _compiled(false), _max_bytes(0) {
   device=&global_device;
   ans=new Answer<numtyp,acctyp>();
   nbor=new Neighbor();

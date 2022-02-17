@@ -319,7 +319,6 @@ void AnswerT::get_answers(double **f, double **tor) {
       const int ifrom = tid * idelta;
       const int ito = std::min(ifrom + idelta, _inum);
       #else
-      const int tid = 0;
       const int ifrom = 0;
       const int ito = _inum;
       #endif
@@ -352,7 +351,6 @@ void AnswerT::get_answers(double **f, double **tor) {
       const int ito = std::min(ifrom + idelta, _inum);
       int fl=ifrom*4;
       #else
-      const int tid = 0;
       const int ifrom = 0;
       const int ito = _inum;
       int fl=0;

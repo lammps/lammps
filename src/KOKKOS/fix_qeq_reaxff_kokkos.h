@@ -34,28 +34,30 @@ FixStyle(qeq/reax/kk/host,FixQEqReaxFFKokkos<LMPHostType>);
 
 namespace LAMMPS_NS {
 
-#ifdef HIP_OPT_CG_SOLVE_FUSED
-struct TagSparseMatvec13 {};
-struct TagSparseMatvec13Vector {};
-struct TagSparseMatvec2Fused {};
-struct TagSparseMatvec2FusedVector {};
-#else
-struct TagSparseMatvec1 {};
-struct TagSparseMatvec1Vector {};
-struct TagSparseMatvec2 {};
-struct TagSparseMatvec2Vector {};
-struct TagSparseMatvec3 {};
-struct TagSparseMatvec3Vector {};
-struct TagZeroQGhosts{};
-#endif
+struct TagQEqZero{};
+struct TagQEqInitMatvec{};
+struct TagQEqSparseMatvec1{};
+struct TagQEqZeroQGhosts{};
 
-struct TagFixQEqReaxFFPackForwardComm {};
-struct TagFixQEqReaxFFUnpackForwardComm {};
+template<int NEIGHFLAG>
+struct TagQEqSparseMatvec2_Half{};
+
+struct TagQEqSparseMatvec2_Full{};
+struct TagQEqNorm1{};
+struct TagQEqDot1{};
+struct TagQEqDot2{};
+struct TagQEqDot3{};
+struct TagQEqSum1{};
+struct TagQEqSum2{};
+struct TagQEqCalculateQ{};
+struct TagQEqPackForwardComm{};
+struct TagQEqUnpackForwardComm{};
 
 template<class DeviceType>
 class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
  public:
   typedef DeviceType device_type;
+  typedef F_FLOAT2 value_type;
   typedef ArrayTypes<DeviceType> AT;
   FixQEqReaxFFKokkos(class LAMMPS *, int, char **);
   ~FixQEqReaxFFKokkos() override;
@@ -69,7 +71,10 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   void num_neigh_item(int, int&) const;
 
   KOKKOS_INLINE_FUNCTION
-  void zero_item(int) const;
+  void operator()(TagQEqZero, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagQEqInitMatvec, const int&) const;
 
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -80,145 +85,48 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   void compute_h_team(const typename Kokkos::TeamPolicy <DeviceType> ::member_type &team, int, int) const;
 
   KOKKOS_INLINE_FUNCTION
-  void matvec_item(int) const;
-
-#ifdef HIP_OPT_CG_SOLVE_FUSED
+  void operator()(TagQEqSparseMatvec1, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
-  void sparse22_fused_item(int) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void sparse12_32_item(int) const;
-
-  typedef typename Kokkos::TeamPolicy <DeviceType, TagSparseMatvec2Fused> ::member_type membertype2fused;
-  KOKKOS_INLINE_FUNCTION
-  void operator() (TagSparseMatvec2Fused, const membertype2fused &team) const;
-
-  typedef typename Kokkos::TeamPolicy <DeviceType, TagSparseMatvec2FusedVector> ::member_type membertype2fusedvec;
-  KOKKOS_INLINE_FUNCTION
-  void operator() (TagSparseMatvec2FusedVector, const membertype2fusedvec &team) const;
-
-  typedef typename Kokkos::TeamPolicy <DeviceType, TagSparseMatvec13> ::member_type membertype13;
-  KOKKOS_INLINE_FUNCTION
-  void operator() (TagSparseMatvec13, const membertype13 &team) const;
-
-  typedef typename Kokkos::TeamPolicy <DeviceType, TagSparseMatvec13Vector> ::member_type membertype13vec;
-  KOKKOS_INLINE_FUNCTION
-  void operator() (TagSparseMatvec13Vector, const membertype13vec &team) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void vecsum2_fused_item(int) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void norm12_item(int, F_FLOAT2&) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void dot11_item(int, F_FLOAT2&) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void dot22_item(int, F_FLOAT2&) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void precon12_item(int) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void precon_fused_item(int, F_FLOAT2&) const;
-
-#else
-
-  KOKKOS_INLINE_FUNCTION
-  void sparse12_item(int) const;
+  void operator()(TagQEqZeroQGhosts, const int&) const;
 
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
-  void sparse13_item(int) const;
+  void operator()(TagQEqSparseMatvec2_Half<NEIGHFLAG>, const int&) const;
+
+  typedef typename Kokkos::TeamPolicy <DeviceType, TagQEqSparseMatvec2_Full> ::member_type membertype_vec;
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagQEqSparseMatvec2_Full, const membertype_vec &team) const;
 
   KOKKOS_INLINE_FUNCTION
-  void sparse22_item(int) const;
-
-  template<int NEIGHFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void sparse23_item(int) const;
+  void operator()(TagQEqNorm1, const int&, F_FLOAT2&) const;
 
   KOKKOS_INLINE_FUNCTION
-  void sparse32_item(int) const;
-
-  template<int NEIGHFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void sparse33_item(int) const;
-
-  typedef typename Kokkos::TeamPolicy <DeviceType, TagSparseMatvec1> ::member_type membertype1;
-  KOKKOS_INLINE_FUNCTION
-  void operator() (TagSparseMatvec1, const membertype1 &team) const;
-
-  typedef typename Kokkos::TeamPolicy <DeviceType, TagSparseMatvec1Vector> ::member_type membertype1vec;
-  KOKKOS_INLINE_FUNCTION
-  void operator() (TagSparseMatvec1Vector, const membertype1vec &team) const;
-
-  typedef typename Kokkos::TeamPolicy <DeviceType, TagSparseMatvec2> ::member_type membertype2;
-  KOKKOS_INLINE_FUNCTION
-  void operator() (TagSparseMatvec2, const membertype2 &team) const;
-
-  typedef typename Kokkos::TeamPolicy <DeviceType, TagSparseMatvec2Vector> ::member_type membertype2vec;
-  KOKKOS_INLINE_FUNCTION
-  void operator() (TagSparseMatvec2Vector, const membertype2vec &team) const;
-
-  typedef typename Kokkos::TeamPolicy <DeviceType, TagSparseMatvec3> ::member_type membertype3;
-  KOKKOS_INLINE_FUNCTION
-  void operator() (TagSparseMatvec3, const membertype3 &team) const;
-
-  typedef typename Kokkos::TeamPolicy <DeviceType, TagSparseMatvec3Vector> ::member_type membertype3vec;
-  KOKKOS_INLINE_FUNCTION
-  void operator() (TagSparseMatvec3Vector, const membertype3vec &team) const;
+  void operator()(TagQEqDot1, const int&, F_FLOAT2&) const;
 
   KOKKOS_INLINE_FUNCTION
-  void vecsum2_item(int) const;
+  void operator()(TagQEqDot2, const int&, F_FLOAT2&) const;
 
   KOKKOS_INLINE_FUNCTION
-  double norm1_item(int) const;
+  void operator()(TagQEqDot3, const int&, F_FLOAT2&) const;
 
   KOKKOS_INLINE_FUNCTION
-  double norm2_item(int) const;
+  void operator()(TagQEqSum1, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
-  double dot1_item(int) const;
+  void operator()(TagQEqSum2, const int&, F_FLOAT2&) const;
 
   KOKKOS_INLINE_FUNCTION
-  double dot2_item(int) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void precon1_item(int) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void precon2_item(int) const;
-
-  KOKKOS_INLINE_FUNCTION
-  double precon_item(int) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagZeroQGhosts, const int&) const;
-
-#endif
-
-  
-
-  KOKKOS_INLINE_FUNCTION
-  double vecacc1_item(int) const;
-
-  KOKKOS_INLINE_FUNCTION
-  double vecacc2_item(int) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void calculate_q_item(int) const;
+  void operator()(TagQEqCalculateQ, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
   double calculate_H_k(const F_FLOAT &r, const F_FLOAT &shld) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagFixQEqReaxFFPackForwardComm, const int&) const;
+  void operator()(TagQEqPackForwardComm, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagFixQEqReaxFFUnpackForwardComm, const int&) const;
+  void operator()(TagQEqUnpackForwardComm, const int&) const;
 
   struct params_qeq{
     KOKKOS_INLINE_FUNCTION
@@ -236,6 +144,7 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
   double memory_usage() override;
+  void sparse_matvec_kokkos(typename AT::t_ffloat2_1d &);
 
   // There should be a better way to do this for other backends
 #if defined(KOKKOS_ENABLE_CUDA)
@@ -304,21 +213,13 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   typename AT::t_int_1d d_jlist;
   typename AT::t_ffloat_1d d_val;
 
-  DAT::tdual_ffloat_1d k_t, k_s, k_chi_field;
-  typename AT::t_ffloat_1d d_Hdia_inv, d_b_s, d_b_t, d_t, d_s, d_chi_field;
-  HAT::t_ffloat_1d h_t, h_s;
-  typename AT::t_ffloat_1d_randomread r_b_s, r_b_t, r_t, r_s;
+  DAT::tdual_ffloat_1d k_chi_field;
+  typename AT::t_ffloat_1d d_Hdia_inv, d_chi_field;
 
-#ifdef HIP_OPT_CG_SOLVE_FUSED
-  DAT::tdual_ffloat2_1d k_o_fused, k_d_fused;
-  typename AT::t_ffloat2_1d d_p_fused, d_o_fused, d_r_fused, d_d_fused;
-  HAT::t_ffloat2_1d h_o_fused, h_d_fused;
+  DAT::tdual_ffloat2_1d k_o, k_d, k_st;
+  typename AT::t_ffloat2_1d d_p, d_o, d_r, d_d, d_b_st, d_st, d_xx;
+  HAT::t_ffloat2_1d h_o, h_d, h_st;
   int converged = 0;
-#else
-  DAT::tdual_ffloat_1d k_o, k_d;
-  typename AT::t_ffloat_1d d_p, d_o, d_r, d_d;
-  HAT::t_ffloat_1d h_o, h_d;
-#endif
 
   typename AT::t_ffloat_1d_randomread r_p, r_o, r_r, r_d;
 
@@ -335,8 +236,8 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   template<typename DataType, typename Layout>
   using NonDupScatterView = KKScatterView<DataType, Layout, KKDeviceType, KKScatterSum, KKScatterNonDuplicated>;
 
-  DupScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout> dup_o;
-  NonDupScatterView<F_FLOAT*, typename AT::t_ffloat_1d::array_layout> ndup_o;
+  DupScatterView<F_FLOAT**, typename AT::t_ffloat_1d::array_layout> dup_o;
+  NonDupScatterView<F_FLOAT**, typename AT::t_ffloat_1d::array_layout> ndup_o;
 
   int iswap;
   int first;
@@ -348,23 +249,14 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   void allocate_matrix() override;
   void allocate_array();
 
-#ifdef HIP_OPT_CG_SOLVE_FUSED
-  int cg_solve_fused();
-#else
-  int cg_solve1();
-  int cg_solve2();
-#endif
+  int cg_solve();
   void calculate_q();
 
   int neighflag, pack_flag;
   int nlocal,nall,nmax,newton_pair;
   int count, isuccess;
-#ifdef HIP_OPT_CG_SOLVE_FUSED
   F_FLOAT alpha[2];
   F_FLOAT beta[2];
-#else
-  double alpha, beta;
-#endif
 
   double delta, cutsq;
 
@@ -377,8 +269,8 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
 
 template <class DeviceType>
 struct FixQEqReaxFFKokkosNumNeighFunctor  {
-  typedef DeviceType  device_type ;
-  typedef int value_type ;
+  typedef DeviceType  device_type;
+  typedef int value_type;
   FixQEqReaxFFKokkos<DeviceType> c;
   FixQEqReaxFFKokkosNumNeighFunctor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
     c.cleanup_copy();
@@ -386,19 +278,6 @@ struct FixQEqReaxFFKokkosNumNeighFunctor  {
   KOKKOS_INLINE_FUNCTION
   void operator()(const int ii, int &maxneigh) const {
     c.num_neigh_item(ii, maxneigh);
-  }
-};
-
-template <class DeviceType>
-struct FixQEqReaxFFKokkosMatVecFunctor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxFFKokkos<DeviceType> c;
-  FixQEqReaxFFKokkosMatVecFunctor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
-    c.cleanup_copy();
-  };
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int ii) const {
-    c.matvec_item(ii);
   }
 };
 
@@ -449,370 +328,12 @@ struct FixQEqReaxFFKokkosComputeHFunctor {
   }
 };
 
-template <class DeviceType>
-struct FixQEqReaxFFKokkosZeroFunctor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxFFKokkos<DeviceType> c;
-  FixQEqReaxFFKokkosZeroFunctor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
-    c.cleanup_copy();
-  };
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int ii) const {
-    c.zero_item(ii);
-  }
-};
-
-#ifdef HIP_OPT_CG_SOLVE_FUSED
-// Functors exclusive to fused CG
-
-template <class DeviceType>
-struct FixQEqReaxFFKokkosSparse22FusedFunctor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxFFKokkos<DeviceType> c;
-  FixQEqReaxFFKokkosSparse22FusedFunctor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
-    c.cleanup_copy();
-  };
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int ii) const {
-    c.sparse22_fused_item(ii);
-  }
-};
-
-template <class DeviceType>
-struct FixQEqReaxFFKokkosSparse12_32Functor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxFFKokkos<DeviceType> c;
-  FixQEqReaxFFKokkosSparse12_32Functor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
-    c.cleanup_copy();
-  };
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int ii) const {
-    c.sparse12_32_item(ii);
-  }
-};
-
-template <class DeviceType>
-struct FixQEqReaxFFKokkosVecSum2FusedFunctor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxFFKokkos<DeviceType> c;
-  FixQEqReaxFFKokkosVecSum2FusedFunctor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
-    c.cleanup_copy();
-  };
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int ii) const {
-    c.vecsum2_fused_item(ii);
-  }
-};
-
-template <class DeviceType>
-struct FixQEqReaxFFKokkosNorm12Functor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxFFKokkos<DeviceType> c;
-  typedef F_FLOAT2 value_type;
-  FixQEqReaxFFKokkosNorm12Functor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
-    c.cleanup_copy();
-  };
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int ii, value_type &tmp) const {
-    c.norm12_item(ii, tmp);
-  }
-};
-
-template <class DeviceType>
-struct FixQEqReaxFFKokkosDot11Functor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxFFKokkos<DeviceType> c;
-  typedef F_FLOAT2 value_type;
-  FixQEqReaxFFKokkosDot11Functor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
-    c.cleanup_copy();
-  };
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int ii, value_type &tmp) const {
-    c.dot11_item(ii, tmp);
-  }
-};
-
-template <class DeviceType>
-struct FixQEqReaxFFKokkosDot22Functor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxFFKokkos<DeviceType> c;
-  typedef F_FLOAT2 value_type;
-  FixQEqReaxFFKokkosDot22Functor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
-    c.cleanup_copy();
-  };
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int ii, value_type &tmp) const {
-    c.dot22_item(ii, tmp);
-  }
-};
-
-template <class DeviceType>
-struct FixQEqReaxFFKokkosPrecon12Functor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxFFKokkos<DeviceType> c;
-  FixQEqReaxFFKokkosPrecon12Functor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
-    c.cleanup_copy();
-  };
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int ii) const {
-    c.precon12_item(ii);
-  }
-};
-
-template <class DeviceType>
-struct FixQEqReaxFFKokkosPreconFusedFunctor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxFFKokkos<DeviceType> c;
-  typedef F_FLOAT2 value_type;
-  FixQEqReaxFFKokkosPreconFusedFunctor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
-    c.cleanup_copy();
-  };
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int ii, value_type &tmp) const {
-    c.precon_fused_item(ii, tmp);
-  }
-};
-
-#else
-// Functors exclusive to non-fused CG
-
-template <class DeviceType>
-struct FixQEqReaxFFKokkosSparse12Functor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxFFKokkos<DeviceType> c;
-  FixQEqReaxFFKokkosSparse12Functor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
-    c.cleanup_copy();
-  };
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int ii) const {
-    c.sparse12_item(ii);
-  }
-};
-
-template <class DeviceType,int NEIGHFLAG>
-struct FixQEqReaxFFKokkosSparse13Functor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxFFKokkos<DeviceType> c;
-  FixQEqReaxFFKokkosSparse13Functor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
-    c.cleanup_copy();
-  };
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int ii) const {
-    c.template sparse13_item<NEIGHFLAG>(ii);
-  }
-};
-
-template <class DeviceType>
-struct FixQEqReaxFFKokkosSparse22Functor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxFFKokkos<DeviceType> c;
-  FixQEqReaxFFKokkosSparse22Functor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
-    c.cleanup_copy();
-  };
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int ii) const {
-    c.sparse22_item(ii);
-  }
-};
-
-template <class DeviceType,int NEIGHFLAG>
-struct FixQEqReaxFFKokkosSparse23Functor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxFFKokkos<DeviceType> c;
-  FixQEqReaxFFKokkosSparse23Functor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
-    c.cleanup_copy();
-  };
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int ii) const {
-    c.template sparse23_item<NEIGHFLAG>(ii);
-  }
-};
-
-template <class DeviceType>
-struct FixQEqReaxFFKokkosSparse32Functor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxFFKokkos<DeviceType> c;
-  FixQEqReaxFFKokkosSparse32Functor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
-    c.cleanup_copy();
-  };
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int ii) const {
-    c.sparse32_item(ii);
-  }
-};
-
-template <class DeviceType,int NEIGHFLAG>
-struct FixQEqReaxFFKokkosSparse33Functor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxFFKokkos<DeviceType> c;
-  FixQEqReaxFFKokkosSparse33Functor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
-    c.cleanup_copy();
-  };
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int ii) const {
-    c.template sparse33_item<NEIGHFLAG>(ii);
-  }
-};
-
-template <class DeviceType>
-struct FixQEqReaxFFKokkosVecSum2Functor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxFFKokkos<DeviceType> c;
-  FixQEqReaxFFKokkosVecSum2Functor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
-    c.cleanup_copy();
-  };
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int ii) const {
-    c.vecsum2_item(ii);
-  }
-};
-
-template <class DeviceType>
-struct FixQEqReaxFFKokkosNorm1Functor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxFFKokkos<DeviceType> c;
-  typedef double value_type;
-  FixQEqReaxFFKokkosNorm1Functor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
-    c.cleanup_copy();
-  };
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int ii, value_type &tmp) const {
-    tmp += c.norm1_item(ii);
-  }
-};
-
-template <class DeviceType>
-struct FixQEqReaxFFKokkosNorm2Functor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxFFKokkos<DeviceType> c;
-  typedef double value_type;
-  FixQEqReaxFFKokkosNorm2Functor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
-    c.cleanup_copy();
-  };
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int ii, value_type &tmp) const {
-    tmp += c.norm2_item(ii);
-  }
-};
-
-template <class DeviceType>
-struct FixQEqReaxFFKokkosDot1Functor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxFFKokkos<DeviceType> c;
-  typedef double value_type;
-  FixQEqReaxFFKokkosDot1Functor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
-    c.cleanup_copy();
-  };
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int ii, value_type &tmp) const {
-    tmp += c.dot1_item(ii);
-  }
-};
-
-template <class DeviceType>
-struct FixQEqReaxFFKokkosDot2Functor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxFFKokkos<DeviceType> c;
-  typedef double value_type;
-  FixQEqReaxFFKokkosDot2Functor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
-    c.cleanup_copy();
-  };
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int ii, value_type &tmp) const {
-    tmp += c.dot2_item(ii);
-  }
-};
-
-template <class DeviceType>
-struct FixQEqReaxFFKokkosPrecon1Functor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxFFKokkos<DeviceType> c;
-  FixQEqReaxFFKokkosPrecon1Functor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
-    c.cleanup_copy();
-  };
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int ii) const {
-    c.precon1_item(ii);
-  }
-};
-
-template <class DeviceType>
-struct FixQEqReaxFFKokkosPrecon2Functor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxFFKokkos<DeviceType> c;
-  FixQEqReaxFFKokkosPrecon2Functor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
-    c.cleanup_copy();
-  };
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int ii) const {
-    c.precon2_item(ii);
-  }
-};
-
-template <class DeviceType>
-struct FixQEqReaxFFKokkosPreconFunctor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxFFKokkos<DeviceType> c;
-  typedef double value_type;
-  FixQEqReaxFFKokkosPreconFunctor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
-    c.cleanup_copy();
-  };
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int ii, value_type &tmp) const {
-    tmp += c.precon_item(ii);
-  }
-};
-
-#endif
-
-
-template <class DeviceType>
-struct FixQEqReaxFFKokkosVecAcc1Functor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxFFKokkos<DeviceType> c;
-  typedef double value_type;
-  FixQEqReaxFFKokkosVecAcc1Functor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
-    c.cleanup_copy();
-  };
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int ii, value_type &tmp) const {
-    tmp += c.vecacc1_item(ii);
-  }
-};
-
-template <class DeviceType>
-struct FixQEqReaxFFKokkosVecAcc2Functor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxFFKokkos<DeviceType> c;
-  typedef double value_type;
-  FixQEqReaxFFKokkosVecAcc2Functor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
-    c.cleanup_copy();
-  };
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int ii, value_type &tmp) const {
-    tmp += c.vecacc2_item(ii);
-  }
-};
-
-template <class DeviceType>
-struct FixQEqReaxFFKokkosCalculateQFunctor  {
-  typedef DeviceType  device_type ;
-  FixQEqReaxFFKokkos<DeviceType> c;
-  FixQEqReaxFFKokkosCalculateQFunctor(FixQEqReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {
-    c.cleanup_copy();
-  };
-  KOKKOS_INLINE_FUNCTION
-  void operator()(const int ii) const {
-    c.calculate_q_item(ii);
-  }
-};
-
 }
 
 namespace Kokkos {
   // reduction identity must be defined in Kokkos namespace
   template<>
-  struct reduction_identity< F_FLOAT2 > {
+  struct reduction_identity<F_FLOAT2> {
     KOKKOS_FORCEINLINE_FUNCTION static F_FLOAT2 sum() {
       return F_FLOAT2();
     }

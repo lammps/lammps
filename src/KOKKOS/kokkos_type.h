@@ -515,7 +515,7 @@ struct s_FEV_FLOAT {
 };
 typedef struct s_FEV_FLOAT FEV_FLOAT;
 
-struct s_FLOAT2 {
+struct alignas(2*sizeof(F_FLOAT)) s_FLOAT2 {
   F_FLOAT v[2];
 
   KOKKOS_INLINE_FUNCTION

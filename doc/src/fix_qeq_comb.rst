@@ -63,6 +63,12 @@ performing charge equilibration (more iterations) and accuracy.
 If the *file* keyword is used, then information about each
 equilibration calculation is written to the specified file.
 
+.. note::
+
+   To avoid the evaluation of the derivative of charge with respect
+   to position, which is typically ill-defined, the system should have a
+   zero net charge.  LAMMPS will print a warning, if that is not the case.
+
 ----------
 
 .. include:: accel_styles.rst

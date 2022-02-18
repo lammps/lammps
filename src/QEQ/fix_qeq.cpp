@@ -40,7 +40,8 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define MAXLINE 1024
+static constexpr int MAXLINE = 1024;
+static constexpr double QSUMSMALL = 0.00001;
 
 namespace {
   class qeq_parser_error : public std::exception {
@@ -309,6 +310,18 @@ void FixQEq::init()
 
   if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
+
+  // compute net charge and print warning if too large
+
+  double qsum_local = 0.0, qsum = 0.0;
+  for (int i = 0; i < atom->nlocal; i++) {
+    if (atom->mask[i] & groupbit)
+      qsum_local += atom->q[i];
+  }
+  MPI_Allreduce(&qsum_local,&qsum,1,MPI_DOUBLE,MPI_SUM,world);
+
+  if ((comm->me == 0) && (fabs(qsum) > QSUMSMALL))
+    error->warning(FLERR,"Fix {} group is not charge neutral, net charge = {:.8}", style, qsum);
 }
 
 /* ---------------------------------------------------------------------- */

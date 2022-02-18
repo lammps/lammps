@@ -52,6 +52,7 @@ using namespace FixConst;
 
 static constexpr double EV_TO_KCAL_PER_MOL = 14.4;
 static constexpr double SMALL = 1.0e-14;
+static constexpr double QSUMSMALL = 0.00001;
 
 static const char cite_fix_qeq_reaxff[] =
   "fix qeq/reaxff command:\n\n"
@@ -379,6 +380,18 @@ void FixQEqReaxFF::init()
 
   if (group->count(igroup) == 0)
     error->all(FLERR,"Fix {} group has no atoms", style);
+
+  // compute net charge and print warning if too large
+
+  double qsum_local = 0.0, qsum = 0.0;
+  for (int i = 0; i < atom->nlocal; i++) {
+    if (atom->mask[i] & groupbit)
+      qsum_local += atom->q[i];
+  }
+  MPI_Allreduce(&qsum_local,&qsum,1,MPI_DOUBLE,MPI_SUM,world);
+
+  if ((comm->me == 0) && (fabs(qsum) > QSUMSMALL))
+    error->warning(FLERR,"Fix {} group is not charge neutral, net charge = {:.8}", style, qsum);
 
   // get pointer to fix efield if present. there may be at most one instance of fix efield in use.
 

@@ -39,7 +39,7 @@ class BondBPM : public Bond {
   double max_stretch;
   int store_local_freq;
 
-  std::vector<int> leftover_args;
+  std::vector<int> leftover_iarg;
 
   char *id_fix_dummy, *id_fix_dummy2;
   char *id_fix_update, *id_fix_bond_history;

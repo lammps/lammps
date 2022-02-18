@@ -654,7 +654,7 @@ void BondBPMRotational::settings(int narg, char **arg)
 {
   BondBPM::settings(narg, arg);
 
-  for (int iarg : leftover_args) {
+  for (int iarg : leftover_iarg) {
     error->all(FLERR, "Illegal bond_style command");
   }
 }

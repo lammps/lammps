@@ -157,7 +157,7 @@ void BondBPM::init_style()
 
 void BondBPM::settings(int narg, char **arg)
 {
-  leftover_args.clear();
+  leftover_iarg.clear();
 
   int iarg = 0;
   while (iarg < narg) {
@@ -198,7 +198,7 @@ void BondBPM::settings(int narg, char **arg)
       overlay_flag = 1;
       iarg ++;
     } else {
-      leftover_args.push_back(iarg);
+      leftover_iarg.push_back(iarg);
       iarg ++;
     }
   }
@@ -206,7 +206,7 @@ void BondBPM::settings(int narg, char **arg)
   if (id_fix_store_local) {
 
     if (nvalues == 0) error->all(FLERR,
-        "Bond style bpm/rotational must include at least one value to output");
+        "Storing local data must include at least one value to output");
     memory->create(output_data, nvalues, "bond/bpm:output_data");
 
     int ifix = modify->find_fix(id_fix_store_local);

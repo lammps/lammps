@@ -925,16 +925,19 @@ void FixQEqReaxFFKokkos<DeviceType>::operator() (TagQEqSparseMatvec2_Half<NEIGHF
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
     F_FLOAT2 tmp;
+    const auto d_xx_i0 = d_xx(i,0);
+    const auto d_xx_i1 = d_xx(i,1);
 
     for (int jj = d_firstnbr[i]; jj < d_firstnbr[i] + d_numnbrs[i]; jj++) {
       const int j = d_jlist(jj);
+      const auto d_val_jj = d_val(jj);
       if (!(converged & 1)) {
-        tmp.v[0] += d_val(jj) * d_xx(j,0);
-        a_o(j,0) += d_val(jj) * d_xx(i,0);
+        tmp.v[0] += d_val_jj * d_xx(j,0);
+        a_o(j,0) += d_val_jj * d_xx_i0;
       }
       if (!(converged & 2)) {
-        tmp.v[1] += d_val(jj) * d_xx(j,1);
-        a_o(j,1) += d_val(jj) * d_xx(i,1);
+        tmp.v[1] += d_val_jj * d_xx(j,1);
+        a_o(j,1) += d_val_jj * d_xx_i1;
       }
     }
     if (!(converged & 1))

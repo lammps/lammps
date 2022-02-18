@@ -58,7 +58,6 @@ class PairTracker : public Pair {
   char *id_fix_store_local;
   class FixDummy *fix_dummy;
   class FixNeighHistory *fix_history;
-<<<<<<< HEAD
   class FixStoreLocal *fix_store_local;
 
   int **type_filter;
@@ -81,11 +80,6 @@ class PairTracker : public Pair {
   void pack_rave(int, int, int, double *);
 
   void process_data(int, int, double *);
-=======
-  class FixPairTracker *fix_pair_tracker;
-
-  void transfer_history(double *, double *) override;
->>>>>>> develop
   void allocate();
 };
 

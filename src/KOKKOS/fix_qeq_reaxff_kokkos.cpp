@@ -48,7 +48,8 @@ FixQEqReaxFFKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixQEqReaxFF(lmp, narg, arg)
 {
   kokkosable = 1;
-  forward_comm_device = 1;
+  comm_forward = comm_reverse = 2; // fused
+  forward_comm_device = 2;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
@@ -716,8 +717,8 @@ template<class DeviceType>
 int FixQEqReaxFFKokkos<DeviceType>::cg_solve()
 // b = b_s, x = s;
 {
-  // reset converged
   converged = 0;
+
   F_FLOAT2 tmp;
   F_FLOAT2 sig_old;
   F_FLOAT2 b_norm;
@@ -1135,12 +1136,10 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqPackForwardComm, const int
       d_buf[i*2] = d_d(j,0);
     if (!(converged & 2))
       d_buf[i*2+1] = d_d(j,1);
-  }
-  else if (pack_flag == 2) {
+  } else if (pack_flag == 2) {
     d_buf[i*2] = d_st(j,0);
     d_buf[i*2+1] = d_st(j,1);
-  }
-  else if (pack_flag == 3)
+  } else if (pack_flag == 3)
     d_buf[i] = q[j];
 }
 
@@ -1170,7 +1169,6 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqUnpackForwardComm, const i
     d_st(i+first,1) = d_buf[i*2+1];
   } else if (pack_flag == 3)
     q[i + first] = d_buf[i];
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1185,8 +1183,10 @@ int FixQEqReaxFFKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *
   if (pack_flag == 1) {
     k_d.sync_host();
     for (m = 0; m < n; m++) {
-      buf[m*2] = h_d(list[m],0);
-      buf[m*2+1] = h_d(list[m],1);
+      if (!(converged & 1))
+        buf[m*2] = h_d(list[m],0);
+      if (!(converged & 2))
+        buf[m*2+1] = h_d(list[m],1);
     }
   } else if (pack_flag == 2) {
     k_st.sync_host();
@@ -1213,8 +1213,10 @@ void FixQEqReaxFFKokkos<DeviceType>::unpack_forward_comm(int n, int first, doubl
   if (pack_flag == 1) {
     k_d.sync_host();
     for (m = 0, i = first; m < n; m++, i++) {
-      h_d(i,0) = buf[m*2];
-      h_d(i,1) = buf[m*2+1];
+      if (!(converged & 1))
+        h_d(i,0) = buf[m*2];
+      if (!(converged & 2))
+        h_d(i,1) = buf[m*2+1];
     }
     k_d.modify_host();
   } else if (pack_flag == 2) {
@@ -1239,8 +1241,10 @@ int FixQEqReaxFFKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *
   int i, m;
   k_o.sync_host();
   for (m = 0, i = first; m < n; m++, i++) {
-    buf[m*2] = h_o(i,0);
-    buf[m*2+1] = h_o(i,1);
+    if (!(converged & 1))
+      buf[m*2] = h_o(i,0);
+    if (!(converged & 2))
+      buf[m*2+1] = h_o(i,1);
   }
   return n*2;
 }
@@ -1252,8 +1256,10 @@ void FixQEqReaxFFKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, doubl
 {
   k_o.sync_host();
   for (int m = 0; m < n; m++) {
-    h_o(list[m],0) += buf[m*2];
-    h_o(list[m],1) += buf[m*2+1];
+    if (!(converged & 1))
+      h_o(list[m],0) += buf[m*2];
+    if (!(converged & 2))
+      h_o(list[m],1) += buf[m*2+1];
   }
   k_o.modify_host();
 }

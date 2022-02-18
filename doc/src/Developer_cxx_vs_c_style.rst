@@ -1,55 +1,54 @@
 Code design
 -----------
 
-This section discusses some of the code design choices in LAMMPS and
-overall strategy in order to assist developers to write new code that
-will fit well with the remaining code.  Please see the section on
-:doc:`Requirements for contributed code <Modify_style>` for more
-specific recommendations and guidelines.  While that section is
-organized more in the form of a checklist for code contributors, the
-focus here is on overall code design strategy, choices made between
-possible alternatives, and to discuss of some relevant C++ programming
-language constructs.
+This section explains some of the code design choices in LAMMPS with
+the goal of helping developers write new code similar to the existing
+code.  Please see the section on :doc:`Requirements for contributed
+code <Modify_style>` for more specific recommendations and guidelines.
+While that section is organized more in the form of a checklist for
+code contributors, the focus here is on overall code design strategy,
+choices made between possible alternatives, and discussing some
+relevant C++ programming language constructs.
 
-Historically, the basic design philosophy of the LAMMPS C++ code was
-that of a "C with classes" style.  The was motivated by the desire to
-make it easier to modify LAMMPS for people without significant training
-in C++ programming and by trying to use data structures and code constructs
-that somewhat resemble the previous implementation(s) in Fortran.
-A contributing factor for this choice also was that at the time the
-implementation of C++ compilers was not always very mature and some of
-the advanced features contained bugs or were not functioning exactly
-as the standard required; plus there was some disagreement between
-compiler vendors about how to interpret the C++ standard documents.
+Historically, the basic design philosophy of the LAMMPS C++ code was a
+"C with classes" style.  The motivation was to make it easy to modify
+LAMMPS for people without significant training in C++ programming.
+Data structures and code constructs were used that resemble the
+previous implementation(s) in Fortran.  A contributing factor to this
+choice also was that at the time, C++ compilers were often not mature
+and some of the advanced features contained bugs or did not function
+as the standard required.  There were also disagreements between
+compiler vendors as to how to interpret the C++ standard documents.
 
-However, C++ compilers have advanced a lot since then and with the
-transition to requiring the C++11 standard in 2020 as the minimum C++ language
-standard for LAMMPS, the decision was made to also replace some of the
-C-style constructs with equivalent C++ functionality, either from the
-C++ standard library or as custom classes or function, in order to
-improve readability of the code and to increase code reuse through
+However, C++ compilers have now advanced significantly.  In 2020 we
+decided to to require the C++11 standard as the minimum C++ language
+standard for LAMMPS.  Since then we have begun to also replace some of
+the C-style constructs with equivalent C++ functionality, either from
+the C++ standard library or as custom classes or functions, in order
+to improve readability of the code and to increase code reuse through
 abstraction of commonly used functionality.
 
 .. note::
 
-   Please note that as of spring 2022 there is still a sizable chunk of
-   legacy code in LAMMPS that has not yet been refactored to reflect these
-   style conventions in full.  LAMMPS has a large code base and many
-   different contributors and there also is a hierarchy of precedence
-   in which the code is adapted.  Highest priority has the code in the
-   ``src`` folder, followed by code in packages in order of their popularity
-   and complexity (simpler code is adapted sooner), followed by code
-   in the ``lib`` folder.  Source code that is downloaded during compilation
-   is not subject to the conventions discussed here.
+   Please note that as of spring 2022 there is still a sizable chunk
+   of legacy code in LAMMPS that has not yet been refactored to
+   reflect these style conventions in full.  LAMMPS has a large code
+   base and many different contributors and there also is a hierarchy
+   of precedence in which the code is adapted.  Highest priority has
+   been the code in the ``src`` folder, followed by code in packages
+   in order of their popularity and complexity (simpler code is
+   adapted sooner), followed by code in the ``lib`` folder.  Source
+   code that is downloaded from external packages or libraries during
+   compilation is not subject to the conventions discussed here.
 
 Object oriented code
 ^^^^^^^^^^^^^^^^^^^^
 
-LAMMPS is designed to be an object oriented code, that is each
-simulation is represented by an instance of the LAMMPS class.  When
-running in parallel, of course, each MPI process will create such an
-instance.  This can be seen in the ``main.cpp`` file where the core
-steps of running a LAMMPS simulation are the following 3 lines of code:
+LAMMPS is designed to be an object oriented code.  Each simulation is
+represented by an instance of the LAMMPS class.  When running in
+parallel each MPI process creates such an instance.  This can be seen
+in the ``main.cpp`` file where the core steps of running a LAMMPS
+simulation are the following 3 lines of code:
 
 .. code-block:: C++
 
@@ -59,81 +58,77 @@ steps of running a LAMMPS simulation are the following 3 lines of code:
 
 The first line creates a LAMMPS class instance and passes the command
 line arguments and the global communicator to its constructor.  The
-second line tells the LAMMPS instance to process the input (either from
-standard input or the provided input file) until the end.  And the third
-line deletes that instance again.  The remainder of the main.cpp file
-are for error handling, MPI configuration and other special features.
+second line triggers the LAMMPS instance to process the input (either
+from standard input or a provided input file) until the simulation
+ends.  The third line deletes the LAMMPS instance.  The remainder of
+the main.cpp file has code for error handling, MPI configuration, and
+other special features.
 
-In the constructor of the LAMMPS class instance the basic LAMMPS class hierarchy
-is created as shown in :ref:`class-topology`.  While processing the input further
-class instances are created, or deleted, or replaced and specific member functions
-of specific classes are called to trigger actions like creating atoms, computing
-forces, computing properties, propagating the system, or writing output.
+The basic LAMMPS class hierarchy which is created by the LAMMPS class
+consturctor is shown in :ref:`class-topology`.  When input commands
+are proccesed additional class instances are created, or deleted, or
+replaced.  Likewise specific member functions of specific classes are
+called to trigger actions such creating atoms, computing forces,
+computing properties, time-propagating the system, or writing output.
 
 Compositing and Inheritance
 ===========================
 
 LAMMPS makes extensive use of the object oriented programming (OOP)
 principles of *compositing* and *inheritance*. Classes like the
-``LAMMPS`` class are a **composite** containing pointers to instances of
-other classes like ``Atom``, ``Comm``, ``Force``, ``Neighbor``,
+``LAMMPS`` class are a **composite** containing pointers to instances
+of other classes like ``Atom``, ``Comm``, ``Force``, ``Neighbor``,
 ``Modify``, and so on.  Each of these classes implement certain
-functionality by storing and manipulating data related to the simulation
-and providing member functions that trigger certain actions.  Some of
-those classes like ``Force`` are a composite again containing instances
-of classes describing the force interactions or ``Modify`` containing
-and calling fixes and computes.  In most cases (e.g. ``AtomVec``, ``Comm``,
-``Pair``, or ``Bond``) there is only one instance of those member classes
-allowed, but in a few cases (e.g. ``Region``, ``Fix``, ``Compute``, or
-``Dump``) there can be multiple instances and the parent class is
-maintaining a list of the pointers of instantiated classes instead
-of a single pointer.
+functionality by storing and manipulating data related to the
+simulation and providing member functions that trigger certain
+actions.  Some of those classes like ``Force`` are themselves
+composites, containing instances of classes describing different force
+interactions.  Similarly the ``Modify`` class contains a list of
+``Fix`` and ``Compute`` classes.  If the input commands that
+correspond to these classes include the word *style*, then LAMMPS
+stores only a single instance of that class.  E.g. *atom_style*,
+*comm_style*, *pair_style*, *bond_style*.  It the input command does
+not include the word *style*, there can be many instances of that
+class defined.  E.g. *region*, *fix*, *compute*, *dump*.
 
-Changing behavior or adjusting how LAMMPS handles a simulation is
-implemented via **inheritance** where different variants of the
-functionality are realized by creating *derived* classes that can share
-common functionality in their base class and provide a consistent
-interface where the derived classes replace (dummy or pure) functions in
-the base class.  The higher level classes can then call those methods of
-the instantiated classes without having to know which specific derived
-class variant was instantiated.  In the LAMMPS documentation those
-derived classes are usually referred to a "styles", e.g.  pair styles,
-fix styles, atom styles and so on.
+**Inheritance** enables creation of *derived* classes that can share
+common functionality in their base class while providing a consistent
+interface.  The derived classes replace (dummy or pure) functions in
+the base class.  The higher level classes can then call those methods
+of the instantiated classes without having to know which specific
+derived class variant was instantiated.  In LAMMPS these derived
+classes are often referred to as "styles", e.g.  pair styles, fix
+styles, atom styles and so on.
 
-This is the origin of the flexibility of LAMMPS and facilitates for
-example to compute forces for very different non-bonded potential
-functions by having different pair styles (implemented as different
-classes derived from the ``Pair`` class) where the evaluation of the
-potential function is confined to the implementation of the individual
-classes.  Whenever a new :doc:`pair_style` or :doc:`bond_style` or
-:doc:`comm_style` or similar command is processed in the LAMMPS input
-any existing class instance is deleted and a new instance created in
-it place.
+This is the origin of the flexibility of LAMMPS.  For example pair
+styles implement a variety of different non-bonded interatomic
+potentials functions.  All the details for implementation of a
+potenetial are stored and executed in a single class.  
 
-Classes derived from ``Fix`` or ``Compute`` represent a different facet
-of LAMMPS' flexibility as there can be multiple instances of them an
-their member functions will be called at different phases of the time
-integration process (as explained in `Developer_flow`).  This way
-multiple manipulations of the entire or parts of the system can be
-programmed (with fix styles) or different computations can be performed
-and accessed and further processed or output through a common interface
-(with compute styles).
+As mentioned above, there can be multiple instances of classes derived
+from the ``Fix`` or ``Compute`` base classes.  They represent a
+different facet of LAMMPS flexibility as they provide methods which
+can be called at different points in time within a timestep, as
+explained in `Developer_flow`.  This allows the input script to tailor
+how a specific simulation is run, what diagnostic computations are
+performed, and how the output of those computations if further
+processes or output.
 
 Further code sharing is possible by creating derived classes from the
-derived classes (for instance to implement an accelerated version of a
-pair style) where then only a subset of the methods are replaced with
-the accelerated versions.
+derived classes (e.g., to implement an accelerated version of a pair
+style) where only a subset of the derived class methods are replaced
+with accelerated versions.
 
 Polymorphism
 ============
 
 Polymorphism and dynamic dispatch are another OOP feature that play an
-important part of how LAMMPS selects which code to execute.  In a nutshell,
-this is a mechanism where the decision of which member function to call
-from a class is determined at runtime and not when the code is compiled.
-To enable it, the function has to be declared as ``virtual`` and all
-corresponding functions in derived classes should be using the ``override``
-property. Below is a brief example.
+important role in how LAMMPS selects what code to execute.  In a
+nutshell, this is a mechanism where the decision of which member
+function to call from a class is determined at runtime and not when
+the code is compiled.  To enable it, the function has to be declared
+as ``virtual`` and all corresponding functions in derived classes
+should use the ``override`` property. Below is a brief example.
 
 .. code-block:: c++
 
@@ -165,19 +160,19 @@ property. Below is a brief example.
    base1->call();
    base2->call();
 
-The difference in behavior of the ``normal()`` and the ``poly()`` member
-functions is in which of the two member functions is called when
-executing `base1->call()` and `base2->call()`.  Without polymorphism, a
-function within the base class will call only member functions within
-the same scope, that is ``Base::call()`` will always call
-``Base::normal()``.  But for the `base2->call()` the call for the
+The difference in behavior of the ``normal()`` and the ``poly()``
+member functions is which of the two member functions is called when
+executing `base1->call()` versus `base2->call()`.  Without
+polymorphism, a function within the base class will call only member
+functions within the same scope, that is ``Base::call()`` will always
+call ``Base::normal()``.  But for the `base2->call()` the call for the
 virtual member function will be dispatched to ``Derived::poly()``
-instead.  This mechanism allows to always call functions within the
-scope of the class type that was used to create the class instance, even
-if they are assigned to a pointer using the type of a base class. This
-is the desired behavior, and thanks to dynamic dispatch, LAMMPS can even
-use styles that are loaded at runtime from a shared object file with the
-:doc:`plugin command <plugin>`.
+instead.  This mechanism means that call functions within the scope of
+the class type that was used to create the class instance are always
+invoked, even if they are assigned to a pointer using the type of a
+base class.  This is the desired behavior, and via dynamic dispatch,
+LAMMPS can even use styles that are loaded at runtime from a shared
+object file with the :doc:`plugin command <plugin>`.
 
 A special case of virtual functions are so-called pure functions. These
 are virtual functions that are initialized to 0 in the class declaration
@@ -190,43 +185,48 @@ are virtual functions that are initialized to 0 in the class declaration
     virtual void pure() = 0;
    };
 
-This has the effect that it will no longer be possible to create an
-instance of the base class and that derived classes **must** implement
-these functions.  Many of the functions listed with the various class
-styles in the section :doc:`Modify` are such pure functions.  The
-motivation for this is to define the interface or API of the functions
-but defer the implementation to the derived classes.
+This has the effect that an instance of the base class cannot be
+created and that derived classes **must** implement these functions.
+Many of the functions listed with the various class styles in the
+section :doc:`Modify` are pure functions.  The motivation for this is
+to define the interface or API of the functions but defer their
+implementation to the derived classes.
 
 However, there are downsides to this. For example, calls to virtual
 functions from within a constructor, will not be in the scope of the
-derived class and thus it is good practice to either avoid calling them
-or to provide an explicit scope like in ``Base::poly()``.  Furthermore,
-any destructors in classes containing virtual functions should be
-declared virtual, too, so they are processed in the expected order
-before types are removed from dynamic dispatch.
+derived class and thus it is good practice to either avoid calling
+them or to provide an explicit scope such as ``Base::poly()``.
+Furthermore, any destructors in classes containing virtual functions
+should be declared virtual, so they will be processed in the expected
+order before types are removed from dynamic dispatch.
 
 .. admonition:: Important Notes
 
-   In order to be able to detect incompatibilities and to avoid unexpected
-   behavior already at compile time, it is crucial that all member functions
-   that are intended to replace a virtual or pure function use the ``override``
-   property keyword.  For the same reason it should be avoided to use overloads
-   or default arguments for virtual functions as they lead to confusion over
-   which function is supposed to override which and which arguments need to be
-   declared.
+   In order to be able to detect incompatibilities at compile time and
+   to avoid unexpected behavior, it is crucial that all member
+   functions that are intended to replace a virtual or pure function
+   use the ``override`` property keyword.  For the same reason, the
+   use of overloads or default arguments for virtual functions should
+   be avoided as they lead to confusion over which function is
+   supposed to override which and which arguments need to be declared.
 
 Style Factories
 ===============
 
-In order to create class instances of the different styles, LAMMPS often
-uses a programming pattern called `Factory`.  Those are functions that create
-an instance of a specific derived class, say ``PairLJCut`` and return a pointer
-to the type of the common base class of that style, ``Pair`` in this case.
-To associate the factory function with the style keyword, an ``std::map``
-class is used in which function pointers are indexed by their keyword
-(for example "lj/cut" for ``PairLJCut`` and "morse" ``PairMorse``).
-A couple of typedefs help to keep the code readable and a template function
-is used to implement the actual factory functions for the individual classes.
+In order to create class instances for different styles, LAMMPS often
+uses a programming pattern called `Factory`.  Those are functions that
+create an instance of a specific derived class, say ``PairLJCut`` and
+return a pointer to the type of the common base class of that style,
+``Pair`` in this case.  To associate the factory function with the
+style keyword, an ``std::map`` class is used with function pointers
+indexed by their keyword (for example "lj/cut" for ``PairLJCut`` and
+"morse" for ``PairMorse``).  A couple of typedefs help keep the code
+readable and a template function is used to implement the actual
+factory functions for the individual classes.
+
+NOTE to Axel: point to a couple of files that have these factory
+template functions, so a reader can examine them ?
+
 
 I/O and output formatting
 ^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -234,52 +234,56 @@ I/O and output formatting
 C-style stdio versus C++ style iostreams
 ========================================
 
-LAMMPS chooses to use the "stdio" library of the standard C library for
-reading from and writing to files and console instead of C++
-"iostreams".  This is mainly motivated by the better performance, better
-control over formatting, and less effort to achieve specific formatting.
+LAMMPS uses the "stdio" library of the standard C library for reading
+from and writing to files and console instead of C++ "iostreams".
+This is mainly motivated by better performance, better control over
+formatting, and less effort to achieve specific formatting.
 
-Since mixing "stdio" and "iostreams" can lead to unexpected behavior using
-the latter is strongly discouraged.  Also output to the screen should not
-use the predefined ``stdout`` FILE pointer, but rather the ``screen`` and
-``logfile`` FILE pointers managed by the LAMMPS class.  Furthermore, output
-should only be done by MPI rank 0 (``comm->me == 0``) and output that is
-send to both ``screen`` and ``logfile`` should use the
-:cpp:func:`utils::logmesg() convenience function <LAMMPS_NS::utils::logmesg>`.
+Since mixing "stdio" and "iostreams" can lead to unexpected
+behavior. use of the latter is strongly discouraged.  Also output to
+the screen should not use the predefined ``stdout`` FILE pointer, but
+rather the ``screen`` and ``logfile`` FILE pointers managed by the
+LAMMPS class.  Furthermore, output should generally only be done by
+MPI rank 0 (``comm->me == 0``).  Output that is sent to both
+``screen`` and ``logfile`` should use the :cpp:func:`utils::logmesg()
+convenience function <LAMMPS_NS::utils::logmesg>`.
 
-We also discourage the use for stringstreams as the bundled {fmt} library
-and the customized tokenizer classes can provide the same functionality
-in a cleaner way with better performance. This will also help to retain
-a consistent programming style despite the many different contributors.
+We also discourage the use of stringstreams because the bundled {fmt}
+library and the customized tokenizer classes can provide the same
+functionality in a cleaner way with better performance. This also
+helps maintain a consistent programming sytnax with code from many
+different contributors.
 
 Formatting with the {fmt} library
 ===================================
 
 The LAMMPS source code includes a copy of the `{fmt} library
 <https://fmt.dev>`_ which is preferred over formatting with the
-"printf()" family of functions.  The primary reason is that it allows a
-typesafe default format for any type of supported data.  This is
+"printf()" family of functions.  The primary reason is that it allows
+a typesafe default format for any type of supported data.  This is
 particularly useful for formatting integers of a given size (32-bit or
-64-bit) which may require different format strings depending on compile
-time settings or compilers/operating systems.  Furthermore, {fmt} gives
-better performance, has more functionality, a familiar formatting syntax
-that has similarities to ``format()`` in Python, and provides a facility
-that can be used to integrate format strings and a variable number of
-arguments into custom functions in a much simpler way that the varargs
-mechanism of the C library.  Finally, {fmt} has been included into the
-C++20 language standard, so changes to adopt it are future proof.
+64-bit) which may require different format strings depending on
+compile time settings or compilers/operating systems.  Furthermore,
+{fmt} gives better performance, has more functionality, a familiar
+formatting syntax that has similarities to ``format()`` in Python, and
+provides a facility that can be used to integrate format strings and a
+variable number of arguments into custom functions in a much simpler
+way than the varargs mechanism of the C library.  Finally, {fmt} has
+been included into the C++20 language standard, so changes to adopt it
+are future-proof.
 
 Formatted strings are frequently created by calling the
-``fmt::format()`` function which will return a string as ``std::string``
-class instance.  In contrast to the ``%`` placeholder in ``printf()``,
-the {fmt} library uses ``{}`` to embed format descriptors.  In the
-simplest case, no additional characters are needed as {fmt} will choose
-the default format based on the data type of the argument. Alternatively
-The ``fmt::print()`` function may be used instead of ``printf()`` or
-``fprintf()``.  In addition, several LAMMPS output functions, that
-originally accepted a single string as arguments have been overloaded to
-accept a format string with optional arguments as well (e.g.
-``Error::all()``, ``Error::one()``, ``utils::logmesg()``).
+``fmt::format()`` function which will return a string as a
+``std::string`` class instance.  In contrast to the ``%`` placeholder
+in ``printf()``, the {fmt} library uses ``{}`` to embed format
+descriptors.  In the simplest case, no additional characters are
+needed as {fmt} will choose the default format based on the data type
+of the argument. Alternatively the ``fmt::print()`` function may be
+used instead of ``printf()`` or ``fprintf()``.  In addition, several
+LAMMPS output functions, that originally accepted a single string as
+arguments have been overloaded to accept a format string with optional
+arguments as well (e.g., ``Error::all()``, ``Error::one()``,
+``utils::logmesg()``).
 
 Summary of the {fmt} format syntax
 ==================================
@@ -293,28 +297,29 @@ common case for using argument id would be to use the same argument in
 multiple places in the format string without having to provide it as an
 argument multiple times. In LAMMPS the argument id is rarely used.
 
-More common is the use of the format specifier, which starts with a
-colon.  This may optionally be followed by a fill character (default is
-' '). If provided, the fill character **must** be followed by an
+More common is the use of a format specifier, which starts with a
+colon.  This may optionally be followed by a fill character (default
+is ' '). If provided, the fill character **must** be followed by an
 alignment character ('<', '^', '>' for left, centered, or right
-alignment (default)). The alignment character may be used without a fill
-character. The next important format parameter would be the minimum
-width, which may be followed by a dot '.'  and a precision for floating
-point numbers. The final character in the format string would be an
-indicator for the "presentation", i.e. 'd' for decimal presentation of
-integers, 'x' for hexadecimal, 'o' for octal, 'c' for character
-etc. This mostly follows the "printf()" scheme but without requiring an
-additional length parameter to distinguish between different integer
-widths. The {fmt} library will detect those and adapt the formatting
-accordingly.  For floating point numbers there are correspondingly, 'g'
-for generic presentation, 'e' for exponential presentation, and 'f' for
-fixed point presentation.
+alignment (default)). The alignment character may be used without a
+fill character. The next important format parameter would be the
+minimum width, which may be followed by a dot '.'  and a precision for
+floating point numbers. The final character in the format string would
+be an indicator for the "presentation", i.e. 'd' for decimal
+presentation of integers, 'x' for hexadecimal, 'o' for octal, 'c' for
+character etc. This mostly follows the "printf()" scheme but without
+requiring an additional length parameter to distinguish between
+different integer widths. The {fmt} library will detect those and
+adapt the formatting accordingly.  For floating point numbers there
+are correspondingly, 'g' for generic presentation, 'e' for exponential
+presentation, and 'f' for fixed point presentation.
 
 Thus "{:8}" would represent *any* type argument using at least 8
-characters; "{:<8}" would do this as left aligned, "{:^8}" as centered,
-"{:>8}" as right aligned.  If a specific presentation is selected, the
-argument type must be compatible or else the {fmt} formatting code will
-throw an exception. Some format string examples are given below:
+characters; "{:<8}" would do this as left aligned, "{:^8}" as
+centered, "{:>8}" as right aligned.  If a specific presentation is
+selected, the argument type must be compatible or else the {fmt}
+formatting code will throw an exception. Some format string examples
+are given below:
 
 .. code-block:: C
 
@@ -334,12 +339,12 @@ which will create the following output lines:
           4 = max # of 1-2 neighbors
      Lattice spacing in x,y,z = 1.6795962 1.6795962 1.6795962
 
-A special feature of the {fmt} library is that format parameters like
-the width or the precision may be also provided as arguments. In that
-case a nested format is used where a pair of curly braces (with an
-optional argument id) "{}" are used instead of the value, for example
-"{:{}d}" will consume two integer arguments, the first will be the value
-shown and the second the minimum width.
+Finally, a special feature of the {fmt} library is that format
+parameters like the width or the precision may be also provided as
+arguments. In that case a nested format is used where a pair of curly
+braces (with an optional argument id) "{}" are used instead of the
+value, for example "{:{}d}" will consume two integer arguments, the
+first will be the value shown and the second the minimum width.
 
 For more details and examples, please consult the `{fmt} syntax
 documentation <https://fmt.dev/latest/syntax.html>`_ website.
@@ -348,16 +353,20 @@ documentation <https://fmt.dev/latest/syntax.html>`_ website.
 Memory management
 ^^^^^^^^^^^^^^^^^
 
-Dynamical allocation of data and objects should be done with either the
-C++ commands "new" and "delete/delete[]" or using member functions of
-the ``Memory`` class, most commonly, ``Memory::create()``,
-``Memory::grow()``, and ``Memory::destroy()``.  The use of ``malloc()``,
-``calloc()``, ``realloc()`` and ``free()`` directly is strongly
-discouraged.  To simplify adapting legacy code into the LAMMPS code base
-the member functions ``Memory::smalloc()``, ``Memory::srealloc()``, and
-``Memory::sfree()`` are available.
+Dynamical allocation of small data and objects can be done with the
+the C++ commands "new" and "delete/delete[].  Large data should use
+the member functions of the ``Memory`` class, most commonly,
+``Memory::create()``, ``Memory::grow()``, and ``Memory::destroy()``,
+which provide variants for vectors, 2d arrays, 3d arrays, etc.
+These can also be used for small data.
 
-Using those custom memory allocation functions is motivated by the
+The use of ``malloc()``, ``calloc()``, ``realloc()`` and ``free()``
+directly is strongly discouraged.  To simplify adapting legacy code
+into the LAMMPS code base the member functions ``Memory::smalloc()``,
+``Memory::srealloc()``, and ``Memory::sfree()`` are available, which
+perform additional error checks for safety.
+
+Use of these custom memory allocation functions is motivated by the
 following considerations:
 
 - memory allocation failures on *any* MPI rank during a parallel run
@@ -367,8 +376,8 @@ following considerations:
   LAMMPS and triggers a global abort
 - allocation of multi-dimensional arrays will be done in a C compatible
   fashion but so that the storage of the actual data is stored in one
-  large consecutive block and thus when MPI communication is needed,
-  only this storage needs to be communicated (similar to Fortran arrays)
+  large contiguous block.  Thus when MPI communication is needed,
+  the data can be communicated directly (similar to Fortran arrays).
 - the "destroy()" and "sfree()" functions may safely be called on NULL
   pointers
 - the "destroy()" functions will nullify the pointer variables making
@@ -377,8 +386,9 @@ following considerations:
   all operating systems, since the allocated storage pointers must be
   compatible with ``free()`` for technical reasons)
 
-In the practical implementation of code this means that any pointer variables
-that are class members should be initialized to a ``nullptr`` value in their
-respective constructors.  That way it would be safe to call ``Memory::destroy()``
-or ``delete[]`` on them before *any* allocation outside the constructor.
-This helps to prevent memory leaks.
+In the practical implementation of code this means that any pointer
+variables that are class members should be initialized to a
+``nullptr`` value in their respective constructors.  That way it is
+safe to call ``Memory::destroy()`` or ``delete[]`` on them before
+*any* allocation outside the constructor.  This helps prevent memory
+leaks.

@@ -22,13 +22,13 @@ namespace LAMMPS_NS {
 class PairPeri : public Pair {
  public:
   PairPeri(class LAMMPS *);
-  virtual ~PairPeri();
+  ~PairPeri() override;
 
-  virtual int pack_forward_comm(int, int *, double *, int, int *);
-  virtual void unpack_forward_comm(int, int, double *);
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
 
-  virtual void init_style();
-  virtual void settings(int, char **);
+  void init_style() override;
+  void settings(int, char **) override;
   static constexpr double NEAR_ZERO = 2.2204e-16;
 
   double influence_function(const double &xi_x, const double &xi_y, const double &xi_z) const
@@ -38,8 +38,8 @@ class PairPeri : public Pair {
   }
   void compute_dilatation(int, int);
 
-  double memory_usage();
-  virtual void *extract(const char *, int &);
+  double memory_usage() override;
+  void *extract(const char *, int &) override;
 
  protected:
   class FixPeriNeigh *fix_peri_neigh;

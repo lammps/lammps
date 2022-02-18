@@ -27,17 +27,17 @@ namespace LAMMPS_NS {
 class AtomVecSphereBPM : public AtomVec {
  public:
   AtomVecSphereBPM(class LAMMPS *);
-  void process_args(int, char **);
-  void init();
+  void process_args(int, char **) override;
+  void init() override;
 
-  void grow_pointers();
-  void create_atom_post(int);
-  void pack_restart_pre(int);
-  void pack_restart_post(int);
-  void unpack_restart_init(int);
-  void data_atom_post(int);
-  void pack_data_pre(int);
-  void pack_data_post(int);
+  void grow_pointers() override;
+  void create_atom_post(int) override;
+  void pack_restart_pre(int) override;
+  void pack_restart_post(int) override;
+  void unpack_restart_init(int) override;
+  void data_atom_post(int) override;
+  void pack_data_pre(int) override;
+  void pack_data_post(int) override;
 
 
  private:

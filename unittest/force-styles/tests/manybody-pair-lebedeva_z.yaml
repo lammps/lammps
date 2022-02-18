@@ -1,7 +1,7 @@
 ---
 lammps_version: 30 Jul 2021
 date_generated: Wed Aug 25 07:37:07 2021
-epsilon: 2e-12
+epsilon: 2e-9
 skip_tests: single
 prerequisites: ! |
   pair lebedeva/z

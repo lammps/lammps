@@ -27,20 +27,20 @@ namespace LAMMPS_NS {
 class PairTracker : public Pair {
  public:
   PairTracker(class LAMMPS *);
-  virtual ~PairTracker();
-  virtual void compute(int, int);
-  virtual void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  virtual double single(int, int, int, int, double, double, double, double &);
-  double atom2cut(int);
-  double radii2cut(double, double);
-  void transfer_history(double *, double *);
+  ~PairTracker() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
+  double single(int, int, int, int, double, double, double, double &) override;
+  double atom2cut(int) override;
+  double radii2cut(double, double) override;
+  void transfer_history(double *, double *) override;
 
  protected:
   int sizeflag;
@@ -58,6 +58,7 @@ class PairTracker : public Pair {
   char *id_fix_store_local;
   class FixDummy *fix_dummy;
   class FixNeighHistory *fix_history;
+<<<<<<< HEAD
   class FixStoreLocal *fix_store_local;
 
   int **type_filter;
@@ -80,6 +81,11 @@ class PairTracker : public Pair {
   void pack_rave(int, int, int, double *);
 
   void process_data(int, int, double *);
+=======
+  class FixPairTracker *fix_pair_tracker;
+
+  void transfer_history(double *, double *) override;
+>>>>>>> develop
   void allocate();
 };
 

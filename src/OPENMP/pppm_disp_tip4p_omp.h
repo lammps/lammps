@@ -28,33 +28,33 @@ namespace LAMMPS_NS {
 class PPPMDispTIP4POMP : public PPPMDispTIP4P, public ThrOMP {
  public:
   PPPMDispTIP4POMP(class LAMMPS *);
-  virtual ~PPPMDispTIP4POMP();
+  ~PPPMDispTIP4POMP() override;
 
  protected:
-  virtual void allocate();
+  void allocate() override;
 
   virtual void compute_gf();
   virtual void compute_gf_6();
 
-  virtual void compute(int, int);
+  void compute(int, int) override;
 
-  virtual void particle_map(double, double, double, double, int **, int, int, int, int, int, int,
-                            int, int);
-  virtual void particle_map_c(double, double, double, double, int **, int, int, int, int, int, int,
-                              int, int);
-  virtual void make_rho_c();    // XXX: not (yet) multi-threaded
-  virtual void make_rho_g();
-  virtual void make_rho_a();
+  void particle_map(double, double, double, double, int **, int, int, int, int, int, int,
+                            int, int) override;
+  void particle_map_c(double, double, double, double, int **, int, int, int, int, int, int,
+                              int, int) override;
+  void make_rho_c() override;    // XXX: not (yet) multi-threaded
+  void make_rho_g() override;
+  void make_rho_a() override;
 
-  virtual void fieldforce_c_ik();
-  virtual void fieldforce_c_ad();
+  void fieldforce_c_ik() override;
+  void fieldforce_c_ad() override;
   // virtual void fieldforce_peratom();  XXX: need to benchmark first.
-  virtual void fieldforce_g_ik();
-  virtual void fieldforce_g_ad();
-  virtual void fieldforce_g_peratom();
-  virtual void fieldforce_a_ik();
-  virtual void fieldforce_a_ad();
-  virtual void fieldforce_a_peratom();
+  void fieldforce_g_ik() override;
+  void fieldforce_g_ad() override;
+  void fieldforce_g_peratom() override;
+  void fieldforce_a_ik() override;
+  void fieldforce_a_ad() override;
+  void fieldforce_a_peratom() override;
 
  private:
   void compute_rho1d_thr(FFT_SCALAR *const *const, const FFT_SCALAR &, const FFT_SCALAR &,

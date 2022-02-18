@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class PairMesoCNT : public Pair {
  public:
   PairMesoCNT(class LAMMPS *);
-  ~PairMesoCNT();
-  void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
+  ~PairMesoCNT() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
  protected:
   int uinf_points, gamma_points, phi_points, usemi_points;

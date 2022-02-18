@@ -32,15 +32,15 @@ class FixBondHistory : public Fix {
  public:
 
   FixBondHistory(class LAMMPS *, int, char **);
-  ~FixBondHistory();
-  int setmask();
-  void post_constructor();
-  void setup_post_neighbor();
-  void post_neighbor();
-  void pre_exchange();
-  double memory_usage();
-  void write_restart(FILE *fp);
-  void restart(char *buf);
+  ~FixBondHistory() override;
+  int setmask() override;
+  void post_constructor() override;
+  void setup_post_neighbor() override;
+  void post_neighbor() override;
+  void pre_exchange() override;
+  double memory_usage() override;
+  void write_restart(FILE *fp) override;
+  void restart(char *buf) override;
   void set_arrays(int);
 
   void update_atom_value(int, int, int, double);

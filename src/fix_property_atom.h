@@ -27,29 +27,30 @@ namespace LAMMPS_NS {
 class FixPropertyAtom : public Fix {
  public:
   FixPropertyAtom(class LAMMPS *, int, char **);
-  virtual ~FixPropertyAtom();
-  int setmask();
-  void init();
 
-  void read_data_section(char *, int, char *, tagint);
-  bigint read_data_skip_lines(char *);
-  void write_data_section_size(int, int &, int &);
-  void write_data_section_pack(int, double **);
-  void write_data_section_keyword(int, FILE *);
-  void write_data_section(int, FILE *, int, double **, int);
+  ~FixPropertyAtom() override;
+  int setmask() override;
+  void init() override;
 
-  virtual void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  void set_arrays(int);
-  int pack_border(int, int *, double *);
-  int unpack_border(int, int, double *);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
-  int pack_restart(int, double *);
-  void unpack_restart(int, int);
-  int size_restart(int);
-  int maxsize_restart();
-  double memory_usage();
+  void read_data_section(char *, int, char *, tagint) override;
+  bigint read_data_skip_lines(char *) override;
+  void write_data_section_size(int, int &, int &) override;
+  void write_data_section_pack(int, double **) override;
+  void write_data_section_keyword(int, FILE *) override;
+  void write_data_section(int, FILE *, int, double **, int) override;
+
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  void set_arrays(int) override;
+  int pack_border(int, int *, double *) override;
+  int unpack_border(int, int, double *) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  int pack_restart(int, double *) override;
+  void unpack_restart(int, int) override;
+  int size_restart(int) override;
+  int maxsize_restart() override;
+  double memory_usage() override;
 
  protected:
   int nvalue, border;

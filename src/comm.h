@@ -63,7 +63,7 @@ class Comm : protected Pointers {
   // methods
 
   Comm(class LAMMPS *);
-  virtual ~Comm();
+  ~Comm() override;
   // NOTE: copy_arrays is called from a constructor and must not be made virtual
   void copy_arrays(class Comm *);
   virtual void init();

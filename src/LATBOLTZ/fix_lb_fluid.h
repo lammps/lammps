@@ -36,18 +36,18 @@ class FixLbFluid : public Fix {
 
  public:
   FixLbFluid(class LAMMPS *, int, char **);
-  ~FixLbFluid();
-  int setmask();
-  void init();
-  void initial_integrate(int);
-  void setup(int);
-  void post_force(int);
-  void end_of_step();
+  ~FixLbFluid() override;
+  int setmask() override;
+  void init() override;
+  void initial_integrate(int) override;
+  void setup(int) override;
+  void post_force(int) override;
+  void end_of_step() override;
 
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
 
  private:
   double viscosity, densityinit_real, a_0_real, T;

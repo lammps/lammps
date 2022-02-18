@@ -31,9 +31,11 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
+#include "potential_file_reader.h"
 
 #include <cmath>
 #include <cstring>
+#include <exception>
 #include <limits>
 
 using namespace LAMMPS_NS;
@@ -368,7 +370,7 @@ void PairEDIP::compute(int eflag, int vflag)
         directorCos_ik_z = invR_ik * dr_ik[2];
 
         cosTeta = directorCos_ij_x * directorCos_ik_x + directorCos_ij_y * directorCos_ik_y +
-            directorCos_ij_z * directorCos_ik_z;
+          directorCos_ij_z * directorCos_ik_z;
 
         cosTetaDiff = cosTeta + tauFunction;
         cosTetaDiffCosTetaDiff = cosTetaDiff * cosTetaDiff;
@@ -376,33 +378,33 @@ void PairEDIP::compute(int eflag, int vflag)
         expMinusQFunctionCosTetaDiffCosTetaDiff = exp(-qFunctionCosTetaDiffCosTetaDiff);
 
         potentia3B_factor = lambda *
-            ((1.0 - expMinusQFunctionCosTetaDiffCosTetaDiff) +
-             eta * qFunctionCosTetaDiffCosTetaDiff);
+          ((1.0 - expMinusQFunctionCosTetaDiffCosTetaDiff) +
+           eta * qFunctionCosTetaDiffCosTetaDiff);
 
         exp3B_ik = preExp3B_ij[neighbor_k];
         exp3BDerived_ik = preExp3BDerived_ij[neighbor_k];
 
         forceMod3B_factor1_ij = -exp3BDerived_ij * exp3B_ik * potentia3B_factor;
         forceMod3B_factor2 = 2.0 * lambda * exp3B_ij * exp3B_ik * qFunction * cosTetaDiff *
-            (eta + expMinusQFunctionCosTetaDiffCosTetaDiff);
+          (eta + expMinusQFunctionCosTetaDiffCosTetaDiff);
         forceMod3B_factor2_ij = forceMod3B_factor2 * invR_ij;
 
         f_ij[0] = forceMod3B_factor1_ij * directorCos_ij_x +
-            forceMod3B_factor2_ij * (cosTeta * directorCos_ij_x - directorCos_ik_x);
+          forceMod3B_factor2_ij * (cosTeta * directorCos_ij_x - directorCos_ik_x);
         f_ij[1] = forceMod3B_factor1_ij * directorCos_ij_y +
-            forceMod3B_factor2_ij * (cosTeta * directorCos_ij_y - directorCos_ik_y);
+          forceMod3B_factor2_ij * (cosTeta * directorCos_ij_y - directorCos_ik_y);
         f_ij[2] = forceMod3B_factor1_ij * directorCos_ij_z +
-            forceMod3B_factor2_ij * (cosTeta * directorCos_ij_z - directorCos_ik_z);
+          forceMod3B_factor2_ij * (cosTeta * directorCos_ij_z - directorCos_ik_z);
 
         forceMod3B_factor1_ik = -exp3BDerived_ik * exp3B_ij * potentia3B_factor;
         forceMod3B_factor2_ik = forceMod3B_factor2 * invR_ik;
 
         f_ik[0] = forceMod3B_factor1_ik * directorCos_ik_x +
-            forceMod3B_factor2_ik * (cosTeta * directorCos_ik_x - directorCos_ij_x);
+          forceMod3B_factor2_ik * (cosTeta * directorCos_ik_x - directorCos_ij_x);
         f_ik[1] = forceMod3B_factor1_ik * directorCos_ik_y +
-            forceMod3B_factor2_ik * (cosTeta * directorCos_ik_y - directorCos_ij_y);
+          forceMod3B_factor2_ik * (cosTeta * directorCos_ik_y - directorCos_ij_y);
         f_ik[2] = forceMod3B_factor1_ik * directorCos_ik_z +
-            forceMod3B_factor2_ik * (cosTeta * directorCos_ik_z - directorCos_ij_z);
+          forceMod3B_factor2_ik * (cosTeta * directorCos_ik_z - directorCos_ij_z);
 
         forceModCoord += (forceMod3B_factor2 * (tauFunctionDerived - 0.5 * mu * cosTetaDiff));
 
@@ -765,136 +767,92 @@ double PairEDIP::init_one(int i, int j)
 
 void PairEDIP::read_file(char *file)
 {
-  int params_per_line = 20;
-  char **words = new char *[params_per_line + 1];
-
   memory->sfree(params);
   params = nullptr;
   nparams = maxparam = 0;
 
   // open file on proc 0
 
-  FILE *fp;
   if (comm->me == 0) {
-    fp = utils::open_potential(file, lmp, nullptr);
-    if (fp == nullptr)
-      error->one(FLERR, "Cannot open EDIP potential file {}: {}", file, utils::getsyserror());
-  }
+    PotentialFileReader reader(lmp, file, "edip");
+    char *line;
 
-  // read each set of params from potential file
-  // one set of params can span multiple lines
-  // store params if all 3 element tags are in element list
+    while ((line = reader.next_line(NPARAMS_PER_LINE))) {
+      try {
+        ValueTokenizer values(line);
+        std::string iname = values.next_string();
+        std::string jname = values.next_string();
+        std::string kname = values.next_string();
 
-  int n, nwords, ielement, jelement, kelement;
-  char line[MAXLINE], *ptr;
-  int eof = 0;
+        // ielement,jelement,kelement = 1st args
+        // if all 3 args are in element list, then parse this line
+        // else skip to next entry in file
+        int ielement, jelement, kelement;
 
-  while (true) {
-    if (comm->me == 0) {
-      ptr = fgets(line, MAXLINE, fp);
-      if (ptr == nullptr) {
-        eof = 1;
-        fclose(fp);
-      } else
-        n = strlen(line) + 1;
-    }
-    MPI_Bcast(&eof, 1, MPI_INT, 0, world);
-    if (eof) break;
-    MPI_Bcast(&n, 1, MPI_INT, 0, world);
-    MPI_Bcast(line, n, MPI_CHAR, 0, world);
+        for (ielement = 0; ielement < nelements; ielement++)
+          if (iname == elements[ielement]) break;
+        if (ielement == nelements) continue;
+        for (jelement = 0; jelement < nelements; jelement++)
+          if (jname == elements[jelement]) break;
+        if (jelement == nelements) continue;
+        for (kelement = 0; kelement < nelements; kelement++)
+          if (kname == elements[kelement]) break;
+        if (kelement == nelements) continue;
 
-    // strip comment, skip line if blank
+        // load up parameter settings and error check their values
 
-    if ((ptr = strchr(line, '#'))) *ptr = '\0';
-    nwords = utils::count_words(line);
-    if (nwords == 0) continue;
+        if (nparams == maxparam) {
+          maxparam += DELTA;
+          params = (Param *) memory->srealloc(params,maxparam*sizeof(Param),
+                                              "pair:params");
 
-    // concatenate additional lines until have params_per_line words
+          // make certain all addional allocated storage is initialized
+          // to avoid false positives when checking with valgrind
 
-    while (nwords < params_per_line) {
-      n = strlen(line);
-      if (comm->me == 0) {
-        ptr = fgets(&line[n], MAXLINE - n, fp);
-        if (ptr == nullptr) {
-          eof = 1;
-          fclose(fp);
-        } else
-          n = strlen(line) + 1;
+          memset(params + nparams, 0, DELTA*sizeof(Param));
+        }
+
+        params[nparams].ielement = ielement;
+        params[nparams].jelement = jelement;
+        params[nparams].kelement = kelement;
+        params[nparams].A = values.next_double();
+        params[nparams].B = values.next_double();
+        params[nparams].cutoffA = values.next_double();
+        params[nparams].cutoffC = values.next_double();
+        params[nparams].alpha = values.next_double();
+        params[nparams].beta = values.next_double();
+        params[nparams].eta = values.next_double();
+        params[nparams].gamma = values.next_double();
+        params[nparams].lambda = values.next_double();
+        params[nparams].mu = values.next_double();
+        params[nparams].rho = values.next_double();
+        params[nparams].sigma = values.next_double();
+        params[nparams].Q0 = values.next_double();
+        params[nparams].u1 = values.next_double();
+        params[nparams].u2 = values.next_double();
+        params[nparams].u3 = values.next_double();
+        params[nparams].u4 = values.next_double();
+      } catch (std::exception &e) {
+        error->one(FLERR, "Error reading EDIP potential file: {}", e.what());
       }
-      MPI_Bcast(&eof, 1, MPI_INT, 0, world);
-      if (eof) break;
-      MPI_Bcast(&n, 1, MPI_INT, 0, world);
-      MPI_Bcast(line, n, MPI_CHAR, 0, world);
-      if ((ptr = strchr(line, '#'))) *ptr = '\0';
-      nwords = utils::count_words(line);
+
+      if (params[nparams].A < 0.0 || params[nparams].B < 0.0 || params[nparams].cutoffA < 0.0 ||
+          params[nparams].cutoffC < 0.0 || params[nparams].alpha < 0.0 ||
+          params[nparams].beta < 0.0 || params[nparams].eta < 0.0 || params[nparams].gamma < 0.0 ||
+          params[nparams].lambda < 0.0 || params[nparams].mu < 0.0 || params[nparams].rho < 0.0 ||
+          params[nparams].sigma < 0.0)
+        error->all(FLERR, "Illegal EDIP parameter");
+
+      nparams++;
     }
-
-    if (nwords != params_per_line) error->all(FLERR, "Incorrect format in EDIP potential file");
-
-    // words = ptrs to all words in line
-
-    nwords = 0;
-    words[nwords++] = strtok(line, " \t\n\r\f");
-    while ((words[nwords++] = strtok(nullptr, " \t\n\r\f"))) continue;
-
-    // ielement,jelement,kelement = 1st args
-    // if all 3 args are in element list, then parse this line
-    // else skip to next entry in file
-
-    for (ielement = 0; ielement < nelements; ielement++)
-      if (strcmp(words[0], elements[ielement]) == 0) break;
-    if (ielement == nelements) continue;
-    for (jelement = 0; jelement < nelements; jelement++)
-      if (strcmp(words[1], elements[jelement]) == 0) break;
-    if (jelement == nelements) continue;
-    for (kelement = 0; kelement < nelements; kelement++)
-      if (strcmp(words[2], elements[kelement]) == 0) break;
-    if (kelement == nelements) continue;
-
-    // load up parameter settings and error check their values
-
-    if (nparams == maxparam) {
-      maxparam += DELTA;
-      params = (Param *) memory->srealloc(params, maxparam * sizeof(Param), "pair:params");
-
-      // make certain all addional allocated storage is initialized
-      // to avoid false positives when checking with valgrind
-
-      memset(params + nparams, 0, DELTA * sizeof(Param));
-    }
-
-    params[nparams].ielement = ielement;
-    params[nparams].jelement = jelement;
-    params[nparams].kelement = kelement;
-    params[nparams].A = atof(words[3]);
-    params[nparams].B = atof(words[4]);
-    params[nparams].cutoffA = atof(words[5]);
-    params[nparams].cutoffC = atof(words[6]);
-    params[nparams].alpha = atof(words[7]);
-    params[nparams].beta = atof(words[8]);
-    params[nparams].eta = atof(words[9]);
-    params[nparams].gamm = atof(words[10]);
-    params[nparams].lambda = atof(words[11]);
-    params[nparams].mu = atof(words[12]);
-    params[nparams].rho = atof(words[13]);
-    params[nparams].sigma = atof(words[14]);
-    params[nparams].Q0 = atof(words[15]);
-    params[nparams].u1 = atof(words[16]);
-    params[nparams].u2 = atof(words[17]);
-    params[nparams].u3 = atof(words[18]);
-    params[nparams].u4 = atof(words[19]);
-
-    if (params[nparams].A < 0.0 || params[nparams].B < 0.0 || params[nparams].cutoffA < 0.0 ||
-        params[nparams].cutoffC < 0.0 || params[nparams].alpha < 0.0 ||
-        params[nparams].beta < 0.0 || params[nparams].eta < 0.0 || params[nparams].gamm < 0.0 ||
-        params[nparams].lambda < 0.0 || params[nparams].mu < 0.0 || params[nparams].rho < 0.0 ||
-        params[nparams].sigma < 0.0)
-      error->all(FLERR, "Illegal EDIP parameter");
-
-    nparams++;
   }
+  MPI_Bcast(&nparams, 1, MPI_INT, 0, world);
+  MPI_Bcast(&maxparam, 1, MPI_INT, 0, world);
 
-  delete[] words;
+  if (comm->me != 0)
+    params = (Param *) memory->srealloc(params,maxparam*sizeof(Param), "pair:params");
+
+  MPI_Bcast(params, maxparam*sizeof(Param), MPI_BYTE, 0, world);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -946,7 +904,7 @@ void PairEDIP::setup_params()
   cutoffC = params[0].cutoffC;
   sigma = params[0].sigma;
   lambda = params[0].lambda;
-  gamm = params[0].gamm;
+  gamm = params[0].gamma;
   eta = params[0].eta;
   Q0 = params[0].Q0;
   mu = params[0].mu;

@@ -31,12 +31,12 @@ namespace LAMMPS_NS {
 class FixNVEAsphereGPU : public FixNVE {
  public:
   FixNVEAsphereGPU(class LAMMPS *, int, char **);
-  void init();
-  void setup(int vflag);
-  void initial_integrate(int);
-  void final_integrate();
-  void reset_dt();
-  virtual double memory_usage();
+  void init() override;
+  void setup(int vflag) override;
+  void initial_integrate(int) override;
+  void final_integrate() override;
+  void reset_dt() override;
+  double memory_usage() override;
 
  private:
   double reset_dt_omp(const int, const int, const int);

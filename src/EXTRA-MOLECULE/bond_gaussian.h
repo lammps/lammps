@@ -27,14 +27,14 @@ namespace LAMMPS_NS {
 class BondGaussian : public Bond {
  public:
   BondGaussian(class LAMMPS *);
-  virtual ~BondGaussian();
-  virtual void compute(int, int);
-  virtual void coeff(int, char **);
-  double equilibrium_distance(int);
-  void write_restart(FILE *);
-  virtual void read_restart(FILE *);
-  void write_data(FILE *);
-  double single(int, double, int, int, double &);
+  ~BondGaussian() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  double equilibrium_distance(int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
+  double single(int, double, int, int, double &) override;
 
  protected:
   int *nterms;

@@ -31,19 +31,19 @@ namespace LAMMPS_NS {
 class PairLocalDensity : public Pair {
  public:
   PairLocalDensity(class LAMMPS *);
-  virtual ~PairLocalDensity();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  virtual void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
-  double single(int, int, int, int, double, double, double, double &);
+  ~PairLocalDensity() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  double single(int, int, int, int, double, double, double, double &) override;
 
-  virtual int pack_forward_comm(int, int *, double *, int, int *);
-  virtual void unpack_forward_comm(int, int, double *);
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
-  double memory_usage();
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  double memory_usage() override;
 
  protected:
   //------------------------------------------------------------------------

@@ -27,15 +27,15 @@ namespace LAMMPS_NS {
 class BondBPMRotational : public BondBPM {
  public:
   BondBPMRotational(class LAMMPS *);
-  virtual ~BondBPMRotational();
-  virtual void compute(int, int);
-  void coeff(int, char **);
-  void init_style();
-  void settings(int, char **);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_data(FILE *);
-  double single(int, double, int, int, double &);
+  virtual ~BondBPMRotational() override;
+  virtual void compute(int, int) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  void settings(int, char **) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
+  double single(int, double, int, int, double &) override;
 
  protected:
   double *Kr, *Ks, *Kt, *Kb, *gnorm, *gslide, *groll, *gtwist;

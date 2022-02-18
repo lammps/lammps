@@ -17,7 +17,6 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
-#include "math_const.h"
 #include "memory.h"
 #include "neighbor.h"
 #include "update.h"
@@ -29,7 +28,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondFENENM::BondFENENM(LAMMPS *lmp) : BondFENE(lmp) {}
+BondFENENM::BondFENENM(LAMMPS *lmp) : BondFENE(lmp), nn(nullptr), mm(nullptr) {}
 
 /* ---------------------------------------------------------------------- */
 

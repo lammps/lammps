@@ -35,8 +35,8 @@ class PairGayBerneIntel : public PairGayBerne {
  public:
   PairGayBerneIntel(class LAMMPS *);
 
-  virtual void compute(int, int);
-  void init_style();
+  void compute(int, int) override;
+  void init_style() override;
 
  private:
   template <class flt_t> class ForceConst;

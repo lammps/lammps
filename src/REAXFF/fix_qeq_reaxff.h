@@ -39,22 +39,22 @@ namespace LAMMPS_NS {
 class FixQEqReaxFF : public Fix {
  public:
   FixQEqReaxFF(class LAMMPS *, int, char **);
-  ~FixQEqReaxFF();
-  int setmask();
-  virtual void post_constructor();
-  virtual void init();
-  void init_list(int, class NeighList *);
+  ~FixQEqReaxFF() override;
+  int setmask() override;
+  void post_constructor() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
   virtual void init_storage();
-  virtual void setup_pre_force(int);
-  virtual void pre_force(int);
+  void setup_pre_force(int) override;
+  void pre_force(int) override;
 
-  void setup_pre_force_respa(int, int);
-  void pre_force_respa(int, int, int);
+  void setup_pre_force_respa(int, int) override;
+  void pre_force_respa(int, int, int) override;
 
   void min_setup_pre_force(int);
-  void min_pre_force(int);
+  void min_pre_force(int) override;
 
-  virtual double compute_scalar();
+  double compute_scalar() override;
 
  protected:
   int nevery, reaxflag;
@@ -119,15 +119,15 @@ class FixQEqReaxFF : public Fix {
   virtual int CG(double *, double *);
   virtual void sparse_matvec(sparse_matrix *, double *, double *);
 
-  virtual int pack_forward_comm(int, int *, double *, int, int *);
-  virtual void unpack_forward_comm(int, int, double *);
-  virtual int pack_reverse_comm(int, int, double *);
-  virtual void unpack_reverse_comm(int, int *, double *);
-  virtual double memory_usage();
-  virtual void grow_arrays(int);
-  virtual void copy_arrays(int, int, int);
-  virtual int pack_exchange(int, double *);
-  virtual int unpack_exchange(int, double *);
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  double memory_usage() override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
 
   virtual double parallel_norm(double *, int);
   virtual double parallel_dot(double *, double *, int);

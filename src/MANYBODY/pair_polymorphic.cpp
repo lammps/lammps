@@ -33,7 +33,6 @@
 #include "neighbor.h"
 #include "potential_file_reader.h"
 #include "tabular_function.h"
-#include "tokenizer.h"
 
 #include <cmath>
 

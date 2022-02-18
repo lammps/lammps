@@ -27,16 +27,16 @@ namespace LAMMPS_NS {
 class BondFENE : public Bond {
  public:
   BondFENE(class LAMMPS *lmp) : Bond(lmp) {}
-  virtual ~BondFENE();
-  virtual void compute(int, int);
-  virtual void coeff(int, char **);
-  void init_style();
-  double equilibrium_distance(int);
-  virtual void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_data(FILE *);
-  double single(int, double, int, int, double &);
-  virtual void *extract(const char *, int &);
+  ~BondFENE() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double equilibrium_distance(int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
+  double single(int, double, int, int, double &) override;
+  void *extract(const char *, int &) override;
 
  protected:
   double *k, *r0, *epsilon, *sigma;

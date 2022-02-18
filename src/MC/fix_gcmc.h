@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class FixGCMC : public Fix {
  public:
   FixGCMC(class LAMMPS *, int, char **);
-  ~FixGCMC();
-  int setmask();
-  void init();
-  void pre_exchange();
+  ~FixGCMC() override;
+  int setmask() override;
+  void init() override;
+  void pre_exchange() override;
   void attempt_atomic_translation();
   void attempt_atomic_deletion();
   void attempt_atomic_insertion();
@@ -52,10 +52,10 @@ class FixGCMC : public Fix {
   tagint pick_random_gas_molecule();
   void toggle_intramolecular(int);
   void update_gas_atoms_list();
-  double compute_vector(int);
-  double memory_usage();
-  void write_restart(FILE *);
-  void restart(char *);
+  double compute_vector(int) override;
+  double memory_usage() override;
+  void write_restart(FILE *) override;
+  void restart(char *) override;
   void grow_molecule_arrays(int);
 
  private:

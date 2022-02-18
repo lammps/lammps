@@ -54,6 +54,15 @@ using namespace MathConst;
 #define DELTA_PERATOM 64
 #define EPSILON 1.0e-6
 
+/* ----------------------------------------------------------------------
+   one instance per AtomVec style in style_atom.h
+------------------------------------------------------------------------- */
+
+template <typename T> static AtomVec *avec_creator(LAMMPS *lmp)
+{
+  return new T(lmp);
+}
+
 /* ---------------------------------------------------------------------- */
 
 /** \class LAMMPS_NS::Atom
@@ -747,16 +756,6 @@ AtomVec *Atom::new_avec(const std::string &style, int trysuffix, int &sflag)
   return nullptr;
 }
 
-/* ----------------------------------------------------------------------
-   one instance per AtomVec style in style_atom.h
-------------------------------------------------------------------------- */
-
-template <typename T>
-AtomVec *Atom::avec_creator(LAMMPS *lmp)
-{
-  return new T(lmp);
-}
-
 /* ---------------------------------------------------------------------- */
 
 void Atom::init()
@@ -1056,7 +1055,7 @@ void Atom::deallocate_topology()
 void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
                       int type_offset, int shiftflag, double *shift)
 {
-  int m,xptr,iptr;
+  int xptr,iptr;
   imageint imagedata;
   double xdata[3],lamda[3];
   double *coord;
@@ -1143,7 +1142,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
     next = strchr(buf,'\n');
     *next = '\0';
     auto values = Tokenizer(utils::trim_comment(buf)).as_vector();
-    if (values.size() != nwords)
+    if ((int)values.size() != nwords)
       error->all(FLERR, "Incorrect atom format in data file: {}", utils::trim(buf));
 
     int imx = 0, imy = 0, imz = 0;
@@ -1201,7 +1200,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
 
 void Atom::data_vels(int n, char *buf, tagint id_offset)
 {
-  int j,m;
+  int m;
   char *next;
 
   next = strchr(buf,'\n');
@@ -1220,7 +1219,7 @@ void Atom::data_vels(int n, char *buf, tagint id_offset)
     next = strchr(buf,'\n');
     *next = '\0';
     auto values = Tokenizer(utils::trim_comment(buf)).as_vector();
-    if (values.size() != nwords)
+    if ((int)values.size() != nwords)
       error->all(FLERR, "Incorrect atom format in data file: {}", utils::trim(buf));
 
     tagint tagdata = utils::tnumeric(FLERR,values[0],false,lmp) + id_offset;
@@ -1580,7 +1579,7 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
 
 void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus, tagint id_offset)
 {
-  int j,m;
+  int m;
   char *next;
 
   next = strchr(buf,'\n');
@@ -1599,7 +1598,7 @@ void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus, tagint id_offset)
     next = strchr(buf,'\n');
     *next = '\0';
     auto values = Tokenizer(utils::trim_comment(buf)).as_vector();
-    if (values.size() != nwords)
+    if ((int)values.size() != nwords)
       error->all(FLERR, "Incorrect atom format in data file: {}", utils::trim(buf));
 
     tagint tagdata = utils::tnumeric(FLERR,values[0],false,lmp) + id_offset;

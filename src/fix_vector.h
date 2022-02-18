@@ -27,13 +27,13 @@ namespace LAMMPS_NS {
 class FixVector : public Fix {
  public:
   FixVector(class LAMMPS *, int, char **);
-  ~FixVector();
-  int setmask();
-  void init();
-  void setup(int);
-  void end_of_step();
-  double compute_vector(int);
-  double compute_array(int, int);
+  ~FixVector() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void end_of_step() override;
+  double compute_vector(int) override;
+  double compute_array(int, int) override;
 
  private:
   int nvalues;

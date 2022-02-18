@@ -23,16 +23,16 @@ namespace LAMMPS_NS {
 class BondBPM : public Bond {
  public:
   BondBPM(class LAMMPS *);
-  virtual ~BondBPM();
-  virtual void compute(int, int) = 0;
-  virtual void coeff(int, char **) = 0;
-  virtual void init_style();
-  void settings(int, char **);
-  double equilibrium_distance(int);
-  void write_restart(FILE *){};
-  void read_restart(FILE *){};
-  void write_data(FILE *) {};
-  double single(int, double, int, int, double &) = 0;
+  virtual ~BondBPM() override;
+  virtual void compute(int, int) override = 0;
+  virtual void coeff(int, char **) override = 0;
+  virtual void init_style() override;
+  void settings(int, char **) override;
+  double equilibrium_distance(int) override;
+  void write_restart(FILE *) override {};
+  void read_restart(FILE *) override {};
+  void write_data(FILE *) override {};
+  double single(int, double, int, int, double &) override = 0;
 
  protected:
   double r0_max_estimate;

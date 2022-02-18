@@ -33,9 +33,9 @@ namespace LAMMPS_NS {
 class AngleCharmmIntel : public AngleCharmm {
  public:
   AngleCharmmIntel(class LAMMPS *);
-  virtual ~AngleCharmmIntel();
-  virtual void compute(int, int);
-  virtual void init_style();
+  ~AngleCharmmIntel() override;
+  void compute(int, int) override;
+  void init_style() override;
 
  protected:
   FixIntel *fix;

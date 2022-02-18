@@ -14,7 +14,7 @@
 #ifndef LMP_NTOPO_H
 #define LMP_NTOPO_H
 
-#include "pointers.h"
+#include "pointers.h"    // IWYU pragma: keep
 
 namespace LAMMPS_NS {
 
@@ -24,7 +24,7 @@ class NTopo : protected Pointers {
   int **bondlist, **anglelist, **dihedrallist, **improperlist;
 
   NTopo(class LAMMPS *);
-  virtual ~NTopo();
+  ~NTopo() override;
 
   virtual void build() = 0;
 

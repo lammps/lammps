@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class FixStoreLocal : public Fix {
  public:
   FixStoreLocal(class LAMMPS *, int, char **);
-  ~FixStoreLocal();
-  int setmask();
-  void post_force(int);
-  double memory_usage();
+  ~FixStoreLocal() override;
+  int setmask() override;
+  void post_force(int) override;
+  double memory_usage() override;
   void add_data(double *, int, int);
   int nvalues;
 
@@ -65,7 +65,7 @@ Self-explanatory.
 
 E: Unused instance of fix store/local
 
-Instance of fix store/local is not associated with any other LAMMPS 
+Instance of fix store/local is not associated with any other LAMMPS
 class such as a bond style, pair style, etc.
 
 */

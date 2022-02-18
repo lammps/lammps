@@ -119,10 +119,12 @@ OPT.
    * :doc:`granular <pair_granular>`
    * :doc:`gw <pair_gw>`
    * :doc:`gw/zbl <pair_gw>`
+   * :doc:`harmonic/cut (o) <pair_harmonic_cut>`
    * :doc:`hbond/dreiding/lj (o) <pair_hbond_dreiding>`
    * :doc:`hbond/dreiding/morse (o) <pair_hbond_dreiding>`
    * :doc:`hdnnp <pair_hdnnp>`
    * :doc:`ilp/graphene/hbn <pair_ilp_graphene_hbn>`
+   * :doc:`ilp/tmd <pair_ilp_tmd>`
    * :doc:`kolmogorov/crespi/full <pair_kolmogorov_crespi_full>`
    * :doc:`kolmogorov/crespi/z <pair_kolmogorov_crespi_z>`
    * :doc:`lcbop <pair_lcbop>`
@@ -240,6 +242,7 @@ OPT.
    * :doc:`reaxff (ko) <pair_reaxff>`
    * :doc:`rebo (io) <pair_airebo>`
    * :doc:`resquared (go) <pair_resquared>`
+   * :doc:`saip/metal <pair_saip_metal>`
    * :doc:`sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>`
    * :doc:`smd/hertz <pair_smd_hertz>`
    * :doc:`smd/tlsph <pair_smd_tlsph>`

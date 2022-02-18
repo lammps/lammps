@@ -580,6 +580,11 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 
 FixBondReact::~FixBondReact()
 {
+  for (int i = 0; i < narrhenius; i++) {
+    delete rrhandom[i];
+  }
+  delete [] rrhandom;
+
   for (int i = 0; i < nreacts; i++) {
     delete random[i];
   }

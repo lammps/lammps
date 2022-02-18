@@ -40,7 +40,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 static const char cite_fix_bond_swap[] =
-  "neighbor multi command:\n\n"
+  "fix bond/swap command:\n\n"
   "@Article{Auhl03,\n"
   " author = {R. Auhl, R. Everaers, G. S. Grest, K. Kremer, S. J. Plimpton},\n"
   " title = {Equilibration of long chain polymer melts in computer simulations},\n"

@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class ComputeCentroidStressAtom : public Compute {
  public:
   ComputeCentroidStressAtom(class LAMMPS *, int, char **);
-  ~ComputeCentroidStressAtom();
-  void init();
-  void compute_peratom();
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
-  double memory_usage();
+  ~ComputeCentroidStressAtom() override;
+  void init() override;
+  void compute_peratom() override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  double memory_usage() override;
 
  private:
   int keflag, pairflag, bondflag, angleflag, dihedralflag, improperflag;

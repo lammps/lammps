@@ -1115,8 +1115,7 @@ void PairSWIntel::init_style()
 
   int ifix = modify->find_fix("package_intel");
   if (ifix < 0)
-    error->all(FLERR,
-               "The 'package intel' command is required for /intel styles");
+    error->all(FLERR,"The 'package intel' command is required for /intel styles");
   fix = static_cast<FixIntel *>(modify->fix[ifix]);
 
   fix->pair_init_check(true);

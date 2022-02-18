@@ -27,21 +27,21 @@ namespace LAMMPS_NS {
 class ComputeTempCS : public Compute {
  public:
   ComputeTempCS(class LAMMPS *, int, char **);
-  ~ComputeTempCS();
-  void init();
-  void setup();
-  double compute_scalar();
-  void compute_vector();
-  double memory_usage();
+  ~ComputeTempCS() override;
+  void init() override;
+  void setup() override;
+  double compute_scalar() override;
+  void compute_vector() override;
+  double memory_usage() override;
 
-  void remove_bias(int, double *);
-  void remove_bias_all();
-  void reapply_bias_all();
-  void restore_bias(int, double *);
-  void restore_bias_all();
+  void remove_bias(int, double *) override;
+  void remove_bias_all() override;
+  void reapply_bias_all() override;
+  void restore_bias(int, double *) override;
+  void restore_bias_all() override;
 
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
 
  private:
   int groupbit_c, groupbit_s;

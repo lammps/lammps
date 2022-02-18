@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class ComputeSNAAtom : public Compute {
  public:
   ComputeSNAAtom(class LAMMPS *, int, char **);
-  ~ComputeSNAAtom();
-  void init();
-  void init_list(int, class NeighList *);
-  void compute_peratom();
-  double memory_usage();
+  ~ComputeSNAAtom() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void compute_peratom() override;
+  double memory_usage() override;
 
  private:
   int nmax;

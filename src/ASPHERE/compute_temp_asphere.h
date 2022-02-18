@@ -27,16 +27,16 @@ namespace LAMMPS_NS {
 class ComputeTempAsphere : public Compute {
  public:
   ComputeTempAsphere(class LAMMPS *, int, char **);
-  ~ComputeTempAsphere();
-  void init();
-  void setup();
-  double compute_scalar();
-  void compute_vector();
+  ~ComputeTempAsphere() override;
+  void init() override;
+  void setup() override;
+  double compute_scalar() override;
+  void compute_vector() override;
 
-  void remove_bias(int, double *);
-  void restore_bias(int, double *);
-  void remove_bias_thr(int, double *, double *);
-  void restore_bias_thr(int, double *, double *);
+  void remove_bias(int, double *) override;
+  void restore_bias(int, double *) override;
+  void remove_bias_thr(int, double *, double *) override;
+  void restore_bias_thr(int, double *, double *) override;
 
  private:
   int mode;

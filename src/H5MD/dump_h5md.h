@@ -29,7 +29,7 @@ namespace LAMMPS_NS {
 class DumpH5MD : public Dump {
  public:
   DumpH5MD(class LAMMPS *, int, char **);
-  virtual ~DumpH5MD();
+  ~DumpH5MD() override;
 
  private:
   int natoms, ntotal;
@@ -57,12 +57,12 @@ class DumpH5MD : public Dump {
   int *dump_charge;
   int every_charge;
 
-  void init_style();
-  int modify_param(int, char **);
-  void openfile();
-  void write_header(bigint);
-  void pack(tagint *);
-  void write_data(int, double *);
+  void init_style() override;
+  int modify_param(int, char **) override;
+  void openfile() override;
+  void write_header(bigint) override;
+  void pack(tagint *) override;
+  void write_data(int, double *) override;
 
   void write_frame();
   void write_fixed_frame();

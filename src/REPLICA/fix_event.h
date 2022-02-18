@@ -21,16 +21,16 @@ namespace LAMMPS_NS {
 class FixEvent : public Fix {
  public:
   FixEvent(class LAMMPS *, int, char **);
-  virtual ~FixEvent() = 0;    // use destructor to make base class virtual
-  int setmask();
+  ~FixEvent() override = 0;    // use destructor to make base class virtual
+  int setmask() override;
 
-  double memory_usage();
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
-  virtual void write_restart(FILE *) {}
-  virtual void restart(char *) {}
+  double memory_usage() override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  void write_restart(FILE *) override {}
+  void restart(char *) override {}
 
   // methods specific to FixEvent
 

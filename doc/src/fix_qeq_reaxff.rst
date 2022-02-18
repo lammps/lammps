@@ -90,9 +90,11 @@ number of iterations.
 
 .. note::
 
-   To avoid the evaluation of the derivative of charge with respect
-   to position, which is typically ill-defined, the system should have a
-   zero net charge.  LAMMPS will print a warning, if that is not the case.
+   In order to solve the self-consistent equations for electronegativity
+   equalization, LAMMPS imposes the additional constraint that all the
+   charges in the fix group must add up to zero.  The initial charge
+   assignments should also satisfy this constraint.  LAMMPS will print a
+   warning if that is not the case.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

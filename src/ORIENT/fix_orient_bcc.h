@@ -69,9 +69,9 @@ class FixOrientBCC : public Fix {
   char *xifilename, *chifilename;    // file names for 2 crystal orientations
 
   bool use_xismooth;
-  double Rxi[8][3] = {0}, Rchi[8][3] = {0}, half_xi_chi_vec[2][4][3] = {0};
+  static constexpr int half_bcc_nn = 4;
+  double Rxi[half_bcc_nn][3] = {}, Rchi[half_bcc_nn][3] = {}, half_xi_chi_vec[2][half_bcc_nn][3] = {};
   double xiid, xi0, xi1, xicutoffsq, cutsq, added_energy;
-  int half_bcc_nn;
 
   int nmax;          // expose 2 per-atom quantities
   double **order;    // order param and normalized order param

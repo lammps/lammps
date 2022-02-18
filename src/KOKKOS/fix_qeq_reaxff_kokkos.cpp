@@ -209,6 +209,8 @@ void FixQEqReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
   d_numneigh = k_list->d_numneigh;
   d_neighbors = k_list->d_neighbors;
   d_ilist = k_list->d_ilist;
+  nn = list->inum;
+  NN = list->inum + list->gnum;
 
   copymode = 1;
 
@@ -246,11 +248,11 @@ void FixQEqReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
     if (neighflag == FULL) {
       FixQEqReaxFFKokkosComputeHFunctor<DeviceType, FULL> computeH_functor(
           this, atoms_per_team, vector_length);
-      Kokkos::parallel_for (policy, computeH_functor);
+      Kokkos::parallel_for(policy, computeH_functor);
     } else { // HALF and HALFTHREAD are the same
       FixQEqReaxFFKokkosComputeHFunctor<DeviceType, HALF> computeH_functor(
           this, atoms_per_team, vector_length);
-      Kokkos::parallel_for (policy, computeH_functor);
+      Kokkos::parallel_for(policy, computeH_functor);
     }
   }
 
@@ -277,7 +279,7 @@ void FixQEqReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
 
   //  cg solve over b_s, s & b_t, t
 
-  matvecs = cg_solve(); /////// needs 2x?
+  matvecs = cg_solve();
 
   // calculate_Q();
 
@@ -357,7 +359,6 @@ void FixQEqReaxFFKokkos<DeviceType>::allocate_array()
 
     memoryKK->create_kokkos(k_chi_field,chi_field,nmax,"qeq/kk:chi_field");
     d_chi_field = k_chi_field.template view<DeviceType>();
-
   }
 
   // init_storage
@@ -368,6 +369,7 @@ void FixQEqReaxFFKokkos<DeviceType>::allocate_array()
 
 }
 /* ---------------------------------------------------------------------- */
+
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixQEqReaxFFKokkos<DeviceType>::operator() (TagQEqZero, const int &ii) const
@@ -739,7 +741,7 @@ int FixQEqReaxFFKokkos<DeviceType>::cg_solve()
   b_norm.v[0] = sqrt(norm_sqr.v[0]);
   b_norm.v[1] = sqrt(norm_sqr.v[1]);
 
-  //sig_new = parallel_dot(r, d, nn);
+  // sig_new = parallel_dot(r, d, nn);
   F_FLOAT2 my_dot;
   Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType,TagQEqDot1>(0,nn),*this,my_dot);
   F_FLOAT2 dot_sqr;
@@ -842,7 +844,6 @@ void FixQEqReaxFFKokkos<DeviceType>::calculate_q()
   //comm->forward_comm_fix(this); //Dist_vector(atom->q);
   comm->forward_comm_fix(this);
 }
-
 
 /* ---------------------------------------------------------------------- */
 
@@ -1105,7 +1106,7 @@ int FixQEqReaxFFKokkos<DeviceType>::pack_forward_comm_fix_kokkos(int n, DAT::tdu
   iswap = iswap_in;
   d_buf = k_buf.view<DeviceType>();
   Kokkos::parallel_for (Kokkos::RangePolicy<DeviceType, TagQEqPackForwardComm>(0,n),*this);
-  if (pack_flag == 1) {
+  if (pack_flag != 4) {
     // sending 2x the data
     return 2*n;
   } else
@@ -1248,6 +1249,7 @@ void FixQEqReaxFFKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, doubl
     h_o(list[m],0) += buf[m*2];
     h_o(list[m],1) += buf[m*2+1];
   }
+
   k_o.modify_host();
 }
 

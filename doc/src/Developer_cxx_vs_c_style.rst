@@ -65,8 +65,8 @@ the main.cpp file has code for error handling, MPI configuration, and
 other special features.
 
 The basic LAMMPS class hierarchy which is created by the LAMMPS class
-consturctor is shown in :ref:`class-topology`.  When input commands
-are proccesed additional class instances are created, or deleted, or
+constructor is shown in :ref:`class-topology`.  When input commands
+are processed, additional class instances are created, or deleted, or
 replaced.  Likewise specific member functions of specific classes are
 called to trigger actions such creating atoms, computing forces,
 computing properties, time-propagating the system, or writing output.
@@ -102,8 +102,8 @@ styles, atom styles and so on.
 
 This is the origin of the flexibility of LAMMPS.  For example pair
 styles implement a variety of different non-bonded interatomic
-potentials functions.  All the details for implementation of a
-potenetial are stored and executed in a single class.  
+potentials functions.  All details for the implementation of a
+potential are stored and executed in a single class.
 
 As mentioned above, there can be multiple instances of classes derived
 from the ``Fix`` or ``Compute`` base classes.  They represent a
@@ -111,10 +111,10 @@ different facet of LAMMPS flexibility as they provide methods which
 can be called at different points in time within a timestep, as
 explained in `Developer_flow`.  This allows the input script to tailor
 how a specific simulation is run, what diagnostic computations are
-performed, and how the output of those computations if further
-processes or output.
+performed, and how the output of those computations is further
+processed or output.
 
-Further code sharing is possible by creating derived classes from the
+Additional code sharing is possible by creating derived classes from the
 derived classes (e.g., to implement an accelerated version of a pair
 style) where only a subset of the derived class methods are replaced
 with accelerated versions.
@@ -160,21 +160,21 @@ should use the ``override`` property. Below is a brief example.
    base1->call();
    base2->call();
 
-The difference in behavior of the ``normal()`` and the ``poly()``
-member functions is which of the two member functions is called when
-executing `base1->call()` versus `base2->call()`.  Without
-polymorphism, a function within the base class will call only member
-functions within the same scope, that is ``Base::call()`` will always
-call ``Base::normal()``.  But for the `base2->call()` the call for the
+The difference in behavior of the ``normal()`` and the ``poly()`` member
+functions is which of the two member functions is called when executing
+`base1->call()` versus `base2->call()`.  Without polymorphism, a
+function within the base class can only call member functions within the
+same scope, that is ``Base::call()`` will always call
+``Base::normal()``.  But for the `base2->call()` case the call of the
 virtual member function will be dispatched to ``Derived::poly()``
-instead.  This mechanism means that call functions within the scope of
-the class type that was used to create the class instance are always
-invoked, even if they are assigned to a pointer using the type of a
-base class.  This is the desired behavior, and via dynamic dispatch,
-LAMMPS can even use styles that are loaded at runtime from a shared
-object file with the :doc:`plugin command <plugin>`.
+instead.  This mechanism means that functions are called within the
+scope of the class type that was used to *create* the class instance are
+invoked; even if they are assigned to a pointer using the type of a base
+class.  This is the desired behavior and this way LAMMPS can even use
+styles that are loaded at runtime from a shared object file with the
+:doc:`plugin command <plugin>`.
 
-A special case of virtual functions are so-called pure functions. These
+A special case of virtual functions are so-called pure functions.  These
 are virtual functions that are initialized to 0 in the class declaration
 (see example below).
 
@@ -194,21 +194,22 @@ implementation to the derived classes.
 
 However, there are downsides to this. For example, calls to virtual
 functions from within a constructor, will not be in the scope of the
-derived class and thus it is good practice to either avoid calling
-them or to provide an explicit scope such as ``Base::poly()``.
-Furthermore, any destructors in classes containing virtual functions
-should be declared virtual, so they will be processed in the expected
-order before types are removed from dynamic dispatch.
+derived class and thus it is good practice to either avoid calling them
+or to provide an explicit scope such as ``Base::poly()`` or
+``Derived::poly()``.  Furthermore, any destructors in classes containing
+virtual functions should be declared virtual too, so they will be
+processed in the expected order before types are removed from dynamic
+dispatch.
 
 .. admonition:: Important Notes
 
    In order to be able to detect incompatibilities at compile time and
-   to avoid unexpected behavior, it is crucial that all member
-   functions that are intended to replace a virtual or pure function
-   use the ``override`` property keyword.  For the same reason, the
-   use of overloads or default arguments for virtual functions should
-   be avoided as they lead to confusion over which function is
-   supposed to override which and which arguments need to be declared.
+   to avoid unexpected behavior, it is crucial that all member functions
+   that are intended to replace a virtual or pure function use the
+   ``override`` property keyword.  For the same reason, the use of
+   overloads or default arguments for virtual functions should be
+   avoided as they lead to confusion over which function is supposed to
+   override which and which arguments need to be declared.
 
 Style Factories
 ===============
@@ -289,8 +290,8 @@ convenience function <LAMMPS_NS::utils::logmesg>`.
 
 We also discourage the use of stringstreams because the bundled {fmt}
 library and the customized tokenizer classes can provide the same
-functionality in a cleaner way with better performance. This also
-helps maintain a consistent programming sytnax with code from many
+functionality in a cleaner way with better performance.  This also
+helps maintain a consistent programming syntax with code from many
 different contributors.
 
 Formatting with the {fmt} library
@@ -317,10 +318,10 @@ Formatted strings are frequently created by calling the
 in ``printf()``, the {fmt} library uses ``{}`` to embed format
 descriptors.  In the simplest case, no additional characters are
 needed as {fmt} will choose the default format based on the data type
-of the argument. Alternatively the ``fmt::print()`` function may be
+of the argument.  Otherwise the ``fmt::print()`` function may be
 used instead of ``printf()`` or ``fprintf()``.  In addition, several
 LAMMPS output functions, that originally accepted a single string as
-arguments have been overloaded to accept a format string with optional
+argument have been overloaded to accept a format string with optional
 arguments as well (e.g., ``Error::all()``, ``Error::one()``,
 ``utils::logmesg()``).
 
@@ -336,29 +337,28 @@ common case for using argument id would be to use the same argument in
 multiple places in the format string without having to provide it as an
 argument multiple times. In LAMMPS the argument id is rarely used.
 
-More common is the use of a format specifier, which starts with a
-colon.  This may optionally be followed by a fill character (default
-is ' '). If provided, the fill character **must** be followed by an
-alignment character ('<', '^', '>' for left, centered, or right
-alignment (default)). The alignment character may be used without a
-fill character. The next important format parameter would be the
-minimum width, which may be followed by a dot '.'  and a precision for
-floating point numbers. The final character in the format string would
-be an indicator for the "presentation", i.e. 'd' for decimal
-presentation of integers, 'x' for hexadecimal, 'o' for octal, 'c' for
-character etc. This mostly follows the "printf()" scheme but without
-requiring an additional length parameter to distinguish between
-different integer widths. The {fmt} library will detect those and
-adapt the formatting accordingly.  For floating point numbers there
-are correspondingly, 'g' for generic presentation, 'e' for exponential
-presentation, and 'f' for fixed point presentation.
+More common is the use of a format specifier, which starts with a colon.
+This may optionally be followed by a fill character (default is ' '). If
+provided, the fill character **must** be followed by an alignment
+character ('<', '^', '>' for left, centered, or right alignment
+(default)).  The alignment character may be used without a fill
+character.  The next important format parameter would be the minimum
+width, which may be followed by a dot '.' and a precision for floating
+point numbers.  The final character in the format string would be an
+indicator for the "presentation", i.e. 'd' for decimal presentation of
+integers, 'x' for hexadecimal, 'o' for octal, 'c' for character etc.
+This mostly follows the "printf()" scheme but without requiring an
+additional length parameter to distinguish between different integer
+widths.  The {fmt} library will detect those and adapt the formatting
+accordingly.  For floating point numbers there are correspondingly, 'g'
+for generic presentation, 'e' for exponential presentation, and 'f' for
+fixed point presentation.
 
 Thus "{:8}" would represent *any* type argument using at least 8
-characters; "{:<8}" would do this as left aligned, "{:^8}" as
-centered, "{:>8}" as right aligned.  If a specific presentation is
-selected, the argument type must be compatible or else the {fmt}
-formatting code will throw an exception. Some format string examples
-are given below:
+characters; "{:<8}" would do this as left aligned, "{:^8}" as centered,
+"{:>8}" as right aligned.  If a specific presentation is selected, the
+argument type must be compatible or else the {fmt} formatting code will
+throw an exception. Some format string examples are given below:
 
 .. code-block:: C
 

@@ -222,10 +222,49 @@ style keyword, an ``std::map`` class is used with function pointers
 indexed by their keyword (for example "lj/cut" for ``PairLJCut`` and
 "morse" for ``PairMorse``).  A couple of typedefs help keep the code
 readable and a template function is used to implement the actual
-factory functions for the individual classes.
+factory functions for the individual classes.  Below is an example
+of such a factory function from the ``Force`` class as declared in
+``force.h`` and implemented in ``force.cpp``.  The file ``style_pair.h``
+is generated during compilation and includes all main header files
+(i.e. those starting with ``pair_``) of pair styles and then the
+macro ``PairStyle()`` will associate the style name "lj/cut"
+with a factory function creating an instance of the ``PairLJCut``
+class.
 
-NOTE to Axel: point to a couple of files that have these factory
-template functions, so a reader can examine them ?
+.. code-block:: C++
+
+   // from force.h
+   typedef Pair *(*PairCreator)(LAMMPS *);
+   typedef std::map<std::string, PairCreator> PairCreatorMap;
+   PairCreatorMap *pair_map;
+
+   // from force.cpp
+   template <typename S, typename T> static S *style_creator(LAMMPS *lmp)
+   {
+     return new T(lmp);
+   }
+
+   // [...]
+
+   pair_map = new PairCreatorMap();
+
+   #define PAIR_CLASS
+   #define PairStyle(key, Class) (*pair_map)[#key] = &style_creator<Pair, Class>;
+   #include "style_pair.h"
+   #undef PairStyle
+   #undef PAIR_CLASS
+
+   // from pair_lj_cut.cpp
+
+   #ifdef PAIR_CLASS
+   PairStyle(lj/cut,PairLJCut);
+   #else
+   // [...]
+
+Similar code constructs are present in other files like ``modify.cpp`` and
+``modify.h`` or ``neighbor.cpp`` and ``neighbor.h``.  Those contain
+similar macros and include ``style_*.h`` files for creating class instances
+of styles they manage.
 
 
 I/O and output formatting

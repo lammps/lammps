@@ -692,7 +692,7 @@ diagonalizers
 diagonalizing
 Diallo
 diblock
-dichalcogenide
+dichalcogenides
 Dickel
 diel
 Dietz
@@ -2954,6 +2954,7 @@ safezone
 Safran
 Sagui
 Saidi
+saip
 Salanne
 Salles
 sandia

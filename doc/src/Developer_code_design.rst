@@ -255,7 +255,7 @@ class.
    #undef PairStyle
    #undef PAIR_CLASS
 
-   // from pair_lj_cut.cpp
+   // from pair_lj_cut.h
 
    #ifdef PAIR_CLASS
    PairStyle(lj/cut,PairLJCut);

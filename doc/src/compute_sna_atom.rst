@@ -33,7 +33,7 @@ Syntax
 * R_1, R_2,... = list of cutoff radii, one for each type (distance units)
 * w_1, w_2,... = list of neighbor weights, one for each type
 * zero or more keyword/value pairs may be appended
-* keyword = *rmin0* or *switchflag* or *bzeroflag* or *quadraticflag* or *chem* or *bnormflag* or *wselfallflag*
+* keyword = *rmin0* or *switchflag* or *bzeroflag* or *quadraticflag* or *chem* or *bnormflag* or *wselfallflag* or *bikflag*
 
   .. parsed-literal::
 
@@ -56,6 +56,9 @@ Syntax
        *wselfallflag* value = *0* or *1*
           *0* = self-contribution only for element of central atom
           *1* = self-contribution for all elements
+       *bikflag* value = *0* or *1* (only implemented for compute snap)
+          *0* = per-atom bispectrum descriptors are summed over atoms
+          *1* = per-atom bispectrum descriptors are not summed over atoms
 
 Examples
 """"""""
@@ -295,6 +298,14 @@ following symmetry relation
 This option is typically used in conjunction with the *chem* keyword,
 and LAMMPS will generate a warning if both *chem* and *bnormflag*
 are not both set or not both unset.
+
+The keyword *bikflag* determines whether or not to expand the bispectrum
+rows of the global array returned by compute snap. If *bikflag* is set
+to *1* then the bispectrum row, which is typically the per-atom bispectrum
+descriptors :math:`B_{i,k}` summed over all atoms *i* to produce
+:math:`B_k`, becomes bispectrum rows equal to the number of atoms. Thus,
+the resulting bispectrum rows are :math:`B_{i,k}` instead of just
+:math:`B_k`.
 
 .. note::
 

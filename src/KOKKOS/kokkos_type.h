@@ -520,7 +520,7 @@ struct alignas(2*sizeof(F_FLOAT)) s_FLOAT2 {
 
   KOKKOS_INLINE_FUNCTION
   s_FLOAT2() {
-    init();
+    v[0] = v[1] = 0.0;
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -540,12 +540,6 @@ struct alignas(2*sizeof(F_FLOAT)) s_FLOAT2 {
   void operator+=(const volatile s_FLOAT2 &rhs) volatile {
     v[0] += rhs.v[0];
     v[1] += rhs.v[1];
-  }
-
-  KOKKOS_INLINE_FUNCTION
-  void init() {
-    v[0] = 0;
-    v[1] = 0;
   }
 };
 typedef struct s_FLOAT2 F_FLOAT2;

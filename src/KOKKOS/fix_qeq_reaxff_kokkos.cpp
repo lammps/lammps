@@ -705,8 +705,8 @@ void FixQEqReaxFFKokkos<DeviceType>::operator() (TagQEqInitMatvec, const int &ii
     d_Hdia_inv[i] = 1.0 / params(itype).eta;
     d_b_st(i,0) = -params(itype).chi - d_chi_field[i];
     d_b_st(i,1) = -1.0;
-    d_st(i,0) = d_t_hist(i,2) + 3*(d_t_hist(i,0) - d_t_hist(i,1));
-    d_st(i,1) = 4*(d_s_hist(i,0)+d_s_hist(i,2))-(6*d_s_hist(i,1)+d_s_hist(i,3));
+    d_st(i,0) = 4*(d_s_hist(i,0)+d_s_hist(i,2))-(6*d_s_hist(i,1)+d_s_hist(i,3));
+    d_st(i,1) = d_t_hist(i,2) + 3*(d_t_hist(i,0) - d_t_hist(i,1));
   }
 
 }
@@ -715,7 +715,7 @@ void FixQEqReaxFFKokkos<DeviceType>::operator() (TagQEqInitMatvec, const int &ii
 
 template<class DeviceType>
 int FixQEqReaxFFKokkos<DeviceType>::cg_solve()
-// b = b_s, x = s;
+// b = b_st, x = st;
 {
   converged = 0;
 
@@ -781,8 +781,6 @@ int FixQEqReaxFFKokkos<DeviceType>::cg_solve()
     }
 
     // tmp = parallel_dot(d, q, nn);
-    my_dot.init();
-    dot_sqr.init();
   Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType,TagQEqDot2>(0,nn),*this,my_dot);
     MPI_Allreduce(&my_dot.v, &dot_sqr.v, 2, MPI_DOUBLE, MPI_SUM, world);
     tmp = dot_sqr;
@@ -797,8 +795,6 @@ int FixQEqReaxFFKokkos<DeviceType>::cg_solve()
     // vector_add(r, -alpha, q, nn);
     // preconditioning: p[j] = r[j] * Hdia_inv[j];
     // sig_new = parallel_dot(r, p, nn);
-    my_dot.init();
-    dot_sqr.init();
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType,TagQEqDot3>(0,nn),*this,my_dot);
     MPI_Allreduce(&my_dot.v, &dot_sqr.v, 2, MPI_DOUBLE, MPI_SUM, world);
     sig_new = dot_sqr;

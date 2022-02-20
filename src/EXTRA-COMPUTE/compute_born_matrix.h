@@ -73,7 +73,6 @@ namespace LAMMPS_NS {
      static constexpr int NXYZ_VIRIAL = 3;    // number of Cartesian coordinates
      int revalbe[NDIR_VIRIAL][NDIR_VIRIAL];
      int virialVtoV[NDIR_VIRIAL];
-     int kronecker[NXYZ_VIRIAL][NXYZ_VIRIAL];
      double **temp_x;                // original coords
      double **temp_f;                // original forces
      double fixedpoint[NXYZ_VIRIAL]; // displacement field origin

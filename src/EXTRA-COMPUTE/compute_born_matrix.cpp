@@ -126,17 +126,9 @@ ComputeBornMatrix::ComputeBornMatrix(LAMMPS *lmp, int narg, char **arg) :
   numflag = 0;
   numdelta = 0.0;
 
-  pairflag = 0;
-  bondflag = 0;
-  angleflag = 0;
-  dihedflag = 0;
-  impflag = 0;
+  pairflag = bondflag = angleflag = dihedflag = impflag = 0;
   if (narg == 3) {
-    pairflag = 1;
-    bondflag = 1;
-    angleflag = 1;
-    dihedflag = 1;
-    impflag = 1;
+    pairflag = bondflag = angleflag = dihedflag = impflag = 1;
   } else {
     int iarg = 3;
     while (iarg < narg) {
@@ -174,104 +166,106 @@ ComputeBornMatrix::ComputeBornMatrix(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR, "Illegal compute born/matrix command: cannot mix numflag and other flags");
     if (force->pair) {
       if (force->pair->born_matrix_enable == 0)
-        if (comm->me == 0) error->warning(FLERR, "Pair style does not support compute born/matrix");
+        error->all(FLERR, "Pair style {} does not support compute born/matrix", force->pair_style);
+    } else {
+      pairflag = 0;
     }
-  } else {
-    pairflag = 0;
   }
-}
-if (bondflag) {
-  if (numflag)
-    error->all(FLERR, "Illegal compute born/matrix command: cannot mix numflag and other flags");
-  if (force->bond) {
-    if (force->bond->born_matrix_enable == 0) {
-      if (comm->me == 0) error->warning(FLERR, "Bond style does not support compute born/matrix");
+
+  if (bondflag) {
+    if (numflag)
+      error->all(FLERR, "Illegal compute born/matrix command: cannot mix numflag and other flags");
+    if (force->bond) {
+      if (force->bond->born_matrix_enable == 0)
+        error->all(FLERR, "Bond style {} does not support compute born/matrix", force->bond_style);
+    } else {
+      bondflag = 0;
     }
-  } else {
-    bondflag = 0;
   }
-}
-if (angleflag) {
-  if (numflag)
-    error->all(FLERR, "Illegal compute born/matrix command: cannot mix numflag and other flags");
-  if (force->angle) {
-    if (force->angle->born_matrix_enable == 0) {
-      if (comm->me == 0) error->warning(FLERR, "Angle style does not support compute born/matrix");
+
+  if (angleflag) {
+    if (numflag)
+      error->all(FLERR, "Illegal compute born/matrix command: cannot mix numflag and other flags");
+    if (force->angle) {
+      if (force->angle->born_matrix_enable == 0)
+        error->all(FLERR, "Angle style {} does not support compute born/matrix",
+                   force->angle_style);
+    } else {
+      angleflag = 0;
     }
-  } else {
-    angleflag = 0;
   }
-}
-if (dihedflag) {
-  if (numflag)
-    error->all(FLERR, "Illegal compute born/matrix command: cannot mix numflag and other flags");
-  if (force->dihedral) {
-    if (force->dihedral->born_matrix_enable == 0) {
-      if (comm->me == 0)
-        error->warning(FLERR, "Dihedral style does not support compute born/matrix");
+
+  if (dihedflag) {
+    if (numflag)
+      error->all(FLERR, "Illegal compute born/matrix command: cannot mix numflag and other flags");
+    if (force->dihedral) {
+      if (force->dihedral->born_matrix_enable == 0)
+        error->all(FLERR, "Dihedral style {} does not support compute born/matrix",
+                   force->dihedral_style);
+    } else {
+      dihedflag = 0;
     }
-  } else {
-    dihedflag = 0;
   }
-}
-if (impflag) {
-  if (numflag)
-    error->all(FLERR, "Illegal compute born/matrix command: cannot mix numflag and other flags");
-  if (force->improper) {
-    if (force->improper->born_matrix_enable == 0) {
-      if (comm->me == 0)
-        error->warning(FLERR, "Improper style does not support compute born/matrix");
+
+  if (impflag) {
+    if (numflag)
+      error->all(FLERR, "Illegal compute born/matrix command: cannot mix numflag and other flags");
+    if (force->improper) {
+      if (force->improper->born_matrix_enable == 0)
+        error->all(FLERR, "Improper style {} does not support compute born/matrix",
+                   force->improper_style);
+    } else {
+      impflag = 0;
     }
-  } else {
-    impflag = 0;
   }
-}
-if (force->kspace) {
-  if (!numflag) error->warning(FLERR, "KSPACE contribution not supported by compute born/matrix");
-}
 
-// Initialize some variables
+  if (force->kspace) {
+    if (!numflag && (comm->me == 0))
+      error->all(FLERR, "KSpace contribution not supported by compute born/matrix");
+  }
 
-values_local = values_global = vector = nullptr;
+  // Initialize some variables
 
-// this fix produces a global vector
+  values_local = values_global = vector = nullptr;
 
-memory->create(vector, nvalues, "born_matrix:vector");
-memory->create(values_global, nvalues, "born_matrix:values_global");
-size_vector = nvalues;
+  // this fix produces a global vector
 
-vector_flag = 1;
-extvector = 0;
-maxatom = 0;
+  memory->create(vector, nvalues, "born_matrix:vector");
+  memory->create(values_global, nvalues, "born_matrix:values_global");
+  size_vector = nvalues;
 
-if (!numflag) {
-  memory->create(values_local, nvalues, "born_matrix:values_local");
-} else {
+  vector_flag = 1;
+  extvector = 0;
+  maxatom = 0;
 
-  reallocate();
+  if (!numflag) {
+    memory->create(values_local, nvalues, "born_matrix:values_local");
+  } else {
 
-  // set fixed-point to default = center of cell
+    reallocate();
 
-  fixedpoint[0] = 0.5 * (domain->boxlo[0] + domain->boxhi[0]);
-  fixedpoint[1] = 0.5 * (domain->boxlo[1] + domain->boxhi[1]);
-  fixedpoint[2] = 0.5 * (domain->boxlo[2] + domain->boxhi[2]);
+    // set fixed-point to default = center of cell
 
-  // define the cartesian indices for each strain (Voigt order)
+    fixedpoint[0] = 0.5 * (domain->boxlo[0] + domain->boxhi[0]);
+    fixedpoint[1] = 0.5 * (domain->boxlo[1] + domain->boxhi[1]);
+    fixedpoint[2] = 0.5 * (domain->boxlo[2] + domain->boxhi[2]);
 
-  dirlist[0][0] = 0;
-  dirlist[0][1] = 0;
-  dirlist[1][0] = 1;
-  dirlist[1][1] = 1;
-  dirlist[2][0] = 2;
-  dirlist[2][1] = 2;
+    // define the cartesian indices for each strain (Voigt order)
 
-  dirlist[3][0] = 1;
-  dirlist[3][1] = 2;
-  dirlist[4][0] = 0;
-  dirlist[4][1] = 2;
-  dirlist[5][0] = 0;
-  dirlist[5][1] = 1;
-}
+    dirlist[0][0] = 0;
+    dirlist[0][1] = 0;
+    dirlist[1][0] = 1;
+    dirlist[1][1] = 1;
+    dirlist[2][0] = 2;
+    dirlist[2][1] = 2;
+
+    dirlist[3][0] = 1;
+    dirlist[3][1] = 2;
+    dirlist[4][0] = 0;
+    dirlist[4][1] = 2;
+    dirlist[5][0] = 0;
+    dirlist[5][1] = 1;
+  }
 }
 
 /* ---------------------------------------------------------------------- */

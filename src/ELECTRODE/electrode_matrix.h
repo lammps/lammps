@@ -27,6 +27,7 @@ class ElectrodeMatrix : protected Pointers {
   ElectrodeMatrix(class LAMMPS *, int, double);
   ~ElectrodeMatrix() {}
   void setup(std::map<tagint, int>, class Pair *, class NeighList *);
+  void setup_tf(std::map<int, double>);
   void compute_array(double **);
   int igroup;
 
@@ -35,6 +36,8 @@ class ElectrodeMatrix : protected Pointers {
   bigint ngroup;
   double **cutsq;
   double g_ewald, eta;
+  bool tfflag;
+  std::map<int, double> tf_types;
   std::map<tagint, int> tag_to_iele;
   bool assigned;
   std::vector<bigint> mpos;
@@ -45,6 +48,7 @@ class ElectrodeMatrix : protected Pointers {
   void update_mpos();
   void pair_contribution(double **);
   void self_contribution(double **);
+  void tf_contribution(double **);
   double calc_erfc(double);
 };
 

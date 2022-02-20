@@ -1,0 +1,10 @@
+include charged.settings
+
+kspace_modify amat onestep
+
+fix fxupdate bot electrode/conp -1.0 1.805 couple top 1.0 write_mat tf.csv 
+fix_modify fxupdate tf 1 1.0 18.1715745
+fix_modify fxupdate tf 2 1.0 18.1715745
+run 0
+
+write_data tf.data

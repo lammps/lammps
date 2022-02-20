@@ -46,6 +46,7 @@ ElectrodeMatrix::ElectrodeMatrix(LAMMPS *lmp, int electrode_group, double eta) :
   groupbit = group->bitmask[igroup];
   ngroup = group->count(igroup);
   this->eta = eta;
+  tfflag = false;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -62,6 +63,13 @@ void ElectrodeMatrix::setup(std::map<tagint, int> tag_ids, class Pair *fix_pair,
   g_ewald = force->kspace->g_ewald;
 
   tag_to_iele = tag_ids;
+}
+/* ---------------------------------------------------------------------- */
+
+void ElectrodeMatrix::setup_tf(std::map<int, double> tf_types)
+{
+  tfflag = true;
+  this->tf_types = tf_types;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -82,6 +90,7 @@ void ElectrodeMatrix::compute_array(double **array)
   pair_contribution(array);
   self_contribution(array);
   electrode_kspace->compute_matrix_corr(&mpos[0], array);
+  if (tfflag) tf_contribution(array);
 
   // reduce coulomb matrix with contributions from all procs
   // all procs need to know full matrix for matrix inversion
@@ -181,6 +190,17 @@ void ElectrodeMatrix::self_contribution(double **array)
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) { array[mpos[i]][mpos[i]] += preta * eta - selfint; }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ElectrodeMatrix::tf_contribution(double **array)
+{
+  int nlocal = atom->nlocal;
+  int *type = atom->type;
+  int *mask = atom->mask;
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) array[mpos[i]][mpos[i]] += tf_types[type[i]];
 }
 
 /* ---------------------------------------------------------------------- */

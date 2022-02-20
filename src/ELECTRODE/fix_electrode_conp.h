@@ -109,6 +109,8 @@ class FixElectrodeConp : public Fix {
   bool etypes_neighlists;
   int get_top_group();    // used by ffield
   int top_group;          // used by ffield
+  bool tfflag;
+  std::map<int, double> tf_types;
 };
 
 }    // namespace LAMMPS_NS

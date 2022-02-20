@@ -1,0 +1,3 @@
+*.csv
+log.lammps_*
+tf.data

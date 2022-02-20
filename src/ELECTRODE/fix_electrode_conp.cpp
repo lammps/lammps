@@ -74,6 +74,7 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) : Fix(lmp,
   vector_flag = 1;
   top_group = 0;
   intelflag = false;
+  tfflag = false;
 
   update_time = 0;
   mult_time = 0;
@@ -257,7 +258,40 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) : Fix(lmp,
 // fix_modify fxupdate set me  [group1] [group2] [var]
 int FixElectrodeConp::modify_param(int narg, char **arg)
 {
-  if (strcmp(arg[0], "set") == 0) {
+  if (strcmp(arg[0], "tf") == 0) {
+    if (narg != 4)
+      error->all(FLERR, fmt::format("Incorrect number of arguments for fix_modify tf"));
+    tfflag = true;
+    // read atom type, Thomas-Fermi length, and voronoi volume (reciprocal
+    // number density)
+    int const type = utils::inumeric(FLERR, arg[1], false, lmp);
+    double const len = utils::numeric(FLERR, arg[2], false, lmp);
+    double const voronoi = utils::numeric(FLERR, arg[3], false, lmp);
+    // check type exists and is completely in electrode
+    int not_in_ele = 0;
+    int in_ele = 0;
+    for (int i = 0; i < atom->nlocal; i++) {
+      if (atom->type[i] == type) {
+        if (atom->mask[i] & groupbit)
+          in_ele++;
+        else
+          not_in_ele++;
+      }
+    }
+    MPI_Allreduce(MPI_IN_PLACE, &in_ele, 1, MPI_INT, MPI_SUM, world);
+    if (in_ele == 0) error->all(FLERR, "No atoms of type in electrode");
+    MPI_Allreduce(MPI_IN_PLACE, &not_in_ele, 1, MPI_INT, MPI_SUM, world);
+    if (not_in_ele)
+      error->warning(FLERR,
+                     "Not all atoms of type in electrode; Thomas-Fermi parameters will be ignored "
+                     "for electrolyte");
+    // insert into map, replace if already exists
+    auto entry = tf_types.find(type);
+    if (entry != end(tf_types)) tf_types.erase(entry);
+    tf_types.insert(std::pair<int, double>(type, MY_4PI * len * len / voronoi));
+    return 4;
+
+  } else if (strcmp(arg[0], "set") == 0) {
     if (strcmp(arg[1], "v") == 0 || strcmp(arg[1], "qsb") == 0) {
       if (narg != 4)
         error->all(FLERR,
@@ -401,9 +435,25 @@ void FixElectrodeConp::post_constructor()
 
 void FixElectrodeConp::setup_post_neighbor()
 {
+  int const nlocal = atom->nlocal;
+  int *mask = atom->mask;
+
   // setvars asserts:
   assert(setvars_groups.size() == setvars_vars.size());
   assert(setvars_groups.size() == setvars_types.size());
+
+  // if Thomas-Fermi, make sure all electrode atoms have parameters
+  if (tfflag) {
+    int unset_tf = 0;
+    int *type = atom->type;
+    for (int i = 0; i < nlocal; i++) {
+      if ((groupbit & mask[i]) && (tf_types.count(type[i]) == 0)) unset_tf++;
+    }
+    MPI_Allreduce(MPI_IN_PLACE, &unset_tf, 1, MPI_INT, MPI_SUM, world);
+    if (unset_tf)
+      error->all(FLERR, fmt::format("Thomas-Fermi parameters not set for all types in electrode"));
+  }
+
   // get equal-style variable ids:
   group_psi_var_ids = std::vector<int>(num_of_groups, -1);
   for (int g = 0; g < num_of_groups; g++) {
@@ -418,8 +468,6 @@ void FixElectrodeConp::setup_post_neighbor()
     group_psi_var_ids[g] = var_id;
   }
 
-  int const nlocal = atom->nlocal;
-  int *mask = atom->mask;
   // pair and list setups:
 
   evscale = force->qe2f / force->qqrd2e;
@@ -428,6 +476,7 @@ void FixElectrodeConp::setup_post_neighbor()
   if (!(read_mat || read_inv)) {
     if (etypes_neighlists) neighbor->build_one(mat_neighlist, 0);
     array_compute->setup(tag_to_iele, pair, mat_neighlist);
+    if (tfflag) { array_compute->setup_tf(tf_types); }
   }
   // setup psi with target potentials
   std::vector<int> mpos = local_to_matrix();
@@ -851,7 +900,6 @@ double FixElectrodeConp::compute_scalar()
 
 double FixElectrodeConp::compute_vector(int i)
 {
-  assert(i < num_of_groups);
   return group_psi[i];
 }
 
@@ -887,11 +935,14 @@ double FixElectrodeConp::self_energy(int eflag)
   int const nlocal = atom->nlocal;
   double const pre = eta / sqrt(MY_2PI) * qqrd2e;
   int *mask = atom->mask;
+  int *type = atom->type;
   double *q = atom->q;
   double energy = 0;
   for (int i = 0; i < nlocal; i++) {
     if (groupbit & mask[i]) {
-      double e = pre * q[i] * q[i];
+      double const q2 = q[i] * q[i];
+      double e = pre * q2;
+      if (tfflag && (groupbit & mask[i])) e += 0.5 * qqrd2e * q2 * tf_types[type[i]];
       energy += e;
       if (eflag) {
         force->pair->ev_tally(i, i, nlocal, force->newton_pair, 0., e, 0, 0, 0,

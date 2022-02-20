@@ -47,8 +47,9 @@ using namespace LAMMPS_NS;
 
 #define BIG 1000000000
 
-// This table is used to pick the 3d rij vector indices used to
+// this table is used to pick the 3d rij vector indices used to
 // compute the 6 indices long Voigt stress vector
+
 static int constexpr sigma_albe[6][2] = {
     {0, 0},    // s11
     {1, 1},    // s22
@@ -58,8 +59,9 @@ static int constexpr sigma_albe[6][2] = {
     {0, 1},    // s66
 };
 
-// This table is used to pick the correct indices from the Voigt
+// this table is used to pick the correct indices from the Voigt
 // stress vector to compute the Cij matrix (21 terms, see doc) contribution
+
 static int constexpr C_albe[21][2] = {
     {0, 0},    // C11
     {1, 1},    // C22
@@ -84,8 +86,9 @@ static int constexpr C_albe[21][2] = {
     {4, 5}     // C56
 };
 
-// This table is used to pick the 3d rij vector indices used to
+// this table is used to pick the 3d rij vector indices used to
 // compute the 21 indices long Cij matrix
+
 static int constexpr albemunu[21][4] = {
     {0, 0, 0, 0},    // C11
     {1, 1, 1, 1},    // C22
@@ -119,11 +122,8 @@ ComputeBornMatrix::ComputeBornMatrix(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 3) error->all(FLERR,"Illegal compute born/matrix command");
 
   MPI_Comm_rank(world, &me);
-  // For now the matrix can be computed as a 21 element vector
 
   nvalues = 21;
-
-  // Error check
 
   numflag = 0;
   numdelta = 0.0;
@@ -281,12 +281,12 @@ ComputeBornMatrix::~ComputeBornMatrix()
 
 void ComputeBornMatrix::init()
 {
-  //Timestep value
   dt = update->dt;
 
   if (!numflag) {
 
     // need an occasional half neighbor list
+
     int irequest = neighbor->request((void *) this);
     neighbor->requests[irequest]->pair = 0;
     neighbor->requests[irequest]->compute = 1;
@@ -297,7 +297,8 @@ void ComputeBornMatrix::init()
     // check for virial compute
 
     int icompute = modify->find_compute(id_virial);
-    if (icompute < 0) error->all(FLERR, "Virial compute ID for compute born/matrix does not exist");
+    if (icompute < 0) error->all(FLERR,
+      "Virial compute ID for compute born/matrix does not exist");
     compute_virial = modify->compute[icompute];
 
     // set up reverse index lookup
@@ -309,47 +310,6 @@ void ComputeBornMatrix::init()
       revalbe[b][a] = m;
     }
 
-    // for (int a = 0; a < NDIR_VIRIAL; a++) {
-    //   for (int b = 0; b < NDIR_VIRIAL; b++) {
-    //     printf("%d ",revalbe[a][b]);
-    //   }
-    //   printf("\n");
-    // }
-
-    // voigt3VtoM notation in normal physics sense,
-    // 3x3 matrix and vector indexing
-    //  i-j:      (1-1), (2-2), (3-3), (2-3), (1-3), (1-2)
-    //  voigt3VtoM: 1      2      3      4      5      6
-
-    voigt3VtoM[0][0]=0;  //  for 1
-    voigt3VtoM[0][1]=0;
-    voigt3VtoM[1][0]=1;  //  for 2
-    voigt3VtoM[1][1]=1;
-    voigt3VtoM[2][0]=2;  //  for 3
-    voigt3VtoM[2][1]=2;
-    voigt3VtoM[3][0]=1;  //  for 4 
-    voigt3VtoM[3][1]=2;
-    voigt3VtoM[4][0]=0;  //  for 5 
-    voigt3VtoM[4][1]=2;
-    voigt3VtoM[5][0]=0;  //  for 6 
-    voigt3VtoM[5][1]=1;
-
-    // to convert to vector indexing:
-    // matrix index to vector index, double -> single index
-    // this is not used at all
-
-    voigt3MtoV[0][0]=0;    voigt3MtoV[0][1]=5;    voigt3MtoV[0][2]=4;
-    voigt3MtoV[1][0]=5;    voigt3MtoV[1][1]=1;    voigt3MtoV[1][2]=3;
-    voigt3MtoV[2][0]=4;    voigt3MtoV[2][1]=3;    voigt3MtoV[2][2]=2;
-
-    // this is just for the virial.
-    // since they use the xx,yy,zz,xy,xz,yz
-    // order not the ordinary voigt
-
-    virialMtoV[0][0]=0;    virialMtoV[0][1]=3;    virialMtoV[0][2]=4;
-    virialMtoV[1][0]=3;    virialMtoV[1][1]=1;    virialMtoV[1][2]=5;
-    virialMtoV[2][0]=4;    virialMtoV[2][1]=5;    virialMtoV[2][2]=2;
-
     // reorder LAMMPS virial vector to Voigt order
 
     virialVtoV[0] = 0;
@@ -359,31 +319,6 @@ void ComputeBornMatrix::init()
     virialVtoV[4] = 4;
     virialVtoV[5] = 3;
 
-    // the following is for 6x6 matrix and vector indexing converter
-    // this is clearly different order form albe[][] and revalbe[]
-    // should not be used
-
-    int indcounter = 0;
-    for(int row = 0; row < NDIR_VIRIAL; row++)
-      for(int col = row; col< NDIR_VIRIAL; col++) {
-        voigt6MtoV[row][col] = voigt6MtoV[col][row] = indcounter;
-        indcounter++;
-      }
-    // printf("Voigt6MtoV:\n");
-    // for (int a = 0; a < NDIR_VIRIAL; a++) {
-    //   for (int b = 0; b < NDIR_VIRIAL; b++) {
-    //     printf("%d ", voigt6MtoV[a][b]);
-    //   }
-    //   printf("\n");
-    // }
-
-    // set up 3x3 kronecker deltas
-
-    for(int row = 0; row < NXYZ_VIRIAL; row++)
-      for(int col = 0; col < NXYZ_VIRIAL; col++)
-        kronecker[row][col] = 0;
-    for(int row = 0; row < NXYZ_VIRIAL; row++)
-      kronecker[row][row] = 1;
   }
 }
 
@@ -408,7 +343,7 @@ void ComputeBornMatrix::compute_vector()
 
     for (int m = 0; m < nvalues; m++) values_local[m] = 0.0;
 
-    // Compute Born contribution
+    // compute Born contribution
 
     if (pairflag) compute_pairs();
     if (bondflag) compute_bonds();
@@ -419,27 +354,19 @@ void ComputeBornMatrix::compute_vector()
 
     MPI_Allreduce(values_local, values_global, nvalues, MPI_DOUBLE, MPI_SUM, world);
 
-    // // convert to pressure units
-    // // As discussed, it might be better to keep it as energy units.
-    // // but this is to be defined
-
-    // double nktv2p = force->nktv2p;
-    // double inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
-    // for (int m = 0; m < nvalues; m++) {
-    //   values_global[m] *= (nktv2p * inv_volume);
-    // }
   } else {
 
     // calculate Born matrix using stress finite differences
+
     compute_numdiff();
 
-    // for consistency this is returned in energy units
+    // convert from pressure to energy units
+
     double inv_nktv2p = 1.0/force->nktv2p;
     double volume = domain->xprd * domain->yprd * domain->zprd;
     for (int m = 0; m < nvalues; m++) {
       values_global[m] *= inv_nktv2p * volume;
     }
-
   }
 
   for (int m = 0; m < nvalues; m++) vector[m] = values_global[m];
@@ -478,7 +405,7 @@ void ComputeBornMatrix::compute_pairs()
   Pair *pair = force->pair;
   double **cutsq = force->pair->cutsq;
 
-  // Declares born values
+  // declares born values
 
   int a, b, c, d;
   double xi1, xi2, xi3;
@@ -524,7 +451,8 @@ void ComputeBornMatrix::compute_pairs()
 
         // Add contribution to Born tensor
 
-        pair->born_matrix(i, j, itype, jtype, rsq, factor_coul, factor_lj, dupair, du2pair);
+        pair->born_matrix(i, j, itype, jtype, rsq, factor_coul,
+			  factor_lj, dupair, du2pair);
         pair_pref = du2pair - dupair * rinv;
 
         // See albemunu in compute_born_matrix.h for indices order.
@@ -538,7 +466,8 @@ void ComputeBornMatrix::compute_pairs()
           b = albemunu[m][1];
           c = albemunu[m][2];
           d = albemunu[m][3];
-          values_local[m] += pair_pref * rij[a] * rij[b] * rij[c] * rij[d] * r2inv;
+          values_local[m] += pair_pref * rij[a] * rij[b] *
+	    rij[c] * rij[d] * r2inv;
         }
       }
     }
@@ -552,7 +481,7 @@ void ComputeBornMatrix::compute_pairs()
 void ComputeBornMatrix::compute_numdiff()
 {
   double energy;
-  int vec_indice;
+  int vec_index;
 
   // grow arrays if necessary
 
@@ -572,32 +501,31 @@ void ComputeBornMatrix::compute_numdiff()
 
   // loop over 6 strain directions
   // compute stress finite difference in each direction
-  // It must be noted that, as stated in Yoshimoto's eq. 15, eq 16.
-  // and eq. A3, this tensor is NOT the true Cijkl tensor.
-  // We have the relationship
-  // C_ijkl=1./4.(\hat{C}_ijkl+\hat{C}_jikl+\hat{C}_ijlk+\hat{C}_jilk)
 
   int flag, allflag;
 
   for (int idir = 0; idir < NDIR_VIRIAL; idir++) {
+
+    // forward
+    
     displace_atoms(nall, idir, 1.0);
     force_clear(nall);
     update_virial();
     for (int jdir = 0; jdir < NDIR_VIRIAL; jdir++) {
-      vec_indice = revalbe[idir][jdir];
-      values_global[vec_indice] = compute_virial->vector[virialVtoV[jdir]];
+      vec_index = revalbe[idir][jdir];
+      values_global[vec_index] = compute_virial->vector[virialVtoV[jdir]];
     }
     restore_atoms(nall, idir);
 
+    // backward
+    
     displace_atoms(nall, idir, -1.0);
     force_clear(nall);
     update_virial();
     for (int jdir = 0; jdir < NDIR_VIRIAL; jdir++) {
-      vec_indice = revalbe[idir][jdir];
-      values_global[vec_indice] -= compute_virial->vector[virialVtoV[jdir]];
+      vec_index = revalbe[idir][jdir];
+      values_global[vec_index] -= compute_virial->vector[virialVtoV[jdir]];
     }
-
-    // End of the strain
     restore_atoms(nall, idir);
   }
 
@@ -608,10 +536,11 @@ void ComputeBornMatrix::compute_numdiff()
 
   // recompute virial so all virial and energy contributions are as before
   // also needed for virial stress addon contributions to Born matrix
-  // this will possibly break compute stress/atom, need to test
 
   update_virial();
 
+  // add on virial terms
+  
   virial_addon();
 
   // restore original forces for owned and ghost atoms
@@ -630,18 +559,9 @@ void ComputeBornMatrix::displace_atoms(int nall, int idir, double magnitude)
 {
   double **x = atom->x;
 
-  // A.T.
-  // this works for vector indices  7,  8,  9, 12, 14, 18 and 15, 16, 17
-  // corresponding i,j indices     12, 13, 14, 23, 25, 36 and 26, 34, 35
-  // int k = dirlist[idir][1];
-  // int l = dirlist[idir][0];
-
-  // A.T.
-  // this works for vector indices  7,  8,  9, 12, 14, 18 and 10, 11, 13
-  // corresponding i,j indices     12, 13, 14, 23, 25, 36 and 15, 16, 24
-  // G.C.:
-  // I see no difference with a 0 step simulation between both
-  // methods.
+  // NOTE: transposing k and l would seem to be equivalent but it is not
+  // only this version matches analytic results for lj/cut
+  
   int k = dirlist[idir][0];
   int l = dirlist[idir][1];
   for (int i = 0; i < nall; i++)
@@ -655,12 +575,12 @@ void ComputeBornMatrix::displace_atoms(int nall, int idir, double magnitude)
 void ComputeBornMatrix::restore_atoms(int nall, int idir)
 {
 
-  // reset all coords, just to be safe, ignore idir
+  // reset only idir coord
 
+  int k = dirlist[idir][0];  
   double **x = atom->x;
   for (int i = 0; i < nall; i++)
-    for (int k = 0; k < 3; k++)
-      x[i][k] = temp_x[i][k];
+    x[i][k] = temp_x[i][k];
 }
 
 /* ----------------------------------------------------------------------
@@ -671,8 +591,10 @@ void ComputeBornMatrix::restore_atoms(int nall, int idir)
 void ComputeBornMatrix::update_virial()
 {
   int eflag = 0;
-  // int vflag = VIRIAL_FDOTR; // Need to generalize this 
-  int vflag = 1;
+
+  // NOTE: this may affect stress/atom output, untested
+  
+  int vflag = VIRIAL_PAIR; // Need to generalize this 
 
   if (force->pair) force->pair->compute(eflag, vflag);
 
@@ -692,22 +614,11 @@ void ComputeBornMatrix::update_virial()
    calculate virial stress addon terms to the Born matrix
    this is based on original code of Dr. Yubao Zhen
    described here: Comp. Phys. Comm. 183 (2012) 261-265
+   as well as Yoshimoto et al., PRB, 71 (2005) 184108, Eq 15.and eq A3.
 ------------------------------------------------------------------------- */
 
 void ComputeBornMatrix::virial_addon()
 {
-  // compute the contribution due to perturbation
-  // here the addon parts are put into born
-  // delta_il sigv_jk +  delta_ik sigv_jl +
-  // delta_jl sigv_ik +  delta_jk sigv_il
-  // Note: in calculation kl is all there from 0 to 6, and ij=(id,jd)
-  //       each time there are six numbers passed for (Dijkl+Djikl)
-  //       and the term I need should be div by 2.
-  //       Job is to arrange the 6 numbers with ij indexing to the 21
-  //       element data structure.
-  // the sigv is the virial stress at current time. It is never touched.
-  // Note the symmetry of (i-j), (k-n), and (ij, kn)
-  // so we only need to evaluate 6x6 matrix with symmetry
 
   int kd, nd, id, jd;
   int m;
@@ -715,71 +626,38 @@ void ComputeBornMatrix::virial_addon()
   double* sigv = compute_virial->vector;
   double modefactor[6] = {1.0, 1.0, 1.0, 0.5, 0.5, 0.5};
 
-  // Back to the ugly way
-  // You can compute these factor by looking at
+  // you can compute these factor by looking at
   // every Dijkl terms and adding the proper virials
   // Take into account the symmetries. For example:
   // B2323 = s33+D2323; B3232= s22+D3232;
-  // but D3232=D2323 (computed in compute_numdiff)
+  // but D3232=D2323 
   // and Cijkl = (Bijkl+Bjikl+Bijlk+Bjilk)/4. = (Bijkl+Bjilk)/2.
-  // see Yoshimoto eq 15.and eq A3.
+  
+  // these values have been verified correct to about 1e-9
+  // against the analytic expressions for lj/cut 
+
   values_global[0]  += 2.0*sigv[0];
   values_global[1]  += 2.0*sigv[1];
   values_global[2]  += 2.0*sigv[2];
-  // values_global[3]  += 0.5*(sigv[1]+sigv[2]);
-  // values_global[4]  += 0.5*(sigv[0]+sigv[2]);
-  // values_global[5]  += 0.5*(sigv[0]+sigv[1]);
   values_global[3]  += sigv[2];
   values_global[4]  += sigv[2];
   values_global[5]  += sigv[1];
   values_global[6]  += 0.0;
   values_global[7]  += 0.0;
   values_global[8]  += 0.0;
-  //  values_global[9]  += sigv[4];
   values_global[9]  += 2.0*sigv[4];
-  //  values_global[10] += sigv[3];
   values_global[10] += 2.0*sigv[3];
   values_global[11] += 0.0;
-  //  values_global[12] += sigv[5];
   values_global[12] += 2.0*sigv[5];
   values_global[13] += 0.0;
-  //  values_global[14] += sigv[3];
   values_global[14] += 0.0;
-  //  values_global[15] += sigv[5];
   values_global[15] += 0.0;
-  //  values_global[16] += sigv[4];
   values_global[16] += 0.0;
   values_global[17] += 0.0;
   values_global[18] += 0.0;
-  //  values_global[19] += sigv[4];
   values_global[19] += 0.0;
   values_global[20] += sigv[5];
 
-  // This loop is actually bogus.
-  //
-  // for (int idir = 0; idir < NDIR_VIRIAL; idir++) {
-  //   int ijvgt = idir; // this is it.
-  //   double addon;
-
-  //   // extract the two indices composing the voigt representation
-
-  //   id  = voigt3VtoM[ijvgt][0];
-  //   jd  = voigt3VtoM[ijvgt][1];
-
-  //   for (int knvgt=ijvgt; knvgt < NDIR_VIRIAL; knvgt++) {
-  //     kd = voigt3VtoM[knvgt][0];
-  //     nd = voigt3VtoM[knvgt][1];
-  //     addon = kronecker[id][nd]*sigv[virialMtoV[jd][kd]] +
-  //             kronecker[id][kd]*sigv[virialMtoV[jd][nd]];
-  //     if(id != jd)
-  //     addon += kronecker[jd][nd]*sigv[virialMtoV[id][kd]] +
-  //              kronecker[jd][kd]*sigv[virialMtoV[id][nd]];
-
-  //     m = revalbe[ijvgt][knvgt];
-
-  //     values_global[revalbe[ijvgt][knvgt]] += 0.5*modefactor[idir]*addon;
-  //   }
-  // }
 }
 
 /* ----------------------------------------------------------------------
@@ -825,6 +703,7 @@ double ComputeBornMatrix::memory_usage()
    if bond is deleted or turned off (type <= 0)
    do not count or count contribution
 ---------------------------------------------------------------------- */
+
 void ComputeBornMatrix::compute_bonds()
 {
   int i,m,n,nb,atom1,atom2,imol,iatom,btype,ivar;
@@ -927,6 +806,7 @@ void ComputeBornMatrix::compute_bonds()
    if bond is deleted or turned off (type <= 0)
    do not count or count contribution
 ---------------------------------------------------------------------- */
+
 void ComputeBornMatrix::compute_angles()
 {
   int i,m,n,na,atom1,atom2,atom3,imol,iatom,atype,ivar;

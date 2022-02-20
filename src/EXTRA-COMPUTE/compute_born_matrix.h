@@ -31,7 +31,7 @@ namespace LAMMPS_NS {
 class ComputeBornMatrix : public Compute {
  public:
   ComputeBornMatrix(class LAMMPS *, int, char **);
-  virtual ~ComputeBornMatrix() override;
+  ~ComputeBornMatrix() override;
   void init() override;
   void init_list(int, class NeighList *) override;
   void compute_vector() override;

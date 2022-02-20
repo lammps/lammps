@@ -1,4 +1,4 @@
-# Numerical difference calculation
+# Analytical calculation
 # of Born matrix
 
 # Note that because of cubic symmetry and central forces, we have:
@@ -28,7 +28,7 @@ mass            * 39.948
 velocity        all create ${T} 87287 loop geom
 velocity        all zero linear
 
-pair_style      lj/cut 12.
+pair_style      lj/cut 12.0
 pair_coeff      1 1 0.238067 3.405
 
 neighbor        0.0 bin

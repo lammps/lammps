@@ -875,6 +875,40 @@ double PairHybrid::single(int i, int j, int itype, int jtype,
 }
 
 /* ----------------------------------------------------------------------
+   call sub-style to compute born matrix interaction
+   error if sub-style does not support born_matrix call
+   since overlay could have multiple sub-styles, sum results explicitly
+------------------------------------------------------------------------- */
+
+void PairHybrid::born_matrix(int i, int j, int itype, int jtype, double rsq,
+                             double factor_coul, double factor_lj,
+                             double &dupair, double &du2pair)
+{
+  if (nmap[itype][jtype] == 0)
+    error->one(FLERR,"Invoked pair born_matrix on pair style none");
+
+  double du, du2;
+  dupair = du2pair = 0.0;
+
+  for (int m = 0; m < nmap[itype][jtype]; m++) {
+    if (rsq < styles[map[itype][jtype][m]]->cutsq[itype][jtype]) {
+      if (styles[map[itype][jtype][m]]->born_matrix_enable == 0)
+        error->one(FLERR,"Pair hybrid sub-style does not support born_matrix call");
+
+      if ((special_lj[map[itype][jtype][m]] != nullptr) ||
+          (special_coul[map[itype][jtype][m]] != nullptr))
+        error->one(FLERR,"Pair hybrid born_matrix calls do not support"
+                   " per sub-style special bond values");
+
+      du = du2 = 0.0;
+      styles[map[itype][jtype][m]]->born_matrix(i,j,itype,jtype,rsq,factor_coul,factor_lj,du,du2);
+      dupair += du;
+      du2pair += du2;
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
    copy Pair::svector data
 ------------------------------------------------------------------------- */
 

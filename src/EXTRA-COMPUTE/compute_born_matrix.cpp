@@ -592,9 +592,11 @@ void ComputeBornMatrix::update_virial()
 {
   int eflag = 0;
 
-  // NOTE: this may affect stress/atom output, untested
+  // this may not be completely general
+  // but it works for lj/cut and sw pair styles
+  // and compute stress/atom output is unaffected
   
-  int vflag = VIRIAL_PAIR; // Need to generalize this 
+  int vflag = VIRIAL_PAIR;
 
   if (force->pair) force->pair->compute(eflag, vflag);
 

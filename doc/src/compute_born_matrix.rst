@@ -12,15 +12,14 @@ Syntax
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * born/matrix = style name of this compute command
-* one or more keyword/value pairs may be appended
+* zero or more keyword/value pairs may be appended
 
-    .. parsed-literal::
+  .. parsed-literal::
 
+     keyword = *numdiff*
        *numdiff* values = delta virial-ID
-         delta = magnitude of strain fields (dimensionless)
+         delta = magnitude of strain (dimensionless)
          virial-ID = ID of pressure compute for virial (string)
-
-       *pair* or *bond* or *angle* or *dihedral* values = none
 
 Examples
 """"""""
@@ -36,7 +35,7 @@ Description
 
 Define a compute that calculates
 :math:`\frac{\partial{}^2U}{\partial\varepsilon_{i}\partial\varepsilon_{j}}` the
-second derivatives of the potential energy :math:`U` with regard to strain
+second derivatives of the potential energy :math:`U` w.r.t. strain
 tensor :math:`\varepsilon` elements. These values are related to:
 
 .. math::
@@ -62,9 +61,9 @@ tensor, :math:`\delta` is the Kronecker delta and the usual notation apply for
 the number of particle, the temperature and volume respectively :math:`N`,
 :math:`T` and :math:`V`. :math:`k_{B}` is the Boltzmann constant.
 
-The Born term is a symmetric 6x6 matrix by construction and as such can be
-expressed as 21 independent terms. The terms are ordered corresponding to the
-following matrix element:
+The Born term is a symmetric 6x6 matrix, as is the matrix of second derivatives
+of potential energy w.r.t strain,
+whose 21 independent elements are output in this order:
 
 .. math::
 
@@ -77,9 +76,10 @@ following matrix element:
        \vdots & \vdots  & \vdots & \vdots & C_{21} & C_{6}
     \end{matrix}
 
-in this matrix the indices of :math:`C_{k}` value are the corresponding index
-:math:`k` in the compute output. Each term comes from the sum of every
-interactions derivatives in the system as explained in :ref:`(VanWorkum)
+in this matrix the indices of :math:`C_{k}` value are the corresponding element
+:math:`k` in the global vector output by this compute. Each term comes from the sum
+of the derivatives of every contribution to the potential energy
+in the system as explained in :ref:`(VanWorkum)
 <VanWorkum>` or :ref:`(Voyiatzis) <Voyiatzis>`.
 
 The output can be accessed using usual Lammps routines:
@@ -111,15 +111,15 @@ Two different computation methods are implemented in this compute and are
 mutually exclusive.
 
 The first one is a direct computation from the analytical formula from the
-different terms of the potential used for the simulations (see :ref: `(Vorkum)
-<_VanWorkum>`). However, the implementation of such derivations must be done
+different terms of the potential used for the simulations (see :ref:`(VanWorkum)
+<VanWorkum>`). However, the implementation of such derivations must be done
 for every potential form. This has not been done yet and can be very
-complicated for sophisticated potentials. At the moment a warning message is
+complicated for complex potentials. At the moment a warning message is
 displayed for every term that is not supporting the compute at the moment.
 This method is the default for now.
 
 The second method uses finite differences of energy to numerically approximate
-the second derivatives (see :ref: `(Zhen) <_Zhen>`). This is useful when using
+the second derivatives (see :ref:`(Zhen) <Zhen>`). This is useful when using
 interaction styles for which the analytical second derivatives have not been
 implemented. In this cases, the compute applies linear strain fields of
 magnitude *delta* to all the atoms relative to a point at the center of the
@@ -161,9 +161,11 @@ requiring that it use the virial keyword e.g.
 
 **Output info:**
 
-This compute calculates a global array with the number of rows=21.
+This compute calculates a global vector with 21 values that are
+the second derivatives of the potential energy w.r.t. strain.
+The values are in energy units.
 The values are ordered as explained above. These values can be used
-by any command that uses a global values from a compute as input. See
+by any command that uses global values from a compute as input. See
 the :doc:`Howto output <Howto_output>` doc page for an overview of
 LAMMPS output options.
 

@@ -55,7 +55,8 @@ NPairSkipIntel::~NPairSkipIntel() {
 void NPairSkipIntel::copy_neighbor_info()
 {
   NPair::copy_neighbor_info();
-  if (_full_props) delete []_full_props;
+  // Only need to set _full_props once; npair object deleted for changes
+  if (_full_props) return;
   _full_props = new int[neighbor->nrequest];
   for (int i = 0; i < neighbor->nrequest; i++)
     _full_props[i] = neighbor->requests[i]->full;

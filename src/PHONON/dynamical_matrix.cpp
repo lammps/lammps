@@ -22,7 +22,6 @@
 #include "atom.h"
 #include "bond.h"
 #include "comm.h"
-#include "compute.h"
 #include "dihedral.h"
 #include "domain.h"
 #include "error.h"
@@ -282,10 +281,11 @@ void DynamicalMatrix::calculateMatrix()
   dynmat_clear(dynmat);
 
   if (me == 0 && screen) {
-    fprintf(screen,"Calculating Dynamical Matrix ...\n");
-    fprintf(screen,"  Total # of atoms = " BIGINT_FORMAT "\n", natoms);
-    fprintf(screen,"  Atoms in group = " BIGINT_FORMAT "\n", gcount);
-    fprintf(screen,"  Total dynamical matrix elements = " BIGINT_FORMAT "\n", (dynlen*dynlen) );
+    fputs("Calculating Dynamical Matrix ...\n", screen);
+    fmt::print(screen,"  Total # of atoms = {}\n"
+                      "  Atoms in group = {}\n"
+                      "  Total dynamical matrix elements = {}\n",
+               natoms, gcount, dynlen*dynlen);
   }
 
   // emit dynlen rows of dimalpha*dynlen*dimbeta elements

@@ -35,6 +35,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <exception>
 #include <limits>
 
 using namespace LAMMPS_NS;

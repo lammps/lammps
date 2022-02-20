@@ -39,11 +39,11 @@
 #include "memory.h"
 #include "potential_file_reader.h"
 #include "respa.h"
-#include "tokenizer.h"
 #include "update.h"
 
 #include <cmath>
 #include <cstring>
+#include <exception>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;

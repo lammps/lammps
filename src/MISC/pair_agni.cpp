@@ -29,7 +29,6 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
-#include "tokenizer.h"
 #include "potential_file_reader.h"
 
 #include <cmath>

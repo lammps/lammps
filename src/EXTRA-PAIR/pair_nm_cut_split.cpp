@@ -19,16 +19,11 @@
 #include "pair_nm_cut_split.h"
 
 #include "atom.h"
-#include "comm.h"
-#include "error.h"
 #include "force.h"
-#include "math_const.h"
 #include "math_special.h"
-#include "memory.h"
 #include "neigh_list.h"
 
 #include <cmath>
-#include <cstring>
 
 using namespace LAMMPS_NS;
 using MathSpecial::powint;

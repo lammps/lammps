@@ -372,6 +372,7 @@ void ComputeBornMatrix::compute_vector()
   }
 
   for (int m = 0; m < nvalues; m++) vector[m] = values_global[m];
+
 }
 
 /* ----------------------------------------------------------------------
@@ -528,7 +529,8 @@ void ComputeBornMatrix::compute_numdiff()
   // apply derivative factor
 
   double denominator = -0.5 / numdelta;
-  for (int m = 0; m < nvalues; m++) values_global[m] *= denominator;
+  for (int m = 0; m < nvalues; m++)
+    values_global[m] *= denominator;
 
   // recompute virial so all virial and energy contributions are as before
   // also needed for virial stress addon contributions to Born matrix
@@ -553,13 +555,25 @@ void ComputeBornMatrix::displace_atoms(int nall, int idir, double magnitude)
 {
   double **x = atom->x;
 
-  // NOTE: transposing k and l would seem to be equivalent but it is not
-  // only this version matches analytic results for lj/cut
+  // NOTE: virial_addon() expressions predicated on
+  // shear strain fields (l != k) being symmetric here
 
   int k = dirlist[idir][0];
   int l = dirlist[idir][1];
-  for (int i = 0; i < nall; i++)
-    x[i][k] = temp_x[i][k] + numdelta * magnitude * (temp_x[i][l] - fixedpoint[l]);
+
+  // axial strain
+  
+  if (l == k) 
+    for (int i = 0; i < nall; i++)
+      x[i][k] = temp_x[i][k] + numdelta * magnitude * (temp_x[i][l] - fixedpoint[l]);
+
+  // symmetric shear strain
+  
+  else
+    for (int i = 0; i < nall; i++) {
+      x[i][k] = temp_x[i][k] + 0.5 * numdelta * magnitude * (temp_x[i][l] - fixedpoint[l]);
+      x[i][l] = temp_x[i][l] + 0.5 * numdelta * magnitude * (temp_x[i][k] - fixedpoint[k]);
+    }
 }
 
 /* ----------------------------------------------------------------------
@@ -572,8 +586,15 @@ void ComputeBornMatrix::restore_atoms(int nall, int idir)
   // reset only idir coord
 
   int k = dirlist[idir][0];
+  int l = dirlist[idir][1];
   double **x = atom->x;
-  for (int i = 0; i < nall; i++) x[i][k] = temp_x[i][k];
+  if (l == k) 
+    for (int i = 0; i < nall; i++) x[i][k] = temp_x[i][k];
+  else
+    for (int i = 0; i < nall; i++) {
+      x[i][l] = temp_x[i][l];
+      x[i][k] = temp_x[i][k];
+    }
 }
 
 /* ----------------------------------------------------------------------
@@ -619,7 +640,6 @@ void ComputeBornMatrix::virial_addon()
   int m;
 
   double *sigv = compute_virial->vector;
-  double modefactor[6] = {1.0, 1.0, 1.0, 0.5, 0.5, 0.5};
 
   // you can compute these factor by looking at
   // every Dijkl terms and adding the proper virials
@@ -628,30 +648,35 @@ void ComputeBornMatrix::virial_addon()
   // but D3232=D2323
   // and Cijkl = (Bijkl+Bjikl+Bijlk+Bjilk)/4. = (Bijkl+Bjilk)/2.
 
-  // these values have been verified correct to about 1e-9
-  // against the analytic expressions for lj/cut
-
+  // these expressions have been verified
+  // correct to about 1e-7 compared
+  // to the analytic expressions for lj/cut,
+  // predicated on shear strain fields being
+  // symmetric in displace_atoms()
+  
   values_global[0] += 2.0 * sigv[0];
   values_global[1] += 2.0 * sigv[1];
   values_global[2] += 2.0 * sigv[2];
-  values_global[3] += sigv[2];
-  values_global[4] += sigv[2];
-  values_global[5] += sigv[1];
+
+  values_global[3] += 0.5 * (sigv[1] + sigv[2]);
+  values_global[4] += 0.5 * (sigv[0] + sigv[2]);
+  values_global[5] += 0.5 * (sigv[0] + sigv[1]);
   values_global[6] += 0.0;
   values_global[7] += 0.0;
   values_global[8] += 0.0;
-  values_global[9] += 2.0 * sigv[4];
-  values_global[10] += 2.0 * sigv[3];
+  values_global[9] += sigv[4];
+  values_global[10] += sigv[3];
   values_global[11] += 0.0;
-  values_global[12] += 2.0 * sigv[5];
+  values_global[12] += sigv[5];
   values_global[13] += 0.0;
-  values_global[14] += 0.0;
-  values_global[15] += 0.0;
-  values_global[16] += 0.0;
+  values_global[14] += sigv[3];
+  values_global[15] += sigv[5];
+  values_global[16] += sigv[4];
   values_global[17] += 0.0;
-  values_global[18] += 0.0;
-  values_global[19] += 0.0;
-  values_global[20] += sigv[5];
+  values_global[18] += 0.5 * sigv[3];
+  values_global[19] += 0.5 * sigv[4];
+  values_global[20] += 0.5 * sigv[5];
+
 }
 
 /* ----------------------------------------------------------------------

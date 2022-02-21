@@ -57,8 +57,6 @@ struct TagPairReaxComputeLJCoulombShortNeigh{};
 template<int NEIGHFLAG, int EVFLAG>
 struct TagPairReaxComputeTabulatedLJCoulomb{};
 
-struct TagPairReaxBuildListsFull{};
-
 template<int NEIGHFLAG>
 struct TagPairReaxBuildListsHalfBlocking{};
 
@@ -166,9 +164,6 @@ class PairReaxFFKokkos : public PairReaxFF {
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxComputeLJCoulombShortNeigh, const int&) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairReaxBuildListsFull, const int&) const;
 
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION

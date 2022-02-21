@@ -151,7 +151,7 @@ class PairTersoffMODKokkos : public PairTersoffMOD {
   KOKKOS_INLINE_FUNCTION
   int sbmask(const int& j) const;
 
-  struct params_ters{
+  struct params_ters {
     KOKKOS_INLINE_FUNCTION
     params_ters() {powerm=0;lam3=0;h=0;powern=0;beta=0;lam2=0;bigb=0;bigr=0;bigd=0;
       lam1=0;biga=0;powern_del=0;cutsq=0;c1=0;c2=0;c3=0;c4=0;c5=0;ca1=0;ca4=0;};

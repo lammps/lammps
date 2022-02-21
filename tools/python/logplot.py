@@ -1,4 +1,4 @@
-#!/usr/bin/env python -i
+#!/usr/bin/env python
 
 # Script:  logplot.py
 # Purpose: use GnuPlot to plot two columns from a LAMMPS log file
@@ -25,4 +25,3 @@ lg = log(logfile)
 x,y = lg.get(xlabel,ylabel)
 g = gnu()
 g.plot(x,y)
-print "Type Ctrl-D to exit Python"

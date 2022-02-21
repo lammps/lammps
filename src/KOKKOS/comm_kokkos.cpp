@@ -369,7 +369,7 @@ void CommKokkos::forward_comm_fix(Fix *fix, int size)
     CommBrick::forward_comm_fix(fix,size);
   } else {
     k_sendlist.sync<LMPDeviceType>();
-    forward_comm_fix_device<LMPDeviceType>(fix, size);
+    forward_comm_fix_device<LMPDeviceType>(fix,size);
   }
 }
 

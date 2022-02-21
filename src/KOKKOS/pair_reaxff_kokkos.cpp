@@ -14,6 +14,14 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Ray Shan (SNL), Stan Moore (SNL)
+
+   Nicholas Curtis (AMD), Leopold Grinberd (AMD), and Sriranjani
+    Sitaraman (AMD):
+     - Reduced math overhead: enabled specialized calls (e.g., cbrt for a
+         cube root instead of pow) and use power/exponential laws to reduce the
+         number of exponentials evaluated, etc.
+     - Added blocking to the Torsion and (optionally) BuildLists kernels, to
+         reduce thread divergence on GPUs
 ------------------------------------------------------------------------- */
 
 #include "pair_reaxff_kokkos.h"

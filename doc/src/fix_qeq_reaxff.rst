@@ -77,6 +77,8 @@ of this fix are hard-coded to be A, eV, and electronic charge.
 The optional *dual* keyword allows to perform the optimization
 of the S and T matrices in parallel. This is only supported for
 the *qeq/reaxff/omp* style. Otherwise they are processed separately.
+The *qeq/reaxff/kk* style always solves the S and T matrices in
+parallel.
 
 The optional *maxiter* keyword allows changing the max number
 of iterations in the linear solver. The default value is 200.

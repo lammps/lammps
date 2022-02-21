@@ -13,7 +13,18 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Ray Shan (SNL) and Christian Trott (SNL)
+   Contributing authors: Ray Shan (SNL) and Christian Trott (SNL)
+
+   Nicholas Curtis (AMD), Leopold Grinberd (AMD), and Sriranjani
+    Sitaraman (AMD):
+     - Reduced math overhead: enabled specialized calls (e.g., cbrt for a
+         cube root instead of pow) and use power/exponential laws to reduce the
+         number of exponentials evaluated, etc.
+     - Fused the jj loop in TagPairTersoffComputeHalf between the repulsive
+         and attractive iterations
+     - Merged "ters_fc_k" with "ters_dfc", "ters_bij_k" with "ters_dbij",
+         "ters_gijk" with "ters_dgijk", and "ters_fa_k" with "ters_dfa"
+
 ------------------------------------------------------------------------- */
 
 #include "pair_tersoff_kokkos.h"

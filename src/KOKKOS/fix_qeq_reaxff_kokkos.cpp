@@ -15,6 +15,15 @@
 /* ----------------------------------------------------------------------
    Contributing authors: Ray Shan (SNL), Stan Moore (SNL),
                           Kamesh Arumugam (NVIDIA)
+
+   Nicholas Curtis (AMD), Leopold Grinberd (AMD), and Sriranjani
+    Sitaraman (AMD):
+     - Reduced math overhead: enabled specialized calls (e.g., cbrt for a
+         cube root instead of pow) and use power/exponential laws to reduce the
+         number of exponentials evaluated, etc.
+     - Fused the CG solve for "s" and "t" vectors
+     - Improvemented the SpMV algorithm by using vector instead of team level
+         parallelism on GPUs
 ------------------------------------------------------------------------- */
 
 #include "fix_qeq_reaxff_kokkos.h"

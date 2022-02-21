@@ -30,12 +30,6 @@ PairStyle(reax/c/kk/host,PairReaxFFKokkos<LMPHostType>);
 #include "pair_reaxff.h"
 #include "neigh_list_kokkos.h"
 
-#define C_ele 332.06371
-#define SMALL 0.0001
-#define KCALpMOL_to_EV 23.02
-#define HB_THRESHOLD   1e-2  // 0.01
-#define MAX_BONDS      30
-
 #include "reaxff_inline.h"
 
 namespace LAMMPS_NS {
@@ -53,74 +47,67 @@ struct LR_lookup_table_kk
 };
 
 template<int NEIGHFLAG, int EVFLAG>
-struct PairReaxFFComputePolar{};
+struct TagPairReaxComputePolar{};
 
 template<int NEIGHFLAG, int EVFLAG>
-struct PairReaxFFComputeLJCoulomb{};
+struct TagPairReaxComputeLJCoulomb{};
 
-struct PairReaxFFComputeLJCoulombShortNeigh{};
+struct TagPairReaxComputeLJCoulombShortNeigh{};
 
 template<int NEIGHFLAG, int EVFLAG>
-struct PairReaxFFComputeTabulatedLJCoulomb{};
+struct TagPairReaxComputeTabulatedLJCoulomb{};
 
-struct PairReaxBuildListsFull{};
-
-#ifdef HIP_OPT_PAIRREAXBUILDLISTSHALF_BLOCKING
-template<int NEIGHFLAG>
-struct PairReaxBuildListsHalfBlocking{};
-#else
-template<int NEIGHFLAG>
-struct PairReaxBuildListsHalf{};
-#endif
-
-struct PairReaxZero{};
-
-struct PairReaxZeroEAtom{};
-
-struct PairReaxZeroVAtom{};
-
-struct PairReaxBondOrder1{};
-
-struct PairReaxBondOrder2{};
-
-struct PairReaxBondOrder3{};
+struct TagPairReaxBuildListsFull{};
 
 template<int NEIGHFLAG>
-struct PairReaxUpdateBond{};
+struct TagPairReaxBuildListsHalfBlocking{};
+
+template<int NEIGHFLAG>
+struct TagPairReaxBuildListsHalf{};
+
+struct TagPairReaxZero{};
+
+struct TagPairReaxZeroEAtom{};
+
+struct TagPairReaxZeroVAtom{};
+
+struct TagPairReaxBondOrder1{};
+
+struct TagPairReaxBondOrder2{};
+
+struct TagPairReaxBondOrder3{};
+
+template<int NEIGHFLAG>
+struct TagPairReaxUpdateBond{};
 
 template<int NEIGHFLAG, int EVFLAG>
-struct PairReaxFFComputeBond1{};
+struct TagPairReaxComputeBond1{};
 
 template<int NEIGHFLAG, int EVFLAG>
-struct PairReaxFFComputeBond2{};
+struct TagPairReaxComputeBond2{};
 
 template<int NEIGHFLAG, int EVFLAG>
-struct PairReaxFFComputeMulti1{};
+struct TagPairReaxComputeMulti1{};
 
 template<int NEIGHFLAG, int EVFLAG>
-struct PairReaxFFComputeMulti2{};
+struct TagPairReaxComputeMulti2{};
 
 template<int NEIGHFLAG, int EVFLAG>
-struct PairReaxFFComputeAngular{};
+struct TagPairReaxComputeAngular{};
 
-struct PairReaxFFComputeTorsionPreview{};
-
-#ifdef HIP_OPT_TORSION_PREVIEW_BLOCKING
-template<int NEIGHFLAG, int EVFLAG>
-struct PairReaxFFComputeTorsionBlocking{};
-#else
-template<int NEIGHFLAG, int EVFLAG>
-struct PairReaxFFComputeTorsion{};
-#endif
+struct TagPairReaxComputeTorsionPreview{};
 
 template<int NEIGHFLAG, int EVFLAG>
-struct PairReaxFFComputeHydrogen{};
+struct TagPairReaxComputeTorsionBlocking{};
 
-struct PairReaxFindBondZero{};
+template<int NEIGHFLAG, int EVFLAG>
+struct TagPairReaxComputeHydrogen{};
 
-struct PairReaxFindBondSpeciesZero{};
+struct TagPairReaxFindBondZero{};
 
-struct PairReaxFindBondSpecies{};
+struct TagPairReaxFindBondSpeciesZero{};
+
+struct TagPairReaxFindBondSpecies{};
 
 
 template<class DeviceType>
@@ -132,9 +119,9 @@ class PairReaxFFKokkos : public PairReaxFF {
   typedef ArrayTypes<DeviceType> AT;
   typedef EV_FLOAT_REAX value_type;
 
-  // "Blocking" factors to improve convergence within some kernels
+  // "Blocking" factors to reduce thread divergence within some kernels
   using blocking_t = unsigned short int;
-  
+
   // "PairReaxFFComputeTorsionBlocking"
   static constexpr int compute_torsion_blocksize = 8;
 
@@ -155,133 +142,121 @@ class PairReaxFFKokkos : public PairReaxFF {
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFComputePolar<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
+  void operator()(TagPairReaxComputePolar<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFComputePolar<NEIGHFLAG,EVFLAG>, const int&) const;
+  void operator()(TagPairReaxComputePolar<NEIGHFLAG,EVFLAG>, const int&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFComputeLJCoulomb<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
+  void operator()(TagPairReaxComputeLJCoulomb<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFComputeLJCoulomb<NEIGHFLAG,EVFLAG>, const int&) const;
+  void operator()(TagPairReaxComputeLJCoulomb<NEIGHFLAG,EVFLAG>, const int&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFComputeTabulatedLJCoulomb<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
+  void operator()(TagPairReaxComputeTabulatedLJCoulomb<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFComputeTabulatedLJCoulomb<NEIGHFLAG,EVFLAG>, const int&) const;
+  void operator()(TagPairReaxComputeTabulatedLJCoulomb<NEIGHFLAG,EVFLAG>, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFComputeLJCoulombShortNeigh, const int&) const;
+  void operator()(TagPairReaxComputeLJCoulombShortNeigh, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxBuildListsFull, const int&) const;
-
-#ifdef HIP_OPT_PAIRREAXBUILDLISTSHALF_BLOCKING
-  template<int NEIGHFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxBuildListsHalfBlocking<NEIGHFLAG>, const int&) const;
-#else
-  template<int NEIGHFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxBuildListsHalf<NEIGHFLAG>, const int&) const;
-#endif
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxZero, const int&) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxZeroEAtom, const int&) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxZeroVAtom, const int&) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxBondOrder1, const int&) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxBondOrder2, const int&) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxBondOrder3, const int&) const;
+  void operator()(TagPairReaxBuildListsFull, const int&) const;
 
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxUpdateBond<NEIGHFLAG>, const int&) const;
+  void operator()(TagPairReaxBuildListsHalfBlocking<NEIGHFLAG>, const int&) const;
+
+  template<int NEIGHFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairReaxBuildListsHalf<NEIGHFLAG>, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairReaxZero, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairReaxZeroEAtom, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairReaxZeroVAtom, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairReaxBondOrder1, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairReaxBondOrder2, const int&) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairReaxBondOrder3, const int&) const;
+
+  template<int NEIGHFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairReaxUpdateBond<NEIGHFLAG>, const int&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFComputeBond1<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
+  void operator()(TagPairReaxComputeBond1<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFComputeBond1<NEIGHFLAG,EVFLAG>, const int&) const;
+  void operator()(TagPairReaxComputeBond1<NEIGHFLAG,EVFLAG>, const int&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFComputeBond2<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
+  void operator()(TagPairReaxComputeBond2<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFComputeBond2<NEIGHFLAG,EVFLAG>, const int&) const;
+  void operator()(TagPairReaxComputeBond2<NEIGHFLAG,EVFLAG>, const int&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFComputeMulti1<NEIGHFLAG,EVFLAG>, const int&) const;
+  void operator()(TagPairReaxComputeMulti1<NEIGHFLAG,EVFLAG>, const int&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFComputeMulti2<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
+  void operator()(TagPairReaxComputeMulti2<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFComputeMulti2<NEIGHFLAG,EVFLAG>, const int&) const;
+  void operator()(TagPairReaxComputeMulti2<NEIGHFLAG,EVFLAG>, const int&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFComputeAngular<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
+  void operator()(TagPairReaxComputeAngular<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFComputeAngular<NEIGHFLAG,EVFLAG>, const int&) const;
+  void operator()(TagPairReaxComputeAngular<NEIGHFLAG,EVFLAG>, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFComputeTorsionPreview, const int&) const;
-
-#ifdef HIP_OPT_TORSION_PREVIEW_BLOCKING
-  template<int NEIGHFLAG, int EVFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFComputeTorsionBlocking<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
+  void operator()(TagPairReaxComputeTorsionPreview, const int&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFComputeTorsionBlocking<NEIGHFLAG,EVFLAG>, const int&) const;
-#else
-  template<int NEIGHFLAG, int EVFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFComputeTorsion<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
+  void operator()(TagPairReaxComputeTorsionBlocking<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFComputeTorsion<NEIGHFLAG,EVFLAG>, const int&) const;
-#endif
+  void operator()(TagPairReaxComputeTorsionBlocking<NEIGHFLAG,EVFLAG>, const int&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFComputeHydrogen<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
+  void operator()(TagPairReaxComputeHydrogen<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFFComputeHydrogen<NEIGHFLAG,EVFLAG>, const int&) const;
+  void operator()(TagPairReaxComputeHydrogen<NEIGHFLAG,EVFLAG>, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFindBondZero, const int&) const;
+  void operator()(TagPairReaxFindBondZero, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
   void calculate_find_bond_item(int, int&) const;
@@ -290,12 +265,12 @@ class PairReaxFFKokkos : public PairReaxFF {
   void pack_bond_buffer_item(int, int&, const bool&) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFindBondSpeciesZero, const int&) const;
+  void operator()(TagPairReaxFindBondSpeciesZero, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(PairReaxFindBondSpecies, const int&) const;
+  void operator()(TagPairReaxFindBondSpecies, const int&) const;
 
-  struct params_sing{
+  struct params_sing {
     KOKKOS_INLINE_FUNCTION
     params_sing() {mass=0;chi=0;eta=0;r_s=0;r_pi=0;r_pi2=0;valency=0;valency_val=0;valency_e=0;valency_boc=0;nlp_opt=0;
       p_lp2=0;p_ovun2=0;p_ovun5=0;p_val3=0;p_val5=0;p_hbond=0;bcut_acks2=0;};
@@ -306,7 +281,7 @@ class PairReaxFFKokkos : public PairReaxFF {
       p_lp2,p_ovun2,p_ovun5, p_val3, p_val5, p_hbond, bcut_acks2;
   };
 
-  struct params_twbp{
+  struct params_twbp {
     KOKKOS_INLINE_FUNCTION
     params_twbp() {gamma=0;gamma_w=0;alpha=0;r_vdw=0;epsilon=0;acore=0;ecore=0;rcore=0;lgre=0;lgcij=0;
       r_s=0;r_pi=0;r_pi2=0;p_bo1=0;p_bo2=0;p_bo3=0;p_bo4=0;p_bo5=0;p_bo6=0;ovc=0;v13cor=0;
@@ -323,7 +298,7 @@ class PairReaxFFKokkos : public PairReaxFF {
       p_ovun1;
   };
 
-  struct params_thbp{
+  struct params_thbp {
     KOKKOS_INLINE_FUNCTION
     params_thbp() {cnt=0;theta_00=0;p_val1=0;p_val2=0;p_val4=0;p_val7=0;p_pen1=0;p_coa1=0;};
     KOKKOS_INLINE_FUNCTION
@@ -331,7 +306,7 @@ class PairReaxFFKokkos : public PairReaxFF {
     F_FLOAT cnt, theta_00, p_val1, p_val2, p_val4, p_val7, p_pen1, p_coa1;
   };
 
-  struct params_fbp{
+  struct params_fbp {
     KOKKOS_INLINE_FUNCTION
     params_fbp() {p_tor1=0;p_cot1=0;V1=0;V2=0;V3=0;};
     KOKKOS_INLINE_FUNCTION
@@ -339,7 +314,7 @@ class PairReaxFFKokkos : public PairReaxFF {
     F_FLOAT p_tor1, p_cot1, V1, V2, V3;
   };
 
-  struct params_hbp{
+  struct params_hbp {
     KOKKOS_INLINE_FUNCTION
     params_hbp() {p_hb1=0;p_hb2=0;p_hb3=0;r0_hb=0;};
     KOKKOS_INLINE_FUNCTION
@@ -519,15 +494,14 @@ class PairReaxFFKokkos : public PairReaxFF {
   t_hostpinned_int_1d counters_jj_max;
   t_hostpinned_int_1d counters_kk_min;
   t_hostpinned_int_1d counters_kk_max;
-
 };
 
 template <class DeviceType>
-struct PairReaxFFKokkosFindBondFunctor  {
+struct PairReaxKokkosFindBondFunctor  {
   typedef DeviceType device_type;
   typedef int value_type;
   PairReaxFFKokkos<DeviceType> c;
-  PairReaxFFKokkosFindBondFunctor(PairReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {};
+  PairReaxKokkosFindBondFunctor(PairReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {};
 
   KOKKOS_INLINE_FUNCTION
   void join(volatile int &dst,
@@ -542,11 +516,11 @@ struct PairReaxFFKokkosFindBondFunctor  {
 };
 
 template <class DeviceType>
-struct PairReaxFFKokkosPackBondBufferFunctor  {
+struct PairReaxKokkosPackBondBufferFunctor  {
   typedef DeviceType device_type;
   typedef int value_type;
   PairReaxFFKokkos<DeviceType> c;
-  PairReaxFFKokkosPackBondBufferFunctor(PairReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {};
+  PairReaxKokkosPackBondBufferFunctor(PairReaxFFKokkos<DeviceType>* c_ptr):c(*c_ptr) {};
 
   KOKKOS_INLINE_FUNCTION
   void operator()(const int ii, int &j, const bool &final) const {

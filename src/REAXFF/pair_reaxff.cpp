@@ -220,6 +220,7 @@ void PairReaxFF::settings(int narg, char **arg)
   api->system->minhbonds = REAX_MIN_HBONDS;
   api->system->safezone = REAX_SAFE_ZONE;
   api->system->saferzone = REAX_SAFER_ZONE;
+  list_blocking_flag = 0;
 
   // process optional keywords
 
@@ -229,9 +230,6 @@ void PairReaxFF::settings(int narg, char **arg)
     if (strcmp(arg[iarg],"checkqeq") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reaxff command");
       qeqflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
-      if (strcmp(arg[iarg+1],"yes") == 0) qeqflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) qeqflag = 0;
-      else error->all(FLERR,"Illegal pair_style reaxff command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"enobonds") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reaxff command");
@@ -259,6 +257,10 @@ void PairReaxFF::settings(int narg, char **arg)
       api->system->minhbonds = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (api->system->minhbonds < 0)
         error->all(FLERR,"Illegal pair_style reaxff minhbonds command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"list/blocking") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reaxff command");
+      list_blocking_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal pair_style reaxff command");
   }

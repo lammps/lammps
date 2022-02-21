@@ -614,7 +614,7 @@ void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffComputeFullA<NEIGHF
 
     const tagint jtag = tag(j);
     bool continue_flag = false;
-  
+
     if (itag > jtag) {
       if ((itag+jtag) % 2 == 0) continue_flag = true;
     } else if (itag < jtag) {
@@ -1089,7 +1089,7 @@ void PairTersoffKokkos<DeviceType>::ters_dthb(
   else dex_delr = paramskk(i,j,k).lam3 * ex_delr;
 
   cos = vec3_dot(rij_hat,rik_hat);
-  
+
   ters_gijk_and_ters_dgijk(i,j,k,cos,gijk,dgijk);
 
   // from PairTersoff::costheta_d

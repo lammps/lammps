@@ -65,6 +65,8 @@ FixQEqReaxFFKokkos(LAMMPS *lmp, int narg, char **arg) :
   grow_arrays(atom->nmax);
 
   d_mfill_offset = typename AT::t_int_scalar("qeq/kk:mfill_offset");
+
+  converged = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -708,7 +710,6 @@ void FixQEqReaxFFKokkos<DeviceType>::operator() (TagQEqInitMatvec, const int &ii
     d_st(i,0) = 4*(d_s_hist(i,0)+d_s_hist(i,2))-(6*d_s_hist(i,1)+d_s_hist(i,3));
     d_st(i,1) = d_t_hist(i,2) + 3*(d_t_hist(i,0) - d_t_hist(i,1));
   }
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -766,7 +767,7 @@ int FixQEqReaxFFKokkos<DeviceType>::cg_solve()
 
     // comm->forward_comm_fix(this); //Dist_vector(d);
     pack_flag = 1;
-    // mark size 2 for 
+    // mark size 2 for
     k_d.template modify<DeviceType>();
     comm->forward_comm_fix(this, 2);
     k_d.template sync<DeviceType>();
@@ -1062,7 +1063,7 @@ void FixQEqReaxFFKokkos<DeviceType>::operator() (TagQEqDot3, const int &ii, F_FL
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixQEqReaxFFKokkos<DeviceType>::operator() (TagQEqSum1, const int &ii) const
-{ 
+{
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
     if (!(converged & 1))
@@ -1102,7 +1103,6 @@ void FixQEqReaxFFKokkos<DeviceType>::operator() (TagQEqCalculateQ, const int &ii
     d_s_hist(i,0) = d_st(i,0);
     d_t_hist(i,0) = d_st(i,1);
   }
-
 }
 
 /* ---------------------------------------------------------------------- */

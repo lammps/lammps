@@ -96,7 +96,7 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
 
   typedef typename Kokkos::TeamPolicy <DeviceType, TagQEqSparseMatvec2_Full> ::member_type membertype_vec;
   KOKKOS_INLINE_FUNCTION
-  void operator() (TagQEqSparseMatvec2_Full, const membertype_vec &team) const;
+  void operator()(TagQEqSparseMatvec2_Full, const membertype_vec &team) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagQEqNorm1, const int&, F_FLOAT2&) const;
@@ -182,6 +182,7 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   int inum,ignum;
   int allocated_flag, last_allocate;
   int need_dup;
+  int converged;
 
   typename AT::t_int_scalar d_mfill_offset;
 
@@ -219,9 +220,6 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   DAT::tdual_ffloat2_1d k_o, k_d, k_st;
   typename AT::t_ffloat2_1d d_p, d_o, d_r, d_d, d_b_st, d_st, d_xx;
   HAT::t_ffloat2_1d h_o, h_d, h_st;
-  int converged = 0;
-
-  typename AT::t_ffloat_1d_randomread r_p, r_o, r_r, r_d;
 
   DAT::tdual_ffloat_2d k_shield, k_s_hist, k_t_hist;
   typename AT::t_ffloat_2d d_shield, d_s_hist, d_t_hist;

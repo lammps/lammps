@@ -15,7 +15,7 @@ from log import log
 from gnu import gnu
 
 if len(sys.argv) != 4:
-  raise StandardError, "Syntax: logplot.py log.lammps X Y"
+  raise Exception("Syntax: logplot.py log.lammps X Y")
 
 logfile = sys.argv[1]
 xlabel = sys.argv[2]

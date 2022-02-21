@@ -64,7 +64,7 @@ class log:
 
   # --------------------------------------------------------------------
 
-  def __init__(self,*list):
+  def __init__(self,*arglist):
     self.nvec = 0
     self.names = []
     self.ptr = {}
@@ -72,18 +72,18 @@ class log:
 
     # flist = list of all log file names
 
-    words = list[0].split()
+    words = arglist[0].split()
     self.flist = []
     for word in words: self.flist += glob.glob(word)
-    if len(self.flist) == 0 and len(list) == 1:
-      raise StandardError,"no log file specified"
+    if len(self.flist) == 0 and len(arglist) == 1:
+      raise Exception("no log file specified")
 
-    if len(list) == 1:
+    if len(arglist) == 1:
       self.increment = 0
       self.read_all()
     else:
       if len(self.flist) > 1:
-        raise StandardError,"can only incrementally read one log file"
+        raise Exception("can only incrementally read one log file")
       self.increment = 1
       self.eof = 0
 
@@ -92,24 +92,23 @@ class log:
 
   def read_all(self):
     self.read_header(self.flist[0])
-    if self.nvec == 0: raise StandardError,"log file has no values"
+    if self.nvec == 0: raise Exception("log file has no values")
 
     # read all files
 
     for file in self.flist: self.read_one(file)
-    print
 
     # sort entries by timestep, cull duplicates
 
-    self.data.sort(self.compare)
+    self.data.sort(key=(lambda elem: elem[0])) 
     self.cull()
     self.nlen = len(self.data)
-    print "read %d log entries" % self.nlen
+    print("read %d log entries" % self.nlen)
 
   # --------------------------------------------------------------------
 
   def next(self):
-    if not self.increment: raise StandardError,"cannot read incrementally"
+    if not self.increment: raise Exception("cannot read incrementally")
 
     if self.nvec == 0:
       try: open(self.flist[0],'r')
@@ -124,12 +123,12 @@ class log:
 
   def get(self,*keys):
     if len(keys) == 0:
-      raise StandardError, "no log vectors specified"
+      raise Exception( "no log vectors specified" )
 
-    map = []
+    colmap = []
     for key in keys:
-      if self.ptr.has_key(key):
-        map.append(self.ptr[key])
+      if key in self.ptr:
+        colmap.append(self.ptr[key])
       else:
         count = 0
         for i in range(self.nvec):
@@ -137,15 +136,15 @@ class log:
             count += 1
             index = i
         if count == 1:
-          map.append(index)
+          colmap.append(index)
         else:
-          raise StandardError, "unique log vector %s not found" % key
+          raise Exception( "unique log vector %s not found" % key)
 
     vecs = []
     for i in range(len(keys)):
       vecs.append(self.nlen * [0])
-      for j in xrange(self.nlen):
-        vecs[i][j] = self.data[j][map[i]]
+      for j in range(self.nlen):
+        vecs[i][j] = self.data[j][colmap[i]]
 
     if len(keys) == 1: return vecs[0]
     else: return vecs
@@ -154,10 +153,10 @@ class log:
 
   def write(self,filename,*keys):
     if len(keys):
-      map = []
+      colmap = []
       for key in keys:
-        if self.ptr.has_key(key):
-          map.append(self.ptr[key])
+        if key in self.ptr:
+          colmap.append(self.ptr[key])
         else:
           count = 0
           for i in range(self.nvec):
@@ -165,17 +164,18 @@ class log:
               count += 1
               index = i
           if count == 1:
-            map.append(index)
+            colmap.append(index)
           else:
-            raise StandardError, "unique log vector %s not found" % key
+            raise Exception( "unique log vector %s not found" % key)
     else:
-      map = range(self.nvec)
+      colmap = range(self.nvec)
 
     f = open(filename,"w")
-    for i in xrange(self.nlen):
-      for j in xrange(len(map)):
-        print >>f,self.data[i][map[j]],
-      print >>f
+    # write data
+    for i in range(self.nlen):
+      for j in range(len(colmap)):
+        print(self.data[i][colmap[j]],file=f,end=" "),
+      print("\n",file=f,end="")
     f.close()
 
   # --------------------------------------------------------------------
@@ -243,18 +243,18 @@ class log:
 
   # --------------------------------------------------------------------
 
-  def read_one(self,*list):
+  def read_one(self,*arglist):
 
-    # if 2nd arg exists set file ptr to that value
+    # if 2nd arg exists set file ptr io that value
     # read entire (rest of) file into txt
 
-    file = list[0]
+    file = arglist[0]
     if file[-3:] == ".gz":
       f = popen("%s -c %s" % (PIZZA_GUNZIP,file),'rb')
     else:
       f = open(file,'rb')
 
-    if len(list) == 2: f.seek(list[1])
+    if len(arglist) == 2: f.seek(arglist[1])
     txt = f.read()
     if file[-3:] == ".gz": eof = 0
     else: eof = f.tell()
@@ -270,12 +270,12 @@ class log:
       # set start = position in file to start looking for next chunk
       # rewind eof if final entry is incomplete
 
-      s1 = txt.find(self.firststr,start)
-      s2 = txt.find("Loop time of",start+1)
+      s1 = txt.find(self.firststr.encode('utf-8'),start)
+      s2 = txt.find("Loop time of".encode('utf-8'),start+1)
 
       if s1 >= 0 and s2 >= 0 and s1 < s2:    # found s1,s2 with s1 before s2
         if self.style == 2:
-          s1 = txt.find("\n",s1) + 1
+          s1 = txt.find("\n".encode('utf-8'),s1) + 1
       elif s1 >= 0 and s2 >= 0 and s2 < s1:  # found s1,s2 with s2 before s1
         s1 = 0
       elif s1 == -1 and s2 >= 0:             # found s2, but no s1
@@ -284,25 +284,25 @@ class log:
       elif s1 >= 0 and s2 == -1:             # found s1, but no s2
         last = 1
         if self.style == 1:
-          s2 = txt.rfind("\n--",s1) + 1
+          s2 = txt.rfind("\n--".encode('utf-8'),s1) + 1
         else:
-          s1 = txt.find("\n",s1) + 1
-          s2 = txt.rfind("\n",s1) + 1
+          s1 = txt.find("\n".encode('utf-8'),s1) + 1
+          s2 = txt.rfind("\n".encode('utf-8'),s1) + 1
         eof -= len(txt) - s2
       elif s1 == -1 and s2 == -1:            # found neither
                                              # could be end-of-file section
                                              # or entire read was one chunk
 
-        if txt.find("Loop time of",start) == start:   # end of file, so exit
+        if txt.find("Loop time of".encode('utf-8'),start) == start:   # end of file, so exit
           eof -= len(txt) - start                     # reset eof to "Loop"
           break
 
         last = 1                                      # entire read is a chunk
         s1 = 0
         if self.style == 1:
-          s2 = txt.rfind("\n--",s1) + 1
+          s2 = txt.rfind("\n--".encode('utf-8'),s1) + 1
         else:
-          s2 = txt.rfind("\n",s1) + 1
+          s2 = txt.rfind("\n".encode('utf-8'),s1) + 1
         eof -= len(txt) - s2
         if s1 == s2: break
 
@@ -313,24 +313,23 @@ class log:
       # parse each entry for numeric fields, append to data
 
       if self.style == 1:
-        sections = chunk.split("\n--")
+        sections = chunk.split("\n--".encode('utf-8'))
         pat1 = re.compile("Step\s*(\S*)\s")
         pat2 = re.compile("=\s*(\S*)")
         for section in sections:
           word1 = [re.search(pat1,section).group(1)]
           word2 = re.findall(pat2,section)
           words = word1 + word2
-          self.data.append(map(float,words))
+          self.data.append(list(map(float,words)))
 
       else:
-        lines = chunk.split("\n")
+        lines = chunk.split("\n".encode('utf-8'))
         for line in lines:
           words = line.split()
-          self.data.append(map(float,words))
+          self.data.append(list(map(float,words)))
 
       # print last timestep of chunk
-
-      print int(self.data[len(self.data)-1][0]),
+      print(int(self.data[len(self.data)-1][0]),)
       sys.stdout.flush()
 
     return eof

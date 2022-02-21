@@ -305,7 +305,8 @@ to *1* then the bispectrum row, which is typically the per-atom bispectrum
 descriptors :math:`B_{i,k}` summed over all atoms *i* to produce
 :math:`B_k`, becomes bispectrum rows equal to the number of atoms. Thus,
 the resulting bispectrum rows are :math:`B_{i,k}` instead of just
-:math:`B_k`.
+:math:`B_k`. In this case, the entries in the final column for these rows
+are set to zero.
 
 .. note::
 

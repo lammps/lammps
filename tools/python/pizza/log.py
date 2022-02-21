@@ -171,6 +171,13 @@ class log:
       colmap = range(self.nvec)
 
     f = open(filename,"w")
+
+    # write col names from dict in the right order
+    colnames = [k for j in colmap for k,v in self.ptr.items() if v == j]
+    for j in range(len(colnames)):
+        print(colnames[j], file=f, end=" ")
+    print("\n", file=f, end="")
+
     # write data
     for i in range(self.nlen):
       for j in range(len(colmap)):

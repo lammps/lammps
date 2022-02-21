@@ -170,10 +170,9 @@ class Pair : protected Pointers {
   }
 
   virtual void born_matrix(int /*i*/, int /*j*/, int /*itype*/, int /*jtype*/, double /*rsq*/,
-               double /*factor_coul*/, double /*factor_lj*/, double& du, double& du2)
+                           double /*factor_coul*/, double /*factor_lj*/, double &du, double &du2)
   {
-    du = 0.0;
-    du2 = 0.0;
+    du = du2 = 0.0;
   }
 
   virtual void settings(int, char **) = 0;

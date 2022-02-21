@@ -391,6 +391,7 @@ void PairHybrid::flags()
   // single_enable = 1 if all sub-styles are set
   // respa_enable = 1 if all sub-styles are set
   // manybody_flag = 1 if any sub-style is set
+  // born_matrix_enable = 1 if all sub-styles are set
   // no_virial_fdotr_compute = 1 if any sub-style is set
   // ghostneigh = 1 if any sub-style is set
   // ewaldflag, pppmflag, msmflag, dipoleflag, dispersionflag, tip4pflag = 1
@@ -401,11 +402,13 @@ void PairHybrid::flags()
   compute_flag = 0;
   respa_enable = 0;
   restartinfo = 0;
+  born_matrix_enable = 0;
 
   for (m = 0; m < nstyles; m++) {
     if (styles[m]->single_enable) ++single_enable;
     if (styles[m]->respa_enable) ++respa_enable;
     if (styles[m]->restartinfo) ++restartinfo;
+    if (styles[m]->born_matrix_enable) ++born_matrix_enable;
     if (styles[m]->manybody_flag) manybody_flag = 1;
     if (styles[m]->no_virial_fdotr_compute) no_virial_fdotr_compute = 1;
     if (styles[m]->ghostneigh) ghostneigh = 1;
@@ -422,6 +425,7 @@ void PairHybrid::flags()
   single_enable = (single_enable == nstyles) ? 1 : 0;
   respa_enable = (respa_enable == nstyles) ? 1 : 0;
   restartinfo = (restartinfo == nstyles) ? 1 : 0;
+  born_matrix_enable = (born_matrix_enable == nstyles) ? 1 : 0;
   init_svector();
 
   // set centroidstressflag for pair hybrid
@@ -868,6 +872,40 @@ double PairHybrid::single(int i, int j, int itype, int jtype,
 
   if (single_extra) copy_svector(itype,jtype);
   return esum;
+}
+
+/* ----------------------------------------------------------------------
+   call sub-style to compute born matrix interaction
+   error if sub-style does not support born_matrix call
+   since overlay could have multiple sub-styles, sum results explicitly
+------------------------------------------------------------------------- */
+
+void PairHybrid::born_matrix(int i, int j, int itype, int jtype, double rsq,
+                             double factor_coul, double factor_lj,
+                             double &dupair, double &du2pair)
+{
+  if (nmap[itype][jtype] == 0)
+    error->one(FLERR,"Invoked pair born_matrix on pair style none");
+
+  double du, du2;
+  dupair = du2pair = 0.0;
+
+  for (int m = 0; m < nmap[itype][jtype]; m++) {
+    if (rsq < styles[map[itype][jtype][m]]->cutsq[itype][jtype]) {
+      if (styles[map[itype][jtype][m]]->born_matrix_enable == 0)
+        error->one(FLERR,"Pair hybrid sub-style does not support born_matrix call");
+
+      if ((special_lj[map[itype][jtype][m]] != nullptr) ||
+          (special_coul[map[itype][jtype][m]] != nullptr))
+        error->one(FLERR,"Pair hybrid born_matrix calls do not support"
+                   " per sub-style special bond values");
+
+      du = du2 = 0.0;
+      styles[map[itype][jtype][m]]->born_matrix(i,j,itype,jtype,rsq,factor_coul,factor_lj,du,du2);
+      dupair += du;
+      du2pair += du2;
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------

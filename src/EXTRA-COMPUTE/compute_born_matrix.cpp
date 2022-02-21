@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -37,8 +36,8 @@
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "pair.h"
-#include "update.h"
 #include "universe.h"
+#include "update.h"
 
 #include <cmath>
 #include <cstring>
@@ -115,11 +114,10 @@ static int constexpr albemunu[21][4] = {
 
 /* ---------------------------------------------------------------------- */
 
-ComputeBornMatrix::ComputeBornMatrix(LAMMPS *lmp, int narg, char **arg) : 
-    Compute(lmp, narg, arg), id_virial(nullptr), temp_x(nullptr), 
-    temp_f(nullptr)
+ComputeBornMatrix::ComputeBornMatrix(LAMMPS *lmp, int narg, char **arg) :
+    Compute(lmp, narg, arg), id_virial(nullptr), temp_x(nullptr), temp_f(nullptr)
 {
-  if (narg < 3) error->all(FLERR,"Illegal compute born/matrix command");
+  if (narg < 3) error->all(FLERR, "Illegal compute born/matrix command");
 
   MPI_Comm_rank(world, &me);
 
@@ -128,94 +126,102 @@ ComputeBornMatrix::ComputeBornMatrix(LAMMPS *lmp, int narg, char **arg) :
   numflag = 0;
   numdelta = 0.0;
 
-  pairflag = 0;
-  bondflag = 0;
-  angleflag = 0;
-  dihedflag = 0;
-  impflag = 0;
+  pairflag = bondflag = angleflag = dihedflag = impflag = 0;
   if (narg == 3) {
-    pairflag = 1;
-    bondflag = 1;
-    angleflag = 1;
-    dihedflag = 1;
-    impflag = 1;
+    pairflag = bondflag = angleflag = dihedflag = impflag = 1;
   } else {
     int iarg = 3;
     while (iarg < narg) {
-      if (strcmp(arg[iarg],"numdiff") == 0) {
-        if (iarg+3 > narg) error->all(FLERR,"Illegal compute born/matrix command");
+      if (strcmp(arg[iarg], "numdiff") == 0) {
+        if (iarg + 3 > narg) error->all(FLERR, "Illegal compute born/matrix command");
         numflag = 1;
-        numdelta = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+        numdelta = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
         if (numdelta <= 0.0) error->all(FLERR, "Illegal compute born/matrix command");
-        id_virial = utils::strdup(arg[iarg+2]);
+        id_virial = utils::strdup(arg[iarg + 2]);
         int icompute = modify->find_compute(id_virial);
-        if (icompute < 0) error->all(FLERR,"Could not find compute born/matrix pressure ID");
+        if (icompute < 0) error->all(FLERR, "Could not find compute born/matrix pressure ID");
         compute_virial = modify->compute[icompute];
         if (compute_virial->pressflag == 0)
-        error->all(FLERR,"Compute born/matrix pressure ID does not compute pressure");
+          error->all(FLERR, "Compute born/matrix pressure ID does not compute pressure");
         iarg += 3;
-      } else if (strcmp(arg[iarg],"pair") == 0) pairflag = 1;
-      else if (strcmp(arg[iarg],"bond") == 0) bondflag = 1;
-      else if (strcmp(arg[iarg],"angle") == 0) angleflag = 1;
-      else if (strcmp(arg[iarg],"dihedral") == 0) dihedflag = 1;
-      else if (strcmp(arg[iarg],"improper") == 0) impflag = 1;
-      else error->all(FLERR,"Illegal compute born/matrix command");
+      } else if (strcmp(arg[iarg], "pair") == 0) {
+        pairflag = 1;
+      } else if (strcmp(arg[iarg], "bond") == 0) {
+        bondflag = 1;
+      } else if (strcmp(arg[iarg], "angle") == 0) {
+        angleflag = 1;
+      } else if (strcmp(arg[iarg], "dihedral") == 0) {
+        dihedflag = 1;
+      } else if (strcmp(arg[iarg], "improper") == 0) {
+        impflag = 1;
+      } else {
+        error->all(FLERR, "Illegal compute born/matrix command");
+      }
       ++iarg;
     }
   }
 
   if (pairflag) {
-    if (numflag) error->all(FLERR, "Illegal compute born/matrix command: cannot mix numflag and other flags");
+    if (numflag)
+      error->all(FLERR, "Illegal compute born/matrix command: cannot mix numflag and other flags");
     if (force->pair) {
-      if (force->pair->born_matrix_enable == 0) {
-        if (comm->me == 0) error->warning(FLERR, "Pair style does not support compute born/matrix");
-      }
+      if (force->pair->born_matrix_enable == 0)
+        error->all(FLERR, "Pair style {} does not support compute born/matrix", force->pair_style);
     } else {
       pairflag = 0;
     }
   }
+
   if (bondflag) {
-    if (numflag) error->all(FLERR, "Illegal compute born/matrix command: cannot mix numflag and other flags");
+    if (numflag)
+      error->all(FLERR, "Illegal compute born/matrix command: cannot mix numflag and other flags");
     if (force->bond) {
-      if (force->bond->born_matrix_enable == 0) {
-        if (comm->me == 0) error->warning(FLERR, "Bond style does not support compute born/matrix");
-      }
+      if (force->bond->born_matrix_enable == 0)
+        error->all(FLERR, "Bond style {} does not support compute born/matrix", force->bond_style);
     } else {
       bondflag = 0;
     }
   }
+
   if (angleflag) {
-    if (numflag) error->all(FLERR, "Illegal compute born/matrix command: cannot mix numflag and other flags");
+    if (numflag)
+      error->all(FLERR, "Illegal compute born/matrix command: cannot mix numflag and other flags");
     if (force->angle) {
-      if (force->angle->born_matrix_enable == 0) {
-        if (comm->me == 0) error->warning(FLERR, "Angle style does not support compute born/matrix");
-      }
+      if (force->angle->born_matrix_enable == 0)
+        error->all(FLERR, "Angle style {} does not support compute born/matrix",
+                   force->angle_style);
     } else {
       angleflag = 0;
     }
   }
+
   if (dihedflag) {
-    if (numflag) error->all(FLERR, "Illegal compute born/matrix command: cannot mix numflag and other flags");
+    if (numflag)
+      error->all(FLERR, "Illegal compute born/matrix command: cannot mix numflag and other flags");
     if (force->dihedral) {
-     if (force->dihedral->born_matrix_enable == 0) {
-       if (comm->me == 0) error->warning(FLERR, "Dihedral style does not support compute born/matrix");
-     }
+      if (force->dihedral->born_matrix_enable == 0)
+        error->all(FLERR, "Dihedral style {} does not support compute born/matrix",
+                   force->dihedral_style);
     } else {
       dihedflag = 0;
     }
   }
+
   if (impflag) {
-    if (numflag) error->all(FLERR, "Illegal compute born/matrix command: cannot mix numflag and other flags");
+    if (numflag)
+      error->all(FLERR, "Illegal compute born/matrix command: cannot mix numflag and other flags");
     if (force->improper) {
-      if (force->improper->born_matrix_enable == 0) {
-        if (comm->me == 0) error->warning(FLERR, "Improper style does not support compute born/matrix");
-      }
+      if (force->improper->born_matrix_enable == 0)
+        error->all(FLERR, "Improper style {} does not support compute born/matrix",
+                   force->improper_style);
     } else {
       impflag = 0;
     }
   }
+
   if (force->kspace) {
-    if (!numflag) error->warning(FLERR, "KSPACE contribution not supported by compute born/matrix");
+    if (!numflag && (comm->me == 0))
+      error->all(FLERR, "KSpace contribution not supported by compute born/matrix");
   }
 
   // Initialize some variables
@@ -297,8 +303,7 @@ void ComputeBornMatrix::init()
     // check for virial compute
 
     int icompute = modify->find_compute(id_virial);
-    if (icompute < 0) error->all(FLERR,
-      "Virial compute ID for compute born/matrix does not exist");
+    if (icompute < 0) error->all(FLERR, "Virial compute ID for compute born/matrix does not exist");
     compute_virial = modify->compute[icompute];
 
     // set up reverse index lookup
@@ -320,7 +325,6 @@ void ComputeBornMatrix::init()
     virialVtoV[3] = 5;
     virialVtoV[4] = 4;
     virialVtoV[5] = 3;
-
   }
 }
 
@@ -364,11 +368,9 @@ void ComputeBornMatrix::compute_vector()
 
     // convert from pressure to energy units
 
-    double inv_nktv2p = 1.0/force->nktv2p;
+    double inv_nktv2p = 1.0 / force->nktv2p;
     double volume = domain->xprd * domain->yprd * domain->zprd;
-    for (int m = 0; m < nvalues; m++) {
-      values_global[m] *= inv_nktv2p * volume;
-    }
+    for (int m = 0; m < nvalues; m++) { values_global[m] *= inv_nktv2p * volume; }
   }
 
   for (int m = 0; m < nvalues; m++) vector[m] = values_global[m];
@@ -453,23 +455,18 @@ void ComputeBornMatrix::compute_pairs()
 
         // Add contribution to Born tensor
 
-        pair->born_matrix(i, j, itype, jtype, rsq, factor_coul,
-			  factor_lj, dupair, du2pair);
+        pair->born_matrix(i, j, itype, jtype, rsq, factor_coul, factor_lj, dupair, du2pair);
         pair_pref = du2pair - dupair * rinv;
 
         // See albemunu in compute_born_matrix.h for indices order.
 
-        a = 0;
-        b = 0;
-        c = 0;
-        d = 0;
+        a = b = c = d = 0;
         for (int m = 0; m < nvalues; m++) {
           a = albemunu[m][0];
           b = albemunu[m][1];
           c = albemunu[m][2];
           d = albemunu[m][3];
-          values_local[m] += pair_pref * rij[a] * rij[b] *
-	    rij[c] * rij[d] * r2inv;
+          values_local[m] += pair_pref * rij[a] * rij[b] * rij[c] * rij[d] * r2inv;
         }
       }
     }
@@ -509,7 +506,7 @@ void ComputeBornMatrix::compute_numdiff()
   for (int idir = 0; idir < NDIR_VIRIAL; idir++) {
 
     // forward
-    
+
     displace_atoms(nall, idir, 1.0);
     force_clear(nall);
     update_virial();
@@ -520,7 +517,7 @@ void ComputeBornMatrix::compute_numdiff()
     restore_atoms(nall, idir);
 
     // backward
-    
+
     displace_atoms(nall, idir, -1.0);
     force_clear(nall);
     update_virial();
@@ -534,7 +531,8 @@ void ComputeBornMatrix::compute_numdiff()
   // apply derivative factor
 
   double denominator = -0.5 / numdelta;
-  for (int m = 0; m < nvalues; m++) values_global[m] *= denominator;
+  for (int m = 0; m < nvalues; m++)
+    values_global[m] *= denominator;
 
   // recompute virial so all virial and energy contributions are as before
   // also needed for virial stress addon contributions to Born matrix
@@ -542,15 +540,13 @@ void ComputeBornMatrix::compute_numdiff()
   update_virial();
 
   // add on virial terms
-  
+
   virial_addon();
 
   // restore original forces for owned and ghost atoms
 
   for (int i = 0; i < nall; i++)
-    for (int k = 0; k < 3; k++)
-      f[i][k] = temp_f[i][k];
-
+    for (int k = 0; k < 3; k++) f[i][k] = temp_f[i][k];
 }
 
 /* ----------------------------------------------------------------------
@@ -561,12 +557,24 @@ void ComputeBornMatrix::displace_atoms(int nall, int idir, double magnitude)
 {
   double **x = atom->x;
 
-  // NOTE: transposing k and l would seem to be equivalent but it is not
-  // only this version matches analytic results for lj/cut
+  // NOTE: virial_addon() expressions predicated on
+  // shear strain fields (l != k) being symmetric here
   int k = dirlist[idir][0];
   int l = dirlist[idir][1];
-  for (int i = 0; i < nall; i++)
+
+  // axial strain
+
+  if (l == k) 
+    for (int i = 0; i < nall; i++)
       x[i][k] = temp_x[i][k] + numdelta * magnitude * (temp_x[i][l] - fixedpoint[l]);
+
+  // symmetric shear strain
+
+  else
+    for (int i = 0; i < nall; i++) {
+      x[i][k] = temp_x[i][k] + 0.5 * numdelta * magnitude * (temp_x[i][l] - fixedpoint[l]);
+      x[i][l] = temp_x[i][l] + 0.5 * numdelta * magnitude * (temp_x[i][k] - fixedpoint[k]);
+    }
 }
 
 /* ----------------------------------------------------------------------
@@ -578,10 +586,16 @@ void ComputeBornMatrix::restore_atoms(int nall, int idir)
 
   // reset only idir coord
 
-  int k = dirlist[idir][0];  
+  int k = dirlist[idir][0];
+  int l = dirlist[idir][1];
   double **x = atom->x;
-  for (int i = 0; i < nall; i++)
-    x[i][k] = temp_x[i][k];
+  if (l == k) 
+    for (int i = 0; i < nall; i++) x[i][k] = temp_x[i][k];
+  else
+    for (int i = 0; i < nall; i++) {
+      x[i][l] = temp_x[i][l];
+      x[i][k] = temp_x[i][k];
+    }
 }
 
 /* ----------------------------------------------------------------------
@@ -639,27 +653,34 @@ void ComputeBornMatrix::virial_addon()
   // Cijkl = (Bijkl+Bjikl+Bijlk+Bjilk)/4. = (Bijkl+Bjilk)/2.
   // and when computing only the 21 independant term.
 
-  values_global[0]  += 2.0*sigv[0];
-  values_global[1]  += 2.0*sigv[1];
-  values_global[2]  += 2.0*sigv[2];
-  values_global[3]  += sigv[2];
-  values_global[4]  += sigv[2];
-  values_global[5]  += sigv[1];
-  values_global[6]  += 0.0;
-  values_global[7]  += 0.0;
-  values_global[8]  += 0.0;
-  values_global[9]  += 2.0*sigv[4];
-  values_global[10] += 2.0*sigv[3];
+  // these expressions have been verified
+  // correct to about 1e-7 compared
+  // to the analytic expressions for lj/cut,
+  // predicated on shear strain fields being
+  // symmetric in displace_atoms()
+
+  values_global[0] += 2.0 * sigv[0];
+  values_global[1] += 2.0 * sigv[1];
+  values_global[2] += 2.0 * sigv[2];
+
+  values_global[3] += 0.5 * (sigv[1] + sigv[2]);
+  values_global[4] += 0.5 * (sigv[0] + sigv[2]);
+  values_global[5] += 0.5 * (sigv[0] + sigv[1]);
+  values_global[6] += 0.0;
+  values_global[7] += 0.0;
+  values_global[8] += 0.0;
+  values_global[9] += sigv[4];
+  values_global[10] += sigv[3];
   values_global[11] += 0.0;
-  values_global[12] += 2.0*sigv[5];
+  values_global[12] += sigv[5];
   values_global[13] += 0.0;
-  values_global[14] += 0.0;
-  values_global[15] += 0.0;
-  values_global[16] += 0.0;
+  values_global[14] += sigv[3];
+  values_global[15] += sigv[5];
+  values_global[16] += sigv[4];
   values_global[17] += 0.0;
-  values_global[18] += 0.0;
-  values_global[19] += 0.0;
-  values_global[20] += sigv[5];
+  values_global[18] += 0.5 * sigv[3];
+  values_global[19] += 0.5 * sigv[4];
+  values_global[20] += 0.5 * sigv[5];
 
 }
 
@@ -709,9 +730,9 @@ double ComputeBornMatrix::memory_usage()
 
 void ComputeBornMatrix::compute_bonds()
 {
-  int i,m,n,nb,atom1,atom2,imol,iatom,btype,ivar;
+  int i, m, n, nb, atom1, atom2, imol, iatom, btype, ivar;
   tagint tagprev;
-  double dx,dy,dz,rsq;
+  double dx, dy, dz, rsq;
 
   double **x = atom->x;
   double **v = atom->v;
@@ -732,7 +753,7 @@ void ComputeBornMatrix::compute_bonds()
 
   Bond *bond = force->bond;
 
-  int a,b,c,d;
+  int a, b, c, d;
   double rij[3];
   double rinv, r2inv;
   double pair_pref, dupair, du2pair;
@@ -740,12 +761,13 @@ void ComputeBornMatrix::compute_bonds()
   // loop over all atoms and their bonds
 
   m = 0;
-  while (m<nvalues) {
+  while (m < nvalues) {
 
     for (atom1 = 0; atom1 < nlocal; atom1++) {
       if (!(mask[atom1] & groupbit)) continue;
 
-      if (molecular == 1) nb = num_bond[atom1];
+      if (molecular == 1)
+        nb = num_bond[atom1];
       else {
         if (molindex[atom1] < 0) continue;
         imol = molindex[atom1];
@@ -760,7 +782,7 @@ void ComputeBornMatrix::compute_bonds()
         } else {
           tagprev = tag[atom1] - iatom - 1;
           btype = onemols[imol]->bond_type[iatom][i];
-          atom2 = atom->map(onemols[imol]->bond_atom[iatom][i]+tagprev);
+          atom2 = atom->map(onemols[imol]->bond_atom[iatom][i] + tagprev);
         }
 
         if (atom2 < 0 || !(mask[atom2] & groupbit)) continue;
@@ -770,30 +792,25 @@ void ComputeBornMatrix::compute_bonds()
         dx = x[atom2][0] - x[atom1][0];
         dy = x[atom2][1] - x[atom1][1];
         dz = x[atom2][2] - x[atom1][2];
-        domain->minimum_image(dx,dy,dz);
-        rsq = dx*dx + dy*dy + dz*dz;
+        domain->minimum_image(dx, dy, dz);
+        rsq = dx * dx + dy * dy + dz * dz;
         rij[0] = dx;
         rij[1] = dy;
         rij[2] = dz;
-        r2inv = 1.0/rsq;
+        r2inv = 1.0 / rsq;
         rinv = sqrt(r2inv);
 
-        pair_pref = 0.0;
-        dupair = 0.0;
-        du2pair = 0.0;
-        bond->born_matrix(btype,rsq,atom1,atom2,dupair,du2pair);
-        pair_pref = du2pair - dupair*rinv;
+        pair_pref = dupair = du2pair = 0.0;
+        bond->born_matrix(btype, rsq, atom1, atom2, dupair, du2pair);
+        pair_pref = du2pair - dupair * rinv;
 
-        a = 0;
-        b = 0;
-        c = 0;
-        d = 0;
-        for (i = 0; i<21; i++) {
+        a = b = c = d = 0;
+        for (i = 0; i < 21; i++) {
           a = albemunu[i][0];
           b = albemunu[i][1];
           c = albemunu[i][2];
           d = albemunu[i][3];
-          values_local[m+i] += pair_pref*rij[a]*rij[b]*rij[c]*rij[d]*r2inv;
+          values_local[m + i] += pair_pref * rij[a] * rij[b] * rij[c] * rij[d] * r2inv;
         }
       }
     }
@@ -812,12 +829,12 @@ void ComputeBornMatrix::compute_bonds()
 
 void ComputeBornMatrix::compute_angles()
 {
-  int i,m,n,na,atom1,atom2,atom3,imol,iatom,atype,ivar;
+  int i, m, n, na, atom1, atom2, atom3, imol, iatom, atype, ivar;
   tagint tagprev;
-  double delx1,dely1,delz1,delx2,dely2,delz2;
-  double rsq1,rsq2,r1,r2,cost;
+  double delx1, dely1, delz1, delx2, dely2, delz2;
+  double rsq1, rsq2, r1, r2, cost;
   double r1r2, r1r2inv;
-  double rsq1inv,rsq2inv,r1inv,r2inv,cinv;
+  double rsq1inv, rsq2inv, r1inv, r2inv, cinv;
   double *ptr;
 
   double **x = atom->x;
@@ -840,7 +857,7 @@ void ComputeBornMatrix::compute_angles()
 
   Angle *angle = force->angle;
 
-  int a,b,c,d,e,f;
+  int a, b, c, d, e, f;
   double duang, du2ang;
   double del1[3], del2[3];
   double dcos[6];
@@ -849,20 +866,16 @@ void ComputeBornMatrix::compute_angles()
 
   // Initializing array for intermediate cos derivatives
   // w regard to strain
-  for (i = 0; i < 6; i++) {
-    dcos[i] = 0;
-  }
-  for (i = 0; i < 21; i++) {
-    d2cos[i] = 0;
-    d2lncos[i] = 0;
-  }
+  for (i = 0; i < 6; i++) dcos[i] = 0;
+  for (i = 0; i < 21; i++) d2cos[i] = d2lncos[i] = 0;
 
   m = 0;
   while (m < nvalues) {
     for (atom2 = 0; atom2 < nlocal; atom2++) {
       if (!(mask[atom2] & groupbit)) continue;
 
-      if (molecular == 1) na = num_angle[atom2];
+      if (molecular == 1)
+        na = num_angle[atom2];
       else {
         if (molindex[atom2] < 0) continue;
         imol = molindex[atom2];
@@ -880,8 +893,8 @@ void ComputeBornMatrix::compute_angles()
           if (tag[atom2] != onemols[imol]->angle_atom2[atom2][i]) continue;
           atype = onemols[imol]->angle_type[atom2][i];
           tagprev = tag[atom2] - iatom - 1;
-          atom1 = atom->map(onemols[imol]->angle_atom1[atom2][i]+tagprev);
-          atom3 = atom->map(onemols[imol]->angle_atom3[atom2][i]+tagprev);
+          atom1 = atom->map(onemols[imol]->angle_atom1[atom2][i] + tagprev);
+          atom3 = atom->map(onemols[imol]->angle_atom3[atom2][i] + tagprev);
         }
 
         if (atom1 < 0 || !(mask[atom1] & groupbit)) continue;
@@ -891,53 +904,51 @@ void ComputeBornMatrix::compute_angles()
         delx1 = x[atom1][0] - x[atom2][0];
         dely1 = x[atom1][1] - x[atom2][1];
         delz1 = x[atom1][2] - x[atom2][2];
-        domain->minimum_image(delx1,dely1,delz1);
+        domain->minimum_image(delx1, dely1, delz1);
         del1[0] = delx1;
         del1[1] = dely1;
         del1[2] = delz1;
 
-        rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
-        rsq1inv = 1.0/rsq1;
+        rsq1 = delx1 * delx1 + dely1 * dely1 + delz1 * delz1;
+        rsq1inv = 1.0 / rsq1;
         r1 = sqrt(rsq1);
-        r1inv = 1.0/r1;
+        r1inv = 1.0 / r1;
 
         delx2 = x[atom3][0] - x[atom2][0];
         dely2 = x[atom3][1] - x[atom2][1];
         delz2 = x[atom3][2] - x[atom2][2];
-        domain->minimum_image(delx2,dely2,delz2);
+        domain->minimum_image(delx2, dely2, delz2);
         del2[0] = delx2;
         del2[1] = dely2;
         del2[2] = delz2;
 
-        rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
-        rsq2inv = 1.0/rsq2;
+        rsq2 = delx2 * delx2 + dely2 * dely2 + delz2 * delz2;
+        rsq2inv = 1.0 / rsq2;
         r2 = sqrt(rsq2);
-        r2inv = 1.0/r2;
+        r2inv = 1.0 / r2;
 
-        r1r2 = delx1*delx2 + dely1*dely2 + delz1*delz2;
-        r1r2inv = 1/r1r2;
+        r1r2 = delx1 * delx2 + dely1 * dely2 + delz1 * delz2;
+        r1r2inv = 1 / r1r2;
         // cost = cosine of angle
 
-        cost = delx1*delx2 + dely1*dely2 + delz1*delz2;
-        cost /= r1*r2;
+        cost = delx1 * delx2 + dely1 * dely2 + delz1 * delz2;
+        cost /= r1 * r2;
         if (cost > 1.0) cost = 1.0;
         if (cost < -1.0) cost = -1.0;
-        cinv = 1.0/cost;
+        cinv = 1.0 / cost;
 
         // The method must return derivative with regards
         // to cos(theta)!
         // Use the chain rule if needed:
         // dU(t)/de = dt/dcos(t)*dU(t)/dt*dcos(t)/de
         // with dt/dcos(t) = -1/sin(t)
-        angle->born_matrix(atype,atom1,atom2,atom3,duang,du2ang);
+        angle->born_matrix(atype, atom1, atom2, atom3, duang, du2ang);
 
         // Voigt notation
         // 1 = 11, 2 = 22, 3 = 33
         // 4 = 23, 5 = 13, 6 = 12
-        a = 0;
-        b = 0;
-        c = 0;
-        d = 0;
+        a = b = c = d = 0;
+        // clang-format off
         for (i = 0; i<6; i++) {
           a = sigma_albe[i][0];
           b = sigma_albe[i][1];
@@ -959,9 +970,10 @@ void ComputeBornMatrix::compute_angles()
           d2cos[i] =  cost*d2lncos[i] + dcos[e]*dcos[f]*cinv;
           values_local[m+i] += duang*d2cos[i] + du2ang*dcos[e]*dcos[f];
         }
+        // clang-format on
       }
     }
-  m+=21;
+    m += 21;
   }
 }
 
@@ -975,11 +987,11 @@ void ComputeBornMatrix::compute_angles()
 
 void ComputeBornMatrix::compute_dihedrals()
 {
-  int i,m,n,nd,atom1,atom2,atom3,atom4,imol,iatom,dtype,ivar;
+  int i, m, n, nd, atom1, atom2, atom3, atom4, imol, iatom, dtype, ivar;
   tagint tagprev;
-  double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,vb2xm,vb2ym,vb2zm;
-  double ax,ay,az,bx,by,bz,rasq,rbsq,rgsq,rg,ra2inv,rb2inv,rabinv;
-  double si,co,phi;
+  double vb1x, vb1y, vb1z, vb2x, vb2y, vb2z, vb3x, vb3y, vb3z, vb2xm, vb2ym, vb2zm;
+  double ax, ay, az, bx, by, bz, rasq, rbsq, rgsq, rg, ra2inv, rb2inv, rabinv;
+  double si, co, phi;
   double *ptr;
 
   double **x = atom->x;
@@ -1002,8 +1014,8 @@ void ComputeBornMatrix::compute_dihedrals()
 
   Dihedral *dihedral = force->dihedral;
 
-  double dudih,du2dih;
-  int a,b,c,d,e,f;
+  double dudih, du2dih;
+  int a, b, c, d, e, f;
   double b1sq;
   double b2sq;
   double b3sq;
@@ -1026,25 +1038,17 @@ void ComputeBornMatrix::compute_dihedrals()
   double dcos[6];
   double d2cos[21];
 
-  for (i = 0; i < 6; i++) {
-    dmn[i] =0;
-    dmm[i] = 0;
-    dnn[i] = 0;
-    dcos[i] = 0;
-  }
-  for (i = 0; i < 21; i++) {
-    d2mn[i] = 0;
-    d2mm[i] = 0;
-    d2nn[i] = 0;
-    d2cos[i] = 0;
-  }
+  for (i = 0; i < 6; i++) dmn[i] = dmm[i] = dnn[i] = dcos[i] = 0;
+
+  for (i = 0; i < 21; i++) d2mn[i] = d2mm[i] = d2nn[i] = d2cos[i] = 0;
 
   m = 0;
   while (m < nvalues) {
     for (atom2 = 0; atom2 < nlocal; atom2++) {
       if (!(mask[atom2] & groupbit)) continue;
 
-      if (molecular == 1) nd = num_dihedral[atom2];
+      if (molecular == 1)
+        nd = num_dihedral[atom2];
       else {
         if (molindex[atom2] < 0) continue;
         imol = molindex[atom2];
@@ -1061,9 +1065,9 @@ void ComputeBornMatrix::compute_dihedrals()
         } else {
           if (tag[atom2] != onemols[imol]->dihedral_atom2[atom2][i]) continue;
           tagprev = tag[atom2] - iatom - 1;
-          atom1 = atom->map(onemols[imol]->dihedral_atom1[atom2][i]+tagprev);
-          atom3 = atom->map(onemols[imol]->dihedral_atom3[atom2][i]+tagprev);
-          atom4 = atom->map(onemols[imol]->dihedral_atom4[atom2][i]+tagprev);
+          atom1 = atom->map(onemols[imol]->dihedral_atom1[atom2][i] + tagprev);
+          atom3 = atom->map(onemols[imol]->dihedral_atom3[atom2][i] + tagprev);
+          atom4 = atom->map(onemols[imol]->dihedral_atom4[atom2][i] + tagprev);
         }
 
         if (atom1 < 0 || !(mask[atom1] & groupbit)) continue;
@@ -1078,76 +1082,72 @@ void ComputeBornMatrix::compute_dihedrals()
         // dU(t)/de = dt/dcos(t)*dU(t)/dt*dcos(t)/de
         // with dt/dcos(t) = -1/sin(t)
 
-        dihedral->born_matrix(nd,atom1,atom2,atom3,atom4,dudih,du2dih);
+        dihedral->born_matrix(nd, atom1, atom2, atom3, atom4, dudih, du2dih);
 
         vb1x = x[atom1][0] - x[atom2][0];
         vb1y = x[atom1][1] - x[atom2][1];
         vb1z = x[atom1][2] - x[atom2][2];
-        domain->minimum_image(vb1x,vb1y,vb1z);
+        domain->minimum_image(vb1x, vb1y, vb1z);
         b1[0] = vb1x;
         b1[1] = vb1y;
         b1[2] = vb1z;
-        b1sq = b1[0]*b1[0]+b1[1]*b1[1]+b1[2]*b1[2];
+        b1sq = b1[0] * b1[0] + b1[1] * b1[1] + b1[2] * b1[2];
 
         vb2x = x[atom3][0] - x[atom2][0];
         vb2y = x[atom3][1] - x[atom2][1];
         vb2z = x[atom3][2] - x[atom2][2];
-        domain->minimum_image(vb2x,vb2y,vb2z);
+        domain->minimum_image(vb2x, vb2y, vb2z);
         b2[0] = vb2x;
         b2[1] = vb2y;
         b2[2] = vb2z;
-        b2sq = b2[0]*b2[0]+b2[1]*b2[1]+b2[2]*b2[2];
+        b2sq = b2[0] * b2[0] + b2[1] * b2[1] + b2[2] * b2[2];
 
         vb2xm = -vb2x;
         vb2ym = -vb2y;
         vb2zm = -vb2z;
-        domain->minimum_image(vb2xm,vb2ym,vb2zm);
+        domain->minimum_image(vb2xm, vb2ym, vb2zm);
 
         vb3x = x[atom4][0] - x[atom3][0];
         vb3y = x[atom4][1] - x[atom3][1];
         vb3z = x[atom4][2] - x[atom3][2];
-        domain->minimum_image(vb3x,vb3y,vb3z);
+        domain->minimum_image(vb3x, vb3y, vb3z);
         b3[0] = vb3x;
         b3[1] = vb3y;
         b3[2] = vb3z;
-        b3sq = b3[0]*b3[0]+b3[1]*b3[1]+b3[2]*b3[2];
+        b3sq = b3[0] * b3[0] + b3[1] * b3[1] + b3[2] * b3[2];
 
-        b1b2 = b1[0]*b2[0]+b1[1]*b2[1]+b1[2]*b2[2];
-        b1b3 = b1[0]*b3[0]+b1[1]*b3[1]+b1[2]*b3[2];
-        b2b3 = b2[0]*b3[0]+b2[1]*b3[1]+b2[2]*b3[2];
+        b1b2 = b1[0] * b2[0] + b1[1] * b2[1] + b1[2] * b2[2];
+        b1b3 = b1[0] * b3[0] + b1[1] * b3[1] + b1[2] * b3[2];
+        b2b3 = b2[0] * b3[0] + b2[1] * b3[1] + b2[2] * b3[2];
 
-        ax = vb1y*vb2zm - vb1z*vb2ym;
-        ay = vb1z*vb2xm - vb1x*vb2zm;
-        az = vb1x*vb2ym - vb1y*vb2xm;
-        bx = vb3y*vb2zm - vb3z*vb2ym;
-        by = vb3z*vb2xm - vb3x*vb2zm;
-        bz = vb3x*vb2ym - vb3y*vb2xm;
+        ax = vb1y * vb2zm - vb1z * vb2ym;
+        ay = vb1z * vb2xm - vb1x * vb2zm;
+        az = vb1x * vb2ym - vb1y * vb2xm;
+        bx = vb3y * vb2zm - vb3z * vb2ym;
+        by = vb3z * vb2xm - vb3x * vb2zm;
+        bz = vb3x * vb2ym - vb3y * vb2xm;
 
-        rasq = ax*ax + ay*ay + az*az;
-        rbsq = bx*bx + by*by + bz*bz;
-        rgsq = vb2xm*vb2xm + vb2ym*vb2ym + vb2zm*vb2zm;
+        rasq = ax * ax + ay * ay + az * az;
+        rbsq = bx * bx + by * by + bz * bz;
+        rgsq = vb2xm * vb2xm + vb2ym * vb2ym + vb2zm * vb2zm;
         rg = sqrt(rgsq);
 
         ra2inv = rb2inv = 0.0;
-        if (rasq > 0) ra2inv = 1.0/rasq;
-        if (rbsq > 0) rb2inv = 1.0/rbsq;
-        rabinv = sqrt(ra2inv*rb2inv);
+        if (rasq > 0) ra2inv = 1.0 / rasq;
+        if (rbsq > 0) rb2inv = 1.0 / rbsq;
+        rabinv = sqrt(ra2inv * rb2inv);
 
-        co = (ax*bx + ay*by + az*bz)*rabinv;
-        si = rg*rabinv*(ax*vb3x + ay*vb3y + az*vb3z);
+        co = (ax * bx + ay * by + az * bz) * rabinv;
+        si = rg * rabinv * (ax * vb3x + ay * vb3y + az * vb3z);
 
         if (co > 1.0) co = 1.0;
         if (co < -1.0) co = -1.0;
-        phi = atan2(si,co);
+        phi = atan2(si, co);
 
         // above a and b are m and n vectors
         // here they are integers indices
-        a = 0;
-        b = 0;
-        c = 0;
-        d = 0;
-        e = 0;
-        f = 0;
+        a = b = c = d = e = f = 0;
+        // clang-format off
         for (i = 0; i<6; i++) {
           a = sigma_albe[i][0];
           b = sigma_albe[i][1];
@@ -1181,8 +1181,9 @@ void ComputeBornMatrix::compute_dihedrals()
                   - rb2inv*d2nn[i]);
           values_local[m+i] += dudih*d2cos[i] + du2dih*dcos[e]*dcos[f];
         }
+        // clang-format on
       }
     }
-  m+=21;
+    m += 21;
   }
 }

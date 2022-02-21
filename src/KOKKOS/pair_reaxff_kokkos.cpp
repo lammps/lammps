@@ -13,10 +13,9 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Ray Shan (SNL), Stan Moore (SNL)
+   Contributing authors: Ray Shan (SNL), Stan Moore (SNL)
 
-   Nicholas Curtis (AMD), Leopold Grinberd (AMD), and Sriranjani
-    Sitaraman (AMD):
+   Nicholas Curtis (AMD), Leopold Grinberd (AMD), and Gina Sitaraman (AMD):
      - Reduced math overhead: enabled specialized calls (e.g., cbrt for a
          cube root instead of pow) and use power/exponential laws to reduce the
          number of exponentials evaluated, etc.
@@ -42,8 +41,6 @@
 #include "reaxff_defs.h"
 
 #include <cmath>
-
-#define TEAMSIZE 128
 
 /* ---------------------------------------------------------------------- */
 
@@ -140,7 +137,6 @@ void PairReaxFFKokkos<DeviceType>::allocate()
   k_tap = DAT::tdual_ffloat_1d("pair:tap",8);
   d_tap = k_tap.template view<DeviceType>();
   h_tap = k_tap.h_view;
-
 }
 
 /* ----------------------------------------------------------------------
@@ -456,7 +452,6 @@ void PairReaxFFKokkos<DeviceType>::init_md()
 
     Deallocate_Lookup_Tables();
   }
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -677,9 +672,7 @@ void PairReaxFFKokkos<DeviceType>::LR_vdW_Coulomb(int i, int j, double r_ij, LR_
         de_lg = -6.0 * e_lg *  r_ij5 / (r_ij6 + re6) ;
         lr->CEvd += dTap * e_lg + Tap * de_lg/r_ij;
       }
-
     }
-
 
   /* Coulomb calculations */
   dr3gamij_1 = (r_ij * r_ij * r_ij + twbp->gamma);
@@ -961,9 +954,8 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   ev_all.evdwl += ev.ereax[3] + ev.ereax[4] + ev.ereax[5];
 
   if (inum > counters.extent(0)) {
-    // HIP: once hipHostMallocNonCoherent "under the hood" may be better?
-    // HIP backend note: use the `hipHostMallocNonCoherent` flag if/when
-    // it is exposed in Kokkos for HIP pinned memory allocations
+    // HIP backend note: use the "hipHostMallocNonCoherent" flag if/when
+    //  it is exposed in Kokkos for HIP pinned memory allocations
     counters = t_hostpinned_int_1d("ReaxFF::counters", inum);
     counters_jj_min = t_hostpinned_int_1d("ReaxFF::counters_jj_min", inum);
     counters_jj_max = t_hostpinned_int_1d("ReaxFF::counters_jj_max", inum);
@@ -1143,7 +1135,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputePolar<NEIGHFLAG,
   if (eflag) ev.ecoul += epol;
   //if (eflag_atom) this->template ev_tally<NEIGHFLAG>(ev,i,i,epol,0.0,0.0,0.0,0.0);
   if (eflag_atom) this->template e_tally_single<NEIGHFLAG>(ev,i,epol);
-
 }
 
 template<class DeviceType>
@@ -1152,8 +1143,9 @@ KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputePolar<NEIGHFLAG,EVFLAG>, const int &ii) const {
   EV_FLOAT_REAX ev;
   this->template operator()<NEIGHFLAG,EVFLAG>(TagPairReaxComputePolar<NEIGHFLAG,EVFLAG>(), ii, ev);
-
 }
+
+/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
@@ -1319,7 +1311,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeLJCoulomb<NEIGHF
         }
       }
     }
-
 
     const F_FLOAT ftotal = fvdwl + fcoul;
     fxtmp += delx*ftotal;
@@ -1574,23 +1565,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxZero, const int &n) con
     d_dDeltap_self(n,j) = 0.0;
 }
 
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxZeroEAtom, const int &i) const {
-  d_eatom(i) = 0.0;
-}
-
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxZeroVAtom, const int &i) const {
-  d_vatom(i,0) = 0.0;
-  d_vatom(i,1) = 0.0;
-  d_vatom(i,2) = 0.0;
-  d_vatom(i,3) = 0.0;
-  d_vatom(i,4) = 0.0;
-  d_vatom(i,5) = 0.0;
-}
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -1637,7 +1611,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<
   int jj_current = 0;
 
   while (jj_current < jnum) {
-     nnz=0;
+    nnz=0;
 
     while (nnz < blocksize) {
       int jj = jj_current;
@@ -1745,7 +1719,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<
 
       BO = BO_s + BO_pi + BO_pi2;
       if (BO < bo_cut) continue;
-
 
       if (NEIGHFLAG == HALF) {
         j_index = bo_first_i + d_bo_num[i];
@@ -2035,7 +2008,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalf<NEIGHFLA
     }
   }
   a_total_bo[i] += total_bo;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2183,7 +2155,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBondOrder2, const int &
   }
   d_CdDelta[i] = 0.0;
   d_total_bo[i] += total_bo;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2191,7 +2162,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBondOrder2, const int &
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBondOrder3, const int &ii) const {
-// bot part of BO()
+  // bot part of BO()
 
   const int i = d_ilist[ii];
   const int itype = type(i);
@@ -2218,7 +2189,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBondOrder3, const int &
 
   d_sum_ovun(i,1) = 0.0;
   d_sum_ovun(i,2) = 0.0;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2404,7 +2374,6 @@ KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG,EVFLAG>, const int &ii) const {
   EV_FLOAT_REAX ev;
   this->template operator()<NEIGHFLAG,EVFLAG>(TagPairReaxComputeMulti2<NEIGHFLAG,EVFLAG>(), ii, ev);
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2715,15 +2684,15 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngular<NEIGHFLA
   for (int d = 0; d < 3; d++) a_f(i,d) += fitmp[d];
 }
 
-
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngular<NEIGHFLAG,EVFLAG>, const int &ii) const {
   EV_FLOAT_REAX ev;
   this->template operator()<NEIGHFLAG,EVFLAG>(TagPairReaxComputeAngular<NEIGHFLAG,EVFLAG>(), ii, ev);
-
 }
+
+/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
@@ -2780,30 +2749,12 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreview, 
       const int k_index = kk - j_start;
       bo_ik = d_BO(i,k_index);
       if (bo_ik < thb_cut) continue;
-      //k_counter2++;
-#if 1
-        counter++;
-        jj_min = jj < jj_min ? jj : jj_min;
-        jj_max = jj >= jj_max ? (jj+1) : jj_max;
-        kk_min = kk < kk_min ? kk : kk_min;
-        kk_max = kk >= kk_max ? (kk+1) : kk_max;
-#else
-      for (int ll = l_start; ll < l_end; ll++) {
-        int l = d_bo_list[ll];
-        l &= NEIGHMASK;
-        if (l == i) continue;
-        const int l_index = ll - l_start;
 
-        bo_jl = d_BO(j,l_index);
-        if (l == k || bo_jl < thb_cut || bo_ij*bo_ik*bo_jl < thb_cut) continue;
-        //if we got so far forces will be computed
-        counter++;
-        jj_min = jj < jj_min ? jj : jj_min;
-        jj_max = jj >= jj_max ? (jj+1) : jj_max;
-        kk_min = kk < kk_min ? kk : kk_min;
-        kk_max = kk >= kk_max ? (kk+1) : kk_max;
-      }
-#endif
+      counter++;
+      jj_min = jj < jj_min ? jj : jj_min;
+      jj_max = jj >= jj_max ? (jj+1) : jj_max;
+      kk_min = kk < kk_min ? kk : kk_min;
+      kk_max = kk >= kk_max ? (kk+1) : kk_max;
     }
 
   }
@@ -2817,7 +2768,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreview, 
 }
 
 /* ---------------------------------------------------------------------- */
-
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
@@ -2859,7 +2809,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionBlocking<
   F_FLOAT p_tor4 = gp[25];
   F_FLOAT p_cot2 = gp[27];
 
-
   const int i = d_ilist[ii];
   const int jj_start = counters_jj_min[ii];
   const int jj_stop = counters_jj_max[ii];
@@ -2879,7 +2828,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionBlocking<
   F_FLOAT fitmp[3], fjtmp[3], fktmp[3];
   for(int j = 0; j < 3; j++) fitmp[j] = 0.0;
   F_FLOAT CdDelta_i = 0.0;
-
 
   int nnz_jj;
   blocking_t selected_jj[blocksize];
@@ -2984,7 +2932,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionBlocking<
           const int ktype = type(k);
           const int k_index = kk - j_start;
           bo_ik = d_BO(i,k_index);
-
 
           BOA_ik = bo_ik - thb_cut;
           for (int d = 0; d < 3; d ++) delik[d] = x(k,d) - x(i,d);
@@ -3236,8 +3183,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionBlocking<
                   this->template v_tally4<NEIGHFLAG>(ev,k,i,j,l,fk_tmp,fi_tmp,fj_tmp,delkl,delil,deljl);
               }
             }
-
           }
+
           for (int d = 0; d < 3; d++) a_f(k,d) += fktmp[d];
         }
       }
@@ -3456,8 +3403,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxUpdateBond<NEIGHFLAG>, 
       }
     }
   }
-
 }
+
+/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
@@ -3572,7 +3520,6 @@ KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond1<NEIGHFLAG,EVFLAG>, const int &ii) const {
   EV_FLOAT_REAX ev;
   this->template operator()<NEIGHFLAG,EVFLAG>(TagPairReaxComputeBond1<NEIGHFLAG,EVFLAG>(), ii, ev);
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -3773,7 +3720,6 @@ KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond2<NEIGHFLAG,EVFLAG>, const int &ii) const {
   EV_FLOAT_REAX ev;
   this->template operator()<NEIGHFLAG,EVFLAG>(TagPairReaxComputeBond2<NEIGHFLAG,EVFLAG>(), ii, ev);
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -3947,7 +3893,6 @@ void PairReaxFFKokkos<DeviceType>::v_tally3(EV_FLOAT_REAX &ev, const int &i, con
     a_vatom(k,0) += THIRD * v[0]; a_vatom(k,1) += THIRD * v[1]; a_vatom(k,2) += THIRD * v[2];
     a_vatom(k,3) += THIRD * v[3]; a_vatom(k,4) += THIRD * v[4]; a_vatom(k,5) += THIRD * v[5];
   }
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -3992,7 +3937,6 @@ void PairReaxFFKokkos<DeviceType>::v_tally4(EV_FLOAT_REAX &ev, const int &i, con
     a_vatom(l,0) += 0.25 * v[0]; a_vatom(l,1) += 0.25 * v[1]; a_vatom(l,2) += 0.25 * v[2];
     a_vatom(l,3) += 0.25 * v[3]; a_vatom(l,4) += 0.25 * v[4]; a_vatom(l,5) += 0.25 * v[5];
   }
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -4068,12 +4012,8 @@ void PairReaxFFKokkos<DeviceType>::ev_setup(int eflag, int vflag, int)
 
   if (eflag_global) eng_vdwl = eng_coul = 0.0;
   if (vflag_global) for (i = 0; i < 6; i++) virial[i] = 0.0;
-  if (eflag_atom) {
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxZeroEAtom>(0,maxeatom),*this);
-  }
-  if (vflag_atom) {
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxZeroVAtom>(0,maxvatom),*this);
-  }
+  if (eflag_atom) Kokkos::deep_copy(d_eatom,0.0);
+  if (vflag_atom) Kokkos::deep_copy(d_vatom,0.0);
 
   // if vflag_global = VIRIAL_FDOTR and pair::compute() calls virial_fdotr_compute()
   // compute global virial via (F dot r) instead of via pairwise summation

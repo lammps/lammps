@@ -15,8 +15,7 @@
 /* ----------------------------------------------------------------------
    Contributing authors: Ray Shan (SNL) and Christian Trott (SNL)
 
-   Nicholas Curtis (AMD), Leopold Grinberd (AMD), and Sriranjani
-    Sitaraman (AMD):
+   Nicholas Curtis (AMD), Leopold Grinberd (AMD), and Gina Sitaraman (AMD):
      - Reduced math overhead: enabled specialized calls (e.g., cbrt for a
          cube root instead of pow) and use power/exponential laws to reduce the
          number of exponentials evaluated, etc.
@@ -160,7 +159,6 @@ void PairTersoffKokkos<DeviceType>::setup_params()
       }
 
   k_params.template modify<LMPHostType>();
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -839,12 +837,12 @@ void PairTersoffKokkos<DeviceType>::ters_fc_k_and_ters_dfc(const int &i, const i
   const F_FLOAT ters_R = paramskk(i,j,k).bigr;
   const F_FLOAT ters_D = paramskk(i,j,k).bigd;
 
-  if (r < ters_R-ters_D){
+  if (r < ters_R-ters_D) {
      fc = 1.0;
      dfc = 0.0;
      return;
   }
-  if (r > ters_R+ters_D){
+  if (r > ters_R+ters_D) {
      fc = 0.0;
      dfc = 0.0;
      return;
@@ -960,7 +958,7 @@ KOKKOS_INLINE_FUNCTION
 void PairTersoffKokkos<DeviceType>::ters_fa_k_and_ters_dfa(const int &i, const int &j,
                 const int &k, const F_FLOAT &r, double &fa, double &dfa) const
 {
-  if (r > paramskk(i,j,k).bigr + paramskk(i,j,k).bigd){
+  if (r > paramskk(i,j,k).bigr + paramskk(i,j,k).bigd) {
      fa = 0.0;
      dfa = 0.0;
   } else {
@@ -1018,7 +1016,7 @@ void PairTersoffKokkos<DeviceType>::ters_bij_k_and_ters_dbij(const int &i, const
                 const int &k, const F_FLOAT &bo, double& bij, double& prefactor) const
 {
   const F_FLOAT tmp = paramskk(i,j,k).beta * bo;
-  if (tmp > paramskk(i,j,k).c1){
+  if (tmp > paramskk(i,j,k).c1) {
       bij =  1.0/sqrt(tmp);
       prefactor = paramskk(i,j,k).beta * -0.5/fabs(tmp);//LG replacing 0.5/sqrt(tmp*tmp) by 0.5/fabs(tmp)
       return;
@@ -1026,7 +1024,7 @@ void PairTersoffKokkos<DeviceType>::ters_bij_k_and_ters_dbij(const int &i, const
 
   auto prm_ijk_pn = paramskk(i,j,k).powern;
 
-  if (tmp > paramskk(i,j,k).c2){
+  if (tmp > paramskk(i,j,k).c2) {
     auto tmp_pow_neg_prm_ijk_pn =  pow(tmp,-prm_ijk_pn);
     bij =  (1.0 - tmp_pow_neg_prm_ijk_pn / (2.0*prm_ijk_pn))/sqrt(tmp);
     prefactor =  paramskk(i,j,k).beta * (-0.5/fabs(tmp) *
@@ -1040,7 +1038,7 @@ void PairTersoffKokkos<DeviceType>::ters_bij_k_and_ters_dbij(const int &i, const
     prefactor = 0.0;
     return;
   }
-  if (tmp < paramskk(i,j,k).c3){
+  if (tmp < paramskk(i,j,k).c3) {
     auto tmp_pow_prm_ijk_pn_less_one =  pow(tmp,prm_ijk_pn-1.0);
     bij =  1.0 - tmp_pow_prm_ijk_pn_less_one*tmp/(2.0*prm_ijk_pn);
     prefactor = -0.5*paramskk(i,j,k).beta * tmp_pow_prm_ijk_pn_less_one;
@@ -1242,7 +1240,6 @@ void PairTersoffKokkos<DeviceType>::ters_dthbk(
   vec3_scaleadd(fc*dgijk*ex_delr,dcosfk,fk,fk);
   vec3_scaleadd(-fc*gijk*dex_delr,rik_hat,fk,fk);
   vec3_scale(prefactor,fk,fk);
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1364,7 +1361,6 @@ void PairTersoffKokkos<DeviceType>::v_tally3(EV_FLOAT &ev, const int &i, const i
       a_vatom(k,3) += v[3]; a_vatom(k,4) += v[4]; a_vatom(k,5) += v[5];
     }
   }
-
 }
 
 /* ---------------------------------------------------------------------- */

@@ -16,8 +16,7 @@
    Contributing authors: Ray Shan (SNL), Stan Moore (SNL),
                           Kamesh Arumugam (NVIDIA)
 
-   Nicholas Curtis (AMD), Leopold Grinberd (AMD), and Sriranjani
-    Sitaraman (AMD):
+   Nicholas Curtis (AMD), Leopold Grinberd (AMD), and Gina Sitaraman (AMD):
      - Reduced math overhead: enabled specialized calls (e.g., cbrt for a
          cube root instead of pow) and use power/exponential laws to reduce the
          number of exponentials evaluated, etc.
@@ -404,7 +403,6 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqZero, const int &ii) const
     d_d(i,0) = 0.0;
     d_d(i,1) = 0.0;
   }
-
 }
 
 /* ---------------------------------------------------------------------- */

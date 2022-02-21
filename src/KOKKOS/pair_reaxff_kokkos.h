@@ -65,10 +65,6 @@ struct TagPairReaxBuildListsHalf{};
 
 struct TagPairReaxZero{};
 
-struct TagPairReaxZeroEAtom{};
-
-struct TagPairReaxZeroVAtom{};
-
 struct TagPairReaxBondOrder1{};
 
 struct TagPairReaxBondOrder2{};
@@ -175,12 +171,6 @@ class PairReaxFFKokkos : public PairReaxFF {
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxZero, const int&) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairReaxZeroEAtom, const int&) const;
-
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairReaxZeroVAtom, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxBondOrder1, const int&) const;

@@ -112,6 +112,8 @@ PairReaxFF::PairReaxFF(LAMMPS *lmp) : Pair(lmp)
   fixspecies_flag = 0;
 
   nmax = 0;
+
+  list_blocking_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -220,7 +222,6 @@ void PairReaxFF::settings(int narg, char **arg)
   api->system->minhbonds = REAX_MIN_HBONDS;
   api->system->safezone = REAX_SAFE_ZONE;
   api->system->saferzone = REAX_SAFER_ZONE;
-  list_blocking_flag = 0;
 
   // process optional keywords
 

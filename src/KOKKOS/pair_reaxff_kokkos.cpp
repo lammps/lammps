@@ -71,6 +71,8 @@ PairReaxFFKokkos<DeviceType>::PairReaxFFKokkos(LAMMPS *lmp) : PairReaxFF(lmp)
 
   k_error_flag = DAT::tdual_int_scalar("pair:error_flag");
   k_nbuf_local = DAT::tdual_int_scalar("pair:nbuf_local");
+
+  if (execution_space == Host) list_blocking_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

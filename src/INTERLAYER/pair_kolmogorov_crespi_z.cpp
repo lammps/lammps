@@ -28,8 +28,8 @@
 #include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "neighbor.h"
 #include "neigh_list.h"
+#include "neighbor.h"
 #include "potential_file_reader.h"
 
 #include <cmath>
@@ -160,15 +160,15 @@ void PairKolmogorovCrespiZ::compute(int eflag, int vflag)
         if (evflag) {
           ev_tally(i, j, nlocal, newton_pair, evdwl, 0.0, fpair, delx, dely, delz);
           if (vflag_either) {
-            double fi[3],fj[3];
+            double fi[3], fj[3];
             fi[0] = delx * fpair1;
             fi[1] = dely * fpair1;
             fi[2] = 0;
             fj[0] = -delx * fpair1;
             fj[1] = -dely * fpair1;
             fj[2] = 0;
-            v_tally2_newton(i,fi,x[i]);
-            v_tally2_newton(j,fj,x[j]);
+            v_tally2_newton(i, fi, x[i]);
+            v_tally2_newton(j, fj, x[j]);
           }
         }
       }
@@ -246,9 +246,9 @@ void PairKolmogorovCrespiZ::coeff(int narg, char **arg)
 void PairKolmogorovCrespiZ::init_style()
 {
   if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style kolmogorov/crespi/z requires newton pair on");
+    error->all(FLERR, "Pair style kolmogorov/crespi/z requires newton pair on");
 
-  neighbor->request(this,instance_me);
+  neighbor->request(this, instance_me);
 }
 
 /* ----------------------------------------------------------------------

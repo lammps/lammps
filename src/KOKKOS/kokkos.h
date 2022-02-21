@@ -104,6 +104,15 @@ E: Kokkos has been compiled with GPU-enabled backend but no GPUs are requested
 
 One or more GPUs must be used when Kokkos is compiled for CUDA/HIP/SYCL/OpenMPTarget.
 
+E: Multiple CPU threads are requested but Kokkos has not been compiled using a threading-enabled backend
+
+Must use the Kokkos OpenMP or Threads backend for multiple threads.
+
+W: When using a single thread, the Kokkos Serial backend (i.e. Makefile.kokkos_mpi_only)
+gives better performance than the OpenMP backend
+
+Self-expanatory.
+
 W: Kokkos package already initalized, cannot reinitialize with different parameters
 
 Self-explanatory.

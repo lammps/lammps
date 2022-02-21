@@ -480,7 +480,7 @@ void ComputeSnap::compute_array()
   MPI_Allreduce(&snap[0][0],&snapall[0][0],size_array_rows*size_array_cols,MPI_DOUBLE,MPI_SUM,world);
 
   // assign energy to last column
-
+  for (int i = 0; i < bik_rows; i++) snapall[i][lastcol] = 0;
   int irow = 0;
   double reference_energy = c_pe->compute_scalar();
   snapall[irow][lastcol] = reference_energy;

@@ -1,4 +1,4 @@
-#!/usr/bin/env python -i
+#!/usr/bin/env python
 
 # Script:  logplot.py
 # Purpose: use GnuPlot to plot two columns from a LAMMPS log file
@@ -15,7 +15,7 @@ from log import log
 from gnu import gnu
 
 if len(sys.argv) != 4:
-  raise StandardError, "Syntax: logplot.py log.lammps X Y"
+  raise Exception("Syntax: logplot.py log.lammps X Y")
 
 logfile = sys.argv[1]
 xlabel = sys.argv[2]
@@ -25,4 +25,3 @@ lg = log(logfile)
 x,y = lg.get(xlabel,ylabel)
 g = gnu()
 g.plot(x,y)
-print "Type Ctrl-D to exit Python"

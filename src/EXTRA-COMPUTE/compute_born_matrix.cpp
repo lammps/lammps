@@ -952,7 +952,7 @@ void ComputeBornMatrix::compute_angles()
         for (i = 0; i<6; i++) {
           a = sigma_albe[i][0];
           b = sigma_albe[i][1];
-          dcos[i] = cost*(del1[a]*del2[b]+del1[b]*del2[a]*r1r2inv -
+          dcos[i] = cost*((del1[a]*del2[b]+del1[b]*del2[a])*r1r2inv -
                           del1[a]*del1[b]*rsq1inv - del2[a]*del2[b]*rsq2inv);
         }
         for (i = 0; i<21; i++) {

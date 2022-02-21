@@ -164,8 +164,8 @@ ReaxFF and ignored otherwise. Setting the value to *yes* enables the
 "blocking" scheme (dynamically building interaction lists) for the
 ReaxFF bond neighbor list. This reduces the number of empty
 interactions and can improve performance in some cases (e.g. large
-number of atoms/GPU for AMD hardware). It is also enabled by default
-when running the CPU.
+number of atoms/GPU on AMD hardware). It is also enabled by default
+when running the CPU with Kokkos.
 
 The thermo variable *evdwl* stores the sum of all the ReaxFF potential
 energy contributions, with the exception of the Coulombic and charge

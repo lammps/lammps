@@ -21,7 +21,7 @@
      - Reduced math overhead: enabled specialized calls (e.g., cbrt for a
          cube root instead of pow) and use power/exponential laws to reduce the
          number of exponentials evaluated, etc.
-     - Fused the CG solve for "s" and "t" vectors
+     - Fused the CG solve for "S" and "T" matrices
      - Improved the SpMV algorithm by using vector instead of team level
          parallelism on GPUs
 ------------------------------------------------------------------------- */
@@ -384,7 +384,7 @@ void FixQEqReaxFFKokkos<DeviceType>::allocate_array()
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxFFKokkos<DeviceType>::operator() (TagQEqZero, const int &ii) const
+void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqZero, const int &ii) const
 {
   const int i = d_ilist[ii];
   const int itype = type(i);
@@ -707,7 +707,7 @@ double FixQEqReaxFFKokkos<DeviceType>::calculate_H_k(const F_FLOAT &r, const F_F
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxFFKokkos<DeviceType>::operator() (TagQEqInitMatvec, const int &ii) const
+void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqInitMatvec, const int &ii) const
 {
   const int i = d_ilist[ii];
   const int itype = type(i);
@@ -896,7 +896,7 @@ void FixQEqReaxFFKokkos<DeviceType>::sparse_matvec_kokkos(typename AT::t_ffloat2
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxFFKokkos<DeviceType>::operator() (TagQEqSparseMatvec1, const int &ii) const
+void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqSparseMatvec1, const int &ii) const
 {
   const int i = d_ilist[ii];
   const int itype = type(i);
@@ -913,7 +913,7 @@ void FixQEqReaxFFKokkos<DeviceType>::operator() (TagQEqSparseMatvec1, const int 
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxFFKokkos<DeviceType>::operator() (TagQEqZeroQGhosts, const int &i) const
+void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqZeroQGhosts, const int &i) const
 {
   if (mask[i] & groupbit) {
     if (!(converged & 1))
@@ -928,7 +928,7 @@ void FixQEqReaxFFKokkos<DeviceType>::operator() (TagQEqZeroQGhosts, const int &i
 template<class DeviceType>
 template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxFFKokkos<DeviceType>::operator() (TagQEqSparseMatvec2_Half<NEIGHFLAG>, const int &ii) const
+void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqSparseMatvec2_Half<NEIGHFLAG>, const int &ii) const
 {
   // The q array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
   auto v_o = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_o),decltype(ndup_o)>::get(dup_o,ndup_o);
@@ -963,7 +963,7 @@ void FixQEqReaxFFKokkos<DeviceType>::operator() (TagQEqSparseMatvec2_Half<NEIGHF
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxFFKokkos<DeviceType>::operator() (TagQEqSparseMatvec2_Full, const membertype_vec &team) const
+void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqSparseMatvec2_Full, const membertype_vec &team) const
 {
   int k = team.league_rank () * team.team_size () + team.team_rank ();
   if (k < nn) {
@@ -992,7 +992,7 @@ void FixQEqReaxFFKokkos<DeviceType>::operator() (TagQEqSparseMatvec2_Full, const
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxFFKokkos<DeviceType>::operator() (TagQEqNorm1, const int &ii, F_FLOAT2& out) const
+void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqNorm1, const int &ii, F_FLOAT2& out) const
 {
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
@@ -1015,7 +1015,7 @@ void FixQEqReaxFFKokkos<DeviceType>::operator() (TagQEqNorm1, const int &ii, F_F
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxFFKokkos<DeviceType>::operator() (TagQEqDot1, const int &ii, F_FLOAT2& out) const
+void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqDot1, const int &ii, F_FLOAT2& out) const
 {
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
@@ -1030,7 +1030,7 @@ void FixQEqReaxFFKokkos<DeviceType>::operator() (TagQEqDot1, const int &ii, F_FL
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxFFKokkos<DeviceType>::operator() (TagQEqDot2, const int &ii, F_FLOAT2& out) const
+void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqDot2, const int &ii, F_FLOAT2& out) const
 {
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
@@ -1045,7 +1045,7 @@ void FixQEqReaxFFKokkos<DeviceType>::operator() (TagQEqDot2, const int &ii, F_FL
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxFFKokkos<DeviceType>::operator() (TagQEqDot3, const int &ii, F_FLOAT2& out) const
+void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqDot3, const int &ii, F_FLOAT2& out) const
 {
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
@@ -1071,7 +1071,7 @@ void FixQEqReaxFFKokkos<DeviceType>::operator() (TagQEqDot3, const int &ii, F_FL
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxFFKokkos<DeviceType>::operator() (TagQEqSum1, const int &ii) const
+void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqSum1, const int &ii) const
 {
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
@@ -1086,7 +1086,7 @@ void FixQEqReaxFFKokkos<DeviceType>::operator() (TagQEqSum1, const int &ii) cons
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxFFKokkos<DeviceType>::operator() (TagQEqSum2, const int &ii, F_FLOAT2& out) const
+void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqSum2, const int &ii, F_FLOAT2& out) const
 {
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {
@@ -1099,7 +1099,7 @@ void FixQEqReaxFFKokkos<DeviceType>::operator() (TagQEqSum2, const int &ii, F_FL
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void FixQEqReaxFFKokkos<DeviceType>::operator() (TagQEqCalculateQ, const int &ii) const
+void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqCalculateQ, const int &ii) const
 {
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {

@@ -3417,8 +3417,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionBlocking<
   for (int d = 0; d < 3; d++) a_f(i,d) += fitmp[d];
 }
 
-
-
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION

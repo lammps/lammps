@@ -333,7 +333,6 @@ void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffComputeShortNeigh, 
 
 /* ---------------------------------------------------------------------- */
 
-
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
@@ -341,8 +340,8 @@ void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffComputeHalf<NEIGHFL
 
   // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
-  const auto v_f = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
-  const auto a_f = v_f.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  const auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
+  const auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   const int i = d_ilist[ii];
   if (i >= nlocal) return;
@@ -401,7 +400,7 @@ void PairTersoffKokkos<DeviceType>::operator()(TagPairTersoffComputeHalf<NEIGHFL
 
     F_FLOAT fa, dfa, bij, prefactor;
     ters_fa_k_and_ters_dfa(itype,jtype,jtype,rij,fa,dfa);
-    ters_bij_k_and_ters_dbij(itype,jtype,jtype, bo_ij, bij, prefactor);
+    ters_bij_k_and_ters_dbij(itype,jtype,jtype,bo_ij,bij,prefactor);
     const F_FLOAT fatt = -0.5*bij * dfa / rij;
     prefactor = 0.5*fa * prefactor;
 
@@ -862,9 +861,6 @@ void PairTersoffKokkos<DeviceType>::ters_fc_k_and_ters_dfc(const int &i, const i
 
 /* ---------------------------------------------------------------------- */
 
-
-
-
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 double PairTersoffKokkos<DeviceType>::bondorder(const int &i, const int &j, const int &k,
@@ -935,7 +931,6 @@ void PairTersoffKokkos<DeviceType>::
 
 /* ---------------------------------------------------------------------- */
 
-
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 double PairTersoffKokkos<DeviceType>::ters_fa_k(const int &i, const int &j,
@@ -960,7 +955,6 @@ double PairTersoffKokkos<DeviceType>::ters_dfa(const int &i, const int &j,
 
 /* ---------------------------------------------------------------------- */
 
-
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairTersoffKokkos<DeviceType>::ters_fa_k_and_ters_dfa(const int &i, const int &j,
@@ -978,6 +972,7 @@ void PairTersoffKokkos<DeviceType>::ters_fa_k_and_ters_dfa(const int &i, const i
   }
 }
 
+/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
@@ -1056,6 +1051,8 @@ void PairTersoffKokkos<DeviceType>::ters_bij_k_and_ters_dbij(const int &i, const
   bij = pow(1.0 + tmp_n, -1.0/(2.0*prm_ijk_pn));
   prefactor =  -0.5 * pow(1.0+tmp_n, -1.0-(1.0/(2.0*prm_ijk_pn)))*tmp_n / bo;
 }
+
+/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION

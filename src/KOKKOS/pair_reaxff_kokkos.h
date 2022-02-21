@@ -122,7 +122,6 @@ class PairReaxFFKokkos : public PairReaxFF {
   // "PairReaxBuildListsHalfBlocking"
   static constexpr int build_lists_half_blocksize = 64;
 
-
   PairReaxFFKokkos(class LAMMPS *);
   virtual ~PairReaxFFKokkos();
 

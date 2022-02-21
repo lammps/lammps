@@ -72,7 +72,6 @@ PairReaxFFKokkos<DeviceType>::PairReaxFFKokkos(LAMMPS *lmp) : PairReaxFF(lmp)
   nmax = 0;
   maxbo = 1;
   maxhb = 1;
-  inum_store = -1;
 
   k_error_flag = DAT::tdual_int_scalar("pair:error_flag");
   k_nbuf_local = DAT::tdual_int_scalar("pair:nbuf_local");
@@ -968,27 +967,26 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // Compress the counters list ; could be accomplished on device with parallel scan
   int nnz = 0;
-  for (int i = 0; i < inum; ++i){
-    if (counters[i] > 0){
+  for (int i = 0; i < inum; ++i) {
+    if (counters[i] > 0) {
       counters[nnz] = i;
       nnz++;
     }
   }
 
   if (neighflag == HALF) {
-      if (evflag)
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsionBlocking<HALF,1>>(0,nnz),*this,ev);
-      else
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsionBlocking<HALF,0>>(0,nnz),*this);
-      ev_all += ev;
-    } else {
-      if (evflag) {
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsionBlocking<HALFTHREAD,1>>(0,nnz),*this,ev);
-      } else{
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsionBlocking<HALFTHREAD,0>>(0,nnz),*this);
-      }
-      ev_all += ev;
-    }
+    if (evflag)
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsionBlocking<HALF,1>>(0,nnz),*this,ev);
+    else
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsionBlocking<HALF,0>>(0,nnz),*this);
+    ev_all += ev;
+  } else {
+    if (evflag)
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsionBlocking<HALFTHREAD,1>>(0,nnz),*this,ev);
+    else
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsionBlocking<HALFTHREAD,0>>(0,nnz),*this);
+    ev_all += ev;
+  }
 
   pvector[8] = ev.ereax[6];
   pvector[9] = ev.ereax[7];
@@ -1629,7 +1627,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<
       double cutoffsq;
       if(i < nlocal) cutoffsq = MAX(cut_bosq,cut_hbsq);
       else cutoffsq = cut_bosq;
-      if (rsq <= cutoffsq){
+      if (rsq <= cutoffsq) {
         selected_jj[nnz] = jj_current;
         nnz++;
       }
@@ -1638,7 +1636,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<
       if (jj_current == jnum) break;
     }
 
-    for (int jj_inner = 0; jj_inner < nnz; jj_inner++){
+    for (int jj_inner = 0; jj_inner < nnz; jj_inner++) {
       const int jj = selected_jj[jj_inner];
       int j = d_neighbors(i,jj);
       j &= NEIGHMASK;
@@ -2759,7 +2757,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreview, 
 
   }
   counters[ii] = counter;
-  if (counter > 0){
+  if (counter > 0) {
     counters_jj_min[ii] = jj_min;
     counters_jj_max[ii] = jj_max;
     counters_kk_min[ii] = kk_min;
@@ -2858,7 +2856,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionBlocking<
       bo_ij = d_BO(i,j_index);
       if (bo_ij < thb_cut) continue_flag = true;
 
-      if (!continue_flag){
+      if (!continue_flag) {
          selected_jj[nnz_jj] = jj_current-jj_start;
          nnz_jj++;
       }
@@ -2866,7 +2864,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionBlocking<
       if (jj_current == jj_stop) break;
     }
 
-    for (int jj_inner = 0; jj_inner < nnz_jj; jj_inner++){
+    for (int jj_inner = 0; jj_inner < nnz_jj; jj_inner++) {
       const int jj = jj_start + selected_jj[jj_inner];
       int j = d_bo_list[jj];
       j &= NEIGHMASK;
@@ -2917,7 +2915,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionBlocking<
             if (bo_ik < thb_cut) continue_flag = true;
           }
 
-          if (!continue_flag){
+          if (!continue_flag) {
             selected_kk[nnz_kk] = kk_current-kk_start;
             nnz_kk++;
           }
@@ -2925,7 +2923,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionBlocking<
           if (kk_current == kk_stop) break;
         }
 
-        for (int kk_inner = 0; kk_inner < nnz_kk; kk_inner++){
+        for (int kk_inner = 0; kk_inner < nnz_kk; kk_inner++) {
           const int kk = kk_start + selected_kk[kk_inner];
           int k = d_bo_list[kk];
           k &= NEIGHMASK;
@@ -2940,7 +2938,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionBlocking<
 
           cos_ijk = (delij[0]*delik[0]+delij[1]*delik[1]+delij[2]*delik[2])/(rij*rik);
           if (cos_ijk > 1.0) cos_ijk  = 1.0;
-          else if (cos_ijk < -1.0) cos_ijk  = -1.0;  //LG changed "if" to "else if"
+          else if (cos_ijk < -1.0) cos_ijk  = -1.0;
           theta_ijk = acos(cos_ijk);
 
           // dcos_ijk
@@ -2982,7 +2980,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionBlocking<
 
             cos_jil = -(delij[0]*deljl[0]+delij[1]*deljl[1]+delij[2]*deljl[2])/(rij*rjl);
             if (cos_jil > 1.0) cos_jil  = 1.0;
-            else if (cos_jil < -1.0) cos_jil  = -1.0; //LG changed "if" to "else if"
+            else if (cos_jil < -1.0) cos_jil  = -1.0;
             theta_jil = acos(cos_jil);
 
             // dcos_jil
@@ -3043,7 +3041,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionBlocking<
 
             arg = tel / poem;
             if (arg >  1.0) arg =  1.0;
-            else if (arg < -1.0) arg = -1.0; //LG changed from "if" to "else if"
+            else if (arg < -1.0) arg = -1.0;
 
             F_FLOAT sin_ijk_rnd = sin_ijk;
             F_FLOAT sin_jil_rnd = sin_jil;

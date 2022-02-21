@@ -995,10 +995,13 @@ double PairTersoffKokkos<DeviceType>::ters_dbij(const int &i, const int &j,
                 const int &k, const F_FLOAT &bo) const
 {
   const F_FLOAT tmp = paramskk(i,j,k).beta * bo;
-  if (tmp > paramskk(i,j,k).c1) return paramskk(i,j,k).beta * -0.5/sqrt(tmp*tmp);//*pow(tmp,-1.5);
+  const F_FLOAT factor = -0.5/sqrt(tmp*tmp*tmp); //pow(tmp,-1.5)
+  if (tmp > paramskk(i,j,k).c1) return paramskk(i,j,k).beta * factor;
   if (tmp > paramskk(i,j,k).c2)
-    return paramskk(i,j,k).beta * (-0.5/sqrt(tmp*tmp) * //*pow(tmp,-1.5) * //LG why ro compute sqrt(tmp^2) ?
-           (1.0 - 0.5*(1.0 +  1.0/(2.0*paramskk(i,j,k).powern)) *
+    return paramskk(i,j,k).beta * (factor *
+           // error in negligible 2nd term fixed 2/21/2022
+           // (1.0 - 0.5*(1.0 +  1.0/(2.0*paramskk(i,j,k).powern)) *
+           (1.0 - (1.0 +  1.0/(2.0*paramskk(i,j,k).powern)) *
            pow(tmp,-paramskk(i,j,k).powern)));
   if (tmp < paramskk(i,j,k).c4) return 0.0;
   if (tmp < paramskk(i,j,k).c3)
@@ -1016,9 +1019,10 @@ void PairTersoffKokkos<DeviceType>::ters_bij_k_and_ters_dbij(const int &i, const
                 const int &k, const F_FLOAT &bo, double& bij, double& prefactor) const
 {
   const F_FLOAT tmp = paramskk(i,j,k).beta * bo;
+  const F_FLOAT factor = -0.5/sqrt(tmp*tmp*tmp); //pow(tmp,-1.5)
   if (tmp > paramskk(i,j,k).c1) {
       bij =  1.0/sqrt(tmp);
-      prefactor = paramskk(i,j,k).beta * -0.5/fabs(tmp);//LG replacing 0.5/sqrt(tmp*tmp) by 0.5/fabs(tmp)
+      prefactor = paramskk(i,j,k).beta * factor;
       return;
   }
 
@@ -1027,7 +1031,7 @@ void PairTersoffKokkos<DeviceType>::ters_bij_k_and_ters_dbij(const int &i, const
   if (tmp > paramskk(i,j,k).c2) {
     auto tmp_pow_neg_prm_ijk_pn =  pow(tmp,-prm_ijk_pn);
     bij =  (1.0 - tmp_pow_neg_prm_ijk_pn / (2.0*prm_ijk_pn))/sqrt(tmp);
-    prefactor =  paramskk(i,j,k).beta * (-0.5/fabs(tmp) *
+    prefactor =  paramskk(i,j,k).beta * (factor *
            (1.0 - 0.5*(1.0 +  1.0/(2.0*prm_ijk_pn)) *
            tmp_pow_neg_prm_ijk_pn));
     return;

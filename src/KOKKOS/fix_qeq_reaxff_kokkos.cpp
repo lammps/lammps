@@ -22,7 +22,7 @@
          cube root instead of pow) and use power/exponential laws to reduce the
          number of exponentials evaluated, etc.
      - Fused the CG solve for "s" and "t" vectors
-     - Improvemented the SpMV algorithm by using vector instead of team level
+     - Improved the SpMV algorithm by using vector instead of team level
          parallelism on GPUs
 ------------------------------------------------------------------------- */
 

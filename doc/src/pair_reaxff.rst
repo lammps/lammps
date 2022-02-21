@@ -370,7 +370,7 @@ Default
 """""""
 
 The keyword defaults are checkqeq = yes, enobonds = yes, lgvdw = no,
-safezone = 1.2, mincap = 50, minhbonds = 25, list/blocking = yes on CPU, no on GPU).
+safezone = 1.2, mincap = 50, minhbonds = 25, list/blocking = yes on CPU, no on GPU.
 
 ----------
 

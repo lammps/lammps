@@ -13,6 +13,7 @@ of time and requests from the LAMMPS user community.
    Developer_org
    Developer_cxx_vs_c_style
    Developer_parallel
+   Developer_comm_ops
    Developer_flow
    Developer_write
    Developer_notes

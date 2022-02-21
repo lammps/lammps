@@ -1,8 +1,9 @@
-Communication operations
-------------------------
+Communication patterns
+----------------------
 
 This page describes various inter-processor communication operations
-encoded by LAMMPS, mostly in the core *Comm* class.  They are used by
+provided by LAMMPS, mostly in the core *Comm* class.  These are operations
+for common tasks implemented using MPI library calls.  They are used by
 other classes to perform communication of different kinds.  These
 operations are useful to know about when writing new code for LAMMPS
 that needs to communicate data between processors.
@@ -10,31 +11,49 @@ that needs to communicate data between processors.
 Owned and ghost atoms
 ^^^^^^^^^^^^^^^^^^^^^
 
-As described on the :ref:`Developer_par_part` page, LAMMPS spatially
-decomposes the simulation domain, either in a *brick* or *tiled*
-manner.  Each processor (MPI task) owns atoms within its sub-domain
-and additionally stores ghost atoms within a cutoff distance of its
-sub-domain.
+As described on the :doc:`parallel partitioning algorithms
+<Developer_par_part>` page, LAMMPS spatially decomposes the simulation
+domain, either in a *brick* or *tiled* manner.  Each processor (MPI
+task) owns atoms within its sub-domain and additionally stores ghost
+atoms within a cutoff distance of its sub-domain.
 
-As described on the :ref:`Developer_par_comm` page, the most common
-communication operations are first, *forward communication* which
-sends owned atom information from each processor to nearby processors
-to store with their ghost atoms.  And second, *reverse communication*
-which sends ghost atom information from each processor to the owning
-processor to accumulate (sum) the values with the corresponding owned
-atoms.
+Forward and reverse communication
+=================================
+
+As described on the :doc:`parallel communication algorithms
+<Developer_par_comm>` page, the most common communication operations are
+first, *forward communication* which sends owned atom information from
+each processor to nearby processors to store with their ghost atoms.
+The need to do this communication arises when data from the owned atoms
+is updated (e.g. their positions) and this updated information needs to
+be **copied** to the corresponding ghost atoms.
+
+And second, *reverse communication* which sends ghost atom information
+from each processor to the owning processor to **accumulate** (sum) the
+values with the corresponding owned atoms.  The need for this arises
+when data is computed and also stored with ghost atoms (e.g. forces when
+using a "half" neighbor list) and thus those terms need to be added to
+their corresponding atoms on the process where they are "owned" atoms.
+Please note, that with the :doc:`newton off <newton>` setting this does
+not happen and the neighbor lists are constructed that these pairs are
+computed on both MPI processes containing one of the atoms and only the
+data pertaining to the local atom is stored.
 
 The time-integration classes in LAMMPS invoke these operations each
 timestep via the *forward_comm()* and *reverse_comm()* methods in the
-*Comm* class.  
+*Comm* class.  Which per-atom data is communicated depends on the
+currently used :doc:`atom style <atom_style>` and whether
+:doc:`comm_modify vel <comm_modify>` setting is "no" (default) or "yes".
 
 Similarly, *Pair* style classes can invoke the *forward_comm_pair()*
 and *reverse_comm_pair()* methods in the *Comm* class to perform the
-same operations on data they store.  An example are many-body pair
+same operations on per-atom data that is stored within the pair style
+class.  An example for the use of these functions are many-body pair
 styles like the embedded-atom method (EAM) which compute intermediate
-values which need to be shared between owned and ghost atoms.  The
-*Comm* class methods perform the MPI communication for buffers of
-per-atom data.  They "call back" to the *Pair* class so it can *pack*
+values in the first part of the compute() function that need to be
+stored on both, owned and ghost atoms for the second part of the force
+computing.  The *Comm* class methods perform the MPI communication for
+buffers of per-atom data.  They "call back" to the *Pair* class so it can *pack*
 or *unpack* the buffer with data the *Pair* class owns.  There are 4
 such methods that the *Pair* class must define, assuming it uses both
 forward and reverse communication:
@@ -44,15 +63,20 @@ forward and reverse communication:
 * pack_reverse_comm()
 * unpack_reverse_comm()
 
-The arguments to these methods include the buffer and a list of atoms
-to pack or unpack.  The *Pair* class also sets the *comm_forward* and
-*comm_reverse* variables which store the number of values it will
-store in the communication buffers for each operation.  This means it
-can choose to store multiple per-atom values in the buffer if desired,
-and they will be communicated all together.
+The arguments to these methods include the buffer and a list of atoms to
+pack or unpack.  The *Pair* class also must set the *comm_forward* and
+*comm_reverse* variables which store the number of values it will store
+in the communication buffers for each operation.  This means it can
+choose to store multiple per-atom values in the buffer, if desired, and
+they will be communicated together to minimize communication overhead.
+The communication buffers are defined as arrays containing ``double``
+values.  To correctly store integers that may be 64-bit (bigint,
+tagint, imageint) in the buffer, you need to use the `ubuf union
+<Communication buffer coding with ubuf>`_.
 
-The *Fix*, *Compute*, and *Dump* classes can invoke the same forward
-and reverse communication operations using these *Comm* class methods:
+The *Fix*, *Compute*, and *Dump* classes can invoke the same kind of
+forward and reverse communication operations using these *Comm* class
+methods:
 
 * forward_comm_fix()
 * reverse_comm_fix()
@@ -93,15 +117,12 @@ provide.  The 3 communication operations described here are
 You can invoke these *grep* command in the LAMMPS src directory, to
 see a list of classes that invoke the 3 operations.
 
-* grep "\->ring" *.cpp */*.cpp
-* grep "irregular\->" *.cpp
-* grep "\->rendezvous" *.cpp */*.cpp
+* ``grep "\->ring" *.cpp */*.cpp``
+* ``grep "irregular\->" *.cpp``
+* ``grep "\->rendezvous" *.cpp */*.cpp``
 
 Ring operation
-^^^^^^^^^^^^^^
-
-NOTE Axel - can ring, irregular, rendezvous be sub-sections of 
-Higher level comm ?
+==============
 
 The *ring* operation is invoked via the *ring()* method in the *Comm*
 class.
@@ -110,7 +131,7 @@ Each processor first creates a buffer with a list of values, typically
 associated with a subset of the atoms it owns.  Now think of the *P*
 processors as connected to each other in a *ring*.  Each processor *M*
 sends data to the next *M+1* processor.  It receives data from the
-preceeding *M-1* processor.  The ring is periodic so that the last
+preceding *M-1* processor.  The ring is periodic so that the last
 processor sends to the first processor, and the first processor
 receives from the last processor.
 
@@ -125,15 +146,15 @@ examine its original buffer to extract modified values.
 
 Note that the *ring* operation is similar to an MPI_Alltoall()
 operation where every processor effectively sends and receives data to
-every other processsor.  The difference is that the *ring* operation
+every other processor.  The difference is that the *ring* operation
 does it one step at a time, so the total volume of data does not need
 to be stored by every processor.  However, *ring* is also less
 efficient than MPI_Alltoall() because of the *P* stages required.  So
-it is typically only suitable for small data buffers and occassional
+it is typically only suitable for small data buffers and occasional
 operations that are not time-critical.
 
 Irregular operation
-^^^^^^^^^^^^^^^^^^^
+===================
 
 The *irregular* operation is provided by the *Irregular* class.
 Irregular communication is when each processor knows what data it
@@ -152,7 +173,7 @@ context:
 * migrate_atoms()
 
 For the *create_data()* method, each processor specifies a list of *N*
-datums to send, each to a specified processor.  Internaly, the method
+datums to send, each to a specified processor.  Internally, the method
 creates efficient data structures for performing the communication.
 The *exchange_data()* method triggers the communication to be
 performed.  Each processor provides the vector of *N* datums to send,
@@ -174,14 +195,14 @@ have moved arbitrarily long distances and still be properly
 communicated to a new owning processor.
 
 Rendezvous operation
-^^^^^^^^^^^^^^^^^^^^
+====================
 
 Finally, the *rendezvous* operation is invoked vie the *rendezvous()*
 method in the *Comm* class.  Depending on how much communication is
 needed and how many processors a LAMMPS simulation is running on, it
 can be a much more efficient choice than the *ring()* method.  It uses
 the *irregular* operation internally once or twice to do its
-communication.  The renvdezvous algorithm is described in detail in
+communication.  The rendezvous algorithm is described in detail in
 :ref:`(Plimpton) <Plimpton>`, including some LAMMPS use cases.
 
 For the *rendezvous()* method, each processor specifies a list of *N*
@@ -195,15 +216,14 @@ the callback function exits, the *rendezvous()* method performs a
 second irregular communication on the new list of datums.
 
 Examples in LAMMPS of use of the *rendezvous* operation are the
-:doc:`fix rigid/small` and :doc:`fix shake` commands (for one-time
-identification of the rigid body atom clusters) and the identification
-of special_bond 1-2, 1-3 and 1-4 neighbors within molecules.  See the
-:doc:`special_bond` command for context.
+:doc:`fix rigid/small <fix_rigid>` and :doc:`fix shake
+<fix_shake>` commands (for one-time identification of the rigid body
+atom clusters) and the identification of special_bond 1-2, 1-3 and 1-4
+neighbors within molecules.  See the :doc:`special_bonds <special_bonds>`
+command for context.
 
 ----------
 
 .. _Plimpton:
 
 **(Plimpton)** Plimpton and Knight, JPDC, 147, 184-195 (2021).
-
-

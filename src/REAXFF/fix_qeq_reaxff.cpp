@@ -625,9 +625,9 @@ void FixQEqReaxFF::init_matvec()
   }
 
   pack_flag = 2;
-  comm->forward_comm_fix(this); //Dist_vector(s);
+  comm->forward_comm(this); //Dist_vector(s);
   pack_flag = 3;
-  comm->forward_comm_fix(this); //Dist_vector(t);
+  comm->forward_comm(this); //Dist_vector(t);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -738,7 +738,7 @@ int FixQEqReaxFF::CG(double *b, double *x)
   sig_new = parallel_dot(r, d, nn);
 
   for (i = 1; i < imax && sqrt(sig_new) / b_norm > tolerance; ++i) {
-    comm->forward_comm_fix(this); //Dist_vector(d);
+    comm->forward_comm(this); //Dist_vector(d);
     sparse_matvec(&H, d, q);
     comm->reverse_comm_fix(this); //Coll_vector(q);
 
@@ -832,7 +832,7 @@ void FixQEqReaxFF::calculate_Q()
   }
 
   pack_flag = 4;
-  comm->forward_comm_fix(this); //Dist_vector(atom->q);
+  comm->forward_comm(this); //Dist_vector(atom->q);
 }
 
 /* ---------------------------------------------------------------------- */

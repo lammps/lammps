@@ -405,7 +405,7 @@ void FixACKS2ReaxFF::init_matvec()
   }
 
   pack_flag = 2;
-  comm->forward_comm_fix(this); //Dist_vector(s);
+  comm->forward_comm(this); //Dist_vector(s);
   more_forward_comm(s);
 }
 
@@ -543,7 +543,7 @@ int FixACKS2ReaxFF::BiCGStab(double *b, double *x)
     }
 
     pack_flag = 1;
-    comm->forward_comm_fix(this); //Dist_vector(d);
+    comm->forward_comm(this); //Dist_vector(d);
     more_forward_comm(d);
     sparse_matvec_acks2(&H, &X, d, z);
     pack_flag = 2;
@@ -578,7 +578,7 @@ int FixACKS2ReaxFF::BiCGStab(double *b, double *x)
     }
 
     pack_flag = 3;
-    comm->forward_comm_fix(this); //Dist_vector(q_hat);
+    comm->forward_comm(this); //Dist_vector(q_hat);
     more_forward_comm(q_hat);
     sparse_matvec_acks2(&H, &X, q_hat, y);
     pack_flag = 3;
@@ -699,7 +699,7 @@ void FixACKS2ReaxFF::calculate_Q()
   }
 
   pack_flag = 2;
-  comm->forward_comm_fix(this); //Dist_vector(s);
+  comm->forward_comm(this); //Dist_vector(s);
 
   for (int ii = 0; ii < NN; ++ii) {
     i = ilist[ii];

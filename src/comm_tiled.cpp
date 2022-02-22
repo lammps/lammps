@@ -1375,7 +1375,7 @@ void CommTiled::borders()
    nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
-void CommTiled::forward_comm_pair(Pair *pair)
+void CommTiled::forward_comm(Pair *pair)
 {
   int i,irecv,n,nsend,nrecv;
 
@@ -1472,7 +1472,7 @@ void CommTiled::reverse_comm_pair(Pair *pair)
      some are smaller than max stored in its comm_forward
 ------------------------------------------------------------------------- */
 
-void CommTiled::forward_comm_fix(Fix *fix, int size)
+void CommTiled::forward_comm(Fix *fix, int size)
 {
   int i,irecv,n,nsize,nsend,nrecv;
 
@@ -1581,7 +1581,7 @@ void CommTiled::reverse_comm_fix_variable(Fix * /*fix*/)
    nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
-void CommTiled::forward_comm_compute(Compute *compute)
+void CommTiled::forward_comm(Compute *compute)
 {
   int i,irecv,n,nsend,nrecv;
 
@@ -1675,7 +1675,7 @@ void CommTiled::reverse_comm_compute(Compute *compute)
    nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
-void CommTiled::forward_comm_dump(Dump *dump)
+void CommTiled::forward_comm(Dump *dump)
 {
   int i,irecv,n,nsend,nrecv;
 

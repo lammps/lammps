@@ -126,7 +126,7 @@ void FixQEqFire::pre_force(int /*vflag*/)
 
   for (iloop = 0; iloop < maxiter; iloop ++) {
     pack_flag = 1;
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
 
     if (comb) {
       comb->yasu_char(qf,igroup);
@@ -245,7 +245,7 @@ double FixQEqFire::compute_eneg()
 
   // communicating charge force to all nodes, first forward then reverse
   pack_flag = 2;
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];

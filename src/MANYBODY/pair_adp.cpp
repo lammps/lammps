@@ -276,7 +276,7 @@ void PairADP::compute(int eflag, int vflag)
 
   // communicate derivative of embedding function
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   // compute forces on each atom
   // loop over neighbors of my atoms

@@ -642,7 +642,7 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int /*vflag*/)
 
     // Communicate the updated velocities to all nodes
     atomKK->sync(Host,V_MASK);
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
     atomKK->modified(Host,V_MASK);
 
     if (k_pairDPDE) {

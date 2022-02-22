@@ -1001,7 +1001,7 @@ void CommBrick::borders()
    nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
-void CommBrick::forward_comm_pair(Pair *pair)
+void CommBrick::forward_comm(Pair *pair)
 {
   int iswap,n;
   double *buf;
@@ -1082,7 +1082,7 @@ void CommBrick::reverse_comm_pair(Pair *pair)
      some are smaller than max stored in its comm_forward
 ------------------------------------------------------------------------- */
 
-void CommBrick::forward_comm_fix(Fix *fix, int size)
+void CommBrick::forward_comm(Fix *fix, int size)
 {
   int iswap,n,nsize;
   double *buf;
@@ -1210,7 +1210,7 @@ void CommBrick::reverse_comm_fix_variable(Fix *fix)
    nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
-void CommBrick::forward_comm_compute(Compute *compute)
+void CommBrick::forward_comm(Compute *compute)
 {
   int iswap,n;
   double *buf;
@@ -1287,7 +1287,7 @@ void CommBrick::reverse_comm_compute(Compute *compute)
    nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
-void CommBrick::forward_comm_dump(Dump *dump)
+void CommBrick::forward_comm(Dump *dump)
 {
   int iswap,n;
   double *buf;

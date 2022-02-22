@@ -223,7 +223,7 @@ void PairReaxFFOMP::compute(int eflag, int vflag)
   // communicate num_bonds once every reneighboring
   // 2 num arrays stored by fix, grab ptr to them
 
-  if (neighbor->ago == 0) comm->forward_comm_fix(fix_reaxff);
+  if (neighbor->ago == 0) comm->forward_comm(fix_reaxff);
   int *num_bonds = fix_reaxff->num_bonds;
   int *num_hbonds = fix_reaxff->num_hbonds;
 

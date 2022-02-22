@@ -90,7 +90,7 @@ void FixRigidSmallOMP::initial_integrate(int vflag)
   // forward communicate updated info of all bodies
 
   commflag = INITIAL;
-  comm->forward_comm_fix(this,26);
+  comm->forward_comm(this,26);
 
   // set coords/orient and velocity/rotation of atoms in rigid bodies
 
@@ -247,7 +247,7 @@ void FixRigidSmallOMP::final_integrate()
   // forward communicate updated info of all bodies
 
   commflag = FINAL;
-  comm->forward_comm_fix(this,10);
+  comm->forward_comm(this,10);
 
   // set velocity/rotation of atoms in rigid bodies
   // virial is already setup from initial_integrate

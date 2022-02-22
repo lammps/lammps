@@ -529,7 +529,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
 
   commflag = STRAIN;
   comm->reverse_comm_fix(this);
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 
   //time3 = platform::walltime();
 
@@ -644,7 +644,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
 
   commflag = STRAINDOMAIN;
   comm->reverse_comm_fix(this);
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 
   //time5 = platform::walltime();
 
@@ -832,7 +832,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
 
     commflag = BIASFLAG;
     comm->reverse_comm_fix(this);
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
 
     // loop over Dcut full neighbor list
     // I and J may be ghost atoms

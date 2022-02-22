@@ -403,10 +403,10 @@ void FixACKS2ReaxFFKokkos<DeviceType>::pre_force(int vflag)
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagACKS2InitMatvec>(0,nn),*this);
 
   pack_flag = 2;
-  // comm->forward_comm_fix(this); //Dist_vector( s );
+  // comm->forward_comm(this); //Dist_vector( s );
   k_s.template modify<DeviceType>();
   k_s.template sync<LMPHostType>();
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
   more_forward_comm(k_s.h_view.data());
   k_s.template modify<LMPHostType>();
   k_s.template sync<DeviceType>();
@@ -1264,10 +1264,10 @@ int FixACKS2ReaxFFKokkos<DeviceType>::bicgstab_solve()
     }
 
     pack_flag = 1;
-    // comm->forward_comm_fix(this); //Dist_vector( d );
+    // comm->forward_comm(this); //Dist_vector( d );
     k_d.template modify<DeviceType>();
     k_d.template sync<LMPHostType>();
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
     more_forward_comm(k_d.h_view.data());
     k_d.template modify<LMPHostType>();
     k_d.template sync<DeviceType>();
@@ -1310,10 +1310,10 @@ int FixACKS2ReaxFFKokkos<DeviceType>::bicgstab_solve()
 
     // sparse_matvec( &H, &X, q_hat, y );
     pack_flag = 3;
-    // comm->forward_comm_fix(this); //Dist_vector( q_hat );
+    // comm->forward_comm(this); //Dist_vector( q_hat );
     k_q_hat.template modify<DeviceType>();
     k_q_hat.template sync<LMPHostType>();
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
     more_forward_comm(k_q_hat.h_view.data());
     k_q_hat.template modify<LMPHostType>();
     k_q_hat.template sync<DeviceType>();
@@ -1378,10 +1378,10 @@ void FixACKS2ReaxFFKokkos<DeviceType>::calculate_Q()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagACKS2CalculateQ1>(0,nn),*this);
 
   pack_flag = 2;
-  //comm->forward_comm_fix( this ); //Dist_vector( s );
+  //comm->forward_comm( this ); //Dist_vector( s );
   k_s.modify<DeviceType>();
   k_s.sync<LMPHostType>();
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
   k_s.modify<LMPHostType>();
   k_s.sync<DeviceType>();
 

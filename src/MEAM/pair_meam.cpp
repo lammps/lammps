@@ -146,7 +146,7 @@ void PairMEAM::compute(int eflag, int vflag)
   if (errorflag)
     error->one(FLERR,"MEAM library error {}",errorflag);
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   offset = 0;
 

@@ -657,7 +657,7 @@ void FixRX::setup_pre_force(int /*vflag*/)
       }
 
     // Communicate the updated momenta and velocities to all nodes
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
     if (localTempFlag) delete [] dpdThetaLocal;
 
     delete [] userData.kFor;
@@ -738,7 +738,7 @@ void FixRX::pre_force(int /*vflag*/)
   TimerType timer_ODE = getTimeStamp();
 
   // Communicate the updated momenta and velocities to all nodes
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
   if (localTempFlag) delete [] dpdThetaLocal;
 
   //TimerType timer_stop = getTimeStamp();

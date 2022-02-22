@@ -186,7 +186,7 @@ void PairEIM::compute(int eflag, int vflag)
 
   rhofp = 1;
   if (newton_pair) comm->reverse_comm_pair(this);
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -227,7 +227,7 @@ void PairEIM::compute(int eflag, int vflag)
 
   rhofp = 2;
   if (newton_pair) comm->reverse_comm_pair(this);
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];

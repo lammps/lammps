@@ -198,7 +198,7 @@ void PairLubricateUPoly::iterate(double **x, int stage)
 
   // set velocities for ghost particles
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   // Find initial residual
 
@@ -233,7 +233,7 @@ void PairLubricateUPoly::iterate(double **x, int stage)
 
     // set velocities for ghost particles
 
-    comm->forward_comm_pair(this);
+    comm->forward_comm(this);
 
     compute_RU(x);
 
@@ -292,7 +292,7 @@ void PairLubricateUPoly::iterate(double **x, int stage)
 
   // set velocities for ghost particles
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   // compute the viscosity/pressure
 

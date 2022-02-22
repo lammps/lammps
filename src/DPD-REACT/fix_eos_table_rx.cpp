@@ -203,7 +203,7 @@ void FixEOStableRX::setup(int /*vflag*/)
   }
 
   // Communicate the updated momenta and velocities to all nodes
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
@@ -285,7 +285,7 @@ void FixEOStableRX::end_of_step()
     }
 
   // Communicate the updated momenta and velocities to all nodes
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {

@@ -777,7 +777,7 @@ void PairComb3::Short_neigh()
 
   // communicating coordination number to all nodes
   pack_flag = 2;
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
 }
 
@@ -3154,7 +3154,7 @@ double PairComb3::combqeq(double *qf_fix, int &igroup)
   // communicating charge force to all nodes, first forward then reverse
 
   pack_flag = 1;
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   // self energy correction term: potal
 

@@ -3397,7 +3397,7 @@ void PairSMTBQ::forward(double *tab)
 
   for (i=0; i<nlocal+nghost; i++) tab_comm[i] = tab[i];
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   for (i=0; i<nlocal+nghost; i++) tab[i] = tab_comm[i];
 }
@@ -3427,7 +3427,7 @@ void PairSMTBQ::forward_int(int *tab)
 
   for (i=0; i<nlocal+nghost; i++) { tab_comm[i] = static_cast<double>(tab[i]);}
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   for (i=0; i<nlocal+nghost; i++) {
     if (fabs(tab_comm[i]) > 0.1) tab[i] = int(tab_comm[i]) ; }

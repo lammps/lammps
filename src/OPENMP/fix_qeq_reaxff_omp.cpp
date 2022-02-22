@@ -363,9 +363,9 @@ void FixQEqReaxFFOMP::init_matvec()
   }
 
   pack_flag = 2;
-  comm->forward_comm_fix(this); //Dist_vector(s);
+  comm->forward_comm(this); //Dist_vector(s);
   pack_flag = 3;
-  comm->forward_comm_fix(this); //Dist_vector(t);
+  comm->forward_comm(this); //Dist_vector(t);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -408,7 +408,7 @@ int FixQEqReaxFFOMP::CG(double *b, double *x)
   sig_new = buf[1];
 
   for (i = 1; i < imax && sqrt(sig_new) / b_norm > tolerance; ++i) {
-    comm->forward_comm_fix(this); //Dist_vector(d);
+    comm->forward_comm(this); //Dist_vector(d);
     sparse_matvec(&H, d, q);
     comm->reverse_comm_fix(this); //Coll_vector(q);
 
@@ -594,7 +594,7 @@ void FixQEqReaxFFOMP::calculate_Q()
   }
 
   pack_flag = 4;
-  comm->forward_comm_fix(this); //Dist_vector(atom->q);
+  comm->forward_comm(this); //Dist_vector(atom->q);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -684,7 +684,7 @@ int FixQEqReaxFFOMP::dual_CG(double *b1, double *b2, double *x1, double *x2)
   sig_new_t = buf[3];
 
   for (i = 1; i < imax; ++i) {
-    comm->forward_comm_fix(this); //Dist_vector(d);
+    comm->forward_comm(this); //Dist_vector(d);
     dual_sparse_matvec(&H, d, q);
     comm->reverse_comm_fix(this); //Coll_vector(q);
 
@@ -782,7 +782,7 @@ int FixQEqReaxFFOMP::dual_CG(double *b1, double *b2, double *x1, double *x2)
   // If only one was converged and there are still iterations left, converge other system
   if ((matvecs_s < imax) && (sqrt(sig_new_s)/b_norm_s > tolerance)) {
     pack_flag = 2;
-    comm->forward_comm_fix(this); // x1 => s
+    comm->forward_comm(this); // x1 => s
 
     int saved_imax = imax;
     imax -= matvecs_s;
@@ -790,7 +790,7 @@ int FixQEqReaxFFOMP::dual_CG(double *b1, double *b2, double *x1, double *x2)
     imax = saved_imax;
   } else if ((matvecs_t < imax) && (sqrt(sig_new_t)/b_norm_t > tolerance)) {
     pack_flag = 3;
-    comm->forward_comm_fix(this); // x2 => t
+    comm->forward_comm(this); // x2 => t
     int saved_imax = imax;
     imax -= matvecs_t;
     matvecs_t += CG(b2, x2);

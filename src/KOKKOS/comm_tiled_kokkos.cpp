@@ -137,9 +137,9 @@ void CommTiledKokkos::borders()
    nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
-void CommTiledKokkos::forward_comm_pair(Pair *pair)
+void CommTiledKokkos::forward_comm(Pair *pair)
 {
-  CommTiled::forward_comm_pair(pair);
+  CommTiled::forward_comm(pair);
 }
 
 /* ----------------------------------------------------------------------
@@ -161,9 +161,9 @@ void CommTiledKokkos::reverse_comm_pair(Pair *pair)
      some are smaller than max stored in its comm_forward
 ------------------------------------------------------------------------- */
 
-void CommTiledKokkos::forward_comm_fix(Fix *fix, int size)
+void CommTiledKokkos::forward_comm(Fix *fix, int size)
 {
-  CommTiled::forward_comm_fix(fix,size);
+  CommTiled::forward_comm(fix,size);
 }
 
 /* ----------------------------------------------------------------------
@@ -197,9 +197,9 @@ void CommTiledKokkos::reverse_comm_fix_variable(Fix *fix)
    nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
-void CommTiledKokkos::forward_comm_compute(Compute *compute)
+void CommTiledKokkos::forward_comm(Compute *compute)
 {
-  CommTiled::forward_comm_compute(compute);
+  CommTiled::forward_comm(compute);
 }
 
 /* ----------------------------------------------------------------------
@@ -217,9 +217,9 @@ void CommTiledKokkos::reverse_comm_compute(Compute *compute)
    nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
-void CommTiledKokkos::forward_comm_dump(Dump *dump)
+void CommTiledKokkos::forward_comm(Dump *dump)
 {
-  CommTiled::forward_comm_dump(dump);
+  CommTiled::forward_comm(dump);
 }
 
 /* ----------------------------------------------------------------------

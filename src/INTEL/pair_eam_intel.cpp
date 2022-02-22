@@ -474,7 +474,7 @@ void PairEAMIntel::eval(const int offload, const int vflag,
       #endif
 
       if (tid == 0)
-        comm->forward_comm_pair(this);
+        comm->forward_comm(this);
 
       #if defined(_OPENMP)
       #pragma omp barrier

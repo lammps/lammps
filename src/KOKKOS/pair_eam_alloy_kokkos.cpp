@@ -201,7 +201,7 @@ void PairEAMAlloyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // communicate derivative of embedding function
 
   k_fp.template modify<DeviceType>();
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
   k_fp.template sync<DeviceType>();
 
   // compute kernel C

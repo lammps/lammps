@@ -157,7 +157,7 @@ void PairEAMHE::compute(int eflag, int vflag)
 
   // communicate derivative of embedding function
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
   embedstep = update->ntimestep;
 
   // compute forces on each atom

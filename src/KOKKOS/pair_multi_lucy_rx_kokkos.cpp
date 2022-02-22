@@ -518,7 +518,7 @@ void PairMultiLucyRXKokkos<DeviceType>::computeLocalDensity()
   if (newton_pair)
     comm->reverse_comm_pair(this);
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
   atomKK->sync(execution_space,DPDRHO_MASK);
 }
 

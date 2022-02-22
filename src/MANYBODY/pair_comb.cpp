@@ -1587,7 +1587,7 @@ double PairComb::yasu_char(double *qf_fix, int &igroup)
 
   // communicating charge force to all nodes, first forward then reverse
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   // self energy correction term: potal
 

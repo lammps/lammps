@@ -1673,7 +1673,7 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int /*vflag*/, const bool is
   // Communicate the updated species data to all nodes
   atomKK->sync ( Host, DVECTOR_MASK );
 
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 
   atomKK->modified ( Host, DVECTOR_MASK );
 

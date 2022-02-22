@@ -414,7 +414,7 @@ int FixQEq::CG(double *b, double *x)
   sig_new = parallel_dot(r, d, inum);
 
   for (loop = 1; loop < maxiter && sqrt(sig_new)/b_norm > tolerance; ++loop) {
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
     sparse_matvec(&H, d, q);
     comm->reverse_comm_fix(this);
 
@@ -507,7 +507,7 @@ void FixQEq::calculate_Q()
   }
 
   pack_flag = 4;
-  comm->forward_comm_fix(this); //Dist_vector(atom->q);
+  comm->forward_comm(this); //Dist_vector(atom->q);
 }
 
 /* ---------------------------------------------------------------------- */

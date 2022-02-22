@@ -607,7 +607,7 @@ void FixShardlow::initial_integrate(int /*vflag*/)
     int workItemCt = ssa_gphaseLen[workPhase];
 
     // Communicate the updated velocities to all nodes
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
 
     if (useDPDE) {
       // Zero out the ghosts' uCond & uMech to be used as delta accumulators

@@ -374,7 +374,7 @@ void FixBondCreate::post_integrate()
   // forward comm of bondcount, so ghosts have it
 
   commflag = 1;
-  comm->forward_comm_fix(this,1);
+  comm->forward_comm(this,1);
 
   // resize bond partner list and initialize it
   // probability array overlays distsq array
@@ -417,7 +417,7 @@ void FixBondCreate::post_integrate()
     // to correctly handle angle constraints
 
     commflag = 3;
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
   }
 
   neighbor->build_one(list,1);
@@ -500,7 +500,7 @@ void FixBondCreate::post_integrate()
   }
 
   commflag = 2;
-  comm->forward_comm_fix(this,2);
+  comm->forward_comm(this,2);
 
   // create bonds for atoms I own
   // only if both atoms list each other as winning bond partner
@@ -597,7 +597,7 @@ void FixBondCreate::post_integrate()
   // 1-2 neighs already reflect created bonds
 
   commflag = 3;
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 
   // create list of broken bonds that influence my owned atoms
   //   even if between owned-ghost or ghost-ghost atoms

@@ -26,24 +26,21 @@ add_library(GTest::GMockMain ALIAS gmock_main)
 # the LAMMPS version header in the output for an empty input
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/in.empty "")
 add_test(NAME RunLammps
-         COMMAND $<TARGET_FILE:lmp> -log none -echo none -in in.empty
-         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+         COMMAND $<TARGET_FILE:lmp> -log none -echo none -in in.empty)
 set_tests_properties(RunLammps PROPERTIES
         ENVIRONMENT "TSAN_OPTIONS=ignore_noninstrumented_modules=1;HWLOC_HIDE_ERRORS=1"
         PASS_REGULAR_EXPRESSION "LAMMPS \\([0-9]+ [A-Za-z]+ 2[0-9][0-9][0-9]( - Update [0-9]+)?\\)")
 
 # check if the compiled executable will print the help message
 add_test(NAME HelpMessage
-         COMMAND $<TARGET_FILE:lmp> -h
-         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+         COMMAND $<TARGET_FILE:lmp> -h)
 set_tests_properties(HelpMessage PROPERTIES
         ENVIRONMENT "TSAN_OPTIONS=ignore_noninstrumented_modules=1;HWLOC_HIDE_ERRORS=1"
          PASS_REGULAR_EXPRESSION ".*Large-scale Atomic/Molecular Massively Parallel Simulator -.*Usage example:.*")
 
 # check if the compiled executable will error out on an invalid command line flag
 add_test(NAME InvalidFlag
-         COMMAND $<TARGET_FILE:lmp> -xxx
-         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+         COMMAND $<TARGET_FILE:lmp> -xxx)
 set_tests_properties(InvalidFlag PROPERTIES
         ENVIRONMENT "TSAN_OPTIONS=ignore_noninstrumented_modules=1;HWLOC_HIDE_ERRORS=1"
          PASS_REGULAR_EXPRESSION "ERROR: Invalid command-line argument.*")

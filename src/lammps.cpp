@@ -1149,9 +1149,9 @@ void _noopt LAMMPS::help()
 
   // general help message about command line and flags
 
-  if (has_git_info) {
+  if (has_git_info()) {
     fprintf(fp,"\nLarge-scale Atomic/Molecular Massively Parallel Simulator - "
-            LAMMPS_VERSION UPDATE_STRING "\nGit info (%s / %s)\n\n",git_branch, git_descriptor);
+            LAMMPS_VERSION UPDATE_STRING "\nGit info (%s / %s)\n\n",git_branch(), git_descriptor());
   } else {
     fprintf(fp,"\nLarge-scale Atomic/Molecular Massively Parallel Simulator - "
             LAMMPS_VERSION UPDATE_STRING "\n\n");

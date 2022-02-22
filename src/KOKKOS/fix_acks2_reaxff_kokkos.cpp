@@ -864,8 +864,8 @@ KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::compute_x_item(int ii, int &m_fill, const bool &final) const
 {
   // The X_diag array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
-  auto v_X_diag = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_X_diag),decltype(ndup_X_diag)>::get(dup_X_diag,ndup_X_diag);
-  auto a_X_diag = v_X_diag.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_X_diag = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_X_diag),decltype(ndup_X_diag)>::get(dup_X_diag,ndup_X_diag);
+  auto a_X_diag = v_X_diag.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   const int i = d_ilist[ii];
   int j,jj,jtype;
@@ -942,8 +942,8 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_x_team(
     int atoms_per_team, int vector_length) const {
 
   // The X_diag array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
-  auto v_X_diag = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_X_diag),decltype(ndup_X_diag)>::get(dup_X_diag,ndup_X_diag);
-  auto a_X_diag = v_X_diag.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_X_diag = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_X_diag),decltype(ndup_X_diag)>::get(dup_X_diag,ndup_X_diag);
+  auto a_X_diag = v_X_diag.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   // scratch space setup
   Kokkos::View<int *, Kokkos::ScratchMemorySpace<DeviceType>,
@@ -1460,8 +1460,8 @@ KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2SparseMatvec3_Half<NEIGHFLAG>, const int &ii) const
 {
   // The bb array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
-  auto v_bb = ScatterViewHelper<typename NeedDup<NEIGHFLAG,DeviceType>::value,decltype(dup_bb),decltype(ndup_bb)>::get(dup_bb,ndup_bb);
-  auto a_bb = v_bb.template access<typename AtomicDup<NEIGHFLAG,DeviceType>::value>();
+  auto v_bb = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_bb),decltype(ndup_bb)>::get(dup_bb,ndup_bb);
+  auto a_bb = v_bb.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   const int i = d_ilist[ii];
   if (mask[i] & groupbit) {

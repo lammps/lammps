@@ -60,13 +60,13 @@ TEST_F(Input_commands, from_file)
     const char cont_file[] = "in.cont";
 
     fp = fopen(demo_file, "w");
-    for (auto & inp : demo_input) {
+    for (auto &inp : demo_input) {
         fputs(inp, fp);
         fputc('\n', fp);
     }
     fclose(fp);
     fp = fopen(cont_file, "w");
-    for (auto & inp : cont_input) {
+    for (auto &inp : cont_input) {
         fputs(inp, fp);
         fputc('\n', fp);
     }
@@ -84,7 +84,7 @@ TEST_F(Input_commands, from_file)
 TEST_F(Input_commands, from_line)
 {
     EXPECT_EQ(lmp->atom->natoms, 0);
-    for (auto & inp : demo_input) {
+    for (auto &inp : demo_input) {
         lmp->input->one(inp);
     }
     EXPECT_EQ(lmp->atom->natoms, 1);

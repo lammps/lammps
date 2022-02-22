@@ -1028,7 +1028,7 @@ std::vector<std::string> utils::split_words(const std::string &text)
 ------------------------------------------------------------------------- */
 std::vector<std::string> utils::split_lines(const std::string &text)
 {
-  return Tokenizer(text, "\n").as_vector();
+  return Tokenizer(text, "\r\n").as_vector();
 }
 
 /* ----------------------------------------------------------------------

@@ -89,6 +89,9 @@ class lammps(object):
     modpath = dirname(abspath(getsourcefile(lambda:0)))
     # for windows installers the shared library is in a different folder
     winpath = abspath(os.path.join(modpath,'..','..','bin'))
+    # allow override for running tests on Windows
+    if (os.environ.get("LAMMPSDLLPATH")):
+      winpath = os.environ.get("LAMMPSDLLPATH")
     self.lib = None
     self.lmp = None
 

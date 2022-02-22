@@ -1,0 +1,38 @@
+# NOTE: This script can be modified for different atomic structures, 
+# units, etc. See in.elastic for more info.
+#
+
+# Define MD parameters
+variable nthermo index 1000               # interval for thermo output
+variable nfreq equal ${nthermo}           # intrrval for averaging output
+variable nevery index 10                  # sampling interval
+variable nrepeat equal ${nfreq}/${nevery} # number of samples
+variable neveryborn index 100             # sampling interval
+variable nrepeatborn equal ${nfreq}/${neveryborn} # number of samples
+variable nequil equal 10*${nthermo}       # length of equilibration run
+variable nrun equal 100*${nthermo}        # length of equilibrated run
+variable nlat index 3                     # number of lattice unit cells
+variable temp index 888.0                 # temperature of initial sample
+variable timestep index 0.002             # timestep
+variable mass1 index 28.06                # mass
+variable adiabatic index 0                # adiabatic (1) or isothermal (2)
+variable tdamp index 0.01                 # time constant for thermostat
+variable seed index 123457                # seed for thermostat
+variable a index 5.45                     # lattice constant
+variable thermostat index 1               # 0 if NVE, 1 if NVT
+variable delta index 1.0e-6               # numdiff strain magnitude 
+
+# generate the box and atom positions using a diamond lattice
+
+units		metal
+
+boundary	p p p
+
+lattice         diamond $a
+region		box prism 0 ${nlat} 0 ${nlat} 0 ${nlat} 0.0 0.0 0.0
+create_box	1 box
+create_atoms	1 box
+mass 1 ${mass1}
+velocity	all create ${temp} 87287
+
+

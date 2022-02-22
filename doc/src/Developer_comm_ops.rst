@@ -45,10 +45,12 @@ timestep via the *forward_comm()* and *reverse_comm()* methods in the
 currently used :doc:`atom style <atom_style>` and whether
 :doc:`comm_modify vel <comm_modify>` setting is "no" (default) or "yes".
 
-Similarly, *Pair* style classes can invoke the *forward_comm_pair()*
-and *reverse_comm_pair()* methods in the *Comm* class to perform the
+Similarly, *Pair* style classes can invoke the *forward_comm(this)*
+and *reverse_comm(this)* methods in the *Comm* class to perform the
 same operations on per-atom data that is stored within the pair style
-class.  An example for the use of these functions are many-body pair
+class. Note that this function requires passing the ``this`` pointer
+as the first argument to be able to call the "pack" and "unpack" functions
+discussed below.  An example for the use of these functions are many-body pair
 styles like the embedded-atom method (EAM) which compute intermediate
 values in the first part of the compute() function that need to be
 stored on both, owned and ghost atoms for the second part of the force
@@ -75,26 +77,15 @@ tagint, imageint) in the buffer, you need to use the `ubuf union
 <Communication buffer coding with ubuf>`_.
 
 The *Fix*, *Compute*, and *Dump* classes can invoke the same kind of
-forward and reverse communication operations using these *Comm* class
-methods:
-
-* forward_comm_fix()
-* reverse_comm_fix()
-* forward_comm_compute()
-* reverse_comm_compute()
-* forward_comm_dump()
-* reverse_comm_dump()
-
+forward and reverse communication operations using *Comm* class methods.
 The same pack/unpack methods and comm_forward/comm_reverse variables
 must be defined by the *Fix* or *Compute* class.
 
-For *Fix* classes there are two additional methods,
-*forward_comm_fix_variable()* and *reverse_comm_fix_variable()* which
-can be invoked.  They allow the data communication for each atom to be
-of variable size.  They invoke these corresponding callback methods
+For *Fix* classes there is the option to have a argument to the
+*reverse_comm(this,size)* which allows the communication to have
+a different amount of data per-atom.  The "size" argument is then
+the maximal size.  It invokes these corresponding callback methods:
 
-* pack_forward_comm_size()
-* unpack_forward_comm_size()
 * pack_reverse_comm_size()
 * unpack_reverse_comm_size()
 

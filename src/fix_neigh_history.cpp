@@ -379,7 +379,7 @@ void FixNeighHistory::pre_exchange_newton()
   // perform reverse comm to augment owned npartner counts with ghost counts
 
   commflag = NPARTNER;
-  comm->reverse_comm(this,0);
+  comm->reverse_comm(this);
 
   // get page chunks to store partner IDs and values for owned+ghost atoms
 

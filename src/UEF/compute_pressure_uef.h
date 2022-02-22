@@ -29,10 +29,10 @@ namespace LAMMPS_NS {
 class ComputePressureUef : public ComputePressure {
  public:
   ComputePressureUef(class LAMMPS *, int, char **);
-  virtual ~ComputePressureUef() {}
-  virtual void init();
-  virtual void compute_vector();
-  virtual double compute_scalar();
+
+  void init() override;
+  void compute_vector() override;
+  double compute_scalar() override;
   void update_rot();
   bool in_fix;    //true if this compute is used in fix/nvt/npt
 

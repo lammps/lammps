@@ -27,18 +27,18 @@ namespace LAMMPS_NS {
 class FixBondBreak : public Fix {
  public:
   FixBondBreak(class LAMMPS *, int, char **);
-  ~FixBondBreak();
-  int setmask();
-  void init();
-  void post_integrate();
-  void post_integrate_respa(int, int);
+  ~FixBondBreak() override;
+  int setmask() override;
+  void init() override;
+  void post_integrate() override;
+  void post_integrate_respa(int, int) override;
 
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
-  double compute_vector(int);
-  double memory_usage();
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  double compute_vector(int) override;
+  double memory_usage() override;
 
  private:
   int me, nprocs;

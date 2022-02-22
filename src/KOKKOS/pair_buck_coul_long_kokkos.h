@@ -37,14 +37,14 @@ class PairBuckCoulLongKokkos : public PairBuckCoulLong {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   PairBuckCoulLongKokkos(class LAMMPS *);
-  ~PairBuckCoulLongKokkos();
+  ~PairBuckCoulLongKokkos() override;
 
-  void compute(int, int);
+  void compute(int, int) override;
 
-  void settings(int, char **);
-  void init_tables(double cut_coul, double *cut_respa);
-  void init_style();
-  double init_one(int, int);
+  void settings(int, char **) override;
+  void init_tables(double cut_coul, double *cut_respa) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
   struct params_buck_coul{
     KOKKOS_INLINE_FUNCTION
@@ -113,7 +113,7 @@ class PairBuckCoulLongKokkos : public PairBuckCoulLong {
   double special_lj[4], special_coul[4];
   double qqrd2e;
 
-  void allocate();
+  void allocate() override;
 
   friend struct PairComputeFunctor<PairBuckCoulLongKokkos,FULL,true,CoulLongTable<1> >;
   friend struct PairComputeFunctor<PairBuckCoulLongKokkos,HALF,true,CoulLongTable<1> >;

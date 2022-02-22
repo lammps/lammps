@@ -27,13 +27,13 @@ namespace LAMMPS_NS {
 class FixGroup : public Fix {
  public:
   FixGroup(class LAMMPS *, int, char **);
-  ~FixGroup();
-  int setmask();
-  void init();
-  void setup(int);
-  void post_integrate();
-  void post_integrate_respa(int, int);
-  void *extract(const char *, int &);
+  ~FixGroup() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void post_integrate() override;
+  void post_integrate_respa(int, int) override;
+  void *extract(const char *, int &) override;
 
  private:
   int gbit, gbitinverse;

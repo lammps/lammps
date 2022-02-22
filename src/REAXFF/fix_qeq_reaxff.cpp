@@ -30,6 +30,7 @@
 #include "force.h"
 #include "group.h"
 #include "memory.h"
+#include "modify.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
@@ -45,7 +46,6 @@
 #include <cmath>
 #include <cstring>
 #include <exception>
-#include <string>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -1084,7 +1084,7 @@ void FixQEqReaxFF::vector_add(double* dest, double c, double* v, int k)
 
 void FixQEqReaxFF::get_chi_field()
 {
-  memset(&chi_field[0],0.0,atom->nmax*sizeof(double));
+  memset(&chi_field[0],0,atom->nmax*sizeof(double));
   if (!efield) return;
 
   const double * const *x = (const double * const *)atom->x;

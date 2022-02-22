@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class ComputeOrientOrderAtom : public Compute {
  public:
   ComputeOrientOrderAtom(class LAMMPS *, int, char **);
-  ~ComputeOrientOrderAtom();
-  virtual void init();
-  void init_list(int, class NeighList *);
-  virtual void compute_peratom();
-  double memory_usage();
+  ~ComputeOrientOrderAtom() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void compute_peratom() override;
+  double memory_usage() override;
   double cutsq;
   int iqlcomp, qlcomp, qlcompflag, wlflag, wlhatflag;
   int *qlist;

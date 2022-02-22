@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class ComputePropertyAtom : public Compute {
  public:
   ComputePropertyAtom(class LAMMPS *, int, char **);
-  ~ComputePropertyAtom();
-  void init();
-  void compute_peratom();
-  double memory_usage();
+  ~ComputePropertyAtom() override;
+  void init() override;
+  void compute_peratom() override;
+  double memory_usage() override;
 
  private:
   int nvalues;

@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class FixDtReset : public Fix {
  public:
   FixDtReset(class LAMMPS *, int, char **);
-  ~FixDtReset() {}
-  int setmask();
-  void init();
-  void setup(int);
-  void end_of_step();
-  double compute_scalar();
+
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void end_of_step() override;
+  double compute_scalar() override;
 
  private:
   bigint laststep;

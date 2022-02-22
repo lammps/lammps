@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class FixPressBerendsen : public Fix {
  public:
   FixPressBerendsen(class LAMMPS *, int, char **);
-  ~FixPressBerendsen();
-  int setmask();
-  void init();
-  void setup(int);
-  void end_of_step();
-  int modify_param(int, char **);
+  ~FixPressBerendsen() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void end_of_step() override;
+  int modify_param(int, char **) override;
 
  protected:
   int dimension, which;

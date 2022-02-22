@@ -123,7 +123,7 @@ class Pair : protected Pointers {
   int kokkosable;    // 1 if Kokkos pair
 
   Pair(class LAMMPS *);
-  virtual ~Pair();
+  ~Pair() override;
 
   // top-level Pair methods
 

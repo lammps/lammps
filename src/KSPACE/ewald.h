@@ -27,14 +27,14 @@ namespace LAMMPS_NS {
 class Ewald : public KSpace {
  public:
   Ewald(class LAMMPS *);
-  virtual ~Ewald();
-  void init();
-  void setup();
-  virtual void settings(int, char **);
-  virtual void compute(int, int);
-  double memory_usage();
+  ~Ewald() override;
+  void init() override;
+  void setup() override;
+  void settings(int, char **) override;
+  void compute(int, int) override;
+  double memory_usage() override;
 
-  void compute_group_group(int, int, int);
+  void compute_group_group(int, int, int) override;
 
  protected:
   int kxmax, kymax, kzmax;

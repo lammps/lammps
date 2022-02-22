@@ -1491,6 +1491,8 @@
 /pair_dpd_fdt.h
 /pair_dpd_fdt_energy.cpp
 /pair_dpd_fdt_energy.h
+/pair_harmonic_cut.cpp
+/pair_harmonic_cut.h
 /pair_lennard_mdf.cpp
 /pair_lennard_mdf.h
 /pair_lj_cut_coul_long_cs.cpp

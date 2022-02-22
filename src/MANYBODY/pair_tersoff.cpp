@@ -32,7 +32,6 @@
 #include "neighbor.h"
 #include "potential_file_reader.h"
 #include "suffix.h"
-#include "tokenizer.h"
 
 #include <cmath>
 #include <cstring>
@@ -431,8 +430,7 @@ void PairTersoff::read_file(char *file)
     // transparently convert units for supported conversions
 
     int unit_convert = reader.get_unit_convert();
-    double conversion_factor = utils::get_conversion_factor(utils::ENERGY,
-                                                            unit_convert);
+    double conversion_factor = utils::get_conversion_factor(utils::ENERGY,unit_convert);
     while ((line = reader.next_line(NPARAMS_PER_LINE))) {
       try {
         ValueTokenizer values(line);

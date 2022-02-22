@@ -34,6 +34,7 @@
 #include "reaxff_defs.h"
 
 #include <cstring>
+#include <exception>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -246,8 +247,10 @@ FixReaxFFSpecies::~FixReaxFFSpecies()
     if (posflag && multipos_opened) fclose(pos);
   }
 
-  modify->delete_compute(fmt::format("SPECATOM_{}",id));
-  modify->delete_fix(fmt::format("SPECBOND_{}",id));
+  try {
+    modify->delete_compute(fmt::format("SPECATOM_{}",id));
+    modify->delete_fix(fmt::format("SPECBOND_{}",id));
+  } catch (std::exception &) {}
 }
 
 /* ---------------------------------------------------------------------- */

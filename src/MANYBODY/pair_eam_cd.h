@@ -31,24 +31,24 @@ class PairEAMCD : public PairEAMAlloy {
   PairEAMCD(class LAMMPS *, int cdeamVersion);
 
   /// Destructor.
-  virtual ~PairEAMCD();
+  ~PairEAMCD() override;
 
   /// Calculates the energies and forces for all atoms in the system.
-  virtual void compute(int, int);
+  void compute(int, int) override;
 
   /// Parses the pair_coeff command parameters for this pair style.
-  void coeff(int, char **);
+  void coeff(int, char **) override;
 
   /// This is for MPI communication with neighbor nodes.
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
 
   /// Reports the memory usage of this pair style to LAMMPS.
-  double memory_usage();
+  double memory_usage() override;
 
-  void *extract(const char *, int &) { return nullptr; }
+  void *extract(const char *, int &) override { return nullptr; }
 
   /// Parses the coefficients of the h polynomial from the end of the EAM file.
   void read_h_coeff(char *filename);

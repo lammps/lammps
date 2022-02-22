@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class PairLJCutCoulMSMDielectric : public PairLJCutCoulLong {
  public:
   PairLJCutCoulMSMDielectric(class LAMMPS *);
-  virtual ~PairLJCutCoulMSMDielectric();
-  virtual void init_style();
-  virtual void compute(int, int);
-  virtual double single(int, int, int, int, double, double, double, double &);
-  virtual void *extract(const char *, int &);
+  ~PairLJCutCoulMSMDielectric() override;
+  void init_style() override;
+  void compute(int, int) override;
+  double single(int, int, int, int, double, double, double, double &) override;
+  void *extract(const char *, int &) override;
 
   double **efield;
 

@@ -36,9 +36,9 @@ template <class flt_t, class acc_t> struct PairAIREBOIntelParam;
 class PairAIREBOIntel : public PairAIREBO {
  public:
   PairAIREBOIntel(class LAMMPS *);
-  virtual ~PairAIREBOIntel();
-  virtual void compute(int, int);
-  virtual void init_style();
+  ~PairAIREBOIntel() override;
+  void compute(int, int) override;
+  void init_style() override;
 
  protected:
   template <class flt_t, class acc_t>

@@ -27,22 +27,22 @@ namespace LAMMPS_NS {
 class PairMIECut : public Pair {
  public:
   PairMIECut(class LAMMPS *);
-  virtual ~PairMIECut();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  double single(int, int, int, int, double, double, double, double &);
-  void *extract(const char *, int &);
+  ~PairMIECut() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
+  double single(int, int, int, int, double, double, double, double &) override;
+  void *extract(const char *, int &) override;
 
-  void compute_inner();
-  void compute_middle();
-  void compute_outer(int, int);
+  void compute_inner() override;
+  void compute_middle() override;
+  void compute_outer(int, int) override;
 
  protected:
   double cut_global;

@@ -27,13 +27,12 @@ namespace LAMMPS_NS {
 class PairTersoffMODC : public PairTersoffMOD {
  public:
   PairTersoffMODC(class LAMMPS *lmp) : PairTersoffMOD(lmp){};
-  ~PairTersoffMODC() {}
 
   static constexpr int NPARAMS_PER_LINE = 21;
 
  protected:
-  void read_file(char *);
-  void repulsive(Param *, double, double &, int, double &);
+  void read_file(char *) override;
+  void repulsive(Param *, double, double &, int, double &) override;
 };
 
 }    // namespace LAMMPS_NS

@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class FixHalt : public Fix {
  public:
   FixHalt(class LAMMPS *, int, char **);
-  ~FixHalt();
-  int setmask();
-  void init();
-  void end_of_step();
-  void min_post_force(int);
-  void post_run();
+  ~FixHalt() override;
+  int setmask() override;
+  void init() override;
+  void end_of_step() override;
+  void min_post_force(int) override;
+  void post_run() override;
 
  private:
   int attribute, operation, eflag, msgflag, ivar;

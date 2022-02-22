@@ -100,6 +100,14 @@ static const char cite_neigh_multi[] =
   " year = {2020}\n"
   "}\n\n";
 
+// template for factory functions:
+// there will be one instance for each style keyword in the respective style_xxx.h files
+
+template <typename S, typename T> static S *style_creator(LAMMPS *lmp)
+{
+  return new T(lmp);
+}
+
 //#define NEIGH_LIST_DEBUG 1
 
 /* ---------------------------------------------------------------------- */
@@ -693,7 +701,7 @@ void Neighbor::init_styles()
 #define NBIN_CLASS
 #define NBinStyle(key,Class,bitmasks) \
   binnames[nbclass] = (char *) #key; \
-  binclass[nbclass] = &bin_creator<Class>; \
+  binclass[nbclass] = &style_creator<NBin, Class>;   \
   binmasks[nbclass++] = bitmasks;
 #include "style_nbin.h"  // IWYU pragma: keep
 #undef NBinStyle
@@ -717,7 +725,7 @@ void Neighbor::init_styles()
 #define NSTENCIL_CLASS
 #define NStencilStyle(key,Class,bitmasks) \
   stencilnames[nsclass] = (char *) #key; \
-  stencilclass[nsclass] = &stencil_creator<Class>; \
+  stencilclass[nsclass] = &style_creator<NStencil, Class>;   \
   stencilmasks[nsclass++] = bitmasks;
 #include "style_nstencil.h"  // IWYU pragma: keep
 #undef NStencilStyle
@@ -741,7 +749,7 @@ void Neighbor::init_styles()
 #define NPAIR_CLASS
 #define NPairStyle(key,Class,bitmasks) \
   pairnames[npclass] = (char *) #key; \
-  pairclass[npclass] = &pair_creator<Class>; \
+  pairclass[npclass] = &style_creator<NPair, Class>;  \
   pairmasks[npclass++] = bitmasks;
 #include "style_npair.h"  // IWYU pragma: keep
 #undef NPairStyle
@@ -2026,36 +2034,6 @@ int Neighbor::request(void *requestor, int instance)
   requests[nrequest]->requestor_instance = instance;
   nrequest++;
   return nrequest-1;
-}
-
-/* ----------------------------------------------------------------------
-   one instance per entry in style_neigh_bin.h
-------------------------------------------------------------------------- */
-
-template <typename T>
-NBin *Neighbor::bin_creator(LAMMPS *lmp)
-{
-  return new T(lmp);
-}
-
-/* ----------------------------------------------------------------------
-   one instance per entry in style_neigh_stencil.h
-------------------------------------------------------------------------- */
-
-template <typename T>
-NStencil *Neighbor::stencil_creator(LAMMPS *lmp)
-{
-  return new T(lmp);
-}
-
-/* ----------------------------------------------------------------------
-   one instance per entry in style_neigh_pair.h
-------------------------------------------------------------------------- */
-
-template <typename T>
-NPair *Neighbor::pair_creator(LAMMPS *lmp)
-{
-  return new T(lmp);
 }
 
 /* ----------------------------------------------------------------------

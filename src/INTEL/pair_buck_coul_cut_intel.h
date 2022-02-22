@@ -35,9 +35,9 @@ class PairBuckCoulCutIntel : public PairBuckCoulCut {
 
  public:
   PairBuckCoulCutIntel(class LAMMPS *);
-  virtual ~PairBuckCoulCutIntel();
-  virtual void compute(int, int);
-  void init_style();
+  ~PairBuckCoulCutIntel() override;
+  void compute(int, int) override;
+  void init_style() override;
   typedef struct {
     float x, y, z;
     int w;

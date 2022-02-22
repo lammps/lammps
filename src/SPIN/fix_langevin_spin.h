@@ -29,10 +29,10 @@ class FixLangevinSpin : public Fix {
   int tdamp_flag, temp_flag;    // damping and temperature flags
 
   FixLangevinSpin(class LAMMPS *, int, char **);
-  virtual ~FixLangevinSpin();
-  int setmask();
-  void init();
-  void setup(int);
+  ~FixLangevinSpin() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
   void add_tdamping(double *, double *);    // add transverse damping
   void add_temperature(double[3]);
   void compute_single_langevin(int, double *, double *);

@@ -22,10 +22,9 @@
 #include "memory.h"
 #include "modify.h"
 #include "text_file_reader.h"
-#include "tokenizer.h"
 #include "update.h"
+#include "universe.h"
 
-#include <algorithm>
 #include <cctype>
 #include <cerrno>
 #include <cstring>
@@ -136,6 +135,14 @@ void utils::fmtargs_logmesg(LAMMPS *lmp, fmt::string_view format, fmt::format_ar
   } catch (fmt::format_error &e) {
     logmesg(lmp, std::string(e.what()) + "\n");
   }
+}
+
+void utils::flush_buffers(LAMMPS *lmp)
+{
+  if (lmp->screen) fflush(lmp->screen);
+  if (lmp->logfile) fflush(lmp->logfile);
+  if (lmp->universe->uscreen)  fflush(lmp->universe->uscreen);
+  if (lmp->universe->ulogfile) fflush(lmp->universe->ulogfile);
 }
 
 /* define this here, so we won't have to include the headers
@@ -1028,7 +1035,7 @@ std::vector<std::string> utils::split_words(const std::string &text)
 ------------------------------------------------------------------------- */
 std::vector<std::string> utils::split_lines(const std::string &text)
 {
-  return Tokenizer(text, "\n").as_vector();
+  return Tokenizer(text, "\r\n").as_vector();
 }
 
 /* ----------------------------------------------------------------------

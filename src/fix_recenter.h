@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class FixRecenter : public Fix {
  public:
   FixRecenter(class LAMMPS *, int, char **);
-  int setmask();
-  void init();
-  void initial_integrate(int);
-  void initial_integrate_respa(int, int, int);
-  double compute_scalar();
-  double compute_vector(int);
+  int setmask() override;
+  void init() override;
+  void initial_integrate(int) override;
+  void initial_integrate_respa(int, int, int) override;
+  double compute_scalar() override;
+  double compute_vector(int) override;
 
  private:
   int group2bit, scaleflag;

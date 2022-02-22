@@ -27,18 +27,18 @@ namespace LAMMPS_NS {
 class DumpXYZ : public Dump {
  public:
   DumpXYZ(class LAMMPS *, int, char **);
-  virtual ~DumpXYZ();
+  ~DumpXYZ() override;
 
  protected:
   int ntypes;
   char **typenames;
 
-  void init_style();
-  void write_header(bigint);
-  void pack(tagint *);
-  int convert_string(int, double *);
-  void write_data(int, double *);
-  int modify_param(int, char **);
+  void init_style() override;
+  void write_header(bigint) override;
+  void pack(tagint *) override;
+  int convert_string(int, double *) override;
+  void write_data(int, double *) override;
+  int modify_param(int, char **) override;
 
   typedef void (DumpXYZ::*FnPtrWrite)(int, double *);
   FnPtrWrite write_choice;    // ptr to write data functions

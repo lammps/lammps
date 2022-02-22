@@ -27,18 +27,18 @@ namespace LAMMPS_NS {
 class ComputeVCMChunk : public Compute {
  public:
   ComputeVCMChunk(class LAMMPS *, int, char **);
-  ~ComputeVCMChunk();
-  void init();
-  void setup();
-  void compute_array();
+  ~ComputeVCMChunk() override;
+  void init() override;
+  void setup() override;
+  void compute_array() override;
 
-  void lock_enable();
-  void lock_disable();
-  int lock_length();
-  void lock(class Fix *, bigint, bigint);
-  void unlock(class Fix *);
+  void lock_enable() override;
+  void lock_disable() override;
+  int lock_length() override;
+  void lock(class Fix *, bigint, bigint) override;
+  void unlock(class Fix *) override;
 
-  double memory_usage();
+  double memory_usage() override;
 
  private:
   int nchunk, maxchunk;

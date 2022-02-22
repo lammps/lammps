@@ -46,10 +46,10 @@ namespace LAMMPS_NS {
 class VerletLRTIntel : public Verlet {
  public:
   VerletLRTIntel(class LAMMPS *, int, char **);
-  virtual ~VerletLRTIntel();
-  virtual void init();
-  virtual void setup(int flag);
-  virtual void run(int);
+  ~VerletLRTIntel() override;
+  void init() override;
+  void setup(int flag) override;
+  void run(int) override;
 
  protected:
   PPPMIntel *_intel_kspace;

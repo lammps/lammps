@@ -27,18 +27,18 @@ namespace LAMMPS_NS {
 class PairLJSFDipoleSF : public Pair {
  public:
   PairLJSFDipoleSF(class LAMMPS *);
-  virtual ~PairLJSFDipoleSF();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  virtual double single(int, int, int, int, double, double, double, double &);
-  void *extract(const char *, int &);
+  ~PairLJSFDipoleSF() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
+  double single(int, int, int, int, double, double, double, double &) override;
+  void *extract(const char *, int &) override;
 
  protected:
   double cut_lj_global, cut_coul_global;

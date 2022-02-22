@@ -154,10 +154,10 @@ accelerated styles exist.
 * :doc:`coul/wolf/cs <pair_cs>` - Coulomb via Wolf potential with core/shell adjustments
 * :doc:`dpd <pair_dpd>` - dissipative particle dynamics (DPD)
 * :doc:`dpd/ext <pair_dpd_ext>` - generalized force field for DPD
-* :doc:`dpd/ext/tstat <pair_dpd_ext>` - pair-wise DPD thermostatting  with generalized force field
+* :doc:`dpd/ext/tstat <pair_dpd_ext>` - pairwise DPD thermostatting  with generalized force field
 * :doc:`dpd/fdt <pair_dpd_fdt>` - DPD for constant temperature and pressure
 * :doc:`dpd/fdt/energy <pair_dpd_fdt>` - DPD for constant energy and enthalpy
-* :doc:`dpd/tstat <pair_dpd>` - pair-wise DPD thermostatting
+* :doc:`dpd/tstat <pair_dpd>` - pairwise DPD thermostatting
 * :doc:`dsmc <pair_dsmc>` - Direct Simulation Monte Carlo (DSMC)
 * :doc:`e3b <pair_e3b>` - Explicit-three body (E3B) water model
 * :doc:`drip <pair_drip>` - Dihedral-angle-corrected registry-dependent interlayer potential (DRIP)
@@ -183,10 +183,12 @@ accelerated styles exist.
 * :doc:`gran/hooke/history <pair_gran>` - granular potential without history effects
 * :doc:`gw <pair_gw>` - Gao-Weber potential
 * :doc:`gw/zbl <pair_gw>` - Gao-Weber potential with a repulsive ZBL core
+* :doc:`harmonic/cut <pair_harmonic_cut>` - repulsive-only harmonic potential
 * :doc:`hbond/dreiding/lj <pair_hbond_dreiding>` - DREIDING hydrogen bonding LJ potential
 * :doc:`hbond/dreiding/morse <pair_hbond_dreiding>` - DREIDING hydrogen bonding Morse potential
 * :doc:`hdnnp <pair_hdnnp>` - High-dimensional neural network potential
 * :doc:`ilp/graphene/hbn <pair_ilp_graphene_hbn>` - registry-dependent interlayer potential (ILP)
+* :doc:`ilp/tmd <pair_ilp_tmd>` - interlayer potential (ILP) potential for transition metal dichalcogenides (TMD)
 * :doc:`kim <pair_kim>` - interface to potentials provided by KIM project
 * :doc:`kolmogorov/crespi/full <pair_kolmogorov_crespi_full>` - Kolmogorov-Crespi (KC) potential with no simplifications
 * :doc:`kolmogorov/crespi/z <pair_kolmogorov_crespi_z>` - Kolmogorov-Crespi (KC) potential with normals along z-axis
@@ -304,6 +306,7 @@ accelerated styles exist.
 * :doc:`reaxff <pair_reaxff>` - ReaxFF potential
 * :doc:`rebo <pair_airebo>` - second generation REBO potential of Brenner
 * :doc:`resquared <pair_resquared>` - Everaers RE-Squared ellipsoidal potential
+* :doc:`saip/metal <pair_saip_metal>` - interlayer potential for hetero-junctions formed with hexagonal 2D materials and metal surfaces
 * :doc:`sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>` - smoothed dissipative particle dynamics for water at isothermal conditions
 * :doc:`smd/hertz <pair_smd_hertz>` -
 * :doc:`smd/tlsph <pair_smd_tlsph>` -

@@ -30,14 +30,14 @@ class FixShardlow : public Fix {
   class NeighList *list;    // The SSA specific neighbor list
 
   FixShardlow(class LAMMPS *, int, char **);
-  ~FixShardlow();
-  int setmask();
-  virtual void init();
-  virtual void init_list(int, class NeighList *);
-  virtual void setup(int);
-  virtual void initial_integrate(int);
+  ~FixShardlow() override;
+  int setmask() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void setup(int) override;
+  void initial_integrate(int) override;
 
-  double memory_usage();
+  double memory_usage() override;
 
 #ifdef DEBUG_SSA_PAIR_CT
   int counters[2][3];
@@ -45,10 +45,10 @@ class FixShardlow : public Fix {
 #endif
 
  protected:
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
 
   class PairDPDfdt *pairDPD;
   class PairDPDfdtEnergy *pairDPDE;

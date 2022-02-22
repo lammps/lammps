@@ -248,6 +248,8 @@ typedef Kokkos::Experimental::HIPHostPinnedSpace LMPPinnedHostType;
 typedef Kokkos::Experimental::SYCLHostUSMSpace LMPPinnedHostType;
 #elif defined(KOKKOS_ENABLE_OPENMPTARGET)
 typedef Kokkos::Serial LMPPinnedHostType;
+#else
+typedef LMPHostType LMPPinnedHostType;
 #endif
 
 // create simple LMPDeviceSpace typedef for non CUDA-, HIP-, or SYCL-specific
@@ -417,32 +419,24 @@ struct s_EV_FLOAT {
   s_EV_FLOAT() {
     evdwl = 0;
     ecoul = 0;
-    v[0] = 0; v[1] = 0; v[2] = 0;
-    v[3] = 0; v[4] = 0; v[5] = 0;
+    for (int i = 0; i < 6; ++i)
+      v[i] = 0;
   }
 
   KOKKOS_INLINE_FUNCTION
   void operator+=(const s_EV_FLOAT &rhs) {
     evdwl += rhs.evdwl;
     ecoul += rhs.ecoul;
-    v[0] += rhs.v[0];
-    v[1] += rhs.v[1];
-    v[2] += rhs.v[2];
-    v[3] += rhs.v[3];
-    v[4] += rhs.v[4];
-    v[5] += rhs.v[5];
+    for (int i = 0; i < 6; ++i)
+      v[i] += rhs.v[i];
   }
 
   KOKKOS_INLINE_FUNCTION
   void operator+=(const volatile s_EV_FLOAT &rhs) volatile {
     evdwl += rhs.evdwl;
     ecoul += rhs.ecoul;
-    v[0] += rhs.v[0];
-    v[1] += rhs.v[1];
-    v[2] += rhs.v[2];
-    v[3] += rhs.v[3];
-    v[4] += rhs.v[4];
-    v[5] += rhs.v[5];
+    for (int i = 0; i < 6; ++i)
+      v[i] += rhs.v[i];
   }
 };
 typedef struct s_EV_FLOAT EV_FLOAT;
@@ -456,53 +450,30 @@ struct s_EV_FLOAT_REAX {
   s_EV_FLOAT_REAX() {
     evdwl = 0;
     ecoul = 0;
-    v[0] = 0; v[1] = 0; v[2] = 0;
-    v[3] = 0; v[4] = 0; v[5] = 0;
-    ereax[0] = 0; ereax[1] = 0; ereax[2] = 0;
-    ereax[3] = 0; ereax[4] = 0; ereax[5] = 0;
-    ereax[6] = 0; ereax[7] = 0; ereax[8] = 0;
+    for (int i = 0; i < 6; ++i)
+      v[i] = 0;
+    for (int i = 0; i < 9; ++i)
+      ereax[i] = 0;
   }
 
   KOKKOS_INLINE_FUNCTION
   void operator+=(const s_EV_FLOAT_REAX &rhs) {
     evdwl += rhs.evdwl;
     ecoul += rhs.ecoul;
-    v[0] += rhs.v[0];
-    v[1] += rhs.v[1];
-    v[2] += rhs.v[2];
-    v[3] += rhs.v[3];
-    v[4] += rhs.v[4];
-    v[5] += rhs.v[5];
-    ereax[0] += rhs.ereax[0];
-    ereax[1] += rhs.ereax[1];
-    ereax[2] += rhs.ereax[2];
-    ereax[3] += rhs.ereax[3];
-    ereax[4] += rhs.ereax[4];
-    ereax[5] += rhs.ereax[5];
-    ereax[6] += rhs.ereax[6];
-    ereax[7] += rhs.ereax[7];
-    ereax[8] += rhs.ereax[8];
+    for (int i = 0; i < 6; ++i)
+      v[i] += rhs.v[i];
+    for (int i = 0; i < 9; ++i)
+      ereax[i] += rhs.ereax[i];
   }
 
   KOKKOS_INLINE_FUNCTION
   void operator+=(const volatile s_EV_FLOAT_REAX &rhs) volatile {
     evdwl += rhs.evdwl;
     ecoul += rhs.ecoul;
-    v[0] += rhs.v[0];
-    v[1] += rhs.v[1];
-    v[2] += rhs.v[2];
-    v[3] += rhs.v[3];
-    v[4] += rhs.v[4];
-    v[5] += rhs.v[5];
-    ereax[0] += rhs.ereax[0];
-    ereax[1] += rhs.ereax[1];
-    ereax[2] += rhs.ereax[2];
-    ereax[3] += rhs.ereax[3];
-    ereax[4] += rhs.ereax[4];
-    ereax[5] += rhs.ereax[5];
-    ereax[6] += rhs.ereax[6];
-    ereax[7] += rhs.ereax[7];
-    ereax[8] += rhs.ereax[8];
+    for (int i = 0; i < 6; ++i)
+      v[i] += rhs.v[i];
+    for (int i = 0; i < 9; ++i)
+      ereax[i] += rhs.ereax[i];
   }
 };
 typedef struct s_EV_FLOAT_REAX EV_FLOAT_REAX;
@@ -514,44 +485,64 @@ struct s_FEV_FLOAT {
   E_FLOAT v[6];
   KOKKOS_INLINE_FUNCTION
   s_FEV_FLOAT() {
-    f[0] = 0; f[1] = 0; f[2] = 0;
     evdwl = 0;
     ecoul = 0;
-    v[0] = 0; v[1] = 0; v[2] = 0;
-    v[3] = 0; v[4] = 0; v[5] = 0;
+    for (int i = 0; i < 6; ++i)
+      v[i] = 0;
+    for (int i = 0; i < 3; ++i)
+      f[i] = 0;
   }
 
   KOKKOS_INLINE_FUNCTION
   void operator+=(const s_FEV_FLOAT &rhs) {
-    f[0] += rhs.f[0];
-    f[1] += rhs.f[1];
-    f[2] += rhs.f[2];
     evdwl += rhs.evdwl;
     ecoul += rhs.ecoul;
-    v[0] += rhs.v[0];
-    v[1] += rhs.v[1];
-    v[2] += rhs.v[2];
-    v[3] += rhs.v[3];
-    v[4] += rhs.v[4];
-    v[5] += rhs.v[5];
+    for (int i = 0; i < 6; ++i)
+      v[i] += rhs.v[i];
+    for (int i = 0; i < 3; ++i)
+      f[i] += rhs.f[i];
   }
 
   KOKKOS_INLINE_FUNCTION
   void operator+=(const volatile s_FEV_FLOAT &rhs) volatile {
-    f[0] += rhs.f[0];
-    f[1] += rhs.f[1];
-    f[2] += rhs.f[2];
     evdwl += rhs.evdwl;
     ecoul += rhs.ecoul;
-    v[0] += rhs.v[0];
-    v[1] += rhs.v[1];
-    v[2] += rhs.v[2];
-    v[3] += rhs.v[3];
-    v[4] += rhs.v[4];
-    v[5] += rhs.v[5];
+    for (int i = 0; i < 6; ++i)
+      v[i] += rhs.v[i];
+    for (int i = 0; i < 3; ++i)
+      f[i] += rhs.f[i];
   }
 };
 typedef struct s_FEV_FLOAT FEV_FLOAT;
+
+struct alignas(2*sizeof(F_FLOAT)) s_FLOAT2 {
+  F_FLOAT v[2];
+
+  KOKKOS_INLINE_FUNCTION
+  s_FLOAT2() {
+    v[0] = v[1] = 0.0;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  s_FLOAT2(const s_FLOAT2 & rhs) {
+    for (int i = 0; i < 2; i++){
+      v[i] = rhs.v[i];
+    }
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator+=(const s_FLOAT2 &rhs) {
+    v[0] += rhs.v[0];
+    v[1] += rhs.v[1];
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator+=(const volatile s_FLOAT2 &rhs) volatile {
+    v[0] += rhs.v[0];
+    v[1] += rhs.v[1];
+  }
+};
+typedef struct s_FLOAT2 F_FLOAT2;
 
 #ifndef PREC_POS
 #define PREC_POS PRECISION
@@ -783,6 +774,14 @@ typedef tdual_ffloat_1d::t_dev_const t_ffloat_1d_const;
 typedef tdual_ffloat_1d::t_dev_um t_ffloat_1d_um;
 typedef tdual_ffloat_1d::t_dev_const_um t_ffloat_1d_const_um;
 typedef tdual_ffloat_1d::t_dev_const_randomread t_ffloat_1d_randomread;
+
+// 1d F_FLOAT2 array n
+typedef Kokkos::DualView<F_FLOAT*[2], Kokkos::LayoutRight, LMPDeviceType> tdual_ffloat2_1d;
+typedef tdual_ffloat2_1d::t_dev t_ffloat2_1d;
+typedef tdual_ffloat2_1d::t_dev_const t_ffloat2_1d_const;
+typedef tdual_ffloat2_1d::t_dev_um t_ffloat2_1d_um;
+typedef tdual_ffloat2_1d::t_dev_const_um t_ffloat2_1d_const_um;
+typedef tdual_ffloat2_1d::t_dev_const_randomread t_ffloat2_1d_randomread;
 
 //2d F_FLOAT array n*m
 
@@ -1053,6 +1052,14 @@ typedef tdual_ffloat_1d::t_host_const t_ffloat_1d_const;
 typedef tdual_ffloat_1d::t_host_um t_ffloat_1d_um;
 typedef tdual_ffloat_1d::t_host_const_um t_ffloat_1d_const_um;
 typedef tdual_ffloat_1d::t_host_const_randomread t_ffloat_1d_randomread;
+
+// 1d F_FLOAT2 array n
+typedef Kokkos::DualView<F_FLOAT*[2], Kokkos::LayoutRight, LMPDeviceType> tdual_ffloat2_1d;
+typedef tdual_ffloat2_1d::t_host t_ffloat2_1d;
+typedef tdual_ffloat2_1d::t_host_const t_ffloat2_1d_const;
+typedef tdual_ffloat2_1d::t_host_um t_ffloat2_1d_um;
+typedef tdual_ffloat2_1d::t_host_const_um t_ffloat2_1d_const_um;
+typedef tdual_ffloat2_1d::t_host_const_randomread t_ffloat2_1d_randomread;
 
 //2d F_FLOAT array n*m
 typedef Kokkos::DualView<F_FLOAT**, Kokkos::LayoutRight, LMPDeviceType> tdual_ffloat_2d;

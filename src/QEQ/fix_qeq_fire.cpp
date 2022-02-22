@@ -84,8 +84,7 @@ void FixQEqFire::init()
 
   if (tolerance < 1e-4)
     if (comm->me == 0)
-      error->warning(FLERR,"Fix qeq/fire tolerance may be too small"
-                    " for damped fires");
+      error->warning(FLERR,"Fix qeq/fire tolerance may be too small for damped fires");
 
   comb3 = (PairComb3 *) force->pair_match("^comb3",0);
   if (!comb3) comb = (PairComb *) force->pair_match("^comb",0);

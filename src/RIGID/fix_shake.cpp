@@ -2559,18 +2559,19 @@ void FixShake::stats()
   // print stats only for non-zero counts
 
   if (me == 0) {
+    const int width = log10((MAX(MAX(1,nb),na)))+2;
     auto mesg = fmt::format("SHAKE stats (type/ave/delta/count) on step {}\n",
                             update->ntimestep);
     for (i = 1; i < nb; i++) {
       const auto bcnt = b_count_all[i]/2;
       if (bcnt)
-        mesg += fmt::format("{:>6d}   {:<9.6} {:<11.6} {:>8d}\n",i,
+        mesg += fmt::format("Bond:  {:>{}d}   {:<9.6} {:<11.6} {:>8d}\n",i,width,
                             b_ave_all[i]/bcnt/2.0,b_max_all[i]-b_min_all[i],bcnt);
     }
     for (i = 1; i < na; i++) {
       const auto acnt = a_count_all[i]/3;
       if (acnt)
-        mesg += fmt::format("{:>6d}   {:<9.6} {:<11.6} {:>8d}\n",i,
+        mesg += fmt::format("Angle: {:>{}d}   {:<9.6} {:<11.6} {:>8d}\n",i,width,
                             a_ave_all[i]/acnt/3.0,a_max_all[i]-a_min_all[i],acnt);
     }
     utils::logmesg(lmp,mesg);

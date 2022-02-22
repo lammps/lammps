@@ -49,6 +49,8 @@ class ComputeSnap : public Compute {
   class SNA *snaptr;
   double cutmax;
   int quadraticflag;
+  int bikflag;
+  int bik_rows;
 
   Compute *c_pe;
   Compute *c_virial;

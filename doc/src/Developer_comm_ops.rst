@@ -76,15 +76,21 @@ values.  To correctly store integers that may be 64-bit (bigint,
 tagint, imageint) in the buffer, you need to use the `ubuf union
 <Communication buffer coding with ubuf>`_.
 
-The *Fix*, *Compute*, and *Dump* classes can invoke the same kind of
+The *Fix*, *Compute*, and *Dump* classes can also invoke the same kind of
 forward and reverse communication operations using *Comm* class methods.
 The same pack/unpack methods and comm_forward/comm_reverse variables
 must be defined by the *Fix* or *Compute* class.
 
-For *Fix* classes there is the option to have a argument to the
-*reverse_comm(this,size)* which allows the communication to have
-a different amount of data per-atom.  The "size" argument is then
-the maximal size.  It invokes these corresponding callback methods:
+For *Fix* classes there is an optional second argument to the
+*forward_comm()* and *reverse_comm()* call which are used when there are
+communications with buffer sizes different from the value set in the
+comm_forward/comm_reverse variables.  For this to work a class member
+variable must be set to indicate to the pack/unpack routines which
+which data needs to be packed into and unpacked from the buffer.
+
+Finally, for reverse communications in *Fix* classes there is also
+the *reverse_comm_variable()* method that allows the communication to have
+a different amount of data per-atom.  It invokes these corresponding callback methods:
 
 * pack_reverse_comm_size()
 * unpack_reverse_comm_size()

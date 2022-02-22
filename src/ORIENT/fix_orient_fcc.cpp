@@ -89,7 +89,6 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
 
   // initializations
 
-  half_fcc_nn = 6;
   use_xismooth = false;
   double xicutoff = 1.57;
   xicutoffsq = xicutoff * xicutoff;
@@ -105,7 +104,7 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
 
     FILE *inpfile = fopen(xifilename,"r");
     if (inpfile == nullptr) error->one(FLERR,"Fix orient/fcc file open failed");
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < half_fcc_nn; i++) {
       result = fgets(line,IMGMAX,inpfile);
       if (!result) error->one(FLERR,"Fix orient/fcc file read failed");
       count = sscanf(line,"%lg %lg %lg",&Rxi[i][0],&Rxi[i][1],&Rxi[i][2]);
@@ -115,7 +114,7 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
 
     inpfile = fopen(chifilename,"r");
     if (inpfile == nullptr) error->one(FLERR,"Fix orient/fcc file open failed");
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < half_fcc_nn; i++) {
       result = fgets(line,IMGMAX,inpfile);
       if (!result) error->one(FLERR,"Fix orient/fcc file read failed");
       count = sscanf(line,"%lg %lg %lg",&Rchi[i][0],&Rchi[i][1],&Rchi[i][2]);
@@ -124,12 +123,12 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
     fclose(inpfile);
   }
 
-  MPI_Bcast(&Rxi[0][0],18,MPI_DOUBLE,0,world);
-  MPI_Bcast(&Rchi[0][0],18,MPI_DOUBLE,0,world);
+  MPI_Bcast(&Rxi[0][0],half_fcc_nn*3,MPI_DOUBLE,0,world);
+  MPI_Bcast(&Rchi[0][0],half_fcc_nn*3,MPI_DOUBLE,0,world);
 
   // make copy of the reference vectors
 
-  for (int i = 0; i < 6; i++)
+  for (int i = 0; i < half_fcc_nn; i++)
     for (int j = 0; j < 3; j++) {
       half_xi_chi_vec[0][i][j] = Rxi[i][j];
       half_xi_chi_vec[1][i][j] = Rchi[i][j];
@@ -142,7 +141,7 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
   double xi_sq,dxi[3],rchi[3];
 
   xiid = 0.0;
-  for (int i = 0; i < 6; i++) {
+  for (int i = 0; i < half_fcc_nn; i++) {
     rchi[0] = Rchi[i][0];
     rchi[1] = Rchi[i][1];
     rchi[2] = Rchi[i][2];

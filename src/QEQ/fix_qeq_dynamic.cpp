@@ -74,8 +74,7 @@ void FixQEqDynamic::init()
 
   if (tolerance < 1e-4)
     if (comm->me == 0)
-      error->warning(FLERR,"Fix qeq/dynamic tolerance may be too small"
-                    " for damped dynamics");
+      error->warning(FLERR,"Fix qeq/dynamic tolerance may be too small for damped dynamics");
 }
 
 /* ---------------------------------------------------------------------- */

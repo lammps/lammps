@@ -88,6 +88,14 @@ same fixed number of QEq iterations is desired, which can be achieved
 by using a very small tolerance and setting *maxiter* to the desired
 number of iterations.
 
+.. note::
+
+   In order to solve the self-consistent equations for electronegativity
+   equalization, LAMMPS imposes the additional constraint that all the
+   charges in the fix group must add up to zero.  The initial charge
+   assignments should also satisfy this constraint.  LAMMPS will print a
+   warning if that is not the case.
+
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 

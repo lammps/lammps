@@ -931,11 +931,11 @@ void FixBondReact::post_integrate()
       // reverse comm of distsq and partner
       // not needed if newton_pair off since I,J pair was seen by both procs
       commflag = 2;
-      if (force->newton_pair) comm->reverse_comm_fix(this);
+      if (force->newton_pair) comm->reverse_comm(this);
     } else {
       close_partner();
       commflag = 2;
-      comm->reverse_comm_fix(this);
+      comm->reverse_comm(this);
     }
 
     // each atom now knows its winning partner

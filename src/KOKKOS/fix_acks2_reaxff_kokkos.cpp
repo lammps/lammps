@@ -385,10 +385,10 @@ void FixACKS2ReaxFFKokkos<DeviceType>::pre_force(int vflag)
 
   if (neighflag != FULL) {
     pack_flag = 4;
-    //comm->reverse_comm_fix(this); //Coll_Vector( X_diag );
+    //comm->reverse_comm(this); //Coll_Vector( X_diag );
     k_X_diag.template modify<DeviceType>();
     k_X_diag.template sync<LMPHostType>();
-    comm->reverse_comm_fix(this);
+    comm->reverse_comm(this);
     k_X_diag.template modify<LMPHostType>();
     k_X_diag.template sync<DeviceType>();
   }
@@ -1215,7 +1215,7 @@ int FixACKS2ReaxFFKokkos<DeviceType>::bicgstab_solve()
   k_d.template modify<DeviceType>();
   k_d.template sync<LMPHostType>();
   if (neighflag != FULL)
-    comm->reverse_comm_fix(this); //Coll_vector( d );
+    comm->reverse_comm(this); //Coll_vector( d );
   more_reverse_comm(k_d.h_view.data());
   k_d.template modify<LMPHostType>();
   k_d.template sync<DeviceType>();
@@ -1279,7 +1279,7 @@ int FixACKS2ReaxFFKokkos<DeviceType>::bicgstab_solve()
     k_z.template modify<DeviceType>();
     k_z.template sync<LMPHostType>();
     if (neighflag != FULL)
-      comm->reverse_comm_fix(this); //Coll_vector( z );
+      comm->reverse_comm(this); //Coll_vector( z );
     more_reverse_comm(k_z.h_view.data());
     k_z.template modify<LMPHostType>();
     k_z.template sync<DeviceType>();
@@ -1324,7 +1324,7 @@ int FixACKS2ReaxFFKokkos<DeviceType>::bicgstab_solve()
     k_y.template modify<DeviceType>();
     k_y.template sync<LMPHostType>();
     if (neighflag != FULL)
-      comm->reverse_comm_fix(this); //Coll_vector( y );
+      comm->reverse_comm(this); //Coll_vector( y );
     more_reverse_comm(k_y.h_view.data());
     k_y.template modify<LMPHostType>();
     k_y.template sync<DeviceType>();

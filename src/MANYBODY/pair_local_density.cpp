@@ -237,7 +237,7 @@ void PairLocalDensity::compute(int eflag, int vflag)
   }
 
   // communicate and sum LDs over all procs
-  if (newton_pair) comm->reverse_comm_pair(this);
+  if (newton_pair) comm->reverse_comm(this);
 
   //
 

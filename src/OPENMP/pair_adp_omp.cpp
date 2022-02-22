@@ -213,7 +213,7 @@ void PairADPOMP::eval(int iifrom, int iito, ThrData * const thr)
 #if defined(_OPENMP)
 #pragma omp master
 #endif
-    { comm->reverse_comm_pair(this); }
+    { comm->reverse_comm(this); }
 
     // wait until master thread is done with communication
     sync_threads();

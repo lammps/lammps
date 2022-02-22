@@ -343,7 +343,7 @@ void FixBondCreate::setup(int /*vflag*/)
   // if newton_bond is set, need to sum bondcount
 
   commflag = 1;
-  if (newton_bond) comm->reverse_comm_fix(this,1);
+  if (newton_bond) comm->reverse_comm(this,1);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -488,7 +488,7 @@ void FixBondCreate::post_integrate()
   // not needed if newton_pair off since I,J pair was seen by both procs
 
   commflag = 2;
-  if (force->newton_pair) comm->reverse_comm_fix(this);
+  if (force->newton_pair) comm->reverse_comm(this);
 
   // each atom now knows its winning partner
   // for prob check, generate random value for each atom with a bond partner

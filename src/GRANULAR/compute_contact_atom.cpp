@@ -154,7 +154,7 @@ void ComputeContactAtom::compute_peratom()
 
   // communicate ghost atom counts between neighbor procs if necessary
 
-  if (force->newton_pair) comm->reverse_comm_compute(this);
+  if (force->newton_pair) comm->reverse_comm(this);
 }
 
 /* ---------------------------------------------------------------------- */

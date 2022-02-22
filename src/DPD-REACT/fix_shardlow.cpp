@@ -623,7 +623,7 @@ void FixShardlow::initial_integrate(int /*vflag*/)
     }
 
     // Communicate the ghost deltas to the atom owners
-    comm->reverse_comm_fix(this);
+    comm->reverse_comm(this);
 
   }  //End Loop over all directions For airnum = Top, Top-Right, Right, Bottom-Right, Back
 

@@ -760,7 +760,7 @@ int FixQEqReaxFFKokkos<DeviceType>::cg_solve1()
 
   if (neighflag != FULL) {
     k_o.template modify<DeviceType>();
-    comm->reverse_comm_fix(this); //Coll_vector(q);
+    comm->reverse_comm(this); //Coll_vector(q);
     k_o.template sync<DeviceType>();
   }
 
@@ -813,7 +813,7 @@ int FixQEqReaxFFKokkos<DeviceType>::cg_solve1()
 
     if (neighflag != FULL) {
       k_o.template modify<DeviceType>();
-      comm->reverse_comm_fix(this); //Coll_vector(q);
+      comm->reverse_comm(this); //Coll_vector(q);
       k_o.template sync<DeviceType>();
     }
 
@@ -890,7 +890,7 @@ int FixQEqReaxFFKokkos<DeviceType>::cg_solve2()
 
   if (neighflag != FULL) {
     k_o.template modify<DeviceType>();
-    comm->reverse_comm_fix(this); //Coll_vector(q);
+    comm->reverse_comm(this); //Coll_vector(q);
     k_o.template sync<DeviceType>();
   }
 
@@ -943,7 +943,7 @@ int FixQEqReaxFFKokkos<DeviceType>::cg_solve2()
 
     if (neighflag != FULL) {
       k_o.template modify<DeviceType>();
-      comm->reverse_comm_fix(this); //Coll_vector(q);
+      comm->reverse_comm(this); //Coll_vector(q);
       k_o.template sync<DeviceType>();
     }
 

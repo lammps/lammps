@@ -43,13 +43,13 @@ class CommKokkos : public CommBrick {
   void borders() override;                      // setup list of atoms to comm
 
   void forward_comm(class Pair *) override;    // forward comm from a Pair
-  void reverse_comm_pair(class Pair *) override;    // reverse comm from a Pair
+  void reverse_comm(class Pair *) override;    // reverse comm from a Pair
   void forward_comm(class Fix *, int size=0) override;      // forward comm from a Fix
-  void reverse_comm_fix(class Fix *, int size=0) override;      // reverse comm from a Fix
+  void reverse_comm(class Fix *, int size=0) override;      // reverse comm from a Fix
   void forward_comm(class Compute *) override;  // forward from a Compute
-  void reverse_comm_compute(class Compute *) override;  // reverse from a Compute
+  void reverse_comm(class Compute *) override;  // reverse from a Compute
   void forward_comm(class Dump *) override;    // forward comm from a Dump
-  void reverse_comm_dump(class Dump *) override;    // reverse comm from a Dump
+  void reverse_comm(class Dump *) override;    // reverse comm from a Dump
 
   void forward_comm_array(int, double **) override;            // forward comm of array
 

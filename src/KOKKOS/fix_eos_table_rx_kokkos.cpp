@@ -265,7 +265,7 @@ void FixEOStableRXKokkos<DeviceType>::end_of_step()
 
   // Communicate the ghost uCGnew
   atomKK->sync(Host,UCG_MASK | UCGNEW_MASK);
-  comm->reverse_comm_fix(this);
+  comm->reverse_comm(this);
   atomKK->modified(Host,UCG_MASK | UCGNEW_MASK);
 
   atomKK->sync(execution_space,MASK_MASK | UCHEM_MASK | UCG_MASK | UCGNEW_MASK);

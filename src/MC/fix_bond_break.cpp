@@ -247,7 +247,7 @@ void FixBondBreak::post_integrate()
 
   // reverse comm of partner info
 
-  if (force->newton_bond) comm->reverse_comm_fix(this);
+  if (force->newton_bond) comm->reverse_comm(this);
 
   // each atom now knows its winning partner
   // for prob check, generate random value for each atom with a bond partner

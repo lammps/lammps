@@ -177,7 +177,7 @@ void FixRigidSmallOMP::compute_forces_and_torques()
   // reverse communicate fcm, torque of all bodies
 
   commflag = FORCE_TORQUE;
-  comm->reverse_comm_fix(this,6);
+  comm->reverse_comm(this,6);
 
   // include Langevin thermostat forces and torques
 

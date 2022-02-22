@@ -274,7 +274,7 @@ void FixEOStableRX::end_of_step()
   double *uCGnew = atom->uCGnew;
 
   // Communicate the ghost uCGnew
-  comm->reverse_comm_fix(this);
+  comm->reverse_comm(this);
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {

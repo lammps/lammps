@@ -399,7 +399,7 @@ int FixQEq::CG(double *b, double *x)
 
   pack_flag = 1;
   sparse_matvec(&H, x, q);
-  comm->reverse_comm_fix(this);
+  comm->reverse_comm(this);
 
   vector_sum(r , 1.,  b, -1., q, inum);
 
@@ -416,7 +416,7 @@ int FixQEq::CG(double *b, double *x)
   for (loop = 1; loop < maxiter && sqrt(sig_new)/b_norm > tolerance; ++loop) {
     comm->forward_comm(this);
     sparse_matvec(&H, d, q);
-    comm->reverse_comm_fix(this);
+    comm->reverse_comm(this);
 
     tmp = parallel_dot(d, q, inum);
     alfa = sig_new / tmp;

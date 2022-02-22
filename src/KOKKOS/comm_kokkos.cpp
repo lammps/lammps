@@ -439,10 +439,10 @@ void CommKokkos::forward_comm_device(Fix *fix, int size)
 
 /* ---------------------------------------------------------------------- */
 
-void CommKokkos::reverse_comm_fix(Fix *fix, int size)
+void CommKokkos::reverse_comm(Fix *fix, int size)
 {
   k_sendlist.sync<LMPHostType>();
-  CommBrick::reverse_comm_fix(fix, size);
+  CommBrick::reverse_comm(fix, size);
 }
 
 void CommKokkos::forward_comm(Compute *compute)
@@ -451,10 +451,10 @@ void CommKokkos::forward_comm(Compute *compute)
   CommBrick::forward_comm(compute);
 }
 
-void CommKokkos::reverse_comm_compute(Compute *compute)
+void CommKokkos::reverse_comm(Compute *compute)
 {
   k_sendlist.sync<LMPHostType>();
-  CommBrick::reverse_comm_compute(compute);
+  CommBrick::reverse_comm(compute);
 }
 
 void CommKokkos::forward_comm(Pair *pair)
@@ -543,10 +543,10 @@ void CommKokkos::grow_buf_fix(int n) {
   k_buf_recv_fix.resize(max_buf_fix);
 }
 
-void CommKokkos::reverse_comm_pair(Pair *pair)
+void CommKokkos::reverse_comm(Pair *pair)
 {
   k_sendlist.sync<LMPHostType>();
-  CommBrick::reverse_comm_pair(pair);
+  CommBrick::reverse_comm(pair);
 }
 
 void CommKokkos::forward_comm(Dump *dump)
@@ -555,10 +555,10 @@ void CommKokkos::forward_comm(Dump *dump)
   CommBrick::forward_comm(dump);
 }
 
-void CommKokkos::reverse_comm_dump(Dump *dump)
+void CommKokkos::reverse_comm(Dump *dump)
 {
   k_sendlist.sync<LMPHostType>();
-  CommBrick::reverse_comm_dump(dump);
+  CommBrick::reverse_comm(dump);
 }
 
 /* ----------------------------------------------------------------------

@@ -217,7 +217,7 @@ double FixQEqDynamic::compute_eneg()
   }
 
   pack_flag = 2;
-  comm->reverse_comm_fix(this);
+  comm->reverse_comm(this);
 
   // sum charge force on each node and return it
 

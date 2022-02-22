@@ -221,7 +221,7 @@ void PairEAM::compute(int eflag, int vflag)
 
   // communicate and sum densities
 
-  if (newton_pair) comm->reverse_comm_pair(this);
+  if (newton_pair) comm->reverse_comm(this);
 
   // fp = derivative of embedding energy at each atom
   // phi = embedding energy at each atom

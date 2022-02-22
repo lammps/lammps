@@ -380,7 +380,7 @@ int FixQEqReaxFFOMP::CG(double *b, double *x)
 
   pack_flag = 1;
   sparse_matvec(&H, x, q);
-  comm->reverse_comm_fix(this); //Coll_Vector(q);
+  comm->reverse_comm(this); //Coll_Vector(q);
 
   double tmp1, tmp2;
   tmp1 = tmp2 = 0.0;
@@ -410,7 +410,7 @@ int FixQEqReaxFFOMP::CG(double *b, double *x)
   for (i = 1; i < imax && sqrt(sig_new) / b_norm > tolerance; ++i) {
     comm->forward_comm(this); //Dist_vector(d);
     sparse_matvec(&H, d, q);
-    comm->reverse_comm_fix(this); //Coll_vector(q);
+    comm->reverse_comm(this); //Coll_vector(q);
 
     tmp1 = 0.0;
 #if defined(_OPENMP)
@@ -644,7 +644,7 @@ int FixQEqReaxFFOMP::dual_CG(double *b1, double *b2, double *x1, double *x2)
 
   pack_flag = 5; // forward 2x d and reverse 2x q
   dual_sparse_matvec(&H, x1, x2, q);
-  comm->reverse_comm_fix(this); //Coll_Vector(q);
+  comm->reverse_comm(this); //Coll_Vector(q);
 
   double tmp1, tmp2, tmp3, tmp4;
   tmp1 = tmp2 = tmp3 = tmp4 = 0.0;
@@ -686,7 +686,7 @@ int FixQEqReaxFFOMP::dual_CG(double *b1, double *b2, double *x1, double *x2)
   for (i = 1; i < imax; ++i) {
     comm->forward_comm(this); //Dist_vector(d);
     dual_sparse_matvec(&H, d, q);
-    comm->reverse_comm_fix(this); //Coll_vector(q);
+    comm->reverse_comm(this); //Coll_vector(q);
 
     tmp1 = tmp2 = 0.0;
 #if defined(_OPENMP)

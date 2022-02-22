@@ -167,7 +167,7 @@ void PairEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
     if (newton_pair) {
       k_rho.template modify<DeviceType>();
-      comm->reverse_comm_pair(this);
+      comm->reverse_comm(this);
       k_rho.template sync<DeviceType>();
     }
 

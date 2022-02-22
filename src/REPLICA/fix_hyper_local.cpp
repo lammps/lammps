@@ -528,7 +528,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
   // forward comm acquires maxstrain of all current ghost atoms
 
   commflag = STRAIN;
-  comm->reverse_comm_fix(this);
+  comm->reverse_comm(this);
   comm->forward_comm(this);
 
   //time3 = platform::walltime();
@@ -643,7 +643,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
   // forward comm acquires maxstrain_domain of all current ghost atoms
 
   commflag = STRAINDOMAIN;
-  comm->reverse_comm_fix(this);
+  comm->reverse_comm(this);
   comm->forward_comm(this);
 
   //time5 = platform::walltime();
@@ -831,7 +831,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
     // forward comm to set biasflag for all ghost atoms
 
     commflag = BIASFLAG;
-    comm->reverse_comm_fix(this);
+    comm->reverse_comm(this);
     comm->forward_comm(this);
 
     // loop over Dcut full neighbor list
@@ -1018,7 +1018,7 @@ void FixHyperLocal::build_bond_list(int natom)
     }
 
     commflag = BIASCOEFF;
-    comm->reverse_comm_fix_variable(this);
+    comm->reverse_comm_variable(this);
 
     mymax = 0;
     for (i = 0; i < nall; i++) mymax = MAX(mymax,numcoeff[i]);
@@ -1349,7 +1349,7 @@ int FixHyperLocal::pack_reverse_comm(int n, int first, double *buf)
 }
 
 /* ----------------------------------------------------------------------
-   callback by comm->reverse_comm_fix_variable() in build_bond()
+   callback by comm->reverse_comm_variable() in build_bond()
    same logic as BIASCOEFF option in pack_reverse_comm()
    m = returned size of message
 ------------------------------------------------------------------------- */
@@ -1372,7 +1372,7 @@ void FixHyperLocal::unpack_reverse_comm(int n, int *list, double *buf)
 
   // return if n = 0
   // b/c if there are no atoms (n = 0), the message will not have
-  //   been sent by Comm::reverse_comm_fix() or reverse_comm_fix_variable()
+  //   been sent by Comm::reverse_comm() or reverse_comm_variable()
   // so must not read nonzero from first buf location (would be zero anyway)
 
   if (n == 0) return;

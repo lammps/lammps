@@ -147,9 +147,9 @@ void CommTiledKokkos::forward_comm(Pair *pair)
    nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
-void CommTiledKokkos::reverse_comm_pair(Pair *pair)
+void CommTiledKokkos::reverse_comm(Pair *pair)
 {
-  CommTiled::reverse_comm_pair(pair);
+  CommTiled::reverse_comm(pair);
 }
 
 /* ----------------------------------------------------------------------
@@ -175,9 +175,9 @@ void CommTiledKokkos::forward_comm(Fix *fix, int size)
      some are smaller than max stored in its comm_forward
 ------------------------------------------------------------------------- */
 
-void CommTiledKokkos::reverse_comm_fix(Fix *fix, int size)
+void CommTiledKokkos::reverse_comm(Fix *fix, int size)
 {
-  CommTiled::reverse_comm_fix(fix,size);
+  CommTiled::reverse_comm(fix,size);
 }
 
 /* ----------------------------------------------------------------------
@@ -187,9 +187,9 @@ void CommTiledKokkos::reverse_comm_fix(Fix *fix, int size)
    NOTE: how to setup one big buf recv with correct offsets ??
 ------------------------------------------------------------------------- */
 
-void CommTiledKokkos::reverse_comm_fix_variable(Fix *fix)
+void CommTiledKokkos::reverse_comm_variable(Fix *fix)
 {
-  CommTiled::reverse_comm_fix_variable(fix);
+  CommTiled::reverse_comm_variable(fix);
 }
 
 /* ----------------------------------------------------------------------
@@ -207,9 +207,9 @@ void CommTiledKokkos::forward_comm(Compute *compute)
    nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
-void CommTiledKokkos::reverse_comm_compute(Compute *compute)
+void CommTiledKokkos::reverse_comm(Compute *compute)
 {
-  CommTiled::reverse_comm_compute(compute);
+  CommTiled::reverse_comm(compute);
 }
 
 /* ----------------------------------------------------------------------
@@ -227,9 +227,9 @@ void CommTiledKokkos::forward_comm(Dump *dump)
    nsize used only to set recv buffer limit
 ------------------------------------------------------------------------- */
 
-void CommTiledKokkos::reverse_comm_dump(Dump *dump)
+void CommTiledKokkos::reverse_comm(Dump *dump)
 {
-  CommTiled::reverse_comm_dump(dump);
+  CommTiled::reverse_comm(dump);
 }
 
 /* ----------------------------------------------------------------------

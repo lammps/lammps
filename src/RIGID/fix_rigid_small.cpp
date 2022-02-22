@@ -706,7 +706,7 @@ void FixRigidSmall::setup(int vflag)
   // reverse communicate fcm, torque of all bodies
 
   commflag = FORCE_TORQUE;
-  comm->reverse_comm_fix(this,6);
+  comm->reverse_comm(this,6);
 
   // virial setup before call to set_v
 
@@ -970,7 +970,7 @@ void FixRigidSmall::compute_forces_and_torques()
   // reverse communicate fcm, torque of all bodies
 
   commflag = FORCE_TORQUE;
-  comm->reverse_comm_fix(this,6);
+  comm->reverse_comm(this,6);
 
   // include Langevin thermostat forces and torques
 
@@ -1182,7 +1182,7 @@ int FixRigidSmall::dof(int tgroup)
   }
 
   commflag = DOF;
-  comm->reverse_comm_fix(this,3);
+  comm->reverse_comm(this,3);
 
   // nall = count0 = # of point particles in each rigid body
   // mall = count1 = # of finite-size particles in each rigid body
@@ -1958,7 +1958,7 @@ void FixRigidSmall::setup_bodies_static()
   // reverse communicate xcm, mass of all bodies
 
   commflag = XCM_MASS;
-  comm->reverse_comm_fix(this,8);
+  comm->reverse_comm(this,8);
 
   for (ibody = 0; ibody < nlocal_body; ibody++) {
     xcm = body[ibody].xcm;
@@ -2093,7 +2093,7 @@ void FixRigidSmall::setup_bodies_static()
   // reverse communicate inertia tensor of all bodies
 
   commflag = ITENSOR;
-  comm->reverse_comm_fix(this,6);
+  comm->reverse_comm(this,6);
 
   // overwrite Cartesian inertia tensor with file values
 
@@ -2303,7 +2303,7 @@ void FixRigidSmall::setup_bodies_static()
   // reverse communicate inertia tensor of all bodies
 
   commflag = ITENSOR;
-  comm->reverse_comm_fix(this,6);
+  comm->reverse_comm(this,6);
 
   // error check that re-computed moments of inertia match diagonalized ones
   // do not do test for bodies with params read from inpfile
@@ -2442,7 +2442,7 @@ void FixRigidSmall::setup_bodies_dynamic()
   // reverse communicate vcm, angmom of all bodies
 
   commflag = VCM_ANGMOM;
-  comm->reverse_comm_fix(this,6);
+  comm->reverse_comm(this,6);
 
   // normalize velocity of COM
 

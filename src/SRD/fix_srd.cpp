@@ -775,7 +775,7 @@ void FixSRD::post_force(int /*vflag*/)
   if (bigexist) {
     flocal = f;
     tlocal = torque;
-    comm->reverse_comm_fix(this);
+    comm->reverse_comm(this);
   }
 
   // if any SRD particle has moved too far, trigger reneigh on next step

@@ -1768,7 +1768,7 @@ void FixRX::computeLocalTemperature()
       }
     }
   }
-  if (newton_pair) comm->reverse_comm_fix(this);
+  if (newton_pair) comm->reverse_comm(this);
 
   // self-interaction for local temperature
   for (i = 0; i < nlocal; i++) {

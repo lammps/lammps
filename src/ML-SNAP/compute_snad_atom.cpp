@@ -368,7 +368,7 @@ void ComputeSNADAtom::compute_peratom()
 
   // communicate snad contributions between neighbor procs
 
-  comm->reverse_comm_compute(this);
+  comm->reverse_comm(this);
 
 }
 

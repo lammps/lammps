@@ -672,7 +672,7 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int /*vflag*/)
 
     // Communicate the ghost deltas to the atom owners
     atomKK->sync(Host,V_MASK | UCOND_MASK | UMECH_MASK);
-    comm->reverse_comm_fix(this);
+    comm->reverse_comm(this);
     atomKK->modified(Host,V_MASK | UCOND_MASK | UMECH_MASK);
 
   }  //End Loop over all directions For airnum = Top, Top-Right, Right, Bottom-Right, Back

@@ -934,7 +934,7 @@ void PairMultiLucyRX::computeLocalDensity()
 
     rho[i] = rho_i;
   }
-  if (newton_pair) comm->reverse_comm_pair(this);
+  if (newton_pair) comm->reverse_comm(this);
 
   comm->forward_comm(this);
 

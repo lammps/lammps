@@ -172,7 +172,7 @@ void ComputeAggregateAtom::compute_peratom()
     // reverse communication when bonds are not stored on every processor
 
     if (force->newton_bond)
-      comm->reverse_comm_compute(this);
+      comm->reverse_comm(this);
 
     change = 0;
     while (true) {

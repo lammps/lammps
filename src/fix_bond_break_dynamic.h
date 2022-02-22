@@ -13,21 +13,21 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(bond/break,FixBondBreak);
+FixStyle(bond/break/dynamic,FixBondBreakDynamic);
 // clang-format on
 #else
 
-#ifndef LMP_FIX_BOND_BREAK_H
-#define LMP_FIX_BOND_BREAK_H
+#ifndef LMP_FIX_BOND_BREAK_DYNAMIC_H
+#define LMP_FIX_BOND_BREAK_DYNAMIC_H
 
 #include "fix.h"
 
 namespace LAMMPS_NS {
 
-class FixBondBreak : public Fix {
+class FixBondBreakDynamic : public Fix {
  public:
-  FixBondBreak(class LAMMPS *, int, char **);
-  ~FixBondBreak();
+  FixBondBreakDynamic(class LAMMPS *, int, char **);
+  ~FixBondBreakDynamic();
   int setmask();
   void init();
   void post_integrate();
@@ -95,16 +95,16 @@ E: Invalid bond type in fix bond/break command
 
 Self-explanatory.
 
-E: Cannot use fix bond/break with non-molecular systems
+E: Cannot use fix bond/break/dynamic with non-molecular systems
 
 Only systems with bonds that can be changed can be used.  Atom_style
 template does not qualify.
 
-E: Cannot yet use fix bond/break with this improper style
+E: Cannot yet use fix bond/break/dynamic with this improper style
 
 This is a current restriction in LAMMPS.
 
-E: Fix bond/break needs ghost atoms from further away
+E: Fix bond/break/dynamic needs ghost atoms from further away
 
 This is because the fix needs to walk bonds to a certain distance to
 acquire needed info, The comm_modify cutoff command can be used to

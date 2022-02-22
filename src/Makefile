@@ -52,6 +52,7 @@ PACKAGE = \
 	adios \
 	asphere \
 	awpmd \
+	bpm \
 	bocs \
 	body \
 	brownian \
@@ -130,6 +131,7 @@ PACKAGE = \
 	spin \
 	srd \
 	tally \
+	TNT \
 	uef \
 	voronoi \
 	vtk \
@@ -146,6 +148,7 @@ PACKBASIC = kspace manybody molecule rigid
 
 PACKMOST = \
 	asphere \
+	bpm \
 	bocs \
 	body \
 	brownian \

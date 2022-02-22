@@ -12,7 +12,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "fix_bond_break.h"
+#include "fix_bond_break_dynamic.h"
 
 #include <cstring>
 #include "update.h"
@@ -32,18 +32,18 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
+FixBondBreakDynamic::FixBondBreakDynamic(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   partner(nullptr), finalpartner(nullptr), distsq(nullptr), probability(nullptr),
   broken(nullptr), copy(nullptr), random(nullptr)
 {
-  if (narg < 6) error->all(FLERR,"Illegal fix bond/break command");
+  if (narg < 6) error->all(FLERR,"Illegal fix bond/break/dynamic command");
 
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
-  if (nevery <= 0) error->all(FLERR,"Illegal fix bond/break command");
+  if (nevery <= 0) error->all(FLERR,"Illegal fix bond/break/dynamic command");
 
   force_reneighbor = 1;
   next_reneighbor = -1;
@@ -56,8 +56,8 @@ FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
   cutoff = utils::numeric(FLERR,arg[5],false,lmp);
 
   if (btype < 1 || btype > atom->nbondtypes)
-    error->all(FLERR,"Invalid bond type in fix bond/break command");
-  if (cutoff < 0.0) error->all(FLERR,"Illegal fix bond/break command");
+    error->all(FLERR,"Invalid bond type in fix bond/break/dynamic command");
+  if (cutoff < 0.0) error->all(FLERR,"Illegal fix bond/break/dynamic command");
 
   cutsq = cutoff*cutoff;
 
@@ -69,20 +69,20 @@ FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 6;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"prob") == 0) {
-      if (iarg+3 > narg) error->all(FLERR,"Illegal fix bond/break command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal fix bond/break/dynamic command");
       fraction = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       seed = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
       if (fraction < 0.0 || fraction > 1.0)
-        error->all(FLERR,"Illegal fix bond/break command");
-      if (seed <= 0) error->all(FLERR,"Illegal fix bond/break command");
+        error->all(FLERR,"Illegal fix bond/break/dynamic command");
+      if (seed <= 0) error->all(FLERR,"Illegal fix bond/break/dynamic command");
       iarg += 3;
-    } else error->all(FLERR,"Illegal fix bond/break command");
+    } else error->all(FLERR,"Illegal fix bond/break/dynamic command");
   }
 
   // error check
 
   if (atom->molecular != Atom::MOLECULAR)
-    error->all(FLERR,"Cannot use fix bond/break with non-molecular systems");
+    error->all(FLERR,"Cannot use fix bond/break/dynamic with non-molecular systems");
 
   // initialize Marsaglia RNG with processor-unique seed
 
@@ -117,7 +117,7 @@ FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-FixBondBreak::~FixBondBreak()
+FixBondBreakDynamic::~FixBondBreakDynamic()
 {
   delete random;
 
@@ -132,7 +132,7 @@ FixBondBreak::~FixBondBreak()
 
 /* ---------------------------------------------------------------------- */
 
-int FixBondBreak::setmask()
+int FixBondBreakDynamic::setmask()
 {
   int mask = 0;
   mask |= POST_INTEGRATE;
@@ -142,7 +142,7 @@ int FixBondBreak::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixBondBreak::init()
+void FixBondBreakDynamic::init()
 {
   if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
@@ -158,7 +158,7 @@ void FixBondBreak::init()
 
   if (force->improper) {
     if (force->improper_match("class2") || force->improper_match("ring"))
-      error->all(FLERR,"Cannot yet use fix bond/break with this "
+      error->all(FLERR,"Cannot yet use fix bond/break/dynamic with this "
                  "improper style");
   }
 
@@ -170,7 +170,7 @@ void FixBondBreak::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixBondBreak::post_integrate()
+void FixBondBreakDynamic::post_integrate()
 {
   int i,j,k,m,n,i1,i2,n1,n3,type;
   double delx,dely,delz,rsq;
@@ -197,9 +197,9 @@ void FixBondBreak::post_integrate()
     memory->destroy(finalpartner);
     memory->destroy(distsq);
     nmax = atom->nmax;
-    memory->create(partner,nmax,"bond/break:partner");
-    memory->create(finalpartner,nmax,"bond/break:finalpartner");
-    memory->create(distsq,nmax,"bond/break:distsq");
+    memory->create(partner,nmax,"bond/break/dynamic:partner");
+    memory->create(finalpartner,nmax,"bond/break/dynamic:finalpartner");
+    memory->create(distsq,nmax,"bond/break/dynamic:distsq");
     probability = distsq;
   }
 
@@ -354,7 +354,7 @@ void FixBondBreak::post_integrate()
     if (j < 0 || tag[i] < tag[j]) {
       if (nbreak == maxbreak) {
         maxbreak += DELTA;
-        memory->grow(broken,maxbreak,2,"bond/break:broken");
+        memory->grow(broken,maxbreak,2,"bond/break/dynamic:broken");
       }
       broken[nbreak][0] = tag[i];
       broken[nbreak][1] = finalpartner[i];
@@ -379,7 +379,7 @@ void FixBondBreak::post_integrate()
      then 2,3 will be ghosts and 3 will store 4 as its finalpartner
 ------------------------------------------------------------------------- */
 
-void FixBondBreak::check_ghosts()
+void FixBondBreakDynamic::check_ghosts()
 {
   int i,j,n;
   tagint *slist;
@@ -399,7 +399,7 @@ void FixBondBreak::check_ghosts()
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
   if (flagall)
-    error->all(FLERR,"Fix bond/break needs ghost atoms from further away");
+    error->all(FLERR,"Fix bond/break/dynamic needs ghost atoms from further away");
   lastcheck = update->ntimestep;
 }
 
@@ -414,7 +414,7 @@ void FixBondBreak::check_ghosts()
      rebuild the atom's special list of 1-2,1-3,1-4 neighs
 ------------------------------------------------------------------------- */
 
-void FixBondBreak::update_topology()
+void FixBondBreakDynamic::update_topology()
 {
   int i,j,k,n,influence,influenced,found;
   tagint id1,id2;
@@ -428,11 +428,6 @@ void FixBondBreak::update_topology()
   nangles = 0;
   ndihedrals = 0;
   nimpropers = 0;
-
-  //printf("NBREAK %d: ",nbreak);
-  //for (i = 0; i < nbreak; i++)
-  //  printf(" %d %d,",broken[i][0],broken[i][1]);
-  //printf("\n");
 
   for (i = 0; i < nlocal; i++) {
     influenced = 0;
@@ -488,7 +483,7 @@ void FixBondBreak::update_topology()
    affects 1-3 and 1-4 neighs due to other atom's augmented 1-2 neighs
 ------------------------------------------------------------------------- */
 
-void FixBondBreak::rebuild_special_one(int m)
+void FixBondBreakDynamic::rebuild_special_one(int m)
 {
   int i,j,n,n1,cn1,cn2,cn3;
   tagint *slist;
@@ -548,7 +543,7 @@ void FixBondBreak::rebuild_special_one(int m)
    angle is broken if ID1-ID2 is one of 2 bonds in angle (I-J,J-K)
 ------------------------------------------------------------------------- */
 
-void FixBondBreak::break_angles(int m, tagint id1, tagint id2)
+void FixBondBreakDynamic::break_angles(int m, tagint id1, tagint id2)
 {
   int j,found;
 
@@ -586,7 +581,7 @@ void FixBondBreak::break_angles(int m, tagint id1, tagint id2)
    dihedral is broken if ID1-ID2 is one of 3 bonds in dihedral (I-J,J-K.K-L)
 ------------------------------------------------------------------------- */
 
-void FixBondBreak::break_dihedrals(int m, tagint id1, tagint id2)
+void FixBondBreakDynamic::break_dihedrals(int m, tagint id1, tagint id2)
 {
   int j,found;
 
@@ -628,7 +623,7 @@ void FixBondBreak::break_dihedrals(int m, tagint id1, tagint id2)
    improper is broken if ID1-ID2 is one of 3 bonds in improper (I-J,I-K,I-L)
 ------------------------------------------------------------------------- */
 
-void FixBondBreak::break_impropers(int m, tagint id1, tagint id2)
+void FixBondBreakDynamic::break_impropers(int m, tagint id1, tagint id2)
 {
   int j,found;
 
@@ -671,7 +666,7 @@ void FixBondBreak::break_impropers(int m, tagint id1, tagint id2)
    return N decremented by any discarded duplicates
 ------------------------------------------------------------------------- */
 
-int FixBondBreak::dedup(int nstart, int nstop, tagint *copy)
+int FixBondBreakDynamic::dedup(int nstart, int nstop, tagint *copy)
 {
   int i;
 
@@ -691,14 +686,14 @@ int FixBondBreak::dedup(int nstart, int nstop, tagint *copy)
 
 /* ---------------------------------------------------------------------- */
 
-void FixBondBreak::post_integrate_respa(int ilevel, int /*iloop*/)
+void FixBondBreakDynamic::post_integrate_respa(int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1) post_integrate();
 }
 
 /* ---------------------------------------------------------------------- */
 
-int FixBondBreak::pack_forward_comm(int n, int *list, double *buf,
+int FixBondBreakDynamic::pack_forward_comm(int n, int *list, double *buf,
                                     int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,k,m,ns;
@@ -730,7 +725,7 @@ int FixBondBreak::pack_forward_comm(int n, int *list, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
-void FixBondBreak::unpack_forward_comm(int n, int first, double *buf)
+void FixBondBreakDynamic::unpack_forward_comm(int n, int first, double *buf)
 {
   int i,j,m,ns,last;
 
@@ -761,7 +756,7 @@ void FixBondBreak::unpack_forward_comm(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int FixBondBreak::pack_reverse_comm(int n, int first, double *buf)
+int FixBondBreakDynamic::pack_reverse_comm(int n, int first, double *buf)
 {
   int i,m,last;
 
@@ -776,7 +771,7 @@ int FixBondBreak::pack_reverse_comm(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-void FixBondBreak::unpack_reverse_comm(int n, int *list, double *buf)
+void FixBondBreakDynamic::unpack_reverse_comm(int n, int *list, double *buf)
 {
   int i,j,m;
 
@@ -793,7 +788,7 @@ void FixBondBreak::unpack_reverse_comm(int n, int *list, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-void FixBondBreak::print_bb()
+void FixBondBreakDynamic::print_bb()
 {
   for (int i = 0; i < atom->nlocal; i++) {
     printf("TAG " TAGINT_FORMAT ": %d nbonds: ",atom->tag[i],atom->num_bond[i]);
@@ -826,7 +821,7 @@ void FixBondBreak::print_bb()
 
 /* ---------------------------------------------------------------------- */
 
-void FixBondBreak::print_copy(const char *str, tagint m,
+void FixBondBreakDynamic::print_copy(const char *str, tagint m,
                               int n1, int n2, int n3, int *v)
 {
   printf("%s " TAGINT_FORMAT ": %d %d %d nspecial: ",str,m,n1,n2,n3);
@@ -836,7 +831,7 @@ void FixBondBreak::print_copy(const char *str, tagint m,
 
 /* ---------------------------------------------------------------------- */
 
-double FixBondBreak::compute_vector(int n)
+double FixBondBreakDynamic::compute_vector(int n)
 {
   if (n == 0) return (double) breakcount;
   return (double) breakcounttotal;
@@ -846,7 +841,7 @@ double FixBondBreak::compute_vector(int n)
    memory usage of local atom-based arrays
 ------------------------------------------------------------------------- */
 
-double FixBondBreak::memory_usage()
+double FixBondBreakDynamic::memory_usage()
 {
   int nmax = atom->nmax;
   double bytes = 2*nmax * sizeof(tagint);

@@ -12,7 +12,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "fix_bond_create.h"
+#include "fix_bond_create_dynamic.h"
 
 #include <cstring>
 #include "update.h"
@@ -39,17 +39,17 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
+FixBondCreateDynamic::FixBondCreateDynamic(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
   bondcount(nullptr), partner(nullptr), finalpartner(nullptr), distsq(nullptr),
   probability(nullptr), created(nullptr), copy(nullptr), random(nullptr), list(nullptr)
 {
-  if (narg < 8) error->all(FLERR,"Illegal fix bond/create command");
+  if (narg < 8) error->all(FLERR,"Illegal fix bond/create/dynamic command");
 
   MPI_Comm_rank(world,&me);
 
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
-  if (nevery <= 0) error->all(FLERR,"Illegal fix bond/create command");
+  if (nevery <= 0) error->all(FLERR,"Illegal fix bond/create/dynamic command");
 
   dynamic_group_allow = 1;
   force_reneighbor = 1;
@@ -66,10 +66,10 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
 
   if (iatomtype < 1 || iatomtype > atom->ntypes ||
       jatomtype < 1 || jatomtype > atom->ntypes)
-    error->all(FLERR,"Invalid atom type in fix bond/create command");
-  if (cutoff < 0.0) error->all(FLERR,"Illegal fix bond/create command");
+    error->all(FLERR,"Invalid atom type in fix bond/create/dynamic command");
+  if (cutoff < 0.0) error->all(FLERR,"Illegal fix bond/create/dynamic command");
   if (btype < 1 || btype > atom->nbondtypes)
-    error->all(FLERR,"Invalid bond type in fix bond/create command");
+    error->all(FLERR,"Invalid bond type in fix bond/create/dynamic command");
 
   cutsq = cutoff*cutoff;
 
@@ -91,71 +91,71 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 8;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"iparam") == 0) {
-      if (iarg+3 > narg) error->all(FLERR,"Illegal fix bond/create command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal fix bond/create/dynamic command");
       imaxbond = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       inewtype = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
-      if (imaxbond < 0) error->all(FLERR,"Illegal fix bond/create command");
+      if (imaxbond < 0) error->all(FLERR,"Illegal fix bond/create/dynamic command");
       if (inewtype < 1 || inewtype > atom->ntypes)
-        error->all(FLERR,"Invalid atom type in fix bond/create command");
+        error->all(FLERR,"Invalid atom type in fix bond/create/dynamic command");
       iarg += 3;
     } else if (strcmp(arg[iarg],"jparam") == 0) {
-      if (iarg+3 > narg) error->all(FLERR,"Illegal fix bond/create command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal fix bond/create/dynamic command");
       jmaxbond = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       jnewtype = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
-      if (jmaxbond < 0) error->all(FLERR,"Illegal fix bond/create command");
+      if (jmaxbond < 0) error->all(FLERR,"Illegal fix bond/create/dynamic command");
       if (jnewtype < 1 || jnewtype > atom->ntypes)
-        error->all(FLERR,"Invalid atom type in fix bond/create command");
+        error->all(FLERR,"Invalid atom type in fix bond/create/dynamic command");
       iarg += 3;
     } else if (strcmp(arg[iarg],"prob") == 0) {
-      if (iarg+3 > narg) error->all(FLERR,"Illegal fix bond/create command");
+      if (iarg+3 > narg) error->all(FLERR,"Illegal fix bond/create/dynamic command");
       fraction = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       seed = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
       if (fraction < 0.0 || fraction > 1.0)
-        error->all(FLERR,"Illegal fix bond/create command");
-      if (seed <= 0) error->all(FLERR,"Illegal fix bond/create command");
+        error->all(FLERR,"Illegal fix bond/create/dynamic command");
+      if (seed <= 0) error->all(FLERR,"Illegal fix bond/create/dynamic command");
       iarg += 3;
     } else if (strcmp(arg[iarg],"atype") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/create command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/create/dynamic command");
       atype = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      if (atype < 0) error->all(FLERR,"Illegal fix bond/create command");
+      if (atype < 0) error->all(FLERR,"Illegal fix bond/create/dynamic command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"dtype") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/create command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/create/dynamic command");
       dtype = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      if (dtype < 0) error->all(FLERR,"Illegal fix bond/create command");
+      if (dtype < 0) error->all(FLERR,"Illegal fix bond/create/dynamic command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"itype") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/create command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix bond/create/dynamic command");
       itype = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      if (itype < 0) error->all(FLERR,"Illegal fix bond/create command");
+      if (itype < 0) error->all(FLERR,"Illegal fix bond/create/dynamic command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"aconstrain") == 0 &&
-        strcmp(style,"bond/create/angle") == 0) {
+        strcmp(style,"bond/create/dynamic/angle") == 0) {
       if (iarg+3 > narg)
-          error->all(FLERR,"Illegal fix bond/create/angle command");
+          error->all(FLERR,"Illegal fix bond/create/dynamic/angle command");
       amin = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       amax = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
       if (amin  >= amax)
-        error->all(FLERR,"Illegal fix bond/create/angle command");
+        error->all(FLERR,"Illegal fix bond/create/dynamic/angle command");
       if (amin < 0 || amin > 180)
-        error->all(FLERR,"Illegal fix bond/create/angle command");
+        error->all(FLERR,"Illegal fix bond/create/dynamic/angle command");
       if (amax < 0 || amax > 180)
-        error->all(FLERR,"Illegal fix bond/create/angle command");
+        error->all(FLERR,"Illegal fix bond/create/dynamic/angle command");
       amin = (MY_PI/180.0) * amin;
       amax = (MY_PI/180.0) * amax;
       constrainflag = 1;
       iarg += 3;
-    } else error->all(FLERR,"Illegal fix bond/create command");
+    } else error->all(FLERR,"Illegal fix bond/create/dynamic command");
   }
 
   // error check
 
   if (atom->molecular != Atom::MOLECULAR)
-    error->all(FLERR,"Cannot use fix bond/create with non-molecular systems");
+    error->all(FLERR,"Cannot use fix bond/create/dynamic with non-molecular systems");
   if (iatomtype == jatomtype &&
       ((imaxbond != jmaxbond) || (inewtype != jnewtype)))
     error->all(FLERR,
-               "Inconsistent iparam/jparam values in fix bond/create command");
+               "Inconsistent iparam/jparam values in fix bond/create/dynamic command");
 
   // initialize Marsaglia RNG with processor-unique seed
 
@@ -166,7 +166,7 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
   // bondcount values will be initialized in setup()
 
   bondcount = nullptr;
-  FixBondCreate::grow_arrays(atom->nmax);
+  FixBondCreateDynamic::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
   countflag = 0;
 
@@ -202,7 +202,7 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-FixBondCreate::~FixBondCreate()
+FixBondCreateDynamic::~FixBondCreateDynamic()
 {
   // unregister callbacks to this fix from Atom class
 
@@ -222,7 +222,7 @@ FixBondCreate::~FixBondCreate()
 
 /* ---------------------------------------------------------------------- */
 
-int FixBondCreate::setmask()
+int FixBondCreateDynamic::setmask()
 {
   int mask = 0;
   mask |= POST_INTEGRATE;
@@ -232,7 +232,7 @@ int FixBondCreate::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixBondCreate::init()
+void FixBondCreateDynamic::init()
 {
   if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
@@ -240,20 +240,20 @@ void FixBondCreate::init()
   // check cutoff for iatomtype,jatomtype
 
   if (force->pair == nullptr || cutsq > force->pair->cutsq[iatomtype][jatomtype])
-    error->all(FLERR,"Fix bond/create cutoff is longer than pairwise cutoff");
+    error->all(FLERR,"Fix bond/create/dynamic cutoff is longer than pairwise cutoff");
 
-  // warn if more than one fix bond/create or also a fix bond/break
+  // warn if more than one fix bond/create/dynamic or also a fix bond/break
   // because this fix stores per-atom state in bondcount
   //   if other fixes create/break bonds, this fix will not know about it
 
   int count = 0;
-  for (int i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style,"bond/create") == 0) count++;
-    if (strcmp(modify->fix[i]->style,"bond/break") == 0) count++;
-  }
-  if (count > 1 && me == 0)
-    error->warning(FLERR,"Fix bond/create is used multiple times "
-                   " or with fix bond/break - may not work as expected");
+  // for (int i = 0; i < modify->nfix; i++) {
+  //   if (strcmp(modify->fix[i]->style,"bond/create/dynamic") == 0) count++;
+  //   if (strcmp(modify->fix[i]->style,"bond/break") == 0) count++;
+  // }
+  // if (count > 1 && me == 0)
+  //   error->warning(FLERR,"Fix bond/create/dynamic is used multiple times "
+  //                  " or with fix bond/break - may not work as expected");
 
   // enable angle/dihedral/improper creation if atype/dtype/itype
   //   option was used and a force field has been specified
@@ -261,24 +261,24 @@ void FixBondCreate::init()
   if (atype && force->angle) {
     angleflag = 1;
     if (atype > atom->nangletypes)
-      error->all(FLERR,"Fix bond/create angle type is invalid");
+      error->all(FLERR,"Fix bond/create/dynamic angle type is invalid");
   } else angleflag = 0;
 
   if (dtype && force->dihedral) {
     dihedralflag = 1;
     if (dtype > atom->ndihedraltypes)
-      error->all(FLERR,"Fix bond/create dihedral type is invalid");
+      error->all(FLERR,"Fix bond/create/dynamic dihedral type is invalid");
   } else dihedralflag = 0;
 
   if (itype && force->improper) {
     improperflag = 1;
     if (itype > atom->nimpropertypes)
-      error->all(FLERR,"Fix bond/create improper type is invalid");
+      error->all(FLERR,"Fix bond/create/dynamic improper type is invalid");
   } else improperflag = 0;
 
   if (force->improper) {
     if (force->improper_match("class2") || force->improper_match("ring"))
-      error->all(FLERR,"Cannot yet use fix bond/create with this "
+      error->all(FLERR,"Cannot yet use fix bond/create/dynamic with this "
                  "improper style");
   }
 
@@ -294,61 +294,33 @@ void FixBondCreate::init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixBondCreate::init_list(int /*id*/, NeighList *ptr)
+void FixBondCreateDynamic::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixBondCreate::setup(int /*vflag*/)
+void FixBondCreateDynamic::setup(int /*vflag*/)
 {
-  int i,j,m;
+  // int i,j,m;
 
   // compute initial bondcount if this is first run
   // can't do this earlier, in constructor or init, b/c need ghost info
 
-  // if (countflag) return;
-  // countflag = 1;
+  if (countflag) return;
+  countflag = 1;
 
   // count bonds stored with each bond I own
   // if newton bond is not set, just increment count on atom I
   // if newton bond is set, also increment count on atom J even if ghost
   // bondcount is long enough to tally ghost atom counts
 
-  int *num_bond = atom->num_bond;
-  int **bond_type = atom->bond_type;
-  tagint **bond_atom = atom->bond_atom;
-  int nlocal = atom->nlocal;
-  int nghost = atom->nghost;
-  int nall = nlocal + nghost;
-  int newton_bond = force->newton_bond;
-
-  for (i = 0; i < nall; i++) bondcount[i] = 0;
-
-  for (i = 0; i < nlocal; i++)
-    for (j = 0; j < num_bond[i]; j++) {
-      if (bond_type[i][j] == btype) {
-        bondcount[i]++;
-        if (newton_bond) {
-          m = atom->map(bond_atom[i][j]);
-          if (m < 0)
-            error->one(FLERR,"Fix bond/create needs ghost atoms "
-                       "from further away");
-          bondcount[m]++;
-        }
-      }
-    }
-
-  // if newton_bond is set, need to sum bondcount
-
-  commflag = 1;
-  if (newton_bond) comm->reverse_comm_fix(this,1);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixBondCreate::post_integrate()
+void FixBondCreateDynamic::post_integrate()
 {
   int i,j,k,m,n,ii,jj,inum,jnum,itype,jtype,n1,n2,n3,possible;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
@@ -369,6 +341,35 @@ void FixBondCreate::post_integrate()
   // acquire updated ghost atom positions
   // necessary b/c are calling this after integrate, but before Verlet comm
 
+  int *num_bond = atom->num_bond;
+  int **bond_type = atom->bond_type;
+  tagint **bond_atom = atom->bond_atom;
+  int nlocal = atom->nlocal;
+  int nghost = atom->nghost;
+  int nall = nlocal + nghost;
+  int newton_bond = force->newton_bond;
+
+  for (i = 0; i < nall; i++) bondcount[i] = 0;
+
+  for (i = 0; i < nlocal; i++)
+    for (j = 0; j < num_bond[i]; j++) {
+      if (bond_type[i][j] == btype) {
+        bondcount[i]++;
+        if (newton_bond) {
+          m = atom->map(bond_atom[i][j]);
+          if (m < 0)
+            error->one(FLERR,"Fix bond/create/dynamic needs ghost atoms "
+                       "from further away");
+          bondcount[m]++;
+        }
+      }
+    }
+
+  // if newton_bond is set, need to sum bondcount
+
+  commflag = 1;
+  if (newton_bond) comm->reverse_comm_fix(this,1);
+
   setup(0);
   comm->forward_comm();
 
@@ -386,14 +387,11 @@ void FixBondCreate::post_integrate()
     memory->destroy(finalpartner);
     memory->destroy(distsq);
     nmax = atom->nmax;
-    memory->create(partner,nmax,"bond/create:partner");
-    memory->create(finalpartner,nmax,"bond/create:finalpartner");
-    memory->create(distsq,nmax,"bond/create:distsq");
+    memory->create(partner,nmax,"bond/create/dynamic:partner");
+    memory->create(finalpartner,nmax,"bond/create/dynamic:finalpartner");
+    memory->create(distsq,nmax,"bond/create/dynamic:distsq");
     probability = distsq;
   }
-
-  int nlocal = atom->nlocal;
-  int nall = atom->nlocal + atom->nghost;
 
   for (i = 0; i < nall; i++) {
     partner[i] = 0;
@@ -406,8 +404,6 @@ void FixBondCreate::post_integrate()
 
   double **x = atom->x;
   tagint *tag = atom->tag;
-  tagint **bond_atom = atom->bond_atom;
-  int *num_bond = atom->num_bond;
   int **nspecial = atom->nspecial;
   tagint **special = atom->special;
   int *mask = atom->mask;
@@ -500,9 +496,6 @@ void FixBondCreate::post_integrate()
   //   and probability constraint is satisfied
   // if other atom is owned by another proc, it should do same thing
 
-  int **bond_type = atom->bond_type;
-  int newton_bond = force->newton_bond;
-
   ncreate = 0;
   for (i = 0; i < nlocal; i++) {
     if (partner[i] == 0) continue;
@@ -525,7 +518,7 @@ void FixBondCreate::post_integrate()
 
     if (!newton_bond || tag[i] < tag[j]) {
       if (num_bond[i] == atom->bond_per_atom)
-        error->one(FLERR,"New bond exceeded bonds per atom in fix bond/create");
+        error->one(FLERR,"New bond exceeded bonds per atom in fix bond/create/dynamic");
       bond_type[i][num_bond[i]] = btype;
       bond_atom[i][num_bond[i]] = tag[j];
       num_bond[i]++;
@@ -549,7 +542,7 @@ void FixBondCreate::post_integrate()
     }
     if (n3 == atom->maxspecial)
       error->one(FLERR,
-                 "New bond exceeded special list size in fix bond/create");
+                 "New bond exceeded special list size in fix bond/create/dynamic");
     for (m = n3; m > n1; m--) slist[m] = slist[m-1];
     slist[n1] = tag[j];
     nspecial[i][0] = n1+1;
@@ -560,11 +553,11 @@ void FixBondCreate::post_integrate()
     // atom J will also do this, whatever proc it is on
 
     bondcount[i]++;
-    if (type[i] == iatomtype) {
-      if (bondcount[i] == imaxbond) type[i] = inewtype;
-    } else {
-      if (bondcount[i] == jmaxbond) type[i] = jnewtype;
-    }
+    // if (type[i] == iatomtype) {
+    //   if (bondcount[i] == imaxbond) type[i] = inewtype;
+    // } else {
+    //   if (bondcount[i] == jmaxbond) type[i] = jnewtype;
+    // }
 
     // store final created bond partners and count the created bond once
 
@@ -606,7 +599,7 @@ void FixBondCreate::post_integrate()
     if (j < 0 || tag[i] < tag[j]) {
       if (ncreate == maxcreate) {
         maxcreate += DELTA;
-        memory->grow(created,maxcreate,2,"bond/create:created");
+        memory->grow(created,maxcreate,2,"bond/create/dynamic:created");
       }
       created[ncreate][0] = tag[i];
       created[ncreate][1] = finalpartner[i];
@@ -631,7 +624,7 @@ void FixBondCreate::post_integrate()
      then 2,3 will be ghosts and 3 will store 4 as its finalpartner
 ------------------------------------------------------------------------- */
 
-void FixBondCreate::check_ghosts()
+void FixBondCreateDynamic::check_ghosts()
 {
   int i,j,n;
   tagint *slist;
@@ -651,7 +644,7 @@ void FixBondCreate::check_ghosts()
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
   if (flagall)
-    error->all(FLERR,"Fix bond/create needs ghost atoms from further away");
+    error->all(FLERR,"Fix bond/create/dynamic needs ghost atoms from further away");
   lastcheck = update->ntimestep;
 }
 
@@ -666,7 +659,7 @@ void FixBondCreate::check_ghosts()
      check for angles/dihedrals/impropers to create due modified special list
 ------------------------------------------------------------------------- */
 
-void FixBondCreate::update_topology()
+void FixBondCreateDynamic::update_topology()
 {
   int i,j,k,n,influence,influenced;
   tagint id1,id2;
@@ -721,7 +714,7 @@ void FixBondCreate::update_topology()
 
   int overflowall;
   MPI_Allreduce(&overflow,&overflowall,1,MPI_INT,MPI_SUM,world);
-  if (overflowall) error->all(FLERR,"Fix bond/create induced too many "
+  if (overflowall) error->all(FLERR,"Fix bond/create/dynamic induced too many "
                               "angles/dihedrals/impropers per atom");
 
   int newton_bond = force->newton_bond;
@@ -750,7 +743,7 @@ void FixBondCreate::update_topology()
    affects 1-3 and 1-4 neighs due to other atom's augmented 1-2 neighs
 ------------------------------------------------------------------------- */
 
-void FixBondCreate::rebuild_special_one(int m)
+void FixBondCreateDynamic::rebuild_special_one(int m)
 {
   int i,j,n,n1,cn1,cn2,cn3;
   tagint *slist;
@@ -775,7 +768,7 @@ void FixBondCreate::rebuild_special_one(int m)
   for (i = 0; i < cn1; i++) {
     n = atom->map(copy[i]);
     if (n < 0)
-      error->one(FLERR,"Fix bond/create needs ghost atoms from further away");
+      error->one(FLERR,"Fix bond/create/dynamic needs ghost atoms from further away");
     slist = special[n];
     n1 = nspecial[n][0];
     for (j = 0; j < n1; j++)
@@ -784,7 +777,7 @@ void FixBondCreate::rebuild_special_one(int m)
 
   cn2 = dedup(cn1,cn2,copy);
   if (cn2 > atom->maxspecial)
-    error->one(FLERR,"Special list size exceeded in fix bond/create");
+    error->one(FLERR,"Special list size exceeded in fix bond/create/dynamic");
 
   // new 1-4 neighs of atom M, based on 1-2 neighs of 1-3 neighs
   // exclude self
@@ -794,7 +787,7 @@ void FixBondCreate::rebuild_special_one(int m)
   for (i = cn1; i < cn2; i++) {
     n = atom->map(copy[i]);
     if (n < 0)
-      error->one(FLERR,"Fix bond/create needs ghost atoms from further away");
+      error->one(FLERR,"Fix bond/create/dynamic needs ghost atoms from further away");
     slist = special[n];
     n1 = nspecial[n][0];
     for (j = 0; j < n1; j++)
@@ -803,7 +796,7 @@ void FixBondCreate::rebuild_special_one(int m)
 
   cn3 = dedup(cn2,cn3,copy);
   if (cn3 > atom->maxspecial)
-    error->one(FLERR,"Special list size exceeded in fix bond/create");
+    error->one(FLERR,"Special list size exceeded in fix bond/create/dynamic");
 
   // store new special list with atom M
 
@@ -821,7 +814,7 @@ void FixBondCreate::rebuild_special_one(int m)
    for newton_bond off, atom M is any of 3 atoms in angle
 ------------------------------------------------------------------------- */
 
-void FixBondCreate::create_angles(int m)
+void FixBondCreateDynamic::create_angles(int m)
 {
   int i,j,n,i2local,n1,n2;
   tagint i1,i2,i3;
@@ -888,7 +881,7 @@ void FixBondCreate::create_angles(int m)
     i2 = s1list[i];
     i2local = atom->map(i2);
     if (i2local < 0)
-      error->one(FLERR,"Fix bond/create needs ghost atoms from further away");
+      error->one(FLERR,"Fix bond/create/dynamic needs ghost atoms from further away");
     s2list = special[i2local];
     n2 = nspecial[i2local][0];
 
@@ -930,7 +923,7 @@ void FixBondCreate::create_angles(int m)
    for newton_bond off, atom M is any of 4 atoms in dihedral
 ------------------------------------------------------------------------- */
 
-void FixBondCreate::create_dihedrals(int m)
+void FixBondCreateDynamic::create_dihedrals(int m)
 {
   int i,j,k,n,i1local,i2local,i3local,n1,n2,n3;
   tagint i1,i2,i3,i4;
@@ -969,7 +962,7 @@ void FixBondCreate::create_dihedrals(int m)
       if (force->newton_bond && i2 > i3) continue;
       i3local = atom->map(i3);
       if (i3local < 0)
-        error->one(FLERR,"Fix bond/create needs ghost atoms from further away");
+        error->one(FLERR,"Fix bond/create/dynamic needs ghost atoms from further away");
       s3list = special[i3local];
       n3 = nspecial[i3local][0];
 
@@ -1008,7 +1001,7 @@ void FixBondCreate::create_dihedrals(int m)
     if (force->newton_bond && i2 > i1) continue;
     i1local = atom->map(i1);
     if (i1local < 0)
-      error->one(FLERR,"Fix bond/create needs ghost atoms from further away");
+      error->one(FLERR,"Fix bond/create/dynamic needs ghost atoms from further away");
     s3list = special[i1local];
     n3 = nspecial[i1local][0];
 
@@ -1058,7 +1051,7 @@ void FixBondCreate::create_dihedrals(int m)
     i2 = s1list[i];
     i2local = atom->map(i2);
     if (i2local < 0)
-      error->one(FLERR,"Fix bond/create needs ghost atoms from further away");
+      error->one(FLERR,"Fix bond/create/dynamic needs ghost atoms from further away");
     s2list = special[i2local];
     n2 = nspecial[i2local][0];
 
@@ -1067,7 +1060,7 @@ void FixBondCreate::create_dihedrals(int m)
       if (i3 == i1) continue;
       i3local = atom->map(i3);
       if (i3local < 0)
-        error->one(FLERR,"Fix bond/create needs ghost atoms from further away");
+        error->one(FLERR,"Fix bond/create/dynamic needs ghost atoms from further away");
       s3list = special[i3local];
       n3 = nspecial[i3local][0];
 
@@ -1110,7 +1103,7 @@ void FixBondCreate::create_dihedrals(int m)
    for newton_bond off, atom M is any of 4 atoms in improper
 ------------------------------------------------------------------------- */
 
-void FixBondCreate::create_impropers(int m)
+void FixBondCreateDynamic::create_impropers(int m)
 {
   int i,j,k,n,i1local,n1,n2;
   tagint i1,i2,i3,i4;
@@ -1184,7 +1177,7 @@ void FixBondCreate::create_impropers(int m)
     i1 = s2list[i];
     i1local = atom->map(i1);
     if (i1local < 0)
-      error->one(FLERR,"Fix bond/create needs ghost atoms from further away");
+      error->one(FLERR,"Fix bond/create/dynamic needs ghost atoms from further away");
     s1list = special[i1local];
     n1 = nspecial[i1local][0];
 
@@ -1229,7 +1222,7 @@ void FixBondCreate::create_impropers(int m)
    return N decremented by any discarded duplicates
 ------------------------------------------------------------------------- */
 
-int FixBondCreate::dedup(int nstart, int nstop, tagint *copy)
+int FixBondCreateDynamic::dedup(int nstart, int nstop, tagint *copy)
 {
   int i;
 
@@ -1249,14 +1242,14 @@ int FixBondCreate::dedup(int nstart, int nstop, tagint *copy)
 
 /* ---------------------------------------------------------------------- */
 
-void FixBondCreate::post_integrate_respa(int ilevel, int /*iloop*/)
+void FixBondCreateDynamic::post_integrate_respa(int ilevel, int /*iloop*/)
 {
   if (ilevel == nlevels_respa-1) post_integrate();
 }
 
 /* ---------------------------------------------------------------------- */
 
-int FixBondCreate::pack_forward_comm(int n, int *list, double *buf,
+int FixBondCreateDynamic::pack_forward_comm(int n, int *list, double *buf,
                                      int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j,k,m,ns;
@@ -1297,7 +1290,7 @@ int FixBondCreate::pack_forward_comm(int n, int *list, double *buf,
 
 /* ---------------------------------------------------------------------- */
 
-void FixBondCreate::unpack_forward_comm(int n, int first, double *buf)
+void FixBondCreateDynamic::unpack_forward_comm(int n, int first, double *buf)
 {
   int i,j,m,ns,last;
 
@@ -1332,7 +1325,7 @@ void FixBondCreate::unpack_forward_comm(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-int FixBondCreate::pack_reverse_comm(int n, int first, double *buf)
+int FixBondCreateDynamic::pack_reverse_comm(int n, int first, double *buf)
 {
   int i,m,last;
 
@@ -1354,7 +1347,7 @@ int FixBondCreate::pack_reverse_comm(int n, int first, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-void FixBondCreate::unpack_reverse_comm(int n, int *list, double *buf)
+void FixBondCreateDynamic::unpack_reverse_comm(int n, int *list, double *buf)
 {
   int i,j,m;
 
@@ -1381,16 +1374,16 @@ void FixBondCreate::unpack_reverse_comm(int n, int *list, double *buf)
    allocate local atom-based arrays
 ------------------------------------------------------------------------- */
 
-void FixBondCreate::grow_arrays(int nmax)
+void FixBondCreateDynamic::grow_arrays(int nmax)
 {
-  memory->grow(bondcount,nmax,"bond/create:bondcount");
+  memory->grow(bondcount,nmax,"bond/create/dynamic:bondcount");
 }
 
 /* ----------------------------------------------------------------------
    copy values within local atom-based arrays
 ------------------------------------------------------------------------- */
 
-void FixBondCreate::copy_arrays(int i, int j, int /*delflag*/)
+void FixBondCreateDynamic::copy_arrays(int i, int j, int /*delflag*/)
 {
   bondcount[j] = bondcount[i];
 }
@@ -1399,7 +1392,7 @@ void FixBondCreate::copy_arrays(int i, int j, int /*delflag*/)
    pack values in local atom-based arrays for exchange with another proc
 ------------------------------------------------------------------------- */
 
-int FixBondCreate::pack_exchange(int i, double *buf)
+int FixBondCreateDynamic::pack_exchange(int i, double *buf)
 {
   buf[0] = bondcount[i];
   return 1;
@@ -1409,7 +1402,7 @@ int FixBondCreate::pack_exchange(int i, double *buf)
    unpack values in local atom-based arrays from exchange with another proc
 ------------------------------------------------------------------------- */
 
-int FixBondCreate::unpack_exchange(int nlocal, double *buf)
+int FixBondCreateDynamic::unpack_exchange(int nlocal, double *buf)
 {
   bondcount[nlocal] = static_cast<int> (buf[0]);
   return 1;
@@ -1417,7 +1410,7 @@ int FixBondCreate::unpack_exchange(int nlocal, double *buf)
 
 /* ---------------------------------------------------------------------- */
 
-double FixBondCreate::compute_vector(int n)
+double FixBondCreateDynamic::compute_vector(int n)
 {
   if (n == 0) return (double) createcount;
   return (double) createcounttotal;
@@ -1427,7 +1420,7 @@ double FixBondCreate::compute_vector(int n)
    memory usage of local atom-based arrays
 ------------------------------------------------------------------------- */
 
-double FixBondCreate::memory_usage()
+double FixBondCreateDynamic::memory_usage()
 {
   int nmax = atom->nmax;
   double bytes = (double)nmax * sizeof(int);
@@ -1438,7 +1431,7 @@ double FixBondCreate::memory_usage()
 
 /* ---------------------------------------------------------------------- */
 
-void FixBondCreate::print_bb()
+void FixBondCreateDynamic::print_bb()
 {
   for (int i = 0; i < atom->nlocal; i++) {
     printf("TAG " TAGINT_FORMAT ": %d nbonds: ",atom->tag[i],atom->num_bond[i]);
@@ -1480,7 +1473,7 @@ void FixBondCreate::print_bb()
 
 /* ---------------------------------------------------------------------- */
 
-void FixBondCreate::print_copy(const char *str, tagint m,
+void FixBondCreateDynamic::print_copy(const char *str, tagint m,
                               int n1, int n2, int n3, int *v)
 {
   printf("%s " TAGINT_FORMAT ": %d %d %d nspecial: ",str,m,n1,n2,n3);

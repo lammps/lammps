@@ -1005,7 +1005,9 @@ double PairTersoffZBLKokkos<DeviceType>::ters_dbij(const int &i, const int &j,
   if (tmp > paramskk(i,j,k).c1) return paramskk(i,j,k).beta * -0.5*pow(tmp,-1.5);
   if (tmp > paramskk(i,j,k).c2)
     return paramskk(i,j,k).beta * (-0.5*pow(tmp,-1.5) *
-           (1.0 - 0.5*(1.0 +  1.0/(2.0*paramskk(i,j,k).powern)) *
+           // error in negligible 2nd term fixed 2/21/2022
+           //(1.0 - 0.5*(1.0 + 1.0/(2.0*paramskk(i,j,k).powern)) *
+           (1.0 - (1.0 + 1.0/(2.0*paramskk(i,j,k).powern)) *
            pow(tmp,-paramskk(i,j,k).powern)));
   if (tmp < paramskk(i,j,k).c4) return 0.0;
   if (tmp < paramskk(i,j,k).c3)

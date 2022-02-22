@@ -67,6 +67,7 @@ class PairReaxFF : public Pair {
   int qeqflag;
   int setup_flag;
   int firstwarn;
+  int list_blocking_flag;
 
   void allocate();
   void setup() override;

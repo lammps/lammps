@@ -150,7 +150,7 @@ class PairTersoffZBLKokkos : public PairTersoffZBL {
   KOKKOS_INLINE_FUNCTION
   int sbmask(const int& j) const;
 
-  struct params_ters{
+  struct params_ters {
     KOKKOS_INLINE_FUNCTION
     params_ters() {powerm=0;gamma=0;lam3=0;c=0;d=0;h=0;powern=0;beta=0;lam2=0;bigb=0;
           bigr=0;bigd=0;lam1=0;biga=0;cutsq=0;c1=0;c2=0;c3=0;c4=0;Z_i=0;Z_j=0;ZBLcut=0;ZBLexpscale=0;};

@@ -19,13 +19,14 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *checkqeq* or *lgvdw* or *safezone* or *mincap* or *minhbonds*
+     keyword = *checkqeq* or *lgvdw* or *safezone* or *mincap* or *minhbonds* or *list/blocking*
        *checkqeq* value = *yes* or *no* = whether or not to require qeq/reaxff or acks2/reaxff fix
        *enobonds* value = *yes* or *no* = whether or not to tally energy of atoms with no bonds
        *lgvdw* value = *yes* or *no* = whether or not to use a low gradient vdW correction
        *safezone* = factor used for array allocation
        *mincap* = minimum size for array allocation
        *minhbonds* = minimum size use for storing hydrogen bonds
+       *list/blocking* value = *yes* or *no* = whether or not to use "blocking" scheme for bond list build
 
 Examples
 """"""""
@@ -157,6 +158,14 @@ could occur under certain conditions. These keywords are not used by
 the Kokkos version, which instead uses a more robust memory allocation
 scheme that checks if the sizes of the arrays have been exceeded and
 automatically allocates more memory.
+
+The keyword *list/blocking* is only supported by the Kokkos version of
+ReaxFF and ignored otherwise. Setting the value to *yes* enables the
+"blocking" scheme (dynamically building interaction lists) for the
+ReaxFF bond neighbor list. This reduces the number of empty
+interactions and can improve performance in some cases (e.g. large
+number of atoms/GPU on AMD hardware). It is also enabled by default
+when running the CPU with Kokkos.
 
 The thermo variable *evdwl* stores the sum of all the ReaxFF potential
 energy contributions, with the exception of the Coulombic and charge
@@ -361,7 +370,7 @@ Default
 """""""
 
 The keyword defaults are checkqeq = yes, enobonds = yes, lgvdw = no,
-safezone = 1.2, mincap = 50, minhbonds = 25.
+safezone = 1.2, mincap = 50, minhbonds = 25, list/blocking = yes on CPU, no on GPU.
 
 ----------
 

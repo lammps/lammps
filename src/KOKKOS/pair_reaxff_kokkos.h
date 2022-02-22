@@ -58,10 +58,13 @@ template<int NEIGHFLAG, int EVFLAG>
 struct TagPairReaxComputeTabulatedLJCoulomb{};
 
 template<int NEIGHFLAG>
-struct TagPairReaxBuildListsHalfBlocking{};
+struct TagPairReaxBuildListsHalfBlocking_preview{};
 
 template<int NEIGHFLAG>
-struct TagPairReaxBuildListsHalf{};
+struct TagPairReaxBuildListsHalf_finalize{};
+
+template<int NEIGHFLAG>
+struct TagPairReaxBuildListsHalf_preview{};
 
 struct TagPairReaxZero{};
 
@@ -162,11 +165,15 @@ class PairReaxFFKokkos : public PairReaxFF {
 
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairReaxBuildListsHalfBlocking<NEIGHFLAG>, const int&) const;
+  void operator()(TagPairReaxBuildListsHalfBlocking_preview<NEIGHFLAG>, const int&) const;
 
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairReaxBuildListsHalf<NEIGHFLAG>, const int&) const;
+  void operator()(TagPairReaxBuildListsHalf_finalize<NEIGHFLAG>, const int&) const;
+
+  template<int NEIGHFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairReaxBuildListsHalf_preview<NEIGHFLAG>, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxZero, const int&) const;

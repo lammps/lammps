@@ -51,6 +51,7 @@ class Respa : public Integrate {
   void setup(int) override;
   void setup_minimal(int) override;
   void run(int) override;
+  void force_clear() override;
   void cleanup() override;
   void reset_dt() override;
 

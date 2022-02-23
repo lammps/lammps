@@ -31,6 +31,7 @@ class Verlet : public Integrate {
   void setup(int flag) override;
   void setup_minimal(int) override;
   void run(int) override;
+  void force_clear() override;
   void cleanup() override;
 
  protected:

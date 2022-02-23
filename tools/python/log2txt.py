@@ -10,6 +10,8 @@
 #                    if no columns listed, all columns are included
 # Author:  Steve Plimpton (Sandia), sjplimp at sandia.gov
 
+from __future__ import print_function
+
 import sys,os
 path = os.environ["LAMMPS_PYTHON_TOOLS"]
 sys.path.append(path)

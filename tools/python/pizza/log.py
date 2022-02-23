@@ -6,6 +6,8 @@
 # certain rights in this software.  This software is distributed under
 # the GNU General Public License.
 
+from __future__ import print_function
+
 # log tool
 
 oneline = "Read LAMMPS log files and extract thermodynamic data"

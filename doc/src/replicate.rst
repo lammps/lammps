@@ -22,6 +22,8 @@ nx,ny,nz = replication factors in each dimension
 Examples
 """"""""
 
+For an example of replicating periodically looped carbon nanotubes, see examples/replicate.
+
 .. code-block:: LAMMPS
 
    replicate 2 3 2

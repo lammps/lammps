@@ -90,7 +90,7 @@ For *Fix* classes there is an optional second argument to the
 fix performs multiple modes of communication, with different numbers
 of values per atom.  The fix should set the *comm_forward* and
 *comm_reverse* variables to the maximum value, but can invoke the
-communication for a particulard mode with a smaller value.  For this
+communication for a particular mode with a smaller value.  For this
 to work, the *pack_forward_comm()*, etc methods typically use a class
 member variable to choose which values to pack/unpack into/from the
 buffer.

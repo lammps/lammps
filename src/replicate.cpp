@@ -356,7 +356,7 @@ void Replicate::command(int narg, char **arg)
   int ix,iy,iz;
   tagint atom_offset,mol_offset,atom0tag;
   imageint image;
-  double x[3],lamda[3],shiftsign[3];
+  double x[3],lamda[3];
   double *coord;
   int tag_enable = atom->tag_enable;
 

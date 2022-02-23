@@ -199,7 +199,7 @@ void ComputeForceTally::compute_peratom()
   // collect contributions from ghost atoms
 
   if (force->newton_pair) {
-    comm->reverse_comm_compute(this);
+    comm->reverse_comm(this);
 
     // clear out ghost atom data after it has been collected to local atoms
     const int nall = atom->nlocal + atom->nghost;

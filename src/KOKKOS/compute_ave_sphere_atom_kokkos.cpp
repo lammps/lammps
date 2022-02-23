@@ -97,7 +97,7 @@ void ComputeAveSphereAtomKokkos<DeviceType>::compute_peratom()
   // need velocities of ghost atoms
 
   atomKK->sync(Host,V_MASK);
-  comm->forward_comm_compute(this);
+  comm->forward_comm(this);
   atomKK->modified(Host,V_MASK);
 
   // invoke full neighbor list (will copy or build if necessary)

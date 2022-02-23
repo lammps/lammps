@@ -369,7 +369,7 @@ void FixOrientFCC::post_force(int /*vflag*/)
 
   // communicate to acquire nbr data for ghost atoms
 
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 
   // compute grain boundary force on each owned atom
   // skip atoms not in group

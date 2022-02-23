@@ -171,7 +171,7 @@ void PairEAMCD::compute(int eflag, int vflag)
 
   if (newton_pair) {
     communicationStage = 1;
-    comm->reverse_comm_pair(this);
+    comm->reverse_comm(this);
   }
 
   // fp = derivative of embedding energy at each atom
@@ -192,7 +192,7 @@ void PairEAMCD::compute(int eflag, int vflag)
   // and D_values (this for one-site formulation only).
 
   communicationStage = 2;
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   // The electron densities may not drop to zero because then the
   // concentration would no longer be defined.  But the concentration
@@ -269,10 +269,10 @@ void PairEAMCD::compute(int eflag, int vflag)
 
     if (newton_pair) {
       communicationStage = 3;
-      comm->reverse_comm_pair(this);
+      comm->reverse_comm(this);
     }
     communicationStage = 4;
-    comm->forward_comm_pair(this);
+    comm->forward_comm(this);
   }
 
   // Stage III

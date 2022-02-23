@@ -458,7 +458,7 @@ void PairULSPH::compute(int eflag, int vflag) {
          * QUANTITIES ABOVE HAVE ONLY BEEN CALCULATED FOR NLOCAL PARTICLES.
          * NEED TO DO A FORWARD COMMUNICATION TO GHOST ATOMS NOW
          */
-        comm->forward_comm_pair(this);
+        comm->forward_comm(this);
 
         updateFlag = 0;
 

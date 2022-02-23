@@ -276,10 +276,9 @@ void FixQEqReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
 
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagQEqInitMatvec>(0,nn),*this);
 
-  // comm->forward_comm_fix(this); //Dist_vector(st);
   pack_flag = 2;
   k_st.template modify<DeviceType>();
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
   k_st.template sync<DeviceType>();
 
   need_dup = lmp->kokkos->need_dup<DeviceType>();
@@ -736,7 +735,7 @@ int FixQEqReaxFFKokkos<DeviceType>::cg_solve()
 
   if (neighflag != FULL) {
     k_o.template modify<DeviceType>();
-    comm->reverse_comm_fix(this); //Coll_vector(q);
+    comm->reverse_comm(this); //Coll_vector(q);
     k_o.template sync<DeviceType>();
   }
 
@@ -772,11 +771,11 @@ int FixQEqReaxFFKokkos<DeviceType>::cg_solve()
       break;
     }
 
-    // comm->forward_comm_fix(this); //Dist_vector(d);
+    // comm->forward_comm(this); //Dist_vector(d);
     pack_flag = 1;
     // mark size 2 for
     k_d.template modify<DeviceType>();
-    comm->forward_comm_fix(this, 2);
+    comm->forward_comm(this, 2);
     k_d.template sync<DeviceType>();
 
     // sparse_matvec(&H, d, q);
@@ -784,7 +783,7 @@ int FixQEqReaxFFKokkos<DeviceType>::cg_solve()
 
     if (neighflag != FULL) {
       k_o.template modify<DeviceType>();
-      comm->reverse_comm_fix(this); //Coll_vector(q);
+      comm->reverse_comm(this); //Coll_vector(q);
       k_o.template sync<DeviceType>();
     }
 
@@ -846,8 +845,8 @@ void FixQEqReaxFFKokkos<DeviceType>::calculate_q()
   atomKK->modified(execution_space,Q_MASK);
 
   pack_flag = 3;
-  //comm->forward_comm_fix(this); //Dist_vector(atom->q);
-  comm->forward_comm_fix(this);
+  //comm->forward_comm(this); //Dist_vector(atom->q);
+  comm->forward_comm(this);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1115,7 +1114,7 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqCalculateQ, const int &ii)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int FixQEqReaxFFKokkos<DeviceType>::pack_forward_comm_fix_kokkos(int n, DAT::tdual_int_2d k_sendlist,
+int FixQEqReaxFFKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist,
                                                         int iswap_in, DAT::tdual_xfloat_1d &k_buf,
                                                         int /*pbc_flag*/, int * /*pbc*/)
 {
@@ -1149,7 +1148,7 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqPackForwardComm, const int
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixQEqReaxFFKokkos<DeviceType>::unpack_forward_comm_fix_kokkos(int n, int first_in, DAT::tdual_xfloat_1d &buf)
+void FixQEqReaxFFKokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int first_in, DAT::tdual_xfloat_1d &buf)
 {
   first = first_in;
   d_buf = buf.view<DeviceType>();

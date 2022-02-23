@@ -80,12 +80,12 @@ class FixATC : public Fix {
        atom received from another processor. */
   int unpack_exchange(int, double *) override;
 
-  /** pack_comm called from comm->forward_comm_fix and
+  /** pack_comm called from comm->forward_comm and
        packs fix-specific data for a given ghost atom
        from exchange with another proc */
   int pack_forward_comm(int, int *, double *, int, int *) override;
 
-  /** unpack_comm called from comm->forward_comm_fix and
+  /** unpack_comm called from comm->forward_comm and
        unpacks fix-specific data for a given ghost atom
        from exchange with another proc */
   void unpack_forward_comm(int, int, double *) override;

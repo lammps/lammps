@@ -200,7 +200,7 @@ void ComputeCoordAtom::compute_peratom()
     }
     nqlist = c_orientorder->nqlist;
     normv = c_orientorder->array_atom;
-    comm->forward_comm_compute(this);
+    comm->forward_comm(this);
   }
 
   // invoke full neighbor list (will copy or build if necessary)

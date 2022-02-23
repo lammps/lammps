@@ -575,7 +575,7 @@ void FixATC::min_setup(int vflag)
 
 void FixATC::setup(int /* vflag */)
 {
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 
   try {
     atc_->initialize();
@@ -814,7 +814,7 @@ void FixATC::pre_neighbor()
 {
   try {
     atc_->pre_neighbor();
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
   }
   catch (ATC::ATC_Error& atcError) {
     ATC::LammpsInterface::instance()->print_msg(atcError.error_description());

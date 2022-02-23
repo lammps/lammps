@@ -150,7 +150,8 @@ double platform::cputime()
 
   return rv;
 }
-#if defined(_MSC_VER)
+#if defined(__clang__)
+#elif defined(_MSC_VER)
 #pragma optimize("", on)
 #endif
 
@@ -393,8 +394,8 @@ std::string platform::mpi_vendor()
 
 std::string platform::mpi_info(int &major, int &minor)
 {
-  int len = 0;
 #if (defined(MPI_VERSION) && (MPI_VERSION > 2)) || defined(MPI_STUBS)
+  int len = 0;
   static char version[MPI_MAX_LIBRARY_VERSION_STRING];
   MPI_Get_library_version(version, &len);
   if (len > 80) {

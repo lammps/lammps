@@ -259,7 +259,7 @@ void PairKIM::compute(int eflag, int vflag)
 
   // if newton is off, perform reverse comm
   if (!lmps_using_newton) {
-    comm->reverse_comm_pair(this);
+    comm->reverse_comm(this);
   }
 
   if ((vflag_atom != 0) &&

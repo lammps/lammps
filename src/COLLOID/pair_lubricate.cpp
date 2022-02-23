@@ -148,7 +148,7 @@ void PairLubricate::compute(int eflag, int vflag)
     // copy updated velocity/omega/angmom to the ghost particles
     // no need to do this if not shearing since comm->ghost_velocity is set
 
-    comm->forward_comm_pair(this);
+    comm->forward_comm(this);
   }
 
   // This section of code adjusts R0/RT0/RS0 if necessary due to changes

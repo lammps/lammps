@@ -52,6 +52,7 @@ using namespace FixConst;
 
 static constexpr double EV_TO_KCAL_PER_MOL = 14.4;
 static constexpr double SMALL = 1.0e-14;
+static constexpr double QSUMSMALL = 0.00001;
 
 static const char cite_fix_qeq_reaxff[] =
   "fix qeq/reaxff command:\n\n"
@@ -380,6 +381,18 @@ void FixQEqReaxFF::init()
   if (group->count(igroup) == 0)
     error->all(FLERR,"Fix {} group has no atoms", style);
 
+  // compute net charge and print warning if too large
+
+  double qsum_local = 0.0, qsum = 0.0;
+  for (int i = 0; i < atom->nlocal; i++) {
+    if (atom->mask[i] & groupbit)
+      qsum_local += atom->q[i];
+  }
+  MPI_Allreduce(&qsum_local,&qsum,1,MPI_DOUBLE,MPI_SUM,world);
+
+  if ((comm->me == 0) && (fabs(qsum) > QSUMSMALL))
+    error->warning(FLERR,"Fix {} group is not charge neutral, net charge = {:.8}", style, qsum);
+
   // get pointer to fix efield if present. there may be at most one instance of fix efield in use.
 
   efield = nullptr;
@@ -625,9 +638,9 @@ void FixQEqReaxFF::init_matvec()
   }
 
   pack_flag = 2;
-  comm->forward_comm_fix(this); //Dist_vector(s);
+  comm->forward_comm(this); //Dist_vector(s);
   pack_flag = 3;
-  comm->forward_comm_fix(this); //Dist_vector(t);
+  comm->forward_comm(this); //Dist_vector(t);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -724,7 +737,7 @@ int FixQEqReaxFF::CG(double *b, double *x)
 
   pack_flag = 1;
   sparse_matvec(&H, x, q);
-  comm->reverse_comm_fix(this); //Coll_Vector(q);
+  comm->reverse_comm(this); //Coll_Vector(q);
 
   vector_sum(r , 1.,  b, -1., q, nn);
 
@@ -738,9 +751,9 @@ int FixQEqReaxFF::CG(double *b, double *x)
   sig_new = parallel_dot(r, d, nn);
 
   for (i = 1; i < imax && sqrt(sig_new) / b_norm > tolerance; ++i) {
-    comm->forward_comm_fix(this); //Dist_vector(d);
+    comm->forward_comm(this); //Dist_vector(d);
     sparse_matvec(&H, d, q);
-    comm->reverse_comm_fix(this); //Coll_vector(q);
+    comm->reverse_comm(this); //Coll_vector(q);
 
     tmp = parallel_dot(d, q, nn);
     alpha = sig_new / tmp;
@@ -832,7 +845,7 @@ void FixQEqReaxFF::calculate_Q()
   }
 
   pack_flag = 4;
-  comm->forward_comm_fix(this); //Dist_vector(atom->q);
+  comm->forward_comm(this); //Dist_vector(atom->q);
 }
 
 /* ---------------------------------------------------------------------- */

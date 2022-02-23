@@ -172,7 +172,7 @@ void PairEAMFSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
     if (newton_pair) {
       k_rho.template modify<DeviceType>();
-      comm->reverse_comm_pair(this);
+      comm->reverse_comm(this);
       k_rho.template sync<DeviceType>();
     }
 
@@ -201,7 +201,7 @@ void PairEAMFSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // communicate derivative of embedding function (on the device)
 
   k_fp.template modify<DeviceType>();
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
   k_fp.template sync<DeviceType>();
 
   // compute kernel C

@@ -77,6 +77,8 @@ of this fix are hard-coded to be A, eV, and electronic charge.
 The optional *dual* keyword allows to perform the optimization
 of the S and T matrices in parallel. This is only supported for
 the *qeq/reaxff/omp* style. Otherwise they are processed separately.
+The *qeq/reaxff/kk* style always solves the S and T matrices in
+parallel.
 
 The optional *maxiter* keyword allows changing the max number
 of iterations in the linear solver. The default value is 200.
@@ -87,6 +89,14 @@ useful for comparing serial and parallel results where having the
 same fixed number of QEq iterations is desired, which can be achieved
 by using a very small tolerance and setting *maxiter* to the desired
 number of iterations.
+
+.. note::
+
+   In order to solve the self-consistent equations for electronegativity
+   equalization, LAMMPS imposes the additional constraint that all the
+   charges in the fix group must add up to zero.  The initial charge
+   assignments should also satisfy this constraint.  LAMMPS will print a
+   warning if that is not the case.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

@@ -372,7 +372,7 @@ void FixPeriNeigh::setup(int /*vflag*/)
 
   // communicate wvolume to ghosts
 
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 
   // bond statistics
 

@@ -84,8 +84,7 @@ void FixQEqFire::init()
 
   if (tolerance < 1e-4)
     if (comm->me == 0)
-      error->warning(FLERR,"Fix qeq/fire tolerance may be too small"
-                    " for damped fires");
+      error->warning(FLERR,"Fix qeq/fire tolerance may be too small for damped fires");
 
   comb3 = (PairComb3 *) force->pair_match("^comb3",0);
   if (!comb3) comb = (PairComb *) force->pair_match("^comb",0);
@@ -126,7 +125,7 @@ void FixQEqFire::pre_force(int /*vflag*/)
 
   for (iloop = 0; iloop < maxiter; iloop ++) {
     pack_flag = 1;
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
 
     if (comb) {
       comb->yasu_char(qf,igroup);
@@ -245,7 +244,7 @@ double FixQEqFire::compute_eneg()
 
   // communicating charge force to all nodes, first forward then reverse
   pack_flag = 2;
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -278,7 +277,7 @@ double FixQEqFire::compute_eneg()
   }
 
   pack_flag = 2;
-  comm->reverse_comm_fix(this);
+  comm->reverse_comm(this);
 
   // sum charge force on each node and return it
 

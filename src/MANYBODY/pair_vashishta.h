@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class PairVashishta : public Pair {
  public:
   PairVashishta(class LAMMPS *);
-  virtual ~PairVashishta();
-  virtual void compute(int, int);
-  virtual void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  void init_style();
+  ~PairVashishta() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void init_style() override;
 
   static constexpr int NPARAMS_PER_LINE = 17;
 

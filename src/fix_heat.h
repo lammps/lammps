@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class FixHeat : public Fix {
  public:
   FixHeat(class LAMMPS *, int, char **);
-  ~FixHeat();
-  int setmask();
-  void init();
-  void end_of_step();
-  double compute_scalar();
-  double memory_usage();
+  ~FixHeat() override;
+  int setmask() override;
+  void init() override;
+  void end_of_step() override;
+  double compute_scalar() override;
+  double memory_usage() override;
 
  private:
   int iregion;

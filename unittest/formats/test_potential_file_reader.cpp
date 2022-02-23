@@ -37,7 +37,6 @@
 #include <vector>
 
 using namespace LAMMPS_NS;
-using ::testing::MatchesRegex;
 using utils::split_words;
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
@@ -283,7 +282,7 @@ TEST_F(OpenPotentialTest, Sw_conv)
 {
     int convert_flag = utils::get_supported_conversions(utils::ENERGY);
     ASSERT_EQ(convert_flag, utils::METAL2REAL | utils::REAL2METAL);
-    BEGIN_HIDE_OUTPUT();
+    BEGIN_CAPTURE_OUTPUT();
     command("units real");
     FILE *fp    = utils::open_potential("Si.sw", lmp, &convert_flag);
     auto text   = END_CAPTURE_OUTPUT();
@@ -301,7 +300,7 @@ TEST_F(OpenPotentialTest, Sw_noconv)
     BEGIN_HIDE_OUTPUT();
     command("units real");
     END_HIDE_OUTPUT();
-    TEST_FAILURE(".*potential.*requires metal units but real.*",
+    TEST_FAILURE(".*Potential.*requires metal units but real.*",
                  utils::open_potential("Si.sw", lmp, nullptr););
     BEGIN_HIDE_OUTPUT();
     command("units lj");

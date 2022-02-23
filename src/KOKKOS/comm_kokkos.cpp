@@ -362,19 +362,19 @@ void CommKokkos::reverse_comm_device()
 
 /* ---------------------------------------------------------------------- */
 
-void CommKokkos::forward_comm_fix(Fix *fix, int size)
+void CommKokkos::forward_comm(Fix *fix, int size)
 {
   if (fix->execution_space == Host || !fix->forward_comm_device || forward_fix_comm_classic) {
     k_sendlist.sync<LMPHostType>();
-    CommBrick::forward_comm_fix(fix,size);
+    CommBrick::forward_comm(fix,size);
   } else {
     k_sendlist.sync<LMPDeviceType>();
-    forward_comm_fix_device<LMPDeviceType>(fix);
+    forward_comm_device<LMPDeviceType>(fix,size);
   }
 }
 
 template<class DeviceType>
-void CommKokkos::forward_comm_fix_device(Fix *fix, int size)
+void CommKokkos::forward_comm_device(Fix *fix, int size)
 {
   int iswap,n,nsize;
   MPI_Request request;
@@ -395,7 +395,7 @@ void CommKokkos::forward_comm_fix_device(Fix *fix, int size)
 
     // pack buffer
 
-    n = fixKKBase->pack_forward_comm_fix_kokkos(sendnum[iswap],k_sendlist,
+    n = fixKKBase->pack_forward_comm_kokkos(sendnum[iswap],k_sendlist,
                                       iswap,k_buf_send_fix,pbc_flag[iswap],pbc[iswap]);
     DeviceType().fence();
 
@@ -432,44 +432,44 @@ void CommKokkos::forward_comm_fix_device(Fix *fix, int size)
 
     // unpack buffer
 
-    fixKKBase->unpack_forward_comm_fix_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_tmp);
+    fixKKBase->unpack_forward_comm_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_tmp);
     DeviceType().fence();
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void CommKokkos::reverse_comm_fix(Fix *fix, int size)
+void CommKokkos::reverse_comm(Fix *fix, int size)
 {
   k_sendlist.sync<LMPHostType>();
-  CommBrick::reverse_comm_fix(fix, size);
+  CommBrick::reverse_comm(fix, size);
 }
 
-void CommKokkos::forward_comm_compute(Compute *compute)
+void CommKokkos::forward_comm(Compute *compute)
 {
   k_sendlist.sync<LMPHostType>();
-  CommBrick::forward_comm_compute(compute);
+  CommBrick::forward_comm(compute);
 }
 
-void CommKokkos::reverse_comm_compute(Compute *compute)
+void CommKokkos::reverse_comm(Compute *compute)
 {
   k_sendlist.sync<LMPHostType>();
-  CommBrick::reverse_comm_compute(compute);
+  CommBrick::reverse_comm(compute);
 }
 
-void CommKokkos::forward_comm_pair(Pair *pair)
+void CommKokkos::forward_comm(Pair *pair)
 {
   if (pair->execution_space == Host || forward_pair_comm_classic) {
     k_sendlist.sync<LMPHostType>();
-    CommBrick::forward_comm_pair(pair);
+    CommBrick::forward_comm(pair);
   } else {
     k_sendlist.sync<LMPDeviceType>();
-    forward_comm_pair_device<LMPDeviceType>(pair);
+    forward_comm_device<LMPDeviceType>(pair);
   }
 }
 
 template<class DeviceType>
-void CommKokkos::forward_comm_pair_device(Pair *pair)
+void CommKokkos::forward_comm_device(Pair *pair)
 {
   int iswap,n;
   MPI_Request request;
@@ -543,22 +543,22 @@ void CommKokkos::grow_buf_fix(int n) {
   k_buf_recv_fix.resize(max_buf_fix);
 }
 
-void CommKokkos::reverse_comm_pair(Pair *pair)
+void CommKokkos::reverse_comm(Pair *pair)
 {
   k_sendlist.sync<LMPHostType>();
-  CommBrick::reverse_comm_pair(pair);
+  CommBrick::reverse_comm(pair);
 }
 
-void CommKokkos::forward_comm_dump(Dump *dump)
+void CommKokkos::forward_comm(Dump *dump)
 {
   k_sendlist.sync<LMPHostType>();
-  CommBrick::forward_comm_dump(dump);
+  CommBrick::forward_comm(dump);
 }
 
-void CommKokkos::reverse_comm_dump(Dump *dump)
+void CommKokkos::reverse_comm(Dump *dump)
 {
   k_sendlist.sync<LMPHostType>();
-  CommBrick::reverse_comm_dump(dump);
+  CommBrick::reverse_comm(dump);
 }
 
 /* ----------------------------------------------------------------------

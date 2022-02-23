@@ -707,11 +707,11 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
       const int bin_stencil_size = bin_stencil_stride * bin_stencil_stride;
       if (bin_stencil_size > _host_bin_stencil.numel())
         _host_bin_stencil.alloc(bin_stencil_size,*dev);
-        for (int s = 0; s<bin_stencil_size; s++) {
-          const int nbory = s % bin_stencil_stride - cells_in_cutoff;
-          const int nborz = s / bin_stencil_stride - cells_in_cutoff;
-          _host_bin_stencil[s] = nbory*ncellx + nborz*ncellx*ncelly;
-        }
+      for (int s = 0; s<bin_stencil_size; s++) {
+        const int nbory = s % bin_stencil_stride - cells_in_cutoff;
+        const int nborz = s / bin_stencil_stride - cells_in_cutoff;
+        _host_bin_stencil[s] = nbory*ncellx + nborz*ncellx*ncelly;
+      }
       _bin_stencil.update_device(_host_bin_stencil,bin_stencil_size);
     }
     #endif

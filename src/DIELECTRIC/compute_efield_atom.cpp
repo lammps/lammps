@@ -177,7 +177,7 @@ void ComputeEfieldAtom::compute_peratom()
   // communicate ghost efield between neighbor procs
 
   if (force->newton || (force->kspace && force->kspace->tip4pflag))
-    comm->reverse_comm_compute(this);
+    comm->reverse_comm(this);
 
   // zero efield of atoms not in group
   // only do this after comm since ghost contributions must be included

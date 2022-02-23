@@ -408,7 +408,7 @@ void PairMESONTTPM::compute(int eflag, int vflag) {
       int idx = ntlist.get_idx(i);
       buckling[idx] = b_sort[i];
     }
-    comm->forward_comm_pair(this);
+    comm->forward_comm(this);
     for (int i = 0; i < nall; i++) {
       int idx = ntlist.get_idx(i);
       b_sort[i] = buckling[idx];

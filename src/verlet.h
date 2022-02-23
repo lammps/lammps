@@ -27,13 +27,11 @@ namespace LAMMPS_NS {
 class Verlet : public Integrate {
  public:
   Verlet(class LAMMPS *, int, char **);
-  virtual ~Verlet() {}
-  virtual void init();
-  virtual void setup(int flag);
-  virtual void setup_minimal(int);
-  virtual void run(int);
-  virtual void force_clear();
-  void cleanup();
+  void init() override;
+  void setup(int flag) override;
+  void setup_minimal(int) override;
+  void run(int) override;
+  void cleanup() override;
 
  protected:
   int triclinic;    // 0 if domain is orthog, 1 if triclinic

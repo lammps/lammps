@@ -28,6 +28,7 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`angle <compute_angle>`
    * :doc:`angle/local <compute_angle_local>`
    * :doc:`angmom/chunk <compute_angmom_chunk>`
+   * :doc:`ave/sphere/atom (k) <compute_ave_sphere_atom>`
    * :doc:`basal/atom <compute_basal_atom>`
    * :doc:`body/local <compute_body_local>`
    * :doc:`bond <compute_bond>`

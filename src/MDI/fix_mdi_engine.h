@@ -28,20 +28,20 @@ namespace LAMMPS_NS {
 class FixMDIEngine : public Fix {
  public:
   FixMDIEngine(class LAMMPS *, int, char **);
-  ~FixMDIEngine();
-  int setmask();
-  void init();
+  ~FixMDIEngine() override;
+  int setmask() override;
+  void init() override;
 
   int execute_command(const char *command, MDI_Comm driver_socket);
   char *engine_mode(const char *node);
 
   // receive and update forces
 
-  void min_setup(int);
-  void post_integrate();
-  void post_force(int);
-  void min_pre_force(int);     //@COORDS
-  void min_post_force(int);    //@FORCES
+  void min_setup(int) override;
+  void post_integrate() override;
+  void post_force(int) override;
+  void min_pre_force(int) override;     //@COORDS
+  void min_post_force(int) override;    //@FORCES
 
   double *add_force;          // stores forces added using +FORCE command
   double potential_energy;    // stores potential energy

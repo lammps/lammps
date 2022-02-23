@@ -39,11 +39,9 @@ HIP_PLATFORM=$(shell $(HIP_PATH)/bin/hipconfig --platform)
 HIP_COMPILER=$(shell $(HIP_PATH)/bin/hipconfig --compiler)
 
 ifeq (hcc,$(HIP_PLATFORM))
-	HIP_OPTS  += -ffast-math
 	# possible values: gfx803,gfx900,gfx906
 	HIP_ARCH = gfx906
 else ifeq (amd,$(HIP_PLATFORM))
-	HIP_OPTS  += -ffast-math
 	# possible values: gfx803,gfx900,gfx906
 	HIP_ARCH = gfx906
 else ifeq (nvcc,$(HIP_PLATFORM))

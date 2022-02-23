@@ -46,14 +46,13 @@ class Respa : public Integrate {
   int pair_compute;       // 1 if pair force need to be computed
 
   Respa(class LAMMPS *, int, char **);
-  virtual ~Respa();
-  virtual void init();
-  virtual void setup(int);
-  virtual void setup_minimal(int);
-  virtual void run(int);
-  void force_clear();
-  virtual void cleanup();
-  virtual void reset_dt();
+  ~Respa() override;
+  void init() override;
+  void setup(int) override;
+  void setup_minimal(int) override;
+  void run(int) override;
+  void cleanup() override;
+  void reset_dt() override;
 
   void copy_f_flevel(int);
   void copy_flevel_f(int);

@@ -27,11 +27,10 @@ namespace LAMMPS_NS {
 class FixEOScv : public Fix {
  public:
   FixEOScv(class LAMMPS *, int, char **);
-  virtual ~FixEOScv() {}
-  int setmask();
-  virtual void init();
-  virtual void post_integrate();
-  virtual void end_of_step();
+  int setmask() override;
+  void init() override;
+  void post_integrate() override;
+  void end_of_step() override;
 
  protected:
   double cvEOS;

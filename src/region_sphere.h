@@ -27,14 +27,14 @@ namespace LAMMPS_NS {
 class RegSphere : public Region {
  public:
   RegSphere(class LAMMPS *, int, char **);
-  ~RegSphere();
-  void init();
-  int inside(double, double, double);
-  int surface_interior(double *, double);
-  int surface_exterior(double *, double);
-  void shape_update();
-  void set_velocity_shape();
-  void velocity_contact_shape(double *, double *);
+  ~RegSphere() override;
+  void init() override;
+  int inside(double, double, double) override;
+  int surface_interior(double *, double) override;
+  int surface_exterior(double *, double) override;
+  void shape_update() override;
+  void set_velocity_shape() override;
+  void velocity_contact_shape(double *, double *) override;
 
  private:
   double xc, yc, zc;

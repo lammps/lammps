@@ -1673,7 +1673,7 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int /*vflag*/, const bool is
   // Communicate the updated species data to all nodes
   atomKK->sync ( Host, DVECTOR_MASK );
 
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 
   atomKK->modified ( Host, DVECTOR_MASK );
 
@@ -2162,7 +2162,7 @@ void FixRxKokkos<DeviceType>::computeLocalTemperature()
   k_sumWeights.   template modify<DeviceType>();
 
   // Communicate the sum dpdTheta and the weights on the host.
-  if (NEWTON_PAIR) comm->reverse_comm_fix(this);
+  if (NEWTON_PAIR) comm->reverse_comm(this);
 
   // Update the device view in case they got changed.
   k_dpdThetaLocal.template sync<DeviceType>();

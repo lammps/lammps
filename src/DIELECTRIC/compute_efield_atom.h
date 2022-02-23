@@ -27,13 +27,13 @@ namespace LAMMPS_NS {
 class ComputeEfieldAtom : public Compute {
  public:
   ComputeEfieldAtom(class LAMMPS *, int, char **);
-  ~ComputeEfieldAtom();
-  void init();
-  void setup();
-  void compute_peratom();
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
-  double memory_usage();
+  ~ComputeEfieldAtom() override;
+  void init() override;
+  void setup() override;
+  void compute_peratom() override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  double memory_usage() override;
 
  private:
   int pairflag;

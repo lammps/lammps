@@ -378,7 +378,7 @@ void ComputeSNAVAtom::compute_peratom()
 
   // communicate snav contributions between neighbor procs
 
-  comm->reverse_comm_compute(this);
+  comm->reverse_comm(this);
 
 }
 

@@ -157,7 +157,7 @@ void PairMDPDRhoSum::compute(int eflag, int vflag) {
   }
 
   // communicate densities
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 }
 
 /* ----------------------------------------------------------------------

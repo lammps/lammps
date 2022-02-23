@@ -75,18 +75,18 @@ namespace LAMMPS_NS {
 class PairKIM : public Pair {
  public:
   PairKIM(class LAMMPS *);
-  ~PairKIM();
+  ~PairKIM() override;
 
   // LAMMPS Pair class virtual function prototypes
-  virtual void compute(int, int);
-  virtual void settings(int, char **);
-  virtual void coeff(int, char **);
-  virtual void init_style();
-  virtual void init_list(int id, NeighList *ptr);
-  virtual double init_one(int, int);
-  virtual int pack_reverse_comm(int, int, double *);
-  virtual void unpack_reverse_comm(int, int *, double *);
-  virtual double memory_usage();
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  void init_list(int id, NeighList *ptr) override;
+  double init_one(int, int) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  double memory_usage() override;
 
   // Get the KIM_Model object
   KIM_Model *get_kim_model();

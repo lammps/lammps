@@ -32,31 +32,31 @@ namespace LAMMPS_NS {
 class FixFilterCorotate : public Fix {
  public:
   FixFilterCorotate(class LAMMPS *, int, char **);
-  ~FixFilterCorotate();
-  void setup(int);
-  void setup_pre_neighbor();
-  void pre_neighbor();
-  void setup_pre_force_respa(int, int);
+  ~FixFilterCorotate() override;
+  void setup(int) override;
+  void setup_pre_neighbor() override;
+  void pre_neighbor() override;
+  void setup_pre_force_respa(int, int) override;
   //    void setup_post_force_respa(int,int);
-  void pre_force_respa(int, int, int);
-  void post_force_respa(int, int, int);
+  void pre_force_respa(int, int, int) override;
+  void post_force_respa(int, int, int) override;
 
-  void init();
-  int setmask();
+  void init() override;
+  int setmask() override;
 
-  double compute_array(int, int);
+  double compute_array(int, int) override;
 
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  void grow_arrays(int);
-  double memory_usage();
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  void grow_arrays(int) override;
+  double memory_usage() override;
 
-  void copy_arrays(int, int, int);
-  void set_arrays(int);
-  void update_arrays(int, int);
+  void copy_arrays(int, int, int) override;
+  void set_arrays(int) override;
+  void update_arrays(int, int) override;
 
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
 
  protected:
   int me, nprocs;

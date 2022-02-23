@@ -259,7 +259,7 @@ skip_pair = ('meam/c','lj/sf','reax/c')
 
 counter = 0
 
-counter += check_style('Commands_all.rst', doc_dir, ":doc:`(.+) <.+>`",command,'Command',suffix=False)
+counter += check_style('Commands_all.rst', doc_dir, ":doc:`(.+) <.+>`",command,'Command',suffix=True)
 counter += check_style('Commands_compute.rst', doc_dir, ":doc:`(.+) <compute.+>`",compute,'Compute',suffix=True)
 counter += check_style('compute.rst', doc_dir, ":doc:`(.+) <compute.+>` -",compute,'Compute',suffix=False)
 counter += check_style('Commands_fix.rst', doc_dir, ":doc:`(.+) <fix.+>`",fix,'Fix',skip=skip_fix,suffix=True)

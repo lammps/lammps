@@ -69,9 +69,11 @@ public:
   using complex = SNAComplex<real_type>;
   static constexpr int vector_length = vector_length_;
 
+  using KKDeviceType = typename KKDevice<DeviceType>::value;
+
   typedef Kokkos::View<int*, DeviceType> t_sna_1i;
   typedef Kokkos::View<real_type*, DeviceType> t_sna_1d;
-  typedef Kokkos::View<real_type*, typename KKDevice<DeviceType>::value, Kokkos::MemoryTraits<Kokkos::Atomic> > t_sna_1d_atomic;
+  typedef Kokkos::View<real_type*, KKDeviceType, Kokkos::MemoryTraits<Kokkos::Atomic>> t_sna_1d_atomic;
   typedef Kokkos::View<int**, DeviceType> t_sna_2i;
   typedef Kokkos::View<real_type**, DeviceType> t_sna_2d;
   typedef Kokkos::View<real_type**, Kokkos::LayoutLeft, DeviceType> t_sna_2d_ll;
@@ -83,7 +85,7 @@ public:
   typedef Kokkos::View<real_type*****, DeviceType> t_sna_5d;
 
   typedef Kokkos::View<complex*, DeviceType> t_sna_1c;
-  typedef Kokkos::View<complex*, typename KKDevice<DeviceType>::value, Kokkos::MemoryTraits<Kokkos::Atomic> > t_sna_1c_atomic;
+  typedef Kokkos::View<complex*, KKDeviceType, Kokkos::MemoryTraits<Kokkos::Atomic>> t_sna_1c_atomic;
   typedef Kokkos::View<complex**, DeviceType> t_sna_2c;
   typedef Kokkos::View<complex**, Kokkos::LayoutLeft, DeviceType> t_sna_2c_ll;
   typedef Kokkos::View<complex**, Kokkos::LayoutRight, DeviceType> t_sna_2c_lr;

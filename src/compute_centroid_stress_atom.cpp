@@ -16,6 +16,7 @@
 #include "angle.h"
 #include "atom.h"
 #include "bond.h"
+#include "citeme.h"
 #include "comm.h"
 #include "dihedral.h"
 #include "error.h"
@@ -33,6 +34,36 @@
 using namespace LAMMPS_NS;
 
 enum { NOBIAS, BIAS };
+
+static const char cite_centroid_angle_improper_dihedral[] =
+    "compute centroid/stress/atom for angles, impropers and dihedrals:\n\n"
+    "@article{PhysRevE.99.051301,\n"
+    " title = {Application of atomic stress to compute heat flux via molecular dynamics for "
+    "systems with many-body interactions},\n"
+    " author = {Surblys, Donatas and Matsubara, Hiroki and Kikugawa, Gota and Ohara, Taku},\n"
+    " journal = {Physical Review E},\n"
+    " volume = {99},\n"
+    " issue = {5},\n"
+    " pages = {051301},\n"
+    " year = {2019},\n"
+    " doi = {10.1103/PhysRevE.99.051301},\n"
+    " url = {https://link.aps.org/doi/10.1103/PhysRevE.99.051301}\n"
+    "}\n\n";
+
+static const char cite_centroid_shake_rigid[] =
+    "compute centroid/stress/atom for constrained dynamics:\n\n"
+    "@article{doi:10.1063/5.0070930,\n"
+    " author = {Surblys, Donatas and Matsubara, Hiroki and Kikugawa, Gota and Ohara, Taku},\n"
+    " journal = {Journal of Applied Physics},\n"
+    " title = {Methodology and meaning of computing heat flux via atomic stress in systems with "
+    "constraint dynamics},\n"
+    " volume = {130},\n"
+    " number = {21},\n"
+    " pages = {215104},\n"
+    " year = {2021},\n"
+    " doi = {10.1063/5.0070930},\n"
+    " url = {https://doi.org/10.1063/5.0070930},\n"
+    "}\n\n";
 
 /* ---------------------------------------------------------------------- */
 
@@ -105,6 +136,12 @@ ComputeCentroidStressAtom::ComputeCentroidStressAtom(LAMMPS *lmp, int narg, char
   }
 
   nmax = 0;
+
+  if (lmp->citeme) {
+    if (angleflag || dihedralflag || improperflag)
+      lmp->citeme->add(cite_centroid_angle_improper_dihedral);
+    if (fixflag) lmp->citeme->add(cite_centroid_shake_rigid);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -268,26 +305,33 @@ void ComputeCentroidStressAtom::compute_peratom()
   // possible during setup phase if fix has not initialized its vatom yet
   // e.g. fix ave/spatial defined before fix shake,
   //   and fix ave/spatial uses a per-atom stress from this compute as input
-  // fix styles are CENTROID_SAME or CENTROID_NOTAVAIL
+  // fix styles are CENTROID_SAME, CENTROID_AVAIL or CENTROID_NOTAVAIL
 
   if (fixflag) {
     Fix **fix = modify->fix;
     int nfix = modify->nfix;
     for (int ifix = 0; ifix < nfix; ifix++)
       if (fix[ifix]->virial_peratom_flag && fix[ifix]->thermo_virial) {
-        double **vatom = fix[ifix]->vatom;
-        if (vatom)
-          for (i = 0; i < nlocal; i++) {
-            for (j = 0; j < 6; j++) stress[i][j] += vatom[i][j];
-            for (j = 6; j < 9; j++) stress[i][j] += vatom[i][j - 3];
-          }
+        if (modify->fix[ifix]->centroidstressflag == CENTROID_AVAIL) {
+          double **cvatom = modify->fix[ifix]->cvatom;
+          if (cvatom)
+            for (i = 0; i < nlocal; i++)
+              for (j = 0; j < 9; j++) stress[i][j] += cvatom[i][j];
+        } else {
+          double **vatom = modify->fix[ifix]->vatom;
+          if (vatom)
+            for (i = 0; i < nlocal; i++) {
+              for (j = 0; j < 6; j++) stress[i][j] += vatom[i][j];
+              for (j = 6; j < 9; j++) stress[i][j] += vatom[i][j - 3];
+            }
+        }
       }
   }
 
   // communicate ghost virials between neighbor procs
 
   if (force->newton || (force->kspace && force->kspace->tip4pflag && force->kspace->compute_flag))
-    comm->reverse_comm_compute(this);
+    comm->reverse_comm(this);
 
   // zero virial of atoms not in group
   // only do this after comm since ghost contributions must be included

@@ -28,7 +28,7 @@ namespace LAMMPS_NS {
 class Plugin : public Command {
  public:
   Plugin(class LAMMPS *);
-  void command(int, char **);
+  void command(int, char **) override;
 };
 
 void plugin_load(const char *, LAMMPS *);

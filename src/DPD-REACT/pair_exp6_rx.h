@@ -27,15 +27,15 @@ namespace LAMMPS_NS {
 class PairExp6rx : public Pair {
  public:
   PairExp6rx(class LAMMPS *);
-  virtual ~PairExp6rx();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  virtual void coeff(int, char **);
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
+  ~PairExp6rx() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
 
   struct Param {
     double epsilon, rm, alpha;
@@ -62,7 +62,7 @@ class PairExp6rx : public Pair {
   int nspecies;
   virtual void read_file(char *);
   void read_file2(char *);
-  void setup();
+  void setup() override;
 
   int isite1, isite2;
   char *site1, *site2;

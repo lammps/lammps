@@ -28,10 +28,10 @@ namespace LAMMPS_NS {
 class FixPythonInvoke : public Fix {
  public:
   FixPythonInvoke(class LAMMPS *, int, char **);
-  virtual ~FixPythonInvoke();
-  int setmask();
-  virtual void end_of_step();
-  virtual void post_force(int);
+  ~FixPythonInvoke() override;
+  int setmask() override;
+  void end_of_step() override;
+  void post_force(int) override;
 
  private:
   void *lmpPtr;

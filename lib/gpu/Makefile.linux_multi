@@ -1,6 +1,6 @@
 # /* ----------------------------------------------------------------------   
-#  Generic Linux Makefile for CUDA 
-#     - Change CUDA_ARCH for your GPU
+#  Generic Linux Makefile for CUDA complied for multiple compute capabilities
+#     - Add your GPU to CUDA_CODE
 # ------------------------------------------------------------------------- */
 
 # which file will be copied to Makefile.lammps

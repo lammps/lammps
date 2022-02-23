@@ -306,12 +306,12 @@ elseif(GPU_API STREQUAL "HIP")
 
         if(HIP_COMPILER STREQUAL "clang")
           add_custom_command(OUTPUT ${CUBIN_FILE}
-            VERBATIM COMMAND ${HIP_HIPCC_EXECUTABLE} --genco --offload-arch=${HIP_ARCH} -O3 -ffast-math -DUSE_HIP -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES} -I${LAMMPS_LIB_SOURCE_DIR}/gpu -o ${CUBIN_FILE} ${CU_CPP_FILE}
+            VERBATIM COMMAND ${HIP_HIPCC_EXECUTABLE} --genco --offload-arch=${HIP_ARCH} -O3 -DUSE_HIP -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES} -I${LAMMPS_LIB_SOURCE_DIR}/gpu -o ${CUBIN_FILE} ${CU_CPP_FILE}
             DEPENDS ${CU_CPP_FILE}
             COMMENT "Generating ${CU_NAME}.cubin")
         else()
           add_custom_command(OUTPUT ${CUBIN_FILE}
-            VERBATIM COMMAND ${HIP_HIPCC_EXECUTABLE} --genco -t="${HIP_ARCH}" -f=\"-O3 -ffast-math -DUSE_HIP -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES} -I${LAMMPS_LIB_SOURCE_DIR}/gpu\" -o ${CUBIN_FILE} ${CU_CPP_FILE}
+            VERBATIM COMMAND ${HIP_HIPCC_EXECUTABLE} --genco -t="${HIP_ARCH}" -f=\"-O3 -DUSE_HIP -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES} -I${LAMMPS_LIB_SOURCE_DIR}/gpu\" -o ${CUBIN_FILE} ${CU_CPP_FILE}
             DEPENDS ${CU_CPP_FILE}
             COMMENT "Generating ${CU_NAME}.cubin")
         endif()
@@ -422,13 +422,12 @@ RegisterStylesExt(${GPU_SOURCES_DIR} gpu GPU_SOURCES)
 RegisterFixStyle(${GPU_SOURCES_DIR}/fix_gpu.h)
 
 get_property(GPU_SOURCES GLOBAL PROPERTY GPU_SOURCES)
-
-if(NOT BUILD_MPI)
-  # mpistubs is aliased to MPI::MPI_CXX, but older versions of cmake won't work forward the include path
-  target_link_libraries(gpu PRIVATE mpi_stubs)
-else()
+if(BUILD_MPI)
   target_link_libraries(gpu PRIVATE MPI::MPI_CXX)
+else()
+  target_link_libraries(gpu PRIVATE mpi_stubs)
 endif()
+
 target_compile_definitions(gpu PRIVATE -DLAMMPS_${LAMMPS_SIZES})
 set_target_properties(gpu PROPERTIES OUTPUT_NAME lammps_gpu${LAMMPS_MACHINE})
 target_sources(lammps PRIVATE ${GPU_SOURCES})

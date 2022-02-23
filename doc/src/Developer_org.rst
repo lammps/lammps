@@ -225,7 +225,7 @@ follows:
   commands in an input script.
 
 - The Force class computes various forces between atoms.  The Pair
-  parent class is for non-bonded or pair-wise forces, which in LAMMPS
+  parent class is for non-bonded or pairwise forces, which in LAMMPS
   also includes many-body forces such as the Tersoff 3-body potential if
   those are computed by walking pairwise neighbor lists.  The Bond,
   Angle, Dihedral, Improper parent classes are styles for bonded

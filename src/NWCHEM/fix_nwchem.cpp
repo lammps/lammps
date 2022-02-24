@@ -450,7 +450,7 @@ double FixNWChem::compute_scalar()
 }
 
 /* ----------------------------------------------------------------------
-   dummy version of NWChem pwdft_minimezer()
+   dummy version of NWChem pwdft_minimizer()
    NOTE: for dummy test, quantities are in LAMMPS units, not NWChem units
 ------------------------------------------------------------------------- */
 

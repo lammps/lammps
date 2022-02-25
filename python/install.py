@@ -10,7 +10,7 @@ build target in the conventional and CMake based build systems
 # copy LAMMPS shared library and lammps package to system dirs
 
 from __future__ import print_function
-import sys,os,shutil,time,glob
+import sys,os,shutil,time,glob,subprocess
 from argparse import ArgumentParser
 
 parser = ArgumentParser(prog='install.py',
@@ -47,8 +47,8 @@ os.chdir(os.path.dirname(args.package))
 
 print("Purging existing wheels...")
 for wheel in glob.glob('lammps-*.whl'):
-    print("deleting " + wheel)
-    os.remove(wheel)
+  print("deleting " + wheel)
+  os.remove(wheel)
 
 # create virtual environment for building the wheel
 shutil.rmtree('buildwheel',True)
@@ -66,6 +66,17 @@ os.remove(os.path.join('lammps',os.path.basename(args.lib)))
 
 print("Installing wheel")
 for wheel in glob.glob('lammps-*.whl'):
-  os.system(sys.executable + " -m pip install --force-reinstall " + wheel)
+  try:
+    txt = subprocess.check_output([sys.executable, '-m', 'pip', 'install', '--force-reinstall', wheel], stderr=subprocess.STDOUT, shell=False)
+    print(txt.decode('UTF-8'))
+    continue
+  except:
+    pass
+  try:
+    print('Installing wheel into standard site-packages folder failed. Trying user folder now')
+    txt = subprocess.check_output([sys.executable, '-m', 'pip', 'install', '--user', '--force-reinstall', wheel], stderr=subprocess.STDOUT, shell=False)
+    print(txt.decode('UTF-8'))
+  except:
+    sys.exit('Failed to install wheel ' + wheel)
   shutil.copy(wheel, olddir)
   os.remove(wheel)

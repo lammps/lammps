@@ -16,6 +16,7 @@ endif()
 
 project(lammps CXX)
 set(SOVERSION 0)
+get_property(BUILD_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 
 get_filename_component(LAMMPS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/.. ABSOLUTE)
 get_filename_component(LAMMPS_LIB_BINARY_DIR ${CMAKE_BINARY_DIR}/lib ABSOLUTE)
@@ -748,11 +749,15 @@ if(BUILD_SHARED_LIBS)
   else()
     find_package(Python COMPONENTS Interpreter)
   endif()
+  if(BUILD_IS_MULTI_CONFIG)
+    set(LIBLAMMPS_SHARED_BINARY ${CMAKE_BINARY_DIR}/$<CONFIG>/liblammps${LAMMPS_MACHINE}${CMAKE_SHARED_LIBRARY_SUFFIX})
+  else()
+    set(LIBLAMMPS_SHARED_BINARY ${CMAKE_BINARY_DIR}/liblammps${LAMMPS_MACHINE}${CMAKE_SHARED_LIBRARY_SUFFIX})
+  endif()
   if(Python_EXECUTABLE)
     add_custom_target(
       install-python ${CMAKE_COMMAND} -E remove_directory build
-      COMMAND ${Python_EXECUTABLE} ${LAMMPS_PYTHON_DIR}/install.py -p ${LAMMPS_PYTHON_DIR}/lammps
-      -l ${CMAKE_BINARY_DIR}/liblammps${LAMMPS_MACHINE}${CMAKE_SHARED_LIBRARY_SUFFIX}
+      COMMAND ${Python_EXECUTABLE} ${LAMMPS_PYTHON_DIR}/install.py -p ${LAMMPS_PYTHON_DIR}/lammps -l ${LIBLAMMPS_SHARED_BINARY}
       COMMENT "Installing LAMMPS Python module")
   else()
     add_custom_target(
@@ -797,7 +802,6 @@ if(ClangFormat_FOUND)
 endif()
 
 get_target_property(DEFINES lammps COMPILE_DEFINITIONS)
-get_property(BUILD_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if(BUILD_IS_MULTI_CONFIG)
   set(LAMMPS_BUILD_TYPE "Multi-Config")
 else()

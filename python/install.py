@@ -55,7 +55,7 @@ shutil.rmtree('buildwheel',True)
 os.putenv('LAMMPS_SHARED_LIB',args.lib)
 #os.environ['LAMMPS_SHARED_LIB'] = args.lib
 shutil.copy(args.lib,'lammps')
-os.system(sys.executable + ' -m virtualenv buildwheel')
+os.system(sys.executable + ' -m virtualenv buildwheel -p ' + sys.executable)
 os.system(sys.executable + ' makewheel.py')
 
 # remove temporary folders and files

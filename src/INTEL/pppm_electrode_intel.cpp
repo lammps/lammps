@@ -80,6 +80,8 @@ PPPMElectrodeIntel::~PPPMElectrodeIntel()
 {
   memory->destroy3d_offset(electrolyte_density_brick, nzlo_out, nylo_out, nxlo_out);
   memory->destroy(electrolyte_density_fft);
+  if ((differentiation_flag != 1) && !peratom_allocate_flag)
+    memory->destroy3d_offset(u_brick, nzlo_out, nylo_out, nxlo_out);
   delete boundcorr;
 }
 
@@ -158,8 +160,10 @@ void PPPMElectrodeIntel::compute(int eflag, int vflag)
 {
 #ifdef _LMP_INTEL_OFFLOAD
   if (_use_base) {
-    PPPM::compute(eflag, vflag);
-    return;
+    error->all(FLERR, "Cannot use pppm/electrode/intel with offload");
+    // PPPM::compute(eflag, vflag);
+    // would work if the above line referred to PPPMElectrode
+    // but the required multiple inheritances would be insane
   }
 #endif
 
@@ -343,7 +347,7 @@ void PPPMElectrodeIntel::compute_vector(bigint *imat, double *vec)
   }
   fft1->compute(work1, work1, -1);
 
-  // k->r FFT of Green's * electrolyte density = brick_psi
+  // k->r FFT of Green's * electrolyte density = u_brick
   for (int i = 0, n = 0; i < nfft; i++) {
     work2[n] = work1[n] * greensfn[i];
     n++;
@@ -351,35 +355,33 @@ void PPPMElectrodeIntel::compute_vector(bigint *imat, double *vec)
     n++;
   }
   fft2->compute(work2, work2, 1);
-  int const brick_size = nz_pppm * ny_pppm * nx_pppm;
-  double *brick_psi = new double[brick_size];
-  memset(brick_psi, 0, brick_size * sizeof(double));
+
   for (int k = nzlo_in, n = 0; k <= nzhi_in; k++)
     for (int j = nylo_in; j <= nyhi_in; j++)
       for (int i = nxlo_in; i <= nxhi_in; i++) {
-        brick_psi[ny_pppm * nx_pppm * k + nx_pppm * j + i] = work2[n];
+        u_brick[k][j][i] = work2[n];
         n += 2;
       }
-  MPI_Allreduce(MPI_IN_PLACE, &brick_psi[0], brick_size, MPI_DOUBLE, MPI_SUM, world);
+
+  gc->forward_comm(GridComm::KSPACE, this, 1, sizeof(FFT_SCALAR), FORWARD_AD, gc_buf1, gc_buf2,
+                   MPI_FFT_SCALAR);
 
   switch (fix->precision()) {
     case FixIntel::PREC_MODE_MIXED:
-      project_psi<float, double>(fix->get_mixed_buffers(), imat, vec, brick_psi);
+      project_psi<float, double>(fix->get_mixed_buffers(), imat, vec);
       break;
     case FixIntel::PREC_MODE_DOUBLE:
-      project_psi<double, double>(fix->get_double_buffers(), imat, vec, brick_psi);
+      project_psi<double, double>(fix->get_double_buffers(), imat, vec);
       break;
     default:
-      project_psi<float, float>(fix->get_single_buffers(), imat, vec, brick_psi);
+      project_psi<float, float>(fix->get_single_buffers(), imat, vec);
   }
   compute_vector_called = true;
-  delete[] brick_psi;
 }
 
-// project brick_psi with weight matrix
+// project u_brick with weight matrix
 template <class flt_t, class acc_t, int use_table>
-void PPPMElectrodeIntel::project_psi(IntelBuffers<flt_t, acc_t> *buffers, bigint *imat, double *vec,
-                                     double *brick_psi)
+void PPPMElectrodeIntel::project_psi(IntelBuffers<flt_t, acc_t> *buffers, bigint *imat, double *vec)
 {
   ATOM_T *_noalias const x = buffers->get_x(0);
 
@@ -472,27 +474,20 @@ void PPPMElectrodeIntel::project_psi(IntelBuffers<flt_t, acc_t> *buffers, bigint
 #endif
       for (int n = 0; n < order; n++) {
         int miz = nlower + n + nz;
-        while (miz < 0) miz += nz_pppm;
-        miz = miz % nz_pppm;
-        FFT_SCALAR y0 = rho[2][n];
+        FFT_SCALAR z0 = rho[2][n];
 #if defined(LMP_SIMD_COMPILER)
 #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
 #endif
         for (int m = 0; m < order; m++) {
           int miy = nlower + m + ny;
-          while (miy < 0) miy += ny_pppm;
-          miy = miy % ny_pppm;
-          FFT_SCALAR x0 = y0 * rho[1][m];
+          FFT_SCALAR y0 = z0 * rho[1][m];
 #if defined(LMP_SIMD_COMPILER)
 #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
 #pragma simd
 #endif
           for (int l = 0; l < order; l++) {
             int mix = nlower + l + nx;
-            while (mix < 0) mix += nx_pppm;
-            mix = mix % nx_pppm;
-            int mzyx = ny_pppm * nx_pppm * miz + nx_pppm * miy + mix;
-            v += x0 * rho[0][l] * brick_psi[mzyx];
+            v += y0 * rho[0][l] * u_brick[miz][miy][mix];
           }
         }
       }
@@ -1047,11 +1042,10 @@ void PPPMElectrodeIntel::allocate()
   PPPMIntel::create3d_offset(density_brick, nzlo_out, nzhi_out, nylo_out, nyhi_out, nxlo_out,
                              nxhi_out, "pppm:density_brick");
 
-  if (differentiation_flag == 1) {
+  if ((differentiation_flag == 1) || u_brick != nullptr) {
     memory->destroy3d_offset(u_brick, nzlo_out, nylo_out, nxlo_out);
-    PPPMIntel::create3d_offset(u_brick, nzlo_out, nzhi_out, nylo_out, nyhi_out, nxlo_out, nxhi_out,
-                               "pppm:u_brick");
-  } else {
+  }
+  if (differentiation_flag != 1) {
     memory->destroy3d_offset(vdx_brick, nzlo_out, nylo_out, nxlo_out);
     memory->destroy3d_offset(vdy_brick, nzlo_out, nylo_out, nxlo_out);
     memory->destroy3d_offset(vdz_brick, nzlo_out, nylo_out, nxlo_out);
@@ -1062,5 +1056,89 @@ void PPPMElectrodeIntel::allocate()
     PPPMIntel::create3d_offset(vdz_brick, nzlo_out, nzhi_out, nylo_out, nyhi_out, nxlo_out,
                                nxhi_out, "pppm:vdz_brick");
   }
+  PPPMIntel::create3d_offset(u_brick, nzlo_out, nzhi_out, nylo_out, nyhi_out, nxlo_out, nxhi_out,
+                             "pppm:u_brick");    // use u_brick in project_psi
 }
 
+void PPPMElectrodeIntel::allocate_peratom()
+{
+  // duplicated to avoid reallocating u_brick
+  peratom_allocate_flag = 1;
+
+  memory->create3d_offset(v0_brick, nzlo_out, nzhi_out, nylo_out, nyhi_out, nxlo_out, nxhi_out,
+                          "pppm:v0_brick");
+
+  memory->create3d_offset(v1_brick, nzlo_out, nzhi_out, nylo_out, nyhi_out, nxlo_out, nxhi_out,
+                          "pppm:v1_brick");
+  memory->create3d_offset(v2_brick, nzlo_out, nzhi_out, nylo_out, nyhi_out, nxlo_out, nxhi_out,
+                          "pppm:v2_brick");
+  memory->create3d_offset(v3_brick, nzlo_out, nzhi_out, nylo_out, nyhi_out, nxlo_out, nxhi_out,
+                          "pppm:v3_brick");
+  memory->create3d_offset(v4_brick, nzlo_out, nzhi_out, nylo_out, nyhi_out, nxlo_out, nxhi_out,
+                          "pppm:v4_brick");
+  memory->create3d_offset(v5_brick, nzlo_out, nzhi_out, nylo_out, nyhi_out, nxlo_out, nxhi_out,
+                          "pppm:v5_brick");
+
+  // use same GC ghost grid object for peratom grid communication
+  // but need to reallocate a larger gc_buf1 and gc_buf2
+
+  if (differentiation_flag)
+    npergrid = 6;
+  else
+    npergrid = 7;
+
+  memory->destroy(gc_buf1);
+  memory->destroy(gc_buf2);
+  memory->create(gc_buf1, npergrid * ngc_buf1, "pppm:gc_buf1");
+  memory->create(gc_buf2, npergrid * ngc_buf2, "pppm:gc_buf2");
+}
+
+void PPPMElectrodeIntel::deallocate()
+{
+  // duplicated to always deallocate u_brick
+  memory->destroy3d_offset(density_brick, nzlo_out, nylo_out, nxlo_out);
+  memory->destroy3d_offset(u_brick, nzlo_out, nylo_out, nxlo_out);
+
+  if (differentiation_flag == 1) {
+    memory->destroy(sf_precoeff1);
+    memory->destroy(sf_precoeff2);
+    memory->destroy(sf_precoeff3);
+    memory->destroy(sf_precoeff4);
+    memory->destroy(sf_precoeff5);
+    memory->destroy(sf_precoeff6);
+  } else {
+    memory->destroy3d_offset(vdx_brick, nzlo_out, nylo_out, nxlo_out);
+    memory->destroy3d_offset(vdy_brick, nzlo_out, nylo_out, nxlo_out);
+    memory->destroy3d_offset(vdz_brick, nzlo_out, nylo_out, nxlo_out);
+  }
+
+  memory->destroy(density_fft);
+  memory->destroy(greensfn);
+  memory->destroy(work1);
+  memory->destroy(work2);
+  memory->destroy(vg);
+
+  if (triclinic == 0) {
+    memory->destroy1d_offset(fkx, nxlo_fft);
+    memory->destroy1d_offset(fky, nylo_fft);
+    memory->destroy1d_offset(fkz, nzlo_fft);
+  } else {
+    memory->destroy(fkx);
+    memory->destroy(fky);
+    memory->destroy(fkz);
+  }
+
+  memory->destroy(gf_b);
+  if (stagger_flag) gf_b = nullptr;
+  memory->destroy2d_offset(rho1d, -order_allocated / 2);
+  memory->destroy2d_offset(drho1d, -order_allocated / 2);
+  memory->destroy2d_offset(rho_coeff, (1 - order_allocated) / 2);
+  memory->destroy2d_offset(drho_coeff, (1 - order_allocated) / 2);
+
+  delete fft1;
+  delete fft2;
+  delete remap;
+  delete gc;
+  memory->destroy(gc_buf1);
+  memory->destroy(gc_buf2);
+}

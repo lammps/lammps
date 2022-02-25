@@ -80,6 +80,7 @@ class PPPMElectrode : public PPPM, public ElectrodeKSpace {
 
   virtual void allocate();
   virtual void deallocate();
+  virtual void allocate_peratom();
   double compute_df_kspace();
   // double estimate_ik_error(double, double, bigint);
   virtual double compute_qopt();
@@ -115,6 +116,7 @@ class PPPMElectrode : public PPPM, public ElectrodeKSpace {
   int compute_step;
   void start_compute();
   void make_rho_in_brick(bigint *, FFT_SCALAR ***, bool);
+  void project_psi(bigint *, double *vec);
   void one_step_multiplication(bigint *, std::vector<double>, double **, double **, int const);
   void two_step_multiplication(bigint *, std::vector<double>, double **, double **, int const);
   bool compute_vector_called;

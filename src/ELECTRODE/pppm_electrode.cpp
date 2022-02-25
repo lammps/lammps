@@ -579,7 +579,6 @@ void PPPMElectrode::start_compute()
 void PPPMElectrode::compute_vector(bigint *imat, double *vec)
 {
   start_compute();
-  double const scaleinv = 1.0 / (nx_pppm * ny_pppm * nz_pppm);
 
   // temporarily store and switch pointers so we can use brick2fft() for
   // electrolyte density (without writing an additional function)
@@ -602,7 +601,7 @@ void PPPMElectrode::compute_vector(bigint *imat, double *vec)
   }
   fft1->compute(work1, work1, -1);
 
-  // k->r FFT of Green's * electrolyte density = brick_psi
+  // k->r FFT of Green's * electrolyte density = u_brick
   for (int i = 0, n = 0; i < nfft; i++) {
     work2[n] = work1[n] * greensfn[i];
     n++;
@@ -610,18 +609,23 @@ void PPPMElectrode::compute_vector(bigint *imat, double *vec)
     n++;
   }
   fft2->compute(work2, work2, 1);
-  vector<double> brick_psi(nz_pppm * ny_pppm * nx_pppm, 0.);
   for (int k = nzlo_in, n = 0; k <= nzhi_in; k++)
     for (int j = nylo_in; j <= nyhi_in; j++)
       for (int i = nxlo_in; i <= nxhi_in; i++) {
-        brick_psi[ny_pppm * nx_pppm * k + nx_pppm * j + i] = work2[n];
+        u_brick[k][j][i] = work2[n];
         n += 2;
       }
-  MPI_Allreduce(MPI_IN_PLACE, &brick_psi.front(), nz_pppm * ny_pppm * nx_pppm, MPI_DOUBLE, MPI_SUM,
-                world);
+  gc->forward_comm(GridComm::KSPACE, this, 1, sizeof(FFT_SCALAR), FORWARD_AD, gc_buf1, gc_buf2,
+                   MPI_FFT_SCALAR);
+  project_psi(imat, vec);
+  compute_vector_called = true;
+}
 
-  // project brick_psi with weight matrix
+void PPPMElectrode::project_psi(bigint *imat, double *vec)
+{
+  // project u_brick with weight matrix
   double **x = atom->x;
+  double const scaleinv = 1.0 / (nx_pppm * ny_pppm * nz_pppm);
   for (int i = 0; i < atom->nlocal; i++) {
     int ipos = imat[i];
     if (ipos < 0) continue;
@@ -639,28 +643,18 @@ void PPPMElectrode::compute_vector(bigint *imat, double *vec)
     for (int ni = nlower; ni <= nupper; ni++) {
       double iz0 = rho1d[2][ni];
       int miz = ni + niz;
-      // int debug_miz = miz;
-      while (miz < 0) miz += nz_pppm;
-      miz = miz % nz_pppm;
       for (int mi = nlower; mi <= nupper; mi++) {
         double iy0 = iz0 * rho1d[1][mi];
         int miy = mi + niy;
-        // int debug_miy = miy;
-        while (miy < 0) miy += ny_pppm;
-        miy = miy % ny_pppm;
         for (int li = nlower; li <= nupper; li++) {
           int mix = li + nix;
-          // int debug_mix = mix;
-          while (mix < 0) mix += nx_pppm;
-          mix = mix % nx_pppm;
           double ix0 = iy0 * rho1d[0][li];
-          v += ix0 * brick_psi[ny_pppm * nx_pppm * miz + nx_pppm * miy + mix];
+          v += ix0 * u_brick[miz][miy][mix];
         }
       }
     }
     vec[ipos] += v * scaleinv;
   }
-  compute_vector_called = true;
 }
 /* ----------------------------------------------------------------------
 -------------------------------------------------------------------------
@@ -921,6 +915,9 @@ void PPPMElectrode::allocate()
                           nxlo_out, nxhi_out, "pppm/electrode:electrolyte_density_brick");
   memory->create(electrolyte_density_fft, nfft_both, "pppm/electrode:electrolyte_density_fft");
   PPPM::allocate();
+  if (differentiation_flag != 1)
+    memory->create3d_offset(u_brick, nzlo_out, nzhi_out, nylo_out, nyhi_out, nxlo_out, nxhi_out,
+                            "pppm:u_brick");
 }
 
 /* ----------------------------------------------------------------------
@@ -934,8 +931,8 @@ void PPPMElectrode::deallocate()
   memory->destroy(electrolyte_density_fft);
 
   memory->destroy3d_offset(density_brick, nzlo_out, nylo_out, nxlo_out);
+  memory->destroy3d_offset(u_brick, nzlo_out, nylo_out, nxlo_out);
   if (differentiation_flag == 1) {
-    memory->destroy3d_offset(u_brick, nzlo_out, nylo_out, nxlo_out);
     memory->destroy(sf_precoeff1);
     memory->destroy(sf_precoeff2);
     memory->destroy(sf_precoeff3);
@@ -967,6 +964,37 @@ void PPPMElectrode::deallocate()
 
   memory->destroy(gc_buf1);
   memory->destroy(gc_buf2);
+}
+
+void PPPMElectrode::allocate_peratom()
+{
+  peratom_allocate_flag = 1;
+
+  memory->create3d_offset(v0_brick, nzlo_out, nzhi_out, nylo_out, nyhi_out, nxlo_out, nxhi_out,
+                            "pppm:v0_brick");
+  memory->create3d_offset(v1_brick, nzlo_out, nzhi_out, nylo_out, nyhi_out, nxlo_out, nxhi_out,
+                          "pppm:v1_brick");
+  memory->create3d_offset(v2_brick, nzlo_out, nzhi_out, nylo_out, nyhi_out, nxlo_out, nxhi_out,
+                          "pppm:v2_brick");
+  memory->create3d_offset(v3_brick, nzlo_out, nzhi_out, nylo_out, nyhi_out, nxlo_out, nxhi_out,
+                          "pppm:v3_brick");
+  memory->create3d_offset(v4_brick, nzlo_out, nzhi_out, nylo_out, nyhi_out, nxlo_out, nxhi_out,
+                          "pppm:v4_brick");
+  memory->create3d_offset(v5_brick, nzlo_out, nzhi_out, nylo_out, nyhi_out, nxlo_out, nxhi_out,
+                          "pppm:v5_brick");
+
+  // use same GC ghost grid object for peratom grid communication
+  // but need to reallocate a larger gc_buf1 and gc_buf2
+
+  if (differentiation_flag)
+    npergrid = 6;
+  else
+    npergrid = 7;
+
+  memory->destroy(gc_buf1);
+  memory->destroy(gc_buf2);
+  memory->create(gc_buf1, npergrid * ngc_buf1, "pppm:gc_buf1");
+  memory->create(gc_buf2, npergrid * ngc_buf2, "pppm:gc_buf2");
 }
 
 /* ----------------------------------------------------------------------

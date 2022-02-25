@@ -33,7 +33,7 @@ if version_info.major >= 3:
 else:
     pkgs = ['lammps']
 
-with open("README", "r", encoding="utf-8") as fh:
+with open("README", "r") as fh:
     long_description = fh.read()
 
 if libname:

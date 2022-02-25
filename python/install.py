@@ -55,7 +55,12 @@ shutil.rmtree('buildwheel',True)
 os.putenv('LAMMPS_SHARED_LIB',args.lib)
 #os.environ['LAMMPS_SHARED_LIB'] = args.lib
 shutil.copy(args.lib,'lammps')
-os.system(sys.executable + ' -m virtualenv buildwheel -p ' + sys.executable)
+try:
+  txt = subprocess.check_output([sys.executable, '-m', 'virtualenv', 'buildwheel', '-p', sys.executable], stderr=subprocess.STDOUT, shell=False)
+  print(txt.decode('UTF-8'))
+except subprocess.CalledProcessError as err:
+  sys.exit("Failed to create a virtualenv: {0}".format(err.output.decode('UTF-8')))
+
 os.system(sys.executable + ' makewheel.py')
 
 # remove temporary folders and files

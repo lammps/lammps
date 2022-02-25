@@ -35,8 +35,10 @@ variable s56 equal v_s5*v_s6
 
 variable mytemp equal temp
 variable mypress equal press
+variable mype equal pe/atoms
 fix avt all ave/time ${nevery} ${nrepeat} ${nfreq} v_mytemp ave running
 fix avp all ave/time ${nevery} ${nrepeat} ${nfreq} v_mypress ave running
+fix avpe all ave/time ${nevery} ${nrepeat} ${nfreq} v_mype ave running
 fix avs all ave/time ${nevery} ${nrepeat} ${nfreq} v_s1 v_s2 v_s3 v_s4 v_s5 v_s6 ave running
 fix avssq all ave/time ${nevery} ${nrepeat} ${nfreq} &
 v_s11 v_s22 v_s33 v_s44 v_s55 v_s66 &
@@ -45,12 +47,7 @@ v_s23 v_s24 v_s25 v_s26 &
 v_s34 v_s35 v_s36 &
 v_s45 v_s46 &
 v_s56 &
- ave running
-
-thermo		${nthermo}
-
-thermo_style custom step temp pe press f_avt f_avp f_avs[*] f_avssq[*]
-thermo_modify norm no
+ave running
 
 # bar to GPa
 variable pconv equal 1.0e5/1.0e9 
@@ -137,3 +134,7 @@ variable C45 equal v_F45+v_B[19]
 variable C46 equal v_F46+v_B[20]
 
 variable C56 equal v_F56+v_B[21]
+
+thermo		${nthermo}
+thermo_style custom step temp pe press density f_avt f_avp f_avpe v_F11 v_F22 v_F33 v_F44 v_F55 v_F66 v_F12 v_F13 v_F23 v_B[1] v_B[2] v_B[3] v_B[4] v_B[5] v_B[6] v_B[7] v_B[8] v_B[12]
+thermo_modify norm no

@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 
 """
-Installer script to install the LAMMPS python package and the corresponding
-shared library into either the system-wide site-packages tree, or - failing
-that - into the corresponding user tree. Called from the 'install-python'
-build target in the conventional and CMake based build systems
+Script to build a "binary wheel" for the 'pip' Python package manager for
+the LAMMPS python module which includes the shared library file. After a
+successful build the script attempts to install the wheel into a system
+specific site-packages folder or - failing that - into the corresponding
+user site-packages folder.  Called from the 'install-python' build target
+in the GNU make and CMake based build systems.  Can also be called
+independently and used to build the wheel without installing it.
 """
 
 # copy LAMMPS shared library and lammps package to system dirs
@@ -20,6 +23,8 @@ parser.add_argument("-p", "--package", required=True,
                     help="path to the LAMMPS Python package")
 parser.add_argument("-l", "--lib", required=True,
                     help="path to the compiled LAMMPS shared library")
+parser.add_argument("-n", "--noinstall", action="store_true", default=False,
+                    help="only build a binary wheel. Don't attempt to install it")
 
 args = parser.parse_args()
 
@@ -68,6 +73,9 @@ shutil.rmtree('buildwheel',True)
 shutil.rmtree('build',True)
 shutil.rmtree('lammps.egg-info',True)
 os.remove(os.path.join('lammps',os.path.basename(args.lib)))
+
+if args.noinstall:
+    exit(0)
 
 print("Installing wheel")
 for wheel in glob.glob('lammps-*.whl'):

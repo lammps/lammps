@@ -187,6 +187,23 @@ folder that the dynamic loader searches or inside of the installed
       folders are searched by default by Python or the LAMMPS Python
       package.
 
+      .. versionchanged:: TBD
+
+      .. note::
+
+            If there is an existing installation of the LAMMPS python
+            module, ``make install-python`` will try to update it.
+            However, that will fail if the older version of the module
+            was installed by LAMMPS versions until 17Feb2022.  Those
+            were using the distutils package, which does not create a
+            "manifest" that allows a clean uninstall.  The ``make
+            install-python`` command will always produce a
+            lammps-<version>-<python>-<abi>-<os>-<arch>.whl file (the
+            'wheel'). And this file can be later installed directly with
+            ``python -m pip install <wheel file>.whl`` without having to
+            type ``make install-python`` again and repeating the build
+            step, too.
+
       For the traditional make process you can override the python
       version to version x.y when calling ``make`` with
       ``PYTHON=pythonX.Y``.  For a CMake based compilation this choice

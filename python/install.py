@@ -83,8 +83,10 @@ for wheel in glob.glob('lammps-*.whl'):
     txt = subprocess.check_output([sys.executable, '-m', 'pip', 'install', '--force-reinstall', wheel], stderr=subprocess.STDOUT, shell=False)
     print(txt.decode('UTF-8'))
     continue
-  except:
-    pass
+  except subprocess.CalledProcessError as err:
+    errmsg = err.output.decode('UTF-8')
+    if errmsg.find("distutils installed"):
+      sys.exit(errmsg + "You need to uninstall the LAMMPS python module manually first.\n")
   try:
     print('Installing wheel into standard site-packages folder failed. Trying user folder now')
     txt = subprocess.check_output([sys.executable, '-m', 'pip', 'install', '--user', '--force-reinstall', wheel], stderr=subprocess.STDOUT, shell=False)

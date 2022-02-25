@@ -3,7 +3,7 @@
 from setuptools import setup
 from setuptools.dist import Distribution
 from sys import version_info
-import os,time
+import os,time,shutil
 LAMMPS_PYTHON_DIR = os.path.dirname(os.path.realpath(__file__))
 LAMMPS_DIR = os.path.dirname(LAMMPS_PYTHON_DIR)
 LAMMPS_SOURCE_DIR = os.path.join(LAMMPS_DIR, 'src')
@@ -27,8 +27,7 @@ class BinaryDistribution(Distribution):
     def has_ext_modules(foo):
         return True
 
-libpath = os.environ.get("LAMMPS_SHARED_LIB")
-
+libname = os.path.basename(os.environ.get("LAMMPS_SHARED_LIB"))
 if version_info.major >= 3:
     pkgs = ['lammps', 'lammps.mliap']
 else:
@@ -37,8 +36,8 @@ else:
 with open("README", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
-if libpath:
-    pkgdata = {'lammps': [ libpath ]}
+if libname:
+    pkgdata = {'lammps': [ libname ]}
     bdist = BinaryDistribution
 else:
     pkgdata = {}

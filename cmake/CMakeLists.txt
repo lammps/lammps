@@ -751,10 +751,8 @@ if(BUILD_SHARED_LIBS)
   if(Python_EXECUTABLE)
     add_custom_target(
       install-python ${CMAKE_COMMAND} -E remove_directory build
-      COMMAND ${Python_EXECUTABLE} install.py -v ${LAMMPS_SOURCE_DIR}/version.h
-      -p ${LAMMPS_PYTHON_DIR}/lammps
+      COMMAND ${Python_EXECUTABLE} ${LAMMPS_PYTHON_DIR}/install.py -p ${LAMMPS_PYTHON_DIR}/lammps
       -l ${CMAKE_BINARY_DIR}/liblammps${LAMMPS_MACHINE}${CMAKE_SHARED_LIBRARY_SUFFIX}
-      WORKING_DIRECTORY  ${LAMMPS_PYTHON_DIR}
       COMMENT "Installing LAMMPS Python module")
   else()
     add_custom_target(

@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class PairCoulMSM : public PairCoulLong {
  public:
   PairCoulMSM(class LAMMPS *);
-  virtual ~PairCoulMSM(){};
-  virtual void compute(int, int);
-  virtual double single(int, int, int, int, double, double, double, double &);
-  virtual void *extract(const char *, int &);
+
+  void compute(int, int) override;
+  double single(int, int, int, int, double, double, double, double &) override;
+  void *extract(const char *, int &) override;
 };
 
 }    // namespace LAMMPS_NS

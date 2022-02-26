@@ -110,7 +110,7 @@ struct SimpleSinglyLinkedListNode {
   friend struct LinkedListNodeAccess;
 
  public:
-  // KOKKOS_CONSTEXPR_14
+  // constexpr
   KOKKOS_INLINE_FUNCTION
   bool is_enqueued() const noexcept {
     // TODO @tasking @memory_order DSH make this an atomic load with memory
@@ -118,7 +118,7 @@ struct SimpleSinglyLinkedListNode {
     return m_next != reinterpret_cast<pointer_type>(NotEnqueuedValue);
   }
 
-  // KOKKOS_CONSTEXPR_14
+  // constexpr
   KOKKOS_INLINE_FUNCTION
   bool is_enqueued() const volatile noexcept {
     // TODO @tasking @memory_order DSH make this an atomic load with memory

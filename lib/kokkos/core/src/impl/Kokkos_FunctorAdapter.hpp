@@ -48,7 +48,6 @@
 #include <cstddef>
 #include <Kokkos_Core_fwd.hpp>
 #include <impl/Kokkos_Traits.hpp>
-#include <impl/Kokkos_Tags.hpp>
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -1335,7 +1334,10 @@ struct FunctorValueTraits<FunctorType, ArgTag,
   using functor_type = FunctorType;
 
   static_assert(
-      IS_VOID || IS_REJECT || 0 == (sizeof(ValueType) % sizeof(int)),
+      IS_VOID || IS_REJECT ||
+          ((sizeof(ValueType) > sizeof(int))
+               ? 0 == sizeof(ValueType) % sizeof(int)
+               : true),
       "Reduction functor's value_type deduced from functor::operator() "
       "requires: 0 == sizeof(value_type) % sizeof(int)");
 
@@ -1902,17 +1904,6 @@ struct FunctorFinalFunction {
   KOKKOS_INLINE_FUNCTION static void enable_if(void (*)(ArgTag const&,
                                                         value_type&));
 
-  // KOKKOS_INLINE_FUNCTION static void enable_if( void (FunctorType::*)( ArgTag
-  // , value_type volatile & ) const ); KOKKOS_INLINE_FUNCTION static void
-  // enable_if( void (FunctorType::*)( ArgTag const & , value_type volatile & )
-  // const ); KOKKOS_INLINE_FUNCTION static void enable_if( void
-  // (FunctorType::*)( ArgTag         , value_type volatile & ) );
-  // KOKKOS_INLINE_FUNCTION static void enable_if( void (FunctorType::*)( ArgTag
-  // const & , value_type volatile & ) ); KOKKOS_INLINE_FUNCTION static void
-  // enable_if( void (             *)( ArgTag         , value_type volatile & )
-  // ); KOKKOS_INLINE_FUNCTION static void enable_if( void (             *)(
-  // ArgTag const & , value_type volatile & ) );
-
   KOKKOS_INLINE_FUNCTION static void enable_if(
       void (FunctorType::*)(ArgTag, value_type const&) const);
   KOKKOS_INLINE_FUNCTION static void enable_if(
@@ -1925,17 +1916,6 @@ struct FunctorFinalFunction {
                                                         value_type const&));
   KOKKOS_INLINE_FUNCTION static void enable_if(void (*)(ArgTag const&,
                                                         value_type const&));
-
-  // KOKKOS_INLINE_FUNCTION static void enable_if( void (FunctorType::*)( ArgTag
-  // , value_type const volatile & ) const ); KOKKOS_INLINE_FUNCTION static void
-  // enable_if( void (FunctorType::*)( ArgTag const & , value_type const
-  // volatile & ) const ); KOKKOS_INLINE_FUNCTION static void enable_if( void
-  // (FunctorType::*)( ArgTag         , value_type const volatile & ) );
-  // KOKKOS_INLINE_FUNCTION static void enable_if( void (FunctorType::*)( ArgTag
-  // const & , value_type const volatile & ) ); KOKKOS_INLINE_FUNCTION static
-  // void enable_if( void (             *)( ArgTag         , value_type const
-  // volatile & ) ); KOKKOS_INLINE_FUNCTION static void enable_if( void ( *)(
-  // ArgTag const & , value_type const volatile & ) );
 };
 
 // Compatible functions for 'final' function and value_type is an array
@@ -1956,17 +1936,6 @@ struct FunctorFinalFunction<FunctorType, ArgTag, true> {
   KOKKOS_INLINE_FUNCTION static void enable_if(void (*)(ArgTag const&,
                                                         value_type*));
 
-  // KOKKOS_INLINE_FUNCTION static void enable_if( void (FunctorType::*)( ArgTag
-  // , value_type volatile * ) const ); KOKKOS_INLINE_FUNCTION static void
-  // enable_if( void (FunctorType::*)( ArgTag const & , value_type volatile * )
-  // const ); KOKKOS_INLINE_FUNCTION static void enable_if( void
-  // (FunctorType::*)( ArgTag         , value_type volatile * ) );
-  // KOKKOS_INLINE_FUNCTION static void enable_if( void (FunctorType::*)( ArgTag
-  // const & , value_type volatile * ) ); KOKKOS_INLINE_FUNCTION static void
-  // enable_if( void (             *)( ArgTag         , value_type volatile * )
-  // ); KOKKOS_INLINE_FUNCTION static void enable_if( void (             *)(
-  // ArgTag const & , value_type volatile * ) );
-
   KOKKOS_INLINE_FUNCTION static void enable_if(
       void (FunctorType::*)(ArgTag, value_type const*) const);
   KOKKOS_INLINE_FUNCTION static void enable_if(
@@ -1979,17 +1948,6 @@ struct FunctorFinalFunction<FunctorType, ArgTag, true> {
                                                         value_type const*));
   KOKKOS_INLINE_FUNCTION static void enable_if(void (*)(ArgTag const&,
                                                         value_type const*));
-
-  // KOKKOS_INLINE_FUNCTION static void enable_if( void (FunctorType::*)( ArgTag
-  // , value_type const volatile * ) const ); KOKKOS_INLINE_FUNCTION static void
-  // enable_if( void (FunctorType::*)( ArgTag const & , value_type const
-  // volatile * ) const ); KOKKOS_INLINE_FUNCTION static void enable_if( void
-  // (FunctorType::*)( ArgTag         , value_type const volatile * ) );
-  // KOKKOS_INLINE_FUNCTION static void enable_if( void (FunctorType::*)( ArgTag
-  // const & , value_type const volatile * ) ); KOKKOS_INLINE_FUNCTION static
-  // void enable_if( void (             *)( ArgTag         , value_type const
-  // volatile * ) ); KOKKOS_INLINE_FUNCTION static void enable_if( void ( *)(
-  // ArgTag const & , value_type const volatile * ) );
 };
 
 template <class FunctorType>
@@ -2100,91 +2058,6 @@ struct FunctorFinal<
             &FunctorType::final))>::type> {
   KOKKOS_FORCEINLINE_FUNCTION static void final(const FunctorType& f, void* p) {
     f.final(ArgTag(), (T*)p);
-  }
-};
-
-}  // namespace Impl
-}  // namespace Kokkos
-
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
-
-namespace Kokkos {
-namespace Impl {
-
-template <class FunctorType, class ArgTag,
-          class ReferenceType =
-              typename FunctorValueTraits<FunctorType, ArgTag>::reference_type>
-struct FunctorApplyFunction {
-  KOKKOS_INLINE_FUNCTION static void enable_if(
-      void (FunctorType::*)(ArgTag, ReferenceType) const);
-  KOKKOS_INLINE_FUNCTION static void enable_if(
-      void (FunctorType::*)(ArgTag const&, ReferenceType) const);
-  KOKKOS_INLINE_FUNCTION static void enable_if(
-      void (FunctorType::*)(ArgTag, ReferenceType));
-  KOKKOS_INLINE_FUNCTION static void enable_if(
-      void (FunctorType::*)(ArgTag const&, ReferenceType));
-  KOKKOS_INLINE_FUNCTION static void enable_if(void (*)(ArgTag, ReferenceType));
-  KOKKOS_INLINE_FUNCTION static void enable_if(void (*)(ArgTag const&,
-                                                        ReferenceType));
-};
-
-template <class FunctorType, class ReferenceType>
-struct FunctorApplyFunction<FunctorType, void, ReferenceType> {
-  KOKKOS_INLINE_FUNCTION static void enable_if(
-      void (FunctorType::*)(ReferenceType) const);
-  KOKKOS_INLINE_FUNCTION static void enable_if(
-      void (FunctorType::*)(ReferenceType));
-  KOKKOS_INLINE_FUNCTION static void enable_if(void (*)(ReferenceType));
-};
-
-template <class FunctorType>
-struct FunctorApplyFunction<FunctorType, void, void> {
-  KOKKOS_INLINE_FUNCTION static void enable_if(void (FunctorType::*)() const);
-  KOKKOS_INLINE_FUNCTION static void enable_if(void (FunctorType::*)());
-};
-
-template <class FunctorType, class ArgTag, class ReferenceType,
-          class Enable = void>
-struct FunctorApply {
-  KOKKOS_FORCEINLINE_FUNCTION static void apply(const FunctorType&, void*) {}
-};
-
-/* 'apply' function provided for void value */
-template <class FunctorType, class ArgTag>
-struct FunctorApply<
-    FunctorType, ArgTag,
-    void
-    // First  substitution failure when FunctorType::apply does not exist.
-    // Second substitution failure when enable_if( & Functor::apply ) does not
-    // exist
-    ,
-    decltype(FunctorApplyFunction<FunctorType, ArgTag, void>::enable_if(
-        &FunctorType::apply))> {
-  KOKKOS_FORCEINLINE_FUNCTION static void apply(FunctorType& f) { f.apply(); }
-
-  KOKKOS_FORCEINLINE_FUNCTION static void apply(const FunctorType& f) {
-    f.apply();
-  }
-};
-
-/* 'apply' function provided for single value */
-template <class FunctorType, class ArgTag, class T>
-struct FunctorApply<FunctorType, ArgTag,
-                    T&
-                    // First  substitution failure when FunctorType::apply does
-                    // not exist. Second substitution failure when enable_if( &
-                    // Functor::apply ) does not exist
-                    ,
-                    decltype(
-                        FunctorApplyFunction<FunctorType, ArgTag>::enable_if(
-                            &FunctorType::apply))> {
-  KOKKOS_FORCEINLINE_FUNCTION static void apply(const FunctorType& f, void* p) {
-    f.apply(*((T*)p));
-  }
-
-  KOKKOS_FORCEINLINE_FUNCTION static void apply(FunctorType& f, void* p) {
-    f.apply(*((T*)p));
   }
 };
 

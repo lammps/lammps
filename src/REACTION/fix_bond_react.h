@@ -35,20 +35,20 @@ class FixBondReact : public Fix {
   enum { MAXCONPAR = 5 };    // max # of constraint parameters
 
   FixBondReact(class LAMMPS *, int, char **);
-  ~FixBondReact();
-  int setmask();
-  void post_constructor();
-  void init();
-  void init_list(int, class NeighList *);
-  void post_integrate();
-  void post_integrate_respa(int, int);
+  ~FixBondReact() override;
+  int setmask() override;
+  void post_constructor() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void post_integrate() override;
+  void post_integrate_respa(int, int) override;
 
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
-  double compute_vector(int);
-  double memory_usage();
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  double compute_vector(int) override;
+  double memory_usage() override;
 
  private:
   int me, nprocs;
@@ -197,8 +197,8 @@ class FixBondReact : public Fix {
   void unlimit_bond();
   void limit_bond(int);
   void dedup_mega_gloves(int);    //dedup global mega_glove
-  virtual void write_restart(FILE *);
-  virtual void restart(char *buf);
+  void write_restart(FILE *) override;
+  void restart(char *buf) override;
 
   struct Set {
     int nreacts;

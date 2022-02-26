@@ -43,7 +43,7 @@
 */
 
 #include <Kokkos_Core.hpp>
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 
 template <class Scalar, int Unroll, int Stride>
 struct Run {

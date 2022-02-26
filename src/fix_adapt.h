@@ -30,18 +30,18 @@ class FixAdapt : public Fix {
   int chgflag;
 
   FixAdapt(class LAMMPS *, int, char **);
-  ~FixAdapt();
-  int setmask();
-  void post_constructor();
-  void init();
-  void setup_pre_force(int);
-  void pre_force(int);
-  void post_run();
-  void setup_pre_force_respa(int, int);
-  void pre_force_respa(int, int, int);
-  void set_arrays(int);
-  void write_restart(FILE *);
-  void restart(char *);
+  ~FixAdapt() override;
+  int setmask() override;
+  void post_constructor() override;
+  void init() override;
+  void setup_pre_force(int) override;
+  void pre_force(int) override;
+  void post_run() override;
+  void setup_pre_force_respa(int, int) override;
+  void pre_force_respa(int, int, int) override;
+  void set_arrays(int) override;
+  void write_restart(FILE *) override;
+  void restart(char *) override;
 
  private:
   int nadapt, resetflag, scaleflag, massflag;

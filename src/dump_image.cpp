@@ -1200,10 +1200,10 @@ int DumpImage::modify_param(int narg, char **arg)
     utils::bounds(FLERR,arg[1],1,atom->ntypes,nlo,nhi,error);
 
     // get list of colors
+    // assign colors in round-robin fashion to types
+
     auto colors = Tokenizer(arg[2],"/").as_vector();
     const int ncolors = colors.size();
-
-    // assign colors in round-robin fashion to types
 
     int m = 0;
     for (int i = nlo; i <= nhi; i++) {
@@ -1249,32 +1249,19 @@ int DumpImage::modify_param(int narg, char **arg)
     int nlo,nhi;
     utils::bounds(FLERR,arg[1],1,atom->nbondtypes,nlo,nhi,error);
 
-    // ptrs = list of ncount colornames separated by '/'
+    // process list of ncount colornames separated by '/'
+    // assign colors in round-robin fashion to bond types
 
-    int ncount = 1;
-    char *nextptr;
-    char *ptr = arg[2];
-    while ((nextptr = strchr(ptr,'/'))) {
-      ptr = nextptr + 1;
-      ncount++;
-    }
-    char **ptrs = new char*[ncount+1];
-    ncount = 0;
-    ptrs[ncount++] = strtok(arg[2],"/");
-    while ((ptrs[ncount++] = strtok(nullptr,"/")));
-    ncount--;
-
-    // assign each of ncount colors in round-robin fashion to types
+    auto colors = Tokenizer(arg[2],"/").as_vector();
+    const int ncolors = colors.size();
 
     int m = 0;
     for (int i = nlo; i <= nhi; i++) {
-      bcolortype[i] = image->color2rgb(ptrs[m%ncount]);
+      bcolortype[i] = image->color2rgb(colors[m%ncolors].c_str());
       if (bcolortype[i] == nullptr)
         error->all(FLERR,"Invalid color in dump_modify command");
       m++;
     }
-
-    delete [] ptrs;
     return 3;
   }
 

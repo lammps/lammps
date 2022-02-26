@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class ComputeFabric : public Compute {
  public:
   ComputeFabric(class LAMMPS *, int, char **);
-  ~ComputeFabric();
-  void init();
-  void init_list(int, class NeighList *);
-  void compute_vector();
-  double compute_scalar();
+  ~ComputeFabric() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void compute_vector() override;
+  double compute_scalar() override;
 
  private:
   int ntensors, pstyle, cutstyle;

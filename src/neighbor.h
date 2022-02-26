@@ -117,7 +117,7 @@ class Neighbor : protected Pointers {
   // public methods
 
   Neighbor(class LAMMPS *);
-  virtual ~Neighbor();
+  ~Neighbor() override;
   virtual void init();
   int request(void *, int instance = 0);
   int decide();                     // decide whether to build or not
@@ -230,10 +230,6 @@ class Neighbor : protected Pointers {
   int choose_bin(class NeighRequest *);
   int choose_stencil(class NeighRequest *);
   int choose_pair(class NeighRequest *);
-
-  template <typename T> static NBin *bin_creator(class LAMMPS *);
-  template <typename T> static NStencil *stencil_creator(class LAMMPS *);
-  template <typename T> static NPair *pair_creator(class LAMMPS *);
 
   // dummy functions provided by NeighborKokkos, called in init()
   // otherwise NeighborKokkos would have to overwrite init()

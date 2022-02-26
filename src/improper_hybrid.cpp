@@ -241,7 +241,7 @@ void ImproperHybrid::settings(int narg, char **arg)
       error->all(FLERR, "Improper style hybrid cannot have none as an argument");
 
     styles[nstyles] = force->new_improper(arg[i], 1, dummy);
-    force->store_style(keywords[nstyles], arg[i], 0);
+    keywords[nstyles] = force->store_style(arg[i], 0);
 
     istyle = i;
     if (strcmp(arg[i], "table") == 0) i++;

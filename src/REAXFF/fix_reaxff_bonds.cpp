@@ -28,8 +28,6 @@
 #include "pair_reaxff.h"
 #include "reaxff_api.h"
 
-#include <cstring>
-
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace ReaxFF;

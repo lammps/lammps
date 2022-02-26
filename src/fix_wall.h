@@ -29,17 +29,17 @@ class FixWall : public Fix {
   char *xstr[6];
 
   FixWall(class LAMMPS *, int, char **);
-  virtual ~FixWall();
-  int setmask();
-  virtual void init();
-  void setup(int);
-  void min_setup(int);
-  void pre_force(int);
-  void post_force(int);
-  void post_force_respa(int, int, int);
-  void min_post_force(int);
-  double compute_scalar();
-  double compute_vector(int);
+  ~FixWall() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void min_setup(int) override;
+  void pre_force(int) override;
+  void post_force(int) override;
+  void post_force_respa(int, int, int) override;
+  void min_post_force(int) override;
+  double compute_scalar() override;
+  double compute_vector(int) override;
 
   virtual void precompute(int) = 0;
   virtual void wall_particle(int, int, double) = 0;

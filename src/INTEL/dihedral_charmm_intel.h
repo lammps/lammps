@@ -34,8 +34,8 @@ class DihedralCharmmIntel : public DihedralCharmm {
 
  public:
   DihedralCharmmIntel(class LAMMPS *lmp);
-  virtual void compute(int, int);
-  void init_style();
+  void compute(int, int) override;
+  void init_style() override;
 
  private:
   FixIntel *fix;

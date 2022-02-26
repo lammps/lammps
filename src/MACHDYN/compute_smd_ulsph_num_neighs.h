@@ -38,10 +38,10 @@ namespace LAMMPS_NS {
 class ComputeSMDULSPHNumNeighs : public Compute {
  public:
   ComputeSMDULSPHNumNeighs(class LAMMPS *, int, char **);
-  ~ComputeSMDULSPHNumNeighs();
-  void init();
-  void compute_peratom();
-  double memory_usage();
+  ~ComputeSMDULSPHNumNeighs() override;
+  void init() override;
+  void compute_peratom() override;
+  double memory_usage() override;
 
  private:
   int nmax;

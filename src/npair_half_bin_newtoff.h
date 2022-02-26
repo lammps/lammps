@@ -29,8 +29,7 @@ namespace LAMMPS_NS {
 class NPairHalfBinNewtoff : public NPair {
  public:
   NPairHalfBinNewtoff(class LAMMPS *);
-  ~NPairHalfBinNewtoff() {}
-  void build(class NeighList *);
+  void build(class NeighList *) override;
 };
 
 }    // namespace LAMMPS_NS

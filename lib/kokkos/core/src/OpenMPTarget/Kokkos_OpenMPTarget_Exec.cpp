@@ -77,9 +77,10 @@ namespace Kokkos {
 namespace Impl {
 
 void OpenMPTargetExec::verify_is_process(const char* const label) {
-  if (omp_in_parallel()) {
+  // Fails if the current task is in a parallel region or is not on the host.
+  if (omp_in_parallel() && (!omp_is_initial_device())) {
     std::string msg(label);
-    msg.append(" ERROR: in parallel");
+    msg.append(" ERROR: in parallel or on device");
     Kokkos::Impl::throw_runtime_exception(msg);
   }
 }

@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class FixOneWay : public Fix {
  public:
   FixOneWay(class LAMMPS *, int, char **);
-  virtual ~FixOneWay();
-  int setmask();
-  virtual void init();
-  virtual void end_of_step();
+  ~FixOneWay() override;
+  int setmask() override;
+  void init() override;
+  void end_of_step() override;
 
  protected:
   int direction;

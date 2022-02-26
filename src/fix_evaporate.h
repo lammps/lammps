@@ -27,12 +27,12 @@ namespace LAMMPS_NS {
 class FixEvaporate : public Fix {
  public:
   FixEvaporate(class LAMMPS *, int, char **);
-  ~FixEvaporate();
-  int setmask();
-  void init();
-  void pre_exchange();
-  double compute_scalar();
-  double memory_usage();
+  ~FixEvaporate() override;
+  int setmask() override;
+  void init() override;
+  void pre_exchange() override;
+  double compute_scalar() override;
+  double memory_usage() override;
 
  private:
   int nevery, nflux, iregion;

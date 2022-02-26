@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class ComputeXRD : public Compute {
  public:
   ComputeXRD(class LAMMPS *, int, char **);
-  ~ComputeXRD();
-  void init();
-  void compute_array();
-  double memory_usage();
+  ~ComputeXRD() override;
+  void init() override;
+  void compute_array() override;
+  double memory_usage() override;
 
  private:
   int me;

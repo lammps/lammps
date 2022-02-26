@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class DumpXYZMPIIO : public DumpXYZ {
  public:
   DumpXYZMPIIO(class LAMMPS *, int, char **);
-  virtual ~DumpXYZMPIIO();
+  ~DumpXYZMPIIO() override;
 
  protected:
   bigint
@@ -43,12 +43,12 @@ class DumpXYZMPIIO : public DumpXYZ {
   int convert_string_omp(int, double *);    // multithreaded version of convert_string
 #endif
 
-  virtual void openfile();
-  virtual void write_header(bigint);
-  virtual void write();
-  virtual void write_data(int, double *);
+  void openfile() override;
+  void write_header(bigint) override;
+  void write() override;
+  void write_data(int, double *) override;
 
-  virtual void init_style();
+  void init_style() override;
 
   typedef void (DumpXYZMPIIO::*FnPtrData)(int, double *);
   FnPtrData write_choice;    // ptr to write data functions

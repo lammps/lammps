@@ -53,7 +53,7 @@ class Modify : protected Pointers {
   Compute **compute;    // list of computes
 
   Modify(class LAMMPS *);
-  virtual ~Modify();
+  ~Modify() override;
   virtual void init();
   virtual void setup(int);
   virtual void setup_pre_exchange();
@@ -201,8 +201,6 @@ class Modify : protected Pointers {
 
  protected:
   void create_factories();
-  template <typename T> static Compute *compute_creator(LAMMPS *, int, char **);
-  template <typename T> static Fix *fix_creator(LAMMPS *, int, char **);
 };
 
 }    // namespace LAMMPS_NS

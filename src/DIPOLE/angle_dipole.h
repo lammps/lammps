@@ -27,15 +27,15 @@ namespace LAMMPS_NS {
 class AngleDipole : public Angle {
  public:
   AngleDipole(class LAMMPS *);
-  virtual ~AngleDipole();
-  virtual void compute(int, int);
-  virtual void init_style();
-  virtual void coeff(int, char **);
-  virtual double equilibrium_angle(int);
-  virtual void write_restart(FILE *);
-  virtual void read_restart(FILE *);
-  virtual void write_data(FILE *);
-  virtual double single(int, int, int, int);
+  ~AngleDipole() override;
+  void compute(int, int) override;
+  void init_style() override;
+  void coeff(int, char **) override;
+  double equilibrium_angle(int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
+  double single(int, int, int, int) override;
 
  protected:
   double *k, *gamma0;

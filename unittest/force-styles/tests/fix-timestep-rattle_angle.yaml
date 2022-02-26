@@ -1,7 +1,8 @@
 ---
 lammps_version: 10 Feb 2021
 date_generated: Fri Feb 26 23:09:55 2021
-epsilon: 3e-10
+epsilon: 9e-10
+tags: unstable
 prerequisites: ! |
   atom full
   fix rattle

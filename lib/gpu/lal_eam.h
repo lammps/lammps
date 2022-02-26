@@ -62,9 +62,6 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
   /** \note This is called at the beginning of the init() routine **/
   void clear();
 
-  /// Returns memory usage on device per atom
-  int bytes_per_atom(const int max_nbors) const;
-
   /// Total host memory used by library for pair style
   double host_memory_usage() const;
 

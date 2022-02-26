@@ -305,6 +305,40 @@ you are uncertain, please ask.
   FILE pointers and only be done on MPI rank 0.  Use the :cpp:func:`utils::logmesg`
   convenience function where possible.
 
+- Usage of C++11 `virtual`, `override`, `final` keywords: Please follow the
+  `C++ Core Guideline C.128 <https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#Rh-override>`_.
+  That means, you should only use `virtual` to declare a new virtual
+  function, `override` to indicate you are overriding an existing virtual
+  function, and `final` to prevent any further overriding.
+
+- Trivial destructors: Prefer not writing destructors when they are empty and `default`.
+
+  .. code-block:: c++
+
+     // don't write destructors for A or B like this
+     class A : protected Pointers {
+      public:
+        A();
+        ~A() override {}
+     };
+
+     class B : protected Pointers {
+      public:
+        B();
+        ~B() override = default;
+     };
+
+     // instead, let the compiler create the implicit default destructor by not writing it
+     class A : protected Pointers {
+      public:
+        A();
+     };
+
+     class B : protected Pointers {
+      public:
+        B();
+     };
+
 - Header files, especially those defining a "style", should only use
   the absolute minimum number of include files and **must not** contain
   any ``using`` statements. Typically that would be only the header for

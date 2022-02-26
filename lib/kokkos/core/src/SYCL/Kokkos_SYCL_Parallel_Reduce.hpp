@@ -46,13 +46,98 @@
 #define KOKKOS_SYCL_PARALLEL_REDUCE_HPP
 
 #include <Kokkos_Macros.hpp>
+
+#include <vector>
 #if defined(KOKKOS_ENABLE_SYCL)
+#include <Kokkos_Parallel_Reduce.hpp>
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
+
 namespace Impl {
+
+namespace SYCLReduction {
+template <class ValueJoin, class ValueOps, typename WorkTag, typename ValueType,
+          typename ReducerType, typename FunctorType, int dim>
+void workgroup_reduction(sycl::nd_item<dim>& item,
+                         sycl::local_ptr<ValueType> local_mem,
+                         ValueType* results_ptr,
+                         ValueType* device_accessible_result_ptr,
+                         const unsigned int value_count,
+                         const ReducerType& selected_reducer,
+                         const FunctorType& functor, bool final) {
+  const auto local_id = item.get_local_linear_id();
+  // FIXME_SYCL should be item.get_group().get_local_linear_range();
+  size_t wgroup_size = 1;
+  for (unsigned int i = 0; i < dim; ++i) wgroup_size *= item.get_local_range(i);
+
+  // Perform the actual workgroup reduction in each subgroup
+  // separately.
+  auto sg                = item.get_sub_group();
+  auto* result           = &local_mem[local_id * value_count];
+  const auto id_in_sg    = sg.get_local_id()[0];
+  const auto local_range = std::min(sg.get_local_range()[0], wgroup_size);
+  for (unsigned int stride = 1; stride < local_range; stride <<= 1) {
+    if (id_in_sg + stride < local_range)
+      ValueJoin::join(selected_reducer, result,
+                      &local_mem[(local_id + stride) * value_count]);
+    sg.barrier();
+  }
+  item.barrier(sycl::access::fence_space::local_space);
+
+  // Copy the subgroup results into the first positions of the
+  // reduction array.
+  if (id_in_sg == 0)
+    ValueOps::copy(functor, &local_mem[sg.get_group_id()[0] * value_count],
+                   result);
+  item.barrier(sycl::access::fence_space::local_space);
+
+  // Do the final reduction only using the first subgroup.
+  if (sg.get_group_id()[0] == 0) {
+    const auto n_subgroups = sg.get_group_range()[0];
+    auto* result_          = &local_mem[id_in_sg * value_count];
+    // In case the number of subgroups is larger than the range of
+    // the first subgroup, we first combine the items with a higher
+    // index.
+    for (unsigned int offset = local_range; offset < n_subgroups;
+         offset += local_range)
+      if (id_in_sg + offset < n_subgroups)
+        ValueJoin::join(selected_reducer, result_,
+                        &local_mem[(id_in_sg + offset) * value_count]);
+    sg.barrier();
+
+    // Then, we proceed as before.
+    for (unsigned int stride = 1; stride < local_range; stride <<= 1) {
+      if (id_in_sg + stride < n_subgroups)
+        ValueJoin::join(selected_reducer, result_,
+                        &local_mem[(id_in_sg + stride) * value_count]);
+      sg.barrier();
+    }
+
+    // Finally, we copy the workgroup results back to global memory
+    // to be used in the next iteration. If this is the last
+    // iteration, i.e., there is only one workgroup also call
+    // final() if necessary.
+    if (id_in_sg == 0) {
+      if (final) {
+        if constexpr (ReduceFunctorHasFinal<FunctorType>::value)
+          FunctorFinal<FunctorType, WorkTag>::final(functor, &local_mem[0]);
+        if (device_accessible_result_ptr != nullptr)
+          ValueOps::copy(functor, &device_accessible_result_ptr[0],
+                         &local_mem[0]);
+        else
+          ValueOps::copy(functor, &results_ptr[0], &local_mem[0]);
+      } else
+        ValueOps::copy(functor,
+                       &results_ptr[(item.get_group_linear_id()) * value_count],
+                       &local_mem[0]);
+    }
+  }
+}
+
+}  // namespace SYCLReduction
 
 template <class FunctorType, class ReducerType, class... Traits>
 class ParallelReduce<FunctorType, Kokkos::RangePolicy<Traits...>, ReducerType,
@@ -76,19 +161,29 @@ class ParallelReduce<FunctorType, Kokkos::RangePolicy<Traits...>, ReducerType,
   ParallelReduce(
       const FunctorType& f, const Policy& p, const V& v,
       typename std::enable_if<Kokkos::is_view<V>::value, void*>::type = nullptr)
-      : m_functor(f), m_policy(p), m_result_ptr(v.data()) {}
+      : m_functor(f),
+        m_policy(p),
+        m_result_ptr(v.data()),
+        m_result_ptr_device_accessible(
+            MemorySpaceAccess<Kokkos::Experimental::SYCLDeviceUSMSpace,
+                              typename V::memory_space>::accessible) {}
 
   ParallelReduce(const FunctorType& f, const Policy& p,
                  const ReducerType& reducer)
       : m_functor(f),
         m_policy(p),
         m_reducer(reducer),
-        m_result_ptr(reducer.view().data()) {}
+        m_result_ptr(reducer.view().data()),
+        m_result_ptr_device_accessible(
+            MemorySpaceAccess<Kokkos::Experimental::SYCLDeviceUSMSpace,
+                              typename ReducerType::result_view_type::
+                                  memory_space>::accessible) {}
 
  private:
   template <typename PolicyType, typename Functor, typename Reducer>
-  void sycl_direct_launch(const PolicyType& policy, const Functor& functor,
-                          const Reducer& reducer) const {
+  sycl::event sycl_direct_launch(const PolicyType& policy,
+                                 const Functor& functor,
+                                 const Reducer& reducer) const {
     using ReducerConditional =
         Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
                            FunctorType, ReducerType>;
@@ -121,18 +216,18 @@ class ParallelReduce<FunctorType, Kokkos::RangePolicy<Traits...>, ReducerType,
     const unsigned int value_count =
         FunctorValueTraits<ReducerTypeFwd, WorkTagFwd>::value_count(
             selected_reducer);
-    // FIXME_SYCL only use the first half
     const auto results_ptr = static_cast<pointer_type>(instance.scratch_space(
-        sizeof(value_type) * std::max(value_count, 1u) * init_size * 2));
-    // FIXME_SYCL without this we are running into a race condition
-    const auto results_ptr2 =
-        results_ptr + std::max(value_count, 1u) * init_size;
+        sizeof(value_type) * std::max(value_count, 1u) * init_size));
+    value_type* device_accessible_result_ptr =
+        m_result_ptr_device_accessible ? m_result_ptr : nullptr;
+
+    sycl::event last_reduction_event;
 
     // If size<=1 we only call init(), the functor and possibly final once
     // working with the global scratch memory but don't copy back to
     // m_result_ptr yet.
     if (size <= 1) {
-      q.submit([&](sycl::handler& cgh) {
+      auto parallel_reduce_event = q.submit([&](sycl::handler& cgh) {
         const auto begin = policy.begin();
         cgh.single_task([=]() {
           const auto& selected_reducer = ReducerConditional::select(
@@ -149,9 +244,13 @@ class ParallelReduce<FunctorType, Kokkos::RangePolicy<Traits...>, ReducerType,
           if constexpr (ReduceFunctorHasFinal<FunctorType>::value)
             FunctorFinal<FunctorType, WorkTag>::final(
                 static_cast<const FunctorType&>(functor), results_ptr);
+          if (device_accessible_result_ptr != nullptr)
+            ValueOps::copy(functor, &device_accessible_result_ptr[0],
+                           &results_ptr[0]);
         });
       });
-      space.fence();
+      q.submit_barrier(std::vector<sycl::event>{parallel_reduce_event});
+      last_reduction_event = parallel_reduce_event;
     }
 
     // Otherwise, we perform a reduction on the values in all workgroups
@@ -163,7 +262,7 @@ class ParallelReduce<FunctorType, Kokkos::RangePolicy<Traits...>, ReducerType,
       auto n_wgroups = ((size + values_per_thread - 1) / values_per_thread +
                         wgroup_size - 1) /
                        wgroup_size;
-      q.submit([&](sycl::handler& cgh) {
+      auto parallel_reduce_event = q.submit([&](sycl::handler& cgh) {
         sycl::accessor<value_type, 1, sycl::access::mode::read_write,
                        sycl::access::target::local>
             local_mem(sycl::range<1>(wgroup_size) * std::max(value_count, 1u),
@@ -217,49 +316,15 @@ class ParallelReduce<FunctorType, Kokkos::RangePolicy<Traits...>, ReducerType,
               }
               item.barrier(sycl::access::fence_space::local_space);
 
-              // Perform the actual workgroup reduction. To achieve a better
-              // memory access pattern, we use sequential addressing and a
-              // reversed loop. If the workgroup size is 8, the first element
-              // contains all the values with index%4==0, after the second one
-              // the values with index%2==0 and after the third one index%1==0,
-              // i.e., all values.
-              for (unsigned int stride = wgroup_size / 2; stride > 0;
-                   stride >>= 1) {
-                const auto idx = local_id;
-                if (idx < stride) {
-                  ValueJoin::join(selected_reducer,
-                                  &local_mem[idx * value_count],
-                                  &local_mem[(idx + stride) * value_count]);
-                }
-                item.barrier(sycl::access::fence_space::local_space);
-              }
-
-              // Finally, we copy the workgroup results back to global memory to
-              // be used in the next iteration. If this is the last iteration,
-              // i.e., there is only one workgroup also call final() if
-              // necessary.
-              if (local_id == 0) {
-                ValueOps::copy(
-                    functor,
-                    &results_ptr2[(item.get_group_linear_id()) * value_count],
-                    &local_mem[0]);
-                if constexpr (ReduceFunctorHasFinal<FunctorType>::value)
-                  if (n_wgroups <= 1)
-                    FunctorFinal<FunctorType, WorkTag>::final(
-                        static_cast<const FunctorType&>(functor),
-                        &results_ptr2[(item.get_group_linear_id()) *
-                                      value_count]);
-              }
+              SYCLReduction::workgroup_reduction<ValueJoin, ValueOps, WorkTag>(
+                  item, local_mem.get_pointer(), results_ptr,
+                  device_accessible_result_ptr, value_count, selected_reducer,
+                  static_cast<const FunctorType&>(functor), n_wgroups <= 1);
             });
       });
-      space.fence();
+      q.submit_barrier(std::vector<sycl::event>{parallel_reduce_event});
 
-      // FIXME_SYCL this is likely not necessary, see above
-      Kokkos::Impl::DeepCopy<Kokkos::Experimental::SYCLDeviceUSMSpace,
-                             Kokkos::Experimental::SYCLDeviceUSMSpace>(
-          space, results_ptr, results_ptr2,
-          sizeof(*m_result_ptr) * value_count * n_wgroups);
-      space.fence();
+      last_reduction_event = parallel_reduce_event;
 
       first_run = false;
       size      = n_wgroups;
@@ -268,13 +333,17 @@ class ParallelReduce<FunctorType, Kokkos::RangePolicy<Traits...>, ReducerType,
     // At this point, the reduced value is written to the entry in results_ptr
     // and all that is left is to copy it back to the given result pointer if
     // necessary.
-    if (m_result_ptr) {
+    if (m_result_ptr && !m_result_ptr_device_accessible) {
       Kokkos::Impl::DeepCopy<Kokkos::Experimental::SYCLDeviceUSMSpace,
                              Kokkos::Experimental::SYCLDeviceUSMSpace>(
           space, m_result_ptr, results_ptr,
           sizeof(*m_result_ptr) * value_count);
-      space.fence();
+      space.fence(
+          "Kokkos::Impl::ParallelReduce::sycl_direct_launch: fence due to "
+          "inaccessible reducer result location");
     }
+
+    return last_reduction_event;
   }
 
  public:
@@ -291,15 +360,18 @@ class ParallelReduce<FunctorType, Kokkos::RangePolicy<Traits...>, ReducerType,
     const auto reducer_wrapper = Experimental::Impl::make_sycl_function_wrapper(
         m_reducer, indirectReducerMem);
 
-    sycl_direct_launch(m_policy, functor_wrapper.get_functor(),
-                       reducer_wrapper.get_functor());
+    sycl::event event = sycl_direct_launch(
+        m_policy, functor_wrapper.get_functor(), reducer_wrapper.get_functor());
+    functor_wrapper.register_event(indirectKernelMem, event);
+    reducer_wrapper.register_event(indirectReducerMem, event);
   }
 
  private:
-  FunctorType m_functor;
-  Policy m_policy;
-  ReducerType m_reducer;
-  pointer_type m_result_ptr;
+  const FunctorType m_functor;
+  const Policy m_policy;
+  const ReducerType m_reducer;
+  const pointer_type m_result_ptr;
+  const bool m_result_ptr_device_accessible;
 };
 
 template <class FunctorType, class ReducerType, class... Traits>
@@ -347,7 +419,13 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
   ParallelReduce(
       const FunctorType& f, const Policy& p, const V& v,
       typename std::enable_if<Kokkos::is_view<V>::value, void*>::type = nullptr)
-      : m_functor(f), m_policy(p), m_space(p.space()), m_result_ptr(v.data()) {}
+      : m_functor(f),
+        m_policy(p),
+        m_space(p.space()),
+        m_result_ptr(v.data()),
+        m_result_ptr_device_accessible(
+            MemorySpaceAccess<Kokkos::Experimental::SYCLDeviceUSMSpace,
+                              typename V::memory_space>::accessible) {}
 
   ParallelReduce(const FunctorType& f, const Policy& p,
                  const ReducerType& reducer)
@@ -355,12 +433,17 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
         m_policy(p),
         m_space(p.space()),
         m_reducer(reducer),
-        m_result_ptr(reducer.view().data()) {}
+        m_result_ptr(reducer.view().data()),
+        m_result_ptr_device_accessible(
+            MemorySpaceAccess<Kokkos::Experimental::SYCLDeviceUSMSpace,
+                              typename ReducerType::result_view_type::
+                                  memory_space>::accessible) {}
 
  private:
   template <typename PolicyType, typename Functor, typename Reducer>
-  void sycl_direct_launch(const PolicyType& policy, const Functor& functor,
-                          const Reducer& reducer) const {
+  sycl::event sycl_direct_launch(const PolicyType& policy,
+                                 const Functor& functor,
+                                 const Reducer& reducer) const {
     using ReducerConditional =
         Kokkos::Impl::if_c<std::is_same<InvalidType, ReducerType>::value,
                            FunctorType, ReducerType>;
@@ -379,8 +462,8 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
         *m_space.impl_internal_space_instance();
     sycl::queue& q = *instance.m_queue;
 
-    const int nwork = m_policy.m_num_tiles;
-    const int block_size =
+    const typename Policy::index_type nwork = m_policy.m_num_tiles;
+    const typename Policy::index_type block_size =
         std::pow(2, std::ceil(std::log2(m_policy.m_prod_tile_dims)));
 
     const sycl::range<1> local_range(block_size);
@@ -402,12 +485,16 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
     // FIXME_SYCL without this we are running into a race condition
     const auto results_ptr2 =
         results_ptr + std::max(value_count, 1u) * init_size;
+    value_type* device_accessible_result_ptr =
+        m_result_ptr_device_accessible ? m_result_ptr : nullptr;
+
+    sycl::event last_reduction_event;
 
     // If size<=1 we only call init(), the functor and possibly final once
     // working with the global scratch memory but don't copy back to
     // m_result_ptr yet.
     if (size <= 1) {
-      q.submit([&](sycl::handler& cgh) {
+      auto parallel_reduce_event = q.submit([&](sycl::handler& cgh) {
         cgh.single_task([=]() {
           const auto& selected_reducer = ReducerConditional::select(
               static_cast<const FunctorType&>(functor),
@@ -424,9 +511,13 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
           if constexpr (ReduceFunctorHasFinal<FunctorType>::value)
             FunctorFinal<FunctorType, WorkTag>::final(
                 static_cast<const FunctorType&>(functor), results_ptr);
+          if (device_accessible_result_ptr)
+            ValueOps::copy(functor, &device_accessible_result_ptr[0],
+                           &results_ptr[0]);
         });
       });
-      m_space.fence();
+      q.submit_barrier(std::vector<sycl::event>{parallel_reduce_event});
+      last_reduction_event = parallel_reduce_event;
     }
 
     // Otherwise, we perform a reduction on the values in all workgroups
@@ -435,8 +526,8 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
     // value.
     bool first_run = true;
     while (size > 1) {
-      auto n_wgroups = (size + wgroup_size - 1) / wgroup_size;
-      q.submit([&](sycl::handler& cgh) {
+      auto n_wgroups             = (size + wgroup_size - 1) / wgroup_size;
+      auto parallel_reduce_event = q.submit([&](sycl::handler& cgh) {
         sycl::accessor<value_type, 1, sycl::access::mode::read_write,
                        sycl::access::target::local>
             local_mem(sycl::range<1>(wgroup_size) * std::max(value_count, 1u),
@@ -498,47 +589,21 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
           }
           item.barrier(sycl::access::fence_space::local_space);
 
-          // Perform the actual workgroup reduction. To achieve a better
-          // memory access pattern, we use sequential addressing and a
-          // reversed loop. If the workgroup size is 8, the first element
-          // contains all the values with index%4==0, after the second one
-          // the values with index%2==0 and after the third one index%1==0,
-          // i.e., all values.
-          for (unsigned int stride = wgroup_size / 2; stride > 0;
-               stride >>= 1) {
-            const auto idx = local_id;
-            if (idx < stride) {
-              ValueJoin::join(selected_reducer, &local_mem[idx * value_count],
-                              &local_mem[(idx + stride) * value_count]);
-            }
-            item.barrier(sycl::access::fence_space::local_space);
-          }
-
-          // Finally, we copy the workgroup results back to global memory to
-          // be used in the next iteration. If this is the last iteration,
-          // i.e., there is only one workgroup also call final() if
-          // necessary.
-          if (local_id == 0) {
-            ValueOps::copy(
-                functor,
-                &results_ptr2[(item.get_group_linear_id()) * value_count],
-                &local_mem[0]);
-            if constexpr (ReduceFunctorHasFinal<FunctorType>::value)
-              if (n_wgroups <= 1)
-                FunctorFinal<FunctorType, WorkTag>::final(
-                    static_cast<const FunctorType&>(functor),
-                    &results_ptr2[(item.get_group_linear_id()) * value_count]);
-          }
+          SYCLReduction::workgroup_reduction<ValueJoin, ValueOps, WorkTag>(
+              item, local_mem.get_pointer(), results_ptr2,
+              device_accessible_result_ptr, value_count, selected_reducer,
+              static_cast<const FunctorType&>(functor),
+              n_wgroups <= 1 && item.get_group_linear_id() == 0);
         });
       });
-      m_space.fence();
+      q.submit_barrier(std::vector<sycl::event>{parallel_reduce_event});
 
       // FIXME_SYCL this is likely not necessary, see above
-      Kokkos::Impl::DeepCopy<Kokkos::Experimental::SYCLDeviceUSMSpace,
-                             Kokkos::Experimental::SYCLDeviceUSMSpace>(
-          m_space, results_ptr, results_ptr2,
-          sizeof(*m_result_ptr) * value_count * n_wgroups);
-      m_space.fence();
+      auto deep_copy_event =
+          q.memcpy(results_ptr, results_ptr2,
+                   sizeof(*m_result_ptr) * value_count * n_wgroups);
+      q.submit_barrier(std::vector<sycl::event>{deep_copy_event});
+      last_reduction_event = deep_copy_event;
 
       first_run = false;
       size      = n_wgroups;
@@ -547,19 +612,23 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
     // At this point, the reduced value is written to the entry in results_ptr
     // and all that is left is to copy it back to the given result pointer if
     // necessary.
-    if (m_result_ptr) {
+    if (m_result_ptr && !m_result_ptr_device_accessible) {
       Kokkos::Impl::DeepCopy<Kokkos::Experimental::SYCLDeviceUSMSpace,
                              Kokkos::Experimental::SYCLDeviceUSMSpace>(
           m_space, m_result_ptr, results_ptr,
           sizeof(*m_result_ptr) * value_count);
-      m_space.fence();
+      m_space.fence(
+          "Kokkos::Impl::ParallelReduce::sycl_direct_launch: fence after deep "
+          "copying results back");
     }
+
+    return last_reduction_event;
   }
 
  public:
   template <typename Policy, typename Functor>
   static int max_tile_size_product(const Policy& policy, const Functor&) {
-    return policy.space().impl_internal_space_instance()->m_maxThreadsPerSM;
+    return policy.space().impl_internal_space_instance()->m_maxWorkgroupSize;
   }
 
   void execute() const {
@@ -575,16 +644,19 @@ class ParallelReduce<FunctorType, Kokkos::MDRangePolicy<Traits...>, ReducerType,
     const auto reducer_wrapper = Experimental::Impl::make_sycl_function_wrapper(
         m_reducer, indirectReducerMem);
 
-    sycl_direct_launch(m_policy, functor_wrapper.get_functor(),
-                       reducer_wrapper.get_functor());
+    sycl::event event = sycl_direct_launch(
+        m_policy, functor_wrapper.get_functor(), reducer_wrapper.get_functor());
+    functor_wrapper.register_event(indirectKernelMem, event);
+    reducer_wrapper.register_event(indirectReducerMem, event);
   }
 
  private:
-  FunctorType m_functor;
-  BarePolicy m_policy;
+  const FunctorType m_functor;
+  const BarePolicy m_policy;
   const Kokkos::Experimental::SYCL& m_space;
-  ReducerType m_reducer;
-  pointer_type m_result_ptr;
+  const ReducerType m_reducer;
+  const pointer_type m_result_ptr;
+  const bool m_result_ptr_device_accessible;
 };
 
 }  // namespace Impl

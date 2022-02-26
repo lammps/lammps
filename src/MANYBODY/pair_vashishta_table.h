@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class PairVashishtaTable : public PairVashishta {
  public:
   PairVashishtaTable(class LAMMPS *);
-  ~PairVashishtaTable();
-  void compute(int, int);
-  void settings(int, char **);
-  double memory_usage();
+  ~PairVashishtaTable() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  double memory_usage() override;
 
  protected:
   int ntable;
@@ -40,7 +40,7 @@ class PairVashishtaTable : public PairVashishta {
   double ***potentialTable;    // table of potential energies
 
   void twobody_table(const Param &, double, double &, int, double &);
-  void setup_params();
+  void setup_params() override;
   void create_tables();
 };
 

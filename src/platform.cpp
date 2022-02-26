@@ -19,9 +19,8 @@
 #include "text_file_reader.h"
 #include "utils.h"
 
-#if HAVE_MPI
 #include <mpi.h>
-#endif
+#include <exception>
 
 ////////////////////////////////////////////////////////////////////////
 // include system headers and tweak system settings
@@ -50,7 +49,6 @@
 #include <dlfcn.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
-#include <sys/time.h>
 #include <sys/types.h>
 #include <sys/utsname.h>
 #include <unistd.h>

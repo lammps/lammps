@@ -2,6 +2,7 @@
 lammps_version: 8 Apr 2021
 date_generated: Tue Apr 20 14:47:51 2021
 epsilon: 7.5e-13
+tags: unstable
 skip_tests: intel single gpu
 prerequisites: ! |
   pair buck/coul/cut

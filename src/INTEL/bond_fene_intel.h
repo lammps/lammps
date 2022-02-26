@@ -33,9 +33,9 @@ namespace LAMMPS_NS {
 class BondFENEIntel : public BondFENE {
  public:
   BondFENEIntel(class LAMMPS *);
-  virtual ~BondFENEIntel();
-  virtual void compute(int, int);
-  virtual void init_style();
+  ~BondFENEIntel() override;
+  void compute(int, int) override;
+  void init_style() override;
 
  protected:
   FixIntel *fix;

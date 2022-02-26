@@ -10,8 +10,6 @@ in the GNU make and CMake based build systems.  Can also be called
 independently and used to build the wheel without installing it.
 """
 
-# copy LAMMPS shared library and lammps package to system dirs
-
 from __future__ import print_function
 import sys,os,shutil,time,glob,subprocess
 from argparse import ArgumentParser
@@ -50,22 +48,28 @@ if args.lib:
 olddir = os.path.abspath('.')
 os.chdir(os.path.dirname(args.package))
 
+# remove any wheel files left over from previous calls
 print("Purging existing wheels...")
 for wheel in glob.glob('lammps-*.whl'):
   print("deleting " + wheel)
   os.remove(wheel)
 
-# create virtual environment for building the wheel
-shutil.rmtree('buildwheel',True)
+# copy shared object to the current folder so that
+# it will show up in the installation at the expected location
 os.putenv('LAMMPS_SHARED_LIB',args.lib)
-#os.environ['LAMMPS_SHARED_LIB'] = args.lib
 shutil.copy(args.lib,'lammps')
+
+# create a virtual environment for building the wheel
+shutil.rmtree('buildwheel',True)
 try:
   txt = subprocess.check_output([sys.executable, '-m', 'virtualenv', 'buildwheel', '-p', sys.executable], stderr=subprocess.STDOUT, shell=False)
   print(txt.decode('UTF-8'))
 except subprocess.CalledProcessError as err:
   sys.exit("Failed to create a virtualenv: {0}".format(err.output.decode('UTF-8')))
 
+# now run the commands to build the wheel. those must be in a separate script
+# and run in subprocess, since this will use the virtual environment and
+# there is no simple way to return from that in python.
 os.system(sys.executable + ' makewheel.py')
 
 # remove temporary folders and files
@@ -74,8 +78,20 @@ shutil.rmtree('build',True)
 shutil.rmtree('lammps.egg-info',True)
 os.remove(os.path.join('lammps',os.path.basename(args.lib)))
 
+# stop here if we were asked not to install the wheel we created
 if args.noinstall:
     exit(0)
+
+# install the wheel with pip. first try to install in the default environment.
+# that will be a virtual environment, if active, or the system folder.
+# recent versions of pip will automatically drop to use the user folder
+# in case the system folder is not writable.
+
+# we use a subprocess so we can catch an exception on failure.
+# we need to check whether pip refused to install because of a
+# version of the module previously installed with distutils. those
+# must be uninstalled manually. We must not ignore this and drop
+# back to install into a (forced) user folder.
 
 print("Installing wheel")
 for wheel in glob.glob('lammps-*.whl'):

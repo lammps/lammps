@@ -18,9 +18,14 @@
 
 #include "pair_lj_long_coul_long_intel.h"
 
+#include "fix_intel.h"
+#include "modify.h"
+#include "neigh_request.h"
 #include "suffix.h"
 
 using namespace LAMMPS_NS;
+
+/* ---------------------------------------------------------------------- */
 
 PairLJLongCoulLongIntel::PairLJLongCoulLongIntel(LAMMPS *lmp) :
   PairLJLongCoulLong(lmp)
@@ -30,7 +35,22 @@ PairLJLongCoulLongIntel::PairLJLongCoulLongIntel(LAMMPS *lmp) :
   cut_respa = nullptr;
 }
 
+/* ---------------------------------------------------------------------- */
 
 PairLJLongCoulLongIntel::~PairLJLongCoulLongIntel()
 {
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairLJLongCoulLongIntel::init_style()
+{
+  PairLJLongCoulLong::init_style();
+  neighbor->find_request(this)->intel = 1;
+
+  int ifix = modify->find_fix("package_intel");
+  if (ifix < 0)
+    error->all(FLERR,"The 'package intel' command is required for /intel styles");
+  auto fix = static_cast<FixIntel *>(modify->fix[ifix]);
+  fix->pair_init_check();
 }

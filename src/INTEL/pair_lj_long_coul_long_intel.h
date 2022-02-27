@@ -33,6 +33,7 @@ class PairLJLongCoulLongIntel : public PairLJLongCoulLong {
  public:
   PairLJLongCoulLongIntel(class LAMMPS *);
   virtual ~PairLJLongCoulLongIntel();
+  void init_style();
 };
 }    // namespace LAMMPS_NS
 #endif

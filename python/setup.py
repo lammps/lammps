@@ -27,7 +27,6 @@ class BinaryDistribution(Distribution):
     def has_ext_modules(foo):
         return True
 
-libname = os.path.basename(os.environ.get("LAMMPS_SHARED_LIB"))
 if version_info.major >= 3:
     pkgs = ['lammps', 'lammps.mliap']
 else:
@@ -36,8 +35,9 @@ else:
 with open("README", "r") as fh:
     long_description = fh.read()
 
+libname = os.environ.get("LAMMPS_SHARED_LIB")
 if libname:
-    pkgdata = {'lammps': [ libname ]}
+    pkgdata = {'lammps': [ os.path.basename(libname) ]}
     bdist = BinaryDistribution
 else:
     pkgdata = {}

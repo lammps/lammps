@@ -323,13 +323,12 @@ void BondFENEIntel::pack_force_const(ForceConst<flt_t> &fc,
 template <class flt_t>
 void BondFENEIntel::ForceConst<flt_t>::set_ntypes(const int nbondtypes,
                                                       Memory *memory) {
+  if (memory != nullptr) _memory = memory;
   if (nbondtypes != _nbondtypes) {
-    if (_nbondtypes > 0)
-      _memory->destroy(fc);
+    _memory->destroy(fc);
 
     if (nbondtypes > 0)
       _memory->create(fc,nbondtypes,"bondfeneintel.fc");
   }
   _nbondtypes = nbondtypes;
-  _memory = memory;
 }

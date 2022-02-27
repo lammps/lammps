@@ -343,13 +343,11 @@ void AngleHarmonicIntel::pack_force_const(ForceConst<flt_t> &fc,
 template <class flt_t>
 void AngleHarmonicIntel::ForceConst<flt_t>::set_ntypes(const int nangletypes,
                                                      Memory *memory) {
+  if (memory != nullptr) _memory = memory;
   if (nangletypes != _nangletypes) {
-    if (_nangletypes > 0)
-      _memory->destroy(fc);
-
+    _memory->destroy(fc);
     if (nangletypes > 0)
       _memory->create(fc,nangletypes,"anglecharmmintel.fc");
   }
   _nangletypes = nangletypes;
-  _memory = memory;
 }

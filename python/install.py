@@ -56,7 +56,7 @@ for wheel in glob.glob('lammps-*.whl'):
 
 # copy shared object to the current folder so that
 # it will show up in the installation at the expected location
-os.putenv('LAMMPS_SHARED_LIB',args.lib)
+os.putenv('LAMMPS_SHARED_LIB',os.path.basename(args.lib))
 shutil.copy(args.lib,'lammps')
 
 # create a virtual environment for building the wheel

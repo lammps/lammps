@@ -37,7 +37,7 @@ with open("README", "r") as fh:
 
 libname = os.environ.get("LAMMPS_SHARED_LIB")
 if libname:
-    pkgdata = {'lammps': [ os.path.basename(libname) ]}
+    pkgdata = {'lammps': [ libname ]}
     bdist = BinaryDistribution
 else:
     pkgdata = {}

@@ -185,12 +185,6 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) : Fix(lmp,
       } else {
         error->all(FLERR, "Invalid argument after ffield keyword");
       }
-    } else if ((strcmp(arg[iarg], "etypes") == 0)) {
-      if (iarg + 2 > narg) error->all(FLERR, "Need one argument after etypes command");
-      int ilo, ihi;
-      utils::bounds(FLERR, arg[++iarg], 1, atom->ntypes, ilo, ihi, error);
-      for (int i = ilo; i <= ihi; ++i) etypes.push_back(i);
-      etypes_neighlists = true;
     } else {
       error->all(FLERR, "Illegal fix electrode/conp command");
     }

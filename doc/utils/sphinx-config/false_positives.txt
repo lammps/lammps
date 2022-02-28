@@ -3,6 +3,7 @@ aat
 abc
 abf
 ABI
+abi
 abo
 Abramyan
 absTol
@@ -2450,6 +2451,7 @@ ortho
 orthonormal
 orthorhombic
 Ortner
+os
 oso
 Otype
 Ouadfel
@@ -3616,6 +3618,7 @@ wget
 Whelan
 whitesmoke
 whitespace
+whl
 Wi
 Wicaksono
 widom

@@ -38,12 +38,11 @@ typedef double FFT_SCALAR;
 #endif
 
 #include "kspace.h"
+#include <algorithm>
 #include <tuple>
 #include <unordered_map>
+#include <utility>
 #include <vector>
-#include <utility>      
-#include <bits/stdc++.h> 
-#include <algorithm>
 
 namespace LAMMPS_NS {
 

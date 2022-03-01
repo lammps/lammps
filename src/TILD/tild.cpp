@@ -2557,6 +2557,7 @@ double TILD::calculate_rho0(){
       }
     }
 
+  // user-defined global density not defined, using user-defined rho for each NP type
   if (set_rho0 <= 0.0f){
     for ( int itype = 1; itype <= ntypes; itype++) {
       if (potent_type_map[2][itype][itype] == 1) {
@@ -2564,6 +2565,7 @@ double TILD::calculate_rho0(){
       }
     }
   } else {
+  // setting all per-particle rho0 so that the user-defined rho0 is accurate.  
     MPI_Allreduce(&total_sphere_vol, &temp_double, 1, MPI_DOUBLE, MPI_SUM, world);
     total_sphere_vol = temp_double;
     modified_rho0 = (set_rho0 * vole - lmass) /total_sphere_vol;

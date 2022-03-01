@@ -1719,15 +1719,6 @@ int TILD::modify_param(int narg, char** arg)
       error->all(FLERR, "Illegal kspace_modify tild normalize_by_rho0 argument");
         iarg += 3;
       } else if (strcmp(arg[iarg + 1], "write_grid_data") == 0) {
-        if (iarg + 3 > narg) error->all(FLERR, "Illegal kspace_modify tild command");
-        if (strcmp(arg[iarg + 2], "yes") == 0)
-          write_grid_flag = 1;
-        else if (strcmp(arg[iarg + 2], "no") == 0)
-          write_grid_flag = 0;
-    else 
-      error->all(FLERR, "Illegal kspace_modify tild/write_grid_data argument");
-        iarg += 3; 
-      } else if (strcmp(arg[iarg + 1], "write_grid_data_freq") == 0) {
         if (iarg + 4 > narg) error->all(FLERR, "Illegal kspace_modify tild command");
         grid_data_output_freq = utils::inumeric(FLERR, arg[iarg+2], false, lmp);
         if (grid_data_output_freq <= 0)

@@ -867,9 +867,9 @@ void FixElectrodeConp::compute_macro_matrices()
     std::vector<double> work(lwork);
     std::vector<double> tmp(lwork);
 
-    for (int i = 0; i < m; i++) {
-      for (int j = 0; j < m; j++) {
-        int idx = i * ngroup + j;
+    for (int i = 0; i < num_of_groups; i++) {
+      for (int j = 0; j < num_of_groups; j++) {
+        int idx = i * num_of_groups + j;
         tmp[idx] = macro_capacitance[i][j];
       }
     }

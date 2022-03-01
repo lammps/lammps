@@ -2600,10 +2600,10 @@ double TILD::calculate_rho0(){
       } else if (total_sphere_vol > 0 && set_rho0 > 0) {
         if (modified_rho0 != 0.f) {
           std::string mesg_mod = fmt::format(
-              "Modified NP rho set to {:.6f} for all particles to achieve user specified rho.\n", modified_rho0);
+              "Modified NP rho set to {:.6f} for all particles to achieve user specified TILD rho.\n", modified_rho0);
           error->warning(FLERR, mesg_mod);
           if (modified_rho0 < 0) {
-            std::string mesg_mod = fmt::format("Modified NP rho is below zero and is unphysical.\n");
+            std::string mesg_mod = fmt::format("Modified TILD NP rho is below zero and is unphysical.\n");
             error->all(FLERR, mesg_mod);
           }
         }
@@ -2615,8 +2615,8 @@ double TILD::calculate_rho0(){
 
     if (rho <= 0.f) {
       if (set_rho0 > 0.f) {
-        error->warning(FLERR, "Calculated rho <= 0; using user specificed rho0");
-        mesg += fmt::format("  Using user set rho0 = {:.6f} for TILD potential.\n", set_rho0);
+        error->warning(FLERR, "Calculated TILD rho <= 0; using user specificed TILD rho0");
+        mesg += fmt::format("  Using user set TILD rho0 = {:.6f} for TILD potential.\n", set_rho0);
         utils::logmesg(lmp, mesg);
         rho = set_rho0;
       }
@@ -2627,7 +2627,7 @@ double TILD::calculate_rho0(){
 
   if (rho <= 0.f) {
     if (set_rho0 <= 0.f) {
-      std::string mesg = fmt::format("  Both densities are not positive. Aborting run.");
+      std::string mesg = fmt::format("  Both TILD densities are not positive. Aborting run.");
       error->all(FLERR, mesg);
     }
   }

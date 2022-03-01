@@ -51,12 +51,11 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   type_flag(nullptr), mass_list(nullptr), bond_distance(nullptr), angle_distance(nullptr),
   loop_respa(nullptr), step_respa(nullptr), x(nullptr), v(nullptr), f(nullptr), ftmp(nullptr),
   vtmp(nullptr), mass(nullptr), rmass(nullptr), type(nullptr), shake_flag(nullptr),
-  shake_atom(nullptr), shake_type(nullptr), xshake(nullptr), nshake(nullptr),
-  list(nullptr), b_count(nullptr), b_count_all(nullptr), b_ave(nullptr), b_max(nullptr),
-  b_min(nullptr), b_ave_all(nullptr), b_max_all(nullptr), b_min_all(nullptr),
-  a_count(nullptr), a_count_all(nullptr), a_ave(nullptr), a_max(nullptr), a_min(nullptr),
-  a_ave_all(nullptr), a_max_all(nullptr), a_min_all(nullptr), atommols(nullptr),
-  onemols(nullptr)
+  shake_atom(nullptr), shake_type(nullptr), xshake(nullptr), nshake(nullptr), list(nullptr),
+  b_count(nullptr), b_count_all(nullptr), b_atom(nullptr), b_ave(nullptr), b_max(nullptr),
+  b_min(nullptr), b_ave_all(nullptr), b_max_all(nullptr), b_min_all(nullptr), a_count(nullptr),
+  a_count_all(nullptr), a_ave(nullptr), a_max(nullptr), a_min(nullptr), a_ave_all(nullptr),
+  a_max_all(nullptr), a_min_all(nullptr), atommols(nullptr), onemols(nullptr)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -172,8 +171,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
       if (imol == -1)
         error->all(FLERR,"Molecule template ID for fix shake does not exist");
       if (atom->molecules[imol]->nset > 1 && comm->me == 0)
-        error->warning(FLERR,"Molecule template for "
-                       "fix shake has multiple molecules");
+        error->warning(FLERR,"Molecule template for fix shake has multiple molecules");
       onemols = &atom->molecules[imol];
       nmol = onemols[0]->nset;
       iarg += 2;
@@ -199,6 +197,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
     int nb = atom->nbondtypes + 1;
     b_count = new int[nb];
     b_count_all = new int[nb];
+    b_atom = new int[nb];
     b_ave = new double[nb];
     b_ave_all = new double[nb];
     b_max = new double[nb];
@@ -228,8 +227,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   find_clusters();
 
   if (comm->me == 0)
-    utils::logmesg(lmp,"  find clusters CPU = {:.3f} seconds\n",
-                   platform::walltime()-time1);
+    utils::logmesg(lmp,"  find clusters CPU = {:.3f} seconds\n",platform::walltime()-time1);
 
   // initialize list of SHAKE clusters to constrain
 
@@ -281,32 +279,33 @@ FixShake::~FixShake()
   memory->destroy(vtmp);
 
 
-  delete [] bond_flag;
-  delete [] angle_flag;
-  delete [] type_flag;
-  delete [] mass_list;
+  delete[] bond_flag;
+  delete[] angle_flag;
+  delete[] type_flag;
+  delete[] mass_list;
 
-  delete [] bond_distance;
-  delete [] angle_distance;
+  delete[] bond_distance;
+  delete[] angle_distance;
 
   if (output_every) {
-    delete [] b_count;
-    delete [] b_count_all;
-    delete [] b_ave;
-    delete [] b_ave_all;
-    delete [] b_max;
-    delete [] b_max_all;
-    delete [] b_min;
-    delete [] b_min_all;
+    delete[] b_count;
+    delete[] b_count_all;
+    delete[] b_atom;
+    delete[] b_ave;
+    delete[] b_ave_all;
+    delete[] b_max;
+    delete[] b_max_all;
+    delete[] b_min;
+    delete[] b_min_all;
 
-    delete [] a_count;
-    delete [] a_count_all;
-    delete [] a_ave;
-    delete [] a_ave_all;
-    delete [] a_max;
-    delete [] a_max_all;
-    delete [] a_min;
-    delete [] a_min_all;
+    delete[] a_count;
+    delete[] a_count_all;
+    delete[] a_ave;
+    delete[] a_ave_all;
+    delete[] a_max;
+    delete[] a_max_all;
+    delete[] a_min;
+    delete[] a_min_all;
   }
 
   memory->destroy(list);
@@ -2504,6 +2503,7 @@ void FixShake::stats()
 
       m = shake_type[i][j-1];
       b_count[m]++;
+      b_atom[m] = n;
       b_ave[m] += r;
       b_max[m] = MAX(b_max[m],r);
       b_min[m] = MIN(b_min[m],r);
@@ -2563,16 +2563,16 @@ void FixShake::stats()
     auto mesg = fmt::format("SHAKE stats (type/ave/delta/count) on step {}\n",
                             update->ntimestep);
     for (i = 1; i < nb; i++) {
-      const auto bcnt = b_count_all[i]/2;
+      const auto bcnt = b_count_all[i];
       if (bcnt)
         mesg += fmt::format("Bond:  {:>{}d}   {:<9.6} {:<11.6} {:>8d}\n",i,width,
-                            b_ave_all[i]/bcnt/2.0,b_max_all[i]-b_min_all[i],bcnt);
+                            b_ave_all[i]/bcnt,b_max_all[i]-b_min_all[i],bcnt/b_atom[i]);
     }
     for (i = 1; i < na; i++) {
-      const auto acnt = a_count_all[i]/3;
+      const auto acnt = a_count_all[i];
       if (acnt)
         mesg += fmt::format("Angle: {:>{}d}   {:<9.6} {:<11.6} {:>8d}\n",i,width,
-                            a_ave_all[i]/acnt/3.0,a_max_all[i]-a_min_all[i],acnt);
+                            a_ave_all[i]/acnt,a_max_all[i]-a_min_all[i],acnt/3);
     }
     utils::logmesg(lmp,mesg);
   }

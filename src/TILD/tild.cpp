@@ -1549,52 +1549,57 @@ void TILD::particle_map()
 int TILD::modify_param(int narg, char** arg)
 {
   int ntypes = atom->ntypes;
-  if (strcmp(arg[0], "tild/prefactor") == 0) {
+  int iarg = 0;
+  if (strcmp(arg[iarg], "tild") == 0) {
+
+    while (iarg < narg) {
+
+      if (strcmp(arg[iarg+1], "prefactor") == 0) {
     if (domain->box_exist == 0)
       error->all(FLERR, "TILD command before simulation box is defined");
 
-    if (narg != 4) error->all(FLERR, "Illegal kspace_modify tild command");
+        if (iarg + 5 > narg) error->all(FLERR, "Illegal kspace_modify tild command");
 
-    int ilo,ihi,jlo,jhi;
-    utils::bounds(FLERR,arg[1],1,ntypes,ilo,ihi,error);
-    utils::bounds(FLERR,arg[2],1,ntypes,jlo,jhi,error);
-    double lprefactor = utils::numeric(FLERR,arg[3],false,lmp);
+        int ilo, ihi, jlo, jhi;
+        utils::bounds(FLERR, arg[iarg+2], 1, ntypes, ilo, ihi, error);
+        utils::bounds(FLERR, arg[iarg+3], 1, ntypes, jlo, jhi, error);
+        double lprefactor = utils::numeric(FLERR, arg[iarg+4], false, lmp);
     for (int i = ilo; i <= ihi; i++) {
-      for (int j = MAX(jlo,i); j <= jhi; j++) {
-        chi[i][j] = lprefactor;
+          for (int j = MAX(jlo, i); j <= jhi; j++) { chi[i][j] = lprefactor; }
       }
-    }
+        iarg += 5;
+      } else if (strcmp(arg[iarg+1], "shape") == 0) {
+        if (iarg + 4 > narg) error->all(FLERR, "Illegal kspace_modify tild command");
  
-  } else if (strcmp(arg[0], "tild/shape") == 0) {
-    if (narg < 3) error->all(FLERR, "Illegal kspace_modify tild command");
-
-    int ilo,ihi,jlo,jhi;
+        int ilo, ihi, jlo, jhi;
 
     //Read in types 1 and 2
-    utils::bounds(FLERR,arg[1],1,ntypes,ilo,ihi,error);
-    utils::bounds(FLERR,arg[2],1,ntypes,jlo,jhi,error);
+        utils::bounds(FLERR, arg[iarg+2], 1, ntypes, ilo, ihi, error);
+        utils::bounds(FLERR, arg[iarg+3], 1, ntypes, jlo, jhi, error);
 
     //Obtain Gaussian width parameter
-    if (strcmp(arg[3], "gaussian") == 0) {
-      if (narg < 4) error->all(FLERR, "Illegal kspace_modify tild command");
+        if (strcmp(arg[iarg+4], "gaussian") == 0) {
+          if (iarg + 6 > narg) error->all(FLERR, "Illegal kspace_modify tild command");
 
-      double a2_one = utils::numeric(FLERR,arg[4],false,lmp)*utils::numeric(FLERR,arg[4],false,lmp);
+          double a2_one =
+              utils::numeric(FLERR, arg[iarg+5], false, lmp) * utils::numeric(FLERR, arg[iarg+5], false, lmp);
       for (int i = ilo; i <= ihi; i++) {
-        for (int j = MAX(jlo,i); j <= jhi; j++) {
+            for (int j = MAX(jlo, i); j <= jhi; j++) {
           potent_type_map[1][i][j] = 1;
           potent_type_map[0][i][j] = 0;
           a2[i][j] = a2_one;
         }
       }
-    } else if (strcmp(arg[3], "erfc") == 0) {
+          iarg += 6;
+        } else if (strcmp(arg[iarg+4], "erfc") == 0) {
 
     //Obtain Erfc Radius, width, and density for Erf
-      if (narg < 5) error->all(FLERR, "Illegal kspace_modify tild command");
-      double rp_one = utils::numeric(FLERR,arg[4],false,lmp);
-      double xi_one = utils::numeric(FLERR,arg[5],false,lmp);
-      double np_rho_one = utils::numeric(FLERR,arg[6],false,lmp);
+          if (iarg + 8 > narg) error->all(FLERR, "Illegal kspace_modify tild command");
+          double rp_one = utils::numeric(FLERR, arg[iarg+5], false, lmp);
+          double xi_one = utils::numeric(FLERR, arg[iarg+6], false, lmp);
+          double np_rho_one = utils::numeric(FLERR, arg[iarg+7], false, lmp);
       for (int i = ilo; i <= ihi; i++) {
-        for (int j = MAX(jlo,i); j <= jhi; j++) {
+            for (int j = MAX(jlo, i); j <= jhi; j++) {
           potent_type_map[2][i][j] = 1;
           potent_type_map[0][i][j] = 0;
           rp[i][j] = rp_one;
@@ -1602,124 +1607,153 @@ int TILD::modify_param(int narg, char** arg)
           np_rho[i][j] = np_rho_one;
         }
       }
-    } else if (strcmp(arg[3], "none") == 0) {
+          iarg += 8;
+        } else if (strcmp(arg[iarg+4], "none") == 0) {
       for (int i = ilo; i <= ihi; i++) {
-        for (int j = MAX(jlo,i); j <= jhi; j++) {
+            for (int j = MAX(jlo, i); j <= jhi; j++) {
           potent_type_map[0][i][j] = 1;
-          for (int istyle = 1; istyle <= nstyles; istyle++) 
-            potent_type_map[istyle][i][j] = 0;
+              for (int istyle = 1; istyle <= nstyles; istyle++) potent_type_map[istyle][i][j] = 0;
         }
       }
-    } else error->all(FLERR, "Illegal kspace_modify tild/shape density function argument");
+          iarg += 5;
+        } else
+          error->all(FLERR, "Illegal kspace_modify tild/shape density function argument");
 
-  } else if (strcmp(arg[0], "tild/cross-interaction") == 0) {
-    if (narg < 4) error->all(FLERR, "Illegal kspace_modify tild command");
-    int ilo,ihi,jlo,jhi;
-    utils::bounds(FLERR,arg[1],1,ntypes,ilo,ihi,error);
-    utils::bounds(FLERR,arg[2],1,ntypes,jlo,jhi,error);
+      } else if (strcmp(arg[iarg+1], "cross-interaction") == 0) {
+        if (iarg + 4 > narg) error->all(FLERR, "Illegal kspace_modify tild command");
+        int ilo, ihi, jlo, jhi;
+        utils::bounds(FLERR, arg[iarg+2], 1, ntypes, ilo, ihi, error);
+        utils::bounds(FLERR, arg[iarg+3], 1, ntypes, jlo, jhi, error);
 
     cross_type tmp_type;
-    if (strcmp(arg[3], "gaussian") == 0){
-      tmp_type=GAUSSIAN;
-    } else if (strcmp(arg[3], "erfc") == 0){
-      tmp_type=ERFC;
-    } else if (strcmp(arg[3], "gaussian_erfc") == 0){
-      tmp_type=GAUSSIAN_ERFC;
-    } else if (strcmp(arg[3], "none") == 0){
-      tmp_type=NONE;
-    } else if (strcmp(arg[3], "delete") == 0){
-      tmp_type=DELETE;
+        int nparams;
+        if (strcmp(arg[iarg+4], "gaussian") == 0) {
+          tmp_type = GAUSSIAN;
+          nparams = 1;
+          iarg += 6;
+        } else if (strcmp(arg[iarg+4], "erfc") == 0) {
+          tmp_type = ERFC;
+          nparams = 2;
+          iarg += 7;
+        } else if (strcmp(arg[iarg+4], "gaussian_erfc") == 0) {
+          tmp_type = GAUSSIAN_ERFC;
+          nparams = 3;
+          iarg += 8;
+        } else if (strcmp(arg[iarg+4], "none") == 0) {
+          tmp_type = NONE;
+          nparams = 0;
+          iarg += 5;
+        } else if (strcmp(arg[iarg+4], "delete") == 0) {
+          tmp_type = DELETE;
+          iarg += 5;
     } else {
       error->all(FLERR, "Illegal tild/cross-interaction specified.");
     }
 
-    if (tmp_type != DELETE ){
+
+        if (tmp_type != DELETE) {
       for (int i = ilo; i <= ihi; i++) {
         for (int j = jlo; j <= jhi; j++) {
           Interaction temp;
-          temp.i = i-1; 
-          temp.j = j-1;
+              temp.i = i - 1;
+              temp.j = j - 1;
           temp.type = tmp_type;
 
-          int nparams = narg-4;
           for (int p = 0; p < nparams; p++) {
-            temp.parameters.push_back( utils::numeric(FLERR,arg[p+4],false,lmp) );
+                temp.parameters.push_back(utils::numeric(FLERR, arg[iarg + 5 + p], false, lmp));
           }
 
           auto it = cross_iter.begin();
           int idx = 0;
           while (it != cross_iter.end()) {
-            if ((it->i == i-1) && (it->j == j-1))
-              cross_iter[idx] = temp; 
+                if ((it->i == i - 1) && (it->j == j - 1)) cross_iter[idx] = temp;
             it++;
           }
 
-          if (it == cross_iter.end()) 
-            cross_iter.emplace_back(temp);
+              if (it == cross_iter.end()) cross_iter.emplace_back(temp);
         }
       }
     } else {
       for (int ii = ilo; ii <= ihi; ii++) {
-        for (int jj = jlo,ii; jj <= jhi; jj++) {
+            for (int jj = jlo, ii; jj <= jhi; jj++) {
           auto it = cross_iter.begin();
-          while (it != cross_iter.end()){
-            if ((it->i == ii-1) && (it->j == jj-1)) {
-              cross_iter.erase(it--);
-            }
+              while (it != cross_iter.end()) {
+                if ((it->i == ii - 1) && (it->j == jj - 1)) { cross_iter.erase(it--); }
             it++;
           }
         }
       }
     }
 
-  } else if (strcmp(arg[0], "tild/mix") == 0) {
-    if (narg != 2) error->all(FLERR, "Illegal kspace_modify tild command");
+        
+      } else if (strcmp(arg[iarg + 1], "mix") == 0) {
+        if (iarg + 3 > narg) error->all(FLERR, "Illegal kspace_modify tild command");
+        mix_flag = 1;
+        if (strcmp(arg[iarg + 2], "convolution") == 0)
     mix_flag = 1;
-    if (strcmp(arg[1], "convolution") == 0)  mix_flag = 1;
-    else if (strcmp(arg[1], "define") == 0) mix_flag = 0;
-    else error->all(FLERR, "Illegal kspace_modify tild mix argument");
-  } else if (strcmp(arg[0], "tild/set_rho0") == 0) {
-    if (narg < 2 ) error->all(FLERR, "Illegal kspace_modify tild command");
-    set_rho0 = utils::numeric(FLERR,arg[1],false,lmp);
-  } else if (strcmp(arg[0], "tild/subtract_rho0") == 0) {
-    if (narg != 2) error->all(FLERR, "Illegal kspace_modify tild command");
-    if (strcmp(arg[1], "yes") == 0) sub_flag = 1;
-    else if (strcmp(arg[1], "no") == 0) sub_flag = 0;
-    else error->all(FLERR, "Illegal kspace_modify tild subtract_rho0 argument");
-  } else if (strcmp(arg[0], "tild/normalize_by_rho0") == 0) {
-    if (narg != 2) error->all(FLERR, "Illegal kspace_modify tild command");
-    if (strcmp(arg[1], "yes") == 0) norm_flag = 1;
-    else if (strcmp(arg[1], "no") == 0) norm_flag = 0;
+        else if (strcmp(arg[iarg + 2], "define") == 0)
+          mix_flag = 0;
+        else
+          error->all(FLERR, "Illegal kspace_modify tild mix argument");
+        iarg += 3;
+      } else if (strcmp(arg[iarg + 1], "set_rho0") == 0) {
+        if (iarg + 3 > narg) error->all(FLERR, "Illegal kspace_modify tild command");
+        set_rho0 = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+        iarg += 3;
+      } else if (strcmp(arg[iarg + 1], "subtract_rho0") == 0) {
+        if (iarg + 3 > narg) error->all(FLERR, "Illegal kspace_modify tild command");
+        if (strcmp(arg[iarg+2], "yes") == 0)
+          sub_flag = 1;
+        else if (strcmp(arg[iarg+2], "no") == 0)
+          sub_flag = 0;
+        else
+          error->all(FLERR, "Illegal kspace_modify tild subtract_rho0 argument");
+        iarg += 3;
+      } else if (strcmp(arg[iarg + 1], "normalize_by_rho0") == 0) {
+        if (iarg + 3 > narg) error->all(FLERR, "Illegal kspace_modify tild command");
+        if (strcmp(arg[iarg+2], "yes") == 0)
+          norm_flag = 1;
+        else if (strcmp(arg[iarg + 2], "no") == 0)
+          norm_flag = 0;
     else 
       error->all(FLERR, "Illegal kspace_modify tild normalize_by_rho0 argument");
-
-  } else if (strcmp(arg[0], "tild/write_grid_data") == 0) {
-    if (narg != 3) error->all(FLERR, "Illegal kspace_modify tild command");
-    if (strcmp(arg[1], "yes") == 0) write_grid_flag = 1;
-    else if (strcmp(arg[1], "no") == 0) write_grid_flag = 0;
+        iarg += 3;
+      } else if (strcmp(arg[iarg + 1], "write_grid_data") == 0) {
+        if (iarg + 3 > narg) error->all(FLERR, "Illegal kspace_modify tild command");
+        if (strcmp(arg[iarg + 2], "yes") == 0)
+          write_grid_flag = 1;
+        else if (strcmp(arg[iarg + 2], "no") == 0)
+          write_grid_flag = 0;
     else 
       error->all(FLERR, "Illegal kspace_modify tild/write_grid_data argument");
-    grid_data_output_freq = utils::inumeric(FLERR,arg[1],false,lmp);
-    if (grid_data_output_freq <= 0 ) write_grid_flag = 0;
-    else write_grid_flag = 1;
-    strcpy(grid_data_filename,arg[2]);
-
-  } else if (strcmp(arg[0], "tild/ave/grid") == 0) {
-    if (narg != 5) error->all(FLERR, "Illegal kspace_modify tild command");
+        iarg += 3; 
+      } else if (strcmp(arg[iarg + 1], "write_grid_data_freq") == 0) {
+        if (iarg + 4 > narg) error->all(FLERR, "Illegal kspace_modify tild command");
+        grid_data_output_freq = utils::inumeric(FLERR, arg[iarg+2], false, lmp);
+        if (grid_data_output_freq <= 0)
+          write_grid_flag = 0;
+        else
+          write_grid_flag = 1;
+        strcpy(grid_data_filename, arg[iarg+3]);
+        iarg += 4;
+      } else if (strcmp(arg[iarg + 1], "ave/grid") == 0) {
+        if (iarg + 6 > narg) error->all(FLERR, "Illegal kspace_modify tild command");
     ave_grid_flag = 1;
-    nevery = utils::inumeric(FLERR,arg[1],false,lmp);
-    nrepeat = utils::inumeric(FLERR,arg[2],false,lmp);
-    peratom_freq = utils::inumeric(FLERR,arg[3],false,lmp);
-    strcpy(ave_grid_filename,arg[4]);
+        nevery = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
+        nrepeat = utils::inumeric(FLERR, arg[iarg + 3], false, lmp);
+        peratom_freq = utils::inumeric(FLERR, arg[iarg + 4], false, lmp);
+        strcpy(ave_grid_filename, arg[iarg + 5]);
     nvalid = nextvalid();
     if (nevery <= 0 || nrepeat <= 0 || peratom_freq <= 0)
-      error->all(FLERR,"Illegal fix tild/ave/grid command");
-    if (peratom_freq % nevery || nrepeat*nevery > peratom_freq)
-      error->all(FLERR,"Illegal kspace_modify tild/ave/grid command");
+          error->all(FLERR, "Illegal fix tild/ave/grid command");
+        if (peratom_freq % nevery || nrepeat * nevery > peratom_freq)
+          error->all(FLERR, "Illegal kspace_modify tild/ave/grid command");
+        iarg += 6;
   } else
     error->all(FLERR, "Illegal kspace_modify tild command");
-
-  return narg;
+    }
+  }
+  return iarg;
 }
 
 /* ----------------------------------------------------------------------

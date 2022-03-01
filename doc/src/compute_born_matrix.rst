@@ -80,7 +80,7 @@ in this matrix the indices of :math:`C_{k}` value are the corresponding element
 :math:`k` in the global vector output by this compute. Each term comes from the sum
 of the derivatives of every contribution to the potential energy
 in the system as explained in :ref:`(VanWorkum)
-<VanWorkum>` or :ref:`(Voyiatzis) <Voyiatzis>`.
+<VanWorkum>`.
 
 The output can be accessed using usual Lammps routines:
 
@@ -99,27 +99,32 @@ The output can be accessed using usual Lammps routines:
 In this example, the file *born.out* will contain the information needed to
 compute the first and second terms of the elastic constant matrix in a post
 processing procedure. The other required quantities can be accessed using any
-other *LAMMPS* usual method.
+other *LAMMPS* usual method. Several examples of this method are
+provided in the examples/ELASTIC_T/BORN_MATRIX directory
+described on the :doc:`Examples <Examples>` doc page.
 
-NOTE: In the above :math:`C_{i,j}` computation, the term involving the virial
-stress tensor :math:`\sigma` is the covariance between each elements. In a
-solid the virial stress can have large variations between timesteps and average
-values can be slow to converge. This term is better computed using
-instantaneous values.
+NOTE: In the above :math:`C_{i,j}` computation, the fluctuation
+term involving the virial stress tensor :math:`\sigma` is the
+covariance between each elements. In a
+solid the stress fluctuations can vary rapidly, while average
+fluctuations can be slow to converge.
+A detailed analysis of the convergence rate of all the terms in
+the elastic tensor
+is provided in the paper by Clavier et al. :ref:`(Clavier) <Clavier2>`.
 
-Two different computation methods are implemented in this compute and are
-mutually exclusive.
+Two different computation methods for the Born matrix are implemented in this
+compute and are mutually exclusive.
 
 The first one is a direct computation from the analytical formula from the
-different terms of the potential used for the simulations (see :ref:`(VanWorkum)
-<VanWorkum>`). However, the implementation of such derivations must be done
+different terms of the potential used for the simulations :ref:`(VanWorkum)
+<VanWorkum>`. However, the implementation of such derivations must be done
 for every potential form. This has not been done yet and can be very
 complicated for complex potentials. At the moment a warning message is
 displayed for every term that is not supporting the compute at the moment.
 This method is the default for now.
 
 The second method uses finite differences of energy to numerically approximate
-the second derivatives (see :ref:`(Zhen) <Zhen>`). This is useful when using
+the second derivatives :ref:`(Zhen) <Zhen>`. This is useful when using
 interaction styles for which the analytical second derivatives have not been
 implemented. In this cases, the compute applies linear strain fields of
 magnitude *delta* to all the atoms relative to a point at the center of the
@@ -199,9 +204,9 @@ none
 
 **(Van Workum)** K. Van Workum et al., J. Chem. Phys. 125 144506 (2006)
 
-.. _Voyiatzis:
+.. _Clavier2:
 
-**(Voyiatzis)** E. Voyiatzis, Computer Physics Communications 184(2013)27-33
+**(Clavier)** G. Clavier, N. Desbiens, E. Bourasseau, V. Lachet, N. Brusselle-Dupend and B. Rousseau, Mol Sim, 43, 1413 (2017).
 
 .. _Zhen:
 

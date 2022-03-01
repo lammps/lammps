@@ -2598,7 +2598,7 @@ double TILD::calculate_rho0(){
       } else if (total_sphere_vol > 0 && set_rho0 > 0) {
         if (modified_rho0 != 0.f) {
           std::string mesg_mod = fmt::format(
-              "Modified NP rho to {:.6f} to achieve user specified rho.\n", modified_rho0);
+              "Modified NP rho set to {:.6f} for all particles to achieve user specified rho.\n", modified_rho0);
           error->warning(FLERR, mesg_mod);
           if (modified_rho0 < 0) {
             std::string mesg_mod = fmt::format("Modified NP rho is below zero and is unphysical.\n");

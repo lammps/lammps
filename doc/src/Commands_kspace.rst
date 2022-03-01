@@ -10,6 +10,7 @@
    * :ref:`Dihedral styles <dihedral>`
    * :ref:`Improper styles <improper>`
    * :doc:`KSpace styles <Commands_kspace>`
+   * :doc:`TILD style <kspace_tild>`
 
 KSpace solvers
 ==============

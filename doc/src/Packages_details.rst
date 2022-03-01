@@ -2689,9 +2689,9 @@ TILD package
 
 **Contents:**
 
-The *tild* style is an implementation of 'theoretically informed Langevin Dynamics' method (previously known as `Dynamical Mean Field Theory`) :ref:`Chao <Chao>`: :ref:`Fredrickson<Fredrickson>`: :ref:`Grzetic<Grzetic>`. This interaction potential uses a particle-mesh scheme to calculate non-bonded pairwise forces indirectly through a gridded density representation. *tild* assigns a potentials for each simulation particle type, defined with :doc:`kspace_modify tild <kspace_modify>`. This potential does NOT calculate any Coulombic interactions.  Please see the :doc:`tild <kspace_tild>` doc page for a longer discussion about TILD. 
+The *tild* style is an implementation of 'theoretically informed Langevin Dynamics' method (previously known as `Dynamical Mean Field Theory`) :ref:`Chao <Chao>`: :ref:`Fredrickson<Fredrickson>`: :ref:`Grzetic<Grzetic>`. This interaction potential uses a particle-mesh scheme to calculate non-bonded pairwise forces indirectly through a gridded density representation. *tild* assigns a potentials for each simulation particle type, defined with :doc:`kspace_modify tild <kspace_tild>`. This potential does NOT calculate any Coulombic interactions.  Please see the :doc:`tild <kspace_tild>` doc page for a longer discussion about TILD. 
 
-**Authors:** Christian Tabedzki (Penn), Andrew P. Santos (Sandia), and Zachariah Vicars (Penn)
+**Authors:** Christian Tabedzki (Penn), Andrew P. Santos (NASA), and Zachariah Vicars (Penn)
 
 **Supporting info:**
 

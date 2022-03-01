@@ -63,6 +63,7 @@ An alphabetic list of all general LAMMPS commands.
    * :doc:`kim <kim_commands>`
    * :doc:`kspace_modify <kspace_modify>`
    * :doc:`kspace_style <kspace_style>`
+   * :doc:`kspace_tild <kspace_tild>`
    * :doc:`label <label>`
    * :doc:`lattice <lattice>`
    * :doc:`log <log>`

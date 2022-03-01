@@ -1,7 +1,10 @@
-.. index:: kspace_style tild 
+.. index:: kspace_tild 
 
-kspace_style tild command
-=========================
+:doc:`kspace_style tild <kspace_tild>` command
+====================================================
+
+:doc:`kspace_modify tild <kspace_tild>` command
+=====================================================
 
 Syntax
 """"""

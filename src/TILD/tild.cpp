@@ -1721,14 +1721,13 @@ int TILD::modify_param(int narg, char** arg)
       } else if (strcmp(arg[iarg + 1], "write_grid_data") == 0) {
         if (iarg + 4 > narg) error->all(FLERR, "Illegal kspace_modify tild command");
         grid_data_output_freq = utils::inumeric(FLERR, arg[iarg+2], false, lmp);
-        if (grid_data_output_freq <= 0)
-          write_grid_flag = 0;
-        else
-          write_grid_flag = 1;
+        if (grid_data_output_freq <= 0) write_grid_flag = 0;
+        else write_grid_flag = 1;
         strcpy(grid_data_filename, arg[iarg+3]);
         iarg += 4;
       } else if (strcmp(arg[iarg + 1], "ave/grid") == 0) {
         if (iarg + 6 > narg) error->all(FLERR, "Illegal kspace_modify tild command");
+
     ave_grid_flag = 1;
         nevery = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
         nrepeat = utils::inumeric(FLERR, arg[iarg + 3], false, lmp);

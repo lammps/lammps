@@ -43,23 +43,41 @@ class FixNWChem : public Fix {
   double compute_scalar();
 
  protected:
-  char *id_pe;
-  int pbcflag;
+  char *nwfile;        // input file for NWChem
+  int pbcflag;         // 1 if fully periodic, 0 if fully non-periodic
+  int mode;            // AIMD or QMMM
+  int qflag;           // 1 if per-atom charge defined, 0 if not
 
-  int nqm;
-  tagint *qmIDs;
-  double **xqm,**fqm;
-  double *qpotential,*qqm;
-  int *qm2lmp;
-  double qmenergy;
+  double qmenergy;           // QM energy
+
+  // data for QMMM mode
+
+  int nqm;                   // # of QM atoms
+  tagint *qmIDs;             // IDs of QM atoms in ascending order
+  double **xqm,**fqm;        // QM coords and forces
+  double *qqm;               // QM charges
+  double *qpotential;        // Coulomb potential
+  double **xqm_mine;         // same values for QM atoms I own
+  double *qqm_mine;
+  double *qpotential_mine;
+  int *qm2owned;             // index of local atom for each QM atom
+                             // index = -1 if this proc does not own
   
-  double lmp2qm_distance,lmp2qm_energy,qm2lmp_force;
+  // conversion factors between LAMMPS and NWChem units
 
-  class Compute *c_pe;
-  class Pair *pair_coul;
+  double lmp2qm_distance,lmp2qm_energy,qm2lmp_force,qm2lmp_energy;
 
-  int pspw_minimizer(MPI_Comm, int, double *, double *, 
-                     double *, double *, double &);
+  class Compute *c_pe;      // NOTE: not sure if need this
+  class Pair *pair_coul;    // ptr to instance of pair coul/long
+
+  // local methods
+
+  void pre_force_qmmm(int);
+  void post_force_qmmm(int);
+  void post_force_aimd(int);
+
+  int dummy_pspw_minimizer(MPI_Comm, double *, double *, 
+                           double *, double *, double *);
 };
 
 }    // namespace LAMMPS_NS

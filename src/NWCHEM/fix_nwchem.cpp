@@ -40,10 +40,9 @@ using namespace FixConst;
 
 namespace pwdft {
 using namespace pwdft;
-  //extern char *util_date();
-  //extern void seconds(double *);
-  //extern int pspw_geovib(MPI_Comm, std::string&);
-  //extern int pspw_minimizer(MPI_Comm, double *, double *, double *, double *);
+  extern void lammps_pspw_input(MPI_Comm, std::string &);
+  extern int lammps_pspw_minimizer(MPI_Comm, double *, double *, 
+                                   double *, double *, double *);
   //extern int nwchem_abiversion();
 }
 
@@ -56,29 +55,67 @@ using namespace pwdft;
 #define NWCHEM_ABIVERSION 20220101
 
 // unit conversion factors
+// NOTE: set all to 1.0 for dummy test
 
-#define ANGSTROM_TO_BOHR 1.88973
-#define HARTREE_TO_EV 27.2114
-#define HARTREE_TO_KCAL_MOLE 627.5
+//#define ANGSTROM_TO_BOHR 1.88973
+//#define HARTREE_TO_EV 27.2114
+//#define HARTREE_TO_KCAL_MOLE 627.5
+
+#define ANGSTROM_TO_BOHR 1.0
+#define HARTREE_TO_EV 1.0
+#define HARTREE_TO_KCAL_MOLE 1.0
+
+// mode of operation
+
+enum{AIMD,QMMM};
+
+// prototype for non-class compare function for sorting QM IDs
+
+static int compare_IDs(const int, const int, void *);
 
 /* ---------------------------------------------------------------------- */
 
 FixNWChem::FixNWChem(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if ((strcmp(update->unit_style,"metal") != 0) &&
-      (strcmp(update->unit_style,"real") != 0))
-    error->all(FLERR,"Must use units metal or real with fix nwchem command");
-
-  // NOTE: change 1-proc restriction later
-
-  if (comm->nprocs != 1)
-    error->all(FLERR,"Fix nwchem currently runs only in serial");
+  // error checks
 
   //if (NWCHEM_ABIVERSION != pwdft::nwchem_abiversion())
   //  error->all(FLERR,"LAMMPS is linked against incompatible NWChem library");
 
-  if (narg != 3) error->all(FLERR,"Illegal fix nwchem command");
+  if ((strcmp(update->unit_style,"metal") != 0) &&
+      (strcmp(update->unit_style,"real") != 0))
+    error->all(FLERR,"Fix nwchem requires metal or real units");
+
+  if (domain->dimension == 2)
+    error->all(FLERR,"Fix nwchem requires 3d simulation");
+
+  if (!atom->tag_enable) 
+    error->all(FLERR,"Fix nwchem requires atom IDs be defined");
+
+  if (!atom->tag_consecutive()) 
+    error->all(FLERR,"Fix nwchem requires atom IDs be consecutive");
+
+  if (!atom->map_style == Atom::MAP_NONE) 
+    error->all(FLERR,"Fix nwchem requires an atom map be defined");
+
+  // NOTE: relax this for slab geometries at some point
+
+  if (domain->nonperiodic == 0) pbcflag = 1;
+  else if (!domain->xperiodic && !domain->yperiodic && !domain->zperiodic)
+    pbcflag = 0;
+  else error->all(FLERR,"Fix nwchem requires fully periodic or "
+                  "fully non-periodic system");
+
+  // process command args
+
+  if (narg != 4) error->all(FLERR,"Illegal fix nwchem command");
+
+  int n = strlen(arg[3]) + 1;
+  nwfile = new char[n];
+  strcpy(nwfile,arg[3]);
+
+  // settings for this fix
 
   scalar_flag = 1;
   global_freq = 1;
@@ -92,19 +129,106 @@ FixNWChem::FixNWChem(LAMMPS *lmp, int narg, char **arg) :
     lmp2qm_distance = ANGSTROM_TO_BOHR;
     lmp2qm_energy = 1.0 / HARTREE_TO_EV;
     qm2lmp_force = HARTREE_TO_EV * ANGSTROM_TO_BOHR;
+    qm2lmp_energy = HARTREE_TO_EV;
   } else if (strcmp(update->unit_style,"real") != 0) {
     lmp2qm_distance = ANGSTROM_TO_BOHR;
     lmp2qm_energy = 1.0 / HARTREE_TO_KCAL_MOLE;
     qm2lmp_force = HARTREE_TO_KCAL_MOLE * ANGSTROM_TO_BOHR;
+    qm2lmp_energy = HARTREE_TO_KCAL_MOLE;
   }
 
-  // initializations
+  // qflag = 1 if system stores charge/atom, else 0
 
-  nqm = 0;
-  qmIDs = nullptr;
-  xqm = fqm = nullptr;
-  qpotential = qqm = nullptr;
-  qm2lmp = nullptr;
+  qflag = atom->q_flag;
+
+  // nqm = size of fix group = total # of QM atoms
+  // if all atoms are QM, mode = AIMD
+  // if only some atoms are QM, mode = QMMM
+  // require 3*nqm be a small INT, so can MPI_Allreduce xqm
+
+  bigint ngroup = group->count(igroup);
+  if (ngroup == 0) error->all(FLERR,"Fix nwchem has no atoms in quantum group");
+  if (3*ngroup > MAXSMALLINT) 
+    error->all(FLERR,"Fix nwchem quantum group has too many atoms");
+  nqm = ngroup;
+
+  if (nqm == atom->natoms) mode = AIMD;
+  else mode = QMMM;
+
+  memory->create(qmIDs,nqm,"nwchem:qmIDs");
+  memory->create(xqm,nqm,3,"nwchem:xqm");
+  memory->create(fqm,nqm,3,"nwchem:fqm");
+  memory->create(qqm,nqm,"nwchem:qqm");
+  memory->create(qpotential,nqm,"nwchem:qpotential");
+  memory->create(xqm_mine,nqm,3,"nwchem:xqm_mine");
+  memory->create(qqm_mine,nqm,"nwchem:qqm_mine");
+  memory->create(qpotential_mine,nqm,"nwchem:qpotential_mine");
+  memory->create(qm2owned,nqm,"nwchem:qm2owned");
+  
+  // for QMMM, set qmIDs = IDs of QM atoms in ascending order
+
+  if (mode == QMMM) {
+    tagint *tag = atom->tag;
+    int *mask = atom->mask;
+    int nlocal = atom->nlocal;
+
+    // qmIDs_me = list of nqm_me QM atom IDs I own
+
+    int nqm_me = 0;
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) nqm_me++;
+
+    tagint *qmIDs_me;
+    memory->create(qmIDs_me,nqm_me,"nwchem:qmIDs_me");
+
+    nqm_me = 0;
+    for (int i = 0; i < nlocal; i++)
+      if (mask[i] & groupbit) qmIDs_me[nqm_me++] = tag[i];
+
+    // allgather of qmIDs_me into qmIDs
+
+    int nprocs = comm->nprocs;
+
+    int *recvcounts,*displs,*listall;
+    memory->create(recvcounts,nprocs,"nwchem:recvcounts");
+    memory->create(displs,nprocs,"nwchem:displs");
+
+    MPI_Allgather(&nqm_me,1,MPI_INT,recvcounts,1,MPI_INT,world);
+
+    displs[0] = 0;
+    for (int iproc = 1; iproc < nprocs; iproc++)
+      displs[iproc] = displs[iproc-1] + recvcounts[iproc-1];
+
+    MPI_Allgatherv(qmIDs_me,nqm_me,MPI_LMP_TAGINT,qmIDs,recvcounts,displs,
+                   MPI_LMP_TAGINT,world);
+
+    memory->destroy(recvcounts);
+    memory->destroy(displs);
+
+    // sort qmIDs via merge sort
+
+    int *order;
+    tagint *qmIDs_sort;
+
+    memory->create(order,nqm,"nwchem:order");
+    memory->create(qmIDs_sort,nqm,"nwchem:qmIDs_sort");
+
+    for (int i = 0; i < nqm; i++) order[i] = i;
+    utils::merge_sort(order,nqm,(void *) qmIDs_sort,compare_IDs);
+
+    int j;
+    for (int i = 0; i < nqm; i++) {
+      j = order[i];
+      qmIDs_sort[i] = qmIDs[j];
+    }
+
+    memcpy(qmIDs,qmIDs_sort,nqm*sizeof(tagint));
+
+    memory->destroy(order);
+    memory->destroy(qmIDs_sort);
+  }
+
+  // set QM energy = 0.0 in case accessed on step 0
 
   qmenergy = 0.0;
 }
@@ -115,10 +239,13 @@ FixNWChem::~FixNWChem()
 {
   memory->destroy(qmIDs);
   memory->destroy(xqm);
-  memory->destroy(qpotential);
   memory->destroy(fqm);
   memory->destroy(qqm);
-  memory->destroy(qm2lmp);
+  memory->destroy(qpotential);
+  memory->destroy(xqm_mine);
+  memory->destroy(qqm_mine);
+  memory->destroy(qpotential_mine);
+  memory->destroy(qm2owned);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -139,19 +266,21 @@ int FixNWChem::setmask()
 
 void FixNWChem::init()
 {
-  // error checks
+  // if AIMD, require long-range Coulombics for Coulomb potential input to NWChem
 
-  if (domain->dimension == 2)
-    error->all(FLERR,"Fix nwchem requires 3d simulation");
+  if (mode == AIMD) {
+    if (!qflag) 
+      error->all(FLERR,"Fix nwchem AIMD mode requires per-atom charge");
+    
+    if (!force->pair) 
+      error->all(FLERR,"Fix nwchem AIMD mode requires a pair style");
 
-  if (domain->nonperiodic == 0) pbcflag = 1;
-  else if (!domain->xperiodic && !domain->yperiodic && !domain->zperiodic)
-    pbcflag = 0;
-  else error->all(FLERR,"Fix nwchem requires fully periodic or "
-                  "fully non-periodic system");
-  
-  if (atom->q_flag == 0 || force->pair == nullptr || force->kspace == nullptr)
-    error->all(FLERR,"Fix nwchem cannot compute Coulomb potential");
+    // NOTE: could be another coul pair style like coul/msm ?
+
+    pair_coul = force->pair_match("coul/long",1,0);
+    if (!pair_coul) 
+      error->all(FLERR,"Fix nwchem AIMD mode requires pair sub-style coul/long");
+  }
 
   // NOTE: is this needed ?
   // c_pe = instance of compute pe/atom
@@ -159,42 +288,6 @@ void FixNWChem::init()
   //int ipe = modify->find_compute(id_pe);
   //if (ipe < 0) error->all(FLERR,"Could not find fix nwchem compute ID");
   //c_pe = modify->compute[ipe];
-
-  // NOTE: could be another coul pair style like coul/msm ?
-  
-  if (!force->pair) error->all(FLERR,"Fix nwchem requires a pair style");
-
-  pair_coul = force->pair_match("coul/long",1,0);
-  if (!pair_coul) 
-    error->all(FLERR,"Fix nwchem requires pair sub-style coul/long");
-
-  // fix group = QM atoms
-  // one-time initialization of qmIDs
-  // NOTE: need to sort in ascending order to match NWChem ?
-  
-  if (nqm == 0) {
-    bigint ngroup = group->count(igroup);
-    if (ngroup == 0) error->all(FLERR,"Fix nwchem has no atoms in quantum group");
-    if (ngroup > MAXSMALLINT) 
-      error->all(FLERR,"Fix nwchem quantum group has too many atoms");
-    nqm = ngroup;
-    
-    memory->create(qmIDs,nqm,"nwchem:qmIDs");
-    memory->create(xqm,nqm,3,"nwchem:xqm");
-    memory->create(qpotential,nqm,"nwchem:qpotential");
-    memory->create(fqm,nqm,3,"nwchem:fqm");
-    memory->create(qqm,nqm,"nwchem:qqm");
-    memory->create(qm2lmp,nqm,"nwchem:qm2lmp");
-
-    tagint *tag = atom->tag;
-    int *mask = atom->mask;
-    int nlocal = atom->nlocal;
-
-    nqm = 0;
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) qmIDs[nqm++] = tag[i];
-    }
-  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -222,13 +315,30 @@ void FixNWChem::setup_pre_force(int vflag)
 
 void FixNWChem::post_neighbor()
 {
-  for (int i = 0; i < nqm; i++)
-    qm2lmp[i] = atom->map(qmIDs[i]);
+  // qm2owned[i] = index of local atom for each of nqm QM atoms
+  // index = -1 if this proc does not own the atom
+  // NOTE: could store nqm_owned with different qm2owned indexing
+
+  int nlocal = atom->nlocal;
+  int index;
+
+  for (int i = 0; i < nqm; i++) {
+    index = atom->map(qmIDs[i]);
+    if (index > nlocal) qm2owned[i] = -1;
+    else qm2owned[i] = index;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixNWChem::pre_force(int vflag)
+{
+  if (mode == QMMM) pre_force_qmmm(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixNWChem::pre_force_qmmm(int vflag)
 {
   int ilocal,jlocal;
   double rsq;
@@ -236,7 +346,7 @@ void FixNWChem::pre_force(int vflag)
 
   // invoke pair hybrid sub-style pair coul/long and Kspace directly
   // set eflag = 2 so they calculate per-atom energy
-  // NOTE: need to comm ghost per-atom energy (serial or parallel)
+  // NOTE: need ghost comm of per-atom energy (serial or parallel)
 
   pair_coul->compute(2,0);
   double *eatom_pair = pair_coul->eatom;
@@ -247,55 +357,90 @@ void FixNWChem::pre_force(int vflag)
     eatom_kspace = force->kspace->eatom;
   }
 
-  // create 2 NWChem inputs: xqm and qpotential (Coulomb potential)
-  // qpotential[i] = (eatom[i] from pair_coul + kspace) / Qi
-  // subtract out Qj/Rij energy for QM I interacting with all other QM J atoms
- 
-  double **x = atom->x;
-  double *q = atom->q;
-  double qqrd2e = force->qqrd2e;
-
-  // NOTE: this I,J loop will not work in parallel
+  // setup NWChem inputs
+  // xqm = atom coords, mapped into periodic box
+  //   set for owned atoms, then MPI_Allreduce
 
   for (int i = 0; i < nqm; i++) {
-    ilocal = qm2lmp[i];
+    xqm_mine[i][0] = 0.0;
+    xqm_mine[i][1] = 0.0;
+    xqm_mine[i][2] = 0.0;
+  }
 
-    // NOTE: what if LAMMPS atom moves via PBC to other side of LAMMPS box ?
-    //       will that mess up NWChem ?
+  double **x = atom->x;
 
-    xqm[i][0] = x[ilocal][0];
-    xqm[i][1] = x[ilocal][1];
-    xqm[i][2] = x[ilocal][2];
-
-    if (q[ilocal] == 0.0) qpotential[i] = 0.0;
-    else if (!force->kspace)
-      qpotential[i] = eatom_pair[ilocal] / q[ilocal];
-    else
-      qpotential[i] = (eatom_pair[ilocal] + eatom_kspace[ilocal]) / q[ilocal];
-
-    for (int j = 0; j < nqm; j++) {
-      if (j == i) continue;
-      jlocal = qm2lmp[j];
-      delta[0] = x[i][0] - x[j][0];
-      delta[1] = x[i][1] - x[j][1];
-      delta[2] = x[i][2] - x[j][2];
-      domain->minimum_image_once(delta);
-      rsq = delta[0]*delta[0] + delta[1]*delta[1] + delta[2]*delta[2];
-      qpotential[i] -= qqrd2e * q[jlocal] / sqrt(rsq);
+  for (int i = 0; i < nqm; i++) {
+    ilocal = qm2owned[i];
+    if (ilocal >= 0) {
+      xqm_mine[i][0] = x[ilocal][0];
+      xqm_mine[i][1] = x[ilocal][1];
+      xqm_mine[i][2] = x[ilocal][2];
+      domain->remap(xqm_mine[i]);
     }
   }
 
-  // unit conversion from LAMMPS to NWChem
-  // NOTE: comment out for dummy test
+  MPI_Allreduce(&xqm_mine[0][0],&xqm[0][0],3*nqm,MPI_DOUBLE,MPI_SUM,world);
 
-  /*
+  // qqm = atom charges
+
+  for (int i = 0; i < nqm; i++) qqm_mine[i] = 0.0;
+
+  double *q = atom->q;
+
+  for (int i = 0; i < nqm; i++) {
+    ilocal = qm2owned[i];
+    if (ilocal >= 0) qqm_mine[i] = q[ilocal];
+  }
+
+  MPI_Allreduce(qqm_mine,qqm,nqm,MPI_DOUBLE,MPI_SUM,world);
+
+  // qpotential[i] = (eatom[i] from pair_coul + kspace) / Qi
+  //   set for owned atoms, then MPI_Allreduce
+  // subtract Qj/Rij energy for QM I interacting with all other QM J atoms
+  //   use xqm_mine and qqm_mine for all QM atoms
+  // NOTE: is Kspace required or not ??
+
+  for (int i = 0; i < nqm; i++) qpotential_mine[i] = 0.0;
+
+  double qqrd2e = force->qqrd2e;
+
+  for (int i = 0; i < nqm; i++) {
+    ilocal = qm2owned[i];
+    if (ilocal >= 0) {
+      if (q[ilocal] == 0.0) qpotential_mine[i] = 0.0;
+      else if (!force->kspace)
+        qpotential_mine[i] = eatom_pair[ilocal] / q[ilocal];
+      else
+        qpotential_mine[i] = 
+          (eatom_pair[ilocal] + eatom_kspace[ilocal]) / q[ilocal];
+    }
+  }
+
+  for (int i = 0; i < nqm; i++) {
+    ilocal = qm2owned[i];
+    if (ilocal >= 0) {
+      for (int j = 0; j < nqm; j++) {
+        if (j == i) continue;
+        delta[0] = xqm[i][0] - xqm[j][0];
+        delta[1] = xqm[i][1] - xqm[j][1];
+        delta[2] = xqm[i][2] - xqm[j][2];
+        domain->minimum_image_once(delta);
+        rsq = delta[0]*delta[0] + delta[1]*delta[1] + delta[2]*delta[2];
+        qpotential_mine[i] -= qqrd2e * qqm[j] / sqrt(rsq);
+      }
+    }
+  }
+
+  MPI_Allreduce(qpotential_mine,qpotential,nqm,MPI_DOUBLE,MPI_SUM,world);
+
+  // unit conversion from LAMMPS to NWChem
+
   for (int i = 0; i < nqm; i++) {
     xqm[i][0] *= lmp2qm_distance;
     xqm[i][1] *= lmp2qm_distance;
     xqm[i][2] *= lmp2qm_distance;
     qpotential[i] *= lmp2qm_energy;
   }
-  */
 
   // call to NWChem
   // input/outputs are only for QM atoms
@@ -304,29 +449,26 @@ void FixNWChem::pre_force(int vflag)
   // NOTE: extra args for dummy test = nqm,qmenergy
   // NOTE: is QM eng returned by NWChem, or needs to be computed by LAMMPS?
 
-  int nwerr = pspw_minimizer(world,nqm,
-                             &xqm[0][0],qpotential,&fqm[0][0],qqm,qmenergy);
+  int nwerr = dummy_pspw_minimizer(world,
+                                   &xqm[0][0],qpotential,
+                                   &fqm[0][0],qqm,&qmenergy);
+
   if (nwerr) error->all(FLERR,"Internal NWChem error");
 
-  //latte(flags,&natoms,coords,type,&ntypes,mass,boxlo,boxhi,&domain->xy,
-  //      &domain->xz,&domain->yz,forces,&maxiter,&latte_energy,
-  //      &atom->v[0][0],&update->dt,virial,&newsystem,&latteerror);
-
   // unit conversion from NWChem to LAMMPS
-  // NOTE: comment out for dummy test
 
-  /*
+  qmenergy *= qm2lmp_energy;
+
   for (int i = 0; i < nqm; i++) {
     fqm[i][0] *= qm2lmp_force;
     fqm[i][1] *= qm2lmp_force;
     fqm[i][2] *= qm2lmp_force;
   }
-  */
 
-  // reset Q of QM atoms
+  // reset owned charges to QM values
 
   for (int i = 0; i < nqm; i++) {
-    ilocal = qm2lmp[i];
+    ilocal = qm2owned[i];
     q[ilocal] = qqm[i];
   }
 
@@ -344,32 +486,121 @@ void FixNWChem::pre_force(int vflag)
 
 void FixNWChem::post_force(int vflag)
 {
+  if (mode == AIMD) post_force_aimd(vflag);
+  else post_force_qmmm(vflag);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixNWChem::post_force_aimd(int vflag)
+{
+  int ilocal;
+
+  // setup 2 NWChem inputs
+  // xqm = atom coords, mapped into periodic box
+  //   set for owned atoms, then MPI_Allreduce
+  // qpotential = Coulomb potential = 0.0 for AIMD
+
+  for (int i = 0; i < nqm; i++) {
+    xqm_mine[i][0] = 0.0;
+    xqm_mine[i][1] = 0.0;
+    xqm_mine[i][2] = 0.0;
+    qpotential[i] = 0.0;
+  }
+
+  double **x = atom->x;
+
+  for (int i = 0; i < nqm; i++) {
+    ilocal = qm2owned[i];
+    if (ilocal >= 0) {
+      xqm_mine[i][0] = x[ilocal][0];
+      xqm_mine[i][1] = x[ilocal][1];
+      xqm_mine[i][2] = x[ilocal][2];
+      domain->remap(xqm_mine[i]);
+    }
+  }
+
+  MPI_Allreduce(&xqm_mine[0][0],&xqm[0][0],3*nqm,MPI_DOUBLE,MPI_SUM,world);
+
+  // unit conversion from LAMMPS to NWChem
+
+  for (int i = 0; i < nqm; i++) {
+    xqm[i][0] *= lmp2qm_distance;
+    xqm[i][1] *= lmp2qm_distance;
+    xqm[i][2] *= lmp2qm_distance;
+  }
+
+  // call to NWChem
+  // all QM atoms are in order of ascending atom ID
+  // in: xqm = atom coords
+  //     qpotential = vector of zeroes for AIMD
+  // out: fqm,qqm = forces,charge for QM atoms 
+  //      qmenergy = QM energy of entire system
+
+  int nwerr = dummy_pspw_minimizer(world,
+                                   &xqm[0][0],qpotential,
+                                   &fqm[0][0],qqm,&qmenergy);
+
+  if (nwerr) error->all(FLERR,"Internal NWChem error");
+
+  // unit conversion from NWChem to LAMMPS
+
+  qmenergy *= qm2lmp_energy;
+
+  for (int i = 0; i < nqm; i++) {
+    fqm[i][0] *= qm2lmp_force;
+    fqm[i][1] *= qm2lmp_force;
+    fqm[i][2] *= qm2lmp_force;
+  }
+
+  // add QM forces to owned atoms
+  // if qflag: reset owned charges to QM values
+  //   allows user to output them if desired
+
+  double **f = atom->f;
+  double *q = atom->q;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nqm; i++) {
+    ilocal = qm2owned[i];
+    if (ilocal >= 0) {
+      f[ilocal][0] += fqm[i][0];
+      f[ilocal][1] += fqm[i][1];
+      f[ilocal][2] += fqm[i][2];
+      if (qflag) q[ilocal] = qqm[i];
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixNWChem::post_force_qmmm(int vflag)
+{
   int ilocal,jlocal;
   double rsq,r2inv,rinv,fpair;
   double delta[3];
 
-  // subtract QiQj/Rij energy for pairwise interactions between QM atoms
-  // subtract QiQj/Rij^2 force for pairwise interactions between QM atoms
+  // adjust LAMMPS energy and forces for pairwise interactions between QM atoms
+  // double loop over all QM pairs
+  // if I own either or both atoms in pair, compute pairwise term
+  // subtract half or all energy from qmenergy
+  // subtract force from only owned atoms
+  // uses xqm and qqm set or computed in pre_force_qmmm() for all QM atoms
 
   double **x = atom->x;
   double **f = atom->f;
   double *q = atom->q;
+  int nlocal = atom->nlocal;
   double qqrd2e = force->qqrd2e;
 
   for (int i = 0; i < nqm; i++) {
-    ilocal = qm2lmp[i];
-    xqm[i][0] = x[ilocal][0];
-    xqm[i][1] = x[ilocal][1];
-    xqm[i][2] = x[ilocal][2];
-    qqm[i] = q[ilocal];
-  }
-
-  qmenergy = 0.0;
-  
-  for (int i = 0; i < nqm; i++) {
-    ilocal = qm2lmp[i];
+    ilocal = qm2owned[i];
     for (int j = i+1; j < nqm; j++) {
-      jlocal = qm2lmp[j];
+      jlocal = qm2owned[j];
+
+      // skip if neither atom is owned
+
+      if (ilocal < 0 && jlocal < 0) continue;
       
       delta[0] = xqm[i][0] - xqm[j][0];
       delta[1] = xqm[i][1] - xqm[j][1];
@@ -378,26 +609,40 @@ void FixNWChem::post_force(int vflag)
       rsq = delta[0]*delta[0] + delta[1]*delta[1] + delta[2]*delta[2];
       r2inv = 1.0/rsq;
       rinv = sqrt(r2inv);
-
-      qmenergy -= qqrd2e * qqm[i]*qqm[j]*rinv;
       fpair = qqrd2e * qqm[i]*qqm[j]*rinv*r2inv;
 
-      f[ilocal][0] -= delta[0]*fpair;
-      f[ilocal][1] -= delta[1]*fpair;
-      f[ilocal][2] -= delta[2]*fpair;
-      f[jlocal][0] += delta[0]*fpair;
-      f[jlocal][1] += delta[1]*fpair;
-      f[jlocal][2] += delta[2]*fpair;
+      // adjust forces on ilocal and/or jlocal only if they are owned atoms
+
+      if (ilocal >= 0) {
+        f[ilocal][0] -= delta[0]*fpair;
+        f[ilocal][1] -= delta[1]*fpair;
+        f[ilocal][2] -= delta[2]*fpair;
+      }
+      if (jlocal >= 0) {
+        f[jlocal][0] += delta[0]*fpair;
+        f[jlocal][1] += delta[1]*fpair;
+        f[jlocal][2] += delta[2]*fpair;
+      }
+
+      // adjust energy using efactor
+      // efactor = 1.0 if both are owned atoms, 0.5 if only one is owned
+
+      double efactor = 0.5;
+      if (ilocal >= 0 && jlocal >= 0.0) efactor = 1.0;
+      qmenergy -= efactor * qqrd2e * qqm[i]*qqm[j]*rinv;
+
     }
   }
 
-  // add QM forces from NWChem to QM atoms
+  // add NWChem QM forces to owned QM atoms
 
   for (int i = 0; i < nqm; i++) {
-    ilocal = qm2lmp[i];
-    f[ilocal][0] += fqm[i][0];
-    f[ilocal][1] += fqm[i][1];
-    f[ilocal][2] += fqm[i][2];
+    ilocal = qm2owned[i];
+    if (ilocal >= 0) {
+      f[ilocal][0] += fqm[i][0];
+      f[ilocal][1] += fqm[i][1];
+      f[ilocal][2] += fqm[i][2];
+    }
   }
 
   // add QM energy from NWChem
@@ -454,9 +699,9 @@ double FixNWChem::compute_scalar()
    NOTE: for dummy test, quantities are in LAMMPS units, not NWChem units
 ------------------------------------------------------------------------- */
 
-int FixNWChem::pspw_minimizer(MPI_Comm nwworld, 
-                              int n, double *x, double *qp, 
-                              double *f, double *q, double &eqm)
+int FixNWChem::dummy_pspw_minimizer(MPI_Comm nwworld, 
+                                    double *x, double *qp, 
+                                    double *f, double *q, double *eqm)
 {
   double rsq,r2inv,rinv,fpair;
   double delta[3];
@@ -465,17 +710,21 @@ int FixNWChem::pspw_minimizer(MPI_Comm nwworld,
   // NOTE: could test changing of charges
 
   for (int i = 0; i < nqm; i++) {
-    int ilocal = qm2lmp[i];
+    int ilocal = qm2owned[i];
     q[i] = atom->q[ilocal];
   }
 
   double qqrd2e = force->qqrd2e;
 
-  eqm = 0.0;
+  double eng = 0.0;
   for (int i = 0; i < 3*nqm; i++) f[i] = 0.0;
-  
-  for (int i = 0; i < n; i++) {
-    for (int j = i+1; j < n; j++) {
+
+  // NOTE: does this work in parallel?  make it more efficient?
+  // NOTE: inefficient as Nsq loop for big problems ?
+  // NOTE: does it work for AIMD ??
+
+  for (int i = 0; i < nqm; i++) {
+    for (int j = i+1; j < nqm; j++) {
       delta[0] = x[3*i+0] - x[3*j+0];
       delta[1] = x[3*i+1] - x[3*j+1];
       delta[2] = x[3*i+2] - x[3*j+2];
@@ -484,7 +733,7 @@ int FixNWChem::pspw_minimizer(MPI_Comm nwworld,
       r2inv = 1.0/rsq;
       rinv = sqrt(r2inv);
 
-      eqm += qqrd2e * qqm[i]*qqm[j]*rinv;
+      eng += qqrd2e * qqm[i]*qqm[j]*rinv;
       fpair = qqrd2e * qqm[i]*qqm[j]*rinv*r2inv;
       
       f[3*i+0] += delta[0]*fpair;
@@ -496,5 +745,20 @@ int FixNWChem::pspw_minimizer(MPI_Comm nwworld,
     }
   }
   
+  *eqm = eng;
+
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
+   comparison function invoked by merge_sort()
+   void pointer contains list of atom IDs
+------------------------------------------------------------------------- */
+
+int compare_IDs(const int i, const int j, void *ptr)
+{
+  tagint *ids = (int *) ptr;
+  if (ids[i] < ids[j]) return -1;
+  if (ids[i] > ids[j]) return 1;
   return 0;
 }

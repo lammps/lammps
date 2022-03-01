@@ -1618,7 +1618,7 @@ int TILD::modify_param(int narg, char** arg)
           }
           iarg += 4;
         } else
-          error->all(FLERR, "Illegal kspace_modify tild/shape density function argument");
+          error->all(FLERR, "Illegal kspace_modify tild shape density function argument");
 
       } else if (strcmp(arg[iarg], "cross-interaction") == 0) {
         if (iarg + 3 > narg) error->all(FLERR, "Illegal kspace_modify tild command");
@@ -1628,27 +1628,28 @@ int TILD::modify_param(int narg, char** arg)
 
         cross_type tmp_type;
         int nparams;
+        int temp_arg = 0;
         if (strcmp(arg[iarg + 3], "gaussian") == 0) {
           tmp_type = GAUSSIAN;
           nparams = 1;
-          iarg += 5;
+          temp_arg = 5;
         } else if (strcmp(arg[iarg + 3], "erfc") == 0) {
           tmp_type = ERFC;
           nparams = 2;
-          iarg += 6;
+          temp_arg = 6;
         } else if (strcmp(arg[iarg + 3], "gaussian_erfc") == 0) {
           tmp_type = GAUSSIAN_ERFC;
           nparams = 3;
-          iarg += 7;
+          temp_arg = 7;
         } else if (strcmp(arg[iarg + 3], "none") == 0) {
           tmp_type = NONE;
           nparams = 0;
-          iarg += 4;
+          temp_arg = 4;
         } else if (strcmp(arg[iarg + 3], "delete") == 0) {
           tmp_type = DELETE;
-          iarg += 4;
+          temp_arg = 4;
         } else {
-          error->all(FLERR, "Illegal tild/cross-interaction specified.");
+          error->all(FLERR, "Illegal tild cross-interaction specified.");
         }
 
         if (tmp_type != DELETE) {
@@ -1684,6 +1685,7 @@ int TILD::modify_param(int narg, char** arg)
             }
           }
         }
+        iarg += temp_arg;
 
       } else if (strcmp(arg[iarg], "mix") == 0) {
         if (iarg + 2 > narg) error->all(FLERR, "Illegal kspace_modify tild command");
@@ -2610,10 +2612,7 @@ double TILD::calculate_rho0(){
 
 
     if (rho <= 0.f) {
-      if (set_rho0 <= 0.f) {
-        mesg += fmt::format("  Both densities are not positive. Aborting run.");
-        error->all(FLERR, mesg);
-      } else {
+      if (set_rho0 > 0.f) {
         error->warning(FLERR, "Calculated rho <= 0; using user specificed rho0");
         mesg += fmt::format("  Using user set rho0 = {:.6f} for TILD potential.\n", set_rho0);
         utils::logmesg(lmp, mesg);
@@ -2621,7 +2620,15 @@ double TILD::calculate_rho0(){
       }
     }
   }
+
   MPI_Bcast(&rho, 1, MPI_DOUBLE, 0, world);
+
+  if (rho <= 0.f) {
+    if (set_rho0 <= 0.f) {
+      std::string mesg = fmt::format("  Both densities are not positive. Aborting run.");
+      error->all(FLERR, mesg);
+    }
+  }
   return rho;
 }
 

@@ -2848,7 +2848,10 @@ void TILD::ave_grid()
   write_grid_data(ave_grid_filename, 1);
 }
 
-
+/* ----------------------------------------------------------------------
+  Turn on density_flag for each particle type that has a TILD interaction
+  Updates potent_type_map
+------------------------------------------------------------------------- */
 void TILD::manually_flip_density_flags(){
 
   int ntypes = atom->ntypes;

@@ -861,119 +861,114 @@ void ComputeBornMatrix::compute_angles()
   double duang, du2ang;
   double del1[3], del2[3];
   double dcos[6];
-  double d2cos[21];
-  double d2lncos[21];
+  double d2cos;
+  double d2lncos;
 
   // Initializing array for intermediate cos derivatives
   // w regard to strain
   for (i = 0; i < 6; i++) dcos[i] = 0;
-  for (i = 0; i < 21; i++) d2cos[i] = d2lncos[i] = 0;
 
-  m = 0;
-  while (m < nvalues) {
-    for (atom2 = 0; atom2 < nlocal; atom2++) {
-      if (!(mask[atom2] & groupbit)) continue;
+  for (atom2 = 0; atom2 < nlocal; atom2++) {
+    if (!(mask[atom2] & groupbit)) continue;
 
-      if (molecular == 1)
-        na = num_angle[atom2];
-      else {
-        if (molindex[atom2] < 0) continue;
-        imol = molindex[atom2];
-        iatom = molatom[atom2];
-        na = onemols[imol]->num_angle[iatom];
-      }
-
-      for (i = 0; i < na; i++) {
-        if (molecular == 1) {
-          if (tag[atom2] != angle_atom2[atom2][i]) continue;
-          atype = angle_type[atom2][i];
-          atom1 = atom->map(angle_atom1[atom2][i]);
-          atom3 = atom->map(angle_atom3[atom2][i]);
-        } else {
-          if (tag[atom2] != onemols[imol]->angle_atom2[atom2][i]) continue;
-          atype = onemols[imol]->angle_type[atom2][i];
-          tagprev = tag[atom2] - iatom - 1;
-          atom1 = atom->map(onemols[imol]->angle_atom1[atom2][i] + tagprev);
-          atom3 = atom->map(onemols[imol]->angle_atom3[atom2][i] + tagprev);
-        }
-
-        if (atom1 < 0 || !(mask[atom1] & groupbit)) continue;
-        if (atom3 < 0 || !(mask[atom3] & groupbit)) continue;
-        if (atype <= 0) continue;
-
-        delx1 = x[atom1][0] - x[atom2][0];
-        dely1 = x[atom1][1] - x[atom2][1];
-        delz1 = x[atom1][2] - x[atom2][2];
-        domain->minimum_image(delx1, dely1, delz1);
-        del1[0] = delx1;
-        del1[1] = dely1;
-        del1[2] = delz1;
-
-        rsq1 = delx1 * delx1 + dely1 * dely1 + delz1 * delz1;
-        rsq1inv = 1.0 / rsq1;
-        r1 = sqrt(rsq1);
-        r1inv = 1.0 / r1;
-
-        delx2 = x[atom3][0] - x[atom2][0];
-        dely2 = x[atom3][1] - x[atom2][1];
-        delz2 = x[atom3][2] - x[atom2][2];
-        domain->minimum_image(delx2, dely2, delz2);
-        del2[0] = delx2;
-        del2[1] = dely2;
-        del2[2] = delz2;
-
-        rsq2 = delx2 * delx2 + dely2 * dely2 + delz2 * delz2;
-        rsq2inv = 1.0 / rsq2;
-        r2 = sqrt(rsq2);
-        r2inv = 1.0 / r2;
-
-        r1r2 = delx1 * delx2 + dely1 * dely2 + delz1 * delz2;
-        r1r2inv = 1 / r1r2;
-        // cost = cosine of angle
-
-        cost = delx1 * delx2 + dely1 * dely2 + delz1 * delz2;
-        cost /= r1 * r2;
-        if (cost > 1.0) cost = 1.0;
-        if (cost < -1.0) cost = -1.0;
-        cinv = 1.0 / cost;
-
-        // The method must return derivative with regards
-        // to cos(theta)!
-        // Use the chain rule if needed:
-        // dU(t)/de = dt/dcos(t)*dU(t)/dt*dcos(t)/de
-        // with dt/dcos(t) = -1/sin(t)
-        angle->born_matrix(atype, atom1, atom2, atom3, duang, du2ang);
-
-        // Voigt notation
-        // 1 = 11, 2 = 22, 3 = 33
-        // 4 = 23, 5 = 13, 6 = 12
-        a = b = c = d = 0;
-        // clang-format off
-        for (i = 0; i<6; i++) {
-          a = sigma_albe[i][0];
-          b = sigma_albe[i][1];
-          dcos[i] = cost*((del1[a]*del2[b]+del1[b]*del2[a])*r1r2inv -
-                          del1[a]*del1[b]*rsq1inv - del2[a]*del2[b]*rsq2inv);
-        }
-        for (i = 0; i<21; i++) {
-          a = albemunu[i][0];
-          b = albemunu[i][1];
-          c = albemunu[i][2];
-          d = albemunu[i][3];
-          e = C_albe[i][0];
-          f = C_albe[i][1];
-          d2lncos[i] = 2*(del1[a]*del1[b]*del1[c]*del1[d]*rsq1inv*rsq1inv +
-                          del2[a]*del2[b]*del2[c]*del2[d]*rsq2inv*rsq2inv) -
-                         (del1[a]*del2[b]+del1[b]*del2[a]) *
-                         (del1[c]*del2[d]+del1[d]*del2[c]) *
-                         r1r2inv*r1r2inv;
-          d2cos[i] =  cost*d2lncos[i] + dcos[e]*dcos[f]*cinv;
-          values_local[m+i] += duang*d2cos[i] + du2ang*dcos[e]*dcos[f];
-        }
-        // clang-format on
-      }
+    if (molecular == 1)
+      na = num_angle[atom2];
+    else {
+      if (molindex[atom2] < 0) continue;
+      imol = molindex[atom2];
+      iatom = molatom[atom2];
+      na = onemols[imol]->num_angle[iatom];
     }
-    m += 21;
+
+    for (i = 0; i < na; i++) {
+      if (molecular == 1) {
+        if (tag[atom2] != angle_atom2[atom2][i]) continue;
+        atype = angle_type[atom2][i];
+        atom1 = atom->map(angle_atom1[atom2][i]);
+        atom3 = atom->map(angle_atom3[atom2][i]);
+      } else {
+        if (tag[atom2] != onemols[imol]->angle_atom2[atom2][i]) continue;
+        atype = onemols[imol]->angle_type[atom2][i];
+        tagprev = tag[atom2] - iatom - 1;
+        atom1 = atom->map(onemols[imol]->angle_atom1[atom2][i] + tagprev);
+        atom3 = atom->map(onemols[imol]->angle_atom3[atom2][i] + tagprev);
+      }
+
+      if (atom1 < 0 || !(mask[atom1] & groupbit)) continue;
+      if (atom3 < 0 || !(mask[atom3] & groupbit)) continue;
+      if (atype <= 0) continue;
+
+      delx1 = x[atom1][0] - x[atom2][0];
+      dely1 = x[atom1][1] - x[atom2][1];
+      delz1 = x[atom1][2] - x[atom2][2];
+      domain->minimum_image(delx1, dely1, delz1);
+      del1[0] = delx1;
+      del1[1] = dely1;
+      del1[2] = delz1;
+
+      rsq1 = delx1 * delx1 + dely1 * dely1 + delz1 * delz1;
+      rsq1inv = 1.0 / rsq1;
+      r1 = sqrt(rsq1);
+      r1inv = 1.0 / r1;
+
+      delx2 = x[atom3][0] - x[atom2][0];
+      dely2 = x[atom3][1] - x[atom2][1];
+      delz2 = x[atom3][2] - x[atom2][2];
+      domain->minimum_image(delx2, dely2, delz2);
+      del2[0] = delx2;
+      del2[1] = dely2;
+      del2[2] = delz2;
+
+      rsq2 = delx2 * delx2 + dely2 * dely2 + delz2 * delz2;
+      rsq2inv = 1.0 / rsq2;
+      r2 = sqrt(rsq2);
+      r2inv = 1.0 / r2;
+
+      r1r2 = delx1 * delx2 + dely1 * dely2 + delz1 * delz2;
+      r1r2inv = 1 / r1r2;
+      // cost = cosine of angle
+
+      cost = delx1 * delx2 + dely1 * dely2 + delz1 * delz2;
+      cost /= r1 * r2;
+      if (cost > 1.0) cost = 1.0;
+      if (cost < -1.0) cost = -1.0;
+      cinv = 1.0 / cost;
+
+      // The method must return derivative with regards
+      // to cos(theta)!
+      // Use the chain rule if needed:
+      // dU(t)/de = dt/dcos(t)*dU(t)/dt*dcos(t)/de
+      // with dt/dcos(t) = -1/sin(t)
+      angle->born_matrix(atype, atom1, atom2, atom3, duang, du2ang);
+
+      // Voigt notation
+      // 1 = 11, 2 = 22, 3 = 33
+      // 4 = 23, 5 = 13, 6 = 12
+      a = b = c = d = 0;
+      // clang-format off
+      for (i = 0; i<6; i++) {
+        a = sigma_albe[i][0];
+        b = sigma_albe[i][1];
+        dcos[i] = cost*((del1[a]*del2[b]+del1[b]*del2[a])*r1r2inv -
+                        del1[a]*del1[b]*rsq1inv - del2[a]*del2[b]*rsq2inv);
+      }
+      for (i = 0; i<21; i++) {
+        a = albemunu[i][0];
+        b = albemunu[i][1];
+        c = albemunu[i][2];
+        d = albemunu[i][3];
+        e = C_albe[i][0];
+        f = C_albe[i][1];
+        d2lncos = 2*(del1[a]*del1[b]*del1[c]*del1[d]*rsq1inv*rsq1inv +
+                        del2[a]*del2[b]*del2[c]*del2[d]*rsq2inv*rsq2inv) -
+                       (del1[a]*del2[b]+del1[b]*del2[a]) *
+                       (del1[c]*del2[d]+del1[d]*del2[c]) *
+                       r1r2inv*r1r2inv;
+        d2cos =  cost*d2lncos + dcos[e]*dcos[f]*cinv;
+        values_local[m+i] += duang*d2cos + du2ang*dcos[e]*dcos[f];
+      }
+      // clang-format on
+    }
   }
 }
 
@@ -1015,7 +1010,7 @@ void ComputeBornMatrix::compute_dihedrals()
   Dihedral *dihedral = force->dihedral;
 
   double dudih, du2dih;
-  int a, b, c, d, e, f;
+  int al, be, mu, nu, e, f;
   double b1sq;
   double b2sq;
   double b3sq;
@@ -1028,162 +1023,174 @@ void ComputeBornMatrix::compute_dihedrals()
 
   // Actually derivatives of the square of the
   // vectors dot product.
-  double dmn[6];
-  double dmm[6];
-  double dnn[6];
-  double d2mn[21];
-  double d2mm[21];
-  double d2nn[21];
+  double dab[6];
+  double daa[6];
+  double dbb[6];
+  double d2ab;
+  double d2aa;
+  double d2bb;
 
   double dcos[6];
   double d2cos[21];
 
-  for (i = 0; i < 6; i++) dmn[i] = dmm[i] = dnn[i] = dcos[i] = 0;
+  for (i = 0; i < 6; i++) dab[i] = daa[i] = dbb[i] = dcos[i] = 0;
 
-  for (i = 0; i < 21; i++) d2mn[i] = d2mm[i] = d2nn[i] = d2cos[i] = 0;
+  for (i = 0; i < 21; i++) d2cos[i] = 0;
 
-  m = 0;
-  while (m < nvalues) {
-    for (atom2 = 0; atom2 < nlocal; atom2++) {
-      if (!(mask[atom2] & groupbit)) continue;
+  for (atom2 = 0; atom2 < nlocal; atom2++) {
+    if (!(mask[atom2] & groupbit)) continue;
 
-      if (molecular == 1)
-        nd = num_dihedral[atom2];
-      else {
-        if (molindex[atom2] < 0) continue;
-        imol = molindex[atom2];
-        iatom = molatom[atom2];
-        nd = onemols[imol]->num_dihedral[iatom];
-      }
-
-      for (i = 0; i < nd; i++) {
-        if (molecular == 1) {
-          if (tag[atom2] != dihedral_atom2[atom2][i]) continue;
-          atom1 = atom->map(dihedral_atom1[atom2][i]);
-          atom3 = atom->map(dihedral_atom3[atom2][i]);
-          atom4 = atom->map(dihedral_atom4[atom2][i]);
-        } else {
-          if (tag[atom2] != onemols[imol]->dihedral_atom2[atom2][i]) continue;
-          tagprev = tag[atom2] - iatom - 1;
-          atom1 = atom->map(onemols[imol]->dihedral_atom1[atom2][i] + tagprev);
-          atom3 = atom->map(onemols[imol]->dihedral_atom3[atom2][i] + tagprev);
-          atom4 = atom->map(onemols[imol]->dihedral_atom4[atom2][i] + tagprev);
-        }
-
-        if (atom1 < 0 || !(mask[atom1] & groupbit)) continue;
-        if (atom3 < 0 || !(mask[atom3] & groupbit)) continue;
-        if (atom4 < 0 || !(mask[atom4] & groupbit)) continue;
-
-        // phi calculation from dihedral style harmonic
-
-        // The method must return derivative with regards
-        // to cos(phi)!
-        // Use the chain rule if needed:
-        // dU(t)/de = dt/dcos(t)*dU(t)/dt*dcos(t)/de
-        // with dt/dcos(t) = -1/sin(t)
-
-        dihedral->born_matrix(nd, atom1, atom2, atom3, atom4, dudih, du2dih);
-
-        vb1x = x[atom1][0] - x[atom2][0];
-        vb1y = x[atom1][1] - x[atom2][1];
-        vb1z = x[atom1][2] - x[atom2][2];
-        domain->minimum_image(vb1x, vb1y, vb1z);
-        b1[0] = vb1x;
-        b1[1] = vb1y;
-        b1[2] = vb1z;
-        b1sq = b1[0] * b1[0] + b1[1] * b1[1] + b1[2] * b1[2];
-
-        vb2x = x[atom3][0] - x[atom2][0];
-        vb2y = x[atom3][1] - x[atom2][1];
-        vb2z = x[atom3][2] - x[atom2][2];
-        domain->minimum_image(vb2x, vb2y, vb2z);
-        b2[0] = vb2x;
-        b2[1] = vb2y;
-        b2[2] = vb2z;
-        b2sq = b2[0] * b2[0] + b2[1] * b2[1] + b2[2] * b2[2];
-
-        vb2xm = -vb2x;
-        vb2ym = -vb2y;
-        vb2zm = -vb2z;
-        domain->minimum_image(vb2xm, vb2ym, vb2zm);
-
-        vb3x = x[atom4][0] - x[atom3][0];
-        vb3y = x[atom4][1] - x[atom3][1];
-        vb3z = x[atom4][2] - x[atom3][2];
-        domain->minimum_image(vb3x, vb3y, vb3z);
-        b3[0] = vb3x;
-        b3[1] = vb3y;
-        b3[2] = vb3z;
-        b3sq = b3[0] * b3[0] + b3[1] * b3[1] + b3[2] * b3[2];
-
-        b1b2 = b1[0] * b2[0] + b1[1] * b2[1] + b1[2] * b2[2];
-        b1b3 = b1[0] * b3[0] + b1[1] * b3[1] + b1[2] * b3[2];
-        b2b3 = b2[0] * b3[0] + b2[1] * b3[1] + b2[2] * b3[2];
-
-        ax = vb1y * vb2zm - vb1z * vb2ym;
-        ay = vb1z * vb2xm - vb1x * vb2zm;
-        az = vb1x * vb2ym - vb1y * vb2xm;
-        bx = vb3y * vb2zm - vb3z * vb2ym;
-        by = vb3z * vb2xm - vb3x * vb2zm;
-        bz = vb3x * vb2ym - vb3y * vb2xm;
-
-        rasq = ax * ax + ay * ay + az * az;
-        rbsq = bx * bx + by * by + bz * bz;
-        rgsq = vb2xm * vb2xm + vb2ym * vb2ym + vb2zm * vb2zm;
-        rg = sqrt(rgsq);
-
-        ra2inv = rb2inv = 0.0;
-        if (rasq > 0) ra2inv = 1.0 / rasq;
-        if (rbsq > 0) rb2inv = 1.0 / rbsq;
-        rabinv = sqrt(ra2inv * rb2inv);
-
-        co = (ax * bx + ay * by + az * bz) * rabinv;
-        si = rg * rabinv * (ax * vb3x + ay * vb3y + az * vb3z);
-
-        if (co > 1.0) co = 1.0;
-        if (co < -1.0) co = -1.0;
-        phi = atan2(si, co);
-
-        // above a and b are m and n vectors
-        // here they are integers indices
-        a = b = c = d = e = f = 0;
-        // clang-format off
-        for (i = 0; i<6; i++) {
-          a = sigma_albe[i][0];
-          b = sigma_albe[i][1];
-          dmm[i] = 2*(b2sq*b1[a]*b1[b]+b1sq*b2[a]*b2[b] - b1b2*(b1[a]*b2[b]+b1[b]*b2[a]));
-          dnn[i] = 2*(b3sq*b2[a]*b2[b]+b2sq*b3[a]*b3[b] - b2b3*(b2[a]*b3[b]+b2[b]*b3[a]));
-          dmn[i] = b1b2*(b2[a]*b3[b]+b2[b]*b3[a]) + b2b3*(b1[a]*b2[b]+b1[b]*b2[a])
-                 - 2*(b1b3*b2[a]*b2[b]) - b2sq*(b1[a]*b3[b]+b1[b]*b3[a]);
-          dcos[i] = co*(rabinv*rabinv*dmn[i] - ra2inv*dmm[i] - rb2inv*dnn[i])/2.;
-        }
-        for (i = 0; i<21; i++) {
-          a = albemunu[i][0];
-          b = albemunu[i][1];
-          c = albemunu[i][2];
-          d = albemunu[i][3];
-          e = C_albe[i][0];
-          f = C_albe[i][1];
-          d2mm[i] = 4*(b1[a]*b1[b]*b2[c]*b2[d] + b1[c]*b1[d]*b2[a]*b2[b])
-                  - 8*(b1[a]*b2[b]+b1[b]*b2[a])*(b1[c]*b2[d]+b1[d]*b2[c]);
-          d2nn[i] = 4*(b2[a]*b2[b]*b3[c]*b3[d] + b2[c]*b2[d]*b3[a]*b3[b])
-                  - 8*(b2[a]*b3[b]+b2[b]*b3[a])*(b2[c]*b3[d]+b2[d]*b3[c]);
-          d2mn[i] = (b1[a]*b2[b]+b1[b]*b2[a])*(b2[c]*b3[d]+b2[d]*b3[c])
-                  + (b2[a]*b3[b]+b2[b]*b3[a])*(b1[c]*b2[d]+b1[d]*b2[d])
-                  - (b1[a]*b3[b]+b1[b]*b3[a])*(b2[c]*b2[d]+b2[c]*b2[d])
-                  - (b1[c]*b3[d]+b1[d]*b3[c])*(b2[a]*b2[b]+b2[a]*b2[b]);
-          d2cos[i] = co/2.*(
-                  rabinv*rabinv*d2mn[i]
-                  - rabinv*rabinv*rabinv*rabinv*dmn[e]*dmn[f]
-                  + ra2inv*ra2inv*dmm[e]*dmm[f]
-                  - ra2inv*d2mm[i]
-                  + rb2inv*rb2inv*dnn[e]*dnn[f]
-                  - rb2inv*d2nn[i]);
-          values_local[m+i] += dudih*d2cos[i] + du2dih*dcos[e]*dcos[f];
-        }
-        // clang-format on
-      }
+    if (molecular == 1)
+      nd = num_dihedral[atom2];
+    else {
+      if (molindex[atom2] < 0) continue;
+      imol = molindex[atom2];
+      iatom = molatom[atom2];
+      nd = onemols[imol]->num_dihedral[iatom];
     }
-    m += 21;
+
+    for (i = 0; i < nd; i++) {
+      if (molecular == 1) {
+        if (tag[atom2] != dihedral_atom2[atom2][i]) continue;
+        atom1 = atom->map(dihedral_atom1[atom2][i]);
+        atom3 = atom->map(dihedral_atom3[atom2][i]);
+        atom4 = atom->map(dihedral_atom4[atom2][i]);
+      } else {
+        if (tag[atom2] != onemols[imol]->dihedral_atom2[atom2][i]) continue;
+        tagprev = tag[atom2] - iatom - 1;
+        atom1 = atom->map(onemols[imol]->dihedral_atom1[atom2][i] + tagprev);
+        atom3 = atom->map(onemols[imol]->dihedral_atom3[atom2][i] + tagprev);
+        atom4 = atom->map(onemols[imol]->dihedral_atom4[atom2][i] + tagprev);
+      }
+
+      if (atom1 < 0 || !(mask[atom1] & groupbit)) continue;
+      if (atom3 < 0 || !(mask[atom3] & groupbit)) continue;
+      if (atom4 < 0 || !(mask[atom4] & groupbit)) continue;
+
+      // phi calculation from dihedral style harmonic
+
+      // The method must return derivative with regards
+      // to cos(phi)!
+      // Use the chain rule if needed:
+      // dU(t)/de = dt/dcos(t)*dU(t)/dt*dcos(t)/de
+      // with dt/dcos(t) = -1/sin(t)
+
+      dihedral->born_matrix(nd, atom1, atom2, atom3, atom4, dudih, du2dih);
+
+      vb1x = x[atom1][0] - x[atom2][0];
+      vb1y = x[atom1][1] - x[atom2][1];
+      vb1z = x[atom1][2] - x[atom2][2];
+      domain->minimum_image(vb1x, vb1y, vb1z);
+      b1[0] = vb1x;
+      b1[1] = vb1y;
+      b1[2] = vb1z;
+      b1sq = b1[0] * b1[0] + b1[1] * b1[1] + b1[2] * b1[2];
+
+      vb2x = x[atom3][0] - x[atom2][0];
+      vb2y = x[atom3][1] - x[atom2][1];
+      vb2z = x[atom3][2] - x[atom2][2];
+      domain->minimum_image(vb2x, vb2y, vb2z);
+      b2[0] = -vb2x;
+      b2[1] = -vb2y;
+      b2[2] = -vb2z;
+      b2sq = b2[0] * b2[0] + b2[1] * b2[1] + b2[2] * b2[2];
+
+      vb2xm = -vb2x;
+      vb2ym = -vb2y;
+      vb2zm = -vb2z;
+      domain->minimum_image(vb2xm, vb2ym, vb2zm);
+
+      vb3x = x[atom4][0] - x[atom3][0];
+      vb3y = x[atom4][1] - x[atom3][1];
+      vb3z = x[atom4][2] - x[atom3][2];
+      domain->minimum_image(vb3x, vb3y, vb3z);
+      b3[0] = vb3x;
+      b3[1] = vb3y;
+      b3[2] = vb3z;
+      b3sq = b3[0] * b3[0] + b3[1] * b3[1] + b3[2] * b3[2];
+
+      b1b2 = b1[0] * b2[0] + b1[1] * b2[1] + b1[2] * b2[2];
+      b1b3 = b1[0] * b3[0] + b1[1] * b3[1] + b1[2] * b3[2];
+      b2b3 = b2[0] * b3[0] + b2[1] * b3[1] + b2[2] * b3[2];
+
+      // a = b1xb2; b = b3xb2
+      ax = vb1y * vb2zm - vb1z * vb2ym;
+      ay = vb1z * vb2xm - vb1x * vb2zm;
+      az = vb1x * vb2ym - vb1y * vb2xm;
+      bx = vb3y * vb2zm - vb3z * vb2ym;
+      by = vb3z * vb2xm - vb3x * vb2zm;
+      bz = vb3x * vb2ym - vb3y * vb2xm;
+
+      rasq = ax * ax + ay * ay + az * az;
+      rbsq = bx * bx + by * by + bz * bz;
+      rgsq = vb2xm * vb2xm + vb2ym * vb2ym + vb2zm * vb2zm;
+      rg = sqrt(rgsq);
+
+      ra2inv = rb2inv = rabinv = 0.0;
+      if (rasq > 0) ra2inv = 1.0 / rasq;
+      if (rbsq > 0) rb2inv = 1.0 / rbsq;
+      rabinv = sqrt(ra2inv * rb2inv);
+
+      co = (ax * bx + ay * by + az * bz) * rabinv;
+      si = rg * rabinv * (ax * vb3x + ay * vb3y + az * vb3z);
+
+      if (co > 1.0) co = 1.0;
+      if (co < -1.0) co = -1.0;
+      phi = atan2(si, co);
+
+      // Note that VW derivation actually uses
+      // the complementary angle to phi:
+      // w = PI-phi
+      // So rewriting the derivation wrt a and b was
+      // necessary
+      // above a and b are m and n vectors
+      // here they are integers indices
+      al = be = mu = nu = e = f = 0;
+      double d2lncos;
+      // clang-format off
+      for (i = 0; i<6; i++) {
+        al = sigma_albe[i][0];
+        be = sigma_albe[i][1];
+        daa[i] = 2.*(b1[al]*b1[be]*b2sq + b2[al]*b2[be]*b1sq - (b1[al]*b2[be] + b1[be]*b2[al])*b1b2);
+        dbb[i] = 2.*(b3[al]*b3[be]*b2sq + b2[al]*b2[be]*b3sq - (b2[al]*b3[be] + b2[be]*b3[al])*b2b3);
+        dab[i] = 2*b2[al]*b2[be]*b1b3
+                 + (b1[al]*b3[be] + b1[be]*b3[al])*b2sq
+                 - (b1[al]*b2[be] + b1[be]*b2[al])*b2b3
+                 - (b2[al]*b3[be] + b2[be]*b3[al])*b1b2;
+        dcos[i] = 0;
+        dcos[i] = rabinv*dab[i] + 0.5*ra2inv*daa[i] + 0.5*rb2inv*dbb[i];
+        dcos[i] *= co;
+      }
+
+      for (i = 0; i<21; i++) {
+        al = albemunu[i][0];
+        be = albemunu[i][1];
+        mu = albemunu[i][2];
+        nu = albemunu[i][3];
+        e = C_albe[i][0];
+        f = C_albe[i][1];
+
+        d2aa = 4*(b1[al]*b1[be]*b2[mu]*b2[nu] + b1[mu]*b1[nu]*b2[al]*b2[be])
+             - 2*(b1[al]*b2[be]*(b1[mu]*b2[nu] + b1[nu]*b2[mu]) +
+                  b1[be]*b2[al]*(b1[mu]*b2[nu] + b1[nu]*b2[mu]));
+
+        d2bb = 4*(b3[al]*b3[be]*b2[mu]*b2[nu] + b3[mu]*b3[nu]*b2[al]*b2[be])
+             - 2*(b3[al]*b2[be]*(b3[mu]*b2[nu] + b3[nu]*b2[mu]) +
+                  b3[be]*b2[al]*(b3[mu]*b2[nu] + b3[nu]*b2[mu]));
+
+        d2ab = (b1[al]*b3[be]+b1[be]*b3[al])*(b2[mu]*b2[nu]+b2[nu]*b2[mu])
+              + 2*b2[al]*b2[be]*(b1[mu]*b3[nu]+b1[nu]*b3[mu])
+              - (b2[al]*b3[be]+b2[be]*b3[al])*(b1[mu]*b2[nu]+b1[nu]*b2[mu])
+              - (b2[al]*b1[be]+b2[be]*b1[al])*(b2[mu]*b3[nu]+b2[nu]*b3[mu]);
+
+        d2lncos = -rabinv*d2ab - rabinv*rabinv*dab[e]*dab[f] -
+                 0.5*(ra2inv*d2aa - ra2inv*ra2inv*daa[e]*daa[f]
+                    + rb2inv*d2bb - rb2inv*rb2inv*dbb[e]*dbb[f]);
+        d2cos[i] = co*d2lncos + dcos[e]*dcos[f]/co;
+
+        values_local[m+i] += dudih*d2cos[i] + du2dih*dcos[e]*dcos[f];
+      }
+      // clang-format on
+    }
   }
 }

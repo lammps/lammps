@@ -1610,7 +1610,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlockingP
   else cutoffsq = cut_bosq;
 
   while (jj_current < jnum) {
-    nnz=0;
+    nnz = 0;
 
     while (nnz < blocksize) {
       int jj = jj_current;
@@ -1737,6 +1737,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlockingP
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
 template<class DeviceType>
 template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
@@ -1785,20 +1787,17 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalf<NEIGHFLA
     if (paramssing(itype).r_s > 0.0  && paramssing(jtype).r_s > 0.0) {
       C12 = p_bo1 * ((p_bo2 != 0) ? (pow(rij/r_s,p_bo2)) : 1.0);
       BO_s = (1.0+bo_cut)*exp(C12);
-    }
-    else BO_s = C12 = 0.0;
+    } else BO_s = C12 = 0.0;
 
     if (paramssing(itype).r_pi > 0.0  && paramssing(jtype).r_pi > 0.0) {
       C34 = p_bo3 * ((p_bo4 != 0) ? (pow(rij/r_pi,p_bo4)) : 1.0);
       BO_pi = exp(C34);
-    }
-    else BO_pi = C34 = 0.0;
+    } else BO_pi = C34 = 0.0;
 
     if (paramssing(itype).r_pi2 > 0.0  && paramssing(jtype).r_pi2 > 0.0) {
       C56 = p_bo5 * ((p_bo6 != 0) ? (pow(rij/r_pi2,p_bo6)) : 1.0);
       BO_pi2 = exp(C56);
-    }
-    else BO_pi2 = C56 = 0.0;
+    } else BO_pi2 = C56 = 0.0;
 
     BO = BO_s + BO_pi + BO_pi2;
 
@@ -1856,7 +1855,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfPreview<N
   const int jnum = d_numneigh[i];
 
   F_FLOAT C12, C34, C56, BO_s, BO_pi, BO_pi2, BO, delij[3];
-  F_FLOAT total_bo = 0.0;
 
   int j_index,i_index;
   d_bo_first[i] = i*maxbo;
@@ -1881,6 +1879,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfPreview<N
     d_bo_first[j] = j*maxbo;
     d_hb_first[j] = j*maxhb;
     const int jtype = type(j);
+
     delij[0] = x(j,0) - xtmp;
     delij[1] = x(j,1) - ytmp;
     delij[2] = x(j,2) - ztmp;
@@ -1937,20 +1936,17 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfPreview<N
     if (paramssing(itype).r_s > 0.0  && paramssing(jtype).r_s > 0.0) {
       C12 = p_bo1 * ((p_bo2 != 0) ? (pow(rij/r_s,p_bo2)) : 1.0);
       BO_s = (1.0+bo_cut)*exp(C12);
-    }
-    else BO_s = C12 = 0.0;
+    } else BO_s = C12 = 0.0;
 
     if (paramssing(itype).r_pi > 0.0  && paramssing(jtype).r_pi > 0.0) {
       C34 = p_bo3 * ((p_bo4 != 0) ? (pow(rij/r_pi,p_bo4)) : 1.0);
       BO_pi = exp(C34);
-    }
-    else BO_pi = C34 = 0.0;
+    } else BO_pi = C34 = 0.0;
 
     if (paramssing(itype).r_pi2 > 0.0  && paramssing(jtype).r_pi2 > 0.0) {
       C56 = p_bo5 * ((p_bo6 != 0) ? (pow(rij/r_pi2,p_bo6)) : 1.0);
       BO_pi2 = exp(C56);
-    }
-    else BO_pi2 = C56 = 0.0;
+    } else BO_pi2 = C56 = 0.0;
 
     BO = BO_s + BO_pi + BO_pi2;
     if (BO < bo_cut) continue;

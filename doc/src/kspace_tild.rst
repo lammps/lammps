@@ -15,11 +15,10 @@ Syntax
    kspace_modify keyword value ...
 
 * one or more keyword/value pairs may be listed
-* keyword = *collective* or *compute* or *fftbench* or *force* or *gridres* or *kmax/ewald* or *mesh* or *minorder* or *mix/disp* or *order/disp* or *order* or *overlap* or *slab* or *splittol*
+* keyword = *compute* or *fftbench* or *gridsize* or *mesh* or *minorder* or *order* or *overlap* or *shape* or *prefactor* or *cross-interaction* or *set_rho0* or *subtract_rho0* or *normalize_by_rho0* or *write_grid_data* or *ave/grid*
 
   .. parsed-literal::
 
-       *collective* value = *yes* or *no*
        *compute* value = *yes* or *no*
        *fftbench* value = *yes* or *no*
        *gridsize* value = gridsize
@@ -30,7 +29,6 @@ Syntax
        *order* value = N
          N = extent of Gaussian for PM mapping of density to grid
        *overlap* = *yes* or *no* = whether the grid stencil is allowed to overlap into more than the nearest-neighbor processor
-       *pressure/scalar* value = *yes* or *no*
        *shape* values = itype itype SHAPE parameters
          SHAPE = *gaussian* or *erfc* or *none*
          parameters = parameters for each function (see discussion below)
@@ -59,37 +57,32 @@ Examples
 
 .. code-block:: LAMMPS
 
-   kspace_modify mesh 24 24 30 order 6
-   kspace_modify slab 3.0
-   kspace_modify scafacos tolerance energy
+   kspace_style  tild 0.5
+   kspace_modify tild set_rho0 4
+   kspace_modify tild shape 2 2 gaussian 3 shape 3 3 erfc 3.5 0.25 3.0  shape 4 4 none
+   kspace_modify tild cross-interaction 2 2 gaussian 18
+   kspace_modify tild cross-interaction 3 1 gaussian_erfc 0.25 3.5 0.25
+   kspace_modify tild cross-interaction 3 3 erfc 3.5 0.25
 
 Description
 """""""""""
 
-The *tild* style is an implementation of 'theoretically informed Langevin Dynamics' method (previously known as `Dynamical Mean Field Theory`) :ref:`Chao <Chao>`: :ref:`Fredrickson<Fredrickson>`: :ref:`Grzetic<Grzetic>`. This interaction potential uses a particle-mesh scheme to calculate non-bonded pairwise forces indirectly through a gridded density representation. *tild* assigns a potentials for each simulation particle type, defined with :doc:`kspace_modify tild <kspace_modify>`. This potential does NOT calculate any Coulombic interactions.  
+The *tild* style is an implementation of 'theoretically informed Langevin Dynamics' method (previously known as `Dynamical Mean Field Theory`) :ref:`Chao<Chao>`: :ref:`Fredrickson<Fredrickson>`: :ref:`Grzetic<Grzetic>`. This interaction potential uses a particle-mesh scheme to calculate non-bonded pairwise forces indirectly through a gridded density representation. *tild* assigns a potentials for each simulation particle type, defined with :doc:`kspace_modify tild <kspace_modify>`. This potential does NOT calculate any Coulombic interactions and currently is incompatible with other `kspace_style`s in LAMMPS. 
 
 .. note::
 
    Unlike other KSpace solvers in LAMMPS, the kspace TILD accounts for
    non-bonded interactions, both short-range and long-range interactions through
-   a "short-ranged" potentital. Therefore, there is no accompanying short range
-   pair-style required. To fully implement the TILD methodology, use :doc:`fix
-   langevin<fix_langevin>` with *tild*. (There is no warning produced if TILD is used without `fix langevin`. 
+   a "short-ranged" potential. Therefore, there is no accompanying short range
+   pair-style required. To fully implement the TILD methodology, use 
+   :doc:`fix langevin<fix_langevin>` with *tild*. 
+   (There is no warning produced if TILD is used without `fix langevin`.) 
 
 
 Set parameters used by the kspace solvers defined by the
 :doc:`kspace_style <kspace_style>` command.  Not all parameters are
 relevant to all kspace styles.
 
-----------
-
-The *collective* keyword applies only to TILD.  It is set to *no* by
-default, except on IBM BlueGene machines.  If this option is set to
-*yes*, LAMMPS will use MPI collective operations to remap data for
-3d-FFT operations instead of the default point-to-point communication.
-This is faster on IBM BlueGene machines, and may also be faster on
-other machines if they have an efficient implementation of MPI
-collective operations and adequate hardware.
 
 ----------
 
@@ -97,7 +90,7 @@ The *compute* keyword allows Kspace computations to be turned off,
 even though a :doc:`kspace_style <kspace_style>` is defined.  This is
 not useful for running a real simulation, but can be useful for
 debugging purposes or for computing only partial forces that do not
-include the Kspace contribution.  You can also do this by simply not
+include the kspace contribution.  You can also do this by simply not
 defining a :doc:`kspace_style <kspace_style>`, but a Kspace-compatible
 :doc:`pair_style <pair_style>` requires a kspace style to be defined.
 This keyword gives you that option.
@@ -127,12 +120,11 @@ the *overlap* keyword for details.  If the *overlap* keyword is set to
 and overlap occurs, then LAMMPS will reduce the order setting, one
 step at a time, until the ghost grid overlap only extends to nearest
 neighbor processors.  The *minorder* keyword limits how small the
-*order* setting can become.  The minimum allowed value for PPPM is 2,
+*order* setting can become.  The minimum allowed value for TILD is 2,
 which is the default.  If *minorder* is set to the same value as
 *order* then no reduction is allowed, and LAMMPS will generate an
 error if the grid communication is non-nearest-neighbor and *overlap*
-is set to *no*\ . The *minorder* keyword is not currently supported in
-MSM.
+is set to *no*\ . 
 
 ----------
 
@@ -142,8 +134,9 @@ The default for this parameter is 5 for TILD, which
 means each charge spans 5 grid cells in each dimension,
 respectively.  For TILD, the minimum allowed
 setting is 2 and the maximum allowed setting is 7. Note that there is an
-inherent trade-off involved: a small grid will lower the cost of FFTs, but a larger order parameter will increase the cost
-of interpolating charge/fields to/from the grid.
+inherent trade-off involved: a small grid will lower the cost of FFTs, 
+but a larger order parameter will increase the cost
+of interpolating particles/fields to/from the grid.
 
 ----------
 
@@ -171,9 +164,13 @@ particles of different types. There are two currently supported types:
 corresponding shape function. For interactions between two Gaussian particles,
 we analytically convolve the two shape potentials together; for all other
 interactions, we do a numerical convolution to get the proper convolved
-interactions. 
+interactions. Therefore, it does not make sense to have a shape defined between
+two particles using this keyword; one should instead use the `cross-interaction`
+keyword if one wishes to specify the cross-interaction. The code will *NOT*
+error out if you use two different types. The input keeps two types as its input
+to maintain a familiar interface as the `pair_style` keyword. 
 
-The current shpae function styles used in *tild shape* are
+The current shape function styles used in *tild shape* are
 .. math::
 
    U_{g} = & \frac{A}{\rho_0 (2\pi \sigma^2)^{3/2}} \exp(-r^2/2\sigma^2) \\
@@ -200,16 +197,24 @@ Flory-Higgins prefactor :math:`\chi` \ . See the :math:`A` prefactors in the
 
 ----------
 
-The *tild set_rho0* keyword is used when particles with a `tild shape` of `erfc`
-exist within the simulation box and are used to ensure that the overall TILD
-density of the box is the same as the user's input. Please note if the box
-contains only `gaussian` shapes, this has no effect on the simulation. 
+The *tild set_rho0* keyword is used to set the TILD density which is calculated
+separately from any other density in LAMMPS. Each defined `gaussian` shape
+particle has a mass of 1, each defined `erfc` shape has a density of 
+:math:`$4/3 \pi r^3 \rho_{NP}`\ . Particles without any defined shape functions do not contribute to the
+overall density, even if they are included in a `cross-interaction`. 
+Defining a *rho0* for a system without any shape functions (purely `cross-interaction`s) will
+accept the value as is (provided it is non-negative) and use that for
+normalization purposes. Similarly, a function consisting of whose only defined
+shapes are purely `gaussian` will also accept the user specified *rho0* as is.
+For simulations with shape defined `erfc` particles, the *rho0* of all the
+nanoparticles will be adjusted so that the overall density of the system matches
+the user specified density. 
 
 ----------
 
 The *tild normalize_by_rho0* keyword will divide the interactions by the
-calcualted TILD :math:`\rho_0`\, the total density of the TILD particles. Please note this division will divide the
-prefactors specified in `tild prefactor`\ .
+calculated TILD :math:`\rho_0`\, the total density of the TILD particles. 
+Please note this division will divide the prefactors specified in `tild prefactor`\ .
 
 ----------
 
@@ -247,7 +252,7 @@ The *write_grid_data* writes the instantaneous gridded density to *filename*. Ev
 
 ----------
 
-The *ave/grid* keywords determines how freuently the density grids are averaged and 
+The *ave/grid* keywords determines how frequently the density grids are averaged and 
 output. The *Nevery*, *Nrepeat*, and *Nfreq* arguments specify on what
 timesteps the input values will be used in order to contribute to the average.
 The final averaged quantities are generated on timesteps that are a multiple of
@@ -257,8 +262,9 @@ of *Nevery* and *Nevery* must be non-zero even if *Nrepeat* is 1. Also, the
 timesteps contributing to the average value cannot overlap, i.e. Nrepeat*Nevery
 can not exceed Nfreq.
 
-
 ----------
+
+Examples using both input types for potentials can be found in examples/tild. 
 
 Restrictions
 """"""""""""
@@ -269,11 +275,12 @@ Related commands
 """"""""""""""""
 
 :doc:`kspace_style <kspace_style>`
+:doc:`kspace_modify <kspace_modify>`
 
 Default
 """""""
 
-The option defaults are mesh = 0 0 0, order = 5 (TILD), minorder = 2, overlap = yes, gewald = gewald/disp = 0.0, slab = 1.0, fftbench = no (PPPM), mix/disp = pair, force/disp/real = -1.0, force/disp/kspace = -1.0, split = 0, tol = 1.0e-6, tild mix = convolution, tild subtract_rho0 = yes, tild normalize_by_rho0 = yes and disp/auto = no. 
+The option defaults are mesh = 0 0 0, order = 5 (TILD), minorder = 2, overlap = yes, mix = convolution, tild subtract_rho0 = yes, and tild normalize_by_rho0 = yes.
 
 ----------
 

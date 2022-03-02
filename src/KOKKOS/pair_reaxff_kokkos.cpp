@@ -840,14 +840,14 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
     if (list_blocking_flag) {
       if (neighflag == HALF)
-	       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalfBlocking_preview<HALF>>(0,ignum),*this);
+	       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalfBlockingPreview<HALF>>(0,ignum),*this);
       else if (neighflag == HALFTHREAD)
-	       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalfBlocking_preview<HALFTHREAD>>(0,ignum),*this);
+	       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalfBlockingPreview<HALFTHREAD>>(0,ignum),*this);
     } else {
       if (neighflag == HALF)
-	       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalf_preview<HALF>>(0,ignum),*this);
+	       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalfPreview<HALF>>(0,ignum),*this);
       else if (neighflag == HALFTHREAD)
-	       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalf_preview<HALFTHREAD>>(0,ignum),*this);
+	       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalfPreview<HALFTHREAD>>(0,ignum),*this);
     }
 
     k_resize_bo.modify<DeviceType>();
@@ -874,9 +874,9 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
 
   if (neighflag == HALF)
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalf_finalize<HALF>>(0,ignum),*this);
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalf<HALF>>(0,ignum),*this);
   else if (neighflag == HALFTHREAD)
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalf_finalize<HALFTHREAD>>(0,ignum),*this);
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalf<HALFTHREAD>>(0,ignum),*this);
 
   // allocate duplicated memory
   if (need_dup) {
@@ -981,15 +981,15 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (neighflag == HALF) {
     if (evflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsionBlocking<HALF,1>>(0,nnz),*this,ev);
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsion<HALF,1>>(0,nnz),*this,ev);
     else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsionBlocking<HALF,0>>(0,nnz),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsion<HALF,0>>(0,nnz),*this);
     ev_all += ev;
   } else {
     if (evflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsionBlocking<HALFTHREAD,1>>(0,nnz),*this,ev);
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsion<HALFTHREAD,1>>(0,nnz),*this,ev);
     else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsionBlocking<HALFTHREAD,0>>(0,nnz),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsion<HALFTHREAD,0>>(0,nnz),*this);
     ev_all += ev;
   }
 
@@ -1573,7 +1573,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxZero, const int &n) con
 template<class DeviceType>
 template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking_preview<NEIGHFLAG>, const int &ii) const {
+void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlockingPreview<NEIGHFLAG>, const int &ii) const {
   constexpr int blocksize = PairReaxFFKokkos<DeviceType>::build_lists_half_blocksize;
 
   const int i = d_ilist[ii];
@@ -1583,7 +1583,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking_
   const int itype = type(i);
   const int jnum = d_numneigh[i];
 
-  F_FLOAT C12, C34, C56, BO_s, BO_pi, BO_pi2, BO, delij[3], dBOp_i[3], dln_BOp_pi_i[3], dln_BOp_pi2_i[3];;
+  F_FLOAT C12, C34, C56, BO_s, BO_pi, BO_pi2, BO, delij[3];
 
   int j_index,i_index;
   d_bo_first[i] = i*maxbo;
@@ -1740,9 +1740,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking_
 template<class DeviceType>
 template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalf_finalize<NEIGHFLAG>, const int &ii) const {
-
-  constexpr int blocksize = PairReaxFFKokkos<DeviceType>::build_lists_half_blocksize;
+void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalf<NEIGHFLAG>, const int &ii) const {
 
   const auto v_dDeltap_self = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_dDeltap_self),decltype(ndup_dDeltap_self)>::get(dup_dDeltap_self,ndup_dDeltap_self);
   const auto a_dDeltap_self = v_dDeltap_self.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
@@ -1758,9 +1756,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalf_finalize
 
   F_FLOAT C12, C34, C56, BO_s, BO_pi, BO_pi2, BO, delij[3], dBOp_i[3], dln_BOp_pi_i[3], dln_BOp_pi2_i[3];
   F_FLOAT total_bo = 0.0;
-
-  int j_index;
-
 
   const int j_start = d_bo_first[i];
   const int j_end = j_start + d_bo_num[i];
@@ -1853,7 +1848,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalf_finalize
 template<class DeviceType>
 template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalf_preview<NEIGHFLAG>, const int &ii) const {
+void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfPreview<NEIGHFLAG>, const int &ii) const {
 
   const auto v_dDeltap_self = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_dDeltap_self),decltype(ndup_dDeltap_self)>::get(dup_dDeltap_self,ndup_dDeltap_self);
   const auto a_dDeltap_self = v_dDeltap_self.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
@@ -1868,8 +1863,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalf_preview<
   const int itype = type(i);
   const int jnum = d_numneigh[i];
 
-  const int three = 3;
-  F_FLOAT C12, C34, C56, BO_s, BO_pi, BO_pi2, BO, delij[three], dBOp_i[three], dln_BOp_pi_i[three], dln_BOp_pi2_i[three];
+  F_FLOAT C12, C34, C56, BO_s, BO_pi, BO_pi2, BO, delij[3];
   F_FLOAT total_bo = 0.0;
 
   int j_index,i_index;
@@ -1887,10 +1881,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalf_preview<
       hb_first_i = d_hb_first[i];
     }
   }
-
-  double cutoffsq;
-  if(i < nlocal) cutoffsq = MAX(cut_bosq,cut_hbsq);
-  else cutoffsq = cut_bosq;
 
   for (int jj = 0; jj < jnum; jj++) {
     int j = d_neighbors(i,jj);
@@ -2686,7 +2676,7 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreview, const int &ii) const {
 
-  F_FLOAT  bo_ij, bo_ik, bo_jl;
+  F_FLOAT  bo_ij, bo_ik;
   int counter = 0;
 
   const int i = d_ilist[ii];
@@ -2760,7 +2750,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreview, 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionBlocking<NEIGHFLAG,EVFLAG>,  const int &iii, EV_FLOAT_REAX& ev) const {
+void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsion<NEIGHFLAG,EVFLAG>,  const int &iii, EV_FLOAT_REAX& ev) const {
 
   constexpr int blocksize = PairReaxFFKokkos<DeviceType>::compute_torsion_blocksize;
 
@@ -3187,10 +3177,10 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionBlocking<
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionBlocking<NEIGHFLAG,EVFLAG>, const int &ii) const {
+void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsion<NEIGHFLAG,EVFLAG>, const int &ii) const {
 
   EV_FLOAT_REAX ev;
-  this->template operator()<NEIGHFLAG,EVFLAG>(TagPairReaxComputeTorsionBlocking<NEIGHFLAG,EVFLAG>(), ii, ev);
+  this->template operator()<NEIGHFLAG,EVFLAG>(TagPairReaxComputeTorsion<NEIGHFLAG,EVFLAG>(), ii, ev);
 }
 
 /* ---------------------------------------------------------------------- */

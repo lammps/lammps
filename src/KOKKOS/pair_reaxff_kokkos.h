@@ -58,13 +58,13 @@ template<int NEIGHFLAG, int EVFLAG>
 struct TagPairReaxComputeTabulatedLJCoulomb{};
 
 template<int NEIGHFLAG>
-struct TagPairReaxBuildListsHalfBlocking_preview{};
+struct TagPairReaxBuildListsHalfBlockingPreview{};
 
 template<int NEIGHFLAG>
-struct TagPairReaxBuildListsHalf_finalize{};
+struct TagPairReaxBuildListsHalfPreview{};
 
 template<int NEIGHFLAG>
-struct TagPairReaxBuildListsHalf_preview{};
+struct TagPairReaxBuildListsHalf{};
 
 struct TagPairReaxZero{};
 
@@ -95,7 +95,7 @@ struct TagPairReaxComputeAngular{};
 struct TagPairReaxComputeTorsionPreview{};
 
 template<int NEIGHFLAG, int EVFLAG>
-struct TagPairReaxComputeTorsionBlocking{};
+struct TagPairReaxComputeTorsion{};
 
 template<int NEIGHFLAG, int EVFLAG>
 struct TagPairReaxComputeHydrogen{};
@@ -165,15 +165,15 @@ class PairReaxFFKokkos : public PairReaxFF {
 
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairReaxBuildListsHalfBlocking_preview<NEIGHFLAG>, const int&) const;
+  void operator()(TagPairReaxBuildListsHalfBlockingPreview<NEIGHFLAG>, const int&) const;
+
+  template<int NEIGHFLAG> 
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairReaxBuildListsHalfPreview<NEIGHFLAG>, const int&) const;
 
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairReaxBuildListsHalf_finalize<NEIGHFLAG>, const int&) const;
-
-  template<int NEIGHFLAG>
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairReaxBuildListsHalf_preview<NEIGHFLAG>, const int&) const;
+  void operator()(TagPairReaxBuildListsHalf<NEIGHFLAG>, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxZero, const int&) const;
@@ -232,11 +232,11 @@ class PairReaxFFKokkos : public PairReaxFF {
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairReaxComputeTorsionBlocking<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
+  void operator()(TagPairReaxComputeTorsion<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairReaxComputeTorsionBlocking<NEIGHFLAG,EVFLAG>, const int&) const;
+  void operator()(TagPairReaxComputeTorsion<NEIGHFLAG,EVFLAG>, const int&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION

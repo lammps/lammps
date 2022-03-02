@@ -788,7 +788,7 @@ int FixQEqReaxFFKokkos<DeviceType>::cg_solve()
     }
 
     // tmp = parallel_dot(d, q, nn);
-  Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType,TagQEqDot2>(0,nn),*this,my_dot);
+    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType,TagQEqDot2>(0,nn),*this,my_dot);
     MPI_Allreduce(&my_dot.v, &dot_sqr.v, 2, MPI_DOUBLE, MPI_SUM, world);
     tmp = dot_sqr;
     if (!(converged & 1))

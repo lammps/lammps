@@ -1561,8 +1561,8 @@ int TILD::modify_param(int narg, char **arg)
                 if (i != j) {
                   std::string mesg_mod = fmt::format(
                       "Defining a TILD gaussian shape between types {} and {}.\n", i, j);
-                  mesg_mod +=
-                      "Please use cross-interaction instead." error->warning(FLERR, mesg_mod);
+                  mesg_mod += "Please use cross-interaction instead.";
+                  error->warning(FLERR, mesg_mod);
                 }
               }
               potent_type_map[1][i][j] = 1;
@@ -1584,8 +1584,8 @@ int TILD::modify_param(int narg, char **arg)
                 if (i != j) {
                   std::string mesg_mod =
                       fmt::format("Defining a TILD erfc shape between types {} and {}.\n", i, j);
-                  mesg_mod +=
-                      "Please use cross-interaction instead." error->warning(FLERR, mesg_mod);
+                  mesg_mod += "Please use cross-interaction instead.";
+                  error->warning(FLERR, mesg_mod);
                 }
               }
               potent_type_map[2][i][j] = 1;
@@ -1604,8 +1604,8 @@ int TILD::modify_param(int narg, char **arg)
                 if (i != j) {
                   std::string mesg_mod =
                       fmt::format("Defining a TILD none shape between types {} and {}.\n", i, j);
-                  mesg_mod +=
-                      "Please use cross-interaction instead." error->warning(FLERR, mesg_mod);
+                  mesg_mod += "Please use cross-interaction instead.";
+                  error->warning(FLERR, mesg_mod);
                 }
               }
               for (int istyle = 1; istyle <= nstyles; istyle++) potent_type_map[istyle][i][j] = 0;

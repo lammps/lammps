@@ -236,7 +236,7 @@ The current interaction styles used in *tild cross-interaction* are
    U_{g-erfc} = & \frac{A}{\rho_0} u_G (r) * \text{erfc}
    \left(\frac{\vert r \vert - R_p}{\xi}\right) \rho_{NP}
 
-where :math:`A` is the value set by `tild prefactor`\ , :math:`\rho_0` is the TILD density of the simulation, :math:`\rho_{NP}` is the density of the TILD erfc nanoparticle :math:`\sigma` is the gaussian width, :math:`R_p` is the erfc particle radius and :math:`\xi` is the erfc width, which controls how quickly the particle density drops from $\rho0$ to zero.
+where :math:`A` is the value set by `tild prefactor`\ , :math:`\rho_0` is the TILD density of the simulation, :math:`\rho_{NP}` is the density of the TILD erfc nanoparticle :math:`\sigma` is the gaussian width, :math:`R_p` is the erfc particle radius and :math:`\xi` is the erfc width, which controls how quickly the particle density drops from :math:`\rho_0`` to zero.
 
 The first required keyword for the *tild cross-interaction* option is the interaction model. 
 Currently supported options for interaction models

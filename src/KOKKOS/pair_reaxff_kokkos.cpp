@@ -874,9 +874,9 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
 
   if (neighflag == HALF)
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalf<HALF>>(0,ignum),*this);
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsFull>(0,ignum),*this);
   else if (neighflag == HALFTHREAD)
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalf<HALFTHREAD>>(0,ignum),*this);
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsFull>(0,ignum),*this);
 
   // allocate duplicated memory
   if (need_dup) {
@@ -1740,15 +1740,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlockingP
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalf<NEIGHFLAG>, const int &ii) const {
-
-  const auto v_dDeltap_self = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_dDeltap_self),decltype(ndup_dDeltap_self)>::get(dup_dDeltap_self,ndup_dDeltap_self);
-  const auto a_dDeltap_self = v_dDeltap_self.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
-
-  const auto v_total_bo = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_total_bo),decltype(ndup_total_bo)>::get(dup_total_bo,ndup_total_bo);
-  const auto a_total_bo = v_total_bo.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
+void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsFull, const int &ii) const {
 
   const int i = d_ilist[ii];
   const X_FLOAT xtmp = x(i,0);
@@ -1757,7 +1750,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalf<NEIGHFLA
   const int itype = type(i);
 
   F_FLOAT C12, C34, C56, BO_s, BO_pi, BO_pi2, BO, delij[3], dBOp_i[3], dln_BOp_pi_i[3], dln_BOp_pi2_i[3];
-  F_FLOAT total_bo = 0.0;
+  F_FLOAT dDeltap_self_i[3] = {0.0,0.0,0.0};
+  F_FLOAT total_bo_i = 0.0;
 
   const int j_start = d_bo_first[i];
   const int j_end = j_start + d_bo_num[i];
@@ -1818,7 +1812,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalf<NEIGHFLA
     for (int d = 0; d < 3; d++) dln_BOp_pi_i[d] = -(BO_pi*Cln_BOp_pi)*delij[d];
     for (int d = 0; d < 3; d++) dln_BOp_pi2_i[d] = -(BO_pi2*Cln_BOp_pi2)*delij[d];
     for (int d = 0; d < 3; d++) dBOp_i[d] = -(BO_s*Cln_BOp_s+BO_pi*Cln_BOp_pi+BO_pi2*Cln_BOp_pi2)*delij[d];
-    for (int d = 0; d < 3; d++) a_dDeltap_self(i,d) += dBOp_i[d];
+    for (int d = 0; d < 3; d++) dDeltap_self_i[d] += dBOp_i[d];
 
     d_dln_BOp_pix(i,j_index) = dln_BOp_pi_i[0];
     d_dln_BOp_piy(i,j_index) = dln_BOp_pi_i[1];
@@ -1834,10 +1828,13 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalf<NEIGHFLA
 
     d_BO(i,j_index) -= bo_cut;
     d_BO_s(i,j_index) -= bo_cut;
-    total_bo += d_BO(i,j_index);
+    total_bo_i += d_BO(i,j_index);
   }
 
-  a_total_bo[i] += total_bo;
+  for (int d = 0; d < 3; d++)
+    d_dDeltap_self(i,d) = dDeltap_self_i[d];
+
+  d_total_bo[i] = total_bo_i;
 }
 
 /* ---------------------------------------------------------------------- */

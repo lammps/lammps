@@ -167,7 +167,7 @@ class PairReaxFFKokkos : public PairReaxFF {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxBuildListsHalfBlockingPreview<NEIGHFLAG>, const int&) const;
 
-  template<int NEIGHFLAG> 
+  template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxBuildListsHalfPreview<NEIGHFLAG>, const int&) const;
 

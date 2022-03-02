@@ -50,9 +50,10 @@ class FixNWChem : public Fix {
   int pbcflag;         // 1 if fully periodic, 0 if fully non-periodic
   int mode;            // AIMD or QMMM
   int qflag;           // 1 if per-atom charge defined, 0 if not
+  int qqm_init;        // 1 if qqm has been initialized, 0 if not
 
-  double qmenergy;           // QM energy
-
+  double qmenergy;     // QM energy
+       
   // data for QMMM mode
 
   int nqm;                   // # of QM atoms

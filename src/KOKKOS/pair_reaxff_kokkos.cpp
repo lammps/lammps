@@ -873,10 +873,7 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     }
   }
 
-  if (neighflag == HALF)
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsFull>(0,ignum),*this);
-  else if (neighflag == HALFTHREAD)
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsFull>(0,ignum),*this);
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsFull>(0,ignum),*this);
 
   // allocate duplicated memory
   if (need_dup) {
@@ -1651,9 +1648,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlockingP
           if (NEIGHFLAG == HALF) {
             j_index = hb_first_i + d_hb_num[i];
             d_hb_num[i]++;
-          } else {
+          } else
             j_index = hb_first_i + Kokkos::atomic_fetch_add(&d_hb_num[i],1);
-          }
 
           const int jj_index = j_index - hb_first_i;
 
@@ -1694,20 +1690,17 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlockingP
       if (paramssing(itype).r_s > 0.0  && paramssing(jtype).r_s > 0.0) {
         C12 = p_bo1 * ((p_bo2 != 0) ? (pow(rij/r_s,p_bo2)) : 1.0);
         BO_s = (1.0+bo_cut)*exp(C12);
-      }
-      else BO_s = C12 = 0.0;
+      } else BO_s = C12 = 0.0;
 
       if (paramssing(itype).r_pi > 0.0  && paramssing(jtype).r_pi > 0.0) {
         C34 = p_bo3 * ((p_bo4 != 0) ? (pow(rij/r_pi,p_bo4)) : 1.0);
         BO_pi = exp(C34);
-      }
-      else BO_pi = C34 = 0.0;
+      } else BO_pi = C34 = 0.0;
 
       if (paramssing(itype).r_pi2 > 0.0  && paramssing(jtype).r_pi2 > 0.0) {
         C56 = p_bo5 * ((p_bo6 != 0) ? (pow(rij/r_pi2,p_bo6)) : 1.0);
         BO_pi2 = exp(C56);
-      }
-      else BO_pi2 = C56 = 0.0;
+      } else BO_pi2 = C56 = 0.0;
 
       BO = BO_s + BO_pi + BO_pi2;
       if (BO < bo_cut) continue;
@@ -1717,8 +1710,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlockingP
         i_index = d_bo_first[j] + d_bo_num[j];
         d_bo_num[i]++;
         d_bo_num[j]++;
-      }
-      else {
+      } else {
         j_index = bo_first_i + Kokkos::atomic_fetch_add(&d_bo_num[i],1);
         i_index = d_bo_first[j] + Kokkos::atomic_fetch_add(&d_bo_num[j],1);
       }
@@ -1889,9 +1881,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfPreview<N
         if (NEIGHFLAG == HALF) {
           j_index = hb_first_i + d_hb_num[i];
           d_hb_num[i]++;
-        } else {
+        } else
           j_index = hb_first_i + Kokkos::atomic_fetch_add(&d_hb_num[i],1);
-        }
 
         const int jj_index = j_index - hb_first_i;
 
@@ -1903,9 +1894,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfPreview<N
         if (NEIGHFLAG == HALF) {
           i_index = d_hb_first[j] + d_hb_num[j];
           d_hb_num[j]++;
-        } else {
+        } else
           i_index = d_hb_first[j] + Kokkos::atomic_fetch_add(&d_hb_num[j],1);
-        }
 
         const int ii_index = i_index - d_hb_first[j];
 

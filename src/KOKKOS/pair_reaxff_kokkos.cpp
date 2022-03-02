@@ -840,14 +840,14 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
     if (list_blocking_flag) {
       if (neighflag == HALF)
-	       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalfBlockingPreview<HALF>>(0,ignum),*this);
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalfBlockingPreview<HALF>>(0,ignum),*this);
       else if (neighflag == HALFTHREAD)
-	       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalfBlockingPreview<HALFTHREAD>>(0,ignum),*this);
+	Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalfBlockingPreview<HALFTHREAD>>(0,ignum),*this);
     } else {
       if (neighflag == HALF)
-	       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalfPreview<HALF>>(0,ignum),*this);
+	Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalfPreview<HALF>>(0,ignum),*this);
       else if (neighflag == HALFTHREAD)
-	       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalfPreview<HALFTHREAD>>(0,ignum),*this);
+	Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalfPreview<HALFTHREAD>>(0,ignum),*this);
     }
 
     k_resize_bo.modify<DeviceType>();
@@ -1606,7 +1606,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlockingP
   int jj_current = 0;
 
   double cutoffsq;
-  if(i < nlocal) cutoffsq = MAX(cut_bosq,cut_hbsq);
+  if (i < nlocal) cutoffsq = MAX(cut_bosq,cut_hbsq);
   else cutoffsq = cut_bosq;
 
   while (jj_current < jnum) {
@@ -1625,7 +1625,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlockingP
       delij[2] = x(j,2) - ztmp;
       const F_FLOAT rsq = delij[0]*delij[0] + delij[1]*delij[1] + delij[2]*delij[2];
 
-      if (rsq <= cutoffsq){
+      if (rsq <= cutoffsq) {
         selected_jj[nnz] = jj_current;
         nnz++;
       }
@@ -1809,7 +1809,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalf<NEIGHFLA
     d_BO_pi(i,j_index) = BO_pi;
     d_BO_pi2(i,j_index) = BO_pi2;
 
-
     F_FLOAT Cln_BOp_s = p_bo2 * C12 * rsq_inv;
     F_FLOAT Cln_BOp_pi = p_bo4 * C34 * rsq_inv;
     F_FLOAT Cln_BOp_pi2 = p_bo6 * C56 * rsq_inv;
@@ -1834,7 +1833,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalf<NEIGHFLA
     d_dBOpy(i,j_index) = dBOp_i[1];
     d_dBOpz(i,j_index) = dBOp_i[2];
 
-
     d_BO(i,j_index) -= bo_cut;
     d_BO_s(i,j_index) -= bo_cut;
     total_bo += d_BO(i,j_index);
@@ -1849,12 +1847,6 @@ template<class DeviceType>
 template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfPreview<NEIGHFLAG>, const int &ii) const {
-
-  const auto v_dDeltap_self = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_dDeltap_self),decltype(ndup_dDeltap_self)>::get(dup_dDeltap_self,ndup_dDeltap_self);
-  const auto a_dDeltap_self = v_dDeltap_self.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
-
-  const auto v_total_bo = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_total_bo),decltype(ndup_total_bo)>::get(dup_total_bo,ndup_total_bo);
-  const auto a_total_bo = v_total_bo.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   const int i = d_ilist[ii];
   const X_FLOAT xtmp = x(i,0);
@@ -1984,8 +1976,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfPreview<N
       d_bo_list[i_index] = i;
     }
   }
-
-  a_total_bo[i] += total_bo;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -122,6 +122,7 @@ FixNWChem::FixNWChem(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
   energy_global_flag = 1;
   thermo_energy = 1;
+  comm_reverse = 1;
 
   // setup unit conversion factors
 
@@ -543,7 +544,7 @@ void FixNWChem::pre_force_qmmm(int vflag)
 
   for (int i = 0; i < nqm; i++) {
     ilocal = qm2owned[i];
-    q[ilocal] = qqm[i];
+    if (ilocal >= 0) q[ilocal] = qqm[i];
   }
 
   // reset LAMMPS forces to zero
@@ -669,6 +670,8 @@ void FixNWChem::post_force_qmmm(int vflag)
   int nlocal = atom->nlocal;
   double qqrd2e = force->qqrd2e;
 
+  double eqm_mine = 0.0;
+
   for (int i = 0; i < nqm; i++) {
     ilocal = qm2owned[i];
     for (int j = i+1; j < nqm; j++) {
@@ -705,10 +708,16 @@ void FixNWChem::post_force_qmmm(int vflag)
 
       double efactor = 0.5;
       if (ilocal >= 0 && jlocal >= 0.0) efactor = 1.0;
-      qmenergy -= efactor * qqrd2e * qqm[i]*qqm[j]*rinv;
-
+      eqm_mine += efactor * qqrd2e * qqm[i]*qqm[j]*rinv;
     }
   }
+
+  // sum eqm_mine across procs, use it to adjust qmenergy
+  
+  double eqm;
+  MPI_Allreduce(&eqm_mine,&eqm,1,MPI_DOUBLE,MPI_SUM,world);
+
+  qmenergy -= eqm;
 
   // add NWChem QM forces to owned QM atoms
 

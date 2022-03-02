@@ -48,9 +48,9 @@ namespace LAMMPS_NS {
 
 class Interaction;
 
-class TILD : public KSpace{
+class TILD : public KSpace {
  public:
-  TILD (class LAMMPS *);
+  TILD(class LAMMPS *);
   virtual ~TILD();
   virtual void init();
   virtual void setup();
@@ -61,22 +61,22 @@ class TILD : public KSpace{
 
  protected:
   // For future kspace_hybrid
-  int nstyles;                  // # of sub-styles For future kspace_hybrid
-  int **setflag;                 // 0/1 = whether each i,j has been set
-  int *density_flags; 
+  int nstyles;      // # of sub-styles For future kspace_hybrid
+  int **setflag;    // 0/1 = whether each i,j has been set
+  int *density_flags;
 
   int nfactors;
   int *factors;
 
-  double *fkx,*fky,*fkz;
+  double *fkx, *fky, *fkz;
   double *fkx2, *fky2, *fkz2;
 
   FFT_SCALAR ***vg;
   FFT_SCALAR ***vg_hat;
 
-  FFT_SCALAR *work1,*work2;
+  FFT_SCALAR *work1, *work2;
 
-  FFT_SCALAR **rho1d,**rho_coeff,**drho_coeff;
+  FFT_SCALAR **rho1d, **rho_coeff, **drho_coeff;
   FFT_SCALAR ***grad_potent, ***grad_potent_hat, **potent, **potent_hat;
   FFT_SCALAR ****gradWtypex, ****gradWtypey, ****gradWtypez;
 
@@ -98,11 +98,11 @@ class TILD : public KSpace{
   int nmax;
 
   void precompute_density_hat_fft();
-  void complex_multiply(FFT_SCALAR*,FFT_SCALAR*,FFT_SCALAR*, int);
+  void complex_multiply(FFT_SCALAR *, FFT_SCALAR *, FFT_SCALAR *, int);
   double **potent_param;
   int npot, *pot_map;
   int ***potent_type_map;
-  double rho0, set_rho0,modified_rho0;
+  double rho0, set_rho0, modified_rho0;
 
   int factorable(int);
   double **chi;
@@ -111,7 +111,7 @@ class TILD : public KSpace{
   double **xi;
   double **np_rho;
   double gridsize;
-  virtual int modify_param(int, char**);
+  virtual int modify_param(int, char **);
   int num_potent;
   double calculate_rho0();
   int get_style(const int, const int);
@@ -123,29 +123,29 @@ class TILD : public KSpace{
   double rms(int, double, bigint, double);
   virtual void allocate();
   void deallocate();
-  void init_potential(FFT_SCALAR*, const int, const double*);
-  void init_potential_ft(FFT_SCALAR*, const int, const double*);
-  void calc_work(FFT_SCALAR*, const int, const int);
-  void calc_cross_work(const Interaction&);
+  void init_potential(FFT_SCALAR *, const int, const double *);
+  void init_potential_ft(FFT_SCALAR *, const int, const double *);
+  void calc_work(FFT_SCALAR *, const int, const int);
+  void calc_cross_work(const Interaction &);
   void init_cross_potentials();
-  double get_k_alias(int, double*);
+  double get_k_alias(int, double *);
   void get_k_alias(FFT_SCALAR *, FFT_SCALAR **);
   void manually_flip_density_flags();
 
-  int me,nprocs;
+  int me, nprocs;
   double cutoff;
   double kappa;
-  double delxinv,delyinv,delzinv,delvolinv;
-  double h_x,h_y,h_z;
-  double shift,shiftone;
+  double delxinv, delyinv, delzinv, delvolinv;
+  double h_x, h_y, h_z;
+  double shift, shiftone;
   int peratom_allocate_flag;
 
-  int nxlo_in,nylo_in,nzlo_in,nxhi_in,nyhi_in,nzhi_in;
-  int nxlo_out,nylo_out,nzlo_out,nxhi_out,nyhi_out,nzhi_out;
-  int nxlo_ghost,nxhi_ghost,nylo_ghost,nyhi_ghost,nzlo_ghost,nzhi_ghost;
-  int nxlo_fft,nylo_fft,nzlo_fft,nxhi_fft,nyhi_fft,nzhi_fft;
-  int nlower,nupper;
-  int ngrid,nfft,nfft_both;
+  int nxlo_in, nylo_in, nzlo_in, nxhi_in, nyhi_in, nzhi_in;
+  int nxlo_out, nylo_out, nzlo_out, nxhi_out, nyhi_out, nzhi_out;
+  int nxlo_ghost, nxhi_ghost, nylo_ghost, nyhi_ghost, nzlo_ghost, nzhi_ghost;
+  int nxlo_fft, nylo_fft, nzlo_fft, nxhi_fft, nyhi_fft, nzhi_fft;
+  int nlower, nupper;
+  int ngrid, nfft, nfft_both;
   int subtract_rho0, normalize_by_rho0, mix_flag, sub_flag, norm_flag;
 
   std::vector<Interaction> cross_iter;
@@ -154,22 +154,20 @@ class TILD : public KSpace{
   int ave_grid_flag, nvalid_last, nvalid, nevery, irepeat, nrepeat, peratom_freq;
   char *grid_data_filename = new char[50];
   char *ave_grid_filename = new char[50];
-  FILE *otp ;
-
+  FILE *otp;
 
   // group-group interactions
 
-  class FFT3d *fft1,*fft2;
+  class FFT3d *fft1, *fft2;
   class Remap *remap;
   class GridComm *gc;
 
   FFT_SCALAR *gc_buf1, *gc_buf2;
   int ngc_buf1, ngc_buf2, npergrid;
 
-  int **part2grid;             // storage for particle -> grid mapping
+  int **part2grid;    // storage for particle -> grid mapping
 
   double *boxlo;
-
 
   virtual void set_grid_global();
   void set_grid_local();
@@ -177,13 +175,14 @@ class TILD : public KSpace{
   virtual void particle_map();
   virtual void make_rho();
   void brick2fft();
-  void ev_calculation(int, int, int);;
+  void ev_calculation(int, int, int);
+  ;
 
   virtual void fieldforce_param();
 
-  void procs2grid2d(int,int,int,int *, int*);
-  void compute_rho1d(const FFT_SCALAR &, const FFT_SCALAR &,
-                     const FFT_SCALAR &, int, FFT_SCALAR **, FFT_SCALAR **);
+  void procs2grid2d(int, int, int, int *, int *);
+  void compute_rho1d(const FFT_SCALAR &, const FFT_SCALAR &, const FFT_SCALAR &, int, FFT_SCALAR **,
+                     FFT_SCALAR **);
   void compute_rho_coeff();
 
   // grid communication
@@ -195,7 +194,7 @@ class TILD : public KSpace{
 
   // triclinic
 
-  int triclinic;               // domain settings, orthog or triclinic
+  int triclinic;    // domain settings, orthog or triclinic
 
   // group-group interactions
 
@@ -208,22 +207,19 @@ class TILD : public KSpace{
   void multiply_ave_grid_data(const double);
   bigint nextvalid();
   void ave_grid();
-
-
 };
 
-enum cross_type {GAUSSIAN, ERFC, GAUSSIAN_ERFC, NONE, DELETE};
+enum cross_type { GAUSSIAN, ERFC, GAUSSIAN_ERFC, NONE, DELETE };
 
-class Interaction{
-   public:
-     int i= -1, j= -1;
-     int loc= -1;
-     cross_type type = NONE;
-     std::vector<double> parameters;
+class Interaction {
+ public:
+  int i = -1, j = -1;
+  int loc = -1;
+  cross_type type = NONE;
+  std::vector<double> parameters;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
-

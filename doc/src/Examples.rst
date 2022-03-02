@@ -150,6 +150,8 @@ Lowercase directories
 +-------------+------------------------------------------------------------------+
 | threebody   | regression test input for a variety of manybody potentials       |
 +-------------+------------------------------------------------------------------+
+| tild        | examples for calculating non-bonded forces on a grid using tild  |
++-------------+------------------------------------------------------------------+
 | tracker     | track interactions in LJ melt                                    |
 +-------------+------------------------------------------------------------------+
 | vashishta   | use of the Vashishta potential                                   |

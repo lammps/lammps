@@ -228,6 +228,15 @@ FixNWChem::FixNWChem(LAMMPS *lmp, int narg, char **arg) :
     memory->destroy(qmIDs_sort);
   }
 
+  // nwchem_setup() perform one-time call to lammps_pspw_input() with nwfile
+
+  nwchem_input();
+
+  // peratom Coulombic energy
+
+  ecoul = nullptr;
+  ncoulmax = 0;
+
   // set QM energy = 0.0 in case accessed on step 0
 
   qmenergy = 0.0;
@@ -246,6 +255,7 @@ FixNWChem::~FixNWChem()
   memory->destroy(qqm_mine);
   memory->destroy(qpotential_mine);
   memory->destroy(qm2owned);
+  memory->destroy(ecoul);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -264,6 +274,24 @@ int FixNWChem::setmask()
 
 /* ---------------------------------------------------------------------- */
 
+void FixNWChem::nwchem_input()
+{
+  std::string filename = nwfile;
+
+  // read nwfile
+  // replace simulation box with new box
+  // replace list of atoms with new list of atoms and element names
+  //   specify on command line, to match LAMMPS types as for pair styles
+  // write out w2.AUTO.nw
+  // pass that filename to NWChem
+
+  dummy_pspw_input(world,filename);
+
+  //pwdft::lammps_pspw_input(world,filename);
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixNWChem::init()
 {
   // if AIMD, require long-range Coulombics for Coulomb potential input to NWChem
@@ -275,11 +303,15 @@ void FixNWChem::init()
     if (!force->pair) 
       error->all(FLERR,"Fix nwchem AIMD mode requires a pair style");
 
-    // NOTE: could be another coul pair style like coul/msm ?
+    // must be a pair style that calculates only Coulombic interactions
+    // can be in conjunction with KSpace solver as well
 
-    pair_coul = force->pair_match("coul/long",1,0);
+    pair_coul = force->pair_match("coul/cut",1,0);
+    if (!pair_coul) pair_coul = force->pair_match("coul/long",1,0);
+    if (!pair_coul) pair_coul = force->pair_match("coul/msm",1,0);
     if (!pair_coul) 
-      error->all(FLERR,"Fix nwchem AIMD mode requires pair sub-style coul/long");
+      error->all(FLERR,
+                 "Fix nwchem AIMD mode requires Coulomb-only pair sub-style");
   }
 
   // NOTE: is this needed ?
@@ -346,7 +378,6 @@ void FixNWChem::pre_force_qmmm(int vflag)
 
   // invoke pair hybrid sub-style pair coul/long and Kspace directly
   // set eflag = 2 so they calculate per-atom energy
-  // NOTE: need ghost comm of per-atom energy (serial or parallel)
 
   pair_coul->compute(2,0);
   double *eatom_pair = pair_coul->eatom;
@@ -355,6 +386,32 @@ void FixNWChem::pre_force_qmmm(int vflag)
   if (force->kspace) {
     force->kspace->compute(2,0);
     eatom_kspace = force->kspace->eatom;
+  }
+
+  // allocate ecoul for owned + ghost atoms
+  // ghost atoms values only used if newton_pair is set
+
+  if (atom->nmax > ncoulmax) {
+    memory->destroy(ecoul);
+    ncoulmax = atom->nmax;
+    memory->create(ecoul,ncoulmax,"nwchem:ecoul");
+  }
+
+  // ecoul = per-atom energy for my owned atoms
+  // if newton_pair, also do reverse_comm for ghost atom contribution
+
+  int nlocal = atom->nlocal;
+  int ntotal = nlocal;
+  if (force->newton_pair) ntotal += atom->nghost;
+
+  for (int i = 0; i < ntotal; i++)
+    ecoul[i] = eatom_pair[i];
+
+  if (force->newton_pair) comm->reverse_comm(this);
+
+  if (force->kspace) {
+    for (int i = 0; i < nlocal; i++)
+      ecoul[i] += eatom_kspace[i];
   }
 
   // setup NWChem inputs
@@ -398,7 +455,6 @@ void FixNWChem::pre_force_qmmm(int vflag)
   //   set for owned atoms, then MPI_Allreduce
   // subtract Qj/Rij energy for QM I interacting with all other QM J atoms
   //   use xqm_mine and qqm_mine for all QM atoms
-  // NOTE: is Kspace required or not ??
 
   for (int i = 0; i < nqm; i++) qpotential_mine[i] = 0.0;
 
@@ -408,11 +464,7 @@ void FixNWChem::pre_force_qmmm(int vflag)
     ilocal = qm2owned[i];
     if (ilocal >= 0) {
       if (q[ilocal] == 0.0) qpotential_mine[i] = 0.0;
-      else if (!force->kspace)
-        qpotential_mine[i] = eatom_pair[ilocal] / q[ilocal];
-      else
-        qpotential_mine[i] = 
-          (eatom_pair[ilocal] + eatom_kspace[ilocal]) / q[ilocal];
+      else qpotential_mine[i] = ecoul[ilocal] / q[ilocal];
     }
   }
 
@@ -441,13 +493,14 @@ void FixNWChem::pre_force_qmmm(int vflag)
     xqm[i][2] *= lmp2qm_distance;
     qpotential[i] *= lmp2qm_energy;
   }
-
-  // call to NWChem
-  // input/outputs are only for QM atoms
-  // inputs = xqm and qpotential
-  // outputs = fqm and qqm
-  // NOTE: extra args for dummy test = nqm,qmenergy
-  // NOTE: is QM eng returned by NWChem, or needs to be computed by LAMMPS?
+  // call to NWChem with only QM atom info
+  // QM atoms must be in order of ascending atom ID
+  // inputs:
+  //   xqm = atom coords
+  //   qpotential = vector of zeroes for AIMD
+  // outputs:
+  //   fqm,qqm = forces & charges
+  //   qmenergy = QM energy of entire system
 
   int nwerr = dummy_pspw_minimizer(world,
                                    &xqm[0][0],qpotential,
@@ -530,12 +583,14 @@ void FixNWChem::post_force_aimd(int vflag)
     xqm[i][2] *= lmp2qm_distance;
   }
 
-  // call to NWChem
-  // all QM atoms are in order of ascending atom ID
-  // in: xqm = atom coords
-  //     qpotential = vector of zeroes for AIMD
-  // out: fqm,qqm = forces,charge for QM atoms 
-  //      qmenergy = QM energy of entire system
+  // call to NWChem with only QM atom info
+  // QM atoms must be in order of ascending atom ID
+  // inputs:
+  //   xqm = atom coords
+  //   qpotential = vector of zeroes for AIMD
+  // outputs:
+  //   fqm,qqm = forces & charges
+  //   qmenergy = QM energy of entire system
 
   int nwerr = dummy_pspw_minimizer(world,
                                    &xqm[0][0],qpotential,
@@ -685,6 +740,31 @@ void FixNWChem::min_post_force(int vflag)
   post_force(vflag);
 }
 
+/* ---------------------------------------------------------------------- */
+
+int FixNWChem::pack_reverse_comm(int n, int first, double *buf)
+{
+  int i,m,last;
+
+  m = 0;
+  last = first + n;
+  for (i = first; i < last; i++) buf[m++] = ecoul[i];
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixNWChem::unpack_reverse_comm(int n, int *list, double *buf)
+{
+  int i,j,m;
+
+  m = 0;
+  for (i = 0; i < n; i++) {
+    j = list[i];
+    ecoul[j] += buf[m++];
+  }
+}
+
 /* ----------------------------------------------------------------------
    QM energy from NWChem
 ------------------------------------------------------------------------- */
@@ -695,8 +775,23 @@ double FixNWChem::compute_scalar()
 }
 
 /* ----------------------------------------------------------------------
+   memory usage
+------------------------------------------------------------------------- */
+
+double FixNWChem::memory_usage()
+{
+  double bytes = 0.0;
+  bytes += (double)ncoulmax * sizeof(double);
+  bytes += (double)(3*3 + 4) * nqm * sizeof(double);  // fpoint QM arrays/vecs
+  bytes += nqm * sizeof(tagint);    // qmIDs
+  bytes += nqm * sizeof(int);       // qm2owned
+  return bytes;
+}
+
+/* ----------------------------------------------------------------------
    dummy version of NWChem pwdft_minimizer()
-   NOTE: for dummy test, quantities are in LAMMPS units, not NWChem units
+   for dummy test, quantities are in LAMMPS units, not NWChem units
+
 ------------------------------------------------------------------------- */
 
 int FixNWChem::dummy_pspw_minimizer(MPI_Comm nwworld, 
@@ -707,21 +802,22 @@ int FixNWChem::dummy_pspw_minimizer(MPI_Comm nwworld,
   double delta[3];
 
   // no change to charge in dummy test
-  // NOTE: could test changing of charges
+
+  int ilocal;
 
   for (int i = 0; i < nqm; i++) {
-    int ilocal = qm2owned[i];
-    q[i] = atom->q[ilocal];
+    ilocal = qm2owned[i];
+    if (ilocal >= 0) q[i] = atom->q[ilocal];
   }
 
-  double qqrd2e = force->qqrd2e;
+  // all procs compute entire QM energy/forces
+  // NOTE: alternative would be to split I loop across procs
+  //       MPI_Allreduce() of eng and f at end
 
   double eng = 0.0;
   for (int i = 0; i < 3*nqm; i++) f[i] = 0.0;
 
-  // NOTE: does this work in parallel?  make it more efficient?
-  // NOTE: inefficient as Nsq loop for big problems ?
-  // NOTE: does it work for AIMD ??
+  double qqrd2e = force->qqrd2e;
 
   for (int i = 0; i < nqm; i++) {
     for (int j = i+1; j < nqm; j++) {
@@ -744,7 +840,9 @@ int FixNWChem::dummy_pspw_minimizer(MPI_Comm nwworld,
       f[3*j+2] -= delta[2]*fpair;
     }
   }
-  
+
+  // return energy as last function argument
+
   *eqm = eng;
 
   return 0;

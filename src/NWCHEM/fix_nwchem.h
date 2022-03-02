@@ -28,19 +28,22 @@ class FixNWChem : public Fix {
  public:
   FixNWChem(class LAMMPS *, int, char **);
   virtual ~FixNWChem();
-  int setmask();
-  void init();
-  void setup(int);
-  void setup_post_neighbor();
-  void setup_pre_force(int);
-  void post_neighbor();
-  void pre_force(int);
-  void post_force(int);
-  void min_setup(int);
-  void min_post_neighbor();
-  void min_pre_force(int);
-  void min_post_force(int);
-  double compute_scalar();
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void setup_post_neighbor() override;
+  void setup_pre_force(int) override;
+  void post_neighbor() override;
+  void pre_force(int) override;
+  void post_force(int) override;
+  void min_setup(int) override;
+  void min_post_neighbor() override;
+  void min_pre_force(int) override;
+  void min_post_force(int) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  double compute_scalar() override;
+  double memory_usage() override;
 
  protected:
   char *nwfile;        // input file for NWChem
@@ -63,6 +66,9 @@ class FixNWChem : public Fix {
   int *qm2owned;             // index of local atom for each QM atom
                              // index = -1 if this proc does not own
   
+  double *ecoul;             // peratom Coulombic energy from LAMMPS
+  int ncoulmax;              // length of ecoul
+
   // conversion factors between LAMMPS and NWChem units
 
   double lmp2qm_distance,lmp2qm_energy,qm2lmp_force,qm2lmp_energy;
@@ -72,10 +78,12 @@ class FixNWChem : public Fix {
 
   // local methods
 
+  void nwchem_input();
   void pre_force_qmmm(int);
   void post_force_qmmm(int);
   void post_force_aimd(int);
 
+  void dummy_pspw_input(MPI_Comm, std::string &) {}
   int dummy_pspw_minimizer(MPI_Comm, double *, double *, 
                            double *, double *, double *);
 };

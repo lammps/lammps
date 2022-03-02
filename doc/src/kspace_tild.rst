@@ -25,12 +25,12 @@ Syntax
        *mesh* value = x y z
          x,y,z = grid size in each dimension for long-range Coulombics
        *minorder* value = M
-         M = min allowed extent of Gaussian when auto-adjusting to minimize grid communication
+         M = min allowed extent of mapping when auto-adjusting to minimize grid communication
        *order* value = N
-         N = extent of Gaussian for PM mapping of density to grid
+         N = extent of mapping when auto-adjusting to minimize grid communication
        *overlap* = *yes* or *no* = whether the grid stencil is allowed to overlap into more than the nearest-neighbor processor
-       *shape* values = itype itype SHAPE parameters
-         SHAPE = *gaussian* or *erfc* or *none*
+       *shape* values = itype itype shape parameters
+         shape  = *gaussian* or *erfc* or *none*
          parameters = parameters for each function (see discussion below)
        *prefactor* values = itype jtype prefactor
          prefactor = magnitude of the function 
@@ -67,7 +67,7 @@ Examples
 Description
 """""""""""
 
-The *tild* style is an implementation of 'theoretically informed Langevin Dynamics' method (previously known as `Dynamical Mean Field Theory`) :ref:`Chao<Chao>`: :ref:`Fredrickson<Fredrickson>`: :ref:`Grzetic<Grzetic>`. This interaction potential uses a particle-mesh scheme to calculate non-bonded pairwise forces indirectly through a gridded density representation. *tild* assigns a potentials for each simulation particle type, defined with :doc:`kspace_modify tild <kspace_modify>`. This potential does NOT calculate any Coulombic interactions and currently is incompatible with other `kspace_style`s in LAMMPS. 
+The *tild* style is an implementation of "theoretically informed Langevin Dynamics" method (previously known as "Dynamical Mean Field Theory") :ref:`Chao<Chao>`: :ref:`Fredrickson<Fredrickson>`: :ref:`Grzetic<Grzetic>`. This interaction potential uses a particle-mesh scheme to calculate non-bonded pairwise forces indirectly through a gridded density representation. *tild* assigns a potentials for each simulation particle type, defined with :doc:`kspace_modify tild <kspace_modify>`. This potential does NOT calculate any Coulombic interactions and currently is incompatible with other `kspace_style`s in LAMMPS. 
 
 .. note::
 
@@ -152,8 +152,7 @@ allowed to extend beyond nearest-neighbor processors, e.g. when using
 lots of processors on a small problem.  If it is set to *no* then the
 communication will be limited to nearest-neighbor processors and the
 *order* setting will be reduced if necessary, as explained by the
-*minorder* keyword discussion. The *overlap* keyword is always set to
-*yes* in MSM.
+*minorder* keyword discussion. 
 
 ----------
 
@@ -171,15 +170,14 @@ error out if you use two different types. The input keeps two types as its input
 to maintain a familiar interface as the `pair_style` keyword. 
 
 The current shape function styles used in *tild shape* are
+
 .. math::
 
    U_{g} = & \frac{A}{\rho_0 (2\pi \sigma^2)^{3/2}} \exp(-r^2/2\sigma^2) \\
          = & \frac{A}{\rho_0} u_G (r) \\
-   U_{erfc} = & - \frac{A}{\rho_0} \text{erfc} \left(\frac{\vert r \vert - R_p}{\xi}\right) \\ 
-   U_{g-erfc} = & \frac{A}{\rho_0} u_G (r) * \text{erfc}
-   \left(\frac{\vert r \vert - R_p}{\xi}\right)
+   U_{erfc} = & - \frac{A}{\rho_0}  * \rho_{NP} *\text{erfc} \left(\frac{\vert r \vert - R_p}{\xi}\right) \\ 
 
-where :math:`A` is the value set by `tild prefactor`\, :math:`\rho_0` is the total density of the TILD particles, :math:`\sigma`\ is the gaussian width, :math:`R_p` is the erfc particle radius and :math:`xi` is the erfc width.
+where :math:`A` is the value set by `tild prefactor`\, :math:`\rho_0` is the total density of the TILD particles, :math:`\rho_{NP}` is the density of the TILD erfc nanoparticle, :math:`\sigma`\ is the gaussian width, :math:`R_p` is the erfc particle radius and :math:`xi` is the erfc width.
 
 The first required keyword for the *tild shape* option is the model. 
 Currently supported options for shape function models
@@ -213,7 +211,7 @@ the user specified density.
 ----------
 
 The *tild normalize_by_rho0* keyword will divide the interactions by the
-calculated TILD :math:`\rho_0`\, the total density of the TILD particles. 
+calculated TILD :math:`\rho_0`\, the total box density of the TILD particles. 
 Please note this division will divide the prefactors specified in `tild prefactor`\ .
 
 ----------
@@ -232,11 +230,11 @@ The current interaction styles used in *tild cross-interaction* are
 
    U_{g} = & \frac{A\exp(-r^2/2\sigma^2)}{\rho_0 (2\pi \sigma^2)^{3/2}}  \\
          = & \frac{A u_G (r)}{\rho_0} \\
-   U_{erfc} = & \frac{A}{\rho_0} \text{erfc} \left(\frac{\vert r \vert - R_p}{\xi}\right) \rho_{NP} \\ 
+   U_{erfc} = & \frac{A}{\rho_0} \text{erfc} \left(\frac{\vert r \vert - R_p}{\xi}\right) \\ 
    U_{g-erfc} = & \frac{A}{\rho_0} u_G (r) * \text{erfc}
-   \left(\frac{\vert r \vert - R_p}{\xi}\right) \rho_{NP}
+   \left(\frac{\vert r \vert - R_p}{\xi}\right)
 
-where :math:`A` is the value set by `tild prefactor`\ , :math:`\rho_0` is the TILD density of the simulation, :math:`\rho_{NP}` is the density of the TILD erfc nanoparticle :math:`\sigma` is the gaussian width, :math:`R_p` is the erfc particle radius and :math:`\xi` is the erfc width, which controls how quickly the particle density drops from :math:`\rho_0`` to zero.
+where :math:`A` is the value set by `tild prefactor`\ , :math:`\rho_0` is the TILD density of the simulation box, :math:`\sigma` is the gaussian width, :math:`R_p` is the erfc particle radius and :math:`\xi` is the erfc width, which controls how quickly the particle density drops from :math:`\rho_0`` to zero.
 
 The first required keyword for the *tild cross-interaction* option is the interaction model. 
 Currently supported options for interaction models

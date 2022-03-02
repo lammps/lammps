@@ -11,6 +11,7 @@ Syntax
 
 .. code-block:: LAMMPS
 
+   kspace_style tild *gridsize*
    kspace_modify keyword value ...
 
 * one or more keyword/value pairs may be listed
@@ -21,6 +22,7 @@ Syntax
        *collective* value = *yes* or *no*
        *compute* value = *yes* or *no*
        *fftbench* value = *yes* or *no*
+       *gridsize* value = gridsize
        *mesh* value = x y z
          x,y,z = grid size in each dimension for long-range Coulombics
        *minorder* value = M
@@ -102,16 +104,9 @@ This keyword gives you that option.
 
 ----------
 
-The *fftbench* keyword applies only to PPPM. It is off by default. If
-this option is turned on, LAMMPS will perform a short FFT benchmark
-computation and report its timings, and will thus finish some seconds
-later than it would if this option were off.
-
-----------
-
-The *gridres* keyword overrides the current grid resolution parameter set by
-the :doc:`kspace_style tild <kspace_tild>` command with an absolute 
-accuracy.  The resolution determines the mesh grid for the long-range solver.
+The *gridsize* keyword overrides the current grid resolution parameter set by
+the `kspace_style tild` command with new size in distance units. 
+The grid size determines the mesh grid for the long-range solver.
 
 ----------
 
@@ -230,13 +225,13 @@ The current interaction styles used in *tild cross-interaction* are
 
 .. math::
 
-   U_{g} = & \frac{A}{\rho_0 (2\pi \sigma^2)^{3/2}} \exp(-r^2/2\sigma^2) \\
-         = & \frac{A}{\rho_0} u_G (r) \\
-   U_{erfc} = & - \frac{A}{\rho_0} \text{erfc} \left(\frac{\vert r \vert - R_p}{\xi}\right) \\ 
+   U_{g} = & \frac{A\exp(-r^2/2\sigma^2)}{\rho_0 (2\pi \sigma^2)^{3/2}}  \\
+         = & \frac{A u_G (r)}{\rho_0} \\
+   U_{erfc} = & \frac{A}{\rho_0} \text{erfc} \left(\frac{\vert r \vert - R_p}{\xi}\right) \rho_{NP} \\ 
    U_{g-erfc} = & \frac{A}{\rho_0} u_G (r) * \text{erfc}
-   \left(\frac{\vert r \vert - R_p}{\xi}\right)
+   \left(\frac{\vert r \vert - R_p}{\xi}\right) \rho_{NP}
 
-where :math:`A` is the value set by `tild prefactor`\ , :math:`\rho_0` is the total density of the TILD particles, :math:`\sigma` is the gaussian width, :math:`R_p` is the erfc particle radius and :math:`\xi` is the erfc width.
+where :math:`A` is the value set by `tild prefactor`\ , :math:`\rho_0` is the TILD density of the simulation, :math:`\rho_{NP}` is the density of the TILD erfc nanoparticle :math:`\sigma` is the gaussian width, :math:`R_p` is the erfc particle radius and :math:`\xi` is the erfc width, which controls how quickly the particle density drops from $\rho0$ to zero.
 
 The first required keyword for the *tild cross-interaction* option is the interaction model. 
 Currently supported options for interaction models

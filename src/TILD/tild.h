@@ -110,7 +110,7 @@ class TILD : public KSpace{
   double **rp;
   double **xi;
   double **np_rho;
-  double grid_res;
+  double gridsize;
   virtual int modify_param(int, char**);
   int num_potent;
   double calculate_rho0();

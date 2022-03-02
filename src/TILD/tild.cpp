@@ -191,7 +191,7 @@ TILD::TILD(LAMMPS *lmp) : KSpace(lmp),
 void TILD::settings(int narg, char **arg)
 {
     if (narg < 1) error->all(FLERR,"Illegal kspace_style tild command");
-    grid_res = fabs(utils::numeric(FLERR,arg[0],false,lmp));
+    gridsize = fabs(utils::numeric(FLERR,arg[0],false,lmp));
 }
 
 /* ----------------------------------------------------------------------
@@ -966,7 +966,7 @@ void TILD::set_grid_global()
   // reduce it until accuracy target is met
 
   if (!gridflag) {
-    h = h_x = h_y = h_z = grid_res;
+    h = h_x = h_y = h_z = gridsize;
 
     // set grid dimension
     nx_tild = static_cast<int> (xprd/h_x);
@@ -1700,6 +1700,10 @@ int TILD::modify_param(int narg, char** arg)
       } else if (strcmp(arg[iarg], "set_rho0") == 0) {
         if (iarg + 2 > narg) error->all(FLERR, "Illegal kspace_modify tild command");
         set_rho0 = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+        iarg += 2;
+      } else if (strcmp(arg[iarg], "gridsize") == 0) {
+        if (iarg + 2 > narg) error->all(FLERR, "Illegal kspace_modify tild command");
+        gridsize = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
         iarg += 2;
       } else if (strcmp(arg[iarg], "subtract_rho0") == 0) {
         if (iarg + 2 > narg) error->all(FLERR, "Illegal kspace_modify tild command");

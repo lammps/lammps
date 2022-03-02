@@ -1586,6 +1586,14 @@ int TILD::modify_param(int narg, char** arg)
               utils::numeric(FLERR, arg[iarg + 4], false, lmp);
           for (int i = ilo; i <= ihi; i++) {
             for (int j = MAX(jlo, i); j <= jhi; j++) {
+              if (comm->me == 0) {
+                if (i != j){
+                  std::string mesg_mod = fmt::format(
+                      "Defining a TILD gaussian shape between types {} and {}.\n", i, j);
+                      mesg_mod += "Please use cross-interaction instead."
+                  error->warning(FLERR, mesg_mod);
+                }
+              }
               potent_type_map[1][i][j] = 1;
               potent_type_map[0][i][j] = 0;
               a2[i][j] = a2_one;
@@ -1601,6 +1609,14 @@ int TILD::modify_param(int narg, char** arg)
           double np_rho_one = utils::numeric(FLERR, arg[iarg + 6], false, lmp);
           for (int i = ilo; i <= ihi; i++) {
             for (int j = MAX(jlo, i); j <= jhi; j++) {
+              if (comm->me == 0) {
+                if (i != j){
+                  std::string mesg_mod = fmt::format(
+                      "Defining a TILD erfc shape between types {} and {}.\n", i, j);
+                      mesg_mod += "Please use cross-interaction instead."
+                  error->warning(FLERR, mesg_mod);
+                }
+              }
               potent_type_map[2][i][j] = 1;
               potent_type_map[0][i][j] = 0;
               rp[i][j] = rp_one;
@@ -1613,6 +1629,14 @@ int TILD::modify_param(int narg, char** arg)
           for (int i = ilo; i <= ihi; i++) {
             for (int j = MAX(jlo, i); j <= jhi; j++) {
               potent_type_map[0][i][j] = 1;
+              if (comm->me == 0) {
+                if (i != j){
+                  std::string mesg_mod = fmt::format(
+                      "Defining a TILD none shape between types {} and {}.\n", i, j);
+                      mesg_mod += "Please use cross-interaction instead."
+                  error->warning(FLERR, mesg_mod);
+                }
+              }
               for (int istyle = 1; istyle <= nstyles; istyle++) potent_type_map[istyle][i][j] = 0;
             }
           }

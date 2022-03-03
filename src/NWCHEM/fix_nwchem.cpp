@@ -98,7 +98,7 @@ FixNWChem::FixNWChem(LAMMPS *lmp, int narg, char **arg) :
   if (atom->map_style == Atom::MAP_NONE) 
     error->all(FLERR,"Fix nwchem requires an atom map be defined");
 
-  // NOTE: relax this for slab geometries at some point
+  // NOTE: allow slab geometries at some point
 
   if (domain->nonperiodic == 0) pbcflag = 1;
   else if (!domain->xperiodic && !domain->yperiodic && !domain->zperiodic)
@@ -120,7 +120,7 @@ FixNWChem::FixNWChem(LAMMPS *lmp, int narg, char **arg) :
   nw_input = new char[n];
   strcpy(nw_input,arg[4]);
 
-  char **elements = new char*[narg-5];
+  elements = new char*[narg-5];
 
   for (int i = 5; i < narg; i++) {
     n = strlen(arg[i]) + 1;
@@ -173,9 +173,11 @@ FixNWChem::FixNWChem(LAMMPS *lmp, int narg, char **arg) :
   memory->create(xqm,nqm,3,"nwchem:xqm");
   memory->create(fqm,nqm,3,"nwchem:fqm");
   memory->create(qqm,nqm,"nwchem:qqm");
+  memory->create(tqm,nqm,"nwchem:tqm");
   memory->create(qpotential,nqm,"nwchem:qpotential");
   memory->create(xqm_mine,nqm,3,"nwchem:xqm_mine");
   memory->create(qqm_mine,nqm,"nwchem:qqm_mine");
+  memory->create(tqm_mine,nqm,"nwchem:tqm_mine");
   memory->create(qpotential_mine,nqm,"nwchem:qpotential_mine");
   memory->create(qm2owned,nqm,"nwchem:qm2owned");
   
@@ -276,9 +278,11 @@ FixNWChem::~FixNWChem()
   memory->destroy(xqm);
   memory->destroy(fqm);
   memory->destroy(qqm);
+  memory->destroy(tqm);
   memory->destroy(qpotential);
   memory->destroy(xqm_mine);
   memory->destroy(qqm_mine);
+  memory->destroy(tqm_mine);
   memory->destroy(qpotential_mine);
   memory->destroy(qm2owned);
   memory->destroy(ecoul);
@@ -339,6 +343,7 @@ void FixNWChem::init()
     qm_init = 1;
     set_qm2owned();
     set_qqm();
+    set_tqm();
     set_xqm();
     if (comm->me == 0) nwchem_initialize();
   }
@@ -768,7 +773,10 @@ double FixNWChem::memory_usage()
 // private methods for this fix
 // ----------------------------------------------------------------------
 
-// NOTE: only called by proc 0
+/* ----------------------------------------------------------------------
+   one-time intialization of NWChem
+   only called by proc 0
+------------------------------------------------------------------------- */
 
 void FixNWChem::nwchem_initialize()
 {
@@ -776,7 +784,7 @@ void FixNWChem::nwchem_initialize()
   char line[MAXLINE];
   FILE *nwfile,*infile;
 
-  // open template file read from and infile to write to
+  // open nw_template file read from, nw_input to write to
 
   nwfile = fopen(nw_template,"r");
   if (!nwfile) 
@@ -797,7 +805,7 @@ void FixNWChem::nwchem_initialize()
     eof = fgets(line,MAXLINE,nwfile);
     if (eof == nullptr) break;
 
-    if (!strcmp(line,"GEOMINSERT\n")) {
+    if (strcmp(line,"GEOMINSERT\n") != 0) {
       fprintf(infile,line);
       continue;
     }
@@ -816,12 +824,13 @@ void FixNWChem::nwchem_initialize()
       fprintf(infile,"%g %g %g\n",0.0,0.0,domain->zprd);
       fprintf(infile,"end\n\n");
 
-      for (int i = 0; i < nqm; i++)
+      for (int i = 0; i < nqm; i++) {
         fprintf(infile,"%s %g %g %g\n",
-                elements[atom->type[i]+1],xqm[i][0],xqm[i][1],xqm[i][2]);
+                elements[tqm[i]-1],xqm[i][0],xqm[i][1],xqm[i][2]);
+      }
       fprintf(infile,"end\n");
       
-      // triclinic box
+    // triclinic box
       
     } else {
       fprintf(infile,"%g %g %g\n",domain->xprd,0.0,0.0);
@@ -831,7 +840,7 @@ void FixNWChem::nwchem_initialize()
 
       for (int i = 0; i < nqm; i++)
         fprintf(infile,"%s %g %g %g\n",
-                elements[atom->type[i]+1],xqm[i][0],xqm[i][1],xqm[i][2]);
+                elements[tqm[i]-1],xqm[i][0],xqm[i][1],xqm[i][2]);
       fprintf(infile,"end\n");
     }
   }
@@ -840,8 +849,6 @@ void FixNWChem::nwchem_initialize()
 
   fclose(nwfile);
   fclose(infile);
-
-  error->one(FLERR,"ABORT");
 
   // pass new input file to NWChem
 
@@ -885,6 +892,23 @@ void FixNWChem::set_qqm()
   }
   
   MPI_Allreduce(qqm_mine,qqm,nqm,MPI_DOUBLE,MPI_SUM,world);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixNWChem::set_tqm()
+{
+  for (int i = 0; i < nqm; i++) tqm_mine[i] = 0;
+
+  int*type = atom->type;
+  int ilocal;
+  
+  for (int i = 0; i < nqm; i++) {
+    ilocal = qm2owned[i];
+    if (ilocal >= 0) tqm_mine[i] = type[ilocal];
+  }
+  
+  MPI_Allreduce(tqm_mine,tqm,nqm,MPI_INT,MPI_SUM,world);
 }
 
 /* ---------------------------------------------------------------------- */

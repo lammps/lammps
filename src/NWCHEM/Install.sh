@@ -39,7 +39,7 @@ if (test $1 = 1) then
   if (test -e ../Makefile.package) then
     sed -i -e 's/[^ \t]*nwchem[^ \t]* //' ../Makefile.package
     sed -i -e 's/[^ \t]*pwdft[^ \t]* //' ../Makefile.package
-    sed -i -e 's|^PKG_PATH =[ \t]*|&-L../../lib/nwchem/liblink |' ../Makefile.package
+    sed -i -e 's|^PKG_PATH =[ \t]*|&-L../../lib/nwchem/liblink -Wl,-rpath=/home/sjplimp/lammps/git/lib/nwchem/PWDFT/build_library |' ../Makefile.package
     sed -i -e 's|^PKG_LIB =[ \t]*|&-lpwdft |' ../Makefile.package
     sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(nwchem_SYSINC) |' ../Makefile.package
     sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(nwchem_SYSLIB) |' ../Makefile.package
@@ -57,6 +57,7 @@ include ..\/..\/lib\/nwchem\/Makefile.lammps
 elif (test $1 = 0) then
 
   if (test -e ../Makefile.package) then
+    sed -i -e 's/[^ \t]*nwchem[^ \t]* //' ../Makefile.package
     sed -i -e 's/[^ \t]*nwchem[^ \t]* //' ../Makefile.package
     sed -i -e 's/[^ \t]*pwdft[^ \t]* //' ../Makefile.package
   fi

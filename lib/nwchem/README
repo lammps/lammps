@@ -2,7 +2,7 @@ This directory contains links to the NWChem PWDFT library which is
 required to use the NWCHEM package and its fix nwchem command in a
 LAMMPS input script.
 
-The PWDFT library is available at http://math.lbl.gov/voro++ and was
+The PWDFT library is available at GitHub URL and was
 developed by Eric Bylaska (PNNL).
 
 You can type "make lib-nwchem" from the src directory to see help on
@@ -49,10 +49,10 @@ with the NWCHEM package installed:
 % make g++ (or whatever target you wish)
 
 Note that if you download and unpack a new LAMMPS tarball, the
-"includelink" and "liblink" files will be lost and you will need to
-re-create them (step 4).  If you built PWDFT in this directory (as
-opposed to somewhere else on your system) and did not install it
-somewhere else, you will also need to repeat steps 1,2,3.
+"liblink" files will be lost and you will need to re-create them (step
+4).  If you built PWDFT in this directory (as opposed to somewhere
+else on your system) and did not install it somewhere else, you will
+also need to repeat steps 1,2,3.
 
 The Makefile.lammps file in this directory is there for compatibility
 with the way other libraries under the lib dir are linked with by

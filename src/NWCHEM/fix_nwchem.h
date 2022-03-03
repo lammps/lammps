@@ -63,9 +63,11 @@ class FixNWChem : public Fix {
   tagint *qmIDs;             // IDs of QM atoms in ascending order
   double **xqm,**fqm;        // QM coords and forces
   double *qqm;               // QM charges
+  int *tqm;                  // QM atom types
   double *qpotential;        // Coulomb potential
   double **xqm_mine;         // same values for QM atoms I own
   double *qqm_mine;
+  int *tqm_mine;
   double *qpotential_mine;
   int *qm2owned;             // index of local atom for each QM atom
                              // index = -1 if this proc does not own
@@ -89,6 +91,7 @@ class FixNWChem : public Fix {
 
   void set_qm2owned();
   void set_qqm();
+  void set_tqm();
   void set_xqm();
 
   void dummy_pspw_input(MPI_Comm, std::string &) {}

@@ -43,6 +43,8 @@ mscg          hooks to the MSCG library, used by fix_mscg command
                 from Jacob Wagner and Greg Voth group (U Chicago)
 netcdf        hooks to a NetCDF library installed on your system
                 from Lars Pastewka (Karlsruhe Institute of Technology)
+nwchem        hooks to the NWChem PWDFT library for AIMD, QM/MM modeling
+                from Eric Bylaska (PNNL)
 plugin        settings to load styles into LAMMPS from plugins
                 from Axel Kohlmeyer (Temple U)
 poems         POEMS rigid-body integration package, POEMS package

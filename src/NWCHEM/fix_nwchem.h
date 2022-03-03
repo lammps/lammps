@@ -46,11 +46,14 @@ class FixNWChem : public Fix {
   double memory_usage() override;
 
  protected:
-  char *nwfile;        // input file for NWChem
+  char *nw_template;   // template file for NWChem input params
+  char *nw_input;      // generated NWChem input file w/ box and coords
+
   int pbcflag;         // 1 if fully periodic, 0 if fully non-periodic
   int mode;            // AIMD or QMMM
   int qflag;           // 1 if per-atom charge defined, 0 if not
-  int qqm_init;        // 1 if qqm has been initialized, 0 if not
+  int qm_init;         // 1 if NWChem and qqm are initialized, 0 if not
+  char **elements;     // species name of each LAMMPS atom type
 
   double qmenergy;     // QM energy
        
@@ -79,10 +82,14 @@ class FixNWChem : public Fix {
 
   // local methods
 
-  void nwchem_input();
+  void nwchem_initialize();
   void pre_force_qmmm(int);
   void post_force_qmmm(int);
   void post_force_aimd(int);
+
+  void set_qm2owned();
+  void set_qqm();
+  void set_xqm();
 
   void dummy_pspw_input(MPI_Comm, std::string &) {}
   int dummy_pspw_minimizer(MPI_Comm, double *, double *, 

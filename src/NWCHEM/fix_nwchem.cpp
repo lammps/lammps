@@ -38,13 +38,10 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-namespace pwdft {
-using namespace pwdft;
-  extern void lammps_pspw_input(MPI_Comm, std::string &);
-  extern int lammps_pspw_minimizer(MPI_Comm, double *, double *, 
-                                   double *, double *, double *);
-  //extern int nwchem_abiversion();
-}
+extern void lammps_pspw_input(MPI_Comm, std::string &);
+extern int lammps_pspw_minimizer(MPI_Comm, double *, double *, 
+                                 double *, double *, double *);
+//extern int nwchem_abiversion();
 
 // the ABIVERSION number here must be kept consistent
 // with its counterpart in the NWChem library and the
@@ -57,13 +54,15 @@ using namespace pwdft;
 // unit conversion factors
 // NOTE: set all to 1.0 for dummy test
 
-//#define ANGSTROM_TO_BOHR 1.88973
-//#define HARTREE_TO_EV 27.2114
-//#define HARTREE_TO_KCAL_MOLE 627.5
+#define ANGSTROM_TO_BOHR 1.88973
+#define HARTREE_TO_EV 27.2114
+#define HARTREE_TO_KCAL_MOLE 627.5
 
-#define ANGSTROM_TO_BOHR 1.0
-#define HARTREE_TO_EV 1.0
-#define HARTREE_TO_KCAL_MOLE 1.0
+//#define ANGSTROM_TO_BOHR 1.0
+//#define HARTREE_TO_EV 1.0
+//#define HARTREE_TO_KCAL_MOLE 1.0
+
+#define MAXLINE 1024
 
 // mode of operation
 
@@ -80,7 +79,7 @@ FixNWChem::FixNWChem(LAMMPS *lmp, int narg, char **arg) :
 {
   // error checks
 
-  //if (NWCHEM_ABIVERSION != pwdft::nwchem_abiversion())
+  //if (NWCHEM_ABIVERSION != nwchem_abiversion())
   //  error->all(FLERR,"LAMMPS is linked against incompatible NWChem library");
 
   if ((strcmp(update->unit_style,"metal") != 0) &&
@@ -108,12 +107,26 @@ FixNWChem::FixNWChem(LAMMPS *lmp, int narg, char **arg) :
                   "fully non-periodic system");
 
   // process command args
+  // trailing args map atom types to element strings
 
-  if (narg != 4) error->all(FLERR,"Illegal fix nwchem command");
+  if (narg != 5 + atom->ntypes) 
+    error->all(FLERR,"Illegal fix nwchem command");
 
   int n = strlen(arg[3]) + 1;
-  nwfile = new char[n];
-  strcpy(nwfile,arg[3]);
+  nw_template = new char[n];
+  strcpy(nw_template,arg[3]);
+
+  n = strlen(arg[4]) + 1;
+  nw_input = new char[n];
+  strcpy(nw_input,arg[4]);
+
+  char **elements = new char*[narg-5];
+
+  for (int i = 5; i < narg; i++) {
+    n = strlen(arg[i]) + 1;
+    elements[i-5] = new char[n];
+    strcpy(elements[i-5],arg[i]);
+  }
 
   // settings for this fix
 
@@ -234,13 +247,9 @@ FixNWChem::FixNWChem(LAMMPS *lmp, int narg, char **arg) :
     memory->destroy(qmIDs_sort);
   }
 
-  // nwchem_setup() perform one-time call to lammps_pspw_input() with nwfile
+  // flag for one-time init of NWChem and qqm
 
-  nwchem_input();
-
-  // flag for one-time init of qqm = charge on QM atoms
-
-  qqm_init = 0;
+  qm_init = 0;
 
   // peratom Coulombic energy
 
@@ -256,7 +265,12 @@ FixNWChem::FixNWChem(LAMMPS *lmp, int narg, char **arg) :
 
 FixNWChem::~FixNWChem()
 {
-  delete [] nwfile;
+  delete [] nw_template;
+  delete [] nw_input;
+
+  for (int i = 0; i < atom->ntypes; i++)
+    delete [] elements[i];
+  delete [] elements;
 
   memory->destroy(qmIDs);
   memory->destroy(xqm);
@@ -282,24 +296,6 @@ int FixNWChem::setmask()
   mask |= POST_FORCE;
   mask |= MIN_POST_FORCE;
   return mask;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixNWChem::nwchem_input()
-{
-  std::string filename = nwfile;
-
-  // read nwfile
-  // replace simulation box with new box
-  // replace list of atoms with new list of atoms and element names
-  //   specify on command line, to match LAMMPS types as for pair styles
-  // write out w2.AUTO.nw
-  // pass that filename to NWChem
-
-  dummy_pspw_input(world,filename);
-
-  //pwdft::lammps_pspw_input(world,filename);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -332,6 +328,20 @@ void FixNWChem::init()
   //int ipe = modify->find_compute(id_pe);
   //if (ipe < 0) error->all(FLERR,"Could not find fix nwchem compute ID");
   //c_pe = modify->compute[ipe];
+
+  // one-time initialization of NWChem with its input file
+  // also one-time setup of qqm = atom charges for all QM atoms
+  //   later calls to NWChem change it for all QM atoms
+  //   changes get copied to LAMMPS per-atom q, never changed by LAMMPS
+  // setup of xqm needed for nwchem_initialize();
+
+  if (!qm_init) {
+    qm_init = 1;
+    set_qm2owned();
+    set_qqm();
+    set_xqm();
+    if (comm->me == 0) nwchem_initialize();
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -359,40 +369,7 @@ void FixNWChem::setup_pre_force(int vflag)
 
 void FixNWChem::post_neighbor()
 {
-  // qm2owned[i] = index of local atom for each of nqm QM atoms
-  // for AIMD, IDs of QM atoms = 1 to Natoms
-  // for QMMM, IDs of QM atoms stored in qmIDs
-  // index = -1 if this proc does not own the atom
-  // NOTE: could store nqm_owned with different qm2owned indexing
-
-  int nlocal = atom->nlocal;
-  int index;
-
-  for (int i = 0; i < nqm; i++) {
-    if (mode == AIMD) index = atom->map(i+1);
-    else index = atom->map(qmIDs[i]);
-    if (index >= nlocal) qm2owned[i] = -1;
-    else qm2owned[i] = index;
-  }
-
-  // onetime setup of qqm = atom charges for all QM atoms
-  // calls to NWChem change it for all QM atoms
-  // changes only get copied to LAMMPS atoms, never changed by LAMMPS
-
-  if (!qqm_init) {
-    for (int i = 0; i < nqm; i++) qqm_mine[i] = 0.0;
-
-    double *q = atom->q;
-    int ilocal;
-
-    for (int i = 0; i < nqm; i++) {
-      ilocal = qm2owned[i];
-      if (ilocal >= 0) qqm_mine[i] = q[ilocal];
-    }
-
-    MPI_Allreduce(qqm_mine,qqm,nqm,MPI_DOUBLE,MPI_SUM,world);
-    qqm_init = 1;
-  }
+  set_qm2owned();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -448,34 +425,15 @@ void FixNWChem::pre_force_qmmm(int vflag)
       ecoul[i] += eatom_kspace[i];
   }
 
-  // setup NWChem inputs
+  // setup 2 NWChem inputs: xqm and qpotential
   // xqm = atom coords, mapped into periodic box
-  //   set for owned atoms, then MPI_Allreduce
-
-  for (int i = 0; i < nqm; i++) {
-    xqm_mine[i][0] = 0.0;
-    xqm_mine[i][1] = 0.0;
-    xqm_mine[i][2] = 0.0;
-  }
-
-  double **x = atom->x;
-
-  for (int i = 0; i < nqm; i++) {
-    ilocal = qm2owned[i];
-    if (ilocal >= 0) {
-      xqm_mine[i][0] = x[ilocal][0];
-      xqm_mine[i][1] = x[ilocal][1];
-      xqm_mine[i][2] = x[ilocal][2];
-      domain->remap(xqm_mine[i]);
-    }
-  }
-
-  MPI_Allreduce(&xqm_mine[0][0],&xqm[0][0],3*nqm,MPI_DOUBLE,MPI_SUM,world);
-
-  // qpotential[i] = (eatom[i] from pair_coul + kspace) / Qi
+  // qpotential[i] = Coulomb potential for each atom
+  //   (eatom[i] from pair_coul + kspace) / Qi
   //   set for owned atoms, then MPI_Allreduce
   // subtract Qj/Rij energy for QM I interacting with all other QM J atoms
   //   use xqm_mine and qqm_mine for all QM atoms
+
+  set_xqm();
 
   for (int i = 0; i < nqm; i++) qpotential_mine[i] = 0.0;
 
@@ -515,6 +473,7 @@ void FixNWChem::pre_force_qmmm(int vflag)
     xqm[i][2] *= lmp2qm_distance;
     qpotential[i] *= lmp2qm_energy;
   }
+
   // call to NWChem with only QM atom info
   // QM atoms must be in order of ascending atom ID
   // inputs:
@@ -524,9 +483,12 @@ void FixNWChem::pre_force_qmmm(int vflag)
   //   fqm,qqm = forces & charges
   //   qmenergy = QM energy of entire system
 
-  int nwerr = dummy_pspw_minimizer(world,
-                                   &xqm[0][0],qpotential,
-                                   &fqm[0][0],qqm,&qmenergy);
+  int nwerr = lammps_pspw_minimizer(world,
+                                    &xqm[0][0],qpotential,
+                                    &fqm[0][0],qqm,&qmenergy);
+  //int nwerr = dummy_pspw_minimizer(world,
+  //                                 &xqm[0][0],qpotential,
+  //                                 &fqm[0][0],qqm,&qmenergy);
 
   if (nwerr) error->all(FLERR,"Internal NWChem error");
 
@@ -571,31 +533,12 @@ void FixNWChem::post_force_aimd(int vflag)
 {
   int ilocal;
 
-  // setup 2 NWChem inputs
+  // setup 2 NWChem inputs: xqm and qpotential
   // xqm = atom coords, mapped into periodic box
-  //   set for owned atoms, then MPI_Allreduce
-  // qpotential = Coulomb potential = 0.0 for AIMD
+  // qpotential = Coulomb potential for each atom = 0.0 for AIMD
 
-  for (int i = 0; i < nqm; i++) {
-    xqm_mine[i][0] = 0.0;
-    xqm_mine[i][1] = 0.0;
-    xqm_mine[i][2] = 0.0;
-    qpotential[i] = 0.0;
-  }
-
-  double **x = atom->x;
-
-  for (int i = 0; i < nqm; i++) {
-    ilocal = qm2owned[i];
-    if (ilocal >= 0) {
-      xqm_mine[i][0] = x[ilocal][0];
-      xqm_mine[i][1] = x[ilocal][1];
-      xqm_mine[i][2] = x[ilocal][2];
-      domain->remap(xqm_mine[i]);
-    }
-  }
-
-  MPI_Allreduce(&xqm_mine[0][0],&xqm[0][0],3*nqm,MPI_DOUBLE,MPI_SUM,world);
+  set_xqm();
+  for (int i = 0; i < nqm; i++) qpotential[i] = 0.0;
 
   // unit conversion from LAMMPS to NWChem
 
@@ -614,9 +557,12 @@ void FixNWChem::post_force_aimd(int vflag)
   //   fqm,qqm = forces & charges
   //   qmenergy = QM energy of entire system
 
-  int nwerr = dummy_pspw_minimizer(world,
-                                   &xqm[0][0],qpotential,
-                                   &fqm[0][0],qqm,&qmenergy);
+  int nwerr = lammps_pspw_minimizer(world,
+                                    &xqm[0][0],qpotential,
+                                    &fqm[0][0],qqm,&qmenergy);
+  //int nwerr = dummy_pspw_minimizer(world,
+  //                                 &xqm[0][0],qpotential,
+  //                                 &fqm[0][0],qqm,&qmenergy);
 
   if (nwerr) error->all(FLERR,"Internal NWChem error");
 
@@ -818,10 +764,158 @@ double FixNWChem::memory_usage()
   return bytes;
 }
 
+// ----------------------------------------------------------------------
+// private methods for this fix
+// ----------------------------------------------------------------------
+
+// NOTE: only called by proc 0
+
+void FixNWChem::nwchem_initialize()
+{
+  char *eof;
+  char line[MAXLINE];
+  FILE *nwfile,*infile;
+
+  // open template file read from and infile to write to
+
+  nwfile = fopen(nw_template,"r");
+  if (!nwfile) 
+    error->one(FLERR,"Cannot open fix nwchem template file {}: {}",
+               nw_template,utils::getsyserror());
+
+  infile = fopen(nw_input,"w");
+  if (!infile) 
+    error->one(FLERR,"Cannot open fix nwchem NWChem input file {}: {}",
+               nw_input,utils::getsyserror());
+  
+  // read nw_template file line by line and echo to nw_input file
+  // when GEOMINSERT line is read:
+  //   replace it with lines that specify the simulation box and list of atoms
+  //   each atom's element ID and coords are written to file
+
+  while (true) {
+    eof = fgets(line,MAXLINE,nwfile);
+    if (eof == nullptr) break;
+
+    if (!strcmp(line,"GEOMINSERT\n")) {
+      fprintf(infile,line);
+      continue;
+    }
+
+    fprintf(infile,"geometry noautosym noautoz center\n");
+    fprintf(infile,"system crystal cartesian\n");
+    fprintf(infile,"lattice_vectors\n");
+
+    int *type = atom->type;
+
+    // orthogonal box
+    
+    if (!domain->triclinic) {
+      fprintf(infile,"%g %g %g\n",domain->xprd,0.0,0.0);
+      fprintf(infile,"%g %g %g\n",0.0,domain->yprd,0.0);
+      fprintf(infile,"%g %g %g\n",0.0,0.0,domain->zprd);
+      fprintf(infile,"end\n\n");
+
+      for (int i = 0; i < nqm; i++)
+        fprintf(infile,"%s %g %g %g\n",
+                elements[atom->type[i]+1],xqm[i][0],xqm[i][1],xqm[i][2]);
+      fprintf(infile,"end\n");
+      
+      // triclinic box
+      
+    } else {
+      fprintf(infile,"%g %g %g\n",domain->xprd,0.0,0.0);
+      fprintf(infile,"%g %g %g\n",domain->xy,domain->yprd,0.0);
+      fprintf(infile,"%g %g %g\n",domain->xz,domain->yz,domain->zprd);
+      fprintf(infile,"end\n\n");
+
+      for (int i = 0; i < nqm; i++)
+        fprintf(infile,"%s %g %g %g\n",
+                elements[atom->type[i]+1],xqm[i][0],xqm[i][1],xqm[i][2]);
+      fprintf(infile,"end\n");
+    }
+  }
+
+  // close 2 files
+
+  fclose(nwfile);
+  fclose(infile);
+
+  error->one(FLERR,"ABORT");
+
+  // pass new input file to NWChem
+
+  std::string filename = nw_input;
+  lammps_pspw_input(world,filename);
+  //dummy_pspw_input(world,filename);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixNWChem::set_qm2owned()
+{
+  // qm2owned[i] = index of local atom for each of nqm QM atoms
+  // for AIMD, IDs of QM atoms = 1 to Natoms
+  // for QMMM, IDs of QM atoms stored in qmIDs
+  // index = -1 if this proc does not own the atom
+
+  int nlocal = atom->nlocal;
+  int index;
+
+  for (int i = 0; i < nqm; i++) {
+    if (mode == AIMD) index = atom->map(i+1);
+    else index = atom->map(qmIDs[i]);
+    if (index >= nlocal) qm2owned[i] = -1;
+    else qm2owned[i] = index;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixNWChem::set_qqm()
+{
+  for (int i = 0; i < nqm; i++) qqm_mine[i] = 0.0;
+
+  double *q = atom->q;
+  int ilocal;
+  
+  for (int i = 0; i < nqm; i++) {
+    ilocal = qm2owned[i];
+    if (ilocal >= 0) qqm_mine[i] = q[ilocal];
+  }
+  
+  MPI_Allreduce(qqm_mine,qqm,nqm,MPI_DOUBLE,MPI_SUM,world);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixNWChem::set_xqm()
+{
+  for (int i = 0; i < nqm; i++) {
+    xqm_mine[i][0] = 0.0;
+    xqm_mine[i][1] = 0.0;
+    xqm_mine[i][2] = 0.0;
+  }
+
+  double **x = atom->x;
+  int ilocal;
+
+  for (int i = 0; i < nqm; i++) {
+    ilocal = qm2owned[i];
+    if (ilocal >= 0) {
+      xqm_mine[i][0] = x[ilocal][0];
+      xqm_mine[i][1] = x[ilocal][1];
+      xqm_mine[i][2] = x[ilocal][2];
+      domain->remap(xqm_mine[i]);
+    }
+  }
+
+  MPI_Allreduce(&xqm_mine[0][0],&xqm[0][0],3*nqm,MPI_DOUBLE,MPI_SUM,world);
+}
+
 /* ----------------------------------------------------------------------
    dummy version of NWChem pwdft_minimizer()
    for dummy test, quantities are in LAMMPS units, not NWChem units
-
 ------------------------------------------------------------------------- */
 
 int FixNWChem::dummy_pspw_minimizer(MPI_Comm nwworld, 

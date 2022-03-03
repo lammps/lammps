@@ -50,7 +50,7 @@ protected:
 
 TEST_F(ComputeGlobalTest, Energy)
 {
-    void *handle = (void *) lmp;
+    void *handle = (void *)lmp;
     if (lammps_get_natoms(handle) == 0.0) GTEST_SKIP();
 
     BEGIN_HIDE_OUTPUT();
@@ -68,22 +68,63 @@ TEST_F(ComputeGlobalTest, Energy)
     command("run 0 post no");
     END_HIDE_OUTPUT();
 
-    double ke1 = *(double *)lammps_extract_compute(handle, "ke1", LMP_STYLE_GLOBAL, LMP_TYPE_SCALAR);
-    double ke2 = *(double *)lammps_extract_compute(handle, "ke2", LMP_STYLE_GLOBAL, LMP_TYPE_SCALAR);
-    double pe1 = *(double *)lammps_extract_compute(handle, "pe1", LMP_STYLE_GLOBAL, LMP_TYPE_SCALAR);
-    double pe2 = *(double *)lammps_extract_compute(handle, "pe2", LMP_STYLE_GLOBAL, LMP_TYPE_SCALAR);
-    double pe3 = *(double *)lammps_extract_compute(handle, "pe3", LMP_STYLE_GLOBAL, LMP_TYPE_SCALAR);
+    auto ke1 = *(double *)lammps_extract_compute(handle, "ke1", LMP_STYLE_GLOBAL, LMP_TYPE_SCALAR);
+    auto ke2 = *(double *)lammps_extract_compute(handle, "ke2", LMP_STYLE_GLOBAL, LMP_TYPE_SCALAR);
+    auto pe1 = *(double *)lammps_extract_compute(handle, "pe1", LMP_STYLE_GLOBAL, LMP_TYPE_SCALAR);
+    auto pe2 = *(double *)lammps_extract_compute(handle, "pe2", LMP_STYLE_GLOBAL, LMP_TYPE_SCALAR);
+    auto pe3 = *(double *)lammps_extract_compute(handle, "pe3", LMP_STYLE_GLOBAL, LMP_TYPE_SCALAR);
 
     EXPECT_DOUBLE_EQ(ke1, 2.3405256449146168);
     EXPECT_DOUBLE_EQ(ke2, 1.192924237073665);
     EXPECT_DOUBLE_EQ(pe1, 24280.922367235136);
     EXPECT_DOUBLE_EQ(pe2, 361.37528652881286);
     EXPECT_DOUBLE_EQ(pe3, 0.0);
-    
 
     TEST_FAILURE(".*ERROR: Reuse of compute ID 'pe2'.*", command("compute pe2 all pe"););
     TEST_FAILURE(".*ERROR: Compute pe must use group all.*", command("compute pe allwater pe"););
     TEST_FAILURE(".*ERROR: Illegal compute command.*", command("compute pe potential"););
+}
+
+TEST_F(ComputeGlobalTest, Geometry)
+{
+    void *handle = (void *)lmp;
+    if (lammps_get_natoms(handle) == 0.0) GTEST_SKIP();
+
+    BEGIN_HIDE_OUTPUT();
+    command("group allwater molecule 3:6");
+    command("compute com1 all com");
+    command("compute com2 allwater com");
+    command("compute mu1 all dipole");
+    command("compute mu2 allwater dipole geometry ");
+    command("pair_style lj/cut 10.0");
+    command("pair_coeff * * 0.01 3.0");
+    command("bond_style harmonic");
+    command("bond_coeff * 100.0 1.5");
+    command("thermo_style custom c_com1[*] c_com2[*] c_mu1 c_mu2");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+
+    auto com1 = (double *)lammps_extract_compute(handle, "com1", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR);
+    auto com2 = (double *)lammps_extract_compute(handle, "com2", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR);
+    auto mu1  = *(double *)lammps_extract_compute(handle, "mu1", LMP_STYLE_GLOBAL, LMP_TYPE_SCALAR);
+    auto mu2  = *(double *)lammps_extract_compute(handle, "mu2", LMP_STYLE_GLOBAL, LMP_TYPE_SCALAR);
+    auto dip1 = (double *)lammps_extract_compute(handle, "mu1", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR);
+    auto dip2 = (double *)lammps_extract_compute(handle, "mu2", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR);
+
+    EXPECT_DOUBLE_EQ(com1[0], 1.4300952724948282);
+    EXPECT_DOUBLE_EQ(com1[1], -0.29759806705328351);
+    EXPECT_DOUBLE_EQ(com1[2], -0.7245120195899285);
+    EXPECT_DOUBLE_EQ(com2[0], 1.7850913321989679);
+    EXPECT_DOUBLE_EQ(com2[1], -0.45168408952146238);
+    EXPECT_DOUBLE_EQ(com2[2], -0.60215022088294912);
+    EXPECT_DOUBLE_EQ(mu1, 1.8335537504770163);
+    EXPECT_DOUBLE_EQ(mu2, 1.7849382239204072);
+    EXPECT_DOUBLE_EQ(dip1[0], 0.41613191281297729);
+    EXPECT_DOUBLE_EQ(dip1[1], 1.0056523085627747);
+    EXPECT_DOUBLE_EQ(dip1[2], -1.4756073398127658);
+    EXPECT_DOUBLE_EQ(dip2[0], -0.029474795088977768);
+    EXPECT_DOUBLE_EQ(dip2[1], 1.153516133030746);
+    EXPECT_DOUBLE_EQ(dip2[2], -1.3618135814069394);
 }
 
 } // namespace LAMMPS_NS

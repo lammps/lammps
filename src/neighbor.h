@@ -18,6 +18,10 @@
 
 namespace LAMMPS_NS {
 
+// forward declarations
+class NeighRequest;
+class NeighList;
+
 class Neighbor : protected Pointers {
  public:
   enum { NSQ, BIN, MULTI_OLD, MULTI };
@@ -87,9 +91,9 @@ class Neighbor : protected Pointers {
   int nrequest;        // # of requests, same as nlist
   int old_nrequest;    // # of requests for previous run
 
-  class NeighList **lists;
-  class NeighRequest **requests;        // from Pair,Fix,Compute,Command classes
-  class NeighRequest **old_requests;    // copy of requests to compare to
+  NeighList **lists;
+  NeighRequest **requests;        // from Pair,Fix,Compute,Command classes
+  NeighRequest **old_requests;    // copy of requests to compare to
 
   // data from topology neighbor lists
 
@@ -119,7 +123,16 @@ class Neighbor : protected Pointers {
   Neighbor(class LAMMPS *);
   ~Neighbor() override;
   virtual void init();
-  int request(void *, int instance = 0);
+
+  // old API for creating neighbor list requests
+  int request(void *, int instance_me = 0);
+
+  // new API for creating neighbor list requests
+  NeighRequest *add_request(class Pair *, int);
+  NeighRequest *add_request(class Fix *, int);
+  NeighRequest *add_request(class Compute *, int);
+  NeighRequest *add_request(class Command *, const char *, int);
+
   int decide();                     // decide whether to build or not
   virtual int check_distance();     // check max distance moved since last build
   void setup_bins();                // setup bins based on box and cutoff
@@ -134,7 +147,8 @@ class Neighbor : protected Pointers {
 
   void exclusion_group_group_delete(int, int);    // rm a group-group exclusion
   int exclude_setting();                          // return exclude value to accelerator pkg
-  class NeighRequest *find_request(void *);       // find a neighbor request
+  NeighList *find_list(void *);                   // find a neighbor request
+  NeighRequest *find_request(void *);             // find a neighbor request
   int any_full();                // Check if any old requests had full neighbor lists
   void build_collection(int);    // build peratom collection array starting at the given index
 
@@ -246,6 +260,7 @@ class Neighbor : protected Pointers {
 };
 
 namespace NeighConst {
+
   enum {
     NB_INTEL = 1 << 0,
     NB_KOKKOS_DEVICE = 1 << 1,
@@ -296,6 +311,19 @@ namespace NeighConst {
     NP_HALF_FULL = 1 << 23,
     NP_OFF2ON = 1 << 24,
     NP_MULTI_OLD = 1 << 25
+  };
+
+  enum {
+    REQ_DEFAULT = 0,
+    REQ_FULL = 1 << 0,
+    REQ_GHOST = 1 << 1,
+    REQ_SIZE = 1 << 2,
+    REQ_HISTORY = 1 << 3,
+    REQ_OCCASIONAL = 1 << 4,
+    REQ_RESPA_INOUT = 1 << 5,
+    REQ_RESPA_ALL = 1 << 6,
+    REQ_NEWTON_ON = 1 << 8,
+    REQ_NEWTON_OFF = 1 << 9,
   };
 }    // namespace NeighConst
 

@@ -1715,13 +1715,10 @@ void Neighbor::requests_new2old()
 
   old_nrequest = nrequest;
   old_requests = (NeighRequest **)
-      memory->smalloc(old_nrequest*sizeof(NeighRequest *),
-                      "neighbor:old_requests");
+    memory->smalloc(old_nrequest*sizeof(NeighRequest *),"neighbor:old_requests");
 
-  for (int i = 0; i < old_nrequest; i++) {
-    old_requests[i] = new NeighRequest(lmp);
-    old_requests[i]->copy_request(requests[i],1);
-  }
+  for (int i = 0; i < old_nrequest; i++)
+    old_requests[i] = new NeighRequest(requests[i]);
 
   old_style = style;
   old_triclinic = triclinic;
@@ -1731,7 +1728,8 @@ void Neighbor::requests_new2old()
 
 /* ----------------------------------------------------------------------
    find and return request made by classptr
-   if not found or classpt = nullptr, return nullptr
+   if not found or classptr = nullptr, return nullptr
+   TODO: should have optional argument "id" to match ID if multiple requests
 ------------------------------------------------------------------------- */
 
 NeighRequest *Neighbor::find_request(void *classptr)
@@ -1740,6 +1738,22 @@ NeighRequest *Neighbor::find_request(void *classptr)
 
   for (int i = 0; i < nrequest; i++)
     if (requests[i]->requestor == classptr) return requests[i];
+
+  return nullptr;
+}
+
+/* ----------------------------------------------------------------------
+   find and return list requested by classptr
+   if not found or classptr = nullptr, return nullptr
+   TODO: should have optional argument "id" to match ID if multiple requests
+------------------------------------------------------------------------- */
+
+NeighList *Neighbor::find_list(void *classptr)
+{
+  if (classptr == nullptr) return nullptr;
+
+  for (int i = 0; i < nrequest; i++)
+    if (lists[i]->requestor == classptr) return lists[i];
 
   return nullptr;
 }
@@ -2028,12 +2042,53 @@ int Neighbor::request(void *requestor, int instance)
                        "neighbor:requests");
   }
 
-  requests[nrequest] = new NeighRequest(lmp);
-  requests[nrequest]->index = nrequest;
-  requests[nrequest]->requestor = requestor;
-  requests[nrequest]->requestor_instance = instance;
+  requests[nrequest] = new NeighRequest(lmp, nrequest, requestor, instance);
   nrequest++;
   return nrequest-1;
+}
+
+/* ----------------------------------------------------------------------
+   called by other classes to request a pairwise neighbor list
+------------------------------------------------------------------------- */
+
+NeighRequest *Neighbor::add_request(Pair *requestor, int flags)
+{
+  int irequest = request(requestor, requestor->instance_me);
+  auto req = requests[irequest];
+  req->apply_flags(flags);
+  return req;
+}
+
+NeighRequest *Neighbor::add_request(Fix *requestor, int flags)
+{
+  int irequest = request(requestor, requestor->instance_me);
+  auto req = requests[irequest];
+  req->pair = 0;
+  req->fix = 1;
+  req->apply_flags(flags);
+  return req;
+}
+
+NeighRequest *Neighbor::add_request(Compute *requestor, int flags)
+{
+  int irequest = request(requestor, requestor->instance_me);
+  auto req = requests[irequest];
+  req->pair = 0;
+  req->compute = 1;
+  req->apply_flags(flags);
+  return req;
+}
+
+NeighRequest *Neighbor::add_request(Command *requestor, const char *style, int flags)
+{
+  int irequest = request(requestor, 0);
+  auto req = requests[irequest];
+  req->pair = 0;
+  req->command = 1;
+  req->occasional = 1;
+  req->command_style = style;
+  req->apply_flags(flags);
+  return req;
 }
 
 /* ----------------------------------------------------------------------
@@ -2275,13 +2330,11 @@ void Neighbor::build_one(class NeighList *mylist, int preflag)
   // check if list structure is initialized
 
   if (mylist == nullptr)
-    error->all(FLERR,"Trying to build an occasional neighbor list "
-               "before initialization completed");
+    error->all(FLERR,"Trying to build an occasional neighbor list before initialization complete");
 
   // build_one() should never be invoked on a perpetual list
 
-  if (!mylist->occasional)
-    error->all(FLERR,"Neighbor build one invoked on perpetual list");
+  if (!mylist->occasional) error->all(FLERR,"Neighbor::build_one() invoked on perpetual list");
 
   // no need to build if already built since last re-neighbor
   // preflag is set by fix bond/create and fix bond/swap

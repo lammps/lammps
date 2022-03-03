@@ -112,11 +112,18 @@ class NeighRequest : protected Pointers {
   // methods
 
   NeighRequest(class LAMMPS *);
+  NeighRequest(class LAMMPS *, int, void *, int);
+  NeighRequest(NeighRequest *);
   ~NeighRequest() override;
+
   void archive();
   int identical(NeighRequest *);
   int same_skip(NeighRequest *);
   void copy_request(NeighRequest *, int);
+
+  void apply_flags(int);
+  void set_id(int);
+  void set_cutoff(double);
 };
 
 }    // namespace LAMMPS_NS

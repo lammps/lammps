@@ -925,19 +925,19 @@ template<class DeviceType>
 template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
 void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqSparseMatvec2_Half<NEIGHFLAG>, const typename Kokkos::TeamPolicy<DeviceType, TagQEqSparseMatvec2_Half<NEIGHFLAG>>::member_type &team) const
-{ 
+{
   int k = team.league_rank() * team.team_size() + team.team_rank();
   if (k < nn) {
     // The q array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
     auto v_o = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_o),decltype(ndup_o)>::get(dup_o,ndup_o);
     auto a_o = v_o.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
-    
+
     const int i = d_ilist[k];
     if (mask[i] & groupbit) {
       F_FLOAT2 tmp;
       const double d_xx_i0 = d_xx(i,0);
       const double d_xx_i1 = d_xx(i,1);
-      
+
       Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team, d_firstnbr[i], d_firstnbr[i] + d_numnbrs[i]), [&] (const int &jj, F_FLOAT2& tmp) {
         const int j = d_jlist(jj);
         const auto d_val_jj = d_val(jj);

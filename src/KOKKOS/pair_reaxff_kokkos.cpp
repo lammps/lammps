@@ -1620,7 +1620,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<
   int jj_current = 0;
 
   while (jj_current < jnum) {
-    nnz=0;
+    nnz = 0;
 
     while (nnz < blocksize) {
       int jj = jj_current;
@@ -1636,7 +1636,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<
       const F_FLOAT rsq = delij[0]*delij[0] + delij[1]*delij[1] + delij[2]*delij[2];
 
       double cutoffsq;
-      if(i < nlocal) cutoffsq = MAX(cut_bosq,cut_hbsq);
+      if (i < nlocal) cutoffsq = MAX(cut_bosq,cut_hbsq);
       else cutoffsq = cut_bosq;
       if (rsq <= cutoffsq) {
         selected_jj[nnz] = jj_current;
@@ -1658,7 +1658,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<
       const F_FLOAT rsq = delij[0]*delij[0] + delij[1]*delij[1] + delij[2]*delij[2];
 
       double cutoffsq;
-      if(i < nlocal) cutoffsq = MAX(cut_bosq,cut_hbsq);
+      if (i < nlocal) cutoffsq = MAX(cut_bosq,cut_hbsq);
       else cutoffsq = cut_bosq;
 
       // hbond list
@@ -1668,9 +1668,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<
           if (NEIGHFLAG == HALF) {
             j_index = hb_first_i + d_hb_num[i];
             d_hb_num[i]++;
-          } else {
+          } else
             j_index = hb_first_i + Kokkos::atomic_fetch_add(&d_hb_num[i],1);
-          }
 
           const int jj_index = j_index - hb_first_i;
 
@@ -1711,20 +1710,17 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<
       if (paramssing(itype).r_s > 0.0  && paramssing(jtype).r_s > 0.0) {
         C12 = p_bo1*pow(rij/r_s,p_bo2);
         BO_s = (1.0+bo_cut)*exp(C12);
-      }
-      else BO_s = C12 = 0.0;
+      } else BO_s = C12 = 0.0;
 
       if (paramssing(itype).r_pi > 0.0  && paramssing(jtype).r_pi > 0.0) {
         C34 = p_bo3*pow(rij/r_pi,p_bo4);
         BO_pi = exp(C34);
-      }
-      else BO_pi = C34 = 0.0;
+      } else BO_pi = C34 = 0.0;
 
       if (paramssing(itype).r_pi2 > 0.0  && paramssing(jtype).r_pi2 > 0.0) {
         C56 = p_bo5*pow(rij/r_pi2,p_bo6);
         BO_pi2 = exp(C56);
-      }
-      else BO_pi2 = C56 = 0.0;
+      } else BO_pi2 = C56 = 0.0;
 
       BO = BO_s + BO_pi + BO_pi2;
       if (BO < bo_cut) continue;
@@ -1734,8 +1730,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<
         i_index = d_bo_first[j] + d_bo_num[j];
         d_bo_num[i]++;
         d_bo_num[j]++;
-      }
-      else {
+      } else {
         j_index = bo_first_i + Kokkos::atomic_fetch_add(&d_bo_num[i],1);
         i_index = d_bo_first[j] + Kokkos::atomic_fetch_add(&d_bo_num[j],1);
       }
@@ -3157,7 +3152,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsion<NEIGHFLA
           sin_ijk = sin(theta_ijk);
           if (sin_ijk >= 0 && sin_ijk <= 1e-10)
             tan_ijk_i = cos_ijk / 1e-10;
-          else if(sin_ijk <= 0 && sin_ijk >= -1e-10)
+          else if (sin_ijk <= 0 && sin_ijk >= -1e-10)
             tan_ijk_i = -cos_ijk / 1e-10;
           else tan_ijk_i = cos_ijk / sin_ijk;
 
@@ -3199,7 +3194,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsion<NEIGHFLA
             sin_jil = sin(theta_jil);
             if (sin_jil >= 0 && sin_jil <= 1e-10)
               tan_jil_i = cos_jil / 1e-10;
-            else if(sin_jil <= 0 && sin_jil >= -1e-10)
+            else if (sin_jil <= 0 && sin_jil >= -1e-10)
               tan_jil_i = -cos_jil / 1e-10;
             else tan_jil_i = cos_jil / sin_jil;
 
@@ -3250,9 +3245,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsion<NEIGHFLA
             F_FLOAT sin_jil_rnd = sin_jil;
 
             if (sin_ijk >= 0 && sin_ijk <= 1e-10) sin_ijk_rnd = 1e-10;
-            else if(sin_ijk <= 0 && sin_ijk >= -1e-10) sin_ijk_rnd = -1e-10;
+            else if (sin_ijk <= 0 && sin_ijk >= -1e-10) sin_ijk_rnd = -1e-10;
             if (sin_jil >= 0 && sin_jil <= 1e-10) sin_jil_rnd = 1e-10;
-            else if(sin_jil <= 0 && sin_jil >= -1e-10) sin_jil_rnd = -1e-10;
+            else if (sin_jil <= 0 && sin_jil >= -1e-10) sin_jil_rnd = -1e-10;
 
             // dcos_omega_di
             for (int d = 0; d < 3; d++) dcos_omega_dk[d] = ((htra-arg*hnra)/rik) * delik[d] - dellk[d];

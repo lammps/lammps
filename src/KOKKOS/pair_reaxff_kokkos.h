@@ -46,7 +46,7 @@ struct LR_lookup_table_kk
   t_cubic_spline_coef_1d d_ele, d_CEclmb;
 };
 
-template<int NEIGHFLAG, int EVFLAG>
+template<int NEIGHFLAG>
 struct TagPairReaxComputePolar{};
 
 template<int NEIGHFLAG, int EVFLAG>
@@ -138,13 +138,13 @@ class PairReaxFFKokkos : public PairReaxFF {
   void PackBondBuffer(DAT::tdual_ffloat_1d, int &);
   void FindBondSpecies();
 
-  template<int NEIGHFLAG, int EVFLAG>
+  template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairReaxComputePolar<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
+  void operator()(TagPairReaxComputePolar<NEIGHFLAG>, const int&, EV_FLOAT_REAX&) const;
 
-  template<int NEIGHFLAG, int EVFLAG>
+  template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairReaxComputePolar<NEIGHFLAG,EVFLAG>, const int&) const;
+  void operator()(TagPairReaxComputePolar<NEIGHFLAG>, const int&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION

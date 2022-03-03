@@ -30,12 +30,12 @@ class MSMDielectric : public MSM {
   ~MSMDielectric() override;
   void init() override;
   void compute(int, int) override;
-  void fieldforce();
 
   double **efield;
   double *phi;
 
  protected:
+  void fieldforce() override;
   class AtomVecDielectric *avec;
 };
 

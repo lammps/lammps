@@ -17,9 +17,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
-#include "group.h"
 #include "memory.h"
-#include "modify.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
@@ -27,7 +25,6 @@
 #include "update.h"
 #include "math_const.h"
 
-#include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
@@ -148,7 +145,7 @@ void ComputeAveSphereAtom::compute_peratom()
 
   // need velocities of ghost atoms
 
-  comm->forward_comm_compute(this);
+  comm->forward_comm(this);
 
   // invoke full neighbor list (will copy or build if necessary)
 

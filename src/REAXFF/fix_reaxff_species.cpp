@@ -34,6 +34,7 @@
 #include "reaxff_defs.h"
 
 #include <cstring>
+#include <exception>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -412,7 +413,7 @@ void FixReaxFFSpecies::FindMolecule ()
 
   loop = 0;
   while (true) {
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
     loop ++;
 
     change = 0;

@@ -1,7 +1,7 @@
 ---
 lammps_version: 10 Feb 2021
 date_generated: Fri Feb 26 23:08:41 2021
-epsilon: 2e-08
+epsilon: 5e-08
 prerequisites: ! |
   atom full
   pair buck/long/coul/long

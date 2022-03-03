@@ -42,8 +42,8 @@ int ufml_gpu_init(const int ntypes, double **cutsq, double **host_uf1,
                   const int nall, const int max_nbors, const int maxspecial,
                   const double cell_size, int &gpu_mode, FILE *screen);
 
-int ufml_gpu_reinit(const int ntypes, double **cutsq, double **host_uf1,
-                    double **host_uf2, double **host_uf3, double **offset);
+void ufml_gpu_reinit(const int ntypes, double **cutsq, double **host_uf1,
+                     double **host_uf2, double **host_uf3, double **offset);
 
 void ufml_gpu_clear();
 int ** ufml_gpu_compute_n(const int ago, const int inum, const int nall,

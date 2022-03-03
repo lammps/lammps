@@ -27,7 +27,6 @@
 
 #include <cstring>
 
-
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -58,7 +57,7 @@ void WriteDump::command(int narg, char **arg)
     dumpargs[i+2] = arg[i];
 
   if (false) {
-    return;         // dummy line to enable else-if macro expansion
+    return;         // dummy branch to enable else-if macro expansion
 
 #define DUMP_CLASS
 #define DumpStyle(key,Class) \
@@ -68,7 +67,6 @@ void WriteDump::command(int narg, char **arg)
 #undef DUMP_CLASS
 
   } else error->all(FLERR,utils::check_packages_for_style("dump",arg[1],lmp));
-  delete[] dumpargs;
 
   if (modindex < narg) dump->modify_params(narg-modindex-1,&arg[modindex+1]);
 
@@ -90,4 +88,5 @@ void WriteDump::command(int narg, char **arg)
   // delete the Dump instance and local storage
 
   delete dump;
+  delete[] dumpargs;
 }

@@ -412,7 +412,7 @@ void FixPolarizeFunctional::charge_rescaled(int scaled2real)
       if (induced_charge_idx[i] < 0) q[i] = q_real[i] / epsilon[i];
   }
 
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 }
 
 /* ---------------------------------------------------------------------- */

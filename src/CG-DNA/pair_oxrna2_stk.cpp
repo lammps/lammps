@@ -18,7 +18,6 @@
 #include "pair_oxrna2_stk.h"
 
 #include "atom.h"
-#include "atom_vec_ellipsoid.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"
@@ -222,7 +221,7 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
 {
 
   double delf[3],delta[3],deltb[3]; // force, torque increment;
-  double evdwl,fpair,finc,tpair;
+  double evdwl,finc,tpair;
   double delr_ss[3],delr_ss_norm[3],rsq_ss,r_ss,rinv_ss;
   double delr_st[3],delr_st_norm[3],rsq_st,r_st,rinv_st;
   double theta5p,t5pdir[3],cost5p;
@@ -261,10 +260,6 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
   int nbondlist = neighbor->nbondlist;
 
   tagint *id5p = atom->id5p;
-
-  AtomVecEllipsoid *avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  AtomVecEllipsoid::Bonus *bonus = avec->bonus;
-  int *ellipsoid = atom->ellipsoid;
 
   int a,b,btemp,in,atype,btype;
 
@@ -462,8 +457,6 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
 
     // force, torque and virial contribution for forces between stacking sites
 
-    fpair = 0.0;
-
     delf[0] = 0.0;
     delf[1] = 0.0;
     delf[2] = 0.0;
@@ -478,7 +471,6 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
 
     // radial force
     finc  = -df1 * f4t5 * f4t6 * f4t9 * f4t10 * f5c1 * f5c2;
-    fpair += finc;
 
     delf[0] += delr_st[0] * finc;
     delf[1] += delr_st[1] * finc;
@@ -488,7 +480,6 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
     if (theta5p) {
 
       finc   = -f1 * df4t5 * f4t6 * f4t9 * f4t10 * f5c1 * f5c2 * rinv_st;
-      fpair += finc;
 
       delf[0] += (delr_st_norm[0]*cost5p - bz[0]) * finc;
       delf[1] += (delr_st_norm[1]*cost5p - bz[1]) * finc;
@@ -500,7 +491,6 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
     if (theta6p) {
 
       finc   = -f1 * f4t5 * df4t6 * f4t9 * f4t10 * f5c1 * f5c2 * rinv_st;
-      fpair += finc;
 
       delf[0] += (delr_st_norm[0]*cost6p - az[0]) * finc;
       delf[1] += (delr_st_norm[1]*cost6p - az[1]) * finc;
@@ -552,8 +542,6 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
 
     // force, torque and virial contribution for forces between backbone sites
 
-    fpair = 0.0;
-
     delf[0] = 0.0;
     delf[1] = 0.0;
     delf[2] = 0.0;
@@ -570,7 +558,6 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
     if (theta9) {
 
       finc   = -f1 * f4t5 * f4t6 * df4t9 * f4t10 * f5c1 * f5c2 * rinv_ss;
-      fpair += finc;
 
       delf[0] += (delr_ss_norm[0]*cost9 - aux3p[0]) * finc;
       delf[1] += (delr_ss_norm[1]*cost9 - aux3p[1]) * finc;
@@ -582,7 +569,6 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
     if (theta10) {
 
       finc   = -f1 * f4t5 * f4t6 * f4t9 * df4t10 * f5c1 * f5c2 * rinv_ss;
-      fpair += finc;
 
       delf[0] += (delr_ss_norm[0]*cost10 - aux5p[0]) * finc;
       delf[1] += (delr_ss_norm[1]*cost10 - aux5p[1]) * finc;
@@ -594,7 +580,6 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
     if (cosphi1) {
 
       finc   = -f1 * f4t5 * f4t6 * f4t9 * f4t10 * df5c1 * f5c2 * rinv_ss;
-      fpair += finc;
 
       delf[0] += (delr_ss_norm[0]*cosphi1 - by[0]) * finc;
       delf[1] += (delr_ss_norm[1]*cosphi1 - by[1]) * finc;
@@ -606,7 +591,6 @@ void PairOxrna2Stk::compute(int eflag, int vflag)
     if (cosphi2) {
 
       finc   = -f1 * f4t5 * f4t6 * f4t9 * f4t10 * f5c1 * df5c2 * rinv_ss;
-      fpair += finc;
 
       delf[0] += (delr_ss_norm[0]*cosphi2 - ay[0]) * finc;
       delf[1] += (delr_ss_norm[1]*cosphi2 - ay[1]) * finc;

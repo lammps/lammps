@@ -88,16 +88,25 @@ class PairTersoffKokkos : public PairTersoff {
   double ters_dfc(const int &i, const int &j, const int &k, const F_FLOAT &r) const;
 
   KOKKOS_INLINE_FUNCTION
+  void ters_fc_k_and_ters_dfc(const int &i, const int &j, const int &k, const F_FLOAT &r, double &fc, double &dfc) const;
+
+  KOKKOS_INLINE_FUNCTION
   double ters_fa_k(const int &i, const int &j, const int &k, const F_FLOAT &r) const;
 
   KOKKOS_INLINE_FUNCTION
   double ters_dfa(const int &i, const int &j, const int &k, const F_FLOAT &r) const;
 
   KOKKOS_INLINE_FUNCTION
+  void ters_fa_k_and_ters_dfa(const int &i, const int &j, const int &k, const F_FLOAT &r, double &fa, double &dfa) const;
+
+  KOKKOS_INLINE_FUNCTION
   double ters_bij_k(const int &i, const int &j, const int &k, const F_FLOAT &bo) const;
 
   KOKKOS_INLINE_FUNCTION
   double ters_dbij(const int &i, const int &j, const int &k, const F_FLOAT &bo) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void ters_bij_k_and_ters_dbij(const int &i, const int &j, const int &k, const F_FLOAT &bo, double &bij, double &prefactor) const;
 
   KOKKOS_INLINE_FUNCTION
   double bondorder(const int &i, const int &j, const int &k,
@@ -109,6 +118,9 @@ class PairTersoffKokkos : public PairTersoff {
 
   KOKKOS_INLINE_FUNCTION
   double ters_dgijk(const int &i, const int &j, const int &k, const F_FLOAT &cos) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void ters_gijk_and_ters_dgijk(const int &i, const int &j, const int &k, const F_FLOAT &cos, double& gijk, double& dgijk) const;
 
   KOKKOS_INLINE_FUNCTION
   void ters_dthb(const int &i, const int &j, const int &k, const F_FLOAT &prefactor,

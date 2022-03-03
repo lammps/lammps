@@ -12,6 +12,8 @@ mark_as_advanced(GTEST_MD5)
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 
 include(ExternalCMakeProject)
+set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
+set(INSTALL_GMOCK OFF CACHE BOOL "" FORCE)
 ExternalCMakeProject(googletest ${GTEST_URL} ${GTEST_MD5} googletest . "")
 add_library(GTest::GTest ALIAS gtest)
 add_library(GTest::GMock ALIAS gmock)

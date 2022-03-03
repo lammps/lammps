@@ -406,7 +406,7 @@ void UCL_Device::clear() {
 
   #ifdef GERYON_NUMA_FISSION
   #ifdef CL_VERSION_1_2
-  for (int i=0; i<_cl_devices.size(); i++)
+  for (size_t i=0; i< _cl_devices.size(); i++)
     CL_DESTRUCT_CALL(clReleaseDevice(_cl_devices[i]));
   #endif
   #endif
@@ -841,7 +841,7 @@ int UCL_Device::auto_set_platform(const enum UCL_DEVICE_TYPE type,
   int best_platform=0;
 
   std::string vendor_upper=vendor;
-  for (int i=0; i<vendor.length(); i++)
+  for (size_t i=0; i<vendor.length(); i++)
     if (vendor_upper[i]<='z' && vendor_upper[i]>='a')
       vendor_upper[i]=toupper(vendor_upper[i]);
 
@@ -859,7 +859,7 @@ int UCL_Device::auto_set_platform(const enum UCL_DEVICE_TYPE type,
 
     if (vendor_upper!="") {
       std::string pname = platform_name();
-      for (int i=0; i<pname.length(); i++)
+      for (size_t i=0; i<pname.length(); i++)
         if (pname[i]<='z' && pname[i]>='a')
           pname[i]=toupper(pname[i]);
 

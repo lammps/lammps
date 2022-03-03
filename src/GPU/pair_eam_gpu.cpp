@@ -139,7 +139,7 @@ void PairEAMGPU::compute(int eflag, int vflag)
 
   // communicate derivative of embedding function
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   // compute forces on each atom on GPU
   if (gpu_mode != GPU_FORCE)

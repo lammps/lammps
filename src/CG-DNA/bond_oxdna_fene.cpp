@@ -24,7 +24,6 @@
 #include "neighbor.h"
 #include "update.h"
 
-#include "atom_vec_ellipsoid.h"
 #include "math_extra.h"
 #include "pair.h"
 
@@ -160,10 +159,6 @@ void BondOxdnaFene::compute(int eflag, int vflag)
   double **x = atom->x;
   double **f = atom->f;
   double **torque = atom->torque;
-
-  AtomVecEllipsoid *avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
-  AtomVecEllipsoid::Bonus *bonus = avec->bonus;
-  int *ellipsoid = atom->ellipsoid;
 
   int **bondlist = neighbor->bondlist;
   int nbondlist = neighbor->nbondlist;

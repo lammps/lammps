@@ -237,7 +237,7 @@ void PairLocalDensity::compute(int eflag, int vflag)
   }
 
   // communicate and sum LDs over all procs
-  if (newton_pair) comm->reverse_comm_pair(this);
+  if (newton_pair) comm->reverse_comm(this);
 
   //
 
@@ -284,7 +284,7 @@ void PairLocalDensity::compute(int eflag, int vflag)
 
   // communicate LD and fp to all procs
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   // compute forces on each atom
   // loop over neighbors of my atoms

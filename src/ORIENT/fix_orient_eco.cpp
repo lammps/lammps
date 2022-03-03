@@ -344,7 +344,7 @@ void FixOrientECO::post_force(int /* vflag */) {
   // potential is not zero
   if (u_0 != 0.0) {
     // communicate to acquire nbr data for ghost atoms
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
 
     // loop over all atoms
     for (ii = 0; ii < inum; ++ii) {

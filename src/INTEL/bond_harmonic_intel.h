@@ -60,7 +60,7 @@ class BondHarmonicIntel : public BondHarmonic {
     } fc_packed1;
     fc_packed1 *fc;
 
-    ForceConst() : _nbondtypes(0) {}
+    ForceConst() : fc(nullptr), _nbondtypes(0) {}
     ~ForceConst() { set_ntypes(0, nullptr); }
 
     void set_ntypes(const int nbondtypes, Memory *memory);

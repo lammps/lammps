@@ -20,6 +20,8 @@
 #include "neigh_list.h"
 #include "suffix.h"
 
+#include <cmath>
+
 #include "omp_compat.h"
 using namespace LAMMPS_NS;
 

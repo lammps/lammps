@@ -286,7 +286,7 @@ void ComputeHMA::compute_vector()
 
   double phiSum = 0.0;
   if (computeCv>-1) {
-    comm->forward_comm_compute(this);
+    comm->forward_comm(this);
     double** cutsq = force->pair->cutsq;
     if (force->pair) {
       double **x = atom->x;

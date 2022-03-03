@@ -1,0 +1,83 @@
+# polymers and grafted nanoparticles
+# needs packages: RIGID, MOLECULE, KSPACE and TILD
+log             log.gauss
+units           lj
+atom_style      molecular
+boundary        p p p
+read_data       ../../pnc.data
+
+comm_modify     cutoff 6 
+neigh_modify    every 1 delay 0 check yes exclude molecule/intra all 
+
+velocity        all zero linear
+
+## groups
+# A: monomer A
+# B: monomer B
+# NP: NP center and the graft sites
+# GNP: grafted-NP
+# poly: all monomer siges
+group           A type 1 
+group           B type 2
+group           P type 3
+group           NP type 3 4
+group           poly type 1 2
+group           GNP type 2 3 4
+
+group           nonRigid type 1 2
+
+# Interactions
+pair_style      none
+
+bond_style      harmonic
+bond_coeff      * 1.5 0
+
+# Mesh parameters
+kspace_style    tild 0.715
+kspace_modify   mesh 25 25 25
+kspace_modify   order 2 
+
+# kappa: model compressibility
+# chi: Flory-Huggins interaction parameter
+variable        kappa equal 2.0
+variable        chi equal 1.5 
+variable        chikappa equal ${kappa}+${chi}
+variable        rho_sphere equal 3
+variable        kappa_rho_sphere   equal ${kappa}*${rho_sphere}
+variable        kappa_rho_sphere_2 equal ${kappa}*${rho_sphere}*${rho_sphere}
+variable        chikappa_rho_sphere equal ${chikappa}*${rho_sphere}
+variable        chikappa_rho_sphere_2 equal ${chikappa}*${rho_sphere}*${rho_sphere}
+
+# TILD interaction parameters
+# monomers have a gaussian width, sigma, 0.5
+# NP radius is 3.5 and the transistion/width, xi, is 0.25
+# graft sites are non-interacting
+kspace_modify   tild cross-interaction 1 1 gaussian 0.5
+kspace_modify   tild cross-interaction 1 2 gaussian 9.25
+kspace_modify   tild cross-interaction 2 2 gaussian 18
+# kspace_modify   tild cross-interaction 3 1 gaussian_erfc 0.25 3.5 0.25
+# kspace_modify   tild cross-interaction 2 3 gaussian_erfc 9.00 3.5 0.25
+# kspace_modify   tild cross-interaction 3 3 erfc 3.5 0.25
+kspace_modify   tild cross-interaction 4 * none
+kspace_modify   tild prefactor * * ${kappa}
+kspace_modify   tild prefactor 3 3 ${kappa_rho_sphere_2} 
+kspace_modify   tild prefactor 1 2 ${chikappa} 
+kspace_modify   tild prefactor 2 3 ${kappa_rho_sphere} 
+kspace_modify   tild prefactor 1 3 ${kappa_rho_sphere} 
+kspace_modify   tild set_rho0 45.278876
+kspace_modify   tild subtract_rho0 no 
+kspace_modify   tild normalize_by_rho0 no
+
+# integrators
+# Thermostat the melt
+fix             1 nonRigid langevin 1.0 1.0 1.0 12345 gjf vhalf zero yes
+fix             2 nonRigid nve 
+# Each graft point must be bonded to the NP center in the datafile
+fix             3 NP rigid molecule
+
+thermo          100
+thermo_style    custom step ebond epair pe temp press 
+thermo_modify   norm no
+
+timestep        0.02
+run             100

@@ -1537,7 +1537,11 @@ int TILD::modify_param(int narg, char **arg)
         utils::bounds(FLERR, arg[iarg + 2], 1, ntypes, jlo, jhi, error);
         double lprefactor = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
         for (int i = ilo; i <= ihi; i++) {
-          for (int j = MAX(jlo, i); j <= jhi; j++) { chi[i][j] = lprefactor; }
+          for (int j = jlo; j <= jhi; j++) { 
+            int tmp_low = MIN(i,j);
+            int tmp_high = MAX(i,j);
+            chi[tmp_low][tmp_high] = lprefactor;
+          }
         }
         iarg += 4;
       } else if (strcmp(arg[iarg], "shape") == 0) {

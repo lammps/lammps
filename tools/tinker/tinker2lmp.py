@@ -107,6 +107,7 @@ class PRMfile:
     self.angleparams = self.angles()
     self.bondangleparams = self.bondangles()
     self.torsionparams = self.torsions()
+    self.ureyparams = self.ureybonds()
     self.opbendparams = self.opbend()
     self.ntypes = len(self.masses)
 
@@ -293,6 +294,32 @@ class PRMfile:
             lmp4 = 0.0
             
           params.append((class1,class2,class3,lmp1,lmp2,lmp3,lmp4))
+      iline += 1
+    return params
+
+  # convert PRMfile params to LAMMPS bond_style class2 bond params
+  # coeffs for K2,K3 = 0.0 since Urey-Bradley is simple harmonic
+  
+  def ureybonds(self):
+    params = []
+    iline = self.find_section("Urey-Bradley Parameters")
+    if iline < 0: return params
+    iline += 3
+
+    while iline < self.nlines:
+      words = self.lines[iline].split()
+      if len(words):
+        if words[0].startswith("###########"): break
+        if words[0] == "ureybrad":
+          class1 = int(words[1])
+          class2 = int(words[2])
+          class3 = int(words[3])
+          value1 = float(words[4])
+          value2 = float(words[5])
+          lmp1 = value1
+          lmp2 = value2
+            
+          params.append((class1,class2,class3,lmp1,lmp2,0.0,0.0))
       iline += 1
     return params
 
@@ -504,7 +531,7 @@ for i in id:
         stack.append(k)
 
 # ----------------------------------------
-# create lists of bonds, angles, dihedrals
+# create lists of bonds, angles, dihedrals, impropers
 # ----------------------------------------
 
 # create blist = list of bonds
@@ -584,6 +611,35 @@ for atom2 in id:
         olist.append((atom1,atom2,atom3,atom4))
 
 # ----------------------------------------
+# create list of Urey-Bradley triplet matches
+# ----------------------------------------
+
+# scan list of angles to find triplets that match UB parameters
+# if match, add it to UB bond list
+
+type = xyz.type
+classes = prm.classes
+
+ublist = []
+
+ubdict = {}
+for m,params in enumerate(prm.ureyparams):
+  ubdict[(params[0],params[1],params[2])] = (m,params)
+
+for atom1,atom2,atom3 in alist:
+  type1 = type[atom1-1]
+  type2 = type[atom2-1]
+  type3 = type[atom3-1]
+  c1 = classes[type1-1]
+  c2 = classes[type2-1]
+  c3 = classes[type3-1]
+
+  if (c1,c2,c3) in ubdict:
+    ublist.append((atom1,atom2,atom3))
+  elif (c3,c2,c1) in ubdict:
+    ublist.append((atom3,atom2,atom1))
+
+# ----------------------------------------
 # create lists of bond/angle/dihedral/improper types
 # ----------------------------------------
 
@@ -623,6 +679,44 @@ for atom1,atom2 in blist:
     flags[m] = len(bparams)
   btype.append(flags[m])
 
+# extend btype and bparams with Urey-Bradley H-H bond info
+# loop over ublist of UB bonds
+# convert prm.ureyparams to a dictionary for efficient searching
+# key = (class1,class2,class3)
+# value = (M,params) where M is index into prm.ureyparams
+# also add the c1,c3 H-H bond to blist
+
+id = xyz.id
+type = xyz.type
+classes = prm.classes
+
+ubdict = {}
+for m,params in enumerate(prm.ureyparams):
+  ubdict[(params[0],params[1],params[2])] = (m,params)
+
+flags = len(prm.ureyparams)*[0]
+
+for atom1,atom2,atom3 in ublist:
+  type1 = type[atom1-1]
+  type2 = type[atom2-1]
+  type3 = type[atom3-1]
+  c1 = classes[type1-1]
+  c2 = classes[type2-1]
+  c3 = classes[type3-1]
+  
+  if (c1,c2,c3) in ubdict:
+    m,params = ubdict[(c1,c2,c3)]
+    blist.append((c1,c3))
+  elif (c3,c2,c1) in ubdict:
+    m,params = ubdict[(c3,c2,c1)]
+    blist.append((c3,c1))
+    
+  if not flags[m]:
+    v1,v2,v3,v4 = params[3:]
+    bparams.append((v1,v2,v3,v4))
+    flags[m] = len(bparams)
+  btype.append(flags[m])
+  
 # generate atype = LAMMPS type of each angle
 # generate aparams = LAMMPS params for each angle type
 # flags[i] = which LAMMPS angle type (1-N) the Tinker FF file angle I is

@@ -163,9 +163,8 @@ The keyword *list/blocking* is only supported by the Kokkos version of
 ReaxFF and ignored otherwise. Setting the value to *yes* enables the
 "blocking" scheme (dynamically building interaction lists) for the
 ReaxFF bond neighbor list. This reduces the number of empty
-interactions and can improve performance in some cases (e.g. large
-number of atoms/GPU on AMD hardware). It is also enabled by default
-when running the CPU with Kokkos.
+interactions but can reduce performance in some cases (e.g. small
+number of atoms/GPU on AMD hardware).
 
 The thermo variable *evdwl* stores the sum of all the ReaxFF potential
 energy contributions, with the exception of the Coulombic and charge
@@ -370,7 +369,7 @@ Default
 """""""
 
 The keyword defaults are checkqeq = yes, enobonds = yes, lgvdw = no,
-safezone = 1.2, mincap = 50, minhbonds = 25, list/blocking = yes on CPU, no on GPU.
+safezone = 1.2, mincap = 50, minhbonds = 25, list/blocking = yes.
 
 ----------
 

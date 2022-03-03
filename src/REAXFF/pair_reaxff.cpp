@@ -113,7 +113,7 @@ PairReaxFF::PairReaxFF(LAMMPS *lmp) : Pair(lmp)
 
   nmax = 0;
 
-  list_blocking_flag = 0;
+  list_blocking_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

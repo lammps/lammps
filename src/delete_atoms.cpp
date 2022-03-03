@@ -29,7 +29,6 @@
 #include "modify.h"
 #include "molecule.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "random_mars.h"
 #include "region.h"
@@ -284,13 +283,7 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
 
   // request a full neighbor list for use by this command
 
-  int irequest = neighbor->request(this);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->command = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->occasional = 1;
-  neighbor->requests[irequest]->command_style = "delete_atoms";
+  neighbor->add_request(this, "delete_atoms", NeighConst::REQ_FULL);
 
   // init entire system since comm->borders and neighbor->build is done
   // comm::init needs neighbor::init needs pair::init needs kspace::init, etc
@@ -320,9 +313,9 @@ void DeleteAtoms::delete_overlap(int narg, char **arg)
   if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
   neighbor->build(1);
 
-  // build neighbor list this command needs based on earlier request
+  // build neighbor list this command needs based on the earlier request
 
-  NeighList *list = neighbor->lists[irequest];
+  auto list = neighbor->find_list(this);
   neighbor->build_one(list);
 
   // allocate and initialize deletion list

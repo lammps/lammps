@@ -180,13 +180,7 @@ void CreateBonds::many()
 
   // request a full neighbor list for use by this command
 
-  int irequest = neighbor->request(this);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->command = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->occasional = 1;
-  neighbor->requests[irequest]->command_style = "create_bonds";
+  neighbor->add_request(this, "create_bonds", NeighConst::REQ_FULL);
 
   // init entire system since comm->borders and neighbor->build is done
   // comm::init needs neighbor::init needs pair::init needs kspace::init, etc
@@ -231,7 +225,7 @@ void CreateBonds::many()
 
   // build neighbor list this command needs based on earlier request
 
-  NeighList *list = neighbor->lists[irequest];
+  auto list = neighbor->find_list(this);
   neighbor->build_one(list,1);
 
   // loop over all neighs of each atom

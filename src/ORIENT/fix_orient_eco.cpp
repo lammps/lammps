@@ -26,7 +26,6 @@
 #include "math_const.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "pair.h"
 #include "respa.h"
@@ -161,10 +160,9 @@ void FixOrientECO::init() {
 
   // compute normalization factor
   int neigh = get_norm();
-  if (me == 0) {
-    utils::logmesg(lmp,"  fix orient/eco: cutoff={} norm_fac={} "
-                   "neighbors={}\n", r_cut, norm_fac, neigh);
-  }
+  if (me == 0)
+    utils::logmesg(lmp,"  fix orient/eco: cutoff={} norm_fac={} neighbors={}\n",
+                   r_cut, norm_fac, neigh);
 
   inv_norm_fac = 1.0 / norm_fac;
 
@@ -182,14 +180,9 @@ void FixOrientECO::init() {
     if (respa_level >= 0) ilevel_respa = MIN(respa_level, ilevel_respa);
   }
 
-  // need a full neighbor list
-  // perpetual list, built whenever re-neighboring occurs
+  // need a full perpetual neighbor list
 
-  int irequest = neighbor->request(this, instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->fix = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL);
 }
 
 /* ---------------------------------------------------------------------- */

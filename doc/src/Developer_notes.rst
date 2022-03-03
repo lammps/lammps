@@ -124,7 +124,7 @@ access the requesting class instance to store the assembled neighbor
 list with that instance by calling its ``init_list()`` member function.
 The second argument contains a bitmask of flags that determines the kind
 of neighbor list, i.e. a perpetual "half" neighbor list here.
-  
+
 To adjust a neighbor list request to the specific needs of a style
 usually just a different additional request flag is needed.  The :doc:`tersoff <pair_tersoff>` pair
 style, for example, needs a "full" neighbor list:
@@ -155,7 +155,16 @@ from pair style lj/cut:
      neighbor->add_request(this, list_style);
      // [...]
    }
- 
+
+Granular pair styles need neighbor lists based on particle sizes and not cutoff
+and also may require to have the list of previous neighbors available ("history").
+For example with:
+
+.. code-block:: C++
+
+   if (use_history) neighbor->add_request(this, NeighConst::REQ_SIZE|NeighConst::REQ_HISTORY);
+   else neighbor->add_request(this, NeighConst::REQ_SIZE);
+
 In case a class would need to make multiple neighbor list requests with different
 settings each request can set an id which is then used in the corresponding
 ``init_list()`` function to assign it to the suitable pointer variable. This is
@@ -173,7 +182,7 @@ done for example by the :doc:`pair style meam <pair_meam>`:
    {
      if (id == 1) listfull = ptr;
      else if (id == 2) listhalf = ptr;
-   }         
+   }
 
 Fixes may require a neighbor list that is only build occasionally (or
 just once) and this can also be indicated by a flag.  As an example here
@@ -206,7 +215,7 @@ command:
 .. code-block:: C++
 
    neighbor->add_request(this, "delete_atoms", NeighConst::REQ_FULL);
-   
+
 Fix contributions to instantaneous energy, virial, and cumulative energy
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

@@ -17,18 +17,20 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_gran_hertz_history.h"
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
-#include "force.h"
+#include "comm.h"
+#include "error.h"
 #include "fix.h"
 #include "fix_neigh_history.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "comm.h"
+#include "force.h"
 #include "memory.h"
-#include "error.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

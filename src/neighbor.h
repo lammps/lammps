@@ -125,7 +125,7 @@ class Neighbor : protected Pointers {
   virtual void init();
 
   // old API for creating neighbor list requests
-  int request(void *, int instance_me = 0);
+  int request(void *, int instance = 0);
 
   // new API for creating neighbor list requests
   NeighRequest *add_request(class Pair *, int);

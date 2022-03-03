@@ -21,6 +21,7 @@
          number of exponentials evaluated, etc.
      - Added blocking to the Torsion and (optionally) BuildLists kernels, to
          reduce thread divergence on GPUs
+     - Added preview to BuildLists kernels along with full version
 ------------------------------------------------------------------------- */
 
 #include "pair_reaxff_kokkos.h"
@@ -1708,17 +1709,17 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<
       const F_FLOAT r_pi2 = paramstwbp(itype,jtype).r_pi2;
 
       if (paramssing(itype).r_s > 0.0  && paramssing(jtype).r_s > 0.0) {
-        C12 = p_bo1*pow(rij/r_s,p_bo2);
+        C12 = p_bo1 * ((p_bo2 != 0) ? (pow(rij/r_s,p_bo2)) : 1.0);
         BO_s = (1.0+bo_cut)*exp(C12);
       } else BO_s = C12 = 0.0;
 
       if (paramssing(itype).r_pi > 0.0  && paramssing(jtype).r_pi > 0.0) {
-        C34 = p_bo3*pow(rij/r_pi,p_bo4);
+        C34 = p_bo3 * ((p_bo4 != 0) ? (pow(rij/r_pi,p_bo4)) : 1.0);
         BO_pi = exp(C34);
       } else BO_pi = C34 = 0.0;
 
       if (paramssing(itype).r_pi2 > 0.0  && paramssing(jtype).r_pi2 > 0.0) {
-        C56 = p_bo5*pow(rij/r_pi2,p_bo6);
+        C56 = p_bo5 * ((p_bo6 != 0) ? (pow(rij/r_pi2,p_bo6)) : 1.0);
         BO_pi2 = exp(C56);
       } else BO_pi2 = C56 = 0.0;
 

@@ -838,16 +838,23 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     // zero
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxZero>(0,nmax),*this);
 
-    if (list_blocking_flag) {
+    if (execution_space == Host) { // CPU
       if (neighflag == HALF)
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalfBlockingPreview<HALF>>(0,ignum),*this);
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalfBlocking<HALF>>(0,ignum),*this);
       else if (neighflag == HALFTHREAD)
-	Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalfBlockingPreview<HALFTHREAD>>(0,ignum),*this);
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalfBlocking<HALFTHREAD>>(0,ignum),*this);
     } else {
-      if (neighflag == HALF)
-	Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalfPreview<HALF>>(0,ignum),*this);
-      else if (neighflag == HALFTHREAD)
-	Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalfPreview<HALFTHREAD>>(0,ignum),*this);
+      if (list_blocking_flag) {
+        if (neighflag == HALF)
+          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalfBlockingPreview<HALF>>(0,ignum),*this);
+        else if (neighflag == HALFTHREAD)
+          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalfBlockingPreview<HALFTHREAD>>(0,ignum),*this);
+      } else {
+        if (neighflag == HALF)
+          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalfPreview<HALF>>(0,ignum),*this);
+        else if (neighflag == HALFTHREAD)
+          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalfPreview<HALFTHREAD>>(0,ignum),*this);
+      }
     }
 
     k_resize_bo.modify<DeviceType>();
@@ -873,7 +880,8 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     }
   }
 
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsFull>(0,ignum),*this);
+  if (execution_space != Host) // GPU
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsFull>(0,ignum),*this);
 
   // allocate duplicated memory
   if (need_dup) {
@@ -1563,6 +1571,244 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxZero, const int &n) con
   d_hb_num(n) = 0.0;
   for (int j = 0; j < 3; j++)
     d_dDeltap_self(n,j) = 0.0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+template<int NEIGHFLAG>
+KOKKOS_INLINE_FUNCTION
+void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<NEIGHFLAG>, const int &ii) const {
+  constexpr int blocksize = PairReaxFFKokkos<DeviceType>::build_lists_half_blocksize;
+
+  const auto v_dDeltap_self = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_dDeltap_self),decltype(ndup_dDeltap_self)>::get(dup_dDeltap_self,ndup_dDeltap_self);
+  const auto a_dDeltap_self = v_dDeltap_self.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
+
+  const auto v_total_bo = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_total_bo),decltype(ndup_total_bo)>::get(dup_total_bo,ndup_total_bo);
+  const auto a_total_bo = v_total_bo.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
+
+  const int i = d_ilist[ii];
+  const X_FLOAT xtmp = x(i,0);
+  const X_FLOAT ytmp = x(i,1);
+  const X_FLOAT ztmp = x(i,2);
+  const int itype = type(i);
+  const int jnum = d_numneigh[i];
+
+  const int three = 3;
+  F_FLOAT C12, C34, C56, BO_s, BO_pi, BO_pi2, BO, delij[three], dBOp_i[three], dln_BOp_pi_i[three], dln_BOp_pi2_i[three];
+  F_FLOAT total_bo = 0.0;
+
+  int j_index,i_index;
+  d_bo_first[i] = i*maxbo;
+  const int bo_first_i = d_bo_first[i];
+
+  int ihb = -1;
+  int jhb = -1;
+
+  int hb_first_i;
+  if (cut_hbsq > 0.0) {
+    ihb = paramssing(itype).p_hbond;
+    if (ihb == 1) {
+      d_hb_first[i] = i*maxhb;
+      hb_first_i = d_hb_first[i];
+    }
+  }
+
+  int nnz;
+  blocking_t selected_jj[blocksize];
+  int jj_current = 0;
+
+  while (jj_current < jnum) {
+    nnz=0;
+
+    while (nnz < blocksize) {
+      int jj = jj_current;
+      int j = d_neighbors(i,jj);
+      j &= NEIGHMASK;
+
+      d_bo_first[j] = j*maxbo;
+      d_hb_first[j] = j*maxhb;
+
+      delij[0] = x(j,0) - xtmp;
+      delij[1] = x(j,1) - ytmp;
+      delij[2] = x(j,2) - ztmp;
+      const F_FLOAT rsq = delij[0]*delij[0] + delij[1]*delij[1] + delij[2]*delij[2];
+
+      double cutoffsq;
+      if(i < nlocal) cutoffsq = MAX(cut_bosq,cut_hbsq);
+      else cutoffsq = cut_bosq;
+      if (rsq <= cutoffsq) {
+        selected_jj[nnz] = jj_current;
+        nnz++;
+      }
+      jj_current++;
+
+      if (jj_current == jnum) break;
+    }
+
+    for (int jj_inner = 0; jj_inner < nnz; jj_inner++) {
+      const int jj = selected_jj[jj_inner];
+      int j = d_neighbors(i,jj);
+      j &= NEIGHMASK;
+      const int jtype = type(j);
+      delij[0] = x(j,0) - xtmp;
+      delij[1] = x(j,1) - ytmp;
+      delij[2] = x(j,2) - ztmp;
+      const F_FLOAT rsq = delij[0]*delij[0] + delij[1]*delij[1] + delij[2]*delij[2];
+
+      double cutoffsq;
+      if(i < nlocal) cutoffsq = MAX(cut_bosq,cut_hbsq);
+      else cutoffsq = cut_bosq;
+
+      // hbond list
+      if (i < nlocal && cut_hbsq > 0.0 && (ihb == 1 || ihb == 2) && rsq <= cut_hbsq) {
+        jhb = paramssing(jtype).p_hbond;
+        if (ihb == 1 && jhb == 2) {
+          if (NEIGHFLAG == HALF) {
+            j_index = hb_first_i + d_hb_num[i];
+            d_hb_num[i]++;
+          } else {
+            j_index = hb_first_i + Kokkos::atomic_fetch_add(&d_hb_num[i],1);
+          }
+
+          const int jj_index = j_index - hb_first_i;
+
+          if (jj_index >= maxhb)
+            d_resize_hb() = MAX(d_resize_hb(),jj_index+1);
+          else
+            d_hb_list[j_index] = j;
+        } else if (j < nlocal && ihb == 2 && jhb == 1) {
+          if (NEIGHFLAG == HALF) {
+            i_index = d_hb_first[j] + d_hb_num[j];
+           d_hb_num[j]++;
+          } else
+            i_index = d_hb_first[j] + Kokkos::atomic_fetch_add(&d_hb_num[j],1);
+
+          const int ii_index = i_index - d_hb_first[j];
+
+          if (ii_index >= maxhb)
+            d_resize_hb() = MAX(d_resize_hb(),ii_index+1);
+          else
+            d_hb_list[i_index] = i;
+        }
+      }
+
+      if (rsq > cut_bosq) continue;
+
+       // bond_list
+      const F_FLOAT rij = sqrt(rsq);
+      const F_FLOAT p_bo1 = paramstwbp(itype,jtype).p_bo1;
+      const F_FLOAT p_bo2 = paramstwbp(itype,jtype).p_bo2;
+      const F_FLOAT p_bo3 = paramstwbp(itype,jtype).p_bo3;
+      const F_FLOAT p_bo4 = paramstwbp(itype,jtype).p_bo4;
+      const F_FLOAT p_bo5 = paramstwbp(itype,jtype).p_bo5;
+      const F_FLOAT p_bo6 = paramstwbp(itype,jtype).p_bo6;
+      const F_FLOAT r_s = paramstwbp(itype,jtype).r_s;
+      const F_FLOAT r_pi = paramstwbp(itype,jtype).r_pi;
+      const F_FLOAT r_pi2 = paramstwbp(itype,jtype).r_pi2;
+
+      if (paramssing(itype).r_s > 0.0  && paramssing(jtype).r_s > 0.0) {
+        C12 = p_bo1*pow(rij/r_s,p_bo2);
+        BO_s = (1.0+bo_cut)*exp(C12);
+      }
+      else BO_s = C12 = 0.0;
+
+      if (paramssing(itype).r_pi > 0.0  && paramssing(jtype).r_pi > 0.0) {
+        C34 = p_bo3*pow(rij/r_pi,p_bo4);
+        BO_pi = exp(C34);
+      }
+      else BO_pi = C34 = 0.0;
+
+      if (paramssing(itype).r_pi2 > 0.0  && paramssing(jtype).r_pi2 > 0.0) {
+        C56 = p_bo5*pow(rij/r_pi2,p_bo6);
+        BO_pi2 = exp(C56);
+      }
+      else BO_pi2 = C56 = 0.0;
+
+      BO = BO_s + BO_pi + BO_pi2;
+      if (BO < bo_cut) continue;
+
+      if (NEIGHFLAG == HALF) {
+        j_index = bo_first_i + d_bo_num[i];
+        i_index = d_bo_first[j] + d_bo_num[j];
+        d_bo_num[i]++;
+        d_bo_num[j]++;
+      }
+      else {
+        j_index = bo_first_i + Kokkos::atomic_fetch_add(&d_bo_num[i],1);
+        i_index = d_bo_first[j] + Kokkos::atomic_fetch_add(&d_bo_num[j],1);
+      }
+
+      const int jj_index = j_index - bo_first_i;
+      const int ii_index = i_index - d_bo_first[j];
+
+      if (jj_index >= maxbo || ii_index >= maxbo) {
+        const int max_val = MAX(ii_index+1,jj_index+1);
+        d_resize_bo() = MAX(d_resize_bo(),max_val);
+      } else {
+        d_bo_list[j_index] = j;
+        d_bo_list[i_index] = i;
+
+        // from BondOrder1
+
+        d_BO(i,jj_index) = BO;
+        d_BO_s(i,jj_index) = BO_s;
+        d_BO_pi(i,jj_index) = BO_pi;
+        d_BO_pi2(i,jj_index) = BO_pi2;
+
+        d_BO(j,ii_index) = BO;
+        d_BO_s(j,ii_index) = BO_s;
+        d_BO_pi(j,ii_index) = BO_pi;
+        d_BO_pi2(j,ii_index) = BO_pi2;
+
+        F_FLOAT Cln_BOp_s = p_bo2 * C12 / rij / rij;
+        F_FLOAT Cln_BOp_pi = p_bo4 * C34 / rij / rij;
+        F_FLOAT Cln_BOp_pi2 = p_bo6 * C56 / rij / rij;
+
+        if (nlocal == 0)
+          Cln_BOp_s = Cln_BOp_pi = Cln_BOp_pi2 = 0.0;
+
+        for (int d = 0; d < 3; d++) dln_BOp_pi_i[d] = -(BO_pi*Cln_BOp_pi)*delij[d];
+        for (int d = 0; d < 3; d++) dln_BOp_pi2_i[d] = -(BO_pi2*Cln_BOp_pi2)*delij[d];
+        for (int d = 0; d < 3; d++) dBOp_i[d] = -(BO_s*Cln_BOp_s+BO_pi*Cln_BOp_pi+BO_pi2*Cln_BOp_pi2)*delij[d];
+        for (int d = 0; d < 3; d++) a_dDeltap_self(i,d) += dBOp_i[d];
+        for (int d = 0; d < 3; d++) a_dDeltap_self(j,d) += -dBOp_i[d];
+
+        d_dln_BOp_pix(i,jj_index) = dln_BOp_pi_i[0];
+        d_dln_BOp_piy(i,jj_index) = dln_BOp_pi_i[1];
+        d_dln_BOp_piz(i,jj_index) = dln_BOp_pi_i[2];
+
+        d_dln_BOp_pix(j,ii_index) = -dln_BOp_pi_i[0];
+        d_dln_BOp_piy(j,ii_index) = -dln_BOp_pi_i[1];
+        d_dln_BOp_piz(j,ii_index) = -dln_BOp_pi_i[2];
+
+        d_dln_BOp_pi2x(i,jj_index) = dln_BOp_pi2_i[0];
+        d_dln_BOp_pi2y(i,jj_index) = dln_BOp_pi2_i[1];
+        d_dln_BOp_pi2z(i,jj_index) = dln_BOp_pi2_i[2];
+
+        d_dln_BOp_pi2x(j,ii_index) = -dln_BOp_pi2_i[0];
+        d_dln_BOp_pi2y(j,ii_index) = -dln_BOp_pi2_i[1];
+        d_dln_BOp_pi2z(j,ii_index) = -dln_BOp_pi2_i[2];
+
+        d_dBOpx(i,jj_index) = dBOp_i[0];
+        d_dBOpy(i,jj_index) = dBOp_i[1];
+        d_dBOpz(i,jj_index) = dBOp_i[2];
+
+        d_dBOpx(j,ii_index) = -dBOp_i[0];
+        d_dBOpy(j,ii_index) = -dBOp_i[1];
+        d_dBOpz(j,ii_index) = -dBOp_i[2];
+
+        d_BO(i,jj_index) -= bo_cut;
+        d_BO(j,ii_index) -= bo_cut;
+        d_BO_s(i,jj_index) -= bo_cut;
+        d_BO_s(j,ii_index) -= bo_cut;
+        total_bo += d_BO(i,jj_index);
+        a_total_bo[j] += d_BO(j,ii_index);
+      }
+    }
+  }
+
+  a_total_bo[i] += total_bo;
 }
 
 /* ---------------------------------------------------------------------- */

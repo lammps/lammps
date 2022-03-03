@@ -63,6 +63,9 @@ struct TagPairReaxBuildListsHalfBlockingPreview{};
 template<int NEIGHFLAG>
 struct TagPairReaxBuildListsHalfPreview{};
 
+template<int NEIGHFLAG>
+struct TagPairReaxBuildListsHalfBlocking{};
+
 struct TagPairReaxBuildListsFull{};
 
 struct TagPairReaxZero{};
@@ -169,6 +172,10 @@ class PairReaxFFKokkos : public PairReaxFF {
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxBuildListsHalfPreview<NEIGHFLAG>, const int&) const;
+
+  template<int NEIGHFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairReaxBuildListsHalfBlocking<NEIGHFLAG>, const int&) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxBuildListsFull, const int&) const;

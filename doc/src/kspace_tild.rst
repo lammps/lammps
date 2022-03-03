@@ -244,6 +244,16 @@ and their required arguments are:
 2. *gaussian-erfc* : :math:`\sigma`\ , :math:`R_p`, :math:`\xi` (all in distance units)
 3. *erfc* : :math:`R_p`\ , :math:`\xi` (both in distance units)
 
+.. note::
+
+   ``Cross-interaction`` and ``shape`` definitions have slightly different input parameters and so mapping is explicitly laid out.
+   For the ``gaussian`` `shape`, the input parameter is :math:`\sigma_{i}`\ ; the code will square this automatically. 
+   For interactions between two ``gaussian`` defined ``shape``s, the code analytically and behind the scenes performs the convolution so that the interaction potential uses :math:`\sigma^2_{12} = \sigma^2_{1} + \sigma^2_{2}`. For the convolution between a ``gaussian`` ``shape`` and a erfc `shape`, the code convolves the ``gaussian`` and ``erfc`` `shape` potentials computationally; this is also true for interactions between ``erfc`` ``shape``s. 
+
+   However, for ``cross-interaction``, the code will treats the user input for ``gaussian`` :math:`\sigma^2` so the user should manually calculate their own :math:`\sigma_{12}^2` before the run. For ``gaussian-erfc``, the code takes in :math:`\sigma^2` instead of :math:`\sigma`. Additionally, the ``gaussian-erfc`` and ``erfc`` commands do not take into account the :math:`rho_{NP}` since ``cross-interactions`` assume to know nothing about this. Thus, if you have a value of :math:`\rho_{NP}` that is not 1, you should multiply it by :math:`\rho_{NP}` or :math:`(\rho_{NP})^2` for ``gaussian-erfc`` and ``erfc``, respectively.
+   
+   Identical simulations defined both ways can be found in examples/tild.
+
 ----------
 
 The *write_grid_data* writes the instantaneous gridded density to *filename*. Every $freq$ timesteps, the density is overwritten.

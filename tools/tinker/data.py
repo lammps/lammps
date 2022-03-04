@@ -351,20 +351,25 @@ class data:
 # data file keywords, both header and main sections
 
 hkeywords = ["atoms","ellipsoids","lines","triangles","bodies",
-             "bonds","angles","dihedrals","impropers",
+             "bonds","angles","dihedrals","impropers","pitorsions",
 	     "atom types","bond types","angle types","dihedral types",
-	     "improper types","xlo xhi","ylo yhi","zlo zhi","xy xz yz"]
+	     "improper types","pitorsion types",
+             "xlo xhi","ylo yhi","zlo zhi","xy xz yz"]
 
 skeywords = [["Masses","atom types"],
              ["Atoms","atoms"],["Ellipsoids","ellipsoids"],
              ["Lines","lines"],["Triangles","triangles"],["Bodies","bodies"],
              ["Bonds","bonds"],
-	     ["Angles","angles"],["Dihedrals","dihedrals"],
-	     ["Impropers","impropers"],["Velocities","atoms"],
+	     ["Angles","angles"],
+             ["Dihedrals","dihedrals"],
+	     ["Impropers","impropers"],
+	     ["PiTorsions","pitorsions"],
+             ["Velocities","atoms"],
              ["Pair Coeffs","atom types"],
 	     ["Bond Coeffs","bond types"],["Angle Coeffs","angle types"],
 	     ["Dihedral Coeffs","dihedral types"],
 	     ["Improper Coeffs","improper types"],
+	     ["PiTorsion Coeffs","pitorsion types"],
              ["BondBond Coeffs","angle types"],
              ["BondAngle Coeffs","angle types"],
              ["MiddleBondTorsion Coeffs","dihedral types"],

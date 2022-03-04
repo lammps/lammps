@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,81 +12,84 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_pressure_spherical.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
-#include "force.h"
-#include "pair.h"
-#include "modify.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
 #include "citeme.h"
 #include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "math_const.h"
+#include "memory.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
+#include <mpi.h>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
+/*-----------------------------------------------------------------------------------
+  Contributing author: Olav Galteland (Norwegian University of Science and Technology)
+                        olav.galteland@ntnu.no
+------------------------------------------------------------------------------------*/
+
 static const char cite_compute_pressure_sphere[] =
-  "compute pressure/spherical:\n\n"
-  "@article{ikeshoji2003molecular,\n"
-  "title={Molecular-level calculation scheme for pressure in inhomogeneous systems of flat and spherical layers},\n"
-  "author={Ikeshoji, Tamio and Hafskjold, Bjørn and Furuholt, Hilde},\n"
-  "journal={Molecular Simulation},\n"
-  "volume={29},\n"
-  "number={2},\n"
-  "pages={101--109},\n"
-  "year={2003},\n"
-  "publisher={Taylor & Francis}\n"
-  "}\n\n";
+    "compute pressure/spherical:\n\n"
+    "@article{ikeshoji2003molecular,\n"
+    "title={Molecular-level calculation scheme for pressure in inhomogeneous systems of flat and "
+    "spherical layers},\n"
+    "author={Ikeshoji, Tamio and Hafskjold, Bj{\\o}rn and Furuholt, Hilde},\n"
+    "journal={Molecular Simulation},\n"
+    "volume={29},\n"
+    "number={2},\n"
+    "pages={101--109},\n"
+    "year={2003},\n"
+    "publisher={Taylor & Francis}\n"
+    "}\n\n";
 
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 
 ComputePressureSpherical::ComputePressureSpherical(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  dens(nullptr),
-  pkrr(nullptr), pktt(nullptr), pkpp(nullptr),
-  pcrr(nullptr), pctt(nullptr), pcpp(nullptr),
-  tdens(nullptr),
-  tpkrr(nullptr), tpktt(nullptr), tpkpp(nullptr),
-  tpcrr(nullptr), tpctt(nullptr), tpcpp(nullptr)
+    Compute(lmp, narg, arg), dens(nullptr), pkrr(nullptr), pktt(nullptr), pkpp(nullptr),
+    pcrr(nullptr), pctt(nullptr), pcpp(nullptr), tdens(nullptr), tpkrr(nullptr), tpktt(nullptr),
+    tpkpp(nullptr), tpcrr(nullptr), tpctt(nullptr), tpcpp(nullptr)
 {
-  
-  if (lmp->citeme)
-    lmp->citeme->add(cite_compute_pressure_sphere);
-  if (narg != 8)    
-    error->all(FLERR,"Illegal compute pressure/spherical command. Illegal number of arguments.");
-  
-  x0          = utils::numeric(FLERR, arg[3], false, lmp); 
-  y0          = utils::numeric(FLERR, arg[4], false, lmp); 
-  z0          = utils::numeric(FLERR, arg[5], false, lmp); 
-  bin_width   = utils::numeric(FLERR, arg[6], false, lmp);
-  Rmax        = utils::numeric(FLERR, arg[7], false, lmp);
-  nbins       = (int)(Rmax/bin_width)+1;
-  
-  if (bin_width <= 0.0)
-    error->all(FLERR,"Illegal compute pressure/spherical command. Bin width must be > 0");
 
-  array_flag      = 1;
-  vector_flag     = 0;
-  extarray        = 0;
-  size_array_cols = 8; // r, dens, pkrr, pktt, pkpp, pcrr, pctt, pcpp
+  if (lmp->citeme) lmp->citeme->add(cite_compute_pressure_sphere);
+  if (narg != 8)
+    error->all(FLERR, "Illegal compute pressure/spherical command. Illegal number of arguments.");
+
+  x0 = utils::numeric(FLERR, arg[3], false, lmp);
+  y0 = utils::numeric(FLERR, arg[4], false, lmp);
+  z0 = utils::numeric(FLERR, arg[5], false, lmp);
+  bin_width = utils::numeric(FLERR, arg[6], false, lmp);
+  Rmax = utils::numeric(FLERR, arg[7], false, lmp);
+  nbins = (int) (Rmax / bin_width) + 1;
+
+  if (bin_width <= 0.0)
+    error->all(FLERR, "Illegal compute pressure/spherical command. Bin width must be > 0");
+
+  array_flag = 1;
+  vector_flag = 0;
+  extarray = 0;
+  size_array_cols = 8;    // r, dens, pkrr, pktt, pkpp, pcrr, pctt, pcpp
   size_array_rows = nbins;
 
-  memory->create(invV,  nbins, "compute/pressure/spherical:invV");
-  memory->create(dens,  nbins, "compute/pressure/spherical:dens");
-  memory->create(pkrr,  nbins, "compute/pressure/spherical:pkrr");
-  memory->create(pktt,  nbins, "compute/pressure/spherical:pktt");
-  memory->create(pkpp,  nbins, "compute/pressure/spherical:pkpp");
-  memory->create(pcrr,  nbins, "compute/pressure/spherical:pcrr");
-  memory->create(pctt,  nbins, "compute/pressure/spherical:pctt");
-  memory->create(pcpp,  nbins, "compute/pressure/spherical:pcpp");
+  memory->create(invV, nbins, "compute/pressure/spherical:invV");
+  memory->create(dens, nbins, "compute/pressure/spherical:dens");
+  memory->create(pkrr, nbins, "compute/pressure/spherical:pkrr");
+  memory->create(pktt, nbins, "compute/pressure/spherical:pktt");
+  memory->create(pkpp, nbins, "compute/pressure/spherical:pkpp");
+  memory->create(pcrr, nbins, "compute/pressure/spherical:pcrr");
+  memory->create(pctt, nbins, "compute/pressure/spherical:pctt");
+  memory->create(pcpp, nbins, "compute/pressure/spherical:pcpp");
   memory->create(tdens, nbins, "compute/pressure/spherical:tdens");
   memory->create(tpkrr, nbins, "compute/pressure/spherical:tpkrr");
   memory->create(tpktt, nbins, "compute/pressure/spherical:tpktt");
@@ -94,7 +97,7 @@ ComputePressureSpherical::ComputePressureSpherical(LAMMPS *lmp, int narg, char *
   memory->create(tpcrr, nbins, "compute/pressure/spherical:tpcrr");
   memory->create(tpctt, nbins, "compute/pressure/spherical:tpctt");
   memory->create(tpcpp, nbins, "compute/pressure/spherical:tpcpp");
-  memory->create(array, size_array_rows, size_array_cols, "compute/pressure/spherical:array"); 
+  memory->create(array, size_array_rows, size_array_cols, "compute/pressure/spherical:array");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -124,14 +127,14 @@ ComputePressureSpherical::~ComputePressureSpherical()
 void ComputePressureSpherical::init()
 {
   if (force->pair == nullptr)
-    error->all(FLERR,"No pair style is defined for compute pressure/spherical");
+    error->all(FLERR, "No pair style is defined for compute pressure/spherical");
   if (force->pair->single_enable == 0)
-    error->all(FLERR,"Pair style does not support compute pressure/spherical");
-  
-  for (int bin = 0; bin < nbins; bin++)
-    invV[bin] = 3.0 / (4.0*MY_PI*(pow((bin+1)*bin_width, 3.0) - pow(bin*bin_width, 3.0)));
+    error->all(FLERR, "Pair style does not support compute pressure/spherical");
 
-  int irequest = neighbor->request(this,instance_me);
+  for (int bin = 0; bin < nbins; bin++)
+    invV[bin] = 3.0 / (4.0 * MY_PI * (pow((bin + 1) * bin_width, 3.0) - pow(bin * bin_width, 3.0)));
+
+  int irequest = neighbor->request(this, instance_me);
   neighbor->requests[irequest]->pair = 0;
   neighbor->requests[irequest]->compute = 1;
   neighbor->requests[irequest]->occasional = 1;
@@ -146,7 +149,6 @@ void ComputePressureSpherical::init_list(int /* id */, NeighList *ptr)
 
 /* ---------------------------------------------------------------------- */
 
-
 /* ----------------------------------------------------------------------
    count pairs and compute pair info on this proc
    only count pair once if newton_pair is off
@@ -158,10 +160,9 @@ void ComputePressureSpherical::compute_array()
 {
   invoked_array = update->ntimestep;
 
-
   int me;
   MPI_Comm_rank(world, &me);
-  int bin; 
+  int bin;
   // Zero arrays
   for (int bin = 0; bin < nbins; bin++) {
     tdens[bin] = 0.0;
@@ -180,51 +181,52 @@ void ComputePressureSpherical::compute_array()
   int *ilist, *jlist, *numneigh, **firstneigh;
 
   double r, vr, vt, vp, theta;
-  double **x            = atom->x;
-  double **v            = atom->v;
-  double *mass          = atom->mass;
-  tagint *tag           = atom->tag;
-  int *type             = atom->type;
-  int *mask             = atom->mask;
-  int nlocal            = atom->nlocal;
-  double *special_coul  = force->special_coul;
-  double *special_lj    = force->special_lj;
-  int newton_pair       = force->newton_pair;
+  double **x = atom->x;
+  double **v = atom->v;
+  double *mass = atom->mass;
+  tagint *tag = atom->tag;
+  int *type = atom->type;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  double *special_coul = force->special_coul;
+  double *special_lj = force->special_lj;
+  int newton_pair = force->newton_pair;
 
   // invoke half neighbor list (will copy or build if necessary)
   neighbor->build_one(list);
 
-  inum        = list->inum;
-  ilist       = list->ilist;
-  numneigh    = list->numneigh;
-  firstneigh  = list->firstneigh;
+  inum = list->inum;
+  ilist = list->ilist;
+  numneigh = list->numneigh;
+  firstneigh = list->firstneigh;
 
   // calculate number density and kinetic contribution to pressure
-  for (i = 0; i < nlocal; i++){
-    ri[0] = x[i][0]-x0;
-    ri[1] = x[i][1]-y0;
-    ri[2] = x[i][2]-z0;
-    for (j = 0; j < 3; j++){
-      tmp = domain->boxhi[j]-domain->boxlo[j];
-      if (ri[j] > 0.5*tmp)
+  for (i = 0; i < nlocal; i++) {
+    ri[0] = x[i][0] - x0;
+    ri[1] = x[i][1] - y0;
+    ri[2] = x[i][2] - z0;
+    for (j = 0; j < 3; j++) {
+      tmp = domain->boxhi[j] - domain->boxlo[j];
+      if (ri[j] > 0.5 * tmp)
         ri[j] -= tmp;
-      else if (ri[j] < -0.5*tmp)
+      else if (ri[j] < -0.5 * tmp)
         ri[j] += tmp;
     }
-    r = sqrt(ri[0]*ri[0]+ri[1]*ri[1]+ri[2]*ri[2]);
+    r = sqrt(ri[0] * ri[0] + ri[1] * ri[1] + ri[2] * ri[2]);
     if (r >= Rmax) continue;
-    bin = (int)(r/bin_width);
-    
-    // Avoiding division by zero 
-    if (r != 0){
-      theta = acos(ri[2]/r); 
+    bin = (int) (r / bin_width);
+
+    // Avoiding division by zero
+    if (r != 0) {
+      theta = acos(ri[2] / r);
       tdens[bin] += 1.0;
-      vr = (ri[0]*v[i][0]+ri[1]*v[i][1]+ri[2]*v[i][2]) / r;
-      vt = r*sin(theta)/(pow(ri[1]/ri[0], 2.0) + 1.0)*((ri[0]*v[i][1] - ri[1]*v[i][0])/(ri[0]*ri[0]));
-      vp = (ri[2]*vr - r*v[i][2])/(r*sqrt(1.0 - pow(ri[2]/r, 2.0)));
-      tpkrr[bin] += vr*vr; 
-      tpktt[bin] += vt*vt; 
-      tpkpp[bin] += vp*vp; 
+      vr = (ri[0] * v[i][0] + ri[1] * v[i][1] + ri[2] * v[i][2]) / r;
+      vt = r * sin(theta) / (pow(ri[1] / ri[0], 2.0) + 1.0) *
+          ((ri[0] * v[i][1] - ri[1] * v[i][0]) / (ri[0] * ri[0]));
+      vp = (ri[2] * vr - r * v[i][2]) / (r * sqrt(1.0 - pow(ri[2] / r, 2.0)));
+      tpkrr[bin] += vr * vr;
+      tpktt[bin] += vt * vt;
+      tpkpp[bin] += vp * vp;
     }
   }
 
@@ -236,8 +238,8 @@ void ComputePressureSpherical::compute_array()
   // for flag = 0, just count pair interactions within force cutoff
   // for flag = 1, calculate requested output fields
 
-  Pair *pair      = force->pair;
-  double **cutsq  = force->pair->cutsq;
+  Pair *pair = force->pair;
+  double **cutsq = force->pair->cutsq;
 
   double risq, rjsq;
   double dir1i, dir2i, dir3i, dir1j, dir2j, dir3j;
@@ -249,7 +251,7 @@ void ComputePressureSpherical::compute_array()
   double rsqxy, ririjxy, sqrixy, sqlxy0, A, B, C;
   int end_bin;
 
-  for (ii = 0; ii < inum; ii++){
+  for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     if (!(mask[i] & groupbit)) continue;
 
@@ -274,9 +276,9 @@ void ComputePressureSpherical::compute_array()
       if (newton_pair == 0 && j >= nlocal) {
         jtag = tag[j];
         if (itag > jtag) {
-          if ((itag+jtag) % 2 == 0) continue;
+          if ((itag + jtag) % 2 == 0) continue;
         } else if (itag < jtag) {
-          if ((itag+jtag) % 2 == 1) continue;
+          if ((itag + jtag) % 2 == 1) continue;
         } else {
           if (x[j][2] < ztmp) continue;
           if (x[j][2] == ztmp) {
@@ -285,57 +287,57 @@ void ComputePressureSpherical::compute_array()
           }
         }
       }
-      
-      ri[0] = x[j][0]-xtmp;
-      ri[1] = x[j][1]-ytmp;
-      ri[2] = x[j][2]-ztmp;
-      
-      rsq = ri[0]*ri[0]+ri[1]*ri[1]+ri[2]*ri[2];
+
+      ri[0] = x[j][0] - xtmp;
+      ri[1] = x[j][1] - ytmp;
+      ri[2] = x[j][2] - ztmp;
+
+      rsq = ri[0] * ri[0] + ri[1] * ri[1] + ri[2] * ri[2];
       jtype = type[j];
-      
-      // Check if inside cut-off  
+
+      // Check if inside cut-off
       if (rsq >= cutsq[itype][jtype]) continue;
-      
+
       pair->single(i, j, itype, jtype, rsq, factor_coul, factor_lj, fpair);
-      qi[0] = xtmp-x0;
-      qi[1] = ytmp-y0;
-      qi[2] = ztmp-z0;
-      for (int k = 0; k < 3; k++){
-        tmp = domain->boxhi[k]-domain->boxlo[k];
-        if (qi[k] > 0.5*tmp)
+      qi[0] = xtmp - x0;
+      qi[1] = ytmp - y0;
+      qi[2] = ztmp - z0;
+      for (int k = 0; k < 3; k++) {
+        tmp = domain->boxhi[k] - domain->boxlo[k];
+        if (qi[k] > 0.5 * tmp)
           qi[k] -= tmp;
-        else if (qi[k] < -0.5*tmp)
+        else if (qi[k] < -0.5 * tmp)
           qi[k] += tmp;
       }
       l_sum = 0.0;
       rij = sqrt(rsq);
-      f = -rij*fpair; 
-      ririj = qi[0]*ri[0] + qi[1]*ri[1] + qi[2]*ri[2];
-      sqr = qi[0]*qi[0] + qi[1]*qi[1] + qi[2]*qi[2];
+      f = -rij * fpair;
+      ririj = qi[0] * ri[0] + qi[1] * ri[1] + qi[2] * ri[2];
+      sqr = qi[0] * qi[0] + qi[1] * qi[1] + qi[2] * qi[2];
       la = 0.0;
       lb = 0.0;
-      sql0 = sqr - ririj*ririj/rsq;
-      lambda0 = -ririj/rsq;
-      rsqxy = ri[0]*ri[0]+ri[1]*ri[1];
-      ririjxy = qi[0]*ri[0]+qi[1]*ri[1];
-      sqrixy = qi[0]*qi[0]+qi[1]*qi[1];
-      sqlxy0 = sqrixy - ririjxy*ririjxy / rsqxy;
-      A = pow(qi[0]*ri[1] - qi[1]*ri[0], 2.0);
-      C = sqrt(rsqxy*sqrixy - ririjxy*ririjxy);
-      B = sqrt(rsq*sqr - ririj*ririj);
-      end_bin = (int)(sqrt(rsq+2.0*ririj+sqr)/bin_width);
+      sql0 = sqr - ririj * ririj / rsq;
+      lambda0 = -ririj / rsq;
+      rsqxy = ri[0] * ri[0] + ri[1] * ri[1];
+      ririjxy = qi[0] * ri[0] + qi[1] * ri[1];
+      sqrixy = qi[0] * qi[0] + qi[1] * qi[1];
+      sqlxy0 = sqrixy - ririjxy * ririjxy / rsqxy;
+      A = pow(qi[0] * ri[1] - qi[1] * ri[0], 2.0);
+      C = sqrt(rsqxy * sqrixy - ririjxy * ririjxy);
+      B = sqrt(rsq * sqr - ririj * ririj);
+      end_bin = (int) (sqrt(rsq + 2.0 * ririj + sqr) / bin_width);
 
       while (lb < 1.0) {
-        l1 = lb+SMALL;
-        bin = (int)floor(sqrt(rsq*l1*l1+2.0*ririj*l1+sqr)/bin_width); 
-        R1 = (bin)*bin_width;
-        R2 = (bin+1)*bin_width;
-        
-        l1 = lambda0 + sqrt((R1*R1 - sql0)/rsq);  
-        l2 = lambda0 - sqrt((R1*R1 - sql0)/rsq);  
-        l3 = lambda0 + sqrt((R2*R2 - sql0)/rsq);  
-        l4 = lambda0 - sqrt((R2*R2 - sql0)/rsq);
-       
+        l1 = lb + SMALL;
+        bin = (int) floor(sqrt(rsq * l1 * l1 + 2.0 * ririj * l1 + sqr) / bin_width);
+        R1 = (bin) *bin_width;
+        R2 = (bin + 1) * bin_width;
+
+        l1 = lambda0 + sqrt((R1 * R1 - sql0) / rsq);
+        l2 = lambda0 - sqrt((R1 * R1 - sql0) / rsq);
+        l3 = lambda0 + sqrt((R2 * R2 - sql0) / rsq);
+        l4 = lambda0 - sqrt((R2 * R2 - sql0) / rsq);
+
         if (l4 >= 0.0 && l4 <= 1.0 && l4 > la)
           lb = l4;
         else if (l3 >= 0.0 && l3 <= 1.0 && l3 > la)
@@ -344,34 +346,34 @@ void ComputePressureSpherical::compute_array()
           lb = l2;
         else if (l1 >= 0.0 && l1 <= 1.0 && l1 > la)
           lb = l1;
-        else 
+        else
           lb = 1.0;
-       
-        if (bin == end_bin)
-          lb = 1.0;
-        if (la > lb)
-          error->all(FLERR,"Error: la > lb\n");
-        if (bin >= 0 && bin < nbins){
-          if (sql0 > SMALL){
-            Fa = -B*atan2(rsq*la+ririj, B);
-            Fb = -B*atan2(rsq*lb+ririj, B);
-            tpcrr[bin] -= (f/rij)*( rsq*(lb - la) + Fb - Fa );
-            tpcpp[bin] -= (f/rij)*( Fa - Fb )/2.0;
-          }
-          else
-            tpcrr[bin] -= f*rij*(lb-la);
 
-          if (sqlxy0 > SMALL){
-            tpctt[bin] -= (f/rij)*A/C*(atan2(rsqxy*lb + ririjxy, C) - atan2(rsqxy*la + ririjxy, C));
+        if (bin == end_bin) lb = 1.0;
+        if (la > lb) error->all(FLERR, "Error: la > lb\n");
+        if (bin >= 0 && bin < nbins) {
+          if (sql0 > SMALL) {
+            Fa = -B * atan2(rsq * la + ririj, B);
+            Fb = -B * atan2(rsq * lb + ririj, B);
+            tpcrr[bin] -= (f / rij) * (rsq * (lb - la) + Fb - Fa);
+            tpcpp[bin] -= (f / rij) * (Fa - Fb) / 2.0;
+          } else
+            tpcrr[bin] -= f * rij * (lb - la);
+
+          if (sqlxy0 > SMALL) {
+            tpctt[bin] -= (f / rij) * A / C *
+                (atan2(rsqxy * lb + ririjxy, C) - atan2(rsqxy * la + ririjxy, C));
           }
         }
-        l_sum += lb-la;
+        l_sum += lb - la;
         la = lb;
       }
-      
+
       // Error check
       if (fabs(l_sum - 1.0) > SMALL)
-          error->all(FLERR,"ERROR: The sum of the fractional line segments, calculated in spherical pressure tensor, does not sum up to 1.");
+        error->all(FLERR,
+                   "ERROR: The sum of the fractional line segments, calculated in spherical "
+                   "pressure tensor, does not sum up to 1.");
     }
   }
 
@@ -393,21 +395,21 @@ void ComputePressureSpherical::compute_array()
   MPI_Allreduce(tpcrr, pcrr, nbins, MPI_DOUBLE, MPI_SUM, world);
   MPI_Allreduce(tpctt, pctt, nbins, MPI_DOUBLE, MPI_SUM, world);
   MPI_Allreduce(tpcpp, pcpp, nbins, MPI_DOUBLE, MPI_SUM, world);
-  
+
   // populate array to output.
   for (bin = 0; bin < nbins; bin++) {
-    array[bin][0]  = (bin+0.5)*bin_width;
-    array[bin][1]  = dens[bin];
-    array[bin][2]  = pkrr[bin];
-    array[bin][3]  = pktt[bin];
-    array[bin][4]  = pkpp[bin];
-    array[bin][5]  = pcrr[bin];
-    array[bin][6]  = pctt[bin];
-    array[bin][7]  = pcpp[bin];
+    array[bin][0] = (bin + 0.5) * bin_width;
+    array[bin][1] = dens[bin];
+    array[bin][2] = pkrr[bin];
+    array[bin][3] = pktt[bin];
+    array[bin][4] = pkpp[bin];
+    array[bin][5] = pcrr[bin];
+    array[bin][6] = pctt[bin];
+    array[bin][7] = pcpp[bin];
   }
 }
 
 double ComputePressureSpherical::memory_usage()
 {
-  return 15.0*(double)(nbins+size_array_rows*size_array_cols)*sizeof(double);
+  return 15.0 * (double) (nbins + size_array_rows * size_array_cols) * sizeof(double);
 }

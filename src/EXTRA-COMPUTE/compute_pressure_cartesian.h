@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,22 +12,22 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(pressure/cartesian,ComputePressureCart)
-
+// clang-format off
+ComputeStyle(pressure/cartesian,ComputePressureCartesian);
+// clang-format on
 #else
 
-#ifndef LMP_COMPUTE_PRESSURE_CARTESIAN
-#define LMP_COMPUTE_PRESSURE_CARTESIAN
+#ifndef LMP_COMPUTE_PRESSURE_CARTESIAN_H
+#define LMP_COMPUTE_PRESSURE_CARTESIAN_H
 
 #include "compute.h"
 
 namespace LAMMPS_NS {
 
-class ComputePressureCart : public Compute {
+class ComputePressureCartesian : public Compute {
  public:
-  ComputePressureCart(class LAMMPS *, int, char **);
-  ~ComputePressureCart();
+  ComputePressureCartesian(class LAMMPS *, int, char **);
+  ~ComputePressureCartesian();
   void init();
   void init_list(int, class NeighList *);
   void compute_array();
@@ -36,7 +36,7 @@ class ComputePressureCart : public Compute {
  private:
   int nbins1, nbins2, dir1, dir2, dims;
   double bin_width1, bin_width2, invV;
-  
+
   // Number density, kinetic and configurational contribution to the pressure.
   double *dens, *pkxx, *pkyy, *pkzz, *pcxx, *pcyy, *pczz;
   double *tdens, *tpkxx, *tpkyy, *tpkzz, *tpcxx, *tpcyy, *tpczz;
@@ -45,7 +45,7 @@ class ComputePressureCart : public Compute {
   void compute_pressure_2d(double, double, double, double, double, double, double, double);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif
@@ -68,4 +68,3 @@ The pair style does not have a single() function, so it can
 not be invoked by compute pressure/cartesian.
 
 */
-

@@ -1663,10 +1663,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<
       delij[2] = x(j,2) - ztmp;
       const F_FLOAT rsq = delij[0]*delij[0] + delij[1]*delij[1] + delij[2]*delij[2];
 
-      double cutoffsq;
-      if (i < nlocal) cutoffsq = MAX(cut_bosq,cut_hbsq);
-      else cutoffsq = cut_bosq;
-
       // hbond list
       if (i < nlocal && cut_hbsq > 0.0 && (ihb == 1 || ihb == 2) && rsq <= cut_hbsq) {
         jhb = paramssing(jtype).p_hbond;

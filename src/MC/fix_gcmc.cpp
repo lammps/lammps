@@ -92,7 +92,6 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   nexchanges = utils::inumeric(FLERR,arg[4],false,lmp);
   nmcmoves = utils::inumeric(FLERR,arg[5],false,lmp);
-  if (nmcmoves > 0) movemode = MOVEATOM;
   ngcmc_type = utils::inumeric(FLERR,arg[6],false,lmp);
   seed = utils::inumeric(FLERR,arg[7],false,lmp);
   reservoir_temperature = utils::numeric(FLERR,arg[8],false,lmp);

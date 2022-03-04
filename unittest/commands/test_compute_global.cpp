@@ -96,6 +96,8 @@ TEST_F(ComputeGlobalTest, Geometry)
     command("compute com2 allwater com");
     command("compute mu1 all dipole");
     command("compute mu2 allwater dipole geometry ");
+    command("compute rg1 all gyration");
+    command("compute rg2 allwater gyration");
     command("pair_style lj/cut 10.0");
     command("pair_coeff * * 0.01 3.0");
     command("bond_style harmonic");
@@ -110,6 +112,10 @@ TEST_F(ComputeGlobalTest, Geometry)
     auto mu2  = *(double *)lammps_extract_compute(handle, "mu2", LMP_STYLE_GLOBAL, LMP_TYPE_SCALAR);
     auto dip1 = (double *)lammps_extract_compute(handle, "mu1", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR);
     auto dip2 = (double *)lammps_extract_compute(handle, "mu2", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR);
+    auto rg1  = *(double *)lammps_extract_compute(handle, "rg1", LMP_STYLE_GLOBAL, LMP_TYPE_SCALAR);
+    auto rg2  = *(double *)lammps_extract_compute(handle, "rg2", LMP_STYLE_GLOBAL, LMP_TYPE_SCALAR);
+    auto gyr1 = (double *)lammps_extract_compute(handle, "rg1", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR);
+    auto gyr2 = (double *)lammps_extract_compute(handle, "rg2", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR);
 
     EXPECT_DOUBLE_EQ(com1[0], 1.4300952724948282);
     EXPECT_DOUBLE_EQ(com1[1], -0.29759806705328351);
@@ -125,6 +131,20 @@ TEST_F(ComputeGlobalTest, Geometry)
     EXPECT_DOUBLE_EQ(dip2[0], -0.029474795088977768);
     EXPECT_DOUBLE_EQ(dip2[1], 1.153516133030746);
     EXPECT_DOUBLE_EQ(dip2[2], -1.3618135814069394);
+    EXPECT_DOUBLE_EQ(rg1,     1.8335537504770163 );
+    EXPECT_DOUBLE_EQ(rg2,     1.7849382239204072 );
+    EXPECT_DOUBLE_EQ(gyr1[0], 0.41613191281297729);
+    EXPECT_DOUBLE_EQ(gyr1[1], 1.0056523085627747 );
+    EXPECT_DOUBLE_EQ(gyr1[2], -1.4756073398127658);
+    EXPECT_DOUBLE_EQ(gyr1[3], 0.41613191281297729);
+    EXPECT_DOUBLE_EQ(gyr1[4], 1.0056523085627747 );
+    EXPECT_DOUBLE_EQ(gyr1[5], -1.4756073398127658);
+    EXPECT_DOUBLE_EQ(gyr2[0], -0.0294747950889778);
+    EXPECT_DOUBLE_EQ(gyr2[1], 1.153516133030746  );
+    EXPECT_DOUBLE_EQ(gyr2[2], -1.3618135814069394);
+    EXPECT_DOUBLE_EQ(gyr2[3], -0.0294747950889778);
+    EXPECT_DOUBLE_EQ(gyr2[4], 1.153516133030746  );
+    EXPECT_DOUBLE_EQ(gyr2[5], -1.3618135814069394);
 }
 
 } // namespace LAMMPS_NS

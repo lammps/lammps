@@ -31,8 +31,8 @@ This fix adds a viscous force to each atom to cause it move with the same veloci
 
 ----------
 
-For details of an earlier implementation of this fix, as well as descriptions and results of several
-test runs, see :ref:`Mackay et al. <Mackay3>`.  Please include a citation to
+For details of this fix, as well as descriptions and results of several
+test runs, see :ref:`Denniston et al. <fluid-Denniston2>`.  Please include a citation to
 this paper if this fix is used in work contributing to published
 research.
 
@@ -78,6 +78,6 @@ none
 
 ----------
 
-.. _Mackay3:
+.. _fluid-Denniston2:
 
-**(Mackay et al.)** Mackay, F. E., Ollila, S.T.T., and Denniston, C., Hydrodynamic Forces Implemented into LAMMPS through a lattice-Boltzmann fluid, Computer Physics Communications 184 (2013) 2021-2031.
+**(Denniston et al.)** Denniston, C., Afrasiabian, N., Cole-Andre, M.G., Mackay, F. E., Ollila, S.T.T., and Whitehead, T., LAMMPS lb/fluid fix version 2: Improved Hydrodynamic Forces Implemented into LAMMPS through a lattice-Boltzmann fluid, Computer Physics Communications 275 (2022) `108318 <https://doi.org/10.1016/j.cpc.2022.108318>`_ .

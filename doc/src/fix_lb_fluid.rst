@@ -16,7 +16,7 @@ Syntax
 * viscosity = the fluid viscosity (units of mass/(time\*length)).
 * density = the fluid density.
 * zero or more keyword/value pairs may be appended
-* keyword = *dx* or *dm* or *noise* or *stencil* or *read_restart* or *write_restart* or *zwall_velocity* or *pressurebcx* or *bodyforce* or *D3Q19*  or *dumpxdmf* or *linearInit* or *dof* or *scaleGamma* or *a0* or *npits* or *wp* or *sw*
+* keyword = *dx* or *dm* or *noise* or *stencil* or *read_restart* or *write_restart* or *zwall_velocity* or *pressurebcx* or *bodyforce* or *D3Q19*  or *dumpxdmf* or *dof* or *scaleGamma* or *a0* or *npits* or *wp* or *sw*
 
   .. parsed-literal::
 
@@ -36,7 +36,6 @@ Syntax
            N = output the force and torque every N timesteps
            file = output file name
 	   timeI = 1 (use simulation time to index xdmf file), 0 (use output frame number to index xdmf file)
-       *linearInit* values = none use linear interpolation between boundary values for initialization (default is uniform density, 0 velocity)
        *dof* values = dof = specify the number of degrees of freedom for temperature calculation
        *scaleGamma* values = type gammaFactor
            type = atom type (1-N)
@@ -115,7 +114,7 @@ functions,
    \rho u_{\alpha} = & \displaystyle\sum\limits_{i} f_i e_{i\alpha}
 
 Full details of the lattice-Boltzmann algorithm used can be found in
-:ref:`Mackay et al. <fluid-Mackay>`.
+:ref:`Denniston et al. <fluid-Denniston>`.
 
 The fluid is coupled to the MD particles described by *group-ID* through
 a velocity dependent force.  The contribution to the fluid force on a
@@ -280,7 +279,7 @@ The *npits* keyword (followed by integer arguments: npits, h_p, l_p, l_pp, l_e) 
 ----------
 
 For further details, as well as descriptions and results of several
-test runs, see :ref:`Mackay et al. <fluid-Mackay>`.  Please include a citation to
+test runs, see :ref:`Denniston et al. <fluid-Denniston>`.  Please include a citation to
 this paper if the lb_fluid fix is used in work contributing to
 published research.
 
@@ -339,13 +338,9 @@ The D3Q15 lattice is used for the lattice-Boltzmann algorithm.
 
 ----------
 
-.. _Ollila:
+.. _fluid-Denniston:
 
-**(Ollila et al.)** Ollila, S.T.T., Denniston, C., Karttunen, M., and Ala-Nissila, T., Fluctuating lattice-Boltzmann model for complex fluids, J. Chem. Phys. 134 (2011) 064902.
-
-.. _fluid-Mackay:
-
-**(Mackay et al.)** Mackay, F. E., Ollila, S.T.T., and Denniston, C., Hydrodynamic Forces Implemented into LAMMPS through a lattice-Boltzmann fluid, Computer Physics Communications 184 (2013) 2021-2031.
+**(Denniston et al.)** Denniston, C., Afrasiabian, N., Cole-Andre, M.G., Mackay, F. E., Ollila, S.T.T., and Whitehead, T., LAMMPS lb/fluid fix version 2: Improved Hydrodynamic Forces Implemented into LAMMPS through a lattice-Boltzmann fluid, Computer Physics Communications 275 (2022) `108318 <https://doi.org/10.1016/j.cpc.2022.108318>`_ .
 
 .. _Mackay2:
 
@@ -354,5 +349,4 @@ The D3Q15 lattice is used for the lattice-Boltzmann algorithm.
 .. _Adhikari:
 
 **(Adhikari et al.)** Adhikari, R., Stratford, K.,  Cates, M. E., and Wagner, A. J., Fluctuating lattice Boltzmann, Europhys. Lett. 71 (2005) 473-479.
-
 

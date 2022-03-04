@@ -35,6 +35,7 @@
 #include "update.h"
 #include "force.h"
 #include "modify.h"
+#include "citeme.h"
 #include <vector>
 #include <sstream>
 #include <fstream>
@@ -42,6 +43,18 @@
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+
+static const char cite_fix_lbfluid[] = "fix lb/fluid command:\n\n"
+                                   "@Article{Denniston et al.,\n"
+                                   " author = {C. Denniston, N. Afrasiabian, M.G. Cole-Andre,"
+                                   "F.E. Mackay, S.T.T. Ollila, T. Whitehead},\n"
+                                   " title =   {LAMMPS lb/fluid fix version 2: Improved Hydrodynamic "
+                                   "Forces Implemented into LAMMPS through a lattice-Boltzmann fluid},"
+                                   " journal = {Comp.~Phys.~Comm.},\n"
+                                   " year =    2022,\n"
+                                   " volume =  275,\n"
+                                   " pages =   {108318}\n"
+                                   "}\n\n";
 
 FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
@@ -148,6 +161,8 @@ FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
 //  5   Total z momentem of fluid + particles
 //=====================================================================================================
 
+  if (lmp->citeme) lmp->citeme->add(cite_fix_lbfluid);
+  
   if(narg < 6) error->all(FLERR,"Illegal fix lb/fluid command");
 
   if (comm->style != 0)

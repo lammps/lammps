@@ -600,6 +600,10 @@ for atom2 in id:
 #   additional loop over bonds of atom3
 # avoid double counting the reverse dihedral by use of ddict dictionary
 
+# NOTE: could just avoid double count by "if atom1 < atom4" as in bond, angle ?
+#       gives different list, but is it still identical ?
+#       would have to check 2 data files, write comparison Py script
+
 id = xyz.id
 type = xyz.type
 bonds = xyz.bonds

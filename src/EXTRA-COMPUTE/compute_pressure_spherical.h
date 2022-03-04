@@ -36,7 +36,7 @@ class ComputePressureSpherical : public Compute {
  private:
   int nbins;
   double bin_width, x0, y0, z0, Rmax;
-  
+ 
   // Number density, kinetic and configurational contribution to the pressure.
   double *invV, *dens, *pkrr, *pktt, *pkpp, *pcrr, *pctt, *pcpp;
   double *tdens, *tpkrr, *tpktt, *tpkpp, *tpcrr, *tpctt, *tpcpp;

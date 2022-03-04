@@ -26,7 +26,7 @@ Examples
 Description
 """""""""""
 
-This computes the diagonal components of the spherical pressure tensor in spherical shells, as described in :ref:`(Ikeshoji)<Ikeshoji2>`. This can be used to calculate the local pressure tensor components of for example droplets and bubbles. This compute obeys momentum balance. This compute uses the Irving-Kirkwood contour, whici is the straight line between particle pairs. The pressure tensor is split into a kinetic contribution :math:`P^k` and a virial contribution :math:`P^v`. The sum gives the pressure :math:`P = P^k+P^v`.
+This computes the diagonal components of the spherical pressure tensor in spherical shells, as described in :ref:`(Ikeshoji)<Ikeshoji3>`. This can be used to calculate the local pressure tensor components of for example droplets and bubbles. This compute obeys momentum balance. This compute uses the Irving-Kirkwood contour, whici is the straight line between particle pairs. The pressure tensor is split into a kinetic contribution :math:`P^k` and a virial contribution :math:`P^v`. The sum gives the pressure :math:`P = P^k+P^v`.
 
 Output info
 """""""""""
@@ -57,5 +57,5 @@ none
 
 ----------
 
-.. _Ikeshoji2:
+.. _Ikeshoji3:
 **(Ikeshoji)** Ikeshoji, Hafskjold, Furuholt, Mol Sim, 29, 101-109, (2003).

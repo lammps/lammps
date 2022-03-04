@@ -36,7 +36,7 @@ class ComputePressureCart : public Compute {
  private:
   int nbins1, nbins2, dir1, dir2, dims;
   double bin_width1, bin_width2, invV;
-  
+
   // Number density, kinetic and configurational contribution to the pressure.
   double *dens, *pkxx, *pkyy, *pkzz, *pcxx, *pcyy, *pczz;
   double *tdens, *tpkxx, *tpkyy, *tpkzz, *tpcxx, *tpcyy, *tpczz;

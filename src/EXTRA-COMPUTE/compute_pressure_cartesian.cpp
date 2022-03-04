@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -35,7 +35,7 @@ static const char cite_compute_pressure_cartesian[] =
   "compute pressure/cartesian:\n\n"
   "@article{ikeshoji2003molecular,\n"
   "title={Molecular-level calculation scheme for pressure in inhomogeneous systems of flat and spherical layers},\n"
-  "author={Ikeshoji, Tamio and Hafskjold, Bjørn and Furuholt, Hilde},\n"
+  "author={Ikeshoji, Tamio and Hafskjold, Bj{\o}rn and Furuholt, Hilde},\n"
   "journal={Molecular Simulation},\n"
   "volume={29},\n"
   "number={2},\n"

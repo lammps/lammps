@@ -62,7 +62,7 @@ using namespace MathConst;
 #define MAXENERGYTEST 1.0e50
 
 enum{EXCHATOM,EXCHMOL}; // exchmode
-enum{MOVEATOM,MOVEMOL}; // movemode
+enum{NONE,MOVEATOM,MOVEMOL}; // movemode
 
 /* ---------------------------------------------------------------------- */
 
@@ -92,6 +92,7 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   nexchanges = utils::inumeric(FLERR,arg[4],false,lmp);
   nmcmoves = utils::inumeric(FLERR,arg[5],false,lmp);
+  if (nmcmoves > 0) movemode = MOVEATOM;
   ngcmc_type = utils::inumeric(FLERR,arg[6],false,lmp);
   seed = utils::inumeric(FLERR,arg[7],false,lmp);
   reservoir_temperature = utils::numeric(FLERR,arg[8],false,lmp);
@@ -235,7 +236,7 @@ void FixGCMC::options(int narg, char **arg)
   // defaults
 
   exchmode = EXCHATOM;
-  movemode = MOVEATOM;
+  movemode = NONE;
   patomtrans = 0.0;
   pmoltrans = 0.0;
   pmolrotate = 0.0;
@@ -447,27 +448,29 @@ void FixGCMC::init()
 
   // set probabilities for MC moves
 
-  if (pmctot == 0.0)
-    if (exchmode == EXCHATOM) {
-      movemode = MOVEATOM;
-      patomtrans = 1.0;
-      pmoltrans = 0.0;
-      pmolrotate = 0.0;
-    } else {
-      movemode = MOVEMOL;
-      patomtrans = 0.0;
-      pmoltrans = 0.5;
-      pmolrotate = 0.5;
-   }
-  else {
-    if (pmoltrans == 0.0 && pmolrotate == 0.0)
-      movemode = MOVEATOM;
-    else
-      movemode = MOVEMOL;
-    patomtrans /= pmctot;
-    pmoltrans /= pmctot;
-    pmolrotate /= pmctot;
-  }
+  if (nmcmoves > 0) {
+    if (pmctot == 0.0)
+      if (exchmode == EXCHATOM) {
+	movemode = MOVEATOM;
+	patomtrans = 1.0;
+	pmoltrans = 0.0;
+	pmolrotate = 0.0;
+      } else {
+	movemode = MOVEMOL;
+	patomtrans = 0.0;
+	pmoltrans = 0.5;
+	pmolrotate = 0.5;
+      }
+    else {
+      if (pmoltrans == 0.0 && pmolrotate == 0.0)
+	movemode = MOVEATOM;
+      else
+	movemode = MOVEMOL;
+      patomtrans /= pmctot;
+      pmoltrans /= pmctot;
+      pmolrotate /= pmctot;
+    }
+  } else movemode = NONE;
 
   // decide whether to switch to the full_energy option
 

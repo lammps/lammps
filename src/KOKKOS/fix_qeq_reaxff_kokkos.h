@@ -82,7 +82,7 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
 
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
-  void compute_h_team(const typename Kokkos::TeamPolicy <DeviceType> ::member_type &team, int, int) const;
+  void compute_h_team(const typename Kokkos::TeamPolicy<DeviceType>::member_type &team, int, int) const;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagQEqSparseMatvec1, const int&) const;
@@ -92,9 +92,9 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
 
   template<int NEIGHFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagQEqSparseMatvec2_Half<NEIGHFLAG>, const int&) const;
+  void operator()(TagQEqSparseMatvec2_Half<NEIGHFLAG>, const typename Kokkos::TeamPolicy<DeviceType, TagQEqSparseMatvec2_Half<NEIGHFLAG>>::member_type &team) const;
 
-  typedef typename Kokkos::TeamPolicy <DeviceType, TagQEqSparseMatvec2_Full> ::member_type membertype_vec;
+  typedef typename Kokkos::TeamPolicy<DeviceType, TagQEqSparseMatvec2_Full>::member_type membertype_vec;
   KOKKOS_INLINE_FUNCTION
   void operator()(TagQEqSparseMatvec2_Full, const membertype_vec &team) const;
 

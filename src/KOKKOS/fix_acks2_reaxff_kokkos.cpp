@@ -115,7 +115,6 @@ void FixACKS2ReaxFFKokkos<DeviceType>::init()
     neighbor->requests[irequest]->pair = 0;
     neighbor->requests[irequest]->full = 0;
     neighbor->requests[irequest]->half = 1;
-    neighbor->requests[irequest]->ghost = 1;
   }
 
   int ntypes = atom->ntypes;

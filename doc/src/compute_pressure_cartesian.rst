@@ -8,13 +8,13 @@ Syntax
 
 .. parsed-literal::
 
-   compute ID group-ID pressure/cartesian dim bin_width 
+   compute ID group-ID pressure/cartesian dim bin_width
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * pressure/cartesian = style name of this compute command
 * one or two dim/bin_width pairs may be appended
 * dim = x, y, or z
-* bin_width = width of the bin 
+* bin_width = width of the bin
 
 Examples
 """"""""

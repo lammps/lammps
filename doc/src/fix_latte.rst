@@ -104,18 +104,30 @@ larger system sizes and longer time scales
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.
+No information about this fix is written to :doc:`binary restart files
+<restart>`.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
-fix to add the potential energy computed by LATTE to the system's
-potential energy as part of :doc:`thermodynamic output <thermo_style>`.
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by
+this fix to add the potential energy computed by LATTE to the global
+potential energy of the system as part of :doc:`thermodynamic output
+<thermo_style>`.  The default setting for this fix is :doc:`fix_modify
+energy yes <fix_modify>`.
 
-The :doc:`fix_modify <fix_modify>` *virial* option is supported by this
-fix to add the LATTE DFTB contribution to the system's virial as part
-of :doc:`thermodynamic output <thermo_style>`.  The default is *virial
-yes*
+The :doc:`fix_modify <fix_modify>` *virial* option is supported by
+this fix to add the contribution compute by LATTE to the global
+pressure of the system via the :doc:`compute pressure
+<compute_pressure>` command.  This can be accessed by
+:doc:`thermodynamic output <thermo_style>`.  The default setting for
+this fix is :doc:`fix_modify virial yes <fix_modify>`.
+
+The :doc:`fix_modify <fix_modify>` *virial* option is supported by
+this fix to add the contribution computed by LATTE to the global
+pressure of the system as part of :doc:`thermodynamic output
+<thermo_style>`.  The default setting for this fix is :doc:`fix_modify
+virial yes <fix_modify>`.
 
 This fix computes a global scalar which can be accessed by various
 :doc:`output commands <Howto_output>`.  The scalar is the potential
@@ -126,20 +138,22 @@ No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.
 
 The DFTB forces computed by LATTE via this fix are imposed during an
-energy minimization, invoked by the :doc:`minimize <minimize>` command.
+energy minimization, invoked by the :doc:`minimize <minimize>`
+command.
 
 .. note::
 
    If you want the potential energy associated with the DFTB
    forces to be included in the total potential energy of the system (the
-   quantity being minimized), you MUST enable the
+   quantity being minimized), you MUST not disable the
    :doc:`fix_modify <fix_modify>` *energy* option for this fix.
 
 Restrictions
 """"""""""""
 
 This fix is part of the LATTE package.  It is only enabled if LAMMPS
-was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
 You must use metal units, as set by the :doc:`units <units>` command to
 use this fix.
@@ -157,11 +171,18 @@ doing 99% or more of the work to compute quantum-accurate forces.
    NEB calculations can be done using this fix using multiple
    replicas and running LAMMPS in parallel.  However, each replica must
    be run on a single MPI task.  For details, see the :doc:`neb <neb>`
-   command doc page and the :doc:`-partition command-line switch <Run_options>`
+   command page and the :doc:`-partition command-line switch <Run_options>`
 
-**Related commands:** none
+Related commands
+""""""""""""""""
 
-**Default:** none
+none
+
+
+Default
+"""""""
+
+none
 
 ----------
 

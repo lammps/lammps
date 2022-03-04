@@ -1,10 +1,10 @@
 .. index:: pair_style adp
+.. index:: pair_style adp/omp
 
 pair_style adp command
 ======================
 
-pair_style adp/omp command
-==========================
+Accelerator Variants: *adp/omp*
 
 Syntax
 """"""
@@ -59,7 +59,7 @@ command to specify them.
 * The OpenKIM Project at
   `https://openkim.org/browse/models/by-type <https://openkim.org/browse/models/by-type>`_
   provides ADP potentials that can be used directly in LAMMPS with the
-  :doc:`kim_commands <kim_commands>` interface.
+  :doc:`kim command <kim_commands>` interface.
 
 ----------
 
@@ -72,21 +72,21 @@ where :math:`N` is the number of LAMMPS atom types:
 * filename
 * :math:`N` element names = mapping of extended *setfl* elements to atom types
 
-See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways to
+See the :doc:`pair_coeff <pair_coeff>` page for alternate ways to
 specify the path for the potential file.
 
 As an example, the potentials/AlCu.adp file, included in the
 potentials directory of the LAMMPS distribution, is an extended *setfl*
 file which has tabulated ADP values for w elements and their alloy
 interactions: Cu and Al.  If your LAMMPS simulation has 4 atoms types
-and you want the 1st 3 to be Al, and the 4th to be Cu, you would use
+and you want the first 3 to be Al, and the fourth to be Cu, you would use
 the following pair_coeff command:
 
 .. code-block:: LAMMPS
 
    pair_coeff * * AlCu.adp Al Al Al Cu
 
-The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
+The first 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The first three Al arguments map LAMMPS atom types 1,2,3 to the Al
 element in the extended *setfl* file.  The final Cu argument maps
 LAMMPS atom type 4 to the Al element in the extended *setfl* file.
@@ -136,27 +136,12 @@ array tabulated with a scaling by :math:`r`.
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, where types I and J correspond to
 two different element types, no special mixing rules are needed, since
@@ -171,7 +156,7 @@ an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -186,7 +171,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair_eam <pair_eam>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

@@ -56,9 +56,9 @@ namespace Experimental {
 template <typename ReportType, typename DeviceType>
 class ErrorReporter {
  public:
-  typedef ReportType report_type;
-  typedef DeviceType device_type;
-  typedef typename device_type::execution_space execution_space;
+  using report_type     = ReportType;
+  using device_type     = DeviceType;
+  using execution_space = typename device_type::execution_space;
 
   ErrorReporter(int max_results)
       : m_numReportsAttempted(""),
@@ -103,10 +103,10 @@ class ErrorReporter {
   }
 
  private:
-  typedef Kokkos::View<report_type *, execution_space> reports_view_t;
-  typedef Kokkos::DualView<report_type *, execution_space> reports_dualview_t;
+  using reports_view_t     = Kokkos::View<report_type *, execution_space>;
+  using reports_dualview_t = Kokkos::DualView<report_type *, execution_space>;
 
-  typedef typename reports_dualview_t::host_mirror_space host_mirror_space;
+  using host_mirror_space = typename reports_dualview_t::host_mirror_space;
   Kokkos::View<int, execution_space> m_numReportsAttempted;
   reports_dualview_t m_reports;
   Kokkos::DualView<int *, execution_space> m_reporters;
@@ -187,7 +187,8 @@ template <typename ReportType, typename DeviceType>
 void ErrorReporter<ReportType, DeviceType>::resize(const size_t new_size) {
   m_reports.resize(new_size);
   m_reporters.resize(new_size);
-  typename DeviceType::execution_space().fence();
+  typename DeviceType::execution_space().fence(
+      "Kokkos::Experimental::ErrorReporter::resize: fence after resizing");
 }
 
 }  // namespace Experimental

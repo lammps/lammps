@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -11,12 +12,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include "remap_kokkos.h"
-#include "pack_kokkos.h"
+
 #include "error.h"
+#include "pack_kokkos.h"
 
 using namespace LAMMPS_NS;
 
@@ -28,7 +27,7 @@ using namespace LAMMPS_NS;
 template<class DeviceType>
 RemapKokkos<DeviceType>::RemapKokkos(LAMMPS *lmp) : Pointers(lmp)
 {
-  plan = NULL;
+  plan = nullptr;
 }
 
 template<class DeviceType>
@@ -46,7 +45,7 @@ RemapKokkos<DeviceType>::RemapKokkos(LAMMPS *lmp, MPI_Comm comm,
                               out_ilo,out_ihi,out_jlo,out_jhi,out_klo,out_khi,
                               nqty,permute,memory,precision,usecollective,
                               usecuda_aware);
-  if (plan == NULL) error->one(FLERR,"Could not create 3d remap plan");
+  if (plan == nullptr) error->one(FLERR,"Could not create 3d remap plan");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -220,7 +219,7 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
   int in_klo, int in_khi,
   int out_ilo, int out_ihi, int out_jlo, int out_jhi,
   int out_klo, int out_khi,
-  int nqty, int permute, int memory, int precision,
+  int nqty, int permute, int memory, int /*precision*/,
   int usecollective, int usecuda_aware)
 {
 
@@ -237,7 +236,7 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
   // allocate memory for plan data struct
 
   plan = new struct remap_plan_3d_kokkos<DeviceType>;
-  if (plan == NULL) return NULL;
+  if (plan == nullptr) return nullptr;
   plan->usecollective = usecollective;
   plan->usecuda_aware = usecuda_aware;
 
@@ -270,10 +269,10 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
   // combine output extents across all procs
 
   inarray = (struct extent_3d *) malloc(nprocs*sizeof(struct extent_3d));
-  if (inarray == NULL) return NULL;
+  if (inarray == nullptr) return nullptr;
 
   outarray = (struct extent_3d *) malloc(nprocs*sizeof(struct extent_3d));
-  if (outarray == NULL) return NULL;
+  if (outarray == nullptr) return nullptr;
 
   MPI_Allgather(&out,sizeof(struct extent_3d),MPI_BYTE,
                 outarray,sizeof(struct extent_3d),MPI_BYTE,comm);
@@ -299,8 +298,8 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
     plan->packplan = (struct pack_plan_3d *)
       malloc(nsend*sizeof(struct pack_plan_3d));
 
-    if (plan->send_offset == NULL || plan->send_size == NULL ||
-        plan->send_proc == NULL || plan->packplan == NULL) return NULL;
+    if (plan->send_offset == nullptr || plan->send_size == nullptr ||
+        plan->send_proc == nullptr || plan->packplan == nullptr) return nullptr;
   }
 
   // store send info, with self as last entry
@@ -381,9 +380,9 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
     plan->unpackplan = (struct pack_plan_3d *)
       malloc(nrecv*sizeof(struct pack_plan_3d));
 
-    if (plan->recv_offset == NULL || plan->recv_size == NULL ||
-        plan->recv_proc == NULL || plan->recv_bufloc == NULL ||
-        plan->request == NULL || plan->unpackplan == NULL) return NULL;
+    if (plan->recv_offset == nullptr || plan->recv_size == nullptr ||
+        plan->recv_proc == nullptr || plan->recv_bufloc == nullptr ||
+        plan->request == nullptr || plan->unpackplan == nullptr) return nullptr;
   }
 
   // store recv info, with self as last entry
@@ -467,7 +466,7 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
 
   if (size) {
     plan->d_sendbuf = typename FFT_AT::t_FFT_SCALAR_1d("remap3d:sendbuf",size);
-    if (!plan->d_sendbuf.data()) return NULL;
+    if (!plan->d_sendbuf.data()) return nullptr;
   }
 
   // if requested, allocate internal scratch space for recvs,
@@ -477,7 +476,7 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
     if (nrecv > 0) {
       plan->d_scratch =
         typename FFT_AT::t_FFT_SCALAR_1d("remap3d:scratch",nqty*out.isize*out.jsize*out.ksize);
-      if (!plan->d_scratch.data()) return NULL;
+      if (!plan->d_scratch.data()) return nullptr;
     }
   }
 
@@ -497,7 +496,7 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
 template<class DeviceType>
 void RemapKokkos<DeviceType>::remap_3d_destroy_plan_kokkos(struct remap_plan_3d_kokkos<DeviceType> *plan)
 {
-  if (plan == NULL) return;
+  if (plan == nullptr) return;
 
   // free MPI communicator
 
@@ -529,7 +528,7 @@ void RemapKokkos<DeviceType>::remap_3d_destroy_plan_kokkos(struct remap_plan_3d_
 
 namespace LAMMPS_NS {
 template class RemapKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class RemapKokkos<LMPHostType>;
 #endif
 }

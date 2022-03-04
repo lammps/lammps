@@ -51,11 +51,13 @@
 
 namespace Test {
 
+struct ReducerTag {};
+
 template <typename ScalarType, class DeviceType>
 class ReduceFunctor {
  public:
-  typedef DeviceType execution_space;
-  typedef typename execution_space::size_type size_type;
+  using execution_space = DeviceType;
+  using size_type       = typename execution_space::size_type;
 
   struct value_type {
     ScalarType value[3];
@@ -97,7 +99,7 @@ class ReduceFunctor {
 template <class DeviceType>
 class ReduceFunctorFinal : public ReduceFunctor<int64_t, DeviceType> {
  public:
-  typedef typename ReduceFunctor<int64_t, DeviceType>::value_type value_type;
+  using value_type = typename ReduceFunctor<int64_t, DeviceType>::value_type;
 
   KOKKOS_INLINE_FUNCTION
   ReduceFunctorFinal(const size_t n) : ReduceFunctor<int64_t, DeviceType>(n) {}
@@ -110,17 +112,56 @@ class ReduceFunctorFinal : public ReduceFunctor<int64_t, DeviceType> {
   }
 };
 
+template <class DeviceType>
+class ReduceFunctorFinalTag {
+ public:
+  using execution_space = DeviceType;
+  using size_type       = typename execution_space::size_type;
+  using ScalarType      = int64_t;
+
+  struct value_type {
+    ScalarType value[3];
+  };
+
+  const size_type nwork;
+
+  KOKKOS_INLINE_FUNCTION
+  ReduceFunctorFinalTag(const size_type arg_nwork) : nwork(arg_nwork) {}
+
+  KOKKOS_INLINE_FUNCTION
+  void join(const ReducerTag, volatile value_type& dst,
+            const volatile value_type& src) const {
+    dst.value[0] += src.value[0];
+    dst.value[1] += src.value[1];
+    dst.value[2] += src.value[2];
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const ReducerTag, size_type iwork, value_type& dst) const {
+    dst.value[0] -= 1;
+    dst.value[1] -= iwork + 1;
+    dst.value[2] -= nwork - iwork;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void final(const ReducerTag, value_type& dst) const {
+    ++dst.value[0];
+    ++dst.value[1];
+    ++dst.value[2];
+  }
+};
+
 template <typename ScalarType, class DeviceType>
 class RuntimeReduceFunctor {
  public:
   // Required for functor:
-  typedef DeviceType execution_space;
-  typedef ScalarType value_type[];
+  using execution_space = DeviceType;
+  using value_type      = ScalarType[];
   const unsigned value_count;
 
   // Unit test details:
 
-  typedef typename execution_space::size_type size_type;
+  using size_type = typename execution_space::size_type;
 
   const size_type nwork;
 
@@ -141,7 +182,7 @@ class RuntimeReduceFunctor {
   void operator()(size_type iwork, ScalarType dst[]) const {
     const size_type tmp[3] = {1, iwork + 1, nwork - iwork};
 
-    for (size_type i = 0; i < value_count; ++i) {
+    for (size_type i = 0; i < static_cast<size_type>(value_count); ++i) {
       dst[i] += tmp[i % 3];
     }
   }
@@ -151,13 +192,13 @@ template <typename ScalarType, class DeviceType>
 class RuntimeReduceMinMax {
  public:
   // Required for functor:
-  typedef DeviceType execution_space;
-  typedef ScalarType value_type[];
+  using execution_space = DeviceType;
+  using value_type      = ScalarType[];
   const unsigned value_count;
 
   // Unit test details:
 
-  typedef typename execution_space::size_type size_type;
+  using size_type = typename execution_space::size_type;
 
   const size_type nwork;
   const ScalarType amin;
@@ -189,7 +230,7 @@ class RuntimeReduceMinMax {
     const ScalarType tmp[2] = {ScalarType(iwork + 1),
                                ScalarType(nwork - iwork)};
 
-    for (size_type i = 0; i < value_count; ++i) {
+    for (size_type i = 0; i < static_cast<size_type>(value_count); ++i) {
       dst[i] = i % 2 ? (dst[i] < tmp[i % 2] ? dst[i] : tmp[i % 2])
                      : (dst[i] > tmp[i % 2] ? dst[i] : tmp[i % 2]);
     }
@@ -200,9 +241,9 @@ template <class DeviceType>
 class RuntimeReduceFunctorFinal
     : public RuntimeReduceFunctor<int64_t, DeviceType> {
  public:
-  typedef RuntimeReduceFunctor<int64_t, DeviceType> base_type;
-  typedef typename base_type::value_type value_type;
-  typedef int64_t scalar_type;
+  using base_type   = RuntimeReduceFunctor<int64_t, DeviceType>;
+  using value_type  = typename base_type::value_type;
+  using scalar_type = int64_t;
 
   RuntimeReduceFunctorFinal(const size_t theNwork, const size_t count)
       : base_type(theNwork, count) {}
@@ -215,22 +256,57 @@ class RuntimeReduceFunctorFinal
   }
 };
 
+template <class ValueType, class DeviceType>
+class CombinedReduceFunctorSameType {
+ public:
+  using execution_space = typename DeviceType::execution_space;
+  using size_type       = typename execution_space::size_type;
+
+  const size_type nwork;
+
+  KOKKOS_INLINE_FUNCTION
+  constexpr explicit CombinedReduceFunctorSameType(const size_type& arg_nwork)
+      : nwork(arg_nwork) {}
+
+  KOKKOS_DEFAULTED_FUNCTION
+  constexpr CombinedReduceFunctorSameType(
+      const CombinedReduceFunctorSameType& rhs) = default;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(size_type iwork, ValueType& dst1, ValueType& dst2,
+                  ValueType& dst3) const {
+    dst1 += 1;
+    dst2 += iwork + 1;
+    dst3 += nwork - iwork;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(size_type iwork, size_type always_zero_1,
+                  size_type always_zero_2, ValueType& dst1, ValueType& dst2,
+                  ValueType& dst3) const {
+    dst1 += 1 + always_zero_1;
+    dst2 += iwork + 1 + always_zero_2;
+    dst3 += nwork - iwork;
+  }
+};
+
 namespace {
 
 template <typename ScalarType, class DeviceType>
 class TestReduce {
  public:
-  typedef DeviceType execution_space;
-  typedef typename execution_space::size_type size_type;
+  using execution_space = DeviceType;
+  using size_type       = typename execution_space::size_type;
 
   TestReduce(const size_type& nwork) {
     run_test(nwork);
     run_test_final(nwork);
+    run_test_final_tag(nwork);
   }
 
   void run_test(const size_type& nwork) {
-    typedef Test::ReduceFunctor<ScalarType, execution_space> functor_type;
-    typedef typename functor_type::value_type value_type;
+    using functor_type = Test::ReduceFunctor<ScalarType, execution_space>;
+    using value_type   = typename functor_type::value_type;
 
     enum { Count = 3 };
     enum { Repeat = 100 };
@@ -253,8 +329,8 @@ class TestReduce {
   }
 
   void run_test_final(const size_type& nwork) {
-    typedef Test::ReduceFunctorFinal<execution_space> functor_type;
-    typedef typename functor_type::value_type value_type;
+    using functor_type = Test::ReduceFunctorFinal<execution_space>;
+    using value_type   = typename functor_type::value_type;
 
     enum { Count = 3 };
     enum { Repeat = 100 };
@@ -280,13 +356,46 @@ class TestReduce {
       }
     }
   }
+
+  void run_test_final_tag(const size_type& nwork) {
+    using functor_type = Test::ReduceFunctorFinalTag<execution_space>;
+    using value_type   = typename functor_type::value_type;
+
+    enum { Count = 3 };
+    enum { Repeat = 100 };
+
+    value_type result[Repeat];
+
+    const uint64_t nw   = nwork;
+    const uint64_t nsum = nw % 2 ? nw * ((nw + 1) / 2) : (nw / 2) * (nw + 1);
+
+    for (unsigned i = 0; i < Repeat; ++i) {
+      if (i % 2 == 0) {
+        Kokkos::parallel_reduce(
+            Kokkos::RangePolicy<execution_space, ReducerTag>(0, nwork),
+            functor_type(nwork), result[i]);
+      } else {
+        Kokkos::parallel_reduce(
+            "Reduce",
+            Kokkos::RangePolicy<execution_space, ReducerTag>(0, nwork),
+            functor_type(nwork), result[i]);
+      }
+    }
+
+    for (unsigned i = 0; i < Repeat; ++i) {
+      for (unsigned j = 0; j < Count; ++j) {
+        const uint64_t correct = 0 == j % 3 ? nw : nsum;
+        ASSERT_EQ((ScalarType)correct, 1 - result[i].value[j]);
+      }
+    }
+  }
 };
 
 template <typename ScalarType, class DeviceType>
 class TestReduceDynamic {
  public:
-  typedef DeviceType execution_space;
-  typedef typename execution_space::size_type size_type;
+  using execution_space = DeviceType;
+  using size_type       = typename execution_space::size_type;
 
   TestReduceDynamic(const size_type nwork) {
     run_test_dynamic(nwork);
@@ -295,8 +404,8 @@ class TestReduceDynamic {
   }
 
   void run_test_dynamic(const size_type nwork) {
-    typedef Test::RuntimeReduceFunctor<ScalarType, execution_space>
-        functor_type;
+    using functor_type =
+        Test::RuntimeReduceFunctor<ScalarType, execution_space>;
 
     enum { Count = 3 };
     enum { Repeat = 100 };
@@ -324,7 +433,7 @@ class TestReduceDynamic {
   }
 
   void run_test_dynamic_minmax(const size_type nwork) {
-    typedef Test::RuntimeReduceMinMax<ScalarType, execution_space> functor_type;
+    using functor_type = Test::RuntimeReduceMinMax<ScalarType, execution_space>;
 
     enum { Count = 2 };
     enum { Repeat = 100 };
@@ -356,7 +465,7 @@ class TestReduceDynamic {
   }
 
   void run_test_dynamic_final(const size_type nwork) {
-    typedef Test::RuntimeReduceFunctorFinal<execution_space> functor_type;
+    using functor_type = Test::RuntimeReduceFunctorFinal<execution_space>;
 
     enum { Count = 3 };
     enum { Repeat = 100 };
@@ -387,17 +496,17 @@ class TestReduceDynamic {
 template <typename ScalarType, class DeviceType>
 class TestReduceDynamicView {
  public:
-  typedef DeviceType execution_space;
-  typedef typename execution_space::size_type size_type;
+  using execution_space = DeviceType;
+  using size_type       = typename execution_space::size_type;
 
   TestReduceDynamicView(const size_type nwork) { run_test_dynamic_view(nwork); }
 
   void run_test_dynamic_view(const size_type nwork) {
-    typedef Test::RuntimeReduceFunctor<ScalarType, execution_space>
-        functor_type;
+    using functor_type =
+        Test::RuntimeReduceFunctor<ScalarType, execution_space>;
 
-    typedef Kokkos::View<ScalarType*, DeviceType> result_type;
-    typedef typename result_type::HostMirror result_host_type;
+    using result_type      = Kokkos::View<ScalarType*, DeviceType>;
+    using result_host_type = typename result_type::HostMirror;
 
     const unsigned CountLimit = 23;
 
@@ -430,6 +539,10 @@ class TestReduceDynamicView {
 
 }  // namespace
 
+// FIXME_OPENMPTARGET : The feature works with LLVM/13 on NVIDIA
+// architectures. The jenkins currently tests with LLVM/12.
+#if defined(KOKKOS_ENABLE_OPENMPTARGET) && defined(KOKKOS_COMPILER_CLANG) && \
+    (KOKKOS_COMPILER_CLANG >= 1300)
 TEST(TEST_CATEGORY, int64_t_reduce) {
   TestReduce<int64_t, TEST_EXECSPACE>(0);
   TestReduce<int64_t, TEST_EXECSPACE>(1000000);
@@ -454,5 +567,71 @@ TEST(TEST_CATEGORY, int64_t_reduce_dynamic_view) {
   TestReduceDynamicView<int64_t, TEST_EXECSPACE>(0);
   TestReduceDynamicView<int64_t, TEST_EXECSPACE>(1000000);
 }
+#endif
 
+// FIXME_OPENMPTARGET: Not yet implemented.
+#ifndef KOKKOS_ENABLE_OPENMPTARGET
+TEST(TEST_CATEGORY, int_combined_reduce) {
+  using functor_type = CombinedReduceFunctorSameType<int64_t, TEST_EXECSPACE>;
+  constexpr uint64_t nw = 1000;
+
+  uint64_t nsum = (nw / 2) * (nw + 1);
+
+  int64_t result1 = 0;
+  int64_t result2 = 0;
+  int64_t result3 = 0;
+
+  Kokkos::parallel_reduce("int_combined_reduce",
+                          Kokkos::RangePolicy<TEST_EXECSPACE>(0, nw),
+                          functor_type(nw), result1, result2, result3);
+
+  ASSERT_EQ(nw, result1);
+  ASSERT_EQ(nsum, result2);
+  ASSERT_EQ(nsum, result3);
+}
+
+TEST(TEST_CATEGORY, mdrange_combined_reduce) {
+  using functor_type = CombinedReduceFunctorSameType<int64_t, TEST_EXECSPACE>;
+  constexpr uint64_t nw = 1000;
+
+  uint64_t nsum = (nw / 2) * (nw + 1);
+
+  int64_t result1 = 0;
+  int64_t result2 = 0;
+  int64_t result3 = 0;
+
+  Kokkos::parallel_reduce(
+      "int_combined_reduce_mdrange",
+      Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<3>>({{0, 0, 0}},
+                                                             {{nw, 1, 1}}),
+      functor_type(nw), result1, result2, result3);
+
+  ASSERT_EQ(nw, result1);
+  ASSERT_EQ(nsum, result2);
+  ASSERT_EQ(nsum, result3);
+}
+
+TEST(TEST_CATEGORY, int_combined_reduce_mixed) {
+  using functor_type = CombinedReduceFunctorSameType<int64_t, TEST_EXECSPACE>;
+
+  constexpr uint64_t nw = 1000;
+
+  uint64_t nsum = (nw / 2) * (nw + 1);
+
+  auto result1_v = Kokkos::View<int64_t, Kokkos::HostSpace>{"result1_v"};
+
+  int64_t result2 = 0;
+
+  auto result3_v = Kokkos::View<int64_t, Kokkos::HostSpace>{"result3_v"};
+
+  Kokkos::parallel_reduce("int_combined-reduce_mixed",
+                          Kokkos::RangePolicy<TEST_EXECSPACE>(0, nw),
+                          functor_type(nw), result1_v, result2,
+                          Kokkos::Sum<int64_t, Kokkos::HostSpace>{result3_v});
+
+  ASSERT_EQ(nw, result1_v());
+  ASSERT_EQ(nsum, result2);
+  ASSERT_EQ(nsum, result3_v());
+}
+#endif
 }  // namespace Test

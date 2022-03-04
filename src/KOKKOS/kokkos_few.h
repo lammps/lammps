@@ -1,3 +1,4 @@
+// clang-format off
 #ifndef KOKKOS_FEW_H
 #define KOKKOS_FEW_H
 

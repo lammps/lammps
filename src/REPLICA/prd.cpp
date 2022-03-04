@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,30 +17,29 @@
 ------------------------------------------------------------------------- */
 
 #include "prd.h"
-#include <mpi.h>
-#include <cstring>
+
+#include "atom.h"
+#include "comm.h"
+#include "compute.h"
+#include "domain.h"
+#include "error.h"
+#include "finish.h"
+#include "fix_event_prd.h"
+#include "integrate.h"
+#include "memory.h"
+#include "min.h"
+#include "modify.h"
+#include "neighbor.h"
+#include "output.h"
+#include "random_mars.h"
+#include "random_park.h"
+#include "region.h"
+#include "timer.h"
 #include "universe.h"
 #include "update.h"
-#include "atom.h"
-#include "domain.h"
-#include "region.h"
-#include "comm.h"
 #include "velocity.h"
-#include "integrate.h"
-#include "min.h"
-#include "neighbor.h"
-#include "modify.h"
-#include "compute.h"
-#include "fix.h"
-#include "fix_event_prd.h"
-#include "force.h"
-#include "random_park.h"
-#include "random_mars.h"
-#include "output.h"
-#include "finish.h"
-#include "timer.h"
-#include "memory.h"
-#include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -47,7 +47,7 @@ enum{SINGLE_PROC_DIRECT,SINGLE_PROC_MAP,MULTI_PROC};
 
 /* ---------------------------------------------------------------------- */
 
-PRD::PRD(LAMMPS *lmp) : Pointers(lmp) {}
+PRD::PRD(LAMMPS *lmp) : Command(lmp) {}
 
 /* ----------------------------------------------------------------------
    perform PRD simulation on one or more replicas
@@ -62,7 +62,7 @@ void PRD::command(int narg, char **arg)
   if (domain->box_exist == 0)
     error->all(FLERR,"PRD command before simulation box is defined");
   if (universe->nworlds != universe->nprocs &&
-      atom->map_style == 0)
+      atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Cannot use PRD with multi-processor replicas "
                "unless atom map exists");
   if (universe->nworlds == 1 && comm->me == 0)
@@ -72,15 +72,14 @@ void PRD::command(int narg, char **arg)
 
   // read as double so can cast to bigint
 
-  int nsteps = force->inumeric(FLERR,arg[0]);
-  t_event = force->inumeric(FLERR,arg[1]);
-  n_dephase = force->inumeric(FLERR,arg[2]);
-  t_dephase = force->inumeric(FLERR,arg[3]);
-  t_corr = force->inumeric(FLERR,arg[4]);
+  int nsteps = utils::inumeric(FLERR,arg[0],false,lmp);
+  t_event = utils::inumeric(FLERR,arg[1],false,lmp);
+  n_dephase = utils::inumeric(FLERR,arg[2],false,lmp);
+  t_dephase = utils::inumeric(FLERR,arg[3],false,lmp);
+  t_corr = utils::inumeric(FLERR,arg[4],false,lmp);
 
-  char *id_compute = new char[strlen(arg[5])+1];
-  strcpy(id_compute,arg[5]);
-  int seed = force->inumeric(FLERR,arg[6]);
+  char *id_compute = utils::strdup(arg[5]);
+  int seed = utils::inumeric(FLERR,arg[6],false,lmp);
 
   options(narg-7,&arg[7]);
 
@@ -118,9 +117,9 @@ void PRD::command(int narg, char **arg)
 
   natoms = atom->natoms;
 
-  tagall = NULL;
-  xall = NULL;
-  imageall = NULL;
+  tagall = nullptr;
+  xall = nullptr;
+  imageall = nullptr;
 
   if (cmode != SINGLE_PROC_DIRECT) {
     memory->create(tagall,natoms,"prd:tagall");
@@ -128,8 +127,8 @@ void PRD::command(int narg, char **arg)
     memory->create(imageall,natoms,"prd:imageall");
   }
 
-  counts = NULL;
-  displacements = NULL;
+  counts = nullptr;
+  displacements = nullptr;
 
   if (cmode == MULTI_PROC) {
     memory->create(counts,nprocs,"prd:counts");
@@ -146,12 +145,7 @@ void PRD::command(int narg, char **arg)
 
   // create ComputeTemp class to monitor temperature
 
-  char **args = new char*[3];
-  args[0] = (char *) "prd_temp";
-  args[1] = (char *) "all";
-  args[2] = (char *) "temp";
-  modify->add_compute(3,args);
-  temperature = modify->compute[modify->ncompute-1];
+  temperature = modify->add_compute("prd_temp all temp");
 
   // create Velocity class for velocity creation in dephasing
   // pass it temperature compute, loop_setting, dist_setting settings
@@ -160,6 +154,7 @@ void PRD::command(int narg, char **arg)
   velocity = new Velocity(lmp);
   velocity->init_external("all");
 
+  char *args[2];
   args[0] = (char *) "temp";
   args[1] = (char *) "prd_temp";
   velocity->options(2,args);
@@ -172,11 +167,7 @@ void PRD::command(int narg, char **arg)
 
   // create FixEventPRD class to store event and pre-quench states
 
-  args[0] = (char *) "prd_event";
-  args[1] = (char *) "all";
-  args[2] = (char *) "EVENT/PRD";
-  modify->add_fix(3,args);
-  fix_event = (FixEventPRD *) modify->fix[modify->nfix-1];
+  fix_event = (FixEventPRD *) modify->add_fix("prd_event all EVENT/PRD");
 
   // create Finish for timing output
 
@@ -184,7 +175,6 @@ void PRD::command(int narg, char **arg)
 
   // string clean-up
 
-  delete [] args;
   delete [] loop_setting;
   delete [] dist_setting;
 
@@ -318,7 +308,7 @@ void PRD::command(int narg, char **arg)
       dynamics(t_event,time_dynamics);
       fix_event->store_state_quench();
       quench();
-      clock = clock + t_event*universe->nworlds;
+      clock += (bigint)t_event*universe->nworlds;
       ireplica = check_event();
       if (ireplica >= 0) break;
       fix_event->restore_state_quench();
@@ -440,10 +430,7 @@ void PRD::command(int narg, char **arg)
               nsteps,atom->natoms);
   }
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"\nPRD done\n");
-    if (logfile) fprintf(logfile,"\nPRD done\n");
-  }
+  if (me == 0) utils::logmesg(lmp,"\nPRD done\n");
 
   finish->end(2);
 
@@ -476,7 +463,7 @@ void PRD::command(int narg, char **arg)
   modify->delete_compute("prd_temp");
   modify->delete_fix("prd_event");
 
-  compute_event->reset_extra_compute_fix(NULL);
+  compute_event->reset_extra_compute_fix(nullptr);
 }
 
 /* ----------------------------------------------------------------------
@@ -886,31 +873,24 @@ void PRD::options(int narg, char **arg)
   temp_flag = 0;
   stepmode = 0;
 
-  char *str = (char *) "geom";
-  int n = strlen(str) + 1;
-  loop_setting = new char[n];
-  strcpy(loop_setting,str);
-
-  str = (char *) "gaussian";
-  n = strlen(str) + 1;
-  dist_setting = new char[n];
-  strcpy(dist_setting,str);
+  loop_setting = utils::strdup("geom");
+  dist_setting = utils::strdup("gaussian");
 
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"min") == 0) {
       if (iarg+5 > narg) error->all(FLERR,"Illegal prd command");
-      etol = force->numeric(FLERR,arg[iarg+1]);
-      ftol = force->numeric(FLERR,arg[iarg+2]);
-      maxiter = force->inumeric(FLERR,arg[iarg+3]);
-      maxeval = force->inumeric(FLERR,arg[iarg+4]);
+      etol = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      ftol = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      maxiter = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
+      maxeval = utils::inumeric(FLERR,arg[iarg+4],false,lmp);
       if (maxiter < 0) error->all(FLERR,"Illegal prd command");
       iarg += 5;
 
     } else if (strcmp(arg[iarg],"temp") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal prd command");
       temp_flag = 1;
-      temp_dephase = force->numeric(FLERR,arg[iarg+1]);
+      temp_dephase = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (temp_dephase <= 0.0) error->all(FLERR,"Illegal prd command");
       iarg += 2;
 
@@ -919,20 +899,16 @@ void PRD::options(int narg, char **arg)
       delete [] loop_setting;
       delete [] dist_setting;
 
-      if (strcmp(arg[iarg+1],"all") == 0) loop_setting = NULL;
-      else if (strcmp(arg[iarg+1],"local") == 0) loop_setting = NULL;
-      else if (strcmp(arg[iarg+1],"geom") == 0) loop_setting = NULL;
+      if (strcmp(arg[iarg+1],"all") == 0) loop_setting = nullptr;
+      else if (strcmp(arg[iarg+1],"local") == 0) loop_setting = nullptr;
+      else if (strcmp(arg[iarg+1],"geom") == 0) loop_setting = nullptr;
       else error->all(FLERR,"Illegal prd command");
-      int n = strlen(arg[iarg+1]) + 1;
-      loop_setting = new char[n];
-      strcpy(loop_setting,arg[iarg+1]);
+      loop_setting = utils::strdup(arg[iarg+1]);
 
-      if (strcmp(arg[iarg+2],"uniform") == 0) dist_setting = NULL;
-      else if (strcmp(arg[iarg+2],"gaussian") == 0) dist_setting = NULL;
+      if (strcmp(arg[iarg+2],"uniform") == 0) dist_setting = nullptr;
+      else if (strcmp(arg[iarg+2],"gaussian") == 0) dist_setting = nullptr;
       else error->all(FLERR,"Illegal prd command");
-      n = strlen(arg[iarg+2]) + 1;
-      dist_setting = new char[n];
-      strcpy(dist_setting,arg[iarg+2]);
+      dist_setting = utils::strdup(arg[iarg+2]);
 
       iarg += 3;
 

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,33 +13,33 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_coord_atom.h"
-#include <cmath>
-#include <cstring>
-#include "compute_orientorder_atom.h"
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "force.h"
-#include "pair.h"
 #include "comm.h"
+#include "compute_orientorder_atom.h"
+#include "error.h"
+#include "force.h"
 #include "group.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
-#define INVOKED_PERATOM 8
 
 /* ---------------------------------------------------------------------- */
 
 ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  typelo(NULL), typehi(NULL), cvec(NULL), carray(NULL),
-  group2(NULL), id_orientorder(NULL), normv(NULL)
+  typelo(nullptr), typehi(nullptr), cvec(nullptr), carray(nullptr),
+  group2(nullptr), id_orientorder(nullptr), normv(nullptr)
 {
   if (narg < 5) error->all(FLERR,"Illegal compute coord/atom command");
 
@@ -48,14 +49,12 @@ ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
 
   if (strcmp(arg[3],"cutoff") == 0) {
     cstyle = CUTOFF;
-    double cutoff = force->numeric(FLERR,arg[4]);
+    double cutoff = utils::numeric(FLERR,arg[4],false,lmp);
     cutsq = cutoff*cutoff;
 
     int iarg = 5;
     if ((narg > 6) && (strcmp(arg[5],"group") == 0)) {
-      int len = strlen(arg[6])+1;
-      group2 = new char[len];
-      strcpy(group2,arg[6]);
+      group2 = utils::strdup(arg[6]);
       iarg += 2;
       jgroup = group->find(group2);
       if (jgroup == -1)
@@ -75,7 +74,7 @@ ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
     } else {
       ncol = 0;
       while (iarg < narg) {
-        force->bounds(FLERR,arg[iarg],ntypes,typelo[ncol],typehi[ncol]);
+        utils::bounds(FLERR,arg[iarg],1,ntypes,typelo[ncol],typehi[ncol],error);
         if (typelo[ncol] > typehi[ncol])
           error->all(FLERR,"Illegal compute coord/atom command");
         ncol++;
@@ -87,9 +86,7 @@ ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
     cstyle = ORIENT;
     if (narg != 6) error->all(FLERR,"Illegal compute coord/atom command");
 
-    int n = strlen(arg[4]) + 1;
-    id_orientorder = new char[n];
-    strcpy(id_orientorder,arg[4]);
+    id_orientorder = utils::strdup(arg[4]);
 
     int iorientorder = modify->find_compute(id_orientorder);
     if (iorientorder < 0)
@@ -97,7 +94,7 @@ ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
     if (!utils::strmatch(modify->compute[iorientorder]->style,"^orientorder/atom"))
       error->all(FLERR,"Compute coord/atom compute ID is not orientorder/atom");
 
-    threshold = force->numeric(FLERR,arg[5]);
+    threshold = utils::numeric(FLERR,arg[5],false,lmp);
     if (threshold <= -1.0 || threshold >= 1.0)
       error->all(FLERR,"Compute coord/atom threshold not between -1 and 1");
 
@@ -146,7 +143,7 @@ void ComputeCoordAtom::init()
                  "option in compute orientorder/atom");
   }
 
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Compute coord/atom requires a pair style be defined");
   if (sqrt(cutsq) > force->pair->cutforce)
     error->all(FLERR,
@@ -197,9 +194,9 @@ void ComputeCoordAtom::compute_peratom()
   }
 
   if (cstyle == ORIENT) {
-    if (!(c_orientorder->invoked_flag & INVOKED_PERATOM)) {
+    if (!(c_orientorder->invoked_flag & Compute::INVOKED_PERATOM)) {
       c_orientorder->compute_peratom();
-      c_orientorder->invoked_flag |= INVOKED_PERATOM;
+      c_orientorder->invoked_flag |= Compute::INVOKED_PERATOM;
     }
     nqlist = c_orientorder->nqlist;
     normv = c_orientorder->array_atom;
@@ -309,7 +306,7 @@ void ComputeCoordAtom::compute_peratom()
           rsq = delx*delx + dely*dely + delz*delz;
           if (rsq < cutsq) {
             double dot_product = 0.0;
-            for (int m=0; m < 2*(2*l+1); m++) {
+            for (m=0; m < 2*(2*l+1); m++) {
               dot_product += normv[i][nqlist+m]*normv[j][nqlist+m];
             }
             if (dot_product > threshold) n++;
@@ -355,6 +352,6 @@ void ComputeCoordAtom::unpack_forward_comm(int n, int first, double *buf)
 
 double ComputeCoordAtom::memory_usage()
 {
-  double bytes = ncol*nmax * sizeof(double);
+  double bytes = (double)ncol*nmax * sizeof(double);
   return bytes;
 }

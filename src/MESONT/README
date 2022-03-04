@@ -1,0 +1,89 @@
+MESONT is a LAMMPS package for simulation of nanomechanics of carbon
+nanotubes (CNTs). The model is based on a coarse-grained representation
+of CNTs as "flexible cylinders" consisting of a variable number of
+segments. Internal interactions within a CNT and the van der Waals
+interaction between the tubes are described by a mesoscopic force
+field designed and parameterized based on the results of atomic-level
+molecular dynamics simulations. The description of the force field
+is provided in the papers listed below.
+
+--
+
+This package was created by Maxim Shugaev (mvs9t@virginia.edu)
+at the University of Virginia.
+The Fortran library implementing basic level functions describing stretching,
+bending, and intertube components of the mesoscopic CNT force field, used
+by this package is developed by Alexey N. Volkov (avolkov1@ua.edu)
+at the University of Alabama.
+
+--
+
+The following commands are contained in this package:
+
+atom_style mesont
+  This command enables mesont atom_style containing variables used for
+  further commands in MESONT.
+
+pair_style mesont/tpm cut table_path BendingMode TPMType
+  This command activates a pair_style describing CNT mesoscopic tubular
+  potential model (TPM) force field. "cut" is cutoff distance that should
+  be set to be at least max(2.0*L, sqrt(L^2/2 + (2.0*R + Tcut)^2)),
+  where L is the maximum segment length, R is the maximum tube radius,
+  and Tcut = 10.2 A is the maximum distance between surfaces of interacting
+  segments. However, the recommended cutoff is 3L.
+
+compute mesont
+  This command allows evaluation of per atom and total values of stretching,
+  bending, and intertube interaction components of energies. Use the following
+  flags: 'estretch', 'ebend', 'etube'.
+
+--
+
+References:
+
+L. V. Zhigilei, C. Wei, and D. Srivastava, Mesoscopic model for dynamic
+simulations of carbon nanotubes, Phys. Rev. B 71, 165417, 2005.
+
+A. N. Volkov and L. V. Zhigilei, Structural stability of carbon nanotube
+films: The role of bending buckling, ACS Nano 4, 6187-6195, 2010.
+
+A. N. Volkov, K. R. Simov, and L. V. Zhigilei, Mesoscopic model for simulation
+of CNT-based materials, Proceedings of the ASME International Mechanical
+Engineering Congress and Exposition (IMECE2008), ASME paper IMECE2008-68021,
+2008.
+
+A. N. Volkov and L. V. Zhigilei, Mesoscopic interaction potential for carbon
+nanotubes of arbitrary length and orientation, J. Phys. Chem. C 114, 5513-5531,
+2010.
+
+B. K. Wittmaack, A. H. Banna, A. N. Volkov, L. V. Zhigilei, Mesoscopic
+modeling of structural self-organization of carbon nanotubes into vertically
+aligned networks of nanotube bundles, Carbon 130, 69-86, 2018.
+
+B. K. Wittmaack, A. N. Volkov, L. V. Zhigilei, Mesoscopic modeling of the
+uniaxial compression and recovery of vertically aligned carbon nanotube
+forests, Compos. Sci. Technol. 166, 66-85, 2018.
+
+B. K. Wittmaack, A. N. Volkov, L. V. Zhigilei, Phase transformation as the
+mechanism of mechanical deformation of vertically aligned carbon nanotube
+arrays: Insights from mesoscopic modeling, Carbon 143, 587-597, 2019.
+
+A. N. Volkov and L. V. Zhigilei, Scaling laws and mesoscopic modeling of
+thermal conductivity in carbon nanotube materials, Phys. Rev. Lett. 104,
+215902, 2010.
+
+A. N. Volkov, T. Shiga, D. Nicholson, J. Shiomi, and L. V. Zhigilei, Effect
+of bending buckling of carbon nanotubes on thermal conductivity of carbon
+nanotube materials, J. Appl. Phys. 111, 053501, 2012.
+
+A. N. Volkov and L. V. Zhigilei, Heat conduction in carbon nanotube materials:
+Strong effect of intrinsic thermal conductivity of carbon nanotubes, Appl.
+Phys. Lett. 101, 043113, 2012.
+
+W. M. Jacobs, D. A. Nicholson, H. Zemer, A. N. Volkov, and L. V. Zhigilei,
+Acoustic energy dissipation and thermalization in carbon nanotubes: Atomistic
+modeling and mesoscopic description, Phys. Rev. B 86, 165414, 2012.
+
+A. N. Volkov and A. H. Banna, Mesoscopic computational model of covalent
+cross-links and mechanisms of load transfer in cross-linked carbon nanotube
+films with continuous networks of bundles, Comp. Mater. Sci. 176, 109410, 2020.

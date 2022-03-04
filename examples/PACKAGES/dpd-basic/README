@@ -1,0 +1,10 @@
+Examples for Extended Dissipative Particle Dynamics (DPD)
+---------------------------------------------------------
+This directory contains examples for extended DPD simulations
+
+1)  'dpdext' - test case (DPD fluid) for 'dpdext' pair style (in.dpdext) and an initial 
+    configuration (dpdext.data)
+
+2)  'dpdext_tstat' - test case (coarse-grained SPC/E water) for 'dpdext/tstat' pair style 
+    (in.cg_spce), an initial configuration (dpdext.data) and tabulated potential 
+    (cg_spce_table.pot) obtained by bottom-up coarse-graining of the atomistic SPC/E water.

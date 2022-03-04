@@ -36,4 +36,7 @@ Related commands
 
 :doc:`compute <compute>`
 
-**Default:** none
+Default
+"""""""
+
+none

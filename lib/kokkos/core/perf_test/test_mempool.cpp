@@ -48,7 +48,7 @@
 #include <limits>
 
 #include <Kokkos_Core.hpp>
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 
 using ExecSpace   = Kokkos::DefaultExecutionSpace;
 using MemorySpace = Kokkos::DefaultExecutionSpace::memory_space;
@@ -56,7 +56,7 @@ using MemorySpace = Kokkos::DefaultExecutionSpace::memory_space;
 using MemoryPool = Kokkos::MemoryPool<ExecSpace>;
 
 struct TestFunctor {
-  typedef Kokkos::View<uintptr_t*, ExecSpace> ptrs_type;
+  using ptrs_type = Kokkos::View<uintptr_t*, ExecSpace>;
 
   enum : unsigned { chunk = 32 };
 
@@ -87,7 +87,7 @@ struct TestFunctor {
 
   //----------------------------------------
 
-  typedef long value_type;
+  using value_type = long;
 
   //----------------------------------------
 
@@ -100,14 +100,14 @@ struct TestFunctor {
 
       const unsigned size_alloc = chunk * (1 + (j % chunk_span));
 
-      ptrs(j) = (uintptr_t)pool.allocate(size_alloc);
+      ptrs(j) = reinterpret_cast<uintptr_t>(pool.allocate(size_alloc));
 
       if (ptrs(j)) ++update;
     }
   }
 
   bool test_fill() {
-    typedef Kokkos::RangePolicy<ExecSpace, TagFill> policy;
+    using policy = Kokkos::RangePolicy<ExecSpace, TagFill>;
 
     long result = 0;
 
@@ -129,12 +129,12 @@ struct TestFunctor {
 
       const unsigned size_alloc = chunk * (1 + (j % chunk_span));
 
-      pool.deallocate((void*)ptrs(j), size_alloc);
+      pool.deallocate(reinterpret_cast<void*>(ptrs(j)), size_alloc);
     }
   }
 
   void test_del() {
-    typedef Kokkos::RangePolicy<ExecSpace, TagDel> policy;
+    using policy = Kokkos::RangePolicy<ExecSpace, TagDel>;
 
     Kokkos::parallel_for(policy(0, range_iter), *this);
     Kokkos::fence();
@@ -153,9 +153,9 @@ struct TestFunctor {
         for (unsigned k = 0; k < repeat_inner; ++k) {
           const unsigned size_alloc = chunk * (1 + (j % chunk_span));
 
-          pool.deallocate((void*)ptrs(j), size_alloc);
+          pool.deallocate(reinterpret_cast<void*>(ptrs(j)), size_alloc);
 
-          ptrs(j) = (uintptr_t)pool.allocate(size_alloc);
+          ptrs(j) = reinterpret_cast<uintptr_t>(pool.allocate(size_alloc));
 
           if (0 == ptrs(j)) update++;
         }
@@ -164,7 +164,7 @@ struct TestFunctor {
   }
 
   bool test_alloc_dealloc() {
-    typedef Kokkos::RangePolicy<ExecSpace, TagAllocDealloc> policy;
+    using policy = Kokkos::RangePolicy<ExecSpace, TagAllocDealloc>;
 
     long error_count = 0;
 
@@ -203,22 +203,22 @@ int main(int argc, char* argv[]) {
       total_alloc_size = atol(a + strlen(alloc_size_flag));
 
     if (!strncmp(a, super_size_flag, strlen(super_size_flag)))
-      min_superblock_size = atoi(a + strlen(super_size_flag));
+      min_superblock_size = std::stoi(a + strlen(super_size_flag));
 
     if (!strncmp(a, fill_stride_flag, strlen(fill_stride_flag)))
-      fill_stride = atoi(a + strlen(fill_stride_flag));
+      fill_stride = std::stoi(a + strlen(fill_stride_flag));
 
     if (!strncmp(a, fill_level_flag, strlen(fill_level_flag)))
-      fill_level = atoi(a + strlen(fill_level_flag));
+      fill_level = std::stoi(a + strlen(fill_level_flag));
 
     if (!strncmp(a, chunk_span_flag, strlen(chunk_span_flag)))
-      chunk_span = atoi(a + strlen(chunk_span_flag));
+      chunk_span = std::stoi(a + strlen(chunk_span_flag));
 
     if (!strncmp(a, repeat_outer_flag, strlen(repeat_outer_flag)))
-      repeat_outer = atoi(a + strlen(repeat_outer_flag));
+      repeat_outer = std::stoi(a + strlen(repeat_outer_flag));
 
     if (!strncmp(a, repeat_inner_flag, strlen(repeat_inner_flag)))
-      repeat_inner = atoi(a + strlen(repeat_inner_flag));
+      repeat_inner = std::stoi(a + strlen(repeat_inner_flag));
   }
 
   int chunk_span_bytes = 0;
@@ -266,7 +266,7 @@ int main(int argc, char* argv[]) {
     TestFunctor functor(total_alloc_size, min_superblock_size, number_alloc,
                         fill_stride, chunk_span, repeat_inner);
 
-    Kokkos::Impl::Timer timer;
+    Kokkos::Timer timer;
 
     if (!functor.test_fill()) {
       Kokkos::abort("fill ");

@@ -1,3 +1,9 @@
+IMPORTANT NOTE: This example has not been updated since 2013,
+so it is not likely to work anymore out of the box.  There have
+been changes to LAMMPS and its library interface that would need
+to be applied. Please see the manual for the documentation of
+the library interface.
+
 This directory has an application that models grain growth in the
 presence of strain.
 
@@ -16,11 +22,11 @@ Lennard-Jones sigma between particles of different types that is
 larger than the sigma between particles of the same type (interior to
 grains).
 
-lmpspk.cpp	    main program
-		    it links LAMMPS and SPPARKS as libraries
-in.spparks	    SPPARKS input script, without the run command
-lmppath.h	    contains path to LAMMPS home directory
-spkpath.h	    contains path to SPPARKS home directory
+lmpspk.cpp          main program
+                    it links LAMMPS and SPPARKS as libraries
+in.spparks          SPPARKS input script, without the run command
+lmppath.h           contains path to LAMMPS home directory
+spkpath.h           contains path to SPPARKS home directory
 
 After editing the Makefile, lmppath.h, and spkpath.h to make them
 suitable for your box, type:

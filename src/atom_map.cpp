@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,11 +13,12 @@
 ------------------------------------------------------------------------- */
 
 #include "atom.h"
-#include <mpi.h>
-#include <cmath>
+
 #include "comm.h"
-#include "memory.h"
 #include "error.h"
+#include "memory.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -43,15 +45,15 @@ void Atom::map_init(int check)
   int recreate = 0;
   if (check) recreate = map_style_set();
 
-  if (map_style == 1 && map_tag_max > map_maxarray) recreate = 1;
-  else if (map_style == 2 && nlocal+nghost > map_nhash) recreate = 1;
+  if (map_style == MAP_ARRAY && map_tag_max > map_maxarray) recreate = 1;
+  else if (map_style == MAP_HASH && nlocal+nghost > map_nhash) recreate = 1;
 
   // if not recreating:
   // for array, initialize current map_tag_max values
   // for hash, set all buckets to empty, put all entries in free list
 
   if (!recreate) {
-    if (map_style == 1) {
+    if (map_style == MAP_ARRAY) {
       for (int i = 0; i <= map_tag_max; i++) map_array[i] = -1;
     } else {
       for (int i = 0; i < map_nbucket; i++) map_bucket[i] = -1;
@@ -66,7 +68,7 @@ void Atom::map_init(int check)
   } else {
     map_delete();
 
-    if (map_style == 1) {
+    if (map_style == MAP_ARRAY) {
       map_maxarray = map_tag_max;
       memory->create(map_array,map_maxarray+1,"atom:map_array");
       for (int i = 0; i <= map_tag_max; i++) map_array[i] = -1;
@@ -113,7 +115,7 @@ void Atom::map_init(int check)
 
 void Atom::map_clear()
 {
-  if (map_style == 1) {
+  if (map_style == MAP_ARRAY) {
     int nall = nlocal + nghost;
     for (int i = 0; i < nall; i++) {
       sametag[i] = -1;
@@ -168,7 +170,7 @@ void Atom::map_set()
 {
   int nall = nlocal + nghost;
 
-  if (map_style == 1) {
+  if (map_style == MAP_ARRAY) {
 
     // possible reallocation of sametag must come before loop over atoms
     // since loop sets sametag
@@ -246,7 +248,7 @@ void Atom::map_set()
 
 void Atom::map_one(tagint global, int local)
 {
-  if (map_style == 1) map_array[global] = local;
+  if (map_style == MAP_ARRAY) map_array[global] = local;
   else {
     // search for key
     // if found it, just overwrite local value with index
@@ -304,9 +306,12 @@ int Atom::map_style_set()
   // else use array
 
   int map_style_old = map_style;
-  if (map_user == 1 || map_user == 2) map_style = map_user;
-  else if (map_tag_max > 1000000 && !lmp->kokkos) map_style = 2;
-  else map_style = 1;
+  if (map_user == MAP_ARRAY || map_user == MAP_HASH) {
+    map_style = map_user;
+  } else {  // map_user == MAP_YES
+    if (map_tag_max > 1000000) map_style = MAP_HASH;
+    else map_style = MAP_ARRAY;
+  }
 
   // recreate = 1 if must create new map b/c map_style changed
 
@@ -322,18 +327,18 @@ int Atom::map_style_set()
 void Atom::map_delete()
 {
   memory->destroy(sametag);
-  sametag = NULL;
+  sametag = nullptr;
   max_same = 0;
 
-  if (map_style == 1) {
+  if (map_style == MAP_ARRAY) {
     memory->destroy(map_array);
-    map_array = NULL;
+    map_array = nullptr;
   } else {
     if (map_nhash) {
       delete [] map_bucket;
       delete [] map_hash;
-      map_bucket = NULL;
-      map_hash = NULL;
+      map_bucket = nullptr;
+      map_hash = nullptr;
     }
     map_nhash = map_nbucket = 0;
   }

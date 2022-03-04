@@ -22,9 +22,9 @@ class TimeFilter;
 class ATC_Transfer : public ATC_Method {
 
  public:
-  
+
   // constructor
-  ATC_Transfer(std::string groupName, 
+  ATC_Transfer(std::string groupName,
                double **& perAtomArray,
                LAMMPS_NS::Fix * thisFix,
                std::string matParamFile = "none");
@@ -52,7 +52,7 @@ class ATC_Transfer : public ATC_Method {
   virtual void pre_neighbor() {ATC_Method::pre_neighbor(); neighborReset_ = true;};
 
   /** output function */
-  virtual void output(); 
+  virtual void output();
 
   /** external access to hardy data and other information*/
   const DENS_MAT * hardy_data(std::string field) { return &hardyData_[field].quantity(); }
@@ -63,25 +63,25 @@ class ATC_Transfer : public ATC_Method {
   double ** xPointer_;
 
   /** data */
-  TAG_FIELDS hardyData_; 
+  TAG_FIELDS hardyData_;
   SmallMoleculeSet * smallMoleculeSet_; // KKM add
   SmallMoleculeCentroid * moleculeCentroid_; // KKM add
   SmallMoleculeDipoleMoment * dipoleMoment_; // KKM add
   SmallMoleculeQuadrupoleMoment * quadrupoleMoment_; // KKM add
   /** container for dependency managed data */
   std::vector < DENS_MAN * > outputFields_;
-  
+
   std::map < std::string, DENS_MAN * > outputFieldsTagged_;
 
   DENS_MAN * restrictedCharge_; // WIP/TEMP
 
-  /** work space */ 
+  /** work space */
   DENS_MAT atomicScalar_;
   DENS_MAT atomicVector_;
   DENS_MAT atomicTensor_;
 
   /** calculation flags */
-  Array<bool> fieldFlags_; 
+  Array<bool> fieldFlags_;
   Array<bool> outputFlags_;
   Array<bool> gradFlags_;
   Array<bool> rateFlags_;
@@ -117,7 +117,7 @@ class ATC_Transfer : public ATC_Method {
   void compute_heatflux(DENS_MAT & flux);
   /** derived quantities: compute nodal to nodal quantities */
   void compute_eshelby_stress(DENS_MAT & eshebly_stress,
-    const DENS_MAT &  energy, const DENS_MAT & stress, 
+    const DENS_MAT &  energy, const DENS_MAT & stress,
     const DENS_MAT & displacement_gradient);
   void cauchy_born_stress(const DENS_MAT &dudx, DENS_MAT &T, const DENS_MAT *temp=0);
   void cauchy_born_energy(const DENS_MAT &dudx, DENS_MAT &T, const DENS_MAT *temp=0);
@@ -151,15 +151,15 @@ class ATC_Transfer : public ATC_Method {
   virtual void compute_dislocation_density(DENS_MAT & dislocation_density) = 0;
 
   /** compute smooth fields */
-  void compute_fields(void); 
-  void time_filter_pre (double dt); 
-  void time_filter_post(double dt); 
+  void compute_fields(void);
+  void time_filter_pre (double dt);
+  void time_filter_post(double dt);
 
   /** mapping of atomic pairs to pair index value */
-  class PairMap * pairMap_; 
-  class BondMatrix * bondMatrix_; 
-  class PairVirial * pairVirial_; 
-  class PairPotentialHeatFlux * pairHeatFlux_; 
+  class PairMap * pairMap_;
+  class BondMatrix * bondMatrix_;
+  class PairVirial * pairVirial_;
+  class PairPotentialHeatFlux * pairHeatFlux_;
 
   /** routine to calculate matrix of force & position dyads */
   void compute_force_matrix();
@@ -176,7 +176,7 @@ class ATC_Transfer : public ATC_Method {
                                   DENS_MAT & nodeData) = 0;
 
   /** routine to calculate matrix of bond functions */
-  virtual void compute_bond_matrix(); 
+  virtual void compute_bond_matrix();
 
   /** routine to set xPointer to xref or xatom */
   void set_xPointer();
@@ -200,21 +200,21 @@ class ATC_Transfer : public ATC_Method {
   void project_count_normalized(const DENS_MAT & atomData,
                                       DENS_MAT & nodeData);
 
-  /** hardy_project (volume density): given w_\alpha, 
-               w_I = 1/\Omega_I \sum_\alpha N_{I\alpha} w_\alpha 
+  /** hardy_project (volume density): given w_\alpha,
+               w_I = 1/\Omega_I \sum_\alpha N_{I\alpha} w_\alpha
                where   \Omega_I = \int_{support region of node I} N_{I} dV  */
   // REFACTOR AtfNodeWeightedShapeFunctionRestriction
   void project_volume_normalized(const DENS_MAT & atomData,
                                        DENS_MAT & nodeData);
   void project_volume_normalized_molecule(const DENS_MAT & molData,
-                                                DENS_MAT & nodeData); // KKM add    
+                                                DENS_MAT & nodeData); // KKM add
   void project_volume_normalized_molecule_gradient(const DENS_MAT & molData,
-                                                DENS_MAT & nodeData); // KKM add    
-  
-  
-  /** gradient_compute: given w_I, 
-               w_J = \sum_I N_I'{xJ} \dyad w_I 
-               where N_I'{xJ} is the gradient of the normalized 
+                                                DENS_MAT & nodeData); // KKM add
+
+
+  /** gradient_compute: given w_I,
+               w_J = \sum_I N_I'{xJ} \dyad w_I
+               where N_I'{xJ} is the gradient of the normalized
                               shape function of node I evaluated at node J */
   // REFACTOR MatToGradBySparse
   void gradient_compute(const DENS_MAT & inNodeData,
@@ -226,7 +226,7 @@ class ATC_Transfer : public ATC_Method {
   /** workset data */
   VectorDependencyManager<SPAR_MAT * > * gradientMatrix_;
 
-  
+
   SPAR_MAT atomicBondMatrix_;
   DENS_MAT atomicForceMatrix_;
   DENS_MAT atomicHeatMatrix_;
@@ -247,7 +247,7 @@ class ATC_Transfer : public ATC_Method {
   Array<TimeFilter *> timeFilters_;
 
   /** check consistency of fieldFlags_ */
-  void check_field_dependencies(); 
+  void check_field_dependencies();
 
 };
 

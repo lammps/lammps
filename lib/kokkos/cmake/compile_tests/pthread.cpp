@@ -2,7 +2,7 @@
 
 void* kokkos_test(void* args) { return args; }
 
-int main(void) {
+int main() {
   pthread_t thread;
   /* Use NULL to avoid C++11. Some compilers
      do not have C++11 by default.  Forcing C++11

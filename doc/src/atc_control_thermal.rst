@@ -56,7 +56,7 @@ adds energy to the atoms based on conservation of energy. *hoover* and
 atoms.
 
 *correction_max_iterations* sets the maximum number of iterations to
-compute the 2nd order in time correction term for lambda with the
+compute the second order in time correction term for lambda with the
 fractional step method. The method uses the same tolerance as the
 controller's matrix solver.
 
@@ -66,7 +66,7 @@ Restrictions
 Only for be used with the specific controllers *thermal* or *momentum*.
 They are ignored if a lumped solution is requested.
 
-*control thermal* is only for be used with specific transfers: thermal (*rescale*\ , *hoover*\ , *flux*\ ), *two_temperature* (*flux*\ ).
+*control thermal* is only for be used with specific transfers: thermal (*rescale*, *hoover*, *flux*\ ), *two_temperature* (*flux*\ ).
 *rescale* not valid with time filtering activated
 
 *correction_max_iterations* is only for use with *thermal* physics using

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,18 +13,17 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_wall.h"
-#include <mpi.h>
-#include <cstring>
-#include "input.h"
-#include "variable.h"
+
 #include "domain.h"
+#include "error.h"
+#include "input.h"
 #include "lattice.h"
-#include "update.h"
 #include "modify.h"
 #include "respa.h"
-#include "error.h"
-#include "force.h"
-#include "utils.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -42,9 +42,10 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extscalar = 1;
   extvector = 1;
+  energy_global_flag = 1;
+  virial_global_flag = virial_peratom_flag = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
-  virial_flag = 1;
 
   // parse args
 
@@ -52,7 +53,7 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
   fldflag = 0;
   int pbcflag = 0;
 
-  for (int i = 0; i < 6; i++) xstr[i] = estr[i] = sstr[i] = NULL;
+  for (int i = 0; i < 6; i++) xstr[i] = estr[i] = sstr[i] = nullptr;
 
   int iarg = 3;
   while (iarg < narg) {
@@ -80,50 +81,42 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
         int side = wallwhich[nwall] % 2;
         if (side == 0) coord0[nwall] = domain->boxlo[dim];
         else coord0[nwall] = domain->boxhi[dim];
-      } else if (strstr(arg[iarg+1],"v_") == arg[iarg+1]) {
+      } else if (utils::strmatch(arg[iarg+1],"^v_")) {
         xstyle[nwall] = VARIABLE;
-        int n = strlen(&arg[iarg+1][2]) + 1;
-        xstr[nwall] = new char[n];
-        strcpy(xstr[nwall],&arg[iarg+1][2]);
+        xstr[nwall] = utils::strdup(arg[iarg+1]+2);
       } else {
         xstyle[nwall] = CONSTANT;
-        coord0[nwall] = force->numeric(FLERR,arg[iarg+1]);
+        coord0[nwall] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       }
 
-      if (strstr(arg[iarg+2],"v_") == arg[iarg+2]) {
-        int n = strlen(&arg[iarg+2][2]) + 1;
-        estr[nwall] = new char[n];
-        strcpy(estr[nwall],&arg[iarg+2][2]);
+      if (utils::strmatch(arg[iarg+2],"^v_")) {
+        estr[nwall] = utils::strdup(arg[iarg+2]+2);
         estyle[nwall] = VARIABLE;
       } else {
-        epsilon[nwall] = force->numeric(FLERR,arg[iarg+2]);
+        epsilon[nwall] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
         estyle[nwall] = CONSTANT;
       }
 
       if (utils::strmatch(style,"^wall/morse")) {
-        if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
-          int n = strlen(&arg[iarg+3][2]) + 1;
-          astr[nwall] = new char[n];
-          strcpy(astr[nwall],&arg[iarg+3][2]);
+        if (utils::strmatch(arg[iarg+3],"^v_")) {
+          astr[nwall] = utils::strdup(arg[iarg+3]+2);
           astyle[nwall] = VARIABLE;
         } else {
-          alpha[nwall] = force->numeric(FLERR,arg[iarg+3]);
+          alpha[nwall] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
           astyle[nwall] = CONSTANT;
         }
         ++iarg;
       }
 
-      if (strstr(arg[iarg+3],"v_") == arg[iarg+3]) {
-        int n = strlen(&arg[iarg+3][2]) + 1;
-        sstr[nwall] = new char[n];
-        strcpy(sstr[nwall],&arg[iarg+3][2]);
+      if (utils::strmatch(arg[iarg+3],"^v_")) {
+        sstr[nwall] = utils::strdup(arg[iarg+3]+2);
         sstyle[nwall] = VARIABLE;
       } else {
-        sigma[nwall] = force->numeric(FLERR,arg[iarg+3]);
+        sigma[nwall] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
         sstyle[nwall] = CONSTANT;
       }
 
-      cutoff[nwall] = force->numeric(FLERR,arg[iarg+4]);
+      cutoff[nwall] = utils::numeric(FLERR,arg[iarg+4],false,lmp);
       nwall++;
       iarg += 5;
 
@@ -135,15 +128,11 @@ FixWall::FixWall(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"fld") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix wall command");
-      if (strcmp(arg[iarg+1],"no") == 0) fldflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) fldflag = 1;
-      else error->all(FLERR,"Illegal fix wall command");
+      fldflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"pbc") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix wall command");
-      if (strcmp(arg[iarg+1],"yes") == 0) pbcflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) pbcflag = 0;
-      else error->all(FLERR,"Illegal fix wall command");
+      pbcflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix wall command");
   }
@@ -234,7 +223,6 @@ int FixWall::setmask()
   if (fldflag) mask |= PRE_FORCE;
   else mask |= POST_FORCE;
 
-  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   mask |= MIN_POST_FORCE;
   return mask;
@@ -272,7 +260,7 @@ void FixWall::init()
 
   for (int m = 0; m < nwall; m++) precompute(m);
 
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
@@ -282,7 +270,7 @@ void FixWall::init()
 
 void FixWall::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet")) {
+  if (utils::strmatch(update->integrate_style,"^verlet")) {
     if (!fldflag) post_force(vflag);
   } else {
     ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
@@ -311,12 +299,14 @@ void FixWall::pre_force(int vflag)
 
 void FixWall::post_force(int vflag)
 {
+  // virial setup
 
-  // energy and virial setup
+  v_init(vflag);
+
+  // energy intialize.
+  // eflag is used to track whether wall energies have been communitcated.
 
   eflag = 0;
-  if (vflag) v_setup(vflag);
-  else evflag = 0;
   for (int m = 0; m <= nwall; m++) ewall[m] = 0.0;
 
   // coord = current position of wall

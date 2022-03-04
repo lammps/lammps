@@ -56,21 +56,39 @@ namespace Kokkos {
 namespace Impl {
 
 void hip_internal_error_throw(hipError_t e, const char* name,
-                              const char* file = NULL, const int line = 0);
+                              const char* file = nullptr, const int line = 0);
 
 inline void hip_internal_safe_call(hipError_t e, const char* name,
-                                   const char* file = NULL,
+                                   const char* file = nullptr,
                                    const int line   = 0) {
   if (hipSuccess != e) {
     hip_internal_error_throw(e, name, file, line);
   }
 }
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
+
+KOKKOS_DEPRECATED
+inline void hip_internal_safe_call_deprecated(hipError_t e, const char* name,
+                                              const char* file = nullptr,
+                                              const int line   = 0) {
+  hip_internal_safe_call(e, name, file, line);
+}
+
+#endif
+
 }  // namespace Impl
 }  // namespace Kokkos
 
-#define HIP_SAFE_CALL(call) \
+#define KOKKOS_IMPL_HIP_SAFE_CALL(call) \
   Kokkos::Impl::hip_internal_safe_call(call, #call, __FILE__, __LINE__)
+
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
+#define HIP_SAFE_CALL(call)                                              \
+  Kokkos::Impl::hip_internal_safe_call_deprecated(call, #call, __FILE__, \
+                                                  __LINE__)
+
+#endif
 
 namespace Kokkos {
 namespace Experimental {

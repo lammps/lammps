@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(MINIMIZE/kk,FixMinimizeKokkos)
-FixStyle(MINIMIZE/kk/device,FixMinimizeKokkos)
-FixStyle(MINIMIZE/kk/host,FixMinimizeKokkos)
-
+// clang-format off
+FixStyle(MINIMIZE/kk,FixMinimizeKokkos);
+FixStyle(MINIMIZE/kk/device,FixMinimizeKokkos);
+FixStyle(MINIMIZE/kk/host,FixMinimizeKokkos);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_FIX_MINIMIZE_KOKKOS_H
 #define LMP_FIX_MINIMIZE_KOKKOS_H
 
@@ -32,13 +33,13 @@ class FixMinimizeKokkos : public FixMinimize {
 
  public:
   FixMinimizeKokkos(class LAMMPS *, int, char **);
-  virtual ~FixMinimizeKokkos();
-  void init() {}
+  ~FixMinimizeKokkos() override;
+  void init() override {}
 
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
 
   void add_vector_kokkos();
   DAT::t_float_1d request_vector_kokkos(int);

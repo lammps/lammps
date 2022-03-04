@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(hbond/dreiding/morse,PairHbondDreidingMorse)
-
+// clang-format off
+PairStyle(hbond/dreiding/morse,PairHbondDreidingMorse);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_HBOND_DREIDING_MORSE_H
@@ -27,14 +27,14 @@ namespace LAMMPS_NS {
 class PairHbondDreidingMorse : public PairHbondDreidingLJ {
  public:
   PairHbondDreidingMorse(class LAMMPS *);
-  virtual ~PairHbondDreidingMorse() {};
-  virtual void compute(int, int);
-  void coeff(int, char **);
-  void init_style();
-  double single(int, int, int, int, double, double, double, double &);
+
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double single(int, int, int, int, double, double, double, double &) override;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

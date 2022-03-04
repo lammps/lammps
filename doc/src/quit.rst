@@ -48,4 +48,7 @@ Related commands
 
 :doc:`if <if>`
 
-**Default:** none
+Default
+"""""""
+
+none

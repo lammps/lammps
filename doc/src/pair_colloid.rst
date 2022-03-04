@@ -1,13 +1,11 @@
 .. index:: pair_style colloid
+.. index:: pair_style colloid/gpu
+.. index:: pair_style colloid/omp
 
 pair_style colloid command
 ==========================
 
-pair_style colloid/gpu command
-==============================
-
-pair_style colloid/omp command
-==============================
+Accelerator Variants: *colloid/gpu*, *colloid/omp*
 
 Syntax
 """"""
@@ -77,7 +75,7 @@ The colloid-solvent interaction energy is given by
    \left[ 1 - \frac{\left(5 ~ a^6+45~a^4~r^2+63~a^2~r^4+15~r^6\right) \sigma^6}
    {15 \left(a-r\right)^6 \left( a+r \right)^6} \right], \quad r < r_c
 
-where :math:A_{cs}` is the Hamaker constant, *a* is the radius of the colloidal
+where :math:`A_{cs}` is the Hamaker constant, *a* is the radius of the colloidal
 particle, and :math:`r_c` is the cutoff.  This formula is derived from the
 colloid-colloid interaction, letting one of the particle sizes go to
 zero.
@@ -161,27 +159,12 @@ colloid-solvent cutoff in this case.
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the A, sigma, d1, and d2
 coefficients and cutoff distance for this pair style can be mixed.  A
@@ -204,7 +187,7 @@ to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -212,7 +195,7 @@ Restrictions
 """"""""""""
 
 This style is part of the COLLOID package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Normally, this pair style should be used with finite-size particles
 which have a diameter, e.g. see the :doc:`atom_style sphere <atom_style>` command.  However, this is not a requirement,
@@ -230,7 +213,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

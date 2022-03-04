@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(freeze/kk,FixFreezeKokkos<LMPDeviceType>)
-FixStyle(freeze/kk/device,FixFreezeKokkos<LMPDeviceType>)
-FixStyle(freeze/kk/host,FixFreezeKokkos<LMPHostType>)
-
+// clang-format off
+FixStyle(freeze/kk,FixFreezeKokkos<LMPDeviceType>);
+FixStyle(freeze/kk/device,FixFreezeKokkos<LMPDeviceType>);
+FixStyle(freeze/kk/host,FixFreezeKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_FIX_FREEZE_KOKKOS_H
 #define LMP_FIX_FREEZE_KOKKOS_H
 
@@ -30,6 +31,7 @@ namespace LAMMPS_NS {
 template<class DeviceType>
 class FixFreezeKokkos : public FixFreeze {
  public:
+  typedef DeviceType device_type;
   struct OriginalForce {
     double values[3];
 
@@ -57,12 +59,7 @@ class FixFreezeKokkos : public FixFreeze {
   };
 
   FixFreezeKokkos(class LAMMPS *, int, char **);
-  int setmask();
-  void init();
-  void setup(int);
-  void post_force(int);
-  void post_force_respa(int, int, int);
-  double compute_vector(int);
+  void post_force(int) override;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(const int i, OriginalForce &original) const;

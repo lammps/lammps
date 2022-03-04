@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef REGION_CLASS
-
-RegionStyle(block/kk,RegBlockKokkos<LMPDeviceType>)
-RegionStyle(block/kk/device,RegBlockKokkos<LMPDeviceType>)
-RegionStyle(block/kk/host,RegBlockKokkos<LMPHostType>)
-
+// clang-format off
+RegionStyle(block/kk,RegBlockKokkos<LMPDeviceType>);
+RegionStyle(block/kk/device,RegBlockKokkos<LMPDeviceType>);
+RegionStyle(block/kk/host,RegBlockKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_REGION_BLOCK_KOKKOS_H
 #define LMP_REGION_BLOCK_KOKKOS_H
 
@@ -39,8 +40,8 @@ class RegBlockKokkos : public RegBlock, public KokkosBase {
   typedef ArrayTypes<DeviceType> AT;
 
   RegBlockKokkos(class LAMMPS *, int, char **);
-  ~RegBlockKokkos();
-  void match_all_kokkos(int, DAT::tdual_int_1d);
+  ~RegBlockKokkos() override;
+  void match_all_kokkos(int, DAT::tdual_int_1d) override;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagRegBlockMatchAll, const int&) const;

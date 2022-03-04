@@ -3,7 +3,7 @@
  *      POEMS: PARALLELIZABLE OPEN SOURCE EFFICIENT MULTIBODY SOFTWARE     *
  *      DESCRIPTION: SEE READ-ME                                           *
  *      FILE NAME: colmatrix.h                                             *
- *      AUTHORS: See Author List                                           * 
+ *      AUTHORS: See Author List                                           *
  *      GRANTS: See Grants List                                            *
  *      COPYRIGHT: (C) 2005 by Authors as listed in Author's List          *
  *      LICENSE: Please see License Agreement                              *
@@ -11,7 +11,7 @@
  *      ADMINISTRATOR: Prof. Kurt Anderson                                 *
  *                     Computational Dynamics Lab                          *
  *                     Rensselaer Polytechnic Institute                    *
- *                     110 8th St. Troy NY 12180                           * 
+ *                     110 8th St. Troy NY 12180                           *
  *      CONTACT:        anderk5@rpi.edu                                    *
  *_________________________________________________________________________*/
 
@@ -62,23 +62,23 @@ public:
         void BasicMin(double& value, int& index);
 
   // fast matrix operations
-		  friend void FastQuaternions(ColMatrix& q, Mat3x3& C);
-		  friend void FastInvQuaternions(Mat3x3& C, ColMatrix& q);
-		  friend void FastQuaternionDerivatives(ColMatrix& q, ColMatrix& omega, ColMatrix& qdot);
-		  friend void FastTMult(Matrix& A, Vect6& B, ColMatrix& C);
-		  friend void FastMult(Matrix& A, ColMatrix& B, Vect6& C);
-		  friend void FastAssign(ColMatrix& A, ColMatrix& C);
+                  friend void FastQuaternions(ColMatrix& q, Mat3x3& C);
+                  friend void FastInvQuaternions(Mat3x3& C, ColMatrix& q);
+                  friend void FastQuaternionDerivatives(ColMatrix& q, ColMatrix& omega, ColMatrix& qdot);
+                  friend void FastTMult(Matrix& A, Vect6& B, ColMatrix& C);
+                  friend void FastMult(Matrix& A, ColMatrix& B, Vect6& C);
+                  friend void FastAssign(ColMatrix& A, ColMatrix& C);
 
-		  friend void FastMult(Mat3x3& A, ColMatrix& B, Vect3& C);
-		  friend void FastMult(Mat3x3& A, Vect3& B, ColMatrix& C);
-		  friend void FastAssign(ColMatrix&A, Vect3& C);
-  
-		  friend void EP_Derivatives(ColMatrix& q, ColMatrix& u, ColMatrix& qdot);
-		  friend void EP_Transformation(ColMatrix& q, Mat3x3& C);
-		  friend void EP_FromTransformation(ColMatrix& q, Mat3x3& C);
-		  friend void EP_Normalize(ColMatrix& q);
-		  friend void EPdotdot_udot(ColMatrix& Audot, ColMatrix& Aqdot, ColMatrix& Aq,ColMatrix& Aqddot);
-		  friend void qdot_to_u(ColMatrix& q, ColMatrix& u, ColMatrix& qdot);
+                  friend void FastMult(Mat3x3& A, ColMatrix& B, Vect3& C);
+                  friend void FastMult(Mat3x3& A, Vect3& B, ColMatrix& C);
+                  friend void FastAssign(ColMatrix&A, Vect3& C);
+
+                  friend void EP_Derivatives(ColMatrix& q, ColMatrix& u, ColMatrix& qdot);
+                  friend void EP_Transformation(ColMatrix& q, Mat3x3& C);
+                  friend void EP_FromTransformation(ColMatrix& q, Mat3x3& C);
+                  friend void EP_Normalize(ColMatrix& q);
+                  friend void EPdotdot_udot(ColMatrix& Audot, ColMatrix& Aqdot, ColMatrix& Aq,ColMatrix& Aqddot);
+                  friend void qdot_to_u(ColMatrix& q, ColMatrix& u, ColMatrix& qdot);
 };
 
 #endif

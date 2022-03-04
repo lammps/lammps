@@ -12,6 +12,11 @@
 
 #include <iostream>
 
+#if (__cplusplus >= 201103L)
+#include <map>
+#include <functional>
+#endif
+
 #include "colvarmodule.h"
 #include "colvarvalue.h"
 #include "colvarparse.h"
@@ -114,6 +119,7 @@ public:
 
   /// List of biases that depend on this colvar
   std::vector<colvarbias *> biases;
+
 protected:
 
 
@@ -186,7 +192,7 @@ protected:
   /// Amplitude of Gaussian white noise for Langevin extended dynamics
   cvm::real ext_sigma;
 
-  /// \brief Harmonic restraint force
+  /// \brief Applied force on extended DOF, for output (unscaled if using MTS)
   colvarvalue fr;
 
   /// \brief Jacobian force, when Jacobian_force is enabled
@@ -585,6 +591,7 @@ public:
   class alpha_dihedrals;
   class alpha_angles;
   class dihedPC;
+  class alch_lambda;
   class componentDisabled;
   class CartesianBasedPath;
   class gspath;
@@ -595,12 +602,26 @@ public:
   class gzpathCV;
   class aspathCV;
   class azpathCV;
+  class euler_phi;
+  class euler_psi;
+  class euler_theta;
 
   // non-scalar components
   class distance_vec;
   class distance_dir;
   class cartesian;
   class orientation;
+
+  // components that do not handle any atoms directly
+  class map_total;
+
+  /// getter of the global cvc map
+#if (__cplusplus >= 201103L)
+  /// A global mapping of cvc names to the cvc constructors
+  static const std::map<std::string, std::function<colvar::cvc* (const std::string& subcv_conf)>>& get_global_cvc_map() {
+      return global_cvc_map;
+  }
+#endif
 
 protected:
 
@@ -636,6 +657,14 @@ protected:
   double dev_null;
 #endif
 
+#if (__cplusplus >= 201103L)
+  /// A global mapping of cvc names to the cvc constructors
+  static std::map<std::string, std::function<colvar::cvc* (const std::string& subcv_conf)>> global_cvc_map;
+#endif
+
+  /// Volmap numeric IDs, one for each CVC (-1 if not available)
+  std::vector<int> volmap_ids_;
+
 public:
 
   /// \brief Sorted array of (zero-based) IDs for all atoms involved
@@ -648,6 +677,10 @@ public:
 
   /// \brief Get vector of vectors of atom IDs for all atom groups
   virtual std::vector<std::vector<int> > get_atom_lists();
+
+  /// Volmap numeric IDs, one for each CVC (-1 if not available)
+  std::vector<int> const &get_volmap_ids();
+
 };
 
 

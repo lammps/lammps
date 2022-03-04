@@ -42,7 +42,7 @@ external electric field.
 
 For charges, any of the 3 quantities defining the E-field components
 can be specified as an equal-style or atom-style
-:doc:`variable <variable>`, namely *ex*\ , *ey*\ , *ez*\ .  If the value is a
+:doc:`variable <variable>`, namely *ex*, *ey*, *ez*\ .  If the value is a
 variable, it should be specified as v_name, where name is the variable
 name.  In this case, the variable will be evaluated each timestep, and
 its value used to determine the E-field component.
@@ -100,9 +100,9 @@ minimize the orientation of dipoles in an applied electric field.
 
 The *energy* keyword specifies the name of an atom-style
 :doc:`variable <variable>` which is used to compute the energy of each
-atom as function of its position.  Like variables used for *ex*\ , *ey*\ ,
-*ez*\ , the energy variable is specified as v_name, where name is the
-variable name.
+atom as function of its position.  Like variables used for *ex*,
+*ey*, *ez*, the energy variable is specified as v_name, where name
+is the variable name.
 
 Note that when the *energy* keyword is used during an energy
 minimization, you must insure that the formula defined for the
@@ -114,33 +114,41 @@ minimization will not converge properly.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.
+No information about this fix is written to :doc:`binary restart files
+<restart>`.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
-fix to add the potential "energy" inferred by the added force due to
-the electric field to the system's potential energy as part of
-:doc:`thermodynamic output <thermo_style>`.  This is a fictitious
-quantity but is needed so that the :doc:`minimize <minimize>` command
-can include the forces added by this fix in a consistent manner.
-I.e. there is a decrease in potential energy when atoms move in the
-direction of the added force due to the electric field.
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by
+this fix to add the potential energy inferred by the added force due
+to the electric field to the global potential energy of the system as
+part of :doc:`thermodynamic output <thermo_style>`.  The default
+setting for this fix is :doc:`fix_modify energy no <fix_modify>`.
+Note that this energy is a fictitious quantity but is needed so that
+the :doc:`minimize <minimize>` command can include the forces added by
+this fix in a consistent manner.  I.e. there is a decrease in
+potential energy when atoms move in the direction of the added force
+due to the electric field.
 
-The :doc:`fix_modify <fix_modify>` *virial* option is supported by this
-fix to add the contribution due to the added forces on atoms to the
-system's virial as part of :doc:`thermodynamic output <thermo_style>`.
-The default is *virial no*
+The :doc:`fix_modify <fix_modify>` *virial* option is supported by
+this fix to add the contribution due to the added forces on atoms to
+both the global pressure and per-atom stress of the system via the
+:doc:`compute pressure <compute_pressure>` and :doc:`compute
+stress/atom <compute_stress_atom>` commands.  The former can be
+accessed by :doc:`thermodynamic output <thermo_style>`.  The default
+setting for this fix is :doc:`fix_modify virial no <fix_modify>`.
 
 The :doc:`fix_modify <fix_modify>` *respa* option is supported by this
-fix. This allows to set at which level of the :doc:`r-RESPA <run_style>`
-integrator the fix adding its forces. Default is the outermost level.
+fix. This allows to set at which level of the :doc:`r-RESPA
+<run_style>` integrator the fix adding its forces. Default is the
+outermost level.
 
 This fix computes a global scalar and a global 3-vector of forces,
-which can be accessed by various :doc:`output commands <Howto_output>`.
-The scalar is the potential energy discussed above.  The vector is the
-total force added to the group of atoms.  The scalar and vector values
-calculated by this fix are "extensive".
+which can be accessed by various :doc:`output commands
+<Howto_output>`.  The scalar is the potential energy discussed above.
+The vector is the total force added to the group of atoms.  The scalar
+and vector values calculated by this fix are "extensive".
 
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.
@@ -161,12 +169,14 @@ the iteration count during the minimization.
 Restrictions
 """"""""""""
 
-This fix is part of the MISC package.  It is only enabled if LAMMPS
-was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+None
 
 Related commands
 """"""""""""""""
 
 :doc:`fix addforce <fix_addforce>`
 
-**Default:** none
+Default
+"""""""
+
+none

@@ -35,7 +35,8 @@ Dynamics, since the velocity and angular momentum are updated by the
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
@@ -47,7 +48,7 @@ Restrictions
 """"""""""""
 
 This fix is part of the ASPHERE package.  It is only enabled if LAMMPS
-was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 This fix requires that atoms store torque and angular momentum and a
 quaternion as defined by the :doc:`atom_style ellipsoid <atom_style>`
@@ -62,4 +63,7 @@ Related commands
 
 :doc:`fix nve/noforce <fix_nve_noforce>`, :doc:`fix nve/asphere <fix_nve_asphere>`
 
-**Default:** none
+Default
+"""""""
+
+none

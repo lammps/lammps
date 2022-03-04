@@ -118,7 +118,7 @@ notation as
 
 where *X0* = (x0,y0,z0) is their position at the time the fix is
 specified, *A* is the specified amplitude vector with components
-(Ax,Ay,Az), *omega* is 2 PI / *period*\ , and *delta* is the time
+(Ax,Ay,Az), *omega* is 2 PI / *period*, and *delta* is the time
 elapsed since the fix was specified.  This style also sets the
 velocity of each atom to the time derivative of this expression.  If
 any of the amplitude components is specified as NULL, then the
@@ -143,7 +143,7 @@ The *rotate* style rotates atoms around a rotation axis *R* =
 (Rx,Ry,Rz) that goes through a point *P* = (Px,Py,Pz).  The *period* of
 the rotation is also specified.  The direction of rotation for the
 atoms around the rotation axis is consistent with the right-hand rule:
-if your right-hand thumb points along *R*\ , then your fingers wrap
+if your right-hand thumb points along *R*, then your fingers wrap
 around the axis in the direction of rotation.
 
 This style also sets the velocity of each atom to (omega cross Rperp)
@@ -203,7 +203,8 @@ spacings can be different in x,y,z.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This fix writes the original coordinates of moving atoms to :doc:`binary restart files <restart>`, as well as the initial timestep, so that
 the motion can be continuous in a restarted simulation.  See the
@@ -241,6 +242,9 @@ Related commands
 
 :doc:`fix nve <fix_nve>`, :doc:`displace_atoms <displace_atoms>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 The option default is units = lattice.

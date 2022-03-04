@@ -1,16 +1,14 @@
 #!/usr/bin/env python3
 
-from __future__ import print_function
+import os, re, sys
 from glob import glob
 from argparse import ArgumentParser
-import os, re, sys
 
 parser = ArgumentParser(prog='check-packages.py',
                         description="Check package table completeness")
 
 parser.add_argument("-v", "--verbose",
-                    action='store_const',
-                    const=True, default=False,
+                    action='store_true',
                     help="Enable verbose output")
 
 parser.add_argument("-d", "--doc",
@@ -20,78 +18,64 @@ parser.add_argument("-s", "--src",
 
 args = parser.parse_args()
 verbose = args.verbose
-src = args.src
-doc = args.doc
+src_dir = args.src
+doc_dir = args.doc
 
-if not args.src or not args.doc:
-  parser.print_help()
-  sys.exit(1)
+LAMMPS_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), '..', '..'))
 
-if not os.path.isdir(src):
-    sys.exit("LAMMPS source path %s does not exist" % src)
+if not src_dir:
+    src_dir = os.path.join(LAMMPS_DIR , 'src')
 
-if not os.path.isdir(doc):
-    sys.exit("LAMMPS documentation source path %s does not exist" % doc)
+if not doc_dir:
+    doc_dir = os.path.join(LAMMPS_DIR, 'doc', 'src')
 
-pkgdirs = glob(os.path.join(src, '[A-Z][A-Z]*'))
+if not src_dir or not doc_dir:
+    parser.print_help()
+    sys.exit(1)
+
+if not os.path.isdir(src_dir):
+    sys.exit(f"LAMMPS source path {src_dir} does not exist")
+
+if not os.path.isdir(doc_dir):
+    sys.exit(f"LAMMPS documentation source path {doc_dir} does not exist")
+
+pkgdirs = glob(os.path.join(src_dir, '[A-Z][A-Z]*'))
 dirs = re.compile(".*/([0-9A-Z-]+)$")
-user = re.compile("USER-.*")
 
-stdpkg = []
-usrpkg = []
+pkgs = []
 
-# find package names and add to standard and user package lists.
+# find package names and add package list.
 # anything starting with at least two upper case characters, is a
 # folder, and is not called 'MAKE' is a package 
 
 for d in pkgdirs:
-  pkg = dirs.match(d).group(1)
-  if not os.path.isdir(os.path.join(src,pkg)): continue
-  if pkg in ['DEPEND','MAKE','STUBS']: continue
-  if user.match(pkg):
-    usrpkg.append(pkg)
-  else:
-    stdpkg.append(pkg)
+    pkg = dirs.match(d).group(1)
+    if not os.path.isdir(os.path.join(src_dir, pkg)): continue
+    if pkg in ['DEPEND','MAKE','STUBS']: continue
+    pkgs.append(pkg)
 
-print("Found %d standard and %d user packages" % (len(stdpkg),len(usrpkg)))
+print(f"Found {len(pkgs)} packages")
 
 counter = 0
-fp = open(os.path.join(doc,'Packages_standard.rst'))
-text = fp.read()
-fp.close()
-matches = re.findall(':ref:`([A-Z0-9-]+) <[A-Z0-9-]+>`',text,re.MULTILINE)
-for p in stdpkg:
-  if not p in matches:
-    ++counter
-    print("Standard package %s missing in Packages_standard.rst"
-          % p)
 
-fp = open(os.path.join(doc,'Packages_user.rst'))
-text = fp.read()
-fp.close()
-matches = re.findall(':ref:`([A-Z0-9-]+) <[A-Z0-9-]+>`',text,re.MULTILINE)
-for p in usrpkg:
-  if not p in matches:
-    ++counter
-    print("User package %s missing in Packages_user.rst"
-          % p)
+with open(os.path.join(doc_dir, 'Packages_list.rst')) as fp:
+    text = fp.read()
 
-fp = open(os.path.join(doc,'Packages_details.rst'))
-text = fp.read()
-fp.close()
-matches = re.findall(':ref:`([A-Z0-9]+) <PKG-\\1>`',text,re.MULTILINE)
-for p in stdpkg:
+matches = set(re.findall(':ref:`([A-Z0-9-]+) <[A-Z0-9-]+>`', text, re.MULTILINE))
+for p in pkgs:
   if not p in matches:
-    ++counter
-    print("Standard package %s missing in Packages_details.rst"
-          % p)
-matches = re.findall(':ref:`(USER-[A-Z0-9]+) <PKG-\\1>`',text,re.MULTILINE)
-for p in usrpkg:
-  if not p in matches:
-    ++counter
-    print("User package %s missing in Packages_details.rst"
-          % p)
+    counter += 1
+    print(f"Package {p} missing in Packages_list.rst")
+
+with open(os.path.join(doc_dir, 'Packages_details.rst')) as fp:
+    text = fp.read()
+
+matches = set(re.findall(':ref:`([A-Z0-9-]+) <PKG-\\1>`', text, re.MULTILINE))
+for p in pkgs:
+    if not p in matches:
+        counter += 1
+        print(f"Package {p} missing in Packages_details.rst")
 
 if counter:
-    print("Found %d issue(s) with package lists" % counter)
+    print(f"Found {counter} issue(s) with package lists")
 

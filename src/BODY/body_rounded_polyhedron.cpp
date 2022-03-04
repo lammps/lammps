@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,16 +17,17 @@
 ------------------------------------------------------------------------- */
 
 #include "body_rounded_polyhedron.h"
+
+#include "atom.h"
+#include "atom_vec_body.h"
+#include "error.h"
+#include "math_extra.h"
+#include "math_eigen.h"
+#include "memory.h"
+#include "my_pool_chunk.h"
+
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "my_pool_chunk.h"
-#include "atom_vec_body.h"
-#include "atom.h"
-#include "force.h"
-#include "math_extra.h"
-#include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 
@@ -43,18 +45,16 @@ BodyRoundedPolyhedron::BodyRoundedPolyhedron(LAMMPS *lmp, int narg, char **arg) 
 
   // nmin and nmax are minimum and maximum number of vertices
 
-  int nmin = force->inumeric(FLERR,arg[1]);
-  int nmax = force->inumeric(FLERR,arg[2]);
+  int nmin = utils::inumeric(FLERR,arg[1],false,lmp);
+  int nmax = utils::inumeric(FLERR,arg[2],false,lmp);
   if (nmin <= 0 || nmin > nmax)
     error->all(FLERR,"Invalid body rounded/polyhedron command");
 
   size_forward = 0;
 
-  // 3 integers: 1 for no. of vertices, 1 for no. of edges, 1 for no. of faces
-  // 3*nmax doubles for vertex coordinates + 2*nmax doubles for edge ends +
-  // (MAX_FACE_SIZE+1)*nmax for faces
-  // 1 double for the enclosing radius
-  // 1 double for the rounded radius
+  // 3 integers: nvertices, nedges, nfaces
+  // doubles = 3*nvertices + 2*nedge + MAX_FACE_SIZE*nfaces +
+  //           1 double for enclosing radius + 1 double for rounded radius
 
   size_border = 3 + 3*nmax + 2*nmax + MAX_FACE_SIZE*nmax + 1 + 1;
 
@@ -102,7 +102,7 @@ int BodyRoundedPolyhedron::nedges(AtomVecBody::Bonus *bonus)
   //int nfaces = bonus->ivalue[2];
   if (nvertices == 1) return 0;
   else if (nvertices == 2) return 1;
-  return nedges; //(nvertices+nfaces-2); // Euler's polyon formula: V-E+F=2
+  return nedges; //(nvertices+nfaces-2); // Euler formula: V-E+F=2
 }
 
 /* ---------------------------------------------------------------------- */
@@ -124,7 +124,7 @@ int BodyRoundedPolyhedron::nfaces(AtomVecBody::Bonus *bonus)
 double *BodyRoundedPolyhedron::faces(AtomVecBody::Bonus *bonus)
 {
   int nvertices = bonus->ivalue[0];
-  if (nvertices == 1 || nvertices == 2) return NULL;
+  if (nvertices == 1 || nvertices == 2) return nullptr;
   return bonus->dvalue+3*nsub(bonus)+2*nedges(bonus);
 }
 
@@ -169,8 +169,7 @@ int BodyRoundedPolyhedron::pack_border_body(AtomVecBody::Bonus *bonus, double *b
 
 /* ---------------------------------------------------------------------- */
 
-int BodyRoundedPolyhedron::unpack_border_body(AtomVecBody::Bonus *bonus,
-                                           double *buf)
+int BodyRoundedPolyhedron::unpack_border_body(AtomVecBody::Bonus *bonus, double *buf)
 {
   int nsub = static_cast<int> (buf[0]);
   int ned = static_cast<int> (buf[1]);
@@ -190,7 +189,7 @@ int BodyRoundedPolyhedron::unpack_border_body(AtomVecBody::Bonus *bonus,
 ------------------------------------------------------------------------- */
 
 void BodyRoundedPolyhedron::data_body(int ibonus, int ninteger, int ndouble,
-                             int *ifile, double *dfile)
+                                      int *ifile, double *dfile)
 {
   AtomVecBody::Bonus *bonus = &avec->bonus[ibonus];
 
@@ -207,29 +206,29 @@ void BodyRoundedPolyhedron::data_body(int ibonus, int ninteger, int ndouble,
                "Bodies section of data file");
 
   // nentries = number of double entries to be read from Body section:
-  // nsub == 1 || nsub == 2 || nsub == 3:
-  //   6 for inertia + 3*nsub for vertex coords + 1 for rounded radius
-  // nsub > 3:
-  //   6 for inertia + 3*nsub for vertex coords + 2*nsub for edges +
-  //   3*nfaces + 1 for rounded radius
+  // nsub == 1,2:
+  //   6 for inertia + 3*nsub + 1 for rounded radius
+  // nsub > 2:
+  //   6 for inertia + 3*nsub + 2*nedges + MAX_FACE_SIZE*nfaces + 1 for rounded radius
 
   int nedges,nentries;
-  if (nsub == 1 || nsub == 2) {
+  if (nsub < 3) {
     nentries = 6 + 3*nsub + 1;
   } else {
     nedges = ned; //nsub + nfac - 2;
     nentries = 6 + 3*nsub + 2*nedges + MAX_FACE_SIZE*nfac + 1;
   }
+
   if (ndouble != nentries)
     error->one(FLERR,"Incorrect # of floating-point values in "
-             "Bodies section of data file");
+               "Bodies section of data file");
 
   bonus->ninteger = 3;
   bonus->ivalue = icp->get(bonus->iindex);
   bonus->ivalue[0] = nsub;
   bonus->ivalue[1] = ned;
   bonus->ivalue[2] = nfac;
-  if (nsub == 1 || nsub == 2) bonus->ndouble = 3*nsub + 2*nsub + 1 + 1;
+  if (nsub < 3) bonus->ndouble = 3*nsub + 2 + 1 + 1;
   else bonus->ndouble = 3*nsub + 2*nedges + MAX_FACE_SIZE*nfac + 1 + 1;
   bonus->dvalue = dcp->get(bonus->ndouble,bonus->dindex);
 
@@ -245,7 +244,7 @@ void BodyRoundedPolyhedron::data_body(int ibonus, int ninteger, int ndouble,
 
   double *inertia = bonus->inertia;
   double evectors[3][3];
-  int ierror = MathExtra::jacobi(tensor,inertia,evectors);
+  int ierror = MathEigen::jacobi3(tensor,inertia,evectors);
   if (ierror) error->one(FLERR,
                          "Insufficient Jacobi rotations for body nparticle");
 
@@ -305,37 +304,35 @@ void BodyRoundedPolyhedron::data_body(int ibonus, int ninteger, int ndouble,
     k += 3;
   }
 
-  // .. the next 2*nsub elements are edge ends
+  // the next 2*nsub elements are edge ends
+  // the final two values are the enclosing radius and rounded radius
+  // set atom->radius = enclosing + rounded radii (except for spheres)
 
-  if (nsub == 1) { // spheres
-    nedges = 0;
+  // spheres have just 1 edge
+
+  if (nsub == 1) {
     bonus->dvalue[k] = 0;
-    *(&bonus->dvalue[k]+1) = 0;
+    bonus->dvalue[k+1] = 0;
     k += 2;
 
     rrad = 0.5 * dfile[j];
     bonus->dvalue[k] = rrad;
-    erad = rrad; // enclosing radius = rounded_radius
-
-    // the last element of bonus->dvalue is the rounded radius
+    erad = rrad;
 
     k++;
     bonus->dvalue[k] = rrad;
 
     atom->radius[bonus->ilocal] = erad;
 
-  } else if (nsub == 2) { // rods
-    nedges = 1;
-    for (i = 0; i < nedges; i++) {
-      bonus->dvalue[k] = 0;
-      *(&bonus->dvalue[k]+1) = 1;
-      k += 2;
-    }
+  // rods have just 1 edge
+
+  } else if (nsub == 2) {
+    bonus->dvalue[k] = 0;
+    bonus->dvalue[k+1] = 1;
+    k += 2;
 
     erad = sqrt(erad2);
     bonus->dvalue[k] = erad;
-
-    // the last element of bonus->dvalue is the rounded radius
 
     rrad = 0.5 * dfile[j];
     k++;
@@ -343,13 +340,15 @@ void BodyRoundedPolyhedron::data_body(int ibonus, int ninteger, int ndouble,
 
     atom->radius[bonus->ilocal] = erad + rrad;
 
-  } else { // polyhedra
+  // polyhedra have Nedges and Nfaces
+
+  } else {
 
     // edges
 
     for (i = 0; i < nedges; i++) {
       bonus->dvalue[k] = dfile[j];
-      *(&bonus->dvalue[k]+1) = dfile[j+1];
+      bonus->dvalue[k+1] = dfile[j+1];
       k += 2;
       j += 2;
     }
@@ -358,17 +357,13 @@ void BodyRoundedPolyhedron::data_body(int ibonus, int ninteger, int ndouble,
 
     for (i = 0; i < nfac; i++) {
       for (m = 0; m < MAX_FACE_SIZE; m++)
-        *(&bonus->dvalue[k]+m) = dfile[j+m];
+        bonus->dvalue[k+m] = dfile[j+m];
       k += MAX_FACE_SIZE;
       j += MAX_FACE_SIZE;
     }
 
-    // the next to last element is the enclosing radius
-
     erad = sqrt(erad2);
     bonus->dvalue[k] = erad;
-
-    // the last element bonus-> dvalue is the rounded radius
 
     rrad = 0.5 * dfile[j];
     k++;
@@ -376,6 +371,148 @@ void BodyRoundedPolyhedron::data_body(int ibonus, int ninteger, int ndouble,
 
     atom->radius[bonus->ilocal] = erad + rrad;
   }
+}
+
+/* ----------------------------------------------------------------------
+   pack data struct for one body into buf for writing to data file
+   if buf is a null pointer, just return buffer size
+------------------------------------------------------------------------- */
+
+int BodyRoundedPolyhedron::pack_data_body(tagint atomID, int ibonus, double *buf)
+{
+  int i,j,m;
+  double values[3],p[3][3],pdiag[3][3],ispace[3][3];
+
+  AtomVecBody::Bonus *bonus = &avec->bonus[ibonus];
+
+  double *quat = bonus->quat;
+  double *inertia = bonus->inertia;
+  int *ivalue = bonus->ivalue;
+  double *dvalue = bonus->dvalue;
+
+  int nsub = ivalue[0];
+  int nedge = ivalue[1];
+  int nface = ivalue[2];
+
+  if (buf) {
+
+    // ID ninteger ndouble
+
+    m = 0;
+    buf[m++] = ubuf(atomID).d;
+    buf[m++] = ubuf(3).d;
+    if (nsub < 3) buf[m++] = ubuf(6 + 3*nsub + 1).d;
+    else buf[m++] = ubuf(6 + 3*nsub + 2*nedge + MAX_FACE_SIZE*nface + 1).d;
+
+    // 3 integers nsub,nedge,nface
+
+    buf[m++] = ubuf(nsub).d;
+    buf[m++] = ubuf(nedge).d;
+    buf[m++] = ubuf(nface).d;
+
+    // 6 moments of inertia
+
+    MathExtra::quat_to_mat(quat,p);
+    MathExtra::times3_diag(p,inertia,pdiag);
+    MathExtra::times3_transpose(pdiag,p,ispace);
+
+    buf[m++] = ispace[0][0];
+    buf[m++] = ispace[1][1];
+    buf[m++] = ispace[2][2];
+    buf[m++] = ispace[0][1];
+    buf[m++] = ispace[0][2];
+    buf[m++] = ispace[1][2];
+
+    // 3*nsub particle coords = displacement from COM in box frame
+
+    for (i = 0; i < nsub; i++) {
+      MathExtra::matvec(p,&dvalue[3*i],values);
+      buf[m++] = values[0];
+      buf[m++] = values[1];
+      buf[m++] = values[2];
+    }
+
+    // 2*nedge edge indices
+    // 4*nface face indices
+
+    j = 3*nsub;
+
+    if (nsub < 3) j += 2;
+    else {
+      for (i = 0; i < nedge; i++) {
+        buf[m++] = static_cast<int> (dvalue[j++]);
+        buf[m++] = static_cast<int> (dvalue[j++]);
+      }
+      for (i = 0; i < nface; i++) {
+        buf[m++] = static_cast<int> (dvalue[j++]);
+        buf[m++] = static_cast<int> (dvalue[j++]);
+        buf[m++] = static_cast<int> (dvalue[j++]);
+        buf[m++] = static_cast<int> (dvalue[j++]);
+      }
+    }
+
+    // rounded diameter = 2 * last dvalue = rounded radius
+    // j+1 to skip enclosing radius
+
+    buf[m++] = 2.0 * dvalue[j+1];
+
+  } else {
+    m = 3 + 3 + 6 + 3*nsub + 1;
+    if (nsub > 2) m += 2*nedge + MAX_FACE_SIZE*nface;
+  }
+
+  return m;
+}
+
+/* ----------------------------------------------------------------------
+   write info for one body to data file
+------------------------------------------------------------------------- */
+
+int BodyRoundedPolyhedron::write_data_body(FILE *fp, double *buf)
+{
+  int m = 0;
+
+  // atomID ninteger ndouble
+
+  fmt::print(fp,"{} {} {}\n",ubuf(buf[m]).i,ubuf(buf[m+1]).i,ubuf(buf[m+2]).i);
+  m += 3;
+
+  // nvert, nedge, nface
+
+  const int nsub = (int) ubuf(buf[m++]).i;
+  const int nedge = (int) ubuf(buf[m++]).i;
+  const int nface = (int) ubuf(buf[m++]).i;
+  fmt::print(fp,"{} {} {}\n",nsub,nedge,nface);
+
+  // inertia
+
+  fmt::print(fp,"{} {} {} {} {} {}\n",
+             buf[m+0],buf[m+1],buf[m+2],buf[m+3],buf[m+4],buf[m+5]);
+  m += 6;
+
+  // nsub vertices
+
+  for (int i = 0; i < nsub; i++, m+=3)
+    fmt::print(fp,"{} {} {}\n",buf[m],buf[m+1],buf[m+2]);
+
+  // nedge 2-tuples and nface 4-tuples
+  // unless nsub = 1 or 2
+
+  if (nsub > 2) {
+    for (int i = 0; i < nedge; i++, m+=2)
+      fmt::print(fp,"{} {}\n",static_cast<int> (buf[m]),static_cast<int> (buf[m+1]));
+    for (int i = 0; i < nface; i++, m+=4)
+      fmt::print(fp,"{} {} {} {}\n",
+                 static_cast<int> (buf[m]),static_cast<int> (buf[m+1]),
+                 static_cast<int> (buf[m+2]),static_cast<int> (buf[m+3]));
+  }
+
+  // rounded diameter
+
+  double diameter = buf[m++];
+  fmt::print(fp,"{}\n",diameter);
+
+  return m;
 }
 
 /* ----------------------------------------------------------------------

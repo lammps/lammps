@@ -1,10 +1,10 @@
 .. index:: pair_style mie/cut
+.. index:: pair_style mie/cut/gpu
 
 pair_style mie/cut command
 ==========================
 
-pair_style mie/cut/gpu command
-==============================
+Accelerator Variants: *mie/cut/gpu*
 
 Syntax
 """"""
@@ -62,7 +62,8 @@ cutoff specified in the pair_style command is used.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance for all of the mie/cut pair styles can be mixed.
@@ -81,7 +82,7 @@ pressure of the pair interaction.
 This pair style writes its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
-This pair style supports the use of the *inner*\ , *middle*\ , and *outer*
+This pair style supports the use of the *inner*, *middle*, and *outer*
 keywords of the :doc:`run_style respa <run_style>` command, meaning the
 pairwise forces can be partitioned by distance at different levels of
 the rRESPA hierarchy.  See the :doc:`run_style <run_style>` command for
@@ -91,14 +92,20 @@ details.
 
 Restrictions
 """"""""""""
-none
+
+This pair style is part of the EXTRA-PAIR package.  It is only enabled if
+LAMMPS was built with that package.  See the
+:doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

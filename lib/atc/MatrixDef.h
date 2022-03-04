@@ -1,9 +1,9 @@
-#ifndef MATRIXDEF_H 
+#ifndef MATRIXDEF_H
 #define MATRIXDEF_H
 
 /******************************************************************************
 * Common definitions for Matrix and Vector classes
-* This header file contains macros and inline functions needed for the matrix 
+* This header file contains macros and inline functions needed for the matrix
 * classes.  All error checking should be defined here as a macro so that it is
 * neatly disabled when ATC_PRINT_DEBUGGING is not defined
 ******************************************************************************/
@@ -37,7 +37,7 @@ typedef int INDEX;
 enum CLONE_TYPE { CLONE_ROW=0, CLONE_COL=1, CLONE_DIAG=2 };
 //* @struct TRIPLET
 //* @brief Triplet output entity
-template <typename T> 
+template <typename T>
 struct TRIPLET { TRIPLET<T>(int _i=0, int _j=0, T _v=T(0)) : i(_i), j(_j), v(_v) {}
                  INDEX i, j; T v; };
 
@@ -139,22 +139,22 @@ template<class T> T dot(const SparseVector<T> &a, const SparseVector<T> &b);
 //@}
 
 template<class T> CloneVector<T> column(Matrix<T> &c, INDEX i) {
-  return CloneVector<T>(c, CLONE_COL, i); 
+  return CloneVector<T>(c, CLONE_COL, i);
 }
 template<class T> CloneVector<T> row(Matrix<T> &c, INDEX i) {
   return CloneVector<T>(c, CLONE_ROW, i);
 }
 template<class T> CloneVector<T> diagonal(Matrix<T> &c) {
-  return CloneVector<T>(c, CLONE_DIAG); 
+  return CloneVector<T>(c, CLONE_DIAG);
 }
 template<class T> const CloneVector<T> column(const Matrix<T> &c, INDEX i) {
-  return CloneVector<T>(c, CLONE_COL, i); 
+  return CloneVector<T>(c, CLONE_COL, i);
 }
 template<class T> const CloneVector<T> row(const Matrix<T> &c, INDEX i) {
-  return CloneVector<T>(c, CLONE_ROW, i); 
+  return CloneVector<T>(c, CLONE_ROW, i);
 }
-template<class T> const CloneVector<T> diagonal(const Matrix<T> &c) { 
-  return CloneVector<T>(c, CLONE_DIAG); 
+template<class T> const CloneVector<T> diagonal(const Matrix<T> &c) {
+  return CloneVector<T>(c, CLONE_DIAG);
 }
 template<class T> const SparseMatrix<T> *sparse_cast(const Matrix<T> *m);
 template<class T> const DiagonalMatrix<T> *diag_cast(const Matrix<T> *m);

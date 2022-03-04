@@ -129,14 +129,14 @@ where N is the number of LAMMPS atom types:
 
 As an example, imagine the CdTe.bop file has BOP values for Cd
 and Te.  If your LAMMPS simulation has 4 atoms types and you want the
-1st 3 to be Cd, and the 4th to be Te, you would use the following
+first 3 to be Cd, and the fourth to be Te, you would use the following
 pair_coeff command:
 
 .. code-block:: LAMMPS
 
    pair_coeff * * CdTe Cd Cd Cd Te
 
-The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
+The first 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The first three Cd arguments map LAMMPS atom types 1,2,3 to the Cd
 element in the BOP file.  The final Te argument maps LAMMPS atom type
 4 to the Te element in the BOP file.
@@ -360,7 +360,8 @@ The rest of the table has the same structure as the previous section (see above)
 
 ----------
 
-**Mixing, shift, table tail correction, restart**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 mix, shift, table, and tail options.
@@ -371,7 +372,7 @@ script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -379,12 +380,17 @@ Restrictions
 """"""""""""
 
 These pair styles are part of the MANYBODY package.  They are only
-enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 These pair potentials require the :doc:`newtion <newton>` setting to be
 "on" for pair interactions.
 
-The CdTe.bop and GaAs.bop potential files provided with LAMMPS (see the
+Pair style bop is not compatible with being used as a sub-style with
+doc:`hybrid pair styles <pair_hybrid>`. Pair style bop is also not
+compatible with :doc:`multi-cutoff neighbor lists <neighbor>` or
+:doc:`multi-cutoff communitcation <comm_modify>`.
+
+The .bop.table potential files provided with LAMMPS (see the
 potentials directory) are parameterized for metal :doc:`units <units>`.
 You can use the BOP potential with any LAMMPS units, but you would need
 to create your own BOP potential file with coefficients listed in the

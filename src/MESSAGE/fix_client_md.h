@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(client/md,FixClientMD)
-
+// clang-format off
+FixStyle(client/md,FixClientMD);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_CLIENT_MD_H
@@ -27,20 +27,20 @@ namespace LAMMPS_NS {
 class FixClientMD : public Fix {
  public:
   FixClientMD(class LAMMPS *, int, char **);
-  ~FixClientMD();
-  int setmask();
-  void init();
-  void setup(int);
-  void min_setup(int);
-  void post_force(int);
-  void min_post_force(int);
-  double compute_scalar();
+  ~FixClientMD() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void min_setup(int) override;
+  void post_force(int) override;
+  void min_post_force(int) override;
+  double compute_scalar() override;
 
  private:
-  int maxatom,units,server_error;
+  int maxatom, units, server_error;
   double eng;
   double inv_nprocs;
-  double fconvert,econvert,pconvert;
+  double fconvert, econvert, pconvert;
   double box[3][3];
   double *xpbc;
 
@@ -49,7 +49,7 @@ class FixClientMD : public Fix {
   void receive_fev(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

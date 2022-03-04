@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,20 +17,21 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_vashishta_kokkos.h"
-#include <cmath>
-#include <cstring>
-#include "kokkos.h"
-#include "pair_kokkos.h"
+
 #include "atom_kokkos.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "force.h"
+#include "atom_masks.h"
 #include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "kokkos.h"
+#include "math_const.h"
 #include "memory_kokkos.h"
 #include "neigh_list_kokkos.h"
-#include "error.h"
-#include "atom_masks.h"
-#include "math_const.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "pair_kokkos.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -44,6 +46,7 @@ PairVashishtaKokkos<DeviceType>::PairVashishtaKokkos(LAMMPS *lmp) : PairVashisht
 {
   respa_enable = 0;
 
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TAG_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK;
@@ -60,8 +63,8 @@ PairVashishtaKokkos<DeviceType>::~PairVashishtaKokkos()
   if (!copymode) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);
-    eatom = NULL;
-    vatom = NULL;
+    eatom = nullptr;
+    vatom = nullptr;
   }
 }
 
@@ -116,20 +119,20 @@ void PairVashishtaKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   int max_neighs = d_neighbors.extent(1);
 
-  if ((d_neighbors_short_2body.extent(1) != max_neighs) ||
-     (d_neighbors_short_2body.extent(0) != ignum)) {
+  if (((int)d_neighbors_short_2body.extent(1) != max_neighs) ||
+     ((int)d_neighbors_short_2body.extent(0) != ignum)) {
     d_neighbors_short_2body = Kokkos::View<int**,DeviceType>("Vashishta::neighbors_short_2body",ignum,max_neighs);
   }
-  if (d_numneigh_short_2body.extent(0)!=ignum) {
+  if ((int)d_numneigh_short_2body.extent(0)!=ignum) {
     d_numneigh_short_2body = Kokkos::View<int*,DeviceType>("Vashishta::numneighs_short_2body",ignum);
   }
 
-  if ((d_neighbors_short_3body.extent(1) != max_neighs) ||
-     (d_neighbors_short_3body.extent(0) != ignum)) {
+  if (((int)d_neighbors_short_3body.extent(1) != max_neighs) ||
+     ((int)d_neighbors_short_3body.extent(0) != ignum)) {
     d_neighbors_short_3body = Kokkos::View<int**,DeviceType>("Vashishta::neighbors_short_3body",ignum,max_neighs);
   }
 
-  if (d_numneigh_short_3body.extent(0)!=ignum) {
+  if ((int)d_numneigh_short_3body.extent(0)!=ignum) {
     d_numneigh_short_3body = Kokkos::View<int*,DeviceType>("Vashishta::numneighs_short_3body",ignum);
   }
 
@@ -206,7 +209,7 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeShortNei
       int j = d_neighbors(i,jj);
       j &= NEIGHMASK;
       const int jtype = d_map[type[j]];
-      const int ijparam = d_elem2param(itype,jtype,jtype);
+      const int ijparam = d_elem3param(itype,jtype,jtype);
 
       const X_FLOAT delx = xtmp - x(j,0);
       const X_FLOAT dely = ytmp - x(j,1);
@@ -277,7 +280,7 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeHalf<NEI
     const X_FLOAT delz = ztmp - x(j,2);
     const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
-    const int ijparam = d_elem2param(itype,jtype,jtype);
+    const int ijparam = d_elem3param(itype,jtype,jtype);
 
     twobody(d_params[ijparam],rsq,fpair,eflag,evdwl);
 
@@ -300,7 +303,7 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeHalf<NEI
     int j = d_neighbors_short_3body(i,jj);
     j &= NEIGHMASK;
     const int jtype = d_map[type[j]];
-    const int ijparam = d_elem2param(itype,jtype,jtype);
+    const int ijparam = d_elem3param(itype,jtype,jtype);
     delr1[0] = x(j,0) - xtmp;
     delr1[1] = x(j,1) - ytmp;
     delr1[2] = x(j,2) - ztmp;
@@ -314,8 +317,8 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeHalf<NEI
       int k = d_neighbors_short_3body(i,kk);
       k &= NEIGHMASK;
       const int ktype = d_map[type[k]];
-      const int ikparam = d_elem2param(itype,ktype,ktype);
-      const int ijkparam = d_elem2param(itype,jtype,ktype);
+      const int ikparam = d_elem3param(itype,ktype,ktype);
+      const int ijkparam = d_elem3param(itype,jtype,ktype);
 
       delr2[0] = x(k,0) - xtmp;
       delr2[1] = x(k,1) - ytmp;
@@ -372,7 +375,6 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeFullA<NE
 
   const int i = d_ilist[ii];
 
-  const tagint itag = tag[i];
   const int itype = d_map[type[i]];
   const X_FLOAT xtmp = x(i,0);
   const X_FLOAT ytmp = x(i,1);
@@ -389,7 +391,6 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeFullA<NE
   for (int jj = 0; jj < jnum; jj++) {
     int j = d_neighbors_short_2body(i,jj);
     j &= NEIGHMASK;
-    const tagint jtag = tag[j];
 
     const int jtype = d_map[type[j]];
 
@@ -398,7 +399,7 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeFullA<NE
     const X_FLOAT delz = ztmp - x(j,2);
     const F_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
-    const int ijparam = d_elem2param(itype,jtype,jtype);
+    const int ijparam = d_elem3param(itype,jtype,jtype);
 
     twobody(d_params[ijparam],rsq,fpair,eflag,evdwl);
 
@@ -418,7 +419,7 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeFullA<NE
     int j = d_neighbors_short_3body(i,jj);
     j &= NEIGHMASK;
     const int jtype = d_map[type[j]];
-    const int ijparam = d_elem2param(itype,jtype,jtype);
+    const int ijparam = d_elem3param(itype,jtype,jtype);
     delr1[0] = x(j,0) - xtmp;
     delr1[1] = x(j,1) - ytmp;
     delr1[2] = x(j,2) - ztmp;
@@ -428,8 +429,8 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeFullA<NE
       int k = d_neighbors_short_3body(i,kk);
       k &= NEIGHMASK;
       const int ktype = d_map[type[k]];
-      const int ikparam = d_elem2param(itype,ktype,ktype);
-      const int ijkparam = d_elem2param(itype,jtype,ktype);
+      const int ikparam = d_elem3param(itype,ktype,ktype);
+      const int ijkparam = d_elem3param(itype,jtype,ktype);
 
       delr2[0] = x(k,0) - xtmp;
       delr2[1] = x(k,1) - ytmp;
@@ -491,7 +492,7 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeFullB<NE
     j &= NEIGHMASK;
     if (j >= nlocal) continue;
     const int jtype = d_map[type[j]];
-    const int jiparam = d_elem2param(jtype,itype,itype);
+    const int jiparam = d_elem3param(jtype,itype,itype);
     const X_FLOAT xtmpj = x(j,0);
     const X_FLOAT ytmpj = x(j,1);
     const X_FLOAT ztmpj = x(j,2);
@@ -508,8 +509,8 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeFullB<NE
       k &= NEIGHMASK;
       if (k == i) continue;
       const int ktype = d_map[type[k]];
-      const int jkparam = d_elem2param(jtype,ktype,ktype);
-      const int jikparam = d_elem2param(jtype,itype,ktype);
+      const int jkparam = d_elem3param(jtype,ktype,ktype);
+      const int jikparam = d_elem3param(jtype,itype,ktype);
 
       delr2[0] = x(k,0) - xtmpj;
       delr2[1] = x(k,1) - ytmpj;
@@ -611,10 +612,10 @@ void PairVashishtaKokkos<DeviceType>::setup_params()
 {
   PairVashishta::setup_params();
 
-  // sync elem2param and params
+  // sync elem3param and params
 
-  tdual_int_3d k_elem2param = tdual_int_3d("pair:elem2param",nelements,nelements,nelements);
-  t_host_int_3d h_elem2param = k_elem2param.h_view;
+  tdual_int_3d k_elem3param = tdual_int_3d("pair:elem3param",nelements,nelements,nelements);
+  t_host_int_3d h_elem3param = k_elem3param.h_view;
 
   tdual_param_1d k_params = tdual_param_1d("pair:params",nparams);
   t_host_param_1d h_params = k_params.h_view;
@@ -622,17 +623,17 @@ void PairVashishtaKokkos<DeviceType>::setup_params()
   for (int i = 0; i < nelements; i++)
     for (int j = 0; j < nelements; j++)
       for (int k = 0; k < nelements; k++)
-        h_elem2param(i,j,k) = elem2param[i][j][k];
+        h_elem3param(i,j,k) = elem3param[i][j][k];
 
   for (int m = 0; m < nparams; m++)
     h_params[m] = params[m];
 
-  k_elem2param.template modify<LMPHostType>();
-  k_elem2param.template sync<DeviceType>();
+  k_elem3param.template modify<LMPHostType>();
+  k_elem3param.template sync<DeviceType>();
   k_params.template modify<LMPHostType>();
   k_params.template sync<DeviceType>();
 
-  d_elem2param = k_elem2param.template view<DeviceType>();
+  d_elem3param = k_elem3param.template view<DeviceType>();
   d_params = k_params.template view<DeviceType>();
 }
 
@@ -911,7 +912,7 @@ void PairVashishtaKokkos<DeviceType>::ev_tally3(EV_FLOAT &ev, const int &i, cons
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairVashishtaKokkos<DeviceType>::ev_tally3_atom(EV_FLOAT &ev, const int &i,
+void PairVashishtaKokkos<DeviceType>::ev_tally3_atom(EV_FLOAT & /*ev*/, const int &i,
           const F_FLOAT &evdwl, const F_FLOAT &ecoul,
                      F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *drji, F_FLOAT *drki) const
 {
@@ -942,7 +943,7 @@ void PairVashishtaKokkos<DeviceType>::ev_tally3_atom(EV_FLOAT &ev, const int &i,
 
 namespace LAMMPS_NS {
 template class PairVashishtaKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class PairVashishtaKokkos<LMPHostType>;
 #endif
 }

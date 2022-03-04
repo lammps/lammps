@@ -8,7 +8,7 @@ Syntax
 
 .. parsed-literal::
 
-   fix ID group-ID wall/gran/region fstyle fstyle_params wallstyle regionID
+   fix ID group-ID wall/gran/region fstyle fstyle_params wallstyle regionID keyword values ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * wall/region = style name of this fix command
@@ -22,7 +22,7 @@ Syntax
 
   .. parsed-literal::
 
-       For *hooke*\ , *hooke/history*\ , and *hertz/history*\ , *fstyle_params* are:
+       For *hooke*, *hooke/history*, and *hertz/history*, *fstyle_params* are:
              Kn = elastic constant for normal particle repulsion (force/distance units or pressure units - see discussion below)
              Kt = elastic constant for tangential contact (force/distance units or pressure units - see discussion below)
              gamma_n = damping coefficient for collisions in normal direction (1/time units or 1/time-distance units - see discussion below)
@@ -32,10 +32,16 @@ Syntax
 
   .. parsed-literal::
 
-       For *granular*\ , *fstyle_params* are set using the same syntax as for the *pair_coeff* command of :doc:`pair_style granular <pair_granular>`
+       For *granular*, *fstyle_params* are set using the same syntax as for the *pair_coeff* command of :doc:`pair_style granular <pair_granular>`
 
 * wallstyle = region (see :doc:`fix wall/gran <fix_wall_gran>` for options for other kinds of walls)
 * region-ID = region whose boundary will act as wall
+* keyword = *contacts*
+
+  .. parsed-literal::
+
+      *contacts* value = none
+         generate contact information for each particle
 
 Examples
 """"""""
@@ -46,6 +52,7 @@ Examples
    fix 3 all wall/gran/region granular hooke 1000.0 50.0 tangential linear_nohistory 1.0 0.4 damping velocity region myBox
    fix 4 all wall/gran/region granular jkr 1e5 1500.0 0.3 10.0 tangential mindlin NULL 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall region myCone
    fix 5 all wall/gran/region granular dmt 1e5 0.2 0.3 10.0 tangential mindlin NULL 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall damping tsuji region myCone
+   fix wall all wall/gran/region hooke/history 1000.0 200.0 200.0 100.0 0.5 1 region myCone contacts
 
 Description
 """""""""""
@@ -56,17 +63,22 @@ granular particles when they are close enough to touch the wall.  See
 the :doc:`fix wall/region <fix_wall_region>` and :doc:`fix wall/gran <fix_wall_gran>` commands for related kinds of walls for
 non-granular particles and simpler wall geometries, respectively.
 
-Here are snapshots of example models using this command.
-Corresponding input scripts can be found in examples/granregion.
-Click on the images to see a bigger picture.  Movies of these
-simulations are `here on the Movies page <https://lammps.sandia.gov/movies.html#granregion>`_ of the LAMMPS
-web site.
+Here are snapshots of example models using this command.  Corresponding
+input scripts can be found in examples/granregion.  Movies of these
+simulations are `here on the Movies page <https://www.lammps.org/movies.html#granregion>`_
+of the LAMMPS website.
 
-.. image:: JPG/gran_funnel_small.jpg
-   :target: JPG/gran_funnel.png
+.. |wallgran1| image:: img/gran_funnel.png
+   :width: 48%
 
-.. image:: JPG/gran_mixer_small.jpg
-   :target: JPG/gran_mixer.png
+.. |wallgran2| image:: img/gran_mixer.png
+   :width: 48%
+
+|wallgran1|  |wallgran2|
+
+.. raw:: html
+
+   Click on the images to see a bigger picture.
 
 ----------
 
@@ -94,7 +106,7 @@ or combinations of primitive shapes specified via the *union* or
 construct particle containers with complex shapes.
 
 Regions can also move dynamically via the :doc:`region <region>` command
-keywords (move) and *rotate*\ , or change their shape by use of variables
+keywords (move) and *rotate*, or change their shape by use of variables
 as inputs to the :doc:`region <region>` command.  If such a region is used
 with this fix, then the region surface will move in time in the
 corresponding manner.
@@ -151,7 +163,7 @@ The nature of the wall/particle interactions are determined by the
 *fstyle* setting.  It can be any of the styles defined by the
 :doc:`pair_style gran/\* <pair_gran>` or the more general
 :doc:`pair_style granular <pair_granular>` commands.  Currently the
-options are *hooke*\ , *hooke/history*\ , or *hertz/history* for the
+options are *hooke*, *hooke/history*, or *hertz/history* for the
 former, and *granular* with all the possible options of the associated
 *pair_coeff* command for the latter.  The equation for the force
 between the wall and particles touching it is the same as the
@@ -169,11 +181,12 @@ radius - r = overlap of particle with wall, m_eff = mass of particle,
 and the effective radius of contact is just the radius of the
 particle.
 
-The parameters *Kn*\ , *Kt*\ , *gamma_n*, *gamma_t*, *xmu* and *dampflag*
+The parameters *Kn*, *Kt*, *gamma_n*, *gamma_t*, *xmu*, *dampflag*,
+and the optional keyword *limit_damping*
 have the same meaning and units as those specified with the
 :doc:`pair_style gran/\* <pair_gran>` commands.  This means a NULL can be
 used for either *Kt* or *gamma_t* as described on that page.  If a
-NULL is used for *Kt*\ , then a default value is used where *Kt* = 2/7
+NULL is used for *Kt*, then a default value is used where *Kt* = 2/7
 *Kn*\ .  If a NULL is used for *gamma_t*, then a default value is used
 where *gamma_t* = 1/2 *gamma_n*.
 
@@ -187,7 +200,8 @@ values for the 6 wall/particle coefficients than for particle/particle
 interactions.  E.g. if you wish to model the wall as a different
 material.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Similar to :doc:`fix wall/gran <fix_wall_gran>` command, this fix writes
 the shear friction state of atoms interacting with the wall to :doc:`binary restart files <restart>`, so that a simulation can continue
@@ -215,17 +229,43 @@ uninterrupted fashion.
    use the same fix ID for fix wall/gran/region, but assign it a region
    with a different region ID.
 
-None of the :doc:`fix_modify <fix_modify>` options are relevant to this
-fix.  No global or per-atom quantities are stored by this fix for
-access by various :doc:`output commands <Howto_output>`.  No parameter
-of this fix can be used with the *start/stop* keywords of the
-:doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
+If the :code:`contacts` option is used, this fix generates a per-atom array
+with 8 columns as output, containing the contact information for owned
+particles (nlocal on each processor). All columns in this per-atom array will
+be zero if no contact has occurred. The values of these columns are listed in
+the following table:
+
++-------+----------------------------------------------------+----------------+
+| Index | Value                                              | Units          |
++=======+====================================================+================+
+|     1 | 1.0 if particle is in contact with wall,           |                |
+|       | 0.0 otherwise                                      |                |
++-------+----------------------------------------------------+----------------+
+|     2 | Force :math:`f_x` exerted by the wall              | force units    |
++-------+----------------------------------------------------+----------------+
+|     3 | Force :math:`f_y` exerted by the wall              | force units    |
++-------+----------------------------------------------------+----------------+
+|     4 | Force :math:`f_z` exerted by the wall              | force units    |
++-------+----------------------------------------------------+----------------+
+|     5 | :math:`x`-coordinate of contact point on wall      | distance units |
++-------+----------------------------------------------------+----------------+
+|     6 | :math:`y`-coordinate of contact point on wall      | distance units |
++-------+----------------------------------------------------+----------------+
+|     7 | :math:`z`-coordinate of contact point on wall      | distance units |
++-------+----------------------------------------------------+----------------+
+|     8 | Radius :math:`r` of atom                           | distance units |
++-------+----------------------------------------------------+----------------+
+
+None of the :doc:`fix_modify <fix_modify>` options are relevant to this fix.
+No parameter of this fix can be used with the *start/stop* keywords of the
+:doc:`run <run>` command. This fix is not invoked during :doc:`energy
+minimization <minimize>`.
 
 Restrictions
 """"""""""""
 
 This fix is part of the GRANULAR package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
@@ -236,4 +276,7 @@ Related commands
 :doc:`pair_style granular <pair_gran>`,
 :doc:`region <region>`
 
-**Default:** none
+Default
+"""""""
+
+none

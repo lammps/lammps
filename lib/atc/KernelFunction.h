@@ -9,8 +9,8 @@ namespace ATC {
 
   /**
    *  @class  KernelFunctionMgr
-   *  @brief  Base class for managing kernels 
-   */  
+   *  @brief  Base class for managing kernels
+   */
   class KernelFunctionMgr {
   public:
    /** Static instance of this class */
@@ -25,26 +25,26 @@ namespace ATC {
   };
 
   /**
-   *  @class  KernelFunction 
-   *  @brief  Base class for kernels for atom-continuum transfer    
-   */  
+   *  @class  KernelFunction
+   *  @brief  Base class for kernels for atom-continuum transfer
+   */
 
   class KernelFunction {
 
   public:
-  
+
     // constructor
     KernelFunction(int nparameters, double* parameters);
     // destructor
     virtual ~KernelFunction() {};
     // function value
     virtual double value(DENS_VEC& x_atom) const =0 ;
-    // function derivative 
+    // function derivative
     virtual void derivative(const DENS_VEC& x_atom, DENS_VEC& deriv) const =0 ;
     // bond function value via quadrature
     virtual double bond(DENS_VEC& xa, DENS_VEC&xb, double lam1, double lam2) const;
     // localization-volume intercepts for bond calculation
-    virtual void bond_intercepts(DENS_VEC& xa, 
+    virtual void bond_intercepts(DENS_VEC& xa,
                  DENS_VEC& xb, double &lam1, double &lam2) const;
     virtual bool node_contributes(DENS_VEC node) const;
     virtual bool in_support(DENS_VEC node) const;
@@ -54,7 +54,7 @@ namespace ATC {
   protected:
     double invVol_; // normalization factor
     double Rc_, invRc_; // cutoff radius
-    int nsd_ ; // number of dimensions 
+    int nsd_ ; // number of dimensions
 
     /** pointer to lammps interface class */
     LammpsInterface * lammpsInterface_;
@@ -67,10 +67,10 @@ namespace ATC {
   };
 
   /**
-   *  @class  KernelFunctionStep 
+   *  @class  KernelFunctionStep
    *  @brief  Class for defining kernel function of a step with spherical support
-   */  
-  
+   */
+
   class KernelFunctionStep : public KernelFunction {
 
   public:
@@ -80,7 +80,7 @@ namespace ATC {
     virtual ~KernelFunctionStep() {};
     // function value
     virtual double value(DENS_VEC& x_atom) const;
-    // function derivative 
+    // function derivative
     virtual void derivative(const DENS_VEC& x_atom, DENS_VEC& deriv) const;
     // bond function value
     virtual double bond(DENS_VEC& /* xa */, DENS_VEC& /* xb */, double lam1, double lam2) const
@@ -88,27 +88,27 @@ namespace ATC {
   };
 
   /**
-   *  @class  KernelFunctionCell 
+   *  @class  KernelFunctionCell
    *  @brief  Class for defining kernel function of a step with rectangular support
    *          suitable for a rectangular grid
-   */  
-  
+   */
+
   class KernelFunctionCell : public KernelFunction {
 
   public:
     // constructor
-    KernelFunctionCell(int nparameters, double* parameters); 
+    KernelFunctionCell(int nparameters, double* parameters);
     // destructor
     virtual ~KernelFunctionCell() {};
     // function value
     virtual double value(DENS_VEC& x_atom) const;
-    // function derivative 
-    virtual void derivative(const DENS_VEC& x_atom, DENS_VEC& deriv) const;     
+    // function derivative
+    virtual void derivative(const DENS_VEC& x_atom, DENS_VEC& deriv) const;
     // bond function value
     virtual double bond(DENS_VEC& /* xa */, DENS_VEC& /* xb */, double lam1, double lam2) const
       {return lam2 -lam1;}
     // bond intercept values : origin is the node position
-    void bond_intercepts(DENS_VEC& xa, DENS_VEC& xb, 
+    void bond_intercepts(DENS_VEC& xa, DENS_VEC& xb,
                          double &lam1, double &lam2) const;
     bool node_contributes(DENS_VEC node) const;
     bool in_support(DENS_VEC dx) const;
@@ -132,8 +132,8 @@ namespace ATC {
     virtual ~KernelFunctionCubicSphere() {};
     // function value
     virtual double value(DENS_VEC& x_atom) const;
-    // function derivative 
-    virtual void derivative(const DENS_VEC& x_atom, DENS_VEC& deriv) const;     
+    // function derivative
+    virtual void derivative(const DENS_VEC& x_atom, DENS_VEC& deriv) const;
   };
 
   /**
@@ -150,8 +150,8 @@ namespace ATC {
     virtual ~KernelFunctionQuarticSphere() {};
     // function value
     virtual double value(DENS_VEC& x_atom) const;
-    // function derivative 
-    virtual void derivative(const DENS_VEC& x_atom, DENS_VEC& deriv) const;     
+    // function derivative
+    virtual void derivative(const DENS_VEC& x_atom, DENS_VEC& deriv) const;
   };
 
   /**
@@ -168,8 +168,8 @@ namespace ATC {
     virtual ~KernelFunctionCubicCyl() {};
     // function value
     virtual double value(DENS_VEC& x_atom) const;
-    // function derivative 
-    virtual void derivative(const DENS_VEC& x_atom, DENS_VEC& deriv) const;     
+    // function derivative
+    virtual void derivative(const DENS_VEC& x_atom, DENS_VEC& deriv) const;
     virtual double dimensionality_factor(void) const { return 0.5; }
   };
 
@@ -181,21 +181,21 @@ namespace ATC {
   class KernelFunctionQuarticCyl : public KernelFunction {
 
   public:
-  
+
     // constructor
     KernelFunctionQuarticCyl(int nparameters, double* parameters);
     // destructor
     virtual ~KernelFunctionQuarticCyl() {};
     // function value
     virtual double value(DENS_VEC& x_atom) const;
-    // function derivative 
-    virtual void derivative(const DENS_VEC& x_atom, DENS_VEC& deriv) const;     
+    // function derivative
+    virtual void derivative(const DENS_VEC& x_atom, DENS_VEC& deriv) const;
     virtual double dimensionality_factor(void) const { return 0.5; }
   };
 
   /**
    *  @class  KernelFunctionCubicBar
-   *  @brief  Class for defining kernel function of a cubic with 1-dimensional (bar) support 
+   *  @brief  Class for defining kernel function of a cubic with 1-dimensional (bar) support
    */
 
   class KernelFunctionCubicBar : public KernelFunction {
@@ -207,14 +207,14 @@ namespace ATC {
     virtual ~KernelFunctionCubicBar() {};
     // function value
     virtual double value(DENS_VEC& x_atom) const;
-    // function derivative 
-    virtual void derivative(const DENS_VEC& x_atom, DENS_VEC& deriv) const;     
+    // function derivative
+    virtual void derivative(const DENS_VEC& x_atom, DENS_VEC& deriv) const;
     virtual double dimensionality_factor(void) const { return 0.25; }
   };
 
   /**
    *  @class  KernelFunctionCubicBar
-   *  @brief  Class for defining kernel function of a cubic with 1-dimensional (bar) support 
+   *  @brief  Class for defining kernel function of a cubic with 1-dimensional (bar) support
    */
 
   class KernelFunctionLinearBar : public KernelFunction {
@@ -226,8 +226,8 @@ namespace ATC {
     virtual ~KernelFunctionLinearBar() {};
     // function value
     virtual double value(DENS_VEC& x_atom) const;
-    // function derivative 
-    virtual void derivative(const DENS_VEC& x_atom, DENS_VEC& deriv) const;     
+    // function derivative
+    virtual void derivative(const DENS_VEC& x_atom, DENS_VEC& deriv) const;
     virtual double dimensionality_factor(void) const { return 0.25; }
   };
 
@@ -246,8 +246,8 @@ namespace ATC {
     virtual ~KernelFunctionQuarticBar() {};
     // function value
     virtual double value(DENS_VEC& x_atom) const;
-    // function derivative 
-    virtual void derivative(const DENS_VEC& x_atom, DENS_VEC& deriv) const;     
+    // function derivative
+    virtual void derivative(const DENS_VEC& x_atom, DENS_VEC& deriv) const;
     virtual double dimensionality_factor(void) const { return 0.25; }
   };
 

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(qeq/dynamic,FixQEqDynamic)
-
+// clang-format off
+FixStyle(qeq/dynamic,FixQEqDynamic);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_QEQ_DYNAMIC_H
@@ -27,20 +27,20 @@ namespace LAMMPS_NS {
 class FixQEqDynamic : public FixQEq {
  public:
   FixQEqDynamic(class LAMMPS *, int, char **);
-  ~FixQEqDynamic() {}
-  void init();
-  void pre_force(int);
 
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
+  void init() override;
+  void pre_force(int) override;
+
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
 
  private:
   double compute_eneg();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

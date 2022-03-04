@@ -1,7 +1,7 @@
 .. index:: fix sph
 
 fix sph command
-================
+===============
 
 Syntax
 """"""
@@ -29,10 +29,11 @@ needed to time-integrate SPH systems where particles carry internal
 variables such as internal energy.  SPH stands for Smoothed Particle
 Hydrodynamics.
 
-See `this PDF guide <USER/sph/SPH_LAMMPS_userguide.pdf>`_ to using SPH in
+See `this PDF guide <PDF/SPH_LAMMPS_userguide.pdf>`_ to using SPH in
 LAMMPS.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
@@ -43,12 +44,15 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 Restrictions
 """"""""""""
 
-This fix is part of the USER-SPH package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This fix is part of the SPH package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
 
 :doc:`fix sph/stationary <fix_sph_stationary>`
 
-**Default:** none
+Default
+"""""""
+
+none

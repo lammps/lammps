@@ -1,4 +1,5 @@
 .. index:: compute reduce
+.. index:: compute reduce/region
 
 compute reduce command
 ======================
@@ -52,7 +53,7 @@ Examples
    compute 1 all reduce sum c_force
    compute 1 all reduce/region subbox sum c_force
    compute 2 all reduce min c_press[2] f_ave v_myKE
-   compute 2 all reduce min c_press[\*] f_ave v_myKE
+   compute 2 all reduce min c_press[*] f_ave v_myKE
    compute 3 fluid reduce max c_index[1] c_index[2] c_dist replace 1 3 replace 2 3
 
 Description
@@ -73,7 +74,7 @@ or *max* options find the minimum or maximum value across all vector
 values.  The *ave* setting adds the vector values into a global total,
 then divides by the number of values in the vector.  The *sumsq*
 option sums the square of the values in the vector into a global
-total.  The *avesq* setting does the same as *sumsq*\ , then divides the
+total.  The *avesq* setting does the same as *sumsq*, then divides the
 sum of squares by the number of values.  The last two options can be
 useful for calculating the variance of some quantity, e.g. variance =
 sumsq - ave\^2.
@@ -125,7 +126,7 @@ an input value from that compute.
 If a value begins with "c\_", a compute ID must follow which has been
 previously defined in the input script.  Computes can generate
 per-atom or local quantities.  See the individual
-:doc:`compute <compute>` doc page for details.  If no bracketed integer
+:doc:`compute <compute>` page for details.  If no bracketed integer
 is appended, the vector calculated by the compute is used.  If a
 bracketed integer is appended, the Ith column of the array calculated
 by the compute is used.  Users can also write code for their own
@@ -135,7 +136,7 @@ to effectively specify multiple values.
 
 If a value begins with "f\_", a fix ID must follow which has been
 previously defined in the input script.  Fixes can generate per-atom
-or local quantities.  See the individual :doc:`fix <fix>` doc page for
+or local quantities.  See the individual :doc:`fix <fix>` page for
 details.  Note that some fixes only produce their values on certain
 timesteps, which must be compatible with when compute reduce
 references the values, else an error results.  If no bracketed integer
@@ -196,7 +197,8 @@ values are desired, this compute can be accessed by the :doc:`thermo_style custo
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar if a single input value is
 specified or a global vector of length N where N is the number of
@@ -222,4 +224,7 @@ Related commands
 
 :doc:`compute <compute>`, :doc:`fix <fix>`, :doc:`variable <variable>`
 
-**Default:** none
+Default
+"""""""
+
+none

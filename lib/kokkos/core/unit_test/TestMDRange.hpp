@@ -103,14 +103,14 @@ struct TestMDRange_ReduceArray_2D {
 
   static void test_arrayreduce2(const int N0, const int N1) {
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>,
-                                             Kokkos::IndexType<int>, InitTag>
-          range_type_init;
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>,
-                                             Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+      using range_type_init =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>,
+                                         Kokkos::IndexType<int>, InitTag>;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>,
+                                         Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type_init range_init(point_type{{0, 0}}, point_type{{N0, N1}},
                                  tile_type{{3, 3}});
@@ -190,14 +190,14 @@ struct TestMDRange_ReduceArray_3D {
 
   static void test_arrayreduce3(const int N0, const int N1, const int N2) {
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<3>,
-                                             Kokkos::IndexType<int>, InitTag>
-          range_type_init;
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<3>,
-                                             Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+      using range_type_init =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<3>,
+                                         Kokkos::IndexType<int>, InitTag>;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<3>,
+                                         Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type_init range_init(point_type{{0, 0, 0}},
                                  point_type{{N0, N1, N2}},
@@ -257,11 +257,11 @@ struct TestMDRange_2D {
   static void test_reduce2(const int N0, const int N1) {
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>,
-                                             Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>,
+                                         Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0}}, point_type{{N0, N1}},
                        tile_type{{3, 3}});
@@ -277,11 +277,11 @@ struct TestMDRange_2D {
 #endif
 
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>,
-                                             Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>,
+                                         Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0}}, point_type{{N0, N1}},
                        tile_type{{3, 3}});
@@ -297,9 +297,9 @@ struct TestMDRange_2D {
 
     // Test with reducers - scalar
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>,
-                                             Kokkos::IndexType<int> >
-          range_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>,
+                                         Kokkos::IndexType<int>>;
       int s0 = 1;
       int s1 = 1;
       range_type range({{s0, s1}}, {{N0, N1}}, {{3, 3}});
@@ -317,9 +317,9 @@ struct TestMDRange_2D {
     }
     // Test with reducers - scalar + label
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>,
-                                             Kokkos::IndexType<int> >
-          range_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>,
+                                         Kokkos::IndexType<int>>;
       int s0 = 1;
       int s1 = 1;
       range_type range({{s0, s1}}, {{N0, N1}}, {{3, 3}});
@@ -337,9 +337,9 @@ struct TestMDRange_2D {
     }
     // Test with reducers - scalar view
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>,
-                                             Kokkos::IndexType<int> >
-          range_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>,
+                                         Kokkos::IndexType<int>>;
       range_type range({{0, 0}}, {{N0, N1}}, {{3, 3}});
 
       TestMDRange_2D functor(N0, N1);
@@ -360,9 +360,9 @@ struct TestMDRange_2D {
     // Test Min reducer with lambda
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>,
-                                             Kokkos::IndexType<int> >
-          range_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>,
+                                         Kokkos::IndexType<int>>;
       range_type range({{1, 1}}, {{N0, N1}}, {{3, 3}});
 
       Kokkos::View<double **, ExecSpace> v_in("v_in", N0, N1);
@@ -378,7 +378,7 @@ struct TestMDRange_2D {
       parallel_reduce(
           "rank2-min-reducer", range,
           KOKKOS_LAMBDA(const int i, const int j, double &min_val) {
-            min_val = fmin(v_in(i, j), min_val);
+            min_val = Kokkos::Experimental::fmin(v_in(i, j), min_val);
           },
           reducer_scalar);
 
@@ -387,12 +387,11 @@ struct TestMDRange_2D {
 #endif
     // Tagged operator test
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<2, Iterate::Default, Iterate::Default>,
-          Kokkos::IndexType<int>, InitTag>
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>, InitTag>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0}}, point_type{{N0, N1}},
                        tile_type{{2, 4}});
@@ -426,12 +425,11 @@ struct TestMDRange_2D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<2, Iterate::Default, Iterate::Default>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0}}, point_type{{N0, N1}},
                        tile_type{{2, 6}});
@@ -446,12 +444,11 @@ struct TestMDRange_2D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<2, Iterate::Left, Iterate::Left>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0}}, point_type{{N0, N1}},
                        tile_type{{2, 6}});
@@ -466,12 +463,11 @@ struct TestMDRange_2D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<2, Iterate::Left, Iterate::Right>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0}}, point_type{{N0, N1}},
                        tile_type{{2, 6}});
@@ -486,12 +482,11 @@ struct TestMDRange_2D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<2, Iterate::Right, Iterate::Left>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0}}, point_type{{N0, N1}},
                        tile_type{{2, 6}});
@@ -506,12 +501,11 @@ struct TestMDRange_2D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<2, Iterate::Right, Iterate::Right>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0}}, point_type{{N0, N1}},
                        tile_type{{2, 6}});
@@ -529,11 +523,11 @@ struct TestMDRange_2D {
   static void test_for2(const int N0, const int N1) {
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>,
-                                             Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>,
+                                         Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       const int s0 = 1;
       const int s1 = 1;
@@ -569,11 +563,11 @@ struct TestMDRange_2D {
 #endif
 
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>,
-                                             Kokkos::IndexType<int>, InitTag>
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>,
+                                         Kokkos::IndexType<int>, InitTag>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       const int s0 = 1;
       const int s1 = 1;
@@ -605,11 +599,10 @@ struct TestMDRange_2D {
     }
 
     {
-      typedef
-          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>, InitTag>
-              range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>, InitTag>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0}}, point_type{{N0, N1}},
                        tile_type{{3, 3}});
@@ -639,10 +632,9 @@ struct TestMDRange_2D {
     }
 
     {
-      typedef
-          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>, InitTag>
-              range_type;
-      typedef typename range_type::point_type point_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>, InitTag>;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0}}, point_type{{N0, N1}});
       TestMDRange_2D functor(N0, N1);
@@ -671,11 +663,11 @@ struct TestMDRange_2D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>,
-                                             Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>,
+                                         Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0}}, point_type{{N0, N1}},
                        tile_type{{3, 3}});
@@ -702,12 +694,11 @@ struct TestMDRange_2D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<2, Iterate::Default, Iterate::Default>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0}}, point_type{{N0, N1}},
                        tile_type{{4, 4}});
@@ -734,12 +725,11 @@ struct TestMDRange_2D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<2, Iterate::Left, Iterate::Left>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0}}, point_type{{N0, N1}},
                        tile_type{{3, 3}});
@@ -766,12 +756,11 @@ struct TestMDRange_2D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<2, Iterate::Left, Iterate::Right>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0}}, point_type{{N0, N1}},
                        tile_type{{7, 7}});
@@ -798,12 +787,11 @@ struct TestMDRange_2D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<2, Iterate::Right, Iterate::Left>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0}}, point_type{{N0, N1}},
                        tile_type{{16, 16}});
@@ -830,12 +818,11 @@ struct TestMDRange_2D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<2, Iterate::Right, Iterate::Right>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0}}, point_type{{N0, N1}},
                        tile_type{{5, 16}});
@@ -904,11 +891,11 @@ struct TestMDRange_3D {
   static void test_reduce3(const int N0, const int N1, const int N2) {
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<3>,
-                                             Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<3>,
+                                         Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0}}, point_type{{N0, N1, N2}},
                        tile_type{{3, 3, 3}});
@@ -923,11 +910,11 @@ struct TestMDRange_3D {
 #endif
 
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<3>,
-                                             Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<3>,
+                                         Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       int s0 = 1;
       int s1 = 1;
@@ -946,9 +933,9 @@ struct TestMDRange_3D {
 
     // Test with reducers - scalar
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<3>,
-                                             Kokkos::IndexType<int> >
-          range_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<3>,
+                                         Kokkos::IndexType<int>>;
       range_type range({{0, 0, 0}}, {{N0, N1, N2}}, {{3, 3, 3}});
 
       TestMDRange_3D functor(N0, N1, N2);
@@ -964,9 +951,9 @@ struct TestMDRange_3D {
     }
     // Test with reducers - scalar + label
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<3>,
-                                             Kokkos::IndexType<int> >
-          range_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<3>,
+                                         Kokkos::IndexType<int>>;
       range_type range({{0, 0, 0}}, {{N0, N1, N2}}, {{3, 3, 3}});
 
       TestMDRange_3D functor(N0, N1, N2);
@@ -982,9 +969,9 @@ struct TestMDRange_3D {
     }
     // Test with reducers - scalar view
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<3>,
-                                             Kokkos::IndexType<int> >
-          range_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<3>,
+                                         Kokkos::IndexType<int>>;
       range_type range({{0, 0, 0}}, {{N0, N1, N2}}, {{3, 3, 3}});
 
       TestMDRange_3D functor(N0, N1, N2);
@@ -1005,9 +992,9 @@ struct TestMDRange_3D {
     // Test Min reducer with lambda
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<3>,
-                                             Kokkos::IndexType<int> >
-          range_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<3>,
+                                         Kokkos::IndexType<int>>;
 
       range_type range({{1, 1, 1}}, {{N0, N1, N2}}, {{3, 3, 3}});
 
@@ -1040,12 +1027,11 @@ struct TestMDRange_3D {
 
     // Tagged operator test
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<3, Iterate::Default, Iterate::Default>,
-          Kokkos::IndexType<int>, InitTag>
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>, InitTag>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0}}, point_type{{N0, N1, N2}},
                        tile_type{{2, 4, 6}});
@@ -1080,12 +1066,11 @@ struct TestMDRange_3D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<3, Iterate::Default, Iterate::Default>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0}}, point_type{{N0, N1, N2}},
                        tile_type{{2, 4, 6}});
@@ -1100,12 +1085,11 @@ struct TestMDRange_3D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<3, Iterate::Left, Iterate::Left>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0}}, point_type{{N0, N1, N2}},
                        tile_type{{2, 4, 6}});
@@ -1120,12 +1104,11 @@ struct TestMDRange_3D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<3, Iterate::Left, Iterate::Right>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0}}, point_type{{N0, N1, N2}},
                        tile_type{{2, 4, 6}});
@@ -1140,12 +1123,11 @@ struct TestMDRange_3D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<3, Iterate::Right, Iterate::Left>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0}}, point_type{{N0, N1, N2}},
                        tile_type{{2, 4, 6}});
@@ -1160,12 +1142,11 @@ struct TestMDRange_3D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<3, Iterate::Right, Iterate::Right>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0}}, point_type{{N0, N1, N2}},
                        tile_type{{2, 4, 6}});
@@ -1183,11 +1164,11 @@ struct TestMDRange_3D {
   static void test_for3(const int N0, const int N1, const int N2) {
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<3>,
-                                             Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<3>,
+                                         Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       const int s0 = 1;
       const int s1 = 1;
@@ -1227,9 +1208,9 @@ struct TestMDRange_3D {
 #endif
 
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<3> >
-          range_type;
-      typedef typename range_type::point_type point_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<3>>;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0}}, point_type{{N0, N1, N2}});
       TestMDRange_3D functor(N0, N1, N2);
@@ -1257,11 +1238,11 @@ struct TestMDRange_3D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<3>,
-                                             Kokkos::IndexType<int>, InitTag>
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<3>,
+                                         Kokkos::IndexType<int>, InitTag>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       int s0 = 1;
       int s1 = 1;
@@ -1295,11 +1276,11 @@ struct TestMDRange_3D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<3>,
-                                             Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<3>,
+                                         Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0}}, point_type{{N0, N1, N2}},
                        tile_type{{3, 3, 3}});
@@ -1328,12 +1309,11 @@ struct TestMDRange_3D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<3, Iterate::Default, Iterate::Default>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0}}, point_type{{N0, N1, N2}},
                        tile_type{{3, 3, 3}});
@@ -1361,12 +1341,11 @@ struct TestMDRange_3D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<3, Iterate::Left, Iterate::Left>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0}}, point_type{{N0, N1, N2}},
                        tile_type{{2, 4, 2}});
@@ -1394,12 +1373,11 @@ struct TestMDRange_3D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<3, Iterate::Left, Iterate::Right>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0}}, point_type{{N0, N1, N2}},
                        tile_type{{3, 5, 7}});
@@ -1427,15 +1405,19 @@ struct TestMDRange_3D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<3, Iterate::Right, Iterate::Left>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
+#ifdef KOKKOS_ENABLE_SYCL
+      range_type range(point_type{{0, 0, 0}}, point_type{{N0, N1, N2}},
+                       tile_type{{8, 8, 4}});
+#else
       range_type range(point_type{{0, 0, 0}}, point_type{{N0, N1, N2}},
                        tile_type{{8, 8, 8}});
+#endif
       TestMDRange_3D functor(N0, N1, N2);
 
       parallel_for(range, functor);
@@ -1460,12 +1442,11 @@ struct TestMDRange_3D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<3, Iterate::Right, Iterate::Right>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0}}, point_type{{N0, N1, N2}},
                        tile_type{{2, 4, 2}});
@@ -1537,11 +1518,11 @@ struct TestMDRange_4D {
                            const int N3) {
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<4>,
-                                             Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<4>,
+                                         Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0, 0}}, point_type{{N0, N1, N2, N3}},
                        tile_type{{3, 3, 3, 3}});
@@ -1556,11 +1537,11 @@ struct TestMDRange_4D {
 #endif
 
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<4>,
-                                             Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<4>,
+                                         Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       int s0 = 1;
       int s1 = 1;
@@ -1580,9 +1561,9 @@ struct TestMDRange_4D {
 
     // Test with reducers - scalar
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<4>,
-                                             Kokkos::IndexType<int> >
-          range_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<4>,
+                                         Kokkos::IndexType<int>>;
       range_type range({{0, 0, 0, 0}}, {{N0, N1, N2, N3}}, {{3, 3, 3, 3}});
 
       TestMDRange_4D functor(N0, N1, N2, N3);
@@ -1599,9 +1580,9 @@ struct TestMDRange_4D {
 
     // Test with reducers - scalar + label
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<4>,
-                                             Kokkos::IndexType<int> >
-          range_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<4>,
+                                         Kokkos::IndexType<int>>;
       range_type range({{0, 0, 0, 0}}, {{N0, N1, N2, N3}}, {{3, 3, 3, 3}});
 
       TestMDRange_4D functor(N0, N1, N2, N3);
@@ -1618,9 +1599,9 @@ struct TestMDRange_4D {
 
     // Test with reducers - scalar view
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<4>,
-                                             Kokkos::IndexType<int> >
-          range_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<4>,
+                                         Kokkos::IndexType<int>>;
       range_type range({{0, 0, 0, 0}}, {{N0, N1, N2, N3}}, {{3, 3, 3, 3}});
 
       TestMDRange_4D functor(N0, N1, N2, N3);
@@ -1642,9 +1623,9 @@ struct TestMDRange_4D {
     // Test Min reducer with lambda
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<4>,
-                                             Kokkos::IndexType<int> >
-          range_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<4>,
+                                         Kokkos::IndexType<int>>;
 
       range_type range({{1, 1, 1, 1}}, {{N0, N1, N2, N3}}, {{3, 3, 3, 3}});
 
@@ -1672,12 +1653,11 @@ struct TestMDRange_4D {
 
     // Tagged operator test
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<4, Iterate::Default, Iterate::Default>,
-          Kokkos::IndexType<int>, InitTag>
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>, InitTag>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0, 0}}, point_type{{N0, N1, N2, N3}},
                        tile_type{{2, 4, 6, 2}});
@@ -1714,12 +1694,11 @@ struct TestMDRange_4D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<4, Iterate::Default, Iterate::Default>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0, 0}}, point_type{{N0, N1, N2, N3}},
                        tile_type{{2, 4, 6, 2}});
@@ -1734,12 +1713,11 @@ struct TestMDRange_4D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<4, Iterate::Left, Iterate::Left>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0, 0}}, point_type{{N0, N1, N2, N3}},
                        tile_type{{2, 4, 6, 2}});
@@ -1754,12 +1732,11 @@ struct TestMDRange_4D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<4, Iterate::Left, Iterate::Right>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0, 0}}, point_type{{N0, N1, N2, N3}},
                        tile_type{{2, 4, 6, 2}});
@@ -1774,12 +1751,11 @@ struct TestMDRange_4D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<4, Iterate::Right, Iterate::Left>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0, 0}}, point_type{{N0, N1, N2, N3}},
                        tile_type{{2, 4, 6, 2}});
@@ -1794,12 +1770,11 @@ struct TestMDRange_4D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<4, Iterate::Right, Iterate::Right>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0, 0}}, point_type{{N0, N1, N2, N3}},
                        tile_type{{2, 4, 6, 2}});
@@ -1818,11 +1793,11 @@ struct TestMDRange_4D {
                         const int N3) {
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<4>,
-                                             Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<4>,
+                                         Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       const int s0 = 1;
       const int s1 = 1;
@@ -1863,9 +1838,9 @@ struct TestMDRange_4D {
 #endif
 
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<4> >
-          range_type;
-      typedef typename range_type::point_type point_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<4>>;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0, 0}}, point_type{{N0, N1, N2, N3}});
       TestMDRange_4D functor(N0, N1, N2, N3);
@@ -1894,18 +1869,23 @@ struct TestMDRange_4D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<4>,
-                                             Kokkos::IndexType<int>, InitTag>
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<4>,
+                                         Kokkos::IndexType<int>, InitTag>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       int s0 = 1;
       int s1 = 1;
       int s2 = 1;
       int s3 = 1;
+#ifdef KOKKOS_ENABLE_SYCL
+      range_type range(point_type{{s0, s1, s2, s3}},
+                       point_type{{N0, N1, N2, N3}}, tile_type{{3, 11, 3, 2}});
+#else
       range_type range(point_type{{s0, s1, s2, s3}},
                        point_type{{N0, N1, N2, N3}}, tile_type{{3, 11, 3, 3}});
+#endif
       TestMDRange_4D functor(N0, N1, N2, N3);
 
       parallel_for(range, functor);
@@ -1934,11 +1914,11 @@ struct TestMDRange_4D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<4>,
-                                             Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<4>,
+                                         Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0, 0}}, point_type{{N0, N1, N2, N3}},
                        tile_type{{4, 4, 4, 4}});
@@ -1968,12 +1948,11 @@ struct TestMDRange_4D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<4, Iterate::Default, Iterate::Default>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0, 0}}, point_type{{N0, N1, N2, N3}},
                        tile_type{{4, 4, 4, 4}});
@@ -2003,12 +1982,11 @@ struct TestMDRange_4D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<4, Iterate::Left, Iterate::Left>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0, 0}}, point_type{{N0, N1, N2, N3}},
                        tile_type{{4, 4, 4, 4}});
@@ -2038,12 +2016,11 @@ struct TestMDRange_4D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<4, Iterate::Left, Iterate::Right>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0, 0}}, point_type{{N0, N1, N2, N3}},
                        tile_type{{4, 4, 4, 4}});
@@ -2073,12 +2050,11 @@ struct TestMDRange_4D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<4, Iterate::Right, Iterate::Left>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0, 0}}, point_type{{N0, N1, N2, N3}},
                        tile_type{{4, 4, 4, 4}});
@@ -2108,12 +2084,11 @@ struct TestMDRange_4D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<4, Iterate::Right, Iterate::Right>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0, 0}}, point_type{{N0, N1, N2, N3}},
                        tile_type{{4, 4, 4, 4}});
@@ -2188,11 +2163,11 @@ struct TestMDRange_5D {
                            const int N3, const int N4) {
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<5>,
-                                             Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<5>,
+                                         Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0, 0, 0}},
                        point_type{{N0, N1, N2, N3, N4}},
@@ -2209,11 +2184,11 @@ struct TestMDRange_5D {
 #endif
 
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<5>,
-                                             Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<5>,
+                                         Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       int s0 = 1;
       int s1 = 1;
@@ -2236,9 +2211,9 @@ struct TestMDRange_5D {
 
     // Test with reducers - scalar
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<5>,
-                                             Kokkos::IndexType<int> >
-          range_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<5>,
+                                         Kokkos::IndexType<int>>;
       range_type range({{0, 0, 0, 0, 0}}, {{N0, N1, N2, N3, N4}},
                        {{3, 3, 3, 3, 3}});
 
@@ -2256,9 +2231,9 @@ struct TestMDRange_5D {
 
     // Test with reducers - scalar + label
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<5>,
-                                             Kokkos::IndexType<int> >
-          range_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<5>,
+                                         Kokkos::IndexType<int>>;
       range_type range({{0, 0, 0, 0, 0}}, {{N0, N1, N2, N3, N4}},
                        {{3, 3, 3, 3, 3}});
 
@@ -2276,9 +2251,9 @@ struct TestMDRange_5D {
 
     // Test with reducers - scalar view
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<5>,
-                                             Kokkos::IndexType<int> >
-          range_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<5>,
+                                         Kokkos::IndexType<int>>;
       range_type range({{0, 0, 0, 0, 0}}, {{N0, N1, N2, N3, N4}},
                        {{3, 3, 3, 3, 3}});
 
@@ -2301,9 +2276,9 @@ struct TestMDRange_5D {
     // Test Min reducer with lambda
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<5>,
-                                             Kokkos::IndexType<int> >
-          range_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<5>,
+                                         Kokkos::IndexType<int>>;
 
       range_type range({{1, 1, 1, 1, 1}}, {{N0, N1, N2, N3, N4}},
                        {{3, 3, 3, 2, 2}});
@@ -2335,12 +2310,11 @@ struct TestMDRange_5D {
 
     // Tagged operator test
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<5, Iterate::Default, Iterate::Default>,
-          Kokkos::IndexType<int>, InitTag>
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>, InitTag>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0, 0, 0}},
                        point_type{{N0, N1, N2, N3, N4}},
@@ -2383,11 +2357,11 @@ struct TestMDRange_5D {
                         const int N4) {
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<5>,
-                                             Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<5>,
+                                         Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       const int s0 = 1;
       const int s1 = 1;
@@ -2432,9 +2406,9 @@ struct TestMDRange_5D {
 #endif
 
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<5> >
-          range_type;
-      typedef typename range_type::point_type point_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<5>>;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0, 0, 0}},
                        point_type{{N0, N1, N2, N3, N4}});
@@ -2465,20 +2439,27 @@ struct TestMDRange_5D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<5>,
-                                             Kokkos::IndexType<int>, InitTag>
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<5>,
+                                         Kokkos::IndexType<int>, InitTag>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       int s0 = 1;
       int s1 = 1;
       int s2 = 1;
       int s3 = 1;
       int s4 = 1;
+#ifdef KOKKOS_ENABLE_SYCL
+      range_type range(point_type{{s0, s1, s2, s3, s4}},
+                       point_type{{N0, N1, N2, N3, N4}},
+                       tile_type{{3, 3, 3, 3, 3}});
+#else
       range_type range(point_type{{s0, s1, s2, s3, s4}},
                        point_type{{N0, N1, N2, N3, N4}},
                        tile_type{{3, 3, 3, 3, 5}});
+#endif
+
       TestMDRange_5D functor(N0, N1, N2, N3, N4);
 
       parallel_for(range, functor);
@@ -2508,11 +2489,11 @@ struct TestMDRange_5D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<5>,
-                                             Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<5>,
+                                         Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0, 0, 0}},
                        point_type{{N0, N1, N2, N3, N4}},
@@ -2544,12 +2525,11 @@ struct TestMDRange_5D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<5, Iterate::Default, Iterate::Default>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0, 0, 0}},
                        point_type{{N0, N1, N2, N3, N4}},
@@ -2581,12 +2561,11 @@ struct TestMDRange_5D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<5, Iterate::Left, Iterate::Left>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0, 0, 0}},
                        point_type{{N0, N1, N2, N3, N4}},
@@ -2618,12 +2597,11 @@ struct TestMDRange_5D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<5, Iterate::Left, Iterate::Right>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0, 0, 0}},
                        point_type{{N0, N1, N2, N3, N4}},
@@ -2655,12 +2633,11 @@ struct TestMDRange_5D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<5, Iterate::Right, Iterate::Left>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0, 0, 0}},
                        point_type{{N0, N1, N2, N3, N4}},
@@ -2692,12 +2669,11 @@ struct TestMDRange_5D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<5, Iterate::Right, Iterate::Right>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0, 0, 0}},
                        point_type{{N0, N1, N2, N3, N4}},
@@ -2775,11 +2751,20 @@ struct TestMDRange_6D {
                            const int N3, const int N4, const int N5) {
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<6>,
-                                             Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+#if defined(KOKKOS_COMPILER_INTEL)
+      // Launchbounds causes hang with intel compilers
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<6>,
+                                         Kokkos::IndexType<int>>;
+#else
+      // Launchbounds to ensure the tile fits into a CUDA block under register
+      // constraints
+      using range_type = typename Kokkos::MDRangePolicy<
+          ExecSpace, Kokkos::LaunchBounds<128, 1>, Kokkos::Rank<6>,
+          Kokkos::IndexType<int>>;
+#endif
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0, 0, 0, 0}},
                        point_type{{N0, N1, N2, N3, N4, N5}},
@@ -2796,11 +2781,20 @@ struct TestMDRange_6D {
 #endif
 
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<6>,
-                                             Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+#if defined(KOKKOS_COMPILER_INTEL)
+      // Launchbounds causes hang with intel compilers
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<6>,
+                                         Kokkos::IndexType<int>>;
+#else
+      // Launchbounds to ensure the tile fits into a CUDA block under register
+      // constraints
+      using range_type = typename Kokkos::MDRangePolicy<
+          ExecSpace, Kokkos::LaunchBounds<512, 1>, Kokkos::Rank<6>,
+          Kokkos::IndexType<int>>;
+#endif
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       int s0 = 1;
       int s1 = 1;
@@ -2808,9 +2802,16 @@ struct TestMDRange_6D {
       int s3 = 1;
       int s4 = 1;
       int s5 = 1;
+
+#ifdef KOKKOS_ENABLE_SYCL
+      range_type range(point_type{{s0, s1, s2, s3, s4, s5}},
+                       point_type{{N0, N1, N2, N3, N4, N5}},
+                       tile_type{{3, 3, 3, 2, 2, 2}});
+#else
       range_type range(point_type{{s0, s1, s2, s3, s4, s5}},
                        point_type{{N0, N1, N2, N3, N4, N5}},
                        tile_type{{3, 3, 3, 3, 3, 2}});
+#endif
 
       TestMDRange_6D functor(N0, N1, N2, N3, N4, N5);
 
@@ -2824,11 +2825,25 @@ struct TestMDRange_6D {
 
     // Test with reducers - scalar
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<6>,
-                                             Kokkos::IndexType<int> >
-          range_type;
+#if defined(KOKKOS_COMPILER_INTEL)
+      // Launchbounds causes hang with intel compilers
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<6>,
+                                         Kokkos::IndexType<int>>;
+#else
+      // Launchbounds to ensure the tile fits into a CUDA block under register
+      // constraints
+      using range_type = typename Kokkos::MDRangePolicy<
+          ExecSpace, Kokkos::LaunchBounds<512, 1>, Kokkos::Rank<6>,
+          Kokkos::IndexType<int>>;
+#endif
+#ifdef KOKKOS_ENABLE_SYCL
+      range_type range({{0, 0, 0, 0, 0, 0}}, {{N0, N1, N2, N3, N4, N5}},
+                       {{3, 3, 3, 2, 2, 2}});
+#else
       range_type range({{0, 0, 0, 0, 0, 0}}, {{N0, N1, N2, N3, N4, N5}},
                        {{3, 3, 3, 3, 3, 2}});
+#endif
 
       TestMDRange_6D functor(N0, N1, N2, N3, N4, N5);
 
@@ -2844,11 +2859,26 @@ struct TestMDRange_6D {
 
     // Test with reducers - scalar + label
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<6>,
-                                             Kokkos::IndexType<int> >
-          range_type;
+#if defined(KOKKOS_COMPILER_INTEL)
+      // Launchbounds causes hang with intel compilers
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<6>,
+                                         Kokkos::IndexType<int>>;
+#else
+      // Launchbounds to ensure the tile fits into a CUDA block under register
+      // constraints
+      using range_type = typename Kokkos::MDRangePolicy<
+          ExecSpace, Kokkos::LaunchBounds<512, 1>, Kokkos::Rank<6>,
+          Kokkos::IndexType<int>>;
+#endif
+
+#ifdef KOKKOS_ENABLE_SYCL
+      range_type range({{0, 0, 0, 0, 0, 0}}, {{N0, N1, N2, N3, N4, N5}},
+                       {{3, 3, 3, 2, 2, 2}});
+#else
       range_type range({{0, 0, 0, 0, 0, 0}}, {{N0, N1, N2, N3, N4, N5}},
                        {{3, 3, 3, 3, 3, 2}});
+#endif
 
       TestMDRange_6D functor(N0, N1, N2, N3, N4, N5);
 
@@ -2864,11 +2894,26 @@ struct TestMDRange_6D {
 
     // Test with reducers - scalar view
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<6>,
-                                             Kokkos::IndexType<int> >
-          range_type;
+#if defined(KOKKOS_COMPILER_INTEL)
+      // Launchbounds causes hang with intel compilers
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<6>,
+                                         Kokkos::IndexType<int>>;
+#else
+      // Launchbounds to ensure the tile fits into a CUDA block under register
+      // constraints
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<6>,
+                                         Kokkos::IndexType<int>,
+                                         Kokkos::LaunchBounds<512, 1>>;
+#endif
+#ifdef KOKKOS_ENABLE_SYCL
+      range_type range({{0, 0, 0, 0, 0, 0}}, {{N0, N1, N2, N3, N4, N5}},
+                       {{3, 3, 3, 2, 2, 2}});
+#else
       range_type range({{0, 0, 0, 0, 0, 0}}, {{N0, N1, N2, N3, N4, N5}},
                        {{3, 3, 3, 3, 3, 2}});
+#endif
 
       TestMDRange_6D functor(N0, N1, N2, N3, N4, N5);
 
@@ -2889,10 +2934,18 @@ struct TestMDRange_6D {
     // Test Min reducer with lambda
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<6>,
-                                             Kokkos::IndexType<int> >
-          range_type;
-
+#if defined(KOKKOS_COMPILER_INTEL)
+      // Launchbounds causes hang with intel compilers
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<6>,
+                                         Kokkos::IndexType<int>>;
+#else
+      // Launchbounds to ensure the tile fits into a CUDA block under register
+      // constraints
+      using range_type = typename Kokkos::MDRangePolicy<
+          ExecSpace, Kokkos::LaunchBounds<128, 1>, Kokkos::Rank<6>,
+          Kokkos::IndexType<int>>;
+#endif
       range_type range({{1, 1, 1, 1, 1, 1}}, {{N0, N1, N2, N3, N4, N5}},
                        {{3, 3, 3, 2, 2, 1}});
 
@@ -2925,16 +2978,31 @@ struct TestMDRange_6D {
 
     // Tagged operator test
     {
-      typedef typename Kokkos::MDRangePolicy<
+#if defined(KOKKOS_COMPILER_INTEL)
+      // Launchbounds causes hang with intel compilers
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<6, Iterate::Default, Iterate::Default>,
-          Kokkos::IndexType<int>, InitTag>
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>, InitTag>;
+#else
+      // Launchbounds to ensure the tile fits into a CUDA block under register
+      // constraints
+      using range_type = typename Kokkos::MDRangePolicy<
+          ExecSpace, Kokkos::LaunchBounds<512, 1>,
+          Kokkos::Rank<6, Iterate::Default, Iterate::Default>,
+          Kokkos::IndexType<int>, InitTag>;
+#endif
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
+#ifdef KOKKOS_ENABLE_SYCL
+      range_type range(point_type{{0, 0, 0, 0, 0, 0}},
+                       point_type{{N0, N1, N2, N3, N4, N5}},
+                       tile_type{{2, 4, 4, 2, 2, 2}});
+#else
       range_type range(point_type{{0, 0, 0, 0, 0, 0}},
                        point_type{{N0, N1, N2, N3, N4, N5}},
                        tile_type{{2, 4, 6, 2, 2, 2}});
+#endif
 
       TestMDRange_6D functor(N0, N1, N2, N3, N4, N5);
 
@@ -2974,11 +3042,20 @@ struct TestMDRange_6D {
                         const int N4, const int N5) {
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<6>,
-                                             Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+#if defined(KOKKOS_COMPILER_INTEL)
+      // Launchbounds causes hang with intel compilers
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<6>,
+                                         Kokkos::IndexType<int>>;
+#else
+      // Launchbounds to ensure the tile fits into a CUDA block under register
+      // constraints
+      using range_type = typename Kokkos::MDRangePolicy<
+          ExecSpace, Kokkos::LaunchBounds<128, 1>, Kokkos::Rank<6>,
+          Kokkos::IndexType<int>>;
+#endif
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       const int s0 = 1;
       const int s1 = 1;
@@ -3025,9 +3102,17 @@ struct TestMDRange_6D {
 #endif
 
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<6> >
-          range_type;
-      typedef typename range_type::point_type point_type;
+#if defined(KOKKOS_COMPILER_INTEL)
+      // Launchbounds causes hang with intel compilers
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<6>>;
+#else
+      // Launchbounds to ensure the tile fits into a CUDA block under register
+      // constraints
+      using range_type = typename Kokkos::MDRangePolicy<
+          ExecSpace, Kokkos::LaunchBounds<512, 1>, Kokkos::Rank<6>>;
+#endif
+      using point_type = typename range_type::point_type;
 
       range_type range(point_type{{0, 0, 0, 0, 0, 0}},
                        point_type{{N0, N1, N2, N3, N4, N5}});
@@ -3059,11 +3144,20 @@ struct TestMDRange_6D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<6>,
-                                             Kokkos::IndexType<int>, InitTag>
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+#if defined(KOKKOS_COMPILER_INTEL)
+      // Launchbounds causes hang with intel compilers
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<6>,
+                                         Kokkos::IndexType<int>, InitTag>;
+#else
+      // Launchbounds to ensure the tile fits into a CUDA block under register
+      // constraints
+      using range_type = typename Kokkos::MDRangePolicy<
+          ExecSpace, Kokkos::LaunchBounds<512, 1>, Kokkos::Rank<6>,
+          Kokkos::IndexType<int>, InitTag>;
+#endif
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       int s0 = 1;
       int s1 = 1;
@@ -3071,11 +3165,17 @@ struct TestMDRange_6D {
       int s3 = 1;
       int s4 = 1;
       int s5 = 1;
-      range_type range(
-          point_type{{s0, s1, s2, s3, s4, s5}},
-          point_type{{N0, N1, N2, N3, N4, N5}},
-          tile_type{{3, 3, 3, 3, 2, 3}});  // tile dims 3,3,3,3,3,3 more than
-                                           // cuda can handle with debugging
+#ifdef KOKKOS_ENABLE_SYCL
+      range_type range(point_type{{s0, s1, s2, s3, s4, s5}},
+                       point_type{{N0, N1, N2, N3, N4, N5}},
+                       tile_type{{3, 3, 3, 2, 2, 2}});
+#else
+      // tile dims 3,3,3,3,3,3 more than cuda can handle with debugging
+      range_type range(point_type{{s0, s1, s2, s3, s4, s5}},
+                       point_type{{N0, N1, N2, N3, N4, N5}},
+                       tile_type{{3, 3, 3, 3, 2, 3}});
+#endif
+
       TestMDRange_6D functor(N0, N1, N2, N3, N4, N5);
 
       parallel_for(range, functor);
@@ -3106,15 +3206,30 @@ struct TestMDRange_6D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<6>,
-                                             Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+#if defined(KOKKOS_COMPILER_INTEL)
+      // Launchbounds causes hang with intel compilers
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<6>,
+                                         Kokkos::IndexType<int>>;
+#else
+      // Launchbounds to ensure the tile fits into a CUDA block under register
+      // constraints
+      using range_type = typename Kokkos::MDRangePolicy<
+          ExecSpace, Kokkos::LaunchBounds<512, 1>, Kokkos::Rank<6>,
+          Kokkos::IndexType<int>>;
+#endif
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
+#ifdef KOKKOS_ENABLE_SYCL
+      range_type range(point_type{{0, 0, 0, 0, 0, 0}},
+                       point_type{{N0, N1, N2, N3, N4, N5}},
+                       tile_type{{4, 4, 2, 2, 2, 2}});
+#else
       range_type range(point_type{{0, 0, 0, 0, 0, 0}},
                        point_type{{N0, N1, N2, N3, N4, N5}},
                        tile_type{{4, 4, 4, 2, 2, 2}});
+#endif
 
       TestMDRange_6D functor(N0, N1, N2, N3, N4, N5);
 
@@ -3143,16 +3258,31 @@ struct TestMDRange_6D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+#if defined(KOKKOS_COMPILER_INTEL)
+      // Launchbounds causes hang with intel compilers
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<6, Iterate::Default, Iterate::Default>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+#else
+      // Launchbounds to ensure the tile fits into a CUDA block under register
+      // constraints
+      using range_type = typename Kokkos::MDRangePolicy<
+          ExecSpace, Kokkos::LaunchBounds<512, 1>,
+          Kokkos::Rank<6, Iterate::Default, Iterate::Default>,
+          Kokkos::IndexType<int>>;
+#endif
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
+#ifdef KOKKOS_ENABLE_SYCL
+      range_type range(point_type{{0, 0, 0, 0, 0, 0}},
+                       point_type{{N0, N1, N2, N3, N4, N5}},
+                       tile_type{{4, 4, 2, 2, 2, 2}});
+#else
       range_type range(point_type{{0, 0, 0, 0, 0, 0}},
                        point_type{{N0, N1, N2, N3, N4, N5}},
                        tile_type{{4, 4, 4, 2, 2, 2}});
+#endif
 
       TestMDRange_6D functor(N0, N1, N2, N3, N4, N5);
 
@@ -3181,16 +3311,31 @@ struct TestMDRange_6D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+#if defined(KOKKOS_COMPILER_INTEL)
+      // Launchbounds causes hang with intel compilers
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<6, Iterate::Left, Iterate::Left>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+#else
+      // Launchbounds to ensure the tile fits into a CUDA block under register
+      // constraints
+      using range_type = typename Kokkos::MDRangePolicy<
+          ExecSpace, Kokkos::LaunchBounds<512, 1>,
+          Kokkos::Rank<6, Iterate::Left, Iterate::Left>,
+          Kokkos::IndexType<int>>;
+#endif
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
+#ifdef KOKKOS_ENABLE_SYCL
+      range_type range(point_type{{0, 0, 0, 0, 0, 0}},
+                       point_type{{N0, N1, N2, N3, N4, N5}},
+                       tile_type{{4, 4, 2, 2, 2, 2}});
+#else
       range_type range(point_type{{0, 0, 0, 0, 0, 0}},
                        point_type{{N0, N1, N2, N3, N4, N5}},
                        tile_type{{4, 4, 4, 2, 2, 2}});
+#endif
 
       TestMDRange_6D functor(N0, N1, N2, N3, N4, N5);
 
@@ -3219,16 +3364,31 @@ struct TestMDRange_6D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+#if defined(KOKKOS_COMPILER_INTEL)
+      // Launchbounds causes hang with intel compilers
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<6, Iterate::Left, Iterate::Right>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+#else
+      // Launchbounds to ensure the tile fits into a CUDA block under register
+      // constraints
+      using range_type = typename Kokkos::MDRangePolicy<
+          ExecSpace, Kokkos::LaunchBounds<512, 1>,
+          Kokkos::Rank<6, Iterate::Left, Iterate::Right>,
+          Kokkos::IndexType<int>>;
+#endif
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
+#ifdef KOKKOS_ENABLE_SYCL
+      range_type range(point_type{{0, 0, 0, 0, 0, 0}},
+                       point_type{{N0, N1, N2, N3, N4, N5}},
+                       tile_type{{4, 4, 2, 2, 2, 2}});
+#else
       range_type range(point_type{{0, 0, 0, 0, 0, 0}},
                        point_type{{N0, N1, N2, N3, N4, N5}},
                        tile_type{{4, 4, 4, 2, 2, 2}});
+#endif
 
       TestMDRange_6D functor(N0, N1, N2, N3, N4, N5);
 
@@ -3257,16 +3417,31 @@ struct TestMDRange_6D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+#if defined(KOKKOS_COMPILER_INTEL)
+      // Launchbounds causes hang with intel compilers
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<6, Iterate::Right, Iterate::Left>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+#else
+      // Launchbounds to ensure the tile fits into a CUDA block under register
+      // constraints
+      using range_type = typename Kokkos::MDRangePolicy<
+          ExecSpace, Kokkos::LaunchBounds<512, 1>,
+          Kokkos::Rank<6, Iterate::Right, Iterate::Left>,
+          Kokkos::IndexType<int>>;
+#endif
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
+#ifdef KOKKOS_ENABLE_SYCL
+      range_type range(point_type{{0, 0, 0, 0, 0, 0}},
+                       point_type{{N0, N1, N2, N3, N4, N5}},
+                       tile_type{{4, 4, 2, 2, 2, 2}});
+#else
       range_type range(point_type{{0, 0, 0, 0, 0, 0}},
                        point_type{{N0, N1, N2, N3, N4, N5}},
                        tile_type{{4, 4, 4, 2, 2, 2}});
+#endif
 
       TestMDRange_6D functor(N0, N1, N2, N3, N4, N5);
 
@@ -3295,16 +3470,31 @@ struct TestMDRange_6D {
     }
 
     {
-      typedef typename Kokkos::MDRangePolicy<
+#if defined(KOKKOS_COMPILER_INTEL)
+      // Launchbounds causes hang with intel compilers
+      using range_type = typename Kokkos::MDRangePolicy<
           ExecSpace, Kokkos::Rank<6, Iterate::Right, Iterate::Right>,
-          Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+          Kokkos::IndexType<int>>;
+#else
+      // Launchbounds to ensure the tile fits into a CUDA block under register
+      // constraints
+      using range_type = typename Kokkos::MDRangePolicy<
+          ExecSpace, Kokkos::LaunchBounds<512, 1>,
+          Kokkos::Rank<6, Iterate::Right, Iterate::Right>,
+          Kokkos::IndexType<int>>;
+#endif
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
+#ifdef KOKKOS_ENABLE_SYCL
+      range_type range(point_type{{0, 0, 0, 0, 0, 0}},
+                       point_type{{N0, N1, N2, N3, N4, N5}},
+                       tile_type{{4, 4, 2, 2, 2, 2}});
+#else
       range_type range(point_type{{0, 0, 0, 0, 0, 0}},
                        point_type{{N0, N1, N2, N3, N4, N5}},
                        tile_type{{4, 4, 4, 2, 2, 2}});
+#endif
 
       TestMDRange_6D functor(N0, N1, N2, N3, N4, N5);
 
@@ -3366,11 +3556,11 @@ struct TestMDRange_2D_NegIdx {
 
   static void test_2D_negidx(const int N0, const int N1) {
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>,
-                                             Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>,
+                                         Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       const point_type lower{{-1, -1}};
       const point_type upper{{N0, N1}};
@@ -3428,11 +3618,11 @@ struct TestMDRange_3D_NegIdx {
 
   static void test_3D_negidx(const int N0, const int N1, const int N2) {
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<3>,
-                                             Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<3>,
+                                         Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       const point_type lower{{-1, -1, -1}};
       const point_type upper{{N0, N1, N2}};
@@ -3495,11 +3685,11 @@ struct TestMDRange_4D_NegIdx {
   static void test_4D_negidx(const int N0, const int N1, const int N2,
                              const int N3) {
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<4>,
-                                             Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<4>,
+                                         Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       const point_type lower{{-1, -1, -1, -1}};
       const point_type upper{{N0, N1, N2, N3}};
@@ -3566,11 +3756,11 @@ struct TestMDRange_5D_NegIdx {
   static void test_5D_negidx(const int N0, const int N1, const int N2,
                              const int N3, const int N4) {
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<5>,
-                                             Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<5>,
+                                         Kokkos::IndexType<int>>;
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       const point_type lower{{-1, -1, -1, -1, -1}};
       const point_type upper{{N0, N1, N2, N3, N4}};
@@ -3643,11 +3833,20 @@ struct TestMDRange_6D_NegIdx {
   static void test_6D_negidx(const int N0, const int N1, const int N2,
                              const int N3, const int N4, const int N5) {
     {
-      typedef typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<6>,
-                                             Kokkos::IndexType<int> >
-          range_type;
-      typedef typename range_type::tile_type tile_type;
-      typedef typename range_type::point_type point_type;
+#if defined(KOKKOS_COMPILER_INTEL)
+      // Launchbounds causes hang with intel compilers
+      using range_type =
+          typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<6>,
+                                         Kokkos::IndexType<int>>;
+#else
+      // Launchbounds to ensure the tile fits into a CUDA block under register
+      // constraints
+      using range_type = typename Kokkos::MDRangePolicy<
+          ExecSpace, Kokkos::LaunchBounds<256, 1>, Kokkos::Rank<6>,
+          Kokkos::IndexType<int>>;
+#endif
+      using tile_type  = typename range_type::tile_type;
+      using point_type = typename range_type::point_type;
 
       const point_type lower{{-1, -1, -1, -1, -1, -1}};
       const point_type upper{{N0, N1, N2, N3, N4, N5}};
@@ -3672,6 +3871,63 @@ struct TestMDRange_6D_NegIdx {
                          (upper[2] - lower[2]) * (upper[3] - lower[3]) *
                          (upper[4] - lower[4]) * (upper[5] - lower[5]));
     }
+  }
+};
+
+template <typename ExecSpace>
+struct TestMDRange_ReduceScalar {
+  struct Scalar {
+    double v[4];
+    KOKKOS_INLINE_FUNCTION
+    Scalar() {
+      for (int i = 0; i < 4; i++) v[i] = 0;
+    }
+
+    KOKKOS_INLINE_FUNCTION
+    Scalar(const Scalar &src) {
+      for (int i = 0; i < 4; i++) v[i] = src.v[i];
+    }
+    KOKKOS_INLINE_FUNCTION
+    void operator=(const Scalar &src) {
+      for (int i = 0; i < 4; i++) v[i] = src.v[i];
+    }
+    KOKKOS_INLINE_FUNCTION
+    void operator+=(const Scalar &src) {
+      for (int i = 0; i < 4; i++) v[i] += src.v[i];
+    }
+    KOKKOS_INLINE_FUNCTION
+    void operator=(const volatile Scalar &src) volatile {
+      for (int i = 0; i < 4; i++) v[i] = src.v[i];
+    }
+    KOKKOS_INLINE_FUNCTION
+    void operator+=(const volatile Scalar &src) volatile {
+      for (int i = 0; i < 4; i++) v[i] += src.v[i];
+    }
+  };
+
+  static void test_scalar_reduce(const int N0, const int N1) {
+#if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
+    Scalar sum;
+    using range_type =
+        typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>,
+                                       Kokkos::IndexType<int>>;
+    using tile_type  = typename range_type::tile_type;
+    using point_type = typename range_type::point_type;
+
+    range_type range(point_type{{0, 0}}, point_type{{N0, N1}},
+                     tile_type{{3, 3}});
+
+    parallel_reduce(
+        range,
+        KOKKOS_LAMBDA(int, int, Scalar &lsum) {
+          for (int i = 0; i < 4; i++) lsum.v[i]++;
+        },
+        sum);
+    for (int i = 0; i < 4; i++) ASSERT_EQ(sum.v[i], N0 * N1);
+#else
+    std::ignore = N0;
+    std::ignore = N1;
+#endif
   }
 };
 

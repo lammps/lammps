@@ -227,6 +227,8 @@ public:
     f_cvb_active,
     /// \brief Bias is awake (active on its own accord) this timestep
     f_cvb_awake,
+    /// Accumulates data starting from step 0 of a simulation run
+    f_cvb_step_zero_data,
     /// \brief will apply forces
     f_cvb_apply_force,
     /// \brief force this bias to act on actual value for extended-Lagrangian coordinates
@@ -281,6 +283,10 @@ public:
     /// center with fictitious mass; bias forces will be applied to
     /// the center
     f_cv_extended_Lagrangian,
+    /// \brief An extended variable that sets an external variable in the
+    /// back-end (eg. an alchemical coupling parameter for lambda-dynamics)
+    /// Can have a single component
+    f_cv_external,
     /// \brief The extended system coordinate undergoes Langevin dynamics
     f_cv_Langevin,
     /// \brief Output the potential and kinetic energies
@@ -302,6 +308,10 @@ public:
     f_cv_hard_lower_boundary,
     /// \brief The upper boundary is not defined from user's choice
     f_cv_hard_upper_boundary,
+    /// \brief Reflecting lower boundary condition
+    f_cv_reflecting_lower_boundary,
+    /// \brief Reflecting upper boundary condition
+    f_cv_reflecting_upper_boundary,
     /// \brief Provide a discretization of the values of the colvar to
     /// be used by the biases or in analysis (needs lower and upper
     /// boundary)
@@ -369,6 +379,7 @@ public:
   enum features_atomgroup {
     f_ag_active,
     f_ag_center,
+    f_ag_center_origin,
     f_ag_rotate,
     f_ag_fitting_group,
     /// Perform a standard minimum msd fit for given atoms

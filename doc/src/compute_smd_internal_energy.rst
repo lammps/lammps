@@ -29,11 +29,12 @@ the sum of potential energy and heat.
 See `this PDF guide <PDF/SMD_LAMMPS_userguide.pdf>`_ to use Smooth
 Mach Dynamics in LAMMPS.
 
-**Output Info:**
+Output Info
+"""""""""""
 
 This compute calculates a per-particle vector, which can be accessed
 by any command that uses per-particle values from a compute as input.
-See the :doc:`Howto output <Howto_output>` doc page for an overview of
+See the :doc:`Howto output <Howto_output>` page for an overview of
 LAMMPS output options.
 
 The per-particle vector values will be given in :doc:`units <units>` of energy.
@@ -41,12 +42,15 @@ The per-particle vector values will be given in :doc:`units <units>` of energy.
 Restrictions
 """"""""""""
 
-This compute is part of the USER-SMD package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info. This compute can
+This compute is part of the MACHDYN package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info. This compute can
 only be used for particles which interact via the updated Lagrangian
 or total Lagrangian SPH pair styles.
 
-**Related Commands:**
+Related commands
+""""""""""""""""
+
+none
 
 Default
 """""""

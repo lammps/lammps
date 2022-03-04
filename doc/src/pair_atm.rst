@@ -71,7 +71,7 @@ above, or in the restart files read by the
 * :math:`\nu` = prefactor (energy/distance\^9 units)
 
 :math:`K` can be specified in one of two ways.  An explicit numeric value can
-be used, as in the 2nd example above.  :math:`J \leq K` is required.  LAMMPS
+be used, as in the second example above.  :math:`J \leq K` is required.  LAMMPS
 sets the coefficients for the other 5 symmetric interactions to the same
 values.  E.g. if :math:`I = 1`, :math:`J = 2`, :math:`K = 3`, then these 6
 values are set to the specified :math:`\nu`: :math:`\nu_{123}`,
@@ -140,9 +140,10 @@ combinations, else an error will result.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-This pair styles do not support the :doc:`pair_modify <pair_modify>`
+This pair style do not support the :doc:`pair_modify <pair_modify>`
 mix, shift, table, and tail options.
 
 This pair style writes its information to :doc:`binary restart files
@@ -154,7 +155,7 @@ re-specified in the restart input script.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner* , *middle* , *outer* keywords.
+*inner*, *middle*, and *outer* keywords.
 
 ----------
 
@@ -162,14 +163,17 @@ Restrictions
 """"""""""""
 
 This pair style is part of the MANYBODY package.  It is only enabled
-if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

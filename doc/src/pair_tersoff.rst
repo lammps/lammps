@@ -1,34 +1,35 @@
 .. index:: pair_style tersoff
+.. index:: pair_style tersoff/table
+.. index:: pair_style tersoff/gpu
+.. index:: pair_style tersoff/intel
+.. index:: pair_style tersoff/kk
+.. index:: pair_style tersoff/omp
+.. index:: pair_style tersoff/table/omp
 
 pair_style tersoff command
 ==========================
 
+Accelerator Variants: *tersoff/gpu*, *tersoff/intel*, *tersoff/kk*, *tersoff/omp*
+
 pair_style tersoff/table command
 ================================
 
-pair_style tersoff/gpu command
-==============================
-
-pair_style tersoff/intel command
-================================
-
-pair_style tersoff/kk command
-=============================
-
-pair_style tersoff/omp command
-==============================
-
-pair_style tersoff/table/omp command
-====================================
+Accelerator Variants: *tersoff/table/omp*
 
 Syntax
 """"""
 
 .. code-block:: LAMMPS
 
-   pair_style style
+   pair_style style keywords values
 
-* style = *tersoff* or *tersoff/table* or *tersoff/gpu* or *tersoff/omp* or *tersoff/table/omp*
+* style = *tersoff* or *tersoff/table*
+* keyword = *shift*
+
+  .. parsed-literal::
+
+       *shift* value = delta
+         delta = negative shift in equilibrium bond length
 
 Examples
 """"""""
@@ -42,6 +43,9 @@ Examples
    pair_style tersoff/table
    pair_coeff * * SiCGe.tersoff Si(D)
 
+   pair_style tersoff shift 0.05
+   pair_coeff * * Si.tersoff Si
+
 Description
 """""""""""
 
@@ -51,7 +55,7 @@ The *tersoff* style computes a 3-body Tersoff potential
 .. math::
 
   E & = \frac{1}{2} \sum_i \sum_{j \neq i} V_{ij} \\
-  V_{ij} & = f_C(r_{ij}) \left[ f_R(r_{ij}) + b_{ij} f_A(r_{ij}) \right] \\
+  V_{ij} & = f_C(r_{ij} + \delta) \left[ f_R(r_{ij} + \delta) + b_{ij} f_A(r_{ij} + \delta) \right] \\
   f_C(r) & = \left\{ \begin{array} {r@{\quad:\quad}l}
     1 & r < R - D \\
     \frac{1}{2} - \frac{1}{2} \sin \left( \frac{\pi}{2} \frac{r-R}{D} \right) &
@@ -61,14 +65,15 @@ The *tersoff* style computes a 3-body Tersoff potential
   f_R(r) & =  A \exp (-\lambda_1 r) \\
   f_A(r) & =  -B \exp (-\lambda_2 r) \\
   b_{ij} & =  \left( 1 + \beta^n {\zeta_{ij}}^n \right)^{-\frac{1}{2n}} \\
-  \zeta_{ij} & =  \sum_{k \neq i,j} f_C(r_{ik}) g(\theta_{ijk})
+  \zeta_{ij} & =  \sum_{k \neq i,j} f_C(r_{ik} + \delta) g \left[ \theta_{ijk}(r_{ij}, r_{ik}) \right]
                    \exp \left[ {\lambda_3}^m (r_{ij} - r_{ik})^m \right] \\
   g(\theta) & =  \gamma_{ijk} \left( 1 + \frac{c^2}{d^2} -
                   \frac{c^2}{\left[ d^2 + (\cos \theta - \cos \theta_0)^2\right]} \right)
 
 where :math:`f_R` is a two-body term and :math:`f_A` includes three-body
 interactions.  The summations in the formula are over all neighbors
-J and K of atom I within a cutoff distance = R + D.
+J and K of atom I within a cutoff distance = R + D. :math:`\delta` is
+an optional negative shift of the equilibrium bond length, as described below.
 
 The *tersoff/table* style uses tabulated forms for the two-body,
 environment and angular functions. Linear interpolation is performed
@@ -85,19 +90,19 @@ where N is the number of LAMMPS atom types:
 * filename
 * N element names = mapping of Tersoff elements to atom types
 
-See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
+See the :doc:`pair_coeff <pair_coeff>` page for alternate ways
 to specify the path for the potential file.
 
 As an example, imagine the SiC.tersoff file has Tersoff values for Si
 and C.  If your LAMMPS simulation has 4 atoms types and you want the
-1st 3 to be Si, and the 4th to be C, you would use the following
+first 3 to be Si, and the fourth to be C, you would use the following
 pair_coeff command:
 
 .. code-block:: LAMMPS
 
    pair_coeff * * SiC.tersoff Si Si Si C
 
-The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
+The first 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The first three Si arguments map LAMMPS atom types 1,2,3 to the Si
 element in the Tersoff file.  The final C argument maps LAMMPS atom
 type 4 to the C element in the Tersoff file.  If a mapping value is
@@ -151,12 +156,12 @@ interacting in three-body configurations.  Thus for 3 elements, 27
 entries would be required, etc.
 
 As annotated above, the first element in the entry is the center atom
-in a three-body interaction and it is bonded to the 2nd atom and the
-bond is influenced by the 3rd atom.  Thus an entry for SiCC means Si
+in a three-body interaction and it is bonded to the second atom and the
+bond is influenced by the third atom.  Thus an entry for SiCC means Si
 bonded to a C with another C atom influencing the bond.  Thus
 three-body parameters for SiCSi and SiSiC entries will not, in
 general, be the same.  The parameters used for the two-body
-interaction come from the entry where the 2nd element is repeated.
+interaction come from the entry where the second element is repeated.
 Thus the two-body parameters for Si interacting with C, comes from the
 SiCC entry.
 
@@ -164,7 +169,7 @@ The parameters used for a particular
 three-body interaction come from the entry with the corresponding
 three elements.  The parameters used only for two-body interactions
 (n, :math:`\beta`, :math:`\lambda_2`, B, :math:`\lambda_1`, and A)
-in entries whose 2nd and 3rd
+in entries whose second and third
 element are different (e.g. SiCSi) are not used for anything and can
 be set to 0.0 if desired.
 
@@ -172,6 +177,18 @@ Note that the twobody parameters in entries such as SiCC and CSiSi
 are often the same, due to the common use of symmetric mixing rules,
 but this is not always the case. For example, the beta and n parameters in
 Tersoff_2 :ref:`(Tersoff_2) <Tersoff_21>` are not symmetric.
+Similarly, the threebody parameters in entries such as SiCSi and SiSiC
+are often the same, but this is not always the case, particularly
+the value of R, which is sometimes typed on the
+first and second elements, sometimes on the first and third elements.
+Hence the need to specify R and D explicitly for all element triples.
+For example, while Tersoff's notation
+in Tersoff_2 :ref:`(Tersoff_2) <Tersoff_21>` is ambiguous on this point,
+and properties of the zincblende lattice are the same for either choice,
+Tersoff's results for rocksalt are consistent with typing on the first
+and third elements. :ref:`Albe et al. <Albe>` adopts the same convention.
+Conversely, the potential for B/N/C from the Cagin group
+uses the opposite convention, typing on the first and second elements.
 
 We chose the above form so as to enable users to define all commonly
 used variants of the Tersoff potential.  In particular, our form
@@ -217,29 +234,45 @@ Many thanks to Rutuparna Narulkar, David Farrell, and Xiaowang Zhou
 for helping clarify how Tersoff parameters for alloys have been
 defined in various papers.
 
+The *shift* keyword computes the energy E of a system of atoms, whose
+formula is the same as the Tersoff potential. The only modification is
+that the original equilibrium bond length ( :math:`r_0`) of the system
+is shifted to :math:`r_0-\delta`.  The minus sign arises because each
+radial distance :math:`r` is replaced by :math:`r+\delta`.
+
+The *shift* keyword is designed for simulations of closely matched van
+der Waals heterostructures.  For instance, consider the case of a system
+with few-layers graphene atop a thick hexagonal boron nitride (h-BN)
+substrate simulated using periodic boundary conditions. The experimental
+lattice mismatch of ~1.8% between graphene and h-BN is not well captured
+by the equilibrium lattice constants of available potentials, thus a
+small in-plane strain will be introduced in the system when building a
+periodic supercell.  To minimize the effect of strain on simulation
+results, the *shift* keyword allows adjusting the equilibrium bond
+length of one of the two materials (e.g., h-BN). Validation, benchmark
+tests, and applications of the *shift* keyword can be found in
+:ref:`(Mandelli_1) <Mandelli1>` and :ref:`(Ouyang_1) <Ouyang5>`.
+
+For the specific case discussed above, the force field can be defined as
+
+.. code-block:: LAMMPS
+
+   pair_style  hybrid/overlay rebo tersoff shift -0.00407 ilp/graphene/hbn 16.0 coul/shield 16.0
+   pair_coeff  * * rebo              CH.rebo     NULL NULL C
+   pair_coeff  * * tersoff           BNC.tersoff B    N    NULL
+   pair_coeff  * * ilp/graphene/hbn  BNCH.ILP    B    N    C
+   pair_coeff  1 1 coul/shield 0.70
+   pair_coeff  1 2 coul/shield 0.695
+   pair_coeff  2 2 coul/shield 0.69
+
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, where types I and J correspond to
 two different element types, mixing is performed by LAMMPS as
@@ -248,37 +281,51 @@ described above from values in the potential file.
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
 
-This pair style does not write its information to :doc:`binary restart files <restart>`, since it is stored in potential files.  Thus, you
-need to re-specify the pair_style and pair_coeff commands in an input
-script that reads a restart file.
+This pair style does not write its information to :doc:`binary restart
+files <restart>`, since it is stored in potential files.  Thus, you need
+to re-specify the pair_style and pair_coeff commands in an input script
+that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
 Restrictions
 """"""""""""
 
-This pair style is part of the MANYBODY package.  It is only enabled
-if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This pair style is part of the MANYBODY package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
 This pair style requires the :doc:`newton <newton>` setting to be "on"
 for pair interactions.
 
+The *shift* keyword is not supported by the *tersoff/gpu*,
+*tersoff/intel*, *tersoff/kk*, *tersoff/table* or *tersoff/table/omp*
+variants.
+
+The *tersoff/intel* pair style is only available when compiling LAMMPS
+with the Intel compilers.
+
 The Tersoff potential files provided with LAMMPS (see the potentials
-directory) are parameterized for metal :doc:`units <units>`.  You can
-use the Tersoff potential with any LAMMPS units, but you would need to
+directory) are parameterized for :doc:`"metal" units <units>`.  In addition
+the pair style supports converting potential parameters on-the-fly between
+"metal" and "real" units. You can use the *tersoff* pair style variants
+with any LAMMPS units setting, but you would need to
 create your own Tersoff potential file with coefficients listed in the
-appropriate units if your simulation does not use "metal" units.
+appropriate units if your simulation does not use "metal" or "real" units.
 
 Related commands
 """"""""""""""""
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+shift delta = 0.0
 
 ----------
 
@@ -294,3 +341,11 @@ Condens. Matter, 15, 5649(2003).
 .. _Tersoff_21:
 
 **(Tersoff_2)** J. Tersoff, Phys Rev B, 39, 5566 (1989); errata (PRB 41, 3248)
+
+.. _Mandelli1:
+
+**(Mandelli_1)** D. Mandelli, W. Ouyang, M. Urbakh, and O. Hod, ACS Nano 13(7), 7603-7609 (2019).
+
+.. _Ouyang5:
+
+**(Ouyang_1)** W. Ouyang et al., J. Chem. Theory Comput. 16(1), 666-676 (2020).

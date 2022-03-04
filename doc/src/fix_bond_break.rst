@@ -51,7 +51,7 @@ interactions from timestep to timestep as atoms move.
 
 A check for possible bond breakage is performed every *Nevery*
 timesteps.  If two bonded atoms I,J are further than a distance *Rmax*
-of each other, if the bond is of type *bondtype*\ , and if both I and J
+of each other, if the bond is of type *bondtype*, and if both I and J
 are in the specified fix group, then I,J is labeled as a "possible"
 bond to break.
 
@@ -115,7 +115,8 @@ You can dump out snapshots of the current bond topology via the :doc:`dump local
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.

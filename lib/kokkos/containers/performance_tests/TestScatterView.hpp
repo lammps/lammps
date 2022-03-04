@@ -46,18 +46,18 @@
 #define KOKKOS_TEST_SCATTER_VIEW_HPP
 
 #include <Kokkos_ScatterView.hpp>
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 
 namespace Perf {
 
-template <typename ExecSpace, typename Layout, int duplication,
-          int contribution>
+template <typename ExecSpace, typename Layout, typename Duplication,
+          typename Contribution>
 void test_scatter_view(int m, int n) {
   Kokkos::View<double * [3], Layout, ExecSpace> original_view("original_view",
                                                               n);
   {
     auto scatter_view = Kokkos::Experimental::create_scatter_view<
-        Kokkos::Experimental::ScatterSum, duplication, contribution>(
+        Kokkos::Experimental::ScatterSum, Duplication, Contribution>(
         original_view);
     Kokkos::Experimental::UniqueToken<
         ExecSpace, Kokkos::Experimental::UniqueTokenScope::Global>

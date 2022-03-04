@@ -52,9 +52,9 @@ namespace {
 
 template <class ExecSpace, class ScheduleType>
 struct TestRange {
-  typedef int value_type;  ///< typedef required for the parallel_reduce
+  using value_type = int;  ///< alias required for the parallel_reduce
 
-  typedef Kokkos::View<value_type *, ExecSpace> view_type;
+  using view_type = Kokkos::View<value_type *, ExecSpace>;
 
   view_type m_flags;
   view_type result_view;
@@ -72,8 +72,9 @@ struct TestRange {
   int offset;
 #endif
   TestRange(const size_t N_)
-      : m_flags(Kokkos::ViewAllocateWithoutInitializing("flags"), N_),
-        result_view(Kokkos::ViewAllocateWithoutInitializing("results"), N_),
+      : m_flags(Kokkos::view_alloc(Kokkos::WithoutInitializing, "flags"), N_),
+        result_view(Kokkos::view_alloc(Kokkos::WithoutInitializing, "results"),
+                    N_),
         N(N_) {
 #ifdef KOKKOS_WORKAROUND_OPENMPTARGET_GCC
     offset = 13;
@@ -87,9 +88,8 @@ struct TestRange {
     Kokkos::parallel_for(Kokkos::RangePolicy<ExecSpace, ScheduleType>(0, N),
                          *this);
 
-#if defined(KOKKOS_ENABLE_PROFILING)
     {
-      typedef TestRange<ExecSpace, ScheduleType> ThisType;
+      using ThisType = TestRange<ExecSpace, ScheduleType>;
       std::string label("parallel_for");
       Kokkos::Impl::ParallelConstructName<ThisType, void> pcn(label);
       ASSERT_EQ(pcn.get(), label);
@@ -98,15 +98,13 @@ struct TestRange {
           empty_label);
       ASSERT_EQ(empty_pcn.get(), typeid(ThisType).name());
     }
-#endif
 
     Kokkos::parallel_for(
         Kokkos::RangePolicy<ExecSpace, ScheduleType, VerifyInitTag>(0, N),
         *this);
 
-#if defined(KOKKOS_ENABLE_PROFILING)
     {
-      typedef TestRange<ExecSpace, ScheduleType> ThisType;
+      using ThisType = TestRange<ExecSpace, ScheduleType>;
       std::string label("parallel_for");
       Kokkos::Impl::ParallelConstructName<ThisType, VerifyInitTag> pcn(label);
       ASSERT_EQ(pcn.get(), label);
@@ -116,7 +114,6 @@ struct TestRange {
       ASSERT_EQ(empty_pcn.get(), std::string(typeid(ThisType).name()) + "/" +
                                      typeid(VerifyInitTag).name());
     }
-#endif
 
     Kokkos::deep_copy(host_flags, m_flags);
 
@@ -165,7 +162,8 @@ struct TestRange {
   KOKKOS_INLINE_FUNCTION
   void operator()(const VerifyInitTag &, const int i) const {
     if (i != m_flags(i)) {
-      printf("TestRange::test_for error at %d != %d\n", i, m_flags(i));
+      KOKKOS_IMPL_DO_NOT_USE_PRINTF("TestRange::test_for_error at %d != %d\n",
+                                    i, m_flags(i));
     }
   }
 
@@ -177,7 +175,8 @@ struct TestRange {
   KOKKOS_INLINE_FUNCTION
   void operator()(const VerifyResetTag &, const int i) const {
     if (2 * i != m_flags(i)) {
-      printf("TestRange::test_for error at %d != %d\n", i, m_flags(i));
+      KOKKOS_IMPL_DO_NOT_USE_PRINTF("TestRange::test_for_error at %d != %d\n",
+                                    i, m_flags(i));
     }
   }
 
@@ -189,7 +188,8 @@ struct TestRange {
   KOKKOS_INLINE_FUNCTION
   void operator()(const VerifyOffsetTag &, const int i) const {
     if (i + offset != m_flags(i)) {
-      printf("TestRange::test_for error at %d != %d\n", i + offset, m_flags(i));
+      KOKKOS_IMPL_DO_NOT_USE_PRINTF("TestRange::test_for_error at %d != %d\n",
+                                    i + offset, m_flags(i));
     }
   }
 
@@ -204,6 +204,12 @@ struct TestRange {
     Kokkos::parallel_reduce("TestKernelReduce",
                             Kokkos::RangePolicy<ExecSpace, ScheduleType>(0, N),
                             *this, total);
+    // sum( 0 .. N-1 )
+    ASSERT_EQ(size_t((N - 1) * (N) / 2), size_t(total));
+
+    Kokkos::parallel_reduce(
+        "TestKernelReduce_long",
+        Kokkos::RangePolicy<ExecSpace, ScheduleType, long>(0, N), *this, total);
     // sum( 0 .. N-1 )
     ASSERT_EQ(size_t((N - 1) * (N) / 2), size_t(total));
 
@@ -266,8 +272,9 @@ struct TestRange {
 
     if (final) {
       if (update != (i * (i + 1)) / 2) {
-        printf("TestRange::test_scan error (%d,%d) : %d != %d\n", i, m_flags(i),
-               (i * (i + 1)) / 2, update);
+        KOKKOS_IMPL_DO_NOT_USE_PRINTF(
+            "TestRange::test_scan error (%d,%d) : %d != %d\n", i, m_flags(i),
+            (i * (i + 1)) / 2, update);
       }
       result_view(i) = update;
     }
@@ -276,8 +283,8 @@ struct TestRange {
   void test_dynamic_policy() {
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
     auto const N_no_implicit_capture = N;
-    typedef Kokkos::RangePolicy<ExecSpace, Kokkos::Schedule<Kokkos::Dynamic> >
-        policy_t;
+    using policy_t =
+        Kokkos::RangePolicy<ExecSpace, Kokkos::Schedule<Kokkos::Dynamic> >;
 
     {
       Kokkos::View<size_t *, ExecSpace, Kokkos::MemoryTraits<Kokkos::Atomic> >
@@ -290,11 +297,7 @@ struct TestRange {
                  k++) {
               a(i)++;
             }
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-            count(ExecSpace::hardware_thread_id())++;
-#else
-        count( ExecSpace::impl_hardware_thread_id() )++;
-#endif
+            count(ExecSpace::impl_hardware_thread_id())++;
           });
 
       int error = 0;
@@ -314,10 +317,10 @@ struct TestRange {
           if (count(t) < min) min = count(t);
           if (count(t) > max) max = count(t);
         }
-        ASSERT_TRUE(min < max);
+        ASSERT_LT(min, max);
 
         // if ( ExecSpace::concurrency() > 2 ) {
-        //  ASSERT_TRUE( 2 * min < max );
+        //  ASSERT_LT( 2 * min, max );
         //}
       }
     }
@@ -335,11 +338,7 @@ struct TestRange {
                  k++) {
               a(i)++;
             }
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-            count(ExecSpace::hardware_thread_id())++;
-#else
             count(ExecSpace::impl_hardware_thread_id())++;
-#endif
             lsum++;
           },
           sum);
@@ -362,10 +361,10 @@ struct TestRange {
           if (count(t) < min) min = count(t);
           if (count(t) > max) max = count(t);
         }
-        ASSERT_TRUE(min < max);
+        ASSERT_LT(min, max);
 
         // if ( ExecSpace::concurrency() > 2 ) {
-        //  ASSERT_TRUE( 2 * min < max );
+        //  ASSERT_LT( 2 * min, max );
         //}
       }
     }
@@ -443,7 +442,8 @@ TEST(TEST_CATEGORY, range_scan) {
     TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> > f(0);
     f.test_scan();
   }
-#if !defined(KOKKOS_ENABLE_CUDA) && !defined(KOKKOS_ENABLE_HIP)
+#if !defined(KOKKOS_ENABLE_CUDA) && !defined(KOKKOS_ENABLE_HIP) && \
+    !defined(KOKKOS_ENABLE_SYCL)
   {
     TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> > f(0);
     f.test_dynamic_policy();
@@ -458,7 +458,8 @@ TEST(TEST_CATEGORY, range_scan) {
     TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> > f(3);
     f.test_scan();
   }
-#if !defined(KOKKOS_ENABLE_CUDA) && !defined(KOKKOS_ENABLE_HIP)
+#if !defined(KOKKOS_ENABLE_CUDA) && !defined(KOKKOS_ENABLE_HIP) && \
+    !defined(KOKKOS_ENABLE_SYCL)
   {
     TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> > f(3);
     f.test_dynamic_policy();
@@ -473,7 +474,8 @@ TEST(TEST_CATEGORY, range_scan) {
     TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> > f(1001);
     f.test_scan();
   }
-#if !defined(KOKKOS_ENABLE_CUDA) && !defined(KOKKOS_ENABLE_HIP)
+#if !defined(KOKKOS_ENABLE_CUDA) && !defined(KOKKOS_ENABLE_HIP) && \
+    !defined(KOKKOS_ENABLE_SYCL)
   {
     TestRange<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Dynamic> > f(1001);
     f.test_dynamic_policy();

@@ -1,4 +1,5 @@
 .. index:: fix ave/histo
+.. index:: fix ave/histo/weight
 
 fix ave/histo command
 =====================
@@ -99,7 +100,7 @@ component) or can be the result of a :doc:`compute <compute>` or
 atom-style :doc:`variable <variable>`.  The set of input values can be
 either all global, all per-atom, or all local quantities.  Inputs of
 different kinds (e.g. global and per-atom) cannot be mixed.  Atom
-attributes are per-atom vector values.  See the doc page for
+attributes are per-atom vector values.  See the page for
 individual "compute" and "fix" commands to see what kinds of
 quantities they generate.  See the optional *kind* keyword below for
 how to force the fix ave/histo command to disambiguate if necessary.
@@ -137,8 +138,8 @@ vector or columns of the array had been listed one by one.  E.g. these
 .. code-block:: LAMMPS
 
    compute myCOM all com/chunk
-   fix 1 all ave/histo 100 1 100 c_myCOM[*] file tmp1.com mode vector
-   fix 2 all ave/histo 100 1 100 c_myCOM[1] c_myCOM[2] c_myCOM[3] file tmp2.com mode vector
+   fix 1 all ave/histo 100 1 100 -10.0 10.0 100 c_myCOM[*] file tmp1.com mode vector
+   fix 2 all ave/histo 100 1 100 -10.0 10.0 100 c_myCOM[1] c_myCOM[2] c_myCOM[3] file tmp2.com mode vector
 
 If the fix ave/histo/weight command is used, exactly two values must
 be specified.  If the values are vectors, they must be the same
@@ -152,7 +153,7 @@ the first vector.
 
 ----------
 
-The *Nevery*\ , *Nrepeat*\ , and *Nfreq* arguments specify on what
+The *Nevery*, *Nrepeat*, and *Nfreq* arguments specify on what
 timesteps the input values will be used in order to contribute to the
 histogram.  The final histogram is generated on timesteps that are
 multiple of *Nfreq*\ .  It is averaged over *Nrepeat* histograms,
@@ -209,7 +210,7 @@ be specified with a wildcard asterisk to effectively specify multiple
 values.
 
 Note that some fixes only produce their values on certain timesteps,
-which must be compatible with *Nevery*\ , else an error will result.
+which must be compatible with *Nevery*, else an error will result.
 Users can also write code for their own fix styles and :doc:`add them to LAMMPS <Modify>`.
 
 If a value begins with "v\_", a variable name must follow which has
@@ -222,7 +223,7 @@ atom-style variables can be used, which produce a global or per-atom
 vector respectively.  The vector-style variable must be used without a
 bracketed term.  See the :doc:`variable <variable>` command for details.
 
-Note that variables of style *equal*\ , *vector*\ , and *atom* define a
+Note that variables of style *equal*, *vector*, and *atom* define a
 formula which can reference individual atom properties or
 thermodynamic keywords, or they can invoke other computes, fixes, or
 variables when they are evaluated, so this is a very general means of
@@ -232,9 +233,9 @@ specifying quantities to histogram.
 
 Additional optional keywords also affect the operation of this fix.
 
-If the *mode* keyword is set to *scalar*\ , then all input values must
+If the *mode* keyword is set to *scalar*, then all input values must
 be global scalars, or elements of global vectors.  If the *mode*
-keyword is set to *vector*\ , then all input values must be global or
+keyword is set to *vector*, then all input values must be global or
 per-atom or local vectors, or columns of global or per-atom or local
 arrays.
 
@@ -262,14 +263,14 @@ values > *hi* are counted in the last bin (Nbins+2).  Values between
 
 The *ave* keyword determines how the histogram produced every *Nfreq*
 steps are averaged with histograms produced on previous steps that
-were multiples of *Nfreq*\ , before they are accessed by another output
+were multiples of *Nfreq*, before they are accessed by another output
 command or written to a file.
 
-If the *ave* setting is *one*\ , then the histograms produced on
+If the *ave* setting is *one*, then the histograms produced on
 timesteps that are multiples of *Nfreq* are independent of each other;
 they are output as-is without further averaging.
 
-If the *ave* setting is *running*\ , then the histograms produced on
+If the *ave* setting is *running*, then the histograms produced on
 timesteps that are multiples of *Nfreq* are summed and averaged in a
 cumulative sense before being output.  Each bin value in the histogram
 is thus the average of the bin value produced on that timestep with
@@ -278,7 +279,7 @@ when the fix is defined; it can only be restarted by deleting the fix
 via the :doc:`unfix <unfix>` command, or by re-defining the fix by
 re-specifying it.
 
-If the *ave* setting is *window*\ , then the histograms produced on
+If the *ave* setting is *window*, then the histograms produced on
 timesteps that are multiples of *Nfreq* are summed within a moving
 "window" of time, so that the last M histograms are used to produce
 the output.  E.g. if M = 3 and Nfreq = 1000, then the output on step
@@ -329,7 +330,8 @@ the histogram.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
@@ -346,10 +348,10 @@ values:
 * 4 = max value of all input values, including ones not histogrammed
 
 The global array has # of rows = Nbins and # of columns = 3.  The
-first column has the bin coordinate, the 2nd column has the count of
-values in that histogram bin, and the 3rd column has the bin count
+first column has the bin coordinate, the second column has the count of
+values in that histogram bin, and the third column has the bin count
 divided by the total count (not including missing counts), so that the
-values in the 3rd column sum to 1.0.
+values in the third column sum to 1.0.
 
 The vector and array values calculated by this fix are all treated as
 intensive.  If this is not the case, e.g. due to histogramming
@@ -369,7 +371,10 @@ Related commands
 :doc:`compute <compute>`, :doc:`fix ave/atom <fix_ave_atom>`, :doc:`fix ave/chunk <fix_ave_chunk>`, :doc:`fix ave/time <fix_ave_time>`,
 :doc:`variable <variable>`, :doc:`fix ave/correlate <fix_ave_correlate>`,
 
-**Default:** none
+Default
+"""""""
+
+none
 
 The option defaults are mode = scalar, kind = figured out from input
 arguments, ave = one, start = 0, no file output, beyond = ignore, and

@@ -45,7 +45,7 @@ Each replica's temperature is controlled at a different value by a fix
 with *fix-ID* that controls temperature. Most thermostat fix styles
 (with and without included time integration) are supported. The command
 will print an error message and abort, if the chosen fix is unsupported.
-The desired temperature is specified by *temp*\ , which is typically a
+The desired temperature is specified by *temp*, which is typically a
 variable previously set in the input script, so that each partition is
 assigned a different temperature.  See the :doc:`variable <variable>`
 command for more details.  For example:
@@ -92,8 +92,8 @@ output timestep.  E.g. for a simulation with 16 replicas:
 The column headings T0 to TN-1 mean which temperature is currently
 assigned to the replica 0 to N-1.  Thus the columns represent replicas
 and the value in each column is its temperature (also numbered 0 to
-N-1).  For example, a 0 in the 4th column (column T3, step 2500) means
-that the 4th replica is assigned temperature 0, i.e. the lowest
+N-1).  For example, a 0 in the fourth column (column T3, step 2500) means
+that the fourth replica is assigned temperature 0, i.e. the lowest
 temperature.  You can verify this time sequence of temperature
 assignments for the Nth replica by comparing the Nth column of screen
 output to the thermodynamic data in the corresponding log.lammps.N or
@@ -164,4 +164,7 @@ Related commands
 
 :doc:`variable <variable>`, :doc:`prd <prd>`, :doc:`neb <neb>`
 
-**Default:** none
+Default
+"""""""
+
+none

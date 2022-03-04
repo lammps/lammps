@@ -60,7 +60,7 @@ int colloid_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
     init_ok=COLLMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3,
                         host_lj4, offset, special_lj, host_a12, host_a1,
                         host_a2, host_d1, host_d2, host_sigma3,
-                        host_sigma6, host_form, inum, nall, 300,
+                        host_sigma6, host_form, inum, nall, max_nbors,
                         maxspecial, cell_size, gpu_split, screen);
 
   COLLMF.device->world_barrier();
@@ -80,7 +80,7 @@ int colloid_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
       init_ok=COLLMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4,
                           offset, special_lj, host_a12, host_a1, host_a2,
                           host_d1, host_d2, host_sigma3, host_sigma6, host_form,
-                          inum, nall, 300, maxspecial,
+                          inum, nall, max_nbors, maxspecial,
                           cell_size, gpu_split, screen);
 
     COLLMF.device->gpu_barrier();

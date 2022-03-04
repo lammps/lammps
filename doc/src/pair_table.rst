@@ -1,16 +1,12 @@
 .. index:: pair_style table
+.. index:: pair_style table/gpu
+.. index:: pair_style table/kk
+.. index:: pair_style table/omp
 
 pair_style table command
 ========================
 
-pair_style table/gpu command
-============================
-
-pair_style table/kk command
-===========================
-
-pair_style table/omp command
-============================
+Accelerator Variants: *table/gpu*, *table/kk*, *table/omp*
 
 Syntax
 """"""
@@ -20,7 +16,7 @@ Syntax
    pair_style table style N keyword ...
 
 * style = *lookup* or *linear* or *spline* or *bitmap* = method of interpolation
-* N = use N values in *lookup*\ , *linear*\ , *spline* tables
+* N = use N values in *lookup*, *linear*, *spline* tables
 * N = use 2\^N values in *bitmap* tables
 * zero or more keywords may be appended
 * keyword = *ewald* or *pppm* or *msm* or *dispersion* or *tip4p*
@@ -51,7 +47,7 @@ cubic splines to the file values and interpolating energy and force
 values at each of *N* distances.  During a simulation, the tables are
 used to interpolate energy and force values as needed for each pair of
 particles separated by a distance *R*\ .  The interpolation is done in
-one of 4 styles: *lookup*\ , *linear*\ , *spline*\ , or *bitmap*\ .
+one of 4 styles: *lookup*, *linear*, *spline*, or *bitmap*\ .
 
 For the *lookup* style, the distance *R* is used to find the nearest
 table entry, which is the energy or force.
@@ -60,7 +56,7 @@ For the *linear* style, the distance *R* is used to find the 2
 surrounding table values from which an energy or force is computed by
 linear interpolation.
 
-For the *spline* style, a cubic spline coefficients are computed and
+For the *spline* style, cubic spline coefficients are computed and
 stored for each of the *N* values in the table, one set of splines for
 energy, another for force.  Note that these splines are different than
 the ones used to pre-compute the *N* values.  Those splines were fit
@@ -98,7 +94,7 @@ more of the optional keywords listed above for the pair_style command.
 These are *ewald* or *pppm* or *msm* or *dispersion* or *tip4p*\ .  This
 is so LAMMPS can insure the short-range potential and long-range
 solver are compatible with each other, as it does for other
-short-range pair styles, such as :doc:`pair_style lj/cut/coul/long <pair_lj>`.  Note that it is up to you to insure
+short-range pair styles, such as :doc:`pair_style lj/cut/coul/long <pair_lj_cut_coul>`.  Note that it is up to you to insure
 the tabulated values for each pair of atom types has the correct
 functional form to be compatible with the matching long-range solver.
 
@@ -124,11 +120,14 @@ best effect:
 
 ----------
 
-The format of a tabulated file is a series of one or more sections,
-defined as follows (without the parenthesized comments):
+The format of a tabulated file has an (optional) header followed by a
+series of one or more sections, defined as follows (without the
+parenthesized comments). The header must start with a `#` character
+and the DATE: and UNITS: tags will be parsed and used:
 
 .. parsed-literal::
 
+   # DATE: 2020-06-10  UNITS: real  CONTRIBUTOR: ... (header line)
    # Morse potential for Fe   (one or more comment or blank lines)
 
    MORSE_FE                   (keyword is first text on line)
@@ -139,7 +138,7 @@ defined as follows (without the parenthesized comments):
    ...
    500 10.0 0.001 0.003
 
-A section begins with a non-blank line whose 1st character is not a
+A section begins with a non-blank line whose first character is not a
 "#"; blank lines or lines starting with "#" can be used as comments
 between sections.  The first line begins with a keyword which
 identifies the section.  The line can contain additional text, but the
@@ -196,7 +195,7 @@ file is typically produced by the :doc:`pair_write <pair_write>` command
 with its *bitmap* option.  When the table is in BITMAP format, the "N"
 parameter in the file must be equal to 2\^M where M is the value
 specified in the pair_style command.  Also, a cutoff parameter cannot
-be used as an optional 3rd argument in the pair_coeff command; the
+be used as an optional third argument in the pair_coeff command; the
 entire table extent as specified in the file must be used.
 
 If used, the parameter "FPRIME" is followed by 2 values *fplo* and
@@ -208,9 +207,9 @@ last 2 force values in the table.  This parameter is not used by
 BITMAP tables.
 
 Following a blank line, the next N lines list the tabulated values.
-On each line, the 1st value is the index from 1 to N, the 2nd value is
-r (in distance units), the 3rd value is the energy (in energy units),
-and the 4th is the force (in force units).  The r values must increase
+On each line, the first value is the index from 1 to N, the second value is
+r (in distance units), the third value is the energy (in energy units),
+and the fourth is the force (in force units).  The r values must increase
 from one line to the next (unless the BITMAP parameter is specified).
 
 Note that one file can contain many sections, each with a tabulated
@@ -219,27 +218,12 @@ one that matches the specified keyword.
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This pair style does not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
@@ -256,7 +240,7 @@ commands do need to be specified in the restart input script.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -269,7 +253,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair_write <pair_write>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

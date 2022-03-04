@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DIHEDRAL_CLASS
-
-DihedralStyle(charmm/kk,DihedralCharmmKokkos<LMPDeviceType>)
-DihedralStyle(charmm/kk/device,DihedralCharmmKokkos<LMPDeviceType>)
-DihedralStyle(charmm/kk/host,DihedralCharmmKokkos<LMPHostType>)
-
+// clang-format off
+DihedralStyle(charmm/kk,DihedralCharmmKokkos<LMPDeviceType>);
+DihedralStyle(charmm/kk/device,DihedralCharmmKokkos<LMPDeviceType>);
+DihedralStyle(charmm/kk/host,DihedralCharmmKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_DIHEDRAL_CHARMM_KOKKOS_H
 #define LMP_DIHEDRAL_CHARMM_KOKKOS_H
 
@@ -95,11 +96,11 @@ class DihedralCharmmKokkos : public DihedralCharmm {
   typedef ArrayTypes<DeviceType> AT;
 
   DihedralCharmmKokkos(class LAMMPS *);
-  virtual ~DihedralCharmmKokkos();
-  void compute(int, int);
-  void coeff(int, char **);
-  void init_style();
-  void read_restart(FILE *);
+  ~DihedralCharmmKokkos() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  void read_restart(FILE *) override;
 
   template<int NEWTON_BOND, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -163,7 +164,7 @@ class DihedralCharmmKokkos : public DihedralCharmm {
   typename AT::t_ffloat_1d d_cos_shift;
   typename AT::t_ffloat_1d d_weight;
 
-  void allocate();
+  void allocate() override;
 };
 
 }

@@ -1,0 +1,24 @@
+The MDI package adds an mdi/engine command which enables LAMMPS
+to operate as a MolSSI Driver Interface (MDI) engine, responding to
+commands from an external MDI driver.
+
+It uses the MDI Library, which is available at
+https://github.com/MolSSI-MDI/MDI_Library.  The MDI Library is
+developed and maintained by Taylor Barnes (tbarnes1@vt.edu) at the
+Molecular Sciences Software Institute (MolSSI).
+
+For more information about using MDI with LAMMPS, see the LAMMPS
+documentation for the mdi/engine command and the mdi/engine fix.
+For general purpose information about MDI, see the MDI Library
+documentation:
+https://molssi-mdi.github.io/MDI_Library/html/index.html
+
+The MDI Library is required in order to use this package, and can be
+built using the Install.py file in lib/mdi.  For example:
+
+python Install.py -m gcc
+python Install.py -m icc
+
+When using CMake to build LAMMPS the CMake configuration can use
+either a preinstalled MDI library or download and compile a
+private copy.

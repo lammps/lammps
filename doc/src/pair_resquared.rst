@@ -1,13 +1,11 @@
 .. index:: pair_style resquared
+.. index:: pair_style resquared/gpu
+.. index:: pair_style resquared/omp
 
 pair_style resquared command
 ============================
 
-pair_style resquared/gpu command
-================================
-
-pair_style resquared/omp command
-================================
+Accelerator Variants: *resquared/gpu*, *resquared/omp*
 
 Syntax
 """"""
@@ -158,27 +156,12 @@ specified in the pair_style command is used.
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance can be mixed, but only for sphere pairs.  The
@@ -190,7 +173,7 @@ equation for the Hamaker constant presented here.  Mixing of sigma and
 epsilon followed by calculation of the energy prefactors using the
 equations above is recommended.
 
-This pair styles supports the :doc:`pair_modify <pair_modify>` shift
+This pair style supports the :doc:`pair_modify <pair_modify>` shift
 option for the energy of the Lennard-Jones portion of the pair
 interaction, but only for sphere-sphere interactions.  There is no
 shifting performed for ellipsoidal interactions due to the anisotropic
@@ -208,7 +191,7 @@ to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords of the :doc:`run_style command <run_style>`.
+*inner*, *middle*, *outer* keywords of the :doc:`run_style command <run_style>`.
 
 ----------
 
@@ -216,7 +199,7 @@ Restrictions
 """"""""""""
 
 This style is part of the ASPHERE package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 This pair style requires that atoms be ellipsoids as defined by the
 :doc:`atom_style ellipsoid <atom_style>` command.
@@ -235,7 +218,10 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`, :doc:`fix nve/asphere <fix_nve_asphere>`,
 :doc:`compute temp/asphere <compute_temp_asphere>`, :doc:`pair_style gayberne <pair_gayberne>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 
@@ -245,4 +231,4 @@ Related commands
 
 .. _Babadi:
 
-**(Berardi)** Babadi, Ejtehadi, Everaers, J Comp Phys, 219, 770-779 (2006).
+**(Babadi)** Babadi, Ejtehadi, Everaers, J Comp Phys, 219, 770-779 (2006).

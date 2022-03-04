@@ -82,7 +82,8 @@ Examples for how to do this are in the *examples/python* folder.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
@@ -94,11 +95,14 @@ Restrictions
 """"""""""""
 
 This pair style is part of the PYTHON package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
 
 :doc:`fix nve <fix_nve>`, :doc:`fix python/invoke <fix_python_invoke>`
 
-**Default:** none
+Default
+"""""""
+
+none

@@ -1,7 +1,7 @@
 SRC_DIR=${KOKKOS_PATH}/core/unit_test/configuration/test-code
 
 # List of parallel device types 
-Options=(deprecated_code aggressive_vectorization disable_profiling large_mem_tests)
+Options=(aggressive_vectorization disable_profiling large_mem_tests)
 CudaOptions=(lambda relocatable_device_code uvm constexpr)
 
 if [ ! -z "$KOKKOS_ARCH_TEST" ]; then
@@ -25,7 +25,6 @@ do
   fi
 
   #Renaming options as GNU Make expects them
-  option=${option/deprecated_code/enable_deprecated_code}
   option=${option/large_mem_tests/enable_large_mem_tests}
 
   if [ ! -z $CudaOptions ]; then 

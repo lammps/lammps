@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ANGLE_CLASS
-
-AngleStyle(cosine/squared,AngleCosineSquared)
-
+// clang-format off
+AngleStyle(cosine/squared,AngleCosineSquared);
+// clang-format on
 #else
 
 #ifndef LMP_ANGLE_COSINE_SQUARED_H
@@ -27,22 +27,22 @@ namespace LAMMPS_NS {
 class AngleCosineSquared : public Angle {
  public:
   AngleCosineSquared(class LAMMPS *);
-  virtual ~AngleCosineSquared();
-  virtual void compute(int, int);
-  void coeff(int, char **);
-  double equilibrium_angle(int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_data(FILE *);
-  virtual double single(int, int, int, int);
+  ~AngleCosineSquared() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  double equilibrium_angle(int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_data(FILE *) override;
+  double single(int, int, int, int) override;
 
  protected:
-  double *k,*theta0;
+  double *k, *theta0;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

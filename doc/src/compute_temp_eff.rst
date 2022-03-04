@@ -74,11 +74,12 @@ atoms that include these constraints will be computed correctly.  If
 needed, the subtracted degrees-of-freedom can be altered using the
 *extra* option of the :doc:`compute_modify <compute_modify>` command.
 
-See the :doc:`Howto thermostat <Howto_thermostat>` doc page for a
+See the :doc:`Howto thermostat <Howto_thermostat>` page for a
 discussion of different ways to compute temperature and perform
 thermostatting.
 
-**Output info:**
+Output info
+"""""""""""
 
 The scalar value calculated by this compute is "intensive", meaning it
 is independent of the number of atoms in the simulation.  The vector
@@ -88,12 +89,15 @@ the simulation.
 Restrictions
 """"""""""""
 
-This compute is part of the USER-EFF package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This compute is part of the EFF package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
 
 :doc:`compute temp/partial <compute_temp_partial>`, :doc:`compute temp/region <compute_temp_region>`, :doc:`compute pressure <compute_pressure>`
 
-**Default:** none
+Default
+"""""""
+
+none

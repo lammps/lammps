@@ -64,6 +64,7 @@ struct HierarchicalBasics {
 
     ASSERT_EQ(pol.league_size(), nP);
     ASSERT_LE(pol.team_size(), nT);
+
     nT = pol.team_size();
 
     Kokkos::View<int **, ExecSpace> v("Array_A", nP, nT);
@@ -93,9 +94,17 @@ struct HierarchicalBasics {
 
 TEST(TEST_CATEGORY, IncrTest_10_Hierarchical_Basics) {
   HierarchicalBasics<TEST_EXECSPACE> test;
+
+  // OpenMPTarget backend only accepts >= 32 threads per team
+#if defined(KOKKOS_ENABLE_OPENMPTARGET)
+  test.run(1, 32);
+  test.run(8, 64);
+  test.run(11, 128);
+#else
   test.run(1, 4);
   test.run(8, 16);
   test.run(11, 13);
+#endif
 }
 
 }  // namespace Test

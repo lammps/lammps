@@ -37,8 +37,8 @@ be used in an input script command as $a or $z.  If it is multiple
 letters, it can be used as ${myTemp}.
 
 If multiple variables are used as arguments to the *next* command,
-then all must be of the same variable style: *index*\ , *loop*\ , *file*\ ,
-*universe*\ , or *uloop*\ .  An exception is that *universe*\ - and
+then all must be of the same variable style: *index*, *loop*, *file*,
+*universe*, or *uloop*\ .  An exception is that *universe*\ - and
 *uloop*\ -style variables can be mixed in the same *next* command.
 
 All the variables specified with the next command are incremented by
@@ -93,10 +93,10 @@ directories run1 through run8.
    next d
    jump in.polymer
 
-If the variable "d" were of style *universe*\ , and the same in.polymer
+If the variable "d" were of style *universe*, and the same in.polymer
 input script were run on 3 partitions of processors, then the first 3
 simulations would begin, one on each set of processors.  Whichever
-partition finished first, it would assign variable "d" the 4th value
+partition finished first, it would assign variable "d" the fourth value
 and run another simulation, and so forth until all 8 simulations were
 finished.
 
@@ -149,4 +149,7 @@ Related commands
 :doc:`jump <jump>`, :doc:`include <include>`, :doc:`shell <shell>`,
 :doc:`variable <variable>`,
 
-**Default:** none
+Default
+"""""""
+
+none

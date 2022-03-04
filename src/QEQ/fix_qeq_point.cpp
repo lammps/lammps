@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,37 +17,39 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_qeq_point.h"
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
+#include "error.h"
+#include "force.h"
+#include "kspace.h"
+#include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "neighbor.h"
 #include "update.h"
-#include "force.h"
-#include "group.h"
-#include "kspace.h"
-#include "respa.h"
-#include "memory.h"
-#include "error.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 FixQEqPoint::FixQEqPoint(LAMMPS *lmp, int narg, char **arg) :
-  FixQEq(lmp, narg, arg) {}
+  FixQEq(lmp, narg, arg) {
+  if (narg == 10) {
+    if (strcmp(arg[8],"warn") == 0) {
+      maxwarn = utils::logical(FLERR,arg[9],false,lmp);
+    } else error->all(FLERR,"Illegal fix qeq/point command");
+  } else if (narg > 8) error->all(FLERR,"Illegal fix qeq/point command");
+}
 
 /* ---------------------------------------------------------------------- */
 
 void FixQEqPoint::init()
 {
-  if (!atom->q_flag)
-    error->all(FLERR,"Fix qeq/point requires atom attribute q");
-
-  ngroup = group->count(igroup);
-  if (ngroup == 0) error->all(FLERR,"Fix qeq/point group has no atoms");
+  FixQEq::init();
 
   int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->pair = 0;
@@ -56,10 +59,6 @@ void FixQEqPoint::init()
 
   int ntypes = atom->ntypes;
   memory->create(shld,ntypes+1,ntypes+1,"qeq:shielding");
-
-  if (strstr(update->integrate_style,"respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -78,6 +77,7 @@ void FixQEqPoint::pre_force(int /*vflag*/)
   init_matvec();
   matvecs = CG(b_s, s);         // CG on s - parallel
   matvecs += CG(b_t, t);        // CG on t - parallel
+  matvecs /= 2;
   calculate_Q();
 
   if (force->kspace) force->kspace->qsum_qsq();
@@ -95,21 +95,21 @@ void FixQEqPoint::init_matvec()
   inum = list->inum;
   ilist = list->ilist;
 
-  for( ii = 0; ii < inum; ++ii ) {
+  for (ii = 0; ii < inum; ++ii) {
     i = ilist[ii];
     if (atom->mask[i] & groupbit) {
-      Hdia_inv[i] = 1. / eta[ atom->type[i] ];
-      b_s[i]      = -( chi[atom->type[i]] + chizj[i] );
+      Hdia_inv[i] = 1. / eta[atom->type[i]];
+      b_s[i]      = -(chi[atom->type[i]] + chizj[i]);
       b_t[i]      = -1.0;
-      t[i] = t_hist[i][2] + 3 * ( t_hist[i][0] - t_hist[i][1] );
+      t[i] = t_hist[i][2] + 3 * (t_hist[i][0] - t_hist[i][1]);
       s[i] = 4*(s_hist[i][0]+s_hist[i][2])-(6*s_hist[i][1]+s_hist[i][3]);
     }
   }
 
   pack_flag = 2;
-  comm->forward_comm_fix(this); //Dist_vector( s );
+  comm->forward_comm_fix(this); //Dist_vector(s);
   pack_flag = 3;
-  comm->forward_comm_fix(this); //Dist_vector( t );
+  comm->forward_comm_fix(this); //Dist_vector(t);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -131,14 +131,14 @@ void FixQEqPoint::compute_H()
 
   // fill in the H matrix
   m_fill = 0;
-  for( ii = 0; ii < inum; ii++ ) {
+  for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     if (mask[i] & groupbit) {
       jlist = firstneigh[i];
       jnum = numneigh[i];
       H.firstnbr[i] = m_fill;
 
-      for( jj = 0; jj < jnum; jj++ ) {
+      for (jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
         j &= NEIGHMASK;
 
@@ -158,13 +158,9 @@ void FixQEqPoint::compute_H()
     }
   }
 
-  if (m_fill >= H.m) {
-    char str[128];
-    sprintf(str,"H matrix size has been exceeded: m_fill=%d H.m=%d\n",
-             m_fill, H.m );
-    error->warning(FLERR,str);
-    error->all(FLERR,"Fix qeq/point has insufficient QEq matrix size");
-  }
+  if (m_fill >= H.m)
+    error->all(FLERR,"Fix qeq/point has insufficient H matrix "
+                                 "size: m_fill={} H.m={}\n",m_fill, H.m);
 }
 
 /* ---------------------------------------------------------------------- */

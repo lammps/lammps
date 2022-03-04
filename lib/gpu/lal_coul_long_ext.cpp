@@ -54,7 +54,7 @@ int cl_gpu_init(const int ntypes, double **host_scale,
 
   int init_ok=0;
   if (world_me==0)
-    init_ok=CLMF.init(ntypes, host_scale, inum, nall, 300, maxspecial,
+    init_ok=CLMF.init(ntypes, host_scale, inum, nall, max_nbors, maxspecial,
                       cell_size, gpu_split, screen, host_cut_coulsq,
                       host_special_coul, qqrd2e, g_ewald);
 
@@ -72,7 +72,7 @@ int cl_gpu_init(const int ntypes, double **host_scale,
       fflush(screen);
     }
     if (gpu_rank==i && world_me!=0)
-      init_ok=CLMF.init(ntypes, host_scale, inum, nall, 300, maxspecial,
+      init_ok=CLMF.init(ntypes, host_scale, inum, nall, max_nbors, maxspecial,
                         cell_size, gpu_split, screen, host_cut_coulsq,
                         host_special_coul, qqrd2e, g_ewald);
 

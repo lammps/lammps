@@ -20,10 +20,18 @@ override LDFLAGS += -lpthread
 
 include $(KOKKOS_PATH)/Makefile.kokkos
 
-KOKKOS_CXXFLAGS += -I$(GTEST_PATH) -I${KOKKOS_PATH}/algorithms/unit_tests
+KOKKOS_CXXFLAGS += -I$(GTEST_PATH) -I${KOKKOS_PATH}/algorithms/unit_tests -I${KOKKOS_PATH}/core/unit_test/category_files
 
 TEST_TARGETS =
 TARGETS =
+
+tmp := $(foreach device, $(KOKKOS_DEVICELIST), \
+  $(if $(filter Test$(device).cpp, $(shell ls Test$(device).cpp 2>/dev/null)),,\
+    $(shell echo "\#include <Test"${device}"_Category.hpp>" > Test$(device).cpp); \
+    $(shell echo "\#include <TestRandomCommon.hpp>" >> Test$(device).cpp); \
+    $(shell echo "\#include <TestSortCommon.hpp>" >> Test$(device).cpp); \
+  ) \
+)
 
 ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
 	OBJ_CUDA = TestCuda.o UnitTestMain.o gtest-all.o
@@ -31,10 +39,10 @@ ifeq ($(KOKKOS_INTERNAL_USE_CUDA), 1)
 	TEST_TARGETS += test-cuda
 endif
 
-ifeq ($(KOKKOS_INTERNAL_USE_ROCM), 1)
-	OBJ_ROCM = TestROCm.o UnitTestMain.o gtest-all.o
-	TARGETS += KokkosAlgorithms_UnitTest_ROCm
-	TEST_TARGETS += test-rocm
+ifeq ($(KOKKOS_INTERNAL_USE_HIP), 1)
+	OBJ_HIP = TestHIP.o UnitTestMain.o gtest-all.o
+	TARGETS += KokkosAlgorithms_UnitTest_HIP
+	TEST_TARGETS += test-hip
 endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_PTHREADS), 1)
@@ -44,7 +52,7 @@ ifeq ($(KOKKOS_INTERNAL_USE_PTHREADS), 1)
 endif
 
 ifeq ($(KOKKOS_INTERNAL_USE_OPENMP), 1)
-	OBJ_OPENMP = TestOpenMP.o TestOpenMP_Random.o TestOpenMP_Sort1D.o TestOpenMP_Sort3D.o TestOpenMP_SortDynamicView.o UnitTestMain.o gtest-all.o
+	OBJ_OPENMP = TestOpenMP.o TestOpenMP_Sort1D.o TestOpenMP_Sort3D.o TestOpenMP_SortDynamicView.o UnitTestMain.o gtest-all.o
 	TARGETS += KokkosAlgorithms_UnitTest_OpenMP
 	TEST_TARGETS += test-openmp
 endif
@@ -64,8 +72,8 @@ endif
 KokkosAlgorithms_UnitTest_Cuda: $(OBJ_CUDA) $(KOKKOS_LINK_DEPENDS)
 	$(LINK) $(EXTRA_PATH) $(OBJ_CUDA) $(KOKKOS_LIBS) $(LIB) $(KOKKOS_LDFLAGS) $(LDFLAGS) -o KokkosAlgorithms_UnitTest_Cuda
 
-KokkosAlgorithms_UnitTest_ROCm: $(OBJ_ROCM) $(KOKKOS_LINK_DEPENDS)
-	$(LINK) $(EXTRA_PATH) $(OBJ_ROCM) $(KOKKOS_LIBS) $(LIB) $(KOKKOS_LDFLAGS) $(LDFLAGS) -o KokkosAlgorithms_UnitTest_ROCm
+KokkosAlgorithms_UnitTest_HIP: $(OBJ_HIP) $(KOKKOS_LINK_DEPENDS)
+	$(LINK) $(EXTRA_PATH) $(OBJ_HIP) $(KOKKOS_LIBS) $(LIB) $(KOKKOS_LDFLAGS) $(LDFLAGS) -o KokkosAlgorithms_UnitTest_HIP
 
 KokkosAlgorithms_UnitTest_Threads: $(OBJ_THREADS) $(KOKKOS_LINK_DEPENDS)
 	$(LINK) $(EXTRA_PATH) $(OBJ_THREADS) $(KOKKOS_LIBS) $(LIB) $(KOKKOS_LDFLAGS) $(LDFLAGS) -o KokkosAlgorithms_UnitTest_Threads
@@ -82,8 +90,8 @@ KokkosAlgorithms_UnitTest_Serial: $(OBJ_SERIAL) $(KOKKOS_LINK_DEPENDS)
 test-cuda: KokkosAlgorithms_UnitTest_Cuda
 	./KokkosAlgorithms_UnitTest_Cuda
 
-test-rocm: KokkosAlgorithms_UnitTest_ROCm
-	./KokkosAlgorithms_UnitTest_ROCm
+test-hip: KokkosAlgorithms_UnitTest_HIP
+	./KokkosAlgorithms_UnitTest_HIP
 
 test-threads: KokkosAlgorithms_UnitTest_Threads
 	./KokkosAlgorithms_UnitTest_Threads

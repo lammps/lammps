@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,26 +13,21 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_coord_atom_kokkos.h"
-#include <cmath>
-#include <cstring>
-#include "compute_orientorder_atom_kokkos.h"
+
 #include "atom_kokkos.h"
-#include "update.h"
+#include "atom_masks.h"
+#include "comm.h"
+#include "compute_orientorder_atom_kokkos.h"
+#include "error.h"
+#include "memory_kokkos.h"
 #include "modify.h"
-#include "neighbor_kokkos.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
-#include "force.h"
-#include "pair.h"
-#include "comm.h"
-#include "group.h"
-#include "memory_kokkos.h"
-#include "error.h"
-#include "atom_masks.h"
+#include "neighbor_kokkos.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 
-#define INVOKED_PERATOM 8
 
 /* ---------------------------------------------------------------------- */
 
@@ -63,7 +59,7 @@ ComputeCoordAtomKokkos<DeviceType>::ComputeCoordAtomKokkos(LAMMPS *lmp, int narg
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-ComputeCoordAtomKokkos<DeviceType>::~ComputeCoordAtomKokkos<DeviceType>()
+ComputeCoordAtomKokkos<DeviceType>::~ComputeCoordAtomKokkos()
 {
   if (copymode) return;
 
@@ -117,9 +113,9 @@ void ComputeCoordAtomKokkos<DeviceType>::compute_peratom()
   }
 
   if (cstyle == ORIENT) {
-    if (!(c_orientorder->invoked_flag & INVOKED_PERATOM)) {
+    if (!(c_orientorder->invoked_flag & Compute::INVOKED_PERATOM)) {
       c_orientorder->compute_peratom();
-      c_orientorder->invoked_flag |= INVOKED_PERATOM;
+      c_orientorder->invoked_flag |= Compute::INVOKED_PERATOM;
     }
     nqlist = c_orientorder->nqlist;
     normv = c_orientorder->array_atom;
@@ -243,7 +239,7 @@ void ComputeCoordAtomKokkos<DeviceType>::operator()(TagComputeCoordAtom<CSTYLE,N
 
 namespace LAMMPS_NS {
 template class ComputeCoordAtomKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class ComputeCoordAtomKokkos<LMPHostType>;
 #endif
 }

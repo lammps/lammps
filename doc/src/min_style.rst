@@ -42,7 +42,7 @@ of the energy is not formed directly, but approximated in each
 conjugate search direction by a finite difference directional
 derivative.  When close to an energy minimum, the algorithm behaves
 like a Newton method and exhibits a quadratic convergence rate to high
-accuracy.  In most cases the behavior of *hftn* is similar to *cg*\ ,
+accuracy.  In most cases the behavior of *hftn* is similar to *cg*,
 but it offers an alternative if *cg* seems to perform poorly.  This
 style is not affected by the :doc:`min_modify <min_modify>` command.
 
@@ -88,14 +88,14 @@ Style *spin/lbfgs* uses an orthogonal spin optimization (OSO) combined
 to a limited-memory Broyden-Fletcher-Goldfarb-Shanno (LBFGS) approach
 to minimize spin configurations.
 
-See the :doc:`min/spin <min_spin>` doc page for more information about
-the *spin*\ , *spin/cg* and *spin/lbfgs* styles.
+See the :doc:`min/spin <min_spin>` page for more information about
+the *spin*, *spin/cg* and *spin/lbfgs* styles.
 
-Either the *quickmin*\ , *fire* and *fire/old* styles are useful in the
+Either the *quickmin*, *fire* and *fire/old* styles are useful in the
 context of nudged elastic band (NEB) calculations via the :doc:`neb
 <neb>` command.
 
-Either the *spin*\ , *spin/cg* and *spin/lbfgs* styles are useful in
+Either the *spin*, *spin/cg* and *spin/lbfgs* styles are useful in
 the context of magnetic geodesic nudged elastic band (GNEB)
 calculations via the :doc:`neb/spin <neb_spin>` command.
 
@@ -110,32 +110,14 @@ calculations via the :doc:`neb/spin <neb_spin>` command.
 
 .. note::
 
-   The *quickmin*\ , *fire*\ , *fire/old*\ , *hftn*\ , and *cg/kk* styles do not yet
+   The *quickmin*, *fire*, *fire/old*, *hftn*, and *cg/kk* styles do not yet
    support the use of the :doc:`fix box/relax <fix_box_relax>` command
    or minimizations involving the electron radius in :doc:`eFF
    <pair_eff>` models.
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>`
-doc page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package
-<Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix
-command-line switch <Run_options>` when you invoke LAMMPS, or you can
-use the :doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 

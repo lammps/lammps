@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -64,7 +65,7 @@ class RemapKokkos : protected Pointers {
   RemapKokkos(class LAMMPS *);
   RemapKokkos(class LAMMPS *, MPI_Comm,int,int,int,int,int,int,
         int,int,int,int,int,int,int,int,int,int,int,int);
-  ~RemapKokkos();
+  ~RemapKokkos() override;
   void perform(typename FFT_AT::t_FFT_SCALAR_1d, typename FFT_AT::t_FFT_SCALAR_1d, typename FFT_AT::t_FFT_SCALAR_1d);
 
   struct remap_plan_3d_kokkos<DeviceType> *plan;

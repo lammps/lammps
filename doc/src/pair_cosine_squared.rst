@@ -54,7 +54,7 @@ between two point particles, where (:math:`\sigma, -\epsilon`) is the
 location of the (rightmost) minimum of the potential, as explained in
 the syntax section above.
 
-This potential was first used in (Cooke)_#CKD for a coarse-grained lipid
+This potential was first used in :ref:`(Cooke) <CKD>` for a coarse-grained lipid
 membrane model.  It is generally very useful as a non-specific
 interaction potential because it is fully adjustable in depth and width
 while joining the minimum at (sigma, -epsilon) and zero at (cutoff, 0)
@@ -63,7 +63,7 @@ energy calculations etc. This evidently requires *cutoff* to be larger
 than *sigma*\ .
 
 If the *wca* option is used then a Weeks-Chandler-Andersen potential
-(Weeks)_#WCA is added to the above specified cosine-squared potential,
+:ref:`(Weeks) <WCA>` is added to the above specified cosine-squared potential,
 specifically the following:
 
 .. math::
@@ -88,26 +88,27 @@ in the graphs below:
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Mixing is not supported for this style.
 
-The *shift*\ , *table* and *tail* options are not relevant for this style.
+The *shift*, *table* and *tail* options are not relevant for this style.
 
 This pair style writes its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
 Restrictions
 """"""""""""
 
-The *cosine/squared* style is part of the "USER-MISC" package. It is only
-enabled if LAMMPS is build with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+The *cosine/squared* style is part of the EXTRA-PAIR package. It is only
+enabled if LAMMPS is build with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
@@ -115,7 +116,10 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`,
 :doc:`pair_style lj/cut <pair_lj>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 .. _CKD:
 

@@ -1,5 +1,5 @@
 INCLUDE(CMakePackageConfigHelpers)
-IF (NOT KOKKOS_HAS_TRILINOS)
+IF (NOT KOKKOS_HAS_TRILINOS AND NOT Kokkos_INSTALL_TESTING)
   INCLUDE(GNUInstallDirs)
 
   #Set all the variables needed for KokkosConfig.cmake

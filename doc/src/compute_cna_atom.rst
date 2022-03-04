@@ -79,11 +79,12 @@ is dumped).  Thus it can be inefficient to compute/dump this quantity
 too frequently or to have multiple compute/dump commands, each with a
 *cna/atom* style.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-atom vector, which can be accessed by
 any command that uses per-atom values from a compute as input.  See
-the :doc:`Howto output <Howto_output>` doc page for an overview of
+the :doc:`Howto output <Howto_output>` page for an overview of
 LAMMPS output options.
 
 The per-atom vector values will be a number from 0 to 5, as explained
@@ -98,7 +99,10 @@ Related commands
 
 :doc:`compute centro/atom <compute_centro_atom>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

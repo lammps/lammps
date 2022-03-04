@@ -21,7 +21,7 @@ HELP = """
 Syntax from src dir: make lib-message args="-m"
                  or: make lib-message args="-s -z"
 Syntax from lib dir: python Install.py -m
-                 or: python Install.py -s -z 
+                 or: python Install.py -s -z
 
 Example:
 

@@ -1,0 +1,145 @@
+{
+  Python3_main_1
+  Memcheck:Leak
+  match-leak-kinds: reachable
+  fun:malloc
+  fun:PyObject_Malloc
+  ...
+  fun:_Py_UnixMain
+}
+{
+  Python3_main_2
+  Memcheck:Leak
+  match-leak-kinds: reachable
+  fun:malloc
+  fun:PyObject_Malloc
+  fun:PyUnicode_New
+  ...
+  fun:_Py_Init_posix
+  ...
+}
+{
+  Python3_main_3
+  Memcheck:Leak
+  match-leak-kinds: possible
+  fun:malloc
+  fun:PyObject_Malloc
+  ...
+  fun:_Py_UnixMain
+  ...
+}
+{
+  Python3_main_4
+  Memcheck:Leak
+  match-leak-kinds: reachable
+  fun:malloc
+  fun:PyObject_Malloc
+  fun:PyUnicode_New
+  ...
+  fun:PyInit_posix
+  ...
+}
+{
+  Python3_eval_1
+  Memcheck:Leak
+  match-leak-kinds: reachable
+  fun:malloc
+  fun:PyObject_Malloc
+  ...
+  fun:_PyEval_EvalFrameDefault
+}
+{
+  Python3_eval_2
+  Memcheck:Leak
+  match-leak-kinds: possible
+  fun:malloc
+  fun:PyObject_Malloc
+  ...
+  fun:_PyEval_EvalFrameDefault
+}
+{
+  Python3_eval_3
+  Memcheck:Leak
+  match-leak-kinds: possible
+  fun:malloc
+  fun:PyObject_Malloc
+  ...
+  fun:_PyEval_EvalCodeWithName
+  fun:PyEval_EvalCodeEx
+}
+{
+  Python3_call_1
+  Memcheck:Leak
+  match-leak-kinds: reachable
+  fun:malloc
+  fun:PyObject_Malloc
+  fun:PyCode_New
+  ...
+  fun:_PyCFunction_FastCallKeywords
+}
+{
+  Python3_call_2
+  Memcheck:Leak
+  match-leak-kinds: possible
+  fun:malloc
+  fun:PyObject_Malloc
+  fun:PyUnicode_New
+  ...
+  fun:_PyMethodDef_RawFastCallKeywords
+  fun:_PyCFunction_FastCallKeywords
+}
+{
+  Python3_call_3
+  Memcheck:Leak
+  match-leak-kinds: reachable
+  fun:malloc
+  fun:PyObject_Malloc
+  fun:PyBytes_FromStringAndSize
+  ...
+  fun:_PyMethodDef_RawFastCallKeywords
+}
+{
+  Python3_call_4
+  Memcheck:Leak
+  match-leak-kinds: reachable
+  fun:malloc
+  fun:PyObject_Malloc
+  fun:_PyObject_GC_Malloc
+  fun:PyType_GenericAlloc
+  ...
+  fun:_PyMethodDef_RawFastCallKeywords
+  fun:_PyCFunction_FastCallKeywords
+  ...
+}
+{
+  Python3_call_5
+  Memcheck:Leak
+  match-leak-kinds: reachable
+  fun:malloc
+  fun:PyObject_Malloc
+  fun:_PyObject_GC_Malloc
+  fun:PyType_GenericAlloc
+  ...
+  fun:_PyMethodDef_RawFastCallKeywords
+}
+{
+  Python3_tuple_1
+  Memcheck:Leak
+  match-leak-kinds: possible
+  fun:malloc
+  fun:PyObject_Malloc
+  fun:_PyObject_GC_Malloc
+  fun:_PyObject_GC_NewVar
+  fun:PyTuple_New
+  ...
+}
+{
+  Python3_unicode_1
+  Memcheck:Leak
+  match-leak-kinds: reachable
+  fun:malloc
+  fun:PyObject_Malloc
+  fun:PyUnicode_New
+  fun:PyUnicode_FromKindAndData
+  ...
+}

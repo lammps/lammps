@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -73,16 +74,14 @@ void NPairCopyKokkos<DeviceType>::copy_to_cpu(NeighList *list)
   NeighListKokkos<DeviceType>* listcopy_kk = (NeighListKokkos<DeviceType>*) listcopy;
 
   listcopy_kk->k_ilist.template sync<LMPHostType>();
-  listcopy_kk->k_numneigh.template sync<LMPHostType>();
-  listcopy_kk->k_neighbors.template sync<LMPHostType>();
 
   int inum = listcopy->inum;
   int gnum = listcopy->gnum;
   int inum_all = inum;
   if (list->ghost) inum_all += gnum;
   auto h_ilist = listcopy_kk->k_ilist.h_view;
-  auto h_numneigh = listcopy_kk->k_numneigh.h_view;
-  auto h_neighbors = listcopy_kk->k_neighbors.h_view;
+  auto h_numneigh = Kokkos::create_mirror_view_and_copy(LMPHostType(),listcopy_kk->d_numneigh);
+  auto h_neighbors = Kokkos::create_mirror_view_and_copy(LMPHostType(),listcopy_kk->d_neighbors);
 
   list->inum = inum;
   list->gnum = gnum;
@@ -122,7 +121,7 @@ void NPairCopyKokkos<DeviceType>::copy_to_cpu(NeighList *list)
 
 namespace LAMMPS_NS {
 template class NPairCopyKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class NPairCopyKokkos<LMPHostType>;
 #endif
 }

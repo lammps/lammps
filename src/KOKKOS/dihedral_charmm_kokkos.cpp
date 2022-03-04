@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,19 +17,18 @@
 ------------------------------------------------------------------------- */
 
 #include "dihedral_charmm_kokkos.h"
-#include <cmath>
-#include <cstdlib>
+
 #include "atom_kokkos.h"
-#include "comm.h"
-#include "neighbor_kokkos.h"
-#include "domain.h"
+#include "atom_masks.h"
+#include "error.h"
 #include "force.h"
-#include "pair.h"
+#include "kokkos.h"
 #include "math_const.h"
 #include "memory_kokkos.h"
-#include "error.h"
-#include "atom_masks.h"
-#include "kokkos.h"
+#include "neighbor_kokkos.h"
+#include "pair.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -49,6 +49,8 @@ DihedralCharmmKokkos<DeviceType>::DihedralCharmmKokkos(LAMMPS *lmp) : DihedralCh
   k_warning_flag = Kokkos::DualView<int,DeviceType>("Dihedral:warning_flag");
   d_warning_flag = k_warning_flag.template view<DeviceType>();
   h_warning_flag = k_warning_flag.h_view;
+
+  centroidstressflag = CENTROID_NOTAVAIL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -77,7 +79,7 @@ void DihedralCharmmKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // insure pair->ev_tally() will use 1-4 virial contribution
 
-  if (weightflag && vflag_global == 2)
+  if (weightflag && vflag_global == VIRIAL_FDOTR)
     force->pair->vflag_either = force->pair->vflag_global = 1;
 
   // reallocate per-atom arrays if necessary
@@ -141,7 +143,7 @@ void DihedralCharmmKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_warning_flag.template modify<DeviceType>();
   k_warning_flag.template sync<LMPHostType>();
   if (h_warning_flag())
-    error->warning(FLERR,"Dihedral problem",0);
+    error->warning(FLERR,"Dihedral problem");
 
   if (eflag_global) {
     energy += evm.emol;
@@ -260,7 +262,7 @@ void DihedralCharmmKokkos<DeviceType>::operator()(TagDihedralCharmmCompute<NEWTO
     // error check
 
   if ((c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) && !d_warning_flag())
-    Kokkos::atomic_fetch_add(&d_warning_flag(),1);
+    d_warning_flag() = 1;
 
   if (c > 1.0) c = 1.0;
   if (c < -1.0) c = -1.0;
@@ -789,7 +791,7 @@ void DihedralCharmmKokkos<DeviceType>::ev_tally(EVM_FLOAT &evm, const int i, con
 
 namespace LAMMPS_NS {
 template class DihedralCharmmKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class DihedralCharmmKokkos<LMPHostType>;
 #endif
 }

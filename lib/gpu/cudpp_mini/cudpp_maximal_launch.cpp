@@ -3,10 +3,10 @@
 // -------------------------------------------------------------
 // $Revision$
 // $Date$
-// ------------------------------------------------------------- 
+// -------------------------------------------------------------
 // This source code is distributed under the terms of license.txt
 // in the root directory of this source distribution.
-// ------------------------------------------------------------- 
+// -------------------------------------------------------------
 #include "cudpp_maximal_launch.h"
 #include <algorithm>
 
@@ -25,12 +25,12 @@ inline size_t ceiling(size_t x, size_t f)
 }
 
 extern "C"
-size_t maxBlocks(cudaFuncAttributes &attribs, 
-                 cudaDeviceProp &devprop, 
+size_t maxBlocks(cudaFuncAttributes &attribs,
+                 cudaDeviceProp &devprop,
                  size_t bytesDynamicSharedMem,
                  size_t threadsPerBlock)
 {
-    
+
     // Determine the maximum number of CTAs that can be run simultaneously for each kernel
     // This is equivalent to the calculation done in the CUDA Occupancy Calculator spreadsheet
     const unsigned int regAllocationUnit = (devprop.major < 2 && devprop.minor < 2) ? 256 : 512; // in registers
@@ -48,7 +48,7 @@ size_t maxBlocks(cudaFuncAttributes &attribs,
     size_t regsPerCTA = attribs.numRegs * devprop.warpSize * numWarps;
     // Round up to multiple of register allocation unit size
     regsPerCTA = ceiling(regsPerCTA, regAllocationUnit);
-    
+
     size_t smemBytes  = attribs.sharedSizeBytes + bytesDynamicSharedMem;
     size_t smemPerCTA = ceiling(smemBytes, smemAllocationUnit);
 
@@ -60,7 +60,7 @@ size_t maxBlocks(cudaFuncAttributes &attribs,
 }
 
 extern "C"
-size_t maxBlocksFromPointer(void*  kernel, 
+size_t maxBlocksFromPointer(void*  kernel,
                             size_t bytesDynamicSharedMem,
                             size_t threadsPerBlock)
 {

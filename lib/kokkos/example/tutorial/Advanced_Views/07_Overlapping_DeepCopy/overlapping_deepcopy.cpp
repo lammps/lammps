@@ -46,7 +46,7 @@
 #include <cstdio>
 #include <typeinfo>
 #include <cmath>
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 
 struct FillDevice {
   double value;
@@ -106,7 +106,7 @@ struct MergeDevice {
 int main(int argc, char* argv[]) {
   int size = 100000000;
   Kokkos::initialize();
-  int synch = atoi(argv[1]);
+  int synch = std::stoi(argv[1]);
   Kokkos::View<double*, Kokkos::LayoutLeft, Kokkos::CudaSpace> d_a("Device A",
                                                                    size);
   Kokkos::View<double*, Kokkos::LayoutLeft, Kokkos::CudaSpace> d_b("Device B",

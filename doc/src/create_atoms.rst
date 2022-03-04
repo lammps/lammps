@@ -28,7 +28,7 @@ Syntax
 * zero or more keyword/value pairs may be appended
 * keyword = *mol* or *basis* or *ratio* or *subset* or *remap* or *var* or *set* or *rotate* or *units*
 
-  .. code-block:: LAMMPS
+  .. parsed-literal::
 
        *mol* value = template-ID seed
          template-ID = ID of molecule template specified in a separate :doc:`molecule <molecule>` command
@@ -80,7 +80,7 @@ with units = box or the *random* style.  For the remainder of this doc
 page, a created atom or molecule is referred to as a "particle".
 
 If created particles are individual atoms, they are assigned the
-specified atom *type*\ , though this can be altered via the *basis*
+specified atom *type*, though this can be altered via the *basis*
 keyword as discussed below.  If molecules are being created, the type
 of each atom in the created molecule is specified in the file read by
 the :doc:`molecule <molecule>` command, and those values are added to
@@ -116,7 +116,7 @@ positions.
 For the *random* style, N particles are added to the system at
 randomly generated coordinates, which can be useful for generating an
 amorphous system.  The particles are created one by one using the
-specified random number *seed*\ , resulting in the same set of particles
+specified random number *seed*, resulting in the same set of particles
 coordinates, independent of how many processors are being used in the
 simulation.  If the *region-ID* argument is specified as NULL, then
 the created particles will be anywhere in the simulation box.  If a
@@ -159,7 +159,7 @@ used to remove overlapping atoms or molecules.
    However, you can first use the :doc:`change_box <change_box>` command to
    temporarily expand the box, then add atoms via create_atoms, then
    finally use change_box command again if needed to re-shrink-wrap the
-   new atoms.  See the :doc:`change_box <change_box>` doc page for an
+   new atoms.  See the :doc:`change_box <change_box>` page for an
    example of how to do this, using the create_atoms *single* style to
    insert a new atom outside the current simulation box.
 
@@ -227,9 +227,9 @@ fashion.  Which lattice sites are selected will change with the number
 of processors used.
 
 The *remap* keyword only applies to the *single* style.  If it is set
-to *yes*\ , then if the specified position is outside the simulation
+to *yes*, then if the specified position is outside the simulation
 box, it will mapped back into the box, assuming the relevant
-dimensions are periodic.  If it is set to *no*\ , no remapping is done
+dimensions are periodic.  If it is set to *no*, no remapping is done
 and no particle is created if its position is outside the box.
 
 The *var* and *set* keywords can be used together to provide a
@@ -257,8 +257,7 @@ individual lattice points being "above" or "below" the mathematical
 expression for the sinusoidal curve.  If a finer lattice were used,
 the sinusoid would appear to be "smoother".  Also note the use of the
 "xlat" and "ylat" :doc:`thermo_style <thermo_style>` keywords which
-converts lattice spacings to distance.  Click on the image for a
-larger version.
+converts lattice spacings to distance.
 
 .. code-block:: LAMMPS
 
@@ -275,9 +274,13 @@ larger version.
    create_atoms    1 box var v set x xx set y yy
    write_dump      all atom sinusoid.lammpstrj
 
-.. image:: JPG/sinusoid_small.jpg
-   :target: JPG/sinusoid.jpg
+.. image:: img/sinusoid.jpg
+   :scale: 50%
    :align: center
+
+.. raw:: html
+
+   Click on the image for a larger version.
 
 The *rotate* keyword allows specification of the orientation
 at which molecules are inserted.  The axis of rotation is
@@ -285,7 +288,7 @@ determined by the rotation vector (Rx,Ry,Rz) that goes through the
 insertion point.  The specified *theta* determines the angle of
 rotation around that axis.  Note that the direction of rotation for
 the atoms around the rotation axis is consistent with the right-hand
-rule: if your right-hand's thumb points along *R*\ , then your fingers
+rule: if your right-hand's thumb points along *R*, then your fingers
 wrap around the axis in the direction of rotation.
 
 The *units* keyword determines the meaning of the distance units used

@@ -47,7 +47,7 @@ using a shell like Bash.
 
 - Linux: any Terminal window will work
 - MacOS X: launch the Terminal application.
-- Windows 10: install and run the :doc:`Windows subsystem for Linux <Howto_bash>`
+- Windows 10: install and run the :doc:`Windows Subsystem for Linux <Howto_wsl>`
 
 We also assume that you have downloaded and unpacked a recent LAMMPS source code package
 or used Git to create a clone of the LAMMPS sources on your compilation machine.
@@ -114,19 +114,19 @@ summary screen will look like this:
    -- Detecting CXX compiler ABI info - done
    -- Detecting CXX compile features
    -- Detecting CXX compile features - done
-   -- Found Git: /usr/bin/git (found version "2.25.2") 
+   -- Found Git: /usr/bin/git (found version "2.25.2")
    -- Running check for auto-generated files from make-based build system
-   -- Found MPI_CXX: /usr/lib64/mpich/lib/libmpicxx.so (found version "3.1") 
-   -- Found MPI: TRUE (found version "3.1")  
+   -- Found MPI_CXX: /usr/lib64/mpich/lib/libmpicxx.so (found version "3.1")
+   -- Found MPI: TRUE (found version "3.1")
    -- Looking for C++ include omp.h
    -- Looking for C++ include omp.h - found
-   -- Found OpenMP_CXX: -fopenmp (found version "4.5") 
-   -- Found OpenMP: TRUE (found version "4.5")  
-   -- Found JPEG: /usr/lib64/libjpeg.so (found version "62") 
-   -- Found PNG: /usr/lib64/libpng.so (found version "1.6.37") 
-   -- Found ZLIB: /usr/lib64/libz.so (found version "1.2.11") 
-   -- Found GZIP: /usr/bin/gzip  
-   -- Found FFMPEG: /usr/bin/ffmpeg  
+   -- Found OpenMP_CXX: -fopenmp (found version "4.5")
+   -- Found OpenMP: TRUE (found version "4.5")
+   -- Found JPEG: /usr/lib64/libjpeg.so (found version "62")
+   -- Found PNG: /usr/lib64/libpng.so (found version "1.6.37")
+   -- Found ZLIB: /usr/lib64/libz.so (found version "1.2.11")
+   -- Found GZIP: /usr/bin/gzip
+   -- Found FFMPEG: /usr/bin/ffmpeg
    -- Performing Test COMPILER_SUPPORTS-ffast-math
    -- Performing Test COMPILER_SUPPORTS-ffast-math - Success
    -- Performing Test COMPILER_SUPPORTS-march=native
@@ -143,7 +143,7 @@ summary screen will look like this:
     * JPEG
     * PNG
     * ZLIB
-   
+
    -- <<< Build configuration >>>
       Build type:       RelWithDebInfo
       Install path:     /home/akohlmey/.local
@@ -157,7 +157,7 @@ summary screen will look like this:
          Options:       -ffast-math;-march=native
    -- <<< Linker flags: >>>
    -- Executable name:  lmp
-   -- Static library flags:    
+   -- Static library flags:
    -- <<< MPI flags >>>
    -- MPI includes:     /usr/include/mpich-x86_64
    -- MPI libraries:    /usr/lib64/mpich/lib/libmpicxx.so;/usr/lib64/mpich/lib/libmpi.so;
@@ -191,19 +191,19 @@ You start the command ``ccmake ../cmake`` in the ``build`` folder.
 .. list-table::
 
    * - .. figure:: JPG/ccmake-initial.png
-          :target: JPG/ccmake-initial.png
+          :scale: 33%
           :align: center
 
           Initial ``ccmake`` screen
 
      - .. figure:: JPG/ccmake-config.png
-          :target: JPG/ccmake-config.png
+          :scale: 33%
           :align: center
 
           Configure output of ``ccmake``
 
      - .. figure:: JPG/ccmake-options.png
-          :target: JPG/ccmake-options.png
+          :scale: 33%
           :align: center
 
           Options screen of ``ccmake``
@@ -236,19 +236,19 @@ not required, it can also be entered from the GUI.
 .. list-table::
 
    * - .. figure:: JPG/cmake-gui-initial.png
-          :target: JPG/cmake-gui-initial.png
+          :scale: 40%
           :align: center
 
           Initial ``cmake-gui`` screen
 
      - .. figure:: JPG/cmake-gui-popup.png
-          :target: JPG/cmake-gui-popup.png
+          :scale: 60%
           :align: center
 
           Generator selection in ``cmake-gui``
 
      - .. figure:: JPG/cmake-gui-options.png
-          :target: JPG/cmake-gui-options.png
+          :scale: 40%
           :align: center
 
           Options screen of ``cmake-gui``
@@ -291,11 +291,13 @@ Some common CMake variables
 
 .. list-table::
    :header-rows: 1
-   
+
    * - Variable
      - Description
    * - ``CMAKE_INSTALL_PREFIX``
      - root directory of install location for ``make install``  (default: ``$HOME/.local``)
+   * - ``LAMMPS_INSTALL_RPATH``
+     - set or remove runtime path setting from binaries for ``make install`` (default: ``off``)
    * - ``CMAKE_BUILD_TYPE``
      - controls compilation options:
        one of ``RelWithDebInfo`` (default), ``Release``, ``Debug``, ``MinSizeRel``
@@ -313,13 +315,13 @@ Some common CMake variables
      - Fortran compiler to be used for compilation (default: system specific, ``gfortran`` on Linux)
    * - ``CXX_COMPILER_LAUNCHER``
      - tool to launch the C++ compiler, e.g. ``ccache`` or ``distcc`` for faster compilation (default: empty)
-       
+
 Some common LAMMPS specific variables
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. list-table::
    :header-rows: 1
-   
+
    * - Variable
      - Description
    * - ``BUILD_MPI``
@@ -328,10 +330,12 @@ Some common LAMMPS specific variables
      - build LAMMPS with OpenMP support (default: ``on`` if compiler supports OpenMP fully, else ``off``)
    * - ``BUILD_TOOLS``
      - compile some additional executables from the ``tools`` folder (default: ``off``)
+   * - ``BUILD_LAMMPS_SHELL``
+     - compile the LAMMPS shell from the ``tools/lammps-shell`` folder (default: ``off``)
    * - ``BUILD_DOC``
      - include building the HTML format documentation for packaging/installing (default: ``off``)
    * - ``CMAKE_TUNE_FLAGS``
-     - common compiler flags, for optimization or instrumentation (default: compiler specific)
+     - common compiler flags, for optimization or instrumentation (default:)
    * - ``LAMMPS_MACHINE``
      - when set to ``name`` the LAMMPS executable and library will be called ``lmp_name`` and ``liblammps_name.a``
    * - ``LAMMPS_EXCEPTIONS``
@@ -358,7 +362,7 @@ have to be enabled to be included into a LAMMPS executable.  Packages
 are enabled through setting variables of the kind ``PKG_<NAME>`` to
 ``on`` and disabled by setting them to ``off`` (or using ``yes``,
 ``no``, ``1``, ``0`` correspondingly).  ``<NAME>`` has to be replaced by
-the name of the package, e.g. ``MOLECULE`` or ``USER-MISC``.
+the name of the package, e.g. ``MOLECULE`` or ``EXTRA-PAIR``.
 
 
 Using presets
@@ -378,9 +382,9 @@ change some variables later with additional *-D* flags.  A few examples:
 
 .. code-block:: bash
 
-   cmake -C ../cmake/presets/minimal.cmake -D PKG_MISC=on ../cmake
+   cmake -C ../cmake/presets/basic.cmake -D PKG_MISC=on ../cmake
    cmake -C ../cmake/presets/clang.cmake -C ../cmake/presets/most.cmake ../cmake
-   cmake -C ../cmake/presets/minimal.cmake -D BUILD_MPI=off ../cmake
+   cmake -C ../cmake/presets/basic.cmake -D BUILD_MPI=off ../cmake
 
 The first command will install the packages ``KSPACE``, ``MANYBODY``,
 ``MOLECULE``, ``RIGID`` and ``MISC``; the first four from the preset
@@ -396,13 +400,21 @@ It is also possible to do this incrementally.
 
 .. code-block:: bash
 
-   cmake -C ../cmake/presets/minimal.cmake ../cmake
+   cmake -C ../cmake/presets/basic.cmake ../cmake
    cmake -D PKG_MISC=on .
 
-will achieve the same configuration like in the first example above.  In
-this scenario it is particularly convenient to do the second
+will achieve the same final configuration as in the first example above.
+In this scenario it is particularly convenient to do the second
 configuration step using either the text mode or graphical user
 interface (``ccmake`` or ``cmake-gui``).
+
+.. note::
+
+   Using a preset to select a compiler package (``clang.cmake``,
+   ``gcc.cmake``, ``intel.cmake``, ``oneapi.cmake``, or ``pgi.cmake``)
+   are an exception to the mechanism of updating the configuration incrementally,
+   as they will trigger a reset of cached internal CMake settings and thus
+   reset settings to their default values.
 
 Compilation and build targets
 -----------------------------
@@ -415,8 +427,10 @@ This is particularly convenient, if you have set a custom build command
 via the ``CMAKE_MAKE_PROGRAM`` variable.
 
 When calling the build program, you can also select which "target" is to
-be build through appending the name of the target to the build command.
-Example: ``cmake --build . all``. The following abstract targets are available:
+be build through appending the ``--target`` flag and the name of the target
+to the build command.  When using ``make`` as build tool, you can just append
+the target name to the command. Example: ``cmake --build . --target all`` or
+``make all``.  The following abstract targets are available:
 
 .. list-table::
    :header-rows: 1
@@ -432,11 +446,11 @@ Example: ``cmake --build . all``. The following abstract targets are available:
    * - ``install``
      - install all target files into folders in ``CMAKE_INSTALL_PREFIX``
    * - ``test``
-     - run some simple tests (if configured with ``-D ENABLE_TESTING=on``)
+     - run some tests (if configured with ``-D ENABLE_TESTING=on``)
    * - ``clean``
      - remove all generated files
 
-   
+
 Choosing generators
 -------------------
 

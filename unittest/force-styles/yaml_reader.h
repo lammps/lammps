@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/ Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,11 +17,11 @@
 #include "yaml.h"
 
 #include <cstdio>
+#include <iostream>
 #include <map>
 #include <string>
-#include <iostream>
 
-template<typename ConsumerClass> class YamlReader {
+template <typename ConsumerClass> class YamlReader {
 private:
     enum StateValue {
         START,
@@ -37,7 +37,7 @@ private:
     std::string basename;
 
 protected:
-    typedef void (ConsumerClass::*EventConsumer)(const yaml_event_t & event);
+    typedef void (ConsumerClass::*EventConsumer)(const yaml_event_t &event);
     std::map<std::string, EventConsumer> consumers;
 
 public:
@@ -46,20 +46,21 @@ public:
 
     std::string get_basename() const { return basename; }
 
-    int parse_file(const std::string & infile) {
-        basename = infile;
+    int parse_file(const std::string &infile)
+    {
+        basename          = infile;
         std::size_t found = basename.rfind(".yaml");
-        if (found > 0) basename = basename.substr(0,found);
+        if (found > 0) basename = basename.substr(0, found);
         found = basename.find_last_of("/\\");
-        if (found != std::string::npos) basename = basename.substr(found+1);
+        if (found != std::string::npos) basename = basename.substr(found + 1);
 
-        FILE *fp = fopen(infile.c_str(),"r");
+        FILE *fp = fopen(infile.c_str(), "r");
         yaml_parser_t parser;
         yaml_event_t event;
 
         if (!fp) {
-            std::cerr << "Cannot open yaml file '" << infile
-                      << "': " << strerror(errno) << std::endl;
+            std::cerr << "Cannot open yaml file '" << infile << "': " << strerror(errno)
+                      << std::endl;
             return 1;
         }
         yaml_parser_initialize(&parser);
@@ -75,9 +76,9 @@ public:
             }
 
             if (accepted) {
-                if(!consume_key_value(key, event)) {
-                    std::cerr << "Ignoring unknown key/value pair: " << key
-                              << " = " << event.data.scalar.value << std::endl;
+                if (!consume_key_value(key, event)) {
+                    std::cerr << "Ignoring unknown key/value pair: " << key << " = "
+                              << event.data.scalar.value << std::endl;
                 }
             }
             yaml_event_delete(&event);
@@ -89,13 +90,14 @@ public:
     }
 
 protected:
-    bool consume_key_value(const std::string & key, const yaml_event_t & event) {
-        auto it = consumers.find(key);
-        ConsumerClass *consumer = dynamic_cast<ConsumerClass*>(this);
+    bool consume_key_value(const std::string &key, const yaml_event_t &event)
+    {
+        auto it                 = consumers.find(key);
+        ConsumerClass *consumer = dynamic_cast<ConsumerClass *>(this);
 
-        if(consumer) {
-            if(it != consumers.end()) {
-                //std::cerr << "Loading: " << key << std::endl;
+        if (consumer) {
+            if (it != consumers.end()) {
+                // std::cerr << "Loading: " << key << std::endl;
                 (consumer->*(it->second))(event);
                 return true;
             }
@@ -106,69 +108,68 @@ protected:
         return false;
     }
 
-    bool consume_event(yaml_event_t & event) {
+    bool consume_event(yaml_event_t &event)
+    {
         accepted = false;
         switch (state) {
-          case START:
-              switch (event.type) {
-                case YAML_MAPPING_START_EVENT:
-                    state = ACCEPT_KEY;
-                    break;
-                case YAML_SCALAR_EVENT:
-                case YAML_SEQUENCE_START_EVENT:
-                    state = ERROR;
-                    break;
-                case YAML_STREAM_END_EVENT:
-                    state = STOP;
-                    break;
-                case YAML_STREAM_START_EVENT:
-                case YAML_DOCUMENT_START_EVENT:
-                case YAML_DOCUMENT_END_EVENT:
-                    // ignore
-                    break;
-                default:
-                    std::cerr << "UNHANDLED YAML EVENT:  " << event.type << std::endl;
-                    state = ERROR;
-                    break;
-              }
-              break;
+            case START:
+                switch (event.type) {
+                    case YAML_MAPPING_START_EVENT:
+                        state = ACCEPT_KEY;
+                        break;
+                    case YAML_SCALAR_EVENT:
+                    case YAML_SEQUENCE_START_EVENT:
+                        state = ERROR;
+                        break;
+                    case YAML_STREAM_END_EVENT:
+                        state = STOP;
+                        break;
+                    case YAML_STREAM_START_EVENT:
+                    case YAML_DOCUMENT_START_EVENT:
+                    case YAML_DOCUMENT_END_EVENT:
+                        // ignore
+                        break;
+                    default:
+                        std::cerr << "UNHANDLED YAML EVENT:  " << event.type << std::endl;
+                        state = ERROR;
+                        break;
+                }
+                break;
 
-          case ACCEPT_KEY:
-              switch (event.type) {
-                case YAML_SCALAR_EVENT:
-                    key = (char *) event.data.scalar.value;
-                    state = ACCEPT_VALUE;
-                    break;
-                case YAML_MAPPING_END_EVENT:
-                    state = STOP;
-                    break;
-                default:
-                    std::cerr << "UNHANDLED YAML EVENT (key): " << event.type
-                              << "\nVALUE: " << event.data.scalar.value
-                              << std::endl;
-                    state = ERROR;
-                    break;
-              }
-              break;
+            case ACCEPT_KEY:
+                switch (event.type) {
+                    case YAML_SCALAR_EVENT:
+                        key   = (char *)event.data.scalar.value;
+                        state = ACCEPT_VALUE;
+                        break;
+                    case YAML_MAPPING_END_EVENT:
+                        state = STOP;
+                        break;
+                    default:
+                        std::cerr << "UNHANDLED YAML EVENT (key): " << event.type
+                                  << "\nVALUE: " << event.data.scalar.value << std::endl;
+                        state = ERROR;
+                        break;
+                }
+                break;
 
-          case ACCEPT_VALUE:
-              switch (event.type) {
-                case YAML_SCALAR_EVENT:
-                    accepted = true;
-                    state = ACCEPT_KEY;
-                    break;
-                default:
-                    std::cerr << "UNHANDLED YAML EVENT (value): " << event.type
-                              << "\nVALUE: " << event.data.scalar.value
-                              << std::endl;
-                    state = ERROR;
-                    break;
-              }
-              break;
+            case ACCEPT_VALUE:
+                switch (event.type) {
+                    case YAML_SCALAR_EVENT:
+                        accepted = true;
+                        state    = ACCEPT_KEY;
+                        break;
+                    default:
+                        std::cerr << "UNHANDLED YAML EVENT (value): " << event.type
+                                  << "\nVALUE: " << event.data.scalar.value << std::endl;
+                        state = ERROR;
+                        break;
+                }
+                break;
 
-          case ERROR:
-          case STOP:
-              break;
+            case ERROR:
+            case STOP:
+                break;
         }
         return (state != ERROR);
     }

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,28 +18,24 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_gran.h"
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "domain.h"
-#include "update.h"
+#include "error.h"
 #include "force.h"
-#include "modify.h"
-#include "respa.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
 #include "neighbor.h"
+#include "respa.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
-
-// XYZ PLANE need to be 0,1,2
-
-enum{XPLANE=0,YPLANE=1,ZPLANE=2,ZCYLINDER,REGION};
-enum{HOOKE,HOOKE_HISTORY,HERTZ_HISTORY,GRANULAR};
-enum{NONE,CONSTANT,EQUAL};
 
 #define PI27SQ 266.47931882941264802866    // 27*PI**2
 #define THREEROOT3 5.19615242270663202362  // 3*sqrt(3)
@@ -48,23 +45,26 @@ enum{NONE,CONSTANT,EQUAL};
 #define THREEQUARTERS 0.75                 // 3/4
 #define TWOPI 6.28318530717959             // 2*PI
 
-#define EPSILON 1e-10
-
-enum {NORMAL_HOOKE, NORMAL_HERTZ, HERTZ_MATERIAL, DMT, JKR};
-enum {VELOCITY, MASS_VELOCITY, VISCOELASTIC, TSUJI};
-enum {TANGENTIAL_NOHISTORY, TANGENTIAL_HISTORY,
-      TANGENTIAL_MINDLIN, TANGENTIAL_MINDLIN_RESCALE};
-enum {TWIST_NONE, TWIST_SDS, TWIST_MARSHALL};
-enum {ROLL_NONE, ROLL_SDS};
-
 #define BIG 1.0e20
 #define EPSILON 1e-10
+
+// XYZ PLANE need to be 0,1,2
+
+enum {XPLANE=0,YPLANE=1,ZPLANE=2,ZCYLINDER,REGION};
+
+enum {NONE,CONSTANT,EQUAL};
+enum {DAMPING_NONE, VELOCITY, MASS_VELOCITY, VISCOELASTIC, TSUJI};
+enum {TANGENTIAL_NONE, TANGENTIAL_NOHISTORY, TANGENTIAL_HISTORY,
+  TANGENTIAL_MINDLIN, TANGENTIAL_MINDLIN_RESCALE,
+  TANGENTIAL_MINDLIN_FORCE, TANGENTIAL_MINDLIN_RESCALE_FORCE};
+enum {TWIST_NONE, TWIST_SDS, TWIST_MARSHALL};
+enum {ROLL_NONE, ROLL_SDS};
 
 /* ---------------------------------------------------------------------- */
 
 FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), idregion(NULL), history_one(NULL),
-  fix_rigid(NULL), mass_rigid(NULL)
+  Fix(lmp, narg, arg), idregion(nullptr), history_one(nullptr),
+  fix_rigid(nullptr), mass_rigid(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal fix wall/gran command");
 
@@ -72,6 +72,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Fix wall/gran requires atom style sphere");
 
   create_attribute = 1;
+  limit_damping = 0;
 
   // set interaction style
   // disable bonded/history option for now
@@ -84,25 +85,28 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
 
   use_history = restart_peratom = 1;
   if (pairstyle == HOOKE) use_history = restart_peratom = 0;
+  tangential_history = roll_history = twist_history = 0;
+  normal_model = NORMAL_NONE;
+  tangential_model = TANGENTIAL_NONE;
+  damping_model = DAMPING_NONE;
 
   // wall/particle coefficients
 
   int iarg;
-
   if (pairstyle != GRANULAR) {
     size_history = 3;
     if (narg < 11) error->all(FLERR,"Illegal fix wall/gran command");
 
-    kn = force->numeric(FLERR,arg[4]);
+    kn = utils::numeric(FLERR,arg[4],false,lmp);
     if (strcmp(arg[5],"NULL") == 0) kt = kn * 2.0/7.0;
-    else kt = force->numeric(FLERR,arg[5]);
+    else kt = utils::numeric(FLERR,arg[5],false,lmp);
 
-    gamman = force->numeric(FLERR,arg[6]);
+    gamman = utils::numeric(FLERR,arg[6],false,lmp);
     if (strcmp(arg[7],"NULL") == 0) gammat = 0.5 * gamman;
-    else gammat = force->numeric(FLERR,arg[7]);
+    else gammat = utils::numeric(FLERR,arg[7],false,lmp);
 
-    xmu = force->numeric(FLERR,arg[8]);
-    int dampflag = force->inumeric(FLERR,arg[9]);
+    xmu = utils::numeric(FLERR,arg[8],false,lmp);
+    int dampflag = utils::inumeric(FLERR,arg[9],false,lmp);
     if (dampflag == 0) gammat = 0.0;
 
     if (kn < 0.0 || kt < 0.0 || gamman < 0.0 || gammat < 0.0 ||
@@ -116,19 +120,24 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
       kt /= force->nktv2p;
     }
     iarg = 10;
+
+    if (strcmp(arg[iarg],"limit_damping") == 0) {
+      limit_damping = 1;
+      iarg += 1;
+    }
+
   } else {
     iarg = 4;
     damping_model = VISCOELASTIC;
     roll_model = twist_model = NONE;
-    tangential_history = roll_history = twist_history = 0;
     while (iarg < narg) {
       if (strcmp(arg[iarg], "hooke") == 0) {
         if (iarg + 2 >= narg)
           error->all(FLERR,"Illegal fix wall/gran command, "
                      "not enough parameters provided for Hooke option");
         normal_model = NORMAL_HOOKE;
-        normal_coeffs[0] = force->numeric(FLERR,arg[iarg+1]); //kn
-        normal_coeffs[1] = force->numeric(FLERR,arg[iarg+2]); //damping
+        normal_coeffs[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp); //kn
+        normal_coeffs[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp); //damping
         iarg += 3;
       } else if (strcmp(arg[iarg], "hertz") == 0) {
         int num_coeffs = 2;
@@ -136,8 +145,8 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
           error->all(FLERR,"Illegal fix wall/gran command, "
                      "not enough parameters provided for Hertz option");
         normal_model = NORMAL_HERTZ;
-        normal_coeffs[0] = force->numeric(FLERR,arg[iarg+1]); //kn
-        normal_coeffs[1] = force->numeric(FLERR,arg[iarg+2]); //damping
+        normal_coeffs[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp); //kn
+        normal_coeffs[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp); //damping
         iarg += num_coeffs+1;
       } else if (strcmp(arg[iarg], "hertz/material") == 0) {
         int num_coeffs = 3;
@@ -145,9 +154,9 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
           error->all(FLERR,"Illegal fix wall/gran command, "
                      "not enough parameters provided for Hertz option");
         normal_model = HERTZ_MATERIAL;
-        Emod = force->numeric(FLERR,arg[iarg+1]); //E
-        normal_coeffs[1] = force->numeric(FLERR,arg[iarg+2]); //damping
-        poiss = force->numeric(FLERR,arg[iarg+3]); //Poisson's ratio
+        Emod = utils::numeric(FLERR,arg[iarg+1],false,lmp); //E
+        normal_coeffs[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp); //damping
+        poiss = utils::numeric(FLERR,arg[iarg+3],false,lmp); //Poisson's ratio
         normal_coeffs[0] = Emod/(2*(1-poiss))*FOURTHIRDS;
         normal_coeffs[2] = poiss;
         iarg += num_coeffs+1;
@@ -156,24 +165,24 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
           error->all(FLERR,"Illegal fix wall/gran command, "
                      "not enough parameters provided for Hertz option");
         normal_model = DMT;
-        Emod = force->numeric(FLERR,arg[iarg+1]); //E
-        normal_coeffs[1] = force->numeric(FLERR,arg[iarg+2]); //damping
-        poiss = force->numeric(FLERR,arg[iarg+3]); //Poisson's ratio
+        Emod = utils::numeric(FLERR,arg[iarg+1],false,lmp); //E
+        normal_coeffs[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp); //damping
+        poiss = utils::numeric(FLERR,arg[iarg+3],false,lmp); //Poisson's ratio
         normal_coeffs[0] = Emod/(2*(1-poiss))*FOURTHIRDS;
         normal_coeffs[2] = poiss;
-        normal_coeffs[3] = force->numeric(FLERR,arg[iarg+4]); //cohesion
+        normal_coeffs[3] = utils::numeric(FLERR,arg[iarg+4],false,lmp); //cohesion
         iarg += 5;
       } else if (strcmp(arg[iarg], "jkr") == 0) {
         if (iarg + 4 >= narg)
           error->all(FLERR,"Illegal wall/gran command, "
                      "not enough parameters provided for JKR option");
         normal_model = JKR;
-        Emod = force->numeric(FLERR,arg[iarg+1]); //E
-        normal_coeffs[1] = force->numeric(FLERR,arg[iarg+2]); //damping
-        poiss = force->numeric(FLERR,arg[iarg+3]); //Poisson's ratio
+        Emod = utils::numeric(FLERR,arg[iarg+1],false,lmp); //E
+        normal_coeffs[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp); //damping
+        poiss = utils::numeric(FLERR,arg[iarg+3],false,lmp); //Poisson's ratio
         normal_coeffs[0] = Emod/(2*(1-poiss))*FOURTHIRDS;
         normal_coeffs[2] = poiss;
-        normal_coeffs[3] = force->numeric(FLERR,arg[iarg+4]); //cohesion
+        normal_coeffs[3] = utils::numeric(FLERR,arg[iarg+4],false,lmp); //cohesion
         iarg += 5;
       } else if (strcmp(arg[iarg], "damping") == 0) {
         if (iarg+1 >= narg)
@@ -205,12 +214,14 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
           tangential_model = TANGENTIAL_NOHISTORY;
           tangential_coeffs[0] = 0;
           // gammat and friction coeff
-          tangential_coeffs[1] = force->numeric(FLERR,arg[iarg+2]);
-          tangential_coeffs[2] = force->numeric(FLERR,arg[iarg+3]);
+          tangential_coeffs[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+          tangential_coeffs[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
           iarg += 4;
         } else if ((strcmp(arg[iarg+1], "linear_history") == 0) ||
             (strcmp(arg[iarg+1], "mindlin") == 0) ||
-            (strcmp(arg[iarg+1], "mindlin_rescale") == 0)) {
+            (strcmp(arg[iarg+1], "mindlin_rescale") == 0) ||
+            (strcmp(arg[iarg+1], "mindlin/force") == 0) ||
+            (strcmp(arg[iarg+1], "mindlin_rescale/force") == 0)) {
           if (iarg + 4 >= narg)
             error->all(FLERR,"Illegal pair_coeff command, "
                        "not enough parameters provided for tangential model");
@@ -220,8 +231,14 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
             tangential_model = TANGENTIAL_MINDLIN;
           else if (strcmp(arg[iarg+1], "mindlin_rescale") == 0)
             tangential_model = TANGENTIAL_MINDLIN_RESCALE;
+          else if (strcmp(arg[iarg+1], "mindlin/force") == 0)
+            tangential_model = TANGENTIAL_MINDLIN_FORCE;
+          else if (strcmp(arg[iarg+1], "mindlin_rescale/force") == 0)
+            tangential_model = TANGENTIAL_MINDLIN_RESCALE_FORCE;
           if ((tangential_model == TANGENTIAL_MINDLIN ||
-               tangential_model == TANGENTIAL_MINDLIN_RESCALE) &&
+               tangential_model == TANGENTIAL_MINDLIN_RESCALE ||
+               tangential_model == TANGENTIAL_MINDLIN_FORCE ||
+               tangential_model == TANGENTIAL_MINDLIN_RESCALE_FORCE) &&
               (strcmp(arg[iarg+2], "NULL") == 0)) {
             if (normal_model == NORMAL_HERTZ || normal_model == NORMAL_HOOKE) {
               error->all(FLERR, "NULL setting for Mindlin tangential "
@@ -230,12 +247,12 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
             }
             tangential_coeffs[0] = Emod/4*(2-poiss)*(1+poiss);
           } else {
-            tangential_coeffs[0] = force->numeric(FLERR,arg[iarg+2]); //kt
+            tangential_coeffs[0] = utils::numeric(FLERR,arg[iarg+2],false,lmp); //kt
           }
           tangential_history = 1;
           // gammat and friction coeff
-          tangential_coeffs[1] = force->numeric(FLERR,arg[iarg+3]);
-          tangential_coeffs[2] = force->numeric(FLERR,arg[iarg+4]);
+          tangential_coeffs[1] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+          tangential_coeffs[2] = utils::numeric(FLERR,arg[iarg+4],false,lmp);
           iarg += 5;
         } else {
           error->all(FLERR, "Illegal pair_coeff command, "
@@ -254,9 +271,9 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
           roll_model = ROLL_SDS;
           roll_history = 1;
           // kR, gammaR, rolling friction coeff
-          roll_coeffs[0] = force->numeric(FLERR,arg[iarg+2]);
-          roll_coeffs[1] = force->numeric(FLERR,arg[iarg+3]);
-          roll_coeffs[2] = force->numeric(FLERR,arg[iarg+4]);
+          roll_coeffs[0] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+          roll_coeffs[1] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+          roll_coeffs[2] = utils::numeric(FLERR,arg[iarg+4],false,lmp);
           iarg += 5;
         } else {
           error->all(FLERR, "Illegal wall/gran command, "
@@ -278,9 +295,9 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
                        "not enough parameters provided for twist model");
           twist_model = TWIST_SDS;
           twist_history = 1;
-          twist_coeffs[0] = force->numeric(FLERR,arg[iarg+2]); //kt
-          twist_coeffs[1] = force->numeric(FLERR,arg[iarg+3]); //gammat
-          twist_coeffs[2] = force->numeric(FLERR,arg[iarg+4]); //friction coeff.
+          twist_coeffs[0] = utils::numeric(FLERR,arg[iarg+2],false,lmp); //kt
+          twist_coeffs[1] = utils::numeric(FLERR,arg[iarg+3],false,lmp); //gammat
+          twist_coeffs[2] = utils::numeric(FLERR,arg[iarg+4],false,lmp); //friction coeff.
           iarg += 5;
         } else {
           error->all(FLERR, "Illegal wall/gran command, "
@@ -292,55 +309,67 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
           strcmp(arg[iarg], "zcylinder") == 0 ||
           strcmp(arg[iarg], "region") == 0) {
         break;
+      } else if (strcmp(arg[iarg],"limit_damping") == 0) {
+        limit_damping = 1;
+        iarg += 1;
       } else {
         error->all(FLERR, "Illegal fix wall/gran command");
       }
     }
     size_history = 3*tangential_history + 3*roll_history + twist_history;
+    //Unlike the pair style, the wall style does not have a 'touch'
+    //array. Hence, an additional entry in the history is used to
+    //determine if particles previously contacted for JKR cohesion purposes.
     if (normal_model == JKR) size_history += 1;
-    if (tangential_model == TANGENTIAL_MINDLIN_RESCALE) size_history += 1;
+    if (tangential_model == TANGENTIAL_MINDLIN_RESCALE ||
+        tangential_model == TANGENTIAL_MINDLIN_RESCALE_FORCE) size_history += 1;
+
+    if (limit_damping && normal_model == JKR)
+      error->all(FLERR,"Illegal pair_coeff command, "
+          "cannot limit damping with JRK model");
+    if (limit_damping && normal_model == DMT)
+      error->all(FLERR,"Illegal pair_coeff command, "
+          "Cannot limit damping with DMT model");
   }
 
   // wallstyle args
 
-  idregion = NULL;
+  idregion = nullptr;
 
   if (strcmp(arg[iarg],"xplane") == 0) {
     if (narg < iarg+3) error->all(FLERR,"Illegal fix wall/gran command");
     wallstyle = XPLANE;
     if (strcmp(arg[iarg+1],"NULL") == 0) lo = -BIG;
-    else lo = force->numeric(FLERR,arg[iarg+1]);
+    else lo = utils::numeric(FLERR,arg[iarg+1],false,lmp);
     if (strcmp(arg[iarg+2],"NULL") == 0) hi = BIG;
-    else hi = force->numeric(FLERR,arg[iarg+2]);
+    else hi = utils::numeric(FLERR,arg[iarg+2],false,lmp);
     iarg += 3;
   } else if (strcmp(arg[iarg],"yplane") == 0) {
     if (narg < iarg+3) error->all(FLERR,"Illegal fix wall/gran command");
     wallstyle = YPLANE;
     if (strcmp(arg[iarg+1],"NULL") == 0) lo = -BIG;
-    else lo = force->numeric(FLERR,arg[iarg+1]);
+    else lo = utils::numeric(FLERR,arg[iarg+1],false,lmp);
     if (strcmp(arg[iarg+2],"NULL") == 0) hi = BIG;
-    else hi = force->numeric(FLERR,arg[iarg+2]);
+    else hi = utils::numeric(FLERR,arg[iarg+2],false,lmp);
     iarg += 3;
   } else if (strcmp(arg[iarg],"zplane") == 0) {
     if (narg < iarg+3) error->all(FLERR,"Illegal fix wall/gran command");
     wallstyle = ZPLANE;
     if (strcmp(arg[iarg+1],"NULL") == 0) lo = -BIG;
-    else lo = force->numeric(FLERR,arg[iarg+1]);
+    else lo = utils::numeric(FLERR,arg[iarg+1],false,lmp);
     if (strcmp(arg[iarg+2],"NULL") == 0) hi = BIG;
-    else hi = force->numeric(FLERR,arg[iarg+2]);
+    else hi = utils::numeric(FLERR,arg[iarg+2],false,lmp);
     iarg += 3;
   } else if (strcmp(arg[iarg],"zcylinder") == 0) {
     if (narg < iarg+2) error->all(FLERR,"Illegal fix wall/gran command");
     wallstyle = ZCYLINDER;
     lo = hi = 0.0;
-    cylradius = force->numeric(FLERR,arg[iarg+1]);
+    cylradius = utils::numeric(FLERR,arg[iarg+1],false,lmp);
     iarg += 2;
   } else if (strcmp(arg[iarg],"region") == 0) {
     if (narg < iarg+2) error->all(FLERR,"Illegal fix wall/gran command");
     wallstyle = REGION;
-    int n = strlen(arg[iarg+1]) + 1;
-    idregion = new char[n];
-    strcpy(idregion,arg[iarg+1]);
+    idregion = utils::strdup(arg[iarg+1]);
     iarg += 2;
   }
 
@@ -357,8 +386,8 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg+1],"y") == 0) axis = 1;
       else if (strcmp(arg[iarg+1],"z") == 0) axis = 2;
       else error->all(FLERR,"Illegal fix wall/gran command");
-      amplitude = force->numeric(FLERR,arg[iarg+2]);
-      period = force->numeric(FLERR,arg[iarg+3]);
+      amplitude = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      period = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       wiggle = 1;
       iarg += 4;
     } else if (strcmp(arg[iarg],"shear") == 0) {
@@ -367,10 +396,10 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg+1],"y") == 0) axis = 1;
       else if (strcmp(arg[iarg+1],"z") == 0) axis = 2;
       else error->all(FLERR,"Illegal fix wall/gran command");
-      vshear = force->numeric(FLERR,arg[iarg+2]);
+      vshear = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       wshear = 1;
       iarg += 3;
-    } else if (strcmp(arg[iarg],"store_contacts") == 0) {
+    } else if (strcmp(arg[iarg],"contacts") == 0) {
       peratom_flag = 1;
       size_peratom_cols = 8;
       peratom_freq = 1;
@@ -407,16 +436,16 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based arrays
   // register with Atom class
 
-  history_one = NULL;
-  grow_arrays(atom->nmax);
-  atom->add_callback(0);
-  atom->add_callback(1);
+  history_one = nullptr;
+  FixWallGran::grow_arrays(atom->nmax);
+  atom->add_callback(Atom::GROW);
+  atom->add_callback(Atom::RESTART);
 
   nmax = 0;
-  mass_rigid = NULL;
+  mass_rigid = nullptr;
 
   // initialize history as if particle is not touching region
-  // history_one will be NULL for wallstyle = REGION
+  // history_one will be a null pointer for wallstyle = REGION
 
   if (use_history && history_one) {
     int nlocal = atom->nlocal;
@@ -426,10 +455,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   }
 
   if (peratom_flag) {
-    int nlocal = atom->nlocal;
-    for (int i = 0; i < nlocal; i++)
-      for (int m = 0; m < size_peratom_cols; m++)
-        array_atom[i][m] = 0.0;
+    clear_stored_contacts();
   }
 
   time_origin = update->ntimestep;
@@ -441,8 +467,8 @@ FixWallGran::~FixWallGran()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,0);
-  atom->delete_callback(id,1);
+  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(id,Atom::RESTART);
 
   // delete local storage
 
@@ -469,46 +495,49 @@ void FixWallGran::init()
 
   dt = update->dt;
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
   // check for FixRigid so can extract rigid body masses
 
-  fix_rigid = NULL;
+  fix_rigid = nullptr;
   for (i = 0; i < modify->nfix; i++)
     if (modify->fix[i]->rigid_flag) break;
   if (i < modify->nfix) fix_rigid = modify->fix[i];
 
-  tangential_history_index = 0;
-  if (roll_history) {
-    if (tangential_history) roll_history_index = 3;
-    else roll_history_index = 0;
-  }
-  if (twist_history) {
-    if (tangential_history) {
-      if (roll_history) twist_history_index = 6;
-      else twist_history_index = 3;
+  if(pairstyle == GRANULAR) {
+    tangential_history_index = 0;
+    if (roll_history) {
+      if (tangential_history) roll_history_index = 3;
+      else roll_history_index = 0;
     }
-    else{
-      if (roll_history) twist_history_index = 3;
-      else twist_history_index = 0;
+    if (twist_history) {
+      if (tangential_history) {
+        if (roll_history) twist_history_index = 6;
+        else twist_history_index = 3;
+      }
+      else{
+        if (roll_history) twist_history_index = 3;
+        else twist_history_index = 0;
+      }
     }
-  }
-  if (normal_model == JKR) {
-    tangential_history_index += 1;
-    roll_history_index += 1;
-    twist_history_index += 1;
-  }
-  if (tangential_model == TANGENTIAL_MINDLIN_RESCALE) {
-    roll_history_index += 1;
-    twist_history_index += 1;
-  }
+    if (normal_model == JKR) {
+      tangential_history_index += 1;
+      roll_history_index += 1;
+      twist_history_index += 1;
+    }
+    if (tangential_model == TANGENTIAL_MINDLIN_RESCALE ||
+        tangential_model == TANGENTIAL_MINDLIN_RESCALE_FORCE) {
+      roll_history_index += 1;
+      twist_history_index += 1;
+    }
 
-  if (damping_model == TSUJI) {
-    double cor = normal_coeffs[1];
-    normal_coeffs[1] = 1.2728-4.2783*cor+11.087*pow(cor,2)-22.348*pow(cor,3)+
-        27.467*pow(cor,4)-18.022*pow(cor,5)+
-        4.8218*pow(cor,6);
+    if (damping_model == TSUJI) {
+      double cor = normal_coeffs[1];
+      normal_coeffs[1] = 1.2728-4.2783*cor+11.087*pow(cor,2)-22.348*pow(cor,3)+
+          27.467*pow(cor,4)-18.022*pow(cor,5)+
+          4.8218*pow(cor,6);
+    }
   }
 }
 
@@ -516,7 +545,7 @@ void FixWallGran::init()
 
 void FixWallGran::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(nlevels_respa-1);
@@ -579,7 +608,7 @@ void FixWallGran::post_force(int /*vflag*/)
   // dx,dy,dz = signed distance from wall
   // for rotating cylinder, reset vwall based on particle position
   // skip atom if not close enough to wall
-  //   if wall was set to NULL, it's skipped since lo/hi are infinity
+  //   if wall was set to a null pointer, it's skipped since lo/hi are infinity
   // compute force and torque on atom if close enough to wall
   //   via wall potential matched to pair potential
   // set history if pair potential stores history
@@ -595,6 +624,10 @@ void FixWallGran::post_force(int /*vflag*/)
   int nlocal = atom->nlocal;
 
   rwall = 0.0;
+
+  if (peratom_flag) {
+    clear_stored_contacts();
+  }
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
@@ -668,7 +701,7 @@ void FixWallGran::post_force(int /*vflag*/)
 
         // store contact info
         if (peratom_flag) {
-          array_atom[i][0] = (double)atom->tag[i];
+          array_atom[i][0] = 1.0;
           array_atom[i][4] = x[i][0] - dx;
           array_atom[i][5] = x[i][1] - dy;
           array_atom[i][6] = x[i][2] - dz;
@@ -680,7 +713,7 @@ void FixWallGran::post_force(int /*vflag*/)
         if (peratom_flag)
           contact = array_atom[i];
         else
-          contact = NULL;
+          contact = nullptr;
 
         if (pairstyle == HOOKE)
           hooke(rsq,dx,dy,dz,vwall,v[i],f[i],
@@ -698,6 +731,15 @@ void FixWallGran::post_force(int /*vflag*/)
               omega[i],torque[i],radius[i],meff,history_one[i],
               contact);
       }
+    }
+  }
+}
+
+void FixWallGran::clear_stored_contacts() {
+  const int nlocal = atom->nlocal;
+  for (int i = 0; i < nlocal; i++) {
+    for (int m = 0; m < size_peratom_cols; m++) {
+      array_atom[i][m] = 0.0;
     }
   }
 }
@@ -753,6 +795,7 @@ void FixWallGran::hooke(double rsq, double dx, double dy, double dz,
 
   damp = meff*gamman*vnnr*rsqinv;
   ccel = kn*(radius-r)*rinv - damp;
+  if (limit_damping && (ccel < 0.0)) ccel = 0.0;
 
   // relative velocities
 
@@ -845,6 +888,7 @@ void FixWallGran::hooke_history(double rsq, double dx, double dy, double dz,
 
   damp = meff*gamman*vnnr*rsqinv;
   ccel = kn*(radius-r)*rinv - damp;
+  if (limit_damping && (ccel < 0.0)) ccel = 0.0;
 
   // relative velocities
 
@@ -976,6 +1020,7 @@ void FixWallGran::hertz_history(double rsq, double dx, double dy, double dz,
   if (rwall == 0.0) polyhertz = sqrt((radius-r)*radius);
   else polyhertz = sqrt((radius-r)*radius*rwall/(rwall+radius));
   ccel *= polyhertz;
+  if (limit_damping && (ccel < 0.0)) ccel = 0.0;
 
   // relative velocities
 
@@ -1094,7 +1139,8 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
   double signtwist, magtwist, magtortwist, Mtcrit;
   double tortwist1, tortwist2, tortwist3;
 
-  double shrmag,rsht;
+  double shrmag,rsht,prjmag;
+  bool frameupdate;
 
   r = sqrt(rsq);
   E = normal_coeffs[0];
@@ -1147,7 +1193,7 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
     knfac = E; //Hooke
     a = sqrt(dR);
     Fne = knfac*delta;
-    if (normal_model != HOOKE) {
+    if (normal_model != NORMAL_HOOKE) {
       Fne *= a;
       knfac *= a;
     }
@@ -1169,10 +1215,17 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
   Fdamp = -damp_normal_prefactor*vnnr;
 
   Fntot = Fne + Fdamp;
+  if (limit_damping && (Fntot < 0.0)) Fntot = 0.0;
 
   //****************************************
   // tangential force, including history effects
   //****************************************
+
+  // For linear, mindlin, mindlin_rescale:
+  // history = cumulative tangential displacement
+  //
+  // For mindlin/force, mindlin_rescale/force:
+  // history = cumulative tangential elastic force
 
   // tangential component
   vt1 = vr1 - vn1;
@@ -1209,75 +1262,121 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
 
   k_tangential = tangential_coeffs[0];
   damp_tangential = tangential_coeffs[1]*damp_normal_prefactor;
+  Fscrit = tangential_coeffs[2] * Fncrit;
 
   int thist0 = tangential_history_index;
   int thist1 = thist0 + 1;
   int thist2 = thist1 + 1;
 
   if (tangential_history) {
-    if (tangential_model == TANGENTIAL_MINDLIN) {
+    if (tangential_model == TANGENTIAL_MINDLIN ||
+        tangential_model == TANGENTIAL_MINDLIN_FORCE) {
       k_tangential *= a;
     }
-    else if (tangential_model == TANGENTIAL_MINDLIN_RESCALE) {
+    else if (tangential_model ==
+             TANGENTIAL_MINDLIN_RESCALE ||
+             tangential_model ==
+             TANGENTIAL_MINDLIN_RESCALE_FORCE){
       k_tangential *= a;
-      if (a < history[3]) { //On unloading, rescale the shear displacements
+      // on unloading, rescale the shear displacements/force
+      if (a < history[thist2+1]) {
         double factor = a/history[thist2+1];
         history[thist0] *= factor;
         history[thist1] *= factor;
         history[thist2] *= factor;
       }
     }
-    shrmag = sqrt(history[thist0]*history[thist0] +
-                  history[thist1]*history[thist1] +
-                  history[thist2]*history[thist2]);
+
 
     // rotate and update displacements.
     // see e.g. eq. 17 of Luding, Gran. Matter 2008, v10,p235
     if (history_update) {
       rsht = history[thist0]*nx + history[thist1]*ny + history[thist2]*nz;
-      if (fabs(rsht) < EPSILON) rsht = 0;
-      if (rsht > 0) {
-        // if rhst == shrmag, contacting pair has rotated 90 deg in one step,
-        // in which case you deserve a crash!
-        scalefac = shrmag/(shrmag - rsht);
+      if (tangential_model == TANGENTIAL_MINDLIN_FORCE ||
+          tangential_model == TANGENTIAL_MINDLIN_RESCALE_FORCE)
+        frameupdate = fabs(rsht) > EPSILON*Fscrit;
+      else
+        frameupdate = fabs(rsht)*k_tangential > EPSILON*Fscrit;
+      if (frameupdate) {
+        shrmag = sqrt(history[thist0]*history[thist0] +
+            history[thist1]*history[thist1] +
+            history[thist2]*history[thist2]);
+        // projection
         history[thist0] -= rsht*nx;
         history[thist1] -= rsht*ny;
         history[thist2] -= rsht*nz;
+
         // also rescale to preserve magnitude
+        prjmag = sqrt(history[thist0]*history[thist0] +
+            history[thist1]*history[thist1] + history[thist2]*history[thist2]);
+        if (prjmag > 0) scalefac = shrmag/prjmag;
+        else scalefac = 0;
         history[thist0] *= scalefac;
         history[thist1] *= scalefac;
         history[thist2] *= scalefac;
       }
       // update history
+      if (tangential_model == TANGENTIAL_HISTORY ||
+          tangential_model == TANGENTIAL_MINDLIN ||
+          tangential_model == TANGENTIAL_MINDLIN_RESCALE) {
       history[thist0] += vtr1*dt;
       history[thist1] += vtr2*dt;
       history[thist2] += vtr3*dt;
+      } else{
+        // tangential force
+        // see e.g. eq. 18 of Thornton et al, Pow. Tech. 2013, v223,p30-46
+        history[thist0] -= k_tangential*vtr1*dt;
+        history[thist1] -= k_tangential*vtr2*dt;
+        history[thist2] -= k_tangential*vtr3*dt;
+      }
+      if (tangential_model == TANGENTIAL_MINDLIN_RESCALE ||
+          tangential_model == TANGENTIAL_MINDLIN_RESCALE_FORCE)
+        history[thist2+1] = a;
     }
 
     // tangential forces = history + tangential velocity damping
-    fs1 = -k_tangential*history[thist0] - damp_tangential*vtr1;
-    fs2 = -k_tangential*history[thist1] - damp_tangential*vtr2;
-    fs3 = -k_tangential*history[thist2] - damp_tangential*vtr3;
+    if (tangential_model == TANGENTIAL_HISTORY ||
+        tangential_model == TANGENTIAL_MINDLIN ||
+        tangential_model == TANGENTIAL_MINDLIN_RESCALE) {
+      fs1 = -k_tangential*history[thist0] - damp_tangential*vtr1;
+      fs2 = -k_tangential*history[thist1] - damp_tangential*vtr2;
+      fs3 = -k_tangential*history[thist2] - damp_tangential*vtr3;
+    } else {
+      fs1 = history[thist0] - damp_tangential*vtr1;
+      fs2 = history[thist1] - damp_tangential*vtr2;
+      fs3 = history[thist2] - damp_tangential*vtr3;
+    }
 
     // rescale frictional displacements and forces if needed
-    Fscrit = tangential_coeffs[2] * Fncrit;
     fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
     if (fs > Fscrit) {
+      shrmag = sqrt(history[thist0]*history[thist0] +
+          history[thist1]*history[thist1] +
+          history[thist2]*history[thist2]);
       if (shrmag != 0.0) {
-        history[thist0] = -1.0/k_tangential*(Fscrit*fs1/fs +
-                                             damp_tangential*vtr1);
-        history[thist1] = -1.0/k_tangential*(Fscrit*fs2/fs +
-                                             damp_tangential*vtr2);
-        history[thist2] = -1.0/k_tangential*(Fscrit*fs3/fs +
-                                             damp_tangential*vtr3);
+        if (tangential_model == TANGENTIAL_HISTORY ||
+            tangential_model == TANGENTIAL_MINDLIN ||
+            tangential_model ==
+                TANGENTIAL_MINDLIN_RESCALE) {
+          history[thist0] = -1.0/k_tangential*(Fscrit*fs1/fs +
+              damp_tangential*vtr1);
+          history[thist1] = -1.0/k_tangential*(Fscrit*fs2/fs +
+              damp_tangential*vtr2);
+          history[thist2] = -1.0/k_tangential*(Fscrit*fs3/fs +
+              damp_tangential*vtr3);
+        } else {
+          history[thist0] = Fscrit*fs1/fs + damp_tangential*vtr1;
+          history[thist1] = Fscrit*fs2/fs + damp_tangential*vtr2;
+          history[thist2] = Fscrit*fs3/fs + damp_tangential*vtr3;
+        }
         fs1 *= Fscrit/fs;
         fs2 *= Fscrit/fs;
         fs3 *= Fscrit/fs;
       } else fs1 = fs2 = fs3 = 0.0;
     }
   } else { // classic pair gran/hooke (no history)
-    fs = meff*damp_tangential*vrel;
-    if (vrel != 0.0) Ft = MIN(Fne,fs) / vrel;
+    fs = damp_tangential*vrel;
+    if (vrel != 0.0) Ft = MIN(Fscrit,fs) / vrel;
     else Ft = 0.0;
     fs1 = -Ft*vtr1;
     fs2 = -Ft*vtr2;
@@ -1288,14 +1387,14 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
   // rolling resistance
   //****************************************
 
-  if (roll_model != ROLL_NONE || twist_model != NONE) {
+  if (roll_model != ROLL_NONE || twist_model != TWIST_NONE) {
     relrot1 = omega[0];
     relrot2 = omega[1];
     relrot3 = omega[2];
   }
-  if (roll_model != ROLL_NONE){
-
-    // rolling velocity, see eq. 31 of Wang et al, Particuology v 23, p 49 (2015)
+  if (roll_model != ROLL_NONE) {
+    // rolling velocity,
+    // see eq. 31 of Wang et al, Particuology v 23, p 49 (2015)
     // This is different from the Marshall papers,
     // which use the Bagi/Kuhn formulation
     // for rolling velocity (see Wang et al for why the latter is wrong)
@@ -1307,21 +1406,29 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
     int rhist1 = rhist0 + 1;
     int rhist2 = rhist1 + 1;
 
-    // rolling displacement
-    rollmag = sqrt(history[rhist0]*history[rhist0] +
-                   history[rhist1]*history[rhist1] +
-                   history[rhist2]*history[rhist2]);
-
-    rolldotn = history[rhist0]*nx + history[rhist1]*ny + history[rhist2]*nz;
+    k_roll = roll_coeffs[0];
+    damp_roll = roll_coeffs[1];
+    Frcrit = roll_coeffs[2] * Fncrit;
 
     if (history_update) {
-      if (fabs(rolldotn) < EPSILON) rolldotn = 0;
-      if (rolldotn > 0) { // rotate into tangential plane
-        scalefac = rollmag/(rollmag - rolldotn);
+      rolldotn = history[rhist0]*nx + history[rhist1]*ny + history[rhist2]*nz;
+      frameupdate = fabs(rolldotn)*k_roll > EPSILON*Frcrit;
+      if (frameupdate) { // rotate into tangential plane
+        rollmag = sqrt(history[rhist0]*history[rhist0] +
+                           history[rhist1]*history[rhist1] +
+                           history[rhist2]*history[rhist2]);
+        // projection
         history[rhist0] -= rolldotn*nx;
         history[rhist1] -= rolldotn*ny;
         history[rhist2] -= rolldotn*nz;
+
         // also rescale to preserve magnitude
+        prjmag = sqrt(history[rhist0]*history[rhist0] +
+            history[rhist1]*history[rhist1] +
+            history[rhist2]*history[rhist2]);
+
+        if (prjmag > 0) scalefac = rollmag/prjmag;
+        else scalefac = 0;
         history[rhist0] *= scalefac;
         history[rhist1] *= scalefac;
         history[rhist2] *= scalefac;
@@ -1331,17 +1438,16 @@ void FixWallGran::granular(double rsq, double dx, double dy, double dz,
       history[rhist2] += vrl3*dt;
     }
 
-    k_roll = roll_coeffs[0];
-    damp_roll = roll_coeffs[1];
     fr1 = -k_roll*history[rhist0] - damp_roll*vrl1;
     fr2 = -k_roll*history[rhist1] - damp_roll*vrl2;
     fr3 = -k_roll*history[rhist2] - damp_roll*vrl3;
 
     // rescale frictional displacements and forces if needed
-    Frcrit = roll_coeffs[2] * Fncrit;
-
     fr = sqrt(fr1*fr1 + fr2*fr2 + fr3*fr3);
     if (fr > Frcrit) {
+      rollmag = sqrt(history[rhist0]*history[rhist0] +
+          history[rhist1]*history[rhist1] +
+          history[rhist2]*history[rhist2]);
       if (rollmag != 0.0) {
         history[rhist0] = -1.0/k_roll*(Frcrit*fr1/fr + damp_roll*vrl1);
         history[rhist1] = -1.0/k_roll*(Frcrit*fr2/fr + damp_roll*vrl2);
@@ -1436,10 +1542,10 @@ double FixWallGran::memory_usage()
 {
   int nmax = atom->nmax;
   double bytes = 0.0;
-  if (use_history) bytes += nmax*size_history * sizeof(double);  // shear history
-  if (fix_rigid) bytes += nmax * sizeof(int);                    // mass_rigid
+  if (use_history) bytes += (double)nmax*size_history * sizeof(double);  // shear history
+  if (fix_rigid) bytes += (double)nmax * sizeof(int);                    // mass_rigid
   // store contacts
-  if (peratom_flag) bytes += nmax*size_peratom_cols*sizeof(double);
+  if (peratom_flag) bytes += (double)nmax*size_peratom_cols*sizeof(double);
   return bytes;
 }
 
@@ -1449,8 +1555,7 @@ double FixWallGran::memory_usage()
 
 void FixWallGran::grow_arrays(int nmax)
 {
-  if (use_history) memory->grow(history_one,nmax,size_history,
-                                "fix_wall_gran:history_one");
+  if (use_history) memory->grow(history_one,nmax,size_history,"fix_wall_gran:history_one");
   if (peratom_flag) {
     memory->grow(array_atom,nmax,size_peratom_cols,"fix_wall_gran:array_atom");
   }
@@ -1531,6 +1636,7 @@ int FixWallGran::pack_restart(int i, double *buf)
   if (!use_history) return 0;
 
   int n = 0;
+  // pack buf[0] this way because other fixes unpack it
   buf[n++] = size_history + 1;
   for (int m = 0; m < size_history; m++)
     buf[n++] = history_one[i][m];
@@ -1548,6 +1654,7 @@ void FixWallGran::unpack_restart(int nlocal, int nth)
   double **extra = atom->extra;
 
   // skip to Nth set of extra values
+  // unpack the Nth first values this way because other fixes pack them
 
   int m = 0;
   for (int i = 0; i < nth; i++) m += static_cast<int> (extra[nlocal][m]);

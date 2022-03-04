@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,37 +13,35 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_ave_atom.h"
-#include <cstdlib>
-#include <cstring>
+
+#include "arg_info.h"
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
 #include "compute.h"
-#include "input.h"
-#include "variable.h"
-#include "memory.h"
 #include "error.h"
-#include "force.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-
-enum{X,V,F,COMPUTE,FIX,VARIABLE};
-
-#define INVOKED_PERATOM 8
 
 /* ---------------------------------------------------------------------- */
 
 FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  nvalues(0), which(NULL), argindex(NULL), value2index(NULL),
-  ids(NULL), array(NULL)
+  nvalues(0), which(nullptr), argindex(nullptr), value2index(nullptr),
+  ids(nullptr), array(nullptr)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix ave/atom command");
 
-  nevery = force->inumeric(FLERR,arg[3]);
-  nrepeat = force->inumeric(FLERR,arg[4]);
-  peratom_freq = force->inumeric(FLERR,arg[5]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
+  nrepeat = utils::inumeric(FLERR,arg[4],false,lmp);
+  peratom_freq = utils::inumeric(FLERR,arg[5],false,lmp);
+  time_depend = 1;
 
   nvalues = narg - 6;
 
@@ -51,7 +50,7 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
 
   int expand = 0;
   char **earg;
-  nvalues = input->expand_args(nvalues,&arg[6],1,earg);
+  nvalues = utils::expand_args(FLERR,nvalues,&arg[6],1,earg,lmp);
 
   if (earg != &arg[6]) expand = 1;
   arg = earg;
@@ -64,63 +63,49 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
   value2index = new int[nvalues];
 
   for (int i = 0; i < nvalues; i++) {
-    ids[i] = NULL;
+    ids[i] = nullptr;
 
     if (strcmp(arg[i],"x") == 0) {
-      which[i] = X;
+      which[i] = ArgInfo::X;
       argindex[i] = 0;
     } else if (strcmp(arg[i],"y") == 0) {
-      which[i] = X;
+      which[i] = ArgInfo::X;
       argindex[i] = 1;
     } else if (strcmp(arg[i],"z") == 0) {
-      which[i] = X;
+      which[i] = ArgInfo::X;
       argindex[i] = 2;
 
     } else if (strcmp(arg[i],"vx") == 0) {
-      which[i] = V;
+      which[i] = ArgInfo::V;
       argindex[i] = 0;
     } else if (strcmp(arg[i],"vy") == 0) {
-      which[i] = V;
+      which[i] = ArgInfo::V;
       argindex[i] = 1;
     } else if (strcmp(arg[i],"vz") == 0) {
-      which[i] = V;
+      which[i] = ArgInfo::V;
       argindex[i] = 2;
 
     } else if (strcmp(arg[i],"fx") == 0) {
-      which[i] = F;
+      which[i] = ArgInfo::F;
       argindex[i] = 0;
     } else if (strcmp(arg[i],"fy") == 0) {
-      which[i] = F;
+      which[i] = ArgInfo::F;
       argindex[i] = 1;
     } else if (strcmp(arg[i],"fz") == 0) {
-      which[i] = F;
+      which[i] = ArgInfo::F;
       argindex[i] = 2;
 
-    } else if (strncmp(arg[i],"c_",2) == 0 ||
-               strncmp(arg[i],"f_",2) == 0 ||
-               strncmp(arg[i],"v_",2) == 0) {
-      if (arg[i][0] == 'c') which[i] = COMPUTE;
-      else if (arg[i][0] == 'f') which[i] = FIX;
-      else if (arg[i][0] == 'v') which[i] = VARIABLE;
+    } else {
+      ArgInfo argi(arg[i]);
 
-      int n = strlen(arg[i]);
-      char *suffix = new char[n];
-      strcpy(suffix,&arg[i][2]);
+      which[i] = argi.get_type();
+      argindex[i] = argi.get_index1();
+      ids[i] = argi.copy_name();
 
-      char *ptr = strchr(suffix,'[');
-      if (ptr) {
-        if (suffix[strlen(suffix)-1] != ']')
-          error->all(FLERR,"Illegal fix ave/atom command");
-        argindex[i] = atoi(ptr+1);
-        *ptr = '\0';
-      } else argindex[i] = 0;
-
-      n = strlen(suffix) + 1;
-      ids[i] = new char[n];
-      strcpy(ids[i],suffix);
-      delete [] suffix;
-
-    } else error->all(FLERR,"Illegal fix ave/atom command");
+      if ((which[i] == ArgInfo::UNKNOWN) || (which[i] == ArgInfo::NONE)
+        || (argi.get_dim() > 1))
+        error->all(FLERR,"Illegal fix ave/atom command");
+    }
   }
 
   // if wildcard expansion occurred, free earg memory from exapnd_args()
@@ -139,7 +124,7 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Illegal fix ave/atom command");
 
   for (int i = 0; i < nvalues; i++) {
-    if (which[i] == COMPUTE) {
+    if (which[i] == ArgInfo::COMPUTE) {
       int icompute = modify->find_compute(ids[i]);
       if (icompute < 0)
         error->all(FLERR,"Compute ID for fix ave/atom does not exist");
@@ -157,7 +142,7 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
           argindex[i] > modify->compute[icompute]->size_peratom_cols)
         error->all(FLERR,"Fix ave/atom compute array is accessed out-of-range");
 
-    } else if (which[i] == FIX) {
+    } else if (which[i] == ArgInfo::FIX) {
       int ifix = modify->find_fix(ids[i]);
       if (ifix < 0)
         error->all(FLERR,"Fix ID for fix ave/atom does not exist");
@@ -175,7 +160,7 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,
                    "Fix for fix ave/atom not computed at compatible time");
 
-    } else if (which[i] == VARIABLE) {
+    } else if (which[i] == ArgInfo::VARIABLE) {
       int ivariable = input->variable->find(ids[i]);
       if (ivariable < 0)
         error->all(FLERR,"Variable name for fix ave/atom does not exist");
@@ -193,8 +178,8 @@ FixAveAtom::FixAveAtom(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based array
   // register with Atom class
 
-  grow_arrays(atom->nmax);
-  atom->add_callback(0);
+  FixAveAtom::grow_arrays(atom->nmax);
+  atom->add_callback(Atom::GROW);
 
   // zero the array since dump may access it on timestep 0
   // zero the array since a variable may access it before first run
@@ -221,7 +206,7 @@ FixAveAtom::~FixAveAtom()
 {
   // unregister callback to this fix from Atom class
 
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::GROW);
 
   delete [] which;
   delete [] argindex;
@@ -248,19 +233,19 @@ void FixAveAtom::init()
   // set indices and check validity of all computes,fixes,variables
 
   for (int m = 0; m < nvalues; m++) {
-    if (which[m] == COMPUTE) {
+    if (which[m] == ArgInfo::COMPUTE) {
       int icompute = modify->find_compute(ids[m]);
       if (icompute < 0)
         error->all(FLERR,"Compute ID for fix ave/atom does not exist");
       value2index[m] = icompute;
 
-    } else if (which[m] == FIX) {
+    } else if (which[m] == ArgInfo::FIX) {
       int ifix = modify->find_fix(ids[m]);
       if (ifix < 0)
         error->all(FLERR,"Fix ID for fix ave/atom does not exist");
       value2index[m] = ifix;
 
-    } else if (which[m] == VARIABLE) {
+    } else if (which[m] == ArgInfo::VARIABLE) {
       int ivariable = input->variable->find(ids[m]);
       if (ivariable < 0)
         error->all(FLERR,"Variable name for fix ave/atom does not exist");
@@ -294,11 +279,8 @@ void FixAveAtom::end_of_step()
   int i,j,m,n;
 
   // skip if not step which requires doing something
-  // error check if timestep was reset in an invalid manner
 
   bigint ntimestep = update->ntimestep;
-  if (ntimestep < nvalid_last || ntimestep > nvalid)
-    error->all(FLERR,"Invalid timestep reset for fix ave/atom");
   if (ntimestep != nvalid) return;
   nvalid_last = nvalid;
 
@@ -322,28 +304,28 @@ void FixAveAtom::end_of_step()
     n = value2index[m];
     j = argindex[m];
 
-    if (which[m] == X) {
+    if (which[m] == ArgInfo::X) {
       double **x = atom->x;
       for (i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) array[i][m] += x[i][j];
 
-    } else if (which[m] == V) {
+    } else if (which[m] == ArgInfo::V) {
       double **v = atom->v;
       for (i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) array[i][m] += v[i][j];
 
-    } else if (which[m] == F) {
+    } else if (which[m] == ArgInfo::F) {
       double **f = atom->f;
       for (i = 0; i < nlocal; i++)
         if (mask[i] & groupbit) array[i][m] += f[i][j];
 
     // invoke compute if not previously invoked
 
-    } else if (which[m] == COMPUTE) {
+    } else if (which[m] == ArgInfo::COMPUTE) {
       Compute *compute = modify->compute[n];
-      if (!(compute->invoked_flag & INVOKED_PERATOM)) {
+      if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
         compute->compute_peratom();
-        compute->invoked_flag |= INVOKED_PERATOM;
+        compute->invoked_flag |= Compute::INVOKED_PERATOM;
       }
 
       if (j == 0) {
@@ -359,7 +341,7 @@ void FixAveAtom::end_of_step()
 
     // access fix fields, guaranteed to be ready
 
-    } else if (which[m] == FIX) {
+    } else if (which[m] == ArgInfo::FIX) {
       if (j == 0) {
         double *fix_vector = modify->fix[n]->vector_atom;
         for (i = 0; i < nlocal; i++)
@@ -374,9 +356,9 @@ void FixAveAtom::end_of_step()
     // evaluate atom-style variable
     // final argument = 1 sums result to array
 
-    } else if (which[m] == VARIABLE) {
+    } else if (which[m] == ArgInfo::VARIABLE) {
       if (array) input->variable->compute_atom(n,igroup,&array[0][m],nvalues,1);
-      else input->variable->compute_atom(n,igroup,NULL,nvalues,1);
+      else input->variable->compute_atom(n,igroup,nullptr,nvalues,1);
     }
   }
 
@@ -391,10 +373,10 @@ void FixAveAtom::end_of_step()
   }
 
   irepeat = 0;
-  nvalid = ntimestep+peratom_freq - (nrepeat-1)*nevery;
+  nvalid = ntimestep+peratom_freq - ((bigint)nrepeat-1)*nevery;
   modify->addstep_compute(nvalid);
 
-  if (array == NULL) return;
+  if (array == nullptr) return;
 
   // average the final result for the Nfreq timestep
 
@@ -411,7 +393,7 @@ void FixAveAtom::end_of_step()
 double FixAveAtom::memory_usage()
 {
   double bytes;
-  bytes = atom->nmax*nvalues * sizeof(double);
+  bytes = (double)atom->nmax*nvalues * sizeof(double);
   return bytes;
 }
 
@@ -424,7 +406,7 @@ void FixAveAtom::grow_arrays(int nmax)
   memory->grow(array,nmax,nvalues,"fix_ave/atom:array");
   array_atom = array;
   if (array) vector_atom = array[0];
-  else vector_atom = NULL;
+  else vector_atom = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -469,7 +451,7 @@ bigint FixAveAtom::nextvalid()
   if (nvalid-peratom_freq == update->ntimestep && nrepeat == 1)
     nvalid = update->ntimestep;
   else
-    nvalid -= (nrepeat-1)*nevery;
+    nvalid -= ((bigint)nrepeat-1)*nevery;
   if (nvalid < update->ntimestep) nvalid += peratom_freq;
   return nvalid;
 }

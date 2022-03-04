@@ -220,7 +220,7 @@ ignored if the *global* or *local* keywords are used, since those
 options choose a z-coordinate for insertion independently.
 
 The vx, vy, and vz components of velocity for the inserted particle
-are set using the values specified for the *vx*\ , *vy*\ , and *vz*
+are set using the values specified for the *vx*, *vy*, and *vz*
 keywords.  Note that normally, new particles should be a assigned a
 negative vertical velocity so that they move towards the surface.  For
 molecules, the same velocity is given to every particle (no rotation
@@ -271,7 +271,8 @@ units of distance or velocity.
    the :doc:`compute_modify dynamic yes <compute_modify>` command for the
    temperature compute you are using.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This fix writes the state of the deposition to :doc:`binary restart files <restart>`.  This includes information about how many
 particles have been deposited, the random number generator seed, the
@@ -294,9 +295,6 @@ of this fix can be used with the *start/stop* keywords of the
 
 Restrictions
 """"""""""""
-
-This fix is part of the MISC package.  It is only enabled if LAMMPS
-was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 
 The specified insertion region cannot be a "dynamic" region, as
 defined by the :doc:`region <region>` command.

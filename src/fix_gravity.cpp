@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,33 +13,32 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_gravity.h"
-#include <mpi.h>
+
+#include "atom.h"
+#include "domain.h"
+#include "error.h"
+#include "input.h"
+#include "math_const.h"
+#include "modify.h"
+#include "respa.h"
+#include "update.h"
+#include "variable.h"
+
 #include <cmath>
 #include <cstring>
-#include "atom.h"
-#include "update.h"
-#include "domain.h"
-#include "respa.h"
-#include "modify.h"
-#include "input.h"
-#include "variable.h"
-#include "math_const.h"
-#include "error.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
 enum{CHUTE,SPHERICAL,VECTOR};
-enum{CONSTANT,EQUAL};          // same as FixPour
 
 /* ---------------------------------------------------------------------- */
 
 FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  mstr(NULL), vstr(NULL), pstr(NULL), tstr(NULL),
-  xstr(NULL), ystr(NULL), zstr(NULL)
+  mstr(nullptr), vstr(nullptr), pstr(nullptr), tstr(nullptr),
+  xstr(nullptr), ystr(nullptr), zstr(nullptr)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix gravity command");
 
@@ -46,34 +46,31 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
   scalar_flag = 1;
   global_freq = 1;
   extscalar = 1;
+  energy_global_flag = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
 
-  mstr = vstr = pstr = tstr = xstr = ystr = zstr = NULL;
+  mstr = vstr = pstr = tstr = xstr = ystr = zstr = nullptr;
   mstyle = vstyle = pstyle = tstyle = xstyle = ystyle = zstyle = CONSTANT;
 
-  if (strstr(arg[3],"v_") == arg[3]) {
-    int n = strlen(&arg[3][2]) + 1;
-    mstr = new char[n];
-    strcpy(mstr,&arg[3][2]);
+  if (utils::strmatch(arg[3],"^v_")) {
+    mstr = utils::strdup(arg[3]+2);
     mstyle = EQUAL;
   } else {
-    magnitude = force->numeric(FLERR,arg[3]);
+    magnitude = utils::numeric(FLERR,arg[3],false,lmp);
     mstyle = CONSTANT;
   }
 
-  int iarg=4;
+  int iarg = 4;
 
   if (strcmp(arg[4],"chute") == 0) {
     if (narg < 6) error->all(FLERR,"Illegal fix gravity command");
     style = CHUTE;
-    if (strstr(arg[5],"v_") == arg[5]) {
-      int n = strlen(&arg[5][2]) + 1;
-      vstr = new char[n];
-      strcpy(vstr,&arg[5][2]);
+    if (utils::strmatch(arg[5],"^v_")) {
+      vstr = utils::strdup(arg[5]+2);
       vstyle = EQUAL;
     } else {
-      vert = force->numeric(FLERR,arg[5]);
+      vert = utils::numeric(FLERR,arg[5],false,lmp);
       vstyle = CONSTANT;
     }
     iarg = 6;
@@ -81,22 +78,18 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
   } else if (strcmp(arg[4],"spherical") == 0) {
     if (narg < 7) error->all(FLERR,"Illegal fix gravity command");
     style = SPHERICAL;
-    if (strstr(arg[5],"v_") == arg[5]) {
-      int n = strlen(&arg[5][2]) + 1;
-      pstr = new char[n];
-      strcpy(pstr,&arg[5][2]);
+    if (utils::strmatch(arg[5],"^v_")) {
+      pstr = utils::strdup(arg[5]+2);
       pstyle = EQUAL;
     } else {
-      phi = force->numeric(FLERR,arg[5]);
+      phi = utils::numeric(FLERR,arg[5],false,lmp);
       pstyle = CONSTANT;
     }
-    if (strstr(arg[6],"v_") == arg[6]) {
-      int n = strlen(&arg[6][2]) + 1;
-      tstr = new char[n];
-      strcpy(tstr,&arg[6][2]);
+    if (utils::strmatch(arg[6],"^v_")) {
+      tstr = utils::strdup(arg[6]+2);
       tstyle = EQUAL;
     } else {
-      theta = force->numeric(FLERR,arg[6]);
+      theta = utils::numeric(FLERR,arg[6],false,lmp);
       tstyle = CONSTANT;
     }
     iarg = 7;
@@ -104,31 +97,25 @@ FixGravity::FixGravity(LAMMPS *lmp, int narg, char **arg) :
   } else if (strcmp(arg[4],"vector") == 0) {
     if (narg < 8) error->all(FLERR,"Illegal fix gravity command");
     style = VECTOR;
-    if (strstr(arg[5],"v_") == arg[5]) {
-      int n = strlen(&arg[5][2]) + 1;
-      xstr = new char[n];
-      strcpy(xstr,&arg[5][2]);
+    if (utils::strmatch(arg[5],"^v_")) {
+      xstr = utils::strdup(arg[5]+2);
       xstyle = EQUAL;
     } else {
-      xdir = force->numeric(FLERR,arg[5]);
+      xdir = utils::numeric(FLERR,arg[5],false,lmp);
       xstyle = CONSTANT;
     }
-    if (strstr(arg[6],"v_") == arg[6]) {
-      int n = strlen(&arg[6][2]) + 1;
-      ystr = new char[n];
-      strcpy(ystr,&arg[6][2]);
+    if (utils::strmatch(arg[6],"^v_")) {
+      ystr = utils::strdup(arg[6]+2);
       ystyle = EQUAL;
     } else {
-      ydir = force->numeric(FLERR,arg[6]);
+      ydir = utils::numeric(FLERR,arg[6],false,lmp);
       ystyle = CONSTANT;
     }
-    if (strstr(arg[7],"v_") == arg[7]) {
-      int n = strlen(&arg[7][2]) + 1;
-      zstr = new char[n];
-      strcpy(zstr,&arg[7][2]);
+    if (utils::strmatch(arg[7],"^v_")) {
+      zstr = utils::strdup(arg[7]+2);
       zstyle = EQUAL;
     } else {
-      zdir = force->numeric(FLERR,arg[7]);
+      zdir = utils::numeric(FLERR,arg[7],false,lmp);
       zstyle = CONSTANT;
     }
     iarg = 8;
@@ -186,7 +173,6 @@ int FixGravity::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
-  mask |= THERMO_ENERGY;
   mask |= POST_FORCE_RESPA;
   return mask;
 }
@@ -195,7 +181,7 @@ int FixGravity::setmask()
 
 void FixGravity::init()
 {
-  if (strstr(update->integrate_style,"respa")) {
+  if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
@@ -257,7 +243,7 @@ void FixGravity::init()
 
 void FixGravity::setup(int vflag)
 {
-  if (strstr(update->integrate_style,"verlet"))
+  if (utils::strmatch(update->integrate_style,"^verlet"))
     post_force(vflag);
   else {
     ((Respa *) update->integrate)->copy_flevel_f(ilevel_respa);
@@ -394,5 +380,5 @@ void *FixGravity::extract(const char *name, int &dim)
     dim = 1;
     return (void *) gvec;
   }
-  return NULL;
+  return nullptr;
 }

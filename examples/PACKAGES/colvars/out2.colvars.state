@@ -1,0 +1,23 @@
+configuration {
+  step          300
+  dt 2.000000e+00
+  version 2020-07-07
+}
+
+colvar {
+  name one
+  x  9.95315918568411e+00
+}
+
+colvar {
+  name two
+  x  9.79318883680258e+00
+}
+
+restraint {
+  configuration {
+    step 300
+    name h_pot
+  }
+}
+

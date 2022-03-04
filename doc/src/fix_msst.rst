@@ -71,7 +71,7 @@ kinetic energy at the start of the simulation.  Setting this parameter
 to a non-zero value may assist in compression at the start of
 simulations where it is slow to occur.
 
-If keywords *e0*\ , *p0*\ ,or *v0* are not supplied, these quantities will
+If keywords *e0*, *p0*,or *v0* are not supplied, these quantities will
 be calculated on the first step, after the energy specified by
 *tscale* is removed.  The value of *e0* is not used in the dynamical
 equations, but is used in calculating the deviation from the Hugoniot.
@@ -112,7 +112,7 @@ new computes are the fix-ID + "_MSST_temp" or "MSST_press" or
 
 The *dftb* keyword is to allow this fix to be used when LAMMPS is
 being driven by DFTB+, a density-functional tight-binding code. If the
-keyword *dftb* is used with a value of *yes*\ , then the MSST equations
+keyword *dftb* is used with a value of *yes*, then the MSST equations
 are altered to account for the electron entropy contribution to the
 Hugonio relations and total energy.  See :ref:`(Reed2) <Reed2>` and
 :ref:`(Goldman) <Goldman2>` for details on this contribution.  In this case,
@@ -122,7 +122,8 @@ timestepping.  DFTB+ will communicate its info to LAMMPS via that fix.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This fix writes the state of all internal variables to :doc:`binary
 restart files <restart>`.  See the :doc:`read_restart <read_restart>`
@@ -130,20 +131,29 @@ command for info on how to re-specify a fix in an input script that
 reads a restart file, so that the operation of the fix continues in an
 uninterrupted fashion.
 
+The cumulative energy change in the system imposed by this fix is
+included in the :doc:`thermodynamic output <thermo_style>` keywords
+*ecouple* and *econserve*.  See the :doc:`thermo_style <thermo_style>`
+doc page for details.
+
+This fix computes a global scalar which can be accessed by various
+:doc:`output commands <Howto_output>`.  The scalar is the same
+cumulative energy change due to this fix described in the previous
+paragraph.  The scalar value calculated by this fix is "extensive".
+
 The progress of the MSST can be monitored by printing the global
 scalar and global vector quantities computed by the fix.
 
-The scalar is the cumulative energy change due to the fix. This is
-also the energy added to the potential energy by the
-:doc:`fix_modify <fix_modify>` *energy* command.  With this command, the
-thermo keyword *etotal* prints the conserved quantity of the MSST
-dynamic equations. This can be used to test if the MD timestep is
-sufficiently small for accurate integration of the dynamic
-equations. See also :doc:`thermo_style <thermo_style>` command.
+As mentioned above, the scalar is the cumulative energy change due to
+the fix.  By monitoring the thermodynamic *econserve* output, this can
+be used to test if the MD timestep is sufficiently small for accurate
+integration of the dynamic equations.
 
-The global vector contains four values in this order:
+The global vector contains four values in the following order.  The
+vector values output by this fix are "intensive".
 
-[\ *dhugoniot*\ , *drayleigh*\ , *lagrangian_speed*, *lagrangian_position*]
+[\ *dhugoniot*, *drayleigh*, *lagrangian_speed*,
+*lagrangian_position*]
 
 1. *dhugoniot* is the departure from the Hugoniot (temperature units).
 2. *drayleigh* is the departure from the Rayleigh line (pressure units).
@@ -156,24 +166,18 @@ headers, the following LAMMPS commands are suggested:
 .. code-block:: LAMMPS
 
    fix              msst all msst z
-   fix_modify       msst energy yes
    variable dhug    equal f_msst[1]
    variable dray    equal f_msst[2]
    variable lgr_vel equal f_msst[3]
    variable lgr_pos equal f_msst[4]
-   thermo_style     custom step temp ke pe lz pzz etotal v_dhug v_dray v_lgr_vel v_lgr_pos f_msst
-
-These fixes compute a global scalar and a global vector of 4
-quantities, which can be accessed by various :doc:`output commands
-<Howto_output>`.  The scalar values calculated by this fix are
-"extensive"; the vector values are "intensive".
+   thermo_style     custom step temp ke pe lz pzz econserve v_dhug v_dray v_lgr_vel v_lgr_pos f_msst
 
 Restrictions
 """"""""""""
 
 This fix style is part of the SHOCK package.  It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package
-<Build_package>` doc page for more info.
+<Build_package>` page for more info.
 
 All cell dimensions must be periodic. This fix can not be used with a
 triclinic cell.  The MSST fix has been tested only for the group-ID

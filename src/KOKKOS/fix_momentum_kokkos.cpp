@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,16 +13,15 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_momentum_kokkos.h"
-#include <cstdlib>
-#include <cstring>
+
 #include "atom_kokkos.h"
 #include "atom_masks.h"
-#include "domain.h"
 #include "domain_kokkos.h"
 #include "group.h"
 #include "error.h"
-#include "force.h"
 #include "kokkos_few.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -60,7 +60,8 @@ static double get_kinetic_energy(
   if (atomKK->rmass) {
     atomKK->sync(execution_space, RMASS_MASK);
     typename AT::t_float_1d_randomread rmass = atomKK->k_rmass.view<DeviceType>();
-    Kokkos::parallel_reduce(nlocal, LAMMPS_LAMBDA(int i, double& update) {
+    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,nlocal),
+     LAMMPS_LAMBDA(int i, double& update) {
       if (mask(i) & groupbit)
         update += rmass(i) *
           (v(i,0)*v(i,0) + v(i,1)*v(i,1) + v(i,2)*v(i,2));
@@ -70,7 +71,8 @@ static double get_kinetic_energy(
     atomKK->sync(execution_space, TYPE_MASK);
     typename AT::t_int_1d_randomread type = atomKK->k_type.view<DeviceType>();
     typename AT::t_float_1d_randomread mass = atomKK->k_mass.view<DeviceType>();
-    Kokkos::parallel_reduce(nlocal, LAMMPS_LAMBDA(int i, double& update) {
+    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,nlocal),
+     LAMMPS_LAMBDA(int i, double& update) {
       if (mask(i) & groupbit)
         update += mass(type(i)) *
           (v(i,0)*v(i,0) + v(i,1)*v(i,1) + v(i,2)*v(i,2));
@@ -122,7 +124,8 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
     auto yflag2 = yflag;
     auto zflag2 = zflag;
 
-    Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(int i) {
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nlocal),
+     LAMMPS_LAMBDA(int i) {
       if (mask(i) & groupbit2) {
         if (xflag2) v(i,0) -= vcm[0];
         if (yflag2) v(i,1) -= vcm[1];
@@ -160,7 +163,8 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
     auto prd = Few<double,3>(domain->prd);
     auto h = Few<double,6>(domain->h);
     auto triclinic = domain->triclinic;
-    Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(int i) {
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nlocal),
+     LAMMPS_LAMBDA(int i) {
       if (mask[i] & groupbit2) {
         Few<double,3> x_i;
         x_i[0] = x(i,0);
@@ -186,7 +190,8 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
 
     double factor = 1.0;
     if (ekin_new != 0.0) factor = sqrt(ekin_old/ekin_new);
-    Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(int i) {
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nlocal),
+     LAMMPS_LAMBDA(int i) {
       if (mask(i) & groupbit2) {
         v(i,0) *= factor;
         v(i,1) *= factor;
@@ -199,7 +204,7 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
 
 namespace LAMMPS_NS {
 template class FixMomentumKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class FixMomentumKokkos<LMPHostType>;
 #endif
 }

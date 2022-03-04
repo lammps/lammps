@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,17 +17,16 @@
 ------------------------------------------------------------------------- */
 
 #include "angle_class2_kokkos.h"
-#include <cmath>
-#include <cstdlib>
+
 #include "atom_kokkos.h"
-#include "neighbor_kokkos.h"
-#include "domain.h"
+#include "atom_masks.h"
 #include "comm.h"
 #include "force.h"
 #include "math_const.h"
 #include "memory_kokkos.h"
-#include "error.h"
-#include "atom_masks.h"
+#include "neighbor_kokkos.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -43,6 +43,8 @@ AngleClass2Kokkos<DeviceType>::AngleClass2Kokkos(LAMMPS *lmp) : AngleClass2(lmp)
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
+
+  centroidstressflag = CENTROID_NOTAVAIL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -222,8 +224,8 @@ void AngleClass2Kokkos<DeviceType>::operator()(TagAngleClass2Compute<NEWTON_BOND
 
   // force & energy for bond-bond term
 
-  const F_FLOAT dr1 = r1 - d_bb_r1[type];
-  const F_FLOAT dr2 = r2 - d_bb_r2[type];
+  F_FLOAT dr1 = r1 - d_bb_r1[type];
+  F_FLOAT dr2 = r2 - d_bb_r2[type];
   const F_FLOAT tk1 = d_bb_k[type] * dr1;
   const F_FLOAT tk2 = d_bb_k[type] * dr2;
 
@@ -239,6 +241,8 @@ void AngleClass2Kokkos<DeviceType>::operator()(TagAngleClass2Compute<NEWTON_BOND
 
   // force & energy for bond-angle term
 
+  dr1 = r1 - d_ba_r1[type];
+  dr2 = r2 - d_ba_r2[type];
   const F_FLOAT aa1 = s * dr1 * d_ba_k1[type];
   const F_FLOAT aa2 = s * dr2 * d_ba_k2[type];
 
@@ -597,7 +601,7 @@ void AngleClass2Kokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i, const in
 
 namespace LAMMPS_NS {
 template class AngleClass2Kokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class AngleClass2Kokkos<LMPHostType>;
 #endif
 }

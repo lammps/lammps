@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(nve/kk,FixNVEKokkos<LMPDeviceType>)
-FixStyle(nve/kk/device,FixNVEKokkos<LMPDeviceType>)
-FixStyle(nve/kk/host,FixNVEKokkos<LMPHostType>)
-
+// clang-format off
+FixStyle(nve/kk,FixNVEKokkos<LMPDeviceType>);
+FixStyle(nve/kk/device,FixNVEKokkos<LMPDeviceType>);
+FixStyle(nve/kk/host,FixNVEKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_FIX_NVE_KOKKOS_H
 #define LMP_FIX_NVE_KOKKOS_H
 
@@ -31,19 +32,20 @@ template<class DeviceType>
 class FixNVEKokkos;
 
 template <class DeviceType, int RMass>
-class FixNVEKokkosInitialIntegrateFunctor;
+struct FixNVEKokkosInitialIntegrateFunctor;
+
 template <class DeviceType, int RMass>
-class FixNVEKokkosFinalIntegrateFunctor;
+struct FixNVEKokkosFinalIntegrateFunctor;
 
 template<class DeviceType>
 class FixNVEKokkos : public FixNVE {
  public:
   FixNVEKokkos(class LAMMPS *, int, char **);
-  ~FixNVEKokkos() {}
+
   void cleanup_copy();
-  void init();
-  void initial_integrate(int);
-  void final_integrate();
+  void init() override;
+  void initial_integrate(int) override;
+  void final_integrate() override;
 
   KOKKOS_INLINE_FUNCTION
   void initial_integrate_item(int) const;

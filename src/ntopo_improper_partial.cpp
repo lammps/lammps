@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 #include "ntopo_improper_partial.h"
-#include <mpi.h>
+
 #include "atom.h"
 #include "force.h"
 #include "domain.h"
@@ -21,6 +22,7 @@
 #include "thermo.h"
 #include "memory.h"
 #include "error.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -62,17 +64,14 @@ void NTopoImproperPartial::build()
       atom4 = atom->map(improper_atom4[i][m]);
       if (atom1 == -1 || atom2 == -1 || atom3 == -1 || atom4 == -1) {
         nmissing++;
-        if (lostbond == Thermo::ERROR) {
-          char str[128];
-          sprintf(str,"Improper atoms "
-                  TAGINT_FORMAT " " TAGINT_FORMAT " "
-                  TAGINT_FORMAT " " TAGINT_FORMAT
-                  " missing on proc %d at step " BIGINT_FORMAT,
-                  improper_atom1[i][m],improper_atom2[i][m],
-                  improper_atom3[i][m],improper_atom4[i][m],
-                  me,update->ntimestep);
-          error->one(FLERR,str);
-        }
+        if (lostbond == Thermo::ERROR)
+          error->one(FLERR,"Improper atoms {} {} {} {}"
+                                       " missing on proc {} at step {}",
+                                       improper_atom1[i][m],
+                                       improper_atom2[i][m],
+                                       improper_atom3[i][m],
+                                       improper_atom4[i][m],
+                                       me,update->ntimestep);
         continue;
       }
       atom1 = domain->closest_image(i,atom1);
@@ -99,10 +98,6 @@ void NTopoImproperPartial::build()
 
   int all;
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
-  if (all) {
-    char str[128];
-    sprintf(str,
-            "Improper atoms missing at step " BIGINT_FORMAT,update->ntimestep);
-    if (me == 0) error->warning(FLERR,str);
-  }
+  if (all && me == 0)
+    error->warning(FLERR,"Improper atoms missing at step {}",update->ntimestep);
 }

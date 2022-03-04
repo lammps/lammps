@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,17 +17,16 @@
 ------------------------------------------------------------------------- */
 
 #include "dihedral_opls_kokkos.h"
-#include <cmath>
-#include <cstdlib>
+
 #include "atom_kokkos.h"
-#include "comm.h"
-#include "neighbor_kokkos.h"
-#include "domain.h"
-#include "force.h"
-#include "update.h"
-#include "memory_kokkos.h"
-#include "error.h"
 #include "atom_masks.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "memory_kokkos.h"
+#include "neighbor_kokkos.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -48,6 +48,8 @@ DihedralOPLSKokkos<DeviceType>::DihedralOPLSKokkos(LAMMPS *lmp) : DihedralOPLS(l
   k_warning_flag = DAT::tdual_int_scalar("Dihedral:warning_flag");
   d_warning_flag = k_warning_flag.view<DeviceType>();
   h_warning_flag = k_warning_flag.h_view;
+
+  centroidstressflag = CENTROID_NOTAVAIL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -126,7 +128,7 @@ void DihedralOPLSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_warning_flag.template modify<DeviceType>();
   k_warning_flag.template sync<LMPHostType>();
   if (h_warning_flag())
-    error->warning(FLERR,"Dihedral problem",0);
+    error->warning(FLERR,"Dihedral problem");
 
   if (eflag_global) energy += ev.evdwl;
   if (vflag_global) {
@@ -241,7 +243,7 @@ void DihedralOPLSKokkos<DeviceType>::operator()(TagDihedralOPLSCompute<NEWTON_BO
   // error check
 
   if ((c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) && !d_warning_flag())
-    Kokkos::atomic_fetch_add(&d_warning_flag(),1);
+    d_warning_flag() = 1;
 
   if (c > 1.0) c = 1.0;
   if (c < -1.0) c = -1.0;
@@ -535,7 +537,7 @@ void DihedralOPLSKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i1, const 
 
 namespace LAMMPS_NS {
 template class DihedralOPLSKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class DihedralOPLSKokkos<LMPHostType>;
 #endif
 }

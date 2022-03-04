@@ -30,7 +30,7 @@ namespace ATC{
     for (unsigned int i = 0; i < NUM_ATOM_TYPES; i++) {
       fundamentalAtomQuantities_[i].resize(LammpsInterface::NUM_FUNDAMENTAL_ATOM_QUANTITIES);
       for (unsigned int j = 0; j < LammpsInterface::NUM_FUNDAMENTAL_ATOM_QUANTITIES; j++)
-        fundamentalAtomQuantities_[i][j] = NULL;
+        fundamentalAtomQuantities_[i][j] = nullptr;
     }
   }
 
@@ -41,7 +41,7 @@ namespace ATC{
   {
     prefix_ = (atc_->lammps_interface())->fix_id() + prefix_;
   }
-        
+
   //--------------------------------------------------------
   //  Destructor
   //--------------------------------------------------------
@@ -126,7 +126,7 @@ namespace ATC{
         if (fundamentalAtomQuantities_[i][j]) {
           index = dfs_visit(fundamentalAtomQuantities_[i][j],index);
           if ((fundamentalAtomQuantities_[i][j])->memory_type()==TEMPORARY) {
-            fundamentalAtomQuantities_[i][j] = NULL;
+            fundamentalAtomQuantities_[i][j] = nullptr;
           }
         }
       }
@@ -155,7 +155,7 @@ namespace ATC{
     int myIndex = index;
     set<DependencyManager * >::iterator it;
     bool isTemporary = (quantity->memory_type()==TEMPORARY);
-    
+
     for (it = (quantity->dependentQuantities_).begin(); it != (quantity->dependentQuantities_).end(); it++) {
       // make sure that if quantity isn't persistent, none of it's dependencies are
       if ((*it)->memory_type()==PERSISTENT && isTemporary) {
@@ -453,8 +453,8 @@ namespace ATC{
   DependencyManager * InterscaleManager::find(const string & tag)
   {
     // REFACTOR add check for duplicate entries
-    DependencyManager * quantity = NULL;
-    
+    DependencyManager * quantity = nullptr;
+
     quantity = find_in_list(perAtomQuantities_,tag);
     if (quantity) return quantity;
     quantity = find_in_list(perAtomIntQuantities_,tag);
@@ -482,7 +482,7 @@ namespace ATC{
     quantity = find_in_list(smallMoleculeSets_,tag);
     if (quantity) return quantity;
 
-    return NULL;
+    return nullptr;
   }
 
   //--------------------------------------------------------
@@ -613,7 +613,7 @@ namespace ATC{
   //--------------------------------------------------------
   //  pack_comm
   //--------------------------------------------------------
-  int InterscaleManager::pack_comm(int index, double *buf, 
+  int InterscaleManager::pack_comm(int index, double *buf,
                                    int pbc_flag, int *pbc)
   {
     int size = 0;

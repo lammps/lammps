@@ -81,7 +81,7 @@ correlated random forces as specified in the third term of the force.
 Presently, the Prony series coefficients are limited to being greater
 than or equal to zero, and the time constants are limited to being
 greater than zero. To this end, the value of series MUST be set to
-*pprony*\ , for now. Future updates will allow for negative coefficients
+*pprony*, for now. Future updates will allow for negative coefficients
 and other representations of the memory kernel. It is with these
 updates in mind that the series option was included.
 
@@ -107,7 +107,7 @@ The keyword/value option pairs are used in the following ways.
 The keyword *frozen* can be used to specify how the extended variables
 associated with the GLD memory kernel are initialized. Specifying no
 (the default), the initial values are drawn at random from an
-equilibrium distribution at *Tstart*\ , consistent with the
+equilibrium distribution at *Tstart*, consistent with the
 Fluctuation-Dissipation Theorem. Specifying yes, initializes the
 extended variables to zero.
 
@@ -116,14 +116,15 @@ thermostat. Because the random forces on different atoms are
 independent, they do not sum exactly to zero. As a result, this fix
 applies a small random force to the entire system, and the
 center-of-mass of the system undergoes a slow random walk. If the
-keyword *zero* is set to *yes*\ , the total random force is set exactly
+keyword *zero* is set to *yes*, the total random force is set exactly
 to zero by subtracting off an equal part of it from each atom in the
 group. As a result, the center-of-mass of a system with zero initial
 momentum will not drift over time.
 
 ----------
 
-**Restart, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 The instantaneous values of the extended variables are written to
 :doc:`binary restart files <restart>`.  Because the state of the random
@@ -145,8 +146,8 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-This fix is part of the MISC package.  It is only enabled if LAMMPS
-was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This fix is part of the EXTRA-FIX package.  It is only enabled if LAMMPS
+was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

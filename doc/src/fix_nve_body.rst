@@ -26,13 +26,14 @@ Description
 Perform constant NVE integration to update position, velocity,
 orientation, and angular velocity for body particles in the group each
 timestep.  V is volume; E is energy.  This creates a system trajectory
-consistent with the microcanonical ensemble.  See the :doc:`Howto body <Howto_body>` doc page for more details on using body
+consistent with the microcanonical ensemble.  See the :doc:`Howto body <Howto_body>` page for more details on using body
 particles.
 
 This fix differs from the :doc:`fix nve <fix_nve>` command, which
 assumes point particles and only updates their position and velocity.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
@@ -44,7 +45,7 @@ Restrictions
 """"""""""""
 
 This fix is part of the BODY package.  It is only enabled if LAMMPS
-was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 This fix requires that atoms store torque and angular momentum and a
 quaternion as defined by the :doc:`atom_style body <atom_style>`
@@ -58,4 +59,7 @@ Related commands
 
 :doc:`fix nve <fix_nve>`, :doc:`fix nve/sphere <fix_nve_sphere>`, :doc:`fix nve/asphere <fix_nve_asphere>`
 
-**Default:** none
+Default
+"""""""
+
+none

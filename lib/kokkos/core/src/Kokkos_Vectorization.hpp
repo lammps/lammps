@@ -47,6 +47,8 @@
 #ifndef KOKKOS_VECTORIZATION_HPP
 #define KOKKOS_VECTORIZATION_HPP
 
+#include <Kokkos_Macros.hpp>
+
 #if defined(KOKKOS_ENABLE_CUDA)
 #include <Cuda/Kokkos_Cuda_Vectorization.hpp>
 #elif defined(KOKKOS_ENABLE_HIP)

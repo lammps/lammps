@@ -67,16 +67,16 @@ class ZBL : public BaseAtomic<numtyp, acctyp> {
   /// If atom type constants fit in shared memory, use fast kernels
   bool shared_types;
 
-  double _cut_globalsq;
-  double _cut_innersq;
-  double _cut_inner;
+  numtyp _cut_globalsq;
+  numtyp _cut_innersq;
+  numtyp _cut_inner;
 
   /// Number of atom types
   int _lj_types;
 
  private:
   bool _allocated;
-  void loop(const bool _eflag, const bool _vflag);
+  int loop(const int eflag, const int vflag);
 };
 
 }

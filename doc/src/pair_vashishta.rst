@@ -1,22 +1,19 @@
 .. index:: pair_style vashishta
+.. index:: pair_style vashishta/gpu
+.. index:: pair_style vashishta/omp
+.. index:: pair_style vashishta/kk
+.. index:: pair_style vashishta/table
+.. index:: pair_style vashishta/table/omp
 
 pair_style vashishta command
 ============================
 
-pair_style vashishta/gpu command
-================================
-
-pair_style vashishta/omp command
-================================
-
-pair_style vashishta/kk command
-===============================
+Accelerator Variants: *vashishta/gpu*, *vashishta/omp*, *vashishta/kk*
 
 pair_style vashishta/table command
 ==================================
 
-pair_style vashishta/table/omp command
-======================================
+Accelerator Variants: *vashishta/table/omp*
 
 Syntax
 """"""
@@ -25,13 +22,13 @@ Syntax
 
    pair_style style args
 
-* style = *vashishta* or *vashishta/table* or *vashishta/omp* or *vashishta/table/omp*
+* style = *vashishta* or *vashishta/table*
 * args = list of arguments for a particular style
 
 .. parsed-literal::
 
-     *vashishta* or *vashishta/omp* args = none
-     *vashishta/table* or *vashishta/table/omp* args = Ntable cutinner
+     *vashishta* args = none
+     *vashishta/table* args = Ntable cutinner
        Ntable = # of tabulation points
        cutinner = tablulate from cutinner to cutoff
 
@@ -96,19 +93,19 @@ where N is the number of LAMMPS atom types:
 * filename
 * N element names = mapping of Vashishta elements to atom types
 
-See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
+See the :doc:`pair_coeff <pair_coeff>` page for alternate ways
 to specify the path for the potential file.
 
 As an example, imagine a file SiC.vashishta has parameters for
 Si and C.  If your LAMMPS simulation has 4 atoms types and you want
-the 1st 3 to be Si, and the 4th to be C, you would use the following
+the first 3 to be Si, and the fourth to be C, you would use the following
 pair_coeff command:
 
 .. code-block:: LAMMPS
 
    pair_coeff * * SiC.vashishta Si Si Si C
 
-The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
+The first 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The first three Si arguments map LAMMPS atom types 1,2,3 to the Si
 element in the file.  The final C argument maps LAMMPS atom type 4
 to the C element in the file.  If a mapping value is specified as
@@ -159,13 +156,13 @@ unambiguous, general, and simple to code, LAMMPS uses a slightly
 confusing method for specifying parameters.  All parameters are
 divided into two classes: two-body and three-body.  Two-body and
 three-body parameters are handled differently, as described below.
-The two-body parameters are *H*\ , :math:`\eta`, :math:`\lambda_1`,
-*D*\ , :math:`\lambda_4`, *W*, :math:`r_c`, :math:`\gamma`,
+The two-body parameters are *H*, :math:`\eta`, :math:`\lambda_1`,
+*D*, :math:`\lambda_4`, *W*, :math:`r_c`, :math:`\gamma`,
 and :math:`r_0`.  They appear in the above formulae with two subscripts.
 The parameters :math:`Z_i` and :math:`Z_j` are also classified
 as two-body parameters, even
-though they only have 1 subscript.  The three-body parameters are *B*\ ,
-*C*\ , :math:`\cos\theta_0`.  They appear in the above formulae with
+though they only have 1 subscript.  The three-body parameters are *B*,
+*C*, :math:`\cos\theta_0`.  They appear in the above formulae with
 three subscripts.  Two-body and three-body parameters are handled
 differently, as described below.
 
@@ -176,14 +173,14 @@ and K are taken from the IJK entry.  Note that even though three-body
 parameters do not depend on the order of J and K, LAMMPS stores
 three-body parameters for both IJK and IKJ.  The user must ensure that
 these values are equal.  Two-body parameters for an atom I interacting
-with atom J are taken from the IJJ entry, where the 2nd and 3rd
+with atom J are taken from the IJJ entry, where the second and third
 elements are the same. Thus the two-body parameters for Si interacting
 with C come from the SiCC entry. Note that even though two-body
 parameters (except possibly gamma and r0 in U3) do not depend on the
 order of the two elements, LAMMPS will get the Si-C value from the
 SiCC entry and the C-Si value from the CSiSi entry. The user must
 ensure that these values are equal. Two-body parameters appearing in
-entries where the 2nd and 3rd elements are different are stored but
+entries where the second and third elements are different are stored but
 never used. It is good practice to enter zero for these values. Note
 that the three-body function U3 above contains the two-body parameters
 :math:`\gamma` and :math:`r_0`. So U3 for a central C atom bonded to
@@ -193,27 +190,12 @@ two-body parameters from the CCC and CSiSi entries.
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, where types I and J correspond to
 two different element types, mixing is performed by LAMMPS as
@@ -228,15 +210,15 @@ script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
 Restrictions
 """"""""""""
 
-These pair style are part of the MANYBODY package.  They is only
-enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+These pair styles are part of the MANYBODY package.  They are only
+enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 These pair styles requires the :doc:`newton <newton>` setting to be "on"
 for pair interactions.
@@ -252,7 +234,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

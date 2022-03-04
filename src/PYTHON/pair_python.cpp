@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,17 +17,19 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_python.h"
-#include <Python.h>  // IWYU pragma: keep
-#include <cstdlib>
-#include <cstring>
+
 #include "atom.h"
-#include "force.h"
-#include "memory.h"
-#include "update.h"
-#include "neigh_list.h"
-#include "lmppython.h"
 #include "error.h"
+#include "force.h"
+#include "lmppython.h"
+#include "memory.h"
+#include "neigh_list.h"
 #include "python_compat.h"
+#include "python_utils.h"
+#include "update.h"
+
+#include <cstring>
+#include <Python.h>  // IWYU pragma: export
 
 using namespace LAMMPS_NS;
 
@@ -40,20 +43,24 @@ PairPython::PairPython(LAMMPS *lmp) : Pair(lmp) {
   one_coeff = 1;
   reinitflag = 0;
   cut_global = 0.0;
-  centroidstressflag = 1;
+  centroidstressflag = CENTROID_SAME;
 
-  py_potential = NULL;
-  skip_types = NULL;
+  py_potential = nullptr;
+  skip_types = nullptr;
 
   python->init();
 
   // add current directory to PYTHONPATH
-  PyObject * py_path = PySys_GetObject((char *)"path");
+
+  PyUtils::GIL lock;
+  PyObject *py_path = PySys_GetObject((char *)"path");
   PyList_Append(py_path, PY_STRING_FROM_STRING("."));
 
-  // if LAMMPS_POTENTIALS environment variable is set, add it to PYTHONPATH as well
-  const char * potentials_path = getenv("LAMMPS_POTENTIALS");
-  if (potentials_path != NULL) {
+  // if LAMMPS_POTENTIALS environment variable is set,
+  // add it to PYTHONPATH as well
+
+  const char *potentials_path = getenv("LAMMPS_POTENTIALS");
+  if (potentials_path != nullptr) {
     PyList_Append(py_path, PY_STRING_FROM_STRING(potentials_path));
   }
 }
@@ -62,7 +69,8 @@ PairPython::PairPython(LAMMPS *lmp) : Pair(lmp) {
 
 PairPython::~PairPython()
 {
-  if (py_potential) Py_DECREF((PyObject*) py_potential);
+  PyUtils::GIL lock;
+  Py_CLEAR(py_potential);
   delete[] skip_types;
 
   if (allocated) {
@@ -97,41 +105,31 @@ void PairPython::compute(int eflag, int vflag)
 
   // prepare access to compute_force and compute_energy functions
 
-  PyGILState_STATE gstate = PyGILState_Ensure();
+  PyUtils::GIL lock;
   PyObject *py_pair_instance = (PyObject *) py_potential;
   PyObject *py_compute_force = PyObject_GetAttrString(py_pair_instance,"compute_force");
   if (!py_compute_force) {
-    PyErr_Print();
-    PyErr_Clear();
-    PyGILState_Release(gstate);
+    PyUtils::Print_Errors();
     error->all(FLERR,"Could not find 'compute_force' method'");
   }
   if (!PyCallable_Check(py_compute_force)) {
-    PyErr_Print();
-    PyErr_Clear();
-    PyGILState_Release(gstate);
+    PyUtils::Print_Errors();
     error->all(FLERR,"Python 'compute_force' is not callable");
   }
 
   PyObject *py_compute_energy = PyObject_GetAttrString(py_pair_instance,"compute_energy");
   if (!py_compute_energy) {
-    PyErr_Print();
-    PyErr_Clear();
-    PyGILState_Release(gstate);
+    PyUtils::Print_Errors();
     error->all(FLERR,"Could not find 'compute_energy' method'");
   }
   if (!PyCallable_Check(py_compute_energy)) {
-    PyErr_Print();
-    PyErr_Clear();
-    PyGILState_Release(gstate);
+    PyUtils::Print_Errors();
     error->all(FLERR,"Python 'compute_energy' is not callable");
   }
 
   PyObject *py_compute_args = PyTuple_New(3);
   if (!py_compute_args) {
-    PyErr_Print();
-    PyErr_Clear();
-    PyGILState_Release(gstate);
+    PyUtils::Print_Errors();
     error->all(FLERR,"Could not create tuple for 'compute' function arguments");
   }
 
@@ -173,13 +171,11 @@ void PairPython::compute(int eflag, int vflag)
         PyTuple_SetItem(py_compute_args,0,py_rsq);
         py_value = PyObject_CallObject(py_compute_force,py_compute_args);
         if (!py_value) {
-          PyErr_Print();
-          PyErr_Clear();
-          PyGILState_Release(gstate);
+          PyUtils::Print_Errors();
           error->all(FLERR,"Calling 'compute_force' function failed");
         }
         fpair = factor_lj*PyFloat_AsDouble(py_value);
-        Py_DECREF(py_value);
+        Py_CLEAR(py_value);
 
         f[i][0] += delx*fpair;
         f[i][1] += dely*fpair;
@@ -192,8 +188,12 @@ void PairPython::compute(int eflag, int vflag)
 
         if (eflag) {
           py_value = PyObject_CallObject(py_compute_energy,py_compute_args);
+          if (!py_value) {
+            PyUtils::Print_Errors();
+            error->all(FLERR,"Calling 'compute_energy' function failed");
+          }
           evdwl = factor_lj*PyFloat_AsDouble(py_value);
-          Py_DECREF(py_value);
+          Py_CLEAR(py_value);
         } else evdwl = 0.0;
 
         if (evflag) ev_tally(i,j,nlocal,newton_pair,
@@ -201,8 +201,7 @@ void PairPython::compute(int eflag, int vflag)
       }
     }
   }
-  Py_DECREF(py_compute_args);
-  PyGILState_Release(gstate);
+  Py_CLEAR(py_compute_args);
 
   if (vflag_fdotr) virial_fdotr_compute();
 }
@@ -233,7 +232,7 @@ void PairPython::settings(int narg, char **arg)
   if (narg != 1)
     error->all(FLERR,"Illegal pair_style command");
 
-  cut_global = force->numeric(FLERR,arg[0]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -254,112 +253,53 @@ void PairPython::coeff(int narg, char **arg)
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
     error->all(FLERR,"Incorrect args for pair coefficients");
 
-  // check if python potential file exists and source it
-  char * full_cls_name = arg[2];
-  char * lastpos = strrchr(full_cls_name, '.');
 
-  if (lastpos == NULL) {
-    error->all(FLERR,"Python pair style requires fully qualified class name");
+  // check if python potential class type exists
+  // load module if necessary
+  std::string full_cls_name = arg[2];
+  std::string module_name = "__main__";
+  std::string cls_name = full_cls_name;
+
+  size_t lastpos = full_cls_name.rfind(".");
+
+  if (lastpos != std::string::npos) {
+    module_name = full_cls_name.substr(0, lastpos);
+    cls_name = full_cls_name.substr(lastpos+1);
   }
 
-  size_t module_name_length = strlen(full_cls_name) - strlen(lastpos);
-  size_t cls_name_length = strlen(lastpos)-1;
+  PyUtils::GIL lock;
 
-  char * module_name = new char[module_name_length+1];
-  char * cls_name = new char[cls_name_length+1];
-  strncpy(module_name, full_cls_name, module_name_length);
-  module_name[module_name_length] = 0;
+  PyObject * pModule = PyImport_ImportModule(module_name.c_str());
 
-  strcpy(cls_name, lastpos+1);
-
-  PyGILState_STATE gstate = PyGILState_Ensure();
-
-  PyObject * pModule = PyImport_ImportModule(module_name);
   if (!pModule) {
-    PyErr_Print();
-    PyErr_Clear();
-    PyGILState_Release(gstate);
+    PyUtils::Print_Errors();
     error->all(FLERR,"Loading python pair style module failure");
   }
 
   // create LAMMPS atom type to potential file type mapping in python class
   // by calling 'lammps_pair_style.map_coeff(name,type)'
 
-  PyObject *py_pair_type = PyObject_GetAttrString(pModule, cls_name);
+  PyObject *py_pair_type = PyObject_GetAttrString(pModule, cls_name.c_str());
   if (!py_pair_type) {
-    PyErr_Print();
-    PyErr_Clear();
-    PyGILState_Release(gstate);
-    error->all(FLERR,"Could not find pair style class in module'");
+    PyUtils::Print_Errors();
+    error->all(FLERR, "Could not find pair style class {} in module {}", cls_name, module_name);
   }
 
-  delete [] module_name;
-  delete [] cls_name;
-
-  PyObject * py_pair_instance = PyObject_CallObject(py_pair_type, NULL);
+  PyObject * py_pair_instance = PyObject_CallObject(py_pair_type, nullptr);
   if (!py_pair_instance) {
-    PyErr_Print();
-    PyErr_Clear();
-    PyGILState_Release(gstate);
+    PyUtils::Print_Errors();
     error->all(FLERR,"Could not instantiate instance of pair style class'");
   }
 
   py_potential = (void *) py_pair_instance;
 
-  PyObject *py_check_units = PyObject_GetAttrString(py_pair_instance,"check_units");
-  if (!py_check_units) {
-    PyErr_Print();
-    PyErr_Clear();
-    PyGILState_Release(gstate);
-    error->all(FLERR,"Could not find 'check_units' method'");
-  }
-  if (!PyCallable_Check(py_check_units)) {
-    PyErr_Print();
-    PyErr_Clear();
-    PyGILState_Release(gstate);
-    error->all(FLERR,"Python 'check_units' is not callable");
-  }
-  PyObject *py_units_args = PyTuple_New(1);
-  if (!py_units_args) {
-    PyErr_Print();
-    PyErr_Clear();
-    PyGILState_Release(gstate);
-    error->all(FLERR,"Could not create tuple for 'check_units' function arguments");
-  }
-
-  PyObject *py_name = PY_STRING_FROM_STRING(update->unit_style);
-  PyTuple_SetItem(py_units_args,0,py_name);
-  PyObject *py_value = PyObject_CallObject(py_check_units,py_units_args);
+  PyObject *py_value = PyObject_CallMethod(py_pair_instance, (char *)"check_units", (char *)"s", update->unit_style);
   if (!py_value) {
-    PyErr_Print();
-    PyErr_Clear();
-    PyGILState_Release(gstate);
+    PyUtils::Print_Errors();
     error->all(FLERR,"Calling 'check_units' function failed");
   }
-  Py_DECREF(py_units_args);
+  Py_CLEAR(py_value);
 
-
-  PyObject *py_map_coeff = PyObject_GetAttrString(py_pair_instance,"map_coeff");
-  if (!py_map_coeff) {
-    PyErr_Print();
-    PyErr_Clear();
-    PyGILState_Release(gstate);
-    error->all(FLERR,"Could not find 'map_coeff' method'");
-  }
-  if (!PyCallable_Check(py_map_coeff)) {
-    PyErr_Print();
-    PyErr_Clear();
-    PyGILState_Release(gstate);
-    error->all(FLERR,"Python 'map_coeff' is not callable");
-  }
-
-  PyObject *py_map_args = PyTuple_New(2);
-  if (!py_map_args) {
-    PyErr_Print();
-    PyErr_Clear();
-    PyGILState_Release(gstate);
-    error->all(FLERR,"Could not create tuple for 'map_coeff' function arguments");
-  }
 
   delete[] skip_types;
   skip_types = new int[ntypes+1];
@@ -369,25 +309,20 @@ void PairPython::coeff(int narg, char **arg)
       skip_types[i] = 1;
       continue;
     } else skip_types[i] = 0;
-    PyObject *py_type = PY_INT_FROM_LONG(i);
-    py_name = PY_STRING_FROM_STRING(arg[2+i]);
-    PyTuple_SetItem(py_map_args,0,py_name);
-    PyTuple_SetItem(py_map_args,1,py_type);
-    py_value = PyObject_CallObject(py_map_coeff,py_map_args);
+    const int type = i;
+    const char * name = arg[2+i];
+    py_value = PyObject_CallMethod(py_pair_instance, (char *)"map_coeff", (char *)"si", name, type);
     if (!py_value) {
-      PyErr_Print();
-      PyErr_Clear();
-      PyGILState_Release(gstate);
+      PyUtils::Print_Errors();
       error->all(FLERR,"Calling 'map_coeff' function failed");
     }
+    Py_CLEAR(py_value);
 
     for (int j = i; j <= ntypes ; j++) {
       setflag[i][j] = 1;
       cutsq[i][j] = cut_global*cut_global;
     }
   }
-  Py_DECREF(py_map_args);
-  PyGILState_Release(gstate);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -411,76 +346,52 @@ double PairPython::single(int /* i */, int /* j */, int itype, int jtype,
 
   // prepare access to compute_force and compute_energy functions
 
-  PyGILState_STATE gstate = PyGILState_Ensure();
-  PyObject *py_pair_instance = (PyObject *) py_potential;
-  PyObject *py_compute_force
-    = PyObject_GetAttrString(py_pair_instance,"compute_force");
-  if (!py_compute_force) {
-    PyErr_Print();
-    PyErr_Clear();
-    PyGILState_Release(gstate);
-    error->all(FLERR,"Could not find 'compute_force' method'");
-  }
-  if (!PyCallable_Check(py_compute_force)) {
-    PyErr_Print();
-    PyErr_Clear();
-    PyGILState_Release(gstate);
-    error->all(FLERR,"Python 'compute_force' is not callable");
-  }
+  PyUtils::GIL lock;
+  PyObject *py_compute_force = (PyObject *) get_member_function("compute_force");
+  PyObject *py_compute_energy = (PyObject *) get_member_function("compute_energy");
+  PyObject *py_compute_args = Py_BuildValue("(dii)", rsq, itype, jtype);
 
-  PyObject *py_compute_energy
-    = PyObject_GetAttrString(py_pair_instance,"compute_energy");
-  if (!py_compute_energy) {
-    PyErr_Print();
-    PyErr_Clear();
-    PyGILState_Release(gstate);
-    error->all(FLERR,"Could not find 'compute_energy' method'");
-  }
-  if (!PyCallable_Check(py_compute_energy)) {
-    PyErr_Print();
-    PyErr_Clear();
-    PyGILState_Release(gstate);
-    error->all(FLERR,"Python 'compute_energy' is not callable");
-  }
-
-  PyObject *py_rsq, *py_itype, *py_jtype, *py_value;
-  PyObject *py_compute_args = PyTuple_New(3);
   if (!py_compute_args) {
-    PyErr_Print();
-    PyErr_Clear();
-    PyGILState_Release(gstate);
+    PyUtils::Print_Errors();
     error->all(FLERR,"Could not create tuple for 'compute' function arguments");
   }
 
-  py_itype = PY_INT_FROM_LONG(itype);
-  PyTuple_SetItem(py_compute_args,1,py_itype);
-  py_jtype = PY_INT_FROM_LONG(jtype);
-  PyTuple_SetItem(py_compute_args,2,py_jtype);
-  py_rsq = PyFloat_FromDouble(rsq);
-  PyTuple_SetItem(py_compute_args,0,py_rsq);
-
-  py_value = PyObject_CallObject(py_compute_force,py_compute_args);
+  PyObject * py_value = PyObject_CallObject(py_compute_force, py_compute_args);
   if (!py_value) {
-    PyErr_Print();
-    PyErr_Clear();
-    PyGILState_Release(gstate);
+    PyUtils::Print_Errors();
     error->all(FLERR,"Calling 'compute_force' function failed");
   }
   fforce = factor_lj*PyFloat_AsDouble(py_value);
-  Py_DECREF(py_value);
+  Py_CLEAR(py_value);
 
-  py_value = PyObject_CallObject(py_compute_energy,py_compute_args);
+  py_value = PyObject_CallObject(py_compute_energy, py_compute_args);
   if (!py_value) {
-    PyErr_Print();
-    PyErr_Clear();
-    PyGILState_Release(gstate);
+    PyUtils::Print_Errors();
     error->all(FLERR,"Calling 'compute_energy' function failed");
   }
   double evdwl = factor_lj*PyFloat_AsDouble(py_value);
-  Py_DECREF(py_value);
 
-  Py_DECREF(py_compute_args);
-  PyGILState_Release(gstate);
+  Py_CLEAR(py_value);
+  Py_CLEAR(py_compute_args);
 
   return evdwl;
+}
+
+
+/* ---------------------------------------------------------------------- */
+
+void * PairPython::get_member_function(const char * name)
+{
+  PyUtils::GIL lock;
+  PyObject *py_pair_instance = (PyObject *) py_potential;
+  PyObject * py_mfunc = PyObject_GetAttrString(py_pair_instance, name);
+  if (!py_mfunc) {
+    PyUtils::Print_Errors();
+    error->all(FLERR,"Could not find '{}' method'", name);
+  }
+  if (!PyCallable_Check(py_mfunc)) {
+    PyUtils::Print_Errors();
+    error->all(FLERR,"Python '{}' is not callable", name);
+  }
+  return py_mfunc;
 }

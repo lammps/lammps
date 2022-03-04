@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(spin/magelec,PairSpinMagelec)
-
+// clang-format off
+PairStyle(spin/magelec,PairSpinMagelec);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_SPIN_MAGELEC_H
@@ -27,34 +27,34 @@ namespace LAMMPS_NS {
 class PairSpinMagelec : public PairSpin {
  public:
   PairSpinMagelec(LAMMPS *lmp) : PairSpin(lmp) {}
-  virtual ~PairSpinMagelec();
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  void *extract(const char *, int &);
+  ~PairSpinMagelec() override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void *extract(const char *, int &) override;
 
-  void compute(int, int);
-  void compute_single_pair(int, double *);
+  void compute(int, int) override;
+  void compute_single_pair(int, double *) override;
 
   void compute_magelec(int, int, double *, double *, double *);
   void compute_magelec_mech(int, int, double *, double *, double *);
 
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
 
-  double cut_spin_magelec_global;       // global me cutoff
+  double cut_spin_magelec_global;    // global me cutoff
 
  protected:
-  double **ME, **ME_mech;               // magelec coeff in eV
-  double **v_mex, **v_mey, **v_mez;     // magelec direction
-  double **cut_spin_magelec;            // magelec cutoff distance
+  double **ME, **ME_mech;              // magelec coeff in eV
+  double **v_mex, **v_mey, **v_mez;    // magelec direction
+  double **cut_spin_magelec;           // magelec cutoff distance
 
-  void allocate();
+  void allocate() override;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

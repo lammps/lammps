@@ -48,15 +48,18 @@
 namespace Kokkos {
 
 //----------------------------------------------------------------------------
-
+#ifndef KOKKOS_ENABLE_IMPL_DESUL_ATOMICS
 KOKKOS_FORCEINLINE_FUNCTION
 void memory_fence() {
 #if defined(__CUDA_ARCH__)
   __threadfence();
-#elif defined(KOKKOS_ENABLE_ROCM_ATOMICS)
-  amp_barrier(CLK_LOCAL_MEM_FENCE | CLK_GLOBAL_MEM_FENCE);
-#elif defined(KOKKOS_ENABLE_HIP_ATOMICS)
+#elif defined(KOKKOS_ENABLE_OPENMPTARGET)
+#pragma omp flush
+#elif defined(__HIP_DEVICE_COMPILE__)
   __threadfence();
+#elif defined(KOKKOS_ENABLE_SYCL) && defined(__SYCL_DEVICE_ONLY__)
+  sycl::ONEAPI::atomic_fence(sycl::ONEAPI::memory_order::acq_rel,
+                             sycl::ONEAPI::memory_scope::device);
 #elif defined(KOKKOS_ENABLE_ASM) && defined(KOKKOS_ENABLE_ISA_X86_64)
   asm volatile("mfence" ::: "memory");
 #elif defined(KOKKOS_ENABLE_GNU_ATOMICS) || \
@@ -72,6 +75,7 @@ void memory_fence() {
 #error "Error: memory_fence() not defined"
 #endif
 }
+#endif
 
 //////////////////////////////////////////////////////
 // store_fence()

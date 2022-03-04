@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,16 +17,15 @@
 ------------------------------------------------------------------------- */
 
 #include "dihedral_multi_harmonic.h"
-#include <mpi.h>
-#include <cmath>
+
 #include "atom.h"
-#include "neighbor.h"
 #include "comm.h"
-#include "force.h"
-#include "update.h"
-#include "memory.h"
 #include "error.h"
-#include "utils.h"
+#include "force.h"
+#include "memory.h"
+#include "neighbor.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -152,27 +152,8 @@ void DihedralMultiHarmonic::compute(int eflag, int vflag)
 
     // error check
 
-    if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) {
-      int me;
-      MPI_Comm_rank(world,&me);
-      if (screen) {
-        char str[128];
-        sprintf(str,"Dihedral problem: %d " BIGINT_FORMAT " "
-                TAGINT_FORMAT " " TAGINT_FORMAT " "
-                TAGINT_FORMAT " " TAGINT_FORMAT,
-                me,update->ntimestep,
-                atom->tag[i1],atom->tag[i2],atom->tag[i3],atom->tag[i4]);
-        error->warning(FLERR,str,0);
-        fprintf(screen,"  1st atom: %d %g %g %g\n",
-                me,x[i1][0],x[i1][1],x[i1][2]);
-        fprintf(screen,"  2nd atom: %d %g %g %g\n",
-                me,x[i2][0],x[i2][1],x[i2][2]);
-        fprintf(screen,"  3rd atom: %d %g %g %g\n",
-                me,x[i3][0],x[i3][1],x[i3][2]);
-        fprintf(screen,"  4th atom: %d %g %g %g\n",
-                me,x[i4][0],x[i4][1],x[i4][2]);
-      }
-    }
+    if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE))
+      problem(FLERR, i1, i2, i3, i4);
 
     if (c > 1.0) c = 1.0;
     if (c < -1.0) c = -1.0;
@@ -275,13 +256,13 @@ void DihedralMultiHarmonic::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->ndihedraltypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->ndihedraltypes,ilo,ihi,error);
 
-  double a1_one = force->numeric(FLERR,arg[1]);
-  double a2_one = force->numeric(FLERR,arg[2]);
-  double a3_one = force->numeric(FLERR,arg[3]);
-  double a4_one = force->numeric(FLERR,arg[4]);
-  double a5_one = force->numeric(FLERR,arg[5]);
+  double a1_one = utils::numeric(FLERR,arg[1],false,lmp);
+  double a2_one = utils::numeric(FLERR,arg[2],false,lmp);
+  double a3_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double a4_one = utils::numeric(FLERR,arg[4],false,lmp);
+  double a5_one = utils::numeric(FLERR,arg[5],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -319,11 +300,11 @@ void DihedralMultiHarmonic::read_restart(FILE *fp)
   allocate();
 
   if (comm->me == 0) {
-    utils::sfread(FLERR,&a1[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
-    utils::sfread(FLERR,&a2[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
-    utils::sfread(FLERR,&a3[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
-    utils::sfread(FLERR,&a4[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
-    utils::sfread(FLERR,&a5[1],sizeof(double),atom->ndihedraltypes,fp,NULL,error);
+    utils::sfread(FLERR,&a1[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&a2[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&a3[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&a4[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
+    utils::sfread(FLERR,&a5[1],sizeof(double),atom->ndihedraltypes,fp,nullptr,error);
   }
   MPI_Bcast(&a1[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);
   MPI_Bcast(&a2[1],atom->ndihedraltypes,MPI_DOUBLE,0,world);

@@ -9,7 +9,7 @@ function(prevent_in_source_builds)
   get_filename_component(bindir "${CMAKE_BINARY_DIR}" REALPATH)
 
   # disallow in-source builds
-  if("${srcdir}" STREQUAL "${bindir}" OR "${srcdir2}" STREQUAL "${bindir}" OR "${srcdir3}" STREQUAL "${bindir}")
+  if(("${srcdir}" STREQUAL "${bindir}") OR ("${srcdir2}" STREQUAL "${bindir}") OR ("${srcdir3}" STREQUAL "${bindir}"))
     message(FATAL_ERROR "\
 
 CMake must not to be run in the source directory. \

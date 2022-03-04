@@ -22,7 +22,7 @@ extern "C" {
 
 void cslib_open(int, const char *, const void *, const void *, void **);
 void cslib_open_fortran(int, const char *, const char *, const void *, void **);
-void cslib_open_fortran_mpi_one(int, const char *, const void *, 
+void cslib_open_fortran_mpi_one(int, const char *, const void *,
                                 const void *, void **);
 void cslib_close(void *);
 
@@ -48,7 +48,7 @@ void cslib_unpack_data(void *, int, void *);
 void cslib_unpack_parallel(void *, int, int, int *, int, void *);
 
 int cslib_extract(void *, int);
-  
+
 #ifdef __cplusplus
 }
 #endif

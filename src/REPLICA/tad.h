@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,57 +12,57 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
-CommandStyle(tad,TAD)
-
+// clang-format off
+CommandStyle(tad,TAD);
+// clang-format on
 #else
 
 #ifndef LMP_TAD_H
 #define LMP_TAD_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class TAD : protected Pointers {
+class TAD : public Command {
  public:
   TAD(class LAMMPS *);
-  ~TAD();
-  void command(int, char **);
+  ~TAD() override;
+  void command(int, char **) override;
 
  private:
-  int me,nprocs;
-  int nsteps,t_event;
-  double templo,temphi,delta_conf,tmax;
-  double etol,ftol,etol_neb,ftol_neb,dt_neb;
-  int maxiter,maxeval,n1steps_neb,n2steps_neb,nevery_neb;
+  int me, nprocs;
+  int nsteps, t_event;
+  double templo, temphi, delta_conf, tmax;
+  double etol, ftol, etol_neb, ftol_neb, dt_neb;
+  int maxiter, maxeval, n1steps_neb, n2steps_neb, nevery_neb;
   char *min_style, *min_style_neb;
-  double delta_beta,ratio_beta;
-  double deltconf,deltstop,deltfirst; // Times since last event
+  double delta_beta, ratio_beta;
+  double deltconf, deltstop, deltfirst;    // Times since last event
   int event_first;
 
-  int neigh_every,neigh_delay,neigh_dist_check;
+  int neigh_every, neigh_delay, neigh_dist_check;
   int quench_reneighbor;
-  bigint nbuild,ndanger;
+  bigint nbuild, ndanger;
 
-  double time_dynamics,time_quench,time_neb,time_comm,time_output;
+  double time_dynamics, time_quench, time_neb, time_comm, time_output;
   double time_start;
 
-  class NEB *neb;                    // NEB object
-  class Fix *fix_neb;                // FixNEB object
-  class Compute *compute_event;      // compute to detect event
-  class FixEventTAD *fix_event;      // current event/state
-  class FixStore *fix_revert;        // revert state
-  FixEventTAD **fix_event_list;      // list of possible events
-  int n_event_list;                  // number of events
-  int nmax_event_list;               // allocated events
-  int nmin_event_list;               // minimum allocation
+  class NEB *neb;                  // NEB object
+  class Fix *fix_neb;              // FixNEB object
+  class Compute *compute_event;    // compute to detect event
+  class FixEventTAD *fix_event;    // current event/state
+  class FixStore *fix_revert;      // revert state
+  FixEventTAD **fix_event_list;    // list of possible events
+  int n_event_list;                // number of events
+  int nmax_event_list;             // allocated events
+  int nmin_event_list;             // minimum allocation
 
-  char *neb_logfilename;             // filename for ulogfile_neb
-  FILE *uscreen_neb;                 // neb universe screen output
-  FILE *ulogfile_neb;                // neb universe logfile
-  FILE *uscreen_lammps;              // lammps universe screen output
-  FILE *ulogfile_lammps;             // lammps universe logfile
+  char *neb_logfilename;    // filename for ulogfile_neb
+  FILE *uscreen_neb;        // neb universe screen output
+  FILE *ulogfile_neb;       // neb universe logfile
+  FILE *uscreen_lammps;     // lammps universe screen output
+  FILE *ulogfile_lammps;    // lammps universe logfile
 
   class Finish *finish;
 
@@ -83,7 +83,7 @@ class TAD : protected Pointers {
   void delete_event_list();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

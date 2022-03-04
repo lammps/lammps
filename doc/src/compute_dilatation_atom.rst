@@ -43,11 +43,12 @@ This command can only be used with a subset of the Peridynamic :doc:`pair styles
 The dilatation value will be 0.0 for atoms not in the specified
 compute group.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-atom vector, which can be accessed by
 any command that uses per-atom values from a compute as input.  See
-the :doc:`Howto output <Howto_output>` doc page for an overview of
+the :doc:`Howto output <Howto_output>` page for an overview of
 LAMMPS output options.
 
 The per-atom vector values are unitless numbers (theta) >= 0.0.
@@ -56,7 +57,7 @@ Restrictions
 """"""""""""
 
 This compute is part of the PERI package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
@@ -64,4 +65,7 @@ Related commands
 :doc:`compute damage/atom <compute_damage_atom>`,
 :doc:`compute plasticity/atom <compute_plasticity_atom>`
 
-**Default:** none
+Default
+"""""""
+
+none

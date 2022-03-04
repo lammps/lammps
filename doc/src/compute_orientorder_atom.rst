@@ -1,10 +1,10 @@
 .. index:: compute orientorder/atom
+.. index:: compute orientorder/atom/kk
 
 compute orientorder/atom command
 ================================
 
-compute orientorder/atom/kk command
-===================================
+Accelerator Variants: *orientorder/atom/kk*
 
 Syntax
 """"""
@@ -26,7 +26,7 @@ Syntax
        *wl* value = yes or no
        *wl/hat* value = yes or no
        *components* value = ldegree
-       *chunksize* value = number of atoms in each pass 
+       *chunksize* value = number of atoms in each pass
 
 Examples
 """"""""
@@ -52,14 +52,17 @@ For each atom, :math:`Q_l` is a real number defined as follows:
    \bar{Y}_{lm} = & \frac{1}{nnn}\sum_{j = 1}^{nnn} Y_{lm}( \theta( {\bf r}_{ij} ), \phi( {\bf r}_{ij} ) ) \\
    Q_l = & \sqrt{\frac{4 \pi}{2 l + 1} \sum_{m = -l}^{m = l} \bar{Y}_{lm} \bar{Y}^*_{lm}}
 
-The first equation defines the spherical harmonic order parameters.
+The first equation defines the local order parameters as averages
+of the spherical harmonics :math:`Y_{lm}` for each neighbor.
 These are complex number components of the 3D analog of the 2D order
 parameter :math:`q_n`, which is implemented as LAMMPS compute
 :doc:`hexorder/atom <compute_hexorder_atom>`.
 The summation is over the *nnn* nearest
 neighbors of the central atom.
-The angles theta and phi are the standard spherical polar angles
+The angles :math:`theta` and :math:`phi` are the standard spherical polar angles
 defining the direction of the bond vector :math:`r_{ij}`.
+The phase and sign of :math:`Y_{lm}` follow the standard conventions,
+so that :math:`{\rm sign}(Y_{ll}(0,0)) = (-1)^l`.
 The second equation defines :math:`Q_l`, which is a
 rotationally invariant non-negative amplitude obtained by summing
 over all the components of degree *l*\ .
@@ -102,8 +105,8 @@ structures are given in Table I of :ref:`Steinhardt <Steinhardt>`, and these
 can be reproduced with this keyword.
 
 The optional keyword *components* will output the components of the
-normalized complex vector :math:`\bar{Y}_{lm}` of degree *ldegree*\ , which must be
-explicitly included in the keyword *degrees*\ . This option can be used
+*normalized* complex vector :math:`\hat{Y}_{lm} = \bar{Y}_{lm}/|\bar{Y}_{lm}|` of degree *ldegree*\,
+which must be included in the list of order parameters to be computed. This option can be used
 in conjunction with :doc:`compute coord_atom <compute_coord_atom>` to
 calculate the ten Wolde's criterion to identify crystal-like
 particles, as discussed in :ref:`ten Wolde <tenWolde2>`.
@@ -112,8 +115,8 @@ The optional keyword *chunksize* is only applicable when using the
 the KOKKOS package and is ignored otherwise. This keyword controls
 the number of atoms in each pass used to compute the bond-orientational
 order parameters and is used to avoid running out of memory. For example
-if there are 4000 atoms in the simulation and the *chunksize*
-is set to 2000, the parameter calculation will be broken up
+if there are 32768 atoms in the simulation and the *chunksize*
+is set to 16384, the parameter calculation will be broken up
 into two passes.
 
 The value of :math:`Q_l` is set to zero for atoms not in the
@@ -143,28 +146,13 @@ too frequently.
 ----------
 
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-atom array with *nlvalues* columns,
 giving the :math:`Q_l` values for each atom, which are real numbers on the
@@ -177,11 +165,15 @@ If the keyword *wl/hat* is set to yes, then the :math:`\hat{W}_l`
 values for each atom will be added to the output array, which are real numbers.
 
 If the keyword *components* is set, then the real and imaginary parts
-of each component of (normalized) :math:`\bar{Y}_{lm}` will be added to the
-output array in the following order: :math:`Re(\bar{Y}_{-m}) Im(\bar{Y}_{-m})
-Re(\bar{Y}_{-m+1}) Im(\bar{Y}_{-m+1}) ... Re(\bar{Y}_m) Im(\bar{Y}_m)`.  This
-way, the per-atom array will have a total of *nlvalues*\ +2\*(2\ *l*\ +1)
-columns.
+of each component of *normalized* :math:`\hat{Y}_{lm}` will be added to the
+output array in the following order: :math:`{\rm Re}(\hat{Y}_{-m}), {\rm Im}(\hat{Y}_{-m}),
+{\rm Re}(\hat{Y}_{-m+1}), {\rm Im}(\hat{Y}_{-m+1}), \dots , {\rm Re}(\hat{Y}_m), {\rm Im}(\hat{Y}_m)`.
+
+In summary, the per-atom array will contain *nlvalues* columns, followed by
+an additional *nlvalues* columns if *wl* is set to yes, followed by
+an additional *nlvalues* columns if *wl/hat* is set to yes, followed
+by an additional 2\*(2\* *ldegree*\ +1) columns if the *components*
+keyword is set.
 
 These values can be accessed by any command that uses per-atom values
 from a compute as input.  See the :doc:`Howto output <Howto_output>` doc
@@ -189,7 +181,8 @@ page for an overview of LAMMPS output options.
 
 Restrictions
 """"""""""""
- none
+
+none
 
 Related commands
 """"""""""""""""
@@ -201,7 +194,7 @@ Default
 
 The option defaults are *cutoff* = pair style cutoff, *nnn* = 12,
 *degrees* = 5 4 6 8 10 12 i.e. :math:`Q_4`, :math:`Q_6`, :math:`Q_8`, :math:`Q_{10}`, and :math:`Q_{12}`,
-*wl* = no, *wl/hat* = no, *components* off, and *chunksize* = 2000
+*wl* = no, *wl/hat* = no, *components* off, and *chunksize* = 16384
 
 ----------
 

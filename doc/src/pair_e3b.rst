@@ -80,7 +80,7 @@ The two-body interactions are cut off sharply at Rc2, because K3 is typically si
 See :ref:`(Kumar 2008) <Kumar>` for more details.
 
 Only a single *pair_coeff* command is used with the *e3b* style.
-The 1st two arguments must be \* \*.
+The first two arguments must be \* \*.
 The oxygen atom type for the pair style is passed as the only argument to the *pair_style* command, not in the *pair_coeff* command.
 The hydrogen atom type is inferred by the ordering of the atoms.
 
@@ -98,7 +98,7 @@ The *preset 2015* option should be used with the :doc:`TIP4P/2005 water model <H
 If the *preset* keyword is used, no other keyword is needed.
 Changes to the preset parameters can be made by specifying the *preset* keyword followed by the specific parameter to change, like *Ea*\ .
 Note that the other keywords must come after *preset* in the pair_style command.
-The *e3b* style can also be used to implement any three-body potential of the same form by specifying all the keywords except *neigh*\ : *Ea*\ , *Eb*\ , *Ec*\ , *E2*\ , *K3*\ , *K2*\ , *Rc3*\ , *Rc2*\ , *Rs*\ , and *bondL*\ .
+The *e3b* style can also be used to implement any three-body potential of the same form by specifying all the keywords except *neigh*\ : *Ea*, *Eb*, *Ec*, *E2*, *K3*, *K2*, *Rc3*, *Rc2*, *Rs*, and *bondL*\ .
 The keyword *bondL* specifies the intramolecular OH bond length of the water model being used.
 This is needed to include H atoms that are within the cutoff even when the attached oxygen atom is not.
 
@@ -111,11 +111,12 @@ If the neigh setting is too large, the pair style will use more memory than nece
 This pair style tallies a breakdown of the total E3B potential energy into sub-categories, which can be accessed via the :doc:`compute pair <compute_pair>` command as a vector of values of length 4.
 The 4 values correspond to the terms in the first equation above: the E2 term, the Ea term, the Eb term, and the Ec term.
 
-See the examples/USER/misc/e3b directory for a complete example script.
+See the examples/PACKAGES/e3b directory for a complete example script.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
@@ -131,8 +132,8 @@ This pair style is incompatible with :doc:`respa <run_style>`.
 Restrictions
 """"""""""""
 
-This pair style is part of the USER-MISC package.  It is only enabled
-if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This pair style is part of the EXTRA-PAIR package.  It is only enabled
+if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 This pair style requires the :doc:`newton <newton>` setting to be "on"
 for pair interactions.

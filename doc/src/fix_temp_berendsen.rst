@@ -76,7 +76,7 @@ time.  Thus it is easy to specify a time-dependent temperature.
    be used on atoms that also have their temperature controlled by
    another fix - e.g. by :doc:`fix nvt <fix_nh>` or :doc:`fix langevin <fix_langevin>` commands.
 
-See the :doc:`Howto thermostat <Howto_thermostat>` doc page for a
+See the :doc:`Howto thermostat <Howto_thermostat>` page for a
 discussion of different ways to compute temperature and perform
 thermostatting.
 
@@ -102,24 +102,30 @@ It also means that changing attributes of *thermo_temp* will have no
 effect on this fix.
 
 Like other fixes that perform thermostatting, this fix can be used
-with :doc:`compute commands <compute>` that calculate a temperature
-after removing a "bias" from the atom velocities.  E.g. removing the
-center-of-mass velocity from a group of atoms or only calculating
-temperature on the x-component of velocity or only calculating
-temperature for atoms in a geometric region.  This is not done by
-default, but only if the :doc:`fix_modify <fix_modify>` command is used
-to assign a temperature compute to this fix that includes such a bias
-term.  See the doc pages for individual :doc:`compute commands <compute>` to determine which ones include a bias.  In
-this case, the thermostat works in the following manner: the current
-temperature is calculated taking the bias into account, bias is
-removed from each atom, thermostatting is performed on the remaining
-thermal degrees of freedom, and the bias is added back in.
+with :doc:`compute commands <compute>` that remove a "bias" from the
+atom velocities.  E.g. to apply the thermostat only to atoms within a
+spatial :doc:`region <region>`, or to remove the center-of-mass
+velocity from a group of atoms, or to remove the x-component of
+velocity from the calculation.
+
+This is not done by default, but only if the :doc:`fix_modify
+<fix_modify>` command is used to assign a temperature compute to this
+fix that includes such a bias term.  See the doc pages for individual
+:doc:`compute temp commands <compute>` to determine which ones include
+a bias.  In this case, the thermostat works in the following manner:
+bias is removed from each atom, thermostatting is performed on the
+remaining thermal degrees of freedom, and the bias is added back in.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.
+This fix writes the cumulative global energy change to
+:doc:`binary restart files <restart>`.  See the
+:doc:`read_restart <read_restart>` command for info on how to
+re-specify a fix in an input script that reads a restart file,
+so that the fix continues in an uninterrupted fashion.
 
 The :doc:`fix_modify <fix_modify>` *temp* option is supported by this
 fix.  You can use it to assign a temperature :doc:`compute <compute>`
@@ -127,14 +133,15 @@ you have defined to this fix which will be used in its thermostatting
 procedure, as described above.  For consistency, the group used by
 this fix and by the compute should be the same.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
-fix to add the energy change implied by a velocity rescaling to the
-system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.
+The cumulative energy change in the system imposed by this fix is
+included in the :doc:`thermodynamic output <thermo_style>` keywords
+*ecouple* and *econserve*.  See the :doc:`thermo_style <thermo_style>`
+doc page for details.
 
 This fix computes a global scalar which can be accessed by various
-:doc:`output commands <Howto_output>`.  The scalar is the cumulative
-energy change due to this fix.  The scalar value calculated by this
-fix is "extensive".
+:doc:`output commands <Howto_output>`.  The scalar is the same
+cumulative energy change due to this fix described in the previous
+paragraph.  The scalar value calculated by this fix is "extensive".
 
 This fix can ramp its target temperature over multiple runs, using the
 *start* and *stop* keywords of the :doc:`run <run>` command.  See the
@@ -160,7 +167,10 @@ Related commands
 :doc:`fix_modify <fix_modify>`, :doc:`compute temp <compute_temp>`,
 :doc:`fix press/berendsen <fix_press_berendsen>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

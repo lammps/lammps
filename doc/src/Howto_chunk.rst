@@ -51,7 +51,7 @@ scales the floating point value to spread it across multiple integers.
 Spatial bins can be of various kinds, e.g. 1d bins = slabs, 2d bins =
 pencils, 3d bins = boxes, spherical bins, cylindrical bins.
 
-This compute also calculates the number of chunks *Nchunk*\ , which is
+This compute also calculates the number of chunks *Nchunk*, which is
 used by other commands to tally per-chunk data.  *Nchunk* can be a
 static value or change over time (e.g. the number of clusters).  The
 chunk ID for an individual atom can also be static (e.g. a molecule
@@ -197,8 +197,9 @@ compress individual polymer chains (molecules) in a mixture, is
 explained on the :doc:`compute chunk/spread/atom <compute_chunk_spread_atom>` command doc page.
 
 (7) An example for using one set of per-chunk values for molecule
-chunks, to create a 2nd set of micelle-scale chunks (clustered
-molecules, due to hydrophobicity), is explained on the :doc:`compute chunk/reduce <compute_reduce_chunk>` command doc page.
+chunks, to create a second set of micelle-scale chunks (clustered
+molecules, due to hydrophobicity), is explained on the
+:doc:`compute reduce/chunk <compute_reduce_chunk>` command doc page.
 
 (8) An example for using one set of per-chunk values (dipole moment
 vectors) for molecule chunks, spreading the values to each atom in

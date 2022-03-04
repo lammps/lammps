@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,18 +17,19 @@
 ------------------------------------------------------------------------- */
 
 #include "ewald_dipole_spin.h"
-#include <mpi.h>
-#include <cstring>
-#include <cmath>
+
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
-#include "pair.h"
 #include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "pair.h"
 #include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -50,21 +52,12 @@ EwaldDipoleSpin::EwaldDipoleSpin(LAMMPS *lmp) :
 }
 
 /* ----------------------------------------------------------------------
-   free all memory
-------------------------------------------------------------------------- */
-
-EwaldDipoleSpin::~EwaldDipoleSpin() {}
-
-/* ----------------------------------------------------------------------
    called once before run
 ------------------------------------------------------------------------- */
 
 void EwaldDipoleSpin::init()
 {
-  if (comm->me == 0) {
-    if (screen) fprintf(screen,"EwaldDipoleSpin initialization ...\n");
-    if (logfile) fprintf(logfile,"EwaldDipoleSpin initialization ...\n");
-  }
+  if (comm->me == 0) utils::logmesg(lmp,"EwaldDipoleSpin initialization ...\n");
 
   // error check
 
@@ -104,7 +97,7 @@ void EwaldDipoleSpin::init()
 
   int itmp;
   double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
-  if (p_cutoff == NULL)
+  if (p_cutoff == nullptr)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   double cutoff = *p_cutoff;
 
@@ -182,28 +175,16 @@ void EwaldDipoleSpin::init()
   // stats
 
   if (comm->me == 0) {
-    if (screen) {
-      fprintf(screen,"  G vector (1/distance) = %g\n",g_ewald);
-      fprintf(screen,"  estimated absolute RMS force accuracy = %g\n",
-              estimated_accuracy);
-      fprintf(screen,"  estimated relative force accuracy = %g\n",
-              estimated_accuracy/two_charge_force);
-      fprintf(screen,"  KSpace vectors: actual max1d max3d = %d %d %d\n",
-              kcount,kmax,kmax3d);
-      fprintf(screen,"                  kxmax kymax kzmax  = %d %d %d\n",
-              kxmax,kymax,kzmax);
-    }
-    if (logfile) {
-      fprintf(logfile,"  G vector (1/distance) = %g\n",g_ewald);
-      fprintf(logfile,"  estimated absolute RMS force accuracy = %g\n",
-              estimated_accuracy);
-      fprintf(logfile,"  estimated relative force accuracy = %g\n",
-              estimated_accuracy/two_charge_force);
-      fprintf(logfile,"  KSpace vectors: actual max1d max3d = %d %d %d\n",
-              kcount,kmax,kmax3d);
-      fprintf(logfile,"                  kxmax kymax kzmax  = %d %d %d\n",
-              kxmax,kymax,kzmax);
-    }
+    std::string mesg = fmt::format("  G vector (1/distance) = {:.8g}\n",g_ewald);
+    mesg += fmt::format("  estimated absolute RMS force accuracy = {:.8g}\n",
+                       estimated_accuracy);
+    mesg += fmt::format("  estimated relative force accuracy = {:.8g}\n",
+                       estimated_accuracy/two_charge_force);
+    mesg += fmt::format("  KSpace vectors: actual max1d max3d = {} {} {}\n",
+                        kcount,kmax,kmax3d);
+    mesg += fmt::format("                  kxmax kymax kzmax  = {} {} {}\n",
+                        kxmax,kymax,kzmax);
+    utils::logmesg(lmp,mesg);
   }
 }
 

@@ -1,6 +1,6 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(multi/lucy/rx/kk,PairMultiLucyRXKokkos<LMPDeviceType>)
-PairStyle(multi/lucy/rx/kk/device,PairMultiLucyRXKokkos<LMPDeviceType>)
-PairStyle(multi/lucy/rx/kk/host,PairMultiLucyRXKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(multi/lucy/rx/kk,PairMultiLucyRXKokkos<LMPDeviceType>);
+PairStyle(multi/lucy/rx/kk/device,PairMultiLucyRXKokkos<LMPDeviceType>);
+PairStyle(multi/lucy/rx/kk/host,PairMultiLucyRXKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_MULTI_LUCY_RX_KOKKOS_H
 #define LMP_PAIR_MULTI_LUCY_RX_KOKKOS_H
 
@@ -51,22 +52,22 @@ class PairMultiLucyRXKokkos : public PairMultiLucyRX, public KokkosBase {
   typedef EV_FLOAT value_type;
 
   PairMultiLucyRXKokkos(class LAMMPS *);
-  virtual ~PairMultiLucyRXKokkos();
+  ~PairMultiLucyRXKokkos() override;
 
-  void compute(int, int);
-  void settings(int, char **);
+  void compute(int, int) override;
+  void settings(int, char **) override;
 
   template<int TABSTYLE>
   void compute_style(int, int);
 
-  void init_style();
+  void init_style() override;
   int pack_forward_comm_kokkos(int, DAT::tdual_int_2d, int, DAT::tdual_xfloat_1d&,
-                               int, int *);
-  void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d&);
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
+                               int, int *) override;
+  void unpack_forward_comm_kokkos(int, int, DAT::tdual_xfloat_1d&) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
   void computeLocalDensity();
 
   KOKKOS_INLINE_FUNCTION
@@ -149,7 +150,7 @@ class PairMultiLucyRXKokkos : public PairMultiLucyRX, public KokkosBase {
 
   F_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
 
-  void allocate();
+  void allocate() override;
   int update_table;
   void create_kokkos_tables();
 

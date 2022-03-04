@@ -1,10 +1,10 @@
 .. index:: angle_style sdk
+.. index:: angle_style sdk/omp
 
 angle_style sdk command
 =======================
 
-angle_style sdk/omp command
-===========================
+Accelerator Variants: *sdk/omp*
 
 Syntax
 """"""
@@ -37,40 +37,26 @@ where :math:`\theta_0` is the equilibrium value of the angle and
 *lj/sdk* pair style between the atoms 1 and 3.  This angle potential is
 intended for coarse grained MD simulations with the CMM parameterization
 using the :doc:`pair_style lj/sdk <pair_sdk>`.  Relative to the
-pair_style *lj/sdk*\ , however, the energy is shifted by
+pair_style *lj/sdk*, however, the energy is shifted by
 :math:`\epsilon`, to avoid sudden jumps.  Note that the usual 1/2 factor
 is included in :math:`K`.
 
 The following coefficients must be defined for each angle type via the
 :doc:`angle_coeff <angle_coeff>` command as in the example above:
 
-* :math:`K` (energy/radian\^2)
+* :math:`K` (energy)
 * :math:`\theta_0` (degrees)
 
-:math:`\theta_0` is specified in degrees, but LAMMPS converts it to radians
-internally; hence the units of :math:`K` are in energy/radian\^2.
-The also required *lj/sdk* parameters will be extracted automatically
-from the pair_style.
+:math:`\theta_0` is specified in degrees, but LAMMPS converts it to
+radians internally; hence :math:`K` is effectively energy per
+radian\^2.
+
+The required *lj/sdk* parameters are extracted automatically from the
+pair_style.
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
@@ -78,7 +64,7 @@ Restrictions
 """"""""""""
 
 This angle style can only be used if LAMMPS was built with the
-USER-CGSDK package.  See the :doc:`Build package <Build_package>` doc
+CG-SDK package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
 Related commands
@@ -87,4 +73,7 @@ Related commands
 :doc:`angle_coeff <angle_coeff>`, :doc:`angle_style harmonic <angle_harmonic>`, :doc:`pair_style lj/sdk <pair_sdk>`,
 :doc:`pair_style lj/sdk/coul/long <pair_sdk>`
 
-**Default:** none
+Default
+"""""""
+
+none

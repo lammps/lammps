@@ -14,10 +14,6 @@ generated.  For example, a message like this:
 means that line #187 in the file src/domain.cpp generated the error.
 Looking in the source code may help you figure out what went wrong.
 
-Note that warning messages from :doc:`user-contributed packages <Packages_user>` are not listed here.  If such a warning
-occurs and is not self-explanatory, you will need to look in the source
-code or contact the author of the package.
-
 Doc page with :doc:`ERROR messages <Errors_messages>`
 
 ----------
@@ -43,17 +39,17 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
    Self-explanatory.
 
 *Bond atom missing in box size check*
-   The 2nd atoms needed to compute a particular bond is missing on this
+   The second atom needed to compute a particular bond is missing on this
    processor.  Typically this is because the pairwise cutoff is set too
    short or the bond has blown apart and an atom is too far away.
 
 *Bond atom missing in image check*
-   The 2nd atom in a particular bond is missing on this processor.
+   The second atom in a particular bond is missing on this processor.
    Typically this is because the pairwise cutoff is set too short or the
    bond has blown apart and an atom is too far away.
 
 *Bond atoms missing at step %ld*
-   The 2nd atom needed to compute a particular bond is missing on this
+   The second atom needed to compute a particular bond is missing on this
    processor.  Typically this is because the pairwise cutoff is set too
    short or the bond has blown apart and an atom is too far away.
 
@@ -117,6 +113,23 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
    to 0.0, no ghost atoms will be generated and LAMMPS may lose atoms or use
    incorrect periodic images of atoms in interaction lists.  To avoid, either use
    :doc:`pair style zero <pair_zero>` with a suitable cutoff or use :doc:`comm_modify cutoff <comm_modify>`.
+
+*Communication cutoff is shorter than a bond length based estimate. This may lead to errors.*
+   Since LAMMPS stores topology data with individual atoms, all atoms
+   comprising a bond, angle, dihedral or improper must be present on any
+   sub-domain that "owns" the atom with the information, either as a
+   local or a ghost atom. The communication cutoff is what determines up
+   to what distance from a sub-domain boundary ghost atoms are created.
+   The communication cutoff is by default the largest non-bonded cutoff
+   plus the neighbor skin distance, but for short or non-bonded cutoffs
+   and/or long bonds, this may not be sufficient. This warning indicates
+   that there is an increased risk of a simulation stopping unexpectedly
+   because of Bond/Angle/Dihedral/Improper atoms missing.  It can be
+   silenced by manually setting the communication cutoff via
+   :doc:`comm_modify cutoff <comm_modify>`.  However, since the
+   heuristic used to determine the estimate is not always accurate, it
+   is not changed automatically and the warning may be ignored depending
+   on the specific system being simulated.
 
 *Communication cutoff is too small for SNAP micro load balancing, increased to %lf*
    Self-explanatory.
@@ -200,7 +213,7 @@ Doc page with :doc:`ERROR messages <Errors_messages>`
    in unexpected behavior.
 
 *Fix bond/swap will ignore defined angles*
-   See the doc page for fix bond/swap for more info on this
+   See the page for fix bond/swap for more info on this
    restriction.
 
 *Fix deposit near setting < possible overlap separation %g*
@@ -403,7 +416,7 @@ This will most likely cause errors in kinetic fluctuations.
    not defined for the specified atom style.
 
 *Molecule has bond topology but no special bond settings*
-   This means the bonded atoms will not be excluded in pair-wise
+   This means the bonded atoms will not be excluded in pairwise
    interactions.
 
 *Molecule template for create_atoms has multiple molecules*
@@ -486,7 +499,7 @@ This will most likely cause errors in kinetic fluctuations.
    a new style.
 
 *No Kspace calculation with verlet/split*
-   The 2nd partition performs a kspace calculation so the kspace_style
+   The second partition performs a kspace calculation so the kspace_style
    command must be used.
 
 *No automatic unit conversion to XTC file format conventions possible for units lj*
@@ -501,7 +514,7 @@ This will most likely cause errors in kinetic fluctuations.
    will integrate the body motion, but it would be more efficient to use
    fix rigid.
 
-*Not using real units with pair reax*
+*Not using real units with pair reaxff*
    This is most likely an error, unless you have created your own ReaxFF
    parameter file in a different set of units.
 
@@ -512,7 +525,7 @@ This will most likely cause errors in kinetic fluctuations.
 
 *OMP_NUM_THREADS environment is not set.*
    This environment variable must be set appropriately to use the
-   USER-OMP package.
+   OPENMP package.
 
 *One or more atoms are time integrated more than once*
    This is probably an error since you typically do not want to
@@ -792,5 +805,3 @@ This will most likely cause errors in kinetic fluctuations.
 *Using pair tail corrections with pair_modify compute no*
    The tail corrections will thus not be computed.
 
-*pair style reax is now deprecated and will soon be retired. Users should switch to pair_style reax/c*
-   Self-explanatory.

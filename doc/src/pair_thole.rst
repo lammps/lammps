@@ -1,4 +1,6 @@
 .. index:: pair_style thole
+.. index:: pair_style lj/cut/thole/long
+.. index:: pair_style lj/cut/thole/long/omp
 
 pair_style thole command
 ========================
@@ -6,8 +8,7 @@ pair_style thole command
 pair_style lj/cut/thole/long command
 ====================================
 
-pair_style lj/cut/thole/long/omp command
-========================================
+Accelerator Variants: *lj/cut/thole/long/omp*
 
 Syntax
 """"""
@@ -16,7 +17,7 @@ Syntax
 
    pair_style style args
 
-* style = *thole* or *lj/cut/thole/long* or *lj/cut/thole/long/omp*
+* style = *thole* or *lj/cut/thole/long*
 * args = list of arguments for a particular style
 
 .. parsed-literal::
@@ -24,7 +25,7 @@ Syntax
      *thole* args = damp cutoff
        damp = global damping parameter
        cutoff = global cutoff (distance units)
-     *lj/cut/thole/long* or *lj/cut/thole/long/omp* args = damp cutoff (cutoff2)
+     *lj/cut/thole/long* args = damp cutoff (cutoff2)
        damp = global damping parameter
        cutoff = global cutoff for LJ (and Thole if only 1 arg) (distance units)
        cutoff2 = global cutoff for Thole (optional) (distance units)
@@ -40,6 +41,8 @@ Examples
    pair_coeff * 2 thole 1.0 2.6
 
    pair_style lj/cut/thole/long 2.6 12.0
+
+Example input scripts available: examples/PACKAGES/drude
 
 Description
 """""""""""
@@ -104,7 +107,7 @@ non-polarizable atoms are also subject to these weighting factors. The
 Drude particles inherit the 1-2, 1-3 and 1-4 neighbor relations from
 their respective cores.
 
-For pair_style *thole*\ , the following coefficients must be defined for
+For pair_style *thole*, the following coefficients must be defined for
 each pair of atoms types via the :doc:`pair_coeff <pair_coeff>` command
 as in the example above.
 
@@ -117,7 +120,7 @@ Thole damping parameter or global cutoff specified in the pair_style
 command are used. In order to specify a cutoff (third argument) a damp
 parameter (second argument) must also be specified.
 
-For pair style *lj/cut/thole/long*\ , the following coefficients must be
+For pair style *lj/cut/thole/long*, the following coefficients must be
 defined for each pair of atoms types via the :doc:`pair_coeff <pair_coeff>`
 command.
 
@@ -132,25 +135,10 @@ the *pair_style* command line.
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
+.. include:: accel_styles.rst
 
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
-
-**Mixing**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 The *thole* pair style does not support mixing.  Thus, coefficients
 for all I,J pairs must be specified explicitly.
@@ -167,8 +155,8 @@ are defined using
 Restrictions
 """"""""""""
 
-These pair styles are part of the USER-DRUDE package. They are only
-enabled if LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
+These pair styles are part of the DRUDE package. They are only
+enabled if LAMMPS was built with that package. See the :doc:`Build package <Build_package>` page for more info.
 
 This pair_style should currently not be used with the :doc:`charmm dihedral style <dihedral_charmm>` if the latter has non-zero 1-4 weighting
 factors. This is because the *thole* pair style does not know which
@@ -182,9 +170,12 @@ Related commands
 """"""""""""""""
 
 :doc:`fix drude <fix_drude>`, :doc:`fix langevin/drude <fix_langevin_drude>`, :doc:`fix drude/transform <fix_drude_transform>`, :doc:`compute temp/drude <compute_temp_drude>`
-:doc:`pair_style lj/cut/coul/long <pair_lj>`
+:doc:`pair_style lj/cut/coul/long <pair_lj_cut_coul>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

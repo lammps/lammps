@@ -57,13 +57,14 @@
 #include <Kokkos_Layout.hpp>
 #include <Kokkos_MemoryTraits.hpp>
 #include <impl/Kokkos_Profiling_Interface.hpp>
-#include <impl/Kokkos_Tags.hpp>
+#include <impl/Kokkos_ExecSpaceInitializer.hpp>
 
 /*--------------------------------------------------------------------------*/
 
 namespace Kokkos {
 namespace Impl {
 class ThreadsExec;
+enum class fence_is_static { yes, no };
 }  // namespace Impl
 }  // namespace Kokkos
 
@@ -77,16 +78,16 @@ class Threads {
   //! \name Type declarations that all Kokkos devices must provide.
   //@{
   //! Tag this class as a kokkos execution space
-  typedef Threads execution_space;
-  typedef Kokkos::HostSpace memory_space;
+  using execution_space = Threads;
+  using memory_space    = Kokkos::HostSpace;
 
   //! This execution space preferred device_type
-  typedef Kokkos::Device<execution_space, memory_space> device_type;
+  using device_type = Kokkos::Device<execution_space, memory_space>;
 
-  typedef Kokkos::LayoutRight array_layout;
-  typedef memory_space::size_type size_type;
+  using array_layout = Kokkos::LayoutRight;
+  using size_type    = memory_space::size_type;
 
-  typedef ScratchMemorySpace<Threads> scratch_memory_space;
+  using scratch_memory_space = ScratchMemorySpace<Threads>;
 
   //@}
   /*------------------------------------------------------------------------*/
@@ -107,46 +108,14 @@ class Threads {
   /// method does not return until all dispatched functors on this
   /// device have completed.
   static void impl_static_fence();
+  static void impl_static_fence(const std::string& name);
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  static void fence();
-#else
   void fence() const;
-#endif
+  void fence(const std::string&) const;
 
   /** \brief  Return the maximum amount of concurrency.  */
   static int concurrency();
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  static bool sleep();
-
-  static bool wake();
-
-  static void finalize();
-
-  static void initialize(unsigned threads_count             = 0,
-                         unsigned use_numa_count            = 0,
-                         unsigned use_cores_per_numa        = 0,
-                         bool allow_asynchronous_threadpool = false);
-
-  static int is_initialized();
-
-  static Threads& instance(int = 0);
-
-  //----------------------------------------
-
-  static int thread_pool_size(int depth = 0);
-#if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-  static int thread_pool_rank();
-#else
-  KOKKOS_INLINE_FUNCTION static int thread_pool_rank() { return 0; }
-#endif
-
-  inline static unsigned max_hardware_threads() { return thread_pool_size(0); }
-  KOKKOS_INLINE_FUNCTION static unsigned hardware_thread_id() {
-    return thread_pool_rank();
-  }
-#else
   /// \brief Free any resources being consumed by the device.
   ///
   /// For the Threads device, this terminates spawned worker threads.
@@ -199,23 +168,37 @@ class Threads {
   KOKKOS_INLINE_FUNCTION static unsigned impl_hardware_thread_id() {
     return impl_thread_pool_rank();
   }
-#endif
 
-  uint32_t impl_instance_id() const noexcept { return 0; }
+  uint32_t impl_instance_id() const noexcept { return 1; }
 
   static const char* name();
   //@}
   //----------------------------------------
 };
 
-namespace Profiling {
+namespace Tools {
 namespace Experimental {
 template <>
 struct DeviceTypeTraits<Threads> {
   static constexpr DeviceType id = DeviceType::Threads;
 };
 }  // namespace Experimental
-}  // namespace Profiling
+}  // namespace Tools
+
+namespace Impl {
+
+class ThreadsSpaceInitializer : public ExecSpaceInitializerBase {
+ public:
+  ThreadsSpaceInitializer()  = default;
+  ~ThreadsSpaceInitializer() = default;
+  void initialize(const InitArguments& args) final;
+  void finalize(const bool) final;
+  void fence() final;
+  void fence(const std::string&) final;
+  void print_configuration(std::ostream& msg, const bool detail) final;
+};
+
+}  // namespace Impl
 }  // namespace Kokkos
 
 /*--------------------------------------------------------------------------*/
@@ -226,17 +209,9 @@ namespace Impl {
 template <>
 struct MemorySpaceAccess<Kokkos::Threads::memory_space,
                          Kokkos::Threads::scratch_memory_space> {
-  enum { assignable = false };
-  enum { accessible = true };
-  enum { deepcopy = false };
-};
-
-template <>
-struct VerifyExecutionCanAccessMemorySpace<
-    Kokkos::Threads::memory_space, Kokkos::Threads::scratch_memory_space> {
-  enum { value = true };
-  inline static void verify(void) {}
-  inline static void verify(const void*) {}
+  enum : bool { assignable = false };
+  enum : bool { accessible = true };
+  enum : bool { deepcopy = false };
 };
 
 }  // namespace Impl

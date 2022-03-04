@@ -56,8 +56,8 @@
 
 int main(int narg, char* args[]) {
   using Kokkos::parallel_reduce;
-  typedef Kokkos::TeamPolicy<> team_policy;
-  typedef typename team_policy::member_type team_member;
+  using team_policy = Kokkos::TeamPolicy<>;
+  using team_member = typename team_policy::member_type;
 
   Kokkos::initialize(narg, args);
 
@@ -85,11 +85,16 @@ int main(int narg, char* args[]) {
       policy,
       KOKKOS_LAMBDA(const team_member& thread, int& lsum) {
         lsum += 1;
-        // TeamPolicy<>::member_type provides functions to query the
-        // multidimensional index of a thread, as well as the number of
-        // thread teams and the size of each team.
+    // TeamPolicy<>::member_type provides functions to query the
+    // multidimensional index of a thread, as well as the number of
+    // thread teams and the size of each team.
+#ifndef __SYCL_DEVICE_ONLY__
+        // FIXME_SYCL needs workaround for printf
         printf("Hello World: %i %i // %i %i\n", thread.league_rank(),
                thread.team_rank(), thread.league_size(), thread.team_size());
+#else
+        (void)thread;
+#endif
       },
       sum);
 #endif

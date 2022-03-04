@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(nvt/sllod,FixNVTSllod)
-
+// clang-format off
+FixStyle(nvt/sllod,FixNVTSllod);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_NVT_SLLOD_H
@@ -27,16 +27,16 @@ namespace LAMMPS_NS {
 class FixNVTSllod : public FixNH {
  public:
   FixNVTSllod(class LAMMPS *, int, char **);
-  ~FixNVTSllod() {}
-  void init();
+
+  void init() override;
 
  private:
   int nondeformbias;
 
-  void nh_v_temp();
+  void nh_v_temp() override;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

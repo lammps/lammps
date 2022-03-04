@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,8 +19,6 @@
 #include "math_extra.h"
 #include <cstdio>
 #include <cstring>
-
-#define MAXJACOBI 50
 
 namespace MathExtra {
 
@@ -73,8 +72,8 @@ int mldivide3(const double m[3][3], const double *v, double *ans)
       }
 
     for (unsigned j = i+1; j < 3; j++) {
-      double m = aug[j][i]/aug[i][i];
-      for (unsigned k=i+1; k<4; k++) aug[j][k]-=m*aug[i][k];
+      double n = aug[j][i]/aug[i][i];
+      for (unsigned k=i+1; k<4; k++) aug[j][k]-=n*aug[i][k];
     }
   }
 
@@ -90,88 +89,6 @@ int mldivide3(const double m[3][3], const double *v, double *ans)
   }
 
   return 0;
-}
-
-/* ----------------------------------------------------------------------
-   compute evalues and evectors of 3x3 real symmetric matrix
-   based on Jacobi rotations
-   adapted from Numerical Recipes jacobi() function
-------------------------------------------------------------------------- */
-
-int jacobi(double matrix[3][3], double *evalues, double evectors[3][3])
-{
-  int i,j,k;
-  double tresh,theta,tau,t,sm,s,h,g,c,b[3],z[3];
-
-  for (i = 0; i < 3; i++) {
-    for (j = 0; j < 3; j++) evectors[i][j] = 0.0;
-    evectors[i][i] = 1.0;
-  }
-  for (i = 0; i < 3; i++) {
-    b[i] = evalues[i] = matrix[i][i];
-    z[i] = 0.0;
-  }
-
-  for (int iter = 1; iter <= MAXJACOBI; iter++) {
-    sm = 0.0;
-    for (i = 0; i < 2; i++)
-      for (j = i+1; j < 3; j++)
-        sm += fabs(matrix[i][j]);
-    if (sm == 0.0) return 0;
-
-    if (iter < 4) tresh = 0.2*sm/(3*3);
-    else tresh = 0.0;
-
-    for (i = 0; i < 2; i++) {
-      for (j = i+1; j < 3; j++) {
-        g = 100.0*fabs(matrix[i][j]);
-        if (iter > 4 && fabs(evalues[i])+g == fabs(evalues[i])
-            && fabs(evalues[j])+g == fabs(evalues[j]))
-          matrix[i][j] = 0.0;
-        else if (fabs(matrix[i][j]) > tresh) {
-          h = evalues[j]-evalues[i];
-          if (fabs(h)+g == fabs(h)) t = (matrix[i][j])/h;
-          else {
-            theta = 0.5*h/(matrix[i][j]);
-            t = 1.0/(fabs(theta)+sqrt(1.0+theta*theta));
-            if (theta < 0.0) t = -t;
-          }
-          c = 1.0/sqrt(1.0+t*t);
-          s = t*c;
-          tau = s/(1.0+c);
-          h = t*matrix[i][j];
-          z[i] -= h;
-          z[j] += h;
-          evalues[i] -= h;
-          evalues[j] += h;
-          matrix[i][j] = 0.0;
-          for (k = 0; k < i; k++) rotate(matrix,k,i,k,j,s,tau);
-          for (k = i+1; k < j; k++) rotate(matrix,i,k,k,j,s,tau);
-          for (k = j+1; k < 3; k++) rotate(matrix,i,k,j,k,s,tau);
-          for (k = 0; k < 3; k++) rotate(evectors,k,i,k,j,s,tau);
-        }
-      }
-    }
-
-    for (i = 0; i < 3; i++) {
-      evalues[i] = b[i] += z[i];
-      z[i] = 0.0;
-    }
-  }
-  return 1;
-}
-
-/* ----------------------------------------------------------------------
-   perform a single Jacobi rotation
-------------------------------------------------------------------------- */
-
-void rotate(double matrix[3][3], int i, int j, int k, int l,
-            double s, double tau)
-{
-  double g = matrix[i][j];
-  double h = matrix[k][l];
-  matrix[i][j] = g-s*(h+g*tau);
-  matrix[k][l] = h+s*(g-h*tau);
 }
 
 /* ----------------------------------------------------------------------
@@ -258,7 +175,7 @@ void no_squish_rotate(int k, double *p, double *q, double *inertia,
   // obtain phi, cosines and sines
 
   phi = p[0]*kq[0] + p[1]*kq[1] + p[2]*kq[2] + p[3]*kq[3];
-  if (fabs(inertia[k-1]) < 1e-6) phi *= 0.0;
+  if (inertia[k-1] == 0.0) phi = 0.0;
   else phi /= 4.0 * inertia[k-1];
   c_phi = cos(dt * phi);
   s_phi = sin(dt * phi);
@@ -480,7 +397,7 @@ void quat_to_mat_trans(const double *quat, double mat[3][3])
    compute space-frame inertia tensor of an ellipsoid
    radii = 3 radii of ellipsoid
    quat = orientiation quaternion of ellipsoid
-   return symmetric inertia tensor as 6-vector in Voigt notation
+   return symmetric inertia tensor as 6-vector in Voigt ordering
 ------------------------------------------------------------------------- */
 
 void inertia_ellipsoid(double *radii, double *quat, double mass,
@@ -508,7 +425,7 @@ void inertia_ellipsoid(double *radii, double *quat, double mass,
    compute space-frame inertia tensor of a line segment in 2d
    length = length of line
    theta = orientiation of line
-   return symmetric inertia tensor as 6-vector in Voigt notation
+   return symmetric inertia tensor as 6-vector in Voigt ordering
 ------------------------------------------------------------------------- */
 
 void inertia_line(double length, double theta, double mass, double *inertia)
@@ -537,7 +454,7 @@ void inertia_line(double length, double theta, double mass, double *inertia)
 /* ----------------------------------------------------------------------
    compute space-frame inertia tensor of a triangle
    v0,v1,v2 = 3 vertices of triangle
-   from http://en.wikipedia.org/wiki/Inertia_tensor_of_triangle
+   from https://en.wikipedia.org/wiki/List_of_moments_of_inertia
    inertia tensor = a/24 (v0^2 + v1^2 + v2^2 + (v0+v1+v2)^2) I - a Vt S V
    a = 2*area of tri = |(v1-v0) x (v2-v0)|
    I = 3x3 identity matrix
@@ -546,7 +463,7 @@ void inertia_line(double length, double theta, double mass, double *inertia)
    S = 1/24 [2 1 1]
             [1 2 1]
             [1 1 2]
-   return symmetric inertia tensor as 6-vector in Voigt notation
+   return symmetric inertia tensor as 6-vector in Voigt ordering
 ------------------------------------------------------------------------- */
 
 void inertia_triangle(double *v0, double *v1, double *v2,
@@ -587,7 +504,7 @@ void inertia_triangle(double *v0, double *v1, double *v2,
    compute space-frame inertia tensor of a triangle
    idiag = previously computed diagonal inertia tensor
    quat = orientiation quaternion of triangle
-   return symmetric inertia tensor as 6-vector in Voigt notation
+   return symmetric inertia tensor as 6-vector in Voigt ordering
 ------------------------------------------------------------------------- */
 
 void inertia_triangle(double *idiag, double *quat, double /*mass*/,
@@ -638,7 +555,7 @@ void BuildRyMatrix(double R[3][3], const double angle)
 }
 
 /* ----------------------------------------------------------------------
- Build rotation matrix for a small angle rotation around the Y axis
+ Build rotation matrix for a small angle rotation around the Z axis
  ------------------------------------------------------------------------- */
 
 void BuildRzMatrix(double R[3][3], const double angle)

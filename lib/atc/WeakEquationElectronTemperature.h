@@ -10,21 +10,21 @@ namespace ATC{
 
  /**
    *  @class  WeakEquationElectronTemperature
-   *  @brief  Electron temperature 
-   *   c T_e,t = div q_e + g(T_e-T_p) --> 
+   *  @brief  Electron temperature
+   *   c T_e,t = div q_e + g(T_e-T_p) -->
    *   int M c T_e,t = int B q_e + int N g
    */
 
 class WeakEquationElectronTemperature : public WeakEquation {
 
   public:
-  
-  // constructor 
+
+  // constructor
   WeakEquationElectronTemperature();
 
   // destructor
   virtual ~WeakEquationElectronTemperature();
-  
+
   /** integrand  that used to form the energy */
   virtual bool has_E_integrand(void) const {return true;}
   virtual void E_integrand(const FIELD_MATS &fields,
@@ -47,7 +47,7 @@ class WeakEquationElectronTemperature : public WeakEquation {
 
   /** flux that is integrated with N as its weight */
   virtual bool has_N_integrand(void) const {return true;}
-  virtual bool N_integrand(const FIELD_MATS &fields, 
+  virtual bool N_integrand(const FIELD_MATS &fields,
                            const GRAD_FIELD_MATS &grad_fields,
                            const Material * material,
                            DENS_MAT &flux) const ;
@@ -68,21 +68,21 @@ class WeakEquationElectronTemperature : public WeakEquation {
  /**
    *  @class  WeakEquationElectronTemperatureJouleHeating
    *  @brief  Electron temperature with Joule heating
-   *   c T_e,t = div q_e + g(T_e-T_p) + J.E --> 
+   *   c T_e,t = div q_e + g(T_e-T_p) + J.E -->
    *   int M c T_e,t = int B q_e + int N ( g + J.E)
    */
 
-class WeakEquationElectronTemperatureJouleHeating : 
-  public WeakEquationElectronTemperature  
+class WeakEquationElectronTemperatureJouleHeating :
+  public WeakEquationElectronTemperature
 {
   public:
-  
-  // constructor 
+
+  // constructor
   WeakEquationElectronTemperatureJouleHeating();
 
   // destructor
   virtual ~WeakEquationElectronTemperatureJouleHeating();
-  
+
   /** integrand  that used to form the energy */
   virtual bool has_E_integrand(void) const {return true;}
   virtual void E_integrand(const FIELD_MATS &fields,
@@ -105,7 +105,7 @@ class WeakEquationElectronTemperatureJouleHeating :
 
   /** flux that is integrated with N as its weight */
   virtual bool has_N_integrand(void) const {return true;}
-  virtual bool N_integrand(const FIELD_MATS &fields, 
+  virtual bool N_integrand(const FIELD_MATS &fields,
                            const GRAD_FIELD_MATS &grad_fields,
                            const Material * material,
                            DENS_MAT &flux) const;
@@ -113,7 +113,7 @@ class WeakEquationElectronTemperatureJouleHeating :
   /** necessary interfaces */
   virtual std::set<std::string> needs_material_functions(void) const
   {
-    std::set<std::string> needs 
+    std::set<std::string> needs
       = WeakEquationElectronTemperature::needs_material_functions();
     needs.insert("electric_field");
     return needs;
@@ -121,7 +121,7 @@ class WeakEquationElectronTemperatureJouleHeating :
 
 
   protected:
-  
+
   /** conversion factor for charge * voltage --> mass length^2 / time^2 */
   double eV2E_;
 
@@ -131,16 +131,16 @@ class WeakEquationElectronTemperatureJouleHeating :
  /**
    *  @class  WeakEquationElectronTemperatureConvection
    *  @brief  Electron temperature with convection
-   *   c ( T_e,t + grad m_e J.E T_e / e ) = div q_e + g(T_e-T_p) + c n T_e grad J.E/(n e) --> 
+   *   c ( T_e,t + grad m_e J.E T_e / e ) = div q_e + g(T_e-T_p) + c n T_e grad J.E/(n e) -->
    *   int M c T_e,t = int B ( q_e - c m_e J.E T_e / e ) + int N ( g + c n T_e grad J.E/(n e) )
    */
 
-class WeakEquationElectronTemperatureConvection : 
+class WeakEquationElectronTemperatureConvection :
   public WeakEquationElectronTemperatureJouleHeating
 {
   public:
-  
-  // constructor 
+
+  // constructor
   WeakEquationElectronTemperatureConvection();
 
   // destructor
@@ -155,7 +155,7 @@ class WeakEquationElectronTemperatureConvection :
 
   /** flux that is integrated with N as its weight */
   virtual bool has_N_integrand(void) const {return true;}
-  virtual bool N_integrand(const FIELD_MATS &fields, 
+  virtual bool N_integrand(const FIELD_MATS &fields,
                            const GRAD_FIELD_MATS &grad_fields,
                            const Material * material,
                            DENS_MAT &flux) const;
@@ -163,7 +163,7 @@ class WeakEquationElectronTemperatureConvection :
   /** necessary interfaces */
   virtual std::set<std::string> needs_material_functions(void) const
   {
-    std::set<std::string> needs 
+    std::set<std::string> needs
       = WeakEquationElectronTemperature::needs_material_functions();
     needs.insert("electron_drag_power");
     return needs;
@@ -173,7 +173,7 @@ class WeakEquationElectronTemperatureConvection :
 
   /** workspace variable for the convective flux */
   mutable DENS_MAT_VEC _convectiveFlux_;
-  
+
 };
 
 }; // end namespace

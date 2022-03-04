@@ -11,12 +11,13 @@ Syntax
    thermo_modify keyword value ...
 
 * one or more keyword/value pairs may be listed
+* keyword = *lost* or *lost/bond* or *warn* or *norm* or *flush* or *line* or *format* or *temp* or *press*
 
   .. parsed-literal::
 
-     keyword = *lost* or *lost/bond* or *norm* or *flush* or *line* or *format* or *temp* or *press*\ :l
        *lost* value = *error* or *warn* or *ignore*
        *lost/bond* value = *error* or *warn* or *ignore*
+       *warn* value = *ignore* or *reset* or *default* or a number
        *norm* value = *yes* or *no*
        *flush* value = *yes* or *no*
        *line* value = *one* or *multi*
@@ -58,8 +59,8 @@ simulation box :doc:`boundary <boundary>` or if it moves more than a box
 length outside the simulation domain (or more than a processor
 sub-domain length) before reneighboring occurs.  The latter case is
 typically due to bad dynamics, e.g. too large a timestep or huge
-forces and velocities.  If the value is *ignore*\ , LAMMPS does not
-check for lost atoms.  If the value is *error* or *warn*\ , LAMMPS
+forces and velocities.  If the value is *ignore*, LAMMPS does not
+check for lost atoms.  If the value is *error* or *warn*, LAMMPS
 checks and either issues an error or warning.  The code will exit with
 an error and continue with a warning.  A warning will only be issued
 once, the first time an atom is lost.  This can be a useful debugging
@@ -75,19 +76,56 @@ are drifting out of the box through a fixed boundary condition (see
 the :doc:`boundary <boundary>` command).  In this case one atom may be
 deleted before the rest of the molecule is, on a later timestep.
 
+The *warn* keyword allows you to control whether LAMMPS will print
+warning messages and how many of them.  Most warning messages are only
+printed by MPI rank 0.  They are usually pointing out important issues
+that should be investigated, but LAMMPS cannot determine for
+certain whether they are an indication of an error.
+
+Some warning messages are printed during a run (or immediately before)
+each time a specific MPI rank encounters the issue, e.g. bonds that are
+stretched too far or dihedrals in extreme configurations. These number
+of these can quickly blow up the size of the log file and screen output.
+Thus a limit of 100 warning messages is applied by default.  The warning
+count is applied to the entire input unless reset with a ``thermo_modify
+warn reset`` command.  If there are more warnings than the limit, LAMMPS
+will print one final warning that it will not print any additional
+warning messages.
+
+.. note::
+
+   The warning limit is enforced on either the per-processor count or
+   the total count across all processors. For efficiency reasons,
+   however, the total count is only updated at steps with thermodynamic
+   output. Thus when running on a large number of processors in
+   parallel, the total number of warnings printed can be significantly
+   larger than the given limit.
+
+Any number after the keyword *warn* will change the warning limit
+accordingly.  With the value *ignore* all warnings will be suppressed,
+with the value *always* no limit will be applied and warnings will
+always be printed, with the value *reset* the internal warning counter
+will be reset to zero, and with the value *default*, the counter is
+reset and the limit set to 100.  An example usage of either *reset* or
+*default* would be to re-enable warnings that were disabled or have
+reached the limit during equilibration, where the warnings would be
+acceptable while the system is still adjusting, but then change
+to all warnings for the production run, where they would indicate
+problems that would require a closer look at what is causing them.
+
 The *norm* keyword determines whether various thermodynamic output
 values are normalized by the number of atoms or not, depending on
 whether it is set to *yes* or *no*\ .  Different unit styles have
 different defaults for this setting (see below).  Even if *norm* is
-set to *yes*\ , a value is only normalized if it is an "extensive"
+set to *yes*, a value is only normalized if it is an "extensive"
 quantity, meaning that it scales with the number of atoms in the
-system.  For the thermo keywords described by the doc page for the
+system.  For the thermo keywords described by the page for the
 :doc:`thermo_style <thermo_style>` command, all energy-related keywords
 are extensive, such as *pe* or *ebond* or *enthalpy*\ .  Other keywords
 such as *temp* or *press* are "intensive" meaning their value is
 independent (in a statistical sense) of the number of atoms in the
 system and thus are never normalized.  For thermodynamic output values
-extracted from fixes and computes in a :doc:`thermo_style custom <thermo_style>` command, the doc page for the individual
+extracted from fixes and computes in a :doc:`thermo_style custom <thermo_style>` command, the page for the individual
 :doc:`fix <fix>` or :doc:`compute <compute>` lists whether the value is
 "extensive" or "intensive" and thus whether it is normalized.
 Thermodynamic output values calculated by a variable formula are
@@ -96,9 +134,11 @@ always include a divide by the number of atoms in the variable formula
 if this is not the case.
 
 The *flush* keyword invokes a flush operation after thermodynamic info
-is written to the log file.  This insures the output in that file is
-current (no buffering by the OS), even if LAMMPS halts before the
-simulation completes.
+is written to the screen and log file.  This insures the output is
+updated and not buffered (by the application) even if LAMMPS halts
+before the simulation completes.  Please note that this does not
+affect buffering by the OS or devices, so you may still lose data
+in case the simulation stops due to a hardware failure.
 
 The *line* keyword determines whether thermodynamics will be output as
 a series of numeric values on one line or in a multi-line format with
@@ -116,7 +156,7 @@ is more than one field.  The *int* and *float* keywords take a single
 format argument and are applied to all integer or floating-point
 quantities output.  The setting for *M string* also takes a single
 format argument which is used for the Mth value output in each line,
-e.g. the 5th column is output in high precision for "format 5
+e.g. the fifth column is output in high precision for "format 5
 %20.15g".
 
 The *format* keyword can be used multiple times.  The precedence is
@@ -134,7 +174,7 @@ settings, reverting all values to their default format.
    a "%d"-style format identifier in the format string and LAMMPS will
    convert this to the corresponding 8-byte form when it is applied to
    those keywords.  However, when specifying the *line* option or *format
-   M string* option for *step* and *natoms*\ , you should specify a format
+   M string* option for *step* and *natoms*, you should specify a format
    string appropriate for an 8-byte signed integer, e.g. one with "%ld".
 
 The *temp* keyword is used to determine how thermodynamic temperature
@@ -181,9 +221,9 @@ Related commands
 Default
 """""""
 
-The option defaults are lost = error, norm = yes for unit style of
-*lj*\ , norm = no for unit style of *real* and *metal*\ , flush = no,
-and temp/press = compute IDs defined by thermo_style.
+The option defaults are lost = error, warn = 100, norm = yes for unit
+style of *lj*, norm = no for unit style of *real* and *metal*,
+flush = no, and temp/press = compute IDs defined by thermo_style.
 
 The defaults for the line and format options depend on the thermo
 style.  For styles "one" and "custom", the line and format defaults

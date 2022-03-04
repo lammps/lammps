@@ -39,7 +39,7 @@ figure out your physics or numerical mistakes, like choosing too big a
 timestep, specifying erroneous force field coefficients, or putting 2
 atoms on top of each other!  If you run into errors that LAMMPS
 does not catch that you think it should flag, please send an email to
-the `developers <https://lammps.sandia.gov/authors.html>`_.
+the `developers <https://www.lammps.org/authors.html>`_.
 
 If you get an error message about an invalid command in your input
 script, you can determine what command is causing the problem by
@@ -48,8 +48,10 @@ to see it on the screen.  If you get an error like "Invalid ...
 style", with ... being fix, compute, pair, etc, it means that you
 mistyped the style name or that the command is part of an optional
 package which was not compiled into your executable.  The list of
-available styles in your executable can be listed by using :doc:`the -h command-line swith <Run_options>`.  The installation and
-compilation of optional packages is explained on the :doc:`Build packages <Build_package>` doc page.
+available styles in your executable can be listed by using
+:doc:`the -h command-line switch <Run_options>`.  The installation and
+compilation of optional packages is explained on the
+:doc:`Build packages <Build_package>` doc page.
 
 For a given command, LAMMPS expects certain arguments in a specified
 order.  If you mess this up, LAMMPS will often flag the error, but it

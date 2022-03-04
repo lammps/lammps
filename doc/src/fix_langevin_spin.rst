@@ -70,7 +70,8 @@ different numbers of processors.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  Because the state of the random number generator
 is not saved in restart files, this means you cannot do "exact"
@@ -84,7 +85,7 @@ Restrictions
 """"""""""""
 
 The *langevin/spin* fix is part of the SPIN package.  This style is
-only enabled if LAMMPS was built with this package.  See the :doc:`Build package <Build_package>` doc page for more info.
+only enabled if LAMMPS was built with this package.  See the :doc:`Build package <Build_package>` page for more info.
 
 The numerical integration has to be performed with *fix nve/spin*
 when *fix langevin/spin* is enabled.
@@ -97,7 +98,10 @@ Related commands
 
 :doc:`fix nve/spin <fix_nve_spin>`, :doc:`fix precession/spin <fix_precession_spin>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

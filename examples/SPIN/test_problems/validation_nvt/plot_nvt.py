@@ -39,5 +39,5 @@ plt.xlabel('Time (in ps)')
 plt.legend()
 plt.show()
 
-fig.savefig(os.path.join(os.getcwd(), "nve_spin_lattice.pdf"), bbox_inches="tight")
+fig.savefig(os.path.join(os.getcwd(), "nvt_spin_lattice.pdf"), bbox_inches="tight")
 plt.close(fig)

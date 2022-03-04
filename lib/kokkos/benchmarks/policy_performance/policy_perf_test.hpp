@@ -68,8 +68,8 @@ void test_policy(int team_range, int thread_range, int vector_range,
                  int team_size, int vector_size, int test_type, ViewType1& v1,
                  ViewType2& v2, ViewType3& v3, double& result,
                  double& result_expect, double& time) {
-  typedef Kokkos::TeamPolicy<ScheduleType, IndexType> t_policy;
-  typedef typename t_policy::member_type t_team;
+  using t_policy = Kokkos::TeamPolicy<ScheduleType, IndexType>;
+  using t_team   = typename t_policy::member_type;
   Kokkos::Timer timer;
 
   for (int orep = 0; orep < outer_repeat; orep++) {

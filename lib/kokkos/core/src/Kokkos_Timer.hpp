@@ -45,6 +45,7 @@
 #ifndef KOKKOS_TIMER_HPP
 #define KOKKOS_TIMER_HPP
 
+#include <Kokkos_Macros.hpp>
 #include <chrono>
 
 namespace Kokkos {

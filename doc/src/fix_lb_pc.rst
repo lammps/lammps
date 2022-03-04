@@ -24,12 +24,13 @@ Description
 """""""""""
 
 Update the positions and velocities of the individual particles
-described by *group-ID*\ , experiencing velocity-dependent hydrodynamic
+described by *group-ID*, experiencing velocity-dependent hydrodynamic
 forces, using the integration algorithm described in :ref:`Mackay et al. <Mackay1>`.  This integration algorithm should only be used if a
 user-specified value for the force-coupling constant used in :doc:`fix lb/fluid <fix_lb_fluid>` has been set; do not use this integration
 algorithm if the force coupling constant has been set by default.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
@@ -40,8 +41,8 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 Restrictions
 """"""""""""
 
-This fix is part of the USER-LB package.  It is only enabled if LAMMPS
-was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This fix is part of the LATBOLTZ package.  It is only enabled if LAMMPS
+was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Can only be used if a lattice-Boltzmann fluid has been created via the
 :doc:`fix lb/fluid <fix_lb_fluid>` command, and must come after this
@@ -52,7 +53,10 @@ Related commands
 
 :doc:`fix lb/fluid <fix_lb_fluid>` :doc:`fix lb/rigid/pc/sphere <fix_lb_rigid_pc_sphere>`
 
-**Default:** None.
+Default
+"""""""
+
+none.
 
 ----------
 

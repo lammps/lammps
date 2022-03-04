@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef BOND_CLASS
-
-BondStyle(DEPRECATED,BondDeprecated)
-
+// clang-format off
+BondStyle(DEPRECATED,BondDeprecated);
+// clang-format on
 #else
 
 #ifndef LMP_BOND_DEPRECATED_H
@@ -27,18 +27,17 @@ namespace LAMMPS_NS {
 class BondDeprecated : public Bond {
  public:
   BondDeprecated(class LAMMPS *lmp) : Bond(lmp) {}
-  virtual ~BondDeprecated() {}
 
-  virtual void compute(int, int) {}
-  virtual void settings(int, char **);
-  virtual void coeff(int, char **) {}
-  virtual double equilibrium_distance(int) { return 0.0; }
-  virtual void write_restart(FILE *) {}
-  virtual void read_restart(FILE *) {}
-  virtual double single(int, double, int, int, double &) { return 0.0; }
+  void compute(int, int) override {}
+  void settings(int, char **) override;
+  void coeff(int, char **) override {}
+  double equilibrium_distance(int) override { return 0.0; }
+  void write_restart(FILE *) override {}
+  void read_restart(FILE *) override {}
+  double single(int, double, int, int, double &) override { return 0.0; }
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

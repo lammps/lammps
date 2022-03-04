@@ -55,8 +55,7 @@ commands.  The decomposition can be changed via the
 Restrictions
 """"""""""""
 
-Communication style *tiled* cannot be used with *triclinic* simulation
-cells.
+None
 
 Related commands
 """"""""""""""""

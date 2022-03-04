@@ -1,55 +1,47 @@
 .. index:: pair_style lj/charmm/coul/charmm
+.. index:: pair_style lj/charmm/coul/charmm/gpu
+.. index:: pair_style lj/charmm/coul/charmm/intel
+.. index:: pair_style lj/charmm/coul/charmm/kk
+.. index:: pair_style lj/charmm/coul/charmm/omp
+.. index:: pair_style lj/charmm/coul/charmm/implicit
+.. index:: pair_style lj/charmm/coul/charmm/implicit/kk
+.. index:: pair_style lj/charmm/coul/charmm/implicit/omp
+.. index:: pair_style lj/charmm/coul/long
+.. index:: pair_style lj/charmm/coul/long/gpu
+.. index:: pair_style lj/charmm/coul/long/intel
+.. index:: pair_style lj/charmm/coul/long/kk
+.. index:: pair_style lj/charmm/coul/long/opt
+.. index:: pair_style lj/charmm/coul/long/omp
+.. index:: pair_style lj/charmm/coul/msm
+.. index:: pair_style lj/charmm/coul/msm/omp
+.. index:: pair_style lj/charmmfsw/coul/charmmfsh
+.. index:: pair_style lj/charmmfsw/coul/long
 
 pair_style lj/charmm/coul/charmm command
-=========================================
+========================================
 
-pair_style lj/charmm/coul/charmm/intel command
-===============================================
-
-pair_style lj/charmm/coul/charmm/kk command
-============================================
-
-pair_style lj/charmm/coul/charmm/omp command
-=============================================
+Accelerator Variants: *lj/charmm/coul/charmm/gpu*, *lj/charmm/coul/charmm/intel*, *lj/charmm/coul/charmm/kk*, *lj/charmm/coul/charmm/omp*
 
 pair_style lj/charmm/coul/charmm/implicit command
-==================================================
+=================================================
 
-pair_style lj/charmm/coul/charmm/implicit/kk command
-=====================================================
-
-pair_style lj/charmm/coul/charmm/implicit/omp command
-======================================================
+Accelerator Variants: *lj/charmm/coul/charmm/implicit/kk*, *lj/charmm/coul/charmm/implicit/omp*
 
 pair_style lj/charmm/coul/long command
-=======================================
-
-pair_style lj/charmm/coul/long/gpu command
-===========================================
-
-pair_style lj/charmm/coul/long/intel command
-=============================================
-
-pair_style lj/charmm/coul/long/kk command
-==========================================
-
-pair_style lj/charmm/coul/long/opt command
-===========================================
-
-pair_style lj/charmm/coul/long/omp command
-===========================================
-
-pair_style lj/charmm/coul/msm command
 ======================================
 
-pair_style lj/charmm/coul/msm/omp command
-==========================================
+Accelerator Variants: *lj/charmm/coul/long/gpu*, *lj/charmm/coul/long/intel*, *lj/charmm/coul/long/kk*, *lj/charmm/coul/long/opt*, *lj/charmm/coul/long/omp*
+
+pair_style lj/charmm/coul/msm command
+=====================================
+
+Accelerator Variants: *lj/charmm/coul/msm/omp*
 
 pair_style lj/charmmfsw/coul/charmmfsh command
-===============================================
+==============================================
 
 pair_style lj/charmmfsw/coul/long command
-==========================================
+=========================================
 
 Syntax
 """"""
@@ -127,7 +119,7 @@ name are the older, original LAMMPS implementations.  They compute the
 LJ and Coulombic interactions with an energy switching function (esw,
 shown in the formula below as S(r)), which ramps the energy smoothly
 to zero between the inner and outer cutoff.  This can cause
-irregularities in pair-wise forces (due to the discontinuous 2nd
+irregularities in pairwise forces (due to the discontinuous second
 derivative of energy at the boundaries of the switching region), which
 in some cases can result in detectable artifacts in an MD simulation.
 
@@ -177,7 +169,7 @@ where S(r) is the energy switching function mentioned above for the
 functional forms of the force switching and force shifting functions
 used in the *charmmfsw* and *charmmfsh* styles.
 
-When using the *lj/charmm/coul/charmm styles*\ , both the LJ and
+When using the *lj/charmm/coul/charmm styles*, both the LJ and
 Coulombic terms require an inner and outer cutoff. They can be the
 same for both formulas or different depending on whether 2 or 4
 arguments are used in the pair_style command.  For the
@@ -201,7 +193,7 @@ biomolecule (no explicit water molecules).
 Styles *lj/charmm/coul/long* and *lj/charmm/coul/msm* compute the same
 formulas as style *lj/charmm/coul/charmm* and style
 *lj/charmmfsw/coul/long* computes the same formulas as style
-*lj/charmmfsw/coul/charmmfsh*\ , except that an additional damping
+*lj/charmmfsw/coul/charmmfsh*, except that an additional damping
 factor is applied to the Coulombic term, so it can be used in
 conjunction with the :doc:`kspace_style <kspace_style>` command and its
 *ewald* or *pppm* or *msm* option.  Only one Coulombic cutoff is
@@ -235,27 +227,12 @@ the pair_style command.
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the epsilon, sigma, epsilon_14,
 and sigma_14 coefficients for all of the lj/charmm pair styles can be
@@ -283,7 +260,7 @@ pair_coeff commands do not need to be specified in an input script
 that reads a restart file.
 
 The *lj/charmm/coul/long* and *lj/charmmfsw/coul/long* pair styles
-support the use of the *inner*\ , *middle*\ , and *outer* keywords of the
+support the use of the *inner*, *middle*, and *outer* keywords of the
 :doc:`run_style respa <run_style>` command, meaning the pairwise forces
 can be partitioned by distance at different levels of the rRESPA
 hierarchy.  The other styles only support the *pair* keyword of
@@ -306,7 +283,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(coul/wolf/kk,PairCoulWolfKokkos<LMPDeviceType>)
-PairStyle(coul/wolf/kk/device,PairCoulWolfKokkos<LMPDeviceType>)
-PairStyle(coul/wolf/kk/host,PairCoulWolfKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(coul/wolf/kk,PairCoulWolfKokkos<LMPDeviceType>);
+PairStyle(coul/wolf/kk/device,PairCoulWolfKokkos<LMPDeviceType>);
+PairStyle(coul/wolf/kk/host,PairCoulWolfKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_COUL_WOLF_KOKKOS_H
 #define LMP_PAIR_COUL_WOLF_KOKKOS_H
 
@@ -40,10 +41,10 @@ class PairCoulWolfKokkos : public PairCoulWolf {
   typedef ArrayTypes<DeviceType> AT;
   typedef EV_FLOAT value_type;
   PairCoulWolfKokkos(class LAMMPS *);
-  ~PairCoulWolfKokkos();
+  ~PairCoulWolfKokkos() override;
 
-  void compute(int, int);
-  void init_style();
+  void compute(int, int) override;
+  void init_style() override;
 
   template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
   KOKKOS_INLINE_FUNCTION

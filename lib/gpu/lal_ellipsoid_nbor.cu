@@ -34,7 +34,8 @@ __kernel void kernel_nbor(const __global numtyp4 *restrict x_,
                           __global int *dev_nbor,
                           const int nbor_pitch, const int start, const int inum,
                           const __global int *dev_ij,
-                          const int form_low, const int form_high) {
+                          const int form_low, const int form_high,
+                          const int t_per_atom) {
 
   // ii indexes the two interacting particles in gi
   int ii=GLOBAL_ID_X+start;
@@ -45,12 +46,15 @@ __kernel void kernel_nbor(const __global numtyp4 *restrict x_,
     int numj=dev_ij[nbor];
     nbor+=nbor_pitch;
     int nbor_end=nbor+fast_mul(numj,nbor_pitch);
-    int packed=ii+nbor_pitch+nbor_pitch;
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int iw=ix.w;
     int itype=fast_mul(iw,ntypes);
     int newj=0;
+
+    __global int *out_list=dev_nbor+2*nbor_pitch+ii*t_per_atom;
+    const int out_stride=nbor_pitch*t_per_atom-t_per_atom;
+
     for ( ; nbor<nbor_end; nbor+=nbor_pitch) {
       int sj=dev_ij[nbor];
       int j = sj & NEIGHMASK;
@@ -68,9 +72,11 @@ __kernel void kernel_nbor(const __global numtyp4 *restrict x_,
         rsq+=t*t;
 
         if (rsq<cf.x) {
-          dev_nbor[packed]=sj;
-          packed+=nbor_pitch;
+          *out_list=sj;
+          out_list++;
           newj++;
+          if ((newj & (t_per_atom-1))==0)
+            out_list+=out_stride;
         }
       }
     }
@@ -90,7 +96,8 @@ __kernel void kernel_nbor_fast(const __global numtyp4 *restrict x_,
                                const int nbor_pitch, const int start,
                                const int inum,
                                const __global int *dev_ij,
-                               const int form_low, const int form_high) {
+                               const int form_low, const int form_high,
+                               const int t_per_atom) {
 
   int ii=THREAD_ID_X;
   __local int form[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
@@ -108,13 +115,15 @@ __kernel void kernel_nbor_fast(const __global numtyp4 *restrict x_,
     int numj=dev_ij[nbor];
     nbor+=nbor_pitch;
     int nbor_end=nbor+fast_mul(numj,nbor_pitch);
-    int packed=ii+nbor_pitch+nbor_pitch;
 
     numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
     int iw=ix.w;
     int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
 
     int newj=0;
+
+    __global int *out_list=dev_nbor+2*nbor_pitch+ii*t_per_atom;
+    const int out_stride=nbor_pitch*t_per_atom-t_per_atom;
     for ( ; nbor<nbor_end; nbor+=nbor_pitch) {
       int sj=dev_ij[nbor];
       int j = sj & NEIGHMASK;
@@ -132,9 +141,11 @@ __kernel void kernel_nbor_fast(const __global numtyp4 *restrict x_,
         rsq+=t*t;
 
         if (rsq<cutsq[mtype]) {
-          dev_nbor[packed]=sj;
-          packed+=nbor_pitch;
+          *out_list=sj;
+          out_list++;
           newj++;
+          if ((newj & (t_per_atom-1))==0)
+            out_list+=out_stride;
         }
       }
     }

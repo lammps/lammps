@@ -1,6 +1,6 @@
 This directory contains the ch5md library, which is bundled with
 LAMMPS under its own BSD license; see below.  This library is used
-when the USER-H5MD package is included in a LAMMPS build and the dump
+when the H5MD package is included in a LAMMPS build and the dump
 h5md command is invoked in a LAMMPS input script.
 
 You can type "make lib-h5md" from the src directory to see help on how
@@ -25,8 +25,8 @@ license that can be found in the file LICENSE.
 To use the h5md dump style in lammps, execute
 make -f Makefile.h5cc
 in this directory then
-make yes-user-h5md
-in the src directory of LAMMPS to rebuild LAMMPS. 
+make yes-h5md
+in the src directory of LAMMPS to rebuild LAMMPS.
 
 Note that you must have the h5cc compiler installed to use
 Makefile.h5cc.  It should be part

@@ -7,6 +7,7 @@
 #include <cmath>
 #include <iostream>
 #include <limits>
+#include <string>
 
 namespace ArithmeticPathCV {
 
@@ -24,6 +25,7 @@ public:
     virtual void computeValue();
     virtual void computeDerivatives();
     virtual void compute();
+    virtual void reComputeLambda(const vector<scalar_type>& rmsd_between_refs);
 protected:
     scalar_type lambda;
     vector<scalar_type> weights;
@@ -77,7 +79,7 @@ void ArithmeticPathBase<element_type, scalar_type, path_type>::computeValue() {
             exponent_tmp += weights[j_elem] * frame_element_distances[i_frame][j_elem] * weights[j_elem] * frame_element_distances[i_frame][j_elem];
         }
         exponent_tmp = exponent_tmp * -1.0 * lambda;
-	// prevent underflow if the argument of cvm::exp is less than -708.4
+        // prevent underflow if the argument of cvm::exp is less than -708.4
         if (exponent_tmp > -708.4) {
             exponent_tmp = cvm::exp(exponent_tmp);
         } else {
@@ -124,6 +126,16 @@ void ArithmeticPathBase<element_type, scalar_type, path_type>::computeDerivative
     }
 }
 
+template <typename element_type, typename scalar_type, path_sz path_type>
+void ArithmeticPathBase<element_type, scalar_type, path_type>::reComputeLambda(const vector<scalar_type>& rmsd_between_refs) {
+    scalar_type mean_square_displacements = 0.0;
+    for (size_t i_frame = 1; i_frame < total_frames; ++i_frame) {
+        cvm::log(std::string("Distance between frame ") + cvm::to_str(i_frame) + " and " + cvm::to_str(i_frame + 1) + " is " + cvm::to_str(rmsd_between_refs[i_frame - 1]) + std::string("\n"));
+        mean_square_displacements += rmsd_between_refs[i_frame - 1] * rmsd_between_refs[i_frame - 1];
+    }
+    mean_square_displacements /= scalar_type(total_frames - 1);
+    lambda = 1.0 / mean_square_displacements;
+}
 }
 
 #endif // ARITHMETICPATHCV_H

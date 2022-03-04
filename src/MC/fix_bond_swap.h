@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(bond/swap,FixBondSwap)
-
+// clang-format off
+FixStyle(bond/swap,FixBondSwap);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_BONDSWAP_H
@@ -27,20 +27,20 @@ namespace LAMMPS_NS {
 class FixBondSwap : public Fix {
  public:
   FixBondSwap(class LAMMPS *, int, char **);
-  ~FixBondSwap();
-  int setmask();
-  void init();
-  void init_list(int, class NeighList *);
-  void post_integrate();
-  int modify_param(int, char **);
-  double compute_vector(int);
-  double memory_usage();
+  ~FixBondSwap() override;
+  int setmask() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void post_integrate() override;
+  int modify_param(int, char **) override;
+  double compute_vector(int) override;
+  double memory_usage() override;
 
  private:
-  double fraction,cutsq;
-  int nmax,tflag;
+  double fraction, cutsq;
+  int nmax, tflag;
   int *alist;
-  int naccept,foursome;
+  int naccept, foursome;
   int angleflag;
   char *id_temp;
   int *type;
@@ -56,7 +56,7 @@ class FixBondSwap : public Fix {
   double angle_eng(int, int, int, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

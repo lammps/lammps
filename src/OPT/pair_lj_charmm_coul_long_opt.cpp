@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -20,7 +21,7 @@
 
 #include "pair_lj_charmm_coul_long_opt.h"
 #include <cmath>
-#include <cstdlib>
+
 #include "atom.h"
 #include "force.h"
 #include "neigh_list.h"
@@ -332,7 +333,7 @@ void PairLJCharmmCoulLongOpt::eval()
     ff[i].z += tmpfz;
   }
 
-  free(fast_alpha); fast_alpha = 0;
+  free(fast_alpha); fast_alpha = nullptr;
 
   if (vflag_fdotr) virial_fdotr_compute();
 }

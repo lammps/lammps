@@ -3,7 +3,8 @@
 fix poems command
 =================
 
-Syntax:
+Syntax
+""""""
 
 .. parsed-literal::
 
@@ -38,16 +39,15 @@ useful for treating a large biomolecule as a collection of connected,
 coarse-grained particles.
 
 The coupling, associated motion constraints, and time integration is
-performed by the software package `Parallelizable Open source Efficient Multibody Software (POEMS) <poems_>`_ which computes the
-constrained rigid-body motion of articulated (jointed) multibody
-systems :ref:`(Anderson) <Anderson>`.  POEMS was written and is distributed
-by Prof Kurt Anderson, his graduate student Rudranarayan Mukherjee,
-and other members of his group at Rensselaer Polytechnic Institute
-(RPI).  Rudranarayan developed the LAMMPS/POEMS interface.  For
-copyright information on POEMS and other details, please refer to the
-documents in the poems directory distributed with LAMMPS.
-
-.. _poems: http://www.rpi.edu/~anderk5/lab
+performed by the software package `Parallelizable Open source
+Efficient Multibody Software (POEMS)` which computes the constrained
+rigid-body motion of articulated (jointed) multibody systems
+:ref:`(Anderson) <Anderson>`.  POEMS was written and is distributed by
+Prof Kurt Anderson, his graduate student Rudranarayan Mukherjee, and
+other members of his group at Rensselaer Polytechnic Institute (RPI).
+Rudranarayan developed the LAMMPS/POEMS interface.  For copyright
+information on POEMS and other details, please refer to the documents
+in the poems directory distributed with LAMMPS.
 
 This fix updates the positions and velocities of the rigid atoms with
 a constant-energy time integration, so you should not update the same
@@ -57,14 +57,14 @@ Each body must have a non-degenerate inertia tensor, which means if
 must contain at least 3 non-collinear atoms.  Which atoms are in which
 bodies can be defined via several options.
 
-For option *group*\ , each of the listed groups is treated as a rigid
+For option *group*, each of the listed groups is treated as a rigid
 body.  Note that only atoms that are also in the fix group are
 included in each rigid body.
 
-For option *molecule*\ , each set of atoms in the group with a different
+For option *molecule*, each set of atoms in the group with a different
 molecule ID is treated as a rigid body.
 
-For option *file*\ , sets of atoms are read from the specified file and
+For option *file*, sets of atoms are read from the specified file and
 each set is treated as a rigid body.  Each line of the file specifies
 a rigid body in the following format:
 
@@ -105,9 +105,19 @@ body contribution to the pressure virial is also accounted for.  The
 latter is only correct if forces within the bodies have been turned
 off, and there is only a single fix poems defined.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.
+No information about this fix is written to :doc:`binary restart files
+<restart>`.
+
+The :doc:`fix_modify <fix_modify>` *virial* option is supported by
+this fix to add the contribution due to the added forces and torques
+on atoms to both the global pressure and per-atom stress of the system
+via the :doc:`compute pressure <compute_pressure>` and :doc:`compute
+stress/atom <compute_stress_atom>` commands.  The former can be
+accessed by :doc:`thermodynamic output <thermo_style>`.  The default
+setting for this fix is :doc:`fix_modify virial yes <fix_modify>`.
 
 The :doc:`fix_modify <fix_modify>` *bodyforces* option is supported by
 this fix style to set whether per-body forces and torques are computed
@@ -115,16 +125,18 @@ early or late in a timestep, i.e. at the post-force stage or at the
 final-integrate stage, respectively.
 
 No global or per-atom quantities are stored by this fix for access by
-various :doc:`output commands <Howto_output>`.  No parameter of this fix
-can be used with the *start/stop* keywords of the :doc:`run <run>`
-command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
+various :doc:`output commands <Howto_output>`.  No parameter of this
+fix can be used with the *start/stop* keywords of the :doc:`run <run>`
+command.  This fix is not invoked during :doc:`energy minimization
+<minimize>`.
 
 Restrictions
 """"""""""""
 
-This fix is part of the POEMS package.  It is only enabled if LAMMPS
-was built with that package, which also requires the POEMS library be
-built and linked with LAMMPS.  See the :doc:`Build package <Build_package>` doc page for more info.
+This fix is part of the :ref:`POEMS <PKG-POEMS>` package.  It is only
+enabled if LAMMPS was built with that package, which also requires the
+POEMS library be built and linked with LAMMPS.  See the :doc:`Build
+package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
@@ -132,7 +144,10 @@ Related commands
 :doc:`fix rigid <fix_rigid>`, :doc:`delete_bonds <delete_bonds>`,
 :doc:`neigh_modify <neigh_modify>` exclude
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

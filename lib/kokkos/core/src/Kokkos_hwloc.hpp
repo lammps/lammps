@@ -45,6 +45,8 @@
 #ifndef KOKKOS_HWLOC_HPP
 #define KOKKOS_HWLOC_HPP
 
+#include <Kokkos_Macros.hpp>
+
 #include <utility>
 
 namespace Kokkos {

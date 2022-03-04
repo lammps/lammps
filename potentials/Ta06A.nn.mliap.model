@@ -1,0 +1,15 @@
+# DATE: 2021-03-03 UNITS: metal CONTRIBUTOR: Aidan Thompson athomps@sandia.gov CITATION: Thompson, Swiler, Trott, Foiles and Tucker, arxiv.org, 1409.3880 (2014) 
+
+# LAMMPS SNAP_nn coefficients for Ta_Cand06A
+
+# nelements nparams
+1 31
+# NET #ndescriptors #nlayers #activation_func for layer 1 #number of nodes for layer 1, ..., ..., ....,
+NET 30 1 linear 1
+#scale0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+#scale1
+1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+#coeff
+-2.92477 
+-0.01137 -0.00775 -0.04907 -0.15047 0.09157 0.05590 0.05785 -0.11615 -0.17122 -0.10583 0.03941 -0.11284 0.03939 -0.07331 -0.06582 -0.09341 -0.10587 -0.15497 0.04820 0.00205 0.00060 -0.04898 -0.05084 -0.03371 -0.01441 -0.01501 -0.00599 -0.06373 0.03965 0.01072

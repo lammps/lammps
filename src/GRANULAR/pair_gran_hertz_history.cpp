@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -181,6 +182,7 @@ void PairGranHertzHistory::compute(int eflag, int vflag)
         ccel = kn*(radsum-r)*rinv - damp;
         polyhertz = sqrt((radsum-r)*radi*radj / radsum);
         ccel *= polyhertz;
+        if (limit_damping && (ccel < 0.0)) ccel = 0.0;
 
         // relative velocities
 
@@ -202,11 +204,12 @@ void PairGranHertzHistory::compute(int eflag, int vflag)
         shrmag = sqrt(shear[0]*shear[0] + shear[1]*shear[1] +
                       shear[2]*shear[2]);
 
-        // rotate shear displacements
-
-        rsht = shear[0]*delx + shear[1]*dely + shear[2]*delz;
-        rsht *= rsqinv;
         if (shearupdate) {
+
+          // rotate shear displacements
+
+          rsht = shear[0]*delx + shear[1]*dely + shear[2]*delz;
+          rsht *= rsqinv;
           shear[0] -= rsht*delx;
           shear[1] -= rsht*dely;
           shear[2] -= rsht*delz;
@@ -277,23 +280,29 @@ void PairGranHertzHistory::compute(int eflag, int vflag)
 
 void PairGranHertzHistory::settings(int narg, char **arg)
 {
-  if (narg != 6) error->all(FLERR,"Illegal pair_style command");
+  if (narg != 6 && narg != 7) error->all(FLERR,"Illegal pair_style command");
 
-  kn = force->numeric(FLERR,arg[0]);
+  kn = utils::numeric(FLERR,arg[0],false,lmp);
   if (strcmp(arg[1],"NULL") == 0) kt = kn * 2.0/7.0;
-  else kt = force->numeric(FLERR,arg[1]);
+  else kt = utils::numeric(FLERR,arg[1],false,lmp);
 
-  gamman = force->numeric(FLERR,arg[2]);
+  gamman = utils::numeric(FLERR,arg[2],false,lmp);
   if (strcmp(arg[3],"NULL") == 0) gammat = 0.5 * gamman;
-  else gammat = force->numeric(FLERR,arg[3]);
+  else gammat = utils::numeric(FLERR,arg[3],false,lmp);
 
-  xmu = force->numeric(FLERR,arg[4]);
-  dampflag = force->inumeric(FLERR,arg[5]);
+  xmu = utils::numeric(FLERR,arg[4],false,lmp);
+  dampflag = utils::inumeric(FLERR,arg[5],false,lmp);
   if (dampflag == 0) gammat = 0.0;
 
   if (kn < 0.0 || kt < 0.0 || gamman < 0.0 || gammat < 0.0 ||
       xmu < 0.0 || xmu > 10000.0 || dampflag < 0 || dampflag > 1)
     error->all(FLERR,"Illegal pair_style command");
+
+  limit_damping = 0;
+  if (narg == 7) {
+    if (strcmp(arg[6], "limit_damping") == 0) limit_damping = 1;
+    else error->all(FLERR,"Illegal pair_style command");
+  }
 
   // convert Kn and Kt from pressure units to force/distance^2
 
@@ -312,7 +321,7 @@ double PairGranHertzHistory::single(int i, int j, int /*itype*/, int /*jtype*/,
   double r,rinv,rsqinv,delx,dely,delz;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3,wr1,wr2,wr3;
   double mi,mj,meff,damp,ccel,polyhertz;
-  double vtr1,vtr2,vtr3,vrel,shrmag,rsht;
+  double vtr1,vtr2,vtr3,vrel,shrmag;
   double fs1,fs2,fs3,fs,fn;
 
   double *radius = atom->radius;
@@ -388,6 +397,7 @@ double PairGranHertzHistory::single(int i, int j, int /*itype*/, int /*jtype*/,
   ccel = kn*(radsum-r)*rinv - damp;
   polyhertz = sqrt((radsum-r)*radi*radj / radsum);
   ccel *= polyhertz;
+  if (limit_damping && (ccel < 0.0)) ccel = 0.0;
 
   // relative velocities
 
@@ -416,11 +426,6 @@ double PairGranHertzHistory::single(int i, int j, int /*itype*/, int /*jtype*/,
   double *shear = &allshear[3*neighprev];
   shrmag = sqrt(shear[0]*shear[0] + shear[1]*shear[1] +
                 shear[2]*shear[2]);
-
-  // rotate shear displacements
-
-  rsht = shear[0]*delx + shear[1]*dely + shear[2]*delz;
-  rsht *= rsqinv;
 
   // tangential forces = shear + tangential velocity damping
 

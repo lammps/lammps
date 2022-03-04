@@ -14,7 +14,7 @@ Syntax
 * AtC fixID = ID of :doc:`fix atc <fix_atc>` instance
 * *output* or *output index* = name of the AtC sub-command
 * filename_prefix = prefix for data files (for *output*)
-* frequency = frequency of output in time-steps (for *output*)
+* frequency = frequency of output in timesteps (for *output*)
 * optional keywords for *output*:
 
   - text = creates text output of index, step and nodal variable values for unique nodes

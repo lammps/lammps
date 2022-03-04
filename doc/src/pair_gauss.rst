@@ -1,19 +1,18 @@
 .. index:: pair_style gauss
+.. index:: pair_style gauss/gpu
+.. index:: pair_style gauss/omp
+.. index:: pair_style gauss/cut
+.. index:: pair_style gauss/cut/omp
 
 pair_style gauss command
 ========================
 
-pair_style gauss/gpu command
-============================
-
-pair_style gauss/omp command
-============================
+Accelerator Variants: *gauss/gpu*, *gauss/omp*
 
 pair_style gauss/cut command
 ============================
 
-pair_style gauss/cut/omp command
-================================
+Accelerator Variants: *gauss/cut/omp*
 
 Syntax
 """"""
@@ -95,27 +94,12 @@ is used.
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the A, B, H, sigma_h, r_mh
 parameters, and the cutoff distance for these pair styles can be mixed:
@@ -159,7 +143,7 @@ to be specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 The *gauss* pair style tallies an "occupancy" count of how many Gaussian-well
 sites have an atom within the distance at which the force is a maximum
@@ -179,8 +163,18 @@ heading) the following commands could be included in an input script:
 Restrictions
 """"""""""""
 
-The *gauss/cut* style is part of the "user-misc" package. It is only
-enabled if LAMMPS is build with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+The *gauss* and *gauss/cut* styles are part of the EXTRA-PAIR package.
+They are only enabled if LAMMPS is build with that package.  See the
+:doc:`Build package <Build_package>` page for more info.
+
+The *gauss* style does not apply :doc:`special_bonds <special_bonds>`
+factors. When using this pair style on a system that has bonds, the
+special_bonds factors, if using the default setting of 0.0, may need to
+be adjusted to some very small number (e.g. 1.0e-100), so that those
+special pairs are not completely excluded from the neighbor lists, but
+won't contribute forces or energies from styles (e.g. when used in
+combination with a :doc:`hybrid pair style <pair_hybrid>`) that do
+apply those factors.
 
 Related commands
 """"""""""""""""
@@ -188,7 +182,10 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`,
 :doc:`pair_style coul/diel <pair_coul_diel>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 .. _Lenart2:
 

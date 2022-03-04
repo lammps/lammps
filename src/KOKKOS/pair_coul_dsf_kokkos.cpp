@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -46,6 +47,7 @@ PairCoulDSFKokkos<DeviceType>::PairCoulDSFKokkos(LAMMPS *lmp) : PairCoulDSF(lmp)
 {
   respa_enable = 0;
 
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;
@@ -414,7 +416,7 @@ int PairCoulDSFKokkos<DeviceType>::sbmask(const int& j) const {
 
 namespace LAMMPS_NS {
 template class PairCoulDSFKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class PairCoulDSFKokkos<LMPHostType>;
 #endif
 }

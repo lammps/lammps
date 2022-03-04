@@ -182,11 +182,7 @@ class TaskQueueSpecialization<SimpleTaskScheduler<Kokkos::OpenMP, QueueType> > {
   }
 
   static uint32_t get_max_team_count(execution_space const& espace) {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-    return static_cast<uint32_t>(espace.thread_pool_size());
-#else
     return static_cast<uint32_t>(espace.impl_thread_pool_size());
-#endif
   }
 
   // TODO @tasking @optimization DSH specialize this for trivially destructible
@@ -219,13 +215,7 @@ class TaskQueueSpecializationConstrained<
     using task_base_type = typename scheduler_type::task_base;
     using queue_type     = typename scheduler_type::queue_type;
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-    if (1 == OpenMP::thread_pool_size())
-#else
-    if (1 == OpenMP::impl_thread_pool_size())
-#endif
-    {
-
+    if (1 == OpenMP::impl_thread_pool_size()) {
       task_base_type* const end = (task_base_type*)task_base_type::EndTag;
 
       HostThreadTeamData& team_data_single =
@@ -269,11 +259,7 @@ class TaskQueueSpecializationConstrained<
         HostThreadTeamDataSingleton::singleton();
 
     Impl::OpenMPExec* instance = t_openmp_instance;
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-    const int pool_size = OpenMP::thread_pool_size();
-#else
-    const int pool_size = OpenMP::impl_thread_pool_size();
-#endif
+    const int pool_size        = OpenMP::impl_thread_pool_size();
 
     const int team_size = 1;       // Threads per core
     instance->resize_thread_data(0 /* global reduce buffer */
@@ -338,11 +324,6 @@ class TaskQueueSpecializationConstrained<
                 // count of 0 also. Otherwise, returns a task from another queue
                 // or `end` if one couldn't be popped
                 task = team_queue.attempt_to_steal_task();
-#if 0
-                if(task != no_more_tasks_sentinel && task != end) {
-                  std::printf("task stolen on rank %d\n", team_exec.league_rank());
-                }
-#endif
               }
 
               // If still tasks are still executing

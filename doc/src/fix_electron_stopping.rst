@@ -1,28 +1,41 @@
 .. index:: fix electron/stopping
+.. index:: fix electron/stopping/fit
 
 fix electron/stopping command
 =============================
+
+fix electron/stopping/fit command
+=================================
 
 Syntax
 """"""
 
 .. parsed-literal::
 
-   fix ID group-ID electron/stopping Ecut file keyword value ...
+   fix ID group-ID style args
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* electron/stopping = style name of this fix command
-* Ecut = minimum kinetic energy for electronic stopping (energy units)
-* file = name of the file containing the electronic stopping power table
-* zero or more keyword/value pairs may be appended to args
-* keyword = *region* or *minneigh*
+* style = *electron/stopping* or *electron/stopping/fit*
 
   .. parsed-literal::
 
+   *electron/stopping* args = Ecut file keyword value ...
+     Ecut  = minimum kinetic energy for electronic stopping (energy units)
+     file  = name of the file containing the electronic stopping power table
+
+   *electron/stopping/fit* args = Ecut c1 c2 ...
+     Ecut  = minimum kinetic energy for electronic stopping (energy units)
+     c1 c2 = linear and quadratic coefficients for the fitted quadratic polynomial
+
+* zero or more keyword/value pairs may be appended to args for style = *electron/stopping*
+
+  .. parsed-literal::
+
+    keyword = *region* or *minneigh*
        *region* value = region-ID
-         region-ID = region, whose atoms will be affected by this fix
+          region-ID = region whose atoms will be affected by this fix
        *minneigh* value = minneigh
-         minneigh = minimum number of neighbors an atom to have stopping applied
+          minneigh = minimum number of neighbors an atom to have stopping applied
 
 Examples
 """"""""
@@ -32,6 +45,8 @@ Examples
    fix el all electron/stopping 10.0 elstop-table.txt
    fix el all electron/stopping 10.0 elstop-table.txt minneigh 3
    fix el mygroup electron/stopping 1.0 elstop-table.txt region bulk
+   fix 1 all electron/stopping/fit 4.63 3.3e-3 4.0e-8
+   fix 1 all electron/stopping/fit 3.49 1.8e-3 9.0e-8 7.57 4.2e-3 5.0e-8
 
 Description
 """""""""""
@@ -77,7 +92,7 @@ its velocity and :math:`S_e` is the stopping power of the ion.
    atomic subsystems with the two-temperature model (:doc:`fix_ttm <fix_ttm>`).
 
 At low velocities the electronic stopping is negligible. The electronic
-friction is not applied to atoms whose kinetic energy is smaller than *Ecut*\ ,
+friction is not applied to atoms whose kinetic energy is smaller than *Ecut*,
 or smaller than the lowest energy value given in the table in *file*\ .
 Electronic stopping should be applied only when a projectile reaches bulk
 material. This fix scans neighbor list and excludes atoms with fewer than
@@ -118,7 +133,7 @@ For example:
    750      100      150
 
 If an atom which would have electronic stopping applied to it has a
-kinetic energy higher than the largest energy given in *file*\ , LAMMPS
+kinetic energy higher than the largest energy given in *file*, LAMMPS
 will exit with an error message.
 
 The stopping power depends on the energy of the ion and the target
@@ -129,7 +144,21 @@ scientific publications, experimental databases or by using
 of the impact parameter of the ion; these results can be used
 to derive the stopping power.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+----------
+
+Style *electron/stopping/fit* calculates the electronic stopping power
+and cumulative energy lost to the electron gas via a quadratic functional
+and applies a drag force to the classical equations-of-motion for all
+atoms moving above some minimum cutoff velocity (i.e., kinetic energy).
+These coefficients can be determined by fitting a quadratic polynomial to
+electronic stopping data predicted by, for example, SRIM or TD-DFT. Multiple
+'Ecut c1 c2' values can be provided for multi-species simulations in the order
+of the atom types. There is an examples/PACKAGES/electron_stopping/ directory,
+which illustrates uses of this command. Details of this implementation are
+further described in :ref:`Stewart2018 <Stewart2018>` and :ref:`Lee2020 <Lee2020>`.
+
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
@@ -146,7 +175,7 @@ on this fix.
 Restrictions
 """"""""""""
 
-This pair style is part of the USER-MISC package. It is only enabled if
+This pair style is part of the EXTRA-FIX package. It is only enabled if
 LAMMPS was built with that package. See the :doc:`Build package <Build_package>`
 doc page for more info.
 
@@ -180,3 +209,11 @@ The default is no limitation by region, and minneigh = 1.
 .. _PASS:
 
 **(PASS)** PASS webpage: https://www.sdu.dk/en/DPASS
+
+.. _Stewart2018:
+
+**(Stewart2018)** J.A. Stewart, et al. (2018) Journal of Applied Physics, 123(16), 165902.
+
+.. _Lee2020:
+
+**(Lee2020)** C.W. Lee, et al. (2020) Physical Review B, 102(2), 024107.

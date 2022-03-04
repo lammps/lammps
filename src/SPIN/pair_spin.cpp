@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -22,27 +23,28 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_spin.h"
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
-#include "fix.h"
+#include "fix_nve_spin.h"
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
 #include "modify.h"
-#include "neighbor.h"
 #include "neigh_request.h"
+#include "neighbor.h"
 #include "pair.h"
 #include "update.h"
-#include "fix_nve_spin.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairSpin::PairSpin(LAMMPS *lmp) : Pair(lmp), emag(NULL)
+PairSpin::PairSpin(LAMMPS *lmp) : Pair(lmp), emag(nullptr)
 {
   hbar = force->hplanck/MY_2PI;
   single_enable = 0;
@@ -50,10 +52,6 @@ PairSpin::PairSpin(LAMMPS *lmp) : Pair(lmp), emag(NULL)
   no_virial_fdotr_compute = 1;
   lattice_flag = 0;
 }
-
-/* ---------------------------------------------------------------------- */
-
-PairSpin::~PairSpin() {}
 
 /* ----------------------------------------------------------------------
    global settings
@@ -81,10 +79,8 @@ void PairSpin::init_style()
 
   // checking if nve/spin or neb/spin is a listed fix
 
-  bool have_fix = ((modify->find_fix_by_style("^nve/spin") != -1)
-                   || (modify->find_fix_by_style("^neb/spin") != -1));
-
-  if (!have_fix && (comm->me == 0))
+  if ((comm->me == 0) && ((modify->get_fix_by_style("^nve/spin").size()
+                           + modify->get_fix_by_style("^neb/spin").size()) == 0))
     error->warning(FLERR,"Using spin pair style without nve/spin or neb/spin");
 
   // check if newton pair is on
@@ -100,9 +96,11 @@ void PairSpin::init_style()
 
   // get the lattice_flag from nve/spin
 
-  int ifix = modify->find_fix_by_style("^nve/spin");
-  if (ifix >=0)
-    lattice_flag = ((FixNVESpin *) modify->fix[ifix])->lattice_flag;
+  auto fixes = modify->get_fix_by_style("^nve/spin");
+  if (fixes.size() == 1)
+    lattice_flag = ((FixNVESpin *) fixes.front())->lattice_flag;
+  else if (fixes.size() > 1)
+    error->warning(FLERR,"Using multiple instances of fix nve/spin or neb/spin");
 
   // init. size of energy stacking lists
 

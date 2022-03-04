@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(press/berendsen,FixPressBerendsen)
-
+// clang-format off
+FixStyle(press/berendsen,FixPressBerendsen);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_PRESS_BERENDSEN_H
@@ -27,36 +27,36 @@ namespace LAMMPS_NS {
 class FixPressBerendsen : public Fix {
  public:
   FixPressBerendsen(class LAMMPS *, int, char **);
-  ~FixPressBerendsen();
-  int setmask();
-  void init();
-  void setup(int);
-  void end_of_step();
-  int modify_param(int, char **);
+  ~FixPressBerendsen() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void end_of_step() override;
+  int modify_param(int, char **) override;
 
  protected:
-  int dimension,which;
+  int dimension, which;
   double bulkmodulus;
 
-  int pstyle,pcouple,allremap;
-  int p_flag[3];                   // 1 if control P on this dim, 0 if not
-  double p_start[3],p_stop[3];
-  double p_period[3],p_target[3];
-  double p_current[3],dilation[3];
+  int pstyle, pcouple, allremap;
+  int p_flag[3];    // 1 if control P on this dim, 0 if not
+  double p_start[3], p_stop[3];
+  double p_period[3], p_target[3];
+  double p_current[3], dilation[3];
   double factor[3];
-  int kspace_flag;                 // 1 if KSpace invoked, 0 if not
-  int nrigid;                      // number of rigid fixes
-  int *rfix;                       // indices of rigid fixes
+  int kspace_flag;    // 1 if KSpace invoked, 0 if not
+  int nrigid;         // number of rigid fixes
+  int *rfix;          // indices of rigid fixes
 
-  char *id_temp,*id_press;
-  class Compute *temperature,*pressure;
-  int tflag,pflag;
+  char *id_temp, *id_press;
+  class Compute *temperature, *pressure;
+  int tflag, pflag;
 
   void couple();
   void remap();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

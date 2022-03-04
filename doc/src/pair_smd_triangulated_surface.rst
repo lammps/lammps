@@ -1,7 +1,7 @@
 .. index:: pair_style smd/tri_surface
 
 pair_style smd/tri_surface command
-===================================
+==================================
 
 Syntax
 """"""
@@ -39,10 +39,11 @@ approach the triangulated surface. Usually, *scale_factor* =1.0.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No mixing is performed automatically.
-Currently, no part of USER-SMD supports restarting nor minimization.
+Currently, no part of MACHDYN supports restarting nor minimization.
 rRESPA does not apply to this pair style.
 
 ----------
@@ -50,12 +51,15 @@ rRESPA does not apply to this pair style.
 Restrictions
 """"""""""""
 
-This fix is part of the USER-SMD package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This fix is part of the MACHDYN package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none

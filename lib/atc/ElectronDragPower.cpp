@@ -16,7 +16,7 @@ namespace ATC {
 
 ElectronDragPowerLinear::ElectronDragPowerLinear(fstream &fileId,
                                                  map<string,double> & parameters,
-                                                 Material * material) 
+                                                 Material * material)
   : ElectronDragPower(),
     electronDragInvTau_(0),
     material_(material)
@@ -42,7 +42,7 @@ ElectronDragPowerLinear::ElectronDragPowerLinear(fstream &fileId,
                                                     const GRAD_FIELD_MATS & /* gradFields */,
                                                     DENS_MAT & flux)
 {
-  
+
   FIELD_MATS::const_iterator evField = fields.find(ELECTRON_VELOCITY);
   const DENS_MAT & v = evField->second;
 
@@ -57,7 +57,7 @@ ElectronDragPowerLinear::ElectronDragPowerLinear(fstream &fileId,
 
   return true;
 }
-  
+
 void ElectronDragPowerLinear::electron_drag_velocity_coefficient(const FIELD_MATS &fields,
                                                                  DENS_MAT & dragCoef)
 {

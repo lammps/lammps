@@ -59,9 +59,7 @@
 #include <impl/Kokkos_TaskResult.hpp>
 #include <impl/Kokkos_TaskQueue.hpp>
 
-#include <impl/Kokkos_Memory_Fence.hpp>
-#include <impl/Kokkos_Atomic_Increment.hpp>
-#include <impl/Kokkos_Atomic_Decrement.hpp>
+#include <Kokkos_Atomic.hpp>
 
 #include <string>
 #include <typeinfo>
@@ -159,8 +157,14 @@ class TaskQueueMultiple : public TaskQueue<ExecSpace, MemorySpace> {
               // task stolen.
               // first increment our ready count, then decrement the ready count
               // on the other queue:
-              Kokkos::atomic_increment(&this->m_ready_count);
-              Kokkos::atomic_decrement(&steal_from.m_ready_count);
+              Kokkos::Impl::desul_atomic_inc(
+                  &this->m_ready_count, Kokkos::Impl::MemoryOrderSeqCst(),
+                  Kokkos::Impl::MemoryScopeDevice());  // TODO?
+                                                       // memory_order_relaxed
+              Kokkos::Impl::desul_atomic_dec(
+                  &steal_from.m_ready_count, Kokkos::Impl::MemoryOrderSeqCst(),
+                  Kokkos::Impl::MemoryScopeDevice());  // TODO?
+                                                       // memory_order_relaxed
               return rv;
             }
           }
@@ -245,7 +249,7 @@ class LeagueQueueCollection {
   KOKKOS_INLINE_FUNCTION
   team_queue_type& get_team_queue(int iteam) {
     iteam %= max_num_queues;
-#if !defined(__HCC_ACCELERATOR__) && !defined(__CUDA_ARCH__)
+#if !defined(__HIP_DEVICE_COMPILE__) && !defined(__CUDA_ARCH__)
     assert(initialized());
     assert(iteam < m_size);
     assert(iteam >= 0);

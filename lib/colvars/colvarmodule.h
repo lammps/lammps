@@ -81,6 +81,12 @@ private:
 
 public:
 
+  /// Get the version string (YYYY-MM-DD format)
+  std::string version() const
+  {
+    return std::string(COLVARS_VERSION);
+  }
+
   /// Get the version number (higher = more recent)
   int version_number() const
   {
@@ -148,6 +154,12 @@ public:
   static inline real cos(real const &x)
   {
     return ::cos(static_cast<double>(x));
+  }
+
+  /// Reimplemented to work around MS compiler issues
+  static inline real asin(real const &x)
+  {
+    return ::asin(static_cast<double>(x));
   }
 
   /// Reimplemented to work around MS compiler issues
@@ -220,7 +232,6 @@ public:
   }
 
   static void clear_error();
-
 
   /// Current step number
   static step_number it;
@@ -371,6 +382,9 @@ public:
   /// anything that triggers another call
   int append_new_config(std::string const &conf);
 
+  /// Signals to the module object that the configuration has changed
+  void config_changed();
+
 private:
 
   /// Configuration string read so far by the module (includes comments)
@@ -441,6 +455,9 @@ public:
   /// Write the output restart file
   std::ostream & write_restart(std::ostream &os);
 
+  /// Strips .colvars.state from filename and checks that it is not empty
+  static std::string state_file_prefix(char const *filename);
+
   /// Open a trajectory file if requested (and leave it open)
   int open_traj_file(std::string const &file_name);
   /// Close it (note: currently unused)
@@ -458,6 +475,9 @@ public:
   int write_output_files();
   /// Backup a file before writing it
   static int backup_file(char const *filename);
+
+  /// Write the state into a string
+  int write_restart_string(std::string &output);
 
   /// Look up a bias by name; returns NULL if not found
   static colvarbias * bias_by_name(std::string const &name);
@@ -478,15 +498,6 @@ public:
   /// Calculate change in energy from using alt. config. for the given bias -
   /// currently works for harmonic (force constant and/or centers)
   real energy_difference(std::string const &bias_name, std::string const &conf);
-
-  /// Give the total number of bins for a given bias.
-  int bias_bin_num(std::string const &bias_name);
-  /// Calculate the bin index for a given bias.
-  int bias_current_bin(std::string const &bias_name);
-  //// Give the count at a given bin index.
-  int bias_bin_count(std::string const &bias_name, size_t bin_index);
-  //// Share among replicas.
-  int bias_share(std::string const &bias_name);
 
   /// Main worker function
   int calc();
@@ -686,6 +697,9 @@ public:
   static rvector position_distance(atom_pos const &pos1,
                                    atom_pos const &pos2);
 
+  /// \brief Names of .ndx files that have been loaded
+  std::vector<std::string> index_file_names;
+
   /// \brief Names of groups from one or more Gromacs .ndx files
   std::vector<std::string> index_group_names;
 
@@ -759,7 +773,11 @@ protected:
   /// Write labels at the next iteration
   bool cv_traj_write_labels;
 
-private:
+  /// Version of the most recent state file read
+  std::string restart_version_str;
+
+  /// Integer version of the most recent state file read
+  int restart_version_int;
 
   /// Counter for the current depth in the object hierarchy (useg e.g. in output)
   size_t depth_s;
@@ -771,6 +789,18 @@ private:
   int xyz_reader_use_count;
 
 public:
+
+  /// Version of the most recent state file read
+  inline std::string restart_version() const
+  {
+    return restart_version_str;
+  }
+
+  /// Integer version of the most recent state file read
+  inline int restart_version_number() const
+  {
+    return restart_version_int;
+  }
 
   /// Get the current object depth in the hierarchy
   static size_t & depth();

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 #include "ntopo_angle_template.h"
-#include <mpi.h>
+
 #include "atom.h"
 #include "atom_vec.h"
 #include "force.h"
@@ -23,6 +24,7 @@
 #include "molecule.h"
 #include "memory.h"
 #include "error.h"
+
 
 using namespace LAMMPS_NS;
 
@@ -76,16 +78,13 @@ void NTopoAngleTemplate::build()
       atom3 = atom->map(angle_atom3[iatom][m]+tagprev);
       if (atom1 == -1 || atom2 == -1 || atom3 == -1) {
         nmissing++;
-        if (lostbond == Thermo::ERROR) {
-          char str[128];
-          sprintf(str,"Angle atoms "
-                  TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT
-                  " missing on proc %d at step " BIGINT_FORMAT,
-                  angle_atom1[iatom][m]+tagprev,angle_atom2[iatom][m]+tagprev,
-                  angle_atom3[iatom][m]+tagprev,
-                  me,update->ntimestep);
-          error->one(FLERR,str);
-        }
+        if (lostbond == Thermo::ERROR)
+          error->one(FLERR,"Angle atoms {} {} {} missing on "
+                                       "proc {} at step {}",
+                                       angle_atom1[iatom][m]+tagprev,
+                                       angle_atom2[iatom][m]+tagprev,
+                                       angle_atom3[iatom][m]+tagprev,
+                                       me,update->ntimestep);
         continue;
       }
       atom1 = domain->closest_image(i,atom1);
@@ -110,10 +109,6 @@ void NTopoAngleTemplate::build()
 
   int all;
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
-  if (all) {
-    char str[128];
-    sprintf(str,
-            "Angle atoms missing at step " BIGINT_FORMAT,update->ntimestep);
-    if (me == 0) error->warning(FLERR,str);
-  }
+  if (all && (me == 0))
+    error->warning(FLERR,"Angle atoms missing at step {}",update->ntimestep);
 }

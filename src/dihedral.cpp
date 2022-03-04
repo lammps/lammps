@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -19,6 +20,7 @@
 #include "memory.h"
 #include "error.h"
 #include "suffix.h"
+#include "update.h"
 
 using namespace LAMMPS_NS;
 
@@ -36,10 +38,11 @@ Dihedral::Dihedral(LAMMPS *lmp) : Pointers(lmp)
   suffix_flag = Suffix::NONE;
 
   maxeatom = maxvatom = maxcvatom = 0;
-  eatom = NULL;
-  vatom = NULL;
-  cvatom = NULL;
-  setflag = NULL;
+  eatom = nullptr;
+  vatom = nullptr;
+  cvatom = nullptr;
+  setflag = nullptr;
+  centroidstressflag = CENTROID_AVAIL;
 
   execution_space = Host;
   datamask_read = ALL_MASK;
@@ -74,7 +77,19 @@ void Dihedral::init()
 
 /* ----------------------------------------------------------------------
    setup for energy, virial computation
-   see integrate::ev_set() for values of eflag (0-3) and vflag (0-6)
+   see integrate::ev_set() for bitwise settings of eflag/vflag
+   set the following flags, values are otherwise set to 0:
+     evflag       != 0 if any bits of eflag or vflag are set
+     eflag_global != 0 if ENERGY_GLOBAL bit of eflag set
+     eflag_atom   != 0 if ENERGY_ATOM bit of eflag set
+     eflag_either != 0 if eflag_global or eflag_atom is set
+     vflag_global != 0 if VIRIAL_PAIR or VIRIAL_FDOTR bit of vflag set
+     vflag_atom   != 0 if VIRIAL_ATOM bit of vflag set
+     vflag_atom   != 0 if VIRIAL_CENTROID bit of vflag set
+                       and centroidstressflag != CENTROID_AVAIL
+     cvflag_atom  != 0 if VIRIAL_CENTROID bit of vflag set
+                       and centroidstressflag = CENTROID_AVAIL
+     vflag_either != 0 if any of vflag_global, vflag_atom, cvflag_atom is set
 ------------------------------------------------------------------------- */
 
 void Dihedral::ev_setup(int eflag, int vflag, int alloc)
@@ -84,13 +99,17 @@ void Dihedral::ev_setup(int eflag, int vflag, int alloc)
   evflag = 1;
 
   eflag_either = eflag;
-  eflag_global = eflag % 2;
-  eflag_atom = eflag / 2;
+  eflag_global = eflag & ENERGY_GLOBAL;
+  eflag_atom = eflag & ENERGY_ATOM;
 
-  vflag_global = vflag % 4;
-  vflag_atom = vflag & 4;
-  cvflag_atom = vflag & 8;
-  vflag_either = vflag_global || vflag_atom;
+  vflag_global = vflag & (VIRIAL_PAIR | VIRIAL_FDOTR);
+  vflag_atom = vflag & VIRIAL_ATOM;
+  if (vflag & VIRIAL_CENTROID && centroidstressflag != CENTROID_AVAIL)
+    vflag_atom = 1;
+  cvflag_atom = 0;
+  if (vflag & VIRIAL_CENTROID && centroidstressflag == CENTROID_AVAIL)
+    cvflag_atom = 1;
+  vflag_either = vflag_global || vflag_atom || cvflag_atom;
 
   // reallocate per-atom arrays if necessary
 
@@ -371,10 +390,30 @@ void Dihedral::ev_tally(int i1, int i2, int i3, int i4,
 
 /* ---------------------------------------------------------------------- */
 
+void Dihedral::problem(const char *filename, int lineno,
+                       int i1, int i2, int i3, int i4)
+{
+  const auto x = atom->x;
+  auto warn = fmt::format("Dihedral problem: {} {} {} {} {} {}\n",
+                          comm->me, update->ntimestep, atom->tag[i1],
+                          atom->tag[i2], atom->tag[i3], atom->tag[i4]);
+  warn += fmt::format("WARNING:   1st atom: {} {:.8} {:.8} {:.8}\n",
+                      comm->me,x[i1][0],x[i1][1],x[i1][2]);
+  warn += fmt::format("WARNING:   2nd atom: {} {:.8} {:.8} {:.8}\n",
+                      comm->me,x[i2][0],x[i2][1],x[i2][2]);
+  warn += fmt::format("WARNING:   3rd atom: {} {:.8} {:.8} {:.8}\n",
+                      comm->me,x[i3][0],x[i3][1],x[i3][2]);
+  warn += fmt::format("WARNING:   4th atom: {} {:.8} {:.8} {:.8}",
+                      comm->me,x[i4][0],x[i4][1],x[i4][2]);
+  error->warning(filename, lineno, warn);
+}
+
+/* ---------------------------------------------------------------------- */
+
 double Dihedral::memory_usage()
 {
-  double bytes = comm->nthreads*maxeatom * sizeof(double);
-  bytes += comm->nthreads*maxvatom*6 * sizeof(double);
-  bytes += comm->nthreads*maxcvatom*9 * sizeof(double);
+  double bytes = (double)comm->nthreads*maxeatom * sizeof(double);
+  bytes += (double)comm->nthreads*maxvatom*6 * sizeof(double);
+  bytes += (double)comm->nthreads*maxcvatom*9 * sizeof(double);
   return bytes;
 }

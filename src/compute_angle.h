@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(angle,ComputeAngle)
-
+// clang-format off
+ComputeStyle(angle,ComputeAngle);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_ANGLE_H
@@ -27,9 +27,9 @@ namespace LAMMPS_NS {
 class ComputeAngle : public Compute {
  public:
   ComputeAngle(class LAMMPS *, int, char **);
-  ~ComputeAngle();
-  void init();
-  void compute_vector();
+  ~ComputeAngle() override;
+  void init() override;
+  void compute_vector() override;
 
  private:
   int nsub;
@@ -37,7 +37,7 @@ class ComputeAngle : public Compute {
   double *emine;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

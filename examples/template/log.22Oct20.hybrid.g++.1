@@ -1,0 +1,158 @@
+LAMMPS (22 Oct 2020)
+  using 1 OpenMP thread(s) per MPI task
+# demo using atom style hybrid template charge to simulate a h2o/co2 mixture
+
+units           real
+molecule        twomols h2o.mol co2.mol offset 2 1 1 0 0
+Read molecule template twomols:
+  1 molecules
+  3 atoms with max type 2
+  2 bonds with max type 1
+  1 angles with max type 1
+  0 dihedrals with max type 0
+  0 impropers with max type 0
+Read molecule template twomols:
+  1 molecules
+  3 atoms with max type 4
+  2 bonds with max type 2
+  1 angles with max type 2
+  0 dihedrals with max type 0
+  0 impropers with max type 0
+atom_style      hybrid template twomols charge
+boundary        p p p
+pair_style      lj/cut/coul/long  12
+pair_modify     mix arithmetic tail yes
+kspace_style    pppm 0.0001
+pair_style      lj/cut/coul/long  12
+bond_style      harmonic
+angle_style     harmonic
+
+read_data h2o-co2.data
+Reading data file ...
+  orthogonal box = (-10.000000 -10.000000 -10.000000) to (10.000000 10.000000 10.000000)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  384 atoms
+  256 template bonds
+  128 template angles
+  read_data CPU = 0.003 seconds
+
+group           h2o type 1 2
+192 atoms in group h2o
+group           co2 type 3 4
+192 atoms in group co2
+neighbor        1.0 bin
+neigh_modify    every 1 delay 1 check yes
+timestep        1.0
+
+velocity all create 300.0 34672
+thermo 100
+
+fix             1 all nve
+fix             2 all shake 1.0e-4 1000 500 b 1 a 1 mol twomols
+WARNING: Molecule template for fix shake has multiple molecules (src/RIGID/fix_shake.cpp:174)
+       0 = # of size 2 clusters
+       0 = # of size 3 clusters
+       0 = # of size 4 clusters
+      64 = # of frozen angles
+  find clusters CPU = 0.000 seconds
+#dump            1 all custom 100 h2o-co2.lammpstrj id mol xu yu zu
+
+run 2500
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb (src/kspace.cpp:328)
+  G vector (1/distance) = 0.21452218
+  grid = 8 8 8
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.0237525
+  estimated relative force accuracy = 7.1529949e-05
+  using double precision FFTW3
+  3d grid and FFT values/proc = 2197 512
+Neighbor list info ...
+  update every 1 steps, delay 1 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 15
+  ghost atom cutoff = 15
+  binsize = 7.5, bins = 3 3 3
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+SHAKE stats (type/ave/delta/count) on step 0
+     1   1.99995   1.29379e-05      192
+     1   328.411   6.25278e-13       64
+Per MPI rank memory allocation (min/avg/max) = 5.625 | 5.625 | 5.625 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0    360.18809   -173.24472 3.5527137e-13    169.25036    2429.6019 
+     100     363.1919   -274.40147    44.351072    115.30094    -883.3694 
+     200    427.79493   -329.78833    38.354106    115.34674    1523.3792 
+     300    465.88637   -350.56147    22.604289    115.04411     385.4719 
+     400     436.9596   -357.24661    57.161471    115.41032    2307.0158 
+SHAKE stats (type/ave/delta/count) on step 500
+     1   2.00000   4.02911e-07      192
+     1   328.410   5.78944e-05       64
+     500    480.93508   -378.08914     36.26854    115.49018     2822.245 
+     600    457.38119    -381.9922     62.73272    115.65441   -387.65281 
+     700    488.20843   -393.89334    45.144546    115.47805     3086.293 
+     800    463.52123   -384.28537    59.827245     116.2942    3310.9672 
+     900    500.42748   -424.29715    64.614956    116.16348   -612.56056 
+SHAKE stats (type/ave/delta/count) on step 1000
+     1   2.00000   8.23271e-07      192
+     1   328.410   5.98754e-05       64
+    1000    522.46734   -424.93564     44.24152     116.1088    3948.9908 
+    1100    470.79532   -398.30875    66.721422    116.08177    2480.4521 
+    1200    515.87076   -433.25982    58.802584    116.07313    1913.2295 
+    1300    517.25521    -425.5203    49.308433    115.63494     3343.755 
+    1400    515.28471   -427.75141    53.078285    115.29997    2755.9048 
+SHAKE stats (type/ave/delta/count) on step 1500
+     1   2.00000   8.95165e-07      192
+     1   328.410   7.19288e-05       64
+    1500    514.22181   -421.99736    48.624007    115.58906    2400.1515 
+    1600     533.9392   -430.89564    38.263047    115.07866    4331.2167 
+    1700    529.29154   -424.02106    35.673551    114.94439    2973.3181 
+    1800    535.52166   -438.41572    43.952454    114.75272    1799.8588 
+    1900    519.40791   -413.30717    34.399008     114.9856     4270.415 
+SHAKE stats (type/ave/delta/count) on step 2000
+     1   2.00000   8.04353e-07      192
+     1   328.410   7.97925e-05       64
+    2000    553.26572   -446.67936    35.423618    114.83268    1729.4708 
+    2100    546.58793   -448.39367    43.475288    114.82028    1266.9778 
+    2200    536.17021   -442.03485    46.968579    114.76641    2419.0965 
+    2300    556.29724   -457.19766    43.217115    114.99049    1122.5796 
+    2400    529.02178   -437.66639    49.530498    114.89949    1714.4747 
+SHAKE stats (type/ave/delta/count) on step 2500
+     1   2.00000   6.70601e-07      192
+     1   328.410   6.39002e-05       64
+    2500    500.56024   -423.00108    62.368402    115.33925    3750.7564 
+Loop time of 6.4485 on 1 procs for 2500 steps with 384 atoms
+
+Performance: 33.496 ns/day, 0.717 hours/ns, 387.687 timesteps/s
+99.4% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 4.9332     | 4.9332     | 4.9332     |   0.0 | 76.50
+Bond    | 0.013685   | 0.013685   | 0.013685   |   0.0 |  0.21
+Kspace  | 0.33226    | 0.33226    | 0.33226    |   0.0 |  5.15
+Neigh   | 1.0663     | 1.0663     | 1.0663     |   0.0 | 16.54
+Comm    | 0.062471   | 0.062471   | 0.062471   |   0.0 |  0.97
+Output  | 0.00048861 | 0.00048861 | 0.00048861 |   0.0 |  0.01
+Modify  | 0.030447   | 0.030447   | 0.030447   |   0.0 |  0.47
+Other   |            | 0.009605   |            |       |  0.15
+
+Nlocal:        384.000 ave         384 max         384 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:        5594.00 ave        5594 max        5594 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:       129739.0 ave      129739 max      129739 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 129739
+Ave neighs/atom = 337.86198
+Ave special neighs/atom = 2.0000000
+Neighbor list builds = 320
+Dangerous builds = 0
+Total wall time: 0:00:06

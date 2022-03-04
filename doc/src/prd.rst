@@ -30,8 +30,8 @@ Syntax
        *temp* value = Tdephase
          Tdephase = target temperature for velocity randomization, used in dephasing
        *vel* values = loop dist
-         loop = *all* or *local* or *geom*\ , used in dephasing
-         dist = *uniform* or *gaussian*\ , used in dephasing
+         loop = *all* or *local* or *geom*, used in dephasing
+         dist = *uniform* or *gaussian*, used in dephasing
        *time* value = *steps* or *clock*
          *steps* = simulation runs for N timesteps on each replica (default)
          *clock* = simulation runs for N timesteps across all replicas
@@ -72,7 +72,7 @@ reduced by a factor of Nr replicas.  HD uses a single replica of the
 system and accelerates time by biasing the interaction potential in a
 manner such that each timestep is effectively longer.  For both
 methods, per CPU second, more physical time elapses and more events
-occur.  See the :doc:`hyper <hyper>` doc page for more info about HD.
+occur.  See the :doc:`hyper <hyper>` page for more info about HD.
 
 In PRD, each replica runs on a partition of one or more processors.
 Processor partitions are defined at run-time using the :doc:`-partition command-line switch <Run_options>`.  Note that if you have MPI
@@ -171,8 +171,8 @@ dynamics have been performed.  Note that *N* only includes the
 dynamics of stages 2 and 3, not the steps taken during dephasing or
 the minimization iterations of quenching.  The specified *N* is
 interpreted in one of two ways, depending on the *time* keyword.  If
-the *time* value is *steps*\ , which is the default, then each replica
-runs for *N* timesteps.  If the *time* value is *clock*\ , then the
+the *time* value is *steps*, which is the default, then each replica
+runs for *N* timesteps.  If the *time* value is *clock*, then the
 simulation runs until *N* aggregate timesteps across all replicas have
 elapsed.  This aggregate time is the "clock" time defined below, which
 typically advances nearly M times faster than the timestepping on a

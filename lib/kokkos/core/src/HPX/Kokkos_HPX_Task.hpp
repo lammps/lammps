@@ -80,8 +80,11 @@ class TaskQueueSpecialization<
     // This is not necessarily the most efficient, but can be improved later.
     TaskQueueSpecialization<scheduler_type> task_queue;
     task_queue.scheduler = &scheduler;
-    Kokkos::Impl::dispatch_execute_task(&task_queue);
-    Kokkos::Experimental::HPX().fence();
+    Kokkos::Impl::dispatch_execute_task(&task_queue,
+                                        Kokkos::Experimental::HPX());
+    Kokkos::Experimental::HPX().fence(
+        "Kokkos::Impl::TaskQueueSpecialization<SimpleTask>::execute: fence "
+        "after task execution");
   }
 
   // Must provide task queue execution function
@@ -92,7 +95,7 @@ class TaskQueueSpecialization<
 
     const int num_worker_threads = Kokkos::Experimental::HPX::concurrency();
 
-    thread_buffer &buffer = Kokkos::Experimental::HPX::impl_get_buffer();
+    thread_buffer &buffer = Kokkos::Experimental::HPX().impl_get_buffer();
     buffer.resize(num_worker_threads, 512);
 
     auto &queue = scheduler->queue();
@@ -138,6 +141,10 @@ class TaskQueueSpecialization<
     }
 
     num_tasks_remaining.wait();
+
+#if defined(KOKKOS_ENABLE_HPX_ASYNC_DISPATCH)
+    Kokkos::Experimental::HPX::impl_decrement_active_parallel_region_count();
+#endif
   }
 
   static uint32_t get_max_team_count(execution_space const &espace) {
@@ -207,8 +214,9 @@ class TaskQueueSpecializationConstrained<
     // This is not necessarily the most efficient, but can be improved later.
     TaskQueueSpecializationConstrained<scheduler_type> task_queue;
     task_queue.scheduler = &scheduler;
-    Kokkos::Impl::dispatch_execute_task(&task_queue);
-    Kokkos::Experimental::HPX().fence();
+    Kokkos::Impl::dispatch_execute_task(&task_queue,
+                                        Kokkos::Experimental::HPX());
+    Kokkos::Experimental::HPX().fence()"Kokkos::Impl::TaskQueueSpecializationConstrained::execute: fence after task execution";
   }
 
   // Must provide task queue execution function
@@ -222,7 +230,7 @@ class TaskQueueSpecializationConstrained<
     static task_base_type *const end = (task_base_type *)task_base_type::EndTag;
     constexpr task_base_type *no_more_tasks_sentinel = nullptr;
 
-    thread_buffer &buffer = Kokkos::Experimental::HPX::impl_get_buffer();
+    thread_buffer &buffer = Kokkos::Experimental::HPX().impl_get_buffer();
     buffer.resize(num_worker_threads, 512);
 
     auto &queue = scheduler->queue();
@@ -276,6 +284,10 @@ class TaskQueueSpecializationConstrained<
     }
 
     num_tasks_remaining.wait();
+
+#if defined(KOKKOS_ENABLE_HPX_ASYNC_DISPATCH)
+    Kokkos::Experimental::HPX::impl_decrement_active_parallel_region_count();
+#endif
   }
 
   template <typename TaskType>

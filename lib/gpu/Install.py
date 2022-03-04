@@ -46,10 +46,10 @@ parser.add_argument("-b", "--build", action="store_true",
                     help="build the GPU library from scratch from a customized Makefile.auto")
 parser.add_argument("-m", "--machine", default='linux',
                     help="suffix of Makefile.machine used as base for customizing Makefile.auto")
-parser.add_argument("-a", "--arch", default='sm_30',
+parser.add_argument("-a", "--arch", default='sm_50',
                     choices=['sm_12', 'sm_13', 'sm_20', 'sm_21', 'sm_30', 'sm_35', 'sm_37',
-                             'sm_50', 'sm_52', 'sm_60', 'sm_61', 'sm_70', 'sm_75'],
-                    help="set GPU architecture and instruction set (default: 'sm_30')")
+                             'sm_50', 'sm_52', 'sm_60', 'sm_61', 'sm_70', 'sm_75', 'sm_80'],
+                    help="set GPU architecture and instruction set (default: 'sm_50')")
 parser.add_argument("-p", "--precision", default='mixed', choices=['single', 'mixed', 'double'],
                     help="set GPU kernel precision mode (default: mixed)")
 parser.add_argument("-e", "--extramake", default='standard',

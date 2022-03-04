@@ -55,8 +55,8 @@ a .gz suffix).  The format of the target file1 is as follows:
 
 The first 3 lines may or may not be needed, depending on the format of
 the atoms to follow.  If image flags are included with the atoms, the
-1st 3 lo/hi lines must appear in the file.  If image flags are not
-included, the 1st 3 lines should not appear.  The 3 lines contain the
+first 3 lo/hi lines must appear in the file.  If image flags are not
+included, the first 3 lines should not appear.  The 3 lines contain the
 simulation box dimensions for the atom coordinates, in the same format
 as in a LAMMPS data file (see the :doc:`read_data <read_data>` command).
 
@@ -89,7 +89,8 @@ to prevent it being overwritten.
 For more information about TMD, see :ref:`(Schlitter1) <Schlitter1>` and
 :ref:`(Schlitter2) <Schlitter2>`.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
@@ -104,6 +105,9 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
+This fix is part of the EXTRA-FIX package.  It is only enabled if LAMMPS
+was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+
 All TMD fixes must be listed in the input script after all integrator
 fixes (nve, nvt, npt) are applied.  This ensures that atoms are moved
 before their positions are corrected to comply with the constraint.
@@ -117,9 +121,16 @@ To read gzipped target files, you must compile LAMMPS with the
 -DLAMMPS_GZIP option.  See the :doc:`Build settings <Build_settings>`
 doc page for details.
 
-**Related commands:** none
+Related commands
+""""""""""""""""
 
-**Default:** none
+none
+
+
+Default
+"""""""
+
+none
 
 ----------
 

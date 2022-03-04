@@ -89,7 +89,7 @@ command creates a per-atom array with 6 columns:
 
 ----------
 
-The *Nevery*\ , *Nrepeat*\ , and *Nfreq* arguments specify on what
+The *Nevery*, *Nrepeat*, and *Nfreq* arguments specify on what
 timesteps the input values will be used in order to contribute to the
 average.  The final averaged quantities are generated on timesteps
 that are a multiple of *Nfreq*\ .  The average is over *Nrepeat*
@@ -136,7 +136,7 @@ appended, the per-atom vector calculated by the fix is used.  If a
 bracketed term containing an index I is appended, the Ith column of
 the per-atom array calculated by the fix is used.  Note that some
 fixes only produce their values on certain timesteps, which must be
-compatible with *Nevery*\ , else an error will result.  Users can also
+compatible with *Nevery*, else an error will result.  Users can also
 write code for their own fix styles and :doc:`add them to LAMMPS <Modify>`.  See the discussion above for how I can be
 specified with a wildcard asterisk to effectively specify multiple
 values.
@@ -149,7 +149,8 @@ per-atom quantities to time average.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global scalar or vector quantities are
@@ -175,4 +176,7 @@ Related commands
 :doc:`compute <compute>`, :doc:`fix ave/histo <fix_ave_histo>`, :doc:`fix ave/chunk <fix_ave_chunk>`, :doc:`fix ave/time <fix_ave_time>`,
 :doc:`variable <variable>`,
 
-**Default:** none
+Default
+"""""""
+
+none

@@ -9,6 +9,6 @@
 #include <cstdint>
 
 namespace LAMMPS_NS {
-  uint32_t hashlittle(const void *key, size_t length, uint32_t);
+uint32_t hashlittle(const void *key, size_t length, uint32_t);
 }
 #endif

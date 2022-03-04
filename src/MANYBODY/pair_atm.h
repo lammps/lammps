@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(atm,PairATM)
-
+// clang-format off
+PairStyle(atm,PairATM);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_ATM_H
@@ -27,27 +27,27 @@ namespace LAMMPS_NS {
 class PairATM : public Pair {
  public:
   PairATM(class LAMMPS *);
-  virtual ~PairATM();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  virtual void coeff(int, char **);
-  virtual void init_style();
-  virtual double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
+  ~PairATM() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
 
  protected:
-  double cut_global,cut_triple;
+  double cut_global, cut_triple;
   double ***nu;
 
   void allocate();
-  void interaction_ddd(double, double, double, double, double, double *,
-                       double *, double *, double *, double *, int, double &);
+  void interaction_ddd(double, double, double, double, double, double *, double *, double *,
+                       double *, double *, int, double &);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

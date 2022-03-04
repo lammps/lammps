@@ -53,7 +53,7 @@ granular particles; all the other commands create smooth walls.
 * :doc:`fix wall/region <fix_wall_region>` - use region surface as wall
 * :doc:`fix wall/gran <fix_wall_gran>` - flat or curved walls with :doc:`pair_style granular <pair_gran>` potential
 
-The *lj93*\ , *lj126*\ , *colloid*\ , *harmonic*\ , and *morse* styles all
+The *lj93*, *lj126*, *colloid*, *harmonic*, and *morse* styles all
 allow the flat walls to move with a constant velocity, or oscillate in
 time.  The :doc:`fix wall/region <fix_wall_region>` command offers the
 most generality, since the region surface is treated as a wall, and
@@ -67,5 +67,5 @@ rotate.
 
 The only frictional idealized walls currently in LAMMPS are flat or
 curved surfaces specified by the :doc:`fix wall/gran <fix_wall_gran>`
-command.  At some point we plan to allow regoin surfaces to be used as
+command.  At some point we plan to allow region surfaces to be used as
 frictional walls, as well as triangulated surfaces.

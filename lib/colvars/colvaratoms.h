@@ -101,18 +101,14 @@ public:
   inline void update_mass()
   {
     colvarproxy *p = cvm::proxy;
-    if (p->updated_masses()) {
-      mass = p->get_atom_mass(index);
-    }
+    mass = p->get_atom_mass(index);
   }
 
   /// Get the latest value of the charge
   inline void update_charge()
   {
     colvarproxy *p = cvm::proxy;
-    if (p->updated_charges()) {
-      charge = p->get_atom_charge(index);
-    }
+    charge = p->get_atom_charge(index);
   }
 
   /// Get the current position
@@ -328,35 +324,23 @@ public:
   /// If yes, returns 1-based number of a common atom; else, returns 0
   static int overlap(const atom_group &g1, const atom_group &g2);
 
-  /// \brief When updating atomic coordinates, translate them to align with the
-  /// center of mass of the reference coordinates
-  bool b_center;
-
-  /// \brief When updating atom coordinates (and after
-  /// centering them if b_center is set), rotate the group to
-  /// align with the reference coordinates.
-  ///
-  /// Note: gradients will be calculated in the rotated frame: when
-  /// forces will be applied, they will rotated back to the original
-  /// frame
-  bool b_rotate;
-  /// The rotation calculated automatically if b_rotate is defined
+  /// The rotation calculated automatically if f_ag_rotate is defined
   cvm::rotation rot;
 
-  /// \brief Indicates that the user has explicitly set centerReference or
+  /// \brief Indicates that the user has explicitly set centerToReference or
   /// rotateReference, and the corresponding reference:
   /// cvc's (eg rmsd, eigenvector) will not override the user's choice
   bool b_user_defined_fit;
 
-  /// \brief use reference coordinates for b_center or b_rotate
+  /// \brief use reference coordinates for f_ag_center or f_ag_rotate
   std::vector<cvm::atom_pos> ref_pos;
 
   /// \brief Center of geometry of the reference coordinates; regardless
-  /// of whether b_center is true, ref_pos is centered to zero at
+  /// of whether f_ag_center is true, ref_pos is centered to zero at
   /// initialization, and ref_pos_cog serves to center the positions
   cvm::atom_pos              ref_pos_cog;
 
-  /// \brief If b_center or b_rotate is true, use this group to
+  /// \brief If f_ag_center or f_ag_rotate is true, use this group to
   /// define the transformation (default: this group itself)
   atom_group                *fitting_group;
 
@@ -395,12 +379,12 @@ public:
   void apply_translation(cvm::rvector const &t);
 
   /// \brief Get the current velocities; this must be called always
-  /// *after* read_positions(); if b_rotate is defined, the same
+  /// *after* read_positions(); if f_ag_rotate is defined, the same
   /// rotation applied to the coordinates will be used
   void read_velocities();
 
   /// \brief Get the current total_forces; this must be called always
-  /// *after* read_positions(); if b_rotate is defined, the same
+  /// *after* read_positions(); if f_ag_rotate is defined, the same
   /// rotation applied to the coordinates will be used
   void read_total_forces();
 

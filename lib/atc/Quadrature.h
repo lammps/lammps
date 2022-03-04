@@ -2,9 +2,9 @@
 #define QUADRATURE_H
 
 namespace ATC {
-/** 
-  *  @class Quadrature 
-  *  @brief create quadrature lists  
+/**
+  *  @class Quadrature
+  *  @brief create quadrature lists
 */
 class Quadrature {
   public:

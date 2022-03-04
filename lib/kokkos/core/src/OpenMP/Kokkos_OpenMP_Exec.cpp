@@ -56,7 +56,7 @@
 
 #include <impl/Kokkos_Error.hpp>
 #include <impl/Kokkos_CPUDiscovery.hpp>
-#include <impl/Kokkos_Profiling_Interface.hpp>
+#include <impl/Kokkos_Tools.hpp>
 
 namespace Kokkos {
 namespace Impl {
@@ -250,12 +250,7 @@ namespace Kokkos {
 
 //----------------------------------------------------------------------------
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-int OpenMP::get_current_max_threads() noexcept
-#else
-int OpenMP::impl_get_current_max_threads() noexcept
-#endif
-{
+int OpenMP::impl_get_current_max_threads() noexcept {
   // Using omp_get_max_threads(); is problematic in conjunction with
   // Hwloc on Intel (essentially an initial call to the OpenMP runtime
   // without a parallel region before will set a process mask for a single core
@@ -274,12 +269,7 @@ int OpenMP::impl_get_current_max_threads() noexcept
   return count;
 }
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-void OpenMP::initialize(int thread_count)
-#else
-void OpenMP::impl_initialize(int thread_count)
-#endif
-{
+void OpenMP::impl_initialize(int thread_count) {
   if (omp_in_parallel()) {
     std::string msg("Kokkos::OpenMP::initialize ERROR : in parallel");
     Kokkos::Impl::throw_runtime_exception(msg);
@@ -306,11 +296,7 @@ void OpenMP::impl_initialize(int thread_count)
     // Before any other call to OMP query the maximum number of threads
     // and save the value for re-initialization unit testing.
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-    Impl::g_openmp_hardware_max_threads = get_current_max_threads();
-#else
     Impl::g_openmp_hardware_max_threads = impl_get_current_max_threads();
-#endif
 
     int process_num_threads = Impl::g_openmp_hardware_max_threads;
 
@@ -391,20 +377,11 @@ void OpenMP::impl_initialize(int thread_count)
   }
   // Init the array for used for arbitrarily sized atomics
   Impl::init_lock_array_host_space();
-
-#if defined(KOKKOS_ENABLE_DEPRECATED_CODE) && defined(KOKKOS_ENABLE_PROFILING)
-  Kokkos::Profiling::initialize();
-#endif
 }
 
 //----------------------------------------------------------------------------
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-void OpenMP::finalize()
-#else
-void OpenMP::impl_finalize()
-#endif
-{
+void OpenMP::impl_finalize() {
   if (omp_in_parallel()) {
     std::string msg("Kokkos::OpenMP::finalize ERROR ");
     if (!Impl::t_openmp_instance) msg.append(": not initialized");
@@ -440,9 +417,7 @@ void OpenMP::impl_finalize()
     Impl::g_openmp_hardware_max_threads = 1;
   }
 
-#if defined(KOKKOS_ENABLE_PROFILING)
   Kokkos::Profiling::finalize();
-#endif
 }
 
 //----------------------------------------------------------------------------
@@ -472,18 +447,62 @@ OpenMP OpenMP::create_instance(...) { return OpenMP(); }
 
 int OpenMP::concurrency() { return Impl::g_openmp_hardware_max_threads; }
 
-#ifndef KOKKOS_ENABLE_DEPRECATED_CODE
-void OpenMP::fence() const {}
-#endif
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-
-void OpenMP::initialize(int thread_count, int, int) {
-  initialize(thread_count);
+void OpenMP::fence() const {
+  fence("Kokkos::OpenMP::fence: Unnamed Instance Fence");
+}
+void OpenMP::fence(const std::string &name) const {
+  Kokkos::Tools::Experimental::Impl::profile_fence_event<Kokkos::OpenMP>(
+      name, Kokkos::Tools::Experimental::Impl::DirectFenceIDHandle{1}, []() {});
 }
 
+namespace Impl {
+
+int g_openmp_space_factory_initialized =
+    initialize_space_factory<OpenMPSpaceInitializer>("050_OpenMP");
+
+void OpenMPSpaceInitializer::initialize(const InitArguments &args) {
+  // Prevent "unused variable" warning for 'args' input struct.  If
+  // Serial::initialize() ever needs to take arguments from the input
+  // struct, you may remove this line of code.
+  const int num_threads = args.num_threads;
+
+  if (std::is_same<Kokkos::OpenMP, Kokkos::DefaultExecutionSpace>::value ||
+      std::is_same<Kokkos::OpenMP, Kokkos::HostSpace::execution_space>::value) {
+    Kokkos::OpenMP::impl_initialize(num_threads);
+  } else {
+    // std::cout << "Kokkos::initialize() fyi: OpenMP enabled but not
+    // initialized" << std::endl ;
+  }
+}
+
+void OpenMPSpaceInitializer::finalize(const bool) {
+  if (Kokkos::OpenMP::impl_is_initialized()) Kokkos::OpenMP::impl_finalize();
+}
+
+void OpenMPSpaceInitializer::fence() { Kokkos::OpenMP::impl_static_fence(); }
+void OpenMPSpaceInitializer::fence(const std::string &name) {
+  Kokkos::OpenMP::impl_static_fence(OpenMP(), name);
+}
+
+void OpenMPSpaceInitializer::print_configuration(std::ostream &msg,
+                                                 const bool detail) {
+  msg << "Host Parallel Execution Space:" << std::endl;
+  msg << "  KOKKOS_ENABLE_OPENMP: ";
+  msg << "yes" << std::endl;
+
+  msg << "OpenMP Atomics:" << std::endl;
+  msg << "  KOKKOS_ENABLE_OPENMP_ATOMICS: ";
+#ifdef KOKKOS_ENABLE_OPENMP_ATOMICS
+  msg << "yes" << std::endl;
+#else
+  msg << "no" << std::endl;
 #endif
 
+  msg << "\nOpenMP Runtime Configuration:" << std::endl;
+  OpenMP::print_configuration(msg, detail);
+}
+
+}  // namespace Impl
 }  // namespace Kokkos
 
 #else

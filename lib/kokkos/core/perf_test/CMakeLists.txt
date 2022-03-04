@@ -9,6 +9,12 @@
 # that in TriBITS KokkosAlgorithms can be disabled...
 #INCLUDE_DIRECTORIES("${CMAKE_CURRENT_SOURCE_DIR}/../../algorithms/src")
 
+# FIXME_OPENMPTARGET - the NVIDIA HPC compiler nvc++ in the OpenMPTarget backend does not pass the perf_tests.
+IF (KOKKOS_ENABLE_OPENMPTARGET AND KOKKOS_CXX_COMPILER_ID STREQUAL NVHPC)
+  RETURN()
+ENDIF()
+
+
 SET(SOURCES
   PerfTestMain.cpp
   PerfTestGramSchmidt.cpp
@@ -48,12 +54,13 @@ SET(SOURCES
   PerfTest_ViewResize_8.cpp
   )
 
-IF(Kokkos_ENABLE_HIP)
-# FIXME requires TeamPolicy
+IF(Kokkos_ENABLE_OPENMPTARGET)
+# FIXME OPENMPTARGET requires TeamPolicy Reductions and Custom Reduction
   LIST(REMOVE_ITEM SOURCES
+    PerfTestGramSchmidt.cpp
     PerfTest_CustomReduction.cpp
     PerfTest_ExecSpacePartitioning.cpp
-    )
+  )
 ENDIF()
 
 # Per #374, we always want to build this test, but we only want to run
@@ -76,7 +83,30 @@ IF(NOT KOKKOS_CXX_COMPILER_ID STREQUAL "MSVC")
 ENDIF()
 
 KOKKOS_ADD_EXECUTABLE_AND_TEST(
-  PerformanceTest_TaskDag
-  SOURCES test_taskdag.cpp
+  PerformanceTest_Atomic
+  SOURCES test_atomic.cpp
   CATEGORIES PERFORMANCE
 )
+
+IF(NOT KOKKOS_ENABLE_CUDA OR KOKKOS_ENABLE_CUDA_LAMBDA)
+  KOKKOS_ADD_EXECUTABLE_AND_TEST(
+    PerformanceTest_Atomic_MinMax
+    SOURCES test_atomic_minmax_simple.cpp
+    CATEGORIES PERFORMANCE
+  )
+ENDIF()
+
+KOKKOS_ADD_EXECUTABLE_AND_TEST(
+  PerformanceTest_Mempool
+  SOURCES test_mempool.cpp
+  CATEGORIES PERFORMANCE
+)
+
+IF(NOT Kokkos_ENABLE_OPENMPTARGET)
+# FIXME OPENMPTARGET needs tasking
+  KOKKOS_ADD_EXECUTABLE_AND_TEST(
+    PerformanceTest_TaskDag
+    SOURCES test_taskdag.cpp
+    CATEGORIES PERFORMANCE
+  )
+ENDIF()

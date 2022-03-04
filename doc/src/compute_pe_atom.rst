@@ -84,11 +84,12 @@ in the last 2 columns of thermo output:
    corrections to the energy added by the :doc:`pair_modify tail yes <pair_modify>` command, since those are contributions to the
    global system energy.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-atom vector, which can be accessed by
 any command that uses per-atom values from a compute as input.  See
-the :doc:`Howto output <Howto_output>` doc page for an overview of
+the :doc:`Howto output <Howto_output>` page for an overview of
 LAMMPS output options.
 
 The per-atom vector values will be in energy :doc:`units <units>`.
@@ -101,7 +102,10 @@ Related commands
 
 :doc:`compute pe <compute_pe>`, :doc:`compute stress/atom <compute_stress_atom>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

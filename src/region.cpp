@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,16 +13,17 @@
 ------------------------------------------------------------------------- */
 
 #include "region.h"
+
+#include "domain.h"
+#include "error.h"
+#include "input.h"
+#include "lattice.h"
+#include "math_extra.h"
+#include "update.h"
+#include "variable.h"
+
 #include <cmath>
 #include <cstring>
-#include "update.h"
-#include "domain.h"
-#include "lattice.h"
-#include "input.h"
-#include "variable.h"
-#include "math_extra.h"
-#include "error.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 
@@ -29,25 +31,20 @@ using namespace LAMMPS_NS;
 
 Region::Region(LAMMPS *lmp, int /*narg*/, char **arg) :
   Pointers(lmp),
-  id(NULL), style(NULL), contact(NULL), list(NULL),
-  xstr(NULL), ystr(NULL), zstr(NULL), tstr(NULL)
+  id(nullptr), style(nullptr), contact(nullptr), list(nullptr),
+  xstr(nullptr), ystr(nullptr), zstr(nullptr), tstr(nullptr)
 {
-  int n = strlen(arg[0]) + 1;
-  id = new char[n];
-  strcpy(id,arg[0]);
-
-  n = strlen(arg[1]) + 1;
-  style = new char[n];
-  strcpy(style,arg[1]);
+  id = utils::strdup(arg[0]);
+  style = utils::strdup(arg[1]);
 
   varshape = 0;
-  xstr = ystr = zstr = tstr = NULL;
+  xstr = ystr = zstr = tstr = nullptr;
   dx = dy = dz = 0.0;
 
   size_restart = 5;
-  reset_vel();
+  Region::reset_vel();
   copymode = 0;
-  list = NULL;
+  list = nullptr;
   nregion = 1;
 }
 
@@ -337,23 +334,17 @@ void Region::options(int narg, char **arg)
       if (strcmp(arg[iarg+1],"NULL") != 0) {
         if (strstr(arg[iarg+1],"v_") != arg[iarg+1])
           error->all(FLERR,"Illegal region command");
-        int n = strlen(&arg[iarg+1][2]) + 1;
-        xstr = new char[n];
-        strcpy(xstr,&arg[iarg+1][2]);
+        xstr = utils::strdup(&arg[iarg+1][2]);
       }
       if (strcmp(arg[iarg+2],"NULL") != 0) {
         if (strstr(arg[iarg+2],"v_") != arg[iarg+2])
           error->all(FLERR,"Illegal region command");
-        int n = strlen(&arg[iarg+2][2]) + 1;
-        ystr = new char[n];
-        strcpy(ystr,&arg[iarg+2][2]);
+        ystr = utils::strdup(&arg[iarg+2][2]);
       }
       if (strcmp(arg[iarg+3],"NULL") != 0) {
         if (strstr(arg[iarg+3],"v_") != arg[iarg+3])
           error->all(FLERR,"Illegal region command");
-        int n = strlen(&arg[iarg+3][2]) + 1;
-        zstr = new char[n];
-        strcpy(zstr,&arg[iarg+3][2]);
+        zstr = utils::strdup(&arg[iarg+3][2]);
       }
       moveflag = 1;
       iarg += 4;
@@ -362,21 +353,19 @@ void Region::options(int narg, char **arg)
       if (iarg+8 > narg) error->all(FLERR,"Illegal region command");
       if (strstr(arg[iarg+1],"v_") != arg[iarg+1])
         error->all(FLERR,"Illegal region command");
-      int n = strlen(&arg[iarg+1][2]) + 1;
-      tstr = new char[n];
-      strcpy(tstr,&arg[iarg+1][2]);
-      point[0] = force->numeric(FLERR,arg[iarg+2]);
-      point[1] = force->numeric(FLERR,arg[iarg+3]);
-      point[2] = force->numeric(FLERR,arg[iarg+4]);
-      axis[0] = force->numeric(FLERR,arg[iarg+5]);
-      axis[1] = force->numeric(FLERR,arg[iarg+6]);
-      axis[2] = force->numeric(FLERR,arg[iarg+7]);
+      tstr = utils::strdup(&arg[iarg+1][2]);
+      point[0] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      point[1] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+      point[2] = utils::numeric(FLERR,arg[iarg+4],false,lmp);
+      axis[0] = utils::numeric(FLERR,arg[iarg+5],false,lmp);
+      axis[1] = utils::numeric(FLERR,arg[iarg+6],false,lmp);
+      axis[2] = utils::numeric(FLERR,arg[iarg+7],false,lmp);
       rotateflag = 1;
       iarg += 8;
 
     } else if (strcmp(arg[iarg],"open") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal region command");
-      int iface = force->inumeric(FLERR,arg[iarg+1]);
+      int iface = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (iface < 1 || iface > 6) error->all(FLERR,"Illegal region command");
       // additional checks on valid face index are done by region classes
       open_faces[iface-1] = 1;
@@ -495,7 +484,7 @@ void Region::set_velocity()
     prev[3] = theta;
   }
 
-  if (varshape){
+  if (varshape) {
     set_velocity_shape();
   }
 }
@@ -513,12 +502,12 @@ void Region::velocity_contact(double *vwall, double *x, int ic)
 
   vwall[0] = vwall[1] = vwall[2] = 0.0;
 
-  if (moveflag){
+  if (moveflag) {
     vwall[0] = v[0];
     vwall[1] = v[1];
     vwall[2] = v[2];
   }
-  if (rotateflag){
+  if (rotateflag) {
     xc[0] = x[0] - contact[ic].delx;
     xc[1] = x[1] - contact[ic].dely;
     xc[2] = x[2] - contact[ic].delz;

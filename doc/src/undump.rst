@@ -35,4 +35,7 @@ Related commands
 
 :doc:`dump <dump>`
 
-**Default:** none
+Default
+"""""""
+
+none

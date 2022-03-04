@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -17,22 +18,23 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_group_group.h"
-#include <mpi.h>
-#include <cstring>
-#include <cmath>
+
 #include "atom.h"
-#include "update.h"
-#include "force.h"
-#include "pair.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "neigh_list.h"
-#include "group.h"
-#include "kspace.h"
-#include "error.h"
 #include "comm.h"
 #include "domain.h"
+#include "error.h"
+#include "force.h"
+#include "group.h"
+#include "kspace.h"
 #include "math_const.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "update.h"
+
+#include <cstring>
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -45,7 +47,7 @@ enum{OFF,INTER,INTRA};
 
 ComputeGroupGroup::ComputeGroupGroup(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  group2(NULL)
+  group2(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute group/group command");
 
@@ -54,10 +56,7 @@ ComputeGroupGroup::ComputeGroupGroup(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 1;
   extvector = 1;
 
-  int n = strlen(arg[3]) + 1;
-  group2 = new char[n];
-  strcpy(group2,arg[3]);
-
+  group2 = utils::strdup(arg[3]);
   jgroup = group->find(group2);
   if (jgroup == -1)
     error->all(FLERR,"Compute group/group group ID does not exist");
@@ -71,29 +70,19 @@ ComputeGroupGroup::ComputeGroupGroup(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 4;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"pair") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute group/group command");
-      if (strcmp(arg[iarg+1],"yes") == 0) pairflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) pairflag = 0;
-      else error->all(FLERR,"Illegal compute group/group command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute group/group command");
+      pairflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"kspace") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute group/group command");
-      if (strcmp(arg[iarg+1],"yes") == 0) kspaceflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) kspaceflag = 0;
-      else error->all(FLERR,"Illegal compute group/group command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute group/group command");
+      kspaceflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"boundary") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute group/group command");
-      if (strcmp(arg[iarg+1],"yes") == 0) boundaryflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) boundaryflag  = 0;
-      else error->all(FLERR,"Illegal compute group/group command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute group/group command");
+      boundaryflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"molecule") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute group/group command");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute group/group command");
       if (strcmp(arg[iarg+1],"off") == 0) molflag = OFF;
       else if (strcmp(arg[iarg+1],"inter") == 0) molflag = INTER;
       else if (strcmp(arg[iarg+1],"intra") == 0) molflag  = INTRA;
@@ -122,15 +111,15 @@ void ComputeGroupGroup::init()
   // if non-hybrid, then error if single_enable = 0
   // if hybrid, let hybrid determine if sub-style sets single_enable = 0
 
-  if (pairflag && force->pair == NULL)
+  if (pairflag && force->pair == nullptr)
     error->all(FLERR,"No pair style defined for compute group/group");
-  if (force->pair_match("^hybrid",0) == NULL
+  if (force->pair_match("^hybrid",0) == nullptr
       && force->pair->single_enable == 0)
     error->all(FLERR,"Pair style does not support compute group/group");
 
   // error if Kspace style does not compute group/group interactions
 
-  if (kspaceflag && force->kspace == NULL)
+  if (kspaceflag && force->kspace == nullptr)
     error->all(FLERR,"No Kspace style defined for compute group/group");
   if (kspaceflag && force->kspace->group_group_enable == 0)
     error->all(FLERR,"Kspace style does not support compute group/group");
@@ -138,21 +127,18 @@ void ComputeGroupGroup::init()
   if (pairflag) {
     pair = force->pair;
     cutsq = force->pair->cutsq;
-  } else pair = NULL;
+  } else pair = nullptr;
 
   if (kspaceflag) kspace = force->kspace;
-  else kspace = NULL;
+  else kspace = nullptr;
 
   // compute Kspace correction terms
 
   if (kspaceflag) {
     kspace_correction();
-    if (fabs(e_correction) > SMALL && comm->me == 0) {
-      char str[128];
-      sprintf(str,"Both groups in compute group/group have a net charge; "
-              "the Kspace boundary correction to energy will be non-zero");
-      error->warning(FLERR,str);
-    }
+    if ((fabs(e_correction) > SMALL) && (comm->me == 0))
+      error->warning(FLERR,"Both groups in compute group/group have a net charge; "
+                     "the Kspace boundary correction to energy will be non-zero");
   }
 
   // recheck that group 2 has not been deleted

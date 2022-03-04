@@ -17,11 +17,11 @@ Syntax
   .. parsed-literal::
 
      field = *x* or *y* or *z* or *vx* or *vy* or *vz* or *q* or *ix* or *iy* or *iz* or *fx* or *fy* or *fz*
-       *x*\ ,\ *y*\ ,\ *z* = atom coordinates
-       *vx*\ ,\ *vy*\ ,\ *vz* = velocity components
+       *x*,\ *y*,\ *z* = atom coordinates
+       *vx*,\ *vy*,\ *vz* = velocity components
        *q* = charge
-       *ix*\ ,\ *iy*\ ,\ *iz* = image flags in each dimension
-       *fx*\ ,\ *fy*\ ,\ *fz* = force components
+       *ix*,\ *iy*,\ *iz* = image flags in each dimension
+       *fx*,\ *fy*,\ *fz* = force components
 
 * zero or more keyword/value pairs may be appended
 * keyword = *nfile* or *box* or *replace* or *purge* or *trim* or *add* or *label* or *scaled* or *wrapped* or *format*
@@ -98,8 +98,7 @@ command, after the dump snapshot is read.
 ----------
 
 If the dump filename specified as *file* ends with ".gz", the dump
-file is read in gzipped format.  You cannot (yet) read a dump file
-that was written in binary format with a ".bin" suffix.
+file is read in gzipped format.
 
 You can read dump files that were written (in parallel) to multiple
 files via the "%" wild-card character in the dump file name.  If any
@@ -115,13 +114,13 @@ to tell LAMMPS how many parallel files exist, via its specified
 The format of the dump file is selected through the *format* keyword.
 If specified, it must be the last keyword used, since all remaining
 arguments are passed on to the dump reader.  The *native* format is
-for native LAMMPS dump files, written with a :doc:`dump atom <dump>` or
-:doc:`dump custom <dump>` command.  The *xyz* format is for generic XYZ
+for native LAMMPS dump files, written with a :doc:`dump atom <dump>`
+or :doc:`dump custom <dump>` command.  The *xyz* format is for generic XYZ
 formatted dump files.  These formats take no additional values.
 
 The *molfile* format supports reading data through using the `VMD <vmd_>`_
 molfile plugin interface. This dump reader format is only available,
-if the USER-MOLFILE package has been installed when compiling
+if the MOLFILE package has been installed when compiling
 LAMMPS.
 
 The *molfile* format takes one or two additional values.  The *style*
@@ -188,7 +187,7 @@ you must set the *box* flag to *no*\ .  See details below.
 For the *molfile* format, reading simulation box information is
 typically supported, but the location of the simulation box origin is
 lost and no explicit information about periodicity or
-orthogonal/triclinic box shape is available.  The USER-MOLFILE package
+orthogonal/triclinic box shape is available.  The MOLFILE package
 makes a best effort to guess based on heuristics, but this may not
 always work perfectly.
 
@@ -197,11 +196,11 @@ always work perfectly.
 Per-atom information from the dump file snapshot is then read from the
 dump file snapshot.  This corresponds to the specified *fields* listed
 in the read_dump command.  It is an error to specify a z-dimension
-field, namely *z*\ , *vz*\ , or *iz*\ , for a 2d simulation.
+field, namely *z*, *vz*, or *iz*, for a 2d simulation.
 
 For dump files in *native* format, each column of per-atom data has a
 text label listed in the file.  A matching label for each field must
-appear, e.g. the label "vy" for the field *vy*\ .  For the *x*\ , *y*\ , *z*
+appear, e.g. the label "vy" for the field *vy*\ .  For the *x*, *y*, *z*
 fields any of the following labels are considered a match:
 
 .. parsed-literal::
@@ -217,7 +216,7 @@ file, in order, until a match is found.
 
 The dump file must also contain atom IDs, with a column label of "id".
 
-If the *add* keyword is specified with a value of *yes* or *keep*\ , as
+If the *add* keyword is specified with a value of *yes* or *keep*, as
 discussed below, the dump file must contain atom types, with a column
 label of "type".
 
@@ -230,7 +229,7 @@ will then have a label corresponding to the fix-ID rather than "x" or
 "xs".  The *label* keyword can also be used to specify new column
 labels for fields *id* and *type*\ .
 
-For dump files in *xyz* format, only the *x*\ , *y*\ , and *z* fields are
+For dump files in *xyz* format, only the *x*, *y*, and *z* fields are
 supported.  The dump file does not store atom IDs, so these are
 assigned consecutively to the atoms as they appear in the dump file,
 starting from 1.  Thus you should insure that order of atoms is
@@ -238,7 +237,7 @@ consistent from snapshot to snapshot in the XYZ dump file.  See
 the :doc:`dump_modify sort <dump_modify>` command if the XYZ dump file
 was written by LAMMPS.
 
-For dump files in *molfile* format, the *x*\ , *y*\ , *z*\ , *vx*\ , *vy*\ , and
+For dump files in *molfile* format, the *x*, *y*, *z*, *vx*, *vy*, and
 *vz* fields can be specified.  However, not all molfile formats store
 velocities, or their respective plugins may not support reading of
 velocities.  The molfile dump files do not store atom IDs, so these
@@ -277,7 +276,7 @@ current simulation box is unchanged.
 
 If the *purge* keyword is specified with a *yes* value, then all
 current atoms in the system are deleted before any of the operations
-invoked by the *replace*\ , *trim*\ , or *add* keywords take place.
+invoked by the *replace*, *trim*, or *add* keywords take place.
 
 If the *replace* keyword is specified with a *yes* value, then atoms
 with IDs that are in both the current system and the dump snapshot
@@ -330,7 +329,7 @@ atom will be lost if it is outside the simulation box.
 
 For *native* format dump files, the 3 xyz image flags for an atom in
 the dump file are set to the corresponding values appearing in the
-dump file if the *ix*\ , *iy*\ , *iz* fields are specified.  If not
+dump file if the *ix*, *iy*, *iz* fields are specified.  If not
 specified, the image flags for replaced atoms are not changed and
 image flags for new atoms are set to default values.  If coordinates
 read from the dump file are in unwrapped format (e.g. *xu*\ ) then the
@@ -343,13 +342,13 @@ conditions are applied to remap an atom back into the simulation box.
 
    If you get a warning about inconsistent image flags after
    reading in a dump snapshot, it means one or more pairs of bonded atoms
-   now have inconsistent image flags.  As discussed on the :doc:`Errors common <Errors_common>` doc page this may or may not cause problems
+   now have inconsistent image flags.  As discussed on the :doc:`Errors common <Errors_common>` page this may or may not cause problems
    for subsequent simulations.  One way this can happen is if you read
    image flag fields from the dump file but do not also use the dump file
    box parameters.
 
 LAMMPS knows how to compute unscaled and remapped coordinates for the
-snapshot column labels discussed above, e.g. *x*\ , *xs*\ , *xu*\ , *xsu*\ .
+snapshot column labels discussed above, e.g. *x*, *xs*, *xu*, *xsu*\ .
 If another column label is assigned to the *x* or *y* or *z* field via
 the *label* keyword, e.g. for coordinates output by the :doc:`fix ave/atom <fix_ave_atom>` command, then LAMMPS needs to know whether
 the coordinate information in the dump file is scaled and/or wrapped.
@@ -359,10 +358,10 @@ the value of the *scaled* and *wrapped* keywords is ignored for fields
 column label to that field.
 
 The scaled/unscaled and wrapped/unwrapped setting must be identical
-for any of the *x*\ , *y*\ , *z* fields that are specified.  Thus you
+for any of the *x*, *y*, *z* fields that are specified.  Thus you
 cannot read *xs* and *yu* from the dump file.  Also, if the dump file
 coordinates are scaled and the simulation box is triclinic, then all 3
-of the *x*\ , *y*\ , *z* fields must be specified, since they are all
+of the *x*, *y*, *z* fields must be specified, since they are all
 needed to generate absolute, unscaled coordinates.
 
 ----------
@@ -374,12 +373,12 @@ To read gzipped dump files, you must compile LAMMPS with the
 -DLAMMPS_GZIP option.  See the :doc:`Build settings <Build_settings>`
 doc page for details.
 
-The *molfile* dump file formats are part of the USER-MOLFILE package.
+The *molfile* dump file formats are part of the MOLFILE package.
 They are only enabled if LAMMPS was built with that packages.  See the
-:doc:`Build package <Build_package>` doc page for more info.
+:doc:`Build package <Build_package>` page for more info.
 
 To write and read adios .bp files, you must compile LAMMPS with the
-:ref:`USER-ADIOS <PKG-USER-ADIOS>` package.
+:ref:`ADIOS <PKG-ADIOS>` package.
 
 Related commands
 """"""""""""""""

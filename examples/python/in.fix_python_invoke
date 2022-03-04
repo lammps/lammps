@@ -23,12 +23,12 @@ from lammps import lammps
 
 def end_of_step_callback(lmp):
   L = lammps(ptr=lmp)
-  t = L.extract_global("ntimestep", 0)
+  t = L.extract_global("ntimestep")
   print("### END OF STEP ###", t)
 
 def post_force_callback(lmp, v):
   L = lammps(ptr=lmp)
-  t = L.extract_global("ntimestep", 0)
+  t = L.extract_global("ntimestep")
   print("### POST_FORCE ###", t)
 """
 

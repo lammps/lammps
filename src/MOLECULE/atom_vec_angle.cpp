@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -20,9 +21,9 @@ using namespace LAMMPS_NS;
 
 AtomVecAngle::AtomVecAngle(LAMMPS *lmp) : AtomVec(lmp)
 {
-  molecular = 1;
+  molecular = Atom::MOLECULAR;
   bonds_allow = angles_allow = 1;
-  mass_type = 1;
+  mass_type = PER_TYPE;
 
   atom->molecule_flag = 1;
 
@@ -55,7 +56,7 @@ AtomVecAngle::AtomVecAngle(LAMMPS *lmp) : AtomVec(lmp)
   setup_fields();
 
   bond_per_atom = angle_per_atom = 0;
-  bond_negative = angle_negative = NULL;
+  bond_negative = angle_negative = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -101,7 +102,7 @@ void AtomVecAngle::pack_restart_pre(int ilocal)
 
   // flip any negative types to positive and flag which ones
 
-  int any_bond_negative = 0;
+  any_bond_negative = 0;
   for (int m = 0; m < num_bond[ilocal]; m++) {
     if (bond_type[ilocal][m] < 0) {
       bond_negative[m] = 1;
@@ -110,7 +111,7 @@ void AtomVecAngle::pack_restart_pre(int ilocal)
     } else bond_negative[m] = 0;
   }
 
-  int any_angle_negative = 0;
+  any_angle_negative = 0;
   for (int m = 0; m < num_angle[ilocal]; m++) {
     if (angle_type[ilocal][m] < 0) {
       angle_negative[m] = 1;

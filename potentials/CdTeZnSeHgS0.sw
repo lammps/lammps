@@ -1,4 +1,4 @@
-### DATE: 2013-08-09 CONTRIBUTOR: X. W. Zhou, xzhou@sandia.gov, CITATION: Zhou, Ward, Martin, van Swol, Cruz-Campa, and D. Zubia, Phys. Rev. B, 88, 085309 (2013).
+### DATE: 2013-08-09 UNITS: metal CONTRIBUTOR: X. W. Zhou, xzhou@sandia.gov, CITATION: Zhou, Ward, Martin, van Swol, Cruz-Campa, and D. Zubia, Phys. Rev. B, 88, 085309 (2013).
 #
 # Note that the way the parameters can be entered is not unique.
 # As one way, we assume that eps_ijk is equal to eps_ik and

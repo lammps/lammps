@@ -49,7 +49,7 @@ acts between pairs of bonds. This potential is useful for preventing
 bonds from passing through one another when a soft non-bonded
 potential acts between beads in, for example, DPD polymer chains.  An
 example input script that uses this command is provided in
-examples/USER/srp.
+examples/PACKAGES/srp.
 
 Bonds of specified type *btype* interact with one another through a
 bond-pairwise potential, such that the force on bond *i* due to bond
@@ -91,7 +91,7 @@ is used.
 .. note::
 
    Pair style srp considers each bond of type *btype* to be a
-   fictitious "particle" of type *bptype*\ , where *bptype* is either the
+   fictitious "particle" of type *bptype*, where *bptype* is either the
    largest atom type in the system, or the type set by the *bptype* flag.
    Any actual existing particles with this atom type will be deleted at
    the beginning of a run. This means you must specify the number of
@@ -108,7 +108,7 @@ is used.
 
 The optional *exclude* keyword determines if forces are computed
 between first neighbor (directly connected) bonds.  For a setting of
-*no*\ , first neighbor forces are computed; for *yes* they are not
+*no*, first neighbor forces are computed; for *yes* they are not
 computed. A setting of *no* cannot be used with the *min* option for
 distance calculation because the minimum distance between directly
 connected bonds is zero.
@@ -121,9 +121,10 @@ at the cutoff distance :math:`r_c`.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-This pair styles does not support mixing.
+This pair style does not support mixing.
 
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift option for the energy of the pair interaction. Note that as
@@ -142,14 +143,14 @@ specified in the input script when reading a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
 Restrictions
 """"""""""""
 
-This pair style is part of the USER-MISC package. It is only enabled
+This pair style is part of the MISC package. It is only enabled
 if LAMMPS was built with that package. See the Making LAMMPS section
 for more info.
 

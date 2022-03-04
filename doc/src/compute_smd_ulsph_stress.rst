@@ -28,7 +28,8 @@ Define a computation that outputs the Cauchy stress tensor.
 See `this PDF guide <PDF/SMD_LAMMPS_userguide.pdf>`_ to using Smooth
 Mach Dynamics in LAMMPS.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-particle vector of vectors (tensors),
 which can be accessed by any command that uses per-particle values
@@ -45,8 +46,8 @@ stress tensor, i.e., the von Mises equivalent stress.
 Restrictions
 """"""""""""
 
-This compute is part of the USER-SMD package.  It is only enabled if
-LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info. This compute can
+This compute is part of the MACHDYN package.  It is only enabled if
+LAMMPS was built with that package. See the :doc:`Build package <Build_package>` page for more info. This compute can
 only be used for particles which interact with the updated Lagrangian
 SPH pair style.
 
@@ -55,4 +56,7 @@ Related commands
 
 :doc:`compute smd/ulsph/strain <compute_smd_ulsph_strain>`, :doc:`compute smd/ulsph/strain/rate <compute_smd_ulsph_strain_rate>` :doc:`compute smd/tlsph/stress <compute_smd_tlsph_stress>`
 
-**Default:** none
+Default
+"""""""
+
+none

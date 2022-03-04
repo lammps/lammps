@@ -59,10 +59,12 @@ class BaseThree {
                  const double gpu_split, FILE *screen,
                  const void *pair_program, const char *k_two,
                  const char *k_three_center, const char *k_three_end,
-                 const char *k_short_nbor=NULL);
+                 const char *k_short_nbor=nullptr, const int onetype=-1,
+                 const int onetype3=-1, const int spq=0,
+                 const int tpa_override=0);
 
   /// Estimate the overhead for GPU context changes and CPU driver
-  void estimate_gpu_overhead();
+  void estimate_gpu_overhead(const int add_kernels=0);
 
   /// Check if there is enough storage for atom arrays and realloc if not
   /** \param success set to false if insufficient memory **/
@@ -109,7 +111,7 @@ class BaseThree {
   /// Accumulate timers
   inline void acc_timers() {
     if (device->time_device()) {
-      nbor->acc_timers();
+      nbor->acc_timers(screen);
       time_pair.add_to_total();
       atom->acc_timers();
       ans->acc_timers();
@@ -134,9 +136,9 @@ class BaseThree {
                     int *numj, int **firstneigh, bool &success);
 
   /// Build neighbor list on device
-  int build_nbor_list(const int inum, const int host_inum,
-                       const int nall, double **host_x, int *host_type,
-                       double *sublo, double *subhi, tagint *tag, int **nspecial,
+  void build_nbor_list(const int inum, const int host_inum, const int nall,
+                       double **host_x, int *host_type, double *sublo,
+                       double *subhi, tagint *tag, int **nspecial,
                        tagint **special, bool &success);
 
   /// Pair loop with host neighboring
@@ -147,12 +149,12 @@ class BaseThree {
                int &host_start, const double cpu_time, bool &success);
 
   /// Pair loop with device neighboring
-  int ** compute(const int ago, const int inum_full,
-                 const int nall, double **host_x, int *host_type, double *sublo,
-                 double *subhi, tagint *tag, int **nspecial,
-                 tagint **special, const bool eflag, const bool vflag,
-                 const bool eatom, const bool vatom, int &host_start,
-                 int **ilist, int **numj, const double cpu_time, bool &success);
+  int ** compute(const int ago, const int inum_full, const int nall,
+                 double **host_x, int *host_type, double *sublo,
+                 double *subhi, tagint *tag, int **nspecial, tagint **special,
+                 const bool eflag, const bool vflag, const bool eatom,
+                 const bool vatom, int &host_start, int **ilist,
+                 int **numj, const double cpu_time, bool &success);
 
   // -------------------------- DEVICE DATA -------------------------
 
@@ -188,14 +190,29 @@ class BaseThree {
   /// Neighbor data
   Neighbor *nbor;
 
-  UCL_D_Vec<int> dev_short_nbor;
   UCL_Kernel k_short_nbor;
 
   // ------------------------- DEVICE KERNELS -------------------------
-  UCL_Program *pair_program;
+  UCL_Program *pair_program, *pair_program_noev;
   UCL_Kernel k_pair, k_three_center, k_three_end, k_three_end_vatom;
+  UCL_Kernel k_pair_noev, k_three_center_noev, k_three_end_noev;
+  UCL_Kernel *k_sel, *k_3center_sel, *k_3end_sel;
   inline int block_pair() { return _block_pair; }
   inline int block_size() { return _block_size; }
+  inline void set_kernel(const int eflag, const int vflag) {
+    #if defined(LAL_OCL_EV_JIT)
+    if (eflag || vflag) {
+      k_sel = &k_pair;
+      k_3center_sel = &k_three_center;
+      k_3end_sel = &k_three_end;
+    } else {
+      k_sel = &k_pair_noev;
+      k_3center_sel = &k_three_center_noev;
+      k_3end_sel = &k_three_end_noev;
+    }
+    #endif
+  }
+
 
   // --------------------------- TEXTURES -----------------------------
   UCL_Texture pos_tex;
@@ -203,18 +220,19 @@ class BaseThree {
  protected:
   bool _compiled;
   int _block_pair, _block_size, _threads_per_atom, _end_command_queue;
-  int _gpu_nbor;
+  int _gpu_nbor, _onetype, _onetype3, _spq;
   double _max_bytes, _max_an_bytes;
-  int _max_nbors, _ainum, _nall;
+  int _ainum, _nall;
   double _gpu_overhead, _driver_overhead;
-  UCL_D_Vec<int> *_nbor_data;
 
   void compile_kernels(UCL_Device &dev, const void *pair_string,
                        const char *two, const char *three_center,
-                       const char *three_end, const char* short_nbor);
+                       const char *three_end, const char* short_nbor,
+                       const int onetype, const int onetype3,
+                       const int spq);
 
-  virtual void loop(const bool _eflag, const bool _vflag,
-                    const int evatom) = 0;
+  virtual int loop(const int eflag, const int vflag, const int evatom,
+                   bool &success) = 0;
 };
 
 }

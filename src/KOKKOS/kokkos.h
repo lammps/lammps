@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -28,34 +29,46 @@ class KokkosLMP : protected Pointers {
   int neighflag_qeq_set;
   int exchange_comm_classic;
   int forward_comm_classic;
+  int forward_pair_comm_classic;
+  int forward_fix_comm_classic;
   int reverse_comm_classic;
   int exchange_comm_on_host;
   int forward_comm_on_host;
   int reverse_comm_on_host;
   int exchange_comm_changed;
   int forward_comm_changed;
+  int forward_pair_comm_changed;
+  int forward_fix_comm_changed;
   int reverse_comm_changed;
   int nthreads,ngpus;
   int numa;
   int auto_sync;
-  int cuda_aware_flag;
+  int gpu_aware_flag;
   int neigh_thread;
   int neigh_thread_set;
   int newtonflag;
   double binsize;
 
+  static int is_finalized;
+  static Kokkos::InitArguments args;
+  static int init_ngpus;
+
   KokkosLMP(class LAMMPS *, int, char **);
-  ~KokkosLMP();
+  ~KokkosLMP() override;
+  static void initialize(Kokkos::InitArguments, Error *);
+  static void finalize();
   void accelerator(int, char **);
   int neigh_count(int);
 
   template<class DeviceType>
-  int need_dup()
+  int need_dup(int qeq_flag = 0)
   {
     int value = 0;
+    int neighflag = this->neighflag;
+    if (qeq_flag) neighflag = this->neighflag_qeq;
 
     if (neighflag == HALFTHREAD)
-      value = NeedDup<HALFTHREAD,DeviceType>::value;
+      value = std::is_same<typename NeedDup<HALFTHREAD,DeviceType>::value,Kokkos::Experimental::ScatterDuplicated>::value;
 
     return value;
   }
@@ -74,18 +87,35 @@ E: Invalid Kokkos command-line args
 
 Self-explanatory.  See Section 2.7 of the manual for details.
 
-E: Could not determine local MPI rank for multiple GPUs with Kokkos CUDA
+E: Could not determine local MPI rank for multiple GPUs with Kokkos
 because MPI library not recognized
 
 The local MPI rank was not found in one of four supported environment variables.
 
-E: GPUs are requested but Kokkos has not been compiled for CUDA
+E: Invalid number of threads requested for Kokkos: must be 1 or greater
 
-Recompile Kokkos with CUDA support to use GPUs.
+Self-explanatory.
 
-E: Kokkos has been compiled for CUDA but no GPUs are requested
+E: GPUs are requested but Kokkos has not been compiled using GPU-enabled backend
 
-One or more GPUs must be used when Kokkos is compiled for CUDA.
+Recompile Kokkos with GPU-enabled backend to use GPUs.
+
+E: Kokkos has been compiled with GPU-enabled backend but no GPUs are requested
+
+One or more GPUs must be used when Kokkos is compiled for CUDA/HIP/SYCL/OpenMPTarget.
+
+E: Multiple CPU threads are requested but Kokkos has not been compiled using a threading-enabled backend
+
+Must use the Kokkos OpenMP or Threads backend for multiple threads.
+
+W: When using a single thread, the Kokkos Serial backend (i.e. Makefile.kokkos_mpi_only)
+gives better performance than the OpenMP backend
+
+Self-expanatory.
+
+W: Kokkos package already initalized, cannot reinitialize with different parameters
+
+Self-explanatory.
 
 E: Illegal ... command
 

@@ -119,7 +119,8 @@ Here is an example of how to do this:
    compute 2 all angle/local theta eng
    dump 1 all local 1000 tmp.dump index c_1[1] c_1[2] c_1[3] c_1[4] c_2[1] c_2[2]
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a local vector or local array depending on the
 number of values.  The length of the vector or number of rows in the
@@ -127,7 +128,7 @@ array is the number of angles.  If a single value is specified, a
 local vector is produced.  If two or more values are specified, a
 local array is produced where the number of columns = the number of
 values.  The vector or array can be accessed by any command that uses
-local values from a compute as input.  See the :doc:`Howto output <Howto_output>` doc page for an overview of LAMMPS output
+local values from a compute as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options.
 
 The output for *theta* will be in degrees.  The output for *eng* will
@@ -142,4 +143,7 @@ Related commands
 
 :doc:`dump local <dump>`, :doc:`compute property/local <compute_property_local>`
 
-**Default:** none
+Default
+"""""""
+
+none

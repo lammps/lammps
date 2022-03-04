@@ -37,14 +37,13 @@ class SW : public BaseThree<numtyp, acctyp> {
     * - -3 if there is an out of memory error
     * - -4 if the GPU library was not compiled for GPU
     * - -5 Double precision is not supported on card **/
-  int init(const int ntypes, const int nlocal, const int nall, const int max_nbors,
-           const double cell_size, const double gpu_split, FILE *screen,
-           int* host_map, const int nelements, int*** host_elem2param, const int nparams,
-           const double* epsilon, const double* sigma,
-           const double* lambda, const double* gamma,
-           const double* costheta, const double* biga,
-           const double* bigb, const double* powerp,
-           const double* powerq, const double* cut, const double* cutsq);
+  int init(const int ntypes, const int nlocal, const int nall,
+           const int max_nbors, const double cell_size,
+           const double gpu_split, FILE *screen, double **ncutsq,
+           double **ncut, double **sigma, double **powerp, double **powerq,
+           double **sigma_gamma, double **c1, double **c2, double **c3,
+           double **c4, double **c5, double **c6, double ***lambda_epsilon,
+           double ***costheta, const int *map, int ***e2param);
 
   /// Clear all host and device data
   /** \note This is called at the beginning of the init() routine **/
@@ -64,22 +63,21 @@ class SW : public BaseThree<numtyp, acctyp> {
   /// Number of atom types
   int _lj_types;
 
-  /// sw1.x = epsilon, sw1.y = sigma, sw1.z = lambda, sw1.w = gamma
-  UCL_D_Vec<numtyp4> sw1;
-  /// sw2.x = biga, sw2.y = bigb, sw2.z = powerp, sw2.w = powerq
-  UCL_D_Vec<numtyp4> sw2;
-  /// sw3.x = cut, sw3.y = cutsq, sw3.z = costheta
-  UCL_D_Vec<numtyp4> sw3;
-
-  UCL_D_Vec<int> elem2param;
-  UCL_D_Vec<int> map;
-  int _nparams,_nelements;
-
-  UCL_Texture sw1_tex, sw2_tex, sw3_tex;
+  UCL_D_Vec<numtyp> cutsq;
+  /// sw_pre.x = cut, sw_pre.y = sigma, sw_pre.z = powerp, sw_pre.w = powerq
+  UCL_D_Vec<numtyp4> sw_pre;
+  /// c_14.x = c1, c_14.y = c2, c_14.z = c3, c_14.w = c4
+  UCL_D_Vec<numtyp4> c_14;
+  /// c_56.x = c5, c_56.y = c6
+  UCL_D_Vec<numtyp2> c_56;
+  /// cut_sigma_gamma.x = cut, cut_sigma_gamma.y = sigma_gamma
+  UCL_D_Vec<numtyp2> cut_sigma_gamma;
+  /// sw_pre3.x = lambda_epsilon, sw_pre3.y = costheta
+  UCL_D_Vec<numtyp2> sw_pre3;
 
  private:
   bool _allocated;
-  void loop(const bool _eflag, const bool _vflag, const int evatom);
+  int loop(const int eflag, const int vflag, const int evatom, bool &success);
 
 };
 

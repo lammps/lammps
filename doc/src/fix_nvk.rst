@@ -39,7 +39,8 @@ energy prior to this fix.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
@@ -55,12 +56,20 @@ the simulation box. Therefore, the group must be set to all.
 
 This fix has not yet been implemented to work with the RESPA integrator.
 
-This fix is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This fix is part of the EXTRA-FIX package.  It is only enabled if
+LAMMPS was built with that package.  See the
+:doc:`Build package <Build_package>` page for more info.
 
-**Related commands:** none
+Related commands
+""""""""""""""""
 
-**Default:** none
+none
+
+
+Default
+"""""""
+
+none
 
 ----------
 

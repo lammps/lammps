@@ -25,7 +25,7 @@ Syntax
   - *quartic_bar* : <half_width>
   - *quartic_cylinder* : <radius>
   - *quartic_sphere* : <radius>
-    
+
 
 
 Examples

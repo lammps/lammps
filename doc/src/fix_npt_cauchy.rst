@@ -13,7 +13,7 @@ Syntax
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * style_name = *npt/cauchy*
 * one or more keyword/value pairs may be appended
-* keyword = *temp* or *iso* or *aniso* or *tri* or *x* or *y* or *z* or *xy* or *yz* or *xz* or *couple* or *tchain* or *pchain* or *mtk* or *tloop* or *ploop* or *nreset* or *drag* or *dilate* or *scalexy* or *scaleyz* or *scalexz* or *flip* or *fixedpoint* or *update*
+* keyword = *temp* or *iso* or *aniso* or *tri* or *x* or *y* or *z* or *xy* or *yz* or *xz* or *couple* or *tchain* or *pchain* or *mtk* or *tloop* or *ploop* or *nreset* or *drag* or *dilate* or *scalexy* or *scaleyz* or *scalexz* or *flip* or *fixedpoint*
 
   .. parsed-literal::
 
@@ -45,9 +45,8 @@ Syntax
        *scaleyz* value = *yes* or *no* = scale yz with lz
        *scalexz* value = *yes* or *no* = scale xz with lz
        *flip* value = *yes* or *no* = allow or disallow box flips when it becomes highly skewed
-       *cauchystat* cauchystat values = alpha continue
-         alpha = strength of Cauchy stress control parameter
-         continue = *yes* or *no* = whether of not to continue from a previous run
+       *alpha* value = strength of Cauchy stress control parameter
+       *continue* value = *yes* or *no* = whether of not to continue from a previous run
        *fixedpoint* values = x y z
          x,y,z = perform barostat dilation/contraction around this point (distance units)
 
@@ -56,7 +55,7 @@ Examples
 
 .. code-block:: LAMMPS
 
-   fix 1 water npt/cauchy temp 300.0 300.0 100.0 iso 0.0 0.0 1000.0
+   fix 1 water npt/cauchy temp 300.0 300.0 100.0 iso 0.0 0.0 1000.0 alpha 0.001
 
 Description
 """""""""""
@@ -74,7 +73,7 @@ addition to basic thermostatting and barostatting, this fix can
 also create a chain of thermostats coupled to the particle thermostat,
 and another chain of thermostats coupled to the barostat
 variables. The barostat can be coupled to the overall box volume, or
-to individual dimensions, including the *xy*\ , *xz* and *yz* tilt
+to individual dimensions, including the *xy*, *xz* and *yz* tilt
 dimensions. The external pressure of the barostat can be specified as
 either a scalar pressure (isobaric ensemble) or as components of a
 symmetric stress tensor (constant stress ensemble).  When used
@@ -93,7 +92,7 @@ integrators derived by Tuckerman et al in :ref:`(Tuckerman) <nc-Tuckerman>`.
 ----------
 
 The thermostat parameters are specified using the *temp* keyword.
-Other thermostat-related keywords are *tchain*\ , *tloop* and *drag*\ ,
+Other thermostat-related keywords are *tchain*, *tloop* and *drag*,
 which are discussed below.
 
 The thermostat is applied to only the translational degrees of freedom
@@ -119,15 +118,15 @@ by the velocity/position update portion of the integration.
 
 ----------
 
-The barostat parameters are specified using one or more of the *iso*\ ,
-*aniso*\ , *tri*\ , *x*\ , *y*\ , *z*\ , *xy*\ , *xz*\ , *yz*\ , and *couple* keywords.
+The barostat parameters are specified using one or more of the *iso*,
+*aniso*, *tri*, *x*, *y*, *z*, *xy*, *xz*, *yz*, and *couple* keywords.
 These keywords give you the ability to specify all 6 components of an
 external stress tensor, and to couple various of these components
 together so that the dimensions they represent are varied together
 during a constant-pressure simulation.
 
-Other barostat-related keywords are *pchain*\ , *mtk*\ , *ploop*\ ,
-*nreset*\ , *drag*\ , and *dilate*\ , which are discussed below.
+Other barostat-related keywords are *pchain*, *mtk*, *ploop*,
+*nreset*, *drag*, and *dilate*, which are discussed below.
 
 Orthogonal simulation boxes have 3 adjustable dimensions (x,y,z).
 Triclinic (non-orthogonal) simulation boxes have 6 adjustable
@@ -136,7 +135,7 @@ specify whether the simulation box is orthogonal or non-orthogonal
 (triclinic) and explain the meaning of the xy,xz,yz tilt factors.
 
 The target pressures for each of the 6 components of the stress tensor
-can be specified independently via the *x*\ , *y*\ , *z*\ , *xy*\ , *xz*\ , *yz*
+can be specified independently via the *x*, *y*, *z*, *xy*, *xz*, *yz*
 keywords, which correspond to the 6 simulation box dimensions.  For
 each component, the external pressure or tensor component at each
 timestep is a ramped value during the run from *Pstart* to *Pstop*\ .
@@ -147,7 +146,7 @@ the *xy* keyword is used, the xy tilt factor will change.  A box
 dimension will not change if that component is not specified, although
 you have the option to change that dimension via the :doc:`fix deform <fix_deform>` command.
 
-Note that in order to use the *xy*\ , *xz*\ , or *yz* keywords, the
+Note that in order to use the *xy*, *xz*, or *yz* keywords, the
 simulation box must be triclinic, even if its initial tilt factors are
 0.0.
 
@@ -194,13 +193,13 @@ things: the instantaneous stress will be computed as an average of the
 corresponding diagonal components, and the coupled box dimensions will
 be changed together in lockstep, meaning coupled dimensions will be
 dilated or contracted by the same percentage every timestep.  The
-*Pstart*\ , *Pstop*\ , *Pdamp* parameters for any coupled dimensions must
+*Pstart*, *Pstop*, *Pdamp* parameters for any coupled dimensions must
 be identical.  *Couple xyz* can be used for a 2d simulation; the *z*
 dimension is simply ignored.
 
 ----------
 
-The *iso*\ , *aniso*\ , and *tri* keywords are simply shortcuts that are
+The *iso*, *aniso*, and *tri* keywords are simply shortcuts that are
 equivalent to specifying several other keywords together.
 
 The keyword *iso* means couple all 3 diagonal components together when
@@ -215,8 +214,8 @@ specifying these 4 keywords:
    z Pstart Pstop Pdamp
    couple xyz
 
-The keyword *aniso* means *x*\ , *y*\ , and *z* dimensions are controlled
-independently using the *Pxx*\ , *Pyy*\ , and *Pzz* components of the
+The keyword *aniso* means *x*, *y*, and *z* dimensions are controlled
+independently using the *Pxx*, *Pyy*, and *Pzz* components of the
 stress tensor as the driving forces, and the specified scalar external
 pressure.  Using "aniso Pstart Pstop Pdamp" is the same as specifying
 these 4 keywords:
@@ -228,7 +227,7 @@ these 4 keywords:
    z Pstart Pstop Pdamp
    couple none
 
-The keyword *tri* means *x*\ , *y*\ , *z*\ , *xy*\ , *xz*\ , and *yz* dimensions
+The keyword *tri* means *x*, *y*, *z*, *xy*, *xz*, and *yz* dimensions
 are controlled independently using their individual stress components
 as the driving forces, and the specified scalar pressure as the
 external normal stress.  Using "tri Pstart Pstop Pdamp" is the same as
@@ -293,7 +292,7 @@ specified values of the external stress tensor.  A value of *nstep*
 means that every *nstep* timesteps, the reference dimensions are set
 to those of the current simulation domain.
 
-The *scaleyz*\ , *scalexz*\ , and *scalexy* keywords control whether or
+The *scaleyz*, *scalexz*, and *scalexy* keywords control whether or
 not the corresponding tilt factors are scaled with the associated box
 dimensions when barostatting triclinic periodic cells.  The default
 values *yes* will turn on scaling, which corresponds to adjusting the
@@ -306,9 +305,9 @@ scale keywords to *no*\ .
 
 The *flip* keyword allows the tilt factors for a triclinic box to
 exceed half the distance of the parallel box length, as discussed
-below.  If the *flip* value is set to *yes*\ , the bound is enforced by
+below.  If the *flip* value is set to *yes*, the bound is enforced by
 flipping the box when it is exceeded.  If the *flip* value is set to
-*no*\ , the tilt will continue to change without flipping.  Note that if
+*no*, the tilt will continue to change without flipping.  Note that if
 applied stress induces large deformations (e.g. in a liquid), this
 means the box shape can tilt dramatically and LAMMPS will run less
 efficiently, due to the large volume of communication needed to
@@ -320,7 +319,7 @@ The *fixedpoint* keyword specifies the fixed point for barostat volume
 changes. By default, it is the center of the box.  Whatever point is
 chosen will not move during the simulation.  For example, if the lower
 periodic boundaries pass through (0,0,0), and this point is provided
-to *fixedpoint*\ , then the lower periodic boundaries will remain at
+to *fixedpoint*, then the lower periodic boundaries will remain at
 (0,0,0), while the upper periodic boundaries will move twice as
 far. In all cases, the particle trajectories are unaffected by the
 chosen value, except for a time-dependent constant translation of
@@ -330,7 +329,7 @@ positions.
 
 .. note::
 
-   Using a barostat coupled to tilt dimensions *xy*\ , *xz*\ , *yz* can
+   Using a barostat coupled to tilt dimensions *xy*, *xz*, *yz* can
    sometimes result in arbitrarily large values of the tilt dimensions,
    i.e. a dramatically deformed simulation box.  LAMMPS allows the tilt
    factors to grow a small amount beyond the normal limit of half the box
@@ -338,7 +337,7 @@ positions.
    an equivalent periodic cell.  See the discussion of the *flip* keyword
    above, to allow this bound to be exceeded, if desired.
 
-The flip operation is described in more detail in the doc page for
+The flip operation is described in more detail in the page for
 :doc:`fix deform <fix_deform>`.  Both the barostat dynamics and the atom
 trajectories are unaffected by this operation.  However, if a tilt
 factor is incremented by a large amount (1.5 times the box length) on
@@ -354,7 +353,7 @@ equilibrium liquids can not support a shear stress and that
 equilibrium solids can not support shear stresses that exceed the
 yield stress.
 
-One exception to this rule is if the 1st dimension in the tilt factor
+One exception to this rule is if the first dimension in the tilt factor
 (x for xy) is non-periodic.  In that case, the limits on the tilt
 factor are not enforced, since flipping the box in that dimension does
 not change the atom positions due to non-periodicity.  In this mode,
@@ -401,25 +400,26 @@ temperature or pressure during thermodynamic output via the
 compute-ID.  It also means that changing attributes of *thermo_temp*
 or *thermo_press* will have no effect on this fix.
 
-Like other fixes that perform thermostatting, fix npt/cauchy can
-be used with :doc:`compute commands <compute>` that calculate a
-temperature after removing a "bias" from the atom velocities.
-E.g. removing the center-of-mass velocity from a group of atoms or
-only calculating temperature on the x-component of velocity or only
-calculating temperature for atoms in a geometric region.  This is not
-done by default, but only if the :doc:`fix_modify <fix_modify>` command
-is used to assign a temperature compute to this fix that includes such
-a bias term.  See the doc pages for individual :doc:`compute commands <compute>` to determine which ones include a bias.  In
-this case, the thermostat works in the following manner: the current
-temperature is calculated taking the bias into account, bias is
-removed from each atom, thermostatting is performed on the remaining
-thermal degrees of freedom, and the bias is added back in.
+Like other fixes that perform thermostatting, this fix can be used
+with :doc:`compute commands <compute>` that remove a "bias" from the
+atom velocities.  E.g. to apply the thermostat only to atoms within a
+spatial :doc:`region <region>`, or to remove the center-of-mass
+velocity from a group of atoms, or to remove the x-component of
+velocity from the calculation.
+
+This is not done by default, but only if the :doc:`fix_modify
+<fix_modify>` command is used to assign a temperature compute to this
+fix that includes such a bias term.  See the doc pages for individual
+:doc:`compute temp commands <compute>` to determine which ones include
+a bias.  In this case, the thermostat works in the following manner:
+bias is removed from each atom, thermostatting is performed on the
+remaining thermal degrees of freedom, and the bias is added back in.
 
 ----------
 
 This fix can be used with either the *verlet* or *respa*
 :doc:`integrators <run_style>`. When using this fix
-with *respa*\ , LAMMPS uses an integrator constructed
+with *respa*, LAMMPS uses an integrator constructed
 according to the following factorization of the Liouville propagator
 (for two rRESPA levels):
 
@@ -467,7 +467,8 @@ of the underlying non-Hamiltonian equations of motion.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This fix writes the state of all the thermostat and barostat
 variables to :doc:`binary restart files <restart>`.  See the
@@ -487,30 +488,34 @@ compute temperature on a subset of atoms.
 .. note::
 
    If both the *temp* and *press* keywords are used in a single
-   thermo_modify command (or in two separate commands), then the order in
-   which the keywords are specified is important.  Note that a :doc:`pressure compute <compute_pressure>` defines its own temperature compute as
-   an argument when it is specified.  The *temp* keyword will override
-   this (for the pressure compute being used by fix npt), but only if the
-   *temp* keyword comes after the *press* keyword.  If the *temp* keyword
-   comes before the *press* keyword, then the new pressure compute
-   specified by the *press* keyword will be unaffected by the *temp*
-   setting.
+   thermo_modify command (or in two separate commands), then the order
+   in which the keywords are specified is important.  Note that a
+   :doc:`pressure compute <compute_pressure>` defines its own
+   temperature compute as an argument when it is specified.  The
+   *temp* keyword will override this (for the pressure compute being
+   used by fix npt), but only if the *temp* keyword comes after the
+   *press* keyword.  If the *temp* keyword comes before the *press*
+   keyword, then the new pressure compute specified by the *press*
+   keyword will be unaffected by the *temp* setting.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
-fix to add the energy change induced by Nose/Hoover thermostatting
-and barostatting to the system's potential energy as part of
-:doc:`thermodynamic output <thermo_style>`.
+The cumulative energy change in the system imposed by this fix, due to
+thermostatting and/or barostatting, is included in the
+:doc:`thermodynamic output <thermo_style>` keywords *ecouple* and
+*econserve*.  See the :doc:`thermo_style <thermo_style>` page for
+details.
 
-This fix computes a global scalar and a global vector of quantities,
-which can be accessed by various :doc:`output commands <Howto_output>`.
-The scalar value calculated by this fix is "extensive"; the vector
+This fix computes a global scalar which can be accessed by various
+:doc:`output commands <Howto_output>`.  The scalar is the same
+cumulative energy change due to this fix described in the previous
+paragraph.  The scalar value calculated by this fix is "extensive".
+
+This fix also computes a global vector of quantities, which can be
+accessed by various :doc:`output commands <Howto_output>`.  Rhe vector
 values are "intensive".
-
-The scalar is the cumulative energy change due to the fix.
 
 The vector stores internal Nose/Hoover thermostat and barostat
 variables.  The number and meaning of the vector values depends on
-which fix is used and the settings for keywords *tchain* and *pchain*\ ,
+which fix is used and the settings for keywords *tchain* and *pchain*,
 which specify the number of Nose/Hoover chains for the thermostat and
 barostat.  If no thermostatting is done, then *tchain* is 0.  If no
 barostatting is done, then *pchain* is 0.  In the following list,
@@ -550,13 +555,13 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-This fix is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This fix is part of the EXTRA-FIX package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
-*X*\ , *y*\ , *z* cannot be barostatted if the associated dimension is not
-periodic.  *Xy*\ , *xz*\ , and *yz* can only be barostatted if the
-simulation domain is triclinic and the 2nd dimension in the keyword
-(\ *y* dimension in *xy*\ ) is periodic.  *Z*\ , *xz*\ , and *yz*\ , cannot be
+*X*, *y*, *z* cannot be barostatted if the associated dimension is not
+periodic.  *Xy*, *xz*, and *yz* can only be barostatted if the
+simulation domain is triclinic and the second dimension in the keyword
+(\ *y* dimension in *xy*\ ) is periodic.  *Z*, *xz*, and *yz*, cannot be
 barostatted for 2D simulations.  The :doc:`create_box <create_box>`,
 :doc:`read data <read_data>`, and :doc:`read_restart <read_restart>`
 commands specify whether the simulation box is orthogonal or
@@ -568,19 +573,12 @@ make the external T = 0.0 at some timestep during the simulation which
 is not allowed in the Nose/Hoover formulation.
 
 The *scaleyz yes* and *scalexz yes* keyword/value pairs can not be used
-for 2D simulations. *scaleyz yes*\ , *scalexz yes*\ , and *scalexy yes* options
-can only be used if the 2nd dimension in the keyword is periodic,
+for 2D simulations. *scaleyz yes*, *scalexz yes*, and *scalexy yes* options
+can only be used if the second dimension in the keyword is periodic,
 and if the tilt factor is not coupled to the barostat via keywords
-*tri*\ , *yz*\ , *xz*\ , and *xy*\ .
+*tri*, *yz*, *xz*, and *xy*\ .
 
-Without the *cauchystat* keyword, the barostat algorithm
-controls the Second-Piola Kirchhoff stress, which is a stress measure
-referred to the unmodified (initial) simulation box.  If the box
-deforms substantially during the equilibration, the difference between
-the set values and the final true (Cauchy) stresses can be
-considerable.
-
-The *cauchystat* keyword modifies the barostat as per Miller et
+The *alpha* keyword modifies the barostat as per Miller et
 al. (Miller)_"#nc-Miller" so that the Cauchy stress is controlled.
 *alpha* is the non-dimensional parameter, typically set to 0.001 or
 0.01 that determines how aggressively the algorithm drives the system
@@ -598,13 +596,12 @@ sequence over several fixes.
 
 Setting *alpha* to zero is not permitted.  To "turn off" the
 cauchystat control and thus restore the equilibrium stress
-fluctuations, two subsequent fixes should be used.  In the first, the
-cauchystat flag is used and the simulation box equilibrates to the
-correct shape for the desired stresses.  In the second, the *fix*
-statement is identical except that the *cauchystat* keyword is removed
-(along with related *alpha* and *continue* values). This restores the
-original Parrinello-Rahman algorithm, but now with the correct simulation
-box shape from the first fix.
+fluctuations, two subsequent fixes should be used.  In the first, fix
+npt/cauchy is used and the simulation box equilibrates to the
+correct shape for the desired stresses.  In the second,
+:doc:`fix npt <fix_nh>` is used instead which uses the
+original Parrinello-Rahman algorithm, but now with the corrected
+simulation box shape from using fix npt/cauchy.
 
 This fix can be used with dynamic groups as defined by the
 :doc:`group <group>` command.  Likewise it can be used with groups to
@@ -626,7 +623,7 @@ Default
 The keyword defaults are tchain = 3, pchain = 3, mtk = yes, tloop =
 ploop = 1, nreset = 0, drag = 0.0, dilate = all, couple = none,
 cauchystat = no,
-scaleyz = scalexz = scalexy = yes if periodic in 2nd dimension and
+scaleyz = scalexz = scalexy = yes if periodic in second dimension and
 not coupled to barostat, otherwise no.
 
 ----------

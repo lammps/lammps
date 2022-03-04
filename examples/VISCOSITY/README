@@ -28,7 +28,7 @@ minute or so and produce the accompanying log files and profile files
 (for velocity or momentum flux).
 
 See the Movies page of the LAMMPS web site
-(http://lammps.sandia.gov/movies.html), for animations of the NEMD
+(https://www.lammps.org/movies.html), for animations of the NEMD
 scripts, created using the dump image command.
 
 The state point of the LJ fluid is rho* = 0.6, T* = 1.0, and Rcut =

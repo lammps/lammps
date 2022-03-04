@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/class2/kk,PairLJClass2Kokkos<LMPDeviceType>)
-PairStyle(lj/class2/kk/device,PairLJClass2Kokkos<LMPDeviceType>)
-PairStyle(lj/class2/kk/host,PairLJClass2Kokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(lj/class2/kk,PairLJClass2Kokkos<LMPDeviceType>);
+PairStyle(lj/class2/kk/device,PairLJClass2Kokkos<LMPDeviceType>);
+PairStyle(lj/class2/kk/host,PairLJClass2Kokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_LJ_CLASS2_KOKKOS_H
 #define LMP_PAIR_LJ_CLASS2_KOKKOS_H
 
@@ -36,25 +37,23 @@ class PairLJClass2Kokkos : public PairLJClass2 {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   PairLJClass2Kokkos(class LAMMPS *);
-  ~PairLJClass2Kokkos();
+  ~PairLJClass2Kokkos() override;
 
-  void compute(int, int);
+  void compute(int, int) override;
 
-  void settings(int, char **);
-  void init_style();
-  double init_one(int, int);
+  void settings(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
   struct params_lj{
     KOKKOS_INLINE_FUNCTION
-    params_lj(){cutsq=0,lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
+    params_lj() {cutsq=0,lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
     KOKKOS_INLINE_FUNCTION
-    params_lj(int i){cutsq=0,lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
+    params_lj(int /*i*/) {cutsq=0,lj1=0;lj2=0;lj3=0;lj4=0;offset=0;};
     F_FLOAT cutsq,lj1,lj2,lj3,lj4,offset;
   };
 
  protected:
-  void cleanup_copy();
-
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
   F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
@@ -65,16 +64,13 @@ class PairLJClass2Kokkos : public PairLJClass2 {
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
-    return 0.0;
-  }
+  F_FLOAT compute_ecoul(const F_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/,
+                        const int& /*itype*/, const int& /*jtype*/) const { return 0; }
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_fcoul(const F_FLOAT& rsq, const int& i, const int&j, const int& itype,
-                        const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
-    return 0.0;
-  }
+  F_FLOAT compute_fcoul(const F_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/, const int& /*itype*/,
+                        const int& /*jtype*/, const F_FLOAT& /*factor_coul*/, const F_FLOAT& /*qtmp*/) const { return 0; }
 
   Kokkos::DualView<params_lj**,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_lj**,Kokkos::LayoutRight,DeviceType>::t_dev_const_um params;
@@ -100,13 +96,13 @@ class PairLJClass2Kokkos : public PairLJClass2 {
   int neighflag;
   int nlocal,nall,eflag,vflag;
 
-  void allocate();
-  friend class PairComputeFunctor<PairLJClass2Kokkos,FULL,true>;
-  friend class PairComputeFunctor<PairLJClass2Kokkos,HALF,true>;
-  friend class PairComputeFunctor<PairLJClass2Kokkos,HALFTHREAD,true>;
-  friend class PairComputeFunctor<PairLJClass2Kokkos,FULL,false>;
-  friend class PairComputeFunctor<PairLJClass2Kokkos,HALF,false>;
-  friend class PairComputeFunctor<PairLJClass2Kokkos,HALFTHREAD,false>;
+  void allocate() override;
+  friend struct PairComputeFunctor<PairLJClass2Kokkos,FULL,true>;
+  friend struct PairComputeFunctor<PairLJClass2Kokkos,HALF,true>;
+  friend struct PairComputeFunctor<PairLJClass2Kokkos,HALFTHREAD,true>;
+  friend struct PairComputeFunctor<PairLJClass2Kokkos,FULL,false>;
+  friend struct PairComputeFunctor<PairLJClass2Kokkos,HALF,false>;
+  friend struct PairComputeFunctor<PairLJClass2Kokkos,HALFTHREAD,false>;
   friend EV_FLOAT pair_compute_neighlist<PairLJClass2Kokkos,FULL,void>(PairLJClass2Kokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairLJClass2Kokkos,HALF,void>(PairLJClass2Kokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairLJClass2Kokkos,HALFTHREAD,void>(PairLJClass2Kokkos*,NeighListKokkos<DeviceType>*);

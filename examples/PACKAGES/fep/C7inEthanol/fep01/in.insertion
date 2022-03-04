@@ -1,0 +1,57 @@
+# LAMMPS atomistic input script
+
+echo            screen
+units           real
+atom_style      full
+
+pair_style      hybrid lj/class2/coul/long 9.5 lj/class2/coul/long/soft 2 0.5 0.5 9.5
+bond_style      class2
+angle_style     class2
+dihedral_style  class2
+improper_style  class2
+pair_modify     mix sixthpower tail yes
+special_bonds   lj/coul 0 0 1
+
+read_data       data.init_conf_with_heptane
+
+pair_coeff    1    6  lj/class2/coul/long/soft   0.054 4.01 0.0
+pair_coeff    2    6  lj/class2/coul/long/soft   0.054 4.01 0.0
+pair_coeff    3    6  lj/class2/coul/long/soft   0.10615754 3.80912744 0.0
+pair_coeff    4    6  lj/class2/coul/long/soft   0.02333374 3.66909137 0.0
+pair_coeff    5    6  lj/class2/coul/long/soft   0.00108740 3.57275476 0.0
+
+pair_coeff    1    7  lj/class2/coul/long/soft   0.054 4.01 0.0
+pair_coeff    2    7  lj/class2/coul/long/soft   0.054 4.01 0.0
+pair_coeff    3    7  lj/class2/coul/long/soft   0.10615754 3.80912744 0.0
+pair_coeff    4    7  lj/class2/coul/long/soft   0.02333374 3.66909137 0.0
+pair_coeff    5    7  lj/class2/coul/long/soft   0.00108740 3.57275476 0.0
+
+pair_coeff    1    8  lj/class2/coul/long/soft   0.02333374 3.66909137 0.0
+pair_coeff    2    8  lj/class2/coul/long/soft   0.02333374 3.66909137 0.0
+pair_coeff    3    8  lj/class2/coul/long/soft   0.06151694 3.31892497 0.0
+pair_coeff    4    8  lj/class2/coul/long/soft   0.02 2.995 0.0
+pair_coeff    5    8  lj/class2/coul/long/soft   0.00158519 2.66932028 0.0
+
+timestep        1.0
+kspace_style    pppm 1.0e-5
+
+variable lambda equal ramp(0.0,1.0)
+variable q1 equal -0.1590*v_lambda
+variable q2 equal -0.1060*v_lambda
+variable q3 equal  0.0530*v_lambda
+
+fix ADAPT all adapt/fep 10 &
+  pair lj/class2/coul/long/soft lambda 1*5 6*8 v_lambda &
+  atom charge 6 v_q1 &
+  atom charge 7 v_q2 &
+  atom charge 8 v_q3 &
+  after yes
+
+thermo_style custom step temp press vol etotal pe v_lambda v_q1 v_q2 v_q3
+thermo_modify line one
+thermo          100
+
+fix             1 all nvt temp 300 300 100
+run             100000
+
+write_data      data.after_heptane_insertion

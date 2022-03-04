@@ -42,14 +42,11 @@
 //@HEADER
 */
 
-#include <cstdio>
-#include <algorithm>
 #include <Kokkos_Macros.hpp>
+
 #include <impl/Kokkos_Error.hpp>
 #include <impl/Kokkos_MemorySpace.hpp>
-#if defined(KOKKOS_ENABLE_PROFILING)
-#include <impl/Kokkos_Profiling_Interface.hpp>
-#endif
+#include <impl/Kokkos_Tools.hpp>
 
 /*--------------------------------------------------------------------------*/
 
@@ -166,6 +163,20 @@ HostSpace::HostSpace(const HostSpace::AllocationMechanism &arg_alloc_mech)
 }
 
 void *HostSpace::allocate(const size_t arg_alloc_size) const {
+  return allocate("[unlabeled]", arg_alloc_size);
+}
+void *HostSpace::allocate(const char *arg_label, const size_t arg_alloc_size,
+                          const size_t
+
+                              arg_logical_size) const {
+  return impl_allocate(arg_label, arg_alloc_size, arg_logical_size);
+}
+void *HostSpace::impl_allocate(
+    const char *arg_label, const size_t arg_alloc_size,
+    const size_t arg_logical_size,
+    const Kokkos::Tools::SpaceHandle arg_handle) const {
+  const size_t reported_size =
+      (arg_logical_size > 0) ? arg_logical_size : arg_alloc_size;
   static_assert(sizeof(void *) == sizeof(uintptr_t),
                 "Error sizeof(void*) != sizeof(uintptr_t)");
 
@@ -274,16 +285,35 @@ void *HostSpace::allocate(const size_t arg_alloc_size) const {
     throw Kokkos::Experimental::RawMemoryAllocationFailure(
         arg_alloc_size, alignment, failure_mode, alloc_mec);
   }
-
+  if (Kokkos::Profiling::profileLibraryLoaded()) {
+    Kokkos::Profiling::allocateData(arg_handle, arg_label, ptr, reported_size);
+  }
   return ptr;
 }
 
-void HostSpace::deallocate(void *const arg_alloc_ptr, const size_t
-#if defined(KOKKOS_IMPL_POSIX_MMAP_FLAGS)
-                                                          arg_alloc_size
-#endif
-                           ) const {
+void HostSpace::deallocate(void *const arg_alloc_ptr,
+                           const size_t arg_alloc_size) const {
+  deallocate("[unlabeled]", arg_alloc_ptr, arg_alloc_size);
+}
+
+void HostSpace::deallocate(const char *arg_label, void *const arg_alloc_ptr,
+                           const size_t arg_alloc_size,
+                           const size_t
+
+                               arg_logical_size) const {
+  impl_deallocate(arg_label, arg_alloc_ptr, arg_alloc_size, arg_logical_size);
+}
+void HostSpace::impl_deallocate(
+    const char *arg_label, void *const arg_alloc_ptr,
+    const size_t arg_alloc_size, const size_t arg_logical_size,
+    const Kokkos::Tools::SpaceHandle arg_handle) const {
   if (arg_alloc_ptr) {
+    size_t reported_size =
+        (arg_logical_size > 0) ? arg_logical_size : arg_alloc_size;
+    if (Kokkos::Profiling::profileLibraryLoaded()) {
+      Kokkos::Profiling::deallocateData(arg_handle, arg_label, arg_alloc_ptr,
+                                        reported_size);
+    }
     if (m_alloc_mech == STD_MALLOC) {
       void *alloc_ptr = *(reinterpret_cast<void **>(arg_alloc_ptr) - 1);
       free(alloc_ptr);
@@ -316,15 +346,10 @@ void HostSpace::deallocate(void *const arg_alloc_ptr, const size_t
 namespace Kokkos {
 namespace Impl {
 
-#ifdef KOKKOS_DEBUG
+#ifdef KOKKOS_ENABLE_DEBUG
 SharedAllocationRecord<void, void>
     SharedAllocationRecord<Kokkos::HostSpace, void>::s_root_record;
 #endif
-
-void SharedAllocationRecord<Kokkos::HostSpace, void>::deallocate(
-    SharedAllocationRecord<void, void> *arg_rec) {
-  delete static_cast<SharedAllocationRecord *>(arg_rec);
-}
 
 SharedAllocationRecord<Kokkos::HostSpace, void>::~SharedAllocationRecord()
 #if defined( \
@@ -332,16 +357,11 @@ SharedAllocationRecord<Kokkos::HostSpace, void>::~SharedAllocationRecord()
     noexcept
 #endif
 {
-#if defined(KOKKOS_ENABLE_PROFILING)
-  if (Kokkos::Profiling::profileLibraryLoaded()) {
-    Kokkos::Profiling::deallocateData(
-        Kokkos::Profiling::SpaceHandle(Kokkos::HostSpace::name()),
-        RecordBase::m_alloc_ptr->m_label, data(), size());
-  }
-#endif
-
-  m_space.deallocate(SharedAllocationRecord<void, void>::m_alloc_ptr,
-                     SharedAllocationRecord<void, void>::m_alloc_size);
+  m_space.deallocate(RecordBase::m_alloc_ptr->m_label,
+                     SharedAllocationRecord<void, void>::m_alloc_ptr,
+                     SharedAllocationRecord<void, void>::m_alloc_size,
+                     (SharedAllocationRecord<void, void>::m_alloc_size -
+                      sizeof(SharedAllocationHeader)));
 }
 
 SharedAllocationHeader *_do_allocation(Kokkos::HostSpace const &space,
@@ -372,105 +392,17 @@ SharedAllocationRecord<Kokkos::HostSpace, void>::SharedAllocationRecord(
     const SharedAllocationRecord<void, void>::function_type arg_dealloc)
     // Pass through allocated [ SharedAllocationHeader , user_memory ]
     // Pass through deallocation function
-    : SharedAllocationRecord<void, void>(
-#ifdef KOKKOS_DEBUG
+    : base_t(
+#ifdef KOKKOS_ENABLE_DEBUG
           &SharedAllocationRecord<Kokkos::HostSpace, void>::s_root_record,
 #endif
           Impl::checked_allocation_with_header(arg_space, arg_label,
                                                arg_alloc_size),
           sizeof(SharedAllocationHeader) + arg_alloc_size, arg_dealloc),
       m_space(arg_space) {
-#if defined(KOKKOS_ENABLE_PROFILING)
-  if (Kokkos::Profiling::profileLibraryLoaded()) {
-    Kokkos::Profiling::allocateData(
-        Kokkos::Profiling::SpaceHandle(arg_space.name()), arg_label, data(),
-        arg_alloc_size);
-  }
-#endif
-  // Fill in the Header information
-  RecordBase::m_alloc_ptr->m_record =
-      static_cast<SharedAllocationRecord<void, void> *>(this);
-
-  strncpy(RecordBase::m_alloc_ptr->m_label, arg_label.c_str(),
-          SharedAllocationHeader::maximum_label_length);
-  // Set last element zero, in case c_str is too long
-  RecordBase::m_alloc_ptr
-      ->m_label[SharedAllocationHeader::maximum_label_length - 1] = (char)0;
+  this->base_t::_fill_host_accessible_header_info(*RecordBase::m_alloc_ptr,
+                                                  arg_label);
 }
-
-//----------------------------------------------------------------------------
-
-void *SharedAllocationRecord<Kokkos::HostSpace, void>::allocate_tracked(
-    const Kokkos::HostSpace &arg_space, const std::string &arg_alloc_label,
-    const size_t arg_alloc_size) {
-  if (!arg_alloc_size) return nullptr;
-
-  SharedAllocationRecord *const r =
-      allocate(arg_space, arg_alloc_label, arg_alloc_size);
-
-  RecordBase::increment(r);
-
-  return r->data();
-}
-
-void SharedAllocationRecord<Kokkos::HostSpace, void>::deallocate_tracked(
-    void *const arg_alloc_ptr) {
-  if (arg_alloc_ptr != nullptr) {
-    SharedAllocationRecord *const r = get_record(arg_alloc_ptr);
-
-    RecordBase::decrement(r);
-  }
-}
-
-void *SharedAllocationRecord<Kokkos::HostSpace, void>::reallocate_tracked(
-    void *const arg_alloc_ptr, const size_t arg_alloc_size) {
-  SharedAllocationRecord *const r_old = get_record(arg_alloc_ptr);
-  SharedAllocationRecord *const r_new =
-      allocate(r_old->m_space, r_old->get_label(), arg_alloc_size);
-
-  Kokkos::Impl::DeepCopy<HostSpace, HostSpace>(
-      r_new->data(), r_old->data(), std::min(r_old->size(), r_new->size()));
-
-  RecordBase::increment(r_new);
-  RecordBase::decrement(r_old);
-
-  return r_new->data();
-}
-
-SharedAllocationRecord<Kokkos::HostSpace, void> *
-SharedAllocationRecord<Kokkos::HostSpace, void>::get_record(void *alloc_ptr) {
-  typedef SharedAllocationHeader Header;
-  typedef SharedAllocationRecord<Kokkos::HostSpace, void> RecordHost;
-
-  SharedAllocationHeader const *const head =
-      alloc_ptr ? Header::get_header(alloc_ptr) : nullptr;
-  RecordHost *const record =
-      head ? static_cast<RecordHost *>(head->m_record) : nullptr;
-
-  if (!alloc_ptr || record->m_alloc_ptr != head) {
-    Kokkos::Impl::throw_runtime_exception(
-        std::string("Kokkos::Impl::SharedAllocationRecord< Kokkos::HostSpace , "
-                    "void >::get_record ERROR"));
-  }
-
-  return record;
-}
-
-// Iterate records to print orphaned memory ...
-#ifdef KOKKOS_DEBUG
-void SharedAllocationRecord<Kokkos::HostSpace, void>::print_records(
-    std::ostream &s, const Kokkos::HostSpace &, bool detail) {
-  SharedAllocationRecord<void, void>::print_host_accessible_records(
-      s, "HostSpace", &s_root_record, detail);
-}
-#else
-void SharedAllocationRecord<Kokkos::HostSpace, void>::print_records(
-    std::ostream &, const Kokkos::HostSpace &, bool) {
-  throw_runtime_exception(
-      "SharedAllocationRecord<HostSpace>::print_records only works with "
-      "KOKKOS_DEBUG enabled");
-}
-#endif
 
 }  // namespace Impl
 }  // namespace Kokkos
@@ -548,3 +480,22 @@ void unlock_address_host_space(void *ptr) {
 
 }  // namespace Impl
 }  // namespace Kokkos
+
+//==============================================================================
+// <editor-fold desc="Explicit instantiations of CRTP Base classes"> {{{1
+
+#include <impl/Kokkos_SharedAlloc_timpl.hpp>
+
+namespace Kokkos {
+namespace Impl {
+
+// To avoid additional compilation cost for something that's (mostly?) not
+// performance sensitive, we explicity instantiate these CRTP base classes here,
+// where we have access to the associated *_timpl.hpp header files.
+template class SharedAllocationRecordCommon<Kokkos::HostSpace>;
+
+}  // end namespace Impl
+}  // end namespace Kokkos
+
+// </editor-fold> end Explicit instantiations of CRTP Base classes }}}1
+//==============================================================================

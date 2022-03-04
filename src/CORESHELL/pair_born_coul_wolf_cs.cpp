@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,12 +14,13 @@
 
 
 #include "pair_born_coul_wolf_cs.h"
-#include <cmath>
+
 #include "atom.h"
-#include "comm.h"
 #include "force.h"
-#include "neigh_list.h"
 #include "math_const.h"
+#include "neigh_list.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -153,8 +155,3 @@ void PairBornCoulWolfCS::compute(int eflag, int vflag)
   if (vflag_fdotr) virial_fdotr_compute();
 }
 
-/*
-Using erfc and expmsq provided by math_special.h
-
-See: http://lammps.sandia.gov/threads/msg61934.html
-*/

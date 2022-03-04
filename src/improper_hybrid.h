@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
-ImproperStyle(hybrid,ImproperHybrid)
-
+// clang-format off
+ImproperStyle(hybrid,ImproperHybrid);
+// clang-format on
 #else
 
 #ifndef LMP_IMPROPER_HYBRID_H
@@ -26,31 +26,31 @@ namespace LAMMPS_NS {
 
 class ImproperHybrid : public Improper {
  public:
-  int nstyles;                  // # of different improper styles
-  Improper **styles;            // class list for each Improper style
-  char **keywords;              // keyword for each improper style
+  int nstyles;          // # of different improper styles
+  Improper **styles;    // class list for each Improper style
+  char **keywords;      // keyword for each improper style
 
   ImproperHybrid(class LAMMPS *);
-  ~ImproperHybrid();
-  void init_style();
-  void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  double memory_usage();
+  ~ImproperHybrid() override;
+  void init_style() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  double memory_usage() override;
 
  private:
-  int *map;                     // which style each improper type points to
+  int *map;    // which style each improper type points to
 
-  int *nimproperlist;           // # of impropers in sub-style improperlists
-  int *maximproper;             // max # of impropers sub-style lists can store
-  int ***improperlist;          // improperlist for each sub-style
+  int *nimproperlist;     // # of impropers in sub-style improperlists
+  int *maximproper;       // max # of impropers sub-style lists can store
+  int ***improperlist;    // improperlist for each sub-style
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

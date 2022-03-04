@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NTOPO_CLASS
-
-NTopoStyle(NTOPO_ANGLE_PARTIAL,NTopoAnglePartial)
-
+// clang-format off
+NTopoStyle(NTOPO_ANGLE_PARTIAL,NTopoAnglePartial);
+// clang-format on
 #else
 
 #ifndef LMP_TOPO_ANGLE_PARTIAL_H
@@ -27,11 +27,10 @@ namespace LAMMPS_NS {
 class NTopoAnglePartial : public NTopo {
  public:
   NTopoAnglePartial(class LAMMPS *);
-  ~NTopoAnglePartial() {}
-  void build();
+  void build() override;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

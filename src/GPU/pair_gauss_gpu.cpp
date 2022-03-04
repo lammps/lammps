@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,40 +17,34 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_gauss_gpu.h"
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
+
 #include "atom.h"
-#include "atom_vec.h"
-#include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "integrate.h"
-#include "memory.h"
-#include "error.h"
-#include "neigh_request.h"
-#include "universe.h"
-#include "update.h"
 #include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "gpu_extra.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 #include "suffix.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
 // External functions from cuda library for atom decomposition
 
 int gauss_gpu_init(const int ntypes, double **cutsq, double **host_a,
-                   double **b, double **offset, double *special_lj, const int nlocal,
-                   const int nall, const int max_nbors, const int maxspecial,
-                   const double cell_size, int &gpu_mode, FILE *screen);
+                   double **b, double **offset, double *special_lj,
+                   const int nlocal, const int nall, const int max_nbors,
+                   const int maxspecial, const double cell_size,
+                   int &gpu_mode, FILE *screen);
 void gauss_gpu_reinit(const int ntypes, double **cutsq, double **host_a,
-                   double **b, double **offset);
+                      double **b, double **offset);
 void gauss_gpu_clear();
-int ** gauss_gpu_compute_n(const int ago, const int inum,
-                           const int nall, double **host_x, int *host_type,
-                           double *sublo, double *subhi, tagint *tag, int **nspecial,
+int ** gauss_gpu_compute_n(const int ago, const int inum, const int nall,
+                           double **host_x, int *host_type, double *sublo,
+                           double *subhi, tagint *tag, int **nspecial,
                            tagint **special, const bool eflag, const bool vflag,
                            const bool eatom, const bool vatom, int &host_start,
                            int **ilist, int **jnum,
@@ -123,9 +118,9 @@ void PairGaussGPU::compute(int eflag, int vflag)
     error->one(FLERR,"Insufficient memory on accelerator");
 
   if (host_start<inum) {
-    cpu_time = MPI_Wtime();
+    cpu_time = platform::walltime();
     cpu_compute(host_start, inum, eflag, vflag, ilist, numneigh, firstneigh);
-    cpu_time = MPI_Wtime() - cpu_time;
+    cpu_time = platform::walltime() - cpu_time;
   }
 }
 
@@ -135,8 +130,6 @@ void PairGaussGPU::compute(int eflag, int vflag)
 
 void PairGaussGPU::init_style()
 {
-  if (force->newton_pair)
-    error->all(FLERR,"Cannot use newton pair with gauss/gpu pair style");
 
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;
@@ -156,11 +149,12 @@ void PairGaussGPU::init_style()
   double cell_size = sqrt(maxcut) + neighbor->skin;
 
   int maxspecial=0;
-  if (atom->molecular)
+  if (atom->molecular != Atom::ATOMIC)
     maxspecial=atom->maxspecial;
+  int mnf = 5e-2 * neighbor->oneatom;
   int success = gauss_gpu_init(atom->ntypes+1, cutsq, a, b,
                                offset, force->special_lj, atom->nlocal,
-                               atom->nlocal+atom->nghost, 300, maxspecial,
+                               atom->nlocal+atom->nghost, mnf, maxspecial,
                                cell_size, gpu_mode, screen);
   GPU_EXTRA::check_flag(success,error,world);
 

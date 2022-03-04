@@ -25,9 +25,9 @@ namespace ATC {
   class ATC_CouplingMomentumEnergy : public ATC_Coupling {
 
   public:
-  
+
     // constructor
-    ATC_CouplingMomentumEnergy(std::string groupName, 
+    ATC_CouplingMomentumEnergy(std::string groupName,
                                double ** & perAtomArray,
                                LAMMPS_NS::Fix * thisFix,
                                std::string matParamFile,
@@ -78,6 +78,6 @@ namespace ATC {
     // data
     double refPE_;
   };
-    
+
 };
 #endif

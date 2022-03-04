@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,10 +13,11 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_minimize_kokkos.h"
+
 #include "atom_kokkos.h"
+#include "atom_masks.h"
 #include "domain.h"
 #include "memory_kokkos.h"
-#include "atom_masks.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -33,7 +35,7 @@ FixMinimizeKokkos::FixMinimizeKokkos(LAMMPS *lmp, int narg, char **arg) :
 FixMinimizeKokkos::~FixMinimizeKokkos()
 {
   memoryKK->destroy_kokkos(k_vectors,vectors);
-  vectors = NULL;
+  vectors = nullptr;
 }
 
 /* ----------------------------------------------------------------------

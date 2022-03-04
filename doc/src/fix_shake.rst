@@ -1,7 +1,11 @@
 .. index:: fix shake
+.. index:: fix shake/kk
+.. index:: fix rattle
 
 fix shake command
 =================
+
+Accelerator Variants: *shake/kk*
 
 fix rattle command
 ==================
@@ -67,8 +71,8 @@ required in order to eliminate velocity components along the bonds
 
 In order to formulate individual constraints for SHAKE and RATTLE,
 focus on a single molecule whose bonds are constrained.  Let Ri and Vi
-be the position and velocity of atom *i* at time *n*\ , for
-*i* =1,...,\ *N*\ , where *N* is the number of sites of our reference
+be the position and velocity of atom *i* at time *n*, for
+*i* =1,...,\ *N*, where *N* is the number of sites of our reference
 molecule. The distance vector between sites *i* and *j* is given by
 
 .. math::
@@ -161,23 +165,7 @@ info of atoms in the molecule.
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
@@ -200,24 +188,32 @@ LAMMPS closely follows (:ref:`Andersen (1983) <Andersen3>`).
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-The :doc:`fix_modify <fix_modify>` *virial* option is supported by this
-fix to add the contribution due to keeping the constraints to the
-system's virial as part of :doc:`thermodynamic output <thermo_style>`.
-The default is *virial yes*
+No information about these fixes is written to :doc:`binary restart
+files <restart>`.
 
-No information about these fixes is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
-are relevant to these fixes.  No global or per-atom quantities are
-stored by these fixes for access by various :doc:`output commands <Howto_output>`.  No parameter of these fixes can be used
-with the *start/stop* keywords of the :doc:`run <run>` command.  These
-fixes are not invoked during :doc:`energy minimization <minimize>`.
+The :doc:`fix_modify <fix_modify>` *virial* option is supported by
+these fixes to add the contribution due to the added forces on atoms
+to both the global pressure and per-atom stress of the system via the
+:doc:`compute pressure <compute_pressure>` and :doc:`compute
+stress/atom <compute_stress_atom>` commands.  The former can be
+accessed by :doc:`thermodynamic output <thermo_style>`.  The default
+setting for this fix is :doc:`fix_modify virial yes <fix_modify>`.
+
+No global or per-atom quantities are stored by these fixes for access
+by various :doc:`output commands <Howto_output>`.  No parameter of
+these fixes can be used with the *start/stop* keywords of the
+:doc:`run <run>` command.  These fixes are not invoked during
+:doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
 
 These fixes are part of the RIGID package.  They are only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
 For computational efficiency, there can only be one shake or rattle
 fix defined in a simulation.
@@ -233,9 +229,16 @@ degrees (e.g. linear CO2 molecule).  This causes numeric difficulties.
 You can use :doc:`fix rigid or fix rigid/small <fix_rigid>` instead to
 make a linear molecule rigid.
 
-**Related commands:** none
+Related commands
+""""""""""""""""
 
-**Default:** none
+none
+
+
+Default
+"""""""
+
+none
 
 ----------
 

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,40 +17,44 @@
 ------------------------------------------------------------------------- */
 
 #include "tad.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
-#include "universe.h"
-#include "update.h"
+
 #include "atom.h"
-#include "domain.h"
-#include "integrate.h"
-#include "min.h"
-#include "neighbor.h"
-#include "modify.h"
-#include "neb.h"
 #include "compute.h"
+#include "domain.h"
+#include "error.h"
+#include "finish.h"
 #include "fix_event_tad.h"
 #include "fix_store.h"
 #include "force.h"
-#include "output.h"
-#include "finish.h"
-#include "timer.h"
+#include "integrate.h"
 #include "memory.h"
-#include "error.h"
+#include "min.h"
+#include "modify.h"
+#include "neb.h"
+#include "neighbor.h"
+#include "output.h"
+#include "timer.h"
+#include "universe.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-TAD::TAD(LAMMPS *lmp) : Pointers(lmp) {}
+TAD::TAD(LAMMPS *lmp) : Command(lmp)
+{
+  deltconf = deltstop = deltfirst = 0.0;
+}
 
 /* ---------------------------------------------------------------------- */
 
 TAD::~TAD()
 {
   memory->sfree(fix_event_list);
-  if (neb_logfilename != NULL) delete [] neb_logfilename;
+  if (neb_logfilename != nullptr) delete [] neb_logfilename;
   delete [] min_style;
   delete [] min_style_neb;
 }
@@ -61,7 +66,7 @@ TAD::~TAD()
 
 void TAD::command(int narg, char **arg)
 {
-  fix_event_list = NULL;
+  fix_event_list = nullptr;
   n_event_list = 0;
   nmax_event_list = 0;
   nmin_event_list = 10;
@@ -76,27 +81,24 @@ void TAD::command(int narg, char **arg)
     error->all(FLERR,"Can only use TAD with 1-processor replicas for NEB");
   if (atom->sortfreq > 0)
     error->all(FLERR,"Cannot use TAD with atom_modify sort enabled for NEB");
-  if (atom->map_style == 0)
+  if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Cannot use TAD unless atom map exists for NEB");
 
   if (narg < 7) error->universe_all(FLERR,"Illegal tad command");
 
-  nsteps = force->inumeric(FLERR,arg[0]);
-  t_event = force->inumeric(FLERR,arg[1]);
-  templo = force->numeric(FLERR,arg[2]);
-  temphi = force->numeric(FLERR,arg[3]);
-  delta_conf = force->numeric(FLERR,arg[4]);
-  tmax = force->numeric(FLERR,arg[5]);
+  nsteps = utils::inumeric(FLERR,arg[0],false,lmp);
+  t_event = utils::inumeric(FLERR,arg[1],false,lmp);
+  templo = utils::numeric(FLERR,arg[2],false,lmp);
+  temphi = utils::numeric(FLERR,arg[3],false,lmp);
+  delta_conf = utils::numeric(FLERR,arg[4],false,lmp);
+  tmax = utils::numeric(FLERR,arg[5],false,lmp);
 
-  char *id_compute = new char[strlen(arg[6])+1];
-  strcpy(id_compute,arg[6]);
+  char *id_compute = utils::strdup(arg[6]);
 
   // quench minimizer is set by min_style command
   // NEB minimizer is set by options, default = quickmin
 
-  int n = strlen(update->minimize_style) + 1;
-  min_style = new char[n];
-  strcpy(min_style,update->minimize_style);
+  min_style = utils::strdup(update->minimize_style);
 
   options(narg-7,&arg[7]);
 
@@ -129,28 +131,11 @@ void TAD::command(int narg, char **arg)
 
   // create FixEventTAD object to store last event
 
-  int narg2 = 3;
-  char **args = new char*[narg2];
-  args[0] = (char *) "tad_event";
-  args[1] = (char *) "all";
-  args[2] = (char *) "EVENT/TAD";
-  modify->add_fix(narg2,args);
-  fix_event = (FixEventTAD *) modify->fix[modify->nfix-1];
-  delete [] args;
+  fix_event = (FixEventTAD *) modify->add_fix("tad_event all EVENT/TAD");
 
   // create FixStore object to store revert state
 
-  narg2 = 6;
-  args = new char*[narg2];
-  args[0] = (char *) "tad_revert";
-  args[1] = (char *) "all";
-  args[2] = (char *) "STORE";
-  args[3] = (char *) "peratom";
-  args[4] = (char *) "0";
-  args[5] = (char *) "7";
-  modify->add_fix(narg2,args);
-  fix_revert = (FixStore *) modify->fix[modify->nfix-1];
-  delete [] args;
+  fix_revert = (FixStore *) modify->add_fix("tad_revert all STORE peratom 0 7");
 
   // create Finish for timing output
 
@@ -193,13 +178,10 @@ void TAD::command(int narg, char **arg)
 
   // set minimize style for quench
 
-  narg2 = 1;
-  args = new char*[narg2];
+  char *args[1];
   args[0] = min_style;
 
-  update->create_minimize(narg2,args,1);
-
-  delete [] args;
+  update->create_minimize(1,args,1);
 
   // init minimizer settings and minimizer itself
 
@@ -225,8 +207,8 @@ void TAD::command(int narg, char **arg)
 
   ulogfile_lammps = universe->ulogfile;
   uscreen_lammps = universe->uscreen;
-  ulogfile_neb = NULL;
-  uscreen_neb = NULL;
+  ulogfile_neb = nullptr;
+  uscreen_neb = nullptr;
   if (me_universe == 0 && neb_logfilename)
     ulogfile_neb = fopen(neb_logfilename,"w");
 
@@ -398,10 +380,7 @@ void TAD::command(int narg, char **arg)
 
   if ((me_universe == 0) && ulogfile_neb) fclose(ulogfile_neb);
 
-  if (me == 0) {
-    if (screen) fprintf(screen,"\nTAD done\n");
-    if (logfile) fprintf(logfile,"\nTAD done\n");
-  }
+  if (me == 0) utils::logmesg(lmp,"\nTAD done\n");
 
   finish->end(3);
 
@@ -423,7 +402,7 @@ void TAD::command(int narg, char **arg)
   modify->delete_fix("tad_revert");
   delete_event_list();
 
-  compute_event->reset_extra_compute_fix(NULL);
+  compute_event->reset_extra_compute_fix(nullptr);
 }
 
 /* ----------------------------------------------------------------------
@@ -556,7 +535,10 @@ void TAD::log_event(int ievent)
     timer->barrier_start();
     modify->addstep_compute_all(update->ntimestep);
     update->integrate->setup_minimal(1);
+    // must reset whichflag so that computes won't fail.
+    update->whichflag = 1;
     output->write_dump(update->ntimestep);
+    update->whichflag = 0;
     timer->barrier_stop();
     time_output += timer->get_wall(Timer::TOTAL);
   }
@@ -584,20 +566,18 @@ void TAD::options(int narg, char **arg)
   n2steps_neb = 100;
   nevery_neb = 10;
 
-  int n = strlen("quickmin") + 1;
-  min_style_neb = new char[n];
-  strcpy(min_style_neb,"quickmin");
+  min_style_neb = utils::strdup("quickmin");
   dt_neb = update->dt;
-  neb_logfilename = NULL;
+  neb_logfilename = nullptr;
 
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"min") == 0) {
       if (iarg+5 > narg) error->all(FLERR,"Illegal tad command");
-      etol = force->numeric(FLERR,arg[iarg+1]);
-      ftol = force->numeric(FLERR,arg[iarg+2]);
-      maxiter = force->inumeric(FLERR,arg[iarg+3]);
-      maxeval = force->inumeric(FLERR,arg[iarg+4]);
+      etol = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      ftol = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      maxiter = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
+      maxeval = utils::inumeric(FLERR,arg[iarg+4],false,lmp);
       if (maxiter < 0 || maxeval < 0 ||
           etol < 0.0 || ftol < 0.0 )
         error->all(FLERR,"Illegal tad command");
@@ -605,11 +585,11 @@ void TAD::options(int narg, char **arg)
 
     } else if (strcmp(arg[iarg],"neb") == 0) {
       if (iarg+6 > narg) error->all(FLERR,"Illegal tad command");
-      etol_neb = force->numeric(FLERR,arg[iarg+1]);
-      ftol_neb = force->numeric(FLERR,arg[iarg+2]);
-      n1steps_neb = force->inumeric(FLERR,arg[iarg+3]);
-      n2steps_neb = force->inumeric(FLERR,arg[iarg+4]);
-      nevery_neb = force->inumeric(FLERR,arg[iarg+5]);
+      etol_neb = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      ftol_neb = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      n1steps_neb = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
+      n2steps_neb = utils::inumeric(FLERR,arg[iarg+4],false,lmp);
+      nevery_neb = utils::inumeric(FLERR,arg[iarg+5],false,lmp);
       if (etol_neb < 0.0 || ftol_neb < 0.0 ||
           n1steps_neb < 0 || n2steps_neb < 0 ||
           nevery_neb < 0) error->all(FLERR,"Illegal tad command");
@@ -618,25 +598,21 @@ void TAD::options(int narg, char **arg)
     } else if (strcmp(arg[iarg],"neb_style") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal tad command");
       delete [] min_style_neb;
-      int n = strlen(arg[iarg+1]) + 1;
-      min_style_neb = new char[n];
-      strcpy(min_style_neb,arg[iarg+1]);
+      min_style_neb = utils::strdup(arg[iarg+1]);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"neb_step") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal tad command");
-      dt_neb = force->numeric(FLERR,arg[iarg+1]);
+      dt_neb = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (dt_neb <= 0.0) error->all(FLERR,"Illegal tad command");
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"neb_log") == 0) {
       delete [] neb_logfilename;
       if (iarg+2 > narg) error->all(FLERR,"Illegal tad command");
-      if (strcmp(arg[iarg+1],"none") == 0) neb_logfilename = NULL;
+      if (strcmp(arg[iarg+1],"none") == 0) neb_logfilename = nullptr;
       else {
-        int n = strlen(arg[iarg+1]) + 1;
-        neb_logfilename = new char[n];
-        strcpy(neb_logfilename,arg[iarg+1]);
+        neb_logfilename = utils::strdup(arg[iarg+1]);
       }
       iarg += 2;
     } else error->all(FLERR,"Illegal tad command");
@@ -695,25 +671,13 @@ void TAD::perform_neb(int ievent)
 
   // create FixNEB object to support NEB
 
-  int narg2 = 4;
-  char **args = new char*[narg2];
-  args[0] = (char *) "neb";
-  args[1] = (char *) "all";
-  args[2] = (char *) "neb";
-  args[3] = (char *) "1.0";
-  modify->add_fix(narg2,args);
-  fix_neb = (Fix *) modify->fix[modify->nfix-1];
-  delete [] args;
+  fix_neb = (Fix *) modify->add_fix("neb all neb 1.0");
 
   // switch minimize style to quickmin for NEB
 
-  narg2 = 1;
-  args = new char*[narg2];
+  char *args[1];
   args[0] = min_style_neb;
-
-  update->create_minimize(narg2,args,1);
-
-  delete [] args;
+  update->create_minimize(1,args,1);
 
   // create NEB object
 
@@ -746,7 +710,7 @@ void TAD::perform_neb(int ievent)
   //    time_neb += timer->get_wall(Timer::TOTAL);
 
   MPI_Barrier(world);
-  double time_tmp = MPI_Wtime();
+  double time_tmp = platform::walltime();
 
   double dt_hold = update->dt;
   update->dt = dt_neb;
@@ -754,7 +718,7 @@ void TAD::perform_neb(int ievent)
   update->dt = dt_hold;
 
   MPI_Barrier(world);
-  time_neb += MPI_Wtime() - time_tmp;
+  time_neb += platform::walltime() - time_tmp;
 
   if (universe->me == 0) {
     universe->ulogfile = ulogfile_lammps;
@@ -773,16 +737,11 @@ void TAD::perform_neb(int ievent)
 
   // switch minimize style back for quench
 
-  narg2 = 1;
-  args = new char*[narg2];
   args[0] = min_style;
-
-  update->create_minimize(narg2,args,1);
+  update->create_minimize(1,args,1);
 
   update->etol = etol;
   update->ftol = ftol;
-
-  delete [] args;
 
   // clean up
 
@@ -881,13 +840,11 @@ void TAD::initialize_event_list() {
 
 void TAD::delete_event_list() {
 
-  for (int i = 0; i < n_event_list; i++) {
-    char str[128];
-    sprintf(str,"tad_event_%d",i);
-    modify->delete_fix(str);
-  }
+  for (int i = 0; i < n_event_list; i++)
+    modify->delete_fix(fmt::format("tad_event_{}",i));
+
   memory->sfree(fix_event_list);
-  fix_event_list = NULL;
+  fix_event_list = nullptr;
   n_event_list = 0;
   nmax_event_list = 0;
 
@@ -899,25 +856,14 @@ void TAD::delete_event_list() {
 
 void TAD::add_event()
 {
+  if (n_event_list == nmax_event_list)
+    grow_event_list(nmax_event_list+nmin_event_list);
 
   // create FixEventTAD object to store possible event
 
-  int narg = 3;
-  char **args = new char*[narg];
-
-  char str[128];
-  sprintf(str,"tad_event_%d",n_event_list);
-
-  args[0] = str;
-  args[1] = (char *) "all";
-  args[2] = (char *) "EVENT/TAD";
-  modify->add_fix(narg,args);
-
-  if (n_event_list == nmax_event_list)
-    grow_event_list(nmax_event_list+nmin_event_list);
-  n_event_list += 1;
-  int ievent = n_event_list-1;
-  fix_event_list[ievent] = (FixEventTAD *) modify->fix[modify->nfix-1];
+  int ievent = n_event_list++;
+  fix_event_list[ievent]
+    = (FixEventTAD *) modify->add_fix(fmt::format("tad_event_{} all EVENT/TAD", ievent));
 
   // store quenched state for new event
 
@@ -927,11 +873,6 @@ void TAD::add_event()
 
   fix_event->restore_state_quench();
   fix_event_list[ievent]->store_state_quench();
-
-  // string clean-up
-
-  delete [] args;
-
 }
 
 /* ----------------------------------------------------------------------

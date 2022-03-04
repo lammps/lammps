@@ -35,7 +35,7 @@ PPPMT::PPPM() : _allocated(false), _compiled(false),
                                   _max_bytes(0) {
   device=&global_device;
   ans=new Answer<numtyp,acctyp>();
-  pppm_program=NULL;
+  pppm_program=nullptr;
 }
 
 template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
@@ -54,7 +54,7 @@ int PPPMT::bytes_per_atom() const {
 }
 
 template <class numtyp, class acctyp, class grdtyp, class grdtyp4>
-grdtyp * PPPMT::init(const int nlocal, const int nall, FILE *_screen,
+grdtyp *PPPMT::init(const int nlocal, const int nall, FILE *_screen,
                               const int order, const int nxlo_out,
                               const int nylo_out, const int nzlo_out,
                               const int nxhi_out, const int nyhi_out,
@@ -69,14 +69,14 @@ grdtyp * PPPMT::init(const int nlocal, const int nall, FILE *_screen,
 
   flag=device->init(*ans,nlocal,nall);
   if (flag!=0)
-    return 0;
+    return nullptr;
   if (sizeof(grdtyp)==sizeof(double) && device->double_precision()==false) {
-    flag=-5;
-    return 0;
+    flag=-15;
+    return nullptr;
   }
   if (device->ptx_arch()>0.0 && device->ptx_arch()<1.1) {
     flag=-4;
-    return 0;
+    return nullptr;
   }
 
   ucl_device=device->gpu;
@@ -133,7 +133,7 @@ grdtyp * PPPMT::init(const int nlocal, const int nall, FILE *_screen,
                       UCL_SUCCESS);
   UCL_H_Vec<grdtyp> view;
   view.view(rho_coeff[0]+n2lo,numel,*ucl_device);
-  ucl_copy(d_rho_coeff,view,true);
+  ucl_copy(d_rho_coeff,view,false);
   _max_bytes+=d_rho_coeff.row_bytes();
 
   // Allocate storage for grid
@@ -168,7 +168,7 @@ grdtyp * PPPMT::init(const int nlocal, const int nall, FILE *_screen,
                                        UCL_READ_WRITE)==UCL_SUCCESS);
   if (!success) {
     flag=-3;
-    return 0;
+    return nullptr;
   }
 
   error_flag.device.zero();
@@ -191,6 +191,7 @@ void PPPMT::clear(const double cpu_time) {
   d_brick_counts.clear();
   error_flag.clear();
   d_brick_atoms.clear();
+  d_rho_coeff.clear();
 
   acc_timers();
   device->output_kspace_times(time_in,time_out,time_map,time_rho,time_interp,
@@ -261,7 +262,7 @@ void PPPMT::_precompute(const int ago, const int nlocal, const int nall,
   double delvolinv = delxinv*delyinv*delzinv;
   grdtyp f_delvolinv = delvolinv;
 
-  device->zero(d_brick_counts,d_brick_counts.numel());
+  d_brick_counts.zero();
   k_particle_map.set_size(GX,BX);
   k_particle_map.run(&atom->x, &atom->q, &f_delvolinv, &ainum,
                      &d_brick_counts, &d_brick_atoms, &_brick_x, &_brick_y,
@@ -285,6 +286,10 @@ void PPPMT::_precompute(const int ago, const int nlocal, const int nall,
   brick.update_host(_npts_yx*_npts_z,true);
   error_flag.update_host(true);
   time_out.stop();
+
+  #ifndef GERYON_OCL_FLUSH
+  error_flag.flush();
+  #endif
 
   _precompute_done=true;
 }
@@ -337,12 +342,14 @@ void PPPMT::interp(const grdtyp qqrd2e_scale) {
   vd_brick.update_device(true);
   time_in.stop();
 
+  int ainum=this->ans->inum();
+  if (ainum==0)
+    return;
+
   time_interp.start();
   // Compute the block size and grid size to keep all cores busy
   int BX=this->block_size();
   int GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/BX));
-
-  int ainum=this->ans->inum();
 
   k_interp.set_size(GX,BX);
   k_interp.run(&atom->x, &atom->q, &ainum, &vd_brick, &d_rho_coeff,
@@ -351,7 +358,7 @@ void PPPMT::interp(const grdtyp qqrd2e_scale) {
                &ans->force);
   time_interp.stop();
 
-  ans->copy_answers(false,false,false,false);
+  ans->copy_answers(false,false,false,false,0);
   if (_kspace_split==false)
     device->add_ans_object(ans);
 }
@@ -374,18 +381,19 @@ void PPPMT::compile_kernels(UCL_Device &dev) {
   #ifdef USE_OPENCL
   flags+=std::string(" -Dgrdtyp=")+ucl_template_name<grdtyp>()+" -Dgrdtyp4="+
          ucl_template_name<grdtyp>()+"4";
+  if (sizeof(grdtyp)==sizeof(double)) flags+=std::string(" -DGRD_DBL");
   #endif
 
   if (pppm_program) delete pppm_program;
   pppm_program=new UCL_Program(dev);
 
   #ifdef USE_OPENCL
-  pppm_program->load_string(pppm,flags.c_str());
+  pppm_program->load_string(pppm,flags.c_str(),nullptr,screen);
   #else
   if (sizeof(grdtyp)==sizeof(float))
-    pppm_program->load_string(pppm_f,flags.c_str());
+    pppm_program->load_string(pppm_f,flags.c_str(),nullptr,screen);
   else
-    pppm_program->load_string(pppm_d,flags.c_str());
+    pppm_program->load_string(pppm_d,flags.c_str(),nullptr,screen);
   #endif
 
   k_particle_map.set_function(*pppm_program,"particle_map");

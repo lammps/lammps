@@ -24,10 +24,10 @@ namespace CSLIB_NS {
 #define ZMQ_REQ 0
 #define ZMQ_REP 0
 
-static void *zmq_ctx_new() {return NULL;}
-static void *zmq_connect(void *, char *) {return NULL;}
+static void *zmq_ctx_new() {return nullptr;}
+static void *zmq_connect(void *, char *) {return nullptr;}
 static int zmq_bind(void *, char *) {return 0;}
-static void *zmq_socket(void *,int) {return NULL;}
+static void *zmq_socket(void *,int) {return nullptr;}
 static void zmq_close(void *) {}
 static void zmq_ctx_destroy(void *) {}
 static void zmq_send(void *, void *, int, int) {}

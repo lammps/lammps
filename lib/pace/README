@@ -1,0 +1,14 @@
+This directory contains files required to use the ML-PACE package, which
+provides the pace pair style, an efficient implementation of the Atomic
+Cluster Expansion potential (ACE).  ACE is a methodology for deriving a
+highly accurate classical potential fit to a large archive of quantum
+mechanical (DFT) data.  This package was written by Yury Lysogorskiy and
+others at ICAMS, the Interdisciplinary Centre for Advanced Materials
+Simulation, Ruhr University Bochum, Germany, http://www.icams.de
+
+You can type "make lib-pace" from the src directory to see help on how
+to download and build this library via make commands, or you can do the
+same thing by typing "python Install.py" from within this directory.
+
+More information about the ML-PACE implementation of ACE is available
+here:  https://github.com/ICAMS/lammps-user-pace

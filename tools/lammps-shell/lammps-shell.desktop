@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Categories=Science;Engineering;
+Exec=/bin/sh -c "echo -e -n \"\033]0;The LAMMPS Shell\007\"; LC_ALL=C lammps-shell %f"
+Name=The LAMMPS Shell
+Terminal=true
+GenericName=MD Simulator
+Keywords=MD Simulation;LAMMPS;Molecular Dynamics;N-Body
+Icon=lammps

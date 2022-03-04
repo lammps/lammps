@@ -1,10 +1,10 @@
 .. index:: fix rx
+.. index:: fix rx/kk
 
 fix rx command
 ==============
 
-fix rx/kk command
-=================
+Accelerator Variants: *rx/kk*
 
 Syntax
 """"""
@@ -18,7 +18,7 @@ Syntax
 * file = filename containing the reaction kinetic equations and Arrhenius parameters
 * localTemp = *none,lucy* = no local temperature averaging or local temperature defined through Lucy weighting function
 * matrix = *sparse, dense* format for the stoichiometric matrix
-* solver = *lammps_rk4,rkf45* = rk4 is an explicit 4th order Runge-Kutta method; rkf45 is an adaptive 4th-order Runge-Kutta-Fehlberg method
+* solver = *lammps_rk4,rkf45* = rk4 is an explicit fourth order Runge-Kutta method; rkf45 is an adaptive fourth-order Runge-Kutta-Fehlberg method
 * minSteps = # of steps for rk4 solver or minimum # of steps for rkf45 (rk4 or rkf45)
 * maxSteps = maximum number of steps for the rkf45 solver (rkf45 only)
 * relTol = relative tolerance for the rkf45 solver (rkf45 only)
@@ -61,9 +61,9 @@ of *m* ordinary differential equations (ODEs) that describe the change
 in concentration of a given species as a function of time are then
 constructed based on the *n* reaction rate equations.
 
-The ODE systems are solved over the full DPD timestep *dt* using either a 4th
-order Runge-Kutta *rk4* method with a fixed step-size *h*\ , specified
-by the *lammps_rk4* keyword, or a 4th order Runge-Kutta-Fehlberg (rkf45) method
+The ODE systems are solved over the full DPD timestep *dt* using either a fourth
+order Runge-Kutta *rk4* method with a fixed step-size *h*, specified
+by the *lammps_rk4* keyword, or a fourth order Runge-Kutta-Fehlberg (rkf45) method
 with an adaptive step-size for *h*\ . The number of ODE steps per DPD timestep
 for the rk4 method is optionally specified immediately after the rk4
 keyword. The ODE step-size is set as *dt/num_steps*. Smaller
@@ -76,7 +76,7 @@ can be specified by the user or estimated internally. It is recommended that the
 specify *h0* since this will generally reduced the number of ODE integration steps
 required. *h0* is defined as *dt / min_steps* if min_steps >= 1. If min_steps == 0,
 *h0* is estimated such that an explicit Euler method would likely produce
-an acceptable solution. This is generally overly conservative for the 4th-order
+an acceptable solution. This is generally overly conservative for the fourth-order
 method and users are advised to specify *h0* as some fraction of the DPD timestep.
 For small DPD timesteps, only one step may be necessary depending upon the tolerances.
 Note that more than min_steps ODE steps may be taken depending upon the ODE stiffness
@@ -90,10 +90,10 @@ accepted, *h* is increased by a proportional amount, and the next ODE step is be
 Otherwise, *h* is shrunk and the ODE step is repeated.
 
 Run-time diagnostics are available for the rkf45 ODE solver. The frequency
-(in time-steps) that diagnostics are reported is controlled by the last (optional)
+(in timesteps) that diagnostics are reported is controlled by the last (optional)
 12th argument. A negative frequency means that diagnostics are reported once at the
 end of each run. A positive value N means that the diagnostics are reported once
-per N time-steps.
+per N timesteps.
 
 The diagnostics report the average # of integrator steps and RHS function evaluations
 and run-time per ODE as well as the average/RMS/min/max per process. If the
@@ -172,7 +172,7 @@ parenthesized comments):
    ...
    1.0  no + 1.0  co = 0.5  n2 + 1.0 co2                     1.66E+06 0.0 0.69
 
-A section begins with a non-blank line whose 1st character is not a
+A section begins with a non-blank line whose first character is not a
 "#"; blank lines or lines starting with "#" can be used as comments
 between sections.
 
@@ -182,8 +182,8 @@ through its stoichiometric coefficient and a species tag.  Reactant
 species are specified on the left-hand side of the equation and
 product species are specified on the right-hand side of the equation.
 After specifying the reactant and product species, the final three
-arguments of each line represent the Arrhenius parameter *A*\ , the
-temperature exponent *n*\ , and the activation energy *Ea*\ .
+arguments of each line represent the Arrhenius parameter *A*, the
+temperature exponent *n*, and the activation energy *Ea*\ .
 
 Note that the species tags that are defined in the reaction equations
 are used by the :doc:`fix eos/table/rx <fix_eos_table_rx>` command to
@@ -199,31 +199,15 @@ read_data    data.dpd fix foo_SPECIES NULL Species
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
 Restrictions
 """"""""""""
 
-This command is part of the USER-DPD package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This command is part of the DPD-REACT package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 This command also requires use of the :doc:`atom_style dpd <atom_style>`
 command.
@@ -238,4 +222,7 @@ Related commands
 :doc:`fix shardlow <fix_shardlow>`,
 :doc:`pair dpd/fdt/energy <pair_dpd_fdt>`
 
-**Default:** none
+Default
+"""""""
+
+none

@@ -1,10 +1,11 @@
 .. index:: pair_style comb
+.. index:: pair_style comb/omp
+.. index:: pair_style comb3
 
 pair_style comb command
 =======================
 
-pair_style comb/omp command
-===========================
+Accelerator Variants: *comb/omp*
 
 pair_style comb3 command
 ========================
@@ -37,7 +38,7 @@ Examples
 Description
 """""""""""
 
-Style *comb* computes the second-generation variable charge COMB
+Style *comb* computes the second generation variable charge COMB
 (Charge-Optimized Many-Body) potential.  Style *comb3* computes the
 third-generation COMB potential.  These COMB potentials are described
 in :ref:`(COMB) <COMB>` and :ref:`(COMB3) <COMB3>`.  Briefly, the
@@ -51,7 +52,7 @@ total energy :math:`E_T` of a system of atoms is given by
 where :math:`E_i^{self}` is the self-energy of atom *i* (including
 atomic ionization energies and electron affinities),
 :math:`E_{ij}^{short}` is the bond-order potential between atoms *i* and
-*j*\ , :math:`E_{ij}^{Coul}` is the Coulomb interactions,
+*j*, :math:`E_{ij}^{Coul}` is the Coulomb interactions,
 :math:`E^{polar}` is the polarization term for organic systems (style
 *comb3* only), :math:`E^{vdW}` is the van der Waals energy (style
 *comb3* only), :math:`E^{barr}` is a charge barrier function, and
@@ -74,8 +75,8 @@ N additional arguments after the potential file in the pair_coeff
 command, where N is the number of LAMMPS atom types.
 
 For example, if your LAMMPS simulation of a Si/SiO2/
-HfO2 interface has 4 atom types, and you want the 1st and
-last to be Si, the 2nd to be Hf, and the 3rd to be O, and you would
+HfO2 interface has 4 atom types, and you want the first and
+last to be Si, the second to be Hf, and the third to be O, and you would
 use the following pair_coeff command:
 
 .. code-block:: LAMMPS
@@ -92,11 +93,11 @@ This can be used when a *comb* potential is used as part of the
 *hybrid* pair style.  The NULL values are placeholders for atom types
 that will be used with other potentials.
 
-For style *comb*\ , the provided potential file *ffield.comb* contains
-all currently-available 2nd generation COMB parameterizations: for Si,
+For style *comb*, the provided potential file *ffield.comb* contains
+all currently-available second generation COMB parameterizations: for Si,
 Cu, Hf, Ti, O, their oxides and Zr, Zn and U metals.  For style
-*comb3*\ , the potential file *ffield.comb3* contains all
-currently-available 3rd generation COMB parameterizations: O, Cu, N, C,
+*comb3*, the potential file *ffield.comb3* contains all
+currently-available third generation COMB parameterizations: O, Cu, N, C,
 H, Ti, Zn and Zr.  The status of the optimization of the compounds, for
 example Cu2O, TiN and hydrocarbons, are given in the
 following table:
@@ -125,45 +126,30 @@ following table:
 * M = Only optimized for dimer molecule
 * P = in progress, but have it from mixing rule
 
-For style *comb3*\ , in addition to ffield.comb3, a special parameter
-file, *lib.comb3*\ , that is exclusively used for C/O/H systems, will be
+For style *comb3*, in addition to ffield.comb3, a special parameter
+file, *lib.comb3*, that is exclusively used for C/O/H systems, will be
 automatically loaded if carbon atom is detected in LAMMPS input
 structure.  This file must be in your working directory or in the
-directory pointed to by the environment variable LAMMPS_POTENTIALS, as
+directories listed in the environment variable ``LAMMPS_POTENTIALS``, as
 described on the :doc:`pair_coeff <pair_coeff>` command doc page.
 
-Keyword *polar* indicates whether the force field includes
+The keyword *polar* indicates whether the force field includes
 the atomic polarization.  Since the equilibration of the polarization
 has not yet been implemented, it can only set polar_off at present.
 
 .. note::
 
-   You can not use potential file *ffield.comb* with style *comb3*\ ,
+   You can not use potential file *ffield.comb* with style *comb3*,
    nor file *ffield.comb3* with style *comb*\ .
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, where types I and J correspond to
 two different element types, mixing is performed by LAMMPS as
@@ -178,7 +164,7 @@ restart file.
 
 These pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -186,7 +172,7 @@ Restrictions
 """"""""""""
 
 These pair styles are part of the MANYBODY package.  It is only
-enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 These pair styles requires the :doc:`newton <newton>` setting to be "on"
 for pair interactions.
@@ -204,7 +190,10 @@ Related commands
 :doc:`pair_style <pair_style>`, :doc:`pair_coeff <pair_coeff>`,
 :doc:`fix qeq/comb <fix_qeq_comb>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

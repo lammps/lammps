@@ -1,4 +1,6 @@
 .. index:: pair_style lj/mdf
+.. index:: pair_style buck/mdf
+.. index:: pair_style lennard/mdf
 
 pair_style lj/mdf command
 =========================
@@ -40,7 +42,7 @@ Examples
    pair_coeff * * 1.0 1.0
    pair_coeff 1 1 1.1 2.8 3.0 3.2
 
-   pair_style buck 2.5 3.0
+   pair_style buck/mdf 2.5 3.0
    pair_coeff * * 100.0 1.5 200.0
    pair_coeff * * 100.0 1.5 200.0 3.0 3.5
 
@@ -51,7 +53,7 @@ Examples
 Description
 """""""""""
 
-The *lj/mdf*\ , *buck/mdf* and *lennard/mdf* compute the standard 12-6
+The *lj/mdf*, *buck/mdf* and *lennard/mdf* compute the standard 12-6
 Lennard-Jones and Buckingham potential with the addition of a taper
 function that ramps the energy and force smoothly to zero between an
 inner and outer cutoff.
@@ -60,7 +62,7 @@ inner and outer cutoff.
 
    E_{smooth}(r) = E(r)*f(r)
 
-The tapering, *f(r)*\ , is done by using the Mei, Davenport, Fernando
+The tapering, *f(r)*, is done by using the Mei, Davenport, Fernando
 function :ref:`(Mei) <Mei>`.
 
 .. math::
@@ -80,12 +82,13 @@ outer cutoff radius.
 
 ----------
 
-For the *lj/mdf* pair_style, the potential energy, *E(r)*\ , is the
+For the *lj/mdf* pair_style, the potential energy, *E(r)*, is the
 standard 12-6 Lennard-Jones written in the epsilon/sigma form:
 
 .. math::
 
-   E(r) = 4\epsilon\biggl[\bigl(\frac{\sigma}{r}\bigr)^{12} - \bigl(\frac{\sigma}{r}\bigr)^6\biggr]
+   E(r) = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} -
+                            \left(\frac{\sigma}{r}\right)^6 \right]
 
 Either the first two or all of the following coefficients must be
 defined for each pair of atoms types via the pair_coeff command as in
@@ -101,7 +104,7 @@ described below:
 
 ----------
 
-For the *buck/mdf* pair_style, the potential energy, *E(r)*\ , is the
+For the *buck/mdf* pair_style, the potential energy, *E(r)*, is the
 standard Buckingham potential with three required coefficients.
 The two cutoffs can be omitted and default to the corresponding
 global values:
@@ -118,7 +121,7 @@ global values:
 
 ----------
 
-For the *lennard/mdf* pair_style, the potential energy, *E(r)*\ , is the
+For the *lennard/mdf* pair_style, the potential energy, *E(r)*, is the
 standard 12-6 Lennard-Jones written in the A/B form:
 
 .. math::
@@ -138,10 +141,11 @@ given or both left out:
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the :math:`\epsilon` and
-:math:`sigma` coefficients and cutoff distances for the lj/mdf pair
+:math:`\sigma` coefficients and cutoff distances for the lj/mdf pair
 style can be mixed.  The default mix value is *geometric*\ .  See the
 "pair_modify" command for details. The other two pair styles buck/mdf
 and lennard/mdf do not support mixing, so all I,J pairs of coefficients
@@ -154,8 +158,8 @@ tail corrections to pressure and energy.
 These styles write their information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
-These styles can only be used via the *pair* keyword of the :doc:`run_style respa <run_style>` command.  They do not support the *inner*\ ,
-*middle*\ , *outer* keywords.
+These styles can only be used via the *pair* keyword of the :doc:`run_style respa <run_style>` command.  They do not support the *inner*,
+*middle*, *outer* keywords.
 
 ----------
 
@@ -163,7 +167,7 @@ Restrictions
 """"""""""""
 
 These pair styles can only be used if LAMMPS was built with the
-USER-MISC package.  See the :doc:`Build package <Build_package>` doc
+EXTRA-PAIR package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
 Related commands
@@ -171,7 +175,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

@@ -59,41 +59,36 @@ class Tersoff : public BaseThree<numtyp, acctyp> {
 
   // --------------------------- TYPE DATA --------------------------
 
-  /// If atom type constants fit in shared memory, use fast kernels
-  bool shared_types;
-
   /// Number of atom types
-  int _lj_types;
+  int _ntypes;
 
-  /// ts1.x = lam1, ts1.y = lam2,  ts1.z = lam3, ts1.w = powermint
+  /// ts1.x = lam3, ts1.y = powermint,  ts1.z = c3, ts1.w = c4
   UCL_D_Vec<numtyp4> ts1;
-  /// ts2.x = biga, ts2.y = bigb,  ts2.z = bigr, ts2.w = bigd
+  /// ts2.x = biga, ts2.y = lam1,  ts2.z = bigr, ts2.w = bigd
   UCL_D_Vec<numtyp4> ts2;
   /// ts3.x = c1,   ts3.y = c2,    ts3.z = c3,   ts3.w = c4
   UCL_D_Vec<numtyp4> ts3;
-  /// ts4.x = c,    ts4.y = d,     ts4.z = h,    ts4.w = gamma
+  /// ts4.x = c*c,  ts4.y = d*d,   ts4.z = h,    ts4.w = gamma
   UCL_D_Vec<numtyp4> ts4;
-  /// ts5.x = beta, ts5.y = powern
+  /// ts5.x = beta, ts5.y = powern, ts5.z = lam2, ts5.w = bigb
   UCL_D_Vec<numtyp4> ts5;
 
-  UCL_D_Vec<numtyp> cutsq;
+  numtyp _cutsq_max;
 
   UCL_D_Vec<int> elem2param;
   UCL_D_Vec<int> map;
   int _nparams,_nelements;
 
   /// Per-atom arrays:
-  /// zetaij.x = force, zetaij.y = prefactor, zetaij.z = evdwl,
-  /// zetaij.w = zetaij
-  UCL_D_Vec<acctyp4>   _zetaij;
+  /// zetaij.x = force, zetaij.y = prefactor
+  UCL_D_Vec<acctyp2>   _zetaij;
+  UCL_D_Vec<acctyp> _zetaij_eng;
 
-  UCL_Kernel k_zeta;
-  UCL_Texture ts1_tex, ts2_tex, ts3_tex, ts4_tex, ts5_tex;
-  numtyp _cutshortsq;
+  UCL_Kernel k_zeta, k_zeta_noev, *k_zeta_selt;
 
  private:
   bool _allocated;
-  void loop(const bool _eflag, const bool _vflag, const int evatom);
+  int loop(const int eflag, const int vflag, const int evatom, bool &success);
 };
 
 }

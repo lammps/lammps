@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(adapt,FixAdapt)
-
+// clang-format off
+FixStyle(adapt,FixAdapt);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_ADAPT_H
@@ -26,39 +26,42 @@ namespace LAMMPS_NS {
 
 class FixAdapt : public Fix {
  public:
-  int diamflag;        // 1 if atom diameters will vary, for AtomVecGranular
+  int diamflag;    // 1 if atom diameters will vary, for AtomVecGranular
   int chgflag;
 
   FixAdapt(class LAMMPS *, int, char **);
-  ~FixAdapt();
-  int setmask();
-  void post_constructor();
-  void init();
-  void setup_pre_force(int);
-  void pre_force(int);
-  void post_run();
-  void setup_pre_force_respa(int,int);
-  void pre_force_respa(int,int,int);
-  void set_arrays(int);
+  ~FixAdapt() override;
+  int setmask() override;
+  void post_constructor() override;
+  void init() override;
+  void setup_pre_force(int) override;
+  void pre_force(int) override;
+  void post_run() override;
+  void setup_pre_force_respa(int, int) override;
+  void pre_force_respa(int, int, int) override;
+  void set_arrays(int) override;
+  void write_restart(FILE *) override;
+  void restart(char *) override;
 
  private:
-  int nadapt,resetflag,scaleflag;
+  int nadapt, resetflag, scaleflag, massflag;
   int anypair, anybond;
   int nlevels_respa;
-  char *id_fix_diam,*id_fix_chg;
-  class FixStore *fix_diam,*fix_chg;
+  char *id_fix_diam, *id_fix_chg;
+  class FixStore *fix_diam, *fix_chg;
+  double previous_diam_scale, previous_chg_scale;
   int discflag;
 
   struct Adapt {
-    int which,ivar;
+    int which, ivar;
     char *var;
-    char *pstyle,*pparam;
-    char *bstyle,*bparam;
-    int ilo,ihi,jlo,jhi;
-    int pdim,bdim;
-    double *scalar,scalar_orig;
-    double *vector,*vector_orig;
-    double **array,**array_orig;
+    char *pstyle, *pparam;
+    char *bstyle, *bparam;
+    int ilo, ihi, jlo, jhi;
+    int pdim, bdim;
+    double *scalar, scalar_orig;
+    double *vector, *vector_orig;
+    double **array, **array_orig;
     int aparam;
     class Pair *pair;
     class Bond *bond;
@@ -71,7 +74,7 @@ class FixAdapt : public Fix {
   void restore_settings();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

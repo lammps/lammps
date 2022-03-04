@@ -1,32 +1,32 @@
 .. index:: pair_style gran/hooke
+.. index:: pair_style gran/hooke/omp
+.. index:: pair_style gran/hooke/history
+.. index:: pair_style gran/hooke/history/omp
+.. index:: pair_style gran/hooke/history/kk
+.. index:: pair_style gran/hertz/history
+.. index:: pair_style gran/hertz/history/omp
 
 pair_style gran/hooke command
 =============================
 
-pair_style gran/hooke/omp command
-=================================
+Accelerator Variants: *gran/hooke/omp*
 
 pair_style gran/hooke/history command
 =====================================
 
-pair_style gran/hooke/history/omp command
-=========================================
-
-pair_style gran/hooke/history/kk command
-========================================
+Accelerator Variants: *gran/hooke/history/omp*, *gran/hooke/history/kk*
 
 pair_style gran/hertz/history command
 =====================================
 
-pair_style gran/hertz/history/omp command
-=========================================
+Accelerator Variants: *gran/hertz/history/omp*
 
 Syntax
 """"""
 
 .. code-block:: LAMMPS
 
-   pair_style style Kn Kt gamma_n gamma_t xmu dampflag
+   pair_style style Kn Kt gamma_n gamma_t xmu dampflag keyword
 
 * style = *gran/hooke* or *gran/hooke/history* or *gran/hertz/history*
 * Kn = elastic constant for normal particle repulsion (force/distance units or pressure units - see discussion below)
@@ -35,6 +35,13 @@ Syntax
 * gamma_t = damping coefficient for collisions in tangential direction (1/time units or 1/time-distance units - see discussion below)
 * xmu = static yield criterion (unitless value between 0.0 and 1.0e4)
 * dampflag = 0 or 1 if tangential damping force is excluded or included
+
+* keyword = *limit_damping*
+
+  .. parsed-literal::
+
+      *limit_damping* value = none
+         limit damping to prevent attractive interaction
 
 .. note::
 
@@ -54,6 +61,8 @@ Examples
 
    pair_style gran/hooke/history 200000.0 NULL 50.0 NULL 0.5 1
    pair_style gran/hooke 200000.0 70000.0 50.0 30.0 0.5 0
+   pair_style gran/hooke 200000.0 70000.0 50.0 30.0 0.5 0 limit_damping
+
 
 Description
 """""""""""
@@ -92,7 +101,7 @@ damping force.  The tangential force also has 2 terms: a shear force
 and a damping force.  The shear force is a "history" effect that
 accounts for the tangential displacement between the particles for the
 duration of the time they are in contact.  This term is included in
-pair styles *hooke/history* and *hertz/history*\ , but is not included
+pair styles *hooke/history* and *hertz/history*, but is not included
 in pair style *hooke*\ .  The tangential damping force term is included
 in all three pair styles if *dampflag* is set to 1; it is not included
 if *dampflag* is set to 0.
@@ -208,29 +217,20 @@ potential is used as a sub-style of :doc:`pair_style hybrid <pair_hybrid>`, then
 pair_coeff command to determine which atoms interact via a granular
 potential.
 
-----------
-
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+If two particles are moving away from each other while in contact, there
+is a possibility that the particles could experience an effective attractive
+force due to damping. If the *limit_damping* keyword is used, this option
+will zero out the normal component of the force if there is an effective
+attractive force.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+.. include:: accel_styles.rst
+
+----------
+
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 The :doc:`pair_modify <pair_modify>` mix, shift, table, and tail options
 are not relevant for granular pair styles.
@@ -240,7 +240,7 @@ specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 The single() function of these pair styles returns 0.0 for the energy
 of a pairwise interaction, since energy is not conserved in these
@@ -248,13 +248,13 @@ dissipative potentials.  It also returns only the normal component of
 the pairwise interaction force.  However, the single() function also
 calculates 10 extra pairwise quantities.  The first 3 are the
 components of the tangential force between particles I and J, acting
-on particle I.  The 4th is the magnitude of this tangential force.
+on particle I.  The fourth is the magnitude of this tangential force.
 The next 3 (5-7) are the components of the relative velocity in the
 normal direction (along the line joining the 2 sphere centers).  The
 last 3 (8-10) the components of the relative velocity in the
 tangential direction.
 
-These extra quantities can be accessed by the :doc:`compute pair/local <compute_pair_local>` command, as *p1*\ , *p2*\ , ...,
+These extra quantities can be accessed by the :doc:`compute pair/local <compute_pair_local>` command, as *p1*, *p2*, ...,
 *p10*\ .
 
 ----------
@@ -263,7 +263,7 @@ Restrictions
 """"""""""""
 
 All the granular pair styles are part of the GRANULAR package.  It is
-only enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+only enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 These pair styles require that atoms store torque and angular velocity
 (omega) as defined by the :doc:`atom_style <atom_style>`.  They also
@@ -284,7 +284,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

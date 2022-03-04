@@ -27,19 +27,19 @@ namespace ATC {
                                                   DENS_MAT_VEC & Dcapacity)=0;
       /** computes thermal energy */
       virtual void electron_thermal_energy(const FIELD_MATS &fields,
-                                                 DENS_MAT &energy)=0; 
+                                                 DENS_MAT &energy)=0;
   };
   //-------------------------------------------------------------------
-  
+
   /**
    *  @class  ElectronHeatCapacityConstant
    *  @brief  Class for a constant electron heat capacity
-   */  
-  
+   */
+
   class ElectronHeatCapacityConstant : public ElectronHeatCapacity
   {
     public:
-      ElectronHeatCapacityConstant(std::fstream &matfile, 
+      ElectronHeatCapacityConstant(std::fstream &matfile,
                                    std::map<std::string,double> & parameters);
       virtual ~ElectronHeatCapacityConstant() {};
       virtual void electron_heat_capacity(const FIELD_MATS &fields,
@@ -59,25 +59,25 @@ namespace ATC {
         Dcapacity[0] = zeroWorkspace_;
         Dcapacity[1] = zeroWorkspace_;
         Dcapacity[2] = zeroWorkspace_;
-      }                                     
+      }
       virtual void electron_thermal_energy(const FIELD_MATS &fields,
                                            DENS_MAT &energy)
       {
         FIELD_MATS::const_iterator etField = fields.find(ELECTRON_TEMPERATURE);
         const DENS_MAT & T = etField->second;
         energy = electronHeatCapacity_ * T;
-      }; 
+      };
     protected:
       double electronHeatCapacity_;
       DENS_MAT zeroWorkspace_;
   };
   //-------------------------------------------------------------------
-  
+
   /**
    *  @class  ElectronHeatCapacityLinear
    *  @brief  Class for an electron capacity that is directly proportional to the electron temperature
-   */  
-  
+   */
+
   class ElectronHeatCapacityLinear : public ElectronHeatCapacity
   {
     public:
@@ -108,21 +108,21 @@ namespace ATC {
         const DENS_MAT & T = etField->second;
         energy = electronHeatCapacity_ * T;
         energy *= T;
-      }; 
+      };
     protected:
       double electronHeatCapacity_;
   };
   //-------------------------------------------------------------------
-  
+
   /**
    *  @class  ElectronHeatCapacityConstantAddDensity
    *  @brief  Class for a constant electron specific heat capacity (i.e, does not include the electron density)
-   */  
-  
+   */
+
   class ElectronHeatCapacityConstantAddDensity : public ElectronHeatCapacityConstant
   {
     public:
-      ElectronHeatCapacityConstantAddDensity(std::fstream &matfile, 
+      ElectronHeatCapacityConstantAddDensity(std::fstream &matfile,
                                              std::map<std::string,double> & parameters,
                                              Material * material);
       virtual ~ElectronHeatCapacityConstantAddDensity() {};
@@ -165,12 +165,12 @@ namespace ATC {
       DENS_MAT capacityMat_;  // avoid resizing if possible
   };
   //-------------------------------------------------------------------
-  
+
   /**
    *  @class  ElectronHeatCapacityLinearAddDensity
    *  @brief  Class for a electron specific heat capacity that is proportional to the temperature (i.e., does not include density)
-   */  
-  
+   */
+
   class ElectronHeatCapacityLinearAddDensity : public ElectronHeatCapacityLinear
   {
     public:
@@ -199,7 +199,7 @@ namespace ATC {
 
         GRAD_FIELD_MATS::const_iterator dEdField = gradFields.find(ELECTRON_DENSITY);
         const DENS_MAT_VEC & Ddensity = dEdField->second;
-        ElectronHeatCapacityLinear::electron_heat_capacity(fields,capacityWorkspace_);  
+        ElectronHeatCapacityLinear::electron_heat_capacity(fields,capacityWorkspace_);
         Dcapacity[0] += Ddensity[0].mult_by_element(capacityWorkspace_);
         Dcapacity[1] += Ddensity[1].mult_by_element(capacityWorkspace_);
         Dcapacity[2] += Ddensity[2].mult_by_element(capacityWorkspace_);
@@ -208,7 +208,7 @@ namespace ATC {
                                            DENS_MAT &energy)
       {
         ElectronHeatCapacityLinear::electron_thermal_energy(fields,energy);
-     
+
         FIELD_MATS::const_iterator edField = fields.find(ELECTRON_DENSITY);
         const DENS_MAT & density = edField->second;
 
@@ -220,6 +220,6 @@ namespace ATC {
   };
 }
 
-#endif 
+#endif
 
 

@@ -129,9 +129,9 @@ TEST(default_exec, custom_reduction) {
   int R          = 1000;
   int num_trials = 1;
 
-  if (command_line_num_args() > 1) N = atoi(command_line_arg(1));
-  if (command_line_num_args() > 2) R = atoi(command_line_arg(2));
-  if (command_line_num_args() > 3) num_trials = atoi(command_line_arg(3));
+  if (command_line_num_args() > 1) N = std::stoi(command_line_arg(1));
+  if (command_line_num_args() > 2) R = std::stoi(command_line_arg(2));
+  if (command_line_num_args() > 3) num_trials = std::stoi(command_line_arg(3));
   custom_reduction_test<double>(N, R, num_trials);
 }
 }  // namespace Test

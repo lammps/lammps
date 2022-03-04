@@ -42,7 +42,7 @@ Description
 """""""""""
 
 Define a computation that calculates the derivative of the interaction
-potential with respect to *lambda*\ , the coupling parameter used in a
+potential with respect to *lambda*, the coupling parameter used in a
 thermodynamic integration.  This derivative can be used to infer a
 free energy difference resulting from an alchemical simulation, as
 described in :ref:`Eike <Eike>`.
@@ -76,7 +76,7 @@ with respect to *lambda*\ .
 
 To perform this calculation, you provide one or more atom types as
 *atype*\ .  *Atype* can be specified in one of two ways.  An explicit
-numeric values can be used, as in the 1st example above.  Or a
+numeric values can be used, as in the first example above.  Or a
 wildcard asterisk can be used in place of or in conjunction with the
 *atype* argument to select multiple atom types.  This takes the form
 "\*" or "\*n" or "n\*" or "m\*n".  If N = the number of atom types, then
@@ -113,7 +113,8 @@ du/dl can be found in the paper by :ref:`Eike <Eike>`.
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar, namely dUs/dlambda.  This
 value can be used by any command that uses a global scalar value from
@@ -127,15 +128,18 @@ The scalar value will be in energy :doc:`units <units>`.
 Restrictions
 """"""""""""
 
-This compute is part of the MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This compute is part of the EXTRA-COMPUTE package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
 
 :doc:`fix adapt <fix_adapt>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -25,7 +26,7 @@ namespace LAMMPS_NS {
       d0 = d1 = 0.0;
     }
     KOKKOS_INLINE_FUNCTION
-    s_double2& operator+=(const s_double2 &rhs){
+    s_double2& operator+=(const s_double2 &rhs) {
       d0 += rhs.d0;
       d1 += rhs.d1;
       return *this;
@@ -42,10 +43,10 @@ namespace LAMMPS_NS {
 class MinLineSearchKokkos : public MinKokkos {
  public:
   MinLineSearchKokkos(class LAMMPS *);
-  ~MinLineSearchKokkos();
-  void init();
-  void setup_style();
-  void reset_vectors();
+  ~MinLineSearchKokkos() override;
+  void init() override;
+  void setup_style() override;
+  void reset_vectors() override;
 
  //protected: // won't compile with CUDA
   // vectors needed by linesearch minimizers
@@ -55,6 +56,9 @@ class MinLineSearchKokkos : public MinKokkos {
   DAT::t_ffloat_1d x0;   // coords at start of linesearch
   DAT::t_ffloat_1d g;    // old gradient vector
   DAT::t_ffloat_1d h;    // search direction vector
+
+  double *gextra;             // g,h for extra global dof, x0 is stored by fix
+  double *hextra;
 
   typedef int (MinLineSearchKokkos::*FnPtr)(double, double &);
   FnPtr linemin;

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(table/rx/kk,PairTableRXKokkos<LMPDeviceType>)
-PairStyle(table/rx/kk/device,PairTableRXKokkos<LMPDeviceType>)
-PairStyle(table/rx/kk/host,PairTableRXKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(table/rx/kk,PairTableRXKokkos<LMPDeviceType>);
+PairStyle(table/rx/kk/device,PairTableRXKokkos<LMPDeviceType>);
+PairStyle(table/rx/kk/host,PairTableRXKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_TABLE_RX_KOKKOS_H
 #define LMP_PAIR_TABLE_RX_KOKKOS_H
 
@@ -34,19 +35,19 @@ class PairTableRXKokkos : public PairTable {
   typedef DeviceType device_type;
 
   PairTableRXKokkos(class LAMMPS *);
-  virtual ~PairTableRXKokkos();
+  ~PairTableRXKokkos() override;
 
-  virtual void compute(int, int);
+  void compute(int, int) override;
 
   template<int TABSTYLE>
   void compute_style(int, int);
 
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  virtual double single(int, int, int, int, double, double, double, double &);
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  double single(int, int, int, int, double, double, double, double &) override;
 
-  void init_style();
+  void init_style() override;
 
   struct TableDeviceConst {
     typename ArrayTypes<DeviceType>::t_ffloat_2d cutsq;
@@ -80,8 +81,8 @@ class PairTableRXKokkos : public PairTable {
 
   typename ArrayTypes<DeviceType>::t_ffloat_2d d_cutsq;
 
-  virtual void allocate();
-  void compute_table(Table *);
+  void allocate() override;
+  void compute_table(Table *) override;
 
   typename ArrayTypes<DeviceType>::t_x_array_randomread x;
   typename ArrayTypes<DeviceType>::t_f_array f;
@@ -90,7 +91,6 @@ class PairTableRXKokkos : public PairTable {
 
   int update_table;
   void create_kokkos_tables();
-  void cleanup_copy();
 
   friend void pair_virial_fdotr_compute<PairTableRXKokkos>(PairTableRXKokkos*);
 

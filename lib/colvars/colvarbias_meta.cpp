@@ -50,6 +50,7 @@ colvarbias_meta::colvarbias_meta(char const *key)
 
   dump_fes = true;
   keep_hills = false;
+  restart_keep_hills = false;
   dump_fes_save = false;
   dump_replica_fes = false;
 
@@ -566,8 +567,8 @@ int colvarbias_meta::update_grid_params()
 int colvarbias_meta::update_bias()
 {
   // add a new hill if the required time interval has passed
-  if ((cvm::step_absolute() % new_hill_freq) == 0 &&
-      is_enabled(f_cvb_history_dependent)) {
+  if (((cvm::step_absolute() % new_hill_freq) == 0) &&
+      can_accumulate_data() && is_enabled(f_cvb_history_dependent)) {
 
     if (cvm::debug()) {
       cvm::log("Metadynamics bias \""+this->name+"\""+
@@ -883,7 +884,7 @@ void colvarbias_meta::project_hills(colvarbias_meta::hill_iter  h_first,
 
   // TODO: improve it by looping over a small subgrid instead of the whole grid
 
-  std::vector<colvarvalue> colvar_values(num_variables());
+  std::vector<colvarvalue> new_colvar_values(num_variables());
   std::vector<cvm::real> colvar_forces_scalar(num_variables());
 
   std::vector<int> he_ix = he->new_index();
@@ -902,17 +903,17 @@ void colvarbias_meta::project_hills(colvarbias_meta::hill_iter  h_first,
           count++) {
       size_t i;
       for (i = 0; i < num_variables(); i++) {
-        colvar_values[i] = hills_energy->bin_to_value_scalar(he_ix[i], i);
+        new_colvar_values[i] = he->bin_to_value_scalar(he_ix[i], i);
       }
 
       // loop over the hills and increment the energy grid locally
       hills_energy_here = 0.0;
-      calc_hills(h_first, h_last, hills_energy_here, &colvar_values);
+      calc_hills(h_first, h_last, hills_energy_here, &new_colvar_values);
       he->acc_value(he_ix, hills_energy_here);
 
       for (i = 0; i < num_variables(); i++) {
         hills_forces_here[i].reset();
-        calc_hills_force(i, h_first, h_last, hills_forces_here, &colvar_values);
+        calc_hills_force(i, h_first, h_last, hills_forces_here, &new_colvar_values);
         colvar_forces_scalar[i] = hills_forces_here[i].real_value;
       }
       hg->acc_force(hg_ix, &(colvar_forces_scalar.front()));
@@ -934,38 +935,12 @@ void colvarbias_meta::project_hills(colvarbias_meta::hill_iter  h_first,
     }
 
   } else {
-
-    // simpler version, with just the energy
-
-    for ( ; (he->index_ok(he_ix)); ) {
-
-      for (size_t i = 0; i < num_variables(); i++) {
-        colvar_values[i] = hills_energy->bin_to_value_scalar(he_ix[i], i);
-      }
-
-      hills_energy_here = 0.0;
-      calc_hills(h_first, h_last, hills_energy_here, &colvar_values);
-      he->acc_value(he_ix, hills_energy_here);
-
-      he->incr(he_ix);
-
-      count++;
-      if ((count % print_frequency) == 0) {
-        if (print_progress) {
-          cvm::real const progress = cvm::real(count) / cvm::real(he->number_of_points());
-          std::ostringstream os;
-          os.setf(std::ios::fixed, std::ios::floatfield);
-          os << std::setw(6) << std::setprecision(2)
-             << 100.0 * progress
-             << "% done.";
-          cvm::log(os.str());
-        }
-      }
-    }
+    cvm::error("No grid object provided in metadynamics::project_hills()\n",
+               BUG_ERROR);
   }
 
   if (print_progress) {
-    cvm::log("100.00% done.");
+    cvm::log("100.00% done.\n");
   }
 
   if (! keep_hills) {
@@ -1240,7 +1215,7 @@ void colvarbias_meta::read_replica_files()
 
           // test whether this is the end of the file
           is.seekg(0, std::ios::end);
-          if (is.tellg() > (replicas[ir])->replica_hills_file_pos+1) {
+          if (is.tellg() > (replicas[ir])->replica_hills_file_pos + ((std::streampos) 1)) {
             (replicas[ir])->update_status++;
           } else {
             (replicas[ir])->update_status = 0;
@@ -1279,9 +1254,25 @@ int colvarbias_meta::set_state_params(std::string const &state_conf)
     return error_code;
   }
 
+  colvarparse::get_keyval(state_conf, "keepHills", restart_keep_hills, false,
+                          colvarparse::parse_restart);
+
+  if ((!restart_keep_hills) && (cvm::main()->restart_version_number() < 20210604)) {
+    if (keep_hills) {
+      cvm::log("Warning: could not ensure that keepHills was enabled when "
+               "this state file was written; because it is enabled now, "
+               "it is assumed that it was also then, but please verify.\n");
+      restart_keep_hills = true;
+    }
+  } else {
+    if (restart_keep_hills) {
+      cvm::log("This state file/stream contains explicit hills.\n");
+    }
+  }
+
   std::string check_replica = "";
   if (colvarparse::get_keyval(state_conf, "replicaID", check_replica,
-                              std::string(""), colvarparse::parse_silent) &&
+                              std::string(""), colvarparse::parse_restart) &&
       (check_replica != this->replica_id)) {
     return cvm::error("Error: in the state file , the "
                       "\"metadynamics\" block has a different replicaID ("+
@@ -1295,8 +1286,6 @@ int colvarbias_meta::set_state_params(std::string const &state_conf)
 
 std::istream & colvarbias_meta::read_state_data(std::istream& is)
 {
-  bool grids_from_restart_file = use_grids;
-
   if (use_grids) {
 
     if (expand_grids) {
@@ -1324,7 +1313,7 @@ std::istream & colvarbias_meta::read_state_data(std::istream& is)
       hills_energy_gradients        = new colvar_grid_gradient(colvars);
     }
 
-    size_t const hills_energy_pos = is.tellg();
+    std::streampos const hills_energy_pos = is.tellg();
     std::string key;
     if (!(is >> key)) {
       if (hills_energy_backup != NULL) {
@@ -1341,7 +1330,6 @@ std::istream & colvarbias_meta::read_state_data(std::istream& is)
                !(hills_energy->read_restart(is))) {
       is.clear();
       is.seekg(hills_energy_pos, std::ios::beg);
-      grids_from_restart_file = false;
       if (!rebin_grids) {
         if (hills_energy_backup == NULL)
           cvm::fatal_error("Error: couldn't read the free energy grid for metadynamics bias \""+
@@ -1363,7 +1351,7 @@ std::istream & colvarbias_meta::read_state_data(std::istream& is)
       }
     }
 
-    size_t const hills_energy_gradients_pos = is.tellg();
+    std::streampos const hills_energy_gradients_pos = is.tellg();
     if (!(is >> key)) {
       if (hills_energy_backup != NULL)  {
         delete hills_energy;
@@ -1379,7 +1367,6 @@ std::istream & colvarbias_meta::read_state_data(std::istream& is)
                !(hills_energy_gradients->read_restart(is))) {
       is.clear();
       is.seekg(hills_energy_gradients_pos, std::ios::beg);
-      grids_from_restart_file = false;
       if (!rebin_grids) {
         if (hills_energy_backup == NULL)
           cvm::fatal_error("Error: couldn't read the free energy gradients grid for metadynamics bias \""+
@@ -1417,28 +1404,29 @@ std::istream & colvarbias_meta::read_state_data(std::istream& is)
     }
   }
 
+  // Save references to the end of the list of existing hills, so that it can
+  // be cleared if hills are read successfully state
   bool const existing_hills = !hills.empty();
   size_t const old_hills_size = hills.size();
   hill_iter old_hills_end = hills.end();
   hill_iter old_hills_off_grid_end = hills_off_grid.end();
 
-  // read the hills explicitly written (if there are any)
+  // Read any hills following the grid data (if any)
   while (read_hill(is)) {
-    if (cvm::debug())
+    if (cvm::debug()) {
       cvm::log("Read a previously saved hill under the "
                "metadynamics bias \""+
                this->name+"\", created at step "+
                cvm::to_str((hills.back()).it)+".\n");
+    }
   }
   is.clear();
   new_hills_begin = hills.end();
-  if (grids_from_restart_file) {
-    if (hills.size() > old_hills_size)
-      cvm::log("Read "+cvm::to_str(hills.size())+
-               " hills in addition to the grids.\n");
-  } else {
-    if (!hills.empty())
-      cvm::log("Read "+cvm::to_str(hills.size())+" hills.\n");
+  cvm::log("Read "+cvm::to_str(hills.size() - old_hills_size)+" hills.\n");
+
+  if (existing_hills) {
+    hills.erase(hills.begin(), old_hills_end);
+    hills_off_grid.erase(hills_off_grid.begin(), old_hills_off_grid_end);
   }
 
   if (rebin_grids) {
@@ -1452,7 +1440,16 @@ std::istream & colvarbias_meta::read_state_data(std::istream& is)
     colvar_grid_gradient *new_hills_energy_gradients =
       new colvar_grid_gradient(colvars);
 
-    if (!grids_from_restart_file || (keep_hills && !hills.empty())) {
+    if (cvm::debug()) {
+      std::ostringstream tmp_os;
+      tmp_os << "hills_energy parameters:\n";
+      hills_energy->write_params(tmp_os);
+      tmp_os << "new_hills_energy parameters:\n";
+      new_hills_energy->write_params(tmp_os);
+      cvm::log(tmp_os.str());
+    }
+
+    if (restart_keep_hills && !hills.empty()) {
       // if there are hills, recompute the new grids from them
       cvm::log("Rebinning the energy and forces grids from "+
                cvm::to_str(hills.size())+" hills (this may take a while)...\n");
@@ -1492,11 +1489,6 @@ std::istream & colvarbias_meta::read_state_data(std::istream& is)
   if (cvm::debug())
     cvm::log("colvarbias_meta::read_restart() done\n");
 
-  if (existing_hills) {
-    hills.erase(hills.begin(), old_hills_end);
-    hills_off_grid.erase(hills_off_grid.begin(), old_hills_off_grid_end);
-  }
-
   has_data = true;
 
   if (comm != single_replica) {
@@ -1507,54 +1499,90 @@ std::istream & colvarbias_meta::read_state_data(std::istream& is)
 }
 
 
+inline std::istream & reset_istream(std::istream &is, size_t start_pos)
+{
+  is.clear();
+  is.seekg(start_pos, std::ios::beg);
+  is.setstate(std::ios::failbit);
+  return is;
+}
+
+
 std::istream & colvarbias_meta::read_hill(std::istream &is)
 {
   if (!is) return is; // do nothing if failbit is set
 
-  size_t const start_pos = is.tellg();
+  std::streampos const start_pos = is.tellg();
   size_t i = 0;
 
   std::string data;
   if ( !(is >> read_block("hill", &data)) ) {
-    is.clear();
-    is.seekg(start_pos, std::ios::beg);
-    is.setstate(std::ios::failbit);
-    return is;
+    return reset_istream(is, start_pos);
   }
+
+  std::istringstream data_is(data);
 
   cvm::step_number h_it = 0L;
-  get_keyval(data, "step", h_it, h_it, parse_restart);
-  if (h_it <= state_file_step) {
-    if (cvm::debug())
-      cvm::log("Skipping a hill older than the state file for metadynamics bias \""+
-               this->name+"\""+
-               ((comm != single_replica) ? ", replica \""+replica_id+"\"" : "")+"\n");
-    return is;
-  }
-
   cvm::real h_weight;
-  get_keyval(data, "weight", h_weight, hill_weight, parse_restart);
-
   std::vector<colvarvalue> h_centers(num_variables());
   for (i = 0; i < num_variables(); i++) {
     h_centers[i].type(variables(i)->value());
   }
-  get_keyval(data, "centers", h_centers, h_centers, parse_restart);
-
   std::vector<cvm::real> h_sigmas(num_variables());
-  get_keyval(data, "widths", h_sigmas, h_sigmas, parse_restart);
-  for (i = 0; i < num_variables(); i++) {
-    // For backward compatibility, read the widths instead of the sigmas
-    h_sigmas[i] /= 2.0;
-  }
+  std::string h_replica;
 
-  std::string h_replica = "";
-  if (comm != single_replica) {
-    get_keyval(data, "replicaID", h_replica, replica_id, parse_restart);
-    if (h_replica != replica_id)
-      cvm::fatal_error("Error: trying to read a hill created by replica \""+h_replica+
-                       "\" for replica \""+replica_id+
-                       "\"; did you swap output files?\n");
+  std::string keyword;
+  while (data_is >> keyword) {
+
+    if (keyword == "step") {
+      if ( !(data_is >> h_it)) {
+        return reset_istream(is, start_pos);
+      }
+      if ((h_it <= state_file_step) && !restart_keep_hills) {
+        if (cvm::debug())
+          cvm::log("Skipping a hill older than the state file for metadynamics bias \""+
+                   this->name+"\""+
+                   ((comm != single_replica) ? ", replica \""+replica_id+"\"" : "")+"\n");
+        return is;
+      }
+    }
+
+    if (keyword == "weight") {
+      if ( !(data_is >> h_weight)) {
+        return reset_istream(is, start_pos);
+      }
+    }
+
+    if (keyword == "centers") {
+      for (i = 0; i < num_variables(); i++) {
+        if ( !(data_is >> h_centers[i])) {
+          return reset_istream(is, start_pos);
+        }
+      }
+    }
+
+    if (keyword == "widths") {
+      for (i = 0; i < num_variables(); i++) {
+        if ( !(data_is >> h_sigmas[i])) {
+          return reset_istream(is, start_pos);
+        }
+        // For backward compatibility, read the widths instead of the sigmas
+        h_sigmas[i] /= 2.0;
+      }
+    }
+
+    if (comm != single_replica) {
+      if (keyword == "replicaID") {
+        if ( !(data_is >> h_replica)) {
+          return reset_istream(is, start_pos);
+        }
+        if (h_replica != replica_id) {
+          cvm::error("Error: trying to read a hill created by replica \""+
+                     h_replica+"\" for replica \""+replica_id+
+                     "\"; did you swap output files?\n", INPUT_ERROR);
+        }
+      }
+    }
   }
 
   hill_iter const hills_end = hills.end();
@@ -1697,8 +1725,12 @@ std::string const colvarbias_meta::hills_traj_file_name() const
 std::string const colvarbias_meta::get_state_params() const
 {
   std::ostringstream os;
-  if (this->comm != single_replica)
+  if (keep_hills) {
+    os << "keepHills on" << "\n";
+  }
+  if (this->comm != single_replica) {
     os << "replicaID " << this->replica_id << "\n";
+  }
   return (colvarbias::get_state_params() + os.str());
 }
 
@@ -1942,6 +1974,7 @@ colvarbias_meta::hill::hill(cvm::step_number it_in,
     sigmas(cv_values.size()),
     replica(replica_in)
 {
+  hill_value = 0.0;
   for (size_t i = 0; i < cv_values.size(); i++) {
     centers[i].type(cv_values[i]);
     centers[i] = cv_values[i];
@@ -1958,13 +1991,16 @@ colvarbias_meta::hill::hill(cvm::step_number it_in,
 
 
 colvarbias_meta::hill::hill(colvarbias_meta::hill const &h)
-  : sW(1.0),
+  : it(h.it),
+    hill_value(0.0),
+    sW(1.0),
     W(h.W),
     centers(h.centers),
     sigmas(h.sigmas),
-    it(h.it),
     replica(h.replica)
-{}
+{
+  hill_value = 0.0;
+}
 
 
 colvarbias_meta::hill::~hill()

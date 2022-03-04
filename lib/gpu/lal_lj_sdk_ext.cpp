@@ -56,7 +56,7 @@ int sdk_gpu_init(const int ntypes, double **cutsq, int **cg_types,
   int init_ok=0;
   if (world_me==0)
     init_ok=CMMMF.init(ntypes,cutsq,cg_types,host_lj1,host_lj2,host_lj3,
-                       host_lj4, offset, special_lj, inum, nall, 300,
+                       host_lj4, offset, special_lj, inum, nall, max_nbors,
                        maxspecial, cell_size, gpu_split, screen);
 
   CMMMF.device->world_barrier();
@@ -74,7 +74,7 @@ int sdk_gpu_init(const int ntypes, double **cutsq, int **cg_types,
     }
     if (gpu_rank==i && world_me!=0)
       init_ok=CMMMF.init(ntypes,cutsq,cg_types,host_lj1,host_lj2,host_lj3,
-                         host_lj4, offset, special_lj, inum, nall, 300,
+                         host_lj4, offset, special_lj, inum, nall, max_nbors,
                          maxspecial, cell_size, gpu_split, screen);
 
     CMMMF.device->gpu_barrier();

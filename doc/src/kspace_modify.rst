@@ -75,7 +75,7 @@ relevant to all kspace styles.
 
 The *collective* keyword applies only to PPPM.  It is set to *no* by
 default, except on IBM BlueGene machines.  If this option is set to
-*yes*\ , LAMMPS will use MPI collective operations to remap data for
+*yes*, LAMMPS will use MPI collective operations to remap data for
 3d-FFT operations instead of the default point-to-point communication.
 This is faster on IBM BlueGene machines, and may also be faster on
 other machines if they have an efficient implementation of MPI
@@ -131,11 +131,11 @@ always used for MSM.
 ----------
 
 The *disp/auto* option controls whether the pppm/disp is allowed to
-generate PPPM parameters automatically. If set to *no*\ , parameters have
-to be specified using the *gewald/disp*\ , *mesh/disp*\ ,
+generate PPPM parameters automatically. If set to *no*, parameters have
+to be specified using the *gewald/disp*, *mesh/disp*,
 *force/disp/real* or *force/disp/kspace* keywords, or
 the code will stop with an error message. When this option is set to
-*yes*\ , the error message will not appear and the simulation will start.
+*yes*, the error message will not appear and the simulation will start.
 For a typical application, using the automatic parameter generation
 will provide simulations that are either inaccurate or slow. Using this
 option is thus not recommended. For guidelines on how to obtain good
@@ -165,8 +165,8 @@ calculated by the long-range solver and is thus specified in force
 units.  A negative value for the accuracy setting means to use the
 relative accuracy parameter.  The accuracy setting is used in
 conjunction with the pairwise cutoff to determine the number of
-K-space vectors for style *ewald*\ , the FFT grid size for style
-*pppm*\ , or the real space grid size for style *msm*\ .
+K-space vectors for style *ewald*, the FFT grid size for style
+*pppm*, or the real space grid size for style *msm*\ .
 
 ----------
 
@@ -223,7 +223,7 @@ The *minorder* keyword allows LAMMPS to reduce the *order* setting if
 necessary to keep the communication of ghost grid point limited to
 exchanges between nearest-neighbor processors.  See the discussion of
 the *overlap* keyword for details.  If the *overlap* keyword is set to
-*yes*\ , which is the default, this is never needed.  If it set to *no*
+*yes*, which is the default, this is never needed.  If it set to *no*
 and overlap occurs, then LAMMPS will reduce the order setting, one
 step at a time, until the ghost grid overlap only extends to nearest
 neighbor processors.  The *minorder* keyword limits how small the
@@ -237,13 +237,13 @@ MSM.
 ----------
 
 The *mix/disp* keyword selects the mixing rule for the dispersion
-coefficients.  With *pair*\ , the dispersion coefficients of unlike
+coefficients.  With *pair*, the dispersion coefficients of unlike
 types are computed as indicated with :doc:`pair_modify <pair_modify>`.
-With *geom*\ , geometric mixing is enforced on the dispersion
+With *geom*, geometric mixing is enforced on the dispersion
 coefficients in the kspace coefficients. When using the arithmetic
 mixing rule, this will speed-up the simulations but introduces some
 error in the force computations, as shown in :ref:`(Wennberg) <Wennberg>`.
-With *none*\ , it is assumed that no mixing rule is
+With *none*, it is assumed that no mixing rule is
 applicable. Splitting of the dispersion coefficients will be performed
 as described in :ref:`(Isele-Holder) <Isele-Holder1>`.
 
@@ -398,8 +398,8 @@ boundaries can be set using :doc:`boundary <boundary>` (the slab
 approximation in not needed).  The *slab* keyword is not currently
 supported by Ewald or PPPM when using a triclinic simulation cell. The
 slab correction has also been extended to point dipole interactions
-:ref:`(Klapp) <Klapp>` in :doc:`kspace_style <kspace_style>` *ewald/disp*\ ,
-*ewald/dipole*\ , and *pppm/dipole*\ .
+:ref:`(Klapp) <Klapp>` in :doc:`kspace_style <kspace_style>` *ewald/disp*,
+*ewald/dipole*, and *pppm/dipole*\ .
 
 .. note::
 
@@ -419,10 +419,10 @@ optimal performance and accuracy in the results is obtained when these
 values are different.
 
 The *disp/auto* option controls whether the pppm/disp is allowed to
-generate PPPM parameters automatically. If set to *no*\ , parameters
-have to be specified using the *gewald/disp*\ , *mesh/disp*\ ,
+generate PPPM parameters automatically. If set to *no*, parameters
+have to be specified using the *gewald/disp*, *mesh/disp*,
 *force/disp/real* or *force/disp/kspace* keywords, or the code will
-stop with an error message. When this option is set to *yes*\ , the
+stop with an error message. When this option is set to *yes*, the
 error message will not appear and the simulation will start.  For a
 typical application, using the automatic parameter generation will
 provide simulations that are either inaccurate or slow. Using this

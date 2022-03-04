@@ -91,11 +91,11 @@ struct FunctorReduce {
 };
 }  // namespace
 
-typedef Kokkos::TeamPolicy<TEST_EXECSPACE> policy_type;
-typedef Kokkos::TeamPolicy<TEST_EXECSPACE, Kokkos::LaunchBounds<128, 8> >
-    policy_type_128_8;
-typedef Kokkos::TeamPolicy<TEST_EXECSPACE, Kokkos::LaunchBounds<1024, 2> >
-    policy_type_1024_2;
+using policy_type = Kokkos::TeamPolicy<TEST_EXECSPACE>;
+using policy_type_128_8 =
+    Kokkos::TeamPolicy<TEST_EXECSPACE, Kokkos::LaunchBounds<128, 8> >;
+using policy_type_1024_2 =
+    Kokkos::TeamPolicy<TEST_EXECSPACE, Kokkos::LaunchBounds<1024, 2> >;
 
 template <class T, int N, class PolicyType, int S>
 void test_team_policy_max_recommended_static_size(int scratch_size) {
@@ -110,9 +110,9 @@ void test_team_policy_max_recommended_static_size(int scratch_size) {
   int team_size_rec_reduce = p.team_size_recommended(
       FunctorReduce<T, N, PolicyType, S>(), Kokkos::ParallelReduceTag());
 
-  ASSERT_TRUE(team_size_max_for >= team_size_rec_for);
-  ASSERT_TRUE(team_size_max_reduce >= team_size_rec_reduce);
-  ASSERT_TRUE(team_size_max_for >= team_size_max_reduce);
+  ASSERT_GE(team_size_max_for, team_size_rec_for);
+  ASSERT_GE(team_size_max_reduce, team_size_rec_reduce);
+  ASSERT_GE(team_size_max_for, team_size_max_reduce);
 
   Kokkos::parallel_for(PolicyType(10000, team_size_max_for, 4)
                            .set_scratch_size(0, Kokkos::PerTeam(scratch_size)),
@@ -121,12 +121,14 @@ void test_team_policy_max_recommended_static_size(int scratch_size) {
                            .set_scratch_size(0, Kokkos::PerTeam(scratch_size)),
                        FunctorFor<T, N, PolicyType, S>());
   MyArray<T, N> val;
+  double n_leagues = 10000;
+
   Kokkos::parallel_reduce(
-      PolicyType(10000, team_size_max_reduce, 4)
+      PolicyType(n_leagues, team_size_max_reduce, 4)
           .set_scratch_size(0, Kokkos::PerTeam(scratch_size)),
       FunctorReduce<T, N, PolicyType, S>(), val);
   Kokkos::parallel_reduce(
-      PolicyType(10000, team_size_rec_reduce, 4)
+      PolicyType(n_leagues, team_size_rec_reduce, 4)
           .set_scratch_size(0, Kokkos::PerTeam(scratch_size)),
       FunctorReduce<T, N, PolicyType, S>(), val);
   Kokkos::fence();
@@ -136,8 +138,14 @@ template <class T, int N, class PolicyType>
 void test_team_policy_max_recommended(int scratch_size) {
   test_team_policy_max_recommended_static_size<T, N, PolicyType, 1>(
       scratch_size);
+  // FIXME_SYCL prevent running out of total kernel argument size limit
+#ifdef KOKKOS_ENABLE_SYCL
+  test_team_policy_max_recommended_static_size<T, N, PolicyType, 100>(
+      scratch_size);
+#else
   test_team_policy_max_recommended_static_size<T, N, PolicyType, 1000>(
       scratch_size);
+#endif
 }
 
 TEST(TEST_CATEGORY, team_policy_max_recommended) {
@@ -177,7 +185,8 @@ template <typename TeamHandleType, typename ReducerValueType>
 struct PrintFunctor1 {
   KOKKOS_INLINE_FUNCTION void operator()(const TeamHandleType& team,
                                          ReducerValueType&) const {
-    printf("Test %i %i\n", int(team.league_rank()), int(team.team_rank()));
+    KOKKOS_IMPL_DO_NOT_USE_PRINTF("Test %i %i\n", int(team.league_rank()),
+                                  int(team.team_rank()));
   }
 };
 
@@ -185,7 +194,8 @@ template <typename TeamHandleType, typename ReducerValueType>
 struct PrintFunctor2 {
   KOKKOS_INLINE_FUNCTION void operator()(const TeamHandleType& team,
                                          ReducerValueType& teamVal) const {
-    printf("Test %i %i\n", int(team.league_rank()), int(team.team_rank()));
+    KOKKOS_IMPL_DO_NOT_USE_PRINTF("Test %i %i\n", int(team.league_rank()),
+                                  int(team.team_rank()));
     teamVal += 1;
   }
 };

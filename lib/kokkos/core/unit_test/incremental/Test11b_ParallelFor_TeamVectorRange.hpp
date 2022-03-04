@@ -55,10 +55,10 @@ namespace Test {
 template <class ExecSpace>
 struct Hierarchical_ForLoop_B {
   void run(const int pN, const int sX, const int sY) {
-    typedef Kokkos::TeamPolicy<ExecSpace> team_policy;
-    typedef typename Kokkos::TeamPolicy<ExecSpace>::member_type member_type;
+    using team_policy = Kokkos::TeamPolicy<ExecSpace>;
+    using member_type = typename Kokkos::TeamPolicy<ExecSpace>::member_type;
 
-    typedef Kokkos::View<int **, ExecSpace> viewDataType;
+    using viewDataType = Kokkos::View<int **, ExecSpace>;
     viewDataType v("Matrix", sX, sY);
 
     Kokkos::parallel_for(
@@ -71,7 +71,7 @@ struct Hierarchical_ForLoop_B {
           const int modDim1   = n == ls - 1 ? sX % ls : 0;
 
           Kokkos::parallel_for(
-              Kokkos::TeamVectorRange(team, v.extent(1)), [&](const int m) {
+              Kokkos::TeamVectorRange(team, v.extent(1)), [=](const int m) {
                 for (int i = startDim1;
                      i < (startDim1 + (int)(sX / ls) + modDim1); ++i)
                   v(i, m) = i * v.extent(1) + m;
@@ -81,8 +81,8 @@ struct Hierarchical_ForLoop_B {
     Kokkos::fence();
     auto v_H = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), v);
 
-    int check   = 0;
-    const int s = sY * sX;
+    long long int check   = 0;
+    const long long int s = sY * sX;
     for (int i = 0; i < sX; ++i)
       for (int j = 0; j < sY; ++j) check += v_H(i, j);
     ASSERT_EQ(check, s * (s - 1) / 2);

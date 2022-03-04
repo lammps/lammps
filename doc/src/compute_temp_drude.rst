@@ -20,6 +20,8 @@ Examples
 
    compute TDRUDE all temp/drude
 
+Example input scripts available: examples/PACKAGES/drude
+
 Description
 """""""""""
 
@@ -43,7 +45,8 @@ velocities of the Drude particles with respect to their cores.
 Non-polarizable atoms are considered as cores.  Their velocities
 contribute to the temperature of the cores.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar (the temperature) and a global
 vector of length 6, which can be accessed by indices 1-6, whose components
@@ -57,7 +60,7 @@ are
 6. kinetic energy of the dipoles (energy units)
 
 These values can be used by any command that uses global scalar or
-vector values from a compute as input.  See the :doc:`Howto output <Howto_output>` doc page for an overview of LAMMPS output
+vector values from a compute as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options.
 
 Both the scalar value and the first two values of the vector
@@ -76,4 +79,7 @@ Related commands
 
 :doc:`fix drude <fix_drude>`, :doc:`fix langevin/drude <fix_langevin_drude>`, :doc:`fix drude/transform <fix_drude_transform>`, :doc:`pair_style thole <pair_thole>`, :doc:`compute temp <compute_temp>`
 
-**Default:** none
+Default
+"""""""
+
+none

@@ -1,0 +1,13 @@
+CNTPot.o: CNTPot.f90 TPMLib.o
+ExportCNT.o: ExportCNT.f90 CNTPot.o TPMLib.o TubePotMono.o TPMForceField.o
+LinFun2.o: LinFun2.f90
+Spline1.o: Spline1.f90
+Spline2.o: Spline2.f90 Spline1.o
+TPMForceField.o: TPMForceField.f90 CNTPot.o TPMM0.o TPMM1.o
+TPMGeom.o: TPMGeom.f90 TPMLib.o
+TPMLib.o: TPMLib.f90
+TPMM0.o: TPMM0.f90 TubePotMono.o
+TPMM1.o: TPMM1.f90 TubePotMono.o
+TubePotBase.o: TubePotBase.f90 TPMLib.o
+TubePotMono.o: TubePotMono.f90 TPMLib.o TPMGeom.o TubePotBase.o TubePotTrue.o LinFun2.o Spline2.o
+TubePotTrue.o: TubePotTrue.f90 TPMGeom.o TubePotBase.o

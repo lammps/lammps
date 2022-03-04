@@ -54,28 +54,28 @@ namespace Test {
 
 template <class Space>
 void test_view_mapping() {
-  typedef typename Space::execution_space ExecSpace;
+  using ExecSpace = typename Space::execution_space;
 
-  typedef Kokkos::Impl::ViewDimension<> dim_0;
-  typedef Kokkos::Impl::ViewDimension<2> dim_s2;
-  typedef Kokkos::Impl::ViewDimension<2, 3> dim_s2_s3;
-  typedef Kokkos::Impl::ViewDimension<2, 3, 4> dim_s2_s3_s4;
+  using dim_0        = Kokkos::Impl::ViewDimension<>;
+  using dim_s2       = Kokkos::Impl::ViewDimension<2>;
+  using dim_s2_s3    = Kokkos::Impl::ViewDimension<2, 3>;
+  using dim_s2_s3_s4 = Kokkos::Impl::ViewDimension<2, 3, 4>;
 
-  typedef Kokkos::Impl::ViewDimension<0> dim_s0;
-  typedef Kokkos::Impl::ViewDimension<0, 3> dim_s0_s3;
-  typedef Kokkos::Impl::ViewDimension<0, 3, 4> dim_s0_s3_s4;
+  using dim_s0       = Kokkos::Impl::ViewDimension<0>;
+  using dim_s0_s3    = Kokkos::Impl::ViewDimension<0, 3>;
+  using dim_s0_s3_s4 = Kokkos::Impl::ViewDimension<0, 3, 4>;
 
-  typedef Kokkos::Impl::ViewDimension<0, 0> dim_s0_s0;
-  typedef Kokkos::Impl::ViewDimension<0, 0, 4> dim_s0_s0_s4;
+  using dim_s0_s0    = Kokkos::Impl::ViewDimension<0, 0>;
+  using dim_s0_s0_s4 = Kokkos::Impl::ViewDimension<0, 0, 4>;
 
-  typedef Kokkos::Impl::ViewDimension<0, 0, 0> dim_s0_s0_s0;
-  typedef Kokkos::Impl::ViewDimension<0, 0, 0, 0> dim_s0_s0_s0_s0;
-  typedef Kokkos::Impl::ViewDimension<0, 0, 0, 0, 0> dim_s0_s0_s0_s0_s0;
-  typedef Kokkos::Impl::ViewDimension<0, 0, 0, 0, 0, 0> dim_s0_s0_s0_s0_s0_s0;
-  typedef Kokkos::Impl::ViewDimension<0, 0, 0, 0, 0, 0, 0>
-      dim_s0_s0_s0_s0_s0_s0_s0;
-  typedef Kokkos::Impl::ViewDimension<0, 0, 0, 0, 0, 0, 0, 0>
-      dim_s0_s0_s0_s0_s0_s0_s0_s0;
+  using dim_s0_s0_s0          = Kokkos::Impl::ViewDimension<0, 0, 0>;
+  using dim_s0_s0_s0_s0       = Kokkos::Impl::ViewDimension<0, 0, 0, 0>;
+  using dim_s0_s0_s0_s0_s0    = Kokkos::Impl::ViewDimension<0, 0, 0, 0, 0>;
+  using dim_s0_s0_s0_s0_s0_s0 = Kokkos::Impl::ViewDimension<0, 0, 0, 0, 0, 0>;
+  using dim_s0_s0_s0_s0_s0_s0_s0 =
+      Kokkos::Impl::ViewDimension<0, 0, 0, 0, 0, 0, 0>;
+  using dim_s0_s0_s0_s0_s0_s0_s0_s0 =
+      Kokkos::Impl::ViewDimension<0, 0, 0, 0, 0, 0, 0, 0>;
 
 // Fully static dimensions should not be larger than an int.
 #ifndef _WIN32  // For some reason on Windows the first test here fails with
@@ -190,14 +190,14 @@ void test_view_mapping() {
 
   //----------------------------------------
 
-  typedef Kokkos::Impl::ViewOffset<dim_s0_s0_s0, Kokkos::LayoutStride>
-      stride_s0_s0_s0;
+  using stride_s0_s0_s0 =
+      Kokkos::Impl::ViewOffset<dim_s0_s0_s0, Kokkos::LayoutStride>;
 
   //----------------------------------------
   // Static dimension.
   {
-    typedef Kokkos::Impl::ViewOffset<dim_s2_s3_s4, Kokkos::LayoutLeft>
-        left_s2_s3_s4;
+    using left_s2_s3_s4 =
+        Kokkos::Impl::ViewOffset<dim_s2_s3_s4, Kokkos::LayoutLeft>;
 
     ASSERT_EQ(sizeof(left_s2_s3_s4), sizeof(dim_s2_s3_s4));
 
@@ -228,8 +228,8 @@ void test_view_mapping() {
   //----------------------------------------
   // Small dimension is unpadded.
   {
-    typedef Kokkos::Impl::ViewOffset<dim_s0_s0_s4, Kokkos::LayoutLeft>
-        left_s0_s0_s4;
+    using left_s0_s0_s4 =
+        Kokkos::Impl::ViewOffset<dim_s0_s0_s4, Kokkos::LayoutLeft>;
 
     left_s0_s0_s4 dyn_off3(std::integral_constant<unsigned, sizeof(int)>(),
                            Kokkos::LayoutLeft(2, 3, 0, 0, 0, 0, 0, 0));
@@ -280,8 +280,8 @@ void test_view_mapping() {
     constexpr int N0 = 2000;
     constexpr int N1 = 300;
 
-    typedef Kokkos::Impl::ViewOffset<dim_s0_s0_s4, Kokkos::LayoutLeft>
-        left_s0_s0_s4;
+    using left_s0_s0_s4 =
+        Kokkos::Impl::ViewOffset<dim_s0_s0_s4, Kokkos::LayoutLeft>;
 
     left_s0_s0_s4 dyn_off3(std::integral_constant<unsigned, sizeof(int)>(),
                            Kokkos::LayoutLeft(N0, N1, 0, 0, 0, 0, 0, 0));
@@ -319,8 +319,8 @@ void test_view_mapping() {
   //----------------------------------------
   // Static dimension.
   {
-    typedef Kokkos::Impl::ViewOffset<dim_s2_s3_s4, Kokkos::LayoutRight>
-        right_s2_s3_s4;
+    using right_s2_s3_s4 =
+        Kokkos::Impl::ViewOffset<dim_s2_s3_s4, Kokkos::LayoutRight>;
 
     ASSERT_EQ(sizeof(right_s2_s3_s4), sizeof(dim_s2_s3_s4));
 
@@ -355,8 +355,8 @@ void test_view_mapping() {
   //----------------------------------------
   // Small dimension is unpadded.
   {
-    typedef Kokkos::Impl::ViewOffset<dim_s0_s0_s4, Kokkos::LayoutRight>
-        right_s0_s0_s4;
+    using right_s0_s0_s4 =
+        Kokkos::Impl::ViewOffset<dim_s0_s0_s4, Kokkos::LayoutRight>;
 
     right_s0_s0_s4 dyn_off3(std::integral_constant<unsigned, sizeof(int)>(),
                             Kokkos::LayoutRight(2, 3, 0, 0, 0, 0, 0, 0));
@@ -396,8 +396,8 @@ void test_view_mapping() {
     constexpr int N0 = 2000;
     constexpr int N1 = 300;
 
-    typedef Kokkos::Impl::ViewOffset<dim_s0_s0_s4, Kokkos::LayoutRight>
-        right_s0_s0_s4;
+    using right_s0_s0_s4 =
+        Kokkos::Impl::ViewOffset<dim_s0_s0_s4, Kokkos::LayoutRight>;
 
     right_s0_s0_s4 dyn_off3(std::integral_constant<unsigned, sizeof(int)>(),
                             Kokkos::LayoutRight(N0, N1, 0, 0, 0, 0, 0, 0));
@@ -436,7 +436,7 @@ void test_view_mapping() {
   // Subview.
   {
     // Mapping rank 4 to rank 3
-    typedef Kokkos::Impl::SubviewExtents<4, 3> SubviewExtents;
+    using SubviewExtents = Kokkos::Impl::SubviewExtents<4, 3>;
 
     constexpr int N0 = 1000;
     constexpr int N1 = 2000;
@@ -471,8 +471,8 @@ void test_view_mapping() {
     constexpr int sub_N1 = 200;
     constexpr int sub_N2 = 4;
 
-    typedef Kokkos::Impl::ViewOffset<dim_s0_s0_s4, Kokkos::LayoutLeft>
-        left_s0_s0_s4;
+    using left_s0_s0_s4 =
+        Kokkos::Impl::ViewOffset<dim_s0_s0_s4, Kokkos::LayoutLeft>;
 
     left_s0_s0_s4 dyn_off3(std::integral_constant<unsigned, sizeof(int)>(),
                            Kokkos::LayoutLeft(N0, N1, 0, 0, 0, 0, 0, 0));
@@ -508,8 +508,8 @@ void test_view_mapping() {
     constexpr int sub_N1 = 200;
     constexpr int sub_N2 = 4;
 
-    typedef Kokkos::Impl::ViewOffset<dim_s0_s0_s4, Kokkos::LayoutRight>
-        right_s0_s0_s4;
+    using right_s0_s0_s4 =
+        Kokkos::Impl::ViewOffset<dim_s0_s0_s4, Kokkos::LayoutRight>;
 
     right_s0_s0_s4 dyn_off3(std::integral_constant<unsigned, sizeof(int)>(),
                             Kokkos::LayoutRight(N0, N1, 0, 0, 0, 0, 0, 0));
@@ -552,10 +552,10 @@ void test_view_mapping() {
   {
     using namespace Kokkos::Impl;
 
-    typedef ViewArrayAnalysis<int[]> a_int_r1;
-    typedef ViewArrayAnalysis<int* * [4][5][6]> a_int_r5;
-    typedef ViewArrayAnalysis<const int[]> a_const_int_r1;
-    typedef ViewArrayAnalysis<const int* * [4][5][6]> a_const_int_r5;
+    using a_int_r1       = ViewArrayAnalysis<int[]>;
+    using a_int_r5       = ViewArrayAnalysis<int* * [4][5][6]>;
+    using a_const_int_r1 = ViewArrayAnalysis<const int[]>;
+    using a_const_int_r5 = ViewArrayAnalysis<const int* * [4][5][6]>;
 
     static_assert(a_int_r1::dimension::rank == 1, "");
     static_assert(a_int_r1::dimension::rank_dynamic == 1, "");
@@ -610,10 +610,10 @@ void test_view_mapping() {
   {
     using namespace Kokkos::Impl;
 
-    typedef int t_i4[4];
+    using t_i4 = int[4];
 
     // Dimensions of t_i4 are appended to the multdimensional array.
-    typedef ViewArrayAnalysis<t_i4** * [3]> a_int_r5;
+    using a_int_r5 = ViewArrayAnalysis<t_i4** * [3]>;
 
     static_assert(a_int_r5::dimension::rank == 5, "");
     static_assert(a_int_r5::dimension::rank_dynamic == 3, "");
@@ -629,7 +629,7 @@ void test_view_mapping() {
   {
     using namespace Kokkos::Impl;
 
-    typedef ViewDataAnalysis<const int[], void> a_const_int_r1;
+    using a_const_int_r1 = ViewDataAnalysis<const int[], void>;
 
     static_assert(
         std::is_same<typename a_const_int_r1::specialize, void>::value, "");
@@ -661,7 +661,7 @@ void test_view_mapping() {
         std::is_same<typename a_const_int_r1::non_const_value_type, int>::value,
         "");
 
-    typedef ViewDataAnalysis<const int* * [4], void> a_const_int_r3;
+    using a_const_int_r3 = ViewDataAnalysis<const int* * [4], void>;
 
     static_assert(
         std::is_same<typename a_const_int_r3::specialize, void>::value, "");
@@ -708,8 +708,8 @@ void test_view_mapping() {
   {
     constexpr int N = 10;
 
-    typedef Kokkos::View<int*, Space> T;
-    typedef Kokkos::View<const int*, Space> C;
+    using T = Kokkos::View<int*, Space>;
+    using C = Kokkos::View<const int*, Space>;
 
     int data[N];
 
@@ -768,8 +768,8 @@ void test_view_mapping() {
 
     ASSERT_EQ(vr1.extent(0), N);
 
-    if (Kokkos::Impl::SpaceAccessibility<
-            Kokkos::HostSpace, typename Space::memory_space>::accessible) {
+    if (Kokkos::SpaceAccessibility<Kokkos::HostSpace,
+                                   typename Space::memory_space>::accessible) {
       for (int i = 0; i < N; ++i) data[i] = i + 1;
       for (int i = 0; i < N; ++i) ASSERT_EQ(vr1[i], i + 1);
       for (int i = 0; i < N; ++i) ASSERT_EQ(cr1[i], i + 1);
@@ -788,8 +788,8 @@ void test_view_mapping() {
 
   {
     constexpr int N = 10;
-    typedef Kokkos::View<int*, Space> T;
-    typedef Kokkos::View<const int*, Space> C;
+    using T         = Kokkos::View<int*, Space>;
+    using C         = Kokkos::View<const int*, Space>;
 
     T vr1("vr1", N);
     C cr1(vr1);
@@ -815,8 +815,8 @@ void test_view_mapping() {
 
     ASSERT_EQ(vr1.extent(0), N);
 
-    if (Kokkos::Impl::SpaceAccessibility<
-            Kokkos::HostSpace, typename Space::memory_space>::accessible) {
+    if (Kokkos::SpaceAccessibility<Kokkos::HostSpace,
+                                   typename Space::memory_space>::accessible) {
       for (int i = 0; i < N; ++i) vr1(i) = i + 1;
       for (int i = 0; i < N; ++i) ASSERT_EQ(vr1[i], i + 1);
       for (int i = 0; i < N; ++i) ASSERT_EQ(cr1[i], i + 1);
@@ -835,8 +835,8 @@ void test_view_mapping() {
   // Testing proper handling of zero-length allocations.
   {
     constexpr int N = 0;
-    typedef Kokkos::View<int*, Space> T;
-    typedef Kokkos::View<const int*, Space> C;
+    using T         = Kokkos::View<int*, Space>;
+    using C         = Kokkos::View<const int*, Space>;
 
     T vr1("vr1", N);
     C cr1(vr1);
@@ -852,8 +852,8 @@ void test_view_mapping() {
                    typename ExecSpace::memory_space::execution_space>::value) {
     using namespace Kokkos;
 
-    typedef typename ExecSpace::memory_space memory_space;
-    typedef View<int*, memory_space> V;
+    using memory_space = typename ExecSpace::memory_space;
+    using V            = View<int*, memory_space>;
 
     constexpr int N = 10;
 
@@ -874,10 +874,10 @@ void test_view_mapping() {
   }
 
   {
-    typedef Kokkos::ViewTraits<int***, Kokkos::LayoutStride, ExecSpace>
-        traits_t;
-    typedef Kokkos::Impl::ViewDimension<0, 0, 0> dims_t;
-    typedef Kokkos::Impl::ViewOffset<dims_t, Kokkos::LayoutStride> offset_t;
+    using traits_t =
+        Kokkos::ViewTraits<int***, Kokkos::LayoutStride, ExecSpace>;
+    using dims_t   = Kokkos::Impl::ViewDimension<0, 0, 0>;
+    using offset_t = Kokkos::Impl::ViewOffset<dims_t, Kokkos::LayoutStride>;
 
     Kokkos::LayoutStride stride;
 
@@ -906,9 +906,9 @@ void test_view_mapping() {
   }
 
   {
-    typedef Kokkos::View<int**, Space> V;
-    typedef typename V::HostMirror M;
-    typedef typename Kokkos::View<int**, Space>::array_layout layout_type;
+    using V           = Kokkos::View<int**, Space>;
+    using M           = typename V::HostMirror;
+    using layout_type = typename Kokkos::View<int**, Space>::array_layout;
 
     constexpr int N0 = 10;
     constexpr int N1 = 11;
@@ -980,11 +980,10 @@ void test_view_mapping() {
   }
 
   {
-    typedef Kokkos::View<int**, Kokkos::LayoutStride, Space> V;
-    typedef typename V::HostMirror M;
-    typedef
-        typename Kokkos::View<int**, Kokkos::LayoutStride, Space>::array_layout
-            layout_type;
+    using V = Kokkos::View<int**, Kokkos::LayoutStride, Space>;
+    using M = typename V::HostMirror;
+    using layout_type =
+        typename Kokkos::View<int**, Kokkos::LayoutStride, Space>::array_layout;
 
     constexpr int N0 = 10;
     constexpr int N1 = 11;
@@ -1034,8 +1033,8 @@ void test_view_mapping() {
   }
 
   {
-    typedef Kokkos::View<int*, Space> V;
-    typedef Kokkos::View<int*, Space, Kokkos::MemoryUnmanaged> U;
+    using V = Kokkos::View<int*, Space>;
+    using U = Kokkos::View<int*, Space, Kokkos::MemoryUnmanaged>;
 
     V a("a", 10);
 
@@ -1071,12 +1070,12 @@ void test_view_mapping() {
 
 // TODO: a.use_count() and x.use_count() are 0 with the asynchronous HPX
 // backend. Why?
-#if !defined(KOKKOS_ENABLE_CUDA_LAMBDA) && !defined(KOKKOS_ENABLE_ROCM) && \
+#if !defined(KOKKOS_ENABLE_CUDA_LAMBDA) && \
     !(defined(KOKKOS_ENABLE_HPX) && defined(KOKKOS_ENABLE_HPX_ASYNC_DISPATCH))
     // Cannot launch host lambda when CUDA lambda is enabled.
 
-    typedef typename Kokkos::Impl::HostMirror<Space>::Space::execution_space
-        host_exec_space;
+    using host_exec_space =
+        typename Kokkos::Impl::HostMirror<Space>::Space::execution_space;
 
     int errors = 0;
     Kokkos::parallel_reduce(
@@ -1104,20 +1103,12 @@ struct TestViewMapOperator {
   static_assert(ViewType::reference_type_is_lvalue_reference,
                 "Test only valid for lvalue reference type");
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  const ViewType v;
-#else
   ViewType v;
-#endif
 
   KOKKOS_INLINE_FUNCTION
   void test_left(size_t i0, int64_t& error_count) const {
-#ifdef KOKKOS_ENABLE_DEPPRECATED_CODE
-    typename ViewType::value_type* const base_ptr = &v(0, 0, 0, 0, 0, 0, 0, 0);
-#else
     typename ViewType::value_type* const base_ptr =
         &v.access(0, 0, 0, 0, 0, 0, 0, 0);
-#endif
     const size_t n1 = v.extent(1);
     const size_t n2 = v.extent(2);
     const size_t n3 = v.extent(3);
@@ -1135,13 +1126,8 @@ struct TestViewMapOperator {
             for (size_t i3 = 0; i3 < n3; ++i3)
               for (size_t i2 = 0; i2 < n2; ++i2)
                 for (size_t i1 = 0; i1 < n1; ++i1) {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-                  const int64_t d =
-                      &v(i0, i1, i2, i3, i4, i5, i6, i7) - base_ptr;
-#else
                   const int64_t d =
                       &v.access(i0, i1, i2, i3, i4, i5, i6, i7) - base_ptr;
-#endif
                   if (d < offset) ++error_count;
                   offset = d;
                 }
@@ -1151,12 +1137,8 @@ struct TestViewMapOperator {
 
   KOKKOS_INLINE_FUNCTION
   void test_right(size_t i0, int64_t& error_count) const {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-    typename ViewType::value_type* const base_ptr = &v(0, 0, 0, 0, 0, 0, 0, 0);
-#else
     typename ViewType::value_type* const base_ptr =
         &v.access(0, 0, 0, 0, 0, 0, 0, 0);
-#endif
     const size_t n1 = v.extent(1);
     const size_t n2 = v.extent(2);
     const size_t n3 = v.extent(3);
@@ -1174,13 +1156,8 @@ struct TestViewMapOperator {
             for (size_t i5 = 0; i5 < n5; ++i5)
               for (size_t i6 = 0; i6 < n6; ++i6)
                 for (size_t i7 = 0; i7 < n7; ++i7) {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-                  const int64_t d =
-                      &v(i0, i1, i2, i3, i4, i5, i6, i7) - base_ptr;
-#else
                   const int64_t d =
                       &v.access(i0, i1, i2, i3, i4, i5, i6, i7) - base_ptr;
-#endif
                   if (d < offset) ++error_count;
                   offset = d;
                 }
@@ -1208,10 +1185,6 @@ struct TestViewMapOperator {
   enum { N6 = 4 };
   enum { N7 = 3 };
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  TestViewMapOperator() : v("Test", N0, N1, N2, N3, N4, N5, N6, N7) {}
-
-#else
   TestViewMapOperator() {
     const size_t dyn_rank = v.rank_dynamic;
     const std::string label("Test");
@@ -1229,7 +1202,6 @@ struct TestViewMapOperator {
     }
   }
 
-#endif
   void run() {
     ASSERT_EQ(v.extent(0),
               (0 < ViewType::rank ? TestViewMapOperator<ViewType>::N0 : 1));
@@ -1262,7 +1234,7 @@ struct TestViewMapOperator {
 
 template <class Space>
 void test_view_mapping_operator() {
-  typedef typename Space::execution_space ExecSpace;
+  using ExecSpace = typename Space::execution_space;
 
   {
     TestViewMapOperator<Kokkos::View<int, Kokkos::LayoutLeft, ExecSpace> > f;

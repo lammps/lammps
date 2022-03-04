@@ -56,7 +56,7 @@ int main() { return 0; }
 #include <cstdlib>
 #include <limits>
 
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 
 using ExecSpace = Kokkos::DefaultExecutionSpace;
 
@@ -91,7 +91,7 @@ struct TestFib {
   using MemberType  = typename Scheduler::member_type;
   using FutureType  = Kokkos::BasicFuture<long, Scheduler>;
 
-  typedef long value_type;
+  using value_type = long;
 
   FutureType dep[2];
   const value_type n;
@@ -152,13 +152,13 @@ int main(int argc, char* argv[]) {
       total_alloc_size = atol(a + strlen(alloc_size));
 
     if (!strncmp(a, super_size, strlen(super_size)))
-      min_superblock_size = atoi(a + strlen(super_size));
+      min_superblock_size = std::stoi(a + strlen(super_size));
 
     if (!strncmp(a, repeat_outer, strlen(repeat_outer)))
-      test_repeat_outer = atoi(a + strlen(repeat_outer));
+      test_repeat_outer = std::stoi(a + strlen(repeat_outer));
 
     if (!strncmp(a, input_value, strlen(input_value)))
-      fib_input = atoi(a + strlen(input_value));
+      fib_input = std::stoi(a + strlen(input_value));
   }
 
   const long fib_output   = eval_fib(fib_input);
@@ -182,7 +182,7 @@ int main(int argc, char* argv[]) {
 
   using Scheduler = Kokkos::TaskSchedulerMultiple<ExecSpace>;
 
-  typedef TestFib<Scheduler> Functor;
+  using Functor = TestFib<Scheduler>;
 
   Kokkos::initialize(argc, argv);
 
@@ -220,7 +220,7 @@ int main(int argc, char* argv[]) {
     double time_sum = 0;
 
     for (int i = 0; i < test_repeat_outer; ++i) {
-      Kokkos::Impl::Timer timer;
+      Kokkos::Timer timer;
 
       Functor::FutureType ftmp =
           Kokkos::host_spawn(Kokkos::TaskSingle(sched), Functor(fib_input));

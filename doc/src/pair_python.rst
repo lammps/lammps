@@ -38,12 +38,12 @@ corresponding compiled code. This penalty can be significantly reduced
 through generating tabulations from the python code through the
 :doc:`pair_write <pair_write>` command, which is supported by this style.
 
-Only a single pair_coeff command is used with the *python* pair style
-which specifies a python class inside a python module or file that
-LAMMPS will look up in the current directory, the folder pointed to by
-the LAMMPS_POTENTIALS environment variable or somewhere in your python
-path.  A single python module can hold multiple python pair class
-definitions. The class definitions itself have to follow specific
+Only a single :doc:`pair_coeff <pair_coeff>` command is used with the
+*python* pair style which specifies a python class inside a python module
+or a file that LAMMPS will look up in the current directory, a folder
+pointed to by the ``LAMMPS_POTENTIALS`` environment variable or somewhere
+in your python path.  A single python module can hold multiple python pair
+class definitions.  The class definitions itself have to follow specific
 rules that are explained below.
 
 Atom types in the python class are specified through symbolic
@@ -126,11 +126,11 @@ and *compute_energy*, which both take 3 numerical arguments:
 * itype = the (numerical) type of the first atom
 * jtype = the (numerical) type of the second atom
 
-This functions need to compute the force and the energy, respectively,
-and use the result as return value. The functions need to use the
-*pmap* dictionary to convert the LAMMPS atom type number to the symbolic
-value of the internal potential parameter data structure. Following
-the *LJCutMelt* example, here are the two functions:
+This functions need to compute the (scaled) force and the energy,
+respectively, and use the result as return value. The functions need
+to use the *pmap* dictionary to convert the LAMMPS atom type number
+to the symbolic value of the internal potential parameter data structure.
+Following the *LJCutMelt* example, here are the two functions:
 
 .. code-block:: python
 
@@ -154,17 +154,17 @@ the *LJCutMelt* example, here are the two functions:
 
    for consistency with the C++ pair styles in LAMMPS, the
    *compute_force* function follows the conventions of the Pair::single()
-   methods and does not return the full force, but the force scaled by
-   the distance between the two atoms, so this value only needs to be
-   multiplied by delta x, delta y, and delta z to conveniently obtain the
-   three components of the force vector between these two atoms.
+   methods and does not return the pairwise force directly, but the force
+   divided by the distance between the two atoms, so this value only needs
+   to be  multiplied by delta x, delta y, and delta z to conveniently obtain
+   the three components of the force vector between these two atoms.
 
 ----------
 
 .. note::
 
    The evaluation of scripted python code will slow down the
-   computation pair-wise interactions quite significantly. However, this
+   computation pairwise interactions quite significantly. However, this
    can be largely worked around through using the python pair style not
    for the actual simulation, but to generate tabulated potentials on the
    fly using the :doc:`pair_write <pair_write>` command. Please see below
@@ -184,7 +184,7 @@ always **append** to a table file, while pair style table will use the
 class, the table pair style will still read the old variant unless the
 table file is first deleted.
 
-After switching the pair style to *table*\ , the potential tables need
+After switching the pair style to *table*, the potential tables need
 to be assigned to the LAMMPS atom types like this:
 
 .. code-block:: LAMMPS
@@ -197,7 +197,8 @@ This can also be done for more complex systems.  Please see the
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Mixing of potential parameters has to be handled inside the provided
 python module. The python pair style simply assumes that force and
@@ -214,7 +215,7 @@ script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -222,7 +223,7 @@ Restrictions
 """"""""""""
 
 This pair style is part of the PYTHON package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
@@ -230,4 +231,7 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair_write <pair_write>`,
 :doc:`pair style table <pair_table>`
 
-**Default:** none
+Default
+"""""""
+
+none

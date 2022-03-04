@@ -156,16 +156,16 @@ assigned to each processor, as in the following 2d diagram where
 processor sub-domains are shown and atoms are colored by the processor
 that owns them.
 
-.. list-table::
+.. |balance1| image:: img/balance_uniform.jpg
+   :width: 32%
 
-   * - .. figure:: JPG/balance_uniform_small.jpg
-          :target: JPG/balance_uniform.jpg
+.. |balance2| image:: img/balance_nonuniform.jpg
+   :width: 32%
 
-     - .. figure:: JPG/balance_nonuniform_small.jpg
-          :target: JPG/balance_nonuniform.jpg
+.. |balance3| image:: img/balance_rcb.jpg
+   :width: 32%
 
-     - .. figure:: JPG/balance_rcb_small.jpg
-          :target: JPG/balance_rcb.jpg
+|balance1|  |balance2|  |balance3|
 
 The leftmost diagram is the default partitioning of the simulation box
 across processors (one sub-box for each of 16 processors); the middle
@@ -216,13 +216,13 @@ above.  It changes the positions of cutting planes between processors
 in an iterative fashion, seeking to reduce the imbalance factor.
 
 The *dimstr* argument is a string of characters, each of which must be
-an "x" or "y" or "z".  Eacn character can appear zero or one time,
+an "x" or "y" or "z".  Each character can appear zero or one time,
 since there is no advantage to balancing on a dimension more than
 once.  You should normally only list dimensions where you expect there
 to be a density variation in the particles.
 
 Balancing proceeds by adjusting the cutting planes in each of the
-dimensions listed in *dimstr*\ , one dimension at a time.  For a single
+dimensions listed in *dimstr*, one dimension at a time.  For a single
 dimension, the balancing operation (described below) is iterated on up
 to *Niter* times.  After each dimension finishes, the imbalance factor
 is re-computed, and the balancing operation halts if the *stopthresh*
@@ -361,7 +361,8 @@ each processor, instead of 4, and "SQUARES" replaced by "CUBES".
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.
@@ -402,6 +403,9 @@ Related commands
 :doc:`group <group>`, :doc:`processors <processors>`, :doc:`balance <balance>`,
 :doc:`comm_style <comm_style>`
 
-.. _pizza: https://pizza.sandia.gov
+.. _pizza: https://lammps.github.io/pizza
 
-**Default:** none
+Default
+"""""""
+
+none

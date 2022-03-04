@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,30 +13,32 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_coul_cut.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "memory.h"
 #include "error.h"
-#include "utils.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neighbor.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 PairCoulCut::PairCoulCut(LAMMPS *lmp) : Pair(lmp) {
-  centroidstressflag = 1;
+  writedata = 1;
 }
 
 /* ---------------------------------------------------------------------- */
 
 PairCoulCut::~PairCoulCut()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -131,14 +134,16 @@ void PairCoulCut::allocate()
   int n = atom->ntypes;
 
   memory->create(setflag,n+1,n+1,"pair:setflag");
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
+  memory->create(scale,n+1,n+1,"pair:scale");
+  for (int i = 1; i <= n; i++) {
+    for (int j = i; j <= n; j++) {
       setflag[i][j] = 0;
+      scale[i][j] = 1.0;
+    }
+  }
 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
-
   memory->create(cut,n+1,n+1,"pair:cut");
-  memory->create(scale,n+1,n+1,"pair:scale");
 }
 
 /* ----------------------------------------------------------------------
@@ -149,7 +154,7 @@ void PairCoulCut::settings(int narg, char **arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal pair_style command");
 
-  cut_global = force->numeric(FLERR,arg[0]);
+  cut_global = utils::numeric(FLERR,arg[0],false,lmp);
 
   // reset cutoffs that have been explicitly set
 
@@ -172,11 +177,11 @@ void PairCoulCut::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   double cut_one = cut_global;
-  if (narg == 3) cut_one = force->numeric(FLERR,arg[2]);
+  if (narg == 3) cut_one = utils::numeric(FLERR,arg[2],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -210,8 +215,10 @@ void PairCoulCut::init_style()
 
 double PairCoulCut::init_one(int i, int j)
 {
-  if (setflag[i][j] == 0)
+  if (setflag[i][j] == 0) {
     cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
+    scale[i][j] = 1.0;
+  }
 
   scale[j][i] = scale[i][j];
 
@@ -227,11 +234,15 @@ void PairCoulCut::write_restart(FILE *fp)
   write_restart_settings(fp);
 
   int i,j;
-  for (i = 1; i <= atom->ntypes; i++)
+  for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
+      fwrite(&scale[i][j],sizeof(double),1,fp);
       fwrite(&setflag[i][j],sizeof(int),1,fp);
-      if (setflag[i][j]) fwrite(&cut[i][j],sizeof(double),1,fp);
+      if (setflag[i][j]) {
+        fwrite(&cut[i][j],sizeof(double),1,fp);
+      }
     }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -245,15 +256,21 @@ void PairCoulCut::read_restart(FILE *fp)
 
   int i,j;
   int me = comm->me;
-  for (i = 1; i <= atom->ntypes; i++)
+  for (i = 1; i <= atom->ntypes; i++) {
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) {
+        utils::sfread(FLERR,&scale[i][j],sizeof(double),1,fp,nullptr,error);
+        utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
+      }
+      MPI_Bcast(&scale[i][j],1,MPI_DOUBLE,0,world);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
-        if (me == 0) utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
+        if (me == 0)
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,nullptr,error);
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
       }
     }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -274,13 +291,34 @@ void PairCoulCut::write_restart_settings(FILE *fp)
 void PairCoulCut::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void PairCoulCut::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    fprintf(fp,"%d\n",i);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes all pairs to data file
+------------------------------------------------------------------------- */
+
+void PairCoulCut::write_data_all(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = i; j <= atom->ntypes; j++)
+      fprintf(fp,"%d %d %g\n",i,j,cut[i][j]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -305,7 +343,7 @@ double PairCoulCut::single(int i, int j, int /*itype*/, int /*jtype*/,
 void *PairCoulCut::extract(const char *str, int &dim)
 {
   dim = 2;
-  if (strcmp(str,"cut_coul") == 0) return (void *) &cut;
+  if (strcmp(str,"cut_coul") == 0) return (void *) cut;
   if (strcmp(str,"scale") == 0) return (void *) scale;
-  return NULL;
+  return nullptr;
 }

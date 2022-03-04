@@ -1,4 +1,5 @@
 .. index:: pair_style lubricateU
+.. index:: pair_style lubricateU/poly
 
 pair_style lubricateU command
 =============================
@@ -22,7 +23,9 @@ Syntax
 * flagHI (optional) = 0/1 to exclude/include 1/r hydrodynamic interactions
 * flagVF (optional) = 0/1 to exclude/include volume fraction corrections in the long-range isotropic terms
 
-**Examples:** (all assume radius = 1)
+Examples
+""""""""
+(all assume radius = 1)
 
 .. code-block:: LAMMPS
 
@@ -134,15 +137,15 @@ for with the following types of walls: :doc:`wall/lj93 <fix_wall>`,
 volume fraction will be used when walls do not coincide with the box
 boundary, as well as when walls move and thereby cause a change in the
 volume fraction. To use these wall styles with pair_style *lubricateU*
-or *lubricateU/poly*\ , the *fld yes* option must be specified in the
+or *lubricateU/poly*, the *fld yes* option must be specified in the
 fix wall command.
 
 Since lubrication forces are dissipative, it is usually desirable to
 thermostat the system at a constant temperature. If Brownian motion
 (at a constant temperature) is desired, it can be set using the
 :doc:`pair_style brownian <pair_brownian>` command. These pair styles
-and the brownian style should use consistent parameters for *mu*\ ,
-*flaglog*\ , *flagfld*\ , *cutinner*\ , *cutoff*\ , *flagHI* and *flagVF*\ .
+and the brownian style should use consistent parameters for *mu*,
+*flaglog*, *flagfld*, *cutinner*, *cutoff*, *flagHI* and *flagVF*\ .
 
 ----------
 
@@ -161,7 +164,8 @@ must be specified.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the two cutoff distances for this
 pair style can be mixed.  The default mix value is *geometric*\ .  See
@@ -182,7 +186,7 @@ to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -190,7 +194,7 @@ Restrictions
 """"""""""""
 
 These styles are part of the COLLOID package.  They are only enabled
-if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Currently, these pair styles assume that all other types of
 forces/torques on the particles have been already been computed when

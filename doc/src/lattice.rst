@@ -30,7 +30,7 @@ Syntax
          i,j,k = integer lattice directions
        *spacing* values = dx dy dz
          dx,dy,dz = lattice spacings in the x,y,z box directions
-       *a1*\ ,\ *a2*\ ,\ *a3* values = x y z
+       *a1*,\ *a2*,\ *a3* values = x y z
          x,y,z = primitive vector components that define unit cell
        *basis* values = x y z
          x,y,z = fractional coords of a basis atom (0 <= x,y,z < 1)
@@ -102,7 +102,7 @@ default, a "lattice none 1.0" is defined, which means the lattice
 spacing is the same as one distance unit, as defined by the
 :doc:`units <units>` command.
 
-Lattices of style *sc*\ , *fcc*\ , *bcc*\ , and *diamond* are 3d lattices
+Lattices of style *sc*, *fcc*, *bcc*, and *diamond* are 3d lattices
 that define a cubic unit cell with edge length = 1.0.  This means a1 =
 1 0 0, a2 = 0 1 0, and a3 = 0 0 1.  Style *hcp* has a1 = 1 0 0, a2 = 0
 sqrt(3) 0, and a3 = 0 0 sqrt(8/3).  The placement of the basis atoms
@@ -147,14 +147,14 @@ lattice of the desired size and distance units in the simulation box.
 The meaning of the *scale* argument depends on the :doc:`units <units>`
 being used in your simulation.
 
-For all unit styles except *lj*\ , the scale argument is specified in
+For all unit styles except *lj*, the scale argument is specified in
 the distance units defined by the unit style.  For example, in *real*
 or *metal* units, if the unit cell is a unit cube with edge length
 1.0, specifying scale = 3.52 would create a cubic lattice with a
 spacing of 3.52 Angstroms.  In *cgs* units, the spacing would be 3.52
 cm.
 
-For unit style *lj*\ , the scale argument is the Lennard-Jones reduced
+For unit style *lj*, the scale argument is the Lennard-Jones reduced
 density, typically written as rho\*.  LAMMPS converts this value into
 the multiplicative factor via the formula "factor\^dim = rho/rho\*",
 where rho = N/V with V = the volume of the lattice unit cell and N =
@@ -251,34 +251,34 @@ in commands that use the spacings should be decipherable.
 
 ----------
 
-Example commands for generating a Wurtzite crystal (courtesy
-of Aidan Thompson), with its 8 atom unit cell.
+Example commands for generating a Wurtzite crystal.
+The lattice constants approximate those of CdSe.
+The :math:`\sqrt{3}\times 1` orthorhombic supercell is used
+with the x, y, and z directions oriented
+along :math:`[\bar{1}\bar{2}30]`,
+:math:`[10\bar{1}0]`, and :math:`[0001]`, respectively.
 
 .. code-block:: LAMMPS
 
-   variable a equal  4.340330
+   variable a equal  4.34
    variable b equal  $a*sqrt(3.0)
    variable c equal  $a*sqrt(8.0/3.0)
 
-   variable 1_3 equal 1.0/3.0
-   variable 2_3 equal 2.0/3.0
-   variable 1_6 equal 1.0/6.0
-   variable 5_6 equal 5.0/6.0
-   variable 1_12 equal 1.0/12.0
-   variable 5_12 equal 5.0/12.0
+   variable third equal 1.0/3.0
+   variable five6 equal 5.0/6.0
 
    lattice custom    1.0     &
-           a1      $a      0.0     0.0     &
-           a2      0.0     $b      0.0     &
-           a3      0.0     0.0     $c      &
-           basis   0.0     0.0     0.0     &
-           basis   0.5     0.5     0.0     &
-           basis   ${1_3}  0.0     0.5     &
-           basis   ${5_6}  0.5     0.5     &
-           basis   0.0     0.0     0.625   &
-           basis   0.5     0.5     0.625   &
-           basis   ${1_3}  0.0     0.125   &
-           basis   ${5_6}  0.5     0.125
+           a1      $b       0.0     0.0     &
+           a2      0.0      $a      0.0     &
+           a3      0.0      0.0     $c      &
+           basis   0.0      0.0     0.0     &
+           basis   0.5      0.5     0.0     &
+           basis   ${third} 0.0     0.5     &
+           basis   ${five6} 0.5     0.5     &
+           basis   0.0      0.0     0.625   &
+           basis   0.5      0.5     0.625   &
+           basis   ${third} 0.0     0.125   &
+           basis   ${five6} 0.5     0.125
 
    region myreg block 0 1 0 1 0 1
    create_box      2 myreg

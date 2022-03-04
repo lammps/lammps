@@ -1,10 +1,10 @@
 .. index:: fix langevin
+.. index:: fix langevin/kk
 
 fix langevin command
 ====================
 
-fix langevin/kk command
-=======================
+Accelerator Variants: *langevin/kk*
 
 Syntax
 """"""
@@ -112,7 +112,7 @@ thermostatting takes place; see the description below.
    fix - e.g. by :doc:`fix nvt <fix_nh>` or :doc:`fix temp/rescale
    <fix_temp_rescale>` commands.
 
-See the :doc:`Howto thermostat <Howto_thermostat>` doc page for
+See the :doc:`Howto thermostat <Howto_thermostat>` page for
 a discussion of different ways to compute temperature and perform
 thermostatting.
 
@@ -138,16 +138,18 @@ temperature with optional time-dependence as well.
 
 Like other fixes that perform thermostatting, this fix can be used
 with :doc:`compute commands <compute>` that remove a "bias" from the
-atom velocities.  E.g. removing the center-of-mass velocity from a
-group of atoms or removing the x-component of velocity from the
-calculation.  This is not done by default, but only if the
-:doc:`fix_modify <fix_modify>` command is used to assign a temperature
-compute to this fix that includes such a bias term.  See the doc pages
-for individual :doc:`compute commands <compute>` to determine which ones
-include a bias.  In this case, the thermostat works in the following
-manner: bias is removed from each atom, thermostatting is performed on
-the remaining thermal degrees of freedom, and the bias is added back
-in.
+atom velocities.  E.g. to apply the thermostat only to atoms within a
+spatial :doc:`region <region>`, or to remove the center-of-mass
+velocity from a group of atoms, or to remove the x-component of
+velocity from the calculation.
+
+This is not done by default, but only if the :doc:`fix_modify
+<fix_modify>` command is used to assign a temperature compute to this
+fix that includes such a bias term.  See the doc pages for individual
+:doc:`compute temp commands <compute>` to determine which ones include
+a bias.  In this case, the thermostat works in the following manner:
+bias is removed from each atom, thermostatting is performed on the
+remaining thermal degrees of freedom, and the bias is added back in.
 
 The *damp* parameter is specified in time units and determines how
 rapidly the temperature is relaxed.  For example, a value of 100.0 means
@@ -183,7 +185,8 @@ omega (which is derived from the angular momentum in the case of
 aspherical particles).
 
 The rotational temperature of the particles can be monitored by the
-:doc:`compute temp/sphere <compute_temp_sphere>` and :doc:`compute temp/asphere <compute_temp_asphere>` commands with their rotate
+:doc:`compute temp/sphere <compute_temp_sphere>` and :doc:`compute
+temp/asphere <compute_temp_asphere>` commands with their rotate
 options.
 
 For the *omega* keyword there is also a scale factor of
@@ -230,7 +233,7 @@ conservation.
 
 .. note::
 
-   this accumulated energy does NOT include kinetic energy removed
+   This accumulated energy does NOT include kinetic energy removed
    by the *zero* flag. LAMMPS will print a warning when both options are
    active.
 
@@ -239,56 +242,43 @@ thermostat. Because the random forces on different atoms are
 independent, they do not sum exactly to zero.  As a result, this fix
 applies a small random force to the entire system, and the
 center-of-mass of the system undergoes a slow random walk.  If the
-keyword *zero* is set to *yes*\ , the total random force is set exactly
+keyword *zero* is set to *yes*, the total random force is set exactly
 to zero by subtracting off an equal part of it from each atom in the
 group.  As a result, the center-of-mass of a system with zero initial
 momentum will not drift over time.
 
-The keyword *gjf* can be used to run the :ref:`Gronbech-Jensen/Farago <Gronbech-Jensen>` time-discretization of the Langevin model.  As
+The keyword *gjf* can be used to run the :ref:`Gronbech-Jensen/Farago
+<Gronbech-Jensen>` time-discretization of the Langevin model.  As
 described in the papers cited below, the purpose of this method is to
 enable longer timesteps to be used (up to the numerical stability
 limit of the integrator), while still producing the correct Boltzmann
 distribution of atom positions.
 
 The current implementation provides the user with the option to output
-the velocity in one of two forms: *vfull* or *vhalf*\ , which replaces
-the outdated option *yes*\ . The *gjf* option *vfull* outputs the on-site
-velocity given in :ref:`Gronbech-Jensen/Farago <Gronbech-Jensen>`; this velocity
-is shown to be systematically lower than the target temperature by a small
-amount, which grows quadratically with the timestep.
-The *gjf* option *vhalf* outputs the 2GJ half-step velocity given in
-:ref:`Gronbech Jensen/Gronbech-Jensen <2Gronbech-Jensen>`; for linear systems,
-this velocity is shown to not have any statistical errors for any stable time step.
-An overview of statistically correct Boltzmann and Maxwell-Boltzmann
-sampling of true on-site and true half-step velocities is given in
-:ref:`Gronbech-Jensen <1Gronbech-Jensen>`.
-Regardless of the choice of output velocity, the sampling of the configurational
-distribution of atom positions is the same, and linearly consistent with the
-target temperature.
+the velocity in one of two forms: *vfull* or *vhalf*, which replaces
+the outdated option *yes*\ . The *gjf* option *vfull* outputs the
+on-site velocity given in :ref:`Gronbech-Jensen/Farago
+<Gronbech-Jensen>`; this velocity is shown to be systematically lower
+than the target temperature by a small amount, which grows
+quadratically with the timestep.  The *gjf* option *vhalf* outputs the
+2GJ half-step velocity given in :ref:`Gronbech Jensen/Gronbech-Jensen
+<2Gronbech-Jensen>`; for linear systems, this velocity is shown to not
+have any statistical errors for any stable time step.  An overview of
+statistically correct Boltzmann and Maxwell-Boltzmann sampling of true
+on-site and true half-step velocities is given in
+:ref:`Gronbech-Jensen <1Gronbech-Jensen>`.  Regardless of the choice
+of output velocity, the sampling of the configurational distribution
+of atom positions is the same, and linearly consistent with the target
+temperature.
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  Because the state of the random number generator
 is not saved in restart files, this means you cannot do "exact"
@@ -302,16 +292,18 @@ you have defined to this fix which will be used in its thermostatting
 procedure, as described above.  For consistency, the group used by
 this fix and by the compute should be the same.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
-fix to add the energy change induced by Langevin thermostatting to the
-system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.  Note that use of this option requires
-setting the *tally* keyword to *yes*\ .
+The cumulative energy change in the system imposed by this fix is
+included in the :doc:`thermodynamic output <thermo_style>` keywords
+*ecouple* and *econserve*, but only if the *tally* keyword to set to
+*yes*\ .  See the :doc:`thermo_style <thermo_style>` page for
+details.
 
 This fix computes a global scalar which can be accessed by various
-:doc:`output commands <Howto_output>`.  The scalar is the cumulative
-energy change due to this fix.  The scalar value calculated by this
-fix is "extensive".  Note that calculation of this quantity requires
-setting the *tally* keyword to *yes*\ .
+:doc:`output commands <Howto_output>`.  The scalar is the same
+cumulative energy change due to this fix described in the previous
+paragraph.  The scalar value calculated by this fix is "extensive".
+Note that calculation of this quantity also requires setting the
+*tally* keyword to *yes*\ .
 
 This fix can ramp its target temperature over multiple runs, using the
 *start* and *stop* keywords of the :doc:`run <run>` command.  See the

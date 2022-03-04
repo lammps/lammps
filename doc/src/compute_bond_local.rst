@@ -13,7 +13,7 @@ Syntax
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * bond/local = style name of this compute command
 * one or more values may be appended
-* value = *dist* or *engpot* or *force* or *fx* or *fy* or *fz* or *engvib* or *engrot* or *engtrans* or *omega* or *velvib* or *v_name*
+* value = *dist* or *dx* or *dy* or *dz* or *engpot* or *force* or *fx* or *fy* or *fz* or *engvib* or *engrot* or *engtrans* or *omega* or *velvib* or *v_name*
 
 .. parsed-literal::
 
@@ -21,7 +21,8 @@ Syntax
      *engpot* = bond potential energy
      *force* = bond force
 
-     *fx*\ ,\ *fy*\ ,\ *fz* = components of bond force
+     *dx*,\ *dy*,\ *dz* = components of pairwise distance
+     *fx*,\ *fy*,\ *fz* = components of bond force
      *engvib* = bond kinetic energy of vibration
      *engrot* = bond kinetic energy of rotation
      *engtrans* = bond kinetic energy of translation
@@ -63,6 +64,9 @@ whether the 2 atoms represent a simple diatomic molecule, or are part
 of some larger molecule.
 
 The value *dist* is the current length of the bond.
+The values *dx*, *dy*, and *dz* are the xyz components of the
+*distance* between the pair of atoms. This value is always the
+distance from the atom of lower to the one with the higher id.
 
 The value *engpot* is the potential energy for the bond,
 based on the current separation of the pair of atoms in the bond.
@@ -70,7 +74,7 @@ based on the current separation of the pair of atoms in the bond.
 The value *force* is the magnitude of the force acting between the
 pair of atoms in the bond.
 
-The values *fx*\ , *fy*\ , and *fz* are the xyz components of
+The values *fx*, *fy*, and *fz* are the xyz components of
 *force* between the pair of atoms in the bond.
 
 The remaining properties are all computed for motion of the two atoms
@@ -169,7 +173,8 @@ Here is an example of how to do this:
    compute 2 all bond/local dist engpot
    dump 1 all local 1000 tmp.dump index c_1[*] c_2[*]
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a local vector or local array depending on the
 number of values.  The length of the vector or number of rows in the
@@ -177,13 +182,13 @@ array is the number of bonds.  If a single value is specified, a local
 vector is produced.  If two or more values are specified, a local
 array is produced where the number of columns = the number of values.
 The vector or array can be accessed by any command that uses local
-values from a compute as input.  See the :doc:`Howto output <Howto_output>` doc page for an overview of LAMMPS output
+values from a compute as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options.
 
 The output for *dist* will be in distance :doc:`units <units>`. The
 output for *velvib* will be in velocity :doc:`units <units>`. The output
 for *omega* will be in velocity/distance :doc:`units <units>`. The
-output for *engtrans*\ , *engvib*\ , *engrot*\ , and *engpot* will be in
+output for *engtrans*, *engvib*, *engrot*, and *engpot* will be in
 energy :doc:`units <units>`. The output for *force* will be in force
 :doc:`units <units>`.
 
@@ -196,4 +201,7 @@ Related commands
 
 :doc:`dump local <dump>`, :doc:`compute property/local <compute_property_local>`
 
-**Default:** none
+Default
+"""""""
+
+none

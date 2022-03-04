@@ -1,16 +1,17 @@
 .. index:: pair_style hbond/dreiding/lj
+.. index:: pair_style hbond/dreiding/lj/omp
+.. index:: pair_style hbond/dreiding/morse
+.. index:: pair_style hbond/dreiding/morse/omp
 
 pair_style hbond/dreiding/lj command
 ====================================
 
-pair_style hbond/dreiding/lj/omp command
-========================================
+Accelerator Variants: *hbond/dreiding/lj/omp*
 
 pair_style hbond/dreiding/morse command
 =======================================
 
-pair_style hbond/dreiding/morse/omp command
-===========================================
+Accelerator Variants: *hbond/dreiding/morse/omp*
 
 Syntax
 """"""
@@ -72,7 +73,7 @@ hydrogen (H) and the donor atoms:
 
 These 3-body interactions can be defined for pairs of acceptor and
 donor atoms, based on atom types.  For each donor/acceptor atom pair,
-the 3rd atom in the interaction is a hydrogen permanently bonded to
+the third atom in the interaction is a hydrogen permanently bonded to
 the donor atom, e.g. in a bond list read in from a data file via the
 :doc:`read_data <read_data>` command.  The atom types of possible
 hydrogen atoms for each donor/acceptor type pair are specified by the
@@ -87,7 +88,7 @@ potential for the Donor-Acceptor interactions. :ref:`(Liu) <Liu>` showed
 that the Morse form gives improved results for Dendrimer simulations,
 when n = 2.
 
-See the :doc:`Howto bioFF <Howto_bioFF>` doc page for more information
+See the :doc:`Howto bioFF <Howto_bioFF>` page for more information
 on the DREIDING force field.
 
 .. note::
@@ -169,11 +170,11 @@ A single hydrogen atom type K can be specified, or a wild-card asterisk
 can be used in place of or in conjunction with the K arguments to
 select multiple types as hydrogen atoms.  This takes the form
 "\*" or "\*n" or "n\*" or "m\*n".  See the :doc:`pair_coeff <pair_coeff>`
-command doc page for details.
+command page for details.
 
-If the donor flag is *i*\ , then the atom of type I in the pair_coeff
+If the donor flag is *i*, then the atom of type I in the pair_coeff
 command is treated as the donor, and J is the acceptor.  If the donor
-flag is *j*\ , then the atom of type J in the pair_coeff command is
+flag is *j*, then the atom of type J in the pair_coeff command is
 treated as the donor and I is the donor.  This option is required
 because the :doc:`pair_coeff <pair_coeff>` command requires that I <= J.
 
@@ -188,32 +189,17 @@ hydrogen bond potential based on a Morse functional form.
 The last 3 coefficients for both styles are optional.  If not
 specified, the global n, distance cutoff, and angle cutoff specified
 in the pair_style command are used.  If you wish to only override the
-2nd or 3rd optional parameter, you must also specify the preceding
+second or third optional parameter, you must also specify the preceding
 optional parameters.
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 These pair styles do not support mixing. You must explicitly identify
 each donor/acceptor type pair.
@@ -233,7 +219,7 @@ re-specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 These pair styles tally a count of how many hydrogen bonding
 interactions they calculate each timestep and the hbond energy.  These
@@ -261,7 +247,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

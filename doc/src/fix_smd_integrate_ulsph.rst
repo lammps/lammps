@@ -1,7 +1,7 @@
 .. index:: fix smd/integrate_ulsph
 
 fix smd/integrate_ulsph command
-================================
+===============================
 
 Syntax
 """"""
@@ -49,17 +49,25 @@ of adjustment per timestep. Typical values are *adjust_radius_factor*
 The *limit_velocity* keyword will control the velocity, scaling the norm of
 the velocity vector to max_vel in case it exceeds this velocity limit.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-Currently, no part of USER-SMD supports restarting nor
+Currently, no part of MACHDYN supports restarting nor
 minimization. This fix has no outputs.
 
 Restrictions
 """"""""""""
 
-This fix is part of the USER-SMD package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This fix is part of the MACHDYN package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
-**Related commands:** none
+Related commands
+""""""""""""""""
 
-**Default:** none
+none
+
+
+Default
+"""""""
+
+none

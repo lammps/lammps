@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef IMPROPER_CLASS
-
-ImproperStyle(harmonic/kk,ImproperHarmonicKokkos<LMPDeviceType>)
-ImproperStyle(harmonic/kk/device,ImproperHarmonicKokkos<LMPDeviceType>)
-ImproperStyle(harmonic/kk/host,ImproperHarmonicKokkos<LMPHostType>)
-
+// clang-format off
+ImproperStyle(harmonic/kk,ImproperHarmonicKokkos<LMPDeviceType>);
+ImproperStyle(harmonic/kk/device,ImproperHarmonicKokkos<LMPDeviceType>);
+ImproperStyle(harmonic/kk/host,ImproperHarmonicKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_IMPROPER_HARMONIC_KOKKOS_H
 #define LMP_IMPROPER_HARMONIC_KOKKOS_H
 
@@ -38,10 +39,10 @@ class ImproperHarmonicKokkos : public ImproperHarmonic {
   typedef ArrayTypes<DeviceType> AT;
 
   ImproperHarmonicKokkos(class LAMMPS *);
-  virtual ~ImproperHarmonicKokkos();
-  void compute(int, int);
-  void coeff(int, char **);
-  void read_restart(FILE *);
+  ~ImproperHarmonicKokkos() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void read_restart(FILE *) override;
 
   template<int NEWTON_BOND, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -86,7 +87,7 @@ class ImproperHarmonicKokkos : public ImproperHarmonic {
   typename Kokkos::DualView<F_FLOAT*,DeviceType>::t_dev d_k;
   typename Kokkos::DualView<F_FLOAT*,DeviceType>::t_dev d_chi;
 
-  void allocate();
+  void allocate() override;
 };
 
 }

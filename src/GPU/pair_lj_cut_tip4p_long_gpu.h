@@ -1,6 +1,6 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,9 +16,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/cut/tip4p/long/gpu,PairLJCutTIP4PLongGPU)
-
+// clang-format off
+PairStyle(lj/cut/tip4p/long/gpu,PairLJCutTIP4PLongGPU);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_TIP4P_LONG_GPU_H
@@ -31,18 +31,18 @@ namespace LAMMPS_NS {
 class PairLJCutTIP4PLongGPU : public PairLJCutTIP4PLong {
  public:
   PairLJCutTIP4PLongGPU(LAMMPS *lmp);
-  ~PairLJCutTIP4PLongGPU();
-  void compute(int, int);
-  void init_style();
-  double memory_usage();
+  ~PairLJCutTIP4PLongGPU() override;
+  void compute(int, int) override;
+  void init_style() override;
+  double memory_usage() override;
 
- enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
+  enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
  private:
   int gpu_mode;
   double cpu_time;
 };
 
-}
+}    // namespace LAMMPS_NS
 #endif
 #endif

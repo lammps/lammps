@@ -70,7 +70,7 @@ compute         bsum2 snapgroup2 reduce sum c_b[*]
 # fix 		bsum2 all ave/time 1 1 1 c_bsum2 file bsum2.dat mode vector
 compute		vbsum all reduce sum c_vb[*]
 # fix 		vbsum all ave/time 1 1 1 c_vbsum file vbsum.dat mode vector
-variable	db_2_30 equal c_db[2][30]
+variable	db_2_25 equal c_db[2][25]
 
 # set up compute snap generating global array
 
@@ -82,14 +82,14 @@ thermo 		100
 # test output:   1: total potential energy
 #                2: xy component of stress tensor
 #                3: Sum(B_{000}^i, all i of type 2) 
-#                4: xy component of Sum(Sum(r_j*dB_{222}^i/dR[j]), all i of type 2), all j)
-#                5: z component of -Sum(d(B_{222}^i)/dR[2]), all i of type 2)
+#                4: xz component of Sum(Sum(r_j*dB_{222}^i/dR[j]), all i of type 2), all j)
+#                5: y component of -Sum(d(B_{222}^i)/dR[2]), all i of type 2)
 #
 #                followed by 5 counterparts from compute snap
 
 thermo_style	custom &
-		pe            pxy            c_bsum2[1]   c_vbsum[60]    v_db_2_30 &
-		c_snap[1][11] c_snap[13][11] c_snap[1][6] c_snap[13][10] c_snap[7][10] 
+		pe            pxy            c_bsum2[1]   c_vbsum[55]    v_db_2_25 &
+		c_snap[1][11] c_snap[13][11] c_snap[1][6] c_snap[12][10] c_snap[6][10] 
 thermo_modify 	norm no
 
 # dump 		mydump_db all custom 1000 dump_db id c_db[*]

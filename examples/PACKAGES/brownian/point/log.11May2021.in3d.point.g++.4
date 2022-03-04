@@ -1,0 +1,119 @@
+LAMMPS (8 Apr 2021)
+  using 1 OpenMP thread(s) per MPI task
+##### overdamped dynamics of non-interacting point particles in 3D #####
+
+variable        rng string gaussian
+variable        seed string 198098
+variable        temp string 5.0
+variable        gamma_t string 1.0
+variable        params string ${rng}_${temp}_${gamma_t}
+variable        params string gaussian_${temp}_${gamma_t}
+variable        params string gaussian_5.0_${gamma_t}
+variable        params string gaussian_5.0_1.0
+
+units           lj
+atom_style      atomic
+dimension       3
+newton off
+
+lattice         sc 0.4
+Lattice spacing in x,y,z = 1.3572088 1.3572088 1.3572088
+region          box block -8 8 -8 8 -8 8
+create_box      1 box
+Created orthogonal box = (-10.857670 -10.857670 -10.857670) to (10.857670 10.857670 10.857670)
+  2 by 1 by 2 MPI processor grid
+create_atoms    1 box
+Created 4096 atoms
+  create_atoms CPU = 0.001 seconds
+mass            * 1.0
+velocity        all create 1.0 1 loop geom
+
+neighbor        1.0 bin
+neigh_modify    every 1 delay 1 check yes
+
+pair_style none
+
+fix 1 all brownian ${temp} ${seed} rng ${rng} gamma_t ${gamma_t}
+fix 1 all brownian 5.0 ${seed} rng ${rng} gamma_t ${gamma_t}
+fix 1 all brownian 5.0 198098 rng ${rng} gamma_t ${gamma_t}
+fix 1 all brownian 5.0 198098 rng gaussian gamma_t ${gamma_t}
+fix 1 all brownian 5.0 198098 rng gaussian gamma_t 1.0
+
+#initialisation for the main run
+
+# MSD
+compute         msd  all msd
+
+thermo_style    custom step ke pe c_msd[*]
+
+#dump            1 all custom 1000 dump_${params}_3d.lammpstrj id type #                x y z xu yu zu fx fy fz
+#dump_modify     1 first yes sort id
+
+timestep        0.00001
+thermo          100
+
+# main run
+run             3000
+WARNING: No pairwise cutoff or binsize set. Atom sorting therefore disabled. (src/atom.cpp:2141)
+WARNING: Communication cutoff is 0.0. No ghost atoms will be generated. Atoms may get lost. (src/comm_brick.cpp:167)
+Per MPI rank memory allocation (min/avg/max) = 2.672 | 2.672 | 2.672 Mbytes
+Step KinEng PotEng c_msd[1] c_msd[2] c_msd[3] c_msd[4] 
+       0    1.4996338            0            0            0            0            0 
+     100    1515328.2            0  0.010465453  0.010044629 0.0097242319  0.030234314 
+     200    1510820.8            0  0.020658886  0.019954762  0.020008864  0.060622512 
+     300    1482006.5            0  0.030402195  0.029802874  0.030047586  0.090252655 
+     400    1492228.5            0  0.039622543  0.038899144  0.040381854   0.11890354 
+     500    1494985.5            0  0.050523465  0.050022913  0.050186478   0.15073286 
+     600    1516047.4            0  0.061111845  0.061433818  0.059195364   0.18174103 
+     700    1510021.8            0  0.071636778  0.072829755   0.06946406   0.21393059 
+     800    1505964.7            0   0.08240965   0.08433785  0.078799851   0.24554735 
+     900    1491035.9            0  0.093659937  0.094517749   0.08812559   0.27630328 
+    1000    1516599.6            0   0.10436496   0.10431759  0.097480868   0.30616342 
+    1100    1495170.3            0   0.11468757     0.111397    0.1069763   0.33306087 
+    1200    1500630.6            0   0.12360977   0.12264534   0.11583999    0.3620951 
+    1300    1474889.5            0   0.13432447   0.13471694   0.12702491   0.39606632 
+    1400    1487145.8            0   0.14573239   0.14431493   0.13669403   0.42674135 
+    1500    1519496.7            0   0.15610742   0.15505416   0.14600182    0.4571634 
+    1600    1525674.1            0   0.16728653    0.1649354   0.15562133   0.48784325 
+    1700    1540725.4            0   0.17846447   0.17666562   0.16531781   0.52044791 
+    1800    1512334.8            0   0.18872753   0.18538847   0.17450009   0.54861609 
+    1900    1498371.4            0   0.19688928   0.19333299   0.18581712    0.5760394 
+    2000    1546459.4            0   0.20955053   0.20243854   0.19613897   0.60812803 
+    2100    1509712.9            0   0.21922567   0.20940597   0.20567239   0.63430404 
+    2200    1509630.4            0   0.23067999   0.21856734   0.21619911   0.66544645 
+    2300    1483929.1            0   0.24160803     0.231048   0.22617193   0.69882797 
+    2400    1488492.1            0   0.25399491   0.24082678   0.23972356   0.73454526 
+    2500    1508107.9            0   0.26608734   0.25316913    0.2486814   0.76793787 
+    2600    1511952.1            0   0.27523956    0.2623673   0.25706539   0.79467225 
+    2700    1488888.8            0   0.28518299   0.27425585   0.26728622   0.82672506 
+    2800    1515428.4            0   0.29595429   0.28589969   0.27781327   0.85966725 
+    2900    1504312.1            0   0.30393798   0.29533034   0.28725362   0.88652194 
+    3000    1521521.3            0   0.31445132   0.30117607   0.29959324   0.91522062 
+Loop time of 0.708196 on 4 procs for 3000 steps with 4096 atoms
+
+Performance: 3660.004 tau/day, 4236.115 timesteps/s
+97.2% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0.00020647 | 0.00021023 | 0.0002141  |   0.0 |  0.03
+Comm    | 0.0045607  | 0.0050649  | 0.0053098  |   0.4 |  0.72
+Output  | 0.0013759  | 0.002265   | 0.0037355  |   1.9 |  0.32
+Modify  | 0.57353    | 0.58931    | 0.6109     |   1.8 | 83.21
+Other   |            | 0.1113     |            |       | 15.72
+
+Nlocal:        1024.00 ave        1043 max        1001 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+Nghost:         0.00000 ave           0 max           0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:         0.00000 ave           0 max           0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0.0000000
+Neighbor list builds = 25
+Dangerous builds = 0
+
+Total wall time: 0:00:00

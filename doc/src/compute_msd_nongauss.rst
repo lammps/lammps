@@ -39,7 +39,7 @@ element of the vector is the total squared dx,dy,dz displacements
 drsquared = (dx\*dx + dy\*dy + dz\*dz) of atoms, and the second is the
 fourth power of these displacements drfourth = (dx\*dx + dy\*dy +
 dz\*dz)\*(dx\*dx + dy\*dy + dz\*dz), summed and averaged over atoms in the
-group.  The 3rd component is the nonGaussian diffusion parameter NGP =
+group.  The third component is the nonGaussian diffusion parameter NGP =
 3\*drfourth/(5\*drsquared\*drsquared), i.e.
 
 .. math::
@@ -56,10 +56,11 @@ If the *com* option is set to *yes* then the effect of any drift in
 the center-of-mass of the group of atoms is subtracted out before the
 displacement of each atom is calculated.
 
-See the :doc:`compute msd <compute_msd>` doc page for further important
+See the :doc:`compute msd <compute_msd>` page for further important
 NOTEs, which also apply to this compute.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global vector of length 3, which can be
 accessed by indices 1-3 by any command that uses global vector values
@@ -68,13 +69,13 @@ page for an overview of LAMMPS output options.
 
 The vector values are "intensive".  The first vector value will be in
 distance\^2 :doc:`units <units>`, the second is in distance\^4 units, and
-the 3rd is dimensionless.
+the third is dimensionless.
 
 Restrictions
 """"""""""""
 
-This compute is part of the MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This compute is part of the EXTRA-COMPUTE package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""

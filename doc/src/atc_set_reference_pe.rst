@@ -22,7 +22,7 @@ Examples
 
    fix_modify AtC set reference_potential_energy
    fix_modify AtC set reference_potential_energy -0.05
-   fix_modify AtC set reference_potential_energy myPEvalues 
+   fix_modify AtC set reference_potential_energy myPEvalues
 
 Description
 """""""""""

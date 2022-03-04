@@ -1,4 +1,4 @@
-DATE: 2007-06-11 CONTRIBUTOR: MI Mendelev, mendelev@ameslab.gov CITATION: Sun, Mendelev, Becker, Kudin, Haxhimali, Asta, Hoyt, Karma and Srolovitz, Phys Rev B 73, 024116 (2006)
+DATE: 2007-06-11 UNITS: metal CONTRIBUTOR: MI Mendelev, mendelev@ameslab.gov CITATION: Sun, Mendelev, Becker, Kudin, Haxhimali, Asta, Hoyt, Karma and Srolovitz, Phys Rev B 73, 024116 (2006)
 Sunday, Jun 10, 2007  The potential was taken from v1_11_hcp (in C:\SIMULATION.MD\Mg\Results\V1_11)
 ################################################
 1  Mg  

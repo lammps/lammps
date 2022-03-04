@@ -1,0 +1,29 @@
+# demo using atom style hybrid template charge to simulate a h2o/co2 mixture
+
+units           real
+molecule        twomols h2o.mol co2.mol offset 2 1 1 0 0
+atom_style      hybrid template twomols charge
+boundary        p p p
+pair_style      lj/cut/coul/long  12
+pair_modify     mix arithmetic tail yes
+kspace_style    pppm 0.0001
+pair_style      lj/cut/coul/long  12
+bond_style      harmonic
+angle_style     harmonic
+
+read_data h2o-co2.data
+
+group           h2o type 1 2
+group           co2 type 3 4
+neighbor        1.0 bin
+neigh_modify    every 1 delay 1 check yes
+timestep        1.0
+
+velocity all create 300.0 34672
+thermo 100
+
+fix             1 all nve
+fix             2 all shake 1.0e-4 1000 500 b 1 a 1 mol twomols
+#dump            1 all custom 100 h2o-co2.lammpstrj id mol xu yu zu
+
+run 2500

@@ -17,13 +17,17 @@ parser = ArgumentParser(prog='Install.py',
 
 # settings
 
+CMAKE = os.environ.get('CMAKE') or 'cmake'
+
 thisdir = fullpath('.')
-version = "2.1.3"
+version = "2.2.1"
 
 # known checksums for different KIM-API versions. used to validate the download.
 checksums = { \
         '2.1.2' : '6ac52e14ef52967fc7858220b208cba5', \
         '2.1.3' : '6ee829a1bbba5f8b9874c88c4c4ebff8', \
+        '2.2.0' : 'e7f944e1593cffd7444679a660607f6c', \
+        '2.2.1' : 'ae1ddda2ef7017ea07934e519d023dca', \
         }
 
 
@@ -139,7 +143,7 @@ if buildflag:
   # configure kim-api
 
   print("Configuring kim-api ...")
-  cmd = 'cd "%s/kim-api-%s" && mkdir build && cd build && cmake .. -DCMAKE_INSTALL_PREFIX="%s" -DCMAKE_BUILD_TYPE=Release' % (thisdir,version,kimdir)
+  cmd = 'cd "%s/kim-api-%s" && mkdir build && cd build && %s .. -DCMAKE_INSTALL_PREFIX="%s" -DCMAKE_BUILD_TYPE=Release' % (thisdir,version,CMAKE,kimdir)
   txt = subprocess.check_output(cmd,stderr=subprocess.STDOUT,shell=True)
   if verboseflag: print(txt.decode("UTF-8"))
 

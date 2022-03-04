@@ -19,10 +19,6 @@
 #include "colvar.h"
 #include "colvarcomp.h"
 
-namespace GeometricPathCV {
-void init_string_cv_map(std::map<std::string, std::function<colvar::cvc* (const std::string& conf)>>& string_cv_map);
-}
-
 bool compareColvarComponent(colvar::cvc *i, colvar::cvc *j)
 {
     return i->name < j->name;
@@ -69,8 +65,8 @@ colvar::CartesianBasedPath::CartesianBasedPath(std::string const &conf): cvc(con
         cvm::atom_group* tmp_atoms = parse_group(conf, "atoms");
         if (!has_user_defined_fitting) {
             // Swipe from the rmsd class
-            tmp_atoms->b_center = true;
-            tmp_atoms->b_rotate = true;
+            tmp_atoms->enable(f_ag_center);
+            tmp_atoms->enable(f_ag_rotate);
             tmp_atoms->ref_pos = reference_frames[i_frame];
             tmp_atoms->center_ref_pos();
             tmp_atoms->enable(f_ag_fit_gradients);
@@ -91,8 +87,8 @@ colvar::CartesianBasedPath::CartesianBasedPath(std::string const &conf): cvc(con
             std::vector<cvm::atom_pos> reference_fitting_position(tmp_fitting_atoms->size());
             cvm::load_coords(reference_position_filename.c_str(), &reference_fitting_position, tmp_fitting_atoms, reference_column, reference_column_value);
             // setup the atom group for calculating
-            tmp_atoms->b_center = true;
-            tmp_atoms->b_rotate = true;
+            tmp_atoms->enable(f_ag_center);
+            tmp_atoms->enable(f_ag_rotate);
             tmp_atoms->b_user_defined_fit = true;
             tmp_atoms->disable(f_ag_scalable);
             tmp_atoms->disable(f_ag_scalable_com);
@@ -406,9 +402,8 @@ void colvar::gzpath::apply_force(colvarvalue const &force) {
 }
 
 colvar::linearCombination::linearCombination(std::string const &conf): cvc(conf) {
-    GeometricPathCV::init_string_cv_map(string_cv_map);
     // Lookup all available sub-cvcs
-    for (auto it_cv_map = string_cv_map.begin(); it_cv_map != string_cv_map.end(); ++it_cv_map) {
+    for (auto it_cv_map = colvar::get_global_cvc_map().begin(); it_cv_map != colvar::get_global_cvc_map().end(); ++it_cv_map) {
         if (key_lookup(conf, it_cv_map->first.c_str())) {
             std::vector<std::string> sub_cvc_confs;
             get_key_string_multi_value(conf, it_cv_map->first.c_str(), sub_cvc_confs);
@@ -506,9 +501,8 @@ void colvar::linearCombination::apply_force(colvarvalue const &force) {
 }
 
 colvar::CVBasedPath::CVBasedPath(std::string const &conf): cvc(conf) {
-    GeometricPathCV::init_string_cv_map(string_cv_map);
     // Lookup all available sub-cvcs
-    for (auto it_cv_map = string_cv_map.begin(); it_cv_map != string_cv_map.end(); ++it_cv_map) {
+    for (auto it_cv_map = colvar::get_global_cvc_map().begin(); it_cv_map != colvar::get_global_cvc_map().end(); ++it_cv_map) {
         if (key_lookup(conf, it_cv_map->first.c_str())) {
             std::vector<std::string> sub_cvc_confs;
             get_key_string_multi_value(conf, it_cv_map->first.c_str(), sub_cvc_confs);
@@ -907,35 +901,6 @@ void colvar::gzpathCV::apply_force(colvarvalue const &force) {
             cv[i_cv]->apply_force(cv_force);
         }
     }
-}
-
-void GeometricPathCV::init_string_cv_map(std::map<std::string, std::function<colvar::cvc* (const std::string& subcv_conf)>>& string_cv_map) {
-    string_cv_map["distance"]              = [](const std::string& conf){return new colvar::distance(conf);};
-    string_cv_map["dihedral"]              = [](const std::string& conf){return new colvar::dihedral(conf);};
-    string_cv_map["angle"]                 = [](const std::string& conf){return new colvar::angle(conf);};
-    string_cv_map["rmsd"]                  = [](const std::string& conf){return new colvar::rmsd(conf);};
-    string_cv_map["gyration"]              = [](const std::string& conf){return new colvar::gyration(conf);};
-    string_cv_map["inertia"]               = [](const std::string& conf){return new colvar::inertia(conf);};
-    string_cv_map["inertiaZ"]              = [](const std::string& conf){return new colvar::inertia_z(conf);};
-    string_cv_map["tilt"]                  = [](const std::string& conf){return new colvar::tilt(conf);};
-    string_cv_map["distanceZ"]             = [](const std::string& conf){return new colvar::distance_z(conf);};
-    string_cv_map["distanceXY"]            = [](const std::string& conf){return new colvar::distance_xy(conf);};
-    string_cv_map["polarTheta"]            = [](const std::string& conf){return new colvar::polar_theta(conf);};
-    string_cv_map["polarPhi"]              = [](const std::string& conf){return new colvar::polar_phi(conf);};
-    string_cv_map["distanceVec"]           = [](const std::string& conf){return new colvar::distance_vec(conf);};
-    string_cv_map["orientationAngle"]      = [](const std::string& conf){return new colvar::orientation_angle(conf);};
-    string_cv_map["distancePairs"]         = [](const std::string& conf){return new colvar::distance_pairs(conf);};
-    string_cv_map["dipoleMagnitude"]       = [](const std::string& conf){return new colvar::dipole_magnitude(conf);};
-    string_cv_map["coordNum"]              = [](const std::string& conf){return new colvar::coordnum(conf);};
-    string_cv_map["selfCoordNum"]          = [](const std::string& conf){return new colvar::selfcoordnum(conf);};
-    string_cv_map["dipoleAngle"]           = [](const std::string& conf){return new colvar::dipole_angle(conf);};
-    string_cv_map["orientation"]           = [](const std::string& conf){return new colvar::orientation(conf);};
-    string_cv_map["orientationProj"]       = [](const std::string& conf){return new colvar::orientation_proj(conf);};
-    string_cv_map["eigenvector"]           = [](const std::string& conf){return new colvar::eigenvector(conf);};
-    string_cv_map["cartesian"]             = [](const std::string& conf){return new colvar::cartesian(conf);};
-    string_cv_map["alpha"]                 = [](const std::string& conf){return new colvar::alpha_angles(conf);};
-    string_cv_map["dihedralPC"]            = [](const std::string& conf){return new colvar::dihedPC(conf);};
-    string_cv_map["linearCombination"]     = [](const std::string& conf){return new colvar::linearCombination(conf);};
 }
 
 #endif

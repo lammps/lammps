@@ -1,4 +1,4 @@
-# DATE: 2017-05-16 CONTRIBUTOR: Chao Jiang <chaopsu@gmail.com>, Phys. Rev. B 86, 144118 (2012)
+# DATE: 2017-05-16 UNITS: metal CONTRIBUTOR: Chao Jiang <chaopsu@gmail.com>, Phys. Rev. B 86, 144118 (2012)
 #   element 1, element 2, element 3, 
 #     A   B   cutoffA   cutoffC   alpha   beta   eta 
 #     gamma   lambda    mu   rho   sigma   Q0 

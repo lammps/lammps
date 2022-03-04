@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -25,32 +26,37 @@ class CommKokkos : public CommBrick {
 
   bool exchange_comm_classic;
   bool forward_comm_classic;
+  bool forward_pair_comm_classic;
+  bool forward_fix_comm_classic;
   bool reverse_comm_classic;
   bool exchange_comm_on_host;
   bool forward_comm_on_host;
   bool reverse_comm_on_host;
 
   CommKokkos(class LAMMPS *);
-  ~CommKokkos();
-  void init();
+  ~CommKokkos() override;
+  void init() override;
 
-  void forward_comm(int dummy = 0);    // forward comm of atom coords
-  void reverse_comm();                 // reverse comm of atom coords
-  void exchange();                     // move atoms to new procs
-  void borders();                      // setup list of atoms to comm
+  void forward_comm(int dummy = 0) override;    // forward comm of atom coords
+  void reverse_comm() override;                 // reverse comm of atom coords
+  void exchange() override;                     // move atoms to new procs
+  void borders() override;                      // setup list of atoms to comm
 
-  void forward_comm_pair(class Pair *);    // forward comm from a Pair
-  void reverse_comm_pair(class Pair *);    // reverse comm from a Pair
-  void forward_comm_fix(class Fix *, int size=0);      // forward comm from a Fix
-  void reverse_comm_fix(class Fix *, int size=0);      // reverse comm from a Fix
-  void forward_comm_compute(class Compute *);  // forward from a Compute
-  void reverse_comm_compute(class Compute *);  // reverse from a Compute
-  void forward_comm_dump(class Dump *);    // forward comm from a Dump
-  void reverse_comm_dump(class Dump *);    // reverse comm from a Dump
+  void forward_comm_pair(class Pair *) override;    // forward comm from a Pair
+  void reverse_comm_pair(class Pair *) override;    // reverse comm from a Pair
+  void forward_comm_fix(class Fix *, int size=0) override;      // forward comm from a Fix
+  void reverse_comm_fix(class Fix *, int size=0) override;      // reverse comm from a Fix
+  void forward_comm_compute(class Compute *) override;  // forward from a Compute
+  void reverse_comm_compute(class Compute *) override;  // reverse from a Compute
+  void forward_comm_dump(class Dump *) override;    // forward comm from a Dump
+  void reverse_comm_dump(class Dump *) override;    // reverse comm from a Dump
+
+  void forward_comm_array(int, double **) override;            // forward comm of array
 
   template<class DeviceType> void forward_comm_device(int dummy);
   template<class DeviceType> void reverse_comm_device();
   template<class DeviceType> void forward_comm_pair_device(Pair *pair);
+  template<class DeviceType> void forward_comm_fix_device(Fix *fix, int size=0);
   template<class DeviceType> void exchange_device();
   template<class DeviceType> void borders_device();
 
@@ -73,17 +79,18 @@ class CommKokkos : public CommBrick {
   DAT::tdual_int_1d k_sendnum_scan;
   int totalsend;
 
-  int max_buf_pair;
-  DAT::tdual_xfloat_1d k_buf_send_pair;
-  DAT::tdual_xfloat_1d k_buf_recv_pair;
+  int max_buf_pair,max_buf_fix;
+  DAT::tdual_xfloat_1d k_buf_send_pair, k_buf_send_fix;
+  DAT::tdual_xfloat_1d k_buf_recv_pair, k_buf_recv_fix;
   void grow_buf_pair(int);
+  void grow_buf_fix(int);
 
-  void grow_send(int, int);
-  void grow_recv(int);
+  void grow_send(int, int) override;
+  void grow_recv(int) override;
   void grow_send_kokkos(int, int, ExecutionSpace space = Host);
   void grow_recv_kokkos(int, ExecutionSpace space = Host);
-  void grow_list(int, int);
-  void grow_swap(int);
+  void grow_list(int, int) override;
+  void grow_swap(int) override;
   void copy_swap_info();
 };
 

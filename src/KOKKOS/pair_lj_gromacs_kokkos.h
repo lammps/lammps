@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/gromacs/kk,PairLJGromacsKokkos<LMPDeviceType>)
-PairStyle(lj/gromacs/kk/device,PairLJGromacsKokkos<LMPDeviceType>)
-PairStyle(lj/gromacs/kk/host,PairLJGromacsKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(lj/gromacs/kk,PairLJGromacsKokkos<LMPDeviceType>);
+PairStyle(lj/gromacs/kk/device,PairLJGromacsKokkos<LMPDeviceType>);
+PairStyle(lj/gromacs/kk/host,PairLJGromacsKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_LJ_GROMACS_KOKKOS_H
 #define LMP_PAIR_LJ_GROMACS_KOKKOS_H
 
@@ -36,36 +37,27 @@ class PairLJGromacsKokkos : public PairLJGromacs {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   PairLJGromacsKokkos(class LAMMPS *);
-  ~PairLJGromacsKokkos();
+  ~PairLJGromacsKokkos() override;
 
-  void compute(int, int);
+  void compute(int, int) override;
 
-  void settings(int, char **);
-  void init_style();
-  double init_one(int, int);
+  void settings(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
   struct params_lj{
     KOKKOS_INLINE_FUNCTION
-    params_lj(){cut_inner_sq=0;cut_inner=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;ljsw1=0;ljsw2=0;ljsw3=0;ljsw4=0;ljsw5=0;};
+    params_lj() {cut_inner_sq=0;cut_inner=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;ljsw1=0;ljsw2=0;ljsw3=0;ljsw4=0;ljsw5=0;};
     KOKKOS_INLINE_FUNCTION
-    params_lj(int i){cut_inner_sq=0;cut_inner=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;ljsw1=0;ljsw2=0;ljsw3=0;ljsw4=0;ljsw5=0;};
+    params_lj(int /*i*/) {cut_inner_sq=0;cut_inner=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;ljsw1=0;ljsw2=0;ljsw3=0;ljsw4=0;ljsw5=0;};
     F_FLOAT cut_inner_sq,cut_inner,lj1,lj2,lj3,lj4,offset,ljsw1,ljsw2,ljsw3,ljsw4,ljsw5;
   };
 
  protected:
-  void cleanup_copy();
-
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
   F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
                         const int& itype, const int& jtype) const;
-
-  template<bool STACKPARAMS, class Specialisation>
-  KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_fcoul(const F_FLOAT& rsq, const int& i, const int&j, const int& itype,
-                        const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
-    return 0.0;
-  }
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
@@ -74,10 +66,13 @@ class PairLJGromacsKokkos : public PairLJGromacs {
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j,
-                        const int& itype, const int& jtype, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const{
-    return 0.0;
-  }
+  F_FLOAT compute_ecoul(const F_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/,
+                        const int& /*itype*/, const int& /*jtype*/) const { return 0; }
+
+  template<bool STACKPARAMS, class Specialisation>
+  KOKKOS_INLINE_FUNCTION
+  F_FLOAT compute_fcoul(const F_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/, const int& /*itype*/,
+                        const int& /*jtype*/, const F_FLOAT& /*factor_coul*/, const F_FLOAT& /*qtmp*/) const { return 0; }
 
   Kokkos::DualView<params_lj**,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_lj**,
@@ -118,25 +113,25 @@ class PairLJGromacsKokkos : public PairLJGromacs {
   double special_lj[4];
   double qqrd2e;
 
-  void allocate();
+  void allocate() override;
 
-  friend class PairComputeFunctor<PairLJGromacsKokkos,FULL,true,CoulLongTable<1> >;
-  friend class PairComputeFunctor<PairLJGromacsKokkos,HALF,true,CoulLongTable<1> >;
-  friend class PairComputeFunctor<PairLJGromacsKokkos,HALFTHREAD,true,CoulLongTable<1> >;
-  friend class PairComputeFunctor<PairLJGromacsKokkos,FULL,false,CoulLongTable<1> >;
-  friend class PairComputeFunctor<PairLJGromacsKokkos,HALF,false,CoulLongTable<1> >;
-  friend class PairComputeFunctor<PairLJGromacsKokkos,HALFTHREAD,false,CoulLongTable<1> >;
+  friend struct PairComputeFunctor<PairLJGromacsKokkos,FULL,true,CoulLongTable<1> >;
+  friend struct PairComputeFunctor<PairLJGromacsKokkos,HALF,true,CoulLongTable<1> >;
+  friend struct PairComputeFunctor<PairLJGromacsKokkos,HALFTHREAD,true,CoulLongTable<1> >;
+  friend struct PairComputeFunctor<PairLJGromacsKokkos,FULL,false,CoulLongTable<1> >;
+  friend struct PairComputeFunctor<PairLJGromacsKokkos,HALF,false,CoulLongTable<1> >;
+  friend struct PairComputeFunctor<PairLJGromacsKokkos,HALFTHREAD,false,CoulLongTable<1> >;
   friend EV_FLOAT pair_compute_neighlist<PairLJGromacsKokkos,FULL,CoulLongTable<1> >(PairLJGromacsKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairLJGromacsKokkos,HALF,CoulLongTable<1> >(PairLJGromacsKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairLJGromacsKokkos,HALFTHREAD,CoulLongTable<1> >(PairLJGromacsKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute<PairLJGromacsKokkos,CoulLongTable<1> >(PairLJGromacsKokkos*,
                                                             NeighListKokkos<DeviceType>*);
-  friend class PairComputeFunctor<PairLJGromacsKokkos,FULL,true,CoulLongTable<0> >;
-  friend class PairComputeFunctor<PairLJGromacsKokkos,HALF,true,CoulLongTable<0> >;
-  friend class PairComputeFunctor<PairLJGromacsKokkos,HALFTHREAD,true,CoulLongTable<0> >;
-  friend class PairComputeFunctor<PairLJGromacsKokkos,FULL,false,CoulLongTable<0> >;
-  friend class PairComputeFunctor<PairLJGromacsKokkos,HALF,false,CoulLongTable<0> >;
-  friend class PairComputeFunctor<PairLJGromacsKokkos,HALFTHREAD,false,CoulLongTable<0> >;
+  friend struct PairComputeFunctor<PairLJGromacsKokkos,FULL,true,CoulLongTable<0> >;
+  friend struct PairComputeFunctor<PairLJGromacsKokkos,HALF,true,CoulLongTable<0> >;
+  friend struct PairComputeFunctor<PairLJGromacsKokkos,HALFTHREAD,true,CoulLongTable<0> >;
+  friend struct PairComputeFunctor<PairLJGromacsKokkos,FULL,false,CoulLongTable<0> >;
+  friend struct PairComputeFunctor<PairLJGromacsKokkos,HALF,false,CoulLongTable<0> >;
+  friend struct PairComputeFunctor<PairLJGromacsKokkos,HALFTHREAD,false,CoulLongTable<0> >;
   friend EV_FLOAT pair_compute_neighlist<PairLJGromacsKokkos,FULL,CoulLongTable<0> >(PairLJGromacsKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairLJGromacsKokkos,HALF,CoulLongTable<0> >(PairLJGromacsKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairLJGromacsKokkos,HALFTHREAD,CoulLongTable<0> >(PairLJGromacsKokkos*,NeighListKokkos<DeviceType>*);

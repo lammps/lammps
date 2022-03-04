@@ -7,6 +7,8 @@
 // If you wish to distribute your changes, please submit them to the
 // Colvars repository at GitHub.
 
+#include <algorithm>
+
 #include "colvarmodule.h"
 #include "colvarvalue.h"
 #include "colvarparse.h"
@@ -192,10 +194,10 @@ colvar::distance_z::distance_z(std::string const &conf)
   ref2 = parse_group(conf, "ref2", true);
 
   if ( ref2 ) {
-    cvm::log("Using axis joining the centers of mass of groups \"ref\" and \"ref2\"");
+    cvm::log("Using axis joining the centers of mass of groups \"ref\" and \"ref2\"\n");
     fixed_axis = false;
     if (key_lookup(conf, "axis"))
-      cvm::log("Warning: explicit axis definition will be ignored!");
+      cvm::log("Warning: explicit axis definition will be ignored!\n");
   } else {
     if (get_keyval(conf, "axis", axis, cvm::rvector(0.0, 0.0, 1.0))) {
       if (axis.norm2() == 0.0) {
@@ -806,9 +808,9 @@ colvar::gyration::gyration(std::string const &conf)
   atoms = parse_group(conf, "atoms");
 
   if (atoms->b_user_defined_fit) {
-    cvm::log("WARNING: explicit fitting parameters were provided for atom group \"atoms\".");
+    cvm::log("WARNING: explicit fitting parameters were provided for atom group \"atoms\".\n");
   } else {
-    atoms->b_center = true;
+    atoms->enable(f_ag_center);
     atoms->ref_pos.assign(1, cvm::atom_pos(0.0, 0.0, 0.0));
     atoms->fit_gradients.assign(atoms->size(), cvm::rvector(0.0, 0.0, 0.0));
   }
@@ -1023,13 +1025,13 @@ colvar::rmsd::rmsd(std::string const &conf)
   }
 
   if (atoms->b_user_defined_fit) {
-    cvm::log("WARNING: explicit fitting parameters were provided for atom group \"atoms\".");
+    cvm::log("WARNING: explicit fitting parameters were provided for atom group \"atoms\".\n");
   } else {
     // Default: fit everything
-    cvm::log("Enabling \"centerReference\" and \"rotateReference\", to minimize RMSD before calculating it as a variable: "
+    cvm::log("Enabling \"centerToReference\" and \"rotateToReference\", to minimize RMSD before calculating it as a variable: "
               "if this is not the desired behavior, disable them explicitly within the \"atoms\" block.\n");
-    atoms->b_center = true;
-    atoms->b_rotate = true;
+    atoms->enable(f_ag_center);
+    atoms->enable(f_ag_rotate);
     // default case: reference positions for calculating the rmsd are also those used
     // for fitting
     atoms->ref_pos = ref_pos;
@@ -1045,6 +1047,44 @@ colvar::rmsd::rmsd(std::string const &conf)
     // this is only required for ABF, but we do both groups here for better caching
     atoms->rot.request_group2_gradients(atoms->size());
   }
+
+  std::string perm_conf;
+  size_t pos = 0; // current position in config string
+  n_permutations = 1;
+
+  while (key_lookup(conf, "atomPermutation", &perm_conf, &pos)) {
+    std::vector<size_t> perm;
+    if (perm_conf.size()) {
+      std::istringstream is(perm_conf);
+      size_t index;
+      while (is >> index) {
+        std::vector<int> const &ids = atoms->ids();
+        size_t const ia = std::find(ids.begin(), ids.end(), index-1) - ids.begin();
+        if (ia == atoms->size()) {
+          cvm::error("Error: atom id " + cvm::to_str(index) +
+                    " is not a member of group \"atoms\".");
+          return;
+        }
+        if (std::find(perm.begin(), perm.end(), ia) != perm.end()) {
+          cvm::error("Error: atom id " + cvm::to_str(index) +
+                    " is mentioned more than once in atomPermutation list.");
+          return;
+        }
+        perm.push_back(ia);
+      }
+      if (perm.size() != atoms->size()) {
+        cvm::error("Error: symmetry permutation in input contains " + cvm::to_str(perm.size()) +
+                  " indices, but group \"atoms\" contains " + cvm::to_str(atoms->size()) + " atoms.");
+        return;
+      }
+      cvm::log("atomPermutation = " + cvm::to_str(perm));
+      n_permutations++;
+      // Record a copy of reference positions in new order
+      for (size_t ia = 0; ia < atoms->size(); ia++) {
+        ref_pos.push_back(ref_pos[perm[ia]]);
+      }
+    }
+  }
 }
 
 
@@ -1055,6 +1095,20 @@ void colvar::rmsd::calc_value()
   x.real_value = 0.0;
   for (size_t ia = 0; ia < atoms->size(); ia++) {
     x.real_value += ((*atoms)[ia].pos - ref_pos[ia]).norm2();
+  }
+  best_perm_index = 0;
+
+  // Compute sum of squares for each symmetry permutation of atoms, keep the smallest
+  size_t ref_pos_index = atoms->size();
+  for (size_t ip = 1; ip < n_permutations; ip++) {
+    cvm::real value = 0.0;
+    for (size_t ia = 0; ia < atoms->size(); ia++) {
+      value += ((*atoms)[ia].pos - ref_pos[ref_pos_index++]).norm2();
+    }
+    if (value < x.real_value) {
+      x.real_value = value;
+      best_perm_index = ip;
+    }
   }
   x.real_value /= cvm::real(atoms->size()); // MSD
   x.real_value = cvm::sqrt(x.real_value);
@@ -1067,8 +1121,10 @@ void colvar::rmsd::calc_gradients()
     0.5 / (x.real_value * cvm::real(atoms->size())) :
     0.0;
 
+  // Use the appropriate symmetry permutation of reference positions to calculate gradients
+  size_t const start = atoms->size() * best_perm_index;
   for (size_t ia = 0; ia < atoms->size(); ia++) {
-    (*atoms)[ia].grad = (drmsddx2 * 2.0 * ((*atoms)[ia].pos - ref_pos[ia]));
+    (*atoms)[ia].grad = (drmsddx2 * 2.0 * ((*atoms)[ia].pos - ref_pos[start + ia]));
   }
 }
 
@@ -1100,7 +1156,7 @@ void colvar::rmsd::calc_Jacobian_derivative()
   cvm::real rotation_term = 0.0;
 
   // The rotation term only applies is coordinates are rotated
-  if (atoms->b_rotate) {
+  if (atoms->is_enabled(f_ag_rotate)) {
 
     // gradient of the rotation matrix
     cvm::matrix2d<cvm::rvector> grad_rot_mat(3, 3);
@@ -1146,7 +1202,7 @@ void colvar::rmsd::calc_Jacobian_derivative()
   }
 
   // The translation term only applies is coordinates are centered
-  cvm::real translation_term = atoms->b_center ? 3.0 : 0.0;
+  cvm::real translation_term = atoms->is_enabled(f_ag_center) ? 3.0 : 0.0;
 
   jd.real_value = x.real_value > 0.0 ?
     (3.0 * atoms->size() - 1.0 - translation_term - rotation_term) / x.real_value :
@@ -1228,10 +1284,10 @@ colvar::eigenvector::eigenvector(std::string const &conf)
     cvm::log("WARNING: explicit fitting parameters were provided for atom group \"atoms\".\n");
   } else {
     // default: fit everything
-    cvm::log("Enabling \"centerReference\" and \"rotateReference\", to minimize RMSD before calculating the vector projection: "
+    cvm::log("Enabling \"centerToReference\" and \"rotateToReference\", to minimize RMSD before calculating the vector projection: "
               "if this is not the desired behavior, disable them explicitly within the \"atoms\" block.\n");
-    atoms->b_center = true;
-    atoms->b_rotate = true;
+    atoms->enable(f_ag_center);
+    atoms->enable(f_ag_rotate);
     atoms->ref_pos = ref_pos;
     atoms->center_ref_pos();
     atoms->disable(f_ag_fit_gradients); // cancel out if group is fitted on itself
@@ -1299,14 +1355,14 @@ colvar::eigenvector::eigenvector(std::string const &conf)
 
   if (b_difference_vector) {
 
-    if (atoms->b_center) {
+    if (atoms->is_enabled(f_ag_center)) {
       // both sets should be centered on the origin for fitting
       for (size_t i = 0; i < atoms->size(); i++) {
         eigenvec[i] -= eig_center;
         ref_pos[i]  -= ref_pos_center;
       }
     }
-    if (atoms->b_rotate) {
+    if (atoms->is_enabled(f_ag_rotate)) {
       atoms->rot.calc_optimal_rotation(eigenvec, ref_pos);
       for (size_t i = 0; i < atoms->size(); i++) {
         eigenvec[i] = atoms->rot.rotate(eigenvec[i]);
@@ -1316,7 +1372,7 @@ colvar::eigenvector::eigenvector(std::string const &conf)
     for (size_t i = 0; i < atoms->size(); i++) {
       eigenvec[i] -= ref_pos[i];
     }
-    if (atoms->b_center) {
+    if (atoms->is_enabled(f_ag_center)) {
       // bring back the ref positions to where they were
       for (size_t i = 0; i < atoms->size(); i++) {
         ref_pos[i] += ref_pos_center;
@@ -1465,7 +1521,8 @@ colvar::cartesian::cartesian(std::string const &conf)
 
   x.type(colvarvalue::type_vector);
   disable(f_cvc_explicit_gradient);
-  x.vector1d_value.resize(atoms->size() * axes.size());
+  // Don't try to access atoms if creation of the atom group failed
+  if (atoms != NULL) x.vector1d_value.resize(atoms->size() * axes.size());
 }
 
 

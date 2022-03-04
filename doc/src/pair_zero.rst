@@ -60,7 +60,8 @@ pair coefficient is ignored.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 The cutoff distance for this pair style can be mixed.  The default mix
 value is *geometric*\ .  See the "pair_modify" command for details.
@@ -71,7 +72,7 @@ shift, table, and tail options.
 This pair style writes its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
-This pair style supports the use of the *inner*\ , *middle*\ ,
+This pair style supports the use of the *inner*, *middle*,
 and *outer* keywords of the :doc:`run_style respa <run_style>` command.
 
 ----------
@@ -85,4 +86,7 @@ Related commands
 
 :doc:`pair_style none <pair_none>`
 
-**Default:** none
+Default
+"""""""
+
+none

@@ -106,7 +106,7 @@ individual ranks. Here is an example output for this section:
 ----------
 
 The third section above lists the number of owned atoms (Nlocal),
-ghost atoms (Nghost), and pair-wise neighbors stored per processor.
+ghost atoms (Nghost), and pairwise neighbors stored per processor.
 The max and min values give the spread of these values across
 processors with a 10-bin histogram showing the distribution. The total
 number of histogram counts is equal to the number of processors.
@@ -114,7 +114,7 @@ number of histogram counts is equal to the number of processors.
 ----------
 
 The last section gives aggregate statistics (across all processors)
-for pair-wise neighbors and special neighbors that LAMMPS keeps track
+for pairwise neighbors and special neighbors that LAMMPS keeps track
 of (see the :doc:`special_bonds <special_bonds>` command).  The number
 of times neighbor lists were rebuilt is tallied, as is the number of
 potentially *dangerous* rebuilds.  If atom movement triggered neighbor
@@ -152,7 +152,7 @@ information is provided about the line search and statistics on how
 many iterations and force-evaluations the minimizer required.
 Multiple force evaluations are typically done at each iteration to
 perform a 1d line minimization in the search direction.  See the
-:doc:`minimize <minimize>` doc page for more details.
+:doc:`minimize <minimize>` page for more details.
 
 ----------
 

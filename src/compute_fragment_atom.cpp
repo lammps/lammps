@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,44 +17,61 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_fragment_atom.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "update.h"
-#include "modify.h"
-#include "force.h"
 #include "comm.h"
-#include "memory.h"
 #include "error.h"
-
 #include "group.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
+
+#define BIG 1.0e20
 
 /* ---------------------------------------------------------------------- */
 
 ComputeFragmentAtom::ComputeFragmentAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  fragmentID(NULL)
+  fragmentID(nullptr)
 {
-  if (narg != 3) error->all(FLERR,"Illegal compute fragment/atom command");
-
   if (atom->avec->bonds_allow == 0)
     error->all(FLERR,"Compute fragment/atom used when bonds are not allowed");
 
   peratom_flag = 1;
   size_peratom_cols = 0;
   comm_forward = 1;
-  comm_reverse = 1;
+
+  // process optional args
+
+  singleflag = 0;
+
+  int iarg = 3;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"single") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute fragment/atom command");
+      singleflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
+    } else error->all(FLERR,"Illegal compute fragment/atom command");
+  }
 
   nmax = 0;
+  stack = nullptr;
+  clist = nullptr;
+  markflag = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
 ComputeFragmentAtom::~ComputeFragmentAtom()
 {
+  memory->destroy(stack);
+  memory->destroy(clist);
+  memory->destroy(markflag);
   memory->destroy(fragmentID);
 }
 
@@ -63,8 +81,8 @@ void ComputeFragmentAtom::init()
 {
   if (atom->tag_enable == 0)
     error->all(FLERR,"Cannot use compute fragment/atom unless atoms have IDs");
-  if (force->bond == NULL)
-    error->all(FLERR,"Compute fragment/atom requires a bond style to be defined");
+  if (atom->molecular != Atom::MOLECULAR)
+    error->all(FLERR,"Compute fragment/atom requires a molecular system");
 
   int count = 0;
   for (int i = 0; i < modify->ncompute; i++)
@@ -77,15 +95,24 @@ void ComputeFragmentAtom::init()
 
 void ComputeFragmentAtom::compute_peratom()
 {
-  int i,j,k;
+  int i,j,k,m,n;
+  int nstack,ncluster,done,alldone;
+  double newID,cID;
+  tagint *list;
 
   invoked_peratom = update->ntimestep;
 
-  // grow fragmentID array if necessary
+  // grow work and fragmentID vectors if necessary
 
   if (atom->nmax > nmax) {
+    memory->destroy(stack);
+    memory->destroy(clist);
+    memory->destroy(markflag);
     memory->destroy(fragmentID);
     nmax = atom->nmax;
+    memory->create(stack,nmax,"fragment/atom:stack");
+    memory->create(clist,nmax,"fragment/atom:clist");
+    memory->create(markflag,nmax,"fragment/atom:markflag");
     memory->create(fragmentID,nmax,"fragment/atom:fragmentID");
     vector_atom = fragmentID;
   }
@@ -97,63 +124,111 @@ void ComputeFragmentAtom::compute_peratom()
     comm->forward_comm_compute(this);
   }
 
-  // each atom starts in its own fragment,
+  // owned + ghost atoms start with fragmentID = atomID
+  // atoms not in group have fragmentID = 0
 
-  int nlocal = atom->nlocal;
   tagint *tag = atom->tag;
   int *mask = atom->mask;
-  int *num_bond = atom->num_bond;
-  int **bond_type = atom->bond_type;
-  tagint **bond_atom = atom->bond_atom;
+  tagint **special = atom->special;
+  int **nspecial = atom->nspecial;
+  int nlocal = atom->nlocal;
+  int nall = nlocal + atom->nghost;
 
-  for (i = 0; i < nlocal + atom->nghost; i++)
+  for (i = 0; i < nall; i++) {
     if (mask[i] & groupbit) fragmentID[i] = tag[i];
     else fragmentID[i] = 0;
+  }
 
-  // loop until no more changes on any proc:
+  // loop until no ghost atom fragment ID is changed
   // acquire fragmentIDs of ghost atoms
-  // loop over my atoms, and check atoms bound to it
-  // if both atoms are in fragment, assign lowest fragmentID to both
-  // iterate until no changes in my atoms
-  // then check if any proc made changes
+  // loop over clusters of atoms, which include ghost atoms
+  // set fragmentIDs for each cluster to min framentID in the clusters
+  // if singleflag = 0 atoms without bonds are assigned fragmentID = 0
+  // iterate until no changes to ghost atom fragmentIDs
 
   commflag = 1;
 
-  int change,done,anychange;
+  int iteration = 0;
 
-  while (1) {
+  while (true) {
+    iteration++;
+
     comm->forward_comm_compute(this);
+    done = 1;
 
-    // reverse communication when bonds are not stored on every processor
+    // set markflag = 0 for all owned atoms, for new iteration
 
-    if (force->newton_bond)
-      comm->reverse_comm_compute(this);
+    for (i = 0; i < nlocal; i++) markflag[i] = 0;
 
-    change = 0;
-    while (1) {
-      done = 1;
-      for (i = 0; i < nlocal; i++) {
-        if (!(mask[i] & groupbit)) continue;
+    // loop over all owned atoms
+    // each unmarked atom starts a cluster search
 
-        for (j = 0; j < num_bond[i]; j++) {
-          if (bond_type[i][j] == 0) continue;
-          k = atom->map(bond_atom[i][j]);
+    for (i = 0; i < nlocal; i++) {
+
+      // skip atom I if not in group or already marked
+      // if singleflag = 0 and atom has no bond partners, fragID = 0 and done
+
+      if (!(mask[i] & groupbit)) continue;
+      if (markflag[i]) continue;
+      if (!singleflag && (nspecial[i][0] == 0)) {
+        fragmentID[i] = 0.0;
+        continue;
+      }
+
+      // find one cluster of bond-connected atoms
+      // ncluster = # of owned and ghost atoms in cluster
+      // clist = vector of local indices of the ncluster atoms
+      // stack is used to walk the bond topology
+
+      ncluster = nstack = 0;
+      stack[nstack++] = i;
+
+      while (nstack) {
+        j = stack[--nstack];
+        clist[ncluster++] = j;
+        markflag[j] = 1;
+
+        n = nspecial[j][0];
+        list = special[j];
+        for (m = 0; m < n; m++) {
+          k = atom->map(list[m]);
+
+          // skip bond neighbor K if not in group or already marked
+
           if (k < 0) continue;
           if (!(mask[k] & groupbit)) continue;
-          if (fragmentID[i] == fragmentID[k]) continue;
+          if (k < nlocal && markflag[k]) continue;
 
-          fragmentID[i] = fragmentID[k] = MIN(fragmentID[i],fragmentID[k]);
-          done = 0;
+          // owned bond neighbors are added to stack for further walking
+          // ghost bond neighbors are added directly w/out use of stack
+
+          if (k < nlocal) stack[nstack++] = k;
+          else clist[ncluster++] = k;
         }
       }
-      if (!done) change = 1;
-      if (done) break;
+
+      // newID = minimum fragment ID in cluster list, including ghost atoms
+
+      newID = BIG;
+      for (m = 0; m < ncluster; m++) {
+        cID = fragmentID[clist[m]];
+        newID = MIN(newID,cID);
+      }
+
+      // set fragmentID = newID for all atoms in cluster, including ghost atoms
+      // not done with iterations if change the fragmentID of a ghost atom
+
+      for (m = 0; m < ncluster; m++) {
+        j = clist[m];
+        if (j >= nlocal && fragmentID[j] != newID) done = 0;
+        fragmentID[j] = newID;
+      }
     }
 
     // stop if all procs are done
 
-    MPI_Allreduce(&change,&anychange,1,MPI_INT,MPI_MAX,world);
-    if (!anychange) break;
+    MPI_Allreduce(&done,&alldone,1,MPI_INT,MPI_MIN,world);
+    if (alldone) break;
   }
 }
 
@@ -203,43 +278,13 @@ void ComputeFragmentAtom::unpack_forward_comm(int n, int first, double *buf)
   }
 }
 
-/* ---------------------------------------------------------------------- */
-
-int ComputeFragmentAtom::pack_reverse_comm(int n, int first, double *buf)
-{
-  int i,m,last;
-
-  m = 0;
-  last = first + n;
-  for (i = first; i < last; i++) {
-    buf[m++] = fragmentID[i];
-  }
-  return m;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ComputeFragmentAtom::unpack_reverse_comm(int n, int *list, double *buf)
-{
-  int i,j,m;
-
-  m = 0;
-  for (i = 0; i < n; i++) {
-    j = list[i];
-    double x = buf[m++];
-
-    // only overwrite local IDs with values lower than current ones
-
-    fragmentID[j] = MIN(x,fragmentID[j]);
-  }
-}
-
 /* ----------------------------------------------------------------------
-   memory usage of local atom-based array
+   memory usage of local atom-based arrays
 ------------------------------------------------------------------------- */
 
 double ComputeFragmentAtom::memory_usage()
 {
-  double bytes = nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(double);
+  bytes += (double)3*nmax * sizeof(int);
   return bytes;
 }

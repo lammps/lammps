@@ -1,10 +1,10 @@
 .. index:: pair_style agni
+.. index:: pair_style agni/omp
 
 pair_style agni command
-========================
+=======================
 
-pair_style agni/omp command
-============================
+Accelerator Variants: *agni/omp*
 
 Syntax
 """"""
@@ -57,35 +57,22 @@ pair_coeff command, where :math:`N` is the number of LAMMPS atom types:
 * filename
 * :math:`N` element names = mapping of AGNI elements to atom types
 
-See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
+See the :doc:`pair_coeff <pair_coeff>` page for alternate ways
 to specify the path for the force field file.
 
 An AGNI force field is fully specified by the filename which contains the
 parameters of the force field, i.e., the reference training environments
 used to construct the machine learning force field. Example force field
-and input files are provided in the examples/USER/misc/agni directory.
+and input files are provided in the examples/PACKAGES/agni directory.
 
 ----------
 
-Styles with *omp* suffix is functionally the same as the corresponding
-style without the suffix. They have been optimized to run faster,
-depending on your available hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc page.  The accelerated style takes
-the same arguments and should produce the same results, except for
-round-off and precision issues.
-
-The accelerated style is part of the USER-OMP.  They are only enabled
-if LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated style explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 shift, table, and tail options.
@@ -96,7 +83,7 @@ script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -111,8 +98,8 @@ It should work with damped dynamics based minimizers like *fire* or
 *quickmin*\ .  However, one can access the energy via thermodynamic
 integration of the forces as discussed in
 :ref:`(Botu3) <Botu2016construct>`.  This pair style is part of the
-USER-MISC package. It is only enabled if LAMMPS was built with that
-package. See the :doc:`Build package <Build_package>` doc page for more
+MISC package. It is only enabled if LAMMPS was built with that
+package. See the :doc:`Build package <Build_package>` page for more
 info.
 
 The AGNI force field files provided with LAMMPS (see the
@@ -126,7 +113,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

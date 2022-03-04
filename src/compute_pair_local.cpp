@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,31 +13,32 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_pair_local.h"
+
+#include "atom.h"
+#include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "update.h"
+
 #include <cmath>
 #include <cstring>
-#include <cstdlib>
-#include "atom.h"
-#include "update.h"
-#include "force.h"
-#include "pair.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "neigh_list.h"
-#include "memory.h"
-#include "error.h"
 
 using namespace LAMMPS_NS;
 
 #define DELTA 10000
 
-enum{DIST,ENG,FORCE,FX,FY,FZ,PN};
+enum{DIST,ENG,FORCE,FX,FY,FZ,PN,DX,DY,DZ};
 enum{TYPE,RADIUS};
 
 /* ---------------------------------------------------------------------- */
 
 ComputePairLocal::ComputePairLocal(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  pstyle(NULL), pindex(NULL), vlocal(NULL), alocal(NULL)
+  pstyle(nullptr), pindex(nullptr), vlocal(nullptr), alocal(nullptr)
 {
   if (narg < 4) error->all(FLERR,"Illegal compute pair/local command");
 
@@ -54,6 +56,9 @@ ComputePairLocal::ComputePairLocal(LAMMPS *lmp, int narg, char **arg) :
     else if (strcmp(arg[iarg],"fx") == 0) pstyle[nvalues++] = FX;
     else if (strcmp(arg[iarg],"fy") == 0) pstyle[nvalues++] = FY;
     else if (strcmp(arg[iarg],"fz") == 0) pstyle[nvalues++] = FZ;
+    else if (strcmp(arg[iarg],"dx") == 0) pstyle[nvalues++] = DX;
+    else if (strcmp(arg[iarg],"dy") == 0) pstyle[nvalues++] = DY;
+    else if (strcmp(arg[iarg],"dz") == 0) pstyle[nvalues++] = DZ;
     else if (arg[iarg][0] == 'p') {
       int n = atoi(&arg[iarg][1]);
       if (n <= 0) error->all(FLERR,
@@ -90,14 +95,14 @@ ComputePairLocal::ComputePairLocal(LAMMPS *lmp, int narg, char **arg) :
 
   singleflag = 0;
   for (int i = 0; i < nvalues; i++)
-    if (pstyle[i] != DIST) singleflag = 1;
+    if (pstyle[i] != DIST && pstyle[i] != DX && pstyle[i] != DY && pstyle[i] != DZ) singleflag = 1;
 
   if (nvalues == 1) size_local_cols = 0;
   else size_local_cols = nvalues;
 
   nmax = 0;
-  vlocal = NULL;
-  alocal = NULL;
+  vlocal = nullptr;
+  alocal = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -114,7 +119,7 @@ ComputePairLocal::~ComputePairLocal()
 
 void ComputePairLocal::init()
 {
-  if (singleflag && force->pair == NULL)
+  if (singleflag && force->pair == nullptr)
     error->all(FLERR,"No pair style is defined for compute pair/local");
   if (singleflag && force->pair->single_enable == 0)
     error->all(FLERR,"Pair style does not support compute pair/local");
@@ -221,13 +226,13 @@ int ComputePairLocal::compute_pairs(int flag)
       factor_lj = special_lj[sbmask(j)];
       factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
+      jtag = tag[j];
 
       if (!(mask[j] & groupbit)) continue;
 
       // itag = jtag is possible for long cutoffs that include images of self
 
       if (newton_pair == 0 && j >= nlocal) {
-        jtag = tag[j];
         if (itag > jtag) {
           if ((itag+jtag) % 2 == 0) continue;
         } else if (itag < jtag) {
@@ -262,10 +267,22 @@ int ComputePairLocal::compute_pairs(int flag)
         if (nvalues == 1) ptr = &vlocal[m];
         else ptr = alocal[m];
 
+        // to make sure dx, dy and dz are always from the lower to the higher id
+        double directionCorrection = itag > jtag ? -1.0 : 1.0;
+
         for (n = 0; n < nvalues; n++) {
           switch (pstyle[n]) {
           case DIST:
             ptr[n] = sqrt(rsq);
+            break;
+          case DX:
+            ptr[n] = delx*directionCorrection;
+            break;
+          case DY:
+            ptr[n] = dely*directionCorrection;
+            break;
+          case DZ:
+            ptr[n] = delz*directionCorrection;
             break;
           case ENG:
             ptr[n] = eng;
@@ -321,6 +338,6 @@ void ComputePairLocal::reallocate(int n)
 
 double ComputePairLocal::memory_usage()
 {
-  double bytes = nmax*nvalues * sizeof(double);
+  double bytes = (double)nmax*nvalues * sizeof(double);
   return bytes;
 }

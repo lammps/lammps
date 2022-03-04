@@ -35,11 +35,12 @@ Mach Dynamics in LAMMPS.
 The value of the contact radius will be 0.0 for particles not in the
 specified compute group.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-particle vector, which can be accessed
 by any command that uses per-particle values from a compute as input.
-See the :doc:`Howto output <Howto_output>` doc page for an overview of
+See the :doc:`Howto output <Howto_output>` page for an overview of
 LAMMPS output options.
 
 The per-particle vector values will be in distance :doc:`units <units>`.
@@ -47,12 +48,15 @@ The per-particle vector values will be in distance :doc:`units <units>`.
 Restrictions
 """"""""""""
 
-This compute is part of the USER-SMD package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This compute is part of the MACHDYN package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
 
 :doc:`dump custom <dump>` smd/hertz smd/tri_surface
 
-**Default:** none
+Default
+"""""""
+
+none

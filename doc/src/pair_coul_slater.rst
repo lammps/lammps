@@ -1,4 +1,9 @@
 .. index:: pair_style coul/slater
+.. index:: pair_style coul/slater/cut
+.. index:: pair_style coul/slater/long
+
+pair_style coul/slater command
+==============================
 
 pair_style coul/slater/cut command
 ==================================
@@ -69,7 +74,8 @@ The global decay length of the charge (:math:`\lambda`) specified in the pair_st
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the cutoff distance for the
 *coul/slater* styles can be mixed.  The default mix value is *geometric*\ .
@@ -87,22 +93,25 @@ to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 Restrictions
 """"""""""""
 
 The  *coul/slater/long* style requires the long-range solvers included in the KSPACE package.
 
-These styles are part of the "USER-MISC" package.  They are only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+These styles are part of the EXTRA-PAIR package.  They are only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
 
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair_style, hybrid/overlay <pair_hybrid>`, :doc:`kspace_style <kspace_style>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

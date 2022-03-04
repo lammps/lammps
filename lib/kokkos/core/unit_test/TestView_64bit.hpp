@@ -49,13 +49,18 @@ namespace Test {
 template <class Device>
 void test_64bit() {
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
-  int64_t N   = 5000000000;
+  // We are running out of device memory on Intel GPUs
+#ifdef KOKKOS_ENABLE_SYCL
+  int64_t N = 4000000000;
+#else
+  int64_t N = 5000000000;
+#endif
   int64_t sum = 0;
   {
     Kokkos::parallel_reduce(
         Kokkos::RangePolicy<typename Device::execution_space,
                             Kokkos::IndexType<int64_t>>(0, N),
-        KOKKOS_LAMBDA(const int64_t& /*i*/, int64_t& lsum) { lsum += 1; }, sum);
+        KOKKOS_LAMBDA(const int64_t&, int64_t& lsum) { lsum += 1; }, sum);
     ASSERT_EQ(N, sum);
   }
   {
@@ -106,7 +111,12 @@ void test_64bit() {
     ASSERT_EQ(N0 * N1, sum);
   }
   {
-    int N0    = 1024 * 1024 * 1500;
+// We are running out of device memory on Intel GPUs
+#ifdef KOKKOS_ENABLE_SYCL
+    int64_t N0 = 1024 * 1024 * 900;
+#else
+    int N0 = 1024 * 1024 * 1500;
+#endif
     int64_t P = 1713091;
     Kokkos::View<int*, Device> a("A", N0);
     Kokkos::parallel_for(

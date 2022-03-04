@@ -42,16 +42,25 @@ Similar to :doc:`dump <dump>` files, the data filename can contain a "\*"
 wild-card character.  The "\*" is replaced with the current timestep
 value.
 
-.. note::
+.. admonition:: Data in Coeff sections
+   :class: note
 
-   The write-data command is not yet fully implemented in two
-   respects.  First, most pair styles do not yet write their coefficient
-   information into the data file.  This means you will need to specify
-   that information in your input script that reads the data file, via
-   the :doc:`pair_coeff <pair_coeff>` command.  Second, a few of the :doc:`atom styles <atom_style>` (body, ellipsoid, line, tri) that store
-   auxiliary "bonus" information about aspherical particles, do not yet
-   write the bonus info into the data file.  Both these functionalities
-   will be added to the write_data command later.
+   The write_data command may not always write all coefficient settings
+   to the corresponding Coeff sections of the data file.  This can have
+   one of multiple reasons. 1) A few styles may be missing the code that
+   would write those sections (if you come across one, please notify
+   the LAMMPS developers). 2) Some pair styles require a single pair_coeff
+   statement and those are not compatible with data files. 3) The
+   default for write_data is to write a PairCoeff section, which has
+   only entries for atom types i == j. The remaining coefficients would
+   be inferred through the currently selected mixing rule.  If there has
+   been a pair_coeff command with i != j, this setting would be lost.
+   LAMMPS will detect this and print a warning message unless *pair ij*
+   is appended to the write_data command.  This will request writing a
+   PairIJCoeff section which has information for all pairs of atom types.
+   In cases where the coefficient data in the data file is incomplete,
+   you will need to re-specify that information in your input script
+   that reads the data file.
 
 Because a data file is in text format, if you use a data file written
 out by this command to restart a simulation, the initial state of the
@@ -98,7 +107,7 @@ from :doc:`fix property/atom <fix_property_atom>`.
 
 The *pair* keyword lets you specify in what format the pair
 coefficient information is written into the data file.  If the value
-is specified as *ii*\ , then one line per atom type is written, to
+is specified as *ii*, then one line per atom type is written, to
 specify the coefficients for each of the I=J interactions.  This means
 that no cross-interactions for I != J will be specified in the data
 file and the pair style will apply its mixing rule, as documented on
@@ -107,7 +116,7 @@ behavior can be overridden in the input script after reading the data
 file, by specifying additional :doc:`pair_coeff <pair_coeff>` commands
 for any desired I,J pairs.
 
-If the value is specified as *ij*\ , then one line of coefficients is
+If the value is specified as *ij*, then one line of coefficients is
 written for all I,J pairs where I <= J.  These coefficients will
 include any specific settings made in the input script up to that
 point.  The presence of these I != J coefficients in the data file

@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------
    CSlib - Client/server library for code coupling
-   http://cslib.sandia.gov, Sandia National Laboratories
+   https://cslib.sandia.gov/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright 2018 National Technology & Engineering Solutions of
@@ -29,7 +29,7 @@ using namespace CSLIB_NS;
 
 /* ---------------------------------------------------------------------- */
 
-MsgMPIOne::MsgMPIOne(int csflag, const void *ptr, MPI_Comm cworld) : 
+MsgMPIOne::MsgMPIOne(int csflag, const void *ptr, MPI_Comm cworld) :
   Msg(csflag, ptr, cworld)
 {
   // NOTE: ideally would skip this call if mpi/two

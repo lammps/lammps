@@ -33,7 +33,7 @@ which is to take all normals along the z-axis.
 .. math::
 
    E  = & \frac{1}{2} \sum_i \sum_{j \neq i} V_{ij} \\
-   V_{ij}  = & e^{-\lambda(r_{ij} -z_0}) \left[ C + f(\rho_{ij}) + f(\rho_{ji}) \right] - A \left( \frac{r_{ij}}{z_0}\right)^{-6} + A \left( \frac{\textrm{cutoff}}{z_0}\right)^{-6} \\
+   V_{ij}  = & e^{-\lambda(r_{ij} -z_0)} \left[ C + f(\rho_{ij}) + f(\rho_{ji}) \right] - A \left( \frac{r_{ij}}{z_0}\right)^{-6} + A \left( \frac{\textrm{cutoff}}{z_0}\right)^{-6} \\
    \rho_{ij}^2 = & \rho_{ji}^2  =  x_{ij}^2 + y_{ij}^2 \qquad \qquad (\mathbf{n}_i \equiv \mathbf{\hat{z}}) \\
    f(\rho)  = &  e^{-(\rho/\delta)^2} \sum_{n=0}^2 C_{2n} \left( \rho/\delta \right)^{2n}
 
@@ -48,7 +48,7 @@ each layer should have a separate atom type and interactions should only
 be computed between atom types of neighboring layers.
 
 The parameter file (e.g. CC.KC), is intended for use with metal
-:doc:`units <units>`, with energies in meV. An additional parameter, *S*\ ,
+:doc:`units <units>`, with energies in meV. An additional parameter, *S*,
 is available to facilitate scaling of energies in accordance with
 :ref:`(vanWijk) <vanWijk>`.
 
@@ -58,8 +58,9 @@ Other interactions can be set to zero using pair_style *none*\ .
 Restrictions
 """"""""""""
 
-This fix is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This fix is part of the INTERLAYER package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
@@ -72,7 +73,10 @@ Related commands
 :doc:`pair_style kolmogorov/crespi/full <pair_kolmogorov_crespi_full>`,
 :doc:`pair_style lebedeva/z <pair_lebedeva_z>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,18 +19,19 @@
 ------------------------------------------------------------------------- */
 
 #include "create_bonds.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
-#include "domain.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "neigh_list.h"
 #include "comm.h"
-#include "group.h"
-#include "special.h"
+#include "domain.h"
 #include "error.h"
+#include "force.h"
+#include "group.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "special.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -37,7 +39,7 @@ enum{MANY,SBOND,SANGLE,SDIHEDRAL,SIMPROPER};
 
 /* ---------------------------------------------------------------------- */
 
-CreateBonds::CreateBonds(LAMMPS *lmp) : Pointers(lmp) {}
+CreateBonds::CreateBonds(LAMMPS *lmp) : Command(lmp) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -47,7 +49,7 @@ void CreateBonds::command(int narg, char **arg)
     error->all(FLERR,"Create_bonds command before simulation box is defined");
   if (atom->tag_enable == 0)
     error->all(FLERR,"Cannot use create_bonds unless atoms have IDs");
-  if (atom->molecular != 1)
+  if (atom->molecular != Atom::MOLECULAR)
     error->all(FLERR,"Cannot use create_bonds with non-molecular system");
 
   if (narg < 4) error->all(FLERR,"Illegal create_bonds command");
@@ -66,38 +68,38 @@ void CreateBonds::command(int narg, char **arg)
     igroup = group->find(arg[2]);
     if (igroup == -1) error->all(FLERR,"Cannot find create_bonds group ID");
     group2bit = group->bitmask[igroup];
-    btype = force->inumeric(FLERR,arg[3]);
-    rmin = force->numeric(FLERR,arg[4]);
-    rmax = force->numeric(FLERR,arg[5]);
+    btype = utils::inumeric(FLERR,arg[3],false,lmp);
+    rmin = utils::numeric(FLERR,arg[4],false,lmp);
+    rmax = utils::numeric(FLERR,arg[5],false,lmp);
     if (rmin > rmax) error->all(FLERR,"Illegal create_bonds command");
     iarg = 6;
   } else if (strcmp(arg[0],"single/bond") == 0) {
     style = SBOND;
     if (narg < 4) error->all(FLERR,"Illegal create_bonds command");
-    btype = force->inumeric(FLERR,arg[1]);
-    batom1 = force->tnumeric(FLERR,arg[2]);
-    batom2 = force->tnumeric(FLERR,arg[3]);
+    btype = utils::inumeric(FLERR,arg[1],false,lmp);
+    batom1 = utils::tnumeric(FLERR,arg[2],false,lmp);
+    batom2 = utils::tnumeric(FLERR,arg[3],false,lmp);
     if (batom1 == batom2)
       error->all(FLERR,"Illegal create_bonds command");
     iarg = 4;
   } else if (strcmp(arg[0],"single/angle") == 0) {
     style = SANGLE;
     if (narg < 5) error->all(FLERR,"Illegal create_bonds command");
-    atype = force->inumeric(FLERR,arg[1]);
-    aatom1 = force->tnumeric(FLERR,arg[2]);
-    aatom2 = force->tnumeric(FLERR,arg[3]);
-    aatom3 = force->tnumeric(FLERR,arg[4]);
+    atype = utils::inumeric(FLERR,arg[1],false,lmp);
+    aatom1 = utils::tnumeric(FLERR,arg[2],false,lmp);
+    aatom2 = utils::tnumeric(FLERR,arg[3],false,lmp);
+    aatom3 = utils::tnumeric(FLERR,arg[4],false,lmp);
     if ((aatom1 == aatom2) || (aatom1 == aatom3) || (aatom2 == aatom3))
       error->all(FLERR,"Illegal create_bonds command");
     iarg = 5;
   } else if (strcmp(arg[0],"single/dihedral") == 0) {
     style = SDIHEDRAL;
     if (narg < 6) error->all(FLERR,"Illegal create_bonds command");
-    dtype = force->inumeric(FLERR,arg[1]);
-    datom1 = force->tnumeric(FLERR,arg[2]);
-    datom2 = force->tnumeric(FLERR,arg[3]);
-    datom3 = force->tnumeric(FLERR,arg[4]);
-    datom4 = force->tnumeric(FLERR,arg[5]);
+    dtype = utils::inumeric(FLERR,arg[1],false,lmp);
+    datom1 = utils::tnumeric(FLERR,arg[2],false,lmp);
+    datom2 = utils::tnumeric(FLERR,arg[3],false,lmp);
+    datom3 = utils::tnumeric(FLERR,arg[4],false,lmp);
+    datom4 = utils::tnumeric(FLERR,arg[5],false,lmp);
     if ((datom1 == datom2) || (datom1 == datom3) || (datom1 == datom4) ||
         (datom2 == datom3) || (datom2 == datom4) || (datom3 == datom4))
       error->all(FLERR,"Illegal create_bonds command");
@@ -105,11 +107,11 @@ void CreateBonds::command(int narg, char **arg)
   } else if (strcmp(arg[0],"single/improper") == 0) {
     style = SIMPROPER;
     if (narg < 6) error->all(FLERR,"Illegal create_bonds command");
-    dtype = force->inumeric(FLERR,arg[1]);
-    datom1 = force->tnumeric(FLERR,arg[2]);
-    datom2 = force->tnumeric(FLERR,arg[3]);
-    datom3 = force->tnumeric(FLERR,arg[4]);
-    datom4 = force->tnumeric(FLERR,arg[5]);
+    dtype = utils::inumeric(FLERR,arg[1],false,lmp);
+    datom1 = utils::tnumeric(FLERR,arg[2],false,lmp);
+    datom2 = utils::tnumeric(FLERR,arg[3],false,lmp);
+    datom3 = utils::tnumeric(FLERR,arg[4],false,lmp);
+    datom4 = utils::tnumeric(FLERR,arg[5],false,lmp);
     if ((datom1 == datom2) || (datom1 == datom3) || (datom1 == datom4) ||
         (datom2 == datom3) || (datom2 == datom4) || (datom3 == datom4))
       error->all(FLERR,"Illegal create_bonds command");
@@ -123,9 +125,7 @@ void CreateBonds::command(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg],"special") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal create_bonds command");
-      if (strcmp(arg[iarg+1],"yes") == 0) specialflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) specialflag = 0;
-      else error->all(FLERR,"Illegal create_bonds command");
+      specialflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal create_bonds command");
   }
@@ -196,14 +196,14 @@ void CreateBonds::many()
   // error check on cutoff
   // if no pair style, neighbor list will be empty
 
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Create_bonds requires a pair style be defined");
   if (rmax > neighbor->cutneighmax)
     error->all(FLERR,"Create_bonds max distance > neighbor cutoff");
   if (rmax > neighbor->cutneighmin && comm->me == 0)
     error->warning(FLERR,"Create_bonds max distance > minimum neighbor cutoff");
 
-  // require special_bonds 1-2 weights = 0.0 and KSpace = NULL
+  // require special_bonds 1-2 weights = 0.0 and KSpace = nullptr
   // so that already bonded atom pairs do not appear in neighbor list
   // otherwise with newton_bond = 1,
   //   would be hard to check if I-J bond already existed
@@ -232,7 +232,7 @@ void CreateBonds::many()
   // build neighbor list this command needs based on earlier request
 
   NeighList *list = neighbor->lists[irequest];
-  neighbor->build_one(list);
+  neighbor->build_one(list,1);
 
   // loop over all neighs of each atom
   // compute distance between two atoms consistently on both procs
@@ -297,8 +297,8 @@ void CreateBonds::many()
 
       if (!newton_bond || tag[i] < tag[j]) {
         if (num_bond[i] == atom->bond_per_atom)
-          error->one(FLERR,
-                     "New bond exceeded bonds per atom in create_bonds");
+          error->one(FLERR,"New bond exceeded bonds per atom limit "
+                                       " of {} in create_bonds",atom->bond_per_atom);
         bond_type[i][num_bond[i]] = btype;
         bond_atom[i][num_bond[i]] = tag[j];
         num_bond[i]++;
@@ -309,7 +309,7 @@ void CreateBonds::many()
   // recount bonds
 
   bigint nbonds = 0;
-  for (int i = 0; i < nlocal; i++) nbonds += num_bond[i];
+  for (i = 0; i < nlocal; i++) nbonds += num_bond[i];
 
   MPI_Allreduce(&nbonds,&atom->nbonds,1,MPI_LMP_BIGINT,MPI_SUM,world);
   if (!force->newton_bond) atom->nbonds /= 2;
@@ -318,19 +318,9 @@ void CreateBonds::many()
 
   bigint nadd_bonds = atom->nbonds - nbonds_previous;
 
-  if (comm->me == 0) {
-    if (screen) {
-      fprintf(screen,"Added " BIGINT_FORMAT
-              " bonds, new total = " BIGINT_FORMAT "\n",
-              nadd_bonds,atom->nbonds);
-    }
-
-    if (logfile) {
-      fprintf(logfile,"Added " BIGINT_FORMAT
-              " bonds, new total = " BIGINT_FORMAT "\n",
-              nadd_bonds,atom->nbonds);
-    }
-  }
+  if (comm->me == 0)
+    utils::logmesg(lmp,"Added {} bonds, new total = {}\n",
+                   nadd_bonds,atom->nbonds);
 }
 
 /* ---------------------------------------------------------------------- */

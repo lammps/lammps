@@ -40,8 +40,8 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
     * - -5 Double precision is not supported on card **/
   int init(const int ntypes, double host_cutforcesq, int **host_type2rhor,
            int **host_type2z2r, int *host_type2frho, double ***host_rhor_spline,
-           double ***host_z2r_spline, double ***host_frho_spline, double rdr,
-           double rdrho, double rhomax, int nrhor, int nrho, int nz2r,
+           double ***host_z2r_spline, double ***host_frho_spline, double** host_cutsq,
+           double rdr, double rdrho, double rhomax, int nrhor, int nrho, int nz2r,
            int nfrho, int nr, const int nlocal, const int nall,
            const int max_nbors, const int maxspecial, const double cell_size,
            const double gpu_split, FILE *_screen);
@@ -61,9 +61,6 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
   /// Clear all host and device data
   /** \note This is called at the beginning of the init() routine **/
   void clear();
-
-  /// Returns memory usage on device per atom
-  int bytes_per_atom(const int max_nbors) const;
 
   /// Total host memory used by library for pair style
   double host_memory_usage() const;
@@ -90,7 +87,7 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
                 const bool eatom, const bool vatom);
 
   // ------------------------- DEVICE KERNELS -------------------------
-  UCL_Kernel k_energy, k_energy_fast;
+  UCL_Kernel k_energy, k_energy_fast, k_energy_fast_noev, *k_energy_sel;
 
   // --------------------------- TEXTURES -----------------------------
   UCL_Texture fp_tex;
@@ -111,6 +108,8 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
   UCL_D_Vec<numtyp4> z2r_spline1, z2r_spline2;
   UCL_D_Vec<numtyp4> frho_spline1, frho_spline2;
   UCL_D_Vec<numtyp4> rhor_spline1, rhor_spline2;
+
+  UCL_D_Vec<numtyp> cutsq;
 
   numtyp _cutforcesq,_rdr,_rdrho, _rhomax;
 
@@ -133,8 +132,8 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
 protected:
   bool _allocated;
   int _nlocal;
-  void loop(const bool _eflag, const bool _vflag);
-  void loop2(const bool _eflag, const bool _vflag);
+  int loop(const int eflag, const int vflag);
+  void loop2(const bool eflag, const bool vflag);
 };
 
 }

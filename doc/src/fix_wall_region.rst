@@ -127,7 +127,7 @@ region surface will move over time in the corresponding manner.
 The energy of wall-particle interactions depends on the specified
 style.
 
-For style *lj93*\ , the energy E is given by the 9/3 potential:
+For style *lj93*, the energy E is given by the 9/3 potential:
 
 .. math::
 
@@ -135,7 +135,7 @@ For style *lj93*\ , the energy E is given by the 9/3 potential:
                        \left(\frac{\sigma}{r}\right)^3 \right]
                        \qquad r < r_c
 
-For style *lj126*\ , the energy E is given by the 12/6 potential:
+For style *lj126*, the energy E is given by the 12/6 potential:
 
 .. math::
 
@@ -143,7 +143,7 @@ For style *lj126*\ , the energy E is given by the 12/6 potential:
                        \left(\frac{\sigma}{r}\right)^6 \right]
                        \qquad r < r_c
 
-For style *wall/lj1043*\ , the energy E is given by the 10/4/3 potential:
+For style *wall/lj1043*, the energy E is given by the 10/4/3 potential:
 
 .. math::
 
@@ -152,7 +152,7 @@ For style *wall/lj1043*\ , the energy E is given by the 10/4/3 potential:
                        \frac{\sqrt(2)\sigma^3}{3\left(r+\left(0.61/\sqrt(2)\right)\sigma\right)^3}\right]
                        \qquad r < r_c
 
-For style *colloid*\ , the energy E is given by an integrated form of
+For style *colloid*, the energy E is given by an integrated form of
 the :doc:`pair_style colloid <pair_colloid>` potential:
 
 .. math::
@@ -162,14 +162,14 @@ the :doc:`pair_style colloid <pair_colloid>` potential:
     & \left. - \frac{1}{6} \left(\frac{2R(D+R) + D(D+2R)
     \left[ \ln D - \ln (D+2R) \right]}{D(D+2R)} \right) \right] \qquad r < r_c
 
-For style *wall/harmonic*\ , the energy E is given by a harmonic spring
+For style *wall/harmonic*, the energy E is given by a harmonic spring
 potential (the distance parameter is ignored):
 
 .. math::
 
    E = \epsilon \quad (r - r_c)^2 \qquad r < r_c
 
-For style *wall/morse*\ , the energy E is given by the Morse potential:
+For style *wall/morse*, the energy E is given by the Morse potential:
 
 .. math::
 
@@ -189,28 +189,37 @@ interaction energy is 0.0 at the cutoff distance.
 For a full description of these wall styles, see fix_style
 :doc:`wall <fix_wall>`
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
-fix to add the energy of interaction between atoms and the wall to the
-system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by
+this fix to add the energy of interaction between atoms and the region
+wall to the global potential energy of the system as part of
+:doc:`thermodynamic output <thermo_style>`.  The default setting for
+this fix is :doc:`fix_modify energy no <fix_modify>`.
 
-The :doc:`fix_modify <fix_modify>` *virial* option is supported by this
-fix to add the contribution due to the interaction between
-atoms and each wall to the system's virial as part of :doc:`thermodynamic output <thermo_style>`. The default is *virial no*
+The :doc:`fix_modify <fix_modify>` *virial* option is supported by
+this fix to add the contribution due to the interaction between atoms
+and the region wall to both the global pressure and per-atom stress of
+the system via the :doc:`compute pressure <compute_pressure>` and
+:doc:`compute stress/atom <compute_stress_atom>` commands.  The former
+can be accessed by :doc:`thermodynamic output <thermo_style>`.  The
+default setting for this fix is :doc:`fix_modify virial no
+<fix_modify>`.
 
 The :doc:`fix_modify <fix_modify>` *respa* option is supported by this
 fix. This allows to set at which level of the :doc:`r-RESPA <run_style>`
 integrator the fix is adding its forces. Default is the outermost level.
 
 This fix computes a global scalar energy and a global 3-length vector
-of forces, which can be accessed by various :doc:`output commands <Howto_output>`.  The scalar energy is the sum of energy
-interactions for all particles interacting with the wall represented
-by the region surface.  The 3 vector quantities are the x,y,z
-components of the total force acting on the wall due to the particles.
-The scalar and vector values calculated by this fix are "extensive".
+of forces, which can be accessed by various :doc:`output commands
+<Howto_output>`.  The scalar energy is the sum of energy interactions
+for all particles interacting with the wall represented by the region
+surface.  The 3 vector quantities are the x,y,z components of the
+total force acting on the wall due to the particles.  The scalar and
+vector values calculated by this fix are "extensive".
 
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.
@@ -220,10 +229,10 @@ invoked by the :doc:`minimize <minimize>` command.
 
 .. note::
 
-   If you want the atom/wall interaction energy to be included in
-   the total potential energy of the system (the quantity being
-   minimized), you MUST enable the :doc:`fix_modify <fix_modify>` *energy*
-   option for this fix.
+   If you want the atom/wall interaction energy to be included in the
+   total potential energy of the system (the quantity being
+   minimized), you MUST enable the :doc:`fix_modify <fix_modify>`
+   *energy* option for this fix.
 
 Restrictions
 """"""""""""
@@ -239,4 +248,7 @@ Related commands
 :doc:`fix wall/harmonic <fix_wall>`,
 :doc:`fix wall/gran <fix_wall_gran>`
 
-**Default:** none
+Default
+"""""""
+
+none

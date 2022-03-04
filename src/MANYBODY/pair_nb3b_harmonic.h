@@ -1,6 +1,6 @@
-/* --*- c++ -*- ---------------------------------------------------------
+/* -*- c++ -*- ---------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(nb3b/harmonic,PairNb3bHarmonic)
-
+// clang-format off
+PairStyle(nb3b/harmonic,PairNb3bHarmonic);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_NB3B_HARMONIC_H
@@ -27,38 +27,34 @@ namespace LAMMPS_NS {
 class PairNb3bHarmonic : public Pair {
  public:
   PairNb3bHarmonic(class LAMMPS *);
-  virtual ~PairNb3bHarmonic();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  void init_style();
+  ~PairNb3bHarmonic() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void init_style() override;
+
+  static constexpr int NPARAMS_PER_LINE = 6;
 
  protected:
   struct Param {
     double k_theta, theta0, cutoff;
-    double cut,cutsq;
-    int ielement,jelement,kelement;
+    double cut, cutsq;
+    int ielement, jelement, kelement;
   };
 
-  double cutmax;                // max cutoff for all elements
-  int nelements;                // # of unique elements
-  char **elements;              // names of unique elements
-  int ***elem2param;            // mapping from element triplets to parameters
-  int *map;                     // mapping from atom types to elements
-  int nparams;                  // # of stored parameter sets
-  int maxparam;                 // max # of parameter sets
-  Param *params;                // parameter set for an I-J-K interaction
+  double cutmax;    // max cutoff for all elements
+  Param *params;    // parameter set for an I-J-K interaction
 
   void allocate();
   void read_file(char *);
   void setup_params();
   void twobody(Param *, double, double &, int, double &);
-  void threebody(Param *, Param *, Param *, double, double, double *, double *,
-                 double *, double *, int, double &);
+  void threebody(Param *, Param *, Param *, double, double, double *, double *, double *, double *,
+                 int, double &);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

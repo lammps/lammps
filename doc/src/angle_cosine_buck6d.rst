@@ -60,7 +60,7 @@ Restrictions
 :doc:`special_bonds <special_bonds>` 0.0 weighting of 1-3 interactions.
 
 This angle style can only be used if LAMMPS was built with the
-USER-MOFFF package.  See the :doc:`Build package <Build_package>` doc
+MOFFF package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
 Related commands
@@ -68,4 +68,7 @@ Related commands
 
 :doc:`angle_coeff <angle_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none

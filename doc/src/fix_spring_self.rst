@@ -41,17 +41,21 @@ directions, but it can be limited to the xy-, xz-, yz-plane and the
 x-, y-, or z-direction, thus restraining the atoms to a line or a
 plane, respectively.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-This fix writes the original coordinates of tethered atoms to :doc:`binary restart files <restart>`, so that the spring effect will be the
-same in a restarted simulation.  See the
-:doc:`read_restart <read_restart>` command for info on how to re-specify
-a fix in an input script that reads a restart file, so that the
-operation of the fix continues in an uninterrupted fashion.
+This fix writes the original coordinates of tethered atoms to
+:doc:`binary restart files <restart>`, so that the spring effect will
+be the same in a restarted simulation.  See the :doc:`read_restart
+<read_restart>` command for info on how to re-specify a fix in an
+input script that reads a restart file, so that the operation of the
+fix continues in an uninterrupted fashion.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
-fix to add the energy stored in the per-atom springs to the system's
-potential energy as part of :doc:`thermodynamic output <thermo_style>`.
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by
+this fix to add the energy stored in the per-atom springs to the
+global potential energy of the system as part of :doc:`thermodynamic
+output <thermo_style>`.  The default setting for this fix is
+:doc:`fix_modify energy no <fix_modify>`.
 
 The :doc:`fix_modify <fix_modify>` *respa* option is supported by
 this fix. This allows to set at which level of the :doc:`r-RESPA <run_style>`
@@ -86,4 +90,7 @@ Related commands
 :doc:`fix drag <fix_drag>`, :doc:`fix spring <fix_spring>`,
 :doc:`fix smd <fix_smd>`, :doc:`fix spring/rg <fix_spring_rg>`
 
-**Default:** none
+Default
+"""""""
+
+none

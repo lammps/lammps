@@ -1,6 +1,7 @@
 /old
 /html
 /html-offline
+/epub
 /latex
 /mathjax
 /spelling
@@ -10,3 +11,9 @@
 /Developer.pdf
 /doctrees
 /docenv
+/doxygen-warn.log
+/utils/sphinx-config/conf.py
+/doxygen/Doxyfile
+*.el
+/utils/sphinx-config/_static/mathjax
+/utils/sphinx-config/_static/polyfill.js

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ATOM_CLASS
-
-AtomStyle(tri,AtomVecTri)
-
+// clang-format off
+AtomStyle(tri,AtomVecTri);
+// clang-format on
 #else
 
 #ifndef LMP_ATOM_VEC_TRI_H
@@ -28,35 +28,38 @@ class AtomVecTri : public AtomVec {
  public:
   struct Bonus {
     double quat[4];
-    double c1[3],c2[3],c3[3];
+    double c1[3], c2[3], c3[3];
     double inertia[3];
     int ilocal;
   };
   struct Bonus *bonus;
 
   AtomVecTri(class LAMMPS *);
-  ~AtomVecTri();
-  void init();
+  ~AtomVecTri() override;
+  void init() override;
 
-  void grow_pointers();
-  void copy_bonus(int, int, int);
-  void clear_bonus();
-  int pack_comm_bonus(int, int *, double *);
-  void unpack_comm_bonus(int, int, double *);
-  int pack_border_bonus(int, int *, double *);
-  int unpack_border_bonus(int, int, double *);
-  int pack_exchange_bonus(int, double *);
-  int unpack_exchange_bonus(int, double *);
-  int size_restart_bonus();
-  int pack_restart_bonus(int, double *);
-  int unpack_restart_bonus(int, double *);
-  void data_atom_bonus(int, char **);
-  bigint memory_usage_bonus();
+  void grow_pointers() override;
+  void copy_bonus(int, int, int) override;
+  void clear_bonus() override;
+  int pack_comm_bonus(int, int *, double *) override;
+  void unpack_comm_bonus(int, int, double *) override;
+  int pack_border_bonus(int, int *, double *) override;
+  int unpack_border_bonus(int, int, double *) override;
+  int pack_exchange_bonus(int, double *) override;
+  int unpack_exchange_bonus(int, double *) override;
+  int size_restart_bonus() override;
+  int pack_restart_bonus(int, double *) override;
+  int unpack_restart_bonus(int, double *) override;
+  void data_atom_bonus(int, const std::vector<std::string> &) override;
+  double memory_usage_bonus() override;
 
-  void create_atom_post(int);
-  void data_atom_post(int);
-  void pack_data_pre(int);
-  void pack_data_post(int);
+  void create_atom_post(int) override;
+  void data_atom_post(int) override;
+  void pack_data_pre(int) override;
+  void pack_data_post(int) override;
+
+  int pack_data_bonus(double *, int) override;
+  void write_data_bonus(FILE *, int, double *, int) override;
 
   // unique to AtomVecTri
 
@@ -66,10 +69,10 @@ class AtomVecTri : public AtomVec {
 
  private:
   int *tri;
-  double *radius,*rmass;
-  double **omega,**angmom;
+  double *radius, *rmass;
+  double **omega, **angmom;
 
-  int nghost_bonus,nmax_bonus;
+  int nghost_bonus, nmax_bonus;
   int tri_flag;
   double rmass_one;
 
@@ -77,7 +80,7 @@ class AtomVecTri : public AtomVec {
   void copy_bonus_all(int, int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

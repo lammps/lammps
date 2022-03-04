@@ -24,7 +24,7 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *mol*\ , *region*\ , *maxangle*\ , *pressure*\ , *fugacity_coeff*, *full_energy*, *charge*\ , *group*\ , *grouptype*\ , *intra_energy*, *tfac_insert*, or *overlap_cutoff*
+     keyword = *mol*, *region*, *maxangle*, *pressure*, *fugacity_coeff*, *full_energy*, *charge*, *group*, *grouptype*, *intra_energy*, *tfac_insert*, or *overlap_cutoff*
        *mol* value = template-ID
          template-ID = ID of molecule template specified in a separate :doc:`molecule <molecule>` command
        *mcmoves* values = Patomtrans Pmoltrans Pmolrotate
@@ -68,7 +68,7 @@ Description
 This fix performs grand canonical Monte Carlo (GCMC) exchanges of
 atoms or molecules with an imaginary ideal gas
 reservoir at the specified T and chemical potential (mu) as discussed
-in :ref:`(Frenkel) <Frenkel>`. It also
+in :ref:`(Frenkel) <Frenkel2>`. It also
 attempts  Monte Carlo (MC) moves (translations and molecule
 rotations) within the simulation cell or
 region. If used with the :doc:`fix nvt <fix_nh>`
@@ -208,8 +208,8 @@ their bonds or angles constrained via SHAKE, use the *shake* keyword,
 specifying as its value the ID of a separate :doc:`fix shake <fix_shake>` command which also appears in your input script.
 
 Optionally, users may specify the relative amounts of different MC
-moves using the *mcmoves* keyword. The values *Patomtrans*\ ,
-*Pmoltrans*\ , *Pmolrotate* specify the average proportion of
+moves using the *mcmoves* keyword. The values *Patomtrans*,
+*Pmoltrans*, *Pmolrotate* specify the average proportion of
 atom translations, molecule translations, and molecule rotations,
 respectively. The values must be non-negative integers or real
 numbers, with at least one non-zero value. For example, (10,30,0)
@@ -272,7 +272,7 @@ styles except *lj* it is defined as the thermal de Broglie wavelength
    \Lambda = \sqrt{ \frac{h^2}{2 \pi m k T}}
 
 where *h* is Planck's constant, and *m* is the mass of the exchanged atom
-or molecule.  For unit style *lj*\ , :math:`\Lambda` is simply set to
+or molecule.  For unit style *lj*, :math:`\Lambda` is simply set to
 unity. Note that prior to March 2017, :math:`\Lambda` for unit style *lj*
 was calculated using the above formula with *h* set to the rather specific
 value of 0.18292026.  Chemical potential under the old definition can
@@ -374,7 +374,7 @@ in the context of NVT dynamics.
    has been reached.
 
 With some pair_styles, such as :doc:`Buckingham <pair_buck>`,
-:doc:`Born-Mayer-Huggins <pair_born>` and :doc:`ReaxFF <pair_reaxc>`, two
+:doc:`Born-Mayer-Huggins <pair_born>` and :doc:`ReaxFF <pair_reaxff>`, two
 atoms placed close to each other may have an arbitrary large, negative
 potential energy due to the functional form of the potential.  While
 these unphysical configurations are inaccessible to typical dynamical
@@ -395,14 +395,16 @@ The *group* keyword adds all inserted atoms to the
 adds all inserted atoms of the specified type to the
 :doc:`group <group>` of the group-ID value.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-This fix writes the state of the fix to :doc:`binary restart files <restart>`.  This includes information about the random
-number generator seed, the next timestep for MC exchanges,  the number
-of MC step attempts and successes etc.  See
-the :doc:`read_restart <read_restart>` command for info on how to
-re-specify a fix in an input script that reads a restart file, so that
-the operation of the fix continues in an uninterrupted fashion.
+This fix writes the state of the fix to :doc:`binary restart files
+<restart>`.  This includes information about the random number
+generator seed, the next timestep for MC exchanges, the number of MC
+step attempts and successes etc.  See the :doc:`read_restart
+<read_restart>` command for info on how to re-specify a fix in an
+input script that reads a restart file, so that the operation of the
+fix continues in an uninterrupted fashion.
 
 .. note::
 
@@ -410,8 +412,8 @@ the operation of the fix continues in an uninterrupted fashion.
    after reading the restart with :doc:`reset_timestep <reset_timestep>`.
    The fix will try to detect it and stop with an error.
 
-None of the :doc:`fix_modify <fix_modify>` options are relevant to this
-fix.
+None of the :doc:`fix_modify <fix_modify>` options are relevant to
+this fix.
 
 This fix computes a global vector of length 8, which can be accessed
 by various :doc:`output commands <Howto_output>`.  The vector values are
@@ -429,7 +431,8 @@ the following global cumulative quantities:
 The vector values calculated by this fix are "extensive".
 
 No parameter of this fix can be used with the *start/stop* keywords of
-the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
+the :doc:`run <run>` command.  This fix is not invoked during
+:doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
@@ -447,6 +450,11 @@ well in parallel. Only usable for 3D simulations.
 When using fix gcmc in combination with fix shake or fix rigid,
 only GCMC exchange moves are supported, so the argument
 *M* must be zero.
+
+When using fix gcmc in combination with fix rigid, deletion
+of the last remaining molecule is not allowed for technical reasons,
+and so the molecule count will never drop below 1, regardless of the
+specified chemical potential.
 
 Note that very lengthy simulations involving insertions/deletions of
 billions of gas molecules may run out of atom or molecule IDs and
@@ -481,7 +489,7 @@ listed above.
 
 ----------
 
-.. _Frenkel:
+.. _Frenkel2:
 
 **(Frenkel)** Frenkel and Smit, Understanding Molecular Simulation,
 Academic Press, London, 2002.

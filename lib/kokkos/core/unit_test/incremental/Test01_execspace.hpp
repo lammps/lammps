@@ -73,9 +73,9 @@ struct TestIncrExecSpaceTypedef {
 template <class ExecSpace>
 struct TestIncrExecSpace {
   void testit() {
-    typedef typename ExecSpace::device_type device_type;
-    typedef typename device_type::memory_space memory_space;
-    typedef typename device_type::execution_space execution_space;
+    using device_type     = typename ExecSpace::device_type;
+    using memory_space    = typename device_type::memory_space;
+    using execution_space = typename device_type::execution_space;
 
     const bool passed =
         std::is_same<device_type,
@@ -88,7 +88,7 @@ struct TestIncrExecSpace {
     ExecSpace().fence();
 
     auto concurrency = ExecSpace().concurrency();
-    ASSERT_TRUE(concurrency > 0);
+    ASSERT_GT(concurrency, 0);
 
     int in_parallel = ExecSpace::in_parallel();
     ASSERT_FALSE(in_parallel);
@@ -107,5 +107,7 @@ TEST(TEST_CATEGORY, IncrTest_01_execspace) {
   ASSERT_TRUE(Kokkos::is_execution_space<TEST_EXECSPACE>::value);
   ASSERT_FALSE(Kokkos::is_execution_space<
                TestIncrExecSpaceTypedef<TEST_EXECSPACE>>::value);
+  TestIncrExecSpace<TEST_EXECSPACE> test;
+  test.testit();
 }
 }  // namespace Test

@@ -49,7 +49,7 @@ command's documentation for the formula it computes.
 COMPASS is a general force field for atomistic simulation of common
 organic molecules, inorganic small molecules, and polymers which was
 developed using ab initio and empirical parameterization techniques.
-See the :doc:`Tools <Tools>` doc page for the msi2lmp tool for creating
+See the :doc:`Tools <Tools>` page for the msi2lmp tool for creating
 LAMMPS template input and data files from BIOVIA's Materials Studio
 files.  Please note that the msi2lmp tool is very old and largely
 unmaintained, so it does not support all features of Materials Studio
@@ -91,6 +91,7 @@ documentation for the formula it computes.
 * :doc:`bond_style <bond_harmonic>` harmonic
 * :doc:`bond_style <bond_morse>` morse
 
+* :doc:`angle_style <angle_cosine_squared>` cosine/squared
 * :doc:`angle_style <angle_harmonic>` harmonic
 * :doc:`angle_style <angle_cosine>` cosine
 * :doc:`angle_style <angle_cosine_periodic>` cosine/periodic
@@ -102,8 +103,8 @@ documentation for the formula it computes.
 * :doc:`pair_style <pair_buck>` buck/coul/cut
 * :doc:`pair_style <pair_buck>` buck/coul/long
 * :doc:`pair_style <pair_lj>` lj/cut
-* :doc:`pair_style <pair_lj>` lj/cut/coul/cut
-* :doc:`pair_style <pair_lj>` lj/cut/coul/long
+* :doc:`pair_style <pair_lj_cut_coul>` lj/cut/coul/cut
+* :doc:`pair_style <pair_lj_cut_coul>` lj/cut/coul/long
 
 * :doc:`pair_style <pair_hbond_dreiding>` hbond/dreiding/lj
 * :doc:`pair_style <pair_hbond_dreiding>` hbond/dreiding/morse

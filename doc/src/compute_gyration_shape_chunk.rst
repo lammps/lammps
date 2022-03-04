@@ -64,13 +64,14 @@ The tensor keyword must be specified in the compute gyration/chunk command.
    atom.  You can reset the image flags (e.g. to 0) before invoking this
    compute by using the :doc:`set image <set>` command.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global array with six columns,
 which can be accessed by indices 1-6. The first three columns are the
 eigenvalues of the gyration tensor followed by the asphericity, the acylindricity
 and the relative shape anisotropy.  The computed values can be used by any command
-that uses global array values from a compute as input.  See the :doc:`Howto output <Howto_output>` doc page for an overview of LAMMPS output
+that uses global array values from a compute as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options.
 
 The array calculated by this compute is
@@ -80,8 +81,8 @@ distance\^2 :doc:`units <units>` while the sixth one is dimensionless.
 Restrictions
 """"""""""""
 
-This compute is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This compute is part of the EXTRA-COMPUTE package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
@@ -89,7 +90,10 @@ Related commands
 :doc:`compute gyration/chunk <compute_gyration_chunk>`
 :doc:`compute gyration/shape <compute_gyration_shape>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

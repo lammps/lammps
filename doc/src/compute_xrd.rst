@@ -71,8 +71,8 @@ reciprocal lattice nodes. The mesh spacing is defined either (a)
 by the entire simulation domain or (b) manually using selected values as
 shown in the 2D diagram below.
 
-.. image:: JPG/xrd_mesh_small.jpg
-   :target: JPG/xrd_mesh.jpg
+.. image:: img/xrd_mesh.jpg
+   :scale: 75%
    :align: center
 
 For a mesh defined by the simulation domain, a rectilinear grid is
@@ -203,7 +203,8 @@ type. Valid chemical symbols for compute xrd are:
 If the *echo* keyword is specified, compute xrd will provide extra
 reporting information to the screen.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global array.  The number of rows in the
 array is the number of reciprocal lattice nodes that are explored
@@ -222,8 +223,8 @@ All array values calculated by this compute are "intensive".
 Restrictions
 """"""""""""
 
-This compute is part of the USER-DIFFRACTION package.  It is only
-enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This compute is part of the DIFFRACTION package.  It is only
+enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 The compute_xrd command does not work for triclinic cells.
 

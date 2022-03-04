@@ -47,9 +47,9 @@
 #include <cstdlib>
 
 #include <Kokkos_Core.hpp>
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 
-typedef Kokkos::DefaultExecutionSpace exec_space;
+using exec_space = Kokkos::DefaultExecutionSpace;
 
 #define RESET 0
 #define BRIGHT 1
@@ -80,9 +80,9 @@ void textcolor_standard() { textcolor(RESET, BLACK, WHITE); }
 
 template <class T, class DEVICE_TYPE>
 struct ZeroFunctor {
-  typedef DEVICE_TYPE execution_space;
-  typedef typename Kokkos::View<T, execution_space> type;
-  typedef typename Kokkos::View<T, execution_space>::HostMirror h_type;
+  using execution_space = DEVICE_TYPE;
+  using type            = typename Kokkos::View<T, execution_space>;
+  using h_type          = typename Kokkos::View<T, execution_space>::HostMirror;
   type data;
   KOKKOS_INLINE_FUNCTION
   void operator()(int) const { data() = 0; }
@@ -94,8 +94,8 @@ struct ZeroFunctor {
 
 template <class T, class DEVICE_TYPE>
 struct AddFunctor {
-  typedef DEVICE_TYPE execution_space;
-  typedef Kokkos::View<T, execution_space> type;
+  using execution_space = DEVICE_TYPE;
+  using type            = Kokkos::View<T, execution_space>;
   type data;
 
   KOKKOS_INLINE_FUNCTION
@@ -123,8 +123,8 @@ T AddLoop(int loop) {
 
 template <class T, class DEVICE_TYPE>
 struct AddNonAtomicFunctor {
-  typedef DEVICE_TYPE execution_space;
-  typedef Kokkos::View<T, execution_space> type;
+  using execution_space = DEVICE_TYPE;
+  using type            = Kokkos::View<T, execution_space>;
   type data;
 
   KOKKOS_INLINE_FUNCTION
@@ -166,8 +166,8 @@ T AddLoopSerial(int loop) {
 
 template <class T, class DEVICE_TYPE>
 struct CASFunctor {
-  typedef DEVICE_TYPE execution_space;
-  typedef Kokkos::View<T, execution_space> type;
+  using execution_space = DEVICE_TYPE;
+  using type            = Kokkos::View<T, execution_space>;
   type data;
 
   KOKKOS_INLINE_FUNCTION
@@ -204,8 +204,8 @@ T CASLoop(int loop) {
 
 template <class T, class DEVICE_TYPE>
 struct CASNonAtomicFunctor {
-  typedef DEVICE_TYPE execution_space;
-  typedef Kokkos::View<T, execution_space> type;
+  using execution_space = DEVICE_TYPE;
+  using type            = Kokkos::View<T, execution_space>;
   type data;
 
   KOKKOS_INLINE_FUNCTION
@@ -268,8 +268,8 @@ T CASLoopSerial(int loop) {
 
 template <class T, class DEVICE_TYPE>
 struct ExchFunctor {
-  typedef DEVICE_TYPE execution_space;
-  typedef Kokkos::View<T, execution_space> type;
+  using execution_space = DEVICE_TYPE;
+  using type            = Kokkos::View<T, execution_space>;
   type data, data2;
 
   KOKKOS_INLINE_FUNCTION
@@ -309,8 +309,8 @@ T ExchLoop(int loop) {
 
 template <class T, class DEVICE_TYPE>
 struct ExchNonAtomicFunctor {
-  typedef DEVICE_TYPE execution_space;
-  typedef Kokkos::View<T, execution_space> type;
+  using execution_space = DEVICE_TYPE;
+  using type            = Kokkos::View<T, execution_space>;
   type data, data2;
 
   KOKKOS_INLINE_FUNCTION
@@ -401,7 +401,7 @@ template <class T>
 void Loop(int loop, int test, const char* type_name) {
   LoopVariant<T>(loop, test);
 
-  Kokkos::Impl::Timer timer;
+  Kokkos::Timer timer;
   T res       = LoopVariant<T>(loop, test);
   double time = timer.seconds();
 
@@ -448,15 +448,15 @@ int main(int argc, char* argv[]) {
 
   for (int i = 0; i < argc; i++) {
     if ((strcmp(argv[i], "--test") == 0)) {
-      test = atoi(argv[++i]);
+      test = std::stoi(argv[++i]);
       continue;
     }
     if ((strcmp(argv[i], "--type") == 0)) {
-      type = atoi(argv[++i]);
+      type = std::stoi(argv[++i]);
       continue;
     }
     if ((strcmp(argv[i], "-l") == 0) || (strcmp(argv[i], "--loop") == 0)) {
-      loop = atoi(argv[++i]);
+      loop = std::stoi(argv[++i]);
       continue;
     }
   }

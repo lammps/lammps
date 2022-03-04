@@ -1,0 +1,112 @@
+This directory contains multiple examples of 
+machine-learning potentials defined using the 
+MLIAP package in LAMMPS. The input files
+are described below.
+
+in.mliap.snap.Ta06A
+-------------------
+Run linear SNAP, equivalent to examples/snap/in.snap.Ta06A
+
+in.mliap.snap.WBe.PRB2019
+-------------------------
+Run linear SNAP, equivalent to examples/snap/in.snap.WBe.PRB2019
+
+in.mliap.snap.quadratic
+-----------------------
+Run quadratic SNAP
+
+in.mliap.snap.chem
+------------------
+Run EME-SNAP, equivalent to examples/snap/in.snap.InP.JCPA2020
+
+in.mliap.snap.compute
+---------------------
+Generate the A matrix, the gradients (w.r.t. coefficients) 
+of total potential energy, forces, and stress tensor for 
+linear SNAP, equivalent to in.snap.compute
+
+in.mliap.quadratic.compute
+--------------------------
+Generate the A matrix, the gradients (w.r.t. coefficients) 
+of total potential energy, forces, and stress tensor for 
+for quadratic SNAP, equivalent to in.snap.compute.quadratic
+
+in.mliap.pytorch.Ta06A
+-----------------------
+This reproduces the output of in.mliap.snap.Ta06A above,
+but using the Python coupling to PyTorch.
+
+This example can be run in two different ways:
+
+1: Running a LAMMPS executable: in.mliap.pytorch.Ta06A
+
+First run ``python convert_mliap_Ta06A.py``. It creates
+a PyTorch energy model that replicates the 
+SNAP Ta06A potential and saves it in the file 
+"Ta06A.mliap.pytorch.model.pt".
+
+You can then run the example as follows
+
+`lmp -in in.mliap.pytorch.Ta06A -echo both`
+
+The resultant log.lammps output should be identical to that generated
+by in.mliap.snap.Ta06A.
+
+If this fails, see the instructions for building the MLIAP package
+with Python support enabled. Also, confirm that the
+LAMMPS Python embedded Python interpreter is
+working by running ../examples/in.python.
+
+2: Running a Python script: mliap_pytorch_Ta06A.py
+
+Before testing this, ensure that the previous method
+(running a LAMMPS executable) works.
+
+You can run the example in serial: 
+
+`python mliap_pytorch_Ta06A.py`
+
+or in parallel:
+
+`mpirun -np 4 python mliap_pytorch_Ta06A.py`
+
+The resultant log.lammps output should be identical to that generated
+by in.mliap.snap.Ta06A and in.mliap.pytorch.Ta06A.
+
+Not all Python installations support this mode of operation.
+It requires that the Python interpreter be initialized. If not,
+the script will exit with an error message.
+
+in.mliap.pytorch.relu1hidden
+----------------------------
+This example demonstrates a simple neural network potential
+using PyTorch and SNAP descriptors. 
+
+`lmp -in in.mliap.pytorch.relu1hidden -echo both`
+
+It was trained on just the energy component (no forces) of 
+the data used in the original SNAP Ta06A potential for 
+tantalum (Thompson, Swiler, Trott, Foiles, Tucker, 
+J Comp Phys, 285, 316 (2015).). Because of the very small amount
+of energy training data, it uses just 1 hidden layer with 
+a ReLU activation function. It is not expected to be 
+very accurate for forces. 
+
+NOTE: Unlike the previous example, this example uses 
+a pre-built PyTorch file `Ta06A.mliap.pytorch.model.pt`. 
+It is read using `torch.load`,
+which implicitly uses the Python `pickle` module.
+This is known to be insecure. It is possible to construct malicious 
+pickle data that will execute arbitrary code during unpickling. Never 
+load data that could have come from an untrusted source, or that 
+could have been tampered with. Only load data you trust.
+
+in.mliap.nn.Ta06A
+-------------------
+Run linear SNAP using the "nn" model style, equivalent to examples/snap/in.snap.Ta06A
+
+in.mliap.nn.cu
+-------------------------
+Run a neural network potential for Cu, a combination of SNAP descriptors and the "nn" model style
+
+

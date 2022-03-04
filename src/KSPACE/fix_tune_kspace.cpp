@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,19 +17,22 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_tune_kspace.h"
+
+#include "comm.h"
+#include "compute.h"
+#include "error.h"
+#include "force.h"
+#include "info.h"
+#include "kspace.h"
+#include "modify.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "timer.h"
+#include "update.h"
+
 #include <cmath>
 #include <cstring>
 #include <limits>
-#include "update.h"
-#include "force.h"
-#include "kspace.h"
-#include "pair.h"
-#include "error.h"
-#include "memory.h"
-#include "timer.h"
-#include "neighbor.h"
-#include "modify.h"
-#include "compute.h"
 
 #define SWAP(a,b) {temp=(a);(a)=(b);(b)=temp;}
 #define SIGN(a,b) ((b) >= 0.0 ? fabs(a) : -fabs(a))
@@ -41,7 +45,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixTuneKspace::FixTuneKspace(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+  Fix(lmp, narg, arg),
+  acc_str(""), kspace_style(""), pair_style(""), base_pair_style("")
 {
   if (narg < 3) error->all(FLERR,"Illegal fix tune/kspace command");
 
@@ -58,7 +63,7 @@ FixTuneKspace::FixTuneKspace(LAMMPS *lmp, int narg, char **arg) :
 
   // parse arguments
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix tune/kspace command");
 
   // set up reneighboring
@@ -94,10 +99,9 @@ void FixTuneKspace::init()
   if (force->kspace->dipoleflag)
     error->all(FLERR,"Cannot use fix tune/kspace with dipole long-range solver");
 
+  store_old_kspace_settings();
   double old_acc = force->kspace->accuracy/force->kspace->two_charge_force;
-  char old_acc_str[16];
-  snprintf(old_acc_str,16,"%g",old_acc);
-  strncpy(new_acc_str,old_acc_str,16);
+  acc_str = std::to_string(old_acc);
 
   int itmp;
   double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
@@ -116,51 +120,52 @@ void FixTuneKspace::pre_exchange()
   if (next_reneighbor != update->ntimestep) return;
   next_reneighbor = update->ntimestep + nevery;
 
+  Info *info = new Info(lmp);
+  bool has_msm = info->has_style("pair", base_pair_style + "/msm");
+  delete info;
+
   double time = get_timing_info();
 
-  if (strcmp(force->kspace_style,"ewald") == 0) ewald_time = time;
-  if (strcmp(force->kspace_style,"pppm") == 0) pppm_time = time;
-  if (strcmp(force->kspace_style,"msm") == 0) msm_time = time;
+  if (utils::strmatch(force->kspace_style,"^ewald")) ewald_time = time;
+  if (utils::strmatch(force->kspace_style,"^pppm")) pppm_time = time;
+  if (utils::strmatch(force->kspace_style,"^msm")) msm_time = time;
 
   niter++;
   if (niter == 1) {
     // test Ewald
     store_old_kspace_settings();
-    strcpy(new_kspace_style,"ewald");
-    snprintf(new_pair_style,64,"%s/long",base_pair_style);
-    update_pair_style(new_pair_style,pair_cut_coul);
-    update_kspace_style(new_kspace_style,new_acc_str);
+    pair_style = base_pair_style + "/long";
+    update_pair_style(pair_style,pair_cut_coul);
+    update_kspace_style("ewald",acc_str);
   } else if (niter == 2) {
     // test PPPM
     store_old_kspace_settings();
-    strcpy(new_kspace_style,"pppm");
-    snprintf(new_pair_style,64,"%s/long",base_pair_style);
-    update_pair_style(new_pair_style,pair_cut_coul);
-    update_kspace_style(new_kspace_style,new_acc_str);
-  } else if (niter == 3) {
+    pair_style = base_pair_style + "/long";
+    update_pair_style(pair_style,pair_cut_coul);
+    update_kspace_style("pppm",acc_str);
+  } else if (has_msm && (niter == 3)) {
     // test MSM
     store_old_kspace_settings();
-    strcpy(new_kspace_style,"msm");
-    snprintf(new_pair_style,64,"%s/msm",base_pair_style);
-    update_pair_style(new_pair_style,pair_cut_coul);
-    update_kspace_style(new_kspace_style,new_acc_str);
+    pair_style = base_pair_style + "/msm";
+    update_pair_style(pair_style,pair_cut_coul);
+    update_kspace_style("msm",acc_str);
   } else if (niter == 4) {
     store_old_kspace_settings();
-    if (screen) fprintf(screen,"ewald_time = %g\npppm_time = %g\nmsm_time = %g",
-                        ewald_time, pppm_time, msm_time);
-    if (logfile) fprintf(logfile,"ewald_time = %g\npppm_time = %g\nmsm_time = %g",
-                         ewald_time, pppm_time, msm_time);
+    if (comm->me == 0)
+      utils::logmesg(lmp,"ewald_time = {}\npppm_time = {}\nmsm_time = {}\n",
+                     ewald_time, pppm_time, msm_time);
     // switch to fastest one
-    strcpy(new_kspace_style,"ewald");
-    snprintf(new_pair_style,64,"%s/long",base_pair_style);
+    if (msm_time == 0.0) msm_time = 1.0e300;
+    kspace_style = "ewald";
+    pair_style = base_pair_style + "/long";
     if (pppm_time < ewald_time && pppm_time < msm_time)
-      strcpy(new_kspace_style,"pppm");
+      kspace_style = "pppm";
     else if (msm_time < pppm_time && msm_time < ewald_time) {
-      strcpy(new_kspace_style,"msm");
-      snprintf(new_pair_style,64,"%s/msm",base_pair_style);
+      kspace_style = "msm";
+      pair_style = base_pair_style + "/msm";
     }
-    update_pair_style(new_pair_style,pair_cut_coul);
-    update_kspace_style(new_kspace_style,new_acc_str);
+    update_pair_style(pair_style,pair_cut_coul);
+    update_kspace_style(kspace_style,acc_str);
   } else {
     adjust_rcut(time);
   }
@@ -202,30 +207,26 @@ double FixTuneKspace::get_timing_info()
 
 void FixTuneKspace::store_old_kspace_settings()
 {
-  int n = strlen(force->kspace_style) + 1;
-  char *old_kspace_style = new char[n];
-  strcpy(old_kspace_style,force->kspace_style);
-  strcpy(new_kspace_style,old_kspace_style);
-  double old_acc = force->kspace->accuracy_relative;
-  char old_acc_str[16];
-  snprintf(old_acc_str,16,"%g",old_acc);
-  strcpy(new_pair_style,force->pair_style);
-  strcpy(base_pair_style,force->pair_style);
-  char *trunc;
-  if ((trunc = strstr(base_pair_style, "/long")) != NULL) *trunc = '\0';
-  if ((trunc = strstr(base_pair_style, "/msm" )) != NULL) *trunc = '\0';
+  kspace_style = force->kspace_style;
+  pair_style = force->pair_style;
+
+  std::size_t found;
+  if (std::string::npos != (found = pair_style.rfind("/long")))
+    base_pair_style = pair_style.substr(0,found);
+  else if (std::string::npos != (found = pair_style.rfind("/msm")))
+    base_pair_style = pair_style.substr(0,found);
+  else base_pair_style = pair_style;
 
   old_differentiation_flag = force->kspace->differentiation_flag;
   old_slabflag = force->kspace->slabflag;
   old_slab_volfactor = force->kspace->slab_volfactor;
-  delete[] old_kspace_style;
 }
 
 /* ----------------------------------------------------------------------
    update the pair style if necessary, preserving the settings
 ------------------------------------------------------------------------- */
 
-void FixTuneKspace::update_pair_style(char *new_pair_style,
+void FixTuneKspace::update_pair_style(const std::string &new_pair_style,
                                       double pair_cut_coul)
 {
   int itmp;
@@ -233,25 +234,26 @@ void FixTuneKspace::update_pair_style(char *new_pair_style,
   *p_cutoff = pair_cut_coul;
 
   // check to see if we need to change pair styles
-  if (strcmp(new_pair_style,force->pair_style) == 0) return;
+  if (new_pair_style == force->pair_style) return;
 
   // create a temporary file to store current pair settings
   FILE *p_pair_settings_file;
   p_pair_settings_file = tmpfile();
   force->pair->write_restart(p_pair_settings_file);
   rewind(p_pair_settings_file);
-  if (screen) fprintf(screen,"Creating new pair style: %s\n",new_pair_style);
-  if (logfile) fprintf(logfile,"Creating new pair style: %s\n",new_pair_style);
+  if (comm->me == 0)
+    utils::logmesg(lmp,"Creating new pair style: {}\n",new_pair_style);
+
   // delete old pair style and create new one
-  force->create_pair(new_pair_style,1);
+  force->create_pair(new_pair_style.c_str(),1);
 
   // restore current pair settings from temporary file
   force->pair->read_restart(p_pair_settings_file);
 
   double *pcutoff = (double *) force->pair->extract("cut_coul",itmp);
   double current_cutoff = *pcutoff;
-  if (screen) fprintf(screen,"Coulomb cutoff for real space: %g\n", current_cutoff);
-  if (logfile) fprintf(logfile,"Coulomb cutoff for real space: %g\n", current_cutoff);
+  if (comm->me == 0)
+    utils::logmesg(lmp,"Coulomb cutoff for real space: {}\n",current_cutoff);
 
   // close temporary file
   fclose(p_pair_settings_file);
@@ -261,26 +263,14 @@ void FixTuneKspace::update_pair_style(char *new_pair_style,
    update the kspace style if necessary
 ------------------------------------------------------------------------- */
 
-void FixTuneKspace::update_kspace_style(char *new_kspace_style,
-                                        char *new_acc_str)
+void FixTuneKspace::update_kspace_style(const std::string &new_kspace_style,
+                                        const std::string &new_acc_str)
 {
-  // create kspace style char string
-
-  int narg = 2;
-  char **arg;
-  arg = NULL;
-  int maxarg = 100;
-  arg = (char **) memory->srealloc(arg,maxarg*sizeof(char *),"tune/kspace:arg");
-  int n = 12;
-  arg[0] = new char[n];
-  strcpy(arg[0],new_kspace_style);
-  arg[1] = new char[n];
-  strcpy(arg[1],new_acc_str);
-
   // delete old kspace style and create new one
 
-  force->create_kspace(arg[0],1);
-  force->kspace->settings(narg-1,&arg[1]);
+  char *tmp_acc_str = (char *)new_acc_str.c_str();
+  force->create_kspace(new_kspace_style.c_str(),1);
+  force->kspace->settings(1,&tmp_acc_str);
   force->kspace->differentiation_flag = old_differentiation_flag;
   force->kspace->slabflag = old_slabflag;
   force->kspace->slab_volfactor = old_slab_volfactor;
@@ -299,8 +289,6 @@ void FixTuneKspace::update_kspace_style(char *new_kspace_style,
   // Re-init computes to update pointers to virials, etc.
 
   for (int i = 0; i < modify->ncompute; i++) modify->compute[i]->init();
-
-  memory->sfree(arg);
 }
 
 /* ----------------------------------------------------------------------
@@ -309,7 +297,7 @@ void FixTuneKspace::update_kspace_style(char *new_kspace_style,
 
 void FixTuneKspace::adjust_rcut(double time)
 {
-  if (strcmp(force->kspace_style,"msm") == 0) return;
+  if (utils::strmatch(force->kspace_style,"^msm")) return;
   if (converged) return;
 
   double temp;
@@ -319,8 +307,8 @@ void FixTuneKspace::adjust_rcut(double time)
   int itmp;
   double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   double current_cutoff = *p_cutoff;
-  if (screen) fprintf(screen,"Old Coulomb cutoff for real space: %g\n",current_cutoff);
-  if (logfile) fprintf(logfile,"Old Coulomb cutoff for real space: %g\n",current_cutoff);
+  if (comm->me == 0)
+    utils::logmesg(lmp,"Old Coulomb cutoff for real space: {}\n",current_cutoff);
 
   // use Brent's method from Numerical Recipes to find optimal real space cutoff
 
@@ -390,12 +378,12 @@ void FixTuneKspace::adjust_rcut(double time)
   // report the new cutoff
   double *new_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   current_cutoff = *new_cutoff;
-  if (screen) fprintf(screen,"Adjusted Coulomb cutoff for real space: %g\n", current_cutoff);
-  if (logfile) fprintf(logfile,"Adjusted Coulomb cutoff for real space: %g\n", current_cutoff);
+  if (comm->me == 0)
+    utils::logmesg(lmp,"Adjusted Coulomb cutoff for real space: {}\n", current_cutoff);
 
   store_old_kspace_settings();
-  update_pair_style(new_pair_style,pair_cut_coul);
-  update_kspace_style(new_kspace_style,new_acc_str);
+  update_pair_style(pair_style,pair_cut_coul);
+  update_kspace_style(kspace_style,acc_str);
 }
 
 /* ----------------------------------------------------------------------

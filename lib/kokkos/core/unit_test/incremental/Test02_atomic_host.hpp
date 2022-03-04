@@ -52,11 +52,10 @@
 #include <Kokkos_Core.hpp>
 #include <gtest/gtest.h>
 
-using value_type = double;
-
 namespace Test {
 
 struct TestIncrAtomic {
+  using value_type  = double;
   value_type value1 = 1.5, value2 = 0.5;
 
   void testExchange() {
@@ -79,7 +78,7 @@ struct TestIncrAtomic {
   }
 };
 
-TEST(TEST_CATEGORY, IncrTest_01_AtomicExchange) {
+TEST(TEST_CATEGORY, IncrTest_02_AtomicExchange) {
   TestIncrAtomic test;
   test.testExchange();
 }

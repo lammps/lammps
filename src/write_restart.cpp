@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,29 +13,29 @@
 ------------------------------------------------------------------------- */
 
 #include "write_restart.h"
-#include <mpi.h>
-#include <cstring>
+
+#include "angle.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "group.h"
-#include "force.h"
-#include "pair.h"
 #include "bond.h"
-#include "angle.h"
-#include "dihedral.h"
-#include "improper.h"
-#include "update.h"
-#include "neighbor.h"
-#include "domain.h"
-#include "modify.h"
-#include "fix.h"
-#include "universe.h"
 #include "comm.h"
-#include "output.h"
-#include "thermo.h"
-#include "mpiio.h"
-#include "memory.h"
+#include "dihedral.h"
+#include "domain.h"
 #include "error.h"
+#include "fix.h"
+#include "force.h"
+#include "group.h"
+#include "improper.h"
+#include "memory.h"
+#include "modify.h"
+#include "mpiio.h"
+#include "neighbor.h"
+#include "output.h"
+#include "pair.h"
+#include "thermo.h"
+#include "update.h"
+
+#include <cstring>
 
 #include "lmprestart.h"
 
@@ -42,13 +43,13 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-WriteRestart::WriteRestart(LAMMPS *lmp) : Pointers(lmp)
+WriteRestart::WriteRestart(LAMMPS *lmp) : Command(lmp)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
   multiproc = 0;
   noinit = 0;
-  fp = NULL;
+  fp = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -63,22 +64,20 @@ void WriteRestart::command(int narg, char **arg)
 
   // if filename contains a "*", replace with current timestep
 
-  char *ptr;
-  int n = strlen(arg[0]) + 16;
-  char *file = new char[n];
-
-  if ((ptr = strchr(arg[0],'*'))) {
-    *ptr = '\0';
-    sprintf(file,"%s" BIGINT_FORMAT "%s",arg[0],update->ntimestep,ptr+1);
-    *ptr = '*'; // must restore arg[0] so it can be correctly parsed below
-  } else strcpy(file,arg[0]);
+  std::string file = arg[0];
+  std::size_t found = file.find('*');
+  if (found != std::string::npos)
+    file.replace(found,1,fmt::format("{}",update->ntimestep));
 
   // check for multiproc output and an MPI-IO filename
 
   if (strchr(arg[0],'%')) multiproc = nprocs;
   else multiproc = 0;
-  if (strstr(arg[0],".mpiio")) mpiioflag = 1;
+  if (utils::strmatch(arg[0],"\\.mpiio$")) mpiioflag = 1;
   else mpiioflag = 0;
+
+  if ((comm->me == 0) && mpiioflag)
+    error->warning(FLERR,"MPI-IO output is unmaintained and unreliable. Use with caution.");
 
   // setup output style and process optional args
   // also called by Output class for periodic restart files
@@ -89,8 +88,7 @@ void WriteRestart::command(int narg, char **arg)
   // comm::init needs neighbor::init needs pair::init needs kspace::init, etc
 
   if (noinit == 0) {
-    if (comm->me == 0 && screen)
-      fprintf(screen,"System init for write_restart ...\n");
+    if (comm->me == 0) utils::logmesg(lmp,"System init for write_restart ...\n");
     lmp->init();
 
     // move atoms to new processors before writing file
@@ -116,7 +114,6 @@ void WriteRestart::command(int narg, char **arg)
   // write single restart file
 
   write(file);
-  delete [] file;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -163,7 +160,7 @@ void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
       if (!multiproc)
         error->all(FLERR,"Cannot use write_restart fileper "
                    "without % in restart file name");
-      int nper = force->inumeric(FLERR,arg[iarg+1]);
+      int nper = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nper <= 0) error->all(FLERR,"Illegal write_restart command");
 
       multiproc = nprocs/nper;
@@ -181,7 +178,7 @@ void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
       if (!multiproc)
         error->all(FLERR,"Cannot use write_restart nfile "
                    "without % in restart file name");
-      int nfile = force->inumeric(FLERR,arg[iarg+1]);
+      int nfile = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nfile <= 0) error->all(FLERR,"Illegal write_restart command");
       nfile = MIN(nfile,nprocs);
 
@@ -211,7 +208,7 @@ void WriteRestart::multiproc_options(int multiproc_caller, int mpiioflag_caller,
    file = final file name to write, except may contain a "%"
 ------------------------------------------------------------------------- */
 
-void WriteRestart::write(char *file)
+void WriteRestart::write(const std::string &file)
 {
   // special case where reneighboring is not done in integrator
   //   on timestep restart file is written (due to build_once being set)
@@ -233,21 +230,13 @@ void WriteRestart::write(char *file)
   // open single restart file or base file for multiproc case
 
   if (me == 0) {
-    char *hfile;
-    if (multiproc) {
-      hfile = new char[strlen(file) + 16];
-      char *ptr = strchr(file,'%');
-      *ptr = '\0';
-      sprintf(hfile,"%s%s%s",file,"base",ptr+1);
-      *ptr = '%';
-    } else hfile = file;
-    fp = fopen(hfile,"wb");
-    if (fp == NULL) {
-      char str[128];
-      snprintf(str,128,"Cannot open restart file %s",hfile);
-      error->one(FLERR,str);
-    }
-    if (multiproc) delete [] hfile;
+    std::string base = file;
+    if (multiproc) base.replace(base.find('%'),1,"base");
+
+    fp = fopen(base.c_str(),"wb");
+    if (fp == nullptr)
+      error->one(FLERR, "Cannot open restart file {}: {}",
+                                    base, utils::getsyserror());
   }
 
   // proc 0 writes magic string, endian flag, numeric version
@@ -283,6 +272,7 @@ void WriteRestart::write(char *file)
 
   double *buf;
   memory->create(buf,max_size,"write_restart:buf");
+  memset(buf,0,max_size*sizeof(double));
 
   // all procs write file layout info which may include per-proc sizes
 
@@ -299,26 +289,19 @@ void WriteRestart::write(char *file)
       magic_string();
       if (ferror(fp)) io_error = 1;
       fclose(fp);
-      fp = NULL;
+      fp = nullptr;
     }
 
-    char *multiname = new char[strlen(file) + 16];
-    char *ptr = strchr(file,'%');
-    *ptr = '\0';
-    sprintf(multiname,"%s%d%s",file,icluster,ptr+1);
-    *ptr = '%';
+    std::string multiname = file;
+    multiname.replace(multiname.find('%'),1,fmt::format("{}",icluster));
 
     if (filewriter) {
-      fp = fopen(multiname,"wb");
-      if (fp == NULL) {
-        char str[128];
-        snprintf(str,128,"Cannot open restart file %s",multiname);
-        error->one(FLERR,str);
-      }
+      fp = fopen(multiname.c_str(),"wb");
+      if (fp == nullptr)
+        error->one(FLERR, "Cannot open restart file {}: {}",
+                                      multiname, utils::getsyserror());
       write_int(PROCSPERFILE,nclusterprocs);
     }
-
-    delete [] multiname;
   }
 
   // pack my atom data into buf
@@ -383,9 +366,9 @@ void WriteRestart::write(char *file)
       magic_string();
       if (ferror(fp)) io_error = 1;
       fclose(fp);
-      fp = NULL;
+      fp = nullptr;
     }
-    mpiio->openForWrite(file);
+    mpiio->openForWrite(file.c_str());
     mpiio->write(headerOffset,send_size,buf);
     mpiio->close();
   } else {
@@ -413,7 +396,7 @@ void WriteRestart::write(char *file)
       magic_string();
       if (ferror(fp)) io_error = 1;
       fclose(fp);
-      fp = NULL;
+      fp = nullptr;
 
     } else {
       MPI_Recv(&tmp,0,MPI_INT,fileproc,0,world,MPI_STATUS_IGNORE);
@@ -433,9 +416,9 @@ void WriteRestart::write(char *file)
 
   // invoke any fixes that write their own restart file
 
-  for (int ifix = 0; ifix < modify->nfix; ifix++)
-    if (modify->fix[ifix]->restart_file)
-      modify->fix[ifix]->write_restart_file(file);
+  for (auto &fix : modify->get_fix_list())
+    if (fix->restart_file)
+      fix->write_restart_file(file.c_str());
 }
 
 /* ----------------------------------------------------------------------
@@ -444,7 +427,7 @@ void WriteRestart::write(char *file)
 
 void WriteRestart::header()
 {
-  write_string(VERSION,universe->version);
+  write_string(VERSION,lmp->version);
   write_int(SMALLINT,sizeof(smallint));
   write_int(IMAGEINT,sizeof(imageint));
   write_int(TAGINT,sizeof(tagint));
@@ -521,6 +504,11 @@ void WriteRestart::header()
   write_int(EXTRA_DIHEDRAL_PER_ATOM,atom->extra_dihedral_per_atom);
   write_int(EXTRA_IMPROPER_PER_ATOM,atom->extra_improper_per_atom);
   write_int(ATOM_MAXSPECIAL,atom->maxspecial);
+
+  write_bigint(NELLIPSOIDS,atom->nellipsoids);
+  write_bigint(NLINES,atom->nlines);
+  write_bigint(NTRIS,atom->ntris);
+  write_bigint(NBODIES,atom->nbodies);
 
   // -1 flag signals end of header
 
@@ -610,7 +598,7 @@ void WriteRestart::file_layout(int send_size)
   // this allows all ranks to compute offset to their data
 
   if (mpiioflag) {
-    if (me == 0) headerOffset = ftell(fp);
+    if (me == 0) headerOffset = platform::ftell(fp);
     MPI_Bcast(&headerOffset,1,MPI_LMP_BIGINT,0,world);
   }
 }
@@ -625,11 +613,8 @@ void WriteRestart::file_layout(int send_size)
 
 void WriteRestart::magic_string()
 {
-  int n = strlen(MAGIC_STRING) + 1;
-  char *str = new char[n];
-  strcpy(str,MAGIC_STRING);
-  fwrite(str,sizeof(char),n,fp);
-  delete [] str;
+  const char magic[] = MAGIC_STRING;
+  fwrite(magic,sizeof(char),strlen(magic)+1,fp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -649,7 +634,7 @@ void WriteRestart::version_numeric()
 }
 
 /* ----------------------------------------------------------------------
-   write a flag and an int into restart file
+   write a flag and an int into the restart file
 ------------------------------------------------------------------------- */
 
 void WriteRestart::write_int(int flag, int value)
@@ -659,7 +644,7 @@ void WriteRestart::write_int(int flag, int value)
 }
 
 /* ----------------------------------------------------------------------
-   write a flag and a bigint into restart file
+   write a flag and a bigint into the restart file
 ------------------------------------------------------------------------- */
 
 void WriteRestart::write_bigint(int flag, bigint value)
@@ -669,7 +654,7 @@ void WriteRestart::write_bigint(int flag, bigint value)
 }
 
 /* ----------------------------------------------------------------------
-   write a flag and a double into restart file
+   write a flag and a double into the restart file
 ------------------------------------------------------------------------- */
 
 void WriteRestart::write_double(int flag, double value)
@@ -679,7 +664,8 @@ void WriteRestart::write_double(int flag, double value)
 }
 
 /* ----------------------------------------------------------------------
-   write a flag and a char string (including NULL) into restart file
+   write a flag and a C-style char string (including the terminating null
+   byte) into the restart file
 ------------------------------------------------------------------------- */
 
 void WriteRestart::write_string(int flag, const char *value)
@@ -691,7 +677,7 @@ void WriteRestart::write_string(int flag, const char *value)
 }
 
 /* ----------------------------------------------------------------------
-   write a flag and vector of N ints into restart file
+   write a flag and vector of N ints into the restart file
 ------------------------------------------------------------------------- */
 
 void WriteRestart::write_int_vec(int flag, int n, int *vec)
@@ -702,7 +688,7 @@ void WriteRestart::write_int_vec(int flag, int n, int *vec)
 }
 
 /* ----------------------------------------------------------------------
-   write a flag and vector of N doubles into restart file
+   write a flag and vector of N doubles into the restart file
 ------------------------------------------------------------------------- */
 
 void WriteRestart::write_double_vec(int flag, int n, double *vec)

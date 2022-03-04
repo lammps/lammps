@@ -155,9 +155,11 @@ protected:
   /// \brief How often the hills should be projected onto the grids
   size_t     grids_freq;
 
-  /// \brief Whether to keep the hills in the restart file (e.g. to do
-  /// meaningful accurate rebinning afterwards)
+  /// Keep hills in the restart file (e.g. to accurately rebin later)
   bool       keep_hills;
+
+  /// value of keepHills saved in the most recent restart file
+  bool restart_keep_hills;
 
   /// \brief Dump the free energy surface (.pmf file) every restartFrequency
   bool       dump_fes;
@@ -257,7 +259,7 @@ protected:
   std::string            replica_hills_file;
 
   /// Position within replica_hills_file (when reading it)
-  int                    replica_hills_file_pos;
+  std::streampos         replica_hills_file_pos;
 
 };
 

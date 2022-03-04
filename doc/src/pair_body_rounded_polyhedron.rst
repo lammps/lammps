@@ -34,7 +34,7 @@ Style *body/rounded/polygon* is for use with 3d models of body
 particles of style *rounded/polyhedron*\ .  It calculates pairwise
 body/body interactions which can include body particles modeled as
 1-vertex spheres with a specified diameter.  See the
-:doc:`Howto body <Howto_body>` doc page for more details on using body
+:doc:`Howto body <Howto_body>` page for more details on using body
 rounded/polyhedron particles.
 
 This pairwise interaction between the rounded polyhedra is described
@@ -110,7 +110,8 @@ Effectively, :math:`k_n` and :math:`k_{na}` are the slopes of the red lines in t
 above for force versus surface separation, for :math:`\delta_n` < 0 and
 :math:`0 < \delta_n < r_c` respectively.
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 mix, shift, table, and tail options.
@@ -121,13 +122,13 @@ commands in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 Restrictions
 """"""""""""
 
 These pair styles are part of the BODY package.  They are only enabled
-if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 This pair style requires the :doc:`newton <newton>` setting to be "on"
 for pair interactions.
@@ -137,7 +138,10 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 .. _pair-Wang:
 

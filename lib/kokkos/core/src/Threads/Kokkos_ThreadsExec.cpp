@@ -55,7 +55,7 @@
 
 #include <impl/Kokkos_Error.hpp>
 #include <impl/Kokkos_CPUDiscovery.hpp>
-#include <impl/Kokkos_Profiling_Interface.hpp>
+#include <impl/Kokkos_Tools.hpp>
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -111,7 +111,7 @@ namespace Impl {
 
 void execute_function_noop(ThreadsExec &, const void *) {}
 
-void ThreadsExec::driver(void) {
+void ThreadsExec::driver() {
   SharedAllocationRecord<void, void>::tracking_enable();
 
   ThreadsExec this_thread;
@@ -185,7 +185,7 @@ ThreadsExec::ThreadsExec()
 ThreadsExec::~ThreadsExec() {
   const unsigned entry = m_pool_size - (m_pool_rank + 1);
 
-  typedef Kokkos::Impl::SharedAllocationRecord<Kokkos::HostSpace, void> Record;
+  using Record = Kokkos::Impl::SharedAllocationRecord<Kokkos::HostSpace, void>;
 
   if (m_scratch) {
     Record *const r = Record::get_record(m_scratch);
@@ -288,21 +288,46 @@ int ThreadsExec::in_parallel() {
   return s_current_function && (&s_threads_process != s_current_function_arg) &&
          (s_threads_process.m_pool_base || !is_process());
 }
+void ThreadsExec::fence() { internal_fence(Impl::fence_is_static::yes); }
+void ThreadsExec::fence(const std::string &name) {
+  internal_fence(name, Impl::fence_is_static::yes);
+}
+
+void ThreadsExec::internal_fence(Impl::fence_is_static is_static) {
+  internal_fence((is_static == Impl::fence_is_static::no)
+                     ? "Kokkos::ThreadsExec::fence: Unnamed Instance Fence"
+                     : "Kokkos::ThreadsExec::fence: Unnamed Global Fence",
+                 is_static);
+}
 
 // Wait for root thread to become inactive
-void ThreadsExec::fence() {
-  if (s_thread_pool_size[0]) {
-    // Wait for the root thread to complete:
-    Impl::spinwait_while_equal<int>(s_threads_exec[0]->m_pool_state,
-                                    ThreadsExec::Active);
+void ThreadsExec::internal_fence(const std::string &name,
+                                 Impl::fence_is_static is_static) {
+  const auto &fence_lam = [&]() {
+    if (s_thread_pool_size[0]) {
+      // Wait for the root thread to complete:
+      Impl::spinwait_while_equal<int>(s_threads_exec[0]->m_pool_state,
+                                      ThreadsExec::Active);
+    }
+
+    s_current_function     = nullptr;
+    s_current_function_arg = nullptr;
+
+    // Make sure function and arguments are cleared before
+    // potentially re-activating threads with a subsequent launch.
+    memory_fence();
+  };
+  if (is_static == Impl::fence_is_static::yes) {
+    Kokkos::Tools::Experimental::Impl::profile_fence_event<Kokkos::Threads>(
+        name,
+        Kokkos::Tools::Experimental::SpecialSynchronizationCases::
+            GlobalDeviceSynchronization,
+        fence_lam);
+  } else {
+    Kokkos::Tools::Experimental::Impl::profile_fence_event<Kokkos::Threads>(
+        name, Kokkos::Tools::Experimental::Impl::DirectFenceIDHandle{1},
+        fence_lam);
   }
-
-  s_current_function     = nullptr;
-  s_current_function_arg = nullptr;
-
-  // Make sure function and arguments are cleared before
-  // potentially re-activating threads with a subsequent launch.
-  memory_fence();
 }
 
 /** \brief  Begin execution of the asynchronous functor */
@@ -410,7 +435,7 @@ void *ThreadsExec::root_reduce_scratch() {
 }
 
 void ThreadsExec::execute_resize_scratch(ThreadsExec &exec, const void *) {
-  typedef Kokkos::Impl::SharedAllocationRecord<Kokkos::HostSpace, void> Record;
+  using Record = Kokkos::Impl::SharedAllocationRecord<Kokkos::HostSpace, void>;
 
   if (exec.m_scratch) {
     Record *const r = Record::get_record(exec.m_scratch);
@@ -427,7 +452,7 @@ void ThreadsExec::execute_resize_scratch(ThreadsExec &exec, const void *) {
     // Allocate tracked memory:
     {
       Record *const r =
-          Record::allocate(Kokkos::HostSpace(), "thread_scratch",
+          Record::allocate(Kokkos::HostSpace(), "Kokkos::thread_scratch",
                            s_threads_process.m_scratch_thread_end);
 
       Record::increment(r);
@@ -708,10 +733,6 @@ void ThreadsExec::initialize(unsigned thread_count, unsigned use_numa_count,
   Impl::init_lock_array_host_space();
 
   Impl::SharedAllocationRecord<void, void>::tracking_enable();
-
-#if defined(KOKKOS_ENABLE_DEPRECATED_CODE) && defined(KOKKOS_ENABLE_PROFILING)
-  Kokkos::Profiling::initialize();
-#endif
 }
 
 //----------------------------------------------------------------------------
@@ -759,9 +780,7 @@ void ThreadsExec::finalize() {
   s_threads_process.m_pool_fan_size  = 0;
   s_threads_process.m_pool_state     = ThreadsExec::Inactive;
 
-#if defined(KOKKOS_ENABLE_PROFILING)
   Kokkos::Profiling::finalize();
-#endif
 }
 
 //----------------------------------------------------------------------------
@@ -774,43 +793,25 @@ void ThreadsExec::finalize() {
 
 namespace Kokkos {
 
-int Threads::concurrency() {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  return thread_pool_size(0);
-#else
-  return impl_thread_pool_size(0);
-#endif
+int Threads::concurrency() { return impl_thread_pool_size(0); }
+void Threads::fence() const {
+  Impl::ThreadsExec::internal_fence(Impl::fence_is_static::no);
 }
-#ifndef KOKKOS_ENABLE_DEPRECATED_CODE
-void Threads::fence() const { Impl::ThreadsExec::fence(); }
-#endif
+void Threads::fence(const std::string &name) const {
+  Impl::ThreadsExec::internal_fence(name, Impl::fence_is_static::no);
+}
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-Threads &Threads::instance(int)
-#else
-Threads &Threads::impl_instance(int)
-#endif
-{
+Threads &Threads::impl_instance(int) {
   static Threads t;
   return t;
 }
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-int Threads::thread_pool_size(int depth)
-#else
-int Threads::impl_thread_pool_size(int depth)
-#endif
-{
+int Threads::impl_thread_pool_size(int depth) {
   return Impl::s_thread_pool_size[depth];
 }
 
 #if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-int Threads::thread_pool_rank()
-#else
-int Threads::impl_thread_pool_rank()
-#endif
-{
+int Threads::impl_thread_pool_rank() {
   const pthread_t pid = pthread_self();
   int i               = 0;
   while ((i < Impl::s_thread_pool_size[0]) && (pid != Impl::s_threads_pid[i])) {
@@ -821,8 +822,62 @@ int Threads::impl_thread_pool_rank()
 #endif
 
 const char *Threads::name() { return "Threads"; }
-} /* namespace Kokkos */
 
+namespace Impl {
+
+int g_threads_space_factory_initialized =
+    initialize_space_factory<ThreadsSpaceInitializer>("050_Threads");
+
+void ThreadsSpaceInitializer::initialize(const InitArguments &args) {
+  const int num_threads = args.num_threads;
+  const int use_numa    = args.num_numa;
+  if (std::is_same<Kokkos::Threads, Kokkos::DefaultExecutionSpace>::value ||
+      std::is_same<Kokkos::Threads,
+                   Kokkos::HostSpace::execution_space>::value) {
+    if (num_threads > 0) {
+      if (use_numa > 0) {
+        Kokkos::Threads::impl_initialize(num_threads, use_numa);
+      } else {
+        Kokkos::Threads::impl_initialize(num_threads);
+      }
+    } else {
+      Kokkos::Threads::impl_initialize();
+    }
+    // std::cout << "Kokkos::initialize() fyi: Pthread enabled and initialized"
+    // << std::endl ;
+  } else {
+    // std::cout << "Kokkos::initialize() fyi: Pthread enabled but not
+    // initialized" << std::endl ;
+  }
+}
+
+void ThreadsSpaceInitializer::finalize(const bool all_spaces) {
+  if (std::is_same<Kokkos::Threads, Kokkos::DefaultExecutionSpace>::value ||
+      std::is_same<Kokkos::Threads,
+                   Kokkos::HostSpace::execution_space>::value ||
+      all_spaces) {
+    if (Kokkos::Threads::impl_is_initialized())
+      Kokkos::Threads::impl_finalize();
+  }
+}
+
+void ThreadsSpaceInitializer::fence() { Kokkos::Threads::impl_static_fence(); }
+void ThreadsSpaceInitializer::fence(const std::string &name) {
+  Kokkos::Threads::impl_static_fence(name);
+}
+
+void ThreadsSpaceInitializer::print_configuration(std::ostream &msg,
+                                                  const bool detail) {
+  msg << "Host Parallel Execution Space:" << std::endl;
+  msg << "  KOKKOS_ENABLE_THREADS: ";
+  msg << "yes" << std::endl;
+
+  msg << "\nThreads Runtime Configuration:" << std::endl;
+  Kokkos::Threads::print_configuration(msg, detail);
+}
+
+}  // namespace Impl
+} /* namespace Kokkos */
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 #else

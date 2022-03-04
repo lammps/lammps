@@ -58,8 +58,7 @@
 #include <impl/Kokkos_TaskBase.hpp>
 #include <impl/Kokkos_TaskResult.hpp>
 
-#include <impl/Kokkos_Memory_Fence.hpp>
-#include <impl/Kokkos_Atomic_Increment.hpp>
+#include <Kokkos_Atomic.hpp>
 #include <impl/Kokkos_OptionalRef.hpp>
 #include <impl/Kokkos_LIFO.hpp>
 
@@ -188,25 +187,11 @@ class TaskQueue : public TaskQueueBase {
   // Assign task pointer with reference counting of assigned tasks
   KOKKOS_FUNCTION static void assign(task_root_type** const lhs,
                                      task_root_type* const rhs) {
-#if 0
-  {
-    printf( "assign( 0x%lx { 0x%lx %d %d } , 0x%lx { 0x%lx %d %d } )\n"
-          , uintptr_t( lhs ? *lhs : 0 )
-          , uintptr_t( lhs && *lhs ? (*lhs)->m_next : 0 )
-          , int( lhs && *lhs ? (*lhs)->m_task_type : 0 )
-          , int( lhs && *lhs ? (*lhs)->m_ref_count : 0 )
-          , uintptr_t(rhs)
-          , uintptr_t( rhs ? rhs->m_next : 0 )
-          , int( rhs ? rhs->m_task_type : 0 )
-          , int( rhs ? rhs->m_ref_count : 0 )
-          );
-    fflush( stdout );
-  }
-#endif
-
     if (*lhs) decrement(*lhs);
     if (rhs) {
-      Kokkos::atomic_increment(&(rhs->m_ref_count));
+      Kokkos::Impl::desul_atomic_inc(&rhs->m_ref_count,
+                                     Kokkos::Impl::MemoryOrderSeqCst(),
+                                     Kokkos::Impl::MemoryScopeDevice());
     }
 
     // Force write of *lhs
@@ -234,13 +219,7 @@ class TaskQueue : public TaskQueueBase {
 
     using task_type = Impl::Task<execution_space, value_type, FunctorType>;
 
-    enum : size_t { align = (1 << 4), align_mask = align - 1 };
-    enum : size_t { task_size = sizeof(task_type) };
-    enum : size_t { result_size = Impl::TaskResult<value_type>::size };
-    enum : size_t {
-      alloc_size = ((task_size + align_mask) & ~align_mask) +
-                   ((result_size + align_mask) & ~align_mask)
-    };
+    constexpr size_t task_size = sizeof(task_type);
 
     return m_memory.allocate_block_size(task_size);
   }

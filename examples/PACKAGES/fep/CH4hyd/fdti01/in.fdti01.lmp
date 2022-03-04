@@ -1,0 +1,98 @@
+# created by fftool
+
+print "Methane in TIP4P water"
+
+units real
+boundary p p p
+
+atom_style full
+bond_style harmonic
+angle_style harmonic
+special_bonds lj/coul 0.0 0.0 0.5
+
+read_data data.lmp
+
+pair_style hybrid &
+  lj/cut/coul/long 10.0 10.0 &
+  lj/cut/tip4p/long/soft 3 4 2 2 0.125 1 0.5 10.0 10.0 10.0
+pair_modify tail no
+kspace_style pppm/tip4p 1.0e-4
+
+pair_coeff    1    1  lj/cut/coul/long    0.0660   3.5000  # C4H C4H
+pair_coeff    1    2  lj/cut/coul/long    0.0445   2.9580  # C4H H
+pair_coeff    2    2  lj/cut/coul/long    0.0300   2.5000  # H H
+pair_coeff    3    3  lj/cut/tip4p/long/soft   0.1628   3.1644  1.0  # Ow Ow
+pair_coeff    3    4  lj/cut/tip4p/long/soft   0.0000   1.0000  1.0  # Ow Hw
+pair_coeff    4    4  lj/cut/tip4p/long/soft   0.0000   1.0000  1.0  # Hw Hw
+
+pair_coeff    1    3  lj/cut/tip4p/long/soft   0.1036   3.3279  0.0  # C4H Ow
+pair_coeff    1    4  lj/cut/tip4p/long/soft   0.0000   1.0000  0.0  # C4H Hw
+pair_coeff    2    3  lj/cut/tip4p/long/soft   0.0699   2.8126  0.0  # H Ow
+pair_coeff    2    4  lj/cut/tip4p/long/soft   0.0000   1.0000  0.0  # H Hw
+
+variable TK equal 300.0
+variable PBAR equal 1.0
+
+fix SHAKE all shake 0.0001 20 0 b 2 a 2
+
+neighbor 2.0 bin
+
+timestep 1.0
+
+velocity all create ${TK} 12345
+
+thermo_style custom step etotal ke pe evdwl ecoul elong temp press density
+thermo 5000
+
+fix TPSTAT all npt temp ${TK} ${TK} 100 iso ${PBAR} ${PBAR} 1000
+
+set type 1*2 charge 0.0
+
+run 100000
+
+reset_timestep 0
+
+variable lambda equal ramp(0.0,1.0)
+variable q1 equal -0.24*v_lambda
+variable q2 equal  0.06*v_lambda
+
+fix ADAPT all adapt/fep 100000 &
+  pair lj/cut/tip4p/long/soft lambda 1*2 3*4 v_lambda &
+  atom charge 1 v_q1 &
+  atom charge 2 v_q2 &
+  after yes
+
+thermo_style custom step etotal ke pe evdwl ecoul elong temp press density v_lambda v_q1 v_q2
+  
+variable dlambda equal 0.002
+variable dq1 equal -0.24*v_dlambda
+variable dq2 equal  0.06*v_dlambda
+
+compute FEP all fep ${TK} &
+  pair lj/cut/tip4p/long/soft lambda 1*2 3*4 v_dlambda &
+  atom charge 1 v_dq1 &
+  atom charge 2 v_dq2 &
+  volume yes
+
+fix FEP all ave/time 20 4000 100000 c_FEP[*] file fdti01.fep
+
+dump TRAJ all custom 20000 dump.lammpstrj id mol type element xu yu zu
+dump_modify TRAJ element C H O H
+
+run 2000000
+
+unfix ADAPT
+
+# perturb at lambda = 1 to 1.002
+pair_coeff    1    3  lj/cut/tip4p/long/soft   0.1036   3.3279  1.0  # C4H Ow
+pair_coeff    1    4  lj/cut/tip4p/long/soft   0.0000   1.0000  1.0  # C4H Hw
+pair_coeff    2    3  lj/cut/tip4p/long/soft   0.0699   2.8126  1.0  # H Ow
+pair_coeff    2    4  lj/cut/tip4p/long/soft   0.0000   1.0000  1.0  # H Hw
+
+set type 1 charge -0.24
+set type 2 charge 0.06
+
+run 100000
+
+# write_restart restart.*.lmp
+write_data data.*.lmp

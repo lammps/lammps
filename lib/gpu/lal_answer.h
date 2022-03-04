@@ -110,12 +110,12 @@ class Answer {
   // -------------------------COPY FROM GPU -------------------------------
 
   /// Copy answers from device into read buffer asynchronously
-  void copy_answers(const bool eflag, const bool vflag,
-                    const bool ef_atom, const bool vf_atom);
+  void copy_answers(const bool eflag, const bool vflag, const bool ef_atom,
+                    const bool vf_atom, const int red_blocks);
 
   /// Copy answers from device into read buffer asynchronously
-  void copy_answers(const bool eflag, const bool vflag,
-                    const bool ef_atom, const bool vf_atom, int *ilist);
+  void copy_answers(const bool eflag, const bool vflag, const bool ef_atom,
+                    const bool vf_atom, int *ilist, const int red_blocks);
 
   /// Copy energy and virial data into LAMMPS memory
   double energy_virial(double *eatom, double **vatom, double *virial);
@@ -127,12 +127,13 @@ class Answer {
   /// Add forces and torques from the GPU into a LAMMPS pointer
   void get_answers(double **f, double **tor);
 
-  inline double get_answers(double **f, double **tor, double *eatom,
-                            double **vatom, double *virial, double &ecoul) {
+  inline double get_answers(double **f, double **tor, double *eatom, double **vatom,
+                            double *virial, double &ecoul, int &error_flag_in) {
     double ta=MPI_Wtime();
     time_answer.sync_stop();
     _time_cpu_idle+=MPI_Wtime()-ta;
     double ts=MPI_Wtime();
+    if (error_flag[0]) error_flag_in=error_flag[0];
     double evdw=energy_virial(eatom,vatom,virial,ecoul);
     get_answers(f,tor);
     _time_cast+=MPI_Wtime()-ts;
@@ -151,6 +152,8 @@ class Answer {
   UCL_Vector<acctyp,acctyp> force;
   /// Energy and virial per-atom storage
   UCL_Vector<acctyp,acctyp> engv;
+  /// Error flag
+  UCL_Vector<int,int> error_flag;
 
   /// Device timers
   UCL_Timer time_answer;
@@ -162,7 +165,7 @@ class Answer {
   bool alloc(const int inum);
 
   bool _allocated, _eflag, _vflag, _ef_atom, _vf_atom, _rot, _charge, _other;
-  int _max_local, _inum, _e_fields, _ev_fields, _ans_fields;
+  int _max_local, _inum, _e_fields, _ev_fields, _ans_fields, _ev_stride;
   int *_ilist;
   double _time_cast, _time_cpu_idle;
 

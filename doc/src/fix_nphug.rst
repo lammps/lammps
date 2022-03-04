@@ -1,10 +1,10 @@
 .. index:: fix nphug
+.. index:: fix nphug/omp
 
 fix nphug command
 =================
 
-fix nphug/omp command
-=====================
+Accelerator Variants: *nphug/omp*
 
 Syntax
 """"""
@@ -63,8 +63,8 @@ jump conditions for steady shocks.
 
 The compression can be performed
 either
-hydrostatically (using keyword *iso*\ , *aniso*\ , or *tri*\ ) or uniaxially
-(using keywords *x*\ , *y*\ , or *z*\ ).  In the hydrostatic case,
+hydrostatically (using keyword *iso*, *aniso*, or *tri*\ ) or uniaxially
+(using keywords *x*, *y*, or *z*\ ).  In the hydrostatic case,
 the cell dimensions change dynamically so that the average axial stress
 in all three directions converges towards the specified target value.
 In the uniaxial case, the chosen cell dimension changes dynamically
@@ -74,10 +74,10 @@ other two cell dimensions are kept fixed (zero lateral strain).
 
 This leads to the following additional restrictions on the keywords:
 
-* One and only one of the following keywords should be used: *iso*\ , *aniso*\ , *tri*\ , *x*\ , *y*\ , *z*
+* One and only one of the following keywords should be used: *iso*, *aniso*, *tri*, *x*, *y*, *z*
 * The specified initial and final target pressures must be the same.
-* The keywords *xy*\ , *xz*\ , *yz* may not be used.
-* The only admissible value for the couple keyword is *xyz*\ , which has the same effect as keyword *iso*
+* The keywords *xy*, *xz*, *yz* may not be used.
+* The only admissible value for the couple keyword is *xyz*, which has the same effect as keyword *iso*
 * The *temp* keyword must be used to specify the time constant for kinetic energy relaxation, but initial and final target temperature values are ignored.
 
 Essentially, a Hugoniostat simulation is an NPT simulation in which the
@@ -100,8 +100,8 @@ When the system reaches a stable equilibrium, the value of :math:`\Delta` should
 fluctuate about zero.
 
 The values of :math:`E_0`, :math:`V_0`, and :math:`P_0` are the instantaneous values at the start of
-the simulation. These can be overridden using the fix_modify keywords *e0*\ ,
-*v0*\ , and *p0* described below.
+the simulation. These can be overridden using the fix_modify keywords *e0*,
+*v0*, and *p0* described below.
 
 ----------
 
@@ -145,27 +145,12 @@ It also means that changing attributes of *thermo_temp* or
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This fix writes the values of :math:`E_0`, :math:`V_0`, and :math:`P_0`,
 as well as the state of all the thermostat and barostat variables to
@@ -174,7 +159,7 @@ as well as the state of all the thermostat and barostat variables to
 script that reads a restart file, so that the operation of the fix
 continues in an uninterrupted fashion.
 
-The :doc:`fix_modify <fix_modify>` *e0*\ , *v0* and *p0* keywords can be
+The :doc:`fix_modify <fix_modify>` *e0*, *v0* and *p0* keywords can be
 used to define the values of :math:`E_0`, :math:`V_0`, and
 :math:`P_0`. Note the the values for *e0* and *v0* are extensive, and so
 must correspond to the total energy and volume of the entire system, not
@@ -183,43 +168,47 @@ specified, then the instantaneous value in the system at the start of
 the simulation is used.
 
 The :doc:`fix_modify <fix_modify>` *temp* and *press* options are
-supported by these fixes.  You can use them to assign a
-:doc:`compute <compute>` you have defined to this fix which will be used
-in its thermostatting or barostatting procedure, as described above.
-If you do this, note that the kinetic energy derived from the compute
+supported by this fix.  You can use them to assign a :doc:`compute
+<compute>` you have defined to this fix which will be used in its
+thermostatting or barostatting procedure, as described above.  If you
+do this, note that the kinetic energy derived from the compute
 temperature should be consistent with the virial term computed using
 all atoms for the pressure.  LAMMPS will warn you if you choose to
 compute temperature on a subset of atoms.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by these
-fixes to add the energy change induced by Nose/Hoover thermostatting
-and barostatting to the system's potential energy as part of
-:doc:`thermodynamic output <thermo_style>`. Either way, this energy is \*not\*
-included in the definition of internal energy E when calculating the value
-of Delta in the above equation.
+The cumulative energy change in the system imposed by this fix is
+included in the :doc:`thermodynamic output <thermo_style>` keywords
+*ecouple* and *econserve*.  See the :doc:`thermo_style <thermo_style>`
+doc page for details.  Note that this energy is \*not\* included in
+the definition of internal energy E when calculating the value of
+Delta in the above equation.
 
-These fixes compute a global scalar and a global vector of quantities,
-which can be accessed by various :doc:`output commands <Howto_output>`.
-The scalar value calculated by these fixes is "extensive"; the vector
-values are "intensive".
+This fix computes a global scalar which can be accessed by various
+:doc:`output commands <Howto_output>`.  The scalar is the same
+cumulative energy change due to this fix described in the previous
+paragraph.  The scalar value calculated by this fix is "extensive".
 
-The scalar is the cumulative energy change due to the fix.
+This fix also computes a global vector of quantities, which can be
+accessed by various :doc:`output commands <Howto_output>`.  The scalar
+The vector values are "intensive".
 
-The vector stores three quantities unique to this fix (:math:`\Delta`, Us, and up),
-followed by all the internal Nose/Hoover thermostat and barostat
-variables defined for :doc:`fix npt <fix_nh>`. Delta is the deviation
-of the temperature from the target temperature, given by the above equation.
-Us and up are the shock and particle velocity corresponding to a steady
-shock calculated from the RH conditions. They have units of distance/time.
+The vector stores three quantities unique to this fix (:math:`\Delta`,
+Us, and up), followed by all the internal Nose/Hoover thermostat and
+barostat variables defined for :doc:`fix npt <fix_nh>`. Delta is the
+deviation of the temperature from the target temperature, given by the
+above equation.  Us and up are the shock and particle velocity
+corresponding to a steady shock calculated from the RH
+conditions. They have units of distance/time.
 
 Restrictions
 """"""""""""
 
 This fix style is part of the SHOCK package.  It is only enabled if
-LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package. See the :doc:`Build package
+<Build_package>` page for more info.
 
-All the usual restrictions for :doc:`fix npt <fix_nh>` apply,
-plus the additional ones mentioned above.
+All the usual restrictions for :doc:`fix npt <fix_nh>` apply, plus the
+additional ones mentioned above.
 
 Related commands
 """"""""""""""""

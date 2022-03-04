@@ -55,16 +55,19 @@ read by the :doc:`read_data <read_data>` as described below:
 Restrictions
 """"""""""""
 
-This style is part of the USER-MISC package. It is only enabled if
+This style is part of the EXTRA-PAIR package. It is only enabled if
 LAMMPS is built with that package. See the :doc:`Build package
-<Build_package>` doc page on for more info.
+<Build_package>` page on for more info.
 
 Related commands
 """"""""""""""""
 
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair_style morse <pair_morse>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

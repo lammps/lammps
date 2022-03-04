@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,24 +13,27 @@
 ------------------------------------------------------------------------- */
 
 #include "verlet.h"
-#include <cstring>
-#include "neighbor.h"
-#include "domain.h"
-#include "comm.h"
+
+#include "angle.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "force.h"
-#include "pair.h"
 #include "bond.h"
-#include "angle.h"
+#include "comm.h"
 #include "dihedral.h"
+#include "domain.h"
+#include "error.h"
+#include "fix.h"
+#include "force.h"
 #include "improper.h"
 #include "kspace.h"
-#include "output.h"
-#include "update.h"
 #include "modify.h"
+#include "neighbor.h"
+#include "output.h"
+#include "pair.h"
 #include "timer.h"
-#include "error.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -46,17 +50,22 @@ void Verlet::init()
 {
   Integrate::init();
 
-  // warn if no fixes
+  // warn if no fixes doing time integration
 
-  if (modify->nfix == 0 && comm->me == 0)
-    error->warning(FLERR,"No fixes defined, atoms won't move");
+  bool do_time_integrate = false;
+  for (const auto &fix : modify->get_fix_list())
+    if (fix->time_integrate) do_time_integrate = true;
+
+  if (!do_time_integrate && (comm->me == 0))
+    error->warning(FLERR,"No fixes with time integration, atoms won't move");
 
   // virial_style:
-  // 1 if computed explicitly by pair->compute via sum over pair interactions
-  // 2 if computed implicitly by pair->virial_fdotr_compute via sum over ghosts
+  // VIRIAL_PAIR if computed explicitly in pair via sum over pair interactions
+  // VIRIAL_FDOTR if computed implicitly in pair by
+  //   virial_fdotr_compute() via sum over ghosts
 
-  if (force->newton_pair) virial_style = 2;
-  else virial_style = 1;
+  if (force->newton_pair) virial_style = VIRIAL_FDOTR;
+  else virial_style = VIRIAL_PAIR;
 
   // setup lists of computes for global and per-atom PE and pressure
 
@@ -64,8 +73,7 @@ void Verlet::init()
 
   // detect if fix omp is present for clearing force arrays
 
-  int ifix = modify->find_fix("package_omp");
-  if (ifix >= 0) external_force_clear = 1;
+  if (modify->get_fix_by_id("package_omp")) external_force_clear = 1;
 
   // set flags for arrays to clear in force_clear()
 
@@ -85,11 +93,12 @@ void Verlet::init()
 void Verlet::setup(int flag)
 {
   if (comm->me == 0 && screen) {
-    fprintf(screen,"Setting up Verlet run ...\n");
+    fputs("Setting up Verlet run ...\n",screen);
     if (flag) {
-      fprintf(screen,"  Unit style    : %s\n",update->unit_style);
-      fprintf(screen,"  Current step  : " BIGINT_FORMAT "\n",update->ntimestep);
-      fprintf(screen,"  Time step     : %g\n",update->dt);
+      fmt::print(screen,"  Unit style    : {}\n"
+                        "  Current step  : {}\n"
+                        "  Time step     : {}\n",
+                 update->unit_style,update->ntimestep,update->dt);
       timer->print_timeout(screen);
     }
   }
@@ -131,7 +140,7 @@ void Verlet::setup(int flag)
   if (pair_compute_flag) force->pair->compute(eflag,vflag);
   else if (force->pair) force->pair->compute_dummy(eflag,vflag);
 
-  if (atom->molecular) {
+  if (atom->molecular != Atom::ATOMIC) {
     if (force->bond) force->bond->compute(eflag,vflag);
     if (force->angle) force->angle->compute(eflag,vflag);
     if (force->dihedral) force->dihedral->compute(eflag,vflag);
@@ -193,7 +202,7 @@ void Verlet::setup_minimal(int flag)
   if (pair_compute_flag) force->pair->compute(eflag,vflag);
   else if (force->pair) force->pair->compute_dummy(eflag,vflag);
 
-  if (atom->molecular) {
+  if (atom->molecular != Atom::ATOMIC) {
     if (force->bond) force->bond->compute(eflag,vflag);
     if (force->angle) force->angle->compute(eflag,vflag);
     if (force->dihedral) force->dihedral->compute(eflag,vflag);
@@ -308,7 +317,7 @@ void Verlet::run(int n)
       timer->stamp(Timer::PAIR);
     }
 
-    if (atom->molecular) {
+    if (atom->molecular != Atom::ATOMIC) {
       if (force->bond) force->bond->compute(eflag,vflag);
       if (force->angle) force->angle->compute(eflag,vflag);
       if (force->dihedral) force->dihedral->compute(eflag,vflag);

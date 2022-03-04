@@ -44,15 +44,15 @@
 
 #include <Kokkos_Core.hpp>
 #include <Kokkos_DualView.hpp>
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 #include <cstdio>
 #include <cstdlib>
 
-typedef Kokkos::DefaultExecutionSpace Device;
-typedef Kokkos::HostSpace::execution_space Host;
+using Device = Kokkos::DefaultExecutionSpace;
+using Host   = Kokkos::HostSpace::execution_space;
 
-typedef Kokkos::TeamPolicy<Device> team_policy;
-typedef team_policy::member_type team_member;
+using team_policy = Kokkos::TeamPolicy<Device>;
+using team_member = team_policy::member_type;
 
 static const int TEAM_SIZE = 16;
 

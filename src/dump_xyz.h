@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DUMP_CLASS
-
-DumpStyle(xyz,DumpXYZ)
-
+// clang-format off
+DumpStyle(xyz,DumpXYZ);
+// clang-format on
 #else
 
 #ifndef LMP_DUMP_XYZ_H
@@ -26,27 +26,27 @@ namespace LAMMPS_NS {
 
 class DumpXYZ : public Dump {
  public:
-  DumpXYZ(class LAMMPS *, int, char**);
-  virtual ~DumpXYZ();
+  DumpXYZ(class LAMMPS *, int, char **);
+  ~DumpXYZ() override;
 
  protected:
   int ntypes;
   char **typenames;
 
-  void init_style();
-  void write_header(bigint);
-  void pack(tagint *);
-  int convert_string(int, double *);
-  void write_data(int, double *);
-  int modify_param(int, char **);
+  void init_style() override;
+  void write_header(bigint) override;
+  void pack(tagint *) override;
+  int convert_string(int, double *) override;
+  void write_data(int, double *) override;
+  int modify_param(int, char **) override;
 
   typedef void (DumpXYZ::*FnPtrWrite)(int, double *);
-  FnPtrWrite write_choice;              // ptr to write data functions
+  FnPtrWrite write_choice;    // ptr to write data functions
   void write_string(int, double *);
   void write_lines(int, double *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

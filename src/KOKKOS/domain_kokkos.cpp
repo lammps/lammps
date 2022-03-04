@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -26,14 +27,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-DomainKokkos::DomainKokkos(LAMMPS *lmp) : Domain(lmp) {}
-
-/* ---------------------------------------------------------------------- */
-
-void DomainKokkos::init()
-{
+DomainKokkos::DomainKokkos(LAMMPS *lmp) : Domain(lmp) {
   atomKK = (AtomKokkos *) atom;
-  Domain::init();
 }
 
 /* ----------------------------------------------------------------------
@@ -235,7 +230,7 @@ struct DomainPBCFunctor {
     x(_x.view<DeviceType>()), v(_v.view<DeviceType>()),
     mask(_mask.view<DeviceType>()), image(_image.view<DeviceType>()),
     deform_groupbit(_deform_groupbit),
-    xperiodic(_xperiodic), yperiodic(_yperiodic), zperiodic(_zperiodic){
+    xperiodic(_xperiodic), yperiodic(_yperiodic), zperiodic(_zperiodic) {
     lo[0]=_lo[0]; lo[1]=_lo[1]; lo[2]=_lo[2];
     hi[0]=_hi[0]; hi[1]=_hi[1]; hi[2]=_hi[2];
     period[0]=_period[0]; period[1]=_period[1]; period[2]=_period[2];

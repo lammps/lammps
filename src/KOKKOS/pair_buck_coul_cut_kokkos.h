@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(buck/coul/cut/kk,PairBuckCoulCutKokkos<LMPDeviceType>)
-PairStyle(buck/coul/cut/kk/device,PairBuckCoulCutKokkos<LMPDeviceType>)
-PairStyle(buck/coul/cut/kk/host,PairBuckCoulCutKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(buck/coul/cut/kk,PairBuckCoulCutKokkos<LMPDeviceType>);
+PairStyle(buck/coul/cut/kk/device,PairBuckCoulCutKokkos<LMPDeviceType>);
+PairStyle(buck/coul/cut/kk/host,PairBuckCoulCutKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_BUCK_COUL_CUT_KOKKOS_H
 #define LMP_PAIR_BUCK_COUL_CUT_KOKKOS_H
 
@@ -36,25 +37,23 @@ class PairBuckCoulCutKokkos : public PairBuckCoulCut {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   PairBuckCoulCutKokkos(class LAMMPS *);
-  ~PairBuckCoulCutKokkos();
+  ~PairBuckCoulCutKokkos() override;
 
-  void compute(int, int);
+  void compute(int, int) override;
 
-  void settings(int, char **);
-  void init_style();
-  double init_one(int, int);
+  void settings(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
 
   struct params_buck_coul{
     KOKKOS_INLINE_FUNCTION
-    params_buck_coul(){cut_ljsq=0;cut_coulsq=0;a=0;c=0;rhoinv=0;buck1=0;buck2=0;offset=0;};
+    params_buck_coul() {cut_ljsq=0;cut_coulsq=0;a=0;c=0;rhoinv=0;buck1=0;buck2=0;offset=0;};
     KOKKOS_INLINE_FUNCTION
-    params_buck_coul(int i){cut_ljsq=0;cut_coulsq=0;a=0;c=0;rhoinv=0;buck1=0;buck2=0;offset=0;};
+    params_buck_coul(int /*i*/) {cut_ljsq=0;cut_coulsq=0;a=0;c=0;rhoinv=0;buck1=0;buck2=0;offset=0;};
     F_FLOAT cut_ljsq,cut_coulsq,a,c,rhoinv,buck1,buck2,offset;
   };
 
  protected:
-  void cleanup_copy() {}
-
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
   F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
@@ -111,14 +110,14 @@ class PairBuckCoulCutKokkos : public PairBuckCoulCut {
   double special_lj[4], special_coul[4];
   double qqrd2e;
 
-  void allocate();
+  void allocate() override;
 
-  friend class PairComputeFunctor<PairBuckCoulCutKokkos,FULL,true>;
-  friend class PairComputeFunctor<PairBuckCoulCutKokkos,HALF,true>;
-  friend class PairComputeFunctor<PairBuckCoulCutKokkos,HALFTHREAD,true>;
-  friend class PairComputeFunctor<PairBuckCoulCutKokkos,FULL,false>;
-  friend class PairComputeFunctor<PairBuckCoulCutKokkos,HALF,false>;
-  friend class PairComputeFunctor<PairBuckCoulCutKokkos,HALFTHREAD,false>;
+  friend struct PairComputeFunctor<PairBuckCoulCutKokkos,FULL,true>;
+  friend struct PairComputeFunctor<PairBuckCoulCutKokkos,HALF,true>;
+  friend struct PairComputeFunctor<PairBuckCoulCutKokkos,HALFTHREAD,true>;
+  friend struct PairComputeFunctor<PairBuckCoulCutKokkos,FULL,false>;
+  friend struct PairComputeFunctor<PairBuckCoulCutKokkos,HALF,false>;
+  friend struct PairComputeFunctor<PairBuckCoulCutKokkos,HALFTHREAD,false>;
   friend EV_FLOAT pair_compute_neighlist<PairBuckCoulCutKokkos,FULL,void>(PairBuckCoulCutKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairBuckCoulCutKokkos,HALF,void>(PairBuckCoulCutKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairBuckCoulCutKokkos,HALFTHREAD,void>(PairBuckCoulCutKokkos*,NeighListKokkos<DeviceType>*);

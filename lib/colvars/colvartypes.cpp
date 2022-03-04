@@ -14,23 +14,17 @@
 #include "colvartypes.h"
 #include "colvarparse.h"
 
+#ifdef COLVARS_LAMMPS
+// Use open-source Jacobi implementation
+#include "math_eigen_impl.h"
+#else
+// Fall back to NR routine
+#include "nr_jacobi.h"
+#endif
+
 
 bool      colvarmodule::rotation::monitor_crossings = false;
 cvm::real colvarmodule::rotation::crossing_threshold = 1.0E-02;
-
-
-namespace  {
-
-/// Numerical recipes diagonalization
-static int jacobi(cvm::real **a, cvm::real *d, cvm::real **v, int *nrot);
-
-/// Eigenvector sort
-static int eigsrt(cvm::real *d, cvm::real **v);
-
-/// Transpose the matrix
-static int transpose(cvm::real **v);
-
-}
 
 
 std::string cvm::rvector::to_simple_string() const
@@ -74,7 +68,7 @@ std::ostream & operator << (std::ostream &os, colvarmodule::rvector const &v)
 
 std::istream & operator >> (std::istream &is, colvarmodule::rvector &v)
 {
-  size_t const start_pos = is.tellg();
+  std::streampos const start_pos = is.tellg();
   char sep;
   if ( !(is >> sep) || !(sep == '(') ||
        !(is >> v.x) || !(is >> sep)  || !(sep == ',') ||
@@ -130,7 +124,7 @@ std::ostream & operator << (std::ostream &os, colvarmodule::quaternion const &q)
 
 std::istream & operator >> (std::istream &is, colvarmodule::quaternion &q)
 {
-  size_t const start_pos = is.tellg();
+  std::streampos const start_pos = is.tellg();
 
   std::string euler("");
 
@@ -248,6 +242,69 @@ cvm::quaternion::position_derivative_inner(cvm::rvector const &pos,
 // Seok C, Dill KA.  Using quaternions to calculate RMSD.  J Comput
 // Chem. 25(15):1849-57 (2004) DOI: 10.1002/jcc.20110 PubMed: 15376254
 
+#ifdef COLVARS_LAMMPS
+namespace {
+  inline void *new_Jacobi_solver(int size) {
+    return reinterpret_cast<void *>(new MathEigen::Jacobi<cvm::real,
+                                    cvm::vector1d<cvm::real> &,
+                                    cvm::matrix2d<cvm::real> &>(4));
+  }
+}
+#endif
+
+
+colvarmodule::rotation::rotation()
+{
+  b_debug_gradients = false;
+  lambda = 0.0;
+#ifdef COLVARS_LAMMPS
+  jacobi = new_Jacobi_solver(4);
+#else
+  jacobi = NULL;
+#endif
+}
+
+
+colvarmodule::rotation::rotation(cvm::quaternion const &qi)
+  : q(qi)
+{
+  b_debug_gradients = false;
+  lambda = 0.0;
+#ifdef COLVARS_LAMMPS
+  jacobi = new_Jacobi_solver(4);
+#else
+  jacobi = NULL;
+#endif
+}
+
+
+colvarmodule::rotation::rotation(cvm::real angle, cvm::rvector const &axis)
+{
+  b_debug_gradients = false;
+  cvm::rvector const axis_n = axis.unit();
+  cvm::real const sina = cvm::sin(angle/2.0);
+  q = cvm::quaternion(cvm::cos(angle/2.0),
+                      sina * axis_n.x, sina * axis_n.y, sina * axis_n.z);
+  lambda = 0.0;
+#ifdef COLVARS_LAMMPS
+  jacobi = new_Jacobi_solver(4);
+#else
+  jacobi = NULL;
+#endif
+}
+
+
+colvarmodule::rotation::~rotation()
+{
+#ifdef COLVARS_LAMMPS
+  delete reinterpret_cast<
+    MathEigen::Jacobi<cvm::real,
+                      cvm::vector1d<cvm::real> &,
+                      cvm::matrix2d<cvm::real> &> *>(jacobi);
+#endif
+}
+
+
 void colvarmodule::rotation::build_correlation_matrix(
                                         std::vector<cvm::atom_pos> const &pos1,
                                         std::vector<cvm::atom_pos> const &pos2)
@@ -291,10 +348,12 @@ void colvarmodule::rotation::compute_overlap_matrix()
 }
 
 
-void colvarmodule::rotation::diagonalize_matrix(
-                                            cvm::matrix2d<cvm::real> &m,
-                                            cvm::vector1d<cvm::real> &eigval,
-                                            cvm::matrix2d<cvm::real> &eigvec)
+#ifndef COLVARS_LAMMPS
+namespace {
+
+void diagonalize_matrix(cvm::matrix2d<cvm::real> &m,
+                        cvm::vector1d<cvm::real> &eigval,
+                        cvm::matrix2d<cvm::real> &eigvec)
 {
   eigval.resize(4);
   eigval.reset();
@@ -303,15 +362,15 @@ void colvarmodule::rotation::diagonalize_matrix(
 
   // diagonalize
   int jac_nrot = 0;
-  if (jacobi(m.c_array(), eigval.c_array(), eigvec.c_array(), &jac_nrot) !=
+  if (NR_Jacobi::jacobi(m.c_array(), eigval.c_array(), eigvec.c_array(), &jac_nrot) !=
       COLVARS_OK) {
-    cvm::error("Too many iterations in routine jacobi.\n"
+    cvm::error("Too many iterations in jacobi diagonalization.\n"
                "This is usually the result of an ill-defined set of atoms for "
                "rotational alignment (RMSD, rotateReference, etc).\n");
   }
-  eigsrt(eigval.c_array(), eigvec.c_array());
+  NR_Jacobi::eigsrt(eigval.c_array(), eigvec.c_array());
   // jacobi saves eigenvectors by columns
-  transpose(eigvec.c_array());
+  NR_Jacobi::transpose(eigvec.c_array());
 
   // normalize eigenvectors
   for (size_t ie = 0; ie < 4; ie++) {
@@ -326,6 +385,9 @@ void colvarmodule::rotation::diagonalize_matrix(
     }
   }
 }
+
+}
+#endif
 
 
 // Calculate the rotation, plus its derivatives
@@ -349,7 +411,28 @@ void colvarmodule::rotation::calc_optimal_rotation(
     cvm::log("S     = "+cvm::to_str(S_backup, cvm::cv_width, cvm::cv_prec)+"\n");
   }
 
+  S_eigval.resize(4);
+  S_eigvec.resize(4, 4);
+
+#ifdef COLVARS_LAMMPS
+  MathEigen::Jacobi<cvm::real,
+                    cvm::vector1d<cvm::real> &,
+                    cvm::matrix2d<cvm::real> &> *ecalc =
+    reinterpret_cast<MathEigen::Jacobi<cvm::real,
+                                       cvm::vector1d<cvm::real> &,
+                                       cvm::matrix2d<cvm::real> &> *>(jacobi);
+
+  int ierror = ecalc->Diagonalize(S, S_eigval, S_eigvec);
+  if (ierror) {
+    cvm::error("Too many iterations in jacobi diagonalization.\n"
+               "This is usually the result of an ill-defined set of atoms for "
+               "rotational alignment (RMSD, rotateReference, etc).\n");
+  }
+#else
   diagonalize_matrix(S, S_eigval, S_eigvec);
+#endif
+
+
   // eigenvalues and eigenvectors
   cvm::real const L0 = S_eigval[0];
   cvm::real const L1 = S_eigval[1];
@@ -521,7 +604,11 @@ void colvarmodule::rotation::calc_optimal_rotation(
 
         //           cvm::log("S_new = "+cvm::to_str(cvm::to_str (S_new), cvm::cv_width, cvm::cv_prec)+"\n");
 
+#ifdef COLVARS_LAMMPS
+        ecalc->Diagonalize(S_new, S_new_eigval, S_new_eigvec);
+#else
         diagonalize_matrix(S_new, S_new_eigval, S_new_eigvec);
+#endif
 
         cvm::real const &L0_new = S_new_eigval[0];
         cvm::quaternion const Q0_new(S_new_eigvec[0]);
@@ -544,138 +631,3 @@ void colvarmodule::rotation::calc_optimal_rotation(
 
 
 
-// Numerical Recipes routine for diagonalization
-
-#define ROTATE(a,i,j,k,l) g=a[i][j]; \
-  h=a[k][l];                         \
-  a[i][j]=g-s*(h+g*tau);             \
-  a[k][l]=h+s*(g-h*tau);
-
-#define n 4
-
-
-namespace {
-
-int jacobi(cvm::real **a, cvm::real *d, cvm::real **v, int *nrot)
-{
-  int j,iq,ip,i;
-  cvm::real tresh,theta,tau,t,sm,s,h,g,c;
-
-  cvm::vector1d<cvm::real> b(n);
-  cvm::vector1d<cvm::real> z(n);
-
-  for (ip=0;ip<n;ip++) {
-    for (iq=0;iq<n;iq++) {
-      v[ip][iq]=0.0;
-    }
-    v[ip][ip]=1.0;
-  }
-  for (ip=0;ip<n;ip++) {
-    b[ip]=d[ip]=a[ip][ip];
-    z[ip]=0.0;
-  }
-  *nrot=0;
-  for (i=0;i<=50;i++) {
-    sm=0.0;
-    for (ip=0;ip<n-1;ip++) {
-      for (iq=ip+1;iq<n;iq++)
-        sm += cvm::fabs(a[ip][iq]);
-    }
-    if (sm == 0.0) {
-      return COLVARS_OK;
-    }
-    if (i < 4)
-      tresh=0.2*sm/(n*n);
-    else
-      tresh=0.0;
-    for (ip=0;ip<n-1;ip++) {
-      for (iq=ip+1;iq<n;iq++) {
-        g=100.0*cvm::fabs(a[ip][iq]);
-        if (i > 4 && (cvm::real)(cvm::fabs(d[ip])+g) == (cvm::real)cvm::fabs(d[ip])
-            && (cvm::real)(cvm::fabs(d[iq])+g) == (cvm::real)cvm::fabs(d[iq]))
-          a[ip][iq]=0.0;
-        else if (cvm::fabs(a[ip][iq]) > tresh) {
-          h=d[iq]-d[ip];
-          if ((cvm::real)(cvm::fabs(h)+g) == (cvm::real)cvm::fabs(h))
-            t=(a[ip][iq])/h;
-          else {
-            theta=0.5*h/(a[ip][iq]);
-            t=1.0/(cvm::fabs(theta)+cvm::sqrt(1.0+theta*theta));
-            if (theta < 0.0) t = -t;
-          }
-          c=1.0/cvm::sqrt(1+t*t);
-          s=t*c;
-          tau=s/(1.0+c);
-          h=t*a[ip][iq];
-          z[ip] -= h;
-          z[iq] += h;
-          d[ip] -= h;
-          d[iq] += h;
-          a[ip][iq]=0.0;
-          for (j=0;j<=ip-1;j++) {
-            ROTATE(a,j,ip,j,iq)
-              }
-          for (j=ip+1;j<=iq-1;j++) {
-            ROTATE(a,ip,j,j,iq)
-              }
-          for (j=iq+1;j<n;j++) {
-            ROTATE(a,ip,j,iq,j)
-              }
-          for (j=0;j<n;j++) {
-            ROTATE(v,j,ip,j,iq)
-              }
-          ++(*nrot);
-        }
-      }
-    }
-    for (ip=0;ip<n;ip++) {
-      b[ip] += z[ip];
-      d[ip]=b[ip];
-      z[ip]=0.0;
-    }
-  }
-  return COLVARS_ERROR;
-}
-
-
-int eigsrt(cvm::real *d, cvm::real **v)
-{
-  int k,j,i;
-  cvm::real p;
-
-  for (i=0;i<n;i++) {
-    p=d[k=i];
-    for (j=i+1;j<n;j++)
-      if (d[j] >= p) p=d[k=j];
-    if (k != i) {
-      d[k]=d[i];
-      d[i]=p;
-      for (j=0;j<n;j++) {
-        p=v[j][i];
-        v[j][i]=v[j][k];
-        v[j][k]=p;
-      }
-    }
-  }
-  return COLVARS_OK;
-}
-
-
-int transpose(cvm::real **v)
-{
-  cvm::real p;
-  int i,j;
-  for (i=0;i<n;i++) {
-    for (j=i+1;j<n;j++) {
-      p=v[i][j];
-      v[i][j]=v[j][i];
-      v[j][i]=p;
-    }
-  }
-  return COLVARS_OK;
-}
-
-}
-
-#undef n
-#undef ROTATE

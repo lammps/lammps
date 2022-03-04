@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,18 +17,17 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_dsmc.h"
-#include <mpi.h>
-#include <cmath>
-#include <climits>
+
 #include "atom.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "error.h"
-#include "domain.h"
-#include "update.h"
 #include "random_mars.h"
-#include "utils.h"
+#include "update.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -39,8 +39,8 @@ PairDSMC::PairDSMC(LAMMPS *lmp) : Pair(lmp)
 
   total_number_of_collisions = 0;
   max_particles = max_particle_list = 0;
-  next_particle = NULL;
-  random = NULL;
+  next_particle = nullptr;
+  random = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -153,9 +153,9 @@ void PairDSMC::compute(int /*eflag*/, int /*vflag*/)
           convert_double_to_equivalent_int(num_of_collisions_double);
 
         if (num_of_collisions > number_of_A)
-          error->warning(FLERR,"Pair dsmc: num_of_collisions > number_of_A",0);
+          error->warning(FLERR,"Pair dsmc: num_of_collisions > number_of_A");
         if (num_of_collisions > number_of_B)
-          error->warning(FLERR,"Pair dsmc: num_of_collisions > number_of_B",0);
+          error->warning(FLERR,"Pair dsmc: num_of_collisions > number_of_B");
 
         // perform collisions on pairs of particles in icell
 
@@ -208,12 +208,12 @@ void PairDSMC::settings(int narg, char **arg)
   if (narg != 6) error->all(FLERR,"Illegal pair_style command");
 
   cut_global = 0.0;
-  max_cell_size = force->numeric(FLERR,arg[0]);
-  seed = force->inumeric(FLERR,arg[1]);
-  weighting = force->numeric(FLERR,arg[2]);
-  T_ref = force->numeric(FLERR,arg[3]);
-  recompute_vsigmamax_stride = force->inumeric(FLERR,arg[4]);
-  vsigmamax_samples = force->inumeric(FLERR,arg[5]);
+  max_cell_size = utils::numeric(FLERR,arg[0],false,lmp);
+  seed = utils::inumeric(FLERR,arg[1],false,lmp);
+  weighting = utils::numeric(FLERR,arg[2],false,lmp);
+  T_ref = utils::numeric(FLERR,arg[3],false,lmp);
+  recompute_vsigmamax_stride = utils::inumeric(FLERR,arg[4],false,lmp);
+  vsigmamax_samples = utils::inumeric(FLERR,arg[5],false,lmp);
 
   // initialize Marsaglia RNG with processor-unique seed
 
@@ -244,13 +244,13 @@ void PairDSMC::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  double sigma_one = force->numeric(FLERR,arg[2]);
+  double sigma_one = utils::numeric(FLERR,arg[2],false,lmp);
 
   double cut_one = cut_global;
-  if (narg == 4) cut_one = force->numeric(FLERR,arg[3]);
+  if (narg == 4) cut_one = utils::numeric(FLERR,arg[3],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -283,12 +283,8 @@ void PairDSMC::init_style()
   celly = (domain->boxhi[1] - domain->boxlo[1])/ncellsy;
   cellz = (domain->boxhi[2] - domain->boxlo[2])/ncellsz;
 
-  if (comm->me == 0) {
-    if (screen) fprintf(screen,"DSMC cell size = %g x %g x %g\n",
-                        cellx,celly,cellz);
-    if (logfile) fprintf(logfile,"DSMC cell size = %g x %g x %g\n",
-                         cellx,celly,cellz);
-  }
+  if (comm->me == 0)
+    utils::logmesg(lmp,"DSMC cell size = {} x {} x {}\n",cellx,celly,cellz);
 
   total_ncells = ncellsx*ncellsy*ncellsz;
   vol = cellx*celly*cellz;
@@ -346,12 +342,12 @@ void PairDSMC::read_restart(FILE *fp)
   int me = comm->me;
   for (i = 1; i <= atom->ntypes; i++)
     for (j = i; j <= atom->ntypes; j++) {
-      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,&setflag[i][j],sizeof(int),1,fp,nullptr,error);
       MPI_Bcast(&setflag[i][j],1,MPI_INT,0,world);
       if (setflag[i][j]) {
         if (me == 0) {
-          utils::sfread(FLERR,&sigma[i][j],sizeof(double),1,fp,NULL,error);
-          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,NULL,error);
+          utils::sfread(FLERR,&sigma[i][j],sizeof(double),1,fp,nullptr,error);
+          utils::sfread(FLERR,&cut[i][j],sizeof(double),1,fp,nullptr,error);
         }
         MPI_Bcast(&sigma[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&cut[i][j],1,MPI_DOUBLE,0,world);
@@ -379,11 +375,11 @@ void PairDSMC::write_restart_settings(FILE *fp)
 void PairDSMC::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&max_cell_size,sizeof(double),1,fp,NULL,error);
-    utils::sfread(FLERR,&seed,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,NULL,error);
-    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,NULL,error);
+    utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&max_cell_size,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&seed,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
   }
 
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);

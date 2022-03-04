@@ -1,0 +1,242 @@
+LAMMPS (9 Oct 2020)
+  using 1 OpenMP thread(s) per MPI task
+####################################################################################################
+#
+# TLSPH example:  elongate a 2d strip of aluminum py pulling its ends apart
+#
+# unit system: GPa / mm / ms
+#
+####################################################################################################
+
+####################################################################################################
+# MATERIAL PARAMETERS
+####################################################################################################
+variable        E equal 70.0  # Young's modulus
+variable        nu equal 0.3  # Poisson ratio
+variable        rho equal 1   # initial mass density
+variable        q1 equal 0.56 # standard artificial viscosity linear coefficient
+variable        q2 equal 0.0  # standard artificial viscosity quadratic coefficient
+variable        hg equal 10.0 # hourglass control coefficient
+variable        cp equal 1.0  # heat capacity of material -- not used here
+
+variable        JC_A equal 0.3241 # Johnson Cook parameters
+variable        JC_B equal 0.1138
+variable        JC_N equal 0.42
+variable        JC_C equal 0 #0.002
+variable        JC_M equal 1.34
+variable        JC_epsdot0 equal 1.0e-3 # 1/s = 1/(1000 ms)
+variable        Troom equal 298.15
+variable        Tmelt equal 500.15
+
+variable        eosC0 equal 0.0 # Polynomial EOS parameters
+variable        eosC1 equal 74.2
+variable        eosC2 equal 60.5
+variable        eosC3 equal 36.5
+variable        eosC4 equal 1.96
+variable        eosC5 equal 0.0
+variable        eosC6 equal 0.0
+
+####################################################################################################
+# INITIALIZE LAMMPS
+####################################################################################################
+dimension       2
+units           si
+boundary        sm sm p # simulation box boundaries
+atom_style      smd
+atom_modify     map array
+comm_modify     vel yes
+neigh_modify    every 10 delay 0 check yes # re-build neighbor list every 10 steps
+newton          off
+
+####################################################################################################
+# CREATE INITIAL GEOMETRY
+####################################################################################################
+variable        l0 equal 1.0 # lattice spacing for creating particles
+lattice         sq ${l0}
+lattice         sq 1
+Lattice spacing in x,y,z = 1.0000000 1.0000000 1.0000000
+region          box block -10 10 -10 10 -0.1 0.1 units box
+create_box      1 box
+Created orthogonal box = (-10.000000 -10.000000 -0.1) to (10.000000 10.000000 0.1)
+  1 by 1 by 1 MPI processor grid
+create_atoms    1 box
+Created 400 atoms
+  create_atoms CPU = 0.001 seconds
+group           tlsph type 1
+400 atoms in group tlsph
+
+####################################################################################################
+# DISCRETIZATION PARAMETERS
+####################################################################################################
+variable        h equal 2.01*${l0} # SPH smoothing kernel radius
+variable        h equal 2.01*1 
+variable        vol_one equal ${l0}^2 # volume of one particle -- assuming unit thickness
+variable        vol_one equal 1^2 
+variable        skin equal ${h} # Verlet list range
+variable        skin equal 2.01 
+neighbor        ${skin} bin
+neighbor        2.01 bin
+set             group all volume ${vol_one}
+set             group all volume 1
+Setting atom values ...
+  400 settings made for volume
+set             group all smd/mass/density ${rho}
+set             group all smd/mass/density 1
+Setting atom values ...
+  400 settings made for smd/mass/density
+set             group all diameter ${h} # set SPH kernel radius
+set             group all diameter 2.01 
+Setting atom values ...
+  400 settings made for diameter
+
+####################################################################################################
+# DEFINE VELOCITY BOUNDARY CONDITIONS
+####################################################################################################
+variable        vel0 equal 0.02 # pull velocity
+region          top block EDGE EDGE 9.0 EDGE EDGE EDGE units box
+region          bot block EDGE EDGE EDGE -9.1 EDGE EDGE units box
+group           top region top
+20 atoms in group top
+group           bot region bot
+20 atoms in group bot
+variable        vel_up equal ${vel0}*(1.0-exp(-0.01*time))
+variable        vel_up equal 0.02*(1.0-exp(-0.01*time))
+variable        vel_down equal -v_vel_up
+fix             veltop_fix top smd/setvel 0 v_vel_up 0
+fix             velbot_fix bot smd/setvel 0 v_vel_down 0
+
+####################################################################################################
+# INTERACTION PHYSICS / MATERIAL MODEL
+# We use polynomial EOS for the pressure and the Johnson Cook strength model
+# An integration point fails (cannot support tension anymore) if the plastic strain exceeds 0.5.
+####################################################################################################
+pair_style      smd/tlsph
+pair_coeff      1 1 *COMMON ${rho} ${E} ${nu} ${q1} ${q2} ${hg} ${cp}                 *EOS_POLYNOMIAL ${eosC0} ${eosC1} ${eosC2} ${eosC3} ${eosC4} ${eosC5} ${eosC6}                 *JOHNSON_COOK ${JC_A} ${JC_B}  ${JC_N} ${JC_C} ${JC_epsdot0} ${Troom} ${Tmelt} ${JC_M}                 *FAILURE_MAX_PLASTIC_STRAIN 1.2                 *END
+pair_coeff      1 1 *COMMON 1 ${E} ${nu} ${q1} ${q2} ${hg} ${cp}                 *EOS_POLYNOMIAL ${eosC0} ${eosC1} ${eosC2} ${eosC3} ${eosC4} ${eosC5} ${eosC6}                 *JOHNSON_COOK ${JC_A} ${JC_B}  ${JC_N} ${JC_C} ${JC_epsdot0} ${Troom} ${Tmelt} ${JC_M}                 *FAILURE_MAX_PLASTIC_STRAIN 1.2                 *END
+pair_coeff      1 1 *COMMON 1 70 ${nu} ${q1} ${q2} ${hg} ${cp}                 *EOS_POLYNOMIAL ${eosC0} ${eosC1} ${eosC2} ${eosC3} ${eosC4} ${eosC5} ${eosC6}                 *JOHNSON_COOK ${JC_A} ${JC_B}  ${JC_N} ${JC_C} ${JC_epsdot0} ${Troom} ${Tmelt} ${JC_M}                 *FAILURE_MAX_PLASTIC_STRAIN 1.2                 *END
+pair_coeff      1 1 *COMMON 1 70 0.3 ${q1} ${q2} ${hg} ${cp}                 *EOS_POLYNOMIAL ${eosC0} ${eosC1} ${eosC2} ${eosC3} ${eosC4} ${eosC5} ${eosC6}                 *JOHNSON_COOK ${JC_A} ${JC_B}  ${JC_N} ${JC_C} ${JC_epsdot0} ${Troom} ${Tmelt} ${JC_M}                 *FAILURE_MAX_PLASTIC_STRAIN 1.2                 *END
+pair_coeff      1 1 *COMMON 1 70 0.3 0.56 ${q2} ${hg} ${cp}                 *EOS_POLYNOMIAL ${eosC0} ${eosC1} ${eosC2} ${eosC3} ${eosC4} ${eosC5} ${eosC6}                 *JOHNSON_COOK ${JC_A} ${JC_B}  ${JC_N} ${JC_C} ${JC_epsdot0} ${Troom} ${Tmelt} ${JC_M}                 *FAILURE_MAX_PLASTIC_STRAIN 1.2                 *END
+pair_coeff      1 1 *COMMON 1 70 0.3 0.56 0 ${hg} ${cp}                 *EOS_POLYNOMIAL ${eosC0} ${eosC1} ${eosC2} ${eosC3} ${eosC4} ${eosC5} ${eosC6}                 *JOHNSON_COOK ${JC_A} ${JC_B}  ${JC_N} ${JC_C} ${JC_epsdot0} ${Troom} ${Tmelt} ${JC_M}                 *FAILURE_MAX_PLASTIC_STRAIN 1.2                 *END
+pair_coeff      1 1 *COMMON 1 70 0.3 0.56 0 10 ${cp}                 *EOS_POLYNOMIAL ${eosC0} ${eosC1} ${eosC2} ${eosC3} ${eosC4} ${eosC5} ${eosC6}                 *JOHNSON_COOK ${JC_A} ${JC_B}  ${JC_N} ${JC_C} ${JC_epsdot0} ${Troom} ${Tmelt} ${JC_M}                 *FAILURE_MAX_PLASTIC_STRAIN 1.2                 *END
+pair_coeff      1 1 *COMMON 1 70 0.3 0.56 0 10 1                 *EOS_POLYNOMIAL ${eosC0} ${eosC1} ${eosC2} ${eosC3} ${eosC4} ${eosC5} ${eosC6}                 *JOHNSON_COOK ${JC_A} ${JC_B}  ${JC_N} ${JC_C} ${JC_epsdot0} ${Troom} ${Tmelt} ${JC_M}                 *FAILURE_MAX_PLASTIC_STRAIN 1.2                 *END
+pair_coeff      1 1 *COMMON 1 70 0.3 0.56 0 10 1                 *EOS_POLYNOMIAL 0 ${eosC1} ${eosC2} ${eosC3} ${eosC4} ${eosC5} ${eosC6}                 *JOHNSON_COOK ${JC_A} ${JC_B}  ${JC_N} ${JC_C} ${JC_epsdot0} ${Troom} ${Tmelt} ${JC_M}                 *FAILURE_MAX_PLASTIC_STRAIN 1.2                 *END
+pair_coeff      1 1 *COMMON 1 70 0.3 0.56 0 10 1                 *EOS_POLYNOMIAL 0 74.2 ${eosC2} ${eosC3} ${eosC4} ${eosC5} ${eosC6}                 *JOHNSON_COOK ${JC_A} ${JC_B}  ${JC_N} ${JC_C} ${JC_epsdot0} ${Troom} ${Tmelt} ${JC_M}                 *FAILURE_MAX_PLASTIC_STRAIN 1.2                 *END
+pair_coeff      1 1 *COMMON 1 70 0.3 0.56 0 10 1                 *EOS_POLYNOMIAL 0 74.2 60.5 ${eosC3} ${eosC4} ${eosC5} ${eosC6}                 *JOHNSON_COOK ${JC_A} ${JC_B}  ${JC_N} ${JC_C} ${JC_epsdot0} ${Troom} ${Tmelt} ${JC_M}                 *FAILURE_MAX_PLASTIC_STRAIN 1.2                 *END
+pair_coeff      1 1 *COMMON 1 70 0.3 0.56 0 10 1                 *EOS_POLYNOMIAL 0 74.2 60.5 36.5 ${eosC4} ${eosC5} ${eosC6}                 *JOHNSON_COOK ${JC_A} ${JC_B}  ${JC_N} ${JC_C} ${JC_epsdot0} ${Troom} ${Tmelt} ${JC_M}                 *FAILURE_MAX_PLASTIC_STRAIN 1.2                 *END
+pair_coeff      1 1 *COMMON 1 70 0.3 0.56 0 10 1                 *EOS_POLYNOMIAL 0 74.2 60.5 36.5 1.96 ${eosC5} ${eosC6}                 *JOHNSON_COOK ${JC_A} ${JC_B}  ${JC_N} ${JC_C} ${JC_epsdot0} ${Troom} ${Tmelt} ${JC_M}                 *FAILURE_MAX_PLASTIC_STRAIN 1.2                 *END
+pair_coeff      1 1 *COMMON 1 70 0.3 0.56 0 10 1                 *EOS_POLYNOMIAL 0 74.2 60.5 36.5 1.96 0 ${eosC6}                 *JOHNSON_COOK ${JC_A} ${JC_B}  ${JC_N} ${JC_C} ${JC_epsdot0} ${Troom} ${Tmelt} ${JC_M}                 *FAILURE_MAX_PLASTIC_STRAIN 1.2                 *END
+pair_coeff      1 1 *COMMON 1 70 0.3 0.56 0 10 1                 *EOS_POLYNOMIAL 0 74.2 60.5 36.5 1.96 0 0                 *JOHNSON_COOK ${JC_A} ${JC_B}  ${JC_N} ${JC_C} ${JC_epsdot0} ${Troom} ${Tmelt} ${JC_M}                 *FAILURE_MAX_PLASTIC_STRAIN 1.2                 *END
+pair_coeff      1 1 *COMMON 1 70 0.3 0.56 0 10 1                 *EOS_POLYNOMIAL 0 74.2 60.5 36.5 1.96 0 0                 *JOHNSON_COOK 0.3241 ${JC_B}  ${JC_N} ${JC_C} ${JC_epsdot0} ${Troom} ${Tmelt} ${JC_M}                 *FAILURE_MAX_PLASTIC_STRAIN 1.2                 *END
+pair_coeff      1 1 *COMMON 1 70 0.3 0.56 0 10 1                 *EOS_POLYNOMIAL 0 74.2 60.5 36.5 1.96 0 0                 *JOHNSON_COOK 0.3241 0.1138  ${JC_N} ${JC_C} ${JC_epsdot0} ${Troom} ${Tmelt} ${JC_M}                 *FAILURE_MAX_PLASTIC_STRAIN 1.2                 *END
+pair_coeff      1 1 *COMMON 1 70 0.3 0.56 0 10 1                 *EOS_POLYNOMIAL 0 74.2 60.5 36.5 1.96 0 0                 *JOHNSON_COOK 0.3241 0.1138  0.42 ${JC_C} ${JC_epsdot0} ${Troom} ${Tmelt} ${JC_M}                 *FAILURE_MAX_PLASTIC_STRAIN 1.2                 *END
+pair_coeff      1 1 *COMMON 1 70 0.3 0.56 0 10 1                 *EOS_POLYNOMIAL 0 74.2 60.5 36.5 1.96 0 0                 *JOHNSON_COOK 0.3241 0.1138  0.42 0 ${JC_epsdot0} ${Troom} ${Tmelt} ${JC_M}                 *FAILURE_MAX_PLASTIC_STRAIN 1.2                 *END
+pair_coeff      1 1 *COMMON 1 70 0.3 0.56 0 10 1                 *EOS_POLYNOMIAL 0 74.2 60.5 36.5 1.96 0 0                 *JOHNSON_COOK 0.3241 0.1138  0.42 0 0.001 ${Troom} ${Tmelt} ${JC_M}                 *FAILURE_MAX_PLASTIC_STRAIN 1.2                 *END
+pair_coeff      1 1 *COMMON 1 70 0.3 0.56 0 10 1                 *EOS_POLYNOMIAL 0 74.2 60.5 36.5 1.96 0 0                 *JOHNSON_COOK 0.3241 0.1138  0.42 0 0.001 298.15 ${Tmelt} ${JC_M}                 *FAILURE_MAX_PLASTIC_STRAIN 1.2                 *END
+pair_coeff      1 1 *COMMON 1 70 0.3 0.56 0 10 1                 *EOS_POLYNOMIAL 0 74.2 60.5 36.5 1.96 0 0                 *JOHNSON_COOK 0.3241 0.1138  0.42 0 0.001 298.15 500.15 ${JC_M}                 *FAILURE_MAX_PLASTIC_STRAIN 1.2                 *END
+pair_coeff      1 1 *COMMON 1 70 0.3 0.56 0 10 1                 *EOS_POLYNOMIAL 0 74.2 60.5 36.5 1.96 0 0                 *JOHNSON_COOK 0.3241 0.1138  0.42 0 0.001 298.15 500.15 1.34                 *FAILURE_MAX_PLASTIC_STRAIN 1.2                 *END
+
+####################################################################################################
+# TIME INTEGRATION
+####################################################################################################
+fix             dtfix tlsph smd/adjust_dt 0.1 # dynamically adjust time increment every step
+fix             integration_fix tlsph smd/integrate_tlsph
+
+####################################################################################################
+# SPECIFY TRAJECTORY OUTPUT
+####################################################################################################
+compute         dt_atom all smd/tlsph/dt
+compute         p all smd/plastic/strain
+compute         epsdot all smd/plastic/strain/rate
+compute         S all smd/tlsph/stress # Cauchy stress tensor
+compute         D all smd/tlsph/strain/rate
+compute         E all smd/tlsph/strain
+compute         nn all smd/tlsph/num/neighs # number of neighbors for each particle
+compute         shape all smd/tlsph/shape
+compute         damage all smd/damage
+dump            dump_id all custom 100 dump.LAMMPS id type x y z                 c_S[1] c_S[2] c_S[3] c_S[4] c_S[5] c_S[6] c_S[7] c_nn c_p                 c_E[1] c_E[2] c_E[3] c_E[4] c_E[5] c_E[6]                 c_shape[1] c_shape[2] c_shape[3] c_shape[4] c_shape[5] c_shape[6] c_shape[7]                 c_D[1] c_D[2] c_D[4] c_damage radius c_epsdot                 vx vy vz c_dt_atom
+dump_modify     dump_id first yes
+
+####################################################################################################
+# STATUS OUTPUT
+####################################################################################################
+variable        stress equal 0.5*(f_velbot_fix[2]-f_veltop_fix[2])/20
+variable        length equal xcm(top,y)-xcm(bot,y)
+variable        strain equal (v_length-${length})/${length} # engineering strain
+variable        strain equal (v_length-19)/${length} 
+variable        strain equal (v_length-19)/19 
+variable        time equal f_dtfix
+fix             stress_curve all print 10 "${time} ${strain} ${stress}" file stress_strain.dat screen no
+
+thermo          100
+thermo_style    custom step dt f_dtfix time v_strain
+
+####################################################################################################
+# RUN SIMULATION
+####################################################################################################
+#fix            2 all enforce2d
+run             2000
+Neighbor list info ...
+  update every 10 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 4.02
+  ghost atom cutoff = 4.02
+  binsize = 2.01, bins = 10 10 1
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair smd/tlsph, perpetual
+      attributes: half, newton off, size
+      pair build: half/size/bin/newtoff
+      stencil: half/bin/2d/newtoff
+      bin: standard
+
+TLSPH neighbors:
+  max # of neighbors for a single particle = 12
+  average # of neighbors/particle in group tlsph = 11.01
+Per MPI rank memory allocation (min/avg/max) = 30.47 | 30.47 | 30.47 Mbytes
+Step Dt f_dtfix Time v_strain 
+       0        1e-16            0            0            0 
+     100  0.020705726    2.0498925    2.0705726 4.436443e-05 
+     200   0.01898385    4.0324033      3.79677 0.00016515223 
+     300  0.019051906    5.9333066    5.7155717 0.00035049273 
+     400  0.018996472    7.8305099    7.5985889 0.00060670224 
+     500  0.019027435      9.73206    9.5137174  0.000934622 
+     600  0.019051342      11.6361    11.430805  0.001332781 
+     700  0.019065137     13.54205    13.345596 0.0017999344 
+     800  0.019077723    15.449268    15.262178 0.0023347057 
+     900  0.019085073    17.357448    17.176565 0.0029358076 
+    1000  0.019092376    19.266354    19.092376 0.0036019613 
+    1100  0.018942457    21.168409    20.836702 0.0043265389 
+    1200  0.017710951    22.995927    21.253142 0.0050558892 
+    1300  0.018403356     24.84804    23.924363 0.0058616451 
+    1400    0.0186654    26.710384     26.13156 0.0067328424 
+    1500  0.019022154     28.58178    28.533231 0.0076688571 
+    1600  0.018562934    30.467266    29.700694 0.0086745455 
+    1700  0.020657894     32.34779    35.118419 0.0097303803 
+    1800  0.018013596    34.258245    32.424473   0.01087327 
+    1900  0.018883512    36.128876    35.878672  0.012024842 
+    2000   0.01899594    37.998637     37.99188  0.013227222 
+Loop time of 1.35888 on 1 procs for 2000 steps with 400 atoms
+
+99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.2722     | 1.2722     | 1.2722     |   0.0 | 93.62
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.00010085 | 0.00010085 | 0.00010085 |   0.0 |  0.01
+Output  | 0.063841   | 0.063841   | 0.063841   |   0.0 |  4.70
+Modify  | 0.021427   | 0.021427   | 0.021427   |   0.0 |  1.58
+Other   |            | 0.001282   |            |       |  0.09
+
+Nlocal:        400.000 ave         400 max         400 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:        0.00000 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:        8054.00 ave        8054 max        8054 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 8054
+Ave neighs/atom = 20.135000
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:01

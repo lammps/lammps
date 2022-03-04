@@ -35,7 +35,11 @@ Restrictions
 """"""""""""
  none
 
-**Related commands:** none
+Related commands
+""""""""""""""""
+
+none
+
 
 Default
 """""""

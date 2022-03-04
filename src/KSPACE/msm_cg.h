@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef KSPACE_CLASS
-
-KSpaceStyle(msm/cg,MSMCG)
-
+// clang-format off
+KSpaceStyle(msm/cg,MSMCG);
+// clang-format on
 #else
 
 #ifndef LMP_MSM_CG_H
@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class MSMCG : public MSM {
  public:
   MSMCG(class LAMMPS *);
-  virtual ~MSMCG();
-  virtual void settings(int, char **);
-  virtual void compute(int, int);
-  virtual double memory_usage();
+  ~MSMCG() override;
+  void settings(int, char **) override;
+  void compute(int, int) override;
+  double memory_usage() override;
 
  protected:
   int num_charged;
@@ -38,13 +38,13 @@ class MSMCG : public MSM {
   double smallq;
 
  protected:
-  virtual void particle_map();
-  virtual void make_rho();
-  virtual void fieldforce();
-  virtual void fieldforce_peratom();
+  void particle_map() override;
+  void make_rho() override;
+  void fieldforce() override;
+  void fieldforce_peratom() override;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

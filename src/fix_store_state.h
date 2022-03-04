@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
-
-FixStyle(store/state,FixStoreState)
-
+// clang-format off
+FixStyle(store/state,FixStoreState);
+// clang-format on
 #else
 
 #ifndef LMP_FIX_STORE_STATE_H
@@ -27,37 +27,37 @@ namespace LAMMPS_NS {
 class FixStoreState : public Fix {
  public:
   FixStoreState(class LAMMPS *, int, char **);
-  ~FixStoreState();
-  int setmask();
-  void init();
-  void setup(int);
-  void end_of_step();
+  ~FixStoreState() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void end_of_step() override;
 
-  double memory_usage();
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
-  int pack_restart(int, double *);
-  void unpack_restart(int, int);
-  int size_restart(int);
-  int maxsize_restart();
+  double memory_usage() override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  int pack_restart(int, double *) override;
+  void unpack_restart(int, int) override;
+  int size_restart(int) override;
+  int maxsize_restart() override;
 
  private:
   int nvalues;
-  int *which,*argindex,*value2index;
+  int *which, *argindex, *value2index;
   char **ids;
-  double **values;         // archived atom properties
-  double *vbuf;            // 1d ptr to values
+  double **values;    // archived atom properties
+  double *vbuf;       // 1d ptr to values
 
   int comflag;
-  double cm[3];            // center of mass
+  double cm[3];    // center of mass
 
-  int kflag,cfv_flag,firstflag;
-  int cfv_any;             // 1 if any compute/fix/variable specified
+  int kflag, cfv_flag, firstflag;
+  int cfv_any;    // 1 if any compute/fix/variable specified
 
   typedef void (FixStoreState::*FnPtrPack)(int);
-  FnPtrPack *pack_choice;              // ptrs to pack functions
+  FnPtrPack *pack_choice;    // ptrs to pack functions
 
   void pack_id(int);
   void pack_molecule(int);
@@ -114,7 +114,7 @@ class FixStoreState : public Fix {
   void pack_tqz(int);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

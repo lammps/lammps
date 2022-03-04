@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,53 +17,57 @@
      Axel Kohlmeyer (Temple U), Iain Bethune (EPCC)
 ------------------------------------------------------------------------- */
 
-//#define BALANCE_DEBUG 1
+// #define BALANCE_DEBUG 1
 
 #include "balance.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
-#include "atom.h"
-#include "comm.h"
-#include "rcb.h"
-#include "irregular.h"
-#include "domain.h"
-#include "force.h"
+
 #include "update.h"
-#include "modify.h"
+#include "atom.h"
+#include "neighbor.h"
+#include "comm.h"
+#include "domain.h"
 #include "fix_store.h"
 #include "imbalance.h"
 #include "imbalance_group.h"
-#include "imbalance_time.h"
 #include "imbalance_neigh.h"
 #include "imbalance_store.h"
+#include "imbalance_time.h"
 #include "imbalance_var.h"
+#include "irregular.h"
 #include "memory.h"
+#include "modify.h"
+#include "rcb.h"
 #include "error.h"
 
+#include <cmath>
+#include <cstring>
+
 using namespace LAMMPS_NS;
+
+double EPSNEIGH = 1.0e-3;
 
 enum{XYZ,SHIFT,BISECTION};
 enum{NONE,UNIFORM,USER};
 enum{X,Y,Z};
+
 /* ---------------------------------------------------------------------- */
 
-Balance::Balance(LAMMPS *lmp) : Pointers(lmp)
+Balance::Balance(LAMMPS *lmp) : Command(lmp)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  user_xsplit = user_ysplit = user_zsplit = NULL;
+  user_xsplit = user_ysplit = user_zsplit = nullptr;
   shift_allocate = 0;
-  proccost = allproccost = NULL;
+  proccost = allproccost = nullptr;
 
-  rcb = NULL;
+  rcb = nullptr;
 
   nimbalance = 0;
-  imbalances = NULL;
-  fixstore = NULL;
+  imbalances = nullptr;
+  fixstore = nullptr;
 
-  fp = NULL;
+  fp = nullptr;
   firststep = 1;
 }
 
@@ -97,7 +102,7 @@ Balance::~Balance()
   // check nfix in case all fixes have already been deleted
 
   if (fixstore && modify->nfix) modify->delete_fix(fixstore->id);
-  fixstore = NULL;
+  fixstore = nullptr;
 
   if (fp) fclose(fp);
 }
@@ -111,13 +116,13 @@ void Balance::command(int narg, char **arg)
   if (domain->box_exist == 0)
     error->all(FLERR,"Balance command before simulation box is defined");
 
-  if (me == 0 && screen) fprintf(screen,"Balancing ...\n");
+  if (me == 0) utils::logmesg(lmp,"Balancing ...\n");
 
   // parse required arguments
 
   if (narg < 2) error->all(FLERR,"Illegal balance command");
 
-  thresh = force->numeric(FLERR,arg[0]);
+  thresh = utils::numeric(FLERR,arg[0],false,lmp);
 
   int dimension = domain->dimension;
   int *procgrid = comm->procgrid;
@@ -143,7 +148,7 @@ void Balance::command(int narg, char **arg)
         user_xsplit[0] = 0.0;
         iarg++;
         for (int i = 1; i < procgrid[0]; i++)
-          user_xsplit[i] = force->numeric(FLERR,arg[iarg++]);
+          user_xsplit[i] = utils::numeric(FLERR,arg[iarg++],false,lmp);
         user_xsplit[procgrid[0]] = 1.0;
       }
     } else if (strcmp(arg[iarg],"y") == 0) {
@@ -163,7 +168,7 @@ void Balance::command(int narg, char **arg)
         user_ysplit[0] = 0.0;
         iarg++;
         for (int i = 1; i < procgrid[1]; i++)
-          user_ysplit[i] = force->numeric(FLERR,arg[iarg++]);
+          user_ysplit[i] = utils::numeric(FLERR,arg[iarg++],false,lmp);
         user_ysplit[procgrid[1]] = 1.0;
       }
     } else if (strcmp(arg[iarg],"z") == 0) {
@@ -183,7 +188,7 @@ void Balance::command(int narg, char **arg)
         user_zsplit[0] = 0.0;
         iarg++;
         for (int i = 1; i < procgrid[2]; i++)
-          user_zsplit[i] = force->numeric(FLERR,arg[iarg++]);
+          user_zsplit[i] = utils::numeric(FLERR,arg[iarg++],false,lmp);
         user_zsplit[procgrid[2]] = 1.0;
       }
 
@@ -191,11 +196,11 @@ void Balance::command(int narg, char **arg)
       if (style != -1) error->all(FLERR,"Illegal balance command");
       if (iarg+4 > narg) error->all(FLERR,"Illegal balance command");
       style = SHIFT;
-      if (strlen(arg[iarg+1]) > 3) error->all(FLERR,"Illegal balance command");
-      strcpy(bstr,arg[iarg+1]);
-      nitermax = force->inumeric(FLERR,arg[iarg+2]);
+      if (strlen(arg[iarg+1]) > BSTR_SIZE) error->all(FLERR,"Illegal balance command");
+      strncpy(bstr,arg[iarg+1],BSTR_SIZE+1);
+      nitermax = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
       if (nitermax <= 0) error->all(FLERR,"Illegal balance command");
-      stopthresh = force->numeric(FLERR,arg[iarg+3]);
+      stopthresh = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       if (stopthresh < 1.0) error->all(FLERR,"Illegal balance command");
       iarg += 4;
 
@@ -246,7 +251,7 @@ void Balance::command(int narg, char **arg)
   // process remaining optional args
 
   options(iarg,narg,arg);
-  if (wtflag) weight_storage(NULL);
+  if (wtflag) weight_storage(nullptr);
 
   // insure particles are in current box & update box via shrink-wrap
   // init entire system since comm->setup is done
@@ -254,7 +259,7 @@ void Balance::command(int narg, char **arg)
   // must reset atom map after exchange() since it clears it
 
   MPI_Barrier(world);
-  double start_time = MPI_Wtime();
+  double start_time = platform::walltime();
 
   lmp->init();
 
@@ -263,7 +268,7 @@ void Balance::command(int narg, char **arg)
   domain->reset_box();
   comm->setup();
   comm->exchange();
-  if (atom->map_style) atom->map_set();
+  if (atom->map_style != Atom::MAP_NONE) atom->map_set();
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
   // imbinit = initial imbalance
@@ -366,12 +371,9 @@ void Balance::command(int narg, char **arg)
   bigint natoms;
   bigint nblocal = atom->nlocal;
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
-  if (natoms != atom->natoms) {
-    char str[128];
-    sprintf(str,"Lost atoms via balance: original " BIGINT_FORMAT
-            " current " BIGINT_FORMAT,atom->natoms,natoms);
-    error->all(FLERR,str);
-  }
+  if (natoms != atom->natoms)
+    error->all(FLERR,"Lost atoms via balance: original {}  current {}",
+               atom->natoms,natoms);
 
   // imbfinal = final imbalance
   // set disable = 1, so weights no longer migrate with atoms
@@ -382,60 +384,29 @@ void Balance::command(int narg, char **arg)
 
   // stats output
 
-  double stop_time = MPI_Wtime();
-
   if (me == 0) {
-    if (screen) {
-      fprintf(screen,"  rebalancing time: %g seconds\n",stop_time-start_time);
-      fprintf(screen,"  iteration count = %d\n",niter);
-      for (int i = 0; i < nimbalance; ++i) imbalances[i]->info(screen);
-      fprintf(screen,"  initial/final max load/proc = %g %g\n",
-              maxinit,maxfinal);
-      fprintf(screen,"  initial/final imbalance factor = %g %g\n",
-              imbinit,imbfinal);
-    }
-    if (logfile) {
-      fprintf(logfile,"  rebalancing time: %g seconds\n",stop_time-start_time);
-      fprintf(logfile,"  iteration count = %d\n",niter);
-      for (int i = 0; i < nimbalance; ++i) imbalances[i]->info(logfile);
-      fprintf(logfile,"  initial/final max load/proc = %g %g\n",
-              maxinit,maxfinal);
-      fprintf(logfile,"  initial/final imbalance factor = %g %g\n",
-              imbinit,imbfinal);
-    }
-  }
+    std::string mesg = fmt::format(" rebalancing time: {:.3f} seconds\n",
+                                   platform::walltime()-start_time);
+    mesg += fmt::format("  iteration count = {}\n",niter);
+    for (int i = 0; i < nimbalance; ++i) mesg += imbalances[i]->info();
+    mesg += fmt::format("  initial/final maximal load/proc = {:.8} {:.8}\n"
+                        "  initial/final imbalance factor  = {:.8} {:.8}\n",
+                        maxinit,maxfinal,imbinit,imbfinal);
 
-  if (style != BISECTION) {
-    if (me == 0) {
-      if (screen) {
-        fprintf(screen,"  x cuts:");
-        for (int i = 0; i <= comm->procgrid[0]; i++)
-          fprintf(screen," %g",comm->xsplit[i]);
-        fprintf(screen,"\n");
-        fprintf(screen,"  y cuts:");
-        for (int i = 0; i <= comm->procgrid[1]; i++)
-          fprintf(screen," %g",comm->ysplit[i]);
-        fprintf(screen,"\n");
-        fprintf(screen,"  z cuts:");
-        for (int i = 0; i <= comm->procgrid[2]; i++)
-          fprintf(screen," %g",comm->zsplit[i]);
-        fprintf(screen,"\n");
-      }
-      if (logfile) {
-        fprintf(logfile,"  x cuts:");
-        for (int i = 0; i <= comm->procgrid[0]; i++)
-          fprintf(logfile," %g",comm->xsplit[i]);
-        fprintf(logfile,"\n");
-        fprintf(logfile,"  y cuts:");
-        for (int i = 0; i <= comm->procgrid[1]; i++)
-          fprintf(logfile," %g",comm->ysplit[i]);
-        fprintf(logfile,"\n");
-        fprintf(logfile,"  z cuts:");
-        for (int i = 0; i <= comm->procgrid[2]; i++)
-          fprintf(logfile," %g",comm->zsplit[i]);
-        fprintf(logfile,"\n");
-      }
+    if (style != BISECTION) {
+      mesg += "  x cuts:";
+      for (int i = 0; i <= comm->procgrid[0]; i++)
+        mesg += fmt::format(" {:.8}",comm->xsplit[i]);
+      mesg += "\n  y cuts:";
+      for (int i = 0; i <= comm->procgrid[1]; i++)
+        mesg += fmt::format(" {:.8}",comm->ysplit[i]);
+      mesg += "\n  z cuts:";
+      for (int i = 0; i <= comm->procgrid[2]; i++)
+        mesg += fmt::format(" {:.8}",comm->zsplit[i]);
+      mesg += "\n";
     }
+
+    utils::logmesg(lmp,mesg);
   }
 }
 
@@ -458,7 +429,7 @@ void Balance::options(int iarg, int narg, char **arg)
   oldrcb = 0;
   outflag = 0;
   int outarg = 0;
-  fp = NULL;
+  fp = nullptr;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"weight") == 0) {
@@ -487,7 +458,7 @@ void Balance::options(int iarg, int narg, char **arg)
         nopt = imb->options(narg-iarg,arg+iarg+2);
         imbalances[nimbalance++] = imb;
       } else {
-        error->all(FLERR,"Unknown (fix) balance weight method");
+        error->all(FLERR,"Unknown (fix) balance weight method: {}", arg[iarg+1]);
       }
       iarg += 2+nopt;
 
@@ -506,7 +477,9 @@ void Balance::options(int iarg, int narg, char **arg)
 
   if (outflag && comm->me == 0) {
     fp = fopen(arg[outarg],"w");
-    if (fp == NULL) error->one(FLERR,"Cannot open (fix) balance output file");
+    if (fp == nullptr)
+      error->one(FLERR,"Cannot open (fix) balance output file {}: {}",
+                                   arg[outarg], utils::getsyserror());
   }
 }
 
@@ -518,32 +491,17 @@ void Balance::options(int iarg, int narg, char **arg)
 
 void Balance::weight_storage(char *prefix)
 {
-  char *fixargs[6];
+  std::string cmd = "";
 
-  if (prefix) {
-    int n = strlen(prefix) + 32;
-    fixargs[0] = new char[n];
-    strcpy(fixargs[0],prefix);
-    strcat(fixargs[0],"IMBALANCE_WEIGHTS");
-  } else fixargs[0] = (char *) "IMBALANCE_WEIGHTS";
+  if (prefix) cmd = prefix;
+  cmd += "IMBALANCE_WEIGHTS";
 
-  fixargs[1] = (char *) "all";
-  fixargs[2] = (char *) "STORE";
-  fixargs[3] = (char *) "peratom";
-  fixargs[4] = (char *) "0";
-  fixargs[5] = (char *) "1";
-
-  int ifix = modify->find_fix(fixargs[0]);
-  if (ifix < 1) {
-    modify->add_fix(6,fixargs);
-    fixstore = (FixStore *) modify->fix[modify->nfix-1];
-  } else fixstore = (FixStore *) modify->fix[ifix];
+  fixstore = (FixStore *) modify->get_fix_by_id(cmd);
+  if (!fixstore) fixstore = (FixStore *) modify->add_fix(cmd + " all STORE peratom 0 1");
 
   // do not carry weights with atoms during normal atom migration
 
   fixstore->disable = 1;
-
-  if (prefix) delete [] fixargs[0];
 }
 
 /* ----------------------------------------------------------------------
@@ -609,15 +567,24 @@ int *Balance::bisection(int sortflag)
 {
   if (!rcb) rcb = new RCB(lmp);
 
-  // NOTE: this logic is specific to orthogonal boxes, not triclinic
-
   int dim = domain->dimension;
-  double *boxlo = domain->boxlo;
-  double *boxhi = domain->boxhi;
-  double *prd = domain->prd;
+  int triclinic = domain->triclinic;
+
+  double *boxlo,*boxhi,*prd;
+
+  if (triclinic == 0) {
+    boxlo = domain->boxlo;
+    boxhi = domain->boxhi;
+    prd = domain->prd;
+  } else {
+    boxlo = domain->boxlo_lamda;
+    boxhi = domain->boxhi_lamda;
+    prd = domain->prd_lamda;
+  }
 
   // shrink-wrap simulation box around atoms for input to RCB
   // leads to better-shaped sub-boxes when atoms are far from box boundaries
+  // if triclinic, do this in lamda coords
 
   double shrink[6],shrinkall[6];
 
@@ -626,6 +593,9 @@ int *Balance::bisection(int sortflag)
 
   double **x = atom->x;
   int nlocal = atom->nlocal;
+
+  if (triclinic) domain->x2lamda(nlocal);
+
   for (int i = 0; i < nlocal; i++) {
     shrink[0] = MIN(shrink[0],x[i][0]);
     shrink[1] = MIN(shrink[1],x[i][1]);
@@ -661,20 +631,23 @@ int *Balance::bisection(int sortflag)
 
   // invoke RCB
   // then invert() to create list of proc assignments for my atoms
+  // if triclinic, RCB operates on lamda coords
   // NOTE: (3/2017) can remove undocumented "old" option at some point
-  //       ditto in rcb.cpp
+  //       ditto in rcb.cpp, or make it an option
 
   if (oldrcb) {
     if (wtflag) {
       weight = fixstore->vstore;
       rcb->compute_old(dim,atom->nlocal,atom->x,weight,shrinklo,shrinkhi);
-    } else rcb->compute_old(dim,atom->nlocal,atom->x,NULL,shrinklo,shrinkhi);
+    } else rcb->compute_old(dim,atom->nlocal,atom->x,nullptr,shrinklo,shrinkhi);
   } else {
     if (wtflag) {
       weight = fixstore->vstore;
       rcb->compute(dim,atom->nlocal,atom->x,weight,shrinklo,shrinkhi);
-    } else rcb->compute(dim,atom->nlocal,atom->x,NULL,shrinklo,shrinkhi);
+    } else rcb->compute(dim,atom->nlocal,atom->x,nullptr,shrinklo,shrinkhi);
   }
+
+  if (triclinic) domain->lamda2x(nlocal);
 
   rcb->invert(sortflag);
 
@@ -797,7 +770,7 @@ void Balance::shift_setup(char *str, int nitermax_in, double thresh_in)
 int Balance::shift()
 {
   int i,j,k,m,np;
-  double mycost,totalcost;
+  double mycost,totalcost,boxsize;
   double *split;
 
   // no balancing if no atoms
@@ -817,15 +790,23 @@ int Balance::shift()
 
   // loop over dimensions in balance string
 
+  double *prd = domain->prd;
+
   int niter = 0;
   for (int idim = 0; idim < ndim; idim++) {
 
     // split = ptr to xyz split in Comm
 
-    if (bdim[idim] == X) split = comm->xsplit;
-    else if (bdim[idim] == Y) split = comm->ysplit;
-    else if (bdim[idim] == Z) split = comm->zsplit;
-    else continue;
+    if (bdim[idim] == X) {
+      split = comm->xsplit;
+      boxsize = prd[0];
+    } else if (bdim[idim] == Y) {
+      split = comm->ysplit;
+      boxsize = prd[1];
+    } else if (bdim[idim] == Z) {
+      split = comm->zsplit;
+      boxsize = prd[2];
+    } else continue;
 
     // initial count and sum
 
@@ -930,6 +911,78 @@ int Balance::shift()
       }
     }
 
+    // adjust adjacent splits that are too close (within neigh skin)
+    // do this with minimal adjustment to splits
+
+    double close = (1.0+EPSNEIGH) * neighbor->skin / boxsize;
+    double midpt,start,stop,lbound,ubound,spacing;
+
+    i = 0;
+    while (i < np) {
+      if (split[i+1] - split[i] < close) {
+        j = i+1;
+
+        // I,J = set of consecutive splits that are collectively too close
+        // if can expand set and not become too close to splits I-1 or J+1, do it
+        // else add split I-1 or J+1 to set and try again
+        // delta = size of expanded split set that will satisy criterion
+
+        while (true) {
+          delta = (j-i) * close;
+          midpt = 0.5 * (split[i]+split[j]);
+          start = midpt - 0.5*delta;
+          stop = midpt + 0.5*delta;
+
+          if (i > 0) lbound = split[i-1] + close;
+          else lbound = 0.0;
+          if (j < np) ubound = split[j+1] - close;
+          else ubound = 1.0;
+
+          // start/stop are within bounds, reset the splits
+
+          if (start >= lbound && stop <= ubound) break;
+
+          // try a shift to either bound, reset the splits if delta fits
+          // these tests change start/stop
+
+          if (start < lbound) {
+            start = lbound;
+            stop = start + delta;
+            if (stop <= ubound) break;
+          } else if (stop > ubound) {
+            stop = ubound;
+            start = stop - delta;
+            if (start >= lbound) break;
+          }
+
+          // delta does not fit between lbound and ubound
+          // exit if can't expand set, else expand set
+          // if can expand in either direction,
+          //   pick new split closest to current midpt of set
+
+          if (i == 0 && j == np) {
+            start = 0.0; stop = 1.0;
+            break;
+          }
+          if (i == 0) j++;
+          else if (j == np) i--;
+          else if (midpt-lbound < ubound-midpt) i--;
+          else j++;
+        }
+
+        // reset all splits between I,J inclusive to be equi-spaced
+
+        spacing = (stop-start) / (j-i);
+        for (m = i; m <= j; m++)
+          split[m] = start + (m-i)*spacing;
+        if (j == np) split[np] = 1.0;
+
+        // continue testing beyond the J split
+
+        i = j+1;
+      } else i++;
+    }
+
     // sanity check on bad duplicate or inverted splits
     // zero or negative width sub-domains will break Comm class
     // should never happen if recursive multisection algorithm is correct
@@ -938,14 +991,6 @@ int Balance::shift()
     for (i = 0; i < np; i++)
       if (split[i] >= split[i+1]) bad = 1;
     if (bad) error->all(FLERR,"Balance produced bad splits");
-    /*
-      if (me == 0) {
-      printf("BAD SPLITS %d %d %d\n",np+1,niter,delta);
-      for (i = 0; i < np+1; i++)
-      printf(" %g",split[i]);
-      printf("\n");
-      }
-    */
 
     // stop at this point in bstr if imbalance factor < threshold
     // this is a true 3d test of particle count per processor
@@ -981,12 +1026,12 @@ void Balance::tally(int dim, int n, double *split)
   if (wtflag) {
     weight = fixstore->vstore;
     for (int i = 0; i < nlocal; i++) {
-      index = binary(x[i][dim],n,split);
+      index = utils::binary_search(x[i][dim],n,split);
       onecost[index] += weight[i];
     }
   } else {
     for (int i = 0; i < nlocal; i++) {
-      index = binary(x[i][dim],n,split);
+      index = utils::binary_search(x[i][dim],n,split);
       onecost[index] += 1.0;
     }
   }
@@ -1045,7 +1090,7 @@ int Balance::adjust(int n, double *split)
     }
 
   int change = 0;
-  for (int i = 1; i < n; i++)
+  for (i = 1; i < n; i++)
     if (sum[i] != target[i]) {
       change = 1;
       if (rho == 0) split[i] = 0.5 * (lo[i]+hi[i]);
@@ -1083,16 +1128,16 @@ double Balance::imbalance_splits()
   if (wtflag) {
     weight = fixstore->vstore;
     for (int i = 0; i < nlocal; i++) {
-      ix = binary(x[i][0],nx,xsplit);
-      iy = binary(x[i][1],ny,ysplit);
-      iz = binary(x[i][2],nz,zsplit);
+      ix = utils::binary_search(x[i][0],nx,xsplit);
+      iy = utils::binary_search(x[i][1],ny,ysplit);
+      iz = utils::binary_search(x[i][2],nz,zsplit);
       proccost[iz*nx*ny + iy*nx + ix] += weight[i];
     }
   } else {
     for (int i = 0; i < nlocal; i++) {
-      ix = binary(x[i][0],nx,xsplit);
-      iy = binary(x[i][1],ny,ysplit);
-      iz = binary(x[i][2],nz,zsplit);
+      ix = utils::binary_search(x[i][0],nx,xsplit);
+      iy = utils::binary_search(x[i][1],ny,ysplit);
+      iz = utils::binary_search(x[i][2],nz,zsplit);
       proccost[iz*nx*ny + iy*nx + ix] += 1.0;
     }
   }
@@ -1111,40 +1156,6 @@ double Balance::imbalance_splits()
   double imbalance = 1.0;
   if (maxcost > 0.0) imbalance = maxcost / (totalcost/nprocs);
   return imbalance;
-}
-
-/* ----------------------------------------------------------------------
-   binary search for where value falls in N-length vec
-   note that vec actually has N+1 values, but ignore last one
-   values in vec are monotonically increasing, but adjacent values can be ties
-   value may be outside range of vec limits
-   always return index from 0 to N-1 inclusive
-   return 0 if value < vec[0]
-   reutrn N-1 if value >= vec[N-1]
-   return index = 1 to N-2 inclusive if vec[index] <= value < vec[index+1]
-   note that for adjacent tie values, index of lower tie is not returned
-     since never satisfies 2nd condition that value < vec[index+1]
-------------------------------------------------------------------------- */
-
-int Balance::binary(double value, int n, double *vec)
-{
-  int lo = 0;
-  int hi = n-1;
-
-  if (value < vec[lo]) return lo;
-  if (value >= vec[hi]) return hi;
-
-  // insure vec[lo] <= value < vec[hi] at every iteration
-  // done when lo,hi are adjacent
-
-  int index = (lo+hi)/2;
-  while (lo < hi-1) {
-    if (value < vec[index]) hi = index;
-    else if (value >= vec[index]) lo = index;
-    index = (lo+hi)/2;
-  }
-
-  return index;
 }
 
 /* ----------------------------------------------------------------------
@@ -1191,8 +1202,7 @@ void Balance::dumpout(bigint tstep)
   double *boxlo = domain->boxlo;
   double *boxhi = domain->boxhi;
 
-  fprintf(fp,"ITEM: TIMESTEP\n");
-  fprintf(fp,BIGINT_FORMAT "\n",tstep);
+  fmt::print(fp,"ITEM: TIMESTEP\n{}\n",tstep);
   fprintf(fp,"ITEM: NUMBER OF NODES\n");
   if (dimension == 2) fprintf(fp,"%d\n",4*nprocs);
   else fprintf(fp,"%d\n",8*nprocs);
@@ -1267,8 +1277,7 @@ void Balance::dumpout(bigint tstep)
 
   // write out one square/cube per processor for 2d/3d
 
-  fprintf(fp,"ITEM: TIMESTEP\n");
-  fprintf(fp,BIGINT_FORMAT "\n",tstep);
+  fmt::print(fp,"ITEM: TIMESTEP\n{}\n",tstep);
   if (dimension == 2) fprintf(fp,"ITEM: NUMBER OF SQUARES\n");
   else fprintf(fp,"ITEM: NUMBER OF CUBES\n");
   fprintf(fp,"%d\n",nprocs);
@@ -1302,7 +1311,7 @@ void Balance::dumpout(bigint tstep)
 void Balance::debug_shift_output(int idim, int m, int np, double *split)
 {
   int i;
-  const char *dim = NULL;
+  const char *dim = nullptr;
 
   double *boxlo = domain->boxlo;
   double *prd = domain->prd;
@@ -1313,13 +1322,13 @@ void Balance::debug_shift_output(int idim, int m, int np, double *split)
   fprintf(stderr,"Dimension %s, Iteration %d\n",dim,m);
 
   fprintf(stderr,"  Count:");
-  for (i = 0; i < np; i++) fprintf(stderr," " BIGINT_FORMAT,count[i]);
+  for (i = 0; i <= np; i++) fmt::print(stderr," {}",count[i]);
   fprintf(stderr,"\n");
   fprintf(stderr,"  Sum:");
-  for (i = 0; i <= np; i++) fprintf(stderr," " BIGINT_FORMAT,sum[i]);
+  for (i = 0; i <= np; i++) fmt::print(stderr," {}",sum[i]);
   fprintf(stderr,"\n");
   fprintf(stderr,"  Target:");
-  for (i = 0; i <= np; i++) fprintf(stderr," " BIGINT_FORMAT,target[i]);
+  for (i = 0; i <= np; i++) fmt::print(stderr," {}",target[i]);
   fprintf(stderr,"\n");
   fprintf(stderr,"  Actual cut:");
   for (i = 0; i <= np; i++)
@@ -1332,20 +1341,16 @@ void Balance::debug_shift_output(int idim, int m, int np, double *split)
   for (i = 0; i <= np; i++) fprintf(stderr," %g",lo[i]);
   fprintf(stderr,"\n");
   fprintf(stderr,"  Low-sum:");
-  for (i = 0; i <= np; i++) fprintf(stderr," " BIGINT_FORMAT,losum[i]);
+  for (i = 0; i <= np; i++) fmt::print(stderr," {}",losum[i]);
   fprintf(stderr,"\n");
   fprintf(stderr,"  Hi:");
   for (i = 0; i <= np; i++) fprintf(stderr," %g",hi[i]);
   fprintf(stderr,"\n");
   fprintf(stderr,"  Hi-sum:");
-  for (i = 0; i <= np; i++) fprintf(stderr," " BIGINT_FORMAT,hisum[i]);
+  for (i = 0; i <= np; i++) fmt::print(stderr," {}",hisum[i]);
   fprintf(stderr,"\n");
   fprintf(stderr,"  Delta:");
   for (i = 0; i < np; i++) fprintf(stderr," %g",split[i+1]-split[i]);
   fprintf(stderr,"\n");
-
-  bigint max = 0;
-  for (i = 0; i < np; i++) max = MAX(max,count[i]);
-  fprintf(stderr,"  Imbalance factor: %g\n",1.0*max*np/target[np]);
 }
 #endif

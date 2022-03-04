@@ -1,16 +1,19 @@
 .. index:: pair_style peri/pmb
+.. index:: pair_style peri/pmb/omp
+.. index:: pair_style peri/lps
+.. index:: pair_style peri/lps/omp
+.. index:: pair_style peri/ves
+.. index:: pair_style peri/eps
 
 pair_style peri/pmb command
 ===========================
 
-pair_style peri/pmb/omp command
-===============================
+Accelerator Variants: *peri/pmb/omp*
 
 pair_style peri/lps command
 ===========================
 
-pair_style peri/lps/omp command
-===============================
+Accelerator Variants: *peri/lps/omp*
 
 pair_style peri/ves command
 ===========================
@@ -128,7 +131,7 @@ viscoelastic relaxation parameter and time constant,
 respectively. m_lambdai varies within zero to one. For very small
 values of m_lambdai the viscoelastic model responds very similar to a
 linear elastic model. For details please see the description in
-"(Mtchell2011)".
+"(Mitchell2011)".
 
 For the *peri/eps* style:
 
@@ -142,31 +145,16 @@ For the *peri/eps* style:
 K is the bulk modulus and G is the shear modulus. The horizon is a
 cutoff distance and s00 and :math:`\alpha` are used as a bond breaking
 criteria.  m_yield_stress is the yield stress of the material. For
-details please see the description in "(Mtchell2011a)".
+details please see the description in "(Mitchell2011a)".
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 These pair styles do not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
@@ -182,7 +170,7 @@ to be specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -190,14 +178,17 @@ Restrictions
 """"""""""""
 
 All of these styles are part of the PERI package. They are only
-enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

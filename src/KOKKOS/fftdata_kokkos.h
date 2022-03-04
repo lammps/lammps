@@ -1,6 +1,7 @@
-/* ----------------------------------------------------------------------
+// clang-format off
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -52,7 +53,7 @@ typedef double FFT_SCALAR;
 // CUFFT or KISSFFT, thus undefine all other
 // FFTs here, since they may be valid in fft3d.cpp
 
-#if defined(KOKKOS_ENABLE_CUDA)
+#ifdef KOKKOS_ENABLE_CUDA
 # if defined(FFT_FFTW)
 #  undef FFT_FFTW
 # endif
@@ -114,11 +115,11 @@ typedef double FFT_SCALAR;
     #define kiss_fft_scalar float
   #else
     #define kiss_fft_scalar double
-    typedef struct {
-        kiss_fft_scalar re;
-        kiss_fft_scalar im;
-    } FFT_DATA;
   #endif
+  typedef struct {
+    kiss_fft_scalar re;
+    kiss_fft_scalar im;
+  } FFT_DATA;
   #ifndef FFT_KISSFFT
   #define FFT_KISSFFT
   #endif
@@ -164,7 +165,7 @@ typedef tdual_int_64::t_dev_um t_int_64_um;
 
 };
 
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template <>
 struct FFTArrayTypes<LMPHostType> {
 

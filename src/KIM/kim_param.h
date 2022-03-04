@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -55,45 +55,22 @@
    Designed for use with the kim-api-2.1.0 (and newer) package
 ------------------------------------------------------------------------- */
 
-#ifdef COMMAND_CLASS
-
-CommandStyle(kim_param, KimParam)
-
-#else
-
 #ifndef LMP_KIM_PARAM_H
 #define LMP_KIM_PARAM_H
 
 #include "pointers.h"
-#include <string>
 
-namespace LAMMPS_NS
-{
+namespace LAMMPS_NS {
 
-class KimParam : protected Pointers
-{
-public:
+class KimParam : protected Pointers {
+ public:
   KimParam(class LAMMPS *lmp);
-
-  ~KimParam();
-
   void command(int, char **);
-
-private:
-  void kim_param_log_delimiter(std::string const &begin_end) const;
-
-  void echo_var_assign(std::string const &name, std::string const &value)
-      const;
-
-private:
-  bool kim_param_get;
-  bool kim_param_set;
 };
 
-} // namespace LAMMPS_NS
+}    // namespace LAMMPS_NS
 
-#endif // LMP_KIM_PARAM_H
-#endif // COMMAND_CLASS
+#endif
 
 /* ERROR/WARNING messages:
 

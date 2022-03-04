@@ -1,4 +1,5 @@
 .. index:: fix drude/transform/direct
+.. index:: fix drude/transform/inverse
 
 fix drude/transform/direct command
 ==================================
@@ -23,6 +24,8 @@ Examples
 
    fix 3 all drude/transform/direct
    fix 1 all drude/transform/inverse
+
+Example input scripts available: examples/PACKAGES/drude
 
 Description
 """""""""""
@@ -149,7 +152,7 @@ temperatures of cores and Drude particles, in center-of-mass and
 relative coordinates, are calculated using :doc:`compute temp/drude <compute_temp_drude>`
 
 In addition, if you want to use a barostat to simulate a system at
-constant pressure, only one of the Nose-Hoover fixes must be *npt*\ ,
+constant pressure, only one of the Nose-Hoover fixes must be *npt*,
 the other one should be *nvt*\ . You must add a *compute temp/com* and a
 *fix_modify* command so that the temperature of the *npt* fix be just
 that of its group (the Drude cores) but the pressure be the overall
@@ -182,7 +185,8 @@ to add a *fix momentum* command:
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.
 
@@ -198,7 +202,10 @@ Related commands
 :doc:`compute temp/drude <compute_temp_drude>`,
 :doc:`pair_style thole <pair_thole>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

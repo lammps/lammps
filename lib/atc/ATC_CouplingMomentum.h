@@ -26,21 +26,21 @@ namespace ATC {
   class ATC_CouplingMomentum : public ATC_Coupling {
 
   public:
-  
+
     // constructor
-    ATC_CouplingMomentum(std::string groupName, 
+    ATC_CouplingMomentum(std::string groupName,
                          double **& perAtomArray,
                          LAMMPS_NS::Fix * thisFix,
                          std::string matParamFile,
                          PhysicsType intrinsicModel,
                          ExtrinsicModelType extrinsicModel = NO_MODEL);
-      
+
     // destructor
     virtual ~ATC_CouplingMomentum();
 
     /** parser/modifier */
     virtual bool modify(int narg, char **arg);
-  
+
     /** pre time integration */
     virtual void initialize();
 

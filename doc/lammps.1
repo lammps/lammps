@@ -1,4 +1,4 @@
-.TH LAMMPS "5 May 2020" "2020-05-5"
+.TH LAMMPS "1" "17 February 2022" "2022-2-17"
 .SH NAME
 .B LAMMPS
 \- Molecular Dynamics Simulator.
@@ -34,7 +34,7 @@ semiconductors) and coarse-grained or mesoscopic systems. It can be used to
 model atoms or, more generically, as a parallel particle simulator at the
 atomic, meso, or continuum scale.
 
-See https://lammps.sandia.gov/ for more information and documentation.
+See https://www.lammps.org/ for more information and documentation.
 
 .SH EXECUTABLE NAME
 The
@@ -54,7 +54,7 @@ using
 this <machine name> parameter can be chosen arbitrarily at configuration
 time, but more common is to just use
 .B lmp
-without a suffix. In this manpage we will use
+without a suffix. In this man page we will use
 .B lmp
 to represent any of those names.
 
@@ -94,7 +94,7 @@ Enable or disable general KOKKOS support, as provided by the KOKKOS
 package.  Even if LAMMPS is built with this package, this switch must
 be set to \fBon\fR to enable running with KOKKOS-enabled styles. More
 details on this switch and its optional keyword value pairs are discussed
-at: https://lammps.sandia.gov/doc/Run_options.html
+at: https://docs.lammps.org/Run_options.html
 .TP
 \fB\-l <log file>\fR or \fB\-log <log file>\fR
 Specify a log file for LAMMPS to write status information to.
@@ -122,6 +122,38 @@ to perform client/server messaging with another application.
 .B LAMMPS
 can act as either a client or server (or both).
 .TP
+\fB\-mdi '<mdi_flags>'\fR
+This flag is only recognized and used when
+.B LAMMPS
+has support for the MolSSI
+Driver Interface (MDI) included as part of the MDI package.  This flag is
+specific to the MDI library and controls how
+.B LAMMPS
+interacts with MDI.  There are usually multiple flags that have to follow it
+and those have to be placed in quotation marks.  For more information about
+how to launch LAMMPS in MDI client/server mode please refer to the
+MDI How-to at  https://docs.lammps.org/Howto_mdi.html
+.TP
+\fB\-c\fR or \fB\-cite <style or filename>\fR
+Select how and where to output a reminder about citing contributions
+to the
+.B LAMMPS
+code that were used during the run. Available keywords
+for styles are "both", "none", "screen", or "log".  Any other keyword
+will be considered a file name to write the detailed citation info to
+instead of logfile or screen.  Default is the "log" style where there
+is a short summary in the screen output and detailed citations
+in BibTeX format in the logfile.  The option "both" selects the detailed
+output for both, "none", the short output for both, and "screen" will
+write the detailed info to the screen and the short version to the log
+file.  If a dedicated citation info file is requested, the screen and
+log file output will be in the short format (same as with "none").
+
+See https://docs.lammps.org/Intro_citing.html for more details on
+how to correctly reference and cite
+.B LAMMPS
+.
+.TP
 \fB\-nc\fR or \fB\-nocite\fR
 Disable writing the "log.cite" file which is normally written to
 list references for specific cite-able features used during a
@@ -135,7 +167,7 @@ For example "-pk gpu 2" is the same as "package gpu 2" in the input
 script. The possible styles and options are discussed in the
 .B LAMMPS
 manual for the "package" command. This switch can be used multiple
-times, e.g. to set options for the USER-INTEL and USER-OMP packages
+times, e.g. to set options for the INTEL and OPENMP packages
 when used together. Along with the "-sf" or "-suffix" switch, this
 is a convenient mechanism for invoking accelerator packages and their
 options without having to edit an input script.
@@ -202,7 +234,7 @@ the standard output. If <file name> is "none", (most) screen
 output will be suppressed.  In multi-partition mode only
 some high-level all-partition information is written to the
 screen or "<file name>" file, the remainder is written in a
-per-partition file "screen.N" or "<file name>.N" 
+per-partition file "screen.N" or "<file name>.N"
 with "N" being the respective partition number, and unless
 overridden by the \-pscreen flag (see above).
 .TP
@@ -218,8 +250,19 @@ and then "omp") and thus requires two arguments. Along with the
 "-package" command-line switch, this is a convenient mechanism for
 invoking styles from accelerator packages and setting their options
 without having to edit an input script.
+.TP
+\fB\-sr\fR or \fB\-skiprun\fR
+Insert the command "timer timeout 0 every 1" at the
+beginning of an input file or after a "clear" command.
+This has the effect that the entire
+.B LAMMPS
+input script is processed without executing actual
+"run" or "minimize" or similar commands (their main loops are skipped).
+This can be helpful and convenient to test input scripts of long running
+calculations for correctness to avoid having them crash after a
+long time due to a typo or syntax error in the middle or at the end.
 
-See https://lammps.sandia.gov/doc/Run_options.html for additional
+See https://docs.lammps.org/Run_options.html for additional
 details and discussions on command-line options.
 
 .SH LAMMPS BASICS
@@ -254,7 +297,7 @@ the chapter on errors in the
 manual gives some additional information about error messages, if possible.
 
 .SH COPYRIGHT
-© 2003--2020 Sandia Corporation
+© 2003--2021 Sandia Corporation
 
 This package is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 2 as

@@ -1,10 +1,10 @@
 .. index:: bond_style table
+.. index:: bond_style table/omp
 
 bond_style table command
 ========================
 
-bond_style table/omp command
-============================
+Accelerator Variants: *table/omp*
 
 Syntax
 """"""
@@ -74,7 +74,7 @@ parenthesized comments):
    ...
    101 1.00 338.0000 -1352.0000
 
-A section begins with a non-blank line whose 1st character is not a
+A section begins with a non-blank line whose first character is not a
 "#"; blank lines or lines starting with "#" can be used as comments
 between sections.  The first line begins with a keyword which
 identifies the section.  The line can contain additional text, but the
@@ -109,9 +109,9 @@ equilibrium bond length, which is used, for example, by the :doc:`fix shake <fix
 length is to the distance in the table with the lowest potential energy.
 
 Following a blank line, the next N lines list the tabulated values.
-On each line, the 1st value is the index from 1 to N, the 2nd value is
-the bond length r (in distance units), the 3rd value is the energy (in
-energy units), and the 4th is the force (in force units).  The bond
+On each line, the first value is the index from 1 to N, the second value is
+the bond length r (in distance units), the third value is the energy (in
+energy units), and the fourth is the force (in force units).  The bond
 lengths must range from a LO value to a HI value, and increase from
 one line to the next.  If the actual bond length is ever smaller than
 the LO value or larger than the HI value, then the calculation is
@@ -124,27 +124,12 @@ one that matches the specified keyword.
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
-**Restart info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This bond style writes the settings for the "bond_style table"
 command to :doc:`binary restart files <restart>`, so a bond_style
@@ -158,7 +143,7 @@ Restrictions
 """"""""""""
 
 This bond style can only be used if LAMMPS was built with the MOLECULE
-package.  See the :doc:`Build package <Build_package>` doc page for more
+package.  See the :doc:`Build package <Build_package>` page for more
 info.
 
 Related commands
@@ -166,4 +151,7 @@ Related commands
 
 :doc:`bond_coeff <bond_coeff>`, :doc:`delete_bonds <delete_bonds>`
 
-**Default:** none
+Default
+"""""""
+
+none

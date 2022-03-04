@@ -20,20 +20,20 @@ namespace ATC_matrix {
 
 template<typename T>
 class Array2D {
-public: 
+public:
    Array2D();
    Array2D(int nrows, int ncols);
    Array2D(const Array2D<T>& A); // copy constructor
   ~Array2D();
- 
+
    // Resize and reinitalize matrix
    void reset(int nrows, int ncols);
    // Access method to get the (i,j) element:
-   T& operator() (int i, int j);       
-   // Access method to get the i-th col 
-   AliasArray<T> column(int i) const;       
+   T& operator() (int i, int j);
+   // Access method to get the i-th col
+   AliasArray<T> column(int i) const;
    // Access method to get the (i,j) element:
-   const T& operator() (int i, int j) const;       
+   const T& operator() (int i, int j) const;
    // Copy operator
    Array2D<T>& operator= (const Array2D<T>& other);
    // assignment operator
@@ -48,16 +48,16 @@ public:
    // Dump templated type to disk; operation not safe for all types
    void write_restart(FILE *f) const;
 
-private: 
+private:
    int nrows_, ncols_;
-   T *data_; 
-}; 
+   T *data_;
+};
 
 template<typename T>
 Array2D<T>::Array2D() {
    nrows_ = 0;
    ncols_ = 0;
-   data_  = NULL;
+   data_  = nullptr;
 }
 
 template<typename T>
@@ -71,8 +71,8 @@ template<typename T>
 Array2D<T>::Array2D(const Array2D<T>& A) {
    nrows_ = A.nrows_;
    ncols_ = A.ncols_;
-   if (A.data_==NULL)
-      data_ = NULL;
+   if (A.data_==nullptr)
+      data_ = nullptr;
    else {
       data_  = new T[nrows_ * ncols_];
       for(int i=0;i<nrows_*ncols_;i++)
@@ -88,12 +88,12 @@ void Array2D<T>::reset(int nrows, int ncols) {
    else { // size changed; realloc memory
       nrows_ = nrows;
       ncols_ = ncols;
-      if (data_ != NULL)
+      if (data_ != nullptr)
          delete [] data_;
       if (ncols_ > 0 && nrows_ > 0)
          data_ = new T[nrows_ * ncols_];
       else {
-         data_ = NULL;
+         data_ = nullptr;
          nrows_ = 0;
          ncols_ = 0;
       }
@@ -120,11 +120,11 @@ AliasArray<T> Array2D<T>::column(int col) const {
 
 template<typename T>
 Array2D<T>& Array2D<T>::operator= (const Array2D<T>& other) {
-   if (data_ == NULL) {  // initialize my internal storage to match LHS
+   if (data_ == nullptr) {  // initialize my internal storage to match LHS
       nrows_ = other.nrows_;
       ncols_ = other.ncols_;
-      if (other.data_==NULL)
-         data_ = NULL;
+      if (other.data_==nullptr)
+         data_ = nullptr;
       else
          data_  = new T[nrows_ * ncols_];
    }
@@ -170,14 +170,14 @@ void Array2D<T>::write_restart(FILE *f) const {
 
 template<typename T>
 Array2D<T>::~Array2D() {
-   if (data_ != NULL)
+   if (data_ != nullptr)
      delete[] data_;
-} 
+}
 
 template<typename T>
 void Array2D<T>::print(std::string name) const {
   std::cout << "------- Begin "<<name<<" -----------------\n";
-  if (data_ != NULL) {
+  if (data_ != nullptr) {
     for(int col=0;col<ncols_;col++) {
       for(int row=0;row<nrows_;row++) {
        std::cout << data_[col*nrows_ + row] << " ";

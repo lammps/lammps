@@ -23,7 +23,8 @@ Syntax
        *function* value = function-ID
          function-ID = ID of the switching function (1 or 2)
 
-**Example:**
+Example
+"""""""
 
 .. code-block:: LAMMPS
 
@@ -88,13 +89,14 @@ time:
 
   \lambda(\tau) = \tau
 
-where :math:`\tau` is the scaled time variable *t/t_s*. The option *2* performs
-the lambda switching at a rate defined by the following switching
-function
+where :math:`\tau` is the scaled time variable *t/t_s*. The option *2*
+performs the lambda switching at a rate defined by the following
+switching function
 
 .. math::
 
-  \lambda(\tau) = \tau^5 \left( 70 \tau^4 - 315 \tau^3 + 540 \tau^2 - 420 \tau + 126 \right)
+  \lambda(\tau) = \tau^5 \left( 70 \tau^4 - 315 \tau^3 + 540 \tau^2 -
+  420 \tau + 126 \right)
 
 This function has zero slope as lambda approaches its extreme values
 (0 and 1), according to :ref:`de Koning <deKoning96>` this results in
@@ -105,35 +107,47 @@ increase in computational resources cost.
 
 .. note::
 
-   As described in :ref:`Freitas <Freitas1>`, it is important to keep the
-   center-of-mass fixed during the thermodynamic integration. A nonzero
-   total velocity will result in divergences during the integration due
-   to the fact that the atoms are 'attached' to their equilibrium
-   positions by the Einstein crystal. Check the option *zero* of :doc:`fix langevin <fix_langevin>` and :doc:`velocity <velocity>`. The use of
-   the Nose-Hoover thermostat (:doc:`fix nvt <fix_nh>`) is *NOT*
-   recommended due to its well documented issues with the canonical
-   sampling of harmonic degrees of freedom (notice that the *chain*
-   option will *NOT* solve this problem). The Langevin thermostat (:doc:`fix langevin <fix_langevin>`) correctly thermostats the system and we
-   advise its usage with ti/spring command.
+   As described in :ref:`Freitas <Freitas1>`, it is important to keep
+   the center-of-mass fixed during the thermodynamic integration. A
+   nonzero total velocity will result in divergences during the
+   integration due to the fact that the atoms are 'attached' to their
+   equilibrium positions by the Einstein crystal. Check the option
+   *zero* of :doc:`fix langevin <fix_langevin>` and :doc:`velocity
+   <velocity>`. The use of the Nose-Hoover thermostat (:doc:`fix nvt
+   <fix_nh>`) is *NOT* recommended due to its well documented issues
+   with the canonical sampling of harmonic degrees of freedom (notice
+   that the *chain* option will *NOT* solve this problem). The
+   Langevin thermostat (:doc:`fix langevin <fix_langevin>`) correctly
+   thermostats the system and we advise its usage with ti/spring
+   command.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-This fix writes the original coordinates of tethered atoms to :doc:`binary restart files <restart>`, so that the spring effect will be the
-same in a restarted simulation. See the :doc:`read restart <read_restart>` command for info on how to re-specify a fix
-in an input script that reads a restart file, so that the operation of
-the fix continues in an uninterrupted fashion.
+This fix writes the original coordinates of tethered atoms to
+:doc:`binary restart files <restart>`, so that the spring effect will
+be the same in a restarted simulation. See the :doc:`read restart
+<read_restart>` command for info on how to re-specify a fix in an
+input script that reads a restart file, so that the operation of the
+fix continues in an uninterrupted fashion.
 
-The :doc:`fix modify <fix_modify>` *energy* option is supported by this
-fix to add the energy stored in the per-atom springs to the system's
-potential energy as part of :doc:`thermodynamic output <thermo_style>`.
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by
+this fix to add the energy stored in the per-atom springs to the
+global potential energy of the system as part of :doc:`thermodynamic
+output <thermo_style>`. The default setting for this fix is
+:doc:`fix_modify energy no <fix_modify>`.
 
 This fix computes a global scalar and a global vector quantities which
 can be accessed by various :doc:`output commands <Howto_output>`. The
 scalar is an energy which is the sum of the spring energy for each
-atom, where the per-atom energy is 0.5 \* k \* r\^2. The vector has 2
-positions, the first one is the coupling parameter lambda and the
-second one is the time derivative of lambda. The scalar and vector
-values calculated by this fix are "extensive".
+atom, where the per-atom energy is :math:`0.5 \cdot k \cdot r^2`.
+The vector stores 2 values.  The first value is the coupling parameter lambda.
+The second value is the derivative of lambda with respect to the integer
+timestep *s*, i.e. :math:`\frac{d \lambda}{d s}`.  In order to obtain
+:math:`\frac{d \lambda}{d t}`,
+where t is simulation time, this 2nd value needs to be divided by the
+timestep size (e.g. 0.5 fs).  The scalar and vector values calculated
+by this fix are "extensive".
 
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.
@@ -156,8 +170,9 @@ Related commands
 Restrictions
 """"""""""""
 
-This fix is part of the USER-MISC package. It is only enabled if
-LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
+This fix is part of the EXTRA-FIX package. It is only enabled if
+LAMMPS was built with that package. See the
+:doc:`Build package <Build_package>` page for more info.
 
 Default
 """""""

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(table/kk,PairTableKokkos<LMPDeviceType>)
-PairStyle(table/kk/device,PairTableKokkos<LMPDeviceType>)
-PairStyle(table/kk/host,PairTableKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(table/kk,PairTableKokkos<LMPDeviceType>);
+PairStyle(table/kk/device,PairTableKokkos<LMPDeviceType>);
+PairStyle(table/kk/host,PairTableKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_TABLE_KOKKOS_H
 #define LMP_PAIR_TABLE_KOKKOS_H
 
@@ -35,7 +36,7 @@ struct S_TableCompute {
 };
 
 template <class DeviceType, int NEIGHFLAG, int TABSTYLE>
-class PairTableComputeFunctor;
+struct PairTableComputeFunctor;
 
 template<class DeviceType>
 class PairTableKokkos : public PairTable {
@@ -47,17 +48,17 @@ class PairTableKokkos : public PairTable {
   typedef ArrayTypes<DeviceType> AT;
 
   PairTableKokkos(class LAMMPS *);
-  virtual ~PairTableKokkos();
+  ~PairTableKokkos() override;
 
-  virtual void compute(int, int);
+  void compute(int, int) override;
 
   template<int TABSTYLE>
   void compute_style(int, int);
 
-  void settings(int, char **);
-  double init_one(int, int);
+  void settings(int, char **) override;
+  double init_one(int, int) override;
 
-  void init_style();
+  void init_style() override;
 
 
  protected:
@@ -102,8 +103,8 @@ class PairTableKokkos : public PairTable {
 
   typename AT::t_ffloat_2d d_cutsq;
 
-  virtual void allocate();
-  void compute_table(Table *);
+  void allocate() override;
+  void compute_table(Table *) override;
 
   typename AT::t_x_array_randomread x;
   typename AT::t_x_array_const c_x;
@@ -120,7 +121,6 @@ class PairTableKokkos : public PairTable {
 
   int update_table;
   void create_kokkos_tables();
-  void cleanup_copy();
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
@@ -132,37 +132,36 @@ class PairTableKokkos : public PairTable {
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const {
-    return 0;
-  }
+  F_FLOAT compute_ecoul(const F_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/,
+                        const int& /*itype*/, const int& /*jtype*/) const { return 0; }
 
-  friend class PairComputeFunctor<PairTableKokkos,FULL,true,S_TableCompute<DeviceType,LOOKUP> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALF,true,S_TableCompute<DeviceType,LOOKUP> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALFTHREAD,true,S_TableCompute<DeviceType,LOOKUP> >;
-  friend class PairComputeFunctor<PairTableKokkos,FULL,false,S_TableCompute<DeviceType,LOOKUP> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALF,false,S_TableCompute<DeviceType,LOOKUP> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALFTHREAD,false,S_TableCompute<DeviceType,LOOKUP> >;
+  friend struct PairComputeFunctor<PairTableKokkos,FULL,true,S_TableCompute<DeviceType,LOOKUP> >;
+  friend struct PairComputeFunctor<PairTableKokkos,HALF,true,S_TableCompute<DeviceType,LOOKUP> >;
+  friend struct PairComputeFunctor<PairTableKokkos,HALFTHREAD,true,S_TableCompute<DeviceType,LOOKUP> >;
+  friend struct PairComputeFunctor<PairTableKokkos,FULL,false,S_TableCompute<DeviceType,LOOKUP> >;
+  friend struct PairComputeFunctor<PairTableKokkos,HALF,false,S_TableCompute<DeviceType,LOOKUP> >;
+  friend struct PairComputeFunctor<PairTableKokkos,HALFTHREAD,false,S_TableCompute<DeviceType,LOOKUP> >;
 
-  friend class PairComputeFunctor<PairTableKokkos,FULL,true,S_TableCompute<DeviceType,LINEAR> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALF,true,S_TableCompute<DeviceType,LINEAR> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALFTHREAD,true,S_TableCompute<DeviceType,LINEAR> >;
-  friend class PairComputeFunctor<PairTableKokkos,FULL,false,S_TableCompute<DeviceType,LINEAR> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALF,false,S_TableCompute<DeviceType,LINEAR> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALFTHREAD,false,S_TableCompute<DeviceType,LINEAR> >;
+  friend struct PairComputeFunctor<PairTableKokkos,FULL,true,S_TableCompute<DeviceType,LINEAR> >;
+  friend struct PairComputeFunctor<PairTableKokkos,HALF,true,S_TableCompute<DeviceType,LINEAR> >;
+  friend struct PairComputeFunctor<PairTableKokkos,HALFTHREAD,true,S_TableCompute<DeviceType,LINEAR> >;
+  friend struct PairComputeFunctor<PairTableKokkos,FULL,false,S_TableCompute<DeviceType,LINEAR> >;
+  friend struct PairComputeFunctor<PairTableKokkos,HALF,false,S_TableCompute<DeviceType,LINEAR> >;
+  friend struct PairComputeFunctor<PairTableKokkos,HALFTHREAD,false,S_TableCompute<DeviceType,LINEAR> >;
 
-  friend class PairComputeFunctor<PairTableKokkos,FULL,true,S_TableCompute<DeviceType,SPLINE> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALF,true,S_TableCompute<DeviceType,SPLINE> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALFTHREAD,true,S_TableCompute<DeviceType,SPLINE> >;
-  friend class PairComputeFunctor<PairTableKokkos,FULL,false,S_TableCompute<DeviceType,SPLINE> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALF,false,S_TableCompute<DeviceType,SPLINE> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALFTHREAD,false,S_TableCompute<DeviceType,SPLINE> >;
+  friend struct PairComputeFunctor<PairTableKokkos,FULL,true,S_TableCompute<DeviceType,SPLINE> >;
+  friend struct PairComputeFunctor<PairTableKokkos,HALF,true,S_TableCompute<DeviceType,SPLINE> >;
+  friend struct PairComputeFunctor<PairTableKokkos,HALFTHREAD,true,S_TableCompute<DeviceType,SPLINE> >;
+  friend struct PairComputeFunctor<PairTableKokkos,FULL,false,S_TableCompute<DeviceType,SPLINE> >;
+  friend struct PairComputeFunctor<PairTableKokkos,HALF,false,S_TableCompute<DeviceType,SPLINE> >;
+  friend struct PairComputeFunctor<PairTableKokkos,HALFTHREAD,false,S_TableCompute<DeviceType,SPLINE> >;
 
-  friend class PairComputeFunctor<PairTableKokkos,FULL,true,S_TableCompute<DeviceType,BITMAP> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALF,true,S_TableCompute<DeviceType,BITMAP> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALFTHREAD,true,S_TableCompute<DeviceType,BITMAP> >;
-  friend class PairComputeFunctor<PairTableKokkos,FULL,false,S_TableCompute<DeviceType,BITMAP> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALF,false,S_TableCompute<DeviceType,BITMAP> >;
-  friend class PairComputeFunctor<PairTableKokkos,HALFTHREAD,false,S_TableCompute<DeviceType,BITMAP> >;
+  friend struct PairComputeFunctor<PairTableKokkos,FULL,true,S_TableCompute<DeviceType,BITMAP> >;
+  friend struct PairComputeFunctor<PairTableKokkos,HALF,true,S_TableCompute<DeviceType,BITMAP> >;
+  friend struct PairComputeFunctor<PairTableKokkos,HALFTHREAD,true,S_TableCompute<DeviceType,BITMAP> >;
+  friend struct PairComputeFunctor<PairTableKokkos,FULL,false,S_TableCompute<DeviceType,BITMAP> >;
+  friend struct PairComputeFunctor<PairTableKokkos,HALF,false,S_TableCompute<DeviceType,BITMAP> >;
+  friend struct PairComputeFunctor<PairTableKokkos,HALFTHREAD,false,S_TableCompute<DeviceType,BITMAP> >;
 
   friend void pair_virial_fdotr_compute<PairTableKokkos>(PairTableKokkos*);
 };

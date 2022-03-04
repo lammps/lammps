@@ -1,0 +1,121 @@
+#!/bin/bash -e
+#
+#   This script allows CMAKE_CXX_COMPILER to be a standard
+#   C++ compiler and Kokkos sets RULE_LAUNCH_COMPILE and
+#   RULE_LAUNCH_LINK in CMake so that all compiler and link
+#   commands are prefixed with this script followed by the
+#   C++ compiler. Thus if $1 == $2 then we know the command
+#   was intended for the C++ compiler and we discard both
+#   $1 and $2 and redirect the command to NVCC_WRAPPER.
+#   If $1 != $2 then we know that the command was not intended
+#   for the C++ compiler and we just discard $1 and launch
+#   the original command. Examples of when $2 will not equal
+#   $1 are 'ar', 'cmake', etc. during the linking phase
+#
+
+# emit a message about the underlying command executed
+: ${DEBUG:=0}
+: ${KOKKOS_DEBUG_LAUNCH_COMPILER:=${DEBUG}}
+
+debug-message()
+{
+    if [ "${KOKKOS_DEBUG_LAUNCH_COMPILER}" -ne 0 ]; then
+        echo -e "##### $(basename ${BASH_SOURCE[0]}) executing: \"$@\"... #####"
+    fi
+}
+
+# check the arguments for the KOKKOS_DEPENDENCE compiler definition
+KOKKOS_DEPENDENCE=0
+for i in ${@}
+do
+    if [ -n "$(echo ${i} | grep 'KOKKOS_DEPENDENCE$')" ]; then
+        KOKKOS_DEPENDENCE=1
+        break
+    fi
+done
+
+# if Kokkos compiler is not passed, someone is probably trying to invoke it directly
+if [ -z "${1}" ]; then
+    echo -e "\n${BASH_SOURCE[0]} was invoked without the Kokkos compiler as the first argument."
+    echo "This script is not indended to be directly invoked by any mechanism other"
+    echo -e "than through a RULE_LAUNCH_COMPILE or RULE_LAUNCH_LINK property set in CMake.\n"
+    exit 1
+fi
+
+# if Kokkos compiler is not passed, someone is probably trying to invoke it directly
+if [ -z "${2}" ]; then
+    echo -e "\n${BASH_SOURCE[0]} was invoked without the C++ compiler as the second argument."
+    echo "This script is not indended to be directly invoked by any mechanism other"
+    echo -e "than through a RULE_LAUNCH_COMPILE or RULE_LAUNCH_LINK property set in CMake.\n"
+    exit 1
+fi
+
+# if there aren't two args, this isn't necessarily invalid, just a bit strange
+if [ -z "${3}" ]; then exit 0; fi
+
+# store the Kokkos compiler
+KOKKOS_COMPILER=${1}
+
+# remove the Kokkos compiler from the arguments
+shift
+
+# store the expected C++ compiler
+CXX_COMPILER=${1}
+
+# remove the expected C++ compiler from the arguments
+shift
+
+# NOTE: in below, ${KOKKOS_COMPILER} is usually nvcc_wrapper
+#
+# after the above shifts, $1 is now the exe for the compile or link command, e.g.
+#       kokkos_launch_compiler ${KOKKOS_COMPILER} g++ gcc -c file.c -o file.o
+# becomes:
+#       kokkos_launch_compiler gcc -c file.c -o file.o
+# We check to see if the executable is the C++ compiler and if it is not, then
+# just execute the command.
+#
+# Summary:
+#       kokkos_launch_compiler ${KOKKOS_COMPILER} g++ gcc -c file.c -o file.o
+# results in this command being executed:
+#       gcc -c file.c -o file.o
+# and
+#       kokkos_launch_compiler ${KOKKOS_COMPILER} g++ g++ -c file.cpp -o file.o
+# results in this command being executed:
+#       ${KOKKOS_COMPILER} -c file.cpp -o file.o
+if [[ "${KOKKOS_DEPENDENCE}" -eq "0" || "${CXX_COMPILER}" != "${1}" ]]; then
+    debug-message $@
+    # the command does not depend on Kokkos so just execute the command w/o re-directing to ${KOKKOS_COMPILER}
+    eval $@
+else
+    # the executable is the C++ compiler, so we need to re-direct to ${KOKKOS_COMPILER}
+    if [ ! -f "${KOKKOS_COMPILER}" ]; then
+        echo -e "\nError: the compiler redirect for Kokkos was not found at ${KOKKOS_COMPILER}\n"
+        exit 1
+    fi
+
+    # find the nvcc_wrapper from the same build/install
+    NVCC_WRAPPER="$(dirname ${BASH_SOURCE[0]})/nvcc_wrapper"
+    if [ "${KOKKOS_COMPILER}" = "${NVCC_WRAPPER}" ]; then
+        # this should only be valid in the install tree -- it will be set to CMAKE_CXX_COMPILER used using Kokkos installation
+        if [ -z $(echo "@NVCC_WRAPPER_DEFAULT_COMPILER@" | grep 'NVCC_WRAPPER_DEFAULT_COMPILER') ]; then
+            : ${NVCC_WRAPPER_DEFAULT_COMPILER:="@NVCC_WRAPPER_DEFAULT_COMPILER@"}
+        fi
+
+        # set default nvcc wrapper compiler if not specified
+        : ${NVCC_WRAPPER_DEFAULT_COMPILER:=${CXX_COMPILER}}
+        export NVCC_WRAPPER_DEFAULT_COMPILER
+
+        # nvcc_wrapper calling itself will cause an infinitely long build
+        if [ "${NVCC_WRAPPER}" = "${NVCC_WRAPPER_DEFAULT_COMPILER}" ]; then
+            echo -e "\nError: NVCC_WRAPPER == NVCC_WRAPPER_DEFAULT_COMPILER. Terminating to avoid infinite loop!\n"
+            exit 1
+        fi
+    fi
+
+    # discard the compiler from the command
+    shift
+
+    debug-message ${KOKKOS_COMPILER} $@
+    # execute ${KOKKOS_COMPILER} (again, usually nvcc_wrapper)
+    ${KOKKOS_COMPILER} $@
+fi

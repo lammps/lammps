@@ -57,8 +57,7 @@
 #include <impl/Kokkos_TaskResult.hpp>
 
 #include <impl/Kokkos_TaskQueueMemoryManager.hpp>
-#include <impl/Kokkos_Memory_Fence.hpp>
-#include <impl/Kokkos_Atomic_Increment.hpp>
+#include <Kokkos_Atomic.hpp>
 #include <impl/Kokkos_OptionalRef.hpp>
 #include <impl/Kokkos_LIFO.hpp>
 
@@ -88,6 +87,7 @@ class TaskQueueCommonMixin {
   // <editor-fold desc="Constructors, destructor, and assignment"> {{{2
 
   TaskQueueCommonMixin() : m_ready_count(0) {
+    Kokkos::memory_fence();
     // TODO @tasking @memory_order DSH figure out if I need this store to be
     // atomic
   }
@@ -158,14 +158,17 @@ class TaskQueueCommonMixin {
   KOKKOS_INLINE_FUNCTION
   void _increment_ready_count() {
     // TODO @tasking @memory_order DSH memory order
-    Kokkos::atomic_increment(&this->m_ready_count);
+    Kokkos::Impl::desul_atomic_inc(&this->m_ready_count,
+                                   Kokkos::Impl::MemoryOrderSeqCst(),
+                                   Kokkos::Impl::MemoryScopeDevice());
   }
 
   KOKKOS_INLINE_FUNCTION
   void _decrement_ready_count() {
     // TODO @tasking @memory_order DSH memory order
-    Kokkos::atomic_decrement(&this->m_ready_count);
-    Kokkos::memory_fence();
+    Kokkos::Impl::desul_atomic_dec(&this->m_ready_count,
+                                   Kokkos::Impl::MemoryOrderSeqCst(),
+                                   Kokkos::Impl::MemoryScopeDevice());
   }
 
  public:
@@ -205,8 +208,8 @@ class TaskQueueCommonMixin {
   KOKKOS_FUNCTION void complete(
       AggregateTask<TaskQueueTraits, SchedulingInfo>&& task,
       TeamSchedulerInfo const& info) {
-    // TODO @tasking DSH old code has a ifndef __HCC_ACCELERATOR__ here; figure
-    // out why
+    // TODO @tasking DSH old code has a ifndef __HIP_DEVICE_COMPILE__ here;
+    // figure out why
     _complete_finished_task(std::move(task), info);
   }
 
@@ -476,7 +479,7 @@ class TaskQueueCommonMixin {
   }
 
   template <class ExecutionSpace, class MemorySpace, class MemoryPool>
-  static /* KOKKOS_CONSTEXPR_14 */ size_t task_queue_allocation_size(
+  static /* constexpr */ size_t task_queue_allocation_size(
       ExecutionSpace const&, MemorySpace const&, MemoryPool const&)
   // requires Same<ExecutionSpace, typename Derived::execution_space>
   //            && Same<MemorySpace, typename Derived::memory_space>

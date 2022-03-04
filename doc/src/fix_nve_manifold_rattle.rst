@@ -69,7 +69,8 @@ conserved.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
@@ -82,8 +83,8 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 Restrictions
 """"""""""""
 
-This fix is part of the USER-MANIFOLD package. It is only enabled if
-LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
+This fix is part of the MANIFOLD package. It is only enabled if
+LAMMPS was built with that package. See the :doc:`Build package <Build_package>` page for more info.
 
 ----------
 
@@ -92,7 +93,11 @@ Related commands
 
 :doc:`fix nvt/manifold/rattle <fix_nvt_manifold_rattle>`, :doc:`fix manifoldforce <fix_manifoldforce>`
 
-**Default:** every = 0, tchain = 3
+Default
+"""""""
+
+every = 0, tchain = 3
+
 
 ----------
 

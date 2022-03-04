@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,25 +12,31 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMMAND_CLASS
-
-CommandStyle(DEPRECATED,Deprecated)
-
+// clang-format off
+CommandStyle(DEPRECATED,Deprecated);
+CommandStyle(reset_ids,Deprecated);
+CommandStyle(kim_init,Deprecated);
+CommandStyle(kim_interactions,Deprecated);
+CommandStyle(kim_param,Deprecated);
+CommandStyle(kim_property,Deprecated);
+CommandStyle(kim_query,Deprecated);
+// clang-format on
 #else
 
 #ifndef LMP_DEPRECATED_H
 #define LMP_DEPRECATED_H
 
-#include "pointers.h"
+#include "command.h"
 
 namespace LAMMPS_NS {
 
-class Deprecated : protected Pointers {
+class Deprecated : public Command {
  public:
-  Deprecated(class LAMMPS *lmp) : Pointers(lmp) {};
-  void command(int, char **);
+  Deprecated(class LAMMPS *lmp) : Command(lmp){};
+  void command(int, char **) override;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

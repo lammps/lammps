@@ -53,18 +53,17 @@
  *  KOKKOS_ENABLE_HPX                 Kokkos::Experimental::HPX execution space
  *  KOKKOS_ENABLE_OPENMP              Kokkos::OpenMP execution space
  *  KOKKOS_ENABLE_OPENMPTARGET        Kokkos::Experimental::OpenMPTarget
- * execution space KOKKOS_ENABLE_HWLOC               HWLOC library is available.
+ *                                    execution space
+ *  KOKKOS_ENABLE_HIP                 Kokkos::Experimental::HIP execution space
+ *  KOKKOS_ENABLE_SYCL                Kokkos::Experimental::SYCL execution space
+ *  KOKKOS_ENABLE_HWLOC               HWLOC library is available.
  *  KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK  Insert array bounds checks, is expensive!
- *  KOKKOS_ENABLE_MPI                 Negotiate MPI/execution space
- * interactions. KOKKOS_ENABLE_CUDA_UVM            Use CUDA UVM for Cuda memory
- * space.
+ *  KOKKOS_ENABLE_CUDA_UVM            Use CUDA UVM for Cuda memory space.
  */
 
 #ifndef KOKKOS_DONT_INCLUDE_CORE_CONFIG_H
 #include <KokkosCore_config.h>
 #endif
-
-#include <impl/Kokkos_OldMacros.hpp>
 
 //----------------------------------------------------------------------------
 /** Pick up compiler specific #define macros:
@@ -99,85 +98,16 @@
 
 //----------------------------------------------------------------------------
 
-#if defined(KOKKOS_ENABLE_SERIAL) || defined(KOKKOS_ENABLE_THREADS) ||    \
-    defined(KOKKOS_ENABLE_OPENMP) || defined(KOKKOS_ENABLE_HPX) ||        \
-    defined(KOKKOS_ENABLE_ROCM) || defined(KOKKOS_ENABLE_OPENMPTARGET) || \
-    defined(KOKKOS_ENABLE_HIP)
-#define KOKKOS_INTERNAL_ENABLE_NON_CUDA_BACKEND
-#endif
-
-#if !defined(KOKKOS_ENABLE_THREADS) && !defined(KOKKOS_ENABLE_CUDA) &&      \
-    !defined(KOKKOS_ENABLE_OPENMP) && !defined(KOKKOS_ENABLE_HPX) &&        \
-    !defined(KOKKOS_ENABLE_ROCM) && !defined(KOKKOS_ENABLE_OPENMPTARGET) && \
-    !defined(KOKKOS_ENABLE_HIP)
+#if !defined(KOKKOS_ENABLE_THREADS) && !defined(KOKKOS_ENABLE_CUDA) &&     \
+    !defined(KOKKOS_ENABLE_OPENMP) && !defined(KOKKOS_ENABLE_HPX) &&       \
+    !defined(KOKKOS_ENABLE_OPENMPTARGET) && !defined(KOKKOS_ENABLE_HIP) && \
+    !defined(KOKKOS_ENABLE_SYCL)
 #define KOKKOS_INTERNAL_NOT_PARALLEL
 #endif
 
 #define KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA
 
-#if defined(KOKKOS_ENABLE_CUDA) && defined(__CUDACC__)
-// Compiling with a CUDA compiler.
-//
-//  Include <cuda.h> to pick up the CUDA_VERSION macro defined as:
-//    CUDA_VERSION = ( MAJOR_VERSION * 1000 ) + ( MINOR_VERSION * 10 )
-//
-//  When generating device code the __CUDA_ARCH__ macro is defined as:
-//    __CUDA_ARCH__ = ( MAJOR_CAPABILITY * 100 ) + ( MINOR_CAPABILITY * 10 )
-
-#include <cuda_runtime.h>
-#include <cuda.h>
-
-#if !defined(CUDA_VERSION)
-#error "#include <cuda.h> did not define CUDA_VERSION."
-#endif
-
-#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 300)
-// Compiling with CUDA compiler for device code.
-#error "Cuda device capability >= 3.0 is required."
-#endif
-
-#ifdef KOKKOS_ENABLE_CUDA_LAMBDA
-#define KOKKOS_LAMBDA [=] __host__ __device__
-
-#if defined(KOKKOS_ENABLE_CXX17) || defined(KOKKOS_ENABLE_CXX20)
-#define KOKKOS_CLASS_LAMBDA [ =, *this ] __host__ __device__
-#endif
-
-#if defined(__NVCC__)
-#define KOKKOS_IMPL_NEED_FUNCTOR_WRAPPER
-#endif
-#else  // !defined(KOKKOS_ENABLE_CUDA_LAMBDA)
-#undef KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA
-#endif  // !defined(KOKKOS_ENABLE_CUDA_LAMBDA)
-
-#if (10000 > CUDA_VERSION)
-#define KOKKOS_ENABLE_PRE_CUDA_10_DEPRECATION_API
-#endif
-
-#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 700)
-// PTX atomics with memory order semantics are only available on volta and later
-#if !defined(KOKKOS_DISABLE_CUDA_ASM)
-#if !defined(KOKKOS_ENABLE_CUDA_ASM)
-#define KOKKOS_ENABLE_CUDA_ASM
-#if !defined(KOKKOS_DISABLE_CUDA_ASM_ATOMICS)
-#define KOKKOS_ENABLE_CUDA_ASM_ATOMICS
-#endif
-#endif
-#endif
-#endif
-
-#endif  // #if defined( KOKKOS_ENABLE_CUDA ) && defined( __CUDACC__ )
-
-#if defined(KOKKOS_ENABLE_HIP)
-
-#define KOKKOS_IMPL_HIP_CLANG_WORKAROUND
-
-#define HIP_ENABLE_PRINTF
-#include <hip/hip_runtime.h>
-#include <hip/hip_runtime_api.h>
-
-#define KOKKOS_LAMBDA [=] __host__ __device__
-#endif  // #if defined(KOKKOS_ENABLE_HIP)
+#include <KokkosCore_Config_SetupBackend.hpp>
 
 //----------------------------------------------------------------------------
 // Mapping compiler built-ins to KOKKOS_COMPILER_*** macros
@@ -205,6 +135,8 @@
 
 #if defined(__INTEL_COMPILER)
 #define KOKKOS_COMPILER_INTEL __INTEL_COMPILER
+#elif defined(__INTEL_LLVM_COMPILER)
+#define KOKKOS_COMPILER_INTEL __INTEL_LLVM_COMPILER
 #elif defined(__ICC)
 // Old define
 #define KOKKOS_COMPILER_INTEL __ICC
@@ -223,13 +155,16 @@
 #define KOKKOS_COMPILER_IBM __IBMCPP__
 #elif defined(__IBMC__)
 #define KOKKOS_COMPILER_IBM __IBMC__
+#elif defined(__ibmxl_vrm__)  // xlclang++
+#define KOKKOS_COMPILER_IBM __ibmxl_vrm__
 #endif
 
 #if defined(__APPLE_CC__)
 #define KOKKOS_COMPILER_APPLECC __APPLE_CC__
 #endif
 
-#if defined(__clang__) && !defined(KOKKOS_COMPILER_INTEL)
+#if defined(__clang__) && !defined(KOKKOS_COMPILER_INTEL) && \
+    !defined(KOKKOS_COMPILER_IBM)
 #define KOKKOS_COMPILER_CLANG \
   __clang_major__ * 100 + __clang_minor__ * 10 + __clang_patchlevel__
 #endif
@@ -238,8 +173,8 @@
 #define KOKKOS_COMPILER_GNU \
   __GNUC__ * 100 + __GNUC_MINOR__ * 10 + __GNUC_PATCHLEVEL__
 
-#if (472 > KOKKOS_COMPILER_GNU)
-#error "Compiling with GCC version earlier than 4.7.2 is not supported."
+#if (530 > KOKKOS_COMPILER_GNU)
+#error "Compiling with GCC version earlier than 5.3.0 is not supported."
 #endif
 #endif
 
@@ -247,57 +182,13 @@
 #define KOKKOS_COMPILER_PGI \
   __PGIC__ * 100 + __PGIC_MINOR__ * 10 + __PGIC_PATCHLEVEL__
 
-#if (1540 > KOKKOS_COMPILER_PGI)
-#error "Compiling with PGI version earlier than 15.4 is not supported."
+#if (1740 > KOKKOS_COMPILER_PGI)
+#error "Compiling with PGI version earlier than 17.4 is not supported."
 #endif
 #endif
 
 #if defined(_MSC_VER) && !defined(KOKKOS_COMPILER_INTEL)
 #define KOKKOS_COMPILER_MSVC _MSC_VER
-#endif
-
-//#endif // #if !defined( __CUDA_ARCH__ )
-//----------------------------------------------------------------------------
-// Language info: C++, CUDA, OPENMP
-
-#if defined(KOKKOS_ENABLE_CUDA)
-// Compiling Cuda code to 'ptx'
-
-#define KOKKOS_FORCEINLINE_FUNCTION __device__ __host__ __forceinline__
-#define KOKKOS_IMPL_FORCEINLINE __forceinline__
-#define KOKKOS_INLINE_FUNCTION __device__ __host__ inline
-#define KOKKOS_FUNCTION __device__ __host__
-#if defined(KOKKOS_COMPILER_NVCC)
-#define KOKKOS_INLINE_FUNCTION_DELETED inline
-#else
-#define KOKKOS_INLINE_FUNCTION_DELETED __device__ __host__ inline
-#endif
-#if (CUDA_VERSION < 10000)
-#define KOKKOS_DEFAULTED_FUNCTION __host__ __device__ inline
-#else
-#define KOKKOS_DEFAULTED_FUNCTION inline
-#endif
-#endif
-
-#if defined(KOKKOS_ENABLE_HIP)
-
-#define KOKKOS_FORCEINLINE_FUNCTION __device__ __host__ __forceinline__
-#define KOKKOS_INLINE_FUNCTION __device__ __host__ inline
-#define KOKKOS_DEFAULTED_FUNCTION __device__ __host__ inline
-#define KOKKOS_INLINE_FUNCTION_DELETED __device__ __host__ inline
-#define KOKKOS_FUNCTION __device__ __host__
-#if defined(KOKKOS_ENABLE_CXX17) || defined(KOKKOS_ENABLE_CXX20)
-#define KOKKOS_CLASS_LAMBDA [ =, *this ] __host__ __device__
-#endif
-#endif  // #if defined( KOKKOS_ENABLE_HIP )
-
-#if defined(KOKKOS_ENABLE_ROCM) && defined(__HCC__)
-
-#define KOKKOS_FORCEINLINE_FUNCTION __attribute__((amp, cpu)) inline
-#define KOKKOS_INLINE_FUNCTION __attribute__((amp, cpu)) inline
-#define KOKKOS_FUNCTION __attribute__((amp, cpu))
-#define KOKKOS_LAMBDA [=] __attribute__((amp, cpu))
-#define KOKKOS_DEFAULTED_FUNCTION __attribute__((amp, cpu)) inline
 #endif
 
 #if defined(_OPENMP)
@@ -311,14 +202,23 @@
 // Intel compiler macros
 
 #if defined(KOKKOS_COMPILER_INTEL)
+// FIXME_SYCL
+#if !defined(KOKKOS_ENABLE_SYCL)
 #define KOKKOS_ENABLE_PRAGMA_UNROLL 1
 #define KOKKOS_ENABLE_PRAGMA_LOOPCOUNT 1
 #define KOKKOS_ENABLE_PRAGMA_VECTOR 1
+#endif
 #if (1800 > KOKKOS_COMPILER_INTEL)
 #define KOKKOS_ENABLE_PRAGMA_SIMD 1
 #endif
 
-#if (__INTEL_COMPILER > 1400)
+// FIXME Workaround for ICE with intel 17,18,19 in Trilinos
+#if (KOKKOS_COMPILER_INTEL <= 1900)
+#define KOKKOS_IMPL_WORKAROUND_ICE_IN_TRILINOS_WITH_OLD_INTEL_COMPILERS
+#endif
+
+// FIXME_SYCL
+#if !defined(KOKKOS_ENABLE_SYCL)
 #define KOKKOS_ENABLE_PRAGMA_IVDEP 1
 #endif
 
@@ -326,32 +226,34 @@
 #define KOKKOS_MEMORY_ALIGNMENT 64
 #endif
 
+#if defined(_WIN32)
+#define KOKKOS_RESTRICT __restrict
+#else
 #define KOKKOS_RESTRICT __restrict__
+#endif
 
 #ifndef KOKKOS_IMPL_ALIGN_PTR
+#if defined(_WIN32)
+#define KOKKOS_IMPL_ALIGN_PTR(size) __declspec(align_value(size))
+#else
 #define KOKKOS_IMPL_ALIGN_PTR(size) __attribute__((align_value(size)))
 #endif
-
-#if (1400 > KOKKOS_COMPILER_INTEL)
-#if (1300 > KOKKOS_COMPILER_INTEL)
-#error \
-    "Compiling with Intel version earlier than 13.0 is not supported. Official minimal version is 14.0."
-#else
-#warning \
-    "Compiling with Intel version 13.x probably works but is not officially supported. Official minimal version is 14.0."
 #endif
+
+#if (1700 > KOKKOS_COMPILER_INTEL)
+#error "Compiling with Intel version earlier than 17.0 is not supported."
 #endif
 
 #if !defined(KOKKOS_ENABLE_ASM) && !defined(_WIN32)
 #define KOKKOS_ENABLE_ASM 1
 #endif
 
-#if !defined(KOKKOS_FORCEINLINE_FUNCTION)
+#if !defined(KOKKOS_IMPL_FORCEINLINE_FUNCTION)
 #if !defined(_WIN32)
-#define KOKKOS_FORCEINLINE_FUNCTION inline __attribute__((always_inline))
+#define KOKKOS_IMPL_FORCEINLINE_FUNCTION inline __attribute__((always_inline))
 #define KOKKOS_IMPL_FORCEINLINE __attribute__((always_inline))
 #else
-#define KOKKOS_FORCEINLINE_FUNCTION inline
+#define KOKKOS_IMPL_FORCEINLINE_FUNCTION inline
 #endif
 #endif
 
@@ -402,8 +304,8 @@
 //#define KOKKOS_ENABLE_PRAGMA_VECTOR 1
 //#define KOKKOS_ENABLE_PRAGMA_SIMD 1
 
-#if !defined(KOKKOS_FORCEINLINE_FUNCTION)
-#define KOKKOS_FORCEINLINE_FUNCTION inline __attribute__((always_inline))
+#if !defined(KOKKOS_IMPL_FORCEINLINE_FUNCTION)
+#define KOKKOS_IMPL_FORCEINLINE_FUNCTION inline __attribute__((always_inline))
 #define KOKKOS_IMPL_FORCEINLINE __attribute__((always_inline))
 #endif
 
@@ -427,8 +329,8 @@
 #define KOKKOS_ENABLE_RFO_PREFETCH 1
 #endif
 
-#if !defined(KOKKOS_FORCEINLINE_FUNCTION)
-#define KOKKOS_FORCEINLINE_FUNCTION inline __attribute__((always_inline))
+#if !defined(KOKKOS_IMPL_FORCEINLINE_FUNCTION)
+#define KOKKOS_IMPL_FORCEINLINE_FUNCTION inline __attribute__((always_inline))
 #define KOKKOS_IMPL_FORCEINLINE __attribute__((always_inline))
 #endif
 
@@ -462,20 +364,20 @@
 //----------------------------------------------------------------------------
 // Define function marking macros if compiler specific macros are undefined:
 
-#if !defined(KOKKOS_FORCEINLINE_FUNCTION)
-#define KOKKOS_FORCEINLINE_FUNCTION inline
+#if !defined(KOKKOS_IMPL_FORCEINLINE_FUNCTION)
+#define KOKKOS_IMPL_FORCEINLINE_FUNCTION inline
 #endif
 
 #if !defined(KOKKOS_IMPL_FORCEINLINE)
 #define KOKKOS_IMPL_FORCEINLINE inline
 #endif
 
-#if !defined(KOKKOS_INLINE_FUNCTION)
-#define KOKKOS_INLINE_FUNCTION inline
+#if !defined(KOKKOS_IMPL_INLINE_FUNCTION)
+#define KOKKOS_IMPL_INLINE_FUNCTION inline
 #endif
 
-#if !defined(KOKKOS_FUNCTION)
-#define KOKKOS_FUNCTION /**/
+#if !defined(KOKKOS_IMPL_FUNCTION)
+#define KOKKOS_IMPL_FUNCTION /**/
 #endif
 
 #if !defined(KOKKOS_INLINE_FUNCTION_DELETED)
@@ -485,6 +387,39 @@
 #if !defined(KOKKOS_DEFAULTED_FUNCTION)
 #define KOKKOS_DEFAULTED_FUNCTION inline
 #endif
+
+#if !defined(KOKKOS_IMPL_HOST_FUNCTION)
+#define KOKKOS_IMPL_HOST_FUNCTION
+#endif
+
+#if !defined(KOKKOS_IMPL_DEVICE_FUNCTION)
+#define KOKKOS_IMPL_DEVICE_FUNCTION
+#endif
+
+// Temporary solution for SYCL not supporting printf in kernels.
+// Might disappear at any point once we have found another solution.
+#if !defined(KOKKOS_IMPL_DO_NOT_USE_PRINTF)
+#define KOKKOS_IMPL_DO_NOT_USE_PRINTF(...) printf(__VA_ARGS__)
+#endif
+
+//----------------------------------------------------------------------------
+// Define final version of functions. This is so that clang tidy can find these
+// macros more easily
+#if defined(__clang_analyzer__)
+#define KOKKOS_FUNCTION \
+  KOKKOS_IMPL_FUNCTION __attribute__((annotate("KOKKOS_FUNCTION")))
+#define KOKKOS_INLINE_FUNCTION \
+  KOKKOS_IMPL_INLINE_FUNCTION  \
+  __attribute__((annotate("KOKKOS_INLINE_FUNCTION")))
+#define KOKKOS_FORCEINLINE_FUNCTION \
+  KOKKOS_IMPL_FORCEINLINE_FUNCTION  \
+  __attribute__((annotate("KOKKOS_FORCEINLINE_FUNCTION")))
+#else
+#define KOKKOS_FUNCTION KOKKOS_IMPL_FUNCTION
+#define KOKKOS_INLINE_FUNCTION KOKKOS_IMPL_INLINE_FUNCTION
+#define KOKKOS_FORCEINLINE_FUNCTION KOKKOS_IMPL_FORCEINLINE_FUNCTION
+#endif
+
 //----------------------------------------------------------------------------
 // Define empty macro for restrict if necessary:
 
@@ -513,7 +448,7 @@
 
 #if 1 < ((defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_CUDA) ? 1 : 0) +         \
          (defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_HIP) ? 1 : 0) +          \
-         (defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_ROCM) ? 1 : 0) +         \
+         (defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_SYCL) ? 1 : 0) +         \
          (defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMPTARGET) ? 1 : 0) + \
          (defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMP) ? 1 : 0) +       \
          (defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_THREADS) ? 1 : 0) +      \
@@ -523,10 +458,10 @@
 #endif
 
 // If default is not specified then chose from enabled execution spaces.
-// Priority: CUDA, HIP, ROCM, OPENMPTARGET, OPENMP, THREADS, HPX, SERIAL
+// Priority: CUDA, HIP, SYCL, OPENMPTARGET, OPENMP, THREADS, HPX, SERIAL
 #if defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_CUDA)
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_HIP)
-#elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_ROCM)
+#elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_SYCL)
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMPTARGET)
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMP)
 #elif defined(KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_THREADS)
@@ -536,8 +471,13 @@
 #define KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_CUDA
 #elif defined(KOKKOS_ENABLE_HIP)
 #define KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_HIP
-#elif defined(KOKKOS_ENABLE_ROCM)
-#define KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_ROCM
+#if defined(__HIP__)
+// mark that HIP-clang can use __host__ and __device__
+// as valid overload criteria
+#define KOKKOS_IMPL_ENABLE_OVERLOAD_HOST_DEVICE
+#endif
+#elif defined(KOKKOS_ENABLE_SYCL)
+#define KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_SYCL
 #elif defined(KOKKOS_ENABLE_OPENMPTARGET)
 #define KOKKOS_ENABLE_DEFAULT_DEVICE_TYPE_OPENMPTARGET
 #elif defined(KOKKOS_ENABLE_OPENMP)
@@ -555,11 +495,9 @@
 
 #if defined(__CUDACC__) && defined(__CUDA_ARCH__) && defined(KOKKOS_ENABLE_CUDA)
 #define KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA
-#elif defined(__HCC__) && defined(__HCC_ACCELERATOR__) && \
-    defined(KOKKOS_ENABLE_ROCM)
-#define KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_ROCM_GPU
-#elif defined(__HIPCC__) &&                                     \
-    (defined(__HCC_ACCELERATOR__) || defined(__CUDA_ARCH__)) && \
+#elif defined(__SYCL_DEVICE_ONLY__) && defined(KOKKOS_ENABLE_SYCL)
+#define KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_SYCL
+#elif defined(__HIPCC__) && defined(__HIP_DEVICE_COMPILE__) && \
     defined(KOKKOS_ENABLE_HIP)
 #define KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HIP_GPU
 #else
@@ -583,41 +521,43 @@
 #if defined(KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE)
 #define KOKKOS_ENABLE_TASKDAG
 #endif
-#else
-#ifndef KOKKOS_ENABLE_HIP
+// FIXME_SYCL Tasks not implemented
+#elif !defined(KOKKOS_ENABLE_HIP) && !defined(KOKKOS_ENABLE_SYCL)
 #define KOKKOS_ENABLE_TASKDAG
-#endif
-#endif
-
-#if defined(KOKKOS_ENABLE_CUDA)
-#define KOKKOS_IMPL_CUDA_VERSION_9_WORKAROUND
-#if (__CUDA_ARCH__)
-#define KOKKOS_IMPL_CUDA_SYNCWARP_NEEDS_MASK
-#endif
 #endif
 
 #define KOKKOS_INVALID_INDEX (~std::size_t(0))
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-#define KOKKOS_IMPL_CTOR_DEFAULT_ARG 0
-#else
 #define KOKKOS_IMPL_CTOR_DEFAULT_ARG KOKKOS_INVALID_INDEX
+
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_3
+#define KOKKOS_CONSTEXPR_14 constexpr
+#define KOKKOS_DEPRECATED_TRAILING_ATTRIBUTE
 #endif
 
-#if (defined(KOKKOS_ENABLE_CXX14) || defined(KOKKOS_ENABLE_CXX17) || \
-     defined(KOKKOS_ENABLE_CXX20))
-#define KOKKOS_CONSTEXPR_14 constexpr
+// Guard intel compiler version <= 1900
+// intel error #2651: attribute does not apply to any entity
+// using <deprecated_type> KOKKOS_DEPRECATED = ...
+#if defined(KOKKOS_ENABLE_DEPRECATION_WARNINGS) && !defined(__NVCC__) && \
+    (KOKKOS_COMPILER_INTEL > 1900)
 #define KOKKOS_DEPRECATED [[deprecated]]
-#define KOKKOS_DEPRECATED_TRAILING_ATTRIBUTE
-#else
-#define KOKKOS_CONSTEXPR_14
-#if defined(KOKKOS_COMPILER_GNU) || defined(KOKKOS_COMPILER_CLANG)
-#define KOKKOS_DEPRECATED
-#define KOKKOS_DEPRECATED_TRAILING_ATTRIBUTE __attribute__((deprecated))
+#define KOKKOS_DEPRECATED_WITH_COMMENT(comment) [[deprecated(comment)]]
 #else
 #define KOKKOS_DEPRECATED
-#define KOKKOS_DEPRECATED_TRAILING_ATTRIBUTE
+#define KOKKOS_DEPRECATED_WITH_COMMENT(comment)
 #endif
+
+#define KOKKOS_IMPL_STRINGIFY(x) #x
+#define KOKKOS_IMPL_TOSTRING(x) KOKKOS_IMPL_STRINGIFY(x)
+
+#ifdef _MSC_VER
+#define KOKKOS_IMPL_DO_PRAGMA(x) __pragma(x)
+#define KOKKOS_IMPL_WARNING(desc) \
+  KOKKOS_IMPL_DO_PRAGMA(message(  \
+      __FILE__ "(" KOKKOS_IMPL_TOSTRING(__LINE__) ") : warning: " #desc))
+#else
+#define KOKKOS_IMPL_DO_PRAGMA(x) _Pragma(#x)
+#define KOKKOS_IMPL_WARNING(desc) KOKKOS_IMPL_DO_PRAGMA(message(#desc))
 #endif
 
 // DJS 05/28/2019: Bugfix: Issue 2155
@@ -633,8 +573,9 @@
 #define KOKKOS_ATTRIBUTE_NODISCARD
 #endif
 
-#if defined(KOKKOS_COMPILER_GNU) || defined(KOKKOS_COMPILER_CLANG) || \
-    defined(KOKKOS_COMPILER_INTEL) || defined(KOKKOS_COMPILER_PGI)
+#if (defined(KOKKOS_COMPILER_GNU) || defined(KOKKOS_COMPILER_CLANG) ||  \
+     defined(KOKKOS_COMPILER_INTEL) || defined(KOKKOS_COMPILER_PGI)) && \
+    !defined(_WIN32)
 #define KOKKOS_IMPL_ENABLE_STACKTRACE
 #define KOKKOS_IMPL_ENABLE_CXXABI
 #endif
@@ -646,10 +587,21 @@
 #undef __CUDA_ARCH__
 #endif
 
-#if defined(KOKKOS_COMPILER_MSVC)
+#if (defined(KOKKOS_COMPILER_MSVC) && !defined(KOKKOS_COMPILER_CLANG)) || \
+    (defined(KOKKOS_COMPILER_INTEL) && defined(_WIN32))
 #define KOKKOS_THREAD_LOCAL __declspec(thread)
 #else
 #define KOKKOS_THREAD_LOCAL __thread
+#endif
+
+#if (defined(KOKKOS_IMPL_WINDOWS_CUDA) || defined(KOKKOS_COMPILER_MSVC)) && \
+    !defined(KOKKOS_COMPILER_CLANG)
+// MSVC (as of 16.5.5 at least) does not do empty base class optimization by
+// default when there are multiple bases, even though the standard requires it
+// for standard layout types.
+#define KOKKOS_IMPL_ENFORCE_EMPTY_BASE_OPTIMIZATION __declspec(empty_bases)
+#else
+#define KOKKOS_IMPL_ENFORCE_EMPTY_BASE_OPTIMIZATION
 #endif
 
 #endif  // #ifndef KOKKOS_MACROS_HPP

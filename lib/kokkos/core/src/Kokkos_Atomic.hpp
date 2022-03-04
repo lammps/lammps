@@ -69,24 +69,85 @@
 #define KOKKOS_ATOMIC_HPP
 
 #include <Kokkos_Macros.hpp>
+
+#ifdef KOKKOS_ENABLE_IMPL_DESUL_ATOMICS
+#ifdef KOKKOS_ENABLE_OPENMPTARGET
+#define DESUL_HAVE_OPENMP_ATOMICS
+#endif
+#include <Kokkos_Atomics_Desul_Wrapper.hpp>
+#include <Kokkos_Atomics_Desul_Volatile_Wrapper.hpp>
+#include <impl/Kokkos_Utilities.hpp>
+
+// Helper functions for places where we really should have called SeqCst atomics
+// anyway These can go away when we call desul unconditionally Non-Desul
+// versions are below
+namespace Kokkos {
+namespace Impl {
+using desul::MemoryOrderSeqCst;
+using desul::MemoryScopeDevice;
+
+template <class T>
+KOKKOS_INLINE_FUNCTION void desul_atomic_dec(T* dest, MemoryOrderSeqCst,
+                                             MemoryScopeDevice) {
+  return desul::atomic_dec(const_cast<T*>(dest), desul::MemoryOrderSeqCst(),
+                           desul::MemoryScopeDevice());
+}
+
+template <class T>
+KOKKOS_INLINE_FUNCTION void desul_atomic_inc(T* dest, MemoryOrderSeqCst,
+                                             MemoryScopeDevice) {
+  return desul::atomic_inc(const_cast<T*>(dest), desul::MemoryOrderSeqCst(),
+                           desul::MemoryScopeDevice());
+}
+
+template <class T>
+KOKKOS_INLINE_FUNCTION T
+desul_atomic_exchange(T* dest, const Kokkos::Impl::identity_t<T> val,
+                      MemoryOrderSeqCst, MemoryScopeDevice) {
+  return desul::atomic_exchange(const_cast<T*>(dest), val,
+                                desul::MemoryOrderSeqCst(),
+                                desul::MemoryScopeDevice());
+}
+
+template <class T>
+KOKKOS_INLINE_FUNCTION T desul_atomic_compare_exchange(
+    T* dest, Kokkos::Impl::identity_t<const T> compare,
+    Kokkos::Impl::identity_t<const T> val, MemoryOrderSeqCst,
+    MemoryScopeDevice) {
+  return desul::atomic_compare_exchange(dest, compare, val,
+                                        desul::MemoryOrderSeqCst(),
+                                        desul::MemoryScopeDevice());
+}
+
+}  // namespace Impl
+}  // namespace Kokkos
+#else
+
 #include <Kokkos_HostSpace.hpp>
 #include <impl/Kokkos_Traits.hpp>
 
 //----------------------------------------------------------------------------
+
+// Need to fix this for pure clang on windows
 #if defined(_WIN32)
 #define KOKKOS_ENABLE_WINDOWS_ATOMICS
-#else
+
+#if defined(KOKKOS_ENABLE_CUDA)
+#define KOKKOS_ENABLE_CUDA_ATOMICS
+#if defined(KOKKOS_COMPILER_CLANG)
+#define KOKKOS_ENABLE_GNU_ATOMICS
+#endif
+#endif
+
+#else  // _WIN32
 #if defined(KOKKOS_ENABLE_CUDA)
 
 // Compiling NVIDIA device code, must use Cuda atomics:
 
 #define KOKKOS_ENABLE_CUDA_ATOMICS
 
-#elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_ROCM_GPU)
-
-#define KOKKOS_ENABLE_ROCM_ATOMICS
-
-#elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HIP_GPU)
+#elif defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HIP_GPU) || \
+    defined(KOKKOS_IMPL_ENABLE_OVERLOAD_HOST_DEVICE)
 
 #define KOKKOS_ENABLE_HIP_ATOMICS
 
@@ -107,7 +168,7 @@
 #define KOKKOS_ENABLE_SERIAL_ATOMICS
 
 #elif defined(KOKKOS_COMPILER_GNU) || defined(KOKKOS_COMPILER_CLANG) || \
-    (defined(KOKKOS_COMPILER_NVCC))
+    (defined(KOKKOS_COMPILER_NVCC) || defined(KOKKOS_COMPILER_IBM))
 
 #define KOKKOS_ENABLE_GNU_ATOMICS
 
@@ -172,29 +233,28 @@ inline const char* atomic_query_version() {
 // Implements Strongly-typed analogs of C++ standard memory orders
 #include "impl/Kokkos_Atomic_Memory_Order.hpp"
 
-#if defined(KOKKOS_ENABLE_ROCM)
-namespace Kokkos {
-namespace Impl {
-extern KOKKOS_INLINE_FUNCTION bool lock_address_rocm_space(void* ptr);
-
-extern KOKKOS_INLINE_FUNCTION void unlock_address_rocm_space(void* ptr);
-}  // namespace Impl
-}  // namespace Kokkos
-#include <ROCm/Kokkos_ROCm_Atomic.hpp>
-#endif
 #if defined(KOKKOS_ENABLE_HIP)
 #include <HIP/Kokkos_HIP_Atomic.hpp>
 #endif
 
-#ifdef _WIN32
+#if defined(KOKKOS_ENABLE_WINDOWS_ATOMICS)
 #include "impl/Kokkos_Atomic_Windows.hpp"
-#else
+#endif
 //----------------------------------------------------------------------------
 // Atomic Assembly
 //
 // Implements CAS128-bit in assembly
 
 #include "impl/Kokkos_Atomic_Assembly.hpp"
+
+//----------------------------------------------------------------------------
+// Memory fence
+//
+// All loads and stores from this thread will be globally consistent before
+// continuing
+//
+// void memory_fence() {...};
+#include "impl/Kokkos_Memory_Fence.hpp"
 
 //----------------------------------------------------------------------------
 // Atomic exchange
@@ -215,11 +275,8 @@ extern KOKKOS_INLINE_FUNCTION void unlock_address_rocm_space(void* ptr);
 
 #include "impl/Kokkos_Atomic_Compare_Exchange_Strong.hpp"
 
-#endif  //_WIN32
-
 #include "impl/Kokkos_Atomic_Generic.hpp"
 
-#ifndef _WIN32
 //----------------------------------------------------------------------------
 // Atomic fetch and add
 //
@@ -285,16 +342,6 @@ extern KOKKOS_INLINE_FUNCTION void unlock_address_rocm_space(void* ptr);
 // { T tmp = *dest ; *dest = max(*dest, val); return tmp ; }
 
 #include "impl/Kokkos_Atomic_MinMax.hpp"
-#endif /*Not _WIN32*/
-
-//----------------------------------------------------------------------------
-// Memory fence
-//
-// All loads and stores from this thread will be globally consistent before
-// continuing
-//
-// void memory_fence() {...};
-#include "impl/Kokkos_Memory_Fence.hpp"
 
 //----------------------------------------------------------------------------
 // Provide volatile_load and safe_load
@@ -333,4 +380,42 @@ extern KOKKOS_INLINE_FUNCTION void unlock_address_rocm_space(void* ptr);
 
 //----------------------------------------------------------------------------
 
+// Helper functions for places where we really should have called SeqCst atomics
+// anyway These can go away when we call desul unconditionally
+namespace Kokkos {
+namespace Impl {
+struct MemoryOrderSeqCst {};
+struct MemoryScopeDevice {};
+
+template <class T>
+KOKKOS_INLINE_FUNCTION void desul_atomic_dec(T* dest, MemoryOrderSeqCst,
+                                             MemoryScopeDevice) {
+  return Kokkos::atomic_decrement(dest);
+}
+
+template <class T>
+KOKKOS_INLINE_FUNCTION void desul_atomic_inc(T* dest, MemoryOrderSeqCst,
+                                             MemoryScopeDevice) {
+  return Kokkos::atomic_increment(dest);
+}
+
+template <class T>
+KOKKOS_INLINE_FUNCTION T
+desul_atomic_exchange(T* dest, Kokkos::Impl::identity_t<const T> val,
+                      MemoryOrderSeqCst, MemoryScopeDevice) {
+  return Kokkos::atomic_exchange(dest, val);
+}
+
+template <class T>
+KOKKOS_INLINE_FUNCTION T desul_atomic_compare_exchange(
+    T* dest, Kokkos::Impl::identity_t<const T> compare,
+    Kokkos::Impl::identity_t<const T> val, MemoryOrderSeqCst,
+    MemoryScopeDevice) {
+  return Kokkos::atomic_compare_exchange(dest, compare, val);
+}
+
+}  // namespace Impl
+}  // namespace Kokkos
+
+#endif /* !KOKKOS_ENABLE_IMPL_DESUL_ATOMICS */
 #endif /* KOKKOS_ATOMIC_HPP */

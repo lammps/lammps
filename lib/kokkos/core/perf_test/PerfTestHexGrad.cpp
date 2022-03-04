@@ -51,20 +51,20 @@ namespace Test {
 template <class DeviceType, typename CoordScalarType = double,
           typename GradScalarType = float>
 struct HexGrad {
-  typedef DeviceType execution_space;
-  typedef typename execution_space::size_type size_type;
+  using execution_space = DeviceType;
+  using size_type       = typename execution_space::size_type;
 
-  typedef HexGrad<DeviceType, CoordScalarType, GradScalarType> self_type;
+  using self_type = HexGrad<DeviceType, CoordScalarType, GradScalarType>;
 
   // 3D array : ( ParallelWork , Space , Node )
 
   enum { NSpace = 3, NNode = 8 };
 
-  typedef Kokkos::View<CoordScalarType * [NSpace][NNode], execution_space>
-      elem_coord_type;
+  using elem_coord_type =
+      Kokkos::View<CoordScalarType * [NSpace][NNode], execution_space>;
 
-  typedef Kokkos::View<GradScalarType * [NSpace][NNode], execution_space>
-      elem_grad_type;
+  using elem_grad_type =
+      Kokkos::View<GradScalarType * [NSpace][NNode], execution_space>;
 
   elem_coord_type coords;
   elem_grad_type grad_op;
@@ -179,7 +179,7 @@ struct HexGrad {
   //--------------------------------------------------------------------------
 
   struct Init {
-    typedef typename self_type::execution_space execution_space;
+    using execution_space = typename self_type::execution_space;
 
     elem_coord_type coords;
 
@@ -280,7 +280,7 @@ void run_test_hexgrad(int exp_beg, int exp_end, int num_trials,
 
     std::cout << label_hexgrad << " , " << parallel_work_length << " , "
               << min_seconds << " , " << (min_seconds / parallel_work_length)
-              << std::endl;
+              << avg_seconds << std::endl;
   }
 }
 
@@ -289,9 +289,9 @@ TEST(default_exec, hexgrad) {
   int exp_end    = 20;
   int num_trials = 5;
 
-  if (command_line_num_args() > 1) exp_beg = atoi(command_line_arg(1));
-  if (command_line_num_args() > 2) exp_end = atoi(command_line_arg(2));
-  if (command_line_num_args() > 3) num_trials = atoi(command_line_arg(3));
+  if (command_line_num_args() > 1) exp_beg = std::stoi(command_line_arg(1));
+  if (command_line_num_args() > 2) exp_end = std::stoi(command_line_arg(2));
+  if (command_line_num_args() > 3) num_trials = std::stoi(command_line_arg(3));
 
   EXPECT_NO_THROW(run_test_hexgrad<Kokkos::DefaultExecutionSpace>(
       exp_beg, exp_end, num_trials, Kokkos::DefaultExecutionSpace::name()));

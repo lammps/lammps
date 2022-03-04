@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,16 +13,17 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_line.h"
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "domain.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
+#include "modify.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -32,7 +34,7 @@ using namespace MathConst;
 
 AtomVecLine::AtomVecLine(LAMMPS *lmp) : AtomVec(lmp)
 {
-  molecular = 0;
+  molecular = Atom::ATOMIC;
   bonus_flag = 1;
 
   size_forward_bonus = 1;
@@ -46,7 +48,7 @@ AtomVecLine::AtomVecLine(LAMMPS *lmp) : AtomVec(lmp)
   atom->sphere_flag = 1;
 
   nlocal_bonus = nghost_bonus = nmax_bonus = 0;
-  bonus = NULL;
+  bonus = nullptr;
 
   // strings with peratom variables to include in each AtomVec method
   // strings cannot contain fields in corresponding AtomVec default strings
@@ -335,16 +337,17 @@ int AtomVecLine::unpack_restart_bonus(int ilocal, double *buf)
    unpack one line from Lines section of data file
 ------------------------------------------------------------------------- */
 
-void AtomVecLine::data_atom_bonus(int m, char **values)
+void AtomVecLine::data_atom_bonus(int m, const std::vector<std::string> &values)
 {
   if (line[m]) error->one(FLERR,"Assigning line parameters to non-line atom");
 
   if (nlocal_bonus == nmax_bonus) grow_bonus();
 
-  double x1 = utils::numeric(FLERR,values[0],true,lmp);
-  double y1 = utils::numeric(FLERR,values[1],true,lmp);
-  double x2 = utils::numeric(FLERR,values[2],true,lmp);
-  double y2 = utils::numeric(FLERR,values[3],true,lmp);
+  int ivalue = 1;
+  double x1 = utils::numeric(FLERR,values[ivalue++],true,lmp);
+  double y1 = utils::numeric(FLERR,values[ivalue++],true,lmp);
+  double x2 = utils::numeric(FLERR,values[ivalue++],true,lmp);
+  double y2 = utils::numeric(FLERR,values[ivalue++],true,lmp);
   double dx = x2 - x1;
   double dy = y2 - y1;
   double length = sqrt(dx*dx + dy*dy);
@@ -379,10 +382,10 @@ void AtomVecLine::data_atom_bonus(int m, char **values)
    return # of bytes of allocated bonus memory
 ------------------------------------------------------------------------- */
 
-bigint AtomVecLine::memory_usage_bonus()
+double AtomVecLine::memory_usage_bonus()
 {
-  bigint bytes = 0;
-  bytes += nmax_bonus*sizeof(Bonus);
+  double bytes = 0;
+  bytes += (double)nmax_bonus*sizeof(Bonus);
   return bytes;
 }
 
@@ -452,6 +455,58 @@ void AtomVecLine::pack_data_post(int ilocal)
 {
   line[ilocal] = line_flag;
   rmass[ilocal] = rmass_one;
+}
+
+/* ----------------------------------------------------------------------
+   pack bonus line info for writing to data file
+   if buf is nullptr, just return buffer size
+------------------------------------------------------------------------- */
+
+int AtomVecLine::pack_data_bonus(double *buf, int /*flag*/)
+{
+  int i,j;
+  double length,theta;
+  double xc,yc,x1,x2,y1,y2;
+
+  double **x = atom->x;
+  tagint *tag = atom->tag;
+  int nlocal = atom->nlocal;
+
+  int m = 0;
+  for (i = 0; i < nlocal; i++) {
+    if (line[i] < 0) continue;
+    if (buf) {
+      buf[m++] = ubuf(tag[i]).d;
+      j = line[i];
+      length = bonus[j].length;
+      theta = bonus[j].theta;
+      xc = x[i][0];
+      yc = x[i][1];
+      x1 = xc - 0.5*cos(theta)*length;
+      y1 = yc - 0.5*sin(theta)*length;
+      x2 = xc + 0.5*cos(theta)*length;
+      y2 = yc + 0.5*sin(theta)*length;
+      buf[m++] = x1;
+      buf[m++] = y1;
+      buf[m++] = x2;
+      buf[m++] = y2;
+    } else m += size_data_bonus;
+  }
+  return m;
+}
+
+/* ----------------------------------------------------------------------
+   write bonus line info to data file
+------------------------------------------------------------------------- */
+
+void AtomVecLine::write_data_bonus(FILE *fp, int n, double *buf, int /*flag*/)
+{
+  int i = 0;
+  while (i < n) {
+    fmt::print(fp,"{} {} {} {} {}\n",ubuf(buf[i]).i,
+               buf[i+1],buf[i+2],buf[i+3],buf[i+4]);
+    i += size_data_bonus;
+  }
 }
 
 /* ----------------------------------------------------------------------

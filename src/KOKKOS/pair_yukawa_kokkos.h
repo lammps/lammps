@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(yukawa/kk,PairYukawaKokkos<LMPDeviceType>)
-PairStyle(yukawa/kk/device,PairYukawaKokkos<LMPDeviceType>)
-PairStyle(yukawa/kk/host,PairYukawaKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(yukawa/kk,PairYukawaKokkos<LMPDeviceType>);
+PairStyle(yukawa/kk/device,PairYukawaKokkos<LMPDeviceType>);
+PairStyle(yukawa/kk/host,PairYukawaKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_YUKAWA_KOKKOS_H
 #define LMP_PAIR_YUKAWA_KOKKOS_H
 
@@ -37,24 +38,22 @@ class PairYukawaKokkos : public PairYukawa {
   typedef ArrayTypes<DeviceType> AT;
 
   PairYukawaKokkos(class LAMMPS *);
-  virtual ~PairYukawaKokkos();
+  ~PairYukawaKokkos() override;
 
-  void compute(int, int);
-  void init_style();
-  double init_one(int,int);
+  void compute(int, int) override;
+  void init_style() override;
+  double init_one(int,int) override;
 
   struct params_yukawa {
     KOKKOS_INLINE_FUNCTION
-    params_yukawa(){ cutsq=0, a = 0; offset = 0; }
+    params_yukawa() { cutsq=0, a = 0; offset = 0; }
     KOKKOS_INLINE_FUNCTION
-    params_yukawa(int i){ cutsq=0, a = 0; offset = 0; }
+    params_yukawa(int /*i*/) { cutsq=0, a = 0; offset = 0; }
     F_FLOAT cutsq, a, offset;
   };
 
 
  protected:
-  void cleanup_copy();
-
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
   F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
@@ -67,11 +66,8 @@ class PairYukawaKokkos : public PairYukawa {
 
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
-  F_FLOAT compute_ecoul(const F_FLOAT& rsq, const int& i, const int&j,
-                        const int& itype, const int& jtype) const
-  {
-    return 0;
-  }
+  F_FLOAT compute_ecoul(const F_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/,
+                        const int& /*itype*/, const int& /*jtype*/) const { return 0; }
 
 
   Kokkos::DualView<params_yukawa**,Kokkos::LayoutRight,DeviceType> k_params;
@@ -99,13 +95,13 @@ class PairYukawaKokkos : public PairYukawa {
   int neighflag;
   int nlocal,nall,eflag,vflag;
 
-  void allocate();
-  friend class PairComputeFunctor<PairYukawaKokkos,FULL,true>;
-  friend class PairComputeFunctor<PairYukawaKokkos,HALF,true>;
-  friend class PairComputeFunctor<PairYukawaKokkos,HALFTHREAD,true>;
-  friend class PairComputeFunctor<PairYukawaKokkos,FULL,false>;
-  friend class PairComputeFunctor<PairYukawaKokkos,HALF,false>;
-  friend class PairComputeFunctor<PairYukawaKokkos,HALFTHREAD,false>;
+  void allocate() override;
+  friend struct PairComputeFunctor<PairYukawaKokkos,FULL,true>;
+  friend struct PairComputeFunctor<PairYukawaKokkos,HALF,true>;
+  friend struct PairComputeFunctor<PairYukawaKokkos,HALFTHREAD,true>;
+  friend struct PairComputeFunctor<PairYukawaKokkos,FULL,false>;
+  friend struct PairComputeFunctor<PairYukawaKokkos,HALF,false>;
+  friend struct PairComputeFunctor<PairYukawaKokkos,HALFTHREAD,false>;
   friend EV_FLOAT pair_compute_neighlist<PairYukawaKokkos,FULL,void>(
     PairYukawaKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairYukawaKokkos,HALF,void>(

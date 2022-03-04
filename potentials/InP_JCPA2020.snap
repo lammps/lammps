@@ -1,0 +1,18 @@
+# DATE: 2020-06-01 UNITS: metal CONTRIBUTOR: Mary Alice Cusentino mcusent@sandia.gov CITATION: M.A. Cusentino, M. A. Wood, and A.P. Thompson, "Explicit Multi-element Extension of the Spectral Neighbor Analysis Potential for Chemically Complex Systems", J. Phys. Chem. A, xxxxxx (2020)
+ 
+# Definition of SNAP+ZBL potential.
+
+variable zblcutinner index 4
+variable zblcutouter index 4.2
+variable zblz1 index 49
+variable zblz2 index 15
+
+# Specify hybrid with SNAP and ZBL
+
+pair_style hybrid/overlay &
+zbl ${zblcutinner} ${zblcutouter} &
+snap
+pair_coeff 1 1 zbl ${zblz1} ${zblz1}
+pair_coeff 1 2 zbl ${zblz1} ${zblz2}
+pair_coeff 2 2 zbl ${zblz2} ${zblz2}
+pair_coeff * * snap InP_JCPA2020.snapcoeff InP_JCPA2020.snapparam In P

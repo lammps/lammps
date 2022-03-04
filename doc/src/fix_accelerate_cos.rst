@@ -74,7 +74,8 @@ In order to get meaningful result, the group ID of this fix should be all.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to binary restart files.
 None of the fix_modify options are relevant to this fix.
@@ -85,7 +86,7 @@ This fix is not invoked during energy minimization.
 Restrictions
 """"""""""""
 
-This command is only available when LAMMPS was built with the USER-MISC package.
+This command is only available when LAMMPS was built with the MISC package.
 Since this fix depends on the z-coordinate of atoms, it cannot be used in 2d simulations.
 
 Related commands

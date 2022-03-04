@@ -13,7 +13,7 @@ Syntax
 * N = # of atom types to use in this simulation
 * region-ID = ID of region to use as simulation domain
 * zero or more keyword/value pairs may be appended
-* keyword = *bond/types* or *angle/types* or *dihedral/types* or *improper/types* or *extra/bond/per/atom* or *extra/angle/per/atom* or *extra/dihedral/per/atom* or *extra/improper/per/atom*
+* keyword = *bond/types* or *angle/types* or *dihedral/types* or *improper/types* or *extra/bond/per/atom* or *extra/angle/per/atom* or *extra/dihedral/per/atom* or *extra/improper/per/atom* or *extra/special/per/atom*
 
   .. parsed-literal::
 
@@ -49,11 +49,11 @@ changed by the :doc:`balance <balance>` or :doc:`fix balance <fix_balance>` comm
 The argument N is the number of atom types that will be used in the
 simulation.
 
-If the region is not of style *prism*\ , then LAMMPS encloses the region
+If the region is not of style *prism*, then LAMMPS encloses the region
 (block, sphere, etc) with an axis-aligned orthogonal bounding box
 which becomes the simulation domain.
 
-If the region is of style *prism*\ , LAMMPS creates a non-orthogonal
+If the region is of style *prism*, LAMMPS creates a non-orthogonal
 simulation domain shaped as a parallelepiped with triclinic symmetry.
 As defined by the :doc:`region prism <region>` command, the
 parallelepiped has its "origin" at (xlo,ylo,zlo) and is defined by 3
@@ -76,7 +76,7 @@ factors that exceed these limits, you can use the :doc:`box tilt <box>`
 command, with a setting of *large*\ ; a setting of *small* is the
 default.
 
-See the :doc:`Howto triclinic <Howto_triclinic>` doc page for a
+See the :doc:`Howto triclinic <Howto_triclinic>` page for a
 geometric description of triclinic boxes, as defined by LAMMPS, and
 how to transform these parameters to and from other commonly used
 triclinic representations.
@@ -153,4 +153,7 @@ Related commands
 :doc:`read_data <read_data>`, :doc:`create_atoms <create_atoms>`,
 :doc:`region <region>`
 
-**Default:** none
+Default
+"""""""
+
+none

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,20 +13,21 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_group.h"
-#include <cstring>
-#include "group.h"
-#include "update.h"
+
 #include "atom.h"
-#include "force.h"
 #include "comm.h"
 #include "domain.h"
-#include "region.h"
-#include "modify.h"
-#include "respa.h"
-#include "input.h"
-#include "variable.h"
-#include "memory.h"
 #include "error.h"
+#include "group.h"
+#include "input.h"
+#include "memory.h"
+#include "modify.h"
+#include "region.h"
+#include "respa.h"
+#include "update.h"
+#include "variable.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -33,17 +35,14 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixGroup::FixGroup(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
-idregion(NULL), idvar(NULL), idprop(NULL)
+idregion(nullptr), idvar(nullptr), idprop(nullptr)
 {
   // dgroupbit = bitmask of dynamic group
   // group ID is last part of fix ID
 
-  int n = strlen(id) - strlen("GROUP_") + 1;
-  char *dgroup = new char[n];
-  strcpy(dgroup,&id[strlen("GROUP_")]);
-  gbit = group->bitmask[group->find(dgroup)];
-  gbitinverse = group->inversemask[group->find(dgroup)];
-  delete [] dgroup;
+  auto dgroupid = std::string(id).substr(strlen("GROUP_"));
+  gbit = group->bitmask[group->find(dgroupid)];
+  gbitinverse = group->inversemask[group->find(dgroupid)];
 
   // process optional args
 
@@ -60,33 +59,33 @@ idregion(NULL), idvar(NULL), idprop(NULL)
         error->all(FLERR,"Region ID for group dynamic does not exist");
       regionflag = 1;
       delete [] idregion;
-      int n = strlen(arg[iarg+1]) + 1;
-      idregion = new char[n];
-      strcpy(idregion,arg[iarg+1]);
+      idregion = utils::strdup(arg[iarg+1]);
       iarg += 2;
+
     } else if (strcmp(arg[iarg],"var") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal group command");
       if (input->variable->find(arg[iarg+1]) < 0)
         error->all(FLERR,"Variable name for group dynamic does not exist");
       varflag = 1;
       delete [] idvar;
-      int n = strlen(arg[iarg+1]) + 1;
-      idvar = new char[n];
-      strcpy(idvar,arg[iarg+1]);
+      idvar = utils::strdup(arg[iarg+1]);
       iarg += 2;
+
     } else if (strcmp(arg[iarg],"property") == 0) {
-          if (iarg+2 > narg) error->all(FLERR,"Illegal group command");
-          if (atom->find_custom(arg[iarg+1],typeflag) < 0)
-        error->all(FLERR,"Per atom property for group dynamic does not exist");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal group command");
+      int flag,cols;
+      iprop = atom->find_custom(arg[iarg+1],flag,cols);
+      if (iprop < 0 || cols)
+        error->all(FLERR,"Custom per-atom vector for group dynamic "
+                   "does not exist");
       propflag = 1;
       delete [] idprop;
-      int n = strlen(arg[iarg+1]) + 1;
-      idprop = new char[n];
-      strcpy(idprop,arg[iarg+1]);
+      idprop = utils::strdup(arg[iarg+1]);
       iarg += 2;
+
     } else if (strcmp(arg[iarg],"every") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal group command");
-      nevery = force->inumeric(FLERR,arg[iarg+1]);
+      nevery = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nevery <= 0) error->all(FLERR,"Illegal group command");
       iarg += 2;
     } else error->all(FLERR,"Illegal group command");
@@ -122,10 +121,10 @@ void FixGroup::init()
   if (group->dynamic[igroup])
     error->all(FLERR,"Group dynamic parent group cannot be dynamic");
 
-  if (strstr(update->integrate_style,"respa"))
+  if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = ((Respa *) update->integrate)->nlevels;
 
-  // set current indices for region and variable
+  // set current indices for region and variable and custom property
 
   if (regionflag) {
     iregion = domain->find_region(idregion);
@@ -143,9 +142,10 @@ void FixGroup::init()
   }
 
   if (propflag) {
-    iprop = atom->find_custom(idprop,typeflag);
-    if (iprop < 0)
-      error->all(FLERR,"Per-atom property for group dynamic does not exist");
+    int cols;
+    iprop = atom->find_custom(idprop,proptype,cols);
+    if (iprop < 0 || cols)
+      error->all(FLERR,"Group dynamic command custom property vector does not exist");
   }
 
   // warn if any FixGroup is not at tail end of all post_integrate fixes
@@ -209,9 +209,9 @@ void FixGroup::set_group()
   //   operate differently due to invocation this early in timestep
   // e.g. perform ghost comm update due to atoms having just moved
 
-  double *var = NULL;
-  int *ivector = NULL;
-  double *dvector = NULL;
+  double *var = nullptr;
+  int *ivector = nullptr;
+  double *dvector = nullptr;
 
   if (varflag) {
     update->post_integrate = 1;
@@ -222,11 +222,10 @@ void FixGroup::set_group()
     update->post_integrate = 0;
   }
 
-  // invoke per-atom property if defined
+  // set ptr to custom atom vector
 
-  if (propflag && !typeflag) ivector = atom->ivector[iprop]; //check nlocal > 0?
-
-  if (propflag && typeflag) dvector = atom->dvector[iprop]; //check nlocal > 0?
+  if (propflag && !proptype) ivector = atom->ivector[iprop];
+  if (propflag && proptype) dvector = atom->dvector[iprop];
 
   // update region in case it has a variable dependence or is dynamic
 
@@ -246,8 +245,10 @@ void FixGroup::set_group()
       inflag = 1;
       if (regionflag && !region->match(x[i][0],x[i][1],x[i][2])) inflag = 0;
       if (varflag && var[i] == 0.0) inflag = 0;
-      if (propflag && !typeflag && ivector[i] == 0) inflag = 0;
-      if (propflag && typeflag && dvector[i] == 0) inflag = 0;
+      if (propflag) {
+        if (!proptype && ivector[i] == 0) inflag = 0;
+        if (proptype && dvector[i] == 0.0) inflag = 0;
+      }
     } else inflag = 0;
 
     if (inflag) mask[i] |= gbit;
@@ -264,5 +265,5 @@ void *FixGroup::extract(const char *str, int &/*unused*/)
   if (strcmp(str,"property") == 0 && propflag) return (void *) idprop;
   if (strcmp(str,"variable") == 0 && varflag) return (void *) idvar;
   if (strcmp(str,"region") == 0 && regionflag) return (void *) idregion;
-  return NULL;
+  return nullptr;
 }

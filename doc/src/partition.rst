@@ -42,7 +42,7 @@ script operate differently on different partitions.  It is basically a
 prefix on any LAMMPS command.  The command will only be invoked on
 the partition(s) specified by the *style* and *N* arguments.
 
-If the *style* is *yes*\ , the command will be invoked on any partition
+If the *style* is *yes*, the command will be invoked on any partition
 which matches the *N* argument.  If the *style* is *no* the command
 will be invoked on all the partitions which do not match the Np
 argument.
@@ -51,7 +51,7 @@ Partitions are numbered from 1 to Np, where Np is the number of
 partitions specified by the :doc:`-partition command-line switch <Run_options>`.
 
 *N* can be specified in one of two ways.  An explicit numeric value
-can be used, as in the 1st example above.  Or a wild-card asterisk can
+can be used, as in the first example above.  Or a wild-card asterisk can
 be used to span a range of partition numbers.  This takes the form "\*"
 or "\*n" or "n\*" or "m\*n".  An asterisk with no numeric values means
 all partitions from 1 to Np.  A leading asterisk means all partitions
@@ -72,4 +72,7 @@ Related commands
 
 :doc:`run_style verlet/split <run_style>`
 
-**Default:** none
+Default
+"""""""
+
+none

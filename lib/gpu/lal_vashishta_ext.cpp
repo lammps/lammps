@@ -32,7 +32,7 @@ int vashishta_gpu_init(const int ntypes, const int inum, const int nall, const i
                 const double* gamma, const double* eta,
                 const double* lam1inv, const double* lam4inv,
                 const double* zizj, const double* mbigd,
-                const double* dvrc, const double* big6w, 
+                const double* dvrc, const double* big6w,
                 const double* heta, const double* bigh,
                 const double* bigw, const double* c0,
                 const double* costheta, const double* bigb,
@@ -63,10 +63,10 @@ int vashishta_gpu_init(const int ntypes, const int inum, const int nall, const i
 
   int init_ok=0;
   if (world_me==0)
-    init_ok=VashishtaMF.init(ntypes, inum, nall, 500, cell_size, gpu_split, screen,
+    init_ok=VashishtaMF.init(ntypes, inum, nall, max_nbors, cell_size, gpu_split, screen,
                       host_map, nelements, host_elem2param, nparams,
-                      cutsq, r0, gamma, eta, lam1inv, 
-                      lam4inv, zizj, mbigd, dvrc, big6w, heta, bigh, bigw, 
+                      cutsq, r0, gamma, eta, lam1inv,
+                      lam4inv, zizj, mbigd, dvrc, big6w, heta, bigh, bigw,
                       c0, costheta, bigb, big2b, bigc);
 
   VashishtaMF.device->world_barrier();
@@ -83,10 +83,10 @@ int vashishta_gpu_init(const int ntypes, const int inum, const int nall, const i
       fflush(screen);
     }
     if (gpu_rank==i && world_me!=0)
-      init_ok=VashishtaMF.init(ntypes, inum, nall, 500, cell_size, gpu_split, screen,
+      init_ok=VashishtaMF.init(ntypes, inum, nall, max_nbors, cell_size, gpu_split, screen,
                         host_map, nelements, host_elem2param, nparams,
-                        cutsq, r0, gamma, eta, lam1inv, 
-                        lam4inv, zizj, mbigd, dvrc, big6w, heta, bigh, bigw, 
+                        cutsq, r0, gamma, eta, lam1inv,
+                        lam4inv, zizj, mbigd, dvrc, big6w, heta, bigh, bigw,
                         c0, costheta, bigb, big2b, bigc);
 
     VashishtaMF.device->gpu_barrier();

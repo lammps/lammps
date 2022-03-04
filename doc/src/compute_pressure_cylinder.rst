@@ -41,7 +41,8 @@ number density, P_rhorho, P_phiphi, and P_zz. The number of rows is
 governed by the values of Rmax and bin_width. Pressure tensor values are
 output in pressure units.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global array with 5 columns and Rmax/bin_width
 rows. The output columns are: R (distance units), number density (inverse
@@ -60,14 +61,14 @@ Restrictions
 This compute currently calculates the pressure tensor contributions
 for pair styles only (i.e. no bond, angle, dihedral, etc. contributions
 and in the presence of bonded interactions, the result will be incorrect
-due to exclusions for special bonds)  and requires pair-wise force
+due to exclusions for special bonds)  and requires pairwise force
 calculations not available for most many-body pair styles. K-space
 calculations are also excluded. Note that this pressure compute outputs
 the configurational terms only; the kinetic contribution is not included
 and may be calculated from the number density output by P_kin=density\*k\*T.
 
-This compute is part of the USER-MISC package.  It is only enabled
-if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This compute is part of the EXTRA-COMPUTE package.  It is only enabled
+if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
@@ -75,7 +76,10 @@ Related commands
 :doc:`compute temp <compute_temp>`, :doc:`compute stress/atom <compute_stress_atom>`,
 :doc:`thermo_style <thermo_style>`,
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

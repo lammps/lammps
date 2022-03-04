@@ -58,7 +58,7 @@ of the input script.  Or you can run a program that pre-processes data
 for input into LAMMPS.  Or you can run a program that post-processes
 LAMMPS output data.
 
-With the exception of *cd*\ , all commands, including ones invoked via a
+With the exception of *cd*, all commands, including ones invoked via a
 system() call, are executed by only a single processor, so that
 files/directories are not being manipulated by multiple processors.
 
@@ -111,6 +111,13 @@ LAMMPS does not detect errors or print warnings when any of these
 commands execute.  E.g. if the specified directory does not exist,
 executing the *cd* command will silently do nothing.
 
-**Related commands:** none
+Related commands
+""""""""""""""""
 
-**Default:** none
+none
+
+
+Default
+"""""""
+
+none

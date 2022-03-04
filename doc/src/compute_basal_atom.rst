@@ -42,9 +42,10 @@ too frequently or to have multiple compute/dump commands, each of
 which computes this quantity.
 
 An example input script that uses this compute is provided
-in examples/USER/misc/basal.
+in examples/PACKAGES/basal.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-atom array with 3 columns, which can be
 accessed by indices 1-3 by any command that uses per-atom values from
@@ -57,8 +58,8 @@ components of a unit vector.
 Restrictions
 """"""""""""
 
-This compute is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This compute is part of the EXTRA-COMPUTE package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 The output of this compute will be meaningless unless the atoms are on
 (or near) hcp lattice sites, since the calculation assumes a
@@ -69,7 +70,10 @@ Related commands
 
 :doc:`compute centro/atom <compute_centro_atom>`, :doc:`compute ackland/atom <compute_ackland_atom>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

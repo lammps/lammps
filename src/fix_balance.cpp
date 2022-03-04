@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,20 +13,22 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_balance.h"
-#include <cstring>
-#include "balance.h"
-#include "update.h"
+
 #include "atom.h"
+#include "balance.h"
 #include "comm.h"
 #include "domain.h"
-#include "neighbor.h"
-#include "irregular.h"
+#include "error.h"
+#include "fix_store.h"
 #include "force.h"
+#include "irregular.h"
 #include "kspace.h"
 #include "modify.h"
-#include "fix_store.h"
+#include "neighbor.h"
 #include "rcb.h"
-#include "error.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -35,7 +38,7 @@ enum{SHIFT,BISECTION};
 /* ---------------------------------------------------------------------- */
 
 FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), balance(NULL), irregular(NULL)
+  Fix(lmp, narg, arg), balance(nullptr), irregular(nullptr)
 {
   if (narg < 6) error->all(FLERR,"Illegal fix balance command");
 
@@ -52,9 +55,9 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
 
   int dimension = domain->dimension;
 
-  nevery = force->inumeric(FLERR,arg[3]);
+  nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery < 0) error->all(FLERR,"Illegal fix balance command");
-  thresh = force->numeric(FLERR,arg[4]);
+  thresh = utils::numeric(FLERR,arg[4],false,lmp);
 
   if (strcmp(arg[5],"shift") == 0) lbstyle = SHIFT;
   else if (strcmp(arg[5],"rcb") == 0) lbstyle = BISECTION;
@@ -63,14 +66,15 @@ FixBalance::FixBalance(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 5;
   if (lbstyle == SHIFT) {
     if (iarg+4 > narg) error->all(FLERR,"Illegal fix balance command");
-    if (strlen(arg[iarg+1]) > 3)
+    if (strlen(arg[iarg+1]) > Balance::BSTR_SIZE)
       error->all(FLERR,"Illegal fix balance command");
-    strcpy(bstr,arg[iarg+1]);
-    nitermax = force->inumeric(FLERR,arg[iarg+2]);
+    strncpy(bstr,arg[iarg+1], Balance::BSTR_SIZE+1);
+    nitermax = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
     if (nitermax <= 0) error->all(FLERR,"Illegal fix balance command");
-    stopthresh = force->numeric(FLERR,arg[iarg+3]);
+    stopthresh = utils::numeric(FLERR,arg[iarg+3],false,lmp);
     if (stopthresh < 1.0) error->all(FLERR,"Illegal fix balance command");
     iarg += 4;
+
   } else if (lbstyle == BISECTION) {
     iarg++;
   }

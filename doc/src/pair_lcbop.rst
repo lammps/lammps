@@ -34,17 +34,17 @@ where N is the number of LAMMPS atom types:
 * filename
 * N element names = mapping of LCBOP elements to atom types
 
-See the :doc:`pair_coeff <pair_coeff>` doc page for alternate ways
+See the :doc:`pair_coeff <pair_coeff>` page for alternate ways
 to specify the path for the potential file.
 
 As an example, if your LAMMPS simulation has 4 atom types and you want
-the 1st 3 to be C you would use the following pair_coeff command:
+the first 3 to be C you would use the following pair_coeff command:
 
 .. code-block:: LAMMPS
 
    pair_coeff * * C.lcbop C C C NULL
 
-The 1st 2 arguments must be \* \* so as to span all LAMMPS atom types.
+The first 2 arguments must be \* \* so as to span all LAMMPS atom types.
 The first C argument maps LAMMPS atom type 1 to the C element in the
 LCBOP file. If a mapping value is specified as NULL, the mapping is
 not performed.  This can be used when a *lcbop* potential is used as
@@ -58,7 +58,8 @@ carefully.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 mix, shift, table, and tail options.
@@ -69,19 +70,20 @@ script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 Restrictions
 """"""""""""
 
-This pair styles is part of the MANYBODY package.  It is only enabled
-if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This pair style is part of the MANYBODY package.  It is only enabled
+if LAMMPS was built with that package.
+See the :doc:`Build package <Build_package>` page for more info.
 
 This pair potential requires the :doc:`newton <newton>` setting to be
 "on" for pair interactions.
 
-The C.lcbop potential file provided with LAMMPS (see the potentials
-directory) is parameterized for metal :doc:`units <units>`.  You can use
+The ``C.lcbop`` potential file provided with LAMMPS (see the potentials
+directory) is parameterized for :doc:`metal units <units>`.  You can use
 the LCBOP potential with any LAMMPS units, but you would need to
 create your own LCBOP potential file with coefficients listed in the
 appropriate units if your simulation does not use "metal" units.
@@ -91,7 +93,10 @@ Related commands
 
 :doc:`pair_airebo <pair_airebo>`, :doc:`pair_coeff <pair_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

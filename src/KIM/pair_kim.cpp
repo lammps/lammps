@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -55,23 +56,40 @@
    Designed for use with the kim-api-2.0.2 (and newer) package
 ------------------------------------------------------------------------- */
 #include "pair_kim.h"
-#include <cstring>
-#include <cstdlib>
-#include <string>
-#include <sstream>
+#include "kim_init.h"
+
 #include "atom.h"
+#include "citeme.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
 #include "force.h"
-#include "neighbor.h"
+#include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
+#include "neighbor.h"
 #include "update.h"
-#include "memory.h"
-#include "domain.h"
-#include "utils.h"
-#include "error.h"
+
+#include <cstdlib>
+#include <cstring>
+#include <vector>
 
 using namespace LAMMPS_NS;
+
+static constexpr const char *const cite_openkim =
+  "OpenKIM: https://doi.org/10.1007/s11837-011-0102-6\n\n"
+  "@Article{tadmor:elliott:2011,\n"
+  " author = {E. B. Tadmor and R. S. Elliott and J. P. Sethna and R. E. Miller "
+  "and C. A. Becker},\n"
+  " title = {The potential of atomistic simulations and the {K}nowledgebase of "
+  "{I}nteratomic {M}odels},\n"
+  " journal = {{JOM}},\n"
+  " year =    2011,\n"
+  " volume =  63,\n"
+  " number =  17,\n"
+  " pages =   {17},\n"
+  " doi =     {10.1007/s11837-011-0102-6}\n"
+  "}\n\n";
 
 /* ---------------------------------------------------------------------- */
 
@@ -79,9 +97,9 @@ PairKIM::PairKIM(LAMMPS *lmp) :
   Pair(lmp),
   settings_call_count(0),
   init_style_call_count(0),
-  kim_modelname(NULL),
-  lmps_map_species_to_unique(NULL),
-  lmps_unique_elements(NULL),
+  kim_modelname(nullptr),
+  lmps_map_species_to_unique(nullptr),
+  lmps_unique_elements(nullptr),
   lmps_num_unique_elements(0),
   lmps_units(METAL),
   lengthUnit(KIM_LENGTH_UNIT_unused),
@@ -89,8 +107,8 @@ PairKIM::PairKIM(LAMMPS *lmp) :
   chargeUnit(KIM_CHARGE_UNIT_unused),
   temperatureUnit(KIM_TEMPERATURE_UNIT_unused),
   timeUnit(KIM_TIME_UNIT_unused),
-  pkim(NULL),
-  pargs(NULL),
+  pkim(nullptr),
+  pargs(nullptr),
   kim_model_support_for_energy(KIM_SUPPORT_STATUS_notSupported),
   kim_model_support_for_forces(KIM_SUPPORT_STATUS_notSupported),
   kim_model_support_for_particleEnergy(KIM_SUPPORT_STATUS_notSupported),
@@ -98,15 +116,15 @@ PairKIM::PairKIM(LAMMPS *lmp) :
   lmps_local_tot_num_atoms(0),
   kim_global_influence_distance(0.0),
   kim_number_of_neighbor_lists(0),
-  kim_cutoff_values(NULL),
-  modelWillNotRequestNeighborsOfNoncontributingParticles(NULL),
-  neighborLists(NULL),
-  kim_particle_codes(NULL),
+  kim_cutoff_values(nullptr),
+  modelWillNotRequestNeighborsOfNoncontributingParticles(nullptr),
+  neighborLists(nullptr),
+  kim_particle_codes(nullptr),
   lmps_maxalloc(0),
-  kim_particleSpecies(NULL),
-  kim_particleContributing(NULL),
-  lmps_stripped_neigh_list(NULL),
-  lmps_stripped_neigh_ptr(NULL)
+  kim_particleSpecies(nullptr),
+  kim_particleContributing(nullptr),
+  lmps_stripped_neigh_list(nullptr),
+  lmps_stripped_neigh_ptr(nullptr)
 {
   // Initialize Pair data members to appropriate values
   single_enable = 0;  // We do not provide the Single() function
@@ -120,6 +138,8 @@ PairKIM::PairKIM(LAMMPS *lmp) :
   // (used by kim_free(), etc.)
   kim_init_ok = false;
   kim_particle_codes_ok = false;
+
+  if (lmp->citeme) lmp->citeme->add(cite_openkim);
   // END
 }
 
@@ -128,7 +148,7 @@ PairKIM::PairKIM(LAMMPS *lmp) :
 PairKIM::~PairKIM()
 {
   // clean up kim_modelname
-  if (kim_modelname != 0) delete [] kim_modelname;
+  if (kim_modelname != nullptr) delete [] kim_modelname;
 
   // clean up lammps atom species number to unique particle names mapping
   if (lmps_unique_elements)
@@ -138,7 +158,7 @@ PairKIM::~PairKIM()
 
   if (kim_particle_codes_ok) {
     delete [] kim_particle_codes;
-    kim_particle_codes = NULL;
+    kim_particle_codes = nullptr;
     kim_particle_codes_ok = false;
   }
 
@@ -149,7 +169,7 @@ PairKIM::~PairKIM()
   // clean up lmps_stripped_neigh_ptr
   if (lmps_stripped_neigh_ptr) {
     delete [] lmps_stripped_neigh_ptr;
-    lmps_stripped_neigh_ptr = 0;
+    lmps_stripped_neigh_ptr = nullptr;
   }
 
   // clean up allocated memory for standard Pair class usage
@@ -158,12 +178,13 @@ PairKIM::~PairKIM()
     memory->destroy(setflag);
     memory->destroy(cutsq);
     delete [] lmps_map_species_to_unique;
+    lmps_map_species_to_unique = nullptr;
   }
 
   // clean up neighborlist pointers
   if (neighborLists) {
     delete [] neighborLists;
-    neighborLists = 0;
+    neighborLists = nullptr;
   }
 
   // clean up KIM interface (if necessary)
@@ -204,8 +225,8 @@ void PairKIM::compute(int eflag, int vflag)
                              KIM_COMPUTE_ARGUMENT_NAME_particleContributing,
                              kim_particleContributing);
     if (kimerror)
-      error->all(FLERR,
-                 "Unable to set KIM particle species codes and/or contributing");
+      error->all(FLERR,"Unable to set KIM particle species "
+                       "codes and/or contributing");
   }
 
   // kim_particleSpecies = KIM atom species for each LAMMPS atom
@@ -241,7 +262,7 @@ void PairKIM::compute(int eflag, int vflag)
     comm->reverse_comm_pair(this);
   }
 
-  if ((vflag_atom) &&
+  if ((vflag_atom != 0) &&
       KIM_SupportStatus_NotEqual(kim_model_support_for_particleVirial,
                                  KIM_SUPPORT_STATUS_notSupported)) {
     // flip sign and order of virial if KIM is computing it
@@ -290,10 +311,11 @@ void PairKIM::settings(int narg, char **arg)
   init_style_call_count = 0;
 
   if (narg != 1) {
-    if ((narg > 0) && ((0 == strcmp("KIMvirial", arg[0])) ||
-                       (0 == strcmp("LAMMPSvirial", arg[0])))) {
-      error->all(FLERR,"'KIMvirial' or 'LAMMPSvirial' not supported with "
-                 "kim-api.");
+    const std::string arg_str(arg[0]);
+    if ((narg > 0) &&
+        ((arg_str == "KIMvirial") || (arg_str == "LAMMPSvirial"))) {
+      error->all(FLERR,"'KIMvirial' or 'LAMMPSvirial' not supported "
+                       "with kim-api");
     } else error->all(FLERR,"Illegal pair_style command");
   }
   // arg[0] is the KIM Model name
@@ -304,49 +326,33 @@ void PairKIM::settings(int narg, char **arg)
   // first time called will do nothing...
   kim_free();
 
-  // make sure things are allocated
-  if (allocated != 1) allocate();
-
-  // clear setflag to ensure coeff() is called after settings()
-  int n = atom->ntypes;
-  for (int i = 1; i <= n; i++)
-    for (int j = i; j <= n; j++)
-      setflag[i][j] = 0;
-
   // set lmps_* bool flags
   set_lmps_flags();
 
   // set KIM Model name
-  int nmlen = strlen(arg[0]);
-  if (kim_modelname != 0) {
+  if (kim_modelname != nullptr) {
     delete [] kim_modelname;
-    kim_modelname = 0;
+    kim_modelname = nullptr;
   }
-  kim_modelname = new char[nmlen+1];
-  strcpy(kim_modelname, arg[0]);
+  kim_modelname = utils::strdup(arg[0]);
 
   // initialize KIM Model
   kim_init();
+
+  // add citation
+  KimInit::write_log_cite(lmp, KimInit::MO, kim_modelname);
 }
 
 /* ----------------------------------------------------------------------
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
-#ifdef SNUM
-#undef SNUM
-#endif
-
-#define SNUM(x)                                                \
-  static_cast<std::ostringstream const &>(std::ostringstream() \
-                                          << std::dec << x).str()
-
 void PairKIM::coeff(int narg, char **arg)
 {
   // This is called when "pair_coeff ..." is read from input
   // may be called multiple times
 
-  int i,j,n;
+  int i,j;
 
   if (!allocated) allocate();
 
@@ -355,12 +361,16 @@ void PairKIM::coeff(int narg, char **arg)
 
   // insure I,J args are * *
 
-  if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
-    error->all(FLERR,"Incorrect args for pair coefficients");
+  const std::string arg_0_str(arg[0]);
+  const std::string arg_1_str(arg[1]);
+  if ((arg_0_str != "*") || (arg_1_str != "*"))
+    error->all(FLERR,"Incorrect args for pair coefficients.\nThe first two "
+                     "arguments of pair_coeff command must be * * to span "
+                     "all LAMMPS atom types");
 
   int ilo,ihi,jlo,jhi;
-  force->bounds(FLERR,arg[0],atom->ntypes,ilo,ihi);
-  force->bounds(FLERR,arg[1],atom->ntypes,jlo,jhi);
+  utils::bounds(FLERR,arg_0_str,1,atom->ntypes,ilo,ihi,error);
+  utils::bounds(FLERR,arg_1_str,1,atom->ntypes,jlo,jhi,error);
 
   // read args that map atom species to KIM elements
   // lmps_map_species_to_unique[i] =
@@ -375,7 +385,7 @@ void PairKIM::coeff(int narg, char **arg)
     delete [] lmps_unique_elements;
   }
   lmps_unique_elements = new char*[atom->ntypes];
-  for (i = 0; i < atom->ntypes; i++) lmps_unique_elements[i] = 0;
+  for (i = 0; i < atom->ntypes; i++) lmps_unique_elements[i] = nullptr;
 
   // Assume all species arguments are valid
   // errors will be detected by below
@@ -387,9 +397,7 @@ void PairKIM::coeff(int narg, char **arg)
       if (strcmp(arg[i],lmps_unique_elements[j]) == 0) break;
     lmps_map_species_to_unique[i-1] = j;
     if (j == lmps_num_unique_elements) {
-      n = strlen(arg[i]) + 1;
-      lmps_unique_elements[j] = new char[n];
-      strcpy(lmps_unique_elements[j],arg[i]);
+      lmps_unique_elements[j] = utils::strdup(arg[i]);
       lmps_num_unique_elements++;
     }
   }
@@ -410,13 +418,13 @@ void PairKIM::coeff(int narg, char **arg)
   // setup mapping between LAMMPS unique elements and KIM species codes
   if (kim_particle_codes_ok) {
     delete [] kim_particle_codes;
-    kim_particle_codes = NULL;
+    kim_particle_codes = nullptr;
     kim_particle_codes_ok = false;
   }
   kim_particle_codes = new int[lmps_num_unique_elements];
   kim_particle_codes_ok = true;
 
-  for(int i = 0; i < lmps_num_unique_elements; i++) {
+  for (int i = 0; i < lmps_num_unique_elements; i++) {
     int supported;
     int code;
     KIM_Model_GetSpeciesSupportAndCode(
@@ -427,9 +435,8 @@ void PairKIM::coeff(int narg, char **arg)
     if (supported) {
       kim_particle_codes[i] = code;
     } else {
-      std::string msg("create_kim_particle_codes: symbol not found: ");
-      msg += lmps_unique_elements[i];
-      error->all(FLERR, msg.c_str());
+      error->all(FLERR,"GetSpeciesSupportAndCode: symbol not "
+                                   "found: {}",lmps_unique_elements[i]);
     }
   }
   // Set the new values for PM parameters
@@ -438,21 +445,19 @@ void PairKIM::coeff(int narg, char **arg)
     int numberOfParameters(0);
     KIM_Model_GetNumberOfParameters(pkim, &numberOfParameters);
 
-    if (!numberOfParameters) {
-      std::string msg("Incorrect args for pair coefficients \n");
-      msg += "This model has No mutable parameters.";
-      error->all(FLERR, msg.c_str());
-    }
+    if (!numberOfParameters)
+      error->all(FLERR,"Incorrect args for pair coefficients\n"
+                       "This model has No mutable parameters");
 
     int kimerror;
 
     // Parameter name
-    char *paramname = NULL;
+    std::string paramname;
 
     for (int i = 2 + atom->ntypes; i < narg;) {
       // Parameter name
       if (i < narg)
-        paramname = arg[i++];
+        paramname = std::string(arg[i++]);
       else
         break;
 
@@ -460,8 +465,8 @@ void PairKIM::coeff(int narg, char **arg)
       int param_index;
       KIM_DataType kim_DataType;
       int extent;
-      char const *str_name = NULL;
-      char const *str_desc = NULL;
+      char const *str_name = nullptr;
+      char const *str_desc = nullptr;
 
       for (param_index = 0; param_index < numberOfParameters; ++param_index) {
         kimerror = KIM_Model_GetParameterMetadata(pkim, param_index,
@@ -469,16 +474,14 @@ void PairKIM::coeff(int narg, char **arg)
         if (kimerror)
           error->all(FLERR,"KIM GetParameterMetadata returned error");
 
-        if (strcmp(paramname, str_name) == 0) break;
+        const std::string str_name_str(str_name);
+        if (paramname == str_name_str) break;
       }
 
-      if (param_index >= numberOfParameters) {
-        std::string msg("Wrong argument for pair coefficients.\n");
-        msg += "This Model does not have the requested '";
-        msg += paramname;
-        msg += "' parameter.";
-        error->all(FLERR, msg.c_str());
-      }
+      if (param_index >= numberOfParameters)
+        error->all(FLERR,"Wrong argument for pair coefficients.\n"
+                                     "This Model does not have the requested "
+                                     "'{}' parameter", paramname);
 
       // Get the index_range for the requested parameter
       int nlbound(0);
@@ -488,49 +491,36 @@ void PairKIM::coeff(int narg, char **arg)
         std::string argtostr(arg[i++]);
 
         // Check to see if the indices range contains only integer numbers & :
-        if (argtostr.find_first_not_of("0123456789:") != std::string::npos) {
-          std::string msg("Illegal index_range.\n");
-          msg += "Expected integer parameter(s) instead of '";
-          msg += argtostr;
-          msg += "' in index_range.";
-          error->all(FLERR, msg.c_str());
-        }
+        if (argtostr.find_first_not_of("0123456789:") != std::string::npos)
+          error->all(FLERR,"Illegal index_range.\nExpected integer"
+                                       " parameter(s) instead of '{}' in "
+                                       "index_range", argtostr);
 
         std::string::size_type npos = argtostr.find(':');
         if (npos != std::string::npos) {
           argtostr[npos] = ' ';
-          std::stringstream str(argtostr);
-          str >> nlbound >> nubound;
+          auto words = utils::split_words(argtostr);
+          nlbound = atoi(words[0].c_str());
+          nubound = atoi(words[1].c_str());
+
           if (nubound < 1 || nubound > extent ||
-              nlbound < 1 || nlbound > nubound) {
-            std::string msg("Illegal index_range '");
-            msg += SNUM(nlbound) + "-" + SNUM(nubound);
-            msg += "' for '";
-            msg += paramname;
-            msg += "' parameter with extent of '";
-            msg += SNUM(extent);
-            msg += "' .";
-            error->all(FLERR, msg.c_str());
-          }
+              nlbound < 1 || nlbound > nubound)
+            error->all(FLERR,"Illegal index_range '{}-{}' for '{}' "
+                                         "parameter with the extent of '{}'",
+                                         nlbound, nubound, paramname, extent);
         } else {
-          std::stringstream str(argtostr);
-          str >> nlbound;
-          if (nlbound < 1 || nlbound > extent) {
-            std::string msg("Illegal index '");
-            msg += SNUM(nlbound) + "' for '";
-            msg += paramname;
-            msg += "' parameter with extent of '";
-            msg += SNUM(extent);
-            msg += "' .";
-            error->all(FLERR, msg.c_str());
-          }
+          nlbound = atoi(argtostr.c_str());
+
+          if (nlbound < 1 || nlbound > extent)
+            error->all(FLERR,"Illegal index '{}' for '{}' parameter "
+                                         "with the extent of '{}'", nlbound,
+                                         paramname, extent);
+
           nubound = nlbound;
         }
       } else {
-        std::string msg =
-        "Wrong number of arguments for pair coefficients.\n";
-        msg += "Index range after parameter name is mandatory.";
-        error->all(FLERR, msg.c_str());
+        error->all(FLERR,"Wrong number of arguments for pair coefficients.\n"
+                         "Index range after parameter name is mandatory");
       }
 
       // Parameter values
@@ -541,7 +531,7 @@ void PairKIM::coeff(int narg, char **arg)
             kimerror = KIM_Model_SetParameterDouble(pkim, param_index,
                        nlbound - 1 + j, V);
             if (kimerror)
-              error->all(FLERR, "KIM SetParameterDouble returned error.");
+              error->all(FLERR,"KIM SetParameterDouble returned error");
           }
         } else if (KIM_DataType_Equal(kim_DataType, KIM_DATA_TYPE_Integer)) {
           for (int j = 0; j < nubound - nlbound + 1; ++j) {
@@ -549,29 +539,36 @@ void PairKIM::coeff(int narg, char **arg)
             kimerror = KIM_Model_SetParameterInteger(pkim, param_index,
                        nlbound - 1 + j, V);
             if (kimerror)
-              error->all(FLERR, "KIM SetParameterInteger returned error.");
+              error->all(FLERR,"KIM SetParameterInteger returned error");
           }
         } else
-          error->all(FLERR, "Wrong parameter type to update");
+          error->all(FLERR,"Wrong parameter type to update");
       } else {
-        std::string msg =
-        "Wrong number of variable values for pair coefficients.\n";
-        msg += "'";
-        msg += SNUM(nubound - nlbound + 1);
-        msg += "' values are requested for '";
-        msg += paramname;
-        msg += "' parameter.";
-        error->all(FLERR, msg.c_str());
+        error->all(FLERR,"Wrong number of variable values for pair "
+                                     "coefficients.\n'{}' values are requested "
+                                     "for '{}' parameter", nubound - nlbound + 1,
+                                     paramname);
       }
     }
 
     kimerror = KIM_Model_ClearThenRefresh(pkim);
     if (kimerror)
-      error->all(FLERR, "KIM KIM_Model_ClearThenRefresh returned error");
+      error->all(FLERR,"KIM KIM_Model_ClearThenRefresh returned error");
+
+    // Update cached quantities that may have changed due to Refresh
+    KIM_Model_GetInfluenceDistance(pkim, &kim_global_influence_distance);
+    KIM_Model_GetNeighborListPointers(
+        pkim,
+        &kim_number_of_neighbor_lists,
+        &kim_cutoff_values,
+        &modelWillNotRequestNeighborsOfNoncontributingParticles);
+    if (neighborLists) {
+      delete [] neighborLists;
+      neighborLists = nullptr;
+    }
+    neighborLists = new NeighList*[kim_number_of_neighbor_lists];
   }
 }
-
-#undef SNUM
 
 /* ----------------------------------------------------------------------
    init specific to this pair style
@@ -618,9 +615,14 @@ void PairKIM::init_style()
 
     // set cutoff
     neighbor->requests[irequest]->cut = 1;
+    if (kim_cutoff_values[i] <= neighbor->skin)
+      error->all(FLERR,"Illegal neighbor request (force cutoff <= skin)");
     neighbor->requests[irequest]->cutoff
       = kim_cutoff_values[i] + neighbor->skin;
   }
+  // increment instance_me in case of need to change the neighbor list
+  // request settings
+  instance_me += 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -651,31 +653,33 @@ double PairKIM::init_one(int i, int j)
 
 int PairKIM::pack_reverse_comm(int n, int first, double *buf)
 {
-  int i,m,last;
-  double *fp;
-  fp = &(atom->f[0][0]);
-
-  m = 0;
-  last = first + n;
+  int m = 0;
+  int const last = first + n;
   if (KIM_SupportStatus_NotEqual(kim_model_support_for_forces,
-                                 KIM_SUPPORT_STATUS_notSupported)
-      &&
-      ((vflag_atom == 0) ||
-       KIM_SupportStatus_Equal(kim_model_support_for_particleVirial,
-                               KIM_SUPPORT_STATUS_notSupported))) {
-    for (i = first; i < last; i++) {
+                                 KIM_SUPPORT_STATUS_notSupported) &&
+      (KIM_SupportStatus_Equal(kim_model_support_for_particleVirial,
+                               KIM_SUPPORT_STATUS_notSupported) ||
+       (vflag_atom == 0))) {
+    const double *const fp = &(atom->f[0][0]);
+    for (int i = first; i < last; i++) {
       buf[m++] = fp[3*i+0];
       buf[m++] = fp[3*i+1];
       buf[m++] = fp[3*i+2];
     }
     return m;
-  } else if (KIM_SupportStatus_NotEqual(kim_model_support_for_forces,
-                                        KIM_SUPPORT_STATUS_notSupported) &&
-             (vflag_atom == 1) &&
-             KIM_SupportStatus_NotEqual(kim_model_support_for_particleVirial,
-                                        KIM_SUPPORT_STATUS_notSupported)) {
-    double *va=&(vatom[0][0]);
-    for (i = first; i < last; i++) {
+  }
+  // ----------------------------------------------------------------------
+  // see Pair::ev_setup & Integrate::ev_set()
+  // for values of eflag (0-3) and vflag (0-14)
+  // -------------------------------------------------------------------------
+  if ((vflag_atom != 0) &&
+      KIM_SupportStatus_NotEqual(kim_model_support_for_forces,
+                                 KIM_SUPPORT_STATUS_notSupported) &&
+      KIM_SupportStatus_NotEqual(kim_model_support_for_particleVirial,
+                                 KIM_SUPPORT_STATUS_notSupported)) {
+    const double *const fp = &(atom->f[0][0]);
+    const double *const va = &(vatom[0][0]);
+    for (int i = first; i < last; i++) {
       buf[m++] = fp[3*i+0];
       buf[m++] = fp[3*i+1];
       buf[m++] = fp[3*i+2];
@@ -688,14 +692,14 @@ int PairKIM::pack_reverse_comm(int n, int first, double *buf)
       buf[m++] = va[6*i+5];
     }
     return m;
-  } else if (KIM_SupportStatus_Equal(kim_model_support_for_forces,
-                                     KIM_SUPPORT_STATUS_notSupported)
-             &&
-             (vflag_atom == 1) &&
-             KIM_SupportStatus_NotEqual(kim_model_support_for_particleVirial,
-                                        KIM_SUPPORT_STATUS_notSupported)) {
-    double *va=&(vatom[0][0]);
-    for (i = first; i < last; i++) {
+  }
+  if ((vflag_atom != 0) &&
+      KIM_SupportStatus_Equal(kim_model_support_for_forces,
+                              KIM_SUPPORT_STATUS_notSupported) &&
+      KIM_SupportStatus_NotEqual(kim_model_support_for_particleVirial,
+                                 KIM_SUPPORT_STATUS_notSupported)) {
+    const double *const va = &(vatom[0][0]);
+    for (int i = first; i < last; i++) {
       buf[m++] = va[6*i+0];
       buf[m++] = va[6*i+1];
       buf[m++] = va[6*i+2];
@@ -704,39 +708,38 @@ int PairKIM::pack_reverse_comm(int n, int first, double *buf)
       buf[m++] = va[6*i+5];
     }
     return m;
-  } else return 0;
+  }
+  return 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void PairKIM::unpack_reverse_comm(int n, int *list, double *buf)
 {
-  int i,j,m;
-  double *fp;
-  fp = &(atom->f[0][0]);
-
-  m = 0;
+  int m = 0;
   if (KIM_SupportStatus_NotEqual(kim_model_support_for_forces,
-                                 KIM_SUPPORT_STATUS_notSupported)
-      &&
-      ((vflag_atom == 0) ||
-       KIM_SupportStatus_Equal(kim_model_support_for_particleVirial,
-                               KIM_SUPPORT_STATUS_notSupported))) {
-    for (i = 0; i < n; i++) {
-      j = list[i];
+                                 KIM_SUPPORT_STATUS_notSupported) &&
+      (KIM_SupportStatus_Equal(kim_model_support_for_particleVirial,
+                               KIM_SUPPORT_STATUS_notSupported) ||
+       (vflag_atom == 0))) {
+    double *const fp = &(atom->f[0][0]);
+    for (int i = 0; i < n; i++) {
+      const int j = list[i];
       fp[3*j+0]+= buf[m++];
       fp[3*j+1]+= buf[m++];
       fp[3*j+2]+= buf[m++];
     }
-  } else if (KIM_SupportStatus_NotEqual(kim_model_support_for_forces,
-                                        KIM_SUPPORT_STATUS_notSupported)
-             &&
-             (vflag_atom == 1) &&
-             KIM_SupportStatus_NotEqual(kim_model_support_for_particleVirial,
-                                        KIM_SUPPORT_STATUS_notSupported)) {
-    double *va=&(vatom[0][0]);
-    for (i = 0; i < n; i++) {
-      j = list[i];
+    return;
+  }
+  if ((vflag_atom != 0) &&
+      KIM_SupportStatus_NotEqual(kim_model_support_for_forces,
+                                 KIM_SUPPORT_STATUS_notSupported) &&
+      KIM_SupportStatus_NotEqual(kim_model_support_for_particleVirial,
+                                 KIM_SUPPORT_STATUS_notSupported)) {
+    double *const fp = &(atom->f[0][0]);
+    double *const va = &(vatom[0][0]);
+    for (int i = 0; i < n; i++) {
+      const int j = list[i];
       fp[3*j+0]+= buf[m++];
       fp[3*j+1]+= buf[m++];
       fp[3*j+2]+= buf[m++];
@@ -748,15 +751,16 @@ void PairKIM::unpack_reverse_comm(int n, int *list, double *buf)
       va[j*6+4]+=buf[m++];
       va[j*6+5]+=buf[m++];
     }
-  } else if (KIM_SupportStatus_Equal(kim_model_support_for_forces,
-                                     KIM_SUPPORT_STATUS_notSupported)
-             &&
-             (vflag_atom == 1) &&
-             KIM_SupportStatus_NotEqual(kim_model_support_for_particleVirial,
-                                        KIM_SUPPORT_STATUS_notSupported)) {
-    double *va=&(vatom[0][0]);
-    for (i = 0; i < n; i++) {
-      j = list[i];
+    return;
+  }
+  if ((vflag_atom != 0) &&
+      KIM_SupportStatus_Equal(kim_model_support_for_forces,
+                              KIM_SUPPORT_STATUS_notSupported) &&
+      KIM_SupportStatus_NotEqual(kim_model_support_for_particleVirial,
+                                 KIM_SUPPORT_STATUS_notSupported)) {
+    double *const va=&(vatom[0][0]);
+    for (int i = 0; i < n; i++) {
+      const int j = list[i];
       va[j*6+0]+=buf[m++];
       va[j*6+1]+=buf[m++];
       va[j*6+2]+=buf[m++];
@@ -764,9 +768,8 @@ void PairKIM::unpack_reverse_comm(int n, int *list, double *buf)
       va[j*6+4]+=buf[m++];
       va[j*6+5]+=buf[m++];
     }
-  } else {
-    ; // do nothing
   }
+  // do nothing
 }
 
 /* ----------------------------------------------------------------------
@@ -792,7 +795,7 @@ int PairKIM::get_neigh(void const * const dataObject,
                        int const ** const neighborsOfParticle)
 {
   PairKIM const * const Model
-    = reinterpret_cast<PairKIM const * const>(dataObject);
+    = reinterpret_cast<PairKIM const *>(dataObject);
 
   if (numberOfNeighborLists != Model->kim_number_of_neighbor_lists)
     return true;
@@ -838,6 +841,8 @@ void PairKIM::kim_free()
       error->all(FLERR,"Unable to destroy Compute Arguments Object");
 
     KIM_Model_Destroy(&pkim);
+
+    lmps_maxalloc = 0;  // reinitialize member variable
   }
   kim_init_ok = false;
 }
@@ -860,17 +865,22 @@ void PairKIM::kim_init()
   else if (!requestedUnitsAccepted)
     error->all(FLERR,"KIM Model did not accept the requested unit system");
 
+  auto logID = fmt::format("{}_Model", comm->me);
+  KIM_Model_SetLogID(pkim, logID.c_str());
+
   // check that the model does not require unknown capabilities
   kimerror = check_for_routine_compatibility();
   if (kimerror)
-    error->all(FLERR,
-               "KIM Model requires unknown Routines.  Unable to proceed.");
+    error->all(FLERR,"KIM Model requires unknown Routines. Unable to proceed");
 
   kimerror = KIM_Model_ComputeArgumentsCreate(pkim, &pargs);
   if (kimerror) {
     KIM_Model_Destroy(&pkim);
     error->all(FLERR,"KIM ComputeArgumentsCreate failed");
   } else kim_init_ok = true;
+
+  logID = fmt::format("{}_ComputeArguments", comm->me);
+  KIM_ComputeArguments_SetLogID(pargs, logID.c_str());
 
   // determine KIM Model capabilities (used in this function below)
   set_kim_model_has_flags();
@@ -883,7 +893,7 @@ void PairKIM::kim_init()
     &modelWillNotRequestNeighborsOfNoncontributingParticles);
   if (neighborLists) {
     delete [] neighborLists;
-    neighborLists = 0;
+    neighborLists = nullptr;
   }
   neighborLists = new NeighList*[kim_number_of_neighbor_lists];
 
@@ -911,29 +921,25 @@ void PairKIM::set_argument_pointers()
 
   // Set KIM pointer appropriately for Energy
   if (KIM_SupportStatus_NotEqual(kim_model_support_for_energy,
-                                 KIM_SUPPORT_STATUS_notSupported))
-  {
+                                 KIM_SUPPORT_STATUS_notSupported)) {
       if (KIM_SupportStatus_Equal(kim_model_support_for_energy,
                                   KIM_SUPPORT_STATUS_required)
-        || (eflag_global == 1))
-      {
+        || (eflag_global != 0)) {
         kimerror = kimerror ||
         KIM_ComputeArguments_SetArgumentPointerDouble(
           pargs,KIM_COMPUTE_ARGUMENT_NAME_partialEnergy,&(eng_vdwl));
-      }
-      else
-      {
+      } else {
         kimerror = kimerror ||
         KIM_ComputeArguments_SetArgumentPointerDouble(
           pargs,KIM_COMPUTE_ARGUMENT_NAME_partialEnergy,
-          static_cast<double * const>(NULL));
+          static_cast<double *>(nullptr));
       }
   }
 
   // Set KIM pointer appropriately for particalEnergy
   if (KIM_SupportStatus_Equal(kim_model_support_for_particleEnergy,
                               KIM_SUPPORT_STATUS_required)
-      && (eflag_atom != 1)) {
+      && (eflag_atom == 0)) {
     // reallocate per-atom energy array if necessary
     if (atom->nmax > maxeatom) {
       maxeatom = atom->nmax;
@@ -941,15 +947,16 @@ void PairKIM::set_argument_pointers()
       memory->create(eatom,comm->nthreads*maxeatom,"pair:eatom");
     }
   }
+
   if (KIM_SupportStatus_Equal(kim_model_support_for_particleEnergy,
                               KIM_SUPPORT_STATUS_optional)
-      && (eflag_atom != 1)) {
+      && (eflag_atom == 0)) {
     kimerror = kimerror || KIM_ComputeArguments_SetArgumentPointerDouble(
       pargs,
       KIM_COMPUTE_ARGUMENT_NAME_partialParticleEnergy,
-      static_cast<double * const>(NULL));
+      static_cast<double *>(nullptr));
   } else if (KIM_SupportStatus_NotEqual(kim_model_support_for_particleEnergy,
-                                      KIM_SUPPORT_STATUS_notSupported)) {
+                                        KIM_SUPPORT_STATUS_notSupported)) {
     kimerror = kimerror || KIM_ComputeArguments_SetArgumentPointerDouble(
         pargs, KIM_COMPUTE_ARGUMENT_NAME_partialParticleEnergy, eatom);
   }
@@ -960,7 +967,7 @@ void PairKIM::set_argument_pointers()
     kimerror = kimerror || KIM_ComputeArguments_SetArgumentPointerDouble(
       pargs,
       KIM_COMPUTE_ARGUMENT_NAME_partialForces,
-      static_cast<double * const>(NULL));
+      static_cast<double *>(nullptr));
   } else {
     kimerror = kimerror || KIM_ComputeArguments_SetArgumentPointerDouble(
         pargs, KIM_COMPUTE_ARGUMENT_NAME_partialForces, &(atom->f[0][0]));
@@ -969,21 +976,22 @@ void PairKIM::set_argument_pointers()
   // Set KIM pointer appropriately for particleVirial
   if (KIM_SupportStatus_Equal(kim_model_support_for_particleVirial,
                               KIM_SUPPORT_STATUS_required)
-      && (vflag_atom != 1)) {
+      && (vflag_atom == 0)) {
     // reallocate per-atom virial array if necessary
-    if (atom->nmax > maxeatom) {
+    if (atom->nmax > maxvatom) {
       maxvatom = atom->nmax;
       memory->destroy(vatom);
       memory->create(vatom,comm->nthreads*maxvatom,6,"pair:vatom");
     }
   }
+
   if (KIM_SupportStatus_Equal(kim_model_support_for_particleVirial,
                               KIM_SUPPORT_STATUS_optional)
-      && (vflag_atom != 1)) {
+      && (vflag_atom == 0)) {
     kimerror = kimerror || KIM_ComputeArguments_SetArgumentPointerDouble(
       pargs,
       KIM_COMPUTE_ARGUMENT_NAME_partialParticleVirial,
-      static_cast<double * const>(NULL));
+      static_cast<double *>(nullptr));
   } else if (KIM_SupportStatus_NotEqual(kim_model_support_for_particleVirial,
                                         KIM_SUPPORT_STATUS_notSupported)) {
     kimerror = kimerror || KIM_ComputeArguments_SetArgumentPointerDouble(
@@ -1004,44 +1012,49 @@ void PairKIM::set_lmps_flags()
   if (force->pair_match("hybrid",0))
     error->all(FLERR,"pair_kim does not support hybrid");
 
+  const std::string unit_style_str(update->unit_style);
+
   // determine unit system and set lmps_units flag
-  if ((strcmp(update->unit_style,"real")==0)) {
+  if (unit_style_str == "real") {
     lmps_units = REAL;
     lengthUnit = KIM_LENGTH_UNIT_A;
     energyUnit = KIM_ENERGY_UNIT_kcal_mol;
     chargeUnit = KIM_CHARGE_UNIT_e;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_fs;
-  } else if ((strcmp(update->unit_style,"metal")==0)) {
+  } else if (unit_style_str == "metal") {
     lmps_units = METAL;
     lengthUnit = KIM_LENGTH_UNIT_A;
     energyUnit = KIM_ENERGY_UNIT_eV;
     chargeUnit = KIM_CHARGE_UNIT_e;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_ps;
-  } else if ((strcmp(update->unit_style,"si")==0)) {
+  } else if (unit_style_str == "si") {
     lmps_units = SI;
     lengthUnit = KIM_LENGTH_UNIT_m;
     energyUnit = KIM_ENERGY_UNIT_J;
     chargeUnit = KIM_CHARGE_UNIT_C;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_s;
-  } else if ((strcmp(update->unit_style,"cgs")==0)) {
+  } else if (unit_style_str == "cgs") {
     lmps_units = CGS;
     lengthUnit = KIM_LENGTH_UNIT_cm;
     energyUnit = KIM_ENERGY_UNIT_erg;
     chargeUnit = KIM_CHARGE_UNIT_statC;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_s;
-  } else if ((strcmp(update->unit_style,"electron")==0)) {
+  } else if (unit_style_str == "electron") {
     lmps_units = ELECTRON;
     lengthUnit = KIM_LENGTH_UNIT_Bohr;
     energyUnit = KIM_ENERGY_UNIT_Hartree;
     chargeUnit = KIM_CHARGE_UNIT_e;
     temperatureUnit = KIM_TEMPERATURE_UNIT_K;
     timeUnit = KIM_TIME_UNIT_fs;
-  } else if ((strcmp(update->unit_style,"lj")==0)) {
-    error->all(FLERR,"LAMMPS unit_style lj not supported by KIM models");
+  } else if ((unit_style_str == "lj") ||
+             (unit_style_str == "micro") ||
+             (unit_style_str == "nano")) {
+    error->all(FLERR,"LAMMPS unit_style {} not supported "
+                                 "by KIM models", unit_style_str);
   } else {
     error->all(FLERR,"Unknown unit_style");
   }
@@ -1122,29 +1135,33 @@ void PairKIM::set_kim_model_has_flags()
                                      KIM_SUPPORT_STATUS_required)) {
       std::string msg("KIM Model requires unsupported compute argument: ");
       msg += KIM_ComputeArgumentName_ToString(computeArgumentName);
-      error->all(FLERR, msg.c_str());
+      error->all(FLERR,msg);
     }
   }
 
-  if (KIM_SupportStatus_Equal(kim_model_support_for_energy,
-                              KIM_SUPPORT_STATUS_notSupported))
-    error->warning(FLERR,"KIM Model does not provide `partialEnergy'; "
-                   "Potential energy will be zero");
+  if (comm->me == 0) {
+    if (KIM_SupportStatus_Equal(kim_model_support_for_energy,
+                                KIM_SUPPORT_STATUS_notSupported))
+      error->warning(FLERR,"KIM Model does not provide 'partialEnergy'; "
+                           "Potential energy will be zero");
 
-  if (KIM_SupportStatus_Equal(kim_model_support_for_forces,
-                              KIM_SUPPORT_STATUS_notSupported))
-    error->warning(FLERR,"KIM Model does not provide `partialForce'; "
-                   "Forces will be zero");
+    if (KIM_SupportStatus_Equal(kim_model_support_for_forces,
+                                KIM_SUPPORT_STATUS_notSupported))
+      error->warning(FLERR,"KIM Model does not provide 'partialForce'; "
+                           "Forces will be zero");
 
-  if (KIM_SupportStatus_Equal(kim_model_support_for_particleEnergy,
-                              KIM_SUPPORT_STATUS_notSupported))
-    error->warning(FLERR,"KIM Model does not provide `partialParticleEnergy'; "
-                   "energy per atom will be zero");
+    if (KIM_SupportStatus_Equal(kim_model_support_for_particleEnergy,
+                                KIM_SUPPORT_STATUS_notSupported))
+      error->warning(FLERR,"KIM Model does not provide "
+                           "'partialParticleEnergy'; "
+                           "energy per atom will be zero");
 
-  if (KIM_SupportStatus_Equal(kim_model_support_for_particleVirial,
-                              KIM_SUPPORT_STATUS_notSupported))
-    error->warning(FLERR,"KIM Model does not provide `partialParticleVirial'; "
-                   "virial per atom will be zero");
+    if (KIM_SupportStatus_Equal(kim_model_support_for_particleVirial,
+                                KIM_SUPPORT_STATUS_notSupported))
+      error->warning(FLERR,"KIM Model does not provide "
+                           "'partialParticleVirial'; "
+                           "virial per atom will be zero");
+  }
 
   int numberOfComputeCallbackNames;
   KIM_COMPUTE_CALLBACK_NAME_GetNumberOfComputeCallbackNames(
@@ -1162,6 +1179,6 @@ void PairKIM::set_kim_model_has_flags()
   }
 }
 
-KIM_Model *PairKIM::get_KIM_Model() { return pkim; }
+KIM_Model *PairKIM::get_kim_model() { return pkim; }
 
 std::string PairKIM::get_atom_type_list() { return atom_type_list; }

@@ -311,7 +311,7 @@ class BasicFuture {
 
   KOKKOS_INLINE_FUNCTION
   int reference_count() const {
-    return 0 != m_task ? m_task->reference_count() : 0;
+    return nullptr != m_task ? m_task->reference_count() : 0;
   }
 
   //----------------------------------------

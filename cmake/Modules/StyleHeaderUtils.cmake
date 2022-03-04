@@ -59,7 +59,6 @@ function(CreateStyleHeader path filename)
             set(temp "${temp}#include \"${FNAME}\"\n")
         endforeach()
     endif()
-    message(STATUS "Generating ${filename}...")
     file(WRITE "${path}/${filename}.tmp" "${temp}" )
     execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different "${path}/${filename}.tmp" "${path}/${filename}")
     set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${path}/${filename}")
@@ -142,6 +141,7 @@ function(RegisterStylesExt search_path extension sources)
 endfunction(RegisterStylesExt)
 
 function(GenerateStyleHeaders output_path)
+    message(STATUS "Generating style headers...")
     GenerateStyleHeader(${output_path} ANGLE      angle     ) # force
     GenerateStyleHeader(${output_path} ATOM_VEC   atom      ) # atom      atom_vec_hybrid
     GenerateStyleHeader(${output_path} BODY       body      ) # atom_vec_body
@@ -232,7 +232,6 @@ function(CreatePackagesHeader path filename)
       set(temp "${temp}#include \"${DNAME}/${FNAME}\"\n")
     endforeach()
   endif()
-  message(STATUS "Generating ${filename}...")
   file(WRITE "${path}/${filename}.tmp" "${temp}" )
   execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different "${path}/${filename}.tmp" "${path}/${filename}")
   set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${path}/${filename}")
@@ -244,6 +243,7 @@ function(GeneratePackagesHeader path property style)
 endfunction(GeneratePackagesHeader)
 
 function(GeneratePackagesHeaders output_path)
+    message(STATUS "Generating package headers...")
     GeneratePackagesHeader(${output_path} PKGANGLE      angle     ) # force
     GeneratePackagesHeader(${output_path} PKGATOM_VEC   atom      ) # atom      atom_vec_hybrid
     GeneratePackagesHeader(${output_path} PKGBODY       body      ) # atom_vec_body

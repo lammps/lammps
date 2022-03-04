@@ -91,9 +91,18 @@ class HostThreadTeamData {
   //   [ thread_local ]     = [ m_thread_local    .. m_scratch_size )
 
   enum : int { m_pool_members = 0 };
-  enum : int { m_pool_rendezvous = m_pool_members + max_pool_members };
-  enum : int { m_team_rendezvous = m_pool_rendezvous + max_pool_rendezvous };
-  enum : int { m_pool_reduce = m_team_rendezvous + max_team_rendezvous };
+  enum : int {
+    m_pool_rendezvous =
+        static_cast<int>(m_pool_members) + static_cast<int>(max_pool_members)
+  };
+  enum : int {
+    m_team_rendezvous = static_cast<int>(m_pool_rendezvous) +
+                        static_cast<int>(max_pool_rendezvous)
+  };
+  enum : int {
+    m_pool_reduce = static_cast<int>(m_team_rendezvous) +
+                    static_cast<int>(max_team_rendezvous)
+  };
 
   using pair_int_t = Kokkos::pair<int64_t, int64_t>;
 
@@ -120,13 +129,13 @@ class HostThreadTeamData {
   int mutable m_team_rendezvous_step;
 
   HostThreadTeamData* team_member(int r) const noexcept {
-    return ((HostThreadTeamData**)(m_pool_scratch +
-                                   m_pool_members))[m_team_base + r];
+    return (reinterpret_cast<HostThreadTeamData**>(
+        m_pool_scratch + m_pool_members))[m_team_base + r];
   }
 
  public:
   inline bool team_rendezvous() const noexcept {
-    int* ptr = (int*)(m_team_scratch + m_team_rendezvous);
+    int* ptr = reinterpret_cast<int*>(m_team_scratch + m_team_rendezvous);
     HostBarrier::split_arrive(ptr, m_team_size, m_team_rendezvous_step);
     if (m_team_rank != 0) {
       HostBarrier::wait(ptr, m_team_size, m_team_rendezvous_step);
@@ -138,7 +147,7 @@ class HostThreadTeamData {
   }
 
   inline bool team_rendezvous(const int source_team_rank) const noexcept {
-    int* ptr = (int*)(m_team_scratch + m_team_rendezvous);
+    int* ptr = reinterpret_cast<int*>(m_team_scratch + m_team_rendezvous);
     HostBarrier::split_arrive(ptr, m_team_size, m_team_rendezvous_step);
     if (m_team_rank != source_team_rank) {
       HostBarrier::wait(ptr, m_team_size, m_team_rendezvous_step);
@@ -150,25 +159,13 @@ class HostThreadTeamData {
   }
 
   inline void team_rendezvous_release() const noexcept {
-    HostBarrier::split_release((int*)(m_team_scratch + m_team_rendezvous),
-                               m_team_size, m_team_rendezvous_step);
+    HostBarrier::split_release(
+        reinterpret_cast<int*>(m_team_scratch + m_team_rendezvous), m_team_size,
+        m_team_rendezvous_step);
   }
 
   inline int pool_rendezvous() const noexcept {
-// not sure if the follow hack is still needed with the new barrier
-#if 0
-    static constexpr bool active_wait =
-#if defined(KOKKOS_COMPILER_IBM)
-      // If running on IBM POWER architecture the global
-      // level rendzvous should immediately yield when
-      // waiting for other threads in the pool to arrive.
-      false;
-#else
-      true;
-#endif
-#endif
-
-    int* ptr = (int*)(m_pool_scratch + m_pool_rendezvous);
+    int* ptr = reinterpret_cast<int*>(m_pool_scratch + m_pool_rendezvous);
     HostBarrier::split_arrive(ptr, m_pool_size, m_pool_rendezvous_step);
     if (m_pool_rank != 0) {
       HostBarrier::wait(ptr, m_pool_size, m_pool_rendezvous_step);
@@ -180,8 +177,9 @@ class HostThreadTeamData {
   }
 
   inline void pool_rendezvous_release() const noexcept {
-    HostBarrier::split_release((int*)(m_pool_scratch + m_pool_rendezvous),
-                               m_pool_size, m_pool_rendezvous_step);
+    HostBarrier::split_release(
+        reinterpret_cast<int*>(m_pool_scratch + m_pool_rendezvous), m_pool_size,
+        m_pool_rendezvous_step);
   }
 
   //----------------------------------------
@@ -243,7 +241,8 @@ class HostThreadTeamData {
   constexpr int pool_size() const { return m_pool_size; }
 
   HostThreadTeamData* pool_member(int r) const noexcept {
-    return ((HostThreadTeamData**)(m_pool_scratch + m_pool_members))[r];
+    return (reinterpret_cast<HostThreadTeamData**>(m_pool_scratch +
+                                                   m_pool_members))[r];
   }
 
   //----------------------------------------
@@ -343,24 +342,11 @@ class HostThreadTeamData {
     team_shared_size = align_to_int64(team_shared_size);
     // thread_local_size = align_to_int64( thread_local_size );
 
-    m_scratch      = (int64_t*)alloc_ptr;
+    m_scratch      = static_cast<int64_t*>(alloc_ptr);
     m_team_reduce  = m_pool_reduce + pool_reduce_size;
     m_team_shared  = m_team_reduce + team_reduce_size;
     m_thread_local = m_team_shared + team_shared_size;
     m_scratch_size = align_to_int64(alloc_size);
-
-#if 0
-fprintf(stdout,"HostThreadTeamData::scratch_assign { %d %d %d %d %d %d %d }\n"
-       , int(m_pool_members)
-       , int(m_pool_rendezvous)
-       , int(m_pool_reduce)
-       , int(m_team_reduce)
-       , int(m_team_shared)
-       , int(m_thread_local)
-       , int(m_scratch_size)
-       );
-fflush(stdout);
-#endif
   }
 
   //----------------------------------------
@@ -826,14 +812,16 @@ ThreadVectorRange(
   return Impl::ThreadVectorRangeBoundariesStruct<iType, Member>(member, count);
 }
 
-template <typename iType, typename Member>
-KOKKOS_INLINE_FUNCTION Impl::ThreadVectorRangeBoundariesStruct<iType, Member>
+template <typename iType1, typename iType2, typename Member>
+KOKKOS_INLINE_FUNCTION Impl::ThreadVectorRangeBoundariesStruct<
+    typename std::common_type<iType1, iType2>::type, Member>
 ThreadVectorRange(
-    Member const& member, iType arg_begin, iType arg_end,
+    Member const& member, iType1 arg_begin, iType2 arg_end,
     typename std::enable_if<
         Impl::is_thread_team_member<Member>::value>::type const** = nullptr) {
+  using iType = typename std::common_type<iType1, iType2>::type;
   return Impl::ThreadVectorRangeBoundariesStruct<iType, Member>(
-      member, arg_begin, arg_end);
+      member, iType(arg_begin), iType(arg_end));
 }
 
 //----------------------------------------------------------------------------
@@ -1020,6 +1008,25 @@ parallel_scan(Impl::ThreadVectorRangeBoundariesStruct<iType, Member> const&
   for (iType i = loop_boundaries.start; i < loop_boundaries.end;
        i += loop_boundaries.increment) {
     closure(i, scan_val, true);
+  }
+}
+
+template <typename iType, class Lambda, typename ReducerType, typename Member>
+KOKKOS_INLINE_FUNCTION typename std::enable_if<
+    Kokkos::is_reducer<ReducerType>::value &&
+    Impl::is_host_thread_team_member<Member>::value>::type
+parallel_scan(const Impl::ThreadVectorRangeBoundariesStruct<iType, Member>&
+                  loop_boundaries,
+              const Lambda& lambda, const ReducerType& reducer) {
+  typename ReducerType::value_type scan_val;
+  reducer.init(scan_val);
+
+#ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
+#pragma ivdep
+#endif
+  for (iType i = loop_boundaries.start; i < loop_boundaries.end;
+       i += loop_boundaries.increment) {
+    lambda(i, scan_val, true);
   }
 }
 

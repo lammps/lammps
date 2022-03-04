@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,27 +17,24 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_nh_kokkos.h"
-#include <cstring>
-#include <cstdlib>
-#include <cmath>
-#include "math_extra.h"
+
 #include "atom.h"
-#include "force.h"
-#include "group.h"
-#include "comm.h"
-#include "neighbor.h"
-#include "irregular.h"
-#include "modify.h"
-#include "fix_deform.h"
-#include "compute.h"
-#include "kspace.h"
-#include "update.h"
-#include "respa.h"
-#include "domain_kokkos.h"
-#include "memory_kokkos.h"
-#include "error.h"
-#include "atom_masks.h"
 #include "atom_kokkos.h"
+#include "atom_masks.h"
+#include "comm.h"
+#include "compute.h"
+#include "domain_kokkos.h"
+#include "error.h"
+#include "fix_deform.h"
+#include "force.h"
+#include "irregular.h"
+#include "kspace.h"
+#include "memory_kokkos.h"
+#include "neighbor.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -88,7 +86,7 @@ void FixNHKokkos<DeviceType>::init()
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixNHKokkos<DeviceType>::setup(int vflag)
+void FixNHKokkos<DeviceType>::setup(int /*vflag*/)
 {
   // t_target is needed by NPH and NPT in compute_scalar()
   // If no thermostat or using fix nphug,
@@ -179,7 +177,7 @@ void FixNHKokkos<DeviceType>::setup(int vflag)
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixNHKokkos<DeviceType>::initial_integrate(int vflag)
+void FixNHKokkos<DeviceType>::initial_integrate(int /*vflag*/)
 {
   // update eta_press_dot
 
@@ -735,7 +733,7 @@ void FixNHKokkos<DeviceType>::pre_exchange()
 
 namespace LAMMPS_NS {
 template class FixNHKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class FixNHKokkos<LMPHostType>;
 #endif
 }

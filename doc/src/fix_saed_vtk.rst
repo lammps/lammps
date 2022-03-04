@@ -28,7 +28,6 @@ Syntax
          Nstart = start averaging on this timestep
        *file* arg = filename
          filename = name of file to output time averages to
-       *overwrite* arg = none = overwrite output file with only latest output
 
 Examples
 """"""""
@@ -45,7 +44,7 @@ Description
 """""""""""
 
 Time average computed intensities from :doc:`compute saed <compute_saed>` and
-write output to a file in the 3rd generation vtk image data format for
+write output to a file in the third generation vtk image data format for
 visualization directly in parallelized visualization software packages
 like ParaView and VisIt. Note that if no time averaging is done, this
 command can be used as a convenient way to simply output diffraction
@@ -72,7 +71,7 @@ values, e.g.
 
 ----------
 
-The *Nevery*\ , *Nrepeat*\ , and *Nfreq* arguments specify on what
+The *Nevery*, *Nrepeat*, and *Nfreq* arguments specify on what
 timesteps the input values will be used in order to contribute to the
 average.  The final averaged quantities are generated on timesteps
 that are a multiple of *Nfreq*\ .  The average is over *Nrepeat*
@@ -92,7 +91,7 @@ averaging is done; values are simply generated on timesteps
 
 ----------
 
-The output for fix ave/time/saed is a file written with the 3rd generation
+The output for fix ave/time/saed is a file written with the third generation
 vtk image data formatting.  The filename assigned by the *file* keyword is
 appended with _N.vtk where N is an index (0,1,2...) to account for multiple
 diffraction intensity outputs.
@@ -126,14 +125,14 @@ Additional optional keywords also affect the operation of this fix.
 
 The *ave* keyword determines how the values produced every *Nfreq*
 steps are averaged with values produced on previous steps that were
-multiples of *Nfreq*\ , before they are accessed by another output
+multiples of *Nfreq*, before they are accessed by another output
 command or written to a file.
 
-If the *ave* setting is *one*\ , then the values produced on timesteps
+If the *ave* setting is *one*, then the values produced on timesteps
 that are multiples of *Nfreq* are independent of each other; they are
 output as-is without further averaging.
 
-If the *ave* setting is *running*\ , then the values produced on
+If the *ave* setting is *running*, then the values produced on
 timesteps that are multiples of *Nfreq* are summed and averaged in a
 cumulative sense before being output.  Each output value is thus the
 average of the value produced on that timestep with all preceding
@@ -141,7 +140,7 @@ values.  This running average begins when the fix is defined; it can
 only be restarted by deleting the fix via the :doc:`unfix <unfix>`
 command, or by re-defining the fix by re-specifying it.
 
-If the *ave* setting is *window*\ , then the values produced on
+If the *ave* setting is *window*, then the values produced on
 timesteps that are multiples of *Nfreq* are summed and averaged within
 a moving "window" of time, so that the last M values are used to
 produce the output.  E.g. if M = 3 and Nfreq = 1000, then the output
@@ -156,16 +155,13 @@ running or windowed average.
 
 The *file* keyword allows a filename to be specified.  Every *Nfreq*
 steps, the vector of saed intensity data is written to a new file using
-the 3rd generation vtk format.  The base of each file is assigned by
+the third generation vtk format.  The base of each file is assigned by
 the *file* keyword and this string is appended with _N.vtk where N is
 an index (0,1,2...) to account for situations with multiple diffraction
 intensity outputs.
 
-The *overwrite* keyword will continuously overwrite the output file
-with the latest output, so that it only contains one timestep worth of
-output.  This option can only be used with the *ave running* setting.
-
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.

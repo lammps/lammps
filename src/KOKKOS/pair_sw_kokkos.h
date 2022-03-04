@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(sw/kk,PairSWKokkos<LMPDeviceType>)
-PairStyle(sw/kk/device,PairSWKokkos<LMPDeviceType>)
-PairStyle(sw/kk/host,PairSWKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(sw/kk,PairSWKokkos<LMPDeviceType>);
+PairStyle(sw/kk/device,PairSWKokkos<LMPDeviceType>);
+PairStyle(sw/kk/host,PairSWKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_SW_KOKKOS_H
 #define LMP_PAIR_SW_KOKKOS_H
 
@@ -48,10 +49,10 @@ class PairSWKokkos : public PairSW {
   typedef EV_FLOAT value_type;
 
   PairSWKokkos(class LAMMPS *);
-  virtual ~PairSWKokkos();
-  virtual void compute(int, int);
-  virtual void coeff(int, char **);
-  virtual void init_style();
+  ~PairSWKokkos() override;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  void init_style() override;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -102,7 +103,7 @@ class PairSWKokkos : public PairSW {
   typedef typename tdual_int_3d::t_dev_const_randomread t_int_3d_randomread;
   typedef typename tdual_int_3d::t_host t_host_int_3d;
 
-  t_int_3d_randomread d_elem2param;
+  t_int_3d_randomread d_elem3param;
   typename AT::t_int_1d_randomread d_map;
 
   typedef Kokkos::DualView<Param*,DeviceType> tdual_param_1d;
@@ -111,14 +112,14 @@ class PairSWKokkos : public PairSW {
 
   t_param_1d d_params;
 
-  virtual void setup_params();
+  void setup_params() override;
 
   KOKKOS_INLINE_FUNCTION
   void twobody(const Param&, const F_FLOAT&, F_FLOAT&, const int&, F_FLOAT&) const;
 
   KOKKOS_INLINE_FUNCTION
-  void threebody(const Param&, const Param&, const Param&, const F_FLOAT&, const F_FLOAT&, F_FLOAT *, F_FLOAT *,
-                 F_FLOAT *, F_FLOAT *, const int&, F_FLOAT&) const;
+  void threebody_kk(const Param&, const Param&, const Param&, const F_FLOAT&, const F_FLOAT&, F_FLOAT *, F_FLOAT *,
+                    F_FLOAT *, F_FLOAT *, const int&, F_FLOAT&) const;
 
   KOKKOS_INLINE_FUNCTION
   void threebodyj(const Param&, const Param&, const Param&, const F_FLOAT&, const F_FLOAT&, F_FLOAT *, F_FLOAT *,
@@ -135,12 +136,22 @@ class PairSWKokkos : public PairSW {
   typename AT::t_virial_array d_vatom;
 
   int need_dup;
-  Kokkos::Experimental::ScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_f;
-  Kokkos::Experimental::ScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_eatom;
-  Kokkos::Experimental::ScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_vatom;
-  Kokkos::Experimental::ScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_f;
-  Kokkos::Experimental::ScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_eatom;
-  Kokkos::Experimental::ScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_vatom;
+
+  using KKDeviceType = typename KKDevice<DeviceType>::value;
+
+  template<typename DataType, typename Layout>
+  using DupScatterView = KKScatterView<DataType, Layout, KKDeviceType, KKScatterSum, KKScatterDuplicated>;
+
+  template<typename DataType, typename Layout>
+  using NonDupScatterView = KKScatterView<DataType, Layout, KKDeviceType, KKScatterSum, KKScatterNonDuplicated>;
+
+  DupScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout> dup_f;
+  DupScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout> dup_eatom;
+  DupScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout> dup_vatom;
+
+  NonDupScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout> ndup_f;
+  NonDupScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout> ndup_eatom;
+  NonDupScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout> ndup_vatom;
 
   typename AT::t_int_1d_randomread d_type2frho;
   typename AT::t_int_2d_randomread d_type2rhor;

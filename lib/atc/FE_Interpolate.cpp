@@ -31,7 +31,7 @@ namespace ATC {
   }
 
   void FE_Interpolate::set_quadrature(FeEltGeometry geo,
-                                      FeIntQuadrature quad) 
+                                      FeIntQuadrature quad)
   {
     if (feQuadList_.count(quad) == 0) {
       feQuad_ = new FE_Quadrature(geo,quad);
@@ -47,7 +47,7 @@ namespace ATC {
     int numEltNodes = feElement_->num_elt_nodes();
     int numFaces = feElement_->num_faces();
     int numFaceNodes = feElement_->num_face_nodes();
-    
+
     int numIPs = feQuad_->numIPs;
     DENS_MAT &ipCoords = feQuad_->ipCoords;
     int numFaceIPs = feQuad_->numFaceIPs;
@@ -79,7 +79,7 @@ namespace ATC {
         compute_N_dNdr(thisIP,thisN,thisdNdr);
       }
     }
-  
+
     // Compute 2D face shape function derivatives
     dNdrFace2D_.assign(numFaceIPs,DENS_MAT(nSD_-1,numFaceNodes));
     for (int ip = 0; ip < numFaceIPs; ip++) {
@@ -111,14 +111,14 @@ namespace ATC {
     N.resize(numEltNodes);
     DENS_MAT dNdr(nSD_,numEltNodes,false);
     compute_N_dNdr(xi,N,dNdr);
-    
+
     DENS_MAT eltCoordsT = transpose(eltCoords);
     DENS_MAT dxdr, drdx;
-    
+
     dxdr = dNdr*eltCoordsT;
     drdx = inv(dxdr);
     dNdx = drdx*dNdr;
-  } 
+  }
 
   void FE_Interpolate::shape_function_derivatives(const DENS_MAT &eltCoords,
                                       const VECTOR &xi,
@@ -126,16 +126,16 @@ namespace ATC {
   {
     int numEltNodes = feElement_->num_elt_nodes();
     DENS_MAT dNdr(nSD_,numEltNodes,false);
-    
-    DENS_VEC N(numEltNodes); 
+
+    DENS_VEC N(numEltNodes);
     compute_N_dNdr(xi,N,dNdr);
     DENS_MAT eltCoordsT = transpose(eltCoords);
     DENS_MAT dxdr, drdx;
     dxdr = dNdr*eltCoordsT; // tangents or Jacobian matrix
-    
+
     drdx = inv(dxdr);
     dNdx = drdx*dNdr; // dN/dx = dN/dxi (dx/dxi)^-1
-  } 
+  }
 
   void FE_Interpolate::tangents(const DENS_MAT &eltCoords,
                                 const VECTOR &xi,
@@ -143,15 +143,15 @@ namespace ATC {
   {
     int numEltNodes = feElement_->num_elt_nodes();
     DENS_MAT dNdr(nSD_,numEltNodes,false);
-    
-    DENS_VEC N(numEltNodes); 
+
+    DENS_VEC N(numEltNodes);
     compute_N_dNdr(xi,N,dNdr);
 //dNdr.print("dNdr");
     DENS_MAT eltCoordsT = transpose(eltCoords);
 //eltCoordsT.print("elt coords");
     dxdr = dNdr*eltCoordsT;
 //dxdr.print("dxdr");
-  } 
+  }
 
   void FE_Interpolate::tangents(const DENS_MAT &eltCoords,
                                 const VECTOR &xi,
@@ -162,7 +162,7 @@ namespace ATC {
      tangents(eltCoords,xi,dxdr);
 //dxdr.print("dxdr-post");
      dxdxi.resize(nSD_);
-     //for (int i = 0; i < nSD_; ++i) dxdxi[i] = CLON_VEC(dxdr,CLONE_COL,i); 
+     //for (int i = 0; i < nSD_; ++i) dxdxi[i] = CLON_VEC(dxdr,CLONE_COL,i);
      for (int i = 0; i < nSD_; ++i) {
        dxdxi[i].resize(nSD_);
        for (int j = 0; j < nSD_; ++j) {
@@ -192,7 +192,7 @@ namespace ATC {
                                       DIAG_MAT &weights)
   {
     int numEltNodes = feElement_->num_elt_nodes();
-    
+
     // Transpose eltCoords
     DENS_MAT eltCoordsT(transpose(eltCoords));
 
@@ -201,7 +201,7 @@ namespace ATC {
 
     // Set sizes of matrices and vectors
     if ((int)dN.size() != nSD_) dN.resize(nSD_);
-    for (int isd = 0; isd < nSD_; isd++) 
+    for (int isd = 0; isd < nSD_; isd++)
       dN[isd].resize(feQuad_->numIPs,numEltNodes);
     weights.resize(feQuad_->numIPs,feQuad_->numIPs);
 
@@ -218,7 +218,7 @@ namespace ATC {
       // Compute dNdx and fill dN matrix
       dNdx = drdx * dNdr_[ip];
       for (int isd = 0; isd < nSD_; isd++)
-        for (int inode = 0; inode < numEltNodes; inode++) 
+        for (int inode = 0; inode < numEltNodes; inode++)
           dN[isd](ip,inode) = dNdx(isd,inode);
 
       // Compute jacobian determinant of dxdr at this ip
@@ -227,9 +227,9 @@ namespace ATC {
                + dxdr(0,2) * (dxdr(1,0)*dxdr(2,1) - dxdr(1,1)*dxdr(2,0));
 
       // Compute ip weight
-      weights(ip,ip) = feQuad_->ipWeights(ip)*J; 
+      weights(ip,ip) = feQuad_->ipWeights(ip)*J;
     }
-  
+
   }
 
   //-----------------------------------------------------------------
@@ -268,9 +268,9 @@ namespace ATC {
       }
 
       // Compute ip weight
-      weights(ip,ip) = feQuad_->ipFaceWeights(ip)*J; 
+      weights(ip,ip) = feQuad_->ipFaceWeights(ip)*J;
     }
-  
+
   }
 
   void FE_Interpolate::face_shape_function(const DENS_MAT &eltCoords,
@@ -323,9 +323,9 @@ namespace ATC {
       }
 
       // Compute ip weight
-      weights(ip,ip) = feQuad_->ipFaceWeights(ip)*J; 
+      weights(ip,ip) = feQuad_->ipFaceWeights(ip)*J;
     }
-  
+
   }
 
   // -------------------------------------------------------------
@@ -333,7 +333,7 @@ namespace ATC {
   // -------------------------------------------------------------
   double FE_Interpolate::face_normal(const DENS_MAT &faceCoords,
                                      int ip,
-                                     DENS_VEC &normal) 
+                                     DENS_VEC &normal)
   {
     // Compute dx/dr for deformed element
     DENS_MAT faceCoordsT = transpose(faceCoords);
@@ -345,8 +345,8 @@ namespace ATC {
     normal(2) = dxdr(0,0)*dxdr(1,1) - dxdr(0,1)*dxdr(1,0);
 
     // Jacobian (3D)
-    double J = sqrt(normal(0)*normal(0) + 
-                    normal(1)*normal(1) + 
+    double J = sqrt(normal(0)*normal(0) +
+                    normal(1)*normal(1) +
                     normal(2)*normal(2));
     double invJ = 1.0/J;
     normal(0) *= invJ;
@@ -354,24 +354,24 @@ namespace ATC {
     normal(2) *= invJ;
     return J;
   }
-  
+
   int FE_Interpolate::num_ips() const
-  { 
-    return feQuad_->numIPs; 
+  {
+    return feQuad_->numIPs;
   }
 
   int FE_Interpolate::num_face_ips() const
-  { 
-    return feQuad_->numFaceIPs; 
+  {
+    return feQuad_->numFaceIPs;
   }
 
-  
+
   /*********************************************************
    * Class FE_InterpolateCartLagrange
    *
    * For computing Lagrange shape functions using Cartesian
    * coordinate systems (all quads/hexes fall under this
-   * category, and any elements derived by degenerating 
+   * category, and any elements derived by degenerating
    * them). Not to be used for serendipity elements, which
    * should be implemented for SPEED.
    *
@@ -395,7 +395,7 @@ namespace ATC {
     const DENS_VEC &localCoords1d = feElement_->local_coords_1d();
     int numEltNodes = feElement_->num_elt_nodes();
     int numEltNodes1d = feElement_->num_elt_nodes_1d();
-    
+
     DENS_MAT lagrangeTerms(nSD_,numEltNodes1d);
     DENS_MAT lagrangeDenom(nSD_,numEltNodes1d);
     lagrangeTerms = 1.0;
@@ -404,7 +404,7 @@ namespace ATC {
       for (int inode = 0; inode < numEltNodes1d; ++inode) {
         for (int icont = 0; icont < numEltNodes1d; ++icont) {
           if (inode != icont) {
-            lagrangeDenom(iSD,inode) *= (localCoords1d(inode) - 
+            lagrangeDenom(iSD,inode) *= (localCoords1d(inode) -
                                          localCoords1d(icont));
             lagrangeTerms(iSD,inode) *= (point(iSD)-localCoords1d(icont));
           }
@@ -439,7 +439,7 @@ namespace ATC {
     // *** see comments for compute_N_dNdr ***
     const DENS_VEC &localCoords1d = feElement_->local_coords_1d();
     int numEltNodes1d = feElement_->num_elt_nodes_1d();
-    
+
     DENS_MAT lagrangeTerms(nD,numEltNodes1d);
     DENS_MAT lagrangeDenom(nD,numEltNodes1d);
     DENS_MAT lagrangeDeriv(nD,numEltNodes1d);
@@ -453,7 +453,7 @@ namespace ATC {
         for (int icont = 0; icont < numEltNodes1d; ++icont) {
           if (inode != icont) {
             lagrangeTerms(iSD,inode) *= (point(iSD)-localCoords1d(icont));
-            lagrangeDenom(iSD,inode) *= (localCoords1d(inode) - 
+            lagrangeDenom(iSD,inode) *= (localCoords1d(inode) -
                                          localCoords1d(icont));
             for (int dcont=0; dcont<numEltNodes1d; ++dcont) {
               if (inode == dcont) {
@@ -477,7 +477,7 @@ namespace ATC {
         lagrangeDeriv(iSD,inode) /= lagrangeDenom(iSD,inode);
       }
     }
-    
+
     dNdr = 1.0;
     vector<int> mapping(nD);
     for (int inode=0; inode<numNodes; ++inode) {
@@ -502,7 +502,7 @@ namespace ATC {
     const DENS_VEC &localCoords1d = feElement_->local_coords_1d();
     int numEltNodes = feElement_->num_elt_nodes();
     int numEltNodes1d = feElement_->num_elt_nodes_1d();
-    
+
     // lagrangeTerms stores the numerator for the various Lagrange polynomials
     // in one dimension, that will be used to produce the three dimensional
     // shape functions
@@ -526,13 +526,13 @@ namespace ATC {
       for (int inode = 0; inode < numEltNodes1d; ++inode) {
         for (int icont = 0; icont < numEltNodes1d; ++icont) {
           if (inode != icont) {
-            // each dimension and each 1d node per dimension has a 
+            // each dimension and each 1d node per dimension has a
             // contribution from all nodes besides the current node
             lagrangeTerms(iSD,inode) *= (point(iSD)-localCoords1d(icont));
-            lagrangeDenom(iSD,inode) *= (localCoords1d(inode) - 
+            lagrangeDenom(iSD,inode) *= (localCoords1d(inode) -
                                          localCoords1d(icont));
             // complciated; each sum produced by the product rule has one
-            // "derivative", and the rest are just identical to the terms 
+            // "derivative", and the rest are just identical to the terms
             // above
             for (int dcont=0; dcont<numEltNodes1d; ++dcont) {
               if (inode == dcont) {
@@ -561,7 +561,7 @@ namespace ATC {
         lagrangeDeriv(iSD,inode) /= lagrangeDenom(iSD,inode);
       }
     }
-    
+
     N = 1.0;
     dNdr = 1.0;
     // mapping returns the 1d nodes in each dimension that should be multiplied
@@ -589,7 +589,7 @@ namespace ATC {
    *
    * For computing linear shape functions using Cartesian
    * coordinate systems (all quads/hexes fall under this
-   * category, and any elements derived by degenerating 
+   * category, and any elements derived by degenerating
    * them).
    *
    *********************************************************/
@@ -604,7 +604,7 @@ namespace ATC {
   {
     // Handled by base class
   }
-  
+
   void FE_InterpolateCartLin::compute_N(const VECTOR &point,
                                         VECTOR &N)
   {
@@ -612,7 +612,7 @@ namespace ATC {
     const DENS_MAT &localCoords = feElement_->local_coords();
     double invVol = 1.0/(feElement_->vol());
     int numEltNodes = feElement_->num_elt_nodes();
-    
+
     for (int inode = 0; inode < numEltNodes; ++inode) {
       N(inode) = invVol;
       for (int isd = 0; isd < nSD_; ++isd) {
@@ -633,7 +633,7 @@ namespace ATC {
     // *** see comments for compute_N_dNdr ***
     const DENS_MAT &localCoords = feElement_->local_coords();
     double invVol = 1.0/vol;
-    
+
     for (int inode = 0; inode < numNodes; ++inode) {
       for (int idr = 0; idr < nD; ++idr) {
         dNdr(idr,inode) = invVol;
@@ -641,7 +641,7 @@ namespace ATC {
       for (int id = 0; id < nD; ++id) {
         for (int idr = 0; idr < nD; ++idr) {
           if (id == idr) dNdr(idr,inode) *= localCoords(id,inode);
-          else dNdr(idr,inode) *= 1.0 + 
+          else dNdr(idr,inode) *= 1.0 +
                                   point(id)*localCoords(id,inode);
         }
       }
@@ -656,7 +656,7 @@ namespace ATC {
     const DENS_MAT &localCoords = feElement_->local_coords();
     double invVol = 1.0/(feElement_->vol());
     int numEltNodes = feElement_->num_elt_nodes();
-    
+
     // Fill in for each node
     for (int inode = 0; inode < numEltNodes; ++inode) {
       // Intiialize shape function and derivatives
@@ -670,20 +670,20 @@ namespace ATC {
         // One term for each dimension, only deriv in deriv's dimension
         for (int idr = 0; idr < nSD_; ++idr) {
           if (isd == idr) dNdr(idr,inode) *= localCoords(isd,inode);
-          else dNdr(idr,inode) *= 1.0 + 
+          else dNdr(idr,inode) *= 1.0 +
                                   point(isd)*localCoords(isd,inode);
         }
       }
     }
   }
 
-  
+
   /*********************************************************
    * Class FE_InterpolateCartSerendipity
    *
    * For computing shape functions for quadratic serendipity
    * elements, implemented for SPEED.
-   * 
+   *
    *********************************************************/
   FE_InterpolateCartSerendipity::FE_InterpolateCartSerendipity(
                                    FE_Element *feElement)
@@ -696,7 +696,7 @@ namespace ATC {
   {
     // Handled by base class
   }
-  
+
   void FE_InterpolateCartSerendipity::compute_N(const VECTOR &point,
                                                 VECTOR &N)
   {
@@ -704,14 +704,14 @@ namespace ATC {
     const DENS_MAT &localCoords = feElement_->local_coords();
     double invVol = 1.0/(feElement_->vol());
     int numEltNodes = feElement_->num_elt_nodes();
-    
+
     for (int inode = 0; inode < numEltNodes; ++inode) {
       N(inode) = invVol;
       for (int isd = 0; isd < nSD_; ++isd) {
-        if (((inode == 8  || inode == 10 || inode == 16 || inode == 18) && 
-             (isd == 0))                                                   || 
+        if (((inode == 8  || inode == 10 || inode == 16 || inode == 18) &&
+             (isd == 0))                                                   ||
             ((inode == 9  || inode == 11 || inode == 17 || inode == 19) &&
-             (isd == 1))                                                   || 
+             (isd == 1))                                                   ||
             ((inode == 12 || inode == 13 || inode == 14 || inode == 15) &&
              (isd == 2))) {
           N(inode) *= (1.0 - pow(point(isd),2))*2;
@@ -742,7 +742,7 @@ namespace ATC {
     bool serendipityNode = false;
     double productRule1 = 0.0;
     double productRule2 = 0.0;
-    
+
     if (nD != 3 && nD != 2) {
       ATC_Error("Serendipity dNdr calculations are too hard-wired to do "
                 "what you want them to. Only 2D and 3D currently work.");
@@ -757,15 +757,15 @@ namespace ATC {
           // identify nodes/dims differently if 3d or 2d case
           if (nD == 3) {
             serendipityNode =
-             (((inode == 8  || inode == 10 || inode == 16 || inode == 18) && 
-               (id == 0))                                                    || 
+             (((inode == 8  || inode == 10 || inode == 16 || inode == 18) &&
+               (id == 0))                                                    ||
               ((inode == 9  || inode == 11 || inode == 17 || inode == 19) &&
-               (id == 1))                                                    || 
+               (id == 1))                                                    ||
               ((inode == 12 || inode == 13 || inode == 14 || inode == 15) &&
                (id == 2)));
           } else if (nD == 2) {
             serendipityNode =
-             (((inode == 4 || inode == 6) && (id == 0))  || 
+             (((inode == 4 || inode == 6) && (id == 0))  ||
               ((inode == 5 || inode == 7) && (id == 1)));
           }
           if (serendipityNode) {
@@ -794,7 +794,7 @@ namespace ATC {
             productRule2 = (point(0)*localCoords(0,inode) +
                             point(1)*localCoords(1,inode) - 1);
           }
-          productRule1 = dNdr(idr,inode) * 
+          productRule1 = dNdr(idr,inode) *
                          (1 + point(idr)*localCoords(idr,inode));
           productRule2 *= dNdr(idr,inode);
           dNdr(idr,inode) = productRule1 + productRule2;
@@ -830,17 +830,17 @@ namespace ATC {
           // "0-coordinate" is in the same dimension as the one we're currently
           // iterating over. If that's the case, we want to contribute to its
           // shape functions and derivatives in a modified way:
-          if (((inode == 8  || inode == 10 || inode == 16 || inode == 18) && 
-               (isd == 0))                                                   || 
+          if (((inode == 8  || inode == 10 || inode == 16 || inode == 18) &&
+               (isd == 0))                                                   ||
               ((inode == 9  || inode == 11 || inode == 17 || inode == 19) &&
-               (isd == 1))                                                   || 
+               (isd == 1))                                                   ||
               ((inode == 12 || inode == 13 || inode == 14 || inode == 15) &&
                (isd == 2))) {
             // If the 1d shape function dimension matches the derivative
             // dimension...
             if (isd == idr) {
               // contribute to N; sloppy, but this is the easiest way to get
-              // N to work right without adding extra, arguably unnecessary 
+              // N to work right without adding extra, arguably unnecessary
               // loops, while also computing the shape functions
               N(inode) *= (1.0 - pow(point(isd),2))*2;
               // contribute to dNdr with the derivative of this shape function
@@ -869,7 +869,7 @@ namespace ATC {
       }
       for (int idr = 0; idr < nSD_; ++idr) {
         if (inode < 8) {
-          productRule1 = dNdr(idr,inode) * 
+          productRule1 = dNdr(idr,inode) *
                          (1 + point(idr)*localCoords(idr,inode));
           productRule2 = dNdr(idr,inode) * (point(0)*localCoords(0,inode) +
                                             point(1)*localCoords(1,inode) +
@@ -883,7 +883,7 @@ namespace ATC {
 
   /*********************************************************
    * Class FE_InterpolateSimpLin
-   * 
+   *
    * For computing linear shape functions of simplices,
    * which are rather different from those computed
    * in Cartesian coordinates.
@@ -895,7 +895,7 @@ namespace ATC {
    *
    *********************************************************/
   FE_InterpolateSimpLin::FE_InterpolateSimpLin(
-                                        FE_Element *feElement) 
+                                        FE_Element *feElement)
     : FE_Interpolate(feElement)
   {
     set_quadrature(TETRA,GAUSS2);
@@ -910,7 +910,7 @@ namespace ATC {
                                         VECTOR &N)
   {
     int numEltNodes = feElement_->num_elt_nodes();
-    
+
     // Fill in for each node
     for (int inode = 0; inode < numEltNodes; ++inode) {
       if (inode == 0) {
@@ -948,7 +948,7 @@ namespace ATC {
       // (which map to x, y, and z). Therefore, the derivative in
       // each dimension are -1.
       //
-      // The idea is similar for 2 dimensions, which this can 
+      // The idea is similar for 2 dimensions, which this can
       // handle as well.
       for (int idr = 0; idr < nD; ++idr) {
         if (inode == 0) {
@@ -965,7 +965,7 @@ namespace ATC {
                                              DENS_MAT &dNdr) const
   {
     int numEltNodes = feElement_->num_elt_nodes();
-    
+
     // Fill in for each node
     for (int inode = 0; inode < numEltNodes; ++inode) {
       // Fill N...

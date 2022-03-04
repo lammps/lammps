@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +13,9 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_read_restart.h"
+
 #include "atom.h"
 #include "memory.h"
-#include "force.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -23,16 +24,16 @@ using namespace FixConst;
 
 FixReadRestart::FixReadRestart(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  count(NULL), extra(NULL)
+  count(nullptr), extra(nullptr)
 {
-  nextra = force->inumeric(FLERR,arg[3]);
-  int nfix = force->inumeric(FLERR,arg[4]);
+  nextra = utils::inumeric(FLERR,arg[3],false,lmp);
+  int nfix = utils::inumeric(FLERR,arg[4],false,lmp);
 
   // perform initial allocation of atom-based array
   // register with Atom class
 
-  grow_arrays(atom->nmax);
-  atom->add_callback(0);
+  FixReadRestart::grow_arrays(atom->nmax);
+  atom->add_callback(Atom::GROW);
 
   // extra = copy of atom->extra
 
@@ -54,7 +55,7 @@ FixReadRestart::~FixReadRestart()
 {
   // unregister callback to this fix from Atom class
 
-  atom->delete_callback(id,0);
+  atom->delete_callback(id,Atom::GROW);
 
   // delete locally stored arrays
 
@@ -76,8 +77,8 @@ int FixReadRestart::setmask()
 
 double FixReadRestart::memory_usage()
 {
-  double bytes = atom->nmax*nextra * sizeof(double);
-  bytes += atom->nmax * sizeof(int);
+  double bytes = (double)atom->nmax*nextra * sizeof(double);
+  bytes += (double)atom->nmax * sizeof(int);
   return bytes;
 }
 

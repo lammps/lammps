@@ -101,6 +101,52 @@ inline __host__ unsigned long long int atomic_fetch_max(
 
 #endif
 
+#if (350 > __CUDA_ARCH__)
+
+// Fallback for atomic{Min,Max} for Kepler
+
+inline __device__ int atomic_fetch_min(volatile int* const dest,
+                                       const int val) {
+  return Impl::atomic_fetch_oper(Impl::MinOper<const int, const int>(), dest,
+                                 val);
+}
+
+inline __device__ unsigned int atomic_fetch_min(
+    volatile unsigned int* const dest, const unsigned int val) {
+  return Impl::atomic_fetch_oper(
+      Impl::MinOper<const unsigned int, const unsigned int>(), dest, val);
+}
+
+inline __device__ unsigned long long int atomic_fetch_min(
+    volatile unsigned long long int* const dest,
+    const unsigned long long int val) {
+  return Impl::atomic_fetch_oper(Impl::MinOper<const unsigned long long int,
+                                               const unsigned long long int>(),
+                                 dest, val);
+}
+
+inline __device__ int atomic_fetch_max(volatile int* const dest,
+                                       const int val) {
+  return Impl::atomic_fetch_oper(Impl::MaxOper<const int, const int>(), dest,
+                                 val);
+}
+
+inline __device__ unsigned int atomic_fetch_max(
+    volatile unsigned int* const dest, const unsigned int val) {
+  return Impl::atomic_fetch_oper(
+      Impl::MaxOper<const unsigned int, const unsigned int>(), dest, val);
+}
+
+inline __device__ unsigned long long int atomic_fetch_max(
+    volatile unsigned long long int* const dest,
+    const unsigned long long int val) {
+  return Impl::atomic_fetch_oper(Impl::MaxOper<const unsigned long long int,
+                                               const unsigned long long int>(),
+                                 dest, val);
+}
+
+#else  // Supported by devices of compute capability 3.5 and higher
+
 inline __device__ int atomic_fetch_min(volatile int* const dest,
                                        const int val) {
   return atomicMin((int*)dest, val);
@@ -132,6 +178,8 @@ inline __device__ unsigned long long int atomic_fetch_max(
     const unsigned long long int val) {
   return atomicMax((unsigned long long int*)dest, val);
 }
+
+#endif
 
 // Atomic_{min,max}_fetch
 
@@ -178,6 +226,52 @@ inline __host__ unsigned long long int atomic_max_fetch(
 }
 #endif
 
+#if (350 > __CUDA_ARCH__)
+
+// Fallback for atomic{Min,Max} for Kepler
+
+inline __device__ int atomic_min_fetch(volatile int* const dest,
+                                       const int val) {
+  return Impl::atomic_oper_fetch(Impl::MinOper<const int, const int>(), dest,
+                                 val);
+}
+
+inline __device__ unsigned int atomic_min_fetch(
+    volatile unsigned int* const dest, const unsigned int val) {
+  return Impl::atomic_oper_fetch(
+      Impl::MinOper<const unsigned int, const unsigned int>(), dest, val);
+}
+
+inline __device__ unsigned long long int atomic_min_fetch(
+    volatile unsigned long long int* const dest,
+    const unsigned long long int val) {
+  return Impl::atomic_oper_fetch(Impl::MinOper<const unsigned long long int,
+                                               const unsigned long long int>(),
+                                 dest, val);
+}
+
+inline __device__ int atomic_max_fetch(volatile int* const dest,
+                                       const int val) {
+  return Impl::atomic_oper_fetch(Impl::MaxOper<const int, const int>(), dest,
+                                 val);
+}
+
+inline __device__ unsigned int atomic_max_fetch(
+    volatile unsigned int* const dest, const unsigned int val) {
+  return Impl::atomic_oper_fetch(
+      Impl::MaxOper<const unsigned int, const unsigned int>(), dest, val);
+}
+
+inline __device__ unsigned long long int atomic_max_fetch(
+    volatile unsigned long long int* const dest,
+    const unsigned long long int val) {
+  return Impl::atomic_oper_fetch(Impl::MaxOper<const unsigned long long int,
+                                               const unsigned long long int>(),
+                                 dest, val);
+}
+
+#else  // Supported by devices of compute capability 3.5 and higher
+
 inline __device__ int atomic_min_fetch(volatile int* const dest,
                                        const int val) {
   const int old = atomicMin((int*)dest, val);
@@ -215,6 +309,8 @@ inline __device__ unsigned long long int atomic_max_fetch(
   const unsigned long long old = atomicMax((unsigned long long*)dest, val);
   return old >= val ? old : val;
 }
+
+#endif
 
 #endif
 #endif

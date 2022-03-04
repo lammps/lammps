@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,28 +13,30 @@
 ------------------------------------------------------------------------- */
 
 #include "group.h"
-#include <mpi.h>
+
+#include "atom.h"
+#include "comm.h"
+#include "compute.h"
+#include "domain.h"
+#include "dump.h"
+#include "error.h"
+#include "fix.h"
+#include "force.h"
+#include "input.h"
+#include "math_extra.h"
+#include "math_eigen.h"
+#include "memory.h"
+#include "modify.h"
+#include "output.h"
+#include "region.h"
+#include "tokenizer.h"
+#include "variable.h"
+#include "exceptions.h"
+
 #include <cmath>
 #include <cstring>
-#include <utility>
-#include "domain.h"
-#include "atom.h"
-#include "force.h"
-#include "comm.h"
-#include "region.h"
-#include "modify.h"
-#include "fix.h"
-#include "compute.h"
-#include "output.h"
-#include "input.h"
-#include "variable.h"
-#include "dump.h"
-#include "math_extra.h"
-#include "memory.h"
-#include "error.h"
-#include "utils.h"
-
 #include <map>
+#include <utility>
 
 using namespace LAMMPS_NS;
 
@@ -58,17 +61,14 @@ Group::Group(LAMMPS *lmp) : Pointers(lmp)
   inversemask = new int[MAX_GROUP];
   dynamic = new int[MAX_GROUP];
 
-  for (int i = 0; i < MAX_GROUP; i++) names[i] = NULL;
+  for (int i = 0; i < MAX_GROUP; i++) names[i] = nullptr;
   for (int i = 0; i < MAX_GROUP; i++) bitmask[i] = 1 << i;
   for (int i = 0; i < MAX_GROUP; i++) inversemask[i] = bitmask[i] ^ ~0;
   for (int i = 0; i < MAX_GROUP; i++) dynamic[i] = 0;
 
   // create "all" group
 
-  char *str = (char *) "all";
-  int n = strlen(str) + 1;
-  names[0] = new char[n];
-  strcpy(names[0],str);
+  names[0] = utils::strdup("all");
   ngroup = 1;
 }
 
@@ -101,11 +101,12 @@ void Group::assign(int narg, char **arg)
   // clear mask of each atom assigned to this group
 
   if (strcmp(arg[1],"delete") == 0) {
+    if (narg != 2) error->all(FLERR,"Illegal group command");
     int igroup = find(arg[0]);
     if (igroup == -1) error->all(FLERR,"Could not find group delete group ID");
     if (igroup == 0) error->all(FLERR,"Cannot delete group all");
-    for (i = 0; i < modify->nfix; i++)
-      if (modify->fix[i]->igroup == igroup)
+    for (const auto &fix : modify->get_fix_list())
+      if (fix->igroup == igroup)
         error->all(FLERR,"Cannot delete group currently used by a fix");
     for (i = 0; i < modify->ncompute; i++)
       if (modify->compute[i]->igroup == igroup)
@@ -122,16 +123,11 @@ void Group::assign(int narg, char **arg)
     int bits = inversemask[igroup];
     for (i = 0; i < nlocal; i++) mask[i] &= bits;
 
-    if (dynamic[igroup]) {
-      int n = strlen("GROUP_") + strlen(names[igroup]) + 1;
-      char *fixID = new char[n];
-      sprintf(fixID,"GROUP_%s",names[igroup]);
-      modify->delete_fix(fixID);
-      delete [] fixID;
-    }
+    if (dynamic[igroup])
+      modify->delete_fix(std::string("GROUP_") + names[igroup]);
 
     delete [] names[igroup];
-    names[igroup] = NULL;
+    names[igroup] = nullptr;
     dynamic[igroup] = 0;
     ngroup--;
 
@@ -157,14 +153,14 @@ void Group::assign(int narg, char **arg)
   // add a new group if igroup = -1
 
   int igroup = find(arg[0]);
+  bool created = false;
 
   if (igroup == -1) {
     if (ngroup == MAX_GROUP) error->all(FLERR,"Too many groups");
     igroup = find_unused();
-    int n = strlen(arg[0]) + 1;
-    names[igroup] = new char[n];
-    strcpy(names[igroup],arg[0]);
+    names[igroup] = utils::strdup(arg[0]);
     ngroup++;
+    created = true;
   }
 
   double **x = atom->x;
@@ -172,368 +168,360 @@ void Group::assign(int narg, char **arg)
   int nlocal = atom->nlocal;
   int bit = bitmask[igroup];
 
-  // style = region
-  // add to group if atom is in region
+  try {
+    // style = region
+    // add to group if atom is in region
 
-  if (strcmp(arg[1],"region") == 0) {
+    if (strcmp(arg[1],"region") == 0) {
 
-    if (narg != 3) error->all(FLERR,"Illegal group command");
+      if (narg != 3) error->all(FLERR,"Illegal group command");
 
-    int iregion = domain->find_region(arg[2]);
-    if (iregion == -1) error->all(FLERR,"Group region ID does not exist");
-    domain->regions[iregion]->init();
-    domain->regions[iregion]->prematch();
+      int iregion = domain->find_region(arg[2]);
+      if (iregion == -1) error->all(FLERR,"Group region ID does not exist");
+      domain->regions[iregion]->init();
+      domain->regions[iregion]->prematch();
 
-    for (i = 0; i < nlocal; i++)
-      if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
-        mask[i] |= bit;
+      for (i = 0; i < nlocal; i++)
+        if (domain->regions[iregion]->match(x[i][0],x[i][1],x[i][2]))
+          mask[i] |= bit;
 
-  // create an empty group
+    // create an empty group
 
-  } else if (strcmp(arg[1],"empty") == 0) {
+    } else if (strcmp(arg[1],"empty") == 0) {
 
-    ; // nothing to do here
+      if (narg != 2) error->all(FLERR,"Illegal group command");
+      // nothing else to do here
 
-  // style = type, molecule, id
-  // add to group if atom matches type/molecule/id or condition
+    // style = type, molecule, id
+    // add to group if atom matches type/molecule/id or condition
 
-  } else if (strcmp(arg[1],"type") == 0 || strcmp(arg[1],"molecule") == 0 ||
-             strcmp(arg[1],"id") == 0) {
+    } else if (strcmp(arg[1],"type") == 0 || strcmp(arg[1],"molecule") == 0 ||
+               strcmp(arg[1],"id") == 0) {
 
-    if (narg < 3) error->all(FLERR,"Illegal group command");
+      if (narg < 3) error->all(FLERR,"Illegal group command");
 
-    int category=NONE;
-    if (strcmp(arg[1],"type") == 0) category = TYPE;
-    else if (strcmp(arg[1],"molecule") == 0) category = MOLECULE;
-    else if (strcmp(arg[1],"id") == 0) category = ID;
+      int category=NONE;
+      if (strcmp(arg[1],"type") == 0) category = TYPE;
+      else if (strcmp(arg[1],"molecule") == 0) category = MOLECULE;
+      else if (strcmp(arg[1],"id") == 0) category = ID;
 
-    if ((category == MOLECULE) && (!atom->molecular))
-      error->all(FLERR,"Group command requires atom attribute molecule");
-
-    if ((category == ID) && (!atom->tag_enable))
-      error->all(FLERR,"Group command requires atom IDs");
-
-    // args = logical condition
-
-    if (narg > 3 &&
-        (strcmp(arg[2],"<") == 0 || strcmp(arg[2],">") == 0 ||
-         strcmp(arg[2],"<=") == 0 || strcmp(arg[2],">=") == 0 ||
-         strcmp(arg[2],"==") == 0 || strcmp(arg[2],"!=") == 0 ||
-         strcmp(arg[2],"<>") == 0)) {
-
-      int condition = -1;
-      if (strcmp(arg[2],"<") == 0) condition = LT;
-      else if (strcmp(arg[2],"<=") == 0) condition = LE;
-      else if (strcmp(arg[2],">") == 0) condition = GT;
-      else if (strcmp(arg[2],">=") == 0) condition = GE;
-      else if (strcmp(arg[2],"==") == 0) condition = EQ;
-      else if (strcmp(arg[2],"!=") == 0) condition = NEQ;
-      else if (strcmp(arg[2],"<>") == 0) condition = BETWEEN;
-      else error->all(FLERR,"Illegal group command");
-
-      tagint bound1,bound2;
-      bound1 = force->tnumeric(FLERR,arg[3]);
-      bound2 = -1;
-
-      if (condition == BETWEEN) {
-        if (narg != 5) error->all(FLERR,"Illegal group command");
-        bound2 = force->tnumeric(FLERR,arg[4]);
-      } else if (narg != 4) error->all(FLERR,"Illegal group command");
-
-      int *attribute = NULL;
-      tagint *tattribute = NULL;
-      if (category == TYPE) attribute = atom->type;
-      else if (category == MOLECULE) tattribute = atom->molecule;
-      else if (category == ID) tattribute = atom->tag;
-
-      // add to group if meets condition
-
-      if (attribute) {
-        if (condition == LT) {
-          for (i = 0; i < nlocal; i++)
-            if (attribute[i] < bound1) mask[i] |= bit;
-        } else if (condition == LE) {
-          for (i = 0; i < nlocal; i++)
-            if (attribute[i] <= bound1) mask[i] |= bit;
-        } else if (condition == GT) {
-          for (i = 0; i < nlocal; i++)
-            if (attribute[i] > bound1) mask[i] |= bit;
-        } else if (condition == GE) {
-          for (i = 0; i < nlocal; i++)
-            if (attribute[i] >= bound1) mask[i] |= bit;
-        } else if (condition == EQ) {
-          for (i = 0; i < nlocal; i++)
-            if (attribute[i] == bound1) mask[i] |= bit;
-        } else if (condition == NEQ) {
-          for (i = 0; i < nlocal; i++)
-            if (attribute[i] != bound1) mask[i] |= bit;
-        } else if (condition == BETWEEN) {
-          for (i = 0; i < nlocal; i++)
-            if (attribute[i] >= bound1 && attribute[i] <= bound2)
-              mask[i] |= bit;
-        }
-      } else {
-        if (condition == LT) {
-          for (i = 0; i < nlocal; i++)
-            if (tattribute[i] < bound1) mask[i] |= bit;
-        } else if (condition == LE) {
-          for (i = 0; i < nlocal; i++)
-            if (tattribute[i] <= bound1) mask[i] |= bit;
-        } else if (condition == GT) {
-          for (i = 0; i < nlocal; i++)
-            if (tattribute[i] > bound1) mask[i] |= bit;
-        } else if (condition == GE) {
-          for (i = 0; i < nlocal; i++)
-            if (tattribute[i] >= bound1) mask[i] |= bit;
-        } else if (condition == EQ) {
-          for (i = 0; i < nlocal; i++)
-            if (tattribute[i] == bound1) mask[i] |= bit;
-        } else if (condition == NEQ) {
-          for (i = 0; i < nlocal; i++)
-            if (tattribute[i] != bound1) mask[i] |= bit;
-        } else if (condition == BETWEEN) {
-          for (i = 0; i < nlocal; i++)
-            if (tattribute[i] >= bound1 && tattribute[i] <= bound2)
-              mask[i] |= bit;
-        }
-      }
-
-    // args = list of values
-
-    } else {
-      int *attribute = NULL;
-      tagint *tattribute = NULL;
-      if (category == TYPE) attribute = atom->type;
-      else if (category == MOLECULE) tattribute = atom->molecule;
-      else if (category == ID) tattribute = atom->tag;
-
-      char *ptr;
-      tagint start,stop,delta;
-
-      for (int iarg = 2; iarg < narg; iarg++) {
-        delta = 1;
-        if (strchr(arg[iarg],':')) {
-          ptr = strtok(arg[iarg],":");
-          start = force->tnumeric(FLERR,ptr);
-          ptr = strtok(NULL,":");
-          stop = force->tnumeric(FLERR,ptr);
-          ptr = strtok(NULL,":");
-          if (ptr) delta = force->tnumeric(FLERR,ptr);
-        } else {
-          start = stop = force->tnumeric(FLERR,arg[iarg]);
-        }
-        if (delta < 1)
-          error->all(FLERR,"Illegal range increment value");
-
-        // add to group if attribute matches value or sequence
-
-        if (attribute) {
-          for (i = 0; i < nlocal; i++)
-            if (attribute[i] >= start && attribute[i] <= stop &&
-                (attribute[i]-start) % delta == 0) mask[i] |= bit;
-        } else {
-          for (i = 0; i < nlocal; i++)
-            if (tattribute[i] >= start && tattribute[i] <= stop &&
-                (tattribute[i]-start) % delta == 0) mask[i] |= bit;
-        }
-      }
-    }
-
-  // style = variable
-  // add to group if atom-atyle variable is non-zero
-
-  } else if (strcmp(arg[1],"variable") == 0) {
-
-    int ivar = input->variable->find(arg[2]);
-    if (ivar < 0) error->all(FLERR,"Variable name for group does not exist");
-    if (!input->variable->atomstyle(ivar))
-      error->all(FLERR,"Variable for group is invalid style");
-
-    double *aflag;
-
-    // aflag = evaluation of per-atom variable
-
-    memory->create(aflag,nlocal,"group:aflag");
-    input->variable->compute_atom(ivar,0,aflag,1,0);
-
-    // add to group if per-atom variable evaluated to non-zero
-
-    for (i = 0; i < nlocal; i++)
-      if (aflag[i] != 0.0) mask[i] |= bit;
-
-    memory->destroy(aflag);
-
-  // style = include
-
-  } else if (strcmp(arg[1],"include") == 0) {
-
-    if (narg != 3) error->all(FLERR,"Illegal group command");
-    if (strcmp(arg[2],"molecule") == 0) {
-      if (!atom->molecular)
+      if ((category == MOLECULE) && (!atom->molecule_flag))
         error->all(FLERR,"Group command requires atom attribute molecule");
 
-      add_molecules(igroup,bit);
+      if ((category == ID) && (!atom->tag_enable))
+        error->all(FLERR,"Group command requires atom IDs");
+
+      // args = logical condition
+
+      if (narg > 3 &&
+          (strcmp(arg[2],"<") == 0 || strcmp(arg[2],">") == 0 ||
+           strcmp(arg[2],"<=") == 0 || strcmp(arg[2],">=") == 0 ||
+           strcmp(arg[2],"==") == 0 || strcmp(arg[2],"!=") == 0 ||
+           strcmp(arg[2],"<>") == 0)) {
+
+        int condition = -1;
+        if (strcmp(arg[2],"<") == 0) condition = LT;
+        else if (strcmp(arg[2],"<=") == 0) condition = LE;
+        else if (strcmp(arg[2],">") == 0) condition = GT;
+        else if (strcmp(arg[2],">=") == 0) condition = GE;
+        else if (strcmp(arg[2],"==") == 0) condition = EQ;
+        else if (strcmp(arg[2],"!=") == 0) condition = NEQ;
+        else if (strcmp(arg[2],"<>") == 0) condition = BETWEEN;
+        else error->all(FLERR,"Illegal group command");
+
+        tagint bound1,bound2;
+        bound1 = utils::tnumeric(FLERR,arg[3],false,lmp);
+        bound2 = -1;
+
+        if (condition == BETWEEN) {
+          if (narg != 5) error->all(FLERR,"Illegal group command");
+          bound2 = utils::tnumeric(FLERR,arg[4],false,lmp);
+        } else if (narg != 4) error->all(FLERR,"Illegal group command");
+
+        int *attribute = nullptr;
+        tagint *tattribute = nullptr;
+        if (category == TYPE) attribute = atom->type;
+        else if (category == MOLECULE) tattribute = atom->molecule;
+        else if (category == ID) tattribute = atom->tag;
+
+        // add to group if meets condition
+
+        if (attribute) {
+          if (condition == LT) {
+            for (i = 0; i < nlocal; i++)
+              if (attribute[i] < bound1) mask[i] |= bit;
+          } else if (condition == LE) {
+            for (i = 0; i < nlocal; i++)
+              if (attribute[i] <= bound1) mask[i] |= bit;
+          } else if (condition == GT) {
+            for (i = 0; i < nlocal; i++)
+              if (attribute[i] > bound1) mask[i] |= bit;
+          } else if (condition == GE) {
+            for (i = 0; i < nlocal; i++)
+              if (attribute[i] >= bound1) mask[i] |= bit;
+          } else if (condition == EQ) {
+            for (i = 0; i < nlocal; i++)
+              if (attribute[i] == bound1) mask[i] |= bit;
+          } else if (condition == NEQ) {
+            for (i = 0; i < nlocal; i++)
+              if (attribute[i] != bound1) mask[i] |= bit;
+          } else if (condition == BETWEEN) {
+            for (i = 0; i < nlocal; i++)
+              if (attribute[i] >= bound1 && attribute[i] <= bound2)
+                mask[i] |= bit;
+          }
+        } else {
+          if (condition == LT) {
+            for (i = 0; i < nlocal; i++)
+              if (tattribute[i] < bound1) mask[i] |= bit;
+          } else if (condition == LE) {
+            for (i = 0; i < nlocal; i++)
+              if (tattribute[i] <= bound1) mask[i] |= bit;
+          } else if (condition == GT) {
+            for (i = 0; i < nlocal; i++)
+              if (tattribute[i] > bound1) mask[i] |= bit;
+          } else if (condition == GE) {
+            for (i = 0; i < nlocal; i++)
+              if (tattribute[i] >= bound1) mask[i] |= bit;
+          } else if (condition == EQ) {
+            for (i = 0; i < nlocal; i++)
+              if (tattribute[i] == bound1) mask[i] |= bit;
+          } else if (condition == NEQ) {
+            for (i = 0; i < nlocal; i++)
+              if (tattribute[i] != bound1) mask[i] |= bit;
+          } else if (condition == BETWEEN) {
+            for (i = 0; i < nlocal; i++)
+              if (tattribute[i] >= bound1 && tattribute[i] <= bound2)
+                mask[i] |= bit;
+          }
+        }
+
+      // args = list of values
+
+      } else {
+        int *attribute = nullptr;
+        tagint *tattribute = nullptr;
+        if (category == TYPE) attribute = atom->type;
+        else if (category == MOLECULE) tattribute = atom->molecule;
+        else if (category == ID) tattribute = atom->tag;
+
+        tagint start,stop,delta;
+
+        for (int iarg = 2; iarg < narg; iarg++) {
+          delta = 1;
+          try {
+            ValueTokenizer values(arg[iarg],":");
+            start = values.next_tagint();
+            if (utils::strmatch(arg[iarg],"^-?\\d+$")) {
+              stop = start;
+            } else if (utils::strmatch(arg[iarg],"^-?\\d+:-?\\d+$")) {
+              stop = values.next_tagint();
+            } else if (utils::strmatch(arg[iarg],"^-?\\d+:-?\\d+:\\d+$")) {
+              stop = values.next_tagint();
+              delta = values.next_tagint();
+            } else throw TokenizerException("Syntax error","");
+          } catch (TokenizerException &e) {
+            error->all(FLERR,"Incorrect range string "
+                                         "'{}': {}",arg[iarg],e.what());
+          }
+          if (delta < 1)
+            error->all(FLERR,"Illegal range increment value");
+
+          // add to group if attribute matches value or sequence
+
+          if (attribute) {
+            for (i = 0; i < nlocal; i++)
+              if (attribute[i] >= start && attribute[i] <= stop &&
+                  (attribute[i]-start) % delta == 0) mask[i] |= bit;
+          } else {
+            for (i = 0; i < nlocal; i++)
+              if (tattribute[i] >= start && tattribute[i] <= stop &&
+                  (tattribute[i]-start) % delta == 0) mask[i] |= bit;
+          }
+        }
+      }
+
+    // style = variable
+    // add to group if atom-atyle variable is non-zero
+
+    } else if (strcmp(arg[1],"variable") == 0) {
+
+      int ivar = input->variable->find(arg[2]);
+      if (ivar < 0) error->all(FLERR,"Variable name for group does not exist");
+      if (!input->variable->atomstyle(ivar))
+        error->all(FLERR,"Variable for group is invalid style");
+
+      double *aflag;
+
+      // aflag = evaluation of per-atom variable
+
+      memory->create(aflag,nlocal,"group:aflag");
+      input->variable->compute_atom(ivar,0,aflag,1,0);
+
+      // add to group if per-atom variable evaluated to non-zero
+
+      for (i = 0; i < nlocal; i++)
+        if (aflag[i] != 0.0) mask[i] |= bit;
+
+      memory->destroy(aflag);
+
+    // style = include
+
+    } else if (strcmp(arg[1],"include") == 0) {
+
+      if (narg != 3) error->all(FLERR,"Illegal group command");
+      if (strcmp(arg[2],"molecule") == 0) {
+        if (!atom->molecule_flag)
+          error->all(FLERR,"Group command requires atom attribute molecule");
+
+        add_molecules(igroup,bit);
+
+      } else error->all(FLERR,"Illegal group command");
+
+    // style = subtract
+
+    } else if (strcmp(arg[1],"subtract") == 0) {
+
+      if (narg < 4) error->all(FLERR,"Illegal group command");
+
+      int length = narg-2;
+      std::vector<int> list(length);
+
+      int jgroup;
+      for (int iarg = 2; iarg < narg; iarg++) {
+        jgroup = find(arg[iarg]);
+        if (jgroup == -1) error->all(FLERR,"Group ID does not exist");
+        if (dynamic[jgroup])
+          error->all(FLERR,"Cannot subtract groups using a dynamic group");
+        list[iarg-2] = jgroup;
+      }
+
+      // add to group if in 1st group in list
+
+      int otherbit = bitmask[list[0]];
+
+      for (i = 0; i < nlocal; i++)
+        if (mask[i] & otherbit) mask[i] |= bit;
+
+      // remove atoms if they are in any of the other groups
+      // AND with inverse mask removes the atom from group
+
+      int inverse = inversemask[igroup];
+
+      for (int ilist = 1; ilist < length; ilist++) {
+        otherbit = bitmask[list[ilist]];
+        for (i = 0; i < nlocal; i++)
+          if (mask[i] & otherbit) mask[i] &= inverse;
+      }
+
+    // style = union
+
+    } else if (strcmp(arg[1],"union") == 0) {
+
+      if (narg < 3) error->all(FLERR,"Illegal group command");
+
+      int length = narg-2;
+      std::vector<int> list(length);
+
+      int jgroup;
+      for (int iarg = 2; iarg < narg; iarg++) {
+        jgroup = find(arg[iarg]);
+        if (jgroup == -1) error->all(FLERR,"Group ID does not exist");
+        if (dynamic[jgroup])
+          error->all(FLERR,"Cannot union groups using a dynamic group");
+        list[iarg-2] = jgroup;
+      }
+
+      // add to group if in any other group in list
+
+      int otherbit;
+
+      for (int ilist = 0; ilist < length; ilist++) {
+        otherbit = bitmask[list[ilist]];
+        for (i = 0; i < nlocal; i++)
+          if (mask[i] & otherbit) mask[i] |= bit;
+      }
+
+    // style = intersect
+
+    } else if (strcmp(arg[1],"intersect") == 0) {
+
+      if (narg < 4) error->all(FLERR,"Illegal group command");
+
+      int length = narg-2;
+      std::vector<int> list(length);
+
+      int jgroup;
+      for (int iarg = 2; iarg < narg; iarg++) {
+        jgroup = find(arg[iarg]);
+        if (jgroup == -1) error->all(FLERR,"Group ID does not exist");
+        if (dynamic[jgroup])
+          error->all(FLERR,"Cannot intersect groups using a dynamic group");
+        list[iarg-2] = jgroup;
+      }
+
+      // add to group if in all groups in list
+
+      int otherbit,ok,ilist;
+
+      for (i = 0; i < nlocal; i++) {
+        ok = 1;
+        for (ilist = 0; ilist < length; ilist++) {
+          otherbit = bitmask[list[ilist]];
+          if ((mask[i] & otherbit) == 0) ok = 0;
+        }
+        if (ok) mask[i] |= bit;
+      }
+
+    // style = dynamic
+    // create a new FixGroup to dynamically determine atoms in group
+
+    } else if (strcmp(arg[1],"dynamic") == 0) {
+
+      if (narg < 4) error->all(FLERR,"Illegal group command");
+      if (strcmp(arg[0],arg[2]) == 0)
+        error->all(FLERR,"Group dynamic cannot reference itself");
+      if (find(arg[2]) < 0)
+        error->all(FLERR,"Group dynamic parent group does not exist");
+      if (igroup == 0) error->all(FLERR,"Group all cannot be made dynamic");
+
+      // if group is already dynamic, delete existing FixGroup
+
+      if (dynamic[igroup])
+        modify->delete_fix(std::string("GROUP_") + names[igroup]);
+
+      dynamic[igroup] = 1;
+
+      std::string fixcmd = "GROUP_";
+      fixcmd += fmt::format("{} {} GROUP",names[igroup],arg[2]);
+      for (i = 3; i < narg; i++) fixcmd += std::string(" ") + arg[i];
+      modify->add_fix(fixcmd);
+
+    // style = static
+    // remove dynamic FixGroup if necessary
+
+    } else if (strcmp(arg[1],"static") == 0) {
+
+      if (narg != 2) error->all(FLERR,"Illegal group command");
+
+      if (dynamic[igroup])
+        modify->delete_fix(std::string("GROUP_") + names[igroup]);
+
+      dynamic[igroup] = 0;
+
+    // not a valid group style
 
     } else error->all(FLERR,"Illegal group command");
 
-  // style = subtract
-
-  } else if (strcmp(arg[1],"subtract") == 0) {
-
-    if (narg < 4) error->all(FLERR,"Illegal group command");
-
-    int length = narg-2;
-    int *list = new int[length];
-
-    int jgroup;
-    for (int iarg = 2; iarg < narg; iarg++) {
-      jgroup = find(arg[iarg]);
-      if (jgroup == -1) error->all(FLERR,"Group ID does not exist");
-      if (dynamic[jgroup])
-        error->all(FLERR,"Cannot subtract groups using a dynamic group");
-      list[iarg-2] = jgroup;
+  } catch (LAMMPSException & e) {
+    // undo created group in case of an error
+    if (created) {
+      delete [] names[igroup];
+      names[igroup] = nullptr;
+      ngroup--;
     }
-
-    // add to group if in 1st group in list
-
-    int otherbit = bitmask[list[0]];
-
-    for (i = 0; i < nlocal; i++)
-      if (mask[i] & otherbit) mask[i] |= bit;
-
-    // remove atoms if they are in any of the other groups
-    // AND with inverse mask removes the atom from group
-
-    int inverse = inversemask[igroup];
-
-    for (int ilist = 1; ilist < length; ilist++) {
-      otherbit = bitmask[list[ilist]];
-      for (i = 0; i < nlocal; i++)
-        if (mask[i] & otherbit) mask[i] &= inverse;
-    }
-
-    delete [] list;
-
-  // style = union
-
-  } else if (strcmp(arg[1],"union") == 0) {
-
-    if (narg < 3) error->all(FLERR,"Illegal group command");
-
-    int length = narg-2;
-    int *list = new int[length];
-
-    int jgroup;
-    for (int iarg = 2; iarg < narg; iarg++) {
-      jgroup = find(arg[iarg]);
-      if (jgroup == -1) error->all(FLERR,"Group ID does not exist");
-      if (dynamic[jgroup])
-        error->all(FLERR,"Cannot union groups using a dynamic group");
-      list[iarg-2] = jgroup;
-    }
-
-    // add to group if in any other group in list
-
-    int otherbit;
-
-    for (int ilist = 0; ilist < length; ilist++) {
-      otherbit = bitmask[list[ilist]];
-      for (i = 0; i < nlocal; i++)
-        if (mask[i] & otherbit) mask[i] |= bit;
-    }
-
-    delete [] list;
-
-  // style = intersect
-
-  } else if (strcmp(arg[1],"intersect") == 0) {
-
-    if (narg < 4) error->all(FLERR,"Illegal group command");
-
-    int length = narg-2;
-    int *list = new int[length];
-
-    int jgroup;
-    for (int iarg = 2; iarg < narg; iarg++) {
-      jgroup = find(arg[iarg]);
-      if (jgroup == -1) error->all(FLERR,"Group ID does not exist");
-      if (dynamic[jgroup])
-        error->all(FLERR,"Cannot intersect groups using a dynamic group");
-      list[iarg-2] = jgroup;
-    }
-
-    // add to group if in all groups in list
-
-    int otherbit,ok,ilist;
-
-    for (i = 0; i < nlocal; i++) {
-      ok = 1;
-      for (ilist = 0; ilist < length; ilist++) {
-        otherbit = bitmask[list[ilist]];
-        if ((mask[i] & otherbit) == 0) ok = 0;
-      }
-      if (ok) mask[i] |= bit;
-    }
-
-    delete [] list;
-
-  // style = dynamic
-  // create a new FixGroup to dynamically determine atoms in group
-
-  } else if (strcmp(arg[1],"dynamic") == 0) {
-
-    if (narg < 4) error->all(FLERR,"Illegal group command");
-    if (strcmp(arg[0],arg[2]) == 0)
-      error->all(FLERR,"Group dynamic cannot reference itself");
-    if (find(arg[2]) < 0)
-      error->all(FLERR,"Group dynamic parent group does not exist");
-    if (igroup == 0) error->all(FLERR,"Group all cannot be made dynamic");
-
-    // if group is already dynamic, delete existing FixGroup
-
-    if (dynamic[igroup]) {
-      int n = strlen("GROUP_") + strlen(names[igroup]) + 1;
-      char *fixID = new char[n];
-      sprintf(fixID,"GROUP_%s",names[igroup]);
-      modify->delete_fix(fixID);
-      delete [] fixID;
-    }
-
-    dynamic[igroup] = 1;
-
-    int n = strlen("GROUP_") + strlen(names[igroup]) + 1;
-    char *fixID = new char[n];
-    sprintf(fixID,"GROUP_%s",names[igroup]);
-
-    char **newarg = new char*[narg];
-    newarg[0] = fixID;
-    newarg[1] = arg[2];
-    newarg[2] = (char *) "GROUP";
-    for (int i = 3; i < narg; i++) newarg[i] = arg[i];
-    modify->add_fix(narg,newarg);
-    delete [] newarg;
-    delete [] fixID;
-
-  // style = static
-  // remove dynamic FixGroup if necessary
-
-  } else if (strcmp(arg[1],"static") == 0) {
-
-    if (narg != 2) error->all(FLERR,"Illegal group command");
-
-    if (dynamic[igroup]) {
-      int n = strlen("GROUP_") + strlen(names[igroup]) + 1;
-      char *fixID = new char[n];
-      sprintf(fixID,"GROUP_%s",names[igroup]);
-      modify->delete_fix(fixID);
-      delete [] fixID;
-    }
-
-    dynamic[igroup] = 0;
-
-  // not a valid group style
-
-  } else error->all(FLERR,"Illegal group command");
+    throw e;
+  }
 
   // print stats for changed group
 
@@ -546,23 +534,33 @@ void Group::assign(int narg, char **arg)
   MPI_Allreduce(&rlocal,&all,1,MPI_DOUBLE,MPI_SUM,world);
 
   if (me == 0) {
-    if (dynamic[igroup]) {
-      if (screen) fprintf(screen,"dynamic group %s defined\n",names[igroup]);
-      if (logfile) fprintf(logfile,"dynamic group %s defined\n",names[igroup]);
-    } else {
-      if (screen)
-        fprintf(screen,"%.15g atoms in group %s\n",all,names[igroup]);
-      if (logfile)
-        fprintf(logfile,"%.15g atoms in group %s\n",all,names[igroup]);
-    }
+    if (dynamic[igroup])
+      utils::logmesg(lmp,"dynamic group {} defined\n",names[igroup]);
+    else
+      utils::logmesg(lmp,"{:.15g} atoms in group {}\n",all,names[igroup]);
   }
+}
+
+/* ----------------------------------------------------------------------
+   convenience function to allow assigning to groups from a single string
+------------------------------------------------------------------------- */
+
+void Group::assign(const std::string &groupcmd)
+{
+  auto args = utils::split_words(groupcmd);
+  std::vector<char*> newarg(args.size());
+  int i=0;
+  for (const auto &arg : args) {
+    newarg[i++] = (char *)arg.c_str();
+  }
+  assign(args.size(),newarg.data());
 }
 
 /* ----------------------------------------------------------------------
    add flagged atoms to a new or existing group
 ------------------------------------------------------------------------- */
 
-void Group::create(char *name, int *flag)
+void Group::create(const std::string &name, int *flag)
 {
   int i;
 
@@ -574,9 +572,7 @@ void Group::create(char *name, int *flag)
   if (igroup == -1) {
     if (ngroup == MAX_GROUP) error->all(FLERR,"Too many groups");
     igroup = find_unused();
-    int n = strlen(name) + 1;
-    names[igroup] = new char[n];
-    strcpy(names[igroup],name);
+    names[igroup] = utils::strdup(name);
     ngroup++;
   }
 
@@ -594,10 +590,10 @@ void Group::create(char *name, int *flag)
    return group index if name matches existing group, -1 if no such group
 ------------------------------------------------------------------------- */
 
-int Group::find(const char *name)
+int Group::find(const std::string &name)
 {
   for (int igroup = 0; igroup < MAX_GROUP; igroup++)
-    if (names[igroup] && strcmp(name,names[igroup]) == 0) return igroup;
+    if (names[igroup] && (name == names[igroup])) return igroup;
   return -1;
 }
 
@@ -613,9 +609,7 @@ int Group::find_or_create(const char *name)
 
   if (ngroup == MAX_GROUP) error->all(FLERR,"Too many groups");
   igroup = find_unused();
-  int n = strlen(name) + 1;
-  names[igroup] = new char[n];
-  strcpy(names[igroup],name);
+  names[igroup] = utils::strdup(name);
   ngroup++;
 
   return igroup;
@@ -629,7 +623,7 @@ int Group::find_or_create(const char *name)
 int Group::find_unused()
 {
   for (int igroup = 0; igroup < MAX_GROUP; igroup++)
-    if (names[igroup] == NULL) return igroup;
+    if (names[igroup] == nullptr) return igroup;
   return -1;
 }
 
@@ -666,7 +660,7 @@ void Group::add_molecules(int /*igroup*/, int bit)
   for (pos = hash->begin(); pos != hash->end(); ++pos) list[n++] = pos->first;
 
   molbit = bit;
-  comm->ring(n,sizeof(tagint),list,1,molring,NULL,(void *)this);
+  comm->ring(n,sizeof(tagint),list,1,molring,nullptr,(void *)this);
 
   delete hash;
   memory->destroy(list);
@@ -736,7 +730,7 @@ void Group::read_restart(FILE *fp)
 
   for (i = 0; i < MAX_GROUP; i++) delete [] names[i];
 
-  if (me == 0) utils::sfread(FLERR,&ngroup,sizeof(int),1,fp,NULL,error);
+  if (me == 0) utils::sfread(FLERR,&ngroup,sizeof(int),1,fp,nullptr,error);
   MPI_Bcast(&ngroup,1,MPI_INT,0,world);
 
   // use count to not change restart format with deleted groups
@@ -745,17 +739,17 @@ void Group::read_restart(FILE *fp)
   int count = 0;
   for (i = 0; i < MAX_GROUP; i++) {
     if (count == ngroup) {
-      names[i] = NULL;
+      names[i] = nullptr;
       continue;
     }
-    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,NULL,error);
+    if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,nullptr,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
     if (n) {
       names[i] = new char[n];
-      if (me == 0) utils::sfread(FLERR,names[i],sizeof(char),n,fp,NULL,error);
+      if (me == 0) utils::sfread(FLERR,names[i],sizeof(char),n,fp,nullptr,error);
       MPI_Bcast(names[i],n,MPI_CHAR,0,world);
       count++;
-    } else names[i] = NULL;
+    } else names[i] = nullptr;
   }
 }
 
@@ -1739,11 +1733,11 @@ void Group::omega(double *angmom, double inertia[3][3], double *w)
 
   // handle (nearly) singular I matrix
   // typically due to 2-atom group or linear molecule
-  // use jacobi() and angmom_to_omega() to calculate valid omega
+  // use jacobi3() and angmom_to_omega() to calculate valid omega
   // less exact answer than matrix inversion, due to iterative Jacobi method
 
   } else {
-    int ierror = MathExtra::jacobi(inertia,idiag,evectors);
+    int ierror = MathEigen::jacobi3(inertia, idiag, evectors);
     if (ierror) error->all(FLERR,
                            "Insufficient Jacobi rotations for group::omega");
 

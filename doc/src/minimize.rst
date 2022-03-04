@@ -57,7 +57,7 @@ coordinates of other atoms fixed by applying :doc:`fix setforce
 <fix_setforce>` to the other atoms.  See a fuller discussion of using
 fixes while minimizing below.
 
-The :doc:`minimization styles <min_style>` *cg*\ , *sd*\ , and *hftn*
+The :doc:`minimization styles <min_style>` *cg*, *sd*, and *hftn*
 involves an outer iteration loop which sets the search direction along
 which atom coordinates are changed.  An inner iteration is then
 performed using a line search algorithm.  The line search typically
@@ -68,7 +68,7 @@ be more robust than previous line searches we have tried.  The
 backtracking method is described in Nocedal and Wright's Numerical
 Optimization (Procedure 3.1 on p 41).
 
-The :doc:`minimization styles <min_style>` *quickmin*\ , *fire* and
+The :doc:`minimization styles <min_style>` *quickmin*, *fire* and
 *fire/old* perform damped dynamics using an Euler integration step.  Thus
 they require a :doc:`timestep <timestep>` be defined.
 
@@ -95,7 +95,7 @@ coordinates:
 
 where the first term is the sum of all non-bonded :doc:`pairwise
 interactions <pair_style>` including :doc:`long-range Coulombic
-interactions <kspace_style>`, the 2nd through 5th terms are :doc:`bond
+interactions <kspace_style>`, the second through fifth terms are :doc:`bond
 <bond_style>`, :doc:`angle <angle_style>`, :doc:`dihedral
 <dihedral_style>`, and :doc:`improper <improper_style>` interactions
 respectively, and the last term is energy due to :doc:`fixes <fix>`
@@ -118,12 +118,12 @@ The minimization procedure stops if any of several criteria are met:
 
 .. note::
 
-   the :doc:`minimization style <min_style>` *spin*\ ,
-   *spin/cg*\ , and *spin/lbfgs* replace
+   the :doc:`minimization style <min_style>` *spin*,
+   *spin/cg*, and *spin/lbfgs* replace
    the force tolerance *ftol* by a torque tolerance.
    The minimization procedure stops if the 2-norm (length) of the torque vector on atom
    (defined as the cross product between the
-   atomic spin and its precession vectors omega) is less than *ftol*\ ,
+   atomic spin and its precession vectors omega) is less than *ftol*,
    or if any of the other criteria are met. Torque have the same units as the energy.
 
 .. note::
@@ -231,7 +231,7 @@ so that its energy is 0.0 at the cutoff via the
 :doc:`pair_modify <pair_modify>` command.  See the doc pages for
 individual :doc:`pair styles <pair_style>` for details.  Note that
 Coulombic potentials always have a cutoff, unless versions with a
-long-range component are used (e.g. :doc:`pair_style lj/cut/coul/long <pair_lj>`).  The CHARMM potentials go to 0.0 at
+long-range component are used (e.g. :doc:`pair_style lj/cut/coul/long <pair_lj_cut_coul>`).  The CHARMM potentials go to 0.0 at
 the cutoff (e.g. :doc:`pair_style lj/charmm/coul/charmm <pair_charmm>`),
 as do the GROMACS potentials (e.g. :doc:`pair_style lj/gromacs <pair_gromacs>`).
 
@@ -279,23 +279,7 @@ that can be used include:
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
@@ -331,4 +315,7 @@ Related commands
 :doc:`min_modify <min_modify>`, :doc:`min_style <min_style>`,
 :doc:`run_style <run_style>`
 
-**Default:** none
+Default
+"""""""
+
+none

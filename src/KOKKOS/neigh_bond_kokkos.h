@@ -1,6 +1,7 @@
+// clang-format off
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -18,6 +19,7 @@
 #include "kokkos_type.h"
 #include "domain_kokkos.h"
 #include "pointers.h"
+#include <Kokkos_UnorderedMap.hpp>
 
 namespace LAMMPS_NS {
 
@@ -40,7 +42,7 @@ class NeighBondKokkos : protected Pointers  {
   typedef int value_type;
 
   NeighBondKokkos(class LAMMPS *);
-  ~NeighBondKokkos() {}
+  ~NeighBondKokkos() override = default;
   void init_topology_kk();
   void build_topology_kk();
 
@@ -80,13 +82,11 @@ class NeighBondKokkos : protected Pointers  {
   int me,nprocs;
 
  private:
-
-
-  DAT::tdual_int_1d k_map_array;
-  typename AT::t_int_1d_randomread map_array;
-
+  int map_style;
   DAT::tdual_int_1d k_sametag;
-  typename AT::t_int_1d_randomread sametag;
+  typename AT::t_int_1d d_sametag;
+  DAT::tdual_int_1d k_map_array;
+  dual_hash_type k_map_hash;
 
   typename AT::t_int_2d v_bondlist;
   typename AT::t_int_2d v_anglelist;
@@ -129,7 +129,7 @@ class NeighBondKokkos : protected Pointers  {
   KOKKOS_INLINE_FUNCTION
   void minimum_image(X_FLOAT &dx, X_FLOAT &dy, X_FLOAT &dz) const;
 
-  void update_domain_variables();
+  void update_class_variables();
 
   // topology build functions
 
@@ -172,10 +172,6 @@ class NeighBondKokkos : protected Pointers  {
 #endif
 
 /* ERROR/WARNING messages:
-
-E: Must use atom map style array with Kokkos
-
-See the atom_modify map command.
 
 E: Bond atoms missing on proc %d at step %ld
 

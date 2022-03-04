@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(gw/zbl,PairGWZBL)
-
+// clang-format off
+PairStyle(gw/zbl,PairGWZBL);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_GW_ZBL_H
@@ -27,24 +27,25 @@ namespace LAMMPS_NS {
 class PairGWZBL : public PairGW {
  public:
   PairGWZBL(class LAMMPS *);
-  ~PairGWZBL() {}
+
+  static constexpr int NPARAMS_PER_LINE = 21;
 
  private:
-  double global_a_0;                // Bohr radius for Coulomb repulsion
-  double global_epsilon_0;        // permittivity of vacuum for Coulomb repulsion
-  double global_e;                // proton charge (negative of electron charge)
+  double global_a_0;          // Bohr radius for Coulomb repulsion
+  double global_epsilon_0;    // permittivity of vacuum for Coulomb repulsion
+  double global_e;            // proton charge (negative of electron charge)
 
-  void read_file(char *);
-  void repulsive(Param *, double, double &, int, double &);
+  void read_file(char *) override;
+  void repulsive(Param *, double, double &, int, double &) override;
 
-  double gw_fa(double, Param *);
-  double gw_fa_d(double, Param *);
+  double gw_fa(double, Param *) override;
+  double gw_fa_d(double, Param *) override;
 
   double F_fermi(double, Param *);
   double F_fermi_d(double, Param *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

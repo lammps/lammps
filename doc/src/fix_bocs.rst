@@ -41,10 +41,10 @@ The first half of the command mimics a standard fix npt command:
 
    fix 1 all bocs temp Tstart Tstop Tcoupl cgiso Pstart Pstop Pdamp
 
-The two differences are replacing *npt* with *bocs*\ , and replacing
+The two differences are replacing *npt* with *bocs*, and replacing
 *iso*\ /\ *aniso*\ /\ *etc* with *cgiso*\ .
 The rest of the command details what form you would like to use for
-the pressure correction equation. The choices are: *analytic*\ , *linear_spline*,
+the pressure correction equation. The choices are: *analytic*, *linear_spline*,
 or *cubic_spline*.
 
 With either spline method, the only argument that needs to follow it
@@ -58,7 +58,7 @@ as a function of volume. The file must be formatted so each line has:
 Note both the COMMA and the SPACE separating the volume's
 value and its corresponding pressure correction. The volumes in the file
 must be uniformly spaced. Both the volumes and the pressure corrections
-should be provided in the proper units, e.g. if you are using *units real*\ ,
+should be provided in the proper units, e.g. if you are using *units real*,
 the volumes should all be in cubic angstroms, and the pressure corrections
 should all be in atmospheres. Furthermore, the table should start/end at a
 volume considerably smaller/larger than you expect your system to sample
@@ -72,8 +72,41 @@ With the *analytic* option, the arguments are as follows:
    ... analytic V_avg N_particles N_coeff Coeff_1 Coeff_2 ... Coeff_N
 
 Note that *V_avg* and *Coeff_i* should all be in the proper units, e.g. if you
-are using *units real*\ , *V_avg* should be in cubic angstroms, and the
+are using *units real*, *V_avg* should be in cubic angstroms, and the
 coefficients should all be in atmospheres \* cubic angstroms.
+
+----------
+
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+This fix writes the cumulative global energy change to :doc:`binary
+restart files <restart>`.  See the :doc:`read_restart <read_restart>`
+command for info on how to re-specify a fix in an input script that
+reads a restart file, so that the fix continues in an uninterrupted
+fashion.
+
+The :doc:`fix_modify <fix_modify>` *temp* option is supported by this
+fix.  You can use it to assign a temperature :doc:`compute <compute>`
+you have defined to this fix which will be used in its thermostatting
+procedure, as described above.  For consistency, the group used by
+this fix and by the compute should be the same.
+
+The cumulative energy change in the system imposed by this fix is
+included in the :doc:`thermodynamic output <thermo_style>` keywords
+*ecouple* and *econserve*.  See the :doc:`thermo_style <thermo_style>`
+doc page for details.
+
+This fix computes a global scalar which can be accessed by various
+:doc:`output commands <Howto_output>`.  The scalar is the same
+cumulative energy change due to this fix described in the previous
+paragraph.  The scalar value calculated by this fix is "extensive".
+
+This fix can ramp its target temperature over multiple runs, using the
+*start* and *stop* keywords of the :doc:`run <run>` command.  See the
+:doc:`run <run>` command for details of how to do this.
+
+This fix is not invoked during :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
@@ -91,10 +124,11 @@ the examples. For the last argument in the command, you should put
 XXXX_press, where XXXX is the ID given to the fix bocs command (in the
 example, the ID of the fix bocs command is 1 ).
 
-This fix is part of the USER-BOCS package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This fix is part of the BOCS package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
-**Related:**
+Further information
+"""""""""""""""""""
 
 For more details about the pressure correction and the entire BOCS software
 package, visit the `BOCS package on GitHub <bocsgithub_>`_ and read the release

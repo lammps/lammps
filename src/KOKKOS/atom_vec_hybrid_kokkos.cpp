@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,15 +13,16 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_hybrid_kokkos.h"
-#include <cstring>
+
 #include "atom_kokkos.h"
+#include "atom_masks.h"
 #include "domain.h"
-#include "modify.h"
+#include "error.h"
 #include "fix.h"
 #include "memory_kokkos.h"
-#include "error.h"
-#include "atom_masks.h"
-#include "utils.h"
+#include "modify.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -71,8 +73,7 @@ void AtomVecHybridKokkos::process_args(int narg, char **arg)
       if (strcmp(arg[iarg],keywords[i]) == 0)
         error->all(FLERR,"Atom style hybrid cannot use same atom style twice");
     styles[nstyles] = atom->new_avec(arg[iarg],1,dummy);
-    keywords[nstyles] = new char[strlen(arg[iarg])+1];
-    strcpy(keywords[nstyles],arg[iarg]);
+    keywords[nstyles] = utils::strdup(arg[iarg]);
     jarg = iarg + 1;
     while (jarg < narg && !known_style(arg[jarg])) jarg++;
     styles[nstyles]->process_args(jarg-iarg-1,&arg[iarg+1]);
@@ -88,7 +89,7 @@ void AtomVecHybridKokkos::process_args(int narg, char **arg)
   // hybrid settings are MAX or MIN of sub-style settings
   // hybrid sizes are minimal values plus extra values for each sub-style
 
-  molecular = 0;
+  molecular = Atom::ATOMIC;
   comm_x_only = comm_f_only = 1;
 
   size_forward = 3;
@@ -99,8 +100,8 @@ void AtomVecHybridKokkos::process_args(int narg, char **arg)
   xcol_data = 3;
 
   for (int k = 0; k < nstyles; k++) {
-    if ((styles[k]->molecular == 1 && molecular == 2) ||
-        (styles[k]->molecular == 2 && molecular == 1))
+    if ((styles[k]->molecular == Atom::MOLECULAR && molecular == Atom::TEMPLATE) ||
+        (styles[k]->molecular == Atom::TEMPLATE && molecular == Atom::MOLECULAR))
       error->all(FLERR,"Cannot mix molecular and molecule template "
                  "atom styles");
     molecular = MAX(molecular,styles[k]->molecular);
@@ -113,7 +114,7 @@ void AtomVecHybridKokkos::process_args(int narg, char **arg)
     dipole_type = MAX(dipole_type,styles[k]->dipole_type);
     forceclearflag = MAX(forceclearflag,styles[k]->forceclearflag);
 
-    if (styles[k]->molecular == 2) onemols = styles[k]->onemols;
+    if (styles[k]->molecular == Atom::TEMPLATE) onemols = styles[k]->onemols;
 
     comm_x_only = MIN(comm_x_only,styles[k]->comm_x_only);
     comm_f_only = MIN(comm_f_only,styles[k]->comm_f_only);
@@ -252,51 +253,51 @@ void AtomVecHybridKokkos::force_clear(int n, size_t nbytes)
 
 /* ---------------------------------------------------------------------- */
 
-int AtomVecHybridKokkos::pack_comm_kokkos(const int &n, const DAT::tdual_int_2d &k_sendlist,
-                     const int & iswap,
-                     const DAT::tdual_xfloat_2d &buf,
-                     const int &pbc_flag, const int pbc[])
+int AtomVecHybridKokkos::pack_comm_kokkos(const int &/*n*/, const DAT::tdual_int_2d &/*k_sendlist*/,
+                                          const int & /*iswap*/,
+                                          const DAT::tdual_xfloat_2d &/*buf*/,
+                                          const int &/*pbc_flag*/, const int pbc[])
 {
   error->all(FLERR,"AtomVecHybridKokkos doesn't yet support threaded comm");
   return 0;
 }
-void AtomVecHybridKokkos::unpack_comm_kokkos(const int &n, const int &nfirst,
-                        const DAT::tdual_xfloat_2d &buf)
+void AtomVecHybridKokkos::unpack_comm_kokkos(const int &/*n*/, const int &/*nfirst*/,
+                                             const DAT::tdual_xfloat_2d &/*buf*/)
 {
   error->all(FLERR,"AtomVecHybridKokkos doesn't yet support threaded comm");
 }
-int AtomVecHybridKokkos::pack_comm_self(const int &n, const DAT::tdual_int_2d &list,
-                   const int & iswap, const int nfirst,
-                   const int &pbc_flag, const int pbc[])
-{
-  error->all(FLERR,"AtomVecHybridKokkos doesn't yet support threaded comm");
-  return 0;
-}
-int AtomVecHybridKokkos::pack_border_kokkos(int n, DAT::tdual_int_2d k_sendlist,
-                       DAT::tdual_xfloat_2d buf,int iswap,
-                       int pbc_flag, int *pbc, ExecutionSpace space)
+int AtomVecHybridKokkos::pack_comm_self(const int &/*n*/, const DAT::tdual_int_2d &/*list*/,
+                                        const int & /*iswap*/, const int /*nfirst*/,
+                                        const int &/*pbc_flag*/, const int pbc[])
 {
   error->all(FLERR,"AtomVecHybridKokkos doesn't yet support threaded comm");
   return 0;
 }
-void AtomVecHybridKokkos::unpack_border_kokkos(const int &n, const int &nfirst,
-                          const DAT::tdual_xfloat_2d &buf,
-                          ExecutionSpace space)
-{
-  error->all(FLERR,"AtomVecHybridKokkos doesn't yet support threaded comm");
-}
-int AtomVecHybridKokkos::pack_exchange_kokkos(const int &nsend,DAT::tdual_xfloat_2d &buf,
-                         DAT::tdual_int_1d k_sendlist,
-                         DAT::tdual_int_1d k_copylist,
-                         ExecutionSpace space, int dim,
-                         X_FLOAT lo, X_FLOAT hi)
+int AtomVecHybridKokkos::pack_border_kokkos(int /*n*/, DAT::tdual_int_2d /*k_sendlist*/,
+                                            DAT::tdual_xfloat_2d /*buf*/,int /*iswap*/,
+                                            int /*pbc_flag*/, int * /*pbc*/, ExecutionSpace /*space*/)
 {
   error->all(FLERR,"AtomVecHybridKokkos doesn't yet support threaded comm");
   return 0;
 }
-int AtomVecHybridKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf, int nrecv,
-                           int nlocal, int dim, X_FLOAT lo, X_FLOAT hi,
-                           ExecutionSpace space)
+void AtomVecHybridKokkos::unpack_border_kokkos(const int &/*n*/, const int &/*nfirst*/,
+                                               const DAT::tdual_xfloat_2d &/*buf*/,
+                                               ExecutionSpace /*space*/)
+{
+  error->all(FLERR,"AtomVecHybridKokkos doesn't yet support threaded comm");
+}
+int AtomVecHybridKokkos::pack_exchange_kokkos(const int &/*nsend*/,DAT::tdual_xfloat_2d &/*buf*/,
+                                              DAT::tdual_int_1d /*k_sendlist*/,
+                                              DAT::tdual_int_1d /*k_copylist*/,
+                                              ExecutionSpace /*space*/, int /*dim*/,
+                                              X_FLOAT /*lo*/, X_FLOAT /*hi*/)
+{
+  error->all(FLERR,"AtomVecHybridKokkos doesn't yet support threaded comm");
+  return 0;
+}
+int AtomVecHybridKokkos::unpack_exchange_kokkos(DAT::tdual_xfloat_2d & /*k_buf*/, int /*nrecv*/,
+                                                int /*nlocal*/, int /*dim*/, X_FLOAT /*lo*/,
+                                                X_FLOAT /*hi*/, ExecutionSpace /*space*/)
 {
   error->all(FLERR,"AtomVecHybridKokkos doesn't yet support threaded comm");
   return 0;
@@ -731,8 +732,9 @@ void AtomVecHybridKokkos::unpack_border(int n, int first, double *buf)
 
   m = 0;
   last = first + n;
+  while (last > nmax) grow(0);
+
   for (i = first; i < last; i++) {
-    if (i == nmax) grow(0);
     h_x(i,0) = buf[m++];
     h_x(i,1) = buf[m++];
     h_x(i,2) = buf[m++];
@@ -764,8 +766,9 @@ void AtomVecHybridKokkos::unpack_border_vel(int n, int first, double *buf)
 
   m = 0;
   last = first + n;
+  while (last > nmax) grow(0);
+
   for (i = first; i < last; i++) {
-    if (i == nmax) grow(0);
     h_x(i,0) = buf[m++];
     h_x(i,1) = buf[m++];
     h_x(i,2) = buf[m++];
@@ -967,7 +970,8 @@ void AtomVecHybridKokkos::create_atom(int itype, double *coord)
    grow() occurs here so arrays for all sub-styles are grown
 ------------------------------------------------------------------------- */
 
-void AtomVecHybridKokkos::data_atom(double *coord, imageint imagetmp, char **values)
+void AtomVecHybridKokkos::data_atom(double *coord, imageint imagetmp,
+                                    const std::vector<std::string> &values)
 {
   atomKK->sync(Host,X_MASK|TAG_MASK|TYPE_MASK|IMAGE_MASK|MASK_MASK|V_MASK|OMEGA_MASK/*|ANGMOM_MASK*/);
 
@@ -1006,7 +1010,7 @@ void AtomVecHybridKokkos::data_atom(double *coord, imageint imagetmp, char **val
 
   int m = 5;
   for (int k = 0; k < nstyles; k++)
-    m += styles[k]->data_atom_hybrid(nlocal,&values[m]);
+    m += styles[k]->data_atom_hybrid(nlocal,values,m);
 
   atom->nlocal++;
 }
@@ -1015,21 +1019,21 @@ void AtomVecHybridKokkos::data_atom(double *coord, imageint imagetmp, char **val
    unpack one line from Velocities section of data file
 ------------------------------------------------------------------------- */
 
-void AtomVecHybridKokkos::data_vel(int m, char **values)
+void AtomVecHybridKokkos::data_vel(int m, const std::vector<std::string> &values)
 {
   atomKK->sync(Host,V_MASK);
 
-  h_v(m,0) = utils::numeric(FLERR,values[0],true,lmp);
-  h_v(m,1) = utils::numeric(FLERR,values[1],true,lmp);
-  h_v(m,2) = utils::numeric(FLERR,values[2],true,lmp);
+  int ivalue = 1;
+  h_v(m,0) = utils::numeric(FLERR,values[ivalue++],true,lmp);
+  h_v(m,1) = utils::numeric(FLERR,values[ivalue++],true,lmp);
+  h_v(m,2) = utils::numeric(FLERR,values[ivalue++],true,lmp);
 
   atomKK->modified(Host,V_MASK);
 
   // each sub-style parses sub-style specific values
 
-  int n = 3;
   for (int k = 0; k < nstyles; k++)
-    n += styles[k]->data_vel_hybrid(m,&values[n]);
+    ivalue += styles[k]->data_vel_hybrid(m,values,ivalue);
 }
 
 /* ----------------------------------------------------------------------
@@ -1169,15 +1173,12 @@ void AtomVecHybridKokkos::build_styles()
 
   allstyles = new char*[nallstyles];
 
-  int n;
   nallstyles = 0;
 #define ATOM_CLASS
-#define AtomStyle(key,Class)                \
-  n = strlen(#key) + 1;                     \
-  allstyles[nallstyles] = new char[n];      \
-  strcpy(allstyles[nallstyles],#key);       \
+#define AtomStyle(key,Class)                   \
+  allstyles[nallstyles] = utils::strdup(#key); \
   nallstyles++;
-#include "style_atom.h"
+#include "style_atom.h"         // IWYU pragma: keep
 #undef AtomStyle
 #undef ATOM_CLASS
 }
@@ -1197,9 +1198,9 @@ int AtomVecHybridKokkos::known_style(char *str)
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-bigint AtomVecHybridKokkos::memory_usage()
+double AtomVecHybridKokkos::memory_usage()
 {
-  bigint bytes = 0;
+  double bytes = 0;
   for (int k = 0; k < nstyles; k++) bytes += styles[k]->memory_usage();
   return bytes;
 }

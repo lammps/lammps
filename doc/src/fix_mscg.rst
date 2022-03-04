@@ -93,8 +93,8 @@ for more info.
 ----------
 
 The *range* keyword specifies which MS-CG library functionality should
-be invoked. If *on*\ , the step 4 range finder functionality is invoked.
-*off*\ , the step 5 force matching functionality is invoked.
+be invoked. If *on*, the step 4 range finder functionality is invoked.
+*off*, the step 5 force matching functionality is invoked.
 
 If the *name* keyword is used, string names are defined to associate
 with the integer atom types in LAMMPS.  *Ntype* names must be
@@ -118,7 +118,11 @@ Currently, the MS-CG library is not setup to run in parallel with MPI,
 so this fix can only be used in a serial LAMMPS build and run
 on a single processor.
 
-**Related commands:** none
+Related commands
+""""""""""""""""
+
+none
+
 
 Default
 """""""

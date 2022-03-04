@@ -15,7 +15,7 @@ else
 COLVARS_DEBUG_INCFLAGS = -DCOLVARS_DEBUG
 endif
 
-COLVARS_INCFLAGS = $(COLVARS_DEBUG_INCFLAGS) $(COLVARS_PYTHON_INCFLAGS)
+COLVARS_INCFLAGS = -DCOLVARS_LAMMPS $(COLVARS_DEBUG_INCFLAGS) $(COLVARS_PYTHON_INCFLAGS) -I../../src
 
 
 .SUFFIXES:
@@ -30,6 +30,7 @@ COLVARS_SRCS = \
         colvarbias_histogram.cpp \
         colvarbias_meta.cpp \
         colvarbias_restraint.cpp \
+        colvarcomp_alchlambda.cpp \
         colvarcomp_angles.cpp \
         colvarcomp_apath.cpp \
         colvarcomp_coordnums.cpp \
@@ -38,6 +39,7 @@ COLVARS_SRCS = \
         colvarcomp_gpath.cpp \
         colvarcomp_protein.cpp \
         colvarcomp_rotations.cpp \
+        colvarcomp_volmaps.cpp \
         colvar.cpp \
         colvardeps.cpp \
         colvargrid.cpp \
@@ -46,7 +48,12 @@ COLVARS_SRCS = \
         colvarparse.cpp \
         colvarproxy.cpp \
         colvarproxy_replicas.cpp \
+        colvarproxy_tcl.cpp \
+        colvarproxy_volmaps.cpp \
         colvarscript.cpp \
+        colvarscript_commands.cpp \
+        colvarscript_commands_bias.cpp \
+        colvarscript_commands_colvar.cpp \
         colvartypes.cpp \
         colvarvalue.cpp
 
@@ -61,7 +68,7 @@ ifeq ($(COLVARS_LEPTON),no)
 LEPTON_INCFLAGS = 
 COLVARS_OBJS = $(COLVARS_SRCS:.cpp=.o)
 else
-LEPTON_INCFLAGS = -Ilepton/include -DLEPTON -DLEPTON_USE_STATIC_LIBRARIES
+LEPTON_INCFLAGS = -Ilepton/include -DLEPTON
 COLVARS_OBJS = $(COLVARS_SRCS:.cpp=.o) $(LEPTON_SRCS:.cpp=.o)
 endif
 
@@ -77,25 +84,9 @@ Makefile.deps: $(COLVARS_SRCS)
 	@echo > $@
 	@for src in $^ ; do \
 	  obj=`basename $$src .cpp`.o ; \
-	  $(CXX) -MM $(COLVARS_INCFLAGS)  $(LEPTON_INCFLAGS) \
+	  $(CXX) $(CXXFLAGS) -MM $(COLVARS_INCFLAGS)  $(LEPTON_INCFLAGS) \
 	    -MT '$$(COLVARS_OBJ_DIR)'$$obj $$src >> $@ ; \
 	  done
 
 include Makefile.deps
-
-# Exceptions to pattern rule above for Lepton objects
-
-lepton/src/CompiledExpression.o: lepton/src/CompiledExpression.cpp
-	$(CXX) $(CXXFLAGS) -Ilepton/include -DLEPTON_BUILDING_STATIC_LIBRARY -c -o $@ $<
-lepton/src/ExpressionProgram.o: lepton/src/ExpressionProgram.cpp
-	$(CXX) $(CXXFLAGS) -Ilepton/include -DLEPTON_BUILDING_STATIC_LIBRARY -c -o $@ $<
-lepton/src/ExpressionTreeNode.o: lepton/src/ExpressionTreeNode.cpp
-	$(CXX) $(CXXFLAGS) -Ilepton/include -DLEPTON_BUILDING_STATIC_LIBRARY -c -o $@ $<
-lepton/src/Operation.o: lepton/src/Operation.cpp
-	$(CXX) $(CXXFLAGS) -Ilepton/include -DLEPTON_BUILDING_STATIC_LIBRARY -c -o $@ $<
-lepton/src/ParsedExpression.o: lepton/src/ParsedExpression.cpp
-	$(CXX) $(CXXFLAGS) -Ilepton/include -DLEPTON_BUILDING_STATIC_LIBRARY -c -o $@ $<
-lepton/src/Parser.o: lepton/src/Parser.cpp
-	$(CXX) $(CXXFLAGS) -Ilepton/include -DLEPTON_BUILDING_STATIC_LIBRARY -c -o $@ $<
-
 include Makefile.lepton.deps # Hand-generated

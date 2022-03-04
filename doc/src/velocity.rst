@@ -92,30 +92,30 @@ velocity field.
 The *scale* style computes the current temperature of the group of
 atoms and then rescales the velocities to the specified temperature.
 
-The *ramp* style is similar to that used by the :doc:`compute temp/ramp <compute_temp_ramp>` command.  Velocities ramped
-uniformly from vlo to vhi are applied to dimension vx, or vy, or vz.
-The value assigned to a particular atom depends on its relative
-coordinate value (in dim) from clo to chi.  For the example above, an
-atom with y-coordinate of 10 (1/4 of the way from 5 to 25), would be
-assigned a x-velocity of 1.25 (1/4 of the way from 0.0 to 5.0).  Atoms
-outside the coordinate bounds (less than 5 or greater than 25 in this
-case), are assigned velocities equal to vlo or vhi (0.0 or 5.0 in this
-case).
+The *ramp* style is similar to that used by the :doc:`compute
+temp/ramp <compute_temp_ramp>` command.  Velocities ramped uniformly
+from vlo to vhi are applied to dimension vx, or vy, or vz.  The value
+assigned to a particular atom depends on its relative coordinate value
+(in dim) from clo to chi.  For the example above, an atom with
+y-coordinate of 10 (1/4 of the way from 5 to 25), would be assigned a
+x-velocity of 1.25 (1/4 of the way from 0.0 to 5.0).  Atoms outside
+the coordinate bounds (less than 5 or greater than 25 in this case),
+are assigned velocities equal to vlo or vhi (0.0 or 5.0 in this case).
 
 The *zero* style adjusts the velocities of the group of atoms so that
 the aggregate linear or angular momentum is zero.  No other changes
 are made to the velocities of the atoms.  If the *rigid* option is
 specified (see below), then the zeroing is performed on individual
-rigid bodies, as defined by the :doc:`fix rigid or fix rigid/small <fix_rigid>` commands.  In other words, zero linear
-will set the linear momentum of each rigid body to zero, and zero
-angular will set the angular momentum of each rigid body to zero.
-This is done by adjusting the velocities of the atoms in each rigid
-body.
+rigid bodies, as defined by the :doc:`fix rigid or fix rigid/small
+<fix_rigid>` commands.  In other words, zero linear will set the
+linear momentum of each rigid body to zero, and zero angular will set
+the angular momentum of each rigid body to zero.  This is done by
+adjusting the velocities of the atoms in each rigid body.
 
 All temperatures specified in the velocity command are in temperature
 units; see the :doc:`units <units>` command.  The units of velocities and
 coordinates depend on whether the *units* keyword is set to *box* or
-*lattice*\ , as discussed below.
+*lattice*, as discussed below.
 
 For all styles, no atoms are assigned z-component velocities if the
 simulation is 2d; see the :doc:`dimension <dimension>` command.
@@ -161,12 +161,12 @@ appropriate fix command must be specified before the velocity command
 is issued.
 
 The *bias* keyword with a *yes* setting is used by *create* and
-*scale*\ , but only if the *temp* keyword is also used to specify a
+*scale*, but only if the *temp* keyword is also used to specify a
 :doc:`compute <compute>` that calculates temperature in a desired way.
 If the temperature compute also calculates a velocity bias, the
 bias is subtracted from atom velocities before the *create* and
 *scale* operations are performed.  After the operations, the bias is
-added back to the atom velocities.  See the :doc:`Howto thermostat <Howto_thermostat>` doc page for more discussion of
+added back to the atom velocities.  See the :doc:`Howto thermostat <Howto_thermostat>` page for more discussion of
 temperature computes with biases.  Note that the velocity bias is only
 applied to atoms in the temperature compute specified with the *temp*
 keyword.

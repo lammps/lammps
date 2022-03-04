@@ -47,9 +47,8 @@
 #include <Kokkos_Core.hpp>
 
 #if !defined(KOKKOS_ENABLE_CUDA) || defined(__CUDACC__)
-#if !defined(KOKKOS_ENABLE_ROCM)
 
-#include <default/TestDefaultDeviceType_Category.hpp>
+#include <TestDefaultDeviceType_Category.hpp>
 #include <TestReduceCombinatorical.hpp>
 
 namespace Test {
@@ -60,5 +59,4 @@ TEST(defaultdevicetype, reduce_instantiation_c3) {
 
 }  // namespace Test
 
-#endif
 #endif

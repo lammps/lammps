@@ -75,7 +75,7 @@ uint32_t fmix32(uint32_t h) {
 
 KOKKOS_INLINE_FUNCTION
 uint32_t MurmurHash3_x86_32(const void* key, int len, uint32_t seed) {
-  const uint8_t* data = (const uint8_t*)key;
+  const uint8_t* data = static_cast<const uint8_t*>(key);
   const int nblocks   = len / 4;
 
   uint32_t h1 = seed;
@@ -140,10 +140,10 @@ uint32_t MurmurHash3_x86_32(const void* key, int len, uint32_t seed) {
 template <typename T>
 KOKKOS_FORCEINLINE_FUNCTION bool bitwise_equal(T const* const a_ptr,
                                                T const* const b_ptr) {
-  typedef uint64_t KOKKOS_IMPL_MAY_ALIAS T64;
-  typedef uint32_t KOKKOS_IMPL_MAY_ALIAS T32;
-  typedef uint16_t KOKKOS_IMPL_MAY_ALIAS T16;
-  typedef uint8_t KOKKOS_IMPL_MAY_ALIAS T8;
+  typedef uint64_t KOKKOS_IMPL_MAY_ALIAS T64;  // NOLINT(modernize-use-using)
+  typedef uint32_t KOKKOS_IMPL_MAY_ALIAS T32;  // NOLINT(modernize-use-using)
+  typedef uint16_t KOKKOS_IMPL_MAY_ALIAS T16;  // NOLINT(modernize-use-using)
+  typedef uint8_t KOKKOS_IMPL_MAY_ALIAS T8;    // NOLINT(modernize-use-using)
 
   enum {
     NUM_8  = sizeof(T),

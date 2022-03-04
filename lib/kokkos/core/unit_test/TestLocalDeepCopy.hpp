@@ -68,8 +68,8 @@ void impl_test_local_deepcopy_teampolicy_rank_1(const int N) {
       Kokkos::subview(A, 1, 1, 1, 1, 1, 1, Kokkos::ALL(), Kokkos::ALL());
   Kokkos::deep_copy(subA, 10.0);
 
-  typedef Kokkos::TeamPolicy<ExecSpace> team_policy;
-  typedef typename Kokkos::TeamPolicy<ExecSpace>::member_type member_type;
+  using team_policy = Kokkos::TeamPolicy<ExecSpace>;
+  using member_type = typename Kokkos::TeamPolicy<ExecSpace>::member_type;
 
   // Deep Copy
   Kokkos::parallel_for(
@@ -130,8 +130,8 @@ void impl_test_local_deepcopy_teampolicy_rank_2(const int N) {
                               Kokkos::ALL());
   Kokkos::deep_copy(subA, 10.0);
 
-  typedef Kokkos::TeamPolicy<ExecSpace> team_policy;
-  typedef typename Kokkos::TeamPolicy<ExecSpace>::member_type member_type;
+  using team_policy = Kokkos::TeamPolicy<ExecSpace>;
+  using member_type = typename Kokkos::TeamPolicy<ExecSpace>::member_type;
 
   // Deep Copy
   Kokkos::parallel_for(
@@ -195,8 +195,8 @@ void impl_test_local_deepcopy_teampolicy_rank_3(const int N) {
                               Kokkos::ALL(), Kokkos::ALL());
   Kokkos::deep_copy(subA, 10.0);
 
-  typedef Kokkos::TeamPolicy<ExecSpace> team_policy;
-  typedef typename Kokkos::TeamPolicy<ExecSpace>::member_type member_type;
+  using team_policy = Kokkos::TeamPolicy<ExecSpace>;
+  using member_type = typename Kokkos::TeamPolicy<ExecSpace>::member_type;
 
   // Deep Copy
   Kokkos::parallel_for(
@@ -260,8 +260,8 @@ void impl_test_local_deepcopy_teampolicy_rank_4(const int N) {
                               Kokkos::ALL(), Kokkos::ALL(), Kokkos::ALL());
   Kokkos::deep_copy(subA, 10.0);
 
-  typedef Kokkos::TeamPolicy<ExecSpace> team_policy;
-  typedef typename Kokkos::TeamPolicy<ExecSpace>::member_type member_type;
+  using team_policy = Kokkos::TeamPolicy<ExecSpace>;
+  using member_type = typename Kokkos::TeamPolicy<ExecSpace>::member_type;
 
   // Deep Copy
   Kokkos::parallel_for(
@@ -329,8 +329,8 @@ void impl_test_local_deepcopy_teampolicy_rank_5(const int N) {
                       Kokkos::ALL(), Kokkos::ALL(), Kokkos::ALL());
   Kokkos::deep_copy(subA, 10.0);
 
-  typedef Kokkos::TeamPolicy<ExecSpace> team_policy;
-  typedef typename Kokkos::TeamPolicy<ExecSpace>::member_type member_type;
+  using team_policy = Kokkos::TeamPolicy<ExecSpace>;
+  using member_type = typename Kokkos::TeamPolicy<ExecSpace>::member_type;
 
   // Deep Copy
   Kokkos::parallel_for(
@@ -398,8 +398,8 @@ void impl_test_local_deepcopy_teampolicy_rank_6(const int N) {
                               Kokkos::ALL());
   Kokkos::deep_copy(subA, 10.0);
 
-  typedef Kokkos::TeamPolicy<ExecSpace> team_policy;
-  typedef typename Kokkos::TeamPolicy<ExecSpace>::member_type member_type;
+  using team_policy = Kokkos::TeamPolicy<ExecSpace>;
+  using member_type = typename Kokkos::TeamPolicy<ExecSpace>::member_type;
 
   // Deep Copy
   Kokkos::parallel_for(
@@ -464,8 +464,8 @@ void impl_test_local_deepcopy_teampolicy_rank_7(const int N) {
   // Initialize A matrix.
   Kokkos::deep_copy(A, 10.0);
 
-  typedef Kokkos::TeamPolicy<ExecSpace> team_policy;
-  typedef typename Kokkos::TeamPolicy<ExecSpace>::member_type member_type;
+  using team_policy = Kokkos::TeamPolicy<ExecSpace>;
+  using member_type = typename Kokkos::TeamPolicy<ExecSpace>::member_type;
 
   // Deep Copy
   Kokkos::parallel_for(
@@ -935,8 +935,8 @@ void impl_test_local_deepcopy_rangepolicy_rank_7(const int N) {
 
 #if defined(KOKKOS_ENABLE_CXX11_DISPATCH_LAMBDA)
 TEST(TEST_CATEGORY, local_deepcopy_teampolicy_layoutleft) {
-  typedef TEST_EXECSPACE ExecSpace;
-  typedef Kokkos::View<double********, Kokkos::LayoutLeft, ExecSpace> ViewType;
+  using ExecSpace = TEST_EXECSPACE;
+  using ViewType  = Kokkos::View<double********, Kokkos::LayoutLeft, ExecSpace>;
 
   {  // Rank-1
     impl_test_local_deepcopy_teampolicy_rank_1<ExecSpace, ViewType>(8);
@@ -962,8 +962,8 @@ TEST(TEST_CATEGORY, local_deepcopy_teampolicy_layoutleft) {
 }
 //-------------------------------------------------------------------------------------------------------------
 TEST(TEST_CATEGORY, local_deepcopy_rangepolicy_layoutleft) {
-  typedef TEST_EXECSPACE ExecSpace;
-  typedef Kokkos::View<double********, Kokkos::LayoutLeft, ExecSpace> ViewType;
+  using ExecSpace = TEST_EXECSPACE;
+  using ViewType  = Kokkos::View<double********, Kokkos::LayoutLeft, ExecSpace>;
 
   {  // Rank-1
     impl_test_local_deepcopy_rangepolicy_rank_1<ExecSpace, ViewType>(8);
@@ -989,8 +989,8 @@ TEST(TEST_CATEGORY, local_deepcopy_rangepolicy_layoutleft) {
 }
 //-------------------------------------------------------------------------------------------------------------
 TEST(TEST_CATEGORY, local_deepcopy_teampolicy_layoutright) {
-  typedef TEST_EXECSPACE ExecSpace;
-  typedef Kokkos::View<double********, Kokkos::LayoutRight, ExecSpace> ViewType;
+  using ExecSpace = TEST_EXECSPACE;
+  using ViewType = Kokkos::View<double********, Kokkos::LayoutRight, ExecSpace>;
 
   {  // Rank-1
     impl_test_local_deepcopy_teampolicy_rank_1<ExecSpace, ViewType>(8);
@@ -1016,8 +1016,8 @@ TEST(TEST_CATEGORY, local_deepcopy_teampolicy_layoutright) {
 }
 //-------------------------------------------------------------------------------------------------------------
 TEST(TEST_CATEGORY, local_deepcopy_rangepolicy_layoutright) {
-  typedef TEST_EXECSPACE ExecSpace;
-  typedef Kokkos::View<double********, Kokkos::LayoutRight, ExecSpace> ViewType;
+  using ExecSpace = TEST_EXECSPACE;
+  using ViewType = Kokkos::View<double********, Kokkos::LayoutRight, ExecSpace>;
 
   {  // Rank-1
     impl_test_local_deepcopy_rangepolicy_rank_1<ExecSpace, ViewType>(8);

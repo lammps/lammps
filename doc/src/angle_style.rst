@@ -66,7 +66,7 @@ specified by the associated :doc:`angle_coeff <angle_coeff>` command.
 
 There are also additional accelerated pair styles included in the
 LAMMPS distribution for faster performance on CPUs, GPUs, and KNLs.
-The individual style names on the :ref:`Commands angle <angle>` doc page are followed by one or more
+The individual style names on the :ref:`Commands angle <angle>` page are followed by one or more
 of (g,i,k,o,t) to indicate which accelerated styles exist.
 
 * :doc:`none <angle_none>` - turn off angle interactions
@@ -87,6 +87,7 @@ of (g,i,k,o,t) to indicate which accelerated styles exist.
 * :doc:`dipole <angle_dipole>` - angle that controls orientation of a point dipole
 * :doc:`fourier <angle_fourier>` - angle with multiple cosine terms
 * :doc:`fourier/simple <angle_fourier_simple>` - angle with a single cosine term
+* :doc:`gaussian <angle_gaussian>` - multicentered Gaussian-based angle potential
 * :doc:`harmonic <angle_harmonic>` - harmonic angle
 * :doc:`mm3 <angle_mm3>` - anharmonic angle
 * :doc:`quartic <angle_quartic>` - angle with cubic and quartic terms
@@ -102,7 +103,7 @@ Angle styles can only be set for atom_styles that allow angles to be
 defined.
 
 Most angle styles are part of the MOLECULE package.  They are only
-enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.  The doc pages for
+enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.  The doc pages for
 individual bond potentials tell if it is part of a package.
 
 Related commands

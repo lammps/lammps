@@ -1,6 +1,6 @@
 # /* ----------------------------------------------------------------------
 #  Generic Linux Makefile for HIP
-#     - export HIP_PLATFORM=hcc (or nvcc) before execution
+#     - export HIP_PLATFORM=amd (or nvcc) before execution
 #     - change HIP_ARCH for your GPU
 # ------------------------------------------------------------------------- */
 
@@ -17,7 +17,7 @@ LMP_INC = -DLAMMPS_SMALLBIG
 HIP_PRECISION = -D_SINGLE_DOUBLE
 
 HIP_OPTS = -O3
-HIP_HOST_OPTS = -Wno-deprecated-declarations
+HIP_HOST_OPTS = -Wno-deprecated-declarations -fopenmp
 HIP_HOST_INCLUDE =
 
 # use device sort
@@ -33,13 +33,15 @@ HIP_HOST_OPTS += -DMPI_GERYON -DUCL_NO_EXIT
 # this settings should match LAMMPS Makefile
 MPI_COMP_OPTS = $(shell mpicxx --showme:compile)
 MPI_LINK_OPTS = $(shell mpicxx --showme:link)
-#MPI_COMP_OPTS += -I/usr/include/mpi  -DMPICH_IGNORE_CXX_SEEK -DOMPI_SKIP_MPICXX=1
 
 HIP_PATH ?= $(wildcard /opt/rocm/hip)
-HIP_PLATFORM=$(shell $(HIP_PATH)/bin/hipconfig --compiler)
+HIP_PLATFORM=$(shell $(HIP_PATH)/bin/hipconfig --platform)
+HIP_COMPILER=$(shell $(HIP_PATH)/bin/hipconfig --compiler)
 
 ifeq (hcc,$(HIP_PLATFORM))
-	HIP_OPTS  += -ffast-math
+	# possible values: gfx803,gfx900,gfx906
+	HIP_ARCH = gfx906
+else ifeq (amd,$(HIP_PLATFORM))
 	# possible values: gfx803,gfx900,gfx906
 	HIP_ARCH = gfx906
 else ifeq (nvcc,$(HIP_PLATFORM))
@@ -48,8 +50,6 @@ else ifeq (nvcc,$(HIP_PLATFORM))
 		    -gencode arch=compute_50,code=[sm_50,compute_50] -gencode arch=compute_52,code=[sm_52,compute_52] -gencode arch=compute_53,code=[sm_53,compute_53]\
 			-gencode arch=compute_60,code=[sm_60,compute_60] -gencode arch=compute_61,code=[sm_61,compute_61] -gencode arch=compute_62,code=[sm_62,compute_62]\
 			-gencode arch=compute_70,code=[sm_70,compute_70] -gencode arch=compute_72,code=[sm_72,compute_72] -gencode arch=compute_75,code=[sm_75,compute_75]
-else
-	$(error Specify HIP platform using 'export HIP_PLATFORM=(hcc,nvcc)')
 endif
 
 BIN_DIR = .
@@ -66,7 +66,15 @@ BSH = /bin/sh
 HIP_OPTS += -DUSE_HIP $(HIP_PRECISION)
 HIP_GPU_OPTS += $(HIP_OPTS) -I./
 
-ifeq (hcc,$(HIP_PLATFORM))
+ifeq (clang,$(HIP_COMPILER))
+	HIP_HOST_OPTS += -fPIC
+	HIP_GPU_CC  = $(HIP_PATH)/bin/hipcc --genco
+	HIP_GPU_OPTS_S = --offload-arch=$(HIP_ARCH)
+	HIP_GPU_OPTS_E =
+	HIP_KERNEL_SUFFIX = .cpp
+	HIP_LIBS_TARGET = export HCC_AMDGPU_TARGET := $(HIP_ARCH)
+	export HCC_AMDGPU_TARGET := $(HIP_ARCH)
+else ifeq (hcc,$(HIP_COMPILER))
 	HIP_HOST_OPTS += -fPIC
 	HIP_GPU_CC  = $(HIP_PATH)/bin/hipcc --genco
 	HIP_GPU_OPTS_S = -t="$(HIP_ARCH)" -f=\"

@@ -57,7 +57,7 @@ namespace Kokkos {
 namespace Impl {
 template <class RowOffsetsType, class RowBlockOffsetsType>
 struct StaticCrsGraphBalancerFunctor {
-  typedef typename RowOffsetsType::non_const_value_type int_type;
+  using int_type = typename RowOffsetsType::non_const_value_type;
   RowOffsetsType row_offsets;
   RowBlockOffsetsType row_block_offsets;
 
@@ -148,7 +148,7 @@ struct StaticCrsGraphBalancerFunctor {
 ///
 /// Here is an example loop over the entries in the row:
 /// \code
-/// typedef typename GraphRowViewConst<MatrixType>::ordinal_type ordinal_type;
+/// using ordinal_type = typename GraphRowViewConst<MatrixType>::ordinal_type;
 ///
 /// GraphRowView<GraphType> G_i = ...;
 /// const ordinal_type numEntries = G_i.length;
@@ -159,7 +159,7 @@ struct StaticCrsGraphBalancerFunctor {
 /// \endcode
 ///
 /// GraphType must provide the \c data_type
-/// typedefs. In addition, it must make sense to use GraphRowViewConst to
+/// aliases. In addition, it must make sense to use GraphRowViewConst to
 /// view a row of GraphType. In particular, column
 /// indices of a row must be accessible using the <tt>entries</tt>
 /// resp. <tt>colidx</tt> arrays given to the constructor of this
@@ -170,7 +170,7 @@ struct StaticCrsGraphBalancerFunctor {
 template <class GraphType>
 struct GraphRowViewConst {
   //! The type of the column indices in the row.
-  typedef const typename GraphType::data_type ordinal_type;
+  using ordinal_type = const typename GraphType::data_type;
 
  private:
   //! Array of (local) column indices in the row.
@@ -279,49 +279,33 @@ struct GraphRowViewConst {
 /// <li> <tt> entries( row_map[i0] + i1 , i2 , i3 , ... ); </tt> </li>
 /// </ul>
 template <class DataType, class Arg1Type, class Arg2Type = void,
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-          typename SizeType =
-              typename ViewTraits<DataType*, Arg1Type, Arg2Type>::size_type,
-          class Arg3Type = void>
-#else
           class Arg3Type    = void,
           typename SizeType = typename ViewTraits<DataType*, Arg1Type, Arg2Type,
                                                   Arg3Type>::size_type>
-#endif
 class StaticCrsGraph {
  private:
-  typedef ViewTraits<DataType*, Arg1Type, Arg2Type, Arg3Type> traits;
+  using traits = ViewTraits<DataType*, Arg1Type, Arg2Type, Arg3Type>;
 
  public:
-  typedef DataType data_type;
-  typedef typename traits::array_layout array_layout;
-  typedef typename traits::execution_space execution_space;
-  typedef typename traits::device_type device_type;
-  typedef typename traits::memory_traits memory_traits;
-  typedef SizeType size_type;
+  using data_type       = DataType;
+  using array_layout    = typename traits::array_layout;
+  using execution_space = typename traits::execution_space;
+  using device_type     = typename traits::device_type;
+  using memory_traits   = typename traits::memory_traits;
+  using size_type       = SizeType;
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  typedef StaticCrsGraph<DataType, Arg1Type, Arg2Type, SizeType, Arg3Type>
-      staticcrsgraph_type;
-  typedef StaticCrsGraph<data_type, array_layout,
-                         typename traits::host_mirror_space, size_type,
-                         memory_traits>
-      HostMirror;
-#else
-  typedef StaticCrsGraph<DataType, Arg1Type, Arg2Type, Arg3Type, SizeType>
-      staticcrsgraph_type;
-  typedef StaticCrsGraph<data_type, array_layout,
-                         typename traits::host_mirror_space, memory_traits,
-                         size_type>
-      HostMirror;
-#endif
+  using staticcrsgraph_type =
+      StaticCrsGraph<DataType, Arg1Type, Arg2Type, Arg3Type, SizeType>;
+  using HostMirror = StaticCrsGraph<data_type, array_layout,
+                                    typename traits::host_mirror_space,
+                                    memory_traits, size_type>;
 
-  typedef View<const size_type*, array_layout, device_type, memory_traits>
-      row_map_type;
-  typedef View<data_type*, array_layout, device_type, memory_traits>
-      entries_type;
-  typedef View<const size_type*, array_layout, device_type, memory_traits>
-      row_block_type;
+  using row_map_type =
+      View<const size_type*, array_layout, device_type, memory_traits>;
+  using entries_type =
+      View<data_type*, array_layout, device_type, memory_traits>;
+  using row_block_type =
+      View<const size_type*, array_layout, device_type, memory_traits>;
 
   entries_type entries;
   row_map_type row_map;
@@ -368,6 +352,10 @@ class StaticCrsGraph {
     return (row_map.extent(0) != 0)
                ? row_map.extent(0) - static_cast<size_type>(1)
                : static_cast<size_type>(0);
+  }
+
+  KOKKOS_INLINE_FUNCTION constexpr bool is_allocated() const {
+    return (row_map.is_allocated() && entries.is_allocated());
   }
 
   /// \brief Return a const view of row i of the graph.
@@ -417,7 +405,9 @@ class StaticCrsGraph {
     Kokkos::parallel_for("Kokkos::StaticCrsGraph::create_block_partitioning",
                          Kokkos::RangePolicy<execution_space>(0, numRows()),
                          partitioner);
-    typename device_type::execution_space().fence();
+    typename device_type::execution_space().fence(
+        "Kokkos::StaticCrsGraph::create_block_partitioning:: fence after "
+        "partition");
 
     row_block_offsets = block_offsets;
   }
@@ -436,35 +426,19 @@ typename StaticCrsGraphType::staticcrsgraph_type create_staticcrsgraph(
 
 //----------------------------------------------------------------------------
 
-template <class DataType, class Arg1Type, class Arg2Type,
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-          typename SizeType, class Arg3Type>
-typename StaticCrsGraph<DataType, Arg1Type, Arg2Type, SizeType,
-                        Arg3Type>::HostMirror
-create_mirror_view(const StaticCrsGraph<DataType, Arg1Type, Arg2Type, SizeType,
-                                        Arg3Type>& input);
-#else
-          class Arg3Type, typename SizeType>
+template <class DataType, class Arg1Type, class Arg2Type, class Arg3Type,
+          typename SizeType>
 typename StaticCrsGraph<DataType, Arg1Type, Arg2Type, Arg3Type,
                         SizeType>::HostMirror
 create_mirror_view(const StaticCrsGraph<DataType, Arg1Type, Arg2Type, Arg3Type,
                                         SizeType>& input);
-#endif
 
-template <class DataType, class Arg1Type, class Arg2Type,
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-          typename SizeType, class Arg3Type>
-typename StaticCrsGraph<DataType, Arg1Type, Arg2Type, SizeType,
-                        Arg3Type>::HostMirror
-create_mirror_view(const StaticCrsGraph<DataType, Arg1Type, Arg2Type, SizeType,
-                                        Arg3Type>& input);
-#else
-          class Arg3Type, typename SizeType>
+template <class DataType, class Arg1Type, class Arg2Type, class Arg3Type,
+          typename SizeType>
 typename StaticCrsGraph<DataType, Arg1Type, Arg2Type, Arg3Type,
                         SizeType>::HostMirror
 create_mirror(const StaticCrsGraph<DataType, Arg1Type, Arg2Type, Arg3Type,
                                    SizeType>& input);
-#endif
 
 }  // namespace Kokkos
 
@@ -481,8 +455,8 @@ namespace Impl {
 
 template <class GraphType>
 struct StaticCrsGraphMaximumEntry {
-  typedef typename GraphType::execution_space execution_space;
-  typedef typename GraphType::data_type value_type;
+  using execution_space = typename GraphType::execution_space;
+  using value_type      = typename GraphType::data_type;
 
   const typename GraphType::entries_type entries;
 
@@ -505,22 +479,13 @@ struct StaticCrsGraphMaximumEntry {
 
 }  // namespace Impl
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-template <class DataType, class Arg1Type, class Arg2Type, typename SizeType,
-          class Arg3Type>
-DataType maximum_entry(const StaticCrsGraph<DataType, Arg1Type, Arg2Type,
-                                            SizeType, Arg3Type>& graph) {
-  typedef StaticCrsGraph<DataType, Arg1Type, Arg2Type, SizeType, Arg3Type>
-      GraphType;
-#else
 template <class DataType, class Arg1Type, class Arg2Type, class Arg3Type,
           typename SizeType>
 DataType maximum_entry(const StaticCrsGraph<DataType, Arg1Type, Arg2Type,
                                             Arg3Type, SizeType>& graph) {
-  typedef StaticCrsGraph<DataType, Arg1Type, Arg2Type, Arg3Type, SizeType>
-      GraphType;
-#endif
-  typedef Impl::StaticCrsGraphMaximumEntry<GraphType> FunctorType;
+  using GraphType =
+      StaticCrsGraph<DataType, Arg1Type, Arg2Type, Arg3Type, SizeType>;
+  using FunctorType = Impl::StaticCrsGraphMaximumEntry<GraphType>;
 
   DataType result = 0;
   Kokkos::parallel_reduce("Kokkos::maximum_entry", graph.entries.extent(0),

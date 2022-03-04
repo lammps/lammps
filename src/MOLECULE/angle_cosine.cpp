@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 #include "angle_cosine.h"
-#include <mpi.h>
+
 #include <cmath>
 #include "atom.h"
 #include "neighbor.h"
@@ -22,7 +23,7 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-#include "utils.h"
+
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -156,9 +157,9 @@ void AngleCosine::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   int ilo,ihi;
-  force->bounds(FLERR,arg[0],atom->nangletypes,ilo,ihi);
+  utils::bounds(FLERR,arg[0],1,atom->nangletypes,ilo,ihi,error);
 
-  double k_one = force->numeric(FLERR,arg[1]);
+  double k_one = utils::numeric(FLERR,arg[1],false,lmp);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -194,7 +195,7 @@ void AngleCosine::read_restart(FILE *fp)
 {
   allocate();
 
-  if (comm->me == 0) utils::sfread(FLERR,&k[1],sizeof(double),atom->nangletypes,fp,NULL,error);
+  if (comm->me == 0) utils::sfread(FLERR,&k[1],sizeof(double),atom->nangletypes,fp,nullptr,error);
   MPI_Bcast(&k[1],atom->nangletypes,MPI_DOUBLE,0,world);
 
   for (int i = 1; i <= atom->nangletypes; i++) setflag[i] = 1;

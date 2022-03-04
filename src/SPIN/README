@@ -1,5 +1,5 @@
-The SPIN package enables coupled spin dynamics and molecular 
-dynamics simulations. 
+The SPIN package enables coupled spin dynamics and molecular
+dynamics simulations.
 
 The package provides the following features:
 
@@ -12,11 +12,11 @@ atom in the system
 * computing and outputting magnetic quantities
 * minimizing the energy or total torque of a magnetic system
 
-The different options provided by this package are explained in the 
+The different options provided by this package are explained in the
 LAMMPS documentation.
 
-Once you have successfully built LAMMPS with this package, you can test 
-it using one of the input files provided from the examples/SPIN dir. 
+Once you have successfully built LAMMPS with this package, you can test
+it using one of the input files provided from the examples/SPIN dir.
 For example:
 
 ./lmp_serial < lammps/examples/SPIN/cobalt_hcp/in.spin.cobalt_hcp

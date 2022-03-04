@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef ATOM_CLASS
-
-AtomStyle(hybrid,AtomVecHybrid)
-
+// clang-format off
+AtomStyle(hybrid,AtomVecHybrid);
+// clang-format on
 #else
 
 #ifndef LMP_ATOM_VEC_HYBRID_H
@@ -31,35 +31,41 @@ class AtomVecHybrid : public AtomVec {
   char **keywords;
 
   AtomVecHybrid(class LAMMPS *);
-  ~AtomVecHybrid();
-  void process_args(int, char **);
-  void init();
+  ~AtomVecHybrid() override;
+  void process_args(int, char **) override;
+  void init() override;
 
-  void grow_pointers();
-  void force_clear(int, size_t);
-  void copy_bonus(int, int, int);
-  void clear_bonus();
-  int pack_comm_bonus(int, int *, double *);
-  void unpack_comm_bonus(int, int, double *);
-  int pack_border_bonus(int, int *, double *);
-  int unpack_border_bonus(int, int, double *);
-  int pack_exchange_bonus(int, double *);
-  int unpack_exchange_bonus(int, double *);
-  int size_restart_bonus();
-  int pack_restart_bonus(int, double *);
-  int unpack_restart_bonus(int, double *);
-  bigint memory_usage_bonus();
+  void grow_pointers() override;
+  void force_clear(int, size_t) override;
+  void copy_bonus(int, int, int) override;
+  void clear_bonus() override;
+  int pack_comm_bonus(int, int *, double *) override;
+  void unpack_comm_bonus(int, int, double *) override;
+  int pack_border_bonus(int, int *, double *) override;
+  int unpack_border_bonus(int, int, double *) override;
+  int pack_exchange_bonus(int, double *) override;
+  int unpack_exchange_bonus(int, double *) override;
+  int size_restart_bonus() override;
+  int pack_restart_bonus(int, double *) override;
+  int unpack_restart_bonus(int, double *) override;
+  double memory_usage_bonus() override;
 
-  void pack_restart_pre(int);
-  void pack_restart_post(int);
-  void unpack_restart_init(int);
-  void create_atom_post(int);
-  void data_atom_post(int);
-  void pack_data_pre(int);
-  void pack_data_post(int);
+  void pack_restart_pre(int) override;
+  void pack_restart_post(int) override;
+  void unpack_restart_init(int) override;
+  void create_atom_post(int) override;
+  void data_atom_post(int) override;
 
-  int property_atom(char *);
-  void pack_property_atom(int, double *, int, int);
+  void data_bonds_post(int, int, tagint, tagint, tagint) override;
+
+  void pack_data_pre(int) override;
+  void pack_data_post(int) override;
+
+  int pack_data_bonus(double *, int) override;
+  void write_data_bonus(FILE *, int, double *, int) override;
+
+  int property_atom(char *) override;
+  void pack_property_atom(int, double *, int, int) override;
 
  private:
   int nallstyles;
@@ -79,7 +85,7 @@ class AtomVecHybrid : public AtomVec {
   int known_style(char *);
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

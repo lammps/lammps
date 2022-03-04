@@ -56,7 +56,7 @@ int mor_gpu_init(const int ntypes, double **cutsq,
   int init_ok=0;
   if (world_me==0)
     init_ok=MORMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3,
-                       host_lj4, offset, special_lj, inum, nall, 300,
+                       host_lj4, offset, special_lj, inum, nall, max_nbors,
                        maxspecial, cell_size, gpu_split, screen);
 
   MORMF.device->world_barrier();
@@ -74,7 +74,7 @@ int mor_gpu_init(const int ntypes, double **cutsq,
     }
     if (gpu_rank==i && world_me!=0)
       init_ok=MORMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4,
-                         offset, special_lj, inum, nall, 300, maxspecial,
+                         offset, special_lj, inum, nall, max_nbors, maxspecial,
                          cell_size, gpu_split, screen);
 
     MORMF.device->gpu_barrier();

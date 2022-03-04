@@ -414,9 +414,9 @@ const char *atom=0;
 
 template <class numtyp, class acctyp>
 void AtomT::compile_kernels(UCL_Device &dev) {
-  std::string flags = "-D"+std::string(OCL_VENDOR);
+  std::string flags = "";
   atom_program=new UCL_Program(dev);
-  atom_program->load_string(atom,flags);
+  atom_program->load_string(atom,flags,nullptr,screen);
   k_cast_x.set_function(*atom_program,"kernel_cast_x");
   _compiled=true;
 }

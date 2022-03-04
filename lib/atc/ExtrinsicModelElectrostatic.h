@@ -25,7 +25,7 @@ namespace ATC {
   /**
    *  @class  ExtrinsicModelElectrostatic
    *  @brief  add self-consistent electrostatic forces
-   *          owned field: ELECTRIC_POTENTIAL 
+   *          owned field: ELECTRIC_POTENTIAL
    */
 
   //--------------------------------------------------------
@@ -35,7 +35,7 @@ namespace ATC {
   //--------------------------------------------------------
 
   class ExtrinsicModelElectrostatic : public ExtrinsicModel {
-  
+
   public:
 
     // constructor
@@ -71,9 +71,9 @@ namespace ATC {
     virtual double compute_scalar(void);
     virtual bool compute_vector(int n, double & value);
 
-    PoissonSolver * poisson_solver(void) const { return poissonSolver_;} 
+    PoissonSolver * poisson_solver(void) const { return poissonSolver_;}
 
- 
+
   protected:
     /** poisson solver type */
     SolverType poissonSolverType_;
@@ -91,7 +91,7 @@ namespace ATC {
 
     /** rhs mask for Poisson solver */
     Array2D<bool> rhsMask_;
-  
+
     /** estimate intrinsic charge density */
     void add_electrostatic_forces(MATRIX & nodalPotential);
 
@@ -107,7 +107,7 @@ namespace ATC {
                              const double chargeDensity);
 #endif
     /** charge regulator */
-    ChargeRegulator * chargeRegulator_; 
+    ChargeRegulator * chargeRegulator_;
 
     /** local electric potential Green's function for each node */
     std::vector<SparseVector<double> > greensFunctions_;
@@ -123,11 +123,11 @@ namespace ATC {
     /** data structure storing potential induced only by charges under the nodal shape function support */
     std::map<std::string,std::map<int,double> > nodalChargePotential_;
 
-    
+
     /** allows electric force only applied only in z direction to complement LAMMPS slab command */
     bool useSlab_;
 
-    
+
     /** enables method when short range interactions are off */
     bool includeShortRange_;
 
@@ -158,7 +158,7 @@ namespace ATC {
   //--------------------------------------------------------
 
   class ExtrinsicModelElectrostaticMomentum : public ExtrinsicModelElectrostatic {
-  
+
   public:
 
     // constructor
@@ -180,7 +180,7 @@ namespace ATC {
 
     /** Add model-specific output data */
     virtual void output(OUTPUT_LIST & outputData);
- 
+
   };
 
 };

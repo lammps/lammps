@@ -1,16 +1,17 @@
 .. index:: pair_style lubricate
+.. index:: pair_style lubricate/omp
+.. index:: pair_style lubricate/poly
+.. index:: pair_style lubricate/poly/omp
 
 pair_style lubricate command
 ============================
 
-pair_style lubricate/omp command
-================================
+Accelerator Variants: *lubricate/omp*
 
 pair_style lubricate/poly command
 =================================
 
-pair_style lubricate/poly/omp command
-=====================================
+Accelerator Variants: *lubricate/poly/omp*
 
 Syntax
 """"""
@@ -28,7 +29,9 @@ Syntax
 * flagHI (optional) = 0/1 to exclude/include 1/r hydrodynamic interactions
 * flagVF (optional) = 0/1 to exclude/include volume fraction corrections in the long-range isotropic terms
 
-**Examples:** (all assume radius = 1)
+Examples
+""""""""
+(all assume radius = 1)
 
 .. code-block:: LAMMPS
 
@@ -136,8 +139,8 @@ Since lubrication forces are dissipative, it is usually desirable to
 thermostat the system at a constant temperature. If Brownian motion
 (at a constant temperature) is desired, it can be set using the
 :doc:`pair_style brownian <pair_brownian>` command. These pair styles
-and the brownian style should use consistent parameters for *mu*\ ,
-*flaglog*\ , *flagfld*\ , *cutinner*\ , *cutoff*\ , *flagHI* and *flagVF*\ .
+and the brownian style should use consistent parameters for *mu*,
+*flaglog*, *flagfld*, *cutinner*, *cutoff*, *flagHI* and *flagVF*\ .
 
 ----------
 
@@ -156,27 +159,12 @@ must be specified.
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed in :doc:`this section <Speed>` of
-the manual.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See :doc:`this section <Speed>` of the manual for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the two cutoff distances for this
 pair style can be mixed.  The default mix value is *geometric*\ .  See
@@ -197,7 +185,7 @@ to be specified in an input script that reads a restart file.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -205,7 +193,7 @@ Restrictions
 """"""""""""
 
 These styles are part of the COLLOID package.  They are only enabled
-if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Only spherical monodisperse particles are allowed for pair_style
 lubricate.

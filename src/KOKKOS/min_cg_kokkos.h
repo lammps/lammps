@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef MINIMIZE_CLASS
-
-MinimizeStyle(cg/kk,MinCGKokkos)
-MinimizeStyle(cg/kk/device,MinCGKokkos)
-MinimizeStyle(cg/kk/host,MinCGKokkos)
-
+// clang-format off
+MinimizeStyle(cg/kk,MinCGKokkos);
+MinimizeStyle(cg/kk/device,MinCGKokkos);
+MinimizeStyle(cg/kk/host,MinCGKokkos);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_MIN_CG_KOKKOS_H
 #define LMP_MIN_CG_KOKKOS_H
 
@@ -29,7 +30,7 @@ namespace LAMMPS_NS {
 class MinCGKokkos : public MinLineSearchKokkos {
  public:
   MinCGKokkos(class LAMMPS *);
-  int iterate(int);
+  int iterate(int) override;
 };
 
 }

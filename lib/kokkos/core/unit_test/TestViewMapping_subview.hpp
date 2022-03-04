@@ -54,32 +54,34 @@ namespace Test {
 
 template <class Space>
 struct TestViewMappingSubview {
-  typedef typename Space::execution_space ExecSpace;
-  typedef typename Space::memory_space MemSpace;
+  using ExecSpace = typename Space::execution_space;
+  using MemSpace  = typename Space::memory_space;
 
-  typedef Kokkos::pair<int, int> range;
+  using range = Kokkos::pair<int, int>;
 
   enum { AN = 10 };
-  typedef Kokkos::View<int*, ExecSpace> AT;
-  typedef Kokkos::View<const int*, ExecSpace> ACT;
-  typedef Kokkos::Subview<AT, range> AS;
+  using AT  = Kokkos::View<int*, ExecSpace>;
+  using ACT = Kokkos::View<const int*, ExecSpace>;
+  using AS  = Kokkos::Subview<AT, range>;
 
   enum { BN0 = 10, BN1 = 11, BN2 = 12 };
-  typedef Kokkos::View<int***, ExecSpace> BT;
-  typedef Kokkos::Subview<BT, range, range, range> BS;
+  using BT = Kokkos::View<int***, ExecSpace>;
+  using BS = Kokkos::Subview<BT, range, range, range>;
 
   enum { CN0 = 10, CN1 = 11, CN2 = 12 };
-  typedef Kokkos::View<int** * [13][14], ExecSpace> CT;
-  typedef Kokkos::Subview<CT, range, range, range, int, int> CS;
+  using CT = Kokkos::View<int** * [13][14], ExecSpace>;
+  // changing CS to CTS here because when compiling with nvshmem, there is a
+  // define for CS that makes this fail...
+  using CTS = Kokkos::Subview<CT, range, range, range, int, int>;
 
   enum { DN0 = 10, DN1 = 11, DN2 = 12, DN3 = 13, DN4 = 14 };
-  typedef Kokkos::View<int** * [DN3][DN4], ExecSpace> DT;
-  typedef Kokkos::Subview<DT, int, range, range, range, int> DS;
+  using DT = Kokkos::View<int** * [DN3][DN4], ExecSpace>;
+  using DS = Kokkos::Subview<DT, int, range, range, range, int>;
 
-  typedef Kokkos::View<int** * [13][14], Kokkos::LayoutLeft, ExecSpace> DLT;
-  typedef Kokkos::Subview<DLT, range, int, int, int, int> DLS1;
+  using DLT  = Kokkos::View<int** * [13][14], Kokkos::LayoutLeft, ExecSpace>;
+  using DLS1 = Kokkos::Subview<DLT, range, int, int, int, int>;
 
-#if !defined(KOKKOS_IMPL_CUDA_VERSION_9_WORKAROUND)
+#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 1000
   static_assert(
       DLS1::rank == 1 &&
           std::is_same<typename DLS1::array_layout, Kokkos::LayoutLeft>::value,
@@ -87,10 +89,10 @@ struct TestViewMappingSubview {
       "LayoutLeft");
 #endif
 
-  typedef Kokkos::View<int** * [13][14], Kokkos::LayoutRight, ExecSpace> DRT;
-  typedef Kokkos::Subview<DRT, int, int, int, int, range> DRS1;
+  using DRT  = Kokkos::View<int** * [13][14], Kokkos::LayoutRight, ExecSpace>;
+  using DRS1 = Kokkos::Subview<DRT, int, int, int, int, range>;
 
-#if !defined(KOKKOS_IMPL_CUDA_VERSION_9_WORKAROUND)
+#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 1000
   static_assert(
       DRS1::rank == 1 &&
           std::is_same<typename DRS1::array_layout, Kokkos::LayoutRight>::value,
@@ -104,7 +106,7 @@ struct TestViewMappingSubview {
   BT Ba;
   BS Bb;
   CT Ca;
-  CS Cb;
+  CTS Cb;
   DT Da;
   DS Db;
 

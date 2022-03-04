@@ -1,12 +1,12 @@
 #include <Kokkos_Core.hpp>
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 #include <Kokkos_Random.hpp>
 
 template <class Scalar>
 double test_atomic(int L, int N, int M, int K, int R,
                    Kokkos::View<const int*> offsets) {
   Kokkos::View<Scalar*> output("Output", N);
-  Kokkos::Impl::Timer timer;
+  Kokkos::Timer timer;
 
   for (int r = 0; r < R; r++)
     Kokkos::parallel_for(
@@ -28,7 +28,7 @@ template <class Scalar>
 double test_no_atomic(int L, int N, int M, int K, int R,
                       Kokkos::View<const int*> offsets) {
   Kokkos::View<Scalar*> output("Output", N);
-  Kokkos::Impl::Timer timer;
+  Kokkos::Timer timer;
   for (int r = 0; r < R; r++)
     Kokkos::parallel_for(
         L, KOKKOS_LAMBDA(const int& i) {
@@ -69,13 +69,13 @@ int main(int argc, char* argv[]) {
       return 0;
     }
 
-    int L    = atoi(argv[1]);
-    int N    = atoi(argv[2]);
-    int M    = atoi(argv[3]);
-    int D    = atoi(argv[4]);
-    int K    = atoi(argv[5]);
-    int R    = atoi(argv[6]);
-    int type = atoi(argv[7]);
+    int L    = std::stoi(argv[1]);
+    int N    = std::stoi(argv[2]);
+    int M    = std::stoi(argv[3]);
+    int D    = std::stoi(argv[4]);
+    int K    = std::stoi(argv[5]);
+    int R    = std::stoi(argv[6]);
+    int type = std::stoi(argv[7]);
 
     Kokkos::View<int*> offsets("Offsets", L, M);
     Kokkos::Random_XorShift64_Pool<> pool(12371);

@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,19 +17,20 @@
 ------------------------------------------------------------------------- */
 
 #include "bond_fene_kokkos.h"
-#include <cmath>
-#include <cstdlib>
+
 #include "atom_kokkos.h"
-#include "neighbor_kokkos.h"
-#include "domain.h"
-#include "comm.h"
-#include "force.h"
-#include "memory_kokkos.h"
-#include "error.h"
 #include "atom_masks.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "math_const.h"
+#include "memory_kokkos.h"
+#include "neighbor_kokkos.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
-
+using MathConst::MY_CUBEROOT2;
 
 /* ---------------------------------------------------------------------- */
 
@@ -128,7 +130,7 @@ void BondFENEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_warning_flag.template modify<DeviceType>();
   k_warning_flag.template sync<LMPHostType>();
   if (h_warning_flag())
-    error->warning(FLERR,"FENE bond too long",0);
+    error->warning(FLERR,"FENE bond too long");
 
   k_error_flag.template modify<DeviceType>();
   k_error_flag.template sync<LMPHostType>();
@@ -188,9 +190,9 @@ void BondFENEKokkos<DeviceType>::operator()(TagBondFENECompute<NEWTON_BOND,EVFLA
 
   if (rlogarg < 0.1) {
     if (!d_warning_flag())
-      Kokkos::atomic_fetch_add(&d_warning_flag(),1);
+      d_warning_flag() = 1;
     if (rlogarg <= -3.0 && !d_error_flag())
-      Kokkos::atomic_fetch_add(&d_error_flag(),1);
+      d_error_flag() = 1;
     rlogarg = 0.1;
   }
 
@@ -199,7 +201,7 @@ void BondFENEKokkos<DeviceType>::operator()(TagBondFENECompute<NEWTON_BOND,EVFLA
   // force from LJ term
 
   F_FLOAT sr6 = 0.0;
-  if (rsq < TWO_1_3*d_sigma[type]*d_sigma[type]) {
+  if (rsq < MY_CUBEROOT2*d_sigma[type]*d_sigma[type]) {
     const F_FLOAT sr2 = d_sigma[type]*d_sigma[type]/rsq;
     sr6 = sr2*sr2*sr2;
     fbond += 48.0*d_epsilon[type]*sr6*(sr6-0.5)/rsq;
@@ -210,7 +212,7 @@ void BondFENEKokkos<DeviceType>::operator()(TagBondFENECompute<NEWTON_BOND,EVFLA
   F_FLOAT ebond = 0.0;
   if (eflag) {
     ebond = -0.5 * d_k[type]*r0sq*log(rlogarg);
-    if (rsq < TWO_1_3*d_sigma[type]*d_sigma[type])
+    if (rsq < MY_CUBEROOT2*d_sigma[type]*d_sigma[type])
       ebond += 4.0*d_epsilon[type]*sr6*(sr6-1.0) + d_epsilon[type];
   }
 
@@ -400,7 +402,7 @@ void BondFENEKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int 
 
 namespace LAMMPS_NS {
 template class BondFENEKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class BondFENEKokkos<LMPHostType>;
 #endif
 }

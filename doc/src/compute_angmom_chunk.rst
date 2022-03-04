@@ -68,13 +68,14 @@ command, for example:
    compute myChunk all angmom/chunk cc1
    fix 1 all ave/time 100 1 100 c_myChunk[*] file tmp.out mode vector
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global array where the number of rows = the
 number of chunks *Nchunk* as calculated by the specified :doc:`compute chunk/atom <compute_chunk_atom>` command.  The number of columns =
 3 for the 3 xyz components of the angular momentum for each chunk.
 These values can be accessed by any command that uses global array
-values from a compute as input.  See the :doc:`Howto output <Howto_output>` doc page for an overview of LAMMPS output
+values from a compute as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options.
 
 The array values are "intensive".  The array values will be in
@@ -89,4 +90,7 @@ Related commands
 
 :doc:`variable angmom() function <variable>`
 
-**Default:** none
+Default
+"""""""
+
+none

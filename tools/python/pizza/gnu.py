@@ -6,17 +6,20 @@
 # certain rights in this software.  This software is distributed under
 # the GNU General Public License.
 
+# for python3 compatibility
+from __future__ import print_function
+
 # gnu tool
 
 oneline = "Create plots via GnuPlot plotting program"
 
 docstr = """
-g = gnu()                      start up GnuPlot
-g.stop()                       shut down GnuPlot process
+g = gnu()		       start up GnuPlot
+g.stop()		       shut down GnuPlot process
 
 g.plot(a)                      plot vector A against linear index
-g.plot(a,b)                    plot B against A
-g.plot(a,b,c,d,...)            plot B against A, D against C, etc
+g.plot(a,b)	 	       plot B against A
+g.plot(a,b,c,d,...)	       plot B against A, D against C, etc
 g.mplot(M,N,S,"file",a,b,...)  multiple plots saved to file0000.eps, etc
 
   each plot argument can be a tuple, list, or Numeric/NumPy vector
@@ -29,21 +32,21 @@ g.mplot(M,N,S,"file",a,b,...)  multiple plots saved to file0000.eps, etc
 
 g("plot 'file.dat' using 2:3 with lines")      execute string in GnuPlot
 
-g.enter()                               enter GnuPlot shell
+g.enter()	   	                enter GnuPlot shell
 gnuplot> plot sin(x) with lines         type commands directly to GnuPlot
-gnuplot> exit, quit                     exit GnuPlot shell
+gnuplot> exit, quit	      	        exit GnuPlot shell
 
 g.export("data",range(100),a,...)       create file with columns of numbers
 
   all vectors must be of equal length
   could plot from file with GnuPlot command: plot 'data' using 1:2 with lines
 
-g.select(N)                    figure N becomes the current plot
+g.select(N)  	               figure N becomes the current plot
 
   subsequent commands apply to this plot
 
-g.hide(N)                      delete window for figure N
-g.save("file")                 save current plot as file.eps
+g.hide(N)  	               delete window for figure N
+g.save("file")	               save current plot as file.eps
 
 Set attributes for current plot:
 
@@ -84,12 +87,13 @@ g.curve(N,'r')                 set color of curve N
 
 # Imports and external programs
 
-import types, os
+import os
+import sys
 
 try: from DEFAULTS import PIZZA_GNUPLOT
-except: PIZZA_GNUPLOT = "gnuplot"
+except ImportError: PIZZA_GNUPLOT = "gnuplot -p"
 try: from DEFAULTS import PIZZA_GNUTERM
-except: PIZZA_GNUTERM = "x11"
+except ImportError: PIZZA_GNUTERM = "x11"
 
 # Class definition
 
@@ -119,7 +123,10 @@ class gnu:
 
   def enter(self):
     while 1:
-      command = raw_input("gnuplot> ")
+      if sys.version_info[0] == 3:
+        command = input("gnuplot> ")
+      else:
+        command = raw_input("gnuplot> ")
       if command == "quit" or command == "exit": return
       self.__call__(command)
 
@@ -133,7 +140,7 @@ class gnu:
       self.export(file,linear,vectors[0])
       self.figures[self.current-1].ncurves = 1
     else:
-      if len(vectors) % 2: raise StandardError,"vectors must come in pairs"
+      if len(vectors) % 2: raise Exception("vectors must come in pairs")
       for i in range(0,len(vectors),2):
         file = self.file + ".%d.%d" % (self.current,i/2+1)
         self.export(file,vectors[i],vectors[i+1])
@@ -167,13 +174,13 @@ class gnu:
   def export(self,filename,*vectors):
     n = len(vectors[0])
     for vector in vectors:
-      if len(vector) != n: raise StandardError,"vectors must be same length"
+      if len(vector) != n: raise Exception("vectors must be same length")
     f = open(filename,'w')
     nvec = len(vectors)
-    for i in xrange(n):
-      for j in xrange(nvec):
-        print >>f,vectors[j][i],
-      print >>f
+    for i in range(n):
+      for j in range(nvec):
+        print(str(vectors[j][i])+" ",file=f,end='')
+      print ("",file=f)
     f.close()
 
   # --------------------------------------------------------------------
@@ -350,7 +357,7 @@ class gnu:
 
     self.__call__("set key off")
     cmd = 'plot '
-    for i in range(fig.ncurves):
+    for i in range(int(fig.ncurves)):
       file = self.file + ".%d.%d" % (self.current,i+1)
       if len(fig.colors) > i and fig.colors[i]:
         cmd += "'" + file + "' using 1:2 with line %d, " % fig.colors[i]

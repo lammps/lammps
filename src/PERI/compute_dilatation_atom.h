@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef COMPUTE_CLASS
-
-ComputeStyle(dilatation/atom,ComputeDilatationAtom)
-
+// clang-format off
+ComputeStyle(dilatation/atom,ComputeDilatationAtom);
+// clang-format on
 #else
 
 #ifndef LMP_COMPUTE_DILATATION_ATOM_H
@@ -25,24 +25,19 @@ ComputeStyle(dilatation/atom,ComputeDilatationAtom)
 namespace LAMMPS_NS {
 
 class ComputeDilatationAtom : public Compute {
-  friend class PairPeriPMB;
-  friend class PairPeriLPS;
-  friend class PairPeriVES;
-  friend class PairPeriEPS;
  public:
   ComputeDilatationAtom(class LAMMPS *, int, char **);
-  ~ComputeDilatationAtom();
-  void init();
-  void compute_peratom();
-  double memory_usage();
+  ~ComputeDilatationAtom() override;
+  void init() override;
+  void compute_peratom() override;
+  double memory_usage() override;
 
  private:
   int nmax;
   double *dilatation;
-  int isPMB,isLPS,isVES,isEPS;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

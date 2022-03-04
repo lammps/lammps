@@ -63,38 +63,23 @@ atoms that include these constraints will be computed correctly.  If
 needed, the subtracted degrees-of-freedom can be altered using the
 *extra* option of the :doc:`compute_modify <compute_modify>` command.
 
-See the :doc:`Howto thermostat <Howto_thermostat>` doc page for a
+See the :doc:`Howto thermostat <Howto_thermostat>` page for a
 discussion of different ways to compute temperature and perform
 thermostatting.
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar (the temperature) and a global
 vector of length 6 (KE tensor), which can be accessed by indices 1-6.
 These values can be used by any command that uses global scalar or
-vector values from a compute as input.  See the :doc:`Howto output <Howto_output>` doc page for an overview of LAMMPS output
+vector values from a compute as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options.
 
 The scalar value calculated by this compute is "intensive".  The
@@ -112,4 +97,7 @@ Related commands
 
 :doc:`compute temp <compute_temp>`, :doc:`compute temp/region <compute_temp_region>`, :doc:`compute pressure <compute_pressure>`
 
-**Default:** none
+Default
+"""""""
+
+none

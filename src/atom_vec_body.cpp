@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,18 +13,17 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_body.h"
-#include <cstring>
-#include <string>
-#include "my_pool_chunk.h"
-#include "style_body.h"
-#include "body.h"
+#include "style_body.h"    // IWYU pragma: keep
+
 #include "atom.h"
-#include "domain.h"
-#include "modify.h"
+#include "body.h"
+#include "error.h"
 #include "fix.h"
 #include "memory.h"
-#include "error.h"
-#include "utils.h"
+#include "modify.h"
+#include "my_pool_chunk.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -31,7 +31,7 @@ using namespace LAMMPS_NS;
 
 AtomVecBody::AtomVecBody(LAMMPS *lmp) : AtomVec(lmp)
 {
-  molecular = 0;
+  molecular = Atom::ATOMIC;
   bonus_flag = 1;
 
   // first 3 sizes do not include values from body itself
@@ -50,9 +50,9 @@ AtomVecBody::AtomVecBody(LAMMPS *lmp) : AtomVec(lmp)
   atom->radius_flag = 1;
 
   nlocal_bonus = nghost_bonus = nmax_bonus = 0;
-  bonus = NULL;
+  bonus = nullptr;
 
-  bptr = NULL;
+  bptr = nullptr;
 
   if (sizeof(double) == sizeof(int)) intdoubleratio = 1;
   else if (sizeof(double) == 2*sizeof(int)) intdoubleratio = 2;
@@ -105,16 +105,18 @@ void AtomVecBody::process_args(int narg, char **arg)
 
   if (narg < 1) error->all(FLERR,"Invalid atom_style body command");
 
-  if (0) bptr = NULL;
+  if (false) {
+    bptr = nullptr;
 
 #define BODY_CLASS
 #define BodyStyle(key,Class) \
-  else if (strcmp(arg[0],#key) == 0) bptr = new Class(lmp,narg,arg);
-#include "style_body.h"
+  } else if (strcmp(arg[0],#key) == 0) { \
+    bptr = new Class(lmp,narg,arg);
+#include "style_body.h"  // IWYU pragma: keep
 #undef BodyStyle
 #undef BODY_CLASS
 
-  else error->all(FLERR,utils::
+  } else error->all(FLERR,utils::
                   check_packages_for_style("body",arg[0],lmp).c_str());
 
   bptr->avec = this;
@@ -552,16 +554,18 @@ void AtomVecBody::data_body(int m, int ninteger, int ndouble,
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-bigint AtomVecBody::memory_usage_bonus()
+double AtomVecBody::memory_usage_bonus()
 {
-  bigint bytes = 0;
-  bytes += nmax_bonus*sizeof(Bonus);
-  bytes += icp->size + dcp->size;
+  double bytes = 0;
+  bytes += (double)nmax_bonus*sizeof(Bonus);
+  bytes += icp->size() + dcp->size();
 
   int nall = nlocal_bonus + nghost_bonus;
   for (int i = 0; i < nall; i++) {
-    bytes += bonus[i].ninteger * sizeof(int);
-    bytes += bonus[i].ndouble * sizeof(double);
+    if (body[i] >= 0) {
+      bytes += (double)bonus[body[i]].ninteger * sizeof(int);
+      bytes += (double)bonus[body[i]].ndouble * sizeof(double);
+    }
   }
 
   return bytes;
@@ -577,6 +581,41 @@ void AtomVecBody::pack_data_pre(int ilocal)
 
   if (body_flag < 0) body[ilocal] = 0;
   else body[ilocal] = 1;
+}
+
+/* ----------------------------------------------------------------------
+   pack bonus body info for writing to data file
+   if buf is nullptr, just return buffer size
+------------------------------------------------------------------------- */
+
+int AtomVecBody::pack_data_bonus(double *buf, int /*flag*/)
+{
+  int i;
+
+  tagint *tag = atom->tag;
+  int nlocal = atom->nlocal;
+
+  int m = 0;
+  for (i = 0; i < nlocal; i++) {
+    if (body[i] < 0) continue;
+    int n = bptr->pack_data_body(tag[i],body[i],buf);
+    m += n;
+    if (buf) buf += n;
+  }
+
+  return m;
+}
+
+/* ----------------------------------------------------------------------
+   write bonus body info to data file
+------------------------------------------------------------------------- */
+
+void AtomVecBody::write_data_bonus(FILE *fp, int n, double *buf, int /*flag*/)
+{
+  int i = 0;
+  while (i < n) {
+    i += bptr->write_data_body(fp,&buf[i]);
+  }
 }
 
 /* ----------------------------------------------------------------------

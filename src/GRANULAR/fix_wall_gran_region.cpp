@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,32 +17,27 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_wall_gran_region.h"
-#include <cstring>
-#include "region.h"
+
 #include "atom.h"
-#include "domain.h"
-#include "update.h"
-#include "memory.h"
-#include "error.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "memory.h"
 #include "neighbor.h"
+#include "region.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-// same as FixWallGran
-
-enum{HOOKE,HOOKE_HISTORY,HERTZ_HISTORY,GRANULAR};
-enum {NORMAL_HOOKE, NORMAL_HERTZ, HERTZ_MATERIAL, DMT, JKR};
-
-#define BIG 1.0e20
-
 /* ---------------------------------------------------------------------- */
 
 FixWallGranRegion::FixWallGranRegion(LAMMPS *lmp, int narg, char **arg) :
-  FixWallGran(lmp, narg, arg), region(NULL), region_style(NULL),
-  ncontact(NULL),
-  walls(NULL), history_many(NULL), c2r(NULL)
+  FixWallGran(lmp, narg, arg), region(nullptr), region_style(nullptr),
+  ncontact(nullptr),
+  walls(nullptr), history_many(nullptr), c2r(nullptr)
 {
   restart_global = 1;
   motion_resetflag = 0;
@@ -50,8 +46,7 @@ FixWallGranRegion::FixWallGranRegion(LAMMPS *lmp, int narg, char **arg) :
   if (iregion == -1)
     error->all(FLERR,"Region ID for fix wall/gran/region does not exist");
   region = domain->regions[iregion];
-  region_style = new char[strlen(region->style)+1];
-  strcpy(region_style,region->style);
+  region_style = utils::strdup(region->style);
   nregion = region->nregion;
 
   tmax = domain->regions[iregion]->tmax;
@@ -61,12 +56,12 @@ FixWallGranRegion::FixWallGranRegion(LAMMPS *lmp, int narg, char **arg) :
   // do not register with Atom class, since parent class did that
 
   memory->destroy(history_one);
-  history_one = NULL;
+  history_one = nullptr;
 
-  ncontact = NULL;
-  walls = NULL;
-  history_many = NULL;
-  grow_arrays(atom->nmax);
+  ncontact = nullptr;
+  walls = nullptr;
+  history_many = nullptr;
+  FixWallGranRegion::grow_arrays(atom->nmax);
 
   // initialize shear history as if particle is not touching region
 
@@ -103,21 +98,17 @@ void FixWallGranRegion::init()
   // check if region properties changed between runs
   // reset if restart info was inconsistent
 
-  if (strcmp(idregion,region->id) != 0 ||
-      strcmp(region_style,region->style) != 0 ||
-      nregion != region->nregion) {
-    char str[256];
-    snprintf(str,256,"Region properties for region %s changed between runs, "
-             "resetting its motion",idregion);
-    error->warning(FLERR,str);
+  if ((strcmp(idregion,region->id) != 0)
+      || (strcmp(region_style,region->style) != 0)
+      || (nregion != region->nregion)) {
+    error->warning(FLERR,"Region properties for region {} changed between "
+                   "runs, resetting its motion",idregion);
     region->reset_vel();
   }
 
   if (motion_resetflag) {
-    char str[256];
-    snprintf(str,256,"Region properties for region %s are inconsistent "
-             "with restart file, resetting its motion",idregion);
-    error->warning(FLERR,str);
+    error->warning(FLERR,"Region properties for region {} are inconsistent "
+                   "with restart file, resetting its motion",idregion);
     region->reset_vel();
   }
 }
@@ -178,11 +169,15 @@ void FixWallGranRegion::post_force(int /*vflag*/)
     region->set_velocity();
   }
 
+  if (peratom_flag) {
+    clear_stored_contacts();
+  }
+
   for (i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       if (!region->match(x[i][0],x[i][1],x[i][2])) continue;
 
-      if (pairstyle == GRANULAR && normal_model == JKR) {
+      if (pairstyle == FixWallGran::GRANULAR && normal_model == FixWallGran::JKR) {
         nc = region->surface(x[i][0],x[i][1],x[i][2],
                              radius[i]+pulloff_distance(radius[i]));
       }
@@ -224,7 +219,7 @@ void FixWallGranRegion::post_force(int /*vflag*/)
 
         rsq = region->contact[ic].r*region->contact[ic].r;
 
-        if (pairstyle == GRANULAR && normal_model == JKR) {
+        if (pairstyle == FixWallGran::GRANULAR && normal_model == FixWallGran::JKR) {
           if (history_many[i][c2r[ic]][0] == 0.0 && rsq > radius[i]*radius[i]) {
             for (m = 0; m < size_history; m++)
               history_many[i][0][m] = 0.0;
@@ -246,7 +241,7 @@ void FixWallGranRegion::post_force(int /*vflag*/)
 
         // store contact info
         if (peratom_flag) {
-          array_atom[i][0] = (double)atom->tag[i];
+          array_atom[i][0] = 1.0;
           array_atom[i][4] = x[i][0] - dx;
           array_atom[i][5] = x[i][1] - dy;
           array_atom[i][6] = x[i][2] - dz;
@@ -258,20 +253,20 @@ void FixWallGranRegion::post_force(int /*vflag*/)
         if (peratom_flag)
           contact = array_atom[i];
         else
-          contact = NULL;
+          contact = nullptr;
 
-        if (pairstyle == HOOKE)
+        if (pairstyle == FixWallGran::HOOKE)
           hooke(rsq,dx,dy,dz,vwall,v[i],f[i],
               omega[i],torque[i],radius[i],meff, contact);
-        else if (pairstyle == HOOKE_HISTORY)
+        else if (pairstyle == FixWallGran::HOOKE_HISTORY)
           hooke_history(rsq,dx,dy,dz,vwall,v[i],f[i],
               omega[i],torque[i],radius[i],meff,
               history_many[i][c2r[ic]], contact);
-        else if (pairstyle == HERTZ_HISTORY)
+        else if (pairstyle == FixWallGran::HERTZ_HISTORY)
           hertz_history(rsq,dx,dy,dz,vwall,region->contact[ic].radius,
               v[i],f[i],omega[i],torque[i],
               radius[i],meff,history_many[i][c2r[ic]], contact);
-        else if (pairstyle == GRANULAR)
+        else if (pairstyle == FixWallGran::GRANULAR)
           granular(rsq,dx,dy,dz,vwall,region->contact[ic].radius,
                    v[i],f[i],omega[i],torque[i],
                    radius[i],meff,history_many[i][c2r[ic]],contact);
@@ -342,11 +337,11 @@ double FixWallGranRegion::memory_usage()
   int nmax = atom->nmax;
   double bytes = 0.0;
   if (use_history) {                                   // shear history
-    bytes += nmax * sizeof(int);                   // ncontact
-    bytes += nmax*tmax * sizeof(int);              // walls
-    bytes += nmax*tmax*size_history * sizeof(double);  // history_many
+    bytes += (double)nmax * sizeof(int);                   // ncontact
+    bytes += (double)nmax*tmax * sizeof(int);              // walls
+    bytes += (double)nmax*tmax*size_history * sizeof(double);  // history_many
   }
-  if (fix_rigid) bytes += nmax * sizeof(int);      // mass_rigid
+  if (fix_rigid) bytes += (double)nmax * sizeof(int);      // mass_rigid
   return bytes;
 }
 
@@ -359,8 +354,7 @@ void FixWallGranRegion::grow_arrays(int nmax)
   if (use_history) {
     memory->grow(ncontact,nmax,"fix_wall_gran:ncontact");
     memory->grow(walls,nmax,tmax,"fix_wall_gran:walls");
-    memory->grow(history_many,nmax,tmax,size_history,
-                 "fix_wall_gran:history_many");
+    memory->grow(history_many,nmax,tmax,size_history,"fix_wall_gran:history_many");
   }
   if (peratom_flag)
     memory->grow(array_atom,nmax,size_peratom_cols,"fix_wall_gran:array_atom");
@@ -475,6 +469,7 @@ int FixWallGranRegion::pack_restart(int i, double *buf)
     for (m = 0; m < size_history; m++)
       buf[n++] = history_many[i][iwall][m];
   }
+  // pack buf[0] this way because other fixes unpack it
   buf[0] = n;
   return n;
 }
@@ -492,6 +487,7 @@ void FixWallGranRegion::unpack_restart(int nlocal, int nth)
   double **extra = atom->extra;
 
   // skip to Nth set of extra values
+  // unpack the Nth first values this way because other fixes pack them
 
   int m = 0;
   for (int i = 0; i < nth; i++) m += static_cast<int> (extra[nlocal][m]);

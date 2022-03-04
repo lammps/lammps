@@ -1,7 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
-
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -13,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(tersoff/mod/kk,PairTersoffMODKokkos<LMPDeviceType>)
-PairStyle(tersoff/mod/kk/device,PairTersoffMODKokkos<LMPDeviceType>)
-PairStyle(tersoff/mod/kk/host,PairTersoffMODKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(tersoff/mod/kk,PairTersoffMODKokkos<LMPDeviceType>);
+PairStyle(tersoff/mod/kk/device,PairTersoffMODKokkos<LMPDeviceType>);
+PairStyle(tersoff/mod/kk/host,PairTersoffMODKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_TERSOFF_MOD_KOKKOS_H
 #define LMP_PAIR_TERSOFF_MOD_KOKKOS_H
 
@@ -50,9 +50,9 @@ class PairTersoffMODKokkos : public PairTersoffMOD {
   typedef EV_FLOAT value_type;
 
   PairTersoffMODKokkos(class LAMMPS *);
-  virtual ~PairTersoffMODKokkos();
-  virtual void compute(int, int);
-  void init_style();
+  ~PairTersoffMODKokkos() override;
+  void compute(int, int) override;
+  void init_style() override;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
@@ -153,10 +153,10 @@ class PairTersoffMODKokkos : public PairTersoffMOD {
 
   struct params_ters{
     KOKKOS_INLINE_FUNCTION
-    params_ters(){powerm=0;lam3=0;h=0;powern=0;beta=0;lam2=0;bigb=0;bigr=0;bigd=0;
+    params_ters() {powerm=0;lam3=0;h=0;powern=0;beta=0;lam2=0;bigb=0;bigr=0;bigd=0;
       lam1=0;biga=0;powern_del=0;cutsq=0;c1=0;c2=0;c3=0;c4=0;c5=0;ca1=0;ca4=0;};
     KOKKOS_INLINE_FUNCTION
-    params_ters(int i){powerm=0;lam3=0;h=0;powern=0;beta=0;lam2=0;bigb=0;bigr=0;bigd=0;
+    params_ters(int /*i*/) {powerm=0;lam3=0;h=0;powern=0;beta=0;lam2=0;bigb=0;bigr=0;bigd=0;
       lam1=0;biga=0;powern_del=0;cutsq=0;c1=0;c2=0;c3=0;c4=0;c5=0;ca1=0;ca4=0;};
     F_FLOAT powerm, lam3, h, powern, beta, lam2, bigb, bigr, bigd,
       lam1, biga, powern_del, cutsq, c1, c2, c3, c4, c5, ca1, ca4;
@@ -177,11 +177,11 @@ class PairTersoffMODKokkos : public PairTersoffMOD {
   void v_tally3_atom(EV_FLOAT &ev, const int &i, const int &j, const int &k,
     F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *drji, F_FLOAT *drjk) const;
 
-  void allocate();
-  void setup_params();
+  void allocate() override;
+  void setup_params() override;
 
  protected:
-  void cleanup_copy();
+  using KKDeviceType = typename KKDevice<DeviceType>::value;
 
   typedef Kokkos::DualView<int***,DeviceType> tdual_int_3d;
   Kokkos::DualView<params_ters***,Kokkos::LayoutRight,DeviceType> k_params;
@@ -198,16 +198,24 @@ class PairTersoffMODKokkos : public PairTersoffMOD {
 
   DAT::tdual_efloat_1d k_eatom;
   DAT::tdual_virial_array k_vatom;
-  typename ArrayTypes<DeviceType>::t_efloat_1d d_eatom;
-  typename ArrayTypes<DeviceType>::t_virial_array d_vatom;
+  typename AT::t_efloat_1d d_eatom;
+  typename AT::t_virial_array d_vatom;
 
   int need_dup;
-  Kokkos::Experimental::ScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_f;
-  Kokkos::Experimental::ScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_eatom;
-  Kokkos::Experimental::ScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterDuplicated> dup_vatom;
-  Kokkos::Experimental::ScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_f;
-  Kokkos::Experimental::ScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_eatom;
-  Kokkos::Experimental::ScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::Experimental::ScatterSum,Kokkos::Experimental::ScatterNonDuplicated> ndup_vatom;
+
+
+  template<typename DataType, typename Layout>
+  using DupScatterView = KKScatterView<DataType, Layout, KKDeviceType, KKScatterSum, KKScatterDuplicated>;
+
+  template<typename DataType, typename Layout>
+  using NonDupScatterView = KKScatterView<DataType, Layout, KKDeviceType, KKScatterSum, KKScatterNonDuplicated>;
+
+  DupScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout> dup_f;
+  DupScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout> dup_eatom;
+  DupScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout> dup_vatom;
+  NonDupScatterView<F_FLOAT*[3], typename DAT::t_f_array::array_layout> ndup_f;
+  NonDupScatterView<E_FLOAT*, typename DAT::t_efloat_1d::array_layout> ndup_eatom;
+  NonDupScatterView<F_FLOAT*[6], typename DAT::t_virial_array::array_layout> ndup_vatom;
 
   typedef Kokkos::DualView<F_FLOAT**[7],Kokkos::LayoutRight,DeviceType> tdual_ffloat_2d_n7;
   typedef typename tdual_ffloat_2d_n7::t_dev_const_randomread t_ffloat_2d_n7_randomread;

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lubricate,PairLubricate)
-
+// clang-format off
+PairStyle(lubricate,PairLubricate);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LUBRICATE_H
@@ -27,39 +27,39 @@ namespace LAMMPS_NS {
 class PairLubricate : public Pair {
  public:
   PairLubricate(class LAMMPS *);
-  virtual ~PairLubricate();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  virtual void init_style();
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
+  ~PairLubricate() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void init_style() override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
   int pre_adapt(char *, int, int, int, int);
   void adapt(int, int, int, int, int, double);
 
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
 
  protected:
-  double mu,cut_inner_global,cut_global;
+  double mu, cut_inner_global, cut_global;
   double rad;
-  int flaglog,flagfld,shearing;
+  int flaglog, flagfld, shearing;
   int flagdeform, flagwall;
   double vol_P;
   class FixWall *wallfix;
   int flagVF, flagHI;
 
   double Ef[3][3];
-  double R0,RT0,RS0;
-  double **cut_inner,**cut;
+  double R0, RT0, RS0;
+  double **cut_inner, **cut;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

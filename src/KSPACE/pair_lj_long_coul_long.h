@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/long/coul/long,PairLJLongCoulLong)
-
+// clang-format off
+PairStyle(lj/long/coul/long,PairLJLongCoulLong);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_LJ_LONG_COUL_LONG_H
@@ -29,24 +29,24 @@ class PairLJLongCoulLong : public Pair {
   double cut_coul;
 
   PairLJLongCoulLong(class LAMMPS *);
-  virtual ~PairLJLongCoulLong();
-  virtual void compute(int, int);
-  virtual void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  void write_data(FILE *);
-  void write_data_all(FILE *);
-  double single(int, int, int, int, double, double, double, double &);
-  void *extract(const char *, int &);
+  ~PairLJLongCoulLong() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
+  void write_data(FILE *) override;
+  void write_data_all(FILE *) override;
+  double single(int, int, int, int, double, double, double, double &) override;
+  void *extract(const char *, int &) override;
 
-  virtual void compute_inner();
-  virtual void compute_middle();
-  virtual void compute_outer(int, int);
+  void compute_inner() override;
+  void compute_middle() override;
+  void compute_outer(int, int) override;
 
  protected:
   double cut_lj_global;
@@ -64,7 +64,7 @@ class PairLJLongCoulLong : public Pair {
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

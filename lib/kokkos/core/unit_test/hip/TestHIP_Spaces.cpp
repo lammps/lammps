@@ -43,7 +43,7 @@
 */
 
 #include <Kokkos_Core.hpp>
-#include <hip/TestHIP_Category.hpp>
+#include <TestHIP_Category.hpp>
 
 namespace Test {
 
@@ -129,27 +129,26 @@ TEST(hip, space_access) {
 
   //--------------------------------------
 
-  static_assert(
-      !Kokkos::Impl::SpaceAccessibility<Kokkos::Experimental::HIP,
-                                        Kokkos::HostSpace>::accessible,
-      "");
-
-  static_assert(Kokkos::Impl::SpaceAccessibility<
-                    Kokkos::Experimental::HIP,
-                    Kokkos::Experimental::HIPSpace>::accessible,
+  static_assert(!Kokkos::SpaceAccessibility<Kokkos::Experimental::HIP,
+                                            Kokkos::HostSpace>::accessible,
                 "");
 
-  static_assert(Kokkos::Impl::SpaceAccessibility<
+  static_assert(
+      Kokkos::SpaceAccessibility<Kokkos::Experimental::HIP,
+                                 Kokkos::Experimental::HIPSpace>::accessible,
+      "");
+
+  static_assert(Kokkos::SpaceAccessibility<
                     Kokkos::Experimental::HIP,
                     Kokkos::Experimental::HIPHostPinnedSpace>::accessible,
                 "");
 
   static_assert(
-      !Kokkos::Impl::SpaceAccessibility<
-          Kokkos::HostSpace, Kokkos::Experimental::HIPSpace>::accessible,
+      !Kokkos::SpaceAccessibility<Kokkos::HostSpace,
+                                  Kokkos::Experimental::HIPSpace>::accessible,
       "");
 
-  static_assert(Kokkos::Impl::SpaceAccessibility<
+  static_assert(Kokkos::SpaceAccessibility<
                     Kokkos::HostSpace,
                     Kokkos::Experimental::HIPHostPinnedSpace>::accessible,
                 "");
@@ -166,18 +165,18 @@ TEST(hip, space_access) {
                    Kokkos::Experimental::HIPHostPinnedSpace>::value,
       "");
 
-  static_assert(Kokkos::Impl::SpaceAccessibility<
+  static_assert(Kokkos::SpaceAccessibility<
                     Kokkos::Impl::HostMirror<Kokkos::Experimental::HIP>::Space,
                     Kokkos::HostSpace>::accessible,
                 "");
 
   static_assert(
-      Kokkos::Impl::SpaceAccessibility<
+      Kokkos::SpaceAccessibility<
           Kokkos::Impl::HostMirror<Kokkos::Experimental::HIPSpace>::Space,
           Kokkos::HostSpace>::accessible,
       "");
 
-  static_assert(Kokkos::Impl::SpaceAccessibility<
+  static_assert(Kokkos::SpaceAccessibility<
                     Kokkos::Impl::HostMirror<
                         Kokkos::Experimental::HIPHostPinnedSpace>::Space,
                     Kokkos::HostSpace>::accessible,

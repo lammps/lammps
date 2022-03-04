@@ -19,17 +19,8 @@ colvar::aspathCV::aspathCV(std::string const &conf): CVBasedPath(conf) {
     get_keyval(conf, "weights", p_weights, std::vector<cvm::real>(cv.size(), 1.0));
     x.type(colvarvalue::type_scalar);
     use_explicit_gradients = true;
-    std::vector<cvm::real> rmsd_between_refs(total_reference_frames - 1, 0.0);
-    computeDistanceBetweenReferenceFrames(rmsd_between_refs);
-    cvm::real mean_square_displacements = 0.0;
-    for (size_t i_frame = 1; i_frame < total_reference_frames; ++i_frame) {
-        cvm::log(std::string("Distance between frame ") + cvm::to_str(i_frame) + " and " + cvm::to_str(i_frame + 1) + " is " + cvm::to_str(rmsd_between_refs[i_frame - 1]) + std::string("\n"));
-        mean_square_displacements += rmsd_between_refs[i_frame - 1] * rmsd_between_refs[i_frame - 1];
-    }
-    mean_square_displacements /= cvm::real(total_reference_frames - 1);
-    cvm::real suggested_lambda = 1.0 / mean_square_displacements;
     cvm::real p_lambda;
-    get_keyval(conf, "lambda", p_lambda, suggested_lambda);
+    get_keyval(conf, "lambda", p_lambda, -1.0);
     ArithmeticPathCV::ArithmeticPathBase<colvarvalue, cvm::real, ArithmeticPathCV::path_sz::S>::initialize(cv.size(), total_reference_frames, p_lambda, ref_cv[0], p_weights);
     cvm::log(std::string("Lambda is ") + cvm::to_str(lambda) + std::string("\n"));
     for (size_t i_cv = 0; i_cv < cv.size(); ++i_cv) {
@@ -58,6 +49,16 @@ void colvar::aspathCV::updateDistanceToReferenceFrames() {
 }
 
 void colvar::aspathCV::calc_value() {
+    if (lambda < 0) {
+        // this implies that the user may not set a valid lambda value
+        // so recompute it by the suggested value in Parrinello's paper
+        cvm::log("A non-positive value of lambda is detected, which implies that it may not set in the configuration.\n");
+        cvm::log("This component (aspathCV) will recompute a value for lambda following the suggestion in the origin paper.\n");
+        std::vector<cvm::real> rmsd_between_refs(total_reference_frames - 1, 0.0);
+        computeDistanceBetweenReferenceFrames(rmsd_between_refs);
+        reComputeLambda(rmsd_between_refs);
+        cvm::log("Ok, the value of lambda is updated to " + cvm::to_str(lambda));
+    }
     computeValue();
     x = s;
 }
@@ -107,17 +108,8 @@ colvar::azpathCV::azpathCV(std::string const &conf): CVBasedPath(conf) {
     get_keyval(conf, "weights", p_weights, std::vector<cvm::real>(cv.size(), 1.0));
     x.type(colvarvalue::type_scalar);
     use_explicit_gradients = true;
-    std::vector<cvm::real> rmsd_between_refs(total_reference_frames - 1, 0.0);
-    computeDistanceBetweenReferenceFrames(rmsd_between_refs);
-    cvm::real mean_square_displacements = 0.0;
-    for (size_t i_frame = 1; i_frame < total_reference_frames; ++i_frame) {
-        cvm::log(std::string("Distance between frame ") + cvm::to_str(i_frame) + " and " + cvm::to_str(i_frame + 1) + " is " + cvm::to_str(rmsd_between_refs[i_frame - 1]) + std::string("\n"));
-        mean_square_displacements += rmsd_between_refs[i_frame - 1] * rmsd_between_refs[i_frame - 1];
-    }
-    mean_square_displacements /= cvm::real(total_reference_frames - 1);
-    cvm::real suggested_lambda = 1.0 / mean_square_displacements;
     cvm::real p_lambda;
-    get_keyval(conf, "lambda", p_lambda, suggested_lambda);
+    get_keyval(conf, "lambda", p_lambda, -1.0);
     ArithmeticPathCV::ArithmeticPathBase<colvarvalue, cvm::real, ArithmeticPathCV::path_sz::Z>::initialize(cv.size(), total_reference_frames, p_lambda, ref_cv[0], p_weights);
     cvm::log(std::string("Lambda is ") + cvm::to_str(lambda) + std::string("\n"));
     for (size_t i_cv = 0; i_cv < cv.size(); ++i_cv) {
@@ -146,6 +138,16 @@ void colvar::azpathCV::updateDistanceToReferenceFrames() {
 }
 
 void colvar::azpathCV::calc_value() {
+    if (lambda < 0) {
+        // this implies that the user may not set a valid lambda value
+        // so recompute it by the suggested value in Parrinello's paper
+        cvm::log("A non-positive value of lambda is detected, which implies that it may not set in the configuration.\n");
+        cvm::log("This component (azpathCV) will recompute a value for lambda following the suggestion in the origin paper.\n");
+        std::vector<cvm::real> rmsd_between_refs(total_reference_frames - 1, 0.0);
+        computeDistanceBetweenReferenceFrames(rmsd_between_refs);
+        reComputeLambda(rmsd_between_refs);
+        cvm::log("Ok, the value of lambda is updated to " + cvm::to_str(lambda));
+    }
     computeValue();
     x = z;
 }

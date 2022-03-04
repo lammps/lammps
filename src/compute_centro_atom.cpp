@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,19 +17,21 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_centro_atom.h"
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "force.h"
-#include "pair.h"
 #include "comm.h"
+#include "error.h"
+#include "force.h"
 #include "math_extra.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "pair.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -36,14 +39,14 @@ using namespace LAMMPS_NS;
 
 ComputeCentroAtom::ComputeCentroAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
-  distsq(NULL), nearest(NULL), centro(NULL)
+  distsq(nullptr), nearest(nullptr), centro(nullptr)
 {
   if (narg < 4 || narg > 6)
     error->all(FLERR,"Illegal compute centro/atom command");
 
   if (strcmp(arg[3],"fcc") == 0) nnn = 12;
   else if (strcmp(arg[3],"bcc") == 0) nnn = 8;
-  else nnn = force->inumeric(FLERR,arg[3]);
+  else nnn = utils::inumeric(FLERR,arg[3],false,lmp);
 
   // default values
 
@@ -54,11 +57,8 @@ ComputeCentroAtom::ComputeCentroAtom(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 4;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"axes") == 0) {
-      if (iarg+2 > narg)
-        error->all(FLERR,"Illegal compute centro/atom command3");
-      if (strcmp(arg[iarg+1],"yes") == 0) axes_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) axes_flag = 0;
-      else error->all(FLERR,"Illegal compute centro/atom command2");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal compute centro/atom command3");
+      axes_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal compute centro/atom command1");
   }
@@ -88,7 +88,7 @@ ComputeCentroAtom::~ComputeCentroAtom()
 
 void ComputeCentroAtom::init()
 {
-  if (force->pair == NULL)
+  if (force->pair == nullptr)
     error->all(FLERR,"Compute centro/atom requires a pair style be defined");
 
   int count = 0;
@@ -269,7 +269,7 @@ void ComputeCentroAtom::compute_peratom()
             delx = x[jj][0] + x[kk][0] - 2.0*xtmp;
             dely = x[jj][1] + x[kk][1] - 2.0*ytmp;
             delz = x[jj][2] + x[kk][2] - 2.0*ztmp;
-            double rsq = delx*delx + dely*dely + delz*delz;
+            rsq = delx*delx + dely*dely + delz*delz;
             pairs[n++] = rsq;
 
             if (rsq < rsq2) {
@@ -436,7 +436,7 @@ void ComputeCentroAtom::select2(int k, int n, double *arr, int *iarr)
 
 double ComputeCentroAtom::memory_usage()
 {
-  double bytes = nmax * sizeof(double);
-  if (axes_flag) bytes += size_peratom_cols*nmax * sizeof(double);
+  double bytes = (double)nmax * sizeof(double);
+  if (axes_flag) bytes += (double)size_peratom_cols*nmax * sizeof(double);
   return bytes;
 }

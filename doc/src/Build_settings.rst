@@ -6,7 +6,7 @@ explain how to do this for building both with CMake and make.
 
 * :ref:`C++11 standard compliance <cxx11>` when building all of LAMMPS
 * :ref:`FFT library <fft>` for use with the :doc:`kspace_style pppm <kspace_style>` command
-* :ref:`Size of LAMMPS data types <size>`
+* :ref:`Size of LAMMPS integer types <size>`
 * :ref:`Read or write compressed files <gzip>`
 * :ref:`Output of JPG and PNG files <graphics>` via the :doc:`dump image <dump_image>` command
 * :ref:`Output of movie files <graphics>` via the :doc:`dump_movie <dump_image>` command
@@ -44,67 +44,72 @@ require use of an FFT library to compute 1d FFTs.  The KISS FFT
 library is included with LAMMPS but other libraries can be faster.
 LAMMPS can use them if they are available on your system.
 
-**CMake variables**\ :
+.. tabs::
 
-.. code-block:: bash
+   .. tab:: CMake build
 
-   -D FFT=value              # FFTW3 or MKL or KISS, default is FFTW3 if found, else KISS
-   -D FFT_SINGLE=value       # yes or no (default), no = double precision
-   -D FFT_PACK=value         # array (default) or pointer or memcpy
+      .. code-block:: bash
 
-.. note::
+         -D FFT=value              # FFTW3 or MKL or KISS, default is FFTW3 if found, else KISS
+         -D FFT_SINGLE=value       # yes or no (default), no = double precision
+         -D FFT_PACK=value         # array (default) or pointer or memcpy
 
-   The values for the FFT variable must be in upper-case.  This is
-   an exception to the rule that all CMake variables can be specified
-   with lower-case values.
+      .. note::
 
-Usually these settings are all that is needed.  If FFTW3 is selected,
-then CMake will try to detect, if threaded FFTW libraries are available
-and enable them by default.  This setting is independent of whether
-OpenMP threads are enabled and a packages like KOKKOS or USER-OMP is
-used.  If CMake cannot detect the FFT library, you can set these variables
-to assist:
+         The values for the FFT variable must be in upper-case.  This is
+         an exception to the rule that all CMake variables can be specified
+         with lower-case values.
 
-.. code-block:: bash
+      Usually these settings are all that is needed.  If FFTW3 is
+      selected, then CMake will try to detect, if threaded FFTW
+      libraries are available and enable them by default.  This setting
+      is independent of whether OpenMP threads are enabled and a
+      packages like KOKKOS or OPENMP is used.  If CMake cannot detect
+      the FFT library, you can set these variables to assist:
 
-   -D FFTW3_INCLUDE_DIRS=path  # path to FFTW3 include files
-   -D FFTW3_LIBRARIES=path     # path to FFTW3 libraries
-   -D FFT_FFTW_THREADS=on      # enable using threaded FFTW3 libraries
-   -D MKL_INCLUDE_DIRS=path    # ditto for Intel MKL library
-   -D FFT_MKL_THREADS=on       # enable using threaded FFTs with MKL libraries
-   -D MKL_LIBRARIES=path
+      .. code-block:: bash
 
-**Makefile.machine settings**\ :
+         -D FFTW3_INCLUDE_DIR=path   # path to FFTW3 include files
+         -D FFTW3_LIBRARY=path       # path to FFTW3 libraries
+         -D FFTW3_OMP_LIBRARY=path   # path to FFTW3 OpenMP wrapper libraries
+         -D FFT_FFTW_THREADS=on      # enable using OpenMP threaded FFTW3 libraries
+         -D MKL_INCLUDE_DIR=path     # ditto for Intel MKL library
+         -D FFT_MKL_THREADS=on       # enable using threaded FFTs with MKL libraries
+         -D MKL_LIBRARY=path         # path to MKL libraries
 
-.. code-block:: make
+   .. tab:: Traditional make
 
-   FFT_INC = -DFFT_FFTW3         # -DFFT_FFTW3, -DFFT_FFTW (same as -DFFT_FFTW3), -DFFT_MKL, or -DFFT_KISS
-                                 # default is KISS if not specified
-   FFT_INC = -DFFT_SINGLE        # do not specify for double precision
-   FFT_INC = -DFFT_FFTW_THREADS  # enable using threaded FFTW3 libraries
-   FFT_INC = -DFFT_MKL_THREADS   # enable using threaded FFTs with MKL libraries
-   FFT_INC = -DFFT_PACK_ARRAY    # or -DFFT_PACK_POINTER or -DFFT_PACK_MEMCPY
+      To change the FFT library to be used and its options, you have to edit
+      your machine Makefile. Below are examples how the makefile variables
+      could be changed.
 
-# default is FFT_PACK_ARRAY if not specified
+      .. code-block:: make
 
-.. code-block:: make
+         FFT_INC = -DFFT_FFTW3         # -DFFT_FFTW3, -DFFT_FFTW (same as -DFFT_FFTW3), -DFFT_MKL, or -DFFT_KISS
+                                       # default is KISS if not specified
+         FFT_INC = -DFFT_SINGLE        # do not specify for double precision
+         FFT_INC = -DFFT_FFTW_THREADS  # enable using threaded FFTW3 libraries
+         FFT_INC = -DFFT_MKL_THREADS   # enable using threaded FFTs with MKL libraries
+         FFT_INC = -DFFT_PACK_ARRAY    # or -DFFT_PACK_POINTER or -DFFT_PACK_MEMCPY
+                                       # default is FFT_PACK_ARRAY if not specified
 
-   FFT_INC =       -I/usr/local/include
-   FFT_PATH =      -L/usr/local/lib
-   FFT_LIB =       -lfftw3             # FFTW3 double precision
-   FFT_LIB =       -lfftw3 -lfftw3_omp # FFTW3 double precision with threads (needs -DFFT_FFTW_THREADS)
-   FFT_LIB =       -lfftw3 -lfftw3f    # FFTW3 single precision
-   FFT_LIB =       -lmkl_intel_lp64 -lmkl_sequential -lmkl_core   # MKL with Intel compiler, serial interface
-   FFT_LIB =       -lmkl_gf_lp64 -lmkl_sequential -lmkl_core      # MKL with GNU compiler, serial interface
-   FFT_LIB =       -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core # MKL with Intel compiler, threaded interface
-   FFT_LIB =       -lmkl_gf_lp64 -lmkl_gnu_thread -lmkl_core      # MKL with GNU compiler, threaded interface
-   FFT_LIB =       -lmkl_rt            # MKL with automatic runtime selection of interface libs
+      .. code-block:: make
 
-As with CMake, you do not need to set paths in ``FFT_INC`` or ``FFT_PATH``, if
-the compiler can find the FFT header and library files in its default search path.
-You must specify ``FFT_LIB`` with the appropriate FFT libraries to include in the link.
+         FFT_INC =       -I/usr/local/include
+         FFT_PATH =      -L/usr/local/lib
+         FFT_LIB =       -lfftw3             # FFTW3 double precision
+         FFT_LIB =       -lfftw3 -lfftw3_omp # FFTW3 double precision with threads (needs -DFFT_FFTW_THREADS)
+         FFT_LIB =       -lfftw3 -lfftw3f    # FFTW3 single precision
+         FFT_LIB =       -lmkl_intel_lp64 -lmkl_sequential -lmkl_core   # MKL with Intel compiler, serial interface
+         FFT_LIB =       -lmkl_gf_lp64 -lmkl_sequential -lmkl_core      # MKL with GNU compiler, serial interface
+         FFT_LIB =       -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core # MKL with Intel compiler, threaded interface
+         FFT_LIB =       -lmkl_gf_lp64 -lmkl_gnu_thread -lmkl_core      # MKL with GNU compiler, threaded interface
+         FFT_LIB =       -lmkl_rt            # MKL with automatic runtime selection of interface libs
 
-**CMake and make info**\ :
+      As with CMake, you do not need to set paths in ``FFT_INC`` or
+      ``FFT_PATH``, if the compiler can find the FFT header and library
+      files in its default search path.  You must specify ``FFT_LIB``
+      with the appropriate FFT libraries to include in the link.
 
 The `KISS FFT library <http://kissfft.sf.net>`_ is included in the LAMMPS
 distribution.  It is portable across all platforms.  Depending on the size
@@ -116,8 +121,9 @@ per-timestep CPU cost, FFTs are only a portion of long-range
 Coulombics, and 1d FFTs are only a portion of the FFT cost (parallel
 communication can be costly).  A breakdown of these timings is printed
 to the screen at the end of a run when using the
-:doc:`kspace_style pppm <kspace_style>` command. The :doc:`Run output <Run_output>`
-doc page gives more details.  A more detailed (and time consuming)
+:doc:`kspace_style pppm <kspace_style>` command. The
+:doc:`Screen and logfile output <Run_output>`
+page gives more details.  A more detailed (and time consuming)
 report of the FFT performance is generated with the
 :doc:`kspace_modify fftbench yes <kspace_modify>` command.
 
@@ -127,7 +133,7 @@ download it from `www.fftw.org <http://www.fftw.org>`_.  LAMMPS requires
 version 3.X; the legacy version 2.1.X is no longer supported.
 
 Building FFTW for your box should be as simple as ``./configure; make;
-make install``\ .  The install command typically requires root privileges
+make install``.  The install command typically requires root privileges
 (e.g. invoke it via sudo), unless you specify a local directory with
 the "--prefix" option of configure.  Type ``./configure --help`` to see
 various options.
@@ -169,70 +175,103 @@ ARRAY mode.
 
 .. _size:
 
-Size of LAMMPS data types
-------------------------------------
+Size of LAMMPS integer types and size limits
+--------------------------------------------
 
-LAMMPS has a few integer data types which can be defined as 4-byte or
-8-byte integers.  The default setting of "smallbig" is almost always
-adequate.
+LAMMPS has a few integer data types which can be defined as either
+4-byte (= 32-bit) or 8-byte (= 64-bit) integers at compile time.
+This has an impact on the size of a system that can be simulated
+or how large counters can become before "rolling over".
+The default setting of "smallbig" is almost always adequate.
 
-**CMake variable**\ :
+.. tabs::
 
-.. code-block:: bash
+   .. tab:: CMake build
 
-   -D LAMMPS_SIZES=value   # smallbig (default) or bigbig or smallsmall
+      With CMake the choice of integer types is made via setting a
+      variable during configuration.
 
-**Makefile.machine setting**\ :
+      .. code-block:: bash
 
-.. code-block:: make
+         -D LAMMPS_SIZES=value   # smallbig (default) or bigbig or smallsmall
 
-   LMP_INC = -DLAMMPS_SMALLBIG    # or -DLAMMPS_BIGBIG or -DLAMMPS_SMALLSMALL
+      If the variable is not set explicitly, "smallbig" is used.
 
-The default setting is ``-DLAMMPS_SMALLBIG`` if nothing is specified
+   .. tab:: Traditional build
 
-**CMake and make info**\ :
+      If you want a setting different from the default, you need to edit the
+      ``LMP_INC`` variable setting your machine Makefile.
 
-The default "smallbig" setting allows for simulations with:
+      .. code-block:: make
 
-* total atom count = 2\^63 atoms (about 9e18)
-* total timesteps = 2\^63 (about 9e18)
-* atom IDs = 2\^31 (about 2 billion)
-* image flags = roll over at 512
+         LMP_INC = -DLAMMPS_SMALLBIG    # or -DLAMMPS_BIGBIG or -DLAMMPS_SMALLSMALL
 
-The "bigbig" setting increases the latter two limits.  It allows for:
+      The default setting is ``-DLAMMPS_SMALLBIG`` if nothing is specified
 
-* total atom count = 2\^63 atoms (about 9e18)
-* total timesteps = 2\^63 (about 9e18)
-* atom IDs = 2\^63 (about 9e18)
-* image flags = roll over at about 1 million (2\^20)
+LAMMPS system size restrictions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The "smallsmall" setting is only needed if your machine does not
-support 8-byte integers.  It allows for:
+.. list-table::
+   :header-rows: 1
+   :widths: auto
+   :align: center
 
-* total atom count = 2\^31 atoms (about 2 billion)
-* total timesteps = 2\^31 (about 2 billion)
-* atom IDs = 2\^31 (about 2 billion)
-* image flags = roll over at 512 (2\^9)
+   * -
+     - smallbig
+     - bigbig
+     - smallsmall
+   * - Total atom count
+     - :math:`2^{63}` atoms (= :math:`9.223 \cdot 10^{18}`)
+     - :math:`2^{63}` atoms (= :math:`9.223 \cdot 10^{18}`)
+     - :math:`2^{31}` atoms (= :math:`2.147 \cdot 10^9`)
+   * - Total timesteps
+     - :math:`2^{63}` steps (= :math:`9.223 \cdot 10^{18}`)
+     - :math:`2^{63}` steps (= :math:`9.223 \cdot 10^{18}`)
+     - :math:`2^{31}` steps (= :math:`2.147 \cdot 10^9`)
+   * - Atom ID values
+     - :math:`1 \le i \le 2^{31} (= 2.147 \cdot 10^9)`
+     - :math:`1 \le i \le 2^{63} (= 9.223 \cdot 10^{18})`
+     - :math:`1 \le i \le 2^{31} (= 2.147 \cdot 10^9)`
+   * - Image flag values
+     - :math:`-512 \le i \le 511`
+     - :math:`- 1\,048\,576 \le i \le 1\,048\,575`
+     - :math:`-512 \le i \le 511`
+
+The "bigbig" setting increases the size of image flags and atom IDs over
+"smallbig" and the "smallsmall" setting is only needed if your machine
+does not support 64-bit integers or incurs performance penalties when
+using them.
+
+These are limits for the core of the LAMMPS code, specific features or
+some styles may impose additional limits.  The :ref:`ATC
+<PKG-ATC>` package cannot be compiled with the "bigbig" setting.
+Also, there are limitations when using the library interface where some
+functions with known issues have been replaced by dummy calls printing a
+corresponding error message rather than crashing randomly or corrupting
+data.
 
 Atom IDs are not required for atomic systems which do not store bond
 topology information, though IDs are enabled by default.  The
 :doc:`atom_modify id no <atom_modify>` command will turn them off.  Atom
 IDs are required for molecular systems with bond topology (bonds,
-angles, dihedrals, etc).  Thus if you model a molecular system with
-more than 2 billion atoms, you need the "bigbig" setting.
+angles, dihedrals, etc).  Similarly, some force or compute or fix styles
+require atom IDs.  Thus if you model a molecular system or use one of
+those styles with more than 2 billion atoms, you need the "bigbig"
+setting.
 
-Image flags store 3 values per atom which count the number of times an
-atom has moved through the periodic box in each dimension.  See the
-:doc:`dump <dump>` doc page for a discussion.  If an atom moves through
-the periodic box more than this limit, the value will "roll over",
-e.g. from 511 to -512, which can cause diagnostics like the
-mean-squared displacement, as calculated by the :doc:`compute msd <compute_msd>` command, to be faulty.
+Regardless of the total system size limits, the maximum number of atoms
+per MPI rank (local + ghost atoms) is limited to 2 billion for atomic
+systems and 500 million for systems with bonds (the additional
+restriction is due to using the 2 upper bits of the local atom index
+in neighbor lists for storing special bonds info).
 
-Note that the USER-ATC package and the USER-INTEL package are currently
-not compatible with the "bigbig" setting. Also, there are limitations
-when using the library interface. Some functions with known issues
-have been replaced by dummy calls printing a corresponding error rather
-than crashing randomly or corrupting data.
+Image flags store 3 values per atom in a single integer which count the
+number of times an atom has moved through the periodic box in each
+dimension.  See the :doc:`dump <dump>` manual page for a discussion.  If
+an atom moves through the periodic box more than this limit, the value
+will "roll over", e.g. from 511 to -512, which can cause diagnostics
+like the mean-squared displacement, as calculated by the :doc:`compute
+msd <compute_msd>` command, to be faulty.
 
 Also note that the GPU package requires its lib/gpu library to be
 compiled with the same size setting, or the link will fail.  A CMake
@@ -251,51 +290,49 @@ PNG image files.  Likewise the :doc:`dump movie <dump_image>` command
 outputs movie files in MPEG format.  Using these options requires the
 following settings:
 
-**CMake variables**\ :
+.. tabs::
 
-.. code-block:: bash
+   .. tab:: CMake build
 
-   -D WITH_JPEG=value      # yes or no
-                           # default = yes if CMake finds JPEG files, else no
-   -D WITH_PNG=value       # yes or no
-                           # default = yes if CMake finds PNG and ZLIB files, else no
-   -D WITH_FFMPEG=value    # yes or no
-                           # default = yes if CMake can find ffmpeg, else no
+      .. code-block:: bash
 
-Usually these settings are all that is needed.  If CMake cannot find
-the graphics header, library, executable files, you can set these
-variables:
+         -D WITH_JPEG=value      # yes or no
+                                 # default = yes if CMake finds JPEG files, else no
+         -D WITH_PNG=value       # yes or no
+                                 # default = yes if CMake finds PNG and ZLIB files, else no
+         -D WITH_FFMPEG=value    # yes or no
+                                 # default = yes if CMake can find ffmpeg, else no
 
-.. code-block:: bash
+      Usually these settings are all that is needed.  If CMake cannot
+      find the graphics header, library, executable files, you can set
+      these variables:
 
-   -D JPEG_INCLUDE_DIR=path    # path to jpeglib.h header file
-   -D JPEG_LIBRARIES=path      # path to libjpeg.a (.so) file
-   -D PNG_INCLUDE_DIR=path     # path to png.h header file
-   -D PNG_LIBRARIES=path       # path to libpng.a (.so) file
-   -D ZLIB_INCLUDE_DIR=path    # path to zlib.h header file
-   -D ZLIB_LIBRARIES=path      # path to libz.a (.so) file
-   -D FFMPEG_EXECUTABLE=path   # path to ffmpeg executable
+      .. code-block:: bash
 
-**Makefile.machine settings**\ :
+         -D JPEG_INCLUDE_DIR=path    # path to jpeglib.h header file
+         -D JPEG_LIBRARY=path        # path to libjpeg.a (.so) file
+         -D PNG_INCLUDE_DIR=path     # path to png.h header file
+         -D PNG_LIBRARY=path         # path to libpng.a (.so) file
+         -D ZLIB_INCLUDE_DIR=path    # path to zlib.h header file
+         -D ZLIB_LIBRARY=path        # path to libz.a (.so) file
+         -D FFMPEG_EXECUTABLE=path   # path to ffmpeg executable
 
-.. code-block:: make
+   .. tab:: Traditional make
 
-   LMP_INC = -DLAMMPS_JPEG
-   LMP_INC = -DLAMMPS_PNG
-   LMP_INC = -DLAMMPS_FFMPEG
+      .. code-block:: make
 
-   JPG_INC = -I/usr/local/include   # path to jpeglib.h, png.h, zlib.h header files if make cannot find them
-   JPG_PATH = -L/usr/lib            # paths to libjpeg.a, libpng.a, libz.a (.so) files if make cannot find them
-   JPG_LIB = -ljpeg -lpng -lz       # library names
+         LMP_INC = -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_FFMPEG  <other LMP_INC settings>
 
-As with CMake, you do not need to set ``JPG_INC`` or ``JPG_PATH``,
-if make can find the graphics header and library files.  You must
-specify ``JPG_LIB``
-with a list of graphics libraries to include in the link.  You must
-insure ffmpeg is in a directory where LAMMPS can find it at runtime,
-that is a directory in your PATH environment variable.
+         JPG_INC = -I/usr/local/include   # path to jpeglib.h, png.h, zlib.h header files if make cannot find them
+         JPG_PATH = -L/usr/lib            # paths to libjpeg.a, libpng.a, libz.a (.so) files if make cannot find them
+         JPG_LIB = -ljpeg -lpng -lz       # library names
 
-**CMake and make info**\ :
+      As with CMake, you do not need to set ``JPG_INC`` or ``JPG_PATH``,
+      if make can find the graphics header and library files.  You must
+      specify ``JPG_LIB`` with a list of graphics libraries to include
+      in the link.  You must insure ffmpeg is in a directory where
+      LAMMPS can find it at runtime, that is a directory in your PATH
+      environment variable.
 
 Using ``ffmpeg`` to output movie files requires that your machine
 supports the "popen" function in the standard runtime library.
@@ -315,37 +352,39 @@ Read or write compressed files
 -----------------------------------------
 
 If this option is enabled, large files can be read or written with
-gzip compression by several LAMMPS commands, including
-:doc:`read_data <read_data>`, :doc:`rerun <rerun>`, and :doc:`dump <dump>`.
+compression by ``gzip`` or similar tools by several LAMMPS commands,
+including :doc:`read_data <read_data>`, :doc:`rerun <rerun>`, and
+:doc:`dump <dump>`.  Currently supported compression tools are:
+``gzip``, ``bzip2``, ``zstd``, and ``lzma``.
 
-**CMake variables**\ :
+.. tabs::
 
-.. code-block:: bash
+   .. tab:: CMake build
 
-   -D WITH_GZIP=value       # yes or no
-                            # default is yes if CMake can find gzip, else no
-   -D GZIP_EXECUTABLE=path  # path to gzip executable if CMake cannot find it
+      .. code-block:: bash
 
-**Makefile.machine setting**\ :
+         -D WITH_GZIP=value       # yes or no
+                                  # default is yes if CMake can find the gzip program, else no
 
-.. code-block:: make
+   .. tab:: Traditional make
 
-   LMP_INC = -DLAMMPS_GZIP
+      .. code-block:: make
 
-**CMake and make info**\ :
+         LMP_INC = -DLAMMPS_GZIP   <other LMP_INC settings>
 
-This option requires that your machine supports the "popen()" function
-in the standard runtime library and that a gzip executable can be
-found by LAMMPS during a run.
+This option requires that your operating system fully supports the
+"popen()" function in the standard runtime library and that a ``gzip``
+or other executable can be found by LAMMPS in the standard search path
+during a run.
 
 .. note::
 
-   On some clusters with high-speed networks, using the fork()
-   library call (required by popen()) can interfere with the fast
-   communication library and lead to simulations using compressed output
-   or input to hang or crash. For selected operations, compressed file
-   I/O is also available using a compression library instead, which is
-   what the :ref:`COMPRESS package <PKG-COMPRESS>` enables.
+   On clusters with high-speed networks, using the "fork()" library call
+   (required by "popen()") can interfere with the fast communication
+   library and lead to simulations using compressed output or input to
+   hang or crash. For selected operations, compressed file I/O is also
+   available using a compression library instead, which is what the
+   :ref:`COMPRESS package <PKG-COMPRESS>` enables.
 
 ----------
 
@@ -354,61 +393,66 @@ found by LAMMPS during a run.
 Memory allocation alignment
 ---------------------------------------
 
-This setting enables the use of the posix_memalign() call instead of
-malloc() when LAMMPS allocates large chunks or memory.  This can make
-vector instructions on CPUs more efficient, if dynamically allocated
-memory is aligned on larger-than-default byte boundaries.
-On most current systems, the malloc() implementation returns
+This setting enables the use of the "posix_memalign()" call instead of
+"malloc()" when LAMMPS allocates large chunks or memory.  Vector
+instructions on CPUs may become more efficient, if dynamically allocated
+memory is aligned on larger-than-default byte boundaries.  On most
+current operating systems, the "malloc()" implementation returns
 pointers that are aligned to 16-byte boundaries. Using SSE vector
-instructions efficiently, however, requires memory blocks being
-aligned on 64-byte boundaries.
+instructions efficiently, however, requires memory blocks being aligned
+on 64-byte boundaries.
 
-**CMake variable**\ :
+.. tabs::
 
-.. code-block:: bash
+   .. tab:: CMake build
 
-   -D LAMMPS_MEMALIGN=value            # 0, 8, 16, 32, 64 (default)
+      .. code-block:: bash
 
-Use a ``LAMMPS_MEMALIGN`` value of 0 to disable using posix_memalign()
-and revert to using the malloc() C-library function instead.  When
-compiling LAMMPS for Windows systems, malloc() will always be used
-and this setting ignored.
+         -D LAMMPS_MEMALIGN=value            # 0, 8, 16, 32, 64 (default)
 
-**Makefile.machine setting**\ :
+      Use a ``LAMMPS_MEMALIGN`` value of 0 to disable using
+      "posix_memalign()" and revert to using the "malloc()" C-library
+      function instead.  When compiling LAMMPS for Windows systems,
+      "malloc()" will always be used and this setting is ignored.
 
-.. code-block:: make
+   .. tab:: Traditional make
 
-   LMP_INC = -DLAMMPS_MEMALIGN=value   # 8, 16, 32, 64
+      .. code-block:: make
 
-Do not set ``-DLAMMPS_MEMALIGN``, if you want to have memory allocated
-with the malloc() function call instead. ``-DLAMMPS_MEMALIGN`` **cannot**
-be used on Windows, as it does use different function calls for
-allocating aligned memory, that are not compatible with how LAMMPS
-manages its dynamical memory.
+         LMP_INC = -DLAMMPS_MEMALIGN=value   # 8, 16, 32, 64
+
+      Do not set ``-DLAMMPS_MEMALIGN``, if you want to have memory
+      allocated with the "malloc()" function call
+      instead. ``-DLAMMPS_MEMALIGN`` **cannot** be used on Windows, as
+      Windows different function calls with different semantics for
+      allocating aligned memory, that are not compatible with how LAMMPS
+      manages its dynamical memory.
 
 ----------
 
 .. _longlong:
 
 Workaround for long long integers
-------------------------------------------------
+---------------------------------
 
 If your system or MPI version does not recognize "long long" data
 types, the following setting will be needed.  It converts "long long"
 to a "long" data type, which should be the desired 8-byte integer on
 those systems:
 
-**CMake variable**\ :
+.. tabs::
 
-.. code-block:: bash
+   .. tab:: CMake build
 
-   -D LAMMPS_LONGLONG_TO_LONG=value     # yes or no (default)
+      .. code-block:: bash
 
-**Makefile.machine setting**\ :
+         -D LAMMPS_LONGLONG_TO_LONG=value     # yes or no (default)
 
-.. code-block:: make
+   .. tab:: Traditional make
 
-   LMP_INC = -DLAMMPS_LONGLONG_TO_LONG
+      .. code-block:: make
+
+         LMP_INC = -DLAMMPS_LONGLONG_TO_LONG  <other LMP_INC settings>
 
 ----------
 
@@ -420,17 +464,64 @@ Exception handling when using LAMMPS as a library
 This setting is useful when external codes drive LAMMPS as a library.
 With this option enabled, LAMMPS errors do not kill the calling code.
 Instead, the call stack is unwound and control returns to the caller,
-e.g. to Python. Of course the calling code has to be set up to
-*catch* exceptions from within LAMMPS.
+e.g. to Python. Of course, the calling code has to be set up to
+*catch* exceptions thrown from within LAMMPS.
 
-**CMake variable**\ :
+.. tabs::
 
-.. code-block:: bash
+   .. tab:: CMake build
 
-   -D LAMMPS_EXCEPTIONS=value        # yes or no (default)
+      .. code-block:: bash
 
-**Makefile.machine setting**\ :
+         -D LAMMPS_EXCEPTIONS=value        # yes or no (default)
 
-.. code-block:: make
+   .. tab:: Traditional make
 
-   LMP_INC = -DLAMMPS_EXCEPTIONS
+      .. code-block:: make
+
+         LMP_INC = -DLAMMPS_EXCEPTIONS   <other LMP_INC settings>
+
+.. note::
+
+   When LAMMPS is running in parallel, it is not always possible to
+   cleanly recover from an exception since not all parallel ranks may
+   throw an exception and thus other MPI ranks may get stuck waiting for
+   messages from the ones with errors.
+
+----------
+
+.. _trap_fpe:
+
+Trigger selected floating-point exceptions
+------------------------------------------
+
+Many kinds of CPUs have the capability to detect when a calculation
+results in an invalid math operation like a division by zero or calling
+the square root with a negative argument.  The default behavior on
+most operating systems is to continue and have values for ``NaN`` (= not
+a number) or ``Inf`` (= infinity).  This allows software to detect and
+recover from such conditions.  This behavior can be changed, however,
+often through use of compiler flags.  On Linux systems (or more general
+on systems using the GNU C library), these so-called floating-point traps
+can also be selectively enabled through library calls.  LAMMPS supports
+that by setting the ``-DLAMMPS_TRAP_FPE`` pre-processor define.  As it is
+done in the ``main()`` function, this applies only to the standalone
+executable, not the library.
+
+.. tabs::
+
+   .. tab:: CMake build
+
+      .. code-block:: bash
+
+         -D CMAKE_TUNE_FLAGS=-DLAMMPS_TRAP_FPE
+
+   .. tab:: Traditional make
+
+      .. code-block:: make
+
+         LMP_INC = -DLAMMPS_TRAP_FPE  <other LMP_INC settings>
+
+After compilation with this flag set, the LAMMPS executable will stop
+and produce a core dump when a division by zero, overflow, illegal math
+function argument or other invalid floating point operation is encountered.

@@ -15,7 +15,7 @@ using ATC::ATC_Error;
 namespace ATC_matrix {
 
   /**
-   *  @class  ParDenseMatrix 
+   *  @class  ParDenseMatrix
    *  @brief  Parallelized version of DenseMatrix class.
    */
 
@@ -148,7 +148,7 @@ namespace ATC_matrix {
 #endif
 
       // Clear out the local matrix's pointer so we don't double-free
-      A_local._data = NULL;
+      A_local._data = nullptr;
 
       delete [] majorCounts;
       delete [] offsets;

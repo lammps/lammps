@@ -35,12 +35,12 @@ Examples
 Description
 """""""""""
 
-This fix interfaces LAMMPS to the collective variables "Colvars"
-library, which allows to calculate potentials of mean force
-(PMFs) for any set of colvars, using different sampling methods:
-currently implemented are the Adaptive Biasing Force (ABF) method,
-metadynamics, Steered Molecular Dynamics (SMD) and Umbrella Sampling
-(US) via a flexible harmonic restraint bias.
+This fix interfaces LAMMPS to the collective variables (Colvars)
+library, which allows to calculate potentials of mean force (PMFs) for
+any set of colvars, using different sampling methods: currently
+implemented are the Adaptive Biasing Force (ABF) method, metadynamics,
+Steered Molecular Dynamics (SMD) and Umbrella Sampling (US) via a
+flexible harmonic restraint bias.
 
 This documentation describes only the fix colvars command itself and
 LAMMPS specific parts of the code.  The full documentation of the
@@ -50,7 +50,7 @@ The Colvars library is developed at `https://github.com/colvars/colvars <https:/
 A detailed discussion of its implementation is in :ref:`(Fiorin) <Fiorin>`.
 
 There are some example scripts for using this package with LAMMPS in the
-examples/USER/colvars directory.
+examples/PACKAGES/colvars directory.
 
 ----------
 
@@ -80,7 +80,7 @@ that will be used in the colvars module.
 
 The *unwrap* keyword controls whether wrapped or unwrapped coordinates
 are passed to the colvars library for calculation of the collective
-variables and the resulting forces. The default is *yes*\ , i.e. to use
+variables and the resulting forces. The default is *yes*, i.e. to use
 the image flags to reconstruct the absolute atom positions.
 Setting this to *no* will use the current local coordinates that are
 wrapped back into the simulation cell at each re-neighboring instead.
@@ -90,16 +90,19 @@ fix that thermostats all atoms in the fix colvars group. This will be
 used to provide the colvars module with the current thermostat target
 temperature.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This fix writes the current status of the colvars module into
 :doc:`binary restart files <restart>`. This is in addition to the text
 mode status file that is written by the colvars module itself and the
 kind of information in both files is identical.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
-fix to add the energy change from the biasing force added by the fix
-to the system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.
+The :doc:`fix_modify <fix_modify>` *energy* option is supported by
+this fix to add the energy change from the biasing force added by
+Colvars to the global potential energy of the system as part of
+:doc:`thermodynamic output <thermo_style>`.  The default setting for
+this fix is :doc:`fix_modify energy no <fix_modify>`.
 
 The *fix_modify configfile <config file>* option allows to add settings
 from an additional config file to the colvars module. This option can
@@ -112,15 +115,16 @@ in a pair of double quotes ("), or can span multiple lines when bracketed
 by a pair of triple double quotes (""", like python embedded documentation).
 
 This fix computes a global scalar which can be accessed by various
-:doc:`output commands <Howto_output>`.  The scalar is the cumulative
-energy change due to this fix.  The scalar value calculated by this
-fix is "extensive".
+:doc:`output commands <Howto_output>`.  The scalar is the Colvars
+energy mentioned above.  The scalar value calculated by this fix is
+"extensive".
 
 Restrictions
 """"""""""""
 
-This fix is part of the USER-COLVARS package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This fix is part of the COLVARS package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
 There can only be one colvars fix active at a time. Since the interface
 communicates only the minimum amount of information and colvars module

@@ -185,12 +185,12 @@ output as a string, then the default maximum length of that string is
 a longer string, the *length* keyword can be specified with its *Nlen*
 value set to a larger number (the code allocates space for Nlen+1 to
 include the string terminator).  If the Python function generates a
-string longer than the default 63 or the specified *Nlen*\ , it will be
+string longer than the default 63 or the specified *Nlen*, it will be
 truncated.
 
 ----------
 
-Either the *file*\ , *here*\ , or *exists* keyword must be used, but only
+Either the *file*, *here*, or *exists* keyword must be used, but only
 one of them.  These keywords specify what Python code to load into the
 Python interpreter.  The *file* keyword gives the name of a file,
 which should end with a ".py" suffix, which contains Python code.  The
@@ -323,8 +323,8 @@ Python function is as follows:
 
 The function definition must include a variable (lmpptr in this case)
 which corresponds to SELF in the python command.  The first line of the
-function imports the Python module lammps.py in the python directory of
-the distribution.  The second line creates a Python object "lmp" which
+function imports the :doc:`"lammps" Python module <Python_module>`.
+The second line creates a Python object ``lmp`` which
 wraps the instance of LAMMPS that called the function.  The "ptr=lmpptr"
 argument is what makes that happen.  The third line invokes the
 command() function in the LAMMPS library interface.  It takes a single
@@ -340,7 +340,7 @@ to the screen and log file.  Note that since the LAMMPS print command
 itself takes a string in quotes as its argument, the Python string
 must be delimited with a different style of quotes.
 
-The :doc:`Python library <Python_library>` doc page describes the syntax
+The :doc:`Python_head` page describes the syntax
 for how Python wraps the various functions included in the LAMMPS
 library interface.
 
@@ -350,7 +350,7 @@ which loads and runs the following function from examples/python/funcs.py:
 .. code-block:: python
 
    def loop(N,cut0,thresh,lmpptr):
-     print "LOOP ARGS",N,cut0,thresh,lmpptr
+     print("LOOP ARGS", N, cut0, thresh, lmpptr)
      from lammps import lammps
      lmp = lammps(ptr=lmpptr)
      natoms = lmp.get_natoms()
@@ -365,12 +365,12 @@ which loads and runs the following function from examples/python/funcs.py:
        lmp.command("pair_coeff * * 1.0 1.0")       # ditto
        lmp.command("run 10")                       # ditto
        pe = lmp.extract_compute("thermo_pe",0,0)   # extract total PE from LAMMPS
-       print "PE",pe/natoms,thresh
+       print("PE", pe/natoms, thresh)
        if pe/natoms < thresh: return
 
 with these input script commands:
 
-.. parsed-literal::
+.. code-block:: LAMMPS
 
    python          loop input 4 10 1.0 -4.0 SELF format iffp file funcs.py
    python          loop invoke
@@ -473,11 +473,11 @@ like this:
 .. code-block:: python
 
    import exceptions
-   print "Inside simple function"
+   print("Inside simple function")
    try:
      foo += 1      # one or more statements here
-   except Exception, e:
-     print "FOO error:",e
+   except Exception as e:
+     print("FOO error:", e)
 
 then you will get this message printed to the screen:
 
@@ -495,29 +495,30 @@ Restrictions
 """"""""""""
 
 This command is part of the PYTHON package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Building LAMMPS with the PYTHON package will link LAMMPS with the
 Python library on your system.  Settings to enable this are in the
 lib/python/Makefile.lammps file.  See the lib/python/README file for
 information on those settings.
 
-If you use Python code which calls back to LAMMPS, via the SELF input
-argument explained above, there is an extra step required when
-building LAMMPS.  LAMMPS must also be built as a shared library and
-your Python function must be able to load the Python module in
-python/lammps.py that wraps the LAMMPS library interface.  These are
-the same steps required to use Python by itself to wrap LAMMPS.
-Details on these steps are explained on the :doc:`Python <Python_head>`
-doc page.  Note that it is important that the stand-alone LAMMPS
-executable and the LAMMPS shared library be consistent (built from the
-same source code files) in order for this to work.  If the two have
-been built at different times using different source files, problems
-may occur.
+If you use Python code which calls back to LAMMPS, via the SELF input argument
+explained above, there is an extra step required when building LAMMPS.  LAMMPS
+must also be built as a shared library and your Python function must be able to
+load the :doc:`"lammps" Python module <Python_module>` that wraps the LAMMPS
+library interface.  These are the same steps required to use Python by itself
+to wrap LAMMPS.  Details on these steps are explained on the :doc:`Python
+<Python_head>` doc page.  Note that it is important that the stand-alone LAMMPS
+executable and the LAMMPS shared library be consistent (built from the same
+source code files) in order for this to work.  If the two have been built at
+different times using different source files, problems may occur.
 
 Related commands
 """"""""""""""""
 
 :doc:`shell <shell>`, :doc:`variable <variable>`, :doc:`fix python/invoke <fix_python_invoke>`
 
-**Default:** none
+Default
+"""""""
+
+none

@@ -58,7 +58,7 @@ Restrictions
 """"""""""""
 
 This fix style can only be used if LAMMPS was built with the SPIN
-package.  See the :doc:`Build package <Build_package>` doc page for more
+package.  See the :doc:`Build package <Build_package>` page for more
 info.
 
 To use the spin algorithm, it is necessary to define a map with

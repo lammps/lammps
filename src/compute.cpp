@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,16 +13,16 @@
 ------------------------------------------------------------------------- */
 
 #include "compute.h"
-#include <cstring>
-#include <cctype>
-#include "domain.h"
-#include "force.h"
-#include "group.h"
-#include "modify.h"
-#include "fix.h"
+
 #include "atom_masks.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
+#include "fix.h"
+#include "group.h"
+#include "memory.h"
+#include "modify.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -36,10 +37,10 @@ int Compute::instance_total = 0;
 
 Compute::Compute(LAMMPS *lmp, int narg, char **arg) :
   Pointers(lmp),
-  id(NULL), style(NULL),
-  vector(NULL), array(NULL), vector_atom(NULL),
-  array_atom(NULL), vector_local(NULL), array_local(NULL), extlist(NULL),
-  tlist(NULL), vbiasall(NULL)
+  id(nullptr), style(nullptr),
+  vector(nullptr), array(nullptr), vector_atom(nullptr),
+  array_atom(nullptr), vector_local(nullptr), array_local(nullptr), extlist(nullptr),
+  tlist(nullptr), vbiasall(nullptr)
 {
   instance_me = instance_total++;
 
@@ -48,22 +49,15 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) :
   // compute ID, group, and style
   // ID must be all alphanumeric chars or underscores
 
-  int n = strlen(arg[0]) + 1;
-  id = new char[n];
-  strcpy(id,arg[0]);
-
-  for (int i = 0; i < n-1; i++)
-    if (!isalnum(id[i]) && id[i] != '_')
-      error->all(FLERR,
-                 "Compute ID must be alphanumeric or underscore characters");
+  id = utils::strdup(arg[0]);
+  if (!utils::is_id(id))
+    error->all(FLERR,"Compute ID must be alphanumeric or underscore characters");
 
   igroup = group->find(arg[1]);
   if (igroup == -1) error->all(FLERR,"Could not find compute group ID");
   groupbit = group->bitmask[igroup];
 
-  n = strlen(arg[2]) + 1;
-  style = new char[n];
-  strcpy(style,arg[2]);
+  style = utils::strdup(arg[2]);
 
   // set child class defaults
 
@@ -83,7 +77,7 @@ Compute::Compute(LAMMPS *lmp, int narg, char **arg) :
 
   invoked_scalar = invoked_vector = invoked_array = -1;
   invoked_peratom = invoked_local = -1;
-  invoked_flag = 0;
+  invoked_flag = INVOKED_NONE;
 
   // set modify defaults
 
@@ -129,14 +123,12 @@ void Compute::modify_params(int narg, char **arg)
     if (strcmp(arg[iarg],"extra") == 0 ||
         strcmp(arg[iarg],"extra/dof") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute_modify command");
-      extra_dof = force->numeric(FLERR,arg[iarg+1]);
+      extra_dof = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"dynamic") == 0 ||
                strcmp(arg[iarg],"dynamic/dof") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute_modify command");
-      if (strcmp(arg[iarg+1],"no") == 0) dynamic_user = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) dynamic_user = 1;
-      else error->all(FLERR,"Illegal compute_modify command");
+      dynamic_user = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal compute_modify command");
   }

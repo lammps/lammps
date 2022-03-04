@@ -47,7 +47,7 @@
 
 // The type of a two-dimensional N x 3 array of double.
 // It lives in Kokkos' default memory space.
-typedef Kokkos::View<double * [3]> view_type;
+using view_type = Kokkos::View<double * [3]>;
 
 // The "HostMirror" type corresponding to view_type above is also a
 // two-dimensional N x 3 array of double.  However, it lives in the
@@ -61,12 +61,12 @@ typedef Kokkos::View<double * [3]> view_type;
 // performance penalties then it is its own host_mirror_space. This is
 // the case for HostSpace, CudaUVMSpace and CudaHostPinnedSpace.
 
-typedef view_type::HostMirror host_view_type;
+using host_view_type = view_type::HostMirror;
 
 struct ReduceFunctor {
   view_type a;
   ReduceFunctor(view_type a_) : a(a_) {}
-  typedef int value_type;  // Specify type for reduction value, lsum
+  using value_type = int;  // Specify type for reduction value, lsum
 
   KOKKOS_INLINE_FUNCTION
   void operator()(int i, int &lsum) const {

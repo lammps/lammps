@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,11 +12,10 @@
 ------------------------------------------------------------------------- */
 
 #ifdef DUMP_CLASS
-
+// clang-format off
 // list all deprecated and removed dump styles here
-
-DumpStyle(DEPRECATED,DumpDeprecated)
-
+DumpStyle(DEPRECATED,DumpDeprecated);
+// clang-format on
 #else
 
 #ifndef LMP_DUMP_DEPRECATED_H
@@ -29,14 +28,14 @@ namespace LAMMPS_NS {
 class DumpDeprecated : public Dump {
  public:
   DumpDeprecated(class LAMMPS *, int, char **);
-  ~DumpDeprecated() {}
-  virtual void init_style() {}
-  virtual void write_header(bigint) {}
-  virtual void pack(tagint *) {}
-  virtual void write_data(int, double *) {}
- };
 
-}
+  void init_style() override {}
+  void write_header(bigint) override {}
+  void pack(tagint *) override {}
+  void write_data(int, double *) override {}
+};
+
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

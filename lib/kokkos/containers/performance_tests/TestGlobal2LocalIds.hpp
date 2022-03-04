@@ -48,7 +48,7 @@
 #include <vector>
 #include <algorithm>
 
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 
 // This test will simulate global ids
 
@@ -65,9 +65,9 @@ union helper {
 
 template <typename Device>
 struct generate_ids {
-  typedef Device execution_space;
-  typedef typename execution_space::size_type size_type;
-  typedef Kokkos::View<uint32_t*, execution_space> local_id_view;
+  using execution_space = Device;
+  using size_type       = typename execution_space::size_type;
+  using local_id_view   = Kokkos::View<uint32_t*, execution_space>;
 
   local_id_view local_2_global;
 
@@ -96,13 +96,12 @@ struct generate_ids {
 
 template <typename Device>
 struct fill_map {
-  typedef Device execution_space;
-  typedef typename execution_space::size_type size_type;
-  typedef Kokkos::View<const uint32_t*, execution_space,
-                       Kokkos::MemoryRandomAccess>
-      local_id_view;
-  typedef Kokkos::UnorderedMap<uint32_t, size_type, execution_space>
-      global_id_view;
+  using execution_space = Device;
+  using size_type       = typename execution_space::size_type;
+  using local_id_view   = Kokkos::View<const uint32_t*, execution_space,
+                                     Kokkos::MemoryRandomAccess>;
+  using global_id_view =
+      Kokkos::UnorderedMap<uint32_t, size_type, execution_space>;
 
   global_id_view global_2_local;
   local_id_view local_2_global;
@@ -120,18 +119,17 @@ struct fill_map {
 
 template <typename Device>
 struct find_test {
-  typedef Device execution_space;
-  typedef typename execution_space::size_type size_type;
-  typedef Kokkos::View<const uint32_t*, execution_space,
-                       Kokkos::MemoryRandomAccess>
-      local_id_view;
-  typedef Kokkos::UnorderedMap<const uint32_t, const size_type, execution_space>
-      global_id_view;
+  using execution_space = Device;
+  using size_type       = typename execution_space::size_type;
+  using local_id_view   = Kokkos::View<const uint32_t*, execution_space,
+                                     Kokkos::MemoryRandomAccess>;
+  using global_id_view =
+      Kokkos::UnorderedMap<const uint32_t, const size_type, execution_space>;
 
   global_id_view global_2_local;
   local_id_view local_2_global;
 
-  typedef size_t value_type;
+  using value_type = size_t;
 
   find_test(global_id_view gIds, local_id_view lIds, value_type& num_errors)
       : global_2_local(gIds), local_2_global(lIds) {
@@ -156,12 +154,12 @@ struct find_test {
 
 template <typename Device>
 void test_global_to_local_ids(unsigned num_ids) {
-  typedef Device execution_space;
-  typedef typename execution_space::size_type size_type;
+  using execution_space = Device;
+  using size_type       = typename execution_space::size_type;
 
-  typedef Kokkos::View<uint32_t*, execution_space> local_id_view;
-  typedef Kokkos::UnorderedMap<uint32_t, size_type, execution_space>
-      global_id_view;
+  using local_id_view = Kokkos::View<uint32_t*, execution_space>;
+  using global_id_view =
+      Kokkos::UnorderedMap<uint32_t, size_type, execution_space>;
 
   // size
   std::cout << num_ids << ", ";

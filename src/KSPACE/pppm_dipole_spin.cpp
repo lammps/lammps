@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,19 +17,19 @@
 ------------------------------------------------------------------------- */
 
 #include "pppm_dipole_spin.h"
-#include <mpi.h>
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
-#include "gridcomm.h"
-#include "force.h"
-#include "pair.h"
 #include "domain.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "gridcomm.h"
+#include "math_const.h"
+#include "memory.h"
+#include "pair.h"
 #include "update.h"
 
-#include "math_const.h"
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -75,10 +76,10 @@ PPPMDipoleSpin::~PPPMDipoleSpin()
 
   deallocate();
   if (peratom_allocate_flag) deallocate_peratom();
-  fft1 = NULL;
-  fft2 = NULL;
-  remap = NULL;
-  cg_dipole = NULL;
+  fft1 = nullptr;
+  fft2 = nullptr;
+  remap = nullptr;
+  gc_dipole = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -87,10 +88,7 @@ PPPMDipoleSpin::~PPPMDipoleSpin()
 
 void PPPMDipoleSpin::init()
 {
-  if (me == 0) {
-    if (screen) fprintf(screen,"PPPMDipoleSpin initialization ...\n");
-    if (logfile) fprintf(logfile,"PPPMDipoleSpin initialization ...\n");
-  }
+  if (me == 0) utils::logmesg(lmp,"PPPMDipoleSpin initialization ...\n");
 
   // error check
 
@@ -123,11 +121,9 @@ void PPPMDipoleSpin::init()
       error->all(FLERR,"Incorrect boundaries with slab PPPMDipoleSpin");
   }
 
-  if (order < 2 || order > MAXORDER) {
-    char str[128];
-    sprintf(str,"PPPMDipoleSpin order cannot be < 2 or > than %d",MAXORDER);
-    error->all(FLERR,str);
-  }
+  if (order < 2 || order > MAXORDER)
+    error->all(FLERR,"PPPMDipoleSpin order cannot be < 2 or > {}",
+                                 MAXORDER);
 
   // compute two charge force
 
@@ -144,7 +140,7 @@ void PPPMDipoleSpin::init()
   int itmp = 0;
   double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   // check the correct extract here
-  if (p_cutoff == NULL)
+  if (p_cutoff == nullptr)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
 
@@ -177,9 +173,7 @@ void PPPMDipoleSpin::init()
   //   or overlap is allowed, then done
   // else reduce order and try again
 
-  int (*procneigh)[2] = comm->procneigh;
-
-  GridComm *cgtmp = NULL;
+  GridComm *gctmp = nullptr;
   int iteration = 0;
 
   while (order >= minorder) {
@@ -192,24 +186,24 @@ void PPPMDipoleSpin::init()
     set_grid_local();
     if (overlap_allowed) break;
 
-    cgtmp = new GridComm(lmp,world,1,1,
+    gctmp = new GridComm(lmp,world,nx_pppm,ny_pppm,nz_pppm,
                          nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                         nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out,
-                         procneigh[0][0],procneigh[0][1],procneigh[1][0],
-                         procneigh[1][1],procneigh[2][0],procneigh[2][1]);
-    cgtmp->ghost_notify();
-    if (!cgtmp->ghost_overlap()) break;
-    delete cgtmp;
+                         nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
+
+    int tmp1,tmp2;
+    gctmp->setup(tmp1,tmp2);
+    if (gctmp->ghost_adjacent()) break;
+    delete gctmp;
 
     order--;
     iteration++;
   }
 
   if (order < minorder) error->all(FLERR,"PPPMDipoleSpin order < minimum allowed order");
-  if (!overlap_allowed && cgtmp->ghost_overlap())
+  if (!overlap_allowed && !gctmp->ghost_adjacent())
     error->all(FLERR,"PPPMDipoleSpin grid stencil extends "
                "beyond nearest neighbor processor");
-  if (cgtmp) delete cgtmp;
+  if (gctmp) delete gctmp;
 
   // adjust g_ewald
 
@@ -226,45 +220,23 @@ void PPPMDipoleSpin::init()
   MPI_Allreduce(&nfft_both,&nfft_both_max,1,MPI_INT,MPI_MAX,world);
 
   if (me == 0) {
-
-#ifdef FFT_SINGLE
-    const char fft_prec[] = "single";
-#else
-    const char fft_prec[] = "double";
-#endif
-
-    if (screen) {
-      fprintf(screen,"  G vector (1/distance) = %g\n",g_ewald);
-      fprintf(screen,"  grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
-      fprintf(screen,"  stencil order = %d\n",order);
-      fprintf(screen,"  estimated absolute RMS force accuracy = %g\n",
-              estimated_accuracy);
-      fprintf(screen,"  estimated relative force accuracy = %g\n",
-              estimated_accuracy/two_charge_force);
-      fprintf(screen,"  using %s precision FFTs\n",fft_prec);
-      fprintf(screen,"  3d grid and FFT values/proc = %d %d\n",
-              ngrid_max,nfft_both_max);
-    }
-    if (logfile) {
-      fprintf(logfile,"  G vector (1/distance) = %g\n",g_ewald);
-      fprintf(logfile,"  grid = %d %d %d\n",nx_pppm,ny_pppm,nz_pppm);
-      fprintf(logfile,"  stencil order = %d\n",order);
-      fprintf(logfile,"  estimated absolute RMS force accuracy = %g\n",
-              estimated_accuracy);
-      fprintf(logfile,"  estimated relative force accuracy = %g\n",
-              estimated_accuracy/two_charge_force);
-      fprintf(logfile,"  using %s precision FFTs\n",fft_prec);
-      fprintf(logfile,"  3d grid and FFT values/proc = %d %d\n",
-              ngrid_max,nfft_both_max);
-    }
+    std::string mesg = fmt::format("  G vector (1/distance) = {:.8g}\n",g_ewald);
+    mesg += fmt::format("  grid = {} {} {}\n",nx_pppm,ny_pppm,nz_pppm);
+    mesg += fmt::format("  stencil order = {}\n",order);
+    mesg += fmt::format("  estimated absolute RMS force accuracy = {:.8g}\n",
+                       estimated_accuracy);
+    mesg += fmt::format("  estimated relative force accuracy = {:.8g}\n",
+                       estimated_accuracy/two_charge_force);
+    mesg += "  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n";
+    mesg += fmt::format("  3d grid and FFT values/proc = {} {}\n",
+                       ngrid_max,nfft_both_max);
+    utils::logmesg(lmp,mesg);
   }
 
   // allocate K-space dependent memory
   // don't invoke allocate peratom(), will be allocated when needed
 
   allocate();
-  cg_dipole->ghost_notify();
-  cg_dipole->setup();
 
   // pre-compute Green's function denominator expansion
   // pre-compute 1d charge distribution coefficients
@@ -292,11 +264,7 @@ void PPPMDipoleSpin::compute(int eflag, int vflag)
     error->all(FLERR,"Cannot (yet) compute per-atom virial "
                        "with kspace style pppm/dipole/spin");
 
-  if (evflag_atom && !peratom_allocate_flag) {
-    allocate_peratom();
-    cg_peratom_dipole->ghost_notify();
-    cg_peratom_dipole->setup();
-  }
+  if (evflag_atom && !peratom_allocate_flag) allocate_peratom();
 
   // if atom count has changed, update qsum and qsqsum
 
@@ -331,7 +299,8 @@ void PPPMDipoleSpin::compute(int eflag, int vflag)
   //   to fully sum contribution in their 3d bricks
   // remap from 3d decomposition to FFT decomposition
 
-  cg_dipole->reverse_comm(this,REVERSE_MU);
+  gc_dipole->reverse_comm(GridComm::KSPACE,this,3,sizeof(FFT_SCALAR),
+                          REVERSE_MU,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   brick2fft_dipole();
 
   // compute potential gradient on my FFT grid and
@@ -344,13 +313,14 @@ void PPPMDipoleSpin::compute(int eflag, int vflag)
   // all procs communicate E-field values
   // to fill ghost cells surrounding their 3d bricks
 
-  cg_dipole->forward_comm(this,FORWARD_MU);
+  gc_dipole->forward_comm(GridComm::KSPACE,this,9,sizeof(FFT_SCALAR),
+                          FORWARD_MU,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   // extra per-atom energy/virial communication
 
-  if (evflag_atom) {
-    cg_peratom_dipole->forward_comm(this,FORWARD_MU_PERATOM);
-  }
+  if (evflag_atom)
+    gc->forward_comm(GridComm::KSPACE,this,18,sizeof(FFT_SCALAR),
+                     FORWARD_MU_PERATOM,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   // calculate the force on my particles
 

@@ -44,7 +44,7 @@ Field (eFF) potential currently under development at Caltech, as
 described in :ref:`(Jaramillo-Botero) <Jaramillo-Botero>`.  The eFF for Z<6
 was first introduced by :ref:`(Su) <Su>` in 2007. It has been extended to
 higher Zs by using effective core potentials (ECPs) that now cover up
-to 2nd and 3rd row p-block elements of the periodic table.
+to second and third row p-block elements of the periodic table.
 
 eFF can be viewed as an approximation to QM wave packet dynamics and
 Fermionic molecular dynamics, combining the ability of electronic
@@ -141,7 +141,7 @@ commands, or by mixing as described below:
 
 * cutoff (distance units)
 
-For *eff/cut*\ , the cutoff coefficient is optional.  If it is not used
+For *eff/cut*, the cutoff coefficient is optional.  If it is not used
 (as in some of the examples above), the default global value specified
 in the pair_style command is used.
 
@@ -210,7 +210,7 @@ representations, after the "ecp" keyword.
    for systems containing nuclei from Z = 1-6 in "all electron"
    representations.  For systems with increasingly non-spherical
    electrons, Users should use the ECP representations.  ECPs are now
-   supported and validated for most of the 2nd and 3rd row elements of
+   supported and validated for most of the second and third row elements of
    the p-block.  Predefined parameters are provided for C, N, O, Al, and
    Si.  The ECP captures the orbital overlap between the core and valence
    electrons (i.e. Pauli repulsion) with one of the functional forms:
@@ -220,8 +220,8 @@ representations, after the "ecp" keyword.
    E_{Pauli(ECP_s)} = & p_1\exp\left(-\frac{p_2r^2}{p_3+s^2} \right) \\
    E_{Pauli(ECP_p)} = & p_1\left( \frac{2}{p_2/s+s/p_2} \right)\left( r-p_3s\right)^2\exp \left[ -\frac{p_4\left( r-p_3s \right)^2}{p_5+s^2} \right]
 
-Where the 1st form correspond to core interactions with s-type valence
-electrons and the 2nd to core interactions with p-type valence
+Where the first form correspond to core interactions with s-type valence
+electrons and the second to core interactions with p-type valence
 electrons.
 
 The current version adds full support for models with fixed-core and
@@ -232,7 +232,7 @@ complexity in higher Z elements (up to Z<18).  A fixed-core should be
 defined with a mass that includes the corresponding nuclear mass plus
 the 2 s electrons in atomic mass units (2x5.4857990943e-4), and a
 radius equivalent to that of minimized 1s electrons (see examples
-under /examples/USER/eff/fixed-core).  An pseudo-core should be
+under /examples/PACKAGES/eff/fixed-core).  An pseudo-core should be
 described with a mass that includes the corresponding nuclear mass,
 plus all the core electrons (i.e no outer shell electrons), and a
 radius equivalent to that of a corresponding minimized full-electron
@@ -260,7 +260,8 @@ dihydride.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the cutoff distance for the
 *eff/cut* style can be mixed.  The default mix value is *geometric*\ .
@@ -282,7 +283,7 @@ to be specified in an input script that reads a restart file.
 
 These pair styles can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  They do not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
@@ -290,8 +291,8 @@ Restrictions
 """"""""""""
 
 These pair styles will only be enabled if LAMMPS is built with the
-USER-EFF package.  It will only be enabled if LAMMPS was built with
-that package.  See the :doc:`Build package <Build_package>` doc page for
+EFF package.  It will only be enabled if LAMMPS was built with
+that package.  See the :doc:`Build package <Build_package>` page for
 more info.
 
 These pair styles require that particles store electron attributes

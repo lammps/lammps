@@ -1,7 +1,7 @@
 .. index:: pair_style spin/magelec
 
 pair_style spin/magelec command
-================================
+===============================
 
 Syntax
 """"""
@@ -60,7 +60,7 @@ Restrictions
 
 All the *pair/spin* styles are part of the SPIN package.  These styles
 are only enabled if LAMMPS was built with this package, and if the
-atom_style "spin" was declared.  See the :doc:`Build package <Build_package>` doc page for more info.
+atom_style "spin" was declared.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
@@ -68,7 +68,10 @@ Related commands
 :doc:`atom_style spin <atom_style>`, :doc:`pair_coeff <pair_coeff>`,
 :doc:`pair_style spin/exchange <pair_spin_exchange>`, :doc:`pair_eam <pair_eam>`,
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

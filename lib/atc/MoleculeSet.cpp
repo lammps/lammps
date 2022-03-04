@@ -20,7 +20,7 @@ namespace ATC {
   //  Class MoleculeSet
   //--------------------------------------------------------
   //--------------------------------------------------------
-  
+
   //--------------------------------------------------------
   //  Constructor
   //--------------------------------------------------------
@@ -82,24 +82,24 @@ namespace ATC {
     lammps_->int_allmin(&lo,&globalLo);
     lammps_->int_allmax(&hi,&globalHi);
     if (globalLo == lammps_->natoms()) throw ATC_Error("MoleculeSet:initialize - no molecules correspond to the group");
-    
+
     // molmap = vector of length nlen
     // set to 1 for IDs that appear in group across all procs, else 0
 
     int nlen = globalHi-globalLo+1;
     int * localCount = new int[nlen];
     for (i = 0; i < nlen; i++) localCount[i] = 0;
-    
+
     for (i = 0; i < nlocal; i++)
       if (mask[i] & groupBit_)
         localCount[molecule[i]-globalLo]++;
-    
+
     int * globalCount = new int[nlen];
     lammps_->int_allsum(localCount,globalCount,nlen);
-    
+
     // nmolecules = # of non-zero IDs in molmap
     // molmap[i] = index of molecule, skipping molecules not in group with -1
-    
+
     nMoleculesTotal_ = 0;
     for (i = 0; i < nlen; i++)
       if (globalCount[i]) nMoleculesTotal_++;
@@ -209,7 +209,7 @@ namespace ATC {
     lammps_->forward_comm_fix();
     int * numBond = lammps_->num_bond();
     int ** bondAtom = lammps_->bond_atom();
-    
+
     // add in real atoms for molecules
     int *molecule = lammps_->atom_to_molecule();
     const int *mask = lammps_->atom_mask();
@@ -217,7 +217,7 @@ namespace ATC {
     _atomFound_.resize(atc_->nproc_ghost());
     _atomFound_ = false;
     int nmol = 0;
-    
+
     for (int i = 0; i < nlocal; i++) {
       queue<int> myQueue;
       if ((mask[i] & groupBit_) && !_atomFound_(i)) {
@@ -245,7 +245,7 @@ namespace ATC {
         }
         nmol++;
         moleculeToAtoms_.insert(pair<int,set<int> >(molecule[i],myAtoms));
-      }  
+      }
     }
     // set local molecule order
     MoleculeSet::set_local_molecules_to_atoms();

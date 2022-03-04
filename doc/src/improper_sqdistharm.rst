@@ -49,7 +49,7 @@ Restrictions
 """"""""""""
 
 This improper style can only be used if LAMMPS was built with the
-USER-MISC package.  See the :doc:`Build package <Build_package>` doc
+MOLECULE package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
 Related commands
@@ -57,4 +57,7 @@ Related commands
 
 :doc:`improper_coeff <improper_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none

@@ -1,4 +1,5 @@
 .. index:: pair_style spin/dipole/cut
+.. index:: pair_style spin/dipole/long
 
 pair_style spin/dipole/cut command
 ==================================
@@ -96,7 +97,7 @@ Restrictions
 
 The *spin/dipole/cut* and *spin/dipole/long* styles are part of
 the SPIN package.  They are only enabled if LAMMPS was built with that
-package.  See the :doc:`Build package <Build_package>` doc page for more
+package.  See the :doc:`Build package <Build_package>` page for more
 info.
 
 Using dipole/spin pair styles with *electron* :doc:`units <units>` is not
@@ -108,4 +109,7 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`, :doc:`kspace_style <kspace_style>`
 :doc:`fix nve/spin <fix_nve_spin>`
 
-**Default:** none
+Default
+"""""""
+
+none

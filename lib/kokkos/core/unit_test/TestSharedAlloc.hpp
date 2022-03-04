@@ -66,12 +66,12 @@ struct SharedAllocDestroy {
 template <class MemorySpace, class ExecutionSpace>
 void test_shared_alloc() {
 #if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST)
-  typedef const Kokkos::Impl::SharedAllocationHeader Header;
-  typedef Kokkos::Impl::SharedAllocationTracker Tracker;
-  typedef Kokkos::Impl::SharedAllocationRecord<void, void> RecordBase;
-  typedef Kokkos::Impl::SharedAllocationRecord<MemorySpace, void> RecordMemS;
-  typedef Kokkos::Impl::SharedAllocationRecord<MemorySpace, SharedAllocDestroy>
-      RecordFull;
+  using Header     = const Kokkos::Impl::SharedAllocationHeader;
+  using Tracker    = Kokkos::Impl::SharedAllocationTracker;
+  using RecordBase = Kokkos::Impl::SharedAllocationRecord<void, void>;
+  using RecordMemS = Kokkos::Impl::SharedAllocationRecord<MemorySpace, void>;
+  using RecordFull =
+      Kokkos::Impl::SharedAllocationRecord<MemorySpace, SharedAllocDestroy>;
 
   static_assert(sizeof(Tracker) == sizeof(int*),
                 "SharedAllocationTracker has wrong size!");
@@ -108,7 +108,7 @@ void test_shared_alloc() {
 
     Kokkos::fence();
 
-#ifdef KOKKOS_DEBUG
+#ifdef KOKKOS_ENABLE_DEBUG
     // Sanity check for the whole set of allocation records to which this record
     // belongs.
     RecordBase::is_sane(r[0]);
@@ -118,7 +118,7 @@ void test_shared_alloc() {
     Kokkos::parallel_for(range, [=](size_t i) {
       while (nullptr !=
              (r[i] = static_cast<RecordMemS*>(RecordBase::decrement(r[i])))) {
-#ifdef KOKKOS_DEBUG
+#ifdef KOKKOS_ENABLE_DEBUG
         if (r[i]->use_count() == 1) RecordBase::is_sane(r[i]);
 #endif
       }
@@ -152,14 +152,14 @@ void test_shared_alloc() {
 
     Kokkos::fence();
 
-#ifdef KOKKOS_DEBUG
+#ifdef KOKKOS_ENABLE_DEBUG
     RecordBase::is_sane(r[0]);
 #endif
 
     Kokkos::parallel_for(range, [=](size_t i) {
       while (nullptr !=
              (r[i] = static_cast<RecordMemS*>(RecordBase::decrement(r[i])))) {
-#ifdef KOKKOS_DEBUG
+#ifdef KOKKOS_ENABLE_DEBUG
         if (r[i]->use_count() == 1) RecordBase::is_sane(r[i]);
 #endif
       }
@@ -225,6 +225,27 @@ void test_shared_alloc() {
   }
 
 #endif /* #if defined( KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST ) */
+}
+
+TEST(TEST_CATEGORY, impl_shared_alloc) {
+#ifdef TEST_CATEGORY_NUMBER
+#if (TEST_CATEGORY_NUMBER < 4)  // serial threads openmp hpx
+  test_shared_alloc<Kokkos::HostSpace, TEST_EXECSPACE>();
+#elif (TEST_CATEGORY_NUMBER == 4)  // openmptarget
+  test_shared_alloc<Kokkos::Experimental::OpenMPTargetSpace,
+                    Kokkos::DefaultHostExecutionSpace>();
+#elif (TEST_CATEGORY_NUMBER == 5)  // cuda
+  test_shared_alloc<Kokkos::CudaSpace, Kokkos::DefaultHostExecutionSpace>();
+#elif (TEST_CATEGORY_NUMBER == 6)  // hip
+  test_shared_alloc<Kokkos::Experimental::HIPSpace,
+                    Kokkos::DefaultHostExecutionSpace>();
+#elif (TEST_CATEGORY_NUMBER == 7)  // sycl
+  test_shared_alloc<Kokkos::Experimental::SYCLDeviceUSMSpace,
+                    Kokkos::DefaultHostExecutionSpace>();
+#endif
+#else
+  test_shared_alloc<TEST_EXECSPACE, Kokkos::DefaultHostExecutionSpace>();
+#endif
 }
 
 }  // namespace Test

@@ -48,20 +48,19 @@
 
 #if !defined(KOKKOS_ENABLE_CUDA) || defined(__CUDACC__)
 
-#include <default/TestDefaultDeviceType_Category.hpp>
+#include <TestDefaultDeviceType_Category.hpp>
 #include <TestUtilities.hpp>
 
 namespace Test {
 
-TEST(defaultdevicetype, test_utilities) { test_utilities(); }
-
 TEST(defaultdevicetype, malloc) {
-  int* data = (int*)Kokkos::kokkos_malloc(100 * sizeof(int));
-  ASSERT_NO_THROW(data = (int*)Kokkos::kokkos_realloc(data, 120 * sizeof(int)));
+  int* data = static_cast<int*>(Kokkos::kokkos_malloc(100 * sizeof(int)));
+  ASSERT_NO_THROW(data = static_cast<int*>(
+                      Kokkos::kokkos_realloc(data, 120 * sizeof(int))));
   Kokkos::kokkos_free(data);
 
-  int* data2 = (int*)Kokkos::kokkos_malloc(0);
-  ASSERT_TRUE(data2 == nullptr);
+  int* data2 = static_cast<int*>(Kokkos::kokkos_malloc(0));
+  ASSERT_EQ(data2, nullptr);
   Kokkos::kokkos_free(data2);
 }
 

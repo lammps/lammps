@@ -51,12 +51,12 @@ namespace Kokkos {
 
 template <class Type>
 struct Dot {
-  typedef typename Type::execution_space execution_space;
+  using execution_space = typename Type::execution_space;
 
   static_assert(static_cast<unsigned>(Type::Rank) == static_cast<unsigned>(1),
                 "Dot static_assert Fail: Rank != 1");
 
-  typedef double value_type;
+  using value_type = double;
 
 #if 1
   typename Type::const_type X;
@@ -83,12 +83,12 @@ struct Dot {
 
 template <class Type>
 struct DotSingle {
-  typedef typename Type::execution_space execution_space;
+  using execution_space = typename Type::execution_space;
 
   static_assert(static_cast<unsigned>(Type::Rank) == static_cast<unsigned>(1),
                 "DotSingle static_assert Fail: Rank != 1");
 
-  typedef double value_type;
+  using value_type = double;
 
 #if 1
   typename Type::const_type X;
@@ -116,7 +116,7 @@ struct DotSingle {
 
 template <class ScalarType, class VectorType>
 struct Scale {
-  typedef typename VectorType::execution_space execution_space;
+  using execution_space = typename VectorType::execution_space;
 
   static_assert(static_cast<unsigned>(ScalarType::Rank) ==
                     static_cast<unsigned>(0),
@@ -143,7 +143,7 @@ struct Scale {
 
 template <class ScalarType, class ConstVectorType, class VectorType>
 struct AXPBY {
-  typedef typename VectorType::execution_space execution_space;
+  using execution_space = typename VectorType::execution_space;
 
   static_assert(static_cast<unsigned>(ScalarType::Rank) ==
                     static_cast<unsigned>(0),
@@ -185,7 +185,7 @@ namespace Kokkos {
 template <class ConstScalarType, class ConstVectorType, class VectorType>
 void axpby(const ConstScalarType& alpha, const ConstVectorType& X,
            const ConstScalarType& beta, const VectorType& Y) {
-  typedef AXPBY<ConstScalarType, ConstVectorType, VectorType> functor;
+  using functor = AXPBY<ConstScalarType, ConstVectorType, VectorType>;
 
   parallel_for(Y.extent(0), functor(alpha, X, beta, Y));
 }
@@ -193,7 +193,7 @@ void axpby(const ConstScalarType& alpha, const ConstVectorType& X,
 /** \brief  Y *= alpha */
 template <class ConstScalarType, class VectorType>
 void scale(const ConstScalarType& alpha, const VectorType& Y) {
-  typedef Scale<ConstScalarType, VectorType> functor;
+  using functor = Scale<ConstScalarType, VectorType>;
 
   parallel_for(Y.extent(0), functor(alpha, Y));
 }
@@ -201,14 +201,14 @@ void scale(const ConstScalarType& alpha, const VectorType& Y) {
 template <class ConstVectorType, class Finalize>
 void dot(const ConstVectorType& X, const ConstVectorType& Y,
          const Finalize& finalize) {
-  typedef Dot<ConstVectorType> functor;
+  using functor = Dot<ConstVectorType>;
 
   parallel_reduce(X.extent(0), functor(X, Y), finalize);
 }
 
 template <class ConstVectorType, class Finalize>
 void dot(const ConstVectorType& X, const Finalize& finalize) {
-  typedef DotSingle<ConstVectorType> functor;
+  using functor = DotSingle<ConstVectorType>;
 
   parallel_reduce(X.extent(0), functor(X), finalize);
 }

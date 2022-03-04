@@ -73,20 +73,20 @@ Compiler features are more fine-grained and require conflicting requests to be r
 Suppose I have
 ````
 add_library(A a.cpp)
-target_compile_features(A PUBLIC cxx_std_11)
+target_compile_features(A PUBLIC cxx_std_14)
 ````
 then another target
 ````
 add_library(B b.cpp)
-target_compile_features(B PUBLIC cxx_std_14)
+target_compile_features(B PUBLIC cxx_std_17)
 target_link_libraries(A B)
 ````
 I have requested two different features.
-CMake understands the requests and knows that `cxx_std_11` is a subset of `cxx_std_14`.
-CMake then picks C++14 for library `B`.
+CMake understands the requests and knows that `cxx_std_14` is a subset of `cxx_std_17`.
+CMake then picks C++17 for library `B`.
 CMake would not have been able to do feature resolution if we had directly done:
 ````
-target_compile_options(A PUBLIC -std=c++11)
+target_compile_options(A PUBLIC -std=c++14)
 ````
 
 ### Adding Kokkos Options

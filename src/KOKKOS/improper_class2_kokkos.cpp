@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -43,6 +44,8 @@ ImproperClass2Kokkos<DeviceType>::ImproperClass2Kokkos(LAMMPS *lmp) : ImproperCl
   k_warning_flag = DAT::tdual_int_scalar("Dihedral:warning_flag");
   d_warning_flag = k_warning_flag.view<DeviceType>();
   h_warning_flag = k_warning_flag.h_view;
+
+  centroidstressflag = CENTROID_NOTAVAIL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -139,7 +142,7 @@ void ImproperClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_warning_flag.template modify<DeviceType>();
   k_warning_flag.template sync<LMPHostType>();
   if (h_warning_flag())
-    error->warning(FLERR,"Improper problem",0);
+    error->warning(FLERR,"Improper problem");
 
   // Angle-Angle energy/force
 
@@ -277,10 +280,10 @@ void ImproperClass2Kokkos<DeviceType>::operator()(TagImproperClass2Compute<NEWTO
 
     /*
     if ((c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) && !d_warning_flag())
-      Kokkos::atomic_fetch_add(&d_warning_flag(),1);
+      d_warning_flag() = 1;
     */
     if ((costheta[0] == -1.0 || costheta[1] == -1.0 || costheta[2] == -1.0) && !d_warning_flag())
-      Kokkos::atomic_fetch_add(&d_warning_flag(),1);
+      d_warning_flag() = 1;
 
     if (c > 1.0) c = 1.0;
     if (c < -1.0) c = -1.0;
@@ -1126,7 +1129,7 @@ void ImproperClass2Kokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i1, cons
 
 namespace LAMMPS_NS {
 template class ImproperClass2Kokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class ImproperClass2Kokkos<LMPHostType>;
 #endif
 }

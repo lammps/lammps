@@ -104,7 +104,7 @@ class FixedBlockSizeMemoryPool
     m_first_block = (Block*)block_record->data();
 
     auto idx_record =
-        record_type::allocate(mem_space, "FixedBlockSizeMemPool_blocks",
+        record_type::allocate(mem_space, "Kokkos::FixedBlockSizeMemPool_blocks",
                               num_blocks * sizeof(size_type));
     KOKKOS_ASSERT(intptr_t(idx_record->data()) % alignof(size_type) == 0);
     m_tracker.assign_allocated_record_to_uninitialized(idx_record);

@@ -35,9 +35,11 @@ The operation of this fix is exactly like that described by the :doc:`fix temp/r
 is also applied to the radial electron velocity for electron
 particles.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.
+No information about this fix is written to :doc:`binary restart files
+<restart>`.
 
 The :doc:`fix_modify <fix_modify>` *temp* option is supported by this
 fix.  You can use it to assign a temperature :doc:`compute <compute>`
@@ -45,14 +47,15 @@ you have defined to this fix which will be used in its thermostatting
 procedure, as described above.  For consistency, the group used by
 this fix and by the compute should be the same.
 
-The :doc:`fix_modify <fix_modify>` *energy* option is supported by this
-fix to add the energy change implied by a velocity rescaling to the
-system's potential energy as part of :doc:`thermodynamic output <thermo_style>`.
+The cumulative energy change in the system imposed by this fix is
+included in the :doc:`thermodynamic output <thermo_style>` keywords
+*ecouple* and *econserve*.  See the :doc:`thermo_style <thermo_style>`
+doc page for details.
 
 This fix computes a global scalar which can be accessed by various
-:doc:`output commands <Howto_output>`.  The scalar is the cumulative
-energy change due to this fix.  The scalar value calculated by this
-fix is "extensive".
+:doc:`output commands <Howto_output>`.  The scalar is the same
+cumulative energy change due to this fix described in the previous
+paragraph.  The scalar value calculated by this fix is "extensive".
 
 This fix can ramp its target temperature over multiple runs, using the
 *start* and *stop* keywords of the :doc:`run <run>` command.  See the
@@ -63,8 +66,8 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-This fix is part of the USER-EFF package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This fix is part of the EFF package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
@@ -72,4 +75,7 @@ Related commands
 :doc:`fix langevin/eff <fix_langevin_eff>`, :doc:`fix nvt/eff <fix_nh_eff>`, :doc:`fix_modify <fix_modify>`,
 :doc:`fix temp rescale <fix_temp_rescale>`,
 
-**Default:** none
+Default
+"""""""
+
+none

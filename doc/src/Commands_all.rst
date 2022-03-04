@@ -46,15 +46,8 @@ An alphabetic list of all general LAMMPS commands.
    * :doc:`dimension <dimension>`
    * :doc:`displace_atoms <displace_atoms>`
    * :doc:`dump <dump>`
-   * :doc:`dump atom/adios <dump_adios>`
-   * :doc:`dump custom/adios <dump_adios>`
-   * :doc:`dump image <dump_image>`
-   * :doc:`dump movie <dump_image>`
-   * :doc:`dump netcdf <dump_netcdf>`
-   * :doc:`dump netcdf/mpiio <dump_netcdf>`
-   * :doc:`dump vtk <dump_vtk>`
    * :doc:`dump_modify <dump_modify>`
-   * :doc:`dynamical_matrix <dynamical_matrix>`
+   * :doc:`dynamical_matrix (k) <dynamical_matrix>`
    * :doc:`echo <echo>`
    * :doc:`fix <fix>`
    * :doc:`fix_modify <fix_modify>`
@@ -67,17 +60,14 @@ An alphabetic list of all general LAMMPS commands.
    * :doc:`include <include>`
    * :doc:`info <info>`
    * :doc:`jump <jump>`
-   * :doc:`kim_init <kim_commands>`
-   * :doc:`kim_interactions <kim_commands>`
-   * :doc:`kim_param <kim_commands>`
-   * :doc:`kim_property <kim_commands>`
-   * :doc:`kim_query <kim_commands>`
+   * :doc:`kim <kim_commands>`
    * :doc:`kspace_modify <kspace_modify>`
    * :doc:`kspace_style <kspace_style>`
    * :doc:`label <label>`
    * :doc:`lattice <lattice>`
    * :doc:`log <log>`
    * :doc:`mass <mass>`
+   * :doc:`mdi/engine <mdi_engine>`
    * :doc:`message <message>`
    * :doc:`minimize <minimize>`
    * :doc:`min_modify <min_modify>`
@@ -94,8 +84,10 @@ An alphabetic list of all general LAMMPS commands.
    * :doc:`package <package>`
    * :doc:`pair_coeff <pair_coeff>`
    * :doc:`pair_modify <pair_modify>`
+   * :doc:`pair_style <pair_style>`
    * :doc:`pair_write <pair_write>`
    * :doc:`partition <partition>`
+   * :doc:`plugin <plugin>`
    * :doc:`prd <prd>`
    * :doc:`print <print>`
    * :doc:`processors <processors>`
@@ -107,7 +99,8 @@ An alphabetic list of all general LAMMPS commands.
    * :doc:`region <region>`
    * :doc:`replicate <replicate>`
    * :doc:`rerun <rerun>`
-   * :doc:`reset_ids <reset_ids>`
+   * :doc:`reset_atom_ids <reset_atom_ids>`
+   * :doc:`reset_mol_ids <reset_mol_ids>`
    * :doc:`reset_timestep <reset_timestep>`
    * :doc:`restart <restart>`
    * :doc:`run <run>`
@@ -124,7 +117,7 @@ An alphabetic list of all general LAMMPS commands.
    * :doc:`thermo <thermo>`
    * :doc:`thermo_modify <thermo_modify>`
    * :doc:`thermo_style <thermo_style>`
-   * :doc:`third_order <third_order>`
+   * :doc:`third_order (k) <third_order>`
    * :doc:`timer <timer>`
    * :doc:`timestep <timestep>`
    * :doc:`uncompute <uncompute>`

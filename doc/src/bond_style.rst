@@ -87,6 +87,8 @@ accelerated styles exist.
 * :doc:`class2 <bond_class2>` - COMPASS (class 2) bond
 * :doc:`fene <bond_fene>` - FENE (finite-extensible non-linear elastic) bond
 * :doc:`fene/expand <bond_fene_expand>` - FENE bonds with variable size particles
+* :doc:`fene/nm <bond_fene>` - FENE bonds with a generalized Lennard-Jones potential
+* :doc:`gaussian <bond_gaussian>` - multicentered Gaussian-based bond potential
 * :doc:`gromos <bond_gromos>` - GROMOS force field bond
 * :doc:`harmonic <bond_harmonic>` - harmonic bond
 * :doc:`harmonic/shift <bond_harmonic_shift>` - shifted harmonic bond
@@ -98,6 +100,7 @@ accelerated styles exist.
 * :doc:`oxdna2/fene <bond_oxdna>` - same as oxdna but used with different pair styles
 * :doc:`oxrna2/fene <bond_oxdna>` - modified FENE bond suitable for RNA modeling
 * :doc:`quartic <bond_quartic>` - breakable quartic bond
+* :doc:`special <bond_special>` - enable special bond exclusions for 1-5 pairs and beyond
 * :doc:`table <bond_table>` - tabulated by bond length
 
 ----------
@@ -109,7 +112,7 @@ Bond styles can only be set for atom styles that allow bonds to be
 defined.
 
 Most bond styles are part of the MOLECULE package.  They are only
-enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.  The doc pages for
+enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.  The doc pages for
 individual bond potentials tell if it is part of a package.
 
 Related commands

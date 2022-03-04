@@ -271,6 +271,12 @@ public:
   /// \brief Whether or not this CVC will be computed in parallel whenever possible
   bool b_try_scalable;
 
+  /// Forcibly set value of CVC - useful for driving an external coordinate,
+  /// eg. lambda dynamics
+  inline void set_value(colvarvalue const &new_value) {
+    x = new_value;
+  }
+
 protected:
 
   /// \brief Cached value
@@ -1344,6 +1350,71 @@ public:
 };
 
 
+class colvar::euler_phi
+  : public colvar::orientation
+{
+public:
+  euler_phi(std::string const &conf);
+  euler_phi();
+  virtual int init(std::string const &conf);
+  virtual ~euler_phi() {}
+  virtual void calc_value();
+  virtual void calc_gradients();
+  virtual void apply_force(colvarvalue const &force);
+  virtual cvm::real dist2(colvarvalue const &x1,
+                          colvarvalue const &x2) const;
+  virtual colvarvalue dist2_lgrad(colvarvalue const &x1,
+                                  colvarvalue const &x2) const;
+  virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
+                                  colvarvalue const &x2) const;
+  /// Redefined to handle the 2*PI periodicity
+  virtual void wrap(colvarvalue &x_unwrapped) const;
+};
+
+
+class colvar::euler_psi
+  : public colvar::orientation
+{
+public:
+  euler_psi(std::string const &conf);
+  euler_psi();
+  virtual int init(std::string const &conf);
+  virtual ~euler_psi() {}
+  virtual void calc_value();
+  virtual void calc_gradients();
+  virtual void apply_force(colvarvalue const &force);
+  virtual cvm::real dist2(colvarvalue const &x1,
+                          colvarvalue const &x2) const;
+  virtual colvarvalue dist2_lgrad(colvarvalue const &x1,
+                                  colvarvalue const &x2) const;
+  virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
+                                  colvarvalue const &x2) const;
+  /// Redefined to handle the 2*PI periodicity
+  virtual void wrap(colvarvalue &x_unwrapped) const;
+};
+
+
+class colvar::euler_theta
+  : public colvar::orientation
+{
+public:
+  euler_theta(std::string const &conf);
+  euler_theta();
+  virtual int init(std::string const &conf);
+  virtual ~euler_theta() {}
+  virtual void calc_value();
+  virtual void calc_gradients();
+  virtual void apply_force(colvarvalue const &force);
+  // theta angle is a scalar variable and not periodic
+  // we need to override the virtual functions from orientation
+  virtual cvm::real dist2(colvarvalue const &x1,
+                          colvarvalue const &x2) const;
+  virtual colvarvalue dist2_lgrad(colvarvalue const &x1,
+                                  colvarvalue const &x2) const;
+  virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
+                                  colvarvalue const &x2) const;
+};
+
 
 /// \brief Colvar component: root mean square deviation (RMSD) of a
 /// group with respect to a set of reference coordinates; uses \link
@@ -1358,8 +1429,14 @@ protected:
   cvm::atom_group  *atoms;
 
   /// Reference coordinates (for RMSD calculation only)
+  /// Includes sets with symmetry permutations (n_permutations * n_atoms)
   std::vector<cvm::atom_pos>  ref_pos;
 
+  /// Number of permutations of symmetry-related atoms
+  size_t n_permutations;
+
+  /// Index of the permutation yielding the smallest RMSD (0 for identity)
+  size_t best_perm_index;
 public:
 
   /// Constructor
@@ -1399,6 +1476,28 @@ public:
   virtual void apply_force(colvarvalue const &force);
 };
 
+
+// \brief Colvar component: alch_lambda
+// To communicate value with back-end in lambda-dynamics
+class colvar::alch_lambda
+  : public colvar::cvc
+{
+protected:
+  // No atom groups needed
+public:
+  alch_lambda(std::string const &conf);
+  alch_lambda();
+  virtual ~alch_lambda() {}
+  virtual void calc_value();
+  virtual void calc_gradients();
+  virtual void apply_force(colvarvalue const &force);
+  virtual cvm::real dist2(colvarvalue const &x1,
+                          colvarvalue const &x2) const;
+  virtual colvarvalue dist2_lgrad(colvarvalue const &x1,
+                                  colvarvalue const &x2) const;
+  virtual colvarvalue dist2_rgrad(colvarvalue const &x1,
+                                  colvarvalue const &x2) const;
+};
 
 
 class colvar::componentDisabled
@@ -1442,7 +1541,7 @@ public:
 
 /// \brief Colvar component: alternative path collective variable using geometry, variable s
 /// For more information see https://plumed.github.io/doc-v2.5/user-doc/html/_p_a_t_h.html
-/// Díaz Leines, G.; Ensing, B. Path Finding on High-Dimensional Free Energy Landscapes. Phys. Rev. Lett. 2012, 109 (2), 020601. https://doi.org/10.1103/PhysRevLett.109.020601.
+/// Diaz Leines, G.; Ensing, B. Path Finding on High-Dimensional Free Energy Landscapes. Phys. Rev. Lett. 2012, 109 (2), 020601. https://doi.org/10.1103/PhysRevLett.109.020601.
 class colvar::gspath
   : public colvar::CartesianBasedPath, public GeometricPathCV::GeometricPathBase<cvm::atom_pos, cvm::real, GeometricPathCV::path_sz::S>
 {
@@ -1487,8 +1586,6 @@ class colvar::linearCombination
   : public colvar::cvc
 {
 protected:
-    /// Map from string to the types of colvar components
-    std::map<std::string, std::function<colvar::cvc* (const std::string& subcv_conf)>> string_cv_map;
     /// Sub-colvar components
     std::vector<colvar::cvc*> cv;
     /// If all sub-cvs use explicit gradients then we also use it
@@ -1508,8 +1605,6 @@ class colvar::CVBasedPath
   : public colvar::cvc
 {
 protected:
-    /// Map from string to the types of colvar components
-    std::map<std::string, std::function<colvar::cvc* (const std::string& subcv_conf)>> string_cv_map;
     /// Sub-colvar components
     std::vector<colvar::cvc*> cv;
     /// Reference colvar values from path
@@ -1534,7 +1629,7 @@ public:
 /// \brief Colvar component: alternative path collective variable using geometry, variable s
 /// Allow any combination of existing (scalar) CVs
 /// For more information see https://plumed.github.io/doc-v2.5/user-doc/html/_p_a_t_h.html
-/// Díaz Leines, G.; Ensing, B. Path Finding on High-Dimensional Free Energy Landscapes. Phys. Rev. Lett. 2012, 109 (2), 020601. https://doi.org/10.1103/PhysRevLett.109.020601.
+/// Diaz Leines, G.; Ensing, B. Path Finding on High-Dimensional Free Energy Landscapes. Phys. Rev. Lett. 2012, 109 (2), 020601. https://doi.org/10.1103/PhysRevLett.109.020601.
 class colvar::gspathCV
   : public colvar::CVBasedPath, public GeometricPathCV::GeometricPathBase<colvarvalue, cvm::real, GeometricPathCV::path_sz::S>
 {
@@ -1661,6 +1756,42 @@ public:
 
 #endif // C++11 checking
 
+
+// \brief Colvar component: total value of a scalar map
+// (usually implemented as a grid by the simulation engine)
+class colvar::map_total
+  : public colvar::cvc
+{
+public:
+
+  map_total();
+  map_total(std::string const &conf);
+  virtual ~map_total() {}
+  virtual int init(std::string const &conf);
+  virtual void calc_value();
+  virtual void calc_gradients();
+  virtual void apply_force(colvarvalue const &force);
+
+protected:
+
+  /// String identifier of the map object (as used by the simulation engine)
+  std::string volmap_name;
+
+  /// Numeric identifier of the map object (as used by the simulation engine)
+  int volmap_id;
+
+  /// Index of the map objet in the proxy arrays
+  int volmap_index;
+
+  /// Group of atoms selected internally (optional)
+  cvm::atom_group *atoms;
+
+  /// Weights assigned to each atom (default: uniform weights)
+  std::vector<cvm::real> atom_weights;
+};
+
+
+
 // metrics functions for cvc implementations
 
 // simple definitions of the distance functions; these are useful only
@@ -1691,6 +1822,6 @@ public:
   {                                                                     \
     return this->dist2_lgrad(x2, x1);                                   \
   }                                                                     \
-                                                                        \
+
 
 #endif

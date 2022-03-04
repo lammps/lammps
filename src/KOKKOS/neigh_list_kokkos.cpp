@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,8 +13,6 @@
 ------------------------------------------------------------------------- */
 
 #include "neigh_list_kokkos.h"
-#include "atom.h"
-#include "memory_kokkos.h"
 
 using namespace LAMMPS_NS;
 
@@ -37,22 +36,20 @@ void NeighListKokkos<DeviceType>::grow(int nmax)
   // skip if this list is already long enough to store nmax atoms
   //  and maxneighs neighbors
 
-  if (nmax <= maxatoms && d_neighbors.extent(1) >= maxneighs) return;
+  if (nmax <= maxatoms && (int)d_neighbors.extent(1) >= maxneighs) return;
   maxatoms = nmax;
 
   k_ilist = DAT::tdual_int_1d("neighlist:ilist",maxatoms);
   d_ilist = k_ilist.view<DeviceType>();
-  k_numneigh = DAT::tdual_int_1d("neighlist:numneigh",maxatoms);
-  d_numneigh = k_numneigh.view<DeviceType>();
-  k_neighbors = DAT::tdual_neighbors_2d("neighlist:neighbors",maxatoms,maxneighs);
-  d_neighbors = k_neighbors.view<DeviceType>();
+  d_numneigh = typename ArrayTypes<DeviceType>::t_int_1d("neighlist:numneigh",maxatoms);
+  d_neighbors = typename ArrayTypes<DeviceType>::t_neighbors_2d(Kokkos::NoInit("neighlist:neighbors"),maxatoms,maxneighs);
 }
 
 /* ---------------------------------------------------------------------- */
 
 namespace LAMMPS_NS {
 template class NeighListKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class NeighListKokkos<LMPHostType>;
 #endif
 }

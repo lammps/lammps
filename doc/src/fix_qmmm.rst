@@ -42,7 +42,8 @@ to be adapted if necessary before being finalized.
 Details about how to use this fix are currently documented in the
 description of the QM/MM interface code itself in lib/qmmm/README.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global scalar or vector or per-atom
@@ -53,14 +54,21 @@ fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-This fix is part of the USER-QMMM package.  It is only enabled if
+This fix is part of the QMMM package.  It is only enabled if
 LAMMPS was built with that package. It also requires building a
-library provided with LAMMPS.  See the :doc:`Build package <Build_package>` doc page for more info.
+library provided with LAMMPS.  See the :doc:`Build package <Build_package>` page for more info.
 
 The fix is only functional when LAMMPS is built as a library and
 linked with a compatible QM program and a QM/MM front end into a QM/MM
 executable.  See the lib/qmmm/README file for details.
 
-**Related commands:** none
+Related commands
+""""""""""""""""
 
-**Default:** none
+none
+
+
+Default
+"""""""
+
+none

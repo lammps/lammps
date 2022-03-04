@@ -48,8 +48,8 @@ Examples
    fix 1 ellipsoid rigid/meso single
    fix 1 rods      rigid/meso molecule
    fix 1 spheres   rigid/meso single force 1 off off on
-   fix 1 particles rigid/meso molecule force 1\*5 off off off force 6\*10 off off on
-   fix 2 spheres   rigid/meso group 3 sphere1 sphere2 sphere3 torque \* off off off
+   fix 1 particles rigid/meso molecule force 1*5 off off off force 6*10 off off on
+   fix 2 spheres   rigid/meso group 3 sphere1 sphere2 sphere3 torque * off off off
 
 Description
 """""""""""
@@ -104,11 +104,11 @@ internal energy and extrapolated velocity are also updated.
    they effect any computation of per-particle forces or torques. If the
    keyword *reinit* is set to *yes* (the default), the rigid body data
    structures will be recreated at the beginning of each *run* command;
-   if the keyword *reinit* is set to *no*\ , the rigid body data structures
+   if the keyword *reinit* is set to *no*, the rigid body data structures
    will be built only at the very first *run* command and maintained for
    as long as the rigid fix is defined. For example, you might think you
    could displace the particles in a body or add a large velocity to each particle
-   in a body to make it move in a desired direction before a 2nd run is
+   in a body to make it move in a desired direction before a second run is
    performed, using the :doc:`set <set>` or
    :doc:`displace_atoms <displace_atoms>` or :doc:`velocity <velocity>`
    commands.  But these commands will not affect the internal attributes
@@ -126,7 +126,7 @@ defined via several options.
 For bodystyle *single* the entire fix group of particles is treated as
 one rigid body.
 
-For bodystyle *molecule*\ , particles are grouped into rigid bodies by their
+For bodystyle *molecule*, particles are grouped into rigid bodies by their
 respective molecule IDs: each set of particles in the fix group with the
 same molecule ID is treated as a different rigid body.  Note that particles
 with a molecule ID = 0 will be treated as a single rigid body. For a
@@ -141,13 +141,13 @@ of particles that form rigid bodies.  An integer vector defined by the
 :doc:`fix property/atom <fix_property_atom>` command can be used.  Or an
 :doc:`atom-style or atomfile-style variable <variable>` can be used; the
 floating-point value produced by the variable is rounded to an
-integer.  As with bodystyle *molecule*\ , each set of particles in the fix
+integer.  As with bodystyle *molecule*, each set of particles in the fix
 groups with the same integer value is treated as a different rigid
 body.  Since fix property/atom vectors and atom-style variables
 produce values for all particles, you should be careful to use a fix group
 that only includes particles you want to be part of rigid bodies.
 
-For bodystyle *group*\ , each of the listed groups is treated as a
+For bodystyle *group*, each of the listed groups is treated as a
 separate rigid body.  Only particles that are also in the fix group are
 included in each rigid body.
 
@@ -288,7 +288,8 @@ cross periodic boundaries during the simulation.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information is written to :doc:`binary restart files <restart>`.
 If the *infile* keyword is used, an auxiliary file is written out
@@ -343,9 +344,9 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-This fix is part of the USER-SDPD package and also depends on the RIGID
+This fix is part of the DPD-SMOOTH package and also depends on the RIGID
 package.  It is only enabled if LAMMPS was built with both packages. See
-the :doc:`Build package <Build_package>` doc page for more info.
+the :doc:`Build package <Build_package>` page for more info.
 
 This fix requires that atoms store density and internal energy as
 defined by the :doc:`atom_style sph <atom_style>` command.

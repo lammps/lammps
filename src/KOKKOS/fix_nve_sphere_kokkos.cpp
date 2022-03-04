@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -30,8 +31,8 @@ FixNVESphereKokkos<DeviceType>::FixNVESphereKokkos(LAMMPS *lmp, int narg, char *
   atomKK = (AtomKokkos *)atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
-  datamask_read = F_MASK | TORQUE_MASK | RMASS_MASK | RADIUS_MASK | MASK_MASK;
-  datamask_modify = X_MASK | V_MASK | OMEGA_MASK;
+  datamask_read = EMPTY_MASK;
+  datamask_modify = EMPTY_MASK;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -39,8 +40,8 @@ FixNVESphereKokkos<DeviceType>::FixNVESphereKokkos(LAMMPS *lmp, int narg, char *
 template<class DeviceType>
 void FixNVESphereKokkos<DeviceType>::cleanup_copy()
 {
-  id = style = NULL;
-  vatom = NULL;
+  id = style = nullptr;
+  vatom = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -58,10 +59,9 @@ void FixNVESphereKokkos<DeviceType>::init()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixNVESphereKokkos<DeviceType>::initial_integrate(int vflag)
+void FixNVESphereKokkos<DeviceType>::initial_integrate(int /*vflag*/)
 {
-  atomKK->sync(execution_space,datamask_read);
-  atomKK->modified(execution_space,datamask_modify);
+  atomKK->sync(execution_space, X_MASK | V_MASK | OMEGA_MASK| F_MASK | TORQUE_MASK | RMASS_MASK | RADIUS_MASK | MASK_MASK);
 
   x = atomKK->k_x.view<DeviceType>();
   v = atomKK->k_v.view<DeviceType>();
@@ -77,6 +77,8 @@ void FixNVESphereKokkos<DeviceType>::initial_integrate(int vflag)
 
   FixNVESphereKokkosInitialIntegrateFunctor<DeviceType> f(this);
   Kokkos::parallel_for(nlocal,f);
+
+  atomKK->modified(execution_space,  X_MASK | V_MASK | OMEGA_MASK);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -108,8 +110,7 @@ void FixNVESphereKokkos<DeviceType>::initial_integrate_item(const int i) const
 template<class DeviceType>
 void FixNVESphereKokkos<DeviceType>::final_integrate()
 {
-  atomKK->sync(execution_space,datamask_read);
-  atomKK->modified(execution_space,datamask_modify);
+  atomKK->sync(execution_space, V_MASK | OMEGA_MASK| F_MASK | TORQUE_MASK | RMASS_MASK | RADIUS_MASK | MASK_MASK);
 
   v = atomKK->k_v.view<DeviceType>();
   omega = atomKK->k_omega.view<DeviceType>();
@@ -124,6 +125,8 @@ void FixNVESphereKokkos<DeviceType>::final_integrate()
 
   FixNVESphereKokkosFinalIntegrateFunctor<DeviceType> f(this);
   Kokkos::parallel_for(nlocal,f);
+
+  atomKK->modified(execution_space, V_MASK | OMEGA_MASK);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -149,7 +152,7 @@ void FixNVESphereKokkos<DeviceType>::final_integrate_item(const int i) const
 
 namespace LAMMPS_NS {
 template class FixNVESphereKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class FixNVESphereKokkos<LMPHostType>;
 #endif
 }

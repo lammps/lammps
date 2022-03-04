@@ -56,12 +56,13 @@ and taking a sqrt() would be invalid.
    reset the image flags (e.g. to 0) before invoking this compute by
    using the :doc:`set image <set>` command.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global scalar (:math:`R_g`) and a global vector of
 length 6 (:math:`{R_g}^2` tensor), which can be accessed by indices 1-6.  These
 values can be used by any command that uses a global scalar value or
-vector values from a compute as input.  See the :doc:`Howto output <Howto_output>` doc page for an overview of LAMMPS output
+vector values from a compute as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options.
 
 The scalar and vector values calculated by this compute are
@@ -78,4 +79,7 @@ Related commands
 :doc:`compute gyration/chunk <compute_gyration_chunk>`,
 :doc:`compute gyration/shape <compute_gyration_shape>`
 
-**Default:** none
+Default
+"""""""
+
+none

@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,11 +12,11 @@
 ------------------------------------------------------------------------- */
 
 #ifdef NBIN_CLASS
-
+// clang-format off
 NBinStyle(standard,
           NBinStandard,
-          0)
-
+          NB_STANDARD);
+// clang-format on
 #else
 
 #ifndef LMP_NBIN_STANDARD_H
@@ -29,12 +29,14 @@ namespace LAMMPS_NS {
 class NBinStandard : public NBin {
  public:
   NBinStandard(class LAMMPS *);
-  ~NBinStandard() {}
-  void setup_bins(int);
-  void bin_atoms();
+
+  void bin_atoms_setup(int) override;
+  void setup_bins(int) override;
+  void bin_atoms() override;
+  double memory_usage() override;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

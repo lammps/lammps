@@ -9,9 +9,9 @@ Overview
 ``PyLammps`` is a Python wrapper class for LAMMPS which can be created
 on its own or use an existing lammps Python object.  It creates a simpler,
 more "pythonic" interface to common LAMMPS functionality, in contrast to
-the ``lammps.py`` wrapper for the C-style LAMMPS library interface which
-is written using `Python ctypes <ctypes_>`_.  The ``lammps.py`` wrapper
-is discussed on the :doc:`Python library <Python_library>` doc page.
+the ``lammps`` wrapper for the C-style LAMMPS library interface which
+is written using `Python ctypes <ctypes_>`_.  The ``lammps`` wrapper
+is discussed on the :doc:`Python_head` doc page.
 
 Unlike the flat ``ctypes`` interface, PyLammps exposes a discoverable
 API.  It no longer requires knowledge of the underlying C++ code
@@ -545,6 +545,6 @@ Feedback and Contributing
 -------------------------
 
 If you find this Python interface useful, please feel free to provide feedback
-and ideas on how to improve it to Richard Berger (richard.berger@temple.edu). We also
+and ideas on how to improve it to Richard Berger (richard.berger@outlook.com). We also
 want to encourage people to write tutorial style IPython notebooks showcasing LAMMPS usage
 and maybe their latest research results.

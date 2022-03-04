@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -15,17 +16,18 @@
    Contributing author: Paul Coffman (IBM)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
 #include "dump_xyz_mpiio.h"
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
-#include "domain.h"
-#include "update.h"
-#include "compute.h"
-#include "memory.h"
-#include "error.h"
 
+#include "compute.h"
+#include "domain.h"
+#include "error.h"
+#include "memory.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
+
+#include "omp_compat.h"
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
@@ -50,7 +52,10 @@ enum{LT,LE,GT,GE,EQ,NEQ};
 /* ---------------------------------------------------------------------- */
 
 DumpXYZMPIIO::DumpXYZMPIIO(LAMMPS *lmp, int narg, char **arg) :
-  DumpXYZ(lmp, narg, arg) {}
+  DumpXYZ(lmp, narg, arg) {
+  if (me == 0)
+    error->warning(FLERR,"MPI-IO output is unmaintained and unreliable. Use with caution.");
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -198,7 +203,7 @@ void DumpXYZMPIIO::write()
   }
 
   if (sort_flag && sortcol == 0) pack(ids);
-  else pack(NULL);
+  else pack(nullptr);
   if (sort_flag) sort();
 
   // determine how much data needs to be written for setting the file size and prepocess it prior to writing
@@ -239,7 +244,7 @@ void DumpXYZMPIIO::init_style()
   // initialize typenames array to be backward compatible by default
   // a 32-bit int can be maximally 10 digits plus sign
 
-  if (typenames == NULL) {
+  if (typenames == nullptr) {
     typenames = new char*[ntypes+1];
     for (int itype = 1; itype <= ntypes; itype++) {
       typenames[itype] = new char[12];
@@ -382,7 +387,7 @@ int DumpXYZMPIIO::convert_string_omp(int n, double *mybuf)
     if (mpifhStringCount > 0) {
       if (mpifhStringCount > maxsbuf) {
         if (mpifhStringCount > MAXSMALLINT) return -1;
-        maxsbuf = mpifhStringCount;
+        maxsbuf = mpifhStringCount+1;
         memory->grow(sbuf,maxsbuf,"dump:sbuf");
       }
       sbuf[0] = '\0';

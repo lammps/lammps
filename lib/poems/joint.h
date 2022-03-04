@@ -3,7 +3,7 @@
  *      POEMS: PARALLELIZABLE OPEN SOURCE EFFICIENT MULTIBODY SOFTWARE     *
  *      DESCRIPTION: SEE READ-ME                                           *
  *      FILE NAME: joint.h                                                 *
- *      AUTHORS: See Author List                                           * 
+ *      AUTHORS: See Author List                                           *
  *      GRANTS: See Grants List                                            *
  *      COPYRIGHT: (C) 2005 by Authors as listed in Author's List          *
  *      LICENSE: Please see License Agreement                              *
@@ -11,7 +11,7 @@
  *      ADMINISTRATOR: Prof. Kurt Anderson                                 *
  *                     Computational Dynamics Lab                          *
  *                     Rensselaer Polytechnic Institute                    *
- *                     110 8th St. Troy NY 12180                           * 
+ *                     110 8th St. Troy NY 12180                           *
  *      CONTACT:        anderk5@rpi.edu                                    *
  *_________________________________________________________________________*/
 
@@ -29,7 +29,7 @@ enum JointType {
   PRISMATICJOINT = 3,
   SPHERICALJOINT = 4,
   BODY23JOINT = 5,
-  MIXEDJOINT = 6		  
+  MIXEDJOINT = 6
 };
 
 class Body;
@@ -51,7 +51,7 @@ protected:
   ColMatrix qdot;   // generalized coordinate derivatives
   ColMatrix udot;   // generalized speed derivatives
   ColMatrix qdotdot;
-  
+
   Mat3x3 pk_C_ko;   // transformation relationship for q = 0
 
   Mat3x3 pk_C_k;  // local transform
@@ -94,14 +94,14 @@ public:
   Mat3x3* Get_pkCk();
   Mat3x3* Get_kCpk();
 
-  //void SetInitialState(VirtualMatrix& q, VirtualMatrix& u);  
-  void SetInitialState(ColMatrix& q, ColMatrix& u);  
+  //void SetInitialState(VirtualMatrix& q, VirtualMatrix& u);
+  void SetInitialState(ColMatrix& q, ColMatrix& u);
   void SetZeroOrientation(VirtualMatrix& C);
   void ResetQdot();
   void ResetQ();
-  bool ReadIn(std::istream& in);  
+  bool ReadIn(std::istream& in);
   void WriteOut(std::ostream& out);
-  
+
   virtual void WriteOutJointData(std::ostream& out) = 0;
   virtual bool ReadInJointData(std::istream& in) = 0;
   virtual Matrix GetForward_sP();

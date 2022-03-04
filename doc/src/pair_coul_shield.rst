@@ -62,7 +62,8 @@ The global cutoff (:math:`r_c`) specified in the pair_style command is used.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This pair style does not support parameter mixing. Coefficients must
 be given explicitly for each type of particle pairs.
@@ -76,13 +77,14 @@ pressure.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 Restrictions
 """"""""""""
 
-This style is part of the USER-MISC package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This pair style is part of the INTERLAYER package.  It is only enabled
+if LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
@@ -90,7 +92,11 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`
 :doc:`pair_style ilp/graphene/hbn <pair_ilp_graphene_hbn>`
 
-**Default:** tap_flag = 1
+Default
+"""""""
+
+tap_flag = 1
+
 
 ----------
 

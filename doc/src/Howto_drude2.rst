@@ -2,12 +2,14 @@ Tutorial for Thermalized Drude oscillators in LAMMPS
 ====================================================
 
 This tutorial explains how to use Drude oscillators in LAMMPS to
-simulate polarizable systems using the USER-DRUDE package. As an
+simulate polarizable systems using the DRUDE package. As an
 illustration, the input files for a simulation of 250 phenol molecules
 are documented. First of all, LAMMPS has to be compiled with the
-USER-DRUDE package activated. Then, the data file and input scripts
+DRUDE package activated. Then, the data file and input scripts
 have to be modified to include the Drude dipoles and how to handle
 them.
+
+Example input scripts available: examples/PACKAGES/drude
 
 ----------
 
@@ -36,7 +38,7 @@ polarizability :math:`\alpha` by
 
 Ideally, the mass of the Drude particle should be small, and the
 stiffness of the harmonic bond should be large, so that the Drude
-particle remains close ot the core. The values of Drude mass, Drude
+particle remains close to the core. The values of Drude mass, Drude
 charge, and force constant can be chosen following different
 strategies, as in the following examples of polarizable force
 fields:
@@ -80,7 +82,7 @@ The data file is similar to a standard LAMMPS data file for
 to their DC should appear in the data file as normal atoms and bonds.
 
 You can use the *polarizer* tool (Python script distributed with the
-USER-DRUDE package) to convert a non-polarizable data file (here
+DRUDE package) to convert a non-polarizable data file (here
 *data.102494.lmp*\ ) to a polarizable data file (\ *data-p.lmp*\ )
 
 .. code-block:: bash
@@ -89,7 +91,7 @@ USER-DRUDE package) to convert a non-polarizable data file (here
 
 This will automatically insert the new atoms and bonds.
 The masses and charges of DCs and DPs are computed
-from *phenol.dff*\ , as well as the DC-DP bond constants.  The file
+from *phenol.dff*, as well as the DC-DP bond constants.  The file
 *phenol.dff* contains the polarizabilities of the atom types
 and the mass of the Drude particles, for instance:
 
@@ -104,7 +106,7 @@ and the mass of the Drude particles, for instance:
 
 The hydrogen atoms are absent from this file, so they will be treated
 as non-polarizable atoms.  In the non-polarizable data file
-*data.102494.lmp*\ , atom names corresponding to the atom type numbers
+*data.102494.lmp*, atom names corresponding to the atom type numbers
 have to be specified as comments at the end of lines of the *Masses*
 section.  You probably need to edit it to add these names. It should
 look like
@@ -123,7 +125,7 @@ look like
 
 **Basic input file**
 
-The atom style should be set to (or derive from) *full*\ , so that you
+The atom style should be set to (or derive from) *full*, so that you
 can define atomic charges and molecular bonds, angles, dihedrals...
 
 The *polarizer* tool also outputs certain lines related to the input
@@ -141,7 +143,7 @@ and N for non-polarizable atoms.  Here the atom types 1 to 3 (C and O
 atoms) are DC, atom types 4 and 5 (H atoms) are non-polarizable and
 the atom types 6 to 8 are the newly created DPs.
 
-By recognizing the fix *drude*\ , LAMMPS will find and store matching
+By recognizing the fix *drude*, LAMMPS will find and store matching
 DC-DP pairs and will treat DP as equivalent to their DC in the
 *special bonds* relations.  It may be necessary to extend the space
 for storing such special relations.  In this case extra space should
@@ -220,6 +222,14 @@ modification of forces but no position/velocity updates), the fix
 .. code-block:: LAMMPS
 
    fix NVE all nve
+
+To avoid the flying ice cube artifact, where the atoms progressively freeze and the
+center of mass of the whole system drifts faster and faster, the *fix momentum*
+can be used. For instance:
+
+.. code-block:: LAMMPS
+
+   fix MOMENTUM all momentum 100 linear 1 1 1
 
 Finally, do not forget to update the atom type elements if you use
 them in a *dump_modify ... element ...* command, by adding the element
@@ -330,11 +340,11 @@ For the *thole* pair style the coefficients are
 The special neighbors have charge-charge and charge-dipole
 interactions screened by the *coul* factors of the *special_bonds*
 command (0.0, 0.0, and 0.5 in the example above).  Without using the
-pair_style *thole*\ , dipole-dipole interactions are screened by the
-same factor.  By using the pair_style *thole*\ , dipole-dipole
+pair_style *thole*, dipole-dipole interactions are screened by the
+same factor.  By using the pair_style *thole*, dipole-dipole
 interactions are screened by Thole's function, whatever their special
 relationship (except within each DC-DP pair of course).  Consider for
-example 1-2 neighbors: using the pair_style *thole*\ , their dipoles
+example 1-2 neighbors: using the pair_style *thole*, their dipoles
 will see each other (despite the *coul* factor being 0.) and the
 interactions between these dipoles will be damped by Thole's function.
 
@@ -374,16 +384,9 @@ For our phenol example, the groups would be defined as
    group CORES  type 1 2 3     # DCs
    group DRUDES type 6 7 8     # DPs
 
-Note that with the fixes *drude/transform*\ , it is not required to
+Note that with the fixes *drude/transform*, it is not required to
 specify *comm_modify vel yes* because the fixes do it anyway (several
-times and for the forces also).  To avoid the flying ice cube artifact
-:ref:`(Lamoureux) <Lamoureux2>`, where the atoms progressively freeze and the
-center of mass of the whole system drifts faster and faster, the *fix
-momentum* can be used. For instance:
-
-.. code-block:: LAMMPS
-
-   fix MOMENTUM all momentum 100 linear 1 1 1
+times and for the forces also).
 
 It is a bit more tricky to run a NPT simulation with Nose-Hoover
 barostat and thermostat.  First, the volume should be integrated only
@@ -403,6 +406,31 @@ instructions for thermostatting and barostatting will look like
    fix_modify NPT temp TATOMS press thermo_press
    fix NVT DRUDES nvt temp 1. 1. 20
    fix INVERSE all drude/transform/inverse
+
+Another option for thermalizing the Drude model is to use the
+temperature-grouped Nose-Hoover (TGNH) thermostat proposed by :ref:`(Son) <TGNH-SON>`.
+This is implemented as :doc:`fix tgnvt/drude <fix_tgnh_drude>` and :doc:`fix tgnpt/drude <fix_tgnh_drude>`.
+It separates the kinetic energy into three contributions:
+the molecular center of mass (COM) motion, the motion of atoms or atom-Drude pairs relative to molecular COMs,
+and the relative motion of atom-Drude pairs.
+An independent Nose-Hoover chain is applied to each type of motion.
+When TGNH is used, the temperatures of molecular, atomic and Drude motion can be printed out with :doc:`thermo_style` command.
+
+NVT simulation with TGNH thermostat
+
+.. code-block:: LAMMPS
+
+   comm_modify vel yes
+   fix TGNVT all tgnvt/drude temp 300. 300. 100 1. 20
+   thermo_style custom f_TGNVT[1] f_TGNVT[2] f_TGNVT[3]
+
+NPT simulation with TGNH thermostat
+
+.. code-block:: LAMMPS
+
+   comm_modify vel yes
+   fix TGNPT all tgnpt/drude temp 300. 300. 100 1. 20 iso 1. 1. 500
+   thermo_style custom f_TGNPT[1] f_TGNPT[2] f_TGNPT[3]
 
 ----------
 
@@ -456,17 +484,12 @@ NPT ensemble using Nose-Hoover thermostat:
 
 .. _Lamoureux2:
 
-**(Lamoureux)** Lamoureux and Roux, J Chem Phys, 119, 3025-3039 (2003)
+**(Lamoureux and Roux)** Lamoureux and Roux, J Chem Phys, 119, 3025-3039 (2003)
 
 .. _Schroeder:
 
 **(Schroeder)**  Schroeder and Steinhauser, J Chem Phys, 133,
 154511 (2010).
-
-.. _Jiang2:
-
-**(Jiang)** Jiang, Hardy, Phillips, MacKerell, Schulten, and Roux,
- J Phys Chem Lett, 2, 87-92 (2011).
 
 .. _Thole2:
 
@@ -480,3 +503,7 @@ NPT ensemble using Nose-Hoover thermostat:
 
 **(SWM4-NDP)** Lamoureux, Harder, Vorobyov, Roux, MacKerell, Chem Phys
 Let, 418, 245-249 (2006)
+
+.. _TGNH-Son:
+
+**(Son)** Son, McDaniel, Cui and Yethiraj, J Phys Chem Lett, 10, 7523 (2019).

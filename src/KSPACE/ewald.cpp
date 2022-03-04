@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -19,16 +20,17 @@
 ------------------------------------------------------------------------- */
 
 #include "ewald.h"
-#include <mpi.h>
-#include <cmath>
+
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
-#include "pair.h"
 #include "domain.h"
+#include "error.h"
+#include "force.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "pair.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -38,11 +40,11 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 Ewald::Ewald(LAMMPS *lmp) : KSpace(lmp),
-  kxvecs(NULL), kyvecs(NULL), kzvecs(NULL), ug(NULL), eg(NULL), vg(NULL),
-  ek(NULL), sfacrl(NULL), sfacim(NULL), sfacrl_all(NULL), sfacim_all(NULL),
-  cs(NULL), sn(NULL), sfacrl_A(NULL), sfacim_A(NULL), sfacrl_A_all(NULL),
-  sfacim_A_all(NULL), sfacrl_B(NULL), sfacim_B(NULL), sfacrl_B_all(NULL),
-  sfacim_B_all(NULL)
+  kxvecs(nullptr), kyvecs(nullptr), kzvecs(nullptr), ug(nullptr), eg(nullptr), vg(nullptr),
+  ek(nullptr), sfacrl(nullptr), sfacim(nullptr), sfacrl_all(nullptr), sfacim_all(nullptr),
+  cs(nullptr), sn(nullptr), sfacrl_A(nullptr), sfacim_A(nullptr), sfacrl_A_all(nullptr),
+  sfacim_A_all(nullptr), sfacrl_B(nullptr), sfacim_B(nullptr), sfacrl_B_all(nullptr),
+  sfacim_B_all(nullptr)
 {
   group_allocate_flag = 0;
   kmax_created = 0;
@@ -52,14 +54,14 @@ Ewald::Ewald(LAMMPS *lmp) : KSpace(lmp),
   accuracy_relative = 0.0;
 
   kmax = 0;
-  kxvecs = kyvecs = kzvecs = NULL;
-  ug = NULL;
-  eg = vg = NULL;
-  sfacrl = sfacim = sfacrl_all = sfacim_all = NULL;
+  kxvecs = kyvecs = kzvecs = nullptr;
+  ug = nullptr;
+  eg = vg = nullptr;
+  sfacrl = sfacim = sfacrl_all = sfacim_all = nullptr;
 
   nmax = 0;
-  ek = NULL;
-  cs = sn = NULL;
+  ek = nullptr;
+  cs = sn = nullptr;
 
   kcount = 0;
 }
@@ -68,7 +70,7 @@ void Ewald::settings(int narg, char **arg)
 {
   if (narg != 1) error->all(FLERR,"Illegal kspace_style ewald command");
 
-  accuracy_relative = fabs(force->numeric(FLERR,arg[0]));
+  accuracy_relative = fabs(utils::numeric(FLERR,arg[0],false,lmp));
 }
 
 /* ----------------------------------------------------------------------
@@ -88,10 +90,7 @@ Ewald::~Ewald()
 
 void Ewald::init()
 {
-  if (comm->me == 0) {
-    if (screen) fprintf(screen,"Ewald initialization ...\n");
-    if (logfile) fprintf(logfile,"Ewald initialization ...\n");
-  }
+  if (comm->me == 0) utils::logmesg(lmp,"Ewald initialization ...\n");
 
   // error check
 
@@ -123,7 +122,7 @@ void Ewald::init()
 
   int itmp;
   double *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
-  if (p_cutoff == NULL)
+  if (p_cutoff == nullptr)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   double cutoff = *p_cutoff;
 
@@ -185,28 +184,16 @@ void Ewald::init()
   // stats
 
   if (comm->me == 0) {
-    if (screen) {
-      fprintf(screen,"  G vector (1/distance) = %g\n",g_ewald);
-      fprintf(screen,"  estimated absolute RMS force accuracy = %g\n",
-              estimated_accuracy);
-      fprintf(screen,"  estimated relative force accuracy = %g\n",
-              estimated_accuracy/two_charge_force);
-      fprintf(screen,"  KSpace vectors: actual max1d max3d = %d %d %d\n",
-              kcount,kmax,kmax3d);
-      fprintf(screen,"                  kxmax kymax kzmax  = %d %d %d\n",
-              kxmax,kymax,kzmax);
-    }
-    if (logfile) {
-      fprintf(logfile,"  G vector (1/distance) = %g\n",g_ewald);
-      fprintf(logfile,"  estimated absolute RMS force accuracy = %g\n",
-              estimated_accuracy);
-      fprintf(logfile,"  estimated relative force accuracy = %g\n",
-              estimated_accuracy/two_charge_force);
-      fprintf(logfile,"  KSpace vectors: actual max1d max3d = %d %d %d\n",
-              kcount,kmax,kmax3d);
-      fprintf(logfile,"                  kxmax kymax kzmax  = %d %d %d\n",
-              kxmax,kymax,kzmax);
-    }
+    std::string mesg = fmt::format("  G vector (1/distance) = {:.8g}\n",g_ewald);
+    mesg += fmt::format("  estimated absolute RMS force accuracy = {:.8g}\n",
+                       estimated_accuracy);
+    mesg += fmt::format("  estimated relative force accuracy = {:.8g}\n",
+                       estimated_accuracy/two_charge_force);
+    mesg += fmt::format("  KSpace vectors: actual max1d max3d = {} {} {}\n",
+                        kcount,kmax,kmax3d);
+    mesg += fmt::format("                  kxmax kymax kzmax  = {} {} {}\n",
+                        kxmax,kymax,kzmax);
+    utils::logmesg(lmp,mesg);
   }
 }
 
@@ -1242,10 +1229,10 @@ void Ewald::slabcorr()
 double Ewald::memory_usage()
 {
   double bytes = 3 * kmax3d * sizeof(int);
-  bytes += (1 + 3 + 6) * kmax3d * sizeof(double);
-  bytes += 4 * kmax3d * sizeof(double);
-  bytes += nmax*3 * sizeof(double);
-  bytes += 2 * (2*kmax+1)*3*nmax * sizeof(double);
+  bytes += (double)(1 + 3 + 6) * kmax3d * sizeof(double);
+  bytes += (double)4 * kmax3d * sizeof(double);
+  bytes += (double)nmax*3 * sizeof(double);
+  bytes += (double)2 * (2*kmax+1)*3*nmax * sizeof(double);
   return bytes;
 }
 

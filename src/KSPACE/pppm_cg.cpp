@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,18 +17,18 @@
 ------------------------------------------------------------------------- */
 
 #include "pppm_cg.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
-#include "gridcomm.h"
 #include "domain.h"
 #include "error.h"
-#include "force.h"
-#include "neighbor.h"
-#include "memory.h"
+#include "gridcomm.h"
 #include "math_const.h"
+#include "memory.h"
+#include "neighbor.h"
 #include "remap.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -47,7 +48,7 @@ enum{FORWARD_IK,FORWARD_AD,FORWARD_IK_PERATOM,FORWARD_AD_PERATOM};
 /* ---------------------------------------------------------------------- */
 
 PPPMCG::PPPMCG(LAMMPS *lmp) : PPPM(lmp),
-  is_charged(NULL)
+  is_charged(nullptr)
 {
   num_charged = -1;
   group_group_enable = 1;
@@ -64,7 +65,7 @@ void PPPMCG::settings(int narg, char **arg)
 
   PPPM::settings(narg,arg);
 
-  if (narg == 2) smallq = fabs(force->numeric(FLERR,arg[1]));
+  if (narg == 2) smallq = fabs(utils::numeric(FLERR,arg[1],false,lmp));
   else smallq = SMALLQ;
 }
 
@@ -88,11 +89,7 @@ void PPPMCG::compute(int eflag, int vflag)
 
   ev_init(eflag,vflag);
 
-  if (evflag_atom && !peratom_allocate_flag) {
-    allocate_peratom();
-    cg_peratom->ghost_notify();
-    cg_peratom->setup();
-  }
+  if (evflag_atom && !peratom_allocate_flag) allocate_peratom();
 
   // if atom count has changed, update qsum and qsqsum
 
@@ -151,23 +148,15 @@ void PPPMCG::compute(int eflag, int vflag)
     charged_frac = static_cast<double>(charged_all) * 100.0
                    / static_cast<double>(atom->natoms);
 
-    if (me == 0) {
-      if (screen)
-        fprintf(screen,
-                "  PPPM/cg optimization cutoff: %g\n"
-                "  Total charged atoms: %.1f%%\n"
-                "  Min/max charged atoms/proc: %.1f%% %.1f%%\n",
-                smallq,charged_frac,charged_fmin,charged_fmax);
-      if (logfile)
-        fprintf(logfile,
-                "  PPPM/cg optimization cutoff: %g\n"
-                "  Total charged atoms: %.1f%%\n"
-                "  Min/max charged atoms/proc: %.1f%% %.1f%%\n",
-                smallq,charged_frac,charged_fmin,charged_fmax);
-    }
+    if (me == 0)
+      utils::logmesg(lmp,"  PPPM/cg optimization cutoff: {:.8g}\n"
+                     "  Total charged atoms: {:.1f}%\n"
+                     "  Min/max charged atoms/proc: {:.1f}% {:.1f}%\n",
+                     smallq,charged_frac,charged_fmin,charged_fmax);
   }
 
   // only need to rebuild this list after a neighbor list update
+
   if (neighbor->ago == 0) {
     num_charged = 0;
     for (int i = 0; i < atom->nlocal; ++i) {
@@ -188,7 +177,8 @@ void PPPMCG::compute(int eflag, int vflag)
   //   to fully sum contribution in their 3d bricks
   // remap from 3d decomposition to FFT decomposition
 
-  cg->reverse_comm(this,REVERSE_RHO);
+  gc->reverse_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
+                   REVERSE_RHO,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   brick2fft();
 
   // compute potential gradient on my FFT grid and
@@ -201,16 +191,22 @@ void PPPMCG::compute(int eflag, int vflag)
   // all procs communicate E-field values
   // to fill ghost cells surrounding their 3d bricks
 
-  if (differentiation_flag == 1) cg->forward_comm(this,FORWARD_AD);
-  else cg->forward_comm(this,FORWARD_IK);
+  if (differentiation_flag == 1)
+    gc->forward_comm(GridComm::KSPACE,this,1,sizeof(FFT_SCALAR),
+                     FORWARD_AD,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+  else
+    gc->forward_comm(GridComm::KSPACE,this,3,sizeof(FFT_SCALAR),
+                     FORWARD_IK,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   // extra per-atom energy/virial communication
 
   if (evflag_atom) {
     if (differentiation_flag == 1 && vflag_atom)
-      cg_peratom->forward_comm(this,FORWARD_AD_PERATOM);
+      gc->forward_comm(GridComm::KSPACE,this,6,sizeof(FFT_SCALAR),
+                       FORWARD_AD_PERATOM,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
     else if (differentiation_flag == 0)
-      cg_peratom->forward_comm(this,FORWARD_IK_PERATOM);
+      gc->forward_comm(GridComm::KSPACE,this,7,sizeof(FFT_SCALAR),
+                       FORWARD_IK_PERATOM,gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   }
 
   // calculate the force on my particles
@@ -739,6 +735,6 @@ void PPPMCG::make_rho_groups(int groupbit_A, int groupbit_B, int BA_flag)
 double PPPMCG::memory_usage()
 {
   double bytes = PPPM::memory_usage();
-  bytes += nmax * sizeof(int);
+  bytes += (double)nmax * sizeof(int);
   return bytes;
 }

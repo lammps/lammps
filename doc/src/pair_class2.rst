@@ -1,37 +1,29 @@
 .. index:: pair_style lj/class2
+.. index:: pair_style lj/class2/gpu
+.. index:: pair_style lj/class2/kk
+.. index:: pair_style lj/class2/omp
+.. index:: pair_style lj/class2/coul/cut
+.. index:: pair_style lj/class2/coul/cut/kk
+.. index:: pair_style lj/class2/coul/cut/omp
+.. index:: pair_style lj/class2/coul/long
+.. index:: pair_style lj/class2/coul/long/gpu
+.. index:: pair_style lj/class2/coul/long/kk
+.. index:: pair_style lj/class2/coul/long/omp
 
 pair_style lj/class2 command
 ============================
 
-pair_style lj/class2/gpu command
-================================
-
-pair_style lj/class2/kk command
-===============================
-
-pair_style lj/class2/omp command
-================================
+Accelerator Variants: *lj/class2/gpu*, *lj/class2/kk*, *lj/class2/omp*
 
 pair_style lj/class2/coul/cut command
 =====================================
 
-pair_style lj/class2/coul/cut/kk command
-========================================
-
-pair_style lj/class2/coul/cut/omp command
-=========================================
+Accelerator Variants: *lj/class2/coul/cut/kk*, *lj/class2/coul/cut/omp*
 
 pair_style lj/class2/coul/long command
 ======================================
 
-pair_style lj/class2/coul/long/gpu command
-==========================================
-
-pair_style lj/class2/coul/long/kk command
-=========================================
-
-pair_style lj/class2/coul/long/omp command
-==========================================
+Accelerator Variants: *lj/class2/coul/long/gpu*, *lj/class2/coul/long/kk*, *lj/class2/coul/long/omp*
 
 Syntax
 """"""
@@ -108,7 +100,7 @@ class 2 and Coulombic cutoffs are used.  If only one cutoff is
 specified, it is used as the cutoff for both class 2 and Coulombic
 interactions for this type pair.  If both coefficients are specified,
 they are used as the class 2 and Coulombic cutoffs for this type pair.
-You cannot specify 2 cutoffs for style *lj/class2*\ , since it has no
+You cannot specify 2 cutoffs for style *lj/class2*, since it has no
 Coulombic terms.
 
 For *lj/class2/coul/long* only the class 2 cutoff can be specified
@@ -128,34 +120,19 @@ for mixing the cutoff distance.
 
 ----------
 
-A version of these styles with a soft core, *lj/cut/soft*\ , suitable for use in
-free energy calculations, is part of the USER-FEP package and is documented with
+A version of these styles with a soft core, *lj/cut/soft*, suitable for use in
+free energy calculations, is part of the FEP package and is documented with
 the :doc:`pair_style */soft <pair_fep_soft>` styles. The version with soft core is
-only available if LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
+only available if LAMMPS was built with that package. See the :doc:`Build package <Build_package>` page for more info.
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 For atom type pairs I,J and I != J, the epsilon and sigma coefficients
 and cutoff distance for all of the lj/class2 pair styles can be mixed.
@@ -181,7 +158,7 @@ All of the lj/class2 pair styles write their information to :doc:`binary restart
 not need to be specified in an input script that reads a restart file.
 
 Only the *lj/class2* and *lj/class2/coul/long* pair styles support the use of the
-*inner*\ , *middle*\ , and *outer* keywords of the :doc:`run_style respa <run_style>` command, meaning the pairwise forces can be
+*inner*, *middle*, and *outer* keywords of the :doc:`run_style respa <run_style>` command, meaning the pairwise forces can be
 partitioned by distance at different levels of the rRESPA hierarchy.
 The other styles only support the *pair* keyword of run_style respa.
 See the :doc:`run_style <run_style>` command for details.
@@ -190,14 +167,17 @@ Restrictions
 """"""""""""
 
 These styles are part of the CLASS2 package.  They are only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
 
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair_style */soft <pair_fep_soft>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

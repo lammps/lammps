@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,17 +17,16 @@
 ------------------------------------------------------------------------- */
 
 #include "angle_harmonic_kokkos.h"
-#include <cmath>
-#include <cstdlib>
+
 #include "atom_kokkos.h"
-#include "neighbor_kokkos.h"
-#include "domain.h"
+#include "atom_masks.h"
 #include "comm.h"
 #include "force.h"
 #include "math_const.h"
 #include "memory_kokkos.h"
-#include "error.h"
-#include "atom_masks.h"
+#include "neighbor_kokkos.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -43,6 +43,8 @@ AngleHarmonicKokkos<DeviceType>::AngleHarmonicKokkos(LAMMPS *lmp) : AngleHarmoni
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
+
+  centroidstressflag = CENTROID_NOTAVAIL;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -404,7 +406,7 @@ void AngleHarmonicKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i, const 
 
 namespace LAMMPS_NS {
 template class AngleHarmonicKokkos<LMPDeviceType>;
-#ifdef KOKKOS_ENABLE_CUDA
+#ifdef LMP_KOKKOS_GPU
 template class AngleHarmonicKokkos<LMPHostType>;
 #endif
 }

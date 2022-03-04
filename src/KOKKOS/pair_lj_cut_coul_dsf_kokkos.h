@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,13 +12,14 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(lj/cut/coul/dsf/kk,PairLJCutCoulDSFKokkos<LMPDeviceType>)
-PairStyle(lj/cut/coul/dsf/kk/device,PairLJCutCoulDSFKokkos<LMPDeviceType>)
-PairStyle(lj/cut/coul/dsf/kk/host,PairLJCutCoulDSFKokkos<LMPHostType>)
-
+// clang-format off
+PairStyle(lj/cut/coul/dsf/kk,PairLJCutCoulDSFKokkos<LMPDeviceType>);
+PairStyle(lj/cut/coul/dsf/kk/device,PairLJCutCoulDSFKokkos<LMPDeviceType>);
+PairStyle(lj/cut/coul/dsf/kk/host,PairLJCutCoulDSFKokkos<LMPHostType>);
+// clang-format on
 #else
 
+// clang-format off
 #ifndef LMP_PAIR_LJ_CUT_COUL_DSF_KOKKOS_H
 #define LMP_PAIR_LJ_CUT_COUL_DSF_KOKKOS_H
 
@@ -36,16 +37,14 @@ class PairLJCutCoulDSFKokkos : public PairLJCutCoulDSF {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   PairLJCutCoulDSFKokkos(class LAMMPS *);
-  ~PairLJCutCoulDSFKokkos();
+  ~PairLJCutCoulDSFKokkos() override;
 
-  void compute(int, int);
+  void compute(int, int) override;
 
-  void init_style();
-  double init_one(int, int);
+  void init_style() override;
+  double init_one(int, int) override;
 
  protected:
-  void cleanup_copy();
-
   template<bool STACKPARAMS, class Specialisation>
   KOKKOS_INLINE_FUNCTION
   F_FLOAT compute_fpair(const F_FLOAT& rsq, const int& i, const int&j,
@@ -92,9 +91,7 @@ class PairLJCutCoulDSFKokkos : public PairLJCutCoulDSF {
   typename AT::t_ffloat_2d d_cutsq;
   typename AT::tdual_ffloat_2d k_cut_ljsq;
   typename AT::t_ffloat_2d d_cut_ljsq;
-  typename AT::tdual_ffloat_2d k_cut_coulsq;
   typename AT::t_ffloat_2d d_cut_coulsq;
-
 
   int neighflag;
   int nlocal,nall,eflag,vflag;
@@ -103,13 +100,13 @@ class PairLJCutCoulDSFKokkos : public PairLJCutCoulDSF {
   double special_lj[4];
   double qqrd2e;
 
-  void allocate();
-  friend class PairComputeFunctor<PairLJCutCoulDSFKokkos,FULL,true>;
-  friend class PairComputeFunctor<PairLJCutCoulDSFKokkos,HALF,true>;
-  friend class PairComputeFunctor<PairLJCutCoulDSFKokkos,HALFTHREAD,true>;
-  friend class PairComputeFunctor<PairLJCutCoulDSFKokkos,FULL,false>;
-  friend class PairComputeFunctor<PairLJCutCoulDSFKokkos,HALF,false>;
-  friend class PairComputeFunctor<PairLJCutCoulDSFKokkos,HALFTHREAD,false>;
+  void allocate() override;
+  friend struct PairComputeFunctor<PairLJCutCoulDSFKokkos,FULL,true>;
+  friend struct PairComputeFunctor<PairLJCutCoulDSFKokkos,HALF,true>;
+  friend struct PairComputeFunctor<PairLJCutCoulDSFKokkos,HALFTHREAD,true>;
+  friend struct PairComputeFunctor<PairLJCutCoulDSFKokkos,FULL,false>;
+  friend struct PairComputeFunctor<PairLJCutCoulDSFKokkos,HALF,false>;
+  friend struct PairComputeFunctor<PairLJCutCoulDSFKokkos,HALFTHREAD,false>;
   friend EV_FLOAT pair_compute_neighlist<PairLJCutCoulDSFKokkos,FULL,void>(PairLJCutCoulDSFKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairLJCutCoulDSFKokkos,HALF,void>(PairLJCutCoulDSFKokkos*,NeighListKokkos<DeviceType>*);
   friend EV_FLOAT pair_compute_neighlist<PairLJCutCoulDSFKokkos,HALFTHREAD,void>(PairLJCutCoulDSFKokkos*,NeighListKokkos<DeviceType>*);

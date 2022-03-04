@@ -79,9 +79,9 @@ make it easy to use the same molecule file in different molecule
 templates or in different simulations.  You can specify the same file
 multiple times with different optional keywords.
 
-The *offset*\ , *toff*\ , *aoff*\ , *doff*\ , *ioff* keywords add the
-specified offset values to the atom types, bond types, angle types,
-dihedral types, and/or improper types as they are read from the
+The *offset*, *toff*, *boff*, *aoff*, *doff*, *ioff* keywords
+add the specified offset values to the atom types, bond types, angle
+types, dihedral types, and/or improper types as they are read from the
 molecule file.  E.g. if *toff* = 2, and the file uses atom types
 1,2,3, then each created molecule will have atom types 3,4,5.  For the
 *offset* keyword, all five offset values must be specified, but
@@ -150,7 +150,7 @@ appear if the value(s) are different than the default.
 * Xc Yc Zc *com* = coordinates of center-of-mass of molecule
 * Ixx Iyy Izz Ixy Ixz Iyz *inertia* = 6 components of inertia tensor of molecule
 
-For *mass*\ , *com*\ , and *inertia*\ , the default is for LAMMPS to
+For *mass*, *com*, and *inertia*, the default is for LAMMPS to
 calculate this quantity itself if needed, assuming the molecules
 consists of a set of point particles or finite-size particles (with a
 non-zero diameter) that do not overlap.  If finite-size particles in
@@ -201,11 +201,12 @@ bonds between nuclear cores and Drude electrons in a different manner.
 
 Each section is listed below in alphabetic order.  The format of each
 section is described including the number of lines it must contain and
-rules (if any) for whether it can appear in the data file.  In each
-case the ID is ignored; it is simply included for readability, and
-should be a number from 1 to Nlines for the section, indicating which
-atom (or bond, etc) the entry applies to.  The lines are assumed to be
-listed in order from 1 to Nlines, but LAMMPS does not check for this.
+rules (if any) for whether it can appear in the data file.  For per-
+atom sections, entries should be numbered from 1 to Natoms (where
+Natoms is the number of atoms in the template), indicating which atom
+(or bond, etc) the entry applies to.  Per-atom sections need to
+include a setting for every atom, but the atoms can be listed in any
+order.
 
 ----------
 
@@ -348,7 +349,7 @@ the doc pages for individual styles for details.
 
 N1, N2, N3 are the number of 1-2, 1-3, 1-4 neighbors respectively of
 this atom within the topology of the molecule.  See the
-:doc:`special_bonds <special_bonds>` doc page for more discussion of
+:doc:`special_bonds <special_bonds>` page for more discussion of
 1-2, 1-3, 1-4 neighbors.  If this section appears, the Special Bonds
 section must also appear.
 
@@ -389,7 +390,7 @@ This section is only needed when molecules created using the template
 will be constrained by SHAKE via the "fix shake" command.  The other
 two Shake sections must also appear in the file, following this one.
 
-The meaning of the flag for each atom is as follows.  See the :doc:`fix shake <fix_shake>` doc page for a further description of SHAKE
+The meaning of the flag for each atom is as follows.  See the :doc:`fix shake <fix_shake>` page for a further description of SHAKE
 clusters.
 
 * 0 = not part of a SHAKE cluster
@@ -431,7 +432,7 @@ and b,c = IDs of other two atoms bonded to the central atom.
 If flag = 4, a,b,c,d are listed, where a = ID of central atom,
 and b,c,d = IDs of other three atoms bonded to the central atom.
 
-See the :doc:`fix shake <fix_shake>` doc page for a further description
+See the :doc:`fix shake <fix_shake>` page for a further description
 of SHAKE clusters.
 
 ----------
@@ -458,7 +459,7 @@ If flag = 0, no a,b,c values are listed on the line, just the
 If flag = 1, a,b,c are listed, where a = bondtype of the bond between
 the central atom and the first non-central atom (value b in the Shake
 Atoms section), b = bondtype of the bond between the central atom and
-the 2nd non-central atom (value c in the Shake Atoms section), and c =
+the second non-central atom (value c in the Shake Atoms section), and c =
 the angle type (1 to Nangletypes) of the angle between the 3 atoms.
 
 If flag = 2, only a is listed, where a = bondtype of the bond between
@@ -467,16 +468,16 @@ the 2 atoms in the cluster.
 If flag = 3, a,b are listed, where a = bondtype of the bond between
 the central atom and the first non-central atom (value b in the Shake
 Atoms section), and b = bondtype of the bond between the central atom
-and the 2nd non-central atom (value c in the Shake Atoms section).
+and the second non-central atom (value c in the Shake Atoms section).
 
 If flag = 4, a,b,c are listed, where a = bondtype of the bond between
 the central atom and the first non-central atom (value b in the Shake
 Atoms section), b = bondtype of the bond between the central atom and
-the 2nd non-central atom (value c in the Shake Atoms section), and c =
-bondtype of the bond between the central atom and the 3rd non-central
+the second non-central atom (value c in the Shake Atoms section), and c =
+bondtype of the bond between the central atom and the third non-central
 atom (value d in the Shake Atoms section).
 
-See the :doc:`fix shake <fix_shake>` doc page for a further description
+See the :doc:`fix shake <fix_shake>` page for a further description
 of SHAKE clusters.
 
 ----------
@@ -484,9 +485,7 @@ of SHAKE clusters.
 Restrictions
 """"""""""""
 
-This command must come after the simulation box is define by a
-:doc:`read_data <read_data>`, :doc:`read_restart <read_restart>`, or
-:doc:`create_box <create_box>` command.
+None
 
 Related commands
 """"""""""""""""

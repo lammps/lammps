@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,32 +17,31 @@
 ------------------------------------------------------------------------- */
 
 #include "min_kokkos.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
-#include "atom_kokkos.h"
-#include "atom_vec.h"
-#include "domain.h"
-#include "comm.h"
-#include "update.h"
-#include "modify.h"
-#include "fix_minimize_kokkos.h"
-#include "compute.h"
-#include "neighbor.h"
-#include "force.h"
-#include "pair.h"
-#include "bond.h"
+
 #include "angle.h"
+#include "atom_kokkos.h"
+#include "atom_masks.h"
+#include "bond.h"
+#include "comm.h"
+#include "compute.h"
 #include "dihedral.h"
+#include "domain.h"
+#include "error.h"
+#include "fix_minimize_kokkos.h"
+#include "force.h"
 #include "improper.h"
+#include "kokkos.h"
 #include "kspace.h"
+#include "modify.h"
+#include "neighbor.h"
 #include "output.h"
+#include "pair.h"
 #include "thermo.h"
 #include "timer.h"
-#include "memory.h"
-#include "error.h"
-#include "kokkos.h"
-#include "atom_masks.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -50,7 +50,7 @@ using namespace LAMMPS_NS;
 MinKokkos::MinKokkos(LAMMPS *lmp) : Min(lmp)
 {
   atomKK = (AtomKokkos *) atom;
-  fix_minimize_kk = NULL;
+  fix_minimize_kk = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -76,12 +76,11 @@ void MinKokkos::init()
 void MinKokkos::setup(int flag)
 {
   if (comm->me == 0 && screen) {
-    fprintf(screen,"Setting up %s style minimization ...\n",
-            update->minimize_style);
+    fmt::print(screen,"Setting up {} style minimization ...\n",
+               update->minimize_style);
     if (flag) {
-      fprintf(screen,"  Unit style    : %s\n", update->unit_style);
-      fprintf(screen,"  Current step  : " BIGINT_FORMAT "\n",
-              update->ntimestep);
+      fmt::print(screen,"  Unit style    : {}\n", update->unit_style);
+      fmt::print(screen,"  Current step  : {}\n", update->ntimestep);
       timer->print_timeout(screen);
     }
   }
@@ -116,7 +115,7 @@ void MinKokkos::setup(int flag)
 
   bigint ndofme = 3 * static_cast<bigint>(atom->nlocal);
   for (int m = 0; m < nextra_atom; m++)
-    ndofme += extra_peratom[m]*atom->nlocal;
+    ndofme += extra_peratom[m]*static_cast<bigint>(atom->nlocal);
   MPI_Allreduce(&ndofme,&ndoftotal,1,MPI_LMP_BIGINT,MPI_SUM,world);
   ndoftotal += nextra_global;
 
@@ -175,7 +174,6 @@ void MinKokkos::setup(int flag)
     atomKK->sync(force->pair->execution_space,force->pair->datamask_read);
     force->pair->compute(eflag,vflag);
     atomKK->modified(force->pair->execution_space,force->pair->datamask_modify);
-    timer->stamp(Timer::PAIR);
   }
   else if (force->pair) force->pair->compute_dummy(eflag,vflag);
 
@@ -200,16 +198,14 @@ void MinKokkos::setup(int flag)
       force->improper->compute(eflag,vflag);
       atomKK->modified(force->improper->execution_space,force->improper->datamask_modify);
     }
-    timer->stamp(Timer::BOND);
   }
 
-  if(force->kspace) {
+  if (force->kspace) {
     force->kspace->setup();
     if (kspace_compute_flag) {
       atomKK->sync(force->kspace->execution_space,force->kspace->datamask_read);
       force->kspace->compute(eflag,vflag);
       atomKK->modified(force->kspace->execution_space,force->kspace->datamask_modify);
-      timer->stamp(Timer::KSPACE);
     } else force->kspace->compute_dummy(eflag,vflag);
   }
 
@@ -285,7 +281,6 @@ void MinKokkos::setup_minimal(int flag)
     atomKK->sync(force->pair->execution_space,force->pair->datamask_read);
     force->pair->compute(eflag,vflag);
     atomKK->modified(force->pair->execution_space,force->pair->datamask_modify);
-    timer->stamp(Timer::PAIR);
   }
   else if (force->pair) force->pair->compute_dummy(eflag,vflag);
 
@@ -310,16 +305,14 @@ void MinKokkos::setup_minimal(int flag)
       force->improper->compute(eflag,vflag);
       atomKK->modified(force->improper->execution_space,force->improper->datamask_modify);
     }
-    timer->stamp(Timer::BOND);
   }
 
-  if(force->kspace) {
+  if (force->kspace) {
     force->kspace->setup();
     if (kspace_compute_flag) {
       atomKK->sync(force->kspace->execution_space,force->kspace->datamask_read);
       force->kspace->compute(eflag,vflag);
       atomKK->modified(force->kspace->execution_space,force->kspace->datamask_modify);
-      timer->stamp(Timer::KSPACE);
     } else force->kspace->compute_dummy(eflag,vflag);
   }
 
@@ -354,12 +347,8 @@ void MinKokkos::setup_minimal(int flag)
 
 void MinKokkos::run(int n)
 {
-  if (nextra_global)
-    error->all(FLERR,"Cannot yet use extra global DOFs (e.g. fix box/relax) "
-     "with Kokkos minimize");
-
-  if (nextra_global || nextra_atom)
-    error->all(FLERR,"Cannot yet use extra atom DOFs (e.g. USER-AWPMD and USER-EFF packages) "
+  if (nextra_atom)
+    error->all(FLERR,"Cannot yet use extra atom DOFs (e.g. AWPMD and EFF packages) "
      "with Kokkos minimize");
 
   // minimizer iterations
@@ -474,7 +463,7 @@ double MinKokkos::energy_force(int resetflag)
     timer->stamp(Timer::PAIR);
   }
 
-  if (atom->molecular) {
+  if (atom->molecular != Atom::ATOMIC) {
     if (force->bond) {
       atomKK->sync(force->bond->execution_space,force->bond->datamask_read);
       force->bond->compute(eflag,vflag);
@@ -514,6 +503,12 @@ double MinKokkos::energy_force(int resetflag)
     comm->reverse_comm();
     timer->stamp(Timer::COMM);
   }
+
+  // update per-atom minimization variables stored by pair styles
+
+  if (nextra_atom)
+    for (int m = 0; m < nextra_atom; m++)
+      requestor[m]->min_xf_get(m);
 
   // fixes that affect minimization
 
@@ -603,6 +598,10 @@ double MinKokkos::fnorm_sqr()
   double norm2_sqr = 0.0;
   MPI_Allreduce(&local_norm2_sqr,&norm2_sqr,1,MPI_DOUBLE,MPI_SUM,world);
 
+  if (nextra_global)
+    for (int i = 0; i < nextra_global; i++)
+      norm2_sqr += fextra[i]*fextra[i];
+
   return norm2_sqr;
 }
 
@@ -626,6 +625,10 @@ double MinKokkos::fnorm_inf()
 
   double norm_inf = 0.0;
   MPI_Allreduce(&local_norm_inf,&norm_inf,1,MPI_DOUBLE,MPI_MAX,world);
+
+  if (nextra_global)
+    for (int i = 0; i < nextra_global; i++)
+      norm_inf = MAX(fextra[i]*fextra[i],norm_inf);
 
   return norm_inf;
 }
@@ -652,5 +655,11 @@ double MinKokkos::fnorm_max()
   double norm_max = 0.0;
   MPI_Allreduce(&local_norm_max,&norm_max,1,MPI_DOUBLE,MPI_MAX,world);
 
+  if (nextra_global) {
+    for (int i = 0; i < nextra_global; i+=3) {
+      double fdotf = fextra[i]*fextra[i];
+      norm_max = MAX(fdotf,norm_max);
+    }
+  }
   return norm_max;
 }

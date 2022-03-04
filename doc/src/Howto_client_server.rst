@@ -119,7 +119,7 @@ server code.  Another code could be substituted for either.
 
 The examples below show launching both codes from the same window (or
 batch script), using the "&" character to launch the first code in the
-background.  For all modes except *mpi/one*\ , you could also launch the
+background.  For all modes except *mpi/one*, you could also launch the
 codes in separate windows on your desktop machine.  It does not
 matter whether you launch the client or server first.
 
@@ -132,7 +132,7 @@ mpirun, even if one or both of them runs on a single processor.  This
 is so that MPI can figure out how to connect both MPI processes
 together to exchange MPI messages between them.
 
-For message exchange in *file*\ , *zmq*\ , or *mpi/two* modes:
+For message exchange in *file*, *zmq*, or *mpi/two* modes:
 
 .. code-block:: bash
 

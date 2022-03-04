@@ -41,7 +41,7 @@ which can add or subtract heat from groups of atoms.
 
 The compute takes three arguments which are IDs of other
 :doc:`computes <compute>`.  One calculates per-atom kinetic energy
-(\ *ke-ID*\ ), one calculates per-atom potential energy (\ *pe-ID)*\ , and the
+(\ *ke-ID*\ ), one calculates per-atom potential energy (\ *pe-ID)*, and the
 third calculates per-atom stress (\ *stress-ID*\ ).
 
 .. note::
@@ -89,12 +89,19 @@ included in the calculation.
 .. warning::
 
    The compute *heat/flux* has been reported to produce unphysical
-   values for angle, dihedral and improper contributions
+   values for angle, dihedral, improper and constraint force contributions
    when used with :doc:`compute stress/atom <compute_stress_atom>`,
-   as discussed in :ref:`(Surblys) <Surblys2>` and :ref:`(Boone) <Boone>`.
-   You are strongly advised to
+   as discussed in :ref:`(Surblys2019) <Surblys3>`, :ref:`(Boone) <Boone>`
+   and :ref:`(Surblys2021) <Surblys4>`. You are strongly advised to
    use :doc:`compute centroid/stress/atom <compute_stress_atom>`,
    which has been implemented specifically for such cases.
+
+.. warning::
+
+   Due to an implementation detail, the :math:`y` and :math:`z`
+   components of heat flux from :doc:`fix rigid <fix_rigid>`
+   contribution when computed via :doc:`compute stress/atom <compute_stress_atom>`
+   are highly unphysical and should not be used.
 
 The Green-Kubo formulas relate the ensemble average of the
 auto-correlation of the heat flux :math:`\mathbf{J}`
@@ -119,7 +126,8 @@ result should be: average conductivity ~0.29 in W/mK.
 
 ----------
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a global vector of length 6.
 The first 3 components are the :math:`x`, :math:`y`, :math:`z`
@@ -130,7 +138,7 @@ of just the convective portion of the flux, i.e. the
 first term in the equation for :math:`\mathbf{J}`.
 Each component can be
 accessed by indices 1-6. These values can be used by any command that
-uses global vector values from a compute as input.  See the :doc:`Howto output <Howto_output>` doc page for an overview of LAMMPS output
+uses global vector values from a compute as input.  See the :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options.
 
 The vector values calculated by this compute are "extensive", meaning
@@ -157,7 +165,10 @@ Related commands
 :doc:`fix ave/correlate <fix_ave_correlate>`,
 :doc:`variable <variable>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 
@@ -228,10 +239,14 @@ Related commands
 
 ----------
 
-.. _Surblys2:
+.. _Surblys3:
 
-**(Surblys)** Surblys, Matsubara, Kikugawa, Ohara, Phys Rev E, 99, 051301(R) (2019).
+**(Surblys2019)** Surblys, Matsubara, Kikugawa, Ohara, Phys Rev E, 99, 051301(R) (2019).
 
 .. _Boone:
 
 **(Boone)** Boone, Babaei, Wilmer, J Chem Theory Comput, 15, 5579--5587 (2019).
+
+.. _Surblys4:
+
+**(Surblys2021)** Surblys, Matsubara, Kikugawa, Ohara, J Appl Phys 130, 215104 (2021).

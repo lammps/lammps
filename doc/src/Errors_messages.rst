@@ -14,10 +14,6 @@ For example, a message like this:
 means that line #78 in the file src/velocity.cpp generated the error.
 Looking in the source code may help you figure out what went wrong.
 
-Note that error messages from :doc:`user-contributed packages <Packages_user>` are not listed here.  If such an error
-occurs and is not self-explanatory, you will need to look in the source
-code or contact the author of the package.
-
 Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 ----------
@@ -381,7 +377,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    are defined.
 
 *Bond atom missing in box size check*
-   The 2nd atoms needed to compute a particular bond is missing on this
+   The second atom needed to compute a particular bond is missing on this
    processor.  Typically this is because the pairwise cutoff is set too
    short or the bond has blown apart and an atom is too far away.
 
@@ -391,7 +387,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    the atoms are too far apart to make a valid bond.
 
 *Bond atom missing in image check*
-   The 2nd atom in a particular bond is missing on this processor.
+   The second atom in a particular bond is missing on this processor.
    Typically this is because the pairwise cutoff is set too short or the
    bond has blown apart and an atom is too far away.
 
@@ -401,12 +397,12 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    are too far apart to make a valid bond.
 
 *Bond atoms %d %d missing on proc %d at step %ld*
-   The 2nd atom needed to compute a particular bond is missing on this
+   The second atom needed to compute a particular bond is missing on this
    processor.  Typically this is because the pairwise cutoff is set too
    short or the bond has blown apart and an atom is too far away.
 
 *Bond atoms missing on proc %d at step %ld*
-   The 2nd atom needed to compute a particular bond is missing on this
+   The second atom needed to compute a particular bond is missing on this
    processor.  Typically this is because the pairwise cutoff is set too
    short or the bond has blown apart and an atom is too far away.
 
@@ -502,10 +498,10 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Bond/react: Unknown section in map file*
    Please ensure reaction map files are properly formatted.
 
-*Bond/react: Atom affected by reaction too close to template edge*
+*Bond/react: Atom/Bond type affected by reaction too close to template edge*
    This means an atom which changes type or connectivity during the
    reaction is too close to an 'edge' atom defined in the map
-   file. This could cause incorrect assignment of bonds, angle, etc.
+   file.  This could cause incorrect assignment of bonds, angle, etc.
    Generally, this means you must include more atoms in your templates,
    such that there are at least two atoms between each atom involved in
    the reaction and an edge atom.
@@ -574,10 +570,10 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    See the region prism command for details.
 
 *Can only use -plog with multiple partitions*
-   Self-explanatory.  See doc page discussion of command-line switches.
+   Self-explanatory.  See page discussion of command-line switches.
 
 *Can only use -pscreen with multiple partitions*
-   Self-explanatory.  See doc page discussion of command-line switches.
+   Self-explanatory.  See page discussion of command-line switches.
 
 *Can only use Kokkos supported regions with Kokkos package*
    Self-explanatory.
@@ -718,7 +714,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 
 *Cannot create/grow a vector/array of pointers for %s*
    LAMMPS code is making an illegal call to the templated memory
-   allocaters, to create a vector or array of pointers.
+   allocators, to create a vector or array of pointers.
 
 *Cannot create_atoms after reading restart file with per-atom info*
    The per-atom info was stored to be used when by a fix that you may
@@ -1158,7 +1154,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Self-explanatory.
 
 *Cannot use -reorder after -partition*
-   Self-explanatory.  See doc page discussion of command-line switches.
+   Self-explanatory.  See page discussion of command-line switches.
 
 *Cannot use Ewald with 2d simulation*
    The kspace style ewald cannot be used in 2d simulations.  You can use
@@ -1374,7 +1370,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    template does not qualify.
 
 *Cannot use fix box/relax on a 2nd non-periodic dimension*
-   When specifying an off-diagonal pressure component, the 2nd of the two
+   When specifying an off-diagonal pressure component, the second of the two
    dimensions must be periodic.  E.g. if the xy component is specified,
    then the y dimension must be periodic.
 
@@ -1388,7 +1384,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    also keyword tri or xy, this is wrong.
 
 *Cannot use fix box/relax with tilt factor scaling on a 2nd non-periodic dimension*
-   When specifying scaling on a tilt factor component, the 2nd of the two
+   When specifying scaling on a tilt factor component, the second of the two
    dimensions must be periodic.  E.g. if the xy component is specified,
    then the y dimension must be periodic.
 
@@ -1429,7 +1425,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    This would be changing the same box dimension twice.
 
 *Cannot use fix nvt/npt/nph on a 2nd non-periodic dimension*
-   When specifying an off-diagonal pressure component, the 2nd of the two
+   When specifying an off-diagonal pressure component, the second of the two
    dimensions must be periodic.  E.g. if the xy component is specified,
    then the y dimension must be periodic.
 
@@ -1447,13 +1443,13 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Self-explanatory.
 
 *Cannot use fix nvt/npt/nph with xy scaling when y is non-periodic dimension*
-   The 2nd dimension in the barostatted tilt factor must be periodic.
+   The second dimension in the barostatted tilt factor must be periodic.
 
 *Cannot use fix nvt/npt/nph with xz scaling when z is non-periodic dimension*
-   The 2nd dimension in the barostatted tilt factor must be periodic.
+   The second dimension in the barostatted tilt factor must be periodic.
 
 *Cannot use fix nvt/npt/nph with yz scaling when z is non-periodic dimension*
-   The 2nd dimension in the barostatted tilt factor must be periodic.
+   The second dimension in the barostatted tilt factor must be periodic.
 
 *Cannot use fix pour rigid and not molecule*
    Self-explanatory.
@@ -1903,6 +1899,12 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Compute %s does not allow use of dynamic group*
    Dynamic groups have not yet been enabled for this compute.
 
+*Compute for fix pafi does not calculate a local array*
+   Self-explanatory.
+
+*Compute for fix pafi must have 9 fields per atom*
+   Self-explanatory.
+
 *Compute ID for compute chunk /atom does not exist*
    Self-explanatory.
 
@@ -1937,6 +1939,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Self-explanatory.
 
 *Compute ID for fix numdiff does not exist*
+   Self-explanatory.
+
+*Compute ID for fix numdiff/virial does not exist*
    Self-explanatory.
 
 *Compute ID for fix store/state does not exist*
@@ -2345,14 +2350,14 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Compute used in variable between runs is not current*
    Computes cannot be invoked by a variable in between runs.  Thus they
    must have been evaluated on the last timestep of the previous run in
-   order for their value(s) to be accessed.  See the doc page for the
+   order for their value(s) to be accessed.  See the page for the
    variable command for more info.
 
 *Compute used in variable thermo keyword between runs is not current*
    Some thermo keywords rely on a compute to calculate their value(s).
    Computes cannot be invoked by a variable in between runs.  Thus they
    must have been evaluated on the last timestep of the previous run in
-   order for their value(s) to be accessed.  See the doc page for the
+   order for their value(s) to be accessed.  See the page for the
    variable command for more info.
 
 *Compute vcm/chunk does not use chunk/atom compute*
@@ -2999,9 +3004,6 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Dump image line requires atom style line*
    Self-explanatory.
 
-*Dump image persp option is not yet supported*
-   Self-explanatory.
-
 *Dump image requires one snapshot per file*
    Use a "\*" in the filename.
 
@@ -3127,7 +3129,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Energy was not tallied on needed timestep*
    You are using a thermo keyword that requires potentials to
    have tallied energy, but they did not on this timestep.  See the
-   variable doc page for ideas on how to make this work.
+   variable page for ideas on how to make this work.
 
 *Epsilon or sigma reference not set by pair style in PPPMDisp*
    Self-explanatory.
@@ -3797,6 +3799,10 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Self-explanatory. Efficient loop over all atoms for numerical
    difference requires consecutive atom IDs.
 
+*Fix numdiff/virial must use group all*
+   Virial contributions computed by this fix are
+   computed on all atoms.
+
 *Fix nve/asphere requires extended particles*
    This fix can only be used for particles with a shape setting.
 
@@ -3868,7 +3874,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Fix orient/fcc found self twice*
    The neighbor lists used by fix orient/fcc are messed up.  If this
    error occurs, it is likely a bug, so send an email to the
-   `developers <https://lammps.sandia.gov/authors.html>`_.
+   `developers <https://www.lammps.org/authors.html>`_.
 
 *Fix peri neigh does not exist*
    Somehow a fix that the pair style defines has been deleted.
@@ -4536,10 +4542,10 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    particles.
 
 *Incorrect # of floating-point values in Bodies section of data file*
-   See doc page for body style.
+   See page for body style.
 
 *Incorrect # of integer values in Bodies section of data file*
-   See doc page for body style.
+   See page for body style.
 
 *Incorrect %s format in data file*
    A section of the data file being read by fix property/atom does
@@ -4574,7 +4580,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    The number of fields per line is not what expected.
 
 *Incorrect bonus data format in data file*
-   See the read_data doc page for a description of how various kinds of
+   See the read_data page for a description of how various kinds of
    bonus data must be formatted for certain atom styles.
 
 *Incorrect boundaries with slab Ewald*
@@ -4642,7 +4648,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Incorrect number of words per line in the potential file.
 
 *Incorrect integer value in Bodies section of data file*
-   See doc page for body style.
+   See page for body style.
 
 *Incorrect multiplicity arg for dihedral coefficients*
    Self-explanatory.  Check the input script or data file.
@@ -5101,9 +5107,6 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Invalid dump image filename*
    The file produced by dump image cannot be binary and must
    be for a single processor.
-
-*Invalid dump image persp value*
-   Persp value must be >= 0.0.
 
 *Invalid dump image theta value*
    Theta must be between 0.0 and 180.0 inclusive.
@@ -5702,6 +5705,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
 *Molecule file has dihedrals but no ndihedrals setting*
    Self-explanatory.
 
+*Molecule file has fragments but no nfragments setting*
+   Self-explanatory.
+
 *Molecule file has impropers but no nimpropers setting*
    Self-explanatory.
 
@@ -5709,6 +5715,9 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Self-explanatory.
 
 *Molecule file has no Body Integers section*
+   Self-explanatory.
+
+*Molecule file has no Fragments section*
    Self-explanatory.
 
 *Molecule file has special flags but no bonds*
@@ -5893,7 +5902,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    other.
 
 *Must set number of threads via package omp command*
-   Because you are using the USER-OMP package, set the number of threads
+   Because you are using the OPENMP package, set the number of threads
    via its settings, not by the pair_style snap nthreads setting.
 
 *Must shrink-wrap piston boundary*
@@ -5994,7 +6003,7 @@ Doc page with :doc:`WARNING messages <Errors_warnings>`
    Self-explanatory.
 
 *Needed bonus data not in data file*
-   Some atom styles require bonus data.  See the read_data doc page for
+   Some atom styles require bonus data.  See the read_data page for
    details.
 
 *Needed molecular topology not in data file*
@@ -6196,7 +6205,7 @@ keyword to allow for additional bonds to be formed
 
 *One or more atom IDs is too big*
    The limit on atom IDs is set by the SMALLBIG, BIGBIG, SMALLSMALL
-   setting in your LAMMPS build.  See the :doc:`Build settings <Build_settings>` doc page for more info.
+   setting in your LAMMPS build.  See the :doc:`Build settings <Build_settings>` page for more info.
 
 *One or more atom IDs is zero*
    Either all atoms IDs must be zero or none of them.
@@ -6338,16 +6347,16 @@ keyword to allow for additional bonds to be formed
    The GPU package must be installed via "make yes-gpu" before LAMMPS is
    built.
 
-*Package intel command without USER-INTEL package installed*
-   The USER-INTEL package must be installed via "make yes-user-intel"
+*Package intel command without INTEL package installed*
+   The INTEL package must be installed via "make yes-intel"
    before LAMMPS is built.
 
 *Package kokkos command without KOKKOS package enabled*
    The KOKKOS package must be installed via "make yes-kokkos" before
    LAMMPS is built, and the "-k on" must be used to enable the package.
 
-*Package omp command without USER-OMP package installed*
-   The USER-OMP package must be installed via "make yes-user-omp" before
+*Package omp command without OPENMP package installed*
+   The OPENMP package must be installed via "make yes-openmp" before
    LAMMPS is built.
 
 *Pair body requires atom style body*
@@ -6591,7 +6600,7 @@ keyword to allow for additional bonds to be formed
 
 *Pair style bop requires comm ghost cutoff at least 3x larger than %g*
    Use the communicate ghost command to set this.  See the pair bop
-   doc page for more details.
+   page for more details.
 
 *Pair style born/coul/long requires atom attribute q*
    An atom style that defines this attribute must be used.
@@ -6911,7 +6920,7 @@ keyword to allow for additional bonds to be formed
 *Per-atom energy was not tallied on needed timestep*
    You are using a thermo keyword that requires potentials to
    have tallied energy, but they did not on this timestep.  See the
-   variable doc page for ideas on how to make this work.
+   variable page for ideas on how to make this work.
 
 *Per-atom fix in equal-style variable formula*
    Equal-style variables cannot use per-atom quantities.
@@ -6919,7 +6928,7 @@ keyword to allow for additional bonds to be formed
 *Per-atom virial was not tallied on needed timestep*
    You are using a thermo keyword that requires potentials to have
    tallied the virial, but they did not on this timestep.  See the
-   variable doc page for ideas on how to make this work.
+   variable page for ideas on how to make this work.
 
 *Per-processor system is too big*
    The number of owned atoms plus ghost atoms on a single
@@ -7192,7 +7201,7 @@ keyword to allow for additional bonds to be formed
    does not exist.
 
 *Replacing a fix, but new style != old style*
-   A fix ID can be used a 2nd time, but only if the style matches the
+   A fix ID can be used a second time, but only if the style matches the
    previous fix.  In this case it is assumed you with to reset a fix's
    parameters.  This error may mean you are mistakenly re-using a fix ID
    when you do not intend to.
@@ -7770,9 +7779,6 @@ keyword to allow for additional bonds to be formed
    The system size must fit in a 32-bit integer to use this dump
    style.
 
-*Too many atoms to dump sort*
-   Cannot sort when running with more than 2\^31 atoms.
-
 *Too many elements extracted from MEAM library.*
    Increase 'maxelt' in meam.h and recompile.
 
@@ -7877,19 +7883,19 @@ keyword to allow for additional bonds to be formed
 *Unexpected end of -reorder file*
    Self-explanatory.
 
-*Unexpected empty line in AngleCoeffs section*
+*Unexpected empty line in Angle Coeffs section*
    Read a blank line where there should be coefficient data.
 
-*Unexpected empty line in BondCoeffs section*
+*Unexpected empty line in Bond Coeffs section*
    Read a blank line where there should be coefficient data.
 
-*Unexpected empty line in DihedralCoeffs section*
+*Unexpected empty line in Dihedral Coeffs section*
    Read a blank line where there should be coefficient data.
 
-*Unexpected empty line in ImproperCoeffs section*
+*Unexpected empty line in Improper Coeffs section*
    Read a blank line where there should be coefficient data.
 
-*Unexpected empty line in PairCoeffs section*
+*Unexpected empty line in Pair Coeffs section*
    Read a blank line where there should be coefficient data.
 
 *Unexpected end of custom file*
@@ -8058,13 +8064,13 @@ keyword to allow for additional bonds to be formed
 *Using suffix gpu without GPU package installed*
    Self-explanatory.
 
-*Using suffix intel without USER-INTEL package installed*
+*Using suffix intel without INTEL package installed*
    Self-explanatory.
 
 *Using suffix kk without KOKKOS package enabled*
    Self-explanatory.
 
-*Using suffix omp without USER-OMP package installed*
+*Using suffix omp without OPENMP package installed*
    Self-explanatory.
 
 *Using update dipole flag requires atom attribute mu*
@@ -8102,9 +8108,6 @@ keyword to allow for additional bonds to be formed
    Only equal-style variables can be used.
 
 *Variable for dump image center is invalid style*
-   Must be an equal-style variable.
-
-*Variable for dump image persp is invalid style*
    Must be an equal-style variable.
 
 *Variable for dump image phi is invalid style*
@@ -8245,9 +8248,6 @@ keyword to allow for additional bonds to be formed
    Self-explanatory.
 
 *Variable name for dump image center does not exist*
-   Self-explanatory.
-
-*Variable name for dump image persp does not exist*
    Self-explanatory.
 
 *Variable name for dump image phi does not exist*
@@ -8412,7 +8412,7 @@ keyword to allow for additional bonds to be formed
 *Virial was not tallied on needed timestep*
    You are using a thermo keyword that requires potentials to
    have tallied the virial, but they did not on this timestep.  See the
-   variable doc page for ideas on how to make this work.
+   variable page for ideas on how to make this work.
 
 *Voro++ error: narea and neigh have a different size*
    This error is returned by the Voro++ library.

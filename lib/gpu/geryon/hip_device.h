@@ -8,7 +8,6 @@
 #ifndef HIP_DEVICE
 #define HIP_DEVICE
 
-
 #include <hip/hip_runtime.h>
 #include <unordered_map>
 #include <string>
@@ -23,6 +22,8 @@ namespace ucl_hip {
 // - COMMAND QUEUE STUFF
 // --------------------------------------------------------------------------
 typedef hipStream_t command_queue;
+
+inline void ucl_flush(command_queue &) {}
 
 inline void ucl_sync(hipStream_t &stream) {
   CU_SAFE_CALL(hipStreamSynchronize(stream));
@@ -39,8 +40,8 @@ struct NVDProperties {
   int maxThreadsPerBlock;
   int maxThreadsDim[3];
   int maxGridSize[3];
-  int sharedMemPerBlock;
-  int totalConstantMemory;
+  CUDA_INT_TYPE sharedMemPerBlock;
+  CUDA_INT_TYPE totalConstantMemory;
   int SIMDWidth;
   int memPitch;
   int regsPerBlock;
@@ -140,17 +141,28 @@ class UCL_Device {
   /// Get a string telling the type of the current device
   inline std::string device_type_name() { return device_type_name(_device); }
   /// Get a string telling the type of the device
-  inline std::string device_type_name(const int i) { return "GPU"; }
+  inline std::string device_type_name(const int) { return "GPU"; }
 
   /// Get current device type (UCL_CPU, UCL_GPU, UCL_ACCELERATOR, UCL_DEFAULT)
-  inline int device_type() { return device_type(_device); }
+  inline enum UCL_DEVICE_TYPE device_type() { return device_type(_device); }
   /// Get device type (UCL_CPU, UCL_GPU, UCL_ACCELERATOR, UCL_DEFAULT)
-  inline int device_type(const int i) { return UCL_GPU; }
+  inline enum UCL_DEVICE_TYPE device_type(const int) { return UCL_GPU; }
 
   /// Returns true if host memory is efficiently addressable from device
   inline bool shared_memory() { return shared_memory(_device); }
   /// Returns true if host memory is efficiently addressable from device
   inline bool shared_memory(const int i) { return device_type(i)==UCL_CPU; }
+
+  /// Returns preferred vector width
+  inline int preferred_fp32_width() { return preferred_fp32_width(_device); }
+  /// Returns preferred vector width
+  inline int preferred_fp32_width(const int i)
+    {return _properties[i].SIMDWidth;}
+  /// Returns preferred vector width
+  inline int preferred_fp64_width() { return preferred_fp64_width(_device); }
+  /// Returns preferred vector width
+  inline int preferred_fp64_width(const int i)
+    {return _properties[i].SIMDWidth;}
 
   /// Returns true if double precision is support for the current device
   inline bool double_precision() { return double_precision(_device); }
@@ -192,7 +204,7 @@ class UCL_Device {
   // Get the bytes of free memory in the current device
   inline size_t free_bytes() { return free_bytes(_device); }
   // Get the bytes of free memory
-  inline size_t free_bytes(const int i) {
+  inline size_t free_bytes(const int) {
     CUDA_INT_TYPE dfree, dtotal;
     CU_SAFE_CALL_NS(hipMemGetInfo(&dfree, &dtotal));
     return static_cast<size_t>(dfree);
@@ -215,6 +227,18 @@ class UCL_Device {
   /// Get the maximum number of threads per block
   inline size_t group_size(const int i)
     { return _properties[i].maxThreadsPerBlock; }
+  /// Get the maximum number of threads per block in dimension 'dim'
+  inline size_t group_size_dim(const int dim)
+    { return group_size_dim(_device, dim); }
+  /// Get the maximum number of threads per block in dimension 'dim'
+  inline size_t group_size_dim(const int i, const int dim)
+    { return _properties[i].maxThreadsDim[dim];}
+
+  /// Get the shared local memory size in bytes
+  inline size_t slm_size() { return slm_size(_device); }
+  /// Get the shared local memory size in bytes
+  inline size_t slm_size(const int i)
+    { return _properties[i].sharedMemPerBlock; }
 
   /// Return the maximum memory pitch in bytes for current device
   inline size_t max_pitch() { return max_pitch(_device); }
@@ -233,35 +257,43 @@ class UCL_Device {
   inline bool fission_equal()
     { return fission_equal(_device); }
   /// True if splitting device into equal subdevices supported
-  inline bool fission_equal(const int i)
+  inline bool fission_equal(const int)
     { return false; }
   /// True if splitting device into subdevices by specified counts supported
   inline bool fission_by_counts()
     { return fission_by_counts(_device); }
   /// True if splitting device into subdevices by specified counts supported
-  inline bool fission_by_counts(const int i)
+  inline bool fission_by_counts(const int)
     { return false; }
   /// True if splitting device into subdevices by affinity domains supported
   inline bool fission_by_affinity()
     { return fission_by_affinity(_device); }
   /// True if splitting device into subdevices by affinity domains supported
-  inline bool fission_by_affinity(const int i)
+  inline bool fission_by_affinity(const int)
     { return false; }
 
   /// Maximum number of subdevices allowed from device fission
   inline int max_sub_devices()
     { return max_sub_devices(_device); }
   /// Maximum number of subdevices allowed from device fission
-  inline int max_sub_devices(const int i)
+  inline int max_sub_devices(const int)
     { return 0; }
+
+  /// True if the device supports shuffle intrinsics
+  inline bool has_shuffle_support()
+    { return has_shuffle_support(_device); }
+  /// True if the device supports shuffle intrinsics
+  inline bool has_shuffle_support(const int i)
+    { return arch(i)>=3.0; }
 
   /// List all devices along with all properties
   inline void print_all(std::ostream &out);
 
-  /// Select the platform that has accelerators (for compatibility with OpenCL)
-  inline int set_platform_accelerator(int pid=-1) { return UCL_SUCCESS; }
+  /// For compatability with OCL API
+  inline int auto_set_platform(const enum UCL_DEVICE_TYPE, const std::string)
+    { return set_platform(0); }
 
-  inline int load_module(const void* program, hipModule_t& module, std::string *log=NULL){
+  inline int load_module(const void* program, hipModule_t& module, std::string *log=nullptr){
     auto it = _loaded_modules.emplace(program, hipModule_t());
     if(!it.second){
       module = it.first->second;
@@ -281,7 +313,7 @@ class UCL_Device {
 
     hipError_t err=hipModuleLoadDataEx(&module,program,num_opts, options,(void **)values);
 
-    if (log!=NULL)
+    if (log!=nullptr)
       *log=std::string(clog);
 
     if (err != hipSuccess) {
@@ -328,32 +360,35 @@ UCL_Device::UCL_Device() {
     CU_SAFE_CALL_NS(hipDeviceGetName(namecstr,1024,dev));
     prop.name=namecstr;
 
-    CU_SAFE_CALL_NS(hipDeviceTotalMem(&prop.totalGlobalMem,dev));
-    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.multiProcessorCount, hipDeviceAttributeMultiprocessorCount, dev));
+    hipDeviceProp_t hip_prop;
 
-    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.maxThreadsPerBlock, hipDeviceAttributeMaxThreadsPerBlock, dev));
-    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.maxThreadsDim[0], hipDeviceAttributeMaxBlockDimX, dev));
-    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.maxThreadsDim[1], hipDeviceAttributeMaxBlockDimY, dev));
-    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.maxThreadsDim[2], hipDeviceAttributeMaxBlockDimZ, dev));
-    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.maxGridSize[0], hipDeviceAttributeMaxGridDimX, dev));
-    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.maxGridSize[1], hipDeviceAttributeMaxGridDimY, dev));
-    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.maxGridSize[2], hipDeviceAttributeMaxGridDimZ, dev));
-    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.sharedMemPerBlock, hipDeviceAttributeMaxSharedMemoryPerBlock, dev));
-    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.totalConstantMemory, hipDeviceAttributeTotalConstantMemory, dev));
-    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.SIMDWidth, hipDeviceAttributeWarpSize, dev));
+    CU_SAFE_CALL_NS(hipGetDeviceProperties(&hip_prop,dev));
+
+    prop.totalGlobalMem = hip_prop.totalGlobalMem;
+    prop.multiProcessorCount = hip_prop.multiProcessorCount;
+    prop.maxThreadsPerBlock = hip_prop.maxThreadsPerBlock;
+    prop.maxThreadsDim[0] = hip_prop.maxThreadsDim[0];
+    prop.maxThreadsDim[1] = hip_prop.maxThreadsDim[1];
+    prop.maxThreadsDim[2] = hip_prop.maxThreadsDim[2];
+    prop.maxGridSize[0] = hip_prop.maxGridSize[0];
+    prop.maxGridSize[1] = hip_prop.maxGridSize[1];
+    prop.maxGridSize[2] = hip_prop.maxGridSize[2];
+    prop.sharedMemPerBlock = hip_prop.sharedMemPerBlock;
+    prop.totalConstantMemory = hip_prop.totalConstMem;
+    prop.SIMDWidth = hip_prop.warpSize;
+    prop.regsPerBlock = hip_prop.regsPerBlock;
+    prop.clockRate = hip_prop.clockRate;
+    prop.computeMode = hip_prop.computeMode;
     //CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.memPitch, CU_DEVICE_ATTRIBUTE_MAX_PITCH, dev));
-    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.regsPerBlock, hipDeviceAttributeMaxRegistersPerBlock, dev));
-    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.clockRate, hipDeviceAttributeClockRate, dev));
     //CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.textureAlign, CU_DEVICE_ATTRIBUTE_TEXTURE_ALIGNMENT, dev));
 
     //#if CUDA_VERSION >= 2020
     //CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.kernelExecTimeoutEnabled, CU_DEVICE_ATTRIBUTE_KERNEL_EXEC_TIMEOUT,dev));
     CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.integrated, hipDeviceAttributeIntegrated, dev));
     //CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.canMapHostMemory, CU_DEVICE_ATTRIBUTE_CAN_MAP_HOST_MEMORY, dev));
-    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.computeMode, hipDeviceAttributeComputeMode,dev));
     //#endif
     //#if CUDA_VERSION >= 3010
-    CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.concurrentKernels, hipDeviceAttributeConcurrentKernels, dev));
+    prop.concurrentKernels = hip_prop.concurrentKernels;
     //CU_SAFE_CALL_NS(hipDeviceGetAttribute(&prop.ECCEnabled, CU_DEVICE_ATTRIBUTE_ECC_ENABLED, dev));
     //#endif
 
@@ -368,7 +403,7 @@ UCL_Device::~UCL_Device() {
   clear();
 }
 
-int UCL_Device::set_platform(const int pid) {
+int UCL_Device::set_platform(const int) {
   clear();
   #ifdef UCL_DEBUG
   assert(pid<num_platforms());

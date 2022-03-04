@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -16,19 +17,20 @@
 ------------------------------------------------------------------------- */
 
 #include "comm_brick.h"
-#include <mpi.h>
-#include <cmath>
-#include <cstring>
+
 #include "atom.h"
 #include "atom_vec.h"
-#include "pair.h"
-#include "domain.h"
-#include "neighbor.h"
-#include "fix.h"
 #include "compute.h"
+#include "domain.h"
 #include "dump.h"
 #include "error.h"
+#include "fix.h"
 #include "memory.h"
+#include "neighbor.h"
+#include "pair.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -40,17 +42,16 @@ using namespace LAMMPS_NS;
 
 CommBrick::CommBrick(LAMMPS *lmp) :
   Comm(lmp),
-  sendnum(NULL), recvnum(NULL), sendproc(NULL), recvproc(NULL),
-  size_forward_recv(NULL),
-  size_reverse_send(NULL), size_reverse_recv(NULL),
-  slablo(NULL), slabhi(NULL), multilo(NULL), multihi(NULL),
-  cutghostmulti(NULL), pbc_flag(NULL), pbc(NULL), firstrecv(NULL),
-  sendlist(NULL),  localsendlist(NULL), maxsendlist(NULL),
-  buf_send(NULL), buf_recv(NULL)
+  sendnum(nullptr), recvnum(nullptr), sendproc(nullptr), recvproc(nullptr),
+  size_forward_recv(nullptr), size_reverse_send(nullptr), size_reverse_recv(nullptr),
+  slablo(nullptr), slabhi(nullptr), multilo(nullptr), multihi(nullptr),
+  multioldlo(nullptr), multioldhi(nullptr), cutghostmulti(nullptr), cutghostmultiold(nullptr),
+  pbc_flag(nullptr), pbc(nullptr), firstrecv(nullptr), sendlist(nullptr),
+  localsendlist(nullptr), maxsendlist(nullptr), buf_send(nullptr), buf_recv(nullptr)
 {
   style = 0;
   layout = Comm::LAYOUT_UNIFORM;
-  pbc_flag = NULL;
+  pbc_flag = nullptr;
   init_buffers();
 }
 
@@ -58,10 +59,15 @@ CommBrick::CommBrick(LAMMPS *lmp) :
 
 CommBrick::~CommBrick()
 {
-  free_swap();
+  CommBrick::free_swap();
   if (mode == Comm::MULTI) {
-    free_multi();
+    CommBrick::free_multi();
     memory->destroy(cutghostmulti);
+  }
+
+  if (mode == Comm::MULTIOLD) {
+    CommBrick::free_multiold();
+    memory->destroy(cutghostmultiold);
   }
 
   if (sendlist) for (int i = 0; i < maxswap; i++) memory->destroy(sendlist[i]);
@@ -97,17 +103,20 @@ CommBrick::CommBrick(LAMMPS * /*lmp*/, Comm *oldcomm) : Comm(*oldcomm)
 
 void CommBrick::init_buffers()
 {
-  multilo = multihi = NULL;
-  cutghostmulti = NULL;
+  multilo = multihi = nullptr;
+  cutghostmulti = nullptr;
 
-  buf_send = buf_recv = NULL;
+  multioldlo = multioldhi = nullptr;
+  cutghostmultiold = nullptr;
+
+  buf_send = buf_recv = nullptr;
   maxsend = maxrecv = BUFMIN;
-  grow_send(maxsend,2);
+  CommBrick::grow_send(maxsend,2);
   memory->create(buf_recv,maxrecv,"comm:buf_recv");
 
   nswap = 0;
   maxswap = 6;
-  allocate_swap(maxswap);
+  CommBrick::allocate_swap(maxswap);
 
   sendlist = (int **) memory->smalloc(maxswap*sizeof(int *),"comm:sendlist");
   memory->create(maxsendlist,maxswap,"comm:maxsendlist");
@@ -127,15 +136,46 @@ void CommBrick::init()
   init_exchange();
   if (bufextra > bufextra_old) grow_send(maxsend+bufextra,2);
 
-  // memory for multi-style communication
+  // memory for multi style communication
+  // allocate in setup
 
-  if (mode == Comm::MULTI && multilo == NULL) {
-    allocate_multi(maxswap);
-    memory->create(cutghostmulti,atom->ntypes+1,3,"comm:cutghostmulti");
+  if (mode == Comm::MULTI) {
+    // If inconsitent # of collections, destroy any preexisting arrays (may be missized)
+    if (ncollections != neighbor->ncollections) {
+      ncollections = neighbor->ncollections;
+      if (multilo != nullptr) {
+        free_multi();
+        memory->destroy(cutghostmulti);
+      }
+    }
+
+    // delete any old user cutoffs if # of collections chanaged
+    if (cutusermulti && ncollections != ncollections_cutoff) {
+      if(me == 0) error->warning(FLERR, "cutoff/multi settings discarded, must be defined"
+                                        " after customizing collections in neigh_modify");
+      memory->destroy(cutusermulti);
+      cutusermulti = nullptr;
+    }
+
+    if (multilo == nullptr) {
+      allocate_multi(maxswap);
+      memory->create(cutghostmulti,ncollections,3,"comm:cutghostmulti");
+    }
   }
-  if (mode == Comm::SINGLE && multilo) {
+  if ((mode == Comm::SINGLE || mode == Comm::MULTIOLD) && multilo) {
     free_multi();
     memory->destroy(cutghostmulti);
+  }
+
+  // memory for multi/old-style communication
+
+  if (mode == Comm::MULTIOLD && multioldlo == nullptr) {
+    allocate_multiold(maxswap);
+    memory->create(cutghostmultiold,atom->ntypes+1,3,"comm:cutghostmultiold");
+  }
+  if ((mode == Comm::SINGLE || mode == Comm::MULTI) && multioldlo) {
+    free_multiold();
+    memory->destroy(cutghostmultiold);
   }
 }
 
@@ -143,7 +183,8 @@ void CommBrick::init()
    setup spatial-decomposition communication patterns
    function of neighbor cutoff(s) & cutghostuser & current box size
    single mode sets slab boundaries (slablo,slabhi) based on max cutoff
-   multi mode sets type-dependent slab boundaries (multilo,multihi)
+   multi mode sets collection-dependent slab boundaries (multilo,multihi)
+   multi/old mode sets type-dependent slab boundaries (multioldlo,multioldhi)
 ------------------------------------------------------------------------- */
 
 void CommBrick::setup()
@@ -155,9 +196,11 @@ void CommBrick::setup()
   //   neigh->cutghost = distance between tilted planes in box coords
   //   cutghost is in lamda coords = distance between those planes
   // for multi:
-  //   cutghostmulti = same as cutghost, only for each atom type
+  //   cutghostmulti = same as cutghost, only for each atom collection
+  // for multi/old:
+  //   cutghostmultiold = same as cutghost, only for each atom type
 
-  int i;
+  int i,j;
   int ntypes = atom->ntypes;
   double *prd,*sublo,*subhi;
 
@@ -166,23 +209,51 @@ void CommBrick::setup()
     error->warning(FLERR,"Communication cutoff is 0.0. No ghost atoms "
                    "will be generated. Atoms may get lost.");
 
+  if (mode == Comm::MULTI) {
+    double **cutcollectionsq = neighbor->cutcollectionsq;
+
+    // build collection array for atom exchange
+    neighbor->build_collection(0);
+
+    // If using multi/reduce, communicate particles a distance equal
+    // to the max cutoff with equally sized or smaller collections
+    // If not, communicate the maximum cutoff of the entire collection
+    for (i = 0; i < ncollections; i++) {
+      if (cutusermulti) {
+        cutghostmulti[i][0] = cutusermulti[i];
+        cutghostmulti[i][1] = cutusermulti[i];
+        cutghostmulti[i][2] = cutusermulti[i];
+      } else {
+        cutghostmulti[i][0] = 0.0;
+        cutghostmulti[i][1] = 0.0;
+        cutghostmulti[i][2] = 0.0;
+      }
+
+      for (j = 0; j < ncollections; j++){
+        if (multi_reduce && (cutcollectionsq[j][j] > cutcollectionsq[i][i])) continue;
+        cutghostmulti[i][0] = MAX(cutghostmulti[i][0],sqrt(cutcollectionsq[i][j]));
+        cutghostmulti[i][1] = MAX(cutghostmulti[i][1],sqrt(cutcollectionsq[i][j]));
+        cutghostmulti[i][2] = MAX(cutghostmulti[i][2],sqrt(cutcollectionsq[i][j]));
+      }
+    }
+  }
+
+  if (mode == Comm::MULTIOLD) {
+    double *cuttype = neighbor->cuttype;
+    for (i = 1; i <= ntypes; i++) {
+      double tmp = 0.0;
+      if (cutusermultiold) tmp = cutusermultiold[i];
+      cutghostmultiold[i][0] = MAX(tmp,cuttype[i]);
+      cutghostmultiold[i][1] = MAX(tmp,cuttype[i]);
+      cutghostmultiold[i][2] = MAX(tmp,cuttype[i]);
+    }
+  }
+
   if (triclinic == 0) {
     prd = domain->prd;
     sublo = domain->sublo;
     subhi = domain->subhi;
     cutghost[0] = cutghost[1] = cutghost[2] = cut;
-
-    if (mode == Comm::MULTI) {
-      double *cuttype = neighbor->cuttype;
-      for (i = 1; i <= ntypes; i++) {
-        cut = 0.0;
-        if (cutusermulti) cut = cutusermulti[i];
-        cutghostmulti[i][0] = MAX(cut,cuttype[i]);
-        cutghostmulti[i][1] = MAX(cut,cuttype[i]);
-        cutghostmulti[i][2] = MAX(cut,cuttype[i]);
-      }
-    }
-
   } else {
     prd = domain->prd_lamda;
     sublo = domain->sublo_lamda;
@@ -195,15 +266,19 @@ void CommBrick::setup()
     cutghost[1] = cut * length1;
     length2 = h_inv[2];
     cutghost[2] = cut * length2;
-
     if (mode == Comm::MULTI) {
-      double *cuttype = neighbor->cuttype;
+      for (i = 0; i < ncollections; i++) {
+        cutghostmulti[i][0] *= length0;
+        cutghostmulti[i][1] *= length1;
+        cutghostmulti[i][2] *= length2;
+      }
+    }
+
+    if (mode == Comm::MULTIOLD) {
       for (i = 1; i <= ntypes; i++) {
-        cut = 0.0;
-        if (cutusermulti) cut = cutusermulti[i];
-        cutghostmulti[i][0] = length0 * MAX(cut,cuttype[i]);
-        cutghostmulti[i][1] = length1 * MAX(cut,cuttype[i]);
-        cutghostmulti[i][2] = length2 * MAX(cut,cuttype[i]);
+        cutghostmultiold[i][0] *= length0;
+        cutghostmultiold[i][1] *= length1;
+        cutghostmultiold[i][2] *= length2;
       }
     }
   }
@@ -349,11 +424,17 @@ void CommBrick::setup()
           if (ineed < 2) slablo[iswap] = -BIG;
           else slablo[iswap] = 0.5 * (sublo[dim] + subhi[dim]);
           slabhi[iswap] = sublo[dim] + cutghost[dim];
-        } else {
-          for (i = 1; i <= ntypes; i++) {
+        } else if (mode == Comm::MULTI) {
+          for (i = 0; i < ncollections; i++) {
             if (ineed < 2) multilo[iswap][i] = -BIG;
             else multilo[iswap][i] = 0.5 * (sublo[dim] + subhi[dim]);
             multihi[iswap][i] = sublo[dim] + cutghostmulti[i][dim];
+          }
+        } else {
+          for (i = 1; i <= ntypes; i++) {
+            if (ineed < 2) multioldlo[iswap][i] = -BIG;
+            else multioldlo[iswap][i] = 0.5 * (sublo[dim] + subhi[dim]);
+            multioldhi[iswap][i] = sublo[dim] + cutghostmultiold[i][dim];
           }
         }
         if (myloc[dim] == 0) {
@@ -372,11 +453,17 @@ void CommBrick::setup()
           slablo[iswap] = subhi[dim] - cutghost[dim];
           if (ineed < 2) slabhi[iswap] = BIG;
           else slabhi[iswap] = 0.5 * (sublo[dim] + subhi[dim]);
-        } else {
-          for (i = 1; i <= ntypes; i++) {
+        } else if (mode == Comm::MULTI) {
+          for (i = 0; i < ncollections; i++) {
             multilo[iswap][i] = subhi[dim] - cutghostmulti[i][dim];
             if (ineed < 2) multihi[iswap][i] = BIG;
             else multihi[iswap][i] = 0.5 * (sublo[dim] + subhi[dim]);
+          }
+        } else {
+          for (i = 1; i <= ntypes; i++) {
+            multioldlo[iswap][i] = subhi[dim] - cutghostmultiold[i][dim];
+            if (ineed < 2) multioldhi[iswap][i] = BIG;
+            else multioldhi[iswap][i] = 0.5 * (sublo[dim] + subhi[dim]);
           }
         }
         if (myloc[dim] == procgrid[dim]-1) {
@@ -588,7 +675,7 @@ void CommBrick::exchange()
   // map_set() is done at end of borders()
   // clear ghost count and any ghost bonus data internal to AtomVec
 
-  if (map_style) atom->map_clear();
+  if (map_style != Atom::MAP_NONE) atom->map_clear();
   atom->nghost = 0;
   atom->avec->clear_bonus();
 
@@ -698,14 +785,18 @@ void CommBrick::exchange()
 
 void CommBrick::borders()
 {
-  int i,n,itype,iswap,dim,ineed,twoneed;
-  int nsend,nrecv,sendflag,nfirst,nlast,ngroup;
+  int i,n,itype,icollection,iswap,dim,ineed,twoneed;
+  int nsend,nrecv,sendflag,nfirst,nlast,ngroup,nprior;
   double lo,hi;
   int *type;
+  int *collection;
   double **x;
   double *buf,*mlo,*mhi;
   MPI_Request request;
   AtomVec *avec = atom->avec;
+
+  // After exchanging/sorting, need to reconstruct collection array for border communication
+  if (mode == Comm::MULTI) neighbor->build_collection(0);
 
   // do swaps over all 3 dimensions
 
@@ -727,10 +818,14 @@ void CommBrick::borders()
       if (mode == Comm::SINGLE) {
         lo = slablo[iswap];
         hi = slabhi[iswap];
-      } else {
-        type = atom->type;
+      } else if (mode == Comm::MULTI) {
+        collection = neighbor->collection;
         mlo = multilo[iswap];
         mhi = multihi[iswap];
+      } else {
+        type = atom->type;
+        mlo = multioldlo[iswap];
+        mhi = multioldhi[iswap];
       }
       if (ineed % 2 == 0) {
         nfirst = nlast;
@@ -759,6 +854,14 @@ void CommBrick::borders()
                 if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
                 sendlist[iswap][nsend++] = i;
               }
+          } else if (mode == Comm::MULTI) {
+            for (i = nfirst; i < nlast; i++) {
+              icollection = collection[i];
+              if (x[i][dim] >= mlo[icollection] && x[i][dim] <= mhi[icollection]) {
+                if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
+                sendlist[iswap][nsend++] = i;
+              }
+            }
           } else {
             for (i = nfirst; i < nlast; i++) {
               itype = type[i];
@@ -782,6 +885,22 @@ void CommBrick::borders()
                 if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
                 sendlist[iswap][nsend++] = i;
               }
+          } else if (mode == Comm::MULTI) {
+            ngroup = atom->nfirst;
+            for (i = 0; i < ngroup; i++) {
+              icollection = collection[i];
+              if (x[i][dim] >= mlo[icollection] && x[i][dim] <= mhi[icollection]) {
+                if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
+                sendlist[iswap][nsend++] = i;
+              }
+            }
+            for (i = atom->nlocal; i < nlast; i++) {
+              icollection = collection[i];
+              if (x[i][dim] >= mlo[icollection] && x[i][dim] <= mhi[icollection]) {
+                if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
+                sendlist[iswap][nsend++] = i;
+              }
+            }
           } else {
             ngroup = atom->nfirst;
             for (i = 0; i < ngroup; i++) {
@@ -849,10 +968,21 @@ void CommBrick::borders()
       size_reverse_send[iswap] = nrecv*size_reverse;
       size_reverse_recv[iswap] = nsend*size_reverse;
       firstrecv[iswap] = atom->nlocal + atom->nghost;
+      nprior = atom->nlocal + atom->nghost;
       atom->nghost += nrecv;
+      if (neighbor->style == Neighbor::MULTI) neighbor->build_collection(nprior);
+
       iswap++;
     }
   }
+
+  // For molecular systems we lose some bits for local atom indices due
+  // to encoding of special pairs in neighbor lists. Check for overflows.
+
+  if ((atom->molecular != Atom::ATOMIC)
+      && ((atom->nlocal + atom->nghost) > NEIGHMASK))
+    error->one(FLERR,"Per-processor number of atoms is too large for "
+               "molecular neighbor lists");
 
   // insure send/recv buffers are long enough for all forward & reverse comm
 
@@ -863,7 +993,7 @@ void CommBrick::borders()
 
   // reset global->local map
 
-  if (map_style) atom->map_set();
+  if (map_style != Atom::MAP_NONE) atom->map_set();
 }
 
 /* ----------------------------------------------------------------------
@@ -1394,6 +1524,12 @@ void CommBrick::grow_swap(int n)
     allocate_multi(n);
   }
 
+  if (mode == Comm::MULTIOLD) {
+    free_multiold();
+    allocate_multiold(n);
+  }
+
+
   sendlist = (int **)
     memory->srealloc(sendlist,n*sizeof(int *),"comm:sendlist");
   memory->grow(maxsendlist,n,"comm:maxsendlist");
@@ -1425,14 +1561,25 @@ void CommBrick::allocate_swap(int n)
 }
 
 /* ----------------------------------------------------------------------
-   allocation of multi-type swap info
+   allocation of multi-collection swap info
 ------------------------------------------------------------------------- */
 
 void CommBrick::allocate_multi(int n)
 {
-  multilo = memory->create(multilo,n,atom->ntypes+1,"comm:multilo");
-  multihi = memory->create(multihi,n,atom->ntypes+1,"comm:multihi");
+  multilo = memory->create(multilo,n,ncollections,"comm:multilo");
+  multihi = memory->create(multihi,n,ncollections,"comm:multihi");
 }
+
+/* ----------------------------------------------------------------------
+   allocation of multi/old-type swap info
+------------------------------------------------------------------------- */
+
+void CommBrick::allocate_multiold(int n)
+{
+  multioldlo = memory->create(multioldlo,n,atom->ntypes+1,"comm:multioldlo");
+  multioldhi = memory->create(multioldhi,n,atom->ntypes+1,"comm:multioldhi");
+}
+
 
 /* ----------------------------------------------------------------------
    free memory for swaps
@@ -1455,14 +1602,25 @@ void CommBrick::free_swap()
 }
 
 /* ----------------------------------------------------------------------
-   free memory for multi-type swaps
+   free memory for multi-collection swaps
 ------------------------------------------------------------------------- */
 
 void CommBrick::free_multi()
 {
   memory->destroy(multilo);
   memory->destroy(multihi);
-  multilo = multihi = NULL;
+  multilo = multihi = nullptr;
+}
+
+/* ----------------------------------------------------------------------
+   free memory for multi/old-type swaps
+------------------------------------------------------------------------- */
+
+void CommBrick::free_multiold()
+{
+  memory->destroy(multioldlo);
+  memory->destroy(multioldhi);
+  multioldlo = multioldhi = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -1491,17 +1649,17 @@ void *CommBrick::extract(const char *str, int &dim)
     return (void *) localsendlist;
   }
 
-  return NULL;
+  return nullptr;
 }
 
 /* ----------------------------------------------------------------------
    return # of bytes of allocated memory
 ------------------------------------------------------------------------- */
 
-bigint CommBrick::memory_usage()
+double CommBrick::memory_usage()
 {
-  bigint bytes = 0;
-  bytes += nprocs * sizeof(int);    // grid2proc
+  double bytes = 0;
+  bytes += (double)nprocs * sizeof(int);    // grid2proc
   for (int i = 0; i < nswap; i++)
     bytes += memory->usage(sendlist[i],maxsendlist[i]);
   bytes += memory->usage(buf_send,maxsend+bufextra);

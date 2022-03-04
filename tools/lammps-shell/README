@@ -1,0 +1,175 @@
+The LAMMPS Shell. An enhanced LAMMPS executable for interactive sessions.
+
+Overview
+^^^^^^^^
+
+This is a program that functions very similar to the regular LAMMPS
+executable but has several modifications and additions that make it
+more powerful for interactive sessions, i.e. where you type LAMMPS
+commands from the prompt instead of reading them from a file.
+
+- It uses the readline and history libraries to provide command line
+  editing and context aware TAB-expansion (details on that below).
+
+- When processing an input file with the '-in' or '-i' flag from the
+  command line, it does not exit at the end of that input file but
+  stops at a prompt, so that additional commands can be issued
+
+- Errors will not abort the shell but return to the prompt.
+
+- It has additional commands aimed at interactive use (details below).
+
+- Interrupting a calculation with CTRL-C will not terminate the
+  session but rather enforce a timeout to cleanly stop an ongoing
+  run (more info on timeouts is in the timer command documentation).
+
+These enhancements makes the LAMMPS shell an attractive choice for
+interactive LAMMPS sessions in graphical user interfaces.
+
+TAB-expansion
+^^^^^^^^^^^^^
+
+When writing commands interactively at the shell prompt, you can hit
+the TAB key at any time to try and complete the text.  This completion
+is context aware and will expand any first word only to commands
+available in that executable.
+
+- For style commands it will expand to available styles of the
+  corresponding category (e.g. pair styles after a pair_style command).
+
+- For "compute", "fix", or "dump" it will also expand only to already
+  defined groups for the group-ID keyword.
+
+- For commands like "compute_modify", "fix_modify", or "dump_modify"
+  it will expand to known compute/fix/dump IDs only.
+
+- When typing references to computes, fixes, or variables with a
+  "c_", "f_", or "v_" prefix, respectively, then the expansion will
+  to known compute/fix IDs and variable names. Variable name expansion
+  is also available for the ${name} variable syntax.
+
+- In all other cases TAB expansion will complete to names of files
+  and directories.
+
+Command line editing and history
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When typing commands, command line editing similar to what BASH
+provides is available.  Thus it is possible to move around the
+currently line and perform various cut and insert and edit operations.
+Previous commands can be retrieved by scrolling up (and down)
+or searching (e.g. with CTRL-r).
+
+Also history expansion through using the exclamation mark '!'
+can be performed.  Examples: '!!' will be replaced with the previous
+command, '!-2' will repeat the command before that, '!30' will be
+replaced with event number 30 in the command history list, and
+'!run' with the last command line that started with "run".  Adding
+a ":p" to such a history expansion will result that the expansion is
+printed and added to the history list, but NOT executed.
+On exit the LAMMPS shell will write the history list to a file
+".lammps_history" in the current working directory.  If such a
+file exists when the LAMMPS shell is launched it will be read to
+populate the history list.
+
+This is realized via the readline library and can thus be customized
+with an ".inputrc" file in the home directory.  For application specific
+customization, the LAMMPS shell uses the name "lammps-shell".
+For more information about using and customizing an application using
+readline, please see the available documentation at:
+http://www.gnu.org/s/readline/#Documentation
+
+Additional commands
+^^^^^^^^^^^^^^^^^^^
+
+The followind commands are added to the LAMMPS shell on top of the
+regular LAMMPS commands:
+
+- help (or ?)    print a brief help message
+- history        display the current command history list
+- clear_history  wipe out the current command history list
+- save_history <range> <file>
+                 write commands from the history to file.
+                 The range is given as <from>-<to>, where <from> and <to>
+                 may be empty. Example: save_history 100- in.recent
+- source <file>  read commands from file (same as "include")
+- pwd            print current working directory
+- cd <directory> change current working directory (same as pwd if no directory)
+- mem            print current and maximum memory usage
+- |<command>     execute <command> as a shell command and return to the command prompt
+- exit           exit the LAMMPS shell cleanly (unlike the "quit" command)
+
+Please note that some known shell operations are implemented in the
+LAMMPS "shell" command in a platform neutral fashion, while using
+the '\|' character will always pass the following text to the
+operating system's shell command.
+
+Compilation
+^^^^^^^^^^^
+
+Compilation of the LAMMPS shell can be enabled by setting the CMake
+variable BUILD_LAMMPS_SHELL to "on" or using the makefile in the
+tools/lammps-shell folder to compile after building LAMMPS using
+the conventional make procedure.  The makefile will likely need
+customization depending on the features and settings used for
+compiling LAMMPS.
+
+Limitations
+^^^^^^^^^^^
+
+The LAMMPS shell was not designed for use with MPI parallelization
+via "mpirun" or "mpiexec" or "srun".
+
+Readline customization
+^^^^^^^^^^^^^^^^^^^^^^
+
+The behavior of the readline functionality can be customized in the
+"${HOME}/.inputrc" file.  This can be used to alter the default
+settings or change the key-bindings.  The LAMMPS Shell sets the
+application name "lammps-shell", so customizations can be either
+global or specific for the LAMMPS shell by bracketing them between
+"$if lammps-shell" and "$endif" like in the following example:
+
+   $if lammps-shell
+   # disable "beep" or "screen flash"
+   set bell-style none
+   # bind the "Insert" key to toggle overwrite mode
+   "\e[2~": overwrite-mode
+   $endif
+
+More details about this are in the readline documentation https://tiswww.cwru.edu/php/chet/readline/rluserman.html#SEC9
+
+
+LAMMPS Shell tips and tricks
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Enable tilde expansion
+""""""""""""""""""""""
+
+Adding "set expand-tilde on" to "${HOME}/.inputrc" is recommended as
+this will change the filename expansion behavior to replace any text
+starting with "~" by the full path to the corresponding user's home
+directory.  While the expansion of filenames **will** happen on all
+arguments where the context is not known (e.g. "~/compile/lamm<TAB>"
+will expand to "~/compile/lammps/"), it will not replace the tilde by
+default.  But since LAMMPS does not do tilde expansion itself (unlike a
+shell), this will result in errors.  Instead the tilde-expression should
+be expanded into a valid path, where the plain "~/" stands for the
+current user's home directory and "~someuser/" stands for
+"/home/someuser" or whatever the full path to that user's home directory
+is.
+
+File extension association
+""""""""""""""""""""""""""
+
+The LAMMPS shell (unlike the regular LAMMPS executable) does not
+exit when an input file is passed on the command line, which can be
+either with the "-in" or "-i" flag (the behavior is like for
+"python -i <filename>") or as the first argument without a flag.
+Thus the LAMMPS shell is suitable for associating it with input files
+based on their filename extension (e.g. ".lmp").  Since "lammps-shell"
+is a console application, you have to run it inside a terminal program.
+
+A "lammps-shell.desktop" and suitable icon files are provided, so that
+it can be integrated into compatible desktop environments.
+

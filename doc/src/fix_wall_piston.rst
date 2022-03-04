@@ -90,7 +90,8 @@ define the lattice spacings.
 
 ----------
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files <restart>`.  None of the :doc:`fix_modify <fix_modify>` options
 are relevant to this fix.  No global or per-atom quantities are stored
@@ -102,7 +103,7 @@ Restrictions
 """"""""""""
 
 This fix style is part of the SHOCK package.  It is only enabled if
-LAMMPS was built with that package. See the :doc:`Build package <Build_package>` doc page for more info.
+LAMMPS was built with that package. See the :doc:`Build package <Build_package>` page for more info.
 
 The face that has the wall/piston must be boundary type 's'
 (shrink-wrapped). The opposing face can be

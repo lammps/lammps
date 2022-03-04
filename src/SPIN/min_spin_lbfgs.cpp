@@ -1,6 +1,7 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -21,24 +22,22 @@
    preprint arXiv:1904.02669.
 ------------------------------------------------------------------------- */
 
-#include <mpi.h>
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
 #include "min_spin_lbfgs.h"
+
 #include "atom.h"
 #include "citeme.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
-#include "update.h"
+#include "math_const.h"
+#include "memory.h"
 #include "output.h"
 #include "timer.h"
-#include "error.h"
-#include "memory.h"
-#include "modify.h"
-#include "math_special.h"
-#include "math_const.h"
 #include "universe.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -62,7 +61,7 @@ static const char cite_minstyle_spin_lbfgs[] =
 /* ---------------------------------------------------------------------- */
 
 MinSpinLBFGS::MinSpinLBFGS(LAMMPS *lmp) :
-  Min(lmp), g_old(NULL), g_cur(NULL), p_s(NULL), rho(NULL), ds(NULL), dy(NULL), sp_copy(NULL)
+  Min(lmp), g_old(nullptr), g_cur(nullptr), p_s(nullptr), rho(nullptr), ds(nullptr), dy(nullptr), sp_copy(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_minstyle_spin_lbfgs);
   nlocal_max = 0;
@@ -110,7 +109,7 @@ void MinSpinLBFGS::init()
 
   // set back use_line_search to 0 if more than one replica
 
-  if (linestyle == 3 && nreplica == 1){
+  if (linestyle == 3 && nreplica == 1) {
     use_line_search = 1;
   }
   else{
@@ -156,7 +155,7 @@ int MinSpinLBFGS::modify_param(int narg, char **arg)
   if (strcmp(arg[0],"discrete_factor") == 0) {
     if (narg < 2) error->all(FLERR,"Illegal min_modify command");
     double discrete_factor;
-    discrete_factor = force->numeric(FLERR,arg[1]);
+    discrete_factor = utils::numeric(FLERR,arg[1],false,lmp);
     maxepsrot = MY_2PI / (10 * discrete_factor);
     return 2;
   }
@@ -223,7 +222,7 @@ int MinSpinLBFGS::iterate(int maxiter)
     if (use_line_search) {
 
       // here we need to do line search
-      if (local_iter == 0){
+      if (local_iter == 0) {
         eprevious = ecurrent;
         ecurrent = energy_force(0);
         calc_gradient();
@@ -372,7 +371,7 @@ void MinSpinLBFGS::calc_search_direction()
     factor = 1.0;
   }
 
-  if (local_iter == 0){         // steepest descent direction
+  if (local_iter == 0) {         // steepest descent direction
 
     //if no line search then calculate maximum rotation
     if (use_line_search == 0)
@@ -381,7 +380,7 @@ void MinSpinLBFGS::calc_search_direction()
     for (int i = 0; i < 3 * nlocal; i++) {
       p_s[i] = -g_cur[i] * factor * scaling;;
       g_old[i] = g_cur[i]  * factor;
-      for (int k = 0; k < num_mem; k++){
+      for (int k = 0; k < num_mem; k++) {
         ds[k][i] = 0.0;
         dy[k][i] = 0.0;
       }
@@ -407,7 +406,7 @@ void MinSpinLBFGS::calc_search_direction()
     if (fabs(dyds_global) > 1.0e-60) rho[m_index] = 1.0 / dyds_global;
     else rho[m_index] = 1.0e60;
 
-    if (rho[m_index] < 0.0){
+    if (rho[m_index] < 0.0) {
       local_iter = 0;
       return calc_search_direction();
     }
@@ -420,7 +419,7 @@ void MinSpinLBFGS::calc_search_direction()
     }
 
     // loop over last m indecies
-    for(int k = num_mem - 1; k > -1; k--) {
+    for (int k = num_mem - 1; k > -1; k--) {
       // this loop should run from the newest memory to the oldest one.
 
       c_ind = (k + m_index + 1) % num_mem;
@@ -475,7 +474,7 @@ void MinSpinLBFGS::calc_search_direction()
       }
     }
 
-    for (int k = 0; k < num_mem; k++){
+    for (int k = 0; k < num_mem; k++) {
       // this loop should run from the oldest memory to the newest one.
 
       if (local_iter < num_mem) c_ind = k;
@@ -553,11 +552,11 @@ void MinSpinLBFGS::rodrigues_rotation(const double *upp_tr, double *out)
 
   if (fabs(upp_tr[0]) < 1.0e-40 &&
       fabs(upp_tr[1]) < 1.0e-40 &&
-      fabs(upp_tr[2]) < 1.0e-40){
+      fabs(upp_tr[2]) < 1.0e-40) {
 
     // if upp_tr is zero, return unity matrix
-    for(int k = 0; k < 3; k++){
-      for(int m = 0; m < 3; m++){
+    for (int k = 0; k < 3; k++) {
+      for (int m = 0; m < 3; m++) {
     if (m == k) out[3 * k + m] = 1.0;
     else out[3 * k + m] = 0.0;
         }
@@ -608,9 +607,9 @@ void MinSpinLBFGS::rodrigues_rotation(const double *upp_tr, double *out)
 
 void MinSpinLBFGS::vm3(const double *m, const double *v, double *out)
 {
-  for(int i = 0; i < 3; i++){
+  for (int i = 0; i < 3; i++) {
     out[i] = 0.0;
-    for(int j = 0; j < 3; j++)
+    for (int j = 0; j < 3; j++)
     out[i] += *(m + 3 * j + i) * v[j];
   }
 }
@@ -675,7 +674,7 @@ int MinSpinLBFGS::calc_and_make_step(double a, double b, int index)
   der_e_cur = e_and_d[1];
   index++;
 
-  if (adescent(eprevious,e_and_d[0]) || index == 5){
+  if (adescent(eprevious,e_and_d[0]) || index == 5) {
     MPI_Bcast(&b,1,MPI_DOUBLE,0,world);
     for (int i = 0; i < 3 * nlocal; i++) {
       p_s[i] = b * p_s[i];
@@ -715,7 +714,7 @@ int MinSpinLBFGS::calc_and_make_step(double a, double b, int index)
   Approximate descent
 ------------------------------------------------------------------------- */
 
-int MinSpinLBFGS::adescent(double phi_0, double phi_j){
+int MinSpinLBFGS::adescent(double phi_0, double phi_j) {
 
   double eps = 1.0e-6;
 

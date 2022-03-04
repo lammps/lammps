@@ -78,4 +78,10 @@ static_assert(!Kokkos::is_space<ExecutionSpace &>{}, "");
 static_assert(!Kokkos::is_space<MemorySpace &>{}, "");
 static_assert(!Kokkos::is_space<DeviceType &>{}, "");
 
+static_assert(
+    std::is_same<float, Kokkos::Impl::remove_cvref_t<float const &>>{}, "");
+static_assert(std::is_same<int, Kokkos::Impl::remove_cvref_t<int &>>{}, "");
+static_assert(std::is_same<int, Kokkos::Impl::remove_cvref_t<int const>>{}, "");
+static_assert(std::is_same<float, Kokkos::Impl::remove_cvref_t<float>>{}, "");
+
 }  // namespace TestConcept

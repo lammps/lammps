@@ -59,17 +59,17 @@ namespace Impl {
 
 KOKKOS_FORCEINLINE_FUNCTION
 unsigned rotate_right(unsigned i, int r) {
-  enum { size = static_cast<int>(sizeof(unsigned) * CHAR_BIT) };
+  constexpr int size = static_cast<int>(sizeof(unsigned) * CHAR_BIT);
   return r ? ((i >> r) | (i << (size - r))) : i;
 }
 
 template <typename Bitset>
 struct BitsetCount {
-  typedef Bitset bitset_type;
-  typedef
-      typename bitset_type::execution_space::execution_space execution_space;
-  typedef typename bitset_type::size_type size_type;
-  typedef size_type value_type;
+  using bitset_type = Bitset;
+  using execution_space =
+      typename bitset_type::execution_space::execution_space;
+  using size_type  = typename bitset_type::size_type;
+  using value_type = size_type;
 
   bitset_type m_bitset;
 

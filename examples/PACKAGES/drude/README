@@ -1,0 +1,19 @@
+Example simulations of polarizable systems using Drude oscillators
+==================================================================
+
+Each example comes in several versions for demonstrating the use of
+Langevin, Nosé-Hoover and temperature-grouped Nosé-Hoover thermostats.
+
+* `butane` -- simulation in NVT ensemble with Thole damping
+
+* `toluene` -- simulation in NVT ensemble with Thole damping and
+use of the `extra/special/per/atom` keyword
+
+* `ethanol` -- simulation in NpT ensemble with Thole damping
+
+* `swm4-ndp` -- 4-site rigid water model in NpT ensemble (no Thole
+damping)
+
+* `ethylene_glycol` -- simulation in NpT ensemble with Thole 
+and Tang-Toennies damping and with Nosé-Hoover thermostat
+

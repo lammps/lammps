@@ -81,7 +81,7 @@ Restrictions
 """"""""""""
 
 This fix is part of the KSPACE package.  It is only enabled if LAMMPS
-was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Do not set "neigh_modify once yes" or else this fix will never be
 called.  Reneighboring is required.
@@ -93,7 +93,7 @@ Related commands
 """"""""""""""""
 
 :doc:`kspace_style <kspace_style>`, :doc:`boundary <boundary>`
-:doc:`kspace_modify <kspace_modify>`, :doc:`pair_style lj/cut/coul/long <pair_lj>`, :doc:`pair_style lj/charmm/coul/long <pair_charmm>`, :doc:`pair_style lj/long <pair_lj_long>`, :doc:`pair_style lj/long/coul/long <pair_lj_long>`,
+:doc:`kspace_modify <kspace_modify>`, :doc:`pair_style lj/cut/coul/long <pair_lj_cut_coul>`, :doc:`pair_style lj/charmm/coul/long <pair_charmm>`, :doc:`pair_style lj/long <pair_lj_long>`, :doc:`pair_style lj/long/coul/long <pair_lj_long>`,
 :doc:`pair_style buck/coul/long <pair_buck>`
 
 Default

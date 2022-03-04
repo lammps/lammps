@@ -23,8 +23,8 @@ Syntax
                              q, mux, muy, muz, mu,
                              radius, diameter, omegax, omegay, omegaz,
                              angmomx, angmomy, angmomz, tqx, tqy, tqz,
-                             c_ID, c_ID[N], f_ID, f_ID[N], v_name,
-                             d_name, i_name
+                             c_ID, c_ID[I], f_ID, f_ID[I], v_name,
+                             d_name, i_name, i2_name[I], d2_name[I],
 
   .. parsed-literal::
 
@@ -46,13 +46,15 @@ Syntax
            omegax,omegay,omegaz = angular velocity of spherical particle
            angmomx,angmomy,angmomz = angular momentum of aspherical particle
            tqx,tqy,tqz = torque on finite-size particles
-           c_ID = per-atom vector calculated by a compute with ID
-           c_ID[I] = Ith column of per-atom array calculated by a compute with ID
-           f_ID = per-atom vector calculated by a fix with ID
-           f_ID[I] = Ith column of per-atom array calculated by a fix with ID
-           v_name = per-atom vector calculated by an atom-style variable with name
-           d_name = per-atom floating point vector name, managed by fix property/atom
-           i_name = per-atom integer vector name, managed by fix property/atom
+           *c_ID* = per-atom vector calculated by a compute with ID
+           *c_ID[I]* = Ith column of per-atom array calculated by a compute with ID
+           *f_ID* = per-atom vector calculated by a fix with ID
+           *f_ID[I]* = Ith column of per-atom array calculated by a fix with ID
+           *v_name* = per-atom vector calculated by an atom-style variable with name
+           *i_name* = custom integer vector with name
+           *d_name* = custom floating point vector with name
+           *i2_name[I]* = Ith column of custom integer array with name
+           *d2_name[I]* = Ith column of custom floating-point array with name
 
 * zero or more keyword/value pairs may be appended
 * keyword = *com*
@@ -92,9 +94,10 @@ steps.
    those attributes may require quantities that are not defined in
    between runs.
 
-The list of possible attributes is the same as that used by the :doc:`dump custom <dump>` command, which describes their meaning.
+The list of possible attributes is the same as that used by the
+:doc:`dump custom <dump>` command, which describes their meaning.
 
-If the *com* keyword is set to *yes* then the *xu*\ , *yu*\ , and *zu*
+If the *com* keyword is set to *yes* then the *xu*, *yu*, and *zu*
 inputs store the position of each atom relative to the center-of-mass
 of the group of atoms, instead of storing the absolute position.
 
@@ -102,13 +105,24 @@ The requested values are stored in a per-atom vector or array as
 discussed below.  Zeroes are stored for atoms not in the specified
 group.
 
-**Restart, fix_modify, output, run start/stop, minimize info:**
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-This fix writes the per-atom values it stores to :doc:`binary restart files <restart>`, so that the values can be restored when a
-simulation is restarted.  See the :doc:`read_restart <read_restart>`
-command for info on how to re-specify a fix in an input script that
-reads a restart file, so that the operation of the fix continues in an
+This fix writes the per-atom values it stores to :doc:`binary restart
+files <restart>`, so that the values can be restored when a simulation
+is restarted.  See the :doc:`read_restart <read_restart>` command for
+info on how to re-specify a fix in an input script that reads a
+restart file, so that the operation of the fix continues in an
 uninterrupted fashion.
+
+.. warning::
+
+   When reading data from a restart file, this fix command has to be specified
+   **exactly** the same way as before. LAMMPS will only check whether a
+   fix is of the same style and has the same fix ID and in case of a match
+   will then try to initialize the fix with the data stored in the binary
+   restart file.  If the fix store/state command does not match exactly,
+   data can be corrupted or LAMMPS may crash.
 
 None of the :doc:`fix_modify <fix_modify>` options are relevant to this
 fix.
@@ -120,7 +134,8 @@ can be accessed by various :doc:`output commands <Howto_output>`.  The
 per-atom values be accessed on any timestep.
 
 No parameter of this fix can be used with the *start/stop* keywords of
-the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
+the :doc:`run <run>` command.  This fix is not invoked during
+:doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""

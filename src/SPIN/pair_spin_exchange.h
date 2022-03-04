@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(spin/exchange,PairSpinExchange)
-
+// clang-format off
+PairStyle(spin/exchange,PairSpinExchange);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_SPIN_EXCHANGE_H
@@ -26,38 +26,38 @@ namespace LAMMPS_NS {
 
 class PairSpinExchange : public PairSpin {
  public:
-  PairSpinExchange(LAMMPS *lmp) : PairSpin(lmp) {}
-  virtual ~PairSpinExchange();
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  void *extract(const char *, int &);
+  PairSpinExchange(class LAMMPS *);
+  ~PairSpinExchange() override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void *extract(const char *, int &) override;
 
-  void compute(int, int);
-  void compute_single_pair(int, double *);
+  void compute(int, int) override;
+  void compute_single_pair(int, double *) override;
 
   void compute_exchange(int, int, double, double *, double *);
   void compute_exchange_mech(int, int, double, double *, double *, double *, double *);
+  double compute_energy(int, int, double, double *, double *);
 
-  // double compute_energy(int , int , double , double *, double *);
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
 
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-
-  double cut_spin_exchange_global;      // global exchange cutoff distance
+  double cut_spin_exchange_global;    // global exchange cutoff distance
 
  protected:
-  double **J1_mag;                      // exchange coeffs in eV
-  double **J1_mech;                     // mech exchange coeffs in
-  double **J2, **J3;                    // J1 in eV, J2 adim, J3 in Ang
-  double **cut_spin_exchange;           // cutoff distance exchange
+  int e_offset;                  // apply energy offset
+  double **J1_mag;               // exchange coeffs in eV
+  double **J1_mech;              // mech exchange coeffs in
+  double **J2, **J3;             // J1 in eV, J2 adim, J3 in Ang
+  double **cut_spin_exchange;    // cutoff distance exchange
 
-  void allocate();
+  void allocate() override;
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

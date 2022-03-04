@@ -2,8 +2,8 @@
  *_________________________________________________________________________*
  *      POEMS: PARALLELIZABLE OPEN SOURCE EFFICIENT MULTIBODY SOFTWARE     *
  *      DESCRIPTION: SEE READ-ME                                           *
- *      FILE NAME: mixedjoint.h		                                       *
- *      AUTHORS: See Author List                                           * 
+ *      FILE NAME: mixedjoint.h                                                *
+ *      AUTHORS: See Author List                                           *
  *      GRANTS: See Grants List                                            *
  *      COPYRIGHT: (C) 2005 by Authors as listed in Author's List          *
  *      LICENSE: Please see License Agreement                              *
@@ -11,7 +11,7 @@
  *      ADMINISTRATOR: Prof. Kurt Anderson                                 *
  *                     Computational Dynamics Lab                          *
  *                     Rensselaer Polytechnic Institute                    *
- *                     110 8th St. Troy NY 12180                           * 
+ *                     110 8th St. Troy NY 12180                           *
  *      CONTACT:        anderk5@rpi.edu                                    *
  *_________________________________________________________________________*/
 
@@ -26,10 +26,10 @@ class MixedJoint : public Joint{
   int numrots;
   int numtrans;
   Vect6 dofs;
-public: 
+public:
   MixedJoint();
   ~MixedJoint();
-  
+
   JointType GetType();
   bool ReadInJointData(std::istream& in);
   void WriteOutJointData(std::ostream& out);

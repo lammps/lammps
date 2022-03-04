@@ -160,7 +160,7 @@ events must be generated before one is finally executed.  Conversely,
 if this criterion is too aggressive, high-entropy high-barrier events
 will be over-sampled, while low-entropy low-barrier events will be
 under-sampled. If the lowest pre-exponential factor is known fairly
-accurately, then it can be used to estimate *tmax*\ , and the value of
+accurately, then it can be used to estimate *tmax*, and the value of
 *delta* can be set to the desired confidence level e.g. *delta* = 0.05
 corresponds to 95% confidence. However, for systems where the dynamics
 are not well characterized (the most common case), it will be
@@ -181,7 +181,7 @@ files, and restart files.
 
 Event statistics are printed to the screen and master log.lammps file
 each time an event is executed. The quantities are the timestep, CPU
-time, global event number *N*\ , local event number *M*\ , event status,
+time, global event number *N*, local event number *M*, event status,
 energy barrier, time margin, *t_lo* and *delt_lo*.  The timestep is
 the usual LAMMPS timestep, which corresponds to the high-temperature
 time at which the event was detected, in units of timestep.  The CPU
@@ -204,7 +204,7 @@ high-temperature time since entering the current basin, scaled by an
 exponential factor that depends on the hi/lo temperature ratio and the
 energy barrier for that event.
 
-On lines for executed events, with status *E*\ , the global event number
+On lines for executed events, with status *E*, the global event number
 is incremented by one,
 the local event number and time margin are reset to zero,
 while the global event number, energy barrier, and
@@ -304,7 +304,7 @@ Default
 """""""
 
 The option defaults are *min* = 0.1 0.1 40 50, *neb* = 0.01 100 100
-10, *neb_style* = *quickmin*\ , *neb_step* = the same timestep set by
+10, *neb_style* = *quickmin*, *neb_step* = the same timestep set by
 the :doc:`timestep <timestep>` command, and *neb_log* = "none".
 
 ----------

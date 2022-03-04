@@ -55,7 +55,8 @@ the total magnetization, and the magnetic temperature. Three variables are
 assigned to those quantities. The thermo and thermo_style commands print them
 every 10 timesteps.
 
-**Output info:**
+Output info
+"""""""""""
 
 The array values are "intensive".  The array values will be in
 metal units (:doc:`units <units>`).
@@ -64,14 +65,16 @@ Restrictions
 """"""""""""
 
 The *spin* compute is part of the SPIN package.  This compute is only
-enabled if LAMMPS was built with this package.  See the :doc:`Build package <Build_package>` doc page for more info.  The atom_style
+enabled if LAMMPS was built with this package.  See the :doc:`Build package <Build_package>` page for more info.  The atom_style
 has to be "spin" for this compute to be valid.
 
 **Related commands:**
 
 none
 
-**Default:**
+Default
+"""""""
+
 
 none
 

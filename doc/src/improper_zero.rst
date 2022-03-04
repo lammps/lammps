@@ -44,8 +44,15 @@ Restrictions
 """"""""""""
  none
 
-**Related commands:** none
+Related commands
+""""""""""""""""
+
+none
+
 
 :doc:`improper_style none <improper_none>`
 
-**Default:** none
+Default
+"""""""
+
+none

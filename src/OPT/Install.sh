@@ -41,10 +41,10 @@ action pair_lj_cut_coul_long_opt.h pair_lj_cut_coul_long.cpp
 action pair_lj_cut_opt.cpp
 action pair_lj_cut_opt.h
 action pair_lj_cut_tip4p_long_opt.cpp pair_lj_cut_tip4p_long.cpp
-action pair_lj_cut_tip4p_long_opt.h pair_lj_cut_tip4p_long.cpp 
+action pair_lj_cut_tip4p_long_opt.h pair_lj_cut_tip4p_long.cpp
 action pair_lj_long_coul_long_opt.cpp pair_lj_long_coul_long.cpp
 action pair_lj_long_coul_long_opt.h pair_lj_long_coul_long.cpp
 action pair_morse_opt.cpp
 action pair_morse_opt.h
-action pair_ufm_opt.cpp
-action pair_ufm_opt.h
+action pair_ufm_opt.cpp pair_ufm.cpp
+action pair_ufm_opt.h pair_ufm.h

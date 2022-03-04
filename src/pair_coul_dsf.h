@@ -1,6 +1,6 @@
 /* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
-   http://lammps.sandia.gov, Sandia National Laboratories
+   https://www.lammps.org/, Sandia National Laboratories
    Steve Plimpton, sjplimp@sandia.gov
 
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 #ifdef PAIR_CLASS
-
-PairStyle(coul/dsf,PairCoulDSF)
-
+// clang-format off
+PairStyle(coul/dsf,PairCoulDSF);
+// clang-format on
 #else
 
 #ifndef LMP_PAIR_COUL_DSF_H
@@ -27,28 +27,28 @@ namespace LAMMPS_NS {
 class PairCoulDSF : public Pair {
  public:
   PairCoulDSF(class LAMMPS *);
-  ~PairCoulDSF();
-  void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  void init_style();
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  double single(int, int, int, int, double, double, double, double &);
-  void *extract(const char *, int &);
+  ~PairCoulDSF() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  void init_style() override;
+  double init_one(int, int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
+  double single(int, int, int, int, double, double, double, double &) override;
+  void *extract(const char *, int &) override;
 
  protected:
-  double cut_coul,cut_coulsq;
+  double cut_coul, cut_coulsq;
   double alpha;
-  double f_shift,e_shift;
+  double f_shift, e_shift;
 
   void allocate();
 };
 
-}
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

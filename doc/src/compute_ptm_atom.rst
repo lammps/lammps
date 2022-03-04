@@ -84,11 +84,12 @@ too frequently or to have multiple compute/dump commands, each with a
 unless the optional *group2-ID* argument is given, then only members
 of that group are considered as neighbors.
 
-**Output info:**
+Output info
+"""""""""""
 
 This compute calculates a per-atom array, which can be accessed by
 any command that uses per-atom values from a compute as input.  See
-the :doc:`Howto output <Howto_output>` doc page for an overview of
+the :doc:`Howto output <Howto_output>` page for an overview of
 LAMMPS output options.
 
 Results are stored in the per-atom array in the following order:
@@ -111,8 +112,8 @@ For atoms that are not within the compute group-ID, all values are set to zero.
 Restrictions
 """"""""""""
 
-This fix is part of the USER-PTM package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This fix is part of the PTM package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
@@ -120,7 +121,10 @@ Related commands
 :doc:`compute centro/atom <compute_centro_atom>`
 :doc:`compute cna/atom <compute_cna_atom>`
 
-**Default:** none
+Default
+"""""""
+
+none
 
 ----------
 

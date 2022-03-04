@@ -1,6 +1,6 @@
 # fcc nickel in a 3d periodic box
 
-clear 
+clear
 units           metal
 atom_style      spin
 
@@ -8,7 +8,7 @@ dimension       3
 boundary        p p p
 
 # necessary for the serial algorithm (sametag)
-atom_modify     map array 
+atom_modify     map array
 
 lattice         fcc 3.524
 region          box block 0.0 5.0 0.0 5.0 0.0 5.0
@@ -20,7 +20,7 @@ create_atoms    1 box
 mass            1 58.69
 
 set             group all spin/random 31 0.63
-#set            group all spin 0.63 0.0 0.0 1.0 
+#set            group all spin 0.63 0.0 0.0 1.0
 velocity        all create 100 4928459 rot yes dist gaussian
 
 pair_style      hybrid/overlay eam/alloy spin/exchange 4.0
@@ -31,7 +31,7 @@ neighbor        0.1 bin
 neigh_modify    every 10 check yes delay 20
 
 fix             1 all precession/spin zeeman 0.0 0.0 0.0 1.0
-fix_modify 	1 energy yes
+fix_modify      1 energy yes
 fix             2 all langevin/spin 0.0 0.0 21
 
 fix             3 all nve/spin lattice moving

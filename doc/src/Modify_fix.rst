@@ -27,7 +27,7 @@ derived class.  See fix.h for details.
 +---------------------------+--------------------------------------------------------------------------------------------+
 | setup_pre_force           | called before force computation in setup (optional)                                        |
 +---------------------------+--------------------------------------------------------------------------------------------+
-| setup                     | called immediately before the 1st timestep and after forces are computed (optional)        |
+| setup                     | called immediately before the first timestep and after forces are computed (optional)      |
 +---------------------------+--------------------------------------------------------------------------------------------+
 | min_setup_pre_force       | like setup_pre_force, but for minimizations instead of MD runs (optional)                  |
 +---------------------------+--------------------------------------------------------------------------------------------+
@@ -129,7 +129,7 @@ derived class.  See fix.h for details.
 Typically, only a small fraction of these methods are defined for a
 particular fix.  Setmask is mandatory, as it determines when the fix
 will be invoked during the timestep.  Fixes that perform time
-integration (\ *nve*\ , *nvt*\ , *npt*\ ) implement initial_integrate() and
+integration (\ *nve*, *nvt*, *npt*\ ) implement initial_integrate() and
 final_integrate() to perform velocity Verlet updates.  Fixes that
 constrain forces implement post_force().
 

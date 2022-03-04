@@ -52,6 +52,8 @@
 #include <impl/Kokkos_Error.hpp>
 #include <impl/Kokkos_SharedAlloc.hpp>
 
+#include <iostream>
+
 namespace Kokkos {
 namespace Impl {
 /* Report violation of size constraints:
@@ -73,10 +75,19 @@ void memory_pool_bounds_verification(size_t min_block_alloc_size,
 
 namespace Kokkos {
 
+namespace Impl {
+
+void _print_memory_pool_state(std::ostream &s, uint32_t const *sb_state_ptr,
+                              int32_t sb_count, uint32_t sb_size_lg2,
+                              uint32_t sb_state_size, uint32_t state_shift,
+                              uint32_t state_used_mask);
+
+}  // end namespace Impl
+
 template <typename DeviceType>
 class MemoryPool {
  private:
-  typedef typename Kokkos::Impl::concurrent_bitset CB;
+  using CB = Kokkos::Impl::concurrent_bitset;
 
   enum : uint32_t { bits_per_int_lg2 = CB::bits_per_int_lg2 };
   enum : uint32_t { state_shift = CB::state_shift };
@@ -107,15 +118,15 @@ class MemoryPool {
    *  Thus A_block_size < B_block_size  <=>  A_block_state > B_block_state
    */
 
-  typedef typename DeviceType::memory_space base_memory_space;
+  using base_memory_space = typename DeviceType::memory_space;
 
   enum {
     accessible = Kokkos::Impl::MemorySpaceAccess<Kokkos::HostSpace,
                                                  base_memory_space>::accessible
   };
 
-  typedef Kokkos::Impl::SharedAllocationTracker Tracker;
-  typedef Kokkos::Impl::SharedAllocationRecord<base_memory_space> Record;
+  using Tracker = Kokkos::Impl::SharedAllocationTracker;
+  using Record  = Kokkos::Impl::SharedAllocationRecord<base_memory_space>;
 
   Tracker m_tracker;
   uint32_t *m_sb_state_array;
@@ -231,24 +242,9 @@ class MemoryPool {
           sb_state_array, m_sb_state_array, alloc_size);
     }
 
-    const uint32_t *sb_state_ptr = sb_state_array;
-
-    s << "pool_size(" << (size_t(m_sb_count) << m_sb_size_lg2) << ")"
-      << " superblock_size(" << (1LU << m_sb_size_lg2) << ")" << std::endl;
-
-    for (int32_t i = 0; i < m_sb_count; ++i, sb_state_ptr += m_sb_state_size) {
-      if (*sb_state_ptr) {
-        const uint32_t block_count_lg2 = (*sb_state_ptr) >> state_shift;
-        const uint32_t block_size_lg2  = m_sb_size_lg2 - block_count_lg2;
-        const uint32_t block_count     = 1u << block_count_lg2;
-        const uint32_t block_used      = (*sb_state_ptr) & state_used_mask;
-
-        s << "Superblock[ " << i << " / " << m_sb_count << " ] {"
-          << " block_size(" << (1 << block_size_lg2) << ")"
-          << " block_count( " << block_used << " / " << block_count << " )"
-          << std::endl;
-      }
-    }
+    Impl::_print_memory_pool_state(s, sb_state_array, m_sb_count, m_sb_size_lg2,
+                                   m_sb_state_size, state_shift,
+                                   state_used_mask);
 
     if (!accessible) {
       host.deallocate(sb_state_array, alloc_size);
@@ -412,7 +408,7 @@ class MemoryPool {
     const size_t alloc_size =
         header_size + (size_t(m_sb_count) << m_sb_size_lg2);
 
-    Record *rec = Record::allocate(memspace, "MemoryPool", alloc_size);
+    Record *rec = Record::allocate(memspace, "Kokkos::MemoryPool", alloc_size);
 
     m_tracker.assign_allocated_record_to_uninitialized(rec);
 
@@ -528,7 +524,9 @@ class MemoryPool {
     // Fast query clock register 'tic' to pseudo-randomize
     // the guess for which block within a superblock should
     // be claimed.  If not available then a search occurs.
-
+#if defined(KOKKOS_ENABLE_SYCL) && !defined(KOKKOS_ARCH_INTEL_GPU)
+    const uint32_t block_id_hint = alloc_size;
+#else
     const uint32_t block_id_hint =
         (uint32_t)(Kokkos::Impl::clock_tic()
 #if defined(KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_CUDA)
@@ -537,6 +535,7 @@ class MemoryPool {
                    + (threadIdx.x + blockDim.x * threadIdx.y)
 #endif
         );
+#endif
 
     // expected state of superblock for allocation
     uint32_t sb_state = block_state;
@@ -585,19 +584,6 @@ class MemoryPool {
           p = ((char *)(m_sb_state_array + m_data_offset)) +
               (uint64_t(sb_id) << m_sb_size_lg2)       // superblock memory
               + (uint64_t(result.first) << size_lg2);  // block memory
-
-#if 0
-  printf( "  MemoryPool(0x%lx) pointer(0x%lx) allocate(%lu) sb_id(%d) sb_state(0x%x) block_size(%d) block_capacity(%d) block_id(%d) block_claimed(%d)\n"
-        , (uintptr_t)m_sb_state_array
-        , (uintptr_t)p
-        , alloc_size
-        , sb_id
-        , sb_state 
-        , (1u << size_lg2)
-        , (1u << count_lg2)
-        , result.first 
-        , result.second );
-#endif
 
           break;  // Success
         }
@@ -741,7 +727,8 @@ class MemoryPool {
 
     // Determine which superblock and block
     const ptrdiff_t d =
-        ((char *)p) - ((char *)(m_sb_state_array + m_data_offset));
+        static_cast<char *>(p) -
+        reinterpret_cast<char *>(m_sb_state_array + m_data_offset);
 
     // Verify contained within the memory pool's superblocks:
     const int ok_contains =
@@ -773,29 +760,10 @@ class MemoryPool {
         const int result = CB::release(sb_state_array, bit, block_state);
 
         ok_dealloc_once = 0 <= result;
-
-#if 0
-  printf( "  MemoryPool(0x%lx) pointer(0x%lx) deallocate sb_id(%d) block_size(%d) block_capacity(%d) block_id(%d) block_claimed(%d)\n"
-        , (uintptr_t)m_sb_state_array
-        , (uintptr_t)p
-        , sb_id
-        , (1u << block_size_lg2)
-        , (1u << (m_sb_size_lg2 - block_size_lg2))
-        , bit
-        , result );
-#endif
       }
     }
 
     if (!ok_contains || !ok_block_aligned || !ok_dealloc_once) {
-#if 0
-  printf( "  MemoryPool(0x%lx) pointer(0x%lx) deallocate ok_contains(%d) ok_block_aligned(%d) ok_dealloc_once(%d)\n"
-        , (uintptr_t)m_sb_state_array
-        , (uintptr_t)p
-        , int(ok_contains)
-        , int(ok_block_aligned)
-        , int(ok_dealloc_once) );
-#endif
       Kokkos::abort("Kokkos MemoryPool::deallocate given erroneous pointer");
     }
   }

@@ -14,6 +14,7 @@
 #include <fstream>
 #include <string>
 #include <iostream>
+#include <cstdio>
 
 namespace ucl_hip {
 
@@ -30,7 +31,7 @@ class UCL_Program {
  public:
   inline UCL_Program(UCL_Device &device) { _device_ptr = &device; _cq=device.cq(); }
   inline UCL_Program(UCL_Device &device, const void *program,
-                     const char *flags="", std::string *log=NULL) {
+                     const char *flags="", std::string *log=nullptr) {
     _device_ptr = &device; _cq=device.cq();
     init(device);
     load_string(program,flags,log);
@@ -46,7 +47,7 @@ class UCL_Program {
   inline void clear() { }
 
   /// Load a program from a file and compile with flags
-  inline int load(const char *filename, const char *flags="", std::string *log=NULL) {
+  inline int load(const char *filename, const char *flags="", std::string *log=nullptr) {
     std::ifstream in(filename);
     if (!in || in.is_open()==false) {
       #ifndef UCL_NO_EXIT
@@ -64,15 +65,19 @@ class UCL_Program {
   }
 
   /// Load a program from a string and compile with flags
-  inline int load_string(const void *program, const char *flags="", std::string *log=NULL) {
+  inline int load_string(const void *program, const char *flags="", std::string *log=nullptr, FILE* foutput=nullptr) {
     return _device_ptr->load_module(program, _module, log);
   }
+
+  /// Return the default command queue/stream associated with this data
+  inline hipStream_t & cq() { return _cq; }
 
   friend class UCL_Kernel;
  private:
   hipModule_t _module;
   hipStream_t _cq;
   friend class UCL_Texture;
+  friend class UCL_Const;
 };
 
 /// Class for dealing with CUDA Driver kernels
@@ -157,7 +162,7 @@ class UCL_Kernel {
     const auto aligned_size = (old_size+alignof(dtype)-1) & ~(alignof(dtype)-1);
     const auto arg_size = sizeof(dtype);
     _hip_kernel_args.resize(aligned_size + arg_size);
-    *((dtype*)(&_hip_kernel_args[aligned_size])) = *arg; 
+    *((dtype*)(&_hip_kernel_args[aligned_size])) = *arg;
     _num_args++;
     if (_num_args>UCL_MAX_KERNEL_ARGS) assert(0==1);
   }
@@ -190,7 +195,7 @@ class UCL_Kernel {
     _num_blocks[0]=num_blocks;
     _num_blocks[1]=1;
     _num_blocks[2]=1;
-    
+
     _block_size[0]=block_size;
     _block_size[1]=1;
     _block_size[2]=1;
@@ -263,7 +268,7 @@ class UCL_Kernel {
     };
     const auto res = hipModuleLaunchKernel(_kernel,_num_blocks[0],_num_blocks[1],
                                 _num_blocks[2],_block_size[0],_block_size[1],
-                                _block_size[2],0,_cq, NULL, config);
+                                _block_size[2],0,_cq, nullptr, config);
     CU_SAFE_CALL(res);
 //#endif
   }

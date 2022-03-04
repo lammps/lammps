@@ -1,6 +1,11 @@
 #ifndef KOKKOS_CUDA_INSTANCE_HPP_
 #define KOKKOS_CUDA_INSTANCE_HPP_
 
+#include <vector>
+#include <impl/Kokkos_Tools.hpp>
+#include <atomic>
+#include <Cuda/Kokkos_Cuda_Error.hpp>
+
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 // These functions fulfill the purpose of allowing to work around
@@ -15,25 +20,24 @@ namespace Kokkos {
 namespace Impl {
 
 struct CudaTraits {
-  enum { WarpSize = 32 /* 0x0020 */ };
-  enum { WarpIndexMask = 0x001f /* Mask for warpindex */ };
-  enum { WarpIndexShift = 5 /* WarpSize == 1 << WarpShift */ };
+  static constexpr CudaSpace::size_type WarpSize = 32 /* 0x0020 */;
+  static constexpr CudaSpace::size_type WarpIndexMask =
+      0x001f; /* Mask for warpindex */
+  static constexpr CudaSpace::size_type WarpIndexShift =
+      5; /* WarpSize == 1 << WarpShift */
 
-  enum { ConstantMemoryUsage = 0x008000 /* 32k bytes */ };
-  enum { ConstantMemoryCache = 0x002000 /*  8k bytes */ };
-  enum { KernelArgumentLimit = 0x001000 /*  4k bytes */ };
+  static constexpr CudaSpace::size_type ConstantMemoryUsage =
+      0x008000; /* 32k bytes */
+  static constexpr CudaSpace::size_type ConstantMemoryCache =
+      0x002000; /*  8k bytes */
+  static constexpr CudaSpace::size_type KernelArgumentLimit =
+      0x001000; /*  4k bytes */
+  static constexpr CudaSpace::size_type MaxHierarchicalParallelism =
+      1024; /* team_size * vector_length */
+  using ConstantGlobalBufferType =
+      unsigned long[ConstantMemoryUsage / sizeof(unsigned long)];
 
-  typedef unsigned long
-      ConstantGlobalBufferType[ConstantMemoryUsage / sizeof(unsigned long)];
-
-#if defined(KOKKOS_ARCH_VOLTA) || defined(KOKKOS_ARCH_PASCAL)
-  enum {
-    ConstantMemoryUseThreshold =
-        0x000200 /* 0 bytes -> always use constant (or global)*/
-  };
-#else
-  enum { ConstantMemoryUseThreshold = 0x000200 /* 512 bytes */ };
-#endif
+  static constexpr int ConstantMemoryUseThreshold = 0x000200 /* 512 bytes */;
 
   KOKKOS_INLINE_FUNCTION static CudaSpace::size_type warp_count(
       CudaSpace::size_type i) {
@@ -42,7 +46,7 @@ struct CudaTraits {
 
   KOKKOS_INLINE_FUNCTION static CudaSpace::size_type warp_align(
       CudaSpace::size_type i) {
-    enum { Mask = ~CudaSpace::size_type(WarpIndexMask) };
+    constexpr CudaSpace::size_type Mask = ~WarpIndexMask;
     return (i + WarpIndexMask) & Mask;
   }
 };
@@ -79,7 +83,7 @@ class CudaInternal {
 #endif
 
  public:
-  typedef Cuda::size_type size_type;
+  using size_type = Cuda::size_type;
 
   int m_cudaDev;
 
@@ -99,10 +103,12 @@ class CudaInternal {
 
   cudaDeviceProp m_deviceProp;
 
+  // Scratch Spaces for Reductions
   mutable size_type m_scratchSpaceCount;
   mutable size_type m_scratchFlagsCount;
   mutable size_type m_scratchUnifiedCount;
   mutable size_type m_scratchFunctorSize;
+
   size_type m_scratchUnifiedSupported;
   size_type m_streamCount;
   mutable size_type* m_scratchSpace;
@@ -111,19 +117,33 @@ class CudaInternal {
   mutable size_type* m_scratchFunctor;
   uint32_t* m_scratchConcurrentBitset;
   cudaStream_t m_stream;
+  uint32_t m_instance_id;
+  bool m_manage_stream;
 
-  static int was_initialized;
-  static int was_finalized;
+  // Team Scratch Level 1 Space
+  int m_n_team_scratch = 10;
+  mutable int64_t m_team_scratch_current_size[10];
+  mutable void* m_team_scratch_ptr[10];
+  mutable std::atomic_int m_team_scratch_pool[10];
+
+  bool was_initialized = false;
+  bool was_finalized   = false;
+
+  // FIXME_CUDA: these want to be per-device, not per-stream...  use of 'static'
+  //  here will break once there are multiple devices though
+  static unsigned long* constantMemHostStaging;
+  static cudaEvent_t constantMemReusable;
 
   static CudaInternal& singleton();
 
   int verify_is_initialized(const char* const label) const;
 
   int is_initialized() const {
-    return 0 != m_scratchSpace && 0 != m_scratchFlags;
+    return nullptr != m_scratchSpace && nullptr != m_scratchFlags;
   }
 
-  void initialize(int cuda_device_id, cudaStream_t stream = 0);
+  void initialize(int cuda_device_id, cudaStream_t stream = nullptr,
+                  bool manage_stream = false);
   void finalize();
 
   void print_configuration(std::ostream&) const;
@@ -133,6 +153,7 @@ class CudaInternal {
   static void cuda_set_serial_execution(bool);
 #endif
 
+  void fence(const std::string&) const;
   void fence() const;
 
   ~CudaInternal();
@@ -157,19 +178,74 @@ class CudaInternal {
         m_scratchFunctorSize(0),
         m_scratchUnifiedSupported(0),
         m_streamCount(0),
-        m_scratchSpace(0),
-        m_scratchFlags(0),
-        m_scratchUnified(0),
-        m_scratchFunctor(0),
-        m_scratchConcurrentBitset(0),
-        m_stream(0) {}
+        m_scratchSpace(nullptr),
+        m_scratchFlags(nullptr),
+        m_scratchUnified(nullptr),
+        m_scratchFunctor(nullptr),
+        m_scratchConcurrentBitset(nullptr),
+        m_stream(nullptr),
+        m_instance_id(
+            Kokkos::Tools::Experimental::Impl::idForInstance<Kokkos::Cuda>(
+                reinterpret_cast<uintptr_t>(this))) {
+    for (int i = 0; i < m_n_team_scratch; ++i) {
+      m_team_scratch_current_size[i] = 0;
+      m_team_scratch_ptr[i]          = nullptr;
+      m_team_scratch_pool[i]         = 0;
+    }
+  }
 
+  // Resizing of reduction related scratch spaces
   size_type* scratch_space(const size_type size) const;
   size_type* scratch_flags(const size_type size) const;
   size_type* scratch_unified(const size_type size) const;
   size_type* scratch_functor(const size_type size) const;
+  uint32_t impl_get_instance_id() const;
+  // Resizing of team level 1 scratch
+  std::pair<void*, int> resize_team_scratch_space(std::int64_t bytes,
+                                                  bool force_shrink = false);
 };
 
 }  // Namespace Impl
+
+namespace Experimental {
+// Partitioning an Execution Space: expects space and integer arguments for
+// relative weight
+//   Customization point for backends
+//   Default behavior is to return the passed in instance
+
+namespace Impl {
+inline void create_Cuda_instances(std::vector<Cuda>& instances) {
+  for (int s = 0; s < int(instances.size()); s++) {
+    cudaStream_t stream;
+    KOKKOS_IMPL_CUDA_SAFE_CALL(cudaStreamCreate(&stream));
+    instances[s] = Cuda(stream, true);
+  }
+}
+}  // namespace Impl
+
+template <class... Args>
+std::vector<Cuda> partition_space(const Cuda&, Args...) {
+#ifdef __cpp_fold_expressions
+  static_assert(
+      (... && std::is_arithmetic_v<Args>),
+      "Kokkos Error: partitioning arguments must be integers or floats");
+#endif
+  std::vector<Cuda> instances(sizeof...(Args));
+  Impl::create_Cuda_instances(instances);
+  return instances;
+}
+
+template <class T>
+std::vector<Cuda> partition_space(const Cuda&, std::vector<T>& weights) {
+  static_assert(
+      std::is_arithmetic<T>::value,
+      "Kokkos Error: partitioning arguments must be integers or floats");
+
+  std::vector<Cuda> instances(weights.size());
+  Impl::create_Cuda_instances(instances);
+  return instances;
+}
+}  // namespace Experimental
+
 }  // Namespace Kokkos
 #endif

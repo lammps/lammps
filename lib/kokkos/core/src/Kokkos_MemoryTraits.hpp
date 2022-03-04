@@ -46,7 +46,6 @@
 #define KOKKOS_MEMORYTRAITS_HPP
 
 #include <impl/Kokkos_Traits.hpp>
-#include <impl/Kokkos_Tags.hpp>
 
 //----------------------------------------------------------------------------
 
@@ -71,18 +70,7 @@ enum MemoryTraitsFlags {
 template <unsigned T>
 struct MemoryTraits {
   //! Tag this class as a kokkos memory traits:
-  typedef MemoryTraits memory_traits;
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE
-  enum : bool {
-    Unmanaged = (unsigned(0) != (T & unsigned(Kokkos::Unmanaged)))
-  };
-  enum : bool {
-    RandomAccess = (unsigned(0) != (T & unsigned(Kokkos::RandomAccess)))
-  };
-  enum : bool { Atomic = (unsigned(0) != (T & unsigned(Kokkos::Atomic))) };
-  enum : bool { Restrict = (unsigned(0) != (T & unsigned(Kokkos::Restrict))) };
-  enum : bool { Aligned = (unsigned(0) != (T & unsigned(Kokkos::Aligned))) };
-#endif
+  using memory_traits = MemoryTraits<T>;
   enum : bool {
     is_unmanaged = (unsigned(0) != (T & unsigned(Kokkos::Unmanaged)))
   };
@@ -102,10 +90,10 @@ struct MemoryTraits {
 
 namespace Kokkos {
 
-typedef Kokkos::MemoryTraits<0> MemoryManaged;
-typedef Kokkos::MemoryTraits<Kokkos::Unmanaged> MemoryUnmanaged;
-typedef Kokkos::MemoryTraits<Kokkos::Unmanaged | Kokkos::RandomAccess>
-    MemoryRandomAccess;
+using MemoryManaged   = Kokkos::MemoryTraits<0>;
+using MemoryUnmanaged = Kokkos::MemoryTraits<Kokkos::Unmanaged>;
+using MemoryRandomAccess =
+    Kokkos::MemoryTraits<Kokkos::Unmanaged | Kokkos::RandomAccess>;
 
 }  // namespace Kokkos
 
@@ -129,6 +117,15 @@ enum : unsigned {
   MEMORY_ALIGNMENT           = KOKKOS_MEMORY_ALIGNMENT,
   MEMORY_ALIGNMENT_THRESHOLD = KOKKOS_MEMORY_ALIGNMENT_THRESHOLD
 };
+
+// ------------------------------------------------------------------ //
+//  this identifies the default memory trait
+//
+template <typename Tp>
+struct is_default_memory_trait : std::false_type {};
+
+template <>
+struct is_default_memory_trait<Kokkos::MemoryTraits<0>> : std::true_type {};
 
 }  // namespace Impl
 }  // namespace Kokkos

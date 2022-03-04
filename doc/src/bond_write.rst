@@ -47,7 +47,13 @@ The file is written in the format used as input for the
 :doc:`bond_style <bond_style>` *table* option with *keyword* as the
 section name.  Each line written to the file lists an index number
 (1-N), a distance (in distance units), an energy (in energy units),
-and a force (in force units).
+and a force (in force units). In case a new file is created, the first
+line will be a comment with a "DATE:" and "UNITS:" tag with the current
+date and :doc:`units <units>` settings.  For subsequent invocations of
+the bond_write command for the same file, data will be appended and the
+current units settings will be compared to the data from the header, if
+present, and bond_write will refuse to add a table if the units are not
+the same.
 
 Restrictions
 """"""""""""
@@ -64,4 +70,7 @@ Related commands
 :doc:`bond_style table <bond_table>`,
 :doc:`bond_style <bond_style>`, :doc:`bond_coeff <bond_coeff>`
 
-**Default:** none
+Default
+"""""""
+
+none

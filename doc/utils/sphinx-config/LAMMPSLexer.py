@@ -8,8 +8,8 @@ LAMMPS_COMMANDS = ("angle_coeff", "angle_style", "atom_modify", "atom_style",
 "delete_bonds", "dielectric", "dihedral_coeff", "dihedral_style", "dimension",
 "displace_atoms", "dump_modify", "dynamical_matrix", "echo",
 "fix_modify", "group2ndx", "hyper", "if", "improper_coeff",
-"improper_style", "include", "info", "jump", "kim_init", "kim_interactions",
-"kim_param", "kim_query", "kspace_modify", "kspace_style", "label", "lattice",
+"improper_style", "include", "info", "jump", "kim",
+"kspace_modify", "kspace_style", "label", "lattice",
 "log", "mass", "message", "minimize", "min_modify", "min_style", "molecule",
 "ndx2group", "neb", "neb/spin", "neighbor", "neigh_modify", "newton", "next",
 "package", "pair_coeff", "pair_modify", "pair_style", "pair_write",
@@ -40,7 +40,7 @@ class LAMMPSLexer(RegexLexer):
             (r'compute\s+', Keyword, 'compute'),
             (r'dump\s+', Keyword, 'dump'),
             (r'region\s+', Keyword, 'region'),
-            (r'variable\s+', Keyword, 'variable'),
+            (r'^\s*variable\s+', Keyword, 'variable_cmd'),
             (r'group\s+', Keyword, 'group'),
             (r'change_box\s+', Keyword, 'change_box'),
             (r'uncompute\s+', Keyword, 'uncompute'),
@@ -51,6 +51,7 @@ class LAMMPSLexer(RegexLexer):
             (r'#.*?\n', Comment),
             ('"', String, 'string'),
             ('\'', String, 'single_quote_string'),
+            (r'[0-9]+:[0-9]+(:[0-9]+)?', Number),
             (r'[0-9]+(\.[0-9]+)?([eE]\-?[0-9]+)?', Number),
             ('\$?\(', Name.Variable, 'expression'),
             ('\$\{', Name.Variable, 'variable'),
@@ -58,6 +59,7 @@ class LAMMPSLexer(RegexLexer):
             (r'\$[\w_]+', Name.Variable),
             (r'\s+', Whitespace),
             (r'[\+\-\*\^\|\/\!%&=<>]', Operator),
+            (r'[\~\.\w_:,@\-\/\\0-9]+', Text),
         ],
         'keywords' : [
             (words(LAMMPS_COMMANDS, suffix=r'\b', prefix=r'^'), Keyword)
@@ -99,7 +101,7 @@ class LAMMPSLexer(RegexLexer):
             (r'[\w_\-\.\[\]]+', Name.Variable.Identifier),
             default('#pop')
         ],
-        'variable' : [
+        'variable_cmd' : [
             (r'[\w_\-\.\[\]]+', Name.Variable.Identifier),
             default('#pop')
         ],

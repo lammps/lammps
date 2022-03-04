@@ -1,0 +1,44 @@
+##### overdamped dynamics of non-interacting point particles in 3D #####
+
+variable        rng string gaussian
+variable        seed string 198098
+variable        temp string 5.0
+variable        gamma_t string 1.0
+variable        params string ${rng}_${temp}_${gamma_t}
+
+units           lj
+atom_style      atomic
+dimension       3
+newton off
+
+lattice         sc 0.4
+region          box block -8 8 -8 8 -8 8
+create_box      1 box
+create_atoms    1 box
+mass            * 1.0
+velocity        all create 1.0 1 loop geom
+
+neighbor        1.0 bin
+neigh_modify    every 1 delay 1 check yes
+
+pair_style none
+
+fix 1 all brownian ${temp} ${seed} rng ${rng} gamma_t ${gamma_t}
+
+#initialisation for the main run
+
+# MSD
+compute         msd  all msd
+
+thermo_style    custom step ke pe c_msd[*]
+
+#dump            1 all custom 1000 dump_${params}_3d.lammpstrj id type &
+#                x y z xu yu zu fx fy fz
+#dump_modify     1 first yes sort id
+
+timestep        0.00001
+thermo          100
+
+# main run
+run             3000
+

@@ -28,10 +28,10 @@ nsteps = int(sys.argv[3])
 compute = sys.argv[4]
 
 me = 0
-# uncomment if running in parallel via Pypar
-#import pypar
-#me = pypar.rank()
-#nprocs = pypar.size()
+# uncomment this if running in parallel via mpi4py
+#from mpi4py import MPI
+#me = MPI.COMM_WORLD.Get_rank()
+#nprocs = MPI.COMM_WORLD.Get_size()
 
 from lammps import lammps
 lmp = lammps()
@@ -57,7 +57,7 @@ if me == 0:
   gn = gnu()
   gn.plot(xaxis,yaxis)
   gn.xrange(0,nsteps)
-  gn.title(compute,"Timestep","Temperature")
+  gn.title(compute.replace('_', ' '),"Timestep","Temperature")
 
 # run nfreq steps at a time w/out pre/post, query compute, refresh plot
 
@@ -71,6 +71,5 @@ while ntimestep < nsteps:
 
 lmp.command("run 0 pre no post yes")
 
-# uncomment if running in parallel via Pypar
+# uncomment if running in parallel via mpi4py
 #print("Proc %d out of %d procs has" % (me,nprocs), lmp)
-#pypar.finalize()

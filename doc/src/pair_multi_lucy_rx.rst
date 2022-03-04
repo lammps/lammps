@@ -1,10 +1,10 @@
 .. index:: pair_style multi/lucy/rx
+.. index:: pair_style multi/lucy/rx/kk
 
 pair_style multi/lucy/rx command
 ================================
 
-pair_style multi/lucy/rx/kk command
-===================================
+Accelerator Variants: *multi/lucy/rx/kk*
 
 Syntax
 """"""
@@ -14,7 +14,7 @@ Syntax
    pair_style multi/lucy/rx style N keyword ...
 
 * style = *lookup* or *linear* = method of interpolation
-* N = use N values in *lookup*\ , *linear* tables
+* N = use N values in *lookup*, *linear* tables
 * weighting = fractional or molecular (optional)
 
 Examples
@@ -134,7 +134,7 @@ defined as follows (without the parenthesized comments):
    ...
    500 10.0 0.001 0.003
 
-A section begins with a non-blank line whose 1st character is not a
+A section begins with a non-blank line whose first character is not a
 "#"; blank lines or lines starting with "#" can be used as comments
 between sections.  The first line begins with a keyword which
 identifies the section.  The line can contain additional text, but the
@@ -185,9 +185,9 @@ uniformly spaced between *rlo\*rlo* and *rhi\*rhi* are computed.
    this is occurring.
 
 Following a blank line, the next N lines list the tabulated values.
-On each line, the 1st value is the index from 1 to N, the 2nd value is
-r (in density units), the 3rd value is the density-dependent function
-value (in energy units / length\^4), and the 4th is the force (in force
+On each line, the first value is the index from 1 to N, the second value is
+r (in density units), the third value is the density-dependent function
+value (in energy units / length\^4), and the fourth is the force (in force
 units).  The density values must increase from one line to the next.
 
 Note that one file can contain many sections, each with a tabulated
@@ -196,7 +196,8 @@ one that matches the specified keyword.
 
 ----------
 
-**Mixing, shift, table, tail correction, restart, rRESPA info**\ :
+Mixing, shift, table, tail correction, restart, rRESPA info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 This pair style does not support mixing.  Thus, coefficients for all
 I,J pairs must be specified explicitly.
@@ -213,42 +214,30 @@ commands do need to be specified in the restart input script.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
-*inner*\ , *middle*\ , *outer* keywords.
+*inner*, *middle*, *outer* keywords.
 
 ----------
 
-Styles with a *gpu*\ , *intel*\ , *kk*\ , *omp*\ , or *opt* suffix are
-functionally the same as the corresponding style without the suffix.
-They have been optimized to run faster, depending on your available
-hardware, as discussed on the :doc:`Speed packages <Speed_packages>` doc
-page.  The accelerated styles take the same arguments and should
-produce the same results, except for round-off and precision issues.
-
-These accelerated styles are part of the GPU, USER-INTEL, KOKKOS,
-USER-OMP and OPT packages, respectively.  They are only enabled if
-LAMMPS was built with those packages.  See the :doc:`Build package <Build_package>` doc page for more info.
-
-You can specify the accelerated styles explicitly in your input script
-by including their suffix, or you can use the :doc:`-suffix command-line switch <Run_options>` when you invoke LAMMPS, or you can use the
-:doc:`suffix <suffix>` command in your input script.
-
-See the :doc:`Speed packages <Speed_packages>` doc page for more
-instructions on how to use the accelerated styles effectively.
+.. include:: accel_styles.rst
 
 ----------
 
 Restrictions
 """"""""""""
 
-This command is part of the USER-DPD package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
+This command is part of the DPD-REACT package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
 
 :doc:`pair_coeff <pair_coeff>`
 
-**Default:** fractional weighting
+Default
+"""""""
+
+fractional weighting
+
 
 ----------
 

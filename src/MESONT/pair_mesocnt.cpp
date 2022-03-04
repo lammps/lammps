@@ -387,10 +387,11 @@ void PairMesoCNT::allocate()
 {
   allocated = 1;
   int ntypes = atom->ntypes;
+  int np1 = ntypes + 1;
   int init_size = 1;
 
-  memory->create(cutsq, ntypes + 1, ntypes + 1, "pair:cutsq");
-  memory->create(setflag, ntypes + 1, ntypes + 1, "pair:setflag");
+  memory->create(cutsq, np1, np1, "pair:cutsq");
+  memory->create(setflag, np1, np1, "pair:setflag");
   for (int i = 1; i <= ntypes; i++)
     for (int j = i; j <= ntypes; j++) setflag[i][j] = 0;
 

@@ -79,16 +79,15 @@ struct TagPairReaxBondOrder3{};
 template<int NEIGHFLAG>
 struct TagPairReaxUpdateBond{};
 
-template<int NEIGHFLAG, int EVFLAG>
+template<int NEIGHFLAG, int EFLAG>
 struct TagPairReaxComputeBond1{};
 
-template<int NEIGHFLAG, int EVFLAG>
+template<int NEIGHFLAG, int VFLAG>
 struct TagPairReaxComputeBond2{};
 
-template<int NEIGHFLAG, int EVFLAG>
 struct TagPairReaxComputeMulti1{};
 
-template<int NEIGHFLAG, int EVFLAG>
+template<int NEIGHFLAG, int EFLAG>
 struct TagPairReaxComputeMulti2{};
 
 template<int NEIGHFLAG, int EVFLAG>
@@ -196,33 +195,32 @@ class PairReaxFFKokkos : public PairReaxFF {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairReaxUpdateBond<NEIGHFLAG>, const int&) const;
 
-  template<int NEIGHFLAG, int EVFLAG>
+  template<int NEIGHFLAG, int EFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairReaxComputeBond1<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
+  void operator()(TagPairReaxComputeBond1<NEIGHFLAG,EFLAG>, const int&, EV_FLOAT_REAX&) const;
 
-  template<int NEIGHFLAG, int EVFLAG>
+  template<int NEIGHFLAG, int EFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairReaxComputeBond1<NEIGHFLAG,EVFLAG>, const int&) const;
+  void operator()(TagPairReaxComputeBond1<NEIGHFLAG,EFLAG>, const int&) const;
 
-  template<int NEIGHFLAG, int EVFLAG>
+  template<int NEIGHFLAG, int VFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairReaxComputeBond2<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
+  void operator()(TagPairReaxComputeBond2<NEIGHFLAG,VFLAG>, const int&, EV_FLOAT_REAX&) const;
 
-  template<int NEIGHFLAG, int EVFLAG>
+  template<int NEIGHFLAG, int VFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairReaxComputeBond2<NEIGHFLAG,EVFLAG>, const int&) const;
+  void operator()(TagPairReaxComputeBond2<NEIGHFLAG,VFLAG>, const int&) const;
 
-  template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairReaxComputeMulti1<NEIGHFLAG,EVFLAG>, const int&) const;
+  void operator()(TagPairReaxComputeMulti1, const int&) const;
 
-  template<int NEIGHFLAG, int EVFLAG>
+  template<int NEIGHFLAG, int EFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairReaxComputeMulti2<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT_REAX&) const;
+  void operator()(TagPairReaxComputeMulti2<NEIGHFLAG,EFLAG>, const int&, EV_FLOAT_REAX&) const;
 
-  template<int NEIGHFLAG, int EVFLAG>
+  template<int NEIGHFLAG, int EFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairReaxComputeMulti2<NEIGHFLAG,EVFLAG>, const int&) const;
+  void operator()(TagPairReaxComputeMulti2<NEIGHFLAG,EFLAG>, const int&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION

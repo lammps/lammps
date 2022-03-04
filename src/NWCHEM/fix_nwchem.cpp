@@ -883,12 +883,14 @@ void FixNWChem::set_qqm()
 {
   for (int i = 0; i < nqm; i++) qqm_mine[i] = 0.0;
 
-  double *q = atom->q;
-  int ilocal;
-  
-  for (int i = 0; i < nqm; i++) {
-    ilocal = qm2owned[i];
-    if (ilocal >= 0) qqm_mine[i] = q[ilocal];
+  if (qflag) {
+    double *q = atom->q;
+    int ilocal;
+
+    for (int i = 0; i < nqm; i++) {
+      ilocal = qm2owned[i];
+      if (ilocal >= 0) qqm_mine[i] = q[ilocal];
+    }
   }
   
   MPI_Allreduce(qqm_mine,qqm,nqm,MPI_DOUBLE,MPI_SUM,world);
@@ -915,12 +917,21 @@ void FixNWChem::set_tqm()
 
 void FixNWChem::set_xqm()
 {
+  // xctr = center of LAMMPS simulation box
+
+  double xctr[3];
+  xctr[0] = xctr[1] = xctr[2] = 0.5;
+  domain->lamda2x(xctr,xctr);
+
+  // xqm_mine = coords of QM atoms I own
+  // translate wrt NWChem origin at center of simulation box
+
   for (int i = 0; i < nqm; i++) {
     xqm_mine[i][0] = 0.0;
     xqm_mine[i][1] = 0.0;
     xqm_mine[i][2] = 0.0;
   }
-
+  
   double **x = atom->x;
   int ilocal;
 
@@ -930,7 +941,12 @@ void FixNWChem::set_xqm()
       xqm_mine[i][0] = x[ilocal][0];
       xqm_mine[i][1] = x[ilocal][1];
       xqm_mine[i][2] = x[ilocal][2];
+
       domain->remap(xqm_mine[i]);
+
+      xqm_mine[i][0] -= xctr[0];
+      xqm_mine[i][1] -= xctr[1];
+      xqm_mine[i][2] -= xctr[2];
     }
   }
 

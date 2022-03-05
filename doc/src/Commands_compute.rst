@@ -101,8 +101,8 @@ KOKKOS, o = OPENMP, t = OPT.
    * :doc:`plasticity/atom <compute_plasticity_atom>`
    * :doc:`pressure <compute_pressure>`
    * :doc:`pressure/cartesian <compute_pressure_cartesian>`
-   * :doc:`pressure/cylinder <compute_pressure_cylinder>`
-   * :doc:`pressure/spherical <compute_pressure_cylinder>`
+   * :doc:`pressure/cylinder <compute_pressure_cartesian>`
+   * :doc:`pressure/spherical <compute_pressure_cartesian>`
    * :doc:`pressure/uef <compute_pressure_uef>`
    * :doc:`property/atom <compute_property_atom>`
    * :doc:`property/chunk <compute_property_chunk>`

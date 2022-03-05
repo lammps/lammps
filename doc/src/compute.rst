@@ -247,8 +247,8 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`plasticity/atom <compute_plasticity_atom>` - Peridynamic plasticity for each atom
 * :doc:`pressure <compute_pressure>` - total pressure and pressure tensor
 * :doc:`pressure/cartesian <compute_pressure_cartesian>` - pressure tensor in cartesian coordinates
-* :doc:`pressure/cylinder <compute_pressure_cylinder>` - pressure tensor in cylindrical coordinates
-* :doc:`pressure/spherical <compute_pressure_spherical>` - pressure tensor in spherical coordinates
+* :doc:`pressure/cylinder <compute_pressure_cartesian>` - pressure tensor in cylindrical coordinates
+* :doc:`pressure/spherical <compute_pressure_cartesian>` - pressure tensor in spherical coordinates
 * :doc:`pressure/uef <compute_pressure_uef>` - pressure tensor in the reference frame of an applied flow field
 * :doc:`property/atom <compute_property_atom>` - convert atom attributes to per-atom vectors/arrays
 * :doc:`property/chunk <compute_property_chunk>` - extract various per-chunk attributes

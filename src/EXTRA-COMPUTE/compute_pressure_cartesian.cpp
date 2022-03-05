@@ -39,17 +39,18 @@ using namespace MathConst;
 ------------------------------------------------------------------------------------*/
 
 static const char cite_compute_pressure_cartesian[] =
-  "compute pressure/cartesian:\n\n"
-  "@article{ikeshoji2003molecular,\n"
-  "title={Molecular-level calculation scheme for pressure in inhomogeneous systems of flat and spherical layers},\n"
-  "author={Ikeshoji, Tamio and Hafskjold, Bj{\\o}rn and Furuholt, Hilde},\n"
-  "journal={Molecular Simulation},\n"
-  "volume={29},\n"
-  "number={2},\n"
-  "pages={101--109},\n"
-  "year={2003},\n"
-  "publisher={Taylor & Francis}\n"
-  "}\n\n";
+    "compute pressure/cartesian:\n\n"
+    "@article{ikeshoji2003molecular,\n"
+    "title={Molecular-level calculation scheme for pressure in inhomogeneous systems of flat and "
+    "spherical layers},\n"
+    "author={Ikeshoji, Tamio and Hafskjold, Bj{\\o}rn and Furuholt, Hilde},\n"
+    "journal={Molecular Simulation},\n"
+    "volume={29},\n"
+    "number={2},\n"
+    "pages={101--109},\n"
+    "year={2003},\n"
+    "publisher={Taylor & Francis}\n"
+    "}\n\n";
 
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
@@ -247,7 +248,6 @@ void ComputePressureCartesian::compute_array()
 
     j = bin1 + bin2 * nbins1;
     tdens[j] += 1;
-    // TODO: Subtract streaming velocity
     tpkxx[j] += mass[type[i]] * v[i][0] * v[i][0];
     tpkyy[j] += mass[type[i]] * v[i][1] * v[i][1];
     tpkzz[j] += mass[type[i]] * v[i][2] * v[i][2];

@@ -17,8 +17,8 @@ ComputeStyle(pressure/cylinder,ComputePressureCyl);
 // clang-format on
 #else
 
-#ifndef LMP_COMPUTE_PRESSURE_CYLINDER
-#define LMP_COMPUTE_PRESSURE_CYLINDER
+#ifndef LMP_COMPUTE_PRESSURE_CYLINDER_H
+#define LMP_COMPUTE_PRESSURE_CYLINDER_H
 
 #include "compute.h"
 
@@ -34,6 +34,7 @@ class ComputePressureCyl : public Compute {
   double memory_usage() override;
 
  private:
+  int kinetic_flag;
   int nbins, nphi, nzbins;
   double *Pvr_temp, *Pvr_all, *Pvz_temp, *Pvz_all, *Pvphi_temp, *Pvphi_all;
   double *Pkr_temp, *Pkr_all, *Pkz_temp, *Pkz_all, *Pkphi_temp, *Pkphi_all;

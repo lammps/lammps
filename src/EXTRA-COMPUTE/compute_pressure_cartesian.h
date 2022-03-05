@@ -27,11 +27,11 @@ namespace LAMMPS_NS {
 class ComputePressureCartesian : public Compute {
  public:
   ComputePressureCartesian(class LAMMPS *, int, char **);
-  ~ComputePressureCartesian();
-  void init();
-  void init_list(int, class NeighList *);
-  void compute_array();
-  double memory_usage();
+  ~ComputePressureCartesian() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void compute_array() override;
+  double memory_usage() override;
 
  private:
   int nbins1, nbins2, dir1, dir2, dims;

@@ -20,6 +20,7 @@
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
+#include "modify.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
@@ -27,9 +28,18 @@
 #include "update.h"
 
 #include <cmath>
+#include <cstring>
+#include <mpi.h>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+
+/*-----------------------------------------------------------------------------------
+  Contributing authors: Cody K. Addington (North Carolina State University)
+                        (Kinetic contribution) : Olav Galteland,
+                        (Norwegian University of Science and Technology),
+                        olav.galteland@ntnu.no
+------------------------------------------------------------------------------------*/
 
 static const char cite_compute_pressure_cylinder[] =
     "compute pressure/cylinder:\n\n"
@@ -48,18 +58,31 @@ static const char cite_compute_pressure_cylinder[] =
   +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 
 ComputePressureCyl::ComputePressureCyl(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), Pvr_temp(nullptr), Pvr_all(nullptr), Pvz_temp(nullptr), Pvz_all(nullptr),
-    Pvphi_temp(nullptr), Pvphi_all(nullptr), R(nullptr), Rinv(nullptr), R2(nullptr), PrAinv(nullptr),
-    PzAinv(nullptr), R2kin(nullptr), density_temp(nullptr), invVbin(nullptr), density_all(nullptr),
-    tangent(nullptr), ephi_x(nullptr), ephi_y(nullptr), binz(nullptr)
+    Compute(lmp, narg, arg), Pvr_temp(nullptr), Pvr_all(nullptr), Pvz_temp(nullptr),
+    Pvz_all(nullptr), Pvphi_temp(nullptr), Pvphi_all(nullptr), R(nullptr), Rinv(nullptr),
+    R2(nullptr), PrAinv(nullptr), PzAinv(nullptr), R2kin(nullptr), density_temp(nullptr),
+    invVbin(nullptr), density_all(nullptr), tangent(nullptr), ephi_x(nullptr), ephi_y(nullptr),
+    binz(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_compute_pressure_cylinder);
-  if (narg != 7) error->all(FLERR, "Illegal compute pressure/cylinder command");
+  if ((narg != 7) && (narg != 9)) error->all(FLERR, "Illegal compute pressure/cylinder command");
 
   zlo = utils::numeric(FLERR, arg[3], false, lmp);
   zhi = utils::numeric(FLERR, arg[4], false, lmp);
   Rmax = utils::numeric(FLERR, arg[5], false, lmp);
   bin_width = utils::numeric(FLERR, arg[6], false, lmp);
+
+  // Option to include/exclude kinetic contribution. Default is to include
+  kinetic_flag = 1;
+  int iarg = 7;
+  if (narg > iarg) {
+    if (strcmp("ke", arg[iarg]) == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Invalid compute pressure/cylinder command");
+      kinetic_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
+      iarg += 2;
+    } else
+      error->all(FLERR, "Unknown compute pressure/cylinder command");
+  }
 
   if ((bin_width <= 0.0) || (bin_width > Rmax))
     error->all(FLERR, "Illegal compute pressure/cylinder command");
@@ -80,39 +103,44 @@ ComputePressureCyl::ComputePressureCyl(LAMMPS *lmp, int narg, char **arg) :
   array_flag = 1;
   vector_flag = 0;
   extarray = 0;
-  size_array_cols = 8;    // r, number density, pkr, pkphi, pkz, pvr, pvphi, pz
+  size_array_cols = 5;    // r, number density, pvr, pvphi, pz
   size_array_rows = nbins;
-  
-  memory->create(density_all, nbins, "density_all");
-  memory->create(Pkr_all, nbins, "Pkr_all"); 
-  memory->create(Pkphi_all, nbins, "Pkphi_all");
-  memory->create(Pkz_all, nbins, "Pkz_all");
-  memory->create(Pvr_all, nbins, "Pvr_all");
-  memory->create(Pvphi_all, nbins, "Pvphi_all");
-  memory->create(Pvz_all, nbins, "Pvz_all");
-  memory->create(density_temp, nbins, "density_temp");
-  memory->create(Pkr_temp, nbins, "Pkr_temp");
-  memory->create(Pkphi_temp, nbins, "Pkphi_temp");
-  memory->create(Pkz_temp, nbins, "Pkz_temp");
-  memory->create(Pvr_temp, nbins, "Pvr_temp");
-  memory->create(Pvphi_temp, nbins, "Pvphi_temp");
-  memory->create(Pvz_temp, nbins, "Pvz_temp");
-  memory->create(R,nbins, "R");
-  memory->create(R2,nbins, "R2");
-  memory->create(PrAinv,nbins, "PrAinv");
-  memory->create(PzAinv,nbins, "PzAinv");
-  memory->create(Rinv,nbins, "Rinv");
-  memory->create(binz,nbins, "binz");
-  memory->create(invVbin,nbins, "invVbin");
+
+  if (kinetic_flag == 1) {
+    size_array_cols = 8;    // r, number density, pkr, pkphi, pkz, pvr, pvphi, pz
+    Pkr_temp = new double[nbins];
+    Pkr_all = new double[nbins];
+    Pkz_temp = new double[nbins];
+    Pkz_all = new double[nbins];
+    Pkphi_temp = new double[nbins];
+    Pkphi_all = new double[nbins];
+  }
+  Pvr_temp = new double[nbins];
+  Pvr_all = new double[nbins];
+  Pvz_temp = new double[nbins];
+  Pvz_all = new double[nbins];
+  Pvphi_temp = new double[nbins];
+  Pvphi_all = new double[nbins];
+  R = new double[nbins];
+  R2 = new double[nbins];
+  PrAinv = new double[nbins];
+  PzAinv = new double[nbins];
+  Rinv = new double[nbins];
+  binz = new double[nzbins];
+
+  R2kin = new double[nbins];
+  density_temp = new double[nbins];
+  invVbin = new double[nbins];
+  density_all = new double[nbins];
 
   nphi = 360;
-  memory->create(tangent,nbins, "tangent");
-  memory->create(ephi_x,nbins, "ephi_x");
-  memory->create(ephi_y,nbins, "ephi_y");
-  memory->create(array, nbins, 5, "PN:array");
+  tangent = new double[nphi];
+  ephi_x = new double[nphi];
+  ephi_y = new double[nphi];
+
+  memory->create(array, size_array_rows, size_array_cols, "PN:array");
 
   nktv2p = force->nktv2p;
-  printf("Constructor done");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -120,31 +148,33 @@ ComputePressureCyl::ComputePressureCyl(LAMMPS *lmp, int narg, char **arg) :
 ComputePressureCyl::~ComputePressureCyl()
 {
   memory->destroy(array);
-  memory->destroy(density_all); 
-  memory->destroy(Pkr_all);     
-  memory->destroy(Pkphi_all);   
-  memory->destroy(Pkz_all);     
-  memory->destroy(Pvr_all);     
-  memory->destroy(Pvphi_all);   
-  memory->destroy(Pvz_all);     
-  memory->destroy(density_temp);
-  memory->destroy(Pkr_temp);    
-  memory->destroy(Pkphi_temp);  
-  memory->destroy(Pkz_temp);    
-  memory->destroy(Pvr_temp);    
-  memory->destroy(Pvphi_temp);  
-  memory->destroy(Pvz_temp);    
-  memory->destroy(R);
-  memory->destroy(R2); 
-  memory->destroy(PrAinv);
-  memory->destroy(PzAinv);      
-  memory->destroy(Rinv);        
-  memory->destroy(binz);        
-  memory->destroy(invVbin);     
-  memory->destroy(tangent);     
-  memory->destroy(ephi_x);      
-  memory->destroy(ephi_y);      
-  memory->destroy(array);       
+  if (kinetic_flag == 1) {
+    delete[] Pkr_temp;
+    delete[] Pkr_all;
+    delete[] Pkz_temp;
+    delete[] Pkz_all;
+    delete[] Pkphi_temp;
+    delete[] Pkphi_all;
+  }
+  delete[] R;
+  delete[] Rinv;
+  delete[] R2;
+  delete[] R2kin;
+  delete[] invVbin;
+  delete[] density_temp;
+  delete[] density_all;
+  delete[] tangent;
+  delete[] ephi_x;
+  delete[] ephi_y;
+  delete[] Pvr_temp;
+  delete[] Pvr_all;
+  delete[] Pvz_temp;
+  delete[] Pvz_all;
+  delete[] Pvphi_temp;
+  delete[] Pvphi_all;
+  delete[] PrAinv;
+  delete[] PzAinv;
+  delete[] binz;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -157,14 +187,12 @@ void ComputePressureCyl::init()
     error->all(FLERR, "Pair style does not support compute pressure/cylinder");
 
   double phi;
-
   for (int iphi = 0; iphi < nphi; iphi++) {
     phi = ((double) iphi) * MY_PI / 180.0;
     tangent[iphi] = tan(phi);
     ephi_x[iphi] = -sin(phi);
     ephi_y[iphi] = cos(phi);
   }
-
   for (int iq = 0; iq < nbins; iq++) {
     R[iq] = ((double) iq + 0.5) * bin_width;
     Rinv[iq] = 1.0 / R[iq];
@@ -213,9 +241,16 @@ void ComputePressureCyl::compute_array()
   invoked_array = update->ntimestep;
 
   int ibin;
-
   // clear pressures
   for (ibin = 0; ibin < nbins; ibin++) {
+    if (kinetic_flag == 1) {
+      Pkr_temp[ibin] = 0.0;
+      Pkr_all[ibin] = 0.0;
+      Pkphi_temp[ibin] = 0.0;
+      Pkphi_all[ibin] = 0.0;
+      Pkz_temp[ibin] = 0.0;
+      Pkz_all[ibin] = 0.0;
+    }
     density_temp[ibin] = 0.0;
     density_all[ibin] = 0.0;
     Pvr_temp[ibin] = 0.0;
@@ -236,7 +271,10 @@ void ComputePressureCyl::compute_array()
   double rsq, fpair, factor_coul, factor_lj;
   int *ilist, *jlist, *numneigh, **firstneigh;
 
+  double vr, vp;
   double **x = atom->x;
+  double **v = atom->v;
+  double *mass = atom->mass;
   tagint *tag = atom->tag;
   int *type = atom->type;
   int *mask = atom->mask;
@@ -253,7 +291,7 @@ void ComputePressureCyl::compute_array()
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  // calculate number density (by radius)
+  // calculate number density and kinetic contribution (by radius)
   double temp_R2;
   for (i = 0; i < nlocal; i++)
     if ((x[i][2] < zhi) && (x[i][2] > zlo)) {
@@ -264,6 +302,21 @@ void ComputePressureCyl::compute_array()
         if (temp_R2 < R2kin[j]) break;
 
       density_temp[j] += invVbin[j];
+
+      // Check if kinetic option is set to yes
+      if (kinetic_flag == 1) {
+        if (temp_R2 != 0) {
+          // Radial velocity times R
+          vr = (x[i][0] * v[i][0] + x[i][1] * v[i][1]);
+          // Azimuthal velocity divided by R
+          vp = (v[i][1] / x[i][0] - x[i][1] * v[i][0] / (x[i][0] * x[i][0])) /
+              (pow(x[i][1] / x[i][0], 2.0) + 1.0);
+
+          Pkr_temp[j] += mass[type[i]] * vr * vr / temp_R2;
+          Pkphi_temp[j] += mass[type[i]] * temp_R2 * vp * vp;
+          Pkz_temp[j] += mass[type[i]] * v[i][2] * v[i][2];
+        }
+      }
     }
   MPI_Allreduce(density_temp, density_all, nbins, MPI_DOUBLE, MPI_SUM, world);
   for (i = 0; i < nbins; i++) array[i][1] = density_all[i];    // NEW
@@ -459,12 +512,22 @@ void ComputePressureCyl::compute_array()
 
   // calculate pressure (force over area)
   for (ibin = 0; ibin < nbins; ibin++) {
+    if (kinetic_flag == 1) {
+      Pkr_temp[ibin] *= invVbin[ibin];
+      Pkphi_temp[ibin] *= invVbin[ibin];
+      Pkz_temp[ibin] *= invVbin[ibin];
+    }
     Pvr_temp[ibin] *= PrAinv[ibin] * Rinv[ibin];
     Pvphi_temp[ibin] *= PphiAinv;
     Pvz_temp[ibin] *= PzAinv[ibin];
   }
 
   // communicate these values across processors
+  if (kinetic_flag == 1) {
+    MPI_Allreduce(Pkr_temp, Pkr_all, nbins, MPI_DOUBLE, MPI_SUM, world);
+    MPI_Allreduce(Pkphi_temp, Pkphi_all, nbins, MPI_DOUBLE, MPI_SUM, world);
+    MPI_Allreduce(Pkz_temp, Pkz_all, nbins, MPI_DOUBLE, MPI_SUM, world);
+  }
   MPI_Allreduce(Pvr_temp, Pvr_all, nbins, MPI_DOUBLE, MPI_SUM, world);
   MPI_Allreduce(Pvphi_temp, Pvphi_all, nbins, MPI_DOUBLE, MPI_SUM, world);
   MPI_Allreduce(Pvz_temp, Pvz_all, nbins, MPI_DOUBLE, MPI_SUM, world);
@@ -472,19 +535,28 @@ void ComputePressureCyl::compute_array()
   // populate array
   for (ibin = 0; ibin < nbins; ibin++) {
     array[ibin][0] = R[ibin];
-    array[ibin][2] = Pvr_all[ibin] * nktv2p;
-    array[ibin][3] = Pvphi_all[ibin] * nktv2p;
-    array[ibin][4] = Pvz_all[ibin] * nktv2p;
+    if (kinetic_flag == 1) {
+      array[ibin][2] = Pkr_all[ibin] * nktv2p;
+      array[ibin][3] = Pkphi_all[ibin] * nktv2p;
+      array[ibin][4] = Pkz_all[ibin] * nktv2p;
+      array[ibin][5] = Pvr_all[ibin] * nktv2p;
+      array[ibin][6] = Pvphi_all[ibin] * nktv2p;
+      array[ibin][7] = Pvz_all[ibin] * nktv2p;
+    } else {
+      array[ibin][2] = Pvr_all[ibin] * nktv2p;
+      array[ibin][3] = Pvphi_all[ibin] * nktv2p;
+      array[ibin][4] = Pvz_all[ibin] * nktv2p;
+    }
   }
 }
 
 /* ----------------------------------------------------------------------
 memory usage of data
 ------------------------------------------------------------------------- */
-// TODO: update this
 double ComputePressureCyl::memory_usage()
 {
   double bytes =
-      (3.0 * (double) nphi + 16.0 * (double) nbins + 5.0 * (double) nbins) * sizeof(double);
+      (3.0 * (double) nphi + 16.0 * (double) nbins + (5.0 + 3.0 * kinetic_flag) * (double) nbins) *
+      sizeof(double);
   return bytes;
 }

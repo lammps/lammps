@@ -27,16 +27,16 @@ namespace LAMMPS_NS {
 class ComputePressureSpherical : public Compute {
  public:
   ComputePressureSpherical(class LAMMPS *, int, char **);
-  ~ComputePressureSpherical();
-  void init();
-  void init_list(int, class NeighList *);
-  void compute_array();
-  double memory_usage();
+  ~ComputePressureSpherical() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void compute_array() override;
+  double memory_usage() override;
 
  private:
   int nbins;
   double bin_width, x0, y0, z0, Rmax;
-  
+
   // Number density, kinetic and configurational contribution to the pressure.
   double *invV, *dens, *pkrr, *pktt, *pkpp, *pcrr, *pctt, *pcpp;
   double *tdens, *tpkrr, *tpktt, *tpkpp, *tpcrr, *tpctt, *tpcpp;

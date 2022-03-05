@@ -18,7 +18,6 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
-#include "math_const.h"
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
@@ -28,10 +27,8 @@
 
 #include <cmath>
 #include <cstring>
-#include <mpi.h>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
 
 /*-----------------------------------------------------------------------------------
   Contributing author: Olav Galteland (Norwegian University of Science and Technology)
@@ -90,9 +87,7 @@ ComputePressureCartesian::ComputePressureCartesian(LAMMPS *lmp, int narg, char *
   if (bin_width1 <= 0.0)
     error->all(FLERR, "Illegal compute pressure/cartesian command. Bin width must be > 0");
   else if (bin_width1 > domain->boxhi[dir1] - domain->boxlo[dir1])
-    error->all(
-        FLERR,
-        "Illegal compute pressure/cartesian command. Bin width must be smaller than box size.");
+    error->all(FLERR, "Illegal compute pressure/cartesian command. Bin width larger than box.");
 
   if (dims == 2) {
     if (strcmp(arg[5], "x") == 0)
@@ -111,9 +106,7 @@ ComputePressureCartesian::ComputePressureCartesian(LAMMPS *lmp, int narg, char *
     if (bin_width2 <= 0.0)
       error->all(FLERR, "Illegal compute pressure/cartesian command. Bin width must be > 0");
     else if (bin_width2 > domain->boxhi[dir2] - domain->boxlo[dir2])
-      error->all(
-          FLERR,
-          "Illegal compute pressure/cartesian command. Bin width must be smaller than box size.");
+      error->all(FLERR, "Illegal compute pressure/cartesian command. Bin width larger than box");
   }
 
   for (int i = 0; i < 3; i++)
@@ -199,10 +192,6 @@ void ComputePressureCartesian::init_list(int /* id */, NeighList *ptr)
 
 void ComputePressureCartesian::compute_array()
 {
-  //invoked_array = update->ntimestep;
-  int me;
-  MPI_Comm_rank(world, &me);
-
   int i, j, ii, jj, inum, jnum, itype, jtype;
   int bin, bin1, bin2, bin3;
   tagint itag, jtag;

@@ -29,7 +29,6 @@
 
 #include <cmath>
 #include <cstring>
-#include <mpi.h>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -161,8 +160,6 @@ void ComputePressureSpherical::compute_array()
 {
   invoked_array = update->ntimestep;
 
-  int me;
-  MPI_Comm_rank(world, &me);
   int bin;
   // Zero arrays
   for (int bin = 0; bin < nbins; bin++) {
@@ -372,9 +369,7 @@ void ComputePressureSpherical::compute_array()
 
       // Error check
       if (fabs(l_sum - 1.0) > SMALL)
-        error->all(FLERR,
-                   "ERROR: The sum of the fractional line segments, calculated in spherical "
-                   "pressure tensor, does not sum up to 1.");
+        error->all(FLERR, "ERROR: The sum of the fractional line segments is not 1.0");
     }
   }
 

@@ -15,6 +15,7 @@
 
 #include "atom.h"
 #include "citeme.h"
+#include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
@@ -30,6 +31,7 @@
 
 using namespace LAMMPS_NS;
 
+#define SMALL 1.0e-10
 /*-----------------------------------------------------------------------------------
   Contributing author: Olav Galteland (Norwegian University of Science and Technology)
                         olav.galteland@ntnu.no
@@ -82,7 +84,12 @@ ComputePressureCartesian::ComputePressureCartesian(LAMMPS *lmp, int narg, char *
   bin_width2 = 0.0;
   nbins1 = (int) ((domain->boxhi[dir1] - domain->boxlo[dir1]) / bin_width1);
   nbins2 = 1;
-  invV = bin_width1;
+  // adjust bin width if not a perfect match
+  invV = (domain->boxhi[dir1] - domain->boxlo[dir1]) / nbins1;
+  if ((fabs(invV - bin_width1) > SMALL) && (comm->me == 0))
+    utils::logmesg(lmp, "Adjusting first bin width for compute {} from {:.6f} to {:.6f}\n", style,
+                   bin_width1, invV);
+  bin_width1 = invV;
 
   if (bin_width1 <= 0.0)
     error->all(FLERR, "Illegal compute pressure/cartesian command. Bin width must be > 0");
@@ -101,6 +108,12 @@ ComputePressureCartesian::ComputePressureCartesian(LAMMPS *lmp, int narg, char *
 
     bin_width2 = utils::numeric(FLERR, arg[6], false, lmp);
     nbins2 = (int) ((domain->boxhi[dir2] - domain->boxlo[dir2]) / bin_width2);
+    double tmp_binwidth = (domain->boxhi[dir2] - domain->boxlo[dir2]) / nbins2;
+    if ((fabs(tmp_binwidth - bin_width2) > SMALL) && (comm->me == 0))
+      utils::logmesg(lmp, "Adjusting second bin width for compute {} from {:.6f} to {:.6f}\n",
+                     style, bin_width2, tmp_binwidth);
+    bin_width2 = tmp_binwidth;
+
     invV *= bin_width2;
 
     if (bin_width2 <= 0.0)
@@ -392,7 +405,7 @@ void ComputePressureCartesian::compute_pressure_1d(double fpair, double xi, doub
 
   bin = bin_s;
   // Integrate from bin_s to bin_e with step bin_step.
-  while (bin != bin_limit) {
+  while (bin < bin_limit) {
 
     // Calculating exit and entry point (xa, xb). Checking if inside current bin.
     if (bin == bin_s) {
@@ -450,7 +463,6 @@ void ComputePressureCartesian::compute_pressure_2d(double fpair, double xi, doub
   double la = 0.0, lb = 0.0, l_sum = 0.0;
   double rij[3] = {delx, dely, delz};
   double l1 = 0.0, l2, rij1, rij2;
-  double SMALL = 10e-5;
   rij1 = rij[dir1];
   rij2 = rij[dir2];
 
@@ -458,7 +470,7 @@ void ComputePressureCartesian::compute_pressure_2d(double fpair, double xi, doub
   next_bin2 = (int) floor(yi / bin_width2);
 
   // Integrating along line
-  while (lb != 1.0) {
+  while (lb < 1.0) {
     bin1 = next_bin1;
     bin2 = next_bin2;
 
@@ -501,7 +513,7 @@ void ComputePressureCartesian::compute_pressure_2d(double fpair, double xi, doub
     else if (bin2 >= nbins2)
       bin2 = nbins2 - 1;
 
-    if (bin1 + bin2 * nbins1 >= nbins1 * nbins2) error->all(FLERR, "Bin outside");
+    if (bin1 + bin2 * nbins1 > nbins1 * nbins2) error->all(FLERR, "Bin outside: lb={:.16g}", lb);
 
     tpcxx[bin1 + bin2 * nbins1] += (fpair * delx * delx * (lb - la));
     tpcyy[bin1 + bin2 * nbins1] += (fpair * dely * dely * (lb - la));

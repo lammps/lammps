@@ -15,6 +15,7 @@
 
 #include "atom.h"
 #include "citeme.h"
+#include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
@@ -32,6 +33,8 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+
+#define SMALL 1.0e-10
 
 /*-----------------------------------------------------------------------------------
   Contributing author: Olav Galteland (Norwegian University of Science and Technology)
@@ -71,6 +74,11 @@ ComputePressureSpherical::ComputePressureSpherical(LAMMPS *lmp, int narg, char *
   bin_width = utils::numeric(FLERR, arg[6], false, lmp);
   Rmax = utils::numeric(FLERR, arg[7], false, lmp);
   nbins = (int) (Rmax / bin_width) + 1;
+  double tmp_width = Rmax / nbins;
+  if ((fabs(bin_width - tmp_width) > SMALL) && (comm->me == 0))
+    utils::logmesg(lmp, "Adjusting bin width for compute {} from {:.6f} to {:.6f}\n", style,
+                   bin_width, tmp_width);
+  bin_width = tmp_width;
 
   if (bin_width <= 0.0)
     error->all(FLERR, "Illegal compute pressure/spherical command. Bin width must be > 0");
@@ -245,7 +253,6 @@ void ComputePressureSpherical::compute_array()
 
   double qi[3], l1, l2, l3, l4, R1, R2, Fa, Fb, l_sum;
   double rij, f, ririj, sqr, la, lb, sql0, lambda0;
-  double SMALL = 10e-12;
   double rsqxy, ririjxy, sqrixy, sqlxy0, A, B, C;
   int end_bin;
 
@@ -328,24 +335,29 @@ void ComputePressureSpherical::compute_array()
       while (lb < 1.0) {
         l1 = lb + SMALL;
         bin = (int) floor(sqrt(rsq * l1 * l1 + 2.0 * ririj * l1 + sqr) / bin_width);
-        R1 = (bin) *bin_width;
+        R1 = bin * bin_width;
         R2 = (bin + 1) * bin_width;
 
-        l1 = lambda0 + sqrt((R1 * R1 - sql0) / rsq);
-        l2 = lambda0 - sqrt((R1 * R1 - sql0) / rsq);
-        l3 = lambda0 + sqrt((R2 * R2 - sql0) / rsq);
-        l4 = lambda0 - sqrt((R2 * R2 - sql0) / rsq);
-
-        if (l4 >= 0.0 && l4 <= 1.0 && l4 > la)
-          lb = l4;
-        else if (l3 >= 0.0 && l3 <= 1.0 && l3 > la)
-          lb = l3;
-        else if (l2 >= 0.0 && l2 <= 1.0 && l2 > la)
-          lb = l2;
-        else if (l1 >= 0.0 && l1 <= 1.0 && l1 > la)
-          lb = l1;
-        else
+        // we must not take the square root of a negative number or divide by zero.
+        if ((R1*R1 < sql0) || (R2*R2 < sql0) || (rsq <= 0.0)) {
           lb = 1.0;
+        } else {
+          l1 = lambda0 + sqrt((R1 * R1 - sql0) / rsq);
+          l2 = lambda0 - sqrt((R1 * R1 - sql0) / rsq);
+          l3 = lambda0 + sqrt((R2 * R2 - sql0) / rsq);
+          l4 = lambda0 - sqrt((R2 * R2 - sql0) / rsq);
+
+          if (l4 >= 0.0 && l4 <= 1.0 && l4 > la)
+            lb = l4;
+          else if (l3 >= 0.0 && l3 <= 1.0 && l3 > la)
+            lb = l3;
+          else if (l2 >= 0.0 && l2 <= 1.0 && l2 > la)
+            lb = l2;
+          else if (l1 >= 0.0 && l1 <= 1.0 && l1 > la)
+            lb = l1;
+          else
+            lb = 1.0;
+        }
 
         if (bin == end_bin) lb = 1.0;
         if (la > lb) error->all(FLERR, "Error: la > lb\n");

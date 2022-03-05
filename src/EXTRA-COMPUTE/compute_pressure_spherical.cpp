@@ -40,18 +40,17 @@ using namespace MathConst;
 ------------------------------------------------------------------------------------*/
 
 static const char cite_compute_pressure_sphere[] =
-    "compute pressure/spherical:\n\n"
-    "@article{ikeshoji2003molecular,\n"
-    "title={Molecular-level calculation scheme for pressure in inhomogeneous systems of flat and "
-    "spherical layers},\n"
-    "author={Ikeshoji, Tamio and Hafskjold, Bj{\\o}rn and Furuholt, Hilde},\n"
-    "journal={Molecular Simulation},\n"
-    "volume={29},\n"
-    "number={2},\n"
-    "pages={101--109},\n"
-    "year={2003},\n"
-    "publisher={Taylor & Francis}\n"
-    "}\n\n";
+  "compute pressure/spherical:\n\n"
+  "@article{ikeshoji2003molecular,\n"
+  "title={Molecular-level calculation scheme for pressure in inhomogeneous systems of flat and spherical layers},\n"
+  "author={Ikeshoji, Tamio and Hafskjold, Bj{\\o}rn and Furuholt, Hilde},\n"
+  "journal={Molecular Simulation},\n"
+  "volume={29},\n"
+  "number={2},\n"
+  "pages={101--109},\n"
+  "year={2003},\n"
+  "publisher={Taylor & Francis}\n"
+  "}\n\n";
 
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */

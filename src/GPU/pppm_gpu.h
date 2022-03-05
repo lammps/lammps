@@ -27,15 +27,15 @@ namespace LAMMPS_NS {
 class PPPMGPU : public PPPM {
  public:
   PPPMGPU(class LAMMPS *);
-  virtual ~PPPMGPU();
-  void init();
-  void setup();
-  void compute(int, int);
-  int timing_1d(int, double &);
-  int timing_3d(int, double &);
-  double memory_usage();
+  ~PPPMGPU() override;
+  void init() override;
+  void setup() override;
+  void compute(int, int) override;
+  int timing_1d(int, double &) override;
+  int timing_3d(int, double &) override;
+  double memory_usage() override;
 
-  virtual void compute_group_group(int, int, int);
+  void compute_group_group(int, int, int) override;
 
  protected:
   FFT_SCALAR ***density_brick_gpu, ***vd_brick;
@@ -44,12 +44,12 @@ class PPPMGPU : public PPPM {
   double poisson_time;
 
   void brick2fft_gpu();
-  virtual void poisson_ik();
+  void poisson_ik() override;
 
-  void pack_forward_grid(int, void *, int, int *);
-  void unpack_forward_grid(int, void *, int, int *);
-  void pack_reverse_grid(int, void *, int, int *);
-  void unpack_reverse_grid(int, void *, int, int *);
+  void pack_forward_grid(int, void *, int, int *) override;
+  void unpack_forward_grid(int, void *, int, int *) override;
+  void pack_reverse_grid(int, void *, int, int *) override;
+  void unpack_reverse_grid(int, void *, int, int *) override;
 
   FFT_SCALAR ***create_3d_offset(int, int, int, int, int, int, const char *, FFT_SCALAR *, int);
   void destroy_3d_offset(FFT_SCALAR ***, int, int);

@@ -72,9 +72,9 @@ class ComputeTempKokkos : public ComputeTemp {
   typedef ArrayTypes<DeviceType> AT;
 
   ComputeTempKokkos(class LAMMPS *, int, char **);
-  virtual ~ComputeTempKokkos() {}
-  double compute_scalar();
-  void compute_vector();
+
+  double compute_scalar() override;
+  void compute_vector() override;
 
   template<int RMASS>
   KOKKOS_INLINE_FUNCTION

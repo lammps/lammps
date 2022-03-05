@@ -33,8 +33,8 @@ namespace LAMMPS_NS {
 class DumpNetCDFMPIIO : public DumpCustom {
  public:
   DumpNetCDFMPIIO(class LAMMPS *, int, char **);
-  virtual ~DumpNetCDFMPIIO();
-  virtual void write();
+  ~DumpNetCDFMPIIO() override;
+  void write() override;
 
  private:
   static constexpr int NC_MPIIO_FIELD_NAME_MAX = 100;
@@ -85,13 +85,13 @@ class DumpNetCDFMPIIO : public DumpCustom {
   int cell_lengths_var;
   int cell_angles_var;
 
-  virtual void openfile();
+  void openfile() override;
   void closefile();
   void write_time_and_cell();
-  virtual void write_data(int, double *);
+  void write_data(int, double *) override;
   void write_prmtop();
 
-  virtual int modify_param(int, char **);
+  int modify_param(int, char **) override;
 
   void ncerr(int, const char *, int);
 };

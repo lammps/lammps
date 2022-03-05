@@ -68,7 +68,7 @@ class AtomVec : protected Pointers {
   // methods
 
   AtomVec(class LAMMPS *);
-  virtual ~AtomVec();
+  ~AtomVec() override;
 
   void store_args(int, char **);
   virtual void process_args(int, char **);

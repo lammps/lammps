@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class CreateAtoms : public Command {
  public:
   CreateAtoms(class LAMMPS *);
-  void command(int, char **);
+  void command(int, char **) override;
 
  private:
   int me, nprocs;

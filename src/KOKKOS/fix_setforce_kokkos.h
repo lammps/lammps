@@ -63,9 +63,9 @@ class FixSetForceKokkos : public FixSetForce {
   typedef ArrayTypes<DeviceType> AT;
 
   FixSetForceKokkos(class LAMMPS *, int, char **);
-  ~FixSetForceKokkos();
-  void init();
-  void post_force(int);
+  ~FixSetForceKokkos() override;
+  void init() override;
+  void post_force(int) override;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixSetForceConstant, const int&, double_3&) const;

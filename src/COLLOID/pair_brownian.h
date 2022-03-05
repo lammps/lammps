@@ -27,16 +27,16 @@ namespace LAMMPS_NS {
 class PairBrownian : public Pair {
  public:
   PairBrownian(class LAMMPS *);
-  virtual ~PairBrownian();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  virtual double init_one(int, int);
-  virtual void init_style();
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
+  ~PairBrownian() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void init_style() override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
 
  protected:
   double cut_inner_global, cut_global;

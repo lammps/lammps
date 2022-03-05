@@ -251,7 +251,7 @@ void FixPolarizeBEMICC::compute_induced_charges()
     q[i] = q_free + q_bound;
   }
 
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 
   // iterate
 
@@ -309,7 +309,7 @@ void FixPolarizeBEMICC::compute_induced_charges()
 #endif
     }
 
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
 
     MPI_Allreduce(&tol, &rho, 1, MPI_DOUBLE, MPI_MAX, world);
 #ifdef _POLARIZE_DEBUG

@@ -8,7 +8,7 @@ University:
 * Aidan Thompson, athomps at sandia.gov
 * Stan Moore, stamoor at sandia.gov
 * Axel Kohlmeyer, akohlmey at gmail.com
-* Richard Berger, richard.berger at temple.edu
+* Richard Berger, richard.berger at outlook.com
 
 .. _sjp: http://www.cs.sandia.gov/~sjplimp
 .. _lws: https://www.lammps.org

@@ -31,10 +31,10 @@ namespace LAMMPS_NS {
 class ComputeStressMopProfile : public Compute {
  public:
   ComputeStressMopProfile(class LAMMPS *, int, char **);
-  virtual ~ComputeStressMopProfile();
-  void init();
-  void init_list(int, class NeighList *);
-  void compute_array();
+  ~ComputeStressMopProfile() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void compute_array() override;
 
  private:
   void compute_pairs();

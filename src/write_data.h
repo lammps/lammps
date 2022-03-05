@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class WriteData : public Command {
  public:
   WriteData(class LAMMPS *);
-  void command(int, char **);
+  void command(int, char **) override;
   void write(const std::string &);
 
  private:

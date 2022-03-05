@@ -18,24 +18,25 @@
 
 #include "bond_quartic.h"
 
-#include <cmath>
 #include "atom.h"
-#include "neighbor.h"
 #include "comm.h"
-#include "force.h"
-#include "pair.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neighbor.h"
+#include "pair.h"
 
+#include <cmath>
+
+#include "math_const.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-BondQuartic::BondQuartic(LAMMPS *lmp) : Bond(lmp)
-{
-  TWO_1_3 = pow(2.0,(1.0/3.0));
-}
+BondQuartic::BondQuartic(LAMMPS *lmp) : Bond(lmp), k(nullptr),
+  b1(nullptr), b2(nullptr), rc(nullptr), u0(nullptr) {}
 
 /* ---------------------------------------------------------------------- */
 
@@ -120,7 +121,7 @@ void BondQuartic::compute(int eflag, int vflag)
     rb = dr - b2[type];
     fbond = -k[type]/r * (r2*(ra+rb) + 2.0*dr*ra*rb);
 
-    if (rsq < TWO_1_3) {
+    if (rsq < MY_CUBEROOT2) {
       sr2 = 1.0/rsq;
       sr6 = sr2*sr2*sr2;
       fbond += 48.0*sr6*(sr6-0.5)/rsq;
@@ -128,7 +129,7 @@ void BondQuartic::compute(int eflag, int vflag)
 
     if (eflag) {
       ebond = k[type]*r2*ra*rb + u0[type];
-      if (rsq < TWO_1_3) ebond += 4.0*sr6*(sr6-1.0) + 1.0;
+      if (rsq < MY_CUBEROOT2) ebond += 4.0*sr6*(sr6-1.0) + 1.0;
     }
 
     // apply force to each of 2 atoms
@@ -336,7 +337,7 @@ double BondQuartic::single(int type, double rsq, int i, int j,
   eng += k[type]*r2*ra*rb + u0[type];
   fforce = -k[type]/r * (r2*(ra+rb) + 2.0*dr*ra*rb);
 
-  if (rsq < TWO_1_3) {
+  if (rsq < MY_CUBEROOT2) {
     sr2 = 1.0/rsq;
     sr6 = sr2*sr2*sr2;
     eng += 4.0*sr6*(sr6-1.0) + 1.0;

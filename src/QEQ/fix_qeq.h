@@ -27,30 +27,30 @@ namespace LAMMPS_NS {
 class FixQEq : public Fix {
  public:
   FixQEq(class LAMMPS *, int, char **);
-  ~FixQEq();
-  int setmask();
-  void init_list(int, class NeighList *);
-  void setup_pre_force(int);
-  void setup_pre_force_respa(int, int);
-  void pre_force_respa(int, int, int);
-  void min_pre_force(int);
+  ~FixQEq() override;
+  int setmask() override;
+  void init_list(int, class NeighList *) override;
+  void setup_pre_force(int) override;
+  void setup_pre_force_respa(int, int) override;
+  void pre_force_respa(int, int, int) override;
+  void min_pre_force(int) override;
 
-  virtual double compute_scalar();
+  double compute_scalar() override;
 
   // derived child classes must provide these functions
 
-  virtual void init();
-  virtual void pre_force(int) = 0;
+  void init() override;
+  void pre_force(int) override = 0;
 
-  virtual int pack_forward_comm(int, int *, double *, int, int *);
-  virtual void unpack_forward_comm(int, int, double *);
-  virtual int pack_reverse_comm(int, int, double *);
-  virtual void unpack_reverse_comm(int, int *, double *);
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
-  double memory_usage();
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  double memory_usage() override;
 
  protected:
   int nevery;

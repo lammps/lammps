@@ -350,7 +350,7 @@ void PairDPDfdtEnergyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     k_duCond.template sync<LMPHostType>();
     k_duMech.template modify<DeviceType>();
     k_duMech.template sync<LMPHostType>();
-    comm->reverse_comm_pair(this);
+    comm->reverse_comm(this);
   }
 
   if (eflag_global) eng_vdwl += ev.evdwl;

@@ -28,17 +28,17 @@ namespace LAMMPS_NS {
 class PairLJSmoothLinear : public Pair {
  public:
   PairLJSmoothLinear(class LAMMPS *);
-  virtual ~PairLJSmoothLinear();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  double single(int, int, int, int, double, double, double, double &);
-  double single_hessian(int, int, int, int, double, double[3], double, double, double &, double[6]);
+  ~PairLJSmoothLinear() override;
+  void compute(int, int) override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
+  double single(int, int, int, int, double, double, double, double &) override;
+  double single_hessian(int, int, int, int, double, double[3], double, double, double &, double[6]) override;
 
  protected:
   double cut_global;

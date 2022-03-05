@@ -6,7 +6,7 @@ if(CMAKE_VERSION VERSION_LESS 3.12)
     set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
   endif()
 else()
-  find_package(Python3 COMPONENTS Interpreter)
+  find_package(Python 3.5 COMPONENTS Interpreter)
 endif()
 
 if(Python_EXECUTABLE)

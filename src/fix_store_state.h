@@ -27,21 +27,21 @@ namespace LAMMPS_NS {
 class FixStoreState : public Fix {
  public:
   FixStoreState(class LAMMPS *, int, char **);
-  ~FixStoreState();
-  int setmask();
-  void init();
-  void setup(int);
-  void end_of_step();
+  ~FixStoreState() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void end_of_step() override;
 
-  double memory_usage();
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
-  int pack_restart(int, double *);
-  void unpack_restart(int, int);
-  int size_restart(int);
-  int maxsize_restart();
+  double memory_usage() override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  int pack_restart(int, double *) override;
+  void unpack_restart(int, int) override;
+  int size_restart(int) override;
+  int maxsize_restart() override;
 
  private:
   int nvalues;

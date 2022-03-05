@@ -27,18 +27,18 @@ namespace LAMMPS_NS {
 class FixMSST : public Fix {
  public:
   FixMSST(class LAMMPS *, int, char **);
-  ~FixMSST();
-  int setmask();
-  void init();
-  void setup(int);
-  void initial_integrate(int);
-  void final_integrate();
-  double compute_scalar();
-  double compute_vector(int);
-  void write_restart(FILE *);
-  void restart(char *);
-  int modify_param(int, char **);
-  double memory_usage();
+  ~FixMSST() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void initial_integrate(int) override;
+  void final_integrate() override;
+  double compute_scalar() override;
+  double compute_vector(int) override;
+  void write_restart(FILE *) override;
+  void restart(char *) override;
+  int modify_param(int, char **) override;
+  double memory_usage() override;
 
  private:
   double dtv, dtf, dthalf;        // full and half step sizes

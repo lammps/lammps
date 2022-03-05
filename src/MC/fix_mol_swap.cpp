@@ -32,6 +32,8 @@
 #include "random_park.h"
 #include "update.h"
 
+#include <cmath>
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
@@ -322,7 +324,7 @@ int FixMolSwap::attempt_swap()
     if (modify->n_pre_neighbor) modify->pre_neighbor();
     neighbor->build(1);
   } else {
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
   }
 
   // post-swap energy

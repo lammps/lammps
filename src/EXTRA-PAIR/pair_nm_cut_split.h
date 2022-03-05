@@ -26,8 +26,8 @@ namespace LAMMPS_NS {
 class PairNMCutSplit : public PairNMCut {
  public:
   PairNMCutSplit(class LAMMPS *);
-  double single(int, int, int, int, double, double, double, double &);
-  virtual void compute(int, int);
+  double single(int, int, int, int, double, double, double, double &) override;
+  void compute(int, int) override;
 };
 }    // namespace LAMMPS_NS
 #endif

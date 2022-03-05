@@ -34,7 +34,7 @@ class Thermo : protected Pointers {
   enum { INT, FLOAT, BIGINT };
 
   Thermo(class LAMMPS *, int, char **);
-  ~Thermo();
+  ~Thermo() override;
   void init();
   bigint lost_check();
   void modify_params(int, char **);

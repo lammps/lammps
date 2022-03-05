@@ -28,7 +28,6 @@ namespace LAMMPS_NS {
 class PairEAMAlloyOpt : public PairEAMAlloy, public PairEAMOpt {
  public:
   PairEAMAlloyOpt(class LAMMPS *);
-  virtual ~PairEAMAlloyOpt() {}
 };
 
 }    // namespace LAMMPS_NS

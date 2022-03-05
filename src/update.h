@@ -60,22 +60,19 @@ class Update : protected Pointers {
   MinimizeCreatorMap *minimize_map;
 
   Update(class LAMMPS *);
-  ~Update();
+  ~Update() override;
   void init();
   void set_units(const char *);
   void create_integrate(int, char **, int);
   void create_minimize(int, char **, int);
   void reset_timestep(int, char **);
-  void reset_timestep(bigint);
+  void reset_timestep(bigint, bool);
   void update_time();
   double memory_usage();
 
  private:
   void new_integrate(char *, int, char **, int, int &);
   void new_minimize(char *, int, char **, int, int &);
-
-  template <typename T> static Integrate *integrate_creator(LAMMPS *, int, char **);
-  template <typename T> static Min *minimize_creator(LAMMPS *);
 };
 
 }    // namespace LAMMPS_NS

@@ -27,7 +27,6 @@ namespace LAMMPS_NS {
 class FixNPHEff : public FixNHEff {
  public:
   FixNPHEff(class LAMMPS *, int, char **);
-  ~FixNPHEff() {}
 };
 
 }    // namespace LAMMPS_NS

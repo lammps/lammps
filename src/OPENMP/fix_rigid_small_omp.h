@@ -31,10 +31,9 @@ class FixRigidSmallOMP : public FixRigidSmall {
   {
     centroidstressflag = CENTROID_NOTAVAIL;
   }
-  virtual ~FixRigidSmallOMP(){};
 
-  virtual void initial_integrate(int);
-  virtual void final_integrate();
+  void initial_integrate(int) override;
+  void final_integrate() override;
 
  protected:
   virtual void compute_forces_and_torques();

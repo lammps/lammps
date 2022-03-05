@@ -146,9 +146,9 @@ void FixQEqSlater::init_matvec()
   }
 
   pack_flag = 2;
-  comm->forward_comm_fix(this); //Dist_vector(s);
+  comm->forward_comm(this); //Dist_vector(s);
   pack_flag = 3;
-  comm->forward_comm_fix(this); //Dist_vector(t);
+  comm->forward_comm(this); //Dist_vector(t);
 }
 
 /* ---------------------------------------------------------------------- */

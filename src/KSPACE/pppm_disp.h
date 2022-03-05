@@ -48,15 +48,15 @@ namespace LAMMPS_NS {
 class PPPMDisp : public KSpace {
  public:
   PPPMDisp(class LAMMPS *);
-  virtual ~PPPMDisp();
-  virtual void init();
-  virtual void setup();
-  void setup_grid();
-  virtual void settings(int, char **);
-  virtual void compute(int, int);
-  virtual int timing_1d(int, double &);
-  virtual int timing_3d(int, double &);
-  virtual double memory_usage();
+  ~PPPMDisp() override;
+  void init() override;
+  void setup() override;
+  void setup_grid() override;
+  void settings(int, char **) override;
+  void compute(int, int) override;
+  int timing_1d(int, double &) override;
+  int timing_3d(int, double &) override;
+  double memory_usage() override;
 
  protected:
   int me, nprocs;
@@ -341,10 +341,10 @@ class PPPMDisp : public KSpace {
 
   // grid communication
 
-  void pack_forward_grid(int, void *, int, int *);
-  void unpack_forward_grid(int, void *, int, int *);
-  void pack_reverse_grid(int, void *, int, int *);
-  void unpack_reverse_grid(int, void *, int, int *);
+  void pack_forward_grid(int, void *, int, int *) override;
+  void unpack_forward_grid(int, void *, int, int *) override;
+  void pack_reverse_grid(int, void *, int, int *) override;
+  void unpack_reverse_grid(int, void *, int, int *) override;
 };
 
 }    // namespace LAMMPS_NS

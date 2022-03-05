@@ -27,15 +27,15 @@ namespace LAMMPS_NS {
 class MSMDielectric : public MSM {
  public:
   MSMDielectric(class LAMMPS *);
-  virtual ~MSMDielectric();
-  virtual void init();
-  virtual void compute(int, int);
-  void fieldforce();
+  ~MSMDielectric() override;
+  void init() override;
+  void compute(int, int) override;
 
   double **efield;
   double *phi;
 
  protected:
+  void fieldforce() override;
   class AtomVecDielectric *avec;
 };
 

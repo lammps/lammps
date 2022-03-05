@@ -35,7 +35,8 @@ class ComputePressureCyl : public Compute {
 
  private:
   int nbins, nphi, nzbins;
-  double *Pr_temp, *Pr_all, *Pz_temp, *Pz_all, *Pphi_temp, *Pphi_all;
+  double *Pvr_temp, *Pvr_all, *Pvz_temp, *Pvz_all, *Pvphi_temp, *Pvphi_all;
+  double *Pkr_temp, *Pkr_all, *Pkz_temp, *Pkz_all, *Pkphi_temp, *Pkphi_all;
   double *R, *Rinv, *R2, *PrAinv, *PzAinv, PphiAinv;
   double Rmax, bin_width, nktv2p;
   double *R2kin, *density_temp, *invVbin, *density_all;

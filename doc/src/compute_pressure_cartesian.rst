@@ -54,19 +54,19 @@ Examples
 Description
 """""""""""
 
-Compute *pressure/cartesian*, compute *pressure/cylinder*, and compute *pressure/spherical* define computations that calculate profiles of the diagonal components of the local pressure tensor in the specified coordiante system. The pressure tensor is split into a kinetic contribution :math:`P^k` and a virial contribution :math:`P^v`. The sum gives the total pressure tensor :math:`P = P^k+P^v`. These computes can for example be used to calculate the diagonal components of the local pressure tensor of interfaces with flat, cylindrical, or spherical symmetry. These computes obeys momentum balance through fluid interfaces. These computes uses the Irving-Kirkwood contour, which is the straight line between particle pairs. 
+Compute *pressure/cartesian*, compute *pressure/cylinder*, and compute *pressure/spherical* define computations that calculate profiles of the diagonal components of the local pressure tensor in the specified coordinate system. The pressure tensor is split into a kinetic contribution :math:`P^k` and a virial contribution :math:`P^v`. The sum gives the total pressure tensor :math:`P = P^k+P^v`. These computes can for example be used to calculate the diagonal components of the local pressure tensor of interfaces with flat, cylindrical, or spherical symmetry. These computes obeys momentum balance through fluid interfaces. They use the Irving-Kirkwood contour, which is the straight line between particle pairs. 
 
-The *pressure/cartesian* computes the pressure profile along one or two Cartesian corodinates, as described in :ref:`(Ikeshoji)<Ikeshoji2>`. The compute *pressure/cylinder* computes the pressure profile along the radial direction in cylindrical coordinates, as described in :ref:`(Addington)<Addington1>`. The compute *pressure/spherical* computes the pressure profile along the radial direction in spherical coordinates, as described in :ref:`(Ikeshoji)<Ikeshoji2>`.
+The *pressure/cartesian* computes the pressure profile along one or two Cartesian coordinates, as described in :ref:`(Ikeshoji)<Ikeshoji2>`. The compute *pressure/cylinder* computes the pressure profile along the radial direction in cylindrical coordinates, as described in :ref:`(Addington)<Addington1>`. The compute *pressure/spherical* computes the pressure profile along the radial direction in spherical coordinates, as described in :ref:`(Ikeshoji)<Ikeshoji2>`.
 
 
 Output info
 """""""""""
 
-The output columns for *pressure/cartesian* are: position of the center of the local volume in the first and second dimensions, local number density, :math:`P^k_{xx}`, :math:`P^k_{yy}`, :math:`P^k_{zz}`, :math:`P^v_{xx}`, :math:`P^v_{yy}`, and :math:`P^v_{zz}`. There are 8 columns when one dimension is specified and 9 columns when two dimensions are specified. The number of bins/rows are (L1/bin_width1)*(L2/bin_width2), L1 and L2 are the size of the simulation box in the specified dimensions, and bin_widt1 and bin_width2 are the specified bin widths. When only one dimension is specified the number of bins/rows are L1/bin_width.
+The output columns for *pressure/cartesian* are the position of the center of the local volume in the first and second dimensions, number density, :math:`P^k_{xx}`, :math:`P^k_{yy}`, :math:`P^k_{zz}`, :math:`P^v_{xx}`, :math:`P^v_{yy}`, and :math:`P^v_{zz}`. There are 8 columns when one dimension is specified and 9 columns when two dimensions are specified. The number of bins/rows are (L1/bin_width1)*(L2/bin_width2), L1 and L2 are the sizes of the simulation box in the specified dimensions, and bin_widt1 and bin_width2 are the specified bin widths. When only one dimension is specified the number of bins/rows are L1/bin_width.
 
-The default output columns for *pressure/cylinder* are: position of the center of the local volume, local number density, :math:`P^k_{rr}`, :math:`P^k_{\phi\phi}`, :math:`P^k_{zz}`, :math:`P^v_{rr}`, :math:`P^v_{\phi\phi}`, and :math:`P^v_{zz}`. When the keyword *ke* is set to no, the kinetic contributions are not calculated and consequently there are only 5 columns: radius to the center of the cylindrical shell, number density, :math:`P^v_{rr}`, :math:`P^v_{\phi\phi}`, :math:`P^v_{zz}`. The number of bins/rows are Rmax/bin_width.
+The default output columns for *pressure/cylinder* are the radius to the center of the cylindrical shell, number density, :math:`P^k_{rr}`, :math:`P^k_{\phi\phi}`, :math:`P^k_{zz}`, :math:`P^v_{rr}`, :math:`P^v_{\phi\phi}`, and :math:`P^v_{zz}`. When the keyword *ke* is set to no, the kinetic contributions are not calculated, and consequently there are only 5 columns the radius to the center of the cylindrical shell, number density, :math:`P^v_{rr}`, :math:`P^v_{\phi\phi}`, :math:`P^v_{zz}`. The number of bins/rows are Rmax/bin_width.
 
-The output columns for *pressure/spherical* are: radius to the center of the spherical shell, number density, :math:`P^k_{rr}`, :math:`P^k_{\theta\theta}`, :math:`P^k_{\phi\phi}`, :math:`P^v_{rr}`, :math:`P^v_{\theta\theta}`, and :math:`P^v_{\phi\phi}`. There are 8 columns and the number of bins/rows are Rmax/bin_width.
+The output columns for *pressure/spherical* are the radius to the center of the spherical shell, number density, :math:`P^k_{rr}`, :math:`P^k_{\theta\theta}`, :math:`P^k_{\phi\phi}`, :math:`P^v_{rr}`, :math:`P^v_{\theta\theta}`, and :math:`P^v_{\phi\phi}`. There are 8 columns and the number of bins/rows are Rmax/bin_width.
 
 This array can be output with :doc:`fix ave/time <fix_ave_time>`,
 
@@ -81,7 +81,7 @@ The values calculated by this compute are "intensive".  The pressure values will
 Restrictions
 """"""""""""
 
-This compute currently calculates the pressure tensor contributions for pair styles only (i.e. no bond, angle, dihedral, etc. contributions and in the presence of bonded interactions, the result will be incorrect due to exclusions for special bonds) and requires pairwise force calculations not available for most many-body pair styles. K-space calculations are also excluded.
+These computes calculate the pressure tensor contributions for pair styles only (i.e. no bond, angle, dihedral, etc. contributions, and in the presence of bonded interactions, the result will be incorrect due to exclusions for special bonds) and requires pairwise force calculations not available for most many-body pair styles. K-space calculations are also excluded.
 
 This compute is part of the EXTRA-COMPUTE package.  It is only enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` doc page for more info.
 

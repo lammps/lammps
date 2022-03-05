@@ -19,6 +19,7 @@
 #include "pair_mesocnt.h"
 
 #include "atom.h"
+#include "comm.h"
 #include "error.h"
 #include "force.h"
 #include "math_const.h"
@@ -27,6 +28,7 @@
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
+#include "potential_file_reader.h"
 #include "update.h"
 
 #include <cmath>
@@ -434,8 +436,7 @@ void PairMesoCNT::settings(int narg, char ** /* arg */)
 void PairMesoCNT::coeff(int narg, char **arg)
 {
   if (narg != 3) error->all(FLERR, "Incorrect args for pair coefficients");
-  file = arg[2];
-  read_file();
+  read_file(arg[2]);
   if (!allocated) allocate();
 
   // units, eV to energy unit conversion
@@ -817,40 +818,45 @@ void PairMesoCNT::sort(int *list, int size)
    read mesocnt potential file
 ------------------------------------------------------------------------- */
 
-void PairMesoCNT::read_file()
+void PairMesoCNT::read_file(const char *file)
 {
-  int me, num;
-  MPI_Comm_rank(world, &me);
+  if (comm->me == 0) {
 
-  FILE *fp;
+    // open file and skip first line
 
-  if (me == 0) {
-    char line[MAXLINE];
+    PotentialFileReader reader(lmp, file, "mesocnt");
+    reader.skip_line();
 
-    // open file
+    // parse global parameters: 4x integer then 4x double
 
-    fp = utils::open_potential(file, lmp, nullptr);
-    if (fp == nullptr) error->one(FLERR, "Cannot open mesocnt file: {}", file);
+    try {
+      auto values = reader.next_values(4);
+      uinf_points = values.next_int();
+      gamma_points = values.next_int();
+      phi_points = values.next_int();
+      usemi_points = values.next_int();
 
-    utils::sfgets(FLERR, line, MAXLINE, fp, file, error);
+      values = reader.next_values(4);
+      r_ang = values.next_double();
+      sig_ang = values.next_double();
+      delta1 = values.next_double();
+      delta2 = values.next_double();
+    } catch (std::exception &e) {
+      error->one(FLERR, "Error parsing mesocnt potential file header: {}", e.what());
+    }
 
-    // potential parameters
+    // allocate and read potential tables
 
-    utils::sfgets(FLERR, line, MAXLINE, fp, file, error);
-    num = sscanf(line, "%d %d %d %d", &uinf_points, &gamma_points, &phi_points, &usemi_points);
-    if (num != 4)
-      error->one(FLERR,
-                 "Could not correctly parse line 2 in "
-                 "mesocnt file: {}",
-                 file);
+    memory->create(uinf_data, uinf_points, "pair:uinf_data");
+    memory->create(gamma_data, gamma_points, "pair:gamma_data");
+    memory->create(phi_data, phi_points, phi_points, "pair:phi_data");
+    memory->create(usemi_data, usemi_points, usemi_points, "pair:usemi_data");
 
-    utils::sfgets(FLERR, line, MAXLINE, fp, file, error);
-    num = sscanf(line, "%lg %lg %lg %lg", &r_ang, &sig_ang, &delta1, &delta2);
-    if (num != 4)
-      error->one(FLERR,
-                 "Could not correctly parse line 3 in "
-                 "mesocnt file: {}",
-                 file);
+    read_data(reader, uinf_data, hstart_uinf, delh_uinf, uinf_points);
+    read_data(reader, gamma_data, hstart_gamma, delh_gamma, gamma_points);
+    read_data(reader, phi_data, hstart_phi, psistart_phi, delh_phi, delpsi_phi, phi_points);
+    read_data(reader, usemi_data, hstart_usemi, xistart_usemi, delh_usemi, delxi_usemi,
+              usemi_points);
   }
 
   MPI_Bcast(&uinf_points, 1, MPI_INT, 0, world);
@@ -862,21 +868,16 @@ void PairMesoCNT::read_file()
   MPI_Bcast(&delta1, 1, MPI_DOUBLE, 0, world);
   MPI_Bcast(&delta2, 1, MPI_DOUBLE, 0, world);
 
-  // potential tables
+  // allocate table arrays on other MPI ranks
 
-  memory->create(uinf_data, uinf_points, "pair:uinf_data");
-  memory->create(gamma_data, gamma_points, "pair:gamma_data");
-  memory->create(phi_data, phi_points, phi_points, "pair:phi_data");
-  memory->create(usemi_data, usemi_points, usemi_points, "pair:usemi_data");
-
-  if (me == 0) {
-    read_data(fp, uinf_data, hstart_uinf, delh_uinf, uinf_points);
-    read_data(fp, gamma_data, hstart_gamma, delh_gamma, gamma_points);
-    read_data(fp, phi_data, hstart_phi, psistart_phi, delh_phi, delpsi_phi, phi_points);
-    read_data(fp, usemi_data, hstart_usemi, xistart_usemi, delh_usemi, delxi_usemi, usemi_points);
-
-    fclose(fp);
+  if (comm->me != 0) {
+    memory->create(uinf_data, uinf_points, "pair:uinf_data");
+    memory->create(gamma_data, gamma_points, "pair:gamma_data");
+    memory->create(phi_data, phi_points, phi_points, "pair:phi_data");
+    memory->create(usemi_data, usemi_points, usemi_points, "pair:usemi_data");
   }
+
+  // broadcast tables
 
   MPI_Bcast(&hstart_uinf, 1, MPI_DOUBLE, 0, world);
   MPI_Bcast(&hstart_gamma, 1, MPI_DOUBLE, 0, world);
@@ -893,122 +894,97 @@ void PairMesoCNT::read_file()
 
   MPI_Bcast(uinf_data, uinf_points, MPI_DOUBLE, 0, world);
   MPI_Bcast(gamma_data, gamma_points, MPI_DOUBLE, 0, world);
-  for (int i = 0; i < phi_points; i++) MPI_Bcast(phi_data[i], phi_points, MPI_DOUBLE, 0, world);
-  for (int i = 0; i < usemi_points; i++)
-    MPI_Bcast(usemi_data[i], usemi_points, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&phi_data[0][0], phi_points*phi_points, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&usemi_data[0][0], usemi_points*usemi_points, MPI_DOUBLE, 0, world);
 }
 
 /* ----------------------------------------------------------------------
-   read 1D data file
+   read 1D data file. Only called from MPI rank 0
 ------------------------------------------------------------------------- */
 
-void PairMesoCNT::read_data(FILE *fp, double *data, double &xstart, double &dx, int ninput)
+void PairMesoCNT::read_data(PotentialFileReader &reader, double *data, double &xstart, double &dx,
+                            int ninput)
 {
-  char line[MAXLINE];
-  utils::sfgets(FLERR, line, MAXLINE, fp, file, error);
-
   // read values from file
 
-  int cerror = 0;
   int serror = 0;
   double x, xtemp, dxtemp;
 
   for (int i = 0; i < ninput; i++) {
-    if (nullptr == fgets(line, MAXLINE, fp))
-      error->one(FLERR, "Premature end of file in pair table: {}", file);
+    try {
+      auto values = reader.next_values(2);
 
-    if (i > 0) xtemp = x;
-    if (2 != sscanf(line, "%lg %lg", &x, &data[i])) cerror++;
-    if (i == 0) {
-      xstart = x;
-    } else {
-      dxtemp = x - xtemp;
-      if (i == 1) dx = dxtemp;
-      if (fabs(dxtemp - dx) / dx > SMALL) serror++;
+      if (i > 0) xtemp = x;
+      x = values.next_double();
+      data[i] = values.next_double();
+
+      if (i == 0) {
+        xstart = x;
+      } else {
+        dxtemp = x - xtemp;
+        if (i == 1) dx = dxtemp;
+        if (fabs(dxtemp - dx) / dx > SMALL) serror++;
+      }
+    } catch (std::exception &e) {
+      error->one(FLERR, "Error parsing data for mesocnt potential: {}", e.what());
     }
-  }
 
-  // warn if data was read incompletely, e.g. columns were missing
+    // warn if spacing between data points is not constant
 
-  if (cerror) {
-    std::string mesg = fmt::format("{} of {} lines were incomplete or could "
-                                   "or could not be parsed completely in "
-                                   "  pair table: {}",
-                                   cerror, ninput, file);
-    error->warning(FLERR, mesg);
-  }
-
-  // warn if spacing between data points is not constant
-
-  if (serror) {
-    std::string mesg = fmt::format("{} spacings in first column were different "
-                                   " from first spacing in pair table: {}",
-                                   serror, file);
-    error->warning(FLERR, mesg);
+    if (serror)
+      error->warning(FLERR, "{} spacings in first column were different from first", serror);
   }
 }
 
 /* ----------------------------------------------------------------------
-   read 2D data file
+   read 2D data file only called from MPI rank 0
 ------------------------------------------------------------------------- */
 
-void PairMesoCNT::read_data(FILE *fp, double **data, double &xstart, double &ystart, double &dx,
-                            double &dy, int ninput)
+void PairMesoCNT::read_data(PotentialFileReader &reader, double **data, double &xstart,
+                            double &ystart, double &dx, double &dy, int ninput)
 {
-  char line[MAXLINE];
-  fgets(line, MAXLINE, fp);
-
   // read values from file
 
-  int cerror = 0;
   int sxerror = 0;
   int syerror = 0;
   double x, y, xtemp, ytemp, dxtemp, dytemp;
 
   for (int i = 0; i < ninput; i++) {
-    if (i > 0) xtemp = x;
-    for (int j = 0; j < ninput; j++) {
-      if (nullptr == fgets(line, MAXLINE, fp))
-        error->one(FLERR, "Premature end of file in pair table: {}", file);
+    try {
+      if (i > 0) xtemp = x;
+      for (int j = 0; j < ninput; j++) {
+        if (j > 0) ytemp = y;
 
-      if (j > 0) ytemp = y;
-      if (3 != sscanf(line, "%lg %lg %lg", &x, &y, &data[i][j])) cerror++;
-      if (i == 0 && j == 0) ystart = y;
-      if (j > 0) {
-        dytemp = y - ytemp;
-        if (j == 1) dy = dytemp;
-        if (fabs(dytemp - dy) / dy > SMALL) syerror++;
+        auto values = reader.next_values(3);
+        x = values.next_double();
+        y = values.next_double();
+        data[i][j] = values.next_double();
+
+        if (i == 0 && j == 0) ystart = y;
+        if (j > 0) {
+          dytemp = y - ytemp;
+          if (j == 1) dy = dytemp;
+          if (fabs(dytemp - dy) / dy > SMALL) syerror++;
+        }
       }
-    }
-    if (i == 0) {
-      xstart = x;
-    } else {
-      dxtemp = x - xtemp;
-      if (i == 1) dx = dxtemp;
-      if (fabs(dxtemp - dx) / dx > SMALL) sxerror++;
+      if (i == 0) {
+        xstart = x;
+      } else {
+        dxtemp = x - xtemp;
+        if (i == 1) dx = dxtemp;
+        if (fabs(dxtemp - dx) / dx > SMALL) sxerror++;
+      }
+    } catch (std::exception &e) {
+      error->one(FLERR, "Error parsing data for mesocnt potential: {}", e.what());
     }
   }
-
-  // warn if data was read incompletely, e.g. columns were missing
-
-  if (cerror)
-    error->warning(FLERR,
-                   "{} of {} lines were incomplete or could not be parsed "
-                   "completely in pair table: {}",
-                   cerror, ninput * ninput, file);
 
   // warn if spacing between data points is not constant
 
   if (sxerror)
-    error->warning(FLERR,
-                   "{} spacings in first column were different from "
-                   "first spacing in pair table: {}",
-                   sxerror, file);
+    error->warning(FLERR, "{} spacings in first column were different from first", sxerror);
   if (syerror)
-    error->warning(FLERR,
-                   "{} spacings in second column were different from "
-                   "first spacing in pair table: {}",
-                   syerror, file);
+    error->warning(FLERR, "{} spacings in second column were different from first", syerror);
 }
 
 /* ----------------------------------------------------------------------

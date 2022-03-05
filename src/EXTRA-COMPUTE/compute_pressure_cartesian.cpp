@@ -372,13 +372,13 @@ void ComputePressureCartesian::compute_pressure_1d(double fpair, double xi, doub
     xj -= (domain->boxhi[dir1] - domain->boxlo[dir1]);
 
   // Integrating contour from bin_s to bin_e
-  bin_s = (int) lround(((xi - domain->boxlo[dir1]) / bin_width1)) % nbins1;
-  bin_e = (int) lround(((xj - domain->boxlo[dir1]) / bin_width1)) % nbins1;
+  bin_s = ((int) lround((xi - domain->boxlo[dir1]) / bin_width1)) % nbins1;
+  bin_e = ((int) lround((xj - domain->boxlo[dir1]) / bin_width1)) % nbins1;
 
   // If not periodic in dir1
   if (domain->periodicity[dir1] == 0) {
-    bin_s = (int) lround(((xi - domain->boxlo[dir1]) / bin_width1));
-    bin_e = (int) lround(((xj - domain->boxlo[dir1]) / bin_width1));
+    bin_s = ((int) lround((xi - domain->boxlo[dir1]) / bin_width1));
+    bin_e = ((int) lround((xj - domain->boxlo[dir1]) / bin_width1));
 
     if (bin_e == nbins1) bin_e--;
     if (bin_s == nbins1) bin_s--;

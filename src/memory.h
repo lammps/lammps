@@ -237,7 +237,7 @@ class Memory : protected Pointers {
         size += n3[i][j];
     nbytes = ((bigint) sizeof(TYPE)) * size;
     TYPE *data = (TYPE *) smalloc(nbytes, name);
-    
+
     size = 0;
     for (i = 0; i < n1; i++) size += n2[i];
     nbytes = ((bigint) sizeof(TYPE *)) * size;

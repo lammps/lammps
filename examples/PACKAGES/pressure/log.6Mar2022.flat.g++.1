@@ -1,0 +1,139 @@
+LAMMPS (17 Feb 2022)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+# compute pressure/cartesian for a flat liquid-vapor interface
+
+units           lj
+atom_style      atomic
+processors      * * 1
+
+lattice         fcc 0.8442
+Lattice spacing in x,y,z = 1.6795962 1.6795962 1.6795962
+region          box block 0 10 0 10 0 30
+region    liquid block 0 10 0 10 10 20
+create_box      1 box
+Created orthogonal box = (0 0 0) to (16.795962 16.795962 50.387886)
+  1 by 1 by 1 MPI processor grid
+create_atoms    1 region liquid
+Created 4200 atoms
+  using lattice units in orthogonal box = (0 0 0) to (16.795962 16.795962 50.387886)
+  create_atoms CPU = 0.001 seconds
+mass            1 1.0
+
+velocity        all create 0.65 87287 loop geom
+
+pair_style      lj/cut 2.5
+pair_coeff      1 1 1.0 1.0 2.5
+
+neighbor        0.3 bin
+neigh_modify    every 20 delay 0 check no
+
+fix             1 all nvt temp 0.7 0.7 0.2
+
+
+thermo          50
+#dump           id all atom 50 dump.flat
+
+#dump           2 all image 25 image.*.jpg type type #               axes yes 0.8 0.02 view 60 -30
+#dump_modify    2 pad 3
+
+#dump           3 all movie 25 movie.mpg type type #               axes yes 0.8 0.02 view 60 -30
+#dump_modify    3 pad 3
+
+fix 2 all recenter NULL NULL 15 units lattice
+compute p1 all pressure/cartesian z 0.5
+Adjusting first bin width for compute pressure/cartesian from 0.500000 to 0.503879
+fix 3 all ave/time 100 1 100 c_p1[*] file flat.out mode vector
+#compute p2 all pressure/cartesian z 0.25 x 1
+#fix 4 all ave/time 100 1 100 c_p2[*] file flat_2d.out mode vector
+
+
+run             1000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- compute pressure/cartesian:
+
+@article{galteland2021nanothermodynamic,
+title={Nanothermodynamic description and molecular simulation of a single-phase fluid in a slit pore},
+author={Galteland, Olav and Bedeaux, Dick and Kjelstrup, Signe}
+,journal={Nanomaterials},
+volume={11},
+number={1},
+pages={165},
+year={2021},
+publisher={Multidisciplinary Digital Publishing Institute}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+  generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update every 20 steps, delay 0 steps, check no
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 12 12 36
+  2 neighbor lists, perpetual/occasional/extra = 1 1 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+  (2) compute pressure/cartesian, occasional, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 3.943 | 3.943 | 3.943 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0         0.65   -6.5342767            0   -5.5595088   -1.9070205 
+      50   0.36842234   -6.0304191            0   -5.4779172  -0.76896135 
+     100   0.50896152   -6.0786202            0   -5.3153597  -0.58839893 
+     150   0.63567071   -6.0832159            0   -5.1299368  -0.29587266 
+     200   0.72324528   -6.0689996            0     -4.98439 -0.020342078 
+     250   0.74387008   -6.1188743            0   -5.0033349   0.11337395 
+     300   0.69112666   -6.1838992            0   -5.1474561   0.18290797 
+     350   0.67772633   -6.2400592            0   -5.2237117   0.27698807 
+     400   0.70714238   -6.2783031            0   -5.2178421   0.41150934 
+     450   0.71843478   -6.2870874            0   -5.2096918   0.57099811 
+     500   0.69813385   -6.3041653            0   -5.2572139   0.53883987 
+     550   0.67043069   -6.3035289            0   -5.2981223   0.36370002 
+     600   0.68196102     -6.26442            0    -5.241722   0.22122892 
+     650   0.69413189   -6.1759937            0   -5.1350438   0.12782621 
+     700   0.70034968   -6.1028735            0   -5.0525991  0.029208853 
+     750   0.70266272    -6.036839            0   -4.9830959 -0.088703619 
+     800   0.68551399   -5.9410263            0   -4.9130002  -0.18134075 
+     850    0.6866836   -5.8390431            0   -4.8092629  -0.27593375 
+     900   0.67608249    -5.711593            0   -4.6977107  -0.28650991 
+     950   0.68080988   -5.6043546            0   -4.5833829  -0.29765481 
+    1000   0.68792271   -5.5015077            0   -4.4698694  -0.27955533 
+Loop time of 2.13769 on 1 procs for 1000 steps with 4200 atoms
+
+Performance: 202087.264 tau/day, 467.795 timesteps/s
+99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.6853     | 1.6853     | 1.6853     |   0.0 | 78.84
+Neigh   | 0.2494     | 0.2494     | 0.2494     |   0.0 | 11.67
+Comm    | 0.020319   | 0.020319   | 0.020319   |   0.0 |  0.95
+Output  | 0.0006408  | 0.0006408  | 0.0006408  |   0.0 |  0.03
+Modify  | 0.17491    | 0.17491    | 0.17491    |   0.0 |  8.18
+Other   |            | 0.007093   |            |       |  0.33
+
+Nlocal:           4200 ave        4200 max        4200 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           3393 ave        3393 max        3393 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         144737 ave      144737 max      144737 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 144737
+Ave neighs/atom = 34.46119
+Neighbor list builds = 50
+Dangerous builds not checked
+Total wall time: 0:00:02

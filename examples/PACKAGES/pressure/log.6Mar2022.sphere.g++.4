@@ -1,0 +1,131 @@
+LAMMPS (17 Feb 2022)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+# compute pressure/spherical for a spherical droplet
+
+units		lj
+atom_style	atomic
+
+lattice		fcc 0.8442
+Lattice spacing in x,y,z = 1.6795962 1.6795962 1.6795962
+region		box block -10 10 -10 10 -10 10
+region    liquid sphere 0 0 0 5
+create_box	1 box
+Created orthogonal box = (-16.795962 -16.795962 -16.795962) to (16.795962 16.795962 16.795962)
+  1 by 2 by 2 MPI processor grid
+create_atoms	1 region liquid
+Created 2123 atoms
+  using lattice units in orthogonal box = (-16.795962 -16.795962 -16.795962) to (16.795962 16.795962 16.795962)
+  create_atoms CPU = 0.001 seconds
+mass		1 1.0
+
+velocity	all create 0.65 87287 loop geom
+
+pair_style	lj/cut 2.5
+pair_coeff	1 1 1.0 1.0 2.5
+
+neighbor	0.3 bin
+neigh_modify	every 20 delay 0 check no
+
+fix		1 all nvt temp 0.65 0.65 0.2
+
+#dump		id all atom 50 dump.sphere
+
+thermo		50
+#dump		2 all image 25 image.*.jpg type type #		axes yes 0.8 0.02 view 60 -30
+#dump_modify	2 pad 3
+
+#dump		3 all movie 25 movie.mpg type type #		axes yes 0.8 0.02 view 60 -30
+#dump_modify	3 pad 3
+
+fix 2 all recenter 0 0 0 units lattice
+compute p all pressure/spherical 0 0 0 0.25 15
+Adjusting bin width for compute pressure/spherical from 0.250000 to 0.245902
+fix 3 all ave/time 100 1 100 c_p[*] file sphere.out mode vector
+
+
+run		1000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- compute pressure/spherical:
+
+@article{galteland2022defining,
+title={Defining the pressures of a fluid in a nanoporous, heterogeneous medium},
+author={Galteland, Olav and Rauter, Michael T and Varughese, Kevin K and Bedeaux, Dick and Kjelstrup, Signe},
+journal={arXiv preprint arXiv:2201.13060},
+year={2022}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+  generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update every 20 steps, delay 0 steps, check no
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 24 24 24
+  2 neighbor lists, perpetual/occasional/extra = 1 1 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+  (2) compute pressure/spherical, occasional, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 3.068 | 3.078 | 3.082 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0         0.65    -5.982005            0   -5.0074642  -0.32476388 
+      50   0.42414771   -5.5700167            0   -4.9340948 -0.074492286 
+     100   0.64021145   -5.7405134            0   -4.7806486 -0.0054535408 
+     150   0.72663247   -5.8366691            0   -4.7472338  0.089984367 
+     200   0.63460122   -5.8577473            0   -4.9062939   0.14140872 
+     250   0.62199115   -5.9027866            0   -4.9702393   0.13328919 
+     300   0.62406364   -5.8889104            0   -4.9532559  0.063550326 
+     350    0.6028994   -5.7552274            0   -4.8513043 -0.027499706 
+     400   0.56811588   -5.5416058            0   -4.6898334 -0.061577561 
+     450   0.54946762   -5.3409786            0   -4.5171654 -0.060007836 
+     500   0.57962648   -5.2096808            0   -4.3406506 -0.052541306 
+     550   0.61149882   -5.0920642            0    -4.175248  -0.03806361 
+     600   0.63683327   -4.9975996            0   -4.0427996 -0.016868781 
+     650   0.67007543   -4.9684574            0   -3.9638177 -0.00087204466 
+     700   0.65648313   -4.9612522            0   -3.9769913  0.012954904 
+     750   0.62636818   -4.9944273            0   -4.0553176   0.01206773 
+     800   0.64474901   -5.0498682            0   -4.0832003 -0.0022579262 
+     850   0.64765539   -5.0405969            0   -4.0695714 0.0061653637 
+     900   0.65308258   -5.0187376            0   -4.0395752  0.016798783 
+     950   0.65225966   -4.9974305            0   -4.0195019    0.0195366 
+    1000    0.6407875   -4.9770134            0   -4.0162849  0.006441923 
+Loop time of 0.35176 on 4 procs for 1000 steps with 2123 atoms
+
+Performance: 1228110.486 tau/day, 2842.848 timesteps/s
+99.4% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.17072    | 0.18863    | 0.20606    |   3.7 | 53.63
+Neigh   | 0.027172   | 0.030136   | 0.033131   |   1.7 |  8.57
+Comm    | 0.024747   | 0.046514   | 0.067648   |   9.3 | 13.22
+Output  | 0.00050033 | 0.0013632  | 0.0016527  |   1.3 |  0.39
+Modify  | 0.082033   | 0.083964   | 0.086383   |   0.5 | 23.87
+Other   |            | 0.001148   |            |       |  0.33
+
+Nlocal:         530.75 ave         542 max         513 min
+Histogram: 1 0 0 0 1 0 0 0 0 2
+Nghost:         627.75 ave         650 max         612 min
+Histogram: 1 0 1 0 1 0 0 0 0 1
+Neighs:        15919.2 ave       17564 max       14498 min
+Histogram: 2 0 0 0 0 0 0 0 1 1
+
+Total # of neighbors = 63677
+Ave neighs/atom = 29.993877
+Neighbor list builds = 50
+Dangerous builds not checked
+Total wall time: 0:00:00

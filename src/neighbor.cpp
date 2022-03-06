@@ -1740,7 +1740,7 @@ void Neighbor::requests_new2old()
    TODO: should have optional argument "id" to match ID if multiple requests
 ------------------------------------------------------------------------- */
 
-NeighRequest *Neighbor::find_request(void *classptr)
+NeighRequest *Neighbor::find_request(void *classptr) const
 {
   if (classptr == nullptr) return nullptr;
 
@@ -1768,11 +1768,11 @@ const std::vector<NeighRequest *> Neighbor::get_pair_requests() const
    TODO: should have optional argument "id" to match ID if multiple requests
 ------------------------------------------------------------------------- */
 
-NeighList *Neighbor::find_list(void *classptr)
+NeighList *Neighbor::find_list(void *classptr) const
 {
   if (classptr == nullptr) return nullptr;
 
-  for (int i = 0; i < nrequest; i++)
+  for (int i = 0; i < nlist; i++)
     if (lists[i]->requestor == classptr) return lists[i];
 
   return nullptr;

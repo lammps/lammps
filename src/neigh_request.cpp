@@ -296,3 +296,10 @@ void NeighRequest::set_kokkos_host(int flag)
 {
   kokkos_host = flag;
 }
+
+void NeighRequest::set_skip(int *_iskip, int **_ijskip)
+{
+  skip = 1;
+  iskip = _iskip;
+  ijskip = _ijskip;
+}

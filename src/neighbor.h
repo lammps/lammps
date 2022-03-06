@@ -152,6 +152,7 @@ class Neighbor : protected Pointers {
   int exclude_setting();                          // return exclude value to accelerator pkg
   NeighList *find_list(void *);                   // find a neighbor request
   NeighRequest *find_request(void *);             // find a neighbor request
+  const std::vector<NeighRequest *> get_pair_requests() const;
   int any_full();                // Check if any old requests had full neighbor lists
   void build_collection(int);    // build peratom collection array starting at the given index
 

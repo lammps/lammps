@@ -1743,6 +1743,18 @@ NeighRequest *Neighbor::find_request(void *classptr)
 }
 
 /* ----------------------------------------------------------------------
+   return vector with neighbor list requests from pair styles
+------------------------------------------------------------------------- */
+
+const std::vector<NeighRequest *> Neighbor::get_pair_requests() const
+{
+  std::vector<NeighRequest *> matches;
+  for (int i=0; i < nrequest; ++i)
+    if (requests[i]->pair) matches.push_back(requests[i]);
+  return matches;
+}
+
+/* ----------------------------------------------------------------------
    find and return list requested by classptr
    if not found or classptr = nullptr, return nullptr
    TODO: should have optional argument "id" to match ID if multiple requests

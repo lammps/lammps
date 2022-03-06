@@ -1090,8 +1090,8 @@ int Neighbor::init_pair()
 }
 
 /* ----------------------------------------------------------------------
-   scan NeighRequests to set additional flags
-   only for custom cutoff lists
+   scan NeighRequests to set additional flags:
+   custom cutoff lists and accelerator lists
 ------------------------------------------------------------------------- */
 
 void Neighbor::morph_unique()
@@ -1105,6 +1105,14 @@ void Neighbor::morph_unique()
     // this forces Pair,Stencil,Bin styles to be instantiated separately
 
     if (irq->cut) irq->unique = 1;
+
+    // avoid flagging a neighbor list as both INTEL and OPENMP
+
+    if (irq->intel) irq->omp = 0;
+
+    // avoid flagging a neighbor list as both KOKKOS and INTEL or OPENMP
+
+    if (irq->kokkos_host || irq->kokkos_device) irq->omp = irq->intel = 0;
   }
 }
 

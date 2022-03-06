@@ -133,6 +133,9 @@ class Neighbor : protected Pointers {
   NeighRequest *add_request(class Compute *, int);
   NeighRequest *add_request(class Command *, const char *, int);
 
+  // report if we have INTEL package neighbor lists
+  bool has_intel_request() const;
+
   int decide();                     // decide whether to build or not
   virtual int check_distance();     // check max distance moved since last build
   void setup_bins();                // setup bins based on box and cutoff

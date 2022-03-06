@@ -2091,6 +2091,13 @@ NeighRequest *Neighbor::add_request(Command *requestor, const char *style, int f
   return req;
 }
 
+/* report if there is a neighbor list with the intel flag set */
+bool Neighbor::has_intel_request() const
+{
+  return (((nrequest > 0) && (requests[0]->intel > 0))
+          ||  ((old_nrequest > 0) && (old_requests[0]->intel > 0)));
+}
+
 /* ----------------------------------------------------------------------
    setup neighbor binning and neighbor stencils
    called before run and every reneighbor if box size/shape changes

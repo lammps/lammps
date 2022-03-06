@@ -98,8 +98,7 @@ NeighRequest::NeighRequest(LAMMPS *_lmp) : Pointers(_lmp)
 
 /* ---------------------------------------------------------------------- */
 
-NeighRequest::NeighRequest(LAMMPS *_lmp, int idx, void *ptr, int num)
-  : NeighRequest(_lmp)
+NeighRequest::NeighRequest(LAMMPS *_lmp, int idx, void *ptr, int num) : NeighRequest(_lmp)
 {
   index = idx;
   requestor = ptr;
@@ -108,10 +107,9 @@ NeighRequest::NeighRequest(LAMMPS *_lmp, int idx, void *ptr, int num)
 
 /* ---------------------------------------------------------------------- */
 
-NeighRequest::NeighRequest(NeighRequest *old)
-  : NeighRequest(old->lmp)
+NeighRequest::NeighRequest(NeighRequest *old) : NeighRequest(old->lmp)
 {
-  copy_request(old,1);
+  copy_request(old, 1);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -242,19 +240,19 @@ void NeighRequest::copy_request(NeighRequest *other, int skipflag)
   if (!skipflag) return;
 
   int i, j;
-  int ntypes = atom->ntypes;
+  int ntp1 = atom->ntypes + 1;
 
   skip = other->skip;
 
   if (other->iskip) {
-    iskip = new int[ntypes + 1];
-    for (i = 1; i <= ntypes; i++) iskip[i] = other->iskip[i];
+    iskip = new int[ntp1];
+    for (i = 1; i < ntp1; i++) iskip[i] = other->iskip[i];
   }
 
   if (other->ijskip) {
-    memory->create(ijskip, ntypes + 1, ntypes + 1, "neigh_request:ijskip");
-    for (i = 1; i <= ntypes; i++)
-      for (j = 1; j <= ntypes; j++) ijskip[i][j] = other->ijskip[i][j];
+    memory->create(ijskip, ntp1, ntp1, "neigh_request:ijskip");
+    for (i = 1; i < ntp1; i++)
+      for (j = 1; j < ntp1; j++) ijskip[i][j] = other->ijskip[i][j];
   }
 }
 
@@ -266,17 +264,20 @@ void NeighRequest::apply_flags(int flags)
     half = 0;
     full = 1;
   }
-  if (flags & REQ_GHOST) { ghost = 1; }
-  if (flags & REQ_SIZE) { size = 1; }
-  if (flags & REQ_HISTORY) { history = 1; }
-  if (flags & REQ_OCCASIONAL) { occasional = 1; }
+  // clang-format off
+  if (flags & REQ_GHOST)       { ghost = 1; }
+  if (flags & REQ_SIZE)        { size = 1; }
+  if (flags & REQ_HISTORY)     { history = 1; }
+  if (flags & REQ_OCCASIONAL)  { occasional = 1; }
   if (flags & REQ_RESPA_INOUT) { respainner = respaouter = 1; }
-  if (flags & REQ_RESPA_ALL) { respainner = respamiddle = respaouter = 1; }
+  if (flags & REQ_RESPA_ALL)   { respainner = respamiddle = respaouter = 1; }
+  // clang-format on
 }
 
 /* ---------------------------------------------------------------------- */
 
-void NeighRequest::set_id(int _id) {
+void NeighRequest::set_id(int _id)
+{
   id = _id;
 }
 
@@ -284,4 +285,14 @@ void NeighRequest::set_cutoff(double _cutoff)
 {
   cut = 1;
   cutoff = _cutoff;
+}
+
+void NeighRequest::set_kokkos_device(int flag)
+{
+  kokkos_device = flag;
+}
+
+void NeighRequest::set_kokkos_host(int flag)
+{
+  kokkos_host = flag;
 }

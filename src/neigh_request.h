@@ -123,7 +123,11 @@ class NeighRequest : protected Pointers {
 
   void apply_flags(int);
   void set_id(int);
+  void set_kokkos_device(int);
+  void set_kokkos_host(int);
   void set_cutoff(double);
+
+  int get_size() const { return size; }
 };
 
 }    // namespace LAMMPS_NS

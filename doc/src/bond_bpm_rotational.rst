@@ -105,7 +105,7 @@ radial normal vector, and :math:`\vec{v}` is the velocity difference
 between the two particles. Similarly, tangential forces are applied to
 each atom proportional to the relative differences in sliding
 velocities with a constant prefactor :math:`\gamma_s` (:ref:`(Wang et
-al.) <Wang2015>) along with their associated torques. The rolling and
+al.) <Wang2015>`) along with their associated torques. The rolling and
 twisting components of the relative angular velocities of the two
 atoms are also damped by applying torques with prefactors of
 :math:`\gamma_r` and :math:`\gamma_t`, respectively.
@@ -117,16 +117,16 @@ or :doc:`read_restart <read_restart>` commands:
 
 * :math:`k_r`           (force/distance units)
 * :math:`k_s`           (force/distance units)
-* :math:`k_t`           (force units)
-* :math:`k_b`           (force units)
+* :math:`k_t`           (force*distance/radians units)
+* :math:`k_b`           (force*distance/radians units)
 * :math:`f_{r,c}`       (force units)
 * :math:`f_{s,c}`       (force units)
 * :math:`\tau_{b,c}`    (force*distance units)
 * :math:`\tau_{t,c}`    (force*distance units)
 * :math:`\gamma_n`      (force/velocity units)
 * :math:`\gamma_s`      (force/velocity units)
-* :math:`\gamma_r`      (distance*force/seconds/radians units)
-* :math:`\gamma_t`      (distance*force/seconds/radians units)
+* :math:`\gamma_r`      (force*distance/velocity units)
+* :math:`\gamma_t`      (force*distance/velocity units)
 
 By default, pair forces are not calculated between bonded particles.
 Pair forces can alternatively be overlaid on top of bond forces using

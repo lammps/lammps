@@ -82,7 +82,7 @@ void FixStoreLocal::add_data(double *input_data, int i, int j)
   if (nvalues == 1) {
     vector[ncount] = input_data[0];
   } else {
-    for (int i = 0; i < nvalues; i++) array[ncount][i] = input_data[i];
+    for (int n = 0; n < nvalues; n++) array[ncount][n] = input_data[n];
   }
 
   ncount += 1;

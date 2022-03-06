@@ -37,6 +37,18 @@ using namespace MathExtra;
 
 BondBPMRotational::BondBPMRotational(LAMMPS *lmp) : BondBPM(lmp)
 {
+  Kr = nullptr;
+  Ks = nullptr;
+  Kt = nullptr;
+  Kb = nullptr;
+  Fcr = nullptr;
+  Fcs = nullptr;
+  Tct = nullptr;
+  Tcb = nullptr;
+  gnorm = nullptr;
+  gslide = nullptr;
+  groll = nullptr;
+  gtwist = nullptr;
   partial_flag = 1;
 }
 
@@ -392,16 +404,15 @@ void BondBPMRotational::damping_forces(int i1, int i2, int type, double& Fr,
   MathExtra::sub3(v[i2], vn2, vt2);
 
   MathExtra::sub3(vt2, vt1, tmp);
-  MathExtra::scale3(-0.5, tmp);
+  MathExtra::scale3(0.5, tmp);
 
   MathExtra::cross3(omega[i1], r, s1);
-  MathExtra::scale3(0.5, s1);
+  MathExtra::scale3(-0.5, s1);
   MathExtra::sub3(s1, tmp, s1); // Eq 12
 
   MathExtra::cross3(omega[i2], r, s2);
-  MathExtra::scale3(-0.5,s2);
+  MathExtra::scale3(0.5,s2);
   MathExtra::add3(s2, tmp, s2); // Eq 13
-  MathExtra::scale3(-0.5,s2);
 
   MathExtra::sub3(s1, s2, tmp);
   MathExtra::scale3(gslide[type], tmp);
@@ -409,7 +420,7 @@ void BondBPMRotational::damping_forces(int i1, int i2, int type, double& Fr,
 
   // Apply corresponding torque
   MathExtra::cross3(r,tmp,tdamp);
-  MathExtra::scale3(-0.5, tdamp); // 0.5*r points from particle 2 to midpoint
+  MathExtra::scale3(0.5, tdamp);
   MathExtra::add3(torque1on2, tdamp, torque1on2);
   MathExtra::add3(torque2on1, tdamp, torque2on1);
 
@@ -624,7 +635,7 @@ void BondBPMRotational::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   check if pair defined and special_bond settings are valid
+   check for correct settings and create fix 
 ------------------------------------------------------------------------- */
 
 void BondBPMRotational::init_style()

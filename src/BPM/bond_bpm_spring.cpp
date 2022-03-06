@@ -32,6 +32,9 @@ using namespace LAMMPS_NS;
 
 BondBPMSpring::BondBPMSpring(LAMMPS *lmp) : BondBPM(lmp)
 {
+  k = nullptr;
+  ecrit = nullptr;
+  gamma = nullptr;
   partial_flag = 1;
 }
 
@@ -265,7 +268,7 @@ void BondBPMSpring::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   check if pair defined and special_bond settings are valid
+   check for correct settings and create fix
 ------------------------------------------------------------------------- */
 
 void BondBPMSpring::init_style()

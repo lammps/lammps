@@ -113,7 +113,7 @@ void BondBPM::init_style()
   } else {
     // Require atoms know about all of their bonds and if they break
     if (force->newton_bond)
-      error->all(FLERR,"Without overlay/pair, BPM bond sytles require Newton bond off");
+      error->all(FLERR,"Without overlay/pair, BPM bond styles require Newton bond off");
 
     // special lj must be 0 1 1 to censor pair forces between bonded particles
     // special coulomb must be 1 1 1 to ensure all pairs are included in the

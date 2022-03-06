@@ -546,17 +546,7 @@ void FixIntel::check_neighbor_intel()
     }
     if (neighbor->requests[i]->skip && _offload_balance != 0.0)
       error->all(FLERR,"Cannot yet use hybrid styles with Intel offload.");
-
-    // avoid flagging a neighbor list as both INTEL and OPENMP
-    if (neighbor->requests[i]->intel)
-      neighbor->requests[i]->omp = 0;
   }
-  #else
-  // avoid flagging a neighbor list as both INTEL and OPENMP
-  const int nrequest = neighbor->nrequest;
-  for (int i = 0; i < nrequest; ++i)
-    if (neighbor->requests[i]->intel)
-      neighbor->requests[i]->omp = 0;
   #endif
 }
 

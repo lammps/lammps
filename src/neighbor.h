@@ -133,6 +133,9 @@ class Neighbor : protected Pointers {
   NeighRequest *add_request(class Compute *, int);
   NeighRequest *add_request(class Command *, const char *, int);
 
+  // set neighbor list request OpenMP flag
+  void set_omp_neighbor(int);
+
   // report if we have INTEL package neighbor lists
   bool has_intel_request() const;
 
@@ -141,8 +144,8 @@ class Neighbor : protected Pointers {
   void setup_bins();                // setup bins based on box and cutoff
   virtual void build(int);          // build all perpetual neighbor lists
   virtual void build_topology();    // pairwise topology neighbor lists
-  void build_one(class NeighList *list, int preflag = 0);
   // create a one-time pairwise neigh list
+  void build_one(class NeighList *list, int preflag = 0);
   void set(int, char **);                     // set neighbor style and skin distance
   void reset_timestep(bigint);                // reset of timestep counter
   void modify_params(int, char **);           // modify params that control builds

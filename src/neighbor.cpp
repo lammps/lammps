@@ -2111,7 +2111,18 @@ NeighRequest *Neighbor::add_request(Command *requestor, const char *style, int f
   return req;
 }
 
+// set neighbor list request OpenMP flag
+
+void Neighbor::set_omp_neighbor(int flag)
+{
+  // flag *all* neighbor list requests as OPENMP threaded,
+  // but skip lists already flagged as INTEL threaded
+  for (int i = 0; i < nrequest; ++i)
+    if (!requests[i]->intel) requests[i]->omp = flag;
+}
+
 /* report if there is a neighbor list with the intel flag set */
+
 bool Neighbor::has_intel_request() const
 {
   return (((nrequest > 0) && (requests[0]->intel > 0))

@@ -277,7 +277,7 @@ void FixOMP::init()
 
 #undef CheckStyleForOMP
 #undef CheckHybridForOMP
-  set_neighbor_omp();
+  neighbor->set_omp_neighbor(_neighbor ? 1 : 0);
 
   // diagnostic output
   if (comm->me == 0) {
@@ -289,27 +289,6 @@ void FixOMP::init()
       utils::logmesg(lmp,"No /omp style for force computation currently active\n");
     }
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixOMP::set_neighbor_omp()
-{
-  // select or deselect multi-threaded neighbor
-  // list build depending on setting in package omp.
-  // NOTE: since we are at the top of the list of
-  // fixes, we cannot adjust neighbor lists from
-  // other fixes. those have to be re-implemented
-  // as /omp fix styles. :-(
-
-  const int neigh_omp = _neighbor ? 1 : 0;
-  const int nrequest = neighbor->nrequest;
-
-  // flag *all* neighbor list requests as OPENMP threaded,
-  // but skip lists already flagged as INTEL threaded
-  for (int i = 0; i < nrequest; ++i)
-    if (! neighbor->requests[i]->intel)
-      neighbor->requests[i]->omp = neigh_omp;
 }
 
 /* ---------------------------------------------------------------------- */

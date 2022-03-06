@@ -39,16 +39,16 @@ using namespace LAMMPS_NS;
 
 static const char cite_compute_pressure_cartesian[] =
     "compute pressure/cartesian:\n\n"
-    "@article{ikeshoji2003molecular,\n"
-    "title={Molecular-level calculation scheme for pressure in inhomogeneous systems of flat and "
-    "spherical layers},\n"
-    "author={Ikeshoji, Tamio and Hafskjold, Bj{\\o}rn and Furuholt, Hilde},\n"
-    "journal={Molecular Simulation},\n"
-    "volume={29},\n"
-    "number={2},\n"
-    "pages={101--109},\n"
-    "year={2003},\n"
-    "publisher={Taylor & Francis}\n"
+    "@article{galteland2021nanothermodynamic,\n"
+    "title={Nanothermodynamic description and molecular simulation of a single-phase fluid in a "
+    "slit pore},\n"
+    "author={Galteland, Olav and Bedeaux, Dick and Kjelstrup, Signe}\n,"
+    "journal={Nanomaterials},\n"
+    "volume={11},\n"
+    "number={1},\n"
+    "pages={165},\n"
+    "year={2021},\n"
+    "publisher={Multidisciplinary Digital Publishing Institute}\n"
     "}\n\n";
 
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -495,9 +495,9 @@ void ComputePressureCartesian::compute_pressure_2d(double fpair, double xi, doub
     // Periodic boundary conditions
     if (domain->periodicity[dir1] == 1) {
       if (bin1 < 0)
-        bin1 += nbins1;
+        bin1 = (bin1 + nbins1) % nbins1;
       else if (bin1 >= nbins1)
-        bin1 -= nbins1;
+        bin1 = (bin1 - nbins1) % nbins1;
     } else if (bin1 < 0)
       bin1 = 0;
     else if (bin1 >= nbins1)
@@ -505,9 +505,9 @@ void ComputePressureCartesian::compute_pressure_2d(double fpair, double xi, doub
 
     if (domain->periodicity[dir2] == 1) {
       if (bin2 < 0)
-        bin2 += nbins2;
+        bin2 = (bin2 + nbins2) % nbins2;
       else if (bin2 >= nbins2)
-        bin2 -= nbins2;
+        bin2 = (bin2 - nbins2) % nbins2;
     } else if (bin2 < 0)
       bin2 = 0;
     else if (bin2 >= nbins2)

@@ -19,6 +19,7 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
+#include "lattice.h"
 #include "math_const.h"
 #include "memory.h"
 #include "modify.h"
@@ -43,16 +44,12 @@ using namespace MathConst;
 
 static const char cite_compute_pressure_sphere[] =
     "compute pressure/spherical:\n\n"
-    "@article{ikeshoji2003molecular,\n"
-    "title={Molecular-level calculation scheme for pressure in inhomogeneous systems of flat and "
-    "spherical layers},\n"
-    "author={Ikeshoji, Tamio and Hafskjold, Bj{\\o}rn and Furuholt, Hilde},\n"
-    "journal={Molecular Simulation},\n"
-    "volume={29},\n"
-    "number={2},\n"
-    "pages={101--109},\n"
-    "year={2003},\n"
-    "publisher={Taylor & Francis}\n"
+    "@article{galteland2022defining,\n"
+    "title={Defining the pressures of a fluid in a nanoporous, heterogeneous medium},\n"
+    "author={Galteland, Olav and Rauter, Michael T and Varughese, Kevin K and Bedeaux, Dick and "
+    "Kjelstrup, Signe},\n"
+    "journal={arXiv preprint arXiv:2201.13060},\n"
+    "year={2022}\n"
     "}\n\n";
 
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -339,7 +336,7 @@ void ComputePressureSpherical::compute_array()
         R2 = (bin + 1) * bin_width;
 
         // we must not take the square root of a negative number or divide by zero.
-        if ((R1*R1 < sql0) || (R2*R2 < sql0) || (rsq <= 0.0)) {
+        if ((R1 * R1 < sql0) || (R2 * R2 < sql0) || (rsq <= 0.0)) {
           lb = 1.0;
         } else {
           l1 = lambda0 + sqrt((R1 * R1 - sql0) / rsq);

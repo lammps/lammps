@@ -244,7 +244,7 @@ void PairZBL::coeff(int narg, char **arg)
 
 void PairZBL::init_style()
 {
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this, NeighConst::REQ_DEFAULT);
 
   cut_innersq = cut_inner * cut_inner;
   cut_globalsq = cut_global * cut_global;

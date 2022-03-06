@@ -19,6 +19,7 @@
 #include "error.h"
 #include "force.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
@@ -33,6 +34,7 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using MathSpecial::square;
 
 /*-----------------------------------------------------------------------------------
   Contributing authors: Cody K. Addington (North Carolina State University)
@@ -305,12 +307,12 @@ void ComputePressureCyl::compute_array()
 
       // Check if kinetic option is set to yes
       if (kinetic_flag == 1) {
-        if (temp_R2 != 0) {
+        if ((temp_R2 != 0.0) && (x[i][0] != 0.0)) {
           // Radial velocity times R
           vr = (x[i][0] * v[i][0] + x[i][1] * v[i][1]);
           // Azimuthal velocity divided by R
           vp = (v[i][1] / x[i][0] - x[i][1] * v[i][0] / (x[i][0] * x[i][0])) /
-              (pow(x[i][1] / x[i][0], 2.0) + 1.0);
+              (square(x[i][1] / x[i][0]) + 1.0);
 
           Pkr_temp[j] += mass[type[i]] * vr * vr / temp_R2;
           Pkphi_temp[j] += mass[type[i]] * temp_R2 * vp * vp;
@@ -425,8 +427,8 @@ void ComputePressureCyl::compute_array()
         C = risq - R2[ibin];
         D = B * B - 4.0 * A * C;
 
-        // completely outside of R
-        if (D < 0.0) continue;
+        // completely outside of R or zero size bin
+        if ((D < 0.0) || (A == 0.0)) continue;
 
         sqrtD = sqrt(D);
         alpha1 = 0.5 * (-B + sqrtD) / A;
@@ -456,6 +458,7 @@ void ComputePressureCyl::compute_array()
 
       // azimuthal pressure contribution (P_phiphi)
       for (int iphi = 0; iphi < nphi; iphi++) {
+        if ((dx * tangent[iphi] - dy) == 0.0) continue;
         alpha = (yi - xi * tangent[iphi]) / (dx * tangent[iphi] - dy);
 
         // no intersection with phi surface

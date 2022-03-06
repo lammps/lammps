@@ -21,6 +21,7 @@
 #include "force.h"
 #include "lattice.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
@@ -34,6 +35,8 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using MathSpecial::cube;
+using MathSpecial::square;
 
 #define SMALL 1.0e-10
 
@@ -137,7 +140,7 @@ void ComputePressureSpherical::init()
 
   // Inverse volume of each spherical shell (bin)
   for (int bin = 0; bin < nbins; bin++)
-    invV[bin] = 3.0 / (4.0 * MY_PI * (pow((bin + 1) * bin_width, 3.0) - pow(bin * bin_width, 3.0)));
+    invV[bin] = 0.75 / (MY_PI * (cube((bin + 1) * bin_width) - cube(bin * bin_width)));
 
   int irequest = neighbor->request(this, instance_me);
   neighbor->requests[irequest]->pair = 0;
@@ -220,13 +223,13 @@ void ComputePressureSpherical::compute_array()
     bin = (int) (r / bin_width);
 
     // Avoiding division by zero
-    if (r != 0) {
+    if ((r != 0.0) && (ri[0] != 0.0)) {
       theta = acos(ri[2] / r);
       tdens[bin] += 1.0;
       vr = (ri[0] * v[i][0] + ri[1] * v[i][1] + ri[2] * v[i][2]) / r;
-      vt = r * sin(theta) / (pow(ri[1] / ri[0], 2.0) + 1.0) *
+      vt = r * sin(theta) / (square(ri[1] / ri[0]) + 1.0) *
           ((ri[0] * v[i][1] - ri[1] * v[i][0]) / (ri[0] * ri[0]));
-      vp = (ri[2] * vr - r * v[i][2]) / (r * sqrt(1.0 - pow(ri[2] / r, 2.0)));
+      vp = (ri[2] * vr - r * v[i][2]) / (r * sqrt(1.0 - square(ri[2] / r)));
       tpkrr[bin] += vr * vr;
       tpktt[bin] += vt * vt;
       tpkpp[bin] += vp * vp;
@@ -323,10 +326,10 @@ void ComputePressureSpherical::compute_array()
       rsqxy = ri[0] * ri[0] + ri[1] * ri[1];
       ririjxy = qi[0] * ri[0] + qi[1] * ri[1];
       sqrixy = qi[0] * qi[0] + qi[1] * qi[1];
-      sqlxy0 = sqrixy - ririjxy * ririjxy / rsqxy;
-      A = pow(qi[0] * ri[1] - qi[1] * ri[0], 2.0);
-      C = sqrt(rsqxy * sqrixy - ririjxy * ririjxy);
-      B = sqrt(rsq * sqr - ririj * ririj);
+      sqlxy0 = (rsqxy != 0.0) ? sqrixy - ririjxy * ririjxy / rsqxy : 0.0;
+      A = square(qi[0] * ri[1] - qi[1] * ri[0]);
+      if (sqlxy0 > SMALL) C = sqrt(rsqxy * sqrixy - ririjxy * ririjxy);
+      if (sql0 > SMALL) B = sqrt(rsq * sqr - ririj * ririj);
       end_bin = (int) (sqrt(rsq + 2.0 * ririj + sqr) / bin_width);
 
       while (lb < 1.0) {
@@ -367,10 +370,9 @@ void ComputePressureSpherical::compute_array()
           } else
             tpcrr[bin] -= f * rij * (lb - la);
 
-          if (sqlxy0 > SMALL) {
+          if (sqlxy0 > SMALL)
             tpctt[bin] -= (f / rij) * A / C *
                 (atan2(rsqxy * lb + ririjxy, C) - atan2(rsqxy * la + ririjxy, C));
-          }
         }
         l_sum += lb - la;
         la = lb;

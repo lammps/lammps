@@ -263,6 +263,12 @@ void PairReaxFF::settings(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reaxff command");
       list_blocking_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"tabulate") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style reaxff command");
+      api->control->tabulate = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      if (api->control->tabulate < 0)
+        error->all(FLERR,"Illegal pair_style reaxff tabulate command");
+      iarg += 2;
     } else error->all(FLERR,"Illegal pair_style reaxff command");
   }
 }

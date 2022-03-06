@@ -228,21 +228,21 @@ Neighbor::~Neighbor()
 
   memory->destroy(cutneighsq);
   memory->destroy(cutneighghostsq);
-  delete [] cuttype;
-  delete [] cuttypesq;
-  delete [] fixchecklist;
+  delete[] cuttype;
+  delete[] cuttypesq;
+  delete[] fixchecklist;
 
   for (int i = 0; i < nlist; i++) delete lists[i];
   for (int i = 0; i < nbin; i++) delete neigh_bin[i];
   for (int i = 0; i < nstencil; i++) delete neigh_stencil[i];
   for (int i = 0; i < nlist; i++) delete neigh_pair[i];
-  delete [] lists;
-  delete [] neigh_bin;
-  delete [] neigh_stencil;
-  delete [] neigh_pair;
+  delete[] lists;
+  delete[] neigh_bin;
+  delete[] neigh_stencil;
+  delete[] neigh_pair;
 
-  delete [] slist;
-  delete [] plist;
+  delete[] slist;
+  delete[] plist;
 
   for (int i = 0; i < nrequest; i++)
     if (requests[i]) delete requests[i];
@@ -251,15 +251,15 @@ Neighbor::~Neighbor()
     if (old_requests[i]) delete old_requests[i];
   memory->sfree(old_requests);
 
-  delete [] binclass;
-  delete [] binnames;
-  delete [] binmasks;
-  delete [] stencilclass;
-  delete [] stencilnames;
-  delete [] stencilmasks;
-  delete [] pairclass;
-  delete [] pairnames;
-  delete [] pairmasks;
+  delete[] binclass;
+  delete[] binnames;
+  delete[] binmasks;
+  delete[] stencilclass;
+  delete[] stencilnames;
+  delete[] stencilmasks;
+  delete[] pairclass;
+  delete[] pairnames;
+  delete[] pairmasks;
 
   delete neigh_bond;
   delete neigh_angle;
@@ -274,11 +274,11 @@ Neighbor::~Neighbor()
 
   memory->destroy(ex1_group);
   memory->destroy(ex2_group);
-  delete [] ex1_bit;
-  delete [] ex2_bit;
+  delete[] ex1_bit;
+  delete[] ex2_bit;
 
   memory->destroy(ex_mol_group);
-  delete [] ex_mol_bit;
+  delete[] ex_mol_bit;
   memory->destroy(ex_mol_intra);
 
   memory->destroy(type2collection);
@@ -484,7 +484,7 @@ void Neighbor::init()
   restart_check = 0;
   if (output->restart_flag) restart_check = 1;
 
-  delete [] fixchecklist;
+  delete[] fixchecklist;
   fixchecklist = nullptr;
   fixchecklist = new int[modify->nfix];
 
@@ -607,8 +607,8 @@ void Neighbor::init()
     if (lmp->kokkos)
       init_ex_bit_kokkos();
     else {
-      delete [] ex1_bit;
-      delete [] ex2_bit;
+      delete[] ex1_bit;
+      delete[] ex2_bit;
       ex1_bit = new int[nex_group];
       ex2_bit = new int[nex_group];
     }
@@ -623,7 +623,7 @@ void Neighbor::init()
     if (lmp->kokkos)
       init_ex_mol_bit_kokkos();
     else {
-      delete [] ex_mol_bit;
+      delete[] ex_mol_bit;
       ex_mol_bit = new int[nex_mol];
     }
 
@@ -801,10 +801,10 @@ int Neighbor::init_pair()
   for (i = 0; i < nbin; i++) delete neigh_bin[i];
   for (i = 0; i < nstencil; i++) delete neigh_stencil[i];
   for (i = 0; i < nlist; i++) delete neigh_pair[i];
-  delete [] lists;
-  delete [] neigh_bin;
-  delete [] neigh_stencil;
-  delete [] neigh_pair;
+  delete[] lists;
+  delete[] neigh_bin;
+  delete[] neigh_stencil;
+  delete[] neigh_pair;
 
   // error check on requests
   // do not allow occasional, ghost, bin list
@@ -1026,8 +1026,8 @@ int Neighbor::init_pair()
   // slist = indices of perpetual NStencil classes
   //         perpetual = used by any perpetual NPair class
 
-  delete [] slist;
-  delete [] plist;
+  delete[] slist;
+  delete[] plist;
   nstencil_perpetual = npair_perpetual = 0;
   slist = new int[nstencil];
   plist = new int[nlist];
@@ -2058,8 +2058,7 @@ int Neighbor::request(void *requestor, int instance)
   if (nrequest == maxrequest) {
     maxrequest += RQDELTA;
     requests = (NeighRequest **)
-      memory->srealloc(requests,maxrequest*sizeof(NeighRequest *),
-                       "neighbor:requests");
+      memory->srealloc(requests,maxrequest*sizeof(NeighRequest *), "neighbor:requests");
   }
 
   requests[nrequest] = new NeighRequest(lmp, nrequest, requestor, instance);

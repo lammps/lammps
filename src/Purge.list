@@ -51,6 +51,9 @@ lmpinstalledpkgs.h
 lmpgitversion.h
 mliap_model_python_couple.cpp
 mliap_model_python_couple.h
+# renamed on 7 March 2022
+compute_pressure_cylinder.cpp
+compute_pressure_cylinder.h
 # renamed on 21 July 2021
 fix_qeq_reax_kokkos.cpp
 fix_qeq_reax_kokkos.h

@@ -13,33 +13,39 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(pressure/spherical,ComputePressureSpherical);
+ComputeStyle(stress/cylinder,ComputeStressCyl);
 // clang-format on
 #else
 
-#ifndef LMP_COMPUTE_PRESSURE_SPHERICAL_H
-#define LMP_COMPUTE_PRESSURE_SPHERICAL_H
+#ifndef LMP_COMPUTE_STRESS_CYLINDER_H
+#define LMP_COMPUTE_STRESS_CYLINDER_H
 
 #include "compute.h"
 
 namespace LAMMPS_NS {
 
-class ComputePressureSpherical : public Compute {
+class ComputeStressCyl : public Compute {
  public:
-  ComputePressureSpherical(class LAMMPS *, int, char **);
-  ~ComputePressureSpherical() override;
+  ComputeStressCyl(class LAMMPS *, int, char **);
+  ~ComputeStressCyl() override;
   void init() override;
   void init_list(int, class NeighList *) override;
   void compute_array() override;
   double memory_usage() override;
 
  private:
-  int nbins;
-  double bin_width, x0, y0, z0, Rmax;
+  int kinetic_flag;
+  int nbins, nphi, nzbins;
+  double *Pvr_temp, *Pvr_all, *Pvz_temp, *Pvz_all, *Pvphi_temp, *Pvphi_all;
+  double *Pkr_temp, *Pkr_all, *Pkz_temp, *Pkz_all, *Pkphi_temp, *Pkphi_all;
+  double *R, *Rinv, *R2, *PrAinv, *PzAinv, PphiAinv;
+  double Rmax, bin_width, nktv2p;
+  double *R2kin, *density_temp, *invVbin, *density_all;
+  double *tangent, *ephi_x, *ephi_y;
+  double *binz;
 
-  // Number density, kinetic and configurational contribution to the pressure.
-  double *invV, *dens, *pkrr, *pktt, *pkpp, *pcrr, *pctt, *pcpp;
-  double *tdens, *tpkrr, *tpktt, *tpkpp, *tpcrr, *tpctt, *tpcpp;
+  double zlo, zhi;
+
   class NeighList *list;
 };
 
@@ -56,13 +62,13 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: No pair style is defined for compute pressure/spherical
+E: No pair style is defined for compute stress/cylinder
 
 Self-explanatory.
 
-E: Pair style does not support compute pressure/spherical
+E: Pair style does not support compute stress/cylinder
 
 The pair style does not have a single() function, so it can
-not be invoked by compute pressure/spherical
+not be invoked by compute stress/cylinder.
 
 */

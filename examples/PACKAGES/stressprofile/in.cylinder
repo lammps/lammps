@@ -1,4 +1,4 @@
-# compute pressure/cylinder for a cylindrical liquid-vapor interface
+# compute stress/cylinder for a cylindrical liquid-vapor interface
 
 units           lj
 atom_style      atomic
@@ -31,7 +31,7 @@ fix             1 all nvt temp 0.65 0.65 0.2
 #dump_modify    3 pad 3
 
 fix 2 all recenter 0 0 NULL units lattice
-compute p all pressure/cylinder 0 10 15 0.25
+compute p all stress/cylinder 0 10 15 0.25
 fix 3 all ave/time 100 1 100 c_p[*] file cylinder.out mode vector
 
 thermo          50

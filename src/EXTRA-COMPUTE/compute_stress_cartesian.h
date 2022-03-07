@@ -13,21 +13,21 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(pressure/cartesian,ComputePressureCartesian);
+ComputeStyle(stress/cartesian,ComputeStressCartesian);
 // clang-format on
 #else
 
-#ifndef LMP_COMPUTE_PRESSURE_CARTESIAN_H
-#define LMP_COMPUTE_PRESSURE_CARTESIAN_H
+#ifndef LMP_COMPUTE_STRESS_CARTESIAN_H
+#define LMP_COMPUTE_STRESS_CARTESIAN_H
 
 #include "compute.h"
 
 namespace LAMMPS_NS {
 
-class ComputePressureCartesian : public Compute {
+class ComputeStressCartesian : public Compute {
  public:
-  ComputePressureCartesian(class LAMMPS *, int, char **);
-  ~ComputePressureCartesian() override;
+  ComputeStressCartesian(class LAMMPS *, int, char **);
+  ~ComputeStressCartesian() override;
   void init() override;
   void init_list(int, class NeighList *) override;
   void compute_array() override;
@@ -58,13 +58,13 @@ Self-explanatory.  Check the input script syntax and compare to the
 documentation for the command.  You can use -echo screen as a
 command-line option when running LAMMPS to see the offending line.
 
-E: No pair style is defined for compute pressure/cartesian
+E: No pair style is defined for compute stress/cartesian
 
 Self-explanatory.
 
-E: Pair style does not support compute pressure/cartesian
+E: Pair style does not support compute stress/cartesian
 
 The pair style does not have a single() function, so it can
-not be invoked by compute pressure/cartesian.
+not be invoked by compute stress/cartesian.
 
 */

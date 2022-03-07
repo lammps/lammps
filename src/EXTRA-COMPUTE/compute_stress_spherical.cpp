@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS dir1ectory.
 ------------------------------------------------------------------------- */
 
-#include "compute_pressure_spherical.h"
+#include "compute_stress_spherical.h"
 
 #include "atom.h"
 #include "citeme.h"
@@ -45,8 +45,8 @@ using MathSpecial::square;
                         olav.galteland@ntnu.no
 ------------------------------------------------------------------------------------*/
 
-static const char cite_compute_pressure_sphere[] =
-    "compute pressure/spherical:\n\n"
+static const char cite_compute_stress_sphere[] =
+    "compute stress/spherical:\n\n"
     "@article{galteland2022defining,\n"
     "title={Defining the pressures of a fluid in a nanoporous, heterogeneous medium},\n"
     "author={Galteland, Olav and Rauter, Michael T and Varughese, Kevin K and Bedeaux, Dick and "
@@ -58,15 +58,15 @@ static const char cite_compute_pressure_sphere[] =
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 
-ComputePressureSpherical::ComputePressureSpherical(LAMMPS *lmp, int narg, char **arg) :
+ComputeStressSpherical::ComputeStressSpherical(LAMMPS *lmp, int narg, char **arg) :
     Compute(lmp, narg, arg), dens(nullptr), pkrr(nullptr), pktt(nullptr), pkpp(nullptr),
     pcrr(nullptr), pctt(nullptr), pcpp(nullptr), tdens(nullptr), tpkrr(nullptr), tpktt(nullptr),
     tpkpp(nullptr), tpcrr(nullptr), tpctt(nullptr), tpcpp(nullptr)
 {
 
-  if (lmp->citeme) lmp->citeme->add(cite_compute_pressure_sphere);
+  if (lmp->citeme) lmp->citeme->add(cite_compute_stress_sphere);
   if (narg != 8)
-    error->all(FLERR, "Illegal compute pressure/spherical command. Illegal number of arguments.");
+    error->all(FLERR, "Illegal compute stress/spherical command. Illegal number of arguments.");
 
   x0 = utils::numeric(FLERR, arg[3], false, lmp);
   y0 = utils::numeric(FLERR, arg[4], false, lmp);
@@ -81,7 +81,7 @@ ComputePressureSpherical::ComputePressureSpherical(LAMMPS *lmp, int narg, char *
   bin_width = tmp_width;
 
   if (bin_width <= 0.0)
-    error->all(FLERR, "Illegal compute pressure/spherical command. Bin width must be > 0");
+    error->all(FLERR, "Illegal compute stress/spherical command. Bin width must be > 0");
 
   array_flag = 1;
   vector_flag = 0;
@@ -89,27 +89,27 @@ ComputePressureSpherical::ComputePressureSpherical(LAMMPS *lmp, int narg, char *
   size_array_cols = 8;    // r, dens, pkrr, pktt, pkpp, pcrr, pctt, pcpp
   size_array_rows = nbins;
 
-  memory->create(invV, nbins, "compute/pressure/spherical:invV");
-  memory->create(dens, nbins, "compute/pressure/spherical:dens");
-  memory->create(pkrr, nbins, "compute/pressure/spherical:pkrr");
-  memory->create(pktt, nbins, "compute/pressure/spherical:pktt");
-  memory->create(pkpp, nbins, "compute/pressure/spherical:pkpp");
-  memory->create(pcrr, nbins, "compute/pressure/spherical:pcrr");
-  memory->create(pctt, nbins, "compute/pressure/spherical:pctt");
-  memory->create(pcpp, nbins, "compute/pressure/spherical:pcpp");
-  memory->create(tdens, nbins, "compute/pressure/spherical:tdens");
-  memory->create(tpkrr, nbins, "compute/pressure/spherical:tpkrr");
-  memory->create(tpktt, nbins, "compute/pressure/spherical:tpktt");
-  memory->create(tpkpp, nbins, "compute/pressure/spherical:tpkpp");
-  memory->create(tpcrr, nbins, "compute/pressure/spherical:tpcrr");
-  memory->create(tpctt, nbins, "compute/pressure/spherical:tpctt");
-  memory->create(tpcpp, nbins, "compute/pressure/spherical:tpcpp");
-  memory->create(array, size_array_rows, size_array_cols, "compute/pressure/spherical:array");
+  memory->create(invV, nbins, "compute/stress/spherical:invV");
+  memory->create(dens, nbins, "compute/stress/spherical:dens");
+  memory->create(pkrr, nbins, "compute/stress/spherical:pkrr");
+  memory->create(pktt, nbins, "compute/stress/spherical:pktt");
+  memory->create(pkpp, nbins, "compute/stress/spherical:pkpp");
+  memory->create(pcrr, nbins, "compute/stress/spherical:pcrr");
+  memory->create(pctt, nbins, "compute/stress/spherical:pctt");
+  memory->create(pcpp, nbins, "compute/stress/spherical:pcpp");
+  memory->create(tdens, nbins, "compute/stress/spherical:tdens");
+  memory->create(tpkrr, nbins, "compute/stress/spherical:tpkrr");
+  memory->create(tpktt, nbins, "compute/stress/spherical:tpktt");
+  memory->create(tpkpp, nbins, "compute/stress/spherical:tpkpp");
+  memory->create(tpcrr, nbins, "compute/stress/spherical:tpcrr");
+  memory->create(tpctt, nbins, "compute/stress/spherical:tpctt");
+  memory->create(tpcpp, nbins, "compute/stress/spherical:tpcpp");
+  memory->create(array, size_array_rows, size_array_cols, "compute/stress/spherical:array");
 }
 
 /* ---------------------------------------------------------------------- */
 
-ComputePressureSpherical::~ComputePressureSpherical()
+ComputeStressSpherical::~ComputeStressSpherical()
 {
   memory->destroy(invV);
   memory->destroy(dens);
@@ -131,12 +131,12 @@ ComputePressureSpherical::~ComputePressureSpherical()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePressureSpherical::init()
+void ComputeStressSpherical::init()
 {
   if (force->pair == nullptr)
-    error->all(FLERR, "No pair style is defined for compute pressure/spherical");
+    error->all(FLERR, "No pair style is defined for compute stress/spherical");
   if (force->pair->single_enable == 0)
-    error->all(FLERR, "Pair style does not support compute pressure/spherical");
+    error->all(FLERR, "Pair style does not support compute stress/spherical");
 
   // Inverse volume of each spherical shell (bin)
   for (int bin = 0; bin < nbins; bin++)
@@ -150,7 +150,7 @@ void ComputePressureSpherical::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePressureSpherical::init_list(int /* id */, NeighList *ptr)
+void ComputeStressSpherical::init_list(int /* id */, NeighList *ptr)
 {
   list = ptr;
 }
@@ -164,7 +164,7 @@ void ComputePressureSpherical::init_list(int /* id */, NeighList *ptr)
    if flag is set, compute requested info about pair
 ------------------------------------------------------------------------- */
 
-void ComputePressureSpherical::compute_array()
+void ComputeStressSpherical::compute_array()
 {
   invoked_array = update->ntimestep;
 
@@ -416,7 +416,7 @@ void ComputePressureSpherical::compute_array()
   }
 }
 
-double ComputePressureSpherical::memory_usage()
+double ComputeStressSpherical::memory_usage()
 {
   return 15.0 * (double) (nbins + size_array_rows * size_array_cols) * sizeof(double);
 }

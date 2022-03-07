@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "compute_pressure_cylinder.h"
+#include "compute_stress_cylinder.h"
 
 #include "atom.h"
 #include "citeme.h"
@@ -43,8 +43,8 @@ using MathSpecial::square;
                         olav.galteland@ntnu.no
 ------------------------------------------------------------------------------------*/
 
-static const char cite_compute_pressure_cylinder[] =
-    "compute pressure/cylinder:\n\n"
+static const char cite_compute_stress_cylinder[] =
+    "compute stress/cylinder:\n\n"
     "@Article{Addington,\n"
     " author = {C. K. Addington, Y. Long, K. E. Gubbins},\n"
     " title = {The pressure in interfaces having cylindrical geometry},\n"
@@ -55,19 +55,19 @@ static const char cite_compute_pressure_cylinder[] =
     "}\n\n";
 
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  Calculate the configurational components of the pressure tensor in
+  Calculate the configurational components of the stress tensor in
   cylindrical geometry, according to the formulation of Addington et al. (2018)
   +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 
-ComputePressureCyl::ComputePressureCyl(LAMMPS *lmp, int narg, char **arg) :
+ComputeStressCyl::ComputeStressCyl(LAMMPS *lmp, int narg, char **arg) :
     Compute(lmp, narg, arg), Pvr_temp(nullptr), Pvr_all(nullptr), Pvz_temp(nullptr),
     Pvz_all(nullptr), Pvphi_temp(nullptr), Pvphi_all(nullptr), R(nullptr), Rinv(nullptr),
     R2(nullptr), PrAinv(nullptr), PzAinv(nullptr), R2kin(nullptr), density_temp(nullptr),
     invVbin(nullptr), density_all(nullptr), tangent(nullptr), ephi_x(nullptr), ephi_y(nullptr),
     binz(nullptr)
 {
-  if (lmp->citeme) lmp->citeme->add(cite_compute_pressure_cylinder);
-  if ((narg != 7) && (narg != 9)) error->all(FLERR, "Illegal compute pressure/cylinder command");
+  if (lmp->citeme) lmp->citeme->add(cite_compute_stress_cylinder);
+  if ((narg != 7) && (narg != 9)) error->all(FLERR, "Illegal compute stress/cylinder command");
 
   zlo = utils::numeric(FLERR, arg[3], false, lmp);
   zhi = utils::numeric(FLERR, arg[4], false, lmp);
@@ -79,19 +79,19 @@ ComputePressureCyl::ComputePressureCyl(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 7;
   if (narg > iarg) {
     if (strcmp("ke", arg[iarg]) == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Invalid compute pressure/cylinder command");
+      if (iarg + 2 > narg) error->all(FLERR, "Invalid compute stress/cylinder command");
       kinetic_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else
-      error->all(FLERR, "Unknown compute pressure/cylinder command");
+      error->all(FLERR, "Unknown compute stress/cylinder command");
   }
 
   if ((bin_width <= 0.0) || (bin_width > Rmax))
-    error->all(FLERR, "Illegal compute pressure/cylinder command");
+    error->all(FLERR, "Illegal compute stress/cylinder command");
   if ((zhi < zlo) || ((zhi - zlo) < bin_width))
-    error->all(FLERR, "Illegal compute pressure/cylinder command");
+    error->all(FLERR, "Illegal compute stress/cylinder command");
   if ((zhi > domain->boxhi[2]) || (zlo < domain->boxlo[2]))
-    error->all(FLERR, "Illegal compute pressure/cylinder command");
+    error->all(FLERR, "Illegal compute stress/cylinder command");
 
   nbins = (int) (Rmax / bin_width);
   nzbins = (int) ((zhi - zlo) / bin_width);
@@ -100,7 +100,7 @@ ComputePressureCyl::ComputePressureCyl(LAMMPS *lmp, int narg, char **arg) :
   // memory on a 32-bit environment. so we use this as an upper limit.
 
   if ((nbins < 1) || (nzbins < 1) || (nbins > 2 << 22) || (nzbins > 2 << 22))
-    error->all(FLERR, "Illegal compute pressure/cylinder command");
+    error->all(FLERR, "Illegal compute stress/cylinder command");
 
   array_flag = 1;
   vector_flag = 0;
@@ -147,7 +147,7 @@ ComputePressureCyl::ComputePressureCyl(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-ComputePressureCyl::~ComputePressureCyl()
+ComputeStressCyl::~ComputeStressCyl()
 {
   memory->destroy(array);
   if (kinetic_flag == 1) {
@@ -181,12 +181,12 @@ ComputePressureCyl::~ComputePressureCyl()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePressureCyl::init()
+void ComputeStressCyl::init()
 {
   if (force->pair == nullptr)
-    error->all(FLERR, "No pair style is defined for compute pressure/cylinder");
+    error->all(FLERR, "No pair style is defined for compute stress/cylinder");
   if (force->pair->single_enable == 0)
-    error->all(FLERR, "Pair style does not support compute pressure/cylinder");
+    error->all(FLERR, "Pair style does not support compute stress/cylinder");
 
   double phi;
   for (int iphi = 0; iphi < nphi; iphi++) {
@@ -224,7 +224,7 @@ void ComputePressureCyl::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePressureCyl::init_list(int /* id */, NeighList *ptr)
+void ComputeStressCyl::init_list(int /* id */, NeighList *ptr)
 {
   list = ptr;
 }
@@ -238,7 +238,7 @@ void ComputePressureCyl::init_list(int /* id */, NeighList *ptr)
    if flag is set, compute requested info about pair
 ------------------------------------------------------------------------- */
 
-void ComputePressureCyl::compute_array()
+void ComputeStressCyl::compute_array()
 {
   invoked_array = update->ntimestep;
 
@@ -556,7 +556,7 @@ void ComputePressureCyl::compute_array()
 /* ----------------------------------------------------------------------
 memory usage of data
 ------------------------------------------------------------------------- */
-double ComputePressureCyl::memory_usage()
+double ComputeStressCyl::memory_usage()
 {
   double bytes =
       (3.0 * (double) nphi + 16.0 * (double) nbins + (5.0 + 3.0 * kinetic_flag) * (double) nbins) *

@@ -1,5 +1,5 @@
 LAMMPS (17 Feb 2022)
-# compute pressure/cylinder for a cylindrical liquid-vapor interface
+# compute stress/cylinder for a cylindrical liquid-vapor interface
 
 units           lj
 atom_style      atomic
@@ -10,7 +10,7 @@ region          box block -10 10 -10 10 0 10
 region    liquid cylinder z 0 0 5 0 10
 create_box      1 box
 Created orthogonal box = (-16.795962 -16.795962 0) to (16.795962 16.795962 16.795962)
-  2 by 2 by 1 MPI processor grid
+  1 by 1 by 1 MPI processor grid
 create_atoms    1 region liquid
 Created 3170 atoms
   using lattice units in orthogonal box = (-16.795962 -16.795962 0) to (16.795962 16.795962 16.795962)
@@ -36,7 +36,7 @@ fix             1 all nvt temp 0.65 0.65 0.2
 #dump_modify    3 pad 3
 
 fix 2 all recenter 0 0 NULL units lattice
-compute p all pressure/cylinder 0 10 15 0.25
+compute p all stress/cylinder 0 10 15 0.25
 fix 3 all ave/time 100 1 100 c_p[*] file cylinder.out mode vector
 
 thermo          50
@@ -48,7 +48,7 @@ CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
 
 Your simulation uses code contributions which should be cited:
 
-- compute pressure/cylinder:
+- compute stress/cylinder:
 
 @Article{Addington,
  author = {C. K. Addington, Y. Long, K. E. Gubbins},
@@ -74,12 +74,12 @@ Neighbor list info ...
       pair build: half/bin/atomonly/newton
       stencil: half/bin/3d
       bin: standard
-  (2) compute pressure/cylinder, occasional, copy from (1)
+  (2) compute stress/cylinder, occasional, copy from (1)
       attributes: half, newton on
       pair build: copy
       stencil: none
       bin: none
-Per MPI rank memory allocation (min/avg/max) = 3.023 | 3.033 | 3.043 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 3.878 | 3.878 | 3.878 Mbytes
 Step Temp E_pair E_mol TotEng Press c_p[15][3] c_p[15][4] c_p[15][5] 
        0         0.65   -6.2219331            0   -5.2472407   -1.0193897   0.32064195   0.17340743   0.25100229 
       50   0.40121817   -5.7782233            0   -5.1765859  -0.33373915   0.25363113   0.28726307   0.31257228 
@@ -102,30 +102,30 @@ Step Temp E_pair E_mol TotEng Press c_p[15][3] c_p[15][4] c_p[15][5]
      900   0.64904492   -5.1463816            0   -4.1731214 -0.015999133   0.50996272   0.40697988   0.69606954 
      950   0.64624835   -5.1529515            0   -4.1838847 0.0037696411   0.46323559   0.64562517    0.6484849 
     1000   0.64602274   -5.1525985            0   -4.1838701  0.022248112   0.62372474   0.46065491   0.45844619 
-Loop time of 0.961057 on 4 procs for 1000 steps with 3170 atoms
+Loop time of 4.13231 on 1 procs for 1000 steps with 3170 atoms
 
-Performance: 449505.261 tau/day, 1040.521 timesteps/s
-99.9% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 104542.050 tau/day, 241.995 timesteps/s
+99.5% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.24978    | 0.2556     | 0.26053    |   1.0 | 26.60
-Neigh   | 0.036812   | 0.037364   | 0.03795    |   0.2 |  3.89
-Comm    | 0.027115   | 0.033034   | 0.040202   |   3.2 |  3.44
-Output  | 0.40636    | 0.40704    | 0.40727    |   0.1 | 42.35
-Modify  | 0.22584    | 0.22683    | 0.2283     |   0.2 | 23.60
-Other   |            | 0.001187   |            |       |  0.12
+Pair    | 1.1551     | 1.1551     | 1.1551     |   0.0 | 27.95
+Neigh   | 0.17391    | 0.17391    | 0.17391    |   0.0 |  4.21
+Comm    | 0.0064512  | 0.0064512  | 0.0064512  |   0.0 |  0.16
+Output  | 1.7974     | 1.7974     | 1.7974     |   0.0 | 43.50
+Modify  | 0.99617    | 0.99617    | 0.99617    |   0.0 | 24.11
+Other   |            | 0.003226   |            |       |  0.08
 
-Nlocal:          792.5 ave         794 max         791 min
-Histogram: 1 0 0 1 0 0 1 0 0 1
-Nghost:           1292 ave        1302 max        1284 min
-Histogram: 1 0 1 0 0 1 0 0 0 1
-Neighs:          25442 ave       26560 max       24446 min
-Histogram: 1 0 0 1 0 1 0 0 0 1
+Nlocal:           3170 ave        3170 max        3170 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           1074 ave        1074 max        1074 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         101768 ave      101768 max      101768 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 101768
 Ave neighs/atom = 32.10347
 Neighbor list builds = 50
 Dangerous builds not checked
-Total wall time: 0:00:01
+Total wall time: 0:00:04

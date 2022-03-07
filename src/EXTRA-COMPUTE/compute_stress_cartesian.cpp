@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS dir1ectory.
 ------------------------------------------------------------------------- */
 
-#include "compute_pressure_cartesian.h"
+#include "compute_stress_cartesian.h"
 
 #include "atom.h"
 #include "citeme.h"
@@ -37,8 +37,8 @@ using namespace LAMMPS_NS;
                         olav.galteland@ntnu.no
 ------------------------------------------------------------------------------------*/
 
-static const char cite_compute_pressure_cartesian[] =
-    "compute pressure/cartesian:\n\n"
+static const char cite_compute_stress_cartesian[] =
+    "compute stress/cartesian:\n\n"
     "@article{galteland2021nanothermodynamic,\n"
     "title={Nanothermodynamic description and molecular simulation of a single-phase fluid in a "
     "slit pore},\n"
@@ -54,13 +54,13 @@ static const char cite_compute_pressure_cartesian[] =
 /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 
-ComputePressureCartesian::ComputePressureCartesian(LAMMPS *lmp, int narg, char **arg) :
+ComputeStressCartesian::ComputeStressCartesian(LAMMPS *lmp, int narg, char **arg) :
     Compute(lmp, narg, arg), dens(NULL), pkxx(NULL), pkyy(NULL), pkzz(NULL), pcxx(NULL), pcyy(NULL),
     pczz(NULL), tdens(NULL), tpkxx(NULL), tpkyy(NULL), tpkzz(NULL), tpcxx(NULL), tpcyy(NULL),
     tpczz(NULL)
 {
 
-  if (lmp->citeme) lmp->citeme->add(cite_compute_pressure_cartesian);
+  if (lmp->citeme) lmp->citeme->add(cite_compute_stress_cartesian);
 
   // narg == 5 for one-dimensional and narg == 7 for two-dimensional
   if (narg == 5)
@@ -68,7 +68,7 @@ ComputePressureCartesian::ComputePressureCartesian(LAMMPS *lmp, int narg, char *
   else if (narg == 7)
     dims = 2;
   else
-    error->all(FLERR, "Illegal compute pressure/cartesian command. Illegal number of arguments.");
+    error->all(FLERR, "Illegal compute stress/cartesian command. Illegal number of arguments.");
 
   if (strcmp(arg[3], "x") == 0)
     dir1 = 0;
@@ -77,7 +77,7 @@ ComputePressureCartesian::ComputePressureCartesian(LAMMPS *lmp, int narg, char *
   else if (strcmp(arg[3], "z") == 0)
     dir1 = 2;
   else
-    error->all(FLERR, "Illegal compute pressure/cartesian command.");
+    error->all(FLERR, "Illegal compute stress/cartesian command.");
 
   dir2 = 0;
   bin_width1 = utils::numeric(FLERR, arg[4], false, lmp);
@@ -92,9 +92,9 @@ ComputePressureCartesian::ComputePressureCartesian(LAMMPS *lmp, int narg, char *
   bin_width1 = invV;
 
   if (bin_width1 <= 0.0)
-    error->all(FLERR, "Illegal compute pressure/cartesian command. Bin width must be > 0");
+    error->all(FLERR, "Illegal compute stress/cartesian command. Bin width must be > 0");
   else if (bin_width1 > domain->boxhi[dir1] - domain->boxlo[dir1])
-    error->all(FLERR, "Illegal compute pressure/cartesian command. Bin width larger than box.");
+    error->all(FLERR, "Illegal compute stress/cartesian command. Bin width larger than box.");
 
   if (dims == 2) {
     if (strcmp(arg[5], "x") == 0)
@@ -104,7 +104,7 @@ ComputePressureCartesian::ComputePressureCartesian(LAMMPS *lmp, int narg, char *
     else if (strcmp(arg[5], "z") == 0)
       dir2 = 2;
     else
-      error->all(FLERR, "Illegal compute pressure/cartesian command.");
+      error->all(FLERR, "Illegal compute stress/cartesian command.");
 
     bin_width2 = utils::numeric(FLERR, arg[6], false, lmp);
     nbins2 = (int) ((domain->boxhi[dir2] - domain->boxlo[dir2]) / bin_width2);
@@ -117,9 +117,9 @@ ComputePressureCartesian::ComputePressureCartesian(LAMMPS *lmp, int narg, char *
     invV *= bin_width2;
 
     if (bin_width2 <= 0.0)
-      error->all(FLERR, "Illegal compute pressure/cartesian command. Bin width must be > 0");
+      error->all(FLERR, "Illegal compute stress/cartesian command. Bin width must be > 0");
     else if (bin_width2 > domain->boxhi[dir2] - domain->boxlo[dir2])
-      error->all(FLERR, "Illegal compute pressure/cartesian command. Bin width larger than box");
+      error->all(FLERR, "Illegal compute stress/cartesian command. Bin width larger than box");
   }
 
   for (int i = 0; i < 3; i++)
@@ -147,12 +147,12 @@ ComputePressureCartesian::ComputePressureCartesian(LAMMPS *lmp, int narg, char *
   memory->create(tpcxx, nbins1 * nbins2, "tpcxx");
   memory->create(tpcyy, nbins1 * nbins2, "tpcyy");
   memory->create(tpczz, nbins1 * nbins2, "tpczz");
-  memory->create(array, size_array_rows, size_array_cols, "pressure:cartesian:output");
+  memory->create(array, size_array_rows, size_array_cols, "stress:cartesian:output");
 }
 
 /* ---------------------------------------------------------------------- */
 
-ComputePressureCartesian::~ComputePressureCartesian()
+ComputeStressCartesian::~ComputeStressCartesian()
 {
   memory->destroy(dens);
   memory->destroy(pkxx);
@@ -173,12 +173,12 @@ ComputePressureCartesian::~ComputePressureCartesian()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePressureCartesian::init()
+void ComputeStressCartesian::init()
 {
   if (force->pair == NULL)
-    error->all(FLERR, "No pair style is defined for compute pressure/cartesian");
+    error->all(FLERR, "No pair style is defined for compute stress/cartesian");
   if (force->pair->single_enable == 0)
-    error->all(FLERR, "Pair style does not support compute pressure/cartesian");
+    error->all(FLERR, "Pair style does not support compute stress/cartesian");
 
   // need an occasional half neighbor list.
   int irequest = neighbor->request(this, instance_me);
@@ -189,7 +189,7 @@ void ComputePressureCartesian::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputePressureCartesian::init_list(int /* id */, NeighList *ptr)
+void ComputeStressCartesian::init_list(int /* id */, NeighList *ptr)
 {
   list = ptr;
 }
@@ -203,7 +203,7 @@ void ComputePressureCartesian::init_list(int /* id */, NeighList *ptr)
    if flag is set, compute requested info about pair
 ------------------------------------------------------------------------- */
 
-void ComputePressureCartesian::compute_array()
+void ComputeStressCartesian::compute_array()
 {
   int i, j, ii, jj, inum, jnum, itype, jtype;
   int bin, bin1, bin2, bin3;
@@ -358,7 +358,7 @@ void ComputePressureCartesian::compute_array()
   }
 }
 
-void ComputePressureCartesian::compute_pressure_1d(double fpair, double xi, double xj, double delx,
+void ComputeStressCartesian::compute_pressure_1d(double fpair, double xi, double xj, double delx,
                                                    double dely, double delz)
 {
   int bin_s, bin_e, bin_step, bin, bin_limit;
@@ -456,7 +456,7 @@ void ComputePressureCartesian::compute_pressure_1d(double fpair, double xi, doub
   }
 }
 
-void ComputePressureCartesian::compute_pressure_2d(double fpair, double xi, double yi, double xj,
+void ComputeStressCartesian::compute_pressure_2d(double fpair, double xi, double yi, double xj,
                                                    double yj, double delx, double dely, double delz)
 {
   int bin1, bin2, next_bin1, next_bin2;
@@ -531,7 +531,7 @@ void ComputePressureCartesian::compute_pressure_2d(double fpair, double xi, doub
 memory usage of data
 ------------------------------------------------------------------------- */
 
-double ComputePressureCartesian::memory_usage()
+double ComputeStressCartesian::memory_usage()
 {
   return (14.0 + dims + 7) * (double) (nbins1 * nbins2) * sizeof(double);
 }

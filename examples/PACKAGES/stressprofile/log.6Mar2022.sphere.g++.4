@@ -1,5 +1,5 @@
 LAMMPS (17 Feb 2022)
-# compute pressure/spherical for a spherical droplet
+# compute stress/spherical for a spherical droplet
 
 units           lj
 atom_style      atomic
@@ -36,8 +36,8 @@ fix             1 all nvt temp 0.65 0.65 0.2
 #dump_modify    3 pad 3
 
 fix 2 all recenter 0 0 0 units lattice
-compute p all pressure/spherical 0 0 0 0.25 15
-Adjusting bin width for compute pressure/spherical from 0.250000 to 0.245902
+compute p all stress/spherical 0 0 0 0.25 15
+Adjusting bin width for compute stress/spherical from 0.250000 to 0.245902
 fix 3 all ave/time 100 1 100 c_p[*] file sphere.out mode vector
 
 thermo          50
@@ -49,7 +49,7 @@ CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
 
 Your simulation uses code contributions which should be cited:
 
-- compute pressure/spherical:
+- compute stress/spherical:
 
 @article{galteland2022defining,
 title={Defining the pressures of a fluid in a nanoporous, heterogeneous medium},
@@ -73,7 +73,7 @@ Neighbor list info ...
       pair build: half/bin/atomonly/newton
       stencil: half/bin/3d
       bin: standard
-  (2) compute pressure/spherical, occasional, copy from (1)
+  (2) compute stress/spherical, occasional, copy from (1)
       attributes: half, newton on
       pair build: copy
       stencil: none
@@ -101,20 +101,20 @@ Step Temp E_pair E_mol TotEng Press c_p[15][3] c_p[15][4] c_p[15][5] c_p[15][6] 
      900   0.65308258   -5.0187376            0   -4.0395752  0.016798783   0.50392257   0.49473611   0.46727165 -0.093317056   -1.3498298  -0.99991957 
      950   0.65225966   -4.9974305            0   -4.0195019    0.0195366   0.47764992   0.56974826   0.58927977   0.93251392  -0.29722045   0.17614353 
     1000    0.6407875   -4.9770134            0   -4.0162849  0.006441923   0.87635667   0.51303643   0.45437033   0.19199806   0.09464003   0.42241535 
-Loop time of 0.445005 on 4 procs for 1000 steps with 2123 atoms
+Loop time of 0.482332 on 4 procs for 1000 steps with 2123 atoms
 
-Performance: 970776.406 tau/day, 2247.168 timesteps/s
-99.8% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 895649.023 tau/day, 2073.262 timesteps/s
+99.5% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.14588    | 0.16497    | 0.18451    |   4.0 | 37.07
-Neigh   | 0.021027   | 0.023815   | 0.026465   |   1.6 |  5.35
-Comm    | 0.01933    | 0.042225   | 0.064711   |   9.3 |  9.49
-Output  | 0.133      | 0.13376    | 0.13402    |   0.1 | 30.06
-Modify  | 0.07858    | 0.079474   | 0.080939   |   0.3 | 17.86
-Other   |            | 0.000762   |            |       |  0.17
+Pair    | 0.16099    | 0.1807     | 0.19799    |   3.5 | 37.46
+Neigh   | 0.024387   | 0.027158   | 0.030308   |   1.6 |  5.63
+Comm    | 0.022206   | 0.043381   | 0.066483   |   8.5 |  8.99
+Output  | 0.14055    | 0.14125    | 0.14149    |   0.1 | 29.29
+Modify  | 0.087967   | 0.088908   | 0.090377   |   0.3 | 18.43
+Other   |            | 0.0009305  |            |       |  0.19
 
 Nlocal:         530.75 ave         542 max         513 min
 Histogram: 1 0 0 0 1 0 0 0 0 2

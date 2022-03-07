@@ -1,5 +1,5 @@
 LAMMPS (17 Feb 2022)
-# compute pressure/cartesian for a flat liquid-vapor interface
+# compute stress/cartesian for a flat liquid-vapor interface
 
 units           lj
 atom_style      atomic
@@ -37,8 +37,8 @@ fix             1 all nvt temp 0.7 0.7 0.2
 #dump_modify    3 pad 3
 
 fix 2 all recenter NULL NULL 15 units lattice
-compute p1 all pressure/cartesian z 0.5
-Adjusting first bin width for compute pressure/cartesian from 0.500000 to 0.503879
+compute p1 all stress/cartesian z 0.5
+Adjusting first bin width for compute stress/cartesian from 0.500000 to 0.503879
 fix 3 all ave/time 100 1 100 c_p1[*] file flat.out mode vector
 
 thermo          50
@@ -50,12 +50,12 @@ CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
 
 Your simulation uses code contributions which should be cited:
 
-- compute pressure/cartesian:
+- compute stress/cartesian:
 
 @article{galteland2021nanothermodynamic,
 title={Nanothermodynamic description and molecular simulation of a single-phase fluid in a slit pore},
-author={Galteland, Olav and Bedeaux, Dick and Kjelstrup, Signe}
-,journal={Nanomaterials},
+author={Galteland, Olav and Bedeaux, Dick and Kjelstrup, Signe},
+journal={Nanomaterials},
 volume={11},
 number={1},
 pages={165},
@@ -78,7 +78,7 @@ Neighbor list info ...
       pair build: half/bin/atomonly/newton
       stencil: half/bin/3d
       bin: standard
-  (2) compute pressure/cartesian, occasional, copy from (1)
+  (2) compute stress/cartesian, occasional, copy from (1)
       attributes: half, newton on
       pair build: copy
       stencil: none
@@ -106,20 +106,20 @@ Step Temp E_pair E_mol TotEng Press c_p1[50][3] c_p1[50][4] c_p1[50][5] c_p1[50]
      900   0.67608249    -5.711593            0   -4.6977107  -0.28650991   0.41295263   0.58244529   0.51061419    1.1176204   0.85808642  -0.50262868 
      950   0.68080988   -5.6043546            0   -4.5833829  -0.29765481   0.50435084   0.49611677    0.5263358   -1.0396644  -0.85737705   -1.3764034 
     1000   0.68792271   -5.5015077            0   -4.4698694  -0.27955533   0.63890467   0.66446292   0.51353613  -0.39241484  -0.64122487  -0.78501452 
-Loop time of 1.84234 on 1 procs for 1000 steps with 4200 atoms
+Loop time of 2.06097 on 1 procs for 1000 steps with 4200 atoms
 
-Performance: 234484.767 tau/day, 542.789 timesteps/s
-99.9% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 209609.664 tau/day, 485.208 timesteps/s
+99.3% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 1.3351     | 1.3351     | 1.3351     |   0.0 | 72.47
-Neigh   | 0.19357    | 0.19357    | 0.19357    |   0.0 | 10.51
-Comm    | 0.015339   | 0.015339   | 0.015339   |   0.0 |  0.83
-Output  | 0.14428    | 0.14428    | 0.14428    |   0.0 |  7.83
-Modify  | 0.14965    | 0.14965    | 0.14965    |   0.0 |  8.12
-Other   |            | 0.00435    |            |       |  0.24
+Pair    | 1.4899     | 1.4899     | 1.4899     |   0.0 | 72.29
+Neigh   | 0.22785    | 0.22785    | 0.22785    |   0.0 | 11.06
+Comm    | 0.017142   | 0.017142   | 0.017142   |   0.0 |  0.83
+Output  | 0.15511    | 0.15511    | 0.15511    |   0.0 |  7.53
+Modify  | 0.16608    | 0.16608    | 0.16608    |   0.0 |  8.06
+Other   |            | 0.004898   |            |       |  0.24
 
 Nlocal:           4200 ave        4200 max        4200 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -132,4 +132,4 @@ Total # of neighbors = 144737
 Ave neighs/atom = 34.46119
 Neighbor list builds = 50
 Dangerous builds not checked
-Total wall time: 0:00:01
+Total wall time: 0:00:02

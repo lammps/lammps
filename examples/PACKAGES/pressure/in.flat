@@ -21,8 +21,6 @@ neigh_modify    every 20 delay 0 check no
 
 fix             1 all nvt temp 0.7 0.7 0.2
 
-
-thermo          50
 #dump           id all atom 50 dump.flat
 
 #dump           2 all image 25 image.*.jpg type type &
@@ -36,8 +34,8 @@ thermo          50
 fix 2 all recenter NULL NULL 15 units lattice
 compute p1 all pressure/cartesian z 0.5
 fix 3 all ave/time 100 1 100 c_p1[*] file flat.out mode vector
-#compute p2 all pressure/cartesian z 0.25 x 1
-#fix 4 all ave/time 100 1 100 c_p2[*] file flat_2d.out mode vector
 
+thermo          50
+thermo_style custom step temp epair emol etotal press c_p1[50][3] c_p1[50][4] c_p1[50][5] c_p1[50][6] c_p1[50][7] c_p1[50][8]
 
 run             1000

@@ -22,7 +22,6 @@ fix             1 all nvt temp 0.65 0.65 0.2
 
 #dump           id all atom 50 dump.sphere
 
-thermo          50
 #dump           2 all image 25 image.*.jpg type type &
 #               axes yes 0.8 0.02 view 60 -30
 #dump_modify    2 pad 3
@@ -35,5 +34,7 @@ fix 2 all recenter 0 0 0 units lattice
 compute p all pressure/spherical 0 0 0 0.25 15
 fix 3 all ave/time 100 1 100 c_p[*] file sphere.out mode vector
 
+thermo          50
+thermo_style custom step temp epair emol etotal press c_p[15][3] c_p[15][4] c_p[15][5] c_p[15][6] c_p[15][7] c_p[15][8]
 
 run             1000

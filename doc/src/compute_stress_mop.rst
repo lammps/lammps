@@ -107,7 +107,7 @@ intra-molecular interactions, and long range (kspace) interactions.
 Related commands
 """"""""""""""""
 
-:doc:`compute stress/atom <compute_stress_atom>`
+:doc:`compute stress/atom <compute_stress_atom>`, :doc:`compute pressure <compute_pressure>`, :doc:`compute pressure/cartesian <compute_pressure_cartesian>`, :doc:`compute pressure/cylinder <compute_pressure_cartesian>`, :doc:`compute pressure/spherical <compute_pressure_cartesian>`
 
 Default
 """""""

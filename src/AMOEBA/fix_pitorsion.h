@@ -13,20 +13,20 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(cmap,FixCMAP);
+FixStyle(pitorsion,FixPiTorsion);
 // clang-format on
 #else
 
-#ifndef LMP_FIX_CMAP_H
-#define LMP_FIX_CMAP_H
+#ifndef LMP_FIX_PITORSION_H
+#define LMP_FIX_PITORSION_H
 
 #include "fix.h"
 namespace LAMMPS_NS {
 
-class FixCMAP : public Fix {
+class FixPiTorsion : public Fix {
  public:
-  FixCMAP(class LAMMPS *, int, char **);
-  ~FixCMAP();
+  FixPiTorsion(class LAMMPS *, int, char **);
+  ~FixPiTorsion();
   int setmask();
   void init();
   void setup(int);
@@ -67,61 +67,28 @@ class FixCMAP : public Fix {
  private:
   int nprocs, me;
   int newton_bond, eflag_caller;
-  int ctype, ilevel_respa;
-  int ncrosstermtypes, crossterm_per_atom, maxcrossterm;
-  int ncrosstermlist;
-  bigint ncmap;
+  int ilevel_respa;
+  bigint npitorsion_global;
+  double epitorsion;
 
-  int **crosstermlist;
+  double *kpit;
+
+  // per-atom data for pitorsions stored with each owned atom
+
+  int *num_pitorsion;
+  int **pitorsion_type;
+  tagint **pitorsion_atom1, **pitorsion_atom2, **pitorsion_atom3;
+  tagint **pitorsion_atom4, **pitorsion_atom5, **pitorsion_atom6;
+
+  // previous max atoms on this proc before grow() is called
 
   int nmax_previous;
-  int *num_crossterm;
-  int **crossterm_type;
-  tagint **crossterm_atom1, **crossterm_atom2, **crossterm_atom3;
-  tagint **crossterm_atom4, **crossterm_atom5;
 
-  double E, dEdPhi, dEdPsi;
-  double ecmap;
-  double fcmap[4], cij[4][4];
-  double *g_axis;
+  // list of all pitorsions to compute on this proc
 
-  // CMAP grid points obtained from external file
-
-  double ***cmapgrid;
-
-  // partial derivatives and cross-derivatives of the grid data
-
-  double ***d1cmapgrid, ***d2cmapgrid, ***d12cmapgrid;
-
-  // read map grid data
-
-  void read_grid_map(char *);
-
-  // read in CMAP cross terms from LAMMPS data file
-
-  void read_cmap_data(int, char *);
-
-  // pre-compute the partial and cross-derivatives of map grid points
-
-  void set_map_derivatives(double **, double **, double **, double **);
-
-  // cubic spline interpolation functions for derivatives of map grid points
-
-  void spline(double *, double *, int);
-  void spl_interpolate(double, double *, double *, double &, double &);
-
-  // calculate dihedral angles
-
-  double dihedral_angle_atan2(double, double, double, double, double, double, double, double,
-                              double, double);
-
-  // calculate bicubic interpolation coefficient matrix c_ij
-
-  void bc_coeff(double *, double *, double *, double *);
-
-  // perform bicubic interpolation at point of interest
-
-  void bc_interpol(double, double, int, int, double *, double *, double *, double *);
+  int npitorsion_list;
+  int max_pitorsion_list;
+  int **pitorsion_list;
 };
 }    // namespace LAMMPS_NS
 

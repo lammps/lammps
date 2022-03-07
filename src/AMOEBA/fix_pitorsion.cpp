@@ -12,25 +12,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   Contributing authors:
-   Xiaohu Hu, CMB/ORNL (hux2@ornl.gov)
-   David Hyde-Volpe, Tigran Abramyan, and Robert A. Latour (Clemson University)
-   Chris Lorenz (Kings College-London)
-
-   Implementation of the CHARMM CMAP; adds an extra energy term for the
-   peptide backbone dihedrals.  The tools/ch2lmp/charmm2lammps.pl
-   conversion script, which generates an extra section in the LAMMPS data
-   file, is needed in order to generate the info used by this fix style.
-
-   References:
-   - MacKerell et al., J. Am. Chem. Soc. 126(2004):698-699.
-   - MacKerell et al., J. Comput. Chem. 25(2004):1400-1415.
-------------------------------------------------------------------------- */
-
-// read_data data.ubiquitin fix pitorsion pitorsions PiTorsions
-
-
 #include "fix_pitorsion.h"
 
 #include <cmath>
@@ -50,21 +31,21 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-#define MAXLINE 256
-#define LISTDELTA 10000
+#define PITORSIONMAX 6
+#define LISTDELTA 8196
 #define LB_FACTOR 1.5
 
 /* ---------------------------------------------------------------------- */
 
 FixPiTorsion::FixPiTorsion(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  crosstermlist(nullptr), num_crossterm(nullptr), crossterm_type(nullptr),
-  crossterm_atom1(nullptr), crossterm_atom2(nullptr), crossterm_atom3(nullptr),
-  crossterm_atom4(nullptr), crossterm_atom5(nullptr),
-  g_axis(nullptr), cmapgrid(nullptr), d1cmapgrid(nullptr), d2cmapgrid(nullptr),
-  d12cmapgrid(nullptr)
+  pitorsion_list(nullptr), num_pitorsion(nullptr), pitorsion_type(nullptr),
+  pitorsion_atom1(nullptr), pitorsion_atom2(nullptr), pitorsion_atom3(nullptr),
+  pitorsion_atom4(nullptr), pitorsion_atom5(nullptr), pitorsion_atom6(nullptr)
 {
-  if (narg != 4) error->all(FLERR,"Illegal fix cmap command");
+  if (narg != 3) error->all(FLERR,"Illegal fix pitorsion command");
+
+  // settings for this fix
 
   restart_global = 1;
   restart_peratom = 1;
@@ -85,70 +66,59 @@ FixPiTorsion::FixPiTorsion(LAMMPS *lmp, int narg, char **arg) :
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  // allocate memory for CMAP data
-
-  memory->create(g_axis,CMAPDIM,"cmap:g_axis");
-  memory->create(cmapgrid,6,CMAPDIM,CMAPDIM,"cmap:grid");
-  memory->create(d1cmapgrid,6,CMAPDIM,CMAPDIM,"cmap:d1grid");
-  memory->create(d2cmapgrid,6,CMAPDIM,CMAPDIM,"cmap:d2grid");
-  memory->create(d12cmapgrid,6,CMAPDIM,CMAPDIM,"cmap:d12grid");
-
-  // read and setup CMAP data
-
-  read_grid_map(arg[3]);
-
   // perform initial allocation of atom-based arrays
-  // register with Atom class
 
-  num_crossterm = nullptr;
-  crossterm_type = nullptr;
-  crossterm_atom1 = nullptr;
-  crossterm_atom2 = nullptr;
-  crossterm_atom3 = nullptr;
-  crossterm_atom4 = nullptr;
-  crossterm_atom5 = nullptr;
+  num_pitorsion = nullptr;
+  pitorsion_type = nullptr;
+  pitorsion_atom1 = nullptr;
+  pitorsion_atom2 = nullptr;
+  pitorsion_atom3 = nullptr;
+  pitorsion_atom4 = nullptr;
+  pitorsion_atom5 = nullptr;
+  pitorsion_atom6 = nullptr;
+
+  // register with Atom class
 
   nmax_previous = 0;
   grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
   atom->add_callback(Atom::RESTART);
 
-  // local list of crossterms
+  // list of all pitorsions to compute on this proc
 
-  ncmap = 0;
-  maxcrossterm = 0;
-  crosstermlist = nullptr;
+  npitorsion_list = 0;
+  max_pitorsion_list = 0;
+  pitorsion_list = nullptr;
 }
 
 /* --------------------------------------------------------------------- */
 
-FixCMAP::~FixCMAP()
+FixPiTorsion::~FixPiTorsion()
 {
   // unregister callbacks to this fix from Atom class
 
   atom->delete_callback(id,Atom::GROW);
   atom->delete_callback(id,Atom::RESTART);
 
-  memory->destroy(g_axis);
-  memory->destroy(cmapgrid);
-  memory->destroy(d1cmapgrid);
-  memory->destroy(d2cmapgrid);
-  memory->destroy(d12cmapgrid);
+  // per-atom data
 
-  memory->destroy(crosstermlist);
+  memory->destroy(num_pitorsion);
+  memory->destroy(pitorsion_type);
+  memory->destroy(pitorsion_atom1);
+  memory->destroy(pitorsion_atom2);
+  memory->destroy(pitorsion_atom3);
+  memory->destroy(pitorsion_atom4);
+  memory->destroy(pitorsion_atom5);
+  memory->destroy(pitorsion_atom6);
 
-  memory->destroy(num_crossterm);
-  memory->destroy(crossterm_type);
-  memory->destroy(crossterm_atom1);
-  memory->destroy(crossterm_atom2);
-  memory->destroy(crossterm_atom3);
-  memory->destroy(crossterm_atom4);
-  memory->destroy(crossterm_atom5);
+  // compute list
+
+  memory->destroy(pitorsion_list);
 }
 
 /* ---------------------------------------------------------------------- */
 
-int FixCMAP::setmask()
+int FixPiTorsion::setmask()
 {
   int mask = 0;
   mask |= PRE_NEIGHBOR;
@@ -161,28 +131,8 @@ int FixCMAP::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixCMAP::init()
+void FixPiTorsion::init()
 {
-  int i;
-  double angle;
-
-  i = 0;
-  angle = -180.0;
-  while (angle < 180.0) {
-    g_axis[i] = angle;
-    angle += CMAPDX;
-    i++;
-  }
-
-  // pre-compute the derivatives of the maps
-
-  for (i = 0; i < 6; i++)
-    set_map_derivatives(cmapgrid[i],d1cmapgrid[i],d2cmapgrid[i],d12cmapgrid[i]);
-
-  // define newton_bond here in case restart file was read (not data file)
-
-  newton_bond = force->newton_bond;
-
   if (utils::strmatch(update->integrate_style,"^respa")) {
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
@@ -191,7 +141,7 @@ void FixCMAP::init()
 
 /* --------------------------------------------------------------------- */
 
-void FixCMAP::setup(int vflag)
+void FixPiTorsion::setup(int vflag)
 {
   pre_neighbor();
 
@@ -206,82 +156,88 @@ void FixCMAP::setup(int vflag)
 
 /* --------------------------------------------------------------------- */
 
-void FixCMAP::setup_pre_neighbor()
+void FixPiTorsion::setup_pre_neighbor()
 {
   pre_neighbor();
 }
 
 /* --------------------------------------------------------------------- */
 
-void FixCMAP::setup_pre_reverse(int eflag, int vflag)
+void FixPiTorsion::setup_pre_reverse(int eflag, int vflag)
 {
   pre_reverse(eflag,vflag);
 }
 
 /* --------------------------------------------------------------------- */
 
-void FixCMAP::min_setup(int vflag)
+void FixPiTorsion::min_setup(int vflag)
 {
   pre_neighbor();
   post_force(vflag);
 }
 
 /* ----------------------------------------------------------------------
-   store local neighbor list as if newton_bond = OFF, even if actually ON
+   store local neighbor list for newton_bond ON
 ------------------------------------------------------------------------- */
 
-void FixCMAP::pre_neighbor()
+void FixPiTorsion::pre_neighbor()
 {
-  int i,m,atom1,atom2,atom3,atom4,atom5;
+  int i,m,atom1,atom2,atom3,atom4,atom5,atom6;
 
-  // guesstimate initial length of local crossterm list
-  // if ncmap was not set (due to read_restart, no read_data),
+  // guesstimate initial length of local pitorsion list
+  // if npitorsion_global was not set (due to read_restart, no read_data),
   //   then list will grow by LISTDELTA chunks
 
-  if (maxcrossterm == 0) {
-    if (nprocs == 1) maxcrossterm = ncmap;
-    else maxcrossterm = static_cast<int> (LB_FACTOR*ncmap/nprocs);
-    memory->create(crosstermlist,maxcrossterm,6,"cmap:crosstermlist");
+  if (max_pitorsion_list == 0) {
+    if (nprocs == 1) max_pitorsion_list = npitorsion_global;
+    else max_pitorsion_list = 
+           static_cast<int> (LB_FACTOR*npitorsion_global/nprocs);
+    memory->create(pitorsion_list,max_pitorsion_list,7,
+                   "pitorsion:pitorsion_list");
   }
 
   int nlocal = atom->nlocal;
-
-  ncrosstermlist = 0;
+  pitorsion_list = 0;
 
   for (i = 0; i < nlocal; i++) {
-    for (m = 0; m < num_crossterm[i]; m++) {
-      atom1 = atom->map(crossterm_atom1[i][m]);
-      atom2 = atom->map(crossterm_atom2[i][m]);
-      atom3 = atom->map(crossterm_atom3[i][m]);
-      atom4 = atom->map(crossterm_atom4[i][m]);
-      atom5 = atom->map(crossterm_atom5[i][m]);
+    for (m = 0; m < num_pitorsion[i]; m++) {
+      atom1 = atom->map(pitorsion_atom1[i][m]);
+      atom2 = atom->map(pitorsion_atom2[i][m]);
+      atom3 = atom->map(pitorsion_atom3[i][m]);
+      atom4 = atom->map(pitorsion_atom4[i][m]);
+      atom5 = atom->map(pitorsion_atom5[i][m]);
+      atom6 = atom->map(pitorsion_atom6[i][m]);
 
       if (atom1 == -1 || atom2 == -1 || atom3 == -1 ||
           atom4 == -1 || atom5 == -1)
-        error->one(FLERR,"CMAP atoms {} {} {} {} {} missing on "
-                                     "proc {} at step {}",
-                                     crossterm_atom1[i][m],crossterm_atom2[i][m],
-                                     crossterm_atom3[i][m],crossterm_atom4[i][m],
-                                     crossterm_atom5[i][m],me,update->ntimestep);
+        error->one(FLERR,"PiTorsion atoms {} {} {} {} {} {} missing on "
+                   "proc {} at step {}",
+                   pitorsion_atom1[i][m],pitorsion_atom2[i][m],
+                   pitorsion_atom3[i][m],pitorsion_atom4[i][m],
+                   pitorsion_atom5[i][m],pitorsion_atom6[i][m],
+                   me,update->ntimestep);
       atom1 = domain->closest_image(i,atom1);
       atom2 = domain->closest_image(i,atom2);
       atom3 = domain->closest_image(i,atom3);
       atom4 = domain->closest_image(i,atom4);
       atom5 = domain->closest_image(i,atom5);
+      atom6 = domain->closest_image(i,atom6);
 
       if (i <= atom1 && i <= atom2 && i <= atom3 &&
-          i <= atom4 && i <= atom5) {
-        if (ncrosstermlist == maxcrossterm) {
-          maxcrossterm += LISTDELTA;
-          memory->grow(crosstermlist,maxcrossterm,6,"cmap:crosstermlist");
+          i <= atom4 && i <= atom5 && i <= atom6) {
+        if (npitorsion_list == max_pitorsion_list) {
+          max_pitorsion_list += LISTDELTA;
+          memory->grow(pitorsion_list,max_pitorsion_list,7,
+                       "pitorsion:pitorsion_list");
         }
-        crosstermlist[ncrosstermlist][0] = atom1;
-        crosstermlist[ncrosstermlist][1] = atom2;
-        crosstermlist[ncrosstermlist][2] = atom3;
-        crosstermlist[ncrosstermlist][3] = atom4;
-        crosstermlist[ncrosstermlist][4] = atom5;
-        crosstermlist[ncrosstermlist][5] = crossterm_type[i][m];
-        ncrosstermlist++;
+        pitorsion_list[npitorsion_list][0] = atom1;
+        pitorsion_list[npitorsion_list][1] = atom2;
+        pitorsion_list[npitorsion_list][2] = atom3;
+        pitorsion_list[npitorsion_list][3] = atom4;
+        pitorsion_list[npitorsion_list][4] = atom5;
+        pitorsion_list[npitorsion_list][5] = atom6;
+        pitorsion_list[npitorsion_list][6] = pitorsion_type[i][m];
+        npitorsion_list++;
       }
     }
   }
@@ -291,7 +247,7 @@ void FixCMAP::pre_neighbor()
    store eflag, so can use it in post_force to tally per-atom energies
 ------------------------------------------------------------------------- */
 
-void FixCMAP::pre_reverse(int eflag, int /*vflag*/)
+void FixPiTorsion::pre_reverse(int eflag, int /*vflag*/)
 {
   eflag_caller = eflag;
 }
@@ -300,18 +256,62 @@ void FixCMAP::pre_reverse(int eflag, int /*vflag*/)
    compute PiTorsion terms as if newton_bond = OFF, even if actually ON
 ------------------------------------------------------------------------- */
 
-void FixCMAP::post_force(int vflag)
+void FixPiTorsion::post_force(int vflag)
 {
+  int ia,ib,ic,id,ie,ig,ptype;
+  double e,dedphi;
+  double xt,yt,zt,rt2;
+  double xu,yu,zu,ru2;
+  double xtu,ytu,ztu;
+  double rdc,rtru;
+  double v2,c2,s2;
+  double phi2,dphi2;
+  double sine,cosine;
+  double sine2,cosine2;
+  double xia,yia,zia;
+  double xib,yib,zib;
+  double xic,yic,zic;
+  double xid,yid,zid;
+  double xie,yie,zie;
+  double xig,yig,zig;
+  double xip,yip,zip;
+  double xiq,yiq,ziq;
+  double xad,yad,zad;
+  double xbd,ybd,zbd;
+  double xec,yec,zec;
+  double xgc,ygc,zgc;
+  double xcp,ycp,zcp;
+  double xdc,ydc,zdc;
+  double xqd,yqd,zqd;
+  double xdp,ydp,zdp;
+  double xqc,yqc,zqc;
+  double dedxt,dedyt,dedzt;
+  double dedxu,dedyu,dedzu;
+  double dedxia,dedyia,dedzia;
+  double dedxib,dedyib,dedzib;
+  double dedxic,dedyic,dedzic;
+  double dedxid,dedyid,dedzid;
+  double dedxie,dedyie,dedzie;
+  double dedxig,dedyig,dedzig;
+  double dedxip,dedyip,dedzip;
+  double dedxiq,dedyiq,dedziq;
+  double vxterm,vyterm,vzterm;
+  double vxx,vyy,vzz;
+  double vyx,vzx,vzy;
+
   double **x = atom->x;
   double **f = atom->f;
 
-  for (int n = 0; n < npitors; n++) {
-    ia = ipit[n][0];
-    ib = ipit[n][1];
-    ic = ipit[n][2];
-    id = ipit[n][3];
-    ie = ipit[n][4];
-    ig = ipit[n][5];
+  epitorsion = 0.0;
+
+  for (int n = 0; n < npitorsion_list; n++) {
+    ia = pitorsion_list[n][0];
+    ib = pitorsion_list[n][0];
+    ic = pitorsion_list[n][0];
+    id = pitorsion_list[n][0];
+    ie = pitorsion_list[n][0];
+    ig = pitorsion_list[n][0];
+    ptype = pitorsion_list[n][6];
 
     // compute the value of the pi-system torsion angle
 
@@ -384,7 +384,7 @@ void FixCMAP::post_force(int vflag)
 
     // set the pi-system torsion parameters for this angle
         
-    v2 = kpit(i);
+    v2 = kpit[ptype];
     c2 = -1.0;
     s2 = 0.0;
 
@@ -397,6 +397,8 @@ void FixCMAP::post_force(int vflag)
 
     // calculate pi-system torsion energy and master chain rule term
 
+    // NOTE: is ptornunit 1.0 ?
+    double ptorunit = 1.0;
     e = ptorunit * v2 * phi2;
     dedphi = ptorunit * v2 * dphi2;
 
@@ -453,7 +455,7 @@ void FixCMAP::post_force(int vflag)
 
     // increment the total pi-system torsion energy and gradient
 
-    ept += e;
+    epitorsion += e;
 
     f[ia][0] += dedxia;
     f[ia][1] += dedyia;
@@ -497,26 +499,26 @@ void FixCMAP::post_force(int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void FixCMAP::post_force_respa(int vflag, int ilevel, int /*iloop*/)
+void FixPiTorsion::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 {
   if (ilevel == ilevel_respa) post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixCMAP::min_post_force(int vflag)
+void FixPiTorsion::min_post_force(int vflag)
 {
   post_force(vflag);
 }
 
 /* ----------------------------------------------------------------------
-   energy of CMAP term
+   energy of PiTorsion term
 ------------------------------------------------------------------------- */
 
-double FixCMAP::compute_scalar()
+double FixPiTorsion::compute_scalar()
 {
   double all;
-  MPI_Allreduce(&ecmap,&all,1,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(&epitorsion,&all,1,MPI_DOUBLE,MPI_SUM,world);
   return all;
 }
 
@@ -526,10 +528,10 @@ double FixCMAP::compute_scalar()
 // ----------------------------------------------------------------------
 // ----------------------------------------------------------------------
 
-void FixCMAP::read_data_header(char *line)
+void FixPiTorsion::read_data_header(char *line)
 {
   if (strstr(line,"pitorsions")) {
-    sscanf(line,BIGINT_FORMAT,&ncmap);
+    sscanf(line,BIGINT_FORMAT,&npitorsion_global);
   } else error->all(FLERR,"Invalid read data header line for fix pitorsion");
 
   // didn't set in constructor because this fix could be defined
@@ -541,14 +543,14 @@ void FixCMAP::read_data_header(char *line)
 /* ----------------------------------------------------------------------
    unpack N lines in buf from section of data file labeled by keyword
    id_offset is applied to atomID fields if multiple data files are read
-   store CMAP interactions as if newton_bond = OFF, even if actually ON
+   store PiTorsion interactions as if newton_bond = OFF, even if actually ON
 ------------------------------------------------------------------------- */
 
-void FixCMAP::read_data_section(char *keyword, int n, char *buf,
-                                 tagint id_offset)
+void FixPiTorsion::read_data_section(char *keyword, int n, char *buf,
+                                     tagint id_offset)
 {
   int m,tmp,itype;
-  tagint atom1,atom2,atom3,atom4,atom5;
+  tagint atom1,atom2,atom3,atom4,atom5,atom6;
   char *next;
 
   next = strchr(buf,'\n');
@@ -561,79 +563,98 @@ void FixCMAP::read_data_section(char *keyword, int n, char *buf,
 
   // loop over lines of PiTorsions
   // tokenize the line into values
-  // add crossterm to one of my atoms, depending on newton_bond
+  // add PiTorsion to one or more of my atoms, depending on newton_bond
 
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
     sscanf(buf,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT
-           " " TAGINT_FORMAT " " TAGINT_FORMAT,
-           &tmp,&itype,&atom1,&atom2,&atom3,&atom4,&atom5);
+           " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
+           &tmp,&itype,&atom1,&atom2,&atom3,&atom4,&atom5,&atom6);
 
     atom1 += id_offset;
     atom2 += id_offset;
     atom3 += id_offset;
     atom4 += id_offset;
     atom5 += id_offset;
+    atom6 += id_offset;
 
     if ((m = atom->map(atom1)) >= 0) {
-      if (num_crossterm[m] == CMAPMAX)
-        error->one(FLERR,"Too many CMAP crossterms for one atom");
-      crossterm_type[m][num_crossterm[m]] = itype;
-      crossterm_atom1[m][num_crossterm[m]] = atom1;
-      crossterm_atom2[m][num_crossterm[m]] = atom2;
-      crossterm_atom3[m][num_crossterm[m]] = atom3;
-      crossterm_atom4[m][num_crossterm[m]] = atom4;
-      crossterm_atom5[m][num_crossterm[m]] = atom5;
-      num_crossterm[m]++;
+      if (num_pitorsion[m] == PITORSIONMAX)
+        error->one(FLERR,"Too many PiTorsions for one atom");
+      pitorsion_type[m][num_pitorsion[m]] = itype;
+      pitorsion_atom1[m][num_pitorsion[m]] = atom1;
+      pitorsion_atom2[m][num_pitorsion[m]] = atom2;
+      pitorsion_atom3[m][num_pitorsion[m]] = atom3;
+      pitorsion_atom4[m][num_pitorsion[m]] = atom4;
+      pitorsion_atom5[m][num_pitorsion[m]] = atom5;
+      pitorsion_atom6[m][num_pitorsion[m]] = atom6;
+      num_pitorsion[m]++;
     }
 
     if ((m = atom->map(atom2)) >= 0) {
-      if (num_crossterm[m] == CMAPMAX)
-        error->one(FLERR,"Too many CMAP crossterms for one atom");
-      crossterm_type[m][num_crossterm[m]] = itype;
-      crossterm_atom1[m][num_crossterm[m]] = atom1;
-      crossterm_atom2[m][num_crossterm[m]] = atom2;
-      crossterm_atom3[m][num_crossterm[m]] = atom3;
-      crossterm_atom4[m][num_crossterm[m]] = atom4;
-      crossterm_atom5[m][num_crossterm[m]] = atom5;
-      num_crossterm[m]++;
+      if (num_pitorsion[m] == PITORSIONMAX)
+        error->one(FLERR,"Too many PiTorsions for one atom");
+      pitorsion_type[m][num_pitorsion[m]] = itype;
+      pitorsion_atom1[m][num_pitorsion[m]] = atom1;
+      pitorsion_atom2[m][num_pitorsion[m]] = atom2;
+      pitorsion_atom3[m][num_pitorsion[m]] = atom3;
+      pitorsion_atom4[m][num_pitorsion[m]] = atom4;
+      pitorsion_atom5[m][num_pitorsion[m]] = atom5;
+      pitorsion_atom6[m][num_pitorsion[m]] = atom6;
+      num_pitorsion[m]++;
     }
 
     if ((m = atom->map(atom3)) >= 0) {
-      if (num_crossterm[m] == CMAPMAX)
-        error->one(FLERR,"Too many CMAP crossterms for one atom");
-      crossterm_type[m][num_crossterm[m]] = itype;
-      crossterm_atom1[m][num_crossterm[m]] = atom1;
-      crossterm_atom2[m][num_crossterm[m]] = atom2;
-      crossterm_atom3[m][num_crossterm[m]] = atom3;
-      crossterm_atom4[m][num_crossterm[m]] = atom4;
-      crossterm_atom5[m][num_crossterm[m]] = atom5;
-      num_crossterm[m]++;
+      if (num_pitorsion[m] == PITORSIONMAX)
+        error->one(FLERR,"Too many PiTorsions for one atom");
+      pitorsion_type[m][num_pitorsion[m]] = itype;
+      pitorsion_atom1[m][num_pitorsion[m]] = atom1;
+      pitorsion_atom2[m][num_pitorsion[m]] = atom2;
+      pitorsion_atom3[m][num_pitorsion[m]] = atom3;
+      pitorsion_atom4[m][num_pitorsion[m]] = atom4;
+      pitorsion_atom5[m][num_pitorsion[m]] = atom5;
+      pitorsion_atom6[m][num_pitorsion[m]] = atom6;
+      num_pitorsion[m]++;
     }
 
     if ((m = atom->map(atom4)) >= 0) {
-      if (num_crossterm[m] == CMAPMAX)
-        error->one(FLERR,"Too many CMAP crossterms for one atom");
-      crossterm_type[m][num_crossterm[m]] = itype;
-      crossterm_atom1[m][num_crossterm[m]] = atom1;
-      crossterm_atom2[m][num_crossterm[m]] = atom2;
-      crossterm_atom3[m][num_crossterm[m]] = atom3;
-      crossterm_atom4[m][num_crossterm[m]] = atom4;
-      crossterm_atom5[m][num_crossterm[m]] = atom5;
-      num_crossterm[m]++;
+      if (num_pitorsion[m] == PITORSIONMAX)
+        error->one(FLERR,"Too many PiTorsions for one atom");
+      pitorsion_type[m][num_pitorsion[m]] = itype;
+      pitorsion_atom1[m][num_pitorsion[m]] = atom1;
+      pitorsion_atom2[m][num_pitorsion[m]] = atom2;
+      pitorsion_atom3[m][num_pitorsion[m]] = atom3;
+      pitorsion_atom4[m][num_pitorsion[m]] = atom4;
+      pitorsion_atom5[m][num_pitorsion[m]] = atom5;
+      pitorsion_atom6[m][num_pitorsion[m]] = atom6;
+      num_pitorsion[m]++;
     }
 
     if ((m = atom->map(atom5)) >= 0) {
-      if (num_crossterm[m] == CMAPMAX)
-        error->one(FLERR,"Too many CMAP crossterms for one atom");
-      crossterm_type[m][num_crossterm[m]] = itype;
-      crossterm_atom1[m][num_crossterm[m]] = atom1;
-      crossterm_atom2[m][num_crossterm[m]] = atom2;
-      crossterm_atom3[m][num_crossterm[m]] = atom3;
-      crossterm_atom4[m][num_crossterm[m]] = atom4;
-      crossterm_atom5[m][num_crossterm[m]] = atom5;
-      num_crossterm[m]++;
+      if (num_pitorsion[m] == PITORSIONMAX)
+        error->one(FLERR,"Too many PiTorsions for one atom");
+      pitorsion_type[m][num_pitorsion[m]] = itype;
+      pitorsion_atom1[m][num_pitorsion[m]] = atom1;
+      pitorsion_atom2[m][num_pitorsion[m]] = atom2;
+      pitorsion_atom3[m][num_pitorsion[m]] = atom3;
+      pitorsion_atom4[m][num_pitorsion[m]] = atom4;
+      pitorsion_atom5[m][num_pitorsion[m]] = atom5;
+      pitorsion_atom6[m][num_pitorsion[m]] = atom6;
+      num_pitorsion[m]++;
+    }
+
+    if ((m = atom->map(atom6)) >= 0) {
+      if (num_pitorsion[m] == PITORSIONMAX)
+        error->one(FLERR,"Too many PiTorsions for one atom");
+      pitorsion_type[m][num_pitorsion[m]] = itype;
+      pitorsion_atom1[m][num_pitorsion[m]] = atom1;
+      pitorsion_atom2[m][num_pitorsion[m]] = atom2;
+      pitorsion_atom3[m][num_pitorsion[m]] = atom3;
+      pitorsion_atom4[m][num_pitorsion[m]] = atom4;
+      pitorsion_atom5[m][num_pitorsion[m]] = atom5;
+      pitorsion_atom6[m][num_pitorsion[m]] = atom6;
+      num_pitorsion[m]++;
     }
 
     buf = next + 1;
@@ -642,9 +663,9 @@ void FixCMAP::read_data_section(char *keyword, int n, char *buf,
 
 /* ---------------------------------------------------------------------- */
 
-bigint FixCMAP::read_data_skip_lines(char * /*keyword*/)
+bigint FixPiTorsion::read_data_skip_lines(char * /*keyword*/)
 {
-  return ncmap;
+  return npitorsion_global;
 }
 
 /* ----------------------------------------------------------------------
@@ -652,20 +673,20 @@ bigint FixCMAP::read_data_skip_lines(char * /*keyword*/)
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-void FixCMAP::write_data_header(FILE *fp, int /*mth*/)
+void FixPiTorsion::write_data_header(FILE *fp, int /*mth*/)
 {
-  fprintf(fp,BIGINT_FORMAT " cmap crossterms\n",ncmap);
+  fprintf(fp,BIGINT_FORMAT " pitorsions\n",npitorsion_global);
 }
 
 /* ----------------------------------------------------------------------
    return size I own for Mth data section
    # of data sections = 1 for this fix
-   nx = # of crossterms owned by my local atoms
-     if newton_bond off, atom only owns crossterm if it is atom3
-   ny = columns = type + 5 atom IDs
+   nx = # of PiTorsions owned by my local atoms
+     if newton_bond off, atom only owns PiTorsion if it is atom3
+   ny = columns = type + 6 atom IDs
 ------------------------------------------------------------------------- */
 
-void FixCMAP::write_data_section_size(int /*mth*/, int &nx, int &ny)
+void FixPiTorsion::write_data_section_size(int /*mth*/, int &nx, int &ny)
 {
   int i,m;
 
@@ -674,22 +695,24 @@ void FixCMAP::write_data_section_size(int /*mth*/, int &nx, int &ny)
 
   nx = 0;
   for (i = 0; i < nlocal; i++)
-    for (m = 0; m < num_crossterm[i]; m++)
-      if (crossterm_atom3[i][m] == tag[i]) nx++;
+    for (m = 0; m < num_pitorsion[i]; m++)
+      if (pitorsion_atom3[i][m] == tag[i]) nx++;
 
-  ny = 6;
+  // NOTE: should be a check for newton bond?
+
+  ny = 7;
 }
 
 /* ----------------------------------------------------------------------
    pack values for Mth data section into 2d buf
-   buf allocated by caller as owned crossterms by 6
+   buf allocated by caller as owned PiTorsions by 7
 ------------------------------------------------------------------------- */
 
-void FixCMAP::write_data_section_pack(int /*mth*/, double **buf)
+void FixPiTorsion::write_data_section_pack(int /*mth*/, double **buf)
 {
   int i,m;
 
-  // 1st column = CMAP type
+  // 1st column = PiTorsion type
   // 2nd-6th columns = 5 atom IDs
 
   tagint *tag = atom->tag;
@@ -697,14 +720,16 @@ void FixCMAP::write_data_section_pack(int /*mth*/, double **buf)
 
   int n = 0;
   for (i = 0; i < nlocal; i++) {
-    for (m = 0; m < num_crossterm[i]; m++) {
-      if (crossterm_atom3[i][m] != tag[i]) continue;
-      buf[n][0] = ubuf(crossterm_type[i][m]).d;
-      buf[n][1] = ubuf(crossterm_atom1[i][m]).d;
-      buf[n][2] = ubuf(crossterm_atom2[i][m]).d;
-      buf[n][3] = ubuf(crossterm_atom3[i][m]).d;
-      buf[n][4] = ubuf(crossterm_atom4[i][m]).d;
-      buf[n][5] = ubuf(crossterm_atom5[i][m]).d;
+    for (m = 0; m < num_pitorsion[i]; m++) {
+      // NOTE: check for newton bond on/off ?
+      if (pitorsion_atom3[i][m] != tag[i]) continue;
+      buf[n][0] = ubuf(pitorsion_type[i][m]).d;
+      buf[n][1] = ubuf(pitorsion_atom1[i][m]).d;
+      buf[n][2] = ubuf(pitorsion_atom2[i][m]).d;
+      buf[n][3] = ubuf(pitorsion_atom3[i][m]).d;
+      buf[n][4] = ubuf(pitorsion_atom4[i][m]).d;
+      buf[n][5] = ubuf(pitorsion_atom5[i][m]).d;
+      buf[n][6] = ubuf(pitorsion_atom6[i][m]).d;
       n++;
     }
   }
@@ -716,9 +741,9 @@ void FixCMAP::write_data_section_pack(int /*mth*/, double **buf)
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-void FixCMAP::write_data_section_keyword(int /*mth*/, FILE *fp)
+void FixPiTorsion::write_data_section_keyword(int /*mth*/, FILE *fp)
 {
-  fprintf(fp,"\nCMAP\n\n");
+  fprintf(fp,"\nPiTorsion\n\n");
 }
 
 /* ----------------------------------------------------------------------
@@ -728,7 +753,7 @@ void FixCMAP::write_data_section_keyword(int /*mth*/, FILE *fp)
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-void FixCMAP::write_data_section(int /*mth*/, FILE *fp,
+void FixPiTorsion::write_data_section(int /*mth*/, FILE *fp,
                                   int n, double **buf, int index)
 {
   for (int i = 0; i < n; i++)
@@ -749,12 +774,12 @@ void FixCMAP::write_data_section(int /*mth*/, FILE *fp,
    pack entire state of Fix into one write
 ------------------------------------------------------------------------- */
 
-void FixCMAP::write_restart(FILE *fp)
+void FixPiTorsion::write_restart(FILE *fp)
 {
   if (comm->me == 0) {
     int size = sizeof(bigint);
     fwrite(&size,sizeof(int),1,fp);
-    fwrite(&ncmap,sizeof(bigint),1,fp);
+    fwrite(&npitorsion_global,sizeof(bigint),1,fp);
   }
 }
 
@@ -762,27 +787,27 @@ void FixCMAP::write_restart(FILE *fp)
    use state info from restart file to restart the Fix
 ------------------------------------------------------------------------- */
 
-void FixCMAP::restart(char *buf)
+void FixPiTorsion::restart(char *buf)
 {
-  ncmap = *((bigint *) buf);
+  npitorsion_global = *((bigint *) buf);
 }
 
 /* ----------------------------------------------------------------------
    pack values in local atom-based arrays for restart file
 ------------------------------------------------------------------------- */
 
-int FixCMAP::pack_restart(int i, double *buf)
+int FixPiTorsion::pack_restart(int i, double *buf)
 {
   int n = 1;
-  for (int m = 0; m < num_crossterm[i]; m++) {
-    buf[n++] = ubuf(MAX(crossterm_type[i][m],-crossterm_type[i][m])).d;
-    buf[n++] = ubuf(crossterm_atom1[i][m]).d;
-    buf[n++] = ubuf(crossterm_atom2[i][m]).d;
-    buf[n++] = ubuf(crossterm_atom3[i][m]).d;
-    buf[n++] = ubuf(crossterm_atom4[i][m]).d;
-    buf[n++] = ubuf(crossterm_atom5[i][m]).d;
+  for (int m = 0; m < num_pitorsion[i]; m++) {
+    buf[n++] = ubuf(MAX(pitorsion_type[i][m],-pitorsion_type[i][m])).d;
+    buf[n++] = ubuf(pitorsion_atom1[i][m]).d;
+    buf[n++] = ubuf(pitorsion_atom2[i][m]).d;
+    buf[n++] = ubuf(pitorsion_atom3[i][m]).d;
+    buf[n++] = ubuf(pitorsion_atom4[i][m]).d;
+    buf[n++] = ubuf(pitorsion_atom5[i][m]).d;
+    buf[n++] = ubuf(pitorsion_atom6[i][m]).d;
   }
-  // pack buf[0] this way because other fixes unpack it
   buf[0] = n;
 
   return n;
@@ -792,7 +817,7 @@ int FixCMAP::pack_restart(int i, double *buf)
    unpack values from atom->extra array to restart the fix
 ------------------------------------------------------------------------- */
 
-void FixCMAP::unpack_restart(int nlocal, int nth)
+void FixPiTorsion::unpack_restart(int nlocal, int nth)
 {
   double **extra = atom->extra;
 
@@ -803,15 +828,16 @@ void FixCMAP::unpack_restart(int nlocal, int nth)
    for (int i = 0; i < nth; i++) n += static_cast<int> (extra[nlocal][n]);
 
    int count = static_cast<int> (extra[nlocal][n++]);
-   num_crossterm[nlocal] = (count-1)/6;
+   num_pitorsion[nlocal] = (count-1)/7;
 
-   for (int m = 0; m < num_crossterm[nlocal]; m++) {
-     crossterm_type[nlocal][m] = (int) ubuf(extra[nlocal][n++]).i;
-     crossterm_atom1[nlocal][m] = (tagint) ubuf(extra[nlocal][n++]).i;
-     crossterm_atom2[nlocal][m] = (tagint) ubuf(extra[nlocal][n++]).i;
-     crossterm_atom3[nlocal][m] = (tagint) ubuf(extra[nlocal][n++]).i;
-     crossterm_atom4[nlocal][m] = (tagint) ubuf(extra[nlocal][n++]).i;
-     crossterm_atom5[nlocal][m] = (tagint) ubuf(extra[nlocal][n++]).i;
+   for (int m = 0; m < num_pitorsion[nlocal]; m++) {
+     pitorsion_type[nlocal][m] = (int) ubuf(extra[nlocal][n++]).i;
+     pitorsion_atom1[nlocal][m] = (tagint) ubuf(extra[nlocal][n++]).i;
+     pitorsion_atom2[nlocal][m] = (tagint) ubuf(extra[nlocal][n++]).i;
+     pitorsion_atom3[nlocal][m] = (tagint) ubuf(extra[nlocal][n++]).i;
+     pitorsion_atom4[nlocal][m] = (tagint) ubuf(extra[nlocal][n++]).i;
+     pitorsion_atom5[nlocal][m] = (tagint) ubuf(extra[nlocal][n++]).i;
+     pitorsion_atom6[nlocal][m] = (tagint) ubuf(extra[nlocal][n++]).i;
    }
 }
 
@@ -819,44 +845,46 @@ void FixCMAP::unpack_restart(int nlocal, int nth)
    maxsize of any atom's restart data
 ------------------------------------------------------------------------- */
 
-int FixCMAP::maxsize_restart()
+int FixPiTorsion::maxsize_restart()
 {
-  return 1 + CMAPMAX*6;
+  return 1 + PITORSIONMAX*6;
 }
 
 /* ----------------------------------------------------------------------
    size of atom nlocal's restart data
 ------------------------------------------------------------------------- */
 
-int FixCMAP::size_restart(int nlocal)
+int FixPiTorsion::size_restart(int nlocal)
 {
-  return 1 + num_crossterm[nlocal]*6;
+  return 1 + num_pitorsion[nlocal]*7;
 }
 
 /* ----------------------------------------------------------------------
-   allocate atom-based array
+   allocate atom-based arrays
 ------------------------------------------------------------------------- */
 
-void FixCMAP::grow_arrays(int nmax)
+void FixPiTorsion::grow_arrays(int nmax)
 {
-  num_crossterm = memory->grow(num_crossterm,nmax,"cmap:num_crossterm");
-  crossterm_type = memory->grow(crossterm_type,nmax,CMAPMAX,
-                                "cmap:crossterm_type");
-  crossterm_atom1 = memory->grow(crossterm_atom1,nmax,CMAPMAX,
-                                 "cmap:crossterm_atom1");
-  crossterm_atom2 = memory->grow(crossterm_atom2,nmax,CMAPMAX,
-                                 "cmap:crossterm_atom2");
-  crossterm_atom3 = memory->grow(crossterm_atom3,nmax,CMAPMAX,
-                                 "cmap:crossterm_atom3");
-  crossterm_atom4 = memory->grow(crossterm_atom4,nmax,CMAPMAX,
-                                 "cmap:crossterm_atom4");
-  crossterm_atom5 = memory->grow(crossterm_atom5,nmax,CMAPMAX,
-                                 "cmap:crossterm_atom5");
+  num_pitorsion = memory->grow(num_pitorsion,nmax,"pitorsion:num_pitorsion");
+  pitorsion_type = memory->grow(pitorsion_type,nmax,PITORSIONMAX,
+                                "pitorsion:pitorsion_type");
+  pitorsion_atom1 = memory->grow(pitorsion_atom1,nmax,PITORSIONMAX,
+                                 "pitorsion:pitorsion_atom1");
+  pitorsion_atom2 = memory->grow(pitorsion_atom2,nmax,PITORSIONMAX,
+                                 "pitorsion:pitorsion_atom2");
+  pitorsion_atom3 = memory->grow(pitorsion_atom3,nmax,PITORSIONMAX,
+                                 "pitorsion:pitorsion_atom3");
+  pitorsion_atom4 = memory->grow(pitorsion_atom4,nmax,PITORSIONMAX,
+                                 "pitorsion:pitorsion_atom4");
+  pitorsion_atom5 = memory->grow(pitorsion_atom5,nmax,PITORSIONMAX,
+                                 "pitorsion:pitorsion_atom5");
+  pitorsion_atom6 = memory->grow(pitorsion_atom6,nmax,PITORSIONMAX,
+                                 "pitorsion:pitorsion_atom6");
 
-  // must initialize num_crossterm to 0 for added atoms
+  // initialize num_pitorion to 0 for added atoms
   // may never be set for some atoms when data file is read
 
-  for (int i = nmax_previous; i < nmax; i++) num_crossterm[i] = 0;
+  for (int i = nmax_previous; i < nmax; i++) num_pitorsion[i] = 0;
   nmax_previous = nmax;
 }
 
@@ -864,17 +892,18 @@ void FixCMAP::grow_arrays(int nmax)
    copy values within local atom-based array
 ------------------------------------------------------------------------- */
 
-void FixCMAP::copy_arrays(int i, int j, int /*delflag*/)
+void FixPiTorsion::copy_arrays(int i, int j, int /*delflag*/)
 {
-  num_crossterm[j] = num_crossterm[i];
+  num_pitorsion[j] = num_pitorsion[i];
 
-  for (int k = 0; k < num_crossterm[j]; k++) {
-    crossterm_type[j][k] = crossterm_type[i][k];
-    crossterm_atom1[j][k] = crossterm_atom1[i][k];
-    crossterm_atom2[j][k] = crossterm_atom2[i][k];
-    crossterm_atom3[j][k] = crossterm_atom3[i][k];
-    crossterm_atom4[j][k] = crossterm_atom4[i][k];
-    crossterm_atom5[j][k] = crossterm_atom5[i][k];
+  for (int k = 0; k < num_pitorsion[j]; k++) {
+    pitorsion_type[j][k] = pitorsion_type[i][k];
+    pitorsion_atom1[j][k] = pitorsion_atom1[i][k];
+    pitorsion_atom2[j][k] = pitorsion_atom2[i][k];
+    pitorsion_atom3[j][k] = pitorsion_atom3[i][k];
+    pitorsion_atom4[j][k] = pitorsion_atom4[i][k];
+    pitorsion_atom5[j][k] = pitorsion_atom5[i][k];
+    pitorsion_atom6[j][k] = pitorsion_atom6[i][k];
   }
 }
 
@@ -882,26 +911,27 @@ void FixCMAP::copy_arrays(int i, int j, int /*delflag*/)
    initialize one atom's array values, called when atom is created
 ------------------------------------------------------------------------- */
 
-void FixCMAP::set_arrays(int i)
+void FixPiTorsion::set_arrays(int i)
 {
-  num_crossterm[i] = 0;
+  num_pitorsion[i] = 0;
 }
 
 /* ----------------------------------------------------------------------
    pack values in local atom-based array for exchange with another proc
 ------------------------------------------------------------------------- */
 
-int FixCMAP::pack_exchange(int i, double *buf)
+int FixPiTorsion::pack_exchange(int i, double *buf)
 {
   int n = 0;
-  buf[n++] = ubuf(num_crossterm[i]).d;
-  for (int m = 0; m < num_crossterm[i]; m++) {
-    buf[n++] = ubuf(crossterm_type[i][m]).d;
-    buf[n++] = ubuf(crossterm_atom1[i][m]).d;
-    buf[n++] = ubuf(crossterm_atom2[i][m]).d;
-    buf[n++] = ubuf(crossterm_atom3[i][m]).d;
-    buf[n++] = ubuf(crossterm_atom4[i][m]).d;
-    buf[n++] = ubuf(crossterm_atom5[i][m]).d;
+  buf[n++] = ubuf(num_pitorsion[i]).d;
+  for (int m = 0; m < num_pitorsion[i]; m++) {
+    buf[n++] = ubuf(pitorsion_type[i][m]).d;
+    buf[n++] = ubuf(pitorsion_atom1[i][m]).d;
+    buf[n++] = ubuf(pitorsion_atom2[i][m]).d;
+    buf[n++] = ubuf(pitorsion_atom3[i][m]).d;
+    buf[n++] = ubuf(pitorsion_atom4[i][m]).d;
+    buf[n++] = ubuf(pitorsion_atom5[i][m]).d;
+    buf[n++] = ubuf(pitorsion_atom6[i][m]).d;
   }
   return n;
 }
@@ -910,17 +940,18 @@ int FixCMAP::pack_exchange(int i, double *buf)
    unpack values in local atom-based array from exchange with another proc
 ------------------------------------------------------------------------- */
 
-int FixCMAP::unpack_exchange(int nlocal, double *buf)
+int FixPiTorsion::unpack_exchange(int nlocal, double *buf)
 {
   int n = 0;
-  num_crossterm[nlocal] = (int) ubuf(buf[n++]).i;
-  for (int m = 0; m < num_crossterm[nlocal]; m++) {
-    crossterm_type[nlocal][m] = (int) ubuf(buf[n++]).i;
-    crossterm_atom1[nlocal][m] = (tagint) ubuf(buf[n++]).i;
-    crossterm_atom2[nlocal][m] = (tagint) ubuf(buf[n++]).i;
-    crossterm_atom3[nlocal][m] = (tagint) ubuf(buf[n++]).i;
-    crossterm_atom4[nlocal][m] = (tagint) ubuf(buf[n++]).i;
-    crossterm_atom5[nlocal][m] = (tagint) ubuf(buf[n++]).i;
+  num_pitorsion[nlocal] = (int) ubuf(buf[n++]).i;
+  for (int m = 0; m < num_pitorsion[nlocal]; m++) {
+    pitorsion_type[nlocal][m] = (int) ubuf(buf[n++]).i;
+    pitorsion_atom1[nlocal][m] = (tagint) ubuf(buf[n++]).i;
+    pitorsion_atom2[nlocal][m] = (tagint) ubuf(buf[n++]).i;
+    pitorsion_atom3[nlocal][m] = (tagint) ubuf(buf[n++]).i;
+    pitorsion_atom4[nlocal][m] = (tagint) ubuf(buf[n++]).i;
+    pitorsion_atom5[nlocal][m] = (tagint) ubuf(buf[n++]).i;
+    pitorsion_atom6[nlocal][m] = (tagint) ubuf(buf[n++]).i;
   }
   return n;
 }
@@ -929,12 +960,12 @@ int FixCMAP::unpack_exchange(int nlocal, double *buf)
    memory usage of local atom-based arrays
 ------------------------------------------------------------------------- */
 
-double FixCMAP::memory_usage()
+double FixPiTorsion::memory_usage()
 {
   int nmax = atom->nmax;
-  double bytes = (double)nmax * sizeof(int);        // num_crossterm
-  bytes += (double)nmax*CMAPMAX * sizeof(int);      // crossterm_type
-  bytes += (double)5*nmax*CMAPMAX * sizeof(int);    // crossterm_atom 12345
-  bytes += (double)maxcrossterm*6 * sizeof(int);    // crosstermlist
+  double bytes = (double)nmax * sizeof(int);             // num_pitorsion
+  bytes += (double)nmax*PITORSIONMAX * sizeof(int);      // pitorsion_type
+  bytes += (double)6*nmax*PITORSIONMAX * sizeof(int);    // pitorsion_atom 123456
+  bytes += (double)7*max_pitorsion_list * sizeof(int);   // pitorsion_list
   return bytes;
 }

@@ -42,7 +42,7 @@ static const char cite_compute_pressure_cartesian[] =
     "@article{galteland2021nanothermodynamic,\n"
     "title={Nanothermodynamic description and molecular simulation of a single-phase fluid in a "
     "slit pore},\n"
-    "author={Galteland, Olav and Bedeaux, Dick and Kjelstrup, Signe}\n,"
+    "author={Galteland, Olav and Bedeaux, Dick and Kjelstrup, Signe},\n"
     "journal={Nanomaterials},\n"
     "volume={11},\n"
     "number={1},\n"

@@ -13,7 +13,8 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(stress/cylinder,ComputeStressCyl);
+ComputeStyle(stress/cylinder,ComputeStressCylinderinder);
+ComputeStyle(pressure/cylinder,ComputeStressCylinderinder);
 // clang-format on
 #else
 
@@ -24,10 +25,10 @@ ComputeStyle(stress/cylinder,ComputeStressCyl);
 
 namespace LAMMPS_NS {
 
-class ComputeStressCyl : public Compute {
+class ComputeStressCylinder : public Compute {
  public:
-  ComputeStressCyl(class LAMMPS *, int, char **);
-  ~ComputeStressCyl() override;
+  ComputeStressCylinder(class LAMMPS *, int, char **);
+  ~ComputeStressCylinder() override;
   void init() override;
   void init_list(int, class NeighList *) override;
   void compute_array() override;

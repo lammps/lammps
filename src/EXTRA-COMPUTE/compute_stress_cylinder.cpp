@@ -59,7 +59,7 @@ static const char cite_compute_stress_cylinder[] =
   cylindrical geometry, according to the formulation of Addington et al. (2018)
   +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ */
 
-ComputeStressCyl::ComputeStressCyl(LAMMPS *lmp, int narg, char **arg) :
+ComputeStressCylinder::ComputeStressCylinder(LAMMPS *lmp, int narg, char **arg) :
     Compute(lmp, narg, arg), Pvr_temp(nullptr), Pvr_all(nullptr), Pvz_temp(nullptr),
     Pvz_all(nullptr), Pvphi_temp(nullptr), Pvphi_all(nullptr), R(nullptr), Rinv(nullptr),
     R2(nullptr), PrAinv(nullptr), PzAinv(nullptr), R2kin(nullptr), density_temp(nullptr),
@@ -147,7 +147,7 @@ ComputeStressCyl::ComputeStressCyl(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
-ComputeStressCyl::~ComputeStressCyl()
+ComputeStressCylinder::~ComputeStressCylinder()
 {
   memory->destroy(array);
   if (kinetic_flag == 1) {
@@ -181,7 +181,7 @@ ComputeStressCyl::~ComputeStressCyl()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeStressCyl::init()
+void ComputeStressCylinder::init()
 {
   if (force->pair == nullptr)
     error->all(FLERR, "No pair style is defined for compute stress/cylinder");
@@ -224,7 +224,7 @@ void ComputeStressCyl::init()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeStressCyl::init_list(int /* id */, NeighList *ptr)
+void ComputeStressCylinder::init_list(int /* id */, NeighList *ptr)
 {
   list = ptr;
 }
@@ -238,7 +238,7 @@ void ComputeStressCyl::init_list(int /* id */, NeighList *ptr)
    if flag is set, compute requested info about pair
 ------------------------------------------------------------------------- */
 
-void ComputeStressCyl::compute_array()
+void ComputeStressCylinder::compute_array()
 {
   invoked_array = update->ntimestep;
 
@@ -556,7 +556,7 @@ void ComputeStressCyl::compute_array()
 /* ----------------------------------------------------------------------
 memory usage of data
 ------------------------------------------------------------------------- */
-double ComputeStressCyl::memory_usage()
+double ComputeStressCylinder::memory_usage()
 {
   double bytes =
       (3.0 * (double) nphi + 16.0 * (double) nbins + (5.0 + 3.0 * kinetic_flag) * (double) nbins) *

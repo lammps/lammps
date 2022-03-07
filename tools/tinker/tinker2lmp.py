@@ -782,10 +782,10 @@ for atom1,atom2,atom3 in ublist:
   
   if (c1,c2,c3) in ubdict:
     m,params = ubdict[(c1,c2,c3)]
-    blist.append((c1,c3))
+    blist.append((atom1,atom3))
   elif (c3,c2,c1) in ubdict:
     m,params = ubdict[(c3,c2,c1)]
-    blist.append((c3,c1))
+    blist.append((atom3,atom1))
     
   if not flags[m]:
     v1,v2,v3,v4 = params[3:]

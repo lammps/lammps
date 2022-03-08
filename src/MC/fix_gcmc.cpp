@@ -450,21 +450,21 @@ void FixGCMC::init()
   if (nmcmoves > 0) {
     if (pmctot == 0.0)
       if (exchmode == EXCHATOM) {
-	movemode = MOVEATOM;
-	patomtrans = 1.0;
-	pmoltrans = 0.0;
-	pmolrotate = 0.0;
+        movemode = MOVEATOM;
+        patomtrans = 1.0;
+        pmoltrans = 0.0;
+        pmolrotate = 0.0;
       } else {
-	movemode = MOVEMOL;
-	patomtrans = 0.0;
-	pmoltrans = 0.5;
-	pmolrotate = 0.5;
+        movemode = MOVEMOL;
+        patomtrans = 0.0;
+        pmoltrans = 0.5;
+        pmolrotate = 0.5;
       }
     else {
       if (pmoltrans == 0.0 && pmolrotate == 0.0)
-	movemode = MOVEATOM;
+        movemode = MOVEATOM;
       else
-	movemode = MOVEMOL;
+        movemode = MOVEMOL;
       patomtrans /= pmctot;
       pmoltrans /= pmctot;
       pmolrotate /= pmctot;
@@ -689,7 +689,7 @@ void FixGCMC::init()
 
   if (full_flag && movemode == MOVEMOL && comm->nprocs > 1)
     error->all(FLERR,"fix gcmc does currently not support full_energy "
-	       "option with molecule MC moves on more than 1 MPI process.");
+               "option with molecule MC moves on more than 1 MPI process.");
 
 }
 

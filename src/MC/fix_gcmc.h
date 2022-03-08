@@ -314,7 +314,7 @@ Self-explanatory.
 E: fix gcmc does currently not support full_energy option with molecule MC moves on more than 1 MPI process.
 
 It is still possible to do parallel molecule exchange without translation and rotation moves
-by setting MC moves to zero and/or by using mcmoves keyword with Pmoltrans=Pmolrotate=0  
+by setting MC moves to zero and/or by using mcmoves keyword with Pmoltrans=Pmolrotate=0
 
 W: Energy of old configuration in fix gcmc is > MAXENERGYTEST.
 

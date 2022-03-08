@@ -24,7 +24,6 @@
 #include "force.h"
 #include "kspace.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "pair_comb.h"
 #include "pair_comb3.h"
@@ -76,11 +75,7 @@ void FixQEqFire::init()
 {
   FixQEq::init();
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->fix  = 1;
-  neighbor->requests[irequest]->half = 1;
-  neighbor->requests[irequest]->full = 0;
+  neighbor->add_request(this, NeighConst::REQ_FULL);
 
   if (tolerance < 1e-4)
     if (comm->me == 0)

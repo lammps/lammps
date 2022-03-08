@@ -375,8 +375,7 @@ void Thermo::compute(int flag)
 
   if (me == 0) {
     utils::logmesg(lmp,line);
-    if (screen && flushflag) fflush(screen);
-    if (logfile && flushflag) fflush(logfile);
+    if (flushflag) utils::flush_buffers(lmp);
   }
 
   // set to 1, so that subsequent invocations of CPU time will be non-zero

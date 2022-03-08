@@ -19,20 +19,18 @@
 
 #include "pair_nb3b_harmonic.h"
 
-#include <cmath>
-
-#include <cstring>
 #include "atom.h"
-#include "neighbor.h"
-#include "neigh_request.h"
-#include "force.h"
 #include "comm.h"
-#include "neigh_list.h"
-#include "memory.h"
 #include "error.h"
-
-#include "tokenizer.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
 #include "potential_file_reader.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 

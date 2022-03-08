@@ -198,7 +198,7 @@ int DeviceT::init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
   // Find deviceID with most CUs (priority given to the accelerator type)
   if (_first_device < 0) {
     int best_device = 0;
-    int best_cus = gpu->cus(0);
+    unsigned best_cus = gpu->cus(0);
     bool type_match = (gpu->device_type(0) == type);
     for (int i = 1; i < gpu->num_devices(); i++) {
       if (type_match==true && gpu->device_type(i)!=type)

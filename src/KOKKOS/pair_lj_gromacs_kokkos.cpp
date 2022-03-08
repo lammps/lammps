@@ -61,6 +61,8 @@ PairLJGromacsKokkos<DeviceType>::~PairLJGromacsKokkos()
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);
     memoryKK->destroy_kokkos(k_cutsq,cutsq);
+    memoryKK->destroy_kokkos(k_cut_inner,cut_inner);
+    memoryKK->destroy_kokkos(k_cut_inner_sq,cut_inner_sq);
   }
 }
 

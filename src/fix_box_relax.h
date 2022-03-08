@@ -27,21 +27,21 @@ namespace LAMMPS_NS {
 class FixBoxRelax : public Fix {
  public:
   FixBoxRelax(class LAMMPS *, int, char **);
-  ~FixBoxRelax();
-  int setmask();
-  void init();
+  ~FixBoxRelax() override;
+  int setmask() override;
+  void init() override;
 
-  double min_energy(double *);
-  void min_store();
-  void min_clearstore();
-  void min_pushstore();
-  void min_popstore();
-  int min_reset_ref();
-  void min_step(double, double *);
-  double max_alpha(double *);
-  int min_dof();
+  double min_energy(double *) override;
+  void min_store() override;
+  void min_clearstore() override;
+  void min_pushstore() override;
+  void min_popstore() override;
+  int min_reset_ref() override;
+  void min_step(double, double *) override;
+  double max_alpha(double *) override;
+  int min_dof() override;
 
-  int modify_param(int, char **);
+  int modify_param(int, char **) override;
 
  private:
   int p_flag[6];
@@ -89,7 +89,7 @@ class FixBoxRelax : public Fix {
   void compute_deviatoric();
   double compute_strain_energy();
   void compute_press_target();
-  double compute_scalar();
+  double compute_scalar() override;
 };
 
 }    // namespace LAMMPS_NS

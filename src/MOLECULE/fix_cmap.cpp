@@ -37,12 +37,13 @@
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
+#include "potential_file_reader.h"
 #include "respa.h"
-#include "tokenizer.h"
 #include "update.h"
 
 #include <cmath>
 #include <cstring>
+#include <exception>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -634,150 +635,23 @@ double FixCMAP::compute_scalar()
 
 void FixCMAP::read_grid_map(char *cmapfile)
 {
-  char linebuf[MAXLINE];
-  char *chunk,*line;
-  int i1, i2, i3, i4, i5, i6, j1, j2, j3, j4, j5, j6, counter;
-
-  FILE *fp = nullptr;
   if (comm->me == 0) {
-    fp = utils::open_potential(cmapfile,lmp,nullptr);
-    if (fp == nullptr)
-      error->one(FLERR,"Cannot open fix cmap file {}: {}",
-                                   cmapfile, utils::getsyserror());
+    try {
+      memset(&cmapgrid[0][0][0], 0, 6*CMAPDIM*CMAPDIM*sizeof(double));
+      PotentialFileReader reader(lmp, cmapfile, "cmap grid");
 
-  }
+      // there are six maps in this order.
+      // alanine, alanine-proline, proline, proline-proline, glycine, glycine-proline.
+      // read as one big blob of numbers while ignoring comments
 
-  for (int ix1 = 0; ix1 < 6; ix1++)
-    for (int ix2 = 0; ix2 < CMAPDIM; ix2++)
-      for (int ix3 = 0; ix3 < CMAPDIM; ix3++)
-        cmapgrid[ix1][ix2][ix3] = 0.0;
+      reader.next_dvector(&cmapgrid[0][0][0],6*CMAPDIM*CMAPDIM);
 
-  counter = 0;
-  i1 = i2 = i3 = i4 = i5 = i6 = 0;
-  j1 = j2 = j3 = j4 = j5 = j6 = 0;
-
-  int done = 0;
-
-  while (!done) {
-    // only read on rank 0 and broadcast to all other ranks
-    if (comm->me == 0)
-      done = (fgets(linebuf,MAXLINE,fp) == nullptr);
-
-    MPI_Bcast(&done,1,MPI_INT,0,world);
-    if (done) continue;
-
-    MPI_Bcast(linebuf,MAXLINE,MPI_CHAR,0,world);
-
-    // remove leading whitespace
-    line = linebuf;
-    while (line && (*line == ' ' || *line == '\t' || *line == '\r')) ++line;
-
-    // skip if empty line or comment
-    if (!line || *line =='\n' || *line == '\0' || *line == '#') continue;
-
-    // read in the cmap grid point values
-    // NOTE: The order to read the 6 grid maps is HARD-CODED, thus errors
-    //       will occur if content of the file "cmap.data" is altered
-    //
-    // Reading order of the maps:
-    // 1. Alanine map
-    // 2. Alanine before proline map
-    // 3. Proline map
-    // 4. Two adjacent prolines map
-    // 5. Glycine map
-    // 6. Glycine before proline map
-
-    chunk = strtok(line, " \r\n");
-    while (chunk != nullptr) {
-
-      // alanine map
-
-      if (counter < CMAPDIM*CMAPDIM) {
-        cmapgrid[0][i1][j1] = atof(chunk);
-        chunk = strtok(nullptr, " \r\n");
-        j1++;
-        if (j1 == CMAPDIM) {
-          j1 = 0;
-          i1++;
-        }
-        counter++;
-      }
-
-      // alanine-proline map
-
-      else if (counter >= CMAPDIM*CMAPDIM &&
-               counter < 2*CMAPDIM*CMAPDIM) {
-        cmapgrid[1][i2][j2]= atof(chunk);
-        chunk = strtok(nullptr, " \r\n");
-        j2++;
-        if (j2 == CMAPDIM) {
-          j2 = 0;
-          i2++;
-        }
-        counter++;
-      }
-
-      // proline map
-
-      else if (counter >= 2*CMAPDIM*CMAPDIM &&
-               counter < 3*CMAPDIM*CMAPDIM) {
-        cmapgrid[2][i3][j3] = atof(chunk);
-        chunk = strtok(nullptr, " \r\n");
-        j3++;
-        if (j3 == CMAPDIM) {
-          j3 = 0;
-          i3++;
-        }
-        counter++;
-      }
-
-      // 2 adjacent prolines map
-
-      else if (counter >= 3*CMAPDIM*CMAPDIM &&
-               counter < 4*CMAPDIM*CMAPDIM) {
-        cmapgrid[3][i4][j4] = atof(chunk);
-        chunk = strtok(nullptr, " \r\n");
-        j4++;
-        if (j4 == CMAPDIM) {
-          j4 = 0;
-          i4++;
-        }
-        counter++;
-      }
-
-      // glycine map
-
-      else if (counter >= 4*CMAPDIM*CMAPDIM &&
-               counter < 5*CMAPDIM*CMAPDIM) {
-        cmapgrid[4][i5][j5] = atof(chunk);
-        chunk = strtok(nullptr, " \r\n");
-        j5++;
-        if (j5 == CMAPDIM) {
-          j5 = 0;
-          i5++;
-        }
-        counter++;
-      }
-
-      // glycine-proline map
-
-      else if (counter >= 5*CMAPDIM*CMAPDIM &&
-               counter < 6*CMAPDIM*CMAPDIM) {
-        cmapgrid[5][i6][j6] = atof(chunk);
-        chunk = strtok(nullptr, " \r\n");
-        j6++;
-        if (j6 == CMAPDIM) {
-          j6 = 0;
-          i6++;
-        }
-        counter++;
-      }
-
-      else break;
+    } catch (std::exception &e) {
+      error->one(FLERR,"Error reading CMAP potential file: {}", e.what());
     }
   }
 
-  if (comm->me == 0) fclose(fp);
+  MPI_Bcast(&cmapgrid[0][0][0],6*CMAPDIM*CMAPDIM,MPI_DOUBLE,0,world);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1072,10 +946,10 @@ void FixCMAP::read_data_header(char *line)
    store CMAP interactions as if newton_bond = OFF, even if actually ON
 ------------------------------------------------------------------------- */
 
-void FixCMAP::read_data_section(char *keyword, int n, char *buf,
+void FixCMAP::read_data_section(char * /*keyword*/, int /*n*/, char *buf,
                                  tagint id_offset)
 {
-  int m,tmp,itype;
+  int m,itype;
   tagint atom1,atom2,atom3,atom4,atom5;
 
   auto lines = utils::split_lines(buf);

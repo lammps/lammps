@@ -20,7 +20,7 @@
 #include <cmath>
 
 using namespace LAMMPS_NS;
-using namespace MathConst;
+using MathConst::MY_PI;
 
 //     do a sanity check on index parameters
 void

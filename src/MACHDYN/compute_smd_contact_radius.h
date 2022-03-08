@@ -38,10 +38,10 @@ namespace LAMMPS_NS {
 class ComputeSMDContactRadius : public Compute {
  public:
   ComputeSMDContactRadius(class LAMMPS *, int, char **);
-  ~ComputeSMDContactRadius();
-  void init();
-  void compute_peratom();
-  double memory_usage();
+  ~ComputeSMDContactRadius() override;
+  void init() override;
+  void compute_peratom() override;
+  double memory_usage() override;
 
  private:
   int nmax;

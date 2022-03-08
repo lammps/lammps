@@ -51,9 +51,9 @@ int ljecl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                    int &gpu_mode, FILE *screen, double **host_cut_ljsq,
                    double host_cut_coulsq, double *host_special_coul,
                    const double qqrd2e, const double g_ewald);
-int ljecl_gpu_reinit(const int ntypes, double **cutsq, double **host_lj1,
-                     double **host_lj2, double **host_lj3, double **host_lj4,
-                     double **offset, double **shift, double **host_lj_cutsq);
+void ljecl_gpu_reinit(const int ntypes, double **cutsq, double **host_lj1,
+                      double **host_lj2, double **host_lj3, double **host_lj4,
+                      double **offset, double **shift, double **host_lj_cutsq);
 void ljecl_gpu_clear();
 int ** ljecl_gpu_compute_n(const int ago, const int inum,
                            const int nall, double **host_x, int *host_type,
@@ -152,8 +152,6 @@ void PairLJExpandCoulLongGPU::init_style()
 
   if (!atom->q_flag)
     error->all(FLERR,"Pair style lj/cut/coul/long/gpu requires atom attribute q");
-  if (force->newton_pair)
-    error->all(FLERR,"Pair style lj/cut/coul/long/gpu requires newton pair off");
 
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;

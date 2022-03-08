@@ -185,6 +185,10 @@ The ``ctest`` command has many options, the most important ones are:
      - run subset of tests matching the regular expression <regex>
    * - -E <regex>
      - exclude subset of tests matching the regular expression <regex>
+   * - -L <regex>
+     - run subset of tests with a label matching the regular expression <regex>
+   * - -LE <regex>
+     - exclude subset of tests with a label matching the regular expression <regex>
    * - -N
      - dry-run: display list of tests without running them
    * - -T memcheck
@@ -298,6 +302,12 @@ test file with the regenerated one or the *-u* option.  The *-u* option
 will destroy the original file, if the generation run does not complete,
 so using *-g* is recommended unless the YAML file is fully tested
 and working.
+
+Some of the force style tests are rather slow to run and some are very
+sensitive to small differences like CPU architecture, compiler
+toolchain, compiler optimization. Those tests are flagged with a "slow"
+and/or "unstable" label, and thus those tests can be selectively
+excluded with the ``-LE`` flag or selected with the ``-L`` flag.
 
 .. admonition:: Recommendations and notes for YAML files
    :class: note

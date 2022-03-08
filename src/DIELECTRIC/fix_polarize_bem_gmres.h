@@ -27,22 +27,22 @@ namespace LAMMPS_NS {
 class FixPolarizeBEMGMRES : public Fix {
  public:
   FixPolarizeBEMGMRES(class LAMMPS *, int, char **);
-  ~FixPolarizeBEMGMRES();
-  virtual int setmask();
-  virtual void init();
-  virtual void setup(int);
-  virtual void pre_force(int);
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
-  virtual double compute_vector(int);
+  ~FixPolarizeBEMGMRES() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void pre_force(int) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  double compute_vector(int) override;
 
-  int modify_param(int, char **);
-  double memory_usage();
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  void set_arrays(int);
+  int modify_param(int, char **) override;
+  double memory_usage() override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  void set_arrays(int) override;
   virtual void allocate();
   virtual void deallocate();
 

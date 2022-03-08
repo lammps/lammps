@@ -27,15 +27,15 @@ namespace LAMMPS_NS {
 class FixPolarizeBEMICC : public Fix {
  public:
   FixPolarizeBEMICC(class LAMMPS *, int, char **);
-  ~FixPolarizeBEMICC() = default;
-  virtual int setmask();
-  virtual void init();
-  virtual void setup(int);
-  virtual void pre_force(int);
-  virtual double compute_vector(int);
-  int modify_param(int, char **);
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
+
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void pre_force(int) override;
+  double compute_vector(int) override;
+  int modify_param(int, char **) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
 
   virtual void compute_induced_charges();
   void set_dielectric_params(double, double, double, double, int, double);

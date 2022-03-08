@@ -69,7 +69,7 @@ class Region : protected Pointers {
   int *list;
 
   Region(class LAMMPS *, int, char **);
-  virtual ~Region();
+  ~Region() override;
   virtual void init();
   int dynamic_check();
 

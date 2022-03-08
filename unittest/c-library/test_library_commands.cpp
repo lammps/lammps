@@ -2,6 +2,7 @@
 
 #include "lammps.h"
 #include "library.h"
+#include "platform.h"
 #include <string>
 
 #include "gmock/gmock.h"
@@ -19,7 +20,7 @@ const char *cont_input[] = {"create_atoms 1 single &", "0.2 0.1 0.1"};
 class LibraryCommands : public ::testing::Test {
 protected:
     void *lmp;
-    LibraryCommands() = default;
+    LibraryCommands()           = default;
     ~LibraryCommands() override = default;
 
     void SetUp() override
@@ -54,13 +55,13 @@ TEST_F(LibraryCommands, from_file)
     const char cont_file[] = "in.cont";
 
     fp = fopen(demo_file, "w");
-    for (auto & inp : demo_input) {
+    for (auto &inp : demo_input) {
         fputs(inp, fp);
         fputc('\n', fp);
     }
     fclose(fp);
     fp = fopen(cont_file, "w");
-    for (auto & inp : cont_input) {
+    for (auto &inp : cont_input) {
         fputs(inp, fp);
         fputc('\n', fp);
     }
@@ -76,15 +77,15 @@ TEST_F(LibraryCommands, from_file)
     if (!verbose) ::testing::internal::GetCapturedStdout();
     EXPECT_EQ(lammps_get_natoms(lmp), 2);
 
-    unlink(demo_file);
-    unlink(cont_file);
+    LAMMPS_NS::platform::unlink(demo_file);
+    LAMMPS_NS::platform::unlink(cont_file);
 };
 
 TEST_F(LibraryCommands, from_line)
 {
     EXPECT_EQ(lammps_get_natoms(lmp), 0);
     if (!verbose) ::testing::internal::CaptureStdout();
-    for (auto & inp : demo_input) {
+    for (auto &inp : demo_input) {
         lammps_command(lmp, inp);
     }
     if (!verbose) ::testing::internal::GetCapturedStdout();
@@ -105,11 +106,11 @@ TEST_F(LibraryCommands, from_string)
 {
     std::string cmds("");
 
-    for (auto & inp : demo_input) {
+    for (auto &inp : demo_input) {
         cmds += inp;
         cmds += "\n";
     }
-    for (auto & inp : cont_input) {
+    for (auto &inp : cont_input) {
         cmds += inp;
         cmds += "\n";
     }
@@ -125,11 +126,11 @@ TEST_F(LibraryCommands, from_string)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     cmds.clear();
-    for (auto & inp : demo_input) {
+    for (auto &inp : demo_input) {
         cmds += inp;
         cmds += "\r\n";
     }
-    for (auto & inp : cont_input) {
+    for (auto &inp : cont_input) {
         cmds += inp;
         cmds += "\r\n";
     }

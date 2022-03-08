@@ -25,7 +25,6 @@
 #include "math_special.h"
 #include "memory.h"
 #include "potential_file_reader.h"
-#include "tokenizer.h"
 #include "update.h"
 
 #include <cmath>

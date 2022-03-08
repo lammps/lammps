@@ -27,9 +27,9 @@ namespace LAMMPS_NS {
 class ComputeHeatFlux : public Compute {
  public:
   ComputeHeatFlux(class LAMMPS *, int, char **);
-  ~ComputeHeatFlux();
-  void init();
-  void compute_vector();
+  ~ComputeHeatFlux() override;
+  void init() override;
+  void compute_vector() override;
 
  private:
   char *id_ke, *id_pe, *id_stress;

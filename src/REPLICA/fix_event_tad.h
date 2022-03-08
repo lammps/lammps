@@ -32,10 +32,9 @@ class FixEventTAD : public FixEvent {
   double ebarrier;          // energy barrier for this event
 
   FixEventTAD(class LAMMPS *, int, char **);
-  ~FixEventTAD() {}
 
-  void write_restart(FILE *);
-  void restart(char *);
+  void write_restart(FILE *) override;
+  void restart(char *) override;
 
   // methods specific to FixEventTAD, invoked by TAD
 

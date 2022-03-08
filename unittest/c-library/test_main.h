@@ -25,9 +25,3 @@ extern bool verbose;
     } while (0);
 
 #endif
-
-#if defined _WIN32
-static const char PATH_SEP = '\\';
-#else
-static const char PATH_SEP = '/';
-#endif

@@ -32,20 +32,20 @@ class FixOMP : public Fix {
 
  public:
   FixOMP(class LAMMPS *, int, char **);
-  virtual ~FixOMP();
-  virtual int setmask();
-  virtual void init();
-  virtual void setup(int);
-  virtual void min_setup(int flag) { setup(flag); }
-  virtual void pre_force(int);
+  ~FixOMP() override;
+  int setmask() override;
+  void init() override;
+  void setup(int) override;
+  void min_setup(int flag) override { setup(flag); }
+  void pre_force(int) override;
 
-  virtual void setup_pre_force(int vflag) { pre_force(vflag); }
+  void setup_pre_force(int vflag) override { pre_force(vflag); }
   virtual void min_setup_pre_force(int vflag) { pre_force(vflag); }
-  virtual void min_pre_force(int vflag) { pre_force(vflag); }
-  virtual void setup_pre_force_respa(int vflag, int) { pre_force(vflag); }
-  virtual void pre_force_respa(int vflag, int, int) { pre_force(vflag); }
+  void min_pre_force(int vflag) override { pre_force(vflag); }
+  void setup_pre_force_respa(int vflag, int) override { pre_force(vflag); }
+  void pre_force_respa(int vflag, int, int) override { pre_force(vflag); }
 
-  virtual double memory_usage();
+  double memory_usage() override;
 
  protected:
   ThrData **thr;

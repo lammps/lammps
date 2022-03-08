@@ -393,6 +393,8 @@
 /bond_fene.h
 /bond_fene_expand.cpp
 /bond_fene_expand.h
+/bond_fene_nm.cpp
+/bond_fene_nm.h
 /bond_gaussian.cpp
 /bond_gaussian.h
 /bond_gromos.cpp
@@ -427,6 +429,8 @@
 /commgrid.h
 /compute_ackland_atom.cpp
 /compute_ackland_atom.h
+/compute_ave_sphere_atom.cpp
+/compute_ave_sphere_atom.h
 /compute_basal_atom.cpp
 /compute_basal_atom.h
 /compute_body_local.cpp
@@ -485,8 +489,6 @@
 /compute_plasticity_atom.h
 /compute_pressure_bocs.cpp
 /compute_pressure_bocs.h
-/compute_pressure_cylinder.cpp
-/compute_pressure_cylinder.h
 /compute_pressure_grem.cpp
 /compute_pressure_grem.h
 /compute_ptm_atom.cpp
@@ -497,10 +499,16 @@
 /compute_smd_triangle_vertices.h
 /compute_spec_atom.cpp
 /compute_spec_atom.h
+/compute_stress_cartesian.cpp
+/compute_stress_cartesian.h
+/compute_stress_cylinder.cpp
+/compute_stress_cylinder.h
 /compute_stress_mop.cpp
 /compute_stress_mop.h
 /compute_stress_mop_profile.cpp
 /compute_stress_mop_profile.h
+/compute_stress_spherical.cpp
+/compute_stress_spherical.h
 /compute_stress_tally.cpp
 /compute_stress_tally.h
 /compute_temp_asphere.cpp
@@ -1167,6 +1175,8 @@
 /pair_nm_cut_coul_cut.h
 /pair_nm_cut_coul_long.cpp
 /pair_nm_cut_coul_long.h
+/pait_nm_cut_split.cpp
+/pait_nm_cut_split.h
 /pair_oxdna_*.cpp
 /pair_oxdna_*.h
 /pair_oxdna2_*.cpp
@@ -1208,6 +1218,8 @@
 /pair_sph_taitwater_morris.h
 /pair_sw.cpp
 /pair_sw.h
+/pair_sw_mod.cpp
+/pair_sw_mod.h
 /pair_tersoff.cpp
 /pair_tersoff.h
 /pair_tersoff_mod.cpp
@@ -1481,6 +1493,8 @@
 /pair_dpd_fdt.h
 /pair_dpd_fdt_energy.cpp
 /pair_dpd_fdt_energy.h
+/pair_harmonic_cut.cpp
+/pair_harmonic_cut.h
 /pair_lennard_mdf.cpp
 /pair_lennard_mdf.h
 /pair_lj_cut_coul_long_cs.cpp

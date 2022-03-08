@@ -694,7 +694,7 @@ std::pair<void *, int> CudaInternal::resize_team_scratch_space(
   int current_team_scratch = 0;
   int zero                 = 0;
   int one                  = 1;
-  while (m_team_scratch_pool[current_team_scratch].compare_exchange_weak(
+  while (!m_team_scratch_pool[current_team_scratch].compare_exchange_weak(
       zero, one, std::memory_order_release, std::memory_order_relaxed)) {
     current_team_scratch = (current_team_scratch + 1) % m_n_team_scratch;
   }

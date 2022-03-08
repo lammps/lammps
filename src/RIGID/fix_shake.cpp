@@ -66,6 +66,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   create_attribute = 1;
   dof_flag = 1;
   stores_ids = 1;
+  centroidstressflag = CENTROID_AVAIL;
 
   // error check
 
@@ -573,7 +574,7 @@ void FixShake::post_force(int vflag)
   // communicate results if necessary
 
   unconstrained_update();
-  if (nprocs > 1) comm->forward_comm_fix(this);
+  if (nprocs > 1) comm->forward_comm(this);
 
   // virial setup
 
@@ -617,7 +618,7 @@ void FixShake::post_force_respa(int vflag, int ilevel, int iloop)
   // communicate results if necessary
 
   unconstrained_update_respa(ilevel);
-  if (nprocs > 1) comm->forward_comm_fix(this);
+  if (nprocs > 1) comm->forward_comm(this);
 
   // virial setup only needed on last iteration of innermost level
   //   and if pressure is requested
@@ -1764,7 +1765,10 @@ void FixShake::shake(int m)
     v[4] = lamda*r01[0]*r01[2];
     v[5] = lamda*r01[1]*r01[2];
 
-    v_tally(nlist,list,2.0,v);
+    double fpairlist[] = {lamda};
+    double dellist[][3]  = {{r01[0], r01[1], r01[2]}};
+    int pairlist[][2] = {{i0,i1}};
+    v_tally(nlist,list,2.0,v,nlocal,1,pairlist,fpairlist,dellist);
   }
 }
 
@@ -1937,7 +1941,11 @@ void FixShake::shake3(int m)
     v[4] = lamda01*r01[0]*r01[2] + lamda02*r02[0]*r02[2];
     v[5] = lamda01*r01[1]*r01[2] + lamda02*r02[1]*r02[2];
 
-    v_tally(nlist,list,3.0,v);
+    double fpairlist[] = {lamda01, lamda02};
+    double dellist[][3]  = {{r01[0], r01[1], r01[2]},
+                            {r02[0], r02[1], r02[2]}};
+    int pairlist[][2] = {{i0,i1}, {i0,i2}};
+    v_tally(nlist,list,3.0,v,nlocal,2,pairlist,fpairlist,dellist);
   }
 }
 
@@ -2189,7 +2197,12 @@ void FixShake::shake4(int m)
     v[4] = lamda01*r01[0]*r01[2]+lamda02*r02[0]*r02[2]+lamda03*r03[0]*r03[2];
     v[5] = lamda01*r01[1]*r01[2]+lamda02*r02[1]*r02[2]+lamda03*r03[1]*r03[2];
 
-    v_tally(nlist,list,4.0,v);
+    double fpairlist[] = {lamda01, lamda02, lamda03};
+    double dellist[][3]  = {{r01[0], r01[1], r01[2]},
+                            {r02[0], r02[1], r02[2]},
+                            {r03[0], r03[1], r03[2]}};
+    int pairlist[][2] = {{i0,i1}, {i0,i2}, {i0,i3}};
+    v_tally(nlist,list,4.0,v,nlocal,3,pairlist,fpairlist,dellist);
   }
 }
 
@@ -2432,7 +2445,12 @@ void FixShake::shake3angle(int m)
     v[4] = lamda01*r01[0]*r01[2]+lamda02*r02[0]*r02[2]+lamda12*r12[0]*r12[2];
     v[5] = lamda01*r01[1]*r01[2]+lamda02*r02[1]*r02[2]+lamda12*r12[1]*r12[2];
 
-    v_tally(nlist,list,3.0,v);
+    double fpairlist[] = {lamda01, lamda02, lamda12};
+    double dellist[][3]  = {{r01[0], r01[1], r01[2]},
+                            {r02[0], r02[1], r02[2]},
+                            {r12[0], r12[1], r12[2]}};
+    int pairlist[][2] = {{i0,i1}, {i0,i2}, {i1,i2}};
+    v_tally(nlist,list,3.0,v,nlocal,3,pairlist,fpairlist,dellist);
   }
 }
 
@@ -2541,18 +2559,19 @@ void FixShake::stats()
   // print stats only for non-zero counts
 
   if (me == 0) {
+    const int width = log10((MAX(MAX(1,nb),na)))+2;
     auto mesg = fmt::format("SHAKE stats (type/ave/delta/count) on step {}\n",
                             update->ntimestep);
     for (i = 1; i < nb; i++) {
       const auto bcnt = b_count_all[i]/2;
       if (bcnt)
-        mesg += fmt::format("{:>6d}   {:<9.6} {:<11.6} {:>8d}\n",i,
+        mesg += fmt::format("Bond:  {:>{}d}   {:<9.6} {:<11.6} {:>8d}\n",i,width,
                             b_ave_all[i]/bcnt/2.0,b_max_all[i]-b_min_all[i],bcnt);
     }
     for (i = 1; i < na; i++) {
       const auto acnt = a_count_all[i]/3;
       if (acnt)
-        mesg += fmt::format("{:>6d}   {:<9.6} {:<11.6} {:>8d}\n",i,
+        mesg += fmt::format("Angle: {:>{}d}   {:<9.6} {:<11.6} {:>8d}\n",i,width,
                             a_ave_all[i]/acnt/3.0,a_max_all[i]-a_min_all[i],acnt);
     }
     utils::logmesg(lmp,mesg);
@@ -3092,7 +3111,7 @@ void FixShake::correct_coordinates(int vflag) {
   double **xtmp = xshake;
   xshake = x;
   if (nprocs > 1) {
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
   }
   xshake = xtmp;
 }

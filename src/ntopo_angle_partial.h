@@ -27,8 +27,7 @@ namespace LAMMPS_NS {
 class NTopoAnglePartial : public NTopo {
  public:
   NTopoAnglePartial(class LAMMPS *);
-  ~NTopoAnglePartial() {}
-  void build();
+  void build() override;
 };
 
 }    // namespace LAMMPS_NS

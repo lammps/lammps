@@ -226,23 +226,23 @@ class FixLbFluid : public Fix {
 
 public:
     FixLbFluid(class LAMMPS *, int, char **);
-    ~FixLbFluid();
-    int setmask();
-    void init();
-    void initial_integrate(int);
-    void setup(int);
-    void pre_force(int);
-    void post_force(int);
-    void final_integrate();
-    void end_of_step();
+    ~FixLbFluid() override;
+    int setmask() override;
+    void init() override;
+    void initial_integrate(int) override;
+    void setup(int) override;
+    void pre_force(int) override;
+    void post_force(int) override;
+    void final_integrate() override;
+    void end_of_step() override;
 
-    void grow_arrays(int);
-    void copy_arrays(int, int, int);
-    int pack_exchange(int, double *);
-    int unpack_exchange(int, double *);
+    void grow_arrays(int) override;
+    void copy_arrays(int, int, int) override;
+    int pack_exchange(int, double *) override;
+    int unpack_exchange(int, double *) override;
 
-    double compute_scalar();
-    double compute_vector(int);
+    double compute_scalar() override;
+    double compute_vector(int) override;
 
     void dump(int);
     

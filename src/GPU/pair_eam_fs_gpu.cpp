@@ -141,7 +141,7 @@ void PairEAMFSGPU::compute(int eflag, int vflag)
 
   // communicate derivative of embedding function
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   // compute forces on each atom on GPU
   if (gpu_mode != GPU_FORCE)
@@ -156,8 +156,6 @@ void PairEAMFSGPU::compute(int eflag, int vflag)
 
 void PairEAMFSGPU::init_style()
 {
-  if (force->newton_pair)
-    error->all(FLERR,"Pair style eam/fs/gpu requires newton pair off");
 
   // convert read-in file(s) to arrays and spline them
 

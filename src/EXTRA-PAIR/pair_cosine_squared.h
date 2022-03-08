@@ -30,20 +30,20 @@ namespace LAMMPS_NS {
 class PairCosineSquared : public Pair {
  public:
   PairCosineSquared(class LAMMPS *);
-  virtual ~PairCosineSquared();
-  void settings(int, char **);
-  void coeff(int, char **);
+  ~PairCosineSquared() override;
+  void settings(int, char **) override;
+  void coeff(int, char **) override;
   // void init_style();
-  double init_one(int, int);
-  void modify_params(int, char **);
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *);
-  void read_restart_settings(FILE *);
-  void write_data(FILE *);
-  void write_data_all(FILE *);
-  virtual void compute(int, int);
-  double single(int, int, int, int, double, double, double, double &);
+  double init_one(int, int) override;
+  void modify_params(int, char **) override;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override;
+  void read_restart_settings(FILE *) override;
+  void write_data(FILE *) override;
+  void write_data_all(FILE *) override;
+  void compute(int, int) override;
+  double single(int, int, int, int, double, double, double, double &) override;
   // void *extract(const char *, int &);
 
   /* RESPA stuff not implemented...

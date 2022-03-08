@@ -34,13 +34,14 @@ namespace LAMMPS_NS {
 class FixReaxFFBondsKokkos : public FixReaxFFBonds {
  public:
   FixReaxFFBondsKokkos(class LAMMPS *, int, char **);
-  virtual ~FixReaxFFBondsKokkos();
-  void init();
+  ~FixReaxFFBondsKokkos() override;
+
+  void init() override;
 
  private:
   int nbuf;
-  void Output_ReaxFF_Bonds();
-  double memory_usage();
+  void Output_ReaxFF_Bonds() override;
+  double memory_usage() override;
 };
 }
 

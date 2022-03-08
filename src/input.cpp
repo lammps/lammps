@@ -27,9 +27,11 @@
 #include "dihedral.h"
 #include "domain.h"
 #include "error.h"
+#include "fix.h"
 #include "force.h"
 #include "group.h"
 #include "improper.h"
+#include "integrate.h"
 #include "kspace.h"
 #include "memory.h"
 #include "min.h"
@@ -48,12 +50,20 @@
 #include <cstring>
 #include <cerrno>
 #include <cctype>
-#include <sys/stat.h>
 
 using namespace LAMMPS_NS;
 
 #define DELTALINE 256
 #define DELTA 4
+
+/* ----------------------------------------------------------------------
+   one instance per command in style_command.h
+------------------------------------------------------------------------- */
+
+template <typename T> static Command *command_creator(LAMMPS *lmp)
+{
+  return new T(lmp);
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -782,9 +792,21 @@ int Input::execute_command()
   if (flag) return 0;
 
   // invoke commands added via style_command.h
+  // try suffixed version first
 
-  if (command_map->find(command) != command_map->end()) {
-    CommandCreator &command_creator = (*command_map)[command];
+  std::string mycmd = command;
+  if (lmp->suffix_enable) {
+    mycmd = command + std::string("/") + lmp->suffix;
+    if (command_map->find(mycmd) == command_map->end()) {
+      if (lmp->suffix2) {
+        mycmd = command + std::string("/") + lmp->suffix2;
+        if (command_map->find(mycmd) == command_map->end())
+          mycmd = command;
+      } else mycmd = command;
+    }
+  }
+  if (command_map->find(mycmd) != command_map->end()) {
+    CommandCreator &command_creator = (*command_map)[mycmd];
     Command *cmd = command_creator(lmp);
     cmd->command(narg,arg);
     delete cmd;
@@ -794,16 +816,6 @@ int Input::execute_command()
   // unrecognized command
 
   return -1;
-}
-
-/* ----------------------------------------------------------------------
-   one instance per command in style_command.h
-------------------------------------------------------------------------- */
-
-template <typename T>
-Command *Input::command_creator(LAMMPS *lmp)
-{
-  return new T(lmp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -964,10 +976,15 @@ void Input::include()
     if (nfile == maxfile)
       error->one(FLERR,"Too many nested levels of input scripts");
 
-    infile = fopen(arg[0],"r");
+    // expand variables
+    int n = strlen(arg[0]) + 1;
+    if (n > maxline) reallocate(line,maxline,n);
+    strcpy(line,arg[0]);
+    substitute(line,work,maxline,maxwork,0);
+
+    infile = fopen(line,"r");
     if (infile == nullptr)
-      error->one(FLERR,"Cannot open input script {}: {}",
-                                   arg[0], utils::getsyserror());
+      error->one(FLERR,"Cannot open input script {}: {}", line, utils::getsyserror());
 
     infiles[nfile++] = infile;
   }
@@ -1836,8 +1853,25 @@ void Input::timer_command()
 void Input::timestep()
 {
   if (narg != 1) error->all(FLERR,"Illegal timestep command");
+
+  update->update_time();
   update->dt = utils::numeric(FLERR,arg[0],false,lmp);
   update->dt_default = 0;
+
+  // timestep command can be invoked between runs or by run every
+  // calls to other classes that need to know timestep size changed
+  // similar logic is in FixDtReset::end_of_step()
+  // only need to do this if a run has already occurred
+
+  if (update->first_update == 0) return;
+
+  int respaflag = 0;
+  if (utils::strmatch(update->integrate_style, "^respa")) respaflag = 1;
+  if (respaflag) update->integrate->reset_dt();
+
+  if (force->pair) force->pair->reset_dt();
+  for (int i = 0; i < modify->nfix; i++) modify->fix[i]->reset_dt();
+  output->reset_dt();
 }
 
 /* ---------------------------------------------------------------------- */

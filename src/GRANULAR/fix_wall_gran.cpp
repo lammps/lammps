@@ -50,7 +50,7 @@ using namespace MathConst;
 
 // XYZ PLANE need to be 0,1,2
 
-enum {XPLANE=0,YPLANE=1,ZPLANE=2,ZCYLINDER,REGION};
+enum {NOSTYLE=-1,XPLANE=0,YPLANE=1,ZPLANE=2,ZCYLINDER,REGION};
 
 enum {NONE,CONSTANT,EQUAL};
 enum {DAMPING_NONE, VELOCITY, MASS_VELOCITY, VISCOELASTIC, TSUJI};
@@ -371,7 +371,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
     wallstyle = REGION;
     idregion = utils::strdup(arg[iarg+1]);
     iarg += 2;
-  }
+  } else wallstyle = NOSTYLE;
 
   // optional args
 
@@ -407,6 +407,8 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
     } else error->all(FLERR,"Illegal fix wall/gran command");
   }
 
+  if (wallstyle == NOSTYLE)
+    error->all(FLERR,"No wall style defined");
   if (wallstyle == XPLANE && domain->xperiodic)
     error->all(FLERR,"Cannot use wall in periodic dimension");
   if (wallstyle == YPLANE && domain->yperiodic)

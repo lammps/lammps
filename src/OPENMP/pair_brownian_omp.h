@@ -33,10 +33,10 @@ class PairBrownianOMP : public PairBrownian, public ThrOMP {
 
  public:
   PairBrownianOMP(class LAMMPS *);
-  virtual ~PairBrownianOMP();
+  ~PairBrownianOMP() override;
 
-  virtual void compute(int, int);
-  virtual double memory_usage();
+  void compute(int, int) override;
+  double memory_usage() override;
 
  protected:
   class RanMars **random_thr;

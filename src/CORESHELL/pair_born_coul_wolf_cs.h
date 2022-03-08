@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class PairBornCoulWolfCS : public PairBornCoulWolf {
  public:
   PairBornCoulWolfCS(class LAMMPS *);
-  virtual void compute(int, int);
+  void compute(int, int) override;
 };
 
 }    // namespace LAMMPS_NS

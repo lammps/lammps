@@ -294,7 +294,6 @@ void FixNVESphere::final_integrate()
   // update v,omega for all particles
   // d_omega/dt = torque / inertia
 
-  double rke = 0.0;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       dtfm = dtf / rmass[i];
@@ -306,8 +305,5 @@ void FixNVESphere::final_integrate()
       omega[i][0] += dtirotate * torque[i][0];
       omega[i][1] += dtirotate * torque[i][1];
       omega[i][2] += dtirotate * torque[i][2];
-      rke += (omega[i][0]*omega[i][0] + omega[i][1]*omega[i][1] +
-              omega[i][2]*omega[i][2])*radius[i]*radius[i]*rmass[i];
     }
-
 }

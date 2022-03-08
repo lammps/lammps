@@ -289,7 +289,7 @@ void PairMEAMSWSpline::compute(int eflag, int vflag)
 
   // Communicate U'(rho) values
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   int inum_half = listhalf->inum;
   int* ilist_half = listhalf->ilist;

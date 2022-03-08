@@ -185,7 +185,7 @@ void FixSMD_TLSPH_ReferenceConfiguration::pre_exchange() {
 
                 // update of reference config could have changed x0, vfrac, radius
                 // communicate these quantities now to ghosts: x0, vfrac, radius
-                comm->forward_comm_fix(this);
+                comm->forward_comm(this);
 
                 setup(0);
         }

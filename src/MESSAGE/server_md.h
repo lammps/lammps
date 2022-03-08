@@ -21,7 +21,7 @@ namespace LAMMPS_NS {
 class ServerMD : protected Pointers {
  public:
   ServerMD(class LAMMPS *);
-  ~ServerMD();
+  ~ServerMD() override;
   void loop();
 
  private:

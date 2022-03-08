@@ -28,7 +28,6 @@
 
 #include "reaxff_omp.h"
 
-#include "fix_omp.h"
 #include "pair_reaxff_omp.h"
 #include "reaxff_api.h"
 

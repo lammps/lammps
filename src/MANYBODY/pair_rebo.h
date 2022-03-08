@@ -27,8 +27,8 @@ namespace LAMMPS_NS {
 class PairREBO : public PairAIREBO {
  public:
   PairREBO(class LAMMPS *);
-  void settings(int, char **);
-  void spline_init();
+  void settings(int, char **) override;
+  void spline_init() override;
 };
 
 }    // namespace LAMMPS_NS

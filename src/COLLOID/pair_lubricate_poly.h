@@ -27,9 +27,9 @@ namespace LAMMPS_NS {
 class PairLubricatePoly : public PairLubricate {
  public:
   PairLubricatePoly(class LAMMPS *);
-  ~PairLubricatePoly() {}
-  void compute(int, int);
-  void init_style();
+
+  void compute(int, int) override;
+  void init_style() override;
 };
 
 }    // namespace LAMMPS_NS

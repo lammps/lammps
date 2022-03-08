@@ -40,7 +40,6 @@
 #include "pair.h"
 #include "pair_hybrid.h"
 #include "region.h"
-#include "text_file_reader.h"
 #include "update.h"
 #include "variable.h"
 #include "fmt/chrono.h"
@@ -49,7 +48,6 @@
 #include <cmath>
 #include <cstring>
 #include <ctime>
-#include <exception>
 #include <map>
 
 #ifdef _WIN32
@@ -62,7 +60,6 @@
 #include <psapi.h>
 #else
 #include <sys/resource.h>
-#include <sys/utsname.h>
 #endif
 
 #if defined(__linux__)
@@ -278,9 +275,9 @@ void Info::command(int narg, char **arg)
     fmt::print(out,"\nLAMMPS version: {} / {}\n",
                lmp->version, lmp->num_ver);
 
-    if (lmp->has_git_info)
+    if (lmp->has_git_info())
       fmt::print(out,"Git info: {} / {} / {}\n",
-                 lmp->git_branch, lmp->git_descriptor,lmp->git_commit);
+                 lmp->git_branch(), lmp->git_descriptor(),lmp->git_commit());
 
     fmt::print(out,"\nOS information: {}\n\n",platform::os_info());
 
@@ -1059,8 +1056,9 @@ static void print_columns(FILE *fp, std::map<std::string, ValueType> *styles)
   for (typename std::map<std::string, ValueType>::iterator it = styles->begin(); it != styles->end(); ++it) {
     const std::string &style_name = it->first;
 
-    // skip "secret" styles
-    if (isupper(style_name[0])) continue;
+    // skip "internal" styles
+    if (isupper(style_name[0]) || utils::strmatch(style_name,"/kk/host$")
+        || utils::strmatch(style_name,"/kk/device$")) continue;
 
     int len = style_name.length();
     if (pos + len > 80) {

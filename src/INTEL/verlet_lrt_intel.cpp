@@ -71,7 +71,7 @@ void VerletLRTIntel::init()
 
   #ifndef LMP_INTEL_USELRT
   error->all(FLERR,
-             "LRT otion for Intel package disabled at compile time");
+             "LRT otion for INTEL package disabled at compile time");
   #endif
 }
 

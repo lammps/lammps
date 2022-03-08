@@ -23,7 +23,7 @@ class MLIAPData : protected Pointers {
  public:
   MLIAPData(class LAMMPS *, int, int *, class MLIAPModel *, class MLIAPDescriptor *,
             class PairMLIAP * = nullptr);
-  ~MLIAPData();
+  ~MLIAPData() override;
 
   void init();
   void generate_neighdata(class NeighList *, int = 0, int = 0);

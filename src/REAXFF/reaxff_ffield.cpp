@@ -47,7 +47,7 @@ namespace ReaxFF {
     std::string message;
   public:
     explicit ffield_parser_error(const std::string &mesg) { message = mesg; }
-    const char *what() const noexcept { return message.c_str(); }
+    const char *what() const noexcept override { return message.c_str(); }
   };
 
   void Read_Force_Field(const char *filename, reax_interaction *reax,
@@ -583,6 +583,7 @@ namespace ReaxFF {
       } catch (std::exception &e) {
         error->one(FLERR,e.what());
       }
+      fclose(fp);
     }
 
     // broadcast global parameters and allocate list on ranks != 0

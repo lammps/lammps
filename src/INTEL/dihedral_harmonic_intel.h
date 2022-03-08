@@ -34,8 +34,8 @@ class DihedralHarmonicIntel : public DihedralHarmonic {
 
  public:
   DihedralHarmonicIntel(class LAMMPS *lmp);
-  virtual void compute(int, int);
-  void init_style();
+  void compute(int, int) override;
+  void init_style() override;
 
  private:
   FixIntel *fix;
@@ -60,15 +60,15 @@ class DihedralHarmonicIntel : public DihedralHarmonic {
       int multiplicity;
     } fc_packed1;
 
-    fc_packed1 *bp;
+    fc_packed1 *fc;
 
-    ForceConst() : _nbondtypes(0) {}
+    ForceConst() : fc(nullptr), _ndihderaltypes(0) {}
     ~ForceConst() { set_ntypes(0, nullptr); }
 
-    void set_ntypes(const int nbondtypes, Memory *memory);
+    void set_ntypes(const int ndihderaltypes, Memory *memory);
 
    private:
-    int _nbondtypes;
+    int _ndihderaltypes;
     Memory *_memory;
   };
   ForceConst<float> force_const_single;

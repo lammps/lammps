@@ -44,7 +44,7 @@ struct RandWrap {
 class RandPoolWrap : protected Pointers {
  public:
   RandPoolWrap(int, class LAMMPS *);
-  ~RandPoolWrap();
+  ~RandPoolWrap() override;
   void destroy();
   void init(RanMars*, int);
 

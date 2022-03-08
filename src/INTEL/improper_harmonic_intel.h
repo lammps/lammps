@@ -33,9 +33,9 @@ namespace LAMMPS_NS {
 class ImproperHarmonicIntel : public ImproperHarmonic {
  public:
   ImproperHarmonicIntel(class LAMMPS *);
-  virtual ~ImproperHarmonicIntel();
-  virtual void compute(int, int);
-  virtual void init_style();
+  ~ImproperHarmonicIntel() override;
+  void compute(int, int) override;
+  void init_style() override;
 
  protected:
   FixIntel *fix;
@@ -61,7 +61,7 @@ class ImproperHarmonicIntel : public ImproperHarmonic {
 
     fc_packed1 *fc;
 
-    ForceConst() : _nimpropertypes(0) {}
+    ForceConst() : fc(nullptr), _nimpropertypes(0) {}
     ~ForceConst() { set_ntypes(0, nullptr); }
 
     void set_ntypes(const int nimpropertypes, Memory *memory);

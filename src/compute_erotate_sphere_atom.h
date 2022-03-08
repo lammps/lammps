@@ -27,10 +27,10 @@ namespace LAMMPS_NS {
 class ComputeErotateSphereAtom : public Compute {
  public:
   ComputeErotateSphereAtom(class LAMMPS *, int, char **);
-  ~ComputeErotateSphereAtom();
-  void init();
-  void compute_peratom();
-  double memory_usage();
+  ~ComputeErotateSphereAtom() override;
+  void init() override;
+  void compute_peratom() override;
+  double memory_usage() override;
 
  private:
   int nmax;

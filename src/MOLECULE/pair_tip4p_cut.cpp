@@ -419,17 +419,15 @@ void PairTIP4PCut::init_style()
   if (atom->tag_enable == 0)
     error->all(FLERR,"Pair style tip4p/cut requires atom IDs");
   if (!force->newton_pair)
-    error->all(FLERR,
-               "Pair style tip4p/cut requires newton pair on");
+    error->all(FLERR,"Pair style tip4p/cut requires newton pair on");
   if (!atom->q_flag)
-    error->all(FLERR,
-               "Pair style tip4p/cut requires atom attribute q");
+    error->all(FLERR,"Pair style tip4p/cut requires atom attribute q");
   if (force->bond == nullptr)
     error->all(FLERR,"Must use a bond style with TIP4P potential");
   if (force->angle == nullptr)
     error->all(FLERR,"Must use an angle style with TIP4P potential");
 
-  neighbor->request(this,instance_me);
+  neighbor->request(this);
 
   // set alpha parameter
 

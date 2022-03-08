@@ -427,7 +427,7 @@ void PairBodyRoundedPolygon::init_style()
     error->all(FLERR,"Pair body/rounded/polygon requires "
                "ghost atoms store velocity");
 
-  neighbor->request(this);
+  neighbor->add_request(this);
 
   // find the maximum enclosing radius for each atom type
 

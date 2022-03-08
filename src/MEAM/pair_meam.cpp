@@ -315,7 +315,7 @@ void PairMEAM::init_style()
   // need a full and a half neighbor list
 
   neighbor->add_request(this, NeighConst::REQ_FULL)->set_id(1);
-  neighbor->add_request(this, NeighConst::REQ_DEFAULT)->set_id(2);
+  neighbor->add_request(this)->set_id(2);
 }
 
 /* ----------------------------------------------------------------------

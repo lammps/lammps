@@ -326,7 +326,7 @@ void Pair::reinit()
 
 void Pair::init_style()
 {
-  neighbor->add_request(this, NeighConst::REQ_DEFAULT);
+  neighbor->add_request(this);
 }
 
 /* ----------------------------------------------------------------------

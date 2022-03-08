@@ -18,7 +18,6 @@
 #include "comm.h"
 #include "error.h"
 #include "group.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 
 #include "ATC_Method.h"
@@ -558,11 +557,7 @@ int FixATC::modify_param(int narg, char** arg)
 void FixATC::init()
 {
   // Guarantee construction of full neighborlist
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->fix = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL);
 
   // create computes, if necessary
   atc_->init_computes();

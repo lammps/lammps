@@ -203,7 +203,7 @@ void PairCoulDSF::init_style()
 {
   if (!atom->q_flag) error->all(FLERR, "Pair style coul/dsf requires atom attribute q");
 
-  neighbor->add_request(this, NeighConst::REQ_DEFAULT);
+  neighbor->add_request(this);
 
   cut_coulsq = cut_coul * cut_coul;
   double erfcc = erfc(alpha * cut_coul);

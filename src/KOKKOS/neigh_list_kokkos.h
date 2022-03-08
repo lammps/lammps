@@ -70,6 +70,7 @@ public:
 
   void grow(int nmax);
   typename ArrayTypes<DeviceType>::t_neighbors_2d d_neighbors;
+  typename ArrayTypes<DeviceType>::t_neighbors_2d_lr d_neighbors_build;
   DAT::tdual_int_1d k_ilist;   // local indices of I atoms
   typename ArrayTypes<DeviceType>::t_int_1d d_ilist;
   typename ArrayTypes<DeviceType>::t_int_1d d_numneigh;
@@ -80,6 +81,12 @@ public:
   AtomNeighbors get_neighbors(const int &i) const {
     return AtomNeighbors(&d_neighbors(i,0),d_numneigh(i),
                          &d_neighbors(i,1)-&d_neighbors(i,0));
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  AtomNeighbors get_neighbors_build(const int &i) const {
+    return AtomNeighbors(&d_neighbors_build(i,0),d_numneigh(i),
+                         &d_neighbors_build(i,1)-&d_neighbors_build(i,0));
   }
 
   KOKKOS_INLINE_FUNCTION

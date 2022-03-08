@@ -321,7 +321,9 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
     if (data.h_resize()) {
       list->maxneighs = data.h_new_maxneighs() * 1.2;
       list->d_neighbors = typename AT::t_neighbors_2d(Kokkos::NoInit("neighbors"), list->d_neighbors.extent(0), list->maxneighs);
+      list->d_neighbors_build = typename AT::t_neighbors_2d_lr(Kokkos::NoInit("neighbors"), list->d_neighbors_build.extent(0), list->maxneighs);
       data.neigh_list.d_neighbors = list->d_neighbors;
+      data.neigh_list.d_neighbors_build = list->d_neighbors_build;
       data.neigh_list.maxneighs = list->maxneighs;
     }
   }
@@ -335,6 +337,8 @@ void NPairKokkos<DeviceType,HALF_NEIGH,GHOST,TRI,SIZE>::build(NeighList *list_)
   }
 
   list->k_ilist.template modify<DeviceType>();
+
+  Kokkos::deep_copy(list->d_neighbors,list->d_neighbors_build);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -413,7 +417,7 @@ void NeighborKokkosExecute<DeviceType>::
   else moltemplate = 0;
   // get subview of neighbors of i
 
-  const AtomNeighbors neighbors_i = neigh_list.get_neighbors(i);
+  const AtomNeighbors neighbors_i = neigh_list.get_neighbors_build(i);
   const X_FLOAT xtmp = x(i, 0);
   const X_FLOAT ytmp = x(i, 1);
   const X_FLOAT ztmp = x(i, 2);
@@ -593,7 +597,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGPU(typename Kokkos::TeamPolic
   X_FLOAT ytmp;
   X_FLOAT ztmp;
   int itype;
-  const AtomNeighbors neighbors_i = neigh_list.get_neighbors((i>=0&&i<nlocal)?i:0);
+  const AtomNeighbors neighbors_i = neigh_list.get_neighbors_build((i>=0&&i<nlocal)?i:0);
 
   if (i >= 0) {
     xtmp = x(i, 0);
@@ -786,7 +790,7 @@ void NeighborKokkosExecute<DeviceType>::
   else moltemplate = 0;
   // get subview of neighbors of i
 
-  const AtomNeighbors neighbors_i = neigh_list.get_neighbors(i);
+  const AtomNeighbors neighbors_i = neigh_list.get_neighbors_build(i);
   const X_FLOAT xtmp = x(i, 0);
   const X_FLOAT ytmp = x(i, 1);
   const X_FLOAT ztmp = x(i, 2);
@@ -906,7 +910,7 @@ void NeighborKokkosExecute<DeviceType>::
 
   // get subview of neighbors of i
 
-  const AtomNeighbors neighbors_i = neigh_list.get_neighbors(i);
+  const AtomNeighbors neighbors_i = neigh_list.get_neighbors_build(i);
   const X_FLOAT xtmp = x(i, 0);
   const X_FLOAT ytmp = x(i, 1);
   const X_FLOAT ztmp = x(i, 2);
@@ -1041,7 +1045,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemSizeGPU(typename Kokkos::TeamP
     X_FLOAT ztmp;
     X_FLOAT radi;
     int itype;
-    const AtomNeighbors neighbors_i = neigh_list.get_neighbors((i>=0&&i<nlocal)?i:0);
+    const AtomNeighbors neighbors_i = neigh_list.get_neighbors_build((i>=0&&i<nlocal)?i:0);
     const int mask_history = 3 << SBBITS;
 
     if (i >= 0) {

@@ -887,6 +887,13 @@ typedef tdual_neighbors_2d::t_dev_um t_neighbors_2d_um;
 typedef tdual_neighbors_2d::t_dev_const_um t_neighbors_2d_const_um;
 typedef tdual_neighbors_2d::t_dev_const_randomread t_neighbors_2d_randomread;
 
+typedef Kokkos::DualView<int**, Kokkos::LayoutRight, LMPDeviceType> tdual_neighbors_2d_lr;
+typedef tdual_neighbors_2d_lr::t_dev t_neighbors_2d_lr;
+typedef tdual_neighbors_2d_lr::t_dev_const t_neighbors_2d_const_lr;
+typedef tdual_neighbors_2d_lr::t_dev_um t_neighbors_2d_um_lr;
+typedef tdual_neighbors_2d_lr::t_dev_const_um t_neighbors_2d_const_um_lr;
+typedef tdual_neighbors_2d_lr::t_dev_const_randomread t_neighbors_2d_randomread_lr;
+
 };
 
 #ifdef LMP_KOKKOS_GPU
@@ -1155,6 +1162,13 @@ typedef tdual_neighbors_2d::t_host_const t_neighbors_2d_const;
 typedef tdual_neighbors_2d::t_host_um t_neighbors_2d_um;
 typedef tdual_neighbors_2d::t_host_const_um t_neighbors_2d_const_um;
 typedef tdual_neighbors_2d::t_host_const_randomread t_neighbors_2d_randomread;
+
+typedef Kokkos::DualView<int**, Kokkos::LayoutRight, LMPDeviceType> tdual_neighbors_2d_lr;
+typedef tdual_neighbors_2d_lr::t_host t_neighbors_2d_lr;
+typedef tdual_neighbors_2d_lr::t_host_const t_neighbors_2d_const_lr;
+typedef tdual_neighbors_2d_lr::t_host_um t_neighbors_2d_um_lr;
+typedef tdual_neighbors_2d_lr::t_host_const_um t_neighbors_2d_const_um_lr;
+typedef tdual_neighbors_2d_lr::t_host_const_randomread t_neighbors_2d_randomread_lr;
 
 };
 #endif

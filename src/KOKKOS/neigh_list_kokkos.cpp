@@ -43,6 +43,7 @@ void NeighListKokkos<DeviceType>::grow(int nmax)
   d_ilist = k_ilist.view<DeviceType>();
   d_numneigh = typename ArrayTypes<DeviceType>::t_int_1d("neighlist:numneigh",maxatoms);
   d_neighbors = typename ArrayTypes<DeviceType>::t_neighbors_2d(Kokkos::NoInit("neighlist:neighbors"),maxatoms,maxneighs);
+  d_neighbors_build = typename ArrayTypes<DeviceType>::t_neighbors_2d_lr(Kokkos::NoInit("neighlist:neighbors"),maxatoms,maxneighs);
 }
 
 /* ---------------------------------------------------------------------- */

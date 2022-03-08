@@ -206,6 +206,7 @@ class PRMfile:
   
   def angles(self):
     r2d = 180.0 / math.pi
+    ubflag = 0
     params = []
     iline = self.find_section("Angle Bending Parameters")
     if iline < 0: return params
@@ -236,17 +237,17 @@ class PRMfile:
           lmp5 = self.angle_pentic * value1 * r2d*r2d*r2d
           lmp6 = self.angle_sextic * value1 * r2d*r2d*r2d*r2d
           
-          option1 = (pflag,lmp1,lmp2,lmp3,lmp4,lmp5,lmp6)
+          option1 = (pflag,ubflag,lmp1,lmp2,lmp3,lmp4,lmp5,lmp6)
           
           if len(words) >= 7:
             value3 = float(words[6])
             lmp1 = value3
-            option2 = (pflag,lmp1,lmp2,lmp3,lmp4,lmp5,lmp6)
+            option2 = (pflag,ubflag,lmp1,lmp2,lmp3,lmp4,lmp5,lmp6)
             
           if len(words) == 8:
             value4 = float(words[7])
             lmp1 = value4
-            option3 = (pflag,lmp1,lmp2,lmp3,lmp4,lmp5,lmp6)
+            option3 = (pflag,ubflag,lmp1,lmp2,lmp3,lmp4,lmp5,lmp6)
 
           if not option2 and not option3:
             params.append((class1,class2,class3,[option1]))
@@ -272,7 +273,7 @@ class PRMfile:
     bdict = {}
     for m,bparams in enumerate(self.bondparams):
       bdict[(bparams[0],bparams[1])] = bparams[2]
-    
+
     while iline < self.nlines:
       words = self.lines[iline].split()
       if len(words):
@@ -372,7 +373,7 @@ class PRMfile:
       iline += 1
     return params
     
-  # convert PRMfile params to LAMMPS bond_style class2 bond params
+  # convert PRMfile params to LAMMPS angle_style amoeba UB params
   # coeffs for K2,K3 = 0.0 since Urey-Bradley is simple harmonic
   
   def ureybonds(self):
@@ -394,7 +395,7 @@ class PRMfile:
           lmp1 = value1
           lmp2 = value2
             
-          params.append((class1,class2,class3,lmp1,lmp2,0.0,0.0))
+          params.append((class1,class2,class3,lmp1,lmp2))
       iline += 1
     return params
 
@@ -715,6 +716,10 @@ for atom1 in id:
 
       pitorsionlist.append((atom3,atom4,atom1,atom2,atom5,atom6))
 
+# DEBUG - if uncommented, no PiTorsions appear in data file
+
+pitorsionlist = []
+
 # ----------------------------------------
 # create lists of bond/angle/dihedral/improper types
 # ----------------------------------------
@@ -751,44 +756,6 @@ for atom1,atom2 in blist:
     
   if not flags[m]:
     v1,v2,v3,v4 = params[2:]
-    bparams.append((v1,v2,v3,v4))
-    flags[m] = len(bparams)
-  btype.append(flags[m])
-
-# extend btype and bparams with Urey-Bradley H-H bond info
-# loop over ublist of UB bonds
-# convert prm.ureyparams to a dictionary for efficient searching
-# key = (class1,class2,class3)
-# value = (M,params) where M is index into prm.ureyparams
-# also add the c1,c3 H-H bond to blist
-
-id = xyz.id
-type = xyz.type
-classes = prm.classes
-
-ubdict = {}
-for m,params in enumerate(prm.ureyparams):
-  ubdict[(params[0],params[1],params[2])] = (m,params)
-
-flags = len(prm.ureyparams)*[0]
-
-for atom1,atom2,atom3 in ublist:
-  type1 = type[atom1-1]
-  type2 = type[atom2-1]
-  type3 = type[atom3-1]
-  c1 = classes[type1-1]
-  c2 = classes[type2-1]
-  c3 = classes[type3-1]
-  
-  if (c1,c2,c3) in ubdict:
-    m,params = ubdict[(c1,c2,c3)]
-    blist.append((atom1,atom3))
-  elif (c3,c2,c1) in ubdict:
-    m,params = ubdict[(c3,c2,c1)]
-    blist.append((atom3,atom1))
-    
-  if not flags[m]:
-    v1,v2,v3,v4 = params[3:]
     bparams.append((v1,v2,v3,v4))
     flags[m] = len(bparams)
   btype.append(flags[m])
@@ -905,19 +872,19 @@ for i,one in enumerate(alist):
     error("Angle not found: %d %d %d: %d %d %d" % (atom1,atom2,atom3,c1,c2,c3))
     
   if not flags[m]:
-    pflag,v1,v2,v3,v4,v5,v6 = params[3][which-1]
-    aparams.append((pflag,v1,v2,v3,v4,v5,v6))
+    pflag,ubflag,v1,v2,v3,v4,v5,v6 = params[3][which-1]
+    aparams.append((pflag,ubflag,v1,v2,v3,v4,v5,v6))
     flags[m] = len(aparams)
   atype.append(flags[m])
 
 # augment the aparams with bond-angle cross terms from bondangleparams
 # generate baparams = LAMMPS bond-angle params for each angle type
-# sbdict = dictionary for angle tuples in bongangleparams
+# badict = dictionary for angle tuples in bongangleparams
 
-sbdict = {}
+badict = {}
 for v1,v2,v3,v4,v5,v6,v7 in prm.bondangleparams:
-  if (v1,v2,v3) in sbdict: continue
-  sbdict[(v1,v2,v3)] = (v4,v5,v6,v7)
+  if (v1,v2,v3) in badict: continue
+  badict[(v1,v2,v3)] = (v4,v5,v6,v7)
 
 baparams = []
 
@@ -931,15 +898,53 @@ for itype in range(len(aparams)):
   c2 = classes[type2-1]
   c3 = classes[type3-1]
 
-  if (c1,c2,c3) in sbdict:
-    n1,n2,r1,r2 = sbdict[(c1,c2,c3)]
-  elif (c3,c2,c1) in sbdict:
-    n1,n2,r1,r2 = sbdict[(c3,c2,c1)]
+  if (c1,c2,c3) in badict:
+    n1,n2,r1,r2 = badict[(c1,c2,c3)]
+  elif (c3,c2,c1) in badict:
+    n1,n2,r1,r2 = badict[(c3,c2,c1)]
   else:
     print "Bond-stretch angle triplet not found: %d %d %d" % (c1,c2,c3)
     n1,n2,r1,r2 = 4*[0.0]
     
   baparams.append((n1,n2,r1,r2))
+
+# augment the aparams with Urey_Bradley terms from ureyparams
+# generate ubparams = LAMMPS UB params for 1-3 bond in each angle type
+# ubdict = dictionary for angle tuples in ureyparams
+
+ubdict = {}
+for v1,v2,v3,v4,v5 in prm.ureyparams:
+  if (v1,v2,v3) in ubdict: continue
+  ubdict[(v1,v2,v3)] = (v4,v5)
+
+ubparams = []
+
+for itype in range(len(aparams)):
+  iangle = atype.index(itype+1) 
+  atom1,atom2,atom3 = alist[iangle]
+  type1 = type[atom1-1]
+  type2 = type[atom2-1]
+  type3 = type[atom3-1]
+  c1 = classes[type1-1]
+  c2 = classes[type2-1]
+  c3 = classes[type3-1]
+
+  # if UB settings exist for this angle type, set ubflag in aparams to 1
+  
+  if (c1,c2,c3) in ubdict:
+    r1,r2 = ubdict[(c1,c2,c3)]
+    pflag,ubflag,v1,v2,v3,v4,v5,v6 = aparams[itype]
+    ubflag = 1
+    aparams[itype] = (pflag,ubflag,v1,v2,v3,v4,v5,v6)
+  elif (c3,c2,c1) in ubdict:
+    r1,r2 = ubdict[(c3,c2,c1)]
+    pflag,ubflag,v1,v2,v3,v4,v5,v6 = aparams[itype]
+    ubflag = 1
+    aparams[itype] = (pflag,ubflag,v1,v2,v3,v4,v5,v6)
+  else:
+    r1,r2 = 2*[0.0]
+    
+  ubparams.append((r1,r2))
 
 # generate dtype = LAMMPS type of each dihedral
 # generate dparams = LAMMPS params for each dihedral type
@@ -1075,7 +1080,7 @@ for tmp1,tmp2,atom1,atom2,tmp3,tmp4 in pitorsionlist:
 
 print "PRM pitor param",len(prm.pitorsionparams)
 print "PiTor list",len(pitorsionlist)
-print "Flags",flags
+#print "Flags",flags
 
 # ----------------------------------------
 # assign each atom to a Tinker group
@@ -1201,6 +1206,13 @@ if nangles:
     line = "%d %s" % (i+1,' '.join(strone))
     lines.append(line+'\n')
   d.sections["BondAngle Coeffs"] = lines
+
+  lines = []
+  for i,one in enumerate(ubparams):
+    strone = [str(single) for single in one]
+    line = "%d %s" % (i+1,' '.join(strone))
+    lines.append(line+'\n')
+  d.sections["UreyBradley Coeffs"] = lines
 
   lines = [] 
   for i,one in enumerate(alist):

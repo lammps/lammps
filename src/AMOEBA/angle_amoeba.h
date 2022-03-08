@@ -37,14 +37,16 @@ class AngleAmoeba : public Angle {
   double single(int, int, int, int);
 
  protected:
-  int *pflag;
+  int *pflag, *ubflag;
   double *theta0, *k2, *k3, *k4, *k5, *k6;
   double *ba_k1, *ba_k2, *ba_r1, *ba_r2;
-  int *setflag_a, *setflag_ba;
+  double *ub_k, *ub_r0;
+  int *setflag_a, *setflag_ba, *setflag_ub;
 
   void tinker_angle(int, int, int, int, int);
   void tinker_anglep(int, int, int, int, int);
   void tinker_bondangle(int, int, int, int, int);
+  void tinker_urey_bradley(int, int, int, int);
   void allocate();
 };
 

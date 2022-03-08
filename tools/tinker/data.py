@@ -250,6 +250,11 @@ class data:
   def write(self,file):
     f = open(file,"w")
     print >>f,self.title
+ 
+    # write any keywords in standard list hkeywords
+    #   in the order they are in hkeywords
+    # then write any extra keywords at end of header section
+   
     for keyword in hkeywords:
       if self.headers.has_key(keyword):
         if keyword == "xlo xhi" or keyword == "ylo yhi" or \
@@ -261,12 +266,30 @@ class data:
 	  print >>f,triple[0],triple[1],triple[2],keyword
         else:
 	  print >>f,self.headers[keyword],keyword
+
+    for keyword in self.headers.keys():
+      if keyword not in hkeywords:
+        print >>f,self.headers[keyword],keyword
+
+    # write any sections in standard list skeywords
+    #   in the order they are in skeywords
+    # then write any extra sections at end of file
+
     for pair in skeywords:
       keyword = pair[0]
       if self.sections.has_key(keyword):
         print >>f,"\n%s\n" % keyword
         for line in self.sections[keyword]:
 	  print >>f,line,
+
+    skeyfirst = [pair[0] for pair in skeywords]
+    
+    for keyword in self.sections.keys():
+      if keyword not in skeyfirst:
+        print >>f,"\n%s\n" % keyword
+        for line in self.sections[keyword]:
+	  print >>f,line,
+
     f.close()
 
   # --------------------------------------------------------------------
@@ -348,35 +371,32 @@ class data:
     return self.headers["atom types"]
 
 # --------------------------------------------------------------------
-# data file keywords, both header and main sections
+# standard data file keywords, both header and main sections
 
 hkeywords = ["atoms","ellipsoids","lines","triangles","bodies",
-             "bonds","angles","dihedrals","impropers","pitorsions",
+             "bonds","angles","dihedrals","impropers",
 	     "atom types","bond types","angle types","dihedral types",
-	     "improper types","pitorsion types",
+	     "improper types",
              "xlo xhi","ylo yhi","zlo zhi","xy xz yz"]
 
 skeywords = [["Masses","atom types"],
              ["Atoms","atoms"],["Ellipsoids","ellipsoids"],
              ["Lines","lines"],["Triangles","triangles"],["Bodies","bodies"],
+             ["Velocities","atoms"],
              ["Bonds","bonds"],
 	     ["Angles","angles"],
              ["Dihedrals","dihedrals"],
 	     ["Impropers","impropers"],
-	     ["PiTorsions","pitorsions"],
-             ["Velocities","atoms"],
              ["Pair Coeffs","atom types"],
-	     ["Bond Coeffs","bond types"],["Angle Coeffs","angle types"],
+	     ["Bond Coeffs","bond types"],
+             ["Angle Coeffs","angle types"],
 	     ["Dihedral Coeffs","dihedral types"],
 	     ["Improper Coeffs","improper types"],
-	     ["PiTorsion Coeffs","pitorsion types"],
              ["BondBond Coeffs","angle types"],
              ["BondAngle Coeffs","angle types"],
-             ["UreyBradley Coeffs","angle types"],
              ["MiddleBondTorsion Coeffs","dihedral types"],
              ["EndBondTorsion Coeffs","dihedral types"],
              ["AngleTorsion Coeffs","dihedral types"],
              ["AngleAngleTorsion Coeffs","dihedral types"],
              ["BondBond13 Coeffs","dihedral types"],
-             ["AngleAngle Coeffs","improper types"],
-             ["Molecules","atoms"]]
+             ["AngleAngle Coeffs","improper types"]]

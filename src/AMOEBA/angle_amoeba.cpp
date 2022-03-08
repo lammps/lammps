@@ -574,10 +574,7 @@ void AngleAmoeba::tinker_urey_bradley(int i1, int i2, int type, int eflag)
     f[i2][2] -= delz*fbond;
   }
 
-  // NOTE: there is no force on i2 for UB
-
-  //if (evflag) ev_tally(i1,i2,i3,nlocal,newton_bond,ebond,f1,f3,
-  //                     delx1,dely1,delz1,delx2,dely2,delz2);
+  if (evflag) ev_tally2(i1,i2,nlocal,newton_bond,ebond,fbond,delx,dely,delz);
 }
 
 /* ---------------------------------------------------------------------- */

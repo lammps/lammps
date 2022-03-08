@@ -21,7 +21,7 @@ TEST(Platform, clock)
 
     // spend some time computing pi
     constexpr double known_pi = 3.141592653589793238462643;
-    constexpr int n           = 10000000;
+    constexpr int n           = 100000000;
     constexpr double h        = 1.0 / (double)n;
     double my_pi              = 0.0, x;
     for (int i = 0; i < n; ++i) {
@@ -34,7 +34,8 @@ TEST(Platform, clock)
 
     ASSERT_NEAR(my_pi, known_pi, 1e-12);
     ASSERT_GT(wt_used, 1e-4);
-    ASSERT_GT(ct_used, 1e-4);
+    // windows sometimes incorrectly reports used CPU time as 0.0
+    if (ct_used != 0.0) ASSERT_GT(ct_used, 1e-4);
 }
 
 TEST(Platform, putenv_unsetenv)

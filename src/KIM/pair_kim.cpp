@@ -148,16 +148,16 @@ PairKIM::PairKIM(LAMMPS *lmp) :
 PairKIM::~PairKIM()
 {
   // clean up kim_modelname
-  if (kim_modelname != nullptr) delete [] kim_modelname;
+  if (kim_modelname != nullptr) delete[] kim_modelname;
 
   // clean up lammps atom species number to unique particle names mapping
   if (lmps_unique_elements)
     for (int i = 0; i < lmps_num_unique_elements; i++)
-      delete [] lmps_unique_elements[i];
-  delete [] lmps_unique_elements;
+      delete[] lmps_unique_elements[i];
+  delete[] lmps_unique_elements;
 
   if (kim_particle_codes_ok) {
-    delete [] kim_particle_codes;
+    delete[] kim_particle_codes;
     kim_particle_codes = nullptr;
     kim_particle_codes_ok = false;
   }
@@ -168,7 +168,7 @@ PairKIM::~PairKIM()
   memory->destroy(lmps_stripped_neigh_list);
   // clean up lmps_stripped_neigh_ptr
   if (lmps_stripped_neigh_ptr) {
-    delete [] lmps_stripped_neigh_ptr;
+    delete[] lmps_stripped_neigh_ptr;
     lmps_stripped_neigh_ptr = nullptr;
   }
 
@@ -177,15 +177,12 @@ PairKIM::~PairKIM()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    delete [] lmps_map_species_to_unique;
+    delete[] lmps_map_species_to_unique;
     lmps_map_species_to_unique = nullptr;
   }
 
   // clean up neighborlist pointers
-  if (neighborLists) {
-    delete [] neighborLists;
-    neighborLists = nullptr;
-  }
+  delete[] neighborLists;
 
   // clean up KIM interface (if necessary)
   kim_free();
@@ -331,7 +328,7 @@ void PairKIM::settings(int narg, char **arg)
 
   // set KIM Model name
   if (kim_modelname != nullptr) {
-    delete [] kim_modelname;
+    delete[] kim_modelname;
     kim_modelname = nullptr;
   }
   kim_modelname = utils::strdup(arg[0]);
@@ -381,8 +378,8 @@ void PairKIM::coeff(int narg, char **arg)
   // if called multiple times: update lmps_unique_elements
   if (lmps_unique_elements) {
     for (i = 0; i < lmps_num_unique_elements; i++)
-      delete [] lmps_unique_elements[i];
-    delete [] lmps_unique_elements;
+      delete[] lmps_unique_elements[i];
+    delete[] lmps_unique_elements;
   }
   lmps_unique_elements = new char*[atom->ntypes];
   for (i = 0; i < atom->ntypes; i++) lmps_unique_elements[i] = nullptr;
@@ -417,7 +414,7 @@ void PairKIM::coeff(int narg, char **arg)
 
   // setup mapping between LAMMPS unique elements and KIM species codes
   if (kim_particle_codes_ok) {
-    delete [] kim_particle_codes;
+    delete[] kim_particle_codes;
     kim_particle_codes = nullptr;
     kim_particle_codes_ok = false;
   }
@@ -562,10 +559,7 @@ void PairKIM::coeff(int narg, char **arg)
         &kim_number_of_neighbor_lists,
         &kim_cutoff_values,
         &modelWillNotRequestNeighborsOfNoncontributingParticles);
-    if (neighborLists) {
-      delete [] neighborLists;
-      neighborLists = nullptr;
-    }
+    delete[] neighborLists;
     neighborLists = new NeighList*[kim_number_of_neighbor_lists];
   }
 }
@@ -588,11 +582,10 @@ void PairKIM::init_style()
     memory->create(lmps_stripped_neigh_list,
                    kim_number_of_neighbor_lists*neighbor->oneatom,
                    "pair:lmps_stripped_neigh_list");
-    delete [] lmps_stripped_neigh_ptr;
+    delete[] lmps_stripped_neigh_ptr;
     lmps_stripped_neigh_ptr = new int*[kim_number_of_neighbor_lists];
     for (int i = 0; i < kim_number_of_neighbor_lists; ++i)
-      lmps_stripped_neigh_ptr[i]
-        = &(lmps_stripped_neigh_list[i*(neighbor->oneatom)]);
+      lmps_stripped_neigh_ptr[i] = &(lmps_stripped_neigh_list[i*(neighbor->oneatom)]);
   }
 
   // make sure comm_reverse expects (at most) 9 values when newton is off
@@ -611,9 +604,6 @@ void PairKIM::init_style()
       error->all(FLERR,"Illegal neighbor request (force cutoff <= skin)");
     req->set_cutoff(kim_cutoff_values[i] + neighbor->skin);
   }
-  // increment instance_me in case of need to change the neighbor list
-  // request settings
-  instance_me += 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -882,10 +872,8 @@ void PairKIM::kim_init()
     &kim_number_of_neighbor_lists,
     &kim_cutoff_values,
     &modelWillNotRequestNeighborsOfNoncontributingParticles);
-  if (neighborLists) {
-    delete [] neighborLists;
-    neighborLists = nullptr;
-  }
+
+  delete[] neighborLists;
   neighborLists = new NeighList*[kim_number_of_neighbor_lists];
 
   kimerror = KIM_ComputeArguments_SetArgumentPointerInteger(pargs,

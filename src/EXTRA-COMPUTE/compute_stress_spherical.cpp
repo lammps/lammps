@@ -142,10 +142,7 @@ void ComputeStressSpherical::init()
   for (int bin = 0; bin < nbins; bin++)
     invV[bin] = 0.75 / (MY_PI * (cube((bin + 1) * bin_width) - cube(bin * bin_width)));
 
-  int irequest = neighbor->request(this, instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->compute = 1;
-  neighbor->requests[irequest]->occasional = 1;
+  neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
 }
 
 /* ---------------------------------------------------------------------- */

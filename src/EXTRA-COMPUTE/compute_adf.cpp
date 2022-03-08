@@ -336,16 +336,8 @@ void ComputeADF::init()
   //   (until next reneighbor), so it needs to contain atoms further
   //   than maxouter apart, just like a normal neighbor list does
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->compute = 1;
-  neighbor->requests[irequest]->occasional = 1;
-  if (mycutneigh > 0.0) {
-    neighbor->requests[irequest]->cut = 1;
-    neighbor->requests[irequest]->cutoff = mycutneigh;
-  }
+  auto req = neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
+  if (mycutneigh > 0.0) req->set_cutoff(mycutneigh);
 }
 
 /* ---------------------------------------------------------------------- */

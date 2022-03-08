@@ -291,7 +291,7 @@ void PairCoulTT::init_style()
   if (ifix == modify->nfix) error->all(FLERR, "Pair coul/tt requires fix drude");
   fix_drude = (FixDrude *) modify->fix[ifix];
 
-  neighbor->request(this,instance_me);
+  neighbor->add_request(this);
 }
 
 /* ----------------------------------------------------------------------

@@ -273,6 +273,7 @@ void NeighRequest::apply_flags(int flags)
   if (flags & REQ_OCCASIONAL)  { occasional = 1; }
   if (flags & REQ_RESPA_INOUT) { respainner = respaouter = 1; }
   if (flags & REQ_RESPA_ALL)   { respainner = respamiddle = respaouter = 1; }
+  if (flags & REQ_SSA)         { ssa = 1; }
   // clang-format on
 }
 

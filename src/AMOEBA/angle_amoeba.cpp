@@ -103,6 +103,8 @@ void AngleAmoeba::compute(int eflag, int vflag)
 
   ev_init(eflag,vflag);
 
+  int ubn = 0;
+
   for (n = 0; n < nanglelist; n++) {
     i1 = anglelist[n][0];
     i2 = anglelist[n][1];
@@ -128,8 +130,13 @@ void AngleAmoeba::compute(int eflag, int vflag)
 
     uflag = ubflag[type];
 
-    if (uflag) tinker_urey_bradley(i1,i3,type,eflag);
+    if (uflag) {
+      ubn++;
+      tinker_urey_bradley(i1,i3,type,eflag);
+    }
   }
+
+  printf("UB N %d\n",ubn);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -655,20 +662,22 @@ void AngleAmoeba::coeff(int narg, char **arg)
     }
 
   } else { 
-    if (narg != 8) error->all(FLERR,"Incorrect args for angle coefficients");
+    if (narg != 9) error->all(FLERR,"Incorrect args for angle coefficients");
 
     int pflag_one = utils::inumeric(FLERR,arg[1],false,lmp);
-    double theta0_one = utils::numeric(FLERR,arg[2],false,lmp);
-    double k2_one = utils::numeric(FLERR,arg[3],false,lmp);
-    double k3_one = utils::numeric(FLERR,arg[4],false,lmp);
-    double k4_one = utils::numeric(FLERR,arg[5],false,lmp);
-    double k5_one = utils::numeric(FLERR,arg[6],false,lmp);
-    double k6_one = utils::numeric(FLERR,arg[7],false,lmp);
+    int ubflag_one = utils::inumeric(FLERR,arg[2],false,lmp);
+    double theta0_one = utils::numeric(FLERR,arg[3],false,lmp);
+    double k2_one = utils::numeric(FLERR,arg[4],false,lmp);
+    double k3_one = utils::numeric(FLERR,arg[5],false,lmp);
+    double k4_one = utils::numeric(FLERR,arg[6],false,lmp);
+    double k5_one = utils::numeric(FLERR,arg[7],false,lmp);
+    double k6_one = utils::numeric(FLERR,arg[8],false,lmp);
 
     // convert theta0 from degrees to radians
   
     for (int i = ilo; i <= ihi; i++) {
       pflag[i] = pflag_one;
+      ubflag[i] = ubflag_one;
       theta0[i] = theta0_one/180.0 * MY_PI;
       k2[i] = k2_one;
       k3[i] = k3_one;

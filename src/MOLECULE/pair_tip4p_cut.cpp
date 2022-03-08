@@ -18,18 +18,18 @@
 
 #include "pair_tip4p_cut.h"
 
-#include <cmath>
-#include "atom.h"
-#include "force.h"
-#include "neighbor.h"
-#include "neigh_list.h"
-#include "domain.h"
 #include "angle.h"
+#include "atom.h"
 #include "bond.h"
 #include "comm.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
+#include "neighbor.h"
 
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
@@ -427,7 +427,7 @@ void PairTIP4PCut::init_style()
   if (force->angle == nullptr)
     error->all(FLERR,"Must use an angle style with TIP4P potential");
 
-  neighbor->request(this);
+  neighbor->add_request(this);
 
   // set alpha parameter
 

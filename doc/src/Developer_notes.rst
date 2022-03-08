@@ -101,17 +101,16 @@ request that is a superset of the requested list.  The neighbor list
 build is then :doc:`processed in parallel <Developer_par_neigh>`.
 
 The most commonly required neighbor list is a so-called "half" neighbor
-list requested by a pair style, where each pair of atoms is listed only
-once (except when then :doc:`newton command setting <newton>` for pair
-is off; in that case pairs straddling sub-domains or periodic boundaries
-will be listed twice).  Thus these are the default settings when a
-neighbor list request is created in:
+list, where each pair of atoms is listed only once (except when the
+:doc:`newton command setting <newton>` for pair is off; in that case
+pairs straddling sub-domains or periodic boundaries will be listed twice).
+Thus these are the default settings when a neighbor list request is created in:
 
 .. code-block:: C++
 
    void Pair::init_style()
    {
-     neighbor->add_request(this, NeighConst::REQ_DEFAULT);
+     neighbor->add_request(this);
    }
 
    void Pair::init_list(int /*id*/, NeighList *ptr)
@@ -126,7 +125,7 @@ The second argument contains a bitmask of flags that determines the kind
 of neighbor list, i.e. a perpetual "half" neighbor list here.
 
 To adjust a neighbor list request to the specific needs of a style
-usually just a different additional request flag is needed.  The :doc:`tersoff <pair_tersoff>` pair
+an additional request flag is needed.  The :doc:`tersoff <pair_tersoff>` pair
 style, for example, needs a "full" neighbor list:
 
 .. code-block:: C++
@@ -162,7 +161,7 @@ For example with:
 
 .. code-block:: C++
 
-   if (use_history) neighbor->add_request(this, NeighConst::REQ_SIZE|NeighConst::REQ_HISTORY);
+   if (use_history) neighbor->add_request(this, NeighConst::REQ_SIZE | NeighConst::REQ_HISTORY);
    else neighbor->add_request(this, NeighConst::REQ_SIZE);
 
 In case a class would need to make multiple neighbor list requests with different
@@ -176,7 +175,7 @@ done for example by the :doc:`pair style meam <pair_meam>`:
    {
    // [...]
      neighbor->add_request(this, NeighConst::REQ_FULL)->set_id(1);
-     neighbor->add_request(this, NeighConst::REQ_DEFAULT)->set_id(2);
+     neighbor->add_request(this)->set_id(2);
    }
    void PairMEAM::init_list(int id, NeighList *ptr)
    {
@@ -191,7 +190,7 @@ internally by :doc:`Peridynamics pair styles <pair_peri>`:
 
 .. code-block:: C++
 
-   neighbor->add_request(this, NeighConst::REQ_FULL|NeighConst::REQ_OCCASIONAL);
+   neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
 
 It is also possible to request a neighbor list that uses a different cutoff
 than what is usually inferred from the pair style settings (largest cutoff of
@@ -201,9 +200,9 @@ all pair styles plus neighbor list skin).  The following is used in the
 .. code-block:: C++
 
   if (cutflag)
-    neighbor->add_request(this,NeighConst::REQ_OCCASIONAL)->set_cutoff(mycutneigh);
+    neighbor->add_request(this, NeighConst::REQ_OCCASIONAL)->set_cutoff(mycutneigh);
   else
-    neighbor->add_request(this,NeighConst::REQ_OCCASIONAL);
+    neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
 
 The neighbor list request function has a slightly different set of arguments
 when created by a command style.  In this case the neighbor list is

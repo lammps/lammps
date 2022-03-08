@@ -128,10 +128,10 @@ class Neighbor : protected Pointers {
   int request(void *, int instance = 0);
 
   // new API for creating neighbor list requests
-  NeighRequest *add_request(class Pair *, int);
-  NeighRequest *add_request(class Fix *, int);
-  NeighRequest *add_request(class Compute *, int);
-  NeighRequest *add_request(class Command *, const char *, int);
+  NeighRequest *add_request(class Pair *, int flags = 0);
+  NeighRequest *add_request(class Fix *, int flags = 0);
+  NeighRequest *add_request(class Compute *, int flags = 0);
+  NeighRequest *add_request(class Command *, const char *, int flags = 0);
 
   // set neighbor list request OpenMP flag
   void set_omp_neighbor(int);

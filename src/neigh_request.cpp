@@ -268,6 +268,8 @@ void NeighRequest::apply_flags(int flags)
   if (flags & REQ_GHOST)       { ghost = 1; }
   if (flags & REQ_SIZE)        { size = 1; }
   if (flags & REQ_HISTORY)     { history = 1; }
+  if (flags & REQ_NEWTON_ON)   { newton = 1; }
+  if (flags & REQ_NEWTON_OFF)  { newton = 2; }
   if (flags & REQ_OCCASIONAL)  { occasional = 1; }
   if (flags & REQ_RESPA_INOUT) { respainner = respaouter = 1; }
   if (flags & REQ_RESPA_ALL)   { respainner = respamiddle = respaouter = 1; }
@@ -276,15 +278,15 @@ void NeighRequest::apply_flags(int flags)
 
 /* ---------------------------------------------------------------------- */
 
-void NeighRequest::set_id(int _id)
-{
-  id = _id;
-}
-
 void NeighRequest::set_cutoff(double _cutoff)
 {
   cut = 1;
   cutoff = _cutoff;
+}
+
+void NeighRequest::set_id(int _id)
+{
+  id = _id;
 }
 
 void NeighRequest::set_kokkos_device(int flag)

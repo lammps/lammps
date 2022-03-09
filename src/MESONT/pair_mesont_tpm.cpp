@@ -16,7 +16,6 @@
 #include "pair_mesont_tpm.h"
 #include "export_mesont.h"
 
-
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
@@ -24,12 +23,11 @@
 #include "error.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 
 #include <cstring>
 #include <cmath>
-#include <array>
 
+#include <array>
 #include <fstream>
 #include <algorithm>
 
@@ -765,10 +763,7 @@ void PairMESONTTPM::write_data_all(FILE *fp) {
 
 void PairMESONTTPM::init_style() {
   //make sure that a full list is created (including ghost nodes)
-  int r = neighbor->request(this,instance_me);
-  neighbor->requests[r]->half = false;
-  neighbor->requests[r]->full = true;
-  neighbor->requests[r]->ghost = true;
+  neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_GHOST);
 }
 
 void* PairMESONTTPM::extract(const char *str, int &) {

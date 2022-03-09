@@ -898,7 +898,7 @@ void DumpImage::create_image()
       }
     }
 
-    comm->forward_comm_dump(this);
+    comm->forward_comm(this);
 
     for (i = 0; i < nchoose; i++) {
       atom1 = clist[i];

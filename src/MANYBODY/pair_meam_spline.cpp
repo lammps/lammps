@@ -275,7 +275,7 @@ void PairMEAMSpline::compute(int eflag, int vflag)
 
   // Communicate U'(rho) values
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   // Compute two-body pair interactions
   for (int ii = 0; ii < listhalf->inum; ii++) {

@@ -121,7 +121,7 @@ void ReadDump::command(int narg, char **arg)
 
   // reset timestep to nstep
 
-  update->reset_timestep(nstep);
+  update->reset_timestep(nstep, true);
 
   // counters
 

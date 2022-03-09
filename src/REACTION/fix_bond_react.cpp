@@ -931,18 +931,18 @@ void FixBondReact::post_integrate()
       // reverse comm of distsq and partner
       // not needed if newton_pair off since I,J pair was seen by both procs
       commflag = 2;
-      if (force->newton_pair) comm->reverse_comm_fix(this);
+      if (force->newton_pair) comm->reverse_comm(this);
     } else {
       close_partner();
       commflag = 2;
-      comm->reverse_comm_fix(this);
+      comm->reverse_comm(this);
     }
 
     // each atom now knows its winning partner
     // forward comm of partner, so ghosts have it
 
     commflag = 2;
-    comm->forward_comm_fix(this,1);
+    comm->forward_comm(this,1);
 
     // consider for reaction:
     // only if both atoms list each other as winning bond partner
@@ -975,7 +975,7 @@ void FixBondReact::post_integrate()
     // communicate final partner
 
     commflag = 3;
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
 
     // add instance to 'attempt' only if this processor
     // owns the atoms with smaller global ID
@@ -1028,7 +1028,7 @@ void FixBondReact::post_integrate()
   // evaluate custom constraint variable values here and forward_comm
   get_customvars();
   commflag = 1;
-  comm->forward_comm_fix(this,ncustomvars);
+  comm->forward_comm(this,ncustomvars);
 
   // run through the superimpose algorithm
   // this checks if simulation topology matches unreacted mol template

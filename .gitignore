@@ -12,6 +12,7 @@
 *.sif
 *.dll
 *.pyc
+*.whl
 a.out
 __pycache__
 

@@ -331,7 +331,7 @@ void ComputeCentroidStressAtom::compute_peratom()
   // communicate ghost virials between neighbor procs
 
   if (force->newton || (force->kspace && force->kspace->tip4pflag && force->kspace->compute_flag))
-    comm->reverse_comm_compute(this);
+    comm->reverse_comm(this);
 
   // zero virial of atoms not in group
   // only do this after comm since ghost contributions must be included

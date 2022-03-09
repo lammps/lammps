@@ -413,7 +413,7 @@ void FixReaxFFSpecies::FindMolecule ()
 
   loop = 0;
   while (true) {
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
     loop ++;
 
     change = 0;

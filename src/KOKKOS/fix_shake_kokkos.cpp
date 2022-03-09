@@ -341,7 +341,7 @@ void FixShakeKokkos<DeviceType>::post_force(int vflag)
   // communicate results if necessary
 
   unconstrained_update();
-  if (nprocs > 1) comm->forward_comm_fix(this);
+  if (nprocs > 1) comm->forward_comm(this);
   k_xshake.sync<DeviceType>();
 
   // virial setup
@@ -1528,7 +1528,7 @@ int FixShakeKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int FixShakeKokkos<DeviceType>::pack_forward_comm_fix_kokkos(int n, DAT::tdual_int_2d k_sendlist,
+int FixShakeKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_2d k_sendlist,
                                                         int iswap_in, DAT::tdual_xfloat_1d &k_buf,
                                                         int pbc_flag, int* pbc)
 {
@@ -1588,7 +1588,7 @@ int FixShakeKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf,
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixShakeKokkos<DeviceType>::unpack_forward_comm_fix_kokkos(int n, int first_in, DAT::tdual_xfloat_1d &buf)
+void FixShakeKokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int first_in, DAT::tdual_xfloat_1d &buf)
 {
   first = first_in;
   d_buf = buf.view<DeviceType>();
@@ -1704,7 +1704,7 @@ void FixShakeKokkos<DeviceType>::correct_coordinates(int vflag) {
   xshake = x;
   if (nprocs > 1) {
     forward_comm_device = 0;
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
     forward_comm_device = 1;
   }
   xshake = xtmp;

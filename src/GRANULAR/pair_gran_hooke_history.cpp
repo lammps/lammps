@@ -138,7 +138,7 @@ void PairGranHookeHistory::compute(int eflag, int vflag)
         mass_rigid[i] = mass_body[body[i]];
       else
         mass_rigid[i] = 0.0;
-    comm->forward_comm_pair(this);
+    comm->forward_comm(this);
   }
 
   double **x = atom->x;

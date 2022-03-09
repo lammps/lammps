@@ -715,7 +715,7 @@ void FixFilterCorotate::post_force_respa(int /*vflag*/, int ilevel, int /*iloop*
   {
     atom->x = x_store;
 
-    comm->forward_comm_fix(this); //comm forward of forces for outer filter
+    comm->forward_comm(this); //comm forward of forces for outer filter
 
     filter_outer();
   }

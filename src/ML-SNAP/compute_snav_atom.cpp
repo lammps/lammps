@@ -13,7 +13,6 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_snav_atom.h"
-#include <cstring>
 
 #include "sna.h"
 #include "atom.h"
@@ -21,11 +20,12 @@
 #include "modify.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "force.h"
 #include "comm.h"
 #include "memory.h"
 #include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -170,17 +170,9 @@ void ComputeSNAVAtom::init()
 
   // need an occasional full neighbor list
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->compute = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  neighbor->requests[irequest]->occasional = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
 
-  int count = 0;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style,"snav/atom") == 0) count++;
-  if (count > 1 && comm->me == 0)
+  if (modify->get_compute_by_style("snav/atom").size() > 1 && comm->me == 0)
     error->warning(FLERR,"More than one compute snav/atom");
   snaptr->init();
 }

@@ -32,7 +32,6 @@
 #include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 
 #include <cmath>
@@ -314,9 +313,7 @@ void PairMLIAP::init_style()
 
   // need a full neighbor list
 
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
+  neighbor->add_request(this, NeighConst::REQ_FULL);
 }
 
 

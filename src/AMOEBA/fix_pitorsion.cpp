@@ -89,6 +89,10 @@ FixPiTorsion::FixPiTorsion(LAMMPS *lmp, int narg, char **arg) :
   npitorsion_list = 0;
   max_pitorsion_list = 0;
   pitorsion_list = nullptr;
+
+  // pitorsion coeff
+
+  kpit = nullptr;
 }
 
 /* --------------------------------------------------------------------- */
@@ -114,6 +118,10 @@ FixPiTorsion::~FixPiTorsion()
   // compute list
 
   memory->destroy(pitorsion_list);
+
+  // coeff
+
+  memory->destroy(kpit);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -185,19 +193,19 @@ void FixPiTorsion::pre_neighbor()
   int i,m,atom1,atom2,atom3,atom4,atom5,atom6;
 
   // guesstimate initial length of local pitorsion list
-  // if npitorsion_global was not set (due to read_restart, no read_data),
+  // if npitorsions was not set (due to read_restart, no read_data),
   //   then list will grow by LISTDELTA chunks
 
   if (max_pitorsion_list == 0) {
-    if (nprocs == 1) max_pitorsion_list = npitorsion_global;
+    if (nprocs == 1) max_pitorsion_list = npitorsions;
     else max_pitorsion_list = 
-           static_cast<int> (LB_FACTOR*npitorsion_global/nprocs);
+           static_cast<int> (LB_FACTOR*npitorsions/nprocs);
     memory->create(pitorsion_list,max_pitorsion_list,7,
                    "pitorsion:pitorsion_list");
   }
 
   int nlocal = atom->nlocal;
-  pitorsion_list = 0;
+  npitorsion_list = 0;
 
   for (i = 0; i < nlocal; i++) {
     for (m = 0; m < num_pitorsion[i]; m++) {
@@ -209,7 +217,7 @@ void FixPiTorsion::pre_neighbor()
       atom6 = atom->map(pitorsion_atom6[i][m]);
 
       if (atom1 == -1 || atom2 == -1 || atom3 == -1 ||
-          atom4 == -1 || atom5 == -1)
+          atom4 == -1 || atom5 == -1 || atom6 == -1)
         error->one(FLERR,"PiTorsion atoms {} {} {} {} {} {} missing on "
                    "proc {} at step {}",
                    pitorsion_atom1[i][m],pitorsion_atom2[i][m],
@@ -531,7 +539,9 @@ double FixPiTorsion::compute_scalar()
 void FixPiTorsion::read_data_header(char *line)
 {
   if (strstr(line,"pitorsions")) {
-    sscanf(line,BIGINT_FORMAT,&npitorsion_global);
+    sscanf(line,BIGINT_FORMAT,&npitorsions);
+  } else if (strstr(line,"pitorsion types")) {
+    sscanf(line,"%d",&npitorsion_types);
   } else error->all(FLERR,"Invalid read data header line for fix pitorsion");
 
   // didn't set in constructor because this fix could be defined
@@ -549,123 +559,172 @@ void FixPiTorsion::read_data_header(char *line)
 void FixPiTorsion::read_data_section(char *keyword, int n, char *buf,
                                      tagint id_offset)
 {
-  int m,tmp,itype;
-  tagint atom1,atom2,atom3,atom4,atom5,atom6;
-  char *next;
+  int which;
 
-  next = strchr(buf,'\n');
-  *next = '\0';
-  int nwords = utils::count_words(utils::trim_comment(buf));
-  *next = '\n';
+  if (strstr(keyword,"PiTorsions")) {
+    sscanf(keyword,BIGINT_FORMAT,&npitorsions);
+    which = 0;
+  } else if (strstr(keyword,"PiTorsion Coeffs")) {
+    sscanf(keyword,"%d",&npitorsion_types);
+    which = 1;
+  } else error->all(FLERR,"Invalid read data section for fix pitorsion");
+  
+  // loop over lines of PiTorsion Coeffs
+  // tokenize the line into values
+  // initialize kpit vector
+  
+  if (which == 1) {
+    int itype;
+    double value;
+    char *next;
 
-  if (nwords != 7)
-    error->all(FLERR,"Incorrect {} format in data file",keyword);
+    memory->create(kpit,npitorsion_types+1,"pitorsion:kpit");
+
+    for (int i = 0; i < n; i++) {
+      next = strchr(buf,'\n');
+      *next = '\0';
+      sscanf(buf,"%d %g",&itype,&value);
+      if (itype <= 0 || itype > npitorsion_types)
+        error->all(FLERR,"Incorrect args for pitorsion coefficients");
+      kpit[itype] = value;
+      buf = next + 1;
+    }
+  }
 
   // loop over lines of PiTorsions
   // tokenize the line into values
   // add PiTorsion to one or more of my atoms, depending on newton_bond
 
-  for (int i = 0; i < n; i++) {
+  if (which == 0) {
+
+    int m,tmp,itype;
+    tagint atom1,atom2,atom3,atom4,atom5,atom6;
+    char *next;
+
     next = strchr(buf,'\n');
     *next = '\0';
-    sscanf(buf,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT
-           " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
-           &tmp,&itype,&atom1,&atom2,&atom3,&atom4,&atom5,&atom6);
+    int nwords = utils::count_words(utils::trim_comment(buf));
+    *next = '\n';
+    
+    if (nwords != 8)
+      error->all(FLERR,"Incorrect {} format in data file",keyword);
 
-    atom1 += id_offset;
-    atom2 += id_offset;
-    atom3 += id_offset;
-    atom4 += id_offset;
-    atom5 += id_offset;
-    atom6 += id_offset;
+    for (int i = 0; i < n; i++) {
+      next = strchr(buf,'\n');
+      *next = '\0';
+      sscanf(buf,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT
+             " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT,
+             &tmp,&itype,&atom1,&atom2,&atom3,&atom4,&atom5,&atom6);
 
-    if ((m = atom->map(atom1)) >= 0) {
-      if (num_pitorsion[m] == PITORSIONMAX)
-        error->one(FLERR,"Too many PiTorsions for one atom");
-      pitorsion_type[m][num_pitorsion[m]] = itype;
-      pitorsion_atom1[m][num_pitorsion[m]] = atom1;
-      pitorsion_atom2[m][num_pitorsion[m]] = atom2;
-      pitorsion_atom3[m][num_pitorsion[m]] = atom3;
-      pitorsion_atom4[m][num_pitorsion[m]] = atom4;
-      pitorsion_atom5[m][num_pitorsion[m]] = atom5;
-      pitorsion_atom6[m][num_pitorsion[m]] = atom6;
-      num_pitorsion[m]++;
+      atom1 += id_offset;
+      atom2 += id_offset;
+      atom3 += id_offset;
+      atom4 += id_offset;
+      atom5 += id_offset;
+      atom6 += id_offset;
+
+      // atom3 owns the pitorsion when newton_bond on
+
+      if ((m = atom->map(atom3)) >= 0) {
+        if (num_pitorsion[m] == PITORSIONMAX)
+          error->one(FLERR,"Too many PiTorsions for one atom");
+        pitorsion_type[m][num_pitorsion[m]] = itype;
+        pitorsion_atom1[m][num_pitorsion[m]] = atom1;
+        pitorsion_atom2[m][num_pitorsion[m]] = atom2;
+        pitorsion_atom3[m][num_pitorsion[m]] = atom3;
+        pitorsion_atom4[m][num_pitorsion[m]] = atom4;
+        pitorsion_atom5[m][num_pitorsion[m]] = atom5;
+        pitorsion_atom6[m][num_pitorsion[m]] = atom6;
+        num_pitorsion[m]++;
+      }
+
+      if (newton_bond == 0) {
+        if ((m = atom->map(atom1)) >= 0) {
+          if (num_pitorsion[m] == PITORSIONMAX)
+            error->one(FLERR,"Too many PiTorsions for one atom");
+          pitorsion_type[m][num_pitorsion[m]] = itype;
+          pitorsion_atom1[m][num_pitorsion[m]] = atom1;
+          pitorsion_atom2[m][num_pitorsion[m]] = atom2;
+          pitorsion_atom3[m][num_pitorsion[m]] = atom3;
+          pitorsion_atom4[m][num_pitorsion[m]] = atom4;
+          pitorsion_atom5[m][num_pitorsion[m]] = atom5;
+          pitorsion_atom6[m][num_pitorsion[m]] = atom6;
+          num_pitorsion[m]++;
+        }
+      }
+
+      if (newton_bond == 0) {
+        if ((m = atom->map(atom2)) >= 0) {
+          if (num_pitorsion[m] == PITORSIONMAX)
+            error->one(FLERR,"Too many PiTorsions for one atom");
+          pitorsion_type[m][num_pitorsion[m]] = itype;
+          pitorsion_atom1[m][num_pitorsion[m]] = atom1;
+          pitorsion_atom2[m][num_pitorsion[m]] = atom2;
+          pitorsion_atom3[m][num_pitorsion[m]] = atom3;
+          pitorsion_atom4[m][num_pitorsion[m]] = atom4;
+          pitorsion_atom5[m][num_pitorsion[m]] = atom5;
+          pitorsion_atom6[m][num_pitorsion[m]] = atom6;
+          num_pitorsion[m]++;
+        }
+      }
+
+      if (newton_bond == 0) {
+        if ((m = atom->map(atom4)) >= 0) {
+          if (num_pitorsion[m] == PITORSIONMAX)
+            error->one(FLERR,"Too many PiTorsions for one atom");
+          pitorsion_type[m][num_pitorsion[m]] = itype;
+          pitorsion_atom1[m][num_pitorsion[m]] = atom1;
+          pitorsion_atom2[m][num_pitorsion[m]] = atom2;
+          pitorsion_atom3[m][num_pitorsion[m]] = atom3;
+          pitorsion_atom4[m][num_pitorsion[m]] = atom4;
+          pitorsion_atom5[m][num_pitorsion[m]] = atom5;
+          pitorsion_atom6[m][num_pitorsion[m]] = atom6;
+          num_pitorsion[m]++;
+        }
+      }
+
+      if (newton_bond == 0) {
+        if ((m = atom->map(atom5)) >= 0) {
+          if (num_pitorsion[m] == PITORSIONMAX)
+            error->one(FLERR,"Too many PiTorsions for one atom");
+          pitorsion_type[m][num_pitorsion[m]] = itype;
+          pitorsion_atom1[m][num_pitorsion[m]] = atom1;
+          pitorsion_atom2[m][num_pitorsion[m]] = atom2;
+          pitorsion_atom3[m][num_pitorsion[m]] = atom3;
+          pitorsion_atom4[m][num_pitorsion[m]] = atom4;
+          pitorsion_atom5[m][num_pitorsion[m]] = atom5;
+          pitorsion_atom6[m][num_pitorsion[m]] = atom6;
+          num_pitorsion[m]++;
+        }
+      }
+
+      if (newton_bond == 0) {
+        if ((m = atom->map(atom6)) >= 0) {
+          if (num_pitorsion[m] == PITORSIONMAX)
+            error->one(FLERR,"Too many PiTorsions for one atom");
+          pitorsion_type[m][num_pitorsion[m]] = itype;
+          pitorsion_atom1[m][num_pitorsion[m]] = atom1;
+          pitorsion_atom2[m][num_pitorsion[m]] = atom2;
+          pitorsion_atom3[m][num_pitorsion[m]] = atom3;
+          pitorsion_atom4[m][num_pitorsion[m]] = atom4;
+          pitorsion_atom5[m][num_pitorsion[m]] = atom5;
+          pitorsion_atom6[m][num_pitorsion[m]] = atom6;
+          num_pitorsion[m]++;
+        }
+      }
+
+      buf = next + 1;
     }
-
-    if ((m = atom->map(atom2)) >= 0) {
-      if (num_pitorsion[m] == PITORSIONMAX)
-        error->one(FLERR,"Too many PiTorsions for one atom");
-      pitorsion_type[m][num_pitorsion[m]] = itype;
-      pitorsion_atom1[m][num_pitorsion[m]] = atom1;
-      pitorsion_atom2[m][num_pitorsion[m]] = atom2;
-      pitorsion_atom3[m][num_pitorsion[m]] = atom3;
-      pitorsion_atom4[m][num_pitorsion[m]] = atom4;
-      pitorsion_atom5[m][num_pitorsion[m]] = atom5;
-      pitorsion_atom6[m][num_pitorsion[m]] = atom6;
-      num_pitorsion[m]++;
-    }
-
-    if ((m = atom->map(atom3)) >= 0) {
-      if (num_pitorsion[m] == PITORSIONMAX)
-        error->one(FLERR,"Too many PiTorsions for one atom");
-      pitorsion_type[m][num_pitorsion[m]] = itype;
-      pitorsion_atom1[m][num_pitorsion[m]] = atom1;
-      pitorsion_atom2[m][num_pitorsion[m]] = atom2;
-      pitorsion_atom3[m][num_pitorsion[m]] = atom3;
-      pitorsion_atom4[m][num_pitorsion[m]] = atom4;
-      pitorsion_atom5[m][num_pitorsion[m]] = atom5;
-      pitorsion_atom6[m][num_pitorsion[m]] = atom6;
-      num_pitorsion[m]++;
-    }
-
-    if ((m = atom->map(atom4)) >= 0) {
-      if (num_pitorsion[m] == PITORSIONMAX)
-        error->one(FLERR,"Too many PiTorsions for one atom");
-      pitorsion_type[m][num_pitorsion[m]] = itype;
-      pitorsion_atom1[m][num_pitorsion[m]] = atom1;
-      pitorsion_atom2[m][num_pitorsion[m]] = atom2;
-      pitorsion_atom3[m][num_pitorsion[m]] = atom3;
-      pitorsion_atom4[m][num_pitorsion[m]] = atom4;
-      pitorsion_atom5[m][num_pitorsion[m]] = atom5;
-      pitorsion_atom6[m][num_pitorsion[m]] = atom6;
-      num_pitorsion[m]++;
-    }
-
-    if ((m = atom->map(atom5)) >= 0) {
-      if (num_pitorsion[m] == PITORSIONMAX)
-        error->one(FLERR,"Too many PiTorsions for one atom");
-      pitorsion_type[m][num_pitorsion[m]] = itype;
-      pitorsion_atom1[m][num_pitorsion[m]] = atom1;
-      pitorsion_atom2[m][num_pitorsion[m]] = atom2;
-      pitorsion_atom3[m][num_pitorsion[m]] = atom3;
-      pitorsion_atom4[m][num_pitorsion[m]] = atom4;
-      pitorsion_atom5[m][num_pitorsion[m]] = atom5;
-      pitorsion_atom6[m][num_pitorsion[m]] = atom6;
-      num_pitorsion[m]++;
-    }
-
-    if ((m = atom->map(atom6)) >= 0) {
-      if (num_pitorsion[m] == PITORSIONMAX)
-        error->one(FLERR,"Too many PiTorsions for one atom");
-      pitorsion_type[m][num_pitorsion[m]] = itype;
-      pitorsion_atom1[m][num_pitorsion[m]] = atom1;
-      pitorsion_atom2[m][num_pitorsion[m]] = atom2;
-      pitorsion_atom3[m][num_pitorsion[m]] = atom3;
-      pitorsion_atom4[m][num_pitorsion[m]] = atom4;
-      pitorsion_atom5[m][num_pitorsion[m]] = atom5;
-      pitorsion_atom6[m][num_pitorsion[m]] = atom6;
-      num_pitorsion[m]++;
-    }
-
-    buf = next + 1;
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-bigint FixPiTorsion::read_data_skip_lines(char * /*keyword*/)
+bigint FixPiTorsion::read_data_skip_lines(char *keyword)
 {
-  return npitorsion_global;
+  if (strcmp(keyword,"PiTorsions") == 0) return npitorsions;
+  if (strcmp(keyword,"PiTorsion Coeffs") == 0) return (bigint) npitorsion_types;
+  return 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -673,9 +732,11 @@ bigint FixPiTorsion::read_data_skip_lines(char * /*keyword*/)
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-void FixPiTorsion::write_data_header(FILE *fp, int /*mth*/)
+void FixPiTorsion::write_data_header(FILE *fp, int mth)
 {
-  fprintf(fp,BIGINT_FORMAT " pitorsions\n",npitorsion_global);
+  if (mth == 0) fprintf(fp,BIGINT_FORMAT " pitorsions\n",npitorsions);
+  else if (mth == 1) 
+    fprintf(fp,BIGINT_FORMAT " pitorsion types\n",npitorsion_types);
 }
 
 /* ----------------------------------------------------------------------
@@ -686,7 +747,7 @@ void FixPiTorsion::write_data_header(FILE *fp, int /*mth*/)
    ny = columns = type + 6 atom IDs
 ------------------------------------------------------------------------- */
 
-void FixPiTorsion::write_data_section_size(int /*mth*/, int &nx, int &ny)
+void FixPiTorsion::write_data_section_size(int mth, int &nx, int &ny)
 {
   int i,m;
 
@@ -708,7 +769,7 @@ void FixPiTorsion::write_data_section_size(int /*mth*/, int &nx, int &ny)
    buf allocated by caller as owned PiTorsions by 7
 ------------------------------------------------------------------------- */
 
-void FixPiTorsion::write_data_section_pack(int /*mth*/, double **buf)
+void FixPiTorsion::write_data_section_pack(int mth, double **buf)
 {
   int i,m;
 
@@ -741,9 +802,10 @@ void FixPiTorsion::write_data_section_pack(int /*mth*/, double **buf)
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-void FixPiTorsion::write_data_section_keyword(int /*mth*/, FILE *fp)
+void FixPiTorsion::write_data_section_keyword(int mth, FILE *fp)
 {
-  fprintf(fp,"\nPiTorsion\n\n");
+  if (mth == 0) fprintf(fp,"\nPiTorsions\n\n");
+  else if (mth == 1) fprintf(fp,"\nPiTorsion Coeffs\n\n");
 }
 
 /* ----------------------------------------------------------------------
@@ -753,7 +815,7 @@ void FixPiTorsion::write_data_section_keyword(int /*mth*/, FILE *fp)
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-void FixPiTorsion::write_data_section(int /*mth*/, FILE *fp,
+void FixPiTorsion::write_data_section(int mth, FILE *fp,
                                   int n, double **buf, int index)
 {
   for (int i = 0; i < n; i++)
@@ -779,7 +841,7 @@ void FixPiTorsion::write_restart(FILE *fp)
   if (comm->me == 0) {
     int size = sizeof(bigint);
     fwrite(&size,sizeof(int),1,fp);
-    fwrite(&npitorsion_global,sizeof(bigint),1,fp);
+    fwrite(&npitorsions,sizeof(bigint),1,fp);
   }
 }
 
@@ -789,7 +851,7 @@ void FixPiTorsion::write_restart(FILE *fp)
 
 void FixPiTorsion::restart(char *buf)
 {
-  npitorsion_global = *((bigint *) buf);
+  npitorsions = *((bigint *) buf);
 }
 
 /* ----------------------------------------------------------------------

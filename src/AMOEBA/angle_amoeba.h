@@ -46,7 +46,7 @@ class AngleAmoeba : public Angle {
   void tinker_angle(int, int, int, int, int);
   void tinker_anglep(int, int, int, int, int);
   void tinker_bondangle(int, int, int, int, int);
-  double tinker_urey_bradley(int, int, int, int);
+  void tinker_urey_bradley(int, int, int, int);
   void allocate();
 };
 

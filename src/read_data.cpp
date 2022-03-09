@@ -729,7 +729,6 @@ void ReadData::command(int narg, char **arg)
             if (firstpass) fix(fix_index[i],keyword);
             else skip_lines(modify->fix[fix_index[i]]->
                             read_data_skip_lines(keyword));
-            parse_keyword(0);
             break;
           }
         if (i == nfix)

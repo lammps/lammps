@@ -103,10 +103,6 @@ void AngleAmoeba::compute(int eflag, int vflag)
 
   ev_init(eflag,vflag);
 
-  // DEBUG
-  int ubn = 0;
-  double eub = 0.0;
-
   for (n = 0; n < nanglelist; n++) {
     i1 = anglelist[n][0];
     i2 = anglelist[n][1];
@@ -131,15 +127,8 @@ void AngleAmoeba::compute(int eflag, int vflag)
     // Urey-Bradley H-H bond term within water molecules
 
     uflag = ubflag[type];
-
-    if (uflag) {
-      ubn++;
-      eub += tinker_urey_bradley(i1,i3,type,eflag);
-    }
+    if (uflag) tinker_urey_bradley(i1,i3,type,eflag);
   }
-
-  // DEBUG
-  printf("UreyBradley n %d eng %g\n",ubn,eub);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -543,7 +532,7 @@ void AngleAmoeba::tinker_bondangle(int i1, int i2, int i3, int type, int eflag)
 
 /* ---------------------------------------------------------------------- */
 
-double AngleAmoeba::tinker_urey_bradley(int i1, int i2, int type, int eflag)
+void AngleAmoeba::tinker_urey_bradley(int i1, int i2, int type, int eflag)
 {
   double delx,dely,delz;
   double rsq,r,dr,rk;
@@ -585,8 +574,6 @@ double AngleAmoeba::tinker_urey_bradley(int i1, int i2, int type, int eflag)
   }
 
   if (evflag) ev_tally2(i1,i2,nlocal,newton_bond,ebond,fbond,delx,dely,delz);
-  
-  return ebond;
 }
 
 /* ---------------------------------------------------------------------- */

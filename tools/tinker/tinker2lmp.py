@@ -718,7 +718,7 @@ for atom1 in id:
 
 # DEBUG - if uncommented, no PiTorsions appear in data file
 
-pitorsionlist = []
+#pitorsionlist = []
 
 # ----------------------------------------
 # create lists of bond/angle/dihedral/improper types
@@ -1055,32 +1055,31 @@ for m,params in enumerate(prm.pitorsionparams):
 flags = len(prm.pitorsionparams)*[0]
 pitorsiontype = []
 pitorsionparams = []
+pitorsionlist_reduced = []
 
 for tmp1,tmp2,atom1,atom2,tmp3,tmp4 in pitorsionlist:
   type1 = type[atom1-1]
   type2 = type[atom2-1]
   c1 = classes[type1-1]
   c2 = classes[type2-1]
-  
-  if (c1,c2) in pitdict: m,params = pitdict[(c1,c2)]
-  elif (c2,c1) in pitdict: m,params = pitdict[(c2,c1)]
-  else:
-    # NOTE: probably this PiT should be deleted from enumeration list
-    #       similar to olist for impropers above
-    # IMPORTANT: look at other errors and messages t2lmp.py is producing
-    error("PiTorsion not found: %d %d: %d %d" % (atom1,atom2,c1,c2))
-    pitorsiontype.append(0)
-    continue
-    
-  if not flags[m]:
-    v1 = params[2:]
-    pitorsionparams.append(v1)
-    flags[m] = len(pitorsionparams)
-  pitorsiontype.append(flags[m])
 
-print "PRM pitor param",len(prm.pitorsionparams)
-print "PiTor list",len(pitorsionlist)
-#print "Flags",flags
+  # 6-tuple is only a PiTorsion if central 2 atoms math an entry in PRM file
+  # pitorsionlist_reduced = list of just these 6-tuples
+  
+  if (c1,c2) in pitdict or (c2,c1) in pitdict:
+    if (c1,c2) in pitdict: m,params = pitdict[(c1,c2)]
+    else: m,params = pitdict[(c2,c1)]
+    pitorsionlist_reduced.append((tmp1,tmp2,atom1,atom2,tmp3,tmp4))
+
+    if not flags[m]:
+      v1 = params[2:]
+      pitorsionparams.append(v1)
+      flags[m] = len(pitorsionparams)
+    pitorsiontype.append(flags[m])
+    
+# replace original pitorsionlist with reduced version
+
+pitorsionlist = pitorsionlist_reduced
 
 # ----------------------------------------
 # assign each atom to a Tinker group

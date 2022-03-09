@@ -68,7 +68,8 @@ class FixPiTorsion : public Fix {
   int nprocs, me;
   int newton_bond, eflag_caller;
   int ilevel_respa;
-  bigint npitorsion_global;
+  bigint npitorsions;
+  int npitorsion_types;
   double epitorsion;
 
   double *kpit;

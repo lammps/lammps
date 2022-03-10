@@ -87,11 +87,9 @@ class PairAmoeba : public Pair {
   double time_init,time_hal,time_repulse,time_disp;
   double time_mpole,time_induce,time_polar,time_qxfer;
   
-  // energy, force, and virial components
+  // energy/virial components
 
-  int ifhal,ifrepulse,ifdisp,ifpolar,ifmpole,ifqxfer;
   double ehal,erepulse,edisp,epolar,empole,eqxfer;
-  double **fhal,**frepulse,**fdisp,**fpolar,**fmpole,**fqxfer;
   double virhal[6],virrepulse[6],virdisp[6],virpolar[6],virmpole[6],virqxfer[6];
 
   // scalar values defined in force-field file

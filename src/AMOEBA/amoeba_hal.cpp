@@ -61,6 +61,7 @@ void PairAmoeba::hal()
   // owned atoms
 
   double **x = atom->x;
+  double **f = atom->f;
   int nlocal = atom->nlocal;
 
   // neigh list
@@ -158,31 +159,31 @@ void PairAmoeba::hal()
 		   "ghost comm is too short");
       
       if (i == iv) {
-        fhal[i][0] += dedx;
-        fhal[i][1] += dedy;
-        fhal[i][2] += dedz;
+        f[i][0] += dedx;
+        f[i][1] += dedy;
+        f[i][2] += dedz;
       } else {
-        fhal[i][0] += dedx*redi;
-        fhal[i][1] += dedy*redi;
-        fhal[i][2] += dedz*redi;
-        fhal[iv][0] += dedx*rediv;
-        fhal[iv][1] += dedy*rediv;
-        fhal[iv][2] += dedz*rediv;
+        f[i][0] += dedx*redi;
+        f[i][1] += dedy*redi;
+        f[i][2] += dedz*redi;
+        f[iv][0] += dedx*rediv;
+        f[iv][1] += dedy*rediv;
+        f[iv][2] += dedz*rediv;
       }
 
       if (j == jv) {
-        fhal[j][0] -= dedx;
-        fhal[j][1] -= dedy;
-        fhal[j][2] -= dedz;
+        f[j][0] -= dedx;
+        f[j][1] -= dedy;
+        f[j][2] -= dedz;
       } else {
         redj = kred[jclass];
         redjv = 1.0 - redj;
-        fhal[j][0] -= dedx*redj;
-        fhal[j][1] -= dedy*redj;
-        fhal[j][2] -= dedz*redj;
-        fhal[jv][0] -= dedx*redjv;
-        fhal[jv][1] -= dedy*redjv;
-        fhal[jv][2] -= dedz*redjv;
+        f[j][0] -= dedx*redj;
+        f[j][1] -= dedy*redj;
+        f[j][2] -= dedz*redj;
+        f[jv][0] -= dedx*redjv;
+        f[jv][1] -= dedy*redjv;
+        f[jv][2] -= dedz*redjv;
       }
 
       // increment the internal virial tensor components

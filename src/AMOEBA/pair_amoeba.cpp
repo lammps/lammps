@@ -247,9 +247,18 @@ void PairAmoeba::compute(int eflag, int vflag)
   evdwl = 0.0;
   ev_init(eflag,vflag);
 
-  // zero internal energy, force, virial terms
+  // zero energy/virial components
 
-  zero_energy_force_virial();
+  ehal = erepulse = edisp = epolar = empole = eqxfer = 0.0;
+
+  for (int i = 0; i < 6; i++) {
+    virhal[i] = 0.0;
+    virrepulse[i] = 0.0;
+    virdisp[i] = 0.0;
+    virpolar[i] = 0.0;
+    virmpole[i] = 0.0;
+    virqxfer[i] = 0.0;
+  }
 
   // grow local vectors and arrays if necessary
 
@@ -414,15 +423,6 @@ void PairAmoeba::compute(int eflag, int vflag)
   nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
 
-  for (int i = 0; i < nall; i++) {
-    f[i][0] = fhal[i][0] + frepulse[i][0] + fdisp[i][0] + 
-      fmpole[i][0] + fpolar[i][0] + fqxfer[i][0];
-    f[i][1] = fhal[i][1] + frepulse[i][1] + fdisp[i][1] + 
-      fmpole[i][1] + fpolar[i][1] + fqxfer[i][1];
-    f[i][2] = fhal[i][2] + frepulse[i][2] + fdisp[i][2] + 
-      fmpole[i][2] + fpolar[i][2] + fqxfer[i][2];
-  }
-
   for (int i = 0; i < 6; i++)
     virial[i] = virhal[i] + virrepulse[i] + virdisp[i] + 
       virpolar[i] + virmpole[i] + virqxfer[i];
@@ -552,6 +552,8 @@ void PairAmoeba::settings(int narg, char **arg)
   } else if (narg) error->all(FLERR,"Illegal pair_style command");
 
   if (narg == 0) return;
+
+  if (narg < 2) error->all(FLERR,"Illegal pair_style command");
 
   // toggle components to include or exclude
 
@@ -727,19 +729,6 @@ void PairAmoeba::init_style()
   index_pval = atom->find_custom("pval",flag,cols);
   if (index_pval < 0 || !flag || cols) 
     error->all(FLERR,"Pair amoeba pval is not defined");
-
-  // check for fix store/state commands that stores force components
-
-  ifhal = modify->find_fix("fhal");
-  ifrepulse = modify->find_fix("frepulse");
-  ifdisp = modify->find_fix("fdisp");
-  ifpolar = modify->find_fix("fpolar");
-  ifmpole = modify->find_fix("fmpole");
-  ifqxfer = modify->find_fix("fqxfer");
-
-  if (ifhal < 0 || ifrepulse < 0 || ifdisp < 0 || 
-      ifpolar < 0 || ifmpole < 0 || ifqxfer < 0)
-    error->all(FLERR,"Pair amoeba fix store/state commands not defined");
 
   // -------------------------------------------------------------------
   // one-time initializations
@@ -1079,33 +1068,26 @@ double PairAmoeba::init_one(int i, int j)
 {
   double cutoff = 0.0;
 
-  if (hal_flag) {
-    choose(VDWL);
-    cutoff = MAX(cutoff,sqrt(off2));
-  }
-  if (repulse_flag) {
-    choose(REPULSE);
-    cutoff = MAX(cutoff,sqrt(off2));
-  }
-  if (disp_rspace_flag || disp_kspace_flag) {
-    if (use_dewald) choose(DISP_LONG);
-    else choose(DISP);
-    cutoff = MAX(cutoff,sqrt(off2));
-  }
-  if (mpole_rspace_flag || mpole_kspace_flag) {
-    if (use_ewald) choose(MPOLE_LONG);
-    else choose(MPOLE);
-    cutoff = MAX(cutoff,sqrt(off2));
-  }
-  if (polar_rspace_flag || polar_kspace_flag) {
-    if (use_ewald) choose(POLAR_LONG);
-    else choose(POLAR);
-    cutoff = MAX(cutoff,sqrt(off2));
-  }
-  if (qxfer_flag) {
-    choose(QFER);
-    cutoff = MAX(cutoff,sqrt(off2));
-  }
+  choose(VDWL);
+  cutoff = MAX(cutoff,sqrt(off2));
+
+  choose(REPULSE);
+  cutoff = MAX(cutoff,sqrt(off2));
+
+  if (use_dewald) choose(DISP_LONG);
+  else choose(DISP);
+  cutoff = MAX(cutoff,sqrt(off2));
+
+  if (use_ewald) choose(MPOLE_LONG);
+  else choose(MPOLE);
+  cutoff = MAX(cutoff,sqrt(off2));
+
+  if (use_ewald) choose(POLAR_LONG);
+  else choose(POLAR);
+  cutoff = MAX(cutoff,sqrt(off2));
+
+  choose(QFER);
+  cutoff = MAX(cutoff,sqrt(off2));
 
   return cutoff;
 }
@@ -2073,41 +2055,6 @@ void PairAmoeba::mix()
     radmin4[j][i] = radmin4[i][j] = rij;
     epsilon[j][i] = epsilon[i][j] = eij;
     epsilon4[j][i] = epsilon4[i][j] = eij;
-  }
-}
-
-/* ----------------------------------------------------------------------
-   zero internal energy and virial terms
-------------------------------------------------------------------------- */
-
-void PairAmoeba::zero_energy_force_virial()
-{
-  ehal = erepulse = edisp = epolar = empole = eqxfer = 0.0;
-
-  fhal = modify->fix[ifhal]->array_atom;
-  frepulse = modify->fix[ifrepulse]->array_atom;
-  fdisp = modify->fix[ifdisp]->array_atom;
-  fpolar = modify->fix[ifpolar]->array_atom;
-  fmpole = modify->fix[ifmpole]->array_atom;
-  fqxfer = modify->fix[ifqxfer]->array_atom;
-
-  int nlocal = atom->nlocal;
-  int nall = nlocal + atom->nghost;
-
-  memset(&fhal[0][0],0,3*nall*sizeof(double));
-  memset(&frepulse[0][0],0,3*nall*sizeof(double));
-  memset(&fdisp[0][0],0,3*nall*sizeof(double));
-  memset(&fpolar[0][0],0,3*nall*sizeof(double));
-  memset(&fmpole[0][0],0,3*nall*sizeof(double));
-  memset(&fqxfer[0][0],0,3*nall*sizeof(double));
-
-  for (int i = 0; i < 6; i++) {
-    virhal[i] = 0.0;
-    virrepulse[i] = 0.0;
-    virdisp[i] = 0.0;
-    virpolar[i] = 0.0;
-    virmpole[i] = 0.0;
-    virqxfer[i] = 0.0;
   }
 }
 

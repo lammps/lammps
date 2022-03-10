@@ -99,6 +99,7 @@ void PairAmoeba::dispersion_real()
   // owned atoms
   
   double **x = atom->x;
+  double **f = atom->f;
   int nlocal = atom->nlocal;
 
   // neigh list
@@ -202,12 +203,12 @@ void PairAmoeba::dispersion_real()
       dedx = de * xr;
       dedy = de * yr;
       dedz = de * zr;
-      fdisp[i][0] += dedx;
-      fdisp[i][1] += dedy;
-      fdisp[i][2] += dedz;
-      fdisp[j][0] -= dedx;
-      fdisp[j][1] -= dedy;
-      fdisp[j][2] -= dedz;
+      f[i][0] += dedx;
+      f[i][1] += dedy;
+      f[i][2] += dedz;
+      f[j][0] -= dedx;
+      f[j][1] -= dedy;
+      f[j][2] -= dedz;
 
       // increment the internal virial tensor components
 
@@ -270,6 +271,7 @@ void PairAmoeba::dispersion_kspace()
   // owned atoms
 
   double **x = atom->x;
+  double **f = atom->f;
   int nlocal = atom->nlocal;
 
   double volbox = domain->prd[0] * domain->prd[1] * domain->prd[2];
@@ -405,15 +407,14 @@ void PairAmoeba::dispersion_kspace()
     }
 
     fi = csix[iclass];
-    fdisp[m][0] += fi * (recip[0][0]*de1 + recip[0][1]*de2 + recip[0][2]*de3);
-    fdisp[m][1] += fi * (recip[1][0]*de1 + recip[1][1]*de2 + recip[1][2]*de3);
-    fdisp[m][2] += fi * (recip[2][0]*de1 + recip[2][1]*de2 + recip[2][2]*de3);
+    f[m][0] += fi * (recip[0][0]*de1 + recip[0][1]*de2 + recip[0][2]*de3);
+    f[m][1] += fi * (recip[1][0]*de1 + recip[1][1]*de2 + recip[1][2]*de3);
+    f[m][2] += fi * (recip[2][0]*de1 + recip[2][1]*de2 + recip[2][2]*de3);
   }
 
   // account for the energy and virial correction terms
 
   term = csixpr * aewald*aewald*aewald / denom0;
-
   
   if (me == 0) {
     edisp -= term;

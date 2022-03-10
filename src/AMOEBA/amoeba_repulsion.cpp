@@ -91,6 +91,7 @@ void PairAmoeba::repulsion()
   // owned atoms
 
   double **x = atom->x;
+  double **f = atom->f;
   int nlocal = atom->nlocal;
 
   // zero repulsion torque on owned + ghost atoms
@@ -337,18 +338,18 @@ void PairAmoeba::repulsion()
       
       // increment force-based gradient and torque on atom I
 
-      frepulse[i][0] += frcx;
-      frepulse[i][1] += frcy;
-      frepulse[i][2] += frcz;
+      f[i][0] += frcx;
+      f[i][1] += frcy;
+      f[i][2] += frcz;
       tq[i][0] += ttri[0];
       tq[i][1] += ttri[1];
       tq[i][2] += ttri[2];
 
       // increment force-based gradient and torque on atom J
 
-      frepulse[j][0] -= frcx;
-      frepulse[j][1] -= frcy;
-      frepulse[j][2] -= frcz;
+      f[j][0] -= frcx;
+      f[j][1] -= frcy;
+      f[j][2] -= frcz;
       tq[j][0] += ttrk[0];
       tq[j][1] += ttrk[1];
       tq[j][2] += ttrk[2];
@@ -389,7 +390,7 @@ void PairAmoeba::repulsion()
   // resolve site torques then increment forces and virial
 
   for (i = 0; i < nlocal; i++) {
-    torque2force(i,tq[i],fix,fiy,fiz,frepulse);
+    torque2force(i,tq[i],fix,fiy,fiz,f);
 
     iz = zaxis2local[i];
     ix = xaxis2local[i];

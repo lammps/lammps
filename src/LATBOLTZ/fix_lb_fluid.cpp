@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Frances Mackay, 
-                         Santtu Ollila, 
-                         Tyson Whitehead, 
+   Contributing authors: Frances Mackay,
+                         Santtu Ollila,
+                         Tyson Whitehead,
                          Colin Denniston (UWO)
 ------------------------------------------------------------------------ */
 
@@ -810,7 +810,7 @@ void FixLbFluid::setup(int /* vflag */)
   //  calc_fluidforceweight();
   //  calc_fluidforceI();
   //  if(comm->me == 0)
-  //    utils::logmest(lmp, "calc_force in lb setup..."); 
+  //    utils::logmest(lmp, "calc_force in lb setup...");
   //}
 }
 
@@ -1095,7 +1095,6 @@ void FixLbFluid::calc_fluidforceI(void)
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  double **x = atom->x;
   int i, j, k, m;
 
   //--------------------------------------------------------------------------
@@ -1203,9 +1202,7 @@ void FixLbFluid::calc_fluidforceII(void)
 {
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  double **x = atom->x;
-  int i, j, k, m;
-  MPI_Request requests[20];
+  int i;
 
   //--------------------------------------------------------------------------
   //Calculate the contribution to the force on the fluid.
@@ -1488,7 +1485,7 @@ void FixLbFluid::keys_interpolation(int i, int uonly)
   int ixp, iyp, izp;
   double dx1, dy1, dz1;
   int isten, ii, jj, kk;
-  double r, rsq, weightx, weighty, weightz;
+  double r, weightx, weighty, weightz;
   double FfP[64], TfP[64];
   int k;
   double unew[3];
@@ -1669,7 +1666,7 @@ void FixLbFluid::IBM3_interpolationweight(int i)
   int ix, iy, iz;
   int ixp, iyp, izp;
   double dx1, dy1, dz1;
-  double r, rsq, weightx, weighty, weightz;
+  double r, weightx, weighty, weightz;
 
   //--------------------------------------------------------------------------
   //Calculate nearest leftmost grid point.
@@ -1787,7 +1784,7 @@ void FixLbFluid::IBM3_interpolation(int i, int uonly)
   int ixp, iyp, izp;
   double dx1, dy1, dz1;
   int isten, ii, jj, kk;
-  double r, rsq, weightx, weighty, weightz;
+  double r, weightx, weighty, weightz;
   double FfP[27], TfP[27];
   int k;
   double unew[3];
@@ -3089,7 +3086,6 @@ void FixLbFluid::parametercalc_part(int xstart, int xend, int ystart, int yend, 
 //==========================================================================
 void FixLbFluid::correctu_full(void)
 {
-  MPI_Request requests[4];
   MPI_Request requests2[12];
   int numrequests;
   int i;
@@ -3335,11 +3331,8 @@ void FixLbFluid::update_periodic(int xstart, int xend, int ystart, int yend, int
 //==========================================================================
 void FixLbFluid::update_full15(void)
 {
-  MPI_Request req_send15, req_recv15;
-  MPI_Request req_send25, req_recv25;
   MPI_Request requests[8];
   int numrequests = 4;
-  MPI_Status status;
 
   //--------------------------------------------------------------------------
   // Fixed z boundary conditions.
@@ -3489,9 +3482,7 @@ void FixLbFluid::update_full19(void)
   double tmp1, tmp2, tmp3;
   MPI_Status status;
   double rb;
-  int i, j, k, m;
-  int imod, jmod, kmod;
-  int imodm, jmodm, kmodm;
+  int i, j, k;
 
   numrequests = 4;
 
@@ -3889,19 +3880,19 @@ void FixLbFluid::initializeGeometry()
   //    for(k=subNbz-1; k>-1; k--) {
 
   //      if(k==subNbz-2 || k==0) {
-  // 	for(i=0; i<subNbx+2; i++)
-  // 	  outFile << "---";
-  // 	outFile << std::endl;
+  //        for(i=0; i<subNbx+2; i++)
+  //          outFile << "---";
+  //          outFile << std::endl;
   //      }
   //      for(i=0; i<subNbx; i++) {
-  // 	outFile << " " << sublattice[i][subNby/2][k].type << " ";
-  // 	if(i==0 || i==subNbx-2) outFile << " | ";
-  // 	if(i==subNbx-1) outFile << std::endl;
-  //      }
+  //        outFile << " " << sublattice[i][subNby/2][k].type << " ";
+  //        if(i==0 || i==subNbx-2) outFile << " | ";
+  //        if(i==subNbx-1) outFile << std::endl;
+  //    }
 
   //    // if(k==subNbz-2 || k==0) {
   //    //   for(j=0; j<subNby+2; j++)
-  //    // 	outFile << "---";
+  //    //      outFile << "---";
   //    //   outFile << std::endl;
   //    // }
   //    // for(j=0; j<subNby; j++) {
@@ -4658,7 +4649,6 @@ double FixLbFluid::compute_vector(int n)
     double fluidmass, fluidmomentum[3];
     calc_MPT(fluidmass, fluidmomentum, Tav);
 
-    int i;
     double particlemass = 0, particlevcm[3] = {0, 0, 0};
     particlemass = group->mass(0);    // use igroup=0 here and for vcm to get group 'all' particles,
                                       // not just ones in this fix

@@ -21,6 +21,7 @@ FixStyle(lb/fluid,FixLbFluid)
 #define LMP_FIX_LB_FLUID_H
 
 #include "fix.h"
+#include <cmath>
 
 #if defined(MPI_STUBS)
 #error "The LATBOLTZ package cannot be compiled in serial with MPI STUBS"

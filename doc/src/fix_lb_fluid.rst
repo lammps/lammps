@@ -55,7 +55,7 @@ Examples
 
 .. code-block:: LAMMPS
 
-   fix 1 all lb/fluid 1 1.0 0.0009982071 dx 1.2 dm 0.001 
+   fix 1 all lb/fluid 1 1.0 0.0009982071 dx 1.2 dm 0.001
    fix 1 all lb/fluid 1 1.0 0.0009982071 dx 1.2 dm 0.001 noise 300.0 2761
    fix 1 all lb/fluid 1 1.0 1.0 dx 4.0 dm 10.0 dumpxdmf 500 fflow 0 pressurebcx 0.01 npits 2 20 40 5 0 wp 30
 
@@ -195,7 +195,7 @@ of :ref:`Adhikari et al. <Adhikari>` is used.
 If the keyword *stencil* is used, the value sets the number of interpolation points
 used in each direction.  For this, the user has the choice between a trilinear stencil (*stencil* 2), which
 provides a support of 8 lattice sites, or the 3-point immersed boundary method
-stencil (*stencil* 3), which provides a support of 27 lattice sites, or the 4-point Keys' interpolation stencil (stencil 4), which provides a support of 64 lattice sites.  The trilinear stencil is the default as it is better suited for simulation of objects close to walls or other objects, due to its smaller support.  The 3-point stencil provides smoother motion of the lattice and is suitable for particles not likely to be to close to walls or other objects.  
+stencil (*stencil* 3), which provides a support of 27 lattice sites, or the 4-point Keys' interpolation stencil (stencil 4), which provides a support of 64 lattice sites.  The trilinear stencil is the default as it is better suited for simulation of objects close to walls or other objects, due to its smaller support.  The 3-point stencil provides smoother motion of the lattice and is suitable for particles not likely to be to close to walls or other objects.
 
 If the keyword *write_restart* is used, followed by a positive
 integer, N, a binary restart file is printed every N LB timesteps.
@@ -230,12 +230,12 @@ used by the lattice-Boltzmann algorithm.  By default, the 15 velocity
 (D3Q15) lattice is used.
 
 If the *dumpxdmf* keyword is used, followed by a positive integer, N, and a file name, the fluid densities and velocities at each lattice site are output to an xdmf file every N timesteps.  This is a binary file format that can be read by visualization packages such as `Paraview <https://www.paraview.org/>`_ .  The xdmf file format contains a time index for each frame dump and the value timeI = 1 uses simulation time while 0 uses the output frame number to index xdmf file.  The later can be useful if the :doc:`dump vtk <dump_vtk>` command is used to output the particle positions at the same timesteps and you want to visualize both the fluid and particle data together in `Paraview <https://www.paraview.org/>`_ .
-	 
+
 The *scaleGamma* keyword allows the user to
 scale the :math:`\gamma` value by a factor, gammaFactor,
 for a given atom type.   Setting *scaleGamma* to -1 for the corresponding particle type
 will explicity take the limit of infinite particle mass in computing the force coupling for the fluid force (see note above).
-	 
+
 If the *a0* keyword is used, the value specified is used for the
 square of the speed of sound in the fluid.  If this keyword is not
 present, the speed of sound squared is set equal to
@@ -256,7 +256,7 @@ The *npits* keyword (followed by integer arguments: npits, h_p, l_p, l_pp, l_e) 
                                                                            |
     __________                    __________                    __________ v
               |                  |          |                  |           ^       z
-              |                  |          |                  |           |       | 
+              |                  |          |                  |           |       |
               |       pit        |          |       pit        |           hp      +-x
               |                  |          |                  |           |
               |__________________|          |__________________|           v
@@ -272,7 +272,7 @@ The *npits* keyword (followed by integer arguments: npits, h_p, l_p, l_pp, l_e) 
         |          |      |          z
         |<---wp--->|      hp         |
         |          |      |          +-y
-        |__________|      v           
+        |__________|      v
 
 
 

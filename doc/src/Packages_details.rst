@@ -2696,7 +2696,7 @@ The *tild* style is an implementation of 'theoretically informed Langevin Dynami
 **Supporting info:**
 
 * src/TILD: filenames -> commands
-* src/TALLY/README
+* src/TILD/README
 * :doc:`kspace_style tild <kspace_tild>`
 * examples/PACKAGES/tild
 

@@ -21,7 +21,7 @@ Syntax
 
        *gridsize* value = gridsize
        *mesh* value = x y z
-         x,y,z = grid size in each dimension for long-range Coulombics
+         x,y,z = grid size in each dimension for TILD interaction
        *minorder* value = M
          M = min allowed extent of mapping when auto-adjusting to minimize grid communication
        *order* value = N
@@ -65,15 +65,15 @@ Examples
 Description
 """""""""""
 
-The *tild* style is an implementation of "theoretically informed Langevin Dynamics" method (previously known as "Dynamical Mean Field Theory") :ref:`Chao<Chao>`: :ref:`Fredrickson<Fredrickson>`: :ref:`Grzetic<Grzetic>`. This interaction potential uses a particle-mesh scheme to calculate non-bonded pairwise forces indirectly through a gridded density representation. *tild* assigns a potentials for each simulation particle type, defined with :doc:`kspace_modify tild <kspace_modify>`. This potential does NOT calculate any Coulombic interactions and currently is incompatible with other `kspace_style`s in LAMMPS. 
+The *tild* style is an implementation of "theoretically informed Langevin Dynamics" method (previously known as "Dynamical Mean Field Theory") :ref:`Chao<Chao>`: :ref:`Fredrickson<Fredrickson>`: :ref:`Grzetic<Grzetic>`. This interaction potential uses a particle-mesh scheme to calculate non-bonded pairwise forces indirectly through a gridded density representation. *tild* assigns a potential for each simulation particle type, defined with :doc:`kspace_modify tild <kspace_modify>`. This potential does NOT calculate any Coulombic or magnetic interactions and currently is incompatible with other `kspace_style` in LAMMPS.
 
 .. note::
 
    Unlike other KSpace solvers in LAMMPS, the kspace TILD accounts for
    non-bonded interactions, both short-range and long-range interactions through
-   a "short-ranged" potential. Therefore, there is no accompanying short range
-   pair-style required. To fully implement the TILD methodology, use 
-   :doc:`fix langevin<fix_langevin>` with *tild*. 
+   a "short-ranged" potential. Therefore, there is no accompanying short-range
+   pair style required. To fully implement the TILD methodology, use 
+   :doc:`fix langevin<fix_langevin>` with *tild*\ . 
    (There is no warning produced if TILD is used without `fix langevin`.) 
 
 
@@ -84,7 +84,7 @@ relevant to all kspace styles.
 ----------
 
 The *gridsize* keyword overrides the current grid resolution parameter set by
-the `kspace_style tild` command with new size in distance units. 
+the `kspace_style tild` command with a new size in distance units. 
 The grid size determines the mesh grid for the long-range solver.
 
 ----------
@@ -163,14 +163,14 @@ The current shape function styles used in *tild shape* are
          = & \frac{A}{\rho_0} u_G (r) \\
    U_{erfc} = & - \frac{A}{\rho_0}  \rho_{NP} \text{erfc} \left(\frac{\vert r \vert - R_p}{\xi}\right) \\ 
 
-where :math:`A` is the value set by `tild prefactor`\, :math:`\rho_0` is the total density of the TILD particles, :math:`\rho_{NP}` is the density of the TILD erfc nanoparticle, :math:`\sigma`\ is the gaussian width, :math:`R_p` is the erfc particle radius and :math:`xi` is the erfc width.
+where :math:`A` is the value set by `tild prefactor`\, :math:`\rho_0` is the total density of the TILD particles, :math:`\rho_{NP}` is the density of the TILD erfc nanoparticle, :math:`\sigma`\ is the gaussian width, :math:`R_p` is the erfc particle radius and :math:`\xi` is the erfc width.
 
 The first required keyword for the *tild shape* option is the model. 
 Currently supported options for shape function models
 and their required arguments are:
 
 1. *gaussian* : :math:`\sigma` (distance units)
-2. *erfc* : :math:`R_p`, :math:`\xi` (both in distance units)
+2. *erfc* : :math:`R_p`, :math:`\xi` and :math:`\rho_{NP}` (:math:`R_p` and :math:`\xi` in distance units; :math:`\rho_{NP}` in inverse volume units)
 
 ----------
 
@@ -186,7 +186,7 @@ separately from any other density in LAMMPS. Each defined `gaussian` shape
 particle has a mass of 1, each defined `erfc` shape has a density of 
 :math:`4/3 \pi r^3 \rho_{NP}`\ . Particles without any defined shape functions do not contribute to the
 overall density, even if they are included in a `cross-interaction`. 
-Defining a *rho0* for a system without any shape functions (purely `cross-interaction` s) will
+Defining a *rho0* for a system without any shape functions (but with `cross-interaction` functions) will
 accept the value as is (provided it is non-negative) and use that for
 normalization purposes. Similarly, a function consisting of whose only defined
 shapes are purely `gaussian` will also accept the user specified *rho0* as is.
@@ -204,7 +204,7 @@ Please note this division will divide the prefactors specified in `tild prefacto
 
 The *tild cross-interaction* keyword is used to override any specified interaction
 from `tild shape`. At this time, we currently only support three non-zero
-interaction styles (`gaussian`, `erfc`, `gaussian-erfc`), which model the
+interaction styles (`gaussian`, `erfc` and `gaussian-erfc`), which model the
 interactions between two gaussian potentials, two erfc potentials, or the
 interaction between a gaussian particle and an erfc particle. There is also a
 `none` style to force no-interactions between certain particle types and also a
@@ -220,7 +220,7 @@ The current interaction styles used in *tild cross-interaction* are
    U_{g-erfc} = & \frac{A}{\rho_0} u_G (r) * \text{erfc}
    \left(\frac{\vert r \vert - R_p}{\xi}\right)
 
-where :math:`A` is the value set by `tild prefactor`\ , :math:`\rho_0` is the TILD density of the simulation box, :math:`\sigma` is the gaussian width, :math:`R_p` is the erfc particle radius and :math:`\xi` is the erfc width, which controls how quickly the particle density drops from :math:`\rho_0`` to zero.
+where :math:`A` is the value set by `tild prefactor`\ , :math:`\rho_0` is the TILD density of the simulation box, :math:`\sigma` is the gaussian width, :math:`R_p` is the erfc particle radius and :math:`\xi` is the erfc width, which controls how quickly the particle density drops from :math:`\rho_0`` to zero. :math:`U_{g-erfc}` involves convoluting the :math:`U_{g}` and :math:`U_{erfc}` functions.
 
 The first required keyword for the *tild cross-interaction* option is the interaction model. 
 Currently supported options for interaction models
@@ -234,15 +234,15 @@ and their required arguments are:
 
    ``cross-interaction`` and `shape` definitions have slightly different input parameters and so mapping is explicitly laid out.
    For the ``gaussian`` `shape`, the input parameter is :math:`\sigma_{i}`\ ; the code will square this automatically. 
-   For interactions between two ``gaussian`` defined `shape` s, the code analytically and behind the scenes performs the convolution so that the interaction potential uses :math:`\sigma^2_{12} = \sigma^2_{1} + \sigma^2_{2}`. For the convolution between a ``gaussian`` `shape` and a erfc `shape`, the code convolves the ``gaussian`` and ``erfc`` `shape` potentials computationally; this is also true for interactions between ``erfc`` `shape` s. 
+   For interactions between two ``gaussian`` defined `shape` particles, the code analytically and behind the scenes performs the convolution so that the interaction potential uses :math:`\sigma^2_{12} = \sigma^2_{1} + \sigma^2_{2}`. For the convolution between a ``gaussian`` `shape` and a ``erfc`` `shape`, the code convolves the ``gaussian`` and ``erfc`` `shape` potentials computationally; this is also true for interactions between two ``erfc`` `shape` particles. 
 
-   However, for ``cross-interaction``, the code will treats the user input for ``gaussian`` :math:`\sigma^2` so the user should manually calculate their own :math:`\sigma_{12}^2` before the run. For ``gaussian-erfc``, the code takes in :math:`\sigma^2` instead of :math:`\sigma`. Additionally, the ``gaussian-erfc`` and ``erfc`` commands do not take into account the :math:`\rho_{NP}` since ``cross-interactions`` assume to know nothing about this. Thus, if you have a value of :math:`\rho_{NP}` that is not 1, you should multiply it by :math:`\rho_{NP}` or :math:`(\rho_{NP})^2` for ``gaussian-erfc`` and ``erfc``, respectively.
+   However, for ``cross-interaction``, the code treats the user input for ``gaussian`` as :math:`\sigma^2` so the user should manually calculate their own :math:`\sigma_{12}^2` before the run. For ``gaussian-erfc``, the code takes in :math:`\sigma^2` instead of :math:`\sigma`. Additionally, the ``gaussian-erfc`` and ``erfc`` commands do not take into account the :math:`\rho_{NP}` since ``cross-interactions`` assume to know nothing about this. Thus, if you have a value of :math:`\rho_{NP}` that is not 1, you should multiply it by :math:`\rho_{NP}` or :math:`(\rho_{NP})^2` for ``gaussian-erfc`` and ``erfc``, respectively.
    
    Identical simulations defined both ways can be found in examples/tild.
 
 ----------
 
-The *write_grid_data* writes the instantaneous gridded density to *filename*. Every *freq* timesteps, the density is overwritten.
+The *write_grid_data* writes the instantaneous gridded density to *filename*\ . Every *freq* timesteps, the density is overwritten.
 
 ----------
 
@@ -250,11 +250,11 @@ The *ave/grid* keywords determines how frequently the density grids are averaged
 output. The *Nevery*, *Nrepeat*, and *Nfreq* arguments specify on what
 timesteps the input values will be used in order to contribute to the average.
 The final averaged quantities are generated on timesteps that are a multiple of
-*Nfreq*. The average is over *Nrepeat* quantities, computed in the preceding
+*Nfreq*\ . The average is over *Nrepeat* quantities, computed in the preceding
 portion of the simulation every *Nevery* timesteps. *Nfreq* must be a multiple
 of *Nevery* and *Nevery* must be non-zero even if *Nrepeat* is 1. Also, the
 timesteps contributing to the average value cannot overlap, i.e. *Nrepeat* * *Nevery*
-can not exceed *Nfreq*.
+can not exceed *Nfreq*\ .
 
 ----------
 

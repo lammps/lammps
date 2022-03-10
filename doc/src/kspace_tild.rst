@@ -15,12 +15,10 @@ Syntax
    kspace_modify keyword value ...
 
 * one or more keyword/value pairs may be listed
-* keyword = *compute* or *fftbench* or *gridsize* or *mesh* or *minorder* or *order* or *overlap* or *shape* or *prefactor* or *cross-interaction* or *set_rho0* or *subtract_rho0* or *normalize_by_rho0* or *write_grid_data* or *ave/grid*
+* keyword = *gridsize* or *mesh* or *minorder* or *order* or *overlap* or *shape* or *prefactor* or *cross-interaction* or *set_rho0* or *subtract_rho0* or *normalize_by_rho0* or *write_grid_data* or *ave/grid*
 
   .. parsed-literal::
 
-       *compute* value = *yes* or *no*
-       *fftbench* value = *yes* or *no*
        *gridsize* value = gridsize
        *mesh* value = x y z
          x,y,z = grid size in each dimension for long-range Coulombics
@@ -82,18 +80,6 @@ The *tild* style is an implementation of "theoretically informed Langevin Dynami
 Set parameters used by the kspace solvers defined by the
 :doc:`kspace_style <kspace_style>` command.  Not all parameters are
 relevant to all kspace styles.
-
-
-----------
-
-The *compute* keyword allows Kspace computations to be turned off,
-even though a :doc:`kspace_style <kspace_style>` is defined.  This is
-not useful for running a real simulation, but can be useful for
-debugging purposes or for computing only partial forces that do not
-include the kspace contribution.  You can also do this by simply not
-defining a :doc:`kspace_style <kspace_style>`, but a Kspace-compatible
-:doc:`pair_style <pair_style>` requires a kspace style to be defined.
-This keyword gives you that option.
 
 ----------
 

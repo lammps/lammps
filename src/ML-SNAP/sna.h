@@ -59,6 +59,9 @@ class SNA : protected Pointers {
   double compute_sfac(double, double);
   double compute_dsfac(double, double);
 
+  double compute_sfac_inner(double, double, double);
+  double compute_dsfac_inner(double, double, double);
+  
   double *blist;
   double **dblist;
   double **rij;
@@ -114,6 +117,11 @@ class SNA : protected Pointers {
   // 0 = none
   // 1 = cosine
   int switch_flag;
+
+  // Sets the style for the inner switching function
+  // 0 = none
+  // 1 = cosine
+  int switch_inner_flag;
 
   // Self-weight
   double wself;

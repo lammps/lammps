@@ -119,6 +119,7 @@ SNA::SNA(LAMMPS* lmp, double rfac0_in, int twojmax_in,
   rfac0 = rfac0_in;
   rmin0 = rmin0_in;
   switch_flag = switch_flag_in;
+  switch_inner_flag = 0;
   bzero_flag = bzero_flag_in;
   chem_flag = chem_flag_in;
   bnorm_flag = bnorm_flag_in;
@@ -1001,10 +1002,14 @@ void SNA::zero_uarraytot(int ielem)
 void SNA::add_uarraytot(double r, double wj, double rcut, int jj, int jelem)
 {
   double sfac;
+  double rinner = 0.0;
+  double drinner = 1.0;
 
   sfac = compute_sfac(r, rcut);
-
   sfac *= wj;
+
+  if (switch_inner_flag)
+    sfac *= compute_sfac_inner(r, rinner, drinner);
 
   double* ulist_r = ulist_r_ij[jj];
   double* ulist_i = ulist_i_ij[jj];
@@ -1248,6 +1253,14 @@ void SNA::compute_duarray(double x, double y, double z,
   double sfac = compute_sfac(r, rcut);
   double dsfac = compute_dsfac(r, rcut);
 
+  if (switch_inner_flag) {
+    double rinner = 0.0;
+    double drinner = 1.0;
+  
+    sfac *= compute_sfac_inner(r, rinner, drinner);
+    dsfac *= compute_dsfac_inner(r, rinner, drinner);
+  }
+  
   sfac *= wj;
   dsfac *= wj;
   for (int j = 0; j <= twojmax; j++) {
@@ -1515,31 +1528,59 @@ void SNA::compute_ncoeff()
 
 double SNA::compute_sfac(double r, double rcut)
 {
-  if (switch_flag == 0) return 1.0;
-  if (switch_flag == 1) {
-    if (r <= rmin0) return 1.0;
-    else if (r > rcut) return 0.0;
-    else {
-      double rcutfac = MY_PI / (rcut - rmin0);
-      return 0.5 * (cos((r - rmin0) * rcutfac) + 1.0);
-    }
+  double sfac;
+  if (switch_flag == 0) sfac = 1.0;
+  else if (r <= rmin0) sfac = 1.0;
+  else if (r > rcut) sfac = 0.0;
+  else {
+    double rcutfac = MY_PI / (rcut - rmin0);
+    sfac = 0.5 * (cos((r - rmin0) * rcutfac) + 1.0);
   }
-  return 0.0;
+  return sfac;
 }
 
 /* ---------------------------------------------------------------------- */
 
 double SNA::compute_dsfac(double r, double rcut)
 {
-  if (switch_flag == 0) return 0.0;
-  if (switch_flag == 1) {
-    if (r <= rmin0) return 0.0;
-    else if (r > rcut) return 0.0;
-    else {
-      double rcutfac = MY_PI / (rcut - rmin0);
-      return -0.5 * sin((r - rmin0) * rcutfac) * rcutfac;
-    }
+  double dsfac;
+  if (switch_flag == 0) dsfac = 0.0;
+  else if (r <= rmin0) dsfac = 0.0;
+  else if (r > rcut) dsfac = 0.0;
+  else {
+    double rcutfac = MY_PI / (rcut - rmin0);
+    dsfac = -0.5 * sin((r - rmin0) * rcutfac) * rcutfac;
   }
-  return 0.0;
+  return dsfac;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double SNA::compute_sfac_inner(double r, double rinner, double drinner)
+{
+  double sfac;
+  if (switch_inner_flag == 0) sfac = 1.0;
+  else if (r >= rinner + drinner) sfac = 1.0;
+  else if (r <= rinner) sfac = 0.0;
+  else {
+    double rcutfac = MY_PI / drinner;
+    sfac = 0.5 * (1.0 - cos((r - rinner) * rcutfac));
+  }
+  return sfac;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double SNA::compute_dsfac_inner(double r, double rinner, double drinner)
+{
+  double dsfac;
+  if (switch_inner_flag == 0) dsfac = 0.0;
+  else if (r >= rinner + drinner) dsfac = 0.0;
+  else if (r <= rinner) dsfac = 0.0;
+  else {
+    double rcutfac = MY_PI / drinner;
+    dsfac = 0.5 * sin((r - rinner) * rcutfac) * rcutfac;
+  }
+  return dsfac;
 }
 

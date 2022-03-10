@@ -52,6 +52,8 @@ ImproperAmoeba::~ImproperAmoeba()
 
 void ImproperAmoeba::compute(int eflag, int vflag)
 {
+  if (disable) return;
+
   int ia,ib,ic,id,n,type;
   double xia,yia,zia,xib,yib,zib,xic,yic,zic,xid,yid,zid;
   double xab,yab,zab,xcb,ycb,zcb,xdb,ydb,zdb,xad,yad,zad,xcd,ycd,zcd;
@@ -63,9 +65,8 @@ void ImproperAmoeba::compute(int eflag, int vflag)
   double dccdxid,dccdyid,dccdzid;
   double deedxia,deedyia,deedzia,deedxic,deedyic,deedzic;
   double deedxid,deedyid,deedzid;
-  double eimproper,fa[3],fb[3],fc[3],fd[3];
+  double fa[3],fb[3],fc[3],fd[3];
 
-  eimproper = 0.0;
   ev_init(eflag,vflag);
 
   double **x = atom->x;
@@ -152,7 +153,6 @@ void ImproperAmoeba::compute(int eflag, int vflag)
     dt4 = dt2 * dt2;
     e = prefactor * k[type] * dt2 * (1.0 + opbend_cubic*dt + opbend_quartic*dt2 + 
                          opbend_pentic*dt3 + opbend_sextic*dt4);
-    eimproper += e;
 
     deddt = k[type] * dt * 
       (2.0 + 3.0*opbend_cubic*dt + 4.0*opbend_quartic*dt2 + 
@@ -285,6 +285,12 @@ void ImproperAmoeba::init_style()
   opbend_quartic = *(double *) pair->extract("opbend_quartic",dim);
   opbend_pentic = *(double *) pair->extract("opbend_pentic",dim);
   opbend_sextic = *(double *) pair->extract("opbend_sextic",dim);
+
+  // check if PairAmoeba disabled improper terms
+
+  int tmp;
+  int flag = *((int *) pair->extract("improper_flag",tmp));
+  disable = flag ? 0 : 1;
 }
 
 /* ----------------------------------------------------------------------

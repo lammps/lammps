@@ -24,11 +24,11 @@
 #include "comm.h"
 #include "neighbor.h"
 #include "force.h"
+#include "pair.h"
 #include "update.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
-
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -70,6 +70,8 @@ DihedralFourier::~DihedralFourier()
 
 void DihedralFourier::compute(int eflag, int vflag)
 {
+  if (disable) return;
+
   int i1,i2,i3,i4,i,j,m,n,type;
   double vb1x,vb1y,vb1z,vb2x,vb2y,vb2z,vb3x,vb3y,vb3z,vb2xm,vb2ym,vb2zm;
   double edihedral,f1[3],f2[3],f3[3],f4[3];
@@ -327,13 +329,28 @@ void DihedralFourier::coeff(int narg, char **arg)
   if (count == 0) error->all(FLERR,"Incorrect args for dihedral coefficients");
 }
 
+/* ---------------------------------------------------------------------- */
+
+void DihedralFourier::init_style()
+{
+  // check if PairAmoeba disabled dihedral terms
+
+  Pair *pair = force->pair_match("amoeba",1,0);
+
+  if (!pair) disable = 0;
+  else {
+    int tmp;
+    int flag = *((int *) pair->extract("dihedral_flag",tmp));
+    disable = flag ? 0 : 1;
+  }
+}
+
 /* ----------------------------------------------------------------------
    proc 0 writes out coeffs to restart file
 ------------------------------------------------------------------------- */
 
 void DihedralFourier::write_restart(FILE *fp)
 {
-
   fwrite(&nterms[1],sizeof(int),atom->ndihedraltypes,fp);
   for (int i = 1; i <= atom->ndihedraltypes; i++) {
     fwrite(k[i],sizeof(double),nterms[i],fp);

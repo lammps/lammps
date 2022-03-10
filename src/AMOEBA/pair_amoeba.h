@@ -75,12 +75,12 @@ class PairAmoeba : public Pair {
 
   // turn on/off components of force field
 
-  int hal_flag,repulse_flag,disp_flag,induce_flag,polar_flag,mpole_flag,qxfer_flag;
-  int rspace_flag,kspace_flag;
-
-  // DEBUG flags
-
-  int uind_flag;
+  int hal_flag,repulse_flag,qxfer_flag;
+  int disp_rspace_flag,disp_kspace_flag;
+  int polar_rspace_flag,polar_kspace_flag;
+  int mpole_rspace_flag,mpole_kspace_flag;
+  int bond_flag,angle_flag,dihedral_flag,improper_flag;
+  int urey_flag,pitorsion_flag,xtorsion_flag;
 
   // DEBUG timers
 

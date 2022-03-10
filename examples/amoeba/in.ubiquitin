@@ -15,6 +15,7 @@ improper_style  amoeba
 
 fix             amtype all property/atom i_amtype ghost yes
 fix             pitorsion all pitorsion
+fix_modify      pitorsion energy yes
 
 fix             extra all property/atom &
                 i_amgroup i_ired i_xaxis i_yaxis i_zaxis d_pval ghost yes

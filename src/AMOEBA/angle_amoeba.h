@@ -30,6 +30,7 @@ class AngleAmoeba : public Angle {
   virtual ~AngleAmoeba();
   void compute(int, int);
   void coeff(int, char **);
+  void init_style();
   double equilibrium_angle(int);
   void write_restart(FILE *);
   void read_restart(FILE *);
@@ -42,6 +43,8 @@ class AngleAmoeba : public Angle {
   double *ba_k1, *ba_k2, *ba_r1, *ba_r2;
   double *ub_k, *ub_r0;
   int *setflag_a, *setflag_ba, *setflag_ub;
+
+  int enable_angle,enable_urey;
 
   void tinker_angle(int, int, int, int, int);
   void tinker_anglep(int, int, int, int, int);

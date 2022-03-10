@@ -21,6 +21,7 @@
 #include "domain.h"
 #include "comm.h"
 #include "force.h"
+#include "pair.h"
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
@@ -112,22 +113,26 @@ void AngleAmoeba::compute(int eflag, int vflag)
     // tflag = 0 for "angle", 1 for "anglep" in Tinker PRM file
     // atom 2 must have exactly 3 bond partners to invoke anglep() variant
 
-    tflag = pflag[type];
+    if (enable_angle) {
+      tflag = pflag[type];
 
-    if (tflag && nspecial[i2][0] == 3)
-      tinker_anglep(i1,i2,i3,type,eflag);
-    else
-      tinker_angle(i1,i2,i3,type,eflag);
+      if (tflag && nspecial[i2][0] == 3)
+        tinker_anglep(i1,i2,i3,type,eflag);
+      else
+        tinker_angle(i1,i2,i3,type,eflag);
 
-    // bondangle = bond-stretch cross term in Tinker
+      // bondangle = bond-stretch cross term in Tinker
 
-    if (ba_k1[type] != 0.0)
-      tinker_bondangle(i1,i2,i3,type,eflag);
+      if (ba_k1[type] != 0.0)
+        tinker_bondangle(i1,i2,i3,type,eflag);
+    }
 
     // Urey-Bradley H-H bond term within water molecules
 
-    uflag = ubflag[type];
-    if (uflag) tinker_urey_bradley(i1,i3,type,eflag);
+    if (enable_urey) {
+      uflag = ubflag[type];
+      if (uflag) tinker_urey_bradley(i1,i3,type,eflag);
+    }
   }
 }
 
@@ -686,6 +691,22 @@ void AngleAmoeba::coeff(int narg, char **arg)
   for (int i = ilo; i <= ihi; i++)
     if (setflag_a[i] == 1 && setflag_ba[i] == 1 && setflag_ub[i]) 
       setflag[i] = 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AngleAmoeba::init_style()
+{
+  // check if PairAmoeba disabled angle or Urey-Bradley terms
+
+  Pair *pair = force->pair_match("amoeba",1,0);
+
+  if (!pair) enable_angle = enable_urey = 1;
+  else {
+    int tmp;
+    enable_angle = *((int *) pair->extract("angle_flag",tmp));
+    enable_urey = *((int *) pair->extract("urey_flag",tmp));
+  }
 }
 
 /* ---------------------------------------------------------------------- */

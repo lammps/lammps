@@ -36,6 +36,7 @@ class ImproperAmoeba : public Improper {
   void write_data(FILE *);
 
  protected:
+  int disable;
   double opbend_cubic,opbend_quartic,opbend_pentic,opbend_sextic;
   double *k;
 

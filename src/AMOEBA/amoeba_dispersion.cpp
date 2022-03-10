@@ -44,11 +44,11 @@ void PairAmoeba::dispersion()
 
   // compute the real space portion of the Ewald summation
 
-  if (rspace_flag) dispersion_real();
+  if (disp_rspace_flag) dispersion_real();
 
   // compute the reciprocal space part of the Ewald summation
 
-  if (kspace_flag) dispersion_kspace();
+  if (disp_kspace_flag) dispersion_kspace();
 
   // compute the self-energy portion of the Ewald summation
 

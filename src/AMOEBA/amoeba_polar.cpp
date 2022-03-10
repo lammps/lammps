@@ -80,11 +80,11 @@ void PairAmoeba::polar()
 
   // compute the real space part of the dipole interactions
 
-  if (rspace_flag) polar_real();
+  if (polar_rspace_flag) polar_real();
 
   // compute the reciprocal space part of dipole interactions
 
-  if (kspace_flag) polar_kspace();
+  if (polar_kspace_flag) polar_kspace();
 
   // compute the Ewald self-energy torque and virial terms
 

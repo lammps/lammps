@@ -22,6 +22,7 @@
 #include "respa.h"
 #include "domain.h"
 #include "force.h"
+#include "pair.h"
 #include "comm.h"
 #include "math_const.h"
 #include "memory.h"
@@ -145,6 +146,21 @@ void FixPiTorsion::init()
     ilevel_respa = ((Respa *) update->integrate)->nlevels-1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level,ilevel_respa);
   }
+
+  // check if PairAmoeba disabled pitorsion terms
+
+  Pair *pair = force->pair_match("amoeba",1,0);
+
+  if (!pair) disable = 0;
+  else {
+    int tmp;
+    int flag = *((int *) pair->extract("pitorsion_flag",tmp));
+    disable = flag ? 0 : 1;
+  }
+
+  // constant
+
+  onesixth = 1.0/6.0;
 }
 
 /* --------------------------------------------------------------------- */
@@ -185,7 +201,9 @@ void FixPiTorsion::min_setup(int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   store local neighbor list for newton_bond ON
+   create local list of pitorsions
+   if one or more atoms in pitorsion are on this proc,
+     this proc lists the pitorsion exactly once
 ------------------------------------------------------------------------- */
 
 void FixPiTorsion::pre_neighbor()
@@ -231,6 +249,13 @@ void FixPiTorsion::pre_neighbor()
       atom5 = domain->closest_image(i,atom5);
       atom6 = domain->closest_image(i,atom6);
 
+      /*
+      if (atom1 >= nlocal || atom2 >= nlocal || atom3 >= nlocal ||
+          atom4 >= nlocal || atom5 >= nlocal || atom6 >= nlocal)
+        printf("ATOM 123456: %d %d %d %d %d %d\n",
+               atom1,atom2,atom3,atom4,atom5,atom6);
+      */
+
       if (i <= atom1 && i <= atom2 && i <= atom3 &&
           i <= atom4 && i <= atom5 && i <= atom6) {
         if (npitorsion_list == max_pitorsion_list) {
@@ -261,13 +286,15 @@ void FixPiTorsion::pre_reverse(int eflag, int /*vflag*/)
 }
 
 /* ----------------------------------------------------------------------
-   compute PiTorsion terms as if newton_bond = OFF, even if actually ON
+   compute PiTorsion terms
 ------------------------------------------------------------------------- */
 
 void FixPiTorsion::post_force(int vflag)
 {
+  if (disable) return;
+
   int ia,ib,ic,id,ie,ig,ptype;
-  double e,dedphi;
+  double e,dedphi,engfraction;
   double xt,yt,zt,rt2;
   double xu,yu,zu,ru2;
   double xtu,ytu,ztu;
@@ -307,18 +334,24 @@ void FixPiTorsion::post_force(int vflag)
   double vxx,vyy,vzz;
   double vyx,vzx,vzy;
 
-  double **x = atom->x;
-  double **f = atom->f;
+  int nlist,list[6];
+  double v[6];
 
   epitorsion = 0.0;
+  int eflag = eflag_caller;
+  ev_init(eflag,vflag);
+
+  double **x = atom->x;
+  double **f = atom->f;
+  int nlocal = atom->nlocal;
 
   for (int n = 0; n < npitorsion_list; n++) {
     ia = pitorsion_list[n][0];
-    ib = pitorsion_list[n][0];
-    ic = pitorsion_list[n][0];
-    id = pitorsion_list[n][0];
-    ie = pitorsion_list[n][0];
-    ig = pitorsion_list[n][0];
+    ib = pitorsion_list[n][1];
+    ic = pitorsion_list[n][2];
+    id = pitorsion_list[n][3];
+    ie = pitorsion_list[n][4];
+    ig = pitorsion_list[n][5];
     ptype = pitorsion_list[n][6];
 
     // compute the value of the pi-system torsion angle
@@ -404,11 +437,15 @@ void FixPiTorsion::post_force(int vflag)
     dphi2 = 2.0 * (cosine2*s2 - sine2*c2);
 
     // calculate pi-system torsion energy and master chain rule term
+    // NOTE: remove ptornunit if 1.0 ?
 
-    // NOTE: is ptornunit 1.0 ?
     double ptorunit = 1.0;
     e = ptorunit * v2 * phi2;
     dedphi = ptorunit * v2 * dphi2;
+
+    // fraction of energy for each atom
+
+    engfraction = e * onesixth;
 
     // chain rule terms for first derivative components
 
@@ -461,47 +498,73 @@ void FixPiTorsion::post_force(int vflag)
     dedyid = dedyid + dedyiq - dedyia - dedyib;
     dedzid = dedzid + dedziq - dedzia - dedzib;
 
-    // increment the total pi-system torsion energy and gradient
+    // forces and energy
 
-    epitorsion += e;
+    if (ia < nlocal) {
+      epitorsion += engfraction;
+      f[ia][0] += dedxia;
+      f[ia][1] += dedyia;
+      f[ia][2] += dedzia;
+    }
 
-    f[ia][0] += dedxia;
-    f[ia][1] += dedyia;
-    f[ia][2] += dedzia;
-    f[ib][0] += dedxib;
-    f[ib][1] += dedyib;
-    f[ib][2] += dedzib;
-    f[ic][0] += dedxic;
-    f[ic][1] += dedyic;
-    f[ic][2] += dedzic;
-    f[id][0] += dedxid;
-    f[id][1] += dedyid;
-    f[id][2] += dedzid;
-    f[ie][0] += dedxie;
-    f[ie][1] += dedyie;
-    f[ie][2] += dedzie;
-    f[ig][0] += dedxig;
-    f[ig][1] += dedyig;
-    f[ig][2] += dedzig;
+    if (ib < nlocal) {
+      epitorsion += engfraction;
+      f[ib][0] += dedxib;
+      f[ib][1] += dedyib;
+      f[ib][2] += dedzib;
+    }
 
-    // increment the internal virial tensor components
+    if (ic < nlocal) {
+      epitorsion += engfraction;
+      f[ic][0] += dedxic;
+      f[ic][1] += dedyic;
+      f[ic][2] += dedzic;
+    }
 
-    vxterm = dedxid + dedxia + dedxib;
-    vyterm = dedyid + dedyia + dedyib;
-    vzterm = dedzid + dedzia + dedzib;
-    vxx = xdc*vxterm + xcp*dedxip - xqd*dedxiq;
-    vyx = ydc*vxterm + ycp*dedxip - yqd*dedxiq;
-    vzx = zdc*vxterm + zcp*dedxip - zqd*dedxiq;
-    vyy = ydc*vyterm + ycp*dedyip - yqd*dedyiq;
-    vzy = zdc*vyterm + zcp*dedyip - zqd*dedyiq;
-    vzz = zdc*vzterm + zcp*dedzip - zqd*dedziq;
+    if (id < nlocal) {
+      epitorsion += engfraction;
+      f[id][0] += dedxid;
+      f[id][1] += dedyid;
+      f[id][2] += dedzid;
+    }
 
-    virial[0] += vxx;
-    virial[1] += vyy;
-    virial[2] += vzz;
-    virial[3] += vyx;
-    virial[4] += vzx;
-    virial[5] += vzy;
+    if (ie < nlocal) {
+      epitorsion += engfraction;
+      f[ie][0] += dedxie;
+      f[ie][1] += dedyie;
+      f[ie][2] += dedzie;
+    }
+
+    if (ig < nlocal) {
+      epitorsion += engfraction;
+      f[ig][0] += dedxig;
+      f[ig][1] += dedyig;
+      f[ig][2] += dedzig;
+    }
+
+    // virial tensor components
+
+    if (evflag) {
+      nlist = 0;
+      if (ia < nlocal) list[nlist++] = ia;
+      if (ib < nlocal) list[nlist++] = ib;
+      if (ic < nlocal) list[nlist++] = ic;
+      if (id < nlocal) list[nlist++] = id;
+      if (ie < nlocal) list[nlist++] = ie;
+      if (ig < nlocal) list[nlist++] = ig;
+
+      vxterm = dedxid + dedxia + dedxib;
+      vyterm = dedyid + dedyia + dedyib;
+      vzterm = dedzid + dedzia + dedzib;
+      v[0] = xdc*vxterm + xcp*dedxip - xqd*dedxiq;
+      v[1] = ydc*vyterm + ycp*dedyip - yqd*dedyiq;
+      v[2] = zdc*vzterm + zcp*dedzip - zqd*dedziq;
+      v[3] = ydc*vxterm + ycp*dedxip - yqd*dedxiq;
+      v[4] = zdc*vxterm + zcp*dedxip - zqd*dedxiq;
+      v[5] = zdc*vyterm + zcp*dedyip - zqd*dedyiq;
+
+      ev_tally(nlist,list,6.0,e,v);
+    }
   }
 }
 
@@ -543,17 +606,11 @@ void FixPiTorsion::read_data_header(char *line)
   } else if (strstr(line,"pitorsion types")) {
     sscanf(line,"%d",&npitorsion_types);
   } else error->all(FLERR,"Invalid read data header line for fix pitorsion");
-
-  // didn't set in constructor because this fix could be defined
-  // before newton command
-
-  newton_bond = force->newton_bond;
 }
 
 /* ----------------------------------------------------------------------
    unpack N lines in buf from section of data file labeled by keyword
    id_offset is applied to atomID fields if multiple data files are read
-   store PiTorsion interactions as if newton_bond = OFF, even if actually ON
 ------------------------------------------------------------------------- */
 
 void FixPiTorsion::read_data_section(char *keyword, int n, char *buf,
@@ -583,7 +640,7 @@ void FixPiTorsion::read_data_section(char *keyword, int n, char *buf,
     for (int i = 0; i < n; i++) {
       next = strchr(buf,'\n');
       *next = '\0';
-      sscanf(buf,"%d %g",&itype,&value);
+      sscanf(buf,"%d %lg",&itype,&value);
       if (itype <= 0 || itype > npitorsion_types)
         error->all(FLERR,"Incorrect args for pitorsion coefficients");
       kpit[itype] = value;
@@ -593,7 +650,7 @@ void FixPiTorsion::read_data_section(char *keyword, int n, char *buf,
 
   // loop over lines of PiTorsions
   // tokenize the line into values
-  // add PiTorsion to one or more of my atoms, depending on newton_bond
+  // each atom in the PiTorsion stores it
 
   if (which == 0) {
 
@@ -623,8 +680,32 @@ void FixPiTorsion::read_data_section(char *keyword, int n, char *buf,
       atom5 += id_offset;
       atom6 += id_offset;
 
-      // atom3 owns the pitorsion when newton_bond on
-
+      if ((m = atom->map(atom1)) >= 0) {
+        if (num_pitorsion[m] == PITORSIONMAX)
+          error->one(FLERR,"Too many PiTorsions for one atom");
+        pitorsion_type[m][num_pitorsion[m]] = itype;
+        pitorsion_atom1[m][num_pitorsion[m]] = atom1;
+        pitorsion_atom2[m][num_pitorsion[m]] = atom2;
+        pitorsion_atom3[m][num_pitorsion[m]] = atom3;
+        pitorsion_atom4[m][num_pitorsion[m]] = atom4;
+        pitorsion_atom5[m][num_pitorsion[m]] = atom5;
+        pitorsion_atom6[m][num_pitorsion[m]] = atom6;
+        num_pitorsion[m]++;
+      }
+      
+      if ((m = atom->map(atom2)) >= 0) {
+        if (num_pitorsion[m] == PITORSIONMAX)
+          error->one(FLERR,"Too many PiTorsions for one atom");
+        pitorsion_type[m][num_pitorsion[m]] = itype;
+        pitorsion_atom1[m][num_pitorsion[m]] = atom1;
+        pitorsion_atom2[m][num_pitorsion[m]] = atom2;
+        pitorsion_atom3[m][num_pitorsion[m]] = atom3;
+        pitorsion_atom4[m][num_pitorsion[m]] = atom4;
+        pitorsion_atom5[m][num_pitorsion[m]] = atom5;
+        pitorsion_atom6[m][num_pitorsion[m]] = atom6;
+        num_pitorsion[m]++;
+      }
+      
       if ((m = atom->map(atom3)) >= 0) {
         if (num_pitorsion[m] == PITORSIONMAX)
           error->one(FLERR,"Too many PiTorsions for one atom");
@@ -638,81 +719,45 @@ void FixPiTorsion::read_data_section(char *keyword, int n, char *buf,
         num_pitorsion[m]++;
       }
 
-      if (newton_bond == 0) {
-        if ((m = atom->map(atom1)) >= 0) {
-          if (num_pitorsion[m] == PITORSIONMAX)
-            error->one(FLERR,"Too many PiTorsions for one atom");
-          pitorsion_type[m][num_pitorsion[m]] = itype;
-          pitorsion_atom1[m][num_pitorsion[m]] = atom1;
-          pitorsion_atom2[m][num_pitorsion[m]] = atom2;
-          pitorsion_atom3[m][num_pitorsion[m]] = atom3;
-          pitorsion_atom4[m][num_pitorsion[m]] = atom4;
-          pitorsion_atom5[m][num_pitorsion[m]] = atom5;
-          pitorsion_atom6[m][num_pitorsion[m]] = atom6;
-          num_pitorsion[m]++;
-        }
+      if ((m = atom->map(atom4)) >= 0) {
+        if (num_pitorsion[m] == PITORSIONMAX)
+          error->one(FLERR,"Too many PiTorsions for one atom");
+        pitorsion_type[m][num_pitorsion[m]] = itype;
+        pitorsion_atom1[m][num_pitorsion[m]] = atom1;
+        pitorsion_atom2[m][num_pitorsion[m]] = atom2;
+        pitorsion_atom3[m][num_pitorsion[m]] = atom3;
+        pitorsion_atom4[m][num_pitorsion[m]] = atom4;
+        pitorsion_atom5[m][num_pitorsion[m]] = atom5;
+        pitorsion_atom6[m][num_pitorsion[m]] = atom6;
+        num_pitorsion[m]++;
       }
-
-      if (newton_bond == 0) {
-        if ((m = atom->map(atom2)) >= 0) {
-          if (num_pitorsion[m] == PITORSIONMAX)
-            error->one(FLERR,"Too many PiTorsions for one atom");
-          pitorsion_type[m][num_pitorsion[m]] = itype;
-          pitorsion_atom1[m][num_pitorsion[m]] = atom1;
-          pitorsion_atom2[m][num_pitorsion[m]] = atom2;
-          pitorsion_atom3[m][num_pitorsion[m]] = atom3;
-          pitorsion_atom4[m][num_pitorsion[m]] = atom4;
-          pitorsion_atom5[m][num_pitorsion[m]] = atom5;
-          pitorsion_atom6[m][num_pitorsion[m]] = atom6;
-          num_pitorsion[m]++;
-        }
+      
+      if ((m = atom->map(atom5)) >= 0) {
+        if (num_pitorsion[m] == PITORSIONMAX)
+          error->one(FLERR,"Too many PiTorsions for one atom");
+        pitorsion_type[m][num_pitorsion[m]] = itype;
+        pitorsion_atom1[m][num_pitorsion[m]] = atom1;
+        pitorsion_atom2[m][num_pitorsion[m]] = atom2;
+        pitorsion_atom3[m][num_pitorsion[m]] = atom3;
+        pitorsion_atom4[m][num_pitorsion[m]] = atom4;
+        pitorsion_atom5[m][num_pitorsion[m]] = atom5;
+        pitorsion_atom6[m][num_pitorsion[m]] = atom6;
+        num_pitorsion[m]++;
       }
-
-      if (newton_bond == 0) {
-        if ((m = atom->map(atom4)) >= 0) {
-          if (num_pitorsion[m] == PITORSIONMAX)
-            error->one(FLERR,"Too many PiTorsions for one atom");
-          pitorsion_type[m][num_pitorsion[m]] = itype;
-          pitorsion_atom1[m][num_pitorsion[m]] = atom1;
-          pitorsion_atom2[m][num_pitorsion[m]] = atom2;
-          pitorsion_atom3[m][num_pitorsion[m]] = atom3;
-          pitorsion_atom4[m][num_pitorsion[m]] = atom4;
-          pitorsion_atom5[m][num_pitorsion[m]] = atom5;
-          pitorsion_atom6[m][num_pitorsion[m]] = atom6;
-          num_pitorsion[m]++;
-        }
+      
+      if ((m = atom->map(atom6)) >= 0) {
+        if (num_pitorsion[m] == PITORSIONMAX)
+          error->one(FLERR,"Too many PiTorsions for one atom");
+        pitorsion_type[m][num_pitorsion[m]] = itype;
+        pitorsion_atom1[m][num_pitorsion[m]] = atom1;
+        pitorsion_atom2[m][num_pitorsion[m]] = atom2;
+        pitorsion_atom3[m][num_pitorsion[m]] = atom3;
+        pitorsion_atom4[m][num_pitorsion[m]] = atom4;
+        pitorsion_atom5[m][num_pitorsion[m]] = atom5;
+        pitorsion_atom6[m][num_pitorsion[m]] = atom6;
+        num_pitorsion[m]++;
       }
-
-      if (newton_bond == 0) {
-        if ((m = atom->map(atom5)) >= 0) {
-          if (num_pitorsion[m] == PITORSIONMAX)
-            error->one(FLERR,"Too many PiTorsions for one atom");
-          pitorsion_type[m][num_pitorsion[m]] = itype;
-          pitorsion_atom1[m][num_pitorsion[m]] = atom1;
-          pitorsion_atom2[m][num_pitorsion[m]] = atom2;
-          pitorsion_atom3[m][num_pitorsion[m]] = atom3;
-          pitorsion_atom4[m][num_pitorsion[m]] = atom4;
-          pitorsion_atom5[m][num_pitorsion[m]] = atom5;
-          pitorsion_atom6[m][num_pitorsion[m]] = atom6;
-          num_pitorsion[m]++;
-        }
-      }
-
-      if (newton_bond == 0) {
-        if ((m = atom->map(atom6)) >= 0) {
-          if (num_pitorsion[m] == PITORSIONMAX)
-            error->one(FLERR,"Too many PiTorsions for one atom");
-          pitorsion_type[m][num_pitorsion[m]] = itype;
-          pitorsion_atom1[m][num_pitorsion[m]] = atom1;
-          pitorsion_atom2[m][num_pitorsion[m]] = atom2;
-          pitorsion_atom3[m][num_pitorsion[m]] = atom3;
-          pitorsion_atom4[m][num_pitorsion[m]] = atom4;
-          pitorsion_atom5[m][num_pitorsion[m]] = atom5;
-          pitorsion_atom6[m][num_pitorsion[m]] = atom6;
-          num_pitorsion[m]++;
-        }
-      }
-
+      
       buf = next + 1;
     }
   }
@@ -750,7 +795,7 @@ void FixPiTorsion::write_data_section_size(int mth, int &nx, int &ny)
 
   // PiTorsions section
   // nx = # of PiTorsions owned by my local atoms
-  //   if newton_bond off, atom only owns PiTorsion if it is atom3
+  //   only atom3 owns the PiTorsion in this context
   // ny = 7 columns = type + 6 atom IDs
 
   if (mth == 0) {

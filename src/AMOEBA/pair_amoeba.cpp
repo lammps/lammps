@@ -46,7 +46,9 @@ enum{MPOLE_GRID,POLAR_GRID,POLAR_GRIDC,DISP_GRID,INDUCE_GRID,INDUCE_GRIDC};
 enum{MUTUAL,OPT,TCG,DIRECT};
 enum{GEAR,ASPC,LSQR};
 
-#define DELTASTACK 1    // change this when debugged
+#define DELTASTACK 16
+
+#define UIND_DEBUG 0       // also in amoeba_induce.cpp
 
 /* ---------------------------------------------------------------------- */
 
@@ -226,9 +228,7 @@ PairAmoeba::~PairAmoeba()
 
   // DEBUG
 
-  if (me == 0) {
-    if (uind_flag) fclose(fp_uind);
-  }
+  if (me == 0 && UIND_DEBUG) fclose(fp_uind);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -313,7 +313,7 @@ void PairAmoeba::compute(int eflag, int vflag)
     add_onefive_neighbors();
     if (amoeba) find_hydrogen_neighbors();
     find_multipole_neighbors();
-    if (induce_flag && poltyp == MUTUAL && pcgprec) precond_neigh();
+    if (poltyp == MUTUAL && pcgprec) precond_neigh();
   }
 
   // reset KSpace recip matrix if box size/shape change dynamically
@@ -377,18 +377,18 @@ void PairAmoeba::compute(int eflag, int vflag)
 
   // Ewald dispersion, pairwise and long range
 
-  if (hippo && disp_flag) dispersion();
+  if (hippo && (disp_rspace_flag || disp_kspace_flag)) dispersion();
   time4 = MPI_Wtime();
 
   // multipole, pairwise and long range
 
-  if (mpole_flag) multipole();
+  if (mpole_rspace_flag || mpole_kspace_flag) multipole();
   time5 = MPI_Wtime();
 
   // induced dipoles, interative CG relaxation
   // communicate induce() output values needed by ghost atoms
 
-  if (induce_flag) {
+  if (polar_rspace_flag || polar_kspace_flag) {
     induce();
     cfstyle = INDUCE;
     comm->forward_comm_pair(this);
@@ -397,7 +397,7 @@ void PairAmoeba::compute(int eflag, int vflag)
 
   // dipoles, pairwise and long range
 
-  if (polar_flag) polar();
+  if (polar_rspace_flag || polar_kspace_flag) polar();
   time7 = MPI_Wtime();
 
   // charge transfer, pairwise
@@ -522,49 +522,63 @@ void PairAmoeba::allocate()
 
 void PairAmoeba::settings(int narg, char **arg)
 {
-  // for now, allow turn on/off of individual FF terms
-
-  // if (narg) error->all(FLERR,"Illegal pair_style command");
-
   // turn on all FF components by default
   
-  hal_flag = repulse_flag = disp_flag = induce_flag = 
-    polar_flag = mpole_flag = qxfer_flag = 1;
-  rspace_flag = kspace_flag = 1;
+  hal_flag = repulse_flag = qxfer_flag = 1;
+  disp_rspace_flag = disp_kspace_flag = 1;
+  polar_rspace_flag = polar_kspace_flag = 1;
+  mpole_rspace_flag = mpole_kspace_flag = 1;
+  bond_flag = angle_flag = dihedral_flag = improper_flag = 1;
+  urey_flag = pitorsion_flag = xtorsion_flag = 1;
 
-  // turn off debug output by default
+  int newvalue = -1;
 
-  uind_flag = 0;
+  // include only specified FF components
 
-  // process optional args
-  // none turns all FF components off
-  
-  int iarg = 0;
-  while (iarg < narg) {
-    if (strcmp(arg[iarg],"none") == 0) {
-      hal_flag = repulse_flag = disp_flag = induce_flag = 
-        polar_flag = mpole_flag = qxfer_flag = 0;
-      rspace_flag = kspace_flag = 0;
-    }
-    else if (strcmp(arg[iarg],"hal") == 0) hal_flag = 1;
-    else if (strcmp(arg[iarg],"repulse") == 0) repulse_flag = 1;
-    else if (strcmp(arg[iarg],"disp") == 0) disp_flag = 1;
-    else if (strcmp(arg[iarg],"induce") == 0) induce_flag = 1;
-    else if (strcmp(arg[iarg],"polar") == 0) polar_flag = 1;
-    else if (strcmp(arg[iarg],"mpole") == 0) mpole_flag = 1;
-    else if (strcmp(arg[iarg],"qxfer") == 0) qxfer_flag = 1;
-    
-    else if (strcmp(arg[iarg],"rspace") == 0) rspace_flag = 1;
-    else if (strcmp(arg[iarg],"kspace") == 0) kspace_flag = 1;
-    else if (strcmp(arg[iarg],"no-rspace") == 0) rspace_flag = 0;
-    else if (strcmp(arg[iarg],"no-kspace") == 0) kspace_flag = 0;
+  if (narg && (strcmp(arg[0],"include") == 0)) {
+    newvalue = 1;
+    hal_flag = repulse_flag = qxfer_flag = 0;
+    disp_rspace_flag = disp_kspace_flag = 0;
+    polar_rspace_flag = polar_kspace_flag = 0;
+    mpole_rspace_flag = mpole_kspace_flag = 0;
+    bond_flag = angle_flag = dihedral_flag = improper_flag = 0;
+    urey_flag = pitorsion_flag = xtorsion_flag = 0;
 
-    // DEBUG flags
-    
-    else if (strcmp(arg[iarg],"uind") == 0) uind_flag = 1;
-    
+  // exclude only specified FF components
+
+  } else if (narg && (strcmp(arg[0],"exclude") == 0)) {
+    newvalue = 0;
+
+  } else if (narg) error->all(FLERR,"Illegal pair_style command");
+
+  if (narg == 0) return;
+
+  // toggle components to include or exclude
+
+  for (int iarg = 1; iarg < narg; iarg++) {
+    if (strcmp(arg[iarg],"hal") == 0) hal_flag = newvalue;
+    else if (strcmp(arg[iarg],"repulse") == 0) repulse_flag = newvalue;
+    else if (strcmp(arg[iarg],"qxfer") == 0) qxfer_flag = newvalue;
+    else if (strcmp(arg[iarg],"disp") == 0) 
+      disp_rspace_flag = disp_kspace_flag = newvalue;
+    else if (strcmp(arg[iarg],"disp/rspace") == 0) disp_rspace_flag = newvalue;
+    else if (strcmp(arg[iarg],"disp/kspace") == 0) disp_rspace_flag = newvalue;
+    else if (strcmp(arg[iarg],"polar") == 0) 
+      polar_rspace_flag = polar_kspace_flag = newvalue;
+    else if (strcmp(arg[iarg],"polar/rspace") == 0) polar_rspace_flag = newvalue;
+    else if (strcmp(arg[iarg],"polar/kspace") == 0) polar_rspace_flag = newvalue;
+    else if (strcmp(arg[iarg],"mpole") == 0) 
+      mpole_rspace_flag = mpole_kspace_flag = newvalue;
+    else if (strcmp(arg[iarg],"mpole/rspace") == 0) mpole_rspace_flag = newvalue;
+    else if (strcmp(arg[iarg],"mpole/kspace") == 0) mpole_rspace_flag = newvalue;
+    else if (strcmp(arg[iarg],"bond") == 0) bond_flag = newvalue;
+    else if (strcmp(arg[iarg],"angle") == 0) angle_flag = newvalue;
+    else if (strcmp(arg[iarg],"dihedral") == 0) dihedral_flag = newvalue;
+    else if (strcmp(arg[iarg],"improper") == 0) improper_flag = newvalue;
+    else if (strcmp(arg[iarg],"urey") == 0) urey_flag = newvalue;
+    else if (strcmp(arg[iarg],"pitorsion") == 0) pitorsion_flag = newvalue;
+    else if (strcmp(arg[iarg],"xtorsion") == 0) xtorsion_flag = newvalue;
     else error->all(FLERR,"Illegal pair_style command");
-    iarg++;
   }
 }
 
@@ -677,14 +691,9 @@ void PairAmoeba::init_style()
   //if (!force->special_onefive)
   //  error->all(FLERR,"Pair style amoeba/hippo requires special_bonds one/five be set");
 
-  // b/c induce computes fopt,foptp used by polar
-
-  if (kspace_flag && optorder && polar_flag && !induce_flag)
-    error->all(FLERR,"Pair amoeba with optorder requires induce and polar together");
-
   // b/c polar uses mutipole virial terms
 
-  if (kspace_flag && apewald == aeewald && polar_flag && !mpole_flag)
+  if (apewald == aeewald && polar_kspace_flag && !mpole_kspace_flag)
     error->all(FLERR,
 	       "Pair amoeba with apewald = aeewald requires mpole and polar together");
     
@@ -979,7 +988,7 @@ void PairAmoeba::init_style()
   if (me == 0) {
     char fname[32];
     sprintf(fname,"tmp.uind.kspace.%d",nprocs);
-    if (uind_flag) fp_uind = fopen(fname,"w");
+    if (UIND_DEBUG) fp_uind = fopen(fname,"w");
   }
 }
 
@@ -1078,22 +1087,17 @@ double PairAmoeba::init_one(int i, int j)
     choose(REPULSE);
     cutoff = MAX(cutoff,sqrt(off2));
   }
-  if (disp_flag) {
+  if (disp_rspace_flag || disp_kspace_flag) {
     if (use_dewald) choose(DISP_LONG);
     else choose(DISP);
     cutoff = MAX(cutoff,sqrt(off2));
   }
-  if (mpole_flag) {
+  if (mpole_rspace_flag || mpole_kspace_flag) {
     if (use_ewald) choose(MPOLE_LONG);
     else choose(MPOLE);
     cutoff = MAX(cutoff,sqrt(off2));
   }
-  if (induce_flag) {
-    if (use_ewald) choose(POLAR_LONG);
-    else choose(POLAR);
-    cutoff = MAX(cutoff,sqrt(off2));
-  }
-  if (polar_flag) {
+  if (polar_rspace_flag || polar_kspace_flag) {
     if (use_ewald) choose(POLAR_LONG);
     else choose(POLAR);
     cutoff = MAX(cutoff,sqrt(off2));
@@ -2112,6 +2116,13 @@ void PairAmoeba::zero_energy_force_virial()
 void *PairAmoeba::extract(const char *str, int &dim)
 {
   dim = 0;
+  if (strcmp(str,"bond_flag") == 0) return (void *) &bond_flag;
+  if (strcmp(str,"angle_flag") == 0) return (void *) &angle_flag;
+  if (strcmp(str,"dihedral_flag") == 0) return (void *) &dihedral_flag;
+  if (strcmp(str,"improper_flag") == 0) return (void *) &improper_flag;
+  if (strcmp(str,"urey_flag") == 0) return (void *) &urey_flag;
+  if (strcmp(str,"pitorsion_flag") == 0) return (void *) &pitorsion_flag;
+
   if (strcmp(str,"opbend_cubic") == 0) return (void *) &opbend_cubic;
   if (strcmp(str,"opbend_quartic") == 0) return (void *) &opbend_quartic;
   if (strcmp(str,"opbend_pentic") == 0) return (void *) &opbend_pentic;

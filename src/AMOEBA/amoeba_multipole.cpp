@@ -85,12 +85,12 @@ void PairAmoeba::multipole()
 
   // compute the real space part of the Ewald summation
 
-  if (rspace_flag) multipole_real();
+  if (mpole_rspace_flag) multipole_real();
 
   // compute the reciprocal space part of the Ewald summation
 
   //printf("zero check %e \n",empole);
-  if (kspace_flag) multipole_kspace();
+  if (mpole_kspace_flag) multipole_kspace();
   //printf("kspace energy %e \n",empole);
 
   // compute the Ewald self-energy term over all the atoms

@@ -73,7 +73,7 @@ class log:
     self.data = []
 
     # flist = list of all log file names
-
+    
     words = arglist[0].split()
     self.flist = []
     for word in words: self.flist += glob.glob(word)
@@ -153,7 +153,7 @@ class log:
 
   # --------------------------------------------------------------------
 
-  def write(self,filename,*keys):
+  def write(self,filename,writenames,*keys):
     if len(keys):
       colmap = []
       for key in keys:
@@ -175,10 +175,11 @@ class log:
     f = open(filename,"w")
 
     # write col names from dict in the right order
-    colnames = [k for j in colmap for k,v in self.ptr.items() if v == j]
-    for j in range(len(colnames)):
+    if writenames:
+      colnames = [k for j in colmap for k,v in self.ptr.items() if v == j]
+      for j in range(len(colnames)):
         print(colnames[j], file=f, end=" ")
-    print("\n", file=f, end="")
+      print("\n", file=f, end="")
 
     # write data
     for i in range(self.nlen):

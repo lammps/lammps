@@ -557,10 +557,8 @@ void Finish::end(int flag)
 }
 
 /* ---------------------------------------------------------------------- */
-// FIXME: should use bigint here.
-void Finish::stats(int n, double *data,
-                   double *pave, double *pmax, double *pmin,
-                   int nhisto, int *histo)
+
+void Finish::stats(int n, double *data, double *pave, double *pmax, double *pmin, int nhisto, int *histo)
 {
   int i,m;
   int *histotmp;

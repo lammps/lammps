@@ -33,7 +33,7 @@ Syntax
        *prefactor* values = itype jtype prefactor
          prefactor = magnitude of the function 
        *cross-interaction* values = itype jtype interaction_shape parameters
-         interaction_shape = *gaussian* or *gaussian-erfc* or *erfc*
+         interaction_shape = *gaussian* or *gaussian_erfc* or *erfc*
          parameters = parameters for each function (see discussion below)
        *set_rho0* value = rho0
          rho0 = total density of TILD particles
@@ -204,7 +204,7 @@ Please note this division will divide the prefactors specified in `tild prefacto
 
 The *tild cross-interaction* keyword is used to override any specified interaction
 from `tild shape`. At this time, we currently only support three non-zero
-interaction styles (`gaussian`, `erfc` and `gaussian-erfc`), which model the
+interaction styles (`gaussian`, `erfc` and `gaussian_erfc`), which model the
 interactions between two gaussian potentials, two erfc potentials, or the
 interaction between a gaussian particle and an erfc particle. There is also a
 `none` style to force no-interactions between certain particle types and also a
@@ -227,7 +227,7 @@ Currently supported options for interaction models
 and their required arguments are:
 
 1. *gaussian* : :math:`\sigma` (distance units)
-2. *gaussian-erfc* : :math:`\sigma`\ , :math:`R_p`, :math:`\xi` (all in distance units)
+2. *gaussian_erfc* : :math:`\sigma`\ , :math:`R_p`, :math:`\xi` (all in distance units)
 3. *erfc* : :math:`R_p`\ , :math:`\xi` (both in distance units)
 
 .. note::
@@ -236,7 +236,7 @@ and their required arguments are:
    For the ``gaussian`` `shape`, the input parameter is :math:`\sigma_{i}`\ ; the code will square this automatically. 
    For interactions between two ``gaussian`` defined `shape` particles, the code analytically and behind the scenes performs the convolution so that the interaction potential uses :math:`\sigma^2_{12} = \sigma^2_{1} + \sigma^2_{2}`. For the convolution between a ``gaussian`` `shape` and a ``erfc`` `shape`, the code convolves the ``gaussian`` and ``erfc`` `shape` potentials computationally; this is also true for interactions between two ``erfc`` `shape` particles. 
 
-   However, for ``cross-interaction``, the code treats the user input for ``gaussian`` as :math:`\sigma^2` so the user should manually calculate their own :math:`\sigma_{12}^2` before the run. For ``gaussian-erfc``, the code takes in :math:`\sigma^2` instead of :math:`\sigma`. Additionally, the ``gaussian-erfc`` and ``erfc`` commands do not take into account the :math:`\rho_{NP}` since ``cross-interactions`` assume to know nothing about this. Thus, if you have a value of :math:`\rho_{NP}` that is not 1, you should multiply it by :math:`\rho_{NP}` or :math:`(\rho_{NP})^2` for ``gaussian-erfc`` and ``erfc``, respectively.
+   However, for ``cross-interaction``, the code treats the user input for ``gaussian`` as :math:`\sigma^2` so the user should manually calculate their own :math:`\sigma_{12}^2` before the run. For ``gaussian_erfc``, the code takes in :math:`\sigma^2` instead of :math:`\sigma`. Additionally, the ``gaussian_erfc`` and ``erfc`` commands do not take into account the :math:`\rho_{NP}` since ``cross-interactions`` assume to know nothing about this. Thus, if you have a value of :math:`\rho_{NP}` that is not 1, you should multiply it by :math:`\rho_{NP}` or :math:`(\rho_{NP})^2` for ``gaussian_erfc`` and ``erfc``, respectively.
    
    Identical simulations defined both ways can be found in examples/tild.
 

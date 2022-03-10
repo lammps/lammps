@@ -23,7 +23,7 @@ FixStyle(lb/momentum,FixLbMomentum)
 #include "fix.h"
 
 namespace LAMMPS_NS {
- 
+
 class FixLbMomentum : public Fix {
  public:
   FixLbMomentum(class LAMMPS *, int, char **);
@@ -33,14 +33,14 @@ class FixLbMomentum : public Fix {
 
  private:
   int linear;
-  int xflag,yflag,zflag;
+  int xflag, yflag, zflag;
   double masstotal;
   int count;
 
   class FixLbFluid *fix_lb_fluid;
 };
 
-}   // namespace LAMMPS_NS
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

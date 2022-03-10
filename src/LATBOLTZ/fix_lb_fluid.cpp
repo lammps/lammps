@@ -35,7 +35,6 @@
 #include <cstring>
 #include <fstream>
 #include <iomanip>
-//#include <iostream>
 #include <sstream>
 #include <vector>
 
@@ -3824,8 +3823,7 @@ void FixLbFluid::initializeGeometry()
     std::ofstream outFile(datfile);
 
     if (!outFile.is_open()) {
-      std::cerr << " file " << datfile << " could not be opened " << std::endl;
-      exit(1);
+      error->one(FLERR, " file {} could not be opened: {}", datfile, utils::getsyserror());
     }
     outFile << std::endl;
     outFile << "me: " << me << " px: " << comm->myloc[0] << " py: " << comm->myloc[1]
@@ -3854,8 +3852,7 @@ void FixLbFluid::initializeGeometry()
     outFile.open(datfile);
 
     if (!outFile.is_open()) {
-      std::cerr << " file " << datfile << " could not be opened " << std::endl;
-      exit(1);
+      error->one(FLERR, " file {} could not be opened: {}", datfile, utils::getsyserror());
     }
     outFile << std::endl;
     outFile << "me: " << me << std::endl;
@@ -3882,8 +3879,7 @@ void FixLbFluid::initializeGeometry()
   // outFile.open(datfile);
 
   //  if(!outFile.is_open()) {
-  //    std::cerr << " file " << datfile << " could not be opened " << std::endl;
-  //    exit(1);
+  //    error->one(FLERR, " file {} could not be opened: {}", datfile, utils::getsyserror());
   //  }
   //  outFile << std::endl;
   //  outFile << "me: " << me << std::endl;

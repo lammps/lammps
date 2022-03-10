@@ -2788,7 +2788,7 @@ bigint Neighbor::get_nneigh_full()
   for (m = 0; m < old_nrequest; m++)
     if (old_requests[m]->full && !old_requests[m]->skip) break;
 
-  bigint nneighfull = 0;
+  bigint nneighfull = -1;
   if (m < old_nrequest) {
     if (!lists[m]->kokkos && lists[m]->numneigh) {
       int inum = neighbor->lists[m]->inum;
@@ -2796,8 +2796,7 @@ bigint Neighbor::get_nneigh_full()
       int *numneigh = neighbor->lists[m]->numneigh;
       for (int i = 0; i < inum; i++)
         nneighfull += numneigh[ilist[i]];
-    } else if (lmp->kokkos)
-      nneighfull = lmp->kokkos->neigh_count(m);
+    } else if (lmp->kokkos) nneighfull = lmp->kokkos->neigh_count(m);
   }
   return nneighfull;
 }
@@ -2810,18 +2809,17 @@ bigint Neighbor::get_nneigh_half()
 
   int m;
   for (m = 0; m < old_nrequest; m++)
-    if (old_requests[m]->half && !old_requests[m]->skip) break;
+    if (old_requests[m]->half && !old_requests[m]->skip && lists[m] && lists[m]->numneigh) break;
 
-  bigint nneighhalf = 0;
+  bigint nneighhalf = -1;
   if (m < old_nrequest) {
-    if (!lists[m]->kokkos && lists[m]->numneigh) {
+    if (!lists[m]->kokkos) {
       int inum = neighbor->lists[m]->inum;
       int *ilist = neighbor->lists[m]->ilist;
       int *numneigh = neighbor->lists[m]->numneigh;
       for (int i = 0; i < inum; i++)
         nneighhalf += numneigh[ilist[i]];
-    } else if (lmp->kokkos)
-      nneighhalf = lmp->kokkos->neigh_count(m);
+    } else if (lmp->kokkos) nneighhalf = lmp->kokkos->neigh_count(m);
   }
   return nneighhalf;
 }

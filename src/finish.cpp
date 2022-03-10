@@ -480,18 +480,17 @@ void Finish::end(int flag)
     }
 
     tmp = neighbor->get_nneigh_half();
-    if (tmp > 0) {
-      stats(1,&tmp,&ave,&max,&min,10,histo);
-      if (me == 0) {
-        mesg += fmt::format("Neighs:    {:11.6} ave {:11.6g} max {:11.6g} min\n",ave,max,min);
-        mesg += "Histogram:";
-        for (i = 0; i < 10; i++) mesg += fmt::format(" {}",histo[i]);
-        mesg += "\n";
-      }
+    if (tmp < 0.0) tmp = 0.0;
+    stats(1,&tmp,&ave,&max,&min,10,histo);
+    if (me == 0) {
+      mesg += fmt::format("Neighs:    {:11.6} ave {:11.6g} max {:11.6g} min\n",ave,max,min);
+      mesg += "Histogram:";
+      for (i = 0; i < 10; i++) mesg += fmt::format(" {}",histo[i]);
+      mesg += "\n";
     }
 
     tmp = neighbor->get_nneigh_full();
-    if (tmp > 0) {
+    if (tmp >= 0.0) {
       stats(1,&tmp,&ave,&max,&min,10,histo);
       if (me == 0) {
         mesg += fmt::format("FullNghs:  {:11.6} ave {:11.6g} max {:11.6g} min\n",ave,max,min);

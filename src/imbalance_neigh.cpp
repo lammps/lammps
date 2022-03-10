@@ -62,9 +62,9 @@ void ImbalanceNeigh::compute(double *weight)
   }
 
   bigint neighsum = neighbor->get_nneigh_half();
-  if (neighsum == 0) neighsum = neighbor->get_nneigh_full();
+  if (neighsum < 0) neighsum = neighbor->get_nneigh_full();
 
-  if ((neighsum == 0) || (neighbor->ago < 0)) {
+  if ((neighsum < 0) || (neighbor->ago < 0)) {
     if (comm->me == 0 && !did_warn)
       error->warning(FLERR, "Balance weight neigh skipped b/c no suitable list found");
     did_warn = 1;
@@ -78,7 +78,7 @@ void ImbalanceNeigh::compute(double *weight)
   const int nlocal = atom->nlocal;
   if (nlocal) localwt = 1.0 * neighsum / nlocal;
 
-  if (nlocal && localwt <= 0.0) error->one(FLERR, "Balance weight <= 0.0");
+  if (nlocal && localwt < 0.0) error->one(FLERR, "Balance weight < 0.0");
 
   // apply factor if specified != 1.0
   // wtlo,wthi = lo/hi values excluding 0.0 due to no atoms on this proc

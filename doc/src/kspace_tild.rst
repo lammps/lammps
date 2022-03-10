@@ -11,7 +11,7 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   kspace_style tild *gridsize*
+   kspace_style tild gridsize
    kspace_modify keyword value ...
 
 * one or more keyword/value pairs may be listed
@@ -175,7 +175,7 @@ The current shape function styles used in *tild shape* are
 
    U_{g} = & \frac{A}{\rho_0 (2\pi \sigma^2)^{3/2}} \exp(-r^2/2\sigma^2) \\
          = & \frac{A}{\rho_0} u_G (r) \\
-   U_{erfc} = & - \frac{A}{\rho_0}  * \rho_{NP} *\text{erfc} \left(\frac{\vert r \vert - R_p}{\xi}\right) \\ 
+   U_{erfc} = & - \frac{A}{\rho_0}  \rho_{NP} \text{erfc} \left(\frac{\vert r \vert - R_p}{\xi}\right) \\ 
 
 where :math:`A` is the value set by `tild prefactor`\, :math:`\rho_0` is the total density of the TILD particles, :math:`\rho_{NP}` is the density of the TILD erfc nanoparticle, :math:`\sigma`\ is the gaussian width, :math:`R_p` is the erfc particle radius and :math:`xi` is the erfc width.
 
@@ -190,7 +190,7 @@ and their required arguments are:
 
 The *tild prefactor* keyword sets the prefactor in front of a given shape. For
 typical polymer represented by Gaussian monomers, the prefactors represents the
-Flory-Higgins prefactor :math:`\chi` \ . See the :math:`A` prefactors in the
+Flory-Higgins prefactor :math:`\chi`. See the :math:`A` prefactors in the
 *tild shape* potentials.
 
 ----------
@@ -198,9 +198,9 @@ Flory-Higgins prefactor :math:`\chi` \ . See the :math:`A` prefactors in the
 The *tild set_rho0* keyword is used to set the TILD density which is calculated
 separately from any other density in LAMMPS. Each defined `gaussian` shape
 particle has a mass of 1, each defined `erfc` shape has a density of 
-:math:`$4/3 \pi r^3 \rho_{NP}`\ . Particles without any defined shape functions do not contribute to the
+:math:`4/3 \pi r^3 \rho_{NP}`\ . Particles without any defined shape functions do not contribute to the
 overall density, even if they are included in a `cross-interaction`. 
-Defining a *rho0* for a system without any shape functions (purely `cross-interaction`s) will
+Defining a *rho0* for a system without any shape functions (purely `cross-interaction` s) will
 accept the value as is (provided it is non-negative) and use that for
 normalization purposes. Similarly, a function consisting of whose only defined
 shapes are purely `gaussian` will also accept the user specified *rho0* as is.
@@ -246,17 +246,17 @@ and their required arguments are:
 
 .. note::
 
-   ``Cross-interaction`` and ``shape`` definitions have slightly different input parameters and so mapping is explicitly laid out.
+   ``cross-interaction`` and `shape` definitions have slightly different input parameters and so mapping is explicitly laid out.
    For the ``gaussian`` `shape`, the input parameter is :math:`\sigma_{i}`\ ; the code will square this automatically. 
-   For interactions between two ``gaussian`` defined ``shape``s, the code analytically and behind the scenes performs the convolution so that the interaction potential uses :math:`\sigma^2_{12} = \sigma^2_{1} + \sigma^2_{2}`. For the convolution between a ``gaussian`` ``shape`` and a erfc `shape`, the code convolves the ``gaussian`` and ``erfc`` `shape` potentials computationally; this is also true for interactions between ``erfc`` ``shape``s. 
+   For interactions between two ``gaussian`` defined `shape` s, the code analytically and behind the scenes performs the convolution so that the interaction potential uses :math:`\sigma^2_{12} = \sigma^2_{1} + \sigma^2_{2}`. For the convolution between a ``gaussian`` `shape` and a erfc `shape`, the code convolves the ``gaussian`` and ``erfc`` `shape` potentials computationally; this is also true for interactions between ``erfc`` `shape` s. 
 
-   However, for ``cross-interaction``, the code will treats the user input for ``gaussian`` :math:`\sigma^2` so the user should manually calculate their own :math:`\sigma_{12}^2` before the run. For ``gaussian-erfc``, the code takes in :math:`\sigma^2` instead of :math:`\sigma`. Additionally, the ``gaussian-erfc`` and ``erfc`` commands do not take into account the :math:`rho_{NP}` since ``cross-interactions`` assume to know nothing about this. Thus, if you have a value of :math:`\rho_{NP}` that is not 1, you should multiply it by :math:`\rho_{NP}` or :math:`(\rho_{NP})^2` for ``gaussian-erfc`` and ``erfc``, respectively.
+   However, for ``cross-interaction``, the code will treats the user input for ``gaussian`` :math:`\sigma^2` so the user should manually calculate their own :math:`\sigma_{12}^2` before the run. For ``gaussian-erfc``, the code takes in :math:`\sigma^2` instead of :math:`\sigma`. Additionally, the ``gaussian-erfc`` and ``erfc`` commands do not take into account the :math:`\rho_{NP}` since ``cross-interactions`` assume to know nothing about this. Thus, if you have a value of :math:`\rho_{NP}` that is not 1, you should multiply it by :math:`\rho_{NP}` or :math:`(\rho_{NP})^2` for ``gaussian-erfc`` and ``erfc``, respectively.
    
    Identical simulations defined both ways can be found in examples/tild.
 
 ----------
 
-The *write_grid_data* writes the instantaneous gridded density to *filename*. Every $freq$ timesteps, the density is overwritten.
+The *write_grid_data* writes the instantaneous gridded density to *filename*. Every *freq* timesteps, the density is overwritten.
 
 ----------
 
@@ -267,8 +267,8 @@ The final averaged quantities are generated on timesteps that are a multiple of
 *Nfreq*. The average is over *Nrepeat* quantities, computed in the preceding
 portion of the simulation every *Nevery* timesteps. *Nfreq* must be a multiple
 of *Nevery* and *Nevery* must be non-zero even if *Nrepeat* is 1. Also, the
-timesteps contributing to the average value cannot overlap, i.e. Nrepeat*Nevery
-can not exceed Nfreq.
+timesteps contributing to the average value cannot overlap, i.e. *Nrepeat* * *Nevery*
+can not exceed *Nfreq*.
 
 ----------
 
@@ -294,18 +294,19 @@ The option defaults are mesh = 0 0 0, order = 5 (TILD), minorder = 2, overlap = 
 
 .. _Chao:
 
-**(Chao)** Chao, H., Koski, J. & Riggleman, R. (2017)
+**(Chao)** Chao, H., Koski, J. & Riggleman, R. 
 "Solvent vapor annealing in block copolymer nanocomposite films: 
-a dynamic mean field approach" Soft Matter, 13(1) 239-249.
+a dynamic mean field approach" Soft Matter, 13(1), 239-249 (2017) 
+https://doi.org/10.1039/c6sm00770h
 
 .. _Fredrickson:
 
-**(Fredrickson)** Fredrickson, G. H. and Orland, H.  (2017)
-"Dynamics of polymers: A mean-field theory" The Journal of Chemical Physics 
+**(Fredrickson)** Fredrickson, G. H. and Orland, H. 
+"Dynamics of polymers: A mean-field theory" J Chem Phys,
 140, 084902 (2014) https://doi.org/10.1063/1.4865911
 
 .. _Grzetic:
 
 **(Grzetic)** Grzetic, D. J., Wickman, R. A., and Shi, A.-C., "Statistical
-dynamics of classical systems: A self-consistent field approach", The Journal of
-Chemical Physics 140, 244907 (2014) https://doi.org/10.1063/1.4884825
+dynamics of classical systems: A self-consistent field approach", J Chem Phys, 
+140, 244907 (2014) https://doi.org/10.1063/1.4884825

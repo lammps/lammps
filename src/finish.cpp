@@ -479,62 +479,25 @@ void Finish::end(int flag)
       mesg += "\n";
     }
 
-    // find a non-skip neighbor list containing half pairwise interactions
-    // count neighbors in that list for stats purposes
-    // allow it to be Kokkos neigh list as well
-
-    for (m = 0; m < neighbor->old_nrequest; m++)
-      if (neighbor->old_requests[m]->half &&
-          neighbor->old_requests[m]->skip == 0 &&
-          neighbor->lists[m] && neighbor->lists[m]->numneigh) break;
-
-    nneigh = 0;
-    if (m < neighbor->old_nrequest) {
-      if (!neighbor->lists[m]->kokkos) {
-        int inum = neighbor->lists[m]->inum;
-        int *ilist = neighbor->lists[m]->ilist;
-        int *numneigh = neighbor->lists[m]->numneigh;
-        for (i = 0; i < inum; i++)
-          nneigh += numneigh[ilist[i]];
-      } else if (lmp->kokkos) nneigh = lmp->kokkos->neigh_count(m);
+    tmp = neighbor->get_nneigh_half();
+    if (tmp > 0) {
+      stats(1,&tmp,&ave,&max,&min,10,histo);
+      if (me == 0) {
+        mesg += fmt::format("Neighs:    {:11.6} ave {:11.6g} max {:11.6g} min\n",ave,max,min);
+        mesg += "Histogram:";
+        for (i = 0; i < 10; i++) mesg += fmt::format(" {}",histo[i]);
+        mesg += "\n";
+      }
     }
 
-    tmp = nneigh;
-    stats(1,&tmp,&ave,&max,&min,10,histo);
-    if (me == 0) {
-      mesg += fmt::format("Neighs:    {:11.6} ave {:11.6g} max {:11.6g} min\n",ave,max,min);
-      mesg += "Histogram:";
-      for (i = 0; i < 10; i++) mesg += fmt::format(" {}",histo[i]);
-      mesg += "\n";
-    }
-
-    // find a non-skip neighbor list containing full pairwise interactions
-    // count neighbors in that list for stats purposes
-    // allow it to be Kokkos neigh list as well
-
-    for (m = 0; m < neighbor->old_nrequest; m++)
-      if (neighbor->old_requests[m]->full &&
-          neighbor->old_requests[m]->skip == 0) break;
-
-    nneighfull = 0;
-    if (m < neighbor->old_nrequest) {
-      if (!neighbor->lists[m]->kokkos && neighbor->lists[m]->numneigh) {
-        int inum = neighbor->lists[m]->inum;
-        int *ilist = neighbor->lists[m]->ilist;
-        int *numneigh = neighbor->lists[m]->numneigh;
-        for (i = 0; i < inum; i++)
-          nneighfull += numneigh[ilist[i]];
-      } else if (lmp->kokkos)
-        nneighfull = lmp->kokkos->neigh_count(m);
-
-      tmp = nneighfull;
+    tmp = neighbor->get_nneigh_full();
+    if (tmp > 0) {
       stats(1,&tmp,&ave,&max,&min,10,histo);
       if (me == 0) {
         mesg += fmt::format("FullNghs:  {:11.6} ave {:11.6g} max {:11.6g} min\n",ave,max,min);
         mesg += "Histogram:";
         for (i = 0; i < 10; i++) mesg += fmt::format(" {}",histo[i]);
         mesg += "\n";
-
       }
     }
     if (me == 0) utils::logmesg(lmp,mesg);
@@ -594,7 +557,7 @@ void Finish::end(int flag)
 }
 
 /* ---------------------------------------------------------------------- */
-
+// FIXME: should use bigint here.
 void Finish::stats(int n, double *data,
                    double *pave, double *pmax, double *pmin,
                    int nhisto, int *histo)

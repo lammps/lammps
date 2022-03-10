@@ -61,19 +61,12 @@ void ImbalanceNeigh::compute(double *weight)
     }
   }
 
-  // find suitable neighbor list
-  // can only use certain conventional neighbor lists
-  // NOTE: why not full list, if half does not exist?
+  bigint neighsum = neighbor->get_nneigh_half();
+  if (neighsum == 0) neighsum = neighbor->get_nneigh_full();
 
-  for (req = 0; req < neighbor->old_nrequest; ++req) {
-    if (neighbor->old_requests[req]->half && neighbor->old_requests[req]->skip == 0 &&
-        neighbor->lists[req] && neighbor->lists[req]->numneigh)
-      break;
-  }
-
-  if (req >= neighbor->old_nrequest || neighbor->ago < 0) {
+  if ((neighsum == 0) || (neighbor->ago < 0)) {
     if (comm->me == 0 && !did_warn)
-      error->warning(FLERR, "Balance weight neigh skipped b/c no list found");
+      error->warning(FLERR, "Balance weight neigh skipped b/c no suitable list found");
     did_warn = 1;
     return;
   }
@@ -81,15 +74,8 @@ void ImbalanceNeigh::compute(double *weight)
   // neighsum = total neigh count for atoms on this proc
   // localwt = weight assigned to each owned atom
 
-  NeighList *list = neighbor->lists[req];
-  const int inum = list->inum;
-  const int *const ilist = list->ilist;
-  const int *const numneigh = list->numneigh;
-  int nlocal = atom->nlocal;
-
-  bigint neighsum = 0;
-  for (int i = 0; i < inum; ++i) neighsum += numneigh[ilist[i]];
   double localwt = 0.0;
+  const int nlocal = atom->nlocal;
   if (nlocal) localwt = 1.0 * neighsum / nlocal;
 
   if (nlocal && localwt <= 0.0) error->one(FLERR, "Balance weight <= 0.0");

@@ -29,6 +29,7 @@
 #include "fix.h"
 #include "force.h"
 #include "group.h"
+#include "kokkos.h"
 #include "memory.h"
 #include "modify.h"
 #include "nbin.h"
@@ -2770,6 +2771,59 @@ void Neighbor::build_collection(int istart)
       collection[i] = type2collection[type[i]];
     }
   }
+}
+
+
+/* ----------------------------------------------------------------------
+   for neighbor list statistics in Finish class
+------------------------------------------------------------------------- */
+
+bigint Neighbor::get_nneigh_full()
+{
+  // find a non-skip neighbor list containing full pairwise interactions
+  // count neighbors in that list for stats purposes
+  // allow it to be Kokkos neigh list as well
+
+  int m;
+  for (m = 0; m < old_nrequest; m++)
+    if (old_requests[m]->full && !old_requests[m]->skip) break;
+
+  bigint nneighfull = 0;
+  if (m < old_nrequest) {
+    if (!lists[m]->kokkos && lists[m]->numneigh) {
+      int inum = neighbor->lists[m]->inum;
+      int *ilist = neighbor->lists[m]->ilist;
+      int *numneigh = neighbor->lists[m]->numneigh;
+      for (int i = 0; i < inum; i++)
+        nneighfull += numneigh[ilist[i]];
+    } else if (lmp->kokkos)
+      nneighfull = lmp->kokkos->neigh_count(m);
+  }
+  return nneighfull;
+}
+
+bigint Neighbor::get_nneigh_half()
+{
+  // find a non-skip neighbor list containing half pairwise interactions
+  // count neighbors in that list for stats purposes
+  // allow it to be Kokkos neigh list as well
+
+  int m;
+  for (m = 0; m < old_nrequest; m++)
+    if (old_requests[m]->half && !old_requests[m]->skip) break;
+
+  bigint nneighhalf = 0;
+  if (m < old_nrequest) {
+    if (!lists[m]->kokkos && lists[m]->numneigh) {
+      int inum = neighbor->lists[m]->inum;
+      int *ilist = neighbor->lists[m]->ilist;
+      int *numneigh = neighbor->lists[m]->numneigh;
+      for (int i = 0; i < inum; i++)
+        nneighhalf += numneigh[ilist[i]];
+    } else if (lmp->kokkos)
+      nneighhalf = lmp->kokkos->neigh_count(m);
+  }
+  return nneighhalf;
 }
 
 /* ----------------------------------------------------------------------

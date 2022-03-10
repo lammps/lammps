@@ -268,6 +268,7 @@ void PairBuckLongCoulLong::init_style()
       if (respa->level_inner >= 0) list_style = NeighConst::REQ_RESPA_INOUT;
       if (respa->level_middle >= 0) list_style = NeighConst::REQ_RESPA_ALL;
     }
+    neighbor->add_request(this, list_style);
   }
 
   cut_coulsq = cut_coul * cut_coul;

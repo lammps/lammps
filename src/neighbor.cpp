@@ -19,6 +19,7 @@
 
 #include "neighbor.h"
 
+#include "accelerator_kokkos.h"
 #include "atom.h"
 #include "atom_vec.h"
 #include "citeme.h"
@@ -29,7 +30,6 @@
 #include "fix.h"
 #include "force.h"
 #include "group.h"
-#include "kokkos.h"
 #include "memory.h"
 #include "modify.h"
 #include "nbin.h"

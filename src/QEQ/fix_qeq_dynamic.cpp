@@ -65,7 +65,7 @@ void FixQEqDynamic::init()
 {
   FixQEq::init();
 
-  neighbor->add_request(this, NeighConst::REQ_FULL);
+  neighbor->add_request(this);
 
   if (tolerance < 1e-4)
     if (comm->me == 0)

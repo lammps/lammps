@@ -580,29 +580,14 @@ void PairVashishtaKokkos<DeviceType>::init_style()
 {
   PairVashishta::init_style();
 
-  // irequest = neigh request made by parent class
+  // adjust neighbor list request for KOKKOS
 
-  neighflag = lmp->kokkos->neighflag;
-  int irequest = neighbor->nrequest - 1;
-
-  neighbor->requests[irequest]->
-    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
-    !std::is_same<DeviceType,LMPDeviceType>::value;
-  neighbor->requests[irequest]->
-    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
-
-  // always request a full neighbor list
-
-  if (neighflag == FULL || neighflag == HALF || neighflag == HALFTHREAD) {
-    neighbor->requests[irequest]->full = 1;
-    neighbor->requests[irequest]->half = 0;
-    if (neighflag == FULL)
-      neighbor->requests[irequest]->ghost = 1;
-    else
-      neighbor->requests[irequest]->ghost = 0;
-  } else {
-    error->all(FLERR,"Cannot use chosen neighbor list style with pair vashishta/kk");
-  }
+  auto request = neighbor->find_request(this);
+  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
+                           !std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  request->enable_full();
+  if (lmp->kokkos->neighflag == FULL) request->enable_ghost();
 }
 
 /* ---------------------------------------------------------------------- */

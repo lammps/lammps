@@ -312,3 +312,8 @@ void NeighRequest::enable_full()
   half = 0;
   full = 1;
 }
+
+void NeighRequest::enable_ghost()
+{
+  ghost = 1;
+}

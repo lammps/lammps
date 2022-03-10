@@ -23,18 +23,20 @@
 ------------------------------------------------------------------------------------------- */
 
 #include "pair_multi_lucy_rx_kokkos.h"
+
+#include "atom_kokkos.h"
+#include "atom_masks.h"
+#include "comm.h"
+#include "error.h"
+#include "force.h"
+#include "kokkos.h"
+#include "math_const.h"
+#include "memory_kokkos.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+
 #include <cmath>
 #include <cstring>
-#include "math_const.h"
-#include "atom_kokkos.h"
-#include "force.h"
-#include "comm.h"
-#include "neigh_list.h"
-#include "memory_kokkos.h"
-#include "error.h"
-#include "atom_masks.h"
-#include "neigh_request.h"
-#include "kokkos.h"
 
 using namespace LAMMPS_NS;
 
@@ -95,26 +97,13 @@ void PairMultiLucyRXKokkos<DeviceType>::init_style()
 {
   PairMultiLucyRX::init_style();
 
-  // irequest = neigh request made by parent class
+  // adjust neighbor list request for KOKKOS
 
-  neighflag = lmp->kokkos->neighflag;
-  int irequest = neighbor->nrequest - 1;
-
-  neighbor->requests[irequest]->
-    kokkos_host = std::is_same<DeviceType,LMPHostType>::value &&
-    !std::is_same<DeviceType,LMPDeviceType>::value;
-  neighbor->requests[irequest]->
-    kokkos_device = std::is_same<DeviceType,LMPDeviceType>::value;
-
-  if (neighflag == FULL) {
-    neighbor->requests[irequest]->full = 1;
-    neighbor->requests[irequest]->half = 0;
-  } else if (neighflag == HALF || neighflag == HALFTHREAD) {
-    neighbor->requests[irequest]->full = 0;
-    neighbor->requests[irequest]->half = 1;
-  } else {
-    error->all(FLERR,"Cannot use chosen neighbor list style with multi/lucy/rx/kk");
-  }
+  auto request = neighbor->find_request(this);
+  request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
+                           !std::is_same<DeviceType,LMPDeviceType>::value);
+  request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
+  if (lmp->kokkos->neighflag == FULL) request->enable_full();
 }
 
 /* ---------------------------------------------------------------------- */

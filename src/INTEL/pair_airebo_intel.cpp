@@ -26,7 +26,6 @@
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 #include "suffix.h"
 
@@ -181,7 +180,6 @@ PairAIREBOIntel::~PairAIREBOIntel()
 void PairAIREBOIntel::init_style()
 {
   PairAIREBO::init_style();
-  neighbor->find_request(this)->intel = 1;
 
   if (utils::strmatch(force->pair_style,"^hybrid"))
     error->all(FLERR, "Cannot yet use airebo/intel with hybrid.");

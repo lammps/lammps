@@ -45,6 +45,7 @@
 #include "style_npair.h"  // IWYU pragma: keep
 #include "style_nstencil.h"  // IWYU pragma: keep
 #include "style_ntopo.h"  // IWYU pragma: keep
+#include "suffix.h"
 #include "tokenizer.h"
 #include "update.h"
 
@@ -2075,6 +2076,11 @@ NeighRequest *Neighbor::add_request(Pair *requestor, int flags)
   int irequest = request(requestor, requestor->instance_me);
   auto req = requests[irequest];
   req->apply_flags(flags);
+  // apply intel flag. omp flag is set globally via set_omp_neighbor()
+  if (requestor->suffix_flag & Suffix::INTEL) {
+    req->intel = 1;
+    req->omp = 0;
+  }
   return req;
 }
 

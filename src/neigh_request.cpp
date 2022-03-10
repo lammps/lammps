@@ -306,3 +306,9 @@ void NeighRequest::set_skip(int *_iskip, int **_ijskip)
   iskip = _iskip;
   ijskip = _ijskip;
 }
+
+void NeighRequest::enable_full()
+{
+  half = 0;
+  full = 1;
+}

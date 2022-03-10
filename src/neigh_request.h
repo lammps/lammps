@@ -127,6 +127,7 @@ class NeighRequest : protected Pointers {
   void set_kokkos_device(int);
   void set_kokkos_host(int);
   void set_skip(int *, int **);
+  void enable_full();
 
   int get_size() const { return size; }
   void *get_requestor() const { return requestor; }

@@ -2790,6 +2790,7 @@ bigint Neighbor::get_nneigh_full()
 
   bigint nneighfull = -1;
   if (m < old_nrequest) {
+    nneighfull = 0;
     if (!lists[m]->kokkos && lists[m]->numneigh) {
       int inum = neighbor->lists[m]->inum;
       int *ilist = neighbor->lists[m]->ilist;
@@ -2813,6 +2814,7 @@ bigint Neighbor::get_nneigh_half()
 
   bigint nneighhalf = -1;
   if (m < old_nrequest) {
+    nneighhalf = 0;
     if (!lists[m]->kokkos) {
       int inum = neighbor->lists[m]->inum;
       int *ilist = neighbor->lists[m]->ilist;

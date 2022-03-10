@@ -21,8 +21,10 @@ FixStyle(lb/fluid,FixLbFluid)
 #define LMP_FIX_LB_FLUID_H
 
 #include "fix.h"
+
 #ifndef _USE_MATH_DEFINES   // needed for compilation under windows
 #define _USE_MATH_DEFINES
+#endif
 #include <cmath>
 
 #if defined(MPI_STUBS)

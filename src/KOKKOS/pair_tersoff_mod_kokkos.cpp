@@ -90,11 +90,12 @@ void PairTersoffMODKokkos<DeviceType>::init_style()
 
   // adjust neighbor list request for KOKKOS
 
+  neighflag = lmp->kokkos->neighflag;
   auto request = neighbor->find_request(this);
   request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
                            !std::is_same<DeviceType,LMPDeviceType>::value);
   request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
-  if (lmp->kokkos->neighflag == FULL)
+  if (neighflag == FULL)
     error->all(FLERR,"Cannot (yet) use full neighbor list style with tersoff/mod/kk");
 }
 

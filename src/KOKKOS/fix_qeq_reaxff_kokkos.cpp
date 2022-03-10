@@ -100,11 +100,12 @@ void FixQEqReaxFFKokkos<DeviceType>::init()
 
   // adjust neighbor list request for KOKKOS
 
+  neighflag = lmp->kokkos->neighflag_qeq;
   auto request = neighbor->find_request(this);
   request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
                            !std::is_same<DeviceType,LMPDeviceType>::value);
   request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
-  if (lmp->kokkos->neighflag_qeq == FULL) request->enable_full();
+  if (neighflag == FULL) request->enable_full();
 
   int ntypes = atom->ntypes;
   k_params = Kokkos::DualView<params_qeq*,Kokkos::LayoutRight,DeviceType>

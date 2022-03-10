@@ -512,11 +512,12 @@ void PairTableKokkos<DeviceType>::compute_table(Table *tb)
 template<class DeviceType>
 void PairTableKokkos<DeviceType>::init_style()
 {
+  neighflag = lmp->kokkos->neighflag;
   auto request = neighbor->add_request(this);
   request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
                            !std::is_same<DeviceType,LMPDeviceType>::value);
   request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
-  if (lmp->kokkos->neighflag == FULL) request->enable_full();
+  if (neighflag == FULL) request->enable_full();
 }
 
 namespace LAMMPS_NS {

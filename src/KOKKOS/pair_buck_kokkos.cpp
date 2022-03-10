@@ -209,17 +209,17 @@ void PairBuckKokkos<DeviceType>::init_style()
     int respa = 0;
     if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
     if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
-    if (respa)
-      error->all(FLERR,"Cannot use Kokkos pair style with rRESPA inner/middle");
+    if (respa) error->all(FLERR,"Cannot use Kokkos pair style with rRESPA inner/middle");
   }
 
   // adjust neighbor list request for KOKKOS
 
-  auto request = neighbor->find_request(this);
+  neighflag = lmp->kokkos->neighflag;
+    auto request = neighbor->find_request(this);
   request->set_kokkos_host(std::is_same<DeviceType,LMPHostType>::value &&
                            !std::is_same<DeviceType,LMPDeviceType>::value);
   request->set_kokkos_device(std::is_same<DeviceType,LMPDeviceType>::value);
-  if (lmp->kokkos->neighflag == FULL) request->enable_full();
+  if (neighflag == FULL) request->enable_full();
 }
 
 /* ----------------------------------------------------------------------

@@ -741,27 +741,35 @@ void FixPiTorsion::write_data_header(FILE *fp, int mth)
 
 /* ----------------------------------------------------------------------
    return size I own for Mth data section
-   # of data sections = 1 for this fix
-   nx = # of PiTorsions owned by my local atoms
-     if newton_bond off, atom only owns PiTorsion if it is atom3
-   ny = columns = type + 6 atom IDs
+   # of data sections = 2 for this fix
 ------------------------------------------------------------------------- */
 
 void FixPiTorsion::write_data_section_size(int mth, int &nx, int &ny)
 {
   int i,m;
 
-  tagint *tag = atom->tag;
-  int nlocal = atom->nlocal;
+  // PiTorsions section
+  // nx = # of PiTorsions owned by my local atoms
+  //   if newton_bond off, atom only owns PiTorsion if it is atom3
+  // ny = 7 columns = type + 6 atom IDs
 
-  nx = 0;
-  for (i = 0; i < nlocal; i++)
-    for (m = 0; m < num_pitorsion[i]; m++)
-      if (pitorsion_atom3[i][m] == tag[i]) nx++;
+  if (mth == 0) {
+    tagint *tag = atom->tag;
+    int nlocal = atom->nlocal;
 
-  // NOTE: should be a check for newton bond?
+    nx = 0;
+    for (i = 0; i < nlocal; i++)
+      for (m = 0; m < num_pitorsion[i]; m++)
+        if (pitorsion_atom3[i][m] == tag[i]) nx++;
 
-  ny = 7;
+    ny = 7;
+
+  // PiTorsion Coeffs section
+  // nx = # of PiTorsion types
+  // ny = 2 columns = PiTorsion type + value
+
+  } else if (mth == 1) {
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -773,26 +781,35 @@ void FixPiTorsion::write_data_section_pack(int mth, double **buf)
 {
   int i,m;
 
+  // PiTorsions section
   // 1st column = PiTorsion type
-  // 2nd-6th columns = 5 atom IDs
+  // 2nd-7th columns = 6 atom IDs
 
-  tagint *tag = atom->tag;
-  int nlocal = atom->nlocal;
+  if (mth == 0) {
 
-  int n = 0;
-  for (i = 0; i < nlocal; i++) {
-    for (m = 0; m < num_pitorsion[i]; m++) {
-      // NOTE: check for newton bond on/off ?
-      if (pitorsion_atom3[i][m] != tag[i]) continue;
-      buf[n][0] = ubuf(pitorsion_type[i][m]).d;
-      buf[n][1] = ubuf(pitorsion_atom1[i][m]).d;
-      buf[n][2] = ubuf(pitorsion_atom2[i][m]).d;
-      buf[n][3] = ubuf(pitorsion_atom3[i][m]).d;
-      buf[n][4] = ubuf(pitorsion_atom4[i][m]).d;
-      buf[n][5] = ubuf(pitorsion_atom5[i][m]).d;
-      buf[n][6] = ubuf(pitorsion_atom6[i][m]).d;
-      n++;
+    tagint *tag = atom->tag;
+    int nlocal = atom->nlocal;
+
+    int n = 0;
+    for (i = 0; i < nlocal; i++) {
+      for (m = 0; m < num_pitorsion[i]; m++) {
+        if (pitorsion_atom3[i][m] != tag[i]) continue;
+        buf[n][0] = ubuf(pitorsion_type[i][m]).d;
+        buf[n][1] = ubuf(pitorsion_atom1[i][m]).d;
+        buf[n][2] = ubuf(pitorsion_atom2[i][m]).d;
+        buf[n][3] = ubuf(pitorsion_atom3[i][m]).d;
+        buf[n][4] = ubuf(pitorsion_atom4[i][m]).d;
+        buf[n][5] = ubuf(pitorsion_atom5[i][m]).d;
+        buf[n][6] = ubuf(pitorsion_atom6[i][m]).d;
+        n++;
+      }
     }
+
+  // PiTorsion Coeffs section
+  // 1st column = pitorsion type
+  // 2nd column = value
+
+  } else if (mth == 1) {
   }
 }
 
@@ -816,14 +833,22 @@ void FixPiTorsion::write_data_section_keyword(int mth, FILE *fp)
 ------------------------------------------------------------------------- */
 
 void FixPiTorsion::write_data_section(int mth, FILE *fp,
-                                  int n, double **buf, int index)
+                                      int n, double **buf, int index)
 {
-  for (int i = 0; i < n; i++)
-    fprintf(fp,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT
-            " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT "\n",
-            index+i,(int) ubuf(buf[i][0]).i,(tagint) ubuf(buf[i][1]).i,
-            (tagint) ubuf(buf[i][2]).i,(tagint) ubuf(buf[i][3]).i,
-            (tagint) ubuf(buf[i][4]).i,(tagint) ubuf(buf[i][5]).i);
+  // PiTorsions section
+
+  if (mth == 0) {
+    for (int i = 0; i < n; i++)
+      fprintf(fp,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT
+              " " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT "\n",
+              index+i,(int) ubuf(buf[i][0]).i,(tagint) ubuf(buf[i][1]).i,
+              (tagint) ubuf(buf[i][2]).i,(tagint) ubuf(buf[i][3]).i,
+              (tagint) ubuf(buf[i][4]).i,(tagint) ubuf(buf[i][5]).i);
+
+  // PiTorsion Coeffs section
+
+  } else if (mth == 1) {
+  }
 }
 
 // ----------------------------------------------------------------------

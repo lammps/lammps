@@ -31,9 +31,6 @@
 #include "random_mars.h"
 #include "update.h"
 #include <cfloat>
-#ifndef _USE_MATH_DEFINES   // needed for compilation under windows
-#define _USE_MATH_DEFINES
-#endif
 #include <cmath>
 #include <cstring>
 #include <fstream>

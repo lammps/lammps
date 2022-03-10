@@ -21,11 +21,11 @@ FixStyle(lb/fluid,FixLbFluid)
 #define LMP_FIX_LB_FLUID_H
 
 #include "fix.h"
+#include "math_const.h"
 
-#ifndef _USE_MATH_DEFINES   // needed for compilation under windows
-#define _USE_MATH_DEFINES
-#endif
-#include <cmath>
+using LAMMPS_NS::MathConst::MY_SQRT2;
+using LAMMPS_NS::MathConst::MY_SQRT1_2;
+
 
 #if defined(MPI_STUBS)
 #error "The LATBOLTZ package cannot be compiled in serial with MPI STUBS"
@@ -66,7 +66,7 @@ static const double mg_lb15[15][15] = {
   {     0.,        0.,        0.,        0.,        0.,    -1./3.,     1./3.,  2./3.,  2./3.,  2./3.,  2./3., -2./3., -2./3., -2./3., -2./3.},
   {     0.,    -1./3.,        0.,     1./3.,        0.,        0.,        0.,  2./3., -2./3., -2./3.,  2./3.,  2./3., -2./3., -2./3.,  2./3.},
   {     0.,        0.,        0.,        0.,        0.,        0.,        0.,     1.,    -1.,     1.,    -1.,    -1.,     1.,    -1.,     1.},
-  {M_SQRT2,-M_SQRT1_2,-M_SQRT1_2,-M_SQRT1_2,-M_SQRT1_2,-M_SQRT1_2,-M_SQRT1_2,M_SQRT2,M_SQRT2,M_SQRT2,M_SQRT2,M_SQRT2,M_SQRT2,M_SQRT2,M_SQRT2}
+  {MY_SQRT2,-MY_SQRT1_2,-MY_SQRT1_2,-MY_SQRT1_2,-MY_SQRT1_2,-MY_SQRT1_2,-MY_SQRT1_2,MY_SQRT2,MY_SQRT2,MY_SQRT2,MY_SQRT2,MY_SQRT2,MY_SQRT2,MY_SQRT2,MY_SQRT2}
 };
 // clang-format on
 

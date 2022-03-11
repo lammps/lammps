@@ -309,6 +309,8 @@ void FixQEqReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
     dup_o = decltype(dup_o)();
 
   atomKK->modified(execution_space,datamask_modify);
+
+  d_neighbors = typename AT::t_neighbors_2d();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -331,8 +333,19 @@ void FixQEqReaxFFKokkos<DeviceType>::allocate_matrix()
   // determine the total space for the H matrix
 
   m_cap = 0;
-  FixQEqReaxFFKokkosNumNeighFunctor<DeviceType> neigh_functor(this);
-  Kokkos::parallel_reduce(nn,neigh_functor,m_cap);
+
+  // limit scope of functor to allow deallocation of views
+  {
+    FixQEqReaxFFKokkosNumNeighFunctor<DeviceType> neigh_functor(this);
+    Kokkos::parallel_reduce(nn,neigh_functor,m_cap);
+  }
+
+  // deallocate first to reduce memory overhead
+
+  d_firstnbr = typename AT::t_int_1d();
+  d_numnbrs = typename AT::t_int_1d();
+  d_jlist = typename AT::t_int_1d();
+  d_val = typename AT::t_ffloat_1d();
 
   d_firstnbr = typename AT::t_int_1d("qeq/kk:firstnbr",nmax);
   d_numnbrs = typename AT::t_int_1d("qeq/kk:numnbrs",nmax);

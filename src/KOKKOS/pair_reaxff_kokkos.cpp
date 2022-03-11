@@ -1121,6 +1121,8 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     //dup_Cdbopi       = decltype(dup_Cdbopi)();
     //dup_Cdbopi2      = decltype(dup_Cdbopi2)();
   }
+
+  d_neighbors = typename AT::t_neighbors_2d();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1503,6 +1505,10 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTabulatedLJCoulo
 template<class DeviceType>
 void PairReaxFFKokkos<DeviceType>::allocate_array()
 {
+  // deallocate first to reduce memory overhead
+
+  deallocate_array();
+
   if (cut_hbsq > 0.0) {
     d_hb_first = typename AT::t_int_1d("reaxff/kk:hb_first",nmax);
     d_hb_num = typename AT::t_int_1d("reaxff/kk:hb_num",nmax);
@@ -1564,6 +1570,74 @@ void PairReaxFFKokkos<DeviceType>::allocate_array()
   d_abo = typename AT::t_ffloat_2d("reaxff/kk:abo",nmax,maxbo);
   d_neighid = typename AT::t_tagint_2d("reaxff/kk:neighid",nmax,maxbo);
   d_numneigh_bonds = typename AT::t_int_1d("reaxff/kk:numneigh_bonds",nmax);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void PairReaxFFKokkos<DeviceType>::deallocate_array()
+{
+  if (cut_hbsq > 0.0) {
+    d_hb_first = typename AT::t_int_1d();
+    d_hb_num = typename AT::t_int_1d();
+    d_hb_list = typename AT::t_int_1d();
+  }
+  d_bo_first = typename AT::t_int_1d();
+  d_bo_num = typename AT::t_int_1d();
+  d_bo_list = typename AT::t_int_1d();
+
+  d_BO = typename AT::t_ffloat_2d_dl();
+  d_BO_s = typename AT::t_ffloat_2d_dl();
+  d_BO_pi = typename AT::t_ffloat_2d_dl();
+  d_BO_pi2 = typename AT::t_ffloat_2d_dl();
+
+  d_dln_BOp_pix = typename AT::t_ffloat_2d_dl();
+  d_dln_BOp_piy = typename AT::t_ffloat_2d_dl();
+  d_dln_BOp_piz = typename AT::t_ffloat_2d_dl();
+
+  d_dln_BOp_pi2x = typename AT::t_ffloat_2d_dl();
+  d_dln_BOp_pi2y = typename AT::t_ffloat_2d_dl();
+  d_dln_BOp_pi2z = typename AT::t_ffloat_2d_dl();
+
+  d_C1dbo = typename AT::t_ffloat_2d_dl();
+  d_C2dbo = typename AT::t_ffloat_2d_dl();
+  d_C3dbo = typename AT::t_ffloat_2d_dl();
+
+  d_C1dbopi = typename AT::t_ffloat_2d_dl();
+  d_C2dbopi = typename AT::t_ffloat_2d_dl();
+  d_C3dbopi = typename AT::t_ffloat_2d_dl();
+  d_C4dbopi = typename AT::t_ffloat_2d_dl();
+
+  d_C1dbopi2 = typename AT::t_ffloat_2d_dl();
+  d_C2dbopi2 = typename AT::t_ffloat_2d_dl();
+  d_C3dbopi2 = typename AT::t_ffloat_2d_dl();
+  d_C4dbopi2 = typename AT::t_ffloat_2d_dl();
+
+  d_dBOpx = typename AT::t_ffloat_2d_dl();
+  d_dBOpy = typename AT::t_ffloat_2d_dl();
+  d_dBOpz = typename AT::t_ffloat_2d_dl();
+
+  d_dDeltap_self = typename AT::t_ffloat_2d_dl();
+  d_Deltap_boc = typename AT::t_ffloat_1d();
+  d_Deltap = typename AT::t_ffloat_1d();
+  d_total_bo = typename AT::t_ffloat_1d();
+
+  d_Cdbo = typename AT::t_ffloat_2d_dl();
+  d_Cdbopi = typename AT::t_ffloat_2d_dl();
+  d_Cdbopi2 = typename AT::t_ffloat_2d_dl();
+
+  d_Delta = typename AT::t_ffloat_1d();
+  d_Delta_boc = typename AT::t_ffloat_1d();
+  d_dDelta_lp = typename AT::t_ffloat_1d();
+  d_Delta_lp = typename AT::t_ffloat_1d();
+  d_Delta_lp_temp = typename AT::t_ffloat_1d();
+  d_CdDelta = typename AT::t_ffloat_1d();
+  d_sum_ovun = typename AT::t_ffloat_2d_dl();
+
+  // FixReaxFFBonds
+  d_abo = typename AT::t_ffloat_2d();
+  d_neighid = typename AT::t_tagint_2d();
+  d_numneigh_bonds = typename AT::t_int_1d();
 }
 
 /* ---------------------------------------------------------------------- */

@@ -2154,6 +2154,11 @@ A :doc:`plugin <plugin>` command that can load and unload several
 kind of styles in LAMMPS from shared object files at runtime without
 having to recompile and relink LAMMPS.
 
+When the environment variable ``LAMMPS_PLUGIN_PATH`` is set, then LAMMPS
+will search the directory (or directories) listed in this path for files
+with names that end in ``plugin.so`` (e.g. ``helloplugin.so``) and will
+try to load the contained plugins automatically at start-up.
+
 **Authors:** Axel Kohlmeyer (Temple U)
 
 **Supporting info:**

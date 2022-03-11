@@ -179,7 +179,7 @@ void PairSNAP::compute(int eflag, int vflag)
       else
         snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
                                snaptr->rcutij[jj], jj, 0,
-			       //			       snaptr->rinnerij[jj], snaptr->drinnerij[jj],jj);
+//			       snaptr->rinnerij[jj], snaptr->drinnerij[jj],jj);
 			       0.0, 1.0);
 
       snaptr->compute_deidrj(fij);

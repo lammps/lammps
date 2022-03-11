@@ -376,7 +376,8 @@ void SNA::compute_ui(int jnum, int ielem)
     if (chem_flag)
       add_uarraytot(r, wj[j], rcutij[j], j, element[j], rinnerij[j], drinnerij[j]);
     else
-      add_uarraytot(r, wj[j], rcutij[j], j, 0, rinnerij[j], drinnerij[j]);
+      //      add_uarraytot(r, wj[j], rcutij[j], j, 0, rinnerij[j], drinnerij[j]);
+      add_uarraytot(r, wj[j], rcutij[j], j, 0, 0.0, 1.0);
   }
 
 }

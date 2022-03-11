@@ -144,7 +144,6 @@ TILD::TILD(LAMMPS *lmp) :
   rho0 = 0.0;
   nmax = 0;
   sub_flag = 1;
-  mix_flag = 1;
   ave_grid_flag = 0;
   nvalid_last = -1;
   nvalid = 0;
@@ -406,20 +405,18 @@ void TILD::setup()
     normalize_by_rho0 = 0;
   }
 
-  if (mix_flag == 1) {
-    int ntypes = atom->ntypes;
-    for (int itype = 1; itype <= ntypes; itype++) {
-      for (int jtype = itype + 1; jtype <= ntypes; jtype++) {
-        if (potent_type_map[0][itype][itype] == 1 || potent_type_map[0][jtype][jtype] == 1) {
-          potent_type_map[0][itype][jtype] = 1;
-          for (int istyle = 1; istyle <= nstyles; istyle++)
-            potent_type_map[istyle][itype][jtype] = potent_type_map[istyle][itype][itype];
-        } else {
-          potent_type_map[0][itype][jtype] = 0;
-          for (int istyle = 1; istyle <= nstyles; istyle++)
-            // assume it is of type istyle, but it does the convolution
-            potent_type_map[istyle][itype][jtype] = -1;
-        }
+  int ntypes = atom->ntypes;
+  for (int itype = 1; itype <= ntypes; itype++) {
+    for (int jtype = itype + 1; jtype <= ntypes; jtype++) {
+      if (potent_type_map[0][itype][itype] == 1 || potent_type_map[0][jtype][jtype] == 1) {
+        potent_type_map[0][itype][jtype] = 1;
+        for (int istyle = 1; istyle <= nstyles; istyle++)
+          potent_type_map[istyle][itype][jtype] = potent_type_map[istyle][itype][itype];
+      } else {
+        potent_type_map[0][itype][jtype] = 0;
+        for (int istyle = 1; istyle <= nstyles; istyle++)
+          // assume it is of type istyle, but it does the convolution
+          potent_type_map[istyle][itype][jtype] = -1;
       }
     }
   }
@@ -1019,16 +1016,9 @@ void TILD::init_cross_potentials()
       if (potent_type_map[0][itype][jtype] == 1) continue;
 
       // If both parameters are Gaussian, just do analytical convolution
-      if (potent_type_map[1][itype][jtype] == 1 or
-          (mix_flag == 1 && potent_type_map[1][itype][itype] == 1 &&
-           potent_type_map[1][jtype][jtype] == 1)) {
+      if (potent_type_map[1][itype][jtype] == 1 ) {
         // mixing
-        double a2_mix;
-        if (mix_flag == 1) {
-          a2_mix = a2[itype][itype] + a2[jtype][jtype];
-        } else {
-          a2_mix = a2[itype][jtype] + a2[itype][jtype];
-        }
+        double a2_mix = a2[itype][itype] + a2[jtype][jtype];
         const double *p = &a2_mix;
         init_potential(potent[loc], 1, p);
 
@@ -1037,16 +1027,11 @@ void TILD::init_cross_potentials()
       }
       // Computational Convolution
       else {
-        if (mix_flag == 1) {
-          calc_work(work1, itype, itype);
-          if (itype == jtype) {
-            for (int i = 0; i < 2 * nfft; i++) work2[i] = work1[i];
-          } else {
-            calc_work(work2, jtype, jtype);
-          }
-        } else {
-          calc_work(work1, itype, jtype);
+        calc_work(work1, itype, jtype);
+        if (itype == jtype) {
           for (int i = 0; i < 2 * nfft; i++) work2[i] = work1[i];
+        } else {
+          calc_work(work2, jtype, jtype);
         }
 
         // Convolution of potentials
@@ -1686,16 +1671,6 @@ int TILD::modify_param(int narg, char **arg)
         }
         iarg += temp_arg;
 
-      } else if (strcmp(arg[iarg], "mix") == 0) {
-        if (iarg + 2 > narg) error->all(FLERR, "Illegal kspace_modify tild command");
-        mix_flag = 1;
-        if (strcmp(arg[iarg + 1], "convolution") == 0)
-          mix_flag = 1;
-        else if (strcmp(arg[iarg + 1], "define") == 0)
-          mix_flag = 0;
-        else
-          error->all(FLERR, "Illegal kspace_modify tild mix argument");
-        iarg += 2;
       } else if (strcmp(arg[iarg], "set_rho0") == 0) {
         if (iarg + 2 > narg) error->all(FLERR, "Illegal kspace_modify tild command");
         set_rho0 = utils::numeric(FLERR, arg[iarg + 1], false, lmp);

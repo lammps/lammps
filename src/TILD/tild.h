@@ -146,7 +146,7 @@ class TILD : public KSpace {
   int nxlo_fft, nylo_fft, nzlo_fft, nxhi_fft, nyhi_fft, nzhi_fft;
   int nlower, nupper;
   int ngrid, nfft, nfft_both;
-  int subtract_rho0, normalize_by_rho0, mix_flag, sub_flag, norm_flag;
+  int subtract_rho0, normalize_by_rho0, sub_flag, norm_flag;
 
   std::vector<Interaction> cross_iter;
 

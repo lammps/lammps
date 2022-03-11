@@ -812,8 +812,12 @@ void FixPiTorsion::write_data_section_size(int mth, int &nx, int &ny)
   // PiTorsion Coeffs section
   // nx = # of PiTorsion types
   // ny = 2 columns = PiTorsion type + value
+  // only proc 0 returns a non-zero nx
 
   } else if (mth == 1) {
+    if (me == 0) nx = npitorsion_types;
+    else nx = 0;
+    ny = 2;
   }
 }
 
@@ -853,8 +857,17 @@ void FixPiTorsion::write_data_section_pack(int mth, double **buf)
   // PiTorsion Coeffs section
   // 1st column = pitorsion type
   // 2nd column = value
+  // only proc 0 returns any data
 
   } else if (mth == 1) {
+    if (me) return;
+
+    int n = 0;
+    for (i = 1; i <= npitorsion_types; i++) {
+      buf[n][0] = ubuf(i).d;
+      buf[n][1] = kpit[i];
+      n += 2;
+    }
   }
 }
 
@@ -893,6 +906,8 @@ void FixPiTorsion::write_data_section(int mth, FILE *fp,
   // PiTorsion Coeffs section
 
   } else if (mth == 1) {
+    for (int i = 0; i < n; i++)
+      fprintf(fp,"%d %g\n",(int) ubuf(buf[i][0]).i,buf[i][1]);
   }
 }
 

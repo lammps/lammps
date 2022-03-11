@@ -402,8 +402,7 @@ int PairReaxFFOMP::estimate_reax_lists()
 
 int PairReaxFFOMP::write_reax_lists()
 {
-  int itr_i, itr_j, i, j, num_mynbrs;
-  int *jlist;
+  int num_mynbrs;
   double d_sqr, dist, cutoff_sqr;
   rvec dvec;
 
@@ -425,19 +424,19 @@ int PairReaxFFOMP::write_reax_lists()
 
   num_nbrs = 0;
 
-  for (itr_i = 0; itr_i < numall; ++itr_i) {
-    i = ilist[itr_i];
+  for (int itr_i = 0; itr_i < numall; ++itr_i) {
+    int i = ilist[itr_i];
     num_nbrs_offset[i] = num_nbrs;
     num_nbrs += numneigh[i];
   }
 
 #if defined(_OPENMP)
 #pragma omp parallel for schedule(dynamic,50) default(shared)           \
-  private(itr_i, itr_j, i, j, jlist, cutoff_sqr, num_mynbrs, d_sqr, dvec, dist)
+  private(cutoff_sqr, num_mynbrs, d_sqr, dvec, dist)
 #endif
-  for (itr_i = 0; itr_i < numall; ++itr_i) {
-    i = ilist[itr_i];
-    jlist = firstneigh[i];
+  for (int itr_i = 0; itr_i < numall; ++itr_i) {
+    int i = ilist[itr_i];
+    auto jlist = firstneigh[i];
     Set_Start_Index(i, num_nbrs_offset[i], far_nbrs);
 
     if (i < inum)
@@ -447,8 +446,8 @@ int PairReaxFFOMP::write_reax_lists()
 
     num_mynbrs = 0;
 
-    for (itr_j = 0; itr_j < numneigh[i]; ++itr_j) {
-      j = jlist[itr_j];
+    for (int itr_j = 0; itr_j < numneigh[i]; ++itr_j) {
+      int j = jlist[itr_j];
       j &= NEIGHMASK;
       get_distance(x[j], x[i], &d_sqr, &dvec);
 

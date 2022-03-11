@@ -25,18 +25,17 @@ following benefits:
 - transparent support for translating unsupported UTF-8 characters to their ASCII equivalents
   (the text-to-value conversion functions **only** accept ASCII characters)
 
-In most cases (e.g. potential files) the same data is needed on all
-MPI ranks.  Then it is best to do the reading and parsing only on MPI
-rank 0, and communicate the data later with one or more
-``MPI_Bcast()`` calls.  For reading generic text and potential
-parameter files the custom classes :cpp:class:`TextFileReader
-<LAMMPS_NS::TextFileReader>` and :cpp:class:`PotentialFileReader
-<LAMMPS_NS::PotentialFileReader>` are available. They allow reading
-the file as individual lines for which they can return a tokenizer
-class (see below) for parsing the line.  Or they can return blocks of
-numbers as a vector directly.  The documentation on `File reader
-classes <file-reader-classes>`_ contains an example for a typical
-case.
+In most cases (e.g. potential files) the same data is needed on all MPI
+ranks.  Then it is best to do the reading and parsing only on MPI rank
+0, and communicate the data later with one or more ``MPI_Bcast()``
+calls.  For reading generic text and potential parameter files the
+custom classes :cpp:class:`TextFileReader <LAMMPS_NS::TextFileReader>`
+and :cpp:class:`PotentialFileReader <LAMMPS_NS::PotentialFileReader>`
+are available. They allow reading the file as individual lines for which
+they can return a tokenizer class (see below) for parsing the line.  Or
+they can return blocks of numbers as a vector directly.  The
+documentation on :ref:`File reader classes <file-reader-classes>`
+contains an example for a typical case.
 
 When reading per-atom data, the data on each line of the file usually
 needs to include an atom ID so it can be associated with a particular

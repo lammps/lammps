@@ -963,15 +963,15 @@ void SNA::compute_dbidrj()
    calculate derivative of Ui w.r.t. atom j
 ------------------------------------------------------------------------- */
 
-void SNA::compute_duidrj(double* rij, double wj, double rcut, int jj,
-			 int jelem, double rinner, double drinner)
+void SNA::compute_duidrj(int jj)
 {
   double rsq, r, x, y, z, z0, theta0, cs, sn;
   double dz0dr;
+  double rcut = rcutij[jj];
 
-  x = rij[0];
-  y = rij[1];
-  z = rij[2];
+  x = rij[jj][0];
+  y = rij[jj][1];
+  z = rij[jj][2];
   rsq = x * x + y * y + z * z;
   r = sqrt(rsq);
   double rscale0 = rfac0 * MY_PI / (rcut - rmin0);
@@ -981,8 +981,10 @@ void SNA::compute_duidrj(double* rij, double wj, double rcut, int jj,
   z0 = r * cs / sn;
   dz0dr = z0 / r - (r*rscale0) * (rsq + z0 * z0) / rsq;
 
-  elem_duarray = jelem;
-  compute_duarray(x, y, z, z0, r, dz0dr, wj, rcut, jj, rinner, drinner);
+  if (chem_flag) elem_duarray = element[jj];
+  else elem_duarray = 0;
+
+  compute_duarray(x, y, z, z0, r, dz0dr, wj[jj], rcut, jj);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1137,8 +1139,7 @@ void SNA::compute_uarray(double x, double y, double z,
 
 void SNA::compute_duarray(double x, double y, double z,
                           double z0, double r, double dz0dr,
-                          double wj, double rcut, int jj,
-			  double rinner, double drinner)
+                          double wj, double rcut, int jj)
 {
   double r0inv;
   double a_r, a_i, b_r, b_i;
@@ -1269,8 +1270,8 @@ void SNA::compute_duarray(double x, double y, double z,
   double dsfac = compute_dsfac(r, rcut);
 
   if (switch_inner_flag) {
-    double sfac_inner = compute_sfac_inner(r, rinner, drinner);
-    dsfac = dsfac*sfac_inner + sfac*compute_dsfac_inner(r, rinner, drinner);
+    double sfac_inner = compute_sfac_inner(r, rinnerij[jj], drinnerij[jj]);
+    dsfac = dsfac*sfac_inner + sfac*compute_dsfac_inner(r, rinnerij[jj], drinnerij[jj]);
     sfac *= sfac_inner;
   }
   

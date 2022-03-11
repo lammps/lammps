@@ -295,9 +295,7 @@ void ComputeSNAVAtom::compute_peratom()
       for (int jj = 0; jj < ninside; jj++) {
         const int j = snaptr->inside[jj];
 
-        snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
-			       snaptr->rcutij[jj], jj, snaptr->element[jj],
-			       snaptr->rinnerij[jj], snaptr->drinnerij[jj]);
+        snaptr->compute_duidrj(jj);
         snaptr->compute_dbidrj();
 
         // Accumulate -dBi/dRi*Ri, -dBi/dRj*Rj

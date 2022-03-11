@@ -161,14 +161,7 @@ void MLIAPDescriptorSNAP::compute_forces(class MLIAPData* data)
 
     for (int jj = 0; jj < ninside; jj++) {
       int j = snaptr->inside[jj];
-      if (chemflag)
-        snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
-			       snaptr->rcutij[jj], jj, snaptr->element[jj],
-			       snaptr->rinnerij[jj], snaptr->drinnerij[jj]);
-      else
-        snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
-			       snaptr->rcutij[jj], jj, 0,
-			       snaptr->rinnerij[jj], snaptr->drinnerij[jj]);
+      snaptr->compute_duidrj(jj);
 
       snaptr->compute_deidrj(fij);
 
@@ -237,15 +230,7 @@ void MLIAPDescriptorSNAP::compute_force_gradients(class MLIAPData* data)
     for (int jj = 0; jj < ninside; jj++) {
       const int j = snaptr->inside[jj];
 
-      if (chemflag)
-        snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
-			       snaptr->rcutij[jj], jj, snaptr->element[jj],
-			       snaptr->rinnerij[jj], snaptr->drinnerij[jj]);
-      else
-        snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
-			       snaptr->rcutij[jj], jj, 0,
-			       snaptr->rinnerij[jj], snaptr->drinnerij[jj]);
-
+      snaptr->compute_duidrj(jj);
       snaptr->compute_dbidrj();
 
       // Accumulate gamma_lk*dB_k/dRi, -gamma_lk**dB_k/dRj
@@ -312,15 +297,7 @@ void MLIAPDescriptorSNAP::compute_descriptor_gradients(class MLIAPData* data)
 
     ij = ij0;
     for (int jj = 0; jj < ninside; jj++) {
-      if (chemflag)
-        snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
-			       snaptr->rcutij[jj], jj, snaptr->element[jj],
-			       snaptr->rinnerij[jj], snaptr->drinnerij[jj]);
-      else
-        snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
-			       snaptr->rcutij[jj], jj, 0,
-			       snaptr->rinnerij[jj], snaptr->drinnerij[jj]);
-
+      snaptr->compute_duidrj(jj);
       snaptr->compute_dbidrj();
 
       // Accumulate dB_k^i/dRi, dB_k^i/dRj

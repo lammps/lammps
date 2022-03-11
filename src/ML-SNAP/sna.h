@@ -53,7 +53,7 @@ class SNA : protected Pointers {
 
   // functions for derivatives
 
-  void compute_duidrj(double *, double, double, int, int, double, double);
+  void compute_duidrj(int);
   void compute_dbidrj();
   void compute_deidrj(double *);
   double compute_sfac(double, double);
@@ -125,7 +125,7 @@ class SNA : protected Pointers {
   double deltacg(int, int, int);
   void compute_ncoeff();
   void compute_duarray(double, double, double, double, double, double,
-		       double, double, int, double, double);
+		       double, double, int);
 
   // Sets the style for the switching function
   // 0 = none

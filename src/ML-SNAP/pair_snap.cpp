@@ -182,14 +182,7 @@ void PairSNAP::compute(int eflag, int vflag)
 
     for (int jj = 0; jj < ninside; jj++) {
       int j = snaptr->inside[jj];
-      if (chemflag)
-        snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
-                               snaptr->rcutij[jj], jj, snaptr->element[jj],
-			       snaptr->rinnerij[jj], snaptr->drinnerij[jj]);
-      else
-        snaptr->compute_duidrj(snaptr->rij[jj], snaptr->wj[jj],
-                               snaptr->rcutij[jj], jj, 0,
-			       snaptr->rinnerij[jj], snaptr->drinnerij[jj]);
+      snaptr->compute_duidrj(jj);
 
       snaptr->compute_deidrj(fij);
 

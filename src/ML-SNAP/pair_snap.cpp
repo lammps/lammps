@@ -674,7 +674,8 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     if (eof) break;
     MPI_Bcast(line,MAXLINE,MPI_CHAR,0,world);
 
-    // strip comment, skip line if blank
+    // words = ptrs to all words in line
+    // strip single and double quotes from words
 
     std::vector<std::string> words;
     try {
@@ -684,57 +685,80 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
     }
 
     if (words.size() == 0) continue;
+
     if (words.size() < 2)
       error->all(FLERR,"Incorrect format in SNAP parameter file");
 
     auto keywd = words[0];
     auto keyval = words[1];
 
-    if (comm->me == 0)
-      utils::logmesg(lmp,"SNAP keyword {} {}\n",keywd,keyval);
+    // check for keywords with one value per element
 
-    if (keywd == "rcutfac") {
-      rcutfac = utils::numeric(FLERR,keyval,false,lmp);
-      rcutfacflag = 1;
-    } else if (keywd == "twojmax") {
-      twojmax = utils::inumeric(FLERR,keyval,false,lmp);
-      twojmaxflag = 1;
-    } else if (keywd == "rfac0")
-      rfac0 = utils::numeric(FLERR,keyval,false,lmp);
-    else if (keywd == "rmin0")
-      rmin0 = utils::numeric(FLERR,keyval,false,lmp);
-    else if (keywd == "switchflag")
-      switchflag = utils::inumeric(FLERR,keyval,false,lmp);
-    else if (keywd == "bzeroflag")
-      bzeroflag = utils::inumeric(FLERR,keyval,false,lmp);
-    else if (keywd == "quadraticflag")
-      quadraticflag = utils::inumeric(FLERR,keyval,false,lmp);
-    else if (keywd == "chemflag")
-      chemflag = utils::inumeric(FLERR,keyval,false,lmp);
-    else if (keywd == "bnormflag")
-      bnormflag = utils::inumeric(FLERR,keyval,false,lmp);
-    else if (keywd == "wselfallflag")
-      wselfallflag = utils::inumeric(FLERR,keyval,false,lmp);
-    else if (keywd == "switchinnerflag")
-      switchinnerflag = utils::inumeric(FLERR,keyval,false,lmp);
-    else if (keywd == "chunksize")
-      chunksize = utils::inumeric(FLERR,keyval,false,lmp);
-    else if (keywd == "parallelthresh")
-      parallel_thresh = utils::inumeric(FLERR,keyval,false,lmp);
-    else if (keywd == "rinner") {
-      for (int ielem = 0; ielem < nelements; ielem++) {
-	rinnerelem[ielem] = utils::numeric(FLERR,keyval,false,lmp);
-	keyval = strtok(nullptr,"' \t\n\r\f");
+    if (keywd == "rinner" || keywd == "drinner") {
+
+      if (nwords != nelements+1)
+        error->all(FLERR,"Incorrect SNAP parameter file");
+
+      if (comm->me == 0)
+	utils::logmesg(lmp,"SNAP keyword {} {} ... \n", keywd, keyval);
+
+      if (keywd == "rinner") {
+        for (int ielem = 0; ielem < nelements; ielem++) {
+          rinnerelem[ielem] = utils::numeric(FLERR,keyval,false,lmp);
+          keyval = strtok(nullptr,"' \t\n\r\f");
+        }
+        rinnerflag = 1;
+      } else if (keywd == "drinner") {
+	printf("drinner nelements = %d %s\n",nelements,keyval.c_str());
+        for (int ielem = 0; ielem < nelements; ielem++) {
+          drinnerelem[ielem] = utils::numeric(FLERR,keyval,false,lmp);
+          keyval = strtok(nullptr,"' \t\n\r\f");
+	  printf("drinner ielem = %d drinnerelem[ielem] = %g\n",ielem,drinnerelem[ielem]);
+        }
+        drinnerflag = 1;
       }
-      rinnerflag = 1;
-    } else if (keywd == "drinner") {
-      for (int ielem = 0; ielem < nelements; ielem++) {
-	drinnerelem[ielem] = utils::numeric(FLERR,keyval,false,lmp);
-	keyval = strtok(nullptr,"' \t\n\r\f");
-      }
-      drinnerflag = 1;
-    } else
-      error->all(FLERR,"Unknown parameter '{}' in SNAP parameter file", keywd);
+
+    } else {
+
+      // all other keywords take one value
+      
+      if (nwords != 2)
+        error->all(FLERR,"Incorrect SNAP parameter file");
+      
+      if (comm->me == 0)
+	utils::logmesg(lmp,"SNAP keyword {} {}\n",keywd,keyval);
+      
+      if (keywd == "rcutfac") {
+	rcutfac = utils::numeric(FLERR,keyval,false,lmp);
+	rcutfacflag = 1;
+      } else if (keywd == "twojmax") {
+	twojmax = utils::inumeric(FLERR,keyval,false,lmp);
+	twojmaxflag = 1;
+      } else if (keywd == "rfac0")
+	rfac0 = utils::numeric(FLERR,keyval,false,lmp);
+      else if (keywd == "rmin0")
+	rmin0 = utils::numeric(FLERR,keyval,false,lmp);
+      else if (keywd == "switchflag")
+	switchflag = utils::inumeric(FLERR,keyval,false,lmp);
+      else if (keywd == "bzeroflag")
+	bzeroflag = utils::inumeric(FLERR,keyval,false,lmp);
+      else if (keywd == "quadraticflag")
+	quadraticflag = utils::inumeric(FLERR,keyval,false,lmp);
+      else if (keywd == "chemflag")
+	chemflag = utils::inumeric(FLERR,keyval,false,lmp);
+      else if (keywd == "bnormflag")
+	bnormflag = utils::inumeric(FLERR,keyval,false,lmp);
+      else if (keywd == "wselfallflag")
+	wselfallflag = utils::inumeric(FLERR,keyval,false,lmp);
+      else if (keywd == "switchinnerflag")
+	switchinnerflag = utils::inumeric(FLERR,keyval,false,lmp);
+      else if (keywd == "chunksize")
+	chunksize = utils::inumeric(FLERR,keyval,false,lmp);
+      else if (keywd == "parallelthresh")
+	parallel_thresh = utils::inumeric(FLERR,keyval,false,lmp);
+      else
+	error->all(FLERR,"Unknown parameter '{}' in SNAP parameter file", keywd);
+    }
   }
 
   if (rcutfacflag == 0 || twojmaxflag == 0)

@@ -54,7 +54,7 @@ ComputeSNADAtom::ComputeSNADAtom(LAMMPS *lmp, int narg, char **arg) :
   chemflag = 0;
   bnormflag = 0;
   wselfallflag = 0;
-  switchinnerflag = 1;
+  switchinnerflag = 0;
   nelements = 1;
 
   // process required arguments

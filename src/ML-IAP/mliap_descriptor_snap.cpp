@@ -345,7 +345,7 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
   chemflag = 0;
   bnormflag = 0;
   wselfallflag = 0;
-  switchinnerflag = 1;
+  switchinnerflag = 0;
 
   for (int i = 0; i < nelements; i++) delete[] elements[i];
   delete[] elements;

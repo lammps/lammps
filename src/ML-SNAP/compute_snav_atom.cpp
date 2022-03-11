@@ -281,7 +281,7 @@ void ComputeSNAVAtom::compute_peratom()
           snaptr->inside[ninside] = j;
           snaptr->wj[ninside] = wjelem[jtype];
           snaptr->rcutij[ninside] = (radi+radelem[jtype])*rcutfac;
-          snaptr->element[ninside] = jelem; // element index for multi-element snap
+          if (chemflag) snaptr->element[ninside] = jelem;
           ninside++;
         }
       }

@@ -88,7 +88,7 @@ void MLIAPDescriptorSNAP::compute_descriptors(class MLIAPData* data)
       snaptr->inside[ninside] = j;
       snaptr->wj[ninside] = wjelem[jelem];
       snaptr->rcutij[ninside] = sqrt(cutsq[ielem][jelem]);
-      snaptr->element[ninside] = jelem; // element index for chem snap
+      if (chemflag) snaptr->element[ninside] = jelem;
       ninside++;
       ij++;
     }
@@ -141,7 +141,7 @@ void MLIAPDescriptorSNAP::compute_forces(class MLIAPData* data)
       snaptr->inside[ninside] = j;
       snaptr->wj[ninside] = wjelem[jelem];
       snaptr->rcutij[ninside] = sqrt(cutsq[ielem][jelem]);
-      snaptr->element[ninside] = jelem; // element index for chem snap
+      if (chemflag) snaptr->element[ninside] = jelem;
       ninside++;
       ij++;
     }
@@ -211,7 +211,7 @@ void MLIAPDescriptorSNAP::compute_force_gradients(class MLIAPData* data)
       snaptr->inside[ninside] = j;
       snaptr->wj[ninside] = wjelem[jelem];
       snaptr->rcutij[ninside] = sqrt(cutsq[ielem][jelem]);
-      snaptr->element[ninside] = jelem; // element index for chem snap
+      if (chemflag) snaptr->element[ninside] = jelem;
       ninside++;
       ij++;
     }
@@ -279,7 +279,7 @@ void MLIAPDescriptorSNAP::compute_descriptor_gradients(class MLIAPData* data)
       snaptr->inside[ninside] = j;
       snaptr->wj[ninside] = wjelem[jelem];
       snaptr->rcutij[ninside] = sqrt(cutsq[ielem][jelem]);
-      snaptr->element[ninside] = jelem; // element index for chem snap
+      if (chemflag) snaptr->element[ninside] = jelem;
       ninside++;
       ij++;
     }
@@ -392,9 +392,6 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
     char* keywd = strtok(line,"' \t\n\r\f");
     char* keyval = strtok(nullptr,"' \t\n\r\f");
 
-    if (comm->me == 0)
-      utils::logmesg(lmp,"SNAP keyword {} {} \n", keywd, keyval);
-
     // check for keywords with one value per element
 
     if (strcmp(keywd,"elems") == 0 ||
@@ -403,6 +400,9 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
 
       if (nelementsflag == 0 || nwords != nelements+1)
         error->all(FLERR,"Incorrect SNAP parameter file");
+
+      if (comm->me == 0)
+	utils::logmesg(lmp,"SNAP keyword {} {} ... \n", keywd, keyval);
 
       if (strcmp(keywd,"elems") == 0) {
         for (int ielem = 0; ielem < nelements; ielem++) {
@@ -426,10 +426,13 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
 
     } else {
 
-    // all other keywords take one value
+      // all other keywords take one value
 
       if (nwords != 2)
         error->all(FLERR,"Incorrect SNAP parameter file");
+
+      if (comm->me == 0)
+	utils::logmesg(lmp,"SNAP keyword {} {} \n", keywd, keyval);
 
       if (strcmp(keywd,"nelems") == 0) {
         nelements = atoi(keyval);

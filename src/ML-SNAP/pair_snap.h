@@ -59,7 +59,9 @@ class PairSNAP : public Pair {
   double **scale;         // for thermodynamic integration
   int twojmax, switchflag, bzeroflag, bnormflag;
   int chemflag, wselfallflag;
-  int switchinnerflag;
+  int switchinnerflag;    // inner cutoff switch
+  double *rinnerelem;     // element inner cutoff
+  double *drinnerelem;    // element inner cutoff range
   int chunksize,parallel_thresh;
   double rfac0, rmin0, wj1, wj2;
   int rcutfacflag, twojmaxflag;    // flags for required parameters

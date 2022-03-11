@@ -178,7 +178,7 @@ SNA::~SNA()
     memory->destroy(rinnerij);
     memory->destroy(drinnerij);
   }
-if (chem_flag) memory->destroy(element);
+  if (chem_flag) memory->destroy(element);
   memory->destroy(ulist_r_ij);
   memory->destroy(ulist_i_ij);
   delete[] idxz;
@@ -376,8 +376,7 @@ void SNA::compute_ui(int jnum, int ielem)
     if (chem_flag)
       add_uarraytot(r, wj[j], rcutij[j], j, element[j], rinnerij[j], drinnerij[j]);
     else
-      //      add_uarraytot(r, wj[j], rcutij[j], j, 0, rinnerij[j], drinnerij[j]);
-      add_uarraytot(r, wj[j], rcutij[j], j, 0, 0.0, 1.0);
+      add_uarraytot(r, wj[j], rcutij[j], j, 0, rinnerij[j], drinnerij[j]);
   }
 
 }

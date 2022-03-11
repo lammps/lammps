@@ -61,23 +61,31 @@ class SNA : protected Pointers {
 
   double compute_sfac_inner(double, double, double);
   double compute_dsfac_inner(double, double, double);
-  
+
+  // public bispectrum data
+
+  int twojmax;
   double *blist;
   double **dblist;
+
+  // short neighbor list data
+  
+  void grow_rij(int);
+  int nmax;         // allocated size of short lists
+
   double **rij;     // short rij list
   int *inside;      // short neighbor list
   double *wj;       // short weight list
-  double *rcutij;   // short cutoff list 
+  double *rcutij;   // short cutoff list
+
+  // only allocated for switch_inner_flag=1
+  
   double *rinnerij; // short inner cutoff list
   double *drinnerij;// short inner range list
+
+  // only allocated for chem_flag=1
+  
   int *element;     // short element list [0,nelements)
-  int nmax;         // allocated size of short lists
-
-  void grow_rij(int);
-
-  int twojmax;
-  double *ylist_r, *ylist_i;
-  int idxcg_max, idxu_max, idxz_max, idxb_max;
 
  private:
   double rmin0, rfac0;
@@ -102,6 +110,9 @@ class SNA : protected Pointers {
 
   double **dulist_r, **dulist_i;
   int elem_duarray;    // element of j in derivative
+
+  double *ylist_r, *ylist_i;
+  int idxcg_max, idxu_max, idxz_max, idxb_max;
 
   void create_twojmax_arrays();
   void destroy_twojmax_arrays();

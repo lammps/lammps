@@ -120,7 +120,7 @@ class SNA : protected Pointers {
   void print_clebsch_gordan();
   void init_rootpqarray();
   void zero_uarraytot(int);
-  void add_uarraytot(double, double, double, int, int, double, double);
+  void add_uarraytot(double, int);
   void compute_uarray(double, double, double, double, double, int);
   double deltacg(int, int, int);
   void compute_ncoeff();

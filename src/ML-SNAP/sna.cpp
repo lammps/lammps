@@ -373,10 +373,7 @@ void SNA::compute_ui(int jnum, int ielem)
     z0 = r / tan(theta0);
 
     compute_uarray(x, y, z, z0, r, j);
-    if (chem_flag)
-      add_uarraytot(r, wj[j], rcutij[j], j, element[j], rinnerij[j], drinnerij[j]);
-    else
-      add_uarraytot(r, wj[j], rcutij[j], j, 0, rinnerij[j], drinnerij[j]);
+    add_uarraytot(r, j);
   }
 
 }
@@ -1014,16 +1011,19 @@ void SNA::zero_uarraytot(int ielem)
    add Wigner U-functions for one neighbor to the total
 ------------------------------------------------------------------------- */
 
-void SNA::add_uarraytot(double r, double wj, double rcut, int jj, int jelem,
-			double rinner, double drinner)
+void SNA::add_uarraytot(double r, int jj)
 {
   double sfac;
-
-  sfac = compute_sfac(r, rcut);
-  sfac *= wj;
+  int jelem;
+  
+  sfac = compute_sfac(r, rcutij[jj]);
+  sfac *= wj[jj];
 
   if (switch_inner_flag)
-    sfac *= compute_sfac_inner(r, rinner, drinner);
+    sfac *= compute_sfac_inner(r, rinnerij[jj], drinnerij[jj]);
+
+  if (chem_flag) jelem = element[jj];
+  else jelem = 0;
   
   double* ulist_r = ulist_r_ij[jj];
   double* ulist_i = ulist_i_ij[jj];

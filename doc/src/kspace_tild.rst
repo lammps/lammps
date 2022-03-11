@@ -161,7 +161,7 @@ The current shape function styles used in *tild shape* are
 
    U_{g} = & \frac{A}{\rho_0 (2\pi \sigma^2)^{3/2}} \exp(-r^2/2\sigma^2) \\
          = & \frac{A}{\rho_0} u_G (r) \\
-   U_{erfc} = & - \frac{A}{\rho_0}  \rho_{NP} \text{erfc} \left(\frac{\vert r \vert - R_p}{\xi}\right) \\ 
+   U_{erfc} = & \frac{A}{2\rho_0}  \rho_{NP} \text{erfc} \left(\frac{\vert r \vert - R_p}{\xi}\right) \\ 
 
 where :math:`A` is the value set by `tild prefactor`\, :math:`\rho_0` is the total density of the TILD particles, :math:`\rho_{NP}` is the density of the TILD erfc nanoparticle, :math:`\sigma`\ is the gaussian width, :math:`R_p` is the erfc particle radius and :math:`\xi` is the erfc width.
 
@@ -274,7 +274,7 @@ Related commands
 Default
 """""""
 
-The option defaults are mesh = 0 0 0, order = 5 (TILD), minorder = 2, overlap = yes, mix = convolution, tild subtract_rho0 = yes, and tild normalize_by_rho0 = yes.
+The option defaults are mesh = 0 0 0, order = 5 (TILD), minorder = 2, overlap = yes, tild subtract_rho0 = yes, and tild normalize_by_rho0 = yes.
 
 ----------
 

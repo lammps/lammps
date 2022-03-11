@@ -151,7 +151,7 @@ void PairSNAP::compute(int eflag, int vflag)
         snaptr->inside[ninside] = j;
         snaptr->wj[ninside] = wjelem[jelem];
         snaptr->rcutij[ninside] = (radi + radelem[jelem])*rcutfac;
-        snaptr->element[ninside] = jelem;
+	if (chemflag) snaptr->element[ninside] = jelem;
         ninside++;
       }
     }
@@ -328,7 +328,7 @@ void PairSNAP::compute_bispectrum()
         snaptr->inside[ninside] = j;
         snaptr->wj[ninside] = wjelem[jelem];
         snaptr->rcutij[ninside] = (radi + radelem[jelem])*rcutfac;
-        snaptr->element[ninside] = jelem;
+	if (chemflag) snaptr->element[ninside] = jelem;
         ninside++;
       }
     }

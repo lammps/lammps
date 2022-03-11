@@ -31,6 +31,7 @@ class Plugin : public Command {
   void command(int, char **) override;
 };
 
+void plugin_auto_load(LAMMPS *);
 void plugin_load(const char *, LAMMPS *);
 void plugin_register(lammpsplugin_t *, void *);
 

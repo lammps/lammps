@@ -67,10 +67,20 @@ void Plugin::command(int narg, char **arg)
     }
   } else
     error->all(FLERR, "Illegal plugin command");
-#if 0
-  if (comm->me == 0)
-    error->warning(
-        FLERR, "LAMMPS must be built as a shared library for it to work.");
+}
+
+// auto-load DSOs from designated folder(s)
+void plugin_auto_load(LAMMPS *lmp)
+{
+#if defined(LMP_PLUGIN)
+  for (const auto &plugin_dir : platform::list_pathenv("LAMMPS_PLUGIN_PATH")) {
+    if (lmp->comm->me == 0)
+      utils::logmesg(lmp, "Looking for LAMMPS plugins in: {}\n", plugin_dir);
+    for (const auto &file : platform::list_directory(plugin_dir)) {
+      if (utils::strmatch(file, "\\plugin.so$"))
+        plugin_load(platform::path_join(plugin_dir, file).c_str(), lmp);
+    }
+  }
 #endif
 }
 

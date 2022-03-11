@@ -489,8 +489,6 @@
 /compute_plasticity_atom.h
 /compute_pressure_bocs.cpp
 /compute_pressure_bocs.h
-/compute_pressure_cylinder.cpp
-/compute_pressure_cylinder.h
 /compute_pressure_grem.cpp
 /compute_pressure_grem.h
 /compute_ptm_atom.cpp
@@ -501,10 +499,16 @@
 /compute_smd_triangle_vertices.h
 /compute_spec_atom.cpp
 /compute_spec_atom.h
+/compute_stress_cartesian.cpp
+/compute_stress_cartesian.h
+/compute_stress_cylinder.cpp
+/compute_stress_cylinder.h
 /compute_stress_mop.cpp
 /compute_stress_mop.h
 /compute_stress_mop_profile.cpp
 /compute_stress_mop_profile.h
+/compute_stress_spherical.cpp
+/compute_stress_spherical.h
 /compute_stress_tally.cpp
 /compute_stress_tally.h
 /compute_temp_asphere.cpp

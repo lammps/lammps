@@ -21,6 +21,7 @@
          number of exponentials evaluated, etc.
      - Added blocking to the Torsion and (optionally) BuildLists kernels, to
          reduce thread divergence on GPUs
+     - Added preview to BuildLists kernels along with full version
 ------------------------------------------------------------------------- */
 
 #include "pair_reaxff_kokkos.h"
@@ -704,7 +705,7 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_params_fbp.template sync<DeviceType>();
   k_params_hbp.template sync<DeviceType>();
 
-  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
+  if (eflag_either || vflag_either) atomKK->modified(execution_space,datamask_modify);
   else atomKK->modified(execution_space,F_MASK);
 
   x = atomKK->k_x.view<DeviceType>();
@@ -761,15 +762,15 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // Polarization (self)
   if (neighflag == HALF) {
-    if (evflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputePolar<HALF,1>>(0,inum),*this,ev);
-    else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputePolar<HALF,0>>(0,inum),*this);
+    if (eflag_global)
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputePolar<HALF>>(0,inum),*this,ev);
+    else if (eflag_atom)
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputePolar<HALF>>(0,inum),*this);
   } else { //if (neighflag == HALFTHREAD) {
-    if (evflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputePolar<HALFTHREAD,1>>(0,inum),*this,ev);
-    else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputePolar<HALFTHREAD,0>>(0,inum),*this);
+    if (eflag_global)
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputePolar<HALFTHREAD>>(0,inum),*this,ev);
+    else if (eflag_atom)
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputePolar<HALFTHREAD>>(0,inum),*this);
   }
   ev_all += ev;
   pvector[13] = ev.ecoul;
@@ -838,16 +839,23 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     // zero
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxZero>(0,nmax),*this);
 
-    if (list_blocking_flag) {
+    if (execution_space == Host) { // CPU
       if (neighflag == HALF)
-	Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalfBlocking<HALF>>(0,ignum),*this);
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalfBlocking<HALF>>(0,ignum),*this);
       else if (neighflag == HALFTHREAD)
-	Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalfBlocking<HALFTHREAD>>(0,ignum),*this);
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalfBlocking<HALFTHREAD>>(0,ignum),*this);
     } else {
-      if (neighflag == HALF)
-	Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalf<HALF>>(0,ignum),*this);
-      else if (neighflag == HALFTHREAD)
-	Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalf<HALFTHREAD>>(0,ignum),*this);
+      if (list_blocking_flag) {
+        if (neighflag == HALF)
+          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalfBlockingPreview<HALF>>(0,ignum),*this);
+        else if (neighflag == HALFTHREAD)
+          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalfBlockingPreview<HALFTHREAD>>(0,ignum),*this);
+      } else {
+        if (neighflag == HALF)
+          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalfPreview<HALF>>(0,ignum),*this);
+        else if (neighflag == HALFTHREAD)
+          Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsHalfPreview<HALFTHREAD>>(0,ignum),*this);
+      }
     }
 
     k_resize_bo.modify<DeviceType>();
@@ -873,6 +881,9 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     }
   }
 
+  if (execution_space != Host) // GPU
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxBuildListsFull>(0,ignum),*this);
+
   // allocate duplicated memory
   if (need_dup) {
     dup_CdDelta = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterDuplicated>(d_CdDelta);
@@ -897,14 +908,14 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // Bond energy
   if (neighflag == HALF) {
-    if (evflag)
+    if (eflag_either)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeBond1<HALF,1>>(0,inum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeBond1<HALF,0>>(0,inum),*this);
     ev_all += ev;
     pvector[0] = ev.evdwl;
   } else { //if (neighflag == HALFTHREAD) {
-    if (evflag)
+    if (eflag_either)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeBond1<HALFTHREAD,1>>(0,inum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeBond1<HALFTHREAD,0>>(0,inum),*this);
@@ -914,15 +925,15 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // Multi-body corrections
   if (neighflag == HALF) {
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeMulti1<HALF,0>>(0,inum),*this);
-    if (evflag)
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeMulti1>(0,inum),*this);
+    if (eflag_either)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeMulti2<HALF,1>>(0,inum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeMulti2<HALF,0>>(0,inum),*this);
     ev_all += ev;
   } else { //if (neighflag == HALFTHREAD) {
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeMulti1<HALFTHREAD,0>>(0,inum),*this);
-    if (evflag)
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeMulti1>(0,inum),*this);
+    if (eflag_either)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeMulti2<HALFTHREAD,1>>(0,inum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeMulti2<HALFTHREAD,0>>(0,inum),*this);
@@ -976,15 +987,15 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (neighflag == HALF) {
     if (evflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsionBlocking<HALF,1>>(0,nnz),*this,ev);
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsion<HALF,1>>(0,nnz),*this,ev);
     else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsionBlocking<HALF,0>>(0,nnz),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsion<HALF,0>>(0,nnz),*this);
     ev_all += ev;
   } else {
     if (evflag)
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsionBlocking<HALFTHREAD,1>>(0,nnz),*this,ev);
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsion<HALFTHREAD,1>>(0,nnz),*this,ev);
     else
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsionBlocking<HALFTHREAD,0>>(0,nnz),*this);
+      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeTorsion<HALFTHREAD,0>>(0,nnz),*this);
     ev_all += ev;
   }
 
@@ -1035,7 +1046,7 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     //  Kokkos::Experimental::contribute(d_Cdbopi2, dup_Cdbopi2); // needed in ComputeBond2
     //}
 
-    if (evflag)
+    if (vflag_either)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeBond2<HALF,1>>(0,ignum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeBond2<HALF,0>>(0,ignum),*this);
@@ -1051,7 +1062,7 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     //  Kokkos::Experimental::contribute(d_Cdbopi2, dup_Cdbopi2); // needed in ComputeBond2
     //}
 
-    if (evflag)
+    if (vflag_either)
       Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeBond2<HALFTHREAD,1>>(0,ignum),*this,ev);
     else
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxComputeBond2<HALFTHREAD,0>>(0,ignum),*this);
@@ -1067,6 +1078,7 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     eng_vdwl += ev_all.evdwl;
     eng_coul += ev_all.ecoul;
   }
+
   if (vflag_global) {
     virial[0] += ev_all.v[0];
     virial[1] += ev_all.v[1];
@@ -1114,9 +1126,9 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-template<int NEIGHFLAG, int EVFLAG>
+template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputePolar<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
+void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputePolar<NEIGHFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
   const int i = d_ilist[ii];
   const int itype = type(i);
@@ -1130,17 +1142,17 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputePolar<NEIGHFLAG,
   if (acks2_flag)
     epol += KCALpMOL_to_EV*qi*d_s[NN + i];
 
-  if (eflag) ev.ecoul += epol;
+  if (eflag_global) ev.ecoul += epol;
   //if (eflag_atom) this->template ev_tally<NEIGHFLAG>(ev,i,i,epol,0.0,0.0,0.0,0.0);
   if (eflag_atom) this->template e_tally_single<NEIGHFLAG>(ev,i,epol);
 }
 
 template<class DeviceType>
-template<int NEIGHFLAG, int EVFLAG>
+template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputePolar<NEIGHFLAG,EVFLAG>, const int &ii) const {
+void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputePolar<NEIGHFLAG>, const int &ii) const {
   EV_FLOAT_REAX ev;
-  this->template operator()<NEIGHFLAG,EVFLAG>(TagPairReaxComputePolar<NEIGHFLAG,EVFLAG>(), ii, ev);
+  this->template operator()<NEIGHFLAG>(TagPairReaxComputePolar<NEIGHFLAG>(), ii, ev);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1318,10 +1330,12 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeLJCoulomb<NEIGHF
     fztmp += delz*ftotal;
     a_f(j,2) -= delz*ftotal;
 
-    if (eflag) ev.evdwl += evdwl;
-    if (eflag) ev.ecoul += ecoul;
+    if (EVFLAG) {
+      if (eflag_global) ev.evdwl += evdwl;
+      if (eflag_global) ev.ecoul += ecoul;
 
-    if (vflag_either || eflag_atom) this->template ev_tally<NEIGHFLAG>(ev,i,j,evdwl+ecoul,-ftotal,delx,dely,delz);
+      if (vflag_either || eflag_atom) this->template ev_tally<NEIGHFLAG>(ev,i,j,evdwl+ecoul,-ftotal,delx,dely,delz);
+    }
   }
 
   a_f(i,0) += fxtmp;
@@ -1463,10 +1477,12 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTabulatedLJCoulo
     a_f(j,1) -= dely*ftotal;
     a_f(j,2) -= delz*ftotal;
 
-    if (eflag) ev.evdwl += evdwl;
-    if (eflag) ev.ecoul += ecoul;
+    if (EVFLAG) {
+      if (eflag_global) ev.evdwl += evdwl;
+      if (eflag_global) ev.ecoul += ecoul;
 
-    if (vflag_either || eflag_atom) this->template ev_tally<NEIGHFLAG>(ev,i,j,evdwl+ecoul,-ftotal,delx,dely,delz);
+      if (vflag_either || eflag_atom) this->template ev_tally<NEIGHFLAG>(ev,i,j,evdwl+ecoul,-ftotal,delx,dely,delz);
+    }
   }
 
   a_f(i,0) += fxtmp;
@@ -1586,7 +1602,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<
 
   const int three = 3;
   F_FLOAT C12, C34, C56, BO_s, BO_pi, BO_pi2, BO, delij[three], dBOp_i[three], dln_BOp_pi_i[three], dln_BOp_pi2_i[three];
-  F_FLOAT total_bo = 0.0;
+  F_FLOAT dDeltap_self_i[3] = {0.0,0.0,0.0};
+  F_FLOAT total_bo_i = 0.0;
 
   int j_index,i_index;
   d_bo_first[i] = i*maxbo;
@@ -1609,7 +1626,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<
   int jj_current = 0;
 
   while (jj_current < jnum) {
-    nnz=0;
+    nnz = 0;
 
     while (nnz < blocksize) {
       int jj = jj_current;
@@ -1625,7 +1642,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<
       const F_FLOAT rsq = delij[0]*delij[0] + delij[1]*delij[1] + delij[2]*delij[2];
 
       double cutoffsq;
-      if(i < nlocal) cutoffsq = MAX(cut_bosq,cut_hbsq);
+      if (i < nlocal) cutoffsq = MAX(cut_bosq,cut_hbsq);
       else cutoffsq = cut_bosq;
       if (rsq <= cutoffsq) {
         selected_jj[nnz] = jj_current;
@@ -1646,10 +1663,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<
       delij[2] = x(j,2) - ztmp;
       const F_FLOAT rsq = delij[0]*delij[0] + delij[1]*delij[1] + delij[2]*delij[2];
 
-      double cutoffsq;
-      if(i < nlocal) cutoffsq = MAX(cut_bosq,cut_hbsq);
-      else cutoffsq = cut_bosq;
-
       // hbond list
       if (i < nlocal && cut_hbsq > 0.0 && (ihb == 1 || ihb == 2) && rsq <= cut_hbsq) {
         jhb = paramssing(jtype).p_hbond;
@@ -1657,9 +1670,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<
           if (NEIGHFLAG == HALF) {
             j_index = hb_first_i + d_hb_num[i];
             d_hb_num[i]++;
-          } else {
+          } else
             j_index = hb_first_i + Kokkos::atomic_fetch_add(&d_hb_num[i],1);
-          }
 
           const int jj_index = j_index - hb_first_i;
 
@@ -1698,22 +1710,19 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<
       const F_FLOAT r_pi2 = paramstwbp(itype,jtype).r_pi2;
 
       if (paramssing(itype).r_s > 0.0  && paramssing(jtype).r_s > 0.0) {
-        C12 = p_bo1*pow(rij/r_s,p_bo2);
+        C12 = p_bo1 * ((p_bo2 != 0) ? (pow(rij/r_s,p_bo2)) : 1.0);
         BO_s = (1.0+bo_cut)*exp(C12);
-      }
-      else BO_s = C12 = 0.0;
+      } else BO_s = C12 = 0.0;
 
       if (paramssing(itype).r_pi > 0.0  && paramssing(jtype).r_pi > 0.0) {
-        C34 = p_bo3*pow(rij/r_pi,p_bo4);
+        C34 = p_bo3 * ((p_bo4 != 0) ? (pow(rij/r_pi,p_bo4)) : 1.0);
         BO_pi = exp(C34);
-      }
-      else BO_pi = C34 = 0.0;
+      } else BO_pi = C34 = 0.0;
 
       if (paramssing(itype).r_pi2 > 0.0  && paramssing(jtype).r_pi2 > 0.0) {
-        C56 = p_bo5*pow(rij/r_pi2,p_bo6);
+        C56 = p_bo5 * ((p_bo6 != 0) ? (pow(rij/r_pi2,p_bo6)) : 1.0);
         BO_pi2 = exp(C56);
-      }
-      else BO_pi2 = C56 = 0.0;
+      } else BO_pi2 = C56 = 0.0;
 
       BO = BO_s + BO_pi + BO_pi2;
       if (BO < bo_cut) continue;
@@ -1723,8 +1732,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<
         i_index = d_bo_first[j] + d_bo_num[j];
         d_bo_num[i]++;
         d_bo_num[j]++;
-      }
-      else {
+      } else {
         j_index = bo_first_i + Kokkos::atomic_fetch_add(&d_bo_num[i],1);
         i_index = d_bo_first[j] + Kokkos::atomic_fetch_add(&d_bo_num[j],1);
       }
@@ -1736,69 +1744,72 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<
         const int max_val = MAX(ii_index+1,jj_index+1);
         d_resize_bo() = MAX(d_resize_bo(),max_val);
       } else {
-	d_bo_list[j_index] = j;
-	d_bo_list[i_index] = i;
+        d_bo_list[j_index] = j;
+        d_bo_list[i_index] = i;
 
-	// from BondOrder1
+        // from BondOrder1
 
-	d_BO(i,jj_index) = BO;
-	d_BO_s(i,jj_index) = BO_s;
-	d_BO_pi(i,jj_index) = BO_pi;
-	d_BO_pi2(i,jj_index) = BO_pi2;
+        d_BO(i,jj_index) = BO;
+        d_BO_s(i,jj_index) = BO_s;
+        d_BO_pi(i,jj_index) = BO_pi;
+        d_BO_pi2(i,jj_index) = BO_pi2;
 
-	d_BO(j,ii_index) = BO;
-	d_BO_s(j,ii_index) = BO_s;
-	d_BO_pi(j,ii_index) = BO_pi;
-	d_BO_pi2(j,ii_index) = BO_pi2;
+        d_BO(j,ii_index) = BO;
+        d_BO_s(j,ii_index) = BO_s;
+        d_BO_pi(j,ii_index) = BO_pi;
+        d_BO_pi2(j,ii_index) = BO_pi2;
 
-	F_FLOAT Cln_BOp_s = p_bo2 * C12 / rij / rij;
-	F_FLOAT Cln_BOp_pi = p_bo4 * C34 / rij / rij;
-	F_FLOAT Cln_BOp_pi2 = p_bo6 * C56 / rij / rij;
+        F_FLOAT Cln_BOp_s = p_bo2 * C12 / rij / rij;
+        F_FLOAT Cln_BOp_pi = p_bo4 * C34 / rij / rij;
+        F_FLOAT Cln_BOp_pi2 = p_bo6 * C56 / rij / rij;
 
-	if (nlocal == 0)
-	  Cln_BOp_s = Cln_BOp_pi = Cln_BOp_pi2 = 0.0;
+        if (nlocal == 0)
+          Cln_BOp_s = Cln_BOp_pi = Cln_BOp_pi2 = 0.0;
 
-	for (int d = 0; d < 3; d++) dln_BOp_pi_i[d] = -(BO_pi*Cln_BOp_pi)*delij[d];
-	for (int d = 0; d < 3; d++) dln_BOp_pi2_i[d] = -(BO_pi2*Cln_BOp_pi2)*delij[d];
-	for (int d = 0; d < 3; d++) dBOp_i[d] = -(BO_s*Cln_BOp_s+BO_pi*Cln_BOp_pi+BO_pi2*Cln_BOp_pi2)*delij[d];
-	for (int d = 0; d < 3; d++) a_dDeltap_self(i,d) += dBOp_i[d];
-	for (int d = 0; d < 3; d++) a_dDeltap_self(j,d) += -dBOp_i[d];
+        for (int d = 0; d < 3; d++) dln_BOp_pi_i[d] = -(BO_pi*Cln_BOp_pi)*delij[d];
+        for (int d = 0; d < 3; d++) dln_BOp_pi2_i[d] = -(BO_pi2*Cln_BOp_pi2)*delij[d];
+        for (int d = 0; d < 3; d++) dBOp_i[d] = -(BO_s*Cln_BOp_s+BO_pi*Cln_BOp_pi+BO_pi2*Cln_BOp_pi2)*delij[d];
+        for (int d = 0; d < 3; d++) dDeltap_self_i[d] += dBOp_i[d];
+        for (int d = 0; d < 3; d++) a_dDeltap_self(j,d) += -dBOp_i[d];
 
-	d_dln_BOp_pix(i,jj_index) = dln_BOp_pi_i[0];
-	d_dln_BOp_piy(i,jj_index) = dln_BOp_pi_i[1];
-	d_dln_BOp_piz(i,jj_index) = dln_BOp_pi_i[2];
+        d_dln_BOp_pix(i,jj_index) = dln_BOp_pi_i[0];
+        d_dln_BOp_piy(i,jj_index) = dln_BOp_pi_i[1];
+        d_dln_BOp_piz(i,jj_index) = dln_BOp_pi_i[2];
 
-	d_dln_BOp_pix(j,ii_index) = -dln_BOp_pi_i[0];
-	d_dln_BOp_piy(j,ii_index) = -dln_BOp_pi_i[1];
-	d_dln_BOp_piz(j,ii_index) = -dln_BOp_pi_i[2];
+        d_dln_BOp_pix(j,ii_index) = -dln_BOp_pi_i[0];
+        d_dln_BOp_piy(j,ii_index) = -dln_BOp_pi_i[1];
+        d_dln_BOp_piz(j,ii_index) = -dln_BOp_pi_i[2];
 
-	d_dln_BOp_pi2x(i,jj_index) = dln_BOp_pi2_i[0];
-	d_dln_BOp_pi2y(i,jj_index) = dln_BOp_pi2_i[1];
-	d_dln_BOp_pi2z(i,jj_index) = dln_BOp_pi2_i[2];
+        d_dln_BOp_pi2x(i,jj_index) = dln_BOp_pi2_i[0];
+        d_dln_BOp_pi2y(i,jj_index) = dln_BOp_pi2_i[1];
+        d_dln_BOp_pi2z(i,jj_index) = dln_BOp_pi2_i[2];
 
-	d_dln_BOp_pi2x(j,ii_index) = -dln_BOp_pi2_i[0];
-	d_dln_BOp_pi2y(j,ii_index) = -dln_BOp_pi2_i[1];
-	d_dln_BOp_pi2z(j,ii_index) = -dln_BOp_pi2_i[2];
+        d_dln_BOp_pi2x(j,ii_index) = -dln_BOp_pi2_i[0];
+        d_dln_BOp_pi2y(j,ii_index) = -dln_BOp_pi2_i[1];
+        d_dln_BOp_pi2z(j,ii_index) = -dln_BOp_pi2_i[2];
 
-	d_dBOpx(i,jj_index) = dBOp_i[0];
-	d_dBOpy(i,jj_index) = dBOp_i[1];
-	d_dBOpz(i,jj_index) = dBOp_i[2];
+        d_dBOpx(i,jj_index) = dBOp_i[0];
+        d_dBOpy(i,jj_index) = dBOp_i[1];
+        d_dBOpz(i,jj_index) = dBOp_i[2];
 
-	d_dBOpx(j,ii_index) = -dBOp_i[0];
-	d_dBOpy(j,ii_index) = -dBOp_i[1];
-	d_dBOpz(j,ii_index) = -dBOp_i[2];
+        d_dBOpx(j,ii_index) = -dBOp_i[0];
+        d_dBOpy(j,ii_index) = -dBOp_i[1];
+        d_dBOpz(j,ii_index) = -dBOp_i[2];
 
-	d_BO(i,jj_index) -= bo_cut;
-	d_BO(j,ii_index) -= bo_cut;
-	d_BO_s(i,jj_index) -= bo_cut;
-	d_BO_s(j,ii_index) -= bo_cut;
-	total_bo += d_BO(i,jj_index);
-	a_total_bo[j] += d_BO(j,ii_index);
+        d_BO(i,jj_index) -= bo_cut;
+        d_BO(j,ii_index) -= bo_cut;
+        d_BO_s(i,jj_index) -= bo_cut;
+        d_BO_s(j,ii_index) -= bo_cut;
+        total_bo_i += d_BO(i,jj_index);
+        a_total_bo[j] += d_BO(j,ii_index);
       }
     }
   }
 
-  a_total_bo[i] += total_bo;
+  for (int d = 0; d < 3; d++)
+    a_dDeltap_self(i,d) += dDeltap_self_i[d];
+
+  a_total_bo[i] += total_bo_i;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1806,13 +1817,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlocking<
 template<class DeviceType>
 template<int NEIGHFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalf<NEIGHFLAG>, const int &ii) const {
-
-  const auto v_dDeltap_self = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_dDeltap_self),decltype(ndup_dDeltap_self)>::get(dup_dDeltap_self,ndup_dDeltap_self);
-  const auto a_dDeltap_self = v_dDeltap_self.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
-
-  const auto v_total_bo = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_total_bo),decltype(ndup_total_bo)>::get(dup_total_bo,ndup_total_bo);
-  const auto a_total_bo = v_total_bo.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
+void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfBlockingPreview<NEIGHFLAG>, const int &ii) const {
+  constexpr int blocksize = PairReaxFFKokkos<DeviceType>::build_lists_half_blocksize;
 
   const int i = d_ilist[ii];
   const X_FLOAT xtmp = x(i,0);
@@ -1821,9 +1827,170 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalf<NEIGHFLA
   const int itype = type(i);
   const int jnum = d_numneigh[i];
 
-  const int three = 3;
-  F_FLOAT C12, C34, C56, BO_s, BO_pi, BO_pi2, BO, delij[three], dBOp_i[three], dln_BOp_pi_i[three], dln_BOp_pi2_i[three];
-  F_FLOAT total_bo = 0.0;
+  F_FLOAT C12, C34, C56, BO_s, BO_pi, BO_pi2, BO, delij[3];
+
+  int j_index,i_index;
+  d_bo_first[i] = i*maxbo;
+  const int bo_first_i = d_bo_first[i];
+
+  int ihb = -1;
+  int jhb = -1;
+
+  int hb_first_i;
+  if (cut_hbsq > 0.0) {
+    ihb = paramssing(itype).p_hbond;
+    if (ihb == 1) {
+      d_hb_first[i] = i*maxhb;
+      hb_first_i = d_hb_first[i];
+    }
+  }
+
+  int nnz;
+  blocking_t selected_jj[blocksize];
+  int jj_current = 0;
+
+  double cutoffsq;
+  if (i < nlocal) cutoffsq = MAX(cut_bosq,cut_hbsq);
+  else cutoffsq = cut_bosq;
+
+  while (jj_current < jnum) {
+    nnz = 0;
+
+    while (nnz < blocksize) {
+      int jj = jj_current;
+      int j = d_neighbors(i,jj);
+      j &= NEIGHMASK;
+
+      d_bo_first[j] = j*maxbo;
+      d_hb_first[j] = j*maxhb;
+
+      delij[0] = x(j,0) - xtmp;
+      delij[1] = x(j,1) - ytmp;
+      delij[2] = x(j,2) - ztmp;
+      const F_FLOAT rsq = delij[0]*delij[0] + delij[1]*delij[1] + delij[2]*delij[2];
+
+      if (rsq <= cutoffsq) {
+        selected_jj[nnz] = jj_current;
+        nnz++;
+      }
+      jj_current++;
+
+      if (jj_current == jnum) break;
+    }
+
+    for (int jj_inner = 0; jj_inner < nnz; jj_inner++) {
+      const int jj = selected_jj[jj_inner];
+      int j = d_neighbors(i,jj);
+      j &= NEIGHMASK;
+      const int jtype = type(j);
+      delij[0] = x(j,0) - xtmp;
+      delij[1] = x(j,1) - ytmp;
+      delij[2] = x(j,2) - ztmp;
+      const F_FLOAT rsq = delij[0]*delij[0] + delij[1]*delij[1] + delij[2]*delij[2];
+
+      // hbond list
+      if (i < nlocal && cut_hbsq > 0.0 && (ihb == 1 || ihb == 2) && rsq <= cut_hbsq) {
+        jhb = paramssing(jtype).p_hbond;
+        if (ihb == 1 && jhb == 2) {
+          if (NEIGHFLAG == HALF) {
+            j_index = hb_first_i + d_hb_num[i];
+            d_hb_num[i]++;
+          } else
+            j_index = hb_first_i + Kokkos::atomic_fetch_add(&d_hb_num[i],1);
+
+          const int jj_index = j_index - hb_first_i;
+
+          if (jj_index >= maxhb)
+            d_resize_hb() = MAX(d_resize_hb(),jj_index+1);
+          else
+            d_hb_list[j_index] = j;
+        } else if (j < nlocal && ihb == 2 && jhb == 1) {
+          if (NEIGHFLAG == HALF) {
+            i_index = d_hb_first[j] + d_hb_num[j];
+           d_hb_num[j]++;
+          } else
+            i_index = d_hb_first[j] + Kokkos::atomic_fetch_add(&d_hb_num[j],1);
+
+          const int ii_index = i_index - d_hb_first[j];
+
+          if (ii_index >= maxhb)
+            d_resize_hb() = MAX(d_resize_hb(),ii_index+1);
+          else
+            d_hb_list[i_index] = i;
+        }
+      }
+
+      if (rsq > cut_bosq) continue;
+
+       // bond_list
+      const F_FLOAT rij = sqrt(rsq);
+      const F_FLOAT p_bo1 = paramstwbp(itype,jtype).p_bo1;
+      const F_FLOAT p_bo2 = paramstwbp(itype,jtype).p_bo2;
+      const F_FLOAT p_bo3 = paramstwbp(itype,jtype).p_bo3;
+      const F_FLOAT p_bo4 = paramstwbp(itype,jtype).p_bo4;
+      const F_FLOAT p_bo5 = paramstwbp(itype,jtype).p_bo5;
+      const F_FLOAT p_bo6 = paramstwbp(itype,jtype).p_bo6;
+      const F_FLOAT r_s = paramstwbp(itype,jtype).r_s;
+      const F_FLOAT r_pi = paramstwbp(itype,jtype).r_pi;
+      const F_FLOAT r_pi2 = paramstwbp(itype,jtype).r_pi2;
+
+      if (paramssing(itype).r_s > 0.0  && paramssing(jtype).r_s > 0.0) {
+        C12 = p_bo1 * ((p_bo2 != 0) ? (pow(rij/r_s,p_bo2)) : 1.0);
+        BO_s = (1.0+bo_cut)*exp(C12);
+      } else BO_s = C12 = 0.0;
+
+      if (paramssing(itype).r_pi > 0.0  && paramssing(jtype).r_pi > 0.0) {
+        C34 = p_bo3 * ((p_bo4 != 0) ? (pow(rij/r_pi,p_bo4)) : 1.0);
+        BO_pi = exp(C34);
+      } else BO_pi = C34 = 0.0;
+
+      if (paramssing(itype).r_pi2 > 0.0  && paramssing(jtype).r_pi2 > 0.0) {
+        C56 = p_bo5 * ((p_bo6 != 0) ? (pow(rij/r_pi2,p_bo6)) : 1.0);
+        BO_pi2 = exp(C56);
+      } else BO_pi2 = C56 = 0.0;
+
+      BO = BO_s + BO_pi + BO_pi2;
+      if (BO < bo_cut) continue;
+
+      if (NEIGHFLAG == HALF) {
+        j_index = bo_first_i + d_bo_num[i];
+        i_index = d_bo_first[j] + d_bo_num[j];
+        d_bo_num[i]++;
+        d_bo_num[j]++;
+      } else {
+        j_index = bo_first_i + Kokkos::atomic_fetch_add(&d_bo_num[i],1);
+        i_index = d_bo_first[j] + Kokkos::atomic_fetch_add(&d_bo_num[j],1);
+      }
+
+      const int jj_index = j_index - bo_first_i;
+      const int ii_index = i_index - d_bo_first[j];
+
+      if (jj_index >= maxbo || ii_index >= maxbo) {
+        const int max_val = MAX(ii_index+1,jj_index+1);
+        d_resize_bo() = MAX(d_resize_bo(),max_val);
+      } else {
+        d_bo_list[j_index] = j;
+        d_bo_list[i_index] = i;
+      }
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+template<int NEIGHFLAG>
+KOKKOS_INLINE_FUNCTION
+void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalfPreview<NEIGHFLAG>, const int &ii) const {
+
+  const int i = d_ilist[ii];
+  const X_FLOAT xtmp = x(i,0);
+  const X_FLOAT ytmp = x(i,1);
+  const X_FLOAT ztmp = x(i,2);
+  const int itype = type(i);
+  const int jnum = d_numneigh[i];
+
+  F_FLOAT C12, C34, C56, BO_s, BO_pi, BO_pi2, BO, delij[3];
 
   int j_index,i_index;
   d_bo_first[i] = i*maxbo;
@@ -1854,11 +2021,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalf<NEIGHFLA
     delij[2] = x(j,2) - ztmp;
     const F_FLOAT rsq = delij[0]*delij[0] + delij[1]*delij[1] + delij[2]*delij[2];
 
-    double cutoffsq;
-    if (i < nlocal) cutoffsq = MAX(cut_bosq,cut_hbsq);
-    else cutoffsq = cut_bosq;
-    if (rsq > cutoffsq) continue;
-
     // hbond list
     if (i < nlocal && cut_hbsq > 0.0 && (ihb == 1 || ihb == 2) && rsq <= cut_hbsq) {
       jhb = paramssing(jtype).p_hbond;
@@ -1866,9 +2028,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalf<NEIGHFLA
         if (NEIGHFLAG == HALF) {
           j_index = hb_first_i + d_hb_num[i];
           d_hb_num[i]++;
-        } else {
+        } else
           j_index = hb_first_i + Kokkos::atomic_fetch_add(&d_hb_num[i],1);
-        }
 
         const int jj_index = j_index - hb_first_i;
 
@@ -1880,9 +2041,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalf<NEIGHFLA
         if (NEIGHFLAG == HALF) {
           i_index = d_hb_first[j] + d_hb_num[j];
           d_hb_num[j]++;
-        } else {
+        } else
           i_index = d_hb_first[j] + Kokkos::atomic_fetch_add(&d_hb_num[j],1);
-        }
 
         const int ii_index = i_index - d_hb_first[j];
 
@@ -1908,22 +2068,19 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalf<NEIGHFLA
     const F_FLOAT r_pi2 = paramstwbp(itype,jtype).r_pi2;
 
     if (paramssing(itype).r_s > 0.0  && paramssing(jtype).r_s > 0.0) {
-      C12 = p_bo1*pow(rij/r_s,p_bo2);
+      C12 = p_bo1 * ((p_bo2 != 0) ? (pow(rij/r_s,p_bo2)) : 1.0);
       BO_s = (1.0+bo_cut)*exp(C12);
-    }
-    else BO_s = C12 = 0.0;
+    } else BO_s = C12 = 0.0;
 
     if (paramssing(itype).r_pi > 0.0  && paramssing(jtype).r_pi > 0.0) {
-      C34 = p_bo3*pow(rij/r_pi,p_bo4);
+      C34 = p_bo3 * ((p_bo4 != 0) ? (pow(rij/r_pi,p_bo4)) : 1.0);
       BO_pi = exp(C34);
-    }
-    else BO_pi = C34 = 0.0;
+    } else BO_pi = C34 = 0.0;
 
     if (paramssing(itype).r_pi2 > 0.0  && paramssing(jtype).r_pi2 > 0.0) {
-      C56 = p_bo5*pow(rij/r_pi2,p_bo6);
+      C56 = p_bo5 * ((p_bo6 != 0) ? (pow(rij/r_pi2,p_bo6)) : 1.0);
       BO_pi2 = exp(C56);
-    }
-    else BO_pi2 = C56 = 0.0;
+    } else BO_pi2 = C56 = 0.0;
 
     BO = BO_s + BO_pi + BO_pi2;
     if (BO < bo_cut) continue;
@@ -1947,65 +2104,108 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsHalf<NEIGHFLA
     } else {
       d_bo_list[j_index] = j;
       d_bo_list[i_index] = i;
-
-      // from BondOrder1
-
-      d_BO(i,jj_index) = BO;
-      d_BO_s(i,jj_index) = BO_s;
-      d_BO_pi(i,jj_index) = BO_pi;
-      d_BO_pi2(i,jj_index) = BO_pi2;
-
-      d_BO(j,ii_index) = BO;
-      d_BO_s(j,ii_index) = BO_s;
-      d_BO_pi(j,ii_index) = BO_pi;
-      d_BO_pi2(j,ii_index) = BO_pi2;
-
-      F_FLOAT Cln_BOp_s = p_bo2 * C12 / rij / rij;
-      F_FLOAT Cln_BOp_pi = p_bo4 * C34 / rij / rij;
-      F_FLOAT Cln_BOp_pi2 = p_bo6 * C56 / rij / rij;
-
-      if (nlocal == 0)
-	Cln_BOp_s = Cln_BOp_pi = Cln_BOp_pi2 = 0.0;
-
-      for (int d = 0; d < 3; d++) dln_BOp_pi_i[d] = -(BO_pi*Cln_BOp_pi)*delij[d];
-      for (int d = 0; d < 3; d++) dln_BOp_pi2_i[d] = -(BO_pi2*Cln_BOp_pi2)*delij[d];
-      for (int d = 0; d < 3; d++) dBOp_i[d] = -(BO_s*Cln_BOp_s+BO_pi*Cln_BOp_pi+BO_pi2*Cln_BOp_pi2)*delij[d];
-      for (int d = 0; d < 3; d++) a_dDeltap_self(i,d) += dBOp_i[d];
-      for (int d = 0; d < 3; d++) a_dDeltap_self(j,d) += -dBOp_i[d];
-
-      d_dln_BOp_pix(i,jj_index) = dln_BOp_pi_i[0];
-      d_dln_BOp_piy(i,jj_index) = dln_BOp_pi_i[1];
-      d_dln_BOp_piz(i,jj_index) = dln_BOp_pi_i[2];
-
-      d_dln_BOp_pix(j,ii_index) = -dln_BOp_pi_i[0];
-      d_dln_BOp_piy(j,ii_index) = -dln_BOp_pi_i[1];
-      d_dln_BOp_piz(j,ii_index) = -dln_BOp_pi_i[2];
-
-      d_dln_BOp_pi2x(i,jj_index) = dln_BOp_pi2_i[0];
-      d_dln_BOp_pi2y(i,jj_index) = dln_BOp_pi2_i[1];
-      d_dln_BOp_pi2z(i,jj_index) = dln_BOp_pi2_i[2];
-
-      d_dln_BOp_pi2x(j,ii_index) = -dln_BOp_pi2_i[0];
-      d_dln_BOp_pi2y(j,ii_index) = -dln_BOp_pi2_i[1];
-      d_dln_BOp_pi2z(j,ii_index) = -dln_BOp_pi2_i[2];
-
-      d_dBOpx(i,jj_index) = dBOp_i[0];
-      d_dBOpy(i,jj_index) = dBOp_i[1];
-      d_dBOpz(i,jj_index) = dBOp_i[2];
-
-      d_dBOpx(j,ii_index) = -dBOp_i[0];
-      d_dBOpy(j,ii_index) = -dBOp_i[1];
-      d_dBOpz(j,ii_index) = -dBOp_i[2];
-
-      d_BO(i,jj_index) -= bo_cut;
-      d_BO(j,ii_index) -= bo_cut;
-      d_BO_s(i,jj_index) -= bo_cut;
-      d_BO_s(j,ii_index) -= bo_cut;
-      total_bo += d_BO(i,jj_index);
-      a_total_bo[j] += d_BO(j,ii_index);
     }
   }
-  a_total_bo[i] += total_bo;
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBuildListsFull, const int &ii) const {
+
+  const int i = d_ilist[ii];
+  const X_FLOAT xtmp = x(i,0);
+  const X_FLOAT ytmp = x(i,1);
+  const X_FLOAT ztmp = x(i,2);
+  const int itype = type(i);
+
+  F_FLOAT C12, C34, C56, BO_s, BO_pi, BO_pi2, BO, delij[3], dBOp_i[3], dln_BOp_pi_i[3], dln_BOp_pi2_i[3];
+  F_FLOAT dDeltap_self_i[3] = {0.0,0.0,0.0};
+  F_FLOAT total_bo_i = 0.0;
+
+  const int j_start = d_bo_first[i];
+  const int j_end = j_start + d_bo_num[i];
+  for (int jj = j_start; jj < j_end; jj++) {
+    int j = d_bo_list[jj];
+    j &= NEIGHMASK;
+    const int jtype = type(j);
+    const int j_index = jj - j_start;
+    delij[0] = x(j,0) - xtmp;
+    delij[1] = x(j,1) - ytmp;
+    delij[2] = x(j,2) - ztmp;
+    const F_FLOAT rsq = delij[0]*delij[0] + delij[1]*delij[1] + delij[2]*delij[2];
+    const F_FLOAT rsq_inv = 1.0 / rsq;
+
+     // bond_list
+    const F_FLOAT rij = sqrt(rsq);
+    const F_FLOAT p_bo1 = paramstwbp(itype,jtype).p_bo1;
+    const F_FLOAT p_bo2 = paramstwbp(itype,jtype).p_bo2;
+    const F_FLOAT p_bo3 = paramstwbp(itype,jtype).p_bo3;
+    const F_FLOAT p_bo4 = paramstwbp(itype,jtype).p_bo4;
+    const F_FLOAT p_bo5 = paramstwbp(itype,jtype).p_bo5;
+    const F_FLOAT p_bo6 = paramstwbp(itype,jtype).p_bo6;
+    const F_FLOAT r_s = paramstwbp(itype,jtype).r_s;
+    const F_FLOAT r_pi = paramstwbp(itype,jtype).r_pi;
+    const F_FLOAT r_pi2 = paramstwbp(itype,jtype).r_pi2;
+
+    if (paramssing(itype).r_s > 0.0  && paramssing(jtype).r_s > 0.0) {
+      C12 = p_bo1 * ((p_bo2 != 0) ? (pow(rij/r_s,p_bo2)) : 1.0);
+      BO_s = (1.0+bo_cut)*exp(C12);
+    } else BO_s = C12 = 0.0;
+
+    if (paramssing(itype).r_pi > 0.0  && paramssing(jtype).r_pi > 0.0) {
+      C34 = p_bo3 * ((p_bo4 != 0) ? (pow(rij/r_pi,p_bo4)) : 1.0);
+      BO_pi = exp(C34);
+    } else BO_pi = C34 = 0.0;
+
+    if (paramssing(itype).r_pi2 > 0.0  && paramssing(jtype).r_pi2 > 0.0) {
+      C56 = p_bo5 * ((p_bo6 != 0) ? (pow(rij/r_pi2,p_bo6)) : 1.0);
+      BO_pi2 = exp(C56);
+    } else BO_pi2 = C56 = 0.0;
+
+    BO = BO_s + BO_pi + BO_pi2;
+
+    // from BondOrder1
+
+    d_BO(i,j_index) = BO;
+    d_BO_s(i,j_index) = BO_s;
+    d_BO_pi(i,j_index) = BO_pi;
+    d_BO_pi2(i,j_index) = BO_pi2;
+
+    F_FLOAT Cln_BOp_s = p_bo2 * C12 * rsq_inv;
+    F_FLOAT Cln_BOp_pi = p_bo4 * C34 * rsq_inv;
+    F_FLOAT Cln_BOp_pi2 = p_bo6 * C56 * rsq_inv;
+
+    if (nlocal == 0)
+      Cln_BOp_s = Cln_BOp_pi = Cln_BOp_pi2 = 0.0;
+
+    for (int d = 0; d < 3; d++) dln_BOp_pi_i[d] = -(BO_pi*Cln_BOp_pi)*delij[d];
+    for (int d = 0; d < 3; d++) dln_BOp_pi2_i[d] = -(BO_pi2*Cln_BOp_pi2)*delij[d];
+    for (int d = 0; d < 3; d++) dBOp_i[d] = -(BO_s*Cln_BOp_s+BO_pi*Cln_BOp_pi+BO_pi2*Cln_BOp_pi2)*delij[d];
+    for (int d = 0; d < 3; d++) dDeltap_self_i[d] += dBOp_i[d];
+
+    d_dln_BOp_pix(i,j_index) = dln_BOp_pi_i[0];
+    d_dln_BOp_piy(i,j_index) = dln_BOp_pi_i[1];
+    d_dln_BOp_piz(i,j_index) = dln_BOp_pi_i[2];
+
+    d_dln_BOp_pi2x(i,j_index) = dln_BOp_pi2_i[0];
+    d_dln_BOp_pi2y(i,j_index) = dln_BOp_pi2_i[1];
+    d_dln_BOp_pi2z(i,j_index) = dln_BOp_pi2_i[2];
+
+    d_dBOpx(i,j_index) = dBOp_i[0];
+    d_dBOpy(i,j_index) = dBOp_i[1];
+    d_dBOpz(i,j_index) = dBOp_i[2];
+
+    d_BO(i,j_index) -= bo_cut;
+    d_BO_s(i,j_index) -= bo_cut;
+    total_bo_i += d_BO(i,j_index);
+  }
+
+  for (int d = 0; d < 3; d++)
+    d_dDeltap_self(i,d) = dDeltap_self_i[d];
+
+  d_total_bo[i] = total_bo_i;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2192,9 +2392,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBondOrder3, const int &
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti1<NEIGHFLAG,EVFLAG>, const int &ii) const {
+void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti1, const int &ii) const {
 
   const int i = d_ilist[ii];
   const int itype = type(i);
@@ -2226,9 +2425,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti1<NEIGHFLAG
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-template<int NEIGHFLAG, int EVFLAG>
+template<int NEIGHFLAG, int EFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
+void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG,EFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
   auto v_CdDelta = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_CdDelta),decltype(ndup_CdDelta)>::get(dup_CdDelta,ndup_CdDelta);
   auto a_CdDelta = v_CdDelta.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
@@ -2270,7 +2469,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG
   if (numbonds > 0 || enobondsflag)
     a_CdDelta[i] += CElp;
 
-  if (eflag) ev.ereax[0] += e_lp;
+  if (EFLAG && eflag_global) ev.ereax[0] += e_lp;
   //if (vflag_either || eflag_atom) this->template ev_tally<NEIGHFLAG>(ev,i,i,e_lp,0.0,0.0,0.0,0.0);
   //if (eflag_atom) this->template e_tally<NEIGHFLAG>(ev,i,i,e_lp);
 
@@ -2286,7 +2485,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG
   CEover1 = Delta_lpcorr * DlpVi * inv_exp_ovun2;
   e_ov = d_sum_ovun(i,1) * CEover1;
 
-  if (eflag) ev.ereax[1] += e_ov;
+  if (EFLAG && eflag_global) ev.ereax[1] += e_ov;
   //if (eflag_atom) this->template ev_tally<NEIGHFLAG>(ev,i,i,e_ov,0.0,0.0,0.0,0.0);
   //if (eflag_atom) this->template e_tally<NEIGHFLAG>(ev,i,i,e_ov);
 
@@ -2307,7 +2506,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG
   if (numbonds > 0 || enobondsflag)
     e_un = -p_ovun5 * (1.0 - exp_ovun6) * inv_exp_ovun2n * inv_exp_ovun8;
 
-  if (eflag) ev.ereax[2] += e_un;
+  if (EFLAG && eflag_global) ev.ereax[2] += e_un;
   //if (eflag_atom) this->template ev_tally<NEIGHFLAG>(ev,i,i,e_un,0.0,0.0,0.0,0.0);
   //if (eflag_atom) this->template e_tally<NEIGHFLAG>(ev,i,i,e_un);
 
@@ -2350,8 +2549,10 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG
         d_Cdbo(i,j_index) += deahu2dbo;
         CdDelta_i += deahu2dsbo;
 
-        if (eflag) ev.ereax[0] += e_lph;
-        if (eflag_atom) this->template e_tally<NEIGHFLAG>(ev,i,j,e_lph);
+        if (EFLAG) {
+          if (eflag_global) ev.ereax[0] += e_lph;
+          if (eflag_atom) this->template e_tally<NEIGHFLAG>(ev,i,j,e_lph);
+        }
       }
     }
 
@@ -2367,11 +2568,11 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG
 }
 
 template<class DeviceType>
-template<int NEIGHFLAG, int EVFLAG>
+template<int NEIGHFLAG, int EFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG,EVFLAG>, const int &ii) const {
+void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG,EFLAG>, const int &ii) const {
   EV_FLOAT_REAX ev;
-  this->template operator()<NEIGHFLAG,EVFLAG>(TagPairReaxComputeMulti2<NEIGHFLAG,EVFLAG>(), ii, ev);
+  this->template operator()<NEIGHFLAG,EFLAG>(TagPairReaxComputeMulti2<NEIGHFLAG,EFLAG>(), ii, ev);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2591,7 +2792,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngular<NEIGHFLA
       CEval8 = -CEval4 / sin_theta;
 
       e_ang = f7_ij * f7_jk * f8_Dj * expval12theta;
-      if (eflag) ev.ereax[3] += e_ang;
+      if (EVFLAG && eflag_global) ev.ereax[3] += e_ang;
 
       // Penalty energy
 
@@ -2607,7 +2808,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngular<NEIGHFLA
        (-p_pen3 * exp_pen3 + p_pen4 * exp_pen4))/(trm_pen34*trm_pen34);
 
       e_pen = p_pen1 * f9_Dj * exp_pen2ij * exp_pen2jk;
-      if (eflag) ev.ereax[4] += e_pen;
+      if (EVFLAG && eflag_global) ev.ereax[4] += e_pen;
 
       CEpen1 = e_pen * Cf9j / f9_Dj;
       temp   = -2.0 * p_pen2 * e_pen;
@@ -2630,7 +2831,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngular<NEIGHFLA
       CEcoa4 = -2 * p_coa3 * (d_total_bo[j]-BOA_ij) * e_coa;
       CEcoa5 = -2 * p_coa3 * (d_total_bo[k]-BOA_ik) * e_coa;
 
-      if (eflag) ev.ereax[5] += e_coa;
+      if (EVFLAG && eflag_global) ev.ereax[5] += e_coa;
 
       // Forces
 
@@ -2696,7 +2897,7 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreview, const int &ii) const {
 
-  F_FLOAT  bo_ij, bo_ik, bo_jl;
+  F_FLOAT  bo_ij, bo_ik;
   int counter = 0;
 
   const int i = d_ilist[ii];
@@ -2770,7 +2971,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreview, 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionBlocking<NEIGHFLAG,EVFLAG>,  const int &iii, EV_FLOAT_REAX& ev) const {
+void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsion<NEIGHFLAG,EVFLAG>,  const int &iii, EV_FLOAT_REAX& ev) const {
 
   constexpr int blocksize = PairReaxFFKokkos<DeviceType>::compute_torsion_blocksize;
 
@@ -2954,7 +3155,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionBlocking<
           sin_ijk = sin(theta_ijk);
           if (sin_ijk >= 0 && sin_ijk <= 1e-10)
             tan_ijk_i = cos_ijk / 1e-10;
-          else if(sin_ijk <= 0 && sin_ijk >= -1e-10)
+          else if (sin_ijk <= 0 && sin_ijk >= -1e-10)
             tan_ijk_i = -cos_ijk / 1e-10;
           else tan_ijk_i = cos_ijk / sin_ijk;
 
@@ -2996,7 +3197,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionBlocking<
             sin_jil = sin(theta_jil);
             if (sin_jil >= 0 && sin_jil <= 1e-10)
               tan_jil_i = cos_jil / 1e-10;
-            else if(sin_jil <= 0 && sin_jil >= -1e-10)
+            else if (sin_jil <= 0 && sin_jil >= -1e-10)
               tan_jil_i = -cos_jil / 1e-10;
             else tan_jil_i = cos_jil / sin_jil;
 
@@ -3047,9 +3248,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionBlocking<
             F_FLOAT sin_jil_rnd = sin_jil;
 
             if (sin_ijk >= 0 && sin_ijk <= 1e-10) sin_ijk_rnd = 1e-10;
-            else if(sin_ijk <= 0 && sin_ijk >= -1e-10) sin_ijk_rnd = -1e-10;
+            else if (sin_ijk <= 0 && sin_ijk >= -1e-10) sin_ijk_rnd = -1e-10;
             if (sin_jil >= 0 && sin_jil <= 1e-10) sin_jil_rnd = 1e-10;
-            else if(sin_jil <= 0 && sin_jil >= -1e-10) sin_jil_rnd = -1e-10;
+            else if (sin_jil <= 0 && sin_jil >= -1e-10) sin_jil_rnd = -1e-10;
 
             // dcos_omega_di
             for (int d = 0; d < 3; d++) dcos_omega_dk[d] = ((htra-arg*hnra)/rik) * delik[d] - dellk[d];
@@ -3093,7 +3294,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionBlocking<
             CV = 0.5 * (V1 * (1.0 + cos_omega) + V2 * exp_tor1 * (1.0 - cos2omega) + V3 * (1.0 + cos3omega));
 
             e_tor = fn10 * sin_ijk * sin_jil * CV;
-            if (eflag) ev.ereax[6] += e_tor;
+            if (EVFLAG && eflag_global) ev.ereax[6] += e_tor;
 
             dfn11 = (-p_tor3 * exp_tor3_DiDj + (p_tor3 * exp_tor3_DiDj - p_tor4 * exp_tor4_DiDj) *
                     (2.0 + exp_tor3_DiDj) * exp_tor34_inv) * exp_tor34_inv;
@@ -3119,7 +3320,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionBlocking<
 
             fn12 = exp_cot2_ik * exp_cot2_ij * exp_cot2_jl;
             e_con = p_cot1 * fn12 * (1.0 + (SQR(cos_omega) - 1.0) * sin_ijk * sin_jil);
-            if (eflag) ev.ereax[7] += e_con;
+            if (EVFLAG && eflag_global) ev.ereax[7] += e_con;
 
             Cconj = -2.0 * fn12 * p_cot1 * p_cot2 * (1.0 + (SQR(cos_omega) - 1.0) * sin_ijk * sin_jil);
 
@@ -3197,10 +3398,10 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionBlocking<
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionBlocking<NEIGHFLAG,EVFLAG>, const int &ii) const {
+void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsion<NEIGHFLAG,EVFLAG>, const int &ii) const {
 
   EV_FLOAT_REAX ev;
-  this->template operator()<NEIGHFLAG,EVFLAG>(TagPairReaxComputeTorsionBlocking<NEIGHFLAG,EVFLAG>(), ii, ev);
+  this->template operator()<NEIGHFLAG,EVFLAG>(TagPairReaxComputeTorsion<NEIGHFLAG,EVFLAG>(), ii, ev);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -3310,7 +3511,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeHydrogen<NEIGHFL
       exp_hb3 = exp(-p_hb3 * (r0_hb/rik + rik/r0_hb - 2.0));
 
       e_hb = p_hb1 * (1.0 - exp_hb2) * exp_hb3 * sin_xhz4;
-      if (eflag) ev.ereax[8] += e_hb;
+      if (EVFLAG && eflag_global) ev.ereax[8] += e_hb;
 
       // hydrogen bond forces
       CEhb1 = p_hb1 * p_hb2 * exp_hb2 * exp_hb3 * sin_xhz4;
@@ -3334,8 +3535,11 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeHydrogen<NEIGHFL
 
       for (int d = 0; d < 3; d++) delki[d] = -1.0 * delik[d];
       for (int d = 0; d < 3; d++) delji[d] = -1.0 * delij[d];
-      if (eflag_atom) this->template e_tally<NEIGHFLAG>(ev,i,j,e_hb);
-      if (vflag_either) this->template v_tally3<NEIGHFLAG>(ev,i,j,k,fj_tmp,fk_tmp,delji,delki);
+
+      if (EVFLAG) {
+        if (eflag_atom) this->template e_tally<NEIGHFLAG>(ev,i,j,e_hb);
+        if (vflag_either) this->template v_tally3<NEIGHFLAG>(ev,i,j,k,fj_tmp,fk_tmp,delji,delki);
+      }
     }
   }
   for (int d = 0; d < 3; d++) a_f(i,d) += fitmp[d];
@@ -3406,11 +3610,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxUpdateBond<NEIGHFLAG>, 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-template<int NEIGHFLAG, int EVFLAG>
+template<int NEIGHFLAG, int EFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond1<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
-
-  auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
+void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond1<NEIGHFLAG,EFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
   auto v_CdDelta = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_CdDelta),decltype(ndup_CdDelta)>::get(dup_CdDelta,ndup_CdDelta);
   auto a_CdDelta = v_CdDelta.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
@@ -3468,7 +3670,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond1<NEIGHFLAG,
                               -De_p*BO_pi_i
                           -De_pp*BO_pi2_i;
 
-    if (eflag) ev.evdwl += ebond;
+    if (EFLAG && eflag_global) ev.evdwl += ebond;
     //if (eflag_atom) this->template ev_tally<NEIGHFLAG>(ev,i,j,ebond,0.0,0.0,0.0,0.0);
     //if (eflag_atom) this->template e_tally<NEIGHFLAG>(ev,i,j,ebond);
 
@@ -3490,7 +3692,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond1<NEIGHFLAG,
         const F_FLOAT hulpov = 1.0 / (1.0 + 25.0 * exphuov);
         estriph = gp[10] * exphu * hulpov * (exphua1 + exphub1);
 
-        if (eflag) ev.evdwl += estriph;
+        if (EFLAG && eflag_global) ev.evdwl += estriph;
         //if (eflag_atom) this->template ev_tally<NEIGHFLAG>(ev,i,j,estriph,0.0,0.0,0.0,0.0);
         //if (eflag_atom) this->template e_tally<NEIGHFLAG>(ev,i,j,estriph);
 
@@ -3513,19 +3715,19 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond1<NEIGHFLAG,
 }
 
 template<class DeviceType>
-template<int NEIGHFLAG, int EVFLAG>
+template<int NEIGHFLAG, int EFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond1<NEIGHFLAG,EVFLAG>, const int &ii) const {
+void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond1<NEIGHFLAG,EFLAG>, const int &ii) const {
   EV_FLOAT_REAX ev;
-  this->template operator()<NEIGHFLAG,EVFLAG>(TagPairReaxComputeBond1<NEIGHFLAG,EVFLAG>(), ii, ev);
+  this->template operator()<NEIGHFLAG,EFLAG>(TagPairReaxComputeBond1<NEIGHFLAG,EFLAG>(), ii, ev);
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-template<int NEIGHFLAG, int EVFLAG>
+template<int NEIGHFLAG, int VFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond2<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
+void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond2<NEIGHFLAG,VFLAG>, const int &ii, EV_FLOAT_REAX& ev) const {
 
   auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
   auto a_f = v_f.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
@@ -3627,8 +3829,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond2<NEIGHFLAG,
     for (int d = 0; d < 3; d++) temp[d] += coef_C2dbopi2 * dBOp_i[d];
     for (int d = 0; d < 3; d++) temp[d] += coef_C3dbopi2 * d_dDeltap_self(i,d);
 
-    if (EVFLAG)
-      if (vflag_either) this->template v_tally<NEIGHFLAG>(ev,i,temp,delij);
+    if (VFLAG && vflag_either) this->template v_tally<NEIGHFLAG>(ev,i,temp,delij);
 
     fitmp[0] -= temp[0];
     fitmp[1] -= temp[1];
@@ -3650,11 +3851,10 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond2<NEIGHFLAG,
     a_f(j,1) -= temp[1];
     a_f(j,2) -= temp[2];
 
-    if (EVFLAG)
-      if (vflag_either) {
-        for (int d = 0; d < 3; d++) tmpvec[d] = -delij[d];
-        this->template v_tally<NEIGHFLAG>(ev,j,temp,tmpvec);
-      }
+    if (VFLAG && vflag_either) {
+      for (int d = 0; d < 3; d++) tmpvec[d] = -delij[d];
+      this->template v_tally<NEIGHFLAG>(ev,j,temp,tmpvec);
+    }
 
     // forces on k: i neighbor
     for (int kk = j_start; kk < j_end; kk++) {
@@ -3672,14 +3872,13 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond2<NEIGHFLAG,
       a_f(k,1) -= temp[1];
       a_f(k,2) -= temp[2];
 
-      if (EVFLAG)
-        if (vflag_either) {
-          delik[0] = x(k,0) - xtmp;
-          delik[1] = x(k,1) - ytmp;
-          delik[2] = x(k,2) - ztmp;
-          for (int d = 0; d < 3; d++) tmpvec[d] = x(j,d) - x(k,d) - delik[d];
-          this->template v_tally<NEIGHFLAG>(ev,k,temp,tmpvec);
-        }
+      if (VFLAG && vflag_either) {
+        delik[0] = x(k,0) - xtmp;
+        delik[1] = x(k,1) - ytmp;
+        delik[2] = x(k,2) - ztmp;
+        for (int d = 0; d < 3; d++) tmpvec[d] = x(j,d) - x(k,d) - delik[d];
+        this->template v_tally<NEIGHFLAG>(ev,k,temp,tmpvec);
+      }
 
     }
 
@@ -3699,25 +3898,22 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond2<NEIGHFLAG,
       a_f(k,1) -= temp[1];
       a_f(k,2) -= temp[2];
 
-      if (EVFLAG) {
-        if (vflag_either) {
-          for (int d = 0; d < 3; d++) deljk[d] = x(k,d) - x(j,d);
-          for (int d = 0; d < 3; d++) tmpvec[d] = x(i,d) - x(k,d) - deljk[d];
-          this->template v_tally<NEIGHFLAG>(ev,k,temp,tmpvec);
-        }
+      if (VFLAG && vflag_either) {
+        for (int d = 0; d < 3; d++) deljk[d] = x(k,d) - x(j,d);
+        for (int d = 0; d < 3; d++) tmpvec[d] = x(i,d) - x(k,d) - deljk[d];
+        this->template v_tally<NEIGHFLAG>(ev,k,temp,tmpvec);
       }
-
     }
   }
   for (int d = 0; d < 3; d++) a_f(i,d) += fitmp[d];
 }
 
 template<class DeviceType>
-template<int NEIGHFLAG, int EVFLAG>
+template<int NEIGHFLAG, int VFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond2<NEIGHFLAG,EVFLAG>, const int &ii) const {
+void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond2<NEIGHFLAG,VFLAG>, const int &ii) const {
   EV_FLOAT_REAX ev;
-  this->template operator()<NEIGHFLAG,EVFLAG>(TagPairReaxComputeBond2<NEIGHFLAG,EVFLAG>(), ii, ev);
+  this->template operator()<NEIGHFLAG,VFLAG>(TagPairReaxComputeBond2<NEIGHFLAG,VFLAG>(), ii, ev);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -3729,8 +3925,6 @@ void PairReaxFFKokkos<DeviceType>::ev_tally(EV_FLOAT_REAX &ev, const int &i, con
       const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
                 const F_FLOAT &dely, const F_FLOAT &delz) const
 {
-  const int VFLAG = vflag_either;
-
   // The eatom and vatom arrays are duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
   auto v_eatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
@@ -3745,7 +3939,7 @@ void PairReaxFFKokkos<DeviceType>::ev_tally(EV_FLOAT_REAX &ev, const int &i, con
     a_eatom[j] += epairhalf;
   }
 
-  if (VFLAG) {
+  if (vflag_either) {
     const E_FLOAT v0 = delx*delx*fpair;
     const E_FLOAT v1 = dely*dely*fpair;
     const E_FLOAT v2 = delz*delz*fpair;
@@ -3787,18 +3981,14 @@ KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::e_tally(EV_FLOAT_REAX & /*ev*/, const int &i, const int &j,
       const F_FLOAT &epair) const
 {
-
   // The eatom array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
+  auto v_eatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
+  auto a_eatom = v_eatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
-  if (eflag_atom) {
-    auto v_eatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
-    auto a_eatom = v_eatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
-
-    const E_FLOAT epairhalf = 0.5 * epair;
-    a_eatom[i] += epairhalf;
-    a_eatom[j] += epairhalf;
-  }
+  const E_FLOAT epairhalf = 0.5 * epair;
+  a_eatom[i] += epairhalf;
+  a_eatom[j] += epairhalf;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -3810,6 +4000,7 @@ void PairReaxFFKokkos<DeviceType>::e_tally_single(EV_FLOAT_REAX & /*ev*/, const 
       const F_FLOAT &epair) const
 {
   // The eatom array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
+
   auto v_eatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
   auto a_eatom = v_eatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
@@ -3824,7 +4015,6 @@ KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::v_tally(EV_FLOAT_REAX &ev, const int &i,
   F_FLOAT *fi, F_FLOAT *drij) const
 {
-
   F_FLOAT v[6];
 
   v[0] = 0.5*drij[0]*fi[0];
@@ -3860,7 +4050,6 @@ KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::v_tally3(EV_FLOAT_REAX &ev, const int &i, const int &j, const int &k,
   F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *drij, F_FLOAT *drik) const
 {
-
   // The eatom and vatom arrays are duplicated for OpenMP, atomic for CUDA, and neither for Serial
   auto v_vatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
   auto a_vatom = v_vatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
@@ -3901,7 +4090,6 @@ KOKKOS_INLINE_FUNCTION
 void PairReaxFFKokkos<DeviceType>::v_tally4(EV_FLOAT_REAX &ev, const int &i, const int &j, const int &k,
   const int &l, F_FLOAT *fi, F_FLOAT *fj, F_FLOAT *fk, F_FLOAT *dril, F_FLOAT *drjl, F_FLOAT *drkl) const
 {
-
   // The vatom array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
   F_FLOAT v[6];

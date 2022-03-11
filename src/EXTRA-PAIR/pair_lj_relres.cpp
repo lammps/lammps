@@ -183,15 +183,13 @@ void PairLJRelRes::compute(int eflag, int vflag)
 
         if (eflag) {
           if (rsq < cutf_inner_sq[itype][jtype]) {
-            evdwl = r6inv*(ljf3[itype][jtype]*r6inv-
-                           ljf4[itype][jtype])-offsetsm[itype][jtype];
+            evdwl = r6inv*(ljf3[itype][jtype]*r6inv-ljf4[itype][jtype])-offsetsm[itype][jtype];
           } else if (rsq < cutfsq[itype][jtype]) {
             evdwl = ljswf0[itype][jtype]-ljswf1[itype][jtype]*t-
               ljswf2[itype][jtype]*tsq/2.0-ljswf3[itype][jtype]*tsq*t/3.0-
               ljswf4[itype][jtype]*tsq*tsq/4.0-offsetsp[itype][jtype];
           } else if (rsq < cut_inner_sq[itype][jtype]) {
-            evdwl = r6inv*(lj3[itype][jtype]*r6inv-
-                           lj4[itype][jtype])-offset[itype][jtype];
+            evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype])-offset[itype][jtype];
           } else {
             evdwl = ljsw0[itype][jtype]-ljsw1[itype][jtype]*t-
               ljsw2[itype][jtype]*tsq/2.0-ljsw3[itype][jtype]*tsq*t/3.0-
@@ -200,8 +198,7 @@ void PairLJRelRes::compute(int eflag, int vflag)
           evdwl *= factor_lj;
         }
 
-        if (evflag) ev_tally(i,j,nlocal,newton_pair,
-                             evdwl,0.0,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,fpair,delx,dely,delz);
       }
     }
   }
@@ -726,15 +723,13 @@ double PairLJRelRes::single(int /*i*/, int /*j*/, int itype, int jtype,
   fforce = factor_lj*forcelj*r2inv;
 
   if (rsq < cutf_inner_sq[itype][jtype]) {
-    philj = r6inv*(ljf3[itype][jtype]*r6inv-
-                   ljf4[itype][jtype])-offsetsm[itype][jtype];
+    philj = r6inv*(ljf3[itype][jtype]*r6inv-ljf4[itype][jtype])-offsetsm[itype][jtype];
   } else if (rsq < cutfsq[itype][jtype]) {
     philj = ljswf0[itype][jtype]-ljswf1[itype][jtype]*t-
       ljswf2[itype][jtype]*tsq/2.0-ljswf3[itype][jtype]*tsq*t/3.0-
       ljswf4[itype][jtype]*tsq*tsq/4.0-offsetsp[itype][jtype];
   } else if (rsq < cut_inner_sq[itype][jtype]) {
-    philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]) -
-      offset[itype][jtype];
+    philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]) - offset[itype][jtype];
   } else {
     philj = ljsw0[itype][jtype] - ljsw1[itype][jtype]*t -
       ljsw2[itype][jtype]*tsq/2.0 - ljsw3[itype][jtype]*tsq*t/3.0 -

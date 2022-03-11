@@ -16,7 +16,6 @@
 
 #include "atom.h"
 #include "error.h"
-#include "molecule.h"
 #include "my_page.h"
 #include "neigh_list.h"
 

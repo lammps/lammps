@@ -56,11 +56,11 @@ namespace Kokkos {
 namespace Experimental {
 namespace Impl {
 // clang-format off
-template <class> struct infinity_helper;
+template <class> struct infinity_helper {};
 template <> struct infinity_helper<float> { static constexpr float value = HUGE_VALF; };
 template <> struct infinity_helper<double> { static constexpr double value = HUGE_VAL; };
 template <> struct infinity_helper<long double> { static constexpr long double value = HUGE_VALL; };
-template <class> struct finite_min_helper;
+template <class> struct finite_min_helper {};
 template <> struct finite_min_helper<bool> { static constexpr bool value = false; };
 template <> struct finite_min_helper<char> { static constexpr char value = CHAR_MIN; };
 template <> struct finite_min_helper<signed char> { static constexpr signed char value = SCHAR_MIN; };
@@ -76,7 +76,7 @@ template <> struct finite_min_helper<unsigned long long int> { static constexpr 
 template <> struct finite_min_helper<float> { static constexpr float value = -FLT_MAX; };
 template <> struct finite_min_helper<double> { static constexpr double value = -DBL_MAX; };
 template <> struct finite_min_helper<long double> { static constexpr long double value = -LDBL_MAX; };
-template <class> struct finite_max_helper;
+template <class> struct finite_max_helper {};
 template <> struct finite_max_helper<bool> { static constexpr bool value = true; };
 template <> struct finite_max_helper<char> { static constexpr char value = CHAR_MAX; };
 template <> struct finite_max_helper<signed char> { static constexpr signed char value = SCHAR_MAX; };
@@ -92,7 +92,7 @@ template <> struct finite_max_helper<unsigned long long int> { static constexpr 
 template <> struct finite_max_helper<float> { static constexpr float value = FLT_MAX; };
 template <> struct finite_max_helper<double> { static constexpr double value = DBL_MAX; };
 template <> struct finite_max_helper<long double> { static constexpr long double value = LDBL_MAX; };
-template <class> struct epsilon_helper;
+template <class> struct epsilon_helper {};
 namespace{
   // FIXME workaround for LDL_EPSILON with XL
   template<typename T>
@@ -115,15 +115,15 @@ template <> struct epsilon_helper<long double> {
   static constexpr long double value = LDBL_EPSILON;
 #endif
 };
-template <class> struct round_error_helper;
+template <class> struct round_error_helper {};
 template <> struct round_error_helper<float> { static constexpr float value = 0.5F; };
 template <> struct round_error_helper<double> { static constexpr double value = 0.5; };
 template <> struct round_error_helper<long double> { static constexpr long double value = 0.5L; };
-template <class> struct norm_min_helper;
+template <class> struct norm_min_helper {};
 template <> struct norm_min_helper<float> { static constexpr float value = FLT_MIN; };
 template <> struct norm_min_helper<double> { static constexpr double value = DBL_MIN; };
 template <> struct norm_min_helper<long double> { static constexpr long double value = LDBL_MIN; };
-template <class> struct digits_helper;
+template <class> struct digits_helper {};
 template <> struct digits_helper<bool> { static constexpr int value = 1; };
 template <> struct digits_helper<char> { static constexpr int value = CHAR_BIT - std::is_signed<char>::value; };
 template <> struct digits_helper<signed char> { static constexpr int value = CHAR_BIT - 1; };
@@ -139,11 +139,13 @@ template <> struct digits_helper<unsigned long long int> { static constexpr int 
 template <> struct digits_helper<float> { static constexpr int value = FLT_MANT_DIG; };
 template <> struct digits_helper<double> { static constexpr int value = DBL_MANT_DIG; };
 template <> struct digits_helper<long double> { static constexpr int value = LDBL_MANT_DIG; };
-template <class> struct digits10_helper;
+template <class> struct digits10_helper {};
 template <> struct digits10_helper<bool> { static constexpr int value = 0; };
-constexpr double log10_2 = 2.41;
+// The fraction 643/2136 approximates log10(2) to 7 significant digits.
+// Workaround GCC compiler bug with -frounding-math that prevented the
+// floating-point expression to be evaluated at compile time.
 #define DIGITS10_HELPER_INTEGRAL(TYPE) \
-template <> struct digits10_helper<TYPE> { static constexpr int value = digits_helper<TYPE>::value * log10_2; };
+template <> struct digits10_helper<TYPE> { static constexpr int value = digits_helper<TYPE>::value * 643L / 2136; };
 DIGITS10_HELPER_INTEGRAL(char)
 DIGITS10_HELPER_INTEGRAL(signed char)
 DIGITS10_HELPER_INTEGRAL(unsigned char)
@@ -159,15 +161,29 @@ DIGITS10_HELPER_INTEGRAL(unsigned long long int)
 template <> struct digits10_helper<float> { static constexpr int value = FLT_DIG; };
 template <> struct digits10_helper<double> { static constexpr int value = DBL_DIG; };
 template <> struct digits10_helper<long double> { static constexpr int value = LDBL_DIG; };
-template <class> struct max_digits10_helper;
-// FIXME not sure why were not defined in my <cfloat>
-//template <> struct max_digits10_helper<float> { static constexpr int value = FLT_DECIMAL_DIG; };
-//template <> struct max_digits10_helper<double> { static constexpr int value = DBL_DECIMAL_DIG; };
-//template <> struct max_digits10_helper<long double> { static constexpr int value = LDBL_DECIMAL_DIG; };
-template <> struct max_digits10_helper<float> { static constexpr int value = 9; };
-template <> struct max_digits10_helper<double> { static constexpr int value = 17; };
-template <> struct max_digits10_helper<long double> { static constexpr int value = 21; };
-template <class> struct radix_helper;
+template <class> struct max_digits10_helper {};
+// Approximate ceil(digits<T>::value * log10(2) + 1)
+#define MAX_DIGITS10_HELPER(TYPE) \
+template <> struct max_digits10_helper<TYPE> { static constexpr int value = (digits_helper<TYPE>::value * 643L + 2135) / 2136 + 1; };
+#ifdef FLT_DECIMAL_DIG
+template <> struct max_digits10_helper<float> { static constexpr int value = FLT_DECIMAL_DIG; };
+#else
+MAX_DIGITS10_HELPER(float)
+#endif
+#ifdef DBL_DECIMAL_DIG
+template <> struct max_digits10_helper<double> { static constexpr int value = DBL_DECIMAL_DIG; };
+#else
+MAX_DIGITS10_HELPER(double)
+#endif
+#ifdef DECIMAL_DIG
+template <> struct max_digits10_helper<long double> { static constexpr int value = DECIMAL_DIG; };
+#elif LDBL_DECIMAL_DIG
+template <> struct max_digits10_helper<long double> { static constexpr int value = LDBL_DECIMAL_DIG; };
+#else
+MAX_DIGITS10_HELPER(long double)
+#endif
+#undef MAX_DIGITS10_HELPER
+template <class> struct radix_helper {};
 template <> struct radix_helper<bool> { static constexpr int value = 2; };
 template <> struct radix_helper<char> { static constexpr int value = 2; };
 template <> struct radix_helper<signed char> { static constexpr int value = 2; };
@@ -183,19 +199,19 @@ template <> struct radix_helper<unsigned long long int> { static constexpr int v
 template <> struct radix_helper<float> { static constexpr int value = FLT_RADIX; };
 template <> struct radix_helper<double> { static constexpr int value = FLT_RADIX; };
 template <> struct radix_helper<long double> { static constexpr int value = FLT_RADIX; };
-template <class> struct min_exponent_helper;
+template <class> struct min_exponent_helper {};
 template <> struct min_exponent_helper<float> { static constexpr int value = FLT_MIN_EXP; };
 template <> struct min_exponent_helper<double> { static constexpr int value = DBL_MIN_EXP; };
 template <> struct min_exponent_helper<long double> { static constexpr int value = LDBL_MIN_EXP; };
-template <class> struct min_exponent10_helper;
+template <class> struct min_exponent10_helper {};
 template <> struct min_exponent10_helper<float> { static constexpr int value = FLT_MIN_10_EXP; };
 template <> struct min_exponent10_helper<double> { static constexpr int value = DBL_MIN_10_EXP; };
 template <> struct min_exponent10_helper<long double> { static constexpr int value = LDBL_MIN_10_EXP; };
-template <class> struct max_exponent_helper;
+template <class> struct max_exponent_helper {};
 template <> struct max_exponent_helper<float> { static constexpr int value = FLT_MAX_EXP; };
 template <> struct max_exponent_helper<double> { static constexpr int value = DBL_MAX_EXP; };
 template <> struct max_exponent_helper<long double> { static constexpr int value = LDBL_MAX_EXP; };
-template <class> struct max_exponent10_helper;
+template <class> struct max_exponent10_helper{};
 template <> struct max_exponent10_helper<float> { static constexpr int value = FLT_MAX_10_EXP; };
 template <> struct max_exponent10_helper<double> { static constexpr int value = DBL_MAX_10_EXP; };
 template <> struct max_exponent10_helper<long double> { static constexpr int value = LDBL_MAX_10_EXP; };

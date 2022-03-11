@@ -95,6 +95,7 @@ void lammps_close(void *handle);
 void lammps_mpi_init();
 void lammps_mpi_finalize();
 void lammps_kokkos_finalize();
+void lammps_python_finalize();
 
 /* ----------------------------------------------------------------------
  * Library functions to process commands
@@ -244,6 +245,8 @@ void lammps_fix_external_set_virial_global(void *handle, const char *id, double 
 void lammps_fix_external_set_virial_peratom(void *handle, const char *id, double **virial);
 void lammps_fix_external_set_vector_length(void *handle, const char *id, int len);
 void lammps_fix_external_set_vector(void *handle, const char *id, int idx, double val);
+
+void lammps_flush_buffers(void *ptr);
 
 void lammps_free(void *ptr);
 

@@ -48,7 +48,7 @@
 #include <limits>
 
 #include <Kokkos_Core.hpp>
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 
 using ExecSpace   = Kokkos::DefaultExecutionSpace;
 using MemorySpace = Kokkos::DefaultExecutionSpace::memory_space;
@@ -100,7 +100,7 @@ struct TestFunctor {
 
       const unsigned size_alloc = chunk * (1 + (j % chunk_span));
 
-      ptrs(j) = (uintptr_t)pool.allocate(size_alloc);
+      ptrs(j) = reinterpret_cast<uintptr_t>(pool.allocate(size_alloc));
 
       if (ptrs(j)) ++update;
     }
@@ -129,7 +129,7 @@ struct TestFunctor {
 
       const unsigned size_alloc = chunk * (1 + (j % chunk_span));
 
-      pool.deallocate((void*)ptrs(j), size_alloc);
+      pool.deallocate(reinterpret_cast<void*>(ptrs(j)), size_alloc);
     }
   }
 
@@ -153,9 +153,9 @@ struct TestFunctor {
         for (unsigned k = 0; k < repeat_inner; ++k) {
           const unsigned size_alloc = chunk * (1 + (j % chunk_span));
 
-          pool.deallocate((void*)ptrs(j), size_alloc);
+          pool.deallocate(reinterpret_cast<void*>(ptrs(j)), size_alloc);
 
-          ptrs(j) = (uintptr_t)pool.allocate(size_alloc);
+          ptrs(j) = reinterpret_cast<uintptr_t>(pool.allocate(size_alloc));
 
           if (0 == ptrs(j)) update++;
         }
@@ -266,7 +266,7 @@ int main(int argc, char* argv[]) {
     TestFunctor functor(total_alloc_size, min_superblock_size, number_alloc,
                         fill_stride, chunk_span, repeat_inner);
 
-    Kokkos::Impl::Timer timer;
+    Kokkos::Timer timer;
 
     if (!functor.test_fill()) {
       Kokkos::abort("fill ");

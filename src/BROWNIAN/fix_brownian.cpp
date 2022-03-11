@@ -20,17 +20,11 @@
 #include "fix_brownian.h"
 
 #include "atom.h"
-#include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "force.h"
-#include "math_extra.h"
-#include "memory.h"
 #include "random_mars.h"
-#include "update.h"
 
 #include <cmath>
-#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -51,7 +45,7 @@ void FixBrownian::init()
 {
   FixBrownianBase::init();
   g1 /= gamma_t;
-  g2 *= sqrt(gamma_t);
+  g2 /= sqrt(gamma_t);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -245,8 +245,8 @@ PPPMDisp::~PPPMDisp()
   cii = nullptr;
   delete [] csumi;
   csumi = nullptr;
-  deallocate();
-  deallocate_peratom();
+  PPPMDisp::deallocate();
+  PPPMDisp::deallocate_peratom();
   memory->destroy(part2grid);
   memory->destroy(part2grid_6);
   part2grid = part2grid_6 = nullptr;
@@ -1471,7 +1471,7 @@ int PPPMDisp::qr_alg(double **A, double **Q, int n)
   // start loop for the matrix factorization
   int count = 0;
   int countmax = 100000;
-  while (1) {
+  while (true) {
     // make a Wilkinson shift
     an1 = A[n-2][n-2];
     an = A[n-1][n-1];
@@ -2645,7 +2645,7 @@ void PPPMDisp::set_grid()
   if (!gridflag) {
     h = h_x = h_y = h_z = 4.0/g_ewald;
     int count = 0;
-    while (1) {
+    while (true) {
 
       // set grid dimension
 
@@ -3663,7 +3663,7 @@ void PPPMDisp::set_n_pppm_6()
   // decrease grid spacing until required precision is obtained
 
   int count = 0;
-  while (1) {
+  while (true) {
 
     // set grid dimension
     nx_pppm_6 = static_cast<int> (xprd/h_x);
@@ -8183,7 +8183,7 @@ int PPPMDisp::timing_1d(int n, double &time1d)
     for (int i = 0; i < 2*nfft_both_6; i++) work1_6[i] = ZEROF;
 
   MPI_Barrier(world);
-  time1 = MPI_Wtime();
+  time1 = platform::walltime();
 
   if (function[0]) {
     for (int i = 0; i < n; i++) {
@@ -8197,11 +8197,11 @@ int PPPMDisp::timing_1d(int n, double &time1d)
   }
 
   MPI_Barrier(world);
-  time2 = MPI_Wtime();
+  time2 = platform::walltime();
   time1d = time2 - time1;
 
   MPI_Barrier(world);
-  time1 = MPI_Wtime();
+  time1 = platform::walltime();
 
   if (function[1] + function[2] + function[3]) {
     for (int i = 0; i < n; i++) {
@@ -8215,7 +8215,7 @@ int PPPMDisp::timing_1d(int n, double &time1d)
   }
 
   MPI_Barrier(world);
-  time2 = MPI_Wtime();
+  time2 = platform::walltime();
   time1d += (time2 - time1)*mixing;
 
   if (differentiation_flag) return 2;
@@ -8238,7 +8238,7 @@ int PPPMDisp::timing_3d(int n, double &time3d)
     for (int i = 0; i < 2*nfft_both_6; i++) work1_6[i] = ZEROF;
 
   MPI_Barrier(world);
-  time1 = MPI_Wtime();
+  time1 = platform::walltime();
 
   if (function[0]) {
     for (int i = 0; i < n; i++) {
@@ -8252,11 +8252,11 @@ int PPPMDisp::timing_3d(int n, double &time3d)
   }
 
   MPI_Barrier(world);
-  time2 = MPI_Wtime();
+  time2 = platform::walltime();
   time3d = time2 - time1;
 
   MPI_Barrier(world);
-  time1 = MPI_Wtime();
+  time1 = platform::walltime();
 
   if (function[1] + function[2] + function[3]) {
     for (int i = 0; i < n; i++) {
@@ -8270,7 +8270,7 @@ int PPPMDisp::timing_3d(int n, double &time3d)
   }
 
   MPI_Barrier(world);
-  time2 = MPI_Wtime();
+  time2 = platform::walltime();
   time3d += (time2 - time1) * mixing;
 
   if (differentiation_flag) return 2;

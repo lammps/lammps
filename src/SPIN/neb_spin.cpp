@@ -68,7 +68,7 @@ static const char cite_neb_spin[] =
 
 /* ---------------------------------------------------------------------- */
 
-NEBSpin::NEBSpin(LAMMPS *lmp) : Command(lmp) {
+NEBSpin::NEBSpin(LAMMPS *lmp) : Command(lmp), fp(nullptr) {
   if (lmp->citeme) lmp->citeme->add(cite_neb_spin);
 }
 
@@ -79,7 +79,10 @@ NEBSpin::~NEBSpin()
   MPI_Comm_free(&roots);
   memory->destroy(all);
   delete[] rdist;
-  if (fp) fclose(fp);
+  if (fp) {
+    if (compressed) platform::pclose(fp);
+    else fclose(fp);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -384,7 +387,7 @@ void NEBSpin::readfile(char *file, int flag)
   if (flag == 0) {
     if (me_universe == 0) {
       open(file);
-      while (1) {
+      while (true) {
         eof = fgets(line,MAXLINE,fp);
         if (eof == nullptr) error->one(FLERR,"Unexpected end of neb/spin file");
         start = &line[strspn(line," \t\n\v\f\r")];
@@ -398,7 +401,7 @@ void NEBSpin::readfile(char *file, int flag)
     if (me == 0) {
       if (ireplica) {
         open(file);
-        while (1) {
+        while (true) {
           eof = fgets(line,MAXLINE,fp);
           if (eof == nullptr) error->one(FLERR,"Unexpected end of neb/spin file");
           start = &line[strspn(line," \t\n\v\f\r")];
@@ -552,12 +555,12 @@ void NEBSpin::readfile(char *file, int flag)
 
   if (flag == 0) {
     if (me_universe == 0) {
-      if (compressed) pclose(fp);
+      if (compressed) platform::pclose(fp);
       else fclose(fp);
     }
   } else {
     if (me == 0 && ireplica) {
-      if (compressed) pclose(fp);
+      if (compressed) platform::pclose(fp);
       else fclose(fp);
     }
   }
@@ -684,28 +687,16 @@ int NEBSpin::initial_rotation(double *spi, double *sploc, double fraction)
 
 /* ----------------------------------------------------------------------
    universe proc 0 opens NEBSpin data file
-   test if gzipped
+   test if compressed
 ------------------------------------------------------------------------- */
 
 void NEBSpin::open(char *file)
 {
   compressed = 0;
-  char *suffix = file + strlen(file) - 3;
-  if (suffix > file && strcmp(suffix,".gz") == 0) compressed = 1;
-  if (!compressed) fp = fopen(file,"r");
-  else {
-#ifdef LAMMPS_GZIP
-    auto gunzip = std::string("gzip -c -d ") + file;
-#ifdef _WIN32
-    fp = _popen(gunzip.c_str(),"rb");
-#else
-    fp = popen(gunzip.c_str(),"r");
-#endif
-
-#else
-    error->one(FLERR,"Cannot open gzipped file");
-#endif
-  }
+  if (platform::has_compress_extension(file)) {
+    fp = platform::compressed_read(file);
+    if (!fp) error->one(FLERR,"Cannot open compressed file");
+  } else fp = fopen(file,"r");
 
   if (fp == nullptr)
     error->one(FLERR,"Cannot open file {}: {}",file,utils::getsyserror());

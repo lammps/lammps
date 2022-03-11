@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class WriteData : public Command {
  public:
   WriteData(class LAMMPS *);
-  void command(int, char **);
+  void command(int, char **) override;
   void write(const std::string &);
 
  private:
@@ -51,7 +51,7 @@ class WriteData : public Command {
   void dihedrals();
   void impropers();
   void bonus(int);
-  void fix(int, int);
+  void fix(class Fix *, int);
 };
 
 }    // namespace LAMMPS_NS

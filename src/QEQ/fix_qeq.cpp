@@ -23,9 +23,12 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "group.h"
 #include "memory.h"
+#include "modify.h"
 #include "neigh_list.h"
 #include "pair.h"
+#include "respa.h"
 #include "suffix.h"
 #include "text_file_reader.h"
 #include "update.h"
@@ -37,14 +40,16 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-#define MAXLINE 1024
+static constexpr double QSUMSMALL = 0.00001;
 
-class parser_error : public std::exception {
-  std::string message;
-public:
-  parser_error(const std::string &mesg) { message = mesg; }
-  const char *what() const noexcept { return message.c_str(); }
-};
+namespace {
+  class qeq_parser_error : public std::exception {
+    std::string message;
+  public:
+    explicit qeq_parser_error(const std::string &mesg) { message = mesg; }
+    const char *what() const noexcept override { return message.c_str(); }
+  };
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -291,6 +296,35 @@ double FixQEq::compute_scalar()
 
 /* ---------------------------------------------------------------------- */
 
+void FixQEq::init()
+{
+  if (!atom->q_flag)
+    error->all(FLERR,"Fix {} requires atom attribute q", style);
+
+  ngroup = group->count(igroup);
+  if (ngroup == 0) error->all(FLERR,"Fix {} group has no atoms", style);
+
+  if ((comm->me == 0) && (modify->get_fix_by_style("^efield").size() > 0))
+    error->warning(FLERR,"Fix efield is ignored during charge equilibration");
+
+  if (utils::strmatch(update->integrate_style,"^respa"))
+    nlevels_respa = ((Respa *) update->integrate)->nlevels;
+
+  // compute net charge and print warning if too large
+
+  double qsum_local = 0.0, qsum = 0.0;
+  for (int i = 0; i < atom->nlocal; i++) {
+    if (atom->mask[i] & groupbit)
+      qsum_local += atom->q[i];
+  }
+  MPI_Allreduce(&qsum_local,&qsum,1,MPI_DOUBLE,MPI_SUM,world);
+
+  if ((comm->me == 0) && (fabs(qsum) > QSUMSMALL))
+    error->warning(FLERR,"Fix {} group is not charge neutral, net charge = {:.8}", style, qsum);
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixQEq::init_list(int /*id*/, NeighList *ptr)
 {
   list = ptr;
@@ -377,7 +411,7 @@ int FixQEq::CG(double *b, double *x)
 
   pack_flag = 1;
   sparse_matvec(&H, x, q);
-  comm->reverse_comm_fix(this);
+  comm->reverse_comm(this);
 
   vector_sum(r , 1.,  b, -1., q, inum);
 
@@ -392,9 +426,9 @@ int FixQEq::CG(double *b, double *x)
   sig_new = parallel_dot(r, d, inum);
 
   for (loop = 1; loop < maxiter && sqrt(sig_new)/b_norm > tolerance; ++loop) {
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
     sparse_matvec(&H, d, q);
-    comm->reverse_comm_fix(this);
+    comm->reverse_comm(this);
 
     tmp = parallel_dot(d, q, inum);
     alfa = sig_new / tmp;
@@ -485,7 +519,7 @@ void FixQEq::calculate_Q()
   }
 
   pack_flag = 4;
-  comm->forward_comm_fix(this); //Dist_vector(atom->q);
+  comm->forward_comm(this); //Dist_vector(atom->q);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -739,21 +773,21 @@ void FixQEq::read_file(char *file)
 
       FILE *fp = utils::open_potential(file,lmp,nullptr);
       if (fp == nullptr)
-        throw parser_error(fmt::format("Cannot open fix qeq parameter file {}:"
-                                       " {}", file,utils::getsyserror()));
+        throw qeq_parser_error(fmt::format("Cannot open fix qeq parameter file {}: {}",
+                                           file,utils::getsyserror()));
       TextFileReader reader(fp, "qeq parameter");
 
-      while (1) {
+      while (true) {
         auto values = reader.next_values(0);
 
         if (values.count() == 0) continue;
         if (values.count() < 6)
-          throw parser_error("Invalid qeq parameter file");
+          throw qeq_parser_error("Invalid qeq parameter file");
 
         auto word = values.next_string();
         utils::bounds(FLERR,word,1,ntypes,nlo,nhi,nullptr);
         if ((nlo < 0) || (nhi < 0))
-          throw parser_error("Invalid atom type range");
+          throw qeq_parser_error(fmt::format("Invalid atom type range: {}",word));
 
         val = values.next_double();
         for (int n=nlo; n <= nhi; ++n) chi[n] = val;
@@ -767,7 +801,7 @@ void FixQEq::read_file(char *file)
         for (int n=nlo; n <= nhi; ++n) zcore[n] = val;
         for (int n=nlo; n <= nhi; ++n) setflag[n] = 1;
       }
-    } catch (EOFException &e) {
+    } catch (EOFException &) {
       ; // catch and ignore to exit loop
     } catch (std::exception &e) {
       error->one(FLERR,e.what());

@@ -164,16 +164,14 @@ void PairLJGromacsCoulGromacs::compute(int eflag, int vflag)
             evdwl = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
             evdwl += ljsw5[itype][jtype];
             if (rsq > cut_lj_innersq) {
-              eswitch = tlj*tlj*tlj *
-                (ljsw3[itype][jtype] + ljsw4[itype][jtype]*tlj);
+              eswitch = tlj*tlj*tlj * (ljsw3[itype][jtype] + ljsw4[itype][jtype]*tlj);
               evdwl += eswitch;
             }
             evdwl *= factor_lj;
           } else evdwl = 0.0;
         }
 
-        if (evflag) ev_tally(i,j,nlocal,newton_pair,
-                             evdwl,ecoul,fpair,delx,dely,delz);
+        if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,ecoul,fpair,delx,dely,delz);
       }
     }
   }
@@ -487,8 +485,7 @@ double PairLJGromacsCoulGromacs::single(int i, int j, int itype, int jtype,
   if (rsq < cut_coulsq) {
     phicoul = force->qqrd2e * atom->q[i]*atom->q[j] * (sqrt(r2inv)-coulsw5);
     if (rsq > cut_coul_innersq) {
-      phiswitchcoul = force->qqrd2e * atom->q[i]*atom->q[j] *
-        tc*tc*tc * (coulsw3 + coulsw4*tc);
+      phiswitchcoul = force->qqrd2e * atom->q[i]*atom->q[j] * tc*tc*tc * (coulsw3 + coulsw4*tc);
       phicoul += phiswitchcoul;
     }
     eng += factor_coul*phicoul;
@@ -498,8 +495,7 @@ double PairLJGromacsCoulGromacs::single(int i, int j, int itype, int jtype,
     philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
     philj += ljsw5[itype][jtype];
     if (rsq > cut_lj_innersq) {
-      phiswitch = tlj*tlj*tlj *
-        (ljsw3[itype][jtype] + ljsw4[itype][jtype]*tlj);
+      phiswitch = tlj*tlj*tlj * (ljsw3[itype][jtype] + ljsw4[itype][jtype]*tlj);
       philj += phiswitch;
     }
     eng += factor_lj*philj;

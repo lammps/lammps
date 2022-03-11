@@ -133,9 +133,9 @@ void PairLJClass2CoulLongGPU::compute(int eflag, int vflag)
     error->one(FLERR,"Insufficient memory on accelerator");
 
   if (host_start<inum) {
-    cpu_time = MPI_Wtime();
+    cpu_time = platform::walltime();
     cpu_compute(host_start, inum, eflag, vflag, ilist, numneigh, firstneigh);
-    cpu_time = MPI_Wtime() - cpu_time;
+    cpu_time = platform::walltime() - cpu_time;
   }
 }
 
@@ -147,8 +147,6 @@ void PairLJClass2CoulLongGPU::init_style()
 {
   if (!atom->q_flag)
     error->all(FLERR,"Pair style lj/class2/coul/long/gpu requires atom attribute q");
-  if (force->newton_pair)
-    error->all(FLERR,"Pair style lj/class2/coul/long/gpu requires newton pair off");
 
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;

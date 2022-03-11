@@ -174,7 +174,7 @@ void ComputeTempCS::setup()
     // reverse comm to acquire unknown partner IDs from ghost atoms
     // only needed if newton_bond = on
 
-    if (force->newton_bond) comm->reverse_comm_compute(this);
+    if (force->newton_bond) comm->reverse_comm(this);
 
     // check that all C/S partners were found
 

@@ -2711,10 +2711,9 @@ void PPPMKokkos<DeviceType>::compute_rho_coeff()
 {
   int j,k,l,m;
   FFT_SCALAR s;
-
-  //FFT_SCALAR **a;
-  //memory->create2d_offset(a,order,-order,order,"pppm:a");
-  FFT_SCALAR a[order][2*order+1];
+  FFT_SCALAR **a = new FFT_SCALAR *[order];
+  for (int i = 0; i < order; ++i)
+    a[i] = new FFT_SCALAR[2*order+1];
 
   for (k = 0; k <= 2*order; k++)
     for (l = 0; l < order; l++)
@@ -2744,7 +2743,9 @@ void PPPMKokkos<DeviceType>::compute_rho_coeff()
       h_rho_coeff(l,m-(1-order)/2) = a[l][k+order];
     m++;
   }
-  //memory->destroy2d_offset(a,-order);
+  for (int i = 0; i < order; ++i)
+    delete[] a[i];
+  delete[] a;
 }
 
 /* ----------------------------------------------------------------------
@@ -2857,7 +2858,7 @@ int PPPMKokkos<DeviceType>::timing_1d(int n, double &time1d)
   copymode = 0;
 
   MPI_Barrier(world);
-  time1 = MPI_Wtime();
+  time1 = platform::walltime();
 
   for (int i = 0; i < n; i++) {
     fft1->timing1d(d_work1,nfft_both,FFT3dKokkos<DeviceType>::FORWARD);
@@ -2867,7 +2868,7 @@ int PPPMKokkos<DeviceType>::timing_1d(int n, double &time1d)
   }
 
   MPI_Barrier(world);
-  time2 = MPI_Wtime();
+  time2 = platform::walltime();
   time1d = time2 - time1;
 
   return 4;
@@ -2894,7 +2895,7 @@ int PPPMKokkos<DeviceType>::timing_3d(int n, double &time3d)
   copymode = 0;
 
   MPI_Barrier(world);
-  time1 = MPI_Wtime();
+  time1 = platform::walltime();
 
   for (int i = 0; i < n; i++) {
     fft1->compute(d_work1,d_work1,FFT3dKokkos<DeviceType>::FORWARD);
@@ -2904,7 +2905,7 @@ int PPPMKokkos<DeviceType>::timing_3d(int n, double &time3d)
   }
 
   MPI_Barrier(world);
-  time2 = MPI_Wtime();
+  time2 = platform::walltime();
   time3d = time2 - time1;
 
   return 4;

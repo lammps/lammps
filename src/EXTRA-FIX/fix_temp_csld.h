@@ -27,16 +27,16 @@ namespace LAMMPS_NS {
 class FixTempCSLD : public Fix {
  public:
   FixTempCSLD(class LAMMPS *, int, char **);
-  ~FixTempCSLD();
-  int setmask();
-  void init();
-  void end_of_step();
-  int modify_param(int, char **);
-  void reset_target(double);
-  virtual double compute_scalar();
-  void write_restart(FILE *);
-  void restart(char *buf);
-  virtual void *extract(const char *, int &);
+  ~FixTempCSLD() override;
+  int setmask() override;
+  void init() override;
+  void end_of_step() override;
+  int modify_param(int, char **) override;
+  void reset_target(double) override;
+  double compute_scalar() override;
+  void write_restart(FILE *) override;
+  void restart(char *buf) override;
+  void *extract(const char *, int &) override;
 
  private:
   double t_start, t_stop, t_period, t_target;

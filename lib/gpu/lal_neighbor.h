@@ -71,7 +71,7 @@ class Neighbor {
             const int block_cell_2d, const int block_cell_id,
             const int block_nbor_build, const int threads_per_atom,
             const int simd_size, const bool time_device,
-            const std::string compile_flags, const bool ilist_map);
+            const std::string &compile_flags, const bool ilist_map);
 
   /// Set the cutoff+skin
   inline void set_cutoff(const double cutoff) {

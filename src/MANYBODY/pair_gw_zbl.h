@@ -27,7 +27,6 @@ namespace LAMMPS_NS {
 class PairGWZBL : public PairGW {
  public:
   PairGWZBL(class LAMMPS *);
-  ~PairGWZBL() {}
 
   static constexpr int NPARAMS_PER_LINE = 21;
 
@@ -36,11 +35,11 @@ class PairGWZBL : public PairGW {
   double global_epsilon_0;    // permittivity of vacuum for Coulomb repulsion
   double global_e;            // proton charge (negative of electron charge)
 
-  void read_file(char *);
-  void repulsive(Param *, double, double &, int, double &);
+  void read_file(char *) override;
+  void repulsive(Param *, double, double &, int, double &) override;
 
-  double gw_fa(double, Param *);
-  double gw_fa_d(double, Param *);
+  double gw_fa(double, Param *) override;
+  double gw_fa_d(double, Param *) override;
 
   double F_fermi(double, Param *);
   double F_fermi_d(double, Param *);

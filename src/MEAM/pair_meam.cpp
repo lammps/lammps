@@ -28,7 +28,6 @@
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "potential_file_reader.h"
-#include "tokenizer.h"
 
 #include <cstring>
 #include <memory>
@@ -140,14 +139,14 @@ void PairMEAM::compute(int eflag, int vflag)
     offset += numneigh_half[i];
   }
 
-  comm->reverse_comm_pair(this);
+  comm->reverse_comm(this);
 
   meam_inst->meam_dens_final(nlocal,eflag_either,eflag_global,eflag_atom,
                    &eng_vdwl,eatom,ntype,type,map,scale,errorflag);
   if (errorflag)
     error->one(FLERR,"MEAM library error {}",errorflag);
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   offset = 0;
 
@@ -255,7 +254,7 @@ void PairMEAM::coeff(int narg, char **arg)
                                  "'maxelt' in meam.h and recompile.", maxelt);
 
   for (int i = 0; i < nlibelements; i++) {
-    libelements.push_back(arg[i+3]);
+    libelements.emplace_back(arg[i+3]);
     mass.push_back(0.0);
   }
 
@@ -517,7 +516,7 @@ void PairMEAM::read_user_meam_file(const std::string &userfile)
   char * line = nullptr;
   char buffer[MAXLINE];
 
-  while (1) {
+  while (true) {
     int which;
     int nindex, index[3];
     double value;

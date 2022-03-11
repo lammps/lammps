@@ -19,7 +19,6 @@
 #include "error.h"
 #include "fix_mdi_engine.h"
 #include "mdi_engine.h"
-
 #include "update.h"
 
 using namespace LAMMPS_NS;

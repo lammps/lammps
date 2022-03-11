@@ -249,7 +249,7 @@ void PairLubricateU::stage_one()
 
   // set velocities for ghost particles
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   // Find initial residual
 
@@ -284,7 +284,7 @@ void PairLubricateU::stage_one()
 
     // set velocities for ghost particles
 
-    comm->forward_comm_pair(this);
+    comm->forward_comm(this);
 
     compute_RU();
 
@@ -343,7 +343,7 @@ void PairLubricateU::stage_one()
 
   // set velocities for ghost particles
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   // Find actual particle's velocities from relative velocities
   // Only non-zero component of fluid's vel : vx=gdot*y and wz=-gdot/2
@@ -433,7 +433,7 @@ void PairLubricateU::stage_two(double **x)
 
   // set velocities for ghost particles
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   // Find initial residual
 
@@ -468,7 +468,7 @@ void PairLubricateU::stage_two(double **x)
 
     // set velocities for ghost particles
 
-    comm->forward_comm_pair(this);
+    comm->forward_comm(this);
 
     compute_RU(x);
 
@@ -527,7 +527,7 @@ void PairLubricateU::stage_two(double **x)
 
   // set velocities for ghost particles
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   // Compute the viscosity/pressure
 

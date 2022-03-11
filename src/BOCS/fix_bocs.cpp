@@ -37,7 +37,6 @@
 
 #include <cmath>
 #include <cstring>
-#include <vector>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -234,9 +233,7 @@ FixBocs::FixBocs(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"mtk") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix bocs command");
-      if (strcmp(arg[iarg+1],"yes") == 0) mtk_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) mtk_flag = 0;
-      else error->all(FLERR,"Illegal fix bocs command");
+      mtk_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"tloop") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix bocs command");
@@ -640,7 +637,7 @@ int FixBocs::read_F_table( char *filename, int p_basis_type )
     char line[MAX_F_TABLE_LINE_LENGTH];
     std::vector<std::string> inputLines;
     while (fgets(line, MAX_F_TABLE_LINE_LENGTH, fpi)) {
-      inputLines.push_back(std::string(line));
+      inputLines.emplace_back(line);
     }
     fclose(fpi);
 

@@ -28,7 +28,6 @@
 #include "neighbor.h"
 #include "update.h"
 
-#include <cstring>
 #include <cmath>
 
 using namespace LAMMPS_NS;

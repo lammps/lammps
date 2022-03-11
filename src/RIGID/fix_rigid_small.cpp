@@ -73,6 +73,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   dof_flag = 1;
   enforce2d_flag = 1;
   stores_ids = 1;
+  centroidstressflag = CENTROID_AVAIL;
 
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -89,7 +90,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   eflags = nullptr;
   orient = nullptr;
   dorient = nullptr;
-  grow_arrays(atom->nmax);
+  FixRigidSmall::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
 
   // parse args for rigid body specification
@@ -219,7 +220,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"infile") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid/small command");
-      delete [] inpfile;
+      delete[] inpfile;
       inpfile = utils::strdup(arg[iarg+1]);
       restart_file = 1;
       reinitflag = 0;
@@ -227,17 +228,13 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"reinit") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid/small command");
-      if (strcmp("yes",arg[iarg+1]) == 0) reinitflag = 1;
-      else if  (strcmp("no",arg[iarg+1]) == 0) reinitflag = 0;
-      else error->all(FLERR,"Illegal fix rigid/small command");
+      reinitflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"mol") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid/small command");
       int imol = atom->find_molecule(arg[iarg+1]);
-      if (imol == -1)
-        error->all(FLERR,"Molecule template ID for "
-                   "fix rigid/small does not exist");
+      if (imol == -1) error->all(FLERR,"Molecule template ID for fix rigid/small does not exist");
       onemols = &atom->molecules[imol];
       nmol = onemols[0]->nset;
       restart_file = 1;
@@ -330,7 +327,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg+1],"all") == 0) allremap = 1;
       else {
         allremap = 0;
-        delete [] id_dilate;
+        delete[] id_dilate;
         id_dilate = utils::strdup(arg[iarg+1]);
         int idilate = group->find(id_dilate);
         if (idilate == -1)
@@ -357,7 +354,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"gravity") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix rigid/small command");
-      delete [] id_gravity;
+      delete[] id_gravity;
       id_gravity = utils::strdup(arg[iarg+1]);
       iarg += 2;
 
@@ -395,14 +392,14 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   // sets bodytag for owned atoms
   // body attributes are computed later by setup_bodies()
 
-  double time1 = MPI_Wtime();
+  double time1 = platform::walltime();
 
   create_bodies(bodyID);
-  if (customflag) delete [] bodyID;
+  if (customflag) delete[] bodyID;
 
   if (comm->me == 0)
     utils::logmesg(lmp,"  create bodies CPU = {:.3f} seconds\n",
-                   MPI_Wtime()-time1);
+                   platform::walltime()-time1);
 
   // set nlocal_body and allocate bodies I own
 
@@ -504,9 +501,9 @@ FixRigidSmall::~FixRigidSmall()
   memory->destroy(dorient);
 
   delete random;
-  delete [] inpfile;
-  delete [] id_dilate;
-  delete [] id_gravity;
+  delete[] inpfile;
+  delete[] id_dilate;
+  delete[] id_gravity;
 
   memory->destroy(langextra);
   memory->destroy(mass_body);
@@ -709,7 +706,7 @@ void FixRigidSmall::setup(int vflag)
   // reverse communicate fcm, torque of all bodies
 
   commflag = FORCE_TORQUE;
-  comm->reverse_comm_fix(this,6);
+  comm->reverse_comm(this,6);
 
   // virial setup before call to set_v
 
@@ -724,7 +721,7 @@ void FixRigidSmall::setup(int vflag)
   }
 
   commflag = FINAL;
-  comm->forward_comm_fix(this,10);
+  comm->forward_comm(this,10);
 
   // set velocity/rotation of atoms in rigid bodues
 
@@ -789,7 +786,7 @@ void FixRigidSmall::initial_integrate(int vflag)
   // forward communicate updated info of all bodies
 
   commflag = INITIAL;
-  comm->forward_comm_fix(this,26);
+  comm->forward_comm(this,29);
 
   // set coords/orient and velocity/rotation of atoms in rigid bodies
 
@@ -883,6 +880,7 @@ void FixRigidSmall::enforce2d()
     b->xcm[2] = 0.0;
     b->vcm[2] = 0.0;
     b->fcm[2] = 0.0;
+    b->xgc[2] = 0.0;
     b->torque[0] = 0.0;
     b->torque[1] = 0.0;
     b->angmom[0] = 0.0;
@@ -972,7 +970,7 @@ void FixRigidSmall::compute_forces_and_torques()
   // reverse communicate fcm, torque of all bodies
 
   commflag = FORCE_TORQUE;
-  comm->reverse_comm_fix(this,6);
+  comm->reverse_comm(this,6);
 
   // include Langevin thermostat forces and torques
 
@@ -1038,7 +1036,7 @@ void FixRigidSmall::final_integrate()
   // forward communicate updated info of all bodies
 
   commflag = FINAL;
-  comm->forward_comm_fix(this,10);
+  comm->forward_comm(this,10);
 
   // set velocity/rotation of atoms in rigid bodies
   // virial is already setup from initial_integrate
@@ -1098,7 +1096,7 @@ void FixRigidSmall::pre_neighbor()
 
   nghost_body = 0;
   commflag = FULL_BODY;
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
   reset_atom2body();
   //check(4);
 
@@ -1184,7 +1182,7 @@ int FixRigidSmall::dof(int tgroup)
   }
 
   commflag = DOF;
-  comm->reverse_comm_fix(this,3);
+  comm->reverse_comm(this,3);
 
   // nall = count0 = # of point particles in each rigid body
   // mall = count1 = # of finite-size particles in each rigid body
@@ -1353,8 +1351,20 @@ void FixRigidSmall::set_xv()
       vr[4] = 0.5*x0*fc2;
       vr[5] = 0.5*x1*fc2;
 
-      v_tally(1,&i,1.0,vr);
+      double rlist[1][3] = {{x0, x1, x2}};
+      double flist[1][3] = {{0.5*fc0, 0.5*fc1, 0.5*fc2}};
+      v_tally(1,&i,1.0,vr,rlist,flist,b->xgc);
     }
+  }
+
+  // update the position of geometric center
+  for (int ibody = 0; ibody < nlocal_body + nghost_body; ibody++) {
+    Body *b = &body[ibody];
+    MathExtra::matvec(b->ex_space,b->ey_space,b->ez_space,
+                      b->xgc_body,b->xgc);
+    b->xgc[0] += b->xcm[0];
+    b->xgc[1] += b->xcm[1];
+    b->xgc[2] += b->xcm[2];
   }
 
   // set orientation, omega, angmom of each extended particle
@@ -1503,7 +1513,9 @@ void FixRigidSmall::set_v()
       vr[4] = 0.5*x0*fc2;
       vr[5] = 0.5*x1*fc2;
 
-      v_tally(1,&i,1.0,vr);
+      double rlist[1][3] = {{x0, x1, x2}};
+      double flist[1][3] = {{0.5*fc0, 0.5*fc1, 0.5*fc2}};
+      v_tally(1,&i,1.0,vr,rlist,flist,b->xgc);
     }
   }
 
@@ -1901,7 +1913,7 @@ void FixRigidSmall::setup_bodies_static()
 
   nghost_body = 0;
   commflag = FULL_BODY;
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
   reset_atom2body();
 
   // compute mass & center-of-mass of each rigid body
@@ -1909,11 +1921,15 @@ void FixRigidSmall::setup_bodies_static()
   double **x = atom->x;
 
   double *xcm;
+  double *xgc;
 
   for (ibody = 0; ibody < nlocal_body+nghost_body; ibody++) {
     xcm = body[ibody].xcm;
+    xgc = body[ibody].xgc;
     xcm[0] = xcm[1] = xcm[2] = 0.0;
+    xgc[0] = xgc[1] = xgc[2] = 0.0;
     body[ibody].mass = 0.0;
+    body[ibody].natoms = 0;
   }
 
   double unwrap[3];
@@ -1928,22 +1944,31 @@ void FixRigidSmall::setup_bodies_static()
 
     domain->unmap(x[i],xcmimage[i],unwrap);
     xcm = b->xcm;
+    xgc = b->xgc;
     xcm[0] += unwrap[0] * massone;
     xcm[1] += unwrap[1] * massone;
     xcm[2] += unwrap[2] * massone;
+    xgc[0] += unwrap[0];
+    xgc[1] += unwrap[1];
+    xgc[2] += unwrap[2];
     b->mass += massone;
+    b->natoms++;
   }
 
   // reverse communicate xcm, mass of all bodies
 
   commflag = XCM_MASS;
-  comm->reverse_comm_fix(this,4);
+  comm->reverse_comm(this,8);
 
   for (ibody = 0; ibody < nlocal_body; ibody++) {
     xcm = body[ibody].xcm;
+    xgc = body[ibody].xgc;
     xcm[0] /= body[ibody].mass;
     xcm[1] /= body[ibody].mass;
     xcm[2] /= body[ibody].mass;
+    xgc[0] /= body[ibody].natoms;
+    xgc[1] /= body[ibody].natoms;
+    xgc[2] /= body[ibody].natoms;
   }
 
   // set vcm, angmom = 0.0 in case inpfile is used
@@ -2068,7 +2093,7 @@ void FixRigidSmall::setup_bodies_static()
   // reverse communicate inertia tensor of all bodies
 
   commflag = ITENSOR;
-  comm->reverse_comm_fix(this,6);
+  comm->reverse_comm(this,6);
 
   // overwrite Cartesian inertia tensor with file values
 
@@ -2128,12 +2153,22 @@ void FixRigidSmall::setup_bodies_static()
     // create initial quaternion
 
     MathExtra::exyz_to_q(ex,ey,ez,body[ibody].quat);
+
+    // convert geometric center position to principal axis coordinates
+    // xcm is wrapped, but xgc is not initially
+    xcm = body[ibody].xcm;
+    xgc = body[ibody].xgc;
+    double delta[3];
+    MathExtra::sub3(xgc,xcm,delta);
+    domain->minimum_image(delta);
+    MathExtra::transpose_matvec(ex,ey,ez,delta,body[ibody].xgc_body);
+    MathExtra::add3(xcm,delta,xgc);
   }
 
   // forward communicate updated info of all bodies
 
   commflag = INITIAL;
-  comm->forward_comm_fix(this,26);
+  comm->forward_comm(this,29);
 
   // displace = initial atom coords in basis of principal axes
   // set displace = 0.0 for atoms not in any rigid body
@@ -2268,7 +2303,7 @@ void FixRigidSmall::setup_bodies_static()
   // reverse communicate inertia tensor of all bodies
 
   commflag = ITENSOR;
-  comm->reverse_comm_fix(this,6);
+  comm->reverse_comm(this,6);
 
   // error check that re-computed moments of inertia match diagonalized ones
   // do not do test for bodies with params read from inpfile
@@ -2407,7 +2442,7 @@ void FixRigidSmall::setup_bodies_dynamic()
   // reverse communicate vcm, angmom of all bodies
 
   commflag = VCM_ANGMOM;
-  comm->reverse_comm_fix(this,6);
+  comm->reverse_comm(this,6);
 
   // normalize velocity of COM
 
@@ -2455,7 +2490,7 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
     if (fp == nullptr)
       error->one(FLERR,"Cannot open fix rigid/small file {}: {}",
                                    inpfile,utils::getsyserror());
-    while (1) {
+    while (true) {
       eof = fgets(line,MAXLINE,fp);
       if (eof == nullptr)
         error->one(FLERR,"Unexpected end of fix rigid/small file");
@@ -2543,8 +2578,8 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
 
   if (me == 0) fclose(fp);
 
-  delete [] buffer;
-  delete [] values;
+  delete[] buffer;
+  delete[] values;
 }
 
 /* ----------------------------------------------------------------------
@@ -2567,8 +2602,7 @@ void FixRigidSmall::write_restart_file(const char *file)
     auto outfile = std::string(file) + ".rigid";
     fp = fopen(outfile.c_str(),"w");
     if (fp == nullptr)
-      error->one(FLERR,"Cannot open fix rigid restart file {}: {}",
-                                   outfile,utils::getsyserror());
+      error->one(FLERR,"Cannot open fix rigid restart file {}: {}",outfile,utils::getsyserror());
 
     fmt::print(fp,"# fix rigid mass, COM, inertia tensor info for "
                "{} bodies on timestep {}\n\n",nbody,update->ntimestep);
@@ -2812,6 +2846,10 @@ void FixRigidSmall::set_molecule(int nlocalprev, tagint tagprev, int imol,
       if (nlocal_body == nmax_body) grow_body();
       Body *b = &body[nlocal_body];
       b->mass = onemols[imol]->masstotal;
+      b->natoms = onemols[imol]->natoms;
+      b->xgc[0] = xgeom[0];
+      b->xgc[1] = xgeom[1];
+      b->xgc[2] = xgeom[2];
 
       // new COM = Q (onemols[imol]->xcm - onemols[imol]->center) + xgeom
       // Q = rotation matrix associated with quat
@@ -2833,6 +2871,12 @@ void FixRigidSmall::set_molecule(int nlocalprev, tagint tagprev, int imol,
 
       MathExtra::quatquat(quat,onemols[imol]->quat,b->quat);
       MathExtra::q_to_exyz(b->quat,b->ex_space,b->ey_space,b->ez_space);
+
+      MathExtra::transpose_matvec(b->ex_space,b->ey_space,b->ez_space,
+                                  ctr2com_rotate,b->xgc_body);
+      b->xgc_body[0] *= -1;
+      b->xgc_body[1] *= -1;
+      b->xgc_body[2] *= -1;
 
       b->angmom[0] = b->angmom[1] = b->angmom[2] = 0.0;
       b->omega[0] = b->omega[1] = b->omega[2] = 0.0;
@@ -2966,7 +3010,7 @@ int FixRigidSmall::pack_forward_comm(int n, int *list, double *buf,
                                      int /*pbc_flag*/, int * /*pbc*/)
 {
   int i,j;
-  double *xcm,*vcm,*quat,*omega,*ex_space,*ey_space,*ez_space,*conjqm;
+  double *xcm,*xgc,*vcm,*quat,*omega,*ex_space,*ey_space,*ez_space,*conjqm;
 
   int m = 0;
 
@@ -2978,6 +3022,10 @@ int FixRigidSmall::pack_forward_comm(int n, int *list, double *buf,
       buf[m++] = xcm[0];
       buf[m++] = xcm[1];
       buf[m++] = xcm[2];
+      xgc = body[bodyown[j]].xgc;
+      buf[m++] = xgc[0];
+      buf[m++] = xgc[1];
+      buf[m++] = xgc[2];
       vcm = body[bodyown[j]].vcm;
       buf[m++] = vcm[0];
       buf[m++] = vcm[1];
@@ -3053,7 +3101,7 @@ int FixRigidSmall::pack_forward_comm(int n, int *list, double *buf,
 void FixRigidSmall::unpack_forward_comm(int n, int first, double *buf)
 {
   int i,j,last;
-  double *xcm,*vcm,*quat,*omega,*ex_space,*ey_space,*ez_space,*conjqm;
+  double *xcm,*xgc,*vcm,*quat,*omega,*ex_space,*ey_space,*ez_space,*conjqm;
 
   int m = 0;
   last = first + n;
@@ -3065,6 +3113,10 @@ void FixRigidSmall::unpack_forward_comm(int n, int first, double *buf)
       xcm[0] = buf[m++];
       xcm[1] = buf[m++];
       xcm[2] = buf[m++];
+      xgc = body[bodyown[i]].xgc;
+      xgc[0] = buf[m++];
+      xgc[1] = buf[m++];
+      xgc[2] = buf[m++];
       vcm = body[bodyown[i]].vcm;
       vcm[0] = buf[m++];
       vcm[1] = buf[m++];
@@ -3140,7 +3192,7 @@ void FixRigidSmall::unpack_forward_comm(int n, int first, double *buf)
 int FixRigidSmall::pack_reverse_comm(int n, int first, double *buf)
 {
   int i,j,m,last;
-  double *fcm,*torque,*vcm,*angmom,*xcm;
+  double *fcm,*torque,*vcm,*angmom,*xcm, *xgc;
 
   m = 0;
   last = first + n;
@@ -3175,10 +3227,15 @@ int FixRigidSmall::pack_reverse_comm(int n, int first, double *buf)
     for (i = first; i < last; i++) {
       if (bodyown[i] < 0) continue;
       xcm = body[bodyown[i]].xcm;
+      xgc = body[bodyown[i]].xgc;
       buf[m++] = xcm[0];
       buf[m++] = xcm[1];
       buf[m++] = xcm[2];
+      buf[m++] = xgc[0];
+      buf[m++] = xgc[1];
+      buf[m++] = xgc[2];
       buf[m++] = body[bodyown[i]].mass;
+      buf[m++] = static_cast<double>(body[bodyown[i]].natoms);
     }
 
   } else if (commflag == ITENSOR) {
@@ -3213,7 +3270,7 @@ int FixRigidSmall::pack_reverse_comm(int n, int first, double *buf)
 void FixRigidSmall::unpack_reverse_comm(int n, int *list, double *buf)
 {
   int i,j,k;
-  double *fcm,*torque,*vcm,*angmom,*xcm;
+  double *fcm,*torque,*vcm,*angmom,*xcm, *xgc;
 
   int m = 0;
 
@@ -3250,10 +3307,15 @@ void FixRigidSmall::unpack_reverse_comm(int n, int *list, double *buf)
       j = list[i];
       if (bodyown[j] < 0) continue;
       xcm = body[bodyown[j]].xcm;
+      xgc = body[bodyown[j]].xgc;
       xcm[0] += buf[m++];
       xcm[1] += buf[m++];
       xcm[2] += buf[m++];
+      xgc[0] += buf[m++];
+      xgc[1] += buf[m++];
+      xgc[2] += buf[m++];
       body[bodyown[j]].mass += buf[m++];
+      body[bodyown[j]].natoms += static_cast<int>(buf[m++]);
     }
 
   } else if (commflag == ITENSOR) {
@@ -3345,7 +3407,7 @@ void FixRigidSmall::zero_momentum()
   // forward communicate of vcm to all ghost copies
 
   commflag = FINAL;
-  comm->forward_comm_fix(this,10);
+  comm->forward_comm(this,10);
 
   // set velocity of atoms in rigid bodues
 
@@ -3371,7 +3433,7 @@ void FixRigidSmall::zero_rotation()
   // forward communicate of omega to all ghost copies
 
   commflag = FINAL;
-  comm->forward_comm_fix(this,10);
+  comm->forward_comm(this,10);
 
   // set velocity of atoms in rigid bodues
 

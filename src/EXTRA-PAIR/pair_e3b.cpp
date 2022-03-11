@@ -99,7 +99,7 @@ void PairE3B::compute(int eflag, int vflag)
 
   ev_init(eflag, vflag);
   //clear sumExp array
-  memset(sumExp, 0.0, nbytes);
+  memset(sumExp, 0, sizeof(double)*maxID);
 
   evdwl = 0.0;
   pvector[0] = pvector[1] = pvector[2] = pvector[3] = 0.0;
@@ -364,7 +364,6 @@ void PairE3B::allocateE3B()
   maxID = find_maxID();
   if (!natoms) error->all(FLERR, "No atoms found");
   memory->create(sumExp, maxID, "pair:sumExp");
-  nbytes = sizeof(double) * maxID;
 }
 
 /* ----------------------------------------------------------------------
@@ -643,7 +642,7 @@ void PairE3B::checkInputs(const double &bondL)
   if (k2 == NOT_SET) error->all(FLERR, "K2 keyword missing");
 
   //now test that values are within acceptable ranges
-  if (k2 < 0.0 or k3 < 0.0) error->all(FLERR, "exponential decay is negative");
+  if (k2 < 0.0 || k3 < 0.0) error->all(FLERR, "exponential decay is negative");
   if (bondL < 0.0) error->all(FLERR, "OH bond length is negative");
   if (rc2 < 0.0 || rc3 < 0.0 || rs < 0.0) error->all(FLERR, "potential cutoff is negative");
   if (rs > rc3) error->all(FLERR, "potential switching distance is larger than cutoff");

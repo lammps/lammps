@@ -19,13 +19,10 @@
 
 #include "atom.h"
 #include "comm.h"
-#include "error.h"
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
-#include "neighbor.h"
 
 #include <cmath>
 
@@ -41,10 +38,6 @@ PairLJCutCoulCutDielectricOMP::PairLJCutCoulCutDielectricOMP(LAMMPS *lmp) :
     PairLJCutCoulCutDielectric(lmp), ThrOMP(lmp, THR_PAIR)
 {
 }
-
-/* ---------------------------------------------------------------------- */
-
-PairLJCutCoulCutDielectricOMP::~PairLJCutCoulCutDielectricOMP() {}
 
 /* ---------------------------------------------------------------------- */
 

@@ -20,6 +20,8 @@
 #include "error.h"
 #include "omp_compat.h"
 
+#include <cmath>
+
 using namespace LAMMPS_NS;
 
 typedef struct {

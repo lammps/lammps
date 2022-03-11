@@ -19,7 +19,6 @@
 #include "table_file_reader.h"
 
 #include "text_file_reader.h"
-#include "tokenizer.h"
 
 using namespace LAMMPS_NS;
 
@@ -29,9 +28,6 @@ TableFileReader::TableFileReader(LAMMPS *lmp,
                                  const int auto_convert) :
   PotentialFileReader(lmp, filename, type + " table", auto_convert)
 {
-}
-
-TableFileReader::~TableFileReader() {
 }
 
 char *TableFileReader::find_section_start(const std::string &keyword) {

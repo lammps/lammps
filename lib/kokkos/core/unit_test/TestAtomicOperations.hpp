@@ -82,6 +82,56 @@ struct InitFunctor {
 };
 
 //---------------------------------------------------
+//--------------atomic_load/store/assign---------------------
+//---------------------------------------------------
+#ifdef KOKKOS_ENABLE_IMPL_DESUL_ATOMICS
+template <class T, class DEVICE_TYPE>
+struct LoadStoreFunctor {
+  using execution_space = DEVICE_TYPE;
+  using type            = Kokkos::View<T, execution_space>;
+
+  type data;
+  T i0;
+  T i1;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(int) const {
+    T old = Kokkos::atomic_load(&data());
+    if (old != i0)
+      Kokkos::abort("Kokkos Atomic Load didn't get the right value");
+    Kokkos::atomic_store(&data(), i1);
+    Kokkos::atomic_assign(&data(), old);
+  }
+  LoadStoreFunctor(T _i0, T _i1) : i0(_i0), i1(_i1) {}
+};
+#endif
+
+template <class T, class DeviceType>
+bool LoadStoreAtomicTest(T i0, T i1) {
+  using execution_space = typename DeviceType::execution_space;
+  struct InitFunctor<T, execution_space> f_init(i0);
+  typename InitFunctor<T, execution_space>::type data("Data");
+  typename InitFunctor<T, execution_space>::h_type h_data("HData");
+
+  f_init.data = data;
+  Kokkos::parallel_for(1, f_init);
+  execution_space().fence();
+
+#ifdef KOKKOS_ENABLE_DESUL_ATOMICS
+  struct LoadStoreFunctor<T, execution_space> f(i0, i1);
+
+  f.data = data;
+  Kokkos::parallel_for(1, f);
+#else
+  h_data() = i1;
+#endif
+
+  Kokkos::deep_copy(h_data, data);
+
+  return h_data() == i0;
+}
+
+//---------------------------------------------------
 //--------------atomic_fetch_max---------------------
 //---------------------------------------------------
 
@@ -594,7 +644,10 @@ struct AndFunctor {
   T i1;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(int) const { Kokkos::atomic_fetch_and(&data(), (T)i1); }
+  void operator()(int) const {
+    T result = Kokkos::atomic_fetch_and(&data(), (T)i1);
+    Kokkos::atomic_and(&data(), result);
+  }
 
   AndFunctor(T _i0, T _i1) : i0(_i0), i1(_i1) {}
 };
@@ -665,7 +718,10 @@ struct OrFunctor {
   T i1;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(int) const { Kokkos::atomic_fetch_or(&data(), (T)i1); }
+  void operator()(int) const {
+    T result = Kokkos::atomic_fetch_or(&data(), (T)i1);
+    Kokkos::atomic_or(&data(), result);
+  }
 
   OrFunctor(T _i0, T _i1) : i0(_i0), i1(_i1) {}
 };
@@ -954,6 +1010,7 @@ bool AtomicOperationsTestIntegralType(int i0, int i1, int test) {
     case 10: return RShiftAtomicTest<T, DeviceType>((T)i0, (T)i1);
     case 11: return IncAtomicTest<T, DeviceType>((T)i0);
     case 12: return DecAtomicTest<T, DeviceType>((T)i0);
+    case 13: return LoadStoreAtomicTest<T, DeviceType>((T)i0, (T)i1);
   }
 
   return 0;
@@ -966,6 +1023,7 @@ bool AtomicOperationsTestNonIntegralType(int i0, int i1, int test) {
     case 2: return MinAtomicTest<T, DeviceType>((T)i0, (T)i1);
     case 3: return MulAtomicTest<T, DeviceType>((T)i0, (T)i1);
     case 4: return DivAtomicTest<T, DeviceType>((T)i0, (T)i1);
+    case 5: return LoadStoreAtomicTest<T, DeviceType>((T)i0, (T)i1);
   }
 
   return 0;

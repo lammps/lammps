@@ -22,6 +22,8 @@
 #include "error.h"
 #include "memory.h"
 
+#include <cmath>
+
 using namespace LAMMPS_NS;
 
 #define SMALL 1.0e-6

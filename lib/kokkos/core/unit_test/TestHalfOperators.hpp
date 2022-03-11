@@ -270,6 +270,85 @@ enum OP_TESTS {
 };
 
 template <class view_type>
+struct Functor_TestHalfVolatileOperators {
+  volatile half_t h_lhs, h_rhs;
+  view_type actual_lhs, expected_lhs;
+  double d_lhs, d_rhs;
+  Functor_TestHalfVolatileOperators(volatile half_t lhs = half_t(0),
+                                    volatile half_t rhs = half_t(0))
+      : h_lhs(lhs), h_rhs(rhs) {
+    actual_lhs   = view_type("actual_lhs", N_OP_TESTS);
+    expected_lhs = view_type("expected_lhs", N_OP_TESTS);
+    d_lhs        = cast_from_half<double>(h_lhs);
+    d_rhs        = cast_from_half<double>(h_rhs);
+    if (std::is_same<view_type, ViewTypeHost>::value) {
+      auto run_on_host = *this;
+      run_on_host(0);
+    } else {
+      Kokkos::parallel_for("Test::Functor_TestHalfVolatileOperators",
+                           Kokkos::RangePolicy<ExecutionSpace>(0, 1), *this);
+    }
+  }
+
+  KOKKOS_FUNCTION
+  void operator()(int) const {
+    volatile half_t tmp_lhs;
+
+    // Initialze output views to catch missing test invocations
+    for (int i = 0; i < N_OP_TESTS; ++i) {
+      actual_lhs(i)   = 1;
+      expected_lhs(i) = -1;
+    }
+
+    tmp_lhs              = h_lhs;
+    actual_lhs(ASSIGN)   = cast_from_half<double>(tmp_lhs);
+    expected_lhs(ASSIGN) = d_lhs;
+
+    actual_lhs(LT)   = h_lhs < h_rhs;
+    expected_lhs(LT) = d_lhs < d_rhs;
+
+    actual_lhs(LE)   = h_lhs <= h_rhs;
+    expected_lhs(LE) = d_lhs <= d_rhs;
+
+    actual_lhs(NEQ)   = h_lhs != h_rhs;
+    expected_lhs(NEQ) = d_lhs != d_rhs;
+
+    actual_lhs(GT)   = h_lhs > h_rhs;
+    expected_lhs(GT) = d_lhs > d_rhs;
+
+    actual_lhs(GE)   = h_lhs >= h_rhs;
+    expected_lhs(GE) = d_lhs >= d_rhs;
+
+    actual_lhs(EQ)   = h_lhs == h_rhs;
+    expected_lhs(EQ) = d_lhs == d_rhs;
+
+    tmp_lhs = h_lhs;
+    tmp_lhs += h_rhs;
+    actual_lhs(CADD_H_H)   = cast_from_half<double>(tmp_lhs);
+    expected_lhs(CADD_H_H) = d_lhs;
+    expected_lhs(CADD_H_H) += d_rhs;
+
+    tmp_lhs = h_lhs;
+    tmp_lhs -= h_rhs;
+    actual_lhs(CSUB_H_H)   = cast_from_half<double>(tmp_lhs);
+    expected_lhs(CSUB_H_H) = d_lhs;
+    expected_lhs(CSUB_H_H) -= d_rhs;
+
+    tmp_lhs = h_lhs;
+    tmp_lhs *= h_rhs;
+    actual_lhs(CMUL_H_H)   = cast_from_half<double>(tmp_lhs);
+    expected_lhs(CMUL_H_H) = d_lhs;
+    expected_lhs(CMUL_H_H) *= d_rhs;
+
+    tmp_lhs = h_lhs;
+    tmp_lhs /= h_rhs;
+    actual_lhs(CDIV_H_H)   = cast_from_half<double>(tmp_lhs);
+    expected_lhs(CDIV_H_H) = d_lhs;
+    expected_lhs(CDIV_H_H) /= d_rhs;
+  }
+};
+
+template <class view_type>
 struct Functor_TestHalfOperators {
   half_t h_lhs, h_rhs;
   double d_lhs, d_rhs;
@@ -840,8 +919,33 @@ void __test_half_operators(half_t h_lhs, half_t h_rhs) {
                 epsilon);
   }
 
-  // Check whether half_t is trivially copyable
-  ASSERT_TRUE(std::is_trivially_copyable<half_t>::value);
+  // Test partial volatile support
+  volatile half_t _h_lhs = h_lhs;
+  volatile half_t _h_rhs = h_rhs;
+  Functor_TestHalfVolatileOperators<ViewType> f_volatile_device(_h_lhs, _h_rhs);
+  Functor_TestHalfVolatileOperators<ViewTypeHost> f_volatile_host(_h_lhs,
+                                                                  _h_rhs);
+
+  ExecutionSpace().fence();
+  Kokkos::deep_copy(f_device_actual_lhs, f_device.actual_lhs);
+  Kokkos::deep_copy(f_device_expected_lhs, f_device.expected_lhs);
+  for (int op_test = 0; op_test < N_OP_TESTS; op_test++) {
+    // printf("op_test = %d\n", op_test);
+    if (op_test == ASSIGN || op_test == LT || op_test == LE || op_test == NEQ ||
+        op_test == EQ || op_test == GT || op_test == GE ||
+        op_test == CADD_H_H || op_test == CSUB_H_H || op_test == CMUL_H_H ||
+        op_test == CDIV_H_H) {
+      ASSERT_NEAR(f_device_actual_lhs(op_test), f_device_expected_lhs(op_test),
+                  epsilon);
+      ASSERT_NEAR(f_host.actual_lhs(op_test), f_host.expected_lhs(op_test),
+                  epsilon);
+    }
+  }
+
+  // is_trivially_copyable is false with the addition of explicit
+  // copy constructors that are required for supporting reductions
+  // ASSERT_TRUE(std::is_trivially_copyable<half_t>::value);
+
   constexpr size_t n       = 2;
   constexpr size_t n_bytes = sizeof(half_t) * n;
   const half_t h_arr0 = half_t(0x89ab), h_arr1 = half_t(0xcdef);
@@ -854,11 +958,11 @@ void __test_half_operators(half_t h_lhs, half_t h_rhs) {
   h_arr_ptr = reinterpret_cast<char*>(h_arr);
 
   std::memcpy(c_arr, h_arr, n_bytes);
-  for (i = 0; i < n_bytes; i++) ASSERT_TRUE(c_arr[i] == h_arr_ptr[i]);
+  for (i = 0; i < n_bytes; i++) ASSERT_EQ(c_arr[i], h_arr_ptr[i]);
 
   std::memcpy(h_arr, c_arr, n_bytes);
-  ASSERT_TRUE(h_arr[0] == h_arr0);
-  ASSERT_TRUE(h_arr[1] == h_arr1);
+  ASSERT_EQ(h_arr[0], h_arr0);
+  ASSERT_EQ(h_arr[1], h_arr1);
 }
 
 void test_half_operators() {
@@ -870,7 +974,6 @@ void test_half_operators() {
     // TODO: __test_half_operators(h_lhs + cast_to_half(i + 1), half_t(0));
     // TODO: __test_half_operators(half_t(0), h_rhs + cast_to_half(i));
   }
-  // TODO: __test_half_operators(0, 0);
 }
 
 TEST(TEST_CATEGORY, half_operators) { test_half_operators(); }

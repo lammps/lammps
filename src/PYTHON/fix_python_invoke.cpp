@@ -18,7 +18,6 @@
 
 #include "fix_python_invoke.h"
 
-#include "comm.h"
 #include "error.h"
 #include "lmppython.h"
 #include "python_compat.h"

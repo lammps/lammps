@@ -138,21 +138,15 @@ FixAdaptFEP::FixAdaptFEP(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"reset") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix adapt/fep command");
-      if (strcmp(arg[iarg+1],"no") == 0) resetflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) resetflag = 1;
-      else error->all(FLERR,"Illegal fix adapt/fep command");
+      resetflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"scale") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix adapt/fep command");
-      if (strcmp(arg[iarg+1],"no") == 0) scaleflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) scaleflag = 1;
-      else error->all(FLERR,"Illegal fix adapt/fep command");
+      scaleflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"after") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix adapt/fep command");
-      if (strcmp(arg[iarg+1],"no") == 0) afterflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) afterflag = 1;
-      else error->all(FLERR,"Illegal fix adapt/fep command");
+      afterflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix adapt/fep command");
   }
@@ -282,13 +276,9 @@ void FixAdaptFEP::init()
       anypair = 1;
       Pair *pair = nullptr;
 
-      if (lmp->suffix_enable) {
-        char psuffix[128];
-        strcpy(psuffix,ad->pstyle);
-        strcat(psuffix,"/");
-        strcat(psuffix,lmp->suffix);
-        pair = force->pair_match(psuffix,1);
-      }
+      if (lmp->suffix_enable)
+        pair = force->pair_match(std::string(ad->pstyle)+"/"+lmp->suffix,1);
+
       if (pair == nullptr) pair = force->pair_match(ad->pstyle,1);
       if (pair == nullptr)
         error->all(FLERR, "Fix adapt/fep pair style does not exist");

@@ -12,7 +12,6 @@ es   certain rights in this software.  This software is distributed under
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <string.h>
 #include "npair_half_size_multi_newtoff.h"
 
 #include "atom.h"

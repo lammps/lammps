@@ -292,7 +292,7 @@ void PairDPDfdtEnergy::compute(int eflag, int vflag)
       }
     }
     // Communicate the ghost delta energies to the locally owned atoms
-    comm->reverse_comm_pair(this);
+    comm->reverse_comm(this);
   }
   if (vflag_fdotr) virial_fdotr_compute();
 

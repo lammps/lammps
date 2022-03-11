@@ -33,12 +33,14 @@
 #include "pppm_dielectric.h"
 #include "update.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 ComputeEfieldAtom::ComputeEfieldAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), efield(NULL)
+  Compute(lmp, narg, arg), efield(nullptr)
 {
   if (narg < 3) error->all(FLERR,"Illegal compute efield/atom command");
 
@@ -175,7 +177,7 @@ void ComputeEfieldAtom::compute_peratom()
   // communicate ghost efield between neighbor procs
 
   if (force->newton || (force->kspace && force->kspace->tip4pflag))
-    comm->reverse_comm_compute(this);
+    comm->reverse_comm(this);
 
   // zero efield of atoms not in group
   // only do this after comm since ghost contributions must be included

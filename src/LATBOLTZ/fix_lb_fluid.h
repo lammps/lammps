@@ -36,18 +36,18 @@ class FixLbFluid : public Fix {
 
  public:
   FixLbFluid(class LAMMPS *, int, char **);
-  ~FixLbFluid();
-  int setmask();
-  void init();
-  void initial_integrate(int);
-  void setup(int);
-  void post_force(int);
-  void end_of_step();
+  ~FixLbFluid() override;
+  int setmask() override;
+  void init() override;
+  void initial_integrate(int) override;
+  void setup(int) override;
+  void post_force(int) override;
+  void end_of_step() override;
 
-  void grow_arrays(int);
-  void copy_arrays(int, int, int);
-  int pack_exchange(int, double *);
-  int unpack_exchange(int, double *);
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
 
  private:
   double viscosity, densityinit_real, a_0_real, T;
@@ -139,26 +139,26 @@ class FixLbFluid : public Fix {
   int printfluid;
   int fixviscouslb;
 
-  void rescale(void);
-  void (FixLbFluid::*initializeLB)(void);
-  void initializeLB15(void);
-  void initializeLB19(void);
-  void initialize_feq(void);
+  void rescale();
+  void (FixLbFluid::*initializeLB)();
+  void initializeLB15();
+  void initializeLB19();
+  void initialize_feq();
   void (FixLbFluid::*equilibriumdist)(int, int, int, int, int, int);
   void equilibriumdist15(int, int, int, int, int, int);
   void equilibriumdist19(int, int, int, int, int, int);
   void parametercalc_part(int, int, int, int, int, int);
-  void parametercalc_full(void);
+  void parametercalc_full();
   void update_periodic(int, int, int, int, int, int);
-  void (FixLbFluid::*update_full)(void);
-  void update_full15(void);
-  void update_full19(void);
-  void streamout(void);
-  void read_restartfile(void);
-  void write_restartfile(void);
+  void (FixLbFluid::*update_full)();
+  void update_full15();
+  void update_full19();
+  void streamout();
+  void read_restartfile();
+  void write_restartfile();
   void peskin_interpolation(int);
   void trilinear_interpolation(int);
-  void calc_fluidforce(void);
+  void calc_fluidforce();
 };
 }    // namespace LAMMPS_NS
 #endif

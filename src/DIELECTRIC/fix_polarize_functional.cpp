@@ -33,13 +33,11 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
-#include "group.h"
 #include "kspace.h"
 #include "math_const.h"
 #include "math_extra.h"
 #include "math_special.h"
 #include "memory.h"
-#include "modify.h"
 #include "msm_dielectric.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -50,8 +48,6 @@
 #include "pair_lj_cut_coul_long_dielectric.h"
 #include "pair_lj_cut_coul_msm_dielectric.h"
 #include "pppm_dielectric.h"
-#include "random_park.h"
-#include "timer.h"
 #include "update.h"
 
 #include <cmath>
@@ -131,7 +127,7 @@ FixPolarizeFunctional::FixPolarizeFunctional(LAMMPS *lmp, int narg, char **arg) 
   cg_r = cg_p = cg_Ap = nullptr;
   cg_A = nullptr;
 
-  grow_arrays(atom->nmax);
+  FixPolarizeFunctional::grow_arrays(atom->nmax);
   atom->add_callback(0);    // to ensure to work with atom->sort()
 }
 
@@ -416,7 +412,7 @@ void FixPolarizeFunctional::charge_rescaled(int scaled2real)
       if (induced_charge_idx[i] < 0) q[i] = q_real[i] / epsilon[i];
   }
 
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -482,12 +478,7 @@ int FixPolarizeFunctional::modify_param(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg], "kspace") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix_modify command");
-      if (strcmp(arg[iarg + 1], "yes") == 0)
-        kspaceflag = 1;
-      else if (strcmp(arg[iarg + 1], "no") == 0)
-        kspaceflag = 0;
-      else
-        error->all(FLERR, "Illegal fix_modify command for fix polarize/functional");
+      kspaceflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "dielectrics") == 0) {
       if (iarg + 6 > narg) error->all(FLERR, "Illegal fix_modify command");

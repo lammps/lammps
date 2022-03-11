@@ -19,6 +19,14 @@ if(DOWNLOAD_LATTE)
   set(LATTE_MD5 "820e73a457ced178c08c71389a385de7" CACHE STRING "MD5 checksum of LATTE tarball")
   mark_as_advanced(LATTE_URL)
   mark_as_advanced(LATTE_MD5)
+
+  # CMake cannot pass BLAS or LAPACK library variable to external project if they are a list
+  list(LENGTH BLAS_LIBRARIES} NUM_BLAS)
+  list(LENGTH LAPACK_LIBRARIES NUM_LAPACK)
+  if((NUM_BLAS GREATER 1) OR (NUM_LAPACK GREATER 1))
+    message(FATAL_ERROR "Cannot compile downloaded LATTE library due to a technical limitation")
+  endif()
+
   include(ExternalProject)
   ExternalProject_Add(latte_build
     URL     ${LATTE_URL}

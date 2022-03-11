@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -140,7 +139,7 @@ void PairEAMGPU::compute(int eflag, int vflag)
 
   // communicate derivative of embedding function
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   // compute forces on each atom on GPU
   if (gpu_mode != GPU_FORCE)
@@ -155,9 +154,6 @@ void PairEAMGPU::compute(int eflag, int vflag)
 
 void PairEAMGPU::init_style()
 {
-  if (force->newton_pair)
-    error->all(FLERR,"Pair style eam/gpu requires newton pair off");
-
   // convert read-in file(s) to arrays and spline them
 
   file2array();

@@ -12,15 +12,15 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
 #include "npair_half_size_multi_old_newton_tri_omp.h"
-#include "npair_omp.h"
-#include "neigh_list.h"
-#include "atom.h"
-#include "atom_vec.h"
-#include "my_page.h"
-#include "error.h"
 
+#include "atom.h"
+#include "error.h"
+#include "my_page.h"
+#include "neigh_list.h"
+#include "npair_omp.h"
+
+#include "omp_compat.h"
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */

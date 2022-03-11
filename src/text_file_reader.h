@@ -18,7 +18,7 @@
 #ifndef LMP_TEXT_FILE_READER_H
 #define LMP_TEXT_FILE_READER_H
 
-#include "tokenizer.h"
+#include "tokenizer.h"          // IWYU pragma: export
 
 #include <cstdio>
 
@@ -34,7 +34,7 @@ class TextFileReader {
   bool ignore_comments;    //!< Controls whether comments are ignored
 
   TextFileReader(const std::string &filename, const std::string &filetype);
-  TextFileReader(FILE *fp, const std::string &filetype);
+  TextFileReader(FILE *fp, std::string filetype);
 
   ~TextFileReader();
 
@@ -52,9 +52,7 @@ class FileReaderException : public std::exception {
  public:
   FileReaderException(const std::string &msg) : message(msg) {}
 
-  ~FileReaderException() throw() {}
-
-  virtual const char *what() const throw() { return message.c_str(); }
+  const char *what() const noexcept override { return message.c_str(); }
 };
 
 class EOFException : public FileReaderException {

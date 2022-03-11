@@ -31,7 +31,6 @@
 #include "update.h"
 
 #include <cmath>
-#include <ctime>
 #include <cstring>
 
 using namespace LAMMPS_NS;

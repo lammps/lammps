@@ -549,12 +549,9 @@ void FixShardlow::initial_integrate(int /*vflag*/)
     error->all(FLERR,"Fix shardlow does not yet support triclinic geometries");
 
   if (rcut >= bbx || rcut >= bby || rcut>= bbz )
-  {
-    char fmt[] = {"Shardlow algorithm requires sub-domain length > 2*(rcut+skin). Either reduce the number of processors requested, or change the cutoff/skin: rcut= %e bbx= %e bby= %e bbz= %e\n"};
-    char *msg = (char *) malloc(sizeof(fmt) + 4*15);
-    sprintf(msg, fmt, rcut, bbx, bby, bbz);
-    error->one(FLERR, msg);
-  }
+    error->one(FLERR,"Shardlow algorithm requires sub-domain length > 2*(rcut+skin). "
+                    "Either reduce the number of processors requested, or change the cutoff/skin: "
+                    "rcut= {} bbx= {} bby= {} bbz= {}\n", rcut, bbx, bby, bbz);
 
   NPairHalfBinNewtonSSA *np_ssa = dynamic_cast<NPairHalfBinNewtonSSA*>(list->np);
   if (!np_ssa) error->one(FLERR, "NPair wasn't a NPairHalfBinNewtonSSA object");
@@ -610,7 +607,7 @@ void FixShardlow::initial_integrate(int /*vflag*/)
     int workItemCt = ssa_gphaseLen[workPhase];
 
     // Communicate the updated velocities to all nodes
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
 
     if (useDPDE) {
       // Zero out the ghosts' uCond & uMech to be used as delta accumulators
@@ -626,7 +623,7 @@ void FixShardlow::initial_integrate(int /*vflag*/)
     }
 
     // Communicate the ghost deltas to the atom owners
-    comm->reverse_comm_fix(this);
+    comm->reverse_comm(this);
 
   }  //End Loop over all directions For airnum = Top, Top-Right, Right, Bottom-Right, Back
 

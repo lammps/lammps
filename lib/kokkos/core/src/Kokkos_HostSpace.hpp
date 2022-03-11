@@ -299,6 +299,20 @@ namespace Kokkos {
 
 namespace Impl {
 
+template <class DT, class... DP>
+struct ZeroMemset<typename HostSpace::execution_space, DT, DP...> {
+  ZeroMemset(const typename HostSpace::execution_space&,
+             const View<DT, DP...>& dst,
+             typename View<DT, DP...>::const_value_type& value)
+      : ZeroMemset(dst, value) {}
+
+  ZeroMemset(const View<DT, DP...>& dst,
+             typename View<DT, DP...>::const_value_type&) {
+    using ValueType = typename View<DT, DP...>::value_type;
+    std::memset(dst.data(), 0, sizeof(ValueType) * dst.size());
+  }
+};
+
 template <class ExecutionSpace>
 struct DeepCopy<HostSpace, HostSpace, ExecutionSpace> {
   DeepCopy(void* dst, const void* src, size_t n) {
@@ -306,9 +320,13 @@ struct DeepCopy<HostSpace, HostSpace, ExecutionSpace> {
   }
 
   DeepCopy(const ExecutionSpace& exec, void* dst, const void* src, size_t n) {
-    exec.fence();
+    exec.fence(
+        "Kokkos::Impl::DeepCopy<HostSpace, HostSpace, "
+        "ExecutionSpace>::DeepCopy: fence before copy");
     hostspace_parallel_deepcopy(dst, src, n);
-    exec.fence();
+    exec.fence(
+        "Kokkos::Impl::DeepCopy<HostSpace, HostSpace, "
+        "ExecutionSpace>::DeepCopy: fence after copy");
   }
 };
 

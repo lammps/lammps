@@ -22,7 +22,6 @@ files. Here is a list with descriptions:
    .gitignore       # list of files and folders to be ignored by git
    doxygen-warn.log # logfile with warnings from running doxygen
    github-development-workflow.md   # notes on the LAMMPS development workflow
-   include-file-conventions.md      # notes on LAMMPS' include file conventions
 
 If you downloaded LAMMPS as a tarball from `the LAMMPS website <lws_>`_,
 the html folder and the PDF files should be included.
@@ -34,12 +33,15 @@ various tools and files.  Some of them have to be installed (see below).  For
 the rest the build process will attempt to download and install them into
 a python virtual environment and local folders.
 
-A current version of the manual (latest patch release, aka unstable
-branch) is is available online at:
-`https://docs.lammps.org/Manual.html <https://docs.lammps.org/Manual.html>`_.
-A version of the manual corresponding to the ongoing development (aka master branch)
-is available online at: `https://docs.lammps.org/latest/
-<https://docs.lammps.org/latest/>`_
+A current version of the manual (latest patch release, that is the state
+of the *release* branch) is is available online at:
+`https://docs.lammps.org/ <https://docs.lammps.org/>`_.
+A version of the manual corresponding to the ongoing development (that is
+the state of the *develop* branch) is available online at:
+`https://docs.lammps.org/latest/ <https://docs.lammps.org/latest/>`_
+A version of the manual corresponding to the latest stable LAMMPS release
+(that is the state of the *stable* branch) is available online at:
+`https://docs.lammps.org/stable/ <https://docs.lammps.org/stable/>`_
 
 Build using GNU make
 --------------------
@@ -75,8 +77,8 @@ folder.  The following ``make`` commands are available:
 .. code-block:: bash
 
    make html          # generate HTML in html dir using Sphinx
-   make pdf           # generate PDF  as Manual.pdf using Sphinx and pdflatex
-   make fetch         # fetch HTML pages and PDF files from LAMMPS web site
+   make pdf           # generate PDF  as Manual.pdf using Sphinx and PDFLaTeX
+   make fetch         # fetch HTML pages and PDF files from LAMMPS website
                       #  and unpack into the html_www folder and Manual_www.pdf
    make epub          # generate LAMMPS.epub in ePUB format using Sphinx
    make mobi          # generate LAMMPS.mobi in MOBI format using ebook-convert

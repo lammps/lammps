@@ -14,7 +14,6 @@
 
 #include "fix_neigh_history.h"
 
-#include <cstring>
 #include "my_page.h"
 #include "atom.h"
 #include "comm.h"
@@ -25,6 +24,8 @@
 #include "pair.h"
 #include "memory.h"
 #include "error.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -61,12 +62,12 @@ FixNeighHistory::FixNeighHistory(LAMMPS *lmp, int narg, char **arg) :
 
   if (newton_pair) comm_reverse = 1;   // just for single npartner value
                                        // variable-size history communicated via
-                                       // reverse_comm_fix_variable()
+                                       // reverse_comm_variable()
 
   // perform initial allocation of atom-based arrays
   // register with atom class
 
-  grow_arrays(atom->nmax);
+  FixNeighHistory::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
   atom->add_callback(Atom::RESTART);
 
@@ -378,7 +379,7 @@ void FixNeighHistory::pre_exchange_newton()
   // perform reverse comm to augment owned npartner counts with ghost counts
 
   commflag = NPARTNER;
-  comm->reverse_comm_fix(this,0);
+  comm->reverse_comm(this);
 
   // get page chunks to store partner IDs and values for owned+ghost atoms
 
@@ -438,7 +439,7 @@ void FixNeighHistory::pre_exchange_newton()
   //   if many touching neighbors for large particle
 
   commflag = PERPARTNER;
-  comm->reverse_comm_fix_variable(this);
+  comm->reverse_comm_variable(this);
 
   // set maxpartner = max # of partners of any owned atom
   // maxexchange = max # of values for any Comm::exchange() atom
@@ -740,7 +741,7 @@ void FixNeighHistory::set_arrays(int i)
 }
 
 /* ----------------------------------------------------------------------
-   only called by Comm::reverse_comm_fix_variable for PERPARTNER mode
+   only called by Comm::reverse_comm_variable for PERPARTNER mode
 ------------------------------------------------------------------------- */
 
 int FixNeighHistory::pack_reverse_comm_size(int n, int first)

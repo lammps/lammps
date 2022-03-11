@@ -132,7 +132,7 @@ void ComputeAggregateAtom::compute_peratom()
 
   if (group->dynamic[igroup]) {
     commflag = 0;
-    comm->forward_comm_compute(this);
+    comm->forward_comm(this);
   }
 
   // each atom starts in its own aggregate,
@@ -166,16 +166,16 @@ void ComputeAggregateAtom::compute_peratom()
 
   int change,done,anychange;
 
-  while (1) {
-    comm->forward_comm_compute(this);
+  while (true) {
+    comm->forward_comm(this);
 
     // reverse communication when bonds are not stored on every processor
 
     if (force->newton_bond)
-      comm->reverse_comm_compute(this);
+      comm->reverse_comm(this);
 
     change = 0;
-    while (1) {
+    while (true) {
       done = 1;
       for (i = 0; i < nlocal; i++) {
         if (!(mask[i] & groupbit)) continue;

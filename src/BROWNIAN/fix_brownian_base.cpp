@@ -17,15 +17,12 @@
    Contributing author: Sam Cameron (University of Bristol)
 ------------------------------------------------------------------------- */
 
-#include "fix_brownian.h"
+#include "fix_brownian_base.h"
 
-#include "atom.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
-#include "math_extra.h"
-#include "memory.h"
 #include "random_mars.h"
 #include "update.h"
 

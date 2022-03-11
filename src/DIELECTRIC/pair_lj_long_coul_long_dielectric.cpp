@@ -19,19 +19,14 @@
 
 #include "atom.h"
 #include "atom_vec_dielectric.h"
-#include "comm.h"
 #include "error.h"
 #include "force.h"
-#include "integrate.h"
-#include "kspace.h"
 #include "math_const.h"
 #include "math_extra.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
-#include "respa.h"
-#include "update.h"
 
 #include <cmath>
 #include <cstring>

@@ -214,7 +214,7 @@ threads/task as Nt. The product of these two values should be N, i.e.
    The default for the :doc:`package kokkos <package>` command when
    running on KNL is to use "half" neighbor lists and set the Newton flag
    to "on" for both pairwise and bonded interactions. This will typically
-   be best for many-body potentials. For simpler pair-wise potentials, it
+   be best for many-body potentials. For simpler pairwise potentials, it
    may be faster to use a "full" neighbor list with Newton flag to "off".
    Use the "-pk kokkos" :doc:`command-line switch <Run_options>` to change
    the default :doc:`package kokkos <package>` options. See its page for
@@ -407,7 +407,7 @@ Generally speaking, the following rules of thumb apply:
   by switching to single or mixed precision mode.
 
 See the `Benchmark page <https://www.lammps.org/bench.html>`_ of the
-LAMMPS web site for performance of the KOKKOS package on different
+LAMMPS website for performance of the KOKKOS package on different
 hardware.
 
 Advanced Kokkos options

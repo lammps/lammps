@@ -145,9 +145,9 @@ void PairGayBerneGPU::compute(int eflag, int vflag)
     error->one(FLERR,"Insufficient memory on accelerator");
 
   if (host_start < inum) {
-    cpu_time = MPI_Wtime();
+    cpu_time = platform::walltime();
     cpu_compute(host_start, inum, eflag, vflag, ilist, numneigh, firstneigh);
-    cpu_time = MPI_Wtime() - cpu_time;
+    cpu_time = platform::walltime() - cpu_time;
   }
 }
 
@@ -160,8 +160,6 @@ void PairGayBerneGPU::init_style()
   avec = (AtomVecEllipsoid *) atom->style_match("ellipsoid");
   if (!avec)
     error->all(FLERR,"Pair gayberne/gpu requires atom style ellipsoid");
-  if (force->newton_pair)
-    error->all(FLERR,"Pair style gayberne/gpu requires newton pair off");
   if (!atom->ellipsoid_flag)
     error->all(FLERR,"Pair gayberne/gpu requires atom style ellipsoid");
 

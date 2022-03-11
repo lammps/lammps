@@ -97,7 +97,7 @@ struct SuperScalar {
   }
 
   KOKKOS_INLINE_FUNCTION
-  SuperScalar operator+(const SuperScalar& src) {
+  SuperScalar operator+(const SuperScalar& src) const {
     SuperScalar tmp = *this;
     for (int i = 0; i < N; i++) {
       tmp.val[i] += src.val[i];
@@ -540,8 +540,6 @@ TEST(TEST_CATEGORY, atomics) {
 
 // FIXME_SYCL atomics for large types to be implemented
 #ifndef KOKKOS_ENABLE_SYCL
-  // FIXME_HIP HIP doesn't yet support atomics for >64bit types properly
-#ifndef KOKKOS_ENABLE_HIP
   ASSERT_TRUE(
       (TestAtomic::Loop<Kokkos::complex<double>, TEST_EXECSPACE>(1, 1)));
   ASSERT_TRUE(
@@ -564,7 +562,6 @@ TEST(TEST_CATEGORY, atomics) {
       (TestAtomic::Loop<TestAtomic::SuperScalar<4>, TEST_EXECSPACE>(100, 2)));
   ASSERT_TRUE(
       (TestAtomic::Loop<TestAtomic::SuperScalar<4>, TEST_EXECSPACE>(100, 3)));
-#endif
 #endif
 #endif
 #endif

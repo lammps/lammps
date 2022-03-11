@@ -1,0 +1,156 @@
+﻿{
+  "configurations": [
+    {
+      "name": "x64-Debug-MSVC",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "buildRoot": "${workspaceRoot}\\build\\${name}",
+      "installRoot": "${workspaceRoot}\\install\\${name}",
+      "cmakeCommandArgs": "-C ${workspaceRoot}\\cmake\\presets\\windows.cmake",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "variables": [
+        {
+          "name": "BUILD_SHARED_LIBS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_TOOLS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "LAMMPS_EXCEPTIONS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "PKG_PYTHON",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "ENABLE_TESTING",
+          "value": "True",
+          "type": "BOOL"
+        }
+      ]
+    },
+    {
+      "name": "x64-Release-MSVC",
+      "generator": "Ninja",
+      "configurationType": "Release",
+      "buildRoot": "${workspaceRoot}\\build\\${name}",
+      "installRoot": "${workspaceRoot}\\install\\${name}",
+      "cmakeCommandArgs": "-C ${workspaceRoot}\\cmake\\presets\\windows.cmake",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "variables": [
+        {
+          "name": "BUILD_SHARED_LIBS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_TOOLS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "LAMMPS_EXCEPTIONS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "PKG_PYTHON",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "ENABLE_TESTING",
+          "value": "True",
+          "type": "BOOL"
+        }
+      ]
+    },
+    {
+      "name": "x64-Debug-Clang",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "buildRoot": "${workspaceRoot}\\build\\${name}",
+      "installRoot": "${workspaceRoot}\\install\\${name}",
+      "cmakeCommandArgs": "-C ${workspaceRoot}\\cmake\\presets\\windows.cmake -DCMAKE_C_COMPILER=clang-cl.exe -DCMAKE_CXX_COMPILER=clang-cl.exe",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "clang_cl_x64" ],
+      "variables": [
+        {
+          "name": "BUILD_SHARED_LIBS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_TOOLS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "LAMMPS_EXCEPTIONS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "PKG_PYTHON",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "ENABLE_TESTING",
+          "value": "True",
+          "type": "BOOL"
+        }
+      ]
+    },
+    {
+      "name": "x64-Release-Clang",
+      "generator": "Ninja",
+      "configurationType": "Release",
+      "buildRoot": "${workspaceRoot}\\build\\${name}",
+      "installRoot": "${workspaceRoot}\\install\\${name}",
+      "cmakeCommandArgs": "-C ${workspaceRoot}\\cmake\\presets\\windows.cmake -DCMAKE_C_COMPILER=clang-cl.exe -DCMAKE_CXX_COMPILER=clang-cl.exe",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "clang_cl_x64" ],
+      "variables": [
+        {
+          "name": "BUILD_SHARED_LIBS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "BUILD_TOOLS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "LAMMPS_EXCEPTIONS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "PKG_PYTHON",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "ENABLE_TESTING",
+          "value": "True",
+          "type": "BOOL"
+        }
+      ]
+    }
+  ]
+}

@@ -340,7 +340,7 @@ void BondTable::read_table(Table *tb, char *file, char *keyword)
       tb->rfile[i] = values.next_double();
       tb->efile[i] = values.next_double();
       tb->ffile[i] = values.next_double();
-    } catch (TokenizerException &e) {
+    } catch (TokenizerException &) {
       ++cerror;
     }
 
@@ -435,9 +435,9 @@ void BondTable::compute_table(Table *tb)
 
   memory->create(tb->r,tablength,"bond:r");
   memory->create(tb->e,tablength,"bond:e");
-  memory->create(tb->de,tlm1,"bond:de");
+  memory->create(tb->de,tablength,"bond:de");
   memory->create(tb->f,tablength,"bond:f");
-  memory->create(tb->df,tlm1,"bond:df");
+  memory->create(tb->df,tablength,"bond:df");
   memory->create(tb->e2,tablength,"bond:e2");
   memory->create(tb->f2,tablength,"bond:f2");
 
@@ -453,6 +453,9 @@ void BondTable::compute_table(Table *tb)
     tb->de[i] = tb->e[i+1] - tb->e[i];
     tb->df[i] = tb->f[i+1] - tb->f[i];
   }
+  // get final elements from linear extrapolation
+  tb->de[tlm1] = 2.0*tb->de[tlm1-1] - tb->de[tlm1-2];
+  tb->df[tlm1] = 2.0*tb->df[tlm1-1] - tb->df[tlm1-2];
 
   double ep0 = - tb->f[0];
   double epn = - tb->f[tlm1];
@@ -538,7 +541,7 @@ void BondTable::spline(double *x, double *y, int n,
   double p,qn,sig,un;
   double *u = new double[n];
 
-  if (yp1 > 0.99e30) y2[0] = u[0] = 0.0;
+  if (yp1 > 0.99e300) y2[0] = u[0] = 0.0;
   else {
     y2[0] = -0.5;
     u[0] = (3.0/(x[1]-x[0])) * ((y[1]-y[0]) / (x[1]-x[0]) - yp1);
@@ -550,7 +553,7 @@ void BondTable::spline(double *x, double *y, int n,
     u[i] = (y[i+1]-y[i]) / (x[i+1]-x[i]) - (y[i]-y[i-1]) / (x[i]-x[i-1]);
     u[i] = (6.0*u[i] / (x[i+1]-x[i-1]) - sig*u[i-1]) / p;
   }
-  if (ypn > 0.99e30) qn = un = 0.0;
+  if (ypn > 0.99e300) qn = un = 0.0;
   else {
     qn = 0.5;
     un = (3.0/(x[n-1]-x[n-2])) * (ypn - (y[n-1]-y[n-2]) / (x[n-1]-x[n-2]));
@@ -578,8 +581,7 @@ double BondTable::splint(double *xa, double *ya, double *y2a, int n, double x)
   h = xa[khi]-xa[klo];
   a = (xa[khi]-x) / h;
   b = (x-xa[klo]) / h;
-  y = a*ya[klo] + b*ya[khi] +
-    ((a*a*a-a)*y2a[klo] + (b*b*b-b)*y2a[khi]) * (h*h)/6.0;
+  y = a*ya[klo] + b*ya[khi] + ((a*a*a-a)*y2a[klo] + (b*b*b-b)*y2a[khi]) * (h*h)/6.0;
   return y;
 }
 
@@ -598,11 +600,9 @@ void BondTable::uf_lookup(int type, double x, double &u, double &f)
   const Table *tb = &tables[tabindex[type]];
   const int itable = static_cast<int> ((x - tb->lo) * tb->invdelta);
   if (itable < 0)
-    error->one(FLERR,"Bond length < table inner cutoff: "
-               "type {} length {:.8}",type,x);
+    error->one(FLERR,"Bond length < table inner cutoff: type {} length {:.8}",type,x);
   else if (itable >= tablength)
-    error->one(FLERR,"Bond length > table outer cutoff: "
-               "type {} length {:.8}",type,x);
+    error->one(FLERR,"Bond length > table outer cutoff: type {} length {:.8}",type,x);
 
   if (tabstyle == LINEAR) {
     fraction = (x - tb->r[itable]) * tb->invdelta;
@@ -614,10 +614,8 @@ void BondTable::uf_lookup(int type, double x, double &u, double &f)
     b = (x - tb->r[itable]) * tb->invdelta;
     a = 1.0 - b;
     u = a * tb->e[itable] + b * tb->e[itable+1] +
-      ((a*a*a-a)*tb->e2[itable] + (b*b*b-b)*tb->e2[itable+1]) *
-      tb->deltasq6;
+      ((a*a*a-a)*tb->e2[itable] + (b*b*b-b)*tb->e2[itable+1]) * tb->deltasq6;
     f = a * tb->f[itable] + b * tb->f[itable+1] +
-      ((a*a*a-a)*tb->f2[itable] + (b*b*b-b)*tb->f2[itable+1]) *
-      tb->deltasq6;
+      ((a*a*a-a)*tb->f2[itable] + (b*b*b-b)*tb->f2[itable+1]) * tb->deltasq6;
   }
 }

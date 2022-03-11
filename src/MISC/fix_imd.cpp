@@ -75,7 +75,7 @@ negotiate an appropriate license for such distribution."
 #include <sys/file.h>
 #endif
 
-#include <errno.h>
+#include <cerrno>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -413,8 +413,8 @@ typedef struct {
   int sd;                  /* socket file descriptor */
 } imdsocket;
 
-static int   imdsock_init(void);
-static void *imdsock_create(void);
+static int   imdsock_init();
+static void *imdsock_create();
 static int   imdsock_bind(void *, int);
 static int   imdsock_listen(void *);
 static void *imdsock_accept(void *);  /* return new socket */
@@ -458,28 +458,20 @@ FixIMD::FixIMD(LAMMPS *lmp, int narg, char **arg) :
   imd_trate = 1;
 
   /* parse optional arguments */
-  int argsdone = 4;
-  while (argsdone+1 < narg) {
-    if (0 == strcmp(arg[argsdone], "unwrap")) {
-      if (0 == strcmp(arg[argsdone+1], "on")) {
-        unwrap_flag = 1;
-      } else {
-        unwrap_flag = 0;
-      }
-    } else if (0 == strcmp(arg[argsdone], "nowait")) {
-      if (0 == strcmp(arg[argsdone+1], "on")) {
-        nowait_flag = 1;
-      } else {
-        nowait_flag = 0;
-      }
-    } else if (0 == strcmp(arg[argsdone], "fscale")) {
-      imd_fscale = utils::numeric(FLERR,arg[argsdone+1],false,lmp);
-    } else if (0 == strcmp(arg[argsdone], "trate")) {
-      imd_trate = utils::inumeric(FLERR,arg[argsdone+1],false,lmp);
+  int iarg = 4;
+  while (iarg+1 < narg) {
+    if (0 == strcmp(arg[iarg], "unwrap")) {
+      unwrap_flag = utils::logical(FLERR, arg[iarg+1], false, lmp);
+    } else if (0 == strcmp(arg[iarg], "nowait")) {
+      nowait_flag = utils::logical(FLERR, arg[iarg+1], false, lmp);
+    } else if (0 == strcmp(arg[iarg], "fscale")) {
+      imd_fscale = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+    } else if (0 == strcmp(arg[iarg], "trate")) {
+      imd_trate = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
     } else {
       error->all(FLERR,"Unknown fix imd parameter");
     }
-    ++argsdone; ++argsdone;
+    ++iarg; ++iarg;
   }
 
   /* sanity check on parameters */
@@ -1160,7 +1152,7 @@ void FixIMD::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 
 /* ---------------------------------------------------------------------- */
 /* local memory usage. approximately. */
-double FixIMD::memory_usage(void)
+double FixIMD::memory_usage()
 {
   return static_cast<double>(num_coords+maxbuf+imd_forces)*size_one;
 }
@@ -1178,7 +1170,7 @@ double FixIMD::memory_usage(void)
  *   Socket interface, abstracts machine dependent APIs/routines.
  ***************************************************************************/
 
-int imdsock_init(void) {
+int imdsock_init() {
 #if defined(_MSC_VER) || defined(__MINGW32__)
   int rc = 0;
   static int initialized=0;
@@ -1197,7 +1189,7 @@ int imdsock_init(void) {
 }
 
 
-void * imdsock_create(void) {
+void * imdsock_create() {
   imdsocket * s;
 
   s = (imdsocket *) malloc(sizeof(imdsocket));

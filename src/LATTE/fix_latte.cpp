@@ -17,20 +17,18 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_latte.h"
-#include <cstdio>
-#include <cstring>
+
 #include "atom.h"
 #include "comm.h"
-#include "update.h"
-#include "neighbor.h"
-#include "domain.h"
-#include "force.h"
-#include "neigh_request.h"
-#include "neigh_list.h"
-#include "modify.h"
 #include "compute.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -82,13 +80,12 @@ FixLatte::FixLatte(LAMMPS *lmp, int narg, char **arg) :
 
   if (strcmp(arg[3],"NULL") != 0) {
     coulomb = 1;
-    error->all(FLERR,"Fix latte does not yet support a LAMMPS calculation "
-               "of a Coulomb potential");
+    error->all(FLERR,"Fix latte does not yet support a LAMMPS calculation of a Coulomb potential");
 
     id_pe = utils::strdup(arg[3]);
-    int ipe = modify->find_compute(id_pe);
-    if (ipe < 0) error->all(FLERR,"Could not find fix latte compute ID");
-    if (modify->compute[ipe]->peatomflag == 0)
+    c_pe = modify->get_compute_by_id(id_pe);
+    if (!c_pe) error->all(FLERR,"Could not find fix latte compute ID {}", id_pe);
+    if (c_pe->peatomflag == 0)
       error->all(FLERR,"Fix latte compute ID does not compute pe/atom");
   }
 
@@ -105,7 +102,7 @@ FixLatte::FixLatte(LAMMPS *lmp, int narg, char **arg) :
 
 FixLatte::~FixLatte()
 {
-  delete [] id_pe;
+  delete[] id_pe;
   memory->destroy(qpotential);
   memory->destroy(flatte);
 }
@@ -134,9 +131,8 @@ void FixLatte::init()
     if (atom->q_flag == 0 || force->pair == nullptr || force->kspace == nullptr)
       error->all(FLERR,"Fix latte cannot compute Coulomb potential");
 
-    int ipe = modify->find_compute(id_pe);
-    if (ipe < 0) error->all(FLERR,"Could not find fix latte compute ID");
-    c_pe = modify->compute[ipe];
+    c_pe = modify->get_compute_by_id(id_pe);
+    if (!c_pe) error->all(FLERR,"Could not find fix latte compute ID {}", id_pe);
   }
 
   // must be fully periodic or fully non-periodic
@@ -153,33 +149,6 @@ void FixLatte::init()
     memory->create(qpotential,atom->nlocal,"latte:qpotential");
     memory->create(flatte,atom->nlocal,3,"latte:flatte");
   }
-
-  /*
-  // warn if any integrate fix comes after this one
-  // is it actually necessary for q(n) update to come after x,v update ??
-
-  int after = 0;
-  int flag = 0;
-  for (int i = 0; i < modify->nfix; i++) {
-    if (strcmp(id,modify->fix[i]->id) == 0) after = 1;
-    else if ((modify->fmask[i] & INITIAL_INTEGRATE) && after) flag = 1;
-  }
-  if (flag && comm->me == 0)
-    error->warning(FLERR,"Fix latte should come after all other "
-                   "integration fixes");
-  */
-
-  /*
-  // need a full neighbor list
-  // could we use a half list?
-  // perpetual list, built whenever re-neighboring occurs
-
-  int irequest = neighbor->request(this,instance_me);
-  neighbor->requests[irequest]->pair = 0;
-  neighbor->requests[irequest]->fix = 1;
-  neighbor->requests[irequest]->half = 0;
-  neighbor->requests[irequest]->full = 1;
-  */
 }
 
 /* ---------------------------------------------------------------------- */

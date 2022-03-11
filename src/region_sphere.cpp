@@ -74,7 +74,7 @@ RegSphere::RegSphere(LAMMPS *lmp, int narg, char **arg) :
 
   if (varshape) {
     variable_check();
-    shape_update();
+    RegSphere::shape_update();
   }
 
   // error check

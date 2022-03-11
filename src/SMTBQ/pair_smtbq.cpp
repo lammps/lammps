@@ -58,7 +58,6 @@
 #include <cstring>
 
 #include <algorithm>
-#include <vector>
 #include <fstream>
 #include <iomanip>
 
@@ -2427,7 +2426,7 @@ void PairSMTBQ::Charge()
   ilist = list->ilist;
 
 
-  if (me == 0) t_init = MPI_Wtime();
+  if (me == 0) t_init = platform::walltime();
   if (step == 0) cluster = 0;
 
   // ---------------------------
@@ -2730,7 +2729,7 @@ void PairSMTBQ::Charge()
       printf (" convergence : %f - %f\n",enegchk[gp],enegmax[gp]);
     }
 
-    t_end = MPI_Wtime();
+    t_end = platform::walltime();
     dt = t_end - t_init;
     printf (" temps dans charges : %f seconde. \n",dt);
     printf (" ======================================================== \n");
@@ -3398,7 +3397,7 @@ void PairSMTBQ::forward(double *tab)
 
   for (i=0; i<nlocal+nghost; i++) tab_comm[i] = tab[i];
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   for (i=0; i<nlocal+nghost; i++) tab[i] = tab_comm[i];
 }
@@ -3413,7 +3412,7 @@ void PairSMTBQ::reverse(double *tab)
 
   for (i=0; i<nlocal+nghost; i++)  tab_comm[i] = tab[i];
 
-  comm->reverse_comm_pair(this);
+  comm->reverse_comm(this);
 
   for (i=0; i<nlocal+nghost; i++)  tab[i] = tab_comm[i];
 }
@@ -3428,7 +3427,7 @@ void PairSMTBQ::forward_int(int *tab)
 
   for (i=0; i<nlocal+nghost; i++) { tab_comm[i] = static_cast<double>(tab[i]);}
 
-  comm->forward_comm_pair(this);
+  comm->forward_comm(this);
 
   for (i=0; i<nlocal+nghost; i++) {
     if (fabs(tab_comm[i]) > 0.1) tab[i] = int(tab_comm[i]) ; }
@@ -3444,7 +3443,7 @@ void PairSMTBQ::reverse_int(int *tab)
 
   for (i=0; i<nlocal+nghost; i++) { tab_comm[i] = static_cast<double>(tab[i]);}
 
-  comm->reverse_comm_pair(this);
+  comm->reverse_comm(this);
 
   for (i=0; i<nlocal+nghost; i++) {
     if (fabs(tab_comm[i]) > 0.1) tab[i] = int(tab_comm[i]); }

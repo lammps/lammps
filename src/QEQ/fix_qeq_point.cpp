@@ -22,16 +22,15 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
-#include "group.h"
 #include "kspace.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
-#include "respa.h"
 #include "update.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -41,9 +40,7 @@ FixQEqPoint::FixQEqPoint(LAMMPS *lmp, int narg, char **arg) :
   FixQEq(lmp, narg, arg) {
   if (narg == 10) {
     if (strcmp(arg[8],"warn") == 0) {
-      if (strcmp(arg[9],"no") == 0) maxwarn = 0;
-      else if (strcmp(arg[9],"yes") == 0) maxwarn = 1;
-      else error->all(FLERR,"Illegal fix qeq/point command");
+      maxwarn = utils::logical(FLERR,arg[9],false,lmp);
     } else error->all(FLERR,"Illegal fix qeq/point command");
   } else if (narg > 8) error->all(FLERR,"Illegal fix qeq/point command");
 }
@@ -52,11 +49,7 @@ FixQEqPoint::FixQEqPoint(LAMMPS *lmp, int narg, char **arg) :
 
 void FixQEqPoint::init()
 {
-  if (!atom->q_flag)
-    error->all(FLERR,"Fix qeq/point requires atom attribute q");
-
-  ngroup = group->count(igroup);
-  if (ngroup == 0) error->all(FLERR,"Fix qeq/point group has no atoms");
+  FixQEq::init();
 
   int irequest = neighbor->request(this,instance_me);
   neighbor->requests[irequest]->pair = 0;
@@ -66,10 +59,6 @@ void FixQEqPoint::init()
 
   int ntypes = atom->ntypes;
   memory->create(shld,ntypes+1,ntypes+1,"qeq:shielding");
-
-  if (utils::strmatch(update->integrate_style,"^respa"))
-    nlevels_respa = ((Respa *) update->integrate)->nlevels;
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -118,9 +107,9 @@ void FixQEqPoint::init_matvec()
   }
 
   pack_flag = 2;
-  comm->forward_comm_fix(this); //Dist_vector(s);
+  comm->forward_comm(this); //Dist_vector(s);
   pack_flag = 3;
-  comm->forward_comm_fix(this); //Dist_vector(t);
+  comm->forward_comm(this); //Dist_vector(t);
 }
 
 /* ---------------------------------------------------------------------- */

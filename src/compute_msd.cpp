@@ -49,15 +49,11 @@ ComputeMSD::ComputeMSD(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"com") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute msd command");
-      if (strcmp(arg[iarg+1],"no") == 0) comflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) comflag = 1;
-      else error->all(FLERR,"Illegal compute msd command");
+      comflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"average") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal compute msd command");
-      if (strcmp(arg[iarg+1],"no") == 0) avflag = 0;
-      else if (strcmp(arg[iarg+1],"yes") == 0) avflag = 1;
-      else error->all(FLERR,"Illegal compute msd command");
+      avflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal compute msd command");
   }

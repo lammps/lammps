@@ -26,7 +26,7 @@ available online are listed below.
 * `Tutorials <https://www.lammps.org/tutorials.html>`_
 
 * `Pre- and post-processing tools for LAMMPS <https://www.lammps.org/prepost.html>`_
-* `Other software usable with LAMMPS <https://www.lammps.org/offsite.html>`_
+* `Other software usable with LAMMPS <https://www.lammps.org/external.html>`_
 * `Viz tools usable with LAMMPS <https://www.lammps.org/viz.html>`_
 
 * `Benchmark performance <https://www.lammps.org/bench.html>`_

@@ -174,7 +174,7 @@ void PairEIMOMP::eval(int iifrom, int iito, ThrData * const thr)
 #endif
     {
       rhofp = 1;
-      comm->reverse_comm_pair(this);
+      comm->reverse_comm(this);
     }
 
   } else {
@@ -190,7 +190,7 @@ void PairEIMOMP::eval(int iifrom, int iito, ThrData * const thr)
 #endif
   {
     rhofp = 1;
-    comm->forward_comm_pair(this);
+    comm->forward_comm(this);
   }
 
   // wait until master is finished communicating
@@ -248,7 +248,7 @@ void PairEIMOMP::eval(int iifrom, int iito, ThrData * const thr)
 #endif
     {
       rhofp = 2;
-      comm->reverse_comm_pair(this);
+      comm->reverse_comm(this);
     }
 
   } else {
@@ -264,7 +264,7 @@ void PairEIMOMP::eval(int iifrom, int iito, ThrData * const thr)
 #endif
   {
     rhofp = 2;
-    comm->forward_comm_pair(this);
+    comm->forward_comm(this);
   }
 
   // wait until master is finished communicating

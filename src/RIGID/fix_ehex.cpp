@@ -129,7 +129,7 @@ FixEHEX::FixEHEX(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
 
   scale = 1.0;
   scalingmask    = nullptr;
-  grow_arrays(atom->nmax);
+  FixEHEX::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
 
 }

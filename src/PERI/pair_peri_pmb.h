@@ -20,36 +20,24 @@ PairStyle(peri/pmb,PairPeriPMB);
 #ifndef LMP_PAIR_PERI_PMB_H
 #define LMP_PAIR_PERI_PMB_H
 
-#include "pair.h"
+#include "pair_peri.h"
 
 namespace LAMMPS_NS {
 
-class PairPeriPMB : public Pair {
+class PairPeriPMB : public PairPeri {
  public:
   PairPeriPMB(class LAMMPS *);
-  virtual ~PairPeriPMB();
-  virtual void compute(int, int);
-  void settings(int, char **);
-  void coeff(int, char **);
-  double init_one(int, int);
-  void init_style();
-  void write_restart(FILE *);
-  void read_restart(FILE *);
-  void write_restart_settings(FILE *) {}
-  void read_restart_settings(FILE *) {}
-  double single(int, int, int, int, double, double, double, double &);
-  virtual double memory_usage();
 
- protected:
-  int ifix_peri;
-  double **kspring;
-  double **s00, **alpha;
-  double **cut;
+  void compute(int, int) override;
+  void coeff(int, char **) override;
+  double init_one(int, int) override;
 
-  double *s0_new;
-  int nmax;
+  void write_restart(FILE *) override;
+  void read_restart(FILE *) override;
+  void write_restart_settings(FILE *) override {}
+  void read_restart_settings(FILE *) override {}
 
-  void allocate();
+  double single(int, int, int, int, double, double, double, double &) override;
 };
 
 }    // namespace LAMMPS_NS

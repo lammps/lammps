@@ -43,7 +43,7 @@
 #ifndef KOKKOS_TEST_UNORDERED_MAP_PERFORMANCE_HPP
 #define KOKKOS_TEST_UNORDERED_MAP_PERFORMANCE_HPP
 
-#include <impl/Kokkos_Timer.hpp>
+#include <Kokkos_Timer.hpp>
 
 #include <iostream>
 #include <iomanip>

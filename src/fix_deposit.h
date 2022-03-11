@@ -27,23 +27,24 @@ namespace LAMMPS_NS {
 class FixDeposit : public Fix {
  public:
   FixDeposit(class LAMMPS *, int, char **);
-  ~FixDeposit();
-  int setmask();
-  void init();
-  void setup_pre_exchange();
-  void pre_exchange();
-  void write_restart(FILE *);
-  void restart(char *);
-  void *extract(const char *, int &);
+  ~FixDeposit() override;
+  int setmask() override;
+  void init() override;
+  void setup_pre_exchange() override;
+  void pre_exchange() override;
+  void write_restart(FILE *) override;
+  void restart(char *) override;
+  void *extract(const char *, int &) override;
 
  private:
   int ninsert, ntype, nfreq, seed;
-  int iregion, globalflag, localflag, maxattempt, rateflag, scaleflag, targetflag;
+  int globalflag, localflag, maxattempt, rateflag, scaleflag, targetflag;
   int mode, rigidflag, shakeflag, idnext, distflag, orientflag;
   double lo, hi, deltasq, nearsq, rate, sigma;
   double vxlo, vxhi, vylo, vyhi, vzlo, vzhi;
   double xlo, xhi, ylo, yhi, zlo, zhi, xmid, ymid, zmid;
   double rx, ry, rz, tx, ty, tz;
+  class Region *iregion;
   char *idregion;
   char *idrigid, *idshake;
 

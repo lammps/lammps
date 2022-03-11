@@ -1,7 +1,10 @@
 .. index:: dynamical_matrix
+.. index:: dynamical_matrix/kk
 
 dynamical_matrix command
 ========================
+
+Accelerator Variants: dynamical_matrix/kk
 
 Syntax
 """"""
@@ -55,6 +58,12 @@ increasing first, :math:`\alpha` second, and i last.
 If the style eskm is selected, the dynamical matrix will be in units of
 inverse squared femtoseconds. These units will then conveniently leave
 frequencies in THz.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

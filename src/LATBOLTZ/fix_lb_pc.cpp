@@ -338,7 +338,7 @@ int FixLbPC::unpack_exchange(int nlocal, double *buf)
 }
 
 /* ---------------------------------------------------------------------- */
- void FixLbPC::compute_up(void)
+ void FixLbPC::compute_up()
  {
    int *mask = atom->mask;
    int nlocal = atom->nlocal;

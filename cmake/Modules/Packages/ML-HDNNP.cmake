@@ -45,13 +45,11 @@ if(DOWNLOAD_N2P2)
     # get path to MPI include directory when cross-compiling to windows
     if((CMAKE_SYSTEM_NAME STREQUAL Windows) AND CMAKE_CROSSCOMPILING)
       get_target_property(N2P2_MPI_INCLUDE MPI::MPI_CXX INTERFACE_INCLUDE_DIRECTORIES)
-      set(N2P2_PROJECT_OPTIONS "-I ${N2P2_MPI_INCLUDE} -DMPICH_SKIP_MPICXX=1")
-      set(MPI_CXX_COMPILER ${CMAKE_CXX_COMPILER})
+      set(N2P2_PROJECT_OPTIONS "-I${N2P2_MPI_INCLUDE}")
     endif()
     if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
       get_target_property(N2P2_MPI_INCLUDE MPI::MPI_CXX INTERFACE_INCLUDE_DIRECTORIES)
-      set(N2P2_PROJECT_OPTIONS "-I ${N2P2_MPI_INCLUDE} -DMPICH_SKIP_MPICXX=1")
-      set(MPI_CXX_COMPILER ${CMAKE_CXX_COMPILER})
+      set(N2P2_PROJECT_OPTIONS "-I${N2P2_MPI_INCLUDE}")
     endif()
   endif()
 
@@ -64,10 +62,16 @@ if(DOWNLOAD_N2P2)
   string(TOUPPER "${CMAKE_BUILD_TYPE}" BTYPE)
   set(N2P2_BUILD_FLAGS "${CMAKE_SHARED_LIBRARY_CXX_FLAGS} ${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BTYPE}} ${N2P2_CXX_STD}")
   set(N2P2_BUILD_OPTIONS INTERFACES=LAMMPS COMP=${N2P2_COMP} "PROJECT_OPTIONS=${N2P2_PROJECT_OPTIONS}" "PROJECT_DEBUG="
-    "PROJECT_CC=${CMAKE_CXX_COMPILER}" "PROJECT_MPICC=${MPI_CXX_COMPILER}" "PROJECT_CFLAGS=${N2P2_BUILD_FLAGS}"
-    "PROJECT_AR=${N2P2_AR}")
+    "PROJECT_CC=${CMAKE_CXX_COMPILER}" "PROJECT_MPICC=${CMAKE_CXX_COMPILER}" "PROJECT_CFLAGS=${N2P2_BUILD_FLAGS}"
+    "PROJECT_AR=${N2P2_AR}" "APP_CORE=nnp-convert" "APP_TRAIN=nnp-train" "APP=nnp-convert")
   # echo final flag for debugging
   message(STATUS "N2P2 BUILD OPTIONS: ${N2P2_BUILD_OPTIONS}")
+
+  # must have "sed" command to compile n2p2 library (for now)
+  find_program(HAVE_SED sed)
+  if(NOT HAVE_SED)
+    message(FATAL_ERROR "Must have 'sed' program installed to compile 'n2p2' library for ML-HDNNP package")
+  endif()
 
   # download compile n2p2 library. much patch MPI calls in LAMMPS interface to accommodate MPI-2 (e.g. for cross-compiling)
   include(ExternalProject)

@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class Minimize : public Command {
  public:
   Minimize(class LAMMPS *);
-  void command(int, char **);
+  void command(int, char **) override;
 };
 
 }    // namespace LAMMPS_NS

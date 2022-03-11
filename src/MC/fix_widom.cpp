@@ -59,9 +59,8 @@ enum{EXCHATOM,EXCHMOL}; // exchmode
 
 FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg),
-  idregion(nullptr), full_flag(0),
-  local_gas_list(nullptr), molcoords(nullptr), molq(nullptr), molimage(nullptr),
-  random_equal(nullptr)
+  idregion(nullptr), full_flag(false), local_gas_list(nullptr), molcoords(nullptr),
+  molq(nullptr), molimage(nullptr), random_equal(nullptr)
 {
   if (narg < 8) error->all(FLERR,"Illegal fix widom command");
 
@@ -311,16 +310,13 @@ void FixWidom::init()
     int flagall;
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
     if (flagall && comm->me == 0)
-      error->all(FLERR,
-       "All mol IDs should be set for fix widom group atoms");
+      error->all(FLERR, "All mol IDs should be set for fix widom group atoms");
   }
 
   if (exchmode == EXCHMOL)
     if (atom->molecule_flag == 0 || !atom->tag_enable
         || (atom->map_style == Atom::MAP_NONE))
-      error->all(FLERR,
-       "Fix widom molecule command requires that "
-       "atoms have molecule attributes");
+      error->all(FLERR, "Fix widom molecule command requires that atoms have molecule attributes");
 
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use fix widom in a 2d simulation");

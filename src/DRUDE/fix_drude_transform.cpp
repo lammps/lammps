@@ -13,16 +13,18 @@
 ------------------------------------------------------------------------- */
 
 /** Fix Drude Transform ******************************************************/
+
 #include "fix_drude_transform.h"
+
+#include "atom.h"
+#include "comm.h"
+#include "domain.h"
+#include "error.h"
+#include "fix_drude.h"
+#include "modify.h"
 
 #include <cmath>
 #include <cstring>
-#include "fix_drude.h"
-#include "atom.h"
-#include "domain.h"
-#include "comm.h"
-#include "error.h"
-#include "modify.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -105,30 +107,30 @@ void FixDrudeTransform<inverse>::setup(int) {
 namespace LAMMPS_NS { // required for specialization
 template <>
 void FixDrudeTransform<false>::initial_integrate(int) {
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
   real_to_reduced();
-  //comm->forward_comm_fix(this); // Normally not needed
+  //comm->forward_comm(this); // Normally not needed
 }
 
 template <>
 void FixDrudeTransform<false>::final_integrate() {
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
   real_to_reduced();
-  //comm->forward_comm_fix(this); // Normally not needed
+  //comm->forward_comm(this); // Normally not needed
 }
 
 template <>
 void FixDrudeTransform<true>::initial_integrate(int) {
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
   reduced_to_real();
-  //comm->forward_comm_fix(this); // Normally not needed
+  //comm->forward_comm(this); // Normally not needed
 }
 
 template <>
 void FixDrudeTransform<true>::final_integrate() {
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
   reduced_to_real();
-  //comm->forward_comm_fix(this); // Normally not needed
+  //comm->forward_comm(this); // Normally not needed
 }
 
 } // end of namespace

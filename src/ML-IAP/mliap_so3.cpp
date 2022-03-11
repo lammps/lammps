@@ -17,7 +17,6 @@
 
 #include "mliap_so3.h"
 
-#include "comm.h"
 #include "error.h"
 #include "math_const.h"
 #include "math_special.h"

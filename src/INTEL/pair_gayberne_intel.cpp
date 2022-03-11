@@ -27,6 +27,7 @@
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
 #include "modify.h"
@@ -34,6 +35,8 @@
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "suffix.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -894,11 +897,8 @@ void PairGayBerneIntel::init_style()
   }
   request->intel = 1;
 
-  int ifix = modify->find_fix("package_intel");
-  if (ifix < 0)
-    error->all(FLERR,
-               "The 'package intel' command is required for /intel styles");
-  fix = static_cast<FixIntel *>(modify->fix[ifix]);
+  fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
+  if (!fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
 
   fix->pair_init_check();
   #ifdef _LMP_INTEL_OFFLOAD

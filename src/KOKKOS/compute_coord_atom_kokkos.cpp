@@ -59,7 +59,7 @@ ComputeCoordAtomKokkos<DeviceType>::ComputeCoordAtomKokkos(LAMMPS *lmp, int narg
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-ComputeCoordAtomKokkos<DeviceType>::~ComputeCoordAtomKokkos<DeviceType>()
+ComputeCoordAtomKokkos<DeviceType>::~ComputeCoordAtomKokkos()
 {
   if (copymode) return;
 
@@ -119,7 +119,7 @@ void ComputeCoordAtomKokkos<DeviceType>::compute_peratom()
     }
     nqlist = c_orientorder->nqlist;
     normv = c_orientorder->array_atom;
-    comm->forward_comm_compute(this);
+    comm->forward_comm(this);
 
     if (!c_orientorder->kokkosable)
       error->all(FLERR,"Must use compute orientorder/atom/kk with compute coord/atom/kk");

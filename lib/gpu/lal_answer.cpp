@@ -23,7 +23,7 @@ namespace LAMMPS_AL {
 
 template <class numtyp, class acctyp>
 AnswerT::Answer() : _allocated(false),_eflag(false),_vflag(false),
-                            _inum(0),_ilist(nullptr),_newton(false) {
+                    _inum(0),_ilist(nullptr),_newton(false) {
 }
 
 template <class numtyp, class acctyp>
@@ -248,7 +248,7 @@ double AnswerT::energy_virial(double *eatom, double **vatom,
     return energy_virial(eatom,vatom,virial);
 
   double evdwl=0.0;
-  int ii, vstart=0, iend=_ev_stride;
+  int vstart=0, iend=_ev_stride;
   if (_eflag) {
     iend=_ev_stride*2;
     #if (LAL_USE_OMP_SIMD == 1)
@@ -319,7 +319,6 @@ void AnswerT::get_answers(double **f, double **tor) {
       const int ifrom = tid * idelta;
       const int ito = std::min(ifrom + idelta, _inum);
       #else
-      const int tid = 0;
       const int ifrom = 0;
       const int ito = _inum;
       #endif
@@ -352,7 +351,6 @@ void AnswerT::get_answers(double **f, double **tor) {
       const int ito = std::min(ifrom + idelta, _inum);
       int fl=ifrom*4;
       #else
-      const int tid = 0;
       const int ifrom = 0;
       const int ito = _inum;
       int fl=0;

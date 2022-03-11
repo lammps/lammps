@@ -276,9 +276,7 @@ FixNPTCauchy::FixNPTCauchy(LAMMPS *lmp, int narg, char **arg) :
       else {
         allremap = 0;
         delete [] id_dilate;
-        int n = strlen(arg[iarg+1]) + 1;
-        id_dilate = new char[n];
-        strcpy(id_dilate,arg[iarg+1]);
+        id_dilate = utils::strdup(arg[iarg+1]);
         int idilate = group->find(id_dilate);
         if (idilate == -1)
           error->all(FLERR,"Fix npt/cauchy dilate group ID does not exist");
@@ -299,9 +297,7 @@ FixNPTCauchy::FixNPTCauchy(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"mtk") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
-      if (strcmp(arg[iarg+1],"yes") == 0) mtk_flag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) mtk_flag = 0;
-      else error->all(FLERR,"Illegal fix npt/cauchy command");
+      mtk_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"tloop") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
@@ -320,27 +316,19 @@ FixNPTCauchy::FixNPTCauchy(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"scalexy") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
-      if (strcmp(arg[iarg+1],"yes") == 0) scalexy = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) scalexy = 0;
-      else error->all(FLERR,"Illegal fix npt/cauchy command");
+      scalexy = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"scalexz") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
-      if (strcmp(arg[iarg+1],"yes") == 0) scalexz = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) scalexz = 0;
-      else error->all(FLERR,"Illegal fix npt/cauchy command");
+      scalexz = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"scaleyz") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
-      if (strcmp(arg[iarg+1],"yes") == 0) scaleyz = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) scaleyz = 0;
-      else error->all(FLERR,"Illegal fix npt/cauchy command");
+      scaleyz = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"flip") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
-      if (strcmp(arg[iarg+1],"yes") == 0) flipflag = 1;
-      else if (strcmp(arg[iarg+1],"no") == 0) flipflag = 0;
-      else error->all(FLERR,"Illegal fix npt/cauchy command");
+      flipflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"update") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
@@ -354,10 +342,8 @@ FixNPTCauchy::FixNPTCauchy(LAMMPS *lmp, int narg, char **arg) :
       alpha = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"continue") == 0) {
-      if (strcmp(arg[iarg+1],"yes") != 0 && strcmp(arg[iarg+1],"no") != 0)
-        error->all(FLERR,"Illegal cauchystat continue value.  "
-                   "Must be 'yes' or 'no'");
-      restartPK = !strcmp(arg[iarg+1],"yes");
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
+      restartPK = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"fixedpoint") == 0) {
       if (iarg+4 > narg) error->all(FLERR,"Illegal fix npt/cauchy command");
@@ -1445,9 +1431,7 @@ int FixNPTCauchy::modify_param(int narg, char **arg)
       tcomputeflag = 0;
     }
     delete [] id_temp;
-    int n = strlen(arg[1]) + 1;
-    id_temp = new char[n];
-    strcpy(id_temp,arg[1]);
+    id_temp = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
     if (icompute < 0)
@@ -1479,9 +1463,7 @@ int FixNPTCauchy::modify_param(int narg, char **arg)
       pcomputeflag = 0;
     }
     delete [] id_press;
-    int n = strlen(arg[1]) + 1;
-    id_press = new char[n];
-    strcpy(id_press,arg[1]);
+    id_press = utils::strdup(arg[1]);
 
     int icompute = modify->find_compute(arg[1]);
     if (icompute < 0) error->all(FLERR,"Could not find fix_modify pressure ID");
@@ -2460,30 +2442,17 @@ double FixNPTCauchy::memory_usage()
 void FixNPTCauchy::CauchyStat_init()
 {
   if (comm->me == 0) {
-    if (screen) {
-      fprintf(screen,"Using fix npt/cauchy with alpha=%f\n",alpha);
-      if (restartPK==1) {
-        fprintf(screen,"   (this is a continuation run)\n");
-      } else {
-        fprintf(screen,"   (this is NOT a continuation run)\n");
-      }
+    std::string mesg = fmt::format("Using fix npt/cauchy with alpha={:.8f}\n",alpha);
+    if (restartPK==1) {
+      mesg += "   (this is a continuation run)\n";
+    } else {
+      mesg += "   (this is NOT a continuation run)\n";
     }
-    if (logfile) {
-      fprintf(logfile,"Using fix npt/cauchy with alpha=%f\n",alpha);
-      if (restartPK==1) {
-        fprintf(logfile,"   this is a continuation run\n");
-      } else {
-        fprintf(logfile,"   this is NOT a continuation run\n");
-      }
-    }
+    utils::logmesg(lmp, mesg);
   }
 
-  if (!id_store) {
-    int n = strlen(id) + 14;
-    id_store = new char[n];
-    strcpy(id_store,id);
-    strcat(id_store,"_FIX_NH_STORE");
-  }
+  if (!id_store)
+    id_store = utils::strdup(std::string(id) + "_FIX_NH_STORE");
   restart_stored = modify->find_fix(id_store);
 
   if (restartPK==1 && restart_stored < 0)
@@ -2491,19 +2460,10 @@ void FixNPTCauchy::CauchyStat_init()
                " must follow a previously equilibrated npt/cauchy run");
 
   if (alpha<=0.0)
-    error->all(FLERR,"Illegal fix npt/cauchy command: "
-               " Alpha cannot be zero or negative.");
+    error->all(FLERR,"Illegal fix npt/cauchy command: Alpha cannot be zero or negative.");
 
   if (restart_stored < 0) {
-    char **newarg = new char *[6];
-    newarg[0] = id_store;
-    newarg[1] = (char *) "all";
-    newarg[2] = (char *) "STORE";
-    newarg[3] = (char *) "global";
-    newarg[4] = (char *) "1";
-    newarg[5] = (char *) "6";
-    modify->add_fix(6,newarg);
-    delete[] newarg;
+    modify->add_fix(std::string(id_store) + " all STORE global 1 6");
     restart_stored = modify->find_fix(id_store);
   }
   init_store = (FixStore *)modify->fix[restart_stored];

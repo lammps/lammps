@@ -65,10 +65,8 @@ only enabled if LAMMPS was built with that package.
 See the :doc:`Build package <Build_package>` page for
 more info. Plugins are not available on Windows.
 
-For the loading of plugins to work the LAMMPS library must be
-:ref:`compiled as a shared library <library>`.  If plugins
-access functions or classes from a package, LAMMPS must have
-been compiled with that package included.
+If plugins access functions or classes from a package, LAMMPS must
+have been compiled with that package included.
 
 Plugins are dependent on the LAMMPS binary interface (ABI)
 and particularly the MPI library used. So they are not guaranteed

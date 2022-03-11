@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 class DumpCustom : public Dump {
  public:
   DumpCustom(class LAMMPS *, int, char **);
-  virtual ~DumpCustom();
+  ~DumpCustom() override;
 
   const char *MAGIC_STRING = "DUMPCUSTOM";
   const int FORMAT_REVISION = 0x0002;
@@ -97,20 +97,20 @@ class DumpCustom : public Dump {
 
   // private methods
 
-  virtual void init_style();
-  virtual void write_header(bigint);
-  int count();
-  void pack(tagint *);
-  virtual int convert_string(int, double *);
-  virtual void write_data(int, double *);
-  double memory_usage();
+  void init_style() override;
+  void write_header(bigint) override;
+  int count() override;
+  void pack(tagint *) override;
+  int convert_string(int, double *) override;
+  void write_data(int, double *) override;
+  double memory_usage() override;
 
   int parse_fields(int, char **);
   int add_compute(const char *);
   int add_fix(const char *);
   int add_variable(const char *);
   int add_custom(const char *, int);
-  virtual int modify_param(int, char **);
+  int modify_param(int, char **) override;
 
   void header_format_binary();
   void header_unit_style_binary();

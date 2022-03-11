@@ -50,11 +50,9 @@
 #include "neighbor.h"
 #include "potential_file_reader.h"
 #include "tabular_function.h"
-#include "utils.h"
 
 #include <cmath>
 #include <cstring>
-#include <string>
 
 using namespace LAMMPS_NS;
 using MathSpecial::square;

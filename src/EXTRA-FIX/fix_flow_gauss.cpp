@@ -84,16 +84,14 @@ FixFlowGauss::FixFlowGauss(LAMMPS *lmp, int narg, char **arg) :
 
   // by default, do not compute work done
 
-  workflag=0;
+  workflag=false;
 
   // process optional keyword
   int iarg = 6;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"energy") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal energy keyword");
-      if (strcmp(arg[iarg+1],"yes") == 0) workflag = 1;
-      else if (strcmp(arg[iarg+1],"no") != 0)
-        error->all(FLERR,"Illegal energy keyword");
+      workflag = utils::logical(FLERR,arg[iarg+1],false,lmp) == 1;
       iarg += 2;
     } else error->all(FLERR,"Illegal fix flow/gauss command");
   }
@@ -139,7 +137,7 @@ void FixFlowGauss::setup(int vflag)
 {
   // need to compute work done if fix_modify energy yes is set
 
-  if (thermo_energy) workflag = 1;
+  if (thermo_energy) workflag = true;
 
   // get total mass of group
 

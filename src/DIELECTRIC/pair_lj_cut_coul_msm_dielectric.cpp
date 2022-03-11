@@ -19,10 +19,8 @@
 
 #include "atom.h"
 #include "atom_vec_dielectric.h"
-#include "comm.h"
 #include "error.h"
 #include "force.h"
-#include "integrate.h"
 #include "kspace.h"
 #include "math_const.h"
 #include "memory.h"
@@ -31,6 +29,7 @@
 #include "neighbor.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -365,7 +364,7 @@ void PairLJCutCoulMSMDielectric::init_style()
 
   // insure use of KSpace long-range solver, set g_ewald
 
-  if (force->kspace == NULL) error->all(FLERR, "Pair style requires a KSpace style");
+  if (force->kspace == nullptr) error->all(FLERR, "Pair style requires a KSpace style");
   g_ewald = force->kspace->g_ewald;
 
   // setup force tables
@@ -382,5 +381,5 @@ void *PairLJCutCoulMSMDielectric::extract(const char *str, int &dim)
   dim = 2;
   if (strcmp(str, "epsilon") == 0) return (void *) epsilon;
   if (strcmp(str, "sigma") == 0) return (void *) sigma;
-  return NULL;
+  return nullptr;
 }

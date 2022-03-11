@@ -29,7 +29,7 @@ class Mat6x6 : public VirtualMatrix  {
   double elements[6][6];
 public:
   Mat6x6();
-  ~Mat6x6();
+  ~Mat6x6() = default;
   Mat6x6(const Mat6x6& A);  // copy constructor
   Mat6x6(const VirtualMatrix& A);  // copy constructor
 

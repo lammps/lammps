@@ -16,17 +16,18 @@
    Contributing author: Paul Coffman (IBM)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
 #include "dump_xyz_mpiio.h"
-#include <cmath>
 
-#include <cstring>
-#include "domain.h"
-#include "update.h"
 #include "compute.h"
-#include "memory.h"
+#include "domain.h"
 #include "error.h"
+#include "memory.h"
+#include "update.h"
 
+#include <cmath>
+#include <cstring>
+
+#include "omp_compat.h"
 #if defined(_OPENMP)
 #include <omp.h>
 #endif
@@ -51,7 +52,10 @@ enum{LT,LE,GT,GE,EQ,NEQ};
 /* ---------------------------------------------------------------------- */
 
 DumpXYZMPIIO::DumpXYZMPIIO(LAMMPS *lmp, int narg, char **arg) :
-  DumpXYZ(lmp, narg, arg) {}
+  DumpXYZ(lmp, narg, arg) {
+  if (me == 0)
+    error->warning(FLERR,"MPI-IO output is unmaintained and unreliable. Use with caution.");
+}
 
 /* ---------------------------------------------------------------------- */
 

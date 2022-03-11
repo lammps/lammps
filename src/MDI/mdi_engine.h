@@ -28,8 +28,8 @@ namespace LAMMPS_NS {
 class MDIEngine : public Command {
  public:
   MDIEngine(LAMMPS *lmp) : Command(lmp) {}
-  virtual ~MDIEngine() {}
-  void command(int, char **);
+
+  void command(int, char **) override;
 
   int execute_command(const char *command, MDI_Comm mdicomm);
   void engine_node(const char *node);

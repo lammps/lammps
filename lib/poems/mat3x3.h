@@ -30,7 +30,7 @@ class Mat3x3 : public VirtualMatrix  {
   double elements[3][3];
 public:
   Mat3x3();
-  ~Mat3x3();
+  ~Mat3x3() = default;
   Mat3x3(const Mat3x3& A);  // copy constructor
   Mat3x3(const VirtualMatrix& A);  // copy constructor
 

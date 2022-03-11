@@ -88,8 +88,8 @@ PPPMDipole::~PPPMDipole()
 {
   if (copymode) return;
 
-  deallocate();
-  if (peratom_allocate_flag) deallocate_peratom();
+  PPPMDipole::deallocate();
+  if (peratom_allocate_flag) PPPMDipole::deallocate_peratom();
 }
 
 /* ----------------------------------------------------------------------
@@ -783,7 +783,7 @@ void PPPMDipole::set_grid_global()
 
     h = h_x = h_y = h_z = 4.0/g_ewald;
     int count = 0;
-    while (1) {
+    while (true) {
 
       // set grid dimension
 
@@ -2443,7 +2443,7 @@ int PPPMDipole::timing_1d(int n, double &time1d)
   for (int i = 0; i < 2*nfft_both; i++) work1[i] = ZEROF;
 
   MPI_Barrier(world);
-  time1 = MPI_Wtime();
+  time1 = platform::walltime();
 
   for (int i = 0; i < n; i++) {
     fft1->timing1d(work1,nfft_both,FFT3d::FORWARD);
@@ -2461,7 +2461,7 @@ int PPPMDipole::timing_1d(int n, double &time1d)
   }
 
   MPI_Barrier(world);
-  time2 = MPI_Wtime();
+  time2 = platform::walltime();
   time1d = time2 - time1;
 
   return 12;
@@ -2478,7 +2478,7 @@ int PPPMDipole::timing_3d(int n, double &time3d)
   for (int i = 0; i < 2*nfft_both; i++) work1[i] = ZEROF;
 
   MPI_Barrier(world);
-  time1 = MPI_Wtime();
+  time1 = platform::walltime();
 
   for (int i = 0; i < n; i++) {
     fft1->compute(work1,work1,FFT3d::FFT3d::FORWARD);
@@ -2496,7 +2496,7 @@ int PPPMDipole::timing_3d(int n, double &time3d)
   }
 
   MPI_Barrier(world);
-  time2 = MPI_Wtime();
+  time2 = platform::walltime();
   time3d = time2 - time1;
 
   return 12;

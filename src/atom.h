@@ -270,6 +270,10 @@ class Atom : protected Pointers {
 
   int *sametag;    // sametag[I] = next atom with same ID, -1 if no more
 
+  // true if image flags were reset to 0 during data_atoms()
+
+  bool reset_image_flag[3];
+
   // AtomVec factory types and map
 
   typedef AtomVec *(*AtomVecCreator)(LAMMPS *);
@@ -280,7 +284,7 @@ class Atom : protected Pointers {
   // functions
 
   Atom(class LAMMPS *);
-  virtual ~Atom();
+  ~Atom() override;
 
   void settings(class Atom *);
   void peratom_create();
@@ -412,9 +416,6 @@ class Atom : protected Pointers {
   void set_atomflag_defaults();
   void setup_sort_bins();
   int next_prime(int);
-
- private:
-  template <typename T> static AtomVec *avec_creator(LAMMPS *);
 };
 
 }    // namespace LAMMPS_NS

@@ -73,7 +73,7 @@ FixSpringSelf::FixSpringSelf(LAMMPS *lmp, int narg, char **arg) :
   // register with Atom class
 
   xoriginal = nullptr;
-  grow_arrays(atom->nmax);
+  FixSpringSelf::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
   atom->add_callback(Atom::RESTART);
 

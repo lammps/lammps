@@ -1,6 +1,7 @@
 /Makefile.package
 /Makefile.package.settings
 /MAKE/MINE
+/ADIOS/Makefile.lammps
 /Make.py.last
 /lmp_*
 
@@ -26,6 +27,9 @@
 /*_rx.cpp
 /*_ssa.h
 /*_ssa.cpp
+
+!accelerator_kokkos.h
+!accelerator_omp.h
 
 /fix_mdi_engine.cpp
 /fix_mdi_engine.h
@@ -202,7 +206,6 @@
 
 /plugin.cpp
 /plugin.h
-/lammpsplugin.h
 
 /atom_vec_spin.cpp
 /atom_vec_spin.h
@@ -265,8 +268,8 @@
 /fix_drag.h
 /fix_numdiff.cpp
 /fix_numdiff.h
-/fix_nve_noforce.cpp
-/fix_nve_noforce.h
+/fix_numdiff_virial.cpp
+/fix_numdiff_virial.h
 /fix_spring_rg.cpp
 /fix_spring_rg.h
 /fix_temp_csld.cpp
@@ -367,8 +370,6 @@
 /atom_vec_dpd.h
 /atom_vec_electron.cpp
 /atom_vec_electron.h
-/atom_vec_ellipsoid.cpp
-/atom_vec_ellipsoid.h
 /atom_vec_full.cpp
 /atom_vec_full.h
 /atom_vec_full_hars.cpp
@@ -395,6 +396,8 @@
 /bond_fene.h
 /bond_fene_expand.cpp
 /bond_fene_expand.h
+/bond_fene_nm.cpp
+/bond_fene_nm.h
 /bond_gaussian.cpp
 /bond_gaussian.h
 /bond_gromos.cpp
@@ -429,6 +432,8 @@
 /commgrid.h
 /compute_ackland_atom.cpp
 /compute_ackland_atom.h
+/compute_ave_sphere_atom.cpp
+/compute_ave_sphere_atom.h
 /compute_basal_atom.cpp
 /compute_basal_atom.h
 /compute_body_local.cpp
@@ -487,8 +492,6 @@
 /compute_plasticity_atom.h
 /compute_pressure_bocs.cpp
 /compute_pressure_bocs.h
-/compute_pressure_cylinder.cpp
-/compute_pressure_cylinder.h
 /compute_pressure_grem.cpp
 /compute_pressure_grem.h
 /compute_ptm_atom.cpp
@@ -499,10 +502,16 @@
 /compute_smd_triangle_vertices.h
 /compute_spec_atom.cpp
 /compute_spec_atom.h
+/compute_stress_cartesian.cpp
+/compute_stress_cartesian.h
+/compute_stress_cylinder.cpp
+/compute_stress_cylinder.h
 /compute_stress_mop.cpp
 /compute_stress_mop.h
 /compute_stress_mop_profile.cpp
 /compute_stress_mop_profile.h
+/compute_stress_spherical.cpp
+/compute_stress_spherical.h
 /compute_stress_tally.cpp
 /compute_stress_tally.h
 /compute_temp_asphere.cpp
@@ -535,8 +544,6 @@
 /dihedral_harmonic.h
 /dihedral_helix.cpp
 /dihedral_helix.h
-/dihedral_hybrid.cpp
-/dihedral_hybrid.h
 /dihedral_multi_harmonic.cpp
 /dihedral_multi_harmonic.h
 /dihedral_nharmonic.cpp
@@ -613,6 +620,8 @@
 /fft3d_wrap.h
 /fix_accelerate_cos.cpp
 /fix_accelerate_cos.h
+/fix_acks2_reaxff.cpp
+/fix_acks2_reaxff.h
 /fix_adapt_fep.cpp
 /fix_adapt_fep.h
 /fix_addtorque.cpp
@@ -858,8 +867,6 @@
 /fix_ti_rs.h
 /fix_ti_spring.cpp
 /fix_ti_spring.h
-/fix_ttm.cpp
-/fix_ttm.h
 /fix_tune_kspace.cpp
 /fix_tune_kspace.h
 /fix_wall_body_polygon.cpp
@@ -885,8 +892,6 @@
 /fix_widom.cpp
 /fix_widom.h
 /gpu_extra.h
-/gridcomm.cpp
-/gridcomm.h
 /group_ndx.cpp
 /group_ndx.h
 /gz_file_writer.cpp
@@ -911,14 +916,13 @@
 /improper_fourier.h
 /improper_harmonic.cpp
 /improper_harmonic.h
-/improper_hybrid.cpp
-/improper_hybrid.h
 /improper_inversion_harmonic.cpp
 /improper_inversion_harmonic.h
 /improper_ring.cpp
 /improper_ring.h
 /improper_umbrella.cpp
 /improper_umbrella.h
+/interlayer_taper.h
 /kissfft.h
 /lj_sdk_common.h
 /math_complex.h
@@ -933,7 +937,8 @@
 /msm_cg.h
 /neb.cpp
 /neb.h
-
+/netcdf_units.cpp
+/netcdf_units.h
 /pair_adp.cpp
 /pair_adp.h
 /pair_agni.cpp
@@ -994,6 +999,8 @@
 /pair_cosine_squared.h
 /pair_coul_diel.cpp
 /pair_coul_diel.h
+/pair_coul_exclude.cpp
+/pair_coul_exclude.h
 /pair_coul_long.cpp
 /pair_coul_long.h
 /pair_coul_msm.cpp
@@ -1067,6 +1074,8 @@
 /pair_hdnnp.h
 /pair_ilp_graphene_hbn.cpp
 /pair_ilp_graphene_hbn.h
+/pair_ilp_tmd.cpp
+/pair_ilp_tmd.h
 /pair_kolmogorov_crespi_full.cpp
 /pair_kolmogorov_crespi_full.h
 /pair_kolmogorov_crespi_z.cpp
@@ -1173,6 +1182,8 @@
 /pair_nm_cut_coul_cut.h
 /pair_nm_cut_coul_long.cpp
 /pair_nm_cut_coul_long.h
+/pair_nm_cut_split.cpp
+/pair_nm_cut_split.h
 /pair_oxdna_*.cpp
 /pair_oxdna_*.h
 /pair_oxdna2_*.cpp
@@ -1180,6 +1191,8 @@
 /pair_oxrna2_*.cpp
 /pair_oxrna2_*.h
 /mf_oxdna.h
+/pair_peri.cpp
+/pair_peri.h
 /pair_peri_eps.cpp
 /pair_peri_eps.h
 /pair_peri_lps.cpp
@@ -1196,6 +1209,8 @@
 /pair_rebo.h
 /pair_resquared.cpp
 /pair_resquared.h
+/pair_saip_metal.cpp
+/pair_saip_metal.h
 /pair_sdpd_taitwater_isothermal.cpp
 /pair_sdpd_taitwater_isothermal.h
 /pair_sph_heatconduction.cpp
@@ -1212,6 +1227,8 @@
 /pair_sph_taitwater_morris.h
 /pair_sw.cpp
 /pair_sw.h
+/pair_sw_mod.cpp
+/pair_sw_mod.h
 /pair_tersoff.cpp
 /pair_tersoff.h
 /pair_tersoff_mod.cpp
@@ -1332,8 +1349,6 @@
 /thr_data.h
 /verlet_split.cpp
 /verlet_split.h
-/write_dump.cpp
-/write_dump.h
 /xdr_compat.cpp
 /xdr_compat.h
 /zstd_file_writer.cpp
@@ -1403,6 +1418,8 @@
 /fix_drude_transform.h
 /fix_langevin_drude.cpp
 /fix_langevin_drude.h
+/fix_mol_swap.cpp
+/fix_mol_swap.h
 /fix_pimd.cpp
 /fix_pimd.h
 /fix_qbmsst.cpp
@@ -1431,6 +1448,10 @@
 /fix_srp.h
 /fix_tfmc.cpp
 /fix_tfmc.h
+/fix_ttm.cpp
+/fix_ttm.h
+/fix_ttm_grid.cpp
+/fix_ttm_grid.h
 /fix_ttm_mod.cpp
 /fix_ttm_mod.h
 /pair_born_coul_long_cs.cpp
@@ -1481,6 +1502,8 @@
 /pair_dpd_fdt.h
 /pair_dpd_fdt_energy.cpp
 /pair_dpd_fdt_energy.h
+/pair_harmonic_cut.cpp
+/pair_harmonic_cut.h
 /pair_lennard_mdf.cpp
 /pair_lennard_mdf.h
 /pair_lj_cut_coul_long_cs.cpp

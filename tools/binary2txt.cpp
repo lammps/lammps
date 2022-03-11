@@ -29,9 +29,8 @@
 //   g++ -g -DLAMMPS_BIGBIG binarytxt.o -o binary2txt
 //   again -DLAMMPS_SMALLBIG is the default
 
-#include "stdint.h"
 #define __STDC_FORMAT_MACROS
-#include "inttypes.h"
+#include <cinttypes>
 
 #ifndef PRId64
 #define PRId64 "ld"
@@ -65,7 +64,7 @@ int main(int narg, char **arg)
   char boundstr[9];
 
   int maxbuf = 0;
-  double *buf = NULL;
+  double *buf = nullptr;
 
   if (narg == 1) {
     printf("Syntax: binary2txt file1 file2 ...\n");
@@ -97,7 +96,7 @@ int main(int narg, char **arg)
 
     // loop over snapshots in file
 
-    while (1) {
+    while (true) {
       int endian = 0x0001;
       int revision = 0x0001;
 

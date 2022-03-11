@@ -39,7 +39,6 @@
 #include <cstring>
 #include <map>
 #include <utility>
-#include <vector>
 
 using namespace LAMMPS_NS;
 
@@ -247,8 +246,8 @@ void PairAWPMDCut::compute(int eflag, int vflag)
     fi= new Vector_3[wpmd->ni];
 
   // adding electrons
-  for (std::map<int,std::vector<int> >::iterator it=etmap.begin(); it!= etmap.end(); ++it) {
-    std::vector<int> &el=it->second;
+  for (auto & it : etmap) {
+    std::vector<int> &el=it.second;
     if (!el.size()) // should not happen
       continue;
     int s=spin[el[0]] >0 ? 0 : 1;

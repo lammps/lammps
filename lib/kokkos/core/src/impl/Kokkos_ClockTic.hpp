@@ -55,7 +55,7 @@
 // To use OpenCL(TM) built-in intrinsics inside kernels, we have to
 // forward-declare their prototype, also see
 // https://github.com/intel/pti-gpu/blob/master/chapters/binary_instrumentation/OpenCLBuiltIn.md
-#if defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_ARCH_INTEL_GEN) && \
+#if defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_ARCH_INTEL_GPU) && \
     defined(__SYCL_DEVICE_ONLY__)
 extern SYCL_EXTERNAL unsigned long __attribute__((overloadable))
 intel_get_cycle_counter();
@@ -85,7 +85,7 @@ uint64_t clock_tic() noexcept {
 
   return clock64();
 
-#elif defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_ARCH_INTEL_GEN) && \
+#elif defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_ARCH_INTEL_GPU) && \
     defined(__SYCL_DEVICE_ONLY__)
   return intel_get_cycle_counter();
 #elif defined(KOKKOS_ENABLE_OPENMPTARGET)

@@ -26,8 +26,7 @@ VirtualMatrix::VirtualMatrix(){
   numrows = numcols = 0;
 }
 
-VirtualMatrix::~VirtualMatrix(){
-}
+VirtualMatrix::~VirtualMatrix()= default;
 
 int VirtualMatrix::GetNumRows() const {
   return numrows;

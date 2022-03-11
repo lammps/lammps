@@ -155,7 +155,7 @@ FixFilterCorotate::FixFilterCorotate(LAMMPS *lmp, int narg, char **arg) :
   shake_atom = nullptr;
   shake_type = nullptr;
 
-  grow_arrays(atom->nmax);
+  FixFilterCorotate::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);    //calls grow_arrays
 
   x_store = nullptr;
@@ -715,7 +715,7 @@ void FixFilterCorotate::post_force_respa(int /*vflag*/, int ilevel, int /*iloop*
   {
     atom->x = x_store;
 
-    comm->forward_comm_fix(this); //comm forward of forces for outer filter
+    comm->forward_comm(this); //comm forward of forces for outer filter
 
     filter_outer();
   }

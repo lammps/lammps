@@ -20,16 +20,14 @@
 
 #include "atom.h"
 #include "comm.h"
-#include "error.h"
 #include "force.h"
 #include "math_const.h"
 #include "neighbor.h"
-#include "suffix.h"
-#include "update.h"
 
 #include <cmath>
 
 #include "omp_compat.h"
+#include "suffix.h"
 using namespace LAMMPS_NS;
 using namespace MathConst;
 

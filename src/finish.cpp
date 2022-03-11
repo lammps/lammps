@@ -364,14 +364,13 @@ void Finish::end(int flag)
   }
 
 #ifdef LMP_OPENMP
-  int ifix = modify->find_fix("package_omp");
+  FixOMP *fixomp = (FixOMP *) modify->get_fix_by_id("package_omp");
 
   // print thread breakdown only with full timer detail
 
-  if ((ifix >= 0) && timer->has_full() && me == 0) {
+  if (fixomp && timer->has_full() && me == 0) {
     double thr_total = 0.0;
     ThrData *td;
-    FixOMP *fixomp = static_cast<FixOMP *>(lmp->modify->fix[ifix]);
     for (i=0; i < nthreads; ++i) {
       td = fixomp->get_thr(i);
       thr_total += td->get_time(Timer::ALL);

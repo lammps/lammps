@@ -16,18 +16,17 @@
    Contributing author: Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
-#include "omp_compat.h"
-#include <cmath>
 #include "dihedral_quadratic_omp.h"
+
 #include "atom.h"
 #include "comm.h"
-#include "neighbor.h"
 #include "force.h"
-#include "update.h"
 #include "math_const.h"
-#include "error.h"
+#include "neighbor.h"
 
+#include <cmath>
 
+#include "omp_compat.h"
 #include "suffix.h"
 using namespace LAMMPS_NS;
 using namespace MathConst;

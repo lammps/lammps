@@ -51,6 +51,7 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR,"Illegal fix bond/create command");
 
+  dynamic_group_allow = 1;
   force_reneighbor = 1;
   next_reneighbor = -1;
   vector_flag = 1;
@@ -165,7 +166,7 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
   // bondcount values will be initialized in setup()
 
   bondcount = nullptr;
-  grow_arrays(atom->nmax);
+  FixBondCreate::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
   countflag = 0;
 
@@ -342,7 +343,7 @@ void FixBondCreate::setup(int /*vflag*/)
   // if newton_bond is set, need to sum bondcount
 
   commflag = 1;
-  if (newton_bond) comm->reverse_comm_fix(this,1);
+  if (newton_bond) comm->reverse_comm(this,1);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -373,7 +374,7 @@ void FixBondCreate::post_integrate()
   // forward comm of bondcount, so ghosts have it
 
   commflag = 1;
-  comm->forward_comm_fix(this,1);
+  comm->forward_comm(this,1);
 
   // resize bond partner list and initialize it
   // probability array overlays distsq array
@@ -410,6 +411,14 @@ void FixBondCreate::post_integrate()
   tagint **special = atom->special;
   int *mask = atom->mask;
   int *type = atom->type;
+
+  if (constrainflag) {
+    // communicate partner and 1-2 special neighbors
+    // to correctly handle angle constraints
+
+    commflag = 3;
+    comm->forward_comm(this);
+  }
 
   neighbor->build_one(list,1);
   inum = list->inum;
@@ -479,7 +488,7 @@ void FixBondCreate::post_integrate()
   // not needed if newton_pair off since I,J pair was seen by both procs
 
   commflag = 2;
-  if (force->newton_pair) comm->reverse_comm_fix(this);
+  if (force->newton_pair) comm->reverse_comm(this);
 
   // each atom now knows its winning partner
   // for prob check, generate random value for each atom with a bond partner
@@ -491,7 +500,7 @@ void FixBondCreate::post_integrate()
   }
 
   commflag = 2;
-  comm->forward_comm_fix(this,2);
+  comm->forward_comm(this,2);
 
   // create bonds for atoms I own
   // only if both atoms list each other as winning bond partner
@@ -588,7 +597,7 @@ void FixBondCreate::post_integrate()
   // 1-2 neighs already reflect created bonds
 
   commflag = 3;
-  comm->forward_comm_fix(this);
+  comm->forward_comm(this);
 
   // create list of broken bonds that influence my owned atoms
   //   even if between owned-ghost or ghost-ghost atoms
@@ -1429,7 +1438,7 @@ double FixBondCreate::memory_usage()
 {
   int nmax = atom->nmax;
   double bytes = (double)nmax * sizeof(int);
-  bytes = 2*nmax * sizeof(tagint);
+  bytes += 2*nmax * sizeof(tagint);
   bytes += (double)nmax * sizeof(double);
   return bytes;
 }

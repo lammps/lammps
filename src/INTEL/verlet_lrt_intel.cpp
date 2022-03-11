@@ -12,28 +12,28 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "verlet_lrt_intel.h"
-#include "neighbor.h"
-#include "domain.h"
-#include "comm.h"
+
+#include "angle.h"
 #include "atom.h"
 #include "atom_vec.h"
-#include "force.h"
-#include "pair.h"
 #include "bond.h"
-#include "angle.h"
+#include "comm.h"
+#include "compute.h"
 #include "dihedral.h"
+#include "domain.h"
+#include "error.h"
+#include "fix.h"
+#include "force.h"
 #include "improper.h"
 #include "kspace.h"
-#include "output.h"
-#include "update.h"
-#include "modify.h"
-#include "compute.h"
-#include "fix.h"
-#include "timer.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
+#include "neighbor.h"
+#include "output.h"
+#include "pair.h"
+#include "timer.h"
+#include "update.h"
 
 #if defined(_OPENMP)
 #include <omp.h>
@@ -71,7 +71,7 @@ void VerletLRTIntel::init()
 
   #ifndef LMP_INTEL_USELRT
   error->all(FLERR,
-             "LRT otion for Intel package disabled at compile time");
+             "LRT otion for INTEL package disabled at compile time");
   #endif
 }
 

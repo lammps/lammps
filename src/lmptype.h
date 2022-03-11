@@ -288,12 +288,6 @@ union ubuf {
 #define _noopt
 #endif
 
-// settings to enable LAMMPS to build under Windows
-
-#ifdef _WIN32
-#include "lmpwindows.h"
-#endif
-
 // suppress unused parameter warning
 
 #define LMP_UNUSED_PARAM(x) (void) (x)

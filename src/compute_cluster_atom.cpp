@@ -131,14 +131,14 @@ void ComputeClusterAtom::compute_peratom()
 
   if (update->post_integrate) {
     commflag = COORDS;
-    comm->forward_comm_compute(this);
+    comm->forward_comm(this);
   }
 
   // if group is dynamic, insure ghost atom masks are current
 
   if (group->dynamic[igroup]) {
     commflag = MASK;
-    comm->forward_comm_compute(this);
+    comm->forward_comm(this);
   }
 
   // every atom starts in its own cluster, with clusterID = atomID
@@ -164,11 +164,11 @@ void ComputeClusterAtom::compute_peratom()
 
   int change,done,anychange;
 
-  while (1) {
-    comm->forward_comm_compute(this);
+  while (true) {
+    comm->forward_comm(this);
 
     change = 0;
-    while (1) {
+    while (true) {
       done = 1;
       for (ii = 0; ii < inum; ii++) {
         i = ilist[ii];

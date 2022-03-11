@@ -35,16 +35,16 @@ class ComputeChunkAtom : public Compute {
   int *ichunk, *chunkID;
 
   ComputeChunkAtom(class LAMMPS *, int, char **);
-  ~ComputeChunkAtom();
-  void init();
-  void setup();
-  void compute_peratom();
-  double compute_scalar();
-  void set_arrays(int);
-  double memory_usage();
+  ~ComputeChunkAtom() override;
+  void init() override;
+  void setup() override;
+  void compute_peratom() override;
+  double compute_scalar() override;
+  void set_arrays(int) override;
+  double memory_usage() override;
 
-  void lock(class Fix *, bigint, bigint);
-  void unlock(class Fix *);
+  void lock(class Fix *, bigint, bigint) override;
+  void unlock(class Fix *) override;
   int setup_chunks();
   void compute_ichunk();
 

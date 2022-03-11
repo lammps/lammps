@@ -15,6 +15,8 @@
 
 #include "accelerator_kokkos.h"
 #include "input.h"
+#include "lmppython.h"
+
 #if defined(LAMMPS_EXCEPTIONS)
 #include "exceptions.h"
 #endif
@@ -24,10 +26,6 @@
 
 #if defined(LAMMPS_TRAP_FPE) && defined(_GNU_SOURCE)
 #include <fenv.h>
-#endif
-
-#if defined(LAMMPS_EXCEPTIONS)
-#include "exceptions.h"
 #endif
 
 // import MolSSI Driver Interface library
@@ -79,15 +77,18 @@ int main(int argc, char **argv)
     delete lammps;
   } catch (LAMMPSAbortException &ae) {
     KokkosLMP::finalize();
+    Python::finalize();
     MPI_Abort(ae.universe, 1);
-  } catch (LAMMPSException &e) {
+  } catch (LAMMPSException &) {
     KokkosLMP::finalize();
+    Python::finalize();
     MPI_Barrier(lammps_comm);
     MPI_Finalize();
     exit(1);
   } catch (fmt::format_error &fe) {
     fprintf(stderr, "fmt::format_error: %s\n", fe.what());
     KokkosLMP::finalize();
+    Python::finalize();
     MPI_Abort(MPI_COMM_WORLD, 1);
     exit(1);
   }
@@ -99,11 +100,13 @@ int main(int argc, char **argv)
   } catch (fmt::format_error &fe) {
     fprintf(stderr, "fmt::format_error: %s\n", fe.what());
     KokkosLMP::finalize();
+    Python::finalize();
     MPI_Abort(MPI_COMM_WORLD, 1);
     exit(1);
   }
 #endif
   KokkosLMP::finalize();
+  Python::finalize();
   MPI_Barrier(lammps_comm);
   MPI_Finalize();
 }

@@ -27,7 +27,6 @@
 #include "memory.h"
 #include "neighbor.h"
 #include "neigh_list.h"
-#include "update.h"
 
 #include <cmath>
 #include <cstring>

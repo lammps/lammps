@@ -33,7 +33,7 @@ class AngleDipoleOMP : public AngleDipole, public ThrOMP {
 
  public:
   AngleDipoleOMP(class LAMMPS *lmp);
-  virtual void compute(int, int);
+  void compute(int, int) override;
 
  private:
   template <int EFLAG> void eval(int ifrom, int ito, ThrData *const thr);

@@ -17,8 +17,8 @@ FixStyle(atom/swap,FixAtomSwap);
 // clang-format on
 #else
 
-#ifndef LMP_FIX_MCSWAP_H
-#define LMP_FIX_MCSWAP_H
+#ifndef LMP_FIX_ATOM_SWAP_H
+#define LMP_FIX_ATOM_SWAP_H
 
 #include "fix.h"
 
@@ -27,28 +27,20 @@ namespace LAMMPS_NS {
 class FixAtomSwap : public Fix {
  public:
   FixAtomSwap(class LAMMPS *, int, char **);
-  ~FixAtomSwap();
-  int setmask();
-  void init();
-  void pre_exchange();
-  int attempt_semi_grand();
-  int attempt_swap();
-  double energy_full();
-  int pick_semi_grand_atom();
-  int pick_i_swap_atom();
-  int pick_j_swap_atom();
-  void update_semi_grand_atoms_list();
-  void update_swap_atoms_list();
-  int pack_forward_comm(int, int *, double *, int, int *);
-  void unpack_forward_comm(int, int, double *);
-  double compute_vector(int);
-  double memory_usage();
-  void write_restart(FILE *);
-  void restart(char *);
+  ~FixAtomSwap() override;
+  int setmask() override;
+  void init() override;
+  void pre_exchange() override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  double compute_vector(int) override;
+  double memory_usage() override;
+  void write_restart(FILE *) override;
+  void restart(char *) override;
 
  private:
   int nevery, seed;
-  int conserve_ke_flag;    // yes = conserve ke, no = do not conserve ke
+  int ke_flag;              // yes = conserve ke, no = do not conserve ke
   int semi_grand_flag;     // yes = semi-grand canonical, no = constant composition
   int ncycles;
   int niswap, njswap;                  // # of i,j swap atoms on all procs
@@ -85,6 +77,14 @@ class FixAtomSwap : public Fix {
   class Compute *c_pe;
 
   void options(int, char **);
+  int attempt_semi_grand();
+  int attempt_swap();
+  double energy_full();
+  int pick_semi_grand_atom();
+  int pick_i_swap_atom();
+  int pick_j_swap_atom();
+  void update_semi_grand_atoms_list();
+  void update_swap_atoms_list();
 };
 
 }    // namespace LAMMPS_NS

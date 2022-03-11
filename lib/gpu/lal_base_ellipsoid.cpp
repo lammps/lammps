@@ -29,8 +29,7 @@ const char *ellipsoid_nbor=0;
 extern Device<PRECISION,ACC_PRECISION> global_device;
 
 template <class numtyp, class acctyp>
-BaseEllipsoidT::BaseEllipsoid() : _compiled(false), _max_bytes(0),
-                                  host_olist_size(0) {
+BaseEllipsoidT::BaseEllipsoid() : host_olist_size(0), _compiled(false), _max_bytes(0) {
   device=&global_device;
   ans=new Answer<numtyp,acctyp>();
   nbor=new Neighbor();
@@ -69,7 +68,7 @@ BaseEllipsoidT::~BaseEllipsoid() {
 }
 
 template <class numtyp, class acctyp>
-int BaseEllipsoidT::bytes_per_atom(const int max_nbors) const {
+int BaseEllipsoidT::bytes_per_atom_ellipsoid(const int max_nbors) const {
   return device->atom.bytes_per_atom()+ans->bytes_per_atom()+
          nbor->bytes_per_atom(max_nbors);
 }

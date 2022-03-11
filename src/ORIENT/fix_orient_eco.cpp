@@ -344,7 +344,7 @@ void FixOrientECO::post_force(int /* vflag */) {
   // potential is not zero
   if (u_0 != 0.0) {
     // communicate to acquire nbr data for ghost atoms
-    comm->forward_comm_fix(this);
+    comm->forward_comm(this);
 
     // loop over all atoms
     for (ii = 0; ii < inum; ++ii) {
@@ -550,7 +550,7 @@ int FixOrientECO::get_norm() {
         squared_distance = delta[0] * delta[0] + delta[1] * delta[1] + delta[2] * delta[2];
 
         // check if atom is within cutoff region
-        if ((squared_distance != 0.0) and (squared_distance < squared_cutoff)) {
+        if ((squared_distance != 0.0) && (squared_distance < squared_cutoff)) {
           ++neigh;
           squared_distance *= inv_squared_cutoff;
 

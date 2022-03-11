@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -29,10 +28,10 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeAngmomChunk::ComputeAngmomChunk(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  idchunk(nullptr), massproc(nullptr), masstotal(nullptr), com(nullptr), comall(nullptr), angmom(nullptr), angmomall(nullptr)
+    Compute(lmp, narg, arg), idchunk(nullptr), massproc(nullptr), masstotal(nullptr), com(nullptr),
+    comall(nullptr), angmom(nullptr), angmomall(nullptr)
 {
-  if (narg != 4) error->all(FLERR,"Illegal compute angmom/chunk command");
+  if (narg != 4) error->all(FLERR, "Illegal compute angmom/chunk command");
 
   array_flag = 1;
   size_array_cols = 3;
@@ -57,7 +56,7 @@ ComputeAngmomChunk::ComputeAngmomChunk(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeAngmomChunk::~ComputeAngmomChunk()
 {
-  delete [] idchunk;
+  delete[] idchunk;
   memory->destroy(massproc);
   memory->destroy(masstotal);
   memory->destroy(com);
@@ -70,21 +69,18 @@ ComputeAngmomChunk::~ComputeAngmomChunk()
 
 void ComputeAngmomChunk::init()
 {
-  int icompute = modify->find_compute(idchunk);
-  if (icompute < 0)
-    error->all(FLERR,"Chunk/atom compute does not exist for "
-               "compute angmom/chunk");
-  cchunk = (ComputeChunkAtom *) modify->compute[icompute];
-  if (strcmp(cchunk->style,"chunk/atom") != 0)
-    error->all(FLERR,"Compute angmom/chunk does not use chunk/atom compute");
+  cchunk = (ComputeChunkAtom *) modify->get_compute_by_id(idchunk);
+  if (!cchunk) error->all(FLERR, "Chunk/atom compute does not exist for compute angmom/chunk");
+  if (strcmp(cchunk->style, "chunk/atom") != 0)
+    error->all(FLERR, "Compute angmom/chunk does not use chunk/atom compute");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void ComputeAngmomChunk::compute_array()
 {
-  int i,index;
-  double dx,dy,dz,massone;
+  int i, index;
+  double dx, dy, dz, massone;
   double unwrap[3];
 
   invoked_array = update->ntimestep;
@@ -120,19 +116,21 @@ void ComputeAngmomChunk::compute_array()
 
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      index = ichunk[i]-1;
+      index = ichunk[i] - 1;
       if (index < 0) continue;
-      if (rmass) massone = rmass[i];
-      else massone = mass[type[i]];
-      domain->unmap(x[i],image[i],unwrap);
+      if (rmass)
+        massone = rmass[i];
+      else
+        massone = mass[type[i]];
+      domain->unmap(x[i], image[i], unwrap);
       massproc[index] += massone;
       com[index][0] += unwrap[0] * massone;
       com[index][1] += unwrap[1] * massone;
       com[index][2] += unwrap[2] * massone;
     }
 
-  MPI_Allreduce(massproc,masstotal,nchunk,MPI_DOUBLE,MPI_SUM,world);
-  MPI_Allreduce(&com[0][0],&comall[0][0],3*nchunk,MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(massproc, masstotal, nchunk, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(&com[0][0], &comall[0][0], 3 * nchunk, MPI_DOUBLE, MPI_SUM, world);
 
   for (i = 0; i < nchunk; i++) {
     if (masstotal[i] > 0.0) {
@@ -148,21 +146,22 @@ void ComputeAngmomChunk::compute_array()
 
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      index = ichunk[i]-1;
+      index = ichunk[i] - 1;
       if (index < 0) continue;
-      domain->unmap(x[i],image[i],unwrap);
+      domain->unmap(x[i], image[i], unwrap);
       dx = unwrap[0] - comall[index][0];
       dy = unwrap[1] - comall[index][1];
       dz = unwrap[2] - comall[index][2];
-      if (rmass) massone = rmass[i];
-      else massone = mass[type[i]];
-      angmom[index][0] += massone * (dy*v[i][2] - dz*v[i][1]);
-      angmom[index][1] += massone * (dz*v[i][0] - dx*v[i][2]);
-      angmom[index][2] += massone * (dx*v[i][1] - dy*v[i][0]);
+      if (rmass)
+        massone = rmass[i];
+      else
+        massone = mass[type[i]];
+      angmom[index][0] += massone * (dy * v[i][2] - dz * v[i][1]);
+      angmom[index][1] += massone * (dz * v[i][0] - dx * v[i][2]);
+      angmom[index][2] += massone * (dx * v[i][1] - dy * v[i][0]);
     }
 
-  MPI_Allreduce(&angmom[0][0],&angmomall[0][0],3*nchunk,
-                MPI_DOUBLE,MPI_SUM,world);
+  MPI_Allreduce(&angmom[0][0], &angmomall[0][0], 3 * nchunk, MPI_DOUBLE, MPI_SUM, world);
 }
 
 /* ----------------------------------------------------------------------
@@ -209,7 +208,7 @@ int ComputeAngmomChunk::lock_length()
 
 void ComputeAngmomChunk::lock(Fix *fixptr, bigint startstep, bigint stopstep)
 {
-  cchunk->lock(fixptr,startstep,stopstep);
+  cchunk->lock(fixptr, startstep, stopstep);
 }
 
 /* ----------------------------------------------------------------------
@@ -234,12 +233,12 @@ void ComputeAngmomChunk::allocate()
   memory->destroy(angmom);
   memory->destroy(angmomall);
   maxchunk = nchunk;
-  memory->create(massproc,maxchunk,"angmom/chunk:massproc");
-  memory->create(masstotal,maxchunk,"angmom/chunk:masstotal");
-  memory->create(com,maxchunk,3,"angmom/chunk:com");
-  memory->create(comall,maxchunk,3,"angmom/chunk:comall");
-  memory->create(angmom,maxchunk,3,"angmom/chunk:angmom");
-  memory->create(angmomall,maxchunk,3,"angmom/chunk:angmomall");
+  memory->create(massproc, maxchunk, "angmom/chunk:massproc");
+  memory->create(masstotal, maxchunk, "angmom/chunk:masstotal");
+  memory->create(com, maxchunk, 3, "angmom/chunk:com");
+  memory->create(comall, maxchunk, 3, "angmom/chunk:comall");
+  memory->create(angmom, maxchunk, 3, "angmom/chunk:angmom");
+  memory->create(angmomall, maxchunk, 3, "angmom/chunk:angmomall");
   array = angmomall;
 }
 
@@ -250,7 +249,7 @@ void ComputeAngmomChunk::allocate()
 double ComputeAngmomChunk::memory_usage()
 {
   double bytes = (bigint) maxchunk * 2 * sizeof(double);
-  bytes += (double) maxchunk * 2*3 * sizeof(double);
-  bytes += (double) maxchunk * 2*3 * sizeof(double);
+  bytes += (double) maxchunk * 2 * 3 * sizeof(double);
+  bytes += (double) maxchunk * 2 * 3 * sizeof(double);
   return bytes;
 }

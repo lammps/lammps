@@ -32,7 +32,7 @@ class Body : protected Pointers {
   AtomVecBody *avec;    // ptr to class that stores body bonus info
 
   Body(class LAMMPS *, int, char **);
-  virtual ~Body();
+  ~Body() override;
 
   // methods implemented by child classes
 

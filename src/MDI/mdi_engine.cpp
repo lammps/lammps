@@ -33,14 +33,12 @@
 #include "library.h"
 #include "memory.h"
 #include "min.h"
-#include "minimize.h"
 #include "modify.h"
 #include "neighbor.h"
 #include "output.h"
 #include "thermo.h"
 #include "timer.h"
 #include "update.h"
-#include "verlet.h"
 
 #include <mdi.h>
 
@@ -705,7 +703,7 @@ void MDIEngine::mdi_md()
   // driver can communicate with LAMMPS within each timestep 
   // by sending a node command which matches a method in FixMDIEngine
 
-  while (1) {
+  while (true) {
     update->whichflag = 1;
     timer->init_timeout();
     update->nsteps += 1;
